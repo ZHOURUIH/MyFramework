@@ -1,0 +1,59 @@
+#
+# Sprite sheet data for Unity.
+#
+# To import these sprites into your Unity project, download "TexturePackerImporter":
+# https://www.codeandweb.com/texturepacker/unity
+#
+# $TexturePacker:SmartUpdate:98aae1104053b7c269b72a8054046a7a:fdbbbd56bcaab33122c508f814bd5034:f12ece000a37ebabf40ed8dace8432b9$
+#
+:format=40300
+:texture=CommonNumber.png
+:size=512x512
+:pivotpoints=enabled
+:borders=disabled
+
+miss;2;446;128;64; 0.5;0.5; 0;0;0;0
+Number_Magic_0;133;446;64;64; 0.5;0.5; 0;0;0;0
+Number_Magic_1;200;446;64;64; 0.5;0.5; 0;0;0;0
+Number_Magic_2;267;446;64;64; 0.5;0.5; 0;0;0;0
+Number_Magic_3;334;446;64;64; 0.5;0.5; 0;0;0;0
+Number_Magic_4;401;446;64;64; 0.5;0.5; 0;0;0;0
+Number_Magic_5;2;379;64;64; 0.5;0.5; 0;0;0;0
+Number_Magic_6;2;312;64;64; 0.5;0.5; 0;0;0;0
+Number_Magic_7;2;245;64;64; 0.5;0.5; 0;0;0;0
+Number_Magic_8;2;178;64;64; 0.5;0.5; 0;0;0;0
+Number_Magic_9;2;111;64;64; 0.5;0.5; 0;0;0;0
+Number_Magic_Critical;2;44;64;64; 0.5;0.5; 0;0;0;0
+Number_Physics_0;69;379;64;64; 0.5;0.5; 0;0;0;0
+Number_Physics_1;69;312;64;64; 0.5;0.5; 0;0;0;0
+Number_Physics_2;69;245;64;64; 0.5;0.5; 0;0;0;0
+Number_Physics_3;69;178;64;64; 0.5;0.5; 0;0;0;0
+Number_Physics_4;69;111;64;64; 0.5;0.5; 0;0;0;0
+Number_Physics_5;69;44;64;64; 0.5;0.5; 0;0;0;0
+Number_Physics_6;136;379;64;64; 0.5;0.5; 0;0;0;0
+Number_Physics_7;203;379;64;64; 0.5;0.5; 0;0;0;0
+Number_Physics_8;270;379;64;64; 0.5;0.5; 0;0;0;0
+Number_Physics_9;337;379;64;64; 0.5;0.5; 0;0;0;0
+Number_Physics_Critical;404;379;64;64; 0.5;0.5; 0;0;0;0
+Number_Recover_0;136;312;64;64; 0.5;0.5; 0;0;0;0
+Number_Recover_1;136;245;64;64; 0.5;0.5; 0;0;0;0
+Number_Recover_2;136;178;64;64; 0.5;0.5; 0;0;0;0
+Number_Recover_3;136;111;64;64; 0.5;0.5; 0;0;0;0
+Number_Recover_4;136;44;64;64; 0.5;0.5; 0;0;0;0
+Number_Recover_5;203;312;64;64; 0.5;0.5; 0;0;0;0
+Number_Recover_6;270;312;64;64; 0.5;0.5; 0;0;0;0
+Number_Recover_7;337;312;64;64; 0.5;0.5; 0;0;0;0
+Number_Recover_8;404;312;64;64; 0.5;0.5; 0;0;0;0
+Number_Recover_9;203;245;64;64; 0.5;0.5; 0;0;0;0
+Number_Recover_Critical;203;178;64;64; 0.5;0.5; 0;0;0;0
+Number_Restraint_0;203;111;64;64; 0.5;0.5; 0;0;0;0
+Number_Restraint_1;203;44;64;64; 0.5;0.5; 0;0;0;0
+Number_Restraint_2;270;245;64;64; 0.5;0.5; 0;0;0;0
+Number_Restraint_3;337;245;64;64; 0.5;0.5; 0;0;0;0
+Number_Restraint_4;404;245;64;64; 0.5;0.5; 0;0;0;0
+Number_Restraint_5;270;178;64;64; 0.5;0.5; 0;0;0;0
+Number_Restraint_6;270;111;64;64; 0.5;0.5; 0;0;0;0
+Number_Restraint_7;270;44;64;64; 0.5;0.5; 0;0;0;0
+Number_Restraint_8;337;178;64;64; 0.5;0.5; 0;0;0;0
+Number_Restraint_9;404;178;64;64; 0.5;0.5; 0;0;0;0
+Number_Restraint_Critical;337;111;64;64; 0.5;0.5; 0;0;0;0

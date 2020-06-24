@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: f7c5f242e4f3bda4aaeab817344f202e
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: shader/builtinshader/cgincludes.unity3d
+  assetBundleVariant: 
