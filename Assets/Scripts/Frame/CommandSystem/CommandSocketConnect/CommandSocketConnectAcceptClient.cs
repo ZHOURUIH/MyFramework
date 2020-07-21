@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections;
-using System.Net;
 using System.Net.Sockets;
 
 public class CommandSocketConnectAcceptClient : Command
@@ -11,7 +10,7 @@ public class CommandSocketConnectAcceptClient : Command
 	{
 		base.init();
 		mSocket = null;
-		mIP = EMPTY_STRING;
+		mIP = null;
 	}
 	public override void execute()
 	{

@@ -13,7 +13,7 @@ public class CommandCharacterRemoveState : Command
 		base.init();
 		mState = null;
 		mStateGroup = null;
-		mParam = EMPTY_STRING;
+		mParam = null;
 	}
 	public override void execute()
 	{

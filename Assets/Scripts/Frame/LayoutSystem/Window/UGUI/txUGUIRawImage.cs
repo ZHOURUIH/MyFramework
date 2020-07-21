@@ -7,9 +7,9 @@ public class txUGUIRawImage : txUGUIObject, IShaderWindow
 	protected RawImage mRawImage;
 	protected WindowShader mWindowShader;
 	protected bool mIsNewMaterial;
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		mRawImage = mObject.GetComponent<RawImage>();
 		if (mRawImage == null)
 		{
@@ -24,7 +24,7 @@ public class txUGUIRawImage : txUGUIObject, IShaderWindow
 		}
 		string materialName = getMaterialName();
 		// 不再将默认材质替换为自定义的默认材质,只判断其他材质
-		if (materialName.Length != 0 && materialName != "Default UI Material")
+		if (!isEmpty(materialName) && materialName != CommonDefine.BUILDIN_UI_MATERIAL)
 		{
 			bool newMaterial = !mShaderManager.isSingleShader(materialName);
 			if (newMaterial)
@@ -102,36 +102,34 @@ public class txUGUIRawImage : txUGUIObject, IShaderWindow
 	{
 		if (mRawImage == null || mRawImage.texture == null)
 		{
-			return EMPTY_STRING;
+			return null;
 		}
 		return mRawImage.texture.name;
 	}
 	public void setTextureName(string name, bool useTextureSize = false)
 	{
-		if (name.Length != 0)
-		{
-			// 允许同步加载时,使用同步加载
-			if (mResourceManager.syncLoadAvalaible())
-			{
-				Texture tex = mResourceManager.loadResource<Texture>(name, true);
-				setTexture(tex, useTextureSize);
-			}
-			// 否则只能使用异步加载
-			else
-			{
-				mResourceManager.loadResourceAsync<Texture>(name, onTextureLoaded, useTextureSize, true);
-			}
-		}
-		else
+		if (isEmpty(name))
 		{
 			setTexture(null, useTextureSize);
+			return;
+		}
+		// 允许同步加载时,使用同步加载
+		if (mResourceManager.syncLoadAvalaible())
+		{
+			Texture tex = mResourceManager.loadResource<Texture>(name, true);
+			setTexture(tex, useTextureSize);
+		}
+		// 否则只能使用异步加载
+		else
+		{
+			mResourceManager.loadResourceAsync<Texture>(name, onTextureLoaded, useTextureSize, true);
 		}
 	}
 	public string getMaterialName()
 	{
 		if (mRawImage == null || mRawImage.material == null)
 		{
-			return EMPTY_STRING;
+			return null;
 		}
 		return mRawImage.material.name;
 	}

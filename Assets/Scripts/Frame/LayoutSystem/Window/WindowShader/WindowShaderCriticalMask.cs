@@ -14,7 +14,7 @@ public class WindowShaderCriticalMask : WindowShader
 		base.applyShader(mat);
 		if (mat != null && mat.shader != null)
 		{
-			if (mat.shader.name == mCriticalMask)
+			if (getFileName(mat.shader.name) == mCriticalMask)
 			{
 				mat.SetFloat("_CriticalValue", mCriticalValue);
 				mat.SetInt("_InverseVertical", mInverseVertical ? 1 : 0);

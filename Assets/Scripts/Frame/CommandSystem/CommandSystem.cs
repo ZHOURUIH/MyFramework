@@ -5,10 +5,10 @@ using System;
 
 public class CommandSystem : FrameComponent
 {
-	protected CommandPool mCommandPool;
 	protected List<Command> mCommandBufferProcess;	// 用于处理的命令列表
 	protected List<Command> mCommandBufferInput;	// 用于放入命令的命令列表
-	protected List<Command> mExecuteList;			// 即将在这一帧执行的命令
+	protected List<Command> mExecuteList;           // 即将在这一帧执行的命令
+	protected CommandPool mCommandPool;
 	protected ThreadLock mBufferLock;
 	protected bool mTraceCommand;   // 是否追踪命令的来源
 	public CommandSystem(string name)
@@ -86,7 +86,7 @@ public class CommandSystem : FrameComponent
 		if (mTraceCommand)
 		{
 			int line = 0;
-			string file = EMPTY_STRING;
+			string file = null;
 			int frame = 2;
 			while (true)
 			{
@@ -133,7 +133,7 @@ public class CommandSystem : FrameComponent
 			}
 			return false;
 		}
-		bool success = false;
+
 		syncCommandBuffer();
 		foreach (var item in mCommandBufferProcess)
 		{
@@ -143,10 +143,11 @@ public class CommandSystem : FrameComponent
 				mCommandBufferProcess.Remove(item);
 				// 销毁回收命令
 				mCommandPool.destroyCmd(item);
-				success = true;
 				return true;
 			}
 		}
+
+		bool success = false;
 		// 在即将执行的列表中查找,不能删除列表元素，只能将接收者设置为空来阻止命令执行,如果正在执行该命令,则没有效果
 		foreach (var item in mExecuteList)
 		{

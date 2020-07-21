@@ -486,10 +486,6 @@ public class UGUIScroll : GameBase
 		{
 			mScrollSpeed = sign(moveDelta.y) * abs(moveDelta.y / moveTime) * mDragSensitive * 0.01f;
 		}
-		else
-		{
-			return;
-		}
 	}
 	protected void onMouseStay(Vector2 mousePos)
 	{

@@ -5,10 +5,10 @@ using System.Collections.Generic;
 public class AudioInfo
 {
 	public AudioClip mClip;
+	public LOAD_STATE mState;
 	public string mAudioName;   // 音效名,不含路径和后缀名
 	public string mAudioPath;   // 相对于Sound的路径
 	public string mSuffix;      // 后缀名
-	public LOAD_STATE mState;
 	public bool mIsResource;    // 是否为固定资源,如果为false则是通过链接加载的,可以是网络链接也可以是本地链接
 }
 
@@ -55,10 +55,10 @@ public class AudioManager : FrameComponent
 		int dataCount = mDataBase.getDataCount<DataGameSound>();
 		for(int i = 0; i < dataCount; ++i)
 		{
-			DataGameSound soundData = mDataBase.queryData<DataGameSound>(i) as DataGameSound;
+			var soundData = mDataBase.queryData<DataGameSound>(i);
 			string fileName = bytesToString(soundData.mSoundFileName);
 			string audioName = getFileNameNoSuffix(fileName, true);
-			registeSoundDefine((SOUND_DEFINE)(soundData.mSoundID), audioName, fileName, soundData.mVolumeScale);
+			registeSoundDefine((SOUND_DEFINE)soundData.mSoundID, audioName, fileName, soundData.mVolumeScale);
 		}
 	}
 	public override void destroy()
@@ -140,7 +140,10 @@ public class AudioManager : FrameComponent
 	}
 	public float getAudioLength(string name)
 	{
-		if(!mAudioClipList.ContainsKey(name) || mAudioClipList[name] == null || mAudioClipList[name].mClip == null)
+		if (isEmpty(name) || 
+			!mAudioClipList.ContainsKey(name) || 
+			mAudioClipList[name] == null || 
+			mAudioClipList[name].mClip == null)
 		{
 			return 0.0f;
 		}
@@ -148,7 +151,7 @@ public class AudioManager : FrameComponent
 	}
 	public float getAudioLength(SOUND_DEFINE sound)
 	{
-		string soundName = sound != SOUND_DEFINE.SD_MAX ? mAudioManager.getAudioName(sound) : EMPTY_STRING;
+		string soundName = sound != SOUND_DEFINE.SD_MAX ? mAudioManager.getAudioName(sound) : null;
 		return getAudioLength(soundName);
 	}
 	// volume范围0-1,load表示如果音效未加载,则加载音效
@@ -215,7 +218,7 @@ public class AudioManager : FrameComponent
 		{
 			return mVolumeScale[sound];
 		}
-		return 1f;
+		return 1.0f;
 	}
 	public string getAudioName(SOUND_DEFINE soundDefine)
 	{
@@ -223,7 +226,7 @@ public class AudioManager : FrameComponent
 		{
 			return mSoundDefineMap[soundDefine];
 		}
-		return EMPTY_STRING;
+		return null;
 	}
 	// 参数为Sound下的相对路径,并且不带后缀,只根据文件名查找音效
 	public void registeAudio(string fileName)
@@ -237,7 +240,7 @@ public class AudioManager : FrameComponent
 			newInfo.mClip = null;
 			newInfo.mState = LOAD_STATE.LS_UNLOAD;
 			newInfo.mIsResource = true;
-			newInfo.mSuffix = EMPTY_STRING;
+			newInfo.mSuffix = null;
 			mAudioClipList.Add(audioName, newInfo);
 		}
 	}

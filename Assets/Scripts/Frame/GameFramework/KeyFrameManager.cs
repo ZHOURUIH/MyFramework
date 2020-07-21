@@ -21,6 +21,10 @@ public class KeyFrameManager : FrameComponent
 	}
 	public AnimationCurve getKeyFrame(string name)
 	{
+		if (isEmpty(name))
+		{
+			return null;
+		}
 		name = name.ToLower();
 		if (mCurveList.ContainsKey(name))
 		{
@@ -28,16 +32,13 @@ public class KeyFrameManager : FrameComponent
 		}
 		return null;
 	}
-	public override void init()
-	{
-		base.init();
-	}
 	// 加载所有KeyFrame下的关键帧
 	public void loadAll(bool async)
 	{
 		mLoadedCount = 0;
 		string path = CommonDefine.R_KEY_FRAME_PATH;
-		var fileList = mResourceManager.getFileList(path);
+		List<string> fileList = mListPool.newList(out fileList);
+		mResourceManager.getFileList(path, fileList);
 		int fileCount = fileList.Count;
 		for (int i = 0; i < fileCount; ++i)
 		{
@@ -67,6 +68,7 @@ public class KeyFrameManager : FrameComponent
 				onKeyFrameLoaded(prefab, null, null, null, fileNameNoSuffix);
 			}
 		}
+		mListPool.destroyList(fileList);
 	}
 	public override void destroy()
 	{

@@ -19,15 +19,11 @@ public class SocketFactory : FrameComponent
 		mPacketTypeList = new Dictionary<PACKET_TYPE, PacketInfo>();
 		mClassTypeList = new Dictionary<Type, PacketInfo>();
 	}
-	public override void init()
-	{
-		base.init();
-	}
 	public void destroyPacket(SocketPacket packet)
 	{
 		mClassPool.destroyClass(packet);
 	}
-	public SocketPacket createClientPacket(PACKET_TYPE type)
+	public SocketPacket createSocketPacket(PACKET_TYPE type)
 	{
 		IClassObject packet;
 		bool isNewObject = mClassPool.newClass(out packet, mPacketTypeList[type].mClassType);
@@ -38,7 +34,7 @@ public class SocketFactory : FrameComponent
 		}
 		return socketPacket;
 	}
-	public T createClientPacket<T>() where T : SocketPacket, new()
+	public T createSocketPacket<T>() where T : SocketPacket, new()
 	{
 		// mClassPool.newClass只会执行类的构造函数,,所以其余的初始化工作需要由调用的地方来执行
 		// 如果是新创建的一个对象,则需要进行初始化,如果是使用之前的对象,则不需要操作

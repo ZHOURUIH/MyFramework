@@ -2,17 +2,11 @@
 using System.Collections;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
-using System.Text;
 using System.Collections.Generic;
 
 // 当前程序作为服务器时使用
 public abstract class SocketConnectServer : FrameComponent, ISocketConnect
 {
-	// 避免GC而创建的变量
-	private List<uint> mTempLogoutList;
-	private ArrayList mTempWriteList;
-	private ArrayList mTempReadList;
 	//--------------------------------------------------------------------------------
 	protected Dictionary<uint, NetClient> mClientList;
 	protected CustomThread mAcceptThread;
@@ -37,12 +31,8 @@ public abstract class SocketConnectServer : FrameComponent, ISocketConnect
 		mReceiveThread = new CustomThread("SocketReceive");
 		mSendThread = new CustomThread("SocketSend");
 		mRecvBuff = new byte[mMaxReceiveCount];
-		mTempLogoutList = new List<uint>();
-		mTempWriteList = new ArrayList();
-		mTempReadList = new ArrayList();
 		mHeartBeatTimer = new CustomTimer();
 	}
-	public override void init() { base.init(); }
 	public void start(int port, float heartBeatTimeOut, int backLog)
 	{
 		mPort = port;
@@ -79,22 +69,24 @@ public abstract class SocketConnectServer : FrameComponent, ISocketConnect
 	{
 		base.update(elapsedTime);
 		// 更新客户端,找出是否有客户端需要断开连接
-		mTempLogoutList.Clear();
+		List<uint> tempLogoutList = mListPool.newList(out tempLogoutList);
 		foreach (var item in mClientList)
 		{
 			item.Value.update(elapsedTime);
 			// 将已经死亡的客户端放入列表
 			if (item.Value.isDeadClient())
 			{
-				mTempLogoutList.Add(item.Key);
+				tempLogoutList.Add(item.Key);
 			}
 		}
 		// 断开死亡客户端,需要等待所有线程的当前帧都执行完毕,否则在此处直接销毁客户端会导致其他线程报错
-		int logoutCount = mTempLogoutList.Count;
+		int logoutCount = tempLogoutList.Count;
 		for (int i = 0; i < logoutCount; ++i)
 		{
-			disconnectSocket(mTempLogoutList[i]);
+			disconnectSocket(tempLogoutList[i]);
 		}
+		mListPool.destroyList(tempLogoutList);
+		// 心跳
 		if (mHeartBeatTimer.checkTimeCount(elapsedTime))
 		{
 			heartBeat();
@@ -107,7 +99,7 @@ public abstract class SocketConnectServer : FrameComponent, ISocketConnect
 		if (mClientList.ContainsKey(client))
 		{
 			logInfo("客户端断开连接:角色ID:" + uintToString(mClientList[client].getCharacterGUID()) +
-				",原因:" + mClientList[client].getDeadReason() + ", 剩余连接数:" + intToString(mClientList.Count - 1));
+					",原因:" + mClientList[client].getDeadReason() + ", 剩余连接数:" + (mClientList.Count - 1));
 			mClientList[client].destroy();
 			mClientList.Remove(client);
 		}
@@ -116,7 +108,7 @@ public abstract class SocketConnectServer : FrameComponent, ISocketConnect
 	}
 	public void sendPacket<T>(NetClient client) where T : SocketPacket, new()
 	{
-		T packet = createServerPacket(out packet);
+		T packet = mSocketFactory.createSocketPacket<T>();
 		client.sendServerPacket(packet);
 	}
 	public void sendPacket(SocketPacket packet, NetClient client)
@@ -140,18 +132,16 @@ public abstract class SocketConnectServer : FrameComponent, ISocketConnect
 	{
 		return mClientList.ContainsKey(clientID) ? mClientList[clientID] : null;
 	}
-	public abstract T createServerPacket<T>(out T packet) where T : SocketPacket, new();
-	public abstract SocketPacket createServerPacket(PACKET_TYPE type);
 	//------------------------------------------------------------------------------------------------------------------------
 	protected abstract NetClient createClient();
 	protected abstract void setNetState(NET_STATE state);
-	protected void heartBeat() { }
+	protected virtual void heartBeat() { }
 	protected void acceptThread(ref bool run)
 	{
 		Socket client = mServerSocket.Accept();
 		CommandSocketConnectAcceptClient cmdAccept = newCmd(out cmdAccept, true, true);
 		cmdAccept.mSocket = client;
-		cmdAccept.mIP = EMPTY_STRING;
+		cmdAccept.mIP = null;
 		pushDelayCommand(cmdAccept, this);
 	}
 	// 发送Socket消息
@@ -161,32 +151,32 @@ public abstract class SocketConnectServer : FrameComponent, ISocketConnect
 		{
 			return;
 		}
+		mClientSendLock.waitForUnlock();
 		try
 		{
-			mClientSendLock.waitForUnlock();
-			mTempWriteList.Clear();
+			List<Socket> tempWriteList = mListPool.newList(out tempWriteList);
 			foreach (var item in mClientList)
 			{
-				mTempWriteList.Add(item.Value.getSocket());
+				tempWriteList.Add(item.Value.getSocket());
 			}
-			if (mTempWriteList.Count > 0)
+			if (tempWriteList.Count > 0)
 			{
-				Socket.Select(null, mTempWriteList, null, 500);
+				Socket.Select(null, tempWriteList, null, 500);
 				foreach (var item in mClientList)
 				{
-					if (mTempWriteList.Contains(item.Value.getSocket()))
+					if (tempWriteList.Contains(item.Value.getSocket()))
 					{
 						item.Value.processSend();
 					}
 				}
 			}
-			mClientSendLock.unlock();
+			mListPool.destroyList(tempWriteList);
 		}
-		catch (SocketException)
+		catch (Exception e)
 		{
-			mClientSendLock.unlock();
-			return;
+			logInfo("send exception:" + e.Message, LOG_LEVEL.LL_FORCE);
 		}
+		mClientSendLock.unlock();
 	}
 	// 接收Socket消息
 	protected void receiveSocket(ref bool run)
@@ -195,20 +185,20 @@ public abstract class SocketConnectServer : FrameComponent, ISocketConnect
 		{
 			return;
 		}
+		mClientRecvLock.waitForUnlock();
 		try
 		{
-			mClientRecvLock.waitForUnlock();
-			mTempReadList.Clear();
+			List<Socket> tempReadList = mListPool.newList(out tempReadList);
 			foreach (var item in mClientList)
 			{
-				mTempReadList.Add(item.Value.getSocket());
+				tempReadList.Add(item.Value.getSocket());
 			}
-			if (mTempReadList.Count > 0)
+			if (tempReadList.Count > 0)
 			{
-				Socket.Select(mTempReadList, null, null, 500);
+				Socket.Select(tempReadList, null, null, 500);
 				foreach (var item in mClientList)
 				{
-					if (mTempReadList.Contains(item.Value.getSocket()))
+					if (tempReadList.Contains(item.Value.getSocket()))
 					{
 						Socket clientSocket = item.Value.getSocket();
 						int nRecv = clientSocket.Receive(mRecvBuff);
@@ -216,13 +206,13 @@ public abstract class SocketConnectServer : FrameComponent, ISocketConnect
 					}
 				}
 			}
-			mClientRecvLock.unlock();
+			mListPool.destroyList(tempReadList);
 		}
-		catch (SocketException)
+		catch (SocketException e)
 		{
+			logInfo("recv exception:" + e.Message, LOG_LEVEL.LL_FORCE);
 			setNetState(NET_STATE.NS_NET_CLOSE);
-			mClientRecvLock.unlock();
-			return;
 		}
+		mClientRecvLock.unlock();
 	}
 }

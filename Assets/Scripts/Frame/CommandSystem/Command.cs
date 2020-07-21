@@ -23,9 +23,9 @@ public class Command : GameBase
 	public int mLine;					// 命令发出的代码行号
 	public Command()
 	{
-		mReceiver = null;
 		mEndCallback = new List<CommandCallback>();
 		mStartCallback = new List<CommandCallback>();
+		mReceiver = null;
 		mValid = false;
 		mAssignID = -1;
 		mResult = null;
@@ -56,7 +56,7 @@ public class Command : GameBase
 	public Type getType()							{ return mType; }
 	public EXECUTE_STATE getExecuteState()			{ return mExecuteState; }
 	public float getDelayTime()						{ return mDelayTime; }
-	public bool isIgnoreTimeScale()				{ return mIgnoreTimeScale; }
+	public bool isIgnoreTimeScale()					{ return mIgnoreTimeScale; }
 	public void setShowDebugInfo(bool show)			{ mShowDebugInfo = show; }
 	public void setDelayCommand(bool delay)			{ mDelayCommand = delay; }
 	public void setReceiver(CommandReceiver Reciver){ mReceiver = Reciver; }

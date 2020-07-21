@@ -142,11 +142,13 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 	}
 	public void destroyAllComponents()
 	{
-		List<Type> keys = new List<Type>(mAllComponentTypeList.Keys);
+		List<Type> keys = mListPool.newList(out keys);
+		keys.AddRange(mAllComponentTypeList.Keys);
 		for (int i = 0; i < keys.Count; ++i)
 		{
 			mAllComponentTypeList[keys[i]].destroy();
 		}
+		mListPool.destroyList(keys);
 	}
 	public Dictionary<Type, GameComponent> getAllComponent() { return mAllComponentTypeList; }
 	public T getComponent<T>(out T component, bool needActive = false, bool addIfNull = true) where T : GameComponent

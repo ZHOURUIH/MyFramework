@@ -6,17 +6,18 @@ using System.Collections.Generic;
 // 决策树节点基类,DTree表示DecisionTree
 public abstract class DTreeNode : GameBase
 {
-	public uint mID;                                // 节点唯一ID
-	public DTreeNode mParent;
-	public List<DTreeNode> mChildList;              // 带顺序的子节点列表
 	public Dictionary<uint, DTreeNode> mChildMap;   // 以子节点的ID为索引的子节点列表
+	public List<DTreeNode> mChildList;              // 带顺序的子节点列表
 	public Character mCharacter;
-	public bool mDeadNode = false;
-	public float mRandomWeight = 1; // 随机选择时的权重,范围0-1
-	public int mPriority;			// 节点优先级
-	public object mUserData;		// 用户自定义数据
+	public DTreeNode mParent;
+	public object mUserData;        // 用户自定义数据
+	public float mRandomWeight;		// 随机选择时的权重,范围0-1
+	public bool mDeadNode;			// 当前节点是否已死亡
+	public uint mID;                // 节点唯一ID
+	public int mPriority;           // 节点优先级
 	public DTreeNode()
 	{
+		mRandomWeight = 1;
 		mChildList = new List<DTreeNode>();
 		mChildMap = new Dictionary<uint, DTreeNode>();
 	}

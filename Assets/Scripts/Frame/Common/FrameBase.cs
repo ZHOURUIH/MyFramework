@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System;
 
 // 管理类初始化完成调用
@@ -8,42 +7,40 @@ using System;
 public class FrameBase : UnityUtility
 {
 	// FrameComponent
-	public static GameFramework				mGameFramework			= null;
-	public static CommandSystem				mCommandSystem			= null;
-	public static AudioManager				mAudioManager			= null;
-	public static GameSceneManager			mGameSceneManager		= null;
-	public static CharacterManager			mCharacterManager		= null;
-	public static GameLayoutManager			mLayoutManager			= null;
-	public static KeyFrameManager			mKeyFrameManager		= null;
-	public static GlobalTouchSystem			mGlobalTouchSystem		= null;
-	public static ShaderManager				mShaderManager			= null;
+	public static GameFramework mGameFramework;
+	public static CommandSystem mCommandSystem;
+	public static AudioManager mAudioManager;
+	public static GameSceneManager mGameSceneManager;
+	public static CharacterManager mCharacterManager;
+	public static GameLayoutManager mLayoutManager;
+	public static KeyFrameManager mKeyFrameManager;
+	public static GlobalTouchSystem mGlobalTouchSystem;
+	public static ShaderManager mShaderManager;
 #if !UNITY_IOS && !NO_SQLITE
-	public static SQLite					mSQLite					= null;
+	public static SQLite mSQLite;
 #endif
-	public static DataBase					mDataBase				= null;
-	public static CameraManager				mCameraManager			= null;
-	public static ResourceManager			mResourceManager		= null;
-	public static ApplicationConfig			mApplicationConfig		= null;
-	public static FrameConfig				mFrameConfig			= null;
-	public static ObjectPool				mObjectPool				= null;
-	public static InputManager				mInputManager			= null;
-	public static SceneSystem				mSceneSystem			= null;
-	public static IFrameLogSystem			mFrameLogSystem			= null;
-	public static ClassPool					mClassPool				= null;
-	public static AndroidPluginManager		mAndroidPluginManager	= null;
-	public static AndroidAssetLoader		mAndroidAssetLoader		= null;
-	public static HeadTextureManager		mHeadTextureManager		= null;
-	public static TimeManager				mTimeManager			= null;
-	public static MovableObjectManager		mMovableObjectManager	= null;
-	public static EffectManager				mEffectManager			= null;
-	public static TPSpriteManager			mTPSpriteManager		= null;
-	public static SocketFactory				mSocketFactory			= null;
-	public static PathKeyframeManager		mPathKeyframeManager	= null;
+	public static DataBase mDataBase;
+	public static CameraManager mCameraManager;
+	public static ResourceManager mResourceManager;
+	public static ApplicationConfig mApplicationConfig;
+	public static FrameConfig mFrameConfig;
+	public static ObjectPool mObjectPool;
+	public static InputManager mInputManager;
+	public static SceneSystem mSceneSystem;
+	public static ClassPool mClassPool;
+	public static ListPool mListPool;
+	public static AndroidPluginManager mAndroidPluginManager;
+	public static AndroidAssetLoader mAndroidAssetLoader;
+	public static HeadTextureManager mHeadTextureManager;
+	public static TimeManager mTimeManager;
+	public static MovableObjectManager mMovableObjectManager;
+	public static EffectManager mEffectManager;
+	public static TPSpriteManager mTPSpriteManager;
+	public static SocketFactory mSocketFactory;
+	public static PathKeyframeManager mPathKeyframeManager;
 #if !UNITY_EDITOR
-	public static LocalLog					mLocalLog				= null;
+	public static LocalLog mLocalLog;
 #endif
-	// 由于该常量非常常用,所以定义到FrameBase中,方便使用
-	public const string EMPTY_STRING = "";
 	public virtual void notifyConstructDone()
 	{
 		mGameFramework = GameFramework.mGameFramework;
@@ -67,6 +64,7 @@ public class FrameBase : UnityUtility
 		mGameFramework.getSystem(out mInputManager);
 		mGameFramework.getSystem(out mSceneSystem);
 		mGameFramework.getSystem(out mClassPool);
+		mGameFramework.getSystem(out mListPool);
 		mGameFramework.getSystem(out mAndroidPluginManager);
 		mGameFramework.getSystem(out mAndroidAssetLoader);
 		mGameFramework.getSystem(out mHeadTextureManager);
@@ -102,21 +100,21 @@ public class FrameBase : UnityUtility
 	{
 		mCommandSystem.pushDelayCommand(cmd, cmdReceiver, delayExecute);
 	}
-	public static void changeProcedure<T>(string intent = EMPTY_STRING) where T : SceneProcedure
+	public static void changeProcedure<T>(string intent = null) where T : SceneProcedure
 	{
 		CommandGameSceneChangeProcedure cmd = newCmd(out cmd);
 		cmd.mProcedure = typeof(T);
 		cmd.mIntent = intent;
 		pushCommand(cmd, mGameSceneManager.getCurScene());
 	}
-	public static void changeProcedure(Type procedure, string intent = EMPTY_STRING)
+	public static void changeProcedure(Type procedure, string intent = null)
 	{
 		CommandGameSceneChangeProcedure cmd = newCmd(out cmd);
 		cmd.mProcedure = procedure;
 		cmd.mIntent = intent;
 		pushCommand(cmd, mGameSceneManager.getCurScene());
 	}
-	public static CommandGameSceneChangeProcedure changeProcedureDelay<T>(float delayTime = 0.001f, string intent = EMPTY_STRING) where T : SceneProcedure
+	public static CommandGameSceneChangeProcedure changeProcedureDelay<T>(float delayTime = 0.001f, string intent = null) where T : SceneProcedure
 	{
 		CommandGameSceneChangeProcedure cmd = newCmd(out cmd, true, true);
 		cmd.mProcedure = typeof(T);
@@ -124,7 +122,7 @@ public class FrameBase : UnityUtility
 		pushDelayCommand(cmd, mGameSceneManager.getCurScene(), delayTime);
 		return cmd;
 	}
-	public static CommandGameSceneChangeProcedure changeProcedureDelay(Type procedure, float delayTime = 0.001f, string intent = EMPTY_STRING)
+	public static CommandGameSceneChangeProcedure changeProcedureDelay(Type procedure, float delayTime = 0.001f, string intent = null)
 	{
 		CommandGameSceneChangeProcedure cmd = newCmd(out cmd, true, true);
 		cmd.mProcedure = procedure;
@@ -132,7 +130,7 @@ public class FrameBase : UnityUtility
 		pushDelayCommand(cmd, mGameSceneManager.getCurScene(), delayTime);
 		return cmd;
 	}
-	public static void prepareChangeProcedure<T>(float prepareTime = 0.001f, string intent = EMPTY_STRING) where T : SceneProcedure
+	public static void prepareChangeProcedure<T>(float prepareTime = 0.001f, string intent = null) where T : SceneProcedure
 	{
 		CommandGameScenePrepareChangeProcedure cmd = newCmd(out cmd);
 		cmd.mProcedure = typeof(T);
@@ -140,7 +138,7 @@ public class FrameBase : UnityUtility
 		cmd.mPrepareTime = prepareTime;
 		pushCommand(cmd, mGameSceneManager.getCurScene());
 	}
-	public static void prepareChangeProcedure(Type procedure, float prepareTime = 0.001f, string intent = EMPTY_STRING)
+	public static void prepareChangeProcedure(Type procedure, float prepareTime = 0.001f, string intent = null)
 	{
 		CommandGameScenePrepareChangeProcedure cmd = newCmd(out cmd);
 		cmd.mProcedure = procedure;

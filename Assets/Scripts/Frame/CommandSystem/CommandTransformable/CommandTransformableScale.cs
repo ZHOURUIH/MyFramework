@@ -21,7 +21,7 @@ public class CommandTransformableScale : Command
 		mTrembleDoneCallBack = null;
 		mStartScale = Vector3.one;
 		mTargetScale = Vector3.one;
-		mName = EMPTY_STRING;
+		mName = null;
 		mOnceLength = 1.0f;
 		mAmplitude = 1.0f;
 		mOffset = 0.0f;

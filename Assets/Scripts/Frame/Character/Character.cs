@@ -14,13 +14,13 @@ public class Character : MovableObject
 	protected CharacterComponentModel mAvatar;
 	protected CharacterBaseData	mBaseData;	//玩家数据
 	protected Rigidbody mRigidBody;
-	protected Type mCharacterType;			// 角色类型
-	protected uint mGUID;
+	protected Type mCharacterType;          // 角色类型
+	protected OnCharacterLoaded mCharacterLoadedCallback;
 	protected string mModelTag;
 	protected string mModelPath;
 	protected string mAnimationControllerPath;
-	protected OnCharacterLoaded mCharacterLoadedCallback;
 	protected object mUserData;
+	protected uint mGUID;
 	public Character(string name)
 		:base(name)
 	{
@@ -54,34 +54,25 @@ public class Character : MovableObject
 		mGUID = 0;
 		mAnimationLenghtList.Clear();
 	}
-	public override void update(float elapsedTime)
-	{
-		// 先更新自己的所有组件
-		base.update(elapsedTime);
-	}
-	public override void fixedUpdate(float elapsedTime)
-	{
-		base.fixedUpdate(elapsedTime);
-	}
-	public void initModelAsync(string modelPath, OnCharacterLoaded callback, object userData, string animationControllerPath = EMPTY_STRING)
+	public void initModelAsync(string modelPath, OnCharacterLoaded callback, object userData, string animationControllerPath = null)
 	{
 		mModelPath = modelPath;
 		mAnimationControllerPath = animationControllerPath;
 		mCharacterLoadedCallback = callback;
 		mUserData = userData;
-		if (modelPath.Length != 0)
+		if (!isEmpty(modelPath))
 		{
 			// 模型节点也就是角色节点,并且将节点挂到角色管理器下
 			mObjectPool.createObjectAsync(mModelPath, onModelLoaded, mModelTag, null);
 		}
 	}
-	public void initModel(string modelPath, string animationControllerPath = EMPTY_STRING)
+	public void initModel(string modelPath, string animationControllerPath = null)
 	{
 		mModelPath = modelPath;
 		mAnimationControllerPath = animationControllerPath;
 		mCharacterLoadedCallback = null;
 		mUserData = null;
-		if (modelPath.Length != 0)
+		if (!isEmpty(modelPath))
 		{
 			// 模型节点也就是角色节点,并且将节点挂到角色管理器下
 			onModelLoaded(mObjectPool.createObject(mModelPath, mModelTag), null);
@@ -100,7 +91,7 @@ public class Character : MovableObject
 	// 参数是动作名,不是状态机节点名
 	public virtual float getAnimationLength(string name)
 	{
-		if(mAvatar == null || mAvatar.getAnimator() == null || string.IsNullOrEmpty(name))
+		if(mAvatar == null || mAvatar.getAnimator() == null || isEmpty(name))
 		{
 			return 0.0f;
 		}
@@ -148,7 +139,7 @@ public class Character : MovableObject
 		setParent(mCharacterManager.getObject());
 		mAvatar.setModel(go, mModelPath);
 		mRigidBody = go.GetComponent<Rigidbody>();
-		if (mAnimationControllerPath.Length != 0)
+		if (!isEmpty(mAnimationControllerPath))
 		{
 			mAvatar.getAnimator().runtimeAnimatorController = mResourceManager.loadResource<RuntimeAnimatorController>(mAnimationControllerPath, true);
 		}

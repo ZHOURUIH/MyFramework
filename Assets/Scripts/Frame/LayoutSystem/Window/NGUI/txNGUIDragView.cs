@@ -7,9 +7,9 @@ using System.Collections.Generic;
 public class txNGUIDragView : txNGUITexture
 {
 	protected WindowComponentDragView mDragViewComponent;
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		if (mBoxCollider == null)
 		{
 			logError("DragView must have BoxCollider!");

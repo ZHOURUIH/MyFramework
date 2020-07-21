@@ -19,7 +19,7 @@ public class CommandMovableObjectAlpha : Command
 		base.init();
 		mTremblingCallBack = null;
 		mTrembleDoneCallBack = null;
-		mName = EMPTY_STRING;
+		mName = null;
 		mStartAlpha = 1.0f;
 		mTargetAlpha = 1.0f;
 		mOnceLength = 1.0f;

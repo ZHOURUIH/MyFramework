@@ -4,29 +4,29 @@ using System.Collections.Generic;
 
 public class CommandWindowLum : Command
 {
+	public KeyFrameCallback mTremblingCallBack;
+	public KeyFrameCallback mTrembleDoneCallBack;
 	public string mName;
 	public float mOnceLength;
 	public float mOffset;
 	public float mStartLum;
 	public float mTargetLum;
-	public bool mLoop;
 	public float mAmplitude;
 	public bool mFullOnce;
-	public KeyFrameCallback mTremblingCallBack;
-	public KeyFrameCallback mTrembleDoneCallBack;
+	public bool mLoop;
 	public override void init()
 	{
 		base.init();
-		mName = EMPTY_STRING;
+		mTremblingCallBack = null;
+		mTrembleDoneCallBack = null;
+		mName = null;
 		mOnceLength = 1.0f;
 		mOffset = 0.0f;
 		mStartLum = 0.0f;
 		mTargetLum = 0.0f;
-		mLoop = false;
 		mAmplitude = 1.0f;
 		mFullOnce = true;
-		mTremblingCallBack = null;
-		mTrembleDoneCallBack = null;
+		mLoop = false;
 	}
 	public override void execute()
 	{

@@ -43,7 +43,7 @@ public class DataBase : FrameComponent
 				}
 				byte[] file;
 				openFile(filePath, out file, true);
-				if (file != null && file.Length != 0)
+				if (file != null && file.Length > 0)
 				{
 					parseFile(file, item.Value);
 				}
@@ -143,7 +143,7 @@ public class DataBase : FrameComponent
 	// 根据数据名得到数据定义
 	public string getDataNameByDataType(Type type)
 	{
-		return mDataDefineFile.ContainsKey(type) ? mDataDefineFile[type] : EMPTY_STRING;
+		return mDataDefineFile.ContainsKey(type) ? mDataDefineFile[type] : null;
 	}
 	// 根据数据定义得到数据名
 	public Type getDataTypeByDataName(string name)

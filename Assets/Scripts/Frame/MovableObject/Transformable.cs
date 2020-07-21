@@ -6,6 +6,7 @@ public abstract class Transformable : ComponentOwner
 {
 	public Transformable(string name)
 		: base(name) { }
+	public abstract bool isActive();
 	public abstract Vector3 getPosition();
 	public abstract Vector3 getRotation();
 	public abstract Vector3 getScale();

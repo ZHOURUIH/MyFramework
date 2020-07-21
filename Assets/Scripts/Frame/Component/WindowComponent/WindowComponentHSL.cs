@@ -9,7 +9,7 @@ public class WindowComponentHSL : ComponentKeyFrameNormal
 	public void setStartHSL(Vector3 hsl) { mStartHSL = hsl; }
 	public void setTargetHSL(Vector3 hsl) { mTargetHSL = hsl; }
 	//------------------------------------------------------------------------------------------------------------
-	protected override void applyTrembling(float offset)
+	protected override void applyTrembling(float value)
 	{
 		if(!(mComponentOwner is IShaderWindow))
 		{
@@ -22,6 +22,6 @@ public class WindowComponentHSL : ComponentKeyFrameNormal
 			logError("window has no hsl offset shader! can not offset hsl!");
 			return;
 		}
-		hslOffset.setHSLOffset(lerpSimple(mStartHSL, mTargetHSL, offset));
+		hslOffset.setHSLOffset(lerpSimple(mStartHSL, mTargetHSL, value));
 	}
 }

@@ -19,7 +19,7 @@ public class CommandTimeManagerScaleTime : Command
 		base.init();
 		mDoingCallBack = null;
 		mDoneCallBack = null;
-		mName = EMPTY_STRING;
+		mName = null;
 		mStartScale = 1.0f;
 		mTargetScale = 1.0f;
 		mOnceLength = 1.0f;

@@ -9,10 +9,9 @@ public class MovableObjectComponentVolume : ComponentKeyFrameNormal
 	public void setStartVolume(float volume) { mStartVolume = volume; }
 	public void setTargetVolume(float volume) { mTargetVolume = volume; }
 	//------------------------------------------------------------------------------------------------------------
-	protected override void applyTrembling(float offset)
+	protected override void applyTrembling(float value)
 	{
-		MovableObject obj = mComponentOwner as MovableObject;
-		float newVolume = lerpSimple(mStartVolume, mTargetVolume, offset);
-		obj.getComponent<MovableObjectComponentAudio>().setVolume(newVolume);
+		float newVolume = lerpSimple(mStartVolume, mTargetVolume, value);
+		mComponentOwner.getComponent<MovableObjectComponentAudio>().setVolume(newVolume);
 	}
 }

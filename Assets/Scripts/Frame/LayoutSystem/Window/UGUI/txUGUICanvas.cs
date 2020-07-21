@@ -8,9 +8,9 @@ public class txUGUICanvas : txUGUIObject
 	protected CanvasScaler mCanvasScaler;
 	protected GraphicRaycaster mGraphicRaycaster;
 	protected GameObject mConnectedParent;  // 重新指定挂接到的父节点
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		mCanvas = mObject.GetComponent<Canvas>();
 		if (mCanvas == null)
 		{

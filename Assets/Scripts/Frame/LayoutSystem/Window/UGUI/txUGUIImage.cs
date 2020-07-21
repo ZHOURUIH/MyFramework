@@ -16,9 +16,9 @@ public class txUGUIImage : txUGUIObject, IShaderWindow
 	protected bool mIsNewMaterial;
 	protected bool mSelected;
 	protected bool mUseStateSprite;
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		// 获取image组件,如果没有则添加,这样是为了使用代码新创建一个image窗口时能够正常使用image组件
 		mImage = mObject.GetComponent<Image>();
 		if(mImage == null)
@@ -63,7 +63,7 @@ public class txUGUIImage : txUGUIObject, IShaderWindow
 		mOriginTextureName = mNormalSprite;
 		string materialName = getMaterialName();
 		// 不再将默认材质替换为自定义的默认材质,只判断其他材质
-		if(materialName.Length != 0 && materialName != "Default UI Material")
+		if(!isEmpty(materialName) && materialName != CommonDefine.BUILDIN_UI_MATERIAL)
 		{
 			bool newMaterial = !mShaderManager.isSingleShader(materialName);
 			if(newMaterial)
@@ -165,11 +165,11 @@ public class txUGUIImage : txUGUIObject, IShaderWindow
 	}
 	public void setSpriteName(string spriteName, bool useSpriteSize = false, float sizeScale = 1.0f)
 	{
-		if (mImage == null || mAtlas == null || spriteName == null)
+		if (mImage == null || mAtlas == null)
 		{
 			return;
 		}
-		if(spriteName.Length == 0)
+		if (isEmpty(spriteName))
 		{
 			mImage.sprite = null;
 		}
@@ -215,16 +215,11 @@ public class txUGUIImage : txUGUIObject, IShaderWindow
 		{
 			return Vector2.zero;
 		}
-		Vector2 v2;
 		if(mImage.sprite != null)
 		{
-			v2 = mImage.sprite.rect.size;
+			return mImage.sprite.rect.size;
 		}
-		else
-		{
-			v2 = getWindowSize();
-		}
-		return v2;
+		return getWindowSize();
 	}
 	public Image getImage() { return mImage; }
 	public Sprite getSprite() { return mImage.sprite; }
@@ -280,7 +275,7 @@ public class txUGUIImage : txUGUIObject, IShaderWindow
 	{
 		if(mImage == null || mImage.sprite == null)
 		{
-			return EMPTY_STRING;
+			return null;
 		}
 		return mImage.sprite.name;
 	}
@@ -296,7 +291,7 @@ public class txUGUIImage : txUGUIObject, IShaderWindow
 	{
 		if(mImage == null || mImage.material == null)
 		{
-			return EMPTY_STRING;
+			return null;
 		}
 		return mImage.material.name;
 	}
@@ -304,7 +299,7 @@ public class txUGUIImage : txUGUIObject, IShaderWindow
 	{
 		if(mImage.material == null || mImage.material.shader == null)
 		{
-			return EMPTY_STRING;
+			return null;
 		}
 		return mImage.material.shader.name;
 	}
@@ -331,14 +326,12 @@ public class txUGUIImage : txUGUIObject, IShaderWindow
 	public void generateOriginTextureName(string key = "_")
 	{
 		int pos = mOriginTextureName.LastIndexOf(key);
-		if (pos >= 0)
-		{
-			mOriginTextureName = mOriginTextureName.Substring(0, mOriginTextureName.LastIndexOf(key) + 1);
-		}
-		else
+		if (pos < 0)
 		{
 			logError("texture name is not valid!can not generate origin texture name, texture name : " + mOriginTextureName);
+			return;
 		}
+		mOriginTextureName = mOriginTextureName.Substring(0, mOriginTextureName.LastIndexOf(key) + 1);
 	}
 	public override void onMouseEnter()
 	{

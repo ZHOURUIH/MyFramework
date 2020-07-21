@@ -14,9 +14,9 @@ public class txNGUISprite : txNGUIObject
 	protected string mSelectedSprite;
 	protected bool mSelected;
 	protected bool mUseStateSprite;
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		mSprite = getUnityComponent<UISprite>();
 		mNormalSprite = getSpriteName();
 		mPressSprite = mNormalSprite;
@@ -87,7 +87,7 @@ public class txNGUISprite : txNGUIObject
 			return;
 		}
 		mSprite.spriteName = name;
-		if (useSize && name.Length != 0)
+		if (useSize && !isEmpty(name))
 		{
 			setWindowSize(getSpriteSize());
 		}

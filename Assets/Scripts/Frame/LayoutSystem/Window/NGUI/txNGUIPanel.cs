@@ -6,9 +6,9 @@ using System.Collections;
 public class txNGUIPanel : txNGUIObject
 {
 	protected UIPanel mPanel;
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		mPanel = getUnityComponent<UIPanel>();
 	}
 	public override void setDepth(int depth)

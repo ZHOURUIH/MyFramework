@@ -9,8 +9,6 @@ public class CameraLinkerSwitchLinear : CameraLinkerSwitch
 	public Vector3 mDirection;	// 此次转换的方向,用于避免不必要的向量重复计算
 	public CameraLinkerSwitchLinear()
 	{
-		mMovedDistance = 0.0f;
-		mDirection = Vector3.zero;
 		mSpeed = 7.0f;
 	}
 	public override void init(Vector3 origin, Vector3 target, float speed)
@@ -39,10 +37,5 @@ public class CameraLinkerSwitchLinear : CameraLinkerSwitch
 			mParentLinker.setRelativePosition(mTargetRelative);
 			mParentLinker.notifyFinishSwitching(this);
 		}
-	}
-	public override void destroy()
-	{
-		base.destroy();
-		mMovedDistance = 0.0f;
 	}
 }

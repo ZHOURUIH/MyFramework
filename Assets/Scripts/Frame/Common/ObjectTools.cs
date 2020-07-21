@@ -2,6 +2,7 @@
 using System.Collections;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 // ObjectTools
 public class OT : GameBase
@@ -50,14 +51,6 @@ public class OT : GameBase
 	{
 		ROTATE_EX(obj, CommonDefine.ZERO_ONE, start, target, time, false, 0.0f, null, null);
 	}
-	public static void ROTATE_EX(Transformable obj, Vector3 start, Vector3 target, float time, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
-	{
-		ROTATE_EX(obj, CommonDefine.ZERO_ONE, start, target, time, false, 0.0f, doingCallback, doneCallback);
-	}
-	public static void ROTATE_EX(Transformable obj, Vector3 start, Vector3 target, float time, KeyFrameCallback doneCallback)
-	{
-		ROTATE_EX(obj, CommonDefine.ZERO_ONE, start, target, time, false, 0.0f, null, doneCallback);
-	}
 	public static void ROTATE(Transformable obj, string keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
 		ROTATE_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, null);
@@ -66,15 +59,24 @@ public class OT : GameBase
 	{
 		ROTATE_EX(obj, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
+	public static void ROTATE_EX(Transformable obj, Vector3 start, Vector3 target, float time, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	{
+		ROTATE_EX(obj, CommonDefine.ZERO_ONE, start, target, time, false, 0.0f, doingCallback, doneCallback);
+	}
+	public static void ROTATE_EX(Transformable obj, Vector3 start, Vector3 target, float time, KeyFrameCallback doneCallback)
+	{
+		ROTATE_EX(obj, CommonDefine.ZERO_ONE, start, target, time, false, 0.0f, null, doneCallback);
+	}
 	public static void ROTATE_EX(Transformable obj, string keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return;
 		}
-		if (keyframe.Length == 0 || isFloatZero(onceLength))
+		if (isEmpty(keyframe) || isFloatZero(onceLength))
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ROTATE(Transformable obj, Vector3 rotation)");
+			return;
 		}
 		CommandTransformableRotate cmd = newCmd(out cmd, false, false);
 		cmd.mName = keyframe;
@@ -118,9 +120,10 @@ public class OT : GameBase
 		{
 			return null;
 		}
-		if (keyframe.Length == 0 || isFloatZero(onceLength))
+		if (isEmpty(keyframe) || isFloatZero(onceLength))
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用CommandTransformableRotate ROTATE_DELAY(Transformable obj, float delayTime, Vector3 rotation)");
+			return null;
 		}
 		CommandTransformableRotate cmd = newCmd(out cmd, false, true);
 		cmd.mName = keyframe;
@@ -205,14 +208,6 @@ public class OT : GameBase
 	{
 		ROTATE_PHY_EX(obj, CommonDefine.ZERO_ONE, start, target, time, false, 0.0f, null, null);
 	}
-	public static void ROTATE_PHY_EX(Transformable obj, Vector3 start, Vector3 target, float time, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
-	{
-		ROTATE_PHY_EX(obj, CommonDefine.ZERO_ONE, start, target, time, false, 0.0f, doingCallback, doneCallback);
-	}
-	public static void ROTATE_PHY_EX(Transformable obj, Vector3 start, Vector3 target, float time, KeyFrameCallback doneCallback)
-	{
-		ROTATE_PHY_EX(obj, CommonDefine.ZERO_ONE, start, target, time, false, 0.0f, null, doneCallback);
-	}
 	public static void ROTATE_PHY(Transformable obj, string keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
 		ROTATE_PHY_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, null);
@@ -221,9 +216,17 @@ public class OT : GameBase
 	{
 		ROTATE_PHY_EX(obj, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
+	public static void ROTATE_PHY_EX(Transformable obj, Vector3 start, Vector3 target, float time, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	{
+		ROTATE_PHY_EX(obj, CommonDefine.ZERO_ONE, start, target, time, false, 0.0f, doingCallback, doneCallback);
+	}
+	public static void ROTATE_PHY_EX(Transformable obj, Vector3 start, Vector3 target, float time, KeyFrameCallback doneCallback)
+	{
+		ROTATE_PHY_EX(obj, CommonDefine.ZERO_ONE, start, target, time, false, 0.0f, null, doneCallback);
+	}
 	public static void ROTATE_PHY_EX(Transformable obj, string keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		if(keyframe.Length == 0 || isFloatZero(onceLength))
+		if(isEmpty(keyframe) || isFloatZero(onceLength))
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ROTATE_PHY(Transformable obj, Vector3 rotation)");
 			return;
@@ -262,7 +265,7 @@ public class OT : GameBase
 	}
 	public static CommandTransformableRotatePhysics ROTATE_PHY_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
 	{
-		if(keyframe.Length == 0 || isFloatZero(onceLength))
+		if (isEmpty(keyframe) || isFloatZero(onceLength))
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用CommandTransformableRotatePhysics ROTATE_PHY_DELAY(Transformable obj, float delayTime, Vector3 rotation)");
 			return null;
@@ -326,6 +329,18 @@ public class OT : GameBase
 	{
 		ROTATE_CURVE_EX(obj, CommonDefine.ZERO_ONE, rotList, onceLength, false, 0.0f, null, null);
 	}
+	public static void ROTATE_CURVE(Transformable obj, string fileName, List<Vector3> rotList, float onceLength)
+	{
+		ROTATE_CURVE_EX(obj, fileName, rotList, onceLength, false, 0.0f, null, null);
+	}
+	public static void ROTATE_CURVE(Transformable obj, string fileName, List<Vector3> rotList, float onceLength, bool loop)
+	{
+		ROTATE_CURVE_EX(obj, fileName, rotList, onceLength, loop, 0.0f, null, null);
+	}
+	public static void ROTATE_CURVE(Transformable obj, string fileName, List<Vector3> rotList, float onceLength, bool loop, float offset)
+	{
+		ROTATE_CURVE_EX(obj, fileName, rotList, onceLength, loop, offset, null, null);
+	}
 	public static void ROTATE_CURVE_EX(Transformable obj, List<Vector3> rotList, float onceLength, KeyFrameCallback doneCallback)
 	{
 		ROTATE_CURVE_EX(obj, CommonDefine.ZERO_ONE, rotList, onceLength, false, 0.0f, null, doneCallback);
@@ -341,18 +356,6 @@ public class OT : GameBase
 	public static void ROTATE_CURVE_EX(Transformable obj, List<Vector3> rotList, float onceLength, float offsetTime, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		ROTATE_CURVE_EX(obj, CommonDefine.ZERO_ONE, rotList, onceLength, false, offsetTime, doingCallback, doneCallback);
-	}
-	public static void ROTATE_CURVE(Transformable obj, string fileName, List<Vector3> rotList, float onceLength)
-	{
-		ROTATE_CURVE_EX(obj, fileName, rotList, onceLength, false, 0.0f, null, null);
-	}
-	public static void ROTATE_CURVE(Transformable obj, string fileName, List<Vector3> rotList, float onceLength, bool loop)
-	{
-		ROTATE_CURVE_EX(obj, fileName, rotList, onceLength, loop, 0.0f, null, null);
-	}
-	public static void ROTATE_CURVE(Transformable obj, string fileName, List<Vector3> rotList, float onceLength, bool loop, float offset)
-	{
-		ROTATE_CURVE_EX(obj, fileName, rotList, onceLength, loop, offset, null, null);
 	}
 	public static void ROTATE_CURVE_EX(Transformable obj, string fileName, List<Vector3> rotList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
@@ -521,14 +524,6 @@ public class OT : GameBase
 	{
 		return MOVE_DELAY_EX(obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandTransformableMove MOVE_DELAY_EX(Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback moveDoneCallback)
-	{
-		return MOVE_DELAY_EX(obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, moveDoneCallback);
-	}
-	public static CommandTransformableMove MOVE_DELAY_EX(Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
-	{
-		return MOVE_DELAY_EX(obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, movingCallback, moveDoneCallback);
-	}
 	public static CommandTransformableMove MOVE_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float onceLength)
 	{
 		return MOVE_DELAY_EX(obj, delayTime, keyframe, startPos, targetPos, onceLength, false, 0.0f, null, null);
@@ -540,6 +535,14 @@ public class OT : GameBase
 	public static CommandTransformableMove MOVE_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset)
 	{
 		return MOVE_DELAY_EX(obj, delayTime, keyframe, startPos, targetPos, onceLength, loop, offset, null, null);
+	}
+	public static CommandTransformableMove MOVE_DELAY_EX(Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback moveDoneCallback)
+	{
+		return MOVE_DELAY_EX(obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, moveDoneCallback);
+	}
+	public static CommandTransformableMove MOVE_DELAY_EX(Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
+	{
+		return MOVE_DELAY_EX(obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, movingCallback, moveDoneCallback);
 	}
 	public static CommandTransformableMove MOVE_DELAY_EX(Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback moveDoneCallback)
 	{
@@ -578,6 +581,18 @@ public class OT : GameBase
 	{
 		MOVE_PHY_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
+	public static void MOVE_PHY(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength)
+	{
+		MOVE_PHY_EX(obj, fileName, startPos, targetPos, onceLength, false, 0.0f, null, null);
+	}
+	public static void MOVE_PHY(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop)
+	{
+		MOVE_PHY_EX(obj, fileName, startPos, targetPos, onceLength, loop, 0.0f, null, null);
+	}
+	public static void MOVE_PHY(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset)
+	{
+		MOVE_PHY_EX(obj, fileName, startPos, targetPos, onceLength, loop, offset, null, null);
+	}
 	public static void MOVE_PHY_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doneCallback)
 	{
 		MOVE_PHY_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
@@ -593,18 +608,6 @@ public class OT : GameBase
 	public static void MOVE_PHY_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, float offsetTime, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		MOVE_PHY_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, offsetTime, doingCallback, doneCallback);
-	}
-	public static void MOV_PHY(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength)
-	{
-		MOVE_PHY_EX(obj, fileName, startPos, targetPos, onceLength, false, 0.0f, null, null);
-	}
-	public static void MOVE_PHY(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop)
-	{
-		MOVE_PHY_EX(obj, fileName, startPos, targetPos, onceLength, loop, 0.0f, null, null);
-	}
-	public static void MOVE_PHY(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset)
-	{
-		MOVE_PHY_EX(obj, fileName, startPos, targetPos, onceLength, loop, offset, null, null);
 	}
 	public static void MOVE_PHY_EX(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
@@ -690,6 +693,18 @@ public class OT : GameBase
 	{
 		MOVE_PARABOLA_EX(obj, CommonDefine.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, null, null);
 	}
+	public static void MOVE_PARABOLA(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength)
+	{
+		MOVE_PARABOLA_EX(obj, fileName, startPos, targetPos, topHeight, onceLength, false, 0.0f, null, null);
+	}
+	public static void MOVE_PARABOLA(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop)
+	{
+		MOVE_PARABOLA_EX(obj, fileName, startPos, targetPos, topHeight, onceLength, loop, 0.0f, null, null);
+	}
+	public static void MOVE_PARABOLA(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop, float offset)
+	{
+		MOVE_PARABOLA_EX(obj, fileName, startPos, targetPos, topHeight, onceLength, loop, offset, null, null);
+	}
 	public static void MOVE_PARABOLA_EX(Transformable obj, Vector3 start, Vector3 target, float topHeight, float onceLength, KeyFrameCallback doneCallback)
 	{
 		MOVE_PARABOLA_EX(obj, CommonDefine.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, null, doneCallback);
@@ -705,18 +720,6 @@ public class OT : GameBase
 	public static void MOVE_PARABOLA_EX(Transformable obj, Vector3 start, Vector3 target, float topHeight, float onceLength, float offsetTime, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		MOVE_PARABOLA_EX(obj, CommonDefine.ZERO_ONE, start, target, topHeight, onceLength, false, offsetTime, doingCallback, doneCallback);
-	}
-	public static void MOVE_PARABOLA(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength)
-	{
-		MOVE_PARABOLA_EX(obj, fileName, startPos, targetPos, topHeight, onceLength, false, 0.0f, null, null);
-	}
-	public static void MOVE_PARABOLA(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop)
-	{
-		MOVE_PARABOLA_EX(obj, fileName, startPos, targetPos, topHeight, onceLength, loop, 0.0f, null, null);
-	}
-	public static void MOVE_PARABOLA(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop, float offset)
-	{
-		MOVE_PARABOLA_EX(obj, fileName, startPos, targetPos, topHeight, onceLength, loop, offset, null, null);
 	}
 	public static void MOVE_PARABOLA_EX(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
@@ -811,6 +814,18 @@ public class OT : GameBase
 	{
 		MOVE_CURVE_EX(obj, CommonDefine.ZERO_ONE, posList, onceLength, false, 0.0f, null, null);
 	}
+	public static void MOVE_CURVE(Transformable obj, string fileName, List<Vector3> posList, float onceLength)
+	{
+		MOVE_CURVE_EX(obj, fileName, posList, onceLength, false, 0.0f, null, null);
+	}
+	public static void MOVE_CURVE(Transformable obj, string fileName, List<Vector3> posList, float onceLength, bool loop)
+	{
+		MOVE_CURVE_EX(obj, fileName, posList, onceLength, loop, 0.0f, null, null);
+	}
+	public static void MOVE_CURVE(Transformable obj, string fileName, List<Vector3> posList, float onceLength, bool loop, float offset)
+	{
+		MOVE_CURVE_EX(obj, fileName, posList, onceLength, loop, offset, null, null);
+	}
 	public static void MOVE_CURVE_EX(Transformable obj, List<Vector3> posList, float onceLength, KeyFrameCallback doneCallback)
 	{
 		MOVE_CURVE_EX(obj, CommonDefine.ZERO_ONE, posList, onceLength, false, 0.0f, null, doneCallback);
@@ -826,18 +841,6 @@ public class OT : GameBase
 	public static void MOVE_CURVE_EX(Transformable obj, List<Vector3> posList, float onceLength, float offsetTime, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		MOVE_CURVE_EX(obj, CommonDefine.ZERO_ONE, posList, onceLength, false, offsetTime, doingCallback, doneCallback);
-	}
-	public static void MOVE_CURVE(Transformable obj, string fileName, List<Vector3> posList, float onceLength)
-	{
-		MOVE_CURVE_EX(obj, fileName, posList, onceLength, false, 0.0f, null, null);
-	}
-	public static void MOVE_CURVE(Transformable obj, string fileName, List<Vector3> posList, float onceLength, bool loop)
-	{
-		MOVE_CURVE_EX(obj, fileName, posList, onceLength, loop, 0.0f, null, null);
-	}
-	public static void MOVE_CURVE(Transformable obj, string fileName, List<Vector3> posList, float onceLength, bool loop, float offset)
-	{
-		MOVE_CURVE_EX(obj, fileName, posList, onceLength, loop, offset, null, null);
 	}
 	public static void MOVE_CURVE_EX(Transformable obj, string fileName, List<Vector3> posList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
@@ -1050,6 +1053,7 @@ public class OT : GameBase
 		if (isFloatZero(lerpSpeed))
 		{
 			logError("速度不能为0,如果要停止组件,请使用void LERP_POSITION(Transformable obj)");
+			return;
 		}
 		CommandTransformableLerpPosition cmd = newCmd(out cmd, false);
 		cmd.mTargetPosition = targetPosition;
@@ -1083,6 +1087,7 @@ public class OT : GameBase
 		if (isFloatZero(lerpSpeed))
 		{
 			logError("速度不能为0,如果要停止组件,请使用void LERP_POSITION_DELAY(Transformable obj, float delayTime)");
+			return;
 		}
 		CommandTransformableLerpPosition cmd = newCmd(out cmd, false, true);
 		cmd.mTargetPosition = targetPosition;
@@ -1120,6 +1125,7 @@ public class OT : GameBase
 		if (isFloatZero(lerpSpeed))
 		{
 			logError("速度不能为0,如果要停止组件,请使用void LERP_ROTATION(Transformable obj)");
+			return;
 		}
 		CommandTransformableLerpRotation cmd = newCmd(out cmd, false);
 		cmd.mTargetRotation = targetRotation;
@@ -1153,6 +1159,7 @@ public class OT : GameBase
 		if (isFloatZero(lerpSpeed))
 		{
 			logError("速度不能为0,如果要停止组件,请使用void LERP_ROTATION_DELAY(Transformable obj, float delayTime)");
+			return;
 		}
 		CommandTransformableLerpRotation cmd = newCmd(out cmd, false, true);
 		cmd.mTargetRotation = targetRotation;
@@ -1331,10 +1338,6 @@ public class OT : GameBase
 	//--------------------------------------------------------------------------------------------------------------------------------------------
 	// 锁定世界坐标分量
 	#region 锁定世界坐标的指定分量
-	public static void LOCK_POSITION(Transformable obj)
-	{
-		LOCK_POSITION(obj, Vector3.zero, false, false, false);
-	}
 	public static void LOCK_POSITION_X(Transformable obj, float x)
 	{
 		LOCK_POSITION(obj, new Vector3(x, 0.0f, 0.0f), true, false, false);
@@ -1346,6 +1349,10 @@ public class OT : GameBase
 	public static void LOCK_POSITION_Z(Transformable obj, float z)
 	{
 		LOCK_POSITION(obj, new Vector3(0.0f, 0.0f, z), false, false, true);
+	}
+	public static void LOCK_POSITION(Transformable obj)
+	{
+		LOCK_POSITION(obj, Vector3.zero, false, false, false);
 	}
 	public static void LOCK_POSITION(Transformable obj, Vector3 pos, bool lockX, bool lockY, bool lockZ)
 	{
@@ -1384,14 +1391,6 @@ public class OT : GameBase
 	{
 		SCALE_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void SCALE_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doneCallback)
-	{
-		SCALE_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
-	}
-	public static void SCALE_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
-	{
-		SCALE_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
-	}
 	public static void SCALE(Transformable obj, string fileName, Vector3 start, Vector3 target, float onceLength)
 	{
 		SCALE_EX(obj, fileName, start, target, onceLength, false, 0.0f, null, null);
@@ -1403,6 +1402,14 @@ public class OT : GameBase
 	public static void SCALE(Transformable obj, string fileName, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
 	{
 		SCALE_EX(obj, fileName, start, target, onceLength, loop, offset, null, null);
+	}
+	public static void SCALE_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doneCallback)
+	{
+		SCALE_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+	}
+	public static void SCALE_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	{
+		SCALE_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
 	public static void SCALE_EX(Transformable obj, string fileName, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doneCallback)
 	{
@@ -1458,10 +1465,6 @@ public class OT : GameBase
 	{
 		return SCALE_DELAY_EX(obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandTransformableScale SCALE_DELAY_EX(Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
-	{
-		return SCALE_DELAY_EX(obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
-	}
 	public static CommandTransformableScale SCALE_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
 		return SCALE_DELAY_EX(obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, null, null);
@@ -1473,6 +1476,10 @@ public class OT : GameBase
 	public static CommandTransformableScale SCALE_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
 	{
 		return SCALE_DELAY_EX(obj, delayTime, keyframe, start, target, onceLength, loop, offset, null, null);
+	}
+	public static CommandTransformableScale SCALE_DELAY_EX(Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	{
+		return SCALE_DELAY_EX(obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
 	public static CommandTransformableScale SCALE_DELAY_EX(Transformable obj, float delayTime, string keyframe, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
@@ -1705,7 +1712,7 @@ public class OT : GameBase
 	#region 时间缩放
 	public static void TIME(float scale)
 	{
-		CommandTimeManagerScaleTime cmd = newCmd(out cmd, false, false);
+		CommandTimeManagerScaleTime cmd = newCmd(out cmd, true, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartScale = scale;
 		cmd.mTargetScale = scale;
@@ -1714,6 +1721,18 @@ public class OT : GameBase
 	public static void TIME(float start, float target, float onceLength)
 	{
 		TIME_EX(CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+	}
+	public static void TIME(string fileName, float start, float target, float onceLength)
+	{
+		TIME_EX(fileName, start, target, onceLength, false, 0.0f, null, null);
+	}
+	public static void TIME(string fileName, float start, float target, float onceLength, bool loop)
+	{
+		TIME_EX(fileName, start, target, onceLength, loop, 0.0f, null, null);
+	}
+	public static void TIME(string fileName, float start, float target, float onceLength, bool loop, float offset)
+	{
+		TIME_EX(fileName, start, target, onceLength, loop, offset, null, null);
 	}
 	public static void TIME_EX(float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
@@ -1730,18 +1749,6 @@ public class OT : GameBase
 	public static void TIME_EX(float start, float target, float onceLength, float offsetTime, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
 	{
 		TIME_EX(CommonDefine.ZERO_ONE, start, target, onceLength, false, offsetTime, doingCallBack, doneCallback);
-	}
-	public static void TIME(string fileName, float start, float target, float onceLength)
-	{
-		TIME_EX(fileName, start, target, onceLength, false, 0.0f, null, null);
-	}
-	public static void TIME(string fileName, float start, float target, float onceLength, bool loop)
-	{
-		TIME_EX(fileName, start, target, onceLength, loop, 0.0f, null, null);
-	}
-	public static void TIME(string fileName, float start, float target, float onceLength, bool loop, float offset)
-	{
-		TIME_EX(fileName, start, target, onceLength, loop, offset, null, null);
 	}
 	public static void TIME_EX(string fileName, float start, float target, float onceLength, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
 	{
@@ -1831,7 +1838,7 @@ public class OT : GameBase
 		{
 			return;
 		}
-		if (sound.Length == 0)
+		if (isEmpty(sound))
 		{
 			logError("sound name must be valid, use void AUDIO(MovableObject obj) to stop sound");
 			return;
@@ -1856,8 +1863,8 @@ public class OT : GameBase
 		{
 			return;
 		}
-		string name = (sound != SOUND_DEFINE.SD_MIN && sound != SOUND_DEFINE.SD_MAX) ? mAudioManager.getAudioName(sound) : EMPTY_STRING;
-		if (name.Length == 0)
+		string name = (sound != SOUND_DEFINE.SD_MIN && sound != SOUND_DEFINE.SD_MAX) ? mAudioManager.getAudioName(sound) : null;
+		if (isEmpty(name))
 		{
 			logError("sound name must be valid, use void AUDIO(MovableObject obj) to stop sound");
 			return;
@@ -1895,8 +1902,8 @@ public class OT : GameBase
 		{
 			return null;
 		}
-		string name = (sound != SOUND_DEFINE.SD_MIN && sound != SOUND_DEFINE.SD_MAX) ? mAudioManager.getAudioName(sound) : EMPTY_STRING;
-		if (name.Length == 0)
+		string name = (sound != SOUND_DEFINE.SD_MIN && sound != SOUND_DEFINE.SD_MAX) ? mAudioManager.getAudioName(sound) : null;
+		if (isEmpty(name))
 		{
 			logError("sound name must be valid, use CommandMovableObjectPlayAudio AUDIO_DELAY(MovableObject obj, float delayTime) to stop sound");
 			return null;
@@ -1929,14 +1936,6 @@ public class OT : GameBase
 	{
 		ALPHA_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void ALPHA_EX(MovableObject obj, float start, float target, float onceLength, KeyFrameCallback doneCallback)
-	{
-		ALPHA_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
-	}
-	public static void ALPHA_EX(MovableObject obj, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
-	{
-		ALPHA_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
-	}
 	public static void ALPHA(MovableObject obj, string name, float start, float target, float onceLength)
 	{
 		ALPHA_EX(obj, name, start, target, onceLength, false, 0.0f, null, null);
@@ -1948,6 +1947,14 @@ public class OT : GameBase
 	public static void ALPHA(MovableObject obj, string name, float start, float target, float onceLength, bool loop, float offset)
 	{
 		ALPHA_EX(obj, name, start, target, onceLength, loop, offset, null, null);
+	}
+	public static void ALPHA_EX(MovableObject obj, float start, float target, float onceLength, KeyFrameCallback doneCallback)
+	{
+		ALPHA_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+	}
+	public static void ALPHA_EX(MovableObject obj, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	{
+		ALPHA_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
 	public static void ALPHA_EX(MovableObject obj, string name, float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
@@ -1963,9 +1970,10 @@ public class OT : GameBase
 		{
 			return;
 		}
-		if (name.Length == 0 || isFloatZero(onceLength))
+		if (isEmpty(name) || isFloatZero(onceLength))
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ALPHA(MovableObject obj, float alpha)");
+			return;
 		}
 		CommandMovableObjectAlpha cmd = newCmd(out cmd, false);
 		cmd.mName = name;
@@ -1995,14 +2003,6 @@ public class OT : GameBase
 	{
 		return ALPHA_DELAY_EX(obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandMovableObjectAlpha ALPHA_DELAY_EX(MovableObject obj, float delayTime, float start, float target, float onceLength, KeyFrameCallback doneCallback)
-	{
-		return ALPHA_DELAY_EX(obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
-	}
-	public static CommandMovableObjectAlpha ALPHA_DELAY_EX(MovableObject obj, float delayTime, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
-	{
-		return ALPHA_DELAY_EX(obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
-	}
 	public static CommandMovableObjectAlpha ALPHA_DELAY(MovableObject obj, float delayTime, string keyframe, float start, float target, float onceLength)
 	{
 		return ALPHA_DELAY_EX(obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, null, null);
@@ -2015,6 +2015,14 @@ public class OT : GameBase
 	{
 		return ALPHA_DELAY_EX(obj, delayTime, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
+	public static CommandMovableObjectAlpha ALPHA_DELAY_EX(MovableObject obj, float delayTime, float start, float target, float onceLength, KeyFrameCallback doneCallback)
+	{
+		return ALPHA_DELAY_EX(obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+	}
+	public static CommandMovableObjectAlpha ALPHA_DELAY_EX(MovableObject obj, float delayTime, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	{
+		return ALPHA_DELAY_EX(obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+	}
 	public static CommandMovableObjectAlpha ALPHA_DELAY_EX(MovableObject obj, float delayTime, string keyframe, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return ALPHA_DELAY_EX(obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
@@ -2025,9 +2033,10 @@ public class OT : GameBase
 		{
 			return null;
 		}
-		if (keyframe.Length == 0 || isFloatZero(onceLength))
+		if (isEmpty(keyframe) || isFloatZero(onceLength))
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,CommandMovableObjectAlpha ALPHA_DELAY(MovableObject obj, float delayTime, float alpha)");
+			return null;
 		}
 		CommandMovableObjectAlpha cmd = newCmd(out cmd, false, true);
 		cmd.mName = keyframe;

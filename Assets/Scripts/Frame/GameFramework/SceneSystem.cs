@@ -15,8 +15,8 @@ public class SceneSystem : FrameComponent
 {
 	protected Dictionary<string, SceneInstance> mSceneList;
 	protected Dictionary<string, SceneRegisteInfo> mSceneRegisteList;
+	protected List<SceneLoadCallback> mDirectLoadCallback;  // 请求加载已经加载的场景时的回调,因为这些回调需要延迟一帧调用,所以放入列表中再调用
 	protected List<SceneInstance> mLoadList;
-	protected List<SceneLoadCallback> mDirectLoadCallback;	// 请求加载已经加载的场景时的回调,因为这些回调需要延迟一帧调用,所以放入列表中再调用
 	public SceneSystem(string name)
 		:base(name)
 	{
@@ -54,7 +54,6 @@ public class SceneSystem : FrameComponent
 			else if (mLoadList[i].mState == LOAD_STATE.LS_LOADED)
 			{
 				mLoadList.RemoveAt(i--);
-				continue;
 			}
 		}
 		foreach(var item in mSceneList)
@@ -68,6 +67,11 @@ public class SceneSystem : FrameComponent
 	// filePath是场景文件所在目录,不含场景名,最好该目录下包含所有只在这个场景使用的资源
 	public void registeScene(Type type, string name, string filePath)
 	{
+		// 路径需要以/结尾
+		if (!endWith(filePath, "/"))
+		{
+			filePath += "/";
+		}
 		SceneRegisteInfo info = new SceneRegisteInfo();
 		info.mName = name;
 		info.mScenePath = filePath;

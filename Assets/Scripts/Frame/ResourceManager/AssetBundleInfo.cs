@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class AssetBundleInfo : GameBase
 {
-	private List<string> mTempList0;                        // 为避免GC而创建的变量
 	protected Dictionary<string, AssetBundleInfo> mParents; // 依赖的AssetBundle列表,包含所有的直接和间接的依赖项
 	protected Dictionary<string, AssetBundleInfo> mChildren;// 依赖自己的AssetBundle列表
 	protected Dictionary<string, AssetInfo> mAssetList;     // 资源包中已加载的所有资源
@@ -25,14 +24,9 @@ public class AssetBundleInfo : GameBase
 		mChildren = new Dictionary<string, AssetBundleInfo>();
 		mLoadAsyncList = new List<AssetInfo>();
 		mAssetList = new Dictionary<string, AssetInfo>();
-		mTempList0 = new List<string>();
 		mObjectToAsset = new Dictionary<Object, AssetInfo>();
 		mLoadCallback = new List<AssetBundleLoadCallback>();
 		mLoadUserData = new List<object>();
-	}
-	public void destroy()
-	{
-		unload();
 	}
 	public void unload()
 	{
@@ -122,15 +116,16 @@ public class AssetBundleInfo : GameBase
 	// 查找所有依赖项
 	public void findAllDependence()
 	{
-		mTempList0.Clear();
-		mTempList0.AddRange(mParents.Keys);
-		foreach (var depName in mTempList0)
+		List<string> tempList = mListPool.newList(out tempList);
+		tempList.AddRange(mParents.Keys);
+		foreach (var depName in tempList)
 		{
 			// 找到自己的父节点
 			mParents[depName] = mResourceManager.mAssetBundleLoader.getAssetBundleInfo(depName);
 			// 并且通知父节点添加自己为子节点
 			mParents[depName].addChild(this);
 		}
+		mListPool.destroyList(tempList);
 	}
 	// 所有依赖项是否都已经加载完成
 	public bool isAllParentLoaded()
@@ -336,7 +331,7 @@ public class AssetBundleInfo : GameBase
 			// 异步加载请求的资源
 			foreach (var assetInfo in mLoadAsyncList)
 			{
-				loadAssetAsync(assetInfo.getAssetName(), null, EMPTY_STRING, null);
+				loadAssetAsync(assetInfo.getAssetName(), null, null, null);
 			}
 		}
 		// 加载状态为已卸载,表示在异步加载过程中,资源包被卸载掉了

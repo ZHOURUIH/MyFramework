@@ -43,13 +43,13 @@ public class ST : GameBase
 	{
 		AUDIO_VOLUME_EX(CommonDefine.ZERO_ONE, start, target, onceLength, volumeCoeSound, false, null, null);
 	}
-	public static void AUDIO_VOLUME_EX(float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound, KeyFrameCallback fadeDoneCallback)
-	{
-		AUDIO_VOLUME_EX(CommonDefine.ZERO_ONE, start, target, onceLength, volumeCoeSound, false, null, fadeDoneCallback);
-	}
 	public static void AUDIO_VOLUME(string keyFrameName, float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound, bool loop)
 	{
 		AUDIO_VOLUME_EX(keyFrameName, start, target, onceLength, volumeCoeSound, loop, null, null);
+	}
+	public static void AUDIO_VOLUME_EX(float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound, KeyFrameCallback fadeDoneCallback)
+	{
+		AUDIO_VOLUME_EX(CommonDefine.ZERO_ONE, start, target, onceLength, volumeCoeSound, false, null, fadeDoneCallback);
 	}
 	public static void AUDIO_VOLUME_EX(string keyFrameName, float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound, bool loop, KeyFrameCallback fadeDoneCallback)
 	{

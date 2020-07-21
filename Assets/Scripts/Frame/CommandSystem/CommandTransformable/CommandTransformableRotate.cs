@@ -21,7 +21,7 @@ public class CommandTransformableRotate : Command
 		mTrembleDoneCallBack = null;
 		mStartRotation = Vector3.zero;
 		mTargetRotation = Vector3.zero;
-		mName = EMPTY_STRING;
+		mName = null;
 		mOnceLength = 1.0f;
 		mAmplitude = 1.0f;
 		mOffset = 0.0f;

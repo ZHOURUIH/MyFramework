@@ -9,13 +9,13 @@ public class txNGUITexture : txNGUIObject, IShaderWindow
 	protected WindowShader mWindowShader;
     protected string mOriginTextureName;    // 初始图片的名字,用于外部根据初始名字设置其他效果的图片
 	protected bool mIsNewMaterial;
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		mTexture = getUnityComponent<UITexture>();
 		mTexture.setOnRender(onWidgetRender);
 		string materialName = getMaterialName();
-		if(materialName.Length != 0)
+		if (!isEmpty(materialName))
 		{
 			bool newMaterial = !mShaderManager.isSingleShader(materialName);
 			if(newMaterial)
@@ -116,7 +116,7 @@ public class txNGUITexture : txNGUIObject, IShaderWindow
 	}
 	public void setTextureName(string name, bool useTextureSize = false)
 	{
-		if (name.Length != 0)
+		if (!isEmpty(name))
 		{
 			// 允许同步加载时,使用同步加载
 			if (mResourceManager.syncLoadAvalaible())

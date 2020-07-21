@@ -38,6 +38,18 @@ public class TableData : GameBase
 		stringToIntArray(str, value);
 		mValues.Add(paramName, str);
 	}
+	protected void parseParam(SqliteDataReader reader, ref List<ushort> value, string paramName)
+	{
+		string str = reader[paramName].ToString();
+		stringToUShortArray(str, value);
+		mValues.Add(paramName, str);
+	}
+	protected void parseParam(SqliteDataReader reader, ref List<byte> value, string paramName)
+	{
+		string str = reader[paramName].ToString();
+		stringToByteArray(str, value);
+		mValues.Add(paramName, str);
+	}
 	protected void parseParam(SqliteDataReader reader, ref List<string> value, string paramName)
 	{
 		string str = reader[paramName].ToString();
@@ -56,10 +68,34 @@ public class TableData : GameBase
 		value = stringToFloat(str);
 		mValues.Add(paramName, str);
 	}
+	protected void parseParam(SqliteDataReader reader, ref uint value, string paramName)
+	{
+		string str = reader[paramName].ToString();
+		value = (uint)stringToInt(str);
+		mValues.Add(paramName, str);
+	}
 	protected void parseParam(SqliteDataReader reader, ref int value, string paramName)
 	{
 		string str = reader[paramName].ToString();
 		value = stringToInt(str);
+		mValues.Add(paramName, str);
+	}
+	protected void parseParam(SqliteDataReader reader, ref ushort value, string paramName)
+	{
+		string str = reader[paramName].ToString();
+		value = (ushort)stringToInt(str);
+		mValues.Add(paramName, str);
+	}
+	protected void parseParam(SqliteDataReader reader, ref short value, string paramName)
+	{
+		string str = reader[paramName].ToString();
+		value = (short)stringToInt(str);
+		mValues.Add(paramName, str);
+	}
+	protected void parseParam(SqliteDataReader reader, ref byte value, string paramName)
+	{
+		string str = reader[paramName].ToString();
+		value = (byte)stringToInt(str);
 		mValues.Add(paramName, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref bool value, string paramName)
@@ -92,13 +128,13 @@ public class SQLiteTable : GameBase
 {
 	protected string mTableName;
 	protected Type mTableClassType;
-	protected Dictionary<string, List<SQLiteTable>> mLinkTable; // 字段索引的表格
-	protected Dictionary<int, TableData> mDataList;
+	protected SortedDictionary<string, List<SQLiteTable>> mLinkTable; // 字段索引的表格
+	protected SortedDictionary<int, TableData> mDataList;
 	public SQLiteTable(Type tableClassType)
 	{
 		mTableClassType = tableClassType;
-		mLinkTable = new Dictionary<string, List<SQLiteTable>>();
-		mDataList = new Dictionary<int, TableData>();
+		mLinkTable = new SortedDictionary<string, List<SQLiteTable>>();
+		mDataList = new SortedDictionary<int, TableData>();
 	}
 	public void setTableName(string name) { mTableName = name; }
 	public string getTableName() { return mTableName; }
@@ -110,6 +146,14 @@ public class SQLiteTable : GameBase
 	public SQLiteTable getLinkTable(string paramName)
 	{
 		return mLinkTable.ContainsKey(paramName) ? mLinkTable[paramName][0] : null;
+	}
+	public void link(string paramName, SQLiteTable table)
+	{
+		if (!mLinkTable.ContainsKey(paramName))
+		{
+			mLinkTable.Add(paramName, new List<SQLiteTable>());
+		}
+		mLinkTable[paramName].Add(table);
 	}
 	public SqliteDataReader doQuery()
 	{
@@ -254,14 +298,6 @@ public class SQLiteTable : GameBase
 			}
 			reader.Close();
 		}
-	}
-	protected void link(string paramName, SQLiteTable table)
-	{
-		if (!mLinkTable.ContainsKey(paramName))
-		{
-			mLinkTable.Add(paramName, new List<SQLiteTable>());
-		}
-		mLinkTable[paramName].Add(table);
 	}
 }
 #endif

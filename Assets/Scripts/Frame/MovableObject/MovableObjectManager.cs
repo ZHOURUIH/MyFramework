@@ -13,14 +13,6 @@ public class MovableObjectManager : FrameComponent
 		mMovableObjectOrderList = new List<MovableObject>();
 		mCreateObject = true;
 	}
-	public override void destroy()
-	{
-		base.destroy();
-	}
-	public override void init()
-	{
-		base.init();
-	}
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);

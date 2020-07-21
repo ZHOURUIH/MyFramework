@@ -6,14 +6,14 @@ using UnityEngine.SceneManagement;
 
 public class SceneInstance : GameBase
 {
-	public string mName;
-	public LOAD_STATE mState;
-	public Scene mScene;
+	public SceneLoadCallback mLoadCallback;
 	public AsyncOperation mOperation;
 	public GameObject mRoot;
-	public bool mInited;
+	public Scene mScene;
+	public LOAD_STATE mState;
+	public string mName;
 	public bool mActiveLoaded;      // 加载完毕后是否立即显示
-	public SceneLoadCallback mLoadCallback;
+	public bool mInited;
 	public SceneInstance(string name)
 	{
 		mName = name;

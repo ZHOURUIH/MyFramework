@@ -33,7 +33,7 @@ public class WindowShaderMotionBlurCriticalMask : WindowShaderCriticalMask
 		base.applyShader(mat);
 		if (mat != null && mat.shader != null)
 		{
-			if (mat.shader.name == mMotionBlurCriticalMask)
+			if (getFileName(mat.shader.name) == mMotionBlurCriticalMask)
 			{
 				mat.SetFloat("_MinRange", mMinRange);
 				mat.SetInt("_MaxSample", mMaxSample);

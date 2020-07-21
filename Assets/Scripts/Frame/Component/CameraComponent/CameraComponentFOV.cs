@@ -13,7 +13,6 @@ public class CameraComponentFOV : ComponentKeyFrameNormal
     protected override void applyTrembling(float value)
     {
         GameCamera obj = mComponentOwner as GameCamera;
-        float curFOV = lerpSimple(mStartFOV, mTargetFOV, value);
-        obj.setFOVY(curFOV);
+        obj.setFOVY(lerpSimple(mStartFOV, mTargetFOV, value));
     }
 }

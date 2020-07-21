@@ -13,6 +13,7 @@ public class UGUILine : GameBase
 	public UGUILine()
 	{
 		mWidth = 10.0f;
+		mPointList = new List<Vector3>();
 	}
 	public void init(GameObject obj)
 	{
@@ -21,7 +22,6 @@ public class UGUILine : GameBase
 		mTransform = mObject.GetComponent<Transform>();
 		mMeshRenderer = mObject.GetComponent<MeshRenderer>();
 		mMesh = mObject.GetComponent<MeshFilter>().mesh;
-		mPointList = new List<Vector3>();
 	}
 	public virtual void destroy()
 	{

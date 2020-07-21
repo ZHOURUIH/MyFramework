@@ -5,18 +5,20 @@ using System.IO;
 using UnityEngine;
 using UnityEditor;
 
-class AssetBuildBundleInfo
+public class AssetBuildBundleInfo
 {
-	public List<string> assetNames;		// 带Resources下相对路径,带后缀
-	public string bundleName;			// 所属AssetBundle
-	public List<string> dependencies;   // 所有依赖的AssetBundle
+	public List<string> mAssetNames;	// 带Resources下相对路径,带后缀
+	public List<string> mDependencies;	// 所有依赖的AssetBundle
+	public string mBundleName;			// 所属AssetBundle
+	public AssetBuildBundleInfo(string bundleName)
+	{
+		mAssetNames = new List<string>();
+		mDependencies = new List<string>();
+		mBundleName = bundleName;
+	}
 	public void AddDependence(string dep)
 	{
-		if (dependencies == null)
-		{
-			dependencies = new List<string>();
-		}
-		dependencies.Add(dep);
+		mDependencies.Add(dep);
 	}
 }
 
@@ -52,14 +54,14 @@ public class AssetBundlePack : EditorCommonUtility
 		packAssetBundle(BuildTarget.StandaloneLinux);
 	}
 	// subPath为以Asset开头的相对路径
-	public static void packAssetBundle(BuildTarget target, bool resetAssetBundleName = false, string subPath = "")
+	public static void packAssetBundle(BuildTarget target, string subPath = "")
 	{
-		if (subPath.Length == 0)
+		if (isEmpty(subPath))
 		{
 			subPath = AssetDatabase.GetAssetPath(Selection.activeObject);
 		}
 		AssetBundleBuild[] buildList = null;
-		if (subPath.Length != 0)
+		if (!isEmpty(subPath))
 		{
 			if (!EditorUtility.DisplayDialog("打包", "确认打包" + subPath + "?", "确认", "取消"))
 			{
@@ -91,11 +93,10 @@ public class AssetBundlePack : EditorCommonUtility
 		{
 			// 清理输出目录
 			createOrClearOutPath();
-			// 清理之前设置过的bundleName
-			if(resetAssetBundleName)
-			{
-				clearAssetBundleName();
-			}
+			// 清理不打包的AssetBundle名
+			List<string> allFiles = new List<string>();
+			findFiles(CommonDefine.F_GAME_RESOURCES_PATH, allFiles);
+			clearUnPackAssetBundleName(allFiles, GameDefine.mUnPackFolder);
 			// 设置bunderName
 			mAssetBundleMap.Clear();
 			List<string> resList = new List<string>();
@@ -130,8 +131,7 @@ public class AssetBundlePack : EditorCommonUtility
 				// 遍历当前AB的所有依赖项
 				foreach (string dep in deps)
 				{
-					string depName = dep;
-					rightToLeft(ref depName);
+					string depName = rightToLeft(dep);
 					mAssetBundleMap[bundleName].AddDependence(depName);
 					dependencySet.Add(depName);
 					// 查找依赖项中是否有依赖当前AssetBundle的
@@ -154,24 +154,24 @@ public class AssetBundlePack : EditorCommonUtility
 			{
 				AssetBuildBundleInfo bundleInfo = item.Value;
 				// AssetBundle名字
-				serializer.writeString(bundleInfo.bundleName);
+				serializer.writeString(bundleInfo.mBundleName);
 				// AssetBundle所包含的所有Asset名字
-				int assetCount = bundleInfo.assetNames.Count;
+				int assetCount = bundleInfo.mAssetNames.Count;
 				serializer.write(assetCount);
 				for (int i = 0; i < assetCount; ++i)
 				{
-					serializer.writeString(bundleInfo.assetNames[i]);
+					serializer.writeString(bundleInfo.mAssetNames[i]);
 				}
 				// AssetBundle依赖的所有AssetBundle
-				int depCount = bundleInfo.dependencies.Count;
+				int depCount = bundleInfo.mDependencies.Count;
 				serializer.write(depCount);
 				for (int j = 0; j < depCount; ++j)
 				{
-					serializer.writeString(bundleInfo.dependencies[j]);
+					serializer.writeString(bundleInfo.mDependencies[j]);
 				}
 			}
 			string filePath = CommonDefine.F_STREAMING_ASSETS_PATH + "StreamingAssets.bytes";
-			FileUtility.writeFile(filePath, serializer.getBuffer(), serializer.getDataSize());
+			writeFile(filePath, serializer.getBuffer(), serializer.getDataSize());
 		}
 		messageBox("资源打包结束! 耗时 : " + (DateTime.Now - time0), false);
 	}
@@ -179,14 +179,14 @@ public class AssetBundlePack : EditorCommonUtility
 	{
 		Dictionary<string, List<string>> assetBundleList = new Dictionary<string, List<string>>();
 		// path是文件
-		if (getFileSuffix(path).Length != 0)
+		if (!isEmpty(getFileSuffix(path)))
 		{
 			string bundleName = refreshFileAssetBundleName(path);
 			if(bundleName == null)
 			{
 				return;
 			}
-			if (bundleName.Length != 0)
+			if (!isEmpty(bundleName))
 			{
 				if (!assetBundleList.ContainsKey(bundleName))
 				{
@@ -208,18 +208,15 @@ public class AssetBundlePack : EditorCommonUtility
 				for (int j = 0; j < fileCount; ++j)
 				{
 					string bundleName = refreshFileAssetBundleName(files[j]);
-					if(bundleName == null)
+					if(isEmpty(bundleName))
 					{
-						break;
+						continue;
 					}
-					if (bundleName.Length != 0)
+					if (!assetBundleList.ContainsKey(bundleName))
 					{
-						if (!assetBundleList.ContainsKey(bundleName))
-						{
-							assetBundleList.Add(bundleName, new List<string>());
-						}
-						assetBundleList[bundleName].Add(files[j]);
+						assetBundleList.Add(bundleName, new List<string>());
 					}
+					assetBundleList[bundleName].Add(files[j]);
 				}
 			}
 		}
@@ -242,30 +239,31 @@ public class AssetBundlePack : EditorCommonUtility
 	// 获得一个文件的所属AssetBundle名,file是以Assets开头的相对路径
 	protected static string getFileAssetBundleName(string file, bool forceSingle = false)
 	{
-		string bundleName = "";
+		string bundleName;
 		// unity(但是一般情况下unity场景文件不打包)单个文件打包,就是直接替换后缀名,或者强制为单独一个包的
 		if (endWith(file, ".unity") || forceSingle)
 		{
-			bundleName = file.Substring(CommonDefine.P_GAME_RESOURCES_PATH.Length);
+			bundleName = removeStartString(file, CommonDefine.P_GAME_RESOURCES_PATH, false);
 			bundleName = replaceSuffix(bundleName, CommonDefine.ASSET_BUNDLE_SUFFIX);
 		}
 		// 其他文件的AssetBundle就是所属文件夹
 		else
 		{
-			bundleName = getFilePath(file).Substring(CommonDefine.P_GAME_RESOURCES_PATH.Length) + CommonDefine.ASSET_BUNDLE_SUFFIX;
+			bundleName = removeStartString(getFilePath(file), CommonDefine.P_GAME_RESOURCES_PATH, false);
+			bundleName += CommonDefine.ASSET_BUNDLE_SUFFIX;
 		}
-		return bundleName.ToLower();
+		return bundleName;
 	}
 	// 判断一个路径是否是不需要打包的路径
-	protected static bool isUnpackPath(string path)
+	protected static bool isUnpackPath(string path, string[] unpackList)
 	{
-		string pathUnderResources = path.Substring(CommonDefine.P_GAME_RESOURCES_PATH.Length) + "/";
+		string pathUnderResources = removeStartString(path, CommonDefine.P_GAME_RESOURCES_PATH, false) + "/";
 		rightToLeft(ref pathUnderResources);
-		int unpackCount = GameDefine.mUnPackFolder.Length;
+		int unpackCount = unpackList.Length;
 		for (int i = 0; i < unpackCount; ++i)
 		{
 			// 如果该文件夹是不打包的文件夹,则直接返回
-			if (startWith(pathUnderResources, GameDefine.mUnPackFolder[i], false))
+			if (startWith(pathUnderResources, unpackList[i], false))
 			{
 				return true;
 			}
@@ -280,46 +278,38 @@ public class AssetBundlePack : EditorCommonUtility
 			return "";
 		}
 		AssetImporter importer = AssetImporter.GetAtPath(file);
-		if (importer != null)
-		{
-			// tpsheet文件不打包
-			// LightingData.asset文件不能打包AB,这是一个特殊文件,只用于编辑器
-			if (endWith(file, ".tpsheet") || endWith(file, "LightingData.asset"))
-			{
-				importer.assetBundleName = "";
-				return "";
-			}
-			string fileName = file.ToLower();
-			rightToLeft(ref fileName);
-			string bundleName = getFileAssetBundleName(fileName, forceSingle);
-			if(importer.assetBundleName != bundleName)
-			{
-				importer.assetBundleName = bundleName;
-			}
-			// 存储bundleInfo
-			// 去除Asset/Resources/前缀,只保留Resources下相对路径
-			string assetName = fileName.Substring(CommonDefine.P_GAME_RESOURCES_PATH.Length);
-			if (!mAssetBundleMap.ContainsKey(bundleName))
-			{
-				AssetBuildBundleInfo bundle = new AssetBuildBundleInfo();
-				bundle.assetNames = new List<string>();
-				bundle.bundleName = bundleName;
-				bundle.dependencies = new List<string>();
-				mAssetBundleMap.Add(bundleName, bundle);
-			}
-			mAssetBundleMap[bundleName].assetNames.Add(assetName);
-			return bundleName;
-		}
-		else
+		if (importer == null)
 		{
 			Debug.LogError("Set AssetName Fail, File:" + file);
+			return "";
 		}
-		return null;
+		// tpsheet文件不打包
+		// LightingData.asset文件不能打包AB,这是一个特殊文件,只用于编辑器
+		if (endWith(file, ".tpsheet") || endWith(file, "LightingData.asset"))
+		{
+			importer.assetBundleName = "";
+			return "";
+		}
+		string fileName = rightToLeft(file.ToLower());
+		string bundleName = getFileAssetBundleName(fileName, forceSingle);
+		if (importer.assetBundleName != bundleName)
+		{
+			importer.assetBundleName = bundleName;
+		}
+		// 存储bundleInfo
+		// 去除Asset/GameResources/前缀,只保留GameResources下相对路径
+		string assetName = removeStartString(fileName, CommonDefine.P_GAME_RESOURCES_PATH, false);
+		if (!mAssetBundleMap.ContainsKey(bundleName))
+		{
+			mAssetBundleMap.Add(bundleName, new AssetBuildBundleInfo(bundleName));
+		}
+		mAssetBundleMap[bundleName].mAssetNames.Add(assetName);
+		return bundleName;
 	}
 	// fullPath是以Asset开头的路径
 	protected static bool setAssetBundleName(string fullPath)
 	{
-		if (isUnpackPath(fullPath))
+		if (isUnpackPath(fullPath, GameDefine.mUnPackFolder))
 		{
 			return true;
 		}
@@ -330,9 +320,7 @@ public class AssetBundlePack : EditorCommonUtility
 		}
 		foreach (string file in files)
 		{
-			string name = file;
-			rightToLeft(ref name);
-			if(refreshFileAssetBundleName(name) == null)
+			if(refreshFileAssetBundleName(rightToLeft(file)) == null)
 			{
 				return false;
 			}
@@ -343,11 +331,10 @@ public class AssetBundlePack : EditorCommonUtility
 	// 递归获取所有子目录文件夹
 	protected static void getAllSubResDirs(string fullPath, List<string> dirList)
 	{
-		if (dirList == null || string.IsNullOrEmpty(fullPath))
+		if (dirList == null || isEmpty(fullPath))
 		{
 			return;
 		}
-
 		string[] dirs = Directory.GetDirectories(fullPath);
 		if (dirs != null && dirs.Length > 0)
 		{
@@ -413,5 +400,33 @@ public class AssetBundlePack : EditorCommonUtility
 			AssetDatabase.RemoveAssetBundleName(bundleNames[i], true);
 			Debug.Log("remove asset bundle name : " + bundleNames[i]);
 		}
+	}
+	protected static void clearUnPackAssetBundleName(List<string> fileList, string[] unpackList)
+	{
+		foreach(var file in fileList)
+		{
+			if (endWith(file, ".meta"))
+			{
+				continue;
+			}
+			string projectFileName = fullPathToProjectPath(file);
+			string fileName = removeStartString(projectFileName, CommonDefine.P_GAME_RESOURCES_PATH, false);
+			foreach (var unpack in unpackList)
+			{
+				if (startWith(fileName, unpack, false))
+				{
+					AssetImporter importer = AssetImporter.GetAtPath(projectFileName);
+					if (importer != null)
+					{
+						if (!isEmpty(importer.assetBundleName))
+						{
+							importer.assetBundleName = "";
+						}
+					}
+					break;
+				}
+			}
+		}
+		AssetDatabase.Refresh();
 	}
 }

@@ -4,11 +4,11 @@ using UnityEngine;
 
 public struct CheckLayer
 {
-	public int mLayerIndex;
 	public CHECK_DIRECTION mDirection;
+	public Vector3 mDirectionVector;
 	public float mCheckDistance;
 	public float mMinDistance;
-	public Vector3 mDirectionVector;
+	public int mLayerIndex;
 	public CheckLayer(int layerIndex, CHECK_DIRECTION direction, float checkDistance, float minDistance)
 	{
 		mLayerIndex = layerIndex;
@@ -80,18 +80,19 @@ public class CameraLinkerSmoothFollow : CameraLinker
 	}
 	public void removeCheckLayer(int layer, CHECK_DIRECTION direction)
 	{
-		if (mCheckDirectionList.ContainsKey(direction))
+		if (!mCheckDirectionList.ContainsKey(direction))
 		{
-			var layerList = mCheckDirectionList[direction];
-			int count = layerList.Count;
-			for (int i = 0; i < count; ++i)
+			return;
+		}
+		var layerList = mCheckDirectionList[direction];
+		int count = layerList.Count;
+		for (int i = 0; i < count; ++i)
+		{
+			if (layerList[i].mLayerIndex == layer)
 			{
-				if (layerList[i].mLayerIndex == layer)
-				{
-					mCheckLayer.Remove(layerList[i]);
-					layerList.RemoveAt(i);
-					break;
-				}
+				mCheckLayer.Remove(layerList[i]);
+				layerList.RemoveAt(i);
+				break;
 			}
 		}
 	}

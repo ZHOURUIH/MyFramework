@@ -6,13 +6,11 @@ using System.Collections.Generic;
 // 决策树,用于自动判断并决定角色应该做出的行为
 public class CharacterDecisionTree : GameComponent
 {
-	private List<DTreeNode> mTempDeadList;
 	protected Dictionary<uint, DTreeNode> mNodeList;    // 所有的节点列表
 	protected DTreeNode mRootNode;
 	protected CustomTimer mTimer;
 	public CharacterDecisionTree()
 	{
-		mTempDeadList = new List<DTreeNode>();
 		mNodeList = new Dictionary<uint, DTreeNode>();
 		mTimer = new CustomTimer();
 	}
@@ -41,11 +39,13 @@ public class CharacterDecisionTree : GameComponent
 		// 先清空子节点
 		if(node.mChildList.Count > 0)
 		{
-			var childList = new List<DTreeNode>(node.mChildList);
+			List<DTreeNode> childList = mListPool.newList(out childList);
+			childList.AddRange(node.mChildList);
 			foreach (var item in childList)
 			{
 				clearNode(item);
 			}
+			mListPool.destroyList(childList);
 		}
 		// 然后将节点自身移除
 		removeNode(node);
@@ -118,19 +118,20 @@ public class CharacterDecisionTree : GameComponent
 		}
 		if (mTimer.checkTimeCount(elapsedTime))
 		{
-			mTempDeadList.Clear();
+			List<DTreeNode> deadList = mListPool.newList(out deadList);
 			foreach (var item in mNodeList)
 			{
 				if(item.Value.mDeadNode)
 				{
-					mTempDeadList.Add(item.Value);
+					deadList.Add(item.Value);
 				}
 			}
 			// 移除已经死亡的节点
-			foreach (var item in mTempDeadList)
+			foreach (var item in deadList)
 			{
 				clearNode(item);
 			}
+			mListPool.destroyList(deadList);
 			// 从根节点开始遍历
 			if (mRootNode != null && mRootNode.condition())
 			{

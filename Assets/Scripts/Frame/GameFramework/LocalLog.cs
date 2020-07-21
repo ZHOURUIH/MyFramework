@@ -23,7 +23,7 @@ public class LocalLog : GameBase
 	public void init()
 	{
 		// 清空已经存在的日志文件
-		writeTxtFile(mLogFilePath, EMPTY_STRING);
+		writeTxtFile(mLogFilePath, null);
 		mWriteLogThread.start(writeLocalLog);
 	}
 	public void destroy()

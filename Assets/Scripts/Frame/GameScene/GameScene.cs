@@ -5,30 +5,25 @@ using System.Collections.Generic;
 
 public abstract class GameScene : ComponentOwner
 {
-	protected Dictionary<Type, SceneProcedure>	mSceneProcedureList;
-	protected List<SceneProcedure>				mLastProcedureList;  // 所进入过的所有流程
-	protected Type				mSceneType;
-	protected Type				mStartProcedure;
-    protected Type				mTempStartProcedure;
-	protected Type				mExitProcedure;			// 场景的退出流程,一般用作资源卸载
-	protected Type				mLastProcedureType;
-	protected SceneProcedure	mCurProcedure;
-	protected GameObject		mSceneObject;
-	protected AudioSource		mAudioSource;
-	protected const int			mMaxLastProcedureCount = 8;
-	protected string			mTempStartIntent;
+	protected Dictionary<Type, SceneProcedure> mSceneProcedureList;	// 场景的流程列表
+	protected List<SceneProcedure> mLastProcedureList;  // 所进入过的所有流程
+	protected SceneProcedure mCurProcedure;			// 当前流程
+	protected GameObject mSceneObject;				// 场景对应的GameObject
+	protected AudioSource mAudioSource;				// 场景音频源
+	protected Type mStartProcedure;					// 起始流程类型,进入场景时会默认进入该流程
+	protected Type mTempStartProcedure;				// 仅使用一次的起始流程类型,设置后进入场景时会默认进入该流程,生效后就清除
+	protected Type mExitProcedure;					// 场景的退出流程,退出场景进入其他场景时会先进入该流程,一般用作资源卸载
+	protected const int	mMaxLastProcedureCount = 8; // mLastProcedureList列表的最大长度,当超过该长度时,会移除列表开始的元素
+	protected string mTempStartIntent;              // 进入mTempStartProcedure时的参数
 	public GameScene(string name) 
         :base(name)
     {
-		mLastProcedureType = null;
-        mTempStartProcedure = null;
         mSceneProcedureList = new Dictionary<Type, SceneProcedure>();
 		mLastProcedureList = new List<SceneProcedure>();
 		// 创建场景对应的物体,并挂接到场景管理器下
 		mSceneObject = createGameObject(name, mGameSceneManager.getObject());
 		mAudioSource = mSceneObject.GetComponent<AudioSource>();
 	}
-	public void setType(Type type) { mSceneType = type; }
 	// 进入场景时初始化
     public virtual void init()
     {
@@ -49,6 +44,7 @@ public abstract class GameScene : ComponentOwner
 		cmd.mProcedure = mTempStartProcedure != null ? mTempStartProcedure : mStartProcedure;
 		cmd.mIntent = mTempStartIntent;
 		pushCommand(cmd, this);
+		mTempStartProcedure = null;
 	}
 	public override void destroy()
 	{
@@ -221,9 +217,11 @@ public abstract class GameScene : ComponentOwner
 	{
 		return mCurProcedure.getThisOrParent(typeof(T)) as T;
 	}
-    public void setTempStartProcedure(Type procedure ) { mTempStartProcedure = procedure; }
-    public void setTempStartIntent( string intent) { mTempStartIntent = intent; }
-	public Type getSceneType() { return mSceneType; }
+    public void setTempStartProcedure(Type procedure, string intent) 
+	{
+		mTempStartProcedure = procedure;
+		mTempStartIntent = intent;
+	}
 	public static T createProcedure<T>(GameScene gameScene) where T : SceneProcedure
 	{
 		T procedure = createInstance<T>(typeof(T), gameScene);

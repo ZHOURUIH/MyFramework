@@ -5,8 +5,6 @@ using System;
 
 public abstract class SceneProcedure : GameBase
 {
-	private List<SceneProcedure> mTempList0;
-	private List<SceneProcedure> mTempList1;
 	protected Dictionary<Type, SceneProcedure> mChildProcedureList; // 子流程列表
 	protected List<int> mDelayCmdList;			// 流程进入时的延迟命令列表,当命令执行时,会从列表中移除该命令	
 	protected SceneProcedure mParentProcedure;	// 父流程
@@ -23,9 +21,7 @@ public abstract class SceneProcedure : GameBase
 		mDelayCmdList = new List<int>();
 		mChildProcedureList = new Dictionary<Type, SceneProcedure>();
 		mPrepareTimer = new CustomTimer();
-		mPrepareIntent = EMPTY_STRING;
-		mTempList0 = new List<SceneProcedure>();
-		mTempList1 = new List<SceneProcedure>();
+		mPrepareIntent = null;
 	}
 	// 销毁场景时会调用流程的销毁
 	public virtual void destroy() { }
@@ -125,7 +121,7 @@ public abstract class SceneProcedure : GameBase
 		// 退出完毕后就修改标记
 		mPrepareTimer.stop();
 		mPrepareNext = null;
-		mPrepareIntent = EMPTY_STRING;
+		mPrepareIntent = null;
 	}
 	public void prepareExit(SceneProcedure next, float time, string intent)
 	{
@@ -158,21 +154,25 @@ public abstract class SceneProcedure : GameBase
 	public SceneProcedure getSameParent(SceneProcedure otherProcedure)
 	{
 		// 获得两个流程的父节点列表
-		mTempList0.Clear();
-		mTempList1.Clear();
-		getParentList(ref mTempList0);
-		otherProcedure.getParentList(ref mTempList1);
+		List<SceneProcedure> tempList0 = mListPool.newList(out tempList0);
+		List<SceneProcedure> tempList1 = mListPool.newList(out tempList1);
+		getParentList(ref tempList0);
+		otherProcedure.getParentList(ref tempList1);
 		// 从前往后判断,找到第一个相同的父节点
-		foreach (var thisParent in mTempList0)
+		foreach (var thisParent in tempList0)
 		{
-			foreach (var otherParent in mTempList1)
+			foreach (var otherParent in tempList1)
 			{
 				if (thisParent == otherParent)
 				{
+					mListPool.destroyList(tempList0);
+					mListPool.destroyList(tempList1);
 					return thisParent;
 				}
 			}
 		}
+		mListPool.destroyList(tempList0);
+		mListPool.destroyList(tempList1);
 		return null;
 	}
 	public bool isThisOrParent<T>() where T : SceneProcedure
@@ -213,10 +213,7 @@ public abstract class SceneProcedure : GameBase
 			return mParentProcedure;
 		}
 		// 不匹配,则继续向上查找
-		else
-		{
-			return mParentProcedure.getParent(type);
-		}
+		return mParentProcedure.getParent(type);
 	}
 	public SceneProcedure getThisOrParent(Type type)
 	{
@@ -224,10 +221,7 @@ public abstract class SceneProcedure : GameBase
 		{
 			return this;
 		}
-		else
-		{
-			return getParent(type);
-		}
+		return getParent(type);
 	}
 	public SceneProcedure getCurChildProcedure() { return mCurChildProcedure; }
 	public SceneProcedure getChildProcedure(Type type)

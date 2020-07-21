@@ -8,9 +8,9 @@ public class txUGUIInputFieldTMP : txUGUIObject
 {
 	protected TMP_InputField mInputField;
 	protected OnInputField mAction;
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		mInputField = mObject.GetComponent<TMP_InputField>();
 		if (mInputField == null)
 		{

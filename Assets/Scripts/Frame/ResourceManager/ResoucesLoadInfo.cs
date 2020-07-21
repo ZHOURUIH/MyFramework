@@ -1,20 +1,17 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using UnityEngine;
 
 public class ResoucesLoadInfo : IClassObject
-{
-	public string mPath;
-	public string mResouceName;
-	public Object mObject;
-	public Object[] mSubObjects;
-	public LOAD_STATE mState;
+{	
 	public List<AssetLoadDoneCallback> mCallback;
 	public List<object[]> mUserData;
 	public List<string> mLoadPath;
+	public Object[] mSubObjects;
+	public Object mObject;
+	public LOAD_STATE mState;
+	public string mPath;
+	public string mResouceName;
 	public ResoucesLoadInfo()
 	{
 		mCallback = new List<AssetLoadDoneCallback>();
@@ -24,12 +21,13 @@ public class ResoucesLoadInfo : IClassObject
 	}
 	public void addCallback(AssetLoadDoneCallback callback, object[] userData, string loadPath)
 	{
-		if(callback != null)
+		if(callback == null)
 		{
-			mCallback.Add(callback);
-			mUserData.Add(userData);
-			mLoadPath.Add(loadPath);
+			return;
 		}
+		mCallback.Add(callback);
+		mUserData.Add(userData);
+		mLoadPath.Add(loadPath);
 	}
 	public void callbackAll(Object asset, Object[] subAssets, byte[] bytes)
 	{
@@ -44,11 +42,11 @@ public class ResoucesLoadInfo : IClassObject
 	}
 	public void resetProperty()
 	{
-		mPath = "";
-		mResouceName = "";
+		mPath = null;
+		mResouceName = null;
 		mObject = null;
 		mSubObjects = null;
-		mState = LOAD_STATE.LS_NONE;
+		mState = LOAD_STATE.LS_UNLOAD;
 		mCallback.Clear();
 		mUserData.Clear();
 		mLoadPath.Clear();

@@ -5,9 +5,6 @@ using UnityEngine;
 
 public class AssetBundleLoader : GameBase
 {
-	private List<UnityEngine.Object> mTempList0;
-	private List<string> mTempList;
-	private List<string> mTempList1;
 	protected Dictionary<string, AssetBundleInfo> mAssetBundleInfoList;
 	protected Dictionary<string, AssetInfo> mAssetToBundleInfo;
 	protected Dictionary<UnityEngine.Object, AssetBundleInfo> mAssetToAssetBundleInfo;
@@ -25,9 +22,6 @@ public class AssetBundleLoader : GameBase
 		mRequestBundleList = new List<AssetBundleInfo>();
 		mRequestAssetList = new Dictionary<string, AssetBundleInfo>();
 		mAssetToAssetBundleInfo = new Dictionary<UnityEngine.Object, AssetBundleInfo>();
-		mTempList = new List<string>();
-		mTempList1 = new List<string>();
-		mTempList0 = new List<UnityEngine.Object>();
 	}
 	public bool init()
 	{
@@ -49,7 +43,7 @@ public class AssetBundleLoader : GameBase
 		}
 		return true;
 	}
-	public void update(float elapsedTime)
+	public virtual void update(float elapsedTime)
 	{
 		if(!mInited)
 		{
@@ -57,15 +51,16 @@ public class AssetBundleLoader : GameBase
 		}
 		if(mAssetToAssetBundleInfo.Count > 0)
 		{
-			mTempList0.Clear();
-			mTempList0.AddRange(mAssetToAssetBundleInfo.Keys);
-			foreach (var item in mTempList0)
+			List<UnityEngine.Object> tempList = mListPool.newList(out tempList);
+			tempList.AddRange(mAssetToAssetBundleInfo.Keys);
+			foreach (var item in tempList)
 			{
 				if (item == null)
 				{
 					mAssetToAssetBundleInfo.Remove(item);
 				}
 			}
+			mListPool.destroyList(tempList);
 		}
 		// 处理资源包异步加载请求
 		if (mRequestBundleList.Count > 0 && mAssetBundleCoroutineCount < ASSET_BUNDLE_COROUTINE)
@@ -149,30 +144,31 @@ public class AssetBundleLoader : GameBase
 			if (startWith(item.Key, path))
 			{
 				// 还未开始加载的异步加载资源需要从等待列表中移除
-				mTempList.Clear();
-				mTempList.AddRange(mRequestAssetList.Keys);
-				foreach(var assetName in mTempList)
+				List<string> tempList = mListPool.newList(out tempList);
+				tempList.AddRange(mRequestAssetList.Keys);
+				foreach(var assetName in tempList)
 				{
 					if(mRequestAssetList[assetName] == item.Value)
 					{
 						mRequestAssetList.Remove(assetName);
 					}
 				}
+				mListPool.destroyList(tempList);
 				mRequestBundleList.Remove(item.Value);
 				item.Value.unload();
 			}
 		}
 	}
 	// 得到文件夹中的所有文件,文件夹被打包成一个AssetBundle,返回AssetBundle中的所有资源名
-	public List<string> getFileList(string path)
+	public void getFileList(string path, List<string> list)
 	{
 		if (!mInited)
 		{
 			logError("AssetBundleLoader is not inited!");
-			return null;
+			return;
 		}
 		removeEndSlash(ref path);
-		mTempList1.Clear();
+		list.Clear();
 		// 该文件夹被打包成一个AssetBundle
 		foreach (var item in mAssetBundleInfoList)
 		{
@@ -181,11 +177,10 @@ public class AssetBundleLoader : GameBase
 				var assetList = item.Value.getAssetList();
 				foreach (var asset in assetList)
 				{
-					mTempList1.Add(getFileNameNoSuffix(asset.Key));
+					list.Add(getFileNameNoSuffix(asset.Key));
 				}
 			}
 		}
-		return mTempList1;
 	}
 	// 资源是否已经加载
 	public bool isAssetLoaded<T>(string fileName) where T : UnityEngine.Object
@@ -195,7 +190,7 @@ public class AssetBundleLoader : GameBase
 			logError("AssetBundleLoader is not inited!");
 			return false;
 		}
-		List<string> fileNameList = new List<string>();
+		List<string> fileNameList = mListPool.newList(out fileNameList);
 		ResourceManager.adjustResourceName<T>(fileName, fileNameList);
 		// 只返回第一个找到的资源
 		int count = fileNameList.Count;
@@ -205,17 +200,16 @@ public class AssetBundleLoader : GameBase
 			// 找不到资源则直接返回
 			if (mAssetToBundleInfo.ContainsKey(fileNameWithSuffix))
 			{
+				mListPool.destroyList(fileNameList);
 				AssetBundleInfo bundleInfo = mAssetToBundleInfo[fileNameWithSuffix].getAssetBundle();
 				if (bundleInfo.getLoadState() != LOAD_STATE.LS_LOADED)
 				{
 					return false;
 				}
-				else
-				{
-					return bundleInfo.getAssetInfo(fileNameWithSuffix).isLoaded();
-				}
+				return bundleInfo.getAssetInfo(fileNameWithSuffix).isLoaded();
 			}
 		}
+		mListPool.destroyList(fileNameList);
 		return false;
 	}
 	// 获得资源,如果资源包未加载,则返回空
@@ -226,7 +220,7 @@ public class AssetBundleLoader : GameBase
 			logError("AssetBundleLoader is not inited!");
 			return null;
 		}
-		List<string> fileNameList = new List<string>();
+		List<string> fileNameList = mListPool.newList(out fileNameList);
 		ResourceManager.adjustResourceName<T>(fileName, fileNameList);
 		// 只返回第一个找到的资源
 		int count = fileNameList.Count;
@@ -235,10 +229,12 @@ public class AssetBundleLoader : GameBase
 			string fileNameWithSuffix = fileNameList[i];
 			if (mAssetToBundleInfo.ContainsKey(fileNameWithSuffix))
 			{
+				mListPool.destroyList(fileNameList);
 				AssetBundleInfo bundleInfo = mAssetToBundleInfo[fileNameWithSuffix].getAssetBundle();
 				return bundleInfo.getAssetInfo(fileNameWithSuffix).getAsset() as T;
 			}
 		}
+		mListPool.destroyList(fileNameList);
 		return null;
 	}
 	// 检查指定的已加载的AssetBundle的依赖项是否有未加载的情况,如果有未加载的则同步加载
@@ -317,7 +313,7 @@ public class AssetBundleLoader : GameBase
 			logError("AssetBundleLoader is not inited!");
 			return false;
 		}
-		List<string> fileNameList = new List<string>();
+		List<string> fileNameList = mListPool.newList(out fileNameList);
 		ResourceManager.adjustResourceName<T>(fileName, fileNameList);
 		// 只加载第一个找到的资源,所以不允许有重名的同类资源
 		int loadedCount = 0;
@@ -335,6 +331,7 @@ public class AssetBundleLoader : GameBase
 				}
 			}
 		}
+		mListPool.destroyList(fileNameList);
 		return loadedCount != 0;
 	}
 	// 同步加载资源,文件名称,不带后缀,Resources下的相对路径
@@ -345,7 +342,7 @@ public class AssetBundleLoader : GameBase
 			logError("AssetBundleLoader is not inited!");
 			return null;
 		}
-		List<string> fileNameList = new List<string>();
+		List<string> fileNameList = mListPool.newList(out fileNameList);
 		ResourceManager.adjustResourceName<T>(fileName, fileNameList);
 		// 只加载第一个找到的资源,所以不允许有重名的同类资源
 		UnityEngine.Object[] res = null;
@@ -363,6 +360,7 @@ public class AssetBundleLoader : GameBase
 				}
 			}
 		}
+		mListPool.destroyList(fileNameList);
 		return res;
 	}
 	// 同步加载资源,文件名称,不带后缀,Resources下的相对路径
@@ -373,7 +371,7 @@ public class AssetBundleLoader : GameBase
 			logError("AssetBundleLoader is not inited!");
 			return null;
 		}
-		List<string> fileNameList = new List<string>();
+		List<string> fileNameList = mListPool.newList(out fileNameList);
 		ResourceManager.adjustResourceName<T>(fileName, fileNameList);
 		// 只加载第一个找到的资源,所以不允许有重名的同类资源
 		T res = null;
@@ -390,6 +388,7 @@ public class AssetBundleLoader : GameBase
 				}
 			}
 		}
+		mListPool.destroyList(fileNameList);
 		return res;
 	}
 	// 异步加载资源
@@ -400,7 +399,7 @@ public class AssetBundleLoader : GameBase
 			logError("AssetBundleLoader is not inited!");
 			return false;
 		}
-		List<string> fileNameList = new List<string>();
+		List<string> fileNameList = mListPool.newList(out fileNameList);
 		ResourceManager.adjustResourceName<T>(fileName, fileNameList);
 		// 只加载第一个找到的资源,所以不允许有重名的同类资源
 		int loadedCount = 0;
@@ -417,6 +416,7 @@ public class AssetBundleLoader : GameBase
 				}
 			}
 		}
+		mListPool.destroyList(fileNameList);
 		return loadedCount != 0;
 	}
 	// 请求异步加载资源包

@@ -1,24 +1,22 @@
 ﻿using UnityEngine;
-using UnityEngine.Events;
 using System.Collections;
-using RenderHeads.Media.AVProVideo;
 
 #if USE_NGUI
 
 public class txNGUIVideoCriticalMask : txNGUIVideo
 {
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		setWindowShader<WindowShaderCriticalMask>();
 	}
 }
 //---------------------------------------------------------------------------------------------------------------------------
 public class txNGUIVideoMotionBlurCriticalMask : txNGUIVideo
 {
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		setWindowShader<WindowShaderMotionBlurCriticalMask>();
 	}
 }

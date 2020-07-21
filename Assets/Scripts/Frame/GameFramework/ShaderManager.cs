@@ -23,6 +23,7 @@ public class ShaderManager : FrameComponent
 		mShaderManager.registeSingleShader("Feather");
 		mShaderManager.registeSingleShader("LinearDodge");
 		mShaderManager.registeSingleShader("Multiple");
+		mShaderManager.registeSingleShader("SnapPixel");
 	}
 	public override void destroy()
 	{

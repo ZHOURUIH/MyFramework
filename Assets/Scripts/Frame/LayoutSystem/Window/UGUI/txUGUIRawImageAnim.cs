@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class txUGUIRawImageAnim : txUGUIRawImage, IUIAnimation
 {
-	private List<TextureAnimCallBack> mTempList0;
 	protected List<TextureAnimCallBack> mPlayEndCallback;  // 一个序列播放完时的回调函数,只在非循环播放状态下有效
 	protected List<TextureAnimCallBack> mPlayingCallback;  // 一个序列正在播放时的回调函数
 	protected List<Texture> mTextureNameList;
@@ -20,18 +19,20 @@ public class txUGUIRawImageAnim : txUGUIRawImage, IUIAnimation
 		mUseTextureSize = false;
 		mPlayEndCallback = new List<TextureAnimCallBack>();
 		mPlayingCallback = new List<TextureAnimCallBack>();
-		mTempList0 = new List<TextureAnimCallBack>();
 		mTextureSetName = EMPTY_STRING;
 		mSubPath = EMPTY_STRING;
 	}
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		string textureName = getTextureName();
-		int index = textureName.LastIndexOf('_');
-		if (index >= 0)
+		if (!isEmpty(textureName))
 		{
-			setTextureSet(textureName.Substring(0, index));
+			int index = textureName.LastIndexOf('_');
+			if (index >= 0)
+			{
+				setTextureSet(textureName.Substring(0, index));
+			}
 		}
 		mControl.setObject(this);
 		mControl.setPlayEndCallback(onPlayEnd);
@@ -59,7 +60,7 @@ public class txUGUIRawImageAnim : txUGUIRawImage, IUIAnimation
 	}
 	public void setTextureSet(string textureSetName, string subPath)
 	{
-		if (subPath.Length != 0 && !subPath.EndsWith("/"))
+		if (!isEmpty(subPath) && !subPath.EndsWith("/"))
 		{
 			subPath += "/";
 		}
@@ -114,20 +115,28 @@ public class txUGUIRawImageAnim : txUGUIRawImage, IUIAnimation
 	{
 		if(clear)
 		{
-			mTempList0.Clear();
-			mTempList0.AddRange(mPlayEndCallback);
+			List<TextureAnimCallBack> tempList = mListPool.newList(out tempList);
+			tempList.AddRange(mPlayEndCallback);
 			mPlayEndCallback.Clear();
 			// 如果回调函数当前不为空,则是中断了更新
-			foreach(var item in mTempList0)
+			foreach(var item in tempList)
 			{
 				item(this, true);
 			}
+			mListPool.destroyList(tempList);
 		}
 		mPlayEndCallback.Add(callback);
 	}
-	public void addPlayingCallback(TextureAnimCallBack callback)
+	public void addPlayingCallback(TextureAnimCallBack callback, bool clear = true)
 	{
-		mPlayingCallback.Add(callback);
+		if (clear)
+		{
+			mPlayingCallback.Clear();
+		}
+		if (callback != null)
+		{
+			mPlayingCallback.Add(callback);
+		}
 	}
 	//---------------------------------------------------------------------------------------------------------------------------------------------------
 	protected void onPlaying(AnimControl control, int frame, bool isPlaying)
@@ -156,13 +165,14 @@ public class txUGUIRawImageAnim : txUGUIRawImage, IUIAnimation
 		}
 		if(callback)
 		{
-			mTempList0.Clear();
-			mTempList0.AddRange(mPlayEndCallback);
+			List<TextureAnimCallBack> tempList = mListPool.newList(out tempList);
+			tempList.AddRange(mPlayEndCallback);
 			mPlayEndCallback.Clear();
-			foreach (var item in mTempList0)
+			foreach (var item in tempList)
 			{
 				item(this, isBreak);
 			}
+			mListPool.destroyList(tempList);
 		}
 		else
 		{

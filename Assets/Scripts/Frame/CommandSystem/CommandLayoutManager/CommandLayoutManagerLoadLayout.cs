@@ -3,29 +3,29 @@ using System.Collections;
 
 public class CommandLayoutManagerLoadLayout : Command 
 {
-	public LAYOUT mLayoutType;
-	public bool mVisible;
-	public GameLayout mResultLayout;
-	public int mRenderOrder;
-	public bool mAsync;
 	public LayoutAsyncDone mCallback;
+	public GameLayout mResultLayout;
+	public LAYOUT mLayoutType;
 	public string mParam;
+	public bool mVisible;
+	public bool mAsync;
 	public bool mImmediatelyShow;
 	public bool mIsNGUI;
 	public bool mIsScene;
+	public int mRenderOrder;
 	public override void init()
 	{
 		base.init();
-		mLayoutType = LAYOUT.L_MAX;
-		mVisible = true;
-		mResultLayout = null;
-		mRenderOrder = 0;
-		mAsync = false;
 		mCallback = null;
-		mParam = EMPTY_STRING;
+		mResultLayout = null;
+		mLayoutType = LAYOUT.L_MAX;
+		mParam = null;
+		mVisible = true;
+		mAsync = false;
 		mImmediatelyShow = false;
 		mIsNGUI = true;
 		mIsScene = false;
+		mRenderOrder = 0;
 	}
 	public override void execute()
 	{

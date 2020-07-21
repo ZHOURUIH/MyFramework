@@ -7,7 +7,7 @@ public class CommandWindowAlphaPath : Command
 	public Dictionary<float, float> mValueKeyFrame;
 	public KeyFrameCallback mDoingCallBack;
 	public KeyFrameCallback mDoneCallBack;
-	public float mValueOffset;			// 位置偏移,计算出的位置会再加上这个偏移作为最终透明
+	public float mValueOffset;			// 透明偏移,计算出的值会再加上这个偏移作为最终透明
 	public float mAmplitude;
 	public float mOffset;
 	public float mSpeed;
@@ -16,15 +16,15 @@ public class CommandWindowAlphaPath : Command
 	public override void init()
 	{
 		base.init();
+		mValueKeyFrame = null;
+		mDoingCallBack = null;
+		mDoneCallBack = null;
 		mOffset = 0.0f;
 		mAmplitude = 1.0f;
 		mSpeed = 1.0f;
 		mValueOffset = 1.0f;
 		mLoop = false;
 		mFullOnce = false;
-		mValueKeyFrame = null;
-		mDoingCallBack = null;
-		mDoneCallBack = null;
 	}
 	public override void execute()
 	{

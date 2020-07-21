@@ -24,36 +24,37 @@ public class CharacterComponentModel : GameComponent
 		}
 		mModelPath = modelPath;
 		mModel = model;
-		if (mModel != null)
+		if (mModel == null)
 		{
-			mModel.SetActive(mActive);
-			mModelTransform = mModel.GetComponent<Transform>();
-			mAnimator = mModel.GetComponent<Animator>();
-			// 如果根节点找不到,则在第一级子节点中查找
-			if(mAnimator == null)
+			return;
+		}
+		mModel.SetActive(mActive);
+		mModelTransform = mModel.GetComponent<Transform>();
+		mAnimator = mModel.GetComponent<Animator>();
+		// 如果根节点找不到,则在第一级子节点中查找
+		if (mAnimator == null)
+		{
+			int childCount = mModelTransform.childCount;
+			for (int i = 0; i < childCount; ++i)
 			{
-				int childCount = mModelTransform.childCount;
-				for(int i = 0; i < childCount; ++i)
+				mAnimator = mModelTransform.GetChild(i).GetComponent<Animator>();
+				if (mAnimator != null)
 				{
-					mAnimator = mModelTransform.GetChild(i).GetComponent<Animator>();
-					if(mAnimator != null)
-					{
-						break;
-					}
+					break;
 				}
 			}
-			mAnimation = mModel.GetComponent<Animation>();
-			// 如果根节点找不到,则在第一级子节点中查找
-			if (mAnimation == null)
+		}
+		mAnimation = mModel.GetComponent<Animation>();
+		// 如果根节点找不到,则在第一级子节点中查找
+		if (mAnimation == null)
+		{
+			int childCount = mModelTransform.childCount;
+			for (int i = 0; i < childCount; ++i)
 			{
-				int childCount = mModelTransform.childCount;
-				for (int i = 0; i < childCount; ++i)
+				mAnimation = mModelTransform.GetChild(i).GetComponent<Animation>();
+				if (mAnimation != null)
 				{
-					mAnimation = mModelTransform.GetChild(i).GetComponent<Animation>();
-					if (mAnimation != null)
-					{
-						break;
-					}
+					break;
 				}
 			}
 		}
@@ -79,6 +80,6 @@ public class CharacterComponentModel : GameComponent
 		mModelTransform = null;
 		mAnimator = null;
 		mAnimation = null;
-		mModelPath = EMPTY_STRING;
+		mModelPath = null;
 	}
 }

@@ -6,7 +6,6 @@ using UnityEngine;
 
 public class txNGUISpriteAnim : txNGUISprite, IUIAnimation
 {
-	private List<TextureAnimCallBack> mTempList;
 	private Dictionary<string, UISpriteData> mTempSpriteDataList;
 	protected List<TextureAnimCallBack> mPlayEndCallback;  // 一个序列播放完时的回调函数,只在非循环播放状态下有效
 	protected List<TextureAnimCallBack> mPlayingCallback;  // 一个序列正在播放时的回调函数
@@ -21,15 +20,14 @@ public class txNGUISpriteAnim : txNGUISprite, IUIAnimation
 		mTextureNameList = new List<string>();
 		mPlayEndCallback = new List<TextureAnimCallBack>();
 		mPlayingCallback = new List<TextureAnimCallBack>();
-		mTempList = new List<TextureAnimCallBack>();
 		mTempSpriteDataList = new Dictionary<string, UISpriteData>();
 		mUseTextureSize = false;
 	}
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		string spriteName = getSpriteName();
-		if(spriteName != null && spriteName.Length != 0)
+		if (!isEmpty(spriteName))
 		{
 			int index = spriteName.LastIndexOf('_');
 			if (index >= 0)
@@ -83,7 +81,7 @@ public class txNGUISpriteAnim : txNGUISprite, IUIAnimation
 		}
 		mTextureNameList.Clear();
 		mTextureSetName = textureSetName;
-		if (mSprite != null && mSprite.atlas != null && mTextureSetName.Length != 0)
+		if (mSprite != null && mSprite.atlas != null && !isEmpty(mTextureSetName))
 		{
 			mTempSpriteDataList.Clear();
 			var sprites = mSprite.atlas.spriteList;
@@ -143,14 +141,15 @@ public class txNGUISpriteAnim : txNGUISprite, IUIAnimation
 	{
 		if (clear)
 		{
-			mTempList.Clear();
-			mTempList.AddRange(mPlayEndCallback);
+			List<TextureAnimCallBack> tempList = mListPool.newList(out tempList);
+			tempList.AddRange(mPlayEndCallback);
 			mPlayEndCallback.Clear();
 			// 如果回调函数当前不为空,则是中断了更新
-			foreach (var item in mTempList)
+			foreach (var item in tempList)
 			{
 				item(this, true);
 			}
+			mListPool.destroyList(tempList);
 		}
 		mPlayEndCallback.Add(callback);
 	}
@@ -187,13 +186,14 @@ public class txNGUISpriteAnim : txNGUISprite, IUIAnimation
 		}
 		if(callback)
 		{
-			mTempList.Clear();
-			mTempList.AddRange(mPlayEndCallback);
+			List<TextureAnimCallBack> tempList = mListPool.newList(out tempList);
+			tempList.AddRange(mPlayEndCallback);
 			mPlayEndCallback.Clear();
-			foreach (var item in mTempList)
+			foreach (var item in tempList)
 			{
 				item(this, isBreak);
 			}
+			mListPool.destroyList(tempList);
 		}
 		else
 		{

@@ -3,10 +3,11 @@ using System.Collections;
 using System;
 using System.Collections.Generic;
 
+// 自定义缓冲区,用于持续写入数据
 public class StreamBuffer : GameBase
 {
-	protected int mBufferSize;
 	protected byte[] mBuffer;
+	protected int mBufferSize;
 	protected int mDataLength;
 	public StreamBuffer(int bufferSize)
 	{

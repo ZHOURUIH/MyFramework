@@ -7,7 +7,7 @@ public class CommandGameSceneBackToLastProcedure : Command
 	public override void init()
 	{
 		base.init();
-		mIntent = EMPTY_STRING;
+		mIntent = null;
 	}
 	public override void execute()
 	{

@@ -2,23 +2,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
-using UnityEngine.Profiling;
 
 public class CharacterManager : FrameComponent
 {
 	protected Dictionary<Type, Dictionary<uint, Character>> mCharacterTypeList;    // 角色分类列表
-	protected Dictionary<uint, Character>		mCharacterGUIDList; // 角色ID索引表
-	protected ICharacterMyself					mMyself;            // 玩家自己,方便获取
+	protected Dictionary<uint, Character> mCharacterGUIDList;	// 角色ID索引表
+	protected Dictionary<uint, Character> mFixedUpdateList;		// 需要在FixedUpdate中更新的列表,如果直接使用mCharacterGUIDList,会非常慢,而很多时候其实并不需要进行物理更新,所以单独使用一个列表存储
+	protected ICharacterMyself mMyself;							// 玩家自己,方便获取
 	public CharacterManager(string name)
 		:base(name)
 	{
 		mCharacterTypeList = new Dictionary<Type, Dictionary<uint, Character>>();
 		mCharacterGUIDList = new Dictionary<uint, Character>();
+		mFixedUpdateList = new Dictionary<uint, Character>();
 		mCreateObject = true;
-	}
-	public override void init()
-	{
-		base.init();
 	}
 	public override void destroy()
 	{
@@ -29,6 +26,7 @@ public class CharacterManager : FrameComponent
 		}
 		mCharacterTypeList = null;
 		mCharacterGUIDList = null;
+		mFixedUpdateList = null;
 		mMyself = null;
 	}
 	public override void update(float elapsedTime)
@@ -53,7 +51,7 @@ public class CharacterManager : FrameComponent
 	public override void fixedUpdate(float elapsedTime)
 	{
 		base.fixedUpdate(elapsedTime);
-		foreach (var item in mCharacterGUIDList)
+		foreach (var item in mFixedUpdateList)
 		{
 			Character character = item.Value;
 			if (character != null && character.isActive())
@@ -71,6 +69,7 @@ public class CharacterManager : FrameComponent
 	{
 		return mCharacterGUIDList.ContainsKey(characterID) ? mCharacterGUIDList[characterID] : null;
 	}
+	public Dictionary<uint, Character> getCharacterList() { return mCharacterGUIDList; }
 	public void activeCharacter(uint id, bool active)
 	{
 		activeCharacter(getCharacter(id), active);
@@ -102,23 +101,20 @@ public class CharacterManager : FrameComponent
 		{
 			if (mMyself != null)
 			{
-				logError("Myself has exist ! can not create again, name : " + name);
+				logError("Myself has exist ! can not create again, name : " + (name != null ? name : ""));
 				return null;
 			}
 			mMyself = newCharacter as ICharacterMyself;
 		}
-		if (newCharacter != null)
+		// 将角色挂接到管理器下
+		if(createNode)
 		{
-			// 将角色挂接到管理器下
-			if(createNode)
-			{
-				GameObject charNode = createGameObject(newCharacter.getName(), mObject);
-				newCharacter.setObject(charNode);
-			}
-			newCharacter.setID(id);
-			newCharacter.init();
-			addCharacterToList(newCharacter);
+			GameObject charNode = createGameObject(newCharacter.getName(), mObject);
+			newCharacter.setObject(charNode);
 		}
+		newCharacter.setID(id);
+		newCharacter.init();
+		addCharacterToList(newCharacter);
 		return newCharacter;
 	}
 	public void destroyCharacter(uint id)
@@ -162,6 +158,10 @@ public class CharacterManager : FrameComponent
 		{
 			logError("there is a character id : " + guid + ", can not add again!");
 		}
+		if(character.isEnableFixedUpdate())
+		{
+			mFixedUpdateList.Add(guid, character);
+		}
 	}
 	protected void removeCharacterFromList(Character character)
 	{
@@ -178,6 +178,7 @@ public class CharacterManager : FrameComponent
 		}
 		// 从ID索引表中移除
 		mCharacterGUIDList.Remove(guid);
+		mFixedUpdateList.Remove(guid);
 	}
 	protected void destroyCharacter(Character character)
 	{

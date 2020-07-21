@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -14,12 +13,7 @@ public struct ChildDepthSort
 
 public class txUGUIObject : txUIObject
 {
-	private List<Transform> mTempList;
 	protected float mDefaultAlpha;
-	public txUGUIObject()
-	{
-		mTempList = new List<Transform>();
-	}
 	public override bool selfAlphaChild() { return false; }
 	public override void setWindowSize(Vector2 size)
 	{
@@ -46,17 +40,19 @@ public class txUGUIObject : txUIObject
 	public void refreshChildDepthByPositionZ()
 	{
 		// z值越大的子节点越靠后
-		mTempList.Clear();
+		List<Transform> tempList = mListPool.newList(out tempList);
+		tempList.Clear();
 		int childCount = getChildCount();
 		for (int i = 0; i < childCount; ++i)
 		{
-			mTempList.Add(mTransform.GetChild(i));
+			tempList.Add(mTransform.GetChild(i));
 		}
-		mTempList.Sort(ChildDepthSort.compareZDecending);
-		int count = mTempList.Count;
+		tempList.Sort(ChildDepthSort.compareZDecending);
+		int count = tempList.Count;
 		for (int i = 0; i < count; ++i)
 		{
-			mTempList[i].SetSiblingIndex(i);
+			tempList[i].SetSiblingIndex(i);
 		}
+		mListPool.destroyList(tempList);
 	}
 }

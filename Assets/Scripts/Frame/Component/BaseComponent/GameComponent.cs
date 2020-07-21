@@ -23,7 +23,6 @@ public abstract class GameComponent : GameBase
 	{
 		mComponentOwner?.notifyComponentDestroied(this);
 	}
-	// 拷贝当前组件的所有属性到目标组件中,返回值表示当前组件是否已经链接了预设
 	public bool isActive() { return mActive; }
 	public virtual void resetProperty() { }
 	public virtual void setActive(bool active) { mActive = active; }

@@ -21,10 +21,7 @@ public class CommandPool : GameBase
 		mUnuseLock = new ThreadLock();
 		mNewCmdLock = new ThreadLock();
 	}
-	public void init()
-	{
-		;
-	}
+	public void init(){}
 	public void destroy()
 	{
 		mInusedList.Clear();

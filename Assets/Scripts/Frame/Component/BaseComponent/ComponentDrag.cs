@@ -5,7 +5,8 @@ using System.Collections;
 public class ComponentDrag : GameComponent
 {	
 	protected OnDragStartCallback mOnDragStartCallback;
-	protected OnDragCallback mOnDragEndCallback;
+	protected OnDragCallback mOnDragEndCallback;		// 在结束拖拽,还未进行接收拖拽处理之前调用
+	protected OnDragCallback mOnDragEndTotallyCallback;	// 在结束拖拽和接收拖拽处理全部完成以后调用
 	protected OnDragCallback mOnDragingCallback;
 	protected OnDragCallback mOnInterruptCallback;
 	protected Vector3 mPrepareDragMousePosition;
@@ -82,6 +83,7 @@ public class ComponentDrag : GameComponent
 	public bool isDraging() { return mDrag; }
 	public void setDragStartCallback(OnDragStartCallback callback){mOnDragStartCallback = callback;}
 	public void setDragEndCallback(OnDragCallback callback){mOnDragEndCallback = callback;}
+	public void setDragEndTotallyCallback(OnDragCallback callback) { mOnDragEndTotallyCallback = callback; }
 	public void setDragingCallback(OnDragCallback callback){mOnDragingCallback = callback;}
 	public void setInterruptCallback(OnDragCallback callback) { mOnInterruptCallback = callback; }
 	public void setStartDragThreshold(float threshold) { mStartDragThreshold = threshold; }
@@ -261,5 +263,9 @@ public class ComponentDrag : GameComponent
 	protected virtual void onInterrupt()
 	{
 		mOnInterruptCallback?.Invoke(mComponentOwner);
+	}
+	protected void notifyDragEndTotally()
+	{
+		mOnDragEndTotallyCallback?.Invoke(mComponentOwner);
 	}
 }

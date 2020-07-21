@@ -17,12 +17,11 @@ public class WindowShaderLumOffset : WindowShader
 	public override void applyShader(Material mat)
 	{
 		base.applyShader(mat);
-		if (mat != null && mat.shader != null)
+		if (mat != null && mat.shader != null && 
+			getFileName(mat.shader.name) == mShaderName && 
+			!isFloatEqual(mat.GetFloat(mLumPropertyName), mLumOffsetValue))
 		{
-			if (mat.shader.name == mShaderName && !isFloatEqual(mat.GetFloat(mLumPropertyName), mLumOffsetValue))
-			{
-				mat.SetFloat(mLumPropertyName, mLumOffsetValue);
-			}
+			mat.SetFloat(mLumPropertyName, mLumOffsetValue);
 		}
 	}
 }

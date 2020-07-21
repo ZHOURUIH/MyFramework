@@ -9,9 +9,9 @@ public class TimeComponentScale : ComponentKeyFrameNormal
 	public void setStartScale(float scale) { mStartScale = scale;}
 	public void setTargetScale(float scale) { mTargetScale = scale; }
 	//------------------------------------------------------------------------------------------------------------
-	protected override void applyTrembling(float offset)
+	protected override void applyTrembling(float value)
 	{
-		float scale = lerpSimple(mStartScale, mTargetScale, offset);
+		float scale = lerpSimple(mStartScale, mTargetScale, value);
 		clampMin(ref scale, 0.0f);
 		Time.timeScale = scale;
 	}

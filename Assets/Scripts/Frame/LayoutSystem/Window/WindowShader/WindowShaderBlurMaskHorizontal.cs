@@ -12,7 +12,7 @@ public class WindowShaderBlurMaskHorizontal : WindowShader
 		base.applyShader(mat);
 		if (mat != null && mat.shader != null)
 		{
-			if (mat.shader.name == mBlurMaskHorizontal)
+			if (getFileName(mat.shader.name) == mBlurMaskHorizontal)
 			{
 				mat.SetFloat("_SampleInterval", mSampleInterval);
 			}

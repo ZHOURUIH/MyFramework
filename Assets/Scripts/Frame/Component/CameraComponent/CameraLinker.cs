@@ -2,16 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// 摄像机的连接器,用于第三人称摄像机的跟随逻辑
 public class CameraLinker : GameComponent
 {
-	protected MovableObject mLinkObject;
-	protected Vector3 mRelativePosition;	// 相对位置
-	protected bool mLookAtTarget;			// 是否在摄像机运动过程中一直看向目标位置
-	protected Vector3 mLookAtOffset;		// 焦点的偏移,实际摄像机的焦点是物体的位置加上偏移
 	protected Dictionary<CAMERA_LINKER_SWITCH, CameraLinkerSwitch> mSwitchList; // 转换器列表
-	protected CameraLinkerSwitch mCurSwitch;
-	protected GameCamera mCamera;
-	protected bool mLateUpdate;	// 是否在LateUpdate中更新连接器
+	protected CameraLinkerSwitch mCurSwitch;// 当前转换器
+	protected MovableObject mLinkObject;	// 摄像机跟随的物体
+	protected GameCamera mCamera;			// 所属摄像机
+	protected Vector3 mRelativePosition;    // 相对位置
+	protected Vector3 mLookAtOffset;        // 焦点的偏移,实际摄像机的焦点是物体的位置加上偏移
+	protected bool mLateUpdate;				// 是否在LateUpdate中更新连接器
+	protected bool mLookAtTarget;           // 是否在摄像机运动过程中一直看向目标位置
 	public CameraLinker()
 	{
 		mLookAtOffset = new Vector3(0.0f, 2.0f, 0.0f);
@@ -40,7 +41,7 @@ public class CameraLinker : GameComponent
 	}
 	public override void lateUpdate(float elapsedTime)
 	{
-		base.update(elapsedTime);
+		base.lateUpdate(elapsedTime);
 		if (mLinkObject == null)
 		{
 			return;
@@ -53,17 +54,18 @@ public class CameraLinker : GameComponent
 	}
 	public virtual void applyRelativePosition(Vector3 relative)
 	{
-		if (mLinkObject != null)
+		if (mLinkObject == null)
 		{
-			Vector3 newPos = mLinkObject.getWorldPosition() + relative;
-			mCamera.setPosition(newPos);
-			if (mLookAtTarget)
-			{
-				//让摄像机朝向
-				Vector3 cameraDir = mLinkObject.getWorldPosition() + mLookAtOffset - mCamera.getPosition();
-				Vector3 angles = getLookAtRotation(cameraDir);
-				mCamera.setRotation(angles);
-			}
+			return;
+		}
+		Vector3 newPos = mLinkObject.getWorldPosition() + relative;
+		mCamera.setPosition(newPos);
+		if (mLookAtTarget)
+		{
+			//让摄像机朝向
+			Vector3 cameraDir = mLinkObject.getWorldPosition() + mLookAtOffset - mCamera.getPosition();
+			Vector3 angles = getLookAtRotation(cameraDir);
+			mCamera.setRotation(angles);
 		}
 	}
 	public override void destroy()
@@ -75,7 +77,7 @@ public class CameraLinker : GameComponent
 	public MovableObject getLinkObject() { return mLinkObject; }
 	public Vector3 getRelativePosition() { return mRelativePosition; }
 	public virtual void setRelativePosition(Vector3 pos, CAMERA_LINKER_SWITCH switchType = CAMERA_LINKER_SWITCH.CLS_NONE, 
-		bool useDefaultSwitchSpeed = true, float switchSpeed = 1.0f)
+											bool useDefaultSwitchSpeed = true, float switchSpeed = 1.0f)
 	{
 		// 如果不使用转换器,则直接设置位置
 		if (switchType == CAMERA_LINKER_SWITCH.CLS_NONE)

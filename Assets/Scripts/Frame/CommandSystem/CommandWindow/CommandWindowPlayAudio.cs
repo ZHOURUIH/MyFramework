@@ -5,17 +5,17 @@ public class CommandWindowPlayAudio : Command
 {
 	public SOUND_DEFINE mSound;
 	public string mSoundFileName;
-	public bool mLoop;
 	public float mVolume;
 	public bool mUseVolumeCoe;       // 是否启用数据表格中的音量系数
+	public bool mLoop;
 	public override void init()
 	{
 		base.init();
 		mSound = SOUND_DEFINE.SD_MAX;
-		mSoundFileName = EMPTY_STRING;
-		mLoop = false;
+		mSoundFileName = null;
 		mVolume = 1.0f;
 		mUseVolumeCoe = true;
+		mLoop = false;
 	}
 	public override void execute()
 	{

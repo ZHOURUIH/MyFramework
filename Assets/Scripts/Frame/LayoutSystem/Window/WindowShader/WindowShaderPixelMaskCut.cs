@@ -16,7 +16,7 @@ public class WindowShaderPixelMaskCut : WindowShader
 		base.applyShader(mat);
 		if (mat != null && mat.shader != null)
 		{
-			if (mat.shader.name == mPixelMaskCut)
+			if (getFileName(mat.shader.name) == mPixelMaskCut)
 			{
 				mat.SetTexture("_MaskTex", mMask);
 				if(isVectorZero(ref mMaskSize))

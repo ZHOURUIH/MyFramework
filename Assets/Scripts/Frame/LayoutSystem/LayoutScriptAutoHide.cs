@@ -8,8 +8,7 @@ public abstract class LayoutScriptAutoHide : LayoutScript
 	protected CustomTimer mTimer;
 	protected bool mShowDone;
 	protected bool mHideDone;
-	public LayoutScriptAutoHide(string name)
-		:base(name)
+	public LayoutScriptAutoHide()
 	{
 		mTimer = new CustomTimer();
 		mHideDone = true;

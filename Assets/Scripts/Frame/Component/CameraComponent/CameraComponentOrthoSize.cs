@@ -13,7 +13,6 @@ public class CameraComponentOrthoSize : ComponentKeyFrameNormal
     protected override void applyTrembling(float value)
     {
         GameCamera obj = mComponentOwner as GameCamera;
-        float curOrthoSize = lerpSimple(mStartOrthoSize, mTargetOrthoSize, value);
-        obj.setOrthoSize(curOrthoSize);
+        obj.setOrthoSize(lerpSimple(mStartOrthoSize, mTargetOrthoSize, value));
     }
 }

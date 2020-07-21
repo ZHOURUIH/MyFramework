@@ -13,9 +13,9 @@ public class txNGUIScrollView : txNGUIObject
 	{
 		mItemList = new List<txUIObject>();
 	}
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		mScrollView = getUnityComponent<UIScrollView>();
 		int childCount = getChildCount();
 		for (int i = 0; i < childCount; ++i)

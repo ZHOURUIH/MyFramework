@@ -3,7 +3,7 @@ using System.Collections;
 
 public class CommandReceiver : GameBase
 {
-	protected string mName = EMPTY_STRING;
+	protected string mName;
 	public CommandReceiver(string name)
 	{
 		mName = name;

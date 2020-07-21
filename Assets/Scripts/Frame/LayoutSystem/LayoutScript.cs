@@ -3,21 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
-public abstract class LayoutScript : CommandReceiver
+public abstract class LayoutScript : GameBase
 {
 	protected List<int> mDelayCmdList;  // 布局显示和隐藏时的延迟命令列表,当命令执行时,会从列表中移除该命令
 	protected GameLayout mLayout;
 	protected txUIObject mRoot;
 	protected LAYOUT mType;
-	public LayoutScript(string name)
-		: base(name)
+	public LayoutScript()
 	{
 		mDelayCmdList = new List<int>();
 	}
-	public override void destroy()
+	public virtual void destroy()
 	{
 		interruptAllCommand();
-		base.destroy();
 	}
 	public void setLayout(GameLayout layout) { mLayout = layout; mType = mLayout.getType(); }
 	public bool isVisible() { return mLayout.isVisible(); }
@@ -121,7 +119,7 @@ public abstract class LayoutScript : CommandReceiver
 		GameObject gameObject = getGameObject(parent.getObject(), name);
 		return gameObject != null;
 	}
-	public T cloneObject<T>(txUIObject parent, T oriObj, string name, bool active = true) where T : txUIObject, new()
+	public T cloneObject<T>(txUIObject parent, T oriObj, string name, bool active = true, bool refreshUIDepth = true) where T : txUIObject, new()
 	{
 		if (parent == null)
 		{
@@ -132,7 +130,10 @@ public abstract class LayoutScript : CommandReceiver
 		window.setActive(active);
 		window.cloneFrom(oriObj);
 		// 通知布局有窗口添加
-		mLayout.notifyObjectChanged();
+		if(refreshUIDepth)
+		{
+			mLayout.notifyObjectChanged();
+		}
 		return window;
 	}
 	// 创建txUIObject,并且新建GameObject,分配到txUIObject中
@@ -159,11 +160,11 @@ public abstract class LayoutScript : CommandReceiver
 	}
 	// 创建txUIObject,并且在布局中查找GameObject分配到txUIObject
 	// active为-1则表示不设置active,0表示false,1表示true
-	public T newObject<T>(out T obj, txUIObject parent, string name, int active = -1) where T : txUIObject, new()
+	public T newObject<T>(out T obj, txUIObject parent, string name, int active = -1, bool showError = true) where T : txUIObject, new()
 	{
 		obj = null;
-		GameObject parentObj = (parent != null) ? parent.getObject() : null;
-		GameObject gameObject = getGameObject(parentObj, name, true, false);
+		GameObject parentObj = parent != null ? parent.getObject() : null;
+		GameObject gameObject = getGameObject(parentObj, name, showError, false);
 		if (gameObject == null)
 		{
 			return obj;
@@ -177,12 +178,13 @@ public abstract class LayoutScript : CommandReceiver
 	}
 	public T newObject<T>(out T obj, string name, int active = -1) where T : txUIObject, new()
 	{
-		return newObject<T>(out obj, mRoot, name, active);
+		return newObject(out obj, mRoot, name, active);
 	}
 	public static T newUIObject<T>(txUIObject parent, GameLayout layout, GameObject gameObj) where T : txUIObject, new()
 	{
 		T obj = new T();
-		obj.init(layout, gameObj, parent);
+		obj.setLayout(layout);
+		obj.init(gameObj, parent);
 		// 如果在创建窗口对象时,布局已经完成了自适应,则通知窗口
 		if(layout != null && layout.isAnchorApplied())
 		{
@@ -190,7 +192,7 @@ public abstract class LayoutScript : CommandReceiver
 		}
 		return obj;
 	}
-	public GameObject instantiateObject(txUIObject parent, string prefabPath, string name, string tag = EMPTY_STRING)
+	public GameObject instantiateObject(txUIObject parent, string prefabPath, string name, string tag = null)
 	{
 		GameObject go = mObjectPool.createObject(prefabPath, tag);
 		if(go != null)

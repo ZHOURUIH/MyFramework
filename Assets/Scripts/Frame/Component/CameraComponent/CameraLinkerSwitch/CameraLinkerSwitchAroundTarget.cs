@@ -11,11 +11,7 @@ public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 	protected float mDistanceCurrent;
 	public CameraLinkerSwitchAroundTarget()
 	{
-		mTotalAngle = 0.0f;
-		mRotatedAngle = 0.0f;
 		mClockwise = true;
-		mDistanceDelta = 0.0f;
-		mDistanceCurrent = 0.0f;
 		mSpeed = HALF_PI_RADIAN;
 	}
 	public override void init(Vector3 origin, Vector3 target, float speed)
@@ -68,7 +64,7 @@ public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 				Vector3 projectVec = rotateAxis;
 				projectVec.y = 0;
 				projectVec = normalize(projectVec);
-				projectVec = projectVec * (getLength(ref mOriginRelative) + mDistanceCurrent);
+				projectVec *= getLength(ref mOriginRelative) + mDistanceCurrent;
 				// 高度变化
 				rotateAxis.y = (mTargetRelative.y - mOriginRelative.y) * (mRotatedAngle / mTotalAngle) + mOriginRelative.y;
 				//最终值
@@ -94,7 +90,7 @@ public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 				Vector3 projectVec = rotateAxis;
 				projectVec.y = 0;
 				projectVec = normalize(projectVec);
-				projectVec = projectVec * (getLength(ref mOriginRelative) + mDistanceCurrent);
+				projectVec *= getLength(ref mOriginRelative) + mDistanceCurrent;
 
 				rotateAxis.y = (mTargetRelative.y - mOriginRelative.y) * (mRotatedAngle / mTotalAngle) + mOriginRelative.y;
 				rotateAxis.x = projectVec.x;
@@ -102,9 +98,5 @@ public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 				mParentLinker.setRelativePosition(rotateAxis);
 			}
 		}
-	}
-	public override void destroy()
-	{
-		base.destroy();
 	}
 }

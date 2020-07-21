@@ -6,9 +6,9 @@ using System.Collections;
 public class txNGUIEditbox : txNGUISprite
 {
 	protected UIInput mInput;
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		mInput = getUnityComponent<UIInput>();
 	}
 	public void setText(string text){mInput.value = text;}

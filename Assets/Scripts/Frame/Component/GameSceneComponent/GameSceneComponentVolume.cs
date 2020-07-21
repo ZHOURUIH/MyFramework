@@ -9,10 +9,10 @@ public class GameSceneComponentVolume : ComponentKeyFrameNormal
 	public void setStartVolume(float volume) { mStartVolume = volume; }
 	public void setTargetVolume(float volume) { mTargetVolume = volume; }
 	//------------------------------------------------------------------------------------------------------------
-	protected override void applyTrembling(float offset)
+	protected override void applyTrembling(float value)
 	{
 		GameScene gameScene = mComponentOwner as GameScene;
-		float newVolume = lerpSimple(mStartVolume, mTargetVolume, offset);
+		float newVolume = lerpSimple(mStartVolume, mTargetVolume, value);
 		gameScene.getComponent<GameSceneComponentAudio>().setVolume(newVolume);
 	}
 }

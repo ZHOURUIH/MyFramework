@@ -1,14 +1,13 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using System.Collections;
 using TMPro;
 
 public class txUGUITextMeshPro : txUGUIObject
 {
 	protected TextMeshProUGUI mText;
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		mText = mObject.GetComponent<TextMeshProUGUI>();
 		if (mText == null)
 		{

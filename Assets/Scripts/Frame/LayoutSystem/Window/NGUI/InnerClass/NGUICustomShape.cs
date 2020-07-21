@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using UnityEngine;
 
 public delegate void onGenerateTriangle(List<Vector2> points, ref List<Vector3> triangleList);
 
 public class NGUICustomShape : GameBase, INGUIShape
 {
-	private List<Vector2> mTempPolygonPoints;
 	public List<Vector3> mVertices;
 	public List<Color> mColors;
 	public List<Vector2> mUVs;
@@ -24,7 +19,6 @@ public class NGUICustomShape : GameBase, INGUIShape
 		mColors = new List<Color>();
 		mUVs = new List<Vector2>();
 		mPolygonPoints = new List<Vector2>();
-		mTempPolygonPoints = new List<Vector2>();
 		mOnGenerateTriangle = generateTriangle;
 	}
 	public List<Vector3> getVertices() { return mVertices; }
@@ -61,15 +55,16 @@ public class NGUICustomShape : GameBase, INGUIShape
 		mVertices.Clear();
 		mColors.Clear();
 		mUVs.Clear();
-		mTempPolygonPoints.Clear();
-		mTempPolygonPoints.AddRange(mPolygonPoints);
-		mOnGenerateTriangle?.Invoke(mTempPolygonPoints, ref mVertices);
+		List<Vector2> polygonPoints = mListPool.newList(out polygonPoints);
+		polygonPoints.AddRange(mPolygonPoints);
+		mOnGenerateTriangle?.Invoke(polygonPoints, ref mVertices);
 		int verticeCount = mVertices.Count;
 		for (int i = 0; i < verticeCount; ++i)
 		{
 			mUVs.Add(Vector2.zero);
 			mColors.Add(mColor);
 		}
+		mListPool.destroyList(polygonPoints);
 	}
 	protected static void generateTriangle(List<Vector2> vertice, ref List<Vector3> triangleList)
 	{

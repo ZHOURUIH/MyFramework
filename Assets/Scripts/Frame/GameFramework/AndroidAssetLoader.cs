@@ -32,7 +32,7 @@ public class AndroidAssetLoader : FrameComponent
 	{
 		if (mAssetLoader == null)
 		{
-			return EMPTY_STRING;
+			return null;
 		}
 		return mAssetLoader.Call<string>("loadTxtAsset", path, errorIfNull);
 	}
@@ -78,7 +78,7 @@ public class AndroidAssetLoader : FrameComponent
 	{
 		if (mAssetLoader == null)
 		{
-			return EMPTY_STRING;
+			return null;
 		}
 		checkPersistenDataPath(path);
 		return mAssetLoader.CallStatic<string>("loadTxtFile", path, errorIfNull);
@@ -181,7 +181,7 @@ public class AndroidAssetLoader : FrameComponent
 		for (int i = 0; i < maxCount; ++i)
 		{
 			string fileName = mAssetLoader.CallStatic<string>("getListElement", javaListObject, i);
-			if (fileName.Length == 0)
+			if (isEmpty(fileName))
 			{
 				break;
 			}

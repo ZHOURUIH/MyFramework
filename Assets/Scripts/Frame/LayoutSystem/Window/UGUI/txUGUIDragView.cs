@@ -5,9 +5,9 @@ using System.Collections.Generic;
 public class txUGUIDragView : txUGUIObject
 {
 	protected WindowComponentDragView mDragViewComponent;
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		if(mBoxCollider == null)
 		{
 			logError("DragView must have BoxCollider!");
@@ -37,7 +37,7 @@ public class txUGUIDragView : txUGUIObject
 	public override void onScreenMouseUp(Vector3 mousePos)
 	{
 		base.onScreenMouseUp(mousePos);
-		mDragViewComponent.onScreenMouseUp(mousePos);
+		mDragViewComponent.onScreenMouseUp();
 	}
 	public override void onMouseMove(ref Vector3 mousePos, ref Vector3 moveDelta, float moveTime)
 	{
@@ -47,13 +47,13 @@ public class txUGUIDragView : txUGUIObject
 	public override void onMouseStay(Vector3 mousePos)
 	{
 		base.onMouseStay(mousePos);
-		mDragViewComponent.onMouseStay(mousePos);
+		mDragViewComponent.onMouseStay();
 	}
 	public override void setWindowSize(Vector2 size)
 	{
 		base.setWindowSize(size);
 		mBoxCollider.size = getWindowSize(true);
-		mDragViewComponent.onWindowSizeChange(size);
+		mDragViewComponent.onWindowSizeChange();
 	}
 	public void setAlignTopOrLeft(bool alignTopOrLeft) { mDragViewComponent.setAlignTopOrLeft(alignTopOrLeft); }
 	public void autoAdjustParent(ref Vector3 parentPos, ref Vector2 parentSize, Vector2 viewportSize)

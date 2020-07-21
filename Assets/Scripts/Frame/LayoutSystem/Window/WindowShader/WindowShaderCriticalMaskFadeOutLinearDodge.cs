@@ -12,7 +12,7 @@ public class WindowShaderCriticalMaskFadeOutLinearDodge : WindowShaderCriticalMa
 		base.applyShader(mat);
 		if (mat != null && mat.shader != null)
 		{
-			if (mat.shader.name == mCriticalMaskFadeOutLinearDodge)
+			if (getFileName(mat.shader.name) == mCriticalMaskFadeOutLinearDodge)
 			{
 				mat.SetFloat("_FadeOutCriticalValue", mFadeOutCriticalValue);
 				mat.SetFloat("_CriticalValue", mCriticalValue);

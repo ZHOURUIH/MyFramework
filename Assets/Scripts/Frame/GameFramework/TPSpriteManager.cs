@@ -18,7 +18,6 @@ public class TPSpriteManager : FrameComponent
 		mAtlasNameList = new Dictionary<string, UnityEngine.Object>();
 		mAtlasList = new Dictionary<UnityEngine.Object, string>();
 	}
-	public override void init(){ base.init(); }
 	public Dictionary<string, Sprite> getSprites(string atlasName, bool errorIfNull = true)
 	{
 		if(!mSpriteNameList.ContainsKey(atlasName))
@@ -31,7 +30,7 @@ public class TPSpriteManager : FrameComponent
 		}
 		return null;
 	}
-	public Dictionary<string, Sprite> getSprites(UnityEngine.Object atlas, bool errorIfNull = true)
+	public Dictionary<string, Sprite> getSprites(UnityEngine.Object atlas)
 	{
 		return mSpriteList.ContainsKey(atlas) ? mSpriteList[atlas] : null;
 	}
@@ -57,7 +56,7 @@ public class TPSpriteManager : FrameComponent
 		{
 			loadAtlas(atlasName);
 		}
-		if(spriteName != null && mSpriteNameList.ContainsKey(atlasName) && mSpriteNameList[atlasName].ContainsKey(spriteName))
+		if(mSpriteNameList.ContainsKey(atlasName) && mSpriteNameList[atlasName].ContainsKey(spriteName))
 		{
 			return mSpriteNameList[atlasName][spriteName];
 		}
@@ -160,35 +159,36 @@ public class TPSpriteManager : FrameComponent
 	}
 	protected void loadAtlas(string atlasName, bool errorIfNull = true)
 	{
-		if(!mSpriteNameList.ContainsKey(atlasName))
+		if (mSpriteNameList.ContainsKey(atlasName))
 		{
-			var sprites = mResourceManager.loadSubResource<Sprite>(atlasName, errorIfNull);
-			if (sprites != null && sprites.Length > 0)
+			return;
+		}
+		var sprites = mResourceManager.loadSubResource<Sprite>(atlasName, errorIfNull);
+		if (sprites != null && sprites.Length > 0)
+		{
+			// 找到Texture,位置不一定是第一个,需要遍历查找
+			Texture2D atlas = null;
+			foreach (var item in sprites)
 			{
-				// 找到Texture,位置不一定是第一个,需要遍历查找
-				Texture2D atlas = null;
-				foreach(var item in sprites)
+				if (item is Texture2D)
 				{
-					if(item is Texture2D)
-					{
-						atlas = item as Texture2D;
-						break;
-					}
+					atlas = item as Texture2D;
+					break;
 				}
-				// 找出所有的精灵
-				var spriteList = new Dictionary<string, Sprite>();
-				foreach(var item in sprites)
-				{
-					if(item is Sprite)
-					{
-						spriteList.Add(item.name, item as Sprite);
-					}
-				}
-				mSpriteNameList.Add(atlasName, spriteList);
-				mSpriteList.Add(atlas, spriteList);
-				mAtlasNameList.Add(atlasName, atlas);
-				mAtlasList.Add(atlas, atlasName);
 			}
+			// 找出所有的精灵
+			var spriteList = new Dictionary<string, Sprite>();
+			foreach (var item in sprites)
+			{
+				if (item is Sprite)
+				{
+					spriteList.Add(item.name, item as Sprite);
+				}
+			}
+			mSpriteNameList.Add(atlasName, spriteList);
+			mSpriteList.Add(atlas, spriteList);
+			mAtlasNameList.Add(atlasName, atlas);
+			mAtlasList.Add(atlas, atlasName);
 		}
 	}
 }

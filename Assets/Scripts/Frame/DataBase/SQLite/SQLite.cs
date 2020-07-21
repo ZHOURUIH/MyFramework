@@ -132,21 +132,23 @@ public class SQLite : FrameComponent
 	//---------------------------------------------------------------------------------------------------------------
 	protected void clearConnection()
 	{
-		if (mConnection != null)
+		if (mConnection == null)
 		{
-			mConnection.Close();
-			mConnection.Dispose();
-			mConnection = null;
+			return;
 		}
+		mConnection.Close();
+		mConnection.Dispose();
+		mConnection = null;
 	}
 	protected void clearCommand()
 	{
-		if (mCommand != null)
+		if (mCommand == null)
 		{
-			mCommand.Cancel();
-			mCommand.Dispose();
-			mCommand = null;
+			return;
 		}
+		mCommand.Cancel();
+		mCommand.Dispose();
+		mCommand = null;
 	}
 }
 #endif

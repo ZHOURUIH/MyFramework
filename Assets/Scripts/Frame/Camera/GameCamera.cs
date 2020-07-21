@@ -37,7 +37,6 @@ public class GameCamera : MovableObject
 		base.update(elapsedTime);
 		if (mCurLinker == null && mProcessKey)
 		{
-			Vector3 delta = Vector3.zero;
 			float cameraSpeed = mCameraMoveSpeed;
 			if (!isFloatZero(cameraSpeed))
 			{
@@ -49,38 +48,32 @@ public class GameCamera : MovableObject
 				// 向前移动摄像机
 				if (Input.GetKey(KeyCode.W))
 				{
-					delta = Vector3.forward * cameraSpeed * elapsedTime;
-					move(ref delta);
+					move(Vector3.forward * cameraSpeed * elapsedTime);
 				}
 				// 向左移动摄像机
 				if (Input.GetKey(KeyCode.A))
 				{
-					delta = Vector3.left * cameraSpeed * elapsedTime;
-					move(ref delta);
+					move(Vector3.left * cameraSpeed * elapsedTime);
 				}
 				// 向后移动摄像机
 				if (Input.GetKey(KeyCode.S))
 				{
-					delta = Vector3.back * cameraSpeed * elapsedTime;
-					move(ref delta);
+					move(Vector3.back * cameraSpeed * elapsedTime);
 				}
 				// 向右移动摄像机
 				if (Input.GetKey(KeyCode.D))
 				{
-					delta = Vector3.right * cameraSpeed * elapsedTime;
-					move(ref delta);
+					move(Vector3.right * cameraSpeed * elapsedTime);
 				}
 				// 竖直向上移动摄像机
 				if (Input.GetKey(KeyCode.Q))
 				{
-					delta = Vector3.up * cameraSpeed * elapsedTime;
-					move(ref delta, Space.World);
+					move(Vector3.up * cameraSpeed * elapsedTime, Space.World);
 				}
 				// 竖直向下移动摄像机
 				if (Input.GetKey(KeyCode.E))
 				{
-					delta = Vector3.down * cameraSpeed * elapsedTime;
-					move(ref delta, Space.World);
+					move(Vector3.down * cameraSpeed * elapsedTime, Space.World);
 				}
 			}
 			// 鼠标旋转摄像机
@@ -96,8 +89,7 @@ public class GameCamera : MovableObject
 			float mouseWheelDelta = mInputManager.getMouseWheelDelta();
 			if (!isFloatZero(mouseWheelDelta))
 			{
-				delta = Vector3.forward * mouseWheelDelta * (10.0f / 120.0f);
-				move(ref delta);
+				move(Vector3.forward * mouseWheelDelta * (10.0f / 120.0f));
 			}
 		}
 	}
@@ -145,7 +137,7 @@ public class GameCamera : MovableObject
 		// 如果是要断开当前连接器,则将连接器名字清空,否则记录当前连接器
 		if(target != null && linker != null)
 		{
-			mCurLinker = linker as CameraLinker;
+			mCurLinker = linker;
 		}
 		else
 		{

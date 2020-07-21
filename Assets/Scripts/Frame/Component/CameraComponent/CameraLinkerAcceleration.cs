@@ -55,7 +55,6 @@ public class CameraLinkerAcceleration : CameraLinker
 		mSpringX.update(elapsedTime);
 		mSpringY.update(elapsedTime);
 		mSpringZ.update(elapsedTime);
-		float curX = 0.0f, curY = 0.0f, curZ = 0.0f;
 		// 如果使用目标物体的航向角,则对相对位置进行旋转
 		Vector3 relative = mRelativePosition;
 		if (mUseTargetYaw)
@@ -63,6 +62,9 @@ public class CameraLinkerAcceleration : CameraLinker
 			relative = rotateVector3(relative, toRadian(mLinkObject.getRotation().y));
 		}
 		//判断是否为零
+		float curX = 0.0f;
+		float curY = 0.0f;
+		float curZ = 0.0f;
 		Vector3 acceleration = mLinkObject.getPhysicsAcceleration();
 		processRelative(mSpringX, relative.x, acceleration.x, ref curX);
 		processRelative(mSpringY, relative.y, acceleration.y, ref curY);
@@ -72,16 +74,14 @@ public class CameraLinkerAcceleration : CameraLinker
 	}
 	protected static void processRelative(Spring spring, float relative, float acceleration, ref float curRelative)
 	{
-		if (!isFloatZero(relative))
-		{
-			curRelative = spring.getLength() * relative / abs(relative);
-		}
-		else
+		if (isFloatZero(relative))
 		{
 			if (!isFloatZero(acceleration))
 			{
 				curRelative = spring.getLength() * acceleration / abs(acceleration);
 			}
+			return;
 		}
+		curRelative = spring.getLength() * relative / abs(relative);
 	}
 }

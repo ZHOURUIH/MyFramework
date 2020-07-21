@@ -9,10 +9,9 @@ public class MovableObjectComponentAlpha : ComponentKeyFrameNormal, IComponentMo
 	public void setStartAlpha(float alpha) {mStartAlpha = alpha;}
 	public void setTargetAlpha(float alpha) {mTargetAlpha = alpha;}
 	//------------------------------------------------------------------------------------------------------------
-	protected override void applyTrembling(float offset)
+	protected override void applyTrembling(float value)
 	{
 		MovableObject obj = mComponentOwner as MovableObject;
-		float newAlpha = lerpSimple(mStartAlpha, mTargetAlpha, offset);
-		obj.setAlpha(newAlpha);
+		obj.setAlpha(lerpSimple(mStartAlpha, mTargetAlpha, value));
 	}
 }

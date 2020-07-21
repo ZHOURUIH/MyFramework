@@ -2,9 +2,6 @@
 using System.Collections;
 using System;
 using System.Collections.Generic;
-#if UNITY_2018
-using UnityEngine.Profiling;
-#endif
 
 public class WindowComponentDragView : GameComponent
 {
@@ -217,7 +214,7 @@ public class WindowComponentDragView : GameComponent
 		mMouseDownPos = mousePos;
 	}
 	// 鼠标在屏幕上抬起
-	public void onScreenMouseUp(Vector3 mousePos)
+	public void onScreenMouseUp()
 	{
 		mMouseDown = false;
 		mDraging = false;
@@ -319,7 +316,7 @@ public class WindowComponentDragView : GameComponent
 			mMoveNormal = normalize(delta);
 		}
 	}
-	public void onMouseStay(Vector3 mousePos)
+	public void onMouseStay()
 	{
 		// 鼠标在窗口内为按下状态,并且没有移动时,确保速度为0
 		if(!mMouseDown)
@@ -352,29 +349,31 @@ public class WindowComponentDragView : GameComponent
 	// 将两个滑动组件设置为互斥组件
 	public static void mutexDragView(WindowComponentDragView dragView0, WindowComponentDragView dragView1)
 	{
-		if(dragView0 != null && dragView1 != null)
+		if(dragView0 == null || dragView1 == null)
 		{
-			if(!dragView0.mMutexDragView.Contains(dragView1))
-			{
-				dragView0.mMutexDragView.Add(dragView1);
-			}
-			if(!dragView1.mMutexDragView.Contains(dragView0))
-			{
-				dragView1.mMutexDragView.Add(dragView0);
-			}
+			return;
 		}
-	}
-	public static void releaseMutexDragView(WindowComponentDragView dragView0, WindowComponentDragView dragView1)
-	{
-		if(dragView0 != null && dragView1 != null)
+		if (!dragView0.mMutexDragView.Contains(dragView1))
 		{
-			dragView0.mMutexDragView.Remove(dragView1);
-			dragView1.mMutexDragView.Remove(dragView0);
+			dragView0.mMutexDragView.Add(dragView1);
+		}
+		if (!dragView1.mMutexDragView.Contains(dragView0))
+		{
+			dragView1.mMutexDragView.Add(dragView0);
 		}
 	}
 	public static void mutexDragView(txUIObject dragView0, txUIObject dragView1)
 	{
 		mutexDragView(dragView0.getComponent<WindowComponentDragView>(), dragView1.getComponent<WindowComponentDragView>());
+	}
+	public static void releaseMutexDragView(WindowComponentDragView dragView0, WindowComponentDragView dragView1)
+	{
+		if(dragView0 == null || dragView1 == null)
+		{
+			return;
+		}
+		dragView0.mMutexDragView.Remove(dragView1);
+		dragView1.mMutexDragView.Remove(dragView0);
 	}
 	public static void releaseMutexDragView(txUIObject dragView0, txUIObject dragView1)
 	{
@@ -385,7 +384,7 @@ public class WindowComponentDragView : GameComponent
 		mWindow.setPosition(pos);
 		mPositionChangeCallback?.Invoke();
 	}
-	public void onWindowSizeChange(Vector2 size)
+	public void onWindowSizeChange()
 	{
 		mMinMaxPosDirty = true;
 	}
@@ -497,7 +496,7 @@ public class WindowComponentDragView : GameComponent
 				}
 				else
 				{
-					position.y = alignTopOrLeft ? minValue : maxValue;
+					position.y = alignTopOrLeft ? maxValue : minValue;
 				}
 			}
 			else
@@ -508,7 +507,7 @@ public class WindowComponentDragView : GameComponent
 				}
 				else
 				{
-					position.y = alignTopOrLeft ? maxValue : minValue;
+					position.y = alignTopOrLeft ? minValue : maxValue;
 				}
 			}
 		}
@@ -572,15 +571,17 @@ public class WindowComponentDragView : GameComponent
 		Vector3[] minMaxPos = getLocalMinMaxPixelPos();
 		Vector2 minPos = minMaxPos[0];
 		Vector2 maxPos = minMaxPos[1];
+		bool horiValid = false;
+		bool vertValid = false;
 		if(mDragDirection == DRAG_DIRECTION.DD_HORIZONTAL || mDragDirection == DRAG_DIRECTION.DD_FREE)
 		{
 			float maxValue = getMax(minPos.x, maxPos.x);
 			float minValue = getMin(minPos.x, maxPos.x);
-			bool valid = false;
+			horiValid = false;
 			if(minPos.x <= maxPos.x)
 			{
-				valid = isInRange(position.x, minValue, maxValue);
-				if(!valid)
+				horiValid = isInRange(position.x, minValue, maxValue);
+				if(!horiValid)
 				{
 					float x = position.x;
 					clamp(ref x, minValue, maxValue);
@@ -599,17 +600,16 @@ public class WindowComponentDragView : GameComponent
 					validPos.x = alignTopOrLeft ? minValue : maxValue;
 				}
 			}
-			return valid;
 		}
 		if(mDragDirection == DRAG_DIRECTION.DD_VERTICAL || mDragDirection == DRAG_DIRECTION.DD_FREE)
 		{
 			float maxValue = getMax(minPos.y, maxPos.y);
 			float minValue = getMin(minPos.y, maxPos.y);
-			bool valid = false;
+			vertValid = false;
 			if(minPos.y <= maxPos.y)
 			{
-				valid = isInRange(position.y, minValue, maxValue);
-				if(!valid)
+				vertValid = isInRange(position.y, minValue, maxValue);
+				if(!vertValid)
 				{
 					float y = position.y;
 					clamp(ref y, minValue, maxValue);
@@ -625,11 +625,18 @@ public class WindowComponentDragView : GameComponent
 				}
 				else
 				{
-					validPos.y = alignTopOrLeft ? maxValue : minValue;
+					validPos.y = alignTopOrLeft ? minValue : maxValue;
 				}
 			}
-			return valid;
 		}
-		return false;
+		if(mDragDirection == DRAG_DIRECTION.DD_HORIZONTAL)
+		{
+			return horiValid;
+		}
+		else if(mDragDirection == DRAG_DIRECTION.DD_VERTICAL)
+		{
+			return vertValid;
+		}
+		return horiValid && vertValid;
 	}
 }

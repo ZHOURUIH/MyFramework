@@ -10,7 +10,7 @@ public class CommandGameSceneChangeProcedure : Command
 	{
 		base.init();
 		mProcedure = null;
-		mIntent = EMPTY_STRING;
+		mIntent = null;
 	}
 	public override void execute()
 	{
@@ -20,15 +20,14 @@ public class CommandGameSceneChangeProcedure : Command
 		if(curProcedure != null	&& curProcedure.isPreparingExit())
 		{
 			logError("procedure is preparing to change, can not change again!");
+			return;
 		}
-		else
+		// 不能重复进入同一流程
+		if(curProcedure != null && curProcedure.getProcedureType() == mProcedure)
 		{
-			if(curProcedure == null || curProcedure.getProcedureType() != mProcedure)
-			{
-				gameScene.changeProcedure(mProcedure, mIntent);
-				mFrameLogSystem?.logProcedure("进入流程: " + mProcedure.ToString());
-			}
+			return;
 		}
+		gameScene.changeProcedure(mProcedure, mIntent);
 	}
 	public override string showDebugInfo()
 	{

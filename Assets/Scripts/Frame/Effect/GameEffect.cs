@@ -10,17 +10,19 @@ public class GameEffect : MovableObject
 	protected ParticleSystem[] mParticleSystems;        // 特效中包含的粒子系统组件列表
 	protected Animator[] mEffectAnimators;
 	protected OnEffectDestroy mEffectDestroyCallback;   // 特效销毁时的回调
-	protected PLAY_STATE mPlayState;	// 特效整体的播放状态
+	protected PLAY_STATE mPlayState;    // 特效整体的播放状态
+	protected CustomTimer mActiveTimer; // 特效显示的持续时间计时器
+	protected CustomTimer mLifeTimer;   // 特效生存时间计时器
 	protected object mDestroyUserData;	// 销毁回调的自定义参数
-	protected float mLifeTime;          // 特效生存时间,超过生存时间后就会被销毁
 	protected float mMaxActiveTime;		// 显示的最大持续时间
-	protected float mActiveTime;		// 特效显示的持续时间,超过持续时间就会被隐藏
 	protected bool mExistedObject;      // 为true表示特效节点是一个已存在的节点,false表示特效是实时加载的一个节点
 	protected bool mIsDead;             // 粒子系统是否已经死亡
 	protected bool mNextIgnoreTimeScale;
 	public GameEffect()
-		:base(EMPTY_STRING)
+		:base("effect")
 	{
+		mActiveTimer = new CustomTimer();
+		mLifeTimer = new CustomTimer();
 		mPlayState = PLAY_STATE.PS_STOP;
 	}
 	public override void init()
@@ -65,33 +67,43 @@ public class GameEffect : MovableObject
 				}
 			}
 		}
-		if (mLifeTime > 0.0f)
+		if(mLifeTimer.checkTimeCount(elapsedTime))
 		{
-			mLifeTime -= elapsedTime;
-			// 生存时间小于等于0,则销毁该特效
-			if (mLifeTime <= 0.0f)
-			{
-				mLifeTime = -1.0f;
-				mIsDead = true;
-			}
+			mIsDead = true;
 		}
-		if(mActiveTime > 0.0f)
+		if(mActiveTimer.checkTimeCount(elapsedTime))
 		{
-			mActiveTime -= elapsedTime;
-			if(mActiveTime <= 0.0f)
-			{
-				mActiveTime = -1.0f;
-				setActive(false);
-			}
+			setActive(false);
 		}
 	}
 	public void setExistObject(bool existObject) { mExistedObject = existObject; }
 	public bool isExistObject() { return mExistedObject; }
 	public bool isDead() { return mIsDead; }
-	public void setLifeTime(float time) { mLifeTime = time; }
+	public void setLifeTime(float time) 
+	{
+		mLifeTimer.init(0.0f, time, false);
+		if(time <= 0.0f)
+		{
+			mLifeTimer.stop(false);
+		}
+	}
 	public void setMaxActiveTime(float time) { mMaxActiveTime = time; }
-	public void resetActiveTime() { mActiveTime = mMaxActiveTime; }
-	public void setActiveTime(float time) { mActiveTime = time; }
+	public void resetActiveTime() 
+	{
+		mActiveTimer.init(0.0f, mMaxActiveTime, false);
+		if(mMaxActiveTime <= 0.0f)
+		{
+			mActiveTimer.stop(false);
+		}
+	}
+	public void setActiveTime(float time) 
+	{
+		mActiveTimer.init(0.0f, time, false);
+		if (time <= 0.0f)
+		{
+			mActiveTimer.stop(false);
+		}
+	}
 	public bool isValidEffect() { return mObject != null; }
 	public PLAY_STATE getPlayState() { return mPlayState; }
 	public override void setIgnoreTimeScale(bool ignore, bool componentOnly = false)
@@ -176,9 +188,9 @@ public class GameEffect : MovableObject
 		base.resetProperty();
 		mParticleSystems = null;
 		mIsDead = false;
-		mLifeTime = -1.0f;
 		mMaxActiveTime = -1.0f;
-		mActiveTime = -1.0f;
+		mLifeTimer.stop();
+		mActiveTimer.stop();
 		mExistedObject = false;
 		mEffectDestroyCallback = null;
 		mDestroyUserData = null;

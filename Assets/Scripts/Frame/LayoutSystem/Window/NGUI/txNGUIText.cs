@@ -6,9 +6,9 @@ using System.Collections;
 public class txNGUIText : txNGUIObject
 {	
 	protected UILabel mLabel;
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		mLabel = getUnityComponent<UILabel>();
 	}
 	public string getText(){return mLabel.text;}

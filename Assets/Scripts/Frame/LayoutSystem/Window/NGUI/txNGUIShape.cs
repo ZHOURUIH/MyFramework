@@ -12,9 +12,9 @@ public class txNGUIShape : txNGUITexture
 	{
 		mDirty = true;
 	}
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		mShape = createShape();
 		mTexture.mCustomVertices = true;
 		mTexture.mOnFillVertices = OnFillVertices;

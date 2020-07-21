@@ -21,10 +21,6 @@ public class AndroidPluginManager : FrameComponent
 		View.Call("getWindowVisibleDisplayFrame", Rct);
 		return (int)getScreenSize().y - Rct.Call<int>("height");
 	}
-	public override void init()
-	{
-		base.init();
-	}
 	public override void destroy()
 	{
 #if !UNITY_EDITOR && UNITY_ANDROID

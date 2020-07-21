@@ -10,7 +10,7 @@ public class WindowShaderHSLOffsetLinearDodge : WindowShaderHSLOffset
 		base.applyShader(mat);
 		if (mat != null && mat.shader != null)
 		{
-			if (mat.shader.name == mHSLOffsetLinearDodge)
+			if (getFileName(mat.shader.name) == mHSLOffsetLinearDodge)
 			{
 				mat.SetColor("_HSLOffset", new Color(mHSLOffsetValue.x, mHSLOffsetValue.y, mHSLOffsetValue.z));
 				mat.SetTexture("_HSLTex", mHSLTexture);

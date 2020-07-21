@@ -12,7 +12,7 @@ public class CommandGameSceneManagerEnter : Command
 		base.init();
 		mSceneType = null;
 		mStartProcedure = null;
-		mIntent = EMPTY_STRING;
+		mIntent = null;
 	}
 	public override void execute()
 	{
@@ -22,6 +22,7 @@ public class CommandGameSceneManagerEnter : Command
 	{
 		string scene = mSceneType != null ? mSceneType.ToString() : "null";
 		string procedure = mStartProcedure != null ? mStartProcedure.ToString() : "null";
-		return base.showDebugInfo() + ": mSceneType:" + scene + ", mStartProcedure:" + procedure;
+		string intent = mIntent != null ? mIntent : "";
+		return base.showDebugInfo() + ": mSceneType:" + scene + ", mStartProcedure:" + procedure + ", mIntent:" + intent;
 	}
 }

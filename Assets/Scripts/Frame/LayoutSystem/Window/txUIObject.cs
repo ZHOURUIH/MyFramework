@@ -55,9 +55,7 @@ public class txUIObject : Transformable, IMouseEventCollect
 		mPressedTime = -1.0f;
 		mLongPressLengthThreshold = -1.0f;
 		mLastClickTime = -1.0f;
-		mDestroyImmediately = false;
 		mPassRay = true;
-		mMouseHovered = false;
 		mEnable = true;
 	}
 	public override void destroy()
@@ -98,9 +96,9 @@ public class txUIObject : Transformable, IMouseEventCollect
 		}
 		window.mObject = null;
 	}
-	public virtual void init(GameLayout layout, GameObject go, txUIObject parent)
+	public void setLayout(GameLayout layout) { mLayout = layout; }
+	public virtual void init(GameObject go, txUIObject parent)
 	{
-		mLayout = layout;
 		setGameObject(go);
 		setParent(parent);
 		initComponents();
@@ -214,12 +212,12 @@ public class txUIObject : Transformable, IMouseEventCollect
 	public void setAsLastSibling()
 	{
 		mTransform.SetAsLastSibling();
-		mLayout.notifyObjectOrderChanged(this);
+		mLayout.notifyObjectOrderChanged(mParent);
 	}
 	public void setAsFirstSibling()
 	{
 		mTransform.SetAsFirstSibling();
-		mLayout.notifyObjectOrderChanged(this);
+		mLayout.notifyObjectOrderChanged(mParent);
 	}
 	public void setSibling(int index, bool notifyLayout = true)
 	{
@@ -230,7 +228,7 @@ public class txUIObject : Transformable, IMouseEventCollect
 		mTransform.SetSiblingIndex(index);
 		if (notifyLayout)
 		{
-			mLayout.notifyObjectOrderChanged(this);
+			mLayout.notifyObjectOrderChanged(mParent);
 		}
 	}
 	public override Vector3 localToWorld(Vector3 point) { return localToWorld(mTransform, point); }
@@ -252,7 +250,7 @@ public class txUIObject : Transformable, IMouseEventCollect
 	public RectTransform getRectTransform() { return mRectTransform; }
 	public AudioSource getAudioSource() { return mAudioSource; }
 	public UIDepth getUIDepth() { return new UIDepth(mLayout.getRenderOrder(), getDepth()); }
-	public bool isActive() { return mObject.activeSelf; }
+	public override bool isActive() { return mObject.activeSelf; }
 	public bool isEnable() { return mEnable; }
 	public T getUnityComponent<T>(bool addIfNotExist = true) where T : Component
 	{
@@ -384,7 +382,7 @@ public class txUIObject : Transformable, IMouseEventCollect
 	public override void setWorldScale(Vector3 scale) { setScale(devideVector3(scale, mParent.getWorldScale())); }
 	public virtual void setAlpha(float alpha, bool fadeChild) { }
 	public virtual void setFillPercent(float percent) { logError("can not set window fill percent with txUIObject"); }
-	public void setPassRay(bool pass) { mPassRay = pass; }
+	public void setPassRay(bool passRay) { mPassRay = passRay; }
 	public virtual void setWindowSize(Vector2 size) { logError("can not set window size with txUIObject"); }
 	public void setLongPressLengthThreshold(float threshold) { mLongPressLengthThreshold = threshold; }
 	// 自己调用的callback,仅在启用自定义输入系统时生效

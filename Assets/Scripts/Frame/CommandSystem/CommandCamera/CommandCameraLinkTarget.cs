@@ -4,17 +4,17 @@ using UnityEngine;
 
 public class CommandCameraLinkTarget : Command
 {
-	public MovableObject mTarget;
+	protected Vector3 mRelativePosition;    // 相对位置
+	protected float mSwitchSpeed;           // 转换器的速度
+	protected bool mUseOriginRelative;      // 是否使用连接器原来的相对位置
+	protected bool mUseLastSwitchSpeed;     // 是否使用当前连接器的速度
 	public CAMERA_LINKER_SWITCH mSwitchType;
+	public MovableObject mTarget;
 	public CameraLinker mLinker;
-	public bool mLookAtTarget;				// 是否始终看向目标
 	public Vector3 mLookatOffset;           // 看向目标的位置偏移
+	public bool mLookAtTarget;              // 是否始终看向目标
 	public bool mAutoProcessKey;            // 是否在断开连接器后可以使用按键控制摄像机
 	public bool mImmediately;				// 是否直接将摄像机设置到当前连接器的正常位置
-	protected bool mUseOriginRelative;		// 是否使用连接器原来的相对位置
-	protected Vector3 mRelativePosition;	// 相对位置
-	protected bool mUseLastSwitchSpeed;		// 是否使用当前连接器的速度
-	protected float mSwitchSpeed;           // 转换器的速度
 	public override void init()
 	{
 		base.init();
@@ -61,9 +61,5 @@ public class CommandCameraLinkTarget : Command
 				mLinker.applyRelativePosition(mLinker.getNormalRelativePosition());
 			}
 		}
-	}
-	public override string showDebugInfo()
-	{
-		return base.showDebugInfo();
 	}
 }

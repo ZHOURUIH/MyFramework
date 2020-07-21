@@ -170,12 +170,12 @@ public class UGUISlider : ComponentOwner, ISlider
 		// 只转换到进度条窗口中的坐标
 		if(mMode == SLIDER_MODE.SM_FILL)
 		{
-			posInForeground = screenPosToWindowPos(screenPos, mForeground);
+			posInForeground = screenPosToWindowPos(screenPos, mForeground, true, false);
 		}
 		// 先将屏幕坐标转换到Background中的坐标,再转换到原始进度条的坐标系中
 		else if (mMode == SLIDER_MODE.SM_SIZING)
 		{
-			Vector3 posInBackground = screenPosToWindowPos(screenPos, mBackground);
+			Vector3 posInBackground = screenPosToWindowPos(screenPos, mBackground, true, false);
 			posInForeground = posInBackground - mOriginForegroundPosition;
 		}
 		return localPosToSliderValue(posInForeground);

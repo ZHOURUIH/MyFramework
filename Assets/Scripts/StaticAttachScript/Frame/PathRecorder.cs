@@ -53,17 +53,19 @@ public class PathRecorder : MonoBehaviour
                 Debug.LogError("找不到AnimationRecorder, 需要在要录制的动画上添加该组件");
                 return;
             }
-            if(mFilePath == null || mFilePath.Length == 0 || !FileUtility.isDirExist(mFilePath))
+            if (StringUtility.isEmpty(mFilePath) || !FileUtility.isDirExist(mFilePath))
             {
                 Debug.LogError("文件路径非法");
                 return;
             }
-            if(mFileName == null || mFileName.Length == 0)
+            if (StringUtility.isEmpty(mFileName))
             {
                 Debug.LogError("文件名非法");
                 return;
             }
-            if(mRecordeAlpha && mRecorderTarget.GetComponent<Graphic>() == null && mRecorderTarget.GetComponent<Renderer>() == null)
+            if (mRecordeAlpha && 
+                mRecorderTarget.GetComponent<Graphic>() == null && 
+                mRecorderTarget.GetComponent<Renderer>() == null)
             {
                 Debug.LogError("录制目标上找不到透明度设置");
             }

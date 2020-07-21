@@ -10,19 +10,15 @@ public class txUGUILine : txUGUIObject
 	{
 		mUGUILine = new UGUILine();
 	}
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		mUGUILine.init(mObject);
 	}
 	public override void destroy()
 	{
 		mUGUILine.destroy();
 		base.destroy();
-	}
-	public override void update(float elapsedTime)
-	{
-		base.update(elapsedTime);
 	}
 	public void setPointList(List<Vector3> pointList)
 	{

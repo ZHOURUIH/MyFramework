@@ -8,10 +8,6 @@ using UnityEngine;
 
 public class NGUILine : GameBase, INGUIShape
 {
-	// 为避免GC而创建的变量
-	private List<Vector3> mTempVertices;
-	private List<Color> mTempColors;
-	private List<Vector2> mTempUVs;
 	public List<Vector3> mVertices;
 	public List<Color> mColors;
 	public List<Vector2> mUVs;
@@ -28,9 +24,6 @@ public class NGUILine : GameBase, INGUIShape
 		mVertices = new List<Vector3>();
 		mColors = new List<Color>();
 		mUVs = new List<Vector2>();
-		mTempVertices = new List<Vector3>();
-		mTempColors = new List<Color>();
-		mTempUVs = new List<Vector2>();
 	}
 	public List<Vector3> getVertices() { return mVertices; }
 	public List<Color> getColors() { return mColors; }
@@ -143,37 +136,42 @@ public class NGUILine : GameBase, INGUIShape
 			}
 		}
 		// 每4个点为一个面
-		mTempVertices.Clear();
+		List<Vector3> tempVertices = mListPool.newList(out tempVertices);
 		int segmentCount = pointCount - 1;
 		for (int i = 0; i < segmentCount; ++i)
 		{
-			mTempVertices.Add(mVertices[i * 2 + 0]);
-			mTempVertices.Add(mVertices[i * 2 + 1]);
-			mTempVertices.Add(mVertices[i * 2 + 3]);
-			mTempVertices.Add(mVertices[i * 2 + 2]);
+			tempVertices.Add(mVertices[i * 2 + 0]);
+			tempVertices.Add(mVertices[i * 2 + 1]);
+			tempVertices.Add(mVertices[i * 2 + 3]);
+			tempVertices.Add(mVertices[i * 2 + 2]);
 		}
 		mVertices.Clear();
-		mVertices.AddRange(mTempVertices);
-		mTempColors.Clear();
+		mVertices.AddRange(tempVertices);
+		mListPool.destroyList(tempVertices);
+
+		List<Color> tempColors = mListPool.newList(out tempColors);
 		for (int i = 0; i < segmentCount; ++i)
 		{
-			mTempColors.Add(mColors[i * 2 + 0]);
-			mTempColors.Add(mColors[i * 2 + 1]);
-			mTempColors.Add(mColors[i * 2 + 3]);
-			mTempColors.Add(mColors[i * 2 + 2]);
+			tempColors.Add(mColors[i * 2 + 0]);
+			tempColors.Add(mColors[i * 2 + 1]);
+			tempColors.Add(mColors[i * 2 + 3]);
+			tempColors.Add(mColors[i * 2 + 2]);
 		}
 		mColors.Clear();
-		mColors.AddRange(mTempColors);
-		mTempUVs.Clear();
+		mColors.AddRange(tempColors);
+		mListPool.destroyList(tempColors);
+
+		List<Vector2> tempUVs = mListPool.newList(out tempUVs);
 		for (int i = 0; i < segmentCount; ++i)
 		{
-			mTempUVs.Add(mUVs[i * 2 + 0]);
-			mTempUVs.Add(mUVs[i * 2 + 1]);
-			mTempUVs.Add(mUVs[i * 2 + 3]);
-			mTempUVs.Add(mUVs[i * 2 + 2]);
+			tempUVs.Add(mUVs[i * 2 + 0]);
+			tempUVs.Add(mUVs[i * 2 + 1]);
+			tempUVs.Add(mUVs[i * 2 + 3]);
+			tempUVs.Add(mUVs[i * 2 + 2]);
 		}
 		mUVs.Clear();
-		mUVs.AddRange(mTempUVs);
+		mUVs.AddRange(tempUVs);
+		mListPool.destroyList(tempUVs);
 		if(mVertices != null)
 		{
 			mOnNGUILineGenerated?.Invoke(this);

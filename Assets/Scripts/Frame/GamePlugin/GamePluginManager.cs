@@ -45,7 +45,7 @@ public class GamePluginManager : FrameComponent
 		{
 			return;
 		}
-		List<string> fileList = new List<string>();
+		List<string> fileList = mListPool.newList(out fileList);
 		findFiles(CommonDefine.F_GAME_PLUGIN_PATH, fileList, CommonDefine.DLL_PLUGIN_SUFFIX);
 		int count = fileList.Count;
 		for (int i = 0; i < count; ++i)
@@ -54,6 +54,7 @@ public class GamePluginManager : FrameComponent
 			openFile(fileList[i], out fileBuffer, true);
 			loadPlugin(fileBuffer, getFileName(fileList[i]));
 		}
+		mListPool.destroyList(fileList);
 #endif
 	}
 	protected bool loadPlugin(byte[] rawDll, string fileName)
@@ -66,7 +67,7 @@ public class GamePluginManager : FrameComponent
 			{
 				if (type.GetInterfaces().Length > 0)
 				{
-					IGamePlugin instance = assembly.CreateInstance(type.FullName) as IGamePlugin;
+					var instance = assembly.CreateInstance(type.FullName) as IGamePlugin;
 					if (instance != null)
 					{
 						mPluginList.Add(instance.getPluginName(), instance);

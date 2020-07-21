@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.Events;
 using System.Collections;
 using RenderHeads.Media.AVProVideo;
 
@@ -17,17 +16,16 @@ public class txUGUIVideo : txUGUIRawImage
 	protected bool mIsRequires;
 	protected bool mNextLoop;   // 刚设置视频文件,还未加载时,要设置播放状态就需要先保存状态,然后等到视频准备完毕后再设置
 	protected bool mReady;
-	
 	public txUGUIVideo()
 	{
 		mAutoShowOrHide = true;
 		mNextState = PLAY_STATE.PS_NONE;
 		mNextRate = 1.0f;
-		mFileName = EMPTY_STRING;
+		mFileName = null;
 	}
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		mIsRequires = false;
 		mMediaPlayer = getUnityComponent<MediaPlayer>();
 		mMediaPlayer.Events.AddListener(onVideoEvent);
@@ -74,7 +72,7 @@ public class txUGUIVideo : txUGUIRawImage
 	}
 	public void setPlayState(PLAY_STATE state, bool autoShowOrHide = true)
 	{
-		if(mFileName.Length == 0)
+		if(isEmpty(mFileName))
 		{
 			return;
 		}

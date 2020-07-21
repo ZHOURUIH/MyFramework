@@ -66,9 +66,10 @@ public class WindowComponentDrag : ComponentDrag
 		// 拖动结束时,首先通知悬停窗口取消悬停,因为在onDragEnd里面可能会将当前悬停窗口清空
 		mDragHoverWindow?.onDragHoverd(mWindow, false);
 		mDragHoverWindow = null;
+		// 在接收逻辑之前通知基类拖拽结束,因为一般在接收拖拽时的逻辑会产生不可预知的结果
 		base.onDragEnd(mousePos);
 		// 判断当前鼠标所在位置是否有窗口
-		var receiveWindow = mGlobalTouchSystem.getAllHoverWindow(ref mousePos, mWindow, true);
+		var receiveWindow = mGlobalTouchSystem.getAllHoverWindow(ref mousePos, mWindow);
 		int count = receiveWindow.Count;
 		for(int i = 0; i < count; ++i)
 		{
@@ -79,11 +80,13 @@ public class WindowComponentDrag : ComponentDrag
 				break;
 			}
 		}
+		// 拖拽操作完全结束
+		notifyDragEndTotally();
 	}
 	protected override void onDraging(ref Vector3 mousePos)
 	{
 		base.onDraging(ref mousePos);
-		IMouseEventCollect curHover = mGlobalTouchSystem.getHoverWindow(ref mousePos, mWindow, true);
+		IMouseEventCollect curHover = mGlobalTouchSystem.getHoverWindow(ref mousePos, mWindow);
 		// 悬停的窗口改变了
 		if (curHover != mDragHoverWindow)
 		{

@@ -19,7 +19,7 @@ public class CommandTransformableMoveCurve : Command
 		mPosList = null;
 		mTremblingCallBack = null;
 		mTrembleDoneCallBack = null;
-		mName = EMPTY_STRING;
+		mName = null;
 		mOnceLength = 1.0f;
 		mAmplitude = 1.0f;
 		mOffset = 0.0f;

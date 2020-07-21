@@ -9,21 +9,12 @@ public class InputManager : FrameComponent
 	protected int mFocusMask;
 	public InputManager(string name)
 		: base(name) { }
-	public override void init()
-	{
-		base.init();
-		mFocusMask = 0;
-	}
-	public override void destroy()
-	{
-		base.destroy();
-	}
 	public void addInputMask(FOCUS_MASK mask) { mFocusMask |= (int)mask; }
 	public void removeInputMask(FOCUS_MASK mask) { mFocusMask &= ~(int)mask; }
 	public void setMask(FOCUS_MASK mask) { mFocusMask = (int)mask; }
 	public bool hasMask(FOCUS_MASK mask)
 	{
-		return (mask == FOCUS_MASK.FM_NONE || mFocusMask == 0 || (mFocusMask & (int)mask) != 0);
+		return mask == FOCUS_MASK.FM_NONE || mFocusMask == 0 || (mFocusMask & (int)mask) != 0;
 	}
 	public override void update(float elapsedTime)
 	{

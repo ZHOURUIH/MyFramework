@@ -12,7 +12,7 @@ public class CommandMovableObjectPlayAudio : Command
 	{
 		base.init();
 		mSound = SOUND_DEFINE.SD_MAX;
-		mSoundFileName = EMPTY_STRING;
+		mSoundFileName = null;
 		mVolume = 1.0f;
 		mUseVolumeCoe = true;
 		mLoop = false;

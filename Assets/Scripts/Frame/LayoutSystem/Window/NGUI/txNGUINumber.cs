@@ -18,7 +18,7 @@ public class txNGUINumber : txNGUISprite
 	public txNGUINumber()
 	{
 		mInterval = 5;
-		mNumberStyle = EMPTY_STRING;
+		mNumberStyle = null;
 		mNumber = EMPTY_STRING;
 		mDockingPosition = DOCKING_POSITION.DP_LEFT;
 		mSpriteNameList = new string[11];
@@ -29,9 +29,9 @@ public class txNGUINumber : txNGUISprite
 			mTempSpriteMap = new Dictionary<string, UISpriteData>();
 		}
 	}
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		if(mSprite == null || mSprite.atlas == null)
 		{
 			return;
@@ -85,7 +85,7 @@ public class txNGUINumber : txNGUISprite
 	}
 	protected void refreshNumber()
 	{
-		if (mNumber.Length == 0)
+		if (isEmpty(mNumber))
 		{
 			int numCount = mNumberList.Count;
 			for (int i = 0; i < numCount; ++i)
@@ -96,7 +96,7 @@ public class txNGUINumber : txNGUISprite
 		}
 		// 整数部分
 		int dotPos = mNumber.LastIndexOf('.');
-		if (mNumber.Length > 0 && (dotPos == 0 || dotPos == mNumber.Length - 1))
+		if (!isEmpty(mNumber) && (dotPos == 0 || dotPos == mNumber.Length - 1))
 		{
 			logError("number can not start or end with dot!");
 			return;

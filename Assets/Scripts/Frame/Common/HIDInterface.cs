@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.Win32.SafeHandles;
-using System.IO;
 
 public struct InterfaceDetails
 {
@@ -20,16 +17,101 @@ public struct InterfaceDetails
 }
 public class HIDDevice : GameBase
 {
-    #region globals
-    public bool deviceConnected { get; set; }
-    public SafeFileHandle handle;
     private HIDP_CAPS capabilities;
-    public InterfaceDetails productInfo;
-    public byte[] readData;
-    #endregion
+    public SafeFileHandle mHandle;
+    public InterfaceDetails mProductInfo;
+    public bool mDeviceConnected;
+    /// <summary>
+    /// Creates an object to handle read/write functionality for a USB HID device
+    /// Uses one filestream for each of read/write to allow for a write to occur during a blocking
+    /// asnychronous read
+    /// </summary>
+    /// <param name="VID">The vendor ID of the USB device to connect to</param>
+    /// <param name="PID">The product ID of the USB device to connect to</param>
+    /// <param name="serialNumber">The serial number of the USB device to connect to</param>
+    /// <param name="useAsyncReads">True - Read the device and generate events on data being available</param>
+    public HIDDevice(ushort VID, ushort PID)
+    {
+        InterfaceDetails[] devices = getConnectedDevices();
+        //loop through all connected devices to find one with the correct details
+        for (int i = 0; i < devices.Length; i++)
+        {
+            if ((devices[i].VID == VID) && (devices[i].PID == PID))
+            {
+                initDevice(devices[i].devicePath);
+                break;
+            }
+        }
+    }
+    /// <summary>
+    /// Creates an object to handle read/write functionality for a USB HID device
+    /// Uses one filestream for each of read/write to allow for a write to occur during a blocking
+    /// asnychronous read
+    /// </summary>
+    /// <param name="devicePath">The USB device path - from getConnectedDevices</param>
+    /// <param name="useAsyncReads">True - Read the device and generate events on data being available</param>
+    public HIDDevice(string devicePath)
+    {
+        initDevice(devicePath);
+    }
+    private void initDevice(string devicePath)
+    {
+        mDeviceConnected = false;
 
-    #region static_methods
+        //create file handles using CT_CreateFile
+        mHandle = Kernel32.CreateFile(devicePath, Kernel32.GENERIC_READ | Kernel32.GENERIC_WRITE, Kernel32.FILE_SHARE_READ | Kernel32.FILE_SHARE_WRITE, IntPtr.Zero, Kernel32.OPEN_EXISTING, 0, IntPtr.Zero);
 
+        //get capabilites - use getPreParsedData, and getCaps
+        //store the reportlengths
+        IntPtr ptrToPreParsedData = new IntPtr();
+        HID.HidD_GetPreparsedData(mHandle, ref ptrToPreParsedData);
+
+        capabilities = new HIDP_CAPS();
+        HID.HidP_GetCaps(ptrToPreParsedData, ref capabilities);
+
+        HIDD_ATTRIBUTES attributes = new HIDD_ATTRIBUTES();
+        HID.HidD_GetAttributes(mHandle, ref attributes);
+
+        string productName = EMPTY_STRING;
+        string SN = EMPTY_STRING;
+        string manfString = EMPTY_STRING;
+        IntPtr buffer = Marshal.AllocHGlobal(126);//max alloc for string; 
+        if (HID.HidD_GetProductString(mHandle, buffer, 126))
+        {
+            productName = Marshal.PtrToStringAuto(buffer);
+        }
+        if (HID.HidD_GetSerialNumberString(mHandle, buffer, 126))
+        {
+            SN = Marshal.PtrToStringAuto(buffer);
+        }
+        if (HID.HidD_GetManufacturerString(mHandle, buffer, 126))
+        {
+            manfString = Marshal.PtrToStringAuto(buffer);
+        }
+        Marshal.FreeHGlobal(buffer);
+
+        //Call freePreParsedData to release some stuff
+        HID.HidD_FreePreparsedData(ref ptrToPreParsedData);
+
+        if (mHandle.IsInvalid)
+        {
+            return;
+        }
+
+        mDeviceConnected = true;
+
+        //If connection was sucsessful, record the values in a global struct
+        mProductInfo = new InterfaceDetails();
+        mProductInfo.devicePath = devicePath;
+        mProductInfo.manufacturer = manfString;
+        mProductInfo.product = productName;
+        mProductInfo.serialNumber = SN;
+        mProductInfo.PID = (ushort)attributes.ProductID;
+        mProductInfo.VID = (ushort)attributes.VendorID;
+        mProductInfo.versionNumber = (ushort)attributes.VersionNumber;
+        mProductInfo.IN_reportByteLength = capabilities.InputReportByteLength;
+        mProductInfo.OUT_reportByteLength = capabilities.OutputReportByteLength;
+    }
     public static InterfaceDetails[] getConnectedDevices()
     {
 		InterfaceDetails[] devices = new InterfaceDetails[0];
@@ -40,7 +122,7 @@ public class HIDDevice : GameBase
 		SP_DEVICE_INTERFACE_DATA devIface = new SP_DEVICE_INTERFACE_DATA();
         devIface.cbSize = (uint)(Marshal.SizeOf(devIface));
 
-        Guid G = new Guid();
+        Guid G = Guid.Empty;
         HID.HidD_GetHidGuid(ref G); //Get the guid of the HID device class
 
         IntPtr deviceInfo = SetupAPI.SetupDiGetClassDevs(ref G, IntPtr.Zero, IntPtr.Zero, SetupAPI.DIGCF_DEVICEINTERFACE | SetupAPI.DIGCF_PRESENT);
@@ -64,10 +146,11 @@ public class HIDDevice : GameBase
 			string devicePath = functionClassDeviceData.DevicePath;
 			Marshal.FreeHGlobal(detailMemory);
 
-			//create file handles using CT_CreateFile
-			SafeFileHandle tempHandle = Kernel32.CreateFile(devicePath, Kernel32.GENERIC_READ | Kernel32.GENERIC_WRITE, Kernel32.FILE_SHARE_READ | Kernel32.FILE_SHARE_WRITE,
-                IntPtr.Zero, Kernel32.OPEN_EXISTING, 0, IntPtr.Zero);
-
+            //create file handles using CT_CreateFile
+            uint desiredAccess = Kernel32.GENERIC_READ | Kernel32.GENERIC_WRITE;
+            uint  shareMode = Kernel32.FILE_SHARE_READ | Kernel32.FILE_SHARE_WRITE;
+            SafeFileHandle tempHandle = Kernel32.CreateFile(devicePath, desiredAccess, shareMode, 
+                                                            IntPtr.Zero, Kernel32.OPEN_EXISTING, 0, IntPtr.Zero);
             //get capabilites - use getPreParsedData, and getCaps
             //store the reportlengths
             IntPtr ptrToPreParsedData = new IntPtr();
@@ -77,8 +160,8 @@ public class HIDDevice : GameBase
 				continue;
 			}
 
-            HIDP_CAPS capabilities = new HIDP_CAPS();
-            HID.HidP_GetCaps(ptrToPreParsedData, ref capabilities);
+            HIDP_CAPS capability = new HIDP_CAPS();
+            HID.HidP_GetCaps(ptrToPreParsedData, ref capability);
 
             HIDD_ATTRIBUTES attributes = new HIDD_ATTRIBUTES();
             HID.HidD_GetAttributes(tempHandle, ref attributes);
@@ -113,8 +196,8 @@ public class HIDDevice : GameBase
             productInfo.PID = (ushort)attributes.ProductID;
             productInfo.VID = (ushort)attributes.VendorID;
             productInfo.versionNumber = (ushort)attributes.VersionNumber;
-            productInfo.IN_reportByteLength = (int)capabilities.InputReportByteLength;
-            productInfo.OUT_reportByteLength = (int)capabilities.OutputReportByteLength;
+            productInfo.IN_reportByteLength = capability.InputReportByteLength;
+            productInfo.OUT_reportByteLength = capability.OutputReportByteLength;
             productInfo.serialNumber = SN;     //Check that serial number is actually a number
                 
             int newSize = devices.Length + 1;
@@ -123,118 +206,21 @@ public class HIDDevice : GameBase
 			++j;
 		}
         SetupAPI.SetupDiDestroyDeviceInfoList(deviceInfo);
-
         return devices;
-    }
-        
-    #endregion
-
-    #region constructors
-    /// <summary>
-    /// Creates an object to handle read/write functionality for a USB HID device
-    /// Uses one filestream for each of read/write to allow for a write to occur during a blocking
-    /// asnychronous read
-    /// </summary>
-    /// <param name="VID">The vendor ID of the USB device to connect to</param>
-    /// <param name="PID">The product ID of the USB device to connect to</param>
-    /// <param name="serialNumber">The serial number of the USB device to connect to</param>
-    /// <param name="useAsyncReads">True - Read the device and generate events on data being available</param>
-    public HIDDevice(ushort VID, ushort PID)
-    {
-		InterfaceDetails[] devices = getConnectedDevices();
-            
-        //loop through all connected devices to find one with the correct details
-        for (int i = 0; i < devices.Length; i++)
-        {
-            if ((devices[i].VID == VID) && (devices[i].PID == PID))
-			{
-				initDevice(devices[i].devicePath);
-				break;
-			}
-        }
-    }
-
-    /// <summary>
-    /// Creates an object to handle read/write functionality for a USB HID device
-    /// Uses one filestream for each of read/write to allow for a write to occur during a blocking
-    /// asnychronous read
-    /// </summary>
-    /// <param name="devicePath">The USB device path - from getConnectedDevices</param>
-    /// <param name="useAsyncReads">True - Read the device and generate events on data being available</param>
-    public HIDDevice(string devicePath)
-    {
-        initDevice(devicePath);
-    }
-    #endregion
-    private void initDevice(string devicePath)
-    {
-        deviceConnected = false;
-
-		//create file handles using CT_CreateFile
-		handle = Kernel32.CreateFile(devicePath, Kernel32.GENERIC_READ | Kernel32.GENERIC_WRITE, Kernel32.FILE_SHARE_READ | Kernel32.FILE_SHARE_WRITE, IntPtr.Zero, Kernel32.OPEN_EXISTING, 0, IntPtr.Zero);
-
-        //get capabilites - use getPreParsedData, and getCaps
-        //store the reportlengths
-        IntPtr ptrToPreParsedData = new IntPtr();
-        HID.HidD_GetPreparsedData(handle, ref ptrToPreParsedData);
-
-        capabilities = new HIDP_CAPS();
-        HID.HidP_GetCaps(ptrToPreParsedData, ref capabilities);
-
-        HIDD_ATTRIBUTES attributes = new HIDD_ATTRIBUTES();
-        HID.HidD_GetAttributes(handle, ref attributes);
-
-        string productName = EMPTY_STRING;
-        string SN = EMPTY_STRING;
-        string manfString = EMPTY_STRING;
-        IntPtr buffer = Marshal.AllocHGlobal(126);//max alloc for string; 
-        if (HID.HidD_GetProductString(handle, buffer, 126))
-		{
-			productName = Marshal.PtrToStringAuto(buffer);
-		}
-		if (HID.HidD_GetSerialNumberString(handle, buffer, 126))
-		{
-			SN = Marshal.PtrToStringAuto(buffer);
-		}
-		if (HID.HidD_GetManufacturerString(handle, buffer, 126))
-		{
-			manfString = Marshal.PtrToStringAuto(buffer);
-		}
-        Marshal.FreeHGlobal(buffer);
-
-		//Call freePreParsedData to release some stuff
-		HID.HidD_FreePreparsedData(ref ptrToPreParsedData);
-
-        if (handle.IsInvalid)
-            return;
-
-        deviceConnected = true;
-
-        //If connection was sucsessful, record the values in a global struct
-        productInfo = new InterfaceDetails();
-        productInfo.devicePath = devicePath;
-        productInfo.manufacturer = manfString;
-        productInfo.product = productName;
-        productInfo.serialNumber = SN;
-        productInfo.PID = (ushort)attributes.ProductID;
-        productInfo.VID = (ushort)attributes.VendorID;
-        productInfo.versionNumber = (ushort)attributes.VersionNumber;
-        productInfo.IN_reportByteLength = (int)capabilities.InputReportByteLength;
-        productInfo.OUT_reportByteLength = (int)capabilities.OutputReportByteLength;
     }
     public void close()
 	{ 
 		try
 		{
-			if (handle != null && !handle.IsInvalid)
+			if (mHandle != null && !mHandle.IsInvalid)
 			{
-				//Kernel32.PurgeComm(handle, Kernel32.PURGE_TXABORT | Kernel32.PURGE_RXABORT);
-				//Kernel32.CloseHandle(handle);
-				handle.Close();
-				handle = null;
+                //Kernel32.PurgeComm(handle, Kernel32.PURGE_TXABORT | Kernel32.PURGE_RXABORT);
+                //Kernel32.CloseHandle(handle);
+                mHandle.Close();
+                mHandle = null;
 				logInfo("设备已关闭");
 			}
-			this.deviceConnected = false;
+            mDeviceConnected = false;
 		}
 		catch(Exception e)
 		{
@@ -248,7 +234,7 @@ public class HIDDevice : GameBase
 			return false;
 		}
 		uint writeCount = 0;
-		return Kernel32.WriteFile(handle, data, (uint)data.Length, ref writeCount, IntPtr.Zero);
+		return Kernel32.WriteFile(mHandle, data, (uint)data.Length, ref writeCount, IntPtr.Zero);
 	}
     public int read(ref byte[] data, int expectCount = 0)
     {
@@ -257,7 +243,7 @@ public class HIDDevice : GameBase
 			return 0;
 		}
 		uint readCount = 0;
-		Kernel32.ReadFile(handle, data, (uint)data.Length, ref readCount, IntPtr.Zero);
+		Kernel32.ReadFile(mHandle, data, (uint)data.Length, ref readCount, IntPtr.Zero);
 		// 如果读取的数量和期望的数量不一致,则丢弃数据
 		if(expectCount > 0 && expectCount != readCount)
 		{

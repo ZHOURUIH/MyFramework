@@ -26,9 +26,9 @@ public class txNGUIVideo : txNGUITexture
 		mNextState = PLAY_STATE.PS_NONE;
 		mAutoShowOrHide = true;
 	}
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		mMediaPlayer = getUnityComponent<MediaPlayer>();
 	}
 	public override void update(float elapsedTime)
@@ -66,7 +66,7 @@ public class txNGUIVideo : txNGUITexture
 	}
 	public void setPlayState(PLAY_STATE state, bool autoShowOrHide = true)
 	{
-		if(mFileName.Length == 0)
+		if (isEmpty(mFileName))
 		{
 			return;
 		}

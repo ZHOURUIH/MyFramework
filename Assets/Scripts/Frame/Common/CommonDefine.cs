@@ -6,7 +6,7 @@ using RenderHeads.Media.AVProVideo;
 
 // 游戏枚举定义-----------------------------------------------------------------------------------------------
 // 停靠位置
-public enum DOCKING_POSITION
+public enum DOCKING_POSITION : byte
 {
 	DP_LEFT,
 	DP_CENTER,
@@ -15,20 +15,20 @@ public enum DOCKING_POSITION
 	DP_BOTTOM,
 }
 // 数字的排列方向
-public enum NUMBER_DIRECTION
+public enum NUMBER_DIRECTION : byte
 {
 	ND_HORIZONTAL,
 	ND_VERTICAL,
 }
 // 循环方式
-public enum LOOP_MODE
+public enum LOOP_MODE : byte
 {
 	LM_ONCE,
 	LM_LOOP,
 	LM_PINGPONG,
 }
 // 播放状态
-public enum PLAY_STATE
+public enum PLAY_STATE : byte
 {
 	PS_NONE,
 	PS_PLAY,
@@ -36,7 +36,7 @@ public enum PLAY_STATE
 	PS_STOP,
 }
 
-public enum LOAD_STATE
+public enum LOAD_STATE : byte
 {
 	LS_NONE,
 	LS_UNLOAD,
@@ -45,28 +45,28 @@ public enum LOAD_STATE
 	LS_LOADED,
 }
 
-public enum DRAG_DIRECTION
+public enum DRAG_DIRECTION : byte
 {
 	DD_HORIZONTAL,
 	DD_VERTICAL,
 	DD_FREE,
 }
 
-public enum CLAMP_TYPE
+public enum CLAMP_TYPE : byte
 {
 	CT_CENTER,  // 限制中心点不能超过父窗口的区域
 	CT_EDGE,    // 限制边界不能超过父窗口的区域
 }
 
 // 网络状态
-public enum NET_STATE
+public enum NET_STATE : byte
 {
 	NS_CONNECTED,       // 已连接
 	NS_SERVER_CLOSE,    // 服务器已关闭
 	NS_NET_CLOSE,       // 网络已断开
 }
 
-public enum PARSE_RESULT
+public enum PARSE_RESULT : byte
 {
 	PR_SUCCESS,
 	PR_ERROR,
@@ -74,7 +74,7 @@ public enum PARSE_RESULT
 }
 
 // 日志等级
-public enum LOG_LEVEL
+public enum LOG_LEVEL : byte
 {
 	LL_FORCE,   // 强制显示
 	LL_HIGH,    // 高
@@ -83,7 +83,7 @@ public enum LOG_LEVEL
 	LL_MAX,
 }
 
-public enum CAMERA_LINKER_SWITCH
+public enum CAMERA_LINKER_SWITCH : byte
 {
 	CLS_NONE,
 	CLS_LINEAR,
@@ -91,7 +91,7 @@ public enum CAMERA_LINKER_SWITCH
 	CLS_AROUND_TARGET,
 }
 
-public enum CHECK_DIRECTION
+public enum CHECK_DIRECTION : byte
 {
 	CD_DOWN,        // 向下碰撞检测,检测到碰撞后,摄像机向上移动
 	CD_UP,
@@ -101,22 +101,22 @@ public enum CHECK_DIRECTION
 	CD_BACK,
 }
 
-public enum MOUSE_BUTTON
+public enum MOUSE_BUTTON : byte
 {
 	MB_LEFT,
 	MB_RIGHT,
 	MB_MIDDLE,
 }
 
-public enum FOCUS_MASK
+public enum FOCUS_MASK : ushort
 {
-	FM_NONE = 0x00000000,
-	FM_SCENE = 0x00000001,
-	FM_UI = 0x00000010,
-	FM_OTHER = 0x00000100,
+	FM_NONE = 0,
+	FM_SCENE = 1 << 1,
+	FM_UI = 1 << 2,
+	FM_OTHER = 1 << 3,
 }
 
-public enum SCROLL_STATE
+public enum SCROLL_STATE : byte
 {
 	SS_NONE,            // 无
 	SS_SCROLL_TARGET,   // 自动匀速滚动到目标点
@@ -124,21 +124,21 @@ public enum SCROLL_STATE
 	SS_SCROLL_TO_STOP,  // 鼠标抬起后自动减速到停止
 }
 
-public enum CONNECT_STATE
+public enum CONNECT_STATE : byte
 {
 	CS_NOT_CONNECT,
 	CS_CONNECTING,
 	CS_CONNECTED,
 }
 
-public enum SLIDER_MODE
+public enum SLIDER_MODE : byte
 {
 	SM_FILL,    // 通过调整图片填充来实现滑动条
 	SM_SIZING,  // 通过调整窗口大小来实现滑动条
 }
 
 // 添加同一状态时的操作选项
-public enum SAME_STATE_OPERATE
+public enum SAME_STATE_OPERATE : byte
 {
 	SSO_CAN_NOT_ADD_NEW,    // 不可添加相同的新状态
 	SSO_REMOVE_OLD,         // 添加新状态,移除互斥的旧状态
@@ -147,7 +147,7 @@ public enum SAME_STATE_OPERATE
 }
 
 // 同一状态组中的状态互斥选项
-public enum GROUP_MUTEX_OPERATION
+public enum GROUP_MUTEX_OPERATION : byte
 {
 	GMO_COEXIST,        // 各状态可完全共存
 	GMO_REMOVE_OTHERS,  // 添加新状态时移除组中的其他所有状态
@@ -155,27 +155,27 @@ public enum GROUP_MUTEX_OPERATION
 	GMO_MUETX_WITH_MAIN,// 仅与主状态互斥,添加主状态时移除其他所有状态,有主状态时不可添加其他状态,没有主状态时可任意添加其他状态
 }
 
-public enum EXECUTE_STATE
+public enum EXECUTE_STATE : byte
 {
 	ES_NOT_EXECUTE,
 	ES_EXECUTING,
 	ES_EXECUTED,
 }
 
-public enum NODE_STATE
+public enum NODE_STATE : byte
 {
 	NS_NONE,
 	NS_OPEN,
 	NS_CLOSE,
 }
 
-public enum LOAD_SOURCE
+public enum LOAD_SOURCE : byte
 {
 	LS_RESOURCES,
 	LS_ASSET_BUNDLE,
 }
 
-public enum BUFF_STATE_TYPE
+public enum BUFF_STATE_TYPE : byte
 {
 	BST_NONE,       // 既不属于buff,也不属于debuff
 	BST_BUFF,       // 属于buff
@@ -183,7 +183,7 @@ public enum BUFF_STATE_TYPE
 }
 
 // 时间字符串显示格式
-public enum TIME_DISPLAY
+public enum TIME_DISPLAY : byte
 {
 	TD_HMSM_0,  // 以Hour:Minute:Second:Millisecond形式显示,并且不补0
 	TD_HMS_2,   // 以Hour:Minute:Second形式显示,并且每个数都显示为2位数
@@ -263,6 +263,7 @@ public class CommonDefine
 	// 文件夹名
 	public const string ASSETS = "Assets";
 	public const string GAME_RESOURCES = "GameResources";
+	public const string PLUGINS = "Plugins";
 	public const string RESOURCES = "Resources";
 	public const string ATLAS = "Atlas";
 	public const string FONT = "Font";
@@ -359,6 +360,7 @@ public class CommonDefine
 	public static string F_ASSET_BUNDLE_PATH = Application.dataPath + "!assets/";
 #endif
 	public static string F_GAME_RESOURCES_PATH = F_ASSETS_PATH + GAME_RESOURCES + "/";
+	public static string F_PLUGINS_PATH = F_ASSETS_PATH + PLUGINS + "/";
 	public static string F_PERSISTENT_DATA_PATH = Application.persistentDataPath + "/";
 	public static string F_TEMPORARY_CACHE_PATH = Application.temporaryCachePath + "/";
 	public static string F_STREAMING_ASSETS_PATH = Application.streamingAssetsPath + "/";
@@ -401,7 +403,6 @@ public class CommonDefine
 	public const long WS_MINIMIZEBOX = 0x00020000;
 	public const long WS_MAXIMIZEBOX = 0x00010000;
 	public const int GWL_STYLE = -16;
-	public const int INVALID_ID = ~0;           // 无效ID值
 	public const int PACKET_HEADER_SIZE = sizeof(uint) + sizeof(ushort);
 	public const float CLICK_THRESHOLD = 15;			// 点击阈值,当鼠标按下和抬起时的距离不超过该值,则认为是有效点击
 	public const float DOUBLE_CLICK_THRESHOLD = 0.3f;	// 双击时间阈值,两次单击时间大于0并且小于该值时认为是一次双击
@@ -432,6 +433,7 @@ public class CommonDefine
 	public const string UGUI_ROOT = "UGUIRoot";
 	// 材质名
 	public const string MAT_MULTIPLE = "Multiple";
+	public const string BUILDIN_UI_MATERIAL = "Default UI Material";
 	// 层
 	public const string LAYER_UI = "UI";
 	public const string LAYER_UI_BLUR = "UIBlur";

@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
-using System.Collections;
-using UnityEngine.Profiling;
 
 public class GameFramework : MonoBehaviour
 {
@@ -244,9 +242,9 @@ public class GameFramework : MonoBehaviour
 			FrameComponent component = mFrameComponentUpdate[i];
 			if(component != null && !component.mDestroy)
 			{
-				Profiler.BeginSample(component.getName());
+				UnityProfiler.BeginSample(component.getName());
 				component.update(elapsedTime);
-				Profiler.EndSample();
+				UnityProfiler.EndSample();
 			}
 		}
 	}
@@ -267,7 +265,9 @@ public class GameFramework : MonoBehaviour
 			FrameComponent component = mFrameComponentUpdate[i];
 			if (component != null && !component.mDestroy)
 			{
+				UnityProfiler.BeginSample(component.getName());
 				component.fixedUpdate(elapsedTime);
+				UnityProfiler.EndSample();
 			}
 		}
 	}
@@ -345,11 +345,12 @@ public class GameFramework : MonoBehaviour
 			}
 		}
 		System.Net.ServicePointManager.DefaultConnectionLimit = 200;
-		QualitySettings.vSyncCount = (int)FrameBase.mApplicationConfig.getFloatParam(GAME_DEFINE_FLOAT.GDF_VSYNC);
-		mEnableKeyboard = (int)FrameBase.mFrameConfig.getFloatParam(GAME_DEFINE_FLOAT.GDF_ENABLE_KEYBOARD) > 0;
-		int width = (int)FrameBase.mApplicationConfig.getFloatParam(GAME_DEFINE_FLOAT.GDF_SCREEN_WIDTH);
-		int height = (int)FrameBase.mApplicationConfig.getFloatParam(GAME_DEFINE_FLOAT.GDF_SCREEN_HEIGHT);
-		int fullScreen = (int)FrameBase.mApplicationConfig.getFloatParam(GAME_DEFINE_FLOAT.GDF_FULL_SCREEN);
+		mEnableKeyboard = (int)FrameBase.mFrameConfig.getFloat(GAME_FLOAT.ENABLE_KEYBOARD) > 0;
+		ApplicationConfig appConfig = FrameBase.mApplicationConfig;
+		QualitySettings.vSyncCount = (int)appConfig.getFloat(GAME_FLOAT.VSYNC);
+		int width = (int)appConfig.getFloat(GAME_FLOAT.SCREEN_WIDTH);
+		int height = (int)appConfig.getFloat(GAME_FLOAT.SCREEN_HEIGHT);
+		int fullScreen = (int)appConfig.getFloat(GAME_FLOAT.FULL_SCREEN);
 #if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
 		// 移动平台下固定为全屏
 		fullScreen = 1;
@@ -406,7 +407,7 @@ public class GameFramework : MonoBehaviour
 #if UNITY_EDITOR
 		UnityUtility.setLogLevel(LOG_LEVEL.LL_NORMAL);
 #else
-		UnityUtility.setLogLevel((LOG_LEVEL)(int)FrameBase.mFrameConfig.getFloatParam(GAME_DEFINE_FLOAT.GDF_LOG_LEVEL));
+		UnityUtility.setLogLevel((LOG_LEVEL)(int)FrameBase.mFrameConfig.getFloat(GAME_FLOAT.LOG_LEVEL));
 #endif
 	}
 	protected virtual void registe() { }
@@ -434,6 +435,7 @@ public class GameFramework : MonoBehaviour
 		registeComponent<SceneSystem>();
 		registeComponent<GamePluginManager>();
 		registeComponent<ClassPool>();
+		registeComponent<ListPool>();
 		registeComponent<HeadTextureManager>();
 		registeComponent<MovableObjectManager>();
 		registeComponent<EffectManager>();

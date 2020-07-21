@@ -2,18 +2,17 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.Profiling;
 
 public struct LayoutAsyncInfo
 {
-	public string mName;
-	public int mRenderOrder;
-	public bool mIsNGUI;
-	public bool mIsScene;
-	public LAYOUT mType;
+	public LayoutAsyncDone mCallback;
 	public GameLayout mLayout;
 	public GameObject mLayoutObject;
-	public LayoutAsyncDone mCallback;
+	public LAYOUT mType;
+	public string mName;
+	public bool mIsNGUI;
+	public bool mIsScene;
+	public int mRenderOrder;
 }
 
 public class GameLayoutManager : FrameComponent
@@ -84,7 +83,7 @@ public class GameLayoutManager : FrameComponent
 			// 显示布局时,如果当前正在显示有背景模糊的布局,则需要判断当前布局是否需要模糊
 			if (mBackBlurLayoutList.Count > 0)
 			{
-				CommandLayoutManagerBackBlur cmd = newCmd(out cmd);
+				CommandLayoutManagerBackBlur cmd = newCmd(out cmd, false);
 				cmd.mExcludeLayout = mBackBlurLayoutList;
 				cmd.mBlur = mBackBlurLayoutList.Count > 0;
 				pushCommand(cmd, this);
@@ -96,7 +95,7 @@ public class GameLayoutManager : FrameComponent
 			{
 				mBackBlurLayoutList.Remove(layout);
 			}
-			CommandLayoutManagerBackBlur cmd = newCmd(out cmd);
+			CommandLayoutManagerBackBlur cmd = newCmd(out cmd, false);
 			cmd.mExcludeLayout = mBackBlurLayoutList;
 			cmd.mBlur = mBackBlurLayoutList.Count > 0;
 			pushCommand(cmd, this);
@@ -111,9 +110,9 @@ public class GameLayoutManager : FrameComponent
 		base.update(elapsedTime);
 		foreach (var layout in mLayoutList)
 		{
-			Profiler.BeginSample(layout.Value.getName());
+			UnityProfiler.BeginSample(layout.Value.getName());
 			layout.Value.update(elapsedTime);
-			Profiler.EndSample();
+			UnityProfiler.EndSample();
 		}
 	}
 	public override void onDrawGizmos()
@@ -154,27 +153,21 @@ public class GameLayoutManager : FrameComponent
 	}
 	public string getLayoutNameByType(LAYOUT type)
 	{
-		if (mLayoutTypeToName.ContainsKey(type))
-		{
-			return mLayoutTypeToName[type];
-		}
-		else
+		if (!mLayoutTypeToName.ContainsKey(type))
 		{
 			logError("can not find LayoutType: " + type);
+			return null;
 		}
-		return EMPTY_STRING;
+		return mLayoutTypeToName[type];
 	}
 	public LAYOUT getLayoutTypeByName(string name)
 	{
-		if (mLayoutNameToType.ContainsKey(name))
-		{
-			return mLayoutNameToType[name];
-		}
-		else
+		if (!mLayoutNameToType.ContainsKey(name))
 		{
 			logError("can not  find LayoutName:" + name);
+			return LAYOUT.L_MAX;
 		}
-		return LAYOUT.L_MAX;
+		return mLayoutNameToType[name];
 	}
 	public GameLayout getGameLayout(LAYOUT type)
 	{
@@ -199,10 +192,7 @@ public class GameLayoutManager : FrameComponent
 				callback(mLayoutList[type]);
 				return null;
 			}
-			else
-			{
-				return mLayoutList[type];
-			}
+			return mLayoutList[type];
 		}
 		string name = getLayoutNameByType(type);
 		string path = isNGUI ? CommonDefine.R_NGUI_PREFAB_PATH : CommonDefine.R_UGUI_PREFAB_PATH;
@@ -252,20 +242,19 @@ public class GameLayoutManager : FrameComponent
 		removeLayoutFromList(layout);
 		layout.destroy();
 	}
-	public LayoutScript createScript(string name, GameLayout layout)
+	public LayoutScript createScript(GameLayout layout)
 	{
-		LayoutScript script = createInstance<LayoutScript>(mScriptRegisteList[layout.getType()], name);
+		LayoutScript script = createInstance<LayoutScript>(mScriptRegisteList[layout.getType()]);
 		script.setLayout(layout);
 		return script;
 	}
-	public List<Collider> getAllLayoutBoxCollider()
+	public void getAllLayoutBoxCollider(List<Collider> colliders)
 	{
-		var allBoxList = new List<Collider>();
+		colliders.Clear();
 		foreach (var layout in mLayoutList)
 		{
-			allBoxList.AddRange(layout.Value.getAllCollider());
+			layout.Value.getAllCollider(colliders, true);
 		}
-		return allBoxList;
 	}
 	public void registeLayout(Type classType, LAYOUT type, string name)
 	{
@@ -287,10 +276,11 @@ public class GameLayoutManager : FrameComponent
 	}
 	protected void removeLayoutFromList(GameLayout layout)
 	{
-		if (layout != null)
+		if (layout == null)
 		{
-			mLayoutList.Remove(layout.getType());
+			return;
 		}
+		mLayoutList.Remove(layout.getType());
 	}
 	protected void onLayoutPrefabAsyncDone(UnityEngine.Object asset, UnityEngine.Object[] subAssets, byte[] bytes, object userData, string loadPath)
 	{

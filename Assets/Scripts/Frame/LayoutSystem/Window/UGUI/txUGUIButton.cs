@@ -5,9 +5,9 @@ using System.Collections;
 public class txUGUIButton : txUGUIObject
 {
 	protected Button mButton;
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		mButton = mObject.GetComponent<Button>();
 		if (mButton == null)
 		{

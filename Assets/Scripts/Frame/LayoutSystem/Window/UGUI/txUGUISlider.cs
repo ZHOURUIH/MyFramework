@@ -7,9 +7,9 @@ public class txUGUISlider : txUGUIObject, ISlider
 {
 	protected Slider mSlider;
 	protected Action<float> onValueChangeCallBack;
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		mSlider = mObject.GetComponent<Slider>();
 		if (mSlider == null)
 		{

@@ -7,9 +7,9 @@ public class txNGUIObject : txUIObject
 {
 	protected UIWidget mWidget;
 	public override bool selfAlphaChild() { return true; }
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		mWidget = mObject.GetComponent<UIWidget>();
 		string layoutName = mLayout != null ? mLayout.getName() : EMPTY_STRING;
 		// BoxCollider必须与UIWidget(或者UIWidget的派生类)一起使用,否则在自适应屏幕时BoxCollider会出现错误

@@ -7,31 +7,28 @@ using UnityEngine;
 
 public class ResourceLoader : GameBase
 {
-	private List<string> mTempList;
 	protected Dictionary<string, Dictionary<string, ResoucesLoadInfo>> mLoadedPath;
 	protected Dictionary<Object, ResoucesLoadInfo> mLoadedObjects;
 	public ResourceLoader()
 	{
 		mLoadedPath = new Dictionary<string, Dictionary<string, ResoucesLoadInfo>>();
 		mLoadedObjects = new Dictionary<Object, ResoucesLoadInfo>();
-		mTempList = new List<string>();
 	}
 	public void init(){}
 	public void update(float elapsedTime){}
 	public void destroy(){}
-	public List<string> getFileList(string path)
+	public void getFileList(string path, List<string> list)
 	{
 		List<string> fileList = findResourcesFilesNonAlloc(path);
 		// 去除meta文件
-		List<string> newFileList = new List<string>();
-		foreach(var item in fileList)
+		list.Clear();
+		foreach (var item in fileList)
 		{
 			if(!item.EndsWith(".meta"))
 			{
-				newFileList.Add(getFileNameNoSuffix(item));
+				list.Add(getFileNameNoSuffix(item));
 			}
 		}
-		return newFileList;
 	}
 	public bool unloadResource<T>(ref T obj) where T : Object
 	{
@@ -61,30 +58,32 @@ public class ResourceLoader : GameBase
 	// 卸载指定路径中的所有资源
 	public void unloadPath(string path)
 	{
-		mTempList.Clear();
-		mTempList.AddRange(mLoadedPath.Keys);
-		foreach(var item0 in mTempList)
+		List<string> tempList = mListPool.newList(out tempList);
+		tempList.AddRange(mLoadedPath.Keys);
+		foreach(var item0 in tempList)
 		{
-			if(startWith(item0, path))
+			if (!startWith(item0, path))
 			{
-				logInfo("unload path: " + item0);
-				var list = mLoadedPath[item0];
-				foreach (var item in list)
-				{
-                    if(item.Value.mObject != null)
-                    {
-                        mLoadedObjects.Remove(item.Value.mObject);
-                        if(!(item.Value.mObject is GameObject))
-                        {
-                            Resources.UnloadAsset(item.Value.mObject);
-                        }
-                        item.Value.mObject = null;
-                    }
-					mClassPool.destroyClass(item.Value);
-				}
-				mLoadedPath.Remove(item0);
+				continue;
 			}
+			logInfo("unload path: " + item0);
+			var list = mLoadedPath[item0];
+			foreach (var item in list)
+			{
+				if (item.Value.mObject != null)
+				{
+					mLoadedObjects.Remove(item.Value.mObject);
+					if (!(item.Value.mObject is GameObject))
+					{
+						Resources.UnloadAsset(item.Value.mObject);
+					}
+					item.Value.mObject = null;
+				}
+				mClassPool.destroyClass(item.Value);
+			}
+			mLoadedPath.Remove(item0);
 		}
+		mListPool.destroyList(tempList);
 	}
 	public bool isResourceLoaded(string name)
 	{
@@ -220,7 +219,7 @@ public class ResourceLoader : GameBase
 			info.mState = LOAD_STATE.LS_LOADING;
 			mLoadedPath[path].Add(info.mResouceName, info);
 #if UNITY_EDITOR
-			List<string> fileNameList = new List<string>();
+			List<string> fileNameList = mListPool.newList(out fileNameList);
 			ResourceManager.adjustResourceName<T>(name, fileNameList, false);
 			int fileCount = fileNameList.Count;
 			for(int i = 0; i < fileCount; ++i)
@@ -233,6 +232,7 @@ public class ResourceLoader : GameBase
 					break;
 				}
 			}
+			mListPool.destroyList(fileNameList);
 #else
 			info.mObject = Resources.Load(name, typeof(T));
 			info.mSubObjects = Resources.LoadAll(name);
@@ -247,7 +247,7 @@ public class ResourceLoader : GameBase
 	protected IEnumerator loadResourceCoroutine<T>(ResoucesLoadInfo info) where T : Object
 	{
 #if UNITY_EDITOR
-		List<string> fileNameList = new List<string>();
+		List<string> fileNameList = mListPool.newList(out fileNameList);
 		ResourceManager.adjustResourceName<T>(info.mResouceName, fileNameList, false);
 		int fileCount = fileNameList.Count;
 		for (int i = 0; i < fileCount; ++i)
@@ -260,6 +260,7 @@ public class ResourceLoader : GameBase
 				break;
 			}
 		}
+		mListPool.destroyList(fileNameList);
 		yield return null;
 #else
 		ResourceRequest request = Resources.LoadAsync<T>(info.mResouceName);

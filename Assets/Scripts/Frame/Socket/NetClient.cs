@@ -150,28 +150,25 @@ public abstract class NetClient : GameBase
 		}
 		// 读取消息长度
 		ushort packetSize = readUShort(mRecvBytes.getData(), ref index, out _);
-		// 如果该包已经接收完全
-		if (mRecvBytes.getDataLength() >= index + packetSize)
-		{
-			SocketPacket packetReply = createClientPacket(type);
-			packetReply.setConnect(mServer);
-			packetReply.mClient = this;
-			packetReply.mClientID = mClientGUID;
-			if(packetSize != 0 && !packetReply.read(mRecvBytes.getData(), ref index))
-			{
-				clientError("解析错误:" + type + ", 实际接收字节数:" + packetSize);
-				// 发生错误时,清空缓冲区
-				mRecvBytes.clear();
-				return PARSE_RESULT.PR_ERROR;
-			}
-			mReceiveBuffer.addToBuffer(packetReply);
-			// 移除已解析的数据
-			mRecvBytes.removeData(0, index);
-		}
-		else
+		// 是否已经接收完全
+		if (mRecvBytes.getDataLength() < index + packetSize)
 		{
 			return PARSE_RESULT.PR_NOT_ENOUGH;
 		}
+		SocketPacket packetReply = createClientPacket(type);
+		packetReply.setConnect(mServer);
+		packetReply.mClient = this;
+		packetReply.mClientID = mClientGUID;
+		if (packetSize != 0 && !packetReply.read(mRecvBytes.getData(), ref index))
+		{
+			clientError("解析错误:" + type + ", 实际接收字节数:" + packetSize);
+			// 发生错误时,清空缓冲区
+			mRecvBytes.clear();
+			return PARSE_RESULT.PR_ERROR;
+		}
+		mReceiveBuffer.addToBuffer(packetReply);
+		// 移除已解析的数据
+		mRecvBytes.removeData(0, index);
 		return PARSE_RESULT.PR_SUCCESS;
 	}
 	protected void clientInfo(string info)

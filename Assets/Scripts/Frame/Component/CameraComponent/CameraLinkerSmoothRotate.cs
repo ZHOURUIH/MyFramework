@@ -5,8 +5,8 @@ using UnityEngine;
 // 相对位置固定,但是旋转会平滑过渡
 public class CameraLinkerSmoothRotate : CameraLinker
 {
-	protected float mSmoothRotateSpeed;
 	protected Vector3 mCurRelative;
+	protected float mSmoothRotateSpeed;
 	public CameraLinkerSmoothRotate()
 	{
 		mSmoothRotateSpeed = 5.0f;

@@ -6,9 +6,9 @@ using System.Collections;
 public class txNGUICheckBox : txNGUIObject
 {
 	protected UIToggle mToggle;
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		mToggle = getUnityComponent<UIToggle>();
 	}
 	public UIToggle getToggle() {return mToggle;}

@@ -30,7 +30,8 @@ public class MovableObject : Transformable, IMouseEventCollect
 	protected bool mDestroied;				// 物体是否已经销毁
 	protected bool mMouseHovered;			// 鼠标当前是否悬停在物体上
 	protected bool mHandleInput;			// 是否接收鼠标输入事件
-	protected bool mPassRay;				// 是否允许射线穿透
+	protected bool mPassRay;                // 是否允许射线穿透
+	protected bool mEnableFixedUpdate;		// 是否启用FixedUpdate来计算Physics相关属性
 	protected int mObjectID;				// 物体的客户端ID
 	public MovableObject(string name)
 		: base(name)
@@ -39,11 +40,12 @@ public class MovableObject : Transformable, IMouseEventCollect
 		mDestroyObject = true;
 		mHandleInput = true;
 		mPassRay = true;
+		mEnableFixedUpdate = true;
 	}
 	public override void destroy()
 	{
-		mGlobalTouchSystem.unregisteBoxCollider(this);
 		base.destroy();
+		mGlobalTouchSystem.unregisteBoxCollider(this);
 		destroyAllComponents();
 		if(mDestroyObject)
 		{
@@ -93,12 +95,12 @@ public class MovableObject : Transformable, IMouseEventCollect
 			mHasLastPosition = true;
 		}
 	}
-	public override void lateUpdate(float elapsedTime)
-	{
-		base.lateUpdate(elapsedTime);
-	}
 	public override void fixedUpdate(float elapsedTime)
 	{
+		if (!mEnableFixedUpdate)
+		{
+			return;
+		}
 		base.fixedUpdate(elapsedTime);
 		Vector3 curPos = mTransform.localPosition;
 		mPhysicsSpeed = (curPos - mLastPhysicsPosition) / elapsedTime;
@@ -186,9 +188,10 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public string getLayer() { return LayerMask.LayerToName(mObject.layer); }
 	public int getLayerInt() { return mObject.layer; }
 	public Transform getTransform() { return mTransform; }
-	public bool isActive() { return mObject.activeSelf; }
+	public override bool isActive() { return mObject.activeSelf; }
 	public int getObjectID() { return mObjectID; }
 	public bool hasMovedDuringFrame() { return mMovedDuringFrame; }
+	public bool isEnableFixedUpdate() { return mEnableFixedUpdate; }
 	public Vector3 getMoveSpeed() { return mMoveSpeed; }
 	public Vector3 getLastSpeed() { return mLastSpeed; }
 	public Vector3 getLastPosition() { return mLastPosition; }
@@ -271,12 +274,12 @@ public class MovableObject : Transformable, IMouseEventCollect
 		mObject.SetActive(false);
 		mObject.SetActive(true);
 	}
-	public override void setPosition(Vector3 position) { mTransform.localPosition = position; }
+	public override void setPosition(Vector3 pos) { mTransform.localPosition = pos; }
 	public override void setScale(Vector3 scale) { mTransform.localScale = scale; }
 	// 角度制的欧拉角,分别是绕xyz轴的旋转角度
-	public override void setRotation(Vector3 eulerAngle) { mTransform.localEulerAngles = eulerAngle; }
-	public override void setWorldPosition(Vector3 position) { mTransform.position = position; }
-	public override void setWorldRotation(Vector3 eulerAngle) { mTransform.eulerAngles = eulerAngle; }
+	public override void setRotation(Vector3 rot) { mTransform.localEulerAngles = rot; }
+	public override void setWorldPosition(Vector3 pos) { mTransform.position = pos; }
+	public override void setWorldRotation(Vector3 rot) { mTransform.eulerAngles = rot; }
 	public override void setWorldScale(Vector3 scale) 
 	{
 		if(mTransform.parent != null)
@@ -303,7 +306,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public void setPitch(float pitch) { setRotation(replaceX(getRotation(), pitch)); }
 	public void setYaw(float yaw) { setRotation(replaceY(getRotation(), yaw)); }
 	public void setScaleX(float x) { mTransform.localScale = replaceX(mTransform.localScale, x); }
-	public virtual void move(ref Vector3 moveDelta, Space space = Space.Self)
+	public virtual void move(Vector3 moveDelta, Space space = Space.Self)
 	{
 		if(space == Space.Self)
 		{
@@ -446,8 +449,8 @@ public class MovableObject : Transformable, IMouseEventCollect
 	{
 		mOnScreenMouseUp?.Invoke(this, mousePos);
 	}
-	public void onReceiveDrag(IMouseEventCollect dragObj, ref bool continueEvent) { }
-	public void onDragHoverd(IMouseEventCollect dragObj, bool hover) { }
+	public virtual void onReceiveDrag(IMouseEventCollect dragObj, ref bool continueEvent) { }
+	public virtual void onDragHoverd(IMouseEventCollect dragObj, bool hover) { }
 	public virtual void onMultiTouchStart(Vector2 touch0, Vector2 touch1) { }
 	public virtual void onMultiTouchMove(Vector2 touch0, Vector2 lastTouch0, Vector2 touch1, Vector2 lastTouch1) { }
 	public virtual void onMultiTouchEnd() { }

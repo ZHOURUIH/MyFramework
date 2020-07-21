@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 using System;
@@ -7,9 +6,9 @@ using System;
 public class txUGUILineRenderer : txUGUIObject
 {
 	public LineRenderer mLineRenderer;
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		mLineRenderer = getUnityComponent<LineRenderer>();
 	}
 	public void setPointList(Vector3[] pointList)

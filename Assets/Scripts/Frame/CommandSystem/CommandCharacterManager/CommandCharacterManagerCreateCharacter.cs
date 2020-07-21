@@ -5,16 +5,16 @@ using System;
 public class CommandCharacterManagerCreateCharacter : Command
 {
 	public Type mCharacterType;
-	public uint mID;
 	public string mName;
 	public bool mCreateNode;
+	public uint mID;
 	public override void init()
 	{
 		base.init();
 		mCharacterType = null;
-		mName = EMPTY_STRING;
-		mID = 0;
+		mName = null;
 		mCreateNode = true;
+		mID = 0;
 	}
 	public override void execute()
 	{

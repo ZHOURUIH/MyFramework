@@ -2,14 +2,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum EFFECT_ALIGN
+{
+	NONE,			// 特效中心对齐父节点中心
+	PARENT_BOTTOM,	// 特效底部对齐父节点底部
+	POSITION_LIST,	// 使用位置列表对每一帧进行校正
+}
+
 public class txUGUIImageAnim : txUGUIImage, IUIAnimation
 {
-	private List<TextureAnimCallBack> mTempList;
 	protected List<TextureAnimCallBack> mPlayEndCallback;  // 一个序列播放完时的回调函数,只在非循环播放状态下有效
 	protected List<TextureAnimCallBack> mPlayingCallback;  // 一个序列正在播放时的回调函数
 	protected List<string> mTextureNameList;
 	protected List<Vector2> mTexturePosList;
 	protected AnimControl mControl;
+	protected EFFECT_ALIGN mEffectAlign;
 	protected string mTextureSetName;
 	protected bool mUseTextureSize;
 	public txUGUIImageAnim()
@@ -18,14 +25,14 @@ public class txUGUIImageAnim : txUGUIImage, IUIAnimation
 		mTextureNameList = new List<string>();
 		mPlayEndCallback = new List<TextureAnimCallBack>();
 		mPlayingCallback = new List<TextureAnimCallBack>();
-		mTempList = new List<TextureAnimCallBack>();
 		mUseTextureSize = false;
+		mEffectAlign = EFFECT_ALIGN.NONE;
 	}
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		string spriteName = getSpriteName();
-		if(spriteName != null && spriteName.Length != 0)
+		if(!isEmpty(spriteName))
 		{
 			int index = spriteName.LastIndexOf('_');
 			if (index >= 0)
@@ -43,7 +50,7 @@ public class txUGUIImageAnim : txUGUIImage, IUIAnimation
 		base.update(elapsedTime);
 		if (mTextureNameList.Count == 0)
 		{
-			setSpriteName(EMPTY_STRING, false);
+			setSpriteName(null, false);
 		}
 		mControl.update(elapsedTime);
 	}
@@ -57,18 +64,26 @@ public class txUGUIImageAnim : txUGUIImage, IUIAnimation
 		stop();
 		base.setAtlas(atlas, clearSprite);
 		// 图集改变后清空当前序列帧列表
-		setTextureSet(EMPTY_STRING);
+		setTextureSet(null);
 	}
 	public string getTextureSet() { return mTextureSetName; }
 	public int getTextureFrameCount() { return mTextureNameList.Count; }
 	public void setUseTextureSize(bool useSize){mUseTextureSize = useSize;}
-	public void setTexturePosList(List<Vector2> posList) { mTexturePosList = posList; }
+	public void setTexturePosList(List<Vector2> posList) 
+	{
+		mTexturePosList = posList;
+		if (mTexturePosList != null)
+		{
+			setEffectAlign(EFFECT_ALIGN.POSITION_LIST);
+		}
+	}
 	public List<Vector2> getTexturePosList() { return mTexturePosList; }
+	public void setEffectAlign(EFFECT_ALIGN align) { mEffectAlign = align; }
 	public void setTextureSet(string textureSetName)
 	{
 		if (mTextureSetName != textureSetName)
 		{
-			setTextureSet(textureSetName, EMPTY_STRING);
+			setTextureSet(textureSetName, null);
 		}
 	}
 	public void setTextureSet(string textureSetName, string subPath)
@@ -79,7 +94,7 @@ public class txUGUIImageAnim : txUGUIImage, IUIAnimation
 		}
 		mTextureNameList.Clear();
 		mTextureSetName = textureSetName;
-		if (mAtlas != null && mTextureSetName.Length != 0)
+		if (mAtlas != null && !isEmpty(mTextureSetName))
 		{
 			var sprites = mTPSpriteManager.getSprites(mAtlas);
 			int index = 0;
@@ -130,20 +145,31 @@ public class txUGUIImageAnim : txUGUIImage, IUIAnimation
 	{
 		if (clear)
 		{
-			mTempList.Clear();
-			mTempList.AddRange(mPlayEndCallback);
+			List<TextureAnimCallBack> tempList = mListPool.newList(out tempList);
+			tempList.AddRange(mPlayEndCallback);
 			mPlayEndCallback.Clear();
 			// 如果回调函数当前不为空,则是中断了更新
-			foreach (var item in mTempList)
+			foreach (var item in tempList)
 			{
 				item(this, true);
 			}
+			mListPool.destroyList(tempList);
 		}
-		mPlayEndCallback.Add(callback);
+		if(callback != null)
+		{
+			mPlayEndCallback.Add(callback);
+		}
 	}
-	public void addPlayingCallback(TextureAnimCallBack callback)
+	public void addPlayingCallback(TextureAnimCallBack callback, bool clear = true)
 	{
-		mPlayingCallback.Add(callback);
+		if(clear)
+		{
+			mPlayingCallback.Clear();
+		}
+		if(callback != null)
+		{
+			mPlayingCallback.Add(callback);
+		}
 	}
 	//--------------------------------------------------------------------------------------------------------
 	protected void onPlaying(AnimControl control, int frame, bool isPlaying)
@@ -153,10 +179,25 @@ public class txUGUIImageAnim : txUGUIImage, IUIAnimation
 			return;
 		}
 		setSpriteName(mTextureNameList[mControl.getCurFrameIndex()], mUseTextureSize);
-		if (mTexturePosList != null && mTexturePosList.Count > 0)
+		// 使用位置列表进行校正
+		if (mEffectAlign == EFFECT_ALIGN.POSITION_LIST)
 		{
-			int positionIndex = (int)(frame / (float)mTextureNameList.Count * mTexturePosList.Count + 0.5f);
-			setPosition(mTexturePosList[positionIndex]);
+			if (mTexturePosList != null && mTexturePosList.Count > 0)
+			{
+				int positionIndex = (int)(frame / (float)mTextureNameList.Count * mTexturePosList.Count + 0.5f);
+				setPosition(mTexturePosList[positionIndex]);
+			}
+		}
+		// 对齐父节点的底部
+		else if(mEffectAlign == EFFECT_ALIGN.PARENT_BOTTOM)
+		{
+			txUIObject parent = getParent();
+			if (parent != null)
+			{
+				Vector2 windowSize = getWindowSize();
+				Vector2 parentSize = parent.getWindowSize();
+				setPosition(replaceY(getPosition(), (windowSize.y - parentSize.y) * 0.5f));
+			}
 		}
 		int count = mPlayingCallback.Count;
 		for(int i = 0; i < count; ++i)
@@ -173,13 +214,14 @@ public class txUGUIImageAnim : txUGUIImage, IUIAnimation
 		}
 		if(callback)
 		{
-			mTempList.Clear();
-			mTempList.AddRange(mPlayEndCallback);
+			List<TextureAnimCallBack> tempList = mListPool.newList(out tempList);
+			tempList.AddRange(mPlayEndCallback);
 			mPlayEndCallback.Clear();
-			foreach (var item in mTempList)
+			foreach (var item in tempList)
 			{
 				item(this, isBreak);
 			}
+			mListPool.destroyList(tempList);
 		}
 		else
 		{

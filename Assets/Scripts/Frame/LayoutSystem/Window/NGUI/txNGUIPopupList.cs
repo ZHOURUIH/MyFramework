@@ -8,9 +8,9 @@ using System.Collections.Generic;
 public class txNGUIPopupList : txNGUIObject
 {
 	protected UIPopupList mPopupList;
-	public override void init(GameLayout layout, GameObject go, txUIObject parent)
+	public override void init(GameObject go, txUIObject parent)
 	{
-		base.init(layout, go, parent);
+		base.init(go, parent);
 		mPopupList = getUnityComponent<UIPopupList>();
 	}
 	public UIPopupList getPopupList() {return mPopupList; }

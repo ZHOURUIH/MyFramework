@@ -5,28 +5,24 @@ using System.Collections.Generic;
 
 public class EffectManager : FrameComponent
 {
-	private List<GameEffect> mTempList;
 	protected List<GameEffect> mEffectList;
-	protected List<GameEffect> mDeadList;
 	public EffectManager(string name)
 		:base(name)
 	{
 		mEffectList = new List<GameEffect>();
-		mDeadList = new List<GameEffect>();
-		mTempList = new List<GameEffect>();
+		mCreateObject = true;
 	}
 	public override void init()
 	{
 		base.init();
-	}
-	public override void destroy()
-	{
-		base.destroy();
+#if UNITY_EDITOR
+		mObject.AddComponent<EffectManagerDebug>();
+#endif
 	}
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		mDeadList.Clear();
+		List<GameEffect> deadList = null;
 		foreach (var item in mEffectList)
 		{
 			if(item.isActive())
@@ -42,13 +38,21 @@ public class EffectManager : FrameComponent
 			}
 			if(item.isDead())
 			{
-				mDeadList.Add(item);
+				if(deadList == null)
+				{
+					deadList = mListPool.newList(out deadList);
+				}
+				deadList.Add(item);
 			}
 		}
 		// 销毁所有已死亡的特效
-		foreach(var item in mDeadList)
+		if(deadList != null)
 		{
-			destroyEffect(item);
+			foreach (var item in deadList)
+			{
+				destroyEffect(item);
+			}
+			mListPool.destroyList(deadList);
 		}
 	}
 	public List<GameEffect> getEffectList() { return mEffectList; }
@@ -71,7 +75,7 @@ public class EffectManager : FrameComponent
 	}
 	public GameEffect createEffect(string nameWithPath, GameObject parent, string tag, bool active, float lifeTime = -1.0f)
 	{
-		if(nameWithPath == null || nameWithPath.Length == 0)
+		if (isEmpty(nameWithPath))
 		{
 			return null;
 		}
@@ -106,9 +110,9 @@ public class EffectManager : FrameComponent
 	// 检查特效是否还有效,特效物体已经被销毁的视为无效特效,将被清除
 	public void clearInvalidEffect()
 	{
-		mTempList.Clear();
-		mTempList.AddRange(mEffectList);
-		foreach (var item in mTempList)
+		List<GameEffect> tempList = mListPool.newList(out tempList);
+		tempList.AddRange(mEffectList);
+		foreach (var item in tempList)
 		{
 			GameEffect effect = item;
 			// 虽然此处isValidEffect已经足够判断特效是否还存在
@@ -133,12 +137,12 @@ public class EffectManager : FrameComponent
 				destroyEffect(ref effect);
 			}
 		}
-		mTempList.Clear();
+		mListPool.destroyList(tempList);
 	}
 	//----------------------------------------------------------------------------------------------------------
 	protected void onEffectLoaded(GameObject go, object userData)
 	{
-		if (userData as OnEffectLoadedCallback != null)
+		if (userData is OnEffectLoadedCallback)
 		{
 			if (go == null)
 			{

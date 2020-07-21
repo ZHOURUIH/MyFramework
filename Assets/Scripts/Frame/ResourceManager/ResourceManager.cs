@@ -40,14 +40,14 @@ public class ResourceManager : FrameComponent
 	{
 		base.init();
 #if UNITY_EDITOR
-		mLoadSource = (LOAD_SOURCE)(int)mFrameConfig.getFloatParam(GAME_DEFINE_FLOAT.GDF_LOAD_RESOURCES);
+		mLoadSource = (LOAD_SOURCE)(int)mFrameConfig.getFloat(GAME_FLOAT.LOAD_RESOURCES);
 #else
 		mLoadSource = LOAD_SOURCE.LS_ASSET_BUNDLE;
 #endif
 #if UNITY_EDITOR
 		mObject.AddComponent<ResourcesManagerDebug>();
 #endif
-		mPersistentFirst = (int)mFrameConfig.getFloatParam(GAME_DEFINE_FLOAT.GDF_PERSISTENT_DATA_FIRST) != 0;
+		mPersistentFirst = (int)mFrameConfig.getFloat(GAME_FLOAT.PERSISTENT_DATA_FIRST) != 0;
 		// 如果从Resources加载,则固定为默认值
 		if (mLoadSource == LOAD_SOURCE.LS_RESOURCES)
 		{
@@ -84,7 +84,7 @@ public class ResourceManager : FrameComponent
 		{
 			return mResourceLoader.unloadResource(ref obj);
 		}
-		else if(mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
+		if(mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
 		{
 			return mAssetBundleLoader.unloadAsset(ref obj);
 		}
@@ -109,11 +109,8 @@ public class ResourceManager : FrameComponent
 	}
 	public void unloadAssetBundle(string bundleName)
 	{
-		if (mLoadSource == LOAD_SOURCE.LS_RESOURCES)
-		{
-			;
-		}
-		else if (mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
+		// 只有从AssetBundle加载才能卸载AssetBundle
+		if (mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
 		{
 			mAssetBundleLoader.unloadAssetBundle(bundleName);
 		}
@@ -158,12 +155,12 @@ public class ResourceManager : FrameComponent
 	// path为resources下相对路径,返回的列表中文件名带相对路径不带后缀
 	// 如果从Resource中加载,则区分大小写,如果从AssetBundle中加载,传入的路径不区分大小写,返回的文件列表全部为小写
 	// lower表示是否将返回列表中的字符串全部转为小写
-	public List<string> getFileList(string path, bool lower = false)
+	public void getFileList(string path, List<string> fileList, bool lower = false)
 	{
-		List<string> fileList = null;
+		fileList.Clear();
 		if (mLoadSource == LOAD_SOURCE.LS_RESOURCES)
 		{
-			fileList = mResourceLoader.getFileList(path);
+			mResourceLoader.getFileList(path, fileList);
 			if(lower)
 			{
 				int count = fileList.Count;
@@ -175,9 +172,8 @@ public class ResourceManager : FrameComponent
 		}
 		else if (mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
 		{
-			fileList = mAssetBundleLoader.getFileList(path.ToLower());
+			mAssetBundleLoader.getFileList(path.ToLower(), fileList);
 		}
-		return fileList;
 	}
 	public bool syncLoadAvalaible()
 	{
@@ -186,22 +182,15 @@ public class ResourceManager : FrameComponent
 	}
 	public void checkAssetBundleDependenceLoaded(string bundleName)
 	{
-		if(mLoadSource == LOAD_SOURCE.LS_RESOURCES)
-		{
-			;
-		}
-		else if(mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
+		if(mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
 		{
 			mAssetBundleLoader.checkAssetBundleDependenceLoaded(bundleName.ToLower());
 		}
 	}
 	public void loadAssetBundle(string bundleName)
 	{
-		if (mLoadSource == LOAD_SOURCE.LS_RESOURCES)
-		{
-			// 从Resource加载不能加载AssetBundle
-		}
-		else if (mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
+		// 只有从AssetBundle加载时才能加载AssetBundle
+		if (mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
 		{
 			mAssetBundleLoader.loadAssetBundle(bundleName.ToLower());
 		}

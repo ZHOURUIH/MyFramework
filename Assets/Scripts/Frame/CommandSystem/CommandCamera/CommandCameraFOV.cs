@@ -3,29 +3,29 @@ using System.Collections;
 
 public class CommandCameraFOV : Command
 {
+	public KeyFrameCallback mTremblingCallBack;
+	public KeyFrameCallback mTrembleDoneCallBack;
 	public string mName;
 	public float mOnceLength;
 	public float mOffset;
-	public bool mLoop;
 	public float mAmplitude;
-	public bool mFullOnce;
 	public float mStartFOV;
 	public float mTargetFOV;
-	public KeyFrameCallback mTremblingCallBack;
-	public KeyFrameCallback mTrembleDoneCallBack;
+	public bool mLoop;
+	public bool mFullOnce;
 	public override void init()
 	{
 		base.init();
-		mName = EMPTY_STRING;
-		mOnceLength = 1.0f;
-		mOffset = 0.0f;
-		mLoop = false;
-		mAmplitude = 1.0f;
-		mFullOnce = false;
-        mStartFOV = 0.0f;
-        mTargetFOV = 0.0f;
 		mTremblingCallBack = null;
 		mTrembleDoneCallBack = null;
+		mName = null;
+		mOnceLength = 1.0f;
+		mOffset = 0.0f;
+		mAmplitude = 1.0f;
+		mStartFOV = 0.0f;
+		mTargetFOV = 0.0f;
+		mLoop = false;
+		mFullOnce = false;
 	}
 	public override void execute()
 	{

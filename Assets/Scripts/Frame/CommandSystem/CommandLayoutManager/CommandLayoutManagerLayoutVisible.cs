@@ -4,18 +4,18 @@ using System.Collections;
 public class CommandLayoutManagerLayoutVisible : Command
 {
 	public LAYOUT mLayoutType;
+	public string mParam;
 	public bool mForce;
 	public bool mImmediately;
 	public bool mVisibility;
-	public string mParam;
 	public override void init()
 	{
 		base.init();
 		mLayoutType = LAYOUT.L_MAX;
+		mParam = null;
 		mForce = false;
 		mImmediately = false;
 		mVisibility = true;
-		mParam = EMPTY_STRING;
 	}
 	public override void execute()
 	{

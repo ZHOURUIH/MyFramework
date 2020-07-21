@@ -12,7 +12,7 @@ public class WindowShaderGrey : WindowShader
 		base.applyShader(mat);
 		if (mat != null && mat.shader != null)
 		{
-			if (mat.shader.name == mGrey)
+			if (getFileName(mat.shader.name) == mGrey)
 			{
 				mat.SetInt("_Grey", mIsGrey ? 1 : 0);
 			}

@@ -5,32 +5,26 @@ using System.Collections.Generic;
 
 public class GameSceneManager : FrameComponent
 {
-	public GameScene		mCurScene;
-	public List<GameScene>	mLastSceneList;
+	protected List<GameScene> mLastSceneList;
+	protected GameScene mCurScene;
 	public GameSceneManager(string name)
 		:base(name)
 	{
 		mLastSceneList = new List<GameScene>();
 		mCreateObject = true;
 	}
-	public override void init() 
-	{
-		base.init();
-	}
 	public new GameScene getCurScene(){ return mCurScene; }
 	public bool enterScene(Type type, Type startProcedure, string intent)
 	{
 		// 再次进入当前的场景,只是从初始流程开始执行,并不会重新执行进入场景的操作
-		if (mCurScene != null && mCurScene.getSceneType() == type)
+		if (mCurScene != null && mCurScene.GetType() == type)
 		{
-			mCurScene.setTempStartProcedure(startProcedure);
-			mCurScene.setTempStartIntent(intent);
+			mCurScene.setTempStartProcedure(startProcedure, intent);
 			mCurScene.enterStartProcedure();
 		}
 		else
 		{
 			GameScene pScene = createInstance<GameScene>(type, type.ToString());
-			pScene.setType(type);
 			// 如果有上一个场景,则先销毁上一个场景,只是暂时保存下上个场景的指针,然后在更新中将场景销毁
 			if (mCurScene != null)
 			{
@@ -39,8 +33,7 @@ public class GameSceneManager : FrameComponent
 				mCurScene = null;
 			}
 			mCurScene = pScene;
-			mCurScene.setTempStartProcedure(startProcedure);
-			mCurScene.setTempStartIntent(intent);
+			mCurScene.setTempStartProcedure(startProcedure, intent);
 			mCurScene.init();
 		}
 		return true;

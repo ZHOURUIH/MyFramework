@@ -42,7 +42,7 @@ public class HeadTextureManager : FrameComponent
 	}
 	public void requestLoadTexture(string url, string openID, HeadDownloadCallback doneCallback)
 	{
-		if(url.Length == 0 || openID.Length == 0)
+		if(isEmpty(url) || isEmpty(openID))
 		{
 			doneCallback?.Invoke(null, openID);
 			return;

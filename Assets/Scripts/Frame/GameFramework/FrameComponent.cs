@@ -30,9 +30,6 @@ public class FrameComponent : ComponentOwner
 		base.destroy();
 	}
 	public GameObject getObject() { return mObject; }
-	public override void update(float elapsedTime) { base.update(elapsedTime); }
-	public override void fixedUpdate(float elapsedTime) { base.fixedUpdate(elapsedTime); }
-	public override void lateUpdate(float elapsedTime) { base.lateUpdate(elapsedTime); }
 	public virtual void onDrawGizmos() { }
 	// a小于b返回-1, a等于b返回0, a大于b返回1,升序排序
 	static public int compareInit(FrameComponent a, FrameComponent b)

@@ -16,15 +16,15 @@ public class CommandTransformableMovePath : Command
 	public override void init()
 	{
 		base.init();
+		mValueKeyFrame = null;
+		mDoingCallBack = null;
+		mDoneCallBack = null;
+		mValueOffset = Vector3.zero;
 		mOffset = 0.0f;
 		mAmplitude = 1.0f;
 		mSpeed = 1.0f;
 		mLoop = false;
 		mFullOnce = false;
-		mValueKeyFrame = null;
-		mDoingCallBack = null;
-		mDoneCallBack = null;
-		mValueOffset = Vector3.zero;
 	}
 	public override void execute()
 	{

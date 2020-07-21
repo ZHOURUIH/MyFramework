@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 
 public class WindowComponentLum : ComponentKeyFrameNormal
@@ -11,7 +9,7 @@ public class WindowComponentLum : ComponentKeyFrameNormal
 	public void setStartLum(float lum) { mStartLum = lum; }
 	public void setTargetLum(float lum) { mTargetLum = lum; }
 	//------------------------------------------------------------------------------------------------------------
-	protected override void applyTrembling(float offset)
+	protected override void applyTrembling(float value)
 	{
 		if (!(mComponentOwner is IShaderWindow))
 		{
@@ -24,6 +22,6 @@ public class WindowComponentLum : ComponentKeyFrameNormal
 			logError("window has no WindowShaderLumOffset!");
 			return;
 		}
-		lumOffset.setLumOffset(lerpSimple(mStartLum, mTargetLum, offset));
+		lumOffset.setLumOffset(lerpSimple(mStartLum, mTargetLum, value));
 	}
 }

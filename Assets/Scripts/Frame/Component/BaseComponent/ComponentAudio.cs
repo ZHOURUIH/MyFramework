@@ -23,15 +23,13 @@ public class ComponentAudio : GameComponent
 		{
 			assignAudioSource();
 		}
-		if (name.Length == 0)
+		if (isEmpty(name))
 		{
 			stop();
+			return;
 		}
-		else
-		{
-			mAudioManager.playClip(mAudioSource, name, isLoop, volume);
-			mAudioName = name;
-		}
+		mAudioManager.playClip(mAudioSource, name, isLoop, volume);
+		mAudioName = name;
 	}
 	public void play(SOUND_DEFINE sound, bool loop, float volume)
 	{

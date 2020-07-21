@@ -16,15 +16,15 @@ public class CommandMovableObjectAlphaPath : Command
 	public override void init()
 	{
 		base.init();
+		mValueKeyFrame = null;
+		mDoingCallBack = null;
+		mDoneCallBack = null;
 		mOffset = 0.0f;
 		mAmplitude = 1.0f;
 		mSpeed = 1.0f;
 		mValueOffset = 1.0f;
-		mLoop = false;
 		mFullOnce = false;
-		mValueKeyFrame = null;
-		mDoingCallBack = null;
-		mDoneCallBack = null;
+		mLoop = false;
 	}
 	public override void execute()
 	{

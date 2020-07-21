@@ -75,6 +75,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 			setNetState(state);
 			return;
 		}
+		notifyConnectServer();
 		mConnectState = CONNECT_STATE.CS_CONNECTED;
 		mSendThread.start(sendSocket);
 		mReceiveThread.start(receiveSocket);
@@ -156,14 +157,14 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 	}
 	public void sendClientPacket<T>() where T : SocketPacket, new()
 	{
-		T packet = createClientPacket(out packet);
+		T packet = mSocketFactory.createSocketPacket<T>();
 		sendClientPacket(packet);
 	}
 	public void sendClientPacket(SocketPacket packet)
 	{
 		if (mServerSocket == null || !mServerSocket.Connected || mConnectState != CONNECT_STATE.CS_CONNECTED)
 		{
-			destroyPacket(packet);
+			mSocketFactory.destroyPacket(packet);
 			return;
 		}
 		// 将消息包中的数据准备好,然后放入发送列表中
@@ -177,7 +178,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		writeUShort(packetData, ref index, packetSize);
 		if(packetSize > 0 && !packet.write(packetData, CommonDefine.PACKET_HEADER_SIZE))
 		{
-			destroyPacket(packet);
+			mSocketFactory.destroyPacket(packet);
 			mCollectedBytes.addToBuffer(packetData);
 			logError("消息序列化失败!");
 			return;
@@ -190,9 +191,6 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 	//---------------------------------------------------------------------------------------------------------------------------------------
 	protected abstract bool checkPacketType(PACKET_TYPE type);
 	protected abstract void heartBeat();
-	protected abstract T createClientPacket<T>(out T packet) where T : SocketPacket, new();
-	protected abstract void destroyPacket(SocketPacket packet);
-	protected abstract SocketPacket createClientPacket(PACKET_TYPE type);
 	// 处理接收到的所有消息
 	protected void processInput()
 	{
@@ -318,7 +316,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		{
 			return PARSE_RESULT.PR_NOT_ENOUGH;
 		}
-		SocketPacket packetReply = createClientPacket(type);
+		SocketPacket packetReply = mSocketFactory.createSocketPacket(type);
 		packetReply.setConnect(this);
 		if (packetSize != 0 && !packetReply.read(mInputBuffer.getData(), ref index))
 		{

@@ -4,12 +4,11 @@ using UnityEngine;
 
 public class CameraLinkerSwitchCircle : CameraLinkerSwitch
 {
-	protected float mRotatedAngle; // 已经旋转过的角度
-	protected Vector3 mRotateCenter;    // 高度忽略的旋转圆心
+	protected float mRotatedAngle;		// 已经旋转过的角度
 	protected float mTotalAngle;
+	protected Vector3 mRotateCenter;    // 高度忽略的旋转圆心
 	public CameraLinkerSwitchCircle()
 	{
-		mRotatedAngle = 0.0f;
 		mTotalAngle = PI_RADIAN;
 		mSpeed = PI_RADIAN;
 	}
@@ -44,10 +43,5 @@ public class CameraLinkerSwitchCircle : CameraLinkerSwitch
 			rotateVec.y = (mTargetRelative.y - mOriginRelative.y) * (mRotatedAngle / mTotalAngle) + mOriginRelative.y;
 			mParentLinker.setRelativePosition(rotateVec);
 		}
-	}
-	public override void destroy()
-	{
-		base.destroy();
-		mRotatedAngle = 0.0f;
 	}
 }

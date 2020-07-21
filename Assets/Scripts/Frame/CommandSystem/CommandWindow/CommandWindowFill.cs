@@ -3,29 +3,29 @@ using System.Collections.Generic;
 
 public class CommandWindowFill : Command
 {
+	public KeyFrameCallback mTremblingCallBack;
+	public KeyFrameCallback mTrembleDoneCallBack;
 	public string mTremblingName;
 	public float mStartValue;
 	public float mTargetValue;
 	public float mOnceLength;
 	public float mOffset;
-	public bool mLoop;
-	public bool mFullOnce;
 	public float mAmplitude;
-	public KeyFrameCallback mTremblingCallBack;
-	public KeyFrameCallback mTrembleDoneCallBack;
+	public bool mFullOnce;
+	public bool mLoop;
 	public override void init()
 	{
 		base.init();
-		mTremblingName = EMPTY_STRING;
+		mTremblingCallBack = null;
+		mTrembleDoneCallBack = null;
+		mTremblingName = null;
 		mStartValue = 0.0f;
 		mTargetValue = 0.0f;
 		mOnceLength = 0.0f;
 		mOffset = 0.0f;
-		mLoop = false;
-		mFullOnce = false;
 		mAmplitude = 1.0f;
-		mTremblingCallBack = null;
-		mTrembleDoneCallBack = null;
+		mFullOnce = false;
+		mLoop = false;
 	}
 	public override void execute()
 	{
@@ -37,9 +37,5 @@ public class CommandWindowFill : Command
 		component.setStartValue(mStartValue);
 		component.setTargetValue(mTargetValue);
 		component.play(mTremblingName, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
-	}
-	public override string showDebugInfo()
-	{
-		return base.showDebugInfo();
 	}
 }

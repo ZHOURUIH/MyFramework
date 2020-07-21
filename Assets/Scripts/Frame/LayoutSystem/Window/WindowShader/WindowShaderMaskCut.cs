@@ -14,7 +14,7 @@ public class WindowShaderMaskCut : WindowShader
 		base.applyShader(mat);
 		if (mat != null && mat.shader != null)
 		{
-			if (mat.shader.name == mMaskCut)
+			if (getFileName(mat.shader.name) == mMaskCut)
 			{
 				mat.SetTexture("_MaskTex", mMask);
 				mat.SetFloat("_SizeX", mMaskScale.x);

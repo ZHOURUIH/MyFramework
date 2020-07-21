@@ -24,7 +24,7 @@ public class ComponentKeyFrameBase : GameComponent, IComponentBreakable
 	protected PLAY_STATE mPlayState;
 	public ComponentKeyFrameBase()
 	{
-		mTremblingName = EMPTY_STRING;
+		mTremblingName = null;
 		mLoop = true;
 		mFullOnce = true;
 		mAmplitude = 1.0f;
