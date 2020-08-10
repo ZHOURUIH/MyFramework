@@ -2,12 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Curve
-{
-	public GameObject mObject;
-	public AnimationCurve mCurve;
-}
-
 public class KeyFrameManager : FrameComponent
 {
 	protected Dictionary<string, Curve> mCurveList;

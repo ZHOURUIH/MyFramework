@@ -227,6 +227,10 @@ public abstract class LayoutScript : GameBase
 		// 通知布局有窗口添加
 		mLayout.notifyObjectChanged();
 	}
+	public void destroyClonedObject(txUIObject obj, bool immediately = false)
+	{
+		destroyObject(obj, immediately);
+	}
 	public void interruptCommand(int assignID, bool showError = true)
 	{
 		if (mDelayCmdList.Contains(assignID))

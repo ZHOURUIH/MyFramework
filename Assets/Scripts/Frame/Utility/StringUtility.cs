@@ -561,10 +561,7 @@ public class StringUtility : BinaryUtility
 			UnityUtility.logError("values can not be null");
 			return;
 		}
-		else
-		{
-			values.Clear();
-		}
+		values.Clear();
 		if (isEmpty(str))
 		{
 			return;
@@ -617,10 +614,7 @@ public class StringUtility : BinaryUtility
 			UnityUtility.logError("values can not be null");
 			return;
 		}
-		else
-		{
-			values.Clear();
-		}
+		values.Clear();
 		if (isEmpty(str))
 		{
 			return;
@@ -664,6 +658,29 @@ public class StringUtility : BinaryUtility
 		stringToIntArray(str, mTempIntList, seperate);
 		return mTempIntList;
 	}
+	public static void stringToUIntArray(string str, List<uint> values, string seperate = ",")
+	{
+		if (values == null)
+		{
+			UnityUtility.logError("values can not be null");
+			return;
+		}
+		values.Clear();
+		if (isEmpty(str))
+		{
+			return;
+		}
+		string[] rangeList = split(str, true, seperate);
+		if (rangeList == null)
+		{
+			return;
+		}
+		int len = rangeList.Length;
+		for (int i = 0; i < len; ++i)
+		{
+			values.Add((uint)stringToInt(rangeList[i]));
+		}
+	}
 	public static void stringToUShortArray(string str, List<ushort> values, string seperate = ",")
 	{
 		if (values == null)
@@ -671,10 +688,7 @@ public class StringUtility : BinaryUtility
 			UnityUtility.logError("values can not be null");
 			return;
 		}
-		else
-		{
-			values.Clear();
-		}
+		values.Clear();
 		if (isEmpty(str))
 		{
 			return;
@@ -697,10 +711,7 @@ public class StringUtility : BinaryUtility
 			UnityUtility.logError("values can not be null");
 			return;
 		}
-		else
-		{
-			values.Clear();
-		}
+		values.Clear();
 		if (isEmpty(str))
 		{
 			return;
@@ -789,10 +800,7 @@ public class StringUtility : BinaryUtility
 			UnityUtility.logError("values can not be null");
 			return;
 		}
-		else
-		{
-			values.Clear();
-		}
+		values.Clear();
 		if (isEmpty(str))
 		{
 			return;

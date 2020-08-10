@@ -6,7 +6,7 @@ using System.Collections.Generic;
 public class CommandPool : GameBase
 {
 	protected Dictionary<Type, List<Command>> mInusedList;
-	protected Dictionary<Type, List<Command>> mUnusedList;
+	protected Dictionary<Type, Stack<Command>> mUnusedList;
 	protected ThreadLock mInuseLock;
 	protected ThreadLock mUnuseLock;
 	protected ThreadLock mNewCmdLock;	// 只需要添加创建命令的锁就可以,只要不分配出重复的命令,回收命令时就不会发生冲突
@@ -16,7 +16,7 @@ public class CommandPool : GameBase
 	public CommandPool()
 	{
 		mInusedList = new Dictionary<Type, List<Command>>();
-		mUnusedList = new Dictionary<Type, List<Command>>();
+		mUnusedList = new Dictionary<Type, Stack<Command>>();
 		mInuseLock = new ThreadLock();
 		mUnuseLock = new ThreadLock();
 		mNewCmdLock = new ThreadLock();
@@ -36,11 +36,13 @@ public class CommandPool : GameBase
 		Command cmd = null;
 		if (mUnusedList.ContainsKey(type))
 		{
-			if (mUnusedList[type].Count > 0)
+			var list = mUnusedList[type];
+			if (list.Count > 0)
 			{
-				cmd = mUnusedList[type][0];
 				// 从未使用列表中移除
-				removeUnuse(cmd);
+				mUnuseLock.waitForUnlock();
+				cmd = list.Pop();
+				mUnuseLock.unlock();
 			}
 		}
 		// 没有找到可以用的,则创建一个
@@ -86,44 +88,34 @@ public class CommandPool : GameBase
 	{
 		mInuseLock.waitForUnlock();
 		// 添加到使用列表中
-		Type t = cmd.getType();
-		if (!mInusedList.ContainsKey(t))
+		Type type = cmd.getType();
+		if (!mInusedList.ContainsKey(type))
 		{
-			mInusedList.Add(t, new List<Command>());
+			mInusedList.Add(type, new List<Command>());
 		}
-		mInusedList[t].Add(cmd);
+		mInusedList[type].Add(cmd);
 		mInuseLock.unlock();
 	}
 	protected void addUnuse(Command cmd)
 	{
 		mUnuseLock.waitForUnlock();
 		// 添加到未使用列表中
-		Type t = cmd.getType();
-		if (!mUnusedList.ContainsKey(t))
+		Type type = cmd.getType();
+		if (!mUnusedList.ContainsKey(type))
 		{
-			mUnusedList.Add(t, new List<Command>());
+			mUnusedList.Add(type, new Stack<Command>());
 		}
-		mUnusedList[t].Add(cmd);
+		mUnusedList[type].Push(cmd);
 		mUnuseLock.unlock();
 	}
 	protected void removeInuse(Command cmd)
 	{
 		mInuseLock.waitForUnlock();
-		Type t = cmd.getType();
-		if (mInusedList.ContainsKey(t))
+		Type type = cmd.getType();
+		if (mInusedList.ContainsKey(type))
 		{
-			mInusedList[t].Remove(cmd);
+			mInusedList[type].Remove(cmd);
 		}
 		mInuseLock.unlock();
-	}
-	protected void removeUnuse(Command cmd)
-	{
-		mUnuseLock.waitForUnlock();
-		Type t = cmd.getType();
-		if (mUnusedList.ContainsKey(t))
-		{
-			mUnusedList[t].Remove(cmd);
-		}
-		mUnuseLock.unlock();
 	}
 }

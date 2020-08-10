@@ -1117,4 +1117,19 @@ public class UnityUtility : FileUtility
         return render.sharedMaterial;
 #endif
 	}
+	// 自动排列一个节点下的所有子节点的位置,从上往下紧密排列
+	public static void autoGrid(txUGUIObject root, float interval = 0.0f)
+	{
+		Vector2 rootSize = root.getWindowSize();
+		float currentTop = rootSize.y * 0.5f;
+		Transform transform = root.getTransform();
+		int childCount = transform.childCount;
+		for (int i = 0; i < childCount; ++i)
+		{
+			RectTransform childRect = transform.GetChild(i).GetComponent<RectTransform>();
+			float curHeight = childRect.rect.height;
+			childRect.localPosition = new Vector3(0.0f, currentTop - curHeight * 0.5f);
+			currentTop -= curHeight + interval;
+		}
+	}
 }

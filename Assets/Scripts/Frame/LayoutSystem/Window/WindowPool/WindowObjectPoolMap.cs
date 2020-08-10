@@ -49,7 +49,7 @@ public class WindowObjectPoolMap<Key, Value> : GameBase where Value : PooledWind
 	}
 	public Dictionary<Key, Value> getUseList() { return mUsedItemList; }
 	public void setItemPreName(string preName) { mPreName = preName; }
-	public Value getOneUnusedItem(Key key)
+	public Value newItem(Key key)
 	{
 		Value item;
 		if (mUnusedItemList.Count > 0)
@@ -75,6 +75,7 @@ public class WindowObjectPoolMap<Key, Value> : GameBase where Value : PooledWind
 	{
 		foreach (var item in mUsedItemList)
 		{
+			item.Value.recycle();
 			item.Value.setVisible(false);
 			item.Value.setParent(mItemParentUnuse);
 			item.Value.setAssignID(-1);
@@ -87,6 +88,7 @@ public class WindowObjectPoolMap<Key, Value> : GameBase where Value : PooledWind
 		if (key != null && mUsedItemList.ContainsKey(key))
 		{
 			Value item = mUsedItemList[key];
+			item.recycle();
 			item.setVisible(false);
 			item.setParent(mItemParentUnuse);
 			item.setAssignID(-1);

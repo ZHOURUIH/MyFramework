@@ -12,6 +12,7 @@ public abstract class PooledWindow : GameBase
 	public virtual void init() { }
 	public virtual void destroy() { }
 	public virtual void reset() { }
+	public virtual void recycle() { }
 	public void setVisible(bool visible) { LT.ACTIVE(mRoot, visible); }
 	public void setParent(txUIObject parent) { mRoot.setParent(parent); }
 	public void setAssignID(int assignID) { mAssignID = assignID; }

@@ -240,7 +240,7 @@ public class GameFramework : MonoBehaviour
 				return;
 			}
 			FrameComponent component = mFrameComponentUpdate[i];
-			if(component != null && !component.mDestroy)
+			if(component != null && !component.isDestroy())
 			{
 				UnityProfiler.BeginSample(component.getName());
 				component.update(elapsedTime);
@@ -263,7 +263,7 @@ public class GameFramework : MonoBehaviour
 				return;
 			}
 			FrameComponent component = mFrameComponentUpdate[i];
-			if (component != null && !component.mDestroy)
+			if (component != null && !component.isDestroy())
 			{
 				UnityProfiler.BeginSample(component.getName());
 				component.fixedUpdate(elapsedTime);
@@ -286,7 +286,7 @@ public class GameFramework : MonoBehaviour
 				return;
 			}
 			FrameComponent component = mFrameComponentUpdate[i];
-			if (component != null && !component.mDestroy)
+			if (component != null && !component.isDestroy())
 			{
 				component.lateUpdate(elapsedTime);
 			}
@@ -307,7 +307,7 @@ public class GameFramework : MonoBehaviour
 				return;
 			}
 			FrameComponent component = mFrameComponentUpdate[i];
-			if (component != null && !component.mDestroy)
+			if (component != null && !component.isDestroy())
 			{
 				component.onDrawGizmos();
 			}
@@ -453,9 +453,9 @@ public class GameFramework : MonoBehaviour
 	{
 		string name = typeof(T).ToString();
 		T component = UnityUtility.createInstance<T>(typeof(T), name);
-		component.mInitOrder = initOrder == -1 ? mFrameComponentMap.Count : initOrder;
-		component.mUpdateOrder = updateOrder == -1 ? mFrameComponentMap.Count : updateOrder;
-		component.mDestroyOrder = destroyOrder == -1 ? mFrameComponentMap.Count : destroyOrder;
+		component.setInitOrder(initOrder == -1 ? mFrameComponentMap.Count : initOrder);
+		component.setUpdateOrder(updateOrder == -1 ? mFrameComponentMap.Count : updateOrder);
+		component.setDestroyOrder(destroyOrder == -1 ? mFrameComponentMap.Count : destroyOrder);
 		mFrameComponentMap.Add(name, component);
 		mFrameComponentInit.Add(component);
 		mFrameComponentUpdate.Add(component);

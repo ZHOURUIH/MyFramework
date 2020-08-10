@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// 几乎没有实质性作用,目前只用于判断一个shader是否为不需要复制就可通用的shader
 public class ShaderManager : FrameComponent
 {
 	protected Dictionary<string, Shader> mShaderList;
@@ -15,15 +16,15 @@ public class ShaderManager : FrameComponent
 	public override void init()
 	{
 		base.init();
-		mShaderManager.registeSingleShader("NGUIDefault");
-		mShaderManager.registeSingleShader("UGUIDefault");
-		mShaderManager.registeSingleShader("UGUIVideo");
-		mShaderManager.registeSingleShader("BlurMaskDownSample");
-		mShaderManager.registeSingleShader("EdgeAlpha");
-		mShaderManager.registeSingleShader("Feather");
-		mShaderManager.registeSingleShader("LinearDodge");
-		mShaderManager.registeSingleShader("Multiple");
-		mShaderManager.registeSingleShader("SnapPixel");
+		registeSingleShader("NGUIDefault");
+		registeSingleShader("UGUIDefault");
+		registeSingleShader("UGUIVideo");
+		registeSingleShader("BlurMaskDownSample");
+		registeSingleShader("EdgeAlpha");
+		registeSingleShader("Feather");
+		registeSingleShader("LinearDodge");
+		registeSingleShader("Multiple");
+		registeSingleShader("SnapPixel");
 	}
 	public override void destroy()
 	{

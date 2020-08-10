@@ -44,6 +44,12 @@ public class TableData : GameBase
 		stringToUShortArray(str, value);
 		mValues.Add(paramName, str);
 	}
+	protected void parseParam(SqliteDataReader reader, ref List<uint> value, string paramName)
+	{
+		string str = reader[paramName].ToString();
+		stringToUIntArray(str, value);
+		mValues.Add(paramName, str);
+	}
 	protected void parseParam(SqliteDataReader reader, ref List<byte> value, string paramName)
 	{
 		string str = reader[paramName].ToString();

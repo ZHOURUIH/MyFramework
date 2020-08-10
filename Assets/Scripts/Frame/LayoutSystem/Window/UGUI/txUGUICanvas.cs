@@ -23,6 +23,7 @@ public class txUGUICanvas : txUGUIObject
 		{
 			logError(GetType() + " can not find " + typeof(Canvas) + ", window:" + mName + ", layout:" + mLayout.getName());
 		}
+		mCanvas.overrideSorting = true;
 		// 添加GraphicRaycaster
 		getUnityComponent<GraphicRaycaster>();
 	}

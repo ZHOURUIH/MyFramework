@@ -910,6 +910,10 @@ public class BinaryUtility
 	{
 		return (value & ~0x7FFFFFFF) >> (8 * sizeof(int) - 1) & 1;
 	}
+	public static void setBit(ref byte value, int pos, int bit)
+	{
+		value = (byte)(value & ~(1 << pos) | (bit << pos));
+	}
 	public static void setHighestBit(ref byte value, int bit)
 	{
 		if (bit == 0)

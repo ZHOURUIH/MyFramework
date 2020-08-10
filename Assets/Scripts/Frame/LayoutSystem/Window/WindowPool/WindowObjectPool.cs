@@ -46,7 +46,7 @@ public class WindowObjectPool<T> : GameBase where T : PooledWindow, new()
 		int needCount = capacity - mUsedItemList.Count;
 		for (int i = 0; i < needCount; ++i)
 		{
-			getOneUnusedItem();
+			newItem();
 		}
 	}
 	public void moveItem(WindowObjectPool<T> sourcePool, T source, bool inUsed)
@@ -68,7 +68,8 @@ public class WindowObjectPool<T> : GameBase where T : PooledWindow, new()
 		// 检查分配ID种子,确保后面池中的已分配ID一定小于分配ID种子
 		mAssignIDSeed = getMax(source.getAssignID(), mAssignIDSeed);
 	}
-	public T getOneUnusedItem()
+	// 因为添加窗口可能会影响所有窗口的深度值,所以如果有需求,需要在完成添加窗口以后手动调用mLayout.notifyObjectOrderChanged()来刷新深度
+	public T newItem()
 	{
 		T item;
 		if (mUnusedItemList.Count > 0)
@@ -94,6 +95,7 @@ public class WindowObjectPool<T> : GameBase where T : PooledWindow, new()
 	{
 		foreach (var item in mUsedItemList)
 		{
+			item.recycle();
 			item.setVisible(false);
 			item.setParent(mItemParentUnuse);
 			item.setAssignID(-1);
@@ -103,6 +105,7 @@ public class WindowObjectPool<T> : GameBase where T : PooledWindow, new()
 	}
 	public void unuseItem(T item)
 	{
+		item.recycle();
 		item.setVisible(false);
 		item.setParent(mItemParentUnuse);
 		item.setAssignID(-1);

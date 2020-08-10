@@ -7,7 +7,7 @@ public delegate void OnDestroyWindow(txUIObject window);
 public class WindowPool<T> where T : txUIObject, new()
 {
 	protected List<T> mInusedList;
-	protected List<T> mUnusedList;
+	protected Stack<T> mUnusedList;
 	protected T mTemplate;
 	protected LayoutScript mScript;
 	protected OnDestroyWindow mDestroyCallback;
@@ -15,17 +15,20 @@ public class WindowPool<T> where T : txUIObject, new()
 	{
 		mScript = script;
 		mInusedList = new List<T>();
-		mUnusedList = new List<T>();
+		mUnusedList = new Stack<T>();
 	}
 	public void setTemplate(T template) { mTemplate = template; }
-	public T newWindow(string name, txUIObject parent)
+	public T newWindow(txUIObject parent, string name = null)
 	{
+		if (name == null)
+		{
+			name = mTemplate.getName();
+		}
 		T window = null;
 		// 从未使用列表中获取
 		if (mUnusedList.Count > 0)
 		{
-			window = mUnusedList[mUnusedList.Count - 1];
-			mUnusedList.RemoveAt(mUnusedList.Count - 1);
+			window = mUnusedList.Pop();
 		}
 		// 未使用列表中没有就创建新窗口
 		if (window == null)
@@ -57,9 +60,9 @@ public class WindowPool<T> where T : txUIObject, new()
 			{
 				item.setActive(false);
 			}
+			mUnusedList.Push(item);
 		}
 		mInusedList.Clear();
-		mUnusedList.AddRange(mInusedList);
 	}
 	public void unuseWindow(T window)
 	{
@@ -72,7 +75,7 @@ public class WindowPool<T> where T : txUIObject, new()
 			return;
 		}
 		mInusedList.Remove(window);
-		mUnusedList.Add(window);
+		mUnusedList.Push(window);
 		if (mDestroyCallback != null)
 		{
 			mDestroyCallback(window);

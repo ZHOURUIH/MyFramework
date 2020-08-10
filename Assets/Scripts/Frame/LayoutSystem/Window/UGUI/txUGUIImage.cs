@@ -317,9 +317,9 @@ public class txUGUIImage : txUGUIObject, IShaderWindow
 	public override float getAlpha() { return mImage.color.a; }
 	public override void setFillPercent(float percent) { mImage.fillAmount = percent; }
 	public override float getFillPercent() { return mImage.fillAmount; }
-	public void setColor(Color color) { mImage.color = color; }
+	public override void setColor(Color color) { mImage.color = color; }
 	public void setColor(Vector3 color) { mImage.color = new Color(color.x, color.y, color.z); }
-	public Color getColor() { return mImage.color; }
+	public override Color getColor() { return mImage.color; }
 	public string getOriginTextureName() { return mOriginTextureName; }
 	public void setOriginTextureName(string textureName) { mOriginTextureName = textureName; }
 	// 自动计算图片的原始名称,也就是不带后缀的名称,后缀默认以_分隔

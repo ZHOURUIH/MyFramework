@@ -40,6 +40,7 @@ public class txUGUIInputField : txUGUIObject
 	public void setText(float value) { setText(value.ToString()); }
 	public string getText() { return mInputField.text; }
 	public bool isFocused() { return mInputField.isFocused; }
+	public void focus() { mInputField.ActivateInputField(); }
 	//------------------------------------------------------------------------------------------------
 	protected void OnEndEdit(string value) { mAction?.Invoke(value); }
 }

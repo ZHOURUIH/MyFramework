@@ -41,8 +41,8 @@ public class txUGUITextMeshPro : txUGUIObject
 		color.a = alpha;
 		mText.color = color;
 	}
-	public void setColor(Color color) { mText.color = color; }
-	public Color getColor() { return mText.color; }
+	public override void setColor(Color color) { mText.color = color; }
+	public override Color getColor() { return mText.color; }
 	public float getFontSize() { return mText.fontSize; }
 	public void setFontSize(float fontSize) { mText.fontSize = fontSize; }
 	public TMP_FontAsset getFont() { return mText.font; }

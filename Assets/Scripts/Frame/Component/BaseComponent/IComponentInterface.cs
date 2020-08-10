@@ -19,6 +19,10 @@ public interface IComponentModifyScale
 public interface IComponentModifyAlpha
 { }
 
+// 会修改颜色的组件
+public interface IComponentModifyColor
+{ }
+
 // 能够被其他组件中断的组件
 public interface IComponentBreakable
 {

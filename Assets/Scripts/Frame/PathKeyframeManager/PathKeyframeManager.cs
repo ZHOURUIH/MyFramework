@@ -2,12 +2,14 @@
 using System.Collections;
 using System.Collections.Generic;
 
+// 用于管理变换的关键帧文件,主要是用于给Path类的组件提供参数
+// 文件可使用PathRecorder进行录制生成
 public class PathKeyframeManager : FrameComponent
 {
     protected Dictionary<string, Dictionary<float, Vector3>> mTranslatePathList;    // key是文件名,value是对应的位置关键帧列表
-	protected Dictionary<string, Dictionary<float, Vector3>> mRotatePathList;    // key是文件名,value是对应的位置关键帧列表
-	protected Dictionary<string, Dictionary<float, Vector3>> mScalePathList;    // key是文件名,value是对应的位置关键帧列表
-	protected Dictionary<string, Dictionary<float, float>> mAlphaPathList;    // key是文件名,value是对应的位置关键帧列表
+	protected Dictionary<string, Dictionary<float, Vector3>> mRotatePathList;		// key是文件名,value是对应的位置关键帧列表
+	protected Dictionary<string, Dictionary<float, Vector3>> mScalePathList;		// key是文件名,value是对应的位置关键帧列表
+	protected Dictionary<string, Dictionary<float, float>> mAlphaPathList;			// key是文件名,value是对应的位置关键帧列表
 	public PathKeyframeManager(string name)
 		:base(name)
 	{

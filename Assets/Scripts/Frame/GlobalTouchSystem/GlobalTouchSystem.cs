@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 
 public class GlobalTouchSystem : FrameComponent
 {
@@ -312,6 +313,17 @@ public class GlobalTouchSystem : FrameComponent
 			if (item.mCamera != null && item.mCamera.isDestroied())
 			{
 				logError("摄像机已销毁:" + item.mCamera.getName());
+			}
+		}
+		if (getKeyCurrentDown(KeyCode.F2))
+		{
+			Vector3 mousePos = getMousePosition();
+			var resultList = getAllHoverWindow(ref mousePos, null, true);
+			int resultCount = resultList.Count;
+			for(int i = 0; i < resultCount; ++i)
+			{
+				UIDepth depth = resultList[i].getUIDepth();
+				logInfo("窗口:" + resultList[i].getName() + "深度:layout:" + depth.mPanelDepth + ", window:" + depth.mWindowDepth, LOG_LEVEL.LL_FORCE);
 			}
 		}
 	}

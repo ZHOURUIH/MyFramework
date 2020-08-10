@@ -2105,6 +2105,126 @@ public class LT : GameBase
 		return cmd;
 	}
 	#endregion
+	//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	// 颜色,也包含透明度
+	#region 颜色
+	public static void COLOR(txUIObject obj, Color color)
+	{
+		CommandWindowColor cmd = newCmd(out cmd, false);
+		cmd.mOnceLength = 0.0f;
+		cmd.mStartColor = color;
+		cmd.mTargetColor = color;
+		pushCommand(cmd, obj);
+	}
+	public static void COLOR(txUIObject obj, Color start, Color target, float onceLength)
+	{
+		COLOR_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+	}
+	public static void COLOR(txUIObject obj, string name, Color start, Color target, float onceLength)
+	{
+		COLOR_EX(obj, name, start, target, onceLength, false, 0.0f, null, null);
+	}
+	public static void COLOR(txUIObject obj, string name, Color start, Color target, float onceLength, bool loop)
+	{
+		COLOR_EX(obj, name, start, target, onceLength, loop, 0.0f, null, null);
+	}
+	public static void COLOR(txUIObject obj, string name, Color start, Color target, float onceLength, bool loop, float offset)
+	{
+		COLOR_EX(obj, name, start, target, onceLength, loop, offset, null, null);
+	}
+	public static void COLOR_EX(txUIObject obj, Color start, Color target, float onceLength, KeyFrameCallback doneCallback)
+	{
+		COLOR_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+	}
+	public static void COLOR_EX(txUIObject obj, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	{
+		COLOR_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+	}
+	public static void COLOR_EX(txUIObject obj, string name, Color start, Color target, float onceLength, KeyFrameCallback doneCallback)
+	{
+		COLOR_EX(obj, name, start, target, onceLength, false, 0.0f, null, doneCallback);
+	}
+	public static void COLOR_EX(txUIObject obj, string name, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	{
+		COLOR_EX(obj, name, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+	}
+	public static void COLOR_EX(txUIObject obj, string name, Color start, Color target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	{
+		if (isEmpty(name) || isFloatZero(onceLength))
+		{
+			logError("时间或关键帧不能为空,如果要停止组件,请使用void ALPHA(txUIObject obj, float alpha)");
+			return;
+		}
+		CommandWindowColor cmd = newCmd(out cmd, false);
+		cmd.mName = name;
+		cmd.mLoop = loop;
+		cmd.mOnceLength = onceLength;
+		cmd.mOffset = offset;
+		cmd.mStartColor = start;
+		cmd.mTargetColor = target;
+		cmd.mTremblingCallBack = doingCallback;
+		cmd.mTrembleDoneCallBack = doneCallback;
+		pushCommand(cmd, obj);
+	}
+	public static CommandWindowColor COLOR_DELAY(LayoutScript script, txUIObject obj, float delayTime, Color color)
+	{
+		CommandWindowColor cmd = newCmd(out cmd, false, true);
+		cmd.mOnceLength = 0.0f;
+		cmd.mStartColor = color;
+		cmd.mTargetColor = color;
+		pushDelayCommand(cmd, obj, delayTime);
+		script.addDelayCmd(cmd);
+		return cmd;
+	}
+	public static CommandWindowColor COLOR_DELAY(LayoutScript script, txUIObject obj, float delayTime, Color start, Color target, float onceLength)
+	{
+		return COLOR_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+	}
+	public static CommandWindowColor COLOR_DELAY(LayoutScript script, txUIObject obj, float delayTime, string keyframe, Color start, Color target, float onceLength)
+	{
+		return COLOR_DELAY_EX(script, obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, null, null);
+	}
+	public static CommandWindowColor COLOR_DELAY(LayoutScript script, txUIObject obj, float delayTime, string keyframe, Color start, Color target, float onceLength, bool loop)
+	{
+		return COLOR_DELAY_EX(script, obj, delayTime, keyframe, start, target, onceLength, loop, 0.0f, null, null);
+	}
+	public static CommandWindowColor COLOR_DELAY(LayoutScript script, txUIObject obj, float delayTime, string keyframe, Color start, Color target, float onceLength, bool loop, float offset)
+	{
+		return COLOR_DELAY_EX(script, obj, delayTime, keyframe, start, target, onceLength, loop, offset, null, null);
+	}
+	public static CommandWindowColor COLOR_DELAY_EX(LayoutScript script, txUIObject obj, float delayTime, Color start, Color target, float onceLength, KeyFrameCallback doneCallback)
+	{
+		return COLOR_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+	}
+	public static CommandWindowColor COLOR_DELAY_EX(LayoutScript script, txUIObject obj, float delayTime, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	{
+		return COLOR_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+	}
+	public static CommandWindowColor COLOR_DELAY_EX(LayoutScript script, txUIObject obj, float delayTime, string keyframe, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	{
+		return COLOR_DELAY_EX(script, obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+	}
+	public static CommandWindowColor COLOR_DELAY_EX(LayoutScript script, txUIObject obj, float delayTime, string keyframe, Color start, Color target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	{
+		if (isEmpty(keyframe) || isFloatZero(onceLength))
+		{
+			logError("时间或关键帧不能为空,如果要停止组件,请使用CommandWindowAlpha ALPHA_DELAY(LayoutScript script, txUIObject obj, float delayTime, float alpha)");
+			return null;
+		}
+		CommandWindowColor cmd = newCmd(out cmd, false, true);
+		cmd.mName = keyframe;
+		cmd.mLoop = loop;
+		cmd.mOnceLength = onceLength;
+		cmd.mOffset = offset;
+		cmd.mStartColor = start;
+		cmd.mTargetColor = target;
+		cmd.mTremblingCallBack = doingCallback;
+		cmd.mTrembleDoneCallBack = doneCallback;
+		pushDelayCommand(cmd, obj, delayTime);
+		script.addDelayCmd(cmd);
+		return cmd;
+	}
+	#endregion
 	//-----------------------------------------------------------------------------------------------------------------------------------
 	// 以指定点列表以及时间点的路线设置物体透明度
 	#region 以指定点列表以及时间点的路线设置物体透明度

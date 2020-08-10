@@ -299,6 +299,7 @@ public class txUIObject : Transformable, IMouseEventCollect
 	public int getChildCount() { return mTransform.childCount; }
 	public GameObject getChild(int index) { return mTransform.GetChild(index).gameObject; }
 	public virtual float getAlpha() { return 1.0f; }
+	public virtual Color getColor() { return Color.white; }
 	public virtual float getFillPercent()
 	{
 		logError("can not get window fill percent with txUIObject");
@@ -381,6 +382,7 @@ public class txUIObject : Transformable, IMouseEventCollect
 	public override void setWorldPosition(Vector3 pos) { mTransform.position = pos; }
 	public override void setWorldScale(Vector3 scale) { setScale(devideVector3(scale, mParent.getWorldScale())); }
 	public virtual void setAlpha(float alpha, bool fadeChild) { }
+	public virtual void setColor(Color color) { }
 	public virtual void setFillPercent(float percent) { logError("can not set window fill percent with txUIObject"); }
 	public void setPassRay(bool passRay) { mPassRay = passRay; }
 	public virtual void setWindowSize(Vector2 size) { logError("can not set window size with txUIObject"); }

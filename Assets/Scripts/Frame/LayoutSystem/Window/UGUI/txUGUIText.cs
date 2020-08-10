@@ -32,6 +32,10 @@ public class txUGUIText : txUGUIObject
 	{
 		setText(intToString(value));
 	}
+	public void applyPreferredHeight()
+	{
+		setWindowSize(new Vector2(getWindowSize().x, mText.preferredHeight));
+	}
 	public string getText() { return mText.text; }
 	public override float getAlpha() { return mText.color.a; }
 	public override void setAlpha(float alpha, bool fadeChild)
@@ -41,8 +45,8 @@ public class txUGUIText : txUGUIObject
 		color.a = alpha;
 		mText.color = color;
 	}
-	public void setColor(Color color) { mText.color = color; }
-	public Color getColor() { return mText.color; }
+	public override void setColor(Color color) { mText.color = color; }
+	public override Color getColor() { return mText.color; }
 	public int getFontSize() { return mText.fontSize; }
 	public void setFontSize(int fontSize) { mText.fontSize = fontSize; }
 	public Font getFont() { return mText.font; }

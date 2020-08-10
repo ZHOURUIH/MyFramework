@@ -53,10 +53,10 @@ public class InputManager : FrameComponent
 	}
 	public new virtual bool getKeyDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.FM_NONE)
 	{
-		return Input.GetKey(key) && hasMask(mask);
+		return (Input.GetKeyDown(key) || Input.GetKey(key)) && hasMask(mask);
 	}
 	public new virtual bool getKeyUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.FM_NONE)
 	{
-		return !Input.GetKey(key) && hasMask(mask);
+		return (Input.GetKeyUp(key) || !Input.GetKey(key)) && hasMask(mask);
 	}
 }
