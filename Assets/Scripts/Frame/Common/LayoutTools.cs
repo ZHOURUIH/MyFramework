@@ -33,6 +33,14 @@ public class LT : GameBase
 		cmd.mIsScene = false;
 		pushCommand(cmd, mLayoutManager);
 	}
+	public static void LOAD_UGUI(LAYOUT type, int renderOrder, bool visible)
+	{
+		LOAD_UGUI(type, renderOrder, visible, false, null);
+	}
+	public static void LOAD_UGUI(LAYOUT type, int renderOrder, bool visible, bool immediately)
+	{
+		LOAD_UGUI(type, renderOrder, visible, immediately, null);
+	}
 	public static void LOAD_UGUI(LAYOUT type, int renderOrder, bool visible, bool immediately, string param)
 	{
 		CommandLayoutManagerLoadLayout cmd = newCmd(out cmd, true, false);

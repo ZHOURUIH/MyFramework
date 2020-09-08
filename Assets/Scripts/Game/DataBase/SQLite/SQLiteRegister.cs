@@ -6,7 +6,6 @@ public class SQLiteRegister : GameBase
 {
 	public static void registeAllTable()
 	{
-		registeTable(ref mSQLiteSound, "Sound");
 		registeTable(ref mSQLiteDemo, "Monster");
 		// 设置表格之间字段的索引关系
 		mSQLite.linkAllTable();

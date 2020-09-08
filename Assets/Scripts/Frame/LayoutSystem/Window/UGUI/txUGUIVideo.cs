@@ -22,6 +22,7 @@ public class txUGUIVideo : txUGUIRawImage
 		mNextState = PLAY_STATE.PS_NONE;
 		mNextRate = 1.0f;
 		mFileName = null;
+		mEnable = true;
 	}
 	public override void init(GameObject go, txUIObject parent)
 	{
@@ -33,7 +34,7 @@ public class txUGUIVideo : txUGUIRawImage
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		if(mReady && mMediaPlayer.Control != null && mMediaPlayer.Control.IsPlaying())
+		if (mReady && mMediaPlayer.Control != null && mMediaPlayer.Control.IsPlaying())
 		{
 			if(mMediaPlayer != null)
 			{

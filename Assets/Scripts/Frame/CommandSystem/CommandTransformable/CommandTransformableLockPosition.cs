@@ -24,6 +24,8 @@ public class CommandTransformableLockPosition : Command
 		component.setActive(true);
 		component.setLockPosition(mLockPosition);
 		component.setLock(mLockX, mLockY, mLockZ);
+		// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
+		obj.setEnable(true);
 	}
 	public override string showDebugInfo()
 	{

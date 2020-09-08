@@ -612,25 +612,79 @@ public class MathUtility : StringUtility
 		return randomFloat(0.0f, 1.0f) < odds;
 	}
 	// 根据几率随机选择一个下标
-	public static int randomHit(List<float> oddsList)
+	public static int randomHit(List<ushort> oddsList)
 	{
-		float max = 0.0f;
-		foreach (var item in oddsList)
+		if (oddsList == null || oddsList.Count == 0)
 		{
-			max += item;
+			return 0;
 		}
-		float random = randomFloat(0.0f, max);
-		float curValue = 0.0f;
+		int max = 0;
 		int count = oddsList.Count;
 		for (int i = 0; i < count; ++i)
 		{
+			max += oddsList[i];
+		}
+		int random = randomInt(0, max);
+		int curValue = 0;
+		for (int i = 0; i < count; ++i)
+		{
 			curValue += oddsList[i];
-			if (random <= curValue)
+			if (random <= curValue && oddsList[i] > 0)
 			{
 				return i;
 			}
 		}
-		return -1;
+		return 0;
+	}
+	// 根据几率随机选择一个下标
+	public static int randomHit(List<int> oddsList)
+	{
+		if (oddsList == null || oddsList.Count == 0)
+		{
+			return 0;
+		}
+		int max = 0;
+		int count = oddsList.Count;
+		for (int i = 0; i < count; ++i)
+		{
+			max += oddsList[i];
+		}
+		int random = randomInt(0, max);
+		int curValue = 0;
+		for (int i = 0; i < count; ++i)
+		{
+			curValue += oddsList[i];
+			if (random <= curValue && oddsList[i] > 0)
+			{
+				return i;
+			}
+		}
+		return 0;
+	}
+	// 根据几率随机选择一个下标
+	public static int randomHit(List<float> oddsList)
+	{
+		if (oddsList == null || oddsList.Count == 0)
+		{
+			return 0;
+		}
+		float max = 0.0f;
+		int count = oddsList.Count;
+		for (int i = 0; i < count; ++i)
+		{
+			max += oddsList[i];
+		}
+		float random = randomFloat(0.0f, max);
+		float curValue = 0.0f;
+		for (int i = 0; i < count; ++i)
+		{
+			curValue += oddsList[i];
+			if (random <= curValue && oddsList[i] > 0.0f)
+			{
+				return i;
+			}
+		}
+		return 0;
 	}
 	public static float randomFloat(float min, float max)
 	{
@@ -642,11 +696,7 @@ public class MathUtility : StringUtility
 		{
 			return min;
 		}
-		else
-		{
-			max += 1;
-		}
-		return UnityEngine.Random.Range(min, max);
+		return UnityEngine.Random.Range(min, max + 1);
 	}
 	// 计算点p在平面on上的投影点,o为平面上一点,n为平面法线
 	public static Vector3 getProjectionOnPlane(Vector3 o, Vector3 n, Vector3 p)

@@ -30,7 +30,7 @@ public class CommandWindowHSL : Command
 	}
 	public override void execute()
 	{
-		ComponentOwner obj = mReceiver as ComponentOwner;
+		txUIObject obj = mReceiver as txUIObject;
 		WindowComponentHSL component = obj.getComponent(out component);
 		component.setTremblingCallback(mTremblingCallBack);
 		component.setTrembleDoneCallback(mTrembleDoneCallBack);
@@ -38,6 +38,11 @@ public class CommandWindowHSL : Command
 		component.setStartHSL(mStartHSL);
 		component.setTargetHSL(mTargetHSL);
 		component.play(mName, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
+		if (component.getState() == PLAY_STATE.PS_PLAY)
+		{
+			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
+			obj.setEnable(true);
+		}
 	}
 	public override string showDebugInfo()
 	{

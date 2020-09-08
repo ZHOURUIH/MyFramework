@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using System.Collections;
 using System;
 using TMPro;
@@ -41,6 +40,7 @@ public class txUGUIInputFieldTMP : txUGUIObject
 	public void setText(float value) { setText(value.ToString()); }
 	public string getText() { return mInputField.text; }
 	public bool isFocused() { return mInputField.isFocused; }
+	public bool isVisible() { return isActive(); }
 	//------------------------------------------------------------------------------------------------
 	protected void OnEndEdit(string value) { mAction?.Invoke(value); }
 }

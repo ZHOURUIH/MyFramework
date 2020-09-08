@@ -44,7 +44,7 @@ public abstract class LayoutScriptAutoHide : LayoutScript
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		if (mTimer.checkTimeCount(elapsedTime))
+		if (mTimer.tickTimer(elapsedTime))
 		{
 			LT.HIDE_LAYOUT(mLayout.getType());
 		}

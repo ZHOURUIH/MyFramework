@@ -83,7 +83,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 	protected abstract void setNetState(NET_STATE state);
 	public virtual void update(float elapsedTime)
 	{
-		if (mHeartBeatTimer.checkTimeCount(elapsedTime))
+		if (mHeartBeatTimer.tickTimer(elapsedTime))
 		{
 			heartBeat();
 		}

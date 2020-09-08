@@ -17,18 +17,22 @@ public class SQLite : FrameComponent
 		mTableList = new Dictionary<Type, SQLiteTable>();
 		try
 		{
-			string fullPath = CommonDefine.F_ASSETS_DATA_BASE_PATH + GameDefine.DATA_BASE_FILE_NAME;
+			string fullPath = CommonDefine.F_ASSETS_DATA_BASE_PATH + GameDefine.DATA_BASE_FILE;
 			if (isFileExist(fullPath))
 			{
 #if UNITY_ANDROID && !UNITY_EDITOR
 				// 将文件拷贝到persistentDataPath目录中,因为只有该目录才拥有读写权限
-				string persisFullPath = CommonDefine.F_PERSIS_DATA_BASE_PATH + GameDefine.DATA_BASE_FILE_NAME;
+				string persisFullPath = CommonDefine.F_PERSIS_DATA_BASE_PATH + GameDefine.DATA_BASE_FILE;
 				logInfo("persisFullPath:" + persisFullPath, LOG_LEVEL.LL_FORCE);
 				copyFile(fullPath, persisFullPath);
 				fullPath = persisFullPath;
 #endif
 				mConnection = new SqliteConnection("URI=file:" + fullPath);   // 创建SQLite对象的同时，创建SqliteConnection对象  
 				mConnection.Open();                         // 打开数据库链接
+				if (mConnection != null && mCommand == null)
+				{
+					mCommand = mConnection.CreateCommand();
+				}
 			}
 		}
 		catch (Exception e)
@@ -42,14 +46,6 @@ public class SQLite : FrameComponent
 		table.setTableName(tableName);
 		mTableList.Add(typeof(T), table);
 		return table;
-	}
-	public override void init()
-	{
-		base.init();
-		if (mConnection != null && mCommand == null)
-		{
-			mCommand = mConnection.CreateCommand();
-		}
 	}
 	public void linkAllTable()
 	{
@@ -86,7 +82,7 @@ public class SQLite : FrameComponent
 	{
 		if (mConnection == null)
 		{
-			connect(CommonDefine.F_PERSIS_DATA_BASE_PATH + GameDefine.DATA_BASE_FILE_NAME);
+			connect(CommonDefine.F_PERSIS_DATA_BASE_PATH + GameDefine.DATA_BASE_FILE);
 		}
 	}
 	public void createTable(string tableName, string format)

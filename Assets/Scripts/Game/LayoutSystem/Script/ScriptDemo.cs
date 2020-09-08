@@ -6,8 +6,6 @@ public class ScriptDemo : LayoutScript
 {
 	protected txUGUIImage mBackground;
 	protected txUGUIText mLabel;
-	public ScriptDemo(string name)
-		:base(name){}
 	public override void assignWindow()
 	{
 		newObject(out mBackground, "Background");

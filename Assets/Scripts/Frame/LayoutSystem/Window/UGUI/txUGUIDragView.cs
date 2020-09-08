@@ -5,6 +5,10 @@ using System.Collections.Generic;
 public class txUGUIDragView : txUGUIObject
 {
 	protected WindowComponentDragView mDragViewComponent;
+	public txUGUIDragView()
+	{
+		mEnable = true;
+	}
 	public override void init(GameObject go, txUIObject parent)
 	{
 		base.init(go, parent);
@@ -12,11 +16,6 @@ public class txUGUIDragView : txUGUIObject
 		{
 			logError("DragView must have BoxCollider!");
 		}
-	}
-	public override void initComponents()
-	{
-		base.initComponents();
-		mDragViewComponent = addComponent<WindowComponentDragView>(true);
 	}
 	public override bool isReceiveScreenMouse() { return true; }
 	// 显式调用调整窗口位置
@@ -207,4 +206,9 @@ public class txUGUIDragView : txUGUIObject
 	public void setDragAngleThreshold(float radian) { mDragViewComponent.setDragAngleThreshold(radian); }
 	public void setAutoClampSpeed(float speed) { mDragViewComponent.setAutoClampSpeed(speed); }
 	//------------------------------------------------------------------------------------------------------------------------------------------
+	protected override void initComponents()
+	{
+		base.initComponents();
+		mDragViewComponent = addComponent<WindowComponentDragView>(true);
+	}
 }

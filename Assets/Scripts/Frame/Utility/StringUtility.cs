@@ -898,6 +898,12 @@ public class StringUtility : BinaryUtility
 		}
 		return retString;
 	}
+	public static string intToStringComma(int value)
+	{
+		string retString = value.ToString();
+		insertNumberComma(ref retString);
+		return retString;
+	}
 	public static string uintToString(uint value, int limitLen = 0)
 	{
 		string retString = value.ToString();
@@ -909,6 +915,12 @@ public class StringUtility : BinaryUtility
 				retString = "0" + retString;
 			}
 		}
+		return retString;
+	}
+	public static string uintToStringComma(uint value)
+	{
+		string retString = value.ToString();
+		insertNumberComma(ref retString);
 		return retString;
 	}
 	public static string ulongToString(ulong value, int limitLen = 0)

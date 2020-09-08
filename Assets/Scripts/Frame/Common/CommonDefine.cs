@@ -314,6 +314,7 @@ public class CommonDefine
 #endif
 	public const string P_ATLAS_PATH = P_GAME_RESOURCES_PATH + ATLAS + "/";
 	public const string P_GAME_ATLAS_PATH = P_ATLAS_PATH + GAME_ATLAS + "/";
+	public const string P_ATLAS_TEXTURE_ANIM_PATH = P_ATLAS_PATH + TEXTURE_ANIM + "/";
 	// 相对路径,相对于StreamingAssets,以SA_开头,表示StreamingAssets
 	// 由于Android下的StreamingAssets路径不完全以Assets路径开头,与其他平台不一致,所以不定义相对于Asstes的路径
 	public const string SA_CONFIG_PATH = CONFIG + "/";

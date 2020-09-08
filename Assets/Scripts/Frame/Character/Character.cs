@@ -36,13 +36,6 @@ public class Character : MovableObject
 		mBaseData.mGUID = mGUID;
 		base.init();
 	}
-	public override void initComponents()
-	{
-		base.initComponents();
-		mAvatar = addComponent<CharacterComponentModel>(true);
-		mStateMachine = addComponent<CharacterStateMachine>(true);
-		mDecisionTree = addComponent<CharacterDecisionTree>();
-	}
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -123,6 +116,13 @@ public class Character : MovableObject
 	public bool hasState(Type state) { return mStateMachine.hasState(state); }
 	public bool hasStateGroup<T>() where T : StateGroup { return mStateMachine.hasStateGroup<T>(); }
 	//--------------------------------------------------------------------------------------------------------------
+	protected override void initComponents()
+	{
+		base.initComponents();
+		mAvatar = addComponent<CharacterComponentModel>(true);
+		mStateMachine = addComponent<CharacterStateMachine>(true);
+		mDecisionTree = addComponent<CharacterDecisionTree>();
+	}
 	protected void onModelLoaded(GameObject go, object userData)
 	{
 		notifyModelLoaded(go);

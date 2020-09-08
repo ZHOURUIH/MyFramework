@@ -7,11 +7,11 @@ public class LayoutRegister : GameBase
 {
 	public static void registeAllLayout()
 	{
-		registeLayout<ScriptDemoStart>(LAYOUT.L_DEMO_START, "UIDemoStart");
-		registeLayout<ScriptDemo>(LAYOUT.L_DEMO, "UIDemo");
-		if (mLayoutManager.getLayoutCount() < (int)LAYOUT.L_MAX)
+		registeLayout<ScriptDemoStart>(LAYOUT.DEMO_START, "UIDemoStart");
+		registeLayout<ScriptDemo>(LAYOUT.DEMO, "UIDemo");
+		if (mLayoutManager.getLayoutCount() < (int)LAYOUT.MAX)
 		{
-			logError("error : not all script added! max count : " + (int)LAYOUT.L_MAX + ", added count :" + mLayoutManager.getLayoutCount());
+			logError("error : not all script added! max count : " + (int)LAYOUT.MAX + ", added count :" + mLayoutManager.getLayoutCount());
 		}
 		GameLayout.mLayoutScriptCallback = onScriptChanged;
 	}

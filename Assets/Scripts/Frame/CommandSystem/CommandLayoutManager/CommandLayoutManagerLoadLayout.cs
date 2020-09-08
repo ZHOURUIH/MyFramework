@@ -18,7 +18,7 @@ public class CommandLayoutManagerLoadLayout : Command
 		base.init();
 		mCallback = null;
 		mResultLayout = null;
-		mLayoutType = LAYOUT.L_MAX;
+		mLayoutType = LAYOUT.MAX;
 		mParam = null;
 		mVisible = true;
 		mAsync = false;

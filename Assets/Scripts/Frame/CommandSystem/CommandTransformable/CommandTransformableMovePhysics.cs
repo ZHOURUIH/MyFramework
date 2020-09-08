@@ -39,6 +39,11 @@ public class CommandTransformableMovePhysics : Command
 		component.setTargetPos(mTargetPos);
 		component.setStartPos(mStartPos);
 		component.play(mName, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
+		if (component.getState() == PLAY_STATE.PS_PLAY)
+		{
+			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
+			obj.setEnable(true);
+		}
 	}
 	public override string showDebugInfo()
 	{

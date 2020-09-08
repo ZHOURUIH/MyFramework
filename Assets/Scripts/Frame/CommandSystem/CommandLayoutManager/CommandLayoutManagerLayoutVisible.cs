@@ -11,7 +11,7 @@ public class CommandLayoutManagerLayoutVisible : Command
 	public override void init()
 	{
 		base.init();
-		mLayoutType = LAYOUT.L_MAX;
+		mLayoutType = LAYOUT.MAX;
 		mParam = null;
 		mForce = false;
 		mImmediately = false;

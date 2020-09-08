@@ -4,9 +4,15 @@ using UnityEngine;
 
 public abstract class Transformable : ComponentOwner
 {
+	protected bool mEnable;				// 是否启用更新,与Active共同控制是否执行更新
 	public Transformable(string name)
-		: base(name) { }
+		: base(name) 
+	{
+		mEnable = true;
+	}
 	public abstract bool isActive();
+	public virtual bool isEnable() { return mEnable; }
+	public virtual void setEnable(bool enable) { mEnable = enable; }
 	public abstract Vector3 getPosition();
 	public abstract Vector3 getRotation();
 	public abstract Vector3 getScale();

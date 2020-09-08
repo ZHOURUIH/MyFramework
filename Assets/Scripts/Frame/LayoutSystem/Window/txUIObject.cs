@@ -5,32 +5,32 @@ using UnityEngine;
 public class txUIObject : Transformable, IMouseEventCollect
 {
 	protected List<txUIObject> mChildList;
-	protected AudioSource mAudioSource;
-	protected Transform mTransform;
+	protected ObjectDoubleClickCallback mDoubleClickCallback;	// 双击回调
+	protected ObjectPreClickCallback mObjectPreClickCallback;	// 单击的预回调,单击时会首先调用此回调
+	protected OnReceiveDragCallback mReceiveDragCallback;		// 接收到有物体拖到当前窗口时的回调
+	protected OnDragHoverCallback mDragHoverCallback;			// 有物体拖拽悬停到当前窗口时的回调
+	protected ObjectClickCallback mClickCallback;				// 单击回调,在预回调之后调用
+	protected ObjectHoverCallback mHoverCallback;				// 悬停回调
+	protected ObjectPressCallback mPressCallback;				// 按下时回调
+	protected OnMultiTouchStart mOnMultiTouchStart;				// 窗口中多点触控开始的回调,只支持两个点的触控
+	protected OnMultiTouchMove mOnMultiTouchMove;               // 窗口中多点触控移动的回调,只支持两个点的触控
+	protected OnMultiTouchEnd mOnMultiTouchEnd;					// 窗口中多点触控结束的回调,只支持两个点的触控
+	protected OnScreenMouseUp mOnScreenMouseUp;					// 屏幕上鼠标抬起的回调,无论鼠标在哪儿
+	protected OnLongPressing mOnLongPressing;                   // 长按进度回调,可获取当前还有多久到达长按时间阈值
+	protected OnMouseEnter mOnMouseEnter;						// 鼠标进入时的回调
+	protected OnMouseLeave mOnMouseLeave;						// 鼠标离开时的回调
+	protected OnLongPress mOnLongPress;                         // 达到长按时间阈值时的回调
+	protected OnMouseMove mOnMouseMove;							// 鼠标移动的回调
+	protected OnMouseStay mOnMouseStay;							// 鼠标静止在当前窗口内的回调
+	protected OnMouseDown mOnMouseDown;							// 鼠标按下的回调
+	protected OnMouseUp mOnMouseUp;								// 鼠标抬起的回调
 	protected RectTransform mRectTransform;
+	protected AudioSource mAudioSource;
 	protected BoxCollider mBoxCollider;
+	protected Transform mTransform;
 	protected GameLayout mLayout;
 	protected GameObject mObject;
 	protected txUIObject mParent;
-	protected OnReceiveDragCallback mReceiveDragCallback;   // 接收到有物体拖到当前窗口时的回调
-	protected OnDragHoverCallback mDragHoverCallback;   // 有物体拖拽悬停到当前窗口时的回调
-	protected OnMouseEnter mOnMouseEnter;
-	protected OnMouseLeave mOnMouseLeave;
-	protected OnMouseDown mOnMouseDown;
-	protected OnMouseUp mOnMouseUp;
-	protected OnMouseMove mOnMouseMove;
-	protected OnMouseStay mOnMouseStay;
-	protected OnScreenMouseUp mOnScreenMouseUp;
-	protected OnLongPress mOnLongPress;
-	protected OnLongPressing mOnLongPressing;
-	protected OnMultiTouchStart mOnMultiTouchStart;
-	protected OnMultiTouchMove mOnMultiTouchMove;
-	protected OnMultiTouchEnd mOnMultiTouchEnd;
-	protected ObjectPreClickCallback mObjectPreClickCallback;
-	protected ObjectClickCallback mClickCallback;
-	protected ObjectHoverCallback mHoverCallback;
-	protected ObjectPressCallback mPressCallback;
-	protected ObjectDoubleClickCallback mDoubleClickCallback;
 	protected Vector3 mMouseDownPosition;			// 鼠标按下时在窗口中的位置,鼠标在窗口中移动时该值不改变
 	protected Vector3 mLastWorldScale;				// 上一次设置的世界缩放值
 	protected object mObjectPreClickCallbackUserData;// 回调函数参数
@@ -42,7 +42,6 @@ public class txUIObject : Transformable, IMouseEventCollect
 	protected bool mPassRay;						// 当存在且注册了碰撞体时是否允许射线穿透
 	protected bool mMouseHovered;					// 当前鼠标是否悬停在窗口上
 	protected bool mPressing;						// 鼠标当前是否在窗口中处于按下状态,鼠标离开窗口时认为鼠标不在按下状态
-	protected bool mEnable;							// 是否启用窗口,不启用则不更新,但是还是会显示
 	protected int mDepth;							// UI深度,深度越大,渲染越靠前,仅UGUI使用
 	protected int mID;								// 每个窗口的唯一ID
 	protected static bool mAllowDestroyWindow = false;
@@ -56,7 +55,7 @@ public class txUIObject : Transformable, IMouseEventCollect
 		mLongPressLengthThreshold = -1.0f;
 		mLastClickTime = -1.0f;
 		mPassRay = true;
-		mEnable = true;
+		mEnable = false;	// 出于效率考虑,窗口默认不启用更新,只有部分窗口和使用组件进行变化时才自动启用更新
 	}
 	public override void destroy()
 	{
@@ -72,12 +71,19 @@ public class txUIObject : Transformable, IMouseEventCollect
 		{
 			return;
 		}
-		// 先销毁所有子节点
-		int childCount = window.mChildList.Count;
-		for (int i = 0; i < childCount; ++i)
+		// 先销毁所有子节点,因为遍历中会修改子节点列表,所需需要复制一个列表
+		if (window.mChildList.Count > 0)
 		{
-			destroyWindow(window.mChildList[i], destroyReally);
+			List<txUIObject> childList = mListPool.newList(out childList);
+			childList.AddRange(window.mChildList);
+			int childCount = childList.Count;
+			for (int i = 0; i < childCount; ++i)
+			{
+				destroyWindow(childList[i], destroyReally);
+			}
+			mListPool.destroyList(childList);
 		}
+		window.getParent()?.removeChild(window);
 		// 再销毁自己
 		destroyWindowSingle(window, destroyReally);
 	}
@@ -85,6 +91,10 @@ public class txUIObject : Transformable, IMouseEventCollect
 	{
 		window.destroyAllComponents();
 		mGlobalTouchSystem.unregisteBoxCollider(window);
+		if (window is IInputField)
+		{
+			mInputManager.unregisteInputField(window as IInputField);
+		}
 		window.mLayout?.unregisterUIObject(window);
 		window.mLayout = null;
 		mAllowDestroyWindow = true;
@@ -251,7 +261,6 @@ public class txUIObject : Transformable, IMouseEventCollect
 	public AudioSource getAudioSource() { return mAudioSource; }
 	public UIDepth getUIDepth() { return new UIDepth(mLayout.getRenderOrder(), getDepth()); }
 	public override bool isActive() { return mObject.activeSelf; }
-	public bool isEnable() { return mEnable; }
 	public T getUnityComponent<T>(bool addIfNotExist = true) where T : Component
 	{
 		T component = mObject.GetComponent<T>();
@@ -374,7 +383,6 @@ public class txUIObject : Transformable, IMouseEventCollect
 		mObject.SetActive(active);
 		base.setActive(active);
 	}
-	public void setEnable(bool enable) { mEnable = enable; }
 	public override void setScale(Vector3 scale) { mTransform.localScale = scale; }
 	public override void setPosition(Vector3 pos) { mTransform.localPosition = pos; }
 	public override void setRotation(Vector3 rot) { mTransform.localEulerAngles = rot; }

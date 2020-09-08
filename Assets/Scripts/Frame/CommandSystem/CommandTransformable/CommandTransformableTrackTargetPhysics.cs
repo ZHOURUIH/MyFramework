@@ -20,7 +20,7 @@ class CommandTransformableTrackTargetPhysics : Command
 	}
 	public override void execute()
 	{
-		ComponentOwner obj = mReceiver as ComponentOwner;
+		Transformable obj = mReceiver as Transformable;
 		ComponentTrackTargetPhysics component = obj.getComponent(out component);
 		// 停止其他移动组件
 		obj.breakComponent<IComponentModifyPosition>(component.GetType());
@@ -29,5 +29,7 @@ class CommandTransformableTrackTargetPhysics : Command
 		component.setActive(true);
 		component.setMoveDoneTrack(mTarget, mDoneCallback);
 		component.setTrackingCallback(mTrackingCallback);
+		// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
+		obj.setEnable(true);
 	}
 }

@@ -21,6 +21,7 @@ public class txUGUIRawImageAnim : txUGUIRawImage, IUIAnimation
 		mPlayingCallback = new List<TextureAnimCallBack>();
 		mTextureSetName = EMPTY_STRING;
 		mSubPath = EMPTY_STRING;
+		mEnable = true;
 	}
 	public override void init(GameObject go, txUIObject parent)
 	{

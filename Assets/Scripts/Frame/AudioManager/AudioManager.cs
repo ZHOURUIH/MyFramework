@@ -15,42 +15,6 @@ public class AudioManager : FrameComponent
 		mSoundDefineMap = new Dictionary<SOUND_DEFINE, string>();
 		mVolumeScale = new Dictionary<SOUND_DEFINE, float>();
 	}
-	public override void init()
-	{
-		base.init();
-		// 从SQlite数据库中查询音效信息
-		registeSQLiteSound();
-		// 从自定义的数据表格中查询
-		registeCustomDataBaseSound();
-	}
-	public void registeSQLiteSound()
-	{
-#if !UNITY_IOS && !NO_SQLITE
-		if(mSQLiteSound != null)
-		{
-			List<TDSound> soundDataList;
-			mSQLiteSound.queryAll(out soundDataList);
-			int dataCount = soundDataList.Count;
-			for(int i = 0; i < dataCount; ++i)
-			{
-				TDSound soundData = soundDataList[i];
-				string audioName = getFileNameNoSuffix(soundData.mFileName, true);
-				registeSoundDefine((SOUND_DEFINE)(soundData.mID), audioName, soundData.mFileName, soundData.mVolumeScale);
-			}
-		}
-#endif
-	}
-	public void registeCustomDataBaseSound()
-	{
-		int dataCount = mDataBase.getDataCount<DataGameSound>();
-		for(int i = 0; i < dataCount; ++i)
-		{
-			var soundData = mDataBase.queryData<DataGameSound>(i);
-			string fileName = bytesToString(soundData.mSoundFileName);
-			string audioName = getFileNameNoSuffix(fileName, true);
-			registeSoundDefine((SOUND_DEFINE)soundData.mSoundID, audioName, fileName, soundData.mVolumeScale);
-		}
-	}
 	public override void destroy()
 	{
 		foreach(var item in mAudioClipList)

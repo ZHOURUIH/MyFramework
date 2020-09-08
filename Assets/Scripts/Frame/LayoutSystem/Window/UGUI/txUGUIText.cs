@@ -21,21 +21,36 @@ public class txUGUIText : txUGUIObject
 			logError(GetType() + " can not find " + typeof(Text) + ", window:" + mName + ", layout:" + mLayout.getName());
 		}
 	}
-	public void setText(string text)
+	public void setText(string text, bool preferredHeight = false)
 	{
 		if (mText.text != text)
 		{
 			mText.text = text;
+		}
+		if (preferredHeight)
+		{
+			applyPreferredHeight();
 		}
 	}
 	public void setText(int value)
 	{
 		setText(intToString(value));
 	}
-	public void applyPreferredHeight()
+	public void applyPreferredHeight(float width = 0.0f)
 	{
-		setWindowSize(new Vector2(getWindowSize().x, mText.preferredHeight));
+		if (width <= 0.0f)
+		{
+			width = getWindowSize().x;
+		}
+		else
+		{
+			// 如果要改变文本区域的宽度,则需要先修改一次窗口大小,使之根据指定的宽度重新计算preferredHeight
+			setWindowSize(new Vector2(width, getWindowSize().y));
+		}
+		setWindowSize(new Vector2(width, mText.preferredHeight));
 	}
+	public float getPrefferredWidth() { return mText.preferredWidth; }
+	public float getPrefferredHeight() { return mText.preferredHeight; }
 	public string getText() { return mText.text; }
 	public override float getAlpha() { return mText.color.a; }
 	public override void setAlpha(float alpha, bool fadeChild)

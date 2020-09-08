@@ -27,6 +27,7 @@ public class txUGUIImageAnim : txUGUIImage, IUIAnimation
 		mPlayingCallback = new List<TextureAnimCallBack>();
 		mUseTextureSize = false;
 		mEffectAlign = EFFECT_ALIGN.NONE;
+		mEnable = true;
 	}
 	public override void init(GameObject go, txUIObject parent)
 	{

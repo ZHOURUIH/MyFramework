@@ -114,7 +114,7 @@ public abstract class NetClient : GameBase
 		readList.Clear();
 		mConnectTime += elapsedTime;
 		// 判断客户端心跳是否超时
-		if (mHeartBeatTimer.checkTimeCount(elapsedTime))
+		if (mHeartBeatTimer.tickTimer(elapsedTime))
 		{
 			mDeadClient = true;
 		}

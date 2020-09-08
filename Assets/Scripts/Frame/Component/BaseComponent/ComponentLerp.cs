@@ -59,6 +59,7 @@ public class ComponentLerp : GameComponent, IComponentBreakable
 	public void setLerpDoneCallback(LerpCallback callback){setCallback(callback, ref mLerpDoneCallBack, this);}
 	public void setLerpSpeed(float speed) { mLerpSpeed = speed; }
 	public float getLerpSpeed() { return mLerpSpeed; }
+	public PLAY_STATE getState() { return mPlayState; }
 	public void notifyBreak()
 	{
 		setLerpingCallback(null);

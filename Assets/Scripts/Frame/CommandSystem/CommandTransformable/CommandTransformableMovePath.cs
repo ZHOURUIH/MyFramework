@@ -28,7 +28,7 @@ public class CommandTransformableMovePath : Command
 	}
 	public override void execute()
 	{
-		ComponentOwner obj = mReceiver as ComponentOwner;
+		Transformable obj = mReceiver as Transformable;
 		TransformableComponentMovePath component = obj.getComponent(out component);
 		// 停止其他移动组件
 		obj.breakComponent<IComponentModifyPosition>(component.GetType());
@@ -39,6 +39,11 @@ public class CommandTransformableMovePath : Command
 		component.setSpeed(mSpeed);
 		component.setValueOffset(mValueOffset);
 		component.play(mLoop, mOffset, mFullOnce);
+		if (component.getState() == PLAY_STATE.PS_PLAY)
+		{
+			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
+			obj.setEnable(true);
+		}
 	}
 	public override string showDebugInfo()
 	{

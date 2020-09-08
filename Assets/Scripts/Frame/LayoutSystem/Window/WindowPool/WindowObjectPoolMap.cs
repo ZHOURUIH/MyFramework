@@ -61,7 +61,7 @@ public class WindowObjectPoolMap<Key, Value> : GameBase where Value : PooledWind
 		{
 			item = new Value();
 			item.setScript(mScript);
-			item.assignWindow(mItemParentInuse, mTemplate, mPreName + UnityUtility.makeID());
+			item.assignWindow(mItemParentInuse, mTemplate, mPreName + makeID());
 			item.init();
 		}
 		item.setAssignID(++mAssignIDSeed);

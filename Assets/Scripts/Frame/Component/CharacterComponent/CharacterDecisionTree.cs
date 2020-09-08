@@ -116,7 +116,7 @@ public class CharacterDecisionTree : GameComponent
 				item.Value.update(elapsedTime);
 			}
 		}
-		if (mTimer.checkTimeCount(elapsedTime))
+		if (mTimer.tickTimer(elapsedTime))
 		{
 			List<DTreeNode> deadList = mListPool.newList(out deadList);
 			foreach (var item in mNodeList)

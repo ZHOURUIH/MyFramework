@@ -165,7 +165,7 @@ public class GameLayoutManager : FrameComponent
 		if (!mLayoutNameToType.ContainsKey(name))
 		{
 			logError("can not  find LayoutName:" + name);
-			return LAYOUT.L_MAX;
+			return LAYOUT.MAX;
 		}
 		return mLayoutNameToType[name];
 	}

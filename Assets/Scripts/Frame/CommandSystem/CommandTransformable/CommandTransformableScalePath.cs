@@ -40,6 +40,11 @@ public class CommandTransformableScalePath : Command
 		component.setValueOffset(mValueOffset);
 		component.setOffsetBlendAdd(false);
 		component.play(mLoop, mOffset, mFullOnce);
+		if (component.getState() == PLAY_STATE.PS_PLAY)
+		{
+			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
+			obj.setEnable(true);
+		}
 	}
 	public override string showDebugInfo()
 	{

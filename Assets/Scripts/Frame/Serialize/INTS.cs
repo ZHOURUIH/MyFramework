@@ -56,7 +56,7 @@ public class INTS : OBJECTS
 			{
 				return false;
 			}
-			return writeInts(buffer, ref index, mValue, mRealSize / mElementCount);
+			return writeInts(buffer, ref index, mValue, mElementCount);
 		}
 		else
 		{

@@ -30,7 +30,7 @@ public class CommandWindowLum : Command
 	}
 	public override void execute()
 	{
-		ComponentOwner obj = mReceiver as ComponentOwner;
+		txUIObject obj = mReceiver as txUIObject;
 		WindowComponentLum component = obj.getComponent(out component);
 		component.setTremblingCallback(mTremblingCallBack);
 		component.setTrembleDoneCallback(mTrembleDoneCallBack);
@@ -38,6 +38,11 @@ public class CommandWindowLum : Command
 		component.setStartLum(mStartLum);
 		component.setTargetLum(mTargetLum);
 		component.play(mName, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
+		if (component.getState() == PLAY_STATE.PS_PLAY)
+		{
+			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
+			obj.setEnable(true);
+		}
 	}
 	public override string showDebugInfo()
 	{

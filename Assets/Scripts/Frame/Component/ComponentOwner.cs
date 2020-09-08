@@ -29,8 +29,6 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 			item.Value.notifyOwnerActive(active);
 		}
 	}
-	// 此函数由子类调用
-	public virtual void initComponents() { }
 	// 更新正常更新的组件
 	public virtual void update(float elapsedTime)
 	{
@@ -223,6 +221,8 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 		}
 	}
 	//---------------------------------------------------------------------------------------------------
+	// 此函数由子类调用
+	protected virtual void initComponents() { }
 	protected void addComponentToList(GameComponent component, int componentPos = -1)
 	{
 		Type type = component.GetType();

@@ -84,6 +84,14 @@ public abstract class LayoutScript : GameBase
 	{
 		mGlobalTouchSystem.unregisteBoxCollider(obj);
 	}
+	public void registeInputField(IInputField inputField)
+	{
+		mInputManager.registeInputField(inputField);
+	}
+	public void unregisteInputField(IInputField inputField)
+	{
+		mInputManager.unregisteInputField(inputField);
+	}
 	public abstract void assignWindow();
 	public virtual void init() { }
 	public virtual void update(float elapsedTime) { }
@@ -215,6 +223,11 @@ public abstract class LayoutScript : GameBase
 		// 通知布局有窗口添加
 		mLayout.notifyObjectChanged();
 	}
+	// 虽然执行内容与类似,但是为了外部使用方便,所以添加了对于不同方式创建出来的窗口的销毁方法
+	public void destroyClonedObject(txUIObject obj, bool immediately = false)
+	{
+		destroyObject(obj, immediately);
+	}
 	public void destroyObject(ref txUIObject obj, bool immediately = false)
 	{
 		destroyObject(obj, immediately);
@@ -226,10 +239,6 @@ public abstract class LayoutScript : GameBase
 		txUIObject.destroyWindow(obj, true);
 		// 通知布局有窗口添加
 		mLayout.notifyObjectChanged();
-	}
-	public void destroyClonedObject(txUIObject obj, bool immediately = false)
-	{
-		destroyObject(obj, immediately);
 	}
 	public void interruptCommand(int assignID, bool showError = true)
 	{

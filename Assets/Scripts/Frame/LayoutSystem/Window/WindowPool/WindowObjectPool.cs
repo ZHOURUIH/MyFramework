@@ -36,7 +36,7 @@ public class WindowObjectPool<T> : GameBase where T : PooledWindow, new()
 		mItemParentInuse = parentInuse;
 		mItemParentUnuse = parentUnuse;
 		mTemplate = template;
-		mPreName = template.getName();
+		mPreName = template?.getName();
 	}
 	public void setItemPreName(string preName) { mPreName = preName; }
 	public List<T> getUsedList() { return mUsedItemList; }

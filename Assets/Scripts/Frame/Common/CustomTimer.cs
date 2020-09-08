@@ -21,7 +21,7 @@ public class CustomTimer : GameBase
 		}
 		return mCurTime / mTimeInterval;
 	}
-	public bool checkTimeCount(float elapsedTime)
+	public bool tickTimer(float elapsedTime)
 	{
 		if (mCurTime < 0.0f)
 		{

@@ -121,9 +121,7 @@ public class GameLayout : GameBase
 			{
 				if (obj.Value.canUpdate())
 				{
-					UnityProfiler.BeginSample("UpdateWindow:" + obj.Value.getName());
 					obj.Value.update(elapsedTime);
-					UnityProfiler.EndSample();
 				}
 			}
 			mLockObjectList = false;
@@ -300,7 +298,7 @@ public class GameLayout : GameBase
 		mRemoveList.Clear();
 	}
 	// 返回值是最后一个窗口的深度值,ignoreInactive表示是否忽略未启用的节点
-	protected int setUIChildDepth(txUIObject ui, int uiDepth, bool includeSelf = true, bool ignoreInactive = false)
+	protected int setUIChildDepth(txUIObject window, int uiDepth, bool includeSelf = true, bool ignoreInactive = false)
 	{
 		// NGUI不需要重新设置所有节点的深度
 		if(mIsNGUI)
@@ -308,25 +306,21 @@ public class GameLayout : GameBase
 			return 0;
 		}
 		// 先设置当前窗口的深度
-		if(includeSelf)
+		if (includeSelf)
 		{
-			ui.setDepth(uiDepth);
+			window.setDepth(uiDepth);
 		}
 		// 再设置子窗口的深度
-		int endDepth = ui.getDepth();
-		if (ignoreInactive && !ui.isActive())
+		int endDepth = window.getDepth();
+		if (ignoreInactive && !window.isActive())
 		{
 			return endDepth;
 		}
-		Transform transform = ui.getTransform();
-		int childCount = transform.childCount;
+		var children = window.getChildList();
+		int childCount = children.Count;
 		for (int i = 0; i < childCount; ++i)
 		{
-			txUIObject uiObj = getUIObject(transform.GetChild(i).gameObject);
-			if (uiObj != null)
-			{
-				endDepth = setUIChildDepth(uiObj, endDepth + 1);
-			}
+			endDepth = setUIChildDepth(children[i], endDepth + 1, true, ignoreInactive);
 		}
 		return endDepth;
 	}

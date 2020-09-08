@@ -20,7 +20,7 @@ public class CommandTransformableTrackTarget : Command
 	}
 	public override void execute()
 	{
-		ComponentOwner obj = mReceiver as ComponentOwner;
+		Transformable obj = mReceiver as Transformable;
 		ComponentTrackTargetNormal component = obj.getComponent(out component);
 		// 停止其他移动组件
 		obj.breakComponent<IComponentModifyPosition>(component.GetType());
@@ -29,6 +29,8 @@ public class CommandTransformableTrackTarget : Command
 		component.setTargetOffset(mOffset);
 		component.setTrackingCallback(mDoingCallback);
 		component.setMoveDoneTrack(mTarget, mDoneCallback);
+		// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
+		obj.setEnable(true);
 	}
 	public override string showDebugInfo()
 	{

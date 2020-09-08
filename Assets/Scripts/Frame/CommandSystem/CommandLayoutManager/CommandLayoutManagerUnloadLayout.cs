@@ -7,7 +7,7 @@ public class CommandLayoutManagerUnloadLayout : Command
 	public override void init()
 	{
 		base.init();
-		mLayoutType = LAYOUT.L_MAX;
+		mLayoutType = LAYOUT.MAX;
 	}
 	public override void execute()
 	{

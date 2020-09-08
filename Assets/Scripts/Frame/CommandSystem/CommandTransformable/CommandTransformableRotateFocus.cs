@@ -21,5 +21,7 @@ class CommandTransformableRotateFocus : Command
 		component.setActive(true);
 		component.setFocusTarget(mTarget);
 		component.setFocusOffset(mOffset);
+		// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
+		obj.setEnable(true);
 	}
 }

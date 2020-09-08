@@ -20,7 +20,8 @@ public class txNGUIEditbox : txNGUISprite
 	}
 	public void startInput(){mInput.isSelected = true;}
 	public void stopInput(){mInput.isSelected = false;}
-	public bool isInputing(){return mInput.isSelected;}
+	public bool isFocused() { return mInputField.isSelected; }
+	public bool isVisible() { return isActive(); }
 	public void setInputSubmitCallback(EventDelegate.Callback callback)
 	{
 		EventDelegate.Add(mInput.onSubmit, callback);

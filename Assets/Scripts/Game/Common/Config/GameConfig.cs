@@ -15,14 +15,14 @@ public class GameConfig : ConfigBase
 	//-----------------------------------------------------------------------------------------------------------------------
 	protected override void addFloat()
 	{
-		if (mFloatNameToDefine.Count != (int)GAME_DEFINE_FLOAT.GDF_GAME_MAX - (int)GAME_DEFINE_FLOAT.GDF_GAME_MIN - 1)
+		if (mFloatNameToDefine.Count != (int)GAME_FLOAT.GAME_MAX - (int)GAME_FLOAT.GAME_MIN - 1)
 		{
 			logError("not all float parameter added!");
 		}
 	}
 	protected override void addString()
 	{
-		if (mStringNameToDefine.Count != (int)GAME_DEFINE_STRING.GDS_GAME_MAX - (int)GAME_DEFINE_STRING.GDS_GAME_MIN - 1)
+		if (mStringNameToDefine.Count != (int)GAME_STRING.GAME_MAX - (int)GAME_STRING.GAME_MIN - 1)
 		{
 			logError("not all string parameter added!");
 		}

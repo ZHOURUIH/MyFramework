@@ -9,7 +9,6 @@ public class GameBase : FrameBase
 	public static Game mGame;
 	public static GameConfig mGameConfig;
 	// SQLiteTable
-	public static SQLiteSound mSQLiteSound;
 	public static SQLiteDemo mSQLiteDemo;
 	// LayoutScript
 	public static ScriptDemo mScriptDemo;

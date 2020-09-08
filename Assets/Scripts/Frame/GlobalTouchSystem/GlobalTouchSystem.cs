@@ -289,7 +289,7 @@ public class GlobalTouchSystem : FrameComponent
 			}
 			else
 			{
-				if (mStayTimer.checkTimeCount(elapsedTime))
+				if (mStayTimer.tickTimer(elapsedTime))
 				{
 					mHoverWindow?.onMouseStay(curMousePosition);
 					// 给鼠标按下时选中的所有窗口发送鼠标移动的消息

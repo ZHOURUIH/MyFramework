@@ -17,7 +17,7 @@ public class CommandTransformableLerpRotation : Command
 	}
 	public override void execute()
 	{
-		ComponentOwner obj = mReceiver as ComponentOwner;
+		Transformable obj = mReceiver as Transformable;
 		TransformableComponentLerpRotation component = obj.getComponent(out component);
 		// 停止其他旋转组件
 		obj.breakComponent<IComponentModifyRotation>(component.GetType());
@@ -27,6 +27,11 @@ public class CommandTransformableLerpRotation : Command
 		component.setTargetRotation(mTargetRotation);
 		component.setLerpSpeed(mLerpSpeed);
 		component.play();
+		if (component.getState() == PLAY_STATE.PS_PLAY)
+		{
+			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
+			obj.setEnable(true);
+		}
 	}
 	public override string showDebugInfo()
 	{

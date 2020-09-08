@@ -87,7 +87,7 @@ public abstract class SocketConnectServer : FrameComponent, ISocketConnect
 		}
 		mListPool.destroyList(tempLogoutList);
 		// 心跳
-		if (mHeartBeatTimer.checkTimeCount(elapsedTime))
+		if (mHeartBeatTimer.tickTimer(elapsedTime))
 		{
 			heartBeat();
 		}

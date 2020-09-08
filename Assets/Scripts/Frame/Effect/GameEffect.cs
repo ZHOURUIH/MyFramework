@@ -67,11 +67,11 @@ public class GameEffect : MovableObject
 				}
 			}
 		}
-		if(mLifeTimer.checkTimeCount(elapsedTime))
+		if(mLifeTimer.tickTimer(elapsedTime))
 		{
 			mIsDead = true;
 		}
-		if(mActiveTimer.checkTimeCount(elapsedTime))
+		if(mActiveTimer.tickTimer(elapsedTime))
 		{
 			setActive(false);
 		}

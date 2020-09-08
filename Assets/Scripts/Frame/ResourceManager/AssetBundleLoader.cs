@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class AssetBundleLoader : GameBase
 {
@@ -476,11 +477,13 @@ public class AssetBundleLoader : GameBase
 			{
 				string path = CommonDefine.F_PERSISTENT_DATA_PATH + bundleInfo.getBundleFileName();
 				checkDownloadPath(ref path, ResourceManager.mLocalRootPath);
-				WWW www = new WWW(path);
+				UnityWebRequest www = new UnityWebRequest(path);
+				DownloadHandlerAssetBundle downloadHandler = new DownloadHandlerAssetBundle(path, 0);
+				www.downloadHandler = downloadHandler;
 				yield return www;
 				if (www.error == null)
 				{
-					assetBundle = www.assetBundle;
+					assetBundle = downloadHandler.assetBundle;
 				}
 				www.Dispose();
 			}
@@ -488,11 +491,13 @@ public class AssetBundleLoader : GameBase
 			{
 				string path = ResourceManager.mResourceRootPath + bundleInfo.getBundleFileName();
 				checkDownloadPath(ref path, ResourceManager.mLocalRootPath);
-				WWW www = new WWW(path);
+				UnityWebRequest www = new UnityWebRequest(path);
+				DownloadHandlerAssetBundle downloadHandler = new DownloadHandlerAssetBundle(path, 0);
+				www.downloadHandler = downloadHandler;
 				yield return www;
 				if (www.error == null)
 				{
-					assetBundle = www.assetBundle;
+					assetBundle = downloadHandler.assetBundle;
 				}
 				www.Dispose();
 			}

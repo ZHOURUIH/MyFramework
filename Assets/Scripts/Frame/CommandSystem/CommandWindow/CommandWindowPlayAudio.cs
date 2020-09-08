@@ -19,7 +19,7 @@ public class CommandWindowPlayAudio : Command
 	}
 	public override void execute()
 	{
-		ComponentOwner obj = mReceiver as ComponentOwner;
+		txUIObject obj = mReceiver as txUIObject;
 		WindowComponentAudio component = obj.getComponent(out component);
 		component.setActive(true);
 		string soundName = mSound != SOUND_DEFINE.SD_MAX ? mAudioManager.getAudioName(mSound) : mSoundFileName;

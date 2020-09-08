@@ -76,7 +76,7 @@ public abstract class SceneProcedure : GameBase
 		// 再更新自己
 		onUpdate(elapsedTime);
 		// 检查准备退出流程
-		if (mPrepareTimer.checkTimeCount(elapsedTime))
+		if (mPrepareTimer.tickTimer(elapsedTime))
 		{
 			// 超过了准备时间,强制跳转流程
 			CommandGameSceneChangeProcedure cmd = newCmd(out cmd);

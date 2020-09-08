@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.U2D;
 
 public class ResourceManager : FrameComponent
@@ -350,35 +351,73 @@ public class ResourceManager : FrameComponent
 	protected IEnumerator loadAssetsUrl(string url, Type assetsType, AssetLoadDoneCallback callback, object[] userData)
 	{
 		logInfo("开始下载: " + url, LOG_LEVEL.LL_HIGH);
-		WWW www = new WWW(url);
+		if (assetsType == typeof(AudioClip))
+		{
+			yield return loadAudioClipWithURL(url, callback, userData);
+		}
+		else if (assetsType == typeof(Texture2D) || assetsType == typeof(Texture))
+		{
+			yield return loadTextureWithURL(url, callback, userData);
+		}
+		else if (assetsType == typeof(AssetBundle))
+		{
+			yield return loadAssetBundleWithURL(url, callback, userData);
+		}
+	}
+	protected IEnumerator loadAssetBundleWithURL(string url, AssetLoadDoneCallback callback, object[] userData)
+	{
+		UnityWebRequest www = new UnityWebRequest(url);
+		DownloadHandlerAssetBundle downloadHandler = new DownloadHandlerAssetBundle(url, 0);
+		www.downloadHandler = downloadHandler;
 		yield return www;
 		if (www.error != null)
 		{
-			// 下载失败
 			logInfo("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.LL_HIGH);
-			callback(null, null, null, userData, url);
+			callback?.Invoke(null, null, null, userData, url);
 		}
 		else
 		{
 			logInfo("下载成功:" + url, LOG_LEVEL.LL_HIGH);
-			UnityEngine.Object obj = null;
-			if (assetsType == typeof(AudioClip))
-			{
-				obj = www.GetAudioClip();
-			}
-			else if (assetsType == typeof(Texture2D) || assetsType == typeof(Texture))
-			{
-				obj = www.texture;
-			}
-			else if (assetsType == typeof(AssetBundle))
-			{
-				obj = www.assetBundle;
-			}
-			if (obj != null)
-			{
-				obj.name = url;
-			}
-			callback(obj, null, www.bytes, userData, url);
+			downloadHandler.assetBundle.name = url;
+			callback?.Invoke(downloadHandler.assetBundle, null, www.downloadHandler.data, userData, url);
+		}
+		www.Dispose();
+	}
+	protected IEnumerator loadAudioClipWithURL(string url, AssetLoadDoneCallback callback, object[] userData)
+	{
+		UnityWebRequest www = new UnityWebRequest(url);
+		DownloadHandlerAudioClip downloadHandler = new DownloadHandlerAudioClip(url, 0);
+		www.downloadHandler = downloadHandler;
+		yield return www;
+		if (www.error != null)
+		{
+			logInfo("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.LL_HIGH);
+			callback?.Invoke(null, null, null, userData, url);
+		}
+		else
+		{
+			logInfo("下载成功:" + url, LOG_LEVEL.LL_HIGH);
+			downloadHandler.audioClip.name = url;
+			callback?.Invoke(downloadHandler.audioClip, null, www.downloadHandler.data, userData, url);
+		}
+		www.Dispose();
+	}
+	protected IEnumerator loadTextureWithURL(string url, AssetLoadDoneCallback callback, object[] userData)
+	{
+		UnityWebRequest www = new UnityWebRequest(url);
+		www.downloadHandler = new DownloadHandlerTexture();
+		yield return www;
+		if (www.error != null)
+		{
+			logInfo("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.LL_HIGH);
+			callback?.Invoke(null, null, null, userData, url);
+		}
+		else
+		{
+			logInfo("下载成功:" + url, LOG_LEVEL.LL_HIGH);
+			Texture2D tex = DownloadHandlerTexture.GetContent(www);
+			tex.name = url;
+			callback?.Invoke(tex, null, www.downloadHandler.data, userData, url);
 		}
 		www.Dispose();
 	}
