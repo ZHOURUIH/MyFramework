@@ -1,5 +1,24 @@
 # MyFramework
 
+框架特点:
+组件: 部分地方使用组件思想,与unity类似.
+命令系统: 使用命令系统作为事件发送.将逻辑封装为命令,在一个类中处理一个事件所涉及的所有逻辑.
+兼容UGUI和NGUI: 主要使用UGUI,也可以兼容NGUI.
+完善的UI框架: 每个类型的UI都有对应的窗口封装,避免直接访问UI组件.封装对于UI布局的各种操作.
+自定义输入检测: 重写全局输入检测,不使用UGUI的EventSystem,不过部分UGUI的组件仍然可以EventSystem,比如ScrollRect.
+自定义缓动效果: 自己使用组件的方式实现各种缓动效果.用于实现UI和可移动物体的各种变换效果.不依赖DoTween等插件
+显式打包图集: 图集使用TexturePacker进行手动打包,不使用UGUI自动打图集.因为希望能完全掌控图集.
+ILRuntime热更: 加入了ILRuntime实现代码热更功能.并且Frame层位于主工程,热更工程只有游戏自身的逻辑代码.
+游戏流程划分: 场景流程划分可以更加清晰地知道当前游戏所处的状态.
+不使用Unity的基于MonoBehaviour的工作流: 极少使用MonoBehaviour,避免过度依赖Unity的工作流.
+自定义分辨率适配: 手动编写组件实现不同分辨率的适配.不使用UGUI的锚点.因为需要对代码的执行有最大程度上的把控.摒弃很多自动执行,但是不容易掌控的部分功能.
+自定义网络系统: 基于TCP实现服务器或者客户端.
+自定义网络消息序列化: 不使用ProtoBuf等序列化插件,因为不考虑跨平台或者跨语言的需求,仅仅只是为了实现最低需求且最高效率的消息序列化和反序列化.
+不使用语言高级特性:为了使代码易于阅读,尽量避免了使用语言的高级特性,极少使用协程,lambda表达式等.
+完善的资源管理系统:无缝衔接从AssetBundle加载或从AssetDataBase加载,应用层不会感知资源是从哪儿加载的.AssetBundle或AssetDataBase都支持同步和异步加载.暂不考虑Addressable是因为Addressable只支持异步加载,有些时候需要以同步的方式加载资源.
+完善的工具函数: 编写了BinaryUtility,StringUtility,MathUtility,FileUtility,UnityUtility等功能完善的工具函数,重写了几乎所有可能会用到了工具函数,从而避免直接调用Unity或者C#本身的工具函数.并且部分工具函数由于减少了堆内存的使用,而比内置工具函数更加高效.FileUtility也完善支持在Android真机上的文件读写.
+完善的SQLite支持: 如果使用SQLite配置表格数据,会有完善的对SQLite的访问方式.
+
 只是项目框架,不包含业务逻辑
 
 这是自己写的一个unity游戏框架,使用了命令,组件等思想,依赖的插件有avprovideo,TexturePacker(其实并没有依赖,只是用来生成图集)
