@@ -191,7 +191,7 @@ namespace ILRuntime.Runtime.Enviorment
         internal Dictionary<Type, CLRMemberwiseCloneDelegate> MemberwiseCloneMap { get { return memberwiseCloneMap; } }
         internal Dictionary<Type, CLRCreateDefaultInstanceDelegate> CreateDefaultInstanceMap { get { return createDefaultInstanceMap; } }
         internal Dictionary<Type, CLRCreateArrayInstanceDelegate> CreateArrayInstanceMap { get { return createArrayInstanceMap; } }
-        public Dictionary<Type, CrossBindingAdaptor> CrossBindingAdaptors { get { return crossAdaptors; } }
+        internal Dictionary<Type, CrossBindingAdaptor> CrossBindingAdaptors { get { return crossAdaptors; } }
         internal Dictionary<Type, ValueTypeBinder> ValueTypeBinders { get { return valueTypeBinders; } }
         public DebugService DebugService { get { return debugService; } }
         internal Dictionary<int, ILIntepreter> Intepreters { get { return intepreters; } }
@@ -1124,7 +1124,7 @@ namespace ILRuntime.Runtime.Enviorment
                 return new InvocationContext(inteptreter, (ILMethod)m);
             }
             else
-                throw new NotSupportedException("Cannot invoke CLRMethod : " + m.Name);
+                throw new NotSupportedException("Cannot invoke CLRMethod");
         }
         internal IMethod GetMethod(object token, ILType contextType, ILMethod contextMethod, out bool invalidToken)
         {
