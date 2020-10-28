@@ -1,0 +1,2 @@
+unity2018及以下要求android项目的包名与unity的包名一致,否则无法打包
+unity2019及以上要求android项目的包名与unity的包名不一致,否则无法打包
