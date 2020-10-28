@@ -27,13 +27,7 @@ public class EditorCommonUtility : UnityUtility
 	public static new void messageBox(string info, bool errorOrInfo)
 	{
 		string title = errorOrInfo ? "错误" : "提示";
-		// 在编辑器中显示对话框
-#if UNITY_EDITOR
 		EditorUtility.DisplayDialog(title, info, "确认");
-#elif UNITY_STANDALONE_WIN
-		// 游戏运行过程中显示窗口提示框
-		System.Windows.Forms.MessageBox.Show(info, title, MessageBoxButtons.OK, errorOrInfo ? MessageBoxIcon.Error : MessageBoxIcon.Information);
-#endif
 		if(errorOrInfo)
 		{
 			Debug.LogError(info);
