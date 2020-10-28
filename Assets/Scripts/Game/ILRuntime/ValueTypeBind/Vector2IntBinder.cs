@@ -178,7 +178,8 @@ public unsafe class Vector2IntBinder : ValueTypeBinder<Vector2Int>
 
         int val = b->Value;
 
-        vec = val * vec;
+        vec.x = val * vec.x;
+        vec.y = val * vec.y;
         PushVector2Int(ref vec, intp, ret, mStack);
 
         return ret + 1;
@@ -198,7 +199,8 @@ public unsafe class Vector2IntBinder : ValueTypeBinder<Vector2Int>
         ptr = ILIntepreter.Minus(esp, 2);
         ParseVector2Int(out vec, intp, ptr, mStack);
 
-        vec = vec / val;
+        vec.x = vec.x / val;
+        vec.y = vec.y / val;
         PushVector2Int(ref vec, intp, ret, mStack);
 
         return ret + 1;
@@ -214,7 +216,8 @@ public unsafe class Vector2IntBinder : ValueTypeBinder<Vector2Int>
         ptr = ILIntepreter.Minus(esp, 1);
         ParseVector2Int(out vec, intp, ptr, mStack);
 
-        vec = -vec;
+        vec.x = -vec.x;
+        vec.y = -vec.y;
         PushVector2Int(ref vec, intp, ret, mStack);
 
         return ret + 1;

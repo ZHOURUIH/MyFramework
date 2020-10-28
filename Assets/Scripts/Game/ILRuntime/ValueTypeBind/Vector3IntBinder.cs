@@ -163,7 +163,9 @@ public unsafe class Vector3IntBinder : ValueTypeBinder<Vector3Int>
 
         int val = b->Value;
 
-        vec = val * vec;
+        vec.x = val * vec.x;
+        vec.y = val * vec.y;
+        vec.z = val * vec.z;
         PushVector3Int(ref vec, intp, ret, mStack);
 
         return ret + 1;
@@ -183,7 +185,9 @@ public unsafe class Vector3IntBinder : ValueTypeBinder<Vector3Int>
         ptr = ILIntepreter.Minus(esp, 2);
         ParseVector3Int(out vec, intp, ptr, mStack);
 
-        vec = vec / val;
+        vec.x = vec.x / val;
+        vec.y = vec.y / val;
+        vec.z = vec.z / val;
         PushVector3Int(ref vec, intp, ret, mStack);
 
         return ret + 1;
@@ -199,7 +203,9 @@ public unsafe class Vector3IntBinder : ValueTypeBinder<Vector3Int>
         ptr = ILIntepreter.Minus(esp, 1);
         ParseVector3Int(out vec, intp, ptr, mStack);
 
-        vec = -vec;
+        vec.x = -vec.x;
+        vec.y = -vec.y;
+        vec.z = -vec.z;
         PushVector3Int(ref vec, intp, ret, mStack);
 
         return ret + 1;
