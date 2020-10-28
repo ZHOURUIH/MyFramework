@@ -2,28 +2,28 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum ANCHOR_MODE
+public enum ANCHOR_MODE : byte
 {
-	AM_NONE,                            // 无效值
-	AM_PADDING_PARENT_SIDE,				// 停靠父节点的指定边界,并且大小不改变,0,1,2,3表示左上右下
-	AM_NEAR_PARENT_SIDE,                // 将锚点设置到距离相对于父节点最近的边,并且各边界到父节点对应边界的距离固定不变
+	NONE,					// 无效值
+	PADDING_PARENT_SIDE,	// 停靠父节点的指定边界,并且大小不改变,0,1,2,3表示左上右下
+	NEAR_PARENT_SIDE,		// 将锚点设置到距离相对于父节点最近的边,并且各边界到父节点对应边界的距离固定不变
 }
 
 // 当mAnchorMode的值为AM_NEAR_SIDE时,要停靠的边界
-public enum HORIZONTAL_PADDING_SIDE
+public enum HORIZONTAL_PADDING : sbyte
 {
-	HPS_NONE = -1,
-	HPS_LEFT,
-	HPS_RIGHT,
-	HPS_CENTER,
+	NONE = -1,
+	LEFT,
+	RIGHT,
+	CENTER,
 }
 
-public enum VERTICAL_PADDING_SIDE
+public enum VERTICAL_PADDING : sbyte
 {
-	VPS_NONE = -1,
-	VPS_TOP,
-	VPS_BOTTOM,
-	VPS_CENTER,
+	NONE = -1,
+	TOP,
+	BOTTOM,
+	CENTER,
 }
 
 [Serializable]
@@ -45,8 +45,8 @@ public class PaddingAnchor : MonoBehaviour
 	protected Vector3[] mLocalCorners = new Vector3[4];
 	// 用于保存属性的变量,需要为public权限
 	public ANCHOR_MODE mAnchorMode;
-	public HORIZONTAL_PADDING_SIDE mHorizontalNearSide;
-	public VERTICAL_PADDING_SIDE mVerticalNearSide;
+	public HORIZONTAL_PADDING mHorizontalNearSide;
+	public VERTICAL_PADDING mVerticalNearSide;
 	public float mHorizontalPositionRelative;
 	public int mHorizontalPositionAbsolute;
 	public float mVerticalPositionRelative;
@@ -62,12 +62,12 @@ public class PaddingAnchor : MonoBehaviour
 		mAnchorMode = mode;
 		setAnchorMode(mAnchorMode);
 	}
-	public void setHorizontalNearSideInEditor(HORIZONTAL_PADDING_SIDE side)
+	public void setHorizontalNearSideInEditor(HORIZONTAL_PADDING side)
 	{
 		mHorizontalNearSide = side;
 		setAnchorMode(mAnchorMode);
 	}
-	public void setVerticalNearSideInEditor(VERTICAL_PADDING_SIDE side)
+	public void setVerticalNearSideInEditor(VERTICAL_PADDING side)
 	{
 		mVerticalNearSide = side;
 		setAnchorMode(mAnchorMode);
@@ -80,11 +80,11 @@ public class PaddingAnchor : MonoBehaviour
 	public void setAnchorMode(ANCHOR_MODE mode)
 	{
 		mAnchorMode = mode;
-		if (mAnchorMode == ANCHOR_MODE.AM_PADDING_PARENT_SIDE)
+		if (mAnchorMode == ANCHOR_MODE.PADDING_PARENT_SIDE)
 		{
 			setToPaddingParentSide(mHorizontalNearSide, mVerticalNearSide, mRelativeDistance);
 		}
-		else if (mAnchorMode == ANCHOR_MODE.AM_NEAR_PARENT_SIDE)
+		else if (mAnchorMode == ANCHOR_MODE.NEAR_PARENT_SIDE)
 		{
 			setToNearParentSides(mRelativeDistance);
 		}
@@ -96,35 +96,35 @@ public class PaddingAnchor : MonoBehaviour
 			return;
 		}
 		// 如果窗口带缩放,则可能适配不正确
-		if(!ReflectionUtility.isVectorZero(transform.localScale - Vector3.one))
+		if(!MathUtility.isVectorZero(transform.localScale - Vector3.one))
 		{
-			ReflectionUtility.logWarning("transform's scale is not 1, may not adapt correctely, " + transform.name + ", scale:" + ReflectionUtility.vector3ToString(transform.localScale, 6));
+			UnityUtility.logWarning("transform's scale is not 1, may not adapt correctely, " + transform.name + ", scale:" + StringUtility.vector3ToString(transform.localScale, 6));
 		}
-		bool ngui = ReflectionUtility.isNGUI(gameObject);
+		GUI_TYPE guiType = WidgetUtility.getGUIType(gameObject);
 		mDirty = false;
 		Vector2 newSize = Vector2.zero;
 		GameObject parent = null;
 		Vector2 parentSize = Vector2.zero;
-		if (ngui)
+		if (guiType == GUI_TYPE.NGUI)
 		{
 #if USE_NGUI
-			newSize = ReflectionUtility.getNGUIRectSize(GetComponent<UIWidget>());
-			UIRect parentRect = ReflectionUtility.findNGUIParentRect(gameObject);
+			newSize = WidgetUtility.getNGUIRectSize(GetComponent<UIWidget>());
+			UIRect parentRect = WidgetUtility.findNGUIParentRect(gameObject);
 			if (parentRect != null)
 			{
 				parent = parentRect.gameObject;
-				parentSize = ReflectionUtility.getNGUIRectSize(parentRect);
+				parentSize = WidgetUtility.getNGUIRectSize(parentRect);
 			}
 			// NGUI时如果没有父节点,则只能使用绝对大小
 			else
 			{
 				newSize.x = mAnchorPoint[2].mAbsolute - mAnchorPoint[0].mAbsolute;
 				newSize.y = mAnchorPoint[1].mAbsolute - mAnchorPoint[3].mAbsolute;
-				parentSize = ReflectionUtility.getRootSize(true);
+				parentSize = UnityUtility.getRootSize(guiType);
 			}
 #endif
 		}
-		else
+		else if(guiType == GUI_TYPE.UGUI)
 		{
 			newSize = GetComponent<RectTransform>().rect.size;
 			parent = transform.parent.gameObject;
@@ -133,39 +133,39 @@ public class PaddingAnchor : MonoBehaviour
 		Vector3 pos = transform.localPosition;
 		if (parent != null)
 		{
-			ReflectionUtility.getParentSides(parent, mParentSides);
+			WidgetUtility.getParentSides(parent, mParentSides);
 			// 仅仅停靠到父节点的某条边,只需要根据当前大小和父节点大小计算位置
-			if (mAnchorMode == ANCHOR_MODE.AM_PADDING_PARENT_SIDE)
+			if (mAnchorMode == ANCHOR_MODE.PADDING_PARENT_SIDE)
 			{
 				// 横向位置
-				if(mHorizontalNearSide == HORIZONTAL_PADDING_SIDE.HPS_LEFT)
+				if(mHorizontalNearSide == HORIZONTAL_PADDING.LEFT)
 				{
 					pos.x = mDistanceToBoard[0].mRelative * mParentSides[0].x + mDistanceToBoard[0].mAbsolute + newSize.x * 0.5f;
 				}
-				else if(mHorizontalNearSide == HORIZONTAL_PADDING_SIDE.HPS_RIGHT)
+				else if(mHorizontalNearSide == HORIZONTAL_PADDING.RIGHT)
 				{
 					pos.x = mDistanceToBoard[2].mRelative * mParentSides[2].x + mDistanceToBoard[2].mAbsolute - newSize.x * 0.5f;
 				}
-				else if(mHorizontalNearSide == HORIZONTAL_PADDING_SIDE.HPS_CENTER)
+				else if(mHorizontalNearSide == HORIZONTAL_PADDING.CENTER)
 				{
 					pos.x = mHorizontalPositionRelative * parentSize.x * 0.5f + mHorizontalPositionAbsolute;
 				}
 				// 纵向位置
-				if (mVerticalNearSide == VERTICAL_PADDING_SIDE.VPS_TOP)
+				if (mVerticalNearSide == VERTICAL_PADDING.TOP)
 				{
 					pos.y = mDistanceToBoard[1].mRelative * mParentSides[1].y + mDistanceToBoard[1].mAbsolute - newSize.y * 0.5f;
 				}
-				else if (mVerticalNearSide == VERTICAL_PADDING_SIDE.VPS_BOTTOM)
+				else if (mVerticalNearSide == VERTICAL_PADDING.BOTTOM)
 				{
 					pos.y = mDistanceToBoard[3].mRelative * mParentSides[3].y + mDistanceToBoard[3].mAbsolute + newSize.y * 0.5f;
 				}
-				else if (mVerticalNearSide == VERTICAL_PADDING_SIDE.VPS_CENTER)
+				else if (mVerticalNearSide == VERTICAL_PADDING.CENTER)
 				{
 					pos.y = mVerticalPositionRelative * parentSize.y * 0.5f + mVerticalPositionAbsolute;
 				}
 			}
 			// 根据锚点和父节点大小计算各条边的值
-			else if(mAnchorMode != ANCHOR_MODE.AM_NONE)
+			else if(mAnchorMode != ANCHOR_MODE.NONE)
 			{
 				float thisLeft = mAnchorPoint[0].mRelative * mParentSides[0].x + mAnchorPoint[0].mAbsolute;
 				float thisRight = mAnchorPoint[2].mRelative * mParentSides[2].x + mAnchorPoint[2].mAbsolute;
@@ -179,33 +179,34 @@ public class PaddingAnchor : MonoBehaviour
 		}
 		if (newSize.x < 0)
 		{
-			ReflectionUtility.logError("width:" + newSize.x + " is not valid, consider to modify the PaddingAnchor! " + gameObject.name + ", parent:" + gameObject.transform.parent.name);
+			UnityUtility.logError("width:" + newSize.x + " is not valid, consider to modify the PaddingAnchor! " + gameObject.name + ", parent:" + gameObject.transform.parent.name);
 		}
 		if (newSize.y < 0)
 		{
-			ReflectionUtility.logError("height:" + newSize.y + " is not valid, consider to modify the PaddingAnchor! " + gameObject.name + ", parent:" + gameObject.transform.parent.name);
+			UnityUtility.logError("height:" + newSize.y + " is not valid, consider to modify the PaddingAnchor! " + gameObject.name + ", parent:" + gameObject.transform.parent.name);
 		}
-		if (ngui)
+		if (guiType == GUI_TYPE.NGUI)
 		{
 #if USE_NGUI
-			ReflectionUtility.setNGUIWidgetSize(GetComponent<UIWidget>(), newSize);
+			WidgetUtility.setNGUIWidgetSize(GetComponent<UIWidget>(), newSize);
 #endif
 		}
-		else
+		else if(guiType == GUI_TYPE.UGUI)
 		{
-			ReflectionUtility.setUGUIRectSize(GetComponent<RectTransform>(), newSize, mAdjustFont);
+			WidgetUtility.setUGUIRectSize(GetComponent<RectTransform>(), newSize, mAdjustFont);
 		}
-		transform.localPosition = ReflectionUtility.round(pos);
+		transform.localPosition = MathUtility.round(pos);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------------------------
 	// 将锚点设置到距离相对于父节点最近的边,并且各边界到父节点对应边界的距离固定不变
 	protected void setToNearParentSides(bool relative)
 	{
 		GameObject parent = null;
-		if (ReflectionUtility.isNGUI(gameObject))
+		GUI_TYPE guiType = WidgetUtility.getGUIType(gameObject);
+		if (guiType == GUI_TYPE.NGUI)
 		{
-			#if USE_NGUI
-			UIRect parentRect = ReflectionUtility.findNGUIParentRect(gameObject);
+#if USE_NGUI
+			UIRect parentRect = WidgetUtility.findNGUIParentRect(gameObject);
 			if (parentRect != null)
 			{
 				parent = parentRect.gameObject;
@@ -218,24 +219,24 @@ public class PaddingAnchor : MonoBehaviour
 					mAnchorPoint[i].setRelative(0.0f);
 					if (i == 0 || i == 2)
 					{
-						mAnchorPoint[i].setAbsolute(ReflectionUtility.getLength(sides[i]));
+						mAnchorPoint[i].setAbsolute(MathUtility.getLength(sides[i]));
 					}
 					else if (i == 1 || i == 3)
 					{
-						mAnchorPoint[i].setAbsolute(ReflectionUtility.getLength(sides[i]));
+						mAnchorPoint[i].setAbsolute(MathUtility.getLength(sides[i]));
 					}
 				}
 			}
 #endif
 		}
-		else
+		else if(guiType == GUI_TYPE.UGUI)
 		{
 			parent = transform.parent.gameObject;
 		}
 		if(parent != null)
 		{
 			Vector3[] sides = getSides(parent);
-			ReflectionUtility.getParentSides(parent, mParentSides);
+			WidgetUtility.getParentSides(parent, mParentSides);
 			for (int i = 0; i < 4; ++i)
 			{
 				if (i == 0 || i == 2)
@@ -312,20 +313,21 @@ public class PaddingAnchor : MonoBehaviour
 		}
 	}
 	// 停靠父节点的指定边界,并且大小不改变
-	protected void setToPaddingParentSide(HORIZONTAL_PADDING_SIDE horizontalSide, VERTICAL_PADDING_SIDE verticalSide, bool relativeDistance)
+	protected void setToPaddingParentSide(HORIZONTAL_PADDING horizontalSide, VERTICAL_PADDING verticalSide, bool relativeDistance)
 	{
 		Vector3[] sides = null;
 		Vector2 pos = transform.localPosition;
 		Vector2 parentSize = Vector2.zero;
 		GameObject parent = null;
-		if(ReflectionUtility.isNGUI(gameObject))
+		GUI_TYPE guiType = WidgetUtility.getGUIType(gameObject);
+		if (guiType == GUI_TYPE.NGUI)
 		{
 #if USE_NGUI
-			UIRect parentRect = ReflectionUtility.findNGUIParentRect(gameObject);
+			UIRect parentRect = WidgetUtility.findNGUIParentRect(gameObject);
 			if (parentRect != null)
 			{
 				parent = parentRect.gameObject;
-				parentSize = ReflectionUtility.getNGUIRectSize(parentRect);
+				parentSize = WidgetUtility.getNGUIRectSize(parentRect);
 			}
 			else
 			{
@@ -340,7 +342,7 @@ public class PaddingAnchor : MonoBehaviour
 			}
 #endif
 		}
-		else
+		else if(guiType == GUI_TYPE.UGUI)
 		{
 			parent = transform.parent.gameObject;
 			parentSize = parent.GetComponent<RectTransform>().rect.size;
@@ -348,7 +350,7 @@ public class PaddingAnchor : MonoBehaviour
 		if (parent != null)
 		{
 			sides = getSides(parent);
-			ReflectionUtility.getParentSides(parent, mParentSides);
+			WidgetUtility.getParentSides(parent, mParentSides);
 		}
 		int count = mDistanceToBoard.Length;
 		for(int i = 0; i < count; ++i)
@@ -357,7 +359,7 @@ public class PaddingAnchor : MonoBehaviour
 			mDistanceToBoard[i].setAbsolute(0.0f);
 		}
 		// 相对于左右边界
-		if (horizontalSide == HORIZONTAL_PADDING_SIDE.HPS_LEFT)
+		if (horizontalSide == HORIZONTAL_PADDING.LEFT)
 		{
 			if(relativeDistance)
 			{
@@ -370,7 +372,7 @@ public class PaddingAnchor : MonoBehaviour
 				mDistanceToBoard[0].setAbsolute(sides[0].x - mParentSides[0].x);
 			}
 		}
-		else if(horizontalSide == HORIZONTAL_PADDING_SIDE.HPS_RIGHT)
+		else if(horizontalSide == HORIZONTAL_PADDING.RIGHT)
 		{
 			if (relativeDistance)
 			{
@@ -383,7 +385,7 @@ public class PaddingAnchor : MonoBehaviour
 				mDistanceToBoard[2].setAbsolute(sides[2].x - mParentSides[2].x);
 			}
 		}
-		else if(horizontalSide == HORIZONTAL_PADDING_SIDE.HPS_CENTER)
+		else if(horizontalSide == HORIZONTAL_PADDING.CENTER)
 		{
 			if (relativeDistance)
 			{
@@ -396,7 +398,7 @@ public class PaddingAnchor : MonoBehaviour
 				mHorizontalPositionAbsolute = (int)(pos.x + 0.5f * Mathf.Sign(pos.x));
 			}
 		}
-		if(verticalSide == VERTICAL_PADDING_SIDE.VPS_TOP)
+		if(verticalSide == VERTICAL_PADDING.TOP)
 		{
 			if (relativeDistance)
 			{
@@ -409,7 +411,7 @@ public class PaddingAnchor : MonoBehaviour
 				mDistanceToBoard[1].setAbsolute(sides[1].y - mParentSides[1].y);
 			}
 		}
-		else if(verticalSide == VERTICAL_PADDING_SIDE.VPS_BOTTOM)
+		else if(verticalSide == VERTICAL_PADDING.BOTTOM)
 		{
 			if (relativeDistance)
 			{
@@ -422,7 +424,7 @@ public class PaddingAnchor : MonoBehaviour
 				mDistanceToBoard[3].setAbsolute(sides[3].y - mParentSides[3].y);
 			}
 		}
-		else if (verticalSide == VERTICAL_PADDING_SIDE.VPS_CENTER)
+		else if (verticalSide == VERTICAL_PADDING.CENTER)
 		{
 			if (relativeDistance)
 			{
@@ -445,12 +447,13 @@ public class PaddingAnchor : MonoBehaviour
 	protected Vector3[] getSides(GameObject parent)
 	{
 		generateLocalCorners(parent);
-		ReflectionUtility.cornerToSide(mLocalCorners, mSides);
+		WidgetUtility.cornerToSide(mLocalCorners, mSides);
 		return mSides;
 	}
 	protected void generateLocalCorners(GameObject parent, bool includeRotation = false)
 	{
-		if (ReflectionUtility.isNGUI(gameObject))
+		GUI_TYPE guiType = WidgetUtility.getGUIType(gameObject);
+		if (guiType == GUI_TYPE.NGUI)
 		{
 #if USE_NGUI
 			Vector3[] worldCorners = GetComponent<UIRect>().worldCorners;
@@ -460,7 +463,7 @@ public class PaddingAnchor : MonoBehaviour
 			}
 #endif
 		}
-		else
+		else if(guiType == GUI_TYPE.UGUI)
 		{
 			RectTransform rectTransform = GetComponent<RectTransform>();
 			// 去除旋转
@@ -476,8 +479,8 @@ public class PaddingAnchor : MonoBehaviour
 			mLocalCorners[3] = new Vector3(size.x * 0.5f, -size.y * 0.5f);
 			for (int i = 0; i < 4; ++i)
 			{
-				Vector3 worldCorner = ReflectionUtility.localToWorld(rectTransform, mLocalCorners[i]);
-				mLocalCorners[i] = ReflectionUtility.worldToLocal(parent.transform, worldCorner);
+				Vector3 worldCorner = UnityUtility.localToWorld(rectTransform, mLocalCorners[i]);
+				mLocalCorners[i] = UnityUtility.worldToLocal(parent.transform, worldCorner);
 			}
 			if (!includeRotation)
 			{

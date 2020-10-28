@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class KeyFrameManager : FrameComponent
+public class KeyFrameManager : FrameSystem
 {
 	protected Dictionary<string, Curve> mCurveList;
 	protected int mLoadedCount;	// 已加载的关键帧数量
-	public KeyFrameManager(string name)
-		:base(name)
+	public KeyFrameManager()
 	{
 		mCurveList = new Dictionary<string, Curve>();
 		mLoadedCount = 0;
@@ -30,7 +29,7 @@ public class KeyFrameManager : FrameComponent
 	public void loadAll(bool async)
 	{
 		mLoadedCount = 0;
-		string path = CommonDefine.R_KEY_FRAME_PATH;
+		string path = FrameDefine.R_KEY_FRAME_PATH;
 		List<string> fileList = mListPool.newList(out fileList);
 		mResourceManager.getFileList(path, fileList);
 		int fileCount = fileList.Count;
@@ -105,7 +104,7 @@ public class KeyFrameManager : FrameComponent
 			// 加载完所有关键帧后,卸载所有关键帧预设
 			if(isLoadDone())
 			{
-				mResourceManager.unloadPath(CommonDefine.R_KEY_FRAME_PATH);
+				mResourceManager.unloadPath(FrameDefine.R_KEY_FRAME_PATH);
 			}
 		}
 		else

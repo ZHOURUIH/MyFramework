@@ -5,9 +5,7 @@ using System.Collections.Generic;
 
 public class SocketClientGame : SocketConnectClient
 {
-	public SocketClientGame(string name)
-		:base(name){ }
-	protected override bool checkPacketType(PACKET_TYPE type)
+	protected override bool checkPacketType(int type)
 	{
 		return type <= PACKET_TYPE.SC_MIN || type >= PACKET_TYPE.SC_MAX;
 	}

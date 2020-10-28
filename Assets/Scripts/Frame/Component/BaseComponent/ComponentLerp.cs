@@ -23,34 +23,34 @@ public class ComponentLerp : GameComponent, IComponentBreakable
 			stop();
 			return;
 		}
-		mPlayState = PLAY_STATE.PS_PLAY;
+		mPlayState = PLAY_STATE.PLAY;
 		update(0.0f);
 	}
 	public virtual void stop(bool force = false)
 	{
 		// 如果已经是停止的状态,并且不是要强制停止,则不再执行
-		if (mPlayState == PLAY_STATE.PS_STOP && !force)
+		if (mPlayState == PLAY_STATE.STOP && !force)
 		{
 			return;
 		}
-		mPlayState = PLAY_STATE.PS_STOP;
+		mPlayState = PLAY_STATE.STOP;
 	}
-	public virtual void pause() { mPlayState = PLAY_STATE.PS_PAUSE; }
+	public virtual void pause() { mPlayState = PLAY_STATE.PAUSE; }
 	public void setState(PLAY_STATE state)
 	{
 		if (mPlayState == state)
 		{
 			return;
 		}
-		if (state == PLAY_STATE.PS_PLAY)
+		if (state == PLAY_STATE.PLAY)
 		{
 			play();
 		}
-		else if (state == PLAY_STATE.PS_STOP)
+		else if (state == PLAY_STATE.STOP)
 		{
 			stop();
 		}
-		else if (state == PLAY_STATE.PS_PAUSE)
+		else if (state == PLAY_STATE.PAUSE)
 		{
 			pause();
 		}

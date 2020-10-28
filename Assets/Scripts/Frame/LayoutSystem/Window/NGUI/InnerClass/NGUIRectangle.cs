@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using UnityEngine;
 
-public class NGUIRectangle : GameBase, INGUIShape
+public class NGUIRectangle : FrameBase, INGUIShape
 {
 	public List<Vector2> mRectanglePoints;
 	public List<Vector3> mVertices;

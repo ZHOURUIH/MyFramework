@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class UGUILine : GameBase
+public class UGUILine : FrameBase
 {
 	protected List<Vector3> mPointList;
 	protected MeshRenderer mMeshRenderer;

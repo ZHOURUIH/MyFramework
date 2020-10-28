@@ -2,19 +2,15 @@
 using System.Collections.Generic;
 
 // 作为客户端时接收以及发送的类型
-public enum PACKET_TYPE
+public class PACKET_TYPE
 {
-	MIN,
-
 	// CS表示Client->Server
-	CS_MIN = 10000,
-	CS_DEMO,
-	CS_MAX,
+	public const int CS_MIN = 10000;
+	public const int CS_DEMO = 10001;
+	public const int CS_MAX = 10002;
 
 	// SC表示Server->Client
-	SC_MIN = 20000,
-	SC_DEMO,
-	SC_MAX,
-
-	MAX,
+	public const int SC_MIN = 20000;
+	public const int SC_DEMO = 20001;
+	public const int SC_MAX = 20002;
 };

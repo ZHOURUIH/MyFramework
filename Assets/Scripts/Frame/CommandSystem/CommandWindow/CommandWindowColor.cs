@@ -30,18 +30,18 @@ public class CommandWindowColor : Command
 	}
 	public override void execute()
 	{
-		txUIObject obj = mReceiver as txUIObject;
+		myUIObject obj = mReceiver as myUIObject;
 		WindowComponentColor component = obj.getComponent(out component);
 		// 停止其他相关组件
-		obj.breakComponent<IComponentModifyColor>(component.GetType());
-		obj.breakComponent<IComponentModifyAlpha>(component.GetType());
+		obj.breakComponent<IComponentModifyColor>(Typeof(component));
+		obj.breakComponent<IComponentModifyAlpha>(Typeof(component));
 		component.setTremblingCallback(mTremblingCallBack);
 		component.setTrembleDoneCallback(mTrembleDoneCallBack);
 		component.setActive(true);
 		component.setStart(mStartColor);
 		component.setTarget(mTargetColor);
 		component.play(mName, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
-		if (component.getState() == PLAY_STATE.PS_PLAY)
+		if (component.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
 			obj.setEnable(true);

@@ -3,28 +3,28 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-public class AnimControl : GameBase
+public class AnimControl : FrameBase
 {
 	protected int mTextureCount;
 	protected int mStartIndex = 0;          // 序列帧的起始帧下标,默认为0,即从头开始
 	protected int mEndIndex = -1;           // 序列帧的终止帧下标,默认为-1,即播放到尾部
 	protected bool mPlayDirection = true;   // 播放方向,true为正向播放(从mStartIndex到mEndIndex),false为返向播放(从mEndIndex到mStartIndex)
 	protected int mCurTextureIndex = 0;
-	protected LOOP_MODE mLoopMode = LOOP_MODE.LM_ONCE;
+	protected LOOP_MODE mLoopMode = LOOP_MODE.ONCE;
 	protected float mCurTimeCount = 0.0f;
-	protected PLAY_STATE mPlayState = PLAY_STATE.PS_STOP;
+	protected PLAY_STATE mPlayState = PLAY_STATE.STOP;
 	protected float mPlayedTime;                    // 已经播放的时长,不包含循环次数
 	protected float mInterval = 0.033f;             // 隔多少秒切换图片
 	protected bool mAutoResetIndex = true;          // 是否在播放完毕后自动重置当前帧下标,也表示是否在非循环播放完毕后自动隐藏
 	protected onPlayEndCallback mPlayEndCallback;   // 一个序列播放完时的回调函数,只在非循环播放状态下有效
 	protected onPlayingCallback mPlayingCallback;   // 一个序列正在播放时的回调函数
 	protected bool mUseTextureSelfSize = true;      // 在切换图片时是否使用图片自身的大小
-	protected txUIObject mOwnerObject;
+	protected myUIObject mOwnerObject;
 	public AnimControl() { }
-	public void setObject(txUIObject obj) { mOwnerObject = obj; }
+	public void setObject(myUIObject obj) { mOwnerObject = obj; }
 	public void update(float elapsedTime)
 	{
-		if (mPlayState != PLAY_STATE.PS_PLAY)
+		if (mPlayState != PLAY_STATE.PLAY)
 		{
 			return;
 		}
@@ -45,18 +45,18 @@ public class AnimControl : GameBase
 					}
 					else
 					{
-						if (mLoopMode == LOOP_MODE.LM_ONCE)
+						if (mLoopMode == LOOP_MODE.ONCE)
 						{
 							// 非循环播放时播放完成后,停止播放
 							stop(mAutoResetIndex, true, false);
 						}
 						// 普通循环,则将下标重置到起始下标
-						else if (mLoopMode == LOOP_MODE.LM_LOOP)
+						else if (mLoopMode == LOOP_MODE.LOOP)
 						{
 							mCurTextureIndex = mStartIndex;
 						}
 						// 来回循环,则将下标重置到终止下标,并且开始反向播放
-						else if (mLoopMode == LOOP_MODE.LM_PINGPONG)
+						else if (mLoopMode == LOOP_MODE.PING_PONG)
 						{
 							mCurTextureIndex = getRealEndIndex();
 							mPlayDirection = !mPlayDirection;
@@ -71,18 +71,18 @@ public class AnimControl : GameBase
 					}
 					else
 					{
-						if (mLoopMode == LOOP_MODE.LM_ONCE)
+						if (mLoopMode == LOOP_MODE.ONCE)
 						{
 							// 非循环播放时播放完成后,停止播放
 							stop(mAutoResetIndex, true, false);
 						}
 						// 普通循环,则将下标重置到终止下标
-						else if (mLoopMode == LOOP_MODE.LM_LOOP)
+						else if (mLoopMode == LOOP_MODE.LOOP)
 						{
 							mCurTextureIndex = getRealEndIndex();
 						}
 						// 来回循环,则将下标重置到起始下标,并且开始正向播放
-						else if (mLoopMode == LOOP_MODE.LM_PINGPONG)
+						else if (mLoopMode == LOOP_MODE.PING_PONG)
 						{
 							mCurTextureIndex = mStartIndex;
 							mPlayDirection = !mPlayDirection;
@@ -177,7 +177,7 @@ public class AnimControl : GameBase
 	}
 	public void stop(bool resetStartIndex = true, bool callback = true, bool isBreak = true)
 	{
-		mPlayState = PLAY_STATE.PS_STOP;
+		mPlayState = PLAY_STATE.STOP;
 		if (resetStartIndex)
 		{
 			setCurFrameIndex(mStartIndex);
@@ -187,11 +187,11 @@ public class AnimControl : GameBase
 	}
 	public void play()
 	{
-		mPlayState = PLAY_STATE.PS_PLAY; 
+		mPlayState = PLAY_STATE.PLAY; 
 		// 开始播放时确认当前序列中下标,以便通知外部回调
 		setCurFrameIndex(mCurTextureIndex); 
 	}
-	public void pause() { mPlayState = PLAY_STATE.PS_PAUSE; }
+	public void pause() { mPlayState = PLAY_STATE.PAUSE; }
 	public void setPlayEndCallback(onPlayEndCallback callback) { mPlayEndCallback = callback; }
 	public void setPlayingCallback(onPlayingCallback callback) { mPlayingCallback = callback; }
 	public int getCurFrameIndex() { return mCurTextureIndex; }

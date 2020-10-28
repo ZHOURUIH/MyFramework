@@ -1,57 +1,64 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System;
 
-public class MouseCastWindowSet
+public class MouseCastWindowSet : FrameBase
 {
-	public GameCamera mCamera;
-	public SortedDictionary<UIDepth, List<IMouseEventCollect>> mWindowOrderList; // 深度由大到小的窗口列表
+	protected HashSet<IMouseEventCollect> mWindowSet;		// 用于查找的窗口列表
+	protected List<IMouseEventCollect> mWindowOrderList;	// 深度由大到小的窗口列表
+	protected GameCamera mCamera;
+	protected bool mDepthDirty;
 	public MouseCastWindowSet(GameCamera camera)
 	{
 		mCamera = camera;
-		mWindowOrderList = new SortedDictionary<UIDepth, List<IMouseEventCollect>>(new DepthDescend());
+		mWindowOrderList = new List<IMouseEventCollect>();
+		mWindowSet = new HashSet<IMouseEventCollect>();
 	}
-	public void addWindow(UIDepth depth, IMouseEventCollect window)
+	public void addWindow(IMouseEventCollect window)
 	{
-		if (!mWindowOrderList.ContainsKey(depth))
+		if (mWindowSet.Contains(window))
 		{
-			mWindowOrderList.Add(depth, new List<IMouseEventCollect>());
+			return;
 		}
-		mWindowOrderList[depth].Add(window);
+		mWindowOrderList.Add(window);
+		mWindowSet.Add(window);
+		mDepthDirty = true;
 	}
-	public bool hasWindow(UIDepth depth, IMouseEventCollect window)
+	public bool hasWindow(IMouseEventCollect window)
 	{
-		if(!mWindowOrderList.ContainsKey(depth))
-		{
-			return false;
-		}
-		return mWindowOrderList[depth].Contains(window);
+		return mWindowSet.Contains(window);
 	}
-	public void windowDepthChanged(UIDepth lastDepth, IMouseEventCollect window)
+	public void windowDepthChanged()
 	{
-		// 移除旧的按钮深度
-		mWindowOrderList[lastDepth].Remove(window);
-		// 添加新的按钮深度
-		UIDepth newDepth = window.getUIDepth();
-		if (!mWindowOrderList.ContainsKey(newDepth))
+		mDepthDirty = true;
+	}
+	public GameCamera getCamera() { return mCamera; }
+	public List<IMouseEventCollect> getWindowOrderList()
+	{
+		if(mDepthDirty)
 		{
-			mWindowOrderList.Add(newDepth, new List<IMouseEventCollect>());
+			mDepthDirty = false;
+			mWindowOrderList.Sort(UIDepthDescend);
 		}
-		mWindowOrderList[newDepth].Add(window);
+		return mWindowOrderList;
 	}
 	public void removeWindow(IMouseEventCollect window)
 	{
-		UIDepth depth = window.getUIDepth();
-		mWindowOrderList[depth].Remove(window);
-		if(mWindowOrderList[depth].Count == 0)
+		if (!mWindowSet.Remove(window))
 		{
-			mWindowOrderList.Remove(depth);
+			return;
 		}
+		mWindowOrderList.Remove(window);
 	}
-	public bool isEmpty() { return mWindowOrderList.Count == 0; }
-	public static int depthDescend(MouseCastWindowSet a, MouseCastWindowSet b)
+	public bool isEmpty() { return mWindowSet.Count == 0; }
+	// a小于b返回1, a等于b返回0, a大于b返回-1
+	public static int UIDepthDescend(IMouseEventCollect a, IMouseEventCollect b)
 	{
-		return (int)MathUtility.sign(b.mCamera.getCameraDepth() - a.mCamera.getCameraDepth());
+		return UIDepth.compare(a.getDepth(), b.getDepth());
+	}
+	public static int cameraDepthDescend(MouseCastWindowSet a, MouseCastWindowSet b)
+	{
+		return (int)sign(b.mCamera.getCameraDepth() - a.mCamera.getCameraDepth());
 	}
 }

@@ -3,11 +3,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-public class EffectManager : FrameComponent
+public class EffectManager : FrameSystem
 {
 	protected List<GameEffect> mEffectList;
-	public EffectManager(string name)
-		:base(name)
+	public EffectManager()
 	{
 		mEffectList = new List<GameEffect>();
 		mCreateObject = true;
@@ -164,7 +163,7 @@ public class EffectManager : FrameComponent
 			return null;
 		}
 		GameEffect gameEffect;
-		mClassPool.newClass(out gameEffect);
+		mClassPool.newClass(out gameEffect, Typeof<GameEffect>());
 		gameEffect.setName(name);
 		gameEffect.setObject(go);
 		gameEffect.setExistObject(existObject);

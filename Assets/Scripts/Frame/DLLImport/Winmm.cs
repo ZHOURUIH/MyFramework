@@ -55,57 +55,57 @@ public delegate int waveInStartDelegate(IntPtr hwi);
 public delegate int waveInStopDelegate(IntPtr hwi);
 public delegate int waveInGetDevCapsADelegate(int hwo, ref WaveInCaps lpCaps, int uSize);
 
-public class Winmm
+public class Winmm : UnityUtility
 {
 	public const string WINMM_DLL = "winmm.dll";
 	public static int waveInGetNumDevs()
 	{
-		waveInGetNumDevsDelegate d = DllImportExtern.Invoke(WINMM_DLL, "waveInGetNumDevs", typeof(waveInGetNumDevsDelegate)) as waveInGetNumDevsDelegate;
+		waveInGetNumDevsDelegate d = DllImportExtern.Invoke(WINMM_DLL, "waveInGetNumDevs", Typeof<waveInGetNumDevsDelegate>()) as waveInGetNumDevsDelegate;
 		return d();
 	}
 	public static int waveInAddBuffer(IntPtr hwi, ref WaveHdr pwh, int cbwh)
 	{
-		waveInAddBufferDelegate d = DllImportExtern.Invoke(WINMM_DLL, "waveInAddBuffer", typeof(waveInAddBufferDelegate)) as waveInAddBufferDelegate;
+		waveInAddBufferDelegate d = DllImportExtern.Invoke(WINMM_DLL, "waveInAddBuffer", Typeof<waveInAddBufferDelegate>()) as waveInAddBufferDelegate;
 		return d(hwi, ref pwh, cbwh);
 	}
 	public static int waveInClose(IntPtr hwi)
 	{
-		waveInCloseDelegate d = DllImportExtern.Invoke(WINMM_DLL, "waveInClose", typeof(waveInCloseDelegate)) as waveInCloseDelegate;
+		waveInCloseDelegate d = DllImportExtern.Invoke(WINMM_DLL, "waveInClose", Typeof<waveInCloseDelegate>()) as waveInCloseDelegate;
 		return d(hwi);
 	}
 	public static int waveInOpen(out IntPtr phwi, uint uDeviceID, ref WaveFormatEx lpFormat, WaveDelegate dwCallback, IntPtr dwInstance, int dwFlags)
 	{
-		waveInOpenDelegate d = DllImportExtern.Invoke(WINMM_DLL, "waveInOpen", typeof(waveInOpenDelegate)) as waveInOpenDelegate;
+		waveInOpenDelegate d = DllImportExtern.Invoke(WINMM_DLL, "waveInOpen", Typeof<waveInOpenDelegate>()) as waveInOpenDelegate;
 		return d(out phwi, uDeviceID, ref lpFormat, dwCallback, dwInstance, dwFlags);
 	}
 	public static int waveInPrepareHeader(IntPtr hWaveIn, ref WaveHdr lpWaveInHdr, int uSize)
 	{
-		waveInPrepareHeaderDelegate d = DllImportExtern.Invoke(WINMM_DLL, "waveInPrepareHeader", typeof(waveInPrepareHeaderDelegate)) as waveInPrepareHeaderDelegate;
+		waveInPrepareHeaderDelegate d = DllImportExtern.Invoke(WINMM_DLL, "waveInPrepareHeader", Typeof<waveInPrepareHeaderDelegate>()) as waveInPrepareHeaderDelegate;
 		return d(hWaveIn, ref lpWaveInHdr, uSize);
 	}
 	public static int waveInUnprepareHeader(IntPtr hWaveIn, ref WaveHdr lpWaveInHdr, int uSize)
 	{
-		waveInUnprepareHeaderDelegate d = DllImportExtern.Invoke(WINMM_DLL, "waveInUnprepareHeader", typeof(waveInUnprepareHeaderDelegate)) as waveInUnprepareHeaderDelegate;
+		waveInUnprepareHeaderDelegate d = DllImportExtern.Invoke(WINMM_DLL, "waveInUnprepareHeader", Typeof<waveInUnprepareHeaderDelegate>()) as waveInUnprepareHeaderDelegate;
 		return d(hWaveIn, ref lpWaveInHdr, uSize);
 	}
 	public static int waveInReset(IntPtr hwi)
 	{
-		waveInResetDelegate d = DllImportExtern.Invoke(WINMM_DLL, "waveInReset", typeof(waveInResetDelegate)) as waveInResetDelegate;
+		waveInResetDelegate d = DllImportExtern.Invoke(WINMM_DLL, "waveInReset", Typeof<waveInResetDelegate>()) as waveInResetDelegate;
 		return d(hwi);
 	}
 	public static int waveInStart(IntPtr hwi)
 	{
-		waveInStartDelegate d = DllImportExtern.Invoke(WINMM_DLL, "waveInStart", typeof(waveInStartDelegate)) as waveInStartDelegate;
+		waveInStartDelegate d = DllImportExtern.Invoke(WINMM_DLL, "waveInStart", Typeof<waveInStartDelegate>()) as waveInStartDelegate;
 		return d(hwi);
 	}
 	public static int waveInStop(IntPtr hwi)
 	{
-		waveInStopDelegate d = DllImportExtern.Invoke(WINMM_DLL, "waveInStop", typeof(waveInStopDelegate)) as waveInStopDelegate;
+		waveInStopDelegate d = DllImportExtern.Invoke(WINMM_DLL, "waveInStop", Typeof<waveInStopDelegate>()) as waveInStopDelegate;
 		return d(hwi);
 	}
 	public static int waveInGetDevCapsA(int hwo, ref WaveInCaps lpCaps, int uSize)
 	{
-		waveInGetDevCapsADelegate d = DllImportExtern.Invoke(WINMM_DLL, "waveInGetDevCapsA", typeof(waveInGetDevCapsADelegate)) as waveInGetDevCapsADelegate;
+		waveInGetDevCapsADelegate d = DllImportExtern.Invoke(WINMM_DLL, "waveInGetDevCapsA", Typeof<waveInGetDevCapsADelegate>()) as waveInGetDevCapsADelegate;
 		return d(hwo, ref lpCaps, uSize);
 	}
 }

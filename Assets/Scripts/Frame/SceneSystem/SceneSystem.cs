@@ -11,14 +11,13 @@ public struct SceneRegisteInfo
 	public Type mSceneType;
 }
 
-public class SceneSystem : FrameComponent
+public class SceneSystem : FrameSystem
 {
 	protected Dictionary<string, SceneInstance> mSceneList;
 	protected Dictionary<string, SceneRegisteInfo> mSceneRegisteList;
 	protected List<SceneLoadCallback> mDirectLoadCallback;  // 请求加载已经加载的场景时的回调,因为这些回调需要延迟一帧调用,所以放入列表中再调用
 	protected List<SceneInstance> mLoadList;
-	public SceneSystem(string name)
-		:base(name)
+	public SceneSystem()
 	{
 		mSceneList = new Dictionary<string, SceneInstance>();
 		mSceneRegisteList = new Dictionary<string, SceneRegisteInfo>();
@@ -47,11 +46,11 @@ public class SceneSystem : FrameComponent
 		// 场景AssetBundle加载完毕时才开始加载场景
 		for(int i = 0; i < mLoadList.Count; ++i)
 		{
-			if (mLoadList[i].mState == LOAD_STATE.LS_UNLOAD)
+			if (mLoadList[i].mState == LOAD_STATE.UNLOAD)
 			{
 				mGameFramework.StartCoroutine(loadSceneCoroutine(mLoadList[i]));
 			}
-			else if (mLoadList[i].mState == LOAD_STATE.LS_LOADED)
+			else if (mLoadList[i].mState == LOAD_STATE.LOADED)
 			{
 				mLoadList.RemoveAt(i--);
 			}
@@ -151,7 +150,7 @@ public class SceneSystem : FrameComponent
 			return;
 		}
 		SceneInstance scene = createScene(sceneName);
-		scene.mState = LOAD_STATE.LS_UNLOAD;
+		scene.mState = LOAD_STATE.UNLOAD;
 		scene.mActiveLoaded = active;
 		scene.mLoadCallback = callback;
 		mSceneList.Add(scene.mName, scene);
@@ -188,7 +187,7 @@ public class SceneSystem : FrameComponent
 	}
 	protected IEnumerator loadSceneCoroutine(SceneInstance scene)
 	{
-		scene.mState = LOAD_STATE.LS_LOADING;
+		scene.mState = LOAD_STATE.LOADING;
 		// 所有场景都只能使用叠加的方式来加载,方便场景管理器来管理所有场景的加载和卸载
 		scene.mOperation = SceneManager.LoadSceneAsync(scene.mName, LoadSceneMode.Additive);
 		// allowSceneActivation指定了加载场景时是否需要调用场景中所有脚本的Awake和Start,以及贴图材质的引用等等
@@ -209,7 +208,7 @@ public class SceneSystem : FrameComponent
 		// 首先获得场景
 		scene.mScene = SceneManager.GetSceneByName(scene.mName);
 		// 获得了场景根节点才能使场景显示或隐藏
-		scene.mRoot = getGameObject(null, scene.mName + "_Root", true);
+		scene.mRoot = getGameObject(scene.mName + "_Root", true);
 		// 加载完毕后就立即初始化
 		scene.init();
 		if(scene.mActiveLoaded)
@@ -220,7 +219,7 @@ public class SceneSystem : FrameComponent
 		{
 			hideScene(scene.mName);
 		}
-		scene.mState = LOAD_STATE.LS_LOADED;
+		scene.mState = LOAD_STATE.LOADED;
 		scene.mLoadCallback?.Invoke(1.0f, true);
 	}
 	protected SceneInstance createScene(string sceneName)
@@ -230,7 +229,9 @@ public class SceneSystem : FrameComponent
 			logError("scene :" + sceneName + " is not registed!");
 			return null;
 		}
-		return createInstance<SceneInstance>(mSceneRegisteList[sceneName].mSceneType, sceneName);
+		SceneInstance scene =  createInstance<SceneInstance>(mSceneRegisteList[sceneName].mSceneType);
+		scene.setName(sceneName);
+		return scene;
 	}
 	// 只销毁场景,不从列表移除
 	protected void unloadSceneOnly(string name)

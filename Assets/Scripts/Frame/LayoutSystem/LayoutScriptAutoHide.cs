@@ -5,12 +5,12 @@ using System;
 
 public abstract class LayoutScriptAutoHide : LayoutScript
 {
-	protected CustomTimer mTimer;
+	protected MyTimer mTimer;
 	protected bool mShowDone;
 	protected bool mHideDone;
 	public LayoutScriptAutoHide()
 	{
-		mTimer = new CustomTimer();
+		mTimer = new MyTimer();
 		mHideDone = true;
 	}
 	public override void init()
@@ -46,7 +46,7 @@ public abstract class LayoutScriptAutoHide : LayoutScript
 		base.update(elapsedTime);
 		if (mTimer.tickTimer(elapsedTime))
 		{
-			LT.HIDE_LAYOUT(mLayout.getType());
+			LT.HIDE_LAYOUT(mID);
 		}
 	}
 	public void setAutoHide(bool autoHide)
@@ -83,6 +83,6 @@ public abstract class LayoutScriptAutoHide : LayoutScript
 	{
 		mHideDone = true;
 		mShowDone = false;
-		LT.HIDE_LAYOUT_FORCE(mType);
+		LT.HIDE_LAYOUT_FORCE(mID);
 	}
 }

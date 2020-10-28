@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CameraManager : FrameComponent
+public class CameraManager : FrameSystem
 {
 	protected HashSet<GameCamera> mCameraList;
 	protected GameCamera mMainCamera;
@@ -10,18 +10,17 @@ public class CameraManager : FrameComponent
 	protected GameCamera mUGUICamera;
 	protected GameCamera mUGUIBlurCamera;
 	protected GameCamera mNGUIBlurCamera;
-	public CameraManager(string name)
-		: base(name)
+	public CameraManager()
 	{
 		mCameraList = new HashSet<GameCamera>();
 	}
 	public override void init()
 	{
 		base.init();
-		mNGUICamera = createCamera(CommonDefine.UI_CAMERA, mLayoutManager.getRootObject(true));
-		mUGUICamera = createCamera(CommonDefine.UI_CAMERA, mLayoutManager.getRootObject(false));
-		mNGUIBlurCamera = createCamera(CommonDefine.BLUR_CAMERA, mLayoutManager.getRootObject(true), false, false);
-		mUGUIBlurCamera = createCamera(CommonDefine.BLUR_CAMERA, mLayoutManager.getRootObject(false), false, false);
+		mNGUICamera = createCamera(FrameDefine.UI_CAMERA, mLayoutManager.getRootObject(GUI_TYPE.NGUI));
+		mUGUICamera = createCamera(FrameDefine.UI_CAMERA, mLayoutManager.getRootObject(GUI_TYPE.UGUI));
+		mNGUIBlurCamera = createCamera(FrameDefine.BLUR_CAMERA, mLayoutManager.getRootObject(GUI_TYPE.NGUI), false, false);
+		mUGUIBlurCamera = createCamera(FrameDefine.BLUR_CAMERA, mLayoutManager.getRootObject(GUI_TYPE.UGUI), false, false);
 		mMainCamera = createCamera("MainCamera");
 	}
 	public override void update(float elapsedTime)
@@ -68,7 +67,7 @@ public class CameraManager : FrameComponent
 		GameCamera camera = null;
 		// 摄像机节点是否是自己创建的
 		bool isNewNode = false;
-		GameObject obj = getGameObject(parent, name, false, false);
+		GameObject obj = getGameObject(name, parent, false, false);
 		if (obj == null && newCamera)
 		{
 			obj = createGameObject(name, parent);
@@ -76,7 +75,8 @@ public class CameraManager : FrameComponent
 		}
 		if (obj != null)
 		{
-			camera = new GameCamera(name);
+			camera = new GameCamera();
+			camera.setName(name);
 			camera.init();
 			camera.setObject(obj);
 			// 只有自己创建的摄像机节点才可以销毁
@@ -121,15 +121,37 @@ public class CameraManager : FrameComponent
 	}
 	public GameCamera getMainCamera() { return mMainCamera; }
 	public void setMainCamera(GameCamera mainCamera) { mMainCamera = mainCamera; }
-	public new GameCamera getUICamera(bool ngui) { return ngui ? mNGUICamera : mUGUICamera; }
-	public GameCamera getUIBlurCamera(bool ngui) { return ngui ? mNGUIBlurCamera : mUGUIBlurCamera; }
-	public void activeBlurCamera(bool ngui, bool active)
+	public new GameCamera getUICamera(GUI_TYPE guiType) 
 	{
-		if(ngui)
+		if(guiType == GUI_TYPE.NGUI)
+		{
+			return mNGUICamera;
+		}
+		if(guiType == GUI_TYPE.UGUI)
+		{
+			return mUGUICamera;
+		}
+		return null;
+	}
+	public GameCamera getUIBlurCamera(GUI_TYPE guiType)
+	{
+		if(guiType == GUI_TYPE.NGUI)
+		{
+			return mNGUIBlurCamera;
+		}
+		if(guiType == GUI_TYPE.UGUI)
+		{
+			return mUGUIBlurCamera;
+		}
+		return null;
+	}
+	public void activeBlurCamera(GUI_TYPE guiType, bool active)
+	{
+		if (guiType == GUI_TYPE.NGUI)
 		{
 			OT.ACTIVE(mNGUIBlurCamera, active);
 		}
-		else
+		else if (guiType == GUI_TYPE.UGUI)
 		{
 			OT.ACTIVE(mUGUIBlurCamera, active);
 		}

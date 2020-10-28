@@ -7,7 +7,7 @@ public class ComponentKeyFramePhysics : ComponentKeyFrameBase
 	public override void fixedUpdate(float elapsedTime)
 	{
 		base.fixedUpdate(elapsedTime);
-		if (mKeyFrame != null && mPlayState == PLAY_STATE.PS_PLAY)
+		if (mKeyFrame != null && mPlayState == PLAY_STATE.PLAY)
 		{
 			mCurrentTime += elapsedTime;
 			mPlayedTime += elapsedTime;

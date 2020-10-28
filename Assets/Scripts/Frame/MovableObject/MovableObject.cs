@@ -17,24 +17,23 @@ public class MovableObject : Transformable, IMouseEventCollect
 	protected OnMouseMove mOnMouseMove;
 	protected Vector3 mPhysicsAcceleration; // FixedUpdate中的加速度
 	protected Vector3 mLastPhysicsSpeed;    // FixedUpdate中上一帧的移动速度
-	protected Vector3 mPhysicsSpeed;		// FixedUpdate中的移动速度
-	protected Vector3 mLastPhysicsPosition;	// 上一帧FixedUpdate中的位置
-	protected Vector3 mCurFramePosition;	// 当前位置
-	protected Vector3 mLastPosition;		// 上一帧的位置
-	protected Vector3 mMoveSpeed;			// 当前移动速度
-	protected Vector3 mLastSpeed;			// 上一帧的移动速度
+	protected Vector3 mPhysicsSpeed;        // FixedUpdate中的移动速度
+	protected Vector3 mLastPhysicsPosition; // 上一帧FixedUpdate中的位置
+	protected Vector3 mCurFramePosition;    // 当前位置
+	protected Vector3 mLastPosition;        // 上一帧的位置
+	protected Vector3 mMoveSpeed;           // 当前移动速度
+	protected Vector3 mLastSpeed;           // 上一帧的移动速度
 	protected Vector3 mMouseDownPosition;   // 鼠标按下时在窗口中的位置,鼠标在窗口中移动时该值不改变
-	protected bool mMovedDuringFrame;		// 角色在这一帧内是否移动过
-	protected bool mHasLastPosition;		// mLastPosition是否有效
-	protected bool mDestroyObject;			// 如果是外部管理的节点,则一定不要在MovableObject自动销毁
-	protected bool mDestroied;				// 物体是否已经销毁
-	protected bool mMouseHovered;			// 鼠标当前是否悬停在物体上
-	protected bool mHandleInput;			// 是否接收鼠标输入事件
+	protected bool mMovedDuringFrame;       // 角色在这一帧内是否移动过
+	protected bool mHasLastPosition;        // mLastPosition是否有效
+	protected bool mDestroyObject;          // 如果是外部管理的节点,则一定不要在MovableObject自动销毁
+	protected bool mDestroied;              // 物体是否已经销毁
+	protected bool mMouseHovered;           // 鼠标当前是否悬停在物体上
+	protected bool mHandleInput;            // 是否接收鼠标输入事件
 	protected bool mPassRay;                // 是否允许射线穿透
-	protected bool mEnableFixedUpdate;		// 是否启用FixedUpdate来计算Physics相关属性
-	protected int mObjectID;				// 物体的客户端ID
-	public MovableObject(string name)
-		: base(name)
+	protected bool mEnableFixedUpdate;      // 是否启用FixedUpdate来计算Physics相关属性
+	protected int mObjectID;                // 物体的客户端ID
+	public MovableObject()
 	{
 		mObjectID = makeID();
 		mDestroyObject = true;
@@ -45,9 +44,9 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public override void destroy()
 	{
 		base.destroy();
-		mGlobalTouchSystem.unregisteBoxCollider(this);
+		mGlobalTouchSystem.unregisteCollider(this);
 		destroyAllComponents();
-		if(mDestroyObject)
+		if (mDestroyObject)
 		{
 			destroyGameObject(ref mObject);
 		}
@@ -56,12 +55,12 @@ public class MovableObject : Transformable, IMouseEventCollect
 	}
 	public virtual void setObject(GameObject obj, bool destroyOld = true)
 	{
-		if(destroyOld && mObject != null)
+		if (destroyOld && mObject != null)
 		{
 			destroyGameObject(ref mObject);
 		}
 		mObject = obj;
-		if(mObject != null)
+		if (mObject != null)
 		{
 			mObject.name = mName;
 			mTransform = mObject.transform;
@@ -76,7 +75,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public virtual void init()
 	{
 		mDestroied = false;
-		if(mObjectID == -1)
+		if (mObjectID == -1)
 		{
 			mObjectID = makeID();
 		}
@@ -85,7 +84,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		if(elapsedTime > 0.0f)
+		if (elapsedTime > 0.0f)
 		{
 			mLastPosition = mCurFramePosition;
 			mCurFramePosition = getPosition();
@@ -119,11 +118,11 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public override Vector3 worldToLocalDirection(Vector3 direction) { return worldToLocalDirection(mTransform, direction); }
 	public T addUnityComponent<T>() where T : Component
 	{
-		if(mObject == null)
+		if (mObject == null)
 		{
 			return null;
 		}
-		if(mObject.GetComponent<T>() != null)
+		if (mObject.GetComponent<T>() != null)
 		{
 			return mObject.GetComponent<T>();
 		}
@@ -132,7 +131,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	// get
 	//-------------------------------------------------------------------------------------------------------------------------
 	public AudioSource getAudioSource() { return mAudioSource; }
-	public GameObject getObject() { return mObject; }
+	public virtual GameObject getObject() { return mObject; }
 	public bool isUnityComponentEnabled<T>() where T : Behaviour
 	{
 		T component = getUnityComponent<T>(false);
@@ -141,7 +140,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public void enableUnityComponent<T>(bool enable) where T : Behaviour
 	{
 		T component = getUnityComponent<T>();
-		if(component != null)
+		if (component != null)
 		{
 			component.enabled = enable;
 		}
@@ -149,7 +148,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public T getUnityComponent<T>(bool addIfNotExist = true) where T : Component
 	{
 		T component = mObject.GetComponent<T>();
-		if(component == null && addIfNotExist)
+		if (component == null && addIfNotExist)
 		{
 			component = mObject.AddComponent<T>();
 		}
@@ -158,7 +157,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public void getUnityComponent<T>(out T component, bool addIfNotExist = true) where T : Component
 	{
 		component = mObject.GetComponent<T>();
-		if(component == null && addIfNotExist)
+		if (component == null && addIfNotExist)
 		{
 			component = mObject.AddComponent<T>();
 		}
@@ -169,7 +168,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	}
 	public T getUnityComponentInChild<T>(string childName) where T : Component
 	{
-		GameObject child = getGameObject(mObject, childName);
+		GameObject child = getGameObject(childName, mObject);
 		return child.GetComponent<T>();
 	}
 	public override Vector3 getPosition() { return mTransform.localPosition; }
@@ -189,6 +188,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public int getLayerInt() { return mObject.layer; }
 	public Transform getTransform() { return mTransform; }
 	public override bool isActive() { return mObject.activeSelf; }
+	public virtual bool isActiveInHierarchy() { return mObject.activeInHierarchy; }
 	public int getObjectID() { return mObjectID; }
 	public bool hasMovedDuringFrame() { return mMovedDuringFrame; }
 	public bool isEnableFixedUpdate() { return mEnableFixedUpdate; }
@@ -198,7 +198,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public Vector3 getLeft(bool ignoreY = false)
 	{
 		Vector3 left = localToWorldDirection(Vector3.left);
-		if(ignoreY)
+		if (ignoreY)
 		{
 			left = normalize(replaceY(left, 0.0f));
 		}
@@ -207,7 +207,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public Vector3 getRight(bool ignoreY = false)
 	{
 		Vector3 right = localToWorldDirection(Vector3.right);
-		if(ignoreY)
+		if (ignoreY)
 		{
 			right = normalize(replaceY(right, 0.0f));
 		}
@@ -216,7 +216,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public Vector3 getBack(bool ignoreY = false)
 	{
 		Vector3 back = localToWorldDirection(Vector3.back);
-		if(ignoreY)
+		if (ignoreY)
 		{
 			back = normalize(replaceY(back, 0.0f));
 		}
@@ -225,7 +225,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public Vector3 getForward(bool ignoreY = false)
 	{
 		Vector3 forward = localToWorldDirection(Vector3.forward);
-		if(ignoreY)
+		if (ignoreY)
 		{
 			forward = normalize(replaceY(forward, 0.0f));
 		}
@@ -235,29 +235,48 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public Collider2D[] getColliders2D() { return mObject.GetComponents<Collider2D>(); }
 	public virtual bool isHandleInput() { return mHandleInput; }
 	// 返回第一个碰撞体
-	public Collider getCollider(bool addIfNull = false)
+	public virtual Collider getCollider()
 	{
 		var colliders = getColliders();
-		if(colliders != null && colliders.Length > 0)
+		if (colliders != null && colliders.Length > 0)
 		{
 			return colliders[0];
 		}
 		return null;
 	}
+	public bool raycast(ref Ray ray, out RaycastHit hit, float maxDistance)
+	{
+		Collider collider = getCollider();
+		if (collider == null)
+		{
+			hit = new RaycastHit();
+			return false;
+		}
+		return collider.Raycast(ray, out hit, maxDistance);
+	}
 	// 可移动物体没有固定深度,只在实时检测时根据相交点来判断深度
-	public UIDepth getUIDepth() { return new UIDepth(); }
-	public bool isReceiveScreenMouse() { return mOnScreenMouseUp != null; }
-	public bool isPassRay() { return mPassRay; }
-	public bool isDragable() { return getComponent<MovableObjectComponentDrag>(true, false) != null; }
-	public bool isMouseHovered() { return mMouseHovered; }
+	public virtual UIDepth getDepth() { return null; }
+	public virtual bool isReceiveScreenMouse() { return mOnScreenMouseUp != null; }
+	public virtual bool isPassRay() { return mPassRay; }
+	public virtual bool isDragable() { return getComponent<MovableObjectComponentDrag>(true, false) != null; }
+	public virtual bool isMouseHovered() { return mMouseHovered; }
+	public virtual bool isChildOf(IMouseEventCollect parent)
+	{
+		MovableObject obj = parent as MovableObject;
+		if (obj == null)
+		{
+			return false;
+		}
+		return mTransform.IsChildOf(obj.getTransform());
+	}
 	// set
 	//-------------------------------------------------------------------------------------------------------------------------
-	public void setPassRay(bool passRay) { mPassRay = passRay; }
+	public virtual void setPassRay(bool passRay) { mPassRay = passRay; }
 	public virtual void setHandleInput(bool handleInput) { mHandleInput = handleInput; }
 	public override void setName(string name)
 	{
 		base.setName(name);
-		if(mObject != null && mObject.name != name)
+		if (mObject != null && mObject.name != name)
 		{
 			mObject.name = name;
 		}
@@ -280,9 +299,9 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public override void setRotation(Vector3 rot) { mTransform.localEulerAngles = rot; }
 	public override void setWorldPosition(Vector3 pos) { mTransform.position = pos; }
 	public override void setWorldRotation(Vector3 rot) { mTransform.eulerAngles = rot; }
-	public override void setWorldScale(Vector3 scale) 
+	public override void setWorldScale(Vector3 scale)
 	{
-		if(mTransform.parent != null)
+		if (mTransform.parent != null)
 		{
 			mTransform.localScale = devideVector3(scale, mTransform.parent.lossyScale);
 		}
@@ -308,7 +327,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public void setScaleX(float x) { mTransform.localScale = replaceX(mTransform.localScale, x); }
 	public virtual void move(Vector3 moveDelta, Space space = Space.Self)
 	{
-		if(space == Space.Self)
+		if (space == Space.Self)
 		{
 			moveDelta = rotateVector3(moveDelta, getQuaternionRotation());
 		}
@@ -338,7 +357,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	}
 	public void setParent(GameObject parent, bool resetTrans = true)
 	{
-		if(parent == null)
+		if (parent == null)
 		{
 			mTransform.parent = null;
 		}
@@ -346,7 +365,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 		{
 			mTransform.parent = parent.transform;
 		}
-		if(resetTrans)
+		if (resetTrans)
 		{
 			resetLocalTransform();
 		}
@@ -356,9 +375,9 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public void setOnMouseDown(OnMouseDown callback) { mOnMouseDown = callback; }
 	public void setOnMouseUp(OnMouseUp callback) { mOnMouseUp = callback; }
 	public void setOnMouseMove(OnMouseMove callback) { mOnMouseMove = callback; }
-	public void setClickCallback(ObjectClickCallback callback) { mClickCallback = callback; }
-	public void setHoverCallback(ObjectHoverCallback callback) { mHoverCallback = callback; }
-	public void setPressCallback(ObjectPressCallback callback) { mPressCallback = callback; }
+	public virtual void setClickCallback(ObjectClickCallback callback) { mClickCallback = callback; }
+	public virtual void setHoverCallback(ObjectHoverCallback callback) { mHoverCallback = callback; }
+	public virtual void setPressCallback(ObjectPressCallback callback) { mPressCallback = callback; }
 	public void setOnScreenMouseUp(OnScreenMouseUp callback) { mOnScreenMouseUp = callback; }
 	public void copyObjectTransform(GameObject obj)
 	{
@@ -370,7 +389,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public void enableAllColliders(bool enable)
 	{
 		var colliders = mObject.GetComponents<Collider>();
-		foreach(var item in colliders)
+		foreach (var item in colliders)
 		{
 			item.enabled = enable;
 		}
@@ -431,7 +450,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public virtual void onMouseUp(Vector3 mousePos)
 	{
 		mPressCallback?.Invoke(this, false);
-		if(lengthLess(mMouseDownPosition - mousePos, CommonDefine.CLICK_THRESHOLD))
+		if (lengthLess(mMouseDownPosition - mousePos, FrameDefine.CLICK_THRESHOLD))
 		{
 			mClickCallback?.Invoke(this);
 		}
@@ -457,7 +476,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public virtual void setAlpha(float alpha)
 	{
 		Renderer[] renderers = getUnityComponentsInChild<Renderer>();
-		foreach(var item in renderers)
+		foreach (var item in renderers)
 		{
 			Color color = item.material.color;
 			color.a = alpha;

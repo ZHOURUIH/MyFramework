@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class CameraLinkerSwitchCircle : CameraLinkerSwitch
 {
+	protected Vector3 mRotateCenter;    // 高度忽略的旋转圆心
 	protected float mRotatedAngle;		// 已经旋转过的角度
 	protected float mTotalAngle;
-	protected Vector3 mRotateCenter;    // 高度忽略的旋转圆心
 	public CameraLinkerSwitchCircle()
 	{
 		mTotalAngle = PI_RADIAN;

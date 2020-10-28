@@ -5,37 +5,37 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.U2D;
 
-public class ResourceManager : FrameComponent
+public class ResourceManager : FrameSystem
 {
 	public AssetBundleLoader mAssetBundleLoader;
 	protected ResourceLoader mResourceLoader;
 	protected LOAD_SOURCE mLoadSource;						// 0为从Resources加载,1为从AssetBundle加载
-	public static string mResourceRootPath = CommonDefine.F_STREAMING_ASSETS_PATH; // 当mLoadSource为1时,AssetBundle资源所在根目录,以/结尾,默认为StreamingAssets,可以为远端目录
+	public static string mResourceRootPath = FrameDefine.F_STREAMING_ASSETS_PATH; // 当mLoadSource为1时,AssetBundle资源所在根目录,以/结尾,默认为StreamingAssets,可以为远端目录
 	public static bool mLocalRootPath = true;       // mResourceRootPath是否为本地的路径
 	public static bool mPersistentFirst = true;     // 当从AssetBundle加载资源时,是否先去persistentDataPath中查找资源
 	protected static Dictionary<Type, List<string>> mTypeSuffixList;        // 资源类型对应的后缀名
-	public ResourceManager(string name)
-		:base(name)
+	public ResourceManager()
 	{
 		mCreateObject = true;
 		mAssetBundleLoader = new AssetBundleLoader();
 		mResourceLoader = new ResourceLoader();
 		mTypeSuffixList = new Dictionary<Type, List<string>>();
-		registeSuffix(typeof(Texture), ".png");
-		registeSuffix(typeof(Texture2D), ".png");
-		registeSuffix(typeof(GameObject), ".prefab");
-		registeSuffix(typeof(GameObject), ".fbx");
-		registeSuffix(typeof(Material), ".mat");
-		registeSuffix(typeof(Shader), ".shader");
-		registeSuffix(typeof(AudioClip), ".wav");
-		registeSuffix(typeof(AudioClip), ".ogg");
-		registeSuffix(typeof(AudioClip), ".mp3");
-		registeSuffix(typeof(TextAsset), ".txt");
-		registeSuffix(typeof(RuntimeAnimatorController), ".controller");
-		registeSuffix(typeof(RuntimeAnimatorController), ".overrideController");
-		registeSuffix(typeof(SpriteAtlas), ".spriteatlas");
-		registeSuffix(typeof(Sprite), ".png");
-		registeSuffix(typeof(UnityEngine.Object), ".asset");
+		registeSuffix(Typeof<Texture>(), ".png");
+		registeSuffix(Typeof<Texture2D>(), ".png");
+		registeSuffix(Typeof<GameObject>(), ".prefab");
+		registeSuffix(Typeof<GameObject>(), ".fbx");
+		registeSuffix(Typeof<Material>(), ".mat");
+		registeSuffix(Typeof<Shader>(), ".shader");
+		registeSuffix(Typeof<AudioClip>(), ".wav");
+		registeSuffix(Typeof<AudioClip>(), ".ogg");
+		registeSuffix(Typeof<AudioClip>(), ".mp3");
+		registeSuffix(Typeof<TextAsset>(), ".txt");
+		registeSuffix(Typeof<TextAsset>(), ".bytes");
+		registeSuffix(Typeof<RuntimeAnimatorController>(), ".controller");
+		registeSuffix(Typeof<RuntimeAnimatorController>(), ".overrideController");
+		registeSuffix(Typeof<SpriteAtlas>(), ".spriteatlas");
+		registeSuffix(Typeof<Sprite>(), ".png");
+		registeSuffix(Typeof<UnityEngine.Object>(), ".asset");
 	}
 	public override void init()
 	{
@@ -43,23 +43,23 @@ public class ResourceManager : FrameComponent
 #if UNITY_EDITOR
 		mLoadSource = (LOAD_SOURCE)(int)mFrameConfig.getFloat(GAME_FLOAT.LOAD_RESOURCES);
 #else
-		mLoadSource = LOAD_SOURCE.LS_ASSET_BUNDLE;
+		mLoadSource = LOAD_SOURCE.ASSET_BUNDLE;
 #endif
 #if UNITY_EDITOR
 		mObject.AddComponent<ResourcesManagerDebug>();
 #endif
 		mPersistentFirst = (int)mFrameConfig.getFloat(GAME_FLOAT.PERSISTENT_DATA_FIRST) != 0;
 		// 如果从Resources加载,则固定为默认值
-		if (mLoadSource == LOAD_SOURCE.LS_RESOURCES)
+		if (mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
-			mResourceRootPath = CommonDefine.F_STREAMING_ASSETS_PATH;
+			mResourceRootPath = FrameDefine.F_STREAMING_ASSETS_PATH;
 			mLocalRootPath = true;
 		}
-		if (mLoadSource == LOAD_SOURCE.LS_RESOURCES)
+		if (mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
 			mResourceLoader.init();
 		}
-		else if(mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
+		else if(mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
 			mAssetBundleLoader.init();
 		}
@@ -81,11 +81,11 @@ public class ResourceManager : FrameComponent
 	// 卸载加载的资源,不是实例化出的物体
 	public bool unload<T>(ref T obj) where T : UnityEngine.Object
 	{
-		if(mLoadSource == LOAD_SOURCE.LS_RESOURCES)
+		if(mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
 			return mResourceLoader.unloadResource(ref obj);
 		}
-		if(mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
+		if(mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
 			return mAssetBundleLoader.unloadAsset(ref obj);
 		}
@@ -99,11 +99,11 @@ public class ResourceManager : FrameComponent
 	public void unloadPath(string path)
 	{
 		removeEndSlash(ref path);
-		if (mLoadSource == LOAD_SOURCE.LS_RESOURCES)
+		if (mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
 			mResourceLoader.unloadPath(path);
 		}
-		else if (mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
+		else if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
 			mAssetBundleLoader.unloadPath(path.ToLower());
 		}
@@ -111,7 +111,7 @@ public class ResourceManager : FrameComponent
 	public void unloadAssetBundle(string bundleName)
 	{
 		// 只有从AssetBundle加载才能卸载AssetBundle
-		if (mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
+		if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
 			mAssetBundleLoader.unloadAssetBundle(bundleName);
 		}
@@ -119,17 +119,17 @@ public class ResourceManager : FrameComponent
 	// AssetBundle是否可以使用
 	public bool isAssetBundleAvalaible()
 	{
-		return mLoadSource == LOAD_SOURCE.LS_RESOURCES || mAssetBundleLoader.isInited();
+		return mLoadSource == LOAD_SOURCE.RESOURCES || mAssetBundleLoader.isInited();
 	}
 	// 指定资源是否已经加载
 	public bool isResourceLoaded<T>(string name) where T : UnityEngine.Object
 	{
 		bool ret = false;
-		if (mLoadSource == LOAD_SOURCE.LS_RESOURCES)
+		if (mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
 			ret = mResourceLoader.isResourceLoaded(name);
 		}
-		else if (mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
+		else if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
 			ret = mAssetBundleLoader.isAssetLoaded<T>(name);
 		}
@@ -139,11 +139,11 @@ public class ResourceManager : FrameComponent
 	public T getResource<T>(string name, bool errorIfNull) where T : UnityEngine.Object
 	{
 		T res = null;
-		if (mLoadSource == LOAD_SOURCE.LS_RESOURCES)
+		if (mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
 			res = mResourceLoader.getResource(name) as T;
 		}
-		else if (mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
+		else if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
 			res = mAssetBundleLoader.getAsset<T>(name);
 		}
@@ -159,7 +159,7 @@ public class ResourceManager : FrameComponent
 	public void getFileList(string path, List<string> fileList, bool lower = false)
 	{
 		fileList.Clear();
-		if (mLoadSource == LOAD_SOURCE.LS_RESOURCES)
+		if (mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
 			mResourceLoader.getFileList(path, fileList);
 			if(lower)
@@ -171,7 +171,7 @@ public class ResourceManager : FrameComponent
 				}
 			}
 		}
-		else if (mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
+		else if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
 			mAssetBundleLoader.getFileList(path.ToLower(), fileList);
 		}
@@ -179,11 +179,11 @@ public class ResourceManager : FrameComponent
 	public bool syncLoadAvalaible()
 	{
 		// 如果从AssetBundle加载,并且资源目录为远端目录,则不能同步加载资源
-		return mLoadSource != LOAD_SOURCE.LS_ASSET_BUNDLE || mLocalRootPath;
+		return mLoadSource != LOAD_SOURCE.ASSET_BUNDLE || mLocalRootPath;
 	}
 	public void checkAssetBundleDependenceLoaded(string bundleName)
 	{
-		if(mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
+		if(mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
 			mAssetBundleLoader.checkAssetBundleDependenceLoaded(bundleName.ToLower());
 		}
@@ -191,19 +191,19 @@ public class ResourceManager : FrameComponent
 	public void loadAssetBundle(string bundleName)
 	{
 		// 只有从AssetBundle加载时才能加载AssetBundle
-		if (mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
+		if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
 			mAssetBundleLoader.loadAssetBundle(bundleName.ToLower());
 		}
 	}
 	public void loadAssetBundleAsync(string bundleName, AssetBundleLoadCallback callback, object userData)
 	{
-		if (mLoadSource == LOAD_SOURCE.LS_RESOURCES)
+		if (mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
 			// 从Resource加载不能加载AssetBundle
 			callback?.Invoke(null, userData);
 		}
-		else if (mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
+		else if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
 			mAssetBundleLoader.loadAssetBundleAsync(bundleName.ToLower(), callback, userData);
 		}
@@ -212,11 +212,11 @@ public class ResourceManager : FrameComponent
 	public T loadResource<T>(string name, bool errorIfNull) where T : UnityEngine.Object
 	{
 		T res = null;
-		if (mLoadSource == LOAD_SOURCE.LS_RESOURCES)
+		if (mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
 			res = mResourceLoader.loadResource<T>(name);
 		}
-		else if (mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
+		else if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
 			if(!mLocalRootPath)
 			{
@@ -233,11 +233,11 @@ public class ResourceManager : FrameComponent
 	public UnityEngine.Object[] loadSubResource<T>(string name, bool errorIfNull) where T : UnityEngine.Object
 	{
 		UnityEngine.Object[] res = null;
-		if (mLoadSource == LOAD_SOURCE.LS_RESOURCES)
+		if (mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
 			res = mResourceLoader.loadSubResource<T>(name);
 		}
-		else if (mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
+		else if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
 			if (!mLocalRootPath)
 			{
@@ -254,11 +254,11 @@ public class ResourceManager : FrameComponent
 	public bool loadSubResourceAsync<T>(string name, AssetLoadDoneCallback doneCallback, object[] userData, bool errorIfNull) where T : UnityEngine.Object
 	{
 		bool ret = false;
-		if (mLoadSource == LOAD_SOURCE.LS_RESOURCES)
+		if (mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
 			ret = mResourceLoader.loadResourcesAsync<T>(name, doneCallback, userData);
 		}
-		else if(mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
+		else if(mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
 			ret = mAssetBundleLoader.loadSubAssetAsync<T>(name, doneCallback, userData);
 		}
@@ -277,11 +277,11 @@ public class ResourceManager : FrameComponent
 	public bool loadResourceAsync<T>(string name, AssetLoadDoneCallback doneCallback, object[] userData, bool errorIfNull) where T : UnityEngine.Object
 	{
 		bool ret = false;
-		if (mLoadSource == LOAD_SOURCE.LS_RESOURCES)
+		if (mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
 			ret = mResourceLoader.loadResourcesAsync<T>(name, doneCallback, userData);
 		}
-		else if (mLoadSource == LOAD_SOURCE.LS_ASSET_BUNDLE)
+		else if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
 			ret = mAssetBundleLoader.loadAssetAsync<T>(name, doneCallback, userData);
 		}
@@ -294,11 +294,11 @@ public class ResourceManager : FrameComponent
 	public void loadAssetsFromUrl<T>(string url, AssetLoadDoneCallback callback, object userData = null) where T : UnityEngine.Object
 	{
 		object[] tempUserData = userData != null ?  new object[] { userData } : null;
-		mGameFramework.StartCoroutine(loadAssetsUrl(url, typeof(T), callback, tempUserData));
+		mGameFramework.StartCoroutine(loadAssetsUrl(url, Typeof<T>(), callback, tempUserData));
 	}
 	public void loadAssetsFromUrl<T>(string url, AssetLoadDoneCallback callback, object[] userData) where T : UnityEngine.Object
 	{
-		mGameFramework.StartCoroutine(loadAssetsUrl(url, typeof(T), callback, userData));
+		mGameFramework.StartCoroutine(loadAssetsUrl(url, Typeof<T>(), callback, userData));
 	}
 	public void loadAssetsFromUrl(string url, AssetLoadDoneCallback callback, object[] userData)
 	{
@@ -310,24 +310,25 @@ public class ResourceManager : FrameComponent
 		mGameFramework.StartCoroutine(loadAssetsUrl(url, null, callback, tempUserData));
 	}
 	// 加载StreamingAssets中不打包AB的资源,路径为StreamingAssets下的相对路径,带后缀名
+	// 需要调用FileUtility.releaseFileBuffer回收fileBytes
 	public void loadStreamingAssetsFile(string filePath, out byte[] fileBytes)
 	{
 		// 优先从PersistentDataPath中加载
 		fileBytes = null;
-		if (mPersistentFirst && isFileExist(CommonDefine.F_PERSISTENT_DATA_PATH + filePath))
+		if (mPersistentFirst && isFileExist(FrameDefine.F_PERSISTENT_DATA_PATH + filePath))
 		{
-			openFile(CommonDefine.F_PERSISTENT_DATA_PATH + filePath, out fileBytes, false);
+			openFile(FrameDefine.F_PERSISTENT_DATA_PATH + filePath, out fileBytes, false);
 		}
-		if(fileBytes == null && isFileExist(CommonDefine.F_STREAMING_ASSETS_PATH + filePath))
+		if(fileBytes == null && isFileExist(FrameDefine.F_STREAMING_ASSETS_PATH + filePath))
 		{
-			openFile(CommonDefine.F_STREAMING_ASSETS_PATH + filePath, out fileBytes, false);
+			openFile(FrameDefine.F_STREAMING_ASSETS_PATH + filePath, out fileBytes, false);
 		}
 	}
 	public static List<string> adjustResourceName<T>(string fileName, List<string> fileList, bool lower = true) where T : UnityEngine.Object
 	{
 		// 将\\转为/,加上后缀名,转为小写
 		rightToLeft(ref fileName);
-		addSuffix(fileName, typeof(T), fileList);
+		addSuffix(fileName, Typeof<T>(), fileList);
 		if(lower)
 		{
 			int count = fileList.Count;
@@ -350,16 +351,16 @@ public class ResourceManager : FrameComponent
 	//--------------------------------------------------------------------------------------------------------------------------------------------
 	protected IEnumerator loadAssetsUrl(string url, Type assetsType, AssetLoadDoneCallback callback, object[] userData)
 	{
-		logInfo("开始下载: " + url, LOG_LEVEL.LL_HIGH);
-		if (assetsType == typeof(AudioClip))
+		logInfo("开始下载: " + url, LOG_LEVEL.HIGH);
+		if (assetsType == Typeof<AudioClip>())
 		{
 			yield return loadAudioClipWithURL(url, callback, userData);
 		}
-		else if (assetsType == typeof(Texture2D) || assetsType == typeof(Texture))
+		else if (assetsType == Typeof<Texture2D>() || assetsType == Typeof<Texture>())
 		{
 			yield return loadTextureWithURL(url, callback, userData);
 		}
-		else if (assetsType == typeof(AssetBundle))
+		else if (assetsType == Typeof<AssetBundle>())
 		{
 			yield return loadAssetBundleWithURL(url, callback, userData);
 		}
@@ -372,12 +373,12 @@ public class ResourceManager : FrameComponent
 		yield return www;
 		if (www.error != null)
 		{
-			logInfo("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.LL_HIGH);
+			logInfo("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.HIGH);
 			callback?.Invoke(null, null, null, userData, url);
 		}
 		else
 		{
-			logInfo("下载成功:" + url, LOG_LEVEL.LL_HIGH);
+			logInfo("下载成功:" + url, LOG_LEVEL.HIGH);
 			downloadHandler.assetBundle.name = url;
 			callback?.Invoke(downloadHandler.assetBundle, null, www.downloadHandler.data, userData, url);
 		}
@@ -391,12 +392,12 @@ public class ResourceManager : FrameComponent
 		yield return www;
 		if (www.error != null)
 		{
-			logInfo("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.LL_HIGH);
+			logInfo("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.HIGH);
 			callback?.Invoke(null, null, null, userData, url);
 		}
 		else
 		{
-			logInfo("下载成功:" + url, LOG_LEVEL.LL_HIGH);
+			logInfo("下载成功:" + url, LOG_LEVEL.HIGH);
 			downloadHandler.audioClip.name = url;
 			callback?.Invoke(downloadHandler.audioClip, null, www.downloadHandler.data, userData, url);
 		}
@@ -409,12 +410,12 @@ public class ResourceManager : FrameComponent
 		yield return www;
 		if (www.error != null)
 		{
-			logInfo("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.LL_HIGH);
+			logInfo("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.HIGH);
 			callback?.Invoke(null, null, null, userData, url);
 		}
 		else
 		{
-			logInfo("下载成功:" + url, LOG_LEVEL.LL_HIGH);
+			logInfo("下载成功:" + url, LOG_LEVEL.HIGH);
 			Texture2D tex = DownloadHandlerTexture.GetContent(www);
 			tex.name = url;
 			callback?.Invoke(tex, null, www.downloadHandler.data, userData, url);

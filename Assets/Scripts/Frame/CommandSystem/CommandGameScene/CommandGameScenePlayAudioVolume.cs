@@ -19,7 +19,7 @@ public class CommandGameSceneAudioVolume : Command
 		base.init();
 		mFadingCallback = null;
 		mFadeDoneCallback = null;
-		mSoundVolumeCoe = SOUND_DEFINE.SD_MIN;
+		mSoundVolumeCoe = SOUND_DEFINE.MIN;
 		mKeyFrameName = null;
 		mStartVolume = 0.0f;
 		mTargetVolume = 0.0f;
@@ -33,7 +33,7 @@ public class CommandGameSceneAudioVolume : Command
 	{
 		GameScene gameScene = mReceiver as GameScene;
 		GameSceneComponentVolume component = gameScene.getComponent(out component);
-		if (mSoundVolumeCoe != SOUND_DEFINE.SD_MIN)
+		if (mSoundVolumeCoe != SOUND_DEFINE.MIN)
 		{
 			float volumeCoe = mAudioManager.getVolumeScale(mSoundVolumeCoe);
 			mStartVolume *= volumeCoe;

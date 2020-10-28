@@ -8,10 +8,10 @@ public class CommandCameraLinkTarget : Command
 	protected float mSwitchSpeed;           // 转换器的速度
 	protected bool mUseOriginRelative;      // 是否使用连接器原来的相对位置
 	protected bool mUseLastSwitchSpeed;     // 是否使用当前连接器的速度
-	public CAMERA_LINKER_SWITCH mSwitchType;
 	public MovableObject mTarget;
 	public CameraLinker mLinker;
 	public Vector3 mLookatOffset;           // 看向目标的位置偏移
+	public Type mSwitchType;				// 转换器的类型
 	public bool mLookAtTarget;              // 是否始终看向目标
 	public bool mAutoProcessKey;            // 是否在断开连接器后可以使用按键控制摄像机
 	public bool mImmediately;				// 是否直接将摄像机设置到当前连接器的正常位置
@@ -19,7 +19,7 @@ public class CommandCameraLinkTarget : Command
 	{
 		base.init();
 		mTarget = null;
-		mSwitchType = CAMERA_LINKER_SWITCH.CLS_NONE;
+		mSwitchType = null;
 		mLinker = null;
 		mLookAtTarget = true;
 		mLookatOffset = Vector3.zero;

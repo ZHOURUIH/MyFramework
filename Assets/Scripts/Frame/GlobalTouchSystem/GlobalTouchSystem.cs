@@ -1,44 +1,39 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System;
-using System.Linq;
 
-public class GlobalTouchSystem : FrameComponent
+public class GlobalTouchSystem : FrameSystem
 {
 	// 用于避免GC而使用的变量
-	private List<IMouseEventCollect> mTempList;
-	private List<IMouseEventCollect> mTempList2;
-	private Dictionary<int, Touch> mTempMultiTouchPoint;
-	private Dictionary<IMouseEventCollect, List<Touch>> mTempStartMultiWindow;
+	private Dictionary<IMouseEventCollect, Dictionary<int, Touch>> mTouchInWindow;  // 多点触控时所有拥有触点的窗口
 	private Dictionary<IMouseEventCollect, List<Touch>> mTempMovingMultiWindow;
-	private Dictionary<IMouseEventCollect, Dictionary<int, Touch>> mTouchInWindow;	// 多点触控时所有拥有触点的窗口
+	private Dictionary<IMouseEventCollect, List<Touch>> mTempStartMultiWindow;
+	private Dictionary<int, Touch> mTempMultiTouchPoint;
+	private List<IMouseEventCollect> mTempList2;
+	private List<IMouseEventCollect> mTempList;
 	//------------------------------------------------------------------------------------------------------------------------
-	protected Dictionary<IMouseEventCollect, MultiTouchInfo> mMultiTouchWindowList;	// 当前已经被多点触控的窗口列表
-	protected Dictionary<IMouseEventCollect, UIDepth> mButtonDepthList;             // 窗口的深度查找列表,用于保存窗口的当前深度
-	protected Dictionary<IMouseEventCollect, IMouseEventCollect> mPassOnlyArea;     // 点击穿透区域绑定列表,当点击到Key的区域时,只允许Value的区域穿透
+	protected Dictionary<IMouseEventCollect, MultiTouchInfo> mMultiTouchWindowList; // 当前已经被多点触控的窗口列表
+	protected Dictionary<IMouseEventCollect, IMouseEventCollect> mPassOnlyArea;     // 点击穿透区域绑定列表,Key的区域中,只允许Value的区域穿透,Key无论是否设置了允许射线穿透,实际检测时都是不能够穿透的
+	protected HashSet<IMouseEventCollect> mAllObjectSet;        // 所有参与鼠标或触摸事件的窗口和物体列表
 	protected List<MouseCastWindowSet> mMouseCastWindowList;    // 所有窗口所对应的摄像机的列表,每个摄像机的窗口列表根据深度排序
 	protected List<MouseCastObjectSet> mMouseCastObjectList;    // 所有场景中物体所对应的摄像机的列表,每个摄像机的物体列表根据深度排序
-	protected List<IMouseEventCollect> mAllButtonList;          // 所有参与鼠标或触摸事件的窗口和物体列表
-	protected HashSet<IMouseEventCollect> mAllButtonSet;        // 辅助mAllButtonList查找的列表
-	protected List<IMouseEventCollect> mMovableObjectList;		// MovableObject的列表与UI的列表分开存储,因为UI的深度一般固定不变,而MovableObject的深度只在检测时根据相交点判断
-	protected List<IMouseEventCollect> mMouseDownWindowList;	// 鼠标按下时所选中的所有窗口和物体
-	protected IMouseEventCollect mHoverWindow;
-	protected CustomTimer mStayTimer;
-	protected Vector3 mLastMousePosition;
+	protected List<IMouseEventCollect> mMouseDownWindowList;    // 鼠标按下时所选中的所有窗口和物体
+	protected List<IMouseEventCollect> mParentPassOnlyList;		// 仅父节点区域可穿透的列表
+	protected List<IMouseEventCollect> mMovableObjectList;      // MovableObject的列表与UI的列表分开存储,因为UI的深度一般固定不变,而MovableObject的深度只在检测时根据相交点判断
+	protected IMouseEventCollect mHoverWindow;					// 鼠标当前悬停的窗口
+	protected MyTimer mStayTimer;			// 鼠标停留的计时器
+	protected Vector3 mLastMousePosition;	// 上一帧鼠标的位置
 	protected Vector3 mCurTouchPosition;	// 在模拟触摸屏的条件下,当前触摸点
-	protected bool mSimulateTouch;			// 使用鼠标操作时是否模拟触摸屏
-	protected bool mUseHover;				// 是否判断鼠标悬停在某个窗口
-	protected bool mUseGlobalTouch;			// 是否使用全局触摸检测来进行界面的输入检测
-	protected bool mMousePressed;			// 在模拟触摸屏的条件下,屏幕是否被按下
+	protected bool mUseGlobalTouch;         // 是否使用全局触摸检测来进行界面的输入检测
+	protected bool mSimulateTouch;          // 使用鼠标操作时是否模拟触摸屏
+	protected bool mMousePressed;           // 在模拟触摸屏的条件下,屏幕是否被按下
+	protected bool mUseHover;               // 是否判断鼠标悬停在某个窗口
 	protected int mNGUICount;				// 注册的NGUI窗口数量,当数量不为0时,会启用NGUI摄像机的检测NGUI窗口
-	protected int mUGUICount;				// 注册的UGUI窗口数量,当数量不为0时,会启用UGUI摄像机的检测UGUI窗口
-	public GlobalTouchSystem(string name)
-		:base(name)
+	protected int mUGUICount;               // 注册的UGUI窗口数量,当数量不为0时,会启用UGUI摄像机的检测UGUI窗口
+	public GlobalTouchSystem()
 	{
-		mAllButtonList = new List<IMouseEventCollect>();
-		mAllButtonSet = new HashSet<IMouseEventCollect>();
-		mButtonDepthList = new Dictionary<IMouseEventCollect, UIDepth>();
+		mAllObjectSet = new HashSet<IMouseEventCollect>();
 		mMouseCastWindowList = new List<MouseCastWindowSet>();
 		mMouseCastObjectList = new List<MouseCastObjectSet>();
 		mMovableObjectList = new List<IMouseEventCollect>();
@@ -51,7 +46,8 @@ public class GlobalTouchSystem : FrameComponent
 		mTempMultiTouchPoint = new Dictionary<int, Touch>();
 		mTempStartMultiWindow = new Dictionary<IMouseEventCollect, List<Touch>>();
 		mTempMovingMultiWindow = new Dictionary<IMouseEventCollect, List<Touch>>();
-		mStayTimer = new CustomTimer();
+		mParentPassOnlyList = new List<IMouseEventCollect>();
+		mStayTimer = new MyTimer();
 		mSimulateTouch = true;
 		mUseHover = true;
 		mUseGlobalTouch = true;
@@ -64,8 +60,7 @@ public class GlobalTouchSystem : FrameComponent
 	}
 	public override void destroy()
 	{
-		mAllButtonList.Clear();
-		mAllButtonSet.Clear();
+		mAllObjectSet.Clear();
 		mMouseCastWindowList.Clear();
 		mMouseCastObjectList.Clear();
 		base.destroy();
@@ -188,7 +183,7 @@ public class GlobalTouchSystem : FrameComponent
 				if (!mMultiTouchWindowList.ContainsKey(item.Key))
 				{
 					MultiTouchInfo info;
-					mClassPool.newClass(out info);
+					mClassPool.newClass(out info, Typeof<MultiTouchInfo>());
 					info.mWindow = item.Key;
 					info.mPhase = TouchPhase.Began;
 					info.mFinger0 = item.Value[0].fingerId;
@@ -252,11 +247,11 @@ public class GlobalTouchSystem : FrameComponent
 			// 鼠标点击屏幕
 			else if (touchCount == 0)
 			{
-				if (mInputManager.getMouseCurrentDown(MOUSE_BUTTON.MB_LEFT))
+				if (mInputManager.getMouseCurrentDown(MOUSE_BUTTON.LEFT))
 				{
 					notifyGlobalPress(true);
 				}
-				else if (mInputManager.getMouseCurrentUp(MOUSE_BUTTON.MB_LEFT))
+				else if (mInputManager.getMouseCurrentUp(MOUSE_BUTTON.LEFT))
 				{
 					notifyGlobalPress(false);
 				}
@@ -303,9 +298,9 @@ public class GlobalTouchSystem : FrameComponent
 		// 检查摄像机是否被销毁
 		foreach (var item in mMouseCastWindowList)
 		{
-			if (item.mCamera != null && item.mCamera.isDestroied())
+			if (item.getCamera() != null && item.getCamera().isDestroied())
 			{
-				logError("摄像机已销毁:" + item.mCamera.getName());
+				logError("摄像机已销毁:" + item.getCamera().getName());
 			}
 		}
 		foreach (var item in mMouseCastObjectList)
@@ -315,114 +310,119 @@ public class GlobalTouchSystem : FrameComponent
 				logError("摄像机已销毁:" + item.mCamera.getName());
 			}
 		}
-		if (getKeyCurrentDown(KeyCode.F2))
-		{
-			Vector3 mousePos = getMousePosition();
-			var resultList = getAllHoverWindow(ref mousePos, null, true);
-			int resultCount = resultList.Count;
-			for(int i = 0; i < resultCount; ++i)
-			{
-				UIDepth depth = resultList[i].getUIDepth();
-				logInfo("窗口:" + resultList[i].getName() + "深度:layout:" + depth.mPanelDepth + ", window:" + depth.mWindowDepth, LOG_LEVEL.LL_FORCE);
-			}
-		}
 	}
-	public bool isColliderRegisted(IMouseEventCollect obj) { return mAllButtonSet.Contains(obj); }
+	public bool isColliderRegisted(IMouseEventCollect obj) { return mAllObjectSet.Contains(obj); }
 	// 注册碰撞器,只有注册了的碰撞器才会进行检测
-	public void registeBoxCollider(IMouseEventCollect button, 
-									ObjectClickCallback clickCallback = null, 
-									ObjectPressCallback pressCallback = null, 
-									ObjectHoverCallback hoverCallback = null,
-									GameCamera camera = null)
+	public void registeCollider(IMouseEventCollect obj, 
+								ObjectClickCallback clickCallback = null, 
+								ObjectPressCallback pressCallback = null, 
+								ObjectHoverCallback hoverCallback = null,
+								GameCamera camera = null)
 	{
 		if(!mUseGlobalTouch)
 		{
 			logError("Not Active Global Touch!");
 			return;
 		}
-		if (button.getCollider() == null)
+		if (obj.getCollider() == null)
 		{
-			logError("window must has collider that can registeBoxCollider! " + button.getName());
+			logError("window must has collider that can registeCollider! " + obj.getName());
 			return;
 		}
-		button.setClickCallback(clickCallback);
-		button.setPressCallback(pressCallback);
-		button.setHoverCallback(hoverCallback);
-		if (!mAllButtonSet.Contains(button))
+		if (mAllObjectSet.Contains(obj))
 		{
-			if (button is txUIObject)
+			logError("不能重复注册窗口碰撞体: " + obj.getName());
+			return;
+		}
+		obj.setClickCallback(clickCallback);
+		obj.setPressCallback(pressCallback);
+		obj.setHoverCallback(hoverCallback);
+		if (obj is myUIObject)
+		{
+			// 寻找窗口对应的摄像机
+			GUI_TYPE guiType = WidgetUtility.getGUIType(obj.getObject());
+			if (guiType == GUI_TYPE.NGUI)
 			{
-				// 寻找窗口对应的摄像机
-				if (WidgetUtility.isNGUI((button as txUIObject).getObject()))
-				{
-					++mNGUICount;
-					if (camera == null)
-					{
-						camera = mCameraManager.getUICamera(true);
-					}
-				}
-				else
-				{
-					++mUGUICount;
-					if (camera == null)
-					{
-						camera = mCameraManager.getUICamera(false);
-					}
-				}
+				++mNGUICount;
 				if (camera == null)
 				{
-					logError("can not find ui camera for raycast!");
+					camera = mCameraManager.getUICamera(GUI_TYPE.NGUI);
 				}
-				// 将窗口加入到鼠标射线检测列表中
-				UIDepth depth = button.getUIDepth();
-				MouseCastWindowSet mouseCastSet = null;
-				foreach (var item in mMouseCastWindowList)
-				{
-					if (item.mCamera == camera)
-					{
-						mouseCastSet = item;
-						break;
-					}
-				}
-				if (mouseCastSet == null)
-				{
-					mouseCastSet = new MouseCastWindowSet(camera);
-					mMouseCastWindowList.Add(mouseCastSet);
-				}
-				mouseCastSet.addWindow(depth, button);
-				mButtonDepthList.Add(button, depth);
 			}
-			else if (button is MovableObject)
+			else if(guiType == GUI_TYPE.UGUI)
 			{
-				MouseCastObjectSet mouseCastSet = null;
-				foreach (var item in mMouseCastObjectList)
+				++mUGUICount;
+				if (camera == null)
 				{
-					if (item.mCamera == camera)
-					{
-						mouseCastSet = item;
-						break;
-					}
+					camera = mCameraManager.getUICamera(GUI_TYPE.UGUI);
 				}
-				if (mouseCastSet == null)
-				{
-					mouseCastSet = new MouseCastObjectSet(camera);
-					mMouseCastObjectList.Add(mouseCastSet);
-				}
-				mouseCastSet.addObject(button);
-				mMovableObjectList.Add(button);
 			}
-			mAllButtonList.Add(button);
-			mAllButtonSet.Add(button);
+			if (camera == null)
+			{
+				logError("can not find ui camera for raycast!");
+			}
+			// 将窗口加入到鼠标射线检测列表中
+			MouseCastWindowSet mouseCastSet = null;
+			foreach (var item in mMouseCastWindowList)
+			{
+				if (item.getCamera() == camera)
+				{
+					mouseCastSet = item;
+					break;
+				}
+			}
+			if (mouseCastSet == null)
+			{
+				mouseCastSet = new MouseCastWindowSet(camera);
+				mMouseCastWindowList.Add(mouseCastSet);
+			}
+			mouseCastSet.addWindow(obj);
 		}
+		else if (obj is MovableObject)
+		{
+			MouseCastObjectSet mouseCastSet = null;
+			foreach (var item in mMouseCastObjectList)
+			{
+				if (item.mCamera == camera)
+				{
+					mouseCastSet = item;
+					break;
+				}
+			}
+			if (mouseCastSet == null)
+			{
+				mouseCastSet = new MouseCastObjectSet(camera);
+				mMouseCastObjectList.Add(mouseCastSet);
+			}
+			mouseCastSet.addObject(obj);
+			mMovableObjectList.Add(obj);
+		}
+		mAllObjectSet.Add(obj);
 	}
+	// parent的区域中只有passOnlyArea的区域可以穿透
 	public void bindPassOnlyArea(IMouseEventCollect parent, IMouseEventCollect passOnlyArea)
 	{
+		if (!mAllObjectSet.Contains(parent) || !mAllObjectSet.Contains(passOnlyArea))
+		{
+			logError("需要先注册窗口,才能绑定穿透区域");
+			return;
+		}
 		mPassOnlyArea.Add(parent, passOnlyArea);
 	}
-	// 注销碰撞器
-	public void unregisteBoxCollider(IMouseEventCollect obj)
+	// parent的区域中才能允许parent的子节点接收射线检测
+	public void bindPassOnlyParent(IMouseEventCollect parent)
 	{
-		if (!mAllButtonSet.Contains(obj))
+		if (!mAllObjectSet.Contains(parent))
+		{
+			logError("需要先注册窗口,才能绑定父节点穿透区域");
+			return;
+		}
+		mParentPassOnlyList.Add(parent);
+	}
+	// 注销碰撞器
+	public void unregisteCollider(IMouseEventCollect obj)
+	{
+		if (!mAllObjectSet.Contains(obj))
 		{
 			return;
 		}
@@ -430,19 +430,11 @@ public class GlobalTouchSystem : FrameComponent
 		{
 			mHoverWindow = null;
 		}
-		if (obj is txUIObject)
+		if (obj is myUIObject)
 		{
-			// 从深度列表中移除
-			UIDepth depth = mButtonDepthList[obj];
-			mButtonDepthList.Remove(obj);
-			UIDepth curDepth = obj.getUIDepth();
-			if (depth.mPanelDepth != curDepth.mPanelDepth || !isFloatEqual(depth.mWindowDepth, curDepth.mWindowDepth))
-			{
-				logError("depth error");
-			}
 			foreach (var item in mMouseCastWindowList)
 			{
-				if (item.hasWindow(depth, obj))
+				if (item.hasWindow(obj))
 				{
 					item.removeWindow(obj);
 					if (item.isEmpty())
@@ -452,11 +444,12 @@ public class GlobalTouchSystem : FrameComponent
 					break;
 				}
 			}
-			if (WidgetUtility.isNGUI((obj as txUIObject).getObject()))
+			GUI_TYPE guiType = WidgetUtility.getGUIType(obj.getObject());
+			if (guiType == GUI_TYPE.NGUI)
 			{
 				--mNGUICount;
 			}
-			else
+			else if(guiType == GUI_TYPE.UGUI)
 			{
 				--mUGUICount;
 			}
@@ -477,33 +470,32 @@ public class GlobalTouchSystem : FrameComponent
 			}
 			mMovableObjectList.Remove(obj);
 		}
-		mAllButtonList.Remove(obj);
-		mAllButtonSet.Remove(obj);
+		mAllObjectSet.Remove(obj);
 		mMouseDownWindowList.Remove(obj);
 		mMultiTouchWindowList.Remove(obj);
 	}
 	public void notifyWindowDepthChanged(IMouseEventCollect button)
 	{
 		// 只判断UI的深度变化
-		if(!(button is txUIObject))
+		if (!(button is myUIObject))
 		{
 			return;
 		}
 		// 如果之前没有记录过,则不做判断
-		if(!mAllButtonSet.Contains(button))
+		if (!mAllObjectSet.Contains(button))
 		{
 			return;
 		}
-		UIDepth lastDepth = mButtonDepthList[button];
-		foreach(var item in mMouseCastWindowList)
+		int count = mMouseCastWindowList.Count;
+		for (int i = 0; i < count; ++i)
 		{
-			if(item.hasWindow(lastDepth, button))
+			MouseCastWindowSet item = mMouseCastWindowList[i];
+			if (item.hasWindow(button))
 			{
-				item.windowDepthChanged(lastDepth, button);
+				item.windowDepthChanged();
 				break;
 			}
 		}
-		mButtonDepthList[button] = button.getUIDepth();
 	}
 	//--------------------------------------------------------------------------------------------------------------------------
 	protected void notifyGlobalPress(bool press)
@@ -522,7 +514,7 @@ public class GlobalTouchSystem : FrameComponent
 		// 检查当前悬停窗口
 		checkHoverWindow(ref mousePosition, press);
 		// 通知屏幕鼠标事件
-		foreach (var item in mAllButtonList)
+		foreach (var item in mAllObjectSet)
 		{
 			if (!item.isReceiveScreenMouse())
 			{
@@ -541,7 +533,7 @@ public class GlobalTouchSystem : FrameComponent
 		foreach (var button in raycast)
 		{
 			// 如果此时窗口已经被销毁了,则不再通知
-			if(!mAllButtonSet.Contains(button))
+			if(!mAllObjectSet.Contains(button))
 			{
 				continue;
 			}
@@ -568,7 +560,7 @@ public class GlobalTouchSystem : FrameComponent
 		bool continueRay = true;
 		mTempList2.Clear();
 		// 每次检测UI时都需要对列表按摄像机深度进行降序排序
-		mMouseCastWindowList.Sort(MouseCastWindowSet.depthDescend);
+		mMouseCastWindowList.Sort(MouseCastWindowSet.cameraDepthDescend);
 		foreach(var item in mMouseCastWindowList)
 		{
 			if(!continueRay)
@@ -576,13 +568,13 @@ public class GlobalTouchSystem : FrameComponent
 				break;
 			}
 			// 检查摄像机是否被销毁
-			if(item.mCamera == null || item.mCamera.isDestroied())
+			if(item.getCamera() == null || item.getCamera().isDestroied())
 			{
-				logError("摄像机已销毁:" + item.mCamera.getName());
+				logError("摄像机已销毁:" + item.getCamera().getName());
 				continue;
 			}
-			getCameraRay(ref mousePos, out Ray ray, item.mCamera.getCamera());
-			raycastLayout(ref ray, item.mWindowOrderList, mTempList2, ref continueRay, false, 0, ignorePassRay);
+			getCameraRay(ref mousePos, out Ray ray, item.getCamera().getCamera());
+			raycastLayout(ref ray, item.getWindowOrderList(), mTempList2, ref continueRay, false, ignorePassRay);
 		}
 		// UI层允许当前鼠标射线穿过时才检测场景物体
 		if(continueRay)
@@ -638,7 +630,7 @@ public class GlobalTouchSystem : FrameComponent
 				sortList.Add(new DistanceSortHelper(getSquaredLength(hit.point - ray.origin), box));
 			}
 		}
-		// 根据相交点由由近到远的顺序排序
+		// 根据相交点由近到远的顺序排序
 		sortList.Sort(DistanceSortHelper.distanceAscend);
 		foreach (var item in sortList)
 		{
@@ -652,54 +644,97 @@ public class GlobalTouchSystem : FrameComponent
 		mListPool.destroyList(sortList);
 	}
 	// ignorePassRay表示是否忽略窗口的isPassRay属性,true表示认为所有的都允许射线穿透
-	protected void raycastLayout(ref Ray ray, SortedDictionary<UIDepth, List<IMouseEventCollect>> windowOrderList, 
-								List<IMouseEventCollect> retList, ref bool continueRay, bool clearList = true, 
-								int maxCount = 0, bool ignorePassRay = false)
+	// 但是ignorePassRay不会影响到PassOnlyArea和ParentPassOnly
+	protected void raycastLayout(ref Ray ray, 
+								 List<IMouseEventCollect> windowOrderList, 
+								 List<IMouseEventCollect> retList, 
+								 ref bool continueRay, 
+								 bool clearList = true, 
+								 bool ignorePassRay = false)
 	{
 		if(clearList)
 		{
 			retList.Clear();
 		}
-		continueRay = true;
-		RaycastHit hit;
-		foreach (var box in windowOrderList)
+		// mParentPassOnlyList需要重新整理,排除未启用的布局的窗口
+		List<IMouseEventCollect> activeParentList = mListPool.newList(out activeParentList);
+		// 在只允许父节点穿透的列表中已成功穿透的父节点列表
+		List<IMouseEventCollect> passParent = mListPool.newList(out passParent);
+
+		// 筛选出已激活的父节点穿透窗口
+		int allParentCount = mParentPassOnlyList.Count;
+		for(int i = 0; i < allParentCount; ++i)
 		{
-			int count = box.Value.Count;
-			for (int i = 0; i < count; ++i)
+			if (mParentPassOnlyList[i].isActiveInHierarchy())
 			{
-				IMouseEventCollect window = box.Value[i];
-				if (window.isActive() && window.isHandleInput() && window.getCollider().Raycast(ray, out hit, 10000.0f))
+				activeParentList.Add(mParentPassOnlyList[i]);
+			}
+		}
+
+		// 射线检测
+		continueRay = true;
+		foreach (var item in windowOrderList)
+		{
+			IMouseEventCollect window = item;
+			if (window.isActiveInHierarchy() && window.isHandleInput() && window.getCollider().Raycast(ray, out _, 10000.0f))
+			{
+				// 点击到了只允许父节点穿透的窗口,记录到列表中
+				// 但是因为父节点一定是在子节点之后判断的,子节点可能已经拦截了射线,从而导致无法检测到父节点
+				if (activeParentList.Contains(window))
 				{
-					// 点击了只允许部分穿透的背景
-					if (mPassOnlyArea.ContainsKey(window))
-					{
-						IMouseEventCollect child = mPassOnlyArea[window];
-						//判断是否点到了背景中允许穿透的部分,如果是允许穿透的部分,则射线可以继续判断下层的窗口，否则不允许再继续穿透
-						continueRay = child.isActive() && child.isHandleInput() && child.getCollider().Raycast(ray, out hit, 10000.0f);
-						if (!continueRay)
-						{
-							break;
-						}
-					}
-					else
-					{
-						retList.Add(window);
-						// 如果射线不能穿透当前按钮,或者已经达到最大数量,则不再继续
-						bool passRay = ignorePassRay || window.isPassRay();
-						bool countNotFull = maxCount <= 0 || retList.Count < maxCount;
-						continueRay = passRay && countNotFull;
-						if (!continueRay)
-						{
-							break;
-						}
-					}
+					passParent.Add(window);
+					// 特殊窗口暂时不能接收输入事件,所以不放入相交窗口列表中
+					continue;
 				}
+
+				// 点击了只允许部分穿透的背景
+				if (mPassOnlyArea.ContainsKey(window))
+				{
+					IMouseEventCollect passOnlyArea = mPassOnlyArea[window];
+					//判断是否点到了背景中允许穿透的部分,如果是允许穿透的部分,则射线可以继续判断下层的窗口，否则不允许再继续穿透
+					continueRay = passOnlyArea.isActiveInHierarchy() && passOnlyArea.isHandleInput() && passOnlyArea.getCollider().Raycast(ray, out _, 10000.0f);
+					if (!continueRay)
+					{
+						break;
+					}
+					// 特殊窗口暂时不能接收输入事件,所以不放入相交窗口列表中
+					continue;
+				}
+
+				// 如果父节点不允许穿透
+				if (!isParentPassed(window, activeParentList, passParent))
+				{
+					continue;
+				}
+
+				// 射线成功与窗口相交,放入列表
+				retList.Add(window);
+				// 如果射线不能穿透当前按钮,则不再继续
+				continueRay = ignorePassRay || window.isPassRay();
 			}
 			if (!continueRay)
 			{
 				break;
 			}
 		}
+		mListPool.destroyList(passParent);
+		mListPool.destroyList(activeParentList);
+	}
+	// obj的所有父节点中是否允许射线选中obj
+	// bindParentList是当前激活的已绑定的仅父节点区域穿透的列表
+	// passedParentList是bindParentList中射线已经穿透的父节点
+	protected bool isParentPassed(IMouseEventCollect obj, List<IMouseEventCollect> bindParentList, List<IMouseEventCollect> passedParentList)
+	{
+		int parentCount = bindParentList.Count;
+		for(int i = 0; i < parentCount; ++i)
+		{
+			// 有父节点,并且父节点未成功穿透时,则认为当前窗口未相交
+			if (obj.isChildOf(bindParentList[i]) && !passedParentList.Contains(bindParentList[i]))
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 	protected void checkHoverWindow(ref Vector3 mousePos, bool mouseDown)
 	{

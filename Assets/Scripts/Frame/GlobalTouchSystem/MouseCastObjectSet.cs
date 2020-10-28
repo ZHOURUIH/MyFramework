@@ -1,12 +1,12 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System;
 
 public class MouseCastObjectSet
 {
-	public GameCamera mCamera;
 	public List<IMouseEventCollect> mObjectOrderList;
+	public GameCamera mCamera;
 	public MouseCastObjectSet(GameCamera camera)
 	{
 		mCamera = camera;
@@ -27,15 +27,15 @@ public class MouseCastObjectSet
 	public bool isEmpty() { return mObjectOrderList.Count == 0; }
 	public static int depthDescend(MouseCastObjectSet a, MouseCastObjectSet b)
 	{
-		if(a.mCamera == null && b.mCamera == null)
+		if (a.mCamera == null && b.mCamera == null)
 		{
 			return 0;
 		}
-		if(a.mCamera == null)
+		if (a.mCamera == null)
 		{
 			return 1;
 		}
-		if(b.mCamera == null)
+		if (b.mCamera == null)
 		{
 			return -1;
 		}

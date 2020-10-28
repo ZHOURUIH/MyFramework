@@ -4,17 +4,17 @@ using System.Collections.Generic;
 using System.Text;
 
 // 用于生成二进制文件的
-public class Serializer : GameBase
+public class Serializer : FrameBase
 {
 	protected byte[] mBuffer;
-	protected bool mWriteFlag;  // 如果为真,则表示是只写的,为假则表示是只读的
+	protected bool mReadOnly;  // 如果为真,则表示是只写的,为假则表示是只读的
 	protected bool mShowError;	// 是否显示错误信息,比如在检查到写入失败或者读取失败时是否显示报错
 	protected int mIndex;
 	protected int mBufferSize;
 	public Serializer()
 	{
 		mBuffer = null;
-		mWriteFlag = true;
+		mReadOnly = false;
 		mShowError = true;
 		mIndex = 0;
 		mBufferSize = 0;
@@ -23,16 +23,20 @@ public class Serializer : GameBase
 	{
 		init(buffer);
 	}
-	public Serializer(byte[] buffer, int index)
+	public Serializer(byte[] buffer, int bufferSize)
 	{
-		init(buffer, index);
+		init(buffer, bufferSize);
 	}
-	public void init(byte[] buffer, int index = 0)
+	public Serializer(byte[] buffer, int bufferSize, int index)
 	{
-		mWriteFlag = false;
+		init(buffer, bufferSize, index);
+	}
+	public void init(byte[] buffer, int bufferSize = -1, int index = 0)
+	{
+		mReadOnly = true;
 		mIndex = index;
 		mBuffer = buffer;
-		mBufferSize = mBuffer.Length;
+		mBufferSize = bufferSize < 0 ? buffer.Length : bufferSize;
 	}
 	public bool write(byte value)
 	{
@@ -268,7 +272,7 @@ public class Serializer : GameBase
 	protected bool writeCheck(int writeLen)
 	{
 		// 如果是只读的,则不能写入
-		if (!mWriteFlag)
+		if (mReadOnly)
 		{
 			if(mShowError)
 			{
@@ -291,7 +295,7 @@ public class Serializer : GameBase
 	protected bool readCheck(int readLen)
 	{
 		// 如果是只写的,则不能读取
-		if (mWriteFlag)
+		if (!mReadOnly)
 		{
 			if(mShowError)
 			{
@@ -319,6 +323,11 @@ public class Serializer : GameBase
 	}
 	protected void resizeBuffer(int maxSize)
 	{
+		// 只读的缓冲区不能改变缓冲区大小
+		if (mReadOnly)
+		{
+			return;
+		}
 		int newSize = maxSize > mBufferSize * 2 ? maxSize : mBufferSize * 2;
 		byte[] newBuffer = new byte[newSize];
 		for (int i = 0; i < mBufferSize; ++i)
@@ -330,6 +339,11 @@ public class Serializer : GameBase
 	}
 	protected void createBuffer(int bufferSize)
 	{
+		// 只读的缓冲区不能创建缓冲区
+		if (mReadOnly)
+		{
+			return;
+		}
 		if (mBuffer == null)
 		{
 			mBufferSize = bufferSize;

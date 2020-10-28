@@ -13,6 +13,10 @@ public class CameraDebug : MonoBehaviour
 	public List<string> ActiveComponent = new List<string>();
 	public void Update()
 	{
+		if (!FrameBase.mGameFramework.isEnableScriptDebug())
+		{
+			return;
+		}
 		if (mGameCamera == null)
 		{
 			return;
@@ -20,7 +24,7 @@ public class CameraDebug : MonoBehaviour
 		CameraLinker linker = mGameCamera.getCurLinker();
 		if (linker != null)
 		{
-			CurLinkerName = linker.GetType().ToString();
+			CurLinkerName = UnityUtility.Typeof(linker).ToString();
 			LinkedObject = linker.getLinkObject().getObject();
 			LinkedObjectName = linker.getLinkObject().getName();
 			Relative = linker.getRelativePosition();

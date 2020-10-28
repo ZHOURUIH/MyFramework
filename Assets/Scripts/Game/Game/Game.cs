@@ -6,10 +6,10 @@ using System.Collections.Generic;
 public class Game : GameFramework
 {
 	//-------------------------------------------------------------------------------------------------------------
-	protected override void initComponent()
+	protected override void initFrameSystem()
 	{
-		base.initComponent();
-		registeComponent<GameConfig>();
+		base.initFrameSystem();
+		registeFrameSystem(UnityUtility.Typeof<GameConfig>());
 	}
 	protected override void init()
 	{
@@ -34,7 +34,7 @@ public class Game : GameFramework
 	protected override void launch()
 	{
 		base.launch();
-		CommandGameSceneManagerEnter cmd = FrameBase.newCmd(out cmd, false);
+		CommandGameSceneManagerEnter cmd = FrameBase.newMainCmd(out cmd, false);
 		cmd.mSceneType = typeof(StartScene);
 		FrameBase.pushCommand(cmd, FrameBase.mGameSceneManager);
 	}

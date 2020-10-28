@@ -8,11 +8,11 @@ public class CharacterDecisionTree : GameComponent
 {
 	protected Dictionary<uint, DTreeNode> mNodeList;    // 所有的节点列表
 	protected DTreeNode mRootNode;
-	protected CustomTimer mTimer;
+	protected MyTimer mTimer;
 	public CharacterDecisionTree()
 	{
 		mNodeList = new Dictionary<uint, DTreeNode>();
-		mTimer = new CustomTimer();
+		mTimer = new MyTimer();
 	}
 	public override void init(ComponentOwner owner)
 	{
@@ -51,10 +51,6 @@ public class CharacterDecisionTree : GameComponent
 		removeNode(node);
 	}
 	public DTreeNode getRoot() { return mRootNode; }
-	public T addNode<T>(DTreeNode parent) where T : DTreeNode, new()
-	{
-		return addNode(typeof(T), parent) as T;
-	}
 	public DTreeNode addNode(Type nodeType, DTreeNode parent)
 	{
 		DTreeNode node = createInstance<DTreeNode>(nodeType);

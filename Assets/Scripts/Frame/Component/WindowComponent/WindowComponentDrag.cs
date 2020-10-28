@@ -5,8 +5,8 @@ using System.Collections.Generic;
 
 public class WindowComponentDrag : ComponentDrag
 {
-	protected txUIObject mWindow;
-	protected txUIObject mDragHoverWindow;
+	protected myUIObject mWindow;
+	protected myUIObject mDragHoverWindow;
 	protected OnDraging mOnDraging;
 	protected bool mMovable;
 	public WindowComponentDrag()
@@ -16,7 +16,7 @@ public class WindowComponentDrag : ComponentDrag
 	public override void init(ComponentOwner owner)
 	{
 		base.init(owner);
-		mWindow = mComponentOwner as txUIObject;
+		mWindow = mComponentOwner as myUIObject;
 	}
 	public void setDragingCallback(OnDraging callback) { mOnDraging = callback; }
 	public override void setActive(bool active)
@@ -35,13 +35,13 @@ public class WindowComponentDrag : ComponentDrag
 	{
 		if(mMovable)
 		{
-			Vector3 pos = screenPosToWindowPos(screenPos - mDragMouseOffset, mWindow.getParent(), true, mWindow.getLayout().isNGUI());
+			Vector3 pos = screenPosToWindowPos(screenPos - mDragMouseOffset, mWindow.getParent(), true, mWindow.getLayout().getGUIType());
 			mWindow.setPosition(pos);
 		}
 	}
 	protected override Vector3 getScreenPosition()
 	{
-		Camera camera = mCameraManager.getUICamera(mWindow.getLayout().isNGUI()).getCamera();
+		Camera camera = mCameraManager.getUICamera(mWindow.getLayout().getGUIType()).getCamera();
 		if(camera != null)
 		{
 			return camera.WorldToScreenPoint(mWindow.getWorldPosition());
@@ -51,14 +51,14 @@ public class WindowComponentDrag : ComponentDrag
 	protected override bool mouseInObject(ref Vector3 mousePosition)
 	{
 		// 使用当前鼠标位置判断是否悬停,忽略被其他窗口覆盖的情况
-		Collider collider = (mComponentOwner as txUIObject).getCollider();
+		Collider collider = (mComponentOwner as myUIObject).getCollider();
 		if (collider == null)
 		{
 			logError("not find collider, can not drag!");
 			return false;
 		}
 		Ray ray;
-		getUIRay(ref mousePosition, out ray, (mComponentOwner as txUIObject).getLayout().isNGUI());
+		getUIRay(ref mousePosition, out ray, (mComponentOwner as myUIObject).getLayout().getGUIType());
 		return collider.Raycast(ray, out _, 10000.0f);
 	}
 	protected override void onDragEnd(Vector3 mousePos)
@@ -91,7 +91,7 @@ public class WindowComponentDrag : ComponentDrag
 		if (curHover != mDragHoverWindow)
 		{
 			mDragHoverWindow?.onDragHoverd(mWindow, false);
-			mDragHoverWindow = curHover as txUIObject;
+			mDragHoverWindow = curHover as myUIObject;
 			mDragHoverWindow?.onDragHoverd(mWindow, true);
 		}
 		mOnDraging?.Invoke();

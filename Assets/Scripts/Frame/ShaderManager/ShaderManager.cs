@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // 几乎没有实质性作用,目前只用于判断一个shader是否为不需要复制就可通用的shader
-public class ShaderManager : FrameComponent
+public class ShaderManager : FrameSystem
 {
 	protected Dictionary<string, Shader> mShaderList;
 	protected List<string> mSingleShaderList;
-	public ShaderManager(string name)
-		:base(name)
+	public ShaderManager()
 	{
 		mShaderList = new Dictionary<string, Shader>();
 		mSingleShaderList = new List<string>();

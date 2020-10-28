@@ -5,12 +5,10 @@ using System;
 
 public class GameConfig : ConfigBase
 {
-	public GameConfig(string name)
-		:base(name){}
 	public override void writeConfig()
 	{
-		writeTxtFile(CommonDefine.F_CONFIG_PATH + "GameFloatConfig.txt", generateFloatFile());
-		writeTxtFile(CommonDefine.F_CONFIG_PATH + "GameStringConfig.txt", generateStringFile());
+		writeTxtFile(FrameDefine.F_CONFIG_PATH + "GameFloatConfig.txt", generateFloatFile());
+		writeTxtFile(FrameDefine.F_CONFIG_PATH + "GameStringConfig.txt", generateStringFile());
 	}
 	//-----------------------------------------------------------------------------------------------------------------------
 	protected override void addFloat()
@@ -29,7 +27,7 @@ public class GameConfig : ConfigBase
 	}
 	protected override void readConfig()
 	{
-		readFile(CommonDefine.F_CONFIG_PATH + "GameFloatConfig.txt", true);
-		readFile(CommonDefine.F_CONFIG_PATH + "GameStringConfig.txt", false);
+		readFile(FrameDefine.F_CONFIG_PATH + "GameFloatConfig.txt", true);
+		readFile(FrameDefine.F_CONFIG_PATH + "GameStringConfig.txt", false);
 	}
 }

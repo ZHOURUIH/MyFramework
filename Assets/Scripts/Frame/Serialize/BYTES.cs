@@ -10,13 +10,13 @@ public class BYTES : OBJECTS
 	public BYTES(int count)
 	{
 		mValue = new byte[count];
-		mType = typeof(byte[]);
+		mType = Typeof<byte[]>();
 		mSize = TYPE_SIZE * mValue.Length;
 	}
 	public BYTES(byte[] value)
 	{
 		mValue = value;
-		mType = typeof(byte[]);
+		mType = Typeof<byte[]>();
 		mSize = TYPE_SIZE * mValue.Length;
 	}
 	public override void setRealSize(ushort realSize)
@@ -77,6 +77,7 @@ public class BYTES : OBJECTS
 			}
 		}
 	}
+	// 以UTF8编码转换为字节数组,因为stringToBytes中默认为UTF8
 	public void set(string value, int destOffset = 0)
 	{
 		if(value != null)

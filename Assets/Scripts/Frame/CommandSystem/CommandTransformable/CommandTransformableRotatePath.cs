@@ -31,7 +31,7 @@ public class CommandTransformableRotatePath : Command
 		Transformable obj = mReceiver as Transformable;
 		TransformableComponentRotatePath component = obj.getComponent(out component);
 		// 停止其他移动组件
-		obj.breakComponent<IComponentModifyRotation>(component.GetType());
+		obj.breakComponent<IComponentModifyRotation>(Typeof(component));
 		component.setTremblingCallback(mDoingCallBack);
 		component.setTrembleDoneCallback(mDoneCallBack);
 		component.setActive(true);
@@ -39,7 +39,7 @@ public class CommandTransformableRotatePath : Command
 		component.setSpeed(mSpeed);
 		component.setValueOffset(mValueOffset);
 		component.play(mLoop, mOffset, mFullOnce);
-		if (component.getState() == PLAY_STATE.PS_PLAY)
+		if (component.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
 			obj.setEnable(true);

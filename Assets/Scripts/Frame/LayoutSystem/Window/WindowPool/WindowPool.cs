@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public delegate void OnDestroyWindow(txUIObject window);
+public delegate void OnDestroyWindow(myUIObject window);
 
-public class WindowPool<T> where T : txUIObject, new()
+// 因为此处可以确定只有主工程的类,所以可以使用new T()
+public class WindowPool<T> where T : myUIObject, new()
 {
 	protected List<T> mInusedList;
 	protected Stack<T> mUnusedList;
@@ -18,7 +19,7 @@ public class WindowPool<T> where T : txUIObject, new()
 		mUnusedList = new Stack<T>();
 	}
 	public void setTemplate(T template) { mTemplate = template; }
-	public T newWindow(txUIObject parent, string name = null)
+	public T newWindow(myUIObject parent, string name = null)
 	{
 		if (name == null)
 		{

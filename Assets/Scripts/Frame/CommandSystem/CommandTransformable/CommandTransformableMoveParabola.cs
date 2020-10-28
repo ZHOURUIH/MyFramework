@@ -34,7 +34,7 @@ public class CommandTransformableMoveParabola : Command
 		Transformable obj = mReceiver as Transformable;
 		TransformableComponentMoveParabola component = obj.getComponent(out component);
 		// 停止其他移动组件
-		obj.breakComponent<IComponentModifyPosition>(component.GetType());
+		obj.breakComponent<IComponentModifyPosition>(Typeof(component));
 		component.setTremblingCallback(mTremblingCallBack);
 		component.setTrembleDoneCallback(mTrembleDoneCallBack);
 		component.setActive(true);
@@ -42,7 +42,7 @@ public class CommandTransformableMoveParabola : Command
 		component.setStartPos(mStartPos);
 		component.setTopHeight(mTopHeight);
 		component.play(mName, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
-		if (component.getState() == PLAY_STATE.PS_PLAY)
+		if (component.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
 			obj.setEnable(true);

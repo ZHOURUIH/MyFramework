@@ -20,14 +20,14 @@ public class CommandTransformableLerpRotation : Command
 		Transformable obj = mReceiver as Transformable;
 		TransformableComponentLerpRotation component = obj.getComponent(out component);
 		// 停止其他旋转组件
-		obj.breakComponent<IComponentModifyRotation>(component.GetType());
+		obj.breakComponent<IComponentModifyRotation>(Typeof(component));
 		component.setLerpingCallback(mLerpingCallBack);
 		component.setLerpDoneCallback(mLerpDoneCallBack);
 		component.setActive(true);
 		component.setTargetRotation(mTargetRotation);
 		component.setLerpSpeed(mLerpSpeed);
 		component.play();
-		if (component.getState() == PLAY_STATE.PS_PLAY)
+		if (component.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
 			obj.setEnable(true);

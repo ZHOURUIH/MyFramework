@@ -4,19 +4,19 @@
 // 变量命名应与代码中枚举命名相同
 
 // 是否全屏显示,0为不全屏,1为全屏并且使用屏幕最佳分辨率,2为无边框窗口,3为全屏并且使用配置文件中的分辨率
-GDF_FULL_SCREEN = 0
+FULL_SCREEN = 0
 
 // 窗口宽度,全屏时该参数无效
-GDF_SCREEN_WIDTH = 800
+SCREEN_WIDTH = 1920
 
 // 窗口高度,全屏时该参数无效
-GDF_SCREEN_HEIGHT = 600
+SCREEN_HEIGHT = 1080
 
 // 是否将每帧的时间固定下来
-GDF_USE_FIXED_TIME = 0
+USE_FIXED_TIME = 0
 
 // 每帧的固定时间,单位秒
-GDF_FIXED_TIME = 0.015
+FIXED_TIME = 0.015
 
 // 垂直同步,0为关闭垂直同步,1为开启垂直同步
-GDF_VSYNC = 1
+VSYNC = 1

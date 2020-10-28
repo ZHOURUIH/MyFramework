@@ -5,14 +5,12 @@ using System;
 
 public class FrameConfig : ConfigBase
 {
-	public FrameConfig(string name)
-		:base(name){ }
 	public override void writeConfig()
 	{
 		// 只有资源目录为本地目录时才可以写入
 		if (ResourceManager.mLocalRootPath)
 		{
-			writeTxtFile(ResourceManager.mResourceRootPath + CommonDefine.SA_CONFIG_PATH + "FrameFloatConfig.txt", generateFloatFile());
+			writeTxtFile(ResourceManager.mResourceRootPath + FrameDefine.SA_CONFIG_PATH + "FrameFloatConfig.txt", generateFloatFile());
 		}
 	}
 	//-----------------------------------------------------------------------------------------------------------------------
@@ -36,6 +34,6 @@ public class FrameConfig : ConfigBase
 	}
 	protected override void readConfig()
 	{
-		readFile(ResourceManager.mResourceRootPath + CommonDefine.SA_CONFIG_PATH + "FrameFloatConfig.txt", true);
+		readFile(ResourceManager.mResourceRootPath + FrameDefine.SA_CONFIG_PATH + "FrameFloatConfig.txt", true);
 	}
 }

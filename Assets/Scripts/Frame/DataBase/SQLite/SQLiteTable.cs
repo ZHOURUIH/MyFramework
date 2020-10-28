@@ -2,146 +2,21 @@
 using UnityEngine;
 using System.Collections;
 using Mono.Data.Sqlite;
-using System.Data;
 using System.Collections.Generic;
 using System;
-
-public class TableData : GameBase
-{
-	public Dictionary<string, string> mValues;
-	public static string ID = "ID";
-	public int mID;
-	public SQLiteTable mTable;
-	public TableData()
-	{
-		mValues = new Dictionary<string, string>();
-	}
-	public virtual void parse(SqliteDataReader reader)
-	{
-		parseParam(reader, ref mID, ID);
-	}
-	public virtual void insert(ref string valueString)
-	{
-		appendValueInt(ref valueString, mID);
-	}
-	public string getValue(string paramName) { return mValues[paramName]; }
-	//--------------------------------------------------------------------------------------------------------
-	protected void parseParam(SqliteDataReader reader, ref List<float> value, string paramName)
-	{
-		string str = reader[paramName].ToString();
-		stringToFloatArray(str, value);
-		mValues.Add(paramName, str);
-	}
-	protected void parseParam(SqliteDataReader reader, ref List<int> value, string paramName)
-	{
-		string str = reader[paramName].ToString();
-		stringToIntArray(str, value);
-		mValues.Add(paramName, str);
-	}
-	protected void parseParam(SqliteDataReader reader, ref List<ushort> value, string paramName)
-	{
-		string str = reader[paramName].ToString();
-		stringToUShortArray(str, value);
-		mValues.Add(paramName, str);
-	}
-	protected void parseParam(SqliteDataReader reader, ref List<uint> value, string paramName)
-	{
-		string str = reader[paramName].ToString();
-		stringToUIntArray(str, value);
-		mValues.Add(paramName, str);
-	}
-	protected void parseParam(SqliteDataReader reader, ref List<byte> value, string paramName)
-	{
-		string str = reader[paramName].ToString();
-		stringToByteArray(str, value);
-		mValues.Add(paramName, str);
-	}
-	protected void parseParam(SqliteDataReader reader, ref List<string> value, string paramName)
-	{
-		string str = reader[paramName].ToString();
-		stringToStringArray(str, value);
-		mValues.Add(paramName, str);
-	}
-	protected void parseParam(SqliteDataReader reader, ref string value, string paramName)
-	{
-		string str = reader[paramName].ToString();
-		value = str;
-		mValues.Add(paramName, str);
-	}
-	protected void parseParam(SqliteDataReader reader, ref float value, string paramName)
-	{
-		string str = reader[paramName].ToString();
-		value = stringToFloat(str);
-		mValues.Add(paramName, str);
-	}
-	protected void parseParam(SqliteDataReader reader, ref uint value, string paramName)
-	{
-		string str = reader[paramName].ToString();
-		value = (uint)stringToInt(str);
-		mValues.Add(paramName, str);
-	}
-	protected void parseParam(SqliteDataReader reader, ref int value, string paramName)
-	{
-		string str = reader[paramName].ToString();
-		value = stringToInt(str);
-		mValues.Add(paramName, str);
-	}
-	protected void parseParam(SqliteDataReader reader, ref ushort value, string paramName)
-	{
-		string str = reader[paramName].ToString();
-		value = (ushort)stringToInt(str);
-		mValues.Add(paramName, str);
-	}
-	protected void parseParam(SqliteDataReader reader, ref short value, string paramName)
-	{
-		string str = reader[paramName].ToString();
-		value = (short)stringToInt(str);
-		mValues.Add(paramName, str);
-	}
-	protected void parseParam(SqliteDataReader reader, ref byte value, string paramName)
-	{
-		string str = reader[paramName].ToString();
-		value = (byte)stringToInt(str);
-		mValues.Add(paramName, str);
-	}
-	protected void parseParam(SqliteDataReader reader, ref bool value, string paramName)
-	{
-		string str = reader[paramName].ToString();
-		value = stringToInt(str) != 0;
-		mValues.Add(paramName, str);
-	}
-	protected void parseParam(SqliteDataReader reader, ref Vector2 value, string paramName)
-	{
-		string str = reader[paramName].ToString();
-		value = stringToVector2(str);
-		mValues.Add(paramName, str);
-	}
-	protected void parseParam(SqliteDataReader reader, ref Vector2Int value, string paramName)
-	{
-		string str = reader[paramName].ToString();
-		value = stringToVector2Int(str);
-		mValues.Add(paramName, str);
-	}
-	protected void parseParam(SqliteDataReader reader, ref Vector3 value, string paramName)
-	{
-		string str = reader[paramName].ToString();
-		value = stringToVector3(str);
-		mValues.Add(paramName, str);
-	}
-}
 
 public class SQLiteTable : GameBase
 {
 	protected string mTableName;
-	protected Type mTableClassType;
+	protected Type mDataClassType;
 	protected SortedDictionary<string, List<SQLiteTable>> mLinkTable; // 字段索引的表格
-	protected SortedDictionary<int, TableData> mDataList;
-	public SQLiteTable(Type tableClassType)
+	protected SortedDictionary<int, SQLiteData> mDataList;
+	public SQLiteTable()
 	{
-		mTableClassType = tableClassType;
 		mLinkTable = new SortedDictionary<string, List<SQLiteTable>>();
-		mDataList = new SortedDictionary<int, TableData>();
+		mDataList = new SortedDictionary<int, SQLiteData>();
 	}
+	public void setDataType(Type dataClassType) { mDataClassType = dataClassType; }
 	public void setTableName(string name) { mTableName = name; }
 	public string getTableName() { return mTableName; }
 	public virtual void linkTable() { }
@@ -185,7 +60,7 @@ public class SQLiteTable : GameBase
 	{
 		return mSQLite.queryReader(queryString);
 	}
-	public TableData query(int id, out TableData data)
+	public SQLiteData query(int id, out SQLiteData data)
 	{
 		if (mDataList.ContainsKey(id))
 		{
@@ -193,45 +68,45 @@ public class SQLiteTable : GameBase
 			return data;
 		}
 		string condition = "";
-		appendConditionInt(ref condition, TableData.ID, id, "");
+		appendConditionInt(ref condition, SQLiteData.ID, id, "");
 		parseReader(doQuery(condition), out data);
 		mDataList.Add(id, data);
 		return data;
 	}
-	public T query<T>(int id, out T data) where T : TableData, new()
+	public SQLiteData query(Type type, int id, out SQLiteData data)
 	{
-		if (typeof(T) != mTableClassType)
-		{
-			logError("sqlite table type error, this type:" + mTableClassType.ToString() + ", param type:" + typeof(T).ToString());
-			data = null;
-			return data;
-		}
 		if (mDataList.ContainsKey(id))
 		{
-			data = mDataList[id] as T;
-			return data;
+			data = mDataList[id];
 		}
-		string condition = "";
-		appendConditionInt(ref condition, TableData.ID, id, "");
-		parseReader(doQuery(condition), out data);
-		mDataList.Add(id, data);
-		return data;
-	}
-	public T query<T>(int id) where T : TableData, new()
-	{
-		T data;
-		query(id, out data);
-		return data;
-	}
-	public void queryAll<T>(out List<T> dataList) where T : TableData, new()
-	{
-		dataList = null;
-		if (typeof(T) != mTableClassType)
+		else
 		{
-			logError("sqlite table type error, this type:" + mTableClassType.ToString() + ", param type:" + typeof(T).ToString());
+			string condition = "";
+			appendConditionInt(ref condition, SQLiteData.ID, id, "");
+			parseReader(doQuery(condition), out data);
+			mDataList.Add(id, data);
+		}
+		if (type != mDataClassType)
+		{
+			logError("sqlite table type error, this type:" + mDataClassType + ", param type:" + type);
+			data = null;
+		}
+		return data;
+	}
+	public SQLiteData query(Type type, int id)
+	{
+		SQLiteData data;
+		query(type, id, out data);
+		return data;
+	}
+	public void queryAll<T>(Type type, List<T> dataList) where T : SQLiteData
+	{
+		if (type != mDataClassType)
+		{
+			logError("sqlite table type error, this type:" + mDataClassType + ", param type:" + type);
 			return;
 		}
-		parseReader(doQuery(), out dataList);
+		parseReader(type, doQuery(), dataList);
 		foreach(var item in dataList)
 		{
 			if(!mDataList.ContainsKey(item.mID))
@@ -240,15 +115,15 @@ public class SQLiteTable : GameBase
 			}
 		}
 	}
-	public void insert<T>(T data) where T : TableData
+	public void insert<T>(T data) where T : SQLiteData
 	{
 		if(mDataList.ContainsKey(data.mID))
 		{
 			return;
 		}
-		if (typeof(T) != mTableClassType)
+		if (Typeof(data) != mDataClassType)
 		{
-			logError("sqlite table type error, this type:" + mTableClassType.ToString() + ", param type:" + typeof(T).ToString());
+			logError("sqlite table type error, this type:" + mDataClassType + ", param type:" + Typeof(data));
 			return;
 		}
 		string valueString = EMPTY_STRING;
@@ -258,46 +133,45 @@ public class SQLiteTable : GameBase
 		mDataList.Add(data.mID, data);
 	}
 	//---------------------------------------------------------------------------------------------------------------------------
-	protected void parseReader<T>(SqliteDataReader reader, out T data) where T : TableData, new()
+	protected void parseReader(Type type, SqliteDataReader reader, out SQLiteData data)
 	{
 		data = null;
-		if (typeof(T) != mTableClassType)
+		if (type != mDataClassType)
 		{
-			logError("sqlite table type error, this type:" + mTableClassType.ToString() + ", param type:" + typeof(T).ToString());
+			logError("sqlite table type error, this type:" + mDataClassType + ", param type:" + type);
 			return;
 		}
 		if (reader != null && reader.Read())
 		{
-			data = new T();
+			data = createInstance<SQLiteData>(type);
 			data.mTable = this;
 			data.parse(reader);
 		}
 		reader?.Close();
 	}
-	protected void parseReader(SqliteDataReader reader, out TableData data)
+	protected void parseReader(SqliteDataReader reader, out SQLiteData data)
 	{
 		data = null;
 		if (reader != null && reader.Read())
 		{
-			data = createInstance<TableData>(mTableClassType);
+			data = createInstance<SQLiteData>(mDataClassType);
 			data.mTable = this;
 			data.parse(reader);
 		}
 		reader?.Close();
 	}
-	protected void parseReader<T>(SqliteDataReader reader, out List<T> dataList) where T : TableData, new()
+	protected void parseReader(Type type, SqliteDataReader reader, IList dataList)
 	{
-		dataList = new List<T>();
-		if (typeof(T) != mTableClassType)
+		if (type != mDataClassType)
 		{
-			logError("sqlite table type error, this type:" + mTableClassType.ToString() + ", param type:" + typeof(T).ToString());
+			logError("sqlite table type error, this type:" + mDataClassType + ", param type:" + type);
 			return;
 		}
 		if (reader != null)
 		{
 			while (reader.Read())
 			{
-				T data = new T();
+				SQLiteData data = createInstance<SQLiteData>(type);
 				data.mTable = this;
 				data.parse(reader);
 				dataList.Add(data);

@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AndroidPluginManager : FrameComponent
+public class AndroidPluginManager : FrameSystem
 {
 	protected static AndroidJavaClass mUnityPlayer;
 	protected static AndroidJavaObject mMainActivity;
-	public AndroidPluginManager(string name)
-		:base(name)
+	public AndroidPluginManager()
 	{
 #if !UNITY_EDITOR && UNITY_ANDROID
 		mUnityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");

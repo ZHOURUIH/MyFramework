@@ -2,12 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class MovableObjectManager : FrameComponent
+public class MovableObjectManager : FrameSystem
 {
 	protected Dictionary<int, MovableObject> mMovableObjectList;
 	protected List<MovableObject> mMovableObjectOrderList;		// 保存物体顺序的列表,用于更新
-	public MovableObjectManager(string name)
-		:base(name)
+	public MovableObjectManager()
 	{
 		mMovableObjectList = new Dictionary<int, MovableObject>();
 		mMovableObjectOrderList = new List<MovableObject>();
@@ -27,8 +26,8 @@ public class MovableObjectManager : FrameComponent
 		{
 			return null;
 		}
-		string name = go.name;
-		MovableObject obj = new MovableObject(name);
+		MovableObject obj = new MovableObject();
+		obj.setName(go.name);
 		obj.setObject(go);
 		obj.setDestroyObject(autoDestroyObject);
 		obj.init();
@@ -43,7 +42,7 @@ public class MovableObjectManager : FrameComponent
 	}
 	public MovableObject createMovableObject(GameObject parent, string name, bool autoDestroyObject)
 	{
-		GameObject go = getGameObject(parent, name);
+		GameObject go = getGameObject(name, parent);
 		return createMovableObject(go, autoDestroyObject);
 	}
 	public void destroyObject(ref MovableObject obj)

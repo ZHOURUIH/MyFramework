@@ -15,7 +15,7 @@ public struct InterfaceDetails
 	public int OUT_reportByteLength;
 	public ushort versionNumber;
 }
-public class HIDDevice : GameBase
+public class HIDDevice : FrameBase
 {
     private HIDP_CAPS capabilities;
     public SafeFileHandle mHandle;
@@ -136,7 +136,7 @@ public class HIDDevice : GameBase
 			}
             uint requiredSize = 0;
 			IntPtr detailMemory = Marshal.AllocHGlobal((int)requiredSize);
-			SP_DEVICE_INTERFACE_DETAIL_DATA functionClassDeviceData = (SP_DEVICE_INTERFACE_DETAIL_DATA)Marshal.PtrToStructure(detailMemory, typeof(SP_DEVICE_INTERFACE_DETAIL_DATA));
+			SP_DEVICE_INTERFACE_DETAIL_DATA functionClassDeviceData = (SP_DEVICE_INTERFACE_DETAIL_DATA)Marshal.PtrToStructure(detailMemory, Typeof<SP_DEVICE_INTERFACE_DETAIL_DATA>());
 			functionClassDeviceData.cbSize = Marshal.SizeOf(functionClassDeviceData);
 			if (!SetupAPI.SetupDiGetDeviceInterfaceDetail(deviceInfo, ref devIface, ref functionClassDeviceData, requiredSize, out requiredSize, ref devInfo))
 			{

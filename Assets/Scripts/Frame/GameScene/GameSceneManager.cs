@@ -3,12 +3,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-public class GameSceneManager : FrameComponent
+public class GameSceneManager : FrameSystem
 {
 	protected List<GameScene> mLastSceneList;
 	protected GameScene mCurScene;
-	public GameSceneManager(string name)
-		:base(name)
+	public GameSceneManager()
 	{
 		mLastSceneList = new List<GameScene>();
 		mCreateObject = true;
@@ -17,14 +16,15 @@ public class GameSceneManager : FrameComponent
 	public bool enterScene(Type type, Type startProcedure, string intent)
 	{
 		// 再次进入当前的场景,只是从初始流程开始执行,并不会重新执行进入场景的操作
-		if (mCurScene != null && mCurScene.GetType() == type)
+		if (mCurScene != null && Typeof(mCurScene) == type)
 		{
 			mCurScene.setTempStartProcedure(startProcedure, intent);
 			mCurScene.enterStartProcedure();
 		}
 		else
 		{
-			GameScene pScene = createInstance<GameScene>(type, type.ToString());
+			GameScene pScene = createInstance<GameScene>(type);
+			pScene.setName(type.ToString());
 			// 如果有上一个场景,则先销毁上一个场景,只是暂时保存下上个场景的指针,然后在更新中将场景销毁
 			if (mCurScene != null)
 			{

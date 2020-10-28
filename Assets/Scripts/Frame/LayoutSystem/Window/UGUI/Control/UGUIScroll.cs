@@ -2,14 +2,14 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class UGUIScroll : GameBase
+public class UGUIScroll : FrameBase
 {
-	protected LayoutScript mScript;
-	protected DRAG_DIRECTION mDragDirection;        // 拖动方向,横向或纵向
-	protected txUGUIObject mBackground;				// 用于检测鼠标的按下,移动,抬起
 	protected List<IScrollContainer> mContainerList;// 容器列表,用于获取位置缩放旋转等属性
 	protected List<IScrollItem> mItemList;          // 物体列表,用于显示
+	protected LayoutScript mScript;
+	protected myUGUIObject mBackground;				// 用于检测鼠标的按下,移动,抬起
 	protected OnScrollItem mOnScrollItem;
+	protected DRAG_DIRECTION mDragDirection;        // 拖动方向,横向或纵向
 	protected float mFocusSpeedThreshhold;  // 开始聚焦的速度阈值,当滑动速度正在自由降低的阶段时,速度低于该值则会以恒定速度自动聚焦到一个最近的项
 	protected float mMaxControlValue;       // 物体列表中最大的控制值,也代表一个完整周期
 	protected float mMaxContainerValue;		// 容器中最大的控制值
@@ -28,8 +28,8 @@ public class UGUIScroll : GameBase
 	public UGUIScroll(LayoutScript script)
 	{
 		mScript = script;
-		mState = SCROLL_STATE.SS_NONE;
-		mDragDirection = DRAG_DIRECTION.DD_HORIZONTAL;
+		mState = SCROLL_STATE.NONE;
+		mDragDirection = DRAG_DIRECTION.HORIZONTAL;
 		mContainerList = new List<IScrollContainer>();
 		mItemList = new List<IScrollItem>();
 		mItemOnCenter = true;
@@ -37,14 +37,14 @@ public class UGUIScroll : GameBase
 		mDragSensitive = 1.0f;
 		mAttenuateFactor = 2.0f;
 	}
-	public void setBackground(txUGUIObject background)
+	public void setBackground(myUGUIObject background)
 	{
 		mBackground = background;
 		mBackground.setOnMouseDown(onMouseDown);
 		mBackground.setOnScreenMouseUp(onScreenMouseUp);
 		mBackground.setOnMouseMove(onMouseMove);
 		mBackground.setOnMouseStay(onMouseStay);
-		mScript.registeBoxCollider(mBackground, true);
+		mScript.registeCollider(mBackground, true);
 	}
 	public int getFocusIndex()
 	{
@@ -97,7 +97,7 @@ public class UGUIScroll : GameBase
 	public void update(float elapsedTime)
 	{
 		// 自动匀速滚动到目标点
-		if (mState == SCROLL_STATE.SS_SCROLL_TARGET)
+		if (mState == SCROLL_STATE.SCROLL_TARGET)
 		{
 			float preOffset = mCurOffset;
 			float newSpeed = sign(mTargetOffsetValue - mCurOffset) * abs(mScrollSpeed);
@@ -105,18 +105,18 @@ public class UGUIScroll : GameBase
 			if (isReachTarget(preOffset, mCurOffset, mTargetOffsetValue, newSpeed))
 			{
 				mCurOffset = mTargetOffsetValue;
-				mState = SCROLL_STATE.SS_NONE;
+				mState = SCROLL_STATE.NONE;
 			}
 			updateItem(mCurOffset);
 		}
 		// 鼠标拖动
-		else if (mState == SCROLL_STATE.SS_DRAGING)
+		else if (mState == SCROLL_STATE.DRAGING)
 		{
 			float curOffset = mContainerList[mDefaultFocus].getControlValue() - mCurOffset;
 			scroll(curOffset + elapsedTime * mScrollSpeed, false);
 		}
 		// 鼠标抬起后自动减速到停止
-		else if (mState == SCROLL_STATE.SS_SCROLL_TO_STOP)
+		else if (mState == SCROLL_STATE.SCROLL_TO_STOP)
 		{
 			float curControlValue = mContainerList[mDefaultFocus].getControlValue() - mCurOffset;
 			// 非循环模式下,当前偏移值小于0或者大于最大值时,需要回到正常的范围,偏移值越小,减速越快
@@ -171,7 +171,7 @@ public class UGUIScroll : GameBase
 						}
 						else
 						{
-							mState = SCROLL_STATE.SS_NONE;
+							mState = SCROLL_STATE.NONE;
 						}
 					}
 				}
@@ -192,7 +192,7 @@ public class UGUIScroll : GameBase
 					}
 					else
 					{
-						mState = SCROLL_STATE.SS_NONE;
+						mState = SCROLL_STATE.NONE;
 					}
 				}
 			}
@@ -241,7 +241,7 @@ public class UGUIScroll : GameBase
 			clampCycle(ref mTargetOffsetValue, -mMaxControlValue * 0.5f, mMaxControlValue * 0.5f, mMaxControlValue, false);
 		}
 		mScrollSpeed = (mTargetOffsetValue - mCurOffset) / time;
-		mState = isFloatZero(mScrollSpeed) ? SCROLL_STATE.SS_NONE : SCROLL_STATE.SS_SCROLL_TARGET;
+		mState = isFloatZero(mScrollSpeed) ? SCROLL_STATE.NONE : SCROLL_STATE.SCROLL_TARGET;
 		mOnScrollItem?.Invoke(mItemList[index], index);
 	}
 	public void setDragDirection(DRAG_DIRECTION direction) { mDragDirection = direction; }
@@ -458,7 +458,7 @@ public class UGUIScroll : GameBase
 	protected void onMouseDown(Vector2 mousePos)
 	{
 		mMouseDown = true;
-		mState = SCROLL_STATE.SS_DRAGING;
+		mState = SCROLL_STATE.DRAGING;
 		mScrollSpeed = 0.0f;
 	}
 	// 鼠标在屏幕上抬起
@@ -466,9 +466,9 @@ public class UGUIScroll : GameBase
 	{
 		mMouseDown = false;
 		// 正在拖动时鼠标抬起,则开始逐渐减速到0
-		if (mState == SCROLL_STATE.SS_DRAGING)
+		if (mState == SCROLL_STATE.DRAGING)
 		{
-			mState = SCROLL_STATE.SS_SCROLL_TO_STOP;
+			mState = SCROLL_STATE.SCROLL_TO_STOP;
 		}
 	}
 	protected void onMouseMove(ref Vector3 mousePos, ref Vector3 moveDelta, float moveTime)
@@ -478,11 +478,11 @@ public class UGUIScroll : GameBase
 		{
 			return;
 		}
-		if (mDragDirection == DRAG_DIRECTION.DD_HORIZONTAL)
+		if (mDragDirection == DRAG_DIRECTION.HORIZONTAL)
 		{
 			mScrollSpeed = sign(-moveDelta.x) * abs(moveDelta.x / moveTime) * mDragSensitive * 0.01f;
 		}
-		else if(mDragDirection == DRAG_DIRECTION.DD_VERTICAL)
+		else if(mDragDirection == DRAG_DIRECTION.VERTICAL)
 		{
 			mScrollSpeed = sign(moveDelta.y) * abs(moveDelta.y / moveTime) * mDragSensitive * 0.01f;
 		}

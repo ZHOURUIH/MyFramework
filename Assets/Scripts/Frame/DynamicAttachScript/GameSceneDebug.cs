@@ -12,6 +12,10 @@ public class GameSceneDebug : MonoBehaviour
 	}
 	public void Update()
 	{
+		if (!FrameBase.mGameFramework.isEnableScriptDebug())
+		{
+			return;
+		}
 		SceneProcedure sceneProcedure = mGameScene.getCurProcedure();
 		if (sceneProcedure != null)
 		{

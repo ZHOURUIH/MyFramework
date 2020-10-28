@@ -29,7 +29,7 @@ using System.Collections.Generic;
 
 public delegate void RecordCallback(short[] data, int dataCount);
 
-public class WavRecorder : GameBase
+public class WavRecorder : FrameBase
 {
 	protected RecordCallback mRecordCallback;
 	protected AudioClip mClip;
@@ -68,7 +68,7 @@ public class WavRecorder : GameBase
 		}
 		catch (Exception e)
 		{
-			logInfo("error in record! : " + e.Message, LOG_LEVEL.LL_FORCE);
+			logInfo("error in record! : " + e.Message, LOG_LEVEL.FORCE);
 			return false;
 		}
 		return true;

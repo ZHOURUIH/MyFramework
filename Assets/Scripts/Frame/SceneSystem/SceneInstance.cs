@@ -14,10 +14,6 @@ public class SceneInstance : GameBase
 	public string mName;
 	public bool mActiveLoaded;      // 加载完毕后是否立即显示
 	public bool mInited;
-	public SceneInstance(string name)
-	{
-		mName = name;
-	}
 	public virtual void init()
 	{
 		if(mInited)
@@ -45,6 +41,7 @@ public class SceneInstance : GameBase
 	{
 		return mRoot != null && mRoot.activeSelf;
 	}
+	public void setName(string name) { mName = name; }
 	public GameObject getRoot() { return mRoot; }
 	public virtual void onShow() { }
 	public virtual void onHide() { }

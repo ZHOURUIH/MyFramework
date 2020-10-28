@@ -3,8 +3,6 @@ using System.Collections;
 
 public class StartScene : GameScene
 {
-	public StartScene(string name)
-		:base(name){}
 	public override void assignStartExitProcedure()
 	{
 		mStartProcedure = typeof(StartSceneLoading);
@@ -12,8 +10,8 @@ public class StartScene : GameScene
 	}
 	public override void createSceneProcedure()
 	{
-		addProcedure<StartSceneLoading>();
-		addProcedure<StartSceneDemo>();
-		addProcedure<StartSceneExit>();
+		addProcedure(Typeof<StartSceneLoading>());
+		addProcedure(Typeof<StartSceneDemo>());
+		addProcedure(Typeof<StartSceneExit>());
 	}
 }

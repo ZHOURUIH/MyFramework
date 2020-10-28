@@ -8,13 +8,13 @@ public class BYTE : OBJECT
 	public byte mValue;
 	public BYTE()
 	{
-		mType = typeof(byte);
+		mType = Typeof<byte>();
 		mSize = TYPE_SIZE;
 	}
 	public BYTE(byte value)
 	{
 		mValue = value;
-		mType = typeof(byte);
+		mType = Typeof<byte>();
 		mSize = TYPE_SIZE;
 	}
 	public override void zero()

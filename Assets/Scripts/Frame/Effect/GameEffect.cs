@@ -11,19 +11,18 @@ public class GameEffect : MovableObject
 	protected Animator[] mEffectAnimators;
 	protected OnEffectDestroy mEffectDestroyCallback;   // 特效销毁时的回调
 	protected PLAY_STATE mPlayState;    // 特效整体的播放状态
-	protected CustomTimer mActiveTimer; // 特效显示的持续时间计时器
-	protected CustomTimer mLifeTimer;   // 特效生存时间计时器
+	protected MyTimer mActiveTimer;		// 特效显示的持续时间计时器
+	protected MyTimer mLifeTimer;		// 特效生存时间计时器
 	protected object mDestroyUserData;	// 销毁回调的自定义参数
 	protected float mMaxActiveTime;		// 显示的最大持续时间
 	protected bool mExistedObject;      // 为true表示特效节点是一个已存在的节点,false表示特效是实时加载的一个节点
 	protected bool mIsDead;             // 粒子系统是否已经死亡
 	protected bool mNextIgnoreTimeScale;
 	public GameEffect()
-		:base("effect")
 	{
-		mActiveTimer = new CustomTimer();
-		mLifeTimer = new CustomTimer();
-		mPlayState = PLAY_STATE.PS_STOP;
+		mActiveTimer = new MyTimer();
+		mLifeTimer = new MyTimer();
+		mPlayState = PLAY_STATE.STOP;
 	}
 	public override void init()
 	{
@@ -56,7 +55,7 @@ public class GameEffect : MovableObject
 		base.update(elapsedTime);
 		// 在忽略时间缩放时需要手动进行模拟
 		// 播放后忽略了时间缩放,则只有在停止时才能修改忽略时间缩放,中间修改是无效的
-		if (mIgnoreTimeScale && mPlayState == PLAY_STATE.PS_PLAY)
+		if (mIgnoreTimeScale && mPlayState == PLAY_STATE.PLAY)
 		{
 			foreach (var item in mParticleSystems)
 			{
@@ -125,7 +124,7 @@ public class GameEffect : MovableObject
 			return;
 		}
 		// 正在播放时无法取消忽略时间缩放
-		if (mPlayState == PLAY_STATE.PS_PLAY && !ignore)
+		if (mPlayState == PLAY_STATE.PLAY && !ignore)
 		{
 			return;
 		}
@@ -138,7 +137,7 @@ public class GameEffect : MovableObject
 	}
 	public void play()
 	{
-		mPlayState = PLAY_STATE.PS_PLAY;
+		mPlayState = PLAY_STATE.PLAY;
 		if(mParticleSystems == null)
 		{
 			return;
@@ -163,7 +162,7 @@ public class GameEffect : MovableObject
 	}
 	public void stop()
 	{
-		mPlayState = PLAY_STATE.PS_STOP;
+		mPlayState = PLAY_STATE.STOP;
 		foreach (var item in mParticleSystems)
 		{
 			item.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
@@ -177,7 +176,7 @@ public class GameEffect : MovableObject
 	}
 	public void pause()
 	{
-		mPlayState = PLAY_STATE.PS_PAUSE;
+		mPlayState = PLAY_STATE.PAUSE;
 		foreach (var item in mParticleSystems)
 		{
 			item.Pause();
@@ -194,6 +193,6 @@ public class GameEffect : MovableObject
 		mExistedObject = false;
 		mEffectDestroyCallback = null;
 		mDestroyUserData = null;
-		mPlayState = PLAY_STATE.PS_STOP;
+		mPlayState = PLAY_STATE.STOP;
 	}
 }

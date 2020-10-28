@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 {
-	protected float mTotalAngle;
-	protected float mRotatedAngle;
-	protected bool mClockwise;
-	protected float mDistanceDelta;
 	protected float mDistanceCurrent;
+	protected float mDistanceDelta;
+	protected float mRotatedAngle;
+	protected float mTotalAngle;
+	protected bool mClockwise;
 	public CameraLinkerSwitchAroundTarget()
 	{
 		mClockwise = true;
@@ -67,7 +67,7 @@ public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 				projectVec *= getLength(ref mOriginRelative) + mDistanceCurrent;
 				// 高度变化
 				rotateAxis.y = (mTargetRelative.y - mOriginRelative.y) * (mRotatedAngle / mTotalAngle) + mOriginRelative.y;
-				//最终值
+				// 最终值
 				rotateAxis.x = projectVec.x;
 				rotateAxis.z = projectVec.z;
 				mParentLinker.setRelativePosition(rotateAxis);

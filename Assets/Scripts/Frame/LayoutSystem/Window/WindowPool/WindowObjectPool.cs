@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
-public class WindowObjectPool<T> : GameBase where T : PooledWindow, new()
+public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 {
 	protected List<T> mUsedItemList;
 	protected List<T> mUnusedItemList;
 	protected LayoutScript mScript;
-	protected txUIObject mItemParentInuse;
-	protected txUIObject mItemParentUnuse;
-	protected txUIObject mTemplate;
+	protected myUIObject mItemParentInuse;
+	protected myUIObject mItemParentUnuse;
+	protected myUIObject mTemplate;
+	protected Type mObjectType;
 	protected string mPreName;
 	protected int mAssignIDSeed;		// 分配ID种子,用于设置唯一分配ID,只会递增,不会减少
 	public WindowObjectPool(LayoutScript script)
@@ -27,17 +29,41 @@ public class WindowObjectPool<T> : GameBase where T : PooledWindow, new()
 		}
 		mUnusedItemList.Clear();
 	}
-	public void setNode(txUIObject parent, txUIObject template)
+	// 当使用ILRuntime热更时,T类型很可能就是一个热更工程中的类,在主工程中无法根据T获得真正的类型,所以只能由外部传进来类型
+	public void setNode(myUIObject parent, myUIObject template, Type objectType)
 	{
-		setNode(parent, parent, template);
+		setNode(parent, parent, template, objectType);
 	}
-	public void setNode(txUIObject parentInuse, txUIObject parentUnuse, txUIObject template)
+	public void setNode(myUIObject parentInuse, myUIObject parentUnuse, myUIObject template, Type objectType)
 	{
 		mItemParentInuse = parentInuse;
 		mItemParentUnuse = parentUnuse;
 		mTemplate = template;
 		mPreName = template?.getName();
+		mObjectType = objectType;
+#if UNITY_EDITOR
+		if(mObjectType != null)
+		{
+			bool hasNoneParamConstructor = false;
+			ConstructorInfo[] info = mObjectType.GetConstructors();
+			if (info != null)
+			{
+				foreach (var item in info)
+				{
+					if (item.GetParameters().Length == 0)
+					{
+						hasNoneParamConstructor = true;
+					}
+				}
+			}
+			if (!hasNoneParamConstructor && info != null && info.Length > 0)
+			{
+				logError("WindowObjectPool需要有无参构造的类作为节点类型, Type:" + mObjectType.Name);
+			}
+		}
+#endif
 	}
+	public myUIObject getInUseParent() { return mItemParentInuse; }
 	public void setItemPreName(string preName) { mPreName = preName; }
 	public List<T> getUsedList() { return mUsedItemList; }
 	public bool isUsed(T item) { return mUsedItemList.Contains(item); }
@@ -49,6 +75,7 @@ public class WindowObjectPool<T> : GameBase where T : PooledWindow, new()
 			newItem();
 		}
 	}
+	// 将source从sourcePool中移动到当前池中
 	public void moveItem(WindowObjectPool<T> sourcePool, T source, bool inUsed)
 	{
 		// 从原来的池中移除
@@ -79,7 +106,7 @@ public class WindowObjectPool<T> : GameBase where T : PooledWindow, new()
 		}
 		else
 		{
-			item = new T();
+			item = createInstance<T>(mObjectType);
 			item.setScript(mScript);
 			item.assignWindow(mItemParentInuse, mTemplate, mPreName + makeID());
 			item.init();

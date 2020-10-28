@@ -30,12 +30,12 @@ public class ComponentDrag : GameComponent
 		if (touchCount == 0)
 		{
 			// 左键按下时,鼠标悬停在物体上,则开始拖动
-			if (!mDrag && mInputManager.getMouseCurrentDown(MOUSE_BUTTON.MB_LEFT))
+			if (!mDrag && mInputManager.getMouseCurrentDown(MOUSE_BUTTON.LEFT))
 			{
 				checkStartDrag(getMousePosition());
 			}
 			Vector3 mousePosition = getMousePosition();
-			if (mInputManager.getMouseCurrentUp(MOUSE_BUTTON.MB_LEFT))
+			if (mInputManager.getMouseCurrentUp(MOUSE_BUTTON.LEFT))
 			{
 				onMouseUp(mousePosition);
 			}
@@ -174,7 +174,7 @@ public class ComponentDrag : GameComponent
 	}
 	protected void checkStartDrag(Vector3 mousePosition)
 	{
-		if (mInputManager.getMouseDown(MOUSE_BUTTON.MB_LEFT) && mouseInObject(ref mousePosition))
+		if (mInputManager.getMouseDown(MOUSE_BUTTON.LEFT) && mouseInObject(ref mousePosition))
 		{
 			// 从上往下查找,如果前面没有窗口需要有拖拽消息被处理,则当前窗口响应拖拽消息
 			var hoverWindowList = mGlobalTouchSystem.getAllHoverWindow(ref mousePosition);

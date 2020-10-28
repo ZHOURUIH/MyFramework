@@ -16,7 +16,7 @@ public class WindowComponentLum : ComponentKeyFrameNormal
 			logError("window is not a IShaderWindow! can not offset hsl!");
 			return;
 		}
-		var lumOffset = (mComponentOwner as IShaderWindow).getWindowShader<WindowShaderLumOffset>();
+		var lumOffset = (mComponentOwner as IShaderWindow).getWindowShader() as WindowShaderLumOffset;
 		if(lumOffset == null)
 		{
 			logError("window has no WindowShaderLumOffset!");

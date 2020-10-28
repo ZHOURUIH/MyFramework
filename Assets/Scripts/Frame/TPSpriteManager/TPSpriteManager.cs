@@ -3,20 +3,24 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+public class UGUIAtlas
+{
+	public Texture2D mTexture;
+}
+
 // 用于UGUI的multi sprite管理
-public class TPSpriteManager : FrameComponent
+public class TPSpriteManager : FrameSystem
 {
 	protected Dictionary<string, Dictionary<string, Sprite>> mSpriteNameList;// key是图集的路径,相对于GameResources
-	protected Dictionary<UnityEngine.Object, Dictionary<string, Sprite>> mSpriteList;
-	protected Dictionary<string, UnityEngine.Object> mAtlasNameList;		// key是图集的路径,相对于GameResources
-	protected Dictionary<UnityEngine.Object, string> mAtlasList;            // value是图集的路径,相对于GameResources
-	public TPSpriteManager(string name)
-		: base(name)
+	protected Dictionary<UGUIAtlas, Dictionary<string, Sprite>> mSpriteList;
+	protected Dictionary<string, UGUIAtlas> mAtlasNameList;		// key是图集的路径,相对于GameResources
+	protected Dictionary<UGUIAtlas, string> mAtlasList;         // value是图集的路径,相对于GameResources
+	public TPSpriteManager()
 	{
 		mSpriteNameList = new Dictionary<string, Dictionary<string, Sprite>>();
-		mSpriteList = new Dictionary<UnityEngine.Object, Dictionary<string, Sprite>>();
-		mAtlasNameList = new Dictionary<string, UnityEngine.Object>();
-		mAtlasList = new Dictionary<UnityEngine.Object, string>();
+		mSpriteList = new Dictionary<UGUIAtlas, Dictionary<string, Sprite>>();
+		mAtlasNameList = new Dictionary<string, UGUIAtlas>();
+		mAtlasList = new Dictionary<UGUIAtlas, string>();
 	}
 	public Dictionary<string, Sprite> getSprites(string atlasName, bool errorIfNull = true)
 	{
@@ -30,11 +34,11 @@ public class TPSpriteManager : FrameComponent
 		}
 		return null;
 	}
-	public Dictionary<string, Sprite> getSprites(UnityEngine.Object atlas)
+	public Dictionary<string, Sprite> getSprites(UGUIAtlas atlas)
 	{
 		return mSpriteList.ContainsKey(atlas) ? mSpriteList[atlas] : null;
 	}
-	public Sprite getSprite(UnityEngine.Object atlas, string spriteName)
+	public Sprite getSprite(UGUIAtlas atlas, string spriteName)
 	{
 		if(atlas == null || spriteName == null)
 		{
@@ -74,15 +78,15 @@ public class TPSpriteManager : FrameComponent
 		}
 		return null;
 	}
-	public Texture2D getAtlas(string atlasName, bool errorInNull, bool loadIfNull)
+	public UGUIAtlas getAtlas(string atlasName, bool errorInNull, bool loadIfNull)
 	{
-		if (!mAtlasNameList.ContainsKey(atlasName) && loadIfNull)
-		{
-			loadAtlas(atlasName, errorInNull);
-		}
 		if (mAtlasNameList.ContainsKey(atlasName))
 		{
-			return mAtlasNameList[atlasName] as Texture2D;
+			return mAtlasNameList[atlasName];
+		}
+		if (loadIfNull)
+		{
+			return loadAtlas(atlasName, errorInNull);
 		}
 		return null;
 	}
@@ -90,10 +94,10 @@ public class TPSpriteManager : FrameComponent
 	{
 		if (mAtlasNameList.ContainsKey(atlasName))
 		{
-			callback?.Invoke(mAtlasNameList[atlasName] as Texture2D, userData);
+			callback?.Invoke(mAtlasNameList[atlasName], userData);
 			return;
 		}
-		if (!mAtlasNameList.ContainsKey(atlasName) && loadIfNull)
+		if (loadIfNull)
 		{
 			loadAtlasAsync(atlasName, callback, userData, errorInNull);
 		}
@@ -102,53 +106,17 @@ public class TPSpriteManager : FrameComponent
 	{
 		if(mAtlasNameList.ContainsKey(atlasName))
 		{
-			UnityEngine.Object atlas = mAtlasNameList[atlasName];
+			UGUIAtlas atlas = mAtlasNameList[atlasName];
 			mAtlasNameList.Remove(atlasName);
 			mAtlasList.Remove(atlas);
 			mSpriteNameList[atlasName].Clear();
 			mSpriteNameList.Remove(atlasName);
 			mSpriteList.Remove(atlas);
-			mResourceManager.unload(ref atlas);
+			mResourceManager.unload(ref atlas.mTexture);
 		}
 	}
 	//---------------------------------------------------------------------------------------------------------------
-	protected void onAssetLoadDone(UnityEngine.Object asset, UnityEngine.Object[] assets, byte[] bytes, object[] userData, string loadPath)
-	{
-		Texture2D atlas = null;
-		if(!mAtlasNameList.ContainsKey(loadPath))
-		{
-			if (assets != null && assets.Length > 0)
-			{
-				// 找到Texture,位置不一定是第一个,需要遍历查找
-				foreach (var item in assets)
-				{
-					if (item is Texture2D)
-					{
-						atlas = item as Texture2D;
-						break;
-					}
-				}
-				// 找出所有的精灵
-				var spriteList = new Dictionary<string, Sprite>();
-				foreach (var item in assets)
-				{
-					if (item is Sprite)
-					{
-						spriteList.Add(item.name, item as Sprite);
-					}
-				}
-				mSpriteNameList.Add(loadPath, spriteList);
-				mSpriteList.Add(atlas, spriteList);
-				mAtlasNameList.Add(loadPath, atlas);
-				mAtlasList.Add(atlas, loadPath);
-			}
-		}
-		else
-		{
-			atlas = mAtlasNameList[loadPath] as Texture2D;
-		}
-		((AtlasLoadDone)userData[0])?.Invoke(atlas, userData[1]);
-	}
+	// 异步加载图集
 	protected void loadAtlasAsync(string atlasName, AtlasLoadDone callback, object userData, bool errorIfNull = true)
 	{
 		if (!mSpriteNameList.ContainsKey(atlasName))
@@ -157,38 +125,66 @@ public class TPSpriteManager : FrameComponent
 			mResourceManager.loadSubResourceAsync<Sprite>(atlasName, onAssetLoadDone, userDatas, errorIfNull);
 		}
 	}
-	protected void loadAtlas(string atlasName, bool errorIfNull = true)
+	// 异步加载完毕
+	protected void onAssetLoadDone(UnityEngine.Object asset, UnityEngine.Object[] assets, byte[] bytes, object[] userData, string loadPath)
+	{
+		UGUIAtlas atlas;
+		if (!mAtlasNameList.ContainsKey(loadPath))
+		{
+			atlas = atlasLoaded(assets, loadPath);
+		}
+		else
+		{
+			atlas = mAtlasNameList[loadPath];
+		}
+		((AtlasLoadDone)userData[0])?.Invoke(atlas, userData[1]);
+	}
+	// 同步加载图集
+	protected UGUIAtlas loadAtlas(string atlasName, bool errorIfNull = true)
 	{
 		if (mSpriteNameList.ContainsKey(atlasName))
 		{
-			return;
+			return null;
 		}
 		var sprites = mResourceManager.loadSubResource<Sprite>(atlasName, errorIfNull);
-		if (sprites != null && sprites.Length > 0)
-		{
-			// 找到Texture,位置不一定是第一个,需要遍历查找
-			Texture2D atlas = null;
-			foreach (var item in sprites)
-			{
-				if (item is Texture2D)
-				{
-					atlas = item as Texture2D;
-					break;
-				}
-			}
-			// 找出所有的精灵
-			var spriteList = new Dictionary<string, Sprite>();
-			foreach (var item in sprites)
-			{
-				if (item is Sprite)
-				{
-					spriteList.Add(item.name, item as Sprite);
-				}
-			}
-			mSpriteNameList.Add(atlasName, spriteList);
-			mSpriteList.Add(atlas, spriteList);
-			mAtlasNameList.Add(atlasName, atlas);
-			mAtlasList.Add(atlas, atlasName);
-		}
+		return atlasLoaded(sprites, atlasName);
 	}
+	// 图集资源已经加载完成,从assets中解析并创建图集信息
+	protected UGUIAtlas atlasLoaded<T>(T[] assets, string loadPath) where T : UnityEngine.Object
+	{
+		if (assets == null || assets.Length == 0)
+		{
+			return null;
+		}
+		Texture2D texture = null;
+		// 找到Texture,位置不一定是第一个,需要遍历查找
+		foreach (var item in assets)
+		{
+			if (item is Texture2D)
+			{
+				texture = item as Texture2D;
+				break;
+			}
+		}
+		if (texture == null)
+		{
+			logError("can not find texture2D in loaded Texture:" + loadPath);
+		}
+		// 找出所有的精灵
+		var spriteList = new Dictionary<string, Sprite>();
+		foreach (var item in assets)
+		{
+			if (item is Sprite)
+			{
+				spriteList.Add(item.name, item as Sprite);
+			}
+		}
+		UGUIAtlas atlas = new UGUIAtlas();
+		atlas.mTexture = texture;
+		mSpriteNameList.Add(loadPath, spriteList);
+		mSpriteList.Add(atlas, spriteList);
+		mAtlasNameList.Add(loadPath, atlas);
+		mAtlasList.Add(atlas, loadPath);
+		return atlas;
+	} 
 }

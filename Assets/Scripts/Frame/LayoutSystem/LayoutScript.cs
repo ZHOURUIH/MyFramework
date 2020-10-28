@@ -7,8 +7,9 @@ public abstract class LayoutScript : GameBase
 {
 	protected List<int> mDelayCmdList;  // 布局显示和隐藏时的延迟命令列表,当命令执行时,会从列表中移除该命令
 	protected GameLayout mLayout;
-	protected txUIObject mRoot;
-	protected LAYOUT mType;
+	protected myUIObject mRoot;
+	protected Type mType;				// 因为有些布局可能是在ILRuntime中,所以类型获取可能不正确,需要将类型存储下来
+	protected int mID;
 	public LayoutScript()
 	{
 		mDelayCmdList = new List<int>();
@@ -17,58 +18,73 @@ public abstract class LayoutScript : GameBase
 	{
 		interruptAllCommand();
 	}
-	public void setLayout(GameLayout layout) { mLayout = layout; mType = mLayout.getType(); }
-	public bool isVisible() { return mLayout.isVisible(); }
-	public LAYOUT getType() { return mType; }
-	public GameLayout getLayout() { return mLayout; }
-	public void setRoot(txUIObject root) { mRoot = root; }
-	public txUIObject getRoot() { return mRoot; }
-	public void registeBoxCollider(txUIObject obj, ObjectClickCallback clickCallback, ObjectPreClickCallback preClick, object preClickUserData, bool passRay = false)
+	public void setLayout(GameLayout layout) 
 	{
-		mGlobalTouchSystem.registeBoxCollider(obj, clickCallback, null, null);
+		mLayout = layout;
+		mID = mLayout.getID(); 
+	}
+	public bool isVisible() { return mLayout.isVisible(); }
+	public int getID() { return mID; }
+	public GameLayout getLayout() { return mLayout; }
+	public void setRoot(myUIObject root) { mRoot = root; }
+	public myUIObject getRoot() { return mRoot; }
+	public void registeCollider(myUIObject obj, ObjectClickCallback clickCallback, ObjectPreClickCallback preClick, object preClickUserData, bool passRay = false)
+	{
+		mGlobalTouchSystem.registeCollider(obj, clickCallback, null, null);
 		obj.setPreClickCallback(preClick, preClickUserData);
 		obj.setPassRay(passRay);
+		obj.setEnable(true);
 	}
 	// 用于接收GlobalTouchSystem处理的输入事件
-	public void registeBoxCollider(txUIObject obj, ObjectClickCallback clickCallback, ObjectHoverCallback hoverCallback, ObjectPressCallback pressCallback, bool passRay)
+	public void registeCollider(myUIObject obj, ObjectClickCallback clickCallback, ObjectHoverCallback hoverCallback, ObjectPressCallback pressCallback, bool passRay)
 	{
-		mGlobalTouchSystem.registeBoxCollider(obj, clickCallback, pressCallback, hoverCallback);
+		mGlobalTouchSystem.registeCollider(obj, clickCallback, pressCallback, hoverCallback);
 		obj.setPassRay(passRay);
+		// 由碰撞体的窗口都需要启用更新,以便可以保证窗口大小与碰撞体大小一致
+		obj.setEnable(true);
 	}
-	public void registeBoxCollider(txUIObject obj, ObjectClickCallback clickCallback, ObjectHoverCallback hoverCallback, ObjectPressCallback pressCallback, GameCamera camera)
+	public void registeCollider(myUIObject obj, ObjectClickCallback clickCallback, ObjectHoverCallback hoverCallback, ObjectPressCallback pressCallback, GameCamera camera)
 	{
-		mGlobalTouchSystem.registeBoxCollider(obj, clickCallback, pressCallback, hoverCallback, camera);
+		mGlobalTouchSystem.registeCollider(obj, clickCallback, pressCallback, hoverCallback, camera);
 		obj.setPassRay(false);
+		obj.setEnable(true);
 	}
-	public void registeBoxCollider(txUIObject obj, ObjectClickCallback clickCallback, ObjectHoverCallback hoverCallback, ObjectPressCallback pressCallback)
+	public void registeCollider(myUIObject obj, ObjectClickCallback clickCallback, ObjectHoverCallback hoverCallback, ObjectPressCallback pressCallback)
 	{
-		mGlobalTouchSystem.registeBoxCollider(obj, clickCallback, pressCallback, hoverCallback);
+		mGlobalTouchSystem.registeCollider(obj, clickCallback, pressCallback, hoverCallback);
 		obj.setPassRay(false);
+		obj.setEnable(true);
 	}
-	public void registeBoxCollider(txUIObject obj, ObjectClickCallback clickCallback, bool passRay)
+	public void registeCollider(myUIObject obj, ObjectClickCallback clickCallback, bool passRay)
 	{
-		mGlobalTouchSystem.registeBoxCollider(obj, clickCallback, null, null);
+		mGlobalTouchSystem.registeCollider(obj, clickCallback, null, null);
 		obj.setPassRay(passRay);
+		obj.setEnable(true);
 	}
-	public void registeBoxCollider(txUIObject obj, ObjectClickCallback clickCallback)
+	public void registeCollider(myUIObject obj, ObjectClickCallback clickCallback)
 	{
-		mGlobalTouchSystem.registeBoxCollider(obj, clickCallback, null, null);
+		mGlobalTouchSystem.registeCollider(obj, clickCallback, null, null);
 		obj.setPassRay(false);
+		obj.setEnable(true);
 	}
-	public void registeBoxCollider(txUIObject obj, bool passRay)
+	public void registeCollider(myUIObject obj, bool passRay)
 	{
-		mGlobalTouchSystem.registeBoxCollider(obj, null, null, null);
+		mGlobalTouchSystem.registeCollider(obj, null, null, null);
 		obj.setPassRay(passRay);
+		obj.setEnable(true);
 	}
-	public void registeBoxCollider(txUIObject obj)
+	public void registeCollider(myUIObject obj)
 	{
-		mGlobalTouchSystem.registeBoxCollider(obj, null, null, null);
+		mGlobalTouchSystem.registeCollider(obj, null, null, null);
 		obj.setPassRay(false);
+		obj.setEnable(true);
 	}
 	// 用于接收NGUI处理的输入事件
 #if USE_NGUI
-	public void registeBoxColliderNGUI(txNGUIObject obj, UIEventListener.VoidDelegate clickCallback,
-		UIEventListener.BoolDelegate pressCallback = null, UIEventListener.BoolDelegate hoverCallback = null)
+	public void registeColliderNGUI(txNGUIObject obj, 
+									UIEventListener.VoidDelegate clickCallback,
+									UIEventListener.BoolDelegate pressCallback = null, 
+									UIEventListener.BoolDelegate hoverCallback = null)
 	{
 		if (obj.getCollider() == null)
 		{
@@ -80,17 +96,32 @@ public abstract class LayoutScript : GameBase
 		obj.setHoverCallback(hoverCallback);
 	}
 #endif
-	public void unregisteBoxCollider(txUIObject obj)
+	public void unregisteCollider(myUIObject obj)
 	{
-		mGlobalTouchSystem.unregisteBoxCollider(obj);
+		mGlobalTouchSystem.unregisteCollider(obj);
 	}
 	public void registeInputField(IInputField inputField)
 	{
 		mInputManager.registeInputField(inputField);
+		// 所有的输入框都是不能穿透射线的
+		registeCollider(inputField as myUIObject);
 	}
 	public void unregisteInputField(IInputField inputField)
 	{
 		mInputManager.unregisteInputField(inputField);
+	}
+	public void bindPassOnlyParent(myUIObject obj)
+	{
+		// 设置当前窗口需要调整深度在所有子节点之上,并计算深度调整值
+		obj.setDepthOverAllChild(true);
+		UIDepth depth = obj.getDepth();
+		depth.setDepth(obj.getParent().getDepth(), depth.getOrderInParent(), obj.isDepthOverAllChild());
+		// 刷新深度
+		mGlobalTouchSystem.bindPassOnlyParent(obj);
+	}
+	public void bindPassOnlyArea(myUIObject background, myUIObject passOnlyArea)
+	{
+		mGlobalTouchSystem.bindPassOnlyArea(background, passOnlyArea);
 	}
 	public abstract void assignWindow();
 	public virtual void init() { }
@@ -118,16 +149,17 @@ public abstract class LayoutScript : GameBase
 	{
 		return hasObject(mRoot, name);
 	}
-	public bool hasObject(txUIObject parent, string name)
+	public bool hasObject(myUIObject parent, string name)
 	{
 		if (parent == null)
 		{
 			parent = mRoot;
 		}
-		GameObject gameObject = getGameObject(parent.getObject(), name);
+		GameObject gameObject = getGameObject(name, parent.getObject());
 		return gameObject != null;
 	}
-	public T cloneObject<T>(txUIObject parent, T oriObj, string name, bool active = true, bool refreshUIDepth = true) where T : txUIObject, new()
+	// 因为此处可以确定只有主工程的类,所以可以使用new T()
+	public T cloneObject<T>(myUIObject parent, T oriObj, string name, bool active = true, bool refreshUIDepth = true) where T : myUIObject, new()
 	{
 		if (parent == null)
 		{
@@ -140,12 +172,13 @@ public abstract class LayoutScript : GameBase
 		// 通知布局有窗口添加
 		if(refreshUIDepth)
 		{
-			mLayout.notifyObjectChanged();
+			mLayout.notifyChildChanged(parent);
 		}
 		return window;
 	}
-	// 创建txUIObject,并且新建GameObject,分配到txUIObject中
-	public T createObject<T>(txUIObject parent, string name, bool active = true) where T : txUIObject, new()
+	// 创建myUIObject,并且新建GameObject,分配到myUIObject中
+	// 因为此处可以确定只有主工程的类,所以可以使用new T()
+	public T createObject<T>(myUIObject parent, string name, bool active = true) where T : myUIObject, new()
 	{
 		GameObject go = createGameObject(name);
 		if (parent == null)
@@ -159,20 +192,22 @@ public abstract class LayoutScript : GameBase
 		go.transform.localEulerAngles = Vector3.zero;
 		go.transform.localPosition = Vector3.zero;
 		// 通知布局有窗口添加
-		mLayout.notifyObjectChanged();
+		mLayout.notifyChildChanged(parent);
 		return obj;
 	}
-	public T createObject<T>(string name, bool active = true) where T : txUIObject, new()
+	// 因为此处可以确定只有主工程的类,所以可以使用new T()
+	public T createObject<T>(string name, bool active = true) where T : myUIObject, new()
 	{
 		return createObject<T>(null, name, active);
 	}
-	// 创建txUIObject,并且在布局中查找GameObject分配到txUIObject
+	// 创建myUIObject,并且在布局中查找GameObject分配到myUIObject
 	// active为-1则表示不设置active,0表示false,1表示true
-	public T newObject<T>(out T obj, txUIObject parent, string name, int active = -1, bool showError = true) where T : txUIObject, new()
+	// 因为此处可以确定只有主工程的类,所以可以使用new T()
+	public T newObject<T>(out T obj, myUIObject parent, string name, int active = -1, bool showError = true) where T : myUIObject, new()
 	{
 		obj = null;
 		GameObject parentObj = parent != null ? parent.getObject() : null;
-		GameObject gameObject = getGameObject(parentObj, name, showError, false);
+		GameObject gameObject = getGameObject(name, parentObj, showError, false);
 		if (gameObject == null)
 		{
 			return obj;
@@ -184,15 +219,19 @@ public abstract class LayoutScript : GameBase
 		}
 		return obj;
 	}
-	public T newObject<T>(out T obj, string name, int active = -1) where T : txUIObject, new()
+	// 因为此处可以确定只有主工程的类,所以可以使用new T()
+	public T newObject<T>(out T obj, string name, int active = -1) where T : myUIObject, new()
 	{
 		return newObject(out obj, mRoot, name, active);
 	}
-	public static T newUIObject<T>(txUIObject parent, GameLayout layout, GameObject gameObj) where T : txUIObject, new()
+	// 因为此处可以确定只有主工程的类,所以可以使用new T()
+	public static T newUIObject<T>(myUIObject parent, GameLayout layout, GameObject gameObj) where T : myUIObject, new()
 	{
 		T obj = new T();
 		obj.setLayout(layout);
-		obj.init(gameObj, parent);
+		obj.setGameObject(gameObj);
+		obj.setParent(parent);
+		obj.init();
 		// 如果在创建窗口对象时,布局已经完成了自适应,则通知窗口
 		if(layout != null && layout.isAnchorApplied())
 		{
@@ -200,7 +239,7 @@ public abstract class LayoutScript : GameBase
 		}
 		return obj;
 	}
-	public GameObject instantiateObject(txUIObject parent, string prefabPath, string name, string tag = null)
+	public GameObject instantiateObject(myUIObject parent, string prefabPath, string name, string tag = null)
 	{
 		GameObject go = mObjectPool.createObject(prefabPath, tag);
 		if(go != null)
@@ -211,34 +250,36 @@ public abstract class LayoutScript : GameBase
 		}
 		return go;
 	}
-	public void instantiateObject(txUIObject parent, string prefabName)
+	public void instantiateObject(myUIObject parent, string prefabName)
 	{
 		instantiateObject(parent, prefabName, getFileNameNoSuffix(prefabName, true));
 	}
-	public void destroyInstantiateObject(txUIObject window, bool destroyReally)
+	public void destroyInstantiateObject(myUIObject window, bool destroyReally)
 	{
+		myUIObject parent = window.getParent();
 		GameObject go = window.getObject();
-		txUIObject.destroyWindow(window, false);
+		myUIObject.destroyWindow(window, false);
 		mObjectPool.destroyObject(ref go, destroyReally);
 		// 通知布局有窗口添加
-		mLayout.notifyObjectChanged();
+		mLayout.notifyChildChanged(parent);
 	}
 	// 虽然执行内容与类似,但是为了外部使用方便,所以添加了对于不同方式创建出来的窗口的销毁方法
-	public void destroyClonedObject(txUIObject obj, bool immediately = false)
+	public void destroyClonedObject(myUIObject obj, bool immediately = false)
 	{
 		destroyObject(obj, immediately);
 	}
-	public void destroyObject(ref txUIObject obj, bool immediately = false)
+	public void destroyObject(ref myUIObject obj, bool immediately = false)
 	{
 		destroyObject(obj, immediately);
 		obj = null;
 	}
-	public void destroyObject(txUIObject obj, bool immediately = false)
+	public void destroyObject(myUIObject obj, bool immediately = false)
 	{
+		myUIObject parent = obj.getParent();
 		obj.setDestroyImmediately(immediately);
-		txUIObject.destroyWindow(obj, true);
+		myUIObject.destroyWindow(obj, true);
 		// 通知布局有窗口添加
-		mLayout.notifyObjectChanged();
+		mLayout.notifyChildChanged(parent);
 	}
 	public void interruptCommand(int assignID, bool showError = true)
 	{
@@ -248,6 +289,8 @@ public abstract class LayoutScript : GameBase
 			mCommandSystem.interruptCommand(assignID, showError);
 		}
 	}
+	public void setType(Type type) { mType = type; }
+	public Type getType() { return mType; }
 	//----------------------------------------------------------------------------------------------------
 	protected void onCmdStarted(Command cmd)
 	{

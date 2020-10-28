@@ -6,14 +6,14 @@ using System;
 public class CommandLayoutManagerBackBlur : Command
 {
 	public List<GameLayout> mExcludeLayout;
+	public GUI_TYPE mGUIType;
 	public bool mBlur;
-	public bool mIsNGUI;
 	public override void init()
 	{
 		base.init();
 		mExcludeLayout = null;
+		mGUIType = GUI_TYPE.NGUI;
 		mBlur = true;
-		mIsNGUI = false;
 	}
 	public override void execute()
 	{
@@ -32,7 +32,7 @@ public class CommandLayoutManagerBackBlur : Command
 			}	
 			if(item.Value.getRenderOrder() < maxOrder)
 			{
-				setGameObjectLayer(item.Value.getRoot().getObject(), CommonDefine.LAYER_UI_BLUR);
+				setGameObjectLayer(item.Value.getRoot().getObject(), FrameDefine.LAYER_UI_BLUR);
 			}
 			else
 			{
@@ -40,6 +40,6 @@ public class CommandLayoutManagerBackBlur : Command
 			}
 		}
 		// 开启模糊摄像机
-		mCameraManager.activeBlurCamera(mIsNGUI, mBlur);
+		mCameraManager.activeBlurCamera(mGUIType, mBlur);
 	}
 }

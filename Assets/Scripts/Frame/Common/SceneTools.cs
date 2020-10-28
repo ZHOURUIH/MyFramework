@@ -4,13 +4,13 @@ using System;
 using System.Collections.Generic;
 
 // SceneTools
-public class ST : GameBase
+public class ST : FrameBase
 {
 	// 场景音效
 	#region 播放场景音效
 	public static void AUDIO()
 	{
-		pushCommand<CommandGameScenePlayAudio>(mGameSceneManager.getCurScene(), false);
+		pushMainCommand<CommandGameScenePlayAudio>(mGameSceneManager.getCurScene(), false);
 	}
 	public static void AUDIO(SOUND_DEFINE sound)
 	{
@@ -18,7 +18,7 @@ public class ST : GameBase
 	}
 	public static void AUDIO(SOUND_DEFINE sound, bool loop, float volume)
 	{
-		CommandGameScenePlayAudio cmd = newCmd(out cmd, false);
+		CommandGameScenePlayAudio cmd = newMainCmd(out cmd, false);
 		cmd.mSound = sound;
 		cmd.mLoop = loop;
 		cmd.mVolume = volume;
@@ -26,7 +26,7 @@ public class ST : GameBase
 	}
 	public static void AUDIO(string sound, bool loop, float volume)
 	{
-		CommandGameScenePlayAudio cmd = newCmd(out cmd, false);
+		CommandGameScenePlayAudio cmd = newMainCmd(out cmd, false);
 		cmd.mSoundFileName = sound;
 		cmd.mLoop = loop;
 		cmd.mVolume = volume;
@@ -37,11 +37,11 @@ public class ST : GameBase
 	#region 场景音效音量
 	public static void AUDIO_VOLUME()
 	{
-		pushCommand<CommandGameSceneAudioVolume>(mGameSceneManager.getCurScene(), false);
+		pushMainCommand<CommandGameSceneAudioVolume>(mGameSceneManager.getCurScene(), false);
 	}
 	public static void AUDIO_VOLUME(float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound)
 	{
-		AUDIO_VOLUME_EX(CommonDefine.ZERO_ONE, start, target, onceLength, volumeCoeSound, false, null, null);
+		AUDIO_VOLUME_EX(FrameDefine.ZERO_ONE, start, target, onceLength, volumeCoeSound, false, null, null);
 	}
 	public static void AUDIO_VOLUME(string keyFrameName, float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound, bool loop)
 	{
@@ -49,7 +49,7 @@ public class ST : GameBase
 	}
 	public static void AUDIO_VOLUME_EX(float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound, KeyFrameCallback fadeDoneCallback)
 	{
-		AUDIO_VOLUME_EX(CommonDefine.ZERO_ONE, start, target, onceLength, volumeCoeSound, false, null, fadeDoneCallback);
+		AUDIO_VOLUME_EX(FrameDefine.ZERO_ONE, start, target, onceLength, volumeCoeSound, false, null, fadeDoneCallback);
 	}
 	public static void AUDIO_VOLUME_EX(string keyFrameName, float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound, bool loop, KeyFrameCallback fadeDoneCallback)
 	{
@@ -57,7 +57,7 @@ public class ST : GameBase
 	}
 	public static void AUDIO_VOLUME_EX(string keyFrameName, float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound, bool loop, KeyFrameCallback fadingCallback, KeyFrameCallback fadeDoneCallback)
 	{
-		CommandGameSceneAudioVolume cmd = newCmd(out cmd, false);
+		CommandGameSceneAudioVolume cmd = newMainCmd(out cmd, false);
 		cmd.mKeyFrameName = keyFrameName;
 		cmd.mStartVolume = start;
 		cmd.mTargetVolume = target;

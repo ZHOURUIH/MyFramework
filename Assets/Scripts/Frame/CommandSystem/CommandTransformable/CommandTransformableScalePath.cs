@@ -31,7 +31,7 @@ public class CommandTransformableScalePath : Command
 		Transformable obj = mReceiver as Transformable;
 		TransformableComponentScalePath component = obj.getComponent(out component);
 		// 停止其他移动组件
-		obj.breakComponent<IComponentModifyScale>(component.GetType());
+		obj.breakComponent<IComponentModifyScale>(Typeof(component));
 		component.setTremblingCallback(mDoingCallBack);
 		component.setTrembleDoneCallback(mDoneCallBack);
 		component.setActive(true);
@@ -40,7 +40,7 @@ public class CommandTransformableScalePath : Command
 		component.setValueOffset(mValueOffset);
 		component.setOffsetBlendAdd(false);
 		component.play(mLoop, mOffset, mFullOnce);
-		if (component.getState() == PLAY_STATE.PS_PLAY)
+		if (component.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
 			obj.setEnable(true);

@@ -40,7 +40,7 @@ public class Command : GameBase
 		mDelayCommand = false;
 		mValid = false;
 		mIgnoreTimeScale = false;
-		mExecuteState = EXECUTE_STATE.ES_NOT_EXECUTE;
+		mExecuteState = EXECUTE_STATE.NOT_EXECUTE;
 		mEndCallback.Clear();
 		mStartCallback.Clear();
 		mDelayTime = 0.0f;
@@ -48,7 +48,7 @@ public class Command : GameBase
 	// 命令执行
 	public virtual void execute() { }
 	// 调试信息，由CommandSystem调用
-	public virtual string showDebugInfo()			{ return GetType().ToString(); }
+	public virtual string showDebugInfo()			{ return Typeof(this).ToString(); }
 	public bool isShowDebugInfo()					{ return mShowDebugInfo; }
 	public bool isDelayCommand()					{ return mDelayCommand; }
 	public CommandReceiver getReceiver()			{ return mReceiver; }

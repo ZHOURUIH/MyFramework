@@ -8,13 +8,13 @@ public class LONG : OBJECT
 	public long mValue;
 	public LONG()
 	{
-		mType = typeof(long);
+		mType = Typeof<long>();
 		mSize = TYPE_SIZE;
 	}
 	public LONG(long value)
 	{
 		mValue = value;
-		mType = typeof(long);
+		mType = Typeof<long>();
 		mSize = TYPE_SIZE;
 	}
 	public override void zero() { mValue = 0; }

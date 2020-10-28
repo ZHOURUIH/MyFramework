@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using UnityEngine;
 
-public class NGUILine : GameBase, INGUIShape
+public class NGUILine : FrameBase, INGUIShape
 {
 	public List<Vector3> mVertices;
 	public List<Color> mColors;

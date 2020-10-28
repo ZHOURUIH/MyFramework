@@ -1,63 +1,65 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 
 public class GameFramework : MonoBehaviour
 {
-	public static GameFramework		mGameFramework;
-	protected Dictionary<string, FrameComponent> mFrameComponentMap;	// 存储框架组件,用于查找
-	protected List<FrameComponent>	mFrameComponentInit;				// 存储框架组件,用于初始化
-	protected List<FrameComponent>	mFrameComponentUpdate;				// 存储框架组件,用于更新
-	protected List<FrameComponent>	mFrameComponentDestroy;				// 存储框架组件,用于销毁
-	protected GameObject			mGameFrameObject;
-	protected bool					mPauseFrame;
-	protected bool					mEnableKeyboard;
-	protected int					mFPS;
-	protected DateTime				mCurTime;
-	protected int					mCurFrameCount;
-	protected ThreadTimeLock		mTimeLock;
-	protected float					mThisFrameTime;
+	public static GameFramework mGameFramework;
+	protected Dictionary<string, FrameSystem> mFrameComponentMap;   // 存储框架组件,用于查找
+	protected List<FrameSystem> mFrameComponentInit;                // 存储框架组件,用于初始化
+	protected List<FrameSystem> mFrameComponentUpdate;              // 存储框架组件,用于更新
+	protected List<FrameSystem> mFrameComponentDestroy;             // 存储框架组件,用于销毁
+	protected ThreadTimeLock mTimeLock;
+	protected GameObject mGameFrameObject;
+	protected DateTime mCurTime;
+	protected float mThisFrameTime;
+	protected bool mEnableScriptDebug;
+	protected bool mEnableKeyboard;
+	protected bool mPauseFrame;
+	protected int mCurFrameCount;
+	protected int mFPS;
 	public void Start()
 	{
-		Application.targetFrameRate = 120;
+		Application.targetFrameRate = 60;
 		AppDomain app = AppDomain.CurrentDomain;
 		app.UnhandledException += UnhandledException;
-		mFrameComponentMap = new Dictionary<string, FrameComponent>();
-		mFrameComponentInit = new List<FrameComponent>();
-		mFrameComponentUpdate = new List<FrameComponent>();
-		mFrameComponentDestroy = new List<FrameComponent>();
+		mFrameComponentMap = new Dictionary<string, FrameSystem>();
+		mFrameComponentInit = new List<FrameSystem>();
+		mFrameComponentUpdate = new List<FrameSystem>();
+		mFrameComponentDestroy = new List<FrameSystem>();
 		mTimeLock = new ThreadTimeLock(15);
 		// 本地日志的初始化在移动平台上依赖于插件,所以在本地日志系统之前注册插件
-		registeComponent<AndroidPluginManager>();
-		registeComponent<AndroidAssetLoader>();
+		registeFrameSystem(UnityUtility.Typeof<AndroidPluginManager>());
+		registeFrameSystem(UnityUtility.Typeof<AndroidAssetLoader>());
 #if !UNITY_EDITOR
 		// 由于本地日志系统的特殊性,必须在最开始就初始化
 		FrameBase.mLocalLog = new LocalLog();
 		FrameBase.mLocalLog.init();
 #endif
 		UnityUtility.mOnLog = getLogCallback();
-		UnityUtility.logInfo("start game!", LOG_LEVEL.LL_FORCE);
-		UnityUtility.logInfo("QualitySettings.currentLevel:" + QualitySettings.GetQualityLevel(), LOG_LEVEL.LL_FORCE);
-		UnityUtility.logInfo("QualitySettings.activeColorSpace:" + QualitySettings.activeColorSpace, LOG_LEVEL.LL_FORCE);
-		UnityUtility.logInfo("Graphics.activeTier:" + Graphics.activeTier, LOG_LEVEL.LL_FORCE);
-		UnityUtility.logInfo("SystemInfo.graphicsDeviceType:" + SystemInfo.graphicsDeviceType, LOG_LEVEL.LL_FORCE);
-		UnityUtility.logInfo("SystemInfo.maxTextureSize:" + SystemInfo.maxTextureSize, LOG_LEVEL.LL_FORCE);
-		UnityUtility.logInfo("SystemInfo.supportsInstancing:" + SystemInfo.supportsInstancing, LOG_LEVEL.LL_FORCE);
-		UnityUtility.logInfo("SystemInfo.graphicsShaderLevel:" + SystemInfo.graphicsShaderLevel, LOG_LEVEL.LL_FORCE);
+		UnityUtility.logInfo("start game!", LOG_LEVEL.FORCE);
+		UnityUtility.logInfo("QualitySettings.currentLevel:" + QualitySettings.GetQualityLevel(), LOG_LEVEL.FORCE);
+		UnityUtility.logInfo("QualitySettings.activeColorSpace:" + QualitySettings.activeColorSpace, LOG_LEVEL.FORCE);
+		UnityUtility.logInfo("Graphics.activeTier:" + Graphics.activeTier, LOG_LEVEL.FORCE);
+		UnityUtility.logInfo("SystemInfo.graphicsDeviceType:" + SystemInfo.graphicsDeviceType, LOG_LEVEL.FORCE);
+		UnityUtility.logInfo("SystemInfo.maxTextureSize:" + SystemInfo.maxTextureSize, LOG_LEVEL.FORCE);
+		UnityUtility.logInfo("SystemInfo.supportsInstancing:" + SystemInfo.supportsInstancing, LOG_LEVEL.FORCE);
+		UnityUtility.logInfo("SystemInfo.graphicsShaderLevel:" + SystemInfo.graphicsShaderLevel, LOG_LEVEL.FORCE);
 		try
 		{
 			DateTime startTime = DateTime.Now;
 			start();
 			UnityUtility.logInfo("start消耗时间:" + (DateTime.Now - startTime).TotalMilliseconds);
 			// 根据设置的顺序对列表进行排序
-			mFrameComponentInit.Sort(FrameComponent.compareInit);
-			mFrameComponentUpdate.Sort(FrameComponent.compareUpdate);
-			mFrameComponentDestroy.Sort(FrameComponent.compareDestroy);
+			mFrameComponentInit.Sort(FrameSystem.compareInit);
+			mFrameComponentUpdate.Sort(FrameSystem.compareUpdate);
+			mFrameComponentDestroy.Sort(FrameSystem.compareDestroy);
 			notifyBase();
 			registe();
 			init();
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			string innerMessage = e.InnerException != null ? e.InnerException.Message : "empty";
 			UnityUtility.logError("init failed! " + e.Message + ", inner exception:" + innerMessage + "\nstack:" + e.StackTrace);
@@ -100,6 +102,10 @@ public class GameFramework : MonoBehaviour
 		catch (Exception e)
 		{
 			UnityUtility.logError(e.Message + ", stack:" + e.StackTrace);
+			if (e.InnerException != null)
+			{
+				UnityUtility.logError("inner exception:" + e.InnerException.Message + ", stack:" + e.InnerException.StackTrace);
+			}
 		}
 	}
 	public void FixedUpdate()
@@ -138,7 +144,7 @@ public class GameFramework : MonoBehaviour
 		{
 			drawGizmos();
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			UnityUtility.logError(e.Message + ", stack:" + e.StackTrace);
 		}
@@ -146,7 +152,7 @@ public class GameFramework : MonoBehaviour
 	public void OnApplicationQuit()
 	{
 		destroy();
-		UnityUtility.logInfo("程序退出完毕!", LOG_LEVEL.LL_FORCE);
+		UnityUtility.logInfo("程序退出完毕!", LOG_LEVEL.FORCE);
 #if !UNITY_EDITOR
 		FrameBase.mLocalLog?.destroy();
 		FrameBase.mLocalLog = null;
@@ -180,32 +186,54 @@ public class GameFramework : MonoBehaviour
 	}
 	public virtual void keyProcess()
 	{
-		if(FrameBase.getKeyCurrentDown(KeyCode.F1))
+		// F1切换日志等级
+		if (FrameBase.getKeyCurrentDown(KeyCode.F1))
 		{
-			int newLevel = ((int)UnityUtility.getLogLevel() + 1) % (int)LOG_LEVEL.LL_MAX;
+			int newLevel = ((int)UnityUtility.getLogLevel() + 1) % (int)LOG_LEVEL.MAX;
 			UnityUtility.setLogLevel((LOG_LEVEL)newLevel);
 		}
-	}
-	public void getSystem<T>(out T component) where T : FrameComponent
-	{
-		component = null;
-		string name = typeof(T).ToString();
-		if(mFrameComponentMap != null && mFrameComponentMap.ContainsKey(name))
+		// F2检测当前鼠标坐标下有哪些窗口
+		if (FrameBase.getKeyCurrentDown(KeyCode.F2))
 		{
-			component = mFrameComponentMap[name] as T;
+			Vector3 mousePos = FrameBase.getMousePosition();
+			var resultList = FrameBase.mGlobalTouchSystem.getAllHoverWindow(ref mousePos, null, true);
+			int resultCount = resultList.Count;
+			for (int i = 0; i < resultCount; ++i)
+			{
+				UIDepth depth = resultList[i].getDepth();
+				UnityUtility.logInfo("窗口:" + resultList[i].getName() +
+										", 深度:layout:" + depth.toDepthString() +
+										", priority:" + depth.getPriority(),
+										LOG_LEVEL.FORCE);
+			}
+		}
+		// F3启用或禁用用作调试的脚本的更新
+		if (FrameBase.getKeyCurrentDown(KeyCode.F3))
+		{
+			mEnableScriptDebug = !mEnableScriptDebug;
 		}
 	}
+	public FrameSystem getSystem(Type type)
+	{
+		string name = type.ToString();
+		if (mFrameComponentMap != null && mFrameComponentMap.ContainsKey(name))
+		{
+			return mFrameComponentMap[name];
+		}
+		return null;
+	}
+	public bool isEnableScriptDebug() { return mEnableScriptDebug; }
 	public void setPasueFrame(bool value) { mPauseFrame = value; }
 	public bool isPasueFrame() { return mPauseFrame; }
 	public GameObject getGameFrameObject() { return mGameFrameObject; }
 	public bool isEnableKeyboard() { return mEnableKeyboard; }
 	public int getFPS() { return mFPS; }
-	public void destroyComponent<T>(ref T component) where T : FrameComponent
+	public void destroyComponent<T>(ref T component) where T : FrameSystem
 	{
 		int count = mFrameComponentUpdate.Count;
 		for (int i = 0; i < count; ++i)
 		{
-			if(mFrameComponentInit[i] == component)
+			if (mFrameComponentInit[i] == component)
 			{
 				mFrameComponentInit[i] = null;
 			}
@@ -239,8 +267,8 @@ public class GameFramework : MonoBehaviour
 			{
 				return;
 			}
-			FrameComponent component = mFrameComponentUpdate[i];
-			if(component != null && !component.isDestroy())
+			FrameSystem component = mFrameComponentUpdate[i];
+			if (component != null && !component.isDestroy())
 			{
 				UnityProfiler.BeginSample(component.getName());
 				component.update(elapsedTime);
@@ -262,7 +290,7 @@ public class GameFramework : MonoBehaviour
 			{
 				return;
 			}
-			FrameComponent component = mFrameComponentUpdate[i];
+			FrameSystem component = mFrameComponentUpdate[i];
 			if (component != null && !component.isDestroy())
 			{
 				UnityProfiler.BeginSample(component.getName());
@@ -285,7 +313,7 @@ public class GameFramework : MonoBehaviour
 			{
 				return;
 			}
-			FrameComponent component = mFrameComponentUpdate[i];
+			FrameSystem component = mFrameComponentUpdate[i];
 			if (component != null && !component.isDestroy())
 			{
 				component.lateUpdate(elapsedTime);
@@ -306,7 +334,7 @@ public class GameFramework : MonoBehaviour
 			{
 				return;
 			}
-			FrameComponent component = mFrameComponentUpdate[i];
+			FrameSystem component = mFrameComponentUpdate[i];
 			if (component != null && !component.isDestroy())
 			{
 				component.onDrawGizmos();
@@ -325,7 +353,7 @@ public class GameFramework : MonoBehaviour
 		mPauseFrame = false;
 		mGameFramework = this;
 		mGameFrameObject = gameObject;
-		initComponent();
+		initFrameSystem();
 	}
 	protected virtual void init()
 	{
@@ -339,12 +367,13 @@ public class GameFramework : MonoBehaviour
 				mFrameComponentInit[i].init();
 				UnityUtility.logInfo(mFrameComponentInit[i].getName() + "初始化消耗时间:" + (DateTime.Now - start).TotalMilliseconds);
 			}
-			catch(Exception e)
+			catch (Exception e)
 			{
 				UnityUtility.logError("init failed! :" + mFrameComponentInit[i].getName() + ", info:" + e.Message + ", stack:" + e.StackTrace);
 			}
 		}
 		System.Net.ServicePointManager.DefaultConnectionLimit = 200;
+		mEnableScriptDebug = true;
 		mEnableKeyboard = (int)FrameBase.mFrameConfig.getFloat(GAME_FLOAT.ENABLE_KEYBOARD) > 0;
 		ApplicationConfig appConfig = FrameBase.mApplicationConfig;
 		QualitySettings.vSyncCount = (int)appConfig.getFloat(GAME_FLOAT.VSYNC);
@@ -368,91 +397,96 @@ public class GameFramework : MonoBehaviour
 		{
 			// 无边框的设置有时候会失效,并且同样的设置,如果上一次设置失效后,即便恢复设置也同样会失效,也就是说本次的是否生效与上一次的结果有关
 			// 当设置失效后,可以使用添加启动参数-popupwindow来实现无边框
-			long curStyle = User32.GetWindowLong(User32.GetForegroundWindow(), CommonDefine.GWL_STYLE);
-			curStyle &= ~CommonDefine.WS_BORDER;
-			curStyle &= ~CommonDefine.WS_DLGFRAME;
-			User32.SetWindowLong(User32.GetForegroundWindow(), CommonDefine.GWL_STYLE, curStyle);
+			long curStyle = User32.GetWindowLong(User32.GetForegroundWindow(), FrameDefine.GWL_STYLE);
+			curStyle &= ~FrameDefine.WS_BORDER;
+			curStyle &= ~FrameDefine.WS_DLGFRAME;
+			User32.SetWindowLong(User32.GetForegroundWindow(), FrameDefine.GWL_STYLE, curStyle);
 		}
 #endif
 		// NGUI
 #if USE_NGUI
-		GameObject nguiRootObj = UnityUtility.getGameObject(null, CommonDefine.NGUI_ROOT);
+		GameObject nguiRootObj = UnityUtility.getGameObject(null, FrameDefine.NGUI_ROOT);
 		UIRoot nguiRoot = nguiRootObj.GetComponent<UIRoot>();
 		nguiRoot.scalingStyle = UIRoot.Scaling.Constrained;
 		nguiRoot.manualWidth = width;
 		nguiRoot.manualHeight = height;
-		GameCamera camera = FrameBase.mCameraManager.getUICamera(false);
+		GameCamera camera = FrameBase.mCameraManager.getUICamera(GUI_TYPE.NGUI);
 		OT.MOVE(camera, new Vector3(0.0f, 0.0f, -height * 0.5f / MathUtility.tan(camera.getFOVY(true)* 0.5f)));
-		GameCamera blurCamera = FrameBase.mCameraManager.getUIBlurCamera(false);
+		GameCamera blurCamera = FrameBase.mCameraManager.getUIBlurCamera(GUI_TYPE.NGUI);
 		OT.MOVE(blurCamera, new Vector3(0.0f, 0.0f, -height * 0.5f / MathUtility.tan(blurCamera.getFOVY(true) * 0.5f)));
 #endif
 		// UGUI
-		GameObject uguiRootObj = UnityUtility.getGameObject(null, CommonDefine.UGUI_ROOT);
+		GameObject uguiRootObj = UnityUtility.getGameObject(FrameDefine.UGUI_ROOT);
 		RectTransform uguiRectTransform = uguiRootObj.GetComponent<RectTransform>();
 		uguiRectTransform.offsetMin = -screenSize * 0.5f;
 		uguiRectTransform.offsetMax = screenSize * 0.5f;
 		uguiRectTransform.anchorMax = Vector2.zero;
 		uguiRectTransform.anchorMin = Vector2.zero;
-		GameCamera camera = FrameBase.mCameraManager.getUICamera(false);
-		if(camera != null)
+		GameCamera camera = FrameBase.mCameraManager.getUICamera(GUI_TYPE.UGUI);
+		if (camera != null)
 		{
 			OT.MOVE(camera, new Vector3(0.0f, 0.0f, -height * 0.5f / MathUtility.tan(camera.getFOVY(true) * 0.5f)));
 		}
-		GameCamera blurCamera = FrameBase.mCameraManager.getUIBlurCamera(false);
-		if(blurCamera != null)
+		GameCamera blurCamera = FrameBase.mCameraManager.getUIBlurCamera(GUI_TYPE.UGUI);
+		if (blurCamera != null)
 		{
 			OT.MOVE(blurCamera, new Vector3(0.0f, 0.0f, -height * 0.5f / MathUtility.tan(blurCamera.getFOVY(true) * 0.5f)));
 		}
 		// 设置默认的日志等级
 #if UNITY_EDITOR
-		UnityUtility.setLogLevel(LOG_LEVEL.LL_NORMAL);
+		UnityUtility.setLogLevel(LOG_LEVEL.NORMAL);
 #else
 		UnityUtility.setLogLevel((LOG_LEVEL)(int)FrameBase.mFrameConfig.getFloat(GAME_FLOAT.LOG_LEVEL));
 #endif
 	}
 	protected virtual void registe() { }
 	protected virtual void launch() { }
-	protected virtual void initComponent()
+	protected virtual void initFrameSystem()
 	{
-		registeComponent<TimeManager>();
-		registeComponent<ApplicationConfig>();
-		registeComponent<FrameConfig>();
-		registeComponent<HttpUtility>();
+		registeFrameSystem(UnityUtility.Typeof<TimeManager>());
+		registeFrameSystem(UnityUtility.Typeof<ApplicationConfig>());
+		registeFrameSystem(UnityUtility.Typeof<FrameConfig>());
+		registeFrameSystem(UnityUtility.Typeof<HttpUtility>());
 #if !UNITY_IOS && !NO_SQLITE
-		registeComponent<SQLite>();
+		registeFrameSystem(UnityUtility.Typeof<SQLite>());
 #endif
-		registeComponent<DataBase>();
-		registeComponent<CommandSystem>(-1, -1, 2001);  // 命令系统在大部分管理器都销毁完毕后再销毁
-		registeComponent<GlobalTouchSystem>();
-		registeComponent<CharacterManager>();
-		registeComponent<AudioManager>();
-		registeComponent<GameSceneManager>();
-		registeComponent<KeyFrameManager>();
-		registeComponent<DllImportExtern>();
-		registeComponent<ShaderManager>();
-		registeComponent<CameraManager>();
-		registeComponent<InputManager>();
-		registeComponent<SceneSystem>();
-		registeComponent<GamePluginManager>();
-		registeComponent<ClassPool>();
-		registeComponent<ListPool>();
-		registeComponent<HeadTextureManager>();
-		registeComponent<MovableObjectManager>();
-		registeComponent<EffectManager>();
-		registeComponent<TPSpriteManager>();
-		registeComponent<SocketFactory>();
-		registeComponent<PathKeyframeManager>();
+		registeFrameSystem(UnityUtility.Typeof<DataBase>());
+		registeFrameSystem(UnityUtility.Typeof<CommandSystem>(), -1, -1, 2001);  // 命令系统在大部分管理器都销毁完毕后再销毁
+		registeFrameSystem(UnityUtility.Typeof<GlobalTouchSystem>());
+		registeFrameSystem(UnityUtility.Typeof<CharacterManager>());
+		registeFrameSystem(UnityUtility.Typeof<AudioManager>());
+		registeFrameSystem(UnityUtility.Typeof<GameSceneManager>());
+		registeFrameSystem(UnityUtility.Typeof<KeyFrameManager>());
+		registeFrameSystem(UnityUtility.Typeof<DllImportExtern>());
+		registeFrameSystem(UnityUtility.Typeof<ShaderManager>());
+		registeFrameSystem(UnityUtility.Typeof<CameraManager>());
+		registeFrameSystem(UnityUtility.Typeof<InputManager>());
+		registeFrameSystem(UnityUtility.Typeof<SceneSystem>());
+		registeFrameSystem(UnityUtility.Typeof<GamePluginManager>());
+		registeFrameSystem(UnityUtility.Typeof<ClassPool>());
+		registeFrameSystem(UnityUtility.Typeof<ListPool>());
+		registeFrameSystem(UnityUtility.Typeof<BytesPool>());
+		registeFrameSystem(UnityUtility.Typeof<HeadTextureManager>());
+		registeFrameSystem(UnityUtility.Typeof<MovableObjectManager>());
+		registeFrameSystem(UnityUtility.Typeof<EffectManager>());
+		registeFrameSystem(UnityUtility.Typeof<TPSpriteManager>());
+		registeFrameSystem(UnityUtility.Typeof<SocketFactory>());
+		registeFrameSystem(UnityUtility.Typeof<PathKeyframeManager>());
+#if USE_ILRUNTIME
+		registeFrameSystem(UnityUtility.Typeof<ILRSystem>());
+#endif
 		// 布局管理器也需要在最后更新,确保所有游戏逻辑都更新完毕后,再更新界面
-		registeComponent<GameLayoutManager>(1000, 1000, 1000);
+		registeFrameSystem(UnityUtility.Typeof<LayoutManager>(), 1000, 1000, 1000);
 		// 物体管理器和资源管理器必须最后注册,以便最后销毁,作为最后的资源清理
-		registeComponent<ObjectPool>(2000, 2000, 2000);
-		registeComponent<ResourceManager>(3000, 3000, 3000);
+		registeFrameSystem(UnityUtility.Typeof<ObjectPool>(), 2000, 2000, 2000);
+		registeFrameSystem(UnityUtility.Typeof<ResourceManager>(), 3000, 3000, 3000);
 	}
 	// 注册时可以指定组件的初始化顺序,更新顺序,销毁顺序
-	protected void registeComponent<T>(int initOrder = -1, int updateOrder = -1, int destroyOrder = -1) where T : FrameComponent
+	protected void registeFrameSystem(Type type, int initOrder = -1, int updateOrder = -1, int destroyOrder = -1)
 	{
-		string name = typeof(T).ToString();
-		T component = UnityUtility.createInstance<T>(typeof(T), name);
+		string name = type.ToString();
+		var component = UnityUtility.createInstance<FrameSystem>(type);
+		component.setName(name);
 		component.setInitOrder(initOrder == -1 ? mFrameComponentMap.Count : initOrder);
 		component.setUpdateOrder(updateOrder == -1 ? mFrameComponentMap.Count : updateOrder);
 		component.setDestroyOrder(destroyOrder == -1 ? mFrameComponentMap.Count : destroyOrder);

@@ -29,7 +29,7 @@ public class ComponentKeyFrameBase : GameComponent, IComponentBreakable
 		mFullOnce = true;
 		mAmplitude = 1.0f;
 		mOnceLength = 1.0f; // 关键帧长度默认为1秒
-		mPlayState = PLAY_STATE.PS_STOP;
+		mPlayState = PLAY_STATE.STOP;
 		clearCallback();
 	}
 	public override void setActive(bool active)
@@ -69,7 +69,7 @@ public class ComponentKeyFrameBase : GameComponent, IComponentBreakable
 			logError("offset must be less than onceLength!");
 		}
 		mOnceLength = onceLength;
-		mPlayState = PLAY_STATE.PS_PLAY;
+		mPlayState = PLAY_STATE.PLAY;
 		mLoop = loop;
 		mOffset = offset;
 		mCurrentTime = mOffset;
@@ -95,7 +95,7 @@ public class ComponentKeyFrameBase : GameComponent, IComponentBreakable
 	public virtual void stop(bool force = false)
 	{
 		// 如果已经是停止的状态,并且不是要强制停止,则不再执行
-		if (mPlayState == PLAY_STATE.PS_STOP && !force)
+		if (mPlayState == PLAY_STATE.STOP && !force)
 		{
 			return;
 		}
@@ -104,27 +104,27 @@ public class ComponentKeyFrameBase : GameComponent, IComponentBreakable
 		{
 			applyTrembling(mStopValue);
 		}
-		mPlayState = PLAY_STATE.PS_STOP;
+		mPlayState = PLAY_STATE.STOP;
 		mKeyFrame = null;
 		mCurrentTime = 0.0f;
 		mPlayedTime = 0.0f;
 	}
-	public virtual void pause() { mPlayState = PLAY_STATE.PS_PAUSE; }
+	public virtual void pause() { mPlayState = PLAY_STATE.PAUSE; }
 	public void setState(PLAY_STATE state)
 	{
 		if (mPlayState == state)
 		{
 			return;
 		}
-		if (state == PLAY_STATE.PS_PLAY)
+		if (state == PLAY_STATE.PLAY)
 		{
 			play(mTremblingName, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
 		}
-		else if (state == PLAY_STATE.PS_STOP)
+		else if (state == PLAY_STATE.STOP)
 		{
 			stop();
 		}
-		else if (state == PLAY_STATE.PS_PAUSE)
+		else if (state == PLAY_STATE.PAUSE)
 		{
 			pause();
 		}

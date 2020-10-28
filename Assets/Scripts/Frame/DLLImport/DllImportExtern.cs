@@ -3,11 +3,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-public class DllImportExtern : FrameComponent
+public class DllImportExtern : FrameSystem
 {
 	protected static Dictionary<string, Dll> mDllLibraryList;
-	public DllImportExtern(string name)
-		:base(name)
+	public DllImportExtern()
 	{
 		mDllLibraryList = new Dictionary<string, Dll>();
 	}

@@ -11,7 +11,7 @@ public class CommandWindowActive : Command
 	}
 	public override void execute()
 	{
-		txUIObject uiObjcet = mReceiver as txUIObject;
+		myUIObject uiObjcet = mReceiver as myUIObject;
 		uiObjcet.setActive(mActive);
 	}
 	public override string showDebugInfo()

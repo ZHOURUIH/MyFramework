@@ -3,13 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
-public class ClassPool : FrameComponent
+public class ClassPool : FrameSystem
 {
 	protected Dictionary<Type, List<IClassObject>> mInusedList;
 	protected Dictionary<Type, Stack<IClassObject>> mUnusedList;
 	protected ThreadLock mListLock;
-	public ClassPool(string name)
-		: base(name)
+	public ClassPool()
 	{
 		mInusedList = new Dictionary<Type, List<IClassObject>>();
 		mUnusedList = new Dictionary<Type, Stack<IClassObject>>();
@@ -48,11 +47,15 @@ public class ClassPool : FrameComponent
 		obj?.resetProperty();
 		return isNewObject;
 	}
-	public bool newClass<T>(out T obj) where T : IClassObject, new()
+	public bool newClass<T>(out T obj, Type type) where T : class, IClassObject
 	{
 		IClassObject classObj;
-		bool ret = newClass(out classObj, typeof(T));
-		obj = (T)classObj;
+		bool ret = newClass(out classObj, type);
+		obj = classObj as T;
+		if (obj == null)
+		{
+			logError("创建类实例失败,可能传入的type类型与目标类型不一致");
+		}
 		return ret;
 	}
 	public void destroyClass(IClassObject classObject)
@@ -72,7 +75,7 @@ public class ClassPool : FrameComponent
 	//----------------------------------------------------------------------------------------------------------------------------------------------
 	protected void addInuse(IClassObject classObject)
 	{
-		Type type = classObject.GetType();
+		Type type = Typeof(classObject);
 		if (!mInusedList.ContainsKey(type))
 		{
 			mInusedList.Add(type, new List<IClassObject>());
@@ -91,7 +94,7 @@ public class ClassPool : FrameComponent
 	protected void removeInuse(IClassObject classObject)
 	{
 		// 从使用列表移除,要确保操作的都是从本类创建的实例
-		Type type = classObject.GetType();
+		Type type = Typeof(classObject);
 		if (!mInusedList.ContainsKey(type))
 		{
 			logError("can not find class type in Inused List! type : " + type);
@@ -104,7 +107,7 @@ public class ClassPool : FrameComponent
 	protected void addUnuse(IClassObject classObject)
 	{
 		// 加入未使用列表
-		Type type = classObject.GetType();
+		Type type = Typeof(classObject);
 		if (!mUnusedList.ContainsKey(type))
 		{
 			mUnusedList.Add(type, new Stack<IClassObject>());

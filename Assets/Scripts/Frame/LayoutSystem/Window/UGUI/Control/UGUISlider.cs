@@ -5,9 +5,9 @@ using UnityEngine;
 public class UGUISlider : ComponentOwner, ISlider
 {
 	protected LayoutScript mScript;
-	protected txUGUIObject mBackground;
-	protected txUGUIObject mForeground;
-	protected txUGUIObject mThumb;
+	protected myUGUIObject mBackground;
+	protected myUGUIObject mForeground;
+	protected myUGUIObject mThumb;
 	protected SliderCallback mSliderStartCallback;
 	protected SliderCallback mSliderEndCallback;
 	protected SliderCallback mSliderCallback;
@@ -18,13 +18,13 @@ public class UGUISlider : ComponentOwner, ISlider
 	protected float mSliderValue;
 	protected bool mDraging;
 	public UGUISlider(LayoutScript script)
-		:base("Slider")
 	{
+		mName = "UGUISlider";
 		mScript = script;
-		mDirection = DRAG_DIRECTION.DD_HORIZONTAL;
-		mMode = SLIDER_MODE.SM_FILL;
+		mDirection = DRAG_DIRECTION.HORIZONTAL;
+		mMode = SLIDER_MODE.FILL;
 	}
-	public void init(txUGUIObject background, txUGUIObject foreground, txUGUIObject thumb = null, SLIDER_MODE mode = SLIDER_MODE.SM_FILL)
+	public void init(myUGUIObject background, myUGUIObject foreground, myUGUIObject thumb = null, SLIDER_MODE mode = SLIDER_MODE.FILL)
 	{
 		mMode = mode;
 		mBackground = background;
@@ -35,13 +35,13 @@ public class UGUISlider : ComponentOwner, ISlider
 			logError("Foreground must be parent of Thumb");
 			return;
 		}
-		if(mMode == SLIDER_MODE.SM_SIZING)
+		if(mMode == SLIDER_MODE.SIZING)
 		{
 			mOriginForegroundSize = mForeground.getWindowSize();
 			mOriginForegroundPosition = mForeground.getPosition();
 			if(mBackground == null)
 			{
-				logError("Background can not be null while slider mode is SM_SIZING");
+				logError("Background can not be null while slider mode is SIZING");
 				return;
 			}
 			if (mForeground.getParent() != mBackground)
@@ -57,7 +57,7 @@ public class UGUISlider : ComponentOwner, ISlider
 			mBackground.setOnMouseMove(onMouseMove);
 			if (mBackground.getCollider() != null)
 			{
-				mScript.registeBoxCollider(mBackground);
+				mScript.registeCollider(mBackground);
 			}
 		}
 	}
@@ -82,13 +82,13 @@ public class UGUISlider : ComponentOwner, ISlider
 		}
 		if (mForeground != null)
 		{
-			if(mMode == SLIDER_MODE.SM_FILL)
+			if(mMode == SLIDER_MODE.FILL)
 			{
 				mForeground.setFillPercent(mSliderValue);
 			}
-			else if(mMode == SLIDER_MODE.SM_SIZING)
+			else if(mMode == SLIDER_MODE.SIZING)
 			{
-				if (mDirection == DRAG_DIRECTION.DD_HORIZONTAL)
+				if (mDirection == DRAG_DIRECTION.HORIZONTAL)
 				{
 					float newWidth = mSliderValue * mOriginForegroundSize.x;
 					Vector3 newForePos = mOriginForegroundPosition;
@@ -96,7 +96,7 @@ public class UGUISlider : ComponentOwner, ISlider
 					OT.MOVE(mForeground, newForePos);
 					mForeground.setWindowSize(new Vector2(newWidth, mOriginForegroundSize.y));
 				}
-				else if (mDirection == DRAG_DIRECTION.DD_VERTICAL)
+				else if (mDirection == DRAG_DIRECTION.VERTICAL)
 				{
 					float newHeight = mSliderValue * mOriginForegroundSize.y;
 					Vector3 newForePos = mOriginForegroundPosition;
@@ -110,11 +110,11 @@ public class UGUISlider : ComponentOwner, ISlider
 	protected Vector3 sliderValueToThumbPos(float value)
 	{
 		Vector3 pos = Vector3.zero;
-		if (mDirection == DRAG_DIRECTION.DD_HORIZONTAL)
+		if (mDirection == DRAG_DIRECTION.HORIZONTAL)
 		{
 			pos = new Vector3(value * mOriginForegroundSize.x - mOriginForegroundSize.x * 0.5f, 0.0f);
 		}
-		else if (mDirection == DRAG_DIRECTION.DD_VERTICAL)
+		else if (mDirection == DRAG_DIRECTION.VERTICAL)
 		{
 			pos = new Vector3(0.0f, value * mOriginForegroundSize.y - mOriginForegroundSize.y * 0.5f);
 		}
@@ -125,11 +125,11 @@ public class UGUISlider : ComponentOwner, ISlider
 		float value = 0.0f;
 		if (mOriginForegroundSize.x > 0.0f && mOriginForegroundSize.y > 0.0f)
 		{
-			if (mDirection == DRAG_DIRECTION.DD_HORIZONTAL)
+			if (mDirection == DRAG_DIRECTION.HORIZONTAL)
 			{
 				value = (posInForeground.x + mOriginForegroundSize.x * 0.5f) / mOriginForegroundSize.x;
 			}
-			else if (mDirection == DRAG_DIRECTION.DD_VERTICAL)
+			else if (mDirection == DRAG_DIRECTION.VERTICAL)
 			{
 				value = (posInForeground.y + mOriginForegroundSize.y * 0.5f) / mOriginForegroundSize.y;
 			}
@@ -168,14 +168,14 @@ public class UGUISlider : ComponentOwner, ISlider
 	{
 		Vector3 posInForeground = Vector3.zero;
 		// 只转换到进度条窗口中的坐标
-		if(mMode == SLIDER_MODE.SM_FILL)
+		if(mMode == SLIDER_MODE.FILL)
 		{
-			posInForeground = screenPosToWindowPos(screenPos, mForeground, true, false);
+			posInForeground = screenPosToWindowPos(screenPos, mForeground, true, GUI_TYPE.UGUI);
 		}
 		// 先将屏幕坐标转换到Background中的坐标,再转换到原始进度条的坐标系中
-		else if (mMode == SLIDER_MODE.SM_SIZING)
+		else if (mMode == SLIDER_MODE.SIZING)
 		{
-			Vector3 posInBackground = screenPosToWindowPos(screenPos, mBackground, true, false);
+			Vector3 posInBackground = screenPosToWindowPos(screenPos, mBackground, true, GUI_TYPE.UGUI);
 			posInForeground = posInBackground - mOriginForegroundPosition;
 		}
 		return localPosToSliderValue(posInForeground);

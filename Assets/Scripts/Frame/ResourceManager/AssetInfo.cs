@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
-public class AssetInfo : GameBase
+public class AssetInfo : FrameBase
 {
 	protected List<AssetLoadDoneCallback> mCallback;// 异步加载回调列表
 	protected List<object[]> mUserData;				// 异步加载回调参数列表
@@ -21,13 +21,13 @@ public class AssetInfo : GameBase
 		mCallback = new List<AssetLoadDoneCallback>();
 		mUserData = new List<object[]>();
 		mLoadPath = new List<string>();
-		mLoadState = LOAD_STATE.LS_NONE;
+		mLoadState = LOAD_STATE.NONE;
 	}
-	public bool isUnloaded() { return mLoadState == LOAD_STATE.LS_UNLOAD; }
+	public bool isUnloaded() { return mLoadState == LOAD_STATE.UNLOAD; }
 	public void unload()
 	{
 		mSubAssets = null;
-		mLoadState = LOAD_STATE.LS_UNLOAD;
+		mLoadState = LOAD_STATE.UNLOAD;
 	}
 	// 同步加载资源
 	public T loadAsset<T>() where T : UnityEngine.Object
@@ -53,7 +53,7 @@ public class AssetInfo : GameBase
 		}
 		else
 		{
-			mLoadState = LOAD_STATE.LS_WAIT_FOR_LOAD;
+			mLoadState = LOAD_STATE.WAIT_FOR_LOAD;
 			mResourceManager.mAssetBundleLoader.requestLoadAsset(mParentAssetBundle, mAssetName);
 		}
 	}
@@ -95,12 +95,12 @@ public class AssetInfo : GameBase
 		if (hasAssets)
 		{
 			mSubAssets = assets;
-			mLoadState = LOAD_STATE.LS_LOADED;
+			mLoadState = LOAD_STATE.LOADED;
 		}
 		else
 		{
 			mSubAssets = null;
-			mLoadState = LOAD_STATE.LS_NONE;
+			mLoadState = LOAD_STATE.NONE;
 		}
 		callbackAll(mSubAssets);
 	}
@@ -131,9 +131,9 @@ public class AssetInfo : GameBase
 		{
 			if(mParentAssetBundle.getAssetBundle() != null)
 			{
-				mSubAssets = mParentAssetBundle.getAssetBundle().LoadAssetWithSubAssets(CommonDefine.P_GAME_RESOURCES_PATH + mAssetName);
+				mSubAssets = mParentAssetBundle.getAssetBundle().LoadAssetWithSubAssets(FrameDefine.P_GAME_RESOURCES_PATH + mAssetName);
 			}
-			mLoadState = LOAD_STATE.LS_LOADED;
+			mLoadState = LOAD_STATE.LOADED;
 		}
 	}
 }

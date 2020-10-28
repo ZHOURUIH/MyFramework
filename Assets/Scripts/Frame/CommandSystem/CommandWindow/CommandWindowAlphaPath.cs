@@ -28,10 +28,10 @@ public class CommandWindowAlphaPath : Command
 	}
 	public override void execute()
 	{
-		txUIObject obj = mReceiver as txUIObject;
+		myUIObject obj = mReceiver as myUIObject;
 		WindowComponentAlphaPath component = obj.getComponent(out component);
 		// 停止其他相关组件
-		obj.breakComponent<IComponentModifyAlpha>(component.GetType());
+		obj.breakComponent<IComponentModifyAlpha>(Typeof(component));
 		component.setTremblingCallback(mDoingCallBack);
 		component.setTrembleDoneCallback(mDoneCallBack);
 		component.setActive(true);
@@ -39,7 +39,7 @@ public class CommandWindowAlphaPath : Command
 		component.setSpeed(mSpeed);
 		component.setValueOffset(mValueOffset);
 		component.play(mLoop, mOffset, mFullOnce);
-		if (component.getState() == PLAY_STATE.PS_PLAY)
+		if (component.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
 			obj.setEnable(true);

@@ -11,20 +11,20 @@ public abstract class SceneProcedure : GameBase
 	protected SceneProcedure mCurChildProcedure;// 当前正在运行的子流程
 	protected SceneProcedure mPrepareNext;		// 准备退出到的流程
 	protected GameScene mGameScene;             // 流程所属的场景
-	protected CustomTimer mPrepareTimer;        // 准备退出的计时
+	protected MyTimer mPrepareTimer;			// 准备退出的计时
 	protected Type mProcedureType;				// 该流程的类型
 	protected string mPrepareIntent;			// 传递参数用
 	protected bool mInited;						// 是否已经初始化,子节点在初始化时需要先确保父节点已经初始化
-	public SceneProcedure(GameScene gameScene)
+	public SceneProcedure()
 	{
-		mGameScene = gameScene;
 		mDelayCmdList = new List<int>();
 		mChildProcedureList = new Dictionary<Type, SceneProcedure>();
-		mPrepareTimer = new CustomTimer();
+		mPrepareTimer = new MyTimer();
 		mPrepareIntent = null;
 	}
 	// 销毁场景时会调用流程的销毁
 	public virtual void destroy() { }
+	public void setGameScene(GameScene gameScene) { mGameScene = gameScene; }
 	public void setType(Type type) { mProcedureType = type; }
 	// 从自己的子流程进入当前流程
 	protected virtual void onInitFromChild(SceneProcedure lastProcedure, string intent) { }
@@ -32,7 +32,7 @@ public abstract class SceneProcedure : GameBase
 	// 在onInit中如果要跳转流程,必须使用延迟命令进行跳转
 	protected abstract void onInit(SceneProcedure lastProcedure, string intent);
 	// 更新流程时调用
-	protected abstract void onUpdate(float elapsedTime);
+	protected virtual void onUpdate(float elapsedTime) { }
 	protected virtual void onLateUpdate(float elapsedTime) { }
 	// 更新流程时调用
 	protected virtual void onKeyProcess(float elapsedTime) { }
@@ -79,7 +79,7 @@ public abstract class SceneProcedure : GameBase
 		if (mPrepareTimer.tickTimer(elapsedTime))
 		{
 			// 超过了准备时间,强制跳转流程
-			CommandGameSceneChangeProcedure cmd = newCmd(out cmd);
+			CommandGameSceneChangeProcedure cmd = newMainCmd(out cmd);
 			cmd.mProcedure = mPrepareNext.getProcedureType();
 			cmd.mIntent = mPrepareIntent;
 			pushCommand(cmd, mGameScene);
@@ -174,10 +174,6 @@ public abstract class SceneProcedure : GameBase
 		mListPool.destroyList(tempList0);
 		mListPool.destroyList(tempList1);
 		return null;
-	}
-	public bool isThisOrParent<T>() where T : SceneProcedure
-	{
-		return isThisOrParent(typeof(T));
 	}
 	public bool isThisOrParent(Type type)
 	{

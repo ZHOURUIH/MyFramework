@@ -48,11 +48,6 @@ public class AssetBundlePack : EditorCommonUtility
 	{
 		packAssetBundle(BuildTarget.iOS);
 	}
-	[MenuItem(mAssetMenuRoot + "pack/Lunix")]
-	public static void packAssetBundleLinux()
-	{
-		packAssetBundle(BuildTarget.StandaloneLinux);
-	}
 	// subPath为以Asset开头的相对路径
 	public static void packAssetBundle(BuildTarget target, string subPath = "")
 	{
@@ -80,13 +75,13 @@ public class AssetBundlePack : EditorCommonUtility
 			int count = buildList.Length;
 			for (int i = 0; i < count; ++i)
 			{
-				string bundleFileName = CommonDefine.P_STREAMING_ASSETS_PATH + buildList[i].assetBundleName;
+				string bundleFileName = FrameDefine.P_STREAMING_ASSETS_PATH + buildList[i].assetBundleName;
 				if (File.Exists(bundleFileName))
 				{
 					File.Delete(bundleFileName);
 				}
 			}
-			BuildPipeline.BuildAssetBundles(CommonDefine.P_STREAMING_ASSETS_PATH, buildList, BuildAssetBundleOptions.ChunkBasedCompression, target);
+			BuildPipeline.BuildAssetBundles(FrameDefine.P_STREAMING_ASSETS_PATH, buildList, BuildAssetBundleOptions.ChunkBasedCompression, target);
 			AssetDatabase.Refresh();
 		}
 		else
@@ -95,12 +90,12 @@ public class AssetBundlePack : EditorCommonUtility
 			createOrClearOutPath();
 			// 清理不打包的AssetBundle名
 			List<string> allFiles = new List<string>();
-			findFiles(CommonDefine.F_GAME_RESOURCES_PATH, allFiles);
+			findFiles(FrameDefine.F_GAME_RESOURCES_PATH, allFiles);
 			clearUnPackAssetBundleName(allFiles, GameDefine.mUnPackFolder);
 			// 设置bunderName
 			mAssetBundleMap.Clear();
 			List<string> resList = new List<string>();
-			getAllSubResDirs(CommonDefine.P_GAME_RESOURCES_PATH, resList);
+			getAllSubResDirs(FrameDefine.P_GAME_RESOURCES_PATH, resList);
 			foreach (string dir in resList)
 			{
 				if(!setAssetBundleName(dir))
@@ -109,12 +104,12 @@ public class AssetBundlePack : EditorCommonUtility
 				}
 			}
 			// 打包
-			BuildPipeline.BuildAssetBundles(CommonDefine.P_STREAMING_ASSETS_PATH, BuildAssetBundleOptions.ChunkBasedCompression, target);
+			BuildPipeline.BuildAssetBundles(FrameDefine.P_STREAMING_ASSETS_PATH, BuildAssetBundleOptions.ChunkBasedCompression, target);
 			AssetDatabase.Refresh();
 
 			// 构建依赖关系
 			mDependencyList.Clear();
-			AssetBundle assetBundle = AssetBundle.LoadFromFile(CommonDefine.F_STREAMING_ASSETS_PATH + "StreamingAssets");
+			AssetBundle assetBundle = AssetBundle.LoadFromFile(FrameDefine.F_STREAMING_ASSETS_PATH + "StreamingAssets");
 			AssetBundleManifest manifest = assetBundle.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
 			string[] assetBundleNameList = manifest.GetAllAssetBundles();
 			// 遍历所有AB
@@ -170,7 +165,7 @@ public class AssetBundlePack : EditorCommonUtility
 					serializer.writeString(bundleInfo.mDependencies[j]);
 				}
 			}
-			string filePath = CommonDefine.F_STREAMING_ASSETS_PATH + "StreamingAssets.bytes";
+			string filePath = FrameDefine.F_STREAMING_ASSETS_PATH + "StreamingAssets.bytes";
 			writeFile(filePath, serializer.getBuffer(), serializer.getDataSize());
 		}
 		messageBox("资源打包结束! 耗时 : " + (DateTime.Now - time0), false);
@@ -243,21 +238,21 @@ public class AssetBundlePack : EditorCommonUtility
 		// unity(但是一般情况下unity场景文件不打包)单个文件打包,就是直接替换后缀名,或者强制为单独一个包的
 		if (endWith(file, ".unity") || forceSingle)
 		{
-			bundleName = removeStartString(file, CommonDefine.P_GAME_RESOURCES_PATH, false);
-			bundleName = replaceSuffix(bundleName, CommonDefine.ASSET_BUNDLE_SUFFIX);
+			bundleName = removeStartString(file, FrameDefine.P_GAME_RESOURCES_PATH, false);
+			bundleName = replaceSuffix(bundleName, FrameDefine.ASSET_BUNDLE_SUFFIX);
 		}
 		// 其他文件的AssetBundle就是所属文件夹
 		else
 		{
-			bundleName = removeStartString(getFilePath(file), CommonDefine.P_GAME_RESOURCES_PATH, false);
-			bundleName += CommonDefine.ASSET_BUNDLE_SUFFIX;
+			bundleName = removeStartString(getFilePath(file), FrameDefine.P_GAME_RESOURCES_PATH, false);
+			bundleName += FrameDefine.ASSET_BUNDLE_SUFFIX;
 		}
 		return bundleName;
 	}
 	// 判断一个路径是否是不需要打包的路径
 	protected static bool isUnpackPath(string path, string[] unpackList)
 	{
-		string pathUnderResources = removeStartString(path, CommonDefine.P_GAME_RESOURCES_PATH, false) + "/";
+		string pathUnderResources = removeStartString(path, FrameDefine.P_GAME_RESOURCES_PATH, false) + "/";
 		rightToLeft(ref pathUnderResources);
 		int unpackCount = unpackList.Length;
 		for (int i = 0; i < unpackCount; ++i)
@@ -298,7 +293,7 @@ public class AssetBundlePack : EditorCommonUtility
 		}
 		// 存储bundleInfo
 		// 去除Asset/GameResources/前缀,只保留GameResources下相对路径
-		string assetName = removeStartString(fileName, CommonDefine.P_GAME_RESOURCES_PATH, false);
+		string assetName = removeStartString(fileName, FrameDefine.P_GAME_RESOURCES_PATH, false);
 		if (!mAssetBundleMap.ContainsKey(bundleName))
 		{
 			mAssetBundleMap.Add(bundleName, new AssetBuildBundleInfo(bundleName));
@@ -349,14 +344,14 @@ public class AssetBundlePack : EditorCommonUtility
 	// 创建和清理输出目录
 	protected static void createOrClearOutPath()
 	{
-		if (!Directory.Exists(CommonDefine.P_STREAMING_ASSETS_PATH))
+		if (!Directory.Exists(FrameDefine.P_STREAMING_ASSETS_PATH))
 		{
-			Directory.CreateDirectory(CommonDefine.P_STREAMING_ASSETS_PATH);
+			Directory.CreateDirectory(FrameDefine.P_STREAMING_ASSETS_PATH);
 		}
 		else
 		{
 			// 查找目录下的所有第一级子目录
-			string[] dirList = Directory.GetDirectories(CommonDefine.P_STREAMING_ASSETS_PATH);
+			string[] dirList = Directory.GetDirectories(FrameDefine.P_STREAMING_ASSETS_PATH);
 			int dirCount = dirList.Length;
 			for (int i = 0; i < dirCount; ++i)
 			{
@@ -367,7 +362,7 @@ public class AssetBundlePack : EditorCommonUtility
 				}
 			}
 			// 查找目录下的所有第一级文件
-			string[] files = Directory.GetFiles(CommonDefine.P_STREAMING_ASSETS_PATH);
+			string[] files = Directory.GetFiles(FrameDefine.P_STREAMING_ASSETS_PATH);
 			int fileCount = files.Length;
 			for (int i = 0; i < fileCount; ++i)
 			{
@@ -410,7 +405,7 @@ public class AssetBundlePack : EditorCommonUtility
 				continue;
 			}
 			string projectFileName = fullPathToProjectPath(file);
-			string fileName = removeStartString(projectFileName, CommonDefine.P_GAME_RESOURCES_PATH, false);
+			string fileName = removeStartString(projectFileName, FrameDefine.P_GAME_RESOURCES_PATH, false);
 			foreach (var unpack in unpackList)
 			{
 				if (startWith(fileName, unpack, false))

@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-public class TDDemo : TableData
+public class TDDemo : SQLiteData
 {
 	public static string DemoColName = "DemoColName";
 	public string mDemoColName;
@@ -14,7 +14,4 @@ public class TDDemo : TableData
 }
 
 public class SQLiteDemo : SQLiteTable
-{
-	public SQLiteDemo()
-		:base(typeof(TDDemo)){}
-}
+{}

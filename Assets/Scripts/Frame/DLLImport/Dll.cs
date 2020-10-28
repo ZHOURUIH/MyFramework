@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 #endif
 
-public class Dll : GameBase
+public class Dll : FrameBase
 {
 	protected Dictionary<string, Delegate> mFunctionList;
 	protected IntPtr mHandle;
@@ -16,7 +16,7 @@ public class Dll : GameBase
 		mLibraryName = name;
 		mFunctionList = new Dictionary<string, Delegate>();
 #if UNITY_STANDALONE_WIN
-		mHandle = Kernel32.LoadLibrary(CommonDefine.F_PLUGINS_PATH + mLibraryName);
+		mHandle = Kernel32.LoadLibrary(FrameDefine.F_PLUGINS_PATH + mLibraryName);
 #endif
 	}
 	public void destroy()

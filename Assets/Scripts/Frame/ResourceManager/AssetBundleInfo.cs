@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AssetBundleInfo : GameBase
+public class AssetBundleInfo : FrameBase
 {
 	protected Dictionary<string, AssetBundleInfo> mParents; // 依赖的AssetBundle列表,包含所有的直接和间接的依赖项
 	protected Dictionary<string, AssetBundleInfo> mChildren;// 依赖自己的AssetBundle列表
@@ -18,8 +18,8 @@ public class AssetBundleInfo : GameBase
 	public AssetBundleInfo(string bundleName)
 	{
 		mBundleName = bundleName;
-		mBundleFileName = mBundleName + CommonDefine.ASSET_BUNDLE_SUFFIX;
-		mLoadState = LOAD_STATE.LS_UNLOAD;
+		mBundleFileName = mBundleName + FrameDefine.ASSET_BUNDLE_SUFFIX;
+		mLoadState = LOAD_STATE.UNLOAD;
 		mParents = new Dictionary<string, AssetBundleInfo>();
 		mChildren = new Dictionary<string, AssetBundleInfo>();
 		mLoadAsyncList = new List<AssetInfo>();
@@ -42,7 +42,7 @@ public class AssetBundleInfo : GameBase
 		{
 			item.Value.unload();
 		}
-		mLoadState = LOAD_STATE.LS_UNLOAD;
+		mLoadState = LOAD_STATE.UNLOAD;
 	}
 	public bool unloadAsset(Object obj)
 	{
@@ -132,7 +132,7 @@ public class AssetBundleInfo : GameBase
 	{
 		foreach(var item in mParents)
 		{
-			if(item.Value.mLoadState != LOAD_STATE.LS_LOADED)
+			if(item.Value.mLoadState != LOAD_STATE.LOADED)
 			{
 				return false;
 			}
@@ -142,7 +142,7 @@ public class AssetBundleInfo : GameBase
 	// 同步加载资源包
 	public void loadAssetBundle()
 	{
-		if (mLoadState != LOAD_STATE.LS_UNLOAD && mLoadState != LOAD_STATE.LS_NONE)
+		if (mLoadState != LOAD_STATE.UNLOAD && mLoadState != LOAD_STATE.NONE)
 		{
 			return;
 		}
@@ -151,9 +151,9 @@ public class AssetBundleInfo : GameBase
 		{
 			info.Value.loadAssetBundle();
 		}
-		logInfo("加载AssetBundle:" + mBundleFileName, LOG_LEVEL.LL_NORMAL);
+		logInfo("加载AssetBundle:" + mBundleFileName, LOG_LEVEL.NORMAL);
 		// 先去persistentDataPath中查找资源
-		string path = CommonDefine.F_PERSISTENT_DATA_PATH + mBundleFileName;
+		string path = FrameDefine.F_PERSISTENT_DATA_PATH + mBundleFileName;
 		if (ResourceManager.mPersistentFirst && isFileExist(path))
 		{
 			mAssetBundle = AssetBundle.LoadFromFile(path);
@@ -164,13 +164,13 @@ public class AssetBundleInfo : GameBase
 			path = ResourceManager.mResourceRootPath + mBundleFileName;
 			// 安卓平台下,如果是从StreamingAssets读取AssetBundle文件,则需要使用指定的路径
 #if UNITY_ANDROID && !UNITY_EDITOR
-			if (ResourceManager.mResourceRootPath == CommonDefine.F_STREAMING_ASSETS_PATH)
+			if (ResourceManager.mResourceRootPath == FrameDefine.F_STREAMING_ASSETS_PATH)
 			{
-				path = CommonDefine.F_ASSET_BUNDLE_PATH + mBundleFileName;
+				path = FrameDefine.F_ASSET_BUNDLE_PATH + mBundleFileName;
 			}
 #endif
 			// 远端目录不判断文件是否存在,本地路径如果是StreamingAssets中
-			// 则需要使用CommonDefine.F_STREAMING_ASSETS_PATH而不是CommonDefine.F_ASSET_BUNDLE_PATH
+			// 则需要使用FrameDefine.F_STREAMING_ASSETS_PATH而不是FrameDefine.F_ASSET_BUNDLE_PATH
 			if (!ResourceManager.mLocalRootPath || isFileExist(ResourceManager.mResourceRootPath + mBundleFileName))
 			{
 				mAssetBundle = AssetBundle.LoadFromFile(path);
@@ -180,7 +180,7 @@ public class AssetBundleInfo : GameBase
 		{
 			logError("can not load asset bundle : " + mBundleFileName);
 		}
-		mLoadState = LOAD_STATE.LS_LOADED;
+		mLoadState = LOAD_STATE.LOADED;
 	}
 	// 异步加载所有依赖项,确认依赖项即将加载或者已加载
 	public void loadParentAsync()
@@ -197,7 +197,7 @@ public class AssetBundleInfo : GameBase
 		{
 			info.Value.checkAssetBundleDependenceLoaded();
 		}
-		if(mLoadState == LOAD_STATE.LS_UNLOAD || mLoadState == LOAD_STATE.LS_NONE)
+		if(mLoadState == LOAD_STATE.UNLOAD || mLoadState == LOAD_STATE.NONE)
 		{
 			loadAssetBundle();
 		}
@@ -206,7 +206,7 @@ public class AssetBundleInfo : GameBase
 	public void loadAssetBundleAsync(AssetBundleLoadCallback callback, object userData)
 	{
 		// 正在加载,则加入等待列表
-		if (mLoadState == LOAD_STATE.LS_LOADING || mLoadState == LOAD_STATE.LS_WAIT_FOR_LOAD)
+		if (mLoadState == LOAD_STATE.LOADING || mLoadState == LOAD_STATE.WAIT_FOR_LOAD)
 		{
 			if(callback != null)
 			{
@@ -214,7 +214,7 @@ public class AssetBundleInfo : GameBase
 			}
 		}
 		// 如果还未加载,则加载资源包,回调加入列表
-		else if (mLoadState == LOAD_STATE.LS_UNLOAD)
+		else if (mLoadState == LOAD_STATE.UNLOAD)
 		{
 			if (callback != null)
 			{
@@ -223,12 +223,12 @@ public class AssetBundleInfo : GameBase
 			}
 			// 先确保所有依赖项已经加载
 			loadParentAsync();
-			mLoadState = LOAD_STATE.LS_WAIT_FOR_LOAD;
+			mLoadState = LOAD_STATE.WAIT_FOR_LOAD;
 			// 通知AssetBundleLoader请求异步加载AssetBundle,只在真正开始异步加载时才标记为正在加载状态,此处只是加入等待列表
 			mResourceManager.mAssetBundleLoader.requestLoadAssetBundle(this);
 		}
 		// 加载完毕,直接调用回调
-		else if (mLoadState == LOAD_STATE.LS_LOADED)
+		else if (mLoadState == LOAD_STATE.LOADED)
 		{
 			callback?.Invoke(this, userData);
 		}
@@ -237,7 +237,7 @@ public class AssetBundleInfo : GameBase
 	public T loadAsset<T>(ref string fileNameWithSuffix) where T : Object
 	{
 		// 如果AssetBundle还没有加载,则先加载AssetBundle
-		if (mLoadState != LOAD_STATE.LS_LOADED)
+		if (mLoadState != LOAD_STATE.LOADED)
 		{
 			loadAssetBundle();
 		}
@@ -259,12 +259,12 @@ public class AssetBundleInfo : GameBase
 		}
 		mAssetList[fileNameWithSuffix].addCallback(callback, userData, loadPath);
 		// 如果当前资源包还未加载完毕,则需要等待资源包加载完以后才能加载资源
-		if (mLoadState == LOAD_STATE.LS_UNLOAD)
+		if (mLoadState == LOAD_STATE.UNLOAD)
 		{
 			loadAssetBundleAsync(null, null);
 		}
 		// 如果资源包已经加载,则可以直接异步加载资源
-		else if (mLoadState == LOAD_STATE.LS_LOADED)
+		else if (mLoadState == LOAD_STATE.LOADED)
 		{
 			mAssetList[fileNameWithSuffix].loadAssetAsync();
 		}
@@ -274,7 +274,7 @@ public class AssetBundleInfo : GameBase
 	public Object[] loadSubAsset(ref string fileNameWithSuffix)
 	{
 		// 如果AssetBundle还没有加载,则先加载AssetBundle
-		if (mLoadState != LOAD_STATE.LS_LOADED)
+		if (mLoadState != LOAD_STATE.LOADED)
 		{
 			loadAssetBundle();
 		}
@@ -290,12 +290,12 @@ public class AssetBundleInfo : GameBase
 		}
 		mAssetList[fileNameWithSuffix].addCallback(callback, userData, loadPath);
 		// 如果当前资源包还未加载完毕,则需要等待资源包加载完以后才能加载资源
-		if (mLoadState == LOAD_STATE.LS_UNLOAD)
+		if (mLoadState == LOAD_STATE.UNLOAD)
 		{
 			loadAssetBundleAsync(null, null);
 		}
 		// 如果资源包已经加载,则可以直接异步加载资源
-		else if (mLoadState == LOAD_STATE.LS_LOADED)
+		else if (mLoadState == LOAD_STATE.LOADED)
 		{
 			mAssetList[fileNameWithSuffix].loadSubAssetsAsync();
 		}
@@ -311,7 +311,7 @@ public class AssetBundleInfo : GameBase
 			mLoadAsyncList.Remove(assetInfo);
 		}
 		// 确认是否正常加载完成,如果当前资源包已经卸载,则无法完成加载资源
-		if (mLoadState != LOAD_STATE.LS_UNLOAD)
+		if (mLoadState != LOAD_STATE.UNLOAD)
 		{
 			Object asset = assetInfo.getAsset();
 			if (!mObjectToAsset.ContainsKey(asset))
@@ -325,9 +325,9 @@ public class AssetBundleInfo : GameBase
 	public void notifyAssetBundleAsyncLoadedDone(AssetBundle assetBundle)
 	{
 		mAssetBundle = assetBundle;
-		if (mLoadState != LOAD_STATE.LS_UNLOAD)
+		if (mLoadState != LOAD_STATE.UNLOAD)
 		{
-			mLoadState = LOAD_STATE.LS_LOADED;
+			mLoadState = LOAD_STATE.LOADED;
 			// 异步加载请求的资源
 			foreach (var assetInfo in mLoadAsyncList)
 			{

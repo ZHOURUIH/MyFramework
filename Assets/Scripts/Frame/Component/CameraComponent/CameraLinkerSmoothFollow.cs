@@ -15,27 +15,27 @@ public struct CheckLayer
 		mDirection = direction;
 		mCheckDistance = checkDistance;
 		mMinDistance = minDistance;
-		if (direction == CHECK_DIRECTION.CD_DOWN)
+		if (direction == CHECK_DIRECTION.DOWN)
 		{
 			mDirectionVector = Vector3.down;
 		}
-		else if (direction == CHECK_DIRECTION.CD_UP)
+		else if (direction == CHECK_DIRECTION.UP)
 		{
 			mDirectionVector = Vector3.up;
 		}
-		else if (direction == CHECK_DIRECTION.CD_LEFT)
+		else if (direction == CHECK_DIRECTION.LEFT)
 		{
 			mDirectionVector = Vector3.left;
 		}
-		else if (direction == CHECK_DIRECTION.CD_RIGHT)
+		else if (direction == CHECK_DIRECTION.RIGHT)
 		{
 			mDirectionVector = Vector3.right;
 		}
-		else if (direction == CHECK_DIRECTION.CD_FORWARD)
+		else if (direction == CHECK_DIRECTION.FORWARD)
 		{
 			mDirectionVector = Vector3.forward;
 		}
-		else if (direction == CHECK_DIRECTION.CD_BACK)
+		else if (direction == CHECK_DIRECTION.BACK)
 		{
 			mDirectionVector = Vector3.back;
 		}

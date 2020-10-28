@@ -45,12 +45,11 @@ public struct FormItem
 	}
 }
 
-public class HttpUtility : FrameComponent
+public class HttpUtility : FrameSystem
 {
 	protected static List<Thread> mHttpThreadList;
 	protected static ThreadLock ThreadListLock;
-	public HttpUtility(string name)
-		:base(name)
+	public HttpUtility()
 	{
 		mHttpThreadList = new List<Thread>();
 		ThreadListLock = new ThreadLock();
@@ -73,7 +72,7 @@ public class HttpUtility : FrameComponent
 	public static byte[] downloadFile(string url, int offset = 0, byte[] helperBytes = null, string fileName = "", 
 										StartDownloadCallback startCallback = null, DownloadingCallback downloading = null)
 	{
-		logInfo("开始http下载:" + url, LOG_LEVEL.LL_FORCE);
+		logInfo("开始http下载:" + url, LOG_LEVEL.FORCE);
 		HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
 		request.AddRange(offset);
 		WebResponse response = request.GetResponse();
@@ -82,9 +81,10 @@ public class HttpUtility : FrameComponent
 		startCallback?.Invoke(fileName, fileSize);
 		Stream inStream = response.GetResponseStream();// 获取http
 		MemoryStream downloadStream = new MemoryStream();
+		bool isTempHelperBytes = helperBytes == null;
 		if(helperBytes == null)
 		{
-			helperBytes = new byte[1024];
+			helperBytes = mBytesPool.newBytes(1024);
 		}
 		int readCount;
 		do
@@ -94,11 +94,15 @@ public class HttpUtility : FrameComponent
 			downloadStream.Write(helperBytes, 0, readCount);// 写流
 			downloading?.Invoke(fileName, fileSize, downloadStream.Length);
 		} while (readCount > 0);
+		if(isTempHelperBytes)
+		{
+			mBytesPool.destroyBytes(helperBytes);
+		}
 		byte[] dataBytes = downloadStream.ToArray();
 		downloadStream.Close();
 		inStream.Close();
 		response.Close();
-		logInfo("http下载完成:" + url, LOG_LEVEL.LL_FORCE);
+		logInfo("http下载完成:" + url, LOG_LEVEL.FORCE);
 		return dataBytes;
 	}
 	public static JsonData httpWebRequestPostFile(string url, List<FormItem> itemList, OnHttpWebRequestCallback callback, object callbakcUserData, bool logError)

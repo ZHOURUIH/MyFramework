@@ -5,33 +5,32 @@ using System.Net.Sockets;
 using System.Collections.Generic;
 
 // 当前程序作为服务器时使用
-public abstract class SocketConnectServer : FrameComponent, ISocketConnect
+public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 {
 	//--------------------------------------------------------------------------------
 	protected Dictionary<uint, NetClient> mClientList;
-	protected CustomThread mAcceptThread;
-	protected CustomThread mReceiveThread;
-	protected CustomThread mSendThread;
 	protected ThreadLock mClientSendLock;   // 标记了发送线程是否还在使用mClientList
 	protected ThreadLock mClientRecvLock;   // 标记了接收线程是否还在使用mClientList
+	protected MyThread mAcceptThread;
+	protected MyThread mReceiveThread;
+	protected MyThread mSendThread;
 	protected Socket mServerSocket;
-	protected CustomTimer mHeartBeatTimer;
+	protected MyTimer mHeartBeatTimer;
 	protected byte[] mRecvBuff;
 	protected int mMaxReceiveCount;
 	protected int mHeartBeatTimes;
 	protected int mPort;
-	public SocketConnectServer(string name)
-		: base(name)
+	public SocketConnectServer()
 	{
 		mClientList = new Dictionary<uint, NetClient>();
 		mMaxReceiveCount = 1024 * 1024 * 8;
 		mClientSendLock = new ThreadLock();
 		mClientRecvLock = new ThreadLock();
-		mAcceptThread = new CustomThread("AcceptThread");
-		mReceiveThread = new CustomThread("SocketReceive");
-		mSendThread = new CustomThread("SocketSend");
+		mAcceptThread = new MyThread("AcceptThread");
+		mReceiveThread = new MyThread("SocketReceive");
+		mSendThread = new MyThread("SocketSend");
 		mRecvBuff = new byte[mMaxReceiveCount];
-		mHeartBeatTimer = new CustomTimer();
+		mHeartBeatTimer = new MyTimer();
 	}
 	public void start(int port, float heartBeatTimeOut, int backLog)
 	{
@@ -46,10 +45,10 @@ public abstract class SocketConnectServer : FrameComponent, ISocketConnect
 		}
 		catch (Exception e)
 		{
-			logInfo("init socket exception : " + e.Message + ", stack : " + e.StackTrace, LOG_LEVEL.LL_FORCE);
+			logInfo("init socket exception : " + e.Message + ", stack : " + e.StackTrace, LOG_LEVEL.FORCE);
 			mServerSocket.Close();
 			mServerSocket = null;
-			setNetState(NET_STATE.NS_NET_CLOSE);
+			setNetState(NET_STATE.NET_CLOSE);
 			return;
 		}
 		mSendThread.start(sendSocket);
@@ -106,10 +105,9 @@ public abstract class SocketConnectServer : FrameComponent, ISocketConnect
 		mClientRecvLock.unlock();
 		mClientSendLock.unlock();
 	}
-	public void sendPacket<T>(NetClient client) where T : SocketPacket, new()
+	public void sendPacket(NetClient client, Type type)
 	{
-		T packet = mSocketFactory.createSocketPacket<T>();
-		client.sendServerPacket(packet);
+		client.sendServerPacket(mSocketFactory.createSocketPacket(type));
 	}
 	public void sendPacket(SocketPacket packet, NetClient client)
 	{
@@ -139,7 +137,7 @@ public abstract class SocketConnectServer : FrameComponent, ISocketConnect
 	protected void acceptThread(ref bool run)
 	{
 		Socket client = mServerSocket.Accept();
-		CommandSocketConnectAcceptClient cmdAccept = newCmd(out cmdAccept, true, true);
+		CommandSocketConnectAcceptClient cmdAccept = newMainCmd(out cmdAccept, true, true);
 		cmdAccept.mSocket = client;
 		cmdAccept.mIP = null;
 		pushDelayCommand(cmdAccept, this);
@@ -174,7 +172,7 @@ public abstract class SocketConnectServer : FrameComponent, ISocketConnect
 		}
 		catch (Exception e)
 		{
-			logInfo("send exception:" + e.Message, LOG_LEVEL.LL_FORCE);
+			logInfo("send exception:" + e.Message, LOG_LEVEL.FORCE);
 		}
 		mClientSendLock.unlock();
 	}
@@ -210,8 +208,8 @@ public abstract class SocketConnectServer : FrameComponent, ISocketConnect
 		}
 		catch (SocketException e)
 		{
-			logInfo("recv exception:" + e.Message, LOG_LEVEL.LL_FORCE);
-			setNetState(NET_STATE.NS_NET_CLOSE);
+			logInfo("recv exception:" + e.Message, LOG_LEVEL.FORCE);
+			setNetState(NET_STATE.NET_CLOSE);
 		}
 		mClientRecvLock.unlock();
 	}

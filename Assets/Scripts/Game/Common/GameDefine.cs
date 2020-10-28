@@ -8,7 +8,7 @@ using System.Collections.Generic;
 // 委托定于
 
 // 游戏常量定义-------------------------------------------------------------------------------------------------------------
-public class GameDefine : CommonDefine
+public class GameDefine : FrameDefine
 {
 	// 路径定义
 	// Frame需要的常量,因为Frame中需要该变量,但是每个项目的值都可能不一致,所以放到GameDefine中

@@ -8,13 +8,13 @@ public class USHORT : OBJECT
 	public ushort mValue;
 	public USHORT()
 	{
-		mType = typeof(ushort);
+		mType = Typeof<ushort>();
 		mSize = TYPE_SIZE;
 	}
 	public USHORT(ushort value)
 	{
 		mValue = value;
-		mType = typeof(ushort);
+		mType = Typeof<ushort>();
 		mSize = TYPE_SIZE;
 	}
 	public override void zero() { mValue = 0; }

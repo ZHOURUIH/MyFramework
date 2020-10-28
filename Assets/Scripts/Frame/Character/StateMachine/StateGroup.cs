@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 // 状态组,状态组可以指定哪些状态是互斥的,如果是互斥的,则添加属于该组的状态时,会移除已有的该组中的所有状态
-public class StateGroup : GameBase
+public class StateGroup : FrameBase
 {
 	public GROUP_MUTEX_OPERATION mCoexist;		// 该组中的状态是否可以共存
 	public List<Type> mStateList;
@@ -14,21 +14,21 @@ public class StateGroup : GameBase
 		mStateList = new List<Type>();
 	}
 	public void setCoexist(GROUP_MUTEX_OPERATION coexist) { mCoexist = coexist; }
-	public void setMainState<T>() where T : PlayerState
+	public void setMainState(Type type)
 	{
 		if(mMainState != null)
 		{
 			logError("state group's main state is not empty!");
 			return;
 		}
-		mMainState = typeof(T);
+		mMainState = type;
 	}
-	public void addState<T>() where T : PlayerState
+	public void addState(Type type)
 	{
-		mStateList.Add(typeof(T));
+		mStateList.Add(type);
 	}
-	public bool hasState<T>() where T : PlayerState
+	public bool hasState(Type type)
 	{
-		return mStateList.Contains(typeof(T));
+		return mStateList.Contains(type);
 	}
 }

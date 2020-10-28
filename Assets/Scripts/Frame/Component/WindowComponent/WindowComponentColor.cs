@@ -11,7 +11,7 @@ public class WindowComponentColor : ComponentKeyFrameNormal, IComponentModifyAlp
 	//------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
-		txUIObject obj = mComponentOwner as txUIObject;
+		myUIObject obj = mComponentOwner as myUIObject;
 		obj.setColor(lerpSimple(mStart, mTarget, value));
 	}
 }

@@ -11,7 +11,7 @@ public class CommandWindowPlayAudio : Command
 	public override void init()
 	{
 		base.init();
-		mSound = SOUND_DEFINE.SD_MAX;
+		mSound = SOUND_DEFINE.MIN;
 		mSoundFileName = null;
 		mVolume = 1.0f;
 		mUseVolumeCoe = true;
@@ -19,10 +19,10 @@ public class CommandWindowPlayAudio : Command
 	}
 	public override void execute()
 	{
-		txUIObject obj = mReceiver as txUIObject;
+		myUIObject obj = mReceiver as myUIObject;
 		WindowComponentAudio component = obj.getComponent(out component);
 		component.setActive(true);
-		string soundName = mSound != SOUND_DEFINE.SD_MAX ? mAudioManager.getAudioName(mSound) : mSoundFileName;
+		string soundName = mSound != SOUND_DEFINE.MIN ? mAudioManager.getAudioName(mSound) : mSoundFileName;
 		if (mUseVolumeCoe)
 		{
 			mVolume *= mAudioManager.getVolumeScale(mSound);
@@ -31,7 +31,7 @@ public class CommandWindowPlayAudio : Command
 	}
 	public override string showDebugInfo()
 	{
-		string soundName = mSound != SOUND_DEFINE.SD_MAX ? mAudioManager.getAudioName(mSound) : mSoundFileName;
+		string soundName = mSound != SOUND_DEFINE.MIN ? mAudioManager.getAudioName(mSound) : mSoundFileName;
 		return base.showDebugInfo() + ": mSound:" + mSound + ", soundName:" + soundName + ", mLoop:" + mLoop + ", mVolume:" + mVolume
 			+ ", mSoundFileName:" + mSoundFileName + ", mUseVolumeCoe:" + mUseVolumeCoe;
 	}

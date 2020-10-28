@@ -4,229 +4,211 @@ using System;
 using System.Collections.Generic;
 
 // LayoutTools
-public class LT : GameBase
+public class LT : FrameBase
 {
 	//------------------------------------------------------------------------------------------------------------------------------------
 	// 布局
 	#region 布局
-	public static void LOAD_NGUI(LAYOUT type, int renderOrder, bool visible, bool immediately, string param)
+	public static void LOAD_LAYOUT(int id, int renderOrder, LAYOUT_ORDER orderType, bool visible, bool immediately, string param, GUI_TYPE guiType, bool isScene, bool isAsync, LayoutAsyncDone callback)
 	{
-		CommandLayoutManagerLoadLayout cmd = newCmd(out cmd, true, false);
-		cmd.mLayoutType = type;
+		CommandLayoutManagerLoad cmd = newMainCmd(out cmd, true, false);
+		cmd.mLayoutID = id;
 		cmd.mVisible = visible;
 		cmd.mRenderOrder = renderOrder;
-		cmd.mAsync = false;
+		cmd.mOrderType = orderType;
+		cmd.mAsync = isAsync;
 		cmd.mImmediatelyShow = immediately;
 		cmd.mParam = param;
-		cmd.mIsNGUI = true;
-		cmd.mIsScene = false;
-		pushCommand(cmd, mLayoutManager);
-	}
-	public static void LOAD_NGUI_ASYNC(LAYOUT type, int renderOrder, LayoutAsyncDone callback)
-	{
-		CommandLayoutManagerLoadLayout cmd = newCmd(out cmd, true, false);
-		cmd.mLayoutType = type;
-		cmd.mRenderOrder = renderOrder;
-		cmd.mAsync = true;
+		cmd.mGUIType = guiType;
+		cmd.mIsScene = isScene;
 		cmd.mCallback = callback;
-		cmd.mIsNGUI = true;
-		cmd.mIsScene = false;
 		pushCommand(cmd, mLayoutManager);
 	}
-	public static void LOAD_UGUI(LAYOUT type, int renderOrder, bool visible)
+	#region NGUI
+	public static void LOAD_NGUI(int id, int renderOrder, LAYOUT_ORDER orderType, bool visible, bool immediately, string param)
 	{
-		LOAD_UGUI(type, renderOrder, visible, false, null);
+		LOAD_LAYOUT(id, renderOrder, orderType, visible, immediately, param, GUI_TYPE.NGUI, false, false, null);
 	}
-	public static void LOAD_UGUI(LAYOUT type, int renderOrder, bool visible, bool immediately)
+	public static void LOAD_NGUI_ASYNC(int id, int renderOrder, LAYOUT_ORDER orderType, LayoutAsyncDone callback)
 	{
-		LOAD_UGUI(type, renderOrder, visible, immediately, null);
+		LOAD_LAYOUT(id, renderOrder, orderType, true, false, null, GUI_TYPE.NGUI, false, true, null);
 	}
-	public static void LOAD_UGUI(LAYOUT type, int renderOrder, bool visible, bool immediately, string param)
+	public static void LOAD_NGUI_SCENE(int id, int renderOrder, bool visible, bool immediately, string param)
 	{
-		CommandLayoutManagerLoadLayout cmd = newCmd(out cmd, true, false);
-		cmd.mLayoutType = type;
-		cmd.mVisible = visible;
-		cmd.mRenderOrder = renderOrder;
-		cmd.mAsync = false;
-		cmd.mImmediatelyShow = immediately;
-		cmd.mParam = param;
-		cmd.mIsNGUI = false;
-		cmd.mIsScene = false;
-		pushCommand(cmd, mLayoutManager);
+		LOAD_LAYOUT(id, renderOrder, LAYOUT_ORDER.FIXED, visible, immediately, param, GUI_TYPE.NGUI, true, false, null);
 	}
-	public static void LOAD_UGUI_SCENE(LAYOUT type, int renderOrder, bool visible, bool immediately, string param)
+	public static void LOAD_NGUI_SCENE_ASYNC(int id, int renderOrder, LayoutAsyncDone callback)
 	{
-		CommandLayoutManagerLoadLayout cmd = newCmd(out cmd, true, false);
-		cmd.mLayoutType = type;
-		cmd.mVisible = visible;
-		cmd.mAsync = false;
-		cmd.mImmediatelyShow = immediately;
-		cmd.mParam = param;
-		cmd.mIsNGUI = false;
-		cmd.mIsScene = true;
-		cmd.mRenderOrder = renderOrder;
-		pushCommand(cmd, mLayoutManager);
+		LOAD_LAYOUT(id, renderOrder, LAYOUT_ORDER.FIXED, true, false, null, GUI_TYPE.NGUI, true, true, callback);
 	}
-	public static void LOAD_NGUI_SCENE(LAYOUT type, int renderOrder, bool visible, bool immediately, string param)
+	public static void LOAD_NGUI_TOP_HIDE(int id)
 	{
-		CommandLayoutManagerLoadLayout cmd = newCmd(out cmd, true, false);
-		cmd.mLayoutType = type;
-		cmd.mVisible = visible;
-		cmd.mRenderOrder = renderOrder;
-		cmd.mAsync = false;
-		cmd.mImmediatelyShow = immediately;
-		cmd.mParam = param;
-		cmd.mIsNGUI = true;
-		cmd.mIsScene = true;
-		pushCommand(cmd, mLayoutManager);
+		LOAD_NGUI(id, 0, LAYOUT_ORDER.ALWAYS_TOP_AUTO, false, false, null);
 	}
-	public static void LOAD_NGUI_SCENE_ASYNC(LAYOUT type, int renderOrder, LayoutAsyncDone callback)
+	public static void LOAD_NGUI_HIDE(int id)
 	{
-		CommandLayoutManagerLoadLayout cmd = newCmd(out cmd, true, false);
-		cmd.mLayoutType = type;
-		cmd.mRenderOrder = renderOrder;
-		cmd.mAsync = true;
-		cmd.mCallback = callback;
-		cmd.mIsNGUI = true;
-		cmd.mIsScene = true;
-		pushCommand(cmd, mLayoutManager);
+		LOAD_NGUI(id, 0, LAYOUT_ORDER.AUTO, false, false, null);
 	}
-	public static void LOAD_UGUI_ASYNC(LAYOUT type, int renderOrder, LayoutAsyncDone callback)
+	public static void LOAD_NGUI_HIDE(int id, int renderOrder, LAYOUT_ORDER orderType)
 	{
-		CommandLayoutManagerLoadLayout cmd = newCmd(out cmd, true, false);
-		cmd.mLayoutType = type;
-		cmd.mRenderOrder = renderOrder;
-		cmd.mAsync = true;
-		cmd.mCallback = callback;
-		cmd.mIsNGUI = false;
-		cmd.mIsScene = false;
-		pushCommand(cmd, mLayoutManager);
+		LOAD_NGUI(id, renderOrder, orderType, false, false, null);
 	}
-	public static void UNLOAD_LAYOUT(LAYOUT type)
+	public static void LOAD_NGUI_TOP_SHOW(int id)
 	{
-		// 需要首先强制隐藏布局
-		HIDE_LAYOUT_FORCE(type);
-		CommandLayoutManagerUnloadLayout cmd = newCmd(out cmd, true, false);
-		cmd.mLayoutType = type;
-		pushCommand(cmd, mLayoutManager);
+		LOAD_NGUI(id, 0, LAYOUT_ORDER.ALWAYS_TOP_AUTO, true, false, null);
 	}
-	public static void UNLOAD_LAYOUT_DELAY(LAYOUT type, float delayTime)
+	public static void LOAD_NGUI_SHOW(int id)
 	{
-		CommandLayoutManagerUnloadLayout cmd = newCmd(out cmd, true, true);
-		cmd.mLayoutType = type;
-		pushDelayCommand(cmd, mLayoutManager, delayTime);
+		LOAD_NGUI(id, 0, LAYOUT_ORDER.AUTO, true, false, null);
 	}
-	public static void LOAD_NGUI_HIDE(LAYOUT type, int renderOrder)
+	public static void LOAD_NGUI_SHOW(int id, int renderOrder, LAYOUT_ORDER orderType)
 	{
-		LOAD_NGUI(type, renderOrder, false, false, null);
+		LOAD_NGUI(id, renderOrder, orderType, true, false, null);
 	}
-	public static void LOAD_NGUI_SHOW(LAYOUT type, int renderOrder)
+	public static void LOAD_NGUI_SHOW(int id, int renderOrder, LAYOUT_ORDER orderType, bool immediately, string param = null)
 	{
-		LOAD_NGUI(type, renderOrder, true, false, null);
+		LOAD_NGUI(id, renderOrder, orderType, true, immediately, param);
 	}
-	public static void LOAD_NGUI_SHOW(LAYOUT type, int renderOrder, bool immediately, string param = null)
+	public static void LOAD_NGUI_SCENE_HIDE(int id, int renderOrder)
 	{
-		LOAD_NGUI(type, renderOrder, true, immediately, param);
+		LOAD_NGUI_SCENE(id, renderOrder, false, false, null);
 	}
-	public static void LOAD_NGUI_SCENE_HIDE(LAYOUT type, int renderOrder)
+	public static void LOAD_NGUI_SCENE_SHOW(int id, int renderOrder)
 	{
-		LOAD_NGUI_SCENE(type, renderOrder, false, false, null);
+		LOAD_NGUI_SCENE(id, renderOrder, true, false, null);
 	}
-	public static void LOAD_NGUI_SCENE_SHOW(LAYOUT type, int renderOrder)
+	#endregion
+	#region UGUI
+	public static void LOAD_UGUI(int id, bool visible)
 	{
-		LOAD_NGUI_SCENE(type, renderOrder, true, false, null);
+		LOAD_LAYOUT(id, 0, LAYOUT_ORDER.AUTO, visible, false, null, GUI_TYPE.UGUI, false, false, null);
 	}
-	public static void LOAD_UGUI_SCENE_HIDE(LAYOUT type, int renderOrder)
+	public static void LOAD_UGUI(int id, int renderOrder, LAYOUT_ORDER orderType, bool visible)
 	{
-		LOAD_UGUI_SCENE(type, renderOrder, false, false, null);
+		LOAD_LAYOUT(id, renderOrder, orderType, visible, false, null, GUI_TYPE.UGUI, false, false, null);
 	}
-	public static void LOAD_UGUI_SCENE_SHOW(LAYOUT type, int renderOrder)
+	public static void LOAD_UGUI(int id, int renderOrder, LAYOUT_ORDER orderType, bool visible, bool immediately)
 	{
-		LOAD_UGUI_SCENE(type, renderOrder, true, false, null);
+		LOAD_LAYOUT(id, renderOrder, orderType, visible, immediately, null, GUI_TYPE.UGUI, false, false, null);
 	}
-	public static void LOAD_UGUI_HIDE(LAYOUT type, int renderOrder)
+	public static void LOAD_UGUI(int id, int renderOrder, LAYOUT_ORDER orderType, bool visible, bool immediately, string param)
 	{
-		LOAD_UGUI(type, renderOrder, false, false, null);
+		LOAD_LAYOUT(id, renderOrder, orderType, visible, immediately, param, GUI_TYPE.UGUI, false, false, null);
 	}
-	public static void LOAD_UGUI_SHOW(LAYOUT type, int renderOrder)
+	// UI作为场景时深度应该为固定值
+	public static void LOAD_UGUI_SCENE(int id, int renderOrder, bool visible, bool immediately, string param)
 	{
-		LOAD_UGUI(type, renderOrder, true, false, EMPTY_STRING);
+		LOAD_LAYOUT(id, renderOrder, LAYOUT_ORDER.FIXED, visible, immediately, param, GUI_TYPE.UGUI, true, false, null);
 	}
-	public static void LOAD_UGUI_SHOW(LAYOUT type, int renderOrder, bool immediately, string param = null)
+	public static void LOAD_UGUI_ASYNC(int id, int renderOrder, LAYOUT_ORDER orderType, LayoutAsyncDone callback)
 	{
-		LOAD_UGUI(type, renderOrder, true, immediately, param);
+		LOAD_LAYOUT(id, renderOrder, orderType, true, false, null, GUI_TYPE.UGUI, false, true, callback);
 	}
-	public static void HIDE_LAYOUT(LAYOUT type, bool immediately = false, string param = null)
+	public static void LOAD_UGUI_SCENE_HIDE(int id, int renderOrder)
 	{
-		VISIBLE_LAYOUT(type, false, immediately, param);
+		LOAD_UGUI_SCENE(id, renderOrder, false, false, null);
 	}
-	public static void HIDE_LAYOUT_FORCE(LAYOUT type)
+	public static void LOAD_UGUI_SCENE_SHOW(int id, int renderOrder)
 	{
-		VISIBLE_LAYOUT_FORCE(type, false);
+		LOAD_UGUI_SCENE(id, renderOrder, true, false, null);
 	}
-	public static void SHOW_LAYOUT(LAYOUT type, bool immediately = false, string param = null)
+	public static void LOAD_UGUI_TOP_HIDE(int id)
 	{
-		VISIBLE_LAYOUT(type, true, immediately, param);
+		LOAD_UGUI(id, 0, LAYOUT_ORDER.ALWAYS_TOP_AUTO, false, false, null);
 	}
-	public static void SHOW_LAYOUT_FORCE(LAYOUT type)
+	public static void LOAD_UGUI_HIDE(int id)
 	{
-		VISIBLE_LAYOUT_FORCE(type, true);
+		LOAD_UGUI(id, 0, LAYOUT_ORDER.AUTO, false, false, null);
 	}
-	public static void VISIBLE_LAYOUT(LAYOUT type, bool visible, bool immediately = false, string param = null)
+	public static void LOAD_UGUI_HIDE(int id, int renderOrder, LAYOUT_ORDER orderType)
 	{
-		CommandLayoutManagerLayoutVisible cmd = newCmd(out cmd, true, false);
-		cmd.mLayoutType = type;
+		LOAD_UGUI(id, renderOrder, orderType, false, false, null);
+	}
+	public static void LOAD_UGUI_TOP_SHOW(int id)
+	{
+		LOAD_UGUI(id, 0, LAYOUT_ORDER.ALWAYS_TOP_AUTO, true, false, null);
+	}
+	public static void LOAD_UGUI_SHOW(int id)
+	{
+		LOAD_UGUI(id, 0, LAYOUT_ORDER.AUTO, true, false, null);
+	}
+	public static void LOAD_UGUI_SHOW(int id, int renderOrder, LAYOUT_ORDER orderType)
+	{
+		LOAD_UGUI(id, renderOrder, orderType, true, false, null);
+	}
+	public static void LOAD_UGUI_SHOW(int id, int renderOrder, LAYOUT_ORDER orderType, bool immediately)
+	{
+		LOAD_UGUI(id, renderOrder, orderType, true, immediately, null);
+	}
+	public static void LOAD_UGUI_SHOW(int id, int renderOrder, LAYOUT_ORDER orderType, bool immediately, string param)
+	{
+		LOAD_UGUI(id, renderOrder, orderType, true, immediately, param);
+	}
+	#endregion
+	#region LAYOUT_VISIBLE
+	public static void HIDE_LAYOUT(int id, bool immediately = false, string param = null)
+	{
+		VISIBLE_LAYOUT(id, false, immediately, param);
+	}
+	public static void HIDE_LAYOUT_FORCE(int id)
+	{
+		VISIBLE_LAYOUT_FORCE(id, false);
+	}
+	public static void SHOW_LAYOUT(int id, bool immediately = false, string param = null)
+	{
+		VISIBLE_LAYOUT(id, true, immediately, param);
+	}
+	public static void SHOW_LAYOUT_FORCE(int id)
+	{
+		VISIBLE_LAYOUT_FORCE(id, true);
+	}
+	public static void VISIBLE_LAYOUT(int id, bool visible, bool immediately = false, string param = null)
+	{
+		CommandLayoutManagerVisible cmd = newMainCmd(out cmd, true, false);
+		cmd.mLayoutID = id;
 		cmd.mForce = false;
 		cmd.mVisibility = visible;
 		cmd.mImmediately = immediately;
 		cmd.mParam = param;
 		pushCommand(cmd, mLayoutManager);
 	}
-	public static void VISIBLE_LAYOUT_FORCE(LAYOUT type, bool visible)
+	public static void VISIBLE_LAYOUT_FORCE(int id, bool visible)
 	{
-		CommandLayoutManagerLayoutVisible cmd = newCmd(out cmd, true, false);
-		cmd.mLayoutType = type;
+		CommandLayoutManagerVisible cmd = newMainCmd(out cmd, true, false);
+		cmd.mLayoutID = id;
 		cmd.mForce = true;
 		cmd.mVisibility = visible;
 		cmd.mImmediately = false;
 		pushCommand(cmd, mLayoutManager);
 	}
-	public static CommandLayoutManagerLayoutVisible HIDE_LAYOUT_DELAY(SceneProcedure procedure, float delayTime, LAYOUT type, bool immediately = false, string param = null)
+	public static CommandLayoutManagerVisible HIDE_LAYOUT_DELAY(SceneProcedure procedure, float delayTime, int id, bool immediately = false, string param = null)
 	{
-		return VISIBLE_LAYOUT_DELAY(procedure, delayTime, type, false, immediately, param);
+		return VISIBLE_LAYOUT_DELAY(procedure, delayTime, id, false, immediately, param);
 	}
-	public static CommandLayoutManagerLayoutVisible HIDE_LAYOUT_DELAY_FORCE(float delayTime, LAYOUT type)
+	public static CommandLayoutManagerVisible HIDE_LAYOUT_DELAY_FORCE(float delayTime, int id)
 	{
-		return VISIBLE_LAYOUT_DELAY_FORCE(delayTime, type, false);
+		return VISIBLE_LAYOUT_DELAY_FORCE(delayTime, id, false);
 	}
-	public static CommandLayoutManagerLayoutVisible SHOW_LAYOUT_DELAY(SceneProcedure procedure, float delayTime, LAYOUT type, bool immediately = false, string param = null)
+	public static CommandLayoutManagerVisible SHOW_LAYOUT_DELAY(SceneProcedure procedure, float delayTime, int id, bool immediately = false, string param = null)
 	{
-		return VISIBLE_LAYOUT_DELAY(procedure, delayTime, type, true, immediately, param);
+		return VISIBLE_LAYOUT_DELAY(procedure, delayTime, id, true, immediately, param);
 	}
-	public static CommandLayoutManagerLayoutVisible SHOW_LAYOUT_DELAY_EX(SceneProcedure procedure, float delayTime, LAYOUT type, CommandCallback start, bool immediately = false, string param = null)
+	public static CommandLayoutManagerVisible SHOW_LAYOUT_DELAY_EX(SceneProcedure procedure, float delayTime, int id, CommandCallback start, bool immediately = false, string param = null)
 	{
-		return VISIBLE_LAYOUT_DELAY_EX(procedure, delayTime, type, true, start, immediately, param);
+		return VISIBLE_LAYOUT_DELAY_EX(procedure, delayTime, id, true, start, immediately, param);
 	}
-	public static CommandLayoutManagerLayoutVisible SHOW_LAYOUT_DELAY_FORCE(float delayTime, LAYOUT type)
+	public static CommandLayoutManagerVisible SHOW_LAYOUT_DELAY_FORCE(float delayTime, int id)
 	{
-		return VISIBLE_LAYOUT_DELAY_FORCE(delayTime, type, true);
+		return VISIBLE_LAYOUT_DELAY_FORCE(delayTime, id, true);
 	}
-	public static CommandLayoutManagerLayoutVisible VISIBLE_LAYOUT_DELAY(SceneProcedure procedure, float delayTime, LAYOUT type, bool visible, bool immediately = false, string param = null)
+	public static CommandLayoutManagerVisible VISIBLE_LAYOUT_DELAY(SceneProcedure procedure, float delayTime, int id, bool visible, bool immediately = false, string param = null)
 	{
-		CommandLayoutManagerLayoutVisible cmd = newCmd(out cmd, true, true);
-		cmd.mLayoutType = type;
-		cmd.mForce = false;
-		cmd.mVisibility = visible;
-		cmd.mImmediately = immediately;
-		cmd.mParam = param;
-		pushDelayCommand(cmd, mLayoutManager, delayTime);
-		procedure?.addDelayCmd(cmd);
-		return cmd;
+		return VISIBLE_LAYOUT_DELAY_EX(procedure, delayTime, id, visible, null, immediately, param);
 	}
-	public static CommandLayoutManagerLayoutVisible VISIBLE_LAYOUT_DELAY_EX(SceneProcedure procedure, float delayTime, LAYOUT type, bool visible, CommandCallback start, bool immediately = false, string param = null)
+	public static CommandLayoutManagerVisible VISIBLE_LAYOUT_DELAY_EX(SceneProcedure procedure, float delayTime, int id, bool visible, CommandCallback start, bool immediately = false, string param = null)
 	{
-		CommandLayoutManagerLayoutVisible cmd = newCmd(out cmd, true, true);
-		cmd.mLayoutType = type;
+		CommandLayoutManagerVisible cmd = newMainCmd(out cmd, true, true);
+		cmd.mLayoutID = id;
 		cmd.mForce = false;
 		cmd.mVisibility = visible;
 		cmd.mImmediately = immediately;
@@ -236,10 +218,10 @@ public class LT : GameBase
 		procedure?.addDelayCmd(cmd);
 		return cmd;
 	}
-	public static CommandLayoutManagerLayoutVisible VISIBLE_LAYOUT_DELAY_FORCE(float delayTime, LAYOUT type, bool visible)
+	public static CommandLayoutManagerVisible VISIBLE_LAYOUT_DELAY_FORCE(float delayTime, int type, bool visible)
 	{
-		CommandLayoutManagerLayoutVisible cmd = newCmd(out cmd, true, true);
-		cmd.mLayoutType = type;
+		CommandLayoutManagerVisible cmd = newMainCmd(out cmd, true, true);
+		cmd.mLayoutID = type;
 		cmd.mForce = true;
 		cmd.mVisibility = visible;
 		cmd.mImmediately = false;
@@ -247,22 +229,39 @@ public class LT : GameBase
 		return cmd;
 	}
 	#endregion
+	#region UNLOAD
+	public static void UNLOAD_LAYOUT(int id)
+	{
+		// 需要首先强制隐藏布局
+		HIDE_LAYOUT_FORCE(id);
+		CommandLayoutManagerUnload cmd = newMainCmd(out cmd, true, false);
+		cmd.mLayoutID = id;
+		pushCommand(cmd, mLayoutManager);
+	}
+	public static void UNLOAD_LAYOUT_DELAY(int id, float delayTime)
+	{
+		CommandLayoutManagerUnload cmd = newMainCmd(out cmd, true, true);
+		cmd.mLayoutID = id;
+		pushDelayCommand(cmd, mLayoutManager, delayTime);
+	}
+	#endregion
+	#endregion
 	#region 窗口的显示和隐藏
-	public static void ACTIVE(txUIObject obj, bool active = true)
+	public static void ACTIVE(myUIObject obj, bool active = true)
 	{
 		obj?.setActive(active);
 	}
-	public static CommandWindowActive ACTIVE_DELAY(LayoutScript script, txUIObject obj, bool active)
+	public static CommandWindowActive ACTIVE_DELAY(LayoutScript script, myUIObject obj, bool active)
 	{
 		return ACTIVE_DELAY_EX(script, obj, active, 0.001f, null);
 	}
-	public static CommandWindowActive ACTIVE_DELAY(LayoutScript script, txUIObject obj, bool active, float delayTime)
+	public static CommandWindowActive ACTIVE_DELAY(LayoutScript script, myUIObject obj, bool active, float delayTime)
 	{
 		return ACTIVE_DELAY_EX(script, obj, active, delayTime, null);
 	}
-	public static CommandWindowActive ACTIVE_DELAY_EX(LayoutScript script, txUIObject obj, bool active, float dealyTime, CommandCallback startCallback)
+	public static CommandWindowActive ACTIVE_DELAY_EX(LayoutScript script, myUIObject obj, bool active, float dealyTime, CommandCallback startCallback)
 	{
-		CommandWindowActive cmd = newCmd(out cmd, false, true);
+		CommandWindowActive cmd = newMainCmd(out cmd, false, true);
 		cmd.mActive = active;
 		cmd.addStartCommandCallback(startCallback);
 		pushDelayCommand(cmd, obj, dealyTime);
@@ -279,7 +278,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		CommandTransformableRotateFixed cmd = newCmd(out cmd, false, false);
+		CommandTransformableRotateFixed cmd = newMainCmd(out cmd, false, false);
 		cmd.mActive = lockRotation;
 		pushCommand(cmd, obj);
 	}
@@ -289,7 +288,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		CommandTransformableRotateFixed cmd = newCmd(out cmd, false, false);
+		CommandTransformableRotateFixed cmd = newMainCmd(out cmd, false, false);
 		cmd.mActive = lockRotation;
 		cmd.mFixedEuler = rot;
 		pushCommand(cmd, obj);
@@ -304,7 +303,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		CommandTransformableRotate cmd = newCmd(out cmd, false, false);
+		CommandTransformableRotate cmd = newMainCmd(out cmd, false, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartRotation = rotation;
 		cmd.mTargetRotation = rotation;
@@ -312,7 +311,7 @@ public class LT : GameBase
 	}
 	public static void ROTATE(Transformable obj, Vector3 start, Vector3 target, float time)
 	{
-		ROTATE_EX(obj, CommonDefine.ZERO_ONE, start, target, time, false, 0.0f, null, null);
+		ROTATE_EX(obj, FrameDefine.ZERO_ONE, start, target, time, false, 0.0f, null, null);
 	}
 	public static void ROTATE(Transformable obj, string keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
@@ -324,11 +323,11 @@ public class LT : GameBase
 	}
 	public static void ROTATE_EX(Transformable obj, Vector3 start, Vector3 target, float time, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		ROTATE_EX(obj, CommonDefine.ZERO_ONE, start, target, time, false, 0.0f, doingCallback, doneCallback);
+		ROTATE_EX(obj, FrameDefine.ZERO_ONE, start, target, time, false, 0.0f, doingCallback, doneCallback);
 	}
 	public static void ROTATE_EX(Transformable obj, Vector3 start, Vector3 target, float time, KeyFrameCallback doneCallback)
 	{
-		ROTATE_EX(obj, CommonDefine.ZERO_ONE, start, target, time, false, 0.0f, null, doneCallback);
+		ROTATE_EX(obj, FrameDefine.ZERO_ONE, start, target, time, false, 0.0f, null, doneCallback);
 	}
 	public static void ROTATE_EX(Transformable obj, string keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
@@ -341,7 +340,7 @@ public class LT : GameBase
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ROTATE(Transformable obj, Vector3 rotation)");
 			return;
 		}
-		CommandTransformableRotate cmd = newCmd(out cmd, false, false);
+		CommandTransformableRotate cmd = newMainCmd(out cmd, false, false);
 		cmd.mName = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartRotation = start;
@@ -358,7 +357,7 @@ public class LT : GameBase
 		{
 			return null;
 		}
-		CommandTransformableRotate cmd = newCmd(out cmd, false, true);
+		CommandTransformableRotate cmd = newMainCmd(out cmd, false, true);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartRotation = rotation;
 		cmd.mTargetRotation = rotation;
@@ -368,7 +367,7 @@ public class LT : GameBase
 	}
 	public static CommandTransformableRotate ROTATE_DELAY(LayoutScript script, Transformable obj, float delayTime, Vector3 start, Vector3 target, float time)
 	{
-		return ROTATE_DELAY(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, time, false, 0.0f);
+		return ROTATE_DELAY(script, obj, delayTime, FrameDefine.ZERO_ONE, start, target, time, false, 0.0f);
 	}
 	public static CommandTransformableRotate ROTATE_DELAY(LayoutScript script, Transformable obj, float delayTime, string keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
@@ -389,7 +388,7 @@ public class LT : GameBase
 			logError("时间或关键帧不能为空,如果要停止组件,请使用CommandTransformableRotate ROTATE_DELAY(Transformable obj, float delayTime, Vector3 rotation)");
 			return null;
 		}
-		CommandTransformableRotate cmd = newCmd(out cmd, false, true);
+		CommandTransformableRotate cmd = newMainCmd(out cmd, false, true);
 		cmd.mName = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartRotation = start;
@@ -418,7 +417,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		CommandTransformableRotateSpeed cmd = newCmd(out cmd, false, false);
+		CommandTransformableRotateSpeed cmd = newMainCmd(out cmd, false, false);
 		cmd.mRotateSpeed = speed;
 		cmd.mStartAngle = startAngle;
 		cmd.mRotateAcceleration = rotateAccelerationValue;
@@ -438,7 +437,7 @@ public class LT : GameBase
 		{
 			return null;
 		}
-		CommandTransformableRotateSpeed cmd = newCmd(out cmd, false, true);
+		CommandTransformableRotateSpeed cmd = newMainCmd(out cmd, false, true);
 		cmd.mRotateSpeed = speed;
 		cmd.mStartAngle = startAngle;
 		cmd.mRotateAcceleration = rotateAccelerationValue;
@@ -451,20 +450,20 @@ public class LT : GameBase
 	#region 在物理更新中用关键帧旋转物体
 	public static void ROTATE_FIXED_PHY(Transformable obj, bool lockRotation = true)
 	{
-		CommandTransformableRotateFixedPhysics cmd = newCmd(out cmd, false, false);
+		CommandTransformableRotateFixedPhysics cmd = newMainCmd(out cmd, false, false);
 		cmd.mActive = lockRotation;
 		pushCommand(cmd, obj);
 	}
 	public static void ROTATE_FIXED_PHY(Transformable obj, Vector3 rot, bool lockRotation = true)
 	{
-		CommandTransformableRotateFixedPhysics cmd = newCmd(out cmd, false, false);
+		CommandTransformableRotateFixedPhysics cmd = newMainCmd(out cmd, false, false);
 		cmd.mActive = lockRotation;
 		cmd.mFixedEuler = rot;
 		pushCommand(cmd, obj);
 	}
 	public static void ROTATE_PHY(Transformable obj, Vector3 rotation)
 	{
-		CommandTransformableRotatePhysics cmd = newCmd(out cmd, false, false);
+		CommandTransformableRotatePhysics cmd = newMainCmd(out cmd, false, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartRotation = rotation;
 		cmd.mTargetRotation = rotation;
@@ -472,7 +471,7 @@ public class LT : GameBase
 	}
 	public static void ROTATE_PHY(Transformable obj, Vector3 start, Vector3 target, float time)
 	{
-		ROTATE_PHY_EX(obj, CommonDefine.ZERO_ONE, start, target, time, false, 0.0f, null, null);
+		ROTATE_PHY_EX(obj, FrameDefine.ZERO_ONE, start, target, time, false, 0.0f, null, null);
 	}
 	public static void ROTATE_PHY(Transformable obj, string keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
@@ -484,11 +483,11 @@ public class LT : GameBase
 	}
 	public static void ROTATE_PHY_EX(Transformable obj, Vector3 start, Vector3 target, float time, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		ROTATE_PHY_EX(obj, CommonDefine.ZERO_ONE, start, target, time, false, 0.0f, doingCallback, doneCallback);
+		ROTATE_PHY_EX(obj, FrameDefine.ZERO_ONE, start, target, time, false, 0.0f, doingCallback, doneCallback);
 	}
 	public static void ROTATE_PHY_EX(Transformable obj, Vector3 start, Vector3 target, float time, KeyFrameCallback doneCallback)
 	{
-		ROTATE_PHY_EX(obj, CommonDefine.ZERO_ONE, start, target, time, false, 0.0f, null, doneCallback);
+		ROTATE_PHY_EX(obj, FrameDefine.ZERO_ONE, start, target, time, false, 0.0f, null, doneCallback);
 	}
 	public static void ROTATE_PHY_EX(Transformable obj, string keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
@@ -497,7 +496,7 @@ public class LT : GameBase
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ROTATE_PHY(Transformable obj, Vector3 rotation)");
 			return;
 		}
-		CommandTransformableRotatePhysics cmd = newCmd(out cmd, false, false);
+		CommandTransformableRotatePhysics cmd = newMainCmd(out cmd, false, false);
 		cmd.mName = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartRotation = start;
@@ -510,7 +509,7 @@ public class LT : GameBase
 	}
 	public static CommandTransformableRotatePhysics ROTATE_PHY_DELAY(LayoutScript script, Transformable obj, float delayTime, Vector3 rotation)
 	{
-		CommandTransformableRotatePhysics cmd = newCmd(out cmd, false, true);
+		CommandTransformableRotatePhysics cmd = newMainCmd(out cmd, false, true);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartRotation = rotation;
 		cmd.mTargetRotation = rotation;
@@ -520,7 +519,7 @@ public class LT : GameBase
 	}
 	public static CommandTransformableRotatePhysics ROTATE_PHY_DELAY(LayoutScript script, Transformable obj, float delayTime, Vector3 start, Vector3 target, float time)
 	{
-		return ROTATE_PHY_DELAY(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, time, false, 0.0f);
+		return ROTATE_PHY_DELAY(script, obj, delayTime, FrameDefine.ZERO_ONE, start, target, time, false, 0.0f);
 	}
 	public static CommandTransformableRotatePhysics ROTATE_PHY_DELAY(LayoutScript script, Transformable obj, float delayTime, string keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
@@ -537,7 +536,7 @@ public class LT : GameBase
 			logError("时间或关键帧不能为空,如果要停止组件,请使用CommandTransformableRotatePhysics ROTATE_PHY_DELAY(Transformable obj, float delayTime, Vector3 rotation)");
 			return null;
 		}
-		CommandTransformableRotatePhysics cmd = newCmd(out cmd, false, true);
+		CommandTransformableRotatePhysics cmd = newMainCmd(out cmd, false, true);
 		cmd.mName = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartRotation = start;
@@ -562,7 +561,7 @@ public class LT : GameBase
 	}
 	public static void ROTATE_SPEED_PHY(Transformable obj, Vector3 speed, Vector3 startAngle, Vector3 rotateAccelerationValue)
 	{
-		CommandMovableObjectRotateSpeedPhysics cmd = newCmd(out cmd, false, false);
+		CommandMovableObjectRotateSpeedPhysics cmd = newMainCmd(out cmd, false, false);
 		cmd.mRotateSpeed = speed;
 		cmd.mStartAngle = startAngle;
 		cmd.mRotateAcceleration = rotateAccelerationValue;
@@ -578,7 +577,7 @@ public class LT : GameBase
 	}
 	public static CommandMovableObjectRotateSpeedPhysics ROTATE_SPEED_PHY_DELAY(LayoutScript script, Transformable obj, float delayTime, Vector3 speed, Vector3 startAngle, Vector3 rotateAccelerationValue)
 	{
-		CommandMovableObjectRotateSpeedPhysics cmd = newCmd(out cmd, false, true);
+		CommandMovableObjectRotateSpeedPhysics cmd = newMainCmd(out cmd, false, true);
 		cmd.mRotateSpeed = speed;
 		cmd.mStartAngle = startAngle;
 		cmd.mRotateAcceleration = rotateAccelerationValue;
@@ -592,11 +591,11 @@ public class LT : GameBase
 	#region 以指定角度列表旋转物体
 	public static void ROTATE_CURVE(Transformable obj)
 	{
-		pushCommand<CommandTransformableRotateCurve>(obj, false);
+		pushMainCommand<CommandTransformableRotateCurve>(obj, false);
 	}
 	public static void ROTATE_CURVE(Transformable obj, List<Vector3> rotList, float onceLength)
 	{
-		ROTATE_CURVE_EX(obj, CommonDefine.ZERO_ONE, rotList, onceLength, false, 0.0f, null, null);
+		ROTATE_CURVE_EX(obj, FrameDefine.ZERO_ONE, rotList, onceLength, false, 0.0f, null, null);
 	}
 	public static void ROTATE_CURVE(Transformable obj, string fileName, List<Vector3> rotList, float onceLength)
 	{
@@ -612,19 +611,19 @@ public class LT : GameBase
 	}
 	public static void ROTATE_CURVE_EX(Transformable obj, List<Vector3> rotList, float onceLength, KeyFrameCallback doneCallback)
 	{
-		ROTATE_CURVE_EX(obj, CommonDefine.ZERO_ONE, rotList, onceLength, false, 0.0f, null, doneCallback);
+		ROTATE_CURVE_EX(obj, FrameDefine.ZERO_ONE, rotList, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static void ROTATE_CURVE_EX(Transformable obj, List<Vector3> rotList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		ROTATE_CURVE_EX(obj, CommonDefine.ZERO_ONE, rotList, onceLength, false, 0.0f, doingCallback, doneCallback);
+		ROTATE_CURVE_EX(obj, FrameDefine.ZERO_ONE, rotList, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
 	public static void ROTATE_CURVE_EX(Transformable obj, List<Vector3> rotList, float onceLength, float offsetTime, KeyFrameCallback doneCallback)
 	{
-		ROTATE_CURVE_EX(obj, CommonDefine.ZERO_ONE, rotList, onceLength, false, offsetTime, null, doneCallback);
+		ROTATE_CURVE_EX(obj, FrameDefine.ZERO_ONE, rotList, onceLength, false, offsetTime, null, doneCallback);
 	}
 	public static void ROTATE_CURVE_EX(Transformable obj, List<Vector3> rotList, float onceLength, float offsetTime, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		ROTATE_CURVE_EX(obj, CommonDefine.ZERO_ONE, rotList, onceLength, false, offsetTime, doingCallback, doneCallback);
+		ROTATE_CURVE_EX(obj, FrameDefine.ZERO_ONE, rotList, onceLength, false, offsetTime, doingCallback, doneCallback);
 	}
 	public static void ROTATE_CURVE_EX(Transformable obj, string fileName, List<Vector3> rotList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
@@ -636,7 +635,7 @@ public class LT : GameBase
 	}
 	public static void ROTATE_CURVE_EX(Transformable obj, string fileName, List<Vector3> rotList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		CommandTransformableRotateCurve cmd = newCmd(out cmd, false);
+		CommandTransformableRotateCurve cmd = newMainCmd(out cmd, false);
 		cmd.mName = fileName;
 		cmd.mOnceLength = onceLength;
 		cmd.mRotList = rotList;
@@ -648,13 +647,13 @@ public class LT : GameBase
 	}
 	public static CommandTransformableRotateCurve ROTATE_CURVE_DELAY(LayoutScript script, Transformable obj, float delayTime)
 	{
-		var cmd = pushDelayCommand<CommandTransformableRotateCurve>(obj, delayTime, false);
+		var cmd = pushDelayMainCommand<CommandTransformableRotateCurve>(obj, delayTime, false);
 		script.addDelayCmd(cmd);
 		return cmd;
 	}
 	public static CommandTransformableRotateCurve ROTATE_CURVE_DELAY(LayoutScript script, Transformable obj, float delayTime, List<Vector3> rotList, float onceLength)
 	{
-		return ROTATE_CURVE_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, rotList, onceLength, false, 0.0f, null, null);
+		return ROTATE_CURVE_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, rotList, onceLength, false, 0.0f, null, null);
 	}
 	public static CommandTransformableRotateCurve ROTATE_CURVE_DELAY(LayoutScript script, Transformable obj, float delayTime, string keyframe, List<Vector3> rotList, float onceLength)
 	{
@@ -670,15 +669,15 @@ public class LT : GameBase
 	}
 	public static CommandTransformableRotateCurve ROTATE_CURVE_DELAY_EX(LayoutScript script, Transformable obj, float delayTime, List<Vector3> rotList, float onceLength, KeyFrameCallback doneCallback)
 	{
-		return ROTATE_CURVE_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, rotList, onceLength, false, 0.0f, null, doneCallback);
+		return ROTATE_CURVE_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, rotList, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static CommandTransformableRotateCurve ROTATE_CURVE_DELAY_EX(LayoutScript script, Transformable obj, float delayTime, List<Vector3> rotList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		return ROTATE_CURVE_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, rotList, onceLength, false, 0.0f, doingCallback, doneCallback);
+		return ROTATE_CURVE_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, rotList, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
 	public static CommandTransformableRotateCurve ROTATE_CURVE_DELAY_EX(LayoutScript script, Transformable obj, float delayTime, string keyframe, List<Vector3> rotList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		CommandTransformableRotateCurve cmd = newCmd(out cmd, false, true);
+		CommandTransformableRotateCurve cmd = newMainCmd(out cmd, false, true);
 		cmd.mName = keyframe;
 		cmd.mRotList = rotList;
 		cmd.mOnceLength = onceLength;
@@ -700,7 +699,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		CommandTransformableMove cmd = newCmd(out cmd, false, false);
+		CommandTransformableMove cmd = newMainCmd(out cmd, false, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartPos = Vector3.zero;
 		cmd.mTargetPos = Vector3.zero;
@@ -712,7 +711,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		CommandTransformableMove cmd = newCmd(out cmd, false, false);
+		CommandTransformableMove cmd = newMainCmd(out cmd, false, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartPos = pos;
 		cmd.mTargetPos = pos;
@@ -720,7 +719,7 @@ public class LT : GameBase
 	}
 	public static void MOVE(Transformable obj, Vector3 start, Vector3 target, float onceLength)
 	{
-		MOVE_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		MOVE_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
 	public static void MOVE(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength)
 	{
@@ -736,19 +735,19 @@ public class LT : GameBase
 	}
 	public static void MOVE_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback moveDoneCallback)
 	{
-		MOVE_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, moveDoneCallback);
+		MOVE_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, moveDoneCallback);
 	}
 	public static void MOVE_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
 	{
-		MOVE_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, movingCallback, moveDoneCallback);
+		MOVE_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, movingCallback, moveDoneCallback);
 	}
 	public static void MOVE_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, float offsetTime, KeyFrameCallback moveDoneCallback)
 	{
-		MOVE_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, offsetTime, null, moveDoneCallback);
+		MOVE_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, offsetTime, null, moveDoneCallback);
 	}
 	public static void MOVE_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, float offsetTime, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
 	{
-		MOVE_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, offsetTime, movingCallback, moveDoneCallback);
+		MOVE_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, offsetTime, movingCallback, moveDoneCallback);
 	}
 	public static void MOVE_EX(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength, KeyFrameCallback doneCallback)
 	{
@@ -768,7 +767,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		CommandTransformableMove cmd = newCmd(out cmd, false, false);
+		CommandTransformableMove cmd = newMainCmd(out cmd, false, false);
 		cmd.mName = fileName;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartPos = startPos;
@@ -785,7 +784,7 @@ public class LT : GameBase
 		{
 			return null;
 		}
-		CommandTransformableMove cmd = newCmd(out cmd, false, true);
+		CommandTransformableMove cmd = newMainCmd(out cmd, false, true);
 		cmd.mStartPos = pos;
 		cmd.mTargetPos = pos;
 		cmd.mOnceLength = 0.0f;
@@ -795,7 +794,7 @@ public class LT : GameBase
 	}
 	public static CommandTransformableMove MOVE_DELAY(LayoutScript script, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength)
 	{
-		return MOVE_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		return MOVE_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
 	public static CommandTransformableMove MOVE_DELAY(LayoutScript script, Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float onceLength)
 	{
@@ -811,11 +810,11 @@ public class LT : GameBase
 	}
 	public static CommandTransformableMove MOVE_DELAY_EX(LayoutScript script, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback moveDoneCallback)
 	{
-		return MOVE_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, moveDoneCallback);
+		return MOVE_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, moveDoneCallback);
 	}
 	public static CommandTransformableMove MOVE_DELAY_EX(LayoutScript script, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
 	{
-		return MOVE_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, movingCallback, moveDoneCallback);
+		return MOVE_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, movingCallback, moveDoneCallback);
 	}
 	public static CommandTransformableMove MOVE_DELAY_EX(LayoutScript script, Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, KeyFrameCallback moveDoneCallback)
 	{
@@ -831,7 +830,7 @@ public class LT : GameBase
 		{
 			return null;
 		}
-		CommandTransformableMove cmd = newCmd(out cmd, false, true);
+		CommandTransformableMove cmd = newMainCmd(out cmd, false, true);
 		cmd.mName = keyframe;
 		cmd.mStartPos = startPos;
 		cmd.mTargetPos = targetPos;
@@ -849,7 +848,7 @@ public class LT : GameBase
 	#region 在物理更新中用关键帧移动物体
 	public static void MOVE_PHY(Transformable obj, Vector3 pos)
 	{
-		CommandTransformableMovePhysics cmd = newCmd(out cmd, false, false);
+		CommandTransformableMovePhysics cmd = newMainCmd(out cmd, false, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartPos = pos;
 		cmd.mTargetPos = pos;
@@ -857,7 +856,7 @@ public class LT : GameBase
 	}
 	public static void MOVE_PHY(Transformable obj, Vector3 start, Vector3 target, float onceLength)
 	{
-		MOVE_PHY_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		MOVE_PHY_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
 	public static void MOVE_PHY(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop)
 	{
@@ -873,19 +872,19 @@ public class LT : GameBase
 	}
 	public static void MOVE_PHY_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		MOVE_PHY_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		MOVE_PHY_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static void MOVE_PHY_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		MOVE_PHY_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		MOVE_PHY_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
 	public static void MOVE_PHY_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, float offsetTime, KeyFrameCallback doneCallback)
 	{
-		MOVE_PHY_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, offsetTime, null, doneCallback);
+		MOVE_PHY_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, offsetTime, null, doneCallback);
 	}
 	public static void MOVE_PHY_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, float offsetTime, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		MOVE_PHY_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, offsetTime, doingCallback, doneCallback);
+		MOVE_PHY_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, offsetTime, doingCallback, doneCallback);
 	}
 	public static void MOVE_PHY_EX(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
@@ -897,7 +896,7 @@ public class LT : GameBase
 	}
 	public static void MOVE_PHY_EX(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		CommandTransformableMovePhysics cmd = newCmd(out cmd, false, false);
+		CommandTransformableMovePhysics cmd = newMainCmd(out cmd, false, false);
 		cmd.mName = fileName;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartPos = startPos;
@@ -910,7 +909,7 @@ public class LT : GameBase
 	}
 	public static CommandTransformableMovePhysics MOVE_PHY_DELAY(LayoutScript script, Transformable obj, float delayTime, Vector3 pos)
 	{
-		CommandTransformableMovePhysics cmd = newCmd(out cmd, false, true);
+		CommandTransformableMovePhysics cmd = newMainCmd(out cmd, false, true);
 		cmd.mStartPos = pos;
 		cmd.mTargetPos = pos;
 		cmd.mOnceLength = 0.0f;
@@ -920,7 +919,7 @@ public class LT : GameBase
 	}
 	public static CommandTransformableMovePhysics MOVE_PHY_DELAY(LayoutScript script, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength)
 	{
-		return MOVE_PHY_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		return MOVE_PHY_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
 	public static CommandTransformableMovePhysics MOVE_PHY_DELAY(LayoutScript script, Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float onceLength)
 	{
@@ -936,15 +935,15 @@ public class LT : GameBase
 	}
 	public static CommandTransformableMovePhysics MOVE_PHY_DELAY_EX(LayoutScript script, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		return MOVE_PHY_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		return MOVE_PHY_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static CommandTransformableMovePhysics MOVE_PHY_DELAY_EX(LayoutScript script, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		return MOVE_PHY_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		return MOVE_PHY_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
 	public static CommandTransformableMovePhysics MOVE_PHY_DELAY_EX(LayoutScript script, Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		CommandTransformableMovePhysics cmd = newCmd(out cmd, false, true);
+		CommandTransformableMovePhysics cmd = newMainCmd(out cmd, false, true);
 		cmd.mName = keyframe;
 		cmd.mStartPos = startPos;
 		cmd.mTargetPos = targetPos;
@@ -967,11 +966,11 @@ public class LT : GameBase
 		{
 			return;
 		}
-		pushCommand<CommandTransformableMoveParabola>(obj, false);
+		pushMainCommand<CommandTransformableMoveParabola>(obj, false);
 	}
 	public static void MOVE_PARABOLA(Transformable obj, Vector3 start, Vector3 target, float topHeight, float onceLength)
 	{
-		MOVE_PARABOLA_EX(obj, CommonDefine.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, null, null);
+		MOVE_PARABOLA_EX(obj, FrameDefine.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, null, null);
 	}
 	public static void MOVE_PARABOLA(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength)
 	{
@@ -987,19 +986,19 @@ public class LT : GameBase
 	}
 	public static void MOVE_PARABOLA_EX(Transformable obj, Vector3 start, Vector3 target, float topHeight, float onceLength, KeyFrameCallback doneCallback)
 	{
-		MOVE_PARABOLA_EX(obj, CommonDefine.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, null, doneCallback);
+		MOVE_PARABOLA_EX(obj, FrameDefine.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static void MOVE_PARABOLA_EX(Transformable obj, Vector3 start, Vector3 target, float topHeight, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		MOVE_PARABOLA_EX(obj, CommonDefine.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, doingCallback, doneCallback);
+		MOVE_PARABOLA_EX(obj, FrameDefine.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
 	public static void MOVE_PARABOLA_EX(Transformable obj, Vector3 start, Vector3 target, float topHeight, float onceLength, float offsetTime, KeyFrameCallback doneCallback)
 	{
-		MOVE_PARABOLA_EX(obj, CommonDefine.ZERO_ONE, start, target, topHeight, onceLength, false, offsetTime, null, doneCallback);
+		MOVE_PARABOLA_EX(obj, FrameDefine.ZERO_ONE, start, target, topHeight, onceLength, false, offsetTime, null, doneCallback);
 	}
 	public static void MOVE_PARABOLA_EX(Transformable obj, Vector3 start, Vector3 target, float topHeight, float onceLength, float offsetTime, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		MOVE_PARABOLA_EX(obj, CommonDefine.ZERO_ONE, start, target, topHeight, onceLength, false, offsetTime, doingCallback, doneCallback);
+		MOVE_PARABOLA_EX(obj, FrameDefine.ZERO_ONE, start, target, topHeight, onceLength, false, offsetTime, doingCallback, doneCallback);
 	}
 	public static void MOVE_PARABOLA_EX(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
@@ -1015,7 +1014,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		CommandTransformableMoveParabola cmd = newCmd(out cmd, false, false);
+		CommandTransformableMoveParabola cmd = newMainCmd(out cmd, false, false);
 		cmd.mName = fileName;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartPos = startPos;
@@ -1033,13 +1032,13 @@ public class LT : GameBase
 		{
 			return null;
 		}
-		var cmd = pushDelayCommand<CommandTransformableMoveParabola>(obj, delayTime, false);
+		var cmd = pushDelayMainCommand<CommandTransformableMoveParabola>(obj, delayTime, false);
 		script.addDelayCmd(cmd);
 		return cmd;
 	}
 	public static CommandTransformableMoveParabola MOVE_PARABOLA_DELAY(LayoutScript script, Transformable obj, float delayTime, Vector3 start, Vector3 target, float topHeight, float onceLength)
 	{
-		return MOVE_PARABOLA_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, null, null);
+		return MOVE_PARABOLA_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, null, null);
 	}
 	public static CommandTransformableMoveParabola MOVE_PARABOLA_DELAY(LayoutScript script, Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength)
 	{
@@ -1055,11 +1054,11 @@ public class LT : GameBase
 	}
 	public static CommandTransformableMoveParabola MOVE_PARABOLA_DELAY_EX(LayoutScript script, Transformable obj, float delayTime, Vector3 start, Vector3 target, float topHeight, float onceLength, KeyFrameCallback doneCallback)
 	{
-		return MOVE_PARABOLA_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, null, doneCallback);
+		return MOVE_PARABOLA_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static CommandTransformableMoveParabola MOVE_PARABOLA_DELAY_EX(LayoutScript script, Transformable obj, float delayTime, Vector3 start, Vector3 target, float topHeight, float onceLength, KeyFrameCallback movingCallback, KeyFrameCallback doneCallback)
 	{
-		return MOVE_PARABOLA_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, movingCallback, doneCallback);
+		return MOVE_PARABOLA_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, movingCallback, doneCallback);
 	}
 	public static CommandTransformableMoveParabola MOVE_PARABOLA_DELAY_EX(LayoutScript script, Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop, float offset, KeyFrameCallback movingCallback, KeyFrameCallback doneCallback)
 	{
@@ -1067,7 +1066,7 @@ public class LT : GameBase
 		{
 			return null;
 		}
-		CommandTransformableMoveParabola cmd = newCmd(out cmd, false, true);
+		CommandTransformableMoveParabola cmd = newMainCmd(out cmd, false, true);
 		cmd.mName = keyframe;
 		cmd.mStartPos = startPos;
 		cmd.mTargetPos = targetPos;
@@ -1091,11 +1090,11 @@ public class LT : GameBase
 		{
 			return;
 		}
-		pushCommand<CommandTransformableMoveCurve>(obj, false);
+		pushMainCommand<CommandTransformableMoveCurve>(obj, false);
 	}
 	public static void MOVE_CURVE(Transformable obj, List<Vector3> posList, float onceLength)
 	{
-		MOVE_CURVE_EX(obj, CommonDefine.ZERO_ONE, posList, onceLength, false, 0.0f, null, null);
+		MOVE_CURVE_EX(obj, FrameDefine.ZERO_ONE, posList, onceLength, false, 0.0f, null, null);
 	}
 	public static void MOVE_CURVE(Transformable obj, string fileName, List<Vector3> posList, float onceLength)
 	{
@@ -1111,19 +1110,19 @@ public class LT : GameBase
 	}
 	public static void MOVE_CURVE_EX(Transformable obj, List<Vector3> posList, float onceLength, KeyFrameCallback doneCallback)
 	{
-		MOVE_CURVE_EX(obj, CommonDefine.ZERO_ONE, posList, onceLength, false, 0.0f, null, doneCallback);
+		MOVE_CURVE_EX(obj, FrameDefine.ZERO_ONE, posList, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static void MOVE_CURVE_EX(Transformable obj, List<Vector3> posList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		MOVE_CURVE_EX(obj, CommonDefine.ZERO_ONE, posList, onceLength, false, 0.0f, doingCallback, doneCallback);
+		MOVE_CURVE_EX(obj, FrameDefine.ZERO_ONE, posList, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
 	public static void MOVE_CURVE_EX(Transformable obj, List<Vector3> posList, float onceLength, float offsetTime, KeyFrameCallback doneCallback)
 	{
-		MOVE_CURVE_EX(obj, CommonDefine.ZERO_ONE, posList, onceLength, false, offsetTime, null, doneCallback);
+		MOVE_CURVE_EX(obj, FrameDefine.ZERO_ONE, posList, onceLength, false, offsetTime, null, doneCallback);
 	}
 	public static void MOVE_CURVE_EX(Transformable obj, List<Vector3> posList, float onceLength, float offsetTime, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		MOVE_CURVE_EX(obj, CommonDefine.ZERO_ONE, posList, onceLength, false, offsetTime, doingCallback, doneCallback);
+		MOVE_CURVE_EX(obj, FrameDefine.ZERO_ONE, posList, onceLength, false, offsetTime, doingCallback, doneCallback);
 	}
 	public static void MOVE_CURVE_EX(Transformable obj, string fileName, List<Vector3> posList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
@@ -1139,7 +1138,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		CommandTransformableMoveCurve cmd = newCmd(out cmd, false);
+		CommandTransformableMoveCurve cmd = newMainCmd(out cmd, false);
 		cmd.mName = fileName;
 		cmd.mOnceLength = onceLength;
 		cmd.mPosList = posList;
@@ -1155,13 +1154,13 @@ public class LT : GameBase
 		{
 			return null;
 		}
-		var cmd = pushDelayCommand<CommandTransformableMoveCurve>(obj, delayTime, false);
+		var cmd = pushDelayMainCommand<CommandTransformableMoveCurve>(obj, delayTime, false);
 		script.addDelayCmd(cmd);
 		return cmd;
 	}
 	public static CommandTransformableMoveCurve MOVE_CURVE_DELAY(LayoutScript script, Transformable obj, float delayTime, List<Vector3> posList, float onceLength)
 	{
-		return MOVE_CURVE_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, posList, onceLength, false, 0.0f, null, null);
+		return MOVE_CURVE_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, posList, onceLength, false, 0.0f, null, null);
 	}
 	public static CommandTransformableMoveCurve MOVE_CURVE_DELAY(LayoutScript script, Transformable obj, float delayTime, string keyframe, List<Vector3> posList, float onceLength)
 	{
@@ -1177,11 +1176,11 @@ public class LT : GameBase
 	}
 	public static CommandTransformableMoveCurve MOVE_CURVE_DELAY_EX(LayoutScript script, Transformable obj, float delayTime, List<Vector3> posList, float onceLength, KeyFrameCallback doneCallback)
 	{
-		return MOVE_CURVE_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, posList, onceLength, false, 0.0f, null, doneCallback);
+		return MOVE_CURVE_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, posList, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static CommandTransformableMoveCurve MOVE_CURVE_DELAY_EX(LayoutScript script, Transformable obj, float delayTime, List<Vector3> posList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		return MOVE_CURVE_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, posList, onceLength, false, 0.0f, doingCallback, doneCallback);
+		return MOVE_CURVE_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, posList, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
 	public static CommandTransformableMoveCurve MOVE_CURVE_DELAY_EX(LayoutScript script, Transformable obj, float delayTime, string keyframe, List<Vector3> posList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
@@ -1189,7 +1188,7 @@ public class LT : GameBase
 		{
 			return null;
 		}
-		CommandTransformableMoveCurve cmd = newCmd(out cmd, false, true);
+		CommandTransformableMoveCurve cmd = newMainCmd(out cmd, false, true);
 		cmd.mName = keyframe;
 		cmd.mPosList = posList;
 		cmd.mOnceLength = onceLength;
@@ -1211,7 +1210,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		pushCommand<CommandTransformableMovePath>(obj, false);
+		pushMainCommand<CommandTransformableMovePath>(obj, false);
 	}
 	public static void MOVE_PATH(Transformable obj, Dictionary<float, Vector3> valueKeyFrame)
 	{
@@ -1247,7 +1246,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		CommandTransformableMovePath cmd = newCmd(out cmd, false);
+		CommandTransformableMovePath cmd = newMainCmd(out cmd, false);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -1263,7 +1262,7 @@ public class LT : GameBase
 		{
 			return null;
 		}
-		var cmd = pushDelayCommand<CommandTransformableMovePath>(obj, delayTime, false);
+		var cmd = pushDelayMainCommand<CommandTransformableMovePath>(obj, delayTime, false);
 		script.addDelayCmd(cmd);
 		return cmd;
 	}
@@ -1301,7 +1300,7 @@ public class LT : GameBase
 		{
 			return null;
 		}
-		CommandTransformableMovePath cmd = newCmd(out cmd, false, true);
+		CommandTransformableMovePath cmd = newMainCmd(out cmd, false, true);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -1323,7 +1322,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		pushCommand<CommandTransformableLerpPosition>(obj, false);
+		pushMainCommand<CommandTransformableLerpPosition>(obj, false);
 	}
 	public static void LERP_POSITION(Transformable obj, Vector3 targetPosition, float lerpSpeed)
 	{
@@ -1344,7 +1343,7 @@ public class LT : GameBase
 			logError("速度不能为0,如果要停止组件,请使用void LERP_POSITION(Transformable obj)");
 			return;
 		}
-		CommandTransformableLerpPosition cmd = newCmd(out cmd, false);
+		CommandTransformableLerpPosition cmd = newMainCmd(out cmd, false);
 		cmd.mTargetPosition = targetPosition;
 		cmd.mLerpSpeed = lerpSpeed;
 		cmd.mLerpingCallBack = doingCallback;
@@ -1357,7 +1356,7 @@ public class LT : GameBase
 		{
 			return null;
 		}
-		var cmd = pushDelayCommand<CommandTransformableLerpPosition>(obj, delayTime, false);
+		var cmd = pushDelayMainCommand<CommandTransformableLerpPosition>(obj, delayTime, false);
 		script.addDelayCmd(cmd);
 		return cmd;
 	}
@@ -1380,7 +1379,7 @@ public class LT : GameBase
 			logError("速度不能为0,如果要停止组件,请使用void LERP_POSITION_DELAY(LayoutScript script, Transformable obj, float delayTime)");
 			return null;
 		}
-		CommandTransformableLerpPosition cmd = newCmd(out cmd, false, true);
+		CommandTransformableLerpPosition cmd = newMainCmd(out cmd, false, true);
 		cmd.mTargetPosition = targetPosition;
 		cmd.mLerpSpeed = lerpSpeed;
 		cmd.mLerpingCallBack = doingCallback;
@@ -1399,7 +1398,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		pushCommand<CommandTransformableLerpRotation>(obj, false);
+		pushMainCommand<CommandTransformableLerpRotation>(obj, false);
 	}
 	public static void LERP_ROTATION(Transformable obj, Vector3 targetRotation, float lerpSpeed)
 	{
@@ -1420,7 +1419,7 @@ public class LT : GameBase
 			logError("速度不能为0,如果要停止组件,请使用void LERP_ROTATION(Transformable obj)");
 			return;
 		}
-		CommandTransformableLerpRotation cmd = newCmd(out cmd, false);
+		CommandTransformableLerpRotation cmd = newMainCmd(out cmd, false);
 		cmd.mTargetRotation = targetRotation;
 		cmd.mLerpSpeed = lerpSpeed;
 		cmd.mLerpingCallBack = doingCallback;
@@ -1433,7 +1432,7 @@ public class LT : GameBase
 		{
 			return null;
 		}
-		var cmd = pushDelayCommand<CommandTransformableLerpRotation>(obj, delayTime, false);
+		var cmd = pushDelayMainCommand<CommandTransformableLerpRotation>(obj, delayTime, false);
 		script.addDelayCmd(cmd);
 		return cmd;
 	}
@@ -1456,7 +1455,7 @@ public class LT : GameBase
 			logError("速度不能为0,如果要停止组件,请使用void LERP_ROTATION_DELAY(LayoutScript script, Transformable obj, float delayTime)");
 			return null;
 		}
-		CommandTransformableLerpRotation cmd = newCmd(out cmd, false, true);
+		CommandTransformableLerpRotation cmd = newMainCmd(out cmd, false, true);
 		cmd.mTargetRotation = targetRotation;
 		cmd.mLerpSpeed = lerpSpeed;
 		cmd.mLerpingCallBack = doingCallback;
@@ -1475,7 +1474,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		pushCommand<CommandTransformableRotatePath>(obj, false);
+		pushMainCommand<CommandTransformableRotatePath>(obj, false);
 	}
 	public static void ROTATE_PATH(Transformable obj, Dictionary<float, Vector3> valueKeyFrame)
 	{
@@ -1507,7 +1506,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		CommandTransformableRotatePath cmd = newCmd(out cmd, false);
+		CommandTransformableRotatePath cmd = newMainCmd(out cmd, false);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -1523,7 +1522,7 @@ public class LT : GameBase
 		{
 			return null;
 		}
-		var cmd = pushDelayCommand<CommandTransformableRotatePath>(obj, delayTime, false);
+		var cmd = pushDelayMainCommand<CommandTransformableRotatePath>(obj, delayTime, false);
 		script.addDelayCmd(cmd);
 		return cmd;
 	}
@@ -1561,7 +1560,7 @@ public class LT : GameBase
 		{
 			return null;
 		}
-		CommandTransformableRotatePath cmd = newCmd(out cmd, false, true);
+		CommandTransformableRotatePath cmd = newMainCmd(out cmd, false, true);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -1603,7 +1602,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		CommandTransformableTrackTarget cmd = newCmd(out cmd, false);
+		CommandTransformableTrackTarget cmd = newMainCmd(out cmd, false);
 		cmd.mTarget = target;
 		cmd.mSpeed = speed;
 		cmd.mOffset = offset;
@@ -1629,7 +1628,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		CommandTransformableRotateFocus cmd = newCmd(out cmd, false);
+		CommandTransformableRotateFocus cmd = newMainCmd(out cmd, false);
 		cmd.mTarget = target;
 		cmd.mOffset = offset;
 		pushCommand(cmd, obj);
@@ -1660,7 +1659,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		CommandTransformableLockPosition cmd = newCmd(out cmd, false);
+		CommandTransformableLockPosition cmd = newMainCmd(out cmd, false);
 		cmd.mLockPosition = pos;
 		cmd.mLockX = lockX;
 		cmd.mLockY = lockY;
@@ -1681,7 +1680,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		CommandTransformableScale cmd = newCmd(out cmd, false);
+		CommandTransformableScale cmd = newMainCmd(out cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartScale = scale;
 		cmd.mTargetScale = scale;
@@ -1689,7 +1688,7 @@ public class LT : GameBase
 	}
 	public static void SCALE(Transformable obj, Vector3 start, Vector3 target, float onceLength)
 	{
-		SCALE_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		SCALE_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
 	public static void SCALE(Transformable obj, string fileName, Vector3 start, Vector3 target, float onceLength)
 	{
@@ -1705,11 +1704,11 @@ public class LT : GameBase
 	}
 	public static void SCALE_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		SCALE_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		SCALE_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static void SCALE_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		SCALE_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		SCALE_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
 	public static void SCALE_EX(Transformable obj, string fileName, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doneCallback)
 	{
@@ -1737,7 +1736,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		CommandTransformableScale cmd = newCmd(out cmd, false);
+		CommandTransformableScale cmd = newMainCmd(out cmd, false);
 		cmd.mName = fileName;
 		cmd.mOnceLength = onceLength;
 		cmd.mOffset = offset;
@@ -1754,7 +1753,7 @@ public class LT : GameBase
 		{
 			return null;
 		}
-		CommandTransformableScale cmd = newCmd(out cmd, false, true);
+		CommandTransformableScale cmd = newMainCmd(out cmd, false, true);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartScale = scale;
 		cmd.mTargetScale = scale;
@@ -1764,7 +1763,7 @@ public class LT : GameBase
 	}
 	public static CommandTransformableScale SCALE_DELAY(LayoutScript script, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength)
 	{
-		return SCALE_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		return SCALE_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
 	public static CommandTransformableScale SCALE_DELAY(LayoutScript script, Transformable obj, float delayTime, string keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
@@ -1780,7 +1779,7 @@ public class LT : GameBase
 	}
 	public static CommandTransformableScale SCALE_DELAY_EX(LayoutScript script, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		return SCALE_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		return SCALE_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
 	public static CommandTransformableScale SCALE_DELAY_EX(LayoutScript script, Transformable obj, float delayTime, string keyframe, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
@@ -1796,7 +1795,7 @@ public class LT : GameBase
 		{
 			return null;
 		}
-		CommandTransformableScale cmd = newCmd(out cmd, false, true);
+		CommandTransformableScale cmd = newMainCmd(out cmd, false, true);
 		cmd.mName = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mOffset = offset;
@@ -1819,7 +1818,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		pushCommand<CommandTransformableScalePath>(obj, false);
+		pushMainCommand<CommandTransformableScalePath>(obj, false);
 	}
 	public static void SCALE_PATH(Transformable obj, Dictionary<float, Vector3> valueKeyFrame)
 	{
@@ -1851,7 +1850,7 @@ public class LT : GameBase
 		{
 			return;
 		}
-		CommandTransformableScalePath cmd = newCmd(out cmd, false);
+		CommandTransformableScalePath cmd = newMainCmd(out cmd, false);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -1867,7 +1866,7 @@ public class LT : GameBase
 		{
 			return null;
 		}
-		var cmd = pushDelayCommand<CommandTransformableScalePath>(obj, delayTime, false);
+		var cmd = pushDelayMainCommand<CommandTransformableScalePath>(obj, delayTime, false);
 		script.addDelayCmd(cmd);
 		return cmd;
 	}
@@ -1905,7 +1904,7 @@ public class LT : GameBase
 		{
 			return null;
 		}
-		CommandTransformableScalePath cmd = newCmd(out cmd, false, true);
+		CommandTransformableScalePath cmd = newMainCmd(out cmd, false, true);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -1923,7 +1922,7 @@ public class LT : GameBase
 	#region 进度条
 	public static void SLIDER(ComponentOwner slider, float value)
 	{
-		CommandWindowSlider cmd = newCmd(out cmd, false);
+		CommandWindowSlider cmd = newMainCmd(out cmd, false);
 		cmd.mStartValue = value;
 		cmd.mTargetValue = value;
 		cmd.mOnceLength = 0.0f;
@@ -1931,63 +1930,63 @@ public class LT : GameBase
 	}
 	public static void SLIDER(ComponentOwner slider, float start, float target, float time)
 	{
-		CommandWindowSlider cmd = newCmd(out cmd, false);
+		CommandWindowSlider cmd = newMainCmd(out cmd, false);
 		cmd.mStartValue = start;
 		cmd.mTargetValue = target;
 		cmd.mOnceLength = time;
-		cmd.mTremblingName = CommonDefine.ZERO_ONE;
+		cmd.mTremblingName = FrameDefine.ZERO_ONE;
 		pushCommand(cmd, slider);
 	}
 	#endregion
 	// 窗口填充
 	#region 窗口填充
-	public static void FILL(txUIObject obj, float value)
+	public static void FILL(myUIObject obj, float value)
 	{
-		CommandWindowFill cmd = newCmd(out cmd, false);
+		CommandWindowFill cmd = newMainCmd(out cmd, false);
 		cmd.mStartValue = value;
 		cmd.mTargetValue = value;
 		cmd.mOnceLength = 0.0f;
 		pushCommand(cmd, obj);
 	}
-	public static void FILL(txUIObject obj, float start, float target, float time)
+	public static void FILL(myUIObject obj, float start, float target, float time)
 	{
-		CommandWindowFill cmd = newCmd(out cmd, false);
+		CommandWindowFill cmd = newMainCmd(out cmd, false);
 		cmd.mStartValue = start;
 		cmd.mTargetValue = target;
 		cmd.mOnceLength = time;
-		cmd.mTremblingName = CommonDefine.ZERO_ONE;
+		cmd.mTremblingName = FrameDefine.ZERO_ONE;
 		pushCommand(cmd, obj);
 	}
-	public static CommandWindowFill FILL_DELAY(LayoutScript script, txUIObject obj, float delayTime, float start, float target, float time)
+	public static CommandWindowFill FILL_DELAY(LayoutScript script, myUIObject obj, float delayTime, float start, float target, float time)
 	{
-		CommandWindowFill cmd = newCmd(out cmd, false, true);
+		CommandWindowFill cmd = newMainCmd(out cmd, false, true);
 		cmd.mStartValue = start;
 		cmd.mTargetValue = target;
 		cmd.mOnceLength = time;
-		cmd.mTremblingName = CommonDefine.ZERO_ONE;
+		cmd.mTremblingName = FrameDefine.ZERO_ONE;
 		pushDelayCommand(cmd, obj, delayTime);
 		script.addDelayCmd(cmd);
 		return cmd;
 	}
-	public static CommandWindowFill FILL_DELAY_EX(LayoutScript script, txUIObject obj, float delayTime, float start, float target, float time, KeyFrameCallback doneCallback)
+	public static CommandWindowFill FILL_DELAY_EX(LayoutScript script, myUIObject obj, float delayTime, float start, float target, float time, KeyFrameCallback doneCallback)
 	{
-		CommandWindowFill cmd = newCmd(out cmd, false, true);
+		CommandWindowFill cmd = newMainCmd(out cmd, false, true);
 		cmd.mStartValue = start;
 		cmd.mTargetValue = target;
 		cmd.mOnceLength = time;
-		cmd.mTremblingName = CommonDefine.ZERO_ONE;
+		cmd.mTremblingName = FrameDefine.ZERO_ONE;
 		cmd.mTrembleDoneCallBack = doneCallback;
 		pushDelayCommand(cmd, obj, delayTime);
 		script.addDelayCmd(cmd);
 		return cmd;
 	}
-	public static void FILL_EX(txUIObject obj, float start, float target, float time, KeyFrameCallback fillingCallback, KeyFrameCallback doneCallback)
+	public static void FILL_EX(myUIObject obj, float start, float target, float time, KeyFrameCallback fillingCallback, KeyFrameCallback doneCallback)
 	{
-		CommandWindowFill cmd = newCmd(out cmd, false);
+		CommandWindowFill cmd = newMainCmd(out cmd, false);
 		cmd.mStartValue = start;
 		cmd.mTargetValue = target;
 		cmd.mOnceLength = time;
-		cmd.mTremblingName = CommonDefine.ZERO_ONE;
+		cmd.mTremblingName = FrameDefine.ZERO_ONE;
 		cmd.mTremblingCallBack = fillingCallback;
 		cmd.mTrembleDoneCallBack = doneCallback;
 		pushCommand(cmd, obj);
@@ -1996,54 +1995,54 @@ public class LT : GameBase
 	//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	// 透明度
 	#region 透明度
-	public static void ALPHA(txUIObject obj, float alpha = 1.0f)
+	public static void ALPHA(myUIObject obj, float alpha = 1.0f)
 	{
-		CommandWindowAlpha cmd = newCmd(out cmd, false);
+		CommandWindowAlpha cmd = newMainCmd(out cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartAlpha = alpha;
 		cmd.mTargetAlpha = alpha;
 		pushCommand(cmd, obj);
 	}
-	public static void ALPHA(txUIObject obj, float start, float target, float onceLength)
+	public static void ALPHA(myUIObject obj, float start, float target, float onceLength)
 	{
-		ALPHA_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		ALPHA_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void ALPHA(txUIObject obj, string name, float start, float target, float onceLength)
+	public static void ALPHA(myUIObject obj, string name, float start, float target, float onceLength)
 	{
 		ALPHA_EX(obj, name, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void ALPHA(txUIObject obj, string name, float start, float target, float onceLength, bool loop)
+	public static void ALPHA(myUIObject obj, string name, float start, float target, float onceLength, bool loop)
 	{
 		ALPHA_EX(obj, name, start, target, onceLength, loop, 0.0f, null, null);
 	}
-	public static void ALPHA(txUIObject obj, string name, float start, float target, float onceLength, bool loop, float offset)
+	public static void ALPHA(myUIObject obj, string name, float start, float target, float onceLength, bool loop, float offset)
 	{
 		ALPHA_EX(obj, name, start, target, onceLength, loop, offset, null, null);
 	}
-	public static void ALPHA_EX(txUIObject obj, float start, float target, float onceLength, KeyFrameCallback doneCallback)
+	public static void ALPHA_EX(myUIObject obj, float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		ALPHA_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		ALPHA_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static void ALPHA_EX(txUIObject obj, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void ALPHA_EX(myUIObject obj, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		ALPHA_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		ALPHA_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void ALPHA_EX(txUIObject obj, string name, float start, float target, float onceLength, KeyFrameCallback doneCallback)
+	public static void ALPHA_EX(myUIObject obj, string name, float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
 		ALPHA_EX(obj, name, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static void ALPHA_EX(txUIObject obj, string name, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void ALPHA_EX(myUIObject obj, string name, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		ALPHA_EX(obj, name, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void ALPHA_EX(txUIObject obj, string name, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void ALPHA_EX(myUIObject obj, string name, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (isEmpty(name) || isFloatZero(onceLength))
 		{
-			logError("时间或关键帧不能为空,如果要停止组件,请使用void ALPHA(txUIObject obj, float alpha)");
+			logError("时间或关键帧不能为空,如果要停止组件,请使用void ALPHA(myUIObject obj, float alpha)");
 			return;
 		}
-		CommandWindowAlpha cmd = newCmd(out cmd, false);
+		CommandWindowAlpha cmd = newMainCmd(out cmd, false);
 		cmd.mName = name;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
@@ -2054,9 +2053,9 @@ public class LT : GameBase
 		cmd.mTrembleDoneCallBack = doneCallback;
 		pushCommand(cmd, obj);
 	}
-	public static CommandWindowAlpha ALPHA_DELAY(LayoutScript script, txUIObject obj, float delayTime, float alpha)
+	public static CommandWindowAlpha ALPHA_DELAY(LayoutScript script, myUIObject obj, float delayTime, float alpha)
 	{
-		CommandWindowAlpha cmd = newCmd(out cmd, false, true);
+		CommandWindowAlpha cmd = newMainCmd(out cmd, false, true);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartAlpha = alpha;
 		cmd.mTargetAlpha = alpha;
@@ -2064,42 +2063,42 @@ public class LT : GameBase
 		script.addDelayCmd(cmd);
 		return cmd;
 	}
-	public static CommandWindowAlpha ALPHA_DELAY(LayoutScript script, txUIObject obj, float delayTime, float start, float target, float onceLength)
+	public static CommandWindowAlpha ALPHA_DELAY(LayoutScript script, myUIObject obj, float delayTime, float start, float target, float onceLength)
 	{
-		return ALPHA_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		return ALPHA_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandWindowAlpha ALPHA_DELAY(LayoutScript script, txUIObject obj, float delayTime, string keyframe, float start, float target, float onceLength)
+	public static CommandWindowAlpha ALPHA_DELAY(LayoutScript script, myUIObject obj, float delayTime, string keyframe, float start, float target, float onceLength)
 	{
 		return ALPHA_DELAY_EX(script, obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandWindowAlpha ALPHA_DELAY(LayoutScript script, txUIObject obj, float delayTime, string keyframe, float start, float target, float onceLength, bool loop)
+	public static CommandWindowAlpha ALPHA_DELAY(LayoutScript script, myUIObject obj, float delayTime, string keyframe, float start, float target, float onceLength, bool loop)
 	{
 		return ALPHA_DELAY_EX(script, obj, delayTime, keyframe, start, target, onceLength, loop, 0.0f, null, null);
 	}
-	public static CommandWindowAlpha ALPHA_DELAY(LayoutScript script, txUIObject obj, float delayTime, string keyframe, float start, float target, float onceLength, bool loop, float offset)
+	public static CommandWindowAlpha ALPHA_DELAY(LayoutScript script, myUIObject obj, float delayTime, string keyframe, float start, float target, float onceLength, bool loop, float offset)
 	{
 		return ALPHA_DELAY_EX(script, obj, delayTime, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
-	public static CommandWindowAlpha ALPHA_DELAY_EX(LayoutScript script, txUIObject obj, float delayTime, float start, float target, float onceLength, KeyFrameCallback doneCallback)
+	public static CommandWindowAlpha ALPHA_DELAY_EX(LayoutScript script, myUIObject obj, float delayTime, float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		return ALPHA_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		return ALPHA_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static CommandWindowAlpha ALPHA_DELAY_EX(LayoutScript script, txUIObject obj, float delayTime, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CommandWindowAlpha ALPHA_DELAY_EX(LayoutScript script, myUIObject obj, float delayTime, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		return ALPHA_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		return ALPHA_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CommandWindowAlpha ALPHA_DELAY_EX(LayoutScript script, txUIObject obj, float delayTime, string keyframe, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CommandWindowAlpha ALPHA_DELAY_EX(LayoutScript script, myUIObject obj, float delayTime, string keyframe, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return ALPHA_DELAY_EX(script, obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CommandWindowAlpha ALPHA_DELAY_EX(LayoutScript script, txUIObject obj, float delayTime, string keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CommandWindowAlpha ALPHA_DELAY_EX(LayoutScript script, myUIObject obj, float delayTime, string keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (isEmpty(keyframe) || isFloatZero(onceLength))
 		{
-			logError("时间或关键帧不能为空,如果要停止组件,请使用CommandWindowAlpha ALPHA_DELAY(LayoutScript script, txUIObject obj, float delayTime, float alpha)");
+			logError("时间或关键帧不能为空,如果要停止组件,请使用CommandWindowAlpha ALPHA_DELAY(LayoutScript script, myUIObject obj, float delayTime, float alpha)");
 			return null;
 		}
-		CommandWindowAlpha cmd = newCmd(out cmd, false, true);
+		CommandWindowAlpha cmd = newMainCmd(out cmd, false, true);
 		cmd.mName = keyframe;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
@@ -2116,54 +2115,54 @@ public class LT : GameBase
 	//----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	// 颜色,也包含透明度
 	#region 颜色
-	public static void COLOR(txUIObject obj, Color color)
+	public static void COLOR(myUIObject obj, Color color)
 	{
-		CommandWindowColor cmd = newCmd(out cmd, false);
+		CommandWindowColor cmd = newMainCmd(out cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartColor = color;
 		cmd.mTargetColor = color;
 		pushCommand(cmd, obj);
 	}
-	public static void COLOR(txUIObject obj, Color start, Color target, float onceLength)
+	public static void COLOR(myUIObject obj, Color start, Color target, float onceLength)
 	{
-		COLOR_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		COLOR_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void COLOR(txUIObject obj, string name, Color start, Color target, float onceLength)
+	public static void COLOR(myUIObject obj, string name, Color start, Color target, float onceLength)
 	{
 		COLOR_EX(obj, name, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void COLOR(txUIObject obj, string name, Color start, Color target, float onceLength, bool loop)
+	public static void COLOR(myUIObject obj, string name, Color start, Color target, float onceLength, bool loop)
 	{
 		COLOR_EX(obj, name, start, target, onceLength, loop, 0.0f, null, null);
 	}
-	public static void COLOR(txUIObject obj, string name, Color start, Color target, float onceLength, bool loop, float offset)
+	public static void COLOR(myUIObject obj, string name, Color start, Color target, float onceLength, bool loop, float offset)
 	{
 		COLOR_EX(obj, name, start, target, onceLength, loop, offset, null, null);
 	}
-	public static void COLOR_EX(txUIObject obj, Color start, Color target, float onceLength, KeyFrameCallback doneCallback)
+	public static void COLOR_EX(myUIObject obj, Color start, Color target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		COLOR_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		COLOR_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static void COLOR_EX(txUIObject obj, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void COLOR_EX(myUIObject obj, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		COLOR_EX(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		COLOR_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void COLOR_EX(txUIObject obj, string name, Color start, Color target, float onceLength, KeyFrameCallback doneCallback)
+	public static void COLOR_EX(myUIObject obj, string name, Color start, Color target, float onceLength, KeyFrameCallback doneCallback)
 	{
 		COLOR_EX(obj, name, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static void COLOR_EX(txUIObject obj, string name, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void COLOR_EX(myUIObject obj, string name, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		COLOR_EX(obj, name, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void COLOR_EX(txUIObject obj, string name, Color start, Color target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void COLOR_EX(myUIObject obj, string name, Color start, Color target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (isEmpty(name) || isFloatZero(onceLength))
 		{
-			logError("时间或关键帧不能为空,如果要停止组件,请使用void ALPHA(txUIObject obj, float alpha)");
+			logError("时间或关键帧不能为空,如果要停止组件,请使用void ALPHA(myUIObject obj, float alpha)");
 			return;
 		}
-		CommandWindowColor cmd = newCmd(out cmd, false);
+		CommandWindowColor cmd = newMainCmd(out cmd, false);
 		cmd.mName = name;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
@@ -2174,9 +2173,9 @@ public class LT : GameBase
 		cmd.mTrembleDoneCallBack = doneCallback;
 		pushCommand(cmd, obj);
 	}
-	public static CommandWindowColor COLOR_DELAY(LayoutScript script, txUIObject obj, float delayTime, Color color)
+	public static CommandWindowColor COLOR_DELAY(LayoutScript script, myUIObject obj, float delayTime, Color color)
 	{
-		CommandWindowColor cmd = newCmd(out cmd, false, true);
+		CommandWindowColor cmd = newMainCmd(out cmd, false, true);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartColor = color;
 		cmd.mTargetColor = color;
@@ -2184,42 +2183,42 @@ public class LT : GameBase
 		script.addDelayCmd(cmd);
 		return cmd;
 	}
-	public static CommandWindowColor COLOR_DELAY(LayoutScript script, txUIObject obj, float delayTime, Color start, Color target, float onceLength)
+	public static CommandWindowColor COLOR_DELAY(LayoutScript script, myUIObject obj, float delayTime, Color start, Color target, float onceLength)
 	{
-		return COLOR_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		return COLOR_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandWindowColor COLOR_DELAY(LayoutScript script, txUIObject obj, float delayTime, string keyframe, Color start, Color target, float onceLength)
+	public static CommandWindowColor COLOR_DELAY(LayoutScript script, myUIObject obj, float delayTime, string keyframe, Color start, Color target, float onceLength)
 	{
 		return COLOR_DELAY_EX(script, obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandWindowColor COLOR_DELAY(LayoutScript script, txUIObject obj, float delayTime, string keyframe, Color start, Color target, float onceLength, bool loop)
+	public static CommandWindowColor COLOR_DELAY(LayoutScript script, myUIObject obj, float delayTime, string keyframe, Color start, Color target, float onceLength, bool loop)
 	{
 		return COLOR_DELAY_EX(script, obj, delayTime, keyframe, start, target, onceLength, loop, 0.0f, null, null);
 	}
-	public static CommandWindowColor COLOR_DELAY(LayoutScript script, txUIObject obj, float delayTime, string keyframe, Color start, Color target, float onceLength, bool loop, float offset)
+	public static CommandWindowColor COLOR_DELAY(LayoutScript script, myUIObject obj, float delayTime, string keyframe, Color start, Color target, float onceLength, bool loop, float offset)
 	{
 		return COLOR_DELAY_EX(script, obj, delayTime, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
-	public static CommandWindowColor COLOR_DELAY_EX(LayoutScript script, txUIObject obj, float delayTime, Color start, Color target, float onceLength, KeyFrameCallback doneCallback)
+	public static CommandWindowColor COLOR_DELAY_EX(LayoutScript script, myUIObject obj, float delayTime, Color start, Color target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		return COLOR_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		return COLOR_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static CommandWindowColor COLOR_DELAY_EX(LayoutScript script, txUIObject obj, float delayTime, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CommandWindowColor COLOR_DELAY_EX(LayoutScript script, myUIObject obj, float delayTime, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		return COLOR_DELAY_EX(script, obj, delayTime, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		return COLOR_DELAY_EX(script, obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CommandWindowColor COLOR_DELAY_EX(LayoutScript script, txUIObject obj, float delayTime, string keyframe, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CommandWindowColor COLOR_DELAY_EX(LayoutScript script, myUIObject obj, float delayTime, string keyframe, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return COLOR_DELAY_EX(script, obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CommandWindowColor COLOR_DELAY_EX(LayoutScript script, txUIObject obj, float delayTime, string keyframe, Color start, Color target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CommandWindowColor COLOR_DELAY_EX(LayoutScript script, myUIObject obj, float delayTime, string keyframe, Color start, Color target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (isEmpty(keyframe) || isFloatZero(onceLength))
 		{
-			logError("时间或关键帧不能为空,如果要停止组件,请使用CommandWindowAlpha ALPHA_DELAY(LayoutScript script, txUIObject obj, float delayTime, float alpha)");
+			logError("时间或关键帧不能为空,如果要停止组件,请使用CommandWindowAlpha ALPHA_DELAY(LayoutScript script, myUIObject obj, float delayTime, float alpha)");
 			return null;
 		}
-		CommandWindowColor cmd = newCmd(out cmd, false, true);
+		CommandWindowColor cmd = newMainCmd(out cmd, false, true);
 		cmd.mName = keyframe;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
@@ -2236,45 +2235,45 @@ public class LT : GameBase
 	//-----------------------------------------------------------------------------------------------------------------------------------
 	// 以指定点列表以及时间点的路线设置物体透明度
 	#region 以指定点列表以及时间点的路线设置物体透明度
-	public static void ALPHA_PATH(txUIObject obj)
+	public static void ALPHA_PATH(myUIObject obj)
 	{
 		if (obj == null)
 		{
 			return;
 		}
-		pushCommand<CommandWindowAlphaPath>(obj, false);
+		pushMainCommand<CommandWindowAlphaPath>(obj, false);
 	}
-	public static void ALPHA_PATH(txUIObject obj, Dictionary<float, float> valueKeyFrame)
+	public static void ALPHA_PATH(myUIObject obj, Dictionary<float, float> valueKeyFrame)
 	{
 		ALPHA_PATH_EX(obj, valueKeyFrame, 1.0f, 1.0f, false, 0.0f, null, null);
 	}
-	public static void ALPHA_PATH(txUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset)
+	public static void ALPHA_PATH(myUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset)
 	{
 		ALPHA_PATH_EX(obj, valueKeyFrame, valueOffset, 1.0f, false, 0.0f, null, null);
 	}
-	public static void ALPHA_PATH(txUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed)
+	public static void ALPHA_PATH(myUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed)
 	{
 		ALPHA_PATH_EX(obj, valueKeyFrame, valueOffset, speed, false, 0.0f, null, null);
 	}
-	public static void ALPHA_PATH(txUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop)
+	public static void ALPHA_PATH(myUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop)
 	{
 		ALPHA_PATH_EX(obj, valueKeyFrame, valueOffset, speed, loop, 0.0f, null, null);
 	}
-	public static void ALPHA_PATH_EX(txUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset, KeyFrameCallback doneCallback)
+	public static void ALPHA_PATH_EX(myUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset, KeyFrameCallback doneCallback)
 	{
 		ALPHA_PATH_EX(obj, valueKeyFrame, valueOffset, 1.0f, false, 0.0f, null, doneCallback);
 	}
-	public static void ALPHA_PATH_EX(txUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, KeyFrameCallback doneCallback)
+	public static void ALPHA_PATH_EX(myUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, KeyFrameCallback doneCallback)
 	{
 		ALPHA_PATH_EX(obj, valueKeyFrame, valueOffset, speed, false, 0.0f, null, doneCallback);
 	}
-	public static void ALPHA_PATH_EX(txUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void ALPHA_PATH_EX(myUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return;
 		}
-		CommandWindowAlphaPath cmd = newCmd(out cmd, false);
+		CommandWindowAlphaPath cmd = newMainCmd(out cmd, false);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -2284,51 +2283,51 @@ public class LT : GameBase
 		cmd.mDoneCallBack = doneCallback;
 		pushCommand(cmd, obj);
 	}
-	public static CommandWindowAlphaPath ALPH_PATH_DELAY(LayoutScript script, txUIObject obj, float delayTime)
+	public static CommandWindowAlphaPath ALPH_PATH_DELAY(LayoutScript script, myUIObject obj, float delayTime)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		var cmd = pushDelayCommand<CommandWindowAlphaPath>(obj, delayTime, false);
+		var cmd = pushDelayMainCommand<CommandWindowAlphaPath>(obj, delayTime, false);
 		script.addDelayCmd(cmd);
 		return cmd;
 	}
-	public static CommandWindowAlphaPath ALPH_PATH_DELAY(LayoutScript script, txUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame)
+	public static CommandWindowAlphaPath ALPH_PATH_DELAY(LayoutScript script, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame)
 	{
 		return ALPH_PATH_DELAY_EX(script, obj, delayTime, valueKeyFrame, 1.0f, 1.0f, false, 0.0f, null, null);
 	}
-	public static CommandWindowAlphaPath ALPH_PATH_DELAY(LayoutScript script, txUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset)
+	public static CommandWindowAlphaPath ALPH_PATH_DELAY(LayoutScript script, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset)
 	{
 		return ALPH_PATH_DELAY_EX(script, obj, delayTime, valueKeyFrame, valueOffset, 1.0f, false, 0.0f, null, null);
 	}
-	public static CommandWindowAlphaPath ALPH_PATH_DELAY(LayoutScript script, txUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed)
+	public static CommandWindowAlphaPath ALPH_PATH_DELAY(LayoutScript script, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed)
 	{
 		return ALPH_PATH_DELAY_EX(script, obj, delayTime, valueKeyFrame, valueOffset, speed, false, 0.0f, null, null);
 	}
-	public static CommandWindowAlphaPath ALPH_PATH_DELAY(LayoutScript script, txUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop)
+	public static CommandWindowAlphaPath ALPH_PATH_DELAY(LayoutScript script, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop)
 	{
 		return ALPH_PATH_DELAY_EX(script, obj, delayTime, valueKeyFrame, valueOffset, speed, loop, 0.0f, null, null);
 	}
-	public static CommandWindowAlphaPath ALPH_PATH_DELAY(LayoutScript script, txUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop, float offset)
+	public static CommandWindowAlphaPath ALPH_PATH_DELAY(LayoutScript script, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop, float offset)
 	{
 		return ALPH_PATH_DELAY_EX(script, obj, delayTime, valueKeyFrame, valueOffset, speed, loop, offset, null, null);
 	}
-	public static CommandWindowAlphaPath ALPH_PATH_DELAY_EX(LayoutScript script, txUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, KeyFrameCallback doneCallback)
+	public static CommandWindowAlphaPath ALPH_PATH_DELAY_EX(LayoutScript script, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, KeyFrameCallback doneCallback)
 	{
 		return ALPH_PATH_DELAY_EX(script, obj, delayTime, valueKeyFrame, valueOffset, speed, false, 0.0f, null, doneCallback);
 	}
-	public static CommandWindowAlphaPath ALPH_PATH_DELAY_EX(LayoutScript script, txUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CommandWindowAlphaPath ALPH_PATH_DELAY_EX(LayoutScript script, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return ALPH_PATH_DELAY_EX(script, obj, delayTime, valueKeyFrame, valueOffset, speed, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CommandWindowAlphaPath ALPH_PATH_DELAY_EX(LayoutScript script, txUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CommandWindowAlphaPath ALPH_PATH_DELAY_EX(LayoutScript script, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		CommandWindowAlphaPath cmd = newCmd(out cmd, false, true);
+		CommandWindowAlphaPath cmd = newMainCmd(out cmd, false, true);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -2344,25 +2343,25 @@ public class LT : GameBase
 	//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	// HSL
 	#region HSL
-	public static void HSL(txUIObject obj, Vector3 hsl)
+	public static void HSL(myUIObject obj, Vector3 hsl)
 	{
-		CommandWindowHSL cmd = newCmd(out cmd, false, false);
+		CommandWindowHSL cmd = newMainCmd(out cmd, false, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartHSL = hsl;
 		cmd.mTargetHSL = hsl;
 		pushCommand(cmd, obj);
 	}
-	public static void HSL(txUIObject obj, Vector3 start, Vector3 target, float onceLength)
+	public static void HSL(myUIObject obj, Vector3 start, Vector3 target, float onceLength)
 	{
-		HSL(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f);
+		HSL(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f);
 	}
-	public static void HSL(txUIObject obj, string keyframe, Vector3 start, Vector3 target, float onceLength)
+	public static void HSL(myUIObject obj, string keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
 		HSL(obj, keyframe, start, target, onceLength, false, 0.0f);
 	}
-	public static void HSL(txUIObject obj, string keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
+	public static void HSL(myUIObject obj, string keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
 	{
-		CommandWindowHSL cmd = newCmd(out cmd, false, false);
+		CommandWindowHSL cmd = newMainCmd(out cmd, false, false);
 		cmd.mName = keyframe;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
@@ -2375,25 +2374,25 @@ public class LT : GameBase
 	//--------------------------------------------------------------------------------------------------------------------------------------------------------
 	// 亮度
 	#region 亮度
-	public static void LUM(txUIObject obj, float lum)
+	public static void LUM(myUIObject obj, float lum)
 	{
-		CommandWindowLum cmd = newCmd(out cmd, false, false);
+		CommandWindowLum cmd = newMainCmd(out cmd, false, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartLum = lum;
 		cmd.mTargetLum = lum;
 		pushCommand(cmd, obj);
 	}
-	public static void LUM(txUIObject obj, float start, float target, float onceLength)
+	public static void LUM(myUIObject obj, float start, float target, float onceLength)
 	{
-		LUM(obj, CommonDefine.ZERO_ONE, start, target, onceLength, false, 0.0f);
+		LUM(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f);
 	}
-	public static void LUM(txUIObject obj, string keyframe, float start, float target, float onceLength)
+	public static void LUM(myUIObject obj, string keyframe, float start, float target, float onceLength)
 	{
 		LUM(obj, keyframe, start, target, onceLength, false, 0.0f);
 	}
-	public static void LUM(txUIObject obj, string keyframe, float start, float target, float onceLength, bool loop, float offset)
+	public static void LUM(myUIObject obj, string keyframe, float start, float target, float onceLength, bool loop, float offset)
 	{
-		CommandWindowLum cmd = newCmd(out cmd, false, false);
+		CommandWindowLum cmd = newMainCmd(out cmd, false, false);
 		cmd.mName = keyframe;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
@@ -2406,38 +2405,38 @@ public class LT : GameBase
 	//--------------------------------------------------------------------------------------------------------------------------------------------
 	// 音效
 	#region 播放界面音效
-	public static void AUDIO(txUIObject obj)
+	public static void AUDIO(myUIObject obj)
 	{
-		pushCommand<CommandWindowPlayAudio>(obj, false);
+		pushMainCommand<CommandWindowPlayAudio>(obj, false);
 	}
-	public static void AUDIO(txUIObject obj, SOUND_DEFINE sound)
+	public static void AUDIO(myUIObject obj, SOUND_DEFINE sound)
 	{
 		AUDIO(obj, sound, false, 1.0f);
 	}
-	public static void AUDIO(txUIObject obj, SOUND_DEFINE sound, bool loop)
+	public static void AUDIO(myUIObject obj, SOUND_DEFINE sound, bool loop)
 	{
 		AUDIO(obj, sound, loop, 1.0f);
 	}
-	public static void AUDIO(txUIObject obj, SOUND_DEFINE sound, bool loop, float volume)
+	public static void AUDIO(myUIObject obj, SOUND_DEFINE sound, bool loop, float volume)
 	{
-		CommandWindowPlayAudio cmd = newCmd(out cmd, false);
+		CommandWindowPlayAudio cmd = newMainCmd(out cmd, false);
 		cmd.mSound = sound;
 		cmd.mLoop = loop;
 		cmd.mVolume = volume;
 		pushCommand(cmd, obj);
 	}
 	// fileName为sound文件夹的相对路径,
-	public static void AUDIO(txUIObject obj, string fileName, bool loop, float volume)
+	public static void AUDIO(myUIObject obj, string fileName, bool loop, float volume)
 	{
-		CommandWindowPlayAudio cmd = newCmd(out cmd, false);
+		CommandWindowPlayAudio cmd = newMainCmd(out cmd, false);
 		cmd.mSoundFileName = fileName;
 		cmd.mLoop = loop;
 		cmd.mVolume = volume;
 		pushCommand(cmd, obj);
 	}
-	public static CommandWindowPlayAudio AUDIO_DELAY(LayoutScript script, txUIObject obj, float delayTime, SOUND_DEFINE sound, bool loop, float volume)
+	public static CommandWindowPlayAudio AUDIO_DELAY(LayoutScript script, myUIObject obj, float delayTime, SOUND_DEFINE sound, bool loop, float volume)
 	{
-		CommandWindowPlayAudio cmd = newCmd(out cmd, false, true);
+		CommandWindowPlayAudio cmd = newMainCmd(out cmd, false, true);
 		cmd.mSound = sound;
 		cmd.mLoop = loop;
 		cmd.mVolume = volume;
@@ -2445,9 +2444,9 @@ public class LT : GameBase
 		script.addDelayCmd(cmd);
 		return cmd;
 	}
-	public static CommandWindowPlayAudio AUDIO_DELAY(LayoutScript script, txUIObject obj, float delayTime, SOUND_DEFINE sound, bool loop)
+	public static CommandWindowPlayAudio AUDIO_DELAY(LayoutScript script, myUIObject obj, float delayTime, SOUND_DEFINE sound, bool loop)
 	{
-		CommandWindowPlayAudio cmd = newCmd(out cmd, false, true);
+		CommandWindowPlayAudio cmd = newMainCmd(out cmd, false, true);
 		cmd.mSound = sound;
 		cmd.mLoop = loop;
 		cmd.mUseVolumeCoe = true;

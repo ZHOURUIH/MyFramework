@@ -8,13 +8,13 @@ public class INT : OBJECT
 	public int mValue;
 	public INT()
 	{
-		mType = typeof(int);
+		mType = Typeof<int>();
 		mSize = TYPE_SIZE;
 	}
 	public INT(int value)
 	{
 		mValue = value;
-		mType = typeof(int);
+		mType = Typeof<int>();
 		mSize = TYPE_SIZE;
 	}
 	public override void zero() { mValue = 0; }

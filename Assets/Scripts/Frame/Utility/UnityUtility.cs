@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-#if UNITY_STANDALONE_WIN
-using System.Windows.Forms;
-#endif
 using UnityEngine;
 using System.Diagnostics;
 using System.Reflection;
+#if USE_ILRUNTIME
+using ILRuntime.Runtime;
+using ILRuntime.Runtime.Enviorment;
+using ILRuntime.Runtime.Intepreter;
+using ILRAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
+using ILRuntime.CLR.TypeSystem;
+#endif
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -15,14 +19,14 @@ using UnityEngine.UI;
 public delegate void onLog(string time, string info, LOG_LEVEL level, bool isError);
 public class UnityUtility : FileUtility
 {
-	private static LOG_LEVEL mLogLevel = LOG_LEVEL.LL_NORMAL;
+	private static LOG_LEVEL mLogLevel = LOG_LEVEL.NORMAL;
 	protected static bool mShowMessageBox = true;
 	protected static int mIDMaker;
 	public static onLog mOnLog;
 	public static void setLogLevel(LOG_LEVEL level)
 	{
 		mLogLevel = level;
-		logInfo("log level: " + mLogLevel, LOG_LEVEL.LL_FORCE);
+		logInfo("log level: " + mLogLevel, LOG_LEVEL.FORCE);
 	}
 	public static LOG_LEVEL getLogLevel()
 	{
@@ -39,39 +43,39 @@ public class UnityUtility : FileUtility
 			// 运行一次只显示一次提示框,避免在循环中报错时一直弹窗
 			mShowMessageBox = false;
 		}
-		string time = getTime(TIME_DISPLAY.TD_HMSM_0);
+		string time = getTime(TIME_DISPLAY.HMSM);
 		string trackStr = new StackTrace().ToString();
 #if !UNITY_EDITOR
 		// 打包后使用LocalLog打印日志
 		FrameBase.mLocalLog?.log(time + ": error: " + info + ", stack: " + trackStr);
 #endif
 		UnityEngine.Debug.LogError(time + ": error: " + info + ", stack: " + trackStr);
-		mOnLog?.Invoke(time, "error: " + info + ", stack: " + trackStr, LOG_LEVEL.LL_FORCE, true);
+		mOnLog?.Invoke(time, "error: " + info + ", stack: " + trackStr, LOG_LEVEL.FORCE, true);
 	}
-	public static void logInfo(string info, LOG_LEVEL level = LOG_LEVEL.LL_NORMAL)
+	public static void logInfo(string info, LOG_LEVEL level = LOG_LEVEL.NORMAL)
 	{
 		if ((int)level > (int)mLogLevel)
 		{
 			return;
 		}
-		string time = getTime(TIME_DISPLAY.TD_HMSM_0);
+		string time = getTime(TIME_DISPLAY.HMSM);
 #if !UNITY_EDITOR
 		// 打包后使用LocalLog打印日志
-		FrameBase.mLocalLog?.log(getTime(TIME_DISPLAY.TD_HMSM_0) + ": " + info);
+		FrameBase.mLocalLog?.log(getTime(TIME_DISPLAY.HMSM) + ": " + info);
 #endif
 		UnityEngine.Debug.Log(time + ": " + info);
 		mOnLog?.Invoke(time, info, level, false);
 	}
-	public static void logWarning(string info, LOG_LEVEL level = LOG_LEVEL.LL_NORMAL)
+	public static void logWarning(string info, LOG_LEVEL level = LOG_LEVEL.NORMAL)
 	{
 		if ((int)level > (int)mLogLevel)
 		{
 			return;
 		}
-		string time = getTime(TIME_DISPLAY.TD_HMSM_0);
+		string time = getTime(TIME_DISPLAY.HMSM);
 #if !UNITY_EDITOR
 		// 打包后使用LocalLog打印日志
-		FrameBase.mLocalLog?.log(getTime(TIME_DISPLAY.TD_HMSM_0) + ": " + info);
+		FrameBase.mLocalLog?.log(getTime(TIME_DISPLAY.HMSM) + ": " + info);
 #endif
 		UnityEngine.Debug.LogWarning(time + ": " + info);
 		mOnLog?.Invoke(time, info, level, false);
@@ -91,15 +95,15 @@ public class UnityUtility : FileUtility
 		int min = timeSecond / 60;
 		int second = timeSecond % 60;
 		int hour = min / 60;
-		if(display == TIME_DISPLAY.TD_HMSM_0)
+		if(display == TIME_DISPLAY.HMSM)
 		{
 			return hour + ":" + min + ":" + second;
 		}
-		else if (display == TIME_DISPLAY.TD_HMS_2)
+		else if (display == TIME_DISPLAY.HMS_2)
 		{
 			return intToString(hour, 2) + ":" + intToString(min, 2) + ":" + intToString(second, 2);
 		}
-		else if(display == TIME_DISPLAY.TD_DHMS_ZH)
+		else if(display == TIME_DISPLAY.DHMS_ZH)
 		{
 			int totalMin = timeSecond / 60;
 			int totalHour = totalMin / 60;
@@ -128,15 +132,15 @@ public class UnityUtility : FileUtility
 	}
 	public static string getTime(DateTime time, TIME_DISPLAY display)
 	{
-		if(display == TIME_DISPLAY.TD_HMSM_0)
+		if(display == TIME_DISPLAY.HMSM)
 		{
 			return time.Hour + ":" + time.Minute + ":" + time.Second + ":" + time.Millisecond;
 		}
-		else if(display == TIME_DISPLAY.TD_HMS_2)
+		else if(display == TIME_DISPLAY.HMS_2)
 		{
 			return intToString(time.Hour, 2) + ":" + intToString(time.Minute, 2) + ":" + intToString(time.Second, 2);
 		}
-		else if (display == TIME_DISPLAY.TD_DHMS_ZH)
+		else if (display == TIME_DISPLAY.DHMS_ZH)
 		{
 			return time.Hour + "时" + time.Minute + "分" + time.Second + "秒";
 		}
@@ -154,32 +158,12 @@ public class UnityUtility : FileUtility
 		DateTime startTime = TimeZoneInfo.ConvertTime(new DateTime(1970, 1, 1), TimeZoneInfo.Local); // 当地时区
 		return startTime.AddSeconds(unixTimeStamp);
 	}
-	public static void copyTextToClipbord(string str)
-	{
-#if UNITY_STANDALONE_WIN
-		Clipboard.SetText(str);
-#else
-		logError("clipboard can only used in windows");
-#endif
-	}
-	public static string getTextFromClipboard()
-	{
-#if UNITY_STANDALONE_WIN
-		return Clipboard.GetText();
-#else
-		logError("clipboard can only used in windows");
-		return null;
-#endif
-	}
 	public static void messageBox(string info, bool errorOrInfo)
 	{
 		string title = errorOrInfo ? "错误" : "提示";
 		// 在编辑器中显示对话框
 #if UNITY_EDITOR
 		EditorUtility.DisplayDialog(title, info, "确认");
-#elif UNITY_STANDALONE_WIN
-		// 游戏运行过程中显示窗口提示框
-		System.Windows.Forms.MessageBox.Show(info, title, MessageBoxButtons.OK, errorOrInfo ? MessageBoxIcon.Error : MessageBoxIcon.Information);
 #endif
 	}
 	public static void destroyGameObject(UnityEngine.Object obj, bool immediately = false, bool allowDestroyAssets = false)
@@ -228,41 +212,46 @@ public class UnityUtility : FileUtility
 			getGameObjectWithTag(child.gameObject, tag, objList);
 		}
 	}
-	public static GameObject getGameObject(GameObject parent, string name, bool errorIfNull = false, bool recursive = true)
+	public static GameObject getGameObject(string name, bool errorIfNull = false, bool recursive = true)
+	{
+		return getGameObject(name, null, errorIfNull, recursive);
+	}
+	public static GameObject getGameObject(string name, GameObject parent, bool errorIfNull = false, bool recursive = true)
 	{
 		if (isEmpty(name))
 		{
 			return null;
 		}
 		GameObject go = null;
-		if (parent == null)
+		do
 		{
-			go = GameObject.Find(name);
-		}
-		else
-		{
+			if (parent == null)
+			{
+				go = GameObject.Find(name);
+				break;
+			}
 			Transform trans = parent.transform.Find(name);
 			if (trans != null)
 			{
 				go = trans.gameObject;
+				break;
 			}
 			// 如果父节点的第一级子节点中找不到,就递归查找
-			else
+			if (recursive)
 			{
-				if(recursive)
+				int childCount = parent.transform.childCount;
+				for (int i = 0; i < childCount; ++i)
 				{
-					int childCount = parent.transform.childCount;
-					for (int i = 0; i < childCount; ++i)
+					GameObject thisParent = parent.transform.GetChild(i).gameObject;
+					go = getGameObject(name, thisParent, false, recursive);
+					if (go != null)
 					{
-						go = getGameObject(parent.transform.GetChild(i).gameObject, name, false, recursive);
-						if (go != null)
-						{
-							break;
-						}
+						break;
 					}
 				}
 			}
-		}
+		} while (false);
+		
 		if(go == null && errorIfNull)
 		{
 			string file = getCurSourceFileName(2);
@@ -280,10 +269,7 @@ public class UnityUtility : FileUtility
 	public static GameObject createGameObject(string name, GameObject parent = null)
 	{
 		GameObject obj = new GameObject(name);
-		if(parent != null)
-		{
-			obj.GetComponent<Transform>().SetParent(parent.GetComponent<Transform>());
-		}
+		setNormalProperty(obj, parent);
 		return obj;
 	}
 	// 根据预设名实例化
@@ -426,17 +412,30 @@ public class UnityUtility : FileUtility
 	}
 	public static T createInstance<T>(Type classType, params object[] param) where T : class
 	{
-		return Activator.CreateInstance(classType, param) as T;
+		T obj;
+		try
+		{
+			obj = Activator.CreateInstance(classType, param) as T;
+		}
+		catch
+		{
+#if USE_ILRUNTIME
+			obj = FrameBase.mILRSystem.getAppDomain().Instantiate<T>(classType.Name, param);
+#else
+			obj = null;
+#endif
+		}
+		return obj;
 	}
 	public static T deepCopy<T>(T obj) where T : class
 	{
 		//如果是字符串或值类型则直接返回
-		if (obj == null || obj is string || obj.GetType().IsValueType)
+		if (obj == null || obj is string || Typeof(obj).IsValueType)
 		{
 			return obj;
 		}
-		object retval = createInstance<object>(obj.GetType());
-		FieldInfo[] fields = obj.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+		object retval = createInstance<object>(Typeof(obj));
+		FieldInfo[] fields = Typeof(obj).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
 		foreach (FieldInfo field in fields)
 		{
 			field.SetValue(retval, deepCopy(field.GetValue(obj)));
@@ -475,9 +474,9 @@ public class UnityUtility : FileUtility
 		}
 	}
 	// 使用输出参数的方式避免多次赋值
-	public static void getUIRay(ref Vector3 screenPos, out Ray ray, bool ngui = true)
+	public static void getUIRay(ref Vector3 screenPos, out Ray ray, GUI_TYPE guiType = GUI_TYPE.NGUI)
 	{
-		getCameraRay(ref screenPos, out ray, getUICamera(ngui));
+		getCameraRay(ref screenPos, out ray, getUICamera(guiType));
 	}
 	// halfScreenOffset为false返回的坐标是以屏幕左下角为原点的坐标
 	// halfScreenOffset为true表示返回的坐标是以屏幕中心为原点的坐标
@@ -495,29 +494,29 @@ public class UnityUtility : FileUtility
 	{
 		return worldToScreenPos(worldPos, FrameBase.mCameraManager.getMainCamera().getCamera(), halfScreenOffset);
 	}
-	public static Vector3 worldUIToScreenPos(Vector3 worldPos, bool ngui)
+	public static Vector3 worldUIToScreenPos(Vector3 worldPos, GUI_TYPE guiType)
 	{
-		return worldToScreenPos(worldPos, getUICamera(ngui));
+		return worldToScreenPos(worldPos, getUICamera(guiType));
 	}
-	public static bool whetherGameObjectInScreen(Vector3 worldPos, bool isNGUI)
+	public static bool isGameObjectInScreen(Vector3 worldPos, GUI_TYPE guiType)
 	{
 		Vector3 screenPos = worldToScreenPos(worldPos, false);
-		Vector2 rootSize = getRootSize(isNGUI);
+		Vector2 rootSize = getRootSize(guiType);
 		return screenPos.z >= 0.0f && isInRange((Vector2)screenPos, Vector2.zero, rootSize);
 	}
 	// screenCenterAsZero为true表示返回的坐标是以window的中心为原点,false表示已window的左下角为原点
-	public static Vector2 screenPosToWindowPos(Vector2 screenPos, txUIObject window, bool screenCenterAsZero = true, bool isNGUI = true)
+	public static Vector2 screenPosToWindowPos(Vector2 screenPos, myUIObject window, bool screenCenterAsZero = true, GUI_TYPE guiType = GUI_TYPE.NGUI)
 	{
-		Camera camera = getUICamera(isNGUI);
+		Camera camera = getUICamera(guiType);
 		Vector2 cameraSize = new Vector2(camera.pixelWidth, camera.pixelHeight);
-		Vector2 rootSize = getRootSize(isNGUI);
+		Vector2 rootSize = getRootSize(guiType);
 		screenPos = multiVector2(devideVector2(screenPos, cameraSize), rootSize);
 		// 将坐标转换到以屏幕中心为原点的坐标
 		screenPos -= rootSize * 0.5f;
 		Vector2 windowPos = screenPos;
 		if (window != null)
 		{
-			txUIObject root = FrameBase.mLayoutManager.getUIRoot(isNGUI);
+			myUIObject root = FrameBase.mLayoutManager.getUIRoot(guiType);
 			Vector2 parentWorldPosition = devideVector3(window.getWorldPosition(), root.getScale());
 			windowPos = devideVector2(screenPos - parentWorldPosition, window.getWorldScale());
 			if (!screenCenterAsZero)
@@ -647,7 +646,7 @@ public class UnityUtility : FileUtility
 #if USE_NGUI
 	public static UIRoot getNGUIRootComponent()
 	{
-		if(FrameBase.mLayoutManager != null && FrameBase.mLayoutManager.getRootObject(true) != null)
+		if (FrameBase.mLayoutManager?.getRootObject(GUI_TYPE.NGUI) != null)
 		{
 			return FrameBase.mLayoutManager.getNGUIRootComponent();
 		}
@@ -656,22 +655,22 @@ public class UnityUtility : FileUtility
 #endif
 	public static Canvas getUGUIRootComponent()
 	{
-		if (FrameBase.mLayoutManager != null && FrameBase.mLayoutManager.getRootObject(false) != null)
+		if (FrameBase.mLayoutManager?.getRootObject(GUI_TYPE.UGUI) != null)
 		{
 			return FrameBase.mLayoutManager.getUGUIRootComponent();
 		}
 		return null;
 	}
-	public static Camera getUICamera(bool ngui)
+	public static Camera getUICamera(GUI_TYPE guiType)
 	{
-		if(FrameBase.mCameraManager != null && FrameBase.mCameraManager.getUICamera(ngui) != null)
+		if (FrameBase.mCameraManager?.getUICamera(guiType) != null)
 		{
-			return FrameBase.mCameraManager.getUICamera(ngui).getCamera();
+			return FrameBase.mCameraManager.getUICamera(guiType).getCamera();
 		}
 		return null;
 	}
 	// bottomHeight表示输入框下边框的y坐标
-	public static void adjustByVirtualKeyboard(bool isNGUI, float bottomY, bool reset = false)
+	public static void adjustByVirtualKeyboard(GUI_TYPE guiType, float bottomY, bool reset = false)
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
 		int keyboardHeight = AndroidPluginManager.getKeyboardHeight();
@@ -680,11 +679,11 @@ public class UnityUtility : FileUtility
 			// 200是软键盘上面的自带的输入框的高度
 			keyboardHeight += 200;
 			float cameraOffset = bottomY + getScreenSize().y * 0.5f - keyboardHeight;
-			FrameBase.mCameraManager.getUICamera(isNGUI).setCameraPositionOffset(new Vector3(0.0f, cameraOffset, 0.0f));
+			FrameBase.mCameraManager.getUICamera(guiType).setCameraPositionOffset(new Vector3(0.0f, cameraOffset, 0.0f));
 		}
 		else
 		{
-			FrameBase.mCameraManager.getUICamera(isNGUI).setCameraPositionOffset(Vector3.zero);
+			FrameBase.mCameraManager.getUICamera(guiType).setCameraPositionOffset(Vector3.zero);
 		}
 #else
 		logError("call only on android phone!");
@@ -955,7 +954,7 @@ public class UnityUtility : FileUtility
 		localPosition = rotateVector3(localPosition, Quaternion.Inverse(parentWorldRotation));
 		return localPosition;
 	}
-	public static void setUIChildAlpha(GameObject go, float alpha)
+	public static void setUGUIChildAlpha(GameObject go, float alpha)
 	{
 		Graphic graphic = go.GetComponent<Graphic>();
 		if (graphic != null)
@@ -969,7 +968,7 @@ public class UnityUtility : FileUtility
 		for (int i = 0; i < childCount; ++i)
 		{
 			GameObject child = transform.GetChild(i).gameObject;
-			setUIChildAlpha(child, alpha);
+			setUGUIChildAlpha(child, alpha);
 		}
 	}
 	public static float getAnimationLength(Animator animator, string name)
@@ -990,7 +989,7 @@ public class UnityUtility : FileUtility
 		obj.GetComponent<PaddingAnchor>()?.updateRect(force);
 		if(layout != null)
 		{
-			txUIObject uiObj = layout.getUIObject(obj);
+			myUIObject uiObj = layout.getUIObject(obj);
 			uiObj?.notifyAnchorApply();
 		}
 		// 然后更新所有子节点
@@ -1012,9 +1011,9 @@ public class UnityUtility : FileUtility
 		MethodInfo GetMainGameView = T.GetMethod("GetMainGameView", BindingFlags.NonPublic | BindingFlags.Static);
 		object Res = GetMainGameView.Invoke(null, null);
 		var gameView = (EditorWindow)Res;
-		PropertyInfo prop = gameView.GetType().GetProperty("currentGameViewSize", BindingFlags.NonPublic | BindingFlags.Instance);
+		PropertyInfo prop = Typeof(gameView).GetProperty("currentGameViewSize", BindingFlags.NonPublic | BindingFlags.Instance);
 		object gvsize = prop.GetValue(gameView, new object[0] { });
-		Type gvSizeType = gvsize.GetType();
+		Type gvSizeType = Typeof(gvsize);
 		int height = (int)gvSizeType.GetProperty("height", BindingFlags.Public | BindingFlags.Instance).GetValue(gvsize, new object[0] { });
 		int width = (int)gvSizeType.GetProperty("width", BindingFlags.Public | BindingFlags.Instance).GetValue(gvsize, new object[0] { });
 		return new Vector2(width, height);
@@ -1023,42 +1022,42 @@ public class UnityUtility : FileUtility
 		return Vector2.zero;
 #endif
 	}
-	public static Vector2 getRootSize(bool ngui, bool useGameViewSize = false)
+	public static Vector2 getRootSize(GUI_TYPE guiType, bool useGameViewSize = false)
 	{
 		Vector2 rootSize = Vector2.zero;
 		if (useGameViewSize)
 		{
 			Vector2 gameViewSize = getGameViewSize();
 			Camera camera = null;
-			if (ngui)
+			if (guiType == GUI_TYPE.NGUI)
 			{
-				camera = getGameObject(null, CommonDefine.NGUI_ROOT + "/" + CommonDefine.UI_CAMERA, true).GetComponent<Camera>();
+				camera = getGameObject(FrameDefine.NGUI_ROOT + "/" + FrameDefine.UI_CAMERA, true).GetComponent<Camera>();
 			}
-			else
+			else if (guiType == GUI_TYPE.UGUI)
 			{
-				camera = getGameObject(null, CommonDefine.UGUI_ROOT + "/" + CommonDefine.UI_CAMERA, true).GetComponent<Camera>();
+				camera = getGameObject(FrameDefine.UGUI_ROOT + "/" + FrameDefine.UI_CAMERA, true).GetComponent<Camera>();
 			}
 			rootSize = new Vector2(gameViewSize.y * camera.aspect, gameViewSize.y);
 		}
 		else
 		{
-			if (ngui)
+			if (guiType == GUI_TYPE.NGUI)
 			{
 #if USE_NGUI
 				UIRoot NGUIRoot = getNGUIRootComponent();
 				if (NGUIRoot != null)
 				{
-					rootSize = new Vector2(NGUIRoot.activeHeight * getUICamera(true).aspect, NGUIRoot.activeHeight);
+					rootSize = new Vector2(NGUIRoot.activeHeight * getUICamera(guiType).aspect, NGUIRoot.activeHeight);
 				}
 #endif
 			}
-			else
+			else if (guiType == GUI_TYPE.UGUI)
 			{
 				Canvas UGUIRoot = getUGUIRootComponent();
 				if (UGUIRoot != null)
 				{
 					Rect rect = UGUIRoot.gameObject.GetComponent<RectTransform>().rect;
-					rootSize = new Vector2(rect.height * getUICamera(false).aspect, rect.height);
+					rootSize = new Vector2(rect.height * getUICamera(guiType).aspect, rect.height);
 				}
 			}
 		}
@@ -1071,31 +1070,31 @@ public class UnityUtility : FileUtility
 		scale.y = rootSize.y * (1.0f / GameDefine.STANDARD_HEIGHT);
 		return scale;
 	}
-	public static Vector2 adjustScreenScale(bool ngui, ASPECT_BASE aspectBase = ASPECT_BASE.AB_AUTO)
+	public static Vector2 adjustScreenScale(GUI_TYPE guiType, ASPECT_BASE aspectBase = ASPECT_BASE.AUTO)
 	{
-		return adjustScreenScale(getScreenScale(getRootSize(ngui)), aspectBase);
+		return adjustScreenScale(getScreenScale(getRootSize(guiType)), aspectBase);
 	}
-	public static Vector3 adjustScreenScale(Vector2 screenScale, ASPECT_BASE aspectBase = ASPECT_BASE.AB_AUTO)
+	public static Vector3 adjustScreenScale(Vector2 screenScale, ASPECT_BASE aspectBase = ASPECT_BASE.AUTO)
 	{
 		Vector3 newScale = screenScale;
-		if (aspectBase != ASPECT_BASE.AB_NONE)
+		if (aspectBase != ASPECT_BASE.NONE)
 		{
-			if (aspectBase == ASPECT_BASE.AB_USE_HEIGHT_SCALE)
+			if (aspectBase == ASPECT_BASE.USE_HEIGHT_SCALE)
 			{
 				newScale.x = screenScale.y;
 				newScale.y = screenScale.y;
 			}
-			else if (aspectBase == ASPECT_BASE.AB_USE_WIDTH_SCALE)
+			else if (aspectBase == ASPECT_BASE.USE_WIDTH_SCALE)
 			{
 				newScale.x = screenScale.x;
 				newScale.y = screenScale.x;
 			}
-			else if (aspectBase == ASPECT_BASE.AB_AUTO)
+			else if (aspectBase == ASPECT_BASE.AUTO)
 			{
 				newScale.x = getMin(screenScale.x, screenScale.y);
 				newScale.y = getMin(screenScale.x, screenScale.y);
 			}
-			else if (aspectBase == ASPECT_BASE.AB_INVERSE_AUTO)
+			else if (aspectBase == ASPECT_BASE.INVERSE_AUTO)
 			{
 				newScale.x = getMax(screenScale.x, screenScale.y);
 				newScale.y = getMax(screenScale.x, screenScale.y);
@@ -1118,18 +1117,76 @@ public class UnityUtility : FileUtility
 #endif
 	}
 	// 自动排列一个节点下的所有子节点的位置,从上往下紧密排列
-	public static void autoGrid(txUGUIObject root, float interval = 0.0f)
+	public static void autoGridVertical(myUGUIObject root, float interval = 0.0f, bool resizeRootSize = false)
 	{
-		Vector2 rootSize = root.getWindowSize();
-		float currentTop = rootSize.y * 0.5f;
-		Transform transform = root.getTransform();
+		RectTransform transform = root.getRectTransform();
 		int childCount = transform.childCount;
+		Vector2 rootSize = root.getWindowSize();
+		// 如果要同时修改root的窗口大小为排列以后的内容大小，则需要提前获取内容排列后的宽高
+		if (resizeRootSize)
+		{
+			float height = 0.0f;
+			for (int i = 0; i < childCount; ++i)
+			{
+				RectTransform childRect = transform.GetChild(i).GetComponent<RectTransform>();
+				if (!childRect.gameObject.activeSelf)
+				{
+					continue;
+				}
+				height += childRect.rect.height;
+				// 最后一个子节点后不再添加间隔
+				if (i != childCount - 1)
+				{
+					height += interval;
+				}
+			}
+			rootSize.y = height;
+			root.setWindowSize(rootSize);
+		}
+		float currentTop = rootSize.y * (1.0f - transform.pivot.y);
 		for (int i = 0; i < childCount; ++i)
 		{
 			RectTransform childRect = transform.GetChild(i).GetComponent<RectTransform>();
+			if (!childRect.gameObject.activeSelf)
+			{
+				continue;
+			}
 			float curHeight = childRect.rect.height;
-			childRect.localPosition = new Vector3(0.0f, currentTop - curHeight * 0.5f);
-			currentTop -= curHeight + interval;
+			childRect.localPosition = new Vector3(childRect.localPosition.x, currentTop - curHeight * 0.5f);
+			currentTop -= curHeight;
+			// 最后一个子节点后不再添加间隔
+			if (i != childCount - 1)
+			{
+				currentTop -= interval;
+			}
 		}
+	}
+	// 获取类型,因为ILR的原因,如果是热更工程中的类型,直接使用typeof获取的是错误的类型
+	// 所以需要使用此函数获取真实的类型,要获取真实类型必须要有一个实例
+	// 为了方便调用,所以写在UnityUtility中
+	public static Type Typeof<T>()
+	{
+		Type type = typeof(T);
+#if USE_ILRUNTIME
+		if (typeof(CrossBindingAdaptorType).IsAssignableFrom(type))
+		{
+			logError("无法获取热更工程中的类型");
+			return null;
+		}
+		if(typeof(ILTypeInstance).IsAssignableFrom(type))
+		{
+			logError("无法获取热更工程中的类型");
+			return null;
+		}
+#endif
+		return type;
+	}
+	public static Type Typeof(object obj)
+	{
+#if USE_ILRUNTIME
+		return obj?.GetActualType();
+#else
+		return obj?.GetType();
+#endif
 	}
 }

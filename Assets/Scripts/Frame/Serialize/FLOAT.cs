@@ -8,13 +8,13 @@ public class FLOAT : OBJECT
 	public float mValue;
 	public FLOAT()
 	{
-		mType = typeof(float);
+		mType = Typeof<float>();
 		mSize = TYPE_SIZE;
 	}
 	public FLOAT(float value)
 	{
 		mValue = value;
-		mType = typeof(float);
+		mType = Typeof<float>();
 		mSize = TYPE_SIZE;
 	}
 	public override void zero() { mValue = 0.0f; }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-public class Spring : GameBase
+public class Spring : FrameBase
 {
 	protected float mNormalLength;
 	protected float mCurLength;

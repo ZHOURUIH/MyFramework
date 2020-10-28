@@ -3,11 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 
 // 微信头像下载管理器
-public class HeadTextureManager : FrameComponent
+public class HeadTextureManager : FrameSystem
 {
     protected Dictionary<string, HeadLoadInfo> mHeadTextureList;
-	public HeadTextureManager(string name)
-		:base(name)
+	public HeadTextureManager()
 	{
         mHeadTextureList = new Dictionary<string, HeadLoadInfo>();
 	}
@@ -43,12 +42,12 @@ public class HeadTextureManager : FrameComponent
 				if (doneCallback != null)
 				{
 					// 已经下载过了,则直接调用回调
-					if (info.mState == LOAD_STATE.LS_LOADED)
+					if (info.mState == LOAD_STATE.LOADED)
 					{
 						doneCallback(info.mTexture, openID);
 					}
 					// 正在下载,则将回调添加到列表中
-					else if (info.mState == LOAD_STATE.LS_LOADING)
+					else if (info.mState == LOAD_STATE.LOADING)
 					{
 						if (!info.mCallbackList.Contains(doneCallback))
 						{
@@ -60,12 +59,12 @@ public class HeadTextureManager : FrameComponent
 			else
 			{
 				// 头像链接修改了,则需要重新下载
-				if (info.mState == LOAD_STATE.LS_LOADED)
+				if (info.mState == LOAD_STATE.LOADED)
 				{
 					// 先销毁旧头像
 					destroyGameObject(ref info.mTexture);
 					// 下载新头像
-					info.mState = LOAD_STATE.LS_LOADING;
+					info.mState = LOAD_STATE.LOADING;
 					info.mURL = url;
 					if (doneCallback != null)
 					{
@@ -74,7 +73,7 @@ public class HeadTextureManager : FrameComponent
 					mResourceManager.loadAssetsFromUrl<Texture>(url, onLoadWechatHead, openID);
 				}
 				// 如果头像正在下载,则只能等待头像下载完毕
-				else if (info.mState == LOAD_STATE.LS_LOADING)
+				else if (info.mState == LOAD_STATE.LOADING)
 				{
 					if (!info.mCallbackList.Contains(doneCallback))
 					{
@@ -88,7 +87,7 @@ public class HeadTextureManager : FrameComponent
 			HeadLoadInfo info = new HeadLoadInfo();
 			info.mOpenID = openID;
 			info.mTexture = null;
-			info.mState = LOAD_STATE.LS_LOADING;
+			info.mState = LOAD_STATE.LOADING;
 			info.mURL = url;
 			if (doneCallback != null)
 			{
@@ -107,7 +106,7 @@ public class HeadTextureManager : FrameComponent
 		if (head != null)
 		{
 			info.mTexture = head;
-			info.mState = LOAD_STATE.LS_LOADED;
+			info.mState = LOAD_STATE.LOADED;
 		}
 		int callbackCount = info.mCallbackList.Count;
 		for (int i = 0; i < callbackCount; ++i)

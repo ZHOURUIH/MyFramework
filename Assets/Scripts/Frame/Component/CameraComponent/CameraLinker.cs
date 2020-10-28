@@ -5,7 +5,7 @@ using UnityEngine;
 // 摄像机的连接器,用于第三人称摄像机的跟随逻辑
 public class CameraLinker : GameComponent
 {
-	protected Dictionary<CAMERA_LINKER_SWITCH, CameraLinkerSwitch> mSwitchList; // 转换器列表
+	protected Dictionary<Type, CameraLinkerSwitch> mSwitchList; // 转换器列表
 	protected CameraLinkerSwitch mCurSwitch;// 当前转换器
 	protected MovableObject mLinkObject;	// 摄像机跟随的物体
 	protected GameCamera mCamera;			// 所属摄像机
@@ -18,7 +18,7 @@ public class CameraLinker : GameComponent
 		mLookAtOffset = new Vector3(0.0f, 2.0f, 0.0f);
 		mLookAtTarget = false;
 		mLateUpdate = true;
-		mSwitchList = new Dictionary<CAMERA_LINKER_SWITCH, CameraLinkerSwitch>();
+		mSwitchList = new Dictionary<Type, CameraLinkerSwitch>();
 	}
 	public override void init(ComponentOwner owner)
 	{
@@ -76,40 +76,35 @@ public class CameraLinker : GameComponent
 	public void setLinkObject(MovableObject obj) { mLinkObject = obj; }
 	public MovableObject getLinkObject() { return mLinkObject; }
 	public Vector3 getRelativePosition() { return mRelativePosition; }
-	public virtual void setRelativePosition(Vector3 pos, CAMERA_LINKER_SWITCH switchType = CAMERA_LINKER_SWITCH.CLS_NONE, 
-											bool useDefaultSwitchSpeed = true, float switchSpeed = 1.0f)
+	public virtual void setRelativePosition(Vector3 pos, Type switchType = null, 
+											bool useDefaultSwitchSpeed = true, 
+											float switchSpeed = 1.0f)
 	{
 		// 如果不使用转换器,则直接设置位置
-		if (switchType == CAMERA_LINKER_SWITCH.CLS_NONE)
+		if (switchType == null)
 		{
 			mRelativePosition = pos;
+			mCurSwitch = null;
+			return;
 		}
 		// 如果使用转换器,则查找相应的转换器,设置参数
-		else
+		mCurSwitch = getSwitch(switchType);
+		// 找不到则直接设置位置
+		if (mCurSwitch == null)
 		{
-			mCurSwitch = getSwitch(switchType);
-			// 找不到则直接设置位置
-			if (mCurSwitch == null)
-			{
-				mRelativePosition = pos;
-			}
-			else
-			{
-				// 如果不适用默认速度,其实是转换器当前的速度,则设置新的速度
-				if (!useDefaultSwitchSpeed)
-				{
-					mCurSwitch.init(mRelativePosition, pos, switchSpeed);
-				}
-				// 否则就将转换器当前的速度设置进去
-				else
-				{
-					mCurSwitch.init(mRelativePosition, pos, mCurSwitch.getSwitchSpeed());
-				}
-			}
+			mRelativePosition = pos;
+			return;
 		}
+		// 如果不使用默认速度,其实是转换器当前的速度,则设置新的速度
+		if(useDefaultSwitchSpeed)
+		{
+			switchSpeed = mCurSwitch.getSwitchSpeed();
+		}
+		mCurSwitch.init(mRelativePosition, pos, switchSpeed);
 	}
-	public virtual void notifyFinishSwitching(CameraLinkerSwitch fixedSwitch) { mCurSwitch = null; } // 由转换器调用,通知连接器转换已经完成
-	public CameraLinkerSwitch getSwitch(CAMERA_LINKER_SWITCH type)
+	// 由转换器调用,通知连接器转换已经完成
+	public virtual void notifyFinishSwitching(CameraLinkerSwitch fixedSwitch) { mCurSwitch = null; }
+	public CameraLinkerSwitch getSwitch(Type type)
 	{
 		return mSwitchList.ContainsKey(type) ? mSwitchList[type] : null;
 	}
@@ -125,17 +120,17 @@ public class CameraLinker : GameComponent
 	protected virtual void updateLinker(float elapsedTime) { }
 	protected void initSwitch()
 	{
-		addSwitch<CameraLinkerSwitchLinear>(CAMERA_LINKER_SWITCH.CLS_LINEAR);
-		addSwitch<CameraLinkerSwitchCircle>(CAMERA_LINKER_SWITCH.CLS_CIRCLE);
-		addSwitch<CameraLinkerSwitchAroundTarget>(CAMERA_LINKER_SWITCH.CLS_AROUND_TARGET);
+		addSwitch(Typeof<CameraLinkerSwitchLinear>());
+		addSwitch(Typeof<CameraLinkerSwitchCircle>());
+		addSwitch(Typeof<CameraLinkerSwitchAroundTarget>());
 	}
-	protected void addSwitch<T>(CAMERA_LINKER_SWITCH type) where T : CameraLinkerSwitch, new()
+	protected void addSwitch(Type classType)
 	{
-		T lineSwitch = new T();
-		lineSwitch.initType(type, this);
-		mSwitchList.Add(type, lineSwitch);
+		var lineSwitch = createInstance<CameraLinkerSwitch>(classType);
+		lineSwitch.initType(this);
+		mSwitchList.Add(classType, lineSwitch);
 	}
-	public void destroySwitch()
+	protected void destroySwitch()
 	{
 		foreach(var item in mSwitchList)
 		{

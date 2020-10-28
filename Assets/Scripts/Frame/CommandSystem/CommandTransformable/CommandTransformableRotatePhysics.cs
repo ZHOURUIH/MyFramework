@@ -34,7 +34,7 @@ public class CommandTransformableRotatePhysics : Command
 		Transformable obj = mReceiver as Transformable;
 		TransformableComponentRotatePhysics component = obj.getComponent(out component);
 		// 停止其他旋转组件
-		obj.breakComponent<IComponentModifyRotation>(component.GetType());
+		obj.breakComponent<IComponentModifyRotation>(Typeof(component));
 		component.setTremblingCallback(mTremblingCallBack);
 		component.setTrembleDoneCallback(mTrembleDoneCallBack);
 		component.setActive(true);
@@ -45,7 +45,7 @@ public class CommandTransformableRotatePhysics : Command
 		component.setTargetRotation(mTargetRotation);
 		component.setStartRotation(mStartRotation);
 		component.play(mName, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
-		if (component.getState() == PLAY_STATE.PS_PLAY)
+		if (component.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
 			obj.setEnable(true);
@@ -53,7 +53,7 @@ public class CommandTransformableRotatePhysics : Command
 	}
 	public override string showDebugInfo()
 	{
-		return base.showDebugInfo() + ": mName:" + mName + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mLoop:" + mLoop + ", mAmplitude:" + 
+		return base.showDebugInfo() + ": mName:" + mName + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mLoop:" + mLoop + ", mAmplitude:" +
 			mAmplitude + ", mFullOnce:" + mFullOnce + ", mRandomOffset:" + mRandomOffset + ", mStartRotation:" + mStartRotation + ", mTargetRotation:" + mTargetRotation;
 	}
 }

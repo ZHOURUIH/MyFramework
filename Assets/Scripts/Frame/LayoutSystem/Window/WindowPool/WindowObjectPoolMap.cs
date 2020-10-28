@@ -1,22 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
-public class WindowObjectPoolMap<Key, Value> : GameBase where Value : PooledWindow, new()
+public class WindowObjectPoolMap<Key, T> : FrameBase where T : PooledWindow
 {
-	protected Dictionary<Key, Value> mUsedItemList;
-	protected List<Value> mUnusedItemList;
+	protected Dictionary<Key, T> mUsedItemList;
+	protected List<T> mUnusedItemList;
 	protected LayoutScript mScript;
-	protected txUIObject mItemParentInuse;
-	protected txUIObject mItemParentUnuse;
-	protected txUIObject mTemplate;
+	protected myUIObject mItemParentInuse;
+	protected myUIObject mItemParentUnuse;
+	protected myUIObject mTemplate;
+	protected Type mValueType;			// Value的类型,用于创建Value实例
 	protected string mPreName;
 	protected int mAssignIDSeed;        // 分配ID种子,用于设置唯一分配ID,只会递增,不会减少
 	public WindowObjectPoolMap(LayoutScript script)
 	{
 		mScript = script;
-		mUsedItemList = new Dictionary<Key, Value>();
-		mUnusedItemList = new List<Value>();
+		mUsedItemList = new Dictionary<Key, T>();
+		mUnusedItemList = new List<T>();
 	}
 	public void destroy()
 	{
@@ -27,19 +29,41 @@ public class WindowObjectPoolMap<Key, Value> : GameBase where Value : PooledWind
 		}
 		mUnusedItemList.Clear();
 	}
-	public void setNode(txUIObject parent, txUIObject template)
+	public void setNode(myUIObject parent, myUIObject template, Type valueType)
 	{
-		setNode(parent, parent, template);
+		setNode(parent, parent, template, valueType);
 	}
-	public void setNode(txUIObject parentInuse, txUIObject parentUnuse, txUIObject template)
+	public void setNode(myUIObject parentInuse, myUIObject parentUnuse, myUIObject template, Type valueType)
 	{
 		mItemParentInuse = parentInuse;
 		mItemParentUnuse = parentUnuse;
 		mTemplate = template;
+		mValueType = valueType;
 		mPreName = template.getName();
+#if UNITY_EDITOR
+		if(mValueType != null)
+		{
+			bool hasNoneParamConstructor = false;
+			ConstructorInfo[] info = mValueType.GetConstructors();
+			if (info != null)
+			{
+				foreach (var item in info)
+				{
+					if (item.GetParameters().Length == 0)
+					{
+						hasNoneParamConstructor = true;
+					}
+				}
+			}
+			if (!hasNoneParamConstructor && info != null && info.Length > 0)
+			{
+				logError("WindowObjectPoolMap需要有无参构造的类作为节点类型, Type:" + mValueType.Name);
+			}
+		}
+#endif
 	}
 	public bool hasKey(Key key) { return mUsedItemList.ContainsKey(key); }
-	public Value getItem(Key key) 
+	public T getItem(Key key) 
 	{
 		if(mUsedItemList.ContainsKey(key))
 		{
@@ -47,11 +71,12 @@ public class WindowObjectPoolMap<Key, Value> : GameBase where Value : PooledWind
 		}
 		return default;
 	}
-	public Dictionary<Key, Value> getUseList() { return mUsedItemList; }
+	public myUIObject getInUseParent() { return mItemParentInuse; }
+	public Dictionary<Key, T> getUseList() { return mUsedItemList; }
 	public void setItemPreName(string preName) { mPreName = preName; }
-	public Value newItem(Key key)
+	public T newItem(Key key)
 	{
-		Value item;
+		T item;
 		if (mUnusedItemList.Count > 0)
 		{
 			item = mUnusedItemList[mUnusedItemList.Count - 1];
@@ -59,7 +84,7 @@ public class WindowObjectPoolMap<Key, Value> : GameBase where Value : PooledWind
 		}
 		else
 		{
-			item = new Value();
+			item = createInstance<T>(mValueType);
 			item.setScript(mScript);
 			item.assignWindow(mItemParentInuse, mTemplate, mPreName + makeID());
 			item.init();
@@ -87,7 +112,7 @@ public class WindowObjectPoolMap<Key, Value> : GameBase where Value : PooledWind
 	{
 		if (key != null && mUsedItemList.ContainsKey(key))
 		{
-			Value item = mUsedItemList[key];
+			T item = mUsedItemList[key];
 			item.recycle();
 			item.setVisible(false);
 			item.setParent(mItemParentUnuse);

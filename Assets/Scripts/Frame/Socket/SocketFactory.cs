@@ -5,25 +5,24 @@ using System.Collections.Generic;
 
 public struct PacketInfo
 {
-	public PACKET_TYPE mType;
+	public int mType;
 	public Type mClassType;
 }
 
-public class SocketFactory : FrameComponent
+public class SocketFactory : FrameSystem
 {
-	protected Dictionary<PACKET_TYPE, PacketInfo> mPacketTypeList;
+	protected Dictionary<int, PacketInfo> mPacketTypeList;
 	protected Dictionary<Type, PacketInfo> mClassTypeList;
-	public SocketFactory(string name)
-		:base(name)
+	public SocketFactory()
 	{
-		mPacketTypeList = new Dictionary<PACKET_TYPE, PacketInfo>();
+		mPacketTypeList = new Dictionary<int, PacketInfo>();
 		mClassTypeList = new Dictionary<Type, PacketInfo>();
 	}
 	public void destroyPacket(SocketPacket packet)
 	{
 		mClassPool.destroyClass(packet);
 	}
-	public SocketPacket createSocketPacket(PACKET_TYPE type)
+	public SocketPacket createSocketPacket(int type)
 	{
 		IClassObject packet;
 		bool isNewObject = mClassPool.newClass(out packet, mPacketTypeList[type].mClassType);
@@ -34,21 +33,21 @@ public class SocketFactory : FrameComponent
 		}
 		return socketPacket;
 	}
-	public T createSocketPacket<T>() where T : SocketPacket, new()
+	public SocketPacket createSocketPacket(Type type)
 	{
 		// mClassPool.newClass只会执行类的构造函数,,所以其余的初始化工作需要由调用的地方来执行
 		// 如果是新创建的一个对象,则需要进行初始化,如果是使用之前的对象,则不需要操作
-		T packet;
-		if (mClassPool.newClass(out packet))
+		SocketPacket packet;
+		if (mClassPool.newClass(out packet, type))
 		{
-			packet.init(mClassTypeList[typeof(T)].mType);
+			packet.init(mClassTypeList[type].mType);
 		}
 		return packet;
 	}
-	public void registePacket<T>(PACKET_TYPE type) where T : SocketPacket, new()
+	public void registePacket(Type classType, int type)
 	{
 		PacketInfo info = new PacketInfo();
-		info.mClassType = typeof(T);
+		info.mClassType = classType;
 		info.mType = type;
 		mPacketTypeList.Add(type, info);
 		mClassTypeList.Add(info.mClassType, info);

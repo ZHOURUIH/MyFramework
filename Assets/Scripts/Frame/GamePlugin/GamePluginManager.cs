@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Reflection;
 
 // 插件后缀为bytes,插件依赖的库在编辑器模式下需要放到Plugins中,打包后放到Managed中
-public class GamePluginManager : FrameComponent
+public class GamePluginManager : FrameSystem
 {
 	protected Dictionary<string, IGamePlugin> mPluginList;
-	public GamePluginManager(string name)
-		:base(name)
+	public GamePluginManager()
 	{
 		mPluginList = new Dictionary<string, IGamePlugin>();
 	}
@@ -41,12 +40,12 @@ public class GamePluginManager : FrameComponent
 	protected void loadAllPlugin()
 	{
 #if UNITY_STANDALONE_WIN
-		if(!isDirExist(CommonDefine.F_GAME_PLUGIN_PATH))
+		if(!isDirExist(FrameDefine.F_GAME_PLUGIN_PATH))
 		{
 			return;
 		}
 		List<string> fileList = mListPool.newList(out fileList);
-		findFiles(CommonDefine.F_GAME_PLUGIN_PATH, fileList, CommonDefine.DLL_PLUGIN_SUFFIX);
+		findFiles(FrameDefine.F_GAME_PLUGIN_PATH, fileList, FrameDefine.DLL_PLUGIN_SUFFIX);
 		int count = fileList.Count;
 		for (int i = 0; i < count; ++i)
 		{

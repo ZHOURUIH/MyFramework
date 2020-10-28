@@ -31,13 +31,13 @@ public class CommandTransformableRotateCurve : Command
 		Transformable obj = mReceiver as Transformable;
 		TransformableComponentRotateCurve component = obj.getComponent(out component);
 		// 停止其他旋转组件
-		obj.breakComponent<IComponentModifyRotation>(component.GetType());
+		obj.breakComponent<IComponentModifyRotation>(Typeof(component));
 		component.setTremblingCallback(mTremblingCallBack);
 		component.setTrembleDoneCallback(mTrembleDoneCallBack);
 		component.setActive(true);
 		component.setKeyRotList(mRotList);
 		component.play(mName, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
-		if (component.getState() == PLAY_STATE.PS_PLAY)
+		if (component.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
 			obj.setEnable(true);

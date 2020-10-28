@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class WidgetUtility : GameBase
+public class WidgetUtility : FrameBase
 {
 	// 用于避免GC而保存的变量
 	private static Vector3[] mRootCorner = null;
@@ -12,14 +12,19 @@ public class WidgetUtility : GameBase
 	private static Vector3[] mTempSides = new Vector3[4];
 	private static Vector2 mTempVector2 = Vector2.zero;
 #endif
-	public static bool isNGUI(GameObject go)
+	public static GUI_TYPE getGUIType(GameObject go)
 	{
-		return go.GetComponent<RectTransform>() == null;
+		if (go.GetComponent<RectTransform>() == null)
+		{
+			return GUI_TYPE.UGUI;
+		}
+		return GUI_TYPE.NGUI;
 	}
 	// 父节点在父节点坐标系下的各条边
 	public static void getParentSides(GameObject parent, Vector3[] sides)
 	{
-		if (isNGUI(parent))
+		GUI_TYPE guiType = getGUIType(parent);
+		if (guiType == GUI_TYPE.NGUI)
 		{
 #if USE_NGUI
 			UIRect parentRect = parent.GetComponent<UIRect>();
@@ -37,7 +42,7 @@ public class WidgetUtility : GameBase
 			}
 #endif
 		}
-		else
+		else if(guiType == GUI_TYPE.UGUI)
 		{
 			Vector2 size = parent.GetComponent<RectTransform>().rect.size;
 			mTempCorners[0] = new Vector3(-size.x * 0.5f, -size.y * 0.5f);
@@ -51,11 +56,11 @@ public class WidgetUtility : GameBase
 	{
 		return rect.rect.size;
 	}
-	public static Vector3[] getRootCorner(bool isNGUI)
+	public static Vector3[] getRootCorner(GUI_TYPE guiType)
 	{
 		if (mRootCorner == null)
 		{
-			Vector2 rootSize = getRootSize(isNGUI);
+			Vector2 rootSize = getRootSize(guiType);
 			mRootCorner = new Vector3[4];
 			mRootCorner[0] = new Vector3(-rootSize.x * 0.5f, -rootSize.y * 0.5f);
 			mRootCorner[1] = new Vector3(-rootSize.x * 0.5f, rootSize.y * 0.5f);

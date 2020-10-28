@@ -7,7 +7,7 @@ public class ComponentKeyFrameNormal : ComponentKeyFrameBase
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		if (mKeyFrame != null && mPlayState == PLAY_STATE.PS_PLAY)
+		if (mKeyFrame != null && mPlayState == PLAY_STATE.PLAY)
 		{
 			mCurrentTime += elapsedTime;
 			mPlayedTime += elapsedTime;

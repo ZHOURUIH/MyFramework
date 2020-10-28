@@ -9,13 +9,13 @@ public class BOOLS : OBJECTS
 	public BOOLS(int count)
 	{
 		mValue = new bool[count];
-		mType = typeof(bool[]);
+		mType = Typeof<bool[]>();
 		mSize = TYPE_SIZE * mValue.Length;
 	}
 	public BOOLS(bool[] value)
 	{
 		mValue = value;
-		mType = typeof(bool[]);
+		mType = Typeof<bool[]>();
 		mSize = TYPE_SIZE * mValue.Length;
 	}
 	public override void setRealSize(ushort realSize)

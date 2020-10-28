@@ -17,7 +17,7 @@ public class ResoucesLoadInfo : IClassObject
 		mCallback = new List<AssetLoadDoneCallback>();
 		mUserData = new List<object[]>();
 		mLoadPath = new List<string>();
-		mState = LOAD_STATE.LS_UNLOAD;
+		mState = LOAD_STATE.UNLOAD;
 	}
 	public void addCallback(AssetLoadDoneCallback callback, object[] userData, string loadPath)
 	{
@@ -46,7 +46,7 @@ public class ResoucesLoadInfo : IClassObject
 		mResouceName = null;
 		mObject = null;
 		mSubObjects = null;
-		mState = LOAD_STATE.LS_UNLOAD;
+		mState = LOAD_STATE.UNLOAD;
 		mCallback.Clear();
 		mUserData.Clear();
 		mLoadPath.Clear();

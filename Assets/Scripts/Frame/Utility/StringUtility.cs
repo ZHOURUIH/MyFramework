@@ -364,19 +364,19 @@ public class StringUtility : BinaryUtility
 	// 绝对路径转换到相对于Asset的路径
 	public static void fullPathToProjectPath(ref string path)
 	{
-		path = CommonDefine.P_ASSETS_PATH + path.Substring(CommonDefine.F_ASSETS_PATH.Length);
+		path = FrameDefine.P_ASSETS_PATH + path.Substring(FrameDefine.F_ASSETS_PATH.Length);
 	}
 	public static string fullPathToProjectPath(string path)
 	{
-		return CommonDefine.P_ASSETS_PATH + path.Substring(CommonDefine.F_ASSETS_PATH.Length);
+		return FrameDefine.P_ASSETS_PATH + path.Substring(FrameDefine.F_ASSETS_PATH.Length);
 	}
 	public static void projectPathToFullPath(ref string path)
 	{
-		path = CommonDefine.F_ASSETS_PATH + path.Substring(CommonDefine.ASSETS.Length + 1);
+		path = FrameDefine.F_ASSETS_PATH + path.Substring(FrameDefine.ASSETS.Length + 1);
 	}
 	public static string projectPathToFullPath(string path)
 	{
-		return CommonDefine.F_ASSETS_PATH + path.Substring(CommonDefine.ASSETS.Length + 1);
+		return FrameDefine.F_ASSETS_PATH + path.Substring(FrameDefine.ASSETS.Length + 1);
 	}
 	public static string removeSuffix(string str)
 	{
@@ -725,6 +725,29 @@ public class StringUtility : BinaryUtility
 		for (int i = 0; i < len; ++i)
 		{
 			values.Add((byte)stringToInt(rangeList[i]));
+		}
+	}
+	public static void stringToSByteArray(string str, List<sbyte> values, string seperate = ",")
+	{
+		if (values == null)
+		{
+			UnityUtility.logError("values can not be null");
+			return;
+		}
+		values.Clear();
+		if (isEmpty(str))
+		{
+			return;
+		}
+		string[] rangeList = split(str, true, seperate);
+		if (rangeList == null)
+		{
+			return;
+		}
+		int len = rangeList.Length;
+		for (int i = 0; i < len; ++i)
+		{
+			values.Add((sbyte)stringToInt(rangeList[i]));
 		}
 	}
 	public static string intArrayToString(int[] values, string seperate = ",")
@@ -1141,20 +1164,26 @@ public class StringUtility : BinaryUtility
 		}
 		return (byte)(highBit << 4 | lowBit);
 	}
-	public static byte[] hexStringToBytes(string str)
+	// 返回值表示bytes的有效长度
+	public static int hexStringToBytes(string str, out byte[] bytes)
 	{
+		bytes = null;
 		str = checkString(str, mHexString);
 		if (isEmpty(str) || str.Length % 2 != 0)
 		{
-			return null;
+			return 0;
 		}
 		int dataCount = str.Length >> 1;
-		byte[] data = new byte[dataCount];
+		bytes = FrameBase.mBytesPool.newBytes(MathUtility.getGreaterPow2(dataCount));
 		for (int i = 0; i < dataCount; ++i)
 		{
-			data[i] = hexStringToByte(str, i * 2);
+			bytes[i] = hexStringToByte(str, i * 2);
 		}
-		return data;
+		return dataCount;
+	}
+	public static void releaseHexStringBytes(byte[] bytes)
+	{
+		FrameBase.mBytesPool.destroyBytes(bytes);
 	}
 	public static string fileSizeString(long size)
 	{

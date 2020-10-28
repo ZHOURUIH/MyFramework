@@ -39,7 +39,7 @@ public abstract class ComponentPathNormal : ComponentKeyFrameNormal
 		{
 			mMaxLength = 0.0f;
 		}
-		base.play(CommonDefine.ZERO_ONE, loop, mMaxLength, timeOffset, fullOnce, 1.0f);
+		base.play(FrameDefine.ZERO_ONE, loop, mMaxLength, timeOffset, fullOnce, 1.0f);
 	}
 	//-------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)

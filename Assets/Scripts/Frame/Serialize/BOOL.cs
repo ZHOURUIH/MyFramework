@@ -8,13 +8,13 @@ public class BOOL : OBJECT
 	public bool mValue;
 	public BOOL()
 	{
-		mType = typeof(bool);
+		mType = Typeof<bool>();
 		mSize = TYPE_SIZE;
 	}
 	public BOOL(bool value)
 	{
 		mValue = value;
-		mType = typeof(bool);
+		mType = Typeof<bool>();
 		mSize = TYPE_SIZE;
 	}
 	public override void zero() { mValue = false; }

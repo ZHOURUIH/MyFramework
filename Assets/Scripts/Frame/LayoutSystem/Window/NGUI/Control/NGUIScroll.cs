@@ -4,13 +4,13 @@ using System.Collections.Generic;
 
 #if USE_NGUI
 
-public class NGUIScroll : GameBase
+public class NGUIScroll : FrameBase
 {
 	protected LayoutScript mScript;
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
 	// 用于设置的参数
 	protected DRAG_DIRECTION mDragDirection;        // 拖动方向,横向或纵向
-	protected txNGUITexture mBackground;            // 用于检测鼠标的按下,移动,抬起
+	protected myNGUITexture mBackground;            // 用于检测鼠标的按下,移动,抬起
 	protected List<IScrollContainer> mContainerList;// 容器列表,用于获取位置缩放旋转等属性
 	protected List<IScrollItem> mItemList;          // 物体列表,用于显示
 	protected float mFocusSpeedThreshhold = 2.0f;   // 开始聚焦的速度阈值,当滑动速度正在自由降低的阶段时,速度低于该值则会以恒定速度自动聚焦到一个最近的项
@@ -37,14 +37,14 @@ public class NGUIScroll : GameBase
 		mContainerList = new List<IScrollContainer>();
 		mItemList = new List<IScrollItem>();
 	}
-	public void setBackground(txNGUITexture background)
+	public void setBackground(myNGUITexture background)
 	{
 		mBackground = background;
 		mBackground.setOnMouseDown(onMouseDown);
 		mBackground.setOnScreenMouseUp(onScreenMouseUp);
 		mBackground.setOnMouseMove(onMouseMove);
 		mBackground.setOnMouseStay(onMouseStay);
-		mScript.registeBoxCollider(mBackground, true);
+		mScript.registeCollider(mBackground, true);
 	}
 	public int getFocusIndex()
 	{

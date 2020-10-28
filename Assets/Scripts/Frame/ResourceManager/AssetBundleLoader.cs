@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class AssetBundleLoader : GameBase
+public class AssetBundleLoader : FrameBase
 {
 	protected Dictionary<string, AssetBundleInfo> mAssetBundleInfoList;
 	protected Dictionary<string, AssetInfo> mAssetToBundleInfo;
@@ -35,8 +35,9 @@ public class AssetBundleLoader : GameBase
 				return false;
 			}
 			byte[] fileBuffer;
-			openFile(path, out fileBuffer, false);
-			initAssetConfig(fileBuffer);
+			int fileSize = openFile(path, out fileBuffer, false);
+			initAssetConfig(fileBuffer, fileSize);
+			releaseFileBuffer(fileBuffer);
 		}
 		else
 		{
@@ -107,17 +108,17 @@ public class AssetBundleLoader : GameBase
 	public bool unloadAsset<T>(ref T asset) where T : UnityEngine.Object
 	{
 		// 查找对应的AssetBundle
-		if(mAssetToAssetBundleInfo.ContainsKey(asset))
+		if (!mAssetToAssetBundleInfo.ContainsKey(asset))
 		{
-			bool ret = mAssetToAssetBundleInfo[asset].unloadAsset(asset);
-			if(ret)
-			{
-				mAssetToAssetBundleInfo.Remove(asset);
-				asset = null;
-			}
-			return ret;
+			return false;			
 		}
-		return false;
+		bool ret = mAssetToAssetBundleInfo[asset].unloadAsset(asset);
+		if (ret)
+		{
+			mAssetToAssetBundleInfo.Remove(asset);
+			asset = null;
+		}
+		return ret;
 	}
 	public bool isInited() { return mInited; }
 	public Dictionary<string, AssetBundleInfo> getAssetBundleInfoList() { return mAssetBundleInfoList; }
@@ -203,7 +204,7 @@ public class AssetBundleLoader : GameBase
 			{
 				mListPool.destroyList(fileNameList);
 				AssetBundleInfo bundleInfo = mAssetToBundleInfo[fileNameWithSuffix].getAssetBundle();
-				if (bundleInfo.getLoadState() != LOAD_STATE.LS_LOADED)
+				if (bundleInfo.getLoadState() != LOAD_STATE.LOADED)
 				{
 					return false;
 				}
@@ -279,18 +280,19 @@ public class AssetBundleLoader : GameBase
 		if (mAssetBundleInfoList.ContainsKey(bundleName))
 		{
 			AssetBundleInfo bundleInfo = mAssetBundleInfoList[bundleName];
-			if (bundleInfo.getLoadState() == LOAD_STATE.LS_LOADING)
+			if (bundleInfo.getLoadState() == LOAD_STATE.LOADING ||
+				bundleInfo.getLoadState() == LOAD_STATE.WAIT_FOR_LOAD)
 			{
-				logError("asset bundle is loading, can not load again! name : " + bundleName);
+				logError("asset bundle is loading or waiting for load, can not load again! name : " + bundleName);
 				return null;
 			}
 			// 如果还未加载,则加载资源包
-			if (bundleInfo.getLoadState() == LOAD_STATE.LS_UNLOAD)
+			if (bundleInfo.getLoadState() == LOAD_STATE.UNLOAD)
 			{
 				bundleInfo.loadAssetBundle();
 			}
 			// 加载完毕,返回资源列表
-			if (bundleInfo.getLoadState() == LOAD_STATE.LS_LOADED)
+			if (bundleInfo.getLoadState() == LOAD_STATE.LOADED)
 			{
 				var assetList = new List<UnityEngine.Object>();
 				var bundleAssetlist = bundleInfo.getAssetList();
@@ -447,7 +449,7 @@ public class AssetBundleLoader : GameBase
 	}
 	public void updateAssetBundleConfig(byte[] fileBuffer)
 	{
-		initAssetConfig(fileBuffer);
+		initAssetConfig(fileBuffer, fileBuffer.Length);
 	}
 	public void notifyAssetLoaded(UnityEngine.Object asset, AssetBundleInfo bundle)
 	{
@@ -467,15 +469,15 @@ public class AssetBundleLoader : GameBase
 			bundleInfo.loadParentAsync();
 			yield return null;
 		}
-		logInfo(bundleInfo.getBundleFileName() + " start load bundle", LOG_LEVEL.LL_NORMAL);
-		bundleInfo.setLoadState(LOAD_STATE.LS_LOADING);
+		logInfo(bundleInfo.getBundleFileName() + " start load bundle", LOG_LEVEL.NORMAL);
+		bundleInfo.setLoadState(LOAD_STATE.LOADING);
 		AssetBundle assetBundle = null;
 		// 加载远端文件时使用www
 		if (!ResourceManager.mLocalRootPath)
 		{
 			if (ResourceManager.mPersistentFirst)
 			{
-				string path = CommonDefine.F_PERSISTENT_DATA_PATH + bundleInfo.getBundleFileName();
+				string path = FrameDefine.F_PERSISTENT_DATA_PATH + bundleInfo.getBundleFileName();
 				checkDownloadPath(ref path, ResourceManager.mLocalRootPath);
 				UnityWebRequest www = new UnityWebRequest(path);
 				DownloadHandlerAssetBundle downloadHandler = new DownloadHandlerAssetBundle(path, 0);
@@ -506,7 +508,7 @@ public class AssetBundleLoader : GameBase
 		else
 		{
 			AssetBundleCreateRequest request = null;
-			string path = CommonDefine.F_PERSISTENT_DATA_PATH + bundleInfo.getBundleFileName();
+			string path = FrameDefine.F_PERSISTENT_DATA_PATH + bundleInfo.getBundleFileName();
 			if (ResourceManager.mPersistentFirst && isFileExist(path))
 			{
 				request = AssetBundle.LoadFromFileAsync(path);
@@ -530,7 +532,7 @@ public class AssetBundleLoader : GameBase
 				--mAssetBundleCoroutineCount;
 			}
 		}
-		logInfo(bundleInfo.getBundleFileName() + " load bundle done", LOG_LEVEL.LL_NORMAL);
+		logInfo(bundleInfo.getBundleFileName() + " load bundle done", LOG_LEVEL.NORMAL);
 		yield return new WaitForEndOfFrame();
 		// 通知AssetBundleInfo
 		bundleInfo.notifyAssetBundleAsyncLoadedDone(assetBundle);
@@ -539,16 +541,16 @@ public class AssetBundleLoader : GameBase
 	protected IEnumerator loadAssetCoroutine(AssetBundleInfo bundle, string fileNameWithSuffix)
 	{
 		++mAssetCoroutineCount;
-		if (bundle.getLoadState() != LOAD_STATE.LS_LOADED)
+		if (bundle.getLoadState() != LOAD_STATE.LOADED)
 		{
 			logError("asset bundle is not loaded, can not load asset async!");
 			--mAssetCoroutineCount;
 			yield break;
 		}
-		bundle.getAssetInfo(fileNameWithSuffix).setLoadState(LOAD_STATE.LS_LOADING);
+		bundle.getAssetInfo(fileNameWithSuffix).setLoadState(LOAD_STATE.LOADING);
 		if(bundle.getAssetBundle() != null)
 		{
-			AssetBundleRequest assetRequest = bundle.getAssetBundle().LoadAssetWithSubAssetsAsync(CommonDefine.P_GAME_RESOURCES_PATH + fileNameWithSuffix);
+			AssetBundleRequest assetRequest = bundle.getAssetBundle().LoadAssetWithSubAssetsAsync(FrameDefine.P_GAME_RESOURCES_PATH + fileNameWithSuffix);
 			if (assetRequest == null)
 			{
 				logError("can not load asset async : " + fileNameWithSuffix);
@@ -566,14 +568,14 @@ public class AssetBundleLoader : GameBase
 	}
 	protected void onAssetConfigDownloaded(UnityEngine.Object res, UnityEngine.Object[] subAssets, byte[] bytes, object userData, string loadPath)
 	{
-		initAssetConfig(bytes);
+		initAssetConfig(bytes, bytes.Length);
 	}
-	protected void initAssetConfig(byte[] fileBuffer)
+	protected void initAssetConfig(byte[] fileBuffer, int fileSize)
 	{
-		byte[] tempStringBuffer = new byte[256];
+		byte[] tempStringBuffer = mBytesPool.newBytes(256);
 		mAssetBundleInfoList.Clear();
 		mAssetToBundleInfo.Clear();
-		Serializer serializer = new Serializer(fileBuffer);
+		Serializer serializer = new Serializer(fileBuffer, fileSize);
 		serializer.read(out int assetBundleCount);
 		for(int i = 0; i < assetBundleCount; ++i)
 		{
@@ -602,12 +604,13 @@ public class AssetBundleLoader : GameBase
 				bundleInfo.addParent(getFileNameNoSuffix(bytesToString(tempStringBuffer)));
 			}
 		}
+		mBytesPool.destroyBytes(tempStringBuffer);
 		// 配置清单解析完毕后,为每个AssetBundleInfo查找对应的依赖项
 		foreach (var info in mAssetBundleInfoList)
 		{
 			info.Value.findAllDependence();
 		}
 		mInited = true;
-		logInfo("AssetBundle初始化完成, AssetBundle count : " + mAssetBundleInfoList.Count, LOG_LEVEL.LL_FORCE);
+		logInfo("AssetBundle初始化完成, AssetBundle count : " + mAssetBundleInfoList.Count, LOG_LEVEL.FORCE);
 	}
 }

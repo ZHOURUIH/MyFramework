@@ -26,8 +26,8 @@ public class PlayerState : GameBase, IClassObject
 	protected bool mIgnoreTimeScale;
 	public PlayerState()
 	{
-		mAllowSuperposition = SAME_STATE_OPERATE.SSO_COEXIST;
-		mBuffStateType = BUFF_STATE_TYPE.BST_NONE;
+		mAllowSuperposition = SAME_STATE_OPERATE.COEXIST;
+		mBuffStateType = BUFF_STATE_TYPE.NONE;
 		mActive = true;
 		mStateTime = -1.0f;
 		mMutexID = 0;
@@ -91,7 +91,7 @@ public class PlayerState : GameBase, IClassObject
 	//--------------------------------------------------------------------------------------------------------------
 	protected void removeSelf(string param = null)
 	{
-		CommandCharacterRemoveState cmd = newCmd(out cmd, false);
+		CommandCharacterRemoveState cmd = newMainCmd(out cmd, false);
 		cmd.mState = this;
 		cmd.mParam = param;
 		pushCommand(cmd, mPlayer);

@@ -5,20 +5,19 @@ using System.Collections.Generic;
 
 // Frame需要的枚举值,每个项目的值都不同,但是Frame中需要使用
 // 界面布局定义
-public enum LAYOUT
+public class LAYOUT
 {
-	DEMO,
-	DEMO_START,
-	MAX,
+	public const int NONE = 0;
+	public const int DEMO = 1;
+	public const int DEMO_START = 2;
 };
 // 音效定义
-public enum SOUND_DEFINE
+public enum SOUND_DEFINE : byte
 {
-	SD_MIN = 0,
-	SD_MAX,
+	MIN = 0,
 };
 // 游戏中的公共变量定义
-public enum GAME_FLOAT
+public enum GAME_FLOAT : byte
 {
 	NONE,
 	// 应用程序配置参数
@@ -44,7 +43,7 @@ public enum GAME_FLOAT
 	GAME_MIN,
 	GAME_MAX,
 };
-public enum GAME_STRING
+public enum GAME_STRING : byte
 {
 	NONE,
 	// 应用程序配置参数

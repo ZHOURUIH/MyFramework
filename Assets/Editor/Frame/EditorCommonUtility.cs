@@ -57,7 +57,7 @@ public class EditorCommonUtility : UnityUtility
 		string metaSuffix = ".meta";
 		if (allFileText == null)
 		{
-			string[] files = Directory.GetFiles(UnityEngine.Application.dataPath + "/" + CommonDefine.GAME_RESOURCES, pattern, SearchOption.AllDirectories);
+			string[] files = Directory.GetFiles(UnityEngine.Application.dataPath + "/" + FrameDefine.GAME_RESOURCES, pattern, SearchOption.AllDirectories);
 			for (int i = 0; i < files.Length; ++i)
 			{
 				string file = files[i];
@@ -342,7 +342,7 @@ public class EditorCommonUtility : UnityUtility
 		string metaSuffix = ".meta";
 		if(allFileText == null)
 		{
-			string[] files = Directory.GetFiles(UnityEngine.Application.dataPath + "/" + CommonDefine.GAME_RESOURCES, "*.*", SearchOption.AllDirectories);
+			string[] files = Directory.GetFiles(UnityEngine.Application.dataPath + "/" + FrameDefine.GAME_RESOURCES, "*.*", SearchOption.AllDirectories);
 			foreach (var item in files)
 			{
 				string file = item;
@@ -529,7 +529,7 @@ public class EditorCommonUtility : UnityUtility
 	}
 	public static Dictionary<string, List<FileGUIDLines>> getAllResourceFileText(string[] patterns = null)
 	{
-		return getAllFileText(CommonDefine.F_GAME_RESOURCES_PATH, patterns);
+		return getAllFileText(FrameDefine.F_GAME_RESOURCES_PATH, patterns);
 	}
 	public static bool hasGUID(string line)
 	{

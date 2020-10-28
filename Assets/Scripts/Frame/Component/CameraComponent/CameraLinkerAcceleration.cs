@@ -15,7 +15,7 @@ public class CameraLinkerAcceleration : CameraLinker
 		mSpringZ = new Spring();
 		mUseTargetYaw = true;
 	}
-	public override void setRelativePosition(Vector3 pos, CAMERA_LINKER_SWITCH switchType = CAMERA_LINKER_SWITCH.CLS_NONE, bool useDefaultSwitchSpeed = true, float switchSpeed = 1.0f)
+	public override void setRelativePosition(Vector3 pos, Type switchType = null, bool useDefaultSwitchSpeed = true, float switchSpeed = 1.0f)
 	{
 		base.setRelativePosition(pos, switchType, useDefaultSwitchSpeed, switchSpeed);
 		// 获得加速度
@@ -44,8 +44,7 @@ public class CameraLinkerAcceleration : CameraLinker
 		mSpringZ.setSpeed(0.0f);
 		// 改变摄像机位置
 		Vector3 targetPos = mLinkObject.getPosition();
-		Vector3 curPos = targetPos + mRelativePosition;
-		(mComponentOwner as GameCamera).setPosition(curPos);
+		(mComponentOwner as GameCamera).setPosition(targetPos + mRelativePosition);
 	}
 	public void setUseTargetYaw(bool use) { mUseTargetYaw = use; }
 	public bool isUseTargetYaw() { return mUseTargetYaw; }

@@ -5,7 +5,7 @@ using UnityEditor;
 #endif
 using UnityEngine;
 
-public class ResourceLoader : GameBase
+public class ResourceLoader : FrameBase
 {
 	protected Dictionary<string, Dictionary<string, ResoucesLoadInfo>> mLoadedPath;
 	protected Dictionary<Object, ResoucesLoadInfo> mLoadedObjects;
@@ -118,21 +118,18 @@ public class ResourceLoader : GameBase
 			load<T>(path, name);
 			return mLoadedPath[path][name].mSubObjects;
 		}
-		else
+		ResoucesLoadInfo info = mLoadedPath[path][name];
+		if (info.mState == LOAD_STATE.LOADED)
 		{
-			ResoucesLoadInfo info = mLoadedPath[path][name];
-			if (info.mState == LOAD_STATE.LS_LOADED)
-			{
-				return info.mSubObjects;
-			}
-			else if (info.mState == LOAD_STATE.LS_LOADING)
-			{
-				logInfo("资源正在后台加载,不能同步加载!" + name, LOG_LEVEL.LL_FORCE);
-			}
-			else if (info.mState == LOAD_STATE.LS_UNLOAD)
-			{
-				logInfo("资源已加入列表,但是未加载" + name, LOG_LEVEL.LL_FORCE);
-			}
+			return info.mSubObjects;
+		}
+		else if (info.mState == LOAD_STATE.LOADING)
+		{
+			logInfo("资源正在后台加载,不能同步加载!" + name, LOG_LEVEL.FORCE);
+		}
+		else if (info.mState == LOAD_STATE.UNLOAD)
+		{
+			logInfo("资源已加入列表,但是未加载" + name, LOG_LEVEL.FORCE);
 		}
 		return null;
 	}
@@ -151,21 +148,18 @@ public class ResourceLoader : GameBase
 			load<T>(path, name);
 			return mLoadedPath[path][name].mObject as T;
 		}
-		else
+		ResoucesLoadInfo info = mLoadedPath[path][name];
+		if(info.mState == LOAD_STATE.LOADED)
 		{
-			ResoucesLoadInfo info = mLoadedPath[path][name];
-			if(info.mState == LOAD_STATE.LS_LOADED)
-			{
-				return info.mObject as T;
-			}
-			else if(info.mState == LOAD_STATE.LS_LOADING)
-			{
-				logWarning("资源正在后台加载,不能同步加载!" + name, LOG_LEVEL.LL_FORCE);
-			}
-			else if(info.mState == LOAD_STATE.LS_UNLOAD)
-			{
-				logWarning("资源已加入列表,但是未加载" + name, LOG_LEVEL.LL_FORCE);
-			}
+			return info.mObject as T;
+		}
+		else if(info.mState == LOAD_STATE.LOADING)
+		{
+			logWarning("资源正在后台加载,不能同步加载!" + name, LOG_LEVEL.FORCE);
+		}
+		else if(info.mState == LOAD_STATE.UNLOAD)
+		{
+			logWarning("资源已加入列表,但是未加载" + name, LOG_LEVEL.FORCE);
 		}
 		return null;
 	}
@@ -183,12 +177,12 @@ public class ResourceLoader : GameBase
 		{
 			ResoucesLoadInfo info = mLoadedPath[path][name];
 			// 资源正在下载,将回调添加到回调列表中,等待下载完毕
-			if (info.mState == LOAD_STATE.LS_LOADING)
+			if (info.mState == LOAD_STATE.LOADING)
 			{	
 				info.addCallback(doneCallback, userData, name);
 			}
 			// 资源已经下载完毕,直接调用回调
-			else if(info.mState == LOAD_STATE.LS_LOADED)
+			else if(info.mState == LOAD_STATE.LOADED)
 			{
 				doneCallback(mLoadedPath[path][name].mObject, mLoadedPath[path][name].mSubObjects, null, userData, name);
 			}
@@ -197,10 +191,10 @@ public class ResourceLoader : GameBase
 		else
 		{
 			ResoucesLoadInfo info;
-			mClassPool.newClass(out info);
+			mClassPool.newClass(out info, Typeof<ResoucesLoadInfo>());
 			info.mPath = path;
 			info.mResouceName = name;
-			info.mState = LOAD_STATE.LS_LOADING;
+			info.mState = LOAD_STATE.LOADING;
 			info.addCallback(doneCallback, userData, name);
 			mLoadedPath[path].Add(name, info);
 			mGameFramework.StartCoroutine(loadResourceCoroutine<T>(info));
@@ -210,38 +204,39 @@ public class ResourceLoader : GameBase
 	//---------------------------------------------------------------------------------------------------------------------------------------
 	protected void load<T>(string path, string name) where T : Object
 	{
-		if (!mLoadedPath[path].ContainsKey(name))
+		if (mLoadedPath[path].ContainsKey(name))
 		{
-			ResoucesLoadInfo info;
-			mClassPool.newClass(out info);
-			info.mPath = path;
-			info.mResouceName = name;
-			info.mState = LOAD_STATE.LS_LOADING;
-			mLoadedPath[path].Add(info.mResouceName, info);
+			return;
+		}
+		ResoucesLoadInfo info;
+		mClassPool.newClass(out info, Typeof<ResoucesLoadInfo>());
+		info.mPath = path;
+		info.mResouceName = name;
+		info.mState = LOAD_STATE.LOADING;
+		mLoadedPath[path].Add(info.mResouceName, info);
 #if UNITY_EDITOR
-			List<string> fileNameList = mListPool.newList(out fileNameList);
-			ResourceManager.adjustResourceName<T>(name, fileNameList, false);
-			int fileCount = fileNameList.Count;
-			for(int i = 0; i < fileCount; ++i)
+		List<string> fileNameList = mListPool.newList(out fileNameList);
+		ResourceManager.adjustResourceName<T>(name, fileNameList, false);
+		int fileCount = fileNameList.Count;
+		for(int i = 0; i < fileCount; ++i)
+		{
+			string filePath = FrameDefine.P_GAME_RESOURCES_PATH + fileNameList[i];
+			if (isFileExist(filePath))
 			{
-				string filePath = CommonDefine.P_GAME_RESOURCES_PATH + fileNameList[i];
-				if (isFileExist(filePath))
-				{
-					info.mObject = AssetDatabase.LoadAssetAtPath<T>(filePath);
-					info.mSubObjects = AssetDatabase.LoadAllAssetsAtPath(filePath);
-					break;
-				}
+				info.mObject = AssetDatabase.LoadAssetAtPath<T>(filePath);
+				info.mSubObjects = AssetDatabase.LoadAllAssetsAtPath(filePath);
+				break;
 			}
-			mListPool.destroyList(fileNameList);
+		}
+		mListPool.destroyList(fileNameList);
 #else
-			info.mObject = Resources.Load(name, typeof(T));
-			info.mSubObjects = Resources.LoadAll(name);
+		info.mObject = Resources.Load(name, Typeof<T>());
+		info.mSubObjects = Resources.LoadAll(name);
 #endif
-			info.mState = LOAD_STATE.LS_LOADED;
-			if(info.mObject != null)
-			{
-				mLoadedObjects.Add(info.mObject, info);
-			}
+		info.mState = LOAD_STATE.LOADED;
+		if(info.mObject != null)
+		{
+			mLoadedObjects.Add(info.mObject, info);
 		}
 	}
 	protected IEnumerator loadResourceCoroutine<T>(ResoucesLoadInfo info) where T : Object
@@ -252,7 +247,7 @@ public class ResourceLoader : GameBase
 		int fileCount = fileNameList.Count;
 		for (int i = 0; i < fileCount; ++i)
 		{
-			string filePath = CommonDefine.P_GAME_RESOURCES_PATH + fileNameList[i];
+			string filePath = FrameDefine.P_GAME_RESOURCES_PATH + fileNameList[i];
 			if (isFileExist(filePath))
 			{
 				info.mObject = AssetDatabase.LoadAssetAtPath<T>(filePath);
@@ -267,7 +262,7 @@ public class ResourceLoader : GameBase
 		yield return request;
 		info.mObject = request.asset;
 #endif
-		info.mState = LOAD_STATE.LS_LOADED;
+		info.mState = LOAD_STATE.LOADED;
 		if(info.mObject != null)
 		{
 			mLoadedObjects.Add(info.mObject, info);

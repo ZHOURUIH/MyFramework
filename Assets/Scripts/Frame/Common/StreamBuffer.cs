@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 
 // 自定义缓冲区,用于持续写入数据
-public class StreamBuffer : GameBase
+public class StreamBuffer : FrameBase
 {
 	protected byte[] mBuffer;
 	protected int mBufferSize;

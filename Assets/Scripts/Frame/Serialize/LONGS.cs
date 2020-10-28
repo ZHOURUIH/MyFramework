@@ -9,13 +9,13 @@ public class LONGS : OBJECTS
 	public LONGS(int count)
 	{
 		mValue = new long[count];
-		mType = typeof(long[]);
+		mType = Typeof<long[]>();
 		mSize = TYPE_SIZE * mValue.Length;
 	}
 	public LONGS(long[] value)
 	{
 		mValue = value;
-		mType = typeof(long[]);
+		mType = Typeof<long[]>();
 		mSize = TYPE_SIZE * mValue.Length;
 	}
 	public override void setRealSize(ushort realSize)

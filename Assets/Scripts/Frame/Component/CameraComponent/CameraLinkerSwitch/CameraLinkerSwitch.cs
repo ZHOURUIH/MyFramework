@@ -5,7 +5,6 @@ using UnityEngine;
 // 摄像机连接器的转换器基类,用于实现切换连接器时的各种过渡效果
 public abstract class CameraLinkerSwitch : GameBase
 {
-	protected CAMERA_LINKER_SWITCH mType;
 	protected CameraLinker mParentLinker;
 	protected Vector3 mOriginRelative;
 	protected Vector3 mTargetRelative;
@@ -15,9 +14,8 @@ public abstract class CameraLinkerSwitch : GameBase
 	// 绕目标旋转转换器是角速度
 	protected float mSpeed;
 	public CameraLinkerSwitch(){}
-	public void initType(CAMERA_LINKER_SWITCH type, CameraLinker parentLinker)
+	public void initType(CameraLinker parentLinker)
 	{
-		mType = type;
 		mParentLinker = parentLinker;
 	}
 	public virtual void init(Vector3 origin, Vector3 target, float speed)

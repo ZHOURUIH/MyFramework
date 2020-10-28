@@ -28,7 +28,7 @@ public struct ConfigInfo
 	public string mValue;
 }
 
-public abstract class ConfigBase : FrameComponent
+public abstract class ConfigBase : FrameSystem
 {
 	protected Dictionary<string, GAME_FLOAT> mFloatNameToDefine;
 	protected Dictionary<GAME_FLOAT, string> mFloatDefineToName;
@@ -36,8 +36,7 @@ public abstract class ConfigBase : FrameComponent
 	protected Dictionary<GAME_STRING, string> mStringDefineToName;
 	protected Dictionary<GAME_FLOAT, FloatParameter> mFloatList;
 	protected Dictionary<GAME_STRING, StringParameter> mStringList;
-	public ConfigBase(string name)
-		:base(name) 
+	public ConfigBase()
 	{
 		mFloatNameToDefine = new Dictionary<string, GAME_FLOAT>();
 		mFloatDefineToName = new Dictionary<GAME_FLOAT, string>();

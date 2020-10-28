@@ -9,6 +9,10 @@ public class ObjectPoolDebug : MonoBehaviour
 	public List<ObjectInfo> InstanceListValues = new List<ObjectInfo>();
 	private void Update()
 	{
+		if (!FrameBase.mGameFramework.isEnableScriptDebug())
+		{
+			return;
+		}
 		if (FrameBase.mObjectPool == null)
 		{
 			return;

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-public class RecorderParser : GameBase
+public class RecorderParser : FrameBase
 {
 	protected WavRecorder mRecorder;		// 采集本地音频输入的录音机
 	protected short[] mFrequencyData;		// 转换后的频域数据

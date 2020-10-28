@@ -3,14 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
-public class CharacterManager : FrameComponent
+public class CharacterManager : FrameSystem
 {
 	protected Dictionary<Type, Dictionary<uint, Character>> mCharacterTypeList;    // 角色分类列表
 	protected Dictionary<uint, Character> mCharacterGUIDList;	// 角色ID索引表
 	protected Dictionary<uint, Character> mFixedUpdateList;		// 需要在FixedUpdate中更新的列表,如果直接使用mCharacterGUIDList,会非常慢,而很多时候其实并不需要进行物理更新,所以单独使用一个列表存储
 	protected ICharacterMyself mMyself;							// 玩家自己,方便获取
-	public CharacterManager(string name)
-		:base(name)
+	public CharacterManager()
 	{
 		mCharacterTypeList = new Dictionary<Type, Dictionary<uint, Character>>();
 		mCharacterGUIDList = new Dictionary<uint, Character>();
@@ -60,11 +59,7 @@ public class CharacterManager : FrameComponent
 			}
 		}
 	}
-	public T getMyself<T>() where T : Character { return mMyself as T; }
-	public T getCharacter<T>(uint characterID) where T : Character
-	{
-		return getCharacter(characterID) as T;
-	}
+	public ICharacterMyself getIMyself() { return mMyself; }
 	public Character getCharacter(uint characterID)
 	{
 		return mCharacterGUIDList.ContainsKey(characterID) ? mCharacterGUIDList[characterID] : null;
@@ -78,9 +73,8 @@ public class CharacterManager : FrameComponent
 	{
 		character.setActive(active);
 	}
-	public Dictionary<uint, Character> getCharacterListByType<T>() where T : Character
+	public Dictionary<uint, Character> getCharacterListByType(Type type)
 	{
-		Type type = typeof(T);
 		if (!mCharacterTypeList.ContainsKey(type))
 		{
 			return null;
@@ -94,7 +88,8 @@ public class CharacterManager : FrameComponent
 			logError("there is a character id : " + id + "! can not create again!");
 			return null;
 		}
-		Character newCharacter = createInstance<Character>(type, name);
+		Character newCharacter = createInstance<Character>(type);
+		newCharacter.setName(name);
 		newCharacter.setCharacterType(type);
 		// 如果是玩家自己,则记录下来
 		if (newCharacter is ICharacterMyself)

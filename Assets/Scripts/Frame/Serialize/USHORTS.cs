@@ -9,13 +9,13 @@ public class USHORTS : OBJECTS
 	public USHORTS(int count)
 	{
 		mValue = new ushort[count];
-		mType = typeof(ushort[]);
+		mType = Typeof<ushort[]>();
 		mSize = TYPE_SIZE * mValue.Length;
 	}
 	public USHORTS(ushort[] value)
 	{
 		mValue = value;
-		mType = typeof(ushort[]);
+		mType = Typeof<ushort[]>();
 		mSize = TYPE_SIZE * mValue.Length;
 	}
 	public override void setRealSize(ushort realSize)

@@ -3,14 +3,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-public class DataBase : FrameComponent
+public class DataBase : FrameSystem
 {
 	protected Dictionary<Type, List<Data>> mDataStructList;
 	protected Dictionary<string, Type> mDataFileDefine;
 	protected Dictionary<Type, string> mDataDefineFile;
 	protected Dictionary<Type, int> mDataSizeMap;
-	public DataBase(string name)
-		:base(name)
+	public DataBase()
 	{
 		mDataStructList = new Dictionary<Type,List<Data>>();
 		mDataFileDefine = new Dictionary<string, Type>();
@@ -36,21 +35,22 @@ public class DataBase : FrameComponent
 		{
 			foreach (var item in mDataFileDefine)
 			{
-				string filePath = ResourceManager.mResourceRootPath + CommonDefine.SA_GAME_DATA_FILE_PATH + item.Key + CommonDefine.DATA_SUFFIX;
+				string filePath = ResourceManager.mResourceRootPath + FrameDefine.SA_GAME_DATA_FILE_PATH + item.Key + FrameDefine.DATA_SUFFIX;
 				if(!isFileExist(filePath))
 				{
 					continue;
 				}
 				byte[] file;
-				openFile(filePath, out file, true);
-				if (file != null && file.Length > 0)
+				int fileSize = openFile(filePath, out file, true);
+				if (file != null && fileSize > 0)
 				{
-					parseFile(file, item.Value);
+					parseFile(file, fileSize, item.Value);
 				}
+				releaseFileBuffer(file);
 			}
 		}
 	}
-	public void parseFile(byte[] file, Type type)
+	public void parseFile(byte[] file, int fileSize, Type type)
 	{
 		if(mDataStructList.ContainsKey(type))
 		{
@@ -59,8 +59,7 @@ public class DataBase : FrameComponent
 		// 解析文件
 		List<Data> dataList = new List<Data>();
 		int dataSize = getDataSize(type);
-		byte[] dataBuffer = new byte[dataSize];
-		int fileSize = file.Length;
+		byte[] dataBuffer = mBytesPool.newBytes(getGreaterPow2(dataSize));
 		int dataCount = fileSize / dataSize;
 		for (int i = 0; i < dataCount; ++i)
 		{
@@ -75,6 +74,7 @@ public class DataBase : FrameComponent
 			newData.read(dataBuffer);
 			dataList.Add(newData);
 		}
+		mBytesPool.destroyBytes(dataBuffer);
 		mDataStructList.Add(type, dataList);
 	}
 	public void destroyAllData()
@@ -94,18 +94,10 @@ public class DataBase : FrameComponent
 	{
 		return mDataStructList.ContainsKey(type) ? mDataStructList[type].Count : 0;
 	}
-	public int getDataCount<T>()
-	{
-		return getDataCount(typeof(T));
-	}
 	// 查询数据
 	public Data queryData(Type type, int index)
 	{
 		return mDataStructList.ContainsKey(type) ? mDataStructList[type][index] : null;
-	}
-	public T queryData<T>(int index) where T : Data
-	{
-		return queryData(typeof(T), index) as T;
 	}
 	public void addData(Type type, Data data, int pos = -1)
 	{

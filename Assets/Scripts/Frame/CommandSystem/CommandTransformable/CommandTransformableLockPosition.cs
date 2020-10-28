@@ -20,7 +20,7 @@ public class CommandTransformableLockPosition : Command
 		Transformable obj = mReceiver as Transformable;
 		TransformableComponentLockPosition component = obj.getComponent(out component);
 		// 停止其他移动组件
-		obj.breakComponent<IComponentModifyPosition>(component.GetType());
+		obj.breakComponent<IComponentModifyPosition>(Typeof(component));
 		component.setActive(true);
 		component.setLockPosition(mLockPosition);
 		component.setLock(mLockX, mLockY, mLockZ);

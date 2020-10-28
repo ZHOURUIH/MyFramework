@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class WavSound : GameBase
+public class WavSound : FrameBase
 {
 	protected Serializer mWaveDataSerializer;
 	protected string mFileName;
@@ -88,6 +88,7 @@ public class WavSound : GameBase
 			mDataBuffer = new byte[mDataSize];
 			serializer.readBuffer(mDataBuffer, mDataSize, mDataSize);
 		} while (bytesToString(mDataMark) != "data");
+		releaseFileBuffer(fileData);
 		refreshFileSize();
 		int mixDataCount = getMixPCMDataCount();
 		mMixPCMData = new short[mixDataCount];
@@ -99,28 +100,30 @@ public class WavSound : GameBase
 		// 如果单声道,则直接将mDataBuffer的数据拷贝到mMixPCMData中
 		if (channelCount == 1)
 		{
-			byte[] tempByte = new byte[2];
+			byte[] tempBytes = mBytesPool.newBytes(2);
 			for (int i = 0; i < mixDataCount; ++i)
 			{
-				tempByte[0] = dataBuffer[2 * i + 0];
-				tempByte[1] = dataBuffer[2 * i + 1];
-				mixPCMData[i] = bytesToShort(tempByte);
+				tempBytes[0] = dataBuffer[2 * i + 0];
+				tempBytes[1] = dataBuffer[2 * i + 1];
+				mixPCMData[i] = bytesToShort(tempBytes);
 			}
+			mBytesPool.destroyBytes(tempBytes);
 		}
 		// 如果有两个声道,则将左右两个声道的平均值赋值到mMixPCMData中
 		else if (channelCount == 2)
 		{
-			byte[] tempByte = new byte[2];
+			byte[] tempBytes = mBytesPool.newBytes(2);
 			for (int i = 0; i < mixDataCount; ++i)
 			{
-				tempByte[0] = dataBuffer[4 * i + 0];
-				tempByte[1] = dataBuffer[4 * i + 1];
-				short shortData0 = bytesToShort(tempByte);
-				tempByte[0] = dataBuffer[4 * i + 2];
-				tempByte[1] = dataBuffer[4 * i + 3];
-				short shortData1 = bytesToShort(tempByte);
+				tempBytes[0] = dataBuffer[4 * i + 0];
+				tempBytes[1] = dataBuffer[4 * i + 1];
+				short shortData0 = bytesToShort(tempBytes);
+				tempBytes[0] = dataBuffer[4 * i + 2];
+				tempBytes[1] = dataBuffer[4 * i + 3];
+				short shortData1 = bytesToShort(tempBytes);
 				mixPCMData[i] = (short)((shortData0 + shortData1) * 0.5f);
 			}
+			mBytesPool.destroyBytes(tempBytes);
 		}
 	}
 	public static void generateMixPCMData(short[] mixPCMData, int mixDataCount, short channelCount, short[] dataBuffer, int bufferSize)
@@ -147,13 +150,10 @@ public class WavSound : GameBase
 	public void startWaveStream(WaveFormatEx waveHeader)
 	{
 		mWaveDataSerializer = new Serializer();
-		byte[] riffByte = new byte[4] { (byte)'R', (byte)'I', (byte)'F', (byte)'F' };
-		mRiffMark = bytesToInt(riffByte);
+		mRiffMark = bytesToInt((byte)'R', (byte)'I', (byte)'F', (byte)'F');
 		mFileSize = 0;
-		byte[] waveByte = new byte[4] { (byte)'W', (byte)'A', (byte)'V', (byte)'E' };
-		mWaveMark = bytesToInt(waveByte);
-		byte[] fmtByte = new byte[4] { (byte)'f', (byte)'m', (byte)'t', (byte)' ' };
-		mFmtMark = bytesToInt(fmtByte);
+		mWaveMark = bytesToInt((byte)'W', (byte)'A', (byte)'V', (byte)'E');
+		mFmtMark = bytesToInt((byte)'f', (byte)'m', (byte)'t', (byte)' ');
 		mFmtChunkSize = 16;
 		mFormatType = waveHeader.wFormatTag;
 		mSoundChannels = waveHeader.nChannels;

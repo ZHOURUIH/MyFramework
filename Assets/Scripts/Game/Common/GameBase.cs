@@ -17,6 +17,6 @@ public class GameBase : FrameBase
 	{
 		base.notifyConstructDone();
 		mGame = mGameFramework as Game;
-		mGame.getSystem(out mGameConfig);
+		mGameConfig = mGame.getSystem(Typeof<GameConfig>()) as GameConfig;
 	}
 }

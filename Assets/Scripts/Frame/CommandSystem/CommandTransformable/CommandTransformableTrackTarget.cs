@@ -23,7 +23,7 @@ public class CommandTransformableTrackTarget : Command
 		Transformable obj = mReceiver as Transformable;
 		ComponentTrackTargetNormal component = obj.getComponent(out component);
 		// 停止其他移动组件
-		obj.breakComponent<IComponentModifyPosition>(component.GetType());
+		obj.breakComponent<IComponentModifyPosition>(Typeof(component));
 		component.setActive(true);
 		component.setSpeed(mSpeed);
 		component.setTargetOffset(mOffset);

@@ -15,18 +15,17 @@ public abstract class GameScene : ComponentOwner
 	protected Type mExitProcedure;					// 场景的退出流程,退出场景进入其他场景时会先进入该流程,一般用作资源卸载
 	protected const int	mMaxLastProcedureCount = 8; // mLastProcedureList列表的最大长度,当超过该长度时,会移除列表开始的元素
 	protected string mTempStartIntent;              // 进入mTempStartProcedure时的参数
-	public GameScene(string name) 
-        :base(name)
+	public GameScene()
     {
         mSceneProcedureList = new Dictionary<Type, SceneProcedure>();
 		mLastProcedureList = new List<SceneProcedure>();
-		// 创建场景对应的物体,并挂接到场景管理器下
-		mSceneObject = createGameObject(name, mGameSceneManager.getObject());
-		mAudioSource = mSceneObject.GetComponent<AudioSource>();
 	}
 	// 进入场景时初始化
     public virtual void init()
     {
+		// 创建场景对应的物体,并挂接到场景管理器下
+		mSceneObject = createGameObject(mName, mGameSceneManager.getObject());
+		mAudioSource = mSceneObject.GetComponent<AudioSource>();
 #if UNITY_EDITOR
 		mSceneObject.AddComponent<GameSceneDebug>();
 #endif
@@ -40,7 +39,7 @@ public abstract class GameScene : ComponentOwner
 	}
 	public void enterStartProcedure()
 	{
-		CommandGameSceneChangeProcedure cmd = newCmd(out cmd);
+		CommandGameSceneChangeProcedure cmd = newMainCmd(out cmd);
 		cmd.mProcedure = mTempStartProcedure != null ? mTempStartProcedure : mStartProcedure;
 		cmd.mIntent = mTempStartIntent;
 		pushCommand(cmd, this);
@@ -87,7 +86,7 @@ public abstract class GameScene : ComponentOwner
 	public virtual void exit()
 	{
 		// 首先进入退出流程,然后再退出最后的流程
-		CommandGameSceneChangeProcedure cmd = newCmd(out cmd);
+		CommandGameSceneChangeProcedure cmd = newMainCmd(out cmd);
 		cmd.mProcedure = mExitProcedure;
 		pushCommand(cmd, this);
 		mCurProcedure?.exit(null, null);
@@ -102,10 +101,6 @@ public abstract class GameScene : ComponentOwner
 		return mAudioSource = mSceneObject.AddComponent<AudioSource>();
 	}
     public virtual void createSceneProcedure() { }
-	public bool atProcedure<T>() where T : SceneProcedure
-	{
-		return atProcedure(typeof(T));
-	}
 	public bool atProcedure(Type type)
 	{
 		if (mCurProcedure == null)
@@ -115,10 +110,6 @@ public abstract class GameScene : ComponentOwner
 		return mCurProcedure.isThisOrParent(type);
 	}
 	// 是否在指定的流程,不考虑子流程
-	public bool atSelfProcedure<T>() where T : SceneProcedure
-	{
-		return atSelfProcedure(typeof(T));
-	}
 	public bool atSelfProcedure(Type type)
 	{
 		if(mCurProcedure == null)
@@ -192,10 +183,6 @@ public abstract class GameScene : ComponentOwner
 	{
 		return mLastProcedureList[mLastProcedureList.Count - 1].getProcedureType();
 	}
-	public T getProcedure<T>() where T : SceneProcedure
-	{
-		return getProcedure(typeof(T)) as T;
-	}
 	public SceneProcedure getProcedure(Type type)
     {
 		return mSceneProcedureList.ContainsKey(type) ? mSceneProcedureList[type] : null;
@@ -213,24 +200,21 @@ public abstract class GameScene : ComponentOwner
 	}
 	public Type getCurProcedureType() { return mCurProcedure.getProcedureType(); }
 	public SceneProcedure getCurProcedure() { return mCurProcedure; }
-	public T getCurOrParentProcedure<T>() where T : SceneProcedure
+	// 获取当前场景的当前流程或父流程中指定类型的流程
+	public SceneProcedure getCurOrParentProcedure(Type type)
 	{
-		return mCurProcedure.getThisOrParent(typeof(T)) as T;
+		return mCurProcedure.getThisOrParent(type);
 	}
     public void setTempStartProcedure(Type procedure, string intent) 
 	{
 		mTempStartProcedure = procedure;
 		mTempStartIntent = intent;
 	}
-	public static T createProcedure<T>(GameScene gameScene) where T : SceneProcedure
+	public SceneProcedure addProcedure(Type type, Type parent = null)
 	{
-		T procedure = createInstance<T>(typeof(T), gameScene);
-		procedure.setType(typeof(T));
-		return procedure;
-	}
-	public T addProcedure<T>(Type parent = null) where T : SceneProcedure
-	{
-		SceneProcedure procedure = createProcedure<T>(this);
+		SceneProcedure procedure = createInstance<SceneProcedure>(type);
+		procedure.setGameScene(this);
+		procedure.setType(type);
 		if (parent != null)
 		{
 			SceneProcedure parentProcedure = getProcedure(parent);
@@ -241,6 +225,6 @@ public abstract class GameScene : ComponentOwner
 			parentProcedure.addChildProcedure(procedure);
 		}
 		mSceneProcedureList.Add(procedure.getProcedureType(), procedure);
-		return procedure as T;
+		return procedure;
 	}
 }

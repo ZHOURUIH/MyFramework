@@ -6,13 +6,13 @@ public class SQLiteRegister : GameBase
 {
 	public static void registeAllTable()
 	{
-		registeTable(ref mSQLiteDemo, "Monster");
+		registeTable<SQLiteDemo, TDDemo>(ref mSQLiteDemo, "Demo");
 		// 设置表格之间字段的索引关系
 		mSQLite.linkAllTable();
 	}
 	//-------------------------------------------------------------------------------------------------------------
-	protected static void registeTable<T>(ref T table, string tableName) where T : SQLiteTable, new()
+	protected static void registeTable<Table, Data>(ref Table table, string tableName) where Table : SQLiteTable where Data : SQLiteData
 	{
-		table = mSQLite.registeTable<T>(tableName);
+		table = mSQLite.registeTable(Typeof<Table>(), Typeof<Data>(), tableName) as Table;
 	}
 }

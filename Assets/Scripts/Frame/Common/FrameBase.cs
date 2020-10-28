@@ -6,13 +6,13 @@ using System;
 // 继承FileUtility是为了在调用工具函数时方便,把四个完全独立的工具函数类串起来继承,所有继承自FrameBase的类都可以直接访问四大工具类中的函数
 public class FrameBase : UnityUtility
 {
-	// FrameComponent
+	// FrameSystem
 	public static GameFramework mGameFramework;
 	public static CommandSystem mCommandSystem;
 	public static AudioManager mAudioManager;
 	public static GameSceneManager mGameSceneManager;
 	public static CharacterManager mCharacterManager;
-	public static GameLayoutManager mLayoutManager;
+	public static LayoutManager mLayoutManager;
 	public static KeyFrameManager mKeyFrameManager;
 	public static GlobalTouchSystem mGlobalTouchSystem;
 	public static ShaderManager mShaderManager;
@@ -29,6 +29,7 @@ public class FrameBase : UnityUtility
 	public static SceneSystem mSceneSystem;
 	public static ClassPool mClassPool;
 	public static ListPool mListPool;
+	public static BytesPool mBytesPool;
 	public static AndroidPluginManager mAndroidPluginManager;
 	public static AndroidAssetLoader mAndroidAssetLoader;
 	public static HeadTextureManager mHeadTextureManager;
@@ -38,127 +39,116 @@ public class FrameBase : UnityUtility
 	public static TPSpriteManager mTPSpriteManager;
 	public static SocketFactory mSocketFactory;
 	public static PathKeyframeManager mPathKeyframeManager;
+#if USE_ILRUNTIME
+	public static ILRSystem mILRSystem;
+#endif
 #if !UNITY_EDITOR
 	public static LocalLog mLocalLog;
 #endif
 	public virtual void notifyConstructDone()
 	{
 		mGameFramework = GameFramework.mGameFramework;
-		mGameFramework.getSystem(out mCommandSystem);
-		mGameFramework.getSystem(out mAudioManager);
-		mGameFramework.getSystem(out mGameSceneManager);
-		mGameFramework.getSystem(out mCharacterManager);
-		mGameFramework.getSystem(out mLayoutManager);
-		mGameFramework.getSystem(out mKeyFrameManager);
-		mGameFramework.getSystem(out mGlobalTouchSystem);
-		mGameFramework.getSystem(out mShaderManager);
+		mCommandSystem = mGameFramework.getSystem(Typeof<CommandSystem>()) as CommandSystem;
+		mAudioManager = mGameFramework.getSystem(Typeof<AudioManager>()) as AudioManager;
+		mGameSceneManager = mGameFramework.getSystem(Typeof<GameSceneManager>()) as GameSceneManager;
+		mCharacterManager = mGameFramework.getSystem(Typeof<CharacterManager>()) as CharacterManager;
+		mLayoutManager = mGameFramework.getSystem(Typeof<LayoutManager>()) as LayoutManager;
+		mKeyFrameManager = mGameFramework.getSystem(Typeof<KeyFrameManager>()) as KeyFrameManager;
+		mGlobalTouchSystem = mGameFramework.getSystem(Typeof<GlobalTouchSystem>()) as GlobalTouchSystem;
+		mShaderManager = mGameFramework.getSystem(Typeof<ShaderManager>()) as ShaderManager;
 #if !UNITY_IOS && !NO_SQLITE
-		mGameFramework.getSystem(out mSQLite);
+		mSQLite = mGameFramework.getSystem(Typeof<SQLite>()) as SQLite;
 #endif
-		mGameFramework.getSystem(out mDataBase);
-		mGameFramework.getSystem(out mCameraManager);
-		mGameFramework.getSystem(out mResourceManager);
-		mGameFramework.getSystem(out mApplicationConfig);
-		mGameFramework.getSystem(out mFrameConfig);
-		mGameFramework.getSystem(out mObjectPool);
-		mGameFramework.getSystem(out mInputManager);
-		mGameFramework.getSystem(out mSceneSystem);
-		mGameFramework.getSystem(out mClassPool);
-		mGameFramework.getSystem(out mListPool);
-		mGameFramework.getSystem(out mAndroidPluginManager);
-		mGameFramework.getSystem(out mAndroidAssetLoader);
-		mGameFramework.getSystem(out mHeadTextureManager);
-		mGameFramework.getSystem(out mTimeManager);
-		mGameFramework.getSystem(out mMovableObjectManager);
-		mGameFramework.getSystem(out mEffectManager);
-		mGameFramework.getSystem(out mTPSpriteManager);
-		mGameFramework.getSystem(out mSocketFactory);
-		mGameFramework.getSystem(out mPathKeyframeManager);
+		mDataBase = mGameFramework.getSystem(Typeof<DataBase>()) as DataBase;
+		mCameraManager = mGameFramework.getSystem(Typeof<CameraManager>()) as CameraManager;
+		mResourceManager = mGameFramework.getSystem(Typeof<ResourceManager>()) as ResourceManager;
+		mApplicationConfig = mGameFramework.getSystem(Typeof<ApplicationConfig>()) as ApplicationConfig;
+		mFrameConfig = mGameFramework.getSystem(Typeof<FrameConfig>()) as FrameConfig;
+		mObjectPool = mGameFramework.getSystem(Typeof<ObjectPool>()) as ObjectPool;
+		mInputManager = mGameFramework.getSystem(Typeof<InputManager>()) as InputManager;
+		mSceneSystem = mGameFramework.getSystem(Typeof<SceneSystem>()) as SceneSystem;
+		mClassPool = mGameFramework.getSystem(Typeof<ClassPool>()) as ClassPool;
+		mListPool = mGameFramework.getSystem(Typeof<ListPool>()) as ListPool;
+		mBytesPool = mGameFramework.getSystem(Typeof<BytesPool>()) as BytesPool;
+		mAndroidPluginManager = mGameFramework.getSystem(Typeof<AndroidPluginManager>()) as AndroidPluginManager;
+		mAndroidAssetLoader = mGameFramework.getSystem(Typeof<AndroidAssetLoader>()) as AndroidAssetLoader;
+		mHeadTextureManager = mGameFramework.getSystem(Typeof<HeadTextureManager>()) as HeadTextureManager;
+		mTimeManager = mGameFramework.getSystem(Typeof<TimeManager>()) as TimeManager;
+		mMovableObjectManager = mGameFramework.getSystem(Typeof<MovableObjectManager>()) as MovableObjectManager;
+		mEffectManager = mGameFramework.getSystem(Typeof<EffectManager>()) as EffectManager;
+		mTPSpriteManager = mGameFramework.getSystem(Typeof<TPSpriteManager>()) as TPSpriteManager;
+		mSocketFactory = mGameFramework.getSystem(Typeof<SocketFactory>()) as SocketFactory;
+		mPathKeyframeManager = mGameFramework.getSystem(Typeof<PathKeyframeManager>()) as PathKeyframeManager;
+#if USE_ILRUNTIME
+		mILRSystem = mGameFramework.getSystem(Typeof<ILRSystem>()) as ILRSystem;
+#endif
 	}
 	// 方便书写代码添加的命令相关函数
-	public static T newCmd<T>(out T cmd, bool show = true, bool delay = false) where T : Command, new()
+	// 创建主工程中的命令实例
+	public static T newMainCmd<T>(out T cmd, bool show = true, bool delay = false) where T : Command
 	{
-		return cmd = mCommandSystem.newCmd<T>(show, delay);
+		Type type = Typeof<T>();
+		if (type == null)
+		{
+			logError("无法使用newMainCmd创建非主工程的命令");
+		}
+		return cmd = mCommandSystem.newCmd(type, show, delay) as T;
 	}
-	public static Command newCmd(out Command cmd, Type type, bool show = true, bool delay = false)
+	public static void pushMainCommand<T>(CommandReceiver cmdReceiver, bool show = true, bool delay = false) where T : Command
 	{
-		return cmd = mCommandSystem.newCmd(type, show, delay);
-	}
-	public static void pushCommand<T>(CommandReceiver cmdReceiver, bool show = true) where T : Command, new()
-	{
-		mCommandSystem.pushCommand<T>(cmdReceiver, show);
+		T cmd = newMainCmd(out cmd);
+		mCommandSystem.pushCommand(cmd, cmdReceiver);
 	}
 	public static void pushCommand(Command cmd, CommandReceiver cmdReceiver)
 	{
 		mCommandSystem.pushCommand(cmd, cmdReceiver);
 	}
-	public static T pushDelayCommand<T>(CommandReceiver cmdReceiver, float delayExecute = 0.001f, bool show = true) where T : Command, new()
+	public static T pushDelayMainCommand<T>(CommandReceiver cmdReceiver, float delayExecute = 0.001f, bool show = true) where T : Command
 	{
-		return mCommandSystem.pushDelayCommand<T>(cmdReceiver, delayExecute);
+		T cmd = newMainCmd(out cmd, show, true);
+		mCommandSystem.pushDelayCommand(cmd, cmdReceiver, delayExecute);
+		return cmd;
 	}
 	public static void pushDelayCommand(Command cmd, CommandReceiver cmdReceiver, float delayExecute = 0.001f)
 	{
 		mCommandSystem.pushDelayCommand(cmd, cmdReceiver, delayExecute);
 	}
-	public static void changeProcedure<T>(string intent = null) where T : SceneProcedure
-	{
-		CommandGameSceneChangeProcedure cmd = newCmd(out cmd);
-		cmd.mProcedure = typeof(T);
-		cmd.mIntent = intent;
-		pushCommand(cmd, mGameSceneManager.getCurScene());
-	}
 	public static void changeProcedure(Type procedure, string intent = null)
 	{
-		CommandGameSceneChangeProcedure cmd = newCmd(out cmd);
+		CommandGameSceneChangeProcedure cmd = newMainCmd(out cmd);
 		cmd.mProcedure = procedure;
 		cmd.mIntent = intent;
 		pushCommand(cmd, mGameSceneManager.getCurScene());
-	}
-	public static CommandGameSceneChangeProcedure changeProcedureDelay<T>(float delayTime = 0.001f, string intent = null) where T : SceneProcedure
-	{
-		CommandGameSceneChangeProcedure cmd = newCmd(out cmd, true, true);
-		cmd.mProcedure = typeof(T);
-		cmd.mIntent = intent;
-		pushDelayCommand(cmd, mGameSceneManager.getCurScene(), delayTime);
-		return cmd;
 	}
 	public static CommandGameSceneChangeProcedure changeProcedureDelay(Type procedure, float delayTime = 0.001f, string intent = null)
 	{
-		CommandGameSceneChangeProcedure cmd = newCmd(out cmd, true, true);
+		CommandGameSceneChangeProcedure cmd = newMainCmd(out cmd, true, true);
 		cmd.mProcedure = procedure;
 		cmd.mIntent = intent;
 		pushDelayCommand(cmd, mGameSceneManager.getCurScene(), delayTime);
 		return cmd;
 	}
-	public static void prepareChangeProcedure<T>(float prepareTime = 0.001f, string intent = null) where T : SceneProcedure
-	{
-		CommandGameScenePrepareChangeProcedure cmd = newCmd(out cmd);
-		cmd.mProcedure = typeof(T);
-		cmd.mIntent = intent;
-		cmd.mPrepareTime = prepareTime;
-		pushCommand(cmd, mGameSceneManager.getCurScene());
-	}
 	public static void prepareChangeProcedure(Type procedure, float prepareTime = 0.001f, string intent = null)
 	{
-		CommandGameScenePrepareChangeProcedure cmd = newCmd(out cmd);
+		CommandGameScenePrepareChangeProcedure cmd = newMainCmd(out cmd);
 		cmd.mProcedure = procedure;
 		cmd.mIntent = intent;
 		cmd.mPrepareTime = prepareTime;
 		pushCommand(cmd, mGameSceneManager.getCurScene());
 	}
-	public static bool getKeyCurrentDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.FM_NONE)
+	public static bool getKeyCurrentDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE)
 	{
 		return mInputManager.getKeyCurrentDown(key, mask);
 	}
-	public static bool getKeyCurrentUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.FM_NONE)
+	public static bool getKeyCurrentUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE)
 	{
 		return mInputManager.getKeyCurrentUp(key, mask);
 	}
-	public static bool getKeyDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.FM_NONE)
+	public static bool getKeyDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE)
 	{
 		return mInputManager.getKeyDown(key, mask);
 	}
-	public static bool getKeyUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.FM_NONE)
+	public static bool getKeyUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE)
 	{
 		return mInputManager.getKeyUp(key, mask);
 	}
@@ -169,9 +159,5 @@ public class FrameBase : UnityUtility
 	public static GameScene getCurScene()
 	{
 		return mGameSceneManager.getCurScene();
-	}
-	public static T getCurScene<T>() where T : GameScene
-	{
-		return mGameSceneManager.getCurScene() as T;
 	}
 }

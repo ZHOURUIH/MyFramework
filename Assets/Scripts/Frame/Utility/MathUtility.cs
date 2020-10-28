@@ -101,7 +101,7 @@ public struct PathNode
 		mF = 0;
 		mIndex = index;
 		mParent = -1;
-		mState = NODE_STATE.NS_NONE;
+		mState = NODE_STATE.NONE;
 	}
 };
 public struct Point
@@ -121,6 +121,7 @@ public struct Point
 
 public class MathUtility : StringUtility
 {
+	private static ThreadLock mTempRandomNumberLock = new ThreadLock();
 	private static byte[] mTempRandomNumber = new byte[4];
 	private static List<PathNode> mTempOpenList = new List<PathNode>();
 	private static Point[] mTempDirect8 = new Point[8];
@@ -175,6 +176,29 @@ public class MathUtility : StringUtility
 			finalValue *= value;
 		}
 		return finalValue;
+	}
+	// 获得大于value的第一个2的n次方的数,value需要大于0
+	public static int getGreaterPow2(int value)
+	{
+		if (value <= 0)
+		{
+			return 0;
+		}
+		if (isPow2(value))
+		{
+			return value;
+		}
+		int curValue = 1;
+		int maxPow = 31;
+		for(int i = 0; i < maxPow; ++i)
+		{
+			if(curValue >= value)
+			{
+				return curValue;
+			}
+			curValue <<= 1;
+		}
+		return curValue;
 	}
 	// 得到数轴上浮点数右边的第一个整数,向上取整
 	public static int ceil(float value)
@@ -306,6 +330,18 @@ public class MathUtility : StringUtility
 		}
 		return 0.0f;
 	}
+	public static int sign(sbyte value)
+	{
+		if (value < 0)
+		{
+			return -1;
+		}
+		else if (value > 0)
+		{
+			return 1;
+		}
+		return 0;
+	}
 	public static int sign(int value)
 	{
 		if (value < 0)
@@ -313,6 +349,42 @@ public class MathUtility : StringUtility
 			return -1;
 		}
 		else if (value > 0)
+		{
+			return 1;
+		}
+		return 0;
+	}
+	public static int sign(uint value0, uint value1)
+	{
+		if (value0 < value1)
+		{
+			return -1;
+		}
+		else if (value0 > value1)
+		{
+			return 1;
+		}
+		return 0;
+	}
+	public static int sign(long value)
+	{
+		if (value < 0)
+		{
+			return -1;
+		}
+		else if (value > 0)
+		{
+			return 1;
+		}
+		return 0;
+	}
+	public static int sign(ulong value0, ulong value1)
+	{
+		if (value0 < value1)
+		{
+			return -1;
+		}
+		else if (value0 > value1)
 		{
 			return 1;
 		}
@@ -2380,6 +2452,7 @@ public class MathUtility : StringUtility
 		}
 		return ndb;
 	}
+	// 由于使用了静态成员变量,所以不能在多线程中调用该函数
 	public static void getFrequencyZone(short[] pcmData, int dataCount, short[] frequencyList)
 	{
 		if (dataCount > mMaxFFTCount)
@@ -2506,16 +2579,21 @@ public class MathUtility : StringUtility
 			x[k].mImg = -x[k].mImg * inverseCount;
 		}
 	}
-	public static void secondsToMinutesSeconds(int seconds, out int outMin, out int outSec)
+	public static void secondToMinuteSecond(int seconds, out int outMin, out int outSec)
 	{
 		outMin = seconds / 60;
 		outSec = seconds - outMin * 60;
 	}
-	public static void secondsToHoursMinutesSeconds(int seconds, out int outHour, out int outMin, out int outSec)
+	public static void secondToHourMinuteSecond(int seconds, out int outHour, out int outMin, out int outSec)
 	{
 		outHour = seconds / 3600;
 		outMin = (seconds - outHour * 3600) / 60;
 		outSec = seconds - outHour * 3600 - outMin * 60;
+	}
+	public static void minuteToHourMinute(int minute, out int outHour, out int outMinute)
+	{
+		outHour = minute / 60;
+		outMinute = minute - outHour * 60;
 	}
 	// 帧换算成秒
 	public static float frameToS(float frame) { return frame * 0.0333f; }
@@ -2586,6 +2664,7 @@ public class MathUtility : StringUtility
 		}
 		return bezierPoints;
 	}
+	// 由于使用了静态成员变量,所以不能在多线程中调用该函数
 	// 得到经过所有点的平滑曲线的点列表,detail是曲线平滑度,越大越平滑,scale是曲线接近折线的程度,越小越接近于折线
 	public static Vector3[] getCurvePoints(Vector3[] originPoint, bool loop, int detail = 10, float scale = 0.6f)
 	{
@@ -2659,6 +2738,7 @@ public class MathUtility : StringUtility
 		}
 		return curvePoint;
 	}
+	// 由于使用了静态成员变量,所以不能在多线程中调用该函数
 	// 得到经过所有点的平滑曲线的点列表,detail是曲线平滑度,越大越平滑,scale是曲线接近折线的程度,越小越接近于折线
 	public static List<Vector3> getCurvePoints(List<Vector3> originPoint, bool loop, int detail = 10, float scale = 0.6f)
 	{
@@ -2739,10 +2819,12 @@ public class MathUtility : StringUtility
 		ulong ulongMS = (ulong)timeForm19700101.TotalMilliseconds;
 		uint halfIntMS = (uint)(ulongMS % 0x7FFFFFFF);
 		// 获取当前系统信息生成的随机数
+		mTempRandomNumberLock.waitForUnlock();
 		memset(mTempRandomNumber, (byte)0);
 		RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
 		rng.GetBytes(mTempRandomNumber);
 		uint uintRand = bytesToUInt(mTempRandomNumber);
+		mTempRandomNumberLock.unlock();
 		uint halfIntRand = uintRand % 0x7FFFFFFF;
 		return halfIntMS + halfIntRand;
 	}
@@ -2869,6 +2951,7 @@ public class MathUtility : StringUtility
 	}
 	public static float speedToInterval(float speed) { return 0.0333f / speed; }
 	public static float intervalToSpeed(float interval) { return 0.0333f / interval; }
+	// 由于使用了静态成员变量,所以不能在多线程中调用该函数
 	public static bool AStar(bool[] map, Point begin, Point end, int width, List<int> foundPath, bool useDir8)
 	{
 		if (begin.toIndex(width) == end.toIndex(width))
@@ -2907,7 +2990,7 @@ public class MathUtility : StringUtility
 			}
 			mTempOpenList.RemoveAt(minFPosInOpenList);
 			// 添加进关闭列表里
-			mTempNodeList[minFIndex].mState = NODE_STATE.NS_CLOSE;
+			mTempNodeList[minFIndex].mState = NODE_STATE.CLOSE;
 			parentNode = mTempNodeList[minFIndex];
 			// 父节点的坐标
 			int parentNodeX = parentNode.mIndex % width;
@@ -2941,14 +3024,14 @@ public class MathUtility : StringUtility
 					map[curIndex])
 				{
 					PathNode curNode = mTempNodeList[curIndex];
-					if (curNode.mState == NODE_STATE.NS_CLOSE)
+					if (curNode.mState == NODE_STATE.CLOSE)
 					{
 						continue;
 					}
 					// 计算格子的G1值,即从当前父格到这个格子的G值
 					int G1 = (dirList[i].x == parentNodeX || dirList[i].y == parentNodeY) ? parentNode.mG + 10 : parentNode.mG + 14;
 					// 如果它已经在开启列表里面了
-					if (curNode.mState == NODE_STATE.NS_OPEN)
+					if (curNode.mState == NODE_STATE.OPEN)
 					{
 						// 检查G值来判定，如果通过这一格到达那里，路径是否更好
 						// 如果新的G值更小一些
@@ -2980,7 +3063,7 @@ public class MathUtility : StringUtility
 						curNode.mG = G1;
 						curNode.mH = (abs(dirList[i].x - end.x) + abs(dirList[i].y - end.y)) * 10;
 						curNode.mF = curNode.mG + curNode.mH;
-						curNode.mState = NODE_STATE.NS_OPEN;
+						curNode.mState = NODE_STATE.OPEN;
 						mTempOpenList.Add(curNode);
 					}
 					mTempNodeList[curIndex] = curNode;
@@ -2992,7 +3075,7 @@ public class MathUtility : StringUtility
 				return false;
 			}
 			// 终点被添加进开启列表里，找到路了
-			if (mTempNodeList[end.toIndex(width)].mState == NODE_STATE.NS_OPEN)
+			if (mTempNodeList[end.toIndex(width)].mState == NODE_STATE.OPEN)
 			{
 				break;
 			}

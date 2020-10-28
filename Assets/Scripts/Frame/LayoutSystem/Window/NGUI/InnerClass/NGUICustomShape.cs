@@ -4,7 +4,7 @@ using UnityEngine;
 
 public delegate void onGenerateTriangle(List<Vector2> points, ref List<Vector3> triangleList);
 
-public class NGUICustomShape : GameBase, INGUIShape
+public class NGUICustomShape : FrameBase, INGUIShape
 {
 	public List<Vector3> mVertices;
 	public List<Color> mColors;

@@ -6,24 +6,23 @@ using System.Data;
 using System.Collections.Generic;
 using System;
 
-public class SQLite : FrameComponent
+public class SQLite : FrameSystem
 {
+	protected Dictionary<Type, SQLiteTable> mTableList;
 	protected SqliteConnection mConnection;
 	protected SqliteCommand mCommand;
-	protected Dictionary<Type, SQLiteTable> mTableList;
-	public SQLite(string name)
-		: base(name)
+	public SQLite()
 	{
 		mTableList = new Dictionary<Type, SQLiteTable>();
 		try
 		{
-			string fullPath = CommonDefine.F_ASSETS_DATA_BASE_PATH + GameDefine.DATA_BASE_FILE;
+			string fullPath = FrameDefine.F_ASSETS_DATA_BASE_PATH + GameDefine.DATA_BASE_FILE;
 			if (isFileExist(fullPath))
 			{
 #if UNITY_ANDROID && !UNITY_EDITOR
 				// 将文件拷贝到persistentDataPath目录中,因为只有该目录才拥有读写权限
-				string persisFullPath = CommonDefine.F_PERSIS_DATA_BASE_PATH + GameDefine.DATA_BASE_FILE;
-				logInfo("persisFullPath:" + persisFullPath, LOG_LEVEL.LL_FORCE);
+				string persisFullPath = FrameDefine.F_PERSIS_DATA_BASE_PATH + GameDefine.DATA_BASE_FILE;
+				logInfo("persisFullPath:" + persisFullPath, LOG_LEVEL.FORCE);
 				copyFile(fullPath, persisFullPath);
 				fullPath = persisFullPath;
 #endif
@@ -37,14 +36,15 @@ public class SQLite : FrameComponent
 		}
 		catch (Exception e)
 		{
-			logInfo("打开数据库失败:" + e.Message, LOG_LEVEL.LL_FORCE);
+			logInfo("打开数据库失败:" + e.Message, LOG_LEVEL.FORCE);
 		}
 	}
-	public T registeTable<T>(string tableName) where T : SQLiteTable, new()
+	public SQLiteTable registeTable(Type type, Type dataType, string tableName)
 	{
-		T table = new T();
+		var table = createInstance<SQLiteTable>(type);
 		table.setTableName(tableName);
-		mTableList.Add(typeof(T), table);
+		table.setDataType(dataType);
+		mTableList.Add(Typeof(table), table);
 		return table;
 	}
 	public void linkAllTable()
@@ -60,8 +60,10 @@ public class SQLite : FrameComponent
 		clearConnection();
 		if (isFileExist(fullFileName))
 		{
-			mConnection = new SqliteConnection("URI=file:" + fullFileName);   // 创建SQLite对象的同时，创建SqliteConnection对象  
-			mConnection.Open();                         // 打开数据库链接
+			// 创建SQLite对象的同时，创建SqliteConnection对象  
+			mConnection = new SqliteConnection("URI=file:" + fullFileName);
+			// 打开数据库链接
+			mConnection.Open();
 		}
 		if (mConnection != null)
 		{
@@ -82,7 +84,7 @@ public class SQLite : FrameComponent
 	{
 		if (mConnection == null)
 		{
-			connect(CommonDefine.F_PERSIS_DATA_BASE_PATH + GameDefine.DATA_BASE_FILE);
+			connect(FrameDefine.F_PERSIS_DATA_BASE_PATH + GameDefine.DATA_BASE_FILE);
 		}
 	}
 	public void createTable(string tableName, string format)
@@ -117,13 +119,9 @@ public class SQLite : FrameComponent
 		}
 		catch (Exception) { }
 	}
-	public void getTable<T>(out T table) where T : SQLiteTable
+	public SQLiteTable getTable(Type type)
 	{
-		table = null;
-		if (mTableList.ContainsKey(typeof(T)))
-		{
-			table = mTableList[typeof(T)] as T;
-		}
+		return mTableList.ContainsKey(type) ? mTableList[type] : null;
 	}
 	//---------------------------------------------------------------------------------------------------------------
 	protected void clearConnection()

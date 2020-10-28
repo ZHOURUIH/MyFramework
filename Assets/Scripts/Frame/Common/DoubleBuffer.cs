@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 
 // 双缓冲,线程安全的缓冲区,可在多个线程中写入数据,一个线程中读取数据
-public class DoubleBuffer<T> : GameBase
+public class DoubleBuffer<T> : FrameBase
 {
 	protected List<T>[] mBufferList;
 	protected ThreadLock mBufferLock;

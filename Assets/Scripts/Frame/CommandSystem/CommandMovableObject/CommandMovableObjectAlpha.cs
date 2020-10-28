@@ -33,7 +33,7 @@ public class CommandMovableObjectAlpha : Command
 		ComponentOwner obj = mReceiver as ComponentOwner;
 		MovableObjectComponentAlpha component = obj.getComponent(out component);
 		// 停止其他相关组件
-		obj.breakComponent<IComponentModifyAlpha>(component.GetType());
+		obj.breakComponent<IComponentModifyAlpha>(Typeof(component));
 		component.setTremblingCallback(mTremblingCallBack);
 		component.setTrembleDoneCallback(mTrembleDoneCallBack);
 		component.setActive(true);

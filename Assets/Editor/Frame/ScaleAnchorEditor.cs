@@ -8,12 +8,17 @@ public class ScaleAnchorEditor : GameEditorBase
 	public override void OnInspectorGUI()
 	{
 		anchor = target as ScaleAnchor;
-		anchor.mKeepAspect = displayToggle("KeepAspect", anchor.mKeepAspect);
-		anchor.mAdjustFont = displayToggle("AdjustFont", anchor.mAdjustFont);
+		anchor.mKeepAspect = displayToggle("KeepAspect", anchor.mKeepAspect, out bool keepAspectModified);
+		anchor.mAdjustFont = displayToggle("AdjustFont", anchor.mAdjustFont, out bool adjustFountModified);
+		bool aspectBaseModified = false;
 		if (anchor.mKeepAspect)
 		{
-			var aspectBase = (ASPECT_BASE)displayEnum("AspectBase", anchor.mAspectBase);
+			var aspectBase = (ASPECT_BASE)displayEnum("AspectBase", anchor.mAspectBase, out aspectBaseModified);
 			anchor.mAspectBase = aspectBase;
+		}
+		if(keepAspectModified || adjustFountModified || aspectBaseModified)
+		{
+			EditorUtility.SetDirty(target);
 		}
 	}
 }

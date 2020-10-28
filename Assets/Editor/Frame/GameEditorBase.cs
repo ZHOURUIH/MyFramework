@@ -19,13 +19,17 @@ public class GameEditorBase : Editor
 		EditorGUILayout.PropertyField(property, new GUIContent(displayName), includeChildren);
 	}
 	// 直接显示一个bool属性,并且返回修改以后的值
-	public bool displayToggle(string displayName, bool value)
+	public bool displayToggle(string displayName, bool value, out bool modified)
 	{
-		return EditorGUILayout.Toggle(displayName, value);
+		bool retValue = EditorGUILayout.Toggle(displayName, value);
+		modified = retValue != value;
+		return retValue;
 	}
-	public Enum displayEnum(string displayName, Enum value)
+	public Enum displayEnum(string displayName, Enum value, out bool modified)
 	{
-		return EditorGUILayout.EnumPopup(displayName, value);
+		Enum retValue = EditorGUILayout.EnumPopup(displayName, value);
+		modified = retValue.CompareTo(value) != 0;
+		return retValue;
 	}
 	public int intPopup(string displayName, string[] valueDisplay, int[] values)
 	{

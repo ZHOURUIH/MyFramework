@@ -21,8 +21,19 @@ public class FileUtility : MathUtility
 			path += "/";
 		}
 	}
-	// 打开一个二进制文件,fileName为绝对路径
-	public static void openFile(string fileName, out byte[] fileBuffer, bool errorIfNull)
+	public static void releaseFileBuffer(byte[] fileBuffer)
+	{
+#if !UNITY_ANDROID || UNITY_EDITOR
+		// 非安卓或编辑器下需要使用BytesPool进行回收
+		// 如果数组大于等于16KB,则交给GC自动回收,否则就回收到自己的池中
+		FrameBase.mBytesPool.destroyBytes(fileBuffer, fileBuffer.Length >= 1024 * 16);
+#else
+		// 安卓真机下打开文件时不再进行回收,由GC自动回收
+#endif
+	}
+	// 打开一个二进制文件,fileName为绝对路径,返回值为文件长度
+	// 使用完毕后需要使用releaseFileBuffer回收文件内存
+	public static int openFile(string fileName, out byte[] fileBuffer, bool errorIfNull)
 	{
 		fileBuffer = null;
 		try
@@ -35,23 +46,24 @@ public class FileUtility : MathUtility
 				{
 					UnityUtility.logInfo("open file failed! filename : " + fileName);
 				}
-				return;
+				return 0;
 			}
 			int fileSize = (int)fs.Length;
-			fileBuffer = new byte[fileSize];
+			fileBuffer = FrameBase.mBytesPool.newBytes(getGreaterPow2(fileSize));
 			fs.Read(fileBuffer, 0, fileSize);
 			fs.Close();
 			fs.Dispose();
+			return fileSize;
 #else
 			// 安卓平台如果要读取StreamingAssets下的文件,只能使用AssetManager
-			if (startWith(fileName, CommonDefine.F_STREAMING_ASSETS_PATH))
+			if (startWith(fileName, FrameDefine.F_STREAMING_ASSETS_PATH))
 			{
 				// 改为相对路径
-				fileName = fileName.Substring(CommonDefine.F_STREAMING_ASSETS_PATH.Length, fileName.Length - CommonDefine.F_STREAMING_ASSETS_PATH.Length);
+				fileName = fileName.Substring(FrameDefine.F_STREAMING_ASSETS_PATH.Length, fileName.Length - FrameDefine.F_STREAMING_ASSETS_PATH.Length);
 				fileBuffer = AndroidAssetLoader.loadAsset(fileName, errorIfNull);
 			}
 			// 安卓平台如果要读取persistentDataPath的文件,则可以使用File
-			else if (startWith(fileName, CommonDefine.F_PERSISTENT_DATA_PATH))
+			else if (startWith(fileName, FrameDefine.F_PERSISTENT_DATA_PATH))
 			{
 				fileBuffer = AndroidAssetLoader.loadFile(fileName, errorIfNull);
 			}
@@ -59,12 +71,14 @@ public class FileUtility : MathUtility
 			{
 				UnityUtility.logError("openFile invalid path : " + fileName);
 			}
+			return fileBuffer.Length;
 #endif
 		}
 		catch (Exception)
 		{
 			UnityUtility.logInfo("open file failed! filename : " + fileName);
 		}
+		return 0;
 	}
 	// 打开一个文本文件,fileName为绝对路径
 	public static string openTxtFile(string fileName, bool errorIfNull)
@@ -87,14 +101,14 @@ public class FileUtility : MathUtility
 			return fileBuffer;
 #else
 			// 安卓平台如果要读取StreamingAssets下的文件,只能使用AssetManager
-			if (startWith(fileName, CommonDefine.F_STREAMING_ASSETS_PATH))
+			if (startWith(fileName, FrameDefine.F_STREAMING_ASSETS_PATH))
 			{
 				// 改为相对路径
-				fileName = fileName.Substring(CommonDefine.F_STREAMING_ASSETS_PATH.Length, fileName.Length - CommonDefine.F_STREAMING_ASSETS_PATH.Length);
+				fileName = fileName.Substring(FrameDefine.F_STREAMING_ASSETS_PATH.Length, fileName.Length - FrameDefine.F_STREAMING_ASSETS_PATH.Length);
 				return AndroidAssetLoader.loadTxtAsset(fileName, errorIfNull);
 			}
 			// 安卓平台如果要读取persistentDataPath的文件,则可以使用File
-			if (startWith(fileName, CommonDefine.F_PERSISTENT_DATA_PATH))
+			if (startWith(fileName, FrameDefine.F_PERSISTENT_DATA_PATH))
 			{
 				return AndroidAssetLoader.loadTxtFile(fileName, errorIfNull);
 			}
@@ -269,14 +283,14 @@ public class FileUtility : MathUtility
 		return Directory.Exists(dir);
 #else
 		// 安卓平台如果要读取StreamingAssets下的文件,只能使用AssetManager
-		if(startWith(dir + "/", CommonDefine.F_STREAMING_ASSETS_PATH))
+		if(startWith(dir + "/", FrameDefine.F_STREAMING_ASSETS_PATH))
 		{
 			// 改为相对路径
-			dir = dir.Substring(CommonDefine.F_STREAMING_ASSETS_PATH.Length, dir.Length - CommonDefine.F_STREAMING_ASSETS_PATH.Length);
+			dir = dir.Substring(FrameDefine.F_STREAMING_ASSETS_PATH.Length, dir.Length - FrameDefine.F_STREAMING_ASSETS_PATH.Length);
 			return AndroidAssetLoader.isAssetExist(dir);
 		}
 		// 安卓平台如果要读取persistentDataPath的文件,则可以使用File
-		if (startWith(dir + "/", CommonDefine.F_PERSISTENT_DATA_PATH))
+		if (startWith(dir + "/", FrameDefine.F_PERSISTENT_DATA_PATH))
 		{
 			return AndroidAssetLoader.isDirExist(dir);
 		}
@@ -290,14 +304,14 @@ public class FileUtility : MathUtility
 		return File.Exists(fileName);
 #else
 		// 安卓平台如果要读取StreamingAssets下的文件,只能使用AssetManager
-		if(startWith(fileName, CommonDefine.F_STREAMING_ASSETS_PATH))
+		if(startWith(fileName, FrameDefine.F_STREAMING_ASSETS_PATH))
 		{
 			// 改为相对路径
-			fileName = fileName.Substring(CommonDefine.F_STREAMING_ASSETS_PATH.Length, fileName.Length - CommonDefine.F_STREAMING_ASSETS_PATH.Length);
+			fileName = fileName.Substring(FrameDefine.F_STREAMING_ASSETS_PATH.Length, fileName.Length - FrameDefine.F_STREAMING_ASSETS_PATH.Length);
 			return AndroidAssetLoader.isAssetExist(fileName);
 		}
 		// 安卓平台如果要读取persistentDataPath的文件,则可以使用File
-		if (startWith(fileName, CommonDefine.F_PERSISTENT_DATA_PATH))
+		if (startWith(fileName, FrameDefine.F_PERSISTENT_DATA_PATH))
 		{
 			return AndroidAssetLoader.isFileExist(fileName);
 		}
@@ -363,14 +377,14 @@ public class FileUtility : MathUtility
 		return;
 #endif
 		validPath(ref path);
-		if (!startWith(path, CommonDefine.F_GAME_RESOURCES_PATH))
+		if (!startWith(path, FrameDefine.F_GAME_RESOURCES_PATH))
 		{
-			path = CommonDefine.F_GAME_RESOURCES_PATH + path;
+			path = FrameDefine.F_GAME_RESOURCES_PATH + path;
 		}
 		findFiles(path, fileList, patterns, recursive);
 		if (!keepAbsolutePath)
 		{
-			int removeLength = CommonDefine.F_GAME_RESOURCES_PATH.Length;
+			int removeLength = FrameDefine.F_GAME_RESOURCES_PATH.Length;
 			int count = fileList.Count;
 			for (int i = 0; i < count; ++i)
 			{
@@ -410,30 +424,30 @@ public class FileUtility : MathUtility
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
 		// 转换为相对路径
-		if (startWith(path, CommonDefine.F_STREAMING_ASSETS_PATH))
+		if (startWith(path, FrameDefine.F_STREAMING_ASSETS_PATH))
 		{
-			path = path.Substring(CommonDefine.F_STREAMING_ASSETS_PATH.Length);
+			path = path.Substring(FrameDefine.F_STREAMING_ASSETS_PATH.Length);
 		}
 		AndroidAssetLoader.findAssets(path, fileList, patterns, recursive);
 		// 查找后的路径本身就是相对路径,如果需要保留绝对路径,则需要将路径加上
 		if(keepAbsolutePath)
 		{
-			int removeLength = CommonDefine.F_STREAMING_ASSETS_PATH.Length;
+			int removeLength = FrameDefine.F_STREAMING_ASSETS_PATH.Length;
 			int count = fileList.Count;
 			for(int i = 0; i < count; ++i)
 			{
-				fileList[i] = CommonDefine.F_STREAMING_ASSETS_PATH + fileList[i];
+				fileList[i] = FrameDefine.F_STREAMING_ASSETS_PATH + fileList[i];
 			}
 		}
 #else
-		if (!startWith(path, CommonDefine.F_STREAMING_ASSETS_PATH))
+		if (!startWith(path, FrameDefine.F_STREAMING_ASSETS_PATH))
 		{
-			path = CommonDefine.F_STREAMING_ASSETS_PATH + path;
+			path = FrameDefine.F_STREAMING_ASSETS_PATH + path;
 		}
 		findFiles(path, fileList, patterns, recursive);
 		if (!keepAbsolutePath)
 		{
-			int removeLength = CommonDefine.F_STREAMING_ASSETS_PATH.Length;
+			int removeLength = FrameDefine.F_STREAMING_ASSETS_PATH.Length;
 			int count = fileList.Count;
 			for (int i = 0; i < count; ++i)
 			{
@@ -447,31 +461,31 @@ public class FileUtility : MathUtility
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
 		// 转换为相对路径
-		if (startWith(path, CommonDefine.F_STREAMING_ASSETS_PATH))
+		if (startWith(path, FrameDefine.F_STREAMING_ASSETS_PATH))
 		{
-			path = path.Substring(CommonDefine.F_STREAMING_ASSETS_PATH.Length);
+			path = path.Substring(FrameDefine.F_STREAMING_ASSETS_PATH.Length);
 		}
 		AndroidAssetLoader.findAssetsFolder(path, folderList, recursive);
 		// 查找后的路径本身就是相对路径,如果需要保留绝对路径,则需要将路径加上
 		if(keepAbsolutePath)
 		{
-			int removeLength = CommonDefine.F_STREAMING_ASSETS_PATH.Length;
+			int removeLength = FrameDefine.F_STREAMING_ASSETS_PATH.Length;
 			int count = folderList.Count;
 			for(int i = 0; i < count; ++i)
 			{
-				folderList[i] = CommonDefine.F_STREAMING_ASSETS_PATH + folderList[i];
+				folderList[i] = FrameDefine.F_STREAMING_ASSETS_PATH + folderList[i];
 			}
 		}
 #else
 		// 非安卓平台则查找普通的文件夹
-		if (!startWith(path, CommonDefine.F_STREAMING_ASSETS_PATH))
+		if (!startWith(path, FrameDefine.F_STREAMING_ASSETS_PATH))
 		{
-			path = CommonDefine.F_STREAMING_ASSETS_PATH + path;
+			path = FrameDefine.F_STREAMING_ASSETS_PATH + path;
 		}
 		findFolders(path, folderList, recursive);
 		if (!keepAbsolutePath)
 		{
-			int removeLength = CommonDefine.F_STREAMING_ASSETS_PATH.Length;
+			int removeLength = FrameDefine.F_STREAMING_ASSETS_PATH.Length;
 			int count = folderList.Count;
 			for (int i = 0; i < count; ++i)
 			{

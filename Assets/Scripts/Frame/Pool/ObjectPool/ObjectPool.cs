@@ -1,13 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-public class ObjectPool : FrameComponent
+public class ObjectPool : FrameSystem
 {
 	protected Dictionary<string, Dictionary<GameObject, ObjectInfo>> mInstanceFileList;
 	protected Dictionary<GameObject, ObjectInfo> mInstanceList;
 	protected List<AsyncLoadGroup> mAsyncLoadGroup;
-	public ObjectPool(string name)
-		: base(name)
+	public ObjectPool()
 	{
 		mInstanceFileList = new Dictionary<string, Dictionary<GameObject, ObjectInfo>>();
 		mInstanceList = new Dictionary<GameObject, ObjectInfo>();
@@ -67,7 +66,7 @@ public class ObjectPool : FrameComponent
 	public void createObjectAsync(List<string> fileWithPath, CreateObjectGroupCallback callback, string objectTag, object userData = null)
 	{
 		AsyncLoadGroup group = null;
-		mClassPool.newClass(out group);
+		mClassPool.newClass(out group, Typeof<AsyncLoadGroup>());
 		group.mCallback = callback;
 		group.mUserData = userData;
 		mAsyncLoadGroup.Add(group);
@@ -113,7 +112,7 @@ public class ObjectPool : FrameComponent
 		ObjectInfo objInfo = getUnusedObject(fileWithPath);
 		if (objInfo == null)
 		{
-			mClassPool.newClass(out objInfo);
+			mClassPool.newClass(out objInfo, Typeof<ObjectInfo>());
 			GameObject prefab = mResourceManager.loadResource<GameObject>(fileWithPath, true);
 			if (prefab == null)
 			{
@@ -185,7 +184,7 @@ public class ObjectPool : FrameComponent
 	protected void onPrefabGroupLoaded(Object asset, Object[] subAssets, byte[] bytes, object[] userData, string loadPath)
 	{
 		ObjectInfo objInfo;
-		mClassPool.newClass(out objInfo);
+		mClassPool.newClass(out objInfo, Typeof<ObjectInfo>());
 		objInfo.setTag(userData[0] as string);
 		objInfo.setUsing(true);
 		// 实例化,只能同步进行
@@ -208,7 +207,7 @@ public class ObjectPool : FrameComponent
 		if (asset != null)
 		{
 			ObjectInfo objInfo;
-			mClassPool.newClass(out objInfo);
+			mClassPool.newClass(out objInfo, Typeof<ObjectInfo>());
 			objInfo.setTag(userData[1] as string);
 			objInfo.setUsing(true);
 			// 实例化,只能同步进行

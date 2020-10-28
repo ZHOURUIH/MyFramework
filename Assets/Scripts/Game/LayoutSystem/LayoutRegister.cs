@@ -9,16 +9,12 @@ public class LayoutRegister : GameBase
 	{
 		registeLayout<ScriptDemoStart>(LAYOUT.DEMO_START, "UIDemoStart");
 		registeLayout<ScriptDemo>(LAYOUT.DEMO, "UIDemo");
-		if (mLayoutManager.getLayoutCount() < (int)LAYOUT.MAX)
-		{
-			logError("error : not all script added! max count : " + (int)LAYOUT.MAX + ", added count :" + mLayoutManager.getLayoutCount());
-		}
-		GameLayout.mLayoutScriptCallback = onScriptChanged;
+		GameLayout.addScriptCallback(onScriptChanged);
 	}
 	public static void onScriptChanged(LayoutScript script, bool created = true)
 	{
 		// 只有布局与脚本唯一对应的才能使用变量快速访问
-		if (mLayoutManager.getScriptMappingCount(script.GetType()) > 1)
+		if (mLayoutManager.getScriptMappingCount(script.getType()) > 1)
 		{
 			return;
 		}
@@ -26,7 +22,7 @@ public class LayoutRegister : GameBase
 		if (assign(ref mScriptDemoStart, script, created)) return;
 	}
 	//----------------------------------------------------------------------------------------------------------------------------------------------------------------
-	protected static void registeLayout<T>(LAYOUT layout, string name) where T : LayoutScript
+	protected static void registeLayout<T>(int layout, string name) where T : LayoutScript
 	{
 		mLayoutManager.registeLayout(typeof(T), layout, name);
 	}

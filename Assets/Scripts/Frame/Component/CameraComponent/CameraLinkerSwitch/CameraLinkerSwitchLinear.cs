@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class CameraLinkerSwitchLinear : CameraLinkerSwitch
 {
+	public Vector3 mDirection;  // 此次转换的方向,用于避免不必要的向量重复计算
 	public float mMovedDistance;
 	public float mDistance;		// 此次转换的总长度,用于避免不必要的向量长度重复计算
-	public Vector3 mDirection;	// 此次转换的方向,用于避免不必要的向量重复计算
 	public CameraLinkerSwitchLinear()
 	{
 		mSpeed = 7.0f;
@@ -27,8 +27,7 @@ public class CameraLinkerSwitchLinear : CameraLinkerSwitch
 		mMovedDistance += mSpeed * elapsedTime;
 		if (mMovedDistance < mDistance)
 		{
-			Vector3 newPos = mOriginRelative + mDirection * mMovedDistance;
-			mParentLinker.setRelativePosition(newPos);
+			mParentLinker.setRelativePosition(mOriginRelative + mDirection * mMovedDistance);
 		}
 		else
 		{

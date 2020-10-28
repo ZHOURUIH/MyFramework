@@ -21,8 +21,7 @@ public class Character : MovableObject
 	protected string mAnimationControllerPath;
 	protected object mUserData;
 	protected uint mGUID;
-	public Character(string name)
-		:base(name)
+	public Character()
 	{
 		mAnimationLenghtList = new Dictionary<string, float>();
 	}
@@ -107,21 +106,19 @@ public class Character : MovableObject
 	public uint getGUID() { return mGUID; }
 	public CharacterDecisionTree getDecisionTree() { return mDecisionTree; }
 	public CharacterStateMachine getStateMachine() { return mStateMachine; }
-	public T getState<T>(uint id) where T : PlayerState { return mStateMachine.getState<T>(id); }
-	public List<PlayerState> getState<T>() where T : PlayerState { return mStateMachine.getState<T>(); }
-	public T getFirstState<T>() where T : PlayerState { return mStateMachine.getFirstState<T>(); }
+	public PlayerState getFirstState(Type type) { return mStateMachine.getFirstState(type); }
+	public PlayerState getState(uint id) { return mStateMachine.getState(id); }
 	public Dictionary<Type, List<PlayerState>> getStateList() { return mStateMachine.getStateList(); }
 	public List<CacheState> getCacheStateList() { return mStateMachine.getCacheStateList(); }
-	public bool hasState<T>() where T : PlayerState { return mStateMachine.hasState<T>(); }
 	public bool hasState(Type state) { return mStateMachine.hasState(state); }
-	public bool hasStateGroup<T>() where T : StateGroup { return mStateMachine.hasStateGroup<T>(); }
+	public bool hasStateGroup(Type group) { return mStateMachine.hasStateGroup(group); }
 	//--------------------------------------------------------------------------------------------------------------
 	protected override void initComponents()
 	{
 		base.initComponents();
-		mAvatar = addComponent<CharacterComponentModel>(true);
-		mStateMachine = addComponent<CharacterStateMachine>(true);
-		mDecisionTree = addComponent<CharacterDecisionTree>();
+		mAvatar = addComponent(Typeof<CharacterComponentModel>(), true) as CharacterComponentModel;
+		mStateMachine = addComponent(Typeof<CharacterStateMachine>(), true) as CharacterStateMachine;
+		mDecisionTree = addComponent(Typeof<CharacterDecisionTree>()) as CharacterDecisionTree;
 	}
 	protected void onModelLoaded(GameObject go, object userData)
 	{

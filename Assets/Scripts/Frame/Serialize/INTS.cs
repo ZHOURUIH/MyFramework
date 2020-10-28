@@ -9,13 +9,13 @@ public class INTS : OBJECTS
 	public INTS(int count)
 	{
 		mValue = new int[count];
-		mType = typeof(int[]);
+		mType = Typeof<int[]>();
 		mSize = TYPE_SIZE * mValue.Length;
 	}
 	public INTS(int[] value)
 	{
 		mValue = value;
-		mType = typeof(int[]);
+		mType = Typeof<int[]>();
 		mSize = TYPE_SIZE * mValue.Length;
 	}
 	public override void setRealSize(ushort realSize)

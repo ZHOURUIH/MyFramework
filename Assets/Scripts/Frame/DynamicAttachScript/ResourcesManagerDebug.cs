@@ -25,6 +25,10 @@ public class ResourcesManagerDebug : MonoBehaviour
 	public List<AssetBundleDebug> mLoadedAssetBundleListValues = new List<AssetBundleDebug>();
 	public void Update()
 	{
+		if (!FrameBase.mGameFramework.isEnableScriptDebug())
+		{
+			return;
+		}
 		mLoadedAssetBundleListKeys.Clear();
 		mLoadedAssetBundleListValues.Clear();
 		AssetBundleLoader assetBundleLoader = FrameBase.mResourceManager.getAssetBundleLoader();

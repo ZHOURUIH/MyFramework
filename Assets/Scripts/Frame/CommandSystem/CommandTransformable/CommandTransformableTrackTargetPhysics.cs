@@ -23,7 +23,7 @@ class CommandTransformableTrackTargetPhysics : Command
 		Transformable obj = mReceiver as Transformable;
 		ComponentTrackTargetPhysics component = obj.getComponent(out component);
 		// 停止其他移动组件
-		obj.breakComponent<IComponentModifyPosition>(component.GetType());
+		obj.breakComponent<IComponentModifyPosition>(Typeof(component));
 		component.setSpeed(mSpeed);
 		component.setTargetOffset(mOffset);
 		component.setActive(true);

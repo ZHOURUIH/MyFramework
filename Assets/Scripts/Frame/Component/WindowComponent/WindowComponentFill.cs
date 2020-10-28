@@ -10,7 +10,7 @@ public class WindowComponentFill : ComponentKeyFrameNormal
 	//------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
-		txUIObject window = mComponentOwner as txUIObject;
+		myUIObject window = mComponentOwner as myUIObject;
 		window.setFillPercent(lerpSimple(mStartValue, mTargetValue, value));
 	}
 }

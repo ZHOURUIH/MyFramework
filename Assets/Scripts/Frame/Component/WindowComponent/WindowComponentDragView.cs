@@ -10,7 +10,7 @@ public class WindowComponentDragView : GameComponent
 	protected OnDragViewCallback mReleaseDragCallback;
 	protected OnDragViewCallback mPositionChangeCallback;
 	protected OnDragViewStartCallback mOnDragViewStartCallback;
-	protected txUIObject mWindow;
+	protected myUIObject mWindow;
 	protected DRAG_DIRECTION mDragDirection;
 	protected CLAMP_TYPE mClampType;
 	protected Vector3 mMinRelativePos;		// 左边界和下边界或者窗口中心的最小值,具体需要由mClampType决定,-1到1的相对值,相对于父窗口的宽高
@@ -46,8 +46,8 @@ public class WindowComponentDragView : GameComponent
 	private float[] mDisArray;
 	public WindowComponentDragView()
 	{
-		mDragDirection = DRAG_DIRECTION.DD_HORIZONTAL;
-		mClampType = CLAMP_TYPE.CT_EDGE;
+		mDragDirection = DRAG_DIRECTION.HORIZONTAL;
+		mClampType = CLAMP_TYPE.EDGE_IN_RECT;
 		mMinRelativePos = -Vector3.one;
 		mMaxRelativePos = Vector3.one;
 		mMinMaxPos = new Vector3[2];
@@ -66,7 +66,7 @@ public class WindowComponentDragView : GameComponent
 	public override void init(ComponentOwner owner)
 	{
 		base.init(owner);
-		mWindow = owner as txUIObject;
+		mWindow = owner as myUIObject;
 	}
 	public override void update(float elapsedTime)
 	{
@@ -77,11 +77,11 @@ public class WindowComponentDragView : GameComponent
 			Vector3 prePos = curPosition;
 			// 拖拽状态时,鼠标移动量就是窗口的移动量,此处未考虑父窗口的缩放不为1的情况
 			Vector3 moveDelta = getMousePosition() - mStartDragMousePosition;
-			if(mDragDirection == DRAG_DIRECTION.DD_HORIZONTAL)
+			if(mDragDirection == DRAG_DIRECTION.HORIZONTAL)
 			{
 				moveDelta.y = 0.0f;
 			}
-			else if(mDragDirection == DRAG_DIRECTION.DD_VERTICAL)
+			else if(mDragDirection == DRAG_DIRECTION.VERTICAL)
 			{
 				moveDelta.x = 0.0f;
 			}
@@ -107,11 +107,11 @@ public class WindowComponentDragView : GameComponent
 				Vector3 curPosition = mWindow.getPosition();
 				Vector3 targetPosition = curPosition;
 				// 获得当前最近的边
-				if(mDragDirection == DRAG_DIRECTION.DD_HORIZONTAL)
+				if(mDragDirection == DRAG_DIRECTION.HORIZONTAL)
 				{
 					targetPosition.x = getNearest(curPosition.x, minPos.x, maxPos.x);
 				}
-				else if(mDragDirection == DRAG_DIRECTION.DD_VERTICAL)
+				else if(mDragDirection == DRAG_DIRECTION.VERTICAL)
 				{
 					targetPosition.y = getNearest(curPosition.y, minPos.y, maxPos.y);
 				}
@@ -228,11 +228,11 @@ public class WindowComponentDragView : GameComponent
 			return;
 		}
 		Vector3 delta = moveDelta;
-		if(mDragDirection == DRAG_DIRECTION.DD_HORIZONTAL)
+		if(mDragDirection == DRAG_DIRECTION.HORIZONTAL)
 		{
 			delta.y = 0.0f;
 		}
-		else if(mDragDirection == DRAG_DIRECTION.DD_VERTICAL)
+		else if(mDragDirection == DRAG_DIRECTION.VERTICAL)
 		{
 			delta.x = 0.0f;
 		}
@@ -245,7 +245,7 @@ public class WindowComponentDragView : GameComponent
 			{
 				// 鼠标滑动的方向需要与当前方向一致,否则不能开始滑动
 				bool validDrag = true;
-				if(mDragDirection == DRAG_DIRECTION.DD_HORIZONTAL)
+				if(mDragDirection == DRAG_DIRECTION.HORIZONTAL)
 				{
 					float angleBetweenLeft = getAngleBetweenVector(dragDir, Vector3.left);
 					float angleBetweenRight = PI_RADIAN - angleBetweenLeft;
@@ -259,7 +259,7 @@ public class WindowComponentDragView : GameComponent
 						validDrag = angleBetweenRight <= mDragAngleThreshold;
 					}
 				}
-				else if(mDragDirection == DRAG_DIRECTION.DD_VERTICAL)
+				else if(mDragDirection == DRAG_DIRECTION.VERTICAL)
 				{
 					float angleBetweenUp = getAngleBetweenVector(dragDir, Vector3.up);
 					float angleBetweenDown = PI_RADIAN - angleBetweenUp;
@@ -362,9 +362,10 @@ public class WindowComponentDragView : GameComponent
 			dragView1.mMutexDragView.Add(dragView0);
 		}
 	}
-	public static void mutexDragView(txUIObject dragView0, txUIObject dragView1)
+	public static void mutexDragView(myUIObject dragView0, myUIObject dragView1)
 	{
-		mutexDragView(dragView0.getComponent<WindowComponentDragView>(), dragView1.getComponent<WindowComponentDragView>());
+		mutexDragView(dragView0.getComponent<WindowComponentDragView>(),
+					  dragView1.getComponent<WindowComponentDragView>());
 	}
 	public static void releaseMutexDragView(WindowComponentDragView dragView0, WindowComponentDragView dragView1)
 	{
@@ -375,9 +376,10 @@ public class WindowComponentDragView : GameComponent
 		dragView0.mMutexDragView.Remove(dragView1);
 		dragView1.mMutexDragView.Remove(dragView0);
 	}
-	public static void releaseMutexDragView(txUIObject dragView0, txUIObject dragView1)
+	public static void releaseMutexDragView(myUIObject dragView0, myUIObject dragView1)
 	{
-		releaseMutexDragView(dragView0.getComponent<WindowComponentDragView>(), dragView1.getComponent<WindowComponentDragView>());
+		releaseMutexDragView(dragView0.getComponent<WindowComponentDragView>(),
+							 dragView1.getComponent<WindowComponentDragView>());
 	}
 	public void setPosition(Vector3 pos)
 	{
@@ -408,9 +410,9 @@ public class WindowComponentDragView : GameComponent
 	{
 		if(mMinMaxPosDirty)
 		{
-			bool isNGUI = mWindow.getLayout().isNGUI();
+			GUI_TYPE guiType = mWindow.getLayout().getGUIType();
 			Vector2 parentWidgetSize = Vector2.zero;
-			if(isNGUI)
+			if(guiType == GUI_TYPE.NGUI)
 			{
 #if USE_NGUI
 				// 获得第一个带widget的父节点的rect
@@ -421,19 +423,19 @@ public class WindowComponentDragView : GameComponent
 				parentWidgetSize = WidgetUtility.getNGUIRectSize(mParentRect);
 #endif
 			}
-			else
+			else if(guiType == GUI_TYPE.UGUI)
 			{
 				parentWidgetSize = mWindow.getParent().getWindowSize();
 			}
 			// 计算父节点的世界缩放
 			Vector2 worldScale = getMatrixScale(mWindow.getTransform().parent.localToWorldMatrix);
-			txUIObject root = mLayoutManager.getUIRoot(isNGUI);
+			myUIObject root = mLayoutManager.getUIRoot(guiType);
 			Vector2 uiRootScale = root.getTransform().localScale;
 			Vector2 parentScale = worldScale / uiRootScale;
 			// 计算移动的位置范围
 			Vector2 minPos = parentWidgetSize * 0.5f * mMinRelativePos / parentScale;
 			Vector2 maxPos = parentWidgetSize * 0.5f * mMaxRelativePos / parentScale;
-			if(mClampType == CLAMP_TYPE.CT_EDGE)
+			if(mClampType == CLAMP_TYPE.EDGE_IN_RECT)
 			{
 				Vector2 thisSize = mWindow.getWindowSize(true);
 				minPos += thisSize * 0.5f;
@@ -443,7 +445,7 @@ public class WindowComponentDragView : GameComponent
 					swap(ref minPos, ref maxPos);
 				}
 			}
-			else if(mClampType == CLAMP_TYPE.CT_CENTER)
+			else if(mClampType == CLAMP_TYPE.CENTER_IN_RECT)
 			{ }
 			mMinMaxPos[0] = minPos;
 			mMinMaxPos[1] = maxPos;
@@ -457,7 +459,7 @@ public class WindowComponentDragView : GameComponent
 		Vector3[] minMaxPos = getLocalMinMaxPixelPos();
 		Vector2 minPos = minMaxPos[0];
 		Vector2 maxPos = minMaxPos[1];
-		if(mDragDirection == DRAG_DIRECTION.DD_HORIZONTAL || mDragDirection == DRAG_DIRECTION.DD_FREE)
+		if(mDragDirection == DRAG_DIRECTION.HORIZONTAL || mDragDirection == DRAG_DIRECTION.FREE)
 		{
 			float maxValue = getMax(minPos.x, maxPos.x);
 			float minValue = getMin(minPos.x, maxPos.x);
@@ -484,7 +486,7 @@ public class WindowComponentDragView : GameComponent
 				}
 			}
 		}
-		if(mDragDirection == DRAG_DIRECTION.DD_VERTICAL || mDragDirection == DRAG_DIRECTION.DD_FREE)
+		if(mDragDirection == DRAG_DIRECTION.VERTICAL || mDragDirection == DRAG_DIRECTION.FREE)
 		{
 			float maxValue = getMax(minPos.y, maxPos.y);
 			float minValue = getMin(minPos.y, maxPos.y);
@@ -519,7 +521,7 @@ public class WindowComponentDragView : GameComponent
 		Vector3[] minMaxPos = getLocalMinMaxPixelPos();
 		Vector2 minPos = minMaxPos[0];
 		Vector2 maxPos = minMaxPos[1];
-		if(mDragDirection == DRAG_DIRECTION.DD_HORIZONTAL || mDragDirection == DRAG_DIRECTION.DD_FREE)
+		if(mDragDirection == DRAG_DIRECTION.HORIZONTAL || mDragDirection == DRAG_DIRECTION.FREE)
 		{
 			float maxValue = getMax(minPos.x, maxPos.x);
 			float minValue = getMin(minPos.x, maxPos.x);
@@ -541,7 +543,7 @@ public class WindowComponentDragView : GameComponent
 				}
 			}
 		}
-		if(mDragDirection == DRAG_DIRECTION.DD_VERTICAL || mDragDirection == DRAG_DIRECTION.DD_FREE)
+		if(mDragDirection == DRAG_DIRECTION.VERTICAL || mDragDirection == DRAG_DIRECTION.FREE)
 		{
 			float maxValue = getMax(minPos.y, maxPos.y);
 			float minValue = getMin(minPos.y, maxPos.y);
@@ -573,7 +575,7 @@ public class WindowComponentDragView : GameComponent
 		Vector2 maxPos = minMaxPos[1];
 		bool horiValid = false;
 		bool vertValid = false;
-		if(mDragDirection == DRAG_DIRECTION.DD_HORIZONTAL || mDragDirection == DRAG_DIRECTION.DD_FREE)
+		if(mDragDirection == DRAG_DIRECTION.HORIZONTAL || mDragDirection == DRAG_DIRECTION.FREE)
 		{
 			float maxValue = getMax(minPos.x, maxPos.x);
 			float minValue = getMin(minPos.x, maxPos.x);
@@ -601,7 +603,7 @@ public class WindowComponentDragView : GameComponent
 				}
 			}
 		}
-		if(mDragDirection == DRAG_DIRECTION.DD_VERTICAL || mDragDirection == DRAG_DIRECTION.DD_FREE)
+		if(mDragDirection == DRAG_DIRECTION.VERTICAL || mDragDirection == DRAG_DIRECTION.FREE)
 		{
 			float maxValue = getMax(minPos.y, maxPos.y);
 			float minValue = getMin(minPos.y, maxPos.y);
@@ -629,11 +631,11 @@ public class WindowComponentDragView : GameComponent
 				}
 			}
 		}
-		if(mDragDirection == DRAG_DIRECTION.DD_HORIZONTAL)
+		if(mDragDirection == DRAG_DIRECTION.HORIZONTAL)
 		{
 			return horiValid;
 		}
-		else if(mDragDirection == DRAG_DIRECTION.DD_VERTICAL)
+		else if(mDragDirection == DRAG_DIRECTION.VERTICAL)
 		{
 			return vertValid;
 		}

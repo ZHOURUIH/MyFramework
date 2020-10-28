@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 
 public class GameCamera : MovableObject
@@ -15,8 +13,7 @@ public class GameCamera : MovableObject
 	protected Vector3 mPositionOffset;
 	protected int mLastVisibleLayer;
 	// 如果要实现摄像机震动,则需要将摄像机挂接到一个节点上,一般操作的是父节点的Transform,震动时是操作摄像机自身节点的Transform
-	public GameCamera(string name)
-		:base(name)
+	public GameCamera()
 	{
 		mCameraMoveSpeed = 30.0f;
 		mMouseSpeed = 0.1f;
@@ -77,7 +74,7 @@ public class GameCamera : MovableObject
 				}
 			}
 			// 鼠标旋转摄像机
-			if (mInputManager.getMouseKeepDown(MOUSE_BUTTON.MB_RIGHT) || mInputManager.getMouseCurrentDown(MOUSE_BUTTON.MB_RIGHT))
+			if (mInputManager.getMouseKeepDown(MOUSE_BUTTON.RIGHT) || mInputManager.getMouseCurrentDown(MOUSE_BUTTON.RIGHT))
 			{
 				Vector2 moveDelta = mInputManager.getMouseDelta();
 				if (!isFloatZero(moveDelta.x) || !isFloatZero(moveDelta.y))

@@ -3,57 +3,90 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-public class GameLayout : GameBase
+public class GameLayout : FrameBase
 {
-	protected Dictionary<GameObject, txUIObject> mGameObjectSearchList; // 用于根据GameObject查找UI
+	protected Dictionary<GameObject, myUIObject> mGameObjectSearchList; // 用于根据GameObject查找UI
 	// 布局中UI物体列表,用于保存所有已获取的UI
 	// 更新过程中窗口创建或者销毁时并不会立即更新到此列表
-	protected Dictionary<int, txUIObject> mObjectList;
-	protected List<txUIObject> mAddList;                // 在更新过程中添加的列表
-	protected List<txUIObject> mRemoveList;				// 在更新过程中
+	protected Dictionary<int, myUIObject> mObjectList;
+	protected List<myUIObject> mAddList;                // 在更新过程中添加的列表
+	protected List<myUIObject> mRemoveList;             // 在更新过程中
 #if USE_NGUI
-	protected txNGUIPanel mRoot;			// NGUI的Panel
+	protected myNGUIPanel mNGUILayoutRoot;			// NGUI的Panel
 #endif
-	protected txUGUICanvas mRoot;			// UGUI的Canvas
+	protected myUGUICanvas mUGUILayoutRoot;         // UGUI的Canvas
 	protected LayoutScript mScript;			// 布局脚本
-	protected GameObject mPrefab;			// 布局预设,布局从该预设实例化
-	protected LAYOUT mType;					// 布局类型
+	protected GameObject mPrefab;           // 布局预设,布局从该预设实例化
+	protected myUIObject mRoot;				// 布局根节点
+	protected LAYOUT_ORDER mRenderOrderType;// 布局渲染顺序的计算方式
+	protected GUI_TYPE mGUIType;            // UI插件类型
 	protected string mName;					// 布局名称
-	protected bool mScriptInited;			// 脚本是否已经初始化
-	protected bool mScriptControlHide;		// 是否由脚本来控制隐藏
-	protected bool mIsNGUI;					// 是否为NGUI布局,true为NGUI,false为UGUI
-	protected bool mIsScene;				// 是否为场景,如果是场景,就不将布局挂在NGUIRoot或者UGUIRoot下
-	protected bool mCheckBoxAnchor;			// 是否检查布局中所有带碰撞盒的窗口是否自适应分辨率
+	protected bool mScriptControlHide;      // 是否由脚本来控制隐藏
 	protected bool mIgnoreTimeScale;        // 更新布局时是否忽略时间缩放
-	protected bool mBlurBack;               // 布局显示时是否需要使布局背后(比当前布局层级低)的所有布局模糊显示
+	protected bool mCheckBoxAnchor;         // 是否检查布局中所有带碰撞盒的窗口是否自适应分辨率
+	protected bool mLockObjectList;         // 是否正在遍历
 	protected bool mAnchorApplied;          // 是否已经完成了自适应的调整
-	protected bool mLockObjectList;			// 是否正在遍历
-	protected int mRenderOrder;             // 渲染顺序,越大则渲染优先级越高
-	protected int mDefaultLayer;			// 布局加载时所处的层
-	public static LayoutScriptCallback mLayoutScriptCallback;
+	protected bool mScriptInited;           // 脚本是否已经初始化
+	protected bool mBlurBack;               // 布局显示时是否需要使布局背后(比当前布局层级低)的所有布局模糊显示
+	protected bool mIsScene;                // 是否为场景,如果是场景,就不将布局挂在NGUIRoot或者UGUIRoot下
+	protected int mDefaultLayer;            // 布局加载时所处的层
+	protected int mRenderOrder;             // 渲染顺序,越大则渲染优先级越高,不能小于0
+	protected int mID;						// 布局ID
+	protected static List<LayoutScriptCallback> mLayoutScriptCallback = new List<LayoutScriptCallback>();
 	public GameLayout()
 	{
-		mGameObjectSearchList = new Dictionary<GameObject, txUIObject>();
-		mObjectList = new Dictionary<int, txUIObject>();
-		mAddList = new List<txUIObject>();
-		mRemoveList = new List<txUIObject>();
+		mGameObjectSearchList = new Dictionary<GameObject, myUIObject>();
+		mObjectList = new Dictionary<int, myUIObject>();
+		mAddList = new List<myUIObject>();
+		mRemoveList = new List<myUIObject>();
 		mCheckBoxAnchor = true;
-		mRenderOrder = -1;
+		mRenderOrder = 0;
+	}
+	public static void addScriptCallback(LayoutScriptCallback callback)
+	{
+		if (!mLayoutScriptCallback.Contains(callback))
+		{
+			mLayoutScriptCallback.Add(callback);
+		}
+	}
+	public static void removeScriptCallback(LayoutScriptCallback callback)
+	{
+		mLayoutScriptCallback.Remove(callback);
 	}
 	public void setPrefab(GameObject prefab) { mPrefab = prefab; }
+	public void setOrderType(LAYOUT_ORDER orderType) { mRenderOrderType = orderType; }
 	public void setRenderOrder(int renderOrder)
 	{
 		mRenderOrder = renderOrder;
-		mRoot.setDepth(mRenderOrder);
+		if (mRenderOrder < 0)
+		{
+			logError("布局深度不能小于0,否则无法正确计算窗口深度");
+			return;
+		}
+		if(mGUIType == GUI_TYPE.NGUI)
+		{
+#if USE_NGUI
+			mNGUILayoutRoot.setDepth(mRenderOrder);
+#endif
+		}
+		else if (mGUIType == GUI_TYPE.UGUI)
+		{
+			mUGUILayoutRoot.setSortingOrder(mRenderOrder);
+		}
 		// 刷新所有窗口注册的深度
 		refreshObjectDepth();
 	}
+	public LAYOUT_ORDER getRenderOrderType() { return mRenderOrderType; }
 	public int getRenderOrder(){return mRenderOrder;}
 	public void setBlurBack(bool blurBack) { mBlurBack = blurBack; }
 	public bool isBlurBack() { return mBlurBack; }
 	public int getDefaultLayer() { return mDefaultLayer; }
 	public bool isAnchorApplied() { return mAnchorApplied; }
-	public txUIObject getUIObject(GameObject go)
+	public void setID(int id) { mID = id; }
+	public void setName(string name) { mName = name; }
+	public void setGUIType(GUI_TYPE guiType) { mGUIType = guiType; }
+	public void setIsScene(bool isScene) { mIsScene = isScene; }
+	public myUIObject getUIObject(GameObject go)
 	{
 		if(mGameObjectSearchList.ContainsKey(go))
 		{
@@ -61,37 +94,39 @@ public class GameLayout : GameBase
 		}
 		return null;
 	}
-	public void init(LAYOUT type, string name, int renderOrder, bool isNGUI, bool isScene)
-	{	
-		mName = name;
-		mType = type;
-		mIsNGUI = isNGUI;
-		mIsScene = isScene;
+	public void init(int renderOrder, LAYOUT_ORDER orderType)
+	{
+		mRenderOrderType = orderType;
 		mScript = mLayoutManager.createScript(this);
-		mLayoutScriptCallback?.Invoke(mScript, true);
+		foreach(var item in mLayoutScriptCallback)
+		{
+			item.Invoke(mScript, true);
+		}
 		if (mScript == null)
 		{
-			logError("can not create layout script! type : " + mType);
+			logError("can not create layout script! id : " + mID);
+			return;
 		}
+		myUIObject parent = mIsScene ? null : mLayoutManager.getUIRoot(mGUIType);
 		// 初始化布局脚本
-		if(!mIsScene)
+		if(mGUIType == GUI_TYPE.NGUI)
 		{
-			mScript.newObject(out mRoot, mLayoutManager.getUIRoot(mIsNGUI), mName);
+#if USE_NGUI
+			mScript.newObject(out mNGUILayoutRoot, parent, mName);
+			mRoot = mNGUILayoutRoot;
+#endif
 		}
-		else
+		else if(mGUIType == GUI_TYPE.UGUI)
 		{
-			mScript.newObject(out mRoot, null, mName);
+			mScript.newObject(out mUGUILayoutRoot, parent, mName);
+			mRoot = mUGUILayoutRoot;
 		}
-		mRoot?.setDestroyImmediately(true);
+		mRoot.setDestroyImmediately(true);
 		mDefaultLayer = mRoot.getObject().layer;
+		setOrderType(orderType);
 		setRenderOrder(renderOrder);
 		mScript.setRoot(mRoot);
 		mScript.assignWindow();
-		// 查找完窗口后设置所有窗口的深度
-		if(!mIsNGUI)
-		{
-			setUIChildDepth(mRoot, 0, false);
-		}
 		// 布局实例化完成,初始化之前,需要调用自适应组件的更新
 		if (mLayoutManager.isUseAnchor())
 		{
@@ -150,13 +185,19 @@ public class GameLayout : GameBase
 	{
 		if (mScript != null)
 		{
-			mLayoutScriptCallback?.Invoke(mScript, false);
+			foreach (var item in mLayoutScriptCallback)
+			{
+				item.Invoke(mScript, false);
+			}
 			mScript.destroy();
 			mScript = null;
 		}
-		txUIObject.destroyWindow(mRoot, true);
+		myUIObject.destroyWindow(mRoot, true);
 		mRoot = null;
-		mResourceManager.unload(ref mPrefab);
+		if (mPrefab != null)
+		{
+			mResourceManager.unload(ref mPrefab);
+		}
 	}
 	public void getAllCollider(List<Collider> colliders, bool append = false)
 	{
@@ -215,17 +256,17 @@ public class GameLayout : GameBase
 		mRoot.setActive(visible);
 	}
 	public bool isVisible() { return mRoot.isActive(); }
-	public txUIObject getRoot() { return mRoot; }
+	public myUIObject getRoot() { return mRoot; }
 	public LayoutScript getScript() { return mScript; }
-	public LAYOUT getType() { return mType; }
+	public int getID() { return mID; }
 	public string getName() { return mName; }
-	public bool isNGUI() { return mIsNGUI; }
+	public GUI_TYPE getGUIType() { return mGUIType; }
 	public bool isScene() { return mIsScene; }
 	public void setCheckBoxAnchor(bool check) { mCheckBoxAnchor = check; }
 	public bool isCheckBoxAnchor() { return mCheckBoxAnchor; }
 	public void setIgnoreTimeScale(bool ignore) { mIgnoreTimeScale = ignore; }
 	public bool isIgnoreTimeScale() { return mIgnoreTimeScale; }
-	public void registerUIObject(txUIObject uiObj)
+	public void registerUIObject(myUIObject uiObj)
 	{
 		// 如果此时正在遍历列表,则需要加入添加列表
 		if(mLockObjectList)
@@ -238,7 +279,7 @@ public class GameLayout : GameBase
 		mObjectList.Add(uiObj.getID(), uiObj);
 		mGameObjectSearchList.Add(uiObj.getObject(), uiObj);
 	}
-	public void unregisterUIObject(txUIObject uiObj)
+	public void unregisterUIObject(myUIObject uiObj)
 	{
 		// 如果此时正在遍历列表,则需要添加到移除列表,待后续从主列表移除
 		if (mLockObjectList)
@@ -263,24 +304,12 @@ public class GameLayout : GameBase
 		{
 			syncObjectList();
 		}
-		foreach (var item in mObjectList)
-		{
-			mGlobalTouchSystem.notifyWindowDepthChanged(item.Value);
-		}
+		setUIDepth(mRoot, mRenderOrder);
 	}
-	// 有节点删除或者增加
-	public void notifyObjectChanged()
+	// 有节点删除或者增加,或者节点在当前父节点中的位置有改变,parent表示有变动的节点的父节点
+	public void notifyChildChanged(myUIObject parent, bool ignoreInactive = false)
 	{
-		setUIChildDepth(mRoot, 0, false);
-	}
-	// 节点在当前父节点中的位置有改变
-	public void notifyObjectOrderChanged(txUIObject parent, bool ignoreInactive = false)
-	{
-		if(parent == null)
-		{
-			return;
-		}
-		setUIChildDepth(parent, parent.getDepth(), parent != mRoot, ignoreInactive);
+		setUIDepth(parent, 0, false, ignoreInactive);
 	}
 	//------------------------------------------------------------------------------------------------------------
 	protected void syncObjectList()
@@ -297,31 +326,36 @@ public class GameLayout : GameBase
 		mAddList.Clear();
 		mRemoveList.Clear();
 	}
-	// 返回值是最后一个窗口的深度值,ignoreInactive表示是否忽略未启用的节点
-	protected int setUIChildDepth(txUIObject window, int uiDepth, bool includeSelf = true, bool ignoreInactive = false)
+	// ignoreInactive表示是否忽略未启用的节点
+	protected void setUIDepth(myUIObject window, int orderInParent, bool includeSelf = true, bool ignoreInactive = false)
 	{
-		// NGUI不需要重新设置所有节点的深度
-		if(mIsNGUI)
+		// 只有UGUI需要设置所有窗口的深度
+		if (mGUIType != GUI_TYPE.UGUI)
 		{
-			return 0;
+			return;
 		}
 		// 先设置当前窗口的深度
 		if (includeSelf)
 		{
-			window.setDepth(uiDepth);
+			UIDepth parentDepth = null;
+			if (window != mRoot)
+			{
+				parentDepth = window.getParent().getDepth();
+			}
+			window.getDepth().setDepth(parentDepth, orderInParent, window.isDepthOverAllChild());
+			mGlobalTouchSystem.notifyWindowDepthChanged(window);
 		}
-		// 再设置子窗口的深度
-		int endDepth = window.getDepth();
 		if (ignoreInactive && !window.isActive())
 		{
-			return endDepth;
+			return;
 		}
+
+		// 再设置子窗口的深度,子节点在父节点中的下标从1开始,如果从0开始,则会与默认值的0混淆
 		var children = window.getChildList();
 		int childCount = children.Count;
 		for (int i = 0; i < childCount; ++i)
 		{
-			endDepth = setUIChildDepth(children[i], endDepth + 1, true, ignoreInactive);
+			setUIDepth(children[i], i + 1, true, ignoreInactive);
 		}
-		return endDepth;
 	}
 }

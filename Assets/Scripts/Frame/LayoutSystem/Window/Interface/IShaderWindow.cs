@@ -4,6 +4,6 @@ using System.Collections.Generic;
 
 public interface IShaderWindow
 {
-	void setWindowShader<T>() where T : WindowShader, new();
-	T getWindowShader<T>() where T : WindowShader;
+	void setWindowShader(WindowShader shader);
+	WindowShader getWindowShader();
 }

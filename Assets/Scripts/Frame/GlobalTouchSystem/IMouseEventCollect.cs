@@ -5,18 +5,20 @@ using System;
 
 public interface IMouseEventCollect
 {
+	GameObject getObject();
 	string getName();
 	void onMultiTouchStart(Vector2 touch0, Vector2 touch1);
 	void onMultiTouchMove(Vector2 touch0, Vector2 lastTouch0, Vector2 touch1, Vector2 lastTouch1);
 	void onMultiTouchEnd();
 	bool isActive();
+	bool isActiveInHierarchy();
 	bool isHandleInput();
 	void onMouseLeave();
 	void onMouseEnter();
 	void onMouseMove(ref Vector3 mousePos, ref Vector3 moveDelta, float moveTime);
 	void onMouseStay(Vector3 mousePos);
-	Collider getCollider(bool addIfNull = false);
-	UIDepth getUIDepth();
+	Collider getCollider();
+	UIDepth getDepth();
 	bool isReceiveScreenMouse();
 	void onScreenMouseDown(Vector3 mousePos);
 	void onScreenMouseUp(Vector3 mousePos);
@@ -30,4 +32,6 @@ public interface IMouseEventCollect
 	void onReceiveDrag(IMouseEventCollect dragObj, ref bool continueEvent);
 	void onDragHoverd(IMouseEventCollect dragObj, bool hover);
 	bool isDragable();
+	// 当前对象是否为parent的子节点
+	bool isChildOf(IMouseEventCollect parent);
 }

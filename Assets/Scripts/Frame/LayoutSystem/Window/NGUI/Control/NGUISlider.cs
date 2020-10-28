@@ -7,9 +7,9 @@ using UnityEngine;
 public class NGUISlider : ComponentOwner, ISlider
 {
 	protected LayoutScript mScript;
-	protected txNGUIObject mBackground;
-	protected txNGUIObject mForeground;
-	protected txNGUIObject mThumb;
+	protected myNGUIObject mBackground;
+	protected myNGUIObject mForeground;
+	protected myNGUIObject mThumb;
 	protected DRAG_DIRECTION mDirection;
 	protected SLIDER_MODE mMode;
 	protected SliderCallback mSliderStartCallback;
@@ -26,7 +26,7 @@ public class NGUISlider : ComponentOwner, ISlider
 		mDirection = DRAG_DIRECTION.DD_HORIZONTAL;
 		mMode = SLIDER_MODE.SM_FILL;
 	}
-	public void init(txNGUIObject background, txNGUIObject foreground, txNGUIObject thumb, SLIDER_MODE mode)
+	public void init(myNGUIObject background, myNGUIObject foreground, myNGUIObject thumb, SLIDER_MODE mode)
 	{
 		mMode = mode;
 		mBackground = background;
@@ -59,7 +59,7 @@ public class NGUISlider : ComponentOwner, ISlider
 			mBackground.setOnMouseMove(onMouseMove);
 			if (mBackground.getCollider() != null)
 			{
-				mScript.registeBoxCollider(mBackground);
+				mScript.registeCollider(mBackground);
 			}
 		}
 	}

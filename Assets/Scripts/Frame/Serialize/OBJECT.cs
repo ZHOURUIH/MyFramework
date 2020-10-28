@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 // 基础数据类型再包装基类
-public abstract class OBJECT : GameBase
+public abstract class OBJECT : FrameBase
 {
 	public Type mType;
 	public int mSize;

@@ -4,7 +4,8 @@ using System.Text;
 
 public class BinaryUtility
 {
-	protected static byte[] mTempFloatBytes = new byte[4];
+	private static ThreadLock mTempBytes4Lock = new ThreadLock();
+	private static byte[] mTempBytes4 = new byte[4];
 	protected static Encoding ENCODING_GB2312;
 	protected static Encoding ENCODING_GBK;
 	/** CRC table for the CRC-16. The poly is 0x8005 (x^16 + x^15 + x^2 + 1) */
@@ -113,8 +114,8 @@ public class BinaryUtility
 			return 0;
 		}
 		success = true;
-		byte byte0 = (byte)(0xFF & buffer[index++]);
-		byte byte1 = (byte)(0xFF & buffer[index++]);
+		byte byte0 = buffer[index++];
+		byte byte1 = buffer[index++];
 		if(inverse)
 		{
 			return (short)((byte1 << (8 * 0)) | (byte0 << (8 * 1)));
@@ -132,8 +133,8 @@ public class BinaryUtility
 			return 0;
 		}
 		success = true;
-		byte byte0 = (byte)(0xFF & buffer[index++]);
-		byte byte1 = (byte)(0xFF & buffer[index++]);
+		byte byte0 = buffer[index++];
+		byte byte1 = buffer[index++];
 		if (inverse)
 		{
 			return (ushort)((byte1 << (8 * 0)) | (byte0 << (8 * 1)));
@@ -153,17 +154,23 @@ public class BinaryUtility
 		}
 		success = true;
 		// 使用栈内存,避免GC
-		byte byte0 = (byte)(0xFF & buffer[index++]);
-		byte byte1 = (byte)(0xFF & buffer[index++]);
-		byte byte2 = (byte)(0xFF & buffer[index++]);
-		byte byte3 = (byte)(0xFF & buffer[index++]);
+		byte byte0 = buffer[index++];
+		byte byte1 = buffer[index++];
+		byte byte2 = buffer[index++];
+		byte byte3 = buffer[index++];
 		if (inverse)
 		{
-			return (byte3 << (8 * 0)) | (byte2 << (8 * 1)) | (byte1 << (8 * 2)) | (byte0 << (8 * 3));
+			return (byte3 << (8 * 0)) | 
+				   (byte2 << (8 * 1)) | 
+				   (byte1 << (8 * 2)) | 
+				   (byte0 << (8 * 3));
 		}
 		else
 		{
-			return (byte3 << (8 * 3)) | (byte2 << (8 * 2)) | (byte1 << (8 * 1)) | (byte0 << (8 * 0));
+			return (byte3 << (8 * 3)) | 
+				   (byte2 << (8 * 2)) | 
+				   (byte1 << (8 * 1)) | 
+				   (byte0 << (8 * 0));
 		}
 	}
 	public static uint readUInt(byte[] buffer, ref int index, out bool success, bool inverse = false)
@@ -176,17 +183,23 @@ public class BinaryUtility
 		}
 		success = true;
 		// 使用栈内存,避免GC
-		byte byte0 = (byte)(0xFF & buffer[index++]);
-		byte byte1 = (byte)(0xFF & buffer[index++]);
-		byte byte2 = (byte)(0xFF & buffer[index++]);
-		byte byte3 = (byte)(0xFF & buffer[index++]);
+		byte byte0 = buffer[index++];
+		byte byte1 = buffer[index++];
+		byte byte2 = buffer[index++];
+		byte byte3 = buffer[index++];
 		if (inverse)
 		{
-			return (uint)((byte3 << (8 * 0)) | (byte2 << (8 * 1)) | (byte1 << (8 * 2)) | (byte0 << (8 * 3)));
+			return (uint)(byte3 << (8 * 0)) |
+				   (uint)(byte2 << (8 * 1)) | 
+				   (uint)(byte1 << (8 * 2)) | 
+				   (uint)(byte0 << (8 * 3));
 		}
 		else
 		{
-			return (uint)((byte3 << (8 * 3)) | (byte2 << (8 * 2)) | (byte1 << (8 * 1)) | (byte0 << (8 * 0)));
+			return (uint)(byte3 << (8 * 3)) |
+				   (uint)(byte2 << (8 * 2)) |
+				   (uint)(byte1 << (8 * 1)) |
+				   (uint)(byte0 << (8 * 0));
 		}
 	}
 	public static long readLong(byte[] buffer, ref int index, out bool success, bool inverse = false)
@@ -199,36 +212,36 @@ public class BinaryUtility
 		}
 		success = true;
 		// 使用栈内存,避免GC
-		byte byte0 = (byte)(0xFF & buffer[index++]);
-		byte byte1 = (byte)(0xFF & buffer[index++]);
-		byte byte2 = (byte)(0xFF & buffer[index++]);
-		byte byte3 = (byte)(0xFF & buffer[index++]);
-		byte byte4 = (byte)(0xFF & buffer[index++]);
-		byte byte5 = (byte)(0xFF & buffer[index++]);
-		byte byte6 = (byte)(0xFF & buffer[index++]);
-		byte byte7 = (byte)(0xFF & buffer[index++]);
-		long value = 0;
+		byte byte0 = buffer[index++];
+		byte byte1 = buffer[index++];
+		byte byte2 = buffer[index++];
+		byte byte3 = buffer[index++];
+		byte byte4 = buffer[index++];
+		byte byte5 = buffer[index++];
+		byte byte6 = buffer[index++];
+		byte byte7 = buffer[index++];
+		long value;
 		if (inverse)
 		{
-			value |= (long)byte7 << (8 * 0);
-			value |= (long)byte6 << (8 * 1);
-			value |= (long)byte5 << (8 * 2);
-			value |= (long)byte4 << (8 * 3);
-			value |= (long)byte3 << (8 * 4);
-			value |= (long)byte2 << (8 * 5);
-			value |= (long)byte1 << (8 * 6);
-			value |= (long)byte0 << (8 * 7);
+			value = (long)byte7 << (8 * 0) |
+					(long)byte6 << (8 * 1) |
+					(long)byte5 << (8 * 2) |
+					(long)byte4 << (8 * 3) |
+					(long)byte3 << (8 * 4) |
+					(long)byte2 << (8 * 5) |
+					(long)byte1 << (8 * 6) |
+					(long)byte0 << (8 * 7);
 		}
 		else
 		{
-			value |= (long)byte7 << (8 * 7);
-			value |= (long)byte6 << (8 * 6);
-			value |= (long)byte5 << (8 * 5);
-			value |= (long)byte4 << (8 * 4);
-			value |= (long)byte3 << (8 * 3);
-			value |= (long)byte2 << (8 * 2);
-			value |= (long)byte1 << (8 * 1);
-			value |= (long)byte0 << (8 * 0);
+			value = (long)byte7 << (8 * 7) |
+					(long)byte6 << (8 * 6) |
+					(long)byte5 << (8 * 5) |
+					(long)byte4 << (8 * 4) |
+					(long)byte3 << (8 * 3) |
+					(long)byte2 << (8 * 2) |
+					(long)byte1 << (8 * 1) |
+					(long)byte0 << (8 * 0);
 		}
 		return value;
 	}
@@ -242,36 +255,36 @@ public class BinaryUtility
 		}
 		success = true;
 		// 使用栈内存,避免GC
-		byte byte0 = (byte)(0xFF & buffer[index++]);
-		byte byte1 = (byte)(0xFF & buffer[index++]);
-		byte byte2 = (byte)(0xFF & buffer[index++]);
-		byte byte3 = (byte)(0xFF & buffer[index++]);
-		byte byte4 = (byte)(0xFF & buffer[index++]);
-		byte byte5 = (byte)(0xFF & buffer[index++]);
-		byte byte6 = (byte)(0xFF & buffer[index++]);
-		byte byte7 = (byte)(0xFF & buffer[index++]);
-		ulong value = 0;
+		byte byte0 = buffer[index++];
+		byte byte1 = buffer[index++];
+		byte byte2 = buffer[index++];
+		byte byte3 = buffer[index++];
+		byte byte4 = buffer[index++];
+		byte byte5 = buffer[index++];
+		byte byte6 = buffer[index++];
+		byte byte7 = buffer[index++];
+		ulong value;
 		if (inverse)
 		{
-			value |= (ulong)byte7 << (8 * 0);
-			value |= (ulong)byte6 << (8 * 1);
-			value |= (ulong)byte5 << (8 * 2);
-			value |= (ulong)byte4 << (8 * 3);
-			value |= (ulong)byte3 << (8 * 4);
-			value |= (ulong)byte2 << (8 * 5);
-			value |= (ulong)byte1 << (8 * 6);
-			value |= (ulong)byte0 << (8 * 7);
+			value = (ulong)byte7 << (8 * 0) | 
+					(ulong)byte6 << (8 * 1) |
+					(ulong)byte5 << (8 * 2) |
+					(ulong)byte4 << (8 * 3) |
+					(ulong)byte3 << (8 * 4) |
+					(ulong)byte2 << (8 * 5) |
+					(ulong)byte1 << (8 * 6) |
+					(ulong)byte0 << (8 * 7);
 		}
 		else
 		{
-			value |= (ulong)byte7 << (8 * 7);
-			value |= (ulong)byte6 << (8 * 6);
-			value |= (ulong)byte5 << (8 * 5);
-			value |= (ulong)byte4 << (8 * 4);
-			value |= (ulong)byte3 << (8 * 3);
-			value |= (ulong)byte2 << (8 * 2);
-			value |= (ulong)byte1 << (8 * 1);
-			value |= (ulong)byte0 << (8 * 0);
+			value = (ulong)byte7 << (8 * 7) |
+					(ulong)byte6 << (8 * 6) |
+					(ulong)byte5 << (8 * 5) |
+					(ulong)byte4 << (8 * 4) |
+					(ulong)byte3 << (8 * 3) |
+					(ulong)byte2 << (8 * 2) |
+					(ulong)byte1 << (8 * 1) |
+					(ulong)byte0 << (8 * 0);
 		}
 		return value;
 	}
@@ -454,85 +467,147 @@ public class BinaryUtility
 	}
 	public static bool writeShort(byte[] buffer, ref int index, short value, bool inverse = false)
 	{
-		int typeSize = sizeof(short);
-		if (buffer.Length < index + typeSize)
+		if (buffer.Length < index + sizeof(short))
 		{
 			return false;
 		}
-		for (int i = 0; i < typeSize; ++i)
+		// 为了获得最快速度,不使用for循环
+		if(!inverse)
 		{
-			int bitsOffset = inverse ? 8 * (typeSize - i - 1) : 8 * i;
-			buffer[index++] = (byte)(((0xFF << bitsOffset) & value) >> bitsOffset);
+			buffer[index++] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+			buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+		}
+		else
+		{
+			buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+			buffer[index++] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
 		}
 		return true;
 	}
 	public static bool writeUShort(byte[] buffer, ref int index, ushort value, bool inverse = false)
 	{
-		int typeSize = sizeof(ushort);
-		if (buffer.Length < index + typeSize)
+		if (buffer.Length < index + sizeof(ushort))
 		{
 			return false;
 		}
-		for (int i = 0; i < typeSize; ++i)
+		// 为了获得最快速度,不使用for循环
+		if (!inverse)
 		{
-			int bitsOffset = inverse ? 8 * (typeSize - i - 1) : 8 * i;
-			buffer[index++] = (byte)(((0xFF << bitsOffset) & value) >> bitsOffset);
+			buffer[index++] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+			buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+		}
+		else
+		{
+			buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+			buffer[index++] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
 		}
 		return true;
 	}
 	public static bool writeInt(byte[] buffer, ref int index, int value, bool inverse = false)
 	{
-		int typeSize = sizeof(int);
-		if (buffer.Length < index + typeSize)
+		if (buffer.Length < index + sizeof(int))
 		{
 			return false;
 		}
-		for(int i = 0; i < typeSize; ++i)
+		// 为了获得最快速度,不使用for循环
+		if (!inverse)
 		{
-			int bitsOffset = inverse ? 8 * (typeSize - i - 1) : 8 * i;
-			buffer[index++] = (byte)(((0xFF << bitsOffset) & value) >> bitsOffset);
+			buffer[index++] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+			buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+			buffer[index++] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
+			buffer[index++] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
+		}
+		else
+		{
+			buffer[index++] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
+			buffer[index++] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
+			buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+			buffer[index++] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
 		}
 		return true;
 	}
 	public static bool writeUInt(byte[] buffer, ref int index, uint value, bool inverse = false)
 	{
-		int typeSize = sizeof(uint);
-		if (buffer.Length < index + typeSize)
+		if (buffer.Length < index + sizeof(uint))
 		{
 			return false;
 		}
-		for (int i = 0; i < typeSize; ++i)
+		// 为了获得最快速度,不使用for循环
+		if (!inverse)
 		{
-			int bitsOffset = inverse ? 8 * (typeSize - i - 1) : 8 * i;
-			buffer[index++] = (byte)(((0xFF << bitsOffset) & value) >> bitsOffset);
+			buffer[index++] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+			buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+			buffer[index++] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
+			buffer[index++] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
+		}
+		else
+		{
+			buffer[index++] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
+			buffer[index++] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
+			buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+			buffer[index++] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
 		}
 		return true;
 	}
 	public static bool writeLong(byte[] buffer, ref int index, long value, bool inverse = false)
 	{
-		int typeSize = sizeof(long);
-		if (buffer.Length < index + typeSize)
+		if (buffer.Length < index + sizeof(long))
 		{
 			return false;
 		}
-		for (int i = 0; i < typeSize; ++i)
+		// 为了获得最快速度,不使用for循环
+		if (!inverse)
 		{
-			int bitsOffset = inverse ? 8 * (typeSize - i - 1) : 8 * i;
-			buffer[index++] = (byte)(((0xFF << bitsOffset) & value) >> bitsOffset);
+			buffer[index++] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+			buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+			buffer[index++] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
+			buffer[index++] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
+			buffer[index++] = (byte)(((0xFF << (8 * 4)) & value) >> (8 * 4));
+			buffer[index++] = (byte)(((0xFF << (8 * 5)) & value) >> (8 * 5));
+			buffer[index++] = (byte)(((0xFF << (8 * 6)) & value) >> (8 * 6));
+			buffer[index++] = (byte)(((0xFF << (8 * 7)) & value) >> (8 * 7));
+		}
+		else
+		{
+			buffer[index++] = (byte)(((0xFF << (8 * 7)) & value) >> (8 * 7));
+			buffer[index++] = (byte)(((0xFF << (8 * 6)) & value) >> (8 * 6));
+			buffer[index++] = (byte)(((0xFF << (8 * 5)) & value) >> (8 * 5));
+			buffer[index++] = (byte)(((0xFF << (8 * 4)) & value) >> (8 * 4));
+			buffer[index++] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
+			buffer[index++] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
+			buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+			buffer[index++] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
 		}
 		return true;
 	}
 	public static bool writeULong(byte[] buffer, ref int index, ulong value, bool inverse = false)
 	{
-		int typeSize = sizeof(ulong);
-		if (buffer.Length < index + typeSize)
+		if (buffer.Length < index + sizeof(ulong))
 		{
 			return false;
 		}
-		for (int i = 0; i < typeSize; ++i)
+		// 为了获得最快速度,不使用for循环
+		if (!inverse)
 		{
-			int bitsOffset = inverse ? 8 * (typeSize - i - 1) : 8 * i;
-			buffer[index++] = (byte)(((ulong)(0xFF << bitsOffset) & value) >> bitsOffset);
+			buffer[index++] = (byte)((((ulong)0xFF << (8 * 0)) & value) >> (8 * 0));
+			buffer[index++] = (byte)((((ulong)0xFF << (8 * 1)) & value) >> (8 * 1));
+			buffer[index++] = (byte)((((ulong)0xFF << (8 * 2)) & value) >> (8 * 2));
+			buffer[index++] = (byte)((((ulong)0xFF << (8 * 3)) & value) >> (8 * 3));
+			buffer[index++] = (byte)((((ulong)0xFF << (8 * 4)) & value) >> (8 * 4));
+			buffer[index++] = (byte)((((ulong)0xFF << (8 * 5)) & value) >> (8 * 5));
+			buffer[index++] = (byte)((((ulong)0xFF << (8 * 6)) & value) >> (8 * 6));
+			buffer[index++] = (byte)((((ulong)0xFF << (8 * 7)) & value) >> (8 * 7));
+		}
+		else
+		{
+			buffer[index++] = (byte)((((ulong)0xFF << (8 * 7)) & value) >> (8 * 7));
+			buffer[index++] = (byte)((((ulong)0xFF << (8 * 6)) & value) >> (8 * 6));
+			buffer[index++] = (byte)((((ulong)0xFF << (8 * 5)) & value) >> (8 * 5));
+			buffer[index++] = (byte)((((ulong)0xFF << (8 * 4)) & value) >> (8 * 4));
+			buffer[index++] = (byte)((((ulong)0xFF << (8 * 3)) & value) >> (8 * 3));
+			buffer[index++] = (byte)((((ulong)0xFF << (8 * 2)) & value) >> (8 * 2));
+			buffer[index++] = (byte)((((ulong)0xFF << (8 * 1)) & value) >> (8 * 1));
+			buffer[index++] = (byte)((((ulong)0xFF << (8 * 0)) & value) >> (8 * 0));
 		}
 		return true;
 	}
@@ -543,10 +618,11 @@ public class BinaryUtility
 			return false;
 		}
 		byte[] valueByte = toBytes(value);
-		for (int i = 0; i < sizeof(float); ++i)
-		{
-			buffer[index++] = valueByte[i];
-		}
+		// 为了获得最快速度,不使用for循环
+		buffer[index++] = valueByte[0];
+		buffer[index++] = valueByte[1];
+		buffer[index++] = valueByte[2];
+		buffer[index++] = valueByte[3];
 		return true;
 	}
 	// writeCount表示要写入的bool个数,小于0表示将整个数组全部写入
@@ -701,54 +777,65 @@ public class BinaryUtility
 	}
 	public static void shortToBytes(short value, byte[] bytes, bool inverse = false)
 	{
-		int typeSize = sizeof(short);
-		if (bytes.Length != typeSize)
+		if (bytes.Length != sizeof(short))
 		{
 			return;
 		}
-		for (int i = 0; i < typeSize; ++i)
+		// 为了获得最快速度,不使用for循环
+		if (!inverse)
 		{
-			int bitsOffset = inverse ? 8 * (typeSize - i - 1) : 8 * i;
-			bytes[i] = (byte)(((0xFF << bitsOffset) & value) >> bitsOffset);
+			bytes[0] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+			bytes[1] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+		}
+		else
+		{
+			bytes[0] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+			bytes[1] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
 		}
 	}
 	public static void intToBytes(int value, byte[] bytes, bool inverse = false)
 	{
-		int typeSize = sizeof(int);
-		if (bytes.Length != typeSize)
+		if (bytes.Length != sizeof(int))
 		{
 			return;
 		}
-		for (int i = 0; i < typeSize; ++i)
+		// 为了获得最快速度,不使用for循环
+		if (!inverse)
 		{
-			int bitsOffset = inverse ? 8 * (typeSize - i - 1) : 8 * i;
-			bytes[i] = (byte)(((0xFF << bitsOffset) & value) >> bitsOffset);
+			bytes[0] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+			bytes[1] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+			bytes[2] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
+			bytes[3] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
+		}
+		else
+		{
+			bytes[0] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
+			bytes[1] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
+			bytes[2] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+			bytes[3] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
 		}
 	}
 	public static void uintToBytes(uint value, byte[] bytes, bool inverse = false)
 	{
-		int typeSize = sizeof(uint);
-		if (bytes.Length != typeSize)
+		if (bytes.Length != sizeof(uint))
 		{
 			return;
 		}
-		for (int i = 0; i < typeSize; ++i)
+		// 为了获得最快速度,不使用for循环
+		if (!inverse)
 		{
-			int bitsOffset = inverse ? 8 * (typeSize - i - 1) : 8 * i;
-			bytes[i] = (byte)(((0xFF << bitsOffset) & value) >> bitsOffset);
+			bytes[0] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+			bytes[1] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+			bytes[2] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
+			bytes[3] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
 		}
-	}
-	public static byte[] toBytes(short value)
-	{
-		return BitConverter.GetBytes(value);
-	}
-	public static byte[] toBytes(int value)
-	{
-		return BitConverter.GetBytes(value);
-	}
-	public static byte[] toBytes(uint value)
-	{
-		return BitConverter.GetBytes(value);
+		else
+		{
+			bytes[0] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
+			bytes[1] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
+			bytes[2] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+			bytes[3] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+		}
 	}
 	public static byte[] toBytes(float value)
 	{
@@ -764,23 +851,35 @@ public class BinaryUtility
 		{
 			return 0;
 		}
-		return BitConverter.ToInt16(array, 0);
+		return (short)((array[1] << (8 * 1)) | (array[0] << (8 * 0)));
+	}
+	public static short bytesToShort(byte byte0, byte byte1)
+	{
+		return (short)((byte1 << (8 * 1)) | (byte0 << (8 * 0)));
 	}
 	public static ushort bytesToUShort(byte[] array)
 	{
-		if(array == null)
+		if (array == null)
 		{
 			return 0;
 		}
-		return BitConverter.ToUInt16(array, 0);
+		return (ushort)((array[1] << (8 * 1)) | (array[0] << (8 * 0)));
+	}
+	public static ushort bytesToUShort(byte byte0, byte byte1)
+	{
+		return (ushort)((byte1 << (8 * 1)) | (byte0 << (8 * 0)));
 	}
 	public static int bytesToInt(byte[] array)
 	{
-		if(array == null)
+		if (array == null)
 		{
 			return 0;
 		}
-		return BitConverter.ToInt32(array, 0);
+		return (array[3] << (8 * 3)) | (array[2] << (8 * 2)) | (array[1] << (8 * 1)) | (array[0] << (8 * 0));
+	}
+	public static int bytesToInt(byte byte0, byte byte1, byte byte2, byte byte3)
+	{
+		return (byte3 << (8 * 3)) | (byte2 << (8 * 2)) | (byte1 << (8 * 1)) | (byte0 << (8 * 0));
 	}
 	public static uint bytesToUInt(byte[] array)
 	{
@@ -788,7 +887,11 @@ public class BinaryUtility
 		{
 			return 0;
 		}
-		return BitConverter.ToUInt32(array, 0);
+		return (uint)((array[3] << (8 * 3)) | (array[2] << (8 * 2)) | (array[1] << (8 * 1)) | (array[0] << (8 * 0)));
+	}
+	public static uint bytesToUInt(byte byte0, byte byte1, byte byte2, byte byte3)
+	{
+		return (uint)((byte3 << (8 * 3)) | (byte2 << (8 * 2)) | (byte1 << (8 * 1)) | (byte0 << (8 * 0)));
 	}
 	public static float bytesToFloat(byte[] array)
 	{
@@ -800,11 +903,14 @@ public class BinaryUtility
 	}
 	public static float bytesToFloat(byte byte0, byte byte1, byte byte2, byte byte3)
 	{
-		mTempFloatBytes[0] = byte0;
-		mTempFloatBytes[1] = byte1;
-		mTempFloatBytes[2] = byte2;
-		mTempFloatBytes[3] = byte3;
-		return BitConverter.ToSingle(mTempFloatBytes, 0);
+		mTempBytes4Lock.waitForUnlock();
+		mTempBytes4[0] = byte0;
+		mTempBytes4[1] = byte1;
+		mTempBytes4[2] = byte2;
+		mTempBytes4[3] = byte3;
+		float value = BitConverter.ToSingle(mTempBytes4, 0);
+		mTempBytes4Lock.unlock();
+		return value;
 	}
 	public static byte[] stringToBytes(string str, Encoding encoding = null)
 	{
@@ -812,25 +918,28 @@ public class BinaryUtility
 		{
 			return null;
 		}
+		// 默认为UTF8
 		if(encoding == null)
 		{
-			encoding = Encoding.Default;
+			encoding = Encoding.UTF8;
 		}
 		return encoding.GetBytes(str);
 	}
 	public static string bytesToString(byte[] bytes, Encoding encoding = null)
 	{
-		if(encoding == null)
+		// 默认为UTF8
+		if (encoding == null)
 		{
-			encoding = Encoding.Default;
+			encoding = Encoding.UTF8;
 		}
 		return removeLastZero(encoding.GetString(bytes));
 	}
 	public static string bytesToString(byte[] bytes, int startIndex, int count, Encoding encoding = null)
 	{
-		if(encoding == null)
+		// 默认为UTF8
+		if (encoding == null)
 		{
-			encoding = Encoding.Default;
+			encoding = Encoding.UTF8;
 		}
 		return removeLastZero(encoding.GetString(bytes, startIndex, count));
 	}

@@ -4,19 +4,15 @@ using System.Collections;
 public class CommandReceiver : GameBase
 {
 	protected string mName;
-	public CommandReceiver(string name)
-	{
-		mName = name;
-	}
 	public virtual void receiveCommand(Command cmd)
 	{
 		cmd.runStartCallBack();
-		cmd.setExecuteState(EXECUTE_STATE.ES_EXECUTING);
+		cmd.setExecuteState(EXECUTE_STATE.EXECUTING);
 		cmd.execute();
-		cmd.setExecuteState(EXECUTE_STATE.ES_EXECUTED);
+		cmd.setExecuteState(EXECUTE_STATE.EXECUTED);
 		cmd.runEndCallBack();
 	}
-	public string getName() { return mName; }
+	public virtual string getName() { return mName; }
 	// 谨慎使用设置名字
 	public virtual void setName(string name) { mName = name; }
 	public virtual void destroy()

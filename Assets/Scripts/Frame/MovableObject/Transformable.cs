@@ -5,8 +5,7 @@ using UnityEngine;
 public abstract class Transformable : ComponentOwner
 {
 	protected bool mEnable;				// 是否启用更新,与Active共同控制是否执行更新
-	public Transformable(string name)
-		: base(name) 
+	public Transformable()
 	{
 		mEnable = true;
 	}

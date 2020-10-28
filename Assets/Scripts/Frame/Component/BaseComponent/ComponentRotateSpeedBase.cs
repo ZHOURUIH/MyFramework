@@ -10,7 +10,7 @@ public class ComponentRotateSpeedBase : GameComponent, IComponentModifyRotation,
 	public Vector3 mCurRotation;
 	public ComponentRotateSpeedBase()
 	{
-		mPlayState = PLAY_STATE.PS_STOP;
+		mPlayState = PLAY_STATE.STOP;
 	}
 	public Vector3 getRotateSpeed() { return mRotateSpeed; }
 	public Vector3 getRotateAcceleration() { return mRotateAcceleration; }
@@ -37,23 +37,23 @@ public class ComponentRotateSpeedBase : GameComponent, IComponentModifyRotation,
 			stop();
 		}
 	}
-	public virtual void stop() { mPlayState = PLAY_STATE.PS_STOP; }
-	public void pause(bool pause) { mPlayState = pause ? PLAY_STATE.PS_PAUSE : PLAY_STATE.PS_PLAY; }
+	public virtual void stop() { mPlayState = PLAY_STATE.STOP; }
+	public void pause(bool pause) { mPlayState = pause ? PLAY_STATE.PAUSE : PLAY_STATE.PLAY; }
 	public void setPlayState(PLAY_STATE state)
 	{
 		if (mComponentOwner == null)
 		{
 			return;
 		}
-		if (state == PLAY_STATE.PS_PLAY)
+		if (state == PLAY_STATE.PLAY)
 		{
 			pause(false);
 		}
-		else if (state == PLAY_STATE.PS_PAUSE)
+		else if (state == PLAY_STATE.PAUSE)
 		{
 			pause(true);
 		}
-		else if (state == PLAY_STATE.PS_STOP)
+		else if (state == PLAY_STATE.STOP)
 		{
 			stop();
 		}

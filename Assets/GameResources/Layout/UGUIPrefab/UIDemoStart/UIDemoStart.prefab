@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 6986541294145458924}
   - component: {fileID: 4489359205342061774}
   - component: {fileID: 1604924186613338653}
-  m_Layer: 10
+  m_Layer: 5
   m_Name: Label
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -35,8 +35,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 165.3, y: 0}
-  m_SizeDelta: {x: 430.6, y: 41}
+  m_AnchoredPosition: {x: 165, y: 0}
+  m_SizeDelta: {x: 430, y: 41}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6986541294145458924
 CanvasRenderer:
@@ -55,12 +55,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 3270314566358939776}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 708705254, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -103,7 +105,7 @@ GameObject:
   - component: {fileID: 6896674095021628417}
   - component: {fileID: 8841769074374235157}
   - component: {fileID: 5808861845825499156}
-  m_Layer: 10
+  m_Layer: 5
   m_Name: Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -146,12 +148,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 4317215832190508804}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: -765806418, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -164,6 +168,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!65 &5808861845825499156
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -187,7 +192,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3546453207046370866}
   - component: {fileID: 4387642864269532913}
-  m_Layer: 10
+  m_Layer: 5
   m_Name: UIDemoStart
   m_TagString: Untagged
   m_Icon: {fileID: 0}

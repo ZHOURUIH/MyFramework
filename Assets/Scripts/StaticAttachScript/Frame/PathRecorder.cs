@@ -24,7 +24,7 @@ public class PathRecorder : MonoBehaviour
     public void Start()
     {
         mAnimatorObject = gameObject;
-        mFilePath = CommonDefine.F_PATH_KEYFRAME_PATH;
+        mFilePath = FrameDefine.F_PATH_KEYFRAME_PATH;
     }
     public void OnValidate()
     {

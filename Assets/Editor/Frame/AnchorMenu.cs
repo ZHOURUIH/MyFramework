@@ -20,59 +20,60 @@ public class AnchorMenu
 			Debug.Log("需要选中场景结构面板中的节点");
 			return;
 		}
-		Vector2 gameViewSize = ReflectionUtility.getGameViewSize();
+		Vector2 gameViewSize = UnityUtility.getGameViewSize();
 		string info = "是否要预览" + Selection.activeGameObject.name + "在" + gameViewSize.x + "x" + gameViewSize.y + "下的显示?";
 		if(!EditorUtility.DisplayDialog("预览", info, "确定", "取消"))
 		{
 			return;
 		}
 		// 设置摄像机的Z坐标为视图高的一半,设置画布根节点为屏幕大小
-		if (ReflectionUtility.isNGUI(Selection.activeGameObject))
+		GUI_TYPE guiType = WidgetUtility.getGUIType(Selection.activeGameObject);
+		if (guiType == GUI_TYPE.NGUI)
 		{
 #if USE_NGUI
-			GameObject nguiRootObject = ReflectionUtility.getGameObject(null, GameDefine.NGUI_ROOT);
+			GameObject nguiRootObject = UnityUtility.getGameObject(FrameDefine.NGUI_ROOT);
 			UIRoot nguiRoot = nguiRootObject.GetComponent<UIRoot>();
 			nguiRoot.scalingStyle = UIRoot.Scaling.Constrained;
 			nguiRoot.manualWidth = (int)gameViewSize.x;
 			nguiRoot.manualHeight = (int)gameViewSize.y;
-			GameObject camera = ReflectionUtility.getGameObject(nguiRootObject, ReflectionUtility.getUICameraName(), true);
+			GameObject camera = UnityUtility.getGameObject(FrameDefine.UI_CAMERA, nguiRootObject, true);
 			camera.transform.localPosition = new Vector3(0.0f, 0.0f, -gameViewSize.y * 0.5f);
 #endif
 		}
-		else
+		else if(guiType == GUI_TYPE.UGUI)
 		{
-			GameObject uguiRootObj = ReflectionUtility.getGameObject(null, GameDefine.UGUI_ROOT);
+			GameObject uguiRootObj = UnityUtility.getGameObject(FrameDefine.UGUI_ROOT);
 			RectTransform transform = uguiRootObj.GetComponent<RectTransform>();
 			transform.offsetMin = new Vector2(-gameViewSize.x * 0.5f, -gameViewSize.y * 0.5f);
 			transform.offsetMax = new Vector2(gameViewSize.x * 0.5f, gameViewSize.y * 0.5f);
 			transform.anchorMax = Vector2.zero;
 			transform.anchorMin = Vector2.zero;
-			GameObject camera = ReflectionUtility.getGameObject(uguiRootObj, ReflectionUtility.getUICameraName(), true);
+			GameObject camera = UnityUtility.getGameObject(FrameDefine.UI_CAMERA, uguiRootObj, true);
 			camera.transform.localPosition = new Vector3(0.0f, 0.0f, -gameViewSize.y * 0.5f);
 		}
-		ReflectionUtility.applyAnchor(Selection.activeGameObject, true);
+		UnityUtility.applyAnchor(Selection.activeGameObject, true);
 	}
 	[MenuItem(mAutoAnchorMenuName + "End PreviewAnchor %.")]
 	public static void endPreviewLayoutAnchor()
 	{
 		// 恢复摄像机设置
 #if USE_NGUI
-		GameObject nguiRootObject = ReflectionUtility.getGameObject(null, GameDefine.NGUI_ROOT);
+		GameObject nguiRootObject = UnityUtility.getGameObject(null, FrameDefine.NGUI_ROOT);
 		UIRoot nguiRoot = nguiRootObject.GetComponent<UIRoot>();
 		nguiRoot.scalingStyle = UIRoot.Scaling.Constrained;
-		nguiRoot.manualWidth = ReflectionUtility.getStandardWidth();
-		nguiRoot.manualHeight = ReflectionUtility.getStandardHeight();
-		GameObject nguiCamera = ReflectionUtility.getGameObject(nguiRootObject, ReflectionUtility.getUICameraName(), true);
-		nguiCamera.transform.localPosition = new Vector3(0.0f, 0.0f, -ReflectionUtility.getStandardHeight() * 0.5f);
+		nguiRoot.manualWidth = GameDefine.STANDARD_WIDTH;
+		nguiRoot.manualHeight = GameDefine.STANDARD_HEIGHT;
+		GameObject nguiCamera = UnityUtility.getGameObject(nguiRootObject, FrameDefine.UI_CAMERA, true);
+		nguiCamera.transform.localPosition = new Vector3(0.0f, 0.0f, -GameDefine.STANDARD_HEIGHT * 0.5f);
 #endif
-		GameObject uguiRootObj = ReflectionUtility.getGameObject(null, GameDefine.UGUI_ROOT);
+		GameObject uguiRootObj = UnityUtility.getGameObject(FrameDefine.UGUI_ROOT);
 		RectTransform transform = uguiRootObj.GetComponent<RectTransform>();
-		transform.offsetMin = new Vector2(-ReflectionUtility.getStandardWidth() * 0.5f, -ReflectionUtility.getStandardHeight() * 0.5f);
-		transform.offsetMax = new Vector2(ReflectionUtility.getStandardWidth() * 0.5f, ReflectionUtility.getStandardHeight() * 0.5f);
+		transform.offsetMin = new Vector2(-GameDefine.STANDARD_WIDTH * 0.5f, -GameDefine.STANDARD_HEIGHT * 0.5f);
+		transform.offsetMax = new Vector2(GameDefine.STANDARD_WIDTH * 0.5f, GameDefine.STANDARD_HEIGHT * 0.5f);
 		transform.anchorMax = Vector2.zero;
 		transform.anchorMin = Vector2.zero;
-		GameObject uguiCamera = ReflectionUtility.getGameObject(uguiRootObj, ReflectionUtility.getUICameraName(), true);
-		uguiCamera.transform.localPosition = new Vector3(0.0f, 0.0f, -ReflectionUtility.getStandardHeight() * 0.5f);
+		GameObject uguiCamera = UnityUtility.getGameObject(FrameDefine.UI_CAMERA, uguiRootObj, true);
+		uguiCamera.transform.localPosition = new Vector3(0.0f, 0.0f, -GameDefine.STANDARD_HEIGHT * 0.5f);
 	}
 	[MenuItem(mAutoAnchorMenuName + mPaddingAnchorMenuName + "AddAnchor")]
 	public static void addPaddingAnchor()
@@ -88,7 +89,7 @@ public class AnchorMenu
 		{
 			if (parent != Selection.transforms[i].parent)
 			{
-				ReflectionUtility.logError("objects must have the same parent!");
+				UnityUtility.logError("objects must have the same parent!");
 				return;
 			}
 		}
@@ -111,7 +112,7 @@ public class AnchorMenu
 		{
 			if (parent != Selection.transforms[i].parent)
 			{
-				ReflectionUtility.logError("objects must have the same parent!");
+				UnityUtility.logError("objects must have the same parent!");
 				return;
 			}
 		}
@@ -134,7 +135,7 @@ public class AnchorMenu
 		{
 			if (parent != Selection.transforms[i].parent)
 			{
-				ReflectionUtility.logError("objects must have the same parent!");
+				UnityUtility.logError("objects must have the same parent!");
 				return;
 			}
 		}
@@ -157,7 +158,7 @@ public class AnchorMenu
 		{
 			if (parent != Selection.transforms[i].parent)
 			{
-				ReflectionUtility.logError("objects must have the same parent!");
+				UnityUtility.logError("objects must have the same parent!");
 				return;
 			}
 		}
@@ -194,7 +195,7 @@ public class AnchorMenu
 		{
 			if (parent != Selection.transforms[i].parent)
 			{
-				ReflectionUtility.logError("objects must have the same parent!");
+				UnityUtility.logError("objects must have the same parent!");
 				return;
 			}
 		}
@@ -217,7 +218,7 @@ public class AnchorMenu
 		{
 			if (parent != Selection.transforms[i].parent)
 			{
-				ReflectionUtility.logError("objects must have the same parent!");
+				UnityUtility.logError("objects must have the same parent!");
 				return;
 			}
 		}
@@ -233,18 +234,19 @@ public class AnchorMenu
 		if (obj.GetComponent<PaddingAnchor>() == null)
 		{
 			// 只要有Rect就可以添加该组件,panel也可以添加
-			if(ReflectionUtility.isNGUI(obj))
+			GUI_TYPE guiType = WidgetUtility.getGUIType(obj);
+			if (guiType == GUI_TYPE.NGUI)
 			{
 #if USE_NGUI
 				if (obj.GetComponent<UIRect>() != null)
 				{
-					obj.AddComponent<PaddingAnchor>().setAnchorMode(ANCHOR_MODE.AM_NEAR_PARENT_SIDE);
+					obj.AddComponent<PaddingAnchor>().setAnchorMode(ANCHOR_MODE.NEAR_PARENT_SIDE);
 				}
 #endif
 			}
-			else
+			else if(guiType == GUI_TYPE.UGUI)
 			{
-				obj.AddComponent<PaddingAnchor>().setAnchorMode(ANCHOR_MODE.AM_NEAR_PARENT_SIDE);
+				obj.AddComponent<PaddingAnchor>().setAnchorMode(ANCHOR_MODE.NEAR_PARENT_SIDE);
 			}
 		}
 		// 再设置子节点的Anchor
@@ -259,7 +261,7 @@ public class AnchorMenu
 		// 先销毁自己的Anchor
 		if (obj.GetComponent<PaddingAnchor>() != null)
 		{
-			ReflectionUtility.destroyGameObject(obj.GetComponent<PaddingAnchor>(), true);
+			UnityUtility.destroyGameObject(obj.GetComponent<PaddingAnchor>(), true);
 		}
 		// 再销毁子节点的Anchor
 		int childCount = obj.transform.childCount;
@@ -288,7 +290,7 @@ public class AnchorMenu
 		// 先销毁自己的Anchor
 		if (obj.GetComponent<ScaleAnchor>() != null)
 		{
-			ReflectionUtility.destroyGameObject(obj.GetComponent<ScaleAnchor>(), true);
+			UnityUtility.destroyGameObject(obj.GetComponent<ScaleAnchor>(), true);
 		}
 		// 再销毁子节点的Anchor
 		int childCount = obj.transform.childCount;

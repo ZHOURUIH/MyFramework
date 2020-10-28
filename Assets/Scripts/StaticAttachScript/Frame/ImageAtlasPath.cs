@@ -32,7 +32,7 @@ public class ImageAtlasPath : MonoBehaviour
 		// 需要去除后缀名
 		mAtlasPath = StringUtility.getFileNameNoSuffix(mAtlasPath);
 		// 去除Assets/GameResoureces前缀
-		mAtlasPath = mAtlasPath.Substring(CommonDefine.P_GAME_RESOURCES_PATH.Length);
+		StringUtility.removeStartString(ref mAtlasPath, FrameDefine.P_GAME_RESOURCES_PATH);
 #endif
 	}
 }

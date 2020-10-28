@@ -3,7 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-public class CommandPool : GameBase
+public class CommandPool : FrameBase
 {
 	protected Dictionary<Type, List<Command>> mInusedList;
 	protected Dictionary<Type, Stack<Command>> mUnusedList;
@@ -70,10 +70,6 @@ public class CommandPool : GameBase
 		addInuse(cmd);
 		mNewCmdLock.unlock();
 		return cmd;
-	}
-	public T newCmd<T>(bool show = true, bool delay = false) where T : Command, new()
-	{
-		return newCmd(typeof(T), show, delay) as T;
 	}
 	public void destroyCmd(Command cmd) 
 	{

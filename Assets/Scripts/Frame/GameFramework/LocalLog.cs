@@ -8,17 +8,17 @@ using System.Net;
 using UnityEngine.SceneManagement;
 
 #if UNITY_STANDALONE_WIN
-public class LocalLog : GameBase
+public class LocalLog : FrameBase
 {
-	protected CustomThread mWriteLogThread;
+	protected MyThread mWriteLogThread;
 	// 日志双缓冲,使用双缓冲可以快速进行前后台切换,避免数据同步时出现耗时操作
 	protected DoubleBuffer<string> mLogBufferList;
 	protected string mLogFilePath;
 	public LocalLog()
 	{
 		mLogBufferList = new DoubleBuffer<string>();
-		mWriteLogThread = new CustomThread("WriteLocalLog");
-		mLogFilePath = CommonDefine.F_ASSETS_PATH + "log.txt";
+		mWriteLogThread = new MyThread("WriteLocalLog");
+		mLogFilePath = FrameDefine.F_ASSETS_PATH + "log.txt";
 	}
 	public void init()
 	{
@@ -60,7 +60,7 @@ public class LocalLog : GameBase
 	}
 }
 #else
-public class LocalLog : GameBase
+public class LocalLog : FrameBase
 {
 	// 日志双缓冲,使用双缓冲可以快速进行前后台切换,避免数据同步时出现耗时操作
 	protected DoubleBuffer<string> mLogBufferList;
@@ -68,7 +68,7 @@ public class LocalLog : GameBase
 	public LocalLog()
 	{
 		mLogBufferList = new DoubleBuffer<string>();
-		mLogFilePath = CommonDefine.F_PERSISTENT_DATA_PATH + "log.txt";
+		mLogFilePath = FrameDefine.F_PERSISTENT_DATA_PATH + "log.txt";
 	}
 	public void init()
 	{

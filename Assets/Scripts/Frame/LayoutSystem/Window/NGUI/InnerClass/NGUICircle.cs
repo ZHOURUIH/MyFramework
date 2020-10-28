@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using UnityEngine;
 
-public class NGUICircle : GameBase, INGUIShape
+public class NGUICircle : FrameBase, INGUIShape
 {
 	public const int DEFAULT_DETAIL = 40;
 	public float mRadius = 1.0f;

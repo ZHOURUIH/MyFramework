@@ -15,7 +15,7 @@ public abstract class NetClient : GameBase
 	protected DoubleBuffer<SocketPacket> mReceiveBuffer;
 	protected SocketConnectServer mServer;
 	protected StreamBuffer mRecvBytes;
-	protected CustomTimer mHeartBeatTimer;
+	protected MyTimer mHeartBeatTimer;
 	protected Socket mSocket;
 	protected string mIP;
 	protected string mDeadReason;
@@ -26,7 +26,7 @@ public abstract class NetClient : GameBase
 	public NetClient(SocketConnectServer server)
 	{
 		mServer = server;
-		mHeartBeatTimer = new CustomTimer();
+		mHeartBeatTimer = new MyTimer();
 		mReceiveBuffer = new DoubleBuffer<SocketPacket>();
 		mRecvBytes = new StreamBuffer(1024 * 1024); // 默认开1MB的缓存
 		mOutputBuffer = new DoubleBuffer<byte[]>();
@@ -42,16 +42,19 @@ public abstract class NetClient : GameBase
 	public void sendServerPacket(SocketPacket packet)
 	{
 		// 将消息包中的数据准备好,然后放入发送列表中
-		// 前四个字节分别是两个short,代表消息类型和消息内容长度
+		// 开始的2个字节仅用于发送数据长度标记,不会真正发出去
+		// 接下来6个字节分别是1个uint和1个ushort,代表消息类型和消息内容长度
 		ushort packetSize = (ushort)packet.generateSize();
-		byte[] packetData = new byte[CommonDefine.PACKET_HEADER_SIZE + packetSize];
+		byte[] packetData = mBytesPool.newBytes(getGreaterPow2(sizeof(ushort) + FrameDefine.PACKET_HEADER_SIZE + packetSize));
 		int index = 0;
+		// 本次消息包的数据长度,因为byte[]本身的长度并不代表要发送的实际的长度,所以将数据长度保存下来
+		writeUShort(packetData, ref index, (ushort)(FrameDefine.PACKET_HEADER_SIZE + packetSize));
 		// 消息类型
-		writeInt(packetData, ref index, (int)packet.getPacketType());
+		writeInt(packetData, ref index, packet.getPacketType());
 		// 消息长度
-		writeInt(packetData, ref index, packetSize);
+		writeUShort(packetData, ref index, packetSize);
 		// 消息内容
-		if (packetSize > 0 && !packet.write(packetData, CommonDefine.PACKET_HEADER_SIZE))
+		if (packetSize > 0 && !packet.write(packetData, sizeof(ushort) + FrameDefine.PACKET_HEADER_SIZE))
 		{
 			clientError("消息序列化失败 : " + packet.getPacketType());
 			return;
@@ -67,13 +70,28 @@ public abstract class NetClient : GameBase
 	{
 		// 获取输出数据的读缓冲区
 		var readList = mOutputBuffer.getReadList();
+		try
+		{
+			foreach (var item in readList)
+			{
+				int temp = 0;
+				// dataLength表示item的有效数据长度,包含dataLength本身占的2个字节
+				ushort dataLength = (ushort)(readUShort(item, ref temp, out _) + sizeof(ushort));
+				int sendedCount = sizeof(ushort);
+				while (sendedCount < dataLength)
+				{
+					sendedCount += mSocket.Send(item, sendedCount, dataLength - sendedCount, SocketFlags.None);
+				}
+			}
+		}
+		catch
+		{
+			logInfo("发送数据到客户端时发现异常");
+		}
+		// 回收所有byte[]
 		foreach (var item in readList)
 		{
-			int sendedCount = 0;
-			while (sendedCount < item.Length)
-			{
-				sendedCount += mSocket.Send(item, sendedCount, item.Length - sendedCount, SocketFlags.None);
-			}
+			mBytesPool.destroyBytes(item);
 		}
 		readList.Clear();
 	}
@@ -88,7 +106,7 @@ public abstract class NetClient : GameBase
 		while (true)
 		{
 			// 数据解析成功,继续解析,否则不再解析
-			if (parsePacket() != PARSE_RESULT.PR_SUCCESS)
+			if (parsePacket() != PARSE_RESULT.SUCCESS)
 			{
 				break;
 			}
@@ -128,32 +146,32 @@ public abstract class NetClient : GameBase
 	public void setDeadClient(string reason) { mDeadClient = true; mDeadReason = reason; }
 	public string getDeadReason() { return mDeadReason; }
 	//-----------------------------------------------------------------------------------------------------------------------------------
-	protected abstract bool checkPacketType(PACKET_TYPE type);
-	protected abstract SocketPacket createClientPacket(PACKET_TYPE type);
+	protected abstract bool checkPacketType(int type);
+	protected abstract SocketPacket createClientPacket(int type);
 	protected abstract void destroyPacket(SocketPacket packet);
 	protected PARSE_RESULT parsePacket()
 	{
-		if (mRecvBytes.getDataLength() < CommonDefine.PACKET_HEADER_SIZE)
+		if (mRecvBytes.getDataLength() < FrameDefine.PACKET_HEADER_SIZE)
 		{
-			return PARSE_RESULT.PR_NOT_ENOUGH;
+			return PARSE_RESULT.NOT_ENOUGH;
 		}
 		int index = 0;
 		// 读取包类型
-		PACKET_TYPE type = (PACKET_TYPE)readInt(mRecvBytes.getData(), ref index, out _);
+		int type = readInt(mRecvBytes.getData(), ref index, out _);
 		// 客户端接收到的必须是SC类型的
 		if (!checkPacketType(type))
 		{
 			clientError("包类型错误 : " + type);
 			// 发生错误时,清空缓冲区
 			mRecvBytes.clear();
-			return PARSE_RESULT.PR_ERROR;
+			return PARSE_RESULT.ERROR;
 		}
 		// 读取消息长度
 		ushort packetSize = readUShort(mRecvBytes.getData(), ref index, out _);
 		// 是否已经接收完全
 		if (mRecvBytes.getDataLength() < index + packetSize)
 		{
-			return PARSE_RESULT.PR_NOT_ENOUGH;
+			return PARSE_RESULT.NOT_ENOUGH;
 		}
 		SocketPacket packetReply = createClientPacket(type);
 		packetReply.setConnect(mServer);
@@ -164,12 +182,12 @@ public abstract class NetClient : GameBase
 			clientError("解析错误:" + type + ", 实际接收字节数:" + packetSize);
 			// 发生错误时,清空缓冲区
 			mRecvBytes.clear();
-			return PARSE_RESULT.PR_ERROR;
+			return PARSE_RESULT.ERROR;
 		}
 		mReceiveBuffer.addToBuffer(packetReply);
 		// 移除已解析的数据
 		mRecvBytes.removeData(0, index);
-		return PARSE_RESULT.PR_SUCCESS;
+		return PARSE_RESULT.SUCCESS;
 	}
 	protected void clientInfo(string info)
 	{

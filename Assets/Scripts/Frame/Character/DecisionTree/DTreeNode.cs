@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 // 决策树节点基类,DTree表示DecisionTree
-public abstract class DTreeNode : GameBase
+public class DTreeNode : GameBase
 {
 	public Dictionary<uint, DTreeNode> mChildMap;   // 以子节点的ID为索引的子节点列表
 	public List<DTreeNode> mChildList;              // 带顺序的子节点列表
@@ -34,7 +34,7 @@ public abstract class DTreeNode : GameBase
 	public int getPriority() { return mPriority; }
 	public virtual bool condition() { return true; }
 	public virtual bool isActive() { return true; }
-	public abstract void execute();
+	public virtual void execute() { }
 	public virtual void update(float elapsedTime) { }
 	public bool addChild(DTreeNode child)
 	{

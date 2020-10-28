@@ -3,11 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 
 // 用于加载Android平台下的资源
-public class AndroidAssetLoader : FrameComponent
+public class AndroidAssetLoader : FrameSystem
 {
 	protected static AndroidJavaObject mAssetLoader;
-	public AndroidAssetLoader(string name)
-		:base(name)
+	public AndroidAssetLoader()
 	{
 #if !UNITY_EDITOR && UNITY_ANDROID
 		mAssetLoader = AndroidPluginManager.getMainActivity().Get<AndroidJavaObject>("mAssetLoader");
@@ -171,9 +170,9 @@ public class AndroidAssetLoader : FrameComponent
 	protected static void checkPersistenDataPath(string path)
 	{
 		addEndSlash(ref path);
-		if (!startWith(path, CommonDefine.F_PERSISTENT_DATA_PATH))
+		if (!startWith(path, FrameDefine.F_PERSISTENT_DATA_PATH))
 		{
-			logError("path must start with " + CommonDefine.F_PERSISTENT_DATA_PATH + ", path : " + path);
+			logError("path must start with " + FrameDefine.F_PERSISTENT_DATA_PATH + ", path : " + path);
 		}
 	}
 	protected static void javaListToList(AndroidJavaObject javaListObject, List<string> list, int maxCount)

@@ -52,7 +52,7 @@ public class BuildAPK : EditorCommonUtility
 		Debug.Log("开始生成APK:" + locationPath);
 		DateTime start = DateTime.Now;
 		BuildPlayerOptions options = new BuildPlayerOptions();
-		options.scenes = new string[] { CommonDefine.P_RESOURCES_SCENE_PATH + "start.unity" };
+		options.scenes = new string[] { FrameDefine.P_RESOURCES_SCENE_PATH + "start.unity" };
 		options.locationPathName = locationPath;
 		options.targetGroup = BuildTargetGroup.Android;
 		options.target = BuildTarget.Android;
