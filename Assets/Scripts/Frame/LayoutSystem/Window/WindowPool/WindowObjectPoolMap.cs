@@ -74,7 +74,7 @@ public class WindowObjectPoolMap<Key, T> : FrameBase where T : PooledWindow
 	public myUIObject getInUseParent() { return mItemParentInuse; }
 	public Dictionary<Key, T> getUseList() { return mUsedItemList; }
 	public void setItemPreName(string preName) { mPreName = preName; }
-	public T newItem(Key key)
+	public T newItem(Key key, bool asLastSibling = true)
 	{
 		T item;
 		if (mUnusedItemList.Count > 0)
@@ -93,6 +93,10 @@ public class WindowObjectPoolMap<Key, T> : FrameBase where T : PooledWindow
 		item.reset();
 		item.setVisible(true);
 		item.setParent(mItemParentInuse);
+		if (asLastSibling)
+		{
+			item.setAsLastSibling();
+		}
 		mUsedItemList.Add(key, item);
 		return item;
 	}

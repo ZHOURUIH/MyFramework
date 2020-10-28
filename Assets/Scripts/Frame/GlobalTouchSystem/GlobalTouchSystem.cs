@@ -313,11 +313,7 @@ public class GlobalTouchSystem : FrameSystem
 	}
 	public bool isColliderRegisted(IMouseEventCollect obj) { return mAllObjectSet.Contains(obj); }
 	// 注册碰撞器,只有注册了的碰撞器才会进行检测
-	public void registeCollider(IMouseEventCollect obj, 
-								ObjectClickCallback clickCallback = null, 
-								ObjectPressCallback pressCallback = null, 
-								ObjectHoverCallback hoverCallback = null,
-								GameCamera camera = null)
+	public void registeCollider(IMouseEventCollect obj, GameCamera camera = null)
 	{
 		if(!mUseGlobalTouch)
 		{
@@ -334,9 +330,6 @@ public class GlobalTouchSystem : FrameSystem
 			logError("不能重复注册窗口碰撞体: " + obj.getName());
 			return;
 		}
-		obj.setClickCallback(clickCallback);
-		obj.setPressCallback(pressCallback);
-		obj.setHoverCallback(hoverCallback);
 		if (obj is myUIObject)
 		{
 			// 寻找窗口对应的摄像机

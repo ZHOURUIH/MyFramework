@@ -30,7 +30,8 @@ public abstract class LayoutScript : GameBase
 	public myUIObject getRoot() { return mRoot; }
 	public void registeCollider(myUIObject obj, ObjectClickCallback clickCallback, ObjectPreClickCallback preClick, object preClickUserData, bool passRay = false)
 	{
-		mGlobalTouchSystem.registeCollider(obj, clickCallback, null, null);
+		setObjectCallback(obj, clickCallback, null, null);
+		mGlobalTouchSystem.registeCollider(obj);
 		obj.setPreClickCallback(preClick, preClickUserData);
 		obj.setPassRay(passRay);
 		obj.setEnable(true);
@@ -38,46 +39,59 @@ public abstract class LayoutScript : GameBase
 	// 用于接收GlobalTouchSystem处理的输入事件
 	public void registeCollider(myUIObject obj, ObjectClickCallback clickCallback, ObjectHoverCallback hoverCallback, ObjectPressCallback pressCallback, bool passRay)
 	{
-		mGlobalTouchSystem.registeCollider(obj, clickCallback, pressCallback, hoverCallback);
+		setObjectCallback(obj, clickCallback, hoverCallback, pressCallback);
+		mGlobalTouchSystem.registeCollider(obj);
 		obj.setPassRay(passRay);
 		// 由碰撞体的窗口都需要启用更新,以便可以保证窗口大小与碰撞体大小一致
 		obj.setEnable(true);
 	}
 	public void registeCollider(myUIObject obj, ObjectClickCallback clickCallback, ObjectHoverCallback hoverCallback, ObjectPressCallback pressCallback, GameCamera camera)
 	{
-		mGlobalTouchSystem.registeCollider(obj, clickCallback, pressCallback, hoverCallback, camera);
+		setObjectCallback(obj, clickCallback, hoverCallback, pressCallback);
+		mGlobalTouchSystem.registeCollider(obj, camera);
 		obj.setPassRay(false);
 		obj.setEnable(true);
 	}
 	public void registeCollider(myUIObject obj, ObjectClickCallback clickCallback, ObjectHoverCallback hoverCallback, ObjectPressCallback pressCallback)
 	{
-		mGlobalTouchSystem.registeCollider(obj, clickCallback, pressCallback, hoverCallback);
+		setObjectCallback(obj, clickCallback, hoverCallback, pressCallback);
+		mGlobalTouchSystem.registeCollider(obj);
 		obj.setPassRay(false);
 		obj.setEnable(true);
 	}
 	public void registeCollider(myUIObject obj, ObjectClickCallback clickCallback, bool passRay)
 	{
-		mGlobalTouchSystem.registeCollider(obj, clickCallback, null, null);
+		setObjectCallback(obj, clickCallback, null, null);
+		mGlobalTouchSystem.registeCollider(obj);
 		obj.setPassRay(passRay);
 		obj.setEnable(true);
 	}
 	public void registeCollider(myUIObject obj, ObjectClickCallback clickCallback)
 	{
-		mGlobalTouchSystem.registeCollider(obj, clickCallback, null, null);
+		setObjectCallback(obj, clickCallback, null, null);
+		mGlobalTouchSystem.registeCollider(obj);
 		obj.setPassRay(false);
 		obj.setEnable(true);
 	}
 	public void registeCollider(myUIObject obj, bool passRay)
 	{
-		mGlobalTouchSystem.registeCollider(obj, null, null, null);
+		setObjectCallback(obj, null, null, null);
+		mGlobalTouchSystem.registeCollider(obj);
 		obj.setPassRay(passRay);
 		obj.setEnable(true);
 	}
 	public void registeCollider(myUIObject obj)
 	{
-		mGlobalTouchSystem.registeCollider(obj, null, null, null);
+		setObjectCallback(obj, null, null, null);
+		mGlobalTouchSystem.registeCollider(obj);
 		obj.setPassRay(false);
 		obj.setEnable(true);
+	}
+	public void setObjectCallback(myUIObject obj, ObjectClickCallback clickCallback, ObjectHoverCallback hoverCallback, ObjectPressCallback pressCallback)
+	{
+		obj.setClickCallback(clickCallback);
+		obj.setPressCallback(pressCallback);
+		obj.setHoverCallback(hoverCallback);
 	}
 	// 用于接收NGUI处理的输入事件
 #if USE_NGUI

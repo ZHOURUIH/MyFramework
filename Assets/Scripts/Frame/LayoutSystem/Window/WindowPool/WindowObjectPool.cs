@@ -96,7 +96,7 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 		mAssignIDSeed = getMax(source.getAssignID(), mAssignIDSeed);
 	}
 	// 因为添加窗口可能会影响所有窗口的深度值,所以如果有需求,需要在完成添加窗口以后手动调用mLayout.notifyObjectOrderChanged()来刷新深度
-	public T newItem()
+	public T newItem(bool moveToLastSibling = true)
 	{
 		T item;
 		if (mUnusedItemList.Count > 0)
@@ -115,6 +115,10 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 		item.reset();
 		item.setVisible(true);
 		item.setParent(mItemParentInuse);
+		if(moveToLastSibling)
+		{
+			item.setAsLastSibling();
+		}
 		mUsedItemList.Add(item);
 		return item;
 	}

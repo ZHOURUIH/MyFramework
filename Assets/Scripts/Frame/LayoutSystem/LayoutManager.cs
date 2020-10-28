@@ -281,6 +281,11 @@ public class LayoutManager : FrameSystem
 	{
 		Type type = mScriptRegisteList[layout.getID()];
 		LayoutScript script = createInstance<LayoutScript>(type);
+		if(script == null)
+		{
+			logError("界面脚本未注册, ID:" + layout.getID());
+			return null;
+		}
 		script.setType(type);
 		script.setLayout(layout);
 		return script;
@@ -312,13 +317,13 @@ public class LayoutManager : FrameSystem
 		int maxOrder = 0;
 		foreach(var item in mLayoutList)
 		{
-			if (!item.Value.isVisible() ||
-				alwaysTop && item.Value.getRenderOrderType() != LAYOUT_ORDER.ALWAYS_TOP ||
-				!alwaysTop && item.Value.getRenderOrderType() == LAYOUT_ORDER.ALWAYS_TOP)
+			GameLayout layout = item.Value;
+			bool curIsAlwaysTop = layout.getRenderOrderType() == LAYOUT_ORDER.ALWAYS_TOP || layout.getRenderOrderType() == LAYOUT_ORDER.ALWAYS_TOP_AUTO;
+			if (!layout.isVisible() || alwaysTop != curIsAlwaysTop)
 			{
 				continue;
 			}
-			maxOrder = getMax(maxOrder, item.Value.getRenderOrder());
+			maxOrder = getMax(maxOrder, layout.getRenderOrder());
 		}
 		// 如果没有始终在最上层的布局,则需要确保渲染顺序最低不能小于指定值
 		if (alwaysTop && maxOrder == 0)

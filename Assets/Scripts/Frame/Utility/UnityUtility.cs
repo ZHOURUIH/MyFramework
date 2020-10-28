@@ -417,11 +417,12 @@ public class UnityUtility : FileUtility
 		{
 			obj = Activator.CreateInstance(classType, param) as T;
 		}
-		catch
+		catch(Exception e)
 		{
 #if USE_ILRUNTIME
 			obj = FrameBase.mILRSystem.getAppDomain().Instantiate<T>(classType.Name, param);
 #else
+			logError("create instance error! " + e.Message + ", inner error:" + e.InnerException?.Message);
 			obj = null;
 #endif
 		}
