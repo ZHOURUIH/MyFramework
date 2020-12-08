@@ -34,6 +34,7 @@ public class BOOLS : OBJECTS
 		if(mVariableLength)
 		{
 			// 先读取数据的实际字节长度
+			// 变长数组的长度固定使用ushort表示
 			bool success;
 			setRealSize(readUShort(buffer, ref index, out success));
 			if(!success)

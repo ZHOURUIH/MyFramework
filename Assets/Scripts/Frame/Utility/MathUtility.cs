@@ -977,7 +977,7 @@ public class MathUtility : StringUtility
 		if (intersectLine2(line0, line1, out intersect))
 		{
 			// 如果交点都在两条线段内,则两条线段相交
-			return isInRange(intersect, line0.mStart, line0.mEnd) && isInRange(intersect, line1.mStart, line1.mEnd);
+			return inRange(intersect, line0.mStart, line0.mEnd) && inRange(intersect, line1.mStart, line1.mEnd);
 		}
 		return false;
 	}
@@ -987,7 +987,7 @@ public class MathUtility : StringUtility
 		if (intersectLine2(line, section, out intersect))
 		{
 			// 如果交点在线段内,则线段和直线相交
-			return isInRange(intersect, section.mStart, section.mEnd);
+			return inRange(intersect, section.mStart, section.mEnd);
 		}
 		return false;
 	}
@@ -1290,7 +1290,7 @@ public class MathUtility : StringUtility
 			return false;
 		}
 		// 如果投影在线段两个端点之间,则相交
-		if(isInRange(projectPoint, line.mStart, line.mEnd, false))
+		if(inRange(projectPoint, line.mStart, line.mEnd, false))
 		{
 			return true;
 		}
@@ -1446,7 +1446,7 @@ public class MathUtility : StringUtility
 		return -asin(vec.y);
 	}
 	// 顺时针旋转为正,逆时针为负
-	public static float getAngleFromVector2ToVector2(Vector2 from, Vector2 to, bool radian = true)
+	public static float getAngleFromVector2ToVector2(Vector2 from, Vector2 to, ANGLE radian = ANGLE.RADIAN)
 	{
 		if(isVectorEqual(from, to))
 		{
@@ -1460,7 +1460,7 @@ public class MathUtility : StringUtility
 		{
 			angle = -angle;
 		}
-		if (!radian)
+		if (radian == ANGLE.DEGREE)
 		{
 			angle = toDegree(angle);
 		}
@@ -1496,7 +1496,7 @@ public class MathUtility : StringUtility
 		return sign(angle);
 	}
 	// baseY为true表示将点当成X-Z平面上的点,忽略Y值,false表示将点当成X-Y平面的点
-	public static float getAngleFromVector3ToVector3(Vector3 from, Vector3 to, bool baseY, bool radian = true)
+	public static float getAngleFromVector3ToVector3(Vector3 from, Vector3 to, bool baseY, ANGLE radian = ANGLE.RADIAN)
 	{
 		if (baseY)
 		{
@@ -1523,7 +1523,7 @@ public class MathUtility : StringUtility
 				angle = -angle;
 			}
 		}
-		if (!radian)
+		if (radian == ANGLE.DEGREE)
 		{
 			angle = toDegree(angle);
 		}
@@ -2270,7 +2270,7 @@ public class MathUtility : StringUtility
 		}
 	}
 	// fixedRangeOrder表示是否范围是从range0到range1,如果range0大于range1,则返回false
-	public static bool isInRange(float value, float range0, float range1, bool fixedRangeOrder = false, float precision = 0.001f)
+	public static bool inRange(float value, float range0, float range1, bool fixedRangeOrder = false, float precision = 0.001f)
 	{
 		if (fixedRangeOrder)
 		{
@@ -2281,27 +2281,27 @@ public class MathUtility : StringUtility
 			return value >= getMin(range0, range1) - precision && value <= getMax(range0, range1) + precision;
 		}
 	}
-	public static bool isInRange(Vector3 value, Vector3 point0, Vector3 point1, bool ignoreY = true, float precision = 0.001f)
+	public static bool inRange(Vector3 value, Vector3 point0, Vector3 point1, bool ignoreY = true, float precision = 0.001f)
 	{
-		return isInRange(value.x, point0.x, point1.x, false, precision) && 
-			   isInRange(value.z, point0.z, point1.z, false, precision) &&
-			  (ignoreY || isInRange(value.y, point0.y, point1.y, false, precision));
+		return inRange(value.x, point0.x, point1.x, false, precision) && 
+			   inRange(value.z, point0.z, point1.z, false, precision) &&
+			  (ignoreY || inRange(value.y, point0.y, point1.y, false, precision));
 	}
-	public static bool isInRange(ref Vector3 value, ref Vector3 point0, ref Vector3 point1, bool ignoreY = true, float precision = 0.001f)
+	public static bool inRange(ref Vector3 value, ref Vector3 point0, ref Vector3 point1, bool ignoreY = true, float precision = 0.001f)
 	{
-		return isInRange(value.x, point0.x, point1.x, false, precision) && 
-			   isInRange(value.z, point0.z, point1.z, false, precision) &&
-			  (ignoreY || isInRange(value.y, point0.y, point1.y, false, precision));
+		return inRange(value.x, point0.x, point1.x, false, precision) && 
+			   inRange(value.z, point0.z, point1.z, false, precision) &&
+			  (ignoreY || inRange(value.y, point0.y, point1.y, false, precision));
 	}
-	public static bool isInRange(Vector2 value, Vector2 point0, Vector2 point1, float precision = 0.001f)
+	public static bool inRange(Vector2 value, Vector2 point0, Vector2 point1, float precision = 0.001f)
 	{
-		return isInRange(value.x, point0.x, point1.x, false, precision) && 
-			   isInRange(value.y, point0.y, point1.y, false, precision);
+		return inRange(value.x, point0.x, point1.x, false, precision) && 
+			   inRange(value.y, point0.y, point1.y, false, precision);
 	}
-	public static bool isInRange(ref Vector2 value, ref Vector2 point0, ref Vector2 point1, float precision = 0.001f)
+	public static bool inRange(ref Vector2 value, ref Vector2 point0, ref Vector2 point1, float precision = 0.001f)
 	{
-		return isInRange(value.x, point0.x, point1.x, false, precision) && 
-			   isInRange(value.y, point0.y, point1.y, false, precision);
+		return inRange(value.x, point0.x, point1.x, false, precision) && 
+			   inRange(value.y, point0.y, point1.y, false, precision);
 	}
 	public static int findPointIndex(List<float> distanceListFromStart, float curDistance, int startIndex, int endIndex)
 	{
@@ -2373,7 +2373,7 @@ public class MathUtility : StringUtility
 		adjustAngle360(ref degree.z);
 	}
 	// 求从z轴到指定向量的水平方向上的顺时针角度,角度范围是-MATH_PI 到 MATH_PI
-	public static float getAngleFromVector(Vector3 vec, bool radian = true)
+	public static float getAngleFromVector(Vector3 vec, ANGLE radian = ANGLE.RADIAN)
 	{
 		vec.y = 0.0f;
 		vec = normalize(vec);
@@ -2385,7 +2385,7 @@ public class MathUtility : StringUtility
 		adjustRadian180(ref angle);
 		// 在unity的坐标系中航向角需要取反
 		angle = -angle;
-		if (!radian)
+		if (radian == ANGLE.DEGREE)
 		{
 			angle = toDegree(angle);
 		}

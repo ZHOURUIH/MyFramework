@@ -503,7 +503,7 @@ public class UnityUtility : FileUtility
 	{
 		Vector3 screenPos = worldToScreenPos(worldPos, false);
 		Vector2 rootSize = getRootSize(guiType);
-		return screenPos.z >= 0.0f && isInRange((Vector2)screenPos, Vector2.zero, rootSize);
+		return screenPos.z >= 0.0f && inRange((Vector2)screenPos, Vector2.zero, rootSize);
 	}
 	// screenCenterAsZero为true表示返回的坐标是以window的中心为原点,false表示已window的左下角为原点
 	public static Vector2 screenPosToWindowPos(Vector2 screenPos, myUIObject window, bool screenCenterAsZero = true, GUI_TYPE guiType = GUI_TYPE.NGUI)
@@ -537,7 +537,7 @@ public class UnityUtility : FileUtility
 	public static void setGameObjectLayer(GameObject obj, string layerName)
 	{
 		int layer = LayerMask.NameToLayer(layerName);
-		if (!isInRange(layer, 1, 32))
+		if (!inRange(layer, 1, 32))
 		{
 			return;
 		}

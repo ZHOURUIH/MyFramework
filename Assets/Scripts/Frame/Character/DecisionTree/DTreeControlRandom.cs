@@ -22,7 +22,7 @@ public class DTreeControlRandom : DTreeControl
 		}
 		// 按照权重随机选择其中一个节点
 		int index = randomHit(oddsList);
-		if(isInRange(index, 0, availableChildList.Count - 1, true))
+		if(inRange(index, 0, availableChildList.Count - 1, true))
 		{
 			availableChildList[index].execute();
 		}
