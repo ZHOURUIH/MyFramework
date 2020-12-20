@@ -3,7 +3,7 @@ using System.Collections;
 
 public class CommandCharacterManagerDestroy : Command
 {
-	public uint mGUID;
+	public ulong mGUID;
 	public override void init()
 	{
 		base.init();

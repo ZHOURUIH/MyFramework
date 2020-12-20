@@ -42,9 +42,10 @@ public class GameSceneManager : FrameSystem
 	{
 		base.update(elapsedTime);
 		// 如果上一个场景不为空,则将上一个场景销毁
-		foreach (var scene in mLastSceneList)
+		int count = mLastSceneList.Count;
+		for(int i = 0; i < count; ++i)
 		{
-			scene.destroy();
+			mLastSceneList[i].destroy();
 		}
 		mLastSceneList.Clear();
 		mCurScene?.update(elapsedTime);
@@ -56,9 +57,10 @@ public class GameSceneManager : FrameSystem
 	}
 	public override void destroy()
 	{
-		foreach (var scene in mLastSceneList)
+		int count = mLastSceneList.Count;
+		for(int i = 0; i < count; ++i)
 		{
-			scene.destroy();
+			mLastSceneList[i].destroy();
 		}
 		mLastSceneList.Clear();
 		mCurScene?.destroy();

@@ -6,7 +6,15 @@ public class WindowShaderHSLOffset : WindowShader
 {
 	protected Vector3 mHSLOffsetValue;   // 当前HSL偏移,只有当shader为HSLOffet或者HSLOffsetLinearDodge时才有效
 	protected Texture mHSLTexture;
-	protected string mHSLOffset = "HSLOffset";
+	protected int mHSLOffsetID;
+	protected int mHSLTexID;
+	protected int mHasHSLTexID;
+	public WindowShaderHSLOffset()
+	{
+		mHSLOffsetID = Shader.PropertyToID("_HSLOffset");
+		mHSLTexID = Shader.PropertyToID("_HSLTex");
+		mHasHSLTexID = Shader.PropertyToID("_HasHSLTex");
+	}
 	public void setHSLOffset(Vector3 offset) { mHSLOffsetValue = offset; }
 	public Vector3 getHSLOffset() { return mHSLOffsetValue; }
 	public void setHSLTexture(Texture hslTexture) { mHSLTexture = hslTexture; }
@@ -16,12 +24,9 @@ public class WindowShaderHSLOffset : WindowShader
 		base.applyShader(mat);
 		if (mat != null && mat.shader != null)
 		{
-			if (getFileName(mat.shader.name) == mHSLOffset)
-			{
-				mat.SetColor("_HSLOffset", new Color(mHSLOffsetValue.x, mHSLOffsetValue.y, mHSLOffsetValue.z));
-				mat.SetTexture("_HSLTex", mHSLTexture);
-				mat.SetInt("_HasHSLTex", mHSLTexture == null ? 0 : 1);
-			}
+			mat.SetColor(mHSLOffsetID, new Color(mHSLOffsetValue.x, mHSLOffsetValue.y, mHSLOffsetValue.z));
+			mat.SetTexture(mHSLTexID, mHSLTexture);
+			mat.SetInt(mHasHSLTexID, mHSLTexture == null ? 0 : 1);
 		}
 	}
 }

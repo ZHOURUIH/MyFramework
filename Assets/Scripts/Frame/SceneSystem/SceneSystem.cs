@@ -13,16 +13,18 @@ public struct SceneRegisteInfo
 
 public class SceneSystem : FrameSystem
 {
-	protected Dictionary<string, SceneInstance> mSceneList;
 	protected Dictionary<string, SceneRegisteInfo> mSceneRegisteList;
+	protected Dictionary<string, SceneInstance> mSceneList;
 	protected List<SceneLoadCallback> mDirectLoadCallback;  // 请求加载已经加载的场景时的回调,因为这些回调需要延迟一帧调用,所以放入列表中再调用
 	protected List<SceneInstance> mLoadList;
+	protected AssetBundleLoadCallback mSceneLoadCallback;
 	public SceneSystem()
 	{
 		mSceneList = new Dictionary<string, SceneInstance>();
 		mSceneRegisteList = new Dictionary<string, SceneRegisteInfo>();
 		mLoadList = new List<SceneInstance>();
 		mDirectLoadCallback = new List<SceneLoadCallback>();
+		mSceneLoadCallback = onSceneAssetBundleLoaded;
 	}
 	public override void destroy()
 	{
@@ -79,32 +81,37 @@ public class SceneSystem : FrameSystem
 	}
 	public string getScenePath(string name)
 	{
-		return mSceneRegisteList.ContainsKey(name) ? mSceneRegisteList[name].mScenePath : EMPTY_STRING;
+		if(mSceneRegisteList.TryGetValue(name, out SceneRegisteInfo info))
+		{
+			return info.mScenePath;
+		}
+		return EMPTY;
 	}
 	public T getScene<T>(string name) where T : SceneInstance
 	{
-		return mSceneList.ContainsKey(name) ? mSceneList[name] as T : null;
+		mSceneList.TryGetValue(name, out SceneInstance scene);
+		return scene as T;
 	}
 	public void setMainScene(string name)
 	{
-		if (!mSceneList.ContainsKey(name))
+		if (!mSceneList.TryGetValue(name, out SceneInstance scene))
 		{
 			return;
 		}
-		SceneManager.SetActiveScene(mSceneList[name].mScene);
+		SceneManager.SetActiveScene(scene.mScene);
 	}
 	public void hideScene(string name)
 	{
-		if (!mSceneList.ContainsKey(name))
+		if (!mSceneList.TryGetValue(name, out SceneInstance scene))
 		{
 			return;
 		}
-		mSceneList[name].setActive(false);
-		mSceneList[name].onHide();
+		scene.setActive(false);
+		scene.onHide();
 	}
 	public void showScene(string name, bool hideOther = true, bool mainScene = true)
 	{
-		if (!mSceneList.ContainsKey(name))
+		if (!mSceneList.TryGetValue(name, out SceneInstance scene))
 		{
 			return;
 		}
@@ -127,8 +134,8 @@ public class SceneSystem : FrameSystem
 		// 不隐藏其他场景则只是简单的将指定场景显示
 		else
 		{
-			mSceneList[name].setActive(true);
-			mSceneList[name].onShow();
+			scene.setActive(true);
+			scene.onShow();
 		}
 		if(mainScene)
 		{
@@ -155,7 +162,7 @@ public class SceneSystem : FrameSystem
 		scene.mLoadCallback = callback;
 		mSceneList.Add(scene.mName, scene);
 		// scenePath + sceneName表示场景文件AssetBundle的路径,包含文件名
-		mResourceManager.loadAssetBundleAsync(getScenePath(sceneName) + sceneName, onSceneAssetBundleLoaded, scene);
+		mResourceManager.loadAssetBundleAsync(getScenePath(sceneName) + sceneName, mSceneLoadCallback, scene);
 	}
 	// unloadPath表示是否将场景所属文件夹的所有资源卸载
 	public void unloadScene(string name, bool unloadPath = true)
@@ -224,24 +231,24 @@ public class SceneSystem : FrameSystem
 	}
 	protected SceneInstance createScene(string sceneName)
 	{
-		if(!mSceneRegisteList.ContainsKey(sceneName))
+		if(!mSceneRegisteList.TryGetValue(sceneName, out SceneRegisteInfo info))
 		{
 			logError("scene :" + sceneName + " is not registed!");
 			return null;
 		}
-		SceneInstance scene =  createInstance<SceneInstance>(mSceneRegisteList[sceneName].mSceneType);
+		SceneInstance scene =  createInstance<SceneInstance>(info.mSceneType);
 		scene.setName(sceneName);
 		return scene;
 	}
 	// 只销毁场景,不从列表移除
 	protected void unloadSceneOnly(string name)
 	{
-		if (!mSceneList.ContainsKey(name))
+		if (!mSceneList.TryGetValue(name, out SceneInstance scene))
 		{
 			return;
 		}
-		mSceneList[name].destroy();
-		if (mSceneList[name].mRoot != null)
+		scene.destroy();
+		if (scene.mRoot != null)
 		{
 #if UNITY_5_3_5
 			SceneManager.UnloadScene(name);

@@ -121,7 +121,8 @@ public class SQLite : FrameSystem
 	}
 	public SQLiteTable getTable(Type type)
 	{
-		return mTableList.ContainsKey(type) ? mTableList[type] : null;
+		mTableList.TryGetValue(type, out SQLiteTable table);
+		return table;
 	}
 	//---------------------------------------------------------------------------------------------------------------
 	protected void clearConnection()

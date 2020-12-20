@@ -6,9 +6,11 @@ using System.Collections.Generic;
 public class HeadTextureManager : FrameSystem
 {
     protected Dictionary<string, HeadLoadInfo> mHeadTextureList;
+	protected AssetLoadDoneCallback mHeadLoadCallback;
 	public HeadTextureManager()
 	{
         mHeadTextureList = new Dictionary<string, HeadLoadInfo>();
+		mHeadLoadCallback = onLoadWechatHead;
 	}
 	public override void destroy()
 	{
@@ -21,9 +23,9 @@ public class HeadTextureManager : FrameSystem
 	}
 	public Texture getHead(string openID)
 	{
-		if(mHeadTextureList.ContainsKey(openID))
+		if (mHeadTextureList.TryGetValue(openID, out HeadLoadInfo info))
 		{
-			return mHeadTextureList[openID].mTexture;
+			return info.mTexture;
 		}
 		return null;
 	}
@@ -34,9 +36,8 @@ public class HeadTextureManager : FrameSystem
 			doneCallback?.Invoke(null, openID);
 			return;
 		}
-		if (mHeadTextureList.ContainsKey(openID))
+		if (mHeadTextureList.TryGetValue(openID, out HeadLoadInfo info))
 		{
-			HeadLoadInfo info = mHeadTextureList[openID];
 			if(info.mURL == url)
 			{
 				if (doneCallback != null)
@@ -70,7 +71,7 @@ public class HeadTextureManager : FrameSystem
 					{
 						info.mCallbackList.Add(doneCallback);
 					}
-					mResourceManager.loadAssetsFromUrl<Texture>(url, onLoadWechatHead, openID);
+					mResourceManager.loadAssetsFromUrl<Texture>(url, mHeadLoadCallback, openID);
 				}
 				// 如果头像正在下载,则只能等待头像下载完毕
 				else if (info.mState == LOAD_STATE.LOADING)
@@ -84,7 +85,7 @@ public class HeadTextureManager : FrameSystem
 		}
 		else
 		{
-			HeadLoadInfo info = new HeadLoadInfo();
+			info = new HeadLoadInfo();
 			info.mOpenID = openID;
 			info.mTexture = null;
 			info.mState = LOAD_STATE.LOADING;
@@ -94,7 +95,7 @@ public class HeadTextureManager : FrameSystem
 				info.mCallbackList.Add(doneCallback);
 			}
 			mHeadTextureList.Add(openID, info);
-			mResourceManager.loadAssetsFromUrl<Texture>(url, onLoadWechatHead, openID);
+			mResourceManager.loadAssetsFromUrl<Texture>(url, mHeadLoadCallback, openID);
 		}
 	}
 	//----------------------------------------------------------------------------------------------------------------------------

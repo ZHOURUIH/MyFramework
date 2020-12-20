@@ -6,7 +6,7 @@ public class CommandGameSceneAudioVolume : Command
 	public KeyFrameCallback mFadingCallback;
 	public KeyFrameCallback mFadeDoneCallback;
 	public SOUND_DEFINE mSoundVolumeCoe;    // 如果为有效值,则启用音量系数
-	public string mKeyFrameName;
+	public KEY_FRAME mKeyframe;
 	public float mStartVolume;
 	public float mTargetVolume;
 	public float mOnceLength;   // 持续时间
@@ -20,7 +20,7 @@ public class CommandGameSceneAudioVolume : Command
 		mFadingCallback = null;
 		mFadeDoneCallback = null;
 		mSoundVolumeCoe = SOUND_DEFINE.MIN;
-		mKeyFrameName = null;
+		mKeyframe = KEY_FRAME.NONE;
 		mStartVolume = 0.0f;
 		mTargetVolume = 0.0f;
 		mOnceLength = 0.0f;
@@ -44,11 +44,11 @@ public class CommandGameSceneAudioVolume : Command
 		component.setActive(true);
 		component.setStartVolume(mStartVolume);
 		component.setTargetVolume(mTargetVolume);
-		component.play(mKeyFrameName, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
+		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
 	}
 	public override string showDebugInfo()
 	{
-		return base.showDebugInfo() + ": mKeyFrameName:" + mKeyFrameName + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mStartVolume:" + mStartVolume +
+		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mStartVolume:" + mStartVolume +
 			", mTargetVolume:" + mTargetVolume + ", mLoop:" + mLoop + ", mAmplitude:" + mAmplitude + ", mFullOnce:" + mFullOnce;
 	}
 }

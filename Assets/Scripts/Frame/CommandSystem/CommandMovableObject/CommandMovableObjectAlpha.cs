@@ -6,7 +6,7 @@ public class CommandMovableObjectAlpha : Command
 {
 	public KeyFrameCallback mTremblingCallBack;
 	public KeyFrameCallback mTrembleDoneCallBack;
-	public string mName;
+	public KEY_FRAME mKeyframe;
 	public float mStartAlpha;
 	public float mTargetAlpha;
 	public float mOnceLength;
@@ -19,7 +19,7 @@ public class CommandMovableObjectAlpha : Command
 		base.init();
 		mTremblingCallBack = null;
 		mTrembleDoneCallBack = null;
-		mName = null;
+		mKeyframe = KEY_FRAME.NONE;
 		mStartAlpha = 1.0f;
 		mTargetAlpha = 1.0f;
 		mOnceLength = 1.0f;
@@ -39,11 +39,11 @@ public class CommandMovableObjectAlpha : Command
 		component.setActive(true);
 		component.setStartAlpha(mStartAlpha);
 		component.setTargetAlpha(mTargetAlpha);
-		component.play(mName, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
+		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
 	}
 	public override string showDebugInfo()
 	{
-		return base.showDebugInfo() + ": mName:" + mName + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mStartAlpha:" + mStartAlpha +
+		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mStartAlpha:" + mStartAlpha +
 			", mTargetAlpha:" + mTargetAlpha + ", mLoop:" + mLoop + ", mAmplitude:" + mAmplitude + ", mFullOnce:" + mFullOnce;
 	}
 }

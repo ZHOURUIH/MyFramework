@@ -5,12 +5,12 @@ using System.Collections.Generic;
 public class PACKET_TYPE
 {
 	// CS表示Client->Server
-	public const int CS_MIN = 10000;
-	public const int CS_DEMO = 10001;
-	public const int CS_MAX = 10002;
+	public const ushort CS_MIN = 10000;
+	public const ushort CS_DEMO = 10001;
+	public const ushort CS_MAX = 10002;
 
 	// SC表示Server->Client
-	public const int SC_MIN = 20000;
-	public const int SC_DEMO = 20001;
-	public const int SC_MAX = 20002;
+	public const ushort SC_MIN = 20000;
+	public const ushort SC_DEMO = 20001;
+	public const ushort SC_MAX = 20002;
 };

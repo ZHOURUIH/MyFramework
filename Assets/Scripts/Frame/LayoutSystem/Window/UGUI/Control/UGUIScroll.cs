@@ -120,7 +120,7 @@ public class UGUIScroll : FrameBase
 		{
 			float curControlValue = mContainerList[mDefaultFocus].getControlValue() - mCurOffset;
 			// 非循环模式下,当前偏移值小于0或者大于最大值时,需要回到正常的范围,偏移值越小,减速越快
-			bool autoClamp = !mLoop && !isInRange(curControlValue, 0.0f, mMaxControlValue, true);
+			bool autoClamp = !mLoop && !inRange(curControlValue, 0.0f, mMaxControlValue, true);
 			if (!isFloatZero(mScrollSpeed))
 			{
 				if(autoClamp)
@@ -273,7 +273,7 @@ public class UGUIScroll : FrameBase
 			else
 			{
 				// 非循环模式下,新的控制值不在容器控制值范围内时,表示已经不在容器范围内了
-				if (!isInRange(newControlValue, 0.0f, mMaxContainerValue))
+				if (!inRange(newControlValue, 0.0f, mMaxContainerValue))
 				{
 					mItemList[i].setVisible(false);
 				}
@@ -282,7 +282,7 @@ public class UGUIScroll : FrameBase
 			{
 				// 找到当前项位于哪两个容器之间,并且计算插值系数
 				int containerIndex = getContainerIndex(newControlValue, false);
-				mItemList[i].setVisible(isInRange(containerIndex, 0, mContainerList.Count - 1));
+				mItemList[i].setVisible(inRange(containerIndex, 0, mContainerList.Count - 1));
 				if (mItemList[i].isVisible())
 				{
 					int nextContainerIndex = containerIndex + 1;
@@ -290,7 +290,7 @@ public class UGUIScroll : FrameBase
 					{
 						nextContainerIndex %= mContainerList.Count;
 					}
-					if (isInRange(nextContainerIndex, 0, mContainerList.Count - 1))
+					if (inRange(nextContainerIndex, 0, mContainerList.Count - 1))
 					{
 						float curItemOffsetValue = mContainerList[containerIndex].getControlValue();
 						float nextItemOffsetValue = mContainerList[nextContainerIndex].getControlValue();

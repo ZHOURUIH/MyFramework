@@ -34,7 +34,7 @@ public class CommandTransformableTrackTarget : Command
 	}
 	public override string showDebugInfo()
 	{
-		string target = mTarget != null ? mTarget.getName() : EMPTY_STRING;
+		string target = mTarget != null ? mTarget.getName() : EMPTY;
 		return base.showDebugInfo() + ": target:" + target + ", mSpeed:" + mSpeed;
 	}
 }

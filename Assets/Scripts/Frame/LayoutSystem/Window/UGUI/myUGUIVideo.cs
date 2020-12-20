@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
 using RenderHeads.Media.AVProVideo;
+using UnityEngine.Events;
 
 public class myUGUIVideo : myUGUIRawImage
 {
+	protected UnityAction<MediaPlayer, MediaPlayerEvent.EventType, ErrorCode> mVideoEventCallback;
 	protected MediaPlayer mMediaPlayer;
 	protected VideoCallback mVideoEndCallback;
 	protected VideoCallback mVideoReadyCallback;
@@ -18,6 +20,7 @@ public class myUGUIVideo : myUGUIRawImage
 	protected bool mReady;
 	public myUGUIVideo()
 	{
+		mVideoEventCallback = onVideoEvent;
 		mAutoShowOrHide = true;
 		mNextState = PLAY_STATE.NONE;
 		mNextRate = 1.0f;
@@ -29,42 +32,42 @@ public class myUGUIVideo : myUGUIRawImage
 		base.init();
 		mIsRequires = false;
 		mMediaPlayer = getUnityComponent<MediaPlayer>();
-		mMediaPlayer.Events.AddListener(onVideoEvent);
+		mMediaPlayer.Events.AddListener(mVideoEventCallback);
 	}
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		if (mReady && mMediaPlayer.Control != null && mMediaPlayer.Control.IsPlaying())
+		if (!mReady || mMediaPlayer.Control == null || !mMediaPlayer.Control.IsPlaying())
 		{
-			if(mMediaPlayer != null)
-			{
-				if(mMediaPlayer.TextureProducer != null)
-				{
-					Texture texture = mMediaPlayer.TextureProducer.GetTexture();
-					if(texture != null)
-					{
-						if(mMediaPlayer.TextureProducer.RequiresVerticalFlip() && !mIsRequires)
-						{
-							mIsRequires = true;
-							Vector3 rot = getRotation();
-							float rotX = rot.x + PI_DEGREE;
-							adjustAngle180(ref rotX);
-							rot.x = rotX;
-							// 旋转180 
-							setRotation(rot);
-						}
-						mRawImage.texture = texture;
-						// 只有当真正开始渲染时才认为是准备完毕
-						mVideoReadyCallback?.Invoke(mFileName, false);
-						mVideoReadyCallback = null;
-					}
-				}
-			}
-			else
-			{
-				mRawImage.texture = null;
-			}
+			return;
 		}
+		if (mMediaPlayer == null)
+		{
+			mRawImage.texture = null;
+		}
+		if (mMediaPlayer.TextureProducer == null)
+		{
+			return;
+		}
+		Texture texture = mMediaPlayer.TextureProducer.GetTexture();
+		if (texture == null)
+		{
+			return;
+		}
+		if (mMediaPlayer.TextureProducer.RequiresVerticalFlip() && !mIsRequires)
+		{
+			mIsRequires = true;
+			Vector3 rot = getRotation();
+			float rotX = rot.x + PI_DEGREE;
+			adjustAngle180(ref rotX);
+			rot.x = rotX;
+			// 旋转180 
+			setRotation(rot);
+		}
+		mRawImage.texture = texture;
+		// 只有当真正开始渲染时才认为是准备完毕
+		mVideoReadyCallback?.Invoke(mFileName, false);
+		mVideoReadyCallback = null;
 	}
 	public override void destroy()
 	{
@@ -73,21 +76,21 @@ public class myUGUIVideo : myUGUIRawImage
 	}
 	public void setPlayState(PLAY_STATE state, bool autoShowOrHide = true)
 	{
-		if(isEmpty(mFileName))
+		if (isEmpty(mFileName))
 		{
 			return;
 		}
-		if(mReady)
+		if (mReady)
 		{
-			if(state == PLAY_STATE.PLAY)
+			if (state == PLAY_STATE.PLAY)
 			{
 				play(autoShowOrHide);
 			}
-			else if(state == PLAY_STATE.PAUSE)
+			else if (state == PLAY_STATE.PAUSE)
 			{
 				pause();
 			}
-			else if(state == PLAY_STATE.STOP)
+			else if (state == PLAY_STATE.STOP)
 			{
 				stop(autoShowOrHide);
 			}
@@ -129,10 +132,10 @@ public class myUGUIVideo : myUGUIRawImage
 		bool ret = mMediaPlayer.OpenVideoFromFile(MediaPlayer.FileLocation.AbsolutePathOrURL, url, false);
 		return ret;
 	}
-	public string getFileName(){return mFileName;}
+	public string getFileName() { return mFileName; }
 	public void setLoop(bool loop)
 	{
-		if(mReady)
+		if (mReady)
 		{
 			mMediaPlayer.Control.SetLooping(loop);
 		}
@@ -141,13 +144,13 @@ public class myUGUIVideo : myUGUIRawImage
 			mNextLoop = loop;
 		}
 	}
-	public bool isLoop(){return mMediaPlayer.m_Loop;}
+	public bool isLoop() { return mMediaPlayer.m_Loop; }
 	public void setRate(float rate)
 	{
-		if(mReady)
+		if (mReady)
 		{
 			clamp(ref rate, 0.0f, 4.0f);
-			if(!isFloatEqual(rate, getRate()))
+			if (!isFloatEqual(rate, getRate()))
 			{
 				mMediaPlayer.Control.SetPlaybackRate(rate);
 			}
@@ -159,7 +162,7 @@ public class myUGUIVideo : myUGUIRawImage
 	}
 	public float getRate()
 	{
-		if(mMediaPlayer.Control == null)
+		if (mMediaPlayer.Control == null)
 		{
 			return 0.0f;
 		}
@@ -167,7 +170,7 @@ public class myUGUIVideo : myUGUIRawImage
 	}
 	public float getVideoLength()
 	{
-		if(mMediaPlayer.Info == null)
+		if (mMediaPlayer.Info == null)
 		{
 			return 0.0f;
 		}
@@ -179,7 +182,7 @@ public class myUGUIVideo : myUGUIRawImage
 	}
 	public void setVideoPlayTime(float timeMS)
 	{
-		if(mReady)
+		if (mReady)
 		{
 			mMediaPlayer.Control.SeekFast(timeMS);
 		}
@@ -202,15 +205,15 @@ public class myUGUIVideo : myUGUIRawImage
 	{
 		return mMediaPlayer.Control.IsPlaying();
 	}
-	public void setVideoReadyCallback(VideoCallback callback){mVideoReadyCallback = callback;}
-	public void setErrorCallback(VideoErrorCallback callback){ mErrorCallback = callback;}
+	public void setVideoReadyCallback(VideoCallback callback) { mVideoReadyCallback = callback; }
+	public void setErrorCallback(VideoErrorCallback callback) { mErrorCallback = callback; }
 	//----------------------------------------------------------------------------------------------------------------------------------------
 	protected void notifyVideoReady(bool ready)
 	{
 		mReady = ready;
-		if(mReady)
+		if (mReady)
 		{
-			if(mNextState != PLAY_STATE.NONE)
+			if (mNextState != PLAY_STATE.NONE)
 			{
 				setPlayState(mNextState, mAutoShowOrHide);
 			}
@@ -235,21 +238,21 @@ public class myUGUIVideo : myUGUIRawImage
 	protected void onVideoEvent(MediaPlayer player, MediaPlayerEvent.EventType eventType, ErrorCode errorCode)
 	{
 		logInfo("video event : " + eventType, LOG_LEVEL.HIGH);
-		if(eventType == MediaPlayerEvent.EventType.FinishedPlaying)
+		if (eventType == MediaPlayerEvent.EventType.FinishedPlaying)
 		{
 			// 播放完后设置为停止状态
 			clearAndCallEvent(ref mVideoEndCallback, false);
 		}
-		else if(eventType == MediaPlayerEvent.EventType.ReadyToPlay)
+		else if (eventType == MediaPlayerEvent.EventType.ReadyToPlay)
 		{
 			// 视频准备完毕时,设置实际的状态
-			if(mMediaPlayer.Control == null)
+			if (mMediaPlayer.Control == null)
 			{
 				logError("video is ready, but MediaPlayer.Control is null!");
 			}
 			notifyVideoReady(true);
 		}
-		else if(eventType == MediaPlayerEvent.EventType.Error)
+		else if (eventType == MediaPlayerEvent.EventType.Error)
 		{
 			logInfo("video error code : " + errorCode, LOG_LEVEL.FORCE);
 			mErrorCallback?.Invoke(errorCode);
@@ -257,13 +260,13 @@ public class myUGUIVideo : myUGUIRawImage
 	}
 	protected void play(bool autoShow = true)
 	{
-		if(mMediaPlayer.Control != null)
+		if (mMediaPlayer.Control != null)
 		{
-			if(autoShow)
+			if (autoShow)
 			{
 				mRawImage.enabled = true;
 			}
-			if(!mMediaPlayer.Control.IsPlaying())
+			if (!mMediaPlayer.Control.IsPlaying())
 			{
 				mMediaPlayer.Play();
 			}
@@ -271,7 +274,7 @@ public class myUGUIVideo : myUGUIRawImage
 	}
 	protected void pause()
 	{
-		if(mMediaPlayer.Control != null && !mMediaPlayer.Control.IsPaused())
+		if (mMediaPlayer.Control != null && !mMediaPlayer.Control.IsPaused())
 		{
 			mMediaPlayer.Pause();
 		}
@@ -279,10 +282,10 @@ public class myUGUIVideo : myUGUIRawImage
 	protected void stop(bool autoHide = true)
 	{
 		// 停止并不是真正地停止视频,只是将视频暂停,并且移到视频开始位置
-		if(mMediaPlayer.Control != null)
+		if (mMediaPlayer.Control != null)
 		{
 			mMediaPlayer.Rewind(true);
-			if(autoHide)
+			if (autoHide)
 			{
 				mRawImage.enabled = false;
 			}

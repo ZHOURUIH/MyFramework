@@ -30,7 +30,7 @@ public class Dll : FrameBase
 	public Delegate getFunction(string funcName, Type t)
 	{
 #if UNITY_STANDALONE_WIN
-		if (!mFunctionList.ContainsKey(funcName))
+		if (!mFunctionList.TryGetValue(funcName, out Delegate value))
 		{
 			IntPtr api = Kernel32.GetProcAddress(mHandle, funcName);
 			if(api == IntPtr.Zero)
@@ -38,10 +38,10 @@ public class Dll : FrameBase
 				logError("can not find function, name : " + funcName);
 				return null;
 			}
-			Delegate dele = Marshal.GetDelegateForFunctionPointer(api, t);
-			mFunctionList.Add(funcName, dele);
+			value = Marshal.GetDelegateForFunctionPointer(api, t);
+			mFunctionList.Add(funcName, value);
 		}
-		return mFunctionList[funcName];
+		return value;
 #else
 		return null;
 #endif

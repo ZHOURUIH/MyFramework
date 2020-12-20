@@ -3,8 +3,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-public delegate void OnEffectDestroy(GameEffect effect, object userData);
-
 public class GameEffect : MovableObject
 {
 	protected ParticleSystem[] mParticleSystems;        // 特效中包含的粒子系统组件列表
@@ -57,8 +55,10 @@ public class GameEffect : MovableObject
 		// 播放后忽略了时间缩放,则只有在停止时才能修改忽略时间缩放,中间修改是无效的
 		if (mIgnoreTimeScale && mPlayState == PLAY_STATE.PLAY)
 		{
-			foreach (var item in mParticleSystems)
+			int count = mParticleSystems.Length;
+			for (int i = 0; i < count; ++i)
 			{
+				ParticleSystem item = mParticleSystems[i];
 				// 只模拟没有在预设中设置为忽略时间缩放的粒子系统,已经设置忽略时间缩放的会由粒子系统自己更新
 				if (!item.main.useUnscaledTime)
 				{
@@ -111,8 +111,10 @@ public class GameEffect : MovableObject
 		// 如果特效中有动态模型,也需要设置是否受时间影响
 		if (mEffectAnimators != null && mEffectAnimators.Length > 0)
 		{
-			foreach (var item in mEffectAnimators)
+			int count = mEffectAnimators.Length;
+			for(int i = 0; i < count; ++i)
 			{
+				Animator item = mEffectAnimators[i];
 				if (item != null)
 				{
 					item.updateMode = ignore ? AnimatorUpdateMode.UnscaledTime : AnimatorUpdateMode.Normal;
@@ -142,16 +144,19 @@ public class GameEffect : MovableObject
 		{
 			return;
 		}
-		foreach (var item in mParticleSystems)
+		int particleCount = mParticleSystems.Length;
+		for (int i = 0; i < particleCount; ++i)
 		{
-			item.Play();
+			mParticleSystems[i].Play();
 		}
 		// 如果时间已经被缩放了,而且有状态机已经设置了忽略时间缩放,则需要重新再设置一次,否则仍然会受到时间缩放影响
 		// 因为Animator在时间为0时设置updateMode为UnscaledTime是不会立即生效的
 		if (!isFloatEqual(Time.timeScale, 1.0f) && mEffectAnimators != null && mEffectAnimators.Length > 0)
 		{
-			foreach (var item in mEffectAnimators)
+			int animatorCount = mEffectAnimators.Length;
+			for (int i = 0; i < animatorCount; ++i)
 			{
+				Animator item = mEffectAnimators[i];
 				if (item != null && item.updateMode == AnimatorUpdateMode.UnscaledTime)
 				{
 					item.updateMode = AnimatorUpdateMode.Normal;
@@ -163,9 +168,10 @@ public class GameEffect : MovableObject
 	public void stop()
 	{
 		mPlayState = PLAY_STATE.STOP;
-		foreach (var item in mParticleSystems)
+		int count = mParticleSystems.Length;
+		for (int i = 0; i < count; ++i)
 		{
-			item.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
+			mParticleSystems[i].Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
 		}
 		setIgnoreTimeScale(mNextIgnoreTimeScale);
 	}
@@ -177,9 +183,10 @@ public class GameEffect : MovableObject
 	public void pause()
 	{
 		mPlayState = PLAY_STATE.PAUSE;
-		foreach (var item in mParticleSystems)
+		int count = mParticleSystems.Length;
+		for (int i = 0; i < count; ++i)
 		{
-			item.Pause();
+			mParticleSystems[i].Pause();
 		}
 	}
 	public override void resetProperty()

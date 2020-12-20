@@ -7,12 +7,12 @@ using UnityEngine;
 
 public class ResourceLoader : FrameBase
 {
-	protected Dictionary<string, Dictionary<string, ResoucesLoadInfo>> mLoadedPath;
-	protected Dictionary<Object, ResoucesLoadInfo> mLoadedObjects;
+	protected Dictionary<string, Dictionary<string, ResourceLoadInfo>> mLoadedPath;
+	protected Dictionary<Object, ResourceLoadInfo> mLoadedObjects;
 	public ResourceLoader()
 	{
-		mLoadedPath = new Dictionary<string, Dictionary<string, ResoucesLoadInfo>>();
-		mLoadedObjects = new Dictionary<Object, ResoucesLoadInfo>();
+		mLoadedPath = new Dictionary<string, Dictionary<string, ResourceLoadInfo>>();
+		mLoadedObjects = new Dictionary<Object, ResourceLoadInfo>();
 	}
 	public void init(){}
 	public void update(float elapsedTime){}
@@ -22,9 +22,11 @@ public class ResourceLoader : FrameBase
 		List<string> fileList = findResourcesFilesNonAlloc(path);
 		// 去除meta文件
 		list.Clear();
-		foreach (var item in fileList)
+		int count = fileList.Count;
+		for(int i = 0; i < count; ++i)
 		{
-			if(!item.EndsWith(".meta"))
+			string item = fileList[i];
+			if (!item.EndsWith(".meta"))
 			{
 				list.Add(getFileNameNoSuffix(item));
 			}
@@ -37,49 +39,52 @@ public class ResourceLoader : FrameBase
 			return false;
 		}
 		// 资源已经加载完
-		if(mLoadedObjects.ContainsKey(obj))
-		{
-			if(!(obj is GameObject))
-			{
-				Resources.UnloadAsset(obj);
-			}
-			mLoadedPath[mLoadedObjects[obj].mPath].Remove(mLoadedObjects[obj].mResouceName);
-			mClassPool.destroyClass(mLoadedObjects[obj]);
-			mLoadedObjects.Remove(obj);
-			obj = null;
-			return true;
-		}
-		else
+		if(!mLoadedObjects.TryGetValue(obj, out ResourceLoadInfo info))
 		{
 			logWarning("无法卸载资源:" + obj.name + ", 可能未加载,或者已经卸载,或者该资源是子资源,或者正在异步加载");
+			return false;
 		}
-		return false;
+		if (!(obj is GameObject))
+		{
+			Resources.UnloadAsset(obj);
+		}
+		mLoadedPath[info.mPath].Remove(info.mResouceName);
+		mClassPool.destroyClass(info);
+		mLoadedObjects.Remove(obj);
+		obj = null;
+		return true;
+		
 	}
 	// 卸载指定路径中的所有资源
 	public void unloadPath(string path)
 	{
 		List<string> tempList = mListPool.newList(out tempList);
 		tempList.AddRange(mLoadedPath.Keys);
-		foreach(var item0 in tempList)
+		int count = tempList.Count;
+		for(int i = 0; i < count; ++i)
 		{
+			string item0 = tempList[i];
 			if (!startWith(item0, path))
 			{
 				continue;
 			}
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 			logInfo("unload path: " + item0);
+#endif
 			var list = mLoadedPath[item0];
 			foreach (var item in list)
 			{
-				if (item.Value.mObject != null)
+				ResourceLoadInfo info = item.Value;
+				if (info.mObject != null)
 				{
-					mLoadedObjects.Remove(item.Value.mObject);
-					if (!(item.Value.mObject is GameObject))
+					mLoadedObjects.Remove(info.mObject);
+					if (!(info.mObject is GameObject))
 					{
-						Resources.UnloadAsset(item.Value.mObject);
+						Resources.UnloadAsset(info.mObject);
 					}
-					item.Value.mObject = null;
+					info.mObject = null;
 				}
-				mClassPool.destroyClass(item.Value);
+				mClassPool.destroyClass(info);
 			}
 			mLoadedPath.Remove(item0);
 		}
@@ -88,18 +93,19 @@ public class ResourceLoader : FrameBase
 	public bool isResourceLoaded(string name)
 	{
 		string path = getFilePath(name);
-		if (!mLoadedPath.ContainsKey(path))
+		if (mLoadedPath.TryGetValue(path, out Dictionary<string, ResourceLoadInfo> resList))
 		{
-			return mLoadedPath[path].ContainsKey(name);
+			return resList.ContainsKey(name);
 		}
 		return false;
 	}
 	public Object getResource(string name)
 	{
 		string path = getFilePath(name);
-		if (mLoadedPath.ContainsKey(path) && mLoadedPath[path].ContainsKey(name))
+		if (mLoadedPath.TryGetValue(path, out Dictionary<string, ResourceLoadInfo> resList) && 
+			resList.TryGetValue(name, out ResourceLoadInfo info))
 		{
-			return mLoadedPath[path][name].mObject;
+			return info.mObject;
 		}
 		return null;
 	}
@@ -108,17 +114,19 @@ public class ResourceLoader : FrameBase
 	{
 		string path = getFilePath(name);
 		// 如果文件夹还未加载,则添加文件夹
-		if (!mLoadedPath.ContainsKey(path))
+		if (!mLoadedPath.TryGetValue(path, out Dictionary<string, ResourceLoadInfo> resList))
 		{
-			mLoadedPath.Add(path, new Dictionary<string, ResoucesLoadInfo>());
+			resList = new Dictionary<string, ResourceLoadInfo>();
+			mLoadedPath.Add(path, resList);
 		}
 		// 资源未加载,则使用Resources.Load加载资源
-		if (!mLoadedPath[path].ContainsKey(name))
+		if (!resList.TryGetValue(name, out ResourceLoadInfo info))
 		{
 			load<T>(path, name);
-			return mLoadedPath[path][name].mSubObjects;
+			// 加载后需要重新获取一次
+			info = resList[name];
+			return info.mSubObjects;
 		}
-		ResoucesLoadInfo info = mLoadedPath[path][name];
 		if (info.mState == LOAD_STATE.LOADED)
 		{
 			return info.mSubObjects;
@@ -138,17 +146,19 @@ public class ResourceLoader : FrameBase
 	{
 		string path = getFilePath(name);
 		// 如果文件夹还未加载,则添加文件夹
-		if (!mLoadedPath.ContainsKey(path))
+		if (!mLoadedPath.TryGetValue(path, out Dictionary<string, ResourceLoadInfo> resList))
 		{
-			mLoadedPath.Add(path, new Dictionary<string, ResoucesLoadInfo>());
+			resList = new Dictionary<string, ResourceLoadInfo>();
+			mLoadedPath.Add(path, resList);
 		}
 		// 资源未加载,则使用Resources.Load加载资源
-		if (!mLoadedPath[path].ContainsKey(name))
+		if (!resList.TryGetValue(name, out ResourceLoadInfo info))
 		{
 			load<T>(path, name);
-			return mLoadedPath[path][name].mObject as T;
+			// 加载后需要重新获取一次
+			info = resList[name];
+			return info.mObject as T;
 		}
-		ResoucesLoadInfo info = mLoadedPath[path][name];
 		if(info.mState == LOAD_STATE.LOADED)
 		{
 			return info.mObject as T;
@@ -164,18 +174,18 @@ public class ResourceLoader : FrameBase
 		return null;
 	}
 	// 异步加载资源,name为Resources下的相对路径,不带后缀
-	public bool loadResourcesAsync<T>(string name, AssetLoadDoneCallback doneCallback, object[] userData) where T : Object
+	public bool loadResourcesAsync<T>(string name, AssetLoadDoneCallback doneCallback, object userData = null) where T : Object
 	{
 		string path = getFilePath(name);
 		// 如果文件夹还未加载,则添加文件夹
-		if (!mLoadedPath.ContainsKey(path))
+		if (!mLoadedPath.TryGetValue(path, out Dictionary<string, ResourceLoadInfo> resList))
 		{
-			mLoadedPath.Add(path, new Dictionary<string, ResoucesLoadInfo>());
+			resList = new Dictionary<string, ResourceLoadInfo>();
+			mLoadedPath.Add(path, resList);
 		}
 		// 已经加载,则返回true
-		if (mLoadedPath[path].ContainsKey(name))
+		if (resList.TryGetValue(name, out ResourceLoadInfo info))
 		{
-			ResoucesLoadInfo info = mLoadedPath[path][name];
 			// 资源正在下载,将回调添加到回调列表中,等待下载完毕
 			if (info.mState == LOAD_STATE.LOADING)
 			{	
@@ -190,13 +200,12 @@ public class ResourceLoader : FrameBase
 		// 还没有加载则开始异步加载
 		else
 		{
-			ResoucesLoadInfo info;
-			mClassPool.newClass(out info, Typeof<ResoucesLoadInfo>());
+			info = mClassPool.newClass(Typeof<ResourceLoadInfo>()) as ResourceLoadInfo;
 			info.mPath = path;
 			info.mResouceName = name;
 			info.mState = LOAD_STATE.LOADING;
 			info.addCallback(doneCallback, userData, name);
-			mLoadedPath[path].Add(name, info);
+			resList.Add(name, info);
 			mGameFramework.StartCoroutine(loadResourceCoroutine<T>(info));
 		}
 		return true;
@@ -204,16 +213,16 @@ public class ResourceLoader : FrameBase
 	//---------------------------------------------------------------------------------------------------------------------------------------
 	protected void load<T>(string path, string name) where T : Object
 	{
-		if (mLoadedPath[path].ContainsKey(name))
+		var resList = mLoadedPath[path];
+		if (resList.ContainsKey(name))
 		{
 			return;
 		}
-		ResoucesLoadInfo info;
-		mClassPool.newClass(out info, Typeof<ResoucesLoadInfo>());
+		var info = mClassPool.newClass(Typeof<ResourceLoadInfo>()) as ResourceLoadInfo;
 		info.mPath = path;
 		info.mResouceName = name;
 		info.mState = LOAD_STATE.LOADING;
-		mLoadedPath[path].Add(info.mResouceName, info);
+		resList.Add(info.mResouceName, info);
 #if UNITY_EDITOR
 		List<string> fileNameList = mListPool.newList(out fileNameList);
 		ResourceManager.adjustResourceName<T>(name, fileNameList, false);
@@ -239,7 +248,7 @@ public class ResourceLoader : FrameBase
 			mLoadedObjects.Add(info.mObject, info);
 		}
 	}
-	protected IEnumerator loadResourceCoroutine<T>(ResoucesLoadInfo info) where T : Object
+	protected IEnumerator loadResourceCoroutine<T>(ResourceLoadInfo info) where T : Object
 	{
 #if UNITY_EDITOR
 		List<string> fileNameList = mListPool.newList(out fileNameList);

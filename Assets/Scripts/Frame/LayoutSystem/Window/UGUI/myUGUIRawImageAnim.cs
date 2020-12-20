@@ -12,6 +12,8 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 	protected string mTextureSetName;
 	protected string mSubPath;
 	protected bool mUseTextureSize;
+	protected OnPlayEndCallback mThisPlayEnd;
+	protected OnPlayingCallback mThisPlaying;
 	public myUGUIRawImageAnim()
 	{
 		mTextureNameList = new List<Texture>();
@@ -19,8 +21,10 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 		mUseTextureSize = false;
 		mPlayEndCallback = new List<TextureAnimCallBack>();
 		mPlayingCallback = new List<TextureAnimCallBack>();
-		mTextureSetName = EMPTY_STRING;
-		mSubPath = EMPTY_STRING;
+		mTextureSetName = EMPTY;
+		mSubPath = EMPTY;
+		mThisPlayEnd = onPlayEnd;
+		mThisPlaying = onPlaying;
 		mEnable = true;
 	}
 	public override void init()
@@ -36,8 +40,8 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 			}
 		}
 		mControl.setObject(this);
-		mControl.setPlayEndCallback(onPlayEnd);
-		mControl.setPlayingCallback(onPlaying);
+		mControl.setPlayEndCallback(mThisPlayEnd);
+		mControl.setPlayingCallback(mThisPlaying);
 	}
 	public override void update(float elapsedTime)
 	{
@@ -120,9 +124,10 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 			tempList.AddRange(mPlayEndCallback);
 			mPlayEndCallback.Clear();
 			// 如果回调函数当前不为空,则是中断了更新
-			foreach(var item in tempList)
+			int count = tempList.Count;
+			for(int i = 0; i < count; ++i)
 			{
-				item(this, true);
+				tempList[i](this, true);
 			}
 			mListPool.destroyList(tempList);
 		}
@@ -152,9 +157,10 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 			int positionIndex = (int)(frame / (float)mTextureNameList.Count * mTexturePosList.Count + 0.5f);
 			setPosition(mTexturePosList[positionIndex]);
 		}
-		foreach (var item in mPlayingCallback)
+		int count = mPlayingCallback.Count;
+		for(int i = 0; i < count; ++i)
 		{
-			item(this, false);
+			mPlayingCallback[i](this, false);
 		}
 	}
 	protected void onPlayEnd(AnimControl control, bool callback, bool isBreak)
@@ -169,9 +175,10 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 			List<TextureAnimCallBack> tempList = mListPool.newList(out tempList);
 			tempList.AddRange(mPlayEndCallback);
 			mPlayEndCallback.Clear();
-			foreach (var item in tempList)
+			int count = tempList.Count;
+			for(int i = 0; i < count; ++i)
 			{
-				item(this, isBreak);
+				tempList[i](this, isBreak);
 			}
 			mListPool.destroyList(tempList);
 		}

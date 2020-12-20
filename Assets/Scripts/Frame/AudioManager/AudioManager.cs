@@ -7,12 +7,14 @@ public class AudioManager : FrameSystem
 	protected Dictionary<string, AudioInfo> mAudioClipList;     // 音效资源列表
 	protected Dictionary<SOUND_DEFINE, string> mSoundDefineMap; // 音效定义与音效名的映射
 	protected Dictionary<SOUND_DEFINE, float> mVolumeScale;
+	protected AssetLoadDoneCallback mAudioLoadCallback;
 	protected int mLoadedCount;
 	public AudioManager()
 	{
 		mAudioClipList = new Dictionary<string, AudioInfo>();
 		mSoundDefineMap = new Dictionary<SOUND_DEFINE, string>();
 		mVolumeScale = new Dictionary<SOUND_DEFINE, float>();
+		mAudioLoadCallback = onAudioLoaded;
 	}
 	public override void destroy()
 	{
@@ -30,18 +32,17 @@ public class AudioManager : FrameSystem
 	public void createStreamingAudio(string url, bool load = true)
 	{
 		string audioName = getFileNameNoSuffix(url, true);
-		if(!mAudioClipList.ContainsKey(audioName))
+		if(!mAudioClipList.TryGetValue(audioName, out AudioInfo info))
 		{
-			AudioInfo newInfo = new AudioInfo();
-			newInfo.mAudioName = audioName;
-			newInfo.mAudioPath = getFilePath(url);
-			newInfo.mClip = null;
-			newInfo.mState = LOAD_STATE.UNLOAD;
-			newInfo.mIsResource = false;
-			newInfo.mSuffix = getFileSuffix(url);
-			mAudioClipList.Add(audioName, newInfo);
+			info = new AudioInfo();
+			info.mAudioName = audioName;
+			info.mAudioPath = getFilePath(url);
+			info.mClip = null;
+			info.mState = LOAD_STATE.UNLOAD;
+			info.mIsResource = false;
+			info.mSuffix = getFileSuffix(url);
+			mAudioClipList.Add(audioName, info);
 		}
-		AudioInfo info = mAudioClipList[audioName];
 		if(load && info.mClip == null)
 		{
 			loadAudio(info, true);
@@ -49,14 +50,14 @@ public class AudioManager : FrameSystem
 	}
 	public bool unload(string name)
 	{
-		if(!mAudioClipList.ContainsKey(name))
+		if(!mAudioClipList.TryGetValue(name, out AudioInfo info))
 		{
 			return false;
 		}
-		bool ret = mResourceManager.unload(ref mAudioClipList[name].mClip);
+		bool ret = mResourceManager.unload(ref info.mClip);
 		if(ret)
 		{
-			mAudioClipList[name].mState = LOAD_STATE.UNLOAD;
+			info.mState = LOAD_STATE.UNLOAD;
 		}
 		return ret;
 	}
@@ -74,33 +75,32 @@ public class AudioManager : FrameSystem
 	public void loadAudio(string fileName, bool async = true)
 	{
 		string audioName = getFileNameNoSuffix(fileName, true);
-		if(mAudioClipList.ContainsKey(audioName))
+		if (mAudioClipList.TryGetValue(audioName, out AudioInfo info))
 		{
-			loadAudio(mAudioClipList[audioName], async);
+			loadAudio(info, async);
 		}
 	}
 	public void loadAudio(SOUND_DEFINE sound, bool async = true)
 	{
-		if(!mSoundDefineMap.ContainsKey(sound))
+		if(!mSoundDefineMap.TryGetValue(sound, out string audioName))
 		{
 			return;
 		}
-		string audioName = mSoundDefineMap[sound];
-		if(mAudioClipList.ContainsKey(audioName))
+		if (mAudioClipList.TryGetValue(audioName, out AudioInfo info))
 		{
-			loadAudio(mAudioClipList[audioName], async);
+			loadAudio(info, async);
 		}
 	}
 	public float getAudioLength(string name)
 	{
 		if (isEmpty(name) || 
-			!mAudioClipList.ContainsKey(name) || 
-			mAudioClipList[name] == null || 
-			mAudioClipList[name].mClip == null)
+			!mAudioClipList.TryGetValue(name, out AudioInfo info) ||
+			info == null ||
+			info.mClip == null)
 		{
 			return 0.0f;
 		}
-		return mAudioClipList[name].mClip.length;
+		return info.mClip.length;
 	}
 	public float getAudioLength(SOUND_DEFINE sound)
 	{
@@ -110,23 +110,20 @@ public class AudioManager : FrameSystem
 	// volume范围0-1,load表示如果音效未加载,则加载音效
 	public void playClip(AudioSource source, string name, bool loop, float volume, bool load = true)
 	{
-		if(!mAudioClipList.ContainsKey(name))
+		if(!mAudioClipList.TryGetValue(name, out AudioInfo info))
 		{
 			return;
 		}
-		AudioClip clip = mAudioClipList[name].mClip;
+		AudioClip clip = info.mClip;
 		// 如果音效为空,则尝试加载
 		if(clip == null)
 		{
-			if(load && mAudioClipList[name].mState == LOAD_STATE.UNLOAD)
-			{
-				loadAudio(mAudioClipList[name], false);
-				clip = mAudioClipList[name].mClip;
-			}
-			else
+			if (!load || info.mState != LOAD_STATE.UNLOAD)
 			{
 				return;
 			}
+			loadAudio(info, false);
+			clip = info.mClip;
 		}
 		if(source == null)
 		{
@@ -140,7 +137,7 @@ public class AudioManager : FrameSystem
 	}
 	public void stopClip(AudioSource source)
 	{
-		if(source != null)
+		if (source != null)
 		{
 			source.volume = 0.0f;
 		}
@@ -151,14 +148,14 @@ public class AudioManager : FrameSystem
 	}
 	public void setVolume(AudioSource source, float volume)
 	{
-		if(source != null)
+		if (source != null)
 		{
 			source.volume = volume;
 		}
 	}
 	public void setLoop(AudioSource source, bool loop)
 	{
-		if(source == null)
+		if (source == null)
 		{
 			source.loop = loop;
 		}
@@ -167,17 +164,17 @@ public class AudioManager : FrameSystem
 	public float getLoadedPercent() { return (float)mLoadedCount / mAudioClipList.Count; }
 	public float getVolumeScale(SOUND_DEFINE sound)
 	{
-		if(mVolumeScale.ContainsKey(sound))
+		if (mVolumeScale.TryGetValue(sound, out float volume))
 		{
-			return mVolumeScale[sound];
+			return volume;
 		}
 		return 1.0f;
 	}
 	public string getAudioName(SOUND_DEFINE soundDefine)
 	{
-		if(mSoundDefineMap.ContainsKey(soundDefine))
+		if (mSoundDefineMap.TryGetValue(soundDefine, out string name))
 		{
-			return mSoundDefineMap[soundDefine];
+			return name;
 		}
 		return null;
 	}
@@ -200,7 +197,7 @@ public class AudioManager : FrameSystem
 	// 注册可以使用枚举访问的音效
 	public void registeSoundDefine(SOUND_DEFINE soundID, string audioName, string fileName, float volumeScale)
 	{
-		if(mSoundDefineMap.ContainsKey(soundID))
+		if (mSoundDefineMap.ContainsKey(soundID))
 		{
 			return;
 		}
@@ -215,44 +212,39 @@ public class AudioManager : FrameSystem
 	// name为Resource下相对路径,不带后缀
 	protected void loadAudio(AudioInfo info, bool async)
 	{
-		if(info.mClip != null || info.mState != LOAD_STATE.UNLOAD)
+		if (info.mClip != null || info.mState != LOAD_STATE.UNLOAD)
 		{
 			return;
 		}
 		info.mState = LOAD_STATE.LOADING;
 		string path = info.mAudioPath;
 		addEndSlash(ref path);
-		if(info.mIsResource)
+		if (!info.mIsResource)
 		{
-			string fullName = FrameDefine.R_SOUND_PATH + path + info.mAudioName;
-			if(async)
-			{
-				mResourceManager.loadResourceAsync<AudioClip>(fullName, onAudioLoaded, null, false);
-			}
-			else
-			{
-				++mLoadedCount;
-				AudioClip audio = mResourceManager.loadResource<AudioClip>(fullName, false);
-				if(audio != null)
-				{
-					info.mClip = audio;
-					info.mState = LOAD_STATE.LOADED;
-				}
-			}
+			mResourceManager.loadAssetsFromUrl<AudioClip>(path + info.mAudioName + info.mSuffix, mAudioLoadCallback);
+			return;
 		}
-		else
+		string fullName = FrameDefine.R_SOUND_PATH + path + info.mAudioName;
+		if (async)
 		{
-			string url = path + info.mAudioName + info.mSuffix;
-			mResourceManager.loadAssetsFromUrl<AudioClip>(url, onAudioLoaded);
+			mResourceManager.loadResourceAsync<AudioClip>(fullName, mAudioLoadCallback);
+			return;
+		}
+		++mLoadedCount;
+		AudioClip audio = mResourceManager.loadResource<AudioClip>(fullName);
+		if (audio != null)
+		{
+			info.mClip = audio;
+			info.mState = LOAD_STATE.LOADED;
 		}
 	}
 	protected void onAudioLoaded(Object assets, Object[] subAssets, byte[] bytes, object userData, string loadPath)
 	{
 		if (assets != null)
 		{
-			string name = getFileNameNoSuffix(assets.name, true);
-			mAudioClipList[name].mClip = assets as AudioClip;
-			mAudioClipList[name].mState = LOAD_STATE.LOADED;
+			AudioInfo info = mAudioClipList[getFileNameNoSuffix(assets.name, true)];
+			info.mClip = assets as AudioClip;
+			info.mState = LOAD_STATE.LOADED;
 		}
 		++mLoadedCount;
 	}

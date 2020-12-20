@@ -72,9 +72,9 @@ public class HIDDevice : FrameBase
         HIDD_ATTRIBUTES attributes = new HIDD_ATTRIBUTES();
         HID.HidD_GetAttributes(mHandle, ref attributes);
 
-        string productName = EMPTY_STRING;
-        string SN = EMPTY_STRING;
-        string manfString = EMPTY_STRING;
+        string productName = EMPTY;
+        string SN = EMPTY;
+        string manfString = EMPTY;
         IntPtr buffer = Marshal.AllocHGlobal(126);//max alloc for string; 
         if (HID.HidD_GetProductString(mHandle, buffer, 126))
         {
@@ -166,9 +166,9 @@ public class HIDDevice : FrameBase
             HIDD_ATTRIBUTES attributes = new HIDD_ATTRIBUTES();
             HID.HidD_GetAttributes(tempHandle, ref attributes);
 
-            string productName = EMPTY_STRING;
-            string SN = EMPTY_STRING;
-            string manfString = EMPTY_STRING;
+            string productName = EMPTY;
+            string SN = EMPTY;
+            string manfString = EMPTY;
 			const int bufferLen = 128;
             IntPtr buffer = Marshal.AllocHGlobal(bufferLen);
             if (HID.HidD_GetProductString(tempHandle, buffer, bufferLen))

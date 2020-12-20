@@ -5,23 +5,19 @@ using UnityEngine;
 public class WindowShaderLumOffset : WindowShader
 {
 	protected float mLumOffsetValue;
-	protected string mShaderName;
-	protected string mLumPropertyName;
+	protected int mLumOffsetID;
 	public WindowShaderLumOffset()
 	{
-		mShaderName = "LumOffset";
-		mLumPropertyName = "_LumOffset";
+		mLumOffsetID = Shader.PropertyToID("_LumOffset");
 	}
 	public void setLumOffset(float lumOffset){ mLumOffsetValue = lumOffset;}
 	public float getLumOffset() { return mLumOffsetValue; }
 	public override void applyShader(Material mat)
 	{
 		base.applyShader(mat);
-		if (mat != null && mat.shader != null && 
-			getFileName(mat.shader.name) == mShaderName && 
-			!isFloatEqual(mat.GetFloat(mLumPropertyName), mLumOffsetValue))
+		if (mat != null && mat.shader != null)
 		{
-			mat.SetFloat(mLumPropertyName, mLumOffsetValue);
+			mat.SetFloat(mLumOffsetID, mLumOffsetValue);
 		}
 	}
 }

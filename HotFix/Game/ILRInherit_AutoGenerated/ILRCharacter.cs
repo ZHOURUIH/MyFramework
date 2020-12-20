@@ -72,9 +72,6 @@ public class ILRCharacter : Character
 	public override void setEnable(bool enable) { base.setEnable(enable); }
 	public override void lateUpdate(float elapsedTime) { base.lateUpdate(elapsedTime); }
 	public override void notifyAddComponent(GameComponent component) { base.notifyAddComponent(component); }
-	public override void notifyComponentDetached(GameComponent component) { base.notifyComponentDetached(component); }
-	public override void notifyComponentAttached(GameComponent component) { base.notifyComponentAttached(component); }
-	public override void notifyComponentDestroied(GameComponent component) { base.notifyComponentDestroied(component); }
 	public override void setIgnoreTimeScale(bool ignore, bool componentOnly = false) { base.setIgnoreTimeScale(ignore, componentOnly); }
 	public override void receiveCommand(Command cmd) { base.receiveCommand(cmd); }
 	public override string getName() { return base.getName(); }

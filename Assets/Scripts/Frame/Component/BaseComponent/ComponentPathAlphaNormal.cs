@@ -20,7 +20,7 @@ public abstract class ComponentPathAlphaNormal : ComponentKeyFrameNormal
 	public void setValueKeyFrame(Dictionary<float, float> path) { mValueKeyFrame = path; }
 	public void setSpeed(float speed) { mSpeed = speed; }
 	public void setValueOffset(float offset) { mValueOffset = offset; }
-	public override void play(string name, bool loop, float onceLength, float offset, bool fullOnce, float amplitude)
+	public override void play(int keyframe, bool loop, float onceLength, float offset, bool fullOnce, float amplitude)
 	{
 		logError("use play(bool loop, float timeOffset, bool fullOnce) instead!");
 	}
@@ -37,7 +37,7 @@ public abstract class ComponentPathAlphaNormal : ComponentKeyFrameNormal
 		{
 			mMaxLength = 0.0f;
 		}
-		base.play(FrameDefine.ZERO_ONE, loop, mMaxLength, timeOffset, fullOnce, 1.0f);
+		base.play((int)KEY_FRAME.ZERO_ONE, loop, mMaxLength, timeOffset, fullOnce, 1.0f);
 	}
 	//-------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)

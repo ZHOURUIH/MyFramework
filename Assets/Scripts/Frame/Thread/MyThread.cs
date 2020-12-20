@@ -8,20 +8,20 @@ public class MyThread : FrameBase
 	protected ThreadTimeLock mTimeLock;
 	protected Thread mThread;
 	protected string mName;
+	protected bool mIsBackground;       // 是否为后台线程,如果是后台线程,则在应用程序关闭时,子线程会自动强制关闭
 	protected bool mRunning;
 	protected bool mFinish;
 	protected bool mPause;
-	protected bool mIsBackground;       // 是否为后台线程,如果是后台线程,则在应用程序关闭时,子线程会自动强制关闭
 	public MyThread(string name)
 	{
 		mName = name;
 		mCallback = null;
 		mThread = null;
 		mTimeLock = null;
-		mFinish = true;
-		mRunning = false;
-		mPause = false;
 		mIsBackground = true;
+		mRunning = false;
+		mFinish = true;
+		mPause = false;
 	}
 	public void destroy()
 	{

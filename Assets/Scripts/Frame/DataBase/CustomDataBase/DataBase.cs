@@ -87,17 +87,26 @@ public class DataBase : FrameSystem
 	}
 	public List<Data> getAllData(Type type)
 	{
-		return mDataStructList.ContainsKey(type) ? mDataStructList[type] : null;
+		mDataStructList.TryGetValue(type, out List<Data> dataList);
+		return dataList;
 	}
 	// 得到数据数量
 	public int getDataCount(Type type)
 	{
-		return mDataStructList.ContainsKey(type) ? mDataStructList[type].Count : 0;
+		if(mDataStructList.TryGetValue(type, out List<Data> dataList))
+		{
+			return dataList.Count;
+		}
+		return 0;
 	}
 	// 查询数据
 	public Data queryData(Type type, int index)
 	{
-		return mDataStructList.ContainsKey(type) ? mDataStructList[type][index] : null;
+		if (mDataStructList.TryGetValue(type, out List<Data> dataList))
+		{
+			return dataList[index];
+		}
+		return null;
 	}
 	public void addData(Type type, Data data, int pos = -1)
 	{
@@ -105,22 +114,22 @@ public class DataBase : FrameSystem
 		{
 			return;
 		}
-		if(mDataStructList.ContainsKey(type))
+		if (mDataStructList.TryGetValue(type, out List<Data> dataList))
 		{
 			if (pos == -1)
 			{
-				mDataStructList[type].Add(data);
+				dataList.Add(data);
 			}
-			else if (pos >= 0 && pos <= (int)mDataStructList[type].Count)
+			else if (pos >= 0 && pos <= dataList.Count)
 			{
-				mDataStructList[type].Insert(pos, data);
+				dataList.Insert(pos, data);
 			}
 		}
 		else
 		{
-			List<Data> datalist = new List<Data>();
-			datalist.Add(data);
-			mDataStructList.Add(type, datalist);
+			dataList = new List<Data>();
+			dataList.Add(data);
+			mDataStructList.Add(type, dataList);
 		}
 	}
 	public void registeData(Type classType)
@@ -135,15 +144,18 @@ public class DataBase : FrameSystem
 	// 根据数据名得到数据定义
 	public string getDataNameByDataType(Type type)
 	{
-		return mDataDefineFile.ContainsKey(type) ? mDataDefineFile[type] : null;
+		mDataDefineFile.TryGetValue(type, out string name);
+		return name;
 	}
 	// 根据数据定义得到数据名
 	public Type getDataTypeByDataName(string name)
 	{
-		return mDataFileDefine.ContainsKey(name) ? mDataFileDefine[name] : null;
+		mDataFileDefine.TryGetValue(name, out Type type);
+		return type;
 	}
 	public int getDataSize(Type type)
 	{
-		return mDataSizeMap.ContainsKey(type) ? mDataSizeMap[type] : 0;
+		mDataSizeMap.TryGetValue(type, out int size);
+		return size;
 	}
 }

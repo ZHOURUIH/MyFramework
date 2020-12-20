@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using UnityEngine.Profiling;
 
 public class GameFramework : MonoBehaviour
 {
@@ -215,10 +216,9 @@ public class GameFramework : MonoBehaviour
 	}
 	public FrameSystem getSystem(Type type)
 	{
-		string name = type.ToString();
-		if (mFrameComponentMap != null && mFrameComponentMap.ContainsKey(name))
+		if (mFrameComponentMap != null && mFrameComponentMap.TryGetValue(type.ToString(), out FrameSystem frameSystem))
 		{
-			return mFrameComponentMap[name];
+			return frameSystem;
 		}
 		return null;
 	}
@@ -270,9 +270,13 @@ public class GameFramework : MonoBehaviour
 			FrameSystem component = mFrameComponentUpdate[i];
 			if (component != null && !component.isDestroy())
 			{
-				UnityProfiler.BeginSample(component.getName());
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+				Profiler.BeginSample(component.getName());
+#endif
 				component.update(elapsedTime);
-				UnityProfiler.EndSample();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+				Profiler.EndSample();
+#endif
 			}
 		}
 	}
@@ -293,9 +297,13 @@ public class GameFramework : MonoBehaviour
 			FrameSystem component = mFrameComponentUpdate[i];
 			if (component != null && !component.isDestroy())
 			{
-				UnityProfiler.BeginSample(component.getName());
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+				Profiler.BeginSample(component.getName());
+#endif
 				component.fixedUpdate(elapsedTime);
-				UnityProfiler.EndSample();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+				Profiler.EndSample();
+#endif
 			}
 		}
 	}
@@ -373,7 +381,8 @@ public class GameFramework : MonoBehaviour
 			}
 		}
 		System.Net.ServicePointManager.DefaultConnectionLimit = 200;
-		mEnableScriptDebug = true;
+		// 默认不启用调试脚本
+		mEnableScriptDebug = false;
 		mEnableKeyboard = (int)FrameBase.mFrameConfig.getFloat(GAME_FLOAT.ENABLE_KEYBOARD) > 0;
 		ApplicationConfig appConfig = FrameBase.mApplicationConfig;
 		QualitySettings.vSyncCount = (int)appConfig.getFloat(GAME_FLOAT.VSYNC);
@@ -472,6 +481,7 @@ public class GameFramework : MonoBehaviour
 		registeFrameSystem(UnityUtility.Typeof<TPSpriteManager>());
 		registeFrameSystem(UnityUtility.Typeof<SocketFactory>());
 		registeFrameSystem(UnityUtility.Typeof<PathKeyframeManager>());
+		registeFrameSystem(UnityUtility.Typeof<EventSystem>());
 #if USE_ILRUNTIME
 		registeFrameSystem(UnityUtility.Typeof<ILRSystem>());
 #endif

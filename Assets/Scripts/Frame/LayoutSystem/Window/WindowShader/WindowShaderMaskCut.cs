@@ -6,7 +6,15 @@ public class WindowShaderMaskCut : WindowShader
 {
 	protected Texture mMask;
 	protected Vector2 mMaskScale = Vector2.one;
-	protected string mMaskCut = "MaskCut";
+	protected int mMaskTexID;
+	protected int mSizeXID;
+	protected int mSizeYID;
+	public WindowShaderMaskCut()
+	{
+		mMaskTexID = Shader.PropertyToID("_MaskTex");
+		mSizeXID = Shader.PropertyToID("_SizeX");
+		mSizeYID = Shader.PropertyToID("_SizeY");
+	}
 	public void setMaskTexture(Texture mask) { mMask = mask; }
 	public void setMaskScale(Vector2 scale) { mMaskScale = scale; }
 	public override void applyShader(Material mat)
@@ -14,12 +22,9 @@ public class WindowShaderMaskCut : WindowShader
 		base.applyShader(mat);
 		if (mat != null && mat.shader != null)
 		{
-			if (getFileName(mat.shader.name) == mMaskCut)
-			{
-				mat.SetTexture("_MaskTex", mMask);
-				mat.SetFloat("_SizeX", mMaskScale.x);
-				mat.SetFloat("_SizeY", mMaskScale.y);
-			}
+			mat.SetTexture(mMaskTexID, mMask);
+			mat.SetFloat(mSizeXID, mMaskScale.x);
+			mat.SetFloat(mSizeYID, mMaskScale.y);
 		}
 	}
 }

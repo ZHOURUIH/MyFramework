@@ -5,7 +5,7 @@ public class CommandCameraOrthoSize : Command
 {
 	public KeyFrameCallback mTremblingCallBack;
 	public KeyFrameCallback mTrembleDoneCallBack;
-	public string mName;
+	public KEY_FRAME mKeyframe;
 	public bool mLoop;
 	public bool mFullOnce;
 	public float mOnceLength;
@@ -18,7 +18,7 @@ public class CommandCameraOrthoSize : Command
 		base.init();
 		mTremblingCallBack = null;
 		mTrembleDoneCallBack = null;
-		mName = null;
+		mKeyframe = KEY_FRAME.NONE;
 		mOnceLength = 1.0f;
 		mOffset = 0.0f;
 		mAmplitude = 1.0f;
@@ -36,11 +36,11 @@ public class CommandCameraOrthoSize : Command
 		component.setActive(true);
 		component.setStartOrthoSize(mStartOrthoSize);
 		component.setTargetOrthoSize(mTargetOrthoSize);
-		component.play(mName, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
+		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
 	}
 	public override string showDebugInfo()
 	{
-		return base.showDebugInfo() + ": mName:" + mName + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mStartFOV:" + mStartOrthoSize +
+		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mStartFOV:" + mStartOrthoSize +
 			", mTargetFOV:" + mTargetOrthoSize + ", mLoop:" + mLoop + ", mAmplitude:" + mAmplitude + ", mFullOnce:" + mFullOnce;
 	}
 }

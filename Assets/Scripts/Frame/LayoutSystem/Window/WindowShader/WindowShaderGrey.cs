@@ -5,17 +5,18 @@ using UnityEngine;
 public class WindowShaderGrey : WindowShader
 {
 	protected bool mIsGrey = false;
-	protected string mGrey = "Grey";
+	protected int mGreyID;
+	public WindowShaderGrey()
+	{
+		mGreyID = Shader.PropertyToID("_Grey");
+	}
 	public void setGrey(bool grey){ mIsGrey = grey;}
 	public override void applyShader(Material mat)
 	{
 		base.applyShader(mat);
 		if (mat != null && mat.shader != null)
 		{
-			if (getFileName(mat.shader.name) == mGrey)
-			{
-				mat.SetInt("_Grey", mIsGrey ? 1 : 0);
-			}
+			mat.SetInt(mGreyID, mIsGrey ? 1 : 0);
 		}
 	}
 }

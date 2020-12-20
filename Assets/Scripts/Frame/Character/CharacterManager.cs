@@ -5,21 +5,22 @@ using System;
 
 public class CharacterManager : FrameSystem
 {
-	protected Dictionary<Type, Dictionary<uint, Character>> mCharacterTypeList;    // 角色分类列表
-	protected Dictionary<uint, Character> mCharacterGUIDList;	// 角色ID索引表
-	protected Dictionary<uint, Character> mFixedUpdateList;		// 需要在FixedUpdate中更新的列表,如果直接使用mCharacterGUIDList,会非常慢,而很多时候其实并不需要进行物理更新,所以单独使用一个列表存储
+	protected Dictionary<Type, Dictionary<ulong, Character>> mCharacterTypeList;    // 角色分类列表
+	protected SafeDictionary<ulong, Character> mCharacterGUIDList;	// 角色ID索引表
+	protected Dictionary<ulong, Character> mFixedUpdateList;		// 需要在FixedUpdate中更新的列表,如果直接使用mCharacterGUIDList,会非常慢,而很多时候其实并不需要进行物理更新,所以单独使用一个列表存储
 	protected ICharacterMyself mMyself;							// 玩家自己,方便获取
 	public CharacterManager()
 	{
-		mCharacterTypeList = new Dictionary<Type, Dictionary<uint, Character>>();
-		mCharacterGUIDList = new Dictionary<uint, Character>();
-		mFixedUpdateList = new Dictionary<uint, Character>();
+		mCharacterTypeList = new Dictionary<Type, Dictionary<ulong, Character>>();
+		mCharacterGUIDList = new SafeDictionary<ulong, Character>();
+		mFixedUpdateList = new Dictionary<ulong, Character>();
 		mCreateObject = true;
 	}
 	public override void destroy()
 	{
 		base.destroy();
-		foreach (var character in mCharacterGUIDList)
+		var updateList = mCharacterGUIDList.GetMainList();
+		foreach (var character in updateList)
 		{
 			character.Value.destroy();
 		}
@@ -31,20 +32,15 @@ public class CharacterManager : FrameSystem
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		foreach (var item in mCharacterGUIDList)
+		var updateList = mCharacterGUIDList.GetUpdateList();
+		foreach (var item in updateList)
 		{
 			Character character = item.Value;
-			if (character != null && character.isActive())
+			if (character == null || !character.isActive())
 			{
-				if (!character.isIgnoreTimeScale())
-				{
-					character.update(elapsedTime);
-				}
-				else
-				{
-					character.update(Time.unscaledDeltaTime);
-				}
+				continue;
 			}
+			character.update(!character.isIgnoreTimeScale() ? elapsedTime : Time.unscaledDeltaTime);
 		}
 	}
 	public override void fixedUpdate(float elapsedTime)
@@ -60,12 +56,13 @@ public class CharacterManager : FrameSystem
 		}
 	}
 	public ICharacterMyself getIMyself() { return mMyself; }
-	public Character getCharacter(uint characterID)
+	public Character getCharacter(ulong characterID)
 	{
-		return mCharacterGUIDList.ContainsKey(characterID) ? mCharacterGUIDList[characterID] : null;
+		mCharacterGUIDList.TryGetValue(characterID, out Character character);
+		return character;
 	}
-	public Dictionary<uint, Character> getCharacterList() { return mCharacterGUIDList; }
-	public void activeCharacter(uint id, bool active)
+	public Dictionary<ulong, Character> getCharacterList() { return mCharacterGUIDList.GetMainList(); }
+	public void activeCharacter(ulong id, bool active)
 	{
 		activeCharacter(getCharacter(id), active);
 	}
@@ -73,15 +70,12 @@ public class CharacterManager : FrameSystem
 	{
 		character.setActive(active);
 	}
-	public Dictionary<uint, Character> getCharacterListByType(Type type)
+	public Dictionary<ulong, Character> getCharacterListByType(Type type)
 	{
-		if (!mCharacterTypeList.ContainsKey(type))
-		{
-			return null;
-		}
-		return mCharacterTypeList[type];
+		mCharacterTypeList.TryGetValue(type, out Dictionary<ulong, Character> characterList);
+		return characterList;
 	}
-	public Character createCharacter(string name, Type type, uint id, bool createNode)
+	public Character createCharacter(string name, Type type, ulong id, bool createNode)
 	{
 		if (mCharacterGUIDList.ContainsKey(id))
 		{
@@ -96,7 +90,7 @@ public class CharacterManager : FrameSystem
 		{
 			if (mMyself != null)
 			{
-				logError("Myself has exist ! can not create again, name : " + (name != null ? name : ""));
+				logError("Myself has exist ! can not create again, name : " + (name != null ? name : EMPTY));
 				return null;
 			}
 			mMyself = newCharacter as ICharacterMyself;
@@ -112,21 +106,12 @@ public class CharacterManager : FrameSystem
 		addCharacterToList(newCharacter);
 		return newCharacter;
 	}
-	public void destroyCharacter(uint id)
+	public void destroyCharacter(ulong id)
 	{
 		Character character = getCharacter(id);
 		if(character != null)
 		{
 			destroyCharacter(character);
-		}
-	}
-	public void notifyCharacterIDChanged(uint oldID)
-	{
-		if (mCharacterGUIDList.ContainsKey(oldID))
-		{
-			Character character = mCharacterGUIDList[oldID];
-			mCharacterGUIDList.Remove(oldID);
-			mCharacterGUIDList.Add(character.getGUID(), character);
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------
@@ -137,23 +122,21 @@ public class CharacterManager : FrameSystem
 			return;
 		}
 		Type type = character.getType();
-		uint guid = character.getGUID();
+		ulong guid = character.getGUID();
 		// 加入到角色分类列表
-		if (!mCharacterTypeList.ContainsKey(type))
+		if (!mCharacterTypeList.TryGetValue(type, out Dictionary<ulong, Character> characterList))
 		{
-			mCharacterTypeList.Add(type, new Dictionary<uint, Character>());
+			characterList = new Dictionary<ulong, Character>();
+			mCharacterTypeList.Add(type, characterList);
 		}
-		mCharacterTypeList[type].Add(guid, character);
+		characterList.Add(guid, character);
 		// 加入ID索引表
-		if (!mCharacterGUIDList.ContainsKey(guid))
-		{
-			mCharacterGUIDList.Add(guid, character);
-		}
-		else
+		if (mCharacterGUIDList.ContainsKey(guid))
 		{
 			logError("there is a character id : " + guid + ", can not add again!");
 		}
-		if(character.isEnableFixedUpdate())
+		mCharacterGUIDList.Add(guid, character);
+		if (character.isEnableFixedUpdate())
 		{
 			mFixedUpdateList.Add(guid, character);
 		}
@@ -165,11 +148,11 @@ public class CharacterManager : FrameSystem
 			return;
 		}
 		Type type = character.getType();
-		uint guid = character.getGUID();
+		ulong guid = character.getGUID();
 		// 从角色分类列表中移除
-		if (mCharacterTypeList.ContainsKey(type))
+		if (mCharacterTypeList.TryGetValue(type, out Dictionary<ulong, Character> characterList))
 		{
-			mCharacterTypeList[type].Remove(guid);
+			characterList.Remove(guid);
 		}
 		// 从ID索引表中移除
 		mCharacterGUIDList.Remove(guid);

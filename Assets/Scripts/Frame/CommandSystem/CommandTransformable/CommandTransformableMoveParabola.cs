@@ -7,7 +7,7 @@ public class CommandTransformableMoveParabola : Command
 	public KeyFrameCallback mTrembleDoneCallBack;
 	public Vector3 mStartPos;
 	public Vector3 mTargetPos;
-	public string mName;
+	public KEY_FRAME mKeyframe;
 	public float mOnceLength;
 	public float mOffset;
 	public float mAmplitude;
@@ -21,7 +21,7 @@ public class CommandTransformableMoveParabola : Command
 		mTrembleDoneCallBack = null;
 		mStartPos = Vector3.zero;
 		mTargetPos = Vector3.zero;
-		mName = null;
+		mKeyframe = KEY_FRAME.NONE;
 		mOnceLength = 1.0f;
 		mOffset = 0.0f;
 		mAmplitude = 1.0f;
@@ -41,7 +41,7 @@ public class CommandTransformableMoveParabola : Command
 		component.setTargetPos(mTargetPos);
 		component.setStartPos(mStartPos);
 		component.setTopHeight(mTopHeight);
-		component.play(mName, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
+		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
 		if (component.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
@@ -50,7 +50,7 @@ public class CommandTransformableMoveParabola : Command
 	}
 	public override string showDebugInfo()
 	{
-		return base.showDebugInfo() + ": mName:" + mName + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + 
+		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + 
 			", mStartPos:" + mStartPos + ", mTargetPos:" + mTargetPos + ", mTopHeight:" + mTopHeight + 
 			", mLoop:" + mLoop + ", mAmplitude:" + mAmplitude + ", mFullOnce:" + mFullOnce;
 	}

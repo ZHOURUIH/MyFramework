@@ -22,7 +22,7 @@ public abstract class GameComponent : GameBase
 	public virtual void lateUpdate(float elapsedTime){}
 	public virtual void destroy()
 	{
-		mComponentOwner?.notifyComponentDestroied(this);
+		mComponentOwner = null;
 	}
 	public bool isActive() { return mActive; }
 	public virtual void resetProperty() { }

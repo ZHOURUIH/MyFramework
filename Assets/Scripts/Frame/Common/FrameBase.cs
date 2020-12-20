@@ -39,6 +39,7 @@ public class FrameBase : UnityUtility
 	public static TPSpriteManager mTPSpriteManager;
 	public static SocketFactory mSocketFactory;
 	public static PathKeyframeManager mPathKeyframeManager;
+	public static EventSystem mEventSystem;
 #if USE_ILRUNTIME
 	public static ILRSystem mILRSystem;
 #endif
@@ -79,6 +80,7 @@ public class FrameBase : UnityUtility
 		mTPSpriteManager = mGameFramework.getSystem(Typeof<TPSpriteManager>()) as TPSpriteManager;
 		mSocketFactory = mGameFramework.getSystem(Typeof<SocketFactory>()) as SocketFactory;
 		mPathKeyframeManager = mGameFramework.getSystem(Typeof<PathKeyframeManager>()) as PathKeyframeManager;
+		mEventSystem = mGameFramework.getSystem(Typeof<EventSystem>()) as EventSystem;
 #if USE_ILRUNTIME
 		mILRSystem = mGameFramework.getSystem(Typeof<ILRSystem>()) as ILRSystem;
 #endif

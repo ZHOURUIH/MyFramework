@@ -41,20 +41,20 @@ namespace ILRuntime.Runtime.Generated
         static StackObject* CopyToStack_mGUID_0(ref object o, ILIntepreter __intp, StackObject* __ret, IList<object> __mStack)
         {
             var result_of_this_method = ((global::CommandCharacterManagerDestroy)o).mGUID;
-            __ret->ObjectType = ObjectTypes.Integer;
-            __ret->Value = (int)result_of_this_method;
+            __ret->ObjectType = ObjectTypes.Long;
+            *(ulong*)&__ret->Value = result_of_this_method;
             return __ret + 1;
         }
 
         static void set_mGUID_0(ref object o, object v)
         {
-            ((global::CommandCharacterManagerDestroy)o).mGUID = (System.UInt32)v;
+            ((global::CommandCharacterManagerDestroy)o).mGUID = (System.UInt64)v;
         }
 
         static StackObject* AssignFromStack_mGUID_0(ref object o, ILIntepreter __intp, StackObject* ptr_of_this_method, IList<object> __mStack)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            System.UInt32 @mGUID = (uint)ptr_of_this_method->Value;
+            System.UInt64 @mGUID = *(ulong*)&ptr_of_this_method->Value;
             ((global::CommandCharacterManagerDestroy)o).mGUID = @mGUID;
             return ptr_of_this_method;
         }

@@ -6,9 +6,13 @@ using System.Collections.Generic;
 public class EffectManager : FrameSystem
 {
 	protected List<GameEffect> mEffectList;
+	protected CreateObjectCallback mPreloadEffectCallback;
+	protected CreateObjectCallback mEffectCallback;
 	public EffectManager()
 	{
 		mEffectList = new List<GameEffect>();
+		mPreloadEffectCallback = onPreLoadEffectLoaded;
+		mEffectCallback = onEffectLoaded;
 		mCreateObject = true;
 	}
 	public override void init()
@@ -22,9 +26,11 @@ public class EffectManager : FrameSystem
 	{
 		base.update(elapsedTime);
 		List<GameEffect> deadList = null;
-		foreach (var item in mEffectList)
+		int effectCount = mEffectList.Count;
+		for(int i = 0; i < effectCount; ++i)
 		{
-			if(item.isActive())
+			GameEffect item = mEffectList[i];
+			if (item.isActive())
 			{
 				if(!item.isIgnoreTimeScale())
 				{
@@ -47,19 +53,20 @@ public class EffectManager : FrameSystem
 		// 销毁所有已死亡的特效
 		if(deadList != null)
 		{
-			foreach (var item in deadList)
+			int deadCount = deadList.Count;
+			for(int i = 0; i < deadCount; ++i)
 			{
-				destroyEffect(item);
+				destroyEffect(deadList[i]);
 			}
 			mListPool.destroyList(deadList);
 		}
 	}
 	public List<GameEffect> getEffectList() { return mEffectList; }
-	public void createEffectToPool(string nameWithPath, bool async, string tag)
+	public void createEffectToPool(string nameWithPath, bool async, int tag)
 	{
 		if(async)
 		{
-			mObjectPool.createObjectAsync(nameWithPath, onPreLoadEffectLoaded, tag, null);
+			mObjectPool.createObjectAsync(nameWithPath, mPreloadEffectCallback, tag);
 		}
 		else
 		{
@@ -72,7 +79,7 @@ public class EffectManager : FrameSystem
 	{
 		return create(effectObject, effectObject.name, active, lifeTime, true);
 	}
-	public GameEffect createEffect(string nameWithPath, GameObject parent, string tag, bool active, float lifeTime = -1.0f)
+	public GameEffect createEffect(string nameWithPath, GameObject parent, int tag, bool active, float lifeTime = -1.0f)
 	{
 		if (isEmpty(nameWithPath))
 		{
@@ -87,9 +94,9 @@ public class EffectManager : FrameSystem
 		setNormalProperty(go, parent);
 		return create(go, getFileName(nameWithPath), active, lifeTime, false);
 	}
-	public void createEffectAsync(string nameWithPath, string tag, OnEffectLoadedCallback callback)
+	public void createEffectAsync(string nameWithPath, int tag, OnEffectLoadedCallback callback)
 	{
-		mObjectPool.createObjectAsync(nameWithPath, onEffectLoaded, tag, callback);
+		mObjectPool.createObjectAsync(nameWithPath, mEffectCallback, tag, callback);
 	}
 	public void destroyEffect(ref GameEffect effect)
 	{
@@ -111,9 +118,10 @@ public class EffectManager : FrameSystem
 	{
 		List<GameEffect> tempList = mListPool.newList(out tempList);
 		tempList.AddRange(mEffectList);
-		foreach (var item in tempList)
+		int count = tempList.Count;
+		for(int i = 0; i < count; ++i)
 		{
-			GameEffect effect = item;
+			GameEffect effect = tempList[i];
 			// 虽然此处isValidEffect已经足够判断特效是否还存在
 			// 但是这样逻辑不严谨,因为依赖于引擎在销毁物体时将所有的引用都置为空
 			// 这是引擎自己的特性,并不是通用操作,所以使用更严谨一些的判断
@@ -141,14 +149,11 @@ public class EffectManager : FrameSystem
 	//----------------------------------------------------------------------------------------------------------
 	protected void onEffectLoaded(GameObject go, object userData)
 	{
-		if (userData is OnEffectLoadedCallback)
+		if (go == null)
 		{
-			if (go == null)
-			{
-				return;
-			}
-			(userData as OnEffectLoadedCallback)(create(go, go.name, false, -1.0f, false), null);
+			return;
 		}
+		(userData as OnEffectLoadedCallback)?.Invoke(create(go, go.name, false, -1.0f, false), null);
 	}
 	protected void onPreLoadEffectLoaded(GameObject go, object userData)
 	{
@@ -162,8 +167,7 @@ public class EffectManager : FrameSystem
 			logError("物体来自于特效池,但是标记为外部物体:" + name);
 			return null;
 		}
-		GameEffect gameEffect;
-		mClassPool.newClass(out gameEffect, Typeof<GameEffect>());
+		var gameEffect = mClassPool.newClass(Typeof<GameEffect>()) as GameEffect;
 		gameEffect.setName(name);
 		gameEffect.setObject(go);
 		gameEffect.setExistObject(existObject);

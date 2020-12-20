@@ -5,7 +5,7 @@ public class CommandWindowSlider : Command
 {
 	public KeyFrameCallback mTremblingCallBack;
 	public KeyFrameCallback mTrembleDoneCallBack;
-	public string mTremblingName;
+	public KEY_FRAME mKeyframe;
 	public float mStartValue;
 	public float mTargetValue;
 	public float mOnceLength;
@@ -18,7 +18,7 @@ public class CommandWindowSlider : Command
 		base.init();
 		mTremblingCallBack = null;
 		mTrembleDoneCallBack = null;
-		mTremblingName = null;
+		mKeyframe = KEY_FRAME.NONE;
 		mStartValue = 0.0f;
 		mTargetValue = 0.0f;
 		mOnceLength = 0.0f;
@@ -36,7 +36,7 @@ public class CommandWindowSlider : Command
 		component.setActive(true);
 		component.setStartValue(mStartValue);
 		component.setTargetValue(mTargetValue);
-		component.play(mTremblingName, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
+		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
 		if (component.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭

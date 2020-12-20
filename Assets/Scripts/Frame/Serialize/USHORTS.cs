@@ -31,35 +31,28 @@ public class USHORTS : OBJECTS
 	public override void zero() { memset(mValue, (ushort)0); }
 	public override bool readFromBuffer(byte[] buffer, ref int index)
 	{
-		if(mVariableLength)
-		{
-			bool success;
-			setRealSize(readUShort(buffer, ref index, out success));
-			if(!success)
-			{
-				return false;
-			}
-			return readUShorts(buffer, ref index, mValue, mElementCount);
-		}
-		else
+		if (!mVariableLength)
 		{
 			return readUShorts(buffer, ref index, mValue);
 		}
+		setRealSize(readUShort(buffer, ref index, out bool success));
+		if (!success)
+		{
+			return false;
+		}
+		return readUShorts(buffer, ref index, mValue, mElementCount);
 	}
 	public override bool writeToBuffer(byte[] buffer, ref int index)
 	{
-		if(mVariableLength)
-		{
-			if(!writeUShort(buffer, ref index, mRealSize))
-			{
-				return false;
-			}
-			return writeUShorts(buffer, ref index, mValue, mElementCount);
-		}
-		else
+		if (!mVariableLength)
 		{
 			return writeUShorts(buffer, ref index, mValue);
 		}
+		if (!writeUShort(buffer, ref index, mRealSize))
+		{
+			return false;
+		}
+		return writeUShorts(buffer, ref index, mValue, mElementCount);
 	}
 	public void set(ushort[] value)
 	{

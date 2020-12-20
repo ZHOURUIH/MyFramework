@@ -7,7 +7,7 @@ public class CommandTransformableRotateCurve : Command
 	public List<Vector3> mRotList;
 	public KeyFrameCallback mTremblingCallBack;
 	public KeyFrameCallback mTrembleDoneCallBack;
-	public string mName;
+	public KEY_FRAME mKeyframe;
 	public float mOnceLength;
 	public float mAmplitude;
 	public float mOffset;
@@ -19,7 +19,7 @@ public class CommandTransformableRotateCurve : Command
 		mRotList = null;
 		mTremblingCallBack = null;
 		mTrembleDoneCallBack = null;
-		mName = null;
+		mKeyframe = KEY_FRAME.NONE;
 		mOnceLength = 1.0f;
 		mAmplitude = 1.0f;
 		mOffset = 0.0f;
@@ -36,7 +36,7 @@ public class CommandTransformableRotateCurve : Command
 		component.setTrembleDoneCallback(mTrembleDoneCallBack);
 		component.setActive(true);
 		component.setKeyRotList(mRotList);
-		component.play(mName, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
+		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
 		if (component.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
@@ -45,7 +45,7 @@ public class CommandTransformableRotateCurve : Command
 	}
 	public override string showDebugInfo()
 	{
-		return base.showDebugInfo() + ": mName:" + mName + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + 
+		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + 
 			", mLoop:" + mLoop + ", mAmplitude:" + mAmplitude + ", mFullOnce:" + mFullOnce;
 	}
 }

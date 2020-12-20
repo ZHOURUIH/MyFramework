@@ -11,18 +11,20 @@ public class DTreeControlRandom : DTreeControl
 		List<DTreeNode> availableChildList = mListPool.newList(out availableChildList);
 		List<float> oddsList = mListPool.newList(out oddsList);
 		// 按子节点顺序查看子节点是否满足条件
-		foreach (var item in mChildList)
+		int count = mChildList.Count;
+		for (int i = 0; i < count; ++i)
 		{
+			DTreeNode node = mChildList[i];
 			// 找出可以执行的节点
-			if (item.isActive() && item.condition())
+			if (node.isActive() && node.condition())
 			{
-				availableChildList.Add(item);
-				oddsList.Add(item.getRandomWeight());
+				availableChildList.Add(node);
+				oddsList.Add(node.getRandomWeight());
 			}
 		}
 		// 按照权重随机选择其中一个节点
 		int index = randomHit(oddsList);
-		if(isInRange(index, 0, availableChildList.Count - 1, true))
+		if (inRange(index, 0, availableChildList.Count - 1, true))
 		{
 			availableChildList[index].execute();
 		}

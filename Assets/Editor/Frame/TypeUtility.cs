@@ -19,20 +19,17 @@ public class TypeUtility
 	public static string getTypeName(string fullTypeName)
 	{
 		initTypes();
-		if (mBasicFullStringToType.ContainsKey(fullTypeName))
+		if (mBasicFullStringToType.TryGetValue(fullTypeName, out Type type))
 		{
-			return mBasicTypeToString[mBasicFullStringToType[fullTypeName]];
+			return mBasicTypeToString[type];
 		}
 		return null;
 	}
 	public static string getTypeName(Type type)
 	{
 		initTypes();
-		if (mBasicTypeToString.ContainsKey(type))
-		{
-			return mBasicTypeToString[type];
-		}
-		return null;
+		mBasicTypeToString.TryGetValue(type, out string name);
+		return name;
 	}
 	//---------------------------------------------------------------------------------------------------
 	protected static void initTypes()

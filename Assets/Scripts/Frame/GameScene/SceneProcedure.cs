@@ -6,21 +6,23 @@ using System;
 public abstract class SceneProcedure : GameBase
 {
 	protected Dictionary<Type, SceneProcedure> mChildProcedureList; // 子流程列表
-	protected List<int> mDelayCmdList;			// 流程进入时的延迟命令列表,当命令执行时,会从列表中移除该命令	
+	protected List<int> mDelayCmdList;          // 流程进入时的延迟命令列表,当命令执行时,会从列表中移除该命令	
+	protected CommandCallback mCmdStartCallback;
 	protected SceneProcedure mParentProcedure;	// 父流程
 	protected SceneProcedure mCurChildProcedure;// 当前正在运行的子流程
-	protected SceneProcedure mPrepareNext;		// 准备退出到的流程
+	protected SceneProcedure mPrepareNext;      // 准备退出到的流程
 	protected GameScene mGameScene;             // 流程所属的场景
 	protected MyTimer mPrepareTimer;			// 准备退出的计时
 	protected Type mProcedureType;				// 该流程的类型
 	protected string mPrepareIntent;			// 传递参数用
-	protected bool mInited;						// 是否已经初始化,子节点在初始化时需要先确保父节点已经初始化
+	protected bool mInited;                     // 是否已经初始化,子节点在初始化时需要先确保父节点已经初始化
 	public SceneProcedure()
 	{
 		mDelayCmdList = new List<int>();
 		mChildProcedureList = new Dictionary<Type, SceneProcedure>();
 		mPrepareTimer = new MyTimer();
 		mPrepareIntent = null;
+		mCmdStartCallback = onCmdStarted;
 	}
 	// 销毁场景时会调用流程的销毁
 	public virtual void destroy() { }
@@ -141,7 +143,7 @@ public abstract class SceneProcedure : GameBase
 	public void addDelayCmd(Command cmd)
 	{
 		mDelayCmdList.Add(cmd.mAssignID);
-		cmd.addStartCommandCallback(onCmdStarted);
+		cmd.addStartCommandCallback(mCmdStartCallback);
 	}
 	public void getParentList(ref List<SceneProcedure> parentList)
 	{
@@ -159,11 +161,14 @@ public abstract class SceneProcedure : GameBase
 		getParentList(ref tempList0);
 		otherProcedure.getParentList(ref tempList1);
 		// 从前往后判断,找到第一个相同的父节点
-		foreach (var thisParent in tempList0)
+		int count0 = tempList0.Count;
+		for(int i = 0; i < count0; ++i)
 		{
-			foreach (var otherParent in tempList1)
+			var thisParent = tempList0[i];
+			int count1 = tempList1.Count;
+			for(int j = 0; j < count1; ++j)
 			{
-				if (thisParent == otherParent)
+				if (thisParent == tempList1[j])
 				{
 					mListPool.destroyList(tempList0);
 					mListPool.destroyList(tempList1);
@@ -222,11 +227,8 @@ public abstract class SceneProcedure : GameBase
 	public SceneProcedure getCurChildProcedure() { return mCurChildProcedure; }
 	public SceneProcedure getChildProcedure(Type type)
 	{
-		if (mChildProcedureList.ContainsKey(type))
-		{
-			return mChildProcedureList[type];
-		}
-		return null;
+		mChildProcedureList.TryGetValue(type, out SceneProcedure procedure);
+		return procedure;
 	}
 	public bool addChildProcedure(SceneProcedure child)
 	{

@@ -7,13 +7,13 @@ using UnityEngine.U2D;
 
 public class ResourceManager : FrameSystem
 {
-	public AssetBundleLoader mAssetBundleLoader;
-	protected ResourceLoader mResourceLoader;
-	protected LOAD_SOURCE mLoadSource;						// 0为从Resources加载,1为从AssetBundle加载
 	public static string mResourceRootPath = FrameDefine.F_STREAMING_ASSETS_PATH; // 当mLoadSource为1时,AssetBundle资源所在根目录,以/结尾,默认为StreamingAssets,可以为远端目录
-	public static bool mLocalRootPath = true;       // mResourceRootPath是否为本地的路径
-	public static bool mPersistentFirst = true;     // 当从AssetBundle加载资源时,是否先去persistentDataPath中查找资源
-	protected static Dictionary<Type, List<string>> mTypeSuffixList;        // 资源类型对应的后缀名
+	public static bool mLocalRootPath = true;							// mResourceRootPath是否为本地的路径
+	public static bool mPersistentFirst = true;							// 当从AssetBundle加载资源时,是否先去persistentDataPath中查找资源
+	protected static Dictionary<Type, List<string>> mTypeSuffixList;    // 资源类型对应的后缀名
+	protected AssetBundleLoader mAssetBundleLoader;
+	protected ResourceLoader mResourceLoader;
+	protected LOAD_SOURCE mLoadSource;									// 0为从Resources加载,1为从AssetBundle加载
 	public ResourceManager()
 	{
 		mCreateObject = true;
@@ -136,7 +136,7 @@ public class ResourceManager : FrameSystem
 		return ret;
 	}
 	// 获得资源
-	public T getResource<T>(string name, bool errorIfNull) where T : UnityEngine.Object
+	public T getResource<T>(string name, bool errorIfNull = true) where T : UnityEngine.Object
 	{
 		T res = null;
 		if (mLoadSource == LOAD_SOURCE.RESOURCES)
@@ -176,7 +176,7 @@ public class ResourceManager : FrameSystem
 			mAssetBundleLoader.getFileList(path.ToLower(), fileList);
 		}
 	}
-	public bool syncLoadAvalaible()
+	public bool isSyncLoadAvalaible()
 	{
 		// 如果从AssetBundle加载,并且资源目录为远端目录,则不能同步加载资源
 		return mLoadSource != LOAD_SOURCE.ASSET_BUNDLE || mLocalRootPath;
@@ -193,10 +193,10 @@ public class ResourceManager : FrameSystem
 		// 只有从AssetBundle加载时才能加载AssetBundle
 		if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
-			mAssetBundleLoader.loadAssetBundle(bundleName.ToLower());
+			mAssetBundleLoader.loadAssetBundle(bundleName.ToLower(), null);
 		}
 	}
-	public void loadAssetBundleAsync(string bundleName, AssetBundleLoadCallback callback, object userData)
+	public void loadAssetBundleAsync(string bundleName, AssetBundleLoadCallback callback, object userData = null)
 	{
 		if (mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
@@ -208,8 +208,8 @@ public class ResourceManager : FrameSystem
 			mAssetBundleLoader.loadAssetBundleAsync(bundleName.ToLower(), callback, userData);
 		}
 	}
-	// name是Resources下的相对路径,errorIfNull表示当找不到资源时是否报错提示
-	public T loadResource<T>(string name, bool errorIfNull) where T : UnityEngine.Object
+	// name是GameResources下的相对路径,errorIfNull表示当找不到资源时是否报错提示
+	public T loadResource<T>(string name, bool errorIfNull = true) where T : UnityEngine.Object
 	{
 		T res = null;
 		if (mLoadSource == LOAD_SOURCE.RESOURCES)
@@ -230,7 +230,7 @@ public class ResourceManager : FrameSystem
 		}
 		return res;
 	}
-	public UnityEngine.Object[] loadSubResource<T>(string name, bool errorIfNull) where T : UnityEngine.Object
+	public UnityEngine.Object[] loadSubResource<T>(string name, bool errorIfNull = true) where T : UnityEngine.Object
 	{
 		UnityEngine.Object[] res = null;
 		if (mLoadSource == LOAD_SOURCE.RESOURCES)
@@ -251,7 +251,7 @@ public class ResourceManager : FrameSystem
 		}
 		return res;
 	}
-	public bool loadSubResourceAsync<T>(string name, AssetLoadDoneCallback doneCallback, object[] userData, bool errorIfNull) where T : UnityEngine.Object
+	public bool loadSubResourceAsync<T>(string name, AssetLoadDoneCallback doneCallback, object userData = null, bool errorIfNull = true) where T : UnityEngine.Object
 	{
 		bool ret = false;
 		if (mLoadSource == LOAD_SOURCE.RESOURCES)
@@ -268,13 +268,8 @@ public class ResourceManager : FrameSystem
 		}
 		return ret;
 	}
-	public bool loadResourceAsync<T>(string name, AssetLoadDoneCallback doneCallback, object userData, bool errorIfNull) where T : UnityEngine.Object
-	{
-		object[] tempUserData = userData != null ? new object[] { userData } : null;
-		return loadResourceAsync<T>(name, doneCallback, tempUserData, errorIfNull);
-	}
 	// name是Resources下的相对路径,errorIfNull表示当找不到资源时是否报错提示
-	public bool loadResourceAsync<T>(string name, AssetLoadDoneCallback doneCallback, object[] userData, bool errorIfNull) where T : UnityEngine.Object
+	public bool loadResourceAsync<T>(string name, AssetLoadDoneCallback doneCallback, object userData = null, bool errorIfNull = true) where T : UnityEngine.Object
 	{
 		bool ret = false;
 		if (mLoadSource == LOAD_SOURCE.RESOURCES)
@@ -293,21 +288,11 @@ public class ResourceManager : FrameSystem
 	}
 	public void loadAssetsFromUrl<T>(string url, AssetLoadDoneCallback callback, object userData = null) where T : UnityEngine.Object
 	{
-		object[] tempUserData = userData != null ?  new object[] { userData } : null;
-		mGameFramework.StartCoroutine(loadAssetsUrl(url, Typeof<T>(), callback, tempUserData));
-	}
-	public void loadAssetsFromUrl<T>(string url, AssetLoadDoneCallback callback, object[] userData) where T : UnityEngine.Object
-	{
 		mGameFramework.StartCoroutine(loadAssetsUrl(url, Typeof<T>(), callback, userData));
-	}
-	public void loadAssetsFromUrl(string url, AssetLoadDoneCallback callback, object[] userData)
-	{
-		mGameFramework.StartCoroutine(loadAssetsUrl(url, null, callback, userData));
 	}
 	public void loadAssetsFromUrl(string url, AssetLoadDoneCallback callback, object userData = null)
 	{
-		object[] tempUserData = userData != null ? new object[] { userData } : null;
-		mGameFramework.StartCoroutine(loadAssetsUrl(url, null, callback, tempUserData));
+		mGameFramework.StartCoroutine(loadAssetsUrl(url, null, callback, userData));
 	}
 	// 加载StreamingAssets中不打包AB的资源,路径为StreamingAssets下的相对路径,带后缀名
 	// 需要调用FileUtility.releaseFileBuffer回收fileBytes
@@ -342,14 +327,15 @@ public class ResourceManager : FrameSystem
 	// 开放为公有的函数,让外部也能自己注册文件对应类型
 	public static void registeSuffix(Type t, string suffix)
 	{
-		if (!mTypeSuffixList.ContainsKey(t))
+		if (!mTypeSuffixList.TryGetValue(t, out List<string> list))
 		{
-			mTypeSuffixList.Add(t, new List<string>());
+			list = new List<string>();
+			mTypeSuffixList.Add(t, list);
 		}
-		mTypeSuffixList[t].Add(suffix);
+		list.Add(suffix);
 	}
 	//--------------------------------------------------------------------------------------------------------------------------------------------
-	protected IEnumerator loadAssetsUrl(string url, Type assetsType, AssetLoadDoneCallback callback, object[] userData)
+	protected IEnumerator loadAssetsUrl(string url, Type assetsType, AssetLoadDoneCallback callback, object userData = null)
 	{
 		logInfo("开始下载: " + url, LOG_LEVEL.HIGH);
 		if (assetsType == Typeof<AudioClip>())
@@ -365,7 +351,7 @@ public class ResourceManager : FrameSystem
 			yield return loadAssetBundleWithURL(url, callback, userData);
 		}
 	}
-	protected IEnumerator loadAssetBundleWithURL(string url, AssetLoadDoneCallback callback, object[] userData)
+	protected IEnumerator loadAssetBundleWithURL(string url, AssetLoadDoneCallback callback, object userData = null)
 	{
 		UnityWebRequest www = new UnityWebRequest(url);
 		DownloadHandlerAssetBundle downloadHandler = new DownloadHandlerAssetBundle(url, 0);
@@ -384,7 +370,7 @@ public class ResourceManager : FrameSystem
 		}
 		www.Dispose();
 	}
-	protected IEnumerator loadAudioClipWithURL(string url, AssetLoadDoneCallback callback, object[] userData)
+	protected IEnumerator loadAudioClipWithURL(string url, AssetLoadDoneCallback callback, object userData = null)
 	{
 		UnityWebRequest www = new UnityWebRequest(url);
 		DownloadHandlerAudioClip downloadHandler = new DownloadHandlerAudioClip(url, 0);
@@ -403,7 +389,7 @@ public class ResourceManager : FrameSystem
 		}
 		www.Dispose();
 	}
-	protected IEnumerator loadTextureWithURL(string url, AssetLoadDoneCallback callback, object[] userData)
+	protected IEnumerator loadTextureWithURL(string url, AssetLoadDoneCallback callback, object userData = null)
 	{
 		UnityWebRequest www = new UnityWebRequest(url);
 		www.downloadHandler = new DownloadHandlerTexture();
@@ -426,17 +412,14 @@ public class ResourceManager : FrameSystem
 	protected static List<string> addSuffix(string fileName, Type type, List<string> fileList)
 	{
 		fileList.Clear();
-		if (mTypeSuffixList.ContainsKey(type))
-		{
-			int suffixCount = mTypeSuffixList[type].Count;
-			for (int i = 0; i < suffixCount; ++i)
-			{
-				fileList.Add(fileName + mTypeSuffixList[type][i]);
-			}
-		}
-		else
+		if (!mTypeSuffixList.TryGetValue(type, out List<string> list))
 		{
 			logError("resource type : " + type.ToString() + " is not registered!");
+		}
+		int suffixCount = list.Count;
+		for (int i = 0; i < suffixCount; ++i)
+		{
+			fileList.Add(fileName + list[i]);
 		}
 		return fileList;
 	}

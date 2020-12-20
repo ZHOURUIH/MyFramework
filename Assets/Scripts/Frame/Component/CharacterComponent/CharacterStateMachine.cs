@@ -16,8 +16,8 @@ public class CharacterStateMachine : GameComponent
 	protected Dictionary<uint, PlayerState> mCurStateIDMap;         // 以ID为索引的当前最新的状态列表,当状态添加删除时立即修改该列表
 	protected Dictionary<Type, List<PlayerState>> mCurStateMap;     // 当前最新的状态列表,当状态添加删除时立即修改该列表
 	protected Dictionary<Type, CacheState> mCacheStateMap;          // 缓存状态查询列表,只用于辅助mCacheStateList查询
-	protected Dictionary<uint, SAME_STATE_OPERATE> mMutexInfoList;	// 状态互斥ID的互斥操作类型
-	protected List<PlayerState> mCurStateList;						// 当前最新的状态列表,当状态添加删除时立即修改该列表
+	protected Dictionary<uint, SAME_STATE_OPERATE> mMutexInfoList;  // 状态互斥ID的互斥操作类型
+	protected List<PlayerState> mCurStateList;                      // 当前最新的状态列表,当状态添加删除时立即修改该列表
 	protected List<CacheState> mCacheStateList;                     // 缓存状态列表,只在当前帧更新前从最新列表同步到此列表,用于更新
 	protected List<CacheState> mCacheAddList;                       // 用于收集状态添加时的顺序,在同步缓存时合并到缓存列表中
 	protected Character mPlayer;        // 状态机所属角色
@@ -51,7 +51,7 @@ public class CharacterStateMachine : GameComponent
 		// 移除所有未激活的状态
 		for (int i = 0; i < mCurStateList.Count; ++i)
 		{
-			if(!mCurStateList[i].isActive())
+			if (!mCurStateList[i].isActive())
 			{
 				PlayerState state = mCurStateList[i];
 				removeStateFromList(state);
@@ -66,8 +66,10 @@ public class CharacterStateMachine : GameComponent
 		// 遍历缓存列表
 		foreach (var itemList in mCacheStateList)
 		{
-			foreach(var item in itemList.mStateList)
+			int count = itemList.mStateList.Count;
+			for (int i = 0; i < count; ++i)
 			{
+				PlayerState item = itemList.mStateList[i];
 				if (!item.isActive())
 				{
 					continue;
@@ -89,8 +91,10 @@ public class CharacterStateMachine : GameComponent
 		// 遍历缓存列表
 		foreach (var itemList in mCacheStateList)
 		{
-			foreach (var item in itemList.mStateList)
+			int count = itemList.mStateList.Count;
+			for(int i = 0; i < count; ++i)
 			{
+				PlayerState item = itemList.mStateList[i];
 				if (item.isActive())
 				{
 					item.fixedUpdate(elapsedTime);
@@ -98,17 +102,18 @@ public class CharacterStateMachine : GameComponent
 			}
 		}
 	}
-	public bool addState(Type type, StateParam param, out PlayerState state, uint id = 0)
+	public bool addState(Type type, StateParam param, out PlayerState state, float stateTime, uint id = 0)
 	{
 		state = createState(type, param, id);
 		state.setPlayer(mPlayer);
-		if(!canAddState(state))
+		if (!canAddState(state))
 		{
 			destroyState(state);
 			return false;
 		}
 		// 移除不能共存的状态
 		removeMutexState(state);
+		state.setStateTime(stateTime);
 		// 进入状态,并添加到状态列表
 		state.enter();
 		addStateToList(type, state);
@@ -137,11 +142,10 @@ public class CharacterStateMachine : GameComponent
 		foreach (var item in mCurStateIDMap)
 		{
 			PlayerState state = item.Value;
-			if (!mStateGroupList.ContainsKey(Typeof(state)))
+			if (!mStateGroupList.TryGetValue(Typeof(state), out List<Type> groupList))
 			{
 				continue;
 			}
-			var groupList = mStateGroupList[Typeof(state)];
 			if (groupList != null && groupList.Contains(group))
 			{
 				removeState(state, isBreak, param);
@@ -163,12 +167,12 @@ public class CharacterStateMachine : GameComponent
 			{
 				index0 = i;
 				// 两个下标都找到了就不用再遍历了
-				if(index1 != -1)
+				if (index1 != -1)
 				{
 					break;
 				}
 			}
-			else if(type == after)
+			else if (type == after)
 			{
 				index1 = i;
 				// 两个下标都找到了就不用再遍历了
@@ -178,7 +182,7 @@ public class CharacterStateMachine : GameComponent
 				}
 			}
 		}
-		if(index0 != -1 && index1 != -1 && index0 < index1)
+		if (index0 != -1 && index1 != -1 && index0 < index1)
 		{
 			// 交换两个类型的状态在列表中的位置
 			CacheState item0 = mCacheStateList[index0];
@@ -205,39 +209,34 @@ public class CharacterStateMachine : GameComponent
 	}
 	public Dictionary<Type, List<PlayerState>> getStateList() { return mCurStateMap; }
 	public List<CacheState> getCacheStateList() { return mCacheStateList; }
-	public SAME_STATE_OPERATE getMutexOperate(uint mutexID) 
+	public SAME_STATE_OPERATE getMutexOperate(uint mutexID)
 	{
-		if(mMutexInfoList.ContainsKey(mutexID))
+		if (mMutexInfoList.TryGetValue(mutexID, out SAME_STATE_OPERATE operate))
 		{
-			return mMutexInfoList[mutexID];
+			return operate;
 		}
 		return SAME_STATE_OPERATE.COEXIST;
 	}
 	public PlayerState getState(uint id)
 	{
-		if(mCurStateIDMap.ContainsKey(id))
-		{
-			return mCurStateIDMap[id];
-		}
-		return null;
+		mCurStateIDMap.TryGetValue(id, out PlayerState state);
+		return state;
 	}
 	public List<PlayerState> getState(Type type)
 	{
-		if (mCurStateMap.ContainsKey(type))
-		{
-			return mCurStateMap[type];
-		}
-		return null;
+		mCurStateMap.TryGetValue(type, out List<PlayerState> stateList);
+		return stateList;
 	}
 	public PlayerState getFirstState(Type type)
 	{
-		if (!mCurStateMap.ContainsKey(type))
+		if (!mCurStateMap.TryGetValue(type, out List<PlayerState> stateList))
 		{
 			return null;
 		}
-		var itemList = mCurStateMap[type];
-		foreach (var item in itemList)
+		int count = stateList.Count;
+		for(int i = 0; i < count; ++i)
 		{
+			PlayerState item = stateList[i];
 			if (item.isActive())
 			{
 				return item;
@@ -247,41 +246,38 @@ public class CharacterStateMachine : GameComponent
 	}
 	public void getGroupState(Type groupType, List<PlayerState> stateList)
 	{
-		if (!mGroupStateList.ContainsKey(groupType))
+		if (!mGroupStateList.TryGetValue(groupType, out StateGroup group))
 		{
 			return;
 		}
-		int count0 = mGroupStateList[groupType].mStateList.Count;
-		for (int i = 0; i < count0; ++i)
+		int count = group.mStateList.Count;
+		for (int i = 0; i < count; ++i)
 		{
-			var curStateList = getState(mGroupStateList[groupType].mStateList[i]);
-			if(curStateList != null)
+			var curStateList = getState(group.mStateList[i]);
+			if (curStateList != null)
 			{
 				stateList.AddRange(curStateList);
 			}
 		}
 	}
 	// 是否拥有该组的任意一个状态
-	public bool hasStateGroup(Type group)
+	public bool hasStateGroup(Type groupType)
 	{
-		if (!mGroupStateList.ContainsKey(group))
+		if (!mGroupStateList.TryGetValue(groupType, out StateGroup group))
 		{
 			return false;
 		}
-		int count0 = mGroupStateList[group].mStateList.Count;
-		for (int i = 0; i < count0; ++i)
+		int count = group.mStateList.Count;
+		for (int i = 0; i < count; ++i)
 		{
-			if (hasState(mGroupStateList[group].mStateList[i]))
+			if (hasState(group.mStateList[i]))
 			{
 				return true;
 			}
 		}
 		return false;
 	}
-	public bool hasState(Type state)
-	{
-		return getFirstState(state) != null;
-	}
+	public bool hasState(Type state) { return getFirstState(state) != null; }
 	public static void registeGroup(Type type, GROUP_MUTEX_OPERATION mutex = GROUP_MUTEX_OPERATION.COEXIST)
 	{
 		if (mGroupStateList == null)
@@ -292,23 +288,24 @@ public class CharacterStateMachine : GameComponent
 		group.setCoexist(mutex);
 		mGroupStateList.Add(type, group);
 	}
-	public static void assignGroup(Type group, Type state, bool mainState = false)
+	public static void assignGroup(Type groupType, Type state, bool mainState = false)
 	{
-		if(mStateGroupList == null)
+		if (mStateGroupList == null)
 		{
 			mStateGroupList = new Dictionary<Type, List<Type>>();
 		}
-		if (!mStateGroupList.ContainsKey(state))
+		if (!mStateGroupList.TryGetValue(state, out List<Type> groupList))
 		{
-			mStateGroupList.Add(state, new List<Type>());
+			groupList = new List<Type>();
+			mStateGroupList.Add(state, groupList);
 		}
-		mStateGroupList[state].Add(group);
-		if (mGroupStateList.ContainsKey(group))
+		groupList.Add(groupType);
+		if (mGroupStateList.TryGetValue(groupType, out StateGroup group))
 		{
-			mGroupStateList[group].addState(state);
-			if(mainState)
+			group.addState(state);
+			if (mainState)
 			{
-				mGroupStateList[group].setMainState(state);
+				group.setMainState(state);
 			}
 		}
 	}
@@ -321,11 +318,9 @@ public class CharacterStateMachine : GameComponent
 	protected PlayerState createState(Type type, StateParam param, uint id = 0)
 	{
 		// 用对象池的方式创建状态对象
-		IClassObject stateObject;
-		mClassPool.newClass(out stateObject, type);
-		PlayerState state = stateObject as PlayerState;
+		var state = mClassPool.newClass(type) as PlayerState;
 		state.setParam(param);
-		if(id != 0)
+		if (id != 0)
 		{
 			state.setID(id);
 		}
@@ -370,8 +365,10 @@ public class CharacterStateMachine : GameComponent
 		// 检查是否有跟要添加的状态互斥且不能移除的状态
 		foreach (var itemList in mCurStateMap)
 		{
-			foreach (var item in itemList.Value)
+			int count = itemList.Value.Count;
+			for(int i = 0; i < count; ++i)
 			{
+				PlayerState item = itemList.Value[i];
 				if (item != state && item.isActive() && !allowAddStateByGroup(state, item))
 				{
 					return false;
@@ -389,7 +386,7 @@ public class CharacterStateMachine : GameComponent
 	{
 		// 移除自身不可共存的状态
 		PlayerState existState = getFirstState(Typeof(state));
-		if(existState != null)
+		if (existState != null)
 		{
 			SAME_STATE_OPERATE operate = existState.allowSuperposition();
 			// 移除旧状态
@@ -420,8 +417,10 @@ public class CharacterStateMachine : GameComponent
 		// 移除状态组互斥的状态
 		foreach (var itemList in mCurStateMap)
 		{
-			foreach (var item in itemList.Value)
+			int count = itemList.Value.Count;
+			for (int i = 0; i < count; ++i)
 			{
+				PlayerState item = itemList.Value[i];
 				if (item != state && item.isActive() && !allowKeepStateByGroup(state, item))
 				{
 					removeState(item, true, null);
@@ -432,25 +431,23 @@ public class CharacterStateMachine : GameComponent
 	// 添加了newState以后是否还会保留existState
 	protected bool allowKeepStateByGroup(PlayerState newState, PlayerState existState)
 	{
-		if (!mStateGroupList.ContainsKey(Typeof(newState)) ||
-			!mStateGroupList.ContainsKey(Typeof(existState)))
+		if (!mStateGroupList.TryGetValue(Typeof(newState), out List<Type> newGroup) ||
+			!mStateGroupList.TryGetValue(Typeof(existState), out List<Type> existGroup))
 		{
 			return true;
 		}
-		List<Type> newGroup = mStateGroupList[Typeof(newState)];
-		List<Type> existGroup = mStateGroupList[Typeof(existState)];
 		// 有一个状态不属于任何状态组时两个状态是可以共存的
-		if(newGroup == null || existGroup == null)
+		if (newGroup == null || existGroup == null)
 		{
 			return true;
 		}
 		int count0 = newGroup.Count;
 		int count1 = existGroup.Count;
-		for(int i = 0; i < count0; ++i)
+		for (int i = 0; i < count0; ++i)
 		{
-			for(int j = 0; j < count1; ++j)
+			for (int j = 0; j < count1; ++j)
 			{
-				if(newGroup[i] != existGroup[j])
+				if (newGroup[i] != existGroup[j])
 				{
 					continue;
 				}
@@ -488,13 +485,11 @@ public class CharacterStateMachine : GameComponent
 	protected bool allowAddStateByGroup(PlayerState newState, PlayerState existState)
 	{
 		// 任意一个状态没有所属组,则不在同一组
-		if (!mStateGroupList.ContainsKey(Typeof(newState)) ||
-			!mStateGroupList.ContainsKey(Typeof(existState)))
+		if (!mStateGroupList.TryGetValue(Typeof(newState), out List<Type> newGroup) ||
+			!mStateGroupList.TryGetValue(Typeof(existState), out List<Type> existGroup))
 		{
 			return true;
 		}
-		List<Type> newGroup = mStateGroupList[Typeof(newState)];
-		List<Type> existGroup = mStateGroupList[Typeof(existState)];
 		// 有一个状态不属于任何状态组时两个状态是可以共存的
 		if (newGroup == null || existGroup == null)
 		{
@@ -556,11 +551,12 @@ public class CharacterStateMachine : GameComponent
 			mCacheAddList.Add(cacheState);
 			mCacheStateMap.Add(type, cacheState);
 		}
-		if (!mCurStateMap.ContainsKey(type))
+		if (!mCurStateMap.TryGetValue(type, out List<PlayerState> stateList))
 		{
-			mCurStateMap.Add(type, new List<PlayerState>());
+			stateList = new List<PlayerState>();
+			mCurStateMap.Add(type, stateList);
 		}
-		mCurStateMap[type].Add(state);
+		stateList.Add(state);
 		mCurStateIDMap.Add(state.getID(), state);
 		mCurStateList.Add(state);
 		mCacheDirty = true;
@@ -573,9 +569,9 @@ public class CharacterStateMachine : GameComponent
 			return;
 		}
 		mCurStateIDMap.Remove(state.getID());
-		if (mCurStateMap.ContainsKey(Typeof(state)))
+		if (mCurStateMap.TryGetValue(Typeof(state), out List<PlayerState> stateList))
 		{
-			mCurStateMap[Typeof(state)].Remove(state);
+			stateList.Remove(state);
 		}
 		mCurStateList.Remove(state);
 		mCacheDirty = true;
@@ -586,9 +582,10 @@ public class CharacterStateMachine : GameComponent
 		{
 			return;
 		}
-		foreach (var item in mCacheStateList)
+		int cacheCount = mCacheStateList.Count;
+		for(int i = 0; i < cacheCount; ++i)
 		{
-			item.mStateList.Clear();
+			mCacheStateList[i].mStateList.Clear();
 		}
 		mCacheStateList.AddRange(mCacheAddList);
 		mCacheAddList.Clear();

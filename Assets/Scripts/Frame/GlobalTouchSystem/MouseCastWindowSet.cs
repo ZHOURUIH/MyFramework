@@ -9,6 +9,8 @@ public class MouseCastWindowSet : FrameBase
 	protected List<IMouseEventCollect> mWindowOrderList;	// 深度由大到小的窗口列表
 	protected GameCamera mCamera;
 	protected bool mDepthDirty;
+	public static Comparison<MouseCastWindowSet> mComparisonDescend = cameraDepthDescend;
+	public static Comparison<IMouseEventCollect> mUIDepthDescend = UIDepthDescend;
 	public MouseCastWindowSet(GameCamera camera)
 	{
 		mCamera = camera;
@@ -39,7 +41,7 @@ public class MouseCastWindowSet : FrameBase
 		if(mDepthDirty)
 		{
 			mDepthDirty = false;
-			mWindowOrderList.Sort(UIDepthDescend);
+			quickSort(mWindowOrderList, mUIDepthDescend);
 		}
 		return mWindowOrderList;
 	}
@@ -52,12 +54,13 @@ public class MouseCastWindowSet : FrameBase
 		mWindowOrderList.Remove(window);
 	}
 	public bool isEmpty() { return mWindowSet.Count == 0; }
+	//-------------------------------------------------------------------------------------------------------
 	// a小于b返回1, a等于b返回0, a大于b返回-1
-	public static int UIDepthDescend(IMouseEventCollect a, IMouseEventCollect b)
+	protected static int UIDepthDescend(IMouseEventCollect a, IMouseEventCollect b)
 	{
 		return UIDepth.compare(a.getDepth(), b.getDepth());
 	}
-	public static int cameraDepthDescend(MouseCastWindowSet a, MouseCastWindowSet b)
+	protected static int cameraDepthDescend(MouseCastWindowSet a, MouseCastWindowSet b)
 	{
 		return (int)sign(b.mCamera.getCameraDepth() - a.mCamera.getCameraDepth());
 	}

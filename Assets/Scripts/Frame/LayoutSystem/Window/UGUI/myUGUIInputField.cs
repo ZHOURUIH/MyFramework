@@ -2,12 +2,21 @@
 using UnityEngine.UI;
 using System.Collections;
 using System;
+using UnityEngine.Events;
 
 public class myUGUIInputField : myUGUIObject, IInputField
 {
 	protected InputField mInputField;
+	protected UnityAction<string> mThisEditEnd;
+	protected UnityAction<string> mThisEditing;
 	protected OnInputField mEditEndCallback;
 	protected OnInputField mEdittingCallback;
+	protected bool mEndNeedEnter;
+	public myUGUIInputField()
+	{
+		mThisEditEnd = onEditEnd;
+		mThisEditing = onEditting;
+	}
 	public override void init()
 	{
 		base.init();
@@ -31,19 +40,21 @@ public class myUGUIInputField : myUGUIObject, IInputField
 		color.a = alpha;
 		mInputField.textComponent.color = color;
 	}
-	public void setOnEditEnd(OnInputField action)
+	// needEnter表示是否需要按下回车键才会认为是输入结束,false则是只要输入框失去焦点就认为输入结束
+	public void setOnEditEnd(OnInputField action, bool needEnter = true)
 	{
 		mEditEndCallback = action;
-		mInputField.onEndEdit.AddListener(onEditEnd);
+		mEndNeedEnter = needEnter;
+		mInputField.onEndEdit.AddListener(mThisEditEnd);
 	}
 	public void setOnEditting(OnInputField action)
 	{
 		mEdittingCallback = action;
-		mInputField.onValueChanged.AddListener(onEditting);
+		mInputField.onValueChanged.AddListener(mThisEditing);
 	}
-	public void cleanUp() { setText(EMPTY_STRING); }
+	public void clear() { setText(EMPTY); }
 	public void setText(string value) { mInputField.text = value; }
-	public void setText(float value) { setText(value.ToString()); }
+	public void setText(float value) { setText(floatToString(value, 2)); }
 	public string getText() { return mInputField.text; }
 	public bool isFocused() { return mInputField.isFocused; }
 	public bool isVisible() { return isActive(); }
@@ -65,7 +76,7 @@ public class myUGUIInputField : myUGUIObject, IInputField
 	protected void onEditEnd(string value) 
 	{
 		// 只处理由回车触发的输入结束
-		if (!getKeyDown(KeyCode.Return) && !getKeyDown(KeyCode.KeypadEnter))
+		if (mEndNeedEnter && !getKeyDown(KeyCode.Return) && !getKeyDown(KeyCode.KeypadEnter))
 		{
 			return;
 		}

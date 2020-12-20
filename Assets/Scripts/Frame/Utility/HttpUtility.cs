@@ -69,7 +69,7 @@ public class HttpUtility : FrameSystem
 		base.destroy();
 	}
 	// 同步下载文件
-	public static byte[] downloadFile(string url, int offset = 0, byte[] helperBytes = null, string fileName = "", 
+	public static byte[] downloadFile(string url, int offset = 0, byte[] helperBytes = null, string fileName = EMPTY, 
 										StartDownloadCallback startCallback = null, DownloadingCallback downloading = null)
 	{
 		logInfo("开始http下载:" + url, LOG_LEVEL.FORCE);
@@ -112,8 +112,10 @@ public class HttpUtility : FrameSystem
 		string fileFormdataTemplate = "\r\n--" + boundary + "\r\nContent-Disposition: form-data; name=\"{0}\"; filename=\"{1}\"" + "\r\nContent-Type: application/octet-stream" + "\r\n\r\n";
 		string dataFormdataTemplate = "\r\n--" + boundary + "\r\nContent-Disposition: form-data; name=\"{0}\"" + "\r\n\r\n{1}";
 		MemoryStream postStream = new MemoryStream();
-		foreach (var item in itemList)
+		int count = itemList.Count;
+		for(int i = 0; i < count; ++i)
 		{
+			FormItem item = itemList[i];
 			string formdata = null;
 			if (item.mFileContent != null)
 			{
@@ -147,7 +149,7 @@ public class HttpUtility : FrameSystem
 
 		byte[] postBytes = postStream.ToArray();
 		ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
-		HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(new Uri(url));
+		var webRequest = (HttpWebRequest)WebRequest.Create(new Uri(url));
 		webRequest.Method = "POST";
 		webRequest.ContentType = "multipart/form-data; boundary=" + boundary;
 		webRequest.Timeout = 10000;
@@ -156,7 +158,7 @@ public class HttpUtility : FrameSystem
 		// 异步
 		if (callback != null)
 		{
-			RequestThreadParam threadParam = new RequestThreadParam();
+			var threadParam = new RequestThreadParam();
 			threadParam.mRequest = webRequest;
 			threadParam.mByteArray = postBytes;
 			threadParam.mCallback = callback;
@@ -183,7 +185,7 @@ public class HttpUtility : FrameSystem
 				newStream.Write(postBytes, 0, postBytes.Length);
 				newStream.Close();
 				// 读取服务器的返回信息
-				HttpWebResponse response = (HttpWebResponse)webRequest.GetResponse();
+				var response = (HttpWebResponse)webRequest.GetResponse();
 				StreamReader php = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
 				string phpend = php.ReadToEnd();
 				php.Close();
@@ -201,7 +203,7 @@ public class HttpUtility : FrameSystem
 		// 初始化新的webRequst
 		// 创建httpWebRequest对象
 		ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
-		HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(new Uri(url));
+		var webRequest = (HttpWebRequest)WebRequest.Create(new Uri(url));
 		// 初始化HttpWebRequest对象
 		webRequest.Method = "POST";
 		webRequest.ContentType = contentType;
@@ -211,7 +213,7 @@ public class HttpUtility : FrameSystem
 		// 异步
 		if (callback != null)
 		{
-			RequestThreadParam threadParam = new RequestThreadParam();
+			var threadParam = new RequestThreadParam();
 			threadParam.mRequest = webRequest;
 			threadParam.mByteArray = data;
 			threadParam.mCallback = callback;
@@ -237,7 +239,7 @@ public class HttpUtility : FrameSystem
 				newStream.Write(data, 0, data.Length);
 				newStream.Close();
 				// 读取服务器的返回信息
-				HttpWebResponse response = (HttpWebResponse)webRequest.GetResponse();
+				var response = (HttpWebResponse)webRequest.GetResponse();
 				StreamReader php = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
 				string phpend = php.ReadToEnd();
 				php.Close();
@@ -264,12 +266,12 @@ public class HttpUtility : FrameSystem
 	}
 	static public string generateHttpGet(string url, Dictionary<string, string> get)
 	{
-		string Parameters = "";
+		string Parameters = EMPTY;
 		if (get.Count > 0)
 		{
 			Parameters = "?";
 			// 从集合中取出所有参数，设置表单参数（AddField()).  
-			foreach (KeyValuePair<string, string> post_arg in get)
+			foreach (var post_arg in get)
 			{
 				Parameters += post_arg.Key + "=" + post_arg.Value + "&";
 			}
@@ -280,7 +282,7 @@ public class HttpUtility : FrameSystem
 	static public JsonData httpWebRequestGet(string urlString, OnHttpWebRequestCallback callback = null, object userData = null, bool logError = true)
 	{
 		// 根据url地址创建HTTpWebRequest对象
-		HttpWebRequest httprequest = (HttpWebRequest)WebRequest.Create(new Uri(urlString));
+		var httprequest = (HttpWebRequest)WebRequest.Create(new Uri(urlString));
 		httprequest.Method = "GET";
 		httprequest.KeepAlive = false;// 持久连接设置为false
 		httprequest.ProtocolVersion = HttpVersion.Version11;// 网络协议的版本
@@ -291,7 +293,7 @@ public class HttpUtility : FrameSystem
 		// 异步
 		if (callback != null)
 		{
-			RequestThreadParam threadParam = new RequestThreadParam();
+			var threadParam = new RequestThreadParam();
 			threadParam.mRequest = httprequest;
 			threadParam.mByteArray = null;
 			threadParam.mCallback = callback;
@@ -329,9 +331,9 @@ public class HttpUtility : FrameSystem
 		}
 	}
 	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-	static protected void waitPostHttpWebRequest(object param)
+	protected static void waitPostHttpWebRequest(object param)
 	{
-		RequestThreadParam threadParam = (RequestThreadParam)param;
+		var threadParam = (RequestThreadParam)param;
 		try
 		{
 			// 附加要POST给服务器的数据到HttpWebRequest对象(附加POST数据的过程比较特殊，它并没有提供一个属性给用户存取，需要写入HttpWebRequest对象提供的一个stream里面。)
@@ -339,7 +341,7 @@ public class HttpUtility : FrameSystem
 			newStream.Write(threadParam.mByteArray, 0, threadParam.mByteArray.Length);
 			newStream.Close();
 			// 读取服务器的返回信息
-			HttpWebResponse response = (HttpWebResponse)threadParam.mRequest.GetResponse();
+			var response = (HttpWebResponse)threadParam.mRequest.GetResponse();
 			StreamReader php = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
 			string phpend = php.ReadToEnd();
 			php.Close();
@@ -358,12 +360,12 @@ public class HttpUtility : FrameSystem
 			ThreadListLock.unlock();
 		}
 	}
-	static protected void waitGetHttpWebRequest(object param)
+	protected static void waitGetHttpWebRequest(object param)
 	{
-		RequestThreadParam threadParam = (RequestThreadParam)param;
+		var threadParam = (RequestThreadParam)param;
 		try
 		{
-			HttpWebResponse response = (HttpWebResponse)threadParam.mRequest.GetResponse();
+			var response = (HttpWebResponse)threadParam.mRequest.GetResponse();
 			Stream steam = response.GetResponseStream();
 			StreamReader reader = new StreamReader(steam, Encoding.UTF8);
 			string pageStr = reader.ReadToEnd();
@@ -402,8 +404,7 @@ public class HttpUtility : FrameSystem
 				chain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
 				chain.ChainPolicy.UrlRetrievalTimeout = new TimeSpan(0, 1, 0);
 				chain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllFlags;
-				bool chainIsValid = chain.Build((X509Certificate2)certificate);
-				if (!chainIsValid)
+				if (!chain.Build((X509Certificate2)certificate))
 				{
 					isOk = false;
 					break;

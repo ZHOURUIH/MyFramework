@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 public struct Line2
 {
@@ -681,6 +682,16 @@ public class MathUtility : StringUtility
 	// 一定几率返回true,几率范围是0.0~1.0
 	public static bool randomHit(float odds)
 	{
+		// 几率已经大于等于1,则直接返回true
+		if (odds >= 1.0f)
+		{
+			return true;
+		}
+		// 几率小于等于0,则直接返回fals
+		if (odds <= 0.0f)
+		{
+			return false;
+		}
 		return randomFloat(0.0f, 1.0f) < odds;
 	}
 	// 根据几率随机选择一个下标
@@ -977,7 +988,7 @@ public class MathUtility : StringUtility
 		if (intersectLine2(line0, line1, out intersect))
 		{
 			// 如果交点都在两条线段内,则两条线段相交
-			return isInRange(intersect, line0.mStart, line0.mEnd) && isInRange(intersect, line1.mStart, line1.mEnd);
+			return inRange(intersect, line0.mStart, line0.mEnd) && inRange(intersect, line1.mStart, line1.mEnd);
 		}
 		return false;
 	}
@@ -987,7 +998,7 @@ public class MathUtility : StringUtility
 		if (intersectLine2(line, section, out intersect))
 		{
 			// 如果交点在线段内,则线段和直线相交
-			return isInRange(intersect, section.mStart, section.mEnd);
+			return inRange(intersect, section.mStart, section.mEnd);
 		}
 		return false;
 	}
@@ -1290,7 +1301,7 @@ public class MathUtility : StringUtility
 			return false;
 		}
 		// 如果投影在线段两个端点之间,则相交
-		if(isInRange(projectPoint, line.mStart, line.mEnd, false))
+		if(inRange(projectPoint, line.mStart, line.mEnd, false))
 		{
 			return true;
 		}
@@ -2270,7 +2281,7 @@ public class MathUtility : StringUtility
 		}
 	}
 	// fixedRangeOrder表示是否范围是从range0到range1,如果range0大于range1,则返回false
-	public static bool isInRange(float value, float range0, float range1, bool fixedRangeOrder = false, float precision = 0.001f)
+	public static bool inRange(float value, float range0, float range1, bool fixedRangeOrder = false, float precision = 0.001f)
 	{
 		if (fixedRangeOrder)
 		{
@@ -2281,27 +2292,27 @@ public class MathUtility : StringUtility
 			return value >= getMin(range0, range1) - precision && value <= getMax(range0, range1) + precision;
 		}
 	}
-	public static bool isInRange(Vector3 value, Vector3 point0, Vector3 point1, bool ignoreY = true, float precision = 0.001f)
+	public static bool inRange(Vector3 value, Vector3 point0, Vector3 point1, bool ignoreY = true, float precision = 0.001f)
 	{
-		return isInRange(value.x, point0.x, point1.x, false, precision) && 
-			   isInRange(value.z, point0.z, point1.z, false, precision) &&
-			  (ignoreY || isInRange(value.y, point0.y, point1.y, false, precision));
+		return inRange(value.x, point0.x, point1.x, false, precision) && 
+			   inRange(value.z, point0.z, point1.z, false, precision) &&
+			  (ignoreY || inRange(value.y, point0.y, point1.y, false, precision));
 	}
-	public static bool isInRange(ref Vector3 value, ref Vector3 point0, ref Vector3 point1, bool ignoreY = true, float precision = 0.001f)
+	public static bool inRange(ref Vector3 value, ref Vector3 point0, ref Vector3 point1, bool ignoreY = true, float precision = 0.001f)
 	{
-		return isInRange(value.x, point0.x, point1.x, false, precision) && 
-			   isInRange(value.z, point0.z, point1.z, false, precision) &&
-			  (ignoreY || isInRange(value.y, point0.y, point1.y, false, precision));
+		return inRange(value.x, point0.x, point1.x, false, precision) && 
+			   inRange(value.z, point0.z, point1.z, false, precision) &&
+			  (ignoreY || inRange(value.y, point0.y, point1.y, false, precision));
 	}
-	public static bool isInRange(Vector2 value, Vector2 point0, Vector2 point1, float precision = 0.001f)
+	public static bool inRange(Vector2 value, Vector2 point0, Vector2 point1, float precision = 0.001f)
 	{
-		return isInRange(value.x, point0.x, point1.x, false, precision) && 
-			   isInRange(value.y, point0.y, point1.y, false, precision);
+		return inRange(value.x, point0.x, point1.x, false, precision) && 
+			   inRange(value.y, point0.y, point1.y, false, precision);
 	}
-	public static bool isInRange(ref Vector2 value, ref Vector2 point0, ref Vector2 point1, float precision = 0.001f)
+	public static bool inRange(ref Vector2 value, ref Vector2 point0, ref Vector2 point1, float precision = 0.001f)
 	{
-		return isInRange(value.x, point0.x, point1.x, false, precision) && 
-			   isInRange(value.y, point0.y, point1.y, false, precision);
+		return inRange(value.x, point0.x, point1.x, false, precision) && 
+			   inRange(value.y, point0.y, point1.y, false, precision);
 	}
 	public static int findPointIndex(List<float> distanceListFromStart, float curDistance, int startIndex, int endIndex)
 	{
@@ -3098,12 +3109,17 @@ public class MathUtility : StringUtility
 		}
 		return true;
 	}
-	public static void quickSort(List<int> arr)
+	public static void quickSort<T>(List<T> arr, Comparison<T> comparison)
 	{
-		quickSort(arr, 0, arr.Count - 1);
+		quickSort(arr, 0, arr.Count - 1, comparison);
+	}
+	public static void quickSort<T>(List<T> arr, bool ascend = true) where T : IComparable<T>
+	{
+		quickSort(arr, 0, arr.Count - 1, ascend);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
-	protected static void quickSort(List<int> arr, int low, int high)
+	// 可以通过comparison自己决定升序还是降序,所以不再需要额外的参数
+	protected static void quickSort<T>(List<T> arr, int low, int high, Comparison<T> comparison)
 	{
 		if (high <= low)
 		{
@@ -3111,24 +3127,51 @@ public class MathUtility : StringUtility
 		}
 		int i = low;
 		int j = high + 1;
-		int key = arr[low];
+		T key = arr[low];
 		while (true)
 		{
-			// 从左向右找比key大的值
-			while (arr[++i] > key)
+			// 从左向右找到一个比key小的值,如果小于key,则一直继续查找
+			while (comparison(arr[++i], key) < 0 && i != high){}
+			// 从右向左找到一个比key大的值,如果大于key,则一直继续查找
+			while (comparison(arr[--j], key) > 0 && j != low){}
+			if (i >= j)
 			{
-				if (i == high)
-				{
-					break;
-				}
+				break;
 			}
-			// 从右向左找比key小的值
-			while (arr[--j] < key)
+			// 交换i,j对应的值
+			swapIndex(arr, i, j);
+		}
+		// 中枢值与j对应值交换
+		swapIndex(arr, low, j);
+		quickSort(arr, low, j - 1, comparison);
+		quickSort(arr, j + 1, high, comparison);
+	}
+	protected static void quickSort<T>(List<T> arr, int low, int high, bool ascend = true) where T : IComparable<T>
+	{
+		if (high <= low)
+		{
+			return;
+		}
+		int i = low;
+		int j = high + 1;
+		T key = arr[low];
+		while (true)
+		{
+			// 升序
+			if(ascend)
 			{
-				if (j == low)
-				{
-					break;
-				}
+				// 从左向右找到一个比key大的值,如果小于key,则一直继续查找
+				while (arr[++i].CompareTo(key) < 0 && i != high) { }
+				// 从右向左找到一个比key小的值,如果大于key,则一直继续查找
+				while (arr[--j].CompareTo(key) > 0 && j != low) { }
+			}
+			// 降序
+			else
+			{
+				// 从左向右找到一个比key小的值,如果大于key,则一直继续查找
+				while (arr[++i].CompareTo(key) > 0 && i != high) { }
+				// 从右向左找到一个比key大的值,如果小于key,则一直继续查找
+				while (arr[--j].CompareTo(key) < 0 && j != low) { }
 			}
 			if (i >= j)
 			{
@@ -3139,8 +3182,8 @@ public class MathUtility : StringUtility
 		}
 		// 中枢值与j对应值交换
 		swapIndex(arr, low, j);
-		quickSort(arr, low, j - 1);
-		quickSort(arr, j + 1, high);
+		quickSort(arr, low, j - 1, ascend);
+		quickSort(arr, j + 1, high, ascend);
 	}
 	protected static void swapIndex<T>(List<T> list, int index0, int index1)
 	{

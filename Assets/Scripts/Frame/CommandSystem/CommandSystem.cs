@@ -10,11 +10,9 @@ public class CommandSystem : FrameSystem
 	protected List<Command> mExecuteList;           // 即将在这一帧执行的命令
 	protected CommandPool mCommandPool;
 	protected ThreadLock mBufferLock;
-	protected bool mTraceCommand;					// 是否追踪命令的来源
 	public CommandSystem()
 	{
 		mBufferLock = new ThreadLock();
-		mTraceCommand = false;
 		mCommandPool = new CommandPool();
 		mCommandBufferProcess = new List<Command>();
 		mCommandBufferInput = new List<Command>();
@@ -41,7 +39,8 @@ public class CommandSystem : FrameSystem
 		// 执行之前需要先清空列表
 		mExecuteList.Clear();
 		// 开始处理命令处理列表
-		for (int i = 0; i < mCommandBufferProcess.Count; ++i)
+		int count = mCommandBufferProcess.Count;
+		for (int i = 0; i < count; ++i)
 		{
 			Command cmd = mCommandBufferProcess[i];
 			if (!cmd.isIgnoreTimeScale())
@@ -58,6 +57,7 @@ public class CommandSystem : FrameSystem
 				mExecuteList.Add(cmd);
 				mCommandBufferProcess.RemoveAt(i);
 				--i;
+				--count;
 			}
 		}
 		int executeCount = mExecuteList.Count;
@@ -80,28 +80,7 @@ public class CommandSystem : FrameSystem
 		{
 			return null;
 		}
-		Command cmd = mCommandPool.newCmd(type, show, delay);
-#if UNITY_EDITOR
-		if (mTraceCommand)
-		{
-			int line = 0;
-			string file = null;
-			int frame = 2;
-			while (true)
-			{
-				file = getCurSourceFileName(frame);
-				line = getLineNum(frame);
-				if (!file.EndsWith("LayoutTools.cs"))
-				{
-					break;
-				}
-				++frame;
-			}
-			cmd.mLine = line;
-			cmd.mFile = file;
-		}
-#endif
-		return cmd;
+		return mCommandPool.newCmd(type, show, delay);
 	}
 	public void interruptCommand(List<int> assignIDList, bool showError = true)
 	{
@@ -129,25 +108,29 @@ public class CommandSystem : FrameSystem
 		}
 
 		syncCommandBuffer();
-		foreach (var item in mCommandBufferProcess)
+		int count = mCommandBufferProcess.Count;
+		for(int i = 0; i < count; ++i)
 		{
-			if (item.mAssignID == assignID)
+			Command cmd = mCommandBufferProcess[i];
+			if (cmd.mAssignID == assignID)
 			{
-				logInfo("CommandSystem : interrupt command " + assignID + " : " + item.showDebugInfo() + ", receiver : " + item.getReceiver().getName(), LOG_LEVEL.HIGH);
-				mCommandBufferProcess.Remove(item);
+				logInfo("CommandSystem : interrupt command " + assignID + " : " + cmd.showDebugInfo() + ", receiver : " + cmd.getReceiver().getName(), LOG_LEVEL.HIGH);
+				mCommandBufferProcess.Remove(cmd);
 				// 销毁回收命令
-				mCommandPool.destroyCmd(item);
+				mCommandPool.destroyCmd(cmd);
 				return true;
 			}
 		}
 
 		bool success = false;
 		// 在即将执行的列表中查找,不能删除列表元素，只能将接收者设置为空来阻止命令执行,如果正在执行该命令,则没有效果
-		foreach (var item in mExecuteList)
+		int executeCount = mExecuteList.Count;
+		for(int i = 0; i < executeCount; ++i)
 		{
-			if (item.mAssignID == assignID)
+			Command cmd = mExecuteList[i];
+			if (cmd.mAssignID == assignID)
 			{
-				item.setReceiver(null);
+				cmd.setReceiver(null);
 				success = true;
 				break;
 			}
@@ -178,12 +161,12 @@ public class CommandSystem : FrameSystem
 		}
 		if (cmd == null)
 		{
-			logError("cmd is null! receiver : " + (cmdReceiver != null ? cmdReceiver.getName() : EMPTY_STRING));
+			logError("cmd is null! receiver : " + (cmdReceiver != null ? cmdReceiver.getName() : EMPTY));
 			return;
 		}
 		if (cmdReceiver == null)
 		{
-			logError("receiver is null! cmd : " + (cmd != null ? cmd.getType().ToString() : EMPTY_STRING));
+			logError("receiver is null! cmd : " + (cmd != null ? cmd.getType().ToString() : EMPTY));
 			return;
 		}
 		if (!cmd.isValid())
@@ -200,7 +183,9 @@ public class CommandSystem : FrameSystem
 		cmd.setReceiver(cmdReceiver);
 		if (cmd.isShowDebugInfo())
 		{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 			logInfo("CommandSystem : " + cmd.mAssignID + ", " + cmd.showDebugInfo() + ", receiver : " + cmdReceiver.getName(), LOG_LEVEL.NORMAL);
+#endif
 		}
 		cmdReceiver.receiveCommand(cmd);
 		// 销毁回收命令
@@ -228,12 +213,12 @@ public class CommandSystem : FrameSystem
 		}
 		if (cmd == null)
 		{
-			logError("cmd is null! receiver : " + (cmdReceiver != null ? cmdReceiver.getName() : EMPTY_STRING));
+			logError("cmd is null! receiver : " + (cmdReceiver != null ? cmdReceiver.getName() : EMPTY));
 			return;
 		}
 		if(cmdReceiver == null)
 		{
-			logError("receiver is null! cmd : " + (cmd != null ? cmd.getType().ToString() : EMPTY_STRING));
+			logError("receiver is null! cmd : " + (cmd != null ? cmd.getType().ToString() : EMPTY));
 			return;
 		}
 		if (!cmd.isValid())
@@ -250,7 +235,9 @@ public class CommandSystem : FrameSystem
 		clampMin(ref delayExecute, 0.0f);
 		if (cmd.isShowDebugInfo())
 		{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 			logInfo("CommandSystem : delay cmd : " + cmd.mAssignID + ", " + delayExecute + ", info : " + cmd.showDebugInfo() + ", receiver : " + cmdReceiver.getName(), LOG_LEVEL.NORMAL);
+#endif
 		}
 		mBufferLock.waitForUnlock();
 		cmd.setDelayTime(delayExecute);
@@ -290,11 +277,7 @@ public class CommandSystem : FrameSystem
 	protected void syncCommandBuffer()
 	{
 		mBufferLock.waitForUnlock();
-		int inputCount = mCommandBufferInput.Count;
-		for (int i = 0; i < inputCount; ++i)
-		{
-			mCommandBufferProcess.Add(mCommandBufferInput[i]);
-		}
+		mCommandBufferProcess.AddRange(mCommandBufferInput);
 		mCommandBufferInput.Clear();
 		mBufferLock.unlock();
 	}

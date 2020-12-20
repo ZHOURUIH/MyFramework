@@ -9,7 +9,21 @@ public class WindowShaderMotionBlurCriticalMask : WindowShaderCriticalMask
 	protected float mIncreaseSample = 0.2f;
 	protected int mSampleInterval = 3;
 	protected Vector2 mSampleCenter;
-	protected string mMotionBlurCriticalMask = "MotionBlurCriticalMask";
+	protected int mMinRangeID;
+	protected int mMaxSampleID;
+	protected int mIncreaseSampleID;
+	protected int mSampleIntervalID;
+	protected int mCenterXID;
+	protected int mCenterYID;
+	public WindowShaderMotionBlurCriticalMask()
+	{
+		mMinRangeID = Shader.PropertyToID("_MinRange");
+		mMaxSampleID = Shader.PropertyToID("_MaxSample");
+		mIncreaseSampleID = Shader.PropertyToID("_IncreaseSample");
+		mSampleIntervalID = Shader.PropertyToID("_SampleInterval");
+		mCenterXID = Shader.PropertyToID("_CenterX");
+		mCenterYID = Shader.PropertyToID("_CenterY");
+	}
 	public void setMinRange(float minRange) { mMinRange = minRange; }
 	public void setMaxSample(int maxSample) { mMaxSample = maxSample; }
 	public void setIncreaseSample(float increaseValue) { mIncreaseSample = increaseValue; }
@@ -33,17 +47,12 @@ public class WindowShaderMotionBlurCriticalMask : WindowShaderCriticalMask
 		base.applyShader(mat);
 		if (mat != null && mat.shader != null)
 		{
-			if (getFileName(mat.shader.name) == mMotionBlurCriticalMask)
-			{
-				mat.SetFloat("_MinRange", mMinRange);
-				mat.SetInt("_MaxSample", mMaxSample);
-				mat.SetFloat("_IncreaseSample", mIncreaseSample);
-				mat.SetInt("_SampleInterval", mSampleInterval);
-				mat.SetFloat("_CenterX", mSampleCenter.x);
-				mat.SetFloat("_CenterY", mSampleCenter.y);
-				mat.SetFloat("_CriticalValue", mCriticalValue);
-				mat.SetInt("_InverseVertical", mInverseVertical ? 1 : 0);
-			}
+			mat.SetFloat(mMinRangeID, mMinRange);
+			mat.SetInt(mMaxSampleID, mMaxSample);
+			mat.SetFloat(mIncreaseSampleID, mIncreaseSample);
+			mat.SetInt(mSampleIntervalID, mSampleInterval);
+			mat.SetFloat(mCenterXID, mSampleCenter.x);
+			mat.SetFloat(mCenterYID, mSampleCenter.y);
 		}
 	}
 }

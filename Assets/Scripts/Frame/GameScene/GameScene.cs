@@ -5,24 +5,24 @@ using System.Collections.Generic;
 
 public abstract class GameScene : ComponentOwner
 {
-	protected Dictionary<Type, SceneProcedure> mSceneProcedureList;	// 场景的流程列表
+	protected Dictionary<Type, SceneProcedure> mSceneProcedureList; // 场景的流程列表
 	protected List<SceneProcedure> mLastProcedureList;  // 所进入过的所有流程
-	protected SceneProcedure mCurProcedure;			// 当前流程
-	protected GameObject mSceneObject;				// 场景对应的GameObject
-	protected AudioSource mAudioSource;				// 场景音频源
-	protected Type mStartProcedure;					// 起始流程类型,进入场景时会默认进入该流程
-	protected Type mTempStartProcedure;				// 仅使用一次的起始流程类型,设置后进入场景时会默认进入该流程,生效后就清除
-	protected Type mExitProcedure;					// 场景的退出流程,退出场景进入其他场景时会先进入该流程,一般用作资源卸载
-	protected const int	mMaxLastProcedureCount = 8; // mLastProcedureList列表的最大长度,当超过该长度时,会移除列表开始的元素
+	protected SceneProcedure mCurProcedure;         // 当前流程
+	protected GameObject mSceneObject;              // 场景对应的GameObject
+	protected AudioSource mAudioSource;             // 场景音频源
+	protected Type mStartProcedure;                 // 起始流程类型,进入场景时会默认进入该流程
+	protected Type mTempStartProcedure;             // 仅使用一次的起始流程类型,设置后进入场景时会默认进入该流程,生效后就清除
+	protected Type mExitProcedure;                  // 场景的退出流程,退出场景进入其他场景时会先进入该流程,一般用作资源卸载
+	protected const int mMaxLastProcedureCount = 8; // mLastProcedureList列表的最大长度,当超过该长度时,会移除列表开始的元素
 	protected string mTempStartIntent;              // 进入mTempStartProcedure时的参数
 	public GameScene()
-    {
-        mSceneProcedureList = new Dictionary<Type, SceneProcedure>();
+	{
+		mSceneProcedureList = new Dictionary<Type, SceneProcedure>();
 		mLastProcedureList = new List<SceneProcedure>();
 	}
 	// 进入场景时初始化
-    public virtual void init()
-    {
+	public virtual void init()
+	{
 		// 创建场景对应的物体,并挂接到场景管理器下
 		mSceneObject = createGameObject(mName, mGameSceneManager.getObject());
 		mAudioSource = mSceneObject.GetComponent<AudioSource>();
@@ -49,12 +49,11 @@ public abstract class GameScene : ComponentOwner
 	{
 		base.destroy();
 		// 销毁所有流程
-		foreach(var item in mSceneProcedureList)
+		foreach (var item in mSceneProcedureList)
 		{
 			item.Value.destroy();
 		}
 		mSceneProcedureList.Clear();
-		destroyAllComponents();
 		destroyGameObject(ref mSceneObject);
 	}
 	public override void update(float elapsedTime)
@@ -72,7 +71,7 @@ public abstract class GameScene : ComponentOwner
 	}
 	public virtual void keyProcess(float elapsedTime)
 	{
-		if(!mGameFramework.isEnableKeyboard())
+		if (!mGameFramework.isEnableKeyboard())
 		{
 			return;
 		}
@@ -100,7 +99,7 @@ public abstract class GameScene : ComponentOwner
 	{
 		return mAudioSource = mSceneObject.AddComponent<AudioSource>();
 	}
-    public virtual void createSceneProcedure() { }
+	public virtual void createSceneProcedure() { }
 	public bool atProcedure(Type type)
 	{
 		if (mCurProcedure == null)
@@ -112,7 +111,7 @@ public abstract class GameScene : ComponentOwner
 	// 是否在指定的流程,不考虑子流程
 	public bool atSelfProcedure(Type type)
 	{
-		if(mCurProcedure == null)
+		if (mCurProcedure == null)
 		{
 			return false;
 		}
@@ -134,46 +133,40 @@ public abstract class GameScene : ComponentOwner
 		changeProcedure(lastType, intend, false);
 		mLastProcedureList.RemoveAt(mLastProcedureList.Count - 1);
 	}
-	public bool changeProcedure(Type procedure, string intent, bool addToLastList = true)
-    {
-        if (mSceneProcedureList.ContainsKey(procedure))
-        {
-			// 将上一个流程记录到返回列表中
-			if (mCurProcedure != null && addToLastList)
+	public bool changeProcedure(Type procedureType, string intent, bool addToLastList = true)
+	{
+		if (!mSceneProcedureList.TryGetValue(procedureType, out SceneProcedure targetProcedure))
+		{
+			logError("can not find scene procedure : " + procedureType);
+			return false;
+		}
+		// 将上一个流程记录到返回列表中
+		if (mCurProcedure != null && addToLastList)
+		{
+			mLastProcedureList.Add(mCurProcedure);
+			if (mLastProcedureList.Count > mMaxLastProcedureCount)
 			{
-				mLastProcedureList.Add(mCurProcedure);
-				if(mLastProcedureList.Count > mMaxLastProcedureCount)
-				{
-					mLastProcedureList.RemoveAt(0);
-				}
+				mLastProcedureList.RemoveAt(0);
 			}
-			if (mCurProcedure == null || mCurProcedure.getProcedureType() != procedure)
+		}
+		if (mCurProcedure == null || mCurProcedure.getProcedureType() != procedureType)
+		{
+			// 如果当前已经在一个流程中了,则要先退出当前流程,但是不要销毁流程
+			if (mCurProcedure != null)
 			{
-				SceneProcedure targetProcedure = mSceneProcedureList[procedure];
-				// 如果当前已经在一个流程中了,则要先退出当前流程,但是不要销毁流程
-				if (mCurProcedure != null)
-				{
-					// 需要找到共同的父节点,退到该父节点时则不再退出
-					SceneProcedure exitTo = mCurProcedure.getSameParent(targetProcedure);
-					SceneProcedure nextPro = targetProcedure;
-					mCurProcedure.exit(exitTo, nextPro);
-				}
-				SceneProcedure lastProcedure = mCurProcedure;
-				mCurProcedure = targetProcedure;
-				mCurProcedure.init(lastProcedure, intent);
+				// 需要找到共同的父节点,退到该父节点时则不再退出
+				mCurProcedure.exit(mCurProcedure.getSameParent(targetProcedure), targetProcedure);
 			}
-            return true;
-        }
-        else
-        {
-			logError("can not find scene procedure : " + procedure);
-        }
-        return false;
-    }
+			SceneProcedure lastProcedure = mCurProcedure;
+			mCurProcedure = targetProcedure;
+			mCurProcedure.init(lastProcedure, intent);
+		}
+		return true;
+	}
 	// 流程调用,通知场景当前流程已经准备完毕
 	public void notifyProcedurePrepared()
 	{
-		if(mLastProcedureList.Count > 0)
+		if (mLastProcedureList.Count > 0)
 		{
 			mLastProcedureList[mLastProcedureList.Count - 1].onNextProcedurePrepared(mCurProcedure);
 		}
@@ -184,14 +177,15 @@ public abstract class GameScene : ComponentOwner
 		return mLastProcedureList[mLastProcedureList.Count - 1].getProcedureType();
 	}
 	public SceneProcedure getProcedure(Type type)
-    {
-		return mSceneProcedureList.ContainsKey(type) ? mSceneProcedureList[type] : null;
-    }
+	{
+		mSceneProcedureList.TryGetValue(type, out SceneProcedure procedure);
+		return procedure;
+	}
 	public SceneProcedure getProcedure(string typeStr)
 	{
 		foreach (var item in mSceneProcedureList)
 		{
-			if(item.Key.ToString() == typeStr)
+			if (item.Key.ToString() == typeStr)
 			{
 				return item.Value;
 			}
@@ -205,7 +199,7 @@ public abstract class GameScene : ComponentOwner
 	{
 		return mCurProcedure.getThisOrParent(type);
 	}
-    public void setTempStartProcedure(Type procedure, string intent) 
+	public void setTempStartProcedure(Type procedure, string intent)
 	{
 		mTempStartProcedure = procedure;
 		mTempStartIntent = intent;
@@ -218,7 +212,7 @@ public abstract class GameScene : ComponentOwner
 		if (parent != null)
 		{
 			SceneProcedure parentProcedure = getProcedure(parent);
-			if(parentProcedure == null)
+			if (parentProcedure == null)
 			{
 				logError("invalid parent procedure, procedure:" + procedure.getProcedureType());
 			}

@@ -14,8 +14,7 @@ public class CommandSocketConnectAcceptClient : Command
 	}
 	public override void execute()
 	{
-		ISocketConnect connect = mReceiver as ISocketConnect;
-		SocketConnectServer connectServer = connect as SocketConnectServer;
+		SocketConnectServer connectServer = mReceiver as SocketConnectServer;
 		connectServer?.notifyAcceptedClient(mSocket, mIP);
 	}
 	public override string showDebugInfo()

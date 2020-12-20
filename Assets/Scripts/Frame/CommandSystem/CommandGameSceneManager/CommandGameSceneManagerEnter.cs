@@ -22,7 +22,7 @@ public class CommandGameSceneManagerEnter : Command
 	{
 		string scene = mSceneType != null ? mSceneType.ToString() : "null";
 		string procedure = mStartProcedure != null ? mStartProcedure.ToString() : "null";
-		string intent = mIntent != null ? mIntent : "";
+		string intent = mIntent != null ? mIntent : EMPTY;
 		return base.showDebugInfo() + ": mSceneType:" + scene + ", mStartProcedure:" + procedure + ", mIntent:" + intent;
 	}
 }

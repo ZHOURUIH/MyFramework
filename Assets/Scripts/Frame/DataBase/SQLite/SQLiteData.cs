@@ -25,6 +25,12 @@ public class SQLiteData : GameBase
 	}
 	public string getValue(string paramName) { return mValues[paramName]; }
 	//--------------------------------------------------------------------------------------------------------
+	protected void parseParam(SqliteDataReader reader, ref List<bool> value, string paramName)
+	{
+		string str = reader[paramName].ToString();
+		stringToBoolArray(str, value);
+		mValues.Add(paramName, str);
+	}
 	protected void parseParam(SqliteDataReader reader, ref List<float> value, string paramName)
 	{
 		string str = reader[paramName].ToString();

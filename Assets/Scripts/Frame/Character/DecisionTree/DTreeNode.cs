@@ -38,7 +38,7 @@ public class DTreeNode : GameBase
 	public virtual void update(float elapsedTime) { }
 	public bool addChild(DTreeNode child)
 	{
-		if(mChildMap.ContainsKey(child.getID()))
+		if (mChildMap.ContainsKey(child.getID()))
 		{
 			logError("不能再次添加同一个子节点");
 			return false;
@@ -49,7 +49,7 @@ public class DTreeNode : GameBase
 	}
 	public bool setParent(DTreeNode parent)
 	{
-		if(mParent != null && parent != null)
+		if (mParent != null && parent != null)
 		{
 			logError("当前父节点不为空,不能挂接到其他父节点");
 			return false;

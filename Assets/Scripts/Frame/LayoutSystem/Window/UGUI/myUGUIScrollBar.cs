@@ -2,11 +2,17 @@
 using UnityEngine.UI;
 using System.Collections;
 using System;
+using UnityEngine.Events;
 
 public class myUGUIScrollBar : myUGUIObject
 {
 	protected Scrollbar mScrollBar;
 	protected Action<float, myUGUIScrollBar> mCallBack;
+	protected UnityAction<float> mThisValueCallback;
+	public myUGUIScrollBar()
+	{
+		mThisValueCallback = onValueChangeCallBack;
+	}
 	public override void init()
 	{
 		base.init();
@@ -28,8 +34,9 @@ public class myUGUIScrollBar : myUGUIObject
 	public void setCallBack(Action<float, myUGUIScrollBar> callBack)
 	{
 		mCallBack = callBack;
-		mScrollBar.onValueChanged.AddListener(onValueChangeCallBack);
+		mScrollBar.onValueChanged.AddListener(mThisValueCallback);
 	}
+	//------------------------------------------------------------------------------------------------------------------------
 	protected void onValueChangeCallBack(float value)
 	{
 		mCallBack?.Invoke(value, this);

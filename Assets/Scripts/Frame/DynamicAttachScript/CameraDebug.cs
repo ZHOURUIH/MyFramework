@@ -39,8 +39,8 @@ public class CameraDebug : MonoBehaviour
 		}
 		else
 		{
-			CurLinkerName = StringUtility.EMPTY_STRING;
-			LinkedObjectName = StringUtility.EMPTY_STRING;
+			CurLinkerName = StringUtility.EMPTY;
+			LinkedObjectName = StringUtility.EMPTY;
 			LinkedObject = null;
 			Relative = Vector3.zero;
 			CurRelative = Vector3.zero;

@@ -34,7 +34,7 @@ public class CommandGameScenePrepareChangeProcedure : Command
 	public override string showDebugInfo()
 	{
 		string procedure = mProcedure != null ? mProcedure.ToString() : "null";
-		string intent = mIntent != null ? mIntent : "";
+		string intent = mIntent != null ? mIntent : EMPTY;
 		return base.showDebugInfo() + ": mProcedure:" + procedure + ", mIntent:" + intent + ", mPrepareTime:" + mPrepareTime;
 	}
 }

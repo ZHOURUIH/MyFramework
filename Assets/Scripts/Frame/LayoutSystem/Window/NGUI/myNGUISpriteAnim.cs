@@ -97,14 +97,11 @@ public class myNGUISpriteAnim : myNGUISprite, IUIAnimation
 			while(true)
 			{
 				string name = mTextureSetName + "_" + intToString(index++);
-				if(mTempSpriteDataList.ContainsKey(name))
-				{
-					mTextureNameList.Add(name);
-				}
-				else
+				if (!mTempSpriteDataList.ContainsKey(name))
 				{
 					break;
 				}
+				mTextureNameList.Add(name);
 			}
 			if(getTextureFrameCount() == 0)
 			{

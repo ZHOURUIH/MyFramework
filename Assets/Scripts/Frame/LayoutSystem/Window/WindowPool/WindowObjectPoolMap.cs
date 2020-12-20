@@ -23,9 +23,10 @@ public class WindowObjectPoolMap<Key, T> : FrameBase where T : PooledWindow
 	public void destroy()
 	{
 		unuseAll();
-		foreach (var item in mUnusedItemList)
+		int count = mUnusedItemList.Count;
+		for(int i = 0; i < count; ++i)
 		{
-			item.destroy();
+			mUnusedItemList[i].destroy();
 		}
 		mUnusedItemList.Clear();
 	}
@@ -43,21 +44,22 @@ public class WindowObjectPoolMap<Key, T> : FrameBase where T : PooledWindow
 #if UNITY_EDITOR
 		if(mValueType != null)
 		{
-			bool hasNoneParamConstructor = false;
 			ConstructorInfo[] info = mValueType.GetConstructors();
 			if (info != null)
 			{
-				foreach (var item in info)
+				bool hasNoneParamConstructor = false;
+				int count = info.Length;
+				for(int i= 0; i < count; ++i)
 				{
-					if (item.GetParameters().Length == 0)
+					if (info[i].GetParameters().Length == 0)
 					{
 						hasNoneParamConstructor = true;
 					}
 				}
-			}
-			if (!hasNoneParamConstructor && info != null && info.Length > 0)
-			{
-				logError("WindowObjectPoolMap需要有无参构造的类作为节点类型, Type:" + mValueType.Name);
+				if (!hasNoneParamConstructor && count > 0)
+				{
+					logError("WindowObjectPoolMap需要有无参构造的类作为节点类型, Type:" + mValueType.Name);
+				}
 			}
 		}
 #endif
@@ -65,9 +67,9 @@ public class WindowObjectPoolMap<Key, T> : FrameBase where T : PooledWindow
 	public bool hasKey(Key key) { return mUsedItemList.ContainsKey(key); }
 	public T getItem(Key key) 
 	{
-		if(mUsedItemList.ContainsKey(key))
+		if (mUsedItemList.TryGetValue(key, out T item))
 		{
-			return mUsedItemList[key];
+			return item;
 		}
 		return default;
 	}
@@ -114,9 +116,8 @@ public class WindowObjectPoolMap<Key, T> : FrameBase where T : PooledWindow
 	}
 	public void unuseItem(Key key)
 	{
-		if (key != null && mUsedItemList.ContainsKey(key))
+		if (key != null && mUsedItemList.TryGetValue(key, out T item))
 		{
-			T item = mUsedItemList[key];
 			item.recycle();
 			item.setVisible(false);
 			item.setParent(mItemParentUnuse);

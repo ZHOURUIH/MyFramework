@@ -24,7 +24,7 @@ public class myUGUINumber : myUGUIImage
 		mSpriteList = new Sprite[10];
 		mNumberList = new List<myUGUIImage>();
 		mNumberStyle = null;
-		mNumber = EMPTY_STRING;
+		mNumber = EMPTY;
 		mInterval = 5;
 		mDockingPosition = DOCKING_POSITION.LEFT;
 		mDirection = NUMBER_DIRECTION.HORIZONTAL;
@@ -299,7 +299,7 @@ public class myUGUINumber : myUGUIImage
 		for (int i = 0; i < mMaxCount + 1; ++i)
 		{
 			string name = mName + "_" + i;
-			mNumberList.Add(mLayout.getScript().createObject<myUGUIImage>(this, name, false));
+			mNumberList.Add(mLayout.getScript().createObject<myUGUIImage>(this, name, false, false, false));
 		}
 		refreshNumber();
 	}
@@ -309,7 +309,7 @@ public class myUGUINumber : myUGUIImage
 	}
 	public void setNumber(string num)
 	{
-		mNumber = checkUIntString(num, "" + mAddMark + mMinusMark + mDotMark);
+		mNumber = checkUIntString(num, EMPTY + mAddMark + mMinusMark + mDotMark);
 		// 设置的数字字符串不能超过最大数量
 		if (mNumber.Length > mMaxCount)
 		{

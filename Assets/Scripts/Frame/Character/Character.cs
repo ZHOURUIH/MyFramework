@@ -16,18 +16,20 @@ public class Character : MovableObject
 	protected Rigidbody mRigidBody;
 	protected Type mCharacterType;          // 角色类型
 	protected OnCharacterLoaded mCharacterLoadedCallback;
-	protected string mModelTag;
+	protected CreateObjectCallback mModelLoadCallback;
 	protected string mModelPath;
 	protected string mAnimationControllerPath;
 	protected object mUserData;
-	protected uint mGUID;
+	protected ulong mGUID;
+	protected int mModelTag;
 	public Character()
 	{
 		mAnimationLenghtList = new Dictionary<string, float>();
+		mModelLoadCallback = onModelLoaded;
 	}
 	protected virtual CharacterBaseData createCharacterData(){return new CharacterBaseData();}
 	public void setCharacterType(Type type) { mCharacterType = type; }
-	public void setID(uint id){mGUID = id;}
+	public void setID(ulong id){mGUID = id;}
 	public override void init()
 	{
 		mBaseData = createCharacterData();
@@ -55,7 +57,7 @@ public class Character : MovableObject
 		if (!isEmpty(modelPath))
 		{
 			// 模型节点也就是角色节点,并且将节点挂到角色管理器下
-			mObjectPool.createObjectAsync(mModelPath, onModelLoaded, mModelTag, null);
+			mObjectPool.createObjectAsync(mModelPath, mModelLoadCallback, mModelTag);
 		}
 	}
 	public void initModel(string modelPath, string animationControllerPath = null)
@@ -83,15 +85,15 @@ public class Character : MovableObject
 	// 参数是动作名,不是状态机节点名
 	public virtual float getAnimationLength(string name)
 	{
-		if(mAvatar == null || mAvatar.getAnimator() == null || isEmpty(name))
+		if (mAvatar == null || mAvatar.getAnimator() == null || isEmpty(name))
 		{
 			return 0.0f;
 		}
-		if(mAnimationLenghtList.ContainsKey(name))
+		if (mAnimationLenghtList.TryGetValue(name, out float length))
 		{
-			return mAnimationLenghtList[name];
+			return length;
 		}
-		float length = getAnimationLength(mAvatar.getAnimator(), name);
+		length = getAnimationLength(mAvatar.getAnimator(), name);
 		mAnimationLenghtList.Add(name, length);
 		return length;
 	}
@@ -103,7 +105,7 @@ public class Character : MovableObject
 	public Animation getAnimation() { return mAvatar.getAnimation(); }
 	public Animator getAnimator() { return mAvatar.getAnimator(); }
 	public Rigidbody getRigidBody() { return mRigidBody; }
-	public uint getGUID() { return mGUID; }
+	public ulong getGUID() { return mGUID; }
 	public CharacterDecisionTree getDecisionTree() { return mDecisionTree; }
 	public CharacterStateMachine getStateMachine() { return mStateMachine; }
 	public PlayerState getFirstState(Type type) { return mStateMachine.getFirstState(type); }
@@ -138,7 +140,7 @@ public class Character : MovableObject
 		mRigidBody = go.GetComponent<Rigidbody>();
 		if (!isEmpty(mAnimationControllerPath))
 		{
-			mAvatar.getAnimator().runtimeAnimatorController = mResourceManager.loadResource<RuntimeAnimatorController>(mAnimationControllerPath, true);
+			mAvatar.getAnimator().runtimeAnimatorController = mResourceManager.loadResource<RuntimeAnimatorController>(mAnimationControllerPath);
 		}
 		OT.MOVE(this,lastPosition);
 		OT.ROTATE(this, lastRotation);

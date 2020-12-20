@@ -32,63 +32,58 @@ public class BYTES : OBJECTS
 	public override void zero() { memset(mValue, (byte)0); }
 	public override bool readFromBuffer(byte[] buffer, ref int index)
 	{
-		if (mVariableLength)
-		{
-			// 先读取数据的实际字节长度
-			bool success;
-			setRealSize(readUShort(buffer, ref index, out success));
-			if(!success)
-			{
-				return success;
-			}
-			return readBytes(buffer, ref index, mValue, -1, -1, mElementCount);
-		}
-		else
+		if (!mVariableLength)
 		{
 			return readBytes(buffer, ref index, mValue);
 		}
+		// 先读取数据的实际字节长度
+		setRealSize(readUShort(buffer, ref index, out bool success));
+		if (!success)
+		{
+			return success;
+		}
+		return readBytes(buffer, ref index, mValue, -1, -1, mElementCount);
 	}
 	public override bool writeToBuffer(byte[] buffer, ref int index)
 	{
-		if (mVariableLength)
-		{
-			// 先写入数据的实际字节长度
-			if(!writeUShort(buffer, ref index, mRealSize))
-			{
-				return false;
-			}
-			return writeBytes(buffer, ref index, mValue, -1, -1, mElementCount);
-		}
-		else
+		if (!mVariableLength)
 		{
 			return writeBytes(buffer, ref index, mValue);
 		}
+		// 先写入数据的实际字节长度
+		if (!writeUShort(buffer, ref index, mRealSize))
+		{
+			return false;
+		}
+		return writeBytes(buffer, ref index, mValue, -1, -1, mElementCount);
 	}
 	public void set(string value, Encoding encode, int destOffset = 0)
 	{
-		if(value != null)
+		if (value == null)
 		{
-			byte[] bytes = stringToBytes(value, encode);
-			int count = getMin(bytes.Length, mValue.Length);
-			memcpy(mValue, bytes, destOffset, 0, count);
-			if(mVariableLength)
-			{
-				setElementCount(count);
-			}
+			return;
+		}
+		byte[] bytes = stringToBytes(value, encode);
+		int count = getMin(bytes.Length, mValue.Length);
+		memcpy(mValue, bytes, destOffset, 0, count);
+		if (mVariableLength)
+		{
+			setElementCount(count);
 		}
 	}
 	// 以UTF8编码转换为字节数组,因为stringToBytes中默认为UTF8
 	public void set(string value, int destOffset = 0)
 	{
-		if(value != null)
+		if(value == null)
 		{
-			byte[] bytes = stringToBytes(value);
-			int count = getMin(bytes.Length, mValue.Length);
-			memcpy(mValue, bytes, destOffset, 0, count);
-			if (mVariableLength)
-			{
-				setElementCount(count);
-			}
+			return;
+		}
+		byte[] bytes = stringToBytes(value);
+		int count = getMin(bytes.Length, mValue.Length);
+		memcpy(mValue, bytes, destOffset, 0, count);
+		if (mVariableLength)
+		{
+			setElementCount(count);
 		}
 	}
 	public void set(byte[] value)

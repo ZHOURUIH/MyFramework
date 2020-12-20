@@ -33,5 +33,6 @@ public class AsyncLoadGroup : FrameBase, IClassObject
 	{
 		mNameList.Clear();
 		mCallback = null;
+		mUserData = null;
 	}
 }

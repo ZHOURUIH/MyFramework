@@ -2,24 +2,24 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ResoucesLoadInfo : IClassObject
+public class ResourceLoadInfo : IClassObject
 {	
 	public List<AssetLoadDoneCallback> mCallback;
-	public List<object[]> mUserData;
+	public List<object> mUserData;
 	public List<string> mLoadPath;
 	public Object[] mSubObjects;
 	public Object mObject;
 	public LOAD_STATE mState;
 	public string mPath;
 	public string mResouceName;
-	public ResoucesLoadInfo()
+	public ResourceLoadInfo()
 	{
 		mCallback = new List<AssetLoadDoneCallback>();
-		mUserData = new List<object[]>();
+		mUserData = new List<object>();
 		mLoadPath = new List<string>();
 		mState = LOAD_STATE.UNLOAD;
 	}
-	public void addCallback(AssetLoadDoneCallback callback, object[] userData, string loadPath)
+	public void addCallback(AssetLoadDoneCallback callback, object userData, string loadPath)
 	{
 		if(callback == null)
 		{

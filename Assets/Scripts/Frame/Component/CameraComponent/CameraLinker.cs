@@ -106,7 +106,8 @@ public class CameraLinker : GameComponent
 	public virtual void notifyFinishSwitching(CameraLinkerSwitch fixedSwitch) { mCurSwitch = null; }
 	public CameraLinkerSwitch getSwitch(Type type)
 	{
-		return mSwitchList.ContainsKey(type) ? mSwitchList[type] : null;
+		mSwitchList.TryGetValue(type, out CameraLinkerSwitch linkerSwitch);
+		return linkerSwitch;
 	}
 	public void setLookAtOffset(Vector3 offset) { mLookAtOffset = offset; }
 	public Vector3 getLookAtOffset() { return mLookAtOffset; }

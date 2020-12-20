@@ -45,7 +45,7 @@ public class LocalLog : FrameBase
 	}
 	protected void writeLogToFile()
 	{
-		string totalString = EMPTY_STRING;
+		string totalString = EMPTY;
 		var readList = mLogBufferList.getReadList();
 		int count = readList.Count;
 		if (count > 0)

@@ -6,6 +6,7 @@ using System;
 public abstract class LayoutScript : GameBase
 {
 	protected List<int> mDelayCmdList;  // 布局显示和隐藏时的延迟命令列表,当命令执行时,会从列表中移除该命令
+	protected CommandCallback mCmdCallback;
 	protected GameLayout mLayout;
 	protected myUIObject mRoot;
 	protected Type mType;				// 因为有些布局可能是在ILRuntime中,所以类型获取可能不正确,需要将类型存储下来
@@ -13,6 +14,7 @@ public abstract class LayoutScript : GameBase
 	public LayoutScript()
 	{
 		mDelayCmdList = new List<int>();
+		mCmdCallback = onCmdStarted;
 	}
 	public virtual void destroy()
 	{
@@ -129,7 +131,7 @@ public abstract class LayoutScript : GameBase
 		// 设置当前窗口需要调整深度在所有子节点之上,并计算深度调整值
 		obj.setDepthOverAllChild(true);
 		UIDepth depth = obj.getDepth();
-		depth.setDepth(obj.getParent().getDepth(), depth.getOrderInParent(), obj.isDepthOverAllChild());
+		depth.setDepthValue(obj.getParent().getDepth(), depth.getOrderInParent(), obj.isDepthOverAllChild());
 		// 刷新深度
 		mGlobalTouchSystem.bindPassOnlyParent(obj);
 	}
@@ -157,7 +159,7 @@ public abstract class LayoutScript : GameBase
 	public void addDelayCmd(Command cmd)
 	{
 		mDelayCmdList.Add(cmd.mAssignID);
-		cmd.addStartCommandCallback(onCmdStarted);
+		cmd.addStartCommandCallback(mCmdCallback);
 	}
 	public bool hasObject(string name)
 	{
@@ -173,18 +175,18 @@ public abstract class LayoutScript : GameBase
 		return gameObject != null;
 	}
 	// 因为此处可以确定只有主工程的类,所以可以使用new T()
-	public T cloneObject<T>(myUIObject parent, T oriObj, string name, bool active = true, bool refreshUIDepth = true) where T : myUIObject, new()
+	public T cloneObject<T>(myUIObject parent, T oriObj, string name, bool active = true, bool refreshUIDepth = true, bool needSortChild = true) where T : myUIObject, new()
 	{
 		if (parent == null)
 		{
 			parent = mRoot;
 		}
 		GameObject obj = cloneObject(oriObj.getObject(), name);
-		T window = newUIObject<T>(parent, mLayout, obj);
+		T window = newUIObject<T>(parent, mLayout, obj, needSortChild);
 		window.setActive(active);
 		window.cloneFrom(oriObj);
 		// 通知布局有窗口添加
-		if(refreshUIDepth)
+		if (refreshUIDepth)
 		{
 			mLayout.notifyChildChanged(parent);
 		}
@@ -192,7 +194,9 @@ public abstract class LayoutScript : GameBase
 	}
 	// 创建myUIObject,并且新建GameObject,分配到myUIObject中
 	// 因为此处可以确定只有主工程的类,所以可以使用new T()
-	public T createObject<T>(myUIObject parent, string name, bool active = true) where T : myUIObject, new()
+	// refreshUIDepth表示创建后是否需要刷新所属父节点下所有子节点的深度信息
+	// needSortChild表示创建后是否需要对myUIObject中的子节点列表进行排序,使列表的顺序与面板的顺序相同,对需要射线检测的窗口有影响
+	public T createObject<T>(myUIObject parent, string name, bool active = true, bool refreshUIDepth = true, bool needSortChild = true) where T : myUIObject, new()
 	{
 		GameObject go = createGameObject(name);
 		if (parent == null)
@@ -200,24 +204,35 @@ public abstract class LayoutScript : GameBase
 			parent = mRoot;
 		}
 		go.layer = parent.getObject().layer;
-		T obj = newUIObject<T>(parent, mLayout, go);
+		T obj = newUIObject<T>(parent, mLayout, go, needSortChild);
 		obj.setActive(active);
 		go.transform.localScale = Vector3.one;
 		go.transform.localEulerAngles = Vector3.zero;
 		go.transform.localPosition = Vector3.zero;
 		// 通知布局有窗口添加
-		mLayout.notifyChildChanged(parent);
+		if (refreshUIDepth)
+		{
+			mLayout.notifyChildChanged(parent);
+		}
 		return obj;
 	}
 	// 因为此处可以确定只有主工程的类,所以可以使用new T()
-	public T createObject<T>(string name, bool active = true) where T : myUIObject, new()
+	public T createObject<T>(string name, bool active = true, bool refreshUIDepth = true, bool needSortChild = true) where T : myUIObject, new()
 	{
-		return createObject<T>(null, name, active);
+		return createObject<T>(null, name, active, refreshUIDepth, needSortChild);
+	}
+	public T newObjectNoSort<T>(out T obj, myUIObject parent, string name, int active = -1, bool showError = true) where T : myUIObject, new()
+	{
+		return newObject(out obj, parent, name, active, showError, false);
+	}
+	public T newObjectNoSort<T>(out T obj, string name, int active = -1, bool showError = true) where T : myUIObject, new()
+	{
+		return newObject(out obj, mRoot, name, active, showError, false);
 	}
 	// 创建myUIObject,并且在布局中查找GameObject分配到myUIObject
 	// active为-1则表示不设置active,0表示false,1表示true
 	// 因为此处可以确定只有主工程的类,所以可以使用new T()
-	public T newObject<T>(out T obj, myUIObject parent, string name, int active = -1, bool showError = true) where T : myUIObject, new()
+	public T newObject<T>(out T obj, myUIObject parent, string name, int active = -1, bool showError = true, bool needSortChild = true) where T : myUIObject, new()
 	{
 		obj = null;
 		GameObject parentObj = parent != null ? parent.getObject() : null;
@@ -226,7 +241,7 @@ public abstract class LayoutScript : GameBase
 		{
 			return obj;
 		}
-		obj = newUIObject<T>(parent, mLayout, gameObject);
+		obj = newUIObject<T>(parent, mLayout, gameObject, needSortChild);
 		if(active >= 0)
 		{
 			obj.setActive(active != 0);
@@ -234,26 +249,26 @@ public abstract class LayoutScript : GameBase
 		return obj;
 	}
 	// 因为此处可以确定只有主工程的类,所以可以使用new T()
-	public T newObject<T>(out T obj, string name, int active = -1) where T : myUIObject, new()
+	public T newObject<T>(out T obj, string name, int active = -1, bool needSortChild = true) where T : myUIObject, new()
 	{
 		return newObject(out obj, mRoot, name, active);
 	}
 	// 因为此处可以确定只有主工程的类,所以可以使用new T()
-	public static T newUIObject<T>(myUIObject parent, GameLayout layout, GameObject gameObj) where T : myUIObject, new()
+	public static T newUIObject<T>(myUIObject parent, GameLayout layout, GameObject gameObj, bool needSortChild = true) where T : myUIObject, new()
 	{
 		T obj = new T();
 		obj.setLayout(layout);
 		obj.setGameObject(gameObj);
-		obj.setParent(parent);
+		obj.setParent(parent, needSortChild);
 		obj.init();
 		// 如果在创建窗口对象时,布局已经完成了自适应,则通知窗口
-		if(layout != null && layout.isAnchorApplied())
+		if (layout != null && layout.isAnchorApplied())
 		{
 			obj.notifyAnchorApply();
 		}
 		return obj;
 	}
-	public GameObject instantiateObject(myUIObject parent, string prefabPath, string name, string tag = null)
+	public GameObject instantiateObject(myUIObject parent, string prefabPath, string name, int tag = 0)
 	{
 		GameObject go = mObjectPool.createObject(prefabPath, tag);
 		if(go != null)
@@ -270,12 +285,10 @@ public abstract class LayoutScript : GameBase
 	}
 	public void destroyInstantiateObject(myUIObject window, bool destroyReally)
 	{
-		myUIObject parent = window.getParent();
 		GameObject go = window.getObject();
 		myUIObject.destroyWindow(window, false);
 		mObjectPool.destroyObject(ref go, destroyReally);
-		// 通知布局有窗口添加
-		mLayout.notifyChildChanged(parent);
+		// 窗口销毁时不会通知布局刷新深度,因为移除对于深度不会产生影响
 	}
 	// 虽然执行内容与类似,但是为了外部使用方便,所以添加了对于不同方式创建出来的窗口的销毁方法
 	public void destroyClonedObject(myUIObject obj, bool immediately = false)
@@ -289,11 +302,9 @@ public abstract class LayoutScript : GameBase
 	}
 	public void destroyObject(myUIObject obj, bool immediately = false)
 	{
-		myUIObject parent = obj.getParent();
 		obj.setDestroyImmediately(immediately);
 		myUIObject.destroyWindow(obj, true);
-		// 通知布局有窗口添加
-		mLayout.notifyChildChanged(parent);
+		// 窗口销毁时不会通知布局刷新深度,因为移除对于深度不会产生影响
 	}
 	public void interruptCommand(int assignID, bool showError = true)
 	{

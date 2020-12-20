@@ -31,37 +31,30 @@ public class SHORTS : OBJECTS
 	public override void zero() { memset(mValue, (short)0); }
 	public override bool readFromBuffer(byte[] buffer, ref int index)
 	{
-		if (mVariableLength)
-		{
-			// 先读取数据的实际字节长度
-			bool success;
-			setRealSize(readUShort(buffer, ref index, out success));
-			if(!success)
-			{
-				return false;
-			}
-			return readShorts(buffer, ref index, mValue, mElementCount);
-		}
-		else
+		if (!mVariableLength)
 		{
 			return readShorts(buffer, ref index, mValue);
 		}
+		// 先读取数据的实际字节长度
+		setRealSize(readUShort(buffer, ref index, out bool success));
+		if (!success)
+		{
+			return false;
+		}
+		return readShorts(buffer, ref index, mValue, mElementCount);
 	}
 	public override bool writeToBuffer(byte[] buffer, ref int index)
 	{
-		if (mVariableLength)
-		{
-			// 先写入数据的实际字节长度
-			if(!writeUShort(buffer, ref index, mRealSize))
-			{
-				return false;
-			}
-			return writeShorts(buffer, ref index, mValue, mElementCount);
-		}
-		else
+		if (!mVariableLength)
 		{
 			return writeShorts(buffer, ref index, mValue);
 		}
+		// 先写入数据的实际字节长度
+		if (!writeUShort(buffer, ref index, mRealSize))
+		{
+			return false;
+		}
+		return writeShorts(buffer, ref index, mValue, mElementCount);
 	}
 	public void set(short[] value)
 	{

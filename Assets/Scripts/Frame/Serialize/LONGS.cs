@@ -34,42 +34,47 @@ public class LONGS : OBJECTS
 	}
 	public override bool readFromBuffer(byte[] buffer, ref int index)
 	{
-		if(mVariableLength)
-		{
-			// 先读取数据的实际字节长度
-			bool success;
-			setRealSize(readUShort(buffer, ref index, out success));
-			if(!success)
-			{
-				return false;
-			}
-			return readLongs(buffer, ref index, mValue, mElementCount);
-		}
-		else
+		if (!mVariableLength)
 		{
 			return readLongs(buffer, ref index, mValue);
 		}
+		// 先读取数据的实际字节长度
+		setRealSize(readUShort(buffer, ref index, out bool success));
+		if (!success)
+		{
+			return false;
+		}
+		return readLongs(buffer, ref index, mValue, mElementCount);
 	}
 	public override bool writeToBuffer(byte[] buffer, ref int index)
 	{
-		if(mVariableLength)
-		{
-			// 先写入数据的实际字节长度
-			if(!writeUShort(buffer, ref index, mRealSize))
-			{
-				return false;
-			}
-			return writeLongs(buffer, ref index, mValue, mElementCount);
-		}
-		else
+		if (!mVariableLength)
 		{
 			return writeLongs(buffer, ref index, mValue);
 		}
+		// 先写入数据的实际字节长度
+		if (!writeUShort(buffer, ref index, mRealSize))
+		{
+			return false;
+		}
+		return writeLongs(buffer, ref index, mValue, mElementCount);
 	}
 	public void set(long[] value)
 	{
 		int minCount = getMin(value.Length, mValue.Length);
 		memcpy(mValue, value, 0, 0, minCount * TYPE_SIZE);
+		if (mVariableLength)
+		{
+			setElementCount(minCount);
+		}
+	}
+	public void set(List<long> value)
+	{
+		int minCount = getMin(value.Count, mValue.Length);
+		for(int i = 0; i < minCount; ++i)
+		{
+			mValue[i] = value[i];
+		}
 		if (mVariableLength)
 		{
 			setElementCount(minCount);

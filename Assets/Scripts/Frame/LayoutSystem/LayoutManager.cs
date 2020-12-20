@@ -2,22 +2,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-
-public struct LayoutAsyncInfo
-{
-	public LayoutAsyncDone mCallback;
-	public GameLayout mLayout;
-	public GameObject mLayoutObject;
-	public LAYOUT_ORDER mOrderType;
-	public GUI_TYPE mGUIType;
-	public string mName;
-	public bool mIsScene;
-	public int mRenderOrder;
-	public int mID;
-}
+using UnityEngine.Profiling;
 
 public class LayoutManager : FrameSystem
 {
+	protected AssetLoadDoneCallback mLayoutLoadCallback;
 	protected Dictionary<string, LayoutAsyncInfo> mLayoutAsyncList;
 	protected Dictionary<Type, List<int>> mScriptMappingList;
 	protected Dictionary<int, string> mLayoutTypeToName;
@@ -41,6 +30,7 @@ public class LayoutManager : FrameSystem
 		mLayoutList = new Dictionary<int, GameLayout>();
 		mLayoutAsyncList = new Dictionary<string, LayoutAsyncInfo>();
 		mBackBlurLayoutList = new List<GameLayout>();
+		mLayoutLoadCallback = onLayoutPrefabAsyncDone;
 		// 在构造中获取UI根节点,确保其他组件能在任意时刻正常访问
 		mUGUIRoot = LayoutScript.newUIObject<myUGUICanvas>(null, null, getGameObject(FrameDefine.UGUI_ROOT, true));
 #if USE_NGUI
@@ -111,9 +101,13 @@ public class LayoutManager : FrameSystem
 		base.update(elapsedTime);
 		foreach (var layout in mLayoutList)
 		{
-			UnityProfiler.BeginSample(layout.Value.getName());
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+			Profiler.BeginSample(layout.Value.getName());
+#endif
 			layout.Value.update(elapsedTime);
-			UnityProfiler.EndSample();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+			Profiler.EndSample();
+#endif
 		}
 	}
 	public override void onDrawGizmos()
@@ -154,25 +148,26 @@ public class LayoutManager : FrameSystem
 	}
 	public string getLayoutNameByType(int type)
 	{
-		if (!mLayoutTypeToName.ContainsKey(type))
+		if (!mLayoutTypeToName.TryGetValue(type, out string name))
 		{
 			logError("can not find LayoutType: " + type);
 			return null;
 		}
-		return mLayoutTypeToName[type];
+		return name;
 	}
 	public int getLayoutTypeByName(string name)
 	{
-		if (!mLayoutNameToType.ContainsKey(name))
+		if (!mLayoutNameToType.TryGetValue(name, out int layoutID))
 		{
 			logError("can not  find LayoutName:" + name);
 			return LAYOUT.NONE;
 		}
-		return mLayoutNameToType[name];
+		return layoutID;
 	}
 	public GameLayout getGameLayout(int id)
 	{
-		return mLayoutList.ContainsKey(id) ? mLayoutList[id] : null;
+		mLayoutList.TryGetValue(id, out GameLayout layout);
+		return layout;
 	}
 	public Dictionary<int, GameLayout> getLayoutList() { return mLayoutList; }
 	public LayoutScript getScript(int id)
@@ -206,17 +201,17 @@ public class LayoutManager : FrameSystem
 	}
 	public GameLayout createLayout(int id, int renderOrder, LAYOUT_ORDER orderType, bool async, LayoutAsyncDone callback, GUI_TYPE guiType, bool isScene)
 	{
-		if (mLayoutList.ContainsKey(id))
+		if (mLayoutList.TryGetValue(id, out GameLayout existLayout))
 		{
 			if (async && callback != null)
 			{
-				callback(mLayoutList[id]);
+				callback(existLayout);
 				return null;
 			}
-			return mLayoutList[id];
+			return existLayout;
 		}
 		string name = getLayoutNameByType(id);
-		string path = "";
+		string path = EMPTY;
 		if(guiType == GUI_TYPE.NGUI)
 		{
 			path = FrameDefine.R_NGUI_PREFAB_PATH;
@@ -239,14 +234,12 @@ public class LayoutManager : FrameSystem
 			info.mID = id;
 			info.mRenderOrder = renderOrder;
 			info.mLayout = null;
-			info.mLayoutObject = null;
 			info.mGUIType = guiType;
 			info.mIsScene = isScene;
 			info.mCallback = callback;
 			info.mOrderType = orderType;
 			mLayoutAsyncList.Add(info.mName, info);
-			bool ret = mResourceManager.loadResourceAsync<GameObject>(fullPath, onLayoutPrefabAsyncDone, null, true);
-			if (!ret)
+			if (!mResourceManager.loadResourceAsync<GameObject>(fullPath, mLayoutLoadCallback))
 			{
 				logError("can not find layout : " + name);
 			}
@@ -254,7 +247,7 @@ public class LayoutManager : FrameSystem
 		}
 		else
 		{
-			GameObject prefab = mResourceManager.loadResource<GameObject>(fullPath, true);
+			GameObject prefab = mResourceManager.loadResource<GameObject>(fullPath);
 			instantiatePrefab(layoutParent, prefab, name, true);
 			GameLayout layout = new GameLayout();
 			layout.setPrefab(prefab);
@@ -303,11 +296,12 @@ public class LayoutManager : FrameSystem
 		mLayoutTypeToName.Add(type, name);
 		mLayoutNameToType.Add(name, type);
 		mScriptRegisteList.Add(type, classType);
-		if (!mScriptMappingList.ContainsKey(classType))
+		if (!mScriptMappingList.TryGetValue(classType, out List<int> list))
 		{
-			mScriptMappingList.Add(classType, new List<int>());
+			list = new List<int>();
+			mScriptMappingList.Add(classType, list);
 		}
-		mScriptMappingList[classType].Add(type);
+		list.Add(type);
 	}
 	// 获取已注册的布局数量,而不是已加载的布局数量
 	public int getLayoutCount() { return mLayoutTypeToName.Count; }
@@ -349,21 +343,20 @@ public class LayoutManager : FrameSystem
 	{
 		LayoutAsyncInfo info = mLayoutAsyncList[asset.name];
 		mLayoutAsyncList.Remove(asset.name);
-		info.mLayoutObject = instantiatePrefab(null, (GameObject)asset, true);
-		info.mLayout = new GameLayout();
-		addLayoutToList(info.mLayout, info.mID);
-		info.mLayout.setPrefab(asset as GameObject);
-		GameObject layoutParent = getRootObject(info.mGUIType);
-		if (info.mIsScene)
+		GameLayout layout = new GameLayout();
+		layout.setPrefab(asset as GameObject);
+		GameObject layoutParent = null;
+		if (!info.mIsScene)
 		{
-			layoutParent = null;
+			layoutParent = getRootObject(info.mGUIType);
 		}
-		setNormalProperty(info.mLayoutObject, layoutParent, info.mName);
-		info.mLayout.setID(info.mID);
-		info.mLayout.setName(info.mName);
-		info.mLayout.setGUIType(info.mGUIType);
-		info.mLayout.setIsScene(info.mIsScene);
-		info.mLayout.init(info.mRenderOrder, info.mOrderType);
-		info.mCallback?.Invoke(info.mLayout);
+		instantiatePrefab(layoutParent, asset as GameObject, info.mName, true);
+		layout.setID(info.mID);
+		layout.setName(info.mName);
+		layout.setGUIType(info.mGUIType);
+		layout.setIsScene(info.mIsScene);
+		layout.init(info.mRenderOrder, info.mOrderType);
+		addLayoutToList(layout, info.mID);
+		info.mCallback?.Invoke(layout);
 	}
 }

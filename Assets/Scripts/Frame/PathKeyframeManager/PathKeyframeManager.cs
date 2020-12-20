@@ -40,19 +40,23 @@ public class PathKeyframeManager : FrameSystem
 	}
 	public Dictionary<float, Vector3> getTranslatePath(string fileName)
 	{
-		return mTranslatePathList.ContainsKey(fileName) ? mTranslatePathList[fileName] : null;
+		mTranslatePathList.TryGetValue(fileName, out Dictionary<float, Vector3> translatePath);
+		return translatePath;
 	}
 	public Dictionary<float, Vector3> getRotatePath(string fileName)
 	{
-		return mRotatePathList.ContainsKey(fileName) ? mRotatePathList[fileName] : null;
+		mRotatePathList.TryGetValue(fileName, out Dictionary<float, Vector3> rotatePath);
+		return rotatePath;
 	}
 	public Dictionary<float, Vector3> getScalePath(string fileName)
 	{
-		return mScalePathList.ContainsKey(fileName) ? mScalePathList[fileName] : null;
+		mScalePathList.TryGetValue(fileName, out Dictionary<float, Vector3> scalePath);
+		return scalePath;
 	}
 	public Dictionary<float, float> getAlphaPath(string fileName)
 	{
-		return mAlphaPathList.ContainsKey(fileName) ? mAlphaPathList[fileName] : null;
+		mAlphaPathList.TryGetValue(fileName, out Dictionary<float, float> alphaPath);
+		return alphaPath;
 	}
 	//----------------------------------------------------------------------------------------------------------------------------
 	protected void readAllFile(Dictionary<string, Dictionary<float, Vector3>> list, string suffix)

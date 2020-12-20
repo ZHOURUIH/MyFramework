@@ -2,11 +2,17 @@
 using System.Collections;
 using System;
 using TMPro;
+using UnityEngine.Events;
 
 public class myUGUIInputFieldTMP : myUGUIObject
 {
 	protected TMP_InputField mInputField;
+	protected UnityAction<string> mThisEditEnd;
 	protected OnInputField mAction;
+	public myUGUIInputFieldTMP()
+	{
+		mThisEditEnd = OnEndEdit;
+	}
 	public override void init()
 	{
 		base.init();
@@ -33,9 +39,9 @@ public class myUGUIInputFieldTMP : myUGUIObject
 	public void setOnEndEdit(OnInputField action)
 	{
 		mAction = action;
-		mInputField.onEndEdit.AddListener(OnEndEdit);
+		mInputField.onEndEdit.AddListener(mThisEditEnd);
 	}
-	public void cleanUp() { setText(EMPTY_STRING); }
+	public void cleanUp() { setText(EMPTY); }
 	public void setText(string value) { mInputField.text = value; }
 	public void setText(float value) { setText(value.ToString()); }
 	public string getText() { return mInputField.text; }

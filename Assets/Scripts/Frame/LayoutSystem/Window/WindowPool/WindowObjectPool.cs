@@ -23,9 +23,10 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 	public void destroy()
 	{
 		unuseAll();
-		foreach(var item in mUnusedItemList)
+		int count = mUnusedItemList.Count;
+		for(int i = 0; i < count; ++i)
 		{
-			item.destroy();
+			mUnusedItemList[i].destroy();
 		}
 		mUnusedItemList.Clear();
 	}
@@ -44,21 +45,22 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 #if UNITY_EDITOR
 		if(mObjectType != null)
 		{
-			bool hasNoneParamConstructor = false;
 			ConstructorInfo[] info = mObjectType.GetConstructors();
 			if (info != null)
 			{
-				foreach (var item in info)
+				bool hasNoneParamConstructor = false;
+				int count = info.Length;
+				for(int i = 0; i < count; ++i)
 				{
-					if (item.GetParameters().Length == 0)
+					if (info[i].GetParameters().Length == 0)
 					{
 						hasNoneParamConstructor = true;
 					}
 				}
-			}
-			if (!hasNoneParamConstructor && info != null && info.Length > 0)
-			{
-				logError("WindowObjectPool需要有无参构造的类作为节点类型, Type:" + mObjectType.Name);
+				if (!hasNoneParamConstructor && count > 0)
+				{
+					logError("WindowObjectPool需要有无参构造的类作为节点类型, Type:" + mObjectType.Name);
+				}
 			}
 		}
 #endif
@@ -76,7 +78,7 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 		}
 	}
 	// 将source从sourcePool中移动到当前池中
-	public void moveItem(WindowObjectPool<T> sourcePool, T source, bool inUsed)
+	public void moveItem(WindowObjectPool<T> sourcePool, T source, bool inUsed, bool needSortChild = true)
 	{
 		// 从原来的池中移除
 		sourcePool.mUsedItemList.Remove(source);
@@ -85,18 +87,18 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 		if (inUsed)
 		{
 			mUsedItemList.Add(source);
-			source.setParent(mItemParentInuse);
+			source.setParent(mItemParentInuse, needSortChild);
 		}
 		else
 		{
 			mUnusedItemList.Add(source);
-			source.setParent(mItemParentUnuse);
+			source.setParent(mItemParentUnuse, needSortChild);
 		}
 		// 检查分配ID种子,确保后面池中的已分配ID一定小于分配ID种子
 		mAssignIDSeed = getMax(source.getAssignID(), mAssignIDSeed);
 	}
 	// 因为添加窗口可能会影响所有窗口的深度值,所以如果有需求,需要在完成添加窗口以后手动调用mLayout.notifyObjectOrderChanged()来刷新深度
-	public T newItem(bool moveToLastSibling = true)
+	public T newItem(bool moveToLastSibling = true, bool needSortChild = true)
 	{
 		T item;
 		if (mUnusedItemList.Count > 0)
@@ -114,8 +116,8 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 		item.setAssignID(++mAssignIDSeed);
 		item.reset();
 		item.setVisible(true);
-		item.setParent(mItemParentInuse);
-		if(moveToLastSibling)
+		item.setParent(mItemParentInuse, needSortChild);
+		if (moveToLastSibling)
 		{
 			item.setAsLastSibling();
 		}
@@ -124,8 +126,10 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 	}
 	public void unuseAll()
 	{
-		foreach (var item in mUsedItemList)
+		int count = mUsedItemList.Count;
+		for(int i = 0; i < count; ++i)
 		{
+			T item = mUsedItemList[i];
 			item.recycle();
 			item.setVisible(false);
 			item.setParent(mItemParentUnuse);

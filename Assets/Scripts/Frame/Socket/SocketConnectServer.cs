@@ -7,7 +7,6 @@ using System.Collections.Generic;
 // 当前程序作为服务器时使用
 public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 {
-	//--------------------------------------------------------------------------------
 	protected Dictionary<uint, NetClient> mClientList;
 	protected ThreadLock mClientSendLock;   // 标记了发送线程是否还在使用mClientList
 	protected ThreadLock mClientRecvLock;   // 标记了接收线程是否还在使用mClientList
@@ -91,16 +90,16 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 			heartBeat();
 		}
 	}
-	public void disconnectSocket(uint client)
+	public void disconnectSocket(uint clientID)
 	{
 		mClientRecvLock.waitForUnlock();
 		mClientSendLock.waitForUnlock();
-		if (mClientList.ContainsKey(client))
+		if (mClientList.TryGetValue(clientID, out NetClient cient))
 		{
-			logInfo("客户端断开连接:角色ID:" + uintToString(mClientList[client].getCharacterGUID()) +
-					",原因:" + mClientList[client].getDeadReason() + ", 剩余连接数:" + (mClientList.Count - 1));
-			mClientList[client].destroy();
-			mClientList.Remove(client);
+			logInfo("客户端断开连接:角色ID:" + uintToString(cient.getCharacterGUID()) +
+					",原因:" + cient.getDeadReason() + ", 剩余连接数:" + (mClientList.Count - 1));
+			cient.destroy();
+			mClientList.Remove(clientID);
 		}
 		mClientRecvLock.unlock();
 		mClientSendLock.unlock();
@@ -128,7 +127,8 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 	public int getPort(){return mPort;}
 	public NetClient getClient(uint clientID)
 	{
-		return mClientList.ContainsKey(clientID) ? mClientList[clientID] : null;
+		mClientList.TryGetValue(clientID, out NetClient client);
+		return client;
 	}
 	//------------------------------------------------------------------------------------------------------------------------
 	protected abstract NetClient createClient();

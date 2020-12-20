@@ -7,11 +7,11 @@ using System;
 public class UIDepth : FrameBase
 {
 	// 表示深度的数据类型单个占的字节数
-	public static int BYTE_LENGTH = sizeof(ulong);
+	public const int BYTE_LENGTH = sizeof(ulong);
 	// 有多少个表示深度的数据类型
-	public static int DEPTH_COUNT = 3;
+	public const int DEPTH_COUNT = 3;
 	// 每一层使用多少个字节表示
-	public static int LEVEL_LENGTH = 2;
+	public const int LEVEL_LENGTH = 2;
 	// ulong8个字节中每2个字节表示一层深度,所以两个ulong共16个字节最多可以支持8层UI窗口的深度
 	// mWindowDepth[0]的开始2个字节是布局的深度
 	protected ulong[] mWindowDepth;		// 窗口深度,总的深度实际上是每一层深度组合起来的值
@@ -31,7 +31,7 @@ public class UIDepth : FrameBase
 		return (int)((mWindowDepth[longIndex] & ((ulong)ushort.MaxValue << offsetBit)) >> offsetBit);
 	}
 	// 根据父节点的深度和在父节点中的顺序,更新深度值
-	public void setDepth(UIDepth parentDepth, int orderInParent, bool depthOverAllChild)
+	public void setDepthValue(UIDepth parentDepth, int orderInParent, bool depthOverAllChild)
 	{
 		if (orderInParent < 0 || orderInParent > ushort.MaxValue)
 		{
@@ -98,7 +98,7 @@ public class UIDepth : FrameBase
 	public int getPriority() { return mPriority; }
 	public string toDepthString()
 	{
-		string str = EMPTY_STRING;
+		string str = EMPTY;
 		for(int i = 0; i < BYTE_LENGTH * DEPTH_COUNT / LEVEL_LENGTH; ++i)
 		{
 			int longIndex = i / (BYTE_LENGTH / LEVEL_LENGTH);

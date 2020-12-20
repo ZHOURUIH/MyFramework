@@ -52,11 +52,10 @@ public class ILRUtility : FrameBase
 		{
 			return null;
 		}
-		if (!appDomain.LoadedTypes.ContainsKey(name))
+		if (!appDomain.LoadedTypes.TryGetValue(name, out IType type))
 		{
 			return null;
 		}
-		IType type = appDomain.LoadedTypes[name];
 		return type.ReflectionType;
 	}
 }

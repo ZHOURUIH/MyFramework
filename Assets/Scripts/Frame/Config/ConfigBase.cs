@@ -55,17 +55,25 @@ public abstract class ConfigBase : FrameSystem
 	public abstract void writeConfig();
 	public float getFloat(GAME_FLOAT param)
 	{
-		return mFloatList.ContainsKey(param) ? mFloatList[param].mValue : 0.0f;
+		if(mFloatList.TryGetValue(param, out FloatParameter floatParam))
+		{
+			return floatParam.mValue;
+		}
+		return 0.0f;
 	}
 	public string getString(GAME_STRING param)
 	{
-		return mStringList.ContainsKey(param) ? mStringList[param].mValue : EMPTY_STRING;
+		if(mStringList.TryGetValue(param, out StringParameter strinParam))
+		{
+			return strinParam.mValue;
+		}
+		return EMPTY;
 	}
 	public void setFloat(GAME_FLOAT param, float value, string comment = null)
 	{
-		if (!mFloatList.ContainsKey(param))
+		if (!mFloatList.TryGetValue(param, out FloatParameter floatParam))
 		{
-			FloatParameter floatParam = new FloatParameter();
+			floatParam = new FloatParameter();
 			floatParam.mValue = value;
 			floatParam.mComment = comment;
 			floatParam.mType = param;
@@ -74,35 +82,33 @@ public abstract class ConfigBase : FrameSystem
 		}
 		else
 		{
-			FloatParameter temp = mFloatList[param];
-			temp.mValue = value;
+			floatParam.mValue = value;
 			if (!isEmpty(comment))
 			{
-				temp.mComment = comment;
+				floatParam.mComment = comment;
 			}
-			mFloatList[param] = temp;
+			mFloatList[param] = floatParam;
 		}
 	}
 	public void setString(GAME_STRING param, string value, string comment = null)
 	{
-		if (!mStringList.ContainsKey(param))
+		if (!mStringList.TryGetValue(param, out StringParameter stringParam))
 		{
-			StringParameter strParam = new StringParameter();
-			strParam.mValue = value;
-			strParam.mComment = comment;
-			strParam.mType = param;
-			strParam.mTypeString = param.ToString();
-			mStringList.Add(param, strParam);
+			stringParam = new StringParameter();
+			stringParam.mValue = value;
+			stringParam.mComment = comment;
+			stringParam.mType = param;
+			stringParam.mTypeString = param.ToString();
+			mStringList.Add(param, stringParam);
 		}
 		else
 		{
-			StringParameter temp = mStringList[param];
-			temp.mValue = value;
+			stringParam.mValue = value;
 			if (!isEmpty(comment))
 			{
-				temp.mComment = comment;
+				stringParam.mComment = comment;
 			}
-			mStringList[param] = temp;
+			mStringList[param] = stringParam;
 		}
 	}
 	//----------------------------------------------------------------------------------------------------------------------------------------------
@@ -118,32 +124,32 @@ public abstract class ConfigBase : FrameSystem
 	}
 	protected string floatTypeToName(GAME_FLOAT type)
 	{
-		if(mFloatDefineToName.ContainsKey(type))
-		{
-			return mFloatDefineToName[type];
-		}
-		return null;
+		mFloatDefineToName.TryGetValue(type, out string value);
+		return value;
 	}
 	protected GAME_FLOAT floatNameToType(string name)
 	{
-		return mFloatNameToDefine.ContainsKey(name) ? mFloatNameToDefine[name] : GAME_FLOAT.NONE;
+		if (mFloatNameToDefine.TryGetValue(name, out GAME_FLOAT type))
+		{
+			return type;
+		}
+		return GAME_FLOAT.NONE;
 	}
 	protected string stringTypeToName(GAME_STRING type)
 	{
-		return mStringDefineToName.ContainsKey(type) ? mStringDefineToName[type] : null;
+		mStringDefineToName.TryGetValue(type, out string str);
+		return str;
 	}
 	protected GAME_STRING stringNameToType(string name)
 	{
-		return mStringNameToDefine.ContainsKey(name) ? mStringNameToDefine[name] : GAME_STRING.NONE;
+		if (mStringNameToDefine.TryGetValue(name, out GAME_STRING type))
+		{
+			return type;
+		}
+		return GAME_STRING.NONE;
 	}
-	protected bool hasParameter(GAME_FLOAT param)
-	{
-		return mFloatList.ContainsKey(param);
-	}
-	protected bool hasParameter(GAME_STRING param)
-	{
-		return mStringList.ContainsKey(param);
-	}
+	protected bool hasParameter(GAME_FLOAT param) { return mFloatList.ContainsKey(param); }
+	protected bool hasParameter(GAME_STRING param) { return mStringList.ContainsKey(param); }
 	protected string generateFloatFile()
 	{
 		string preString = "// 注意\r\n// 每个参数上一行必须是该参数的注释\r\n// 可以添加任意的换行和空格\r\n// 变量命名应与代码中枚举命名相同\r\n\r\n";
@@ -208,7 +214,7 @@ public abstract class ConfigBase : FrameSystem
 			}
 			string line = lineList[i];
 			// 去除所有空白字符
-			line = Regex.Replace(line, @"\s", EMPTY_STRING);
+			line = Regex.Replace(line, @"\s", EMPTY);
 			// 如果该行是空的,或者是注释,则不进行处理
 			if (!isEmpty(line))
 			{
@@ -219,7 +225,7 @@ public abstract class ConfigBase : FrameSystem
 				else
 				{
 					string[] value = split(line, false, "=");
-					if(value.Length != 2)
+					if (value.Length != 2)
 					{
 						logError("配置文件错误 : line : " + line);
 						return;
@@ -235,8 +241,8 @@ public abstract class ConfigBase : FrameSystem
 				}
 			}
 		}
-		
-		foreach(var item in valueList)
+
+		foreach (var item in valueList)
 		{
 			if (floatParam)
 			{

@@ -34,14 +34,13 @@ public class CommandPool : FrameBase
 		mNewCmdLock.waitForUnlock();
 		// 首先从未使用的列表中获取,获取不到再重新创建一个
 		Command cmd = null;
-		if (mUnusedList.ContainsKey(type))
+		if (mUnusedList.TryGetValue(type, out Stack<Command> cmdStack))
 		{
-			var list = mUnusedList[type];
-			if (list.Count > 0)
+			if (cmdStack.Count > 0)
 			{
 				// 从未使用列表中移除
 				mUnuseLock.waitForUnlock();
-				cmd = list.Pop();
+				cmd = cmdStack.Pop();
 				mUnuseLock.unlock();
 			}
 		}
@@ -85,11 +84,12 @@ public class CommandPool : FrameBase
 		mInuseLock.waitForUnlock();
 		// 添加到使用列表中
 		Type type = cmd.getType();
-		if (!mInusedList.ContainsKey(type))
+		if (!mInusedList.TryGetValue(type, out List<Command> cmdList))
 		{
-			mInusedList.Add(type, new List<Command>());
+			cmdList = new List<Command>();
+			mInusedList.Add(type, cmdList);
 		}
-		mInusedList[type].Add(cmd);
+		cmdList.Add(cmd);
 		mInuseLock.unlock();
 	}
 	protected void addUnuse(Command cmd)
@@ -97,20 +97,21 @@ public class CommandPool : FrameBase
 		mUnuseLock.waitForUnlock();
 		// 添加到未使用列表中
 		Type type = cmd.getType();
-		if (!mUnusedList.ContainsKey(type))
+		if (!mUnusedList.TryGetValue(type, out Stack<Command> cmdList))
 		{
-			mUnusedList.Add(type, new Stack<Command>());
+			cmdList = new Stack<Command>();
+			mUnusedList.Add(type, cmdList);
 		}
-		mUnusedList[type].Push(cmd);
+		cmdList.Push(cmd);
 		mUnuseLock.unlock();
 	}
 	protected void removeInuse(Command cmd)
 	{
 		mInuseLock.waitForUnlock();
 		Type type = cmd.getType();
-		if (mInusedList.ContainsKey(type))
+		if (mInusedList.TryGetValue(type, out List<Command> cmdList))
 		{
-			mInusedList[type].Remove(cmd);
+			cmdList.Remove(cmd);
 		}
 		mInuseLock.unlock();
 	}

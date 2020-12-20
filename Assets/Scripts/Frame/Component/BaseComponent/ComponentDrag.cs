@@ -157,14 +157,16 @@ public class ComponentDrag : GameComponent
 		{
 			// 拖拽消息不向下传递, 从上往下查找,如果前面没有窗口需要有拖拽消息被处理,则当前窗口响应拖拽消息
 			var hoverWindowList = mGlobalTouchSystem.getAllHoverWindow(ref mousePosition);
-			foreach (var item in hoverWindowList)
+			int count = hoverWindowList.Count;
+			for(int i = 0; i < count; ++i)
 			{
+				IMouseEventCollect item = hoverWindowList[i];
 				if (item == mComponentOwner as IMouseEventCollect)
 				{
 					onMouseDown(mousePosition);
 					return true;
 				}
-				else if (item.isDragable())
+				if (item.isDragable())
 				{
 					break;
 				}
@@ -178,8 +180,10 @@ public class ComponentDrag : GameComponent
 		{
 			// 从上往下查找,如果前面没有窗口需要有拖拽消息被处理,则当前窗口响应拖拽消息
 			var hoverWindowList = mGlobalTouchSystem.getAllHoverWindow(ref mousePosition);
-			foreach (var item in hoverWindowList)
+			int count = hoverWindowList.Count;
+			for (int i = 0; i < count; ++i)
 			{
+				IMouseEventCollect item = hoverWindowList[i];
 				if (item == mComponentOwner as IMouseEventCollect)
 				{
 					onMouseDown(mousePosition);

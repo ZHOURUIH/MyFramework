@@ -8,12 +8,12 @@ public class ComponentKeyFrameBase : GameComponent, IComponentBreakable
 	protected AnimationCurve mKeyFrame;     // 当前使用的关键帧
 	protected KeyFrameCallback mTremblingCallBack;
 	protected KeyFrameCallback mTrembleDoneCallBack;
-	protected string mTremblingName;
 	protected float mAmplitude;
 	protected float mPlayLength;	// 小于0表示无限播放, 大于0表示播放length时长
 	protected float mStopValue;		// 当组件停止时,需要应用的关键帧值
 	protected float mOnceLength;    // 关键帧长度默认为1秒
 	protected float mOffset;
+	protected int mKeyframeID;
 	protected bool mFullOnce;
 	protected bool mLoop;
 	//---------------------------------------------------------------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ public class ComponentKeyFrameBase : GameComponent, IComponentBreakable
 	protected PLAY_STATE mPlayState;
 	public ComponentKeyFrameBase()
 	{
-		mTremblingName = null;
+		mKeyframeID = 0;
 		mLoop = true;
 		mFullOnce = true;
 		mAmplitude = 1.0f;
@@ -40,14 +40,14 @@ public class ComponentKeyFrameBase : GameComponent, IComponentBreakable
 			stop();
 		}
 	}
-	public virtual void play(string name, bool loop, float onceLength, float offset, bool fullOnce, float amplitude)
+	public virtual void play(int keyframe, bool loop, float onceLength, float offset, bool fullOnce, float amplitude)
 	{
 		if (!isActive())
 		{
 			return;
 		}
-		setTrembling(name);
-		mKeyFrame = mKeyFrameManager.getKeyFrame(mTremblingName);
+		setKeyframeID(keyframe);
+		mKeyFrame = mKeyFrameManager.getKeyFrame(mKeyframeID);
 		if (onceLength < 0.0f)
 		{
 			logError("onceLength can not be negative!");
@@ -118,7 +118,7 @@ public class ComponentKeyFrameBase : GameComponent, IComponentBreakable
 		}
 		if (state == PLAY_STATE.PLAY)
 		{
-			play(mTremblingName, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
+			play(mKeyframeID, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
 		}
 		else if (state == PLAY_STATE.STOP)
 		{
@@ -156,7 +156,7 @@ public class ComponentKeyFrameBase : GameComponent, IComponentBreakable
 	public PLAY_STATE getState() { return mPlayState; }
 	public float getCurrentTime() { return mCurrentTime; }
 	public AnimationCurve getKeyFrame() { return mKeyFrame; }
-	public string getTremblingName() { return mTremblingName; }
+	public int getKeyframeID() { return mKeyframeID; }
 	public float getCurValue() { return mCurValue; }
 	//--------------------------------------------------------------------------------------------------------------
 	// 设置成员变量
@@ -166,7 +166,7 @@ public class ComponentKeyFrameBase : GameComponent, IComponentBreakable
 	public void setOffset(float offset) { mOffset = offset; }
 	public void setFullOnce(bool fullOnce) { mFullOnce = fullOnce; }
 	public void setCurrentTime(float time) { mCurrentTime = time; }
-	public void setTrembling(string name) { mTremblingName = name; }
+	public void setKeyframeID(int keyframe) { mKeyframeID = keyframe; }
 	//----------------------------------------------------------------------------------------------------------------------------
 	protected void clearCallback()
 	{

@@ -15,16 +15,13 @@ namespace HotFix
         static CrossBindingMethodInfo<System.Single> mlateUpdate_5 = new CrossBindingMethodInfo<System.Single>("lateUpdate");
         static CrossBindingMethodInfo<System.Single> mfixedUpdate_6 = new CrossBindingMethodInfo<System.Single>("fixedUpdate");
         static CrossBindingMethodInfo<global::GameComponent> mnotifyAddComponent_7 = new CrossBindingMethodInfo<global::GameComponent>("notifyAddComponent");
-        static CrossBindingMethodInfo<global::GameComponent> mnotifyComponentDetached_8 = new CrossBindingMethodInfo<global::GameComponent>("notifyComponentDetached");
-        static CrossBindingMethodInfo<global::GameComponent> mnotifyComponentAttached_9 = new CrossBindingMethodInfo<global::GameComponent>("notifyComponentAttached");
-        static CrossBindingMethodInfo<global::GameComponent> mnotifyComponentDestroied_10 = new CrossBindingMethodInfo<global::GameComponent>("notifyComponentDestroied");
-        static CrossBindingMethodInfo<System.Boolean, System.Boolean> msetIgnoreTimeScale_11 = new CrossBindingMethodInfo<System.Boolean, System.Boolean>("setIgnoreTimeScale");
-        static CrossBindingMethodInfo mresetProperty_12 = new CrossBindingMethodInfo("resetProperty");
-        static CrossBindingMethodInfo minitComponents_13 = new CrossBindingMethodInfo("initComponents");
-        static CrossBindingMethodInfo<global::Command> mreceiveCommand_14 = new CrossBindingMethodInfo<global::Command>("receiveCommand");
-        static CrossBindingFunctionInfo<System.String> mgetName_15 = new CrossBindingFunctionInfo<System.String>("getName");
-        static CrossBindingMethodInfo<System.String> msetName_16 = new CrossBindingMethodInfo<System.String>("setName");
-        static CrossBindingMethodInfo mnotifyConstructDone_17 = new CrossBindingMethodInfo("notifyConstructDone");
+        static CrossBindingMethodInfo<System.Boolean, System.Boolean> msetIgnoreTimeScale_8 = new CrossBindingMethodInfo<System.Boolean, System.Boolean>("setIgnoreTimeScale");
+        static CrossBindingMethodInfo mresetProperty_9 = new CrossBindingMethodInfo("resetProperty");
+        static CrossBindingMethodInfo minitComponents_10 = new CrossBindingMethodInfo("initComponents");
+        static CrossBindingMethodInfo<global::Command> mreceiveCommand_11 = new CrossBindingMethodInfo<global::Command>("receiveCommand");
+        static CrossBindingFunctionInfo<System.String> mgetName_12 = new CrossBindingFunctionInfo<System.String>("getName");
+        static CrossBindingMethodInfo<System.String> msetName_13 = new CrossBindingMethodInfo<System.String>("setName");
+        static CrossBindingMethodInfo mnotifyConstructDone_14 = new CrossBindingMethodInfo("notifyConstructDone");
         public override Type BaseCLRType
         {
             get
@@ -128,84 +125,60 @@ namespace HotFix
                     mnotifyAddComponent_7.Invoke(this.instance, component);
             }
 
-            public override void notifyComponentDetached(global::GameComponent component)
-            {
-                if (mnotifyComponentDetached_8.CheckShouldInvokeBase(this.instance))
-                    base.notifyComponentDetached(component);
-                else
-                    mnotifyComponentDetached_8.Invoke(this.instance, component);
-            }
-
-            public override void notifyComponentAttached(global::GameComponent component)
-            {
-                if (mnotifyComponentAttached_9.CheckShouldInvokeBase(this.instance))
-                    base.notifyComponentAttached(component);
-                else
-                    mnotifyComponentAttached_9.Invoke(this.instance, component);
-            }
-
-            public override void notifyComponentDestroied(global::GameComponent component)
-            {
-                if (mnotifyComponentDestroied_10.CheckShouldInvokeBase(this.instance))
-                    base.notifyComponentDestroied(component);
-                else
-                    mnotifyComponentDestroied_10.Invoke(this.instance, component);
-            }
-
             public override void setIgnoreTimeScale(System.Boolean ignore, System.Boolean componentOnly)
             {
-                if (msetIgnoreTimeScale_11.CheckShouldInvokeBase(this.instance))
+                if (msetIgnoreTimeScale_8.CheckShouldInvokeBase(this.instance))
                     base.setIgnoreTimeScale(ignore, componentOnly);
                 else
-                    msetIgnoreTimeScale_11.Invoke(this.instance, ignore, componentOnly);
+                    msetIgnoreTimeScale_8.Invoke(this.instance, ignore, componentOnly);
             }
 
             public override void resetProperty()
             {
-                if (mresetProperty_12.CheckShouldInvokeBase(this.instance))
+                if (mresetProperty_9.CheckShouldInvokeBase(this.instance))
                     base.resetProperty();
                 else
-                    mresetProperty_12.Invoke(this.instance);
+                    mresetProperty_9.Invoke(this.instance);
             }
 
             protected override void initComponents()
             {
-                if (minitComponents_13.CheckShouldInvokeBase(this.instance))
+                if (minitComponents_10.CheckShouldInvokeBase(this.instance))
                     base.initComponents();
                 else
-                    minitComponents_13.Invoke(this.instance);
+                    minitComponents_10.Invoke(this.instance);
             }
 
             public override void receiveCommand(global::Command cmd)
             {
-                if (mreceiveCommand_14.CheckShouldInvokeBase(this.instance))
+                if (mreceiveCommand_11.CheckShouldInvokeBase(this.instance))
                     base.receiveCommand(cmd);
                 else
-                    mreceiveCommand_14.Invoke(this.instance, cmd);
+                    mreceiveCommand_11.Invoke(this.instance, cmd);
             }
 
             public override System.String getName()
             {
-                if (mgetName_15.CheckShouldInvokeBase(this.instance))
+                if (mgetName_12.CheckShouldInvokeBase(this.instance))
                     return base.getName();
                 else
-                    return mgetName_15.Invoke(this.instance);
+                    return mgetName_12.Invoke(this.instance);
             }
 
             public override void setName(System.String name)
             {
-                if (msetName_16.CheckShouldInvokeBase(this.instance))
+                if (msetName_13.CheckShouldInvokeBase(this.instance))
                     base.setName(name);
                 else
-                    msetName_16.Invoke(this.instance, name);
+                    msetName_13.Invoke(this.instance, name);
             }
 
             public override void notifyConstructDone()
             {
-                if (mnotifyConstructDone_17.CheckShouldInvokeBase(this.instance))
+                if (mnotifyConstructDone_14.CheckShouldInvokeBase(this.instance))
                     base.notifyConstructDone();
                 else
-                    mnotifyConstructDone_17.Invoke(this.instance);
+                    mnotifyConstructDone_14.Invoke(this.instance);
             }
 
             public override string ToString()

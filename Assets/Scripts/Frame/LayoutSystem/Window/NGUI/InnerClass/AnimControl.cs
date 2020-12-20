@@ -16,8 +16,8 @@ public class AnimControl : FrameBase
 	protected float mPlayedTime;                    // 已经播放的时长,不包含循环次数
 	protected float mInterval = 0.033f;             // 隔多少秒切换图片
 	protected bool mAutoResetIndex = true;          // 是否在播放完毕后自动重置当前帧下标,也表示是否在非循环播放完毕后自动隐藏
-	protected onPlayEndCallback mPlayEndCallback;   // 一个序列播放完时的回调函数,只在非循环播放状态下有效
-	protected onPlayingCallback mPlayingCallback;   // 一个序列正在播放时的回调函数
+	protected OnPlayEndCallback mPlayEndCallback;   // 一个序列播放完时的回调函数,只在非循环播放状态下有效
+	protected OnPlayingCallback mPlayingCallback;   // 一个序列正在播放时的回调函数
 	protected bool mUseTextureSelfSize = true;      // 在切换图片时是否使用图片自身的大小
 	protected myUIObject mOwnerObject;
 	public AnimControl() { }
@@ -192,8 +192,8 @@ public class AnimControl : FrameBase
 		setCurFrameIndex(mCurTextureIndex); 
 	}
 	public void pause() { mPlayState = PLAY_STATE.PAUSE; }
-	public void setPlayEndCallback(onPlayEndCallback callback) { mPlayEndCallback = callback; }
-	public void setPlayingCallback(onPlayingCallback callback) { mPlayingCallback = callback; }
+	public void setPlayEndCallback(OnPlayEndCallback callback) { mPlayEndCallback = callback; }
+	public void setPlayingCallback(OnPlayingCallback callback) { mPlayingCallback = callback; }
 	public int getCurFrameIndex() { return mCurTextureIndex; }
 	public void setCurFrameIndex(int index)
 	{

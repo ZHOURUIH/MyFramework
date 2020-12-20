@@ -80,7 +80,7 @@ public class EditorCommonUtility : UnityUtility
 		{
 			if(pattern == "*.*")
 			{
-				pattern = "";
+				pattern = EMPTY;
 			}
 			if (pattern.StartsWith("*"))
 			{
@@ -213,23 +213,23 @@ public class EditorCommonUtility : UnityUtility
 						int endIndex = textureLine.IndexOf(",", startIndex);
 						string textureGUID = textureLine.Substring(startIndex, endIndex - startIndex);
 						string textureFile = findAsset(textureGUID, ".png", false, allFileText);
-						if (textureFile == "")
+						if (textureFile == EMPTY)
 						{
 							textureFile = findAsset(textureGUID, ".tga", false, allFileText);
 						}
-						if (textureFile == "")
+						if (textureFile == EMPTY)
 						{
 							textureFile = findAsset(textureGUID, ".jpg", false, allFileText);
 						}
-						if (textureFile == "")
+						if (textureFile == EMPTY)
 						{
 							textureFile = findAsset(textureGUID, ".cubemap", false, allFileText);
 						}
-						if (textureFile == "")
+						if (textureFile == EMPTY)
 						{
 							textureFile = findAsset(textureGUID, ".tif", false, allFileText);
 						}
-						if (textureFile == "")
+						if (textureFile == EMPTY)
 						{
 							Debug.LogError("在GameResource中找不到材质引用的资源 : " + path, AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path));
 						}
@@ -246,7 +246,7 @@ public class EditorCommonUtility : UnityUtility
 	// 检查材质是否使用了无效的贴图属性,needTextureGUID表示是否只检测引用了贴图的属性
 	public static void checkMaterialTexturePropertyValid(string path, Dictionary<string, List<FileGUIDLines>> allFileText, bool needTextureGUID)
 	{
-		string shaderGUID = "";
+		string shaderGUID = EMPTY;
 		string materialContent = openTxtFile(projectPathToFullPath(path), true);
 		string[] materialLines = split(materialContent, true, "\r\n");
 		foreach(var item in materialLines)
@@ -261,7 +261,7 @@ public class EditorCommonUtility : UnityUtility
 				break;
 			}
 		}
-		if(shaderGUID == "")
+		if(shaderGUID == EMPTY)
 		{
 			return;
 		}
@@ -271,13 +271,13 @@ public class EditorCommonUtility : UnityUtility
 			return;
 		}
 		string shaderFile = findAsset(shaderGUID, ".shader", true, allFileText);
-		if(shaderFile == "")
+		if(shaderFile == EMPTY)
 		{
 			Debug.LogWarning("can not find material shader:" + path, AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path));
 			return;
 		}
 		string shaderContent = openTxtFile(shaderFile, true);
-		if(shaderContent == "")
+		if(shaderContent == EMPTY)
 		{
 			return;
 		}
@@ -357,7 +357,7 @@ public class EditorCommonUtility : UnityUtility
 				}
 				return file;
 			}
-			return "";
+			return EMPTY;
 		}
 		foreach(var item in allFileText)
 		{
@@ -389,7 +389,7 @@ public class EditorCommonUtility : UnityUtility
 				}
 			}
 		}
-		return "";
+		return EMPTY;
 	}
 	public static Dictionary<string, string> getSpriteGUIDs(string path)
 	{
@@ -564,9 +564,10 @@ public class EditorCommonUtility : UnityUtility
 			if(matchPattern(item, supportPatterns) && matchPattern(item, patterns))
 			{
 				string curSuffix = getFileSuffix(item);
-				if(!allFileText.ContainsKey(curSuffix))
+				if(!allFileText.TryGetValue(curSuffix, out List<FileGUIDLines> guidLines))
 				{
-					allFileText.Add(curSuffix, new List<FileGUIDLines>());
+					guidLines = new List<FileGUIDLines>();
+					allFileText.Add(curSuffix, guidLines);
 				}
 				FileGUIDLines fileGUIDLines = new FileGUIDLines();
 				string fileContent = File.ReadAllText(item);
@@ -584,7 +585,7 @@ public class EditorCommonUtility : UnityUtility
 				fullPathToProjectPath(ref fileName);
 				fileGUIDLines.mProjectFileName = fileName;
 				fileGUIDLines.mContainGUIDLines = list;
-				allFileText[curSuffix].Add(fileGUIDLines);
+				guidLines.Add(fileGUIDLines);
 			}
 		}
 		return allFileText;

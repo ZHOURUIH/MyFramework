@@ -4,15 +4,10 @@ using System.Threading;
 
 public class ThreadLock
 {
-	protected int mLockCount = 0;         // 是否锁定
-	protected bool mTraceStack = false;
 	protected string mFileName;
+	protected int mLockCount;         // 是否锁定
 	protected int mLine;
-	public ThreadLock()
-	{
-		mLockCount = 0;
-		mTraceStack = false;
-	}
+	protected bool mTraceStack;
 	public void setTrackStack(bool trace){mTraceStack = trace;}
 	public bool isLocked(){return mLockCount == 1;}
 	public void waitForUnlock()

@@ -4,6 +4,7 @@ using UnityEngine;
 
 public delegate void OnAndroidLog(string info);
 public delegate void OnAndroidError(string info);
+
 public class UnityAndroidLog : MonoBehaviour
 {
 	public static OnAndroidLog mOnAndroidLog;

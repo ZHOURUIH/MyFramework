@@ -22,7 +22,7 @@ namespace ILRuntime.Runtime.Generated
             MethodBase method;
             Type[] args;
             Type type = typeof(global::CharacterManager);
-            args = new Type[]{typeof(System.UInt32)};
+            args = new Type[]{typeof(System.UInt64)};
             method = type.GetMethod("getCharacter", flag, null, args, null);
             app.RegisterCLRMethodRedirection(method, getCharacter_0);
 
@@ -37,7 +37,7 @@ namespace ILRuntime.Runtime.Generated
             StackObject* __ret = ILIntepreter.Minus(__esp, 2);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            System.UInt32 @characterID = (uint)ptr_of_this_method->Value;
+            System.UInt64 @characterID = *(ulong*)&ptr_of_this_method->Value;
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
             global::CharacterManager instance_of_this_method = (global::CharacterManager)typeof(global::CharacterManager).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));

@@ -18,7 +18,7 @@ public class PacketRegister : GameBase
 		mSocketFactory.checkRegisteCount(PACKET_TYPE.SC_MAX - PACKET_TYPE.SC_MIN - 1, preCount, "SC");
 	}
 	//-----------------------------------------------------------------------------------------------------------------------
-	protected static void registePacket<T>(int type) where T : SocketPacket
+	protected static void registePacket<T>(ushort type) where T : SocketPacket
 	{
 		mSocketFactory.registePacket(Typeof<T>(), type);
 	}

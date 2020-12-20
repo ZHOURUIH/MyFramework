@@ -5,9 +5,21 @@ using UnityEngine;
 public class WindowShaderPixelMaskCut : WindowShader
 {
 	protected Texture mMask;
-	protected Vector2 mMaskSize = Vector2.zero;
-	protected Vector2 mMaskPos = Vector2.zero;
-	protected string mPixelMaskCut = "PixelMaskCut";
+	protected Vector2 mMaskSize;
+	protected Vector2 mMaskPos;
+	protected int mMaskTexID;
+	protected int mSizeXID;
+	protected int mSizeYID;
+	protected int mPosXID;
+	protected int mPosYID;
+	public WindowShaderPixelMaskCut()
+	{
+		mMaskTexID = Shader.PropertyToID("_MaskTex");
+		mSizeXID = Shader.PropertyToID("_SizeX");
+		mSizeYID = Shader.PropertyToID("_SizeY");
+		mPosXID = Shader.PropertyToID("_PosX");
+		mPosYID = Shader.PropertyToID("_PosY");
+	}
 	public void setMaskTexture(Texture mask) { mMask = mask; }
 	public void setMaskSize(Vector2 size) { mMaskSize = size; }
 	public void setMaskPos(Vector2 pos) { mMaskPos = pos; }
@@ -16,18 +28,15 @@ public class WindowShaderPixelMaskCut : WindowShader
 		base.applyShader(mat);
 		if (mat != null && mat.shader != null)
 		{
-			if (getFileName(mat.shader.name) == mPixelMaskCut)
+			mat.SetTexture(mMaskTexID, mMask);
+			if (isVectorZero(ref mMaskSize))
 			{
-				mat.SetTexture("_MaskTex", mMask);
-				if(isVectorZero(ref mMaskSize))
-				{
-					mMaskSize = new Vector2(mMask.width, mMask.height);
-				}
-				mat.SetFloat("_SizeX", mMaskSize.x);
-				mat.SetFloat("_SizeY", mMaskSize.y);
-				mat.SetFloat("_PosX", mMaskPos.x);
-				mat.SetFloat("_PosY", mMaskPos.y);
+				mMaskSize = new Vector2(mMask.width, mMask.height);
 			}
+			mat.SetFloat(mSizeXID, mMaskSize.x);
+			mat.SetFloat(mSizeYID, mMaskSize.y);
+			mat.SetFloat(mPosXID, mMaskPos.x);
+			mat.SetFloat(mPosYID, mMaskPos.y);
 		}
 	}
 }

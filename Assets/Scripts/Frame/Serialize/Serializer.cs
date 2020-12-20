@@ -249,7 +249,7 @@ public class Serializer : FrameBase
 		read(out int readLen);
 		if (readLen == 0)
 		{
-			value = "";
+			value = EMPTY;
 			return true;
 		}
 		if (!readCheck(readLen))

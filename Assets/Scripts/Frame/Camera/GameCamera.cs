@@ -104,16 +104,6 @@ public class GameCamera : MovableObject
 			mLinkerList.Add((CameraLinker)component);
 		}
 	}
-	public override void notifyComponentDestroied(GameComponent component)
-	{
-		base.notifyComponentDestroied(component);
-		// 如果是销毁的当前正在使用的连接器,则将记录的连接器清空
-		if (mCurLinker == component)
-		{
-			mCurLinker = null;
-		}
-		mLinkerList.Remove(component as CameraLinker);
-	}
 	public void linkTarget(CameraLinker linker, MovableObject target)
 	{
 		if(!mAllComponentTypeList.ContainsValue(linker))
@@ -125,8 +115,10 @@ public class GameCamera : MovableObject
 		{
 			return;
 		}
-		foreach (var item in mLinkerList)
+		int count = mLinkerList.Count;
+		for(int i = 0; i < count; ++i)
 		{
+			CameraLinker item = mLinkerList[i];
 			// 如果使用了该连接器,则激活该连接器
 			item.setLinkObject(item == linker ? target : null);
 			item.setActive(item == linker && target != null);

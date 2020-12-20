@@ -11,6 +11,22 @@ public class LAYOUT
 	public const int DEMO = 1;
 	public const int DEMO_START = 2;
 };
+
+// 关键帧ID定义,对应关键帧预设中的曲线ID
+public enum KEY_FRAME : byte
+{
+	NONE,
+	ONE_ZERO,
+	ONE_ZERO_ONE,
+	ONE_ZERO_ONE_CURVE,
+	QUADRATIC_CURVE,
+	ZERO_ONE,
+	ZERO_ONE_ZERO,
+	ZERO_ONE_ZERO_CURVE,
+	SIN_CURVE,
+	SINE_IN_OUT,
+}
+
 // 音效定义
 public enum SOUND_DEFINE : byte
 {

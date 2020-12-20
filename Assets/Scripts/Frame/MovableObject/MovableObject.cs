@@ -43,9 +43,8 @@ public class MovableObject : Transformable, IMouseEventCollect
 	}
 	public override void destroy()
 	{
-		base.destroy();
 		mGlobalTouchSystem.unregisteCollider(this);
-		destroyAllComponents();
+		base.destroy();
 		if (mDestroyObject)
 		{
 			destroyGameObject(ref mObject);
@@ -84,6 +83,10 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
+		if (isDestroy())
+		{
+			return;
+		}
 		if (elapsedTime > 0.0f)
 		{
 			mLastPosition = mCurFramePosition;
@@ -107,7 +110,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 		mPhysicsAcceleration = (mPhysicsSpeed - mLastPhysicsSpeed) / elapsedTime;
 		mLastPhysicsSpeed = mPhysicsSpeed;
 	}
-	public bool isDestroied() { return mDestroied; }
+	public bool isDestroy() { return mDestroied; }
 	public AudioSource createAudioSource()
 	{
 		return mAudioSource = mObject.AddComponent<AudioSource>();
@@ -338,9 +341,13 @@ public class MovableObject : Transformable, IMouseEventCollect
 	// angle为角度制
 	public void rotateAround(Vector3 axis, float angle) { mTransform.Rotate(axis, angle, Space.Self); }
 	public void rotateAroundWorld(Vector3 axis, float angle) { mTransform.Rotate(axis, angle, Space.World); }
-	public void lookAt(Vector3 lookat)
+	public void lookAt(Vector3 direction)
 	{
-		setRotation(getLookAtRotation(lookat));
+		setRotation(getLookAtRotation(direction));
+	}
+	public void lookAtPoint(Vector3 point)
+	{
+		setRotation(getLookAtRotation(point - getPosition()));
 	}
 	public void yawpitch(float fYaw, float fPitch)
 	{
@@ -389,9 +396,10 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public void enableAllColliders(bool enable)
 	{
 		var colliders = mObject.GetComponents<Collider>();
-		foreach (var item in colliders)
+		int count = colliders.Length;
+		for(int i = 0; i < count; ++i)
 		{
-			item.enabled = enable;
+			colliders[i].enabled = enable;
 		}
 	}
 	public override void resetProperty()
@@ -475,12 +483,14 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public virtual void onMultiTouchEnd() { }
 	public virtual void setAlpha(float alpha)
 	{
-		Renderer[] renderers = getUnityComponentsInChild<Renderer>();
-		foreach (var item in renderers)
+		var renderers = getUnityComponentsInChild<Renderer>();
+		int count = renderers.Length;
+		for(int i = 0; i < count; ++i)
 		{
-			Color color = item.material.color;
+			Material material = renderers[i].material;
+			Color color = material.color;
 			color.a = alpha;
-			item.material.color = color;
+			material.color = color;
 		}
 	}
 	public virtual float getAlpha()

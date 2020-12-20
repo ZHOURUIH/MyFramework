@@ -9,12 +9,12 @@ public class SQLiteTable : GameBase
 {
 	protected string mTableName;
 	protected Type mDataClassType;
-	protected SortedDictionary<string, List<SQLiteTable>> mLinkTable; // 字段索引的表格
-	protected SortedDictionary<int, SQLiteData> mDataList;
+	protected Dictionary<string, List<SQLiteTable>> mLinkTable; // 字段索引的表格
+	protected Dictionary<int, SQLiteData> mDataList;
 	public SQLiteTable()
 	{
-		mLinkTable = new SortedDictionary<string, List<SQLiteTable>>();
-		mDataList = new SortedDictionary<int, SQLiteData>();
+		mLinkTable = new Dictionary<string, List<SQLiteTable>>();
+		mDataList = new Dictionary<int, SQLiteData>();
 	}
 	public void setDataType(Type dataClassType) { mDataClassType = dataClassType; }
 	public void setTableName(string name) { mTableName = name; }
@@ -22,19 +22,25 @@ public class SQLiteTable : GameBase
 	public virtual void linkTable() { }
 	public List<SQLiteTable> getLinkTables(string paramName)
 	{
-		return mLinkTable.ContainsKey(paramName) ? mLinkTable[paramName] : null;
+		mLinkTable.TryGetValue(paramName, out List<SQLiteTable> tableList);
+		return tableList;
 	}
 	public SQLiteTable getLinkTable(string paramName)
 	{
-		return mLinkTable.ContainsKey(paramName) ? mLinkTable[paramName][0] : null;
+		if (mLinkTable.TryGetValue(paramName, out List<SQLiteTable> tableList))
+		{
+			return tableList[0];
+		}
+		return null;
 	}
 	public void link(string paramName, SQLiteTable table)
 	{
-		if (!mLinkTable.ContainsKey(paramName))
+		if (!mLinkTable.TryGetValue(paramName, out List<SQLiteTable> tableList))
 		{
-			mLinkTable.Add(paramName, new List<SQLiteTable>());
+			tableList = new List<SQLiteTable>();
+			mLinkTable.Add(paramName, tableList);
 		}
-		mLinkTable[paramName].Add(table);
+		tableList.Add(table);
 	}
 	public SqliteDataReader doQuery()
 	{
@@ -62,27 +68,22 @@ public class SQLiteTable : GameBase
 	}
 	public SQLiteData query(int id, out SQLiteData data)
 	{
-		if (mDataList.ContainsKey(id))
+		if (mDataList.TryGetValue(id, out data))
 		{
-			data = mDataList[id];
 			return data;
 		}
-		string condition = "";
-		appendConditionInt(ref condition, SQLiteData.ID, id, "");
+		string condition = EMPTY;
+		appendConditionInt(ref condition, SQLiteData.ID, id, EMPTY);
 		parseReader(doQuery(condition), out data);
 		mDataList.Add(id, data);
 		return data;
 	}
 	public SQLiteData query(Type type, int id, out SQLiteData data)
 	{
-		if (mDataList.ContainsKey(id))
+		if (!mDataList.TryGetValue(id, out data))
 		{
-			data = mDataList[id];
-		}
-		else
-		{
-			string condition = "";
-			appendConditionInt(ref condition, SQLiteData.ID, id, "");
+			string condition = EMPTY;
+			appendConditionInt(ref condition, SQLiteData.ID, id, EMPTY);
 			parseReader(doQuery(condition), out data);
 			mDataList.Add(id, data);
 		}
@@ -107,9 +108,11 @@ public class SQLiteTable : GameBase
 			return;
 		}
 		parseReader(type, doQuery(), dataList);
-		foreach(var item in dataList)
+		int count = dataList.Count;
+		for(int i = 0; i < count; ++i)
 		{
-			if(!mDataList.ContainsKey(item.mID))
+			T item = dataList[i];
+			if (!mDataList.ContainsKey(item.mID))
 			{
 				mDataList.Add(item.mID, item);
 			}
@@ -126,7 +129,7 @@ public class SQLiteTable : GameBase
 			logError("sqlite table type error, this type:" + mDataClassType + ", param type:" + Typeof(data));
 			return;
 		}
-		string valueString = EMPTY_STRING;
+		string valueString = EMPTY;
 		data.insert(ref valueString);
 		removeLastComma(ref valueString);
 		doInsert(valueString);

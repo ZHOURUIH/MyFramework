@@ -51,8 +51,10 @@ public class WindowPool<T> where T : myUIObject, new()
 	}
 	public void unuseAll()
 	{
-		foreach(var item in mInusedList)
+		int count = mInusedList.Count;
+		for(int i = 0; i < count; ++i)
 		{
+			T item = mInusedList[i];
 			if (mDestroyCallback != null)
 			{
 				mDestroyCallback(item);

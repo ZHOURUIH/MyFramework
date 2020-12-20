@@ -9,12 +9,14 @@ public class DTreeControl : DTreeNode
 	public override void execute()
 	{
 		// 按子节点顺序查看子节点是否满足条件
-		foreach (var item in mChildList)
+		int count = mChildList.Count;
+		for(int i = 0; i < count; ++i)
 		{
+			DTreeNode node = mChildList[i];
 			// 找到一个满足条件的子节点就不再继续遍历
-			if(item.isActive() && item.condition())
+			if (node.isActive() && node.condition())
 			{
-				item.execute();
+				node.execute();
 				break;
 			}
 		}

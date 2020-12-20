@@ -33,7 +33,7 @@ public class CommandCharacterRemoveState : Command
 	}
 	public override string showDebugInfo()
 	{
-		string group = "";
+		string group = EMPTY;
 		if(mStateGroup != null)
 		{
 			group = ", mStateGroup:" + mStateGroup;

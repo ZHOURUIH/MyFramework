@@ -7,7 +7,7 @@ using UnityEngine;
 public class AssetInfo : FrameBase
 {
 	protected List<AssetLoadDoneCallback> mCallback;// 异步加载回调列表
-	protected List<object[]> mUserData;				// 异步加载回调参数列表
+	protected List<object> mUserData;				// 异步加载回调参数列表
 	protected List<string> mLoadPath;               // 加载资源时使用的路径
 	protected AssetBundleInfo mParentAssetBundle;	// 资源所属的AssetBundle
 	protected UnityEngine.Object[] mSubAssets;		// 资源数组,数组第一个元素为主资源,后面的是子资源
@@ -19,7 +19,7 @@ public class AssetInfo : FrameBase
 		mAssetName = name;
 		mSubAssets = null;
 		mCallback = new List<AssetLoadDoneCallback>();
-		mUserData = new List<object[]>();
+		mUserData = new List<object>();
 		mLoadPath = new List<string>();
 		mLoadState = LOAD_STATE.NONE;
 	}
@@ -54,7 +54,7 @@ public class AssetInfo : FrameBase
 		else
 		{
 			mLoadState = LOAD_STATE.WAIT_FOR_LOAD;
-			mResourceManager.mAssetBundleLoader.requestLoadAsset(mParentAssetBundle, mAssetName);
+			mResourceManager.getAssetBundleLoader().requestLoadAsset(mParentAssetBundle, mAssetName);
 		}
 	}
 	// 同步加载所有子资源
@@ -73,7 +73,7 @@ public class AssetInfo : FrameBase
 		}
 		else
 		{
-			mResourceManager.mAssetBundleLoader.requestLoadAsset(mParentAssetBundle, mAssetName);
+			mResourceManager.getAssetBundleLoader().requestLoadAsset(mParentAssetBundle, mAssetName);
 		}
 	}
 	// 资源已经加载完毕
@@ -83,9 +83,10 @@ public class AssetInfo : FrameBase
 		bool hasAssets = true;
 		if (assets != null)
 		{
-			foreach (var item in assets)
+			int count = assets.Length;
+			for(int i = 0; i < count; ++i)
 			{
-				if (item == null)
+				if (assets[i] == null)
 				{
 					hasAssets = false;
 					break;
@@ -104,7 +105,7 @@ public class AssetInfo : FrameBase
 		}
 		callbackAll(mSubAssets);
 	}
-	public void addCallback(AssetLoadDoneCallback callback, object[] userData, string loadPath)
+	public void addCallback(AssetLoadDoneCallback callback, object userData, string loadPath)
 	{
 		if (callback != null)
 		{

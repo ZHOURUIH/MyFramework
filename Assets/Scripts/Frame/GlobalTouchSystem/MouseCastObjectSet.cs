@@ -3,10 +3,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-public class MouseCastObjectSet
+public class MouseCastObjectSet : FrameBase
 {
 	public List<IMouseEventCollect> mObjectOrderList;
 	public GameCamera mCamera;
+	public static Comparison<MouseCastObjectSet> mCompareDescend = depthDescend;
 	public MouseCastObjectSet(GameCamera camera)
 	{
 		mCamera = camera;
@@ -25,7 +26,8 @@ public class MouseCastObjectSet
 		mObjectOrderList.Remove(obj);
 	}
 	public bool isEmpty() { return mObjectOrderList.Count == 0; }
-	public static int depthDescend(MouseCastObjectSet a, MouseCastObjectSet b)
+	//-------------------------------------------------------------------------------------------------------
+	protected static int depthDescend(MouseCastObjectSet a, MouseCastObjectSet b)
 	{
 		if (a.mCamera == null && b.mCamera == null)
 		{
@@ -39,6 +41,6 @@ public class MouseCastObjectSet
 		{
 			return -1;
 		}
-		return (int)MathUtility.sign(b.mCamera.getCameraDepth() - a.mCamera.getCameraDepth());
+		return (int)sign(b.mCamera.getCameraDepth() - a.mCamera.getCameraDepth());
 	}
 }

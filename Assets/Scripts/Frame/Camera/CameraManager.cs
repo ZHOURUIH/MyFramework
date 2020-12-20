@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class CameraManager : FrameSystem
 {
-	protected HashSet<GameCamera> mCameraList;
+	protected List<GameCamera> mCameraList;
 	protected GameCamera mMainCamera;
 	protected GameCamera mNGUICamera;
 	protected GameCamera mUGUICamera;
@@ -12,7 +12,7 @@ public class CameraManager : FrameSystem
 	protected GameCamera mNGUIBlurCamera;
 	public CameraManager()
 	{
-		mCameraList = new HashSet<GameCamera>();
+		mCameraList = new List<GameCamera>();
 	}
 	public override void init()
 	{
@@ -21,14 +21,16 @@ public class CameraManager : FrameSystem
 		mUGUICamera = createCamera(FrameDefine.UI_CAMERA, mLayoutManager.getRootObject(GUI_TYPE.UGUI));
 		mNGUIBlurCamera = createCamera(FrameDefine.BLUR_CAMERA, mLayoutManager.getRootObject(GUI_TYPE.NGUI), false, false);
 		mUGUIBlurCamera = createCamera(FrameDefine.BLUR_CAMERA, mLayoutManager.getRootObject(GUI_TYPE.UGUI), false, false);
-		mMainCamera = createCamera("MainCamera");
+		mMainCamera = createCamera(FrameDefine.MAIN_CAMERA);
 	}
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		foreach (var camera in mCameraList)
+		int count = mCameraList.Count;
+		for(int i = 0; i < count; ++i)
 		{
-			if(!camera.isIgnoreTimeScale())
+			GameCamera camera = mCameraList[i];
+			if (!camera.isIgnoreTimeScale())
 			{
 				camera.update(elapsedTime);
 			}
@@ -41,19 +43,22 @@ public class CameraManager : FrameSystem
 	public override void lateUpdate(float elapsedTime)
 	{
 		base.lateUpdate(elapsedTime);
-		foreach (var camera in mCameraList)
+		int count = mCameraList.Count;
+		for (int i = 0; i < count; ++i)
 		{
-			camera.lateUpdate(elapsedTime);
+			mCameraList[i].lateUpdate(elapsedTime);
 		}
 	}
 	// 获得摄像机,名字是场景中摄像机的名字
 	public GameCamera getCamera(string name, GameObject parent = null, bool createIfNull = true)
 	{
-		foreach (var item in mCameraList)
+		int count = mCameraList.Count;
+		for (int i = 0; i < count; ++i)
 		{
-			if (item.getName() == name && item.getTransform().parent.gameObject == parent)
+			GameCamera camera = mCameraList[i];
+			if (camera.getName() == name && camera.getTransform().parent.gameObject == parent)
 			{
-				return item;
+				return camera;
 			}
 		}
 		if (createIfNull)
@@ -97,8 +102,10 @@ public class CameraManager : FrameSystem
 			OT.ACTIVE(camera, active);
 			// 如果有非UI摄像机的音频监听组件启用,则禁用UI摄像机的音频监听组件
 			bool otherCameraListenerEnabled = false;
-			foreach (var item in mCameraList)
+			int count = mCameraList.Count;
+			for (int i = 0; i < count; ++i)
 			{
+				GameCamera item = mCameraList[i];
 				if (item != mUGUICamera && item != mNGUICamera)
 				{
 					if (item.isActive() && item.isUnityComponentEnabled<AudioListener>())

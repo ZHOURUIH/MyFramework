@@ -20,9 +20,10 @@ public class CommandLayoutManagerBackBlur : Command
 		// 找到mExcludeLayout中层级最高的,低于该层的都设置到模糊层
 		var layoutList = mLayoutManager.getLayoutList();
 		int maxOrder = -999;
-		foreach (var item in mExcludeLayout)
+		int excludeCount = mExcludeLayout.Count;
+		for(int i = 0; i < excludeCount; ++i)
 		{
-			maxOrder = getMax(item.getRenderOrder(), maxOrder);
+			maxOrder = getMax(mExcludeLayout[i].getRenderOrder(), maxOrder);
 		}
 		foreach (var item in layoutList)
 		{

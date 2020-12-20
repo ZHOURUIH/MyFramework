@@ -26,13 +26,9 @@ public class CommandCharacterAddState : Command
 			return;
 		}
 		PlayerState state;
-		bool ret = character.getStateMachine().addState(mState, mParam, out state, mStateID);
+		bool ret = character.getStateMachine().addState(mState, mParam, out state, mStateTime, mStateID);
 		if (ret)
 		{
-			if(mStateTime >= 0.0f)
-			{
-				state.setStateTime(mStateTime);
-			}
 			mOutStateID?.set(state.getID());
 		}
 		mResult?.set(ret);

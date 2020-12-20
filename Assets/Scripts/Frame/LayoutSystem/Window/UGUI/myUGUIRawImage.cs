@@ -4,9 +4,16 @@ using System.Collections;
 
 public class myUGUIRawImage : myUGUIObject, IShaderWindow
 {
+	protected AssetLoadDoneCallback mTextureCallback;
+	protected AssetLoadDoneCallback mMaterialCallback;
 	protected RawImage mRawImage;
 	protected WindowShader mWindowShader;
 	protected bool mIsNewMaterial;
+	public myUGUIRawImage()
+	{
+		mTextureCallback = onTextureLoaded;
+		mMaterialCallback = onMaterialLoaded;
+	}
 	public override void init()
 	{
 		base.init();
@@ -108,15 +115,15 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 			return;
 		}
 		// 允许同步加载时,使用同步加载
-		if (mResourceManager.syncLoadAvalaible())
+		if (mResourceManager.isSyncLoadAvalaible())
 		{
-			Texture tex = mResourceManager.loadResource<Texture>(name, true);
+			Texture tex = mResourceManager.loadResource<Texture>(name);
 			setTexture(tex, useTextureSize);
 		}
 		// 否则只能使用异步加载
 		else
 		{
-			mResourceManager.loadResourceAsync<Texture>(name, onTextureLoaded, useTextureSize, true);
+			mResourceManager.loadResourceAsync<Texture>(name, mTextureCallback, useTextureSize);
 		}
 	}
 	public string getMaterialName()
@@ -135,10 +142,10 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		}
 		mIsNewMaterial = newMaterial;
 		// 查看是否允许同步加载
-		if (mResourceManager.syncLoadAvalaible())
+		if (mResourceManager.isSyncLoadAvalaible())
 		{
-			Material mat = null;
-			Material loadedMaterial = mResourceManager.loadResource<Material>(FrameDefine.R_MATERIAL_PATH + materialName, true);
+			Material mat;
+			Material loadedMaterial = mResourceManager.loadResource<Material>(FrameDefine.R_MATERIAL_PATH + materialName);
 			if (mIsNewMaterial)
 			{
 				mat = new Material(loadedMaterial);
@@ -152,11 +159,10 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		}
 		else
 		{
-			LoadMaterialParam param;
-			mClassPool.newClass(out param, Typeof<LoadMaterialParam>());
+			var param = mClassPool.newClass(Typeof<LoadMaterialParam>()) as LoadMaterialParam;
 			param.mMaterialName = materialName;
 			param.mNewMaterial = mIsNewMaterial;
-			mResourceManager.loadResourceAsync<Material>(FrameDefine.R_MATERIAL_PATH + materialName, onMaterialLoaded, param, true);
+			mResourceManager.loadResourceAsync<Material>(FrameDefine.R_MATERIAL_PATH + materialName, mMaterialCallback, param);
 		}
 	}
 	//-------------------------------------------------------------------------------------------------------------------------------------------------

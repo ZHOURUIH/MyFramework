@@ -37,9 +37,9 @@ public class BytesPool : FrameSystem
 		try
 		{
 			// 先从未使用的列表中查找是否有可用的对象
-			if (mUnusedList.ContainsKey(size) && mUnusedList[size].Count > 0)
+			if (mUnusedList.TryGetValue(size, out Stack<byte[]> bytesLis) && bytesLis.Count > 0)
 			{
-				bytes = mUnusedList[size].Pop();
+				bytes = bytesLis.Pop();
 			}
 			// 未使用列表中没有,创建一个新的
 			else
@@ -82,9 +82,9 @@ public class BytesPool : FrameSystem
 	protected void addInuse(byte[] bytes)
 	{
 		int length = bytes.Length;
-		if (mInusedList.ContainsKey(length))
+		if (mInusedList.TryGetValue(length, out List<byte[]> bytesList))
 		{
-			if (mInusedList[length].Contains(bytes))
+			if (bytesList.Contains(bytes))
 			{
 				logError("bytes is in inuse list!");
 				return;
@@ -92,21 +92,22 @@ public class BytesPool : FrameSystem
 		}
 		else
 		{
-			mInusedList.Add(length, new List<byte[]>());
+			bytesList = new List<byte[]>();
+			mInusedList.Add(length, bytesList);
 		}
 		// 加入使用列表
-		mInusedList[length].Add(bytes);
+		bytesList.Add(bytes);
 	}
 	protected void removeInuse(byte[] bytes)
 	{
 		// 从使用列表移除,要确保操作的都是从本类创建的实例
 		int length = bytes.Length;
-		if (!mInusedList.ContainsKey(length))
+		if (!mInusedList.TryGetValue(length, out List<byte[]> bytesList))
 		{
 			logError("can not find size in Inused List! size : " + length);
 			return;
 		}
-		if (!mInusedList[length].Remove(bytes))
+		if (!bytesList.Remove(bytes))
 		{
 			logError("Inused List not contains size!");
 			return;
@@ -116,9 +117,9 @@ public class BytesPool : FrameSystem
 	{
 		// 加入未使用列表
 		int length = bytes.Length;
-		if (mUnusedList.ContainsKey(length))
+		if (mUnusedList.TryGetValue(length, out Stack<byte[]> bytesList))
 		{
-			if (mUnusedList[length].Contains(bytes))
+			if (bytesList.Contains(bytes))
 			{
 				logError("bytes is in Unused list! can not add again!");
 				return;
@@ -126,8 +127,9 @@ public class BytesPool : FrameSystem
 		}
 		else
 		{
-			mUnusedList.Add(length, new Stack<byte[]>());
+			bytesList = new Stack<byte[]>();
+			mUnusedList.Add(length, bytesList);
 		}
-		mUnusedList[length].Push(bytes);
+		bytesList.Push(bytes);
 	}
 }

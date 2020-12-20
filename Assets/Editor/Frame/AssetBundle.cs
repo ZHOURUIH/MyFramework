@@ -49,7 +49,7 @@ public class AssetBundlePack : EditorCommonUtility
 		packAssetBundle(BuildTarget.iOS);
 	}
 	// subPath为以Asset开头的相对路径
-	public static void packAssetBundle(BuildTarget target, string subPath = "")
+	public static void packAssetBundle(BuildTarget target, string subPath = EMPTY)
 	{
 		if (isEmpty(subPath))
 		{
@@ -116,7 +116,7 @@ public class AssetBundlePack : EditorCommonUtility
 			foreach (string bundle in assetBundleNameList)
 			{
 				string bundleName = bundle;
-				if (!mAssetBundleMap.ContainsKey(bundleName))
+				if (!mAssetBundleMap.TryGetValue(bundleName, out AssetBuildBundleInfo bundleInfo))
 				{
 					continue;
 				}
@@ -127,10 +127,10 @@ public class AssetBundlePack : EditorCommonUtility
 				foreach (string dep in deps)
 				{
 					string depName = rightToLeft(dep);
-					mAssetBundleMap[bundleName].AddDependence(depName);
+					bundleInfo.AddDependence(depName);
 					dependencySet.Add(depName);
 					// 查找依赖项中是否有依赖当前AssetBundle的
-					if(mDependencyList.ContainsKey(depName) && mDependencyList[depName].Contains(bundleName))
+					if(mDependencyList.TryGetValue(depName, out HashSet<string> depList) && depList.Contains(bundleName))
 					{
 						messageBox("AssetBundle dependency error! " + depName + ", " + bundleName, true);
 					}
@@ -183,11 +183,12 @@ public class AssetBundlePack : EditorCommonUtility
 			}
 			if (!isEmpty(bundleName))
 			{
-				if (!assetBundleList.ContainsKey(bundleName))
+				if (!assetBundleList.TryGetValue(bundleName, out List<string> pathList))
 				{
-					assetBundleList.Add(bundleName, new List<string>());
+					pathList = new List<string>();
+					assetBundleList.Add(bundleName, pathList);
 				}
-				assetBundleList[bundleName].Add(path);
+				pathList.Add(path);
 			}
 		}
 		// path是目录
@@ -207,11 +208,12 @@ public class AssetBundlePack : EditorCommonUtility
 					{
 						continue;
 					}
-					if (!assetBundleList.ContainsKey(bundleName))
+					if (!assetBundleList.TryGetValue(bundleName, out List<string> pathList))
 					{
-						assetBundleList.Add(bundleName, new List<string>());
+						pathList = new List<string>();
+						assetBundleList.Add(bundleName, pathList);
 					}
-					assetBundleList[bundleName].Add(files[j]);
+					pathList.Add(files[j]);
 				}
 			}
 		}
@@ -270,20 +272,20 @@ public class AssetBundlePack : EditorCommonUtility
 	{
 		if (endWith(file, ".meta"))
 		{
-			return "";
+			return EMPTY;
 		}
 		AssetImporter importer = AssetImporter.GetAtPath(file);
 		if (importer == null)
 		{
 			Debug.LogError("Set AssetName Fail, File:" + file);
-			return "";
+			return EMPTY;
 		}
 		// tpsheet文件不打包
 		// LightingData.asset文件不能打包AB,这是一个特殊文件,只用于编辑器
 		if (endWith(file, ".tpsheet") || endWith(file, "LightingData.asset"))
 		{
-			importer.assetBundleName = "";
-			return "";
+			importer.assetBundleName = EMPTY;
+			return EMPTY;
 		}
 		string fileName = rightToLeft(file.ToLower());
 		string bundleName = getFileAssetBundleName(fileName, forceSingle);
@@ -294,11 +296,12 @@ public class AssetBundlePack : EditorCommonUtility
 		// 存储bundleInfo
 		// 去除Asset/GameResources/前缀,只保留GameResources下相对路径
 		string assetName = removeStartString(fileName, FrameDefine.P_GAME_RESOURCES_PATH, false);
-		if (!mAssetBundleMap.ContainsKey(bundleName))
+		if (!mAssetBundleMap.TryGetValue(bundleName, out AssetBuildBundleInfo bundleInfo))
 		{
-			mAssetBundleMap.Add(bundleName, new AssetBuildBundleInfo(bundleName));
+			bundleInfo = new AssetBuildBundleInfo(bundleName);
+			mAssetBundleMap.Add(bundleName, bundleInfo);
 		}
-		mAssetBundleMap[bundleName].mAssetNames.Add(assetName);
+		bundleInfo.mAssetNames.Add(assetName);
 		return bundleName;
 	}
 	// fullPath是以Asset开头的路径
@@ -415,7 +418,7 @@ public class AssetBundlePack : EditorCommonUtility
 					{
 						if (!isEmpty(importer.assetBundleName))
 						{
-							importer.assetBundleName = "";
+							importer.assetBundleName = EMPTY;
 						}
 					}
 					break;

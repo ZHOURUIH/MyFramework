@@ -4,12 +4,17 @@ using UnityEngine.UI;
 // UGUI的静态图片不支持递归变化透明度
 public class myUGUIImage : myUGUIObject, IShaderWindow
 {
+	protected AssetLoadDoneCallback mMaterialLoadCallback;
 	protected WindowShader mWindowShader;	// 图片所使用的shader类,用于动态设置shader参数
 	protected UGUIAtlas mAtlas;				// 图片图集
 	protected Sprite mOriginSprite;			// 备份加载物体时原始的精灵图片
 	protected Image mImage;					// 图片组件
 	protected string mOriginTextureName;    // 初始图片的名字,用于外部根据初始名字设置其他效果的图片
 	protected bool mIsNewMaterial;
+	public myUGUIImage()
+	{
+		mMaterialLoadCallback = onMaterialLoaded;
+	}
 	public override void init()
 	{
 		base.init();
@@ -166,10 +171,10 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 		}
 		mIsNewMaterial = newMaterial;
 		// 查看是否允许同步加载
-		if (mResourceManager.syncLoadAvalaible())
+		if (mResourceManager.isSyncLoadAvalaible())
 		{
 			Material mat = null;
-			Material loadedMaterial = mResourceManager.loadResource<Material>(FrameDefine.R_MATERIAL_PATH + materialName, true);
+			Material loadedMaterial = mResourceManager.loadResource<Material>(FrameDefine.R_MATERIAL_PATH + materialName);
 			if(mIsNewMaterial)
 			{
 				mat = new Material(loadedMaterial);
@@ -183,11 +188,10 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 		}
 		else
 		{
-			LoadMaterialParam param;
-			mClassPool.newClass(out param, Typeof<LoadMaterialParam>());
+			var param = mClassPool.newClass(Typeof<LoadMaterialParam>()) as LoadMaterialParam;
 			param.mMaterialName = materialName;
 			param.mNewMaterial = mIsNewMaterial;
-			mResourceManager.loadResourceAsync<Material>(FrameDefine.R_MATERIAL_PATH + materialName, onMaterialLoaded, param, true);
+			mResourceManager.loadResourceAsync<Material>(FrameDefine.R_MATERIAL_PATH + materialName, mMaterialLoadCallback, param);
 		}
 	}
 	public void setMaterial(Material material)

@@ -41,24 +41,24 @@ public class ST : FrameBase
 	}
 	public static void AUDIO_VOLUME(float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound)
 	{
-		AUDIO_VOLUME_EX(FrameDefine.ZERO_ONE, start, target, onceLength, volumeCoeSound, false, null, null);
+		AUDIO_VOLUME_EX(KEY_FRAME.ZERO_ONE, start, target, onceLength, volumeCoeSound, false, null, null);
 	}
-	public static void AUDIO_VOLUME(string keyFrameName, float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound, bool loop)
+	public static void AUDIO_VOLUME(KEY_FRAME keyframe, float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound, bool loop)
 	{
-		AUDIO_VOLUME_EX(keyFrameName, start, target, onceLength, volumeCoeSound, loop, null, null);
+		AUDIO_VOLUME_EX(keyframe, start, target, onceLength, volumeCoeSound, loop, null, null);
 	}
 	public static void AUDIO_VOLUME_EX(float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound, KeyFrameCallback fadeDoneCallback)
 	{
-		AUDIO_VOLUME_EX(FrameDefine.ZERO_ONE, start, target, onceLength, volumeCoeSound, false, null, fadeDoneCallback);
+		AUDIO_VOLUME_EX(KEY_FRAME.ZERO_ONE, start, target, onceLength, volumeCoeSound, false, null, fadeDoneCallback);
 	}
-	public static void AUDIO_VOLUME_EX(string keyFrameName, float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound, bool loop, KeyFrameCallback fadeDoneCallback)
+	public static void AUDIO_VOLUME_EX(KEY_FRAME keyframe, float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound, bool loop, KeyFrameCallback fadeDoneCallback)
 	{
-		AUDIO_VOLUME_EX(keyFrameName, start, target, onceLength, volumeCoeSound, loop, null, fadeDoneCallback);
+		AUDIO_VOLUME_EX(keyframe, start, target, onceLength, volumeCoeSound, loop, null, fadeDoneCallback);
 	}
-	public static void AUDIO_VOLUME_EX(string keyFrameName, float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound, bool loop, KeyFrameCallback fadingCallback, KeyFrameCallback fadeDoneCallback)
+	public static void AUDIO_VOLUME_EX(KEY_FRAME keyframe, float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound, bool loop, KeyFrameCallback fadingCallback, KeyFrameCallback fadeDoneCallback)
 	{
 		CommandGameSceneAudioVolume cmd = newMainCmd(out cmd, false);
-		cmd.mKeyFrameName = keyFrameName;
+		cmd.mKeyframe = keyframe;
 		cmd.mStartVolume = start;
 		cmd.mTargetVolume = target;
 		cmd.mSoundVolumeCoe = volumeCoeSound;

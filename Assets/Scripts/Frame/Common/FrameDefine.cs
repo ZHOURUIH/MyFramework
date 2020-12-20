@@ -240,7 +240,7 @@ public delegate void KeyFrameCallback(ComponentKeyFrameBase component, bool brea
 public delegate void LerpCallback(ComponentLerp component, bool breakLerp);
 public delegate void CommandCallback(Command cmd);
 public delegate void AssetBundleLoadCallback(AssetBundleInfo assetBundle, object userData);
-public delegate void AssetLoadDoneCallback(UnityEngine.Object asset, UnityEngine.Object[] assets, byte[] bytes, object[] userData, string loadPath);
+public delegate void AssetLoadDoneCallback(UnityEngine.Object asset, UnityEngine.Object[] assets, byte[] bytes, object userData, string loadPath);
 public delegate void SceneLoadCallback(float progress, bool done);
 public delegate void SceneActiveCallback();
 public delegate void LayoutAsyncDone(GameLayout layout);
@@ -266,8 +266,8 @@ public delegate void HeadDownloadCallback(Texture head, string openID);
 public delegate void OnDragViewCallback();
 public delegate void OnDragViewStartCallback(ref bool allowDrag);
 public delegate void MyThreadCallback(ref bool run);    // 返回值表示是否继续运行该线程
-public delegate void onPlayingCallback(AnimControl control, int frame, bool isPlaying); // isPlaying表示是否是在播放过程中触发的该回调
-public delegate void onPlayEndCallback(AnimControl control, bool callback, bool isBreak);
+public delegate void OnPlayingCallback(AnimControl control, int frame, bool isPlaying); // isPlaying表示是否是在播放过程中触发的该回调
+public delegate void OnPlayEndCallback(AnimControl control, bool callback, bool isBreak);
 public delegate void OnDraging();
 public delegate void OnScrollItem(IScrollItem item, int index);
 public delegate void OnDragCallback(ComponentOwner dragObj);
@@ -288,6 +288,8 @@ public delegate void OnEffectLoadedCallback(GameEffect effect, object userData);
 public delegate void AtlasLoadDone(UGUIAtlas atlas, object userData);
 public delegate void OnInputField(string str);
 public delegate void OnStateLeave(PlayerState state, bool isBreak, string param);
+public delegate void EventCallback(GameEvent param);
+public delegate void OnEffectDestroy(GameEffect effect, object userData);
 
 // 游戏常量定义-------------------------------------------------------------------------------------------------------------
 public class FrameDefine
@@ -446,11 +448,11 @@ public class FrameDefine
 	public const long WS_MINIMIZEBOX = 0x00020000;
 	public const long WS_MAXIMIZEBOX = 0x00010000;
 	public const int GWL_STYLE = -16;
-	public const ushort PACKET_HEADER_SIZE = sizeof(uint) + sizeof(ushort);
 	public const int ALWAYS_TOP_ORDER = 1000;			// 始终在最上层的布局深度从1000开始
 	public const float CLICK_THRESHOLD = 15.0f;			// 点击阈值,当鼠标按下和抬起时的距离不超过该值,则认为是有效点击
-	public const float DOUBLE_CLICK_THRESHOLD = 0.3f;	// 双击时间阈值,两次单击时间大于0并且小于该值时认为是一次双击
+	public const float DOUBLE_CLICK_THRESHOLD = 0.3f;   // 双击时间阈值,两次单击时间大于0并且小于该值时认为是一次双击
 	//-----------------------------------------------------------------------------------------------------------------
+	public const string KEY_FRAME_FILE = R_KEY_FRAME_PATH + "Keyframe";
 	// 后缀名
 	public const string DATA_SUFFIX = ".bytes";
 	public const string ASSET_BUNDLE_SUFFIX = ".unity3d";
@@ -458,15 +460,6 @@ public class FrameDefine
 	public const string ILR_PDB_FILE_NAME = "GamePDB.bytes";
 	// dll插件的后缀名
 	public const string DLL_PLUGIN_SUFFIX = ".bytes";
-	// 常用关键帧名定义
-	public const string ONE_ZERO = "OneZero";
-	public const string ONE_ZERO_ONE = "OneZeroOne";
-	public const string ONE_ZERO_ONE_CURVE = "OneZeroOne_Curve";
-	public const string QUADRATIC_CURVE = "Quadratic_Curve";
-	public const string SIN_CURVE = "Sin_Curve";
-	public const string ZERO_ONE = "ZeroOne";
-	public const string ZERO_ONE_ZERO = "ZeroOneZero";
-	public const string ZERO_ONE_DELAY = "ZeroOne_Delay";
 	// 音效所有者类型名,应该与SOUND_OWNER一致
 	public static string[] SOUND_OWNER_NAME = new string[] { "Window", "Scene" };
 	public const string NGUI_DEFAULT_MATERIAL = "NGUIDefault";
@@ -477,6 +470,7 @@ public class FrameDefine
 	public const string BLUR_CAMERA = "BlurCamera";
 	public const string NGUI_ROOT = "NGUIRoot";
 	public const string UGUI_ROOT = "UGUIRoot";
+	public const string MAIN_CAMERA = "MainCamera";
 	// 材质名
 	public const string MAT_MULTIPLE = "Multiple";
 	public const string BUILDIN_UI_MATERIAL = "Default UI Material";

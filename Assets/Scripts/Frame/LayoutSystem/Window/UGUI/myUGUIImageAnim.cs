@@ -4,10 +4,12 @@ using UnityEngine;
 
 public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 {
-	protected List<TextureAnimCallBack> mPlayEndCallback;  // 一个序列播放完时的回调函数,只在非循环播放状态下有效
-	protected List<TextureAnimCallBack> mPlayingCallback;  // 一个序列正在播放时的回调函数
+	protected List<TextureAnimCallBack> mPlayEndCallbackList;  // 一个序列播放完时的回调函数,只在非循环播放状态下有效
+	protected List<TextureAnimCallBack> mPlayingCallbackList;  // 一个序列正在播放时的回调函数
 	protected List<string> mTextureNameList;
 	protected List<Vector2> mTexturePosList;
+	protected OnPlayEndCallback mPlayEndCallback;
+	protected OnPlayingCallback mPlayingCallback;
 	protected AnimControl mControl;
 	protected EFFECT_ALIGN mEffectAlign;
 	protected string mTextureSetName;
@@ -16,8 +18,10 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 	{
 		mControl = new AnimControl();
 		mTextureNameList = new List<string>();
-		mPlayEndCallback = new List<TextureAnimCallBack>();
-		mPlayingCallback = new List<TextureAnimCallBack>();
+		mPlayEndCallbackList = new List<TextureAnimCallBack>();
+		mPlayingCallbackList = new List<TextureAnimCallBack>();
+		mPlayEndCallback = onPlayEnd;
+		mPlayingCallback = onPlaying;
 		mUseTextureSize = false;
 		mEffectAlign = EFFECT_ALIGN.NONE;
 		mEnable = true;
@@ -36,8 +40,8 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 			}
 		}
 		mControl.setObject(this);
-		mControl.setPlayEndCallback(onPlayEnd);
-		mControl.setPlayingCallback(onPlaying);
+		mControl.setPlayEndCallback(mPlayEndCallback);
+		mControl.setPlayingCallback(mPlayingCallback);
 	}
 	public override void update(float elapsedTime)
 	{
@@ -95,14 +99,11 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 			while(true)
 			{
 				string name = mTextureSetName + "_" + intToString(index++);
-				if(sprites.ContainsKey(name))
-				{
-					mTextureNameList.Add(name);
-				}
-				else
+				if (!sprites.ContainsKey(name))
 				{
 					break;
 				}
+				mTextureNameList.Add(name);
 			}
 			if(getTextureFrameCount() == 0)
 			{
@@ -140,29 +141,30 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 		if (clear)
 		{
 			List<TextureAnimCallBack> tempList = mListPool.newList(out tempList);
-			tempList.AddRange(mPlayEndCallback);
-			mPlayEndCallback.Clear();
+			tempList.AddRange(mPlayEndCallbackList);
+			mPlayEndCallbackList.Clear();
 			// 如果回调函数当前不为空,则是中断了更新
-			foreach (var item in tempList)
+			int count = tempList.Count;
+			for(int i = 0; i < count; ++i)
 			{
-				item(this, true);
+				tempList[i](this, true);
 			}
 			mListPool.destroyList(tempList);
 		}
 		if(callback != null)
 		{
-			mPlayEndCallback.Add(callback);
+			mPlayEndCallbackList.Add(callback);
 		}
 	}
 	public void addPlayingCallback(TextureAnimCallBack callback, bool clear = true)
 	{
 		if(clear)
 		{
-			mPlayingCallback.Clear();
+			mPlayingCallbackList.Clear();
 		}
 		if(callback != null)
 		{
-			mPlayingCallback.Add(callback);
+			mPlayingCallbackList.Add(callback);
 		}
 	}
 	//--------------------------------------------------------------------------------------------------------
@@ -193,10 +195,10 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 				setPosition(replaceY(getPosition(), (windowSize.y - parentSize.y) * 0.5f));
 			}
 		}
-		int count = mPlayingCallback.Count;
+		int count = mPlayingCallbackList.Count;
 		for(int i = 0; i < count; ++i)
 		{
-			mPlayingCallback[i](this, false);
+			mPlayingCallbackList[i](this, false);
 		}
 	}
 	protected void onPlayEnd(AnimControl control, bool callback, bool isBreak)
@@ -209,17 +211,18 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 		if(callback)
 		{
 			List<TextureAnimCallBack> tempList = mListPool.newList(out tempList);
-			tempList.AddRange(mPlayEndCallback);
-			mPlayEndCallback.Clear();
-			foreach (var item in tempList)
+			tempList.AddRange(mPlayEndCallbackList);
+			mPlayEndCallbackList.Clear();
+			int count = tempList.Count;
+			for(int i = 0; i < count; ++i)
 			{
-				item(this, isBreak);
+				tempList[i](this, isBreak);
 			}
 			mListPool.destroyList(tempList);
 		}
 		else
 		{
-			mPlayEndCallback.Clear();
+			mPlayEndCallbackList.Clear();
 		}
 	}
 }

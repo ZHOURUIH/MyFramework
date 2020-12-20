@@ -185,15 +185,17 @@ public class FileUtility : MathUtility
 		validPath(ref path);
 		string[] dirList = Directory.GetDirectories(path);
 		// 先删除所有文件夹
-		foreach (var item in dirList)
+		int dirCount = dirList.Length;
+		for(int i = 0; i < dirCount; ++i)
 		{
-			deleteFolder(item);
+			deleteFolder(dirList[i]);
 		}
 		// 再删除所有文件
 		string[] fileList = Directory.GetFiles(path);
-		foreach (var item in fileList)
+		int fileCount = fileList.Length;
+		for(int i = 0; i < fileCount; ++i)
 		{
-			deleteFile(item);
+			deleteFile(fileList[i]);
 		}
 		// 再删除文件夹自身
 		Directory.Delete(path);
@@ -208,9 +210,10 @@ public class FileUtility : MathUtility
 		// 先删除所有空的文件夹
 		string[] dirList = Directory.GetDirectories(path);
 		bool isEmpty = true;
-		foreach (var item in dirList)
+		int dirCount = dirList.Length;
+		for(int i = 0; i < dirCount; ++i)
 		{
-			isEmpty = deleteEmptyFolder(item, true) && isEmpty;
+			isEmpty = deleteEmptyFolder(dirList[i], true) && isEmpty;
 		}
 		isEmpty = isEmpty && Directory.GetFiles(path).Length == 0;
 		if (isEmpty && deleteSelfIfEmpty)
@@ -560,9 +563,10 @@ public class FileUtility : MathUtility
 		if (recursive)
 		{
 			string[] dirs = Directory.GetDirectories(path);
-			foreach (var item in dirs)
+			int count = dirs.Length;
+			for(int i = 0; i < count; ++i)
 			{
-				findFiles(item, fileList, patterns, recursive);
+				findFiles(dirs[i], fileList, patterns, recursive);
 			}
 		}
 #endif
@@ -581,12 +585,14 @@ public class FileUtility : MathUtility
 #else
 		// 非安卓平台则查找普通文件夹
 		string[] dirs = Directory.GetDirectories(path);
-		foreach (var item in dirs)
+		int count = dirs.Length;
+		for (int i = 0; i < count; ++i)
 		{
-			dirList.Add(item);
+			string dir = dirs[i];
+			dirList.Add(dir);
 			if (recursive)
 			{
-				findFolders(item, dirList, recursive);
+				findFolders(dir, dirList, recursive);
 			}
 		}
 #endif

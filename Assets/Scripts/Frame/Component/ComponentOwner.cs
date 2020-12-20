@@ -19,6 +19,15 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 		{
 			item.Value.notifyOwnerDestroy();
 		}
+		List<Type> keys = mListPool.newList(out keys);
+		keys.AddRange(mAllComponentTypeList.Keys);
+		for (int i = 0; i < keys.Count; ++i)
+		{
+			GameComponent component = mAllComponentTypeList[keys[i]];
+			component.destroy();
+			removeComponentFromList(component);
+		}
+		mListPool.destroyList(keys);
 		base.destroy();
 	}
 	public virtual void setActive(bool active)
@@ -34,6 +43,11 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 		int rootComponentCount = mComponentList.Count;
 		for (int i = 0; i < rootComponentCount; ++i)
 		{
+			// 数量为0,表示在更新组件的过程中当前对象被销毁
+			if (mComponentList.Count == 0)
+			{
+				return;
+			}
 			GameComponent component = mComponentList[i];
 			if (component != null && component.isActive())
 			{
@@ -89,18 +103,6 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 		}
 	}
 	public virtual void notifyAddComponent(GameComponent component) { }
-	public virtual void notifyComponentDetached(GameComponent component) { removeComponentFromList(component); }
-	public virtual void notifyComponentAttached(GameComponent component)
-	{
-		if (component == null)
-		{
-			return;
-		}
-		if (!mAllComponentTypeList.ContainsKey(Typeof(component)))
-		{
-			addComponentToList(component);
-		}
-	}
 	public static GameComponent createIndependentComponent(Type type, bool initComponent = true)
 	{
 		GameComponent component = createInstance<GameComponent>(type);
@@ -134,16 +136,6 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 		component.setDefaultActive(active);
 		return component;
 	}
-	public void destroyAllComponents()
-	{
-		List<Type> keys = mListPool.newList(out keys);
-		keys.AddRange(mAllComponentTypeList.Keys);
-		for (int i = 0; i < keys.Count; ++i)
-		{
-			mAllComponentTypeList[keys[i]].destroy();
-		}
-		mListPool.destroyList(keys);
-	}
 	public Dictionary<Type, GameComponent> getAllComponent() { return mAllComponentTypeList; }
 	public T getComponent<T>(bool needActive = false, bool addIfNull = true) where T : GameComponent
 	{
@@ -167,9 +159,8 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 	}
 	public GameComponent getComponent(Type type, bool needActive = false, bool addIfNull = true)
 	{
-		if (mAllComponentTypeList.ContainsKey(type))
+		if (mAllComponentTypeList.TryGetValue(type, out GameComponent component))
 		{
-			GameComponent component = mAllComponentTypeList[type];
 			if(!needActive || component.isActive())
 			{
 				return component;
@@ -185,10 +176,6 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 	{
 		GameComponent component = getComponent(type, false, addIfNull);
 		component?.setActive(active);
-	}
-	public virtual void notifyComponentDestroied(GameComponent component)
-	{
-		removeComponentFromList(component);
 	}
 	public void breakComponent<T>(Type exceptComponent)
 	{
@@ -215,9 +202,10 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 		{
 			mIgnoreTimeScale = ignore;
 		}
-		foreach (var item in mComponentList)
+		int count = mComponentList.Count;
+		for(int i = 0; i < count; ++i)
 		{
-			item.setIgnoreTimeScale(ignore);
+			mComponentList[i].setIgnoreTimeScale(ignore);
 		}
 	}
 	public virtual void resetProperty()

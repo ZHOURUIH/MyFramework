@@ -95,7 +95,7 @@ public class UnityUtility : FileUtility
 		int min = timeSecond / 60;
 		int second = timeSecond % 60;
 		int hour = min / 60;
-		if(display == TIME_DISPLAY.HMSM)
+		if (display == TIME_DISPLAY.HMSM)
 		{
 			return hour + ":" + min + ":" + second;
 		}
@@ -103,7 +103,7 @@ public class UnityUtility : FileUtility
 		{
 			return intToString(hour, 2) + ":" + intToString(min, 2) + ":" + intToString(second, 2);
 		}
-		else if(display == TIME_DISPLAY.DHMS_ZH)
+		else if (display == TIME_DISPLAY.DHMS_ZH)
 		{
 			int totalMin = timeSecond / 60;
 			int totalHour = totalMin / 60;
@@ -128,15 +128,15 @@ public class UnityUtility : FileUtility
 			}
 			return timeSecond + "秒";
 		}
-		return "";
+		return EMPTY;
 	}
 	public static string getTime(DateTime time, TIME_DISPLAY display)
 	{
-		if(display == TIME_DISPLAY.HMSM)
+		if (display == TIME_DISPLAY.HMSM)
 		{
 			return time.Hour + ":" + time.Minute + ":" + time.Second + ":" + time.Millisecond;
 		}
-		else if(display == TIME_DISPLAY.HMS_2)
+		else if (display == TIME_DISPLAY.HMS_2)
 		{
 			return intToString(time.Hour, 2) + ":" + intToString(time.Minute, 2) + ":" + intToString(time.Second, 2);
 		}
@@ -144,19 +144,17 @@ public class UnityUtility : FileUtility
 		{
 			return time.Hour + "时" + time.Minute + "分" + time.Second + "秒";
 		}
-		return "";
+		return EMPTY;
 	}
-	//将时间转化成时间戳
+	// 将时间转化成时间戳,dateTime是本地时间
 	public static long getTimeStamp(DateTime dateTime)
 	{
-		DateTime startTime = TimeZoneInfo.ConvertTime(new DateTime(1970, 1, 1), TimeZoneInfo.Local); // 当地时区
-		return (long)(dateTime - startTime).TotalSeconds; // 相差秒数
+		return (long)(dateTime - new DateTime(1970, 1, 1)).TotalSeconds;
 	}
-	//将时间戳转化成时间
+	// 将时间戳转化成时间,转换后是utc时间
 	public static DateTime timeStampToDateTime(long unixTimeStamp)
 	{
-		DateTime startTime = TimeZoneInfo.ConvertTime(new DateTime(1970, 1, 1), TimeZoneInfo.Local); // 当地时区
-		return startTime.AddSeconds(unixTimeStamp);
+		return new DateTime(1970, 1, 1).AddSeconds(unixTimeStamp);
 	}
 	public static void messageBox(string info, bool errorOrInfo)
 	{
@@ -251,8 +249,8 @@ public class UnityUtility : FileUtility
 				}
 			}
 		} while (false);
-		
-		if(go == null && errorIfNull)
+
+		if (go == null && errorIfNull)
 		{
 			string file = getCurSourceFileName(2);
 			int line = getLineNum(2);
@@ -262,7 +260,7 @@ public class UnityUtility : FileUtility
 	}
 	public static GameObject cloneObject(GameObject oriObj, string name)
 	{
-		GameObject obj = GameObject.Instantiate(oriObj);
+		GameObject obj = UnityEngine.Object.Instantiate(oriObj);
 		obj.name = name;
 		return obj;
 	}
@@ -272,59 +270,15 @@ public class UnityUtility : FileUtility
 		setNormalProperty(obj, parent);
 		return obj;
 	}
-	// 根据预设名实例化
-	public static GameObject instantiatePrefab(GameObject parent, string prefabName, string name, Vector3 scale, Vector3 rot, Vector3 pos, bool active)
-	{
-		if (isEmpty(prefabName))
-		{
-			return null;
-		}
-		GameObject prefab = FrameBase.mResourceManager.loadResource<GameObject>(prefabName, true);
-		if (prefab == null)
-		{
-			logError("can not find prefab : " + prefabName);
-			return null;
-		}
-		GameObject obj = instantiatePrefab(parent, prefab, name, scale, rot, pos, active);
-		FrameBase.mResourceManager.unload(ref prefab);
-		return obj;
-	}
-	// prefabName为Resource下的相对路径
-	public static GameObject instantiatePrefab(GameObject parent, string prefabName, bool active)
-	{
-		if (isEmpty(prefabName))
-		{
-			return null;
-		}
-		string name = getFileName(prefabName);
-		return instantiatePrefab(parent, prefabName, name, Vector3.one, Vector3.zero, Vector3.zero, active);
-	}
-	// 根据预设对象实例化
-	public static GameObject instantiatePrefab(GameObject parent, GameObject prefab, bool active)
-	{
-		string name = getFileName(prefab.name);
-		return instantiatePrefab(parent, prefab, name, Vector3.one, Vector3.zero, Vector3.zero, active);
-	}
-	public static GameObject instantiatePrefab(GameObject parent, GameObject prefab, string name, bool active)
-	{
-		return instantiatePrefab(parent, prefab, name, Vector3.one, Vector3.zero, Vector3.zero, active);
-	}
-	public static GameObject instantiatePrefab(GameObject parent, string prefabName, string name, bool active)
-	{
-		if (isEmpty(prefabName))
-		{
-			return null;
-		}
-		return instantiatePrefab(parent, prefabName, name, Vector3.one, Vector3.zero, Vector3.zero, active);
-	}
+	// 一般不会直接调用该函数,要创建物体时需要使用ObjectPool来创建和回收
 	// parent为实例化后挂接的父节点
 	// prefabName为预设名,带Resources下相对路径
 	// name为实例化后的名字
 	// 其他三个是实例化后本地的变换
-	public static GameObject instantiatePrefab(GameObject parent, GameObject prefab, string name, Vector3 scale, Vector3 rot, Vector3 pos, bool active)
+	public static GameObject instantiatePrefab(GameObject parent, GameObject prefab, string name, bool active)
 	{
-		GameObject obj = GameObject.Instantiate(prefab);
-		setNormalProperty(obj, parent, name, scale, rot, pos);
+		GameObject obj = UnityEngine.Object.Instantiate(prefab);
+		setNormalProperty(obj, parent, name);
 		obj.SetActive(active);
 		findShaders(obj);
 		return obj;
@@ -334,7 +288,7 @@ public class UnityUtility : FileUtility
 		// 在编辑器中从AssetBundle加载如果不重新查找材质,则会出现材质丢失的错误,但是真机上不查找却没有任何影响
 		// 目前暂未查明具体原因,所以为了保证两端都显示正常,只在编辑器下才会重新查找材质
 #if UNITY_EDITOR
-		if(material == null)
+		if (material == null)
 		{
 			return;
 		}
@@ -369,7 +323,7 @@ public class UnityUtility : FileUtility
 		// 可能会用到材质的组件
 		Projector[] projectors = go.GetComponentsInChildren<Projector>(true);
 		int projectorCount = projectors.Length;
-		for(int i = 0; i < projectorCount; ++i)
+		for (int i = 0; i < projectorCount; ++i)
 		{
 			findMaterialShader(projectors[i].material);
 		}
@@ -401,7 +355,7 @@ public class UnityUtility : FileUtility
 	}
 	public static void setNormalProperty(GameObject obj, GameObject parent, string name, Vector3 scale, Vector3 rot, Vector3 pos)
 	{
-		if(parent != null)
+		if (parent != null)
 		{
 			obj.transform.SetParent(parent.transform);
 		}
@@ -417,7 +371,7 @@ public class UnityUtility : FileUtility
 		{
 			obj = Activator.CreateInstance(classType, param) as T;
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 #if USE_ILRUNTIME
 			obj = FrameBase.mILRSystem.getAppDomain().Instantiate<T>(classType.Name, param);
@@ -437,8 +391,10 @@ public class UnityUtility : FileUtility
 		}
 		object retval = createInstance<object>(Typeof(obj));
 		FieldInfo[] fields = Typeof(obj).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-		foreach (FieldInfo field in fields)
+		int count = fields.Length;
+		for (int i = 0; i < count; ++i)
 		{
+			FieldInfo field = fields[i];
 			field.SetValue(retval, deepCopy(field.GetValue(obj)));
 		}
 		return (T)retval;
@@ -484,7 +440,7 @@ public class UnityUtility : FileUtility
 	public static Vector3 worldToScreenPos(Vector3 worldPos, Camera camera, bool halfScreenOffset = true)
 	{
 		Vector3 screenPosition = camera.WorldToScreenPoint(worldPos);
-		if(halfScreenOffset)
+		if (halfScreenOffset)
 		{
 			screenPosition -= (Vector3)(getScreenSize() * 0.5f);
 		}
@@ -503,7 +459,7 @@ public class UnityUtility : FileUtility
 	{
 		Vector3 screenPos = worldToScreenPos(worldPos, false);
 		Vector2 rootSize = getRootSize(guiType);
-		return screenPos.z >= 0.0f && isInRange((Vector2)screenPos, Vector2.zero, rootSize);
+		return screenPos.z >= 0.0f && inRange((Vector2)screenPos, Vector2.zero, rootSize);
 	}
 	// screenCenterAsZero为true表示返回的坐标是以window的中心为原点,false表示已window的左下角为原点
 	public static Vector2 screenPosToWindowPos(Vector2 screenPos, myUIObject window, bool screenCenterAsZero = true, GUI_TYPE guiType = GUI_TYPE.NGUI)
@@ -537,7 +493,7 @@ public class UnityUtility : FileUtility
 	public static void setGameObjectLayer(GameObject obj, string layerName)
 	{
 		int layer = LayerMask.NameToLayer(layerName);
-		if (!isInRange(layer, 1, 32))
+		if (!inRange(layer, 1, 32))
 		{
 			return;
 		}
@@ -547,9 +503,10 @@ public class UnityUtility : FileUtility
 	{
 		obj.layer = layer;
 		Transform[] childTransformList = obj.transform.GetComponentsInChildren<Transform>(true);
-		foreach (Transform t in childTransformList)
+		int count = childTransformList.Length;
+		for (int i = 0; i < count; ++i)
 		{
-			t.gameObject.layer = layer;
+			childTransformList[i].gameObject.layer = layer;
 		}
 	}
 	public static int nameToLayerInt(string name)
@@ -568,11 +525,11 @@ public class UnityUtility : FileUtility
 	}
 	public static void activeChilds(GameObject go, bool active = true)
 	{
-		if(go != null)
+		if (go != null)
 		{
 			Transform transform = go.transform;
 			int childCount = transform.childCount;
-			for(int i = 0; i < childCount; ++i)
+			for (int i = 0; i < childCount; ++i)
 			{
 				transform.GetChild(i).gameObject.SetActive(active);
 			}
@@ -582,13 +539,13 @@ public class UnityUtility : FileUtility
 	public static int getLineNum(int preFrameCount = 1)
 	{
 		StackTrace st = new StackTrace(preFrameCount, true);
-	    return st.GetFrame(0).GetFileLineNumber();
+		return st.GetFrame(0).GetFileLineNumber();
 	}
 	// preFrameCount为1表示返回调用getCurSourceFileName的文件名
 	public static string getCurSourceFileName(int preFrameCount = 1)
 	{
 		StackTrace st = new StackTrace(preFrameCount, true);
-	    return st.GetFrame(0).GetFileName();
+		return st.GetFrame(0).GetFileName();
 	}
 	public static int makeID() { return ++mIDMaker; }
 	public static void notifyIDUsed(int id)
@@ -597,7 +554,7 @@ public class UnityUtility : FileUtility
 	}
 	public static Sprite texture2DToSprite(Texture2D tex)
 	{
-		if(tex == null)
+		if (tex == null)
 		{
 			return null;
 		}
@@ -617,7 +574,7 @@ public class UnityUtility : FileUtility
 #endif
 	public static void checkDownloadPath(ref string path, bool localPath)
 	{
-		if(!localPath)
+		if (!localPath)
 		{
 			return;
 		}
@@ -697,7 +654,7 @@ public class UnityUtility : FileUtility
 		worldBoxHalfSize.x = abs(worldBoxHalfSize.x);
 		worldBoxHalfSize.y = abs(worldBoxHalfSize.y);
 		worldBoxHalfSize.z = abs(worldBoxHalfSize.z);
-		if(parent != null)
+		if (parent != null)
 		{
 			worldBoxHalfSize = worldToLocalDirection(parent.transform, worldBoxHalfSize);
 		}
@@ -858,19 +815,20 @@ public class UnityUtility : FileUtility
 	}
 	public static void playAllParticle(GameObject go, bool reactive = false)
 	{
-		if(go == null)
+		if (go == null)
 		{
 			return;
 		}
-		if(reactive)
+		if (reactive)
 		{
 			go.SetActive(false);
 			go.SetActive(true);
 		}
 		ParticleSystem[] particles = go.transform.GetComponentsInChildren<ParticleSystem>();
-		foreach (var item in particles)
+		int count = particles.Length;
+		for (int i = 0; i < count; ++i)
 		{
-			item.Play();
+			particles[i].Play();
 		}
 	}
 	public static void stopAllParticle(GameObject go)
@@ -880,9 +838,10 @@ public class UnityUtility : FileUtility
 			return;
 		}
 		ParticleSystem[] particles = go.transform.GetComponentsInChildren<ParticleSystem>();
-		foreach (var item in particles)
+		int count = particles.Length;
+		for (int i = 0; i < count; ++i)
 		{
-			item.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+			particles[i].Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 		}
 	}
 	public static void restartAllParticle(GameObject go)
@@ -892,10 +851,12 @@ public class UnityUtility : FileUtility
 			return;
 		}
 		ParticleSystem[] particles = go.transform.GetComponentsInChildren<ParticleSystem>();
-		foreach (var item in particles)
+		int count = particles.Length;
+		for (int i = 0; i < count; ++i)
 		{
-			item.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-			item.Play();
+			ParticleSystem particle = particles[i];
+			particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+			particle.Play();
 		}
 	}
 	public static void pauseAllParticle(GameObject go)
@@ -905,9 +866,10 @@ public class UnityUtility : FileUtility
 			return;
 		}
 		ParticleSystem[] particles = go.transform.GetComponentsInChildren<ParticleSystem>();
-		foreach (var item in particles)
+		int count = particles.Length;
+		for (int i = 0; i < count; ++i)
 		{
-			item.Pause();
+			particles[i].Pause();
 		}
 	}
 	public static Vector3 generateWorldScale(Transform transform)
@@ -930,7 +892,7 @@ public class UnityUtility : FileUtility
 	}
 	public static Vector3 generateWorldPosition(Transform transform)
 	{
-		if(transform.parent == null)
+		if (transform.parent == null)
 		{
 			return transform.localPosition;
 		}
@@ -974,11 +936,14 @@ public class UnityUtility : FileUtility
 	}
 	public static float getAnimationLength(Animator animator, string name)
 	{
-		foreach (var item in animator.runtimeAnimatorController.animationClips)
+		var clips = animator.runtimeAnimatorController.animationClips;
+		int count = clips.Length;
+		for (int i = 0; i < count; ++i)
 		{
-			if (item.name == name)
+			AnimationClip clip = clips[i];
+			if (clip.name == name)
 			{
-				return item.length;
+				return clip.length;
 			}
 		}
 		return 0.0f;
@@ -988,7 +953,7 @@ public class UnityUtility : FileUtility
 		// 先更新自己
 		obj.GetComponent<ScaleAnchor>()?.updateRect(force);
 		obj.GetComponent<PaddingAnchor>()?.updateRect(force);
-		if(layout != null)
+		if (layout != null)
 		{
 			myUIObject uiObj = layout.getUIObject(obj);
 			uiObj?.notifyAnchorApply();
@@ -1107,7 +1072,7 @@ public class UnityUtility : FileUtility
 	}
 	public static Material findMaterial(Renderer render)
 	{
-		if(render == null)
+		if (render == null)
 		{
 			return null;
 		}
@@ -1118,7 +1083,7 @@ public class UnityUtility : FileUtility
 #endif
 	}
 	// 自动排列一个节点下的所有子节点的位置,从上往下紧密排列
-	public static void autoGridVertical(myUGUIObject root, float interval = 0.0f, bool resizeRootSize = false)
+	public static void autoGridVertical(myUGUIObject root, float interval = 0.0f, bool resizeRootSize = true)
 	{
 		RectTransform transform = root.getRectTransform();
 		int childCount = transform.childCount;

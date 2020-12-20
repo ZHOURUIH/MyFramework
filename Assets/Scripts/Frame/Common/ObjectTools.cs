@@ -48,37 +48,37 @@ public class OT : FrameBase
 	}
 	public static void ROTATE(Transformable obj, Vector3 start, Vector3 target, float time)
 	{
-		ROTATE_EX(obj, FrameDefine.ZERO_ONE, start, target, time, false, 0.0f, null, null);
+		ROTATE_EX(obj, KEY_FRAME.ZERO_ONE, start, target, time, false, 0.0f, null, null);
 	}
-	public static void ROTATE(Transformable obj, string keyframe, Vector3 start, Vector3 target, float onceLength)
+	public static void ROTATE(Transformable obj, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
 		ROTATE_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void ROTATE(Transformable obj, string keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
+	public static void ROTATE(Transformable obj, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
 	{
 		ROTATE_EX(obj, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
 	public static void ROTATE_EX(Transformable obj, Vector3 start, Vector3 target, float time, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		ROTATE_EX(obj, FrameDefine.ZERO_ONE, start, target, time, false, 0.0f, doingCallback, doneCallback);
+		ROTATE_EX(obj, KEY_FRAME.ZERO_ONE, start, target, time, false, 0.0f, doingCallback, doneCallback);
 	}
 	public static void ROTATE_EX(Transformable obj, Vector3 start, Vector3 target, float time, KeyFrameCallback doneCallback)
 	{
-		ROTATE_EX(obj, FrameDefine.ZERO_ONE, start, target, time, false, 0.0f, null, doneCallback);
+		ROTATE_EX(obj, KEY_FRAME.ZERO_ONE, start, target, time, false, 0.0f, null, doneCallback);
 	}
-	public static void ROTATE_EX(Transformable obj, string keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void ROTATE_EX(Transformable obj, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return;
 		}
-		if (isEmpty(keyframe) || isFloatZero(onceLength))
+		if (keyframe == KEY_FRAME.NONE || isFloatZero(onceLength))
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ROTATE(Transformable obj, Vector3 rotation)");
 			return;
 		}
 		CommandTransformableRotate cmd = newMainCmd(out cmd, false, false);
-		cmd.mName = keyframe;
+		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartRotation = start;
 		cmd.mTargetRotation = target;
@@ -103,29 +103,29 @@ public class OT : FrameBase
 	}
 	public static CommandTransformableRotate ROTATE_DELAY(Transformable obj, float delayTime, Vector3 start, Vector3 target, float time)
 	{
-		return ROTATE_DELAY(obj, delayTime, FrameDefine.ZERO_ONE, start, target, time, false, 0.0f);
+		return ROTATE_DELAY(obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, time, false, 0.0f);
 	}
-	public static CommandTransformableRotate ROTATE_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 start, Vector3 target, float onceLength)
+	public static CommandTransformableRotate ROTATE_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
 		return ROTATE_DELAY(obj, delayTime, keyframe, start, target, onceLength, false, 0.0f);
 	}
-	public static CommandTransformableRotate ROTATE_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 start, Vector3 target, float onceLength, bool loop)
+	public static CommandTransformableRotate ROTATE_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, bool loop)
 	{
 		return ROTATE_DELAY(obj, delayTime, keyframe, start, target, onceLength, loop, 0.0f);
 	}
-	public static CommandTransformableRotate ROTATE_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
+	public static CommandTransformableRotate ROTATE_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		if (isEmpty(keyframe) || isFloatZero(onceLength))
+		if (keyframe == KEY_FRAME.NONE || isFloatZero(onceLength))
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用CommandTransformableRotate ROTATE_DELAY(Transformable obj, float delayTime, Vector3 rotation)");
 			return null;
 		}
 		CommandTransformableRotate cmd = newMainCmd(out cmd, false, true);
-		cmd.mName = keyframe;
+		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartRotation = start;
 		cmd.mTargetRotation = target;
@@ -205,33 +205,33 @@ public class OT : FrameBase
 	}
 	public static void ROTATE_PHY(Transformable obj, Vector3 start, Vector3 target, float time)
 	{
-		ROTATE_PHY_EX(obj, FrameDefine.ZERO_ONE, start, target, time, false, 0.0f, null, null);
+		ROTATE_PHY_EX(obj, KEY_FRAME.ZERO_ONE, start, target, time, false, 0.0f, null, null);
 	}
-	public static void ROTATE_PHY(Transformable obj, string keyframe, Vector3 start, Vector3 target, float onceLength)
+	public static void ROTATE_PHY(Transformable obj, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
 		ROTATE_PHY_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void ROTATE_PHY(Transformable obj, string keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
+	public static void ROTATE_PHY(Transformable obj, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
 	{
 		ROTATE_PHY_EX(obj, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
 	public static void ROTATE_PHY_EX(Transformable obj, Vector3 start, Vector3 target, float time, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		ROTATE_PHY_EX(obj, FrameDefine.ZERO_ONE, start, target, time, false, 0.0f, doingCallback, doneCallback);
+		ROTATE_PHY_EX(obj, KEY_FRAME.ZERO_ONE, start, target, time, false, 0.0f, doingCallback, doneCallback);
 	}
 	public static void ROTATE_PHY_EX(Transformable obj, Vector3 start, Vector3 target, float time, KeyFrameCallback doneCallback)
 	{
-		ROTATE_PHY_EX(obj, FrameDefine.ZERO_ONE, start, target, time, false, 0.0f, null, doneCallback);
+		ROTATE_PHY_EX(obj, KEY_FRAME.ZERO_ONE, start, target, time, false, 0.0f, null, doneCallback);
 	}
-	public static void ROTATE_PHY_EX(Transformable obj, string keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void ROTATE_PHY_EX(Transformable obj, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		if(isEmpty(keyframe) || isFloatZero(onceLength))
+		if(keyframe == KEY_FRAME.NONE || isFloatZero(onceLength))
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ROTATE_PHY(Transformable obj, Vector3 rotation)");
 			return;
 		}
 		CommandTransformableRotatePhysics cmd = newMainCmd(out cmd, false, false);
-		cmd.mName = keyframe;
+		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartRotation = start;
 		cmd.mTargetRotation = target;
@@ -252,25 +252,25 @@ public class OT : FrameBase
 	}
 	public static CommandTransformableRotatePhysics ROTATE_PHY_DELAY(Transformable obj, float delayTime, Vector3 start, Vector3 target, float time)
 	{
-		return ROTATE_PHY_DELAY(obj, delayTime, FrameDefine.ZERO_ONE, start, target, time, false, 0.0f);
+		return ROTATE_PHY_DELAY(obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, time, false, 0.0f);
 	}
-	public static CommandTransformableRotatePhysics ROTATE_PHY_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 start, Vector3 target, float onceLength)
+	public static CommandTransformableRotatePhysics ROTATE_PHY_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
 		return ROTATE_PHY_DELAY(obj, delayTime, keyframe, start, target, onceLength, false, 0.0f);
 	}
-	public static CommandTransformableRotatePhysics ROTATE_PHY_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 start, Vector3 target, float onceLength, bool loop)
+	public static CommandTransformableRotatePhysics ROTATE_PHY_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, bool loop)
 	{
 		return ROTATE_PHY_DELAY(obj, delayTime, keyframe, start, target, onceLength, loop, 0.0f);
 	}
-	public static CommandTransformableRotatePhysics ROTATE_PHY_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
+	public static CommandTransformableRotatePhysics ROTATE_PHY_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
 	{
-		if (isEmpty(keyframe) || isFloatZero(onceLength))
+		if (keyframe == KEY_FRAME.NONE || isFloatZero(onceLength))
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用CommandTransformableRotatePhysics ROTATE_PHY_DELAY(Transformable obj, float delayTime, Vector3 rotation)");
 			return null;
 		}
 		CommandTransformableRotatePhysics cmd = newMainCmd(out cmd, false, true);
-		cmd.mName = keyframe;
+		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartRotation = start;
 		cmd.mTargetRotation = target;
@@ -326,48 +326,48 @@ public class OT : FrameBase
 	}
 	public static void ROTATE_CURVE(Transformable obj, List<Vector3> rotList, float onceLength)
 	{
-		ROTATE_CURVE_EX(obj, FrameDefine.ZERO_ONE, rotList, onceLength, false, 0.0f, null, null);
+		ROTATE_CURVE_EX(obj, KEY_FRAME.ZERO_ONE, rotList, onceLength, false, 0.0f, null, null);
 	}
-	public static void ROTATE_CURVE(Transformable obj, string fileName, List<Vector3> rotList, float onceLength)
+	public static void ROTATE_CURVE(Transformable obj, KEY_FRAME keyframe, List<Vector3> rotList, float onceLength)
 	{
-		ROTATE_CURVE_EX(obj, fileName, rotList, onceLength, false, 0.0f, null, null);
+		ROTATE_CURVE_EX(obj, keyframe, rotList, onceLength, false, 0.0f, null, null);
 	}
-	public static void ROTATE_CURVE(Transformable obj, string fileName, List<Vector3> rotList, float onceLength, bool loop)
+	public static void ROTATE_CURVE(Transformable obj, KEY_FRAME keyframe, List<Vector3> rotList, float onceLength, bool loop)
 	{
-		ROTATE_CURVE_EX(obj, fileName, rotList, onceLength, loop, 0.0f, null, null);
+		ROTATE_CURVE_EX(obj, keyframe, rotList, onceLength, loop, 0.0f, null, null);
 	}
-	public static void ROTATE_CURVE(Transformable obj, string fileName, List<Vector3> rotList, float onceLength, bool loop, float offset)
+	public static void ROTATE_CURVE(Transformable obj, KEY_FRAME keyframe, List<Vector3> rotList, float onceLength, bool loop, float offset)
 	{
-		ROTATE_CURVE_EX(obj, fileName, rotList, onceLength, loop, offset, null, null);
+		ROTATE_CURVE_EX(obj, keyframe, rotList, onceLength, loop, offset, null, null);
 	}
 	public static void ROTATE_CURVE_EX(Transformable obj, List<Vector3> rotList, float onceLength, KeyFrameCallback doneCallback)
 	{
-		ROTATE_CURVE_EX(obj, FrameDefine.ZERO_ONE, rotList, onceLength, false, 0.0f, null, doneCallback);
+		ROTATE_CURVE_EX(obj, KEY_FRAME.ZERO_ONE, rotList, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static void ROTATE_CURVE_EX(Transformable obj, List<Vector3> rotList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		ROTATE_CURVE_EX(obj, FrameDefine.ZERO_ONE, rotList, onceLength, false, 0.0f, doingCallback, doneCallback);
+		ROTATE_CURVE_EX(obj, KEY_FRAME.ZERO_ONE, rotList, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
 	public static void ROTATE_CURVE_EX(Transformable obj, List<Vector3> rotList, float onceLength, float offsetTime, KeyFrameCallback doneCallback)
 	{
-		ROTATE_CURVE_EX(obj, FrameDefine.ZERO_ONE, rotList, onceLength, false, offsetTime, null, doneCallback);
+		ROTATE_CURVE_EX(obj, KEY_FRAME.ZERO_ONE, rotList, onceLength, false, offsetTime, null, doneCallback);
 	}
 	public static void ROTATE_CURVE_EX(Transformable obj, List<Vector3> rotList, float onceLength, float offsetTime, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		ROTATE_CURVE_EX(obj, FrameDefine.ZERO_ONE, rotList, onceLength, false, offsetTime, doingCallback, doneCallback);
+		ROTATE_CURVE_EX(obj, KEY_FRAME.ZERO_ONE, rotList, onceLength, false, offsetTime, doingCallback, doneCallback);
 	}
-	public static void ROTATE_CURVE_EX(Transformable obj, string fileName, List<Vector3> rotList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void ROTATE_CURVE_EX(Transformable obj, KEY_FRAME keyframe, List<Vector3> rotList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		ROTATE_CURVE_EX(obj, fileName, rotList, onceLength, false, 0.0f, doingCallback, doneCallback);
+		ROTATE_CURVE_EX(obj, keyframe, rotList, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void ROTATE_CURVE_EX(Transformable obj, string fileName, List<Vector3> rotList, float onceLength, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void ROTATE_CURVE_EX(Transformable obj, KEY_FRAME keyframe, List<Vector3> rotList, float onceLength, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		ROTATE_CURVE_EX(obj, fileName, rotList, onceLength, loop, 0.0f, doingCallback, doneCallback);
+		ROTATE_CURVE_EX(obj, keyframe, rotList, onceLength, loop, 0.0f, doingCallback, doneCallback);
 	}
-	public static void ROTATE_CURVE_EX(Transformable obj, string fileName, List<Vector3> rotList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void ROTATE_CURVE_EX(Transformable obj, KEY_FRAME keyframe, List<Vector3> rotList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		CommandTransformableRotateCurve cmd = newMainCmd(out cmd, false);
-		cmd.mName = fileName;
+		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mRotList = rotList;
 		cmd.mOffset = offset;
@@ -382,32 +382,32 @@ public class OT : FrameBase
 	}
 	public static CommandTransformableRotateCurve ROTATE_CURVE_DELAY(Transformable obj, float delayTime, List<Vector3> rotList, float onceLength)
 	{
-		return ROTATE_CURVE_DELAY_EX(obj, delayTime, FrameDefine.ZERO_ONE, rotList, onceLength, false, 0.0f, null, null);
+		return ROTATE_CURVE_DELAY_EX(obj, delayTime, KEY_FRAME.ZERO_ONE, rotList, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandTransformableRotateCurve ROTATE_CURVE_DELAY(Transformable obj, float delayTime, string keyframe, List<Vector3> rotList, float onceLength)
+	public static CommandTransformableRotateCurve ROTATE_CURVE_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, List<Vector3> rotList, float onceLength)
 	{
 		return ROTATE_CURVE_DELAY_EX(obj, delayTime, keyframe, rotList, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandTransformableRotateCurve ROTATE_CURVE_DELAY(Transformable obj, float delayTime, string keyframe, List<Vector3> rotList, float onceLength, bool loop)
+	public static CommandTransformableRotateCurve ROTATE_CURVE_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, List<Vector3> rotList, float onceLength, bool loop)
 	{
 		return ROTATE_CURVE_DELAY_EX(obj, delayTime, keyframe, rotList, onceLength, loop, 0.0f, null, null);
 	}
-	public static CommandTransformableRotateCurve ROTATE_CURVE_DELAY(Transformable obj, float delayTime, string keyframe, List<Vector3> rotList, float onceLength, bool loop, float offset)
+	public static CommandTransformableRotateCurve ROTATE_CURVE_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, List<Vector3> rotList, float onceLength, bool loop, float offset)
 	{
 		return ROTATE_CURVE_DELAY_EX(obj, delayTime, keyframe, rotList, onceLength, loop, offset, null, null);
 	}
 	public static CommandTransformableRotateCurve ROTATE_CURVE_DELAY_EX(Transformable obj, float delayTime, List<Vector3> rotList, float onceLength, KeyFrameCallback doneCallback)
 	{
-		return ROTATE_CURVE_DELAY_EX(obj, delayTime, FrameDefine.ZERO_ONE, rotList, onceLength, false, 0.0f, null, doneCallback);
+		return ROTATE_CURVE_DELAY_EX(obj, delayTime, KEY_FRAME.ZERO_ONE, rotList, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static CommandTransformableRotateCurve ROTATE_CURVE_DELAY_EX(Transformable obj, float delayTime, List<Vector3> rotList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		return ROTATE_CURVE_DELAY_EX(obj, delayTime, FrameDefine.ZERO_ONE, rotList, onceLength, false, 0.0f, doingCallback, doneCallback);
+		return ROTATE_CURVE_DELAY_EX(obj, delayTime, KEY_FRAME.ZERO_ONE, rotList, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CommandTransformableRotateCurve ROTATE_CURVE_DELAY_EX(Transformable obj, float delayTime, string keyframe, List<Vector3> rotList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CommandTransformableRotateCurve ROTATE_CURVE_DELAY_EX(Transformable obj, float delayTime, KEY_FRAME keyframe, List<Vector3> rotList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		CommandTransformableRotateCurve cmd = newMainCmd(out cmd, false, true);
-		cmd.mName = keyframe;
+		cmd.mKeyframe = keyframe;
 		cmd.mRotList = rotList;
 		cmd.mOnceLength = onceLength;
 		cmd.mOffset = offset;
@@ -447,56 +447,56 @@ public class OT : FrameBase
 	}
 	public static void MOVE(Transformable obj, Vector3 start, Vector3 target, float onceLength)
 	{
-		MOVE_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		MOVE_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void MOVE(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength)
+	public static void MOVE(Transformable obj, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength)
 	{
-		MOVE_EX(obj, fileName, startPos, targetPos, onceLength, false, 0.0f, null, null);
+		MOVE_EX(obj, keyframe, startPos, targetPos, onceLength, false, 0.0f, null, null);
 	}
-	public static void MOVE(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop)
+	public static void MOVE(Transformable obj, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop)
 	{
-		MOVE_EX(obj, fileName, startPos, targetPos, onceLength, loop, 0.0f, null, null);
+		MOVE_EX(obj, keyframe, startPos, targetPos, onceLength, loop, 0.0f, null, null);
 	}
-	public static void MOVE(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset)
+	public static void MOVE(Transformable obj, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset)
 	{
-		MOVE_EX(obj, fileName, startPos, targetPos, onceLength, loop, offset, null, null);
+		MOVE_EX(obj, keyframe, startPos, targetPos, onceLength, loop, offset, null, null);
 	}
 	public static void MOVE_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback moveDoneCallback)
 	{
-		MOVE_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, moveDoneCallback);
+		MOVE_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, moveDoneCallback);
 	}
 	public static void MOVE_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
 	{
-		MOVE_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, movingCallback, moveDoneCallback);
+		MOVE_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, movingCallback, moveDoneCallback);
 	}
 	public static void MOVE_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, float offsetTime, KeyFrameCallback moveDoneCallback)
 	{
-		MOVE_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, offsetTime, null, moveDoneCallback);
+		MOVE_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, offsetTime, null, moveDoneCallback);
 	}
 	public static void MOVE_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, float offsetTime, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
 	{
-		MOVE_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, offsetTime, movingCallback, moveDoneCallback);
+		MOVE_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, offsetTime, movingCallback, moveDoneCallback);
 	}
-	public static void MOVE_EX(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength, KeyFrameCallback doneCallback)
+	public static void MOVE_EX(Transformable obj, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, KeyFrameCallback doneCallback)
 	{
-		MOVE_EX(obj, fileName, startPos, targetPos, onceLength, false, 0.0f, null, doneCallback);
+		MOVE_EX(obj, keyframe, startPos, targetPos, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static void MOVE_EX(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void MOVE_EX(Transformable obj, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		MOVE_EX(obj, fileName, startPos, targetPos, onceLength, false, 0.0f, doingCallback, doneCallback);
+		MOVE_EX(obj, keyframe, startPos, targetPos, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void MOVE_EX(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, KeyFrameCallback tremblingCallBack, KeyFrameCallback trembleDoneCallBack)
+	public static void MOVE_EX(Transformable obj, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, KeyFrameCallback tremblingCallBack, KeyFrameCallback trembleDoneCallBack)
 	{
-		MOVE_EX(obj, fileName, startPos, targetPos, onceLength, loop, 0.0f, tremblingCallBack, trembleDoneCallBack);
+		MOVE_EX(obj, keyframe, startPos, targetPos, onceLength, loop, 0.0f, tremblingCallBack, trembleDoneCallBack);
 	}
-	public static void MOVE_EX(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback tremblingCallBack, KeyFrameCallback trembleDoneCallBack)
+	public static void MOVE_EX(Transformable obj, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback tremblingCallBack, KeyFrameCallback trembleDoneCallBack)
 	{
 		if (obj == null)
 		{
 			return;
 		}
 		CommandTransformableMove cmd = newMainCmd(out cmd, false, false);
-		cmd.mName = fileName;
+		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartPos = startPos;
 		cmd.mTargetPos = targetPos;
@@ -521,40 +521,40 @@ public class OT : FrameBase
 	}
 	public static CommandTransformableMove MOVE_DELAY(Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength)
 	{
-		return MOVE_DELAY_EX(obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		return MOVE_DELAY_EX(obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandTransformableMove MOVE_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float onceLength)
+	public static CommandTransformableMove MOVE_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength)
 	{
 		return MOVE_DELAY_EX(obj, delayTime, keyframe, startPos, targetPos, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandTransformableMove MOVE_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop)
+	public static CommandTransformableMove MOVE_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop)
 	{
 		return MOVE_DELAY_EX(obj, delayTime, keyframe, startPos, targetPos, onceLength, loop, 0.0f, null, null);
 	}
-	public static CommandTransformableMove MOVE_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset)
+	public static CommandTransformableMove MOVE_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset)
 	{
 		return MOVE_DELAY_EX(obj, delayTime, keyframe, startPos, targetPos, onceLength, loop, offset, null, null);
 	}
 	public static CommandTransformableMove MOVE_DELAY_EX(Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback moveDoneCallback)
 	{
-		return MOVE_DELAY_EX(obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, moveDoneCallback);
+		return MOVE_DELAY_EX(obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, moveDoneCallback);
 	}
 	public static CommandTransformableMove MOVE_DELAY_EX(Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
 	{
-		return MOVE_DELAY_EX(obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, movingCallback, moveDoneCallback);
+		return MOVE_DELAY_EX(obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, movingCallback, moveDoneCallback);
 	}
-	public static CommandTransformableMove MOVE_DELAY_EX(Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback moveDoneCallback)
+	public static CommandTransformableMove MOVE_DELAY_EX(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback moveDoneCallback)
 	{
 		return MOVE_DELAY_EX(obj, delayTime, keyframe, startPos, targetPos, onceLength, loop, offset, null, moveDoneCallback);
 	}
-	public static CommandTransformableMove MOVE_DELAY_EX(Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
+	public static CommandTransformableMove MOVE_DELAY_EX(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
 		CommandTransformableMove cmd = newMainCmd(out cmd, false, true);
-		cmd.mName = keyframe;
+		cmd.mKeyframe = keyframe;
 		cmd.mStartPos = startPos;
 		cmd.mTargetPos = targetPos;
 		cmd.mOnceLength = onceLength;
@@ -578,48 +578,48 @@ public class OT : FrameBase
 	}
 	public static void MOVE_PHY(Transformable obj, Vector3 start, Vector3 target, float onceLength)
 	{
-		MOVE_PHY_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		MOVE_PHY_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void MOVE_PHY(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength)
+	public static void MOVE_PHY(Transformable obj, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength)
 	{
-		MOVE_PHY_EX(obj, fileName, startPos, targetPos, onceLength, false, 0.0f, null, null);
+		MOVE_PHY_EX(obj, keyframe, startPos, targetPos, onceLength, false, 0.0f, null, null);
 	}
-	public static void MOVE_PHY(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop)
+	public static void MOVE_PHY(Transformable obj, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop)
 	{
-		MOVE_PHY_EX(obj, fileName, startPos, targetPos, onceLength, loop, 0.0f, null, null);
+		MOVE_PHY_EX(obj, keyframe, startPos, targetPos, onceLength, loop, 0.0f, null, null);
 	}
-	public static void MOVE_PHY(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset)
+	public static void MOVE_PHY(Transformable obj, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset)
 	{
-		MOVE_PHY_EX(obj, fileName, startPos, targetPos, onceLength, loop, offset, null, null);
+		MOVE_PHY_EX(obj, keyframe, startPos, targetPos, onceLength, loop, offset, null, null);
 	}
 	public static void MOVE_PHY_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		MOVE_PHY_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		MOVE_PHY_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static void MOVE_PHY_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		MOVE_PHY_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		MOVE_PHY_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
 	public static void MOVE_PHY_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, float offsetTime, KeyFrameCallback doneCallback)
 	{
-		MOVE_PHY_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, offsetTime, null, doneCallback);
+		MOVE_PHY_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, offsetTime, null, doneCallback);
 	}
 	public static void MOVE_PHY_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, float offsetTime, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		MOVE_PHY_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, offsetTime, doingCallback, doneCallback);
+		MOVE_PHY_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, offsetTime, doingCallback, doneCallback);
 	}
-	public static void MOVE_PHY_EX(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void MOVE_PHY_EX(Transformable obj, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		MOVE_PHY_EX(obj, fileName, startPos, targetPos, onceLength, false, 0.0f, doingCallback, doneCallback);
+		MOVE_PHY_EX(obj, keyframe, startPos, targetPos, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void MOVE_PHY_EX(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void MOVE_PHY_EX(Transformable obj, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		MOVE_PHY_EX(obj, fileName, startPos, targetPos, onceLength, loop, 0.0f, doingCallback, doneCallback);
+		MOVE_PHY_EX(obj, keyframe, startPos, targetPos, onceLength, loop, 0.0f, doingCallback, doneCallback);
 	}
-	public static void MOVE_PHY_EX(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void MOVE_PHY_EX(Transformable obj, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		CommandTransformableMovePhysics cmd = newMainCmd(out cmd, false, false);
-		cmd.mName = fileName;
+		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartPos = startPos;
 		cmd.mTargetPos = targetPos;
@@ -640,32 +640,32 @@ public class OT : FrameBase
 	}
 	public static CommandTransformableMovePhysics MOVE_PHY_DELAY(Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength)
 	{
-		return MOVE_PHY_DELAY_EX(obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		return MOVE_PHY_DELAY_EX(obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandTransformableMovePhysics MOVE_PHY_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float onceLength)
+	public static CommandTransformableMovePhysics MOVE_PHY_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength)
 	{
 		return MOVE_PHY_DELAY_EX(obj, delayTime, keyframe, startPos, targetPos, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandTransformableMovePhysics MOVE_PHY_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop)
+	public static CommandTransformableMovePhysics MOVE_PHY_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop)
 	{
 		return MOVE_PHY_DELAY_EX(obj, delayTime, keyframe, startPos, targetPos, onceLength, loop, 0.0f, null, null);
 	}
-	public static CommandTransformableMovePhysics MOVE_PHY_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset)
+	public static CommandTransformableMovePhysics MOVE_PHY_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset)
 	{
 		return MOVE_PHY_DELAY_EX(obj, delayTime, keyframe, startPos, targetPos, onceLength, loop, offset, null, null);
 	}
 	public static CommandTransformableMovePhysics MOVE_PHY_DELAY_EX(Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		return MOVE_PHY_DELAY_EX(obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		return MOVE_PHY_DELAY_EX(obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static CommandTransformableMovePhysics MOVE_PHY_DELAY_EX(Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		return MOVE_PHY_DELAY_EX(obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		return MOVE_PHY_DELAY_EX(obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CommandTransformableMovePhysics MOVE_PHY_DELAY_EX(Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CommandTransformableMovePhysics MOVE_PHY_DELAY_EX(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		CommandTransformableMovePhysics cmd = newMainCmd(out cmd, false, true);
-		cmd.mName = keyframe;
+		cmd.mKeyframe = keyframe;
 		cmd.mStartPos = startPos;
 		cmd.mTargetPos = targetPos;
 		cmd.mOnceLength = onceLength;
@@ -690,52 +690,52 @@ public class OT : FrameBase
 	}
 	public static void MOVE_PARABOLA(Transformable obj, Vector3 start, Vector3 target, float topHeight, float onceLength)
 	{
-		MOVE_PARABOLA_EX(obj, FrameDefine.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, null, null);
+		MOVE_PARABOLA_EX(obj, KEY_FRAME.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, null, null);
 	}
-	public static void MOVE_PARABOLA(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength)
+	public static void MOVE_PARABOLA(Transformable obj, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength)
 	{
-		MOVE_PARABOLA_EX(obj, fileName, startPos, targetPos, topHeight, onceLength, false, 0.0f, null, null);
+		MOVE_PARABOLA_EX(obj, keyframe, startPos, targetPos, topHeight, onceLength, false, 0.0f, null, null);
 	}
-	public static void MOVE_PARABOLA(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop)
+	public static void MOVE_PARABOLA(Transformable obj, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop)
 	{
-		MOVE_PARABOLA_EX(obj, fileName, startPos, targetPos, topHeight, onceLength, loop, 0.0f, null, null);
+		MOVE_PARABOLA_EX(obj, keyframe, startPos, targetPos, topHeight, onceLength, loop, 0.0f, null, null);
 	}
-	public static void MOVE_PARABOLA(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop, float offset)
+	public static void MOVE_PARABOLA(Transformable obj, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop, float offset)
 	{
-		MOVE_PARABOLA_EX(obj, fileName, startPos, targetPos, topHeight, onceLength, loop, offset, null, null);
+		MOVE_PARABOLA_EX(obj, keyframe, startPos, targetPos, topHeight, onceLength, loop, offset, null, null);
 	}
 	public static void MOVE_PARABOLA_EX(Transformable obj, Vector3 start, Vector3 target, float topHeight, float onceLength, KeyFrameCallback doneCallback)
 	{
-		MOVE_PARABOLA_EX(obj, FrameDefine.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, null, doneCallback);
+		MOVE_PARABOLA_EX(obj, KEY_FRAME.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static void MOVE_PARABOLA_EX(Transformable obj, Vector3 start, Vector3 target, float topHeight, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		MOVE_PARABOLA_EX(obj, FrameDefine.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, doingCallback, doneCallback);
+		MOVE_PARABOLA_EX(obj, KEY_FRAME.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
 	public static void MOVE_PARABOLA_EX(Transformable obj, Vector3 start, Vector3 target, float topHeight, float onceLength, float offsetTime, KeyFrameCallback doneCallback)
 	{
-		MOVE_PARABOLA_EX(obj, FrameDefine.ZERO_ONE, start, target, topHeight, onceLength, false, offsetTime, null, doneCallback);
+		MOVE_PARABOLA_EX(obj, KEY_FRAME.ZERO_ONE, start, target, topHeight, onceLength, false, offsetTime, null, doneCallback);
 	}
 	public static void MOVE_PARABOLA_EX(Transformable obj, Vector3 start, Vector3 target, float topHeight, float onceLength, float offsetTime, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		MOVE_PARABOLA_EX(obj, FrameDefine.ZERO_ONE, start, target, topHeight, onceLength, false, offsetTime, doingCallback, doneCallback);
+		MOVE_PARABOLA_EX(obj, KEY_FRAME.ZERO_ONE, start, target, topHeight, onceLength, false, offsetTime, doingCallback, doneCallback);
 	}
-	public static void MOVE_PARABOLA_EX(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void MOVE_PARABOLA_EX(Transformable obj, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		MOVE_PARABOLA_EX(obj, fileName, startPos, targetPos, topHeight, onceLength, false, 0.0f, doingCallback, doneCallback);
+		MOVE_PARABOLA_EX(obj, keyframe, startPos, targetPos, topHeight, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void MOVE_PARABOLA_EX(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void MOVE_PARABOLA_EX(Transformable obj, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		MOVE_PARABOLA_EX(obj, fileName, startPos, targetPos, topHeight, onceLength, loop, 0.0f, doingCallback, doneCallback);
+		MOVE_PARABOLA_EX(obj, keyframe, startPos, targetPos, topHeight, onceLength, loop, 0.0f, doingCallback, doneCallback);
 	}
-	public static void MOVE_PARABOLA_EX(Transformable obj, string fileName, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void MOVE_PARABOLA_EX(Transformable obj, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return;
 		}
 		CommandTransformableMoveParabola cmd = newMainCmd(out cmd, false, false);
-		cmd.mName = fileName;
+		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartPos = startPos;
 		cmd.mTargetPos = targetPos;
@@ -756,36 +756,36 @@ public class OT : FrameBase
 	}
 	public static CommandTransformableMoveParabola MOVE_PARABOLA_DELAY(Transformable obj, float delayTime, Vector3 start, Vector3 target, float topHeight, float onceLength)
 	{
-		return MOVE_PARABOLA_DELAY_EX(obj, delayTime, FrameDefine.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, null, null);
+		return MOVE_PARABOLA_DELAY_EX(obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandTransformableMoveParabola MOVE_PARABOLA_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength)
+	public static CommandTransformableMoveParabola MOVE_PARABOLA_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength)
 	{
 		return MOVE_PARABOLA_DELAY_EX(obj, delayTime, keyframe, startPos, targetPos, topHeight, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandTransformableMoveParabola MOVE_PARABOLA_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop)
+	public static CommandTransformableMoveParabola MOVE_PARABOLA_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop)
 	{
 		return MOVE_PARABOLA_DELAY_EX(obj, delayTime, keyframe, startPos, targetPos, topHeight, onceLength, loop, 0.0f, null, null);
 	}
-	public static CommandTransformableMoveParabola MOVE_PARABOLA_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop, float offset)
+	public static CommandTransformableMoveParabola MOVE_PARABOLA_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop, float offset)
 	{
 		return MOVE_PARABOLA_DELAY_EX(obj, delayTime, keyframe, startPos, targetPos, topHeight, onceLength, loop, offset, null, null);
 	}
 	public static CommandTransformableMoveParabola MOVE_PARABOLA_DELAY_EX(Transformable obj, float delayTime, Vector3 start, Vector3 target, float topHeight, float onceLength, KeyFrameCallback doneCallback)
 	{
-		return MOVE_PARABOLA_DELAY_EX(obj, delayTime, FrameDefine.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, null, doneCallback);
+		return MOVE_PARABOLA_DELAY_EX(obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static CommandTransformableMoveParabola MOVE_PARABOLA_DELAY_EX(Transformable obj, float delayTime, Vector3 start, Vector3 target, float topHeight, float onceLength, KeyFrameCallback movingCallback, KeyFrameCallback doneCallback)
 	{
-		return MOVE_PARABOLA_DELAY_EX(obj, delayTime, FrameDefine.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, movingCallback, doneCallback);
+		return MOVE_PARABOLA_DELAY_EX(obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, movingCallback, doneCallback);
 	}
-	public static CommandTransformableMoveParabola MOVE_PARABOLA_DELAY_EX(Transformable obj, float delayTime, string keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop, float offset, KeyFrameCallback movingCallback, KeyFrameCallback doneCallback)
+	public static CommandTransformableMoveParabola MOVE_PARABOLA_DELAY_EX(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop, float offset, KeyFrameCallback movingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
 		CommandTransformableMoveParabola cmd = newMainCmd(out cmd, false, true);
-		cmd.mName = keyframe;
+		cmd.mKeyframe = keyframe;
 		cmd.mStartPos = startPos;
 		cmd.mTargetPos = targetPos;
 		cmd.mOnceLength = onceLength;
@@ -811,52 +811,52 @@ public class OT : FrameBase
 	}
 	public static void MOVE_CURVE(Transformable obj, List<Vector3> posList, float onceLength)
 	{
-		MOVE_CURVE_EX(obj, FrameDefine.ZERO_ONE, posList, onceLength, false, 0.0f, null, null);
+		MOVE_CURVE_EX(obj, KEY_FRAME.ZERO_ONE, posList, onceLength, false, 0.0f, null, null);
 	}
-	public static void MOVE_CURVE(Transformable obj, string fileName, List<Vector3> posList, float onceLength)
+	public static void MOVE_CURVE(Transformable obj, KEY_FRAME keyframe, List<Vector3> posList, float onceLength)
 	{
-		MOVE_CURVE_EX(obj, fileName, posList, onceLength, false, 0.0f, null, null);
+		MOVE_CURVE_EX(obj, keyframe, posList, onceLength, false, 0.0f, null, null);
 	}
-	public static void MOVE_CURVE(Transformable obj, string fileName, List<Vector3> posList, float onceLength, bool loop)
+	public static void MOVE_CURVE(Transformable obj, KEY_FRAME keyframe, List<Vector3> posList, float onceLength, bool loop)
 	{
-		MOVE_CURVE_EX(obj, fileName, posList, onceLength, loop, 0.0f, null, null);
+		MOVE_CURVE_EX(obj, keyframe, posList, onceLength, loop, 0.0f, null, null);
 	}
-	public static void MOVE_CURVE(Transformable obj, string fileName, List<Vector3> posList, float onceLength, bool loop, float offset)
+	public static void MOVE_CURVE(Transformable obj, KEY_FRAME keyframe, List<Vector3> posList, float onceLength, bool loop, float offset)
 	{
-		MOVE_CURVE_EX(obj, fileName, posList, onceLength, loop, offset, null, null);
+		MOVE_CURVE_EX(obj, keyframe, posList, onceLength, loop, offset, null, null);
 	}
 	public static void MOVE_CURVE_EX(Transformable obj, List<Vector3> posList, float onceLength, KeyFrameCallback doneCallback)
 	{
-		MOVE_CURVE_EX(obj, FrameDefine.ZERO_ONE, posList, onceLength, false, 0.0f, null, doneCallback);
+		MOVE_CURVE_EX(obj, KEY_FRAME.ZERO_ONE, posList, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static void MOVE_CURVE_EX(Transformable obj, List<Vector3> posList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		MOVE_CURVE_EX(obj, FrameDefine.ZERO_ONE, posList, onceLength, false, 0.0f, doingCallback, doneCallback);
+		MOVE_CURVE_EX(obj, KEY_FRAME.ZERO_ONE, posList, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
 	public static void MOVE_CURVE_EX(Transformable obj, List<Vector3> posList, float onceLength, float offsetTime, KeyFrameCallback doneCallback)
 	{
-		MOVE_CURVE_EX(obj, FrameDefine.ZERO_ONE, posList, onceLength, false, offsetTime, null, doneCallback);
+		MOVE_CURVE_EX(obj, KEY_FRAME.ZERO_ONE, posList, onceLength, false, offsetTime, null, doneCallback);
 	}
 	public static void MOVE_CURVE_EX(Transformable obj, List<Vector3> posList, float onceLength, float offsetTime, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		MOVE_CURVE_EX(obj, FrameDefine.ZERO_ONE, posList, onceLength, false, offsetTime, doingCallback, doneCallback);
+		MOVE_CURVE_EX(obj, KEY_FRAME.ZERO_ONE, posList, onceLength, false, offsetTime, doingCallback, doneCallback);
 	}
-	public static void MOVE_CURVE_EX(Transformable obj, string fileName, List<Vector3> posList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void MOVE_CURVE_EX(Transformable obj, KEY_FRAME keyframe, List<Vector3> posList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		MOVE_CURVE_EX(obj, fileName, posList, onceLength, false, 0.0f, doingCallback, doneCallback);
+		MOVE_CURVE_EX(obj, keyframe, posList, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void MOVE_CURVE_EX(Transformable obj, string fileName, List<Vector3> posList, float onceLength, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void MOVE_CURVE_EX(Transformable obj, KEY_FRAME keyframe, List<Vector3> posList, float onceLength, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		MOVE_CURVE_EX(obj, fileName, posList, onceLength, loop, 0.0f, doingCallback, doneCallback);
+		MOVE_CURVE_EX(obj, keyframe, posList, onceLength, loop, 0.0f, doingCallback, doneCallback);
 	}
-	public static void MOVE_CURVE_EX(Transformable obj, string fileName, List<Vector3> posList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void MOVE_CURVE_EX(Transformable obj, KEY_FRAME keyframe, List<Vector3> posList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return;
 		}
 		CommandTransformableMoveCurve cmd = newMainCmd(out cmd, false);
-		cmd.mName = fileName;
+		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mPosList = posList;
 		cmd.mOffset = offset;
@@ -875,36 +875,36 @@ public class OT : FrameBase
 	}
 	public static CommandTransformableMoveCurve MOVE_CURVE_DELAY(Transformable obj, float delayTime, List<Vector3> posList, float onceLength)
 	{
-		return MOVE_CURVE_DELAY_EX(obj, delayTime, FrameDefine.ZERO_ONE, posList, onceLength, false, 0.0f, null, null);
+		return MOVE_CURVE_DELAY_EX(obj, delayTime, KEY_FRAME.ZERO_ONE, posList, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandTransformableMoveCurve MOVE_CURVE_DELAY(Transformable obj, float delayTime, string keyframe, List<Vector3> posList, float onceLength)
+	public static CommandTransformableMoveCurve MOVE_CURVE_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, List<Vector3> posList, float onceLength)
 	{
 		return MOVE_CURVE_DELAY_EX(obj, delayTime, keyframe, posList, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandTransformableMoveCurve MOVE_CURVE_DELAY(Transformable obj, float delayTime, string keyframe, List<Vector3> posList, float onceLength, bool loop)
+	public static CommandTransformableMoveCurve MOVE_CURVE_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, List<Vector3> posList, float onceLength, bool loop)
 	{
 		return MOVE_CURVE_DELAY_EX(obj, delayTime, keyframe, posList, onceLength, loop, 0.0f, null, null);
 	}
-	public static CommandTransformableMoveCurve MOVE_CURVE_DELAY(Transformable obj, float delayTime, string keyframe, List<Vector3> posList, float onceLength, bool loop, float offset)
+	public static CommandTransformableMoveCurve MOVE_CURVE_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, List<Vector3> posList, float onceLength, bool loop, float offset)
 	{
 		return MOVE_CURVE_DELAY_EX(obj, delayTime, keyframe, posList, onceLength, loop, offset, null, null);
 	}
 	public static CommandTransformableMoveCurve MOVE_CURVE_DELAY_EX(Transformable obj, float delayTime, List<Vector3> posList, float onceLength, KeyFrameCallback doneCallback)
 	{
-		return MOVE_CURVE_DELAY_EX(obj, delayTime, FrameDefine.ZERO_ONE, posList, onceLength, false, 0.0f, null, doneCallback);
+		return MOVE_CURVE_DELAY_EX(obj, delayTime, KEY_FRAME.ZERO_ONE, posList, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static CommandTransformableMoveCurve MOVE_CURVE_DELAY_EX(Transformable obj, float delayTime, List<Vector3> posList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		return MOVE_CURVE_DELAY_EX(obj, delayTime, FrameDefine.ZERO_ONE, posList, onceLength, false, 0.0f, doingCallback, doneCallback);
+		return MOVE_CURVE_DELAY_EX(obj, delayTime, KEY_FRAME.ZERO_ONE, posList, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CommandTransformableMoveCurve MOVE_CURVE_DELAY_EX(Transformable obj, float delayTime, string keyframe, List<Vector3> posList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CommandTransformableMoveCurve MOVE_CURVE_DELAY_EX(Transformable obj, float delayTime, KEY_FRAME keyframe, List<Vector3> posList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
 		CommandTransformableMoveCurve cmd = newMainCmd(out cmd, false, true);
-		cmd.mName = keyframe;
+		cmd.mKeyframe = keyframe;
 		cmd.mPosList = posList;
 		cmd.mOnceLength = onceLength;
 		cmd.mOffset = offset;
@@ -1388,56 +1388,56 @@ public class OT : FrameBase
 	}
 	public static void SCALE(Transformable obj, Vector3 start, Vector3 target, float onceLength)
 	{
-		SCALE_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		SCALE_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void SCALE(Transformable obj, string fileName, Vector3 start, Vector3 target, float onceLength)
+	public static void SCALE(Transformable obj, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
-		SCALE_EX(obj, fileName, start, target, onceLength, false, 0.0f, null, null);
+		SCALE_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void SCALE(Transformable obj, string fileName, Vector3 start, Vector3 target, float onceLength, bool loop)
+	public static void SCALE(Transformable obj, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, bool loop)
 	{
-		SCALE_EX(obj, fileName, start, target, onceLength, loop, 0.0f, null, null);
+		SCALE_EX(obj, keyframe, start, target, onceLength, loop, 0.0f, null, null);
 	}
-	public static void SCALE(Transformable obj, string fileName, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
+	public static void SCALE(Transformable obj, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
 	{
-		SCALE_EX(obj, fileName, start, target, onceLength, loop, offset, null, null);
+		SCALE_EX(obj, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
 	public static void SCALE_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		SCALE_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		SCALE_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static void SCALE_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		SCALE_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		SCALE_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void SCALE_EX(Transformable obj, string fileName, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doneCallback)
+	public static void SCALE_EX(Transformable obj, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		SCALE_EX(obj, fileName, start, target, onceLength, false, 0.0f, null, doneCallback);
+		SCALE_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static void SCALE_EX(Transformable obj, string fileName, Vector3 start, Vector3 target, float onceLength, bool loop, KeyFrameCallback doneCallback)
+	public static void SCALE_EX(Transformable obj, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, KeyFrameCallback doneCallback)
 	{
-		SCALE_EX(obj, fileName, start, target, onceLength, loop, 0.0f, null, doneCallback);
+		SCALE_EX(obj, keyframe, start, target, onceLength, loop, 0.0f, null, doneCallback);
 	}
-	public static void SCALE_EX(Transformable obj, string fileName, Vector3 start, Vector3 target, float onceLength, bool loop, float offset, KeyFrameCallback doneCallback)
+	public static void SCALE_EX(Transformable obj, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset, KeyFrameCallback doneCallback)
 	{
-		SCALE_EX(obj, fileName, start, target, onceLength, loop, offset, null, doneCallback);
+		SCALE_EX(obj, keyframe, start, target, onceLength, loop, offset, null, doneCallback);
 	}
-	public static void SCALE_EX(Transformable obj, string fileName, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void SCALE_EX(Transformable obj, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		SCALE_EX(obj, fileName, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		SCALE_EX(obj, keyframe, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void SCALE_EX(Transformable obj, string fileName, Vector3 start, Vector3 target, float onceLength, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void SCALE_EX(Transformable obj, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		SCALE_EX(obj, fileName, start, target, onceLength, loop, 0.0f, doingCallback, doneCallback);
+		SCALE_EX(obj, keyframe, start, target, onceLength, loop, 0.0f, doingCallback, doneCallback);
 	}
-	public static void SCALE_EX(Transformable obj, string fileName, Vector3 start, Vector3 target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void SCALE_EX(Transformable obj, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return;
 		}
 		CommandTransformableScale cmd = newMainCmd(out cmd, false);
-		cmd.mName = fileName;
+		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mOffset = offset;
 		cmd.mLoop = loop;
@@ -1462,40 +1462,40 @@ public class OT : FrameBase
 	}
 	public static CommandTransformableScale SCALE_DELAY(Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength)
 	{
-		return SCALE_DELAY_EX(obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		return SCALE_DELAY_EX(obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandTransformableScale SCALE_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 start, Vector3 target, float onceLength)
+	public static CommandTransformableScale SCALE_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
 		return SCALE_DELAY_EX(obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandTransformableScale SCALE_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 start, Vector3 target, float onceLength, bool loop)
+	public static CommandTransformableScale SCALE_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, bool loop)
 	{
 		return SCALE_DELAY_EX(obj, delayTime, keyframe, start, target, onceLength, loop, 0.0f, null, null);
 	}
-	public static CommandTransformableScale SCALE_DELAY(Transformable obj, float delayTime, string keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
+	public static CommandTransformableScale SCALE_DELAY(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
 	{
 		return SCALE_DELAY_EX(obj, delayTime, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
 	public static CommandTransformableScale SCALE_DELAY_EX(Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		return SCALE_DELAY_EX(obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		return SCALE_DELAY_EX(obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CommandTransformableScale SCALE_DELAY_EX(Transformable obj, float delayTime, string keyframe, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CommandTransformableScale SCALE_DELAY_EX(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return SCALE_DELAY_EX(obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CommandTransformableScale SCALE_DELAY_EX(Transformable obj, float delayTime, string keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CommandTransformableScale SCALE_DELAY_EX(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return SCALE_DELAY_EX(obj, delayTime, keyframe, start, target, onceLength, loop, 0.0f, doingCallback, doneCallback);
 	}
-	public static CommandTransformableScale SCALE_DELAY_EX(Transformable obj, float delayTime, string keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CommandTransformableScale SCALE_DELAY_EX(Transformable obj, float delayTime, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
 		CommandTransformableScale cmd = newMainCmd(out cmd, false, true);
-		cmd.mName = keyframe;
+		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mOffset = offset;
 		cmd.mLoop = loop;
@@ -1629,24 +1629,24 @@ public class OT : FrameBase
 	}
 	public static void FOV(GameCamera obj, float start, float target, float onceLength)
 	{
-		FOV_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		FOV_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void FOV(GameCamera obj, string fileName, float start, float target, float onceLength)
+	public static void FOV(GameCamera obj, KEY_FRAME keyframe, float start, float target, float onceLength)
 	{
-		FOV_EX(obj, fileName, start, target, onceLength, false, 0.0f, null, null);
+		FOV_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
 	public static void FOV_EX(GameCamera obj, float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		FOV_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		FOV_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static void FOV_EX(GameCamera obj, string fileName, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
+	public static void FOV_EX(GameCamera obj, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return;
 		}
 		CommandCameraFOV cmd = newMainCmd(out cmd, false, false);
-		cmd.mName = fileName;
+		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartFOV = start;
 		cmd.mTargetFOV = target;
@@ -1658,20 +1658,20 @@ public class OT : FrameBase
 	}
 	public static void ORTHO_SIZE(GameCamera obj, float start, float target, float onceLength)
 	{
-		ORTHO_SIZE_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		ORTHO_SIZE_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
 	public static void ORTHO_SIZE_EX(GameCamera obj, float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		ORTHO_SIZE_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		ORTHO_SIZE_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static void ORTHO_SIZE_EX(GameCamera obj, string fileName, float startFOV, float targetFOV, float onceLength, bool loop, float offset, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
+	public static void ORTHO_SIZE_EX(GameCamera obj, KEY_FRAME keyframe, float startFOV, float targetFOV, float onceLength, bool loop, float offset, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return;
 		}
 		CommandCameraOrthoSize cmd = newMainCmd(out cmd, false, false);
-		cmd.mName = fileName;
+		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartOrthoSize = startFOV;
 		cmd.mTargetOrthoSize = targetFOV;
@@ -1719,48 +1719,48 @@ public class OT : FrameBase
 	}
 	public static void TIME(float start, float target, float onceLength)
 	{
-		TIME_EX(FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		TIME_EX(KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void TIME(string fileName, float start, float target, float onceLength)
+	public static void TIME(KEY_FRAME keyframe, float start, float target, float onceLength)
 	{
-		TIME_EX(fileName, start, target, onceLength, false, 0.0f, null, null);
+		TIME_EX(keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void TIME(string fileName, float start, float target, float onceLength, bool loop)
+	public static void TIME(KEY_FRAME keyframe, float start, float target, float onceLength, bool loop)
 	{
-		TIME_EX(fileName, start, target, onceLength, loop, 0.0f, null, null);
+		TIME_EX(keyframe, start, target, onceLength, loop, 0.0f, null, null);
 	}
-	public static void TIME(string fileName, float start, float target, float onceLength, bool loop, float offset)
+	public static void TIME(KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset)
 	{
-		TIME_EX(fileName, start, target, onceLength, loop, offset, null, null);
+		TIME_EX(keyframe, start, target, onceLength, loop, offset, null, null);
 	}
 	public static void TIME_EX(float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		TIME_EX(FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		TIME_EX(KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static void TIME_EX(float start, float target, float onceLength, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
 	{
-		TIME_EX(FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallBack, doneCallback);
+		TIME_EX(KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallBack, doneCallback);
 	}
 	public static void TIME_EX(float start, float target, float onceLength, float offsetTime, KeyFrameCallback doneCallback)
 	{
-		TIME_EX(FrameDefine.ZERO_ONE, start, target, onceLength, false, offsetTime, null, doneCallback);
+		TIME_EX(KEY_FRAME.ZERO_ONE, start, target, onceLength, false, offsetTime, null, doneCallback);
 	}
 	public static void TIME_EX(float start, float target, float onceLength, float offsetTime, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
 	{
-		TIME_EX(FrameDefine.ZERO_ONE, start, target, onceLength, false, offsetTime, doingCallBack, doneCallback);
+		TIME_EX(KEY_FRAME.ZERO_ONE, start, target, onceLength, false, offsetTime, doingCallBack, doneCallback);
 	}
-	public static void TIME_EX(string fileName, float start, float target, float onceLength, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
+	public static void TIME_EX(KEY_FRAME keyframe, float start, float target, float onceLength, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
 	{
-		TIME_EX(fileName, start, target, onceLength, false, 0.0f, doingCallBack, doneCallback);
+		TIME_EX(keyframe, start, target, onceLength, false, 0.0f, doingCallBack, doneCallback);
 	}
-	public static void TIME_EX(string fileName, float start, float target, float onceLength, bool loop, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
+	public static void TIME_EX(KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
 	{
-		TIME_EX(fileName, start, target, onceLength, loop, 0.0f, doingCallBack, doneCallback);
+		TIME_EX(keyframe, start, target, onceLength, loop, 0.0f, doingCallBack, doneCallback);
 	}
-	public static void TIME_EX(string fileName, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
+	public static void TIME_EX(KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
 	{
 		CommandTimeManagerScaleTime cmd = newMainCmd(out cmd, false, false);
-		cmd.mName = fileName;
+		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartScale = start;
 		cmd.mTargetScale = target;
@@ -1782,32 +1782,32 @@ public class OT : FrameBase
 	}
 	public static CommandTimeManagerScaleTime TIME_DELAY(float delayTime, float start, float target, float onceLength)
 	{
-		return TIME_DELAY_EX(delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		return TIME_DELAY_EX(delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
 	public static CommandTimeManagerScaleTime TIME_DELAY_EX(float delayTime, float start, float target, float onceLength, KeyFrameCallback moveDoneCallback)
 	{
-		return TIME_DELAY_EX(delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, moveDoneCallback);
+		return TIME_DELAY_EX(delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, moveDoneCallback);
 	}
 	public static CommandTimeManagerScaleTime TIME_DELAY_EX(float delayTime, float start, float target, float onceLength, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
 	{
-		return TIME_DELAY_EX(delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, movingCallback, moveDoneCallback);
+		return TIME_DELAY_EX(delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, movingCallback, moveDoneCallback);
 	}
-	public static CommandTimeManagerScaleTime TIME_DELAY_EX(float delayTime, string keyframe, float start, float target, float onceLength)
+	public static CommandTimeManagerScaleTime TIME_DELAY_EX(float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength)
 	{
 		return TIME_DELAY_EX(delayTime, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandTimeManagerScaleTime TIME_DELAY_EX(float delayTime, string keyframe, float start, float target, float onceLength, bool loop)
+	public static CommandTimeManagerScaleTime TIME_DELAY_EX(float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop)
 	{
 		return TIME_DELAY_EX(delayTime, keyframe, start, target, onceLength, loop, 0.0f, null, null);
 	}
-	public static CommandTimeManagerScaleTime TIME_DELAY_EX(float delayTime, string keyframe, float start, float target, float onceLength, bool loop, float offset)
+	public static CommandTimeManagerScaleTime TIME_DELAY_EX(float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset)
 	{
 		return TIME_DELAY_EX(delayTime, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
-	public static CommandTimeManagerScaleTime TIME_DELAY_EX(float delayTime, string keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
+	public static CommandTimeManagerScaleTime TIME_DELAY_EX(float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
 	{
 		CommandTimeManagerScaleTime cmd = newMainCmd(out cmd, false, true);
-		cmd.mName = keyframe;
+		cmd.mKeyframe = keyframe;
 		cmd.mStartScale = start;
 		cmd.mTargetScale = target;
 		cmd.mOnceLength = onceLength;
@@ -1933,49 +1933,49 @@ public class OT : FrameBase
 	}
 	public static void ALPHA(MovableObject obj, float start, float target, float onceLength)
 	{
-		ALPHA_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		ALPHA_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void ALPHA(MovableObject obj, string name, float start, float target, float onceLength)
+	public static void ALPHA(MovableObject obj, KEY_FRAME keyframe, float start, float target, float onceLength)
 	{
-		ALPHA_EX(obj, name, start, target, onceLength, false, 0.0f, null, null);
+		ALPHA_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void ALPHA(MovableObject obj, string name, float start, float target, float onceLength, bool loop)
+	public static void ALPHA(MovableObject obj, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop)
 	{
-		ALPHA_EX(obj, name, start, target, onceLength, loop, 0.0f, null, null);
+		ALPHA_EX(obj, keyframe, start, target, onceLength, loop, 0.0f, null, null);
 	}
-	public static void ALPHA(MovableObject obj, string name, float start, float target, float onceLength, bool loop, float offset)
+	public static void ALPHA(MovableObject obj, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset)
 	{
-		ALPHA_EX(obj, name, start, target, onceLength, loop, offset, null, null);
+		ALPHA_EX(obj, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
 	public static void ALPHA_EX(MovableObject obj, float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		ALPHA_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		ALPHA_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static void ALPHA_EX(MovableObject obj, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		ALPHA_EX(obj, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		ALPHA_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void ALPHA_EX(MovableObject obj, string name, float start, float target, float onceLength, KeyFrameCallback doneCallback)
+	public static void ALPHA_EX(MovableObject obj, KEY_FRAME keyframe, float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		ALPHA_EX(obj, name, start, target, onceLength, false, 0.0f, null, doneCallback);
+		ALPHA_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static void ALPHA_EX(MovableObject obj, string name, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void ALPHA_EX(MovableObject obj, KEY_FRAME keyframe, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		ALPHA_EX(obj, name, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		ALPHA_EX(obj, keyframe, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void ALPHA_EX(MovableObject obj, string name, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void ALPHA_EX(MovableObject obj, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return;
 		}
-		if (isEmpty(name) || isFloatZero(onceLength))
+		if (keyframe == KEY_FRAME.NONE || isFloatZero(onceLength))
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ALPHA(MovableObject obj, float alpha)");
 			return;
 		}
 		CommandMovableObjectAlpha cmd = newMainCmd(out cmd, false);
-		cmd.mName = name;
+		cmd.mKeyframe = keyframe;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
 		cmd.mOffset = offset;
@@ -2000,45 +2000,45 @@ public class OT : FrameBase
 	}
 	public static CommandMovableObjectAlpha ALPHA_DELAY(MovableObject obj, float delayTime, float start, float target, float onceLength)
 	{
-		return ALPHA_DELAY_EX(obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		return ALPHA_DELAY_EX(obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandMovableObjectAlpha ALPHA_DELAY(MovableObject obj, float delayTime, string keyframe, float start, float target, float onceLength)
+	public static CommandMovableObjectAlpha ALPHA_DELAY(MovableObject obj, float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength)
 	{
 		return ALPHA_DELAY_EX(obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandMovableObjectAlpha ALPHA_DELAY(MovableObject obj, float delayTime, string keyframe, float start, float target, float onceLength, bool loop)
+	public static CommandMovableObjectAlpha ALPHA_DELAY(MovableObject obj, float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop)
 	{
 		return ALPHA_DELAY_EX(obj, delayTime, keyframe, start, target, onceLength, loop, 0.0f, null, null);
 	}
-	public static CommandMovableObjectAlpha ALPHA_DELAY(MovableObject obj, float delayTime, string keyframe, float start, float target, float onceLength, bool loop, float offset)
+	public static CommandMovableObjectAlpha ALPHA_DELAY(MovableObject obj, float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset)
 	{
 		return ALPHA_DELAY_EX(obj, delayTime, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
 	public static CommandMovableObjectAlpha ALPHA_DELAY_EX(MovableObject obj, float delayTime, float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		return ALPHA_DELAY_EX(obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		return ALPHA_DELAY_EX(obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static CommandMovableObjectAlpha ALPHA_DELAY_EX(MovableObject obj, float delayTime, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		return ALPHA_DELAY_EX(obj, delayTime, FrameDefine.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		return ALPHA_DELAY_EX(obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CommandMovableObjectAlpha ALPHA_DELAY_EX(MovableObject obj, float delayTime, string keyframe, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CommandMovableObjectAlpha ALPHA_DELAY_EX(MovableObject obj, float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return ALPHA_DELAY_EX(obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CommandMovableObjectAlpha ALPHA_DELAY_EX(MovableObject obj, float delayTime, string keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CommandMovableObjectAlpha ALPHA_DELAY_EX(MovableObject obj, float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		if (isEmpty(keyframe) || isFloatZero(onceLength))
+		if (keyframe == KEY_FRAME.NONE || isFloatZero(onceLength))
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,CommandMovableObjectAlpha ALPHA_DELAY(MovableObject obj, float delayTime, float alpha)");
 			return null;
 		}
 		CommandMovableObjectAlpha cmd = newMainCmd(out cmd, false, true);
-		cmd.mName = keyframe;
+		cmd.mKeyframe = keyframe;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
 		cmd.mOffset = offset;

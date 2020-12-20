@@ -60,8 +60,8 @@ namespace ILRuntime.Runtime.Generated
 
             var result_of_this_method = instance_of_this_method.getGUID();
 
-            __ret->ObjectType = ObjectTypes.Integer;
-            __ret->Value = (int)result_of_this_method;
+            __ret->ObjectType = ObjectTypes.Long;
+            *(ulong*)&__ret->Value = result_of_this_method;
             return __ret + 1;
         }
 

@@ -24,12 +24,16 @@ public class InputManager : FrameSystem
 		mMouseDelta = mCurMousePosition - mLastMousePosition;
 		mLastMousePosition = mCurMousePosition;
 		bool inputting = false;
-		foreach (var item in mInputFieldList)
+		// 避免在列表为空时仍然会有GC,所以添加一个判断
+		if (mInputFieldList.Count > 0)
 		{
-			if (item.isVisible() && item.isFocused())
+			foreach (var item in mInputFieldList)
 			{
-				inputting = true;
-				break;
+				if (item.isVisible() && item.isFocused())
+				{
+					inputting = true;
+					break;
+				}
 			}
 		}
 		setMask(inputting ? FOCUS_MASK.UI : FOCUS_MASK.SCENE);

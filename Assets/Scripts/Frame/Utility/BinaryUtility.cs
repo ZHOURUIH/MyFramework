@@ -432,6 +432,21 @@ public class BinaryUtility
 		}
 		return true;
 	}
+	// readCount表示要读取的ulong个数,小于0表示使用数组长度
+	public static bool readULongs(byte[] buffer, ref int index, ulong[] destBuffer, int readCount = -1)
+	{
+		bool success;
+		int longCount = readCount < 0 ? destBuffer.Length : readCount;
+		for (int i = 0; i < longCount; ++i)
+		{
+			destBuffer[i] = readULong(buffer, ref index, out success);
+			if (!success)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
 	// readCount表示读取的float的数量,小于0表示使用数组的长度
 	public static bool readFloats(byte[] buffer, ref int index, float[] destBuffer, int readCount = -1)
 	{
@@ -710,6 +725,17 @@ public class BinaryUtility
 		for (int i = 0; i < count; ++i)
 		{
 			ret = writeLong(buffer, ref index, sourceBuffer[i]) && ret;
+		}
+		return ret;
+	}
+	// writeCount表示要写入的ulong的个数,小于0表示写入整个数组
+	public static bool writeULongs(byte[] buffer, ref int index, ulong[] sourceBuffer, int writeCount = -1)
+	{
+		bool ret = true;
+		int count = writeCount < 0 ? sourceBuffer.Length : writeCount;
+		for (int i = 0; i < count; ++i)
+		{
+			ret = writeULong(buffer, ref index, sourceBuffer[i]) && ret;
 		}
 		return ret;
 	}
@@ -1007,21 +1033,111 @@ public class BinaryUtility
 	{
 		return ((value & (1 << pos)) >> pos) & 1;
 	}
-	public static int getHightestBit(byte value)
+	public static int getBit(ushort value, int pos)
+	{
+		return ((value & (1 << pos)) >> pos) & 1;
+	}
+	public static int getBit(int value, int pos)
+	{
+		return ((value & (1 << pos)) >> pos) & 1;
+	}
+	public static int getBit(uint value, int pos)
+	{
+		return (int)(((value & (1 << pos)) >> pos) & 1);
+	}
+	public static int getBit(long value, int pos)
+	{
+		return (int)(((value & (1 << pos)) >> pos) & 1);
+	}
+	public static int getBit(ulong value, int pos)
+	{
+		return (int)(((value & (ulong)(1 << pos)) >> pos) & 1);
+	}
+	public static int getLowestBit(byte value)
+	{
+		return value & 1;
+	}
+	public static int getLowestBit(short value)
+	{
+		return value & 1;
+	}
+	public static int getLowestBit(int value)
+	{
+		return value & 1;
+	}
+	public static int getHighestBit(byte value)
 	{
 		return (value & ~0x7F) >> (8 * sizeof(byte) - 1) & 1;
 	}
-	public static int getHightestBit(short value)
+	public static int getHighestBit(short value)
 	{
 		return (value & ~0x7FFF) >> (8 * sizeof(short) - 1) & 1;
 	}
-	public static int getHightestBit(int value)
+	public static int getHighestBit(int value)
 	{
 		return (value & ~0x7FFFFFFF) >> (8 * sizeof(int) - 1) & 1;
 	}
 	public static void setBit(ref byte value, int pos, int bit)
 	{
 		value = (byte)(value & ~(1 << pos) | (bit << pos));
+	}
+	public static void setBit(ref short value, int pos, int bit)
+	{
+		value = (short)(value & ~(1 << pos) | (bit << pos));
+	}
+	public static void setBit(ref ushort value, int pos, int bit)
+	{
+		value = (ushort)(value & ~(1 << pos) | (bit << pos));
+	}
+	public static void setBit(ref int value, int pos, int bit)
+	{
+		value = value & ~(1 << pos) | (bit << pos);
+	}
+	public static void setBit(ref uint value, int pos, int bit)
+	{
+		value = (uint)(value & ~(1 << pos) | (uint)(bit << pos));
+	}
+	public static void setBit(ref long value, int pos, int bit)
+	{
+		value = (value & ~(1 << pos) | (long)(bit << pos));
+	}
+	public static void setBit(ref ulong value, int pos, int bit)
+	{
+		value = (ulong)((long)(value & (ulong)~(1 << pos)) | (long)(bit << pos));
+	}
+	public static void setLowestBit(ref byte value, int bit)
+	{
+		if (bit == 0)
+		{
+			value = (byte)(value & 0xFE);
+		}
+		else
+		{
+			value = (byte)(value | 1);
+		}
+	}
+	public static void setLowestBit(ref short value, int bit)
+	{
+		if (bit == 0)
+		{
+			value = (short)(value & 0xFFFE);
+		}
+		else
+		{
+			value = (short)(value | 1);
+		}
+	}
+	public static void setLowestBit(ref int value, int bit)
+	{
+		if (bit == 0)
+		{
+			value >>= 1;
+			value <<= 1;
+		}
+		else
+		{
+			value |= 1;
+		}
 	}
 	public static void setHighestBit(ref byte value, int bit)
 	{
@@ -1049,7 +1165,7 @@ public class BinaryUtility
 	{
 		if (bit == 0)
 		{
-			value = value & 0x7FFFFFFF;
+			value &= 0x7FFFFFFF;
 		}
 		else
 		{

@@ -1,20 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-
-// 降序排序
-public struct ChildDepthSort
-{
-	public static int compareZDecending(Transform a, Transform b)
-	{
-		return (int)MathUtility.sign(b.localPosition.z - a.localPosition.z);
-	}
-}
+using System;
 
 public class myUGUIObject : myUIObject
 {
 	protected RectTransform mRectTransform;
 	protected float mDefaultAlpha;
+	protected static Comparison<Transform> mCompareDescend = compareZDecending;
 	public override void init()
 	{
 		base.init();
@@ -65,8 +58,6 @@ public class myUGUIObject : myUIObject
 			setUGUIChildAlpha(mObject, alpha);
 		}
 	}
-	public void setDepthInParent(int depth){mTransform.SetSiblingIndex(depth);}
-	public int getDepthInParent(){return mTransform.GetSiblingIndex();}
 	public void refreshChildDepthByPositionZ()
 	{
 		// z值越大的子节点越靠后
@@ -77,12 +68,17 @@ public class myUGUIObject : myUIObject
 		{
 			tempList.Add(mTransform.GetChild(i));
 		}
-		tempList.Sort(ChildDepthSort.compareZDecending);
+		quickSort(tempList, mCompareDescend);
 		int count = tempList.Count;
 		for (int i = 0; i < count; ++i)
 		{
 			tempList[i].SetSiblingIndex(i);
 		}
 		mListPool.destroyList(tempList);
+	}
+	//--------------------------------------------------------------------------------------------------------
+	protected static int compareZDecending(Transform a, Transform b)
+	{
+		return (int)sign(b.localPosition.z - a.localPosition.z);
 	}
 }

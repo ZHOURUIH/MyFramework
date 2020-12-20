@@ -10,7 +10,7 @@ public class StringUtility : BinaryUtility
 	private static List<int> mTempIntList = new List<int>();
 	private static List<float> mTempFloatList = new List<float>();
 	private static List<string> mTempStringList = new List<string>();
-	public const string EMPTY_STRING = "";
+	public const string EMPTY = "";
 	// 只能使用{index}拼接
 	public static string format(string format, params string[] args)
 	{
@@ -23,7 +23,7 @@ public class StringUtility : BinaryUtility
 				break;
 			}
 			format = replaceAll(format, str, args[index]);
-			index++;
+			++index;
 		}
 		return format;
 	}
@@ -395,7 +395,7 @@ public class StringUtility : BinaryUtility
 		{
 			return str.Substring(0, firstPos);
 		}
-		return EMPTY_STRING;
+		return EMPTY;
 	}
 	// 从文件路径中得到最后一级的文件夹名
 	public static string getFolderName(string str)
@@ -426,7 +426,7 @@ public class StringUtility : BinaryUtility
 		{
 			return fileName.Substring(0, lastPos);
 		}
-		return EMPTY_STRING;
+		return EMPTY;
 	}
 	public static string getFileName(string str)
 	{
@@ -446,7 +446,7 @@ public class StringUtility : BinaryUtility
 		{
 			return file.Substring(dotPos);
 		}
-		return EMPTY_STRING;
+		return EMPTY;
 	}
 	public static string getFileNameNoSuffix(string str, bool removeDir = false)
 	{
@@ -575,7 +575,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static string floatArrayToString(float[] values, string seperate = ",")
 	{
-		string str = EMPTY_STRING;
+		string str = EMPTY;
 		int count = values.Length;
 		for (int i = 0; i < count; ++i)
 		{
@@ -589,7 +589,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static string floatArrayToString(List<float> values, string seperate = ",")
 	{
-		string str = EMPTY_STRING;
+		string str = EMPTY;
 		int count = values.Count;
 		for (int i = 0; i < count; ++i)
 		{
@@ -704,6 +704,29 @@ public class StringUtility : BinaryUtility
 			values.Add((ushort)stringToInt(rangeList[i]));
 		}
 	}
+	public static void stringToBoolArray(string str, List<bool> values, string seperate = ",")
+	{
+		if (values == null)
+		{
+			UnityUtility.logError("values can not be null");
+			return;
+		}
+		values.Clear();
+		if (isEmpty(str))
+		{
+			return;
+		}
+		string[] rangeList = split(str, true, seperate);
+		if (rangeList == null)
+		{
+			return;
+		}
+		int len = rangeList.Length;
+		for (int i = 0; i < len; ++i)
+		{
+			values.Add(stringToInt(rangeList[i]) > 0);
+		}
+	}
 	public static void stringToByteArray(string str, List<byte> values, string seperate = ",")
 	{
 		if (values == null)
@@ -752,7 +775,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static string intArrayToString(int[] values, string seperate = ",")
 	{
-		string str = EMPTY_STRING;
+		string str = EMPTY;
 		int count = values.Length;
 		for (int i = 0; i < count; ++i)
 		{
@@ -766,7 +789,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static string intArrayToString(List<int> values, string seperate = ",")
 	{
-		string str = EMPTY_STRING;
+		string str = EMPTY;
 		int count = values.Count;
 		for (int i = 0; i < count; ++i)
 		{
@@ -780,7 +803,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static string stringArrayToString(List<string> values, string seperate = ",")
 	{
-		string str = EMPTY_STRING;
+		string str = EMPTY;
 		int count = values.Count;
 		for (int i = 0; i < count; ++i)
 		{
@@ -794,7 +817,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static string stringArrayToString(string[] values, string seperate = ",")
 	{
-		string str = EMPTY_STRING;
+		string str = EMPTY;
 		int count = values.Length;
 		for (int i = 0; i < count; ++i)
 		{
@@ -906,6 +929,28 @@ public class StringUtility : BinaryUtility
 	public static bool stringToBool(string str)
 	{
 		return str == "true" || str == "True" || str == "TRUE";
+	}
+	public static string intToChineseString(int value)
+	{
+		// 1000万
+		string str = EMPTY;
+		// 大于1亿
+		if(value >= 100000000)
+		{
+			str += value / 100000000 + "亿";
+			value %= 100000000;
+		}
+		// 大于1万
+		if(value >= 10000)
+		{
+			str += value / 10000 + "万";
+			value %= 10000;
+		}
+		if(value > 0)
+		{
+			str += value;
+		}
+		return str;
 	}
 	// limitLen表示返回字符串的最低数字个数,等于0表示不限制个数,大于0表示如果转换后的数字数量不足limitLen个,则在前面补0
 	public static string intToString(int value, int limitLen = 0)
@@ -1038,7 +1083,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static string checkString(string str, string valid)
 	{
-		string newString = EMPTY_STRING;
+		string newString = EMPTY;
 		int validCount = valid.Length;
 		int oldStrLen = str.Length;
 		for (int i = 0; i < oldStrLen; ++i)
@@ -1059,15 +1104,15 @@ public class StringUtility : BinaryUtility
 		}
 		return newString;
 	}
-	public static string checkFloatString(string str, string valid = EMPTY_STRING)
+	public static string checkFloatString(string str, string valid = EMPTY)
 	{
 		return checkIntString(str, "." + valid);
 	}
-	public static string checkIntString(string str, string valid = EMPTY_STRING)
+	public static string checkIntString(string str, string valid = EMPTY)
 	{
 		return checkString(str, "-0123456789" + valid);
 	}
-	public static string checkUIntString(string str, string valid = EMPTY_STRING)
+	public static string checkUIntString(string str, string valid = EMPTY)
 	{
 		return checkString(str, "0123456789" + valid);
 	}
@@ -1087,7 +1132,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static string bytesToHEXString(byte[] byteList, bool addSpace = true, bool upperOrLower = true, int count = 0)
 	{
-		string byteString = EMPTY_STRING;
+		string byteString = EMPTY;
 		int byteCount = count > 0 ? count : byteList.Length;
 		byteCount = MathUtility.getMin(byteList.Length, byteCount);
 		for (int i = 0; i < byteCount; ++i)
@@ -1109,7 +1154,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static string byteToHEXString(byte value, bool upperOrLower = true)
 	{
-		string hexString = EMPTY_STRING;
+		string hexString = EMPTY;
 		char[] hexChar = upperOrLower ? mHexUpperChar : mHexLowerChar;
 		int high = value / 16;
 		int low = value % 16;
@@ -1210,7 +1255,7 @@ public class StringUtility : BinaryUtility
 	{
 		if (isEmpty(str))
 		{
-			return "";
+			return EMPTY;
 		}
 		return "<color=#" + color + ">" + str + "</color>";
 	}

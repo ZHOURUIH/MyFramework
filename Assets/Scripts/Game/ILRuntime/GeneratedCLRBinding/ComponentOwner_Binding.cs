@@ -31,33 +31,24 @@ namespace ILRuntime.Runtime.Generated
             args = new Type[]{typeof(global::GameComponent)};
             method = type.GetMethod("notifyAddComponent", flag, null, args, null);
             app.RegisterCLRMethodRedirection(method, notifyAddComponent_2);
-            args = new Type[]{typeof(global::GameComponent)};
-            method = type.GetMethod("notifyComponentDetached", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, notifyComponentDetached_3);
-            args = new Type[]{typeof(global::GameComponent)};
-            method = type.GetMethod("notifyComponentAttached", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, notifyComponentAttached_4);
-            args = new Type[]{typeof(global::GameComponent)};
-            method = type.GetMethod("notifyComponentDestroied", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, notifyComponentDestroied_5);
             args = new Type[]{typeof(System.Boolean), typeof(System.Boolean)};
             method = type.GetMethod("setIgnoreTimeScale", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, setIgnoreTimeScale_6);
+            app.RegisterCLRMethodRedirection(method, setIgnoreTimeScale_3);
             args = new Type[]{typeof(System.Boolean)};
             method = type.GetMethod("setActive", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, setActive_7);
+            app.RegisterCLRMethodRedirection(method, setActive_4);
             args = new Type[]{typeof(System.Single)};
             method = type.GetMethod("update", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, update_8);
+            app.RegisterCLRMethodRedirection(method, update_5);
             args = new Type[]{typeof(System.Single)};
             method = type.GetMethod("fixedUpdate", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, fixedUpdate_9);
+            app.RegisterCLRMethodRedirection(method, fixedUpdate_6);
             args = new Type[]{};
             method = type.GetMethod("resetProperty", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, resetProperty_10);
+            app.RegisterCLRMethodRedirection(method, resetProperty_7);
             args = new Type[]{};
             method = type.GetMethod("destroy", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, destroy_11);
+            app.RegisterCLRMethodRedirection(method, destroy_8);
 
 
         }
@@ -127,64 +118,7 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* notifyComponentDetached_3(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 2);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            global::GameComponent @component = (global::GameComponent)typeof(global::GameComponent).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            global::ComponentOwner instance_of_this_method = (global::ComponentOwner)typeof(global::ComponentOwner).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            instance_of_this_method.notifyComponentDetached(@component);
-
-            return __ret;
-        }
-
-        static StackObject* notifyComponentAttached_4(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 2);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            global::GameComponent @component = (global::GameComponent)typeof(global::GameComponent).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            global::ComponentOwner instance_of_this_method = (global::ComponentOwner)typeof(global::ComponentOwner).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            instance_of_this_method.notifyComponentAttached(@component);
-
-            return __ret;
-        }
-
-        static StackObject* notifyComponentDestroied_5(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 2);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            global::GameComponent @component = (global::GameComponent)typeof(global::GameComponent).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            global::ComponentOwner instance_of_this_method = (global::ComponentOwner)typeof(global::ComponentOwner).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            instance_of_this_method.notifyComponentDestroied(@component);
-
-            return __ret;
-        }
-
-        static StackObject* setIgnoreTimeScale_6(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* setIgnoreTimeScale_3(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -205,7 +139,7 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* setActive_7(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* setActive_4(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -223,7 +157,7 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* update_8(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* update_5(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -241,7 +175,7 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* fixedUpdate_9(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* fixedUpdate_6(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -259,7 +193,7 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* resetProperty_10(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* resetProperty_7(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -274,7 +208,7 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* destroy_11(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* destroy_8(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;

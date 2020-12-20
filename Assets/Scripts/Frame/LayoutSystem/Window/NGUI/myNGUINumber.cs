@@ -56,15 +56,15 @@ public class myNGUINumber : myNGUISprite
 		{
 			mSpriteNameList[i] = mNumberStyle + "_" + intToString(i);
 			// 在atlas中查找对应名字的图片
-			if (mTempSpriteMap.ContainsKey(mSpriteNameList[i]))
+			if (mTempSpriteMap.TryGetValue(mSpriteNameList[i], out UISpriteData spriteData))
 			{
-				mSpriteDataList[i] = mTempSpriteMap[mSpriteNameList[i]];
+				mSpriteDataList[i] = spriteData;
 			}
 		}
 		mSpriteNameList[10] = mNumberStyle + "_dot";
-		if (mTempSpriteMap.ContainsKey(mSpriteNameList[10]))
+		if (mTempSpriteMap.TryGetValue(mSpriteNameList[10], out UISpriteData spriteData))
 		{
-			mSpriteDataList[10] = mTempSpriteMap[mSpriteNameList[10]];
+			mSpriteDataList[10] = spriteData;
 		}
 		setMaxCount(10);
 		mSprite.spriteName = EMPTY_STRING;

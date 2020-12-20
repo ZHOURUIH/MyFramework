@@ -7,16 +7,16 @@ public class ObjectInfo : FrameBase, IClassObject
 {
 	public GameObject mObject;
 	public string mFileWithPath;
-	public string mTag;
+	public int mTag;
 	public bool mUsing;
 	public bool isUsing() { return mUsing; }
 	public void setUsing(bool value) { mUsing = value; }
-	public void setTag(string tag) { mTag = tag; }
-	public string getTag() { return mTag; }
+	public void setTag(int tag) { mTag = tag; }
+	public int getTag() { return mTag; }
 	// 创建物体,只能同步执行
 	public void createObject(GameObject prefab, string fileWithPath)
 	{
-		mObject = instantiatePrefab(null, prefab, true);
+		mObject = instantiatePrefab(null, prefab, getFileName(prefab.name), true);
 		mObject.name = getFileNameNoSuffix(fileWithPath, true);
 		mFileWithPath = fileWithPath;
 	}
@@ -30,6 +30,6 @@ public class ObjectInfo : FrameBase, IClassObject
 		mObject = null;
 		mFileWithPath = null;
 		mUsing = false;
-		mTag = null;
+		mTag = 0;
 	}
 }

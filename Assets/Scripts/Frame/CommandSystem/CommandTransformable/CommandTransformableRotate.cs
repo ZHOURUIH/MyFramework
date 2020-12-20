@@ -7,7 +7,7 @@ public class CommandTransformableRotate : Command
 	public KeyFrameCallback mTrembleDoneCallBack;
 	public Vector3 mStartRotation;
 	public Vector3 mTargetRotation;
-	public string mName;
+	public KEY_FRAME mKeyframe;
 	public float mOnceLength;
 	public float mAmplitude;
 	public float mOffset;
@@ -21,7 +21,7 @@ public class CommandTransformableRotate : Command
 		mTrembleDoneCallBack = null;
 		mStartRotation = Vector3.zero;
 		mTargetRotation = Vector3.zero;
-		mName = null;
+		mKeyframe = KEY_FRAME.NONE;
 		mOnceLength = 1.0f;
 		mAmplitude = 1.0f;
 		mOffset = 0.0f;
@@ -44,7 +44,7 @@ public class CommandTransformableRotate : Command
 		}
 		component.setTargetRotation(mTargetRotation);
 		component.setStartRotation(mStartRotation);
-		component.play(mName, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
+		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
 		if (component.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
@@ -53,7 +53,7 @@ public class CommandTransformableRotate : Command
 	}
 	public override string showDebugInfo()
 	{
-		return base.showDebugInfo() + ": mName:" + mName + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mLoop:" + mLoop +
+		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mLoop:" + mLoop +
 			", mAmplitude:" + mAmplitude + ", mFullOnce:" + mFullOnce + ", mRandomOffset:" + mRandomOffset + ", mStartRotation:" + mStartRotation
 			+ ", mTargetRotation:" + mTargetRotation;
 	}

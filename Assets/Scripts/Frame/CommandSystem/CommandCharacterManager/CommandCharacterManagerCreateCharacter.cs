@@ -4,10 +4,10 @@ using System;
 
 public class CommandCharacterManagerCreateCharacter : Command
 {
+	public ulong mID;
 	public Type mCharacterType;
 	public string mName;
 	public bool mCreateNode;
-	public uint mID;
 	public override void init()
 	{
 		base.init();

@@ -582,7 +582,7 @@ public class WindowComponentDragView : GameComponent
 			horiValid = false;
 			if(minPos.x <= maxPos.x)
 			{
-				horiValid = isInRange(position.x, minValue, maxValue);
+				horiValid = inRange(position.x, minValue, maxValue);
 				if(!horiValid)
 				{
 					float x = position.x;
@@ -610,7 +610,7 @@ public class WindowComponentDragView : GameComponent
 			vertValid = false;
 			if(minPos.y <= maxPos.y)
 			{
-				vertValid = isInRange(position.y, minValue, maxValue);
+				vertValid = inRange(position.y, minValue, maxValue);
 				if(!vertValid)
 				{
 					float y = position.y;

@@ -11,7 +11,6 @@ public class Command : GameBase
 	public CommandReceiver mReceiver;   // 命令接受者
 	public Type mType;					// 命令类型
 	public BOOL mResult;				// 命令的执行结果,只用于部分需要知道执行结果的命令使用
-	public string mFile;				// 命令发出代码文件名
 	public object mUserData;			// 用作传参,可在命令回调中使用Command.mUserData获取
 	public float mDelayTime;			// 命令当前延迟时间
 	public bool mShowDebugInfo;			// 是否显示调试信息
@@ -20,7 +19,6 @@ public class Command : GameBase
 	public bool mIgnoreTimeScale;		// 命令的延迟时间是否不受时间缩放影响
 	public int mCmdID;					// 命令ID,每一个命令对象拥有一个唯一ID
 	public int mAssignID;				// 重新分配时的ID,每次分配都会设置一个新的唯一执行ID
-	public int mLine;					// 命令发出的代码行号
 	public Command()
 	{
 		mEndCallback = new List<CommandCallback>();
@@ -83,17 +81,19 @@ public class Command : GameBase
 	}
 	public void runEndCallBack()
 	{
-		foreach(var item in mEndCallback)
+		int count = mEndCallback.Count;
+		for(int i = 0; i < count; ++i)
 		{
-			item(this);
+			mEndCallback[i](this);
 		}
 		mEndCallback.Clear();
 	}
 	public void runStartCallBack()
 	{
-		foreach (var item in mStartCallback)
+		int count = mStartCallback.Count;
+		for(int i = 0; i < count; ++i)
 		{
-			item(this);
+			mStartCallback[i](this);
 		}
 		mStartCallback.Clear();
 	}

@@ -33,19 +33,16 @@ public class ShaderManager : FrameSystem
 	}
 	public Shader getShader(string name)
 	{
-		if(mShaderList.ContainsKey(name))
+		if (mShaderList.TryGetValue(name, out Shader shader))
 		{
-			return mShaderList[name];
+			return shader;
 		}
-		Shader shader = Shader.Find(name);
-		if(shader != null)
-		{
-			mShaderList.Add(name, shader);
-		}
-		else
+		shader = Shader.Find(name);
+		if (shader == null)
 		{
 			logError("can not find shader : " + name);
 		}
+		mShaderList.Add(name, shader);
 		return shader;
 	}
 	public bool isSingleShader(string shaderName)

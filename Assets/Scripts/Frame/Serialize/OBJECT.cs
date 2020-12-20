@@ -13,4 +13,5 @@ public abstract class OBJECT : FrameBase
 	public virtual void setVariableLength(bool variable) {}
 	public virtual bool getVariableLength() { return false; }
 	public virtual int getSize() { return mSize; }
+	public virtual void setIntReplaceULLong(bool replace) { }
 }

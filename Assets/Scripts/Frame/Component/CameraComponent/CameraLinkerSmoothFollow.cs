@@ -72,19 +72,19 @@ public class CameraLinkerSmoothFollow : CameraLinker
 	{
 		CheckLayer checkLayer = new CheckLayer(layer, direction, checkDistance, minDistance);
 		mCheckLayer.Add(checkLayer);
-		if (!mCheckDirectionList.ContainsKey(direction))
+		if (!mCheckDirectionList.TryGetValue(direction, out List<CheckLayer> layerList))
 		{
-			mCheckDirectionList.Add(direction, new List<CheckLayer>());
+			layerList = new List<CheckLayer>();
+			mCheckDirectionList.Add(direction, layerList);
 		}
-		mCheckDirectionList[direction].Add(checkLayer);
+		layerList.Add(checkLayer);
 	}
 	public void removeCheckLayer(int layer, CHECK_DIRECTION direction)
 	{
-		if (!mCheckDirectionList.ContainsKey(direction))
+		if (!mCheckDirectionList.TryGetValue(direction, out List<CheckLayer> layerList))
 		{
 			return;
 		}
-		var layerList = mCheckDirectionList[direction];
 		int count = layerList.Count;
 		for (int i = 0; i < count; ++i)
 		{
@@ -117,16 +117,16 @@ public class CameraLinkerSmoothFollow : CameraLinker
 				int count = layerList.Count;
 				for (int i = 0; i < count; ++i)
 				{
-					ray.origin = nextPos - layerList[i].mDirectionVector;
-					ray.direction = layerList[i].mDirectionVector;
-					RaycastHit hit;
-					if (Physics.Raycast(ray, out hit, layerList[i].mCheckDistance, 1 << layerList[i].mLayerIndex))
+					CheckLayer layer = layerList[i];
+					ray.origin = nextPos - layer.mDirectionVector;
+					ray.direction = layer.mDirectionVector;
+					if (Physics.Raycast(ray, out RaycastHit hit, layer.mCheckDistance, 1 << layer.mLayerIndex))
 					{
 						// 如果有碰撞到物体,交点距离在一定范围内
 						Vector3 hitPoint = ray.origin + ray.direction * hit.distance;
-						if (lengthLess(nextPos - hitPoint, layerList[i].mMinDistance))
+						if (lengthLess(nextPos - hitPoint, layer.mMinDistance))
 						{
-							nextPos = hitPoint - layerList[i].mDirectionVector * layerList[i].mMinDistance;
+							nextPos = hitPoint - layer.mDirectionVector * layer.mMinDistance;
 						}
 					}
 				}

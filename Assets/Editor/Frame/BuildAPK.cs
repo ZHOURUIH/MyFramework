@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
-using System.IO;
 using UnityEngine;
 using UnityEditor;
 
@@ -10,8 +8,8 @@ public class BuildAPK : EditorCommonUtility
 {
 	public static void buildAndroidAPK()
 	{
-		string locationPath = "";
-		string[] lines = StringUtility.split(Environment.CommandLine, true, " ");
+		string locationPath = EMPTY;
+		string[] lines = split(Environment.CommandLine, true, " ");
 		for(int i = 0; i < lines.Length; ++i)
 		{
 			string cmdName = lines[i];
@@ -23,28 +21,28 @@ public class BuildAPK : EditorCommonUtility
 					return;
 				}
 				string cmdValue = lines[i + 1];
-				string apkFile = StringUtility.getFileName(cmdValue);
-				if(!StringUtility.endWith(apkFile, ".apk"))
+				string apkFile = getFileName(cmdValue);
+				if(!endWith(apkFile, ".apk"))
 				{
 					Debug.LogError("文件名错误,应该保存为apk格式的文件");
 					return;
 				}
 				// 创建路径
-				string filePath = StringUtility.getFilePath(cmdValue);
-				if (!FileUtility.isDirExist(filePath))
+				string filePath = getFilePath(cmdValue);
+				if (!isDirExist(filePath))
 				{
-					FileUtility.createDir(filePath);
+					createDir(filePath);
 				}
 				// 删除已存在的文件
-				if(FileUtility.isFileExist(cmdValue))
+				if(isFileExist(cmdValue))
 				{
-					FileUtility.deleteFile(cmdValue);
+					deleteFile(cmdValue);
 				}
 				locationPath = cmdValue;
 				break;
 			}
 		}
-		if(locationPath == "")
+		if(locationPath == EMPTY)
 		{
 			Debug.LogError("没有找到-apkpath参数");
 			return;

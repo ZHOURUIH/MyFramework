@@ -62,8 +62,10 @@ public class GamePluginManager : FrameSystem
 		{
 			Assembly assembly = Assembly.Load(rawDll);
 			Type[] types = assembly.GetTypes();
-			foreach (var type in types)
+			int count = types.Length;
+			for(int i = 0; i < count; ++i)
 			{
+				Type type = types[i];
 				if (type.GetInterfaces().Length > 0)
 				{
 					var instance = assembly.CreateInstance(type.FullName) as IGamePlugin;

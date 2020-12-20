@@ -5,53 +5,65 @@ using System.Collections.Generic;
 public abstract class SerializedData : GameBase
 {
 	protected List<OBJECT> mParameterInfoList;
-	protected int mMaxDataSize;
+	protected int mReadDataSize;            // 写入数据时,总共写入的数据大小
+	protected int mMaxDataSize;				// 包体最大的大小,包括如果不使用变长数组时的大小
+	protected bool mIntReplaceULLong;       // 如果ullong的值小于int最大值,是否在序列化时写入或读取int
 	public SerializedData()
 	{
 		mMaxDataSize = 0;
 		mParameterInfoList = new List<OBJECT>();
+		mIntReplaceULLong = true;
 	}
-	public bool read(byte[] buffer, int offset = 0)
+	public int read(byte[] buffer, int offset = 0)
 	{
 		return read(buffer, ref offset);
 	}
-	// 从buffer中读取数据到所有参数中
-	public bool read(byte[] buffer, ref int offset)
+	// 从buffer中读取数据到所有参数中,返回值表示读取的字节数,小于0表示读取失败
+	public int read(byte[] buffer, ref int offset)
 	{
 		if(buffer == null)
 		{
-			return false;
+			return -1;
 		}
+		int startOffset = offset;
 		int parameterCount = mParameterInfoList.Count;
 		for (int i = 0; i < parameterCount; ++i)
 		{
-			if(!mParameterInfoList[i].readFromBuffer(buffer, ref offset))
+			if (!mParameterInfoList[i].readFromBuffer(buffer, ref offset))
 			{
-				return false;
+				return -1;
 			}
 		}
-		return true;
+		mReadDataSize = offset - startOffset;
+		return mReadDataSize;
 	}
-	public bool write(byte[] buffer, int offset = 0)
+	public int getReadDataSize() { return mReadDataSize; }
+	public int write(byte[] buffer, int offset = 0)
 	{
 		return write(buffer, ref offset);
 	}
 	// 将所有参数的值写入buffer
-	public bool write(byte[] buffer, ref int offset)
+	public int write(byte[] buffer, ref int offset)
 	{
+		int startOffset = offset;
 		int parameterCount = mParameterInfoList.Count;
 		for (int i = 0; i < parameterCount; ++i)
 		{
 			if(!mParameterInfoList[i].writeToBuffer(buffer, ref offset))
 			{
-				return false;
+				return -1;
 			}
 		}
-		return true;
+		return offset - startOffset;
 	}
 	public int getMaxSize() { return mMaxDataSize; }
-	public int generateSize()
+	public int generateSize(bool ignoreReplace = false)
 	{
+		if (!ignoreReplace && mIntReplaceULLong)
+		{
+			logError("当前使用了运行时动态整数类型,只能在序列化时才能获取大小");
+			return 0;
+		}
 		int size = 0;
 		int parameterCount = mParameterInfoList.Count;
 		for (int i = 0; i < parameterCount; ++i)
@@ -86,6 +98,7 @@ public abstract class SerializedData : GameBase
 			return;
 		}
 		param.setVariableLength(variableLength);
+		param.setIntReplaceULLong(mIntReplaceULLong);
 		mParameterInfoList.Add(param);
 	}
 }

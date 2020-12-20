@@ -57,7 +57,7 @@ public static class ILRLaunch
 		delegateManager.RegisterMethodDelegate<Command>();
 		delegateManager.RegisterMethodDelegate<AssetBundleInfo, object>();
 		delegateManager.RegisterMethodDelegate<ComponentLerp, bool>();
-		delegateManager.RegisterMethodDelegate<UnityEngine.Object, UnityEngine.Object[], byte[], object[], string>();
+		delegateManager.RegisterMethodDelegate<UnityEngine.Object, UnityEngine.Object[], byte[], object, string>();
 		delegateManager.RegisterMethodDelegate<float>();
 		delegateManager.RegisterMethodDelegate<float, bool>();
 		delegateManager.RegisterMethodDelegate<GameLayout>();
@@ -112,7 +112,7 @@ public static class ILRLaunch
 		});
 		delegateManager.RegisterDelegateConvertor<AssetLoadDoneCallback>((action) =>
 		{
-			return new AssetLoadDoneCallback((asset, assets, bytes, userData, loadPath) => { ((Action<UnityEngine.Object, UnityEngine.Object[], byte[], object[], string>)action)(asset, assets, bytes, userData, loadPath); });
+			return new AssetLoadDoneCallback((asset, assets, bytes, userData, loadPath) => { ((Action<UnityEngine.Object, UnityEngine.Object[], byte[], object, string>)action)(asset, assets, bytes, userData, loadPath); });
 		});
 		delegateManager.RegisterDelegateConvertor<SceneLoadCallback>((action) =>
 		{
@@ -217,13 +217,13 @@ public static class ILRLaunch
 		{
 			return new MyThreadCallback((ref bool allowDrag) => { ((Action<bool>)action)(allowDrag); });
 		});
-		delegateManager.RegisterDelegateConvertor<onPlayingCallback>((action) =>
+		delegateManager.RegisterDelegateConvertor<OnPlayingCallback>((action) =>
 		{
-			return new onPlayingCallback((control, frame, isPlaying) => { ((Action<AnimControl, int, bool>)action)(control, frame, isPlaying); });
+			return new OnPlayingCallback((control, frame, isPlaying) => { ((Action<AnimControl, int, bool>)action)(control, frame, isPlaying); });
 		});
-		delegateManager.RegisterDelegateConvertor<onPlayEndCallback>((action) =>
+		delegateManager.RegisterDelegateConvertor<OnPlayEndCallback>((action) =>
 		{
-			return new onPlayEndCallback((control, callback, isBreak) => { ((Action<AnimControl, bool, bool>)action)(control, callback, isBreak); });
+			return new OnPlayEndCallback((control, callback, isBreak) => { ((Action<AnimControl, bool, bool>)action)(control, callback, isBreak); });
 		});
 		delegateManager.RegisterDelegateConvertor<OnDraging>((action) =>
 		{

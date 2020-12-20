@@ -97,20 +97,20 @@ namespace ILRuntime.Runtime.Generated
         static StackObject* CopyToStack_mID_2(ref object o, ILIntepreter __intp, StackObject* __ret, IList<object> __mStack)
         {
             var result_of_this_method = ((global::CommandCharacterManagerCreateCharacter)o).mID;
-            __ret->ObjectType = ObjectTypes.Integer;
-            __ret->Value = (int)result_of_this_method;
+            __ret->ObjectType = ObjectTypes.Long;
+            *(ulong*)&__ret->Value = result_of_this_method;
             return __ret + 1;
         }
 
         static void set_mID_2(ref object o, object v)
         {
-            ((global::CommandCharacterManagerCreateCharacter)o).mID = (System.UInt32)v;
+            ((global::CommandCharacterManagerCreateCharacter)o).mID = (System.UInt64)v;
         }
 
         static StackObject* AssignFromStack_mID_2(ref object o, ILIntepreter __intp, StackObject* ptr_of_this_method, IList<object> __mStack)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            System.UInt32 @mID = (uint)ptr_of_this_method->Value;
+            System.UInt64 @mID = *(ulong*)&ptr_of_this_method->Value;
             ((global::CommandCharacterManagerCreateCharacter)o).mID = @mID;
             return ptr_of_this_method;
         }

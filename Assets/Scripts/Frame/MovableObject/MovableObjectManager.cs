@@ -15,9 +15,10 @@ public class MovableObjectManager : FrameSystem
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		foreach(var item in mMovableObjectOrderList)
+		int count = mMovableObjectOrderList.Count;
+		for(int i = 0; i < count; ++i)
 		{
-			item.update(elapsedTime);
+			mMovableObjectOrderList[i].update(elapsedTime);
 		}
 	}
 	public MovableObject createMovableObject(GameObject go, bool autoDestroyObject)

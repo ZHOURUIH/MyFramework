@@ -14,9 +14,9 @@ public class TransformableComponentMoveParabola : ComponentKeyFrameNormal, IComp
 	public void setTargetPos(Vector3 pos) { mTargetPos = pos; }
 	public void setStartPos(Vector3 pos) { mStartPos = pos; }
 	public void setTopHeight(float top) { mTopHeight = abs(top); }
-	public override void play(string name, bool loop, float onceLength, float offset, bool fullOnce, float amplitude)
+	public override void play(int keyframe, bool loop, float onceLength, float offset, bool fullOnce, float amplitude)
 	{
-		base.play(name, loop, onceLength, offset, fullOnce, amplitude);
+		base.play(keyframe, loop, onceLength, offset, fullOnce, amplitude);
 		// 首先将起点和终点平移至原点
 		mTempB = mTargetPos - mStartPos;
 		// 即使起点和终点相同，也需要执行高度上的抛物线移动

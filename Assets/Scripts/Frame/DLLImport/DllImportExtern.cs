@@ -13,9 +13,9 @@ public class DllImportExtern : FrameSystem
 	//将要执行的函数转换为委托
 	public static Delegate Invoke(string library, string funcName, Type t)
 	{
-		if (mDllLibraryList.ContainsKey(library))
+		if (mDllLibraryList.TryGetValue(library, out Dll dll))
 		{
-			return mDllLibraryList[library].getFunction(funcName, t);
+			return dll.getFunction(funcName, t);
 		}
 		return null;
 	}

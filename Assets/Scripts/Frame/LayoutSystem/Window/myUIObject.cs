@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class myUIObject : Transformable, IMouseEventCollect
+public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObject>
 {
+	protected static Comparison<myUIObject> mCompareSiblingIndex = compareSiblingIndex;
 	protected List<myUIObject> mChildList;						// 子节点列表,与GameObject的子节点顺序保持一致
 	protected ObjectDoubleClickCallback mDoubleClickCallback;	// 双击回调
 	protected ObjectPreClickCallback mObjectPreClickCallback;	// 单击的预回调,单击时会首先调用此回调
@@ -89,7 +90,6 @@ public class myUIObject : Transformable, IMouseEventCollect
 	}
 	public static void destroyWindowSingle(myUIObject window, bool destroyReally)
 	{
-		window.destroyAllComponents();
 		mGlobalTouchSystem.unregisteCollider(window);
 		if (window is IInputField)
 		{
@@ -127,14 +127,17 @@ public class myUIObject : Transformable, IMouseEventCollect
 			}
 		}
 	}
-	public void addChild(myUIObject child)
+	public void addChild(myUIObject child, bool needSortChild = true)
 	{
 		if (!mChildList.Contains(child))
 		{
 			mChildList.Add(child);
 		}
 		// 添加子节点后根据子节点顺序进行排序
-		sortChild();
+		if (needSortChild)
+		{
+			sortChild();
+		}
 	}
 	public void removeChild(myUIObject child)
 	{
@@ -355,7 +358,7 @@ public class myUIObject : Transformable, IMouseEventCollect
 		getUnityComponent<WindowDebug>().setWindow(this);
 #endif
 	}
-	public void setParent(myUIObject parent)
+	public void setParent(myUIObject parent, bool needSortChild = true)
 	{
 		if (mParent == parent)
 		{
@@ -365,14 +368,14 @@ public class myUIObject : Transformable, IMouseEventCollect
 		mParent?.removeChild(this);
 		// 设置新的父节点
 		mParent = parent;
-		if (parent != null)
+		if (mParent != null)
 		{
 			// 先设置Transform父节点,因为在addChild中会用到Transform的GetSiblingIndex
-			if (mTransform.parent != parent.getTransform())
+			if (mTransform.parent != mParent.getTransform())
 			{
-				mTransform.SetParent(parent.getTransform());
+				mTransform.SetParent(mParent.getTransform());
 			}
-			parent.addChild(this);
+			mParent.addChild(this, needSortChild);
 		}
 	}
 	public override void setName(string name)
@@ -534,21 +537,15 @@ public class myUIObject : Transformable, IMouseEventCollect
 	{
 		mDragHoverCallback?.Invoke(dragObj, hover);
 	}
-	public override int GetHashCode()
-	{
-		return mID;
-	}
-	public override bool Equals(object obj)
-	{
-		return mID == (obj as myUIObject).mID;
-	}
-	//------------------------------------------------------------------------------------------------------
+	public override int GetHashCode() { return mID; }
+	public bool Equals(myUIObject obj) { return mID == obj.mID; }
+	//----------------------------------------------------------------------------------------------------------------------------------
 	protected virtual void onWorldScaleChanged(Vector2 lastWorldScale) { }
 	protected void sortChild()
 	{
-		mChildList.Sort(compareChildBySiblingIndex);
+		quickSort(mChildList, mCompareSiblingIndex);
 	}
-	protected static int compareChildBySiblingIndex(myUIObject child0, myUIObject child1)
+	protected static int compareSiblingIndex(myUIObject child0, myUIObject child1)
 	{
 		return sign(child0.getTransform().GetSiblingIndex() - child1.getTransform().GetSiblingIndex());
 	}
