@@ -1457,7 +1457,7 @@ public class MathUtility : StringUtility
 		return -asin(vec.y);
 	}
 	// 顺时针旋转为正,逆时针为负
-	public static float getAngleFromVector2ToVector2(Vector2 from, Vector2 to, bool radian = true)
+	public static float getAngleFromVector2ToVector2(Vector2 from, Vector2 to, ANGLE radian = ANGLE.RADIAN)
 	{
 		if(isVectorEqual(from, to))
 		{
@@ -1471,7 +1471,7 @@ public class MathUtility : StringUtility
 		{
 			angle = -angle;
 		}
-		if (!radian)
+		if (radian == ANGLE.DEGREE)
 		{
 			angle = toDegree(angle);
 		}
@@ -1507,7 +1507,7 @@ public class MathUtility : StringUtility
 		return sign(angle);
 	}
 	// baseY为true表示将点当成X-Z平面上的点,忽略Y值,false表示将点当成X-Y平面的点
-	public static float getAngleFromVector3ToVector3(Vector3 from, Vector3 to, bool baseY, bool radian = true)
+	public static float getAngleFromVector3ToVector3(Vector3 from, Vector3 to, bool baseY, ANGLE radian = ANGLE.RADIAN)
 	{
 		if (baseY)
 		{
@@ -1534,7 +1534,7 @@ public class MathUtility : StringUtility
 				angle = -angle;
 			}
 		}
-		if (!radian)
+		if (radian == ANGLE.DEGREE)
 		{
 			angle = toDegree(angle);
 		}
@@ -2384,7 +2384,7 @@ public class MathUtility : StringUtility
 		adjustAngle360(ref degree.z);
 	}
 	// 求从z轴到指定向量的水平方向上的顺时针角度,角度范围是-MATH_PI 到 MATH_PI
-	public static float getAngleFromVector(Vector3 vec, bool radian = true)
+	public static float getAngleFromVector(Vector3 vec, ANGLE radian = ANGLE.RADIAN)
 	{
 		vec.y = 0.0f;
 		vec = normalize(vec);
@@ -2396,7 +2396,7 @@ public class MathUtility : StringUtility
 		adjustRadian180(ref angle);
 		// 在unity的坐标系中航向角需要取反
 		angle = -angle;
-		if (!radian)
+		if (radian == ANGLE.DEGREE)
 		{
 			angle = toDegree(angle);
 		}

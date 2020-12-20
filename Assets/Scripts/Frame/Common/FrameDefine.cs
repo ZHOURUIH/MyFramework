@@ -223,6 +223,13 @@ public enum GUI_TYPE : byte
 	NGUI,	// NGUI
 }
 
+// 角度的单位
+public enum ANGLE : byte
+{ 
+	RADIAN,	// 弧度制
+	DEGREE,	// 角度制
+}
+
 public class LoadMaterialParam : IClassObject
 {
 	public string mMaterialName;
