@@ -55,6 +55,10 @@ public class SafeList<T> : FrameBase
 	}
 	public void Remove(T value)
 	{
+		if (!mMainList.Contains(value))
+		{
+			return;
+		}
 		mRemoveList.Add(value);
 		mAddList.Remove(value);
 		mMainList.Remove(value);
