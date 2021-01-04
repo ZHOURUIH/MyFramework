@@ -61,7 +61,7 @@ public class PathKeyframeManager : FrameSystem
 	//----------------------------------------------------------------------------------------------------------------------------
 	protected void readAllFile(Dictionary<string, Dictionary<float, Vector3>> list, string suffix)
 	{
-		List<string> fileList = mListPool.newList(out fileList);
+		List<string> fileList = newList(out fileList);
 		findStreamingAssetsFiles(FrameDefine.F_PATH_KEYFRAME_PATH, fileList, suffix, true, true);
 		int fileCount = fileList.Count;
 		for (int i = 0; i < fileCount; ++i)
@@ -70,11 +70,11 @@ public class PathKeyframeManager : FrameSystem
 			readPathFile(fileList[i], pathList);
 			list.Add(getFileNameNoSuffix(fileList[i], true), pathList);
 		}
-		mListPool.destroyList(fileList);
+		destroyList(fileList);
 	}
 	protected void readAllFile(Dictionary<string, Dictionary<float, float>> list, string suffix)
 	{
-		List<string> fileList = mListPool.newList(out fileList);
+		List<string> fileList = newList(out fileList);
 		findStreamingAssetsFiles(FrameDefine.F_PATH_KEYFRAME_PATH, fileList, suffix, true, true);
 		int fileCount = fileList.Count;
 		for (int i = 0; i < fileCount; ++i)
@@ -83,7 +83,7 @@ public class PathKeyframeManager : FrameSystem
 			readPathFile(fileList[i], pathList);
 			list.Add(getFileNameNoSuffix(fileList[i], true), pathList);
 		}
-		mListPool.destroyList(fileList);
+		destroyList(fileList);
 	}
 	protected void readPathFile(string filePath, Dictionary<float, Vector3> path)
 	{

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ListPoolDebug : MonoBehaviour
+public class DictionaryPoolDebug : MonoBehaviour
 {
 	public List<string> PersistentInuseList = new List<string>();
 	public List<string> InuseList = new List<string>();
@@ -14,24 +14,24 @@ public class ListPoolDebug : MonoBehaviour
 			return;
 		}
 		PersistentInuseList.Clear();
-		var persistentInuse = FrameBase.mListPool.getPersistentInusedList();
+		var persistentInuse = FrameBase.mDictionaryPool.getPersistentInusedList();
 		foreach (var item in persistentInuse)
 		{
-			PersistentInuseList.Add(item.Key + ", 数量:" + item.Value.Count);
+			PersistentInuseList.Add(item.Key + ":" + item.Value.Count);
 		}
 
 		InuseList.Clear();
-		var inuse = FrameBase.mListPool.getInusedList();
+		var inuse = FrameBase.mDictionaryPool.getInusedList();
 		foreach(var item in inuse)
 		{
-			InuseList.Add(item.Key + ", 数量:" + item.Value.Count);
+			InuseList.Add(item.Key + ":" + item.Value.Count);
 		}
 
 		UnuseList.Clear();
-		var unuse = FrameBase.mListPool.getUnusedList();
+		var unuse = FrameBase.mDictionaryPool.getUnusedList();
 		foreach (var item in unuse)
 		{
-			UnuseList.Add(item.Key + ", 数量:" + item.Value.Count);
+			UnuseList.Add(item.Key + ":" + item.Value.Count);
 		}
 	}
 	//-------------------------------------------------------------------------------------------------------

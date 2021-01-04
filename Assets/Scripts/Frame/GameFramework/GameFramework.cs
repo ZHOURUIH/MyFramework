@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using UnityEngine.Profiling;
 
 public class GameFramework : MonoBehaviour
@@ -472,9 +471,10 @@ public class GameFramework : MonoBehaviour
 		registeFrameSystem(UnityUtility.Typeof<InputManager>());
 		registeFrameSystem(UnityUtility.Typeof<SceneSystem>());
 		registeFrameSystem(UnityUtility.Typeof<GamePluginManager>());
-		registeFrameSystem(UnityUtility.Typeof<ClassPool>());
-		registeFrameSystem(UnityUtility.Typeof<ListPool>());
-		registeFrameSystem(UnityUtility.Typeof<BytesPool>());
+		registeFrameSystem(UnityUtility.Typeof<ClassPool>(), -1, -1, 3101);
+		registeFrameSystem(UnityUtility.Typeof<ListPool>(), -1, -1, 3102);
+		registeFrameSystem(UnityUtility.Typeof<DictionaryPool>(), -1, -1, 3103);
+		registeFrameSystem(UnityUtility.Typeof<BytesPool>(), -1, -1, 3104);
 		registeFrameSystem(UnityUtility.Typeof<HeadTextureManager>());
 		registeFrameSystem(UnityUtility.Typeof<MovableObjectManager>());
 		registeFrameSystem(UnityUtility.Typeof<EffectManager>());

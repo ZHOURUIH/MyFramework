@@ -1004,6 +1004,12 @@ public class StringUtility : BinaryUtility
 		}
 		return retString;
 	}
+	public static string ulongToStringComma(ulong value)
+	{
+		string retString = value.ToString();
+		insertNumberComma(ref retString);
+		return retString;
+	}
 	public static string longToString(long value, int limitLen = 0)
 	{
 		string retString = value.ToString();
@@ -1015,6 +1021,12 @@ public class StringUtility : BinaryUtility
 				retString = "0" + retString;
 			}
 		}
+		return retString;
+	}
+	public static string longToStringComma(long value)
+	{
+		string retString = value.ToString();
+		insertNumberComma(ref retString);
 		return retString;
 	}
 	public static string vector2IntToString(Vector2Int value, int limitLength = 0)

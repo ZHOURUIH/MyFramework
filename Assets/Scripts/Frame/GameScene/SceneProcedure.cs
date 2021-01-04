@@ -156,8 +156,8 @@ public abstract class SceneProcedure : GameBase
 	public SceneProcedure getSameParent(SceneProcedure otherProcedure)
 	{
 		// 获得两个流程的父节点列表
-		List<SceneProcedure> tempList0 = mListPool.newList(out tempList0);
-		List<SceneProcedure> tempList1 = mListPool.newList(out tempList1);
+		List<SceneProcedure> tempList0 = newList(out tempList0);
+		List<SceneProcedure> tempList1 = newList(out tempList1);
 		getParentList(ref tempList0);
 		otherProcedure.getParentList(ref tempList1);
 		// 从前往后判断,找到第一个相同的父节点
@@ -170,14 +170,14 @@ public abstract class SceneProcedure : GameBase
 			{
 				if (thisParent == tempList1[j])
 				{
-					mListPool.destroyList(tempList0);
-					mListPool.destroyList(tempList1);
+					destroyList(tempList0);
+					destroyList(tempList1);
 					return thisParent;
 				}
 			}
 		}
-		mListPool.destroyList(tempList0);
-		mListPool.destroyList(tempList1);
+		destroyList(tempList0);
+		destroyList(tempList1);
 		return null;
 	}
 	public bool isThisOrParent(Type type)

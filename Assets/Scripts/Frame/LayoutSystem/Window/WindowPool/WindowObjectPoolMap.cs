@@ -94,7 +94,8 @@ public class WindowObjectPoolMap<Key, T> : FrameBase where T : PooledWindow
 		item.setAssignID(++mAssignIDSeed);
 		item.reset();
 		item.setVisible(true);
-		item.setParent(mItemParentInuse);
+		// 将asLastSibling作为是否排序子节点的标记,因为当渲染顺序敏感时,也会对子节点在列表中的顺序敏感
+		item.setParent(mItemParentInuse, asLastSibling);
 		if (asLastSibling)
 		{
 			item.setAsLastSibling();
@@ -108,7 +109,7 @@ public class WindowObjectPoolMap<Key, T> : FrameBase where T : PooledWindow
 		{
 			item.Value.recycle();
 			item.Value.setVisible(false);
-			item.Value.setParent(mItemParentUnuse);
+			item.Value.setParent(mItemParentUnuse, false);
 			item.Value.setAssignID(-1);
 			mUnusedItemList.Add(item.Value);
 		}
@@ -120,7 +121,7 @@ public class WindowObjectPoolMap<Key, T> : FrameBase where T : PooledWindow
 		{
 			item.recycle();
 			item.setVisible(false);
-			item.setParent(mItemParentUnuse);
+			item.setParent(mItemParentUnuse, false);
 			item.setAssignID(-1);
 			mUnusedItemList.Add(item);
 			mUsedItemList.Remove(key);

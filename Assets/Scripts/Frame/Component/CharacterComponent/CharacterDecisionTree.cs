@@ -39,14 +39,14 @@ public class CharacterDecisionTree : GameComponent
 		// 先清空子节点
 		if(node.mChildList.Count > 0)
 		{
-			List<DTreeNode> childList = mListPool.newList(out childList);
+			List<DTreeNode> childList = newList(out childList);
 			childList.AddRange(node.mChildList);
 			int count = childList.Count;
 			for(int i = 0; i < count; ++i)
 			{
 				clearNode(childList[i]);
 			}
-			mListPool.destroyList(childList);
+			destroyList(childList);
 		}
 		// 然后将节点自身移除
 		removeNode(node);
@@ -115,7 +115,7 @@ public class CharacterDecisionTree : GameComponent
 		}
 		if (mTimer.tickTimer(elapsedTime))
 		{
-			List<DTreeNode> deadList = mListPool.newList(out deadList);
+			List<DTreeNode> deadList = newList(out deadList);
 			foreach (var item in mNodeList)
 			{
 				if(item.Value.mDeadNode)
@@ -129,7 +129,7 @@ public class CharacterDecisionTree : GameComponent
 			{
 				clearNode(deadList[i]);
 			}
-			mListPool.destroyList(deadList);
+			destroyList(deadList);
 			// 从根节点开始遍历
 			if (mRootNode != null && mRootNode.condition())
 			{

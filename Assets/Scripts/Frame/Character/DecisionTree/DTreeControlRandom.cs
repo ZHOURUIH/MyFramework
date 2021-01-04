@@ -8,8 +8,8 @@ public class DTreeControlRandom : DTreeControl
 {
 	public override void execute()
 	{
-		List<DTreeNode> availableChildList = mListPool.newList(out availableChildList);
-		List<float> oddsList = mListPool.newList(out oddsList);
+		List<DTreeNode> availableChildList = newList(out availableChildList);
+		List<float> oddsList = newList(out oddsList);
 		// 按子节点顺序查看子节点是否满足条件
 		int count = mChildList.Count;
 		for (int i = 0; i < count; ++i)
@@ -28,8 +28,8 @@ public class DTreeControlRandom : DTreeControl
 		{
 			availableChildList[index].execute();
 		}
-		mListPool.destroyList(availableChildList);
-		mListPool.destroyList(oddsList);
+		destroyList(availableChildList);
+		destroyList(oddsList);
 	}
 	//--------------------------------------------------------------------------------------------------------------
 }

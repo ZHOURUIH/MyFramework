@@ -132,7 +132,7 @@ public class NGUILine : FrameBase, INGUIShape
 			}
 		}
 		// 每4个点为一个面
-		List<Vector3> tempVertices = mListPool.newList(out tempVertices);
+		List<Vector3> tempVertices = newList(out tempVertices);
 		int segmentCount = pointCount - 1;
 		for (int i = 0; i < segmentCount; ++i)
 		{
@@ -143,9 +143,9 @@ public class NGUILine : FrameBase, INGUIShape
 		}
 		mVertices.Clear();
 		mVertices.AddRange(tempVertices);
-		mListPool.destroyList(tempVertices);
+		destroyList(tempVertices);
 
-		List<Color> tempColors = mListPool.newList(out tempColors);
+		List<Color> tempColors = newList(out tempColors);
 		for (int i = 0; i < segmentCount; ++i)
 		{
 			tempColors.Add(mColors[i * 2 + 0]);
@@ -155,9 +155,9 @@ public class NGUILine : FrameBase, INGUIShape
 		}
 		mColors.Clear();
 		mColors.AddRange(tempColors);
-		mListPool.destroyList(tempColors);
+		destroyList(tempColors);
 
-		List<Vector2> tempUVs = mListPool.newList(out tempUVs);
+		List<Vector2> tempUVs = newList(out tempUVs);
 		for (int i = 0; i < segmentCount; ++i)
 		{
 			tempUVs.Add(mUVs[i * 2 + 0]);
@@ -167,7 +167,7 @@ public class NGUILine : FrameBase, INGUIShape
 		}
 		mUVs.Clear();
 		mUVs.AddRange(tempUVs);
-		mListPool.destroyList(tempUVs);
+		destroyList(tempUVs);
 		if(mVertices != null)
 		{
 			mOnNGUILineGenerated?.Invoke(this);

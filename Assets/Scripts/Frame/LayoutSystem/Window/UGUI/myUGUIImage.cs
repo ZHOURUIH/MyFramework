@@ -188,7 +188,7 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 		}
 		else
 		{
-			var param = mClassPool.newClass(Typeof<LoadMaterialParam>()) as LoadMaterialParam;
+			var param = newClass(Typeof<LoadMaterialParam>()) as LoadMaterialParam;
 			param.mMaterialName = materialName;
 			param.mNewMaterial = mIsNewMaterial;
 			mResourceManager.loadResourceAsync<Material>(FrameDefine.R_MATERIAL_PATH + materialName, mMaterialLoadCallback, param);
@@ -294,6 +294,6 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 		{
 			mImage.material = material;
 		}
-		mClassPool.destroyClass(param);
+		destroyClass(param);
 	}
 }

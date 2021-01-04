@@ -10,7 +10,7 @@ public class StateParam : GameBase, IClassObject
 
 public class PlayerState : GameBase, IClassObject
 {
-	protected SAME_STATE_OPERATE mSuperposition;   // 该状态是否允许叠加
+	protected STATE_MUTEX mSuperposition;   // 该状态是否允许叠加
 	protected BUFF_STATE_TYPE mBuffStateType;
 	protected OnStateLeave mLeaveCallback;
 	protected CharacterBaseData mData;
@@ -22,11 +22,11 @@ public class PlayerState : GameBase, IClassObject
 	protected uint mID;
 	// 互斥ID,在添加状态时,会判断相同互斥ID的状态是否需要移除,互斥ID相同的状态的互斥操作对应SAME_STATE_OPERATE枚举
 	protected uint mMutexID;
-	protected bool mActive;
+	protected bool mActive;			// 使用Active来标记状态是否已退出
 	protected bool mIgnoreTimeScale;
 	public PlayerState()
 	{
-		mSuperposition = SAME_STATE_OPERATE.COEXIST;
+		mSuperposition = STATE_MUTEX.COEXIST;
 		mBuffStateType = BUFF_STATE_TYPE.NONE;
 		mActive = true;
 		mStateTime = -1.0f;
@@ -74,7 +74,7 @@ public class PlayerState : GameBase, IClassObject
 	public float getStateTime() { return mStateTime; }
 	public uint getID() { return mID; }
 	public void setID(uint id) { mID = id; }
-	public SAME_STATE_OPERATE allowSuperposition() { return mSuperposition; }
+	public STATE_MUTEX getStateMutex() { return mSuperposition; }
 	public void setIgnoreTimeScale(bool ignore) { mIgnoreTimeScale = ignore; }
 	public bool isIgnoreTimeScale() { return mIgnoreTimeScale; }
 	public virtual int getPriority() { return 0; }

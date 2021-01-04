@@ -28,20 +28,15 @@ public class myUGUILine : myUGUIObject
 	{
 		mUGUILine.setPointList(pointList);
 	}
-	public void setPointListBezier(List<Vector3> pointList, int bezierDetail = 10)
+	public void setPointListBezier(IList<Vector3> pointList, int bezierDetail = 10)
 	{
 		setPointList(getBezierPoints(pointList, false, bezierDetail));
 	}
-	public void setPointListBezier(Vector3[] pointList, int bezierDetail = 10)
+	public void setPointListSmooth(IList<Vector3> pointList, int bezierDetail = 10)
 	{
-		setPointList(getBezierPoints(pointList, false, bezierDetail));
-	}
-	public void setPointListSmooth(List<Vector3> pointList, int bezierDetail = 10)
-	{
-		setPointList(getCurvePoints(pointList, false, bezierDetail));
-	}
-	public void setPointListSmooth(Vector3[] pointList, int bezierDetail = 10)
-	{
-		setPointList(getCurvePoints(pointList, false, bezierDetail));
+		List<Vector3> curveList = newList(out curveList);
+		getCurvePoints(pointList, curveList, false, bezierDetail);
+		setPointList(curveList);
+		destroyList(curveList);
 	}
 }

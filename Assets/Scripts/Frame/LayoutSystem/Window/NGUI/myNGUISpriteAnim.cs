@@ -138,7 +138,7 @@ public class myNGUISpriteAnim : myNGUISprite, IUIAnimation
 	{
 		if (clear)
 		{
-			List<TextureAnimCallBack> tempList = mListPool.newList(out tempList);
+			List<TextureAnimCallBack> tempList = newList(out tempList);
 			tempList.AddRange(mPlayEndCallback);
 			mPlayEndCallback.Clear();
 			// 如果回调函数当前不为空,则是中断了更新
@@ -146,7 +146,7 @@ public class myNGUISpriteAnim : myNGUISprite, IUIAnimation
 			{
 				item(this, true);
 			}
-			mListPool.destroyList(tempList);
+			destroyList(tempList);
 		}
 		mPlayEndCallback.Add(callback);
 	}
@@ -183,14 +183,14 @@ public class myNGUISpriteAnim : myNGUISprite, IUIAnimation
 		}
 		if(callback)
 		{
-			List<TextureAnimCallBack> tempList = mListPool.newList(out tempList);
+			List<TextureAnimCallBack> tempList = newList(out tempList);
 			tempList.AddRange(mPlayEndCallback);
 			mPlayEndCallback.Clear();
 			foreach (var item in tempList)
 			{
 				item(this, isBreak);
 			}
-			mListPool.destroyList(tempList);
+			destroyList(tempList);
 		}
 		else
 		{

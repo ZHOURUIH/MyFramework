@@ -90,7 +90,7 @@ public class myNGUITexture : myNGUIObject, IShaderWindow
 		else
 		{
 			LoadMaterialParam param;
-			mClassPool.newClass(out param);
+			newClass(out param);
 			param.mMaterialName = materialName;
 			param.mNewMaterial = mIsNewMaterial;
 			mResourceManager.loadResourceAsync<Material>(FrameDefine.R_MATERIAL_PATH + materialName, onMaterialLoaded, param, true);
@@ -269,7 +269,7 @@ public class myNGUITexture : myNGUIObject, IShaderWindow
 		{
 			mTexture.material = material;
 		}
-		mClassPool.destroyClass(param);
+		destroyClass(param);
 	}
 	protected void onTextureLoaded(Object res, Object[] subAssets, byte[] bytes, object userData, string loadPath)
 	{

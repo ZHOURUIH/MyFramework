@@ -132,7 +132,7 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 			T item = mUsedItemList[i];
 			item.recycle();
 			item.setVisible(false);
-			item.setParent(mItemParentUnuse);
+			item.setParent(mItemParentUnuse, false);
 			item.setAssignID(-1);
 		}
 		mUnusedItemList.AddRange(mUsedItemList);
@@ -142,7 +142,7 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 	{
 		item.recycle();
 		item.setVisible(false);
-		item.setParent(mItemParentUnuse);
+		item.setParent(mItemParentUnuse, false);
 		item.setAssignID(-1);
 		mUnusedItemList.Add(item);
 		mUsedItemList.Remove(item);
@@ -163,7 +163,7 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 		{
 			int index = startIndex + i;
 			mUsedItemList[index].setVisible(false);
-			mUsedItemList[index].setParent(mItemParentUnuse);
+			mUsedItemList[index].setParent(mItemParentUnuse, false);
 			mUnusedItemList.Add(mUsedItemList[index]);
 		}
 		mUsedItemList.RemoveRange(startIndex, count);

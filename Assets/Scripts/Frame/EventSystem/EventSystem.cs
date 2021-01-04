@@ -22,11 +22,11 @@ public class EventSystem : FrameSystem
 			infoList[i].mCallback(param);
 		}
 		// 回收事件参数
-		mClassPool.destroyClass(param);
+		destroyClass(param);
 	}
 	public void listenEvent(int eventType, EventCallback callback, IEventListener listener)
 	{
-		var info = mClassPool.newClass(Typeof<GameEventInfo>()) as GameEventInfo;
+		var info = newClass(Typeof<GameEventInfo>()) as GameEventInfo;
 		info.mCallback = callback;
 		info.mType = eventType;
 		info.mLisntener = listener;

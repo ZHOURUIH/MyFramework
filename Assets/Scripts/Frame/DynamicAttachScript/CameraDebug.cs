@@ -46,7 +46,7 @@ public class CameraDebug : MonoBehaviour
 			CurRelative = Vector3.zero;
 		}
 		ActiveComponent.Clear();
-		var allComponents = mGameCamera.getAllComponent();
+		var allComponents = mGameCamera.getAllComponent().GetUpdateList();
 		foreach (var item in allComponents)
 		{
 			if (item.Value.isActive())

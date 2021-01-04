@@ -67,7 +67,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 	{
 		base.update(elapsedTime);
 		// 更新客户端,找出是否有客户端需要断开连接
-		List<uint> tempLogoutList = mListPool.newList(out tempLogoutList);
+		List<uint> tempLogoutList = newList(out tempLogoutList);
 		foreach (var item in mClientList)
 		{
 			item.Value.update(elapsedTime);
@@ -83,7 +83,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 		{
 			disconnectSocket(tempLogoutList[i]);
 		}
-		mListPool.destroyList(tempLogoutList);
+		destroyList(tempLogoutList);
 		// 心跳
 		if (mHeartBeatTimer.tickTimer(elapsedTime))
 		{
@@ -152,7 +152,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 		mClientSendLock.waitForUnlock();
 		try
 		{
-			List<Socket> tempWriteList = mListPool.newList(out tempWriteList);
+			List<Socket> tempWriteList = newList(out tempWriteList);
 			foreach (var item in mClientList)
 			{
 				tempWriteList.Add(item.Value.getSocket());
@@ -168,7 +168,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 					}
 				}
 			}
-			mListPool.destroyList(tempWriteList);
+			destroyList(tempWriteList);
 		}
 		catch (Exception e)
 		{
@@ -186,7 +186,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 		mClientRecvLock.waitForUnlock();
 		try
 		{
-			List<Socket> tempReadList = mListPool.newList(out tempReadList);
+			List<Socket> tempReadList = newList(out tempReadList);
 			foreach (var item in mClientList)
 			{
 				tempReadList.Add(item.Value.getSocket());
@@ -204,7 +204,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 					}
 				}
 			}
-			mListPool.destroyList(tempReadList);
+			destroyList(tempReadList);
 		}
 		catch (SocketException e)
 		{

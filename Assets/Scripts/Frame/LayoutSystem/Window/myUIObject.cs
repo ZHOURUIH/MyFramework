@@ -75,14 +75,14 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 		// 先销毁所有子节点,因为遍历中会修改子节点列表,所需需要复制一个列表
 		if (window.mChildList.Count > 0)
 		{
-			List<myUIObject> childList = mListPool.newList(out childList);
+			List<myUIObject> childList = newList(out childList);
 			childList.AddRange(window.mChildList);
 			int childCount = childList.Count;
 			for (int i = 0; i < childCount; ++i)
 			{
 				destroyWindow(childList[i], destroyReally);
 			}
-			mListPool.destroyList(childList);
+			destroyList(childList);
 		}
 		window.getParent()?.removeChild(window);
 		// 再销毁自己
@@ -543,6 +543,10 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	protected virtual void onWorldScaleChanged(Vector2 lastWorldScale) { }
 	protected void sortChild()
 	{
+		if (mChildList.Count <= 1)
+		{
+			return;
+		}
 		quickSort(mChildList, mCompareSiblingIndex);
 	}
 	protected static int compareSiblingIndex(myUIObject child0, myUIObject child1)

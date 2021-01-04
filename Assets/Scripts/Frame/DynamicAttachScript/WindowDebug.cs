@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class WindowDebug : MonoBehaviour
 {
+	public bool ForceRefresh;					// 是否强制刷新,无论是否启用了EnableScriptDebug
 	public myUIObject mWindow;
 	public string Depth;
 	public float LongPressTimeThreshold;		// 长按的时间阈值,超过阈值时检测为长按
@@ -16,7 +17,7 @@ public class WindowDebug : MonoBehaviour
 	public void setWindow(myUIObject window) { mWindow = window; }
 	public void Update()
 	{
-		if (!FrameBase.mGameFramework.isEnableScriptDebug())
+		if (!FrameBase.mGameFramework.isEnableScriptDebug() && !ForceRefresh)
 		{
 			return;
 		}

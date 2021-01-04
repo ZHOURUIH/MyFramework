@@ -3,8 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
-// 可安全遍历的列表,支持在遍历过程中对列表进行修改,但是并不是线程安全的
-public class SafeList<T>
+// 非线程安全
+// 可安全遍历的列表,支持在遍历过程中对列表进行修改
+public class SafeList<T> : FrameBase
 {
 	protected List<T> mMainList;	// 用于存储实时数据的列表
 	protected List<T> mUpdateList;	// 用于遍历更新的列表
@@ -22,19 +23,21 @@ public class SafeList<T>
 	{
 		// 获取更新列表前,先同步主列表到更新列表,为了避免当列表过大时每次同步量太大
 		// 所以单独使用了添加列表和移除列表,用来存储主列表的添加和移除的元素
-		if (mRemoveList.Count > 0)
+		int removeCount = mRemoveList.Count;
+		if (removeCount > 0)
 		{
-			foreach (var item in mRemoveList)
+			for(int i = 0; i < removeCount; ++i)
 			{
-				mUpdateList.Remove(item);
+				mUpdateList.Remove(mRemoveList[i]);
 			}
 			mRemoveList.Clear();
 		}
-		if (mAddList.Count > 0)
+		int addCount = mAddList.Count;
+		if (addCount > 0)
 		{
-			foreach(var item in mAddList)
+			for(int i = 0; i < addCount; ++i)
 			{
-				mUpdateList.Add(item);
+				mUpdateList.Add(mAddList[i]);
 			}
 			mAddList.Clear();
 		}
@@ -46,12 +49,14 @@ public class SafeList<T>
 	public bool Contains(T value) { return mMainList.Contains(value); }
 	public void Add(T value)
 	{
+		mRemoveList.Remove(value);
 		mAddList.Add(value);
 		mMainList.Add(value);
 	}
 	public void Remove(T value)
 	{
 		mRemoveList.Add(value);
+		mAddList.Remove(value);
 		mMainList.Remove(value);
 	}
 	// 清空所有数据,不能正在遍历时调用

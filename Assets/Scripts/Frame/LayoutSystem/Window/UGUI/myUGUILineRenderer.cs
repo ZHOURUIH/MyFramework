@@ -13,14 +13,11 @@ public class myUGUILineRenderer : myUGUIObject
 	}
 	public void setPointList(Vector3[] pointList)
 	{
-#if UNITY_2018
 		if (pointList.Length > mLineRenderer.positionCount)
 		{
 			mLineRenderer.positionCount = pointList.Length;
 		}
-#endif
 		mLineRenderer.SetPositions(pointList);
-#if UNITY_2018
 		if (pointList.Length < mLineRenderer.positionCount)
 		{
 			// 将未使用的点坐标设置为最后一个点
@@ -30,22 +27,31 @@ public class myUGUILineRenderer : myUGUIObject
 				mLineRenderer.SetPosition(i + pointList.Length, pointList[pointList.Length - 1]);
 			}
 		}
-#endif
 	}
 	public void setPointListBezier(Vector3[] pointList, int bezierDetail = 10)
 	{
-#if UNITY_2018
-		setPointList(getBezierPoints(pointList, mLineRenderer.loop, bezierDetail));
-#else
-		setPointList(getBezierPoints(pointList, false, bezierDetail));
-#endif
+		List<Vector3> curveList = newList(out curveList);
+		getBezierPoints(pointList, curveList, mLineRenderer.loop, bezierDetail);
+		Vector3[] pointArray = new Vector3[curveList.Count];
+		int count = curveList.Count;
+		for (int i = 0; i < count; ++i)
+		{
+			pointArray[i] = curveList[i];
+		}
+		setPointList(pointArray);
+		destroyList(curveList);
 	}
 	public void setPointListSmooth(Vector3[] pointList, int bezierDetail = 10)
 	{
-#if UNITY_2018
-		setPointList(getCurvePoints(pointList, mLineRenderer.loop, bezierDetail));
-#else
-		setPointList(getCurvePoints(pointList, false, bezierDetail));
-#endif
+		List<Vector3> curveList = newList(out curveList);
+		getCurvePoints(pointList, curveList, mLineRenderer.loop, bezierDetail);
+		Vector3[] pointArray = new Vector3[curveList.Count];
+		int count = curveList.Count;
+		for(int i = 0; i < count; ++i)
+		{
+			pointArray[i] = curveList[i];
+		}
+		setPointList(pointArray);
+		destroyList(curveList);
 	}
 }

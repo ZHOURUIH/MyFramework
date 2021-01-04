@@ -137,10 +137,7 @@ public class GameCamera : MovableObject
 	public void setProcessKey(bool process) { mProcessKey = process; }
 	public bool isProcessKey() { return mProcessKey; }
 	public CameraLinker getCurLinker() { return mCurLinker; }
-	public float getNearClip()
-	{
-		return mCamera.nearClipPlane;
-	}
+	public float getNearClip() { return mCamera.nearClipPlane; }
 	public float getFOVX(bool radian = false)
 	{
 		float radianFovX = atan(getAspect() * tan(getFOVY(true) * 0.5f)) * 2.0f;

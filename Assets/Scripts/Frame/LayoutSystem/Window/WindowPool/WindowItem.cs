@@ -2,15 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// 可用于WindowObjectPool和WindowObjectPoolMap的类,常用于可回收复用的窗口
-// 每次创建新的对象时都从template克隆
-public abstract class PooledWindow : GameBase
+// 用于固定数量类,不能用于回收复用窗口
+// 通常只是用于已经在预设中创建好的窗口,创建对象时不会创建新的节点
+public abstract class WindowItem : GameBase
 {
 	protected LayoutScript mScript;
 	protected myUIObject mRoot;		// 需要在子类中被赋值
-	protected int mAssignID;
-	public virtual void setScript(LayoutScript script) { mScript = script; }
-	public abstract void assignWindow(myUIObject parent, myUIObject template, string name);
+	public WindowItem(LayoutScript script)
+	{
+		mScript = script;
+	}
+	public virtual void assignWindow(myUIObject parent, string name)
+	{
+		mScript.newObject(out mRoot, parent, name);
+	}
 	public virtual void init() { }
 	public virtual void destroy() { }
 	public virtual void reset() { }
@@ -19,8 +24,5 @@ public abstract class PooledWindow : GameBase
 	public void setVisible(bool visible) { LT.ACTIVE(mRoot, visible); }
 	public void setAsFirstSibling(bool notifyLayout = true) { mRoot.setAsFirstSibling(notifyLayout); }
 	public void setAsLastSibling(bool notifyLayout = true) { mRoot.setAsLastSibling(notifyLayout); }
-	public void setParent(myUIObject parent, bool needSortChild = true) { mRoot.setParent(parent, needSortChild); }
-	public void setAssignID(int assignID) { mAssignID = assignID; }
-	public int getAssignID() { return mAssignID; }
 	public myUIObject getRoot() { return mRoot; }
 }

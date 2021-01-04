@@ -20,7 +20,7 @@ public class SocketFactory : FrameSystem
 	}
 	public void destroyPacket(SocketPacket packet)
 	{
-		mClassPool.destroyClass(packet);
+		destroyClass(packet);
 	}
 	public SocketPacket createSocketPacket(ushort type)
 	{
@@ -33,7 +33,7 @@ public class SocketFactory : FrameSystem
 	}
 	public SocketPacket createSocketPacket(Type type)
 	{
-		// mClassPool.newClass只会执行类的构造函数,,所以其余的初始化工作需要由调用的地方来执行
+		// newClass只会执行类的构造函数,,所以其余的初始化工作需要由调用的地方来执行
 		// 如果是新创建的一个对象,则需要进行初始化,如果是使用之前的对象,则不需要操作
 		var packet = mClassPool.newClass(type, out bool isNewObject) as SocketPacket;
 		if (isNewObject)

@@ -8,7 +8,6 @@ public abstract class SerializedData : GameBase
 	protected int mReadDataSize;            // 写入数据时,总共写入的数据大小
 	protected int mMaxDataSize;				// 包体最大的大小,包括如果不使用变长数组时的大小
 	protected bool mIntReplaceULLong;       // 如果ullong的值小于int最大值,是否在序列化时写入或读取int
-	protected bool mFixedLength;	// 是否所有参数都是定长的
 	public SerializedData()
 	{
 		mMaxDataSize = 0;
@@ -69,7 +68,6 @@ public abstract class SerializedData : GameBase
 		int parameterCount = mParameterInfoList.Count;
 		for (int i = 0; i < parameterCount; ++i)
 		{
-			// 变长数组的长度固定使用ushort表示
 			if(mParameterInfoList[i].getVariableLength())
 			{
 				size += sizeof(ushort);
@@ -84,17 +82,12 @@ public abstract class SerializedData : GameBase
 	// 在子类构造中调用
 	protected void zeroParams()
 	{
-		mFixedLength = true;
 		mMaxDataSize = 0;
 		int count = mParameterInfoList.Count;
 		for (int i = 0; i < count; ++i)
 		{
 			mParameterInfoList[i].zero();
 			mMaxDataSize += mParameterInfoList[i].mSize;
-			if(mParameterInfoList[i].getVariableLength())
-			{
-				mFixedLength = false;
-			}
 		}
 	}
 	protected void pushParam(OBJECT param, bool variableLength = false)

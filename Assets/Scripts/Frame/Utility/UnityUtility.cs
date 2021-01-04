@@ -1083,7 +1083,7 @@ public class UnityUtility : FileUtility
 #endif
 	}
 	// 自动排列一个节点下的所有子节点的位置,从上往下紧密排列
-	public static void autoGridVertical(myUGUIObject root, float interval = 0.0f, bool resizeRootSize = true)
+	public static void autoGridVertical(myUGUIObject root, float interval = 0.0f, bool resizeRootSize = true, float minHeight = 0.0f)
 	{
 		RectTransform transform = root.getRectTransform();
 		int childCount = transform.childCount;
@@ -1106,7 +1106,7 @@ public class UnityUtility : FileUtility
 					height += interval;
 				}
 			}
-			rootSize.y = height;
+			rootSize.y = clampMin(height, minHeight);
 			root.setWindowSize(rootSize);
 		}
 		float currentTop = rootSize.y * (1.0f - transform.pivot.y);
@@ -1124,6 +1124,51 @@ public class UnityUtility : FileUtility
 			if (i != childCount - 1)
 			{
 				currentTop -= interval;
+			}
+		}
+	}
+	// 自动排列一个节点下的所有子节点的位置,从左往右紧密排列
+	public static void autoGridHorizontal(myUGUIObject root, float interval = 0.0f, bool resizeRootSize = true, float minWidth = 0.0f)
+	{
+		RectTransform transform = root.getRectTransform();
+		int childCount = transform.childCount;
+		Vector2 rootSize = root.getWindowSize();
+		// 如果要同时修改root的窗口大小为排列以后的内容大小，则需要提前获取内容排列后的宽高
+		if (resizeRootSize)
+		{
+			float width = 0.0f;
+			for (int i = 0; i < childCount; ++i)
+			{
+				RectTransform childRect = transform.GetChild(i).GetComponent<RectTransform>();
+				if (!childRect.gameObject.activeSelf)
+				{
+					continue;
+				}
+				width += childRect.rect.width;
+				// 最后一个子节点后不再添加间隔
+				if (i != childCount - 1)
+				{
+					width += interval;
+				}
+			}
+			rootSize.x = clampMin(width, minWidth);
+			root.setWindowSize(rootSize);
+		}
+		float currentLeft = rootSize.x * transform.pivot.x;
+		for (int i = 0; i < childCount; ++i)
+		{
+			RectTransform childRect = transform.GetChild(i).GetComponent<RectTransform>();
+			if (!childRect.gameObject.activeSelf)
+			{
+				continue;
+			}
+			float curWidth = childRect.rect.width;
+			childRect.localPosition = new Vector3(currentLeft + curWidth * 0.5f, childRect.localPosition.y);
+			currentLeft += curWidth;
+			// 最后一个子节点后不再添加间隔
+			if (i != childCount - 1)
+			{
+				currentLeft += interval;
 			}
 		}
 	}

@@ -52,7 +52,14 @@ public class myUGUIInputField : myUGUIObject, IInputField
 		mEdittingCallback = action;
 		mInputField.onValueChanged.AddListener(mThisEditing);
 	}
-	public void clear() { setText(EMPTY); }
+	public void clear(bool removeFocus = true) 
+	{
+		setText(EMPTY); 
+		if (removeFocus)
+		{
+			focus(false);
+		}
+	}
 	public void setText(string value) { mInputField.text = value; }
 	public void setText(float value) { setText(floatToString(value, 2)); }
 	public string getText() { return mInputField.text; }

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System;
+using System.Collections.Generic;
 
 // 管理类初始化完成调用
 // 这个父类的添加是方便代码的书写
@@ -29,6 +30,7 @@ public class FrameBase : UnityUtility
 	public static SceneSystem mSceneSystem;
 	public static ClassPool mClassPool;
 	public static ListPool mListPool;
+	public static DictionaryPool mDictionaryPool;
 	public static BytesPool mBytesPool;
 	public static AndroidPluginManager mAndroidPluginManager;
 	public static AndroidAssetLoader mAndroidAssetLoader;
@@ -70,6 +72,7 @@ public class FrameBase : UnityUtility
 		mSceneSystem = mGameFramework.getSystem(Typeof<SceneSystem>()) as SceneSystem;
 		mClassPool = mGameFramework.getSystem(Typeof<ClassPool>()) as ClassPool;
 		mListPool = mGameFramework.getSystem(Typeof<ListPool>()) as ListPool;
+		mDictionaryPool = mGameFramework.getSystem(Typeof<DictionaryPool>()) as DictionaryPool;
 		mBytesPool = mGameFramework.getSystem(Typeof<BytesPool>()) as BytesPool;
 		mAndroidPluginManager = mGameFramework.getSystem(Typeof<AndroidPluginManager>()) as AndroidPluginManager;
 		mAndroidAssetLoader = mGameFramework.getSystem(Typeof<AndroidAssetLoader>()) as AndroidAssetLoader;
@@ -161,5 +164,29 @@ public class FrameBase : UnityUtility
 	public static GameScene getCurScene()
 	{
 		return mGameSceneManager.getCurScene();
+	}
+	public static List<T> newList<T>(out List<T> list, bool onlyOnce = true, int capacity = 0)
+	{
+		return mListPool.newList(out list, onlyOnce, capacity);
+	}
+	public static void destroyList<T>(List<T> list)
+	{
+		mListPool.destroyList(list);
+	}
+	public static Dictionary<K, V> newList<K, V>(out Dictionary<K, V> list, bool onlyOnce = true)
+	{
+		return mDictionaryPool.newList(out list, onlyOnce);
+	}
+	public static void destroyList<K, V>(Dictionary<K, V> list)
+	{
+		mDictionaryPool.destroyList(list);
+	}
+	public static IClassObject newClass(Type type)
+	{
+		return mClassPool.newClass(type);
+	}
+	public static void destroyClass(IClassObject obj)
+	{
+		mClassPool.destroyClass(obj);
 	}
 }

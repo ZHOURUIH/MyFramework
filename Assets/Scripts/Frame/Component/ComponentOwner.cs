@@ -5,34 +5,33 @@ using System;
 
 public abstract class ComponentOwner : CommandReceiver, IClassObject
 {
-	protected Dictionary<Type, GameComponent> mAllComponentTypeList;// 组件类型列表,first是组件的类型名
-	protected List<GameComponent> mComponentList;					// 组件列表,保存着组件之间的更新顺序
+	protected SafeDictionary<Type, GameComponent> mAllComponentTypeList;// 组件类型列表,first是组件的类型名
+	protected List<GameComponent> mComponentList;						// 组件列表,保存着组件之间的更新顺序
 	protected bool mIgnoreTimeScale;
 	public ComponentOwner()
 	{
 		mComponentList = new List<GameComponent>();
-		mAllComponentTypeList = new Dictionary<Type, GameComponent>();
+		mAllComponentTypeList = new SafeDictionary<Type, GameComponent>();
 	}
 	public override void destroy()
 	{
-		foreach(var item in mAllComponentTypeList)
+		var componentList = mAllComponentTypeList.GetUpdateList();
+		foreach (var item in componentList)
 		{
 			item.Value.notifyOwnerDestroy();
 		}
-		List<Type> keys = mListPool.newList(out keys);
-		keys.AddRange(mAllComponentTypeList.Keys);
-		for (int i = 0; i < keys.Count; ++i)
+		componentList = mAllComponentTypeList.GetUpdateList();
+		foreach(var item in componentList)
 		{
-			GameComponent component = mAllComponentTypeList[keys[i]];
-			component.destroy();
-			removeComponentFromList(component);
+			item.Value.destroy();
+			removeComponentFromList(item.Value);
 		}
-		mListPool.destroyList(keys);
 		base.destroy();
 	}
 	public virtual void setActive(bool active)
 	{
-		foreach (var item in mAllComponentTypeList)
+		var componentList = mAllComponentTypeList.GetUpdateList();
+		foreach (var item in componentList)
 		{
 			item.Value.notifyOwnerActive(active);
 		}
@@ -136,7 +135,7 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 		component.setDefaultActive(active);
 		return component;
 	}
-	public Dictionary<Type, GameComponent> getAllComponent() { return mAllComponentTypeList; }
+	public SafeDictionary<Type, GameComponent> getAllComponent() { return mAllComponentTypeList; }
 	public T getComponent<T>(bool needActive = false, bool addIfNull = true) where T : GameComponent
 	{
 		Type type = Typeof<T>();
@@ -179,7 +178,8 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 	}
 	public void breakComponent<T>(Type exceptComponent)
 	{
-		foreach (var item in mAllComponentTypeList)
+		var componentList = mAllComponentTypeList.GetUpdateList();
+		foreach (var item in componentList)
 		{
 			GameComponent component = item.Value;
 			if (component.isActive() && 
@@ -192,7 +192,6 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 			}
 		}
 	}
-	public Dictionary<Type, GameComponent> getComponentTypeList() { return mAllComponentTypeList; }
 	public List<GameComponent> getComponentList() { return mComponentList; }
 	public bool isIgnoreTimeScale() { return mIgnoreTimeScale; }
 	// componentOnly表示是否只设置组件不受时间缩放影响,如果只有组件受影响,则Owner本身还是受到时间缩放影响的
@@ -212,7 +211,8 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 	{
 		setIgnoreTimeScale(false);
 		// 停止所有组件
-		foreach (var item in mAllComponentTypeList)
+		var componentList = mAllComponentTypeList.GetUpdateList();
+		foreach (var item in componentList)
 		{
 			item.Value.resetProperty();
 			item.Value.setActive(item.Value.isDefaultActive());

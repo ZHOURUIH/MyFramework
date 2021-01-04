@@ -43,4 +43,30 @@ public class EditorMenu : EditorCommonUtility
 			EditorSceneManager.OpenScene(FrameDefine.P_RESOURCES_SCENE_PATH + "start.unity");
 		}
 	}
+	[MenuItem("快捷操作/调整物体坐标为整数 _F1")]
+	public static void adjustUIRectToInt()
+	{
+		GameObject go = Selection.activeGameObject;
+		if (go == null)
+		{
+			return;
+		}
+		EditorUtility.SetDirty(go);
+		roundRectTransformToInt(go.GetComponent<RectTransform>());
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected static void roundRectTransformToInt(RectTransform rectTransform)
+	{
+		if (rectTransform == null)
+		{
+			return;
+		}
+		rectTransform.localPosition = round(rectTransform.localPosition);
+		WidgetUtility.setUGUIRectSize(rectTransform, round(rectTransform.rect.size), false);
+		int childCount = rectTransform.childCount;
+		for (int i = 0; i < childCount; ++i)
+		{
+			roundRectTransformToInt(rectTransform.GetChild(i) as RectTransform);
+		}
+	}
 }

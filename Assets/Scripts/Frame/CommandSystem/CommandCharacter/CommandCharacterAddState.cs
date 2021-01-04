@@ -34,7 +34,7 @@ public class CommandCharacterAddState : Command
 		mResult?.set(ret);
 		if(mParam != null)
 		{
-			mClassPool.destroyClass(mParam);
+			destroyClass(mParam);
 			state.setParam(null);
 		}
 	}

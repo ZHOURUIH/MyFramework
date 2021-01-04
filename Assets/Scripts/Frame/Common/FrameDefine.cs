@@ -143,7 +143,7 @@ public enum SLIDER_MODE : byte
 }
 
 // 添加同一状态时的操作选项
-public enum SAME_STATE_OPERATE : byte
+public enum STATE_MUTEX : byte
 {
 	CAN_NOT_ADD_NEW,    // 不可添加相同的新状态
 	REMOVE_OLD,         // 添加新状态,移除互斥的旧状态
@@ -152,7 +152,7 @@ public enum SAME_STATE_OPERATE : byte
 }
 
 // 同一状态组中的状态互斥选项
-public enum GROUP_MUTEX_OPERATION : byte
+public enum GROUP_MUTEX : byte
 {
 	COEXIST,        // 各状态可完全共存
 	REMOVE_OTHERS,  // 添加新状态时移除组中的其他所有状态

@@ -2607,9 +2607,9 @@ public class MathUtility : StringUtility
 		outMinute = minute - outHour * 60;
 	}
 	// 帧换算成秒
-	public static float frameToS(float frame) { return frame * 0.0333f; }
+	public static float frameToSecond(float frame) { return frame * 0.0333f; }
 	// 递归计算贝塞尔曲线的点
-	public static Vector3 getBezier(List<Vector3> points, bool loop, float t)
+	public static Vector3 getBezier(IList<Vector3> points, bool loop, float t)
 	{
 		int pointCount = points.Count;
 		if (pointCount == 2)
@@ -2624,23 +2624,7 @@ public class MathUtility : StringUtility
 		}
 		return getBezier(temp, loop, t);
 	}
-	// 递归计算贝塞尔曲线的点
-	public static Vector3 getBezier(Vector3[] points, bool loop, float t)
-	{
-		int pointCount = points.Length;
-		if (pointCount == 2)
-		{
-			return lerp(points[0], points[1], t);
-		}
-		int tempCount = loop ? pointCount : pointCount - 1;
-		Vector3[] temp = new Vector3[tempCount];
-		for (int i = 0; i < tempCount; ++i)
-		{
-			temp[i] = lerp(points[i], points[(i + 1) % pointCount], t);
-		}
-		return getBezier(temp, loop, t);
-	}
-	public static void getBezierPoints(List<Vector3> points, List<Vector3> resultList, bool loop, int bezierDetail = 20)
+	public static void getBezierPoints(IList<Vector3> points, List<Vector3> resultList, bool loop, int bezierDetail = 20)
 	{
 		resultList.Clear();
 		if (points.Count == 1 || bezierDetail <= 1)
@@ -2652,7 +2636,7 @@ public class MathUtility : StringUtility
 			resultList.Add(getBezier(points, loop, i / (float)(bezierDetail - 1)));
 		}
 	}
-	public static List<Vector3> getBezierPoints(List<Vector3> points, bool loop, int bezierDetail = 20)
+	public static List<Vector3> getBezierPoints(IList<Vector3> points, bool loop, int bezierDetail = 20)
 	{
 		if (points.Count == 1)
 		{
@@ -2662,112 +2646,27 @@ public class MathUtility : StringUtility
 		getBezierPoints(points, bezierPoints, loop, bezierDetail);
 		return bezierPoints;
 	}
-	public static Vector3[] getBezierPoints(Vector3[] points, bool loop, int bezierDetail = 20)
-	{
-		if (points.Length == 1)
-		{
-			return new Vector3[1] { points[0] };
-		}
-		Vector3[] bezierPoints = new Vector3[bezierDetail];
-		for (int i = 0; i < bezierDetail; ++i)
-		{
-			bezierPoints[i] = getBezier(points, loop, i / (float)(bezierDetail - 1));
-		}
-		return bezierPoints;
-	}
 	// 由于使用了静态成员变量,所以不能在多线程中调用该函数
 	// 得到经过所有点的平滑曲线的点列表,detail是曲线平滑度,越大越平滑,scale是曲线接近折线的程度,越小越接近于折线
-	public static Vector3[] getCurvePoints(Vector3[] originPoint, bool loop, int detail = 10, float scale = 0.6f)
+	public static void getCurvePoints(IList<Vector3> originPoint, List<Vector3> curveList, bool loop, int detail = 10, float scale = 0.6f)
 	{
-		if (originPoint.Length == 1)
-		{
-			return new Vector3[1] { originPoint[0] };
-		}
-		int originCount = originPoint.Length;
-		int middleCount = loop ? originCount : originCount - 1;
-		Vector3[] midpoints = new Vector3[middleCount];
-		// 生成中点       
-		for (int i = 0; i < middleCount; ++i)
-		{
-			midpoints[i] = (originPoint[i] + originPoint[(i + 1) % originCount]) * 0.5f;
-		}
-
-		// 平移中点,计算每个顶点的两个控制点
-		Vector3[] extrapoints = new Vector3[2 * originCount];
-		for (int i = 0; i < originCount; ++i)
-		{
-			if (!loop)
-			{
-				if (i == 0)
-				{
-					extrapoints[0] = originPoint[0];
-					extrapoints[1] = originPoint[0];
-				}
-				else if (i == originCount - 1)
-				{
-					extrapoints[i * 2 + 0] = originPoint[originCount - 1];
-					extrapoints[i * 2 + 1] = originPoint[originCount - 1];
-				}
-				else
-				{
-					int backi = i - 1;
-					Vector3 midinmid = (midpoints[i] + midpoints[backi]) * 0.5f;
-					Vector3 offset = originPoint[i] - midinmid;
-					//朝 originPoint[i]方向收缩
-					extrapoints[2 * i + 0] = originPoint[i] + (midpoints[backi] + offset - originPoint[i]) * scale;
-					//朝 originPoint[i]方向收缩
-					extrapoints[2 * i + 1] = originPoint[i] + (midpoints[i] + offset - originPoint[i]) * scale;
-
-				}
-			}
-			else
-			{
-				int backi = (i + originCount - 1) % originCount;
-				Vector3 midinmid = (midpoints[i] + midpoints[backi]) * 0.5f;
-				Vector3 offset = originPoint[i] - midinmid;
-				//朝 originPoint[i]方向收缩
-				extrapoints[2 * i + 0] = originPoint[i] + (midpoints[backi] + offset - originPoint[i]) * scale;
-				//朝 originPoint[i]方向收缩
-				extrapoints[2 * i + 1] = originPoint[i] + (midpoints[i] + offset - originPoint[i]) * scale;
-			}
-		}
-
-		int bezierCount = loop ? originCount : originCount - 1;
-		Vector3[] curvePoint = new Vector3[bezierCount * detail];
-		float step = 1 / (float)(detail - 1);
-		// 生成4控制点，产生贝塞尔曲线
-		for (int i = 0; i < bezierCount; ++i)
-		{
-			mTempControlPoint[0] = originPoint[i];
-			mTempControlPoint[1] = extrapoints[2 * i + 1];
-			mTempControlPoint[2] = extrapoints[2 * (i + 1)];
-			mTempControlPoint[3] = originPoint[(i + 1) % originCount];
-			for (int j = 0; j < detail; ++j)
-			{
-				curvePoint[i * detail + j] = getBezier(mTempControlPoint, false, j * step);
-			}
-		}
-		return curvePoint;
-	}
-	// 由于使用了静态成员变量,所以不能在多线程中调用该函数
-	// 得到经过所有点的平滑曲线的点列表,detail是曲线平滑度,越大越平滑,scale是曲线接近折线的程度,越小越接近于折线
-	public static List<Vector3> getCurvePoints(List<Vector3> originPoint, bool loop, int detail = 10, float scale = 0.6f)
-	{
+		curveList.Clear();
 		if (originPoint.Count == 1)
 		{
-			return new List<Vector3>(originPoint);
+			curveList.Add(originPoint[0]);
+			return;
 		}
 		int originCount = originPoint.Count;
 		int middleCount = loop ? originCount : originCount - 1;
-		Vector3[] midpoints = new Vector3[middleCount];
+		List<Vector3> midpoints = new List<Vector3>(middleCount);
 		// 生成中点       
 		for (int i = 0; i < middleCount; ++i)
 		{
-			midpoints[i] = (originPoint[i] + originPoint[(i + 1) % originCount]) * 0.5f;
+			midpoints.Add((originPoint[i] + originPoint[(i + 1) % originCount]) * 0.5f);
 		}
 
 		// 平移中点,计算每个顶点的两个控制点
-		Vector3[] extrapoints = new Vector3[2 * originCount];
+		List<Vector3> extrapoints = new List<Vector3>(2 * originCount);
 		for (int i = 0; i < originCount; ++i)
 		{
 			if (!loop)
@@ -2784,13 +2683,11 @@ public class MathUtility : StringUtility
 				}
 				else
 				{
-					int backi = i - 1;
-					Vector3 midinmid = (midpoints[i] + midpoints[backi]) * 0.5f;
-					Vector3 offset = originPoint[i] - midinmid;
-					//朝 originPoint[i]方向收缩
-					extrapoints[2 * i + 0] = originPoint[i] + (midpoints[backi] + offset - originPoint[i]) * scale;
-					//朝 originPoint[i]方向收缩
-					extrapoints[2 * i + 1] = originPoint[i] + (midpoints[i] + offset - originPoint[i]) * scale;
+					Vector3 midinmid = (midpoints[i] + midpoints[i - 1]) * 0.5f;
+					// 朝 originPoint[i]方向收缩
+					extrapoints[2 * i + 0] = originPoint[i] + (midpoints[i - 1] - midinmid) * scale;
+					// 朝 originPoint[i]方向收缩
+					extrapoints[2 * i + 1] = originPoint[i] + (midpoints[i] - midinmid) * scale;
 
 				}
 			}
@@ -2798,30 +2695,27 @@ public class MathUtility : StringUtility
 			{
 				int backi = (i + originCount - 1) % originCount;
 				Vector3 midinmid = (midpoints[i] + midpoints[backi]) * 0.5f;
-				Vector3 offset = originPoint[i] - midinmid;
-				//朝 originPoint[i]方向收缩
-				extrapoints[2 * i + 0] = originPoint[i] + (midpoints[backi] + offset - originPoint[i]) * scale;
-				//朝 originPoint[i]方向收缩
-				extrapoints[2 * i + 1] = originPoint[i] + (midpoints[i] + offset - originPoint[i]) * scale;
+				// 朝 originPoint[i]方向收缩
+				extrapoints[2 * i + 0] = originPoint[i] + (midpoints[backi] - midinmid) * scale;
+				// 朝 originPoint[i]方向收缩
+				extrapoints[2 * i + 1] = originPoint[i] + (midpoints[i] - midinmid) * scale;
 			}
 		}
 
 		int bezierCount = loop ? originCount : originCount - 1;
-		List<Vector3> curvePoint = new List<Vector3>();
 		float step = 1 / (float)(detail - 1);
 		// 生成4控制点，产生贝塞尔曲线
 		for (int i = 0; i < bezierCount; ++i)
 		{
 			mTempControlPoint[0] = originPoint[i];
 			mTempControlPoint[1] = extrapoints[2 * i + 1];
-			mTempControlPoint[2] = extrapoints[2 * (i + 1)];
+			mTempControlPoint[2] = extrapoints[2 * (i + 1) % extrapoints.Count];
 			mTempControlPoint[3] = originPoint[(i + 1) % originCount];
 			for (int j = 0; j < detail; ++j)
 			{
-				curvePoint.Add(getBezier(mTempControlPoint, false, j * step));
+				curveList.Add(getBezier(mTempControlPoint, false, j * step));
 			}
 		}
-		return curvePoint;
 	}
 	public static uint generateGUID()
 	{

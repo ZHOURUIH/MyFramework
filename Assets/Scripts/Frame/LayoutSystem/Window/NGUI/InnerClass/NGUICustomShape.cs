@@ -55,7 +55,7 @@ public class NGUICustomShape : FrameBase, INGUIShape
 		mVertices.Clear();
 		mColors.Clear();
 		mUVs.Clear();
-		List<Vector2> polygonPoints = mListPool.newList(out polygonPoints);
+		List<Vector2> polygonPoints = newList(out polygonPoints);
 		polygonPoints.AddRange(mPolygonPoints);
 		mOnGenerateTriangle?.Invoke(polygonPoints, ref mVertices);
 		int verticeCount = mVertices.Count;
@@ -64,7 +64,7 @@ public class NGUICustomShape : FrameBase, INGUIShape
 			mUVs.Add(Vector2.zero);
 			mColors.Add(mColor);
 		}
-		mListPool.destroyList(polygonPoints);
+		destroyList(polygonPoints);
 	}
 	protected static void generateTriangle(List<Vector2> vertice, ref List<Vector3> triangleList)
 	{

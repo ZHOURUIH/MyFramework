@@ -19,7 +19,7 @@ public class WindowPool<T> where T : myUIObject, new()
 		mUnusedList = new Stack<T>();
 	}
 	public void setTemplate(T template) { mTemplate = template; }
-	public T newWindow(myUIObject parent, string name = null)
+	public T newWindow(myUIObject parent, string name = null, bool sortChild = true)
 	{
 		if (name == null)
 		{
@@ -46,7 +46,9 @@ public class WindowPool<T> where T : myUIObject, new()
 		mInusedList.Add(window);
 		window.setActive(true);
 		window.setName(name);
-		window.setParent(parent);
+		window.setParent(parent, sortChild);
+		// 此处将是否排序也当作是否通知布局刷新深度
+		window.setAsLastSibling(sortChild);
 		return window;
 	}
 	public void unuseAll()

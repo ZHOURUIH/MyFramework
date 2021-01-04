@@ -110,8 +110,7 @@ public class Character : MovableObject
 	public CharacterStateMachine getStateMachine() { return mStateMachine; }
 	public PlayerState getFirstState(Type type) { return mStateMachine.getFirstState(type); }
 	public PlayerState getState(uint id) { return mStateMachine.getState(id); }
-	public Dictionary<Type, List<PlayerState>> getStateList() { return mStateMachine.getStateList(); }
-	public List<CacheState> getCacheStateList() { return mStateMachine.getCacheStateList(); }
+	public SafeDeepDictionary<Type, SafeDeepList<PlayerState>> getStateList() { return mStateMachine.getStateList(); }
 	public bool hasState(Type state) { return mStateMachine.hasState(state); }
 	public bool hasStateGroup(Type group) { return mStateMachine.hasStateGroup(group); }
 	//--------------------------------------------------------------------------------------------------------------

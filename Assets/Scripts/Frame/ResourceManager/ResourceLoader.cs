@@ -49,7 +49,7 @@ public class ResourceLoader : FrameBase
 			Resources.UnloadAsset(obj);
 		}
 		mLoadedPath[info.mPath].Remove(info.mResouceName);
-		mClassPool.destroyClass(info);
+		destroyClass(info);
 		mLoadedObjects.Remove(obj);
 		obj = null;
 		return true;
@@ -58,7 +58,7 @@ public class ResourceLoader : FrameBase
 	// 卸载指定路径中的所有资源
 	public void unloadPath(string path)
 	{
-		List<string> tempList = mListPool.newList(out tempList);
+		List<string> tempList = newList(out tempList);
 		tempList.AddRange(mLoadedPath.Keys);
 		int count = tempList.Count;
 		for(int i = 0; i < count; ++i)
@@ -84,11 +84,11 @@ public class ResourceLoader : FrameBase
 					}
 					info.mObject = null;
 				}
-				mClassPool.destroyClass(info);
+				destroyClass(info);
 			}
 			mLoadedPath.Remove(item0);
 		}
-		mListPool.destroyList(tempList);
+		destroyList(tempList);
 	}
 	public bool isResourceLoaded(string name)
 	{
@@ -200,7 +200,7 @@ public class ResourceLoader : FrameBase
 		// 还没有加载则开始异步加载
 		else
 		{
-			info = mClassPool.newClass(Typeof<ResourceLoadInfo>()) as ResourceLoadInfo;
+			info = newClass(Typeof<ResourceLoadInfo>()) as ResourceLoadInfo;
 			info.mPath = path;
 			info.mResouceName = name;
 			info.mState = LOAD_STATE.LOADING;
@@ -218,13 +218,13 @@ public class ResourceLoader : FrameBase
 		{
 			return;
 		}
-		var info = mClassPool.newClass(Typeof<ResourceLoadInfo>()) as ResourceLoadInfo;
+		var info = newClass(Typeof<ResourceLoadInfo>()) as ResourceLoadInfo;
 		info.mPath = path;
 		info.mResouceName = name;
 		info.mState = LOAD_STATE.LOADING;
 		resList.Add(info.mResouceName, info);
 #if UNITY_EDITOR
-		List<string> fileNameList = mListPool.newList(out fileNameList);
+		List<string> fileNameList = newList(out fileNameList);
 		ResourceManager.adjustResourceName<T>(name, fileNameList, false);
 		int fileCount = fileNameList.Count;
 		for(int i = 0; i < fileCount; ++i)
@@ -237,7 +237,7 @@ public class ResourceLoader : FrameBase
 				break;
 			}
 		}
-		mListPool.destroyList(fileNameList);
+		destroyList(fileNameList);
 #else
 		info.mObject = Resources.Load(name, Typeof<T>());
 		info.mSubObjects = Resources.LoadAll(name);
@@ -251,7 +251,7 @@ public class ResourceLoader : FrameBase
 	protected IEnumerator loadResourceCoroutine<T>(ResourceLoadInfo info) where T : Object
 	{
 #if UNITY_EDITOR
-		List<string> fileNameList = mListPool.newList(out fileNameList);
+		List<string> fileNameList = newList(out fileNameList);
 		ResourceManager.adjustResourceName<T>(info.mResouceName, fileNameList, false);
 		int fileCount = fileNameList.Count;
 		for (int i = 0; i < fileCount; ++i)
@@ -264,7 +264,7 @@ public class ResourceLoader : FrameBase
 				break;
 			}
 		}
-		mListPool.destroyList(fileNameList);
+		destroyList(fileNameList);
 		yield return null;
 #else
 		ResourceRequest request = Resources.LoadAsync<T>(info.mResouceName);

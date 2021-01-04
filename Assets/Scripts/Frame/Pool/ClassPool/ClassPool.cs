@@ -15,7 +15,7 @@ public class ClassPool : FrameSystem
 		mUnusedList = new Dictionary<Type, Stack<IClassObject>>();
 		mListLock = new ThreadLock();
 	}
-	public IClassObject newClass(Type type)
+	public new IClassObject newClass(Type type)
 	{
 		return newClass(type, out _);
 	}
@@ -67,7 +67,7 @@ public class ClassPool : FrameSystem
 		}
 		return obj;
 	}
-	public void destroyClass(IClassObject classObject)
+	public new void destroyClass(IClassObject classObject)
 	{
 		mListLock.waitForUnlock();
 		try
