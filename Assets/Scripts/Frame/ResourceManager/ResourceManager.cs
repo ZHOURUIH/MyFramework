@@ -337,7 +337,7 @@ public class ResourceManager : FrameSystem
 	//--------------------------------------------------------------------------------------------------------------------------------------------
 	protected IEnumerator loadAssetsUrl(string url, Type assetsType, AssetLoadDoneCallback callback, object userData = null)
 	{
-		logInfo("开始下载: " + url, LOG_LEVEL.HIGH);
+		log("开始下载: " + url, LOG_LEVEL.HIGH);
 		if (assetsType == Typeof<AudioClip>())
 		{
 			yield return loadAudioClipWithURL(url, callback, userData);
@@ -359,12 +359,12 @@ public class ResourceManager : FrameSystem
 		yield return www;
 		if (www.error != null)
 		{
-			logInfo("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.HIGH);
+			log("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.HIGH);
 			callback?.Invoke(null, null, null, userData, url);
 		}
 		else
 		{
-			logInfo("下载成功:" + url, LOG_LEVEL.HIGH);
+			log("下载成功:" + url, LOG_LEVEL.HIGH);
 			downloadHandler.assetBundle.name = url;
 			callback?.Invoke(downloadHandler.assetBundle, null, www.downloadHandler.data, userData, url);
 		}
@@ -378,12 +378,12 @@ public class ResourceManager : FrameSystem
 		yield return www;
 		if (www.error != null)
 		{
-			logInfo("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.HIGH);
+			log("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.HIGH);
 			callback?.Invoke(null, null, null, userData, url);
 		}
 		else
 		{
-			logInfo("下载成功:" + url, LOG_LEVEL.HIGH);
+			log("下载成功:" + url, LOG_LEVEL.HIGH);
 			downloadHandler.audioClip.name = url;
 			callback?.Invoke(downloadHandler.audioClip, null, www.downloadHandler.data, userData, url);
 		}
@@ -396,12 +396,12 @@ public class ResourceManager : FrameSystem
 		yield return www;
 		if (www.error != null)
 		{
-			logInfo("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.HIGH);
+			log("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.HIGH);
 			callback?.Invoke(null, null, null, userData, url);
 		}
 		else
 		{
-			logInfo("下载成功:" + url, LOG_LEVEL.HIGH);
+			log("下载成功:" + url, LOG_LEVEL.HIGH);
 			Texture2D tex = DownloadHandlerTexture.GetContent(www);
 			tex.name = url;
 			callback?.Invoke(tex, null, www.downloadHandler.data, userData, url);

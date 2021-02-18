@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System;
+﻿using System.Collections.Generic;
 
 // 非线程安全
 // 可安全遍历的列表,支持在遍历过程中对列表进行修改
@@ -26,7 +23,7 @@ public class SafeList<T> : FrameBase
 		int removeCount = mRemoveList.Count;
 		if (removeCount > 0)
 		{
-			for(int i = 0; i < removeCount; ++i)
+			for (int i = 0; i < removeCount; ++i)
 			{
 				mUpdateList.Remove(mRemoveList[i]);
 			}
@@ -35,22 +32,32 @@ public class SafeList<T> : FrameBase
 		int addCount = mAddList.Count;
 		if (addCount > 0)
 		{
-			for(int i = 0; i < addCount; ++i)
+			for (int i = 0; i < addCount; ++i)
 			{
 				mUpdateList.Add(mAddList[i]);
 			}
 			mAddList.Clear();
 		}
+		if (mUpdateList.Count != mMainList.Count)
+		{
+			logError("同步失败");
+		}
 		return mUpdateList;
 	}
 	// 获取主列表,存储着当前实时的数据列表,所有的删除和新增都会立即更新此列表
-	// 不能用主列表进行遍历,要遍历应该使用GetUpdateList
+	// 不能用主列表进行遍历,要遍历应该使用GetUpdateList,但是也需要注意避免遍历UpdateList再次GetUpdateList
+	// 也不能使用主列表直接进行添加或删除
 	public List<T> GetMainList() { return mMainList; }
 	public bool Contains(T value) { return mMainList.Contains(value); }
+	public T Get(int index) { return mMainList[index]; }
+	public int Count() { return mMainList.Count; }
 	public void Add(T value)
 	{
-		mRemoveList.Remove(value);
-		mAddList.Add(value);
+		// 只有不在删除列表中才会认为是有效的添加操作
+		if (!mRemoveList.Remove(value))
+		{
+			mAddList.Add(value);
+		}
 		mMainList.Add(value);
 	}
 	public void Remove(T value)
@@ -59,8 +66,11 @@ public class SafeList<T> : FrameBase
 		{
 			return;
 		}
-		mRemoveList.Add(value);
-		mAddList.Remove(value);
+		// 只有不在添加列表中才认为是有效的删除操作
+		if (!mAddList.Remove(value))
+		{
+			mRemoveList.Add(value);
+		}
 		mMainList.Remove(value);
 	}
 	// 清空所有数据,不能正在遍历时调用

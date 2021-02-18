@@ -1,12 +1,11 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using System;
 
 public abstract class ComponentOwner : CommandReceiver, IClassObject
 {
 	protected SafeDictionary<Type, GameComponent> mAllComponentTypeList;// 组件类型列表,first是组件的类型名
-	protected List<GameComponent> mComponentList;						// 组件列表,保存着组件之间的更新顺序
+	protected List<GameComponent> mComponentList;                       // 组件列表,保存着组件之间的更新顺序
 	protected bool mIgnoreTimeScale;
 	public ComponentOwner()
 	{
@@ -21,7 +20,7 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 			item.Value.notifyOwnerDestroy();
 		}
 		componentList = mAllComponentTypeList.GetUpdateList();
-		foreach(var item in componentList)
+		foreach (var item in componentList)
 		{
 			item.Value.destroy();
 			removeComponentFromList(item.Value);
@@ -160,12 +159,12 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 	{
 		if (mAllComponentTypeList.TryGetValue(type, out GameComponent component))
 		{
-			if(!needActive || component.isActive())
+			if (!needActive || component.isActive())
 			{
 				return component;
 			}
 		}
-		if(addIfNull)
+		if (addIfNull)
 		{
 			return addComponent(type);
 		}
@@ -176,20 +175,27 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 		GameComponent component = getComponent(type, false, addIfNull);
 		component?.setActive(active);
 	}
-	public void breakComponent<T>(Type exceptComponent)
+	public void notifyComponentStart(GameComponent component)
 	{
-		var componentList = mAllComponentTypeList.GetUpdateList();
-		foreach (var item in componentList)
+		if (component is IComponentModifyAlpha)
 		{
-			GameComponent component = item.Value;
-			if (component.isActive() && 
-				component is T && 
-				component is IComponentBreakable &&
-				component.getType() != exceptComponent)
-			{
-				(component as IComponentBreakable).notifyBreak();
-				component.setActive(false);
-			}
+			breakComponent<IComponentModifyAlpha>(component);
+		}
+		if (component is IComponentModifyColor)
+		{
+			breakComponent<IComponentModifyColor>(component);
+		}
+		if (component is IComponentModifyPosition)
+		{
+			breakComponent<IComponentModifyPosition>(component);
+		}
+		if (component is IComponentModifyRotation)
+		{
+			breakComponent<IComponentModifyRotation>(component);
+		}
+		if (component is IComponentModifyScale)
+		{
+			breakComponent<IComponentModifyScale>(component);
 		}
 	}
 	public List<GameComponent> getComponentList() { return mComponentList; }
@@ -197,12 +203,12 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 	// componentOnly表示是否只设置组件不受时间缩放影响,如果只有组件受影响,则Owner本身还是受到时间缩放影响的
 	public virtual void setIgnoreTimeScale(bool ignore, bool componentOnly = false)
 	{
-		if(!componentOnly)
+		if (!componentOnly)
 		{
 			mIgnoreTimeScale = ignore;
 		}
 		int count = mComponentList.Count;
-		for(int i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			mComponentList[i].setIgnoreTimeScale(ignore);
 		}
@@ -238,5 +244,22 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 	{
 		mComponentList.Remove(component);
 		mAllComponentTypeList.Remove(Typeof(component));
+	}
+	protected void breakComponent<T>(GameComponent exceptComponent)
+	{
+		// 中断所有可中断的组件
+		var componentList = mAllComponentTypeList.GetUpdateList();
+		foreach (var item in componentList)
+		{
+			GameComponent component = item.Value;
+			if (component.isActive() &&
+				component is T &&
+				component is IComponentBreakable &&
+				component != exceptComponent)
+			{
+				(component as IComponentBreakable).notifyBreak();
+				component.setActive(false);
+			}
+		}
 	}
 }

@@ -1,16 +1,15 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System;
 
 public class CommandReceiver : GameBase
 {
 	protected string mName;
 	public virtual void receiveCommand(Command cmd)
 	{
-		cmd.runStartCallBack();
-		cmd.setExecuteState(EXECUTE_STATE.EXECUTING);
+		cmd.invokeStartCallBack();
+		cmd.setState(EXECUTE_STATE.EXECUTING);
 		cmd.execute();
-		cmd.setExecuteState(EXECUTE_STATE.EXECUTED);
-		cmd.runEndCallBack();
+		cmd.setState(EXECUTE_STATE.EXECUTED);
+		cmd.invokeEndCallBack();
 	}
 	public virtual string getName() { return mName; }
 	// 谨慎使用设置名字

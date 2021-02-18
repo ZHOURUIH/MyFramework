@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System;
 
 public class CommandLayoutManagerVisible : Command
 {
@@ -28,7 +27,7 @@ public class CommandLayoutManagerVisible : Command
 		LAYOUT_ORDER orderType = layout.getRenderOrderType();
 		if (mVisibility && (orderType == LAYOUT_ORDER.ALWAYS_TOP_AUTO || orderType == LAYOUT_ORDER.AUTO))
 		{
-			int renderOrder = mLayoutManager.generateRenderOrder(layout.getRenderOrder(), orderType);
+			int renderOrder = mLayoutManager.generateRenderOrder(layout, layout.getRenderOrder(), orderType);
 			if (renderOrder != layout.getRenderOrder())
 			{
 				layout.setRenderOrder(renderOrder);

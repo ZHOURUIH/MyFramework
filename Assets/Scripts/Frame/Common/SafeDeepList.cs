@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System;
+﻿using System.Collections.Generic;
 
 // 非线程安全
 // 可深度嵌套安全遍历的列表,支持在遍历过程中嵌套遍历和对列表进行修改
@@ -30,6 +27,7 @@ public class SafeDeepList<T> : FrameBase
 	// 不能用主列表进行遍历,要遍历应该使用GetUpdateList
 	public List<T> GetMainList() { return mMainList; }
 	public bool Contains(T value) { return mMainList.Contains(value); }
+	public int Count() { return mMainList.Count; }
 	public void Add(T value)
 	{
 		mMainList.Add(value);

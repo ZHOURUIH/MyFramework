@@ -1,6 +1,4 @@
-﻿using System;
-using UnityEngine;
-using System.Collections;
+﻿using UnityEngine;
 
 public class ComponentRotateSpeedBase : GameComponent, IComponentModifyRotation, IComponentBreakable
 {

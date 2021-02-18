@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 
 public interface IClient
 {
@@ -41,14 +38,21 @@ public abstract class NetClient : GameBase
 	public virtual void destroy(){}
 	public void sendServerPacket(SocketPacket packet)
 	{
-		// 如果不使用int替换ulong时的包体长度
-		int maxPacketSize = packet.generateSize(true);
+		// 包类型的高2位表示了当前包体是用几个字节存储的
+		ushort packetType = packet.getPacketType();
 		// 需要先序列化消息,同时获得包体实际的长度
-		byte[] bodyBuffer = mBytesPool.newBytes(getGreaterPow2(maxPacketSize));
-		int realPacketSize = packet.write(bodyBuffer, 0);
+		byte[] bodyBuffer = mBytesPool.newBytes(getGreaterPow2(packet.generateSize(true)));
+		int realPacketSize = packet.write(bodyBuffer);
+		string debugInfo = null;
+		if (packet.showInfo())
+		{
+			debugInfo = packet.debugInfo();
+		}
+		// 序列化完以后就可以直接销毁消息
+		mSocketFactory.destroyPacket(packet);
+
 		if (realPacketSize < 0)
 		{
-			mSocketFactory.destroyPacket(packet);
 			mBytesPool.destroyBytes(bodyBuffer);
 			logError("消息序列化失败!");
 			return;
@@ -58,14 +62,11 @@ public abstract class NetClient : GameBase
 		// 开始的2个字节仅用于发送数据长度标记,不会真正发出去
 		// 接下来的数据是包头,包头的长度为2~4个字节
 		ushort packetSize = (ushort)realPacketSize;
-		// 包类型的高2位表示了当前包体是用几个字节存储的
-		ushort packetType = packet.getPacketType();
 		// 包中实际的包头大小
 		int headerSize = sizeof(ushort);
 		// 包体长度为0,则包头不包含包体长度,包类型高2位全部设置为0
 		if (packetSize == 0)
 		{
-			headerSize += 0;
 			setBit(ref packetType, sizeof(ushort) * 8 - 1, 0);
 			setBit(ref packetType, sizeof(ushort) * 8 - 2, 0);
 		}
@@ -83,12 +84,12 @@ public abstract class NetClient : GameBase
 			setBit(ref packetType, sizeof(ushort) * 8 - 1, 1);
 			setBit(ref packetType, sizeof(ushort) * 8 - 2, 0);
 		}
-		byte[] packetData = mBytesPool.newBytes(getGreaterPow2(sizeof(ushort) + headerSize + packetSize));
+		byte[] packetData = mBytesPoolThread.newBytes(getGreaterPow2(sizeof(ushort) + headerSize + packetSize));
 		int index = 0;
 		// 本次消息包的数据长度,因为byte[]本身的长度并不代表要发送的实际的长度,所以将数据长度保存下来
 		writeUShort(packetData, ref index, (ushort)(headerSize + packetSize));
 		// 消息类型
-		writeUShort(packetData, ref index, packet.getPacketType());
+		writeUShort(packetData, ref index, packetType);
 		// 消息长度,按实际消息长度写入长度的字节内容
 		if (headerSize - sizeof(ushort) == sizeof(byte))
 		{
@@ -102,16 +103,16 @@ public abstract class NetClient : GameBase
 		writeBytes(packetData, ref index, bodyBuffer, -1, -1, realPacketSize);
 		mBytesPool.destroyBytes(bodyBuffer);
 		// 添加到写缓冲中
-		mOutputBuffer.addToBuffer(packetData);
-		if (packet.showInfo())
+		mOutputBuffer.add(packetData);
+		if (debugInfo != null)
 		{
-			clientInfo("已发送 : " + packet.debugInfo() + ", 字节数:" + packetSize);
+			clientInfo("已发送 : " + debugInfo + ", 字节数:" + packetSize);
 		}
 	}
 	public void processSend()
 	{
 		// 获取输出数据的读缓冲区
-		var readList = mOutputBuffer.getReadList();
+		var readList = mOutputBuffer.get();
 		int count = readList.Count;
 		try
 		{
@@ -130,12 +131,12 @@ public abstract class NetClient : GameBase
 		}
 		catch
 		{
-			logInfo("发送数据到客户端时发现异常");
+			log("发送数据到客户端时发现异常");
 		}
 		// 回收所有byte[]
 		for (int i = 0; i < count; ++i)
 		{
-			mBytesPool.destroyBytes(readList[i]);
+			mBytesPoolThread.destroyBytes(readList[i]);
 		}
 		readList.Clear();
 	}
@@ -163,7 +164,7 @@ public abstract class NetClient : GameBase
 			return;
 		}
 		// 执行所有已经收到的消息包
-		var readList = mReceiveBuffer.getReadList();
+		var readList = mReceiveBuffer.get();
 		int count = readList.Count;
 		for (int i = 0; i < count; ++i)
 		{
@@ -261,7 +262,7 @@ public abstract class NetClient : GameBase
 			mRecvBytes.clear();
 			return PARSE_RESULT.ERROR;
 		}
-		mReceiveBuffer.addToBuffer(packetReply);
+		mReceiveBuffer.add(packetReply);
 		// 移除已解析的数据
 		mRecvBytes.removeData(0, index);
 		return PARSE_RESULT.SUCCESS;
@@ -271,7 +272,7 @@ public abstract class NetClient : GameBase
 		Character player = mCharacterManager.getCharacter(mCharacterGUID);
 		string name = player != null ? player.getName() : EMPTY;
 		string fullInfo = "IP:" + mIP + ", 角色GUID:" + uintToString(mCharacterGUID) + ", 名字:" + name + " ||\t" + info;
-		logInfo(fullInfo);
+		log(fullInfo);
 	}
 	protected void clientError(string info)
 	{

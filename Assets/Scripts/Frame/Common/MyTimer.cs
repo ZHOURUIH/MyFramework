@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 public class MyTimer : FrameBase
 {
@@ -23,34 +22,31 @@ public class MyTimer : FrameBase
 	}
 	public bool tickTimer(float elapsedTime)
 	{
-		if (mCurTime < 0.0f)
+		if (mCurTime < 0.0f || mTimeInterval < 0.0f)
 		{
 			return false;
 		}
-		if (mTimeInterval <= 0.0f)
-		{
-			return true;
-		}
 		mCurTime += elapsedTime;
-		if (mCurTime >= mTimeInterval)
+		if (mCurTime < mTimeInterval)
 		{
-			// 循环计时,则再重新开始计时
-			if (mLoop)
-			{
-				mCurTime -= mTimeInterval;
-				if (mTimeInterval <= 0.0f)
-				{
-					mCurTime = 0.0f;
-				}
-			}
-			// 不循环计时,将mCurTime设置为-1
-			else
-			{
-				mCurTime = -1.0f;
-			}
-			return true;
+			return false;
 		}
-		return false;
+		
+		// 循环计时,则再重新开始计时
+		if (mLoop)
+		{
+			mCurTime -= mTimeInterval;
+			if (mTimeInterval <= 0.0f)
+			{
+				mCurTime = 0.0f;
+			}
+		}
+		// 不循环计时,将mCurTime设置为-1
+		else
+		{
+			mCurTime = -1.0f;
+		}
+		return true;
 	}
 	public void stop(bool resetInterval = true)
 	{

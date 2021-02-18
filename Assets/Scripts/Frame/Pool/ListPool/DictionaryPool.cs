@@ -1,20 +1,18 @@
-﻿using UnityEngine;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System;
 
+// 仅能在主线程中使用的字典列表池
 public class DictionaryPool : FrameSystem
 {
-	protected Dictionary<DictionaryType, List<IEnumerable>> mPersistentInuseList;	// 持久使用的列表对象
-	protected Dictionary<DictionaryType, List<IEnumerable>> mInusedList;			// 仅当前栈帧中使用的列表对象
-	protected Dictionary<DictionaryType, Stack<IEnumerable>> mUnusedList;
-	protected ThreadLock mListLock;
+	protected Dictionary<DictionaryType, HashSet<IEnumerable>> mPersistentInuseList;	// 持久使用的列表对象
+	protected Dictionary<DictionaryType, HashSet<IEnumerable>> mInusedList;			// 仅当前栈帧中使用的列表对象
+	protected Dictionary<DictionaryType, HashSet<IEnumerable>> mUnusedList;
 	public DictionaryPool()
 	{
-		mPersistentInuseList = new Dictionary<DictionaryType, List<IEnumerable>>();
-		mInusedList = new Dictionary<DictionaryType, List<IEnumerable>>();
-		mUnusedList = new Dictionary<DictionaryType, Stack<IEnumerable>>();
-		mListLock = new ThreadLock();
+		mPersistentInuseList = new Dictionary<DictionaryType, HashSet<IEnumerable>>();
+		mInusedList = new Dictionary<DictionaryType, HashSet<IEnumerable>>();
+		mUnusedList = new Dictionary<DictionaryType, HashSet<IEnumerable>>();
 		mCreateObject = true;
 	}
 	public override void init()
@@ -30,59 +28,60 @@ public class DictionaryPool : FrameSystem
 #if UNITY_EDITOR
 		foreach (var item in mInusedList)
 		{
-			if (item.Value.Count > 0)
+			if (item.Value.Count == 0)
 			{
-				logError("有临时列表对象正在使用中,是否在申请后忘记回收到池中! type:" + Typeof(item.Value[0]));
+				continue;
+			}
+			foreach (var itemList in item.Value)
+			{
+				logError("有临时列表对象正在使用中,是否在申请后忘记回收到池中! type:" + Typeof(itemList));
+				break;
 			}
 		}
 #endif
 	}
-	public Dictionary<DictionaryType, List<IEnumerable>> getPersistentInusedList() { return mPersistentInuseList; }
-	public Dictionary<DictionaryType, List<IEnumerable>> getInusedList() { return mInusedList; }
-	public Dictionary<DictionaryType, Stack<IEnumerable>> getUnusedList() { return mUnusedList; }
+	public Dictionary<DictionaryType, HashSet<IEnumerable>> getPersistentInusedList() { return mPersistentInuseList; }
+	public Dictionary<DictionaryType, HashSet<IEnumerable>> getInusedList() { return mInusedList; }
+	public Dictionary<DictionaryType, HashSet<IEnumerable>> getUnusedList() { return mUnusedList; }
 	// onlyOnce表示是否仅当作临时列表使用
 	public new Dictionary<K, V> newList<K, V>(out Dictionary<K, V> obj, bool onlyOnce = true)
 	{
 		obj = null;
-		// 锁定期间不能调用任何其他非库函数,否则可能会发生死锁
-		mListLock.waitForUnlock();
-		try
+		if (!isMainThread())
 		{
-			var type = new DictionaryType(Typeof<K>(), Typeof<V>());
-			// 先从未使用的列表中查找是否有可用的对象
-			if (mUnusedList.TryGetValue(type, out Stack<IEnumerable> valueList) && valueList.Count > 0)
-			{
-				obj = valueList.Pop() as Dictionary<K, V>;
-			}
-			// 未使用列表中没有,创建一个新的
-			else
-			{
-				obj = new Dictionary<K, V>();
-			}
-			// 标记为已使用
-			addInuse(obj, onlyOnce);
+			logError("只能在主线程中使用DictionaryPool,子线程中请使用DictionaryPoolThread代替");
+			return null;
 		}
-		catch (Exception e)
+		var type = new DictionaryType(Typeof<K>(), Typeof<V>());
+		// 先从未使用的列表中查找是否有可用的对象
+		if (mUnusedList.TryGetValue(type, out HashSet<IEnumerable> valueList) && valueList.Count > 0)
 		{
-			logError(e.Message);
+			foreach(var item in valueList)
+			{
+				obj = item as Dictionary<K, V>;
+				break;
+			}
+			valueList.Remove(obj);
 		}
-		mListLock.unlock();
+		// 未使用列表中没有,创建一个新的
+		else
+		{
+			obj = new Dictionary<K, V>();
+		}
+		// 标记为已使用
+		addInuse(obj, onlyOnce);
 		return obj;
 	}
 	public new void destroyList<K, V>(Dictionary<K, V> list)
 	{
-		mListLock.waitForUnlock();
-		try
+		if (!isMainThread())
 		{
-			list.Clear();
-			addUnuse(list);
-			removeInuse(list);
+			logError("只能在主线程中使用DictionaryPool,子线程中请使用DictionaryPoolThread代替");
+			return;
 		}
-		catch (Exception e)
-		{
-			logError(e.Message);
-		}
-		mListLock.unlock();
+		list.Clear();
+		addUnuse(list);
+		removeInuse(list);
 	}
 	//----------------------------------------------------------------------------------------------------------------------------------------------
 	protected void addInuse<K, V>(Dictionary<K, V> list, bool onlyOnce)
@@ -91,7 +90,7 @@ public class DictionaryPool : FrameSystem
 		// 加入仅临时使用的列表对象的列表中
 		if (onlyOnce)
 		{
-			if (mInusedList.TryGetValue(type, out List<IEnumerable> valueList))
+			if (mInusedList.TryGetValue(type, out HashSet<IEnumerable> valueList))
 			{
 				if (valueList.Contains(list))
 				{
@@ -101,7 +100,7 @@ public class DictionaryPool : FrameSystem
 			}
 			else
 			{
-				valueList = new List<IEnumerable>();
+				valueList = new HashSet<IEnumerable>();
 				mInusedList.Add(type, valueList);
 			}
 			valueList.Add(list);
@@ -109,7 +108,7 @@ public class DictionaryPool : FrameSystem
 		// 加入持久使用的列表对象的列表中
 		else
 		{
-			if (mPersistentInuseList.TryGetValue(type, out List<IEnumerable> valueList))
+			if (mPersistentInuseList.TryGetValue(type, out HashSet<IEnumerable> valueList))
 			{
 				if (valueList.Contains(list))
 				{
@@ -119,7 +118,7 @@ public class DictionaryPool : FrameSystem
 			}
 			else
 			{
-				valueList = new List<IEnumerable>();
+				valueList = new HashSet<IEnumerable>();
 				mPersistentInuseList.Add(type, valueList);
 			}
 			valueList.Add(list);
@@ -129,7 +128,7 @@ public class DictionaryPool : FrameSystem
 	{
 		// 从使用列表移除,要确保操作的都是从本类创建的实例
 		var type = new DictionaryType(Typeof<K>(), Typeof<V>());
-		if (mInusedList.TryGetValue(type, out List<IEnumerable> valueList))
+		if (mInusedList.TryGetValue(type, out HashSet<IEnumerable> valueList))
 		{
 			if (!valueList.Remove(list))
 			{
@@ -137,7 +136,7 @@ public class DictionaryPool : FrameSystem
 				return;
 			}
 		}
-		else if(mPersistentInuseList.TryGetValue(type, out List<IEnumerable> persistentValueList))
+		else if(mPersistentInuseList.TryGetValue(type, out HashSet<IEnumerable> persistentValueList))
 		{
 			if (!persistentValueList.Remove(list))
 			{
@@ -155,7 +154,7 @@ public class DictionaryPool : FrameSystem
 	{
 		// 加入未使用列表
 		var type = new DictionaryType(Typeof<K>(), Typeof<V>());
-		if (mUnusedList.TryGetValue(type, out Stack<IEnumerable> valueList))
+		if (mUnusedList.TryGetValue(type, out HashSet<IEnumerable> valueList))
 		{
 			if (valueList.Contains(list))
 			{
@@ -165,9 +164,9 @@ public class DictionaryPool : FrameSystem
 		}
 		else
 		{
-			valueList = new Stack<IEnumerable>();
+			valueList = new HashSet<IEnumerable>();
 			mUnusedList.Add(type, valueList);
 		}
-		valueList.Push(list);
+		valueList.Add(list);
 	}
 }

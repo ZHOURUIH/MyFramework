@@ -23,7 +23,37 @@ public class StringUtility : BinaryUtility
 				break;
 			}
 			format = replaceAll(format, str, args[index]);
-			++index;
+			index++;
+		}
+		return format;
+	}
+	public static string format(string format, List<string> args)
+	{
+		int index = 0;
+		while (true)
+		{
+			string str = "{" + index + "}";
+			if (findFirstSubstr(format, str) < 0)
+			{
+				break;
+			}
+			format = replaceAll(format, str, args[index]);
+			index++;
+		}
+		return format;
+	}
+	public static string format(string format, List<int> args)
+	{
+		int index = 0;
+		while (true)
+		{
+			string str = "{" + index + "}";
+			if (findFirstSubstr(format, str) < 0)
+			{
+				break;
+			}
+			format = replaceAll(format, str, intToString(args[index]));
+			index++;
 		}
 		return format;
 	}
@@ -377,6 +407,15 @@ public class StringUtility : BinaryUtility
 	public static string projectPathToFullPath(string path)
 	{
 		return FrameDefine.F_ASSETS_PATH + path.Substring(FrameDefine.ASSETS.Length + 1);
+	}
+	// 检查后缀,如果字符串没有指定后缀,则在后面加上后缀
+	public static string checkSuffix(string path, string suffix)
+	{
+		if (!endWith(path, suffix))
+		{
+			path += suffix;
+		}
+		return path;
 	}
 	public static string removeSuffix(string str)
 	{
@@ -1221,7 +1260,7 @@ public class StringUtility : BinaryUtility
 		}
 		return (byte)(highBit << 4 | lowBit);
 	}
-	// 返回值表示bytes的有效长度
+	// 返回值表示bytes的有效长度,需要调用releaseHexStringBytes释放数组
 	public static int hexStringToBytes(string str, out byte[] bytes)
 	{
 		bytes = null;
@@ -1231,7 +1270,7 @@ public class StringUtility : BinaryUtility
 			return 0;
 		}
 		int dataCount = str.Length >> 1;
-		bytes = FrameBase.mBytesPool.newBytes(MathUtility.getGreaterPow2(dataCount));
+		bytes = FrameBase.mBytesPoolThread.newBytes(MathUtility.getGreaterPow2(dataCount));
 		for (int i = 0; i < dataCount; ++i)
 		{
 			bytes[i] = hexStringToByte(str, i * 2);
@@ -1240,7 +1279,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static void releaseHexStringBytes(byte[] bytes)
 	{
-		FrameBase.mBytesPool.destroyBytes(bytes);
+		FrameBase.mBytesPoolThread.destroyBytes(bytes);
 	}
 	public static string fileSizeString(long size)
 	{

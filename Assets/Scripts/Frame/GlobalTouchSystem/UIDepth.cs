@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System;
+﻿using System;
 
 // 表示UI的深度
 public class UIDepth : FrameBase

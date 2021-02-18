@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 
 public abstract class GameComponent : GameBase
 {
@@ -26,7 +23,14 @@ public abstract class GameComponent : GameBase
 	}
 	public bool isActive() { return mActive; }
 	public virtual void resetProperty() { }
-	public virtual void setActive(bool active) { mActive = active; }
+	public virtual void setActive(bool active) 
+	{
+		mActive = active;
+		if (mActive)
+		{
+			mComponentOwner.notifyComponentStart(this);
+		}
+	}
 	public void setDefaultActive(bool active) { mDefaultActive = active; }
 	public void setType(Type type) { mType = type; }
 	public virtual void setIgnoreTimeScale(bool ignore) { mIgnoreTimeScale = ignore; }

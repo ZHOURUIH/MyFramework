@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
 
 public class CommandWindowColor : Command
 {
@@ -32,9 +30,6 @@ public class CommandWindowColor : Command
 	{
 		myUIObject obj = mReceiver as myUIObject;
 		WindowComponentColor component = obj.getComponent(out component);
-		// 停止其他相关组件
-		obj.breakComponent<IComponentModifyColor>(Typeof(component));
-		obj.breakComponent<IComponentModifyAlpha>(Typeof(component));
 		component.setTremblingCallback(mTremblingCallBack);
 		component.setTrembleDoneCallback(mTrembleDoneCallBack);
 		component.setActive(true);

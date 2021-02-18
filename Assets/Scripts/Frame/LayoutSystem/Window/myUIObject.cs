@@ -39,12 +39,12 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	protected float mLongPressTimeThreshold;        // 长按的时间阈值,超过阈值时检测为长按
 	protected float mLastClickTime;                 // 上一次点击距离当前的时间,小于0表示未计时,大于等于0表示正在计时
 	protected float mPressedTime;                   // 小于0表示未计时,大于等于0表示正在计时长按操作,防止长时间按下时总会每隔指定时间调用一次回调
+	protected uint mID;								// 每个窗口的唯一ID
 	protected bool mDestroyImmediately;             // 销毁窗口时是否立即销毁
 	protected bool mDepthOverAllChild;				// 计算深度时是否将深度设置为所有子节点之上,实际调整的是mExtraDepth
 	protected bool mMouseHovered;                   // 当前鼠标是否悬停在窗口上
 	protected bool mPressing;                       // 鼠标当前是否在窗口中处于按下状态,鼠标离开窗口时认为鼠标不在按下状态
 	protected bool mPassRay;                        // 当存在且注册了碰撞体时是否允许射线穿透
-	protected int mID;								// 每个窗口的唯一ID
 	protected static bool mAllowDestroyWindow = false;
 	public myUIObject()
 	{
@@ -243,7 +243,7 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	//get
 	//-------------------------------------------------------------------------------------------------------------------------------------
 	public int getSiblingIndex() { return mTransform.GetSiblingIndex(); }
-	public int getID() { return mID; }
+	public uint getID() { return mID; }
 	public GameLayout getLayout() { return mLayout; }
 	public virtual GameObject getObject() { return mObject; }
 	public List<myUIObject> getChildList() { return mChildList; }
@@ -537,7 +537,7 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	{
 		mDragHoverCallback?.Invoke(dragObj, hover);
 	}
-	public override int GetHashCode() { return mID; }
+	public override int GetHashCode() { return (int)mID; }
 	public bool Equals(myUIObject obj) { return mID == obj.mID; }
 	//----------------------------------------------------------------------------------------------------------------------------------
 	protected virtual void onWorldScaleChanged(Vector2 lastWorldScale) { }

@@ -40,7 +40,7 @@ public class myUGUIObject : myUIObject
 	public override bool selfAlphaChild() { return false; }
 	public override void setWindowSize(Vector2 size)
 	{
-		WidgetUtility.setUGUIRectSize(mRectTransform, size, false);
+		WidgetUtility.setRectSize(mRectTransform, size, false);
 	}
 	public override Vector2 getWindowSize(bool transformed = false)
 	{

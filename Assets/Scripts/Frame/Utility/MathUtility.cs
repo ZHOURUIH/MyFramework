@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 using UnityEngine;
-using UnityEngine.Profiling;
 
 public struct Line2
 {
@@ -122,8 +120,6 @@ public struct Point
 
 public class MathUtility : StringUtility
 {
-	private static ThreadLock mTempRandomNumberLock = new ThreadLock();
-	private static byte[] mTempRandomNumber = new byte[4];
 	private static List<PathNode> mTempOpenList = new List<PathNode>();
 	private static Point[] mTempDirect8 = new Point[8];
 	private static Point[] mTempDirect4 = new Point[4];
@@ -161,6 +157,10 @@ public class MathUtility : StringUtility
 		{
 			mComplexList[i] = new Complex();
 		}
+	}
+	public static bool hasMask(int value, int mask)
+	{
+		return (value & ~mask) != 0;
 	}
 	public static float KMHtoMS(float kmh) { return kmh * 0.27777f; }       // km/h转m/s
 	public static float MStoKMH(float ms) { return ms * 3.6f; }
@@ -316,6 +316,7 @@ public class MathUtility : StringUtility
 	}
 	public static float atan2(float y, float x) { return Mathf.Atan2(y, x); }
 	public static float dot(ref Vector3 v0, ref Vector3 v1) { return v0.x * v1.x + v0.y * v1.y + v0.z * v1.z; }
+	public static float dot(Vector3 v0, Vector3 v1) { return v0.x * v1.x + v0.y * v1.y + v0.z * v1.z; }
 	public static float sqrt(float value) { return Mathf.Sqrt(value); }
 	public static Vector3 cross(ref Vector3 v0, ref Vector3 v1) { return Vector3.Cross(v0, v1); }
 	public static Vector3 cross(Vector3 v0, Vector3 v1) { return Vector3.Cross(v0, v1); }
@@ -1242,6 +1243,16 @@ public class MathUtility : StringUtility
 		v *= fInvDet;
 		return true;
 	}
+	// 判断pos是否在扇形区域内,会忽略pos和center的y轴
+	public static bool inFanShape(Vector3 center, float radius, float radian, Vector3 pos)
+	{
+		Vector3 relative = pos - center;
+		if (lengthGreater(relative, radius))
+		{
+			return false;
+		}
+		return getAngleBetweenVector(Vector3.forward, relative) < radian * 0.5f;
+	}
 	// circle0是否与circle1相交
 	public static bool circleOverlap(Circle3 circle0, Circle3 circle1, bool ignoreY)
 	{
@@ -1280,14 +1291,19 @@ public class MathUtility : StringUtility
 		// 将圆形转换到以矩形中心为原点的坐标系
 		circleCenter -= rectanglePosition;
 		circleCenter = rotateVector3(circleCenter, toRadian(-rectangleRotation.y));
+		// 然后把圆心映射到第一象限,因为在转换以后的坐标系中,4个象限都是对称的,所以只需要判断一个象限即可
+		circleCenter.x = abs(circleCenter.x);
+		circleCenter.y = abs(circleCenter.y);
+		circleCenter.z = abs(circleCenter.z);
 		// 矩形在第一象限上的顶点
-		Vector3 leftTopPoint = size * 0.5f;
-		Vector3 centerToLeftTop = circleCenter - leftTopPoint;
+		Vector3 rightTopPoint = size * 0.5f;
+		// 相减后获得右上角顶点到圆心的向量
+		Vector3 centerToRightTop = circleCenter - rightTopPoint;
 		// 将小于0的分量设置为0,保证如果圆心到矩形边的垂点在矩形范围内时该向量与矩形的某条边垂直
-		clampMin(ref centerToLeftTop.x, 0.0f);
-		clampMin(ref centerToLeftTop.y, 0.0f);
-		clampMin(ref centerToLeftTop.z, 0.0f);
-		return lengthLess(ref centerToLeftTop, circle.mRadius);
+		clampMin(ref centerToRightTop.x);
+		clampMin(ref centerToRightTop.y);
+		clampMin(ref centerToRightTop.z);
+		return lengthLess(ref centerToRightTop, circle.mRadius);
 	}
 	// 判断圆是否与线段相交,仅限2D平面,且Z轴为0
 	public static bool circleIntersectLine(Circle3 circle, Line3 line)
@@ -1394,6 +1410,14 @@ public class MathUtility : StringUtility
 			forward.y = 0.0f;
 		}
 		return Quaternion.LookRotation(normalize(forward)).eulerAngles;
+	}
+	public static Quaternion getLookRotation(Vector3 forward, bool ignoreY = false)
+	{
+		if (ignoreY)
+		{
+			forward.y = 0.0f;
+		}
+		return Quaternion.LookRotation(forward);
 	}
 	public static Vector3 getDirectionFromDegreeYawPitch(float yaw, float pitch)
 	{
@@ -1593,9 +1617,11 @@ public class MathUtility : StringUtility
 	public static Vector3 getReflection(Vector3 inRay, Vector3 normal)
 	{
 		inRay = normalize(inRay);
-		normal = normalize(normal);
-		return inRay - 2 * (dot(ref inRay, ref normal)) * normal;
+		return inRay - 2 * getProjection(inRay, normalize(normal));
 	}
+	public static Vector3 resetX(Vector3 v) { return new Vector3(0.0f, v.y, v.z); }
+	public static Vector3 resetY(Vector3 v) { return new Vector3(v.x, 0.0f, v.z); }
+	public static Vector3 resetZ(Vector3 v) { return new Vector3(v.x, v.y, 0.0f); }
 	public static Vector3 replaceX(Vector3 v, float x) { return new Vector3(x, v.y, v.z); }
 	public static Vector3 replaceY(Vector3 v, float y) { return new Vector3(v.x, y, v.z); }
 	public static Vector3 replaceZ(Vector3 v, float z) { return new Vector3(v.x, v.y, z); }
@@ -1659,6 +1685,13 @@ public class MathUtility : StringUtility
 	public static bool lengthGreaterEqual(ref Vector3 vec, float length) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z >= length * length; }
 	public static bool lengthGreaterEqual(Vector3 vec0, Vector3 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y + vec0.z * vec0.z >= vec1.x * vec1.x + vec1.y * vec1.y + vec1.z * vec1.z; }
 	public static bool lengthGreaterEqual(ref Vector3 vec0, ref Vector3 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y + vec0.z * vec0.z >= vec1.x * vec1.x + vec1.y * vec1.y + vec1.z * vec1.z; }
+	public static bool isQuaternionEqual(Quaternion value0, Quaternion value1)
+	{
+		return isFloatEqual(value0.x, value1.x) && 
+			   isFloatEqual(value0.y, value1.y) && 
+			   isFloatEqual(value0.z, value1.z) && 
+			   isFloatEqual(value0.w, value1.w);
+	}
 	public static Vector3 getMatrixScale(Matrix4x4 mat)
 	{
 		Vector3 vec0 = new Vector3(mat.m00, mat.m01, mat.m02);
@@ -1870,12 +1903,11 @@ public class MathUtility : StringUtility
 	// 计算一个向量在另一个向量上的投影
 	public static Vector3 getProjection(Vector3 v1, Vector3 v2)
 	{
-		return normalize(v2) * getLength(ref v1) * cos(getAngleBetweenVector(v1, v2));
+		return normalize(v2) * dot(v1, v2) / getLength(v2);
 	}
-	// 计算一个向量在另一个向量上的投影
 	public static Vector3 getProjection(Vector2 v1, Vector2 v2)
 	{
-		return normalize(v2) * getLength(ref v1) * cos(getAngleBetweenVector(v1, v2));
+		return normalize(v2) * dot(v1, v2) / getLength(v2);
 	}
 	public static Vector3 normalize(Vector3 vec3)
 	{
@@ -2014,8 +2046,10 @@ public class MathUtility : StringUtility
 	}
 	public static int getMin(int a, int b) { return a < b ? a : b; }
 	public static float getMin(float a, float b) { return a < b ? a : b; }
+	public static uint getMin(uint a, uint b) { return a < b ? a : b; }
 	public static int getMax(int a, int b) { return a > b ? a : b; }
 	public static float getMax(float a, float b) { return a > b ? a : b; }
+	public static uint getMax(uint a, uint b) { return a > b ? a : b; }
 	public static float inverseLerp(float a, float b, float value)
 	{
 		if (isFloatEqual(a, b))
@@ -2066,6 +2100,11 @@ public class MathUtility : StringUtility
 			value = end;
 		}
 		return value;
+	}
+	public static Quaternion lerp(Quaternion start, Quaternion end, float t)
+	{
+		saturate(ref t);
+		return Quaternion.Lerp(start, end, t);
 	}
 	public static Color lerp(Color start, Color end, float t, float minRange = 0.0f)
 	{
@@ -2170,21 +2209,21 @@ public class MathUtility : StringUtility
 		}
 		return value;
 	}
-	public static void clampMin(ref int value, int min)
+	public static void clampMin(ref int value, int min = 0)
 	{
 		if (value < min)
 		{
 			value = min;
 		}
 	}
-	public static void clampMin(ref float value, float min)
+	public static void clampMin(ref float value, float min = 0.0f)
 	{
 		if (value < min)
 		{
 			value = min;
 		}
 	}
-	public static float clampMin(float value, float min)
+	public static float clampMin(float value, float min = 0.0f)
 	{
 		if (value < min)
 		{
@@ -2192,7 +2231,7 @@ public class MathUtility : StringUtility
 		}
 		return value;
 	}
-	public static int clampMin(int value, int min)
+	public static int clampMin(int value, int min = 0)
 	{
 		if (value < min)
 		{
@@ -2314,6 +2353,54 @@ public class MathUtility : StringUtility
 		return inRange(value.x, point0.x, point1.x, false, precision) && 
 			   inRange(value.y, point0.y, point1.y, false, precision);
 	}
+	// 根据一个路线的点列表，计算每个点到起点的曲线距离列表，返回整个路线的长度
+	public static void generateDistanceList(List<Vector3> keyPosList, List<KeyPoint> keyPointList)
+	{
+		keyPointList.Clear();
+		float distanceFromStart = 0.0f;
+		int count = keyPosList.Count;
+		for (int i = 0; i < count; ++i)
+		{
+			float distanceFromLast = 0.0f;
+			if (i > 0)
+			{
+				distanceFromLast = getLength(keyPosList[i] - keyPosList[i - 1]);
+				distanceFromStart += distanceFromLast;
+			}
+			keyPointList.Add(new KeyPoint(keyPosList[i], distanceFromStart, distanceFromLast));
+		}
+	}
+	public static int findPointIndex(List<KeyPoint> distanceListFromStart, float curDistance, int startIndex, int endIndex)
+	{
+		if (curDistance < distanceListFromStart[startIndex].mDistanceFromStart)
+		{
+			return startIndex - 1;
+		}
+		if (curDistance >= distanceListFromStart[endIndex].mDistanceFromStart)
+		{
+			return endIndex;
+		}
+		if (endIndex == startIndex || endIndex - startIndex == 1)
+		{
+			return startIndex;
+		}
+		int middleIndex = ((endIndex - startIndex) >> 1) + startIndex;
+		// 当前距离比中间的距离小,则在列表前半部分查找
+		if (curDistance < distanceListFromStart[middleIndex].mDistanceFromStart)
+		{
+			return findPointIndex(distanceListFromStart, curDistance, startIndex, middleIndex);
+		}
+		// 当前距离比中间的距离小,则在列表后半部分查找
+		else if (curDistance > distanceListFromStart[middleIndex].mDistanceFromStart)
+		{
+			return findPointIndex(distanceListFromStart, curDistance, middleIndex, endIndex);
+		}
+		// 距离刚好等于列表中间的值,则返回该下标
+		else
+		{
+			return middleIndex;
+		}
+	}
 	public static int findPointIndex(List<float> distanceListFromStart, float curDistance, int startIndex, int endIndex)
 	{
 		if (curDistance < distanceListFromStart[startIndex])
@@ -2328,7 +2415,7 @@ public class MathUtility : StringUtility
 		{
 			return startIndex;
 		}
-		int middleIndex = (endIndex - startIndex) / 2 + startIndex;
+		int middleIndex = ((endIndex - startIndex) >> 1) + startIndex;
 		// 当前距离比中间的距离小,则在列表前半部分查找
 		if (curDistance < distanceListFromStart[middleIndex])
 		{
@@ -2382,6 +2469,16 @@ public class MathUtility : StringUtility
 		adjustAngle360(ref degree.x);
 		adjustAngle360(ref degree.y);
 		adjustAngle360(ref degree.z);
+	}
+	// 求从z轴到指定向量的水平方向上的顺时针角度,角度范围是-MATH_PI 到 MATH_PI
+	public static float getAngleFromQuaternion(Quaternion from, Quaternion to, ANGLE angleType = ANGLE.RADIAN)
+	{
+		float angle = Quaternion.Angle(from, to);
+		if (angleType == ANGLE.RADIAN)
+		{
+			angle = toRadian(angle);
+		}
+		return angle;
 	}
 	// 求从z轴到指定向量的水平方向上的顺时针角度,角度范围是-MATH_PI 到 MATH_PI
 	public static float getAngleFromVector(Vector3 vec, ANGLE radian = ANGLE.RADIAN)
@@ -2713,25 +2810,21 @@ public class MathUtility : StringUtility
 			mTempControlPoint[3] = originPoint[(i + 1) % originCount];
 			for (int j = 0; j < detail; ++j)
 			{
-				curveList.Add(getBezier(mTempControlPoint, false, j * step));
+				Vector3 point = getBezier(mTempControlPoint, false, j * step);
+				// 如果与上一个点重合了,则不放入列表中
+				if (!isVectorEqual(curveList[curveList.Count - 1], point))
+				{
+					curveList.Add(point);
+				}
 			}
 		}
 	}
 	public static uint generateGUID()
 	{
-		// 获得当前时间
+		// 获得当前时间,再获取一个随机数,组成一个尽量不会重复的ID
 		TimeSpan timeForm19700101 = DateTime.Now - new DateTime(1970, 1, 1);
-		ulong ulongMS = (ulong)timeForm19700101.TotalMilliseconds;
-		uint halfIntMS = (uint)(ulongMS % 0x7FFFFFFF);
-		// 获取当前系统信息生成的随机数
-		mTempRandomNumberLock.waitForUnlock();
-		memset(mTempRandomNumber, (byte)0);
-		RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
-		rng.GetBytes(mTempRandomNumber);
-		uint uintRand = bytesToUInt(mTempRandomNumber);
-		mTempRandomNumberLock.unlock();
-		uint halfIntRand = uintRand % 0x7FFFFFFF;
-		return halfIntMS + halfIntRand;
+		uint halfIntMS = (uint)((ulong)timeForm19700101.TotalMilliseconds % 0x7FFFFFFF);
+		return halfIntMS + (uint)randomInt(0, 0x7FFFFFFF);
 	}
 	protected static float HueToRGB(float v1, float v2, float vH)
 	{
@@ -2854,8 +2947,22 @@ public class MathUtility : StringUtility
 			list[rand] = temp;
 		}
 	}
-	public static float speedToInterval(float speed) { return 0.0333f / speed; }
-	public static float intervalToSpeed(float interval) { return 0.0333f / interval; }
+	public static float speedToInterval(float speed) 
+	{
+		if (isFloatZero(speed))
+		{
+			return 0.0f;
+		}
+		return 0.0333f / speed; 
+	}
+	public static float intervalToSpeed(float interval) 
+	{
+		if (isFloatZero(interval))
+		{
+			return 0.0f;
+		}
+		return 0.0333f / interval; 
+	}
 	// 由于使用了静态成员变量,所以不能在多线程中调用该函数
 	public static bool AStar(bool[] map, Point begin, Point end, int width, List<int> foundPath, bool useDir8)
 	{

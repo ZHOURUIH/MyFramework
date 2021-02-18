@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class CommandTransformableRotateSpeed : Command
 {
@@ -17,8 +16,6 @@ public class CommandTransformableRotateSpeed : Command
 	{
 		Transformable obj = mReceiver as Transformable;
 		TransformableComponentRotateSpeed component = obj.getComponent(out component);
-		// 停止其他旋转组件
-		obj.breakComponent<IComponentModifyRotation>(Typeof(component));
 		component.setActive(true);
 		component.startRotateSpeed(mStartAngle, mRotateSpeed, mRotateAcceleration);
 		// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭

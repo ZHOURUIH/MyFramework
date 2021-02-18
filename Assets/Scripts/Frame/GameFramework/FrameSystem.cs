@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 public class FrameSystem : ComponentOwner
 {
@@ -13,7 +11,7 @@ public class FrameSystem : ComponentOwner
 	protected int mDestroyOrder;
 	public virtual void init()
 	{
-		if(mCreateObject)
+		if (mCreateObject)
 		{
 			mObject = createGameObject(Typeof(this).ToString(), mGameFramework.getGameFrameObject());
 		}
@@ -30,6 +28,7 @@ public class FrameSystem : ComponentOwner
 	public void setInitOrder(int order) { mInitOrder = order; }
 	public void setUpdateOrder(int order) { mUpdateOrder = order; }
 	public void setDestroyOrder(int order) { mDestroyOrder = order; }
+	public void setCreateObject(bool create) { mCreateObject = create; }
 	public GameObject getObject() { return mObject; }
 	public bool isDestroy() { return mDestroy; }
 	public virtual void onDrawGizmos() { }

@@ -13,7 +13,8 @@ namespace HotFix
         static CrossBindingMethodInfo mdestroy_3 = new CrossBindingMethodInfo("destroy");
         static CrossBindingMethodInfo mreset_4 = new CrossBindingMethodInfo("reset");
         static CrossBindingMethodInfo mrecycle_5 = new CrossBindingMethodInfo("recycle");
-        static CrossBindingMethodInfo mnotifyConstructDone_6 = new CrossBindingMethodInfo("notifyConstructDone");
+        static CrossBindingMethodInfo<System.Boolean> msetVisible_6 = new CrossBindingMethodInfo<System.Boolean>("setVisible");
+        static CrossBindingMethodInfo mnotifyConstructDone_7 = new CrossBindingMethodInfo("notifyConstructDone");
         public override Type BaseCLRType
         {
             get
@@ -98,12 +99,20 @@ namespace HotFix
                     mrecycle_5.Invoke(this.instance);
             }
 
+            public override void setVisible(System.Boolean visible)
+            {
+                if (msetVisible_6.CheckShouldInvokeBase(this.instance))
+                    base.setVisible(visible);
+                else
+                    msetVisible_6.Invoke(this.instance, visible);
+            }
+
             public override void notifyConstructDone()
             {
-                if (mnotifyConstructDone_6.CheckShouldInvokeBase(this.instance))
+                if (mnotifyConstructDone_7.CheckShouldInvokeBase(this.instance))
                     base.notifyConstructDone();
                 else
-                    mnotifyConstructDone_6.Invoke(this.instance);
+                    mnotifyConstructDone_7.Invoke(this.instance);
             }
 
             public override string ToString()

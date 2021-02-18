@@ -1,18 +1,16 @@
-﻿using UnityEngine;
-using System.Collections;
-using System;
+﻿using System;
 
 public class CommandCharacterAddState : Command
 {
 	public StateParam mParam;
-	public Type mState;
+	public Type mStateType;
 	public UINT mOutStateID;    // 用于返回添加的状态的ID
 	public float mStateTime;    // 状态持续时间,小于0表示不修改默认持续时间
 	public uint mStateID;
 	public override void init()
 	{
 		base.init();
-		mState = null;
+		mStateType = null;
 		mParam = null;
 		mOutStateID = null;
 		mStateTime = -1.0f;
@@ -21,12 +19,11 @@ public class CommandCharacterAddState : Command
 	public override void execute()
 	{
 		Character character = mReceiver as Character;
-		if(mState == null)
+		if (mStateType == null)
 		{
 			return;
 		}
-		PlayerState state;
-		bool ret = character.getStateMachine().addState(mState, mParam, out state, mStateTime, mStateID);
+		bool ret = character.getStateMachine().addState(mStateType, mParam, out PlayerState state, mStateTime, mStateID);
 		if (ret)
 		{
 			mOutStateID?.set(state.getID());
@@ -40,6 +37,6 @@ public class CommandCharacterAddState : Command
 	}
 	public override string showDebugInfo()
 	{
-		return base.showDebugInfo() + ": mState:" + mState + ", mStateTime:" + mStateTime;
+		return base.showDebugInfo() + ": mStateType:" + mStateType + ", mStateTime:" + mStateTime;
 	}
 }

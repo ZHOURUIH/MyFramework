@@ -26,7 +26,7 @@ public class FileUtility : MathUtility
 #if !UNITY_ANDROID || UNITY_EDITOR
 		// 非安卓或编辑器下需要使用BytesPool进行回收
 		// 如果数组大于等于16KB,则交给GC自动回收,否则就回收到自己的池中
-		FrameBase.mBytesPool.destroyBytes(fileBuffer, fileBuffer.Length >= 1024 * 16);
+		FrameBase.mBytesPoolThread.destroyBytes(fileBuffer, fileBuffer.Length >= 1024 * 16);
 #else
 		// 安卓真机下打开文件时不再进行回收,由GC自动回收
 #endif
@@ -44,12 +44,12 @@ public class FileUtility : MathUtility
 			{
 				if(errorIfNull)
 				{
-					UnityUtility.logInfo("open file failed! filename : " + fileName);
+					UnityUtility.log("open file failed! filename : " + fileName);
 				}
 				return 0;
 			}
 			int fileSize = (int)fs.Length;
-			fileBuffer = FrameBase.mBytesPool.newBytes(getGreaterPow2(fileSize));
+			fileBuffer = FrameBase.mBytesPoolThread.newBytes(getGreaterPow2(fileSize));
 			fs.Read(fileBuffer, 0, fileSize);
 			fs.Close();
 			fs.Dispose();
@@ -76,7 +76,7 @@ public class FileUtility : MathUtility
 		}
 		catch (Exception)
 		{
-			UnityUtility.logInfo("open file failed! filename : " + fileName);
+			UnityUtility.log("open file failed! filename : " + fileName);
 		}
 		return 0;
 	}
@@ -91,7 +91,7 @@ public class FileUtility : MathUtility
 			{
 				if(errorIfNull)
 				{
-					UnityUtility.logInfo("open file failed! filename : " + fileName);
+					UnityUtility.log("open file failed! filename : " + fileName);
 				}	
 				return null;
 			}
@@ -118,7 +118,7 @@ public class FileUtility : MathUtility
 		}
 		catch (Exception)
 		{
-			UnityUtility.logInfo("open file failed! filename : " + fileName);
+			UnityUtility.log("open file failed! filename : " + fileName);
 			return null;
 		}
 	}

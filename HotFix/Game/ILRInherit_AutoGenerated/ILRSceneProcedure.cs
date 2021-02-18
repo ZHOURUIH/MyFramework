@@ -13,6 +13,10 @@ public abstract class ILRSceneProcedure : SceneProcedure
 	protected override void onExitSelf() { base.onExitSelf(); }
 	public override void onNextProcedurePrepared(SceneProcedure nextPreocedure) { base.onNextProcedurePrepared(nextPreocedure); }
 	protected override void onPrepareExit(SceneProcedure nextPreocedure) { base.onPrepareExit(nextPreocedure); }
+	public override void addDelayCmd(Command cmd) { base.addDelayCmd(cmd); }
+	public override void onCmdStarted(Command cmd) { base.onCmdStarted(cmd); }
+	public override void interruptCommand(int assignID, bool showError = true) { base.interruptCommand(assignID, showError); }
+	public override void interruptAllCommand() { base.interruptAllCommand(); }
 	public override void notifyConstructDone() { base.notifyConstructDone(); }
 	public override bool Equals(object obj) { return base.Equals(obj); }
 	public override int GetHashCode() { return base.GetHashCode(); }

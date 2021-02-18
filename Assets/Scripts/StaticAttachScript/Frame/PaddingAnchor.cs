@@ -2,30 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum ANCHOR_MODE : byte
-{
-	NONE,					// 无效值
-	PADDING_PARENT_SIDE,	// 停靠父节点的指定边界,并且大小不改变,0,1,2,3表示左上右下
-	NEAR_PARENT_SIDE,		// 将锚点设置到距离相对于父节点最近的边,并且各边界到父节点对应边界的距离固定不变
-}
-
-// 当mAnchorMode的值为AM_NEAR_SIDE时,要停靠的边界
-public enum HORIZONTAL_PADDING : sbyte
-{
-	NONE = -1,
-	LEFT,
-	RIGHT,
-	CENTER,
-}
-
-public enum VERTICAL_PADDING : sbyte
-{
-	NONE = -1,
-	TOP,
-	BOTTOM,
-	CENTER,
-}
-
 [Serializable]
 public struct ComplexPoint
 {
@@ -38,11 +14,11 @@ public struct ComplexPoint
 // 该组件所在的物体不能有旋转,否则会计算错误
 public class PaddingAnchor : MonoBehaviour
 {
+	// 用于避免GC而保存的变量
+	private Vector3[] mSides = new Vector3[4];
+	private Vector3[] mLocalCorners = new Vector3[4];
 	protected bool mDirty = true;
 	protected Vector3[] mParentSides = new Vector3[4];
-	// 用于避免GC而保存的变量
-	protected Vector3[] mSides = new Vector3[4];
-	protected Vector3[] mLocalCorners = new Vector3[4];
 	// 用于保存属性的变量,需要为public权限
 	public ANCHOR_MODE mAnchorMode;
 	public HORIZONTAL_PADDING mHorizontalNearSide;
@@ -57,6 +33,7 @@ public class PaddingAnchor : MonoBehaviour
 	// 边相对于父节点对应边的距离,Relative是相对于宽或者高的一半,范围0-1,从0到1是对应从中心到各边,Absolute是Relative计算完以后的偏移量,带正负
 	public ComplexPoint[] mDistanceToBoard = new ComplexPoint[4] { new ComplexPoint(), new ComplexPoint(), new ComplexPoint(), new ComplexPoint() };
 	public ComplexPoint[] mAnchorPoint = new ComplexPoint[4] { new ComplexPoint(), new ComplexPoint(), new ComplexPoint(), new ComplexPoint() };
+#if UNITY_EDITOR
 	public void setAnchorModeInEditor(ANCHOR_MODE mode)
 	{
 		mAnchorMode = mode;
@@ -77,6 +54,7 @@ public class PaddingAnchor : MonoBehaviour
 		mRelativeDistance = relativeDistance;
 		setAnchorMode(mAnchorMode);
 	}
+#endif
 	public void setAnchorMode(ANCHOR_MODE mode)
 	{
 		mAnchorMode = mode;
@@ -84,7 +62,7 @@ public class PaddingAnchor : MonoBehaviour
 		{
 			setToPaddingParentSide(mHorizontalNearSide, mVerticalNearSide, mRelativeDistance);
 		}
-		else if (mAnchorMode == ANCHOR_MODE.NEAR_PARENT_SIDE)
+		else if (mAnchorMode == ANCHOR_MODE.STRETCH_TO_PARENT_SIDE)
 		{
 			setToNearParentSides(mRelativeDistance);
 		}
@@ -100,36 +78,10 @@ public class PaddingAnchor : MonoBehaviour
 		{
 			UnityUtility.logWarning("transform's scale is not 1, may not adapt correctely, " + transform.name + ", scale:" + StringUtility.vector3ToString(transform.localScale, 6));
 		}
-		GUI_TYPE guiType = WidgetUtility.getGUIType(gameObject);
 		mDirty = false;
-		Vector2 newSize = Vector2.zero;
-		GameObject parent = null;
-		Vector2 parentSize = Vector2.zero;
-		if (guiType == GUI_TYPE.NGUI)
-		{
-#if USE_NGUI
-			newSize = WidgetUtility.getNGUIRectSize(GetComponent<UIWidget>());
-			UIRect parentRect = WidgetUtility.findNGUIParentRect(gameObject);
-			if (parentRect != null)
-			{
-				parent = parentRect.gameObject;
-				parentSize = WidgetUtility.getNGUIRectSize(parentRect);
-			}
-			// NGUI时如果没有父节点,则只能使用绝对大小
-			else
-			{
-				newSize.x = mAnchorPoint[2].mAbsolute - mAnchorPoint[0].mAbsolute;
-				newSize.y = mAnchorPoint[1].mAbsolute - mAnchorPoint[3].mAbsolute;
-				parentSize = UnityUtility.getRootSize(guiType);
-			}
-#endif
-		}
-		else if(guiType == GUI_TYPE.UGUI)
-		{
-			newSize = GetComponent<RectTransform>().rect.size;
-			parent = transform.parent.gameObject;
-			parentSize = parent.GetComponent<RectTransform>().rect.size;
-		}
+		Vector2 newSize = GetComponent<RectTransform>().rect.size;
+		GameObject parent = transform.parent.gameObject;
+		Vector2 parentSize = parent.GetComponent<RectTransform>().rect.size;
 		Vector3 pos = transform.localPosition;
 		if (parent != null)
 		{
@@ -185,128 +137,89 @@ public class PaddingAnchor : MonoBehaviour
 		{
 			UnityUtility.logError("height:" + newSize.y + " is not valid, consider to modify the PaddingAnchor! " + gameObject.name + ", parent:" + gameObject.transform.parent.name);
 		}
-		if (guiType == GUI_TYPE.NGUI)
-		{
-#if USE_NGUI
-			WidgetUtility.setNGUIWidgetSize(GetComponent<UIWidget>(), newSize);
-#endif
-		}
-		else if(guiType == GUI_TYPE.UGUI)
-		{
-			WidgetUtility.setUGUIRectSize(GetComponent<RectTransform>(), newSize, mAdjustFont);
-		}
+		WidgetUtility.setRectSize(GetComponent<RectTransform>(), newSize, mAdjustFont);
 		transform.localPosition = MathUtility.round(pos);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------------------------
 	// 将锚点设置到距离相对于父节点最近的边,并且各边界到父节点对应边界的距离固定不变
 	protected void setToNearParentSides(bool relative)
 	{
-		GameObject parent = null;
-		GUI_TYPE guiType = WidgetUtility.getGUIType(gameObject);
-		if (guiType == GUI_TYPE.NGUI)
+		GameObject parent = transform.parent.gameObject;
+		if(parent == null)
 		{
-#if USE_NGUI
-			UIRect parentRect = WidgetUtility.findNGUIParentRect(gameObject);
-			if (parentRect != null)
+			return;
+		}
+		Vector3[] sides = getSides(parent);
+		WidgetUtility.getParentSides(parent, mParentSides);
+		for (int i = 0; i < 4; ++i)
+		{
+			if (i == 0 || i == 2)
 			{
-				parent = parentRect.gameObject;
-			}
-			else
-			{
-				Vector3[] sides = getSides(null);
-				for (int i = 0; i < 4; ++i)
+				float relativeLeft = sides[i].x - mParentSides[0].x;
+				float relativeCenter = sides[i].x;
+				float relativeRight = sides[i].x - mParentSides[2].x;
+				float disToLeft = Mathf.Abs(relativeLeft);
+				float disToCenter = Mathf.Abs(relativeCenter);
+				float disToRight = Mathf.Abs(relativeRight);
+				if (relative)
 				{
-					mAnchorPoint[i].setRelative(0.0f);
-					if (i == 0 || i == 2)
+					mAnchorPoint[i].setRelative(sides[i].x / mParentSides[i].x);
+					mAnchorPoint[i].setAbsolute(0.0f);
+				}
+				else
+				{
+					// 靠近左边
+					if (disToLeft < disToCenter && disToLeft < disToRight)
 					{
-						mAnchorPoint[i].setAbsolute(MathUtility.getLength(sides[i]));
+						mAnchorPoint[i].setRelative(Mathf.Sign(sides[i].x) * Mathf.Sign(mParentSides[i].x));
+						mAnchorPoint[i].setAbsolute(relativeLeft);
 					}
-					else if (i == 1 || i == 3)
+					// 靠近右边
+					else if (disToRight < disToLeft && disToRight < disToCenter)
 					{
-						mAnchorPoint[i].setAbsolute(MathUtility.getLength(sides[i]));
+						mAnchorPoint[i].setRelative(Mathf.Sign(sides[i].x) * Mathf.Sign(mParentSides[i].x));
+						mAnchorPoint[i].setAbsolute(relativeRight);
+					}
+					// 靠近中心
+					else
+					{
+						mAnchorPoint[i].setRelative(0.0f);
+						mAnchorPoint[i].setAbsolute(relativeCenter);
 					}
 				}
 			}
-#endif
-		}
-		else if(guiType == GUI_TYPE.UGUI)
-		{
-			parent = transform.parent.gameObject;
-		}
-		if(parent != null)
-		{
-			Vector3[] sides = getSides(parent);
-			WidgetUtility.getParentSides(parent, mParentSides);
-			for (int i = 0; i < 4; ++i)
+			else if (i == 1 || i == 3)
 			{
-				if (i == 0 || i == 2)
+				float relativeTop = sides[i].y - mParentSides[1].y;
+				float relativeCenter = sides[i].y;
+				float relativeBottom = sides[i].y - mParentSides[3].y;
+				float disToTop = Mathf.Abs(relativeTop);
+				float disToCenter = Mathf.Abs(relativeCenter);
+				float disToBottom = Mathf.Abs(relativeBottom);
+				if (relative)
 				{
-					float relativeLeft = sides[i].x - mParentSides[0].x;
-					float relativeCenter = sides[i].x;
-					float relativeRight = sides[i].x - mParentSides[2].x;
-					float disToLeft = Mathf.Abs(relativeLeft);
-					float disToCenter = Mathf.Abs(relativeCenter);
-					float disToRight = Mathf.Abs(relativeRight);
-					if (relative)
-					{
-						mAnchorPoint[i].setRelative(sides[i].x / mParentSides[i].x);
-						mAnchorPoint[i].setAbsolute(0.0f);
-					}
-					else
-					{
-						// 靠近左边
-						if (disToLeft < disToCenter && disToLeft < disToRight)
-						{
-							mAnchorPoint[i].setRelative(Mathf.Sign(sides[i].x) * Mathf.Sign(mParentSides[i].x));
-							mAnchorPoint[i].setAbsolute(relativeLeft);
-						}
-						// 靠近右边
-						else if (disToRight < disToLeft && disToRight < disToCenter)
-						{
-							mAnchorPoint[i].setRelative(Mathf.Sign(sides[i].x) * Mathf.Sign(mParentSides[i].x));
-							mAnchorPoint[i].setAbsolute(relativeRight);
-						}
-						// 靠近中心
-						else
-						{
-							mAnchorPoint[i].setRelative(0.0f);
-							mAnchorPoint[i].setAbsolute(relativeCenter);
-						}
-					}
+					mAnchorPoint[i].setRelative(sides[i].y / mParentSides[i].y);
+					mAnchorPoint[i].setAbsolute(0.0f);
 				}
-				else if (i == 1 || i == 3)
+				else
 				{
-					float relativeTop = sides[i].y - mParentSides[1].y;
-					float relativeCenter = sides[i].y;
-					float relativeBottom = sides[i].y - mParentSides[3].y;
-					float disToTop = Mathf.Abs(relativeTop);
-					float disToCenter = Mathf.Abs(relativeCenter);
-					float disToBottom = Mathf.Abs(relativeBottom);
-					if(relative)
+					// 靠近顶部
+					if (disToTop < disToCenter && disToTop < disToBottom)
 					{
-						mAnchorPoint[i].setRelative(sides[i].y / mParentSides[i].y);
-						mAnchorPoint[i].setAbsolute(0.0f);
+						mAnchorPoint[i].setRelative(Mathf.Sign(sides[i].y) * Mathf.Sign(mParentSides[i].y));
+						mAnchorPoint[i].setAbsolute(relativeTop);
 					}
+					// 靠近底部
+					else if (disToBottom < disToTop && disToBottom < disToCenter)
+					{
+						mAnchorPoint[i].setRelative(Mathf.Sign(sides[i].y) * Mathf.Sign(mParentSides[i].y));
+						mAnchorPoint[i].setAbsolute(relativeBottom);
+					}
+					// 靠近中心
 					else
 					{
-						// 靠近顶部
-						if (disToTop < disToCenter && disToTop < disToBottom)
-						{
-							mAnchorPoint[i].setRelative(Mathf.Sign(sides[i].y) * Mathf.Sign(mParentSides[i].y));
-							mAnchorPoint[i].setAbsolute(relativeTop);
-						}
-						// 靠近底部
-						else if (disToBottom < disToTop && disToBottom < disToCenter)
-						{
-							mAnchorPoint[i].setRelative(Mathf.Sign(sides[i].y) * Mathf.Sign(mParentSides[i].y));
-							mAnchorPoint[i].setAbsolute(relativeBottom);
-						}
-						// 靠近中心
-						else
-						{
-							mAnchorPoint[i].setRelative(0.0f);
-							mAnchorPoint[i].setAbsolute(relativeCenter);
-						}
+						mAnchorPoint[i].setRelative(0.0f);
+						mAnchorPoint[i].setAbsolute(relativeCenter);
 					}
 				}
 			}
@@ -317,36 +230,8 @@ public class PaddingAnchor : MonoBehaviour
 	{
 		Vector3[] sides = null;
 		Vector2 pos = transform.localPosition;
-		Vector2 parentSize = Vector2.zero;
-		GameObject parent = null;
-		GUI_TYPE guiType = WidgetUtility.getGUIType(gameObject);
-		if (guiType == GUI_TYPE.NGUI)
-		{
-#if USE_NGUI
-			UIRect parentRect = WidgetUtility.findNGUIParentRect(gameObject);
-			if (parentRect != null)
-			{
-				parent = parentRect.gameObject;
-				parentSize = WidgetUtility.getNGUIRectSize(parentRect);
-			}
-			else
-			{
-				sides = getSides(null);
-				for (int i = 0; i < 4; ++i)
-				{
-					mAnchorPoint[i].setRelative(0.0f);
-					mAnchorPoint[i].setAbsolute((i == 0 || i == 2) ? sides[i].x : sides[i].y);
-				}
-				parentSize.x = Mathf.Abs(sides[0].x) * 2.0f;
-				parentSize.y = Mathf.Abs(sides[1].y) * 2.0f;
-			}
-#endif
-		}
-		else if(guiType == GUI_TYPE.UGUI)
-		{
-			parent = transform.parent.gameObject;
-			parentSize = parent.GetComponent<RectTransform>().rect.size;
-		}
+		GameObject parent = transform.parent.gameObject;
+		Vector2 parentSize = parent.GetComponent<RectTransform>().rect.size;
 		if (parent != null)
 		{
 			sides = getSides(parent);
@@ -452,40 +337,26 @@ public class PaddingAnchor : MonoBehaviour
 	}
 	protected void generateLocalCorners(GameObject parent, bool includeRotation = false)
 	{
-		GUI_TYPE guiType = WidgetUtility.getGUIType(gameObject);
-		if (guiType == GUI_TYPE.NGUI)
+		RectTransform rectTransform = GetComponent<RectTransform>();
+		// 去除旋转
+		Quaternion lastQuat = rectTransform.rotation;
+		if (!includeRotation)
 		{
-#if USE_NGUI
-			Vector3[] worldCorners = GetComponent<UIRect>().worldCorners;
-			for (int i = 0; i < 4; ++i)
-			{
-				mLocalCorners[i] = parent != null ? parent.transform.InverseTransformPoint(worldCorners[i]) : worldCorners[i];
-			}
-#endif
+			rectTransform.rotation = Quaternion.identity;
 		}
-		else if(guiType == GUI_TYPE.UGUI)
+		Vector2 size = rectTransform.rect.size;
+		mLocalCorners[0] = new Vector3(-size.x * 0.5f, -size.y * 0.5f);
+		mLocalCorners[1] = new Vector3(-size.x * 0.5f, size.y * 0.5f);
+		mLocalCorners[2] = new Vector3(size.x * 0.5f, size.y * 0.5f);
+		mLocalCorners[3] = new Vector3(size.x * 0.5f, -size.y * 0.5f);
+		for (int i = 0; i < 4; ++i)
 		{
-			RectTransform rectTransform = GetComponent<RectTransform>();
-			// 去除旋转
-			Quaternion lastQuat = rectTransform.rotation;
-			if (!includeRotation)
-			{
-				rectTransform.rotation = Quaternion.identity;
-			}
-			Vector2 size = rectTransform.rect.size;
-			mLocalCorners[0] = new Vector3(-size.x * 0.5f, -size.y * 0.5f);
-			mLocalCorners[1] = new Vector3(-size.x * 0.5f, size.y * 0.5f);
-			mLocalCorners[2] = new Vector3(size.x * 0.5f, size.y * 0.5f);
-			mLocalCorners[3] = new Vector3(size.x * 0.5f, -size.y * 0.5f);
-			for (int i = 0; i < 4; ++i)
-			{
-				Vector3 worldCorner = UnityUtility.localToWorld(rectTransform, mLocalCorners[i]);
-				mLocalCorners[i] = UnityUtility.worldToLocal(parent.transform, worldCorner);
-			}
-			if (!includeRotation)
-			{
-				rectTransform.rotation = lastQuat;
-			}
+			Vector3 worldCorner = UnityUtility.localToWorld(rectTransform, mLocalCorners[i]);
+			mLocalCorners[i] = UnityUtility.worldToLocal(parent.transform, worldCorner);
+		}
+		if (!includeRotation)
+		{
+			rectTransform.rotation = lastQuat;
 		}
 	}
 }

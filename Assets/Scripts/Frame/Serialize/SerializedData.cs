@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 public abstract class SerializedData : GameBase
@@ -10,7 +9,6 @@ public abstract class SerializedData : GameBase
 	protected bool mIntReplaceULLong;       // 如果ullong的值小于int最大值,是否在序列化时写入或读取int
 	public SerializedData()
 	{
-		mMaxDataSize = 0;
 		mParameterInfoList = new List<OBJECT>();
 		mIntReplaceULLong = true;
 	}

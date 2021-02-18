@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using System;
 
@@ -41,6 +40,25 @@ public class CharacterManager : FrameSystem
 				continue;
 			}
 			character.update(!character.isIgnoreTimeScale() ? elapsedTime : Time.unscaledDeltaTime);
+		}
+	}
+	public override void lateUpdate(float elapsedTime)
+	{
+		base.lateUpdate(elapsedTime);
+		foreach (var item in mCharacterGUIDList.GetUpdateList())
+		{
+			Character character = item.Value;
+			if (character != null && character.isActive())
+			{
+				if (!character.isIgnoreTimeScale())
+				{
+					character.lateUpdate(elapsedTime);
+				}
+				else
+				{
+					character.lateUpdate(Time.unscaledDeltaTime);
+				}
+			}
 		}
 	}
 	public override void fixedUpdate(float elapsedTime)

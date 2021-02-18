@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using System;
 
-public abstract class LayoutScript : GameBase
+public abstract class LayoutScript : GameBase, IDelayCmdWatcher
 {
 	protected List<int> mDelayCmdList;  // 布局显示和隐藏时的延迟命令列表,当命令执行时,会从列表中移除该命令
 	protected CommandCallback mCmdCallback;
@@ -95,23 +94,6 @@ public abstract class LayoutScript : GameBase
 		obj.setPressCallback(pressCallback);
 		obj.setHoverCallback(hoverCallback);
 	}
-	// 用于接收NGUI处理的输入事件
-#if USE_NGUI
-	public void registeColliderNGUI(txNGUIObject obj, 
-									UIEventListener.VoidDelegate clickCallback,
-									UIEventListener.BoolDelegate pressCallback = null, 
-									UIEventListener.BoolDelegate hoverCallback = null)
-	{
-		if (obj.getCollider() == null)
-		{
-			logInfo("window must has box collider that can registeBoxColliderNGUI!");
-			return;
-		}
-		obj.setClickCallback(clickCallback);
-		obj.setPressCallback(pressCallback);
-		obj.setHoverCallback(hoverCallback);
-	}
-#endif
 	public void unregisteCollider(myUIObject obj)
 	{
 		mGlobalTouchSystem.unregisteCollider(obj);
@@ -155,11 +137,6 @@ public abstract class LayoutScript : GameBase
 	public void notifyStartShowOrHide()
 	{
 		interruptAllCommand();
-	}
-	public void addDelayCmd(Command cmd)
-	{
-		mDelayCmdList.Add(cmd.mAssignID);
-		cmd.addStartCommandCallback(mCmdCallback);
 	}
 	public bool hasObject(string name)
 	{
@@ -249,7 +226,7 @@ public abstract class LayoutScript : GameBase
 		return obj;
 	}
 	// 因为此处可以确定只有主工程的类,所以可以使用new T()
-	public T newObject<T>(out T obj, string name, int active = -1, bool needSortChild = true) where T : myUIObject, new()
+	public T newObject<T>(out T obj, string name, int active = -1) where T : myUIObject, new()
 	{
 		return newObject(out obj, mRoot, name, active);
 	}
@@ -306,7 +283,14 @@ public abstract class LayoutScript : GameBase
 		myUIObject.destroyWindow(obj, true);
 		// 窗口销毁时不会通知布局刷新深度,因为移除对于深度不会产生影响
 	}
-	public void interruptCommand(int assignID, bool showError = true)
+	public void setType(Type type) { mType = type; }
+	public Type getType() { return mType; }
+	public virtual void addDelayCmd(Command cmd)
+	{
+		mDelayCmdList.Add(cmd.mAssignID);
+		cmd.addStartCommandCallback(mCmdCallback);
+	}
+	public virtual void interruptCommand(int assignID, bool showError = true)
 	{
 		if (mDelayCmdList.Contains(assignID))
 		{
@@ -314,17 +298,14 @@ public abstract class LayoutScript : GameBase
 			mCommandSystem.interruptCommand(assignID, showError);
 		}
 	}
-	public void setType(Type type) { mType = type; }
-	public Type getType() { return mType; }
-	//----------------------------------------------------------------------------------------------------
-	protected void onCmdStarted(Command cmd)
+	public virtual void onCmdStarted(Command cmd)
 	{
 		if (!mDelayCmdList.Remove(cmd.mAssignID))
 		{
 			logError("命令执行后移除命令失败!");
 		}
 	}
-	protected void interruptAllCommand()
+	public virtual void interruptAllCommand()
 	{
 		int count = mDelayCmdList.Count;
 		for (int i = 0; i < count; ++i)
@@ -333,4 +314,5 @@ public abstract class LayoutScript : GameBase
 		}
 		mDelayCmdList.Clear();
 	}
+	//----------------------------------------------------------------------------------------------------
 }

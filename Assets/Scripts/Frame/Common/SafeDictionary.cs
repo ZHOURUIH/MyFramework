@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System;
+﻿using System.Collections.Generic;
 
 // 非线程安全
 // 可安全遍历的列表,支持在遍历过程中对列表进行修改
@@ -40,10 +37,15 @@ public class SafeDictionary<Key, Value> : FrameBase
 			}
 			mAddList.Clear();
 		}
+		if (mUpdateList.Count != mMainList.Count)
+		{
+			logError("同步失败");
+		}
 		return mUpdateList;
 	}
 	// 获取主列表,存储着当前实时的数据列表,所有的删除和新增都会立即更新此列表
 	// 不能用主列表进行遍历,要遍历应该使用GetUpdateList,但是也需要注意避免遍历UpdateList再次GetUpdateList
+	// 也不能使用主列表直接进行添加或删除
 	public Dictionary<Key, Value> GetMainList() { return mMainList; }
 	public bool TryGetValue(Key key, out Value value) { return mMainList.TryGetValue(key, out value); }
 	public bool ContainsKey(Key key) { return mMainList.ContainsKey(key); }
@@ -54,8 +56,11 @@ public class SafeDictionary<Key, Value> : FrameBase
 		{
 			return;
 		}
-		mRemoveList.Remove(key);
-		mAddList.Add(key, value);
+		// 只有不在删除列表中才会认为是有效的添加操作
+		if (!mRemoveList.Remove(key))
+		{
+			mAddList.Add(key, value);
+		}
 		mMainList.Add(key, value);
 	}
 	public void Remove(Key key)
@@ -64,8 +69,11 @@ public class SafeDictionary<Key, Value> : FrameBase
 		{
 			return;
 		}
-		mRemoveList.Add(key);
-		mAddList.Remove(key);
+		// 只有不在添加列表中才认为是有效的删除操作
+		if (!mAddList.Remove(key))
+		{
+			mRemoveList.Add(key);
+		}
 		mMainList.Remove(key);
 	}
 	// 清空所有数据,不能正在遍历时调用

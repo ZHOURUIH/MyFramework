@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
 
 public class CommandTransformableScale : Command
 {
@@ -32,8 +30,6 @@ public class CommandTransformableScale : Command
 	{
 		Transformable obj = mReceiver as Transformable;
 		TransformableComponentScale component = obj.getComponent(out component);
-		// 停止其他缩放组件
-		obj.breakComponent<IComponentModifyScale>(Typeof(component));
 		component.setTremblingCallback(mTremblingCallBack);
 		component.setTrembleDoneCallback(mTrembleDoneCallBack);
 		component.setActive(true);

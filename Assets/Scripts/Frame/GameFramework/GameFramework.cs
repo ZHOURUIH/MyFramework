@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Profiling;
+using System.Threading;
 
 public class GameFramework : MonoBehaviour
 {
@@ -21,6 +22,7 @@ public class GameFramework : MonoBehaviour
 	protected int mFPS;
 	public void Start()
 	{
+		UnityUtility.setMainThreadID(Thread.CurrentThread.ManagedThreadId);
 		Application.targetFrameRate = 60;
 		AppDomain app = AppDomain.CurrentDomain;
 		app.UnhandledException += UnhandledException;
@@ -37,20 +39,20 @@ public class GameFramework : MonoBehaviour
 		FrameBase.mLocalLog = new LocalLog();
 		FrameBase.mLocalLog.init();
 #endif
-		UnityUtility.mOnLog = getLogCallback();
-		UnityUtility.logInfo("start game!", LOG_LEVEL.FORCE);
-		UnityUtility.logInfo("QualitySettings.currentLevel:" + QualitySettings.GetQualityLevel(), LOG_LEVEL.FORCE);
-		UnityUtility.logInfo("QualitySettings.activeColorSpace:" + QualitySettings.activeColorSpace, LOG_LEVEL.FORCE);
-		UnityUtility.logInfo("Graphics.activeTier:" + Graphics.activeTier, LOG_LEVEL.FORCE);
-		UnityUtility.logInfo("SystemInfo.graphicsDeviceType:" + SystemInfo.graphicsDeviceType, LOG_LEVEL.FORCE);
-		UnityUtility.logInfo("SystemInfo.maxTextureSize:" + SystemInfo.maxTextureSize, LOG_LEVEL.FORCE);
-		UnityUtility.logInfo("SystemInfo.supportsInstancing:" + SystemInfo.supportsInstancing, LOG_LEVEL.FORCE);
-		UnityUtility.logInfo("SystemInfo.graphicsShaderLevel:" + SystemInfo.graphicsShaderLevel, LOG_LEVEL.FORCE);
+		UnityUtility.setLogCallback(getLogCallback());
+		UnityUtility.log("start game!", LOG_LEVEL.FORCE);
+		UnityUtility.log("QualitySettings.currentLevel:" + QualitySettings.GetQualityLevel(), LOG_LEVEL.FORCE);
+		UnityUtility.log("QualitySettings.activeColorSpace:" + QualitySettings.activeColorSpace, LOG_LEVEL.FORCE);
+		UnityUtility.log("Graphics.activeTier:" + Graphics.activeTier, LOG_LEVEL.FORCE);
+		UnityUtility.log("SystemInfo.graphicsDeviceType:" + SystemInfo.graphicsDeviceType, LOG_LEVEL.FORCE);
+		UnityUtility.log("SystemInfo.maxTextureSize:" + SystemInfo.maxTextureSize, LOG_LEVEL.FORCE);
+		UnityUtility.log("SystemInfo.supportsInstancing:" + SystemInfo.supportsInstancing, LOG_LEVEL.FORCE);
+		UnityUtility.log("SystemInfo.graphicsShaderLevel:" + SystemInfo.graphicsShaderLevel, LOG_LEVEL.FORCE);
 		try
 		{
 			DateTime startTime = DateTime.Now;
 			start();
-			UnityUtility.logInfo("start消耗时间:" + (DateTime.Now - startTime).TotalMilliseconds);
+			UnityUtility.log("start消耗时间:" + (DateTime.Now - startTime).TotalMilliseconds);
 			// 根据设置的顺序对列表进行排序
 			mFrameComponentInit.Sort(FrameSystem.compareInit);
 			mFrameComponentUpdate.Sort(FrameSystem.compareUpdate);
@@ -152,7 +154,7 @@ public class GameFramework : MonoBehaviour
 	public void OnApplicationQuit()
 	{
 		destroy();
-		UnityUtility.logInfo("程序退出完毕!", LOG_LEVEL.FORCE);
+		UnityUtility.log("程序退出完毕!", LOG_LEVEL.FORCE);
 #if !UNITY_EDITOR
 		FrameBase.mLocalLog?.destroy();
 		FrameBase.mLocalLog = null;
@@ -201,7 +203,7 @@ public class GameFramework : MonoBehaviour
 			for (int i = 0; i < resultCount; ++i)
 			{
 				UIDepth depth = resultList[i].getDepth();
-				UnityUtility.logInfo("窗口:" + resultList[i].getName() +
+				UnityUtility.log("窗口:" + resultList[i].getName() +
 										", 深度:layout:" + depth.toDepthString() +
 										", priority:" + depth.getPriority(),
 										LOG_LEVEL.FORCE);
@@ -372,7 +374,7 @@ public class GameFramework : MonoBehaviour
 			{
 				DateTime start = DateTime.Now;
 				mFrameComponentInit[i].init();
-				UnityUtility.logInfo(mFrameComponentInit[i].getName() + "初始化消耗时间:" + (DateTime.Now - start).TotalMilliseconds);
+				UnityUtility.log(mFrameComponentInit[i].getName() + "初始化消耗时间:" + (DateTime.Now - start).TotalMilliseconds);
 			}
 			catch (Exception e)
 			{
@@ -411,31 +413,19 @@ public class GameFramework : MonoBehaviour
 			User32.SetWindowLong(User32.GetForegroundWindow(), FrameDefine.GWL_STYLE, curStyle);
 		}
 #endif
-		// NGUI
-#if USE_NGUI
-		GameObject nguiRootObj = UnityUtility.getGameObject(null, FrameDefine.NGUI_ROOT);
-		UIRoot nguiRoot = nguiRootObj.GetComponent<UIRoot>();
-		nguiRoot.scalingStyle = UIRoot.Scaling.Constrained;
-		nguiRoot.manualWidth = width;
-		nguiRoot.manualHeight = height;
-		GameCamera camera = FrameBase.mCameraManager.getUICamera(GUI_TYPE.NGUI);
-		OT.MOVE(camera, new Vector3(0.0f, 0.0f, -height * 0.5f / MathUtility.tan(camera.getFOVY(true)* 0.5f)));
-		GameCamera blurCamera = FrameBase.mCameraManager.getUIBlurCamera(GUI_TYPE.NGUI);
-		OT.MOVE(blurCamera, new Vector3(0.0f, 0.0f, -height * 0.5f / MathUtility.tan(blurCamera.getFOVY(true) * 0.5f)));
-#endif
 		// UGUI
 		GameObject uguiRootObj = UnityUtility.getGameObject(FrameDefine.UGUI_ROOT);
 		RectTransform uguiRectTransform = uguiRootObj.GetComponent<RectTransform>();
 		uguiRectTransform.offsetMin = -screenSize * 0.5f;
 		uguiRectTransform.offsetMax = screenSize * 0.5f;
-		uguiRectTransform.anchorMax = Vector2.zero;
-		uguiRectTransform.anchorMin = Vector2.zero;
-		GameCamera camera = FrameBase.mCameraManager.getUICamera(GUI_TYPE.UGUI);
+		uguiRectTransform.anchorMax = Vector2.one * 0.5f;
+		uguiRectTransform.anchorMin = Vector2.one * 0.5f;
+		GameCamera camera = FrameBase.mCameraManager.getUICamera();
 		if (camera != null)
 		{
 			OT.MOVE(camera, new Vector3(0.0f, 0.0f, -height * 0.5f / MathUtility.tan(camera.getFOVY(true) * 0.5f)));
 		}
-		GameCamera blurCamera = FrameBase.mCameraManager.getUIBlurCamera(GUI_TYPE.UGUI);
+		GameCamera blurCamera = FrameBase.mCameraManager.getUIBlurCamera();
 		if (blurCamera != null)
 		{
 			OT.MOVE(blurCamera, new Vector3(0.0f, 0.0f, -height * 0.5f / MathUtility.tan(blurCamera.getFOVY(true) * 0.5f)));
@@ -472,14 +462,19 @@ public class GameFramework : MonoBehaviour
 		registeFrameSystem(UnityUtility.Typeof<SceneSystem>());
 		registeFrameSystem(UnityUtility.Typeof<GamePluginManager>());
 		registeFrameSystem(UnityUtility.Typeof<ClassPool>(), -1, -1, 3101);
-		registeFrameSystem(UnityUtility.Typeof<ListPool>(), -1, -1, 3102);
-		registeFrameSystem(UnityUtility.Typeof<DictionaryPool>(), -1, -1, 3103);
-		registeFrameSystem(UnityUtility.Typeof<BytesPool>(), -1, -1, 3104);
+		registeFrameSystem(UnityUtility.Typeof<ClassPoolThread>(), -1, -1, 3102);
+		registeFrameSystem(UnityUtility.Typeof<ListPool>(), -1, -1, 3103);
+		registeFrameSystem(UnityUtility.Typeof<ListPoolThread>(), -1, -1, 3104);
+		registeFrameSystem(UnityUtility.Typeof<DictionaryPool>(), -1, -1, 3105);
+		registeFrameSystem(UnityUtility.Typeof<DictionaryPoolThread>(), -1, -1, 3106);
+		registeFrameSystem(UnityUtility.Typeof<BytesPool>(), -1, -1, 3107);
+		registeFrameSystem(UnityUtility.Typeof<BytesPoolThread>(), -1, -1, 3108);
 		registeFrameSystem(UnityUtility.Typeof<HeadTextureManager>());
 		registeFrameSystem(UnityUtility.Typeof<MovableObjectManager>());
 		registeFrameSystem(UnityUtility.Typeof<EffectManager>());
 		registeFrameSystem(UnityUtility.Typeof<TPSpriteManager>());
 		registeFrameSystem(UnityUtility.Typeof<SocketFactory>());
+		registeFrameSystem(UnityUtility.Typeof<SocketFactoryThread>());
 		registeFrameSystem(UnityUtility.Typeof<PathKeyframeManager>());
 		registeFrameSystem(UnityUtility.Typeof<EventSystem>());
 #if USE_ILRUNTIME

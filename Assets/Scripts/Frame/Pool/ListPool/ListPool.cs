@@ -1,27 +1,25 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System;
 
+// 仅能在主线程使用的列表池
 public class ListPool : FrameSystem
 {
-	protected Dictionary<Type, List<IList>> mPersistentInuseList;	// 持久使用的列表对象
-	protected Dictionary<Type, List<IList>> mInusedList;			// 仅当前栈帧中使用的列表对象
-	protected Dictionary<Type, Stack<IList>> mUnusedList;
-	protected ThreadLock mListLock;
+	protected Dictionary<Type, HashSet<IList>> mPersistentInuseList;	// 持久使用的列表对象
+	protected Dictionary<Type, HashSet<IList>> mInusedList;			// 仅当前栈帧中使用的列表对象
+	protected Dictionary<Type, HashSet<IList>> mUnusedList;
 	public ListPool()
 	{
-		mPersistentInuseList = new Dictionary<Type, List<IList>>();
-		mInusedList = new Dictionary<Type, List<IList>>();
-		mUnusedList = new Dictionary<Type, Stack<IList>>();
-		mListLock = new ThreadLock();
+		mPersistentInuseList = new Dictionary<Type, HashSet<IList>>();
+		mInusedList = new Dictionary<Type, HashSet<IList>>();
+		mUnusedList = new Dictionary<Type, HashSet<IList>>();
 		mCreateObject = true;
 	}
 	public override void init()
 	{
 		base.init();
 #if UNITY_EDITOR
-		mObject.AddComponent<ListPoolDebug>();
+		mObject?.AddComponent<ListPoolDebug>();
 #endif
 	}
 	public override void update(float elapsedTime)
@@ -30,63 +28,64 @@ public class ListPool : FrameSystem
 #if UNITY_EDITOR
 		foreach (var item in mInusedList)
 		{
-			if (item.Value.Count > 0)
+			if (item.Value.Count == 0)
 			{
-				logError("有临时列表对象正在使用中,是否在申请后忘记回收到池中! type:" + Typeof(item.Value[0]));
+				continue;
+			}
+			foreach (var itemList in item.Value)
+			{
+				logError("有临时列表对象正在使用中,是否在申请后忘记回收到池中! type:" + Typeof(itemList));
+				break;
 			}
 		}
 #endif
 	}
-	public Dictionary<Type, List<IList>> getPersistentInusedList() { return mPersistentInuseList; }
-	public Dictionary<Type, List<IList>> getInusedList() { return mInusedList; }
-	public Dictionary<Type, Stack<IList>> getUnusedList() { return mUnusedList; }
+	public Dictionary<Type, HashSet<IList>> getPersistentInusedList() { return mPersistentInuseList; }
+	public Dictionary<Type, HashSet<IList>> getInusedList() { return mInusedList; }
+	public Dictionary<Type, HashSet<IList>> getUnusedList() { return mUnusedList; }
 	// onlyOnce表示是否仅当作临时列表使用
 	public new List<T> newList<T>(out List<T> obj, bool onlyOnce = true, int capacity = 0)
 	{
 		obj = null;
-		// 锁定期间不能调用任何其他非库函数,否则可能会发生死锁
-		mListLock.waitForUnlock();
-		try
+		if(!isMainThread())
 		{
-			Type elementType = Typeof<T>();
-			// 先从未使用的列表中查找是否有可用的对象
-			if (mUnusedList.TryGetValue(elementType, out Stack<IList> valueList) && valueList.Count > 0)
-			{
-				obj = valueList.Pop() as List<T>;
-				if(capacity > 0 && capacity > obj.Capacity)
-				{
-					obj.Capacity = capacity;
-				}
-			}
-			// 未使用列表中没有,创建一个新的
-			else
-			{
-				obj = new List<T>(capacity);
-			}
-			// 标记为已使用
-			addInuse(obj, onlyOnce);
+			logError("只能在主线程使用ListPool,子线程请使用ListPoolThread代替");
+			return null;
 		}
-		catch (Exception e)
+		Type elementType = Typeof<T>();
+		// 先从未使用的列表中查找是否有可用的对象
+		if (mUnusedList.TryGetValue(elementType, out HashSet<IList> valueList) && valueList.Count > 0)
 		{
-			logError(e.Message);
+			foreach(var item in valueList)
+			{
+				obj = item as List<T>;
+				break;
+			}
+			valueList.Remove(obj);
+			if(capacity > 0 && capacity > obj.Capacity)
+			{
+				obj.Capacity = capacity;
+			}
 		}
-		mListLock.unlock();
+		// 未使用列表中没有,创建一个新的
+		else
+		{
+			obj = new List<T>(capacity);
+		}
+		// 标记为已使用
+		addInuse(obj, onlyOnce);
 		return obj;
 	}
 	public new void destroyList<T>(List<T> list)
 	{
-		mListLock.waitForUnlock();
-		try
+		if (!isMainThread())
 		{
-			list.Clear();
-			addUnuse(list);
-			removeInuse(list);
+			logError("只能在主线程使用ListPool,子线程请使用ListPoolThread代替");
+			return;
 		}
-		catch (Exception e)
-		{
-			logError(e.Message);
-		}
-		mListLock.unlock();
+		list.Clear();
+		addUnuse(list);
+		removeInuse(list);
 	}
 	//----------------------------------------------------------------------------------------------------------------------------------------------
 	protected void addInuse<T>(List<T> list, bool onlyOnce)
@@ -95,7 +94,7 @@ public class ListPool : FrameSystem
 		// 加入仅临时使用的列表对象的列表中
 		if(onlyOnce)
 		{
-			if (mInusedList.TryGetValue(type, out List<IList> valueList))
+			if (mInusedList.TryGetValue(type, out HashSet<IList> valueList))
 			{
 				if (valueList.Contains(list))
 				{
@@ -105,7 +104,7 @@ public class ListPool : FrameSystem
 			}
 			else
 			{
-				valueList = new List<IList>();
+				valueList = new HashSet<IList>();
 				mInusedList.Add(type, valueList);
 			}
 			valueList.Add(list);
@@ -113,7 +112,7 @@ public class ListPool : FrameSystem
 		// 加入持久使用的列表对象的列表中
 		else
 		{
-			if (mPersistentInuseList.TryGetValue(type, out List<IList> valueList))
+			if (mPersistentInuseList.TryGetValue(type, out HashSet<IList> valueList))
 			{
 				if (valueList.Contains(list))
 				{
@@ -123,7 +122,7 @@ public class ListPool : FrameSystem
 			}
 			else
 			{
-				valueList = new List<IList>();
+				valueList = new HashSet<IList>();
 				mPersistentInuseList.Add(type, valueList);
 			}
 			valueList.Add(list);
@@ -133,7 +132,7 @@ public class ListPool : FrameSystem
 	{
 		// 从使用列表移除,要确保操作的都是从本类创建的实例
 		Type type = Typeof<T>();
-		if (mInusedList.TryGetValue(type, out List<IList> valueList))
+		if (mInusedList.TryGetValue(type, out HashSet<IList> valueList))
 		{
 			if (!valueList.Remove(list))
 			{
@@ -141,7 +140,7 @@ public class ListPool : FrameSystem
 				return;
 			}
 		}
-		else if(mPersistentInuseList.TryGetValue(type, out List<IList> persistentValueList))
+		else if(mPersistentInuseList.TryGetValue(type, out HashSet<IList> persistentValueList))
 		{
 			if (!persistentValueList.Remove(list))
 			{
@@ -159,7 +158,7 @@ public class ListPool : FrameSystem
 	{
 		// 加入未使用列表
 		Type type = Typeof<T>();
-		if (mUnusedList.TryGetValue(type, out Stack<IList> valueList))
+		if (mUnusedList.TryGetValue(type, out HashSet<IList> valueList))
 		{
 			if (valueList.Contains(list))
 			{
@@ -169,9 +168,9 @@ public class ListPool : FrameSystem
 		}
 		else
 		{
-			valueList = new Stack<IList>();
+			valueList = new HashSet<IList>();
 			mUnusedList.Add(type, valueList);
 		}
-		valueList.Push(list);
+		valueList.Add(list);
 	}
 }

@@ -117,14 +117,20 @@ public class WindowObjectPoolMap<Key, T> : FrameBase where T : PooledWindow
 	}
 	public void unuseItem(Key key)
 	{
-		if (key != null && mUsedItemList.TryGetValue(key, out T item))
+		if (key == null)
 		{
-			item.recycle();
-			item.setVisible(false);
-			item.setParent(mItemParentUnuse, false);
-			item.setAssignID(-1);
-			mUnusedItemList.Add(item);
-			mUsedItemList.Remove(key);
+			return;
 		}
+		if (!mUsedItemList.TryGetValue(key, out T item))
+		{
+			logError("此窗口物体不属于当前窗口物体池,无法回收");
+			return;
+		}
+		item.recycle();
+		item.setVisible(false);
+		item.setParent(mItemParentUnuse, false);
+		item.setAssignID(-1);
+		mUnusedItemList.Add(item);
+		mUsedItemList.Remove(key);
 	}
 }

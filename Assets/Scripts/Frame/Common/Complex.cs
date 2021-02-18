@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 // 结构体如果要存列表并且要进行Contains或ContainsKey查询时,最好是要继承Equatable
 // 这样在列表中查找时会判断该类型是否继承了Equatable

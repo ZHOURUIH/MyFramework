@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using System;
 
 public interface IInputField
 {

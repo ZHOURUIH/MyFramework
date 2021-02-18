@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 // 决策树节点基类,DTree表示DecisionTree
 public class DTreeNode : GameBase

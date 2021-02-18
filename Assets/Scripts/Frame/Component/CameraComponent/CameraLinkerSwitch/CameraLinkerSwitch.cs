@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 // 摄像机连接器的转换器基类,用于实现切换连接器时的各种过渡效果
 public abstract class CameraLinkerSwitch : GameBase

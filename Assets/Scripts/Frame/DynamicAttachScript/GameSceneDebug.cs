@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class GameSceneDebug : MonoBehaviour
 {
@@ -19,7 +17,7 @@ public class GameSceneDebug : MonoBehaviour
 		SceneProcedure sceneProcedure = mGameScene.getCurProcedure();
 		if (sceneProcedure != null)
 		{
-			mCurProcedure = sceneProcedure.getProcedureType().ToString();
+			mCurProcedure = sceneProcedure.getType().ToString();
 		}
 	}
 }

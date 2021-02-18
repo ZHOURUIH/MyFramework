@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Diagnostics;
 using System.Reflection;
+using System.Threading;
 #if USE_ILRUNTIME
 using ILRuntime.Runtime;
 using ILRuntime.Runtime.Enviorment;
@@ -19,22 +19,26 @@ using UnityEngine.UI;
 public delegate void onLog(string time, string info, LOG_LEVEL level, bool isError);
 public class UnityUtility : FileUtility
 {
-	private static LOG_LEVEL mLogLevel = LOG_LEVEL.NORMAL;
+	protected static onLog mOnLog;
+	protected static uint mIDMaker;
+	protected static int mMainThreadID;
 	protected static bool mShowMessageBox = true;
-	protected static int mIDMaker;
-	public static onLog mOnLog;
+	protected static LOG_LEVEL mLogLevel = LOG_LEVEL.NORMAL;
+	public static void setMainThreadID(int mainThreadID) { mMainThreadID = mainThreadID; }
+	public static bool isMainThread() { return Thread.CurrentThread.ManagedThreadId == mMainThreadID; }
+	public static void setLogCallback(onLog callback) { mOnLog = callback; }
 	public static void setLogLevel(LOG_LEVEL level)
 	{
 		mLogLevel = level;
-		logInfo("log level: " + mLogLevel, LOG_LEVEL.FORCE);
+		log("log level: " + mLogLevel, LOG_LEVEL.FORCE);
 	}
 	public static LOG_LEVEL getLogLevel()
 	{
 		return mLogLevel;
 	}
-	public static void logError(string info, bool isMainThread = true)
+	public static void logError(string info)
 	{
-		if (isMainThread && mShowMessageBox)
+		if (isMainThread() && mShowMessageBox)
 		{
 			messageBox(info, true);
 #if UNITY_EDITOR
@@ -52,7 +56,7 @@ public class UnityUtility : FileUtility
 		UnityEngine.Debug.LogError(time + ": error: " + info + ", stack: " + trackStr);
 		mOnLog?.Invoke(time, "error: " + info + ", stack: " + trackStr, LOG_LEVEL.FORCE, true);
 	}
-	public static void logInfo(string info, LOG_LEVEL level = LOG_LEVEL.NORMAL)
+	public static void log(string info, LOG_LEVEL level = LOG_LEVEL.NORMAL)
 	{
 		if ((int)level > (int)mLogLevel)
 		{
@@ -359,6 +363,10 @@ public class UnityUtility : FileUtility
 		{
 			obj.transform.SetParent(parent.transform);
 		}
+		else
+		{
+			obj.transform.SetParent(null);
+		}
 		obj.transform.localPosition = pos;
 		obj.transform.localEulerAngles = rot;
 		obj.transform.localScale = scale;
@@ -431,49 +439,48 @@ public class UnityUtility : FileUtility
 		}
 	}
 	// 使用输出参数的方式避免多次赋值
-	public static void getUIRay(ref Vector3 screenPos, out Ray ray, GUI_TYPE guiType = GUI_TYPE.NGUI)
+	public static void getUIRay(ref Vector3 screenPos, out Ray ray)
 	{
-		getCameraRay(ref screenPos, out ray, getUICamera(guiType));
+		getCameraRay(ref screenPos, out ray, getUICamera());
 	}
-	// halfScreenOffset为false返回的坐标是以屏幕左下角为原点的坐标
-	// halfScreenOffset为true表示返回的坐标是以屏幕中心为原点的坐标
-	public static Vector3 worldToScreenPos(Vector3 worldPos, Camera camera, bool halfScreenOffset = true)
+	// screenCenterAsZero为false表示返回的坐标是以屏幕左下角为原点的坐标
+	// screenCenterAsZero为true表示返回的坐标是以屏幕中心为原点的坐标
+	public static Vector3 worldToScreenPos(Vector3 worldPos, Camera camera, bool screenCenterAsZero = true)
 	{
 		Vector3 screenPosition = camera.WorldToScreenPoint(worldPos);
-		if (halfScreenOffset)
+		if (screenCenterAsZero)
 		{
 			screenPosition -= (Vector3)(getScreenSize() * 0.5f);
 		}
 		screenPosition.z = 0.0f;
 		return screenPosition;
 	}
-	public static Vector3 worldToScreenPos(Vector3 worldPos, bool halfScreenOffset = true)
+	public static Vector3 worldToScreenPos(Vector3 worldPos, bool screenCenterAsZero = true)
 	{
-		return worldToScreenPos(worldPos, FrameBase.mCameraManager.getMainCamera().getCamera(), halfScreenOffset);
+		return worldToScreenPos(worldPos, FrameBase.mCameraManager.getMainCamera().getCamera(), screenCenterAsZero);
 	}
-	public static Vector3 worldUIToScreenPos(Vector3 worldPos, GUI_TYPE guiType)
+	public static Vector3 worldUIToScreenPos(Vector3 worldPos)
 	{
-		return worldToScreenPos(worldPos, getUICamera(guiType));
+		return worldToScreenPos(worldPos, getUICamera());
 	}
-	public static bool isGameObjectInScreen(Vector3 worldPos, GUI_TYPE guiType)
+	public static bool isGameObjectInScreen(Vector3 worldPos)
 	{
 		Vector3 screenPos = worldToScreenPos(worldPos, false);
-		Vector2 rootSize = getRootSize(guiType);
-		return screenPos.z >= 0.0f && inRange((Vector2)screenPos, Vector2.zero, rootSize);
+		return screenPos.z >= 0.0f && inRange((Vector2)screenPos, Vector2.zero, getRootSize());
 	}
-	// screenCenterAsZero为true表示返回的坐标是以window的中心为原点,false表示已window的左下角为原点
-	public static Vector2 screenPosToWindowPos(Vector2 screenPos, myUIObject window, bool screenCenterAsZero = true, GUI_TYPE guiType = GUI_TYPE.NGUI)
+	// screenCenterAsZero为true表示返回的坐标是以window的中心为原点,false表示以window的左下角为原点
+	public static Vector2 screenPosToWindowPos(Vector2 screenPos, myUIObject window, bool screenCenterAsZero = true)
 	{
-		Camera camera = getUICamera(guiType);
+		Camera camera = getUICamera();
 		Vector2 cameraSize = new Vector2(camera.pixelWidth, camera.pixelHeight);
-		Vector2 rootSize = getRootSize(guiType);
+		Vector2 rootSize = getRootSize();
 		screenPos = multiVector2(devideVector2(screenPos, cameraSize), rootSize);
 		// 将坐标转换到以屏幕中心为原点的坐标
 		screenPos -= rootSize * 0.5f;
 		Vector2 windowPos = screenPos;
 		if (window != null)
 		{
-			myUIObject root = FrameBase.mLayoutManager.getUIRoot(guiType);
+			myUIObject root = FrameBase.mLayoutManager.getUIRoot();
 			Vector2 parentWorldPosition = devideVector3(window.getWorldPosition(), root.getScale());
 			windowPos = devideVector2(screenPos - parentWorldPosition, window.getWorldScale());
 			if (!screenCenterAsZero)
@@ -508,6 +515,41 @@ public class UnityUtility : FileUtility
 		{
 			childTransformList[i].gameObject.layer = layer;
 		}
+	}
+	public static void setParticleSortOrder(GameObject obj, int sortOrder)
+	{
+		Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
+		for (int i = 0; i < renderers.Length; ++i)
+		{
+			renderers[i].sortingOrder = sortOrder;
+		}
+	}
+	public static void setParticleSortLayerID(GameObject obj, int layerID)
+	{
+		Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
+		for (int i = 0; i < renderers.Length; ++i)
+		{
+			renderers[i].sortingLayerID = layerID;
+		}
+	}
+	public static T getComponentInParent<T>(GameObject obj) where T : Component
+	{
+		if (obj == null)
+		{
+			return null;
+		}
+		Transform transform = obj.transform;
+		Transform parent = transform.parent;
+		if (parent == null)
+		{
+			return null;
+		}
+		T component = parent.GetComponent<T>();
+		if (component != null)
+		{
+			return component;
+		}
+		return getComponentInParent<T>(parent.gameObject);
 	}
 	public static int nameToLayerInt(string name)
 	{
@@ -547,8 +589,15 @@ public class UnityUtility : FileUtility
 		StackTrace st = new StackTrace(preFrameCount, true);
 		return st.GetFrame(0).GetFileName();
 	}
-	public static int makeID() { return ++mIDMaker; }
-	public static void notifyIDUsed(int id)
+	public static uint makeID()
+	{
+		if (mIDMaker >= 0xFFFFFFFF)
+		{
+			logError("ID已超过最大值");
+		}
+		return ++mIDMaker;
+	}
+	public static void notifyIDUsed(uint id)
 	{
 		mIDMaker = getMax(mIDMaker, id);
 	}
@@ -560,18 +609,6 @@ public class UnityUtility : FileUtility
 		}
 		return Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f));
 	}
-#if USE_NGUI
-	// name为Resource下相对路径,不带后缀名
-	public static UIAtlas loadNGUIAtlas(string name)
-	{
-		GameObject go = FrameBase.mResourceManager.loadResource<GameObject>(name, true);
-		if (go != null)
-		{
-			return go.GetComponent<UIAtlas>();
-		}
-		return null;
-	}
-#endif
 	public static void checkDownloadPath(ref string path, bool localPath)
 	{
 		if (!localPath)
@@ -601,34 +638,24 @@ public class UnityUtility : FileUtility
 #endif
 #endif
 	}
-#if USE_NGUI
-	public static UIRoot getNGUIRootComponent()
-	{
-		if (FrameBase.mLayoutManager?.getRootObject(GUI_TYPE.NGUI) != null)
-		{
-			return FrameBase.mLayoutManager.getNGUIRootComponent();
-		}
-		return null;
-	}
-#endif
 	public static Canvas getUGUIRootComponent()
 	{
-		if (FrameBase.mLayoutManager?.getRootObject(GUI_TYPE.UGUI) != null)
+		if (FrameBase.mLayoutManager?.getRootObject() != null)
 		{
 			return FrameBase.mLayoutManager.getUGUIRootComponent();
 		}
 		return null;
 	}
-	public static Camera getUICamera(GUI_TYPE guiType)
+	public static Camera getUICamera()
 	{
-		if (FrameBase.mCameraManager?.getUICamera(guiType) != null)
+		if (FrameBase.mCameraManager?.getUICamera() != null)
 		{
-			return FrameBase.mCameraManager.getUICamera(guiType).getCamera();
+			return FrameBase.mCameraManager.getUICamera().getCamera();
 		}
 		return null;
 	}
 	// bottomHeight表示输入框下边框的y坐标
-	public static void adjustByVirtualKeyboard(GUI_TYPE guiType, float bottomY, bool reset = false)
+	public static void adjustByVirtualKeyboard(float bottomY, bool reset = false)
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
 		int keyboardHeight = AndroidPluginManager.getKeyboardHeight();
@@ -710,17 +737,49 @@ public class UnityUtility : FileUtility
 		return isVector3Less(ref min0, ref max1) && isVector3Greater(ref max0, ref min1) ||
 			   isVector3Less(ref min1, ref max0) && isVector3Greater(ref max1, ref min0);
 	}
-	public static Collider[] overlapAllBox(BoxCollider collider, int layer = -1)
+	public static int overlapAllBox(BoxCollider collider, Collider[] results, int layer = -1)
 	{
 		Transform transform = collider.transform;
 		Vector3 colliderWorldPos = localToWorld(transform, collider.center);
-		return Physics.OverlapBox(colliderWorldPos, collider.size * 0.5f, transform.localRotation, layer);
+		int hitCount = Physics.OverlapBoxNonAlloc(colliderWorldPos, collider.size * 0.5f, results, transform.localRotation, layer);
+		return removeClassElement(results, hitCount, collider);
 	}
-	public static Collider2D[] overlapAllBox(BoxCollider2D collider, int layer = -1)
+	public static int overlapAllBox(BoxCollider2D collider, Collider2D[] results, int layer = -1)
 	{
 		Transform transform = collider.transform;
 		Vector2 colliderWorldPos = localToWorld(transform, collider.offset);
-		return Physics2D.OverlapBoxAll(colliderWorldPos, collider.size, -transform.localEulerAngles.z, layer);
+		int hitCount = Physics2D.OverlapBoxNonAlloc(colliderWorldPos, collider.size, transform.localEulerAngles.z, results, layer);
+		return removeClassElement(results, hitCount, collider);
+	}
+	public static int overlapAllSphere(SphereCollider collider, Collider[] results, int layer = -1)
+	{
+		Transform transform = collider.transform;
+		Vector3 colliderWorldPos = localToWorld(transform, collider.center);
+		int hitCount = Physics.OverlapSphereNonAlloc(colliderWorldPos, collider.radius, results, layer);
+		return removeClassElement(results, hitCount, collider);
+	}
+	public static int overlapAllSphere(CircleCollider2D collider, Collider2D[] results, int layer = -1)
+	{
+		Transform transform = collider.transform;
+		Vector2 colliderWorldPos = localToWorld(transform, collider.offset);
+		int hitCount = Physics2D.OverlapCircleNonAlloc(colliderWorldPos, collider.radius, results, layer);
+		return removeClassElement(results, hitCount, collider);
+	}
+	public static int overlapAllCapsule(CapsuleCollider collider, Collider[] results, int layer = -1)
+	{
+		Transform transform = collider.transform;
+		Vector3 point0 = collider.center + new Vector3(0.0f, collider.height * 0.5f, 0.0f);
+		Vector3 point1 = collider.center - new Vector3(0.0f, collider.height * 0.5f, 0.0f);
+		point0 = localToWorld(transform, point0);
+		point1 = localToWorld(transform, point1);
+		int hitCount = Physics.OverlapCapsuleNonAlloc(point0, point1, collider.radius, results, layer);
+		return removeClassElement(results, hitCount, collider);
+	}
+	public static int overlapAllCapsule(CapsuleCollider2D collider, Collider2D[] results, int layer = -1)
+	{
+		Transform transform = collider.transform;
+		int hitCount = Physics2D.OverlapCapsuleNonAlloc(transform.position, collider.size, collider.direction, transform.localEulerAngles.z, results, layer);
+		return removeClassElement(results, hitCount, collider);
 	}
 	public static bool overlapBoxIgnoreY(BoxCollider box0, BoxCollider box1, GameObject parent, int precision = 4)
 	{
@@ -744,65 +803,56 @@ public class UnityUtility : FileUtility
 		return isVector3Less(ref min0, ref max1) && isVector3Greater(ref max0, ref min1) ||
 			   isVector3Less(ref min1, ref max0) && isVector3Greater(ref max1, ref min0);
 	}
-	public static Collider2D[] overlapAllCollider(Collider2D collider, int layer = -1)
+	public static int overlapCollider(Collider collider, Collider[] results, int layer = -1)
 	{
-		Collider2D[] hitColliders = null;
-		if (collider is BoxCollider2D)
+		if (collider == null)
 		{
-			hitColliders = overlapAllBox(collider as BoxCollider2D, layer);
+			return 0;
 		}
-		else if (collider is CircleCollider2D)
+		int maxCount = results.Length;
+		for (int i = 0; i < maxCount; ++i)
 		{
-			hitColliders = overlapAllSphere(collider as CircleCollider2D, layer);
+			results[i] = null;
 		}
-		else if (collider is CapsuleCollider2D)
-		{
-			hitColliders = overlapAllCapsule(collider as CapsuleCollider2D, layer);
-		}
-		return hitColliders;
-	}
-	public static Collider[] overlapCollider(Collider collider, int layer = -1)
-	{
-		Collider[] hitColliders = null;
 		if (collider is BoxCollider)
 		{
-			hitColliders = overlapAllBox(collider as BoxCollider, layer);
+			return overlapAllBox(collider as BoxCollider, results, layer);
 		}
 		else if (collider is SphereCollider)
 		{
-			hitColliders = overlapAllSphere(collider as SphereCollider, layer);
+			return overlapAllSphere(collider as SphereCollider, results, layer);
 		}
 		else if (collider is CapsuleCollider)
 		{
-			hitColliders = overlapAllCapsule(collider as CapsuleCollider, layer);
+			return overlapAllCapsule(collider as CapsuleCollider, results, layer);
 		}
-		return hitColliders;
+		return 0;
 	}
-	public static Collider[] overlapAllSphere(SphereCollider collider, int layer = -1)
+	public static int overlapCollider(Collider2D collider, Collider2D[] results, int layer = -1)
 	{
-		Transform transform = collider.transform;
-		Vector3 colliderWorldPos = localToWorld(transform, collider.center);
-		return Physics.OverlapSphere(colliderWorldPos, collider.radius, layer);
-	}
-	public static Collider2D[] overlapAllSphere(CircleCollider2D collider, int layer = -1)
-	{
-		Transform transform = collider.transform;
-		Vector2 colliderWorldPos = localToWorld(transform, collider.offset);
-		return Physics2D.OverlapCircleAll(colliderWorldPos, collider.radius, layer);
-	}
-	public static Collider[] overlapAllCapsule(CapsuleCollider collider, int layer = -1)
-	{
-		Transform transform = collider.transform;
-		Vector3 point0 = collider.center + new Vector3(0.0f, collider.height * 0.5f, 0.0f);
-		Vector3 point1 = collider.center - new Vector3(0.0f, collider.height * 0.5f, 0.0f);
-		point0 = localToWorld(transform, point0);
-		point1 = localToWorld(transform, point1);
-		return Physics.OverlapCapsule(point0, point1, collider.radius, layer);
-	}
-	public static Collider2D[] overlapAllCapsule(CapsuleCollider2D collider, int layer = -1)
-	{
-		Transform transform = collider.transform;
-		return Physics2D.OverlapCapsuleAll(transform.position, collider.size, collider.direction, -transform.localEulerAngles.z, layer);
+		if (collider == null)
+		{
+			return 0;
+		}
+		int maxCount = results.Length;
+		for (int i = 0; i < maxCount; ++i)
+		{
+			results[i] = null;
+		}
+		int hitCount = 0;
+		if (collider is BoxCollider2D)
+		{
+			hitCount = overlapAllBox(collider as BoxCollider2D, results, layer);
+		}
+		else if (collider is CircleCollider2D)
+		{
+			hitCount = overlapAllSphere(collider as CircleCollider2D, results, layer);
+		}
+		else if (collider is CapsuleCollider2D)
+		{
+			hitCount = overlapAllCapsule(collider as CapsuleCollider2D, results, layer);
+		}
+		return hitCount;
 	}
 	public static bool getRaycastPoint(Collider collider, ref Ray ray, ref Vector3 intersectPoint)
 	{
@@ -950,6 +1000,13 @@ public class UnityUtility : FileUtility
 	}
 	public static void applyAnchor(GameObject obj, bool force, GameLayout layout = null)
 	{
+		// 去除UGUI自带的锚点,避免计算错误
+		RectTransform rectTransform = obj.GetComponent<RectTransform>();
+		if (rectTransform != null)
+		{
+			rectTransform.anchorMin = Vector2.one * 0.5f;
+			rectTransform.anchorMax = Vector2.one * 0.5f;
+		}
 		// 先更新自己
 		obj.GetComponent<ScaleAnchor>()?.updateRect(force);
 		obj.GetComponent<PaddingAnchor>()?.updateRect(force);
@@ -988,43 +1045,22 @@ public class UnityUtility : FileUtility
 		return Vector2.zero;
 #endif
 	}
-	public static Vector2 getRootSize(GUI_TYPE guiType, bool useGameViewSize = false)
+	public static Vector2 getRootSize(bool useGameViewSize = false)
 	{
 		Vector2 rootSize = Vector2.zero;
 		if (useGameViewSize)
 		{
 			Vector2 gameViewSize = getGameViewSize();
-			Camera camera = null;
-			if (guiType == GUI_TYPE.NGUI)
-			{
-				camera = getGameObject(FrameDefine.NGUI_ROOT + "/" + FrameDefine.UI_CAMERA, true).GetComponent<Camera>();
-			}
-			else if (guiType == GUI_TYPE.UGUI)
-			{
-				camera = getGameObject(FrameDefine.UGUI_ROOT + "/" + FrameDefine.UI_CAMERA, true).GetComponent<Camera>();
-			}
+			Camera camera = getGameObject(FrameDefine.UGUI_ROOT + "/" + FrameDefine.UI_CAMERA, true).GetComponent<Camera>();
 			rootSize = new Vector2(gameViewSize.y * camera.aspect, gameViewSize.y);
 		}
 		else
 		{
-			if (guiType == GUI_TYPE.NGUI)
+			Canvas UGUIRoot = getUGUIRootComponent();
+			if (UGUIRoot != null)
 			{
-#if USE_NGUI
-				UIRoot NGUIRoot = getNGUIRootComponent();
-				if (NGUIRoot != null)
-				{
-					rootSize = new Vector2(NGUIRoot.activeHeight * getUICamera(guiType).aspect, NGUIRoot.activeHeight);
-				}
-#endif
-			}
-			else if (guiType == GUI_TYPE.UGUI)
-			{
-				Canvas UGUIRoot = getUGUIRootComponent();
-				if (UGUIRoot != null)
-				{
-					Rect rect = UGUIRoot.gameObject.GetComponent<RectTransform>().rect;
-					rootSize = new Vector2(rect.height * getUICamera(guiType).aspect, rect.height);
-				}
+				Rect rect = UGUIRoot.gameObject.GetComponent<RectTransform>().rect;
+				rootSize = new Vector2(rect.height * getUICamera().aspect, rect.height);
 			}
 		}
 		return rootSize;
@@ -1036,9 +1072,9 @@ public class UnityUtility : FileUtility
 		scale.y = rootSize.y * (1.0f / GameDefine.STANDARD_HEIGHT);
 		return scale;
 	}
-	public static Vector2 adjustScreenScale(GUI_TYPE guiType, ASPECT_BASE aspectBase = ASPECT_BASE.AUTO)
+	public static Vector2 adjustScreenScale(ASPECT_BASE aspectBase = ASPECT_BASE.AUTO)
 	{
-		return adjustScreenScale(getScreenScale(getRootSize(guiType)), aspectBase);
+		return adjustScreenScale(getScreenScale(getRootSize()), aspectBase);
 	}
 	public static Vector3 adjustScreenScale(Vector2 screenScale, ASPECT_BASE aspectBase = ASPECT_BASE.AUTO)
 	{
@@ -1171,6 +1207,58 @@ public class UnityUtility : FileUtility
 				currentLeft += interval;
 			}
 		}
+	}
+	// 移除数组中的第index个元素,validElementCount是数组中有效的元素个数
+	public static void removeElement<T>(T[] array, int validElementCount, int index)
+	{
+		if (index < 0 || index >= validElementCount)
+		{
+			return;
+		}
+		int moveCount = validElementCount - index - 1;
+		for (int i = 0; i < moveCount; ++i)
+		{
+			array[index + i] = array[index + i + 1];
+		}
+	}
+	// 移除数组中的所有value,T为引用类型
+	public static int removeClassElement<T>(T[] array, int validElementCount, T value) where T : class
+	{
+		// 从后往前遍历删除
+		for (int i = validElementCount - 1; i >= 0; --i)
+		{
+			if (array[i] == value)
+			{
+				removeElement(array, validElementCount, i);
+				--validElementCount;
+			}
+		}
+		return validElementCount;
+	}
+	// 移除数组中的所有value,T为继承自IEquatable的值类型
+	public static int removeValueElement<T>(T[] array, int validElementCount, T value) where T : IEquatable<T>
+	{
+		// 从后往前遍历删除
+		for (int i = validElementCount - 1; i >= 0; --i)
+		{
+			if (array[i].Equals(value))
+			{
+				removeElement(array, validElementCount, i);
+				--validElementCount;
+			}
+		}
+		return validElementCount;
+	}
+	public static bool arrayContains<T>(T[] array, int arrayLen, T value) where T : class
+	{
+		for(int i = 0; i < arrayLen; ++i)
+		{
+			if(array[i] == value)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 	// 获取类型,因为ILR的原因,如果是热更工程中的类型,直接使用typeof获取的是错误的类型
 	// 所以需要使用此函数获取真实的类型,要获取真实类型必须要有一个实例

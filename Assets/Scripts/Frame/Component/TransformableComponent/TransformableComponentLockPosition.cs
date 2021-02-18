@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System;
-using System.Collections;
 
 // 该组件在部分情况下会出现位置错误,类似于世界坐标位置的刷新没有实时同步,导致获取到的世界坐标错误,并且累积误差
 public class TransformableComponentLockPosition : GameComponent, IComponentModifyPosition, IComponentBreakable

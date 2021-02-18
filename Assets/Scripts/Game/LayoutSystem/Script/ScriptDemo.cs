@@ -29,10 +29,10 @@ public class ScriptDemo : LayoutScript
 	//--------------------------------------------------------------------------------------------------------------------------
 	protected void onBackgroundClick(IMouseEventCollect go)
 	{
-		logInfo("点击背景");
+		log("点击背景");
 	}
 	protected void onTextClick(IMouseEventCollect go)
 	{
-		logInfo("点击文字");
+		log("点击文字");
 	}
 }

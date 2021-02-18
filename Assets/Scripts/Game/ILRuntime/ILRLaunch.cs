@@ -70,7 +70,6 @@ public static class ILRLaunch
 		delegateManager.RegisterMethodDelegate<Vector2>();
 		delegateManager.RegisterMethodDelegate<Vector2, Vector2>();
 		delegateManager.RegisterMethodDelegate<Vector2, Vector2, Vector2, Vector2>();
-		delegateManager.RegisterMethodDelegate<NGUILine>();
 		delegateManager.RegisterMethodDelegate<Texture, string>();
 		delegateManager.RegisterMethodDelegate<bool>();
 		delegateManager.RegisterMethodDelegate<AnimControl, int, bool>();
@@ -196,10 +195,6 @@ public static class ILRLaunch
 		delegateManager.RegisterDelegateConvertor<OnMultiTouchEnd>((action) =>
 		{
 			return new OnMultiTouchEnd(() => { ((Action)action)(); });
-		});
-		delegateManager.RegisterDelegateConvertor<OnNGUILineGenerated>((action) =>
-		{
-			return new OnNGUILineGenerated((line) => { ((Action<NGUILine>)action)(line); });
 		});
 		delegateManager.RegisterDelegateConvertor<HeadDownloadCallback>((action) =>
 		{

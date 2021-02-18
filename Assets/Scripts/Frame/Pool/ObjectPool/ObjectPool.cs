@@ -41,7 +41,7 @@ public class ObjectPool : FrameSystem
 		{
 			if (item.Key == null)
 			{
-				logError("Object can not be destroy outside of ObjectManager!");
+				logError("Object can not be destroy outside of ObjectManager! filePath:" + item.Value.mFileWithPath);
 			}
 		}
 		// 遍历加载组,组中所有资源加载完毕时调用回调

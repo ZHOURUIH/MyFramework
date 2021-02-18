@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 public class CommandTransformableRotateCurve : Command
@@ -30,12 +29,10 @@ public class CommandTransformableRotateCurve : Command
 	{
 		Transformable obj = mReceiver as Transformable;
 		TransformableComponentRotateCurve component = obj.getComponent(out component);
-		// 停止其他旋转组件
-		obj.breakComponent<IComponentModifyRotation>(Typeof(component));
 		component.setTremblingCallback(mTremblingCallBack);
 		component.setTrembleDoneCallback(mTrembleDoneCallBack);
 		component.setActive(true);
-		component.setKeyRotList(mRotList);
+		component.setKeyList(mRotList);
 		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
 		if (component.getState() == PLAY_STATE.PLAY)
 		{

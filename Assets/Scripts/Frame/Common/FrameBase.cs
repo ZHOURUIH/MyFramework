@@ -29,9 +29,13 @@ public class FrameBase : UnityUtility
 	public static InputManager mInputManager;
 	public static SceneSystem mSceneSystem;
 	public static ClassPool mClassPool;
+	public static ClassPoolThread mClassPoolThread;
 	public static ListPool mListPool;
+	public static ListPoolThread mListPoolThread;
 	public static DictionaryPool mDictionaryPool;
+	public static DictionaryPoolThread mDictionaryPoolThread;
 	public static BytesPool mBytesPool;
+	public static BytesPoolThread mBytesPoolThread;
 	public static AndroidPluginManager mAndroidPluginManager;
 	public static AndroidAssetLoader mAndroidAssetLoader;
 	public static HeadTextureManager mHeadTextureManager;
@@ -40,6 +44,7 @@ public class FrameBase : UnityUtility
 	public static EffectManager mEffectManager;
 	public static TPSpriteManager mTPSpriteManager;
 	public static SocketFactory mSocketFactory;
+	public static SocketFactoryThread mSocketFactoryThread;
 	public static PathKeyframeManager mPathKeyframeManager;
 	public static EventSystem mEventSystem;
 #if USE_ILRUNTIME
@@ -71,9 +76,13 @@ public class FrameBase : UnityUtility
 		mInputManager = mGameFramework.getSystem(Typeof<InputManager>()) as InputManager;
 		mSceneSystem = mGameFramework.getSystem(Typeof<SceneSystem>()) as SceneSystem;
 		mClassPool = mGameFramework.getSystem(Typeof<ClassPool>()) as ClassPool;
+		mClassPoolThread = mGameFramework.getSystem(Typeof<ClassPoolThread>()) as ClassPoolThread;
 		mListPool = mGameFramework.getSystem(Typeof<ListPool>()) as ListPool;
+		mListPoolThread = mGameFramework.getSystem(Typeof<ListPoolThread>()) as ListPoolThread;
 		mDictionaryPool = mGameFramework.getSystem(Typeof<DictionaryPool>()) as DictionaryPool;
+		mDictionaryPoolThread = mGameFramework.getSystem(Typeof<DictionaryPoolThread>()) as DictionaryPoolThread;
 		mBytesPool = mGameFramework.getSystem(Typeof<BytesPool>()) as BytesPool;
+		mBytesPoolThread = mGameFramework.getSystem(Typeof<BytesPoolThread>()) as BytesPoolThread;
 		mAndroidPluginManager = mGameFramework.getSystem(Typeof<AndroidPluginManager>()) as AndroidPluginManager;
 		mAndroidAssetLoader = mGameFramework.getSystem(Typeof<AndroidAssetLoader>()) as AndroidAssetLoader;
 		mHeadTextureManager = mGameFramework.getSystem(Typeof<HeadTextureManager>()) as HeadTextureManager;
@@ -82,6 +91,7 @@ public class FrameBase : UnityUtility
 		mEffectManager = mGameFramework.getSystem(Typeof<EffectManager>()) as EffectManager;
 		mTPSpriteManager = mGameFramework.getSystem(Typeof<TPSpriteManager>()) as TPSpriteManager;
 		mSocketFactory = mGameFramework.getSystem(Typeof<SocketFactory>()) as SocketFactory;
+		mSocketFactoryThread = mGameFramework.getSystem(Typeof<SocketFactoryThread>()) as SocketFactoryThread;
 		mPathKeyframeManager = mGameFramework.getSystem(Typeof<PathKeyframeManager>()) as PathKeyframeManager;
 		mEventSystem = mGameFramework.getSystem(Typeof<EventSystem>()) as EventSystem;
 #if USE_ILRUNTIME
@@ -108,15 +118,23 @@ public class FrameBase : UnityUtility
 	{
 		mCommandSystem.pushCommand(cmd, cmdReceiver);
 	}
-	public static T pushDelayMainCommand<T>(CommandReceiver cmdReceiver, float delayExecute = 0.001f, bool show = true) where T : Command
+	public static T pushDelayMainCommand<T>(IDelayCmdWatcher watcher, CommandReceiver cmdReceiver, float delayExecute = 0.001f, bool show = true) where T : Command
 	{
 		T cmd = newMainCmd(out cmd, show, true);
-		mCommandSystem.pushDelayCommand(cmd, cmdReceiver, delayExecute);
+		mCommandSystem.pushDelayCommand(cmd, cmdReceiver, delayExecute, watcher);
 		return cmd;
 	}
-	public static void pushDelayCommand(Command cmd, CommandReceiver cmdReceiver, float delayExecute = 0.001f)
+	public static void pushDelayCommand(Command cmd, CommandReceiver cmdReceiver, float delayExecute, IDelayCmdWatcher watcher)
 	{
-		mCommandSystem.pushDelayCommand(cmd, cmdReceiver, delayExecute);
+		mCommandSystem.pushDelayCommand(cmd, cmdReceiver, delayExecute, watcher);
+	}
+	public static void pushDelayCommand(Command cmd, CommandReceiver cmdReceiver, float delayExecute)
+	{
+		mCommandSystem.pushDelayCommand(cmd, cmdReceiver, delayExecute, null);
+	}
+	public static void pushDelayCommand(Command cmd, CommandReceiver cmdReceiver)
+	{
+		mCommandSystem.pushDelayCommand(cmd, cmdReceiver, 0.0f, null);
 	}
 	public static void changeProcedure(Type procedure, string intent = null)
 	{

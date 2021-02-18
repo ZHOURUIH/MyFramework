@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System;
+﻿using System;
 
 public class CommandGameSceneChangeProcedure : Command
 {
@@ -23,7 +21,7 @@ public class CommandGameSceneChangeProcedure : Command
 			return;
 		}
 		// 不能重复进入同一流程
-		if(curProcedure != null && curProcedure.getProcedureType() == mProcedure)
+		if(curProcedure != null && curProcedure.getType() == mProcedure)
 		{
 			return;
 		}

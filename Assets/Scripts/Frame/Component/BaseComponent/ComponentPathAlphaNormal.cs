@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 
 // 指定路径关键帧和时间关键帧进行变换

@@ -1,8 +1,5 @@
 ﻿using UnityEngine;
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.Profiling;
 
 public class GlobalTouchSystem : FrameSystem
 {
@@ -30,7 +27,6 @@ public class GlobalTouchSystem : FrameSystem
 	protected bool mSimulateTouch;          // 使用鼠标操作时是否模拟触摸屏
 	protected bool mMousePressed;           // 在模拟触摸屏的条件下,屏幕是否被按下
 	protected bool mUseHover;               // 是否判断鼠标悬停在某个窗口
-	protected int mNGUICount;				// 注册的NGUI窗口数量,当数量不为0时,会启用NGUI摄像机的检测NGUI窗口
 	protected int mUGUICount;               // 注册的UGUI窗口数量,当数量不为0时,会启用UGUI摄像机的检测UGUI窗口
 	public GlobalTouchSystem()
 	{
@@ -347,22 +343,10 @@ public class GlobalTouchSystem : FrameSystem
 		if (obj is myUIObject)
 		{
 			// 寻找窗口对应的摄像机
-			GUI_TYPE guiType = WidgetUtility.getGUIType(obj.getObject());
-			if (guiType == GUI_TYPE.NGUI)
+			++mUGUICount;
+			if (camera == null)
 			{
-				++mNGUICount;
-				if (camera == null)
-				{
-					camera = mCameraManager.getUICamera(GUI_TYPE.NGUI);
-				}
-			}
-			else if(guiType == GUI_TYPE.UGUI)
-			{
-				++mUGUICount;
-				if (camera == null)
-				{
-					camera = mCameraManager.getUICamera(GUI_TYPE.UGUI);
-				}
+				camera = mCameraManager.getUICamera();
 			}
 			if (camera == null)
 			{
@@ -457,15 +441,7 @@ public class GlobalTouchSystem : FrameSystem
 					break;
 				}
 			}
-			GUI_TYPE guiType = WidgetUtility.getGUIType(obj.getObject());
-			if (guiType == GUI_TYPE.NGUI)
-			{
-				--mNGUICount;
-			}
-			else if(guiType == GUI_TYPE.UGUI)
-			{
-				--mUGUICount;
-			}
+			--mUGUICount;
 		}
 		else if (obj is MovableObject)
 		{

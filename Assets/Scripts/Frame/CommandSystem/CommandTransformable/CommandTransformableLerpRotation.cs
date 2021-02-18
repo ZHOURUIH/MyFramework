@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class CommandTransformableLerpRotation : Command
 {
@@ -19,8 +18,6 @@ public class CommandTransformableLerpRotation : Command
 	{
 		Transformable obj = mReceiver as Transformable;
 		TransformableComponentLerpRotation component = obj.getComponent(out component);
-		// 停止其他旋转组件
-		obj.breakComponent<IComponentModifyRotation>(Typeof(component));
 		component.setLerpingCallback(mLerpingCallBack);
 		component.setLerpDoneCallback(mLerpDoneCallBack);
 		component.setActive(true);

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class GameCamera : MovableObject
@@ -79,7 +78,7 @@ public class GameCamera : MovableObject
 				Vector2 moveDelta = mInputManager.getMouseDelta();
 				if (!isFloatZero(moveDelta.x) || !isFloatZero(moveDelta.y))
 				{
-					yawpitch(moveDelta.x * mMouseSpeed, -moveDelta.y * mMouseSpeed);
+					yawPitch(moveDelta.x * mMouseSpeed, -moveDelta.y * mMouseSpeed);
 				}
 			}
 			// 鼠标滚轮移动摄像机

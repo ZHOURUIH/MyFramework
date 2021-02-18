@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class WindowDebug : MonoBehaviour
 {
@@ -32,6 +30,6 @@ public class WindowDebug : MonoBehaviour
 		PassRay = mWindow.isPassRay();
 		Enable = mWindow.isEnable();
 		OrderInParent = mWindow.getDepth().getOrderInParent();
-		ID = mWindow.getID();
+		ID = (int)mWindow.getID();
 	}
 }

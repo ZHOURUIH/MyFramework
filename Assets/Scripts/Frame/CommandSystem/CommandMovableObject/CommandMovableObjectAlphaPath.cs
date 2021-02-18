@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 public class CommandMovableObjectAlphaPath : Command
 {
@@ -30,8 +28,6 @@ public class CommandMovableObjectAlphaPath : Command
 	{
 		ComponentOwner obj = mReceiver as ComponentOwner;
 		MovableObjectComponentAlphaPath component = obj.getComponent(out component);
-		// 停止其他相关组件
-		obj.breakComponent<IComponentModifyAlpha>(Typeof(component));
 		component.setTremblingCallback(mDoingCallBack);
 		component.setTrembleDoneCallback(mDoneCallBack);
 		component.setActive(true);

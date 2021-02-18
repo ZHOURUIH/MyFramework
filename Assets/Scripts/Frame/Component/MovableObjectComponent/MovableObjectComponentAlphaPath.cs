@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
+﻿using System;
 
 public class MovableObjectComponentAlphaPath : ComponentPathAlphaNormal, IComponentModifyAlpha
 {

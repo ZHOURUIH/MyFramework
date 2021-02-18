@@ -237,7 +237,7 @@ public class myUGUIVideo : myUGUIRawImage
 	}
 	protected void onVideoEvent(MediaPlayer player, MediaPlayerEvent.EventType eventType, ErrorCode errorCode)
 	{
-		logInfo("video event : " + eventType, LOG_LEVEL.HIGH);
+		log("video event : " + eventType, LOG_LEVEL.HIGH);
 		if (eventType == MediaPlayerEvent.EventType.FinishedPlaying)
 		{
 			// 播放完后设置为停止状态
@@ -254,7 +254,7 @@ public class myUGUIVideo : myUGUIRawImage
 		}
 		else if (eventType == MediaPlayerEvent.EventType.Error)
 		{
-			logInfo("video error code : " + errorCode, LOG_LEVEL.FORCE);
+			log("video error code : " + errorCode, LOG_LEVEL.FORCE);
 			mErrorCallback?.Invoke(errorCode);
 		}
 	}

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class CommandTransformableMovePhysics : Command
 {
@@ -31,8 +30,6 @@ public class CommandTransformableMovePhysics : Command
 	{
 		Transformable obj = mReceiver as Transformable;
 		TransformableComponentMovePhysics component = obj.getComponent(out component);
-		// 停止其他移动组件
-		obj.breakComponent<IComponentModifyPosition>(Typeof(component));
 		component.setTremblingCallback(mTremblingCallBack);
 		component.setTrembleDoneCallback(mTrembleDoneCallBack);
 		component.setActive(true);

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -468,7 +467,7 @@ public class AssetBundleLoader : FrameBase
 			yield return null;
 		}
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-		logInfo(bundleInfo.getBundleFileName() + " start load bundle", LOG_LEVEL.NORMAL);
+		log(bundleInfo.getBundleFileName() + " start load bundle", LOG_LEVEL.NORMAL);
 #endif
 		bundleInfo.setLoadState(LOAD_STATE.LOADING);
 		AssetBundle assetBundle = null;
@@ -568,7 +567,7 @@ public class AssetBundleLoader : FrameBase
 		}
 		--mAssetCoroutineCount;
 	}
-	protected void onAssetConfigDownloaded(UnityEngine.Object res, UnityEngine.Object[] subAssets, byte[] bytes, object userData, string loadPath)
+	protected void onAssetConfigDownloaded(Object res, Object[] subAssets, byte[] bytes, object userData, string loadPath)
 	{
 		initAssetConfig(bytes, bytes.Length);
 	}
@@ -613,6 +612,6 @@ public class AssetBundleLoader : FrameBase
 			info.Value.findAllDependence();
 		}
 		mInited = true;
-		logInfo("AssetBundle初始化完成, AssetBundle count : " + mAssetBundleInfoList.Count, LOG_LEVEL.FORCE);
+		log("AssetBundle初始化完成, AssetBundle count : " + mAssetBundleInfoList.Count, LOG_LEVEL.FORCE);
 	}
 }

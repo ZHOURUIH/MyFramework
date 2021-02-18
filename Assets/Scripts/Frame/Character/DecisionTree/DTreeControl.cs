@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 
 // 决策树控制节点,用于决定怎么选择子节点
 public class DTreeControl : DTreeNode

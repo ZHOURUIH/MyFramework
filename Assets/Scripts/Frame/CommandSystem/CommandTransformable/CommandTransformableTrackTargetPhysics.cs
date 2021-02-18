@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 class CommandTransformableTrackTargetPhysics : Command
@@ -22,8 +21,6 @@ class CommandTransformableTrackTargetPhysics : Command
 	{
 		Transformable obj = mReceiver as Transformable;
 		ComponentTrackTargetPhysics component = obj.getComponent(out component);
-		// 停止其他移动组件
-		obj.breakComponent<IComponentModifyPosition>(Typeof(component));
 		component.setSpeed(mSpeed);
 		component.setTargetOffset(mOffset);
 		component.setActive(true);

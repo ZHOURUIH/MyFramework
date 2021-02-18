@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 // 用于管理变换的关键帧文件,主要是用于给Path类的组件提供参数

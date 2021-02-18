@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 // 相对位置固定,但是旋转会平滑过渡
 public class CameraLinkerSmoothRotate : CameraLinker

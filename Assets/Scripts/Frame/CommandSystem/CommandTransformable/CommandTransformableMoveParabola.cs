@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class CommandTransformableMoveParabola : Command
 {
@@ -33,8 +32,6 @@ public class CommandTransformableMoveParabola : Command
 	{
 		Transformable obj = mReceiver as Transformable;
 		TransformableComponentMoveParabola component = obj.getComponent(out component);
-		// 停止其他移动组件
-		obj.breakComponent<IComponentModifyPosition>(Typeof(component));
 		component.setTremblingCallback(mTremblingCallBack);
 		component.setTrembleDoneCallback(mTrembleDoneCallBack);
 		component.setActive(true);

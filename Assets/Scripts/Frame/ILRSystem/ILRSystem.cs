@@ -1,12 +1,10 @@
 ﻿#if USE_ILRUNTIME
-using System;
 using System.IO;
-using System.Collections;
-using System.Collections.Generic;
 using ILRuntime.Mono.Cecil.Pdb;
 using ILRAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
 using UnityEngine;
 using System.Threading;
+using System.Collections;
 
 public delegate void OnHotFixLoaded(ILRAppDomain appDomain);
 

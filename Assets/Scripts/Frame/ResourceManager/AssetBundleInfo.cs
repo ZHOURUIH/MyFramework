@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class AssetBundleInfo : FrameBase
@@ -33,7 +32,7 @@ public class AssetBundleInfo : FrameBase
 		if (mAssetBundle != null)
 		{
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-			logInfo("unload : " + mBundleName);
+			log("unload : " + mBundleName);
 #endif
 			// 为true表示会卸载掉LoadAsset加载的资源,并不影响该资源实例化的物体
 			mAssetBundle.Unload(true);
@@ -151,7 +150,7 @@ public class AssetBundleInfo : FrameBase
 			info.Value.loadAssetBundle();
 		}
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-		logInfo("加载AssetBundle:" + mBundleFileName, LOG_LEVEL.NORMAL);
+		log("加载AssetBundle:" + mBundleFileName, LOG_LEVEL.NORMAL);
 #endif
 		// 先去persistentDataPath中查找资源
 		string path = FrameDefine.F_PERSISTENT_DATA_PATH + mBundleFileName;

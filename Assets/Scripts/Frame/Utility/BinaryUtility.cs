@@ -46,7 +46,7 @@ public class BinaryUtility
 	};
 	public static Encoding getGB2312()
 	{
-		if(ENCODING_GB2312 == null)
+		if (ENCODING_GB2312 == null)
 		{
 			ENCODING_GB2312 = Encoding.GetEncoding("gb2312");
 		}
@@ -76,7 +76,7 @@ public class BinaryUtility
 	}
 	public static ushort crc16(ushort crc, byte[] buffer, int len, int bufferOffset = 0)
 	{
-		for(int i = 0; i < len; ++i)
+		for (int i = 0; i < len; ++i)
 		{
 			crc = crc16_byte(crc, buffer[bufferOffset + i]);
 		}
@@ -116,7 +116,7 @@ public class BinaryUtility
 		success = true;
 		byte byte0 = buffer[index++];
 		byte byte1 = buffer[index++];
-		if(inverse)
+		if (inverse)
 		{
 			return (short)((byte1 << (8 * 0)) | (byte0 << (8 * 1)));
 		}
@@ -160,16 +160,16 @@ public class BinaryUtility
 		byte byte3 = buffer[index++];
 		if (inverse)
 		{
-			return (byte3 << (8 * 0)) | 
-				   (byte2 << (8 * 1)) | 
-				   (byte1 << (8 * 2)) | 
+			return (byte3 << (8 * 0)) |
+				   (byte2 << (8 * 1)) |
+				   (byte1 << (8 * 2)) |
 				   (byte0 << (8 * 3));
 		}
 		else
 		{
-			return (byte3 << (8 * 3)) | 
-				   (byte2 << (8 * 2)) | 
-				   (byte1 << (8 * 1)) | 
+			return (byte3 << (8 * 3)) |
+				   (byte2 << (8 * 2)) |
+				   (byte1 << (8 * 1)) |
 				   (byte0 << (8 * 0));
 		}
 	}
@@ -190,8 +190,8 @@ public class BinaryUtility
 		if (inverse)
 		{
 			return (uint)(byte3 << (8 * 0)) |
-				   (uint)(byte2 << (8 * 1)) | 
-				   (uint)(byte1 << (8 * 2)) | 
+				   (uint)(byte2 << (8 * 1)) |
+				   (uint)(byte1 << (8 * 2)) |
 				   (uint)(byte0 << (8 * 3));
 		}
 		else
@@ -266,7 +266,7 @@ public class BinaryUtility
 		ulong value;
 		if (inverse)
 		{
-			value = (ulong)byte7 << (8 * 0) | 
+			value = (ulong)byte7 << (8 * 0) |
 					(ulong)byte6 << (8 * 1) |
 					(ulong)byte5 << (8 * 2) |
 					(ulong)byte4 << (8 * 3) |
@@ -300,7 +300,7 @@ public class BinaryUtility
 		byte byte1;
 		byte byte2;
 		byte byte3;
-		if(inverse)
+		if (inverse)
 		{
 			byte3 = buffer[curIndex++];
 			byte2 = buffer[curIndex++];
@@ -319,12 +319,15 @@ public class BinaryUtility
 	// readCount表示读取的bool的个数,小于0表示按照destBuffer数组长度读取
 	public static bool readBools(byte[] buffer, ref int index, bool[] destBuffer, int readCount = -1)
 	{
-		bool success;
 		int boolCount = readCount < 0 ? destBuffer.Length : readCount;
+		if (boolCount > destBuffer.Length)
+		{
+			return false;
+		}
 		for (int i = 0; i < boolCount; ++i)
 		{
-			destBuffer[i] = readBool(buffer, ref index, out success);
-			if(!success)
+			destBuffer[i] = readBool(buffer, ref index, out bool success);
+			if (!success)
 			{
 				return false;
 			}
@@ -350,7 +353,7 @@ public class BinaryUtility
 			return false;
 		}
 		readSize = MathUtility.getMin(readSize, destBufferSize);
-		if(readSize > 0)
+		if (readSize > 0)
 		{
 			memcpy(destBuffer, buffer, 0, index, readSize);
 			index += readSize;
@@ -360,12 +363,15 @@ public class BinaryUtility
 	// readCount表示要读取的short个数,小于0表示使用数组长度
 	public static bool readShorts(byte[] buffer, ref int index, short[] destBuffer, int readCount = -1)
 	{
-		bool success;
 		int shortCount = readCount < 0 ? destBuffer.Length : readCount;
-		for(int i = 0; i < shortCount; ++i)
+		if (shortCount > destBuffer.Length)
 		{
-			destBuffer[i] = readShort(buffer, ref index, out success);
-			if(!success)
+			return false;
+		}
+		for (int i = 0; i < shortCount; ++i)
+		{
+			destBuffer[i] = readShort(buffer, ref index, out bool success);
+			if (!success)
 			{
 				return false;
 			}
@@ -375,12 +381,15 @@ public class BinaryUtility
 	// readCount表示要读取的ushort个数,小于0表示使用数组长度
 	public static bool readUShorts(byte[] buffer, ref int index, ushort[] destBuffer, int readCount = -1)
 	{
-		bool success;
 		int ushortCount = readCount < 0 ? destBuffer.Length : readCount;
+		if (ushortCount > destBuffer.Length)
+		{
+			return false;
+		}
 		for (int i = 0; i < ushortCount; ++i)
 		{
-			destBuffer[i] = readUShort(buffer, ref index, out success);
-			if(!success)
+			destBuffer[i] = readUShort(buffer, ref index, out bool success);
+			if (!success)
 			{
 				return false;
 			}
@@ -390,12 +399,15 @@ public class BinaryUtility
 	// readCount表示要读取的int个数,小于0表示使用destBuffer数组长度
 	public static bool readInts(byte[] buffer, ref int index, int[] destBuffer, int readCount = -1)
 	{
-		bool success;
 		int intCount = readCount < 0 ? destBuffer.Length : readCount;
+		if (intCount > destBuffer.Length)
+		{
+			return false;
+		}
 		for (int i = 0; i < intCount; ++i)
 		{
-			destBuffer[i] = readInt(buffer, ref index, out success);
-			if(!success)
+			destBuffer[i] = readInt(buffer, ref index, out bool success);
+			if (!success)
 			{
 				return false;
 			}
@@ -403,14 +415,17 @@ public class BinaryUtility
 		return true;
 	}
 	// readCount表示要读取的uint个数,小于0表示使用数组长度
-	public static bool readUInts(byte[] buffer, ref int index, uint[] destBuffer, int readCount = - 1)
+	public static bool readUInts(byte[] buffer, ref int index, uint[] destBuffer, int readCount = -1)
 	{
-		bool success;
 		int uintCount = readCount < 0 ? destBuffer.Length : readCount;
+		if (uintCount > destBuffer.Length)
+		{
+			return false;
+		}
 		for (int i = 0; i < uintCount; ++i)
 		{
-			destBuffer[i] = readUInt(buffer, ref index, out success);
-			if(!success)
+			destBuffer[i] = readUInt(buffer, ref index, out bool success);
+			if (!success)
 			{
 				return false;
 			}
@@ -420,12 +435,15 @@ public class BinaryUtility
 	// readCount表示要读取的long个数,小于0表示使用数组长度
 	public static bool readLongs(byte[] buffer, ref int index, long[] destBuffer, int readCount = -1)
 	{
-		bool success;
 		int longCount = readCount < 0 ? destBuffer.Length : readCount;
+		if (longCount > destBuffer.Length)
+		{
+			return false;
+		}
 		for (int i = 0; i < longCount; ++i)
 		{
-			destBuffer[i] = readLong(buffer, ref index, out success);
-			if(!success)
+			destBuffer[i] = readLong(buffer, ref index, out bool success);
+			if (!success)
 			{
 				return false;
 			}
@@ -435,11 +453,14 @@ public class BinaryUtility
 	// readCount表示要读取的ulong个数,小于0表示使用数组长度
 	public static bool readULongs(byte[] buffer, ref int index, ulong[] destBuffer, int readCount = -1)
 	{
-		bool success;
 		int longCount = readCount < 0 ? destBuffer.Length : readCount;
+		if (longCount > destBuffer.Length)
+		{
+			return false;
+		}
 		for (int i = 0; i < longCount; ++i)
 		{
-			destBuffer[i] = readULong(buffer, ref index, out success);
+			destBuffer[i] = readULong(buffer, ref index, out bool success);
 			if (!success)
 			{
 				return false;
@@ -450,12 +471,15 @@ public class BinaryUtility
 	// readCount表示读取的float的数量,小于0表示使用数组的长度
 	public static bool readFloats(byte[] buffer, ref int index, float[] destBuffer, int readCount = -1)
 	{
-		bool success;
 		int floatCount = readCount < 0 ? destBuffer.Length : readCount;
+		if (floatCount > destBuffer.Length)
+		{
+			return false;
+		}
 		for (int i = 0; i < floatCount; ++i)
 		{
-			destBuffer[i] = readFloat(buffer, ref index, out success);
-			if(!success)
+			destBuffer[i] = readFloat(buffer, ref index, out bool success);
+			if (!success)
 			{
 				return false;
 			}
@@ -487,7 +511,7 @@ public class BinaryUtility
 			return false;
 		}
 		// 为了获得最快速度,不使用for循环
-		if(!inverse)
+		if (!inverse)
 		{
 			buffer[index++] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
 			buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
@@ -744,7 +768,7 @@ public class BinaryUtility
 	{
 		bool ret = true;
 		int count = writeCount < 0 ? sourceBuffer.Length : writeCount;
-		for(int i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			ret = writeFloat(buffer, ref index, sourceBuffer[i]) && ret;
 		}
@@ -752,7 +776,7 @@ public class BinaryUtility
 	}
 	public static void memcpyObject<T>(T[] dest, T[] src, int destOffset, int srcOffset, int count)
 	{
-		for(int i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			dest[destOffset + i] = src[srcOffset + i];
 		}
@@ -763,7 +787,7 @@ public class BinaryUtility
 	}
 	public static void memmove<T>(ref T[] data, int dest, int src, int count)
 	{
-		if(count <= 0)
+		if (count <= 0)
 		{
 			return;
 		}
@@ -786,12 +810,12 @@ public class BinaryUtility
 	// 将数组每个元素值设置为0
 	public static void memset<T>(T[] p, T value, int length = -1)
 	{
-		if(length == -1)
+		if (length == -1)
 		{
 			length = p.Length;
 		}
 		// 有两种方法清零一个数组,遍历和Array.Clear(),但是两个效率在不同情况下是不一样的,数量小于77时,遍历会快一些,数量大于等于77时,Array.Clear()更快
-		if(length < 77)
+		if (length < 77)
 		{
 			for (int i = 0; i < length; ++i)
 			{
@@ -940,12 +964,12 @@ public class BinaryUtility
 	}
 	public static byte[] stringToBytes(string str, Encoding encoding = null)
 	{
-		if(str == null)
+		if (str == null)
 		{
 			return null;
 		}
 		// 默认为UTF8
-		if(encoding == null)
+		if (encoding == null)
 		{
 			encoding = Encoding.UTF8;
 		}
@@ -1002,9 +1026,9 @@ public class BinaryUtility
 	{
 		int strLen = str.Length;
 		int newLen = strLen;
-		for(int i = 0; i < strLen; ++i)
+		for (int i = 0; i < strLen; ++i)
 		{
-			if(str[i] == 0)
+			if (str[i] == 0)
 			{
 				newLen = i;
 				break;
@@ -1016,7 +1040,7 @@ public class BinaryUtility
 	public static bool isMemoryEqual(byte[] buffer0, byte[] buffer1, int length, int offset0 = 0, int offset1 = 0)
 	{
 		// 如果长度不足,则返回失败
-		if(offset0 + length > buffer0.Length || offset1 + length > buffer1.Length)
+		if (offset0 + length > buffer0.Length || offset1 + length > buffer1.Length)
 		{
 			return false;
 		}

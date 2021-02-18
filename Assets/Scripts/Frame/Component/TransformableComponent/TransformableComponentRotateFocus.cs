@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System;
-using System.Collections;
 
 public class TransformableComponentRotateFocus : GameComponent, IComponentModifyRotation, IComponentBreakable
 {

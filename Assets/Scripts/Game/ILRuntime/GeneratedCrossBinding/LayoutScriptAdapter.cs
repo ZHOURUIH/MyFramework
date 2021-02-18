@@ -17,7 +17,11 @@ namespace HotFix
         static CrossBindingMethodInfo monDrawGizmos_7 = new CrossBindingMethodInfo("onDrawGizmos");
         static CrossBindingMethodInfo<System.Boolean, System.String> monShow_8 = new CrossBindingMethodInfo<System.Boolean, System.String>("onShow");
         static CrossBindingMethodInfo<System.Boolean, System.String> monHide_9 = new CrossBindingMethodInfo<System.Boolean, System.String>("onHide");
-        static CrossBindingMethodInfo mnotifyConstructDone_10 = new CrossBindingMethodInfo("notifyConstructDone");
+        static CrossBindingMethodInfo<global::Command> maddDelayCmd_10 = new CrossBindingMethodInfo<global::Command>("addDelayCmd");
+        static CrossBindingMethodInfo<System.Int32, System.Boolean> minterruptCommand_11 = new CrossBindingMethodInfo<System.Int32, System.Boolean>("interruptCommand");
+        static CrossBindingMethodInfo<global::Command> monCmdStarted_12 = new CrossBindingMethodInfo<global::Command>("onCmdStarted");
+        static CrossBindingMethodInfo minterruptAllCommand_13 = new CrossBindingMethodInfo("interruptAllCommand");
+        static CrossBindingMethodInfo mnotifyConstructDone_14 = new CrossBindingMethodInfo("notifyConstructDone");
         public override Type BaseCLRType
         {
             get
@@ -134,12 +138,44 @@ namespace HotFix
                     monHide_9.Invoke(this.instance, immediately, param);
             }
 
+            public override void addDelayCmd(global::Command cmd)
+            {
+                if (maddDelayCmd_10.CheckShouldInvokeBase(this.instance))
+                    base.addDelayCmd(cmd);
+                else
+                    maddDelayCmd_10.Invoke(this.instance, cmd);
+            }
+
+            public override void interruptCommand(System.Int32 assignID, System.Boolean showError)
+            {
+                if (minterruptCommand_11.CheckShouldInvokeBase(this.instance))
+                    base.interruptCommand(assignID, showError);
+                else
+                    minterruptCommand_11.Invoke(this.instance, assignID, showError);
+            }
+
+            public override void onCmdStarted(global::Command cmd)
+            {
+                if (monCmdStarted_12.CheckShouldInvokeBase(this.instance))
+                    base.onCmdStarted(cmd);
+                else
+                    monCmdStarted_12.Invoke(this.instance, cmd);
+            }
+
+            public override void interruptAllCommand()
+            {
+                if (minterruptAllCommand_13.CheckShouldInvokeBase(this.instance))
+                    base.interruptAllCommand();
+                else
+                    minterruptAllCommand_13.Invoke(this.instance);
+            }
+
             public override void notifyConstructDone()
             {
-                if (mnotifyConstructDone_10.CheckShouldInvokeBase(this.instance))
+                if (mnotifyConstructDone_14.CheckShouldInvokeBase(this.instance))
                     base.notifyConstructDone();
                 else
-                    mnotifyConstructDone_10.Invoke(this.instance);
+                    mnotifyConstructDone_14.Invoke(this.instance);
             }
 
             public override string ToString()

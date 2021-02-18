@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
@@ -72,7 +71,7 @@ public class HttpUtility : FrameSystem
 	public static byte[] downloadFile(string url, int offset = 0, byte[] helperBytes = null, string fileName = EMPTY, 
 										StartDownloadCallback startCallback = null, DownloadingCallback downloading = null)
 	{
-		logInfo("开始http下载:" + url, LOG_LEVEL.FORCE);
+		log("开始http下载:" + url, LOG_LEVEL.FORCE);
 		HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
 		request.AddRange(offset);
 		WebResponse response = request.GetResponse();
@@ -84,7 +83,7 @@ public class HttpUtility : FrameSystem
 		bool isTempHelperBytes = helperBytes == null;
 		if(helperBytes == null)
 		{
-			helperBytes = mBytesPool.newBytes(1024);
+			helperBytes = mBytesPoolThread.newBytes(1024);
 		}
 		int readCount;
 		do
@@ -96,13 +95,13 @@ public class HttpUtility : FrameSystem
 		} while (readCount > 0);
 		if(isTempHelperBytes)
 		{
-			mBytesPool.destroyBytes(helperBytes);
+			mBytesPoolThread.destroyBytes(helperBytes);
 		}
 		byte[] dataBytes = downloadStream.ToArray();
 		downloadStream.Close();
 		inStream.Close();
 		response.Close();
-		logInfo("http下载完成:" + url, LOG_LEVEL.FORCE);
+		log("http下载完成:" + url, LOG_LEVEL.FORCE);
 		return dataBytes;
 	}
 	public static JsonData httpWebRequestPostFile(string url, List<FormItem> itemList, OnHttpWebRequestCallback callback, object callbakcUserData, bool logError)
@@ -325,7 +324,7 @@ public class HttpUtility : FrameSystem
 			}
 			catch (Exception e)
 			{
-				logInfo(e.Message);
+				log(e.Message);
 				return null;
 			}
 		}
@@ -351,7 +350,7 @@ public class HttpUtility : FrameSystem
 		catch (Exception e)
 		{
 			threadParam.mCallback(null, threadParam.mUserData);
-			logInfo("http post result exception:" + e.Message + ", url:" + threadParam.mFullURL);
+			log("http post result exception:" + e.Message + ", url:" + threadParam.mFullURL);
 		}
 		finally
 		{
@@ -378,7 +377,7 @@ public class HttpUtility : FrameSystem
 		catch (Exception e)
 		{
 			threadParam.mCallback(null, threadParam.mUserData);
-			logInfo("http get result exception : " + e.Message + ", url : " + threadParam.mFullURL);
+			log("http get result exception : " + e.Message + ", url : " + threadParam.mFullURL);
 		}
 		finally
 		{

@@ -1,12 +1,11 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using System;
 
 public class CommandSystem : FrameSystem
 {
 	protected List<Command> mCommandBufferProcess;	// 用于处理的命令列表
-	protected List<Command> mCommandBufferInput;	// 用于放入命令的命令列表
+	protected List<Command> mCommandBufferInput;	// 用于放入命令的命令列表,收集一帧中各个线程的命令
 	protected List<Command> mExecuteList;           // 即将在这一帧执行的命令
 	protected CommandPool mCommandPool;
 	protected ThreadLock mBufferLock;
@@ -21,7 +20,6 @@ public class CommandSystem : FrameSystem
 	public override void init()
 	{
 		base.init();
-		mCommandPool.init();
 	}
 	public override void destroy()
 	{
@@ -63,10 +61,11 @@ public class CommandSystem : FrameSystem
 		int executeCount = mExecuteList.Count;
 		for (int i = 0; i < executeCount; ++i)
 		{
-			mExecuteList[i].setDelayCommand(false);
-			if(mExecuteList[i].getReceiver() != null)
+			Command cmd = mExecuteList[i];
+			cmd.setDelayCommand(false);
+			if (cmd.getReceiver() != null)
 			{
-				pushCommand(mExecuteList[i], mExecuteList[i].getReceiver());
+				pushCommand(cmd, cmd.getReceiver());
 			}
 		}
 		// 执行完后清空列表
@@ -114,7 +113,7 @@ public class CommandSystem : FrameSystem
 			Command cmd = mCommandBufferProcess[i];
 			if (cmd.mAssignID == assignID)
 			{
-				logInfo("CommandSystem : interrupt command " + assignID + " : " + cmd.showDebugInfo() + ", receiver : " + cmd.getReceiver().getName(), LOG_LEVEL.HIGH);
+				log("CommandSystem : interrupt command " + assignID + " : " + cmd.showDebugInfo() + ", receiver : " + cmd.getReceiver().getName(), LOG_LEVEL.HIGH);
 				mCommandBufferProcess.Remove(cmd);
 				// 销毁回收命令
 				mCommandPool.destroyCmd(cmd);
@@ -166,7 +165,7 @@ public class CommandSystem : FrameSystem
 		}
 		if (cmdReceiver == null)
 		{
-			logError("receiver is null! cmd : " + (cmd != null ? cmd.getType().ToString() : EMPTY));
+			logError("receiver is null! cmd : " + (cmd != null ? cmd.GetType().ToString() : EMPTY));
 			return;
 		}
 		if (!cmd.isValid())
@@ -184,14 +183,14 @@ public class CommandSystem : FrameSystem
 		if (cmd.isShowDebugInfo())
 		{
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-			logInfo("CommandSystem : " + cmd.mAssignID + ", " + cmd.showDebugInfo() + ", receiver : " + cmdReceiver.getName(), LOG_LEVEL.NORMAL);
+			log("CommandSystem : " + cmd.mAssignID + ", " + cmd.showDebugInfo() + ", receiver : " + cmdReceiver.getName(), LOG_LEVEL.NORMAL);
 #endif
 		}
 		cmdReceiver.receiveCommand(cmd);
 		// 销毁回收命令
 		mCommandPool?.destroyCmd(cmd);
 	}
-	public Command pushDelayCommand(Type type, CommandReceiver cmdReceiver, float delayExecute = 0.001f, bool show = true)
+	public Command pushDelayCommand(Type type, CommandReceiver cmdReceiver, float delayExecute, bool show, IDelayCmdWatcher watcher)
 	{
 		// 如果命令系统已经销毁了,则不能再发送命令
 		if (mDestroy)
@@ -199,12 +198,12 @@ public class CommandSystem : FrameSystem
 			return null;
 		}
 		Command cmd = newCmd(type, show, true);
-		pushDelayCommand(cmd, cmdReceiver, delayExecute);
+		pushDelayCommand(cmd, cmdReceiver, delayExecute, watcher);
 		return cmd;
 	}
 	// delayExecute是命令延时执行的时间,默认为0,只有new出来的命令才能延时执行
 	// 子线程中发出的命令必须是延时执行的命令!
-	public new void pushDelayCommand(Command cmd, CommandReceiver cmdReceiver, float delayExecute = 0.001f)
+	public new void pushDelayCommand(Command cmd, CommandReceiver cmdReceiver, float delayExecute, IDelayCmdWatcher watcher)
 	{
 		// 如果命令系统已经销毁了,则不能再发送命令
 		if (mDestroy)
@@ -218,7 +217,7 @@ public class CommandSystem : FrameSystem
 		}
 		if(cmdReceiver == null)
 		{
-			logError("receiver is null! cmd : " + (cmd != null ? cmd.getType().ToString() : EMPTY));
+			logError("receiver is null! cmd : " + (cmd != null ? cmd.GetType().ToString() : EMPTY));
 			return;
 		}
 		if (!cmd.isValid())
@@ -232,18 +231,19 @@ public class CommandSystem : FrameSystem
 			logError("cmd is not a delay command, Command : " + cmd.mAssignID + ", " + cmd.showDebugInfo());
 			return;
 		}
-		clampMin(ref delayExecute, 0.0f);
+		clampMin(ref delayExecute);
 		if (cmd.isShowDebugInfo())
 		{
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-			logInfo("CommandSystem : delay cmd : " + cmd.mAssignID + ", " + delayExecute + ", info : " + cmd.showDebugInfo() + ", receiver : " + cmdReceiver.getName(), LOG_LEVEL.NORMAL);
+			log("CommandSystem : delay cmd : " + cmd.mAssignID + ", " + delayExecute + ", info : " + cmd.showDebugInfo() + ", receiver : " + cmdReceiver.getName(), LOG_LEVEL.NORMAL);
 #endif
 		}
-		mBufferLock.waitForUnlock();
 		cmd.setDelayTime(delayExecute);
 		cmd.setReceiver(cmdReceiver);
+		mBufferLock.waitForUnlock();
 		mCommandBufferInput.Add(cmd);
 		mBufferLock.unlock();
+		watcher?.addDelayCmd(cmd);
 	}
 	public virtual void notifyReceiverDestroied(CommandReceiver receiver)
 	{
@@ -253,23 +253,27 @@ public class CommandSystem : FrameSystem
 		}
 		// 先同步命令列表
 		syncCommandBuffer();
-		for (int i = 0; i < mCommandBufferProcess.Count; ++i)
+		int processCount = mCommandBufferProcess.Count;
+		for (int i = 0; i < processCount; ++i)
 		{
-			if (mCommandBufferProcess[i].mReceiver == receiver)
+			Command cmd = mCommandBufferProcess[i];
+			if (cmd.mReceiver == receiver)
 			{
-				mCommandPool.destroyCmd(mCommandBufferProcess[i]);
+				mCommandPool.destroyCmd(cmd);
 				mCommandBufferProcess.RemoveAt(i);
 				--i;
+				--processCount;
 			}
 		}
 		// 执行列表中
 		int count = mExecuteList.Count;
 		for(int i = 0; i < count; ++i)
 		{
+			Command cmd = mExecuteList[i];
 			// 已执行或正在执行的命令不作判断,该列表无法删除元素,只能将接收者设置为null
-			if (mExecuteList[i].mReceiver == receiver && mExecuteList[i].mExecuteState == EXECUTE_STATE.NOT_EXECUTE)
+			if (cmd.mReceiver == receiver && cmd.mCmdState == EXECUTE_STATE.NOT_EXECUTE)
 			{
-				mExecuteList[i].mReceiver = null;
+				cmd.mReceiver = null;
 			}
 		}
 	}

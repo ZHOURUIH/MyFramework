@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 public abstract class GameScene : ComponentOwner
@@ -115,7 +114,7 @@ public abstract class GameScene : ComponentOwner
 		{
 			return false;
 		}
-		return mCurProcedure.getProcedureType() == type;
+		return mCurProcedure.getType() == type;
 	}
 	public new void prepareChangeProcedure(Type procedure, float time, string intent)
 	{
@@ -149,7 +148,7 @@ public abstract class GameScene : ComponentOwner
 				mLastProcedureList.RemoveAt(0);
 			}
 		}
-		if (mCurProcedure == null || mCurProcedure.getProcedureType() != procedureType)
+		if (mCurProcedure == null || mCurProcedure.getType() != procedureType)
 		{
 			// 如果当前已经在一个流程中了,则要先退出当前流程,但是不要销毁流程
 			if (mCurProcedure != null)
@@ -174,25 +173,14 @@ public abstract class GameScene : ComponentOwner
 	//  获取上一个流程
 	public Type getLastProcedureType()
 	{
-		return mLastProcedureList[mLastProcedureList.Count - 1].getProcedureType();
+		return mLastProcedureList[mLastProcedureList.Count - 1].getType();
 	}
 	public SceneProcedure getProcedure(Type type)
 	{
 		mSceneProcedureList.TryGetValue(type, out SceneProcedure procedure);
 		return procedure;
 	}
-	public SceneProcedure getProcedure(string typeStr)
-	{
-		foreach (var item in mSceneProcedureList)
-		{
-			if (item.Key.ToString() == typeStr)
-			{
-				return item.Value;
-			}
-		}
-		return null;
-	}
-	public Type getCurProcedureType() { return mCurProcedure.getProcedureType(); }
+	public Type getCurProcedureType() { return mCurProcedure.getType(); }
 	public SceneProcedure getCurProcedure() { return mCurProcedure; }
 	// 获取当前场景的当前流程或父流程中指定类型的流程
 	public SceneProcedure getCurOrParentProcedure(Type type)
@@ -214,11 +202,11 @@ public abstract class GameScene : ComponentOwner
 			SceneProcedure parentProcedure = getProcedure(parent);
 			if (parentProcedure == null)
 			{
-				logError("invalid parent procedure, procedure:" + procedure.getProcedureType());
+				logError("invalid parent procedure, procedure:" + procedure.getType());
 			}
 			parentProcedure.addChildProcedure(procedure);
 		}
-		mSceneProcedureList.Add(procedure.getProcedureType(), procedure);
+		mSceneProcedureList.Add(procedure.getType(), procedure);
 		return procedure;
 	}
 }

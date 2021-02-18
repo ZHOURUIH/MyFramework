@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
@@ -92,7 +91,7 @@ public class Serializer : FrameBase
 		writeFloat(mBuffer, ref mIndex, value);
 		return true;
 	}
-	public bool read(out byte value, bool inverse = false)
+	public bool read(out byte value)
 	{
 		value = 0;
 		int readLen = sizeof(byte);

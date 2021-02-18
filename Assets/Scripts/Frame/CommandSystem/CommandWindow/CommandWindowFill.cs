@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 public class CommandWindowFill : Command
 {
@@ -31,9 +30,9 @@ public class CommandWindowFill : Command
 	{
 		myUIObject obj = mReceiver as myUIObject;
 		WindowComponentFill component = obj.getComponent(out component);
-		component.setActive(true);
 		component.setTremblingCallback(mTremblingCallBack);
 		component.setTrembleDoneCallback(mTrembleDoneCallBack);
+		component.setActive(true);
 		component.setStartValue(mStartValue);
 		component.setTargetValue(mTargetValue);
 		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);

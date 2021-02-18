@@ -11,7 +11,6 @@ public class ILRCharacter : Character
 	public override void destroyModel() { base.destroyModel(); }
 	public override float getAnimationLength(string name) { return base.getAnimationLength(name); }
 	public override void notifyComponentChanged(GameComponent component) { base.notifyComponentChanged(component); }
-	public override void notifyStateChanged(PlayerState state) { base.notifyStateChanged(state); }
 	protected override void initComponents() { base.initComponents(); }
 	protected override void notifyModelLoaded(GameObject go) { base.notifyModelLoaded(go); }
 	public override void destroy() { base.destroy(); }

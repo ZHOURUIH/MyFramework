@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 public class TransformableComponentMoveParabola : ComponentKeyFrameNormal, IComponentModifyPosition
 {
@@ -25,7 +23,7 @@ public class TransformableComponentMoveParabola : ComponentKeyFrameNormal, IComp
 			mTempB = Vector3.forward;
 		}
 		// 绕A点旋转B点到X轴上
-		float angle = -getAngleFromVector3ToVector3(Vector3.forward, mTempB, true, false) + HALF_PI_DEGREE;
+		float angle = -getAngleFromVector3ToVector3(Vector3.forward, mTempB, true, ANGLE.DEGREE) + HALF_PI_DEGREE;
 		mTempB = rotateVector3(mTempB, Quaternion.AngleAxis(angle, Vector3.up));
 		mFactorB = generateFactorBFromHeight(mTopHeight, mTempB);
 		mFactorA = generateFactorA(mFactorB, mTempB);

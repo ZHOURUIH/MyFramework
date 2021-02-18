@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System;
-using System.Collections;
 
 public class TimeComponentScale : ComponentKeyFrameNormal
 {
@@ -11,8 +10,6 @@ public class TimeComponentScale : ComponentKeyFrameNormal
 	//------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
-		float scale = lerpSimple(mStartScale, mTargetScale, value);
-		clampMin(ref scale, 0.0f);
-		Time.timeScale = scale;
+		Time.timeScale = clampMin(lerpSimple(mStartScale, mTargetScale, value));
 	}
 }

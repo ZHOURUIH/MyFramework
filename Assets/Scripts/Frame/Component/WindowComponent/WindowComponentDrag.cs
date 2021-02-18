@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 public class WindowComponentDrag : ComponentDrag
 {
@@ -33,15 +31,14 @@ public class WindowComponentDrag : ComponentDrag
 	//--------------------------------------------------------------------------------------------------------------
 	protected override void applyScreenPosition(ref Vector3 screenPos)
 	{
-		if(mMovable)
+		if (mMovable)
 		{
-			Vector3 pos = screenPosToWindowPos(screenPos - mDragMouseOffset, mWindow.getParent(), true, mWindow.getLayout().getGUIType());
-			mWindow.setPosition(pos);
+			mWindow.setPosition(screenPosToWindowPos(screenPos - mDragMouseOffset, mWindow.getParent()));
 		}
 	}
 	protected override Vector3 getScreenPosition()
 	{
-		Camera camera = mCameraManager.getUICamera(mWindow.getLayout().getGUIType()).getCamera();
+		Camera camera = mCameraManager.getUICamera().getCamera();
 		if(camera != null)
 		{
 			return camera.WorldToScreenPoint(mWindow.getWorldPosition());
@@ -57,8 +54,7 @@ public class WindowComponentDrag : ComponentDrag
 			logError("not find collider, can not drag!");
 			return false;
 		}
-		Ray ray;
-		getUIRay(ref mousePosition, out ray, (mComponentOwner as myUIObject).getLayout().getGUIType());
+		getUIRay(ref mousePosition, out Ray ray);
 		return collider.Raycast(ray, out _, 10000.0f);
 	}
 	protected override void onDragEnd(Vector3 mousePos)

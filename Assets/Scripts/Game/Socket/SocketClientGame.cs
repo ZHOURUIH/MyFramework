@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 
 public class SocketClientGame : SocketConnectClient
 {
@@ -10,10 +7,6 @@ public class SocketClientGame : SocketConnectClient
 		return type <= PACKET_TYPE.SC_MIN || type >= PACKET_TYPE.SC_MAX;
 	}
 	protected override void heartBeat()
-	{
-		;
-	}
-	protected override void setNetState(NET_STATE state)
 	{
 		;
 	}

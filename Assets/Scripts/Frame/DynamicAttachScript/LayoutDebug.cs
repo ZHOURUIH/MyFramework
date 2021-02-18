@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class LayoutDebug : MonoBehaviour
 {
 	protected GameLayout mLayout;
-	public GUI_TYPE GUIType;            // 是否为NGUI布局,true为NGUI,false为UGUI
 	public string Name;                 // 布局名称
 	public bool ScriptControlHide;      // 是否由脚本来控制隐藏
 	public bool IsScene;                // 是否为场景,如果是场景,就不将布局挂在NGUIRoot或者UGUIRoot下
@@ -26,7 +23,6 @@ public class LayoutDebug : MonoBehaviour
 		ID = mLayout.getID();
 		Name = mLayout.getName();
 		ScriptControlHide = mLayout.isScriptControlHide();
-		GUIType = mLayout.getGUIType();
 		IsScene = mLayout.isScene();
 		CheckBoxAnchor = mLayout.isCheckBoxAnchor();
 		IgnoreTimeScale = mLayout.isIgnoreTimeScale();

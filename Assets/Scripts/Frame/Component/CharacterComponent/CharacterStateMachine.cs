@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 public class CharacterStateMachine : GameComponent
@@ -74,6 +73,12 @@ public class CharacterStateMachine : GameComponent
 	{
 		state = createState(type, param, id);
 		state.setPlayer(mPlayer);
+		
+		if (stateTime >= 0.0f)
+		{
+			state.setStateMaxTime(stateTime);
+			state.setStateTime(stateTime);
+		}
 		if(!canAddState(state))
 		{
 			destroyState(state);
@@ -82,8 +87,6 @@ public class CharacterStateMachine : GameComponent
 
 		// 移除不能共存的状态
 		removeMutexState(state);
-		state.setStateTime(stateTime);
-
 		// 进入状态
 		state.enter();
 
@@ -95,13 +98,10 @@ public class CharacterStateMachine : GameComponent
 		}
 		stateList.Add(state);
 		mStateMap.Add(state.getID(), state);
-
-		// 通知角色有状态添加
-		notifyStateChanged(state);
 		return true;
 	}
 	// isBreak表示是否是因为与要添加的状态冲突,所以才移除的状态
-	public bool removeState(PlayerState state, bool isBreak, string param)
+	public bool removeState(PlayerState state, bool isBreak, string param = null)
 	{
 		if (!mStateMap.ContainsKey(state.getID()))
 		{
@@ -124,9 +124,6 @@ public class CharacterStateMachine : GameComponent
 
 		// 销毁状态
 		destroyState(state);
-
-		// 通知角色有状态移除
-		notifyStateChanged(state);
 		return true;
 	}
 	// 移除一个状态组中的所有状态
@@ -169,7 +166,6 @@ public class CharacterStateMachine : GameComponent
 		}
 		mStateTypeList.EndForeach(stateUpdateList);
 		mStateTypeList.Clear();
-		notifyStateChanged(null);
 	}
 	public SafeDeepDictionary<Type, SafeDeepList<PlayerState>> getStateList() { return mStateTypeList; }
 	public PlayerState getState(uint id)
@@ -193,6 +189,24 @@ public class CharacterStateMachine : GameComponent
 			if (item.isActive())
 			{
 				return item;
+			}
+		}
+		return null;
+	}
+	public PlayerState getFirstGroupState(Type groupType)
+	{
+		if (!mGroupStateList.TryGetValue(groupType, out StateGroup stateGroup))
+		{
+			return null;
+		}
+		var groupStateList = stateGroup.mStateList;
+		int count = groupStateList.Count;
+		for (int i = 0; i < count; ++i)
+		{
+			var curStateList = getState(groupStateList[i]);
+			if (curStateList != null && curStateList.Count() > 0)
+			{
+				return curStateList.GetMainList()[0];
 			}
 		}
 		return null;
@@ -258,68 +272,41 @@ public class CharacterStateMachine : GameComponent
 			mStateGroupList.Add(state, stateTypeList);
 		}
 		stateTypeList.Add(groupType);
-		if (mGroupStateList.TryGetValue(groupType, out StateGroup group))
+		if (!mGroupStateList.TryGetValue(groupType, out StateGroup group))
 		{
-			group.addState(state);
-			if (mainState)
-			{
-				group.setMainState(state);
-			}
+			logError("找不到状态组,无法将状态指定到组中,状态组类型:" + groupType);
+			return;
+		}
+		group.addState(state);
+		if (mainState)
+		{
+			group.setMainState(state);
 		}
 	}
 	//----------------------------------------------------------------------------------------------------------------
-	// state表示当前是什么状态改变,null表示清空状态列表
-	protected void notifyStateChanged(PlayerState state)
-	{
-		mPlayer.notifyStateChanged(state);
-	}
 	protected PlayerState createState(Type type, StateParam param, uint id = 0)
 	{
 		// 用对象池的方式创建状态对象
-		PlayerState state = mClassPool.newClass(type) as PlayerState;
+		var state = newClass(type) as PlayerState;
 		state.setParam(param);
-		if(id != 0)
+		if (id == 0)
 		{
-			state.setID(id);
+			id = generateGUID();
 		}
+		state.setID(id);
 		return state;
 	}
 	protected void destroyState(PlayerState state)
 	{
-		mClassPool.destroyClass(state);
+		destroyClass(state);
 	}
 	protected bool canAddState(PlayerState state)
 	{
-		PlayerState existState = getFirstState(Typeof(state));
-		// 已经存在有一个同样的状态,并且该状态不允许叠加,则移除已经存在的状态
-		if (existState != null)
+		if (!mutexWithExistState(state, out _))
 		{
-			STATE_MUTEX operate = existState.getStateMutex();
-			// 移除旧状态
-			if (operate == STATE_MUTEX.REMOVE_OLD)
-			{
-				;
-			}
-			// 不允许添加新状态
-			else if (operate == STATE_MUTEX.CAN_NOT_ADD_NEW)
-			{
-				return false;
-			}
-			// 相同的状态可以共存
-			else if (operate == STATE_MUTEX.COEXIST)
-			{
-				;
-			}
-			// 只保留优先级最高的状态
-			else if (operate == STATE_MUTEX.USE_HIGH_PRIORITY)
-			{
-				// 移除优先级低的旧状态
-				if (existState.getPriority() >= state.getPriority())
-				{
-					return false;
-				}
-			}
+			return false;
 		}
+		Type stateType = Typeof(state);
 		// 检查是否有跟要添加的状态互斥且不能移除的状态
 		var stateTypeList = mStateTypeList.GetMainList();
 		foreach (var itemList in stateTypeList)
@@ -327,7 +314,7 @@ public class CharacterStateMachine : GameComponent
 			var stateList = itemList.Value.GetMainList();
 			foreach (var item in stateList)
 			{
-				if (item != state && item.isActive() && !allowAddStateByGroup(state, item))
+				if (item != state && item.isActive() && !allowAddStateByGroup(stateType, Typeof(item)))
 				{
 					return false;
 				}
@@ -340,38 +327,56 @@ public class CharacterStateMachine : GameComponent
 		}
 		return true;
 	}
+	// 是否因为与当前已存在的同类型的互斥而无法添加此状态,返回值表示是否可以添加新的状态,如果可添加,则needRemoveState返回需要被移除的状态
+	protected bool mutexWithExistState(PlayerState state, out PlayerState needRemoveState)
+	{
+		needRemoveState = null;
+		// 移除自身不可共存的状态
+		PlayerState existState = getFirstState(Typeof(state));
+		if (existState == null)
+		{
+			return true;
+		}
+		STATE_MUTEX operate = existState.getMutexType();
+		// 移除旧状态
+		if (operate == STATE_MUTEX.REMOVE_OLD)
+		{
+			needRemoveState = existState;
+			return true;
+		}
+		// 不允许添加新状态
+		else if (operate == STATE_MUTEX.CAN_NOT_ADD_NEW)
+		{
+			return false;
+		}
+		// 相同的状态可以共存
+		else if (operate == STATE_MUTEX.COEXIST)
+		{
+			return true;
+		}
+		// 只保留优先级最高的状态
+		else if (operate == STATE_MUTEX.KEEP_HIGH_PRIORITY)
+		{
+			// 移除优先级低的旧状态,因为每次都只会保留优先级最高的状态,所以同时最多只会存在一个状态
+			if (existState.getPriority() < state.getPriority())
+			{
+				needRemoveState = existState;
+			}
+			return existState.getPriority() < state.getPriority();
+		}
+		return true;
+	}
 	protected void removeMutexState(PlayerState state)
 	{
 		// 移除自身不可共存的状态
-		PlayerState existState = getFirstState(Typeof(state));
-		if(existState != null)
+		PlayerState needRemoveState;
+		mutexWithExistState(state, out needRemoveState);
+		if (needRemoveState != null)
 		{
-			STATE_MUTEX operate = existState.getStateMutex();
-			// 移除旧状态
-			if (operate == STATE_MUTEX.REMOVE_OLD)
-			{
-				removeState(existState, true, null);
-			}
-			// 不允许添加新状态
-			else if (operate == STATE_MUTEX.CAN_NOT_ADD_NEW)
-			{
-				;
-			}
-			// 相同的状态可以共存
-			else if (operate == STATE_MUTEX.COEXIST)
-			{
-				;
-			}
-			// 只保留优先级最高的状态
-			else if (operate == STATE_MUTEX.USE_HIGH_PRIORITY)
-			{
-				// 移除优先级低的旧状态
-				if (existState.getPriority() < state.getPriority())
-				{
-					removeState(existState, true, null);
-				}
-			}
+			removeState(needRemoveState, true);
 		}
+
+		Type stateType = Typeof(state);
 		// 移除状态组互斥的状态
 		var stateForeachList = mStateTypeList.StartForeach();
 		foreach (var itemList in stateForeachList)
@@ -379,9 +384,9 @@ public class CharacterStateMachine : GameComponent
 			var stateList = itemList.Value.StartForeach();
 			foreach (var item in stateList)
 			{
-				if (item != state && item.isActive() && !allowKeepStateByGroup(state, item))
+				if (item != state && item.isActive() && !allowKeepStateByGroup(stateType, Typeof(item)))
 				{
-					removeState(item, true, null);
+					removeState(item, true);
 				}
 			}
 			itemList.Value.EndForeach(stateList);
@@ -389,10 +394,10 @@ public class CharacterStateMachine : GameComponent
 		mStateTypeList.EndForeach(stateForeachList);
 	}
 	// 添加了newState以后是否还会保留existState
-	protected bool allowKeepStateByGroup(PlayerState newState, PlayerState existState)
+	protected bool allowKeepStateByGroup(Type newState, Type existState)
 	{
-		if (!mStateGroupList.TryGetValue(Typeof(newState), out List<Type> newGroup) ||
-			!mStateGroupList.TryGetValue(Typeof(existState), out List<Type> existGroup))
+		if (!mStateGroupList.TryGetValue(newState, out List<Type> newGroup) ||
+			!mStateGroupList.TryGetValue(existState, out List<Type> existGroup))
 		{
 			return true;
 		}
@@ -421,7 +426,16 @@ public class CharacterStateMachine : GameComponent
 				else if (group.mMutex == GROUP_MUTEX.MUETX_WITH_MAIN)
 				{
 					// newState为主状态时不能保留其他状态
-					if (group.mMainState == Typeof(newState))
+					if (group.mMainState == newState)
+					{
+						return false;
+					}
+				}
+				// 只与主状态互斥
+				else if (group.mMutex == GROUP_MUTEX.MUETX_WITH_MAIN_ONLY)
+				{
+					// newState为主状态时不能保留其他状态
+					if (group.mMainState == newState)
 					{
 						return false;
 					}
@@ -441,11 +455,11 @@ public class CharacterStateMachine : GameComponent
 		return true;
 	}
 	// 当存在existState时,是否允许添加newState
-	protected bool allowAddStateByGroup(PlayerState newState, PlayerState existState)
+	protected bool allowAddStateByGroup(Type newState, Type existState)
 	{
 		// 任意一个状态没有所属组,则不在同一组
-		if (!mStateGroupList.TryGetValue(Typeof(newState), out List<Type> newGroup) ||
-			!mStateGroupList.TryGetValue(Typeof(existState), out List<Type> existGroup))
+		if (!mStateGroupList.TryGetValue(newState, out List<Type> newGroup) ||
+			!mStateGroupList.TryGetValue(existState, out List<Type> existGroup))
 		{
 			return true;
 		}
@@ -475,10 +489,15 @@ public class CharacterStateMachine : GameComponent
 				else if (group.mMutex == GROUP_MUTEX.MUETX_WITH_MAIN)
 				{
 					// 有主状态时不可添加其他状态
-					if (group.mMainState == Typeof(existState))
+					if (group.mMainState == existState)
 					{
 						return false;
 					}
+				}
+				// 只与主状态互斥,任何状态都可以添加
+				else if (group.mMutex == GROUP_MUTEX.MUETX_WITH_MAIN)
+				{
+					return true;
 				}
 				// 不可添加新状态
 				else if (group.mMutex == GROUP_MUTEX.NO_NEW)

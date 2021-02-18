@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 class CommandTransformableRotateFocus : Command
@@ -16,8 +15,6 @@ class CommandTransformableRotateFocus : Command
 	{
 		Transformable obj = mReceiver as Transformable;
 		TransformableComponentRotateFocus component = obj.getComponent(out component);
-		// 停止其他旋转组件
-		obj.breakComponent<IComponentModifyRotation>(Typeof(component));
 		component.setActive(true);
 		component.setFocusTarget(mTarget);
 		component.setFocusOffset(mOffset);

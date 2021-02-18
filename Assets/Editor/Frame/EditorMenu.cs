@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using UnityEditor.SceneManagement;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 public class EditorMenu : EditorCommonUtility
@@ -62,7 +60,7 @@ public class EditorMenu : EditorCommonUtility
 			return;
 		}
 		rectTransform.localPosition = round(rectTransform.localPosition);
-		WidgetUtility.setUGUIRectSize(rectTransform, round(rectTransform.rect.size), false);
+		WidgetUtility.setRectSize(rectTransform, round(WidgetUtility.getRectSize(rectTransform)), false);
 		int childCount = rectTransform.childCount;
 		for (int i = 0; i < childCount; ++i)
 		{

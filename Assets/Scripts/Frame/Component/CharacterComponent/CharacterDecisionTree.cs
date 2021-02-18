@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 
 // 决策树,用于自动判断并决定角色应该做出的行为

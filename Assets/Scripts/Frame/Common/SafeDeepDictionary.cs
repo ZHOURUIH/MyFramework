@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System;
+﻿using System.Collections.Generic;
 
 // 非线程安全
 // 可深度嵌套安全遍历的列表,支持在遍历过程中嵌套遍历和对列表进行修改

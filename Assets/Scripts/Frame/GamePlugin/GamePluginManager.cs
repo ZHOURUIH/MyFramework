@@ -72,14 +72,14 @@ public class GamePluginManager : FrameSystem
 					if (instance != null)
 					{
 						mPluginList.Add(instance.getPluginName(), instance);
-						logInfo("game plugin " + instance.getPluginName() + " load success!");
+						log("game plugin " + instance.getPluginName() + " load success!");
 					}
 				}
 			}
 		}
 		catch (Exception e)
 		{
-			logInfo("load game plugin failed! file name : " + fileName + ", info : " + e.Message);
+			log("load game plugin failed! file name : " + fileName + ", info : " + e.Message);
 			return false;
 		}
 		return true;

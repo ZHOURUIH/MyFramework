@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 
 public class MyThread : FrameBase
@@ -49,7 +48,7 @@ public class MyThread : FrameBase
 		mThread.Name = mName;
 		mThread.Start();
 		mThread.IsBackground = mIsBackground;
-		logInfo("线程启动成功 : " + mName, LOG_LEVEL.FORCE);
+		log("线程启动成功 : " + mName, LOG_LEVEL.FORCE);
 	}
 	public void pause(bool isPause) { mPause = isPause; }
 	public bool isFinished() { return mFinish; }
@@ -69,7 +68,7 @@ public class MyThread : FrameBase
 		mCallback = null;
 		mTimeLock = null;
 		mPause = false;
-		logInfo("线程退出完成! 线程名 : " + mName, LOG_LEVEL.FORCE);
+		log("线程退出完成! 线程名 : " + mName, LOG_LEVEL.FORCE);
 	}
 	protected void run()
 	{
@@ -92,7 +91,7 @@ public class MyThread : FrameBase
 			}
 			catch (Exception e)
 			{
-				logError("捕获线程异常! 线程名 : " + mName + ", " + e.Message + ", " + e.StackTrace, false);
+				logError("捕获线程异常! 线程名 : " + mName + ", " + e.Message + ", " + e.StackTrace);
 			}
 		}
 		mFinish = true;

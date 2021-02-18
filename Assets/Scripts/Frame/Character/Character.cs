@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using System;
 
@@ -98,7 +97,6 @@ public class Character : MovableObject
 		return length;
 	}
 	public virtual void notifyComponentChanged(GameComponent component) {}
-	public virtual void notifyStateChanged(PlayerState state) { }
 	public CharacterBaseData getBaseData() { return mBaseData; }
 	public Type getType() { return mCharacterType; }
 	public CharacterComponentModel getAvatar() { return mAvatar; }
@@ -108,6 +106,7 @@ public class Character : MovableObject
 	public ulong getGUID() { return mGUID; }
 	public CharacterDecisionTree getDecisionTree() { return mDecisionTree; }
 	public CharacterStateMachine getStateMachine() { return mStateMachine; }
+	public PlayerState getFirstGroupState(Type group) { return mStateMachine.getFirstGroupState(group); }
 	public PlayerState getFirstState(Type type) { return mStateMachine.getFirstState(type); }
 	public PlayerState getState(uint id) { return mStateMachine.getState(id); }
 	public SafeDeepDictionary<Type, SafeDeepList<PlayerState>> getStateList() { return mStateMachine.getStateList(); }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Net;
 using System.Net.Sockets;
 using System.Collections.Generic;
@@ -44,7 +43,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 		}
 		catch (Exception e)
 		{
-			logInfo("init socket exception : " + e.Message + ", stack : " + e.StackTrace, LOG_LEVEL.FORCE);
+			log("init socket exception : " + e.Message + ", stack : " + e.StackTrace, LOG_LEVEL.FORCE);
 			mServerSocket.Close();
 			mServerSocket = null;
 			setNetState(NET_STATE.NET_CLOSE);
@@ -96,7 +95,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 		mClientSendLock.waitForUnlock();
 		if (mClientList.TryGetValue(clientID, out NetClient cient))
 		{
-			logInfo("客户端断开连接:角色ID:" + uintToString(cient.getCharacterGUID()) +
+			log("客户端断开连接:角色ID:" + uintToString(cient.getCharacterGUID()) +
 					",原因:" + cient.getDeadReason() + ", 剩余连接数:" + (mClientList.Count - 1));
 			cient.destroy();
 			mClientList.Remove(clientID);
@@ -137,7 +136,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 	protected void acceptThread(ref bool run)
 	{
 		Socket client = mServerSocket.Accept();
-		CommandSocketConnectAcceptClient cmdAccept = newMainCmd(out cmdAccept, true, true);
+		CommandSocketConnectServerAcceptClient cmdAccept = newMainCmd(out cmdAccept, true, true);
 		cmdAccept.mSocket = client;
 		cmdAccept.mIP = null;
 		pushDelayCommand(cmdAccept, this);
@@ -172,7 +171,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 		}
 		catch (Exception e)
 		{
-			logInfo("send exception:" + e.Message, LOG_LEVEL.FORCE);
+			log("send exception:" + e.Message, LOG_LEVEL.FORCE);
 		}
 		mClientSendLock.unlock();
 	}
@@ -208,7 +207,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 		}
 		catch (SocketException e)
 		{
-			logInfo("recv exception:" + e.Message, LOG_LEVEL.FORCE);
+			log("recv exception:" + e.Message, LOG_LEVEL.FORCE);
 			setNetState(NET_STATE.NET_CLOSE);
 		}
 		mClientRecvLock.unlock();

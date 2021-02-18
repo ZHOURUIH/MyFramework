@@ -1,8 +1,5 @@
 ﻿#if !UNITY_IOS && !NO_SQLITE
-using UnityEngine;
-using System.Collections;
 using Mono.Data.Sqlite;
-using System.Data;
 using System.Collections.Generic;
 using System;
 
@@ -36,7 +33,7 @@ public class SQLite : FrameSystem
 		}
 		catch (Exception e)
 		{
-			logInfo("打开数据库失败:" + e.Message, LOG_LEVEL.FORCE);
+			log("打开数据库失败:" + e.Message, LOG_LEVEL.FORCE);
 		}
 	}
 	public SQLiteTable registeTable(Type type, Type dataType, string tableName)

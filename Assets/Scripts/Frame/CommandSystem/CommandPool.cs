@@ -1,18 +1,16 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 
 public class CommandPool : FrameBase
 {
-	protected Dictionary<Type, List<Command>> mInusedList;
 	protected Dictionary<Type, Stack<Command>> mUnusedList;
+	protected Dictionary<Type, List<Command>> mInusedList;
+	protected ThreadLock mNewCmdLock;	// 只需要添加创建命令的锁就可以,只要不分配出重复的命令,回收命令时就不会发生冲突
 	protected ThreadLock mInuseLock;
 	protected ThreadLock mUnuseLock;
-	protected ThreadLock mNewCmdLock;	// 只需要添加创建命令的锁就可以,只要不分配出重复的命令,回收命令时就不会发生冲突
 	protected int mNewCount;
-	protected static int mIDSeed = 0;
-	protected static int mAssignIDSeed = 0;
+	protected static int mAssignIDSeed;
+	protected static int mIDSeed;
 	public CommandPool()
 	{
 		mInusedList = new Dictionary<Type, List<Command>>();
@@ -21,7 +19,6 @@ public class CommandPool : FrameBase
 		mUnuseLock = new ThreadLock();
 		mNewCmdLock = new ThreadLock();
 	}
-	public void init(){}
 	public void destroy()
 	{
 		mInusedList.Clear();
@@ -34,30 +31,26 @@ public class CommandPool : FrameBase
 		mNewCmdLock.waitForUnlock();
 		// 首先从未使用的列表中获取,获取不到再重新创建一个
 		Command cmd = null;
-		if (mUnusedList.TryGetValue(type, out Stack<Command> cmdStack))
+		if (mUnusedList.TryGetValue(type, out Stack<Command> cmdStack) && cmdStack.Count > 0)
 		{
-			if (cmdStack.Count > 0)
-			{
-				// 从未使用列表中移除
-				mUnuseLock.waitForUnlock();
-				cmd = cmdStack.Pop();
-				mUnuseLock.unlock();
-			}
+			// 从未使用列表中移除
+			mUnuseLock.waitForUnlock();
+			cmd = cmdStack.Pop();
+			mUnuseLock.unlock();
 		}
 		// 没有找到可以用的,则创建一个
 		if (cmd == null)
 		{
 			cmd = createInstance<Command>(type);
-			cmd.setID(mIDSeed++);
+			cmd.setID(++mIDSeed);
 			cmd.init();
-			cmd.setType(type);
 			++mNewCount;
 		}
 		// 设置为可用命令
 		cmd.setValid(true);
 		if (delay)
 		{
-			cmd.setAssignID(mAssignIDSeed++);
+			cmd.setAssignID(++mAssignIDSeed);
 		}
 		else
 		{
@@ -83,7 +76,7 @@ public class CommandPool : FrameBase
 	{
 		mInuseLock.waitForUnlock();
 		// 添加到使用列表中
-		Type type = cmd.getType();
+		Type type = cmd.GetType();
 		if (!mInusedList.TryGetValue(type, out List<Command> cmdList))
 		{
 			cmdList = new List<Command>();
@@ -96,7 +89,7 @@ public class CommandPool : FrameBase
 	{
 		mUnuseLock.waitForUnlock();
 		// 添加到未使用列表中
-		Type type = cmd.getType();
+		Type type = cmd.GetType();
 		if (!mUnusedList.TryGetValue(type, out Stack<Command> cmdList))
 		{
 			cmdList = new Stack<Command>();
@@ -108,7 +101,7 @@ public class CommandPool : FrameBase
 	protected void removeInuse(Command cmd)
 	{
 		mInuseLock.waitForUnlock();
-		Type type = cmd.getType();
+		Type type = cmd.GetType();
 		if (mInusedList.TryGetValue(type, out List<Command> cmdList))
 		{
 			cmdList.Remove(cmd);

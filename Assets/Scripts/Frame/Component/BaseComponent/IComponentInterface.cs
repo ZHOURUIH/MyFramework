@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 
 // 会修改位置的组件
 public interface IComponentModifyPosition

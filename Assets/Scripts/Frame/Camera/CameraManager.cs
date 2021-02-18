@@ -6,10 +6,8 @@ public class CameraManager : FrameSystem
 {
 	protected List<GameCamera> mCameraList;
 	protected GameCamera mMainCamera;
-	protected GameCamera mNGUICamera;
 	protected GameCamera mUGUICamera;
 	protected GameCamera mUGUIBlurCamera;
-	protected GameCamera mNGUIBlurCamera;
 	public CameraManager()
 	{
 		mCameraList = new List<GameCamera>();
@@ -17,17 +15,15 @@ public class CameraManager : FrameSystem
 	public override void init()
 	{
 		base.init();
-		mNGUICamera = createCamera(FrameDefine.UI_CAMERA, mLayoutManager.getRootObject(GUI_TYPE.NGUI));
-		mUGUICamera = createCamera(FrameDefine.UI_CAMERA, mLayoutManager.getRootObject(GUI_TYPE.UGUI));
-		mNGUIBlurCamera = createCamera(FrameDefine.BLUR_CAMERA, mLayoutManager.getRootObject(GUI_TYPE.NGUI), false, false);
-		mUGUIBlurCamera = createCamera(FrameDefine.BLUR_CAMERA, mLayoutManager.getRootObject(GUI_TYPE.UGUI), false, false);
+		mUGUICamera = createCamera(FrameDefine.UI_CAMERA, mLayoutManager.getRootObject());
+		mUGUIBlurCamera = createCamera(FrameDefine.BLUR_CAMERA, mLayoutManager.getRootObject(), false, false);
 		mMainCamera = createCamera(FrameDefine.MAIN_CAMERA);
 	}
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
 		int count = mCameraList.Count;
-		for(int i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			GameCamera camera = mCameraList[i];
 			if (!camera.isIgnoreTimeScale())
@@ -97,7 +93,7 @@ public class CameraManager : FrameSystem
 		{
 			return;
 		}
-		if (mNGUICamera != null || mUGUICamera != null)
+		if (mUGUICamera != null)
 		{
 			OT.ACTIVE(camera, active);
 			// 如果有非UI摄像机的音频监听组件启用,则禁用UI摄像机的音频监听组件
@@ -106,7 +102,7 @@ public class CameraManager : FrameSystem
 			for (int i = 0; i < count; ++i)
 			{
 				GameCamera item = mCameraList[i];
-				if (item != mUGUICamera && item != mNGUICamera)
+				if (item != mUGUICamera)
 				{
 					if (item.isActive() && item.isUnityComponentEnabled<AudioListener>())
 					{
@@ -116,10 +112,6 @@ public class CameraManager : FrameSystem
 				}
 			}
 			// 设置UI摄像机的音频监听组件
-			if (mNGUICamera != null && mNGUICamera.isActive())
-			{
-				mNGUICamera.enableUnityComponent<AudioListener>(!otherCameraListenerEnabled);
-			}
 			if (mUGUICamera != null && mUGUICamera.isActive())
 			{
 				mUGUICamera.enableUnityComponent<AudioListener>(!otherCameraListenerEnabled);
@@ -128,41 +120,9 @@ public class CameraManager : FrameSystem
 	}
 	public GameCamera getMainCamera() { return mMainCamera; }
 	public void setMainCamera(GameCamera mainCamera) { mMainCamera = mainCamera; }
-	public new GameCamera getUICamera(GUI_TYPE guiType) 
-	{
-		if(guiType == GUI_TYPE.NGUI)
-		{
-			return mNGUICamera;
-		}
-		if(guiType == GUI_TYPE.UGUI)
-		{
-			return mUGUICamera;
-		}
-		return null;
-	}
-	public GameCamera getUIBlurCamera(GUI_TYPE guiType)
-	{
-		if(guiType == GUI_TYPE.NGUI)
-		{
-			return mNGUIBlurCamera;
-		}
-		if(guiType == GUI_TYPE.UGUI)
-		{
-			return mUGUIBlurCamera;
-		}
-		return null;
-	}
-	public void activeBlurCamera(GUI_TYPE guiType, bool active)
-	{
-		if (guiType == GUI_TYPE.NGUI)
-		{
-			OT.ACTIVE(mNGUIBlurCamera, active);
-		}
-		else if (guiType == GUI_TYPE.UGUI)
-		{
-			OT.ACTIVE(mUGUIBlurCamera, active);
-		}
-	}
+	public new GameCamera getUICamera() { return mUGUICamera; }
+	public GameCamera getUIBlurCamera() { return mUGUIBlurCamera; }
+	public void activeBlurCamera(bool active) { OT.ACTIVE(mUGUIBlurCamera, active); }
 	public void destroyCamera(GameCamera camera)
 	{
 		if (camera == null)
@@ -176,17 +136,9 @@ public class CameraManager : FrameSystem
 		{
 			mMainCamera = null;
 		}
-		else if (camera == mNGUICamera)
-		{
-			mNGUICamera = null;
-		}
 		else if (camera == mUGUICamera)
 		{
 			mUGUICamera = null;
-		}
-		else if (camera == mNGUIBlurCamera)
-		{
-			mNGUIBlurCamera = null;
 		}
 		else if (camera == mUGUIBlurCamera)
 		{

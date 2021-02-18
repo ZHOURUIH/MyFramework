@@ -1,12 +1,10 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System;
 
 public class CommandLayoutManagerLoad : Command 
 {
 	public LayoutAsyncDone mCallback;
 	public GameLayout mResultLayout;
 	public LAYOUT_ORDER mOrderType;
-	public GUI_TYPE mGUIType;
 	public string mParam;
 	public bool mImmediatelyShow;
 	public bool mAlwaysTop;
@@ -22,7 +20,6 @@ public class CommandLayoutManagerLoad : Command
 		mResultLayout = null;
 		mLayoutID = LAYOUT.NONE;
 		mOrderType = LAYOUT_ORDER.ALWAYS_TOP;
-		mGUIType = GUI_TYPE.UGUI;
 		mParam = null;
 		mVisible = true;
 		mAsync = false;
@@ -33,30 +30,32 @@ public class CommandLayoutManagerLoad : Command
 	}
 	public override void execute()
 	{
-		mResultLayout = mLayoutManager.createLayout(mLayoutID, mRenderOrder, mOrderType, mAsync, mCallback, mGUIType, mIsScene);
+		LayoutInfo info = new LayoutInfo();
+		info.mID = mLayoutID;
+		info.mRenderOrder = mRenderOrder;
+		info.mOrderType = mOrderType;
+		info.mIsScene = mIsScene;
+		info.mCallback = mCallback;
+		mResultLayout = mLayoutManager.createLayout(info, mAsync);
 		if (mResultLayout == null)
 		{
 			return;
 		}
 		// 计算实际的渲染顺序
-		mRenderOrder = mLayoutManager.generateRenderOrder(mRenderOrder, mOrderType);
+		int renderOrder = mLayoutManager.generateRenderOrder(mResultLayout, mRenderOrder, mOrderType);
 		// 顺序有改变,则设置最新的顺序
-		if (mResultLayout.getRenderOrder() != mRenderOrder)
+		if (mResultLayout.getRenderOrder() != renderOrder)
 		{
-			mResultLayout.setRenderOrder(mRenderOrder);
+			mResultLayout.setRenderOrder(renderOrder);
 		}
-		// 只有同步加载时才能立即设置布局的显示
-		if (!mAsync)
+		if (mVisible)
 		{
-			if (mVisible)
-			{
-				mResultLayout.setVisible(mVisible, mImmediatelyShow, mParam);
-			}
-			// 隐藏时需要设置强制隐藏,不通知脚本,因为通常这种情况只是想后台加载布局
-			else
-			{
-				mResultLayout.setVisibleForce(mVisible);
-			}
+			mResultLayout.setVisible(mVisible, mImmediatelyShow, mParam);
+		}
+		// 隐藏时需要设置强制隐藏,不通知脚本,因为通常这种情况只是想后台加载布局
+		else
+		{
+			mResultLayout.setVisibleForce(mVisible);
 		}
 	}
 	public override string showDebugInfo()

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 
@@ -218,13 +217,13 @@ public class HIDDevice : FrameBase
                 //Kernel32.CloseHandle(handle);
                 mHandle.Close();
                 mHandle = null;
-				logInfo("设备已关闭");
+				log("设备已关闭");
 			}
             mDeviceConnected = false;
 		}
 		catch(Exception e)
 		{
-			logInfo("exception : " + e.Message);
+			log("exception : " + e.Message);
 		}
     }
     public bool write(byte[] data)  

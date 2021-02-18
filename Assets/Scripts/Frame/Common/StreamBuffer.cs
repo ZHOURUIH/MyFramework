@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System;
-using System.Collections.Generic;
+﻿using System;
 
 // 自定义缓冲区,用于持续写入数据
 public class StreamBuffer : FrameBase

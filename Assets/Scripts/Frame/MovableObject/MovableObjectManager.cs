@@ -1,14 +1,13 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 public class MovableObjectManager : FrameSystem
 {
-	protected Dictionary<int, MovableObject> mMovableObjectList;
+	protected Dictionary<uint, MovableObject> mMovableObjectList;
 	protected List<MovableObject> mMovableObjectOrderList;		// 保存物体顺序的列表,用于更新
 	public MovableObjectManager()
 	{
-		mMovableObjectList = new Dictionary<int, MovableObject>();
+		mMovableObjectList = new Dictionary<uint, MovableObject>();
 		mMovableObjectOrderList = new List<MovableObject>();
 		mCreateObject = true;
 	}

@@ -65,11 +65,11 @@ public class myUGUINumber : myUGUIImage
 		// 此处默认数字窗口都是以ASPECT_BASE.AB_AUTO的方式等比放大
 		if (mDirection == NUMBER_DIRECTION.HORIZONTAL)
 		{
-			mInterval = (int)(mInterval * adjustScreenScale(GUI_TYPE.UGUI).x);
+			mInterval = (int)(mInterval * adjustScreenScale().x);
 		}
 		else
 		{
-			mInterval = (int)(mInterval * adjustScreenScale(GUI_TYPE.UGUI).y);
+			mInterval = (int)(mInterval * adjustScreenScale().y);
 		}
 	}
 	public override void cloneFrom(myUIObject obj)

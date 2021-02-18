@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 [StructLayout(LayoutKind.Sequential)]
 public struct SP_DEVICE_INTERFACE_DATA

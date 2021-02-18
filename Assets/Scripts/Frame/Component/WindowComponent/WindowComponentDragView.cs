@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System;
 using System.Collections.Generic;
 
@@ -38,9 +37,6 @@ public class WindowComponentDragView : GameComponent
 	protected bool mDraging;    // 是否正在拖动,鼠标按下并且移动速度大于一定值时开始拖动,鼠标放开时,按惯性移动
 	//-------------------------------------------------------------------------------------------------------------------------
 	// 用于避免GC的参数
-#if USE_NGUI
-	private UIRect mParentRect;
-#endif
 	private Vector3[] mMinMaxPos;
 	private bool mMinMaxPosDirty = true;
 	private float[] mDisArray;
@@ -410,27 +406,10 @@ public class WindowComponentDragView : GameComponent
 	{
 		if(mMinMaxPosDirty)
 		{
-			GUI_TYPE guiType = mWindow.getLayout().getGUIType();
-			Vector2 parentWidgetSize = Vector2.zero;
-			if(guiType == GUI_TYPE.NGUI)
-			{
-#if USE_NGUI
-				// 获得第一个带widget的父节点的rect
-				if(mParentRect == null)
-				{
-					mParentRect = WidgetUtility.findNGUIParentRect(mWindow.getObject());
-				}
-				parentWidgetSize = WidgetUtility.getNGUIRectSize(mParentRect);
-#endif
-			}
-			else if(guiType == GUI_TYPE.UGUI)
-			{
-				parentWidgetSize = mWindow.getParent().getWindowSize();
-			}
+			Vector2 parentWidgetSize = mWindow.getParent().getWindowSize();
 			// 计算父节点的世界缩放
 			Vector2 worldScale = getMatrixScale(mWindow.getTransform().parent.localToWorldMatrix);
-			myUIObject root = mLayoutManager.getUIRoot(guiType);
-			Vector2 uiRootScale = root.getTransform().localScale;
+			Vector2 uiRootScale = mLayoutManager.getUIRoot().getScale();
 			Vector2 parentScale = worldScale / uiRootScale;
 			// 计算移动的位置范围
 			Vector2 minPos = parentWidgetSize * 0.5f * mMinRelativePos / parentScale;

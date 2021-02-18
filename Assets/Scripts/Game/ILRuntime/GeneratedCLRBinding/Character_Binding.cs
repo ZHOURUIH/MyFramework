@@ -164,7 +164,6 @@ namespace ILRuntime.Runtime.Generated
             global::Character instance_of_this_method = (global::Character)typeof(global::Character).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
             __intp.Free(ptr_of_this_method);
 
-            instance_of_this_method.notifyStateChanged(@state);
 
             return __ret;
         }

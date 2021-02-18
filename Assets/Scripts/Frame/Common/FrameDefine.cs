@@ -1,6 +1,4 @@
-﻿using System;
-using UnityEngine;
-using System.Collections;
+﻿using UnityEngine;
 using System.Collections.Generic;
 using RenderHeads.Media.AVProVideo;
 
@@ -67,9 +65,11 @@ public enum CLAMP_TYPE : byte
 // 网络状态
 public enum NET_STATE : byte
 {
-	CONNECTED,       // 已连接
-	SERVER_CLOSE,    // 服务器已关闭
-	NET_CLOSE,       // 网络已断开
+	NONE,			// 无效值
+	CONNECTING,     // 正在连接
+	CONNECTED,      // 已连接
+	SERVER_CLOSE,   // 服务器已关闭
+	NET_CLOSE,      // 网络已断开
 }
 
 // 网络消息解析结果
@@ -127,14 +127,6 @@ public enum SCROLL_STATE : byte
 	SCROLL_TO_STOP,  // 鼠标抬起后自动减速到停止
 }
 
-// 服务器连接状态
-public enum CONNECT_STATE : byte
-{
-	NOT_CONNECT,	// 未连接
-	CONNECTING,		// 正在连接
-	CONNECTED,		// 已连接
-}
-
 // 滑动条实现方式的类型
 public enum SLIDER_MODE : byte
 {
@@ -148,16 +140,17 @@ public enum STATE_MUTEX : byte
 	CAN_NOT_ADD_NEW,    // 不可添加相同的新状态
 	REMOVE_OLD,         // 添加新状态,移除互斥的旧状态
 	COEXIST,            // 新旧状态可共存
-	USE_HIGH_PRIORITY,  // 保留新旧状态中优先级最高的
+	KEEP_HIGH_PRIORITY, // 保留新旧状态中优先级最高的
 }
 
 // 同一状态组中的状态互斥选项
 public enum GROUP_MUTEX : byte
 {
-	COEXIST,        // 各状态可完全共存
-	REMOVE_OTHERS,  // 添加新状态时移除组中的其他所有状态
-	NO_NEW,         // 状态组中有状态时不允许添加新状态
-	MUETX_WITH_MAIN,// 仅与主状态互斥,添加主状态时移除其他所有状态,有主状态时不可添加其他状态,没有主状态时可任意添加其他状态
+	COEXIST,				// 各状态可完全共存
+	REMOVE_OTHERS,			// 添加新状态时移除组中的其他所有状态
+	NO_NEW,					// 状态组中有状态时不允许添加新状态
+	MUETX_WITH_MAIN,		// 仅与主状态互斥,添加主状态时移除其他所有状态,有主状态时不可添加其他状态,没有主状态时可任意添加其他状态
+	MUETX_WITH_MAIN_ONLY,   // 仅与主状态互斥,添加主状态时移除其他所有状态,无论是否有主状态都可以添加其他状态
 }
 
 // 命令执行状态
@@ -216,18 +209,46 @@ public enum EFFECT_ALIGN : byte
 	POSITION_LIST,  // 使用位置列表对每一帧进行校正
 }
 
-// 使用的UI插件类型
-public enum GUI_TYPE : byte
-{
-	UGUI,	// UGUI
-	NGUI,	// NGUI
-}
-
 // 角度的单位
 public enum ANGLE : byte
 { 
 	RADIAN,	// 弧度制
 	DEGREE,	// 角度制
+}
+
+public enum ANCHOR_MODE : byte
+{
+	NONE,						// 无效值
+	PADDING_PARENT_SIDE,		// 停靠父节点的指定边界,并且大小不改变,0,1,2,3表示左上右下
+	STRETCH_TO_PARENT_SIDE,		// 将锚点设置到距离相对于父节点最近的边,并且各边界到父节点对应边界的距离固定不变
+}
+
+// 当mAnchorMode的值为STRETCH_TO_PARENT_SIDE时,x方向上要停靠的边界
+public enum HORIZONTAL_PADDING : sbyte
+{
+	NONE = -1,
+	LEFT,
+	RIGHT,
+	CENTER,
+}
+
+// 当mAnchorMode的值为STRETCH_TO_PARENT_SIDE时,y方向上要停靠的边界
+public enum VERTICAL_PADDING : sbyte
+{
+	NONE = -1,
+	TOP,
+	BOTTOM,
+	CENTER,
+}
+
+// 缩放比例的计算方式
+public enum ASPECT_BASE : byte
+{
+	USE_WIDTH_SCALE,    // 使用宽的缩放值来缩放控件
+	USE_HEIGHT_SCALE,   // 使用高的缩放值来缩放控件
+	AUTO,               // 取宽高缩放值中最小的,保证缩放以后不会超出屏幕范围
+	INVERSE_AUTO,       // 取宽高缩放值中最大的,保证缩放以后不会在屏幕范围留出空白
+	NONE,
 }
 
 public class LoadMaterialParam : IClassObject
@@ -268,7 +289,6 @@ public delegate void OnLongPressing(float progress);
 public delegate void OnMultiTouchStart(Vector2 touch0, Vector2 touch1);
 public delegate void OnMultiTouchMove(Vector2 touch0, Vector2 lastPosition0, Vector2 touch1, Vector2 lastPosition1);
 public delegate void OnMultiTouchEnd();
-public delegate void OnNGUILineGenerated(NGUILine line);
 public delegate void HeadDownloadCallback(Texture head, string openID);
 public delegate void OnDragViewCallback();
 public delegate void OnDragViewStartCallback(ref bool allowDrag);
@@ -297,6 +317,7 @@ public delegate void OnInputField(string str);
 public delegate void OnStateLeave(PlayerState state, bool isBreak, string param);
 public delegate void EventCallback(GameEvent param);
 public delegate void OnEffectDestroy(GameEffect effect, object userData);
+public delegate void ConnectCallback(SocketConnectClient client);
 
 // 游戏常量定义-------------------------------------------------------------------------------------------------------------
 public class FrameDefine
@@ -329,11 +350,8 @@ public class FrameDefine
 	public const string GAME_TEXTURE = "GameTexture";
 	public const string NUMBER_STYLE = "NumberStyle";
 	public const string TEXTURE_ANIM = "TextureAnim";
-	public const string NGUI_SUB_PREFAB = "NGUISubPrefab";
 	public const string UGUI_SUB_PREFAB = "UGUISubPrefab";
-	public const string NGUI_PREFAB = "NGUIPrefab";
 	public const string UGUI_PREFAB = "UGUIPrefab";
-	public const string FGUI_PREFAB = "FGUIPrefab";
 #if UNITY_IPHONE
 	public const string STREAMING_ASSETS = "Raw";
 #elif !UNITY_ANDROID || UNITY_EDITOR
@@ -372,12 +390,10 @@ public class FrameDefine
 	public const string SA_BUNDLE_KEY_FRAME_PATH = LOWER_KEY_FRAME + "/";
 	public const string SA_BUNDLE_LAYOU_PATH = LOWER_LAYOUT + "/";
 	public const string SA_CUSTOM_SOUND_PATH = CUSTOM_SOUND + "/";
-	public const string SA_BUNDLE_NGUI_SUB_PREFAB_PATH = SA_BUNDLE_LAYOU_PATH + NGUI_SUB_PREFAB + "/";
 	public const string SA_GAME_PLUGIN = GAME_PLUGIN + "/";
 	public const string SA_SOUND_PATH = SOUND + "/";
 	public const string SA_KEY_FRAME_PATH = KEY_FRAME + "/";
 	public const string SA_LAYOUT_PATH = LAYOUT_PREFAB + "/";
-	public const string SA_NGUI_SUB_PREFAB_PATH = SA_LAYOUT_PATH + NGUI_SUB_PREFAB + "/";
 	// 相对路径,相对于Resources,R_开头,表示Resources
 	public const string R_ATLAS_PATH = ATLAS + "/";
 	public const string R_ATLAS_GAME_ATLAS_PATH = R_ATLAS_PATH + GAME_ATLAS + "/";
@@ -390,11 +406,8 @@ public class FrameDefine
 	public const string R_SHADER_GAME_PATH = R_SHADER_PATH + GAME + "/";
 	public const string R_LAYOUT_PATH = LAYOUT_PREFAB + "/";
 	public const string R_KEY_FRAME_PATH = KEY_FRAME + "/";
-	public const string R_NGUI_SUB_PREFAB_PATH = R_LAYOUT_PATH + NGUI_SUB_PREFAB + "/";
 	public const string R_UGUI_SUB_PREFAB_PATH = R_LAYOUT_PATH + UGUI_SUB_PREFAB + "/";
-	public const string R_NGUI_PREFAB_PATH = R_LAYOUT_PATH + NGUI_PREFAB + "/";
 	public const string R_UGUI_PREFAB_PATH = R_LAYOUT_PATH + UGUI_PREFAB + "/";
-	public const string R_FGUI_PREFAB_PATH = R_LAYOUT_PATH + FGUI_PREFAB + "/";
 	public const string R_TEXTURE_PATH = TEXTURE + "/";
 	public const string R_GAME_TEXTURE_PATH = R_TEXTURE_PATH + GAME_TEXTURE + "/";
 	public const string R_TEXTURE_ANIM_PATH = R_TEXTURE_PATH + TEXTURE_ANIM + "/";
@@ -469,13 +482,11 @@ public class FrameDefine
 	public const string DLL_PLUGIN_SUFFIX = ".bytes";
 	// 音效所有者类型名,应该与SOUND_OWNER一致
 	public static string[] SOUND_OWNER_NAME = new string[] { "Window", "Scene" };
-	public const string NGUI_DEFAULT_MATERIAL = "NGUIDefault";
 	public const string UGUI_DEFAULT_MATERIAL = "UGUIDefault";
 	public const string COMMON_NUMBER_STYLE = "CommonNumber";
 	public const string DESTROY_PLAYER_STATE = "Destroy";
 	public const string UI_CAMERA = "UICamera";
 	public const string BLUR_CAMERA = "BlurCamera";
-	public const string NGUI_ROOT = "NGUIRoot";
 	public const string UGUI_ROOT = "UGUIRoot";
 	public const string MAIN_CAMERA = "MainCamera";
 	// 材质名

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class MovableObject : Transformable, IMouseEventCollect
 {
@@ -15,24 +14,25 @@ public class MovableObject : Transformable, IMouseEventCollect
 	protected OnMouseDown mOnMouseDown;
 	protected OnMouseUp mOnMouseUp;
 	protected OnMouseMove mOnMouseMove;
-	protected Vector3 mPhysicsAcceleration; // FixedUpdate中的加速度
-	protected Vector3 mLastPhysicsSpeed;    // FixedUpdate中上一帧的移动速度
-	protected Vector3 mPhysicsSpeed;        // FixedUpdate中的移动速度
-	protected Vector3 mLastPhysicsPosition; // 上一帧FixedUpdate中的位置
-	protected Vector3 mCurFramePosition;    // 当前位置
-	protected Vector3 mLastPosition;        // 上一帧的位置
-	protected Vector3 mMoveSpeed;           // 当前移动速度
-	protected Vector3 mLastSpeed;           // 上一帧的移动速度
-	protected Vector3 mMouseDownPosition;   // 鼠标按下时在窗口中的位置,鼠标在窗口中移动时该值不改变
-	protected bool mMovedDuringFrame;       // 角色在这一帧内是否移动过
-	protected bool mHasLastPosition;        // mLastPosition是否有效
-	protected bool mDestroyObject;          // 如果是外部管理的节点,则一定不要在MovableObject自动销毁
-	protected bool mDestroied;              // 物体是否已经销毁
-	protected bool mMouseHovered;           // 鼠标当前是否悬停在物体上
-	protected bool mHandleInput;            // 是否接收鼠标输入事件
-	protected bool mPassRay;                // 是否允许射线穿透
-	protected bool mEnableFixedUpdate;      // 是否启用FixedUpdate来计算Physics相关属性
-	protected int mObjectID;                // 物体的客户端ID
+	protected Vector3 mLastPhysicsSpeedVector;  // FixedUpdate中上一帧的移动速度
+	protected Vector3 mLastPhysicsPosition;     // 上一帧FixedUpdate中的位置
+	protected Vector3 mPhysicsAcceleration;     // FixedUpdate中的加速度
+	protected Vector3 mPhysicsSpeedVector;      // FixedUpdate中的移动速度
+	protected Vector3 mMouseDownPosition;       // 鼠标按下时在窗口中的位置,鼠标在窗口中移动时该值不改变
+	protected Vector3 mCurFramePosition;        // 当前位置
+	protected Vector3 mMoveSpeedVector;         // 当前移动速度向量,根据上一帧的位置和当前位置以及时间计算出来的实时速度
+	protected Vector3 mLastSpeedVector;         // 上一帧的移动速度向量
+	protected Vector3 mLastPosition;            // 上一帧的位置
+	protected float mMoveSpeed;                 // 当前实时移动速率
+	protected uint mObjectID;                   // 物体的客户端ID
+	protected bool mMovedDuringFrame;           // 角色在这一帧内是否移动过
+	protected bool mHasLastPosition;            // mLastPosition是否有效
+	protected bool mDestroyObject;              // 如果是外部管理的节点,则一定不要在MovableObject自动销毁
+	protected bool mDestroied;                  // 物体是否已经销毁
+	protected bool mMouseHovered;               // 鼠标当前是否悬停在物体上
+	protected bool mHandleInput;                // 是否接收鼠标输入事件
+	protected bool mPassRay;                    // 是否允许射线穿透
+	protected bool mEnableFixedUpdate;          // 是否启用FixedUpdate来计算Physics相关属性
 	public MovableObject()
 	{
 		mObjectID = makeID();
@@ -74,10 +74,6 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public virtual void init()
 	{
 		mDestroied = false;
-		if (mObjectID == -1)
-		{
-			mObjectID = makeID();
-		}
 		initComponents();
 	}
 	public override void update(float elapsedTime)
@@ -91,8 +87,9 @@ public class MovableObject : Transformable, IMouseEventCollect
 		{
 			mLastPosition = mCurFramePosition;
 			mCurFramePosition = getPosition();
-			mLastSpeed = mMoveSpeed;
-			mMoveSpeed = mHasLastPosition ? (mCurFramePosition - mLastPosition) / elapsedTime : Vector3.zero;
+			mLastSpeedVector = mMoveSpeedVector;
+			mMoveSpeedVector = mHasLastPosition ? (mCurFramePosition - mLastPosition) / elapsedTime : Vector3.zero;
+			mMoveSpeed = getLength(mMoveSpeedVector);
 			mMovedDuringFrame = !isVectorEqual(mLastPosition, mCurFramePosition) && mHasLastPosition;
 			mHasLastPosition = true;
 		}
@@ -105,10 +102,10 @@ public class MovableObject : Transformable, IMouseEventCollect
 		}
 		base.fixedUpdate(elapsedTime);
 		Vector3 curPos = mTransform.localPosition;
-		mPhysicsSpeed = (curPos - mLastPhysicsPosition) / elapsedTime;
+		mPhysicsSpeedVector = (curPos - mLastPhysicsPosition) / elapsedTime;
 		mLastPhysicsPosition = curPos;
-		mPhysicsAcceleration = (mPhysicsSpeed - mLastPhysicsSpeed) / elapsedTime;
-		mLastPhysicsSpeed = mPhysicsSpeed;
+		mPhysicsAcceleration = (mPhysicsSpeedVector - mLastPhysicsSpeedVector) / elapsedTime;
+		mLastPhysicsSpeedVector = mPhysicsSpeedVector;
 	}
 	public bool isDestroy() { return mDestroied; }
 	public AudioSource createAudioSource()
@@ -180,10 +177,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public override Vector3 getWorldPosition() { return mTransform.position; }
 	public override Vector3 getWorldScale() { return mTransform.lossyScale; }
 	public override Vector3 getWorldRotation() { return mTransform.rotation.eulerAngles; }
-	public float getYaw() { return getRotation().y; }
-	public float getPitch() { return getRotation().x; }
-	public float getRoll() { return getRotation().z; }
-	public Vector3 getPhysicsSpeed() { return mPhysicsSpeed; }
+	public Vector3 getPhysicsSpeed() { return mPhysicsSpeedVector; }
 	public Vector3 getPhysicsAcceleration() { return mPhysicsAcceleration; }
 	public Quaternion getQuaternionRotation() { return mTransform.localRotation; }
 	public Quaternion getWorldQuaternionRotation() { return mTransform.rotation; }
@@ -192,47 +186,31 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public Transform getTransform() { return mTransform; }
 	public override bool isActive() { return mObject.activeSelf; }
 	public virtual bool isActiveInHierarchy() { return mObject.activeInHierarchy; }
-	public int getObjectID() { return mObjectID; }
+	public uint getObjectID() { return mObjectID; }
 	public bool hasMovedDuringFrame() { return mMovedDuringFrame; }
 	public bool isEnableFixedUpdate() { return mEnableFixedUpdate; }
-	public Vector3 getMoveSpeed() { return mMoveSpeed; }
-	public Vector3 getLastSpeed() { return mLastSpeed; }
+	public Vector3 getMoveSpeedVector() { return mMoveSpeedVector; }
+	public Vector3 getLastSpeedVector() { return mLastSpeedVector; }
 	public Vector3 getLastPosition() { return mLastPosition; }
 	public Vector3 getLeft(bool ignoreY = false)
 	{
 		Vector3 left = localToWorldDirection(Vector3.left);
-		if (ignoreY)
-		{
-			left = normalize(replaceY(left, 0.0f));
-		}
-		return left;
+		return ignoreY ? normalize(resetY(left)) : left;
 	}
 	public Vector3 getRight(bool ignoreY = false)
 	{
 		Vector3 right = localToWorldDirection(Vector3.right);
-		if (ignoreY)
-		{
-			right = normalize(replaceY(right, 0.0f));
-		}
-		return right;
+		return ignoreY ? normalize(resetY(right)) : right;
 	}
 	public Vector3 getBack(bool ignoreY = false)
 	{
 		Vector3 back = localToWorldDirection(Vector3.back);
-		if (ignoreY)
-		{
-			back = normalize(replaceY(back, 0.0f));
-		}
-		return back;
+		return ignoreY ? normalize(resetY(back)) : back;
 	}
 	public Vector3 getForward(bool ignoreY = false)
 	{
 		Vector3 forward = localToWorldDirection(Vector3.forward);
-		if (ignoreY)
-		{
-			forward = normalize(replaceY(forward, 0.0f));
-		}
-		return forward;
+		return ignoreY ? normalize(resetY(forward)) : forward;
 	}
 	public Collider[] getColliders() { return mObject.GetComponents<Collider>(); }
 	public Collider2D[] getColliders2D() { return mObject.GetComponents<Collider2D>(); }
@@ -313,21 +291,13 @@ public class MovableObject : Transformable, IMouseEventCollect
 			mTransform.localScale = scale;
 		}
 	}
-	public void setPositionY(float y)
-	{
-		setPosition(replaceY(getPosition(), y));
-	}
-	public void setRotationY(float rotY)
-	{
-		mTransform.localEulerAngles = replaceY(mTransform.localEulerAngles, rotY);
-	}
-	public void setRotationX(float rotX)
-	{
-		mTransform.localEulerAngles = replaceX(mTransform.localEulerAngles, rotX);
-	}
-	public void setPitch(float pitch) { setRotation(replaceX(getRotation(), pitch)); }
-	public void setYaw(float yaw) { setRotation(replaceY(getRotation(), yaw)); }
-	public void setScaleX(float x) { mTransform.localScale = replaceX(mTransform.localScale, x); }
+	public void setPositionX(float x) { setPosition(replaceX(getPosition(), x)); }
+	public void setPositionY(float y) { setPosition(replaceY(getPosition(), y)); }
+	public void setPositionZ(float z) { setPosition(replaceZ(getPosition(), z)); }
+	public void setRotationX(float rotX) { setRotation(replaceX(mTransform.localEulerAngles, rotX)); }
+	public void setRotationY(float rotY) { setRotation(replaceY(mTransform.localEulerAngles, rotY)); }
+	public void setRotationZ(float rotZ) { setRotation(replaceZ(mTransform.localEulerAngles, rotZ)); }
+	public void setScaleX(float x) { setScale(replaceX(mTransform.localScale, x)); }
 	public virtual void move(Vector3 moveDelta, Space space = Space.Self)
 	{
 		if (space == Space.Self)
@@ -341,22 +311,16 @@ public class MovableObject : Transformable, IMouseEventCollect
 	// angle为角度制
 	public void rotateAround(Vector3 axis, float angle) { mTransform.Rotate(axis, angle, Space.Self); }
 	public void rotateAroundWorld(Vector3 axis, float angle) { mTransform.Rotate(axis, angle, Space.World); }
-	public void lookAt(Vector3 direction)
-	{
-		setRotation(getLookAtRotation(direction));
-	}
-	public void lookAtPoint(Vector3 point)
-	{
-		setRotation(getLookAtRotation(point - getPosition()));
-	}
-	public void yawpitch(float fYaw, float fPitch)
+	public void lookAt(Vector3 direction) { setRotation(getLookAtRotation(direction)); }
+	public void lookAtPoint(Vector3 point) { setRotation(getLookAtRotation(point - getPosition())); }
+	public void yawPitch(float yaw, float pitch)
 	{
 		Vector3 curRot = getRotation();
-		curRot.x += fPitch;
-		curRot.y += fYaw;
+		curRot.x += pitch;
+		curRot.y += yaw;
 		setRotation(curRot);
 	}
-	public void resetLocalTransform()
+	public void resetTransform()
 	{
 		mTransform.localPosition = Vector3.zero;
 		mTransform.localEulerAngles = Vector3.zero;
@@ -374,7 +338,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 		}
 		if (resetTrans)
 		{
-			resetLocalTransform();
+			resetTransform();
 		}
 	}
 	public void setOnMouseEnter(OnMouseEnter callback) { mOnMouseEnter = callback; }
@@ -397,7 +361,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	{
 		var colliders = mObject.GetComponents<Collider>();
 		int count = colliders.Length;
-		for(int i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			colliders[i].enabled = enable;
 		}
@@ -406,16 +370,15 @@ public class MovableObject : Transformable, IMouseEventCollect
 	{
 		base.resetProperty();
 		// 重置所有成员变量
-		mObjectID = -1;
 		mPhysicsAcceleration = Vector3.zero;
-		mLastPhysicsSpeed = Vector3.zero;
-		mPhysicsSpeed = Vector3.zero;
+		mLastPhysicsSpeedVector = Vector3.zero;
+		mPhysicsSpeedVector = Vector3.zero;
 		mLastPhysicsPosition = Vector3.zero;
 		mCurFramePosition = Vector3.zero;
 		mLastPosition = Vector3.zero;
 		mMouseDownPosition = Vector3.zero;
-		mLastSpeed = Vector3.zero;
-		mMoveSpeed = Vector3.zero;
+		mLastSpeedVector = Vector3.zero;
+		mMoveSpeedVector = Vector3.zero;
 		mObject = null;
 		mTransform = null;
 		mAudioSource = null;
@@ -485,7 +448,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	{
 		var renderers = getUnityComponentsInChild<Renderer>();
 		int count = renderers.Length;
-		for(int i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			Material material = renderers[i].material;
 			Color color = material.color;

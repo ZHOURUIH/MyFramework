@@ -9,6 +9,7 @@ public abstract class ILRPooledWindow : PooledWindow
 	public override void destroy() { base.destroy(); }
 	public override void reset() { base.reset(); }
 	public override void recycle() { base.recycle(); }
+	public override void setVisible(bool visible) { base.setVisible(visible); }
 	public override void notifyConstructDone() { base.notifyConstructDone(); }
 	public override bool Equals(object obj) { return base.Equals(obj); }
 	public override int GetHashCode() { return base.GetHashCode(); }

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 public class CommandTransformableMoveCurve : Command
@@ -30,12 +29,10 @@ public class CommandTransformableMoveCurve : Command
 	{
 		Transformable obj = mReceiver as Transformable;
 		TransformableComponentMoveCurve component = obj.getComponent(out component);
-		// 停止其他移动组件
-		obj.breakComponent<IComponentModifyPosition>(Typeof(component));
 		component.setTremblingCallback(mTremblingCallBack);
 		component.setTrembleDoneCallback(mTrembleDoneCallBack);
 		component.setActive(true);
-		component.setKeyPosList(mPosList);
+		component.setKeyList(mPosList);
 		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
 		if (component.getState() == PLAY_STATE.PLAY)
 		{

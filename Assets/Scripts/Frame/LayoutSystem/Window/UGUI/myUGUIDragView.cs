@@ -131,8 +131,8 @@ public class myUGUIDragView : myUGUIObject
 			windowSize.x = itemSize.x * widthCount + lineSpace * (widthCount - 1);
 			windowSize.y = itemSize.y * heightCount + space * (heightCount - 1);
 		}
-		clampMin(ref windowSize.x, 0.0f);
-		clampMin(ref windowSize.y, 0.0f);
+		clampMin(ref windowSize.x);
+		clampMin(ref windowSize.y);
 		setWindowSize(windowSize);
 		// 设置所有子节点的位置
 		for(int i = 0; i < count; ++i)

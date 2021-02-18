@@ -1,18 +1,14 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class CommandLayoutManagerBackBlur : Command
 {
 	public List<GameLayout> mExcludeLayout;
-	public GUI_TYPE mGUIType;
 	public bool mBlur;
 	public override void init()
 	{
 		base.init();
 		mExcludeLayout = null;
-		mGUIType = GUI_TYPE.NGUI;
 		mBlur = true;
 	}
 	public override void execute()
@@ -25,22 +21,25 @@ public class CommandLayoutManagerBackBlur : Command
 		{
 			maxOrder = getMax(mExcludeLayout[i].getRenderOrder(), maxOrder);
 		}
-		foreach (var item in layoutList)
+		var mainList = layoutList.GetMainList();
+		foreach (var item in mainList)
 		{
-			if(!item.Value.isVisible())
+			GameLayout layout = item.Value;
+			if(!layout.isVisible())
 			{
 				continue;
-			}	
-			if(item.Value.getRenderOrder() < maxOrder)
+			}
+			GameObject rootObj = layout.getRoot().getObject();
+			if (layout.getRenderOrder() < maxOrder)
 			{
-				setGameObjectLayer(item.Value.getRoot().getObject(), FrameDefine.LAYER_UI_BLUR);
+				setGameObjectLayer(rootObj, FrameDefine.LAYER_UI_BLUR);
 			}
 			else
 			{
-				setGameObjectLayer(item.Value.getRoot().getObject(), item.Value.getDefaultLayer());
+				setGameObjectLayer(rootObj, layout.getDefaultLayer());
 			}
 		}
 		// 开启模糊摄像机
-		mCameraManager.activeBlurCamera(mGUIType, mBlur);
+		mCameraManager.activeBlurCamera(mBlur);
 	}
 }

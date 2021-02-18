@@ -44,10 +44,12 @@ public class myUGUIScrollRect : myUGUIObject
 	// 使Content的上边界与ScrollRect的上边界对齐,实际上是跟Viewport对齐
 	public void alignContentTop() 
 	{
+		mScrollRect.velocity = new Vector2(mScrollRect.velocity.x, 0.0f);
 		mScrollRect.verticalNormalizedPosition = 1.0f;
 	}
 	public void alignContentBottom()
 	{
+		mScrollRect.velocity = new Vector2(mScrollRect.velocity.x, 0.0f);
 		mScrollRect.verticalNormalizedPosition = 0.0f;
 	}
 	// 设置Content的顶部在Viewport中的坐标,一般在Content高度变化时,会保持顶部的位置不变,向下拉伸Content长度
@@ -56,6 +58,7 @@ public class myUGUIScrollRect : myUGUIObject
 		Vector3 curContentPos = mScrollRect.content.localPosition;
 		curContentPos.y = top - mScrollRect.content.rect.size.y * 0.5f;
 		mScrollRect.content.localPosition = curContentPos;
+		mScrollRect.velocity = new Vector2(mScrollRect.velocity.x, 0.0f);
 	}
 	public float getContentTopPos()
 	{

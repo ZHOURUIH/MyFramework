@@ -68,7 +68,7 @@ public class WavRecorder : FrameBase
 		}
 		catch (Exception e)
 		{
-			logInfo("error in record! : " + e.Message, LOG_LEVEL.FORCE);
+			log("error in record! : " + e.Message, LOG_LEVEL.FORCE);
 			return false;
 		}
 		return true;

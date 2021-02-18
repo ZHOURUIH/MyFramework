@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class WindowShaderMotionBlurCriticalMask : WindowShaderCriticalMask
 {
-	protected float mMinRange = 300.0f;
-	protected int mMaxSample = 30;
-	protected float mIncreaseSample = 0.2f;
-	protected int mSampleInterval = 3;
 	protected Vector2 mSampleCenter;
+	protected float mMinRange = 300.0f;
+	protected float mIncreaseSample = 0.2f;
+	protected int mMaxSample = 30;
+	protected int mSampleInterval = 3;
 	protected int mMinRangeID;
 	protected int mMaxSampleID;
 	protected int mIncreaseSampleID;

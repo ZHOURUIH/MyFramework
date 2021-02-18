@@ -1,23 +1,21 @@
 ﻿using UnityEngine;
 using System;
-using System.Collections;
 
 public class ComponentDrag : GameComponent
 {	
-	protected OnDragStartCallback mOnDragStartCallback;
-	protected OnDragCallback mOnDragEndCallback;		// 在结束拖拽,还未进行接收拖拽处理之前调用
-	protected OnDragCallback mOnDragEndTotallyCallback;	// 在结束拖拽和接收拖拽处理全部完成以后调用
-	protected OnDragCallback mOnDragingCallback;
-	protected OnDragCallback mOnInterruptCallback;
-	protected Vector3 mPrepareDragMousePosition;
-	protected Vector3 mDragMouseOffset;
-	protected Vector2 mAllowDragDirection;      // 允许开始拖拽的方向,为0则表示不限制开始拖拽的方向
-	protected float mStartDragThreshold;
-	protected float mDragStartAngleThreshold;   // 如果有允许开始拖拽的方向,则表示当实际拖拽方向与允许的方向夹角,弧度制
-	protected bool mPreparingDrag;              // 鼠标按下时只是准备开始拖动,当鼠标在准备状态下移动一定距离以后才会开始真正的拖动
-	protected bool mTouching;
-	protected bool mDrag;
-	protected int mTouchFinger;					// 如果是手指通过触屏操作的拖动,则表示拖动的触点
+	protected OnDragStartCallback mDragStartCallback;	// 开始拖拽的回调
+	protected OnDragCallback mDragEndCallback;			// 在结束拖拽,还未进行接收拖拽处理之前调用
+	protected OnDragCallback mDragEndTotallyCallback;	// 在结束拖拽和接收拖拽处理全部完成以后调用
+	protected OnDragCallback mDragingCallback;			// 拖拽过程中的回调
+	protected OnDragCallback mInterruptCallback;		// 拖拽被中断的回调,暂时只在多点触控时生效
+	protected Vector3 mPrepareDragMousePosition;		// 鼠标刚按下时的坐标
+	protected Vector3 mDragMouseOffset;					// 开始拖拽时,鼠标位置与窗口位置的偏移
+	protected Vector2 mAllowDragDirection;				// 允许开始拖拽的方向,为0则表示不限制开始拖拽的方向
+	protected float mStartDragThreshold;				// 开始拖拽的阈值,在准备拖拽阶段,拖拽的距离超过阈值后进入拖拽状态
+	protected float mDragStartAngleThreshold;			// 如果有允许开始拖拽的方向,则表示当实际拖拽方向与允许的方向夹角,弧度制
+	protected bool mPreparingDrag;						// 鼠标按下时只是准备开始拖动,当鼠标在准备状态下移动一定距离以后才会开始真正的拖动
+	protected bool mDrag;								// 当前是否正在拖拽
+	protected int mTouchFinger;							// 如果是手指通过触屏操作的拖动,则表示拖动的触点
 	public ComponentDrag()
 	{
 		mStartDragThreshold = 20.0f;
@@ -81,11 +79,11 @@ public class ComponentDrag : GameComponent
 		}
 	}
 	public bool isDraging() { return mDrag; }
-	public void setDragStartCallback(OnDragStartCallback callback){mOnDragStartCallback = callback;}
-	public void setDragEndCallback(OnDragCallback callback){mOnDragEndCallback = callback;}
-	public void setDragEndTotallyCallback(OnDragCallback callback) { mOnDragEndTotallyCallback = callback; }
-	public void setDragingCallback(OnDragCallback callback){mOnDragingCallback = callback;}
-	public void setInterruptCallback(OnDragCallback callback) { mOnInterruptCallback = callback; }
+	public void setDragStartCallback(OnDragStartCallback callback){mDragStartCallback = callback;}
+	public void setDragEndCallback(OnDragCallback callback){mDragEndCallback = callback;}
+	public void setDragEndTotallyCallback(OnDragCallback callback) { mDragEndTotallyCallback = callback; }
+	public void setDragingCallback(OnDragCallback callback){mDragingCallback = callback;}
+	public void setInterruptCallback(OnDragCallback callback) { mInterruptCallback = callback; }
 	public void setStartDragThreshold(float threshold) { mStartDragThreshold = threshold; }
 	public void setAllowDragDirection(Vector2 allowDirection) { mAllowDragDirection = allowDirection; }
 	public void setDragStartAngleThreshold(float radian) { mDragStartAngleThreshold = radian; }
@@ -246,10 +244,10 @@ public class ComponentDrag : GameComponent
 	protected virtual bool onDragStart(Vector3 mousePos)
 	{
 		mDragMouseOffset = mousePos - getScreenPosition();
-		if (mOnDragStartCallback != null)
+		if (mDragStartCallback != null)
 		{
 			bool allowDrag = true;
-			mOnDragStartCallback(mComponentOwner, ref allowDrag);
+			mDragStartCallback(mComponentOwner, ref allowDrag);
 			return allowDrag;
 		}
 		return true;
@@ -257,19 +255,19 @@ public class ComponentDrag : GameComponent
 	// 当前物体拖动结束
 	protected virtual void onDragEnd(Vector3 mousePos)
 	{
-		mOnDragEndCallback?.Invoke(mComponentOwner);
+		mDragEndCallback?.Invoke(mComponentOwner);
 	}
 	// 当前物体正在拖动
 	protected virtual void onDraging(ref Vector3 mousePos)
 	{
-		mOnDragingCallback?.Invoke(mComponentOwner);
+		mDragingCallback?.Invoke(mComponentOwner);
 	}
 	protected virtual void onInterrupt()
 	{
-		mOnInterruptCallback?.Invoke(mComponentOwner);
+		mInterruptCallback?.Invoke(mComponentOwner);
 	}
 	protected void notifyDragEndTotally()
 	{
-		mOnDragEndTotallyCallback?.Invoke(mComponentOwner);
+		mDragEndTotallyCallback?.Invoke(mComponentOwner);
 	}
 }

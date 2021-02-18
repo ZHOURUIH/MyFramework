@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System;
-using System.Collections.Generic;
+﻿using System;
 
 // SceneTools
 public class ST : FrameBase

@@ -69,12 +69,12 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 	public void setItemPreName(string preName) { mPreName = preName; }
 	public List<T> getUsedList() { return mUsedItemList; }
 	public bool isUsed(T item) { return mUsedItemList.Contains(item); }
-	public void checkCapacity(int capacity)
+	public void checkCapacity(int capacity, bool moveToLastSibling = true, bool needSortChild = true)
 	{
 		int needCount = capacity - mUsedItemList.Count;
 		for (int i = 0; i < needCount; ++i)
 		{
-			newItem();
+			newItem(moveToLastSibling, needSortChild);
 		}
 	}
 	// 将source从sourcePool中移动到当前池中
@@ -140,12 +140,26 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 	}
 	public void unuseItem(T item)
 	{
+		if (item.GetType() != mObjectType)
+		{
+			logError("物体类型与池类型不一致,无法回收");
+			return;
+		}
+		if (item.getAssignID() <= 0)
+		{
+			logError("物体已经回收过了,无法重复回收");
+			return;
+		}
+		if (!mUsedItemList.Remove(item))
+		{
+			logError("此窗口物体不属于当前窗口物体池,无法回收");
+			return;
+		}
 		item.recycle();
 		item.setVisible(false);
 		item.setParent(mItemParentUnuse, false);
 		item.setAssignID(-1);
 		mUnusedItemList.Add(item);
-		mUsedItemList.Remove(item);
 	}
 	// 回收一定下标范围的对象,count小于0表示回收从startIndex到结尾的所有对象
 	public void unuseRange(int startIndex, int count = -1)
@@ -161,10 +175,10 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 		}
 		for (int i = 0; i < count; ++i)
 		{
-			int index = startIndex + i;
-			mUsedItemList[index].setVisible(false);
-			mUsedItemList[index].setParent(mItemParentUnuse, false);
-			mUnusedItemList.Add(mUsedItemList[index]);
+			T item = mUsedItemList[startIndex + i];
+			item.setVisible(false);
+			item.setParent(mItemParentUnuse, false);
+			mUnusedItemList.Add(item);
 		}
 		mUsedItemList.RemoveRange(startIndex, count);
 	}

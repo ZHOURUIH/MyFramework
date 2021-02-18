@@ -1,11 +1,4 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
-using System.Net;
-using System.Net.Sockets;
-using System.Threading;
-using System.Text;
-using System.Collections.Generic;
+﻿using System;
 
 public interface ISocketConnect
 {

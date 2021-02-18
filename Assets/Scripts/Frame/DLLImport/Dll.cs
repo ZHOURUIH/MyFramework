@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 #if UNITY_STANDALONE_WIN
 using System.Runtime.InteropServices;

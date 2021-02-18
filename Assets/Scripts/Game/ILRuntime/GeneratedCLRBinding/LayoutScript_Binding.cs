@@ -306,78 +306,7 @@ namespace ILRuntime.Runtime.Generated
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 5);
             global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-
-            var result_of_this_method = instance_of_this_method.newObject<global::myUGUIObject>(out @obj, @name, @active, @needSortChild);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            __intp.Free(ptr_of_this_method);
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            __intp.Free(ptr_of_this_method);
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 3);
-            __intp.Free(ptr_of_this_method);
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 4);
-            switch(ptr_of_this_method->ObjectType)
-            {
-                case ObjectTypes.StackObjectReference:
-                    {
-                        var ___dst = ILIntepreter.ResolveReference(ptr_of_this_method);
-                        object ___obj = @obj;
-                        if (___dst->ObjectType >= ObjectTypes.Object)
-                        {
-                            if (___obj is CrossBindingAdaptorType)
-                                ___obj = ((CrossBindingAdaptorType)___obj).ILInstance;
-                            __mStack[___dst->Value] = ___obj;
-                        }
-                        else
-                        {
-                            ILIntepreter.UnboxObject(___dst, ___obj, __mStack, __domain);
-                        }
-                    }
-                    break;
-                case ObjectTypes.FieldReference:
-                    {
-                        var ___obj = __mStack[ptr_of_this_method->Value];
-                        if(___obj is ILTypeInstance)
-                        {
-                            ((ILTypeInstance)___obj)[ptr_of_this_method->ValueLow] = @obj;
-                        }
-                        else
-                        {
-                            var ___type = __domain.GetType(___obj.GetType()) as CLRType;
-                            ___type.SetFieldValue(ptr_of_this_method->ValueLow, ref ___obj, @obj);
-                        }
-                    }
-                    break;
-                case ObjectTypes.StaticFieldReference:
-                    {
-                        var ___type = __domain.GetType(ptr_of_this_method->Value);
-                        if(___type is ILType)
-                        {
-                            ((ILType)___type).StaticInstance[ptr_of_this_method->ValueLow] = @obj;
-                        }
-                        else
-                        {
-                            ((CLRType)___type).SetStaticFieldValue(ptr_of_this_method->ValueLow, @obj);
-                        }
-                    }
-                    break;
-                 case ObjectTypes.ArrayReference:
-                    {
-                        var instance_of_arrayReference = __mStack[ptr_of_this_method->Value] as global::myUGUIObject[];
-                        instance_of_arrayReference[ptr_of_this_method->ValueLow] = @obj;
-                    }
-                    break;
-            }
-
-            __intp.Free(ptr_of_this_method);
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 5);
-            __intp.Free(ptr_of_this_method);
-            object obj_result_of_this_method = result_of_this_method;
-            if(obj_result_of_this_method is CrossBindingAdaptorType)
-            {    
-                return ILIntepreter.PushObject(__ret, __mStack, ((CrossBindingAdaptorType)obj_result_of_this_method).ILInstance);
-            }
-            return ILIntepreter.PushObject(__ret, __mStack, result_of_this_method);
+            return null;
         }
 
         static StackObject* newObject_11(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)

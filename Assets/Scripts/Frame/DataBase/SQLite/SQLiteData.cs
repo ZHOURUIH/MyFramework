@@ -1,9 +1,7 @@
 ﻿#if !UNITY_IOS && !NO_SQLITE
 using UnityEngine;
-using System.Collections;
 using Mono.Data.Sqlite;
 using System.Collections.Generic;
-using System;
 
 public class SQLiteData : GameBase
 {

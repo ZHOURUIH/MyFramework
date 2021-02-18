@@ -69,7 +69,7 @@ public class ResourceLoader : FrameBase
 				continue;
 			}
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-			logInfo("unload path: " + item0);
+			log("unload path: " + item0);
 #endif
 			var list = mLoadedPath[item0];
 			foreach (var item in list)
@@ -133,11 +133,11 @@ public class ResourceLoader : FrameBase
 		}
 		else if (info.mState == LOAD_STATE.LOADING)
 		{
-			logInfo("资源正在后台加载,不能同步加载!" + name, LOG_LEVEL.FORCE);
+			log("资源正在后台加载,不能同步加载!" + name, LOG_LEVEL.FORCE);
 		}
 		else if (info.mState == LOAD_STATE.UNLOAD)
 		{
-			logInfo("资源已加入列表,但是未加载" + name, LOG_LEVEL.FORCE);
+			log("资源已加入列表,但是未加载" + name, LOG_LEVEL.FORCE);
 		}
 		return null;
 	}

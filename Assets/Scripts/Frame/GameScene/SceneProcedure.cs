@@ -1,19 +1,16 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System;
 
-public abstract class SceneProcedure : GameBase
+public abstract class SceneProcedure : GameBase, IDelayCmdWatcher
 {
 	protected Dictionary<Type, SceneProcedure> mChildProcedureList; // 子流程列表
 	protected List<int> mDelayCmdList;          // 流程进入时的延迟命令列表,当命令执行时,会从列表中移除该命令	
-	protected CommandCallback mCmdStartCallback;
+	protected CommandCallback mCmdStartCallback;// 命令开始的回调,保存变量是为了避免GC
 	protected SceneProcedure mParentProcedure;	// 父流程
-	protected SceneProcedure mCurChildProcedure;// 当前正在运行的子流程
 	protected SceneProcedure mPrepareNext;      // 准备退出到的流程
 	protected GameScene mGameScene;             // 流程所属的场景
-	protected MyTimer mPrepareTimer;			// 准备退出的计时
-	protected Type mProcedureType;				// 该流程的类型
+	protected MyTimer mPrepareTimer;            // 准备退出的计时
+	protected Type mType;						// 当前实例的类型,因为有些流程可能是在ILRuntime中,此处无法直接获取正确类型,所以需要保存一个变量
 	protected string mPrepareIntent;			// 传递参数用
 	protected bool mInited;                     // 是否已经初始化,子节点在初始化时需要先确保父节点已经初始化
 	public SceneProcedure()
@@ -26,8 +23,8 @@ public abstract class SceneProcedure : GameBase
 	}
 	// 销毁场景时会调用流程的销毁
 	public virtual void destroy() { }
+	public void setType(Type type) { mType = type; }
 	public void setGameScene(GameScene gameScene) { mGameScene = gameScene; }
-	public void setType(Type type) { mProcedureType = type; }
 	// 从自己的子流程进入当前流程
 	protected virtual void onInitFromChild(SceneProcedure lastProcedure, string intent) { }
 	// 在进入流程时调用
@@ -60,7 +57,7 @@ public abstract class SceneProcedure : GameBase
 			mParentProcedure.onExitSelf();
 		}
 		// 再初始化自己,如果是从子节点返回到父节点,则需要调用另外一个初始化函数
-		if (lastProcedure != null && lastProcedure.isThisOrParent(mProcedureType))
+		if (lastProcedure != null && lastProcedure.isThisOrParent(mType))
 		{
 			onInitFromChild(lastProcedure, intent);
 		}
@@ -82,7 +79,7 @@ public abstract class SceneProcedure : GameBase
 		{
 			// 超过了准备时间,强制跳转流程
 			CommandGameSceneChangeProcedure cmd = newMainCmd(out cmd);
-			cmd.mProcedure = mPrepareNext.getProcedureType();
+			cmd.mProcedure = mPrepareNext.mType;
 			cmd.mIntent = mPrepareIntent;
 			pushCommand(cmd, mGameScene);
 		}
@@ -107,7 +104,7 @@ public abstract class SceneProcedure : GameBase
 		// 如果不是则不需要调用,不需要执行任何退出操作
 		if (this == exitTo)
 		{
-			if (nextPro != null && nextPro.isThisOrParent(mProcedureType))
+			if (nextPro != null && nextPro.isThisOrParent(mType))
 			{
 				onExitToChild(nextPro);
 				onExitSelf();
@@ -139,11 +136,6 @@ public abstract class SceneProcedure : GameBase
 		mParentProcedure?.keyProcess(elapsedTime);
 		// 然后再处理自己的按键响应
 		onKeyProcess(elapsedTime);
-	}
-	public void addDelayCmd(Command cmd)
-	{
-		mDelayCmdList.Add(cmd.mAssignID);
-		cmd.addStartCommandCallback(mCmdStartCallback);
 	}
 	public void getParentList(ref List<SceneProcedure> parentList)
 	{
@@ -183,7 +175,7 @@ public abstract class SceneProcedure : GameBase
 	public bool isThisOrParent(Type type)
 	{
 		// 判断是否是自己的类型
-		if (mProcedureType == type)
+		if (mType == type)
 		{
 			return true;
 		}
@@ -195,7 +187,7 @@ public abstract class SceneProcedure : GameBase
 		// 没有父节点,返回false
 		return false;
 	}
-	public Type getProcedureType() { return mProcedureType; }
+	public Type getType() { return mType; }
 	public GameScene getGameScene() { return mGameScene; }
 	public SceneProcedure getParent() { return mParentProcedure; }
 	public SceneProcedure getPrepareNext() { return mPrepareNext; }
@@ -209,7 +201,7 @@ public abstract class SceneProcedure : GameBase
 			return null;
 		}
 		// 有父节点,则判断类型是否匹配,匹配则返回父节点
-		if (mParentProcedure.getProcedureType() == type)
+		if (mParentProcedure.mType == type)
 		{
 			return mParentProcedure;
 		}
@@ -218,13 +210,12 @@ public abstract class SceneProcedure : GameBase
 	}
 	public SceneProcedure getThisOrParent(Type type)
 	{
-		if (mProcedureType == type)
+		if (mType == type)
 		{
 			return this;
 		}
 		return getParent(type);
 	}
-	public SceneProcedure getCurChildProcedure() { return mCurChildProcedure; }
 	public SceneProcedure getChildProcedure(Type type)
 	{
 		mChildProcedureList.TryGetValue(type, out SceneProcedure procedure);
@@ -236,13 +227,42 @@ public abstract class SceneProcedure : GameBase
 		{
 			return false;
 		}
-		if (mChildProcedureList.ContainsKey(child.getProcedureType()))
+		if (mChildProcedureList.ContainsKey(child.mType))
 		{
 			return false;
 		}
 		child.setParent(this);
-		mChildProcedureList.Add(child.getProcedureType(), child);
+		mChildProcedureList.Add(child.mType, child);
 		return true;
+	}
+	public virtual void addDelayCmd(Command cmd)
+	{
+		mDelayCmdList.Add(cmd.mAssignID);
+		cmd.addStartCommandCallback(mCmdStartCallback);
+	}
+	public virtual void onCmdStarted(Command cmd)
+	{
+		if (!mDelayCmdList.Remove(cmd.mAssignID))
+		{
+			logError("命令执行后移除流程命令失败");
+		}
+	}
+	public virtual void interruptCommand(int assignID, bool showError = true)
+	{
+		if (mDelayCmdList.Contains(assignID))
+		{
+			mDelayCmdList.Remove(assignID);
+			mCommandSystem.interruptCommand(assignID, showError);
+		}
+	}
+	public virtual void interruptAllCommand()
+	{
+		int count = mDelayCmdList.Count;
+		for (int i = 0; i < count; ++i)
+		{
+			mCommandSystem.interruptCommand(mDelayCmdList[i], false);
+		}
+		mDelayCmdList.Clear();
 	}
 	//---------------------------------------------------------------------------------------------------------
 	protected bool setParent(SceneProcedure parent)
@@ -254,11 +274,5 @@ public abstract class SceneProcedure : GameBase
 		mParentProcedure = parent;
 		return true;
 	}
-	protected void onCmdStarted(Command cmd)
-	{
-		if (!mDelayCmdList.Remove(cmd.mAssignID))
-		{
-			logError("命令执行后移除流程命令失败");
-		}
-	}
+	
 }

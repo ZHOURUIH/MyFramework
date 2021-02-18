@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 public class CommandTransformableMovePath : Command
@@ -13,6 +12,7 @@ public class CommandTransformableMovePath : Command
 	public float mSpeed;
 	public bool mFullOnce;
 	public bool mLoop;
+	public KEY_FRAME mKeyframe;
 	public override void init()
 	{
 		base.init();
@@ -25,20 +25,19 @@ public class CommandTransformableMovePath : Command
 		mSpeed = 1.0f;
 		mLoop = false;
 		mFullOnce = false;
+		mKeyframe = KEY_FRAME.NONE;
 	}
 	public override void execute()
 	{
 		Transformable obj = mReceiver as Transformable;
 		TransformableComponentMovePath component = obj.getComponent(out component);
-		// 停止其他移动组件
-		obj.breakComponent<IComponentModifyPosition>(Typeof(component));
 		component.setTremblingCallback(mDoingCallBack);
 		component.setTrembleDoneCallback(mDoneCallBack);
 		component.setActive(true);
 		component.setValueKeyFrame(mValueKeyFrame);
 		component.setSpeed(mSpeed);
 		component.setValueOffset(mValueOffset);
-		component.play(mLoop, mOffset, mFullOnce);
+		component.play((int)mKeyframe, mLoop, mOffset, mFullOnce);
 		if (component.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭

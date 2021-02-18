@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 
 // 指定路径关键帧和时间关键帧进行变换
@@ -21,12 +19,12 @@ public abstract class ComponentPathNormal : ComponentKeyFrameNormal
 	public void setValueKeyFrame(Dictionary<float, Vector3> path) { mValueKeyFrame = path; }
 	public void setSpeed(float speed) { mSpeed = speed; }
 	public void setValueOffset(Vector3 offset) { mValueOffset = offset; }
-	public void setOffsetBlendAdd(bool blendMode) { mOffsetBlendAdd = blendMode; }
+	public virtual void setOffsetBlendAdd(bool blendMode) { mOffsetBlendAdd = blendMode; }
 	public override void play(int keyframe, bool loop, float onceLength, float offset, bool fullOnce, float amplitude)
 	{
 		logError("use play(bool loop, float timeOffset, bool fullOnce) instead!");
 	}
-	public virtual void play(bool loop, float timeOffset, bool fullOnce)
+	public virtual void play(int keyframeID, bool loop, float timeOffset, bool fullOnce)
 	{
 		// 获取单次播放长度
 		if (mValueKeyFrame != null && mValueKeyFrame.Count > 0)
@@ -39,7 +37,7 @@ public abstract class ComponentPathNormal : ComponentKeyFrameNormal
 		{
 			mMaxLength = 0.0f;
 		}
-		base.play((int)KEY_FRAME.ZERO_ONE, loop, mMaxLength, timeOffset, fullOnce, 1.0f);
+		base.play(keyframeID, loop, mMaxLength, timeOffset, fullOnce, 1.0f);
 	}
 	//-------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)

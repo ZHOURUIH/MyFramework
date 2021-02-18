@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
+﻿using System;
 
 public class WindowComponentAlpha : ComponentKeyFrameNormal, IComponentModifyAlpha
 {
@@ -12,12 +10,7 @@ public class WindowComponentAlpha : ComponentKeyFrameNormal, IComponentModifyAlp
 	protected override void applyTrembling(float value)
 	{
 		myUIObject obj = mComponentOwner as myUIObject;
-		float newAlpha = lerpSimple(mStartAlpha, mTargetAlpha, value);
-		// 因为NGUI中透明度小于0.001时认为是将窗口隐藏,会重新构建网格顶点,所以此处最低为0.002
-		if(WidgetUtility.getGUIType(obj.getObject()) == GUI_TYPE.NGUI)
-		{
-			clampMin(ref newAlpha, 0.002f);
-		}
-		obj.setAlpha(newAlpha, false);
+		// 此处不使用递归透明度变化是为了尽量不影响其他窗口
+		obj.setAlpha(lerpSimple(mStartAlpha, mTargetAlpha, value), false);
 	}
 }
