@@ -13,9 +13,9 @@ public class CommandLayoutManagerLoad : Command
 	public bool mAsync;
 	public int mRenderOrder;
 	public int mLayoutID;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mCallback = null;
 		mResultLayout = null;
 		mLayoutID = LAYOUT.NONE;

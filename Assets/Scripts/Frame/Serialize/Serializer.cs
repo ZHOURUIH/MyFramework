@@ -259,6 +259,7 @@ public class Serializer : FrameBase
 		mIndex += readLen;
 		return true;
 	}
+	public void skipIndex(int skip) { mIndex += skip; }
 	public bool canRead(int readLen) { return mIndex + readLen <= mBufferSize; }
 	public bool canWrite(int writeLen){ return writeLen + mIndex <= mBufferSize; }
 	public byte[] getBuffer() { return mBuffer; }

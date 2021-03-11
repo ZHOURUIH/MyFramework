@@ -5,16 +5,16 @@ public class CommandCharacterRemoveState : Command
 	public PlayerState mState;
 	public Type mStateGroup;
 	public string mParam;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mState = null;
 		mStateGroup = null;
 		mParam = null;
 	}
 	public override void execute()
 	{
-		Character character = mReceiver as Character;
+		var character = mReceiver as Character;
 		CharacterStateMachine stateMachine = character.getStateMachine();
 		// 移除状态组时,认为状态是强行被中断
 		if (mStateGroup != null)

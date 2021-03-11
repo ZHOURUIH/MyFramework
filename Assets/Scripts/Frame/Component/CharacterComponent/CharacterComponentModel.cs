@@ -13,6 +13,16 @@ public class CharacterComponentModel : GameComponent
 		destroyModel();
 		base.destroy();
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mModelTransform = null;
+		mAnimator = null;
+		mAnimation = null;
+		mModel = null;
+		mModelPath = null;
+		mDestroyReally = false;
+	}
 	public void setModel(GameObject model, string modelPath)
 	{
 		if(mModel != null)

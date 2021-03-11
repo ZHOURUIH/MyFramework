@@ -16,7 +16,6 @@ public class CameraLinker : GameComponent
 	public CameraLinker()
 	{
 		mLookAtOffset = new Vector3(0.0f, 2.0f, 0.0f);
-		mLookAtTarget = false;
 		mLateUpdate = true;
 		mSwitchList = new Dictionary<Type, CameraLinkerSwitch>();
 	}
@@ -25,6 +24,18 @@ public class CameraLinker : GameComponent
 		base.init(owner);
 		initSwitch();
 		mCamera = mComponentOwner as GameCamera;
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mSwitchList.Clear();
+		mCurSwitch = null;
+		mLinkObject = null;
+		mCamera = null;
+		mRelativePosition = Vector3.zero;
+		mLookAtOffset = new Vector3(0.0f, 2.0f, 0.0f);
+		mLateUpdate = true;
+		mLookAtTarget = false;
 	}
 	public override void update(float elapsedTime)
 	{

@@ -2,9 +2,9 @@
 
 public class ComponentTrackTargetBase : GameComponent, IComponentModifyPosition, IComponentBreakable
 {
-	protected Transformable mTarget;
-	protected TrackCallback mDoneCallback;
 	protected TrackCallback mTrackingCallback;
+	protected TrackCallback mDoneCallback;
+	protected Transformable mTarget;
 	protected Vector3 mTargetOffset;
 	protected float mSpeed;
 	public override void init(ComponentOwner owner)
@@ -14,6 +14,15 @@ public class ComponentTrackTargetBase : GameComponent, IComponentModifyPosition,
 		{
 			logError("ComponentTrackTarget can only add to Transformable");
 		}
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mTrackingCallback = null;
+		mDoneCallback = null;
+		mTarget = null;
+		mTargetOffset = Vector3.zero;
+		mSpeed = 0.0f;
 	}
 	public virtual void setMoveDoneTrack(Transformable target, TrackCallback doneCallback, bool callLast = true)
 	{

@@ -15,10 +15,19 @@ public abstract class ComponentPathAlphaNormal : ComponentKeyFrameNormal
 		mSpeed = 1.0f;
 		mTimeList = new List<float>();
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mValueKeyFrame = null;
+		mTimeList.Clear();
+		mValueOffset = 1.0f;
+		mSpeed = 1.0f;
+		mMaxLength = 0.0f;
+	}
 	public void setValueKeyFrame(Dictionary<float, float> path) { mValueKeyFrame = path; }
 	public void setSpeed(float speed) { mSpeed = speed; }
 	public void setValueOffset(float offset) { mValueOffset = offset; }
-	public override void play(int keyframe, bool loop, float onceLength, float offset, bool fullOnce, float amplitude)
+	public override void play(int keyframe, bool loop, float onceLength, float offset, bool fullOnce)
 	{
 		logError("use play(bool loop, float timeOffset, bool fullOnce) instead!");
 	}
@@ -35,7 +44,7 @@ public abstract class ComponentPathAlphaNormal : ComponentKeyFrameNormal
 		{
 			mMaxLength = 0.0f;
 		}
-		base.play((int)KEY_FRAME.ZERO_ONE, loop, mMaxLength, timeOffset, fullOnce, 1.0f);
+		base.play((int)KEY_FRAME.ZERO_ONE, loop, mMaxLength, timeOffset, fullOnce);
 	}
 	//-------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)

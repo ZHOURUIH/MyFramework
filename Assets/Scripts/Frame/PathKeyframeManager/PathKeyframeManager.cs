@@ -60,29 +60,29 @@ public class PathKeyframeManager : FrameSystem
 	//----------------------------------------------------------------------------------------------------------------------------
 	protected void readAllFile(Dictionary<string, Dictionary<float, Vector3>> list, string suffix)
 	{
-		List<string> fileList = newList(out fileList);
+		LIST(out List<string> fileList);
 		findStreamingAssetsFiles(FrameDefine.F_PATH_KEYFRAME_PATH, fileList, suffix, true, true);
 		int fileCount = fileList.Count;
 		for (int i = 0; i < fileCount; ++i)
 		{
-			Dictionary<float, Vector3> pathList = new Dictionary<float, Vector3>();
+			var pathList = new Dictionary<float, Vector3>();
 			readPathFile(fileList[i], pathList);
 			list.Add(getFileNameNoSuffix(fileList[i], true), pathList);
 		}
-		destroyList(fileList);
+		UN_LIST(fileList);
 	}
 	protected void readAllFile(Dictionary<string, Dictionary<float, float>> list, string suffix)
 	{
-		List<string> fileList = newList(out fileList);
+		LIST(out List<string> fileList);
 		findStreamingAssetsFiles(FrameDefine.F_PATH_KEYFRAME_PATH, fileList, suffix, true, true);
 		int fileCount = fileList.Count;
 		for (int i = 0; i < fileCount; ++i)
 		{
-			Dictionary<float, float> pathList = new Dictionary<float, float>();
+			var pathList = new Dictionary<float, float>();
 			readPathFile(fileList[i], pathList);
 			list.Add(getFileNameNoSuffix(fileList[i], true), pathList);
 		}
-		destroyList(fileList);
+		UN_LIST(fileList);
 	}
 	protected void readPathFile(string filePath, Dictionary<float, Vector3> path)
 	{

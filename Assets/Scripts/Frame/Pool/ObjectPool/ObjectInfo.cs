@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 using System;
 
 [Serializable]
-public class ObjectInfo : FrameBase, IClassObject
+public class ObjectInfo : FrameBasePooledObject
 {
 	public GameObject mObject;
 	public string mFileWithPath;
@@ -25,8 +24,9 @@ public class ObjectInfo : FrameBase, IClassObject
 	{
 		destroyGameObject(ref mObject);
 	}
-	public void resetProperty()
+	public override void resetProperty()
 	{
+		base.resetProperty();
 		mObject = null;
 		mFileWithPath = null;
 		mUsing = false;

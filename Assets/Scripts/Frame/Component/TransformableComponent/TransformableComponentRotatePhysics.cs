@@ -5,6 +5,12 @@ public class TransformableComponentRotatePhysics : ComponentKeyFramePhysics, ICo
 {
 	protected Vector3 mStartRotation;
 	protected Vector3 mTargetRotation;
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mStartRotation = Vector3.zero;
+		mTargetRotation = Vector3.zero;
+	}
 	public void setStartRotation(Vector3 rot){mStartRotation = rot;}
 	public void setTargetRotation(Vector3 rot){	mTargetRotation = rot;}
 	//-------------------------------------------------------------------------------------------------------------

@@ -3,9 +3,9 @@
 public class CommandCharacterManagerDestroy : Command
 {
 	public ulong mGUID;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mGUID = 0;
 	}
 	public override void execute()

@@ -20,8 +20,7 @@ public class FLOAT : OBJECT
 	public void set(float value) { mValue = value; }
 	public override bool readFromBuffer(byte[] buffer, ref int index)
 	{
-		bool success;
-		mValue = readFloat(buffer, ref index, out success);
+		mValue = readFloat(buffer, ref index, out bool success);
 		return success;
 	}
 	public override bool writeToBuffer(byte[] buffer, ref int index)

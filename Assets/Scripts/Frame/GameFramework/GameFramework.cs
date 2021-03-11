@@ -423,12 +423,12 @@ public class GameFramework : MonoBehaviour
 		GameCamera camera = FrameBase.mCameraManager.getUICamera();
 		if (camera != null)
 		{
-			OT.MOVE(camera, new Vector3(0.0f, 0.0f, -height * 0.5f / MathUtility.tan(camera.getFOVY(true) * 0.5f)));
+			FT.MOVE(camera, new Vector3(0.0f, 0.0f, -height * 0.5f / MathUtility.tan(camera.getFOVY(true) * 0.5f)));
 		}
 		GameCamera blurCamera = FrameBase.mCameraManager.getUIBlurCamera();
 		if (blurCamera != null)
 		{
-			OT.MOVE(blurCamera, new Vector3(0.0f, 0.0f, -height * 0.5f / MathUtility.tan(blurCamera.getFOVY(true) * 0.5f)));
+			FT.MOVE(blurCamera, new Vector3(0.0f, 0.0f, -height * 0.5f / MathUtility.tan(blurCamera.getFOVY(true) * 0.5f)));
 		}
 		// 设置默认的日志等级
 #if UNITY_EDITOR
@@ -477,6 +477,8 @@ public class GameFramework : MonoBehaviour
 		registeFrameSystem(UnityUtility.Typeof<SocketFactoryThread>());
 		registeFrameSystem(UnityUtility.Typeof<PathKeyframeManager>());
 		registeFrameSystem(UnityUtility.Typeof<EventSystem>());
+		registeFrameSystem(UnityUtility.Typeof<StringBuilderPool>());
+		registeFrameSystem(UnityUtility.Typeof<StringBuilderPoolThread>());
 #if USE_ILRUNTIME
 		registeFrameSystem(UnityUtility.Typeof<ILRSystem>());
 #endif

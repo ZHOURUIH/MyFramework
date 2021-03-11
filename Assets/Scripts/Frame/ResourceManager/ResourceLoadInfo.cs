@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class ResourceLoadInfo : IClassObject
+public class ResourceLoadInfo : GameBasePooledObject
 {	
 	public List<AssetLoadDoneCallback> mCallback;
 	public List<object> mUserData;
@@ -39,8 +39,9 @@ public class ResourceLoadInfo : IClassObject
 		mUserData.Clear();
 		mLoadPath.Clear();
 	}
-	public void resetProperty()
+	public override void resetProperty()
 	{
+		base.resetProperty();
 		mPath = null;
 		mResouceName = null;
 		mObject = null;

@@ -8,6 +8,12 @@ public abstract class ComponentLerpRotation : ComponentLerp, IComponentModifyRot
 	{
 		mMinRange = 0.001f;
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mTargetRotation = Vector3.zero;
+		mMinRange = 0.001f;
+	}
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);

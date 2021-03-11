@@ -4,15 +4,15 @@ using System.Net.Sockets;
 public class CommandSocketConnectClientState : Command
 {
 	public SocketError mErrorCode;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mErrorCode = SocketError.Success;
 	}
 	public override void execute()
 	{
-		SocketConnectClient socketClient = mReceiver as SocketConnectClient;
-		CommandSocketClientGameState cmd = newMainCmd(out cmd, false);
+		var socketClient = mReceiver as SocketConnectClient;
+		CMD(out CommandSocketClientGameState cmd, false);
 		cmd.mNetState = socketClient.getNetState();
 		pushCommand(cmd, socketClient);
 		if (socketClient.isUnconnected() && 

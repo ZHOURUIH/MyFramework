@@ -3,20 +3,19 @@ using UnityEngine;
 
 public class GameCamera : MovableObject
 {
-	protected Camera mCamera;
-	protected CameraLinker mCurLinker;			// 只是记录当前连接器方便外部获取
 	protected List<CameraLinker> mLinkerList;	// 由于对连接器的操作比较多,所以单独放到一个表中,组件列表中不变
+	protected CameraLinker mCurLinker;			// 只是记录当前连接器方便外部获取
+	protected Camera mCamera;
+	protected Vector3 mPositionOffset;
 	protected float mCameraMoveSpeed;			// 使用按键控制时的移动速度
 	protected float mMouseSpeed;				// 鼠标转动摄像机的速度
-	protected bool mProcessKey;					// 锁定摄像机的按键控制
-	protected Vector3 mPositionOffset;
 	protected int mLastVisibleLayer;
+	protected bool mProcessKey;					// 锁定摄像机的按键控制
 	// 如果要实现摄像机震动,则需要将摄像机挂接到一个节点上,一般操作的是父节点的Transform,震动时是操作摄像机自身节点的Transform
 	public GameCamera()
 	{
 		mCameraMoveSpeed = 30.0f;
 		mMouseSpeed = 0.1f;
-		mProcessKey = false;
 		mLinkerList = new List<CameraLinker>();
 		setDestroyObject(false);
 	}
@@ -27,6 +26,18 @@ public class GameCamera : MovableObject
 #if UNITY_EDITOR
 		getUnityComponent<CameraDebug>().setCamera(this);
 #endif
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mCamera = null;
+		mCurLinker = null;
+		mLinkerList.Clear();
+		mCameraMoveSpeed = 30.0f;
+		mMouseSpeed = 0.1f;
+		mProcessKey = false;
+		mPositionOffset = Vector3.zero;
+		mLastVisibleLayer = 0;
 	}
 	public override void update(float elapsedTime)
 	{
@@ -105,7 +116,7 @@ public class GameCamera : MovableObject
 	}
 	public void linkTarget(CameraLinker linker, MovableObject target)
 	{
-		if(!mAllComponentTypeList.ContainsValue(linker))
+		if(!mAllComponentTypeList.containsValue(linker))
 		{
 			return;
 		}

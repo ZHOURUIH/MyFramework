@@ -4,36 +4,34 @@ using System.Collections.Generic;
 public class CommandTransformableMoveCurve : Command
 {
 	public List<Vector3> mPosList;
-	public KeyFrameCallback mTremblingCallBack;
-	public KeyFrameCallback mTrembleDoneCallBack;
+	public KeyFrameCallback mDoingCallback;
+	public KeyFrameCallback mDoneCallback;
 	public KEY_FRAME mKeyframe;
 	public float mOnceLength;
-	public float mAmplitude;
 	public float mOffset;
 	public bool mFullOnce;
 	public bool mLoop;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mPosList = null;
-		mTremblingCallBack = null;
-		mTrembleDoneCallBack = null;
+		mDoingCallback = null;
+		mDoneCallback = null;
 		mKeyframe = KEY_FRAME.NONE;
 		mOnceLength = 1.0f;
-		mAmplitude = 1.0f;
 		mOffset = 0.0f;
 		mFullOnce = false;
 		mLoop = false;
 	}
 	public override void execute()
 	{
-		Transformable obj = mReceiver as Transformable;
-		TransformableComponentMoveCurve component = obj.getComponent(out component);
-		component.setTremblingCallback(mTremblingCallBack);
-		component.setTrembleDoneCallback(mTrembleDoneCallBack);
+		var obj = mReceiver as Transformable;
+		obj.getComponent(out TransformableComponentMoveCurve component);
+		component.setTremblingCallback(mDoingCallback);
+		component.setTrembleDoneCallback(mDoneCallback);
 		component.setActive(true);
 		component.setKeyList(mPosList);
-		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
+		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce);
 		if (component.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
@@ -43,6 +41,6 @@ public class CommandTransformableMoveCurve : Command
 	public override string showDebugInfo()
 	{
 		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + 
-			", mLoop:" + mLoop + ", mAmplitude:" + mAmplitude + ", mFullOnce:" + mFullOnce;
+			", mLoop:" + mLoop + ", mFullOnce:" + mFullOnce;
 	}
 }

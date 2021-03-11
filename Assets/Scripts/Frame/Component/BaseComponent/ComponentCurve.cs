@@ -18,10 +18,15 @@ public abstract class ComponentCurve : ComponentKeyFrameNormal
 		// 计算整个曲线的长度
 		generateDistanceList(posList, mKeyPointList);
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mKeyPointList.Clear();
+	}
 	//-------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
-		Transformable uiObj = mComponentOwner as Transformable;
+		var uiObj = mComponentOwner as Transformable;
 		// 根据当前的距离找出位于哪两个点之间
 		saturate(ref value);
 		float curDisatnce = value * mKeyPointList[mKeyPointList.Count - 1].mDistanceFromStart;

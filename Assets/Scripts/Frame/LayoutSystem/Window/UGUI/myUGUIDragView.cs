@@ -177,7 +177,7 @@ public class myUGUIDragView : myUGUIObject
 		Vector2 parentSize = Vector2.zero;
 		autoAdjustParent(ref parentPos, ref parentSize, viewportSize);
 		dragViewParent.setWindowSize(parentSize);
-		OT.MOVE(dragViewParent, parentPos);
+		FT.MOVE(dragViewParent, parentPos);
 		autoResetPosition();
 	}
 	// 当DragView的父节点的大小改变时,需要调用该函数重新计算可拖动的范围

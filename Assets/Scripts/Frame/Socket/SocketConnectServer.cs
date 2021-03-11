@@ -66,7 +66,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 	{
 		base.update(elapsedTime);
 		// 更新客户端,找出是否有客户端需要断开连接
-		List<uint> tempLogoutList = newList(out tempLogoutList);
+		LIST(out List<uint> tempLogoutList);
 		foreach (var item in mClientList)
 		{
 			item.Value.update(elapsedTime);
@@ -82,7 +82,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 		{
 			disconnectSocket(tempLogoutList[i]);
 		}
-		destroyList(tempLogoutList);
+		UN_LIST(tempLogoutList);
 		// 心跳
 		if (mHeartBeatTimer.tickTimer(elapsedTime))
 		{
@@ -136,7 +136,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 	protected void acceptThread(ref bool run)
 	{
 		Socket client = mServerSocket.Accept();
-		CommandSocketConnectServerAcceptClient cmdAccept = newMainCmd(out cmdAccept, true, true);
+		CMD(out CommandSocketConnectServerAcceptClient cmdAccept, true, true);
 		cmdAccept.mSocket = client;
 		cmdAccept.mIP = null;
 		pushDelayCommand(cmdAccept, this);
@@ -151,7 +151,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 		mClientSendLock.waitForUnlock();
 		try
 		{
-			List<Socket> tempWriteList = newList(out tempWriteList);
+			LIST(out List<Socket> tempWriteList);
 			foreach (var item in mClientList)
 			{
 				tempWriteList.Add(item.Value.getSocket());
@@ -167,7 +167,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 					}
 				}
 			}
-			destroyList(tempWriteList);
+			UN_LIST(tempWriteList);
 		}
 		catch (Exception e)
 		{
@@ -185,7 +185,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 		mClientRecvLock.waitForUnlock();
 		try
 		{
-			List<Socket> tempReadList = newList(out tempReadList);
+			LIST(out List<Socket> tempReadList);
 			foreach (var item in mClientList)
 			{
 				tempReadList.Add(item.Value.getSocket());
@@ -203,7 +203,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 					}
 				}
 			}
-			destroyList(tempReadList);
+			UN_LIST(tempReadList);
 		}
 		catch (SocketException e)
 		{

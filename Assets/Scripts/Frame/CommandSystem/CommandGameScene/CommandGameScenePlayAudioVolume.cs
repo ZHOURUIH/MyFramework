@@ -10,12 +10,11 @@ public class CommandGameSceneAudioVolume : Command
 	public float mTargetVolume;
 	public float mOnceLength;   // 持续时间
 	public float mOffset;
-	public float mAmplitude;
 	public bool mLoop;
 	public bool mFullOnce;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mFadingCallback = null;
 		mFadeDoneCallback = null;
 		mSoundVolumeCoe = SOUND_DEFINE.MIN;
@@ -24,14 +23,13 @@ public class CommandGameSceneAudioVolume : Command
 		mTargetVolume = 0.0f;
 		mOnceLength = 0.0f;
 		mOffset = 0.0f;
-		mAmplitude = 1.0f;
 		mLoop = false;
 		mFullOnce = true;
 	}
 	public override void execute()
 	{
-		GameScene gameScene = mReceiver as GameScene;
-		GameSceneComponentVolume component = gameScene.getComponent(out component);
+		var gameScene = mReceiver as GameScene;
+		gameScene.getComponent(out GameSceneComponentVolume component);
 		if (mSoundVolumeCoe != SOUND_DEFINE.MIN)
 		{
 			float volumeCoe = mAudioManager.getVolumeScale(mSoundVolumeCoe);
@@ -43,11 +41,11 @@ public class CommandGameSceneAudioVolume : Command
 		component.setActive(true);
 		component.setStartVolume(mStartVolume);
 		component.setTargetVolume(mTargetVolume);
-		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
+		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce);
 	}
 	public override string showDebugInfo()
 	{
 		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mStartVolume:" + mStartVolume +
-			", mTargetVolume:" + mTargetVolume + ", mLoop:" + mLoop + ", mAmplitude:" + mAmplitude + ", mFullOnce:" + mFullOnce;
+			", mTargetVolume:" + mTargetVolume + ", mLoop:" + mLoop + ", mFullOnce:" + mFullOnce;
 	}
 }

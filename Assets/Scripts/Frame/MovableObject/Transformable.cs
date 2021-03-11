@@ -8,6 +8,11 @@ public abstract class Transformable : ComponentOwner
 	{
 		mEnable = true;
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mEnable = true;
+	}
 	public abstract bool isActive();
 	public virtual bool isEnable() { return mEnable; }
 	public virtual void setEnable(bool enable) { mEnable = enable; }

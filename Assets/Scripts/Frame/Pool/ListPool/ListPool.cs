@@ -44,7 +44,7 @@ public class ListPool : FrameSystem
 	public Dictionary<Type, HashSet<IList>> getInusedList() { return mInusedList; }
 	public Dictionary<Type, HashSet<IList>> getUnusedList() { return mUnusedList; }
 	// onlyOnce表示是否仅当作临时列表使用
-	public new List<T> newList<T>(out List<T> obj, bool onlyOnce = true, int capacity = 0)
+	public List<T> newList<T>(out List<T> obj, bool onlyOnce = true)
 	{
 		obj = null;
 		if(!isMainThread())
@@ -62,21 +62,17 @@ public class ListPool : FrameSystem
 				break;
 			}
 			valueList.Remove(obj);
-			if(capacity > 0 && capacity > obj.Capacity)
-			{
-				obj.Capacity = capacity;
-			}
 		}
 		// 未使用列表中没有,创建一个新的
 		else
 		{
-			obj = new List<T>(capacity);
+			obj = new List<T>();
 		}
 		// 标记为已使用
 		addInuse(obj, onlyOnce);
 		return obj;
 	}
-	public new void destroyList<T>(List<T> list)
+	public void destroyList<T>(List<T> list)
 	{
 		if (!isMainThread())
 		{

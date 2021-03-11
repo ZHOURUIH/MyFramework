@@ -1,11 +1,9 @@
 ﻿using System;
 
-public class StateParam : GameBase, IClassObject
-{
-	public virtual void resetProperty() { }
-}
+public class StateParam : GameBasePooledObject
+{}
 
-public class PlayerState : GameBase, IClassObject
+public class PlayerState : GameBasePooledObject
 {
 	protected CharacterBaseData mData;          // 状态所属角色的数据
 	protected OnStateLeave mOnLeave;			// 外部可设置的当前状态退出时的回调
@@ -27,6 +25,7 @@ public class PlayerState : GameBase, IClassObject
 		mStateMaxTime = -1.0f;
 		mStateTime = -1.0f;
 	}
+	public virtual void destroy() { }
 	public void setMutexID(uint mutexID) { mMutexID = mutexID; }
 	public uint getMutexID() { return mMutexID; }
 	public void setParam(StateParam param) { mParam = param; }
@@ -72,8 +71,9 @@ public class PlayerState : GameBase, IClassObject
 	public void setIgnoreTimeScale(bool ignore) { mIgnoreTimeScale = ignore; }
 	public bool isIgnoreTimeScale() { return mIgnoreTimeScale; }
 	public virtual int getPriority() { return 0; }
-	public virtual void resetProperty()
+	public override void resetProperty()
 	{
+		base.resetProperty();
 		mOnLeave = null;
 		mPlayer = null;
 		mData = null;
@@ -93,7 +93,7 @@ public class PlayerState : GameBase, IClassObject
 	// 要在当前状态中移除自身,可以使用removeSelf,或者直接将mStateTime设置为0,将时间设置为0最安全
 	protected void removeSelf(string param = null)
 	{
-		CommandCharacterRemoveState cmd = newMainCmd(out cmd, false);
+		CMD(out CommandCharacterRemoveState cmd, false);
 		cmd.mState = this;
 		cmd.mParam = param;
 		pushCommand(cmd, mPlayer);

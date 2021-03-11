@@ -36,9 +36,22 @@ public abstract class GameScene : ComponentOwner
 		// 开始执行起始流程
 		enterStartProcedure();
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mSceneProcedureList.Clear();
+		mLastProcedureList.Clear();
+		mCurProcedure = null;
+		mSceneObject = null;
+		mAudioSource = null;
+		mStartProcedure = null;
+		mTempStartProcedure = null;
+		mExitProcedure = null;
+		mTempStartIntent = null;
+	}
 	public void enterStartProcedure()
 	{
-		CommandGameSceneChangeProcedure cmd = newMainCmd(out cmd);
+		CMD(out CommandGameSceneChangeProcedure cmd);
 		cmd.mProcedure = mTempStartProcedure != null ? mTempStartProcedure : mStartProcedure;
 		cmd.mIntent = mTempStartIntent;
 		pushCommand(cmd, this);
@@ -84,7 +97,7 @@ public abstract class GameScene : ComponentOwner
 	public virtual void exit()
 	{
 		// 首先进入退出流程,然后再退出最后的流程
-		CommandGameSceneChangeProcedure cmd = newMainCmd(out cmd);
+		CMD(out CommandGameSceneChangeProcedure cmd);
 		cmd.mProcedure = mExitProcedure;
 		pushCommand(cmd, this);
 		mCurProcedure?.exit(null, null);

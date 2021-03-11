@@ -38,7 +38,7 @@ public class WindowComponentDragView : GameComponent
 	//-------------------------------------------------------------------------------------------------------------------------
 	// 用于避免GC的参数
 	private Vector3[] mMinMaxPos;
-	private bool mMinMaxPosDirty = true;
+	private bool mMinMaxPosDirty;
 	private float[] mDisArray;
 	public WindowComponentDragView()
 	{
@@ -58,11 +58,46 @@ public class WindowComponentDragView : GameComponent
 		mAutoClampSpeed = 10.0f;
 		mClampInner = true;
 		mAlignTopOrLeft = true;
+		mMinMaxPosDirty = true;
 	}
 	public override void init(ComponentOwner owner)
 	{
 		base.init(owner);
 		mWindow = owner as myUIObject;
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mMutexDragView.Clear();
+		mDragingCallback = null;
+		mReleaseDragCallback = null;
+		mPositionChangeCallback = null;
+		mOnDragViewStartCallback = null;
+		mWindow = null;
+		mDragDirection = DRAG_DIRECTION.HORIZONTAL;
+		mClampType = CLAMP_TYPE.EDGE_IN_RECT;
+		mMinRelativePos = -Vector3.one;
+		mMaxRelativePos = Vector3.one;
+		mMoveSpeedScale = 1.0f;
+		mAttenuateFactor = 2.0f;
+		mMoveToEdgeSpeed = 5.0f;
+		mDragAngleThreshold = 0.0f;
+		mDragLengthThreshold = 10.0f;
+		mAutoClampSpeed = 10.0f;
+		mClampInner = true;
+		mAlignTopOrLeft = true;
+		mMinMaxPosDirty = true;
+		mAutoMoveToEdge = false;
+		mClampInRange = false;
+		mStartDragWindowPosition = Vector3.zero;
+		mStartDragMousePosition = Vector3.zero;
+		mMouseDownPos = Vector3.zero;
+		mMoveNormal = Vector3.zero;
+		mMoveSpeed = 0.0f;
+		mMouseDown = false;
+		mDraging = false;
+		memset(mMinMaxPos, Vector3.zero);
+		memset(mDisArray, 0.0f);
 	}
 	public override void update(float elapsedTime)
 	{

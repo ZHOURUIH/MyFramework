@@ -3,9 +3,9 @@
 public class CommandLayoutManagerUnload : Command 
 {
 	public int mLayoutID;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mLayoutID = LAYOUT.NONE;
 	}
 	public override void execute()

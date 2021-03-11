@@ -253,8 +253,8 @@ public abstract class NetClient : GameBase
 		}
 		SocketPacket packetReply = createClientPacket(type);
 		packetReply.setConnect(mServer);
-		packetReply.mClient = this;
-		packetReply.mClientID = mClientGUID;
+		packetReply.setClient(this);
+		packetReply.setClientID(mClientGUID);
 		if (packetSize != 0 && packetReply.read(mRecvBytes.getData(), ref index) < 0)
 		{
 			clientError("解析错误:" + type + ", 实际接收字节数:" + packetSize);

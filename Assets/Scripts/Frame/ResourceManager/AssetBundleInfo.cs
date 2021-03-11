@@ -111,7 +111,7 @@ public class AssetBundleInfo : FrameBase
 	// 查找所有依赖项
 	public void findAllDependence()
 	{
-		List<string> tempList = newList(out tempList);
+		LIST(out List<string> tempList);
 		tempList.AddRange(mParents.Keys);
 		int count = tempList.Count;
 		for(int i = 0; i < count; ++i)
@@ -123,7 +123,7 @@ public class AssetBundleInfo : FrameBase
 			// 并且通知父节点添加自己为子节点
 			info.addChild(this);
 		}
-		destroyList(tempList);
+		UN_LIST(tempList);
 	}
 	// 所有依赖项是否都已经加载完成
 	public bool isAllParentLoaded()

@@ -5,11 +5,15 @@ using System;
 
 public class SQLite : FrameSystem
 {
-	protected Dictionary<Type, SQLiteTable> mTableList;
+	protected Dictionary<string, SQLiteTable> mTableNameList;		// 根据表格名查找表格
+	protected Dictionary<Type, SQLiteTable> mTableDataTypeList;		// 根据数据类型查找表格
+	protected Dictionary<Type, SQLiteTable> mTableList;				// 根据表格类型查找表格
 	protected SqliteConnection mConnection;
 	protected SqliteCommand mCommand;
 	public SQLite()
 	{
+		mTableNameList = new Dictionary<string, SQLiteTable>();
+		mTableDataTypeList = new Dictionary<Type, SQLiteTable>();
 		mTableList = new Dictionary<Type, SQLiteTable>();
 		try
 		{
@@ -42,6 +46,8 @@ public class SQLite : FrameSystem
 		table.setTableName(tableName);
 		table.setDataType(dataType);
 		mTableList.Add(Typeof(table), table);
+		mTableNameList.Add(tableName, table);
+		mTableDataTypeList.Add(dataType, table);
 		return table;
 	}
 	public void linkAllTable()
@@ -116,9 +122,19 @@ public class SQLite : FrameSystem
 		}
 		catch (Exception) { }
 	}
-	public SQLiteTable getTable(Type type)
+	public SQLiteTable getTableByType(Type type)
 	{
 		mTableList.TryGetValue(type, out SQLiteTable table);
+		return table;
+	}
+	public SQLiteTable getTableByDataType(Type type)
+	{
+		mTableDataTypeList.TryGetValue(type, out SQLiteTable table);
+		return table;
+	}
+	public SQLiteTable getTable(string tableName)
+	{
+		mTableNameList.TryGetValue(tableName, out SQLiteTable table);
 		return table;
 	}
 	//---------------------------------------------------------------------------------------------------------------

@@ -128,7 +128,7 @@ public class GameLayout : FrameBase
 			Profiler.BeginSample("UpdateLayout:" + getName());
 #endif
 			// 先更新所有的UI物体
-			var updateList = mObjectList.GetUpdateList();
+			var updateList = mObjectList.getUpdateList();
 			foreach (var obj in updateList)
 			{
 				if (obj.Value.canUpdate())
@@ -185,7 +185,7 @@ public class GameLayout : FrameBase
 		{
 			colliders.Clear();
 		}
-		var mainList = mObjectList.GetMainList();
+		var mainList = mObjectList.getMainList();
 		foreach (var obj in mainList)
 		{
 			Collider collider = obj.Value.getCollider();
@@ -248,12 +248,12 @@ public class GameLayout : FrameBase
 	public bool isIgnoreTimeScale() { return mIgnoreTimeScale; }
 	public void registerUIObject(myUIObject uiObj)
 	{
-		mObjectList.Add(uiObj.getID(), uiObj);
+		mObjectList.add(uiObj.getID(), uiObj);
 		mGameObjectSearchList.Add(uiObj.getObject(), uiObj);
 	}
 	public void unregisterUIObject(myUIObject uiObj)
 	{
-		mObjectList.Remove(uiObj.getID());
+		mObjectList.remove(uiObj.getID());
 		mGameObjectSearchList.Remove(uiObj.getObject());
 	}
 	public void setLayer(string layer)

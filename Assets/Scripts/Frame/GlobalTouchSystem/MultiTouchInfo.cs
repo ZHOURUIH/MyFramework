@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class MultiTouchInfo : IClassObject
+public class MultiTouchInfo : FrameBasePooledObject
 {
 	public IMouseEventCollect mWindow;
 	public int mFinger0;
@@ -10,8 +10,9 @@ public class MultiTouchInfo : IClassObject
 	public Vector2 mCurPosition0;
 	public Vector2 mCurPosition1;
 	public TouchPhase mPhase;
-	public void resetProperty()
+	public override void resetProperty()
 	{
+		base.resetProperty();
 		mWindow = null;
 		mFinger0 = 0;
 		mFinger1 = 0;

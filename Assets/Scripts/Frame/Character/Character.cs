@@ -46,6 +46,14 @@ public class Character : MovableObject
 		mDecisionTree = null;
 		mGUID = 0;
 		mAnimationLenghtList.Clear();
+		mCharacterType = null;
+		mCharacterLoadedCallback = null;
+		mModelPath = null;
+		mAnimationControllerPath = null;
+		mUserData = null;
+		mModelTag = 0;
+		// mModelLoadCallback不重置
+		// mModelLoadCallback = null;
 	}
 	public void initModelAsync(string modelPath, OnCharacterLoaded callback, object userData, string animationControllerPath = null)
 	{
@@ -140,9 +148,9 @@ public class Character : MovableObject
 		{
 			mAvatar.getAnimator().runtimeAnimatorController = mResourceManager.loadResource<RuntimeAnimatorController>(mAnimationControllerPath);
 		}
-		OT.MOVE(this,lastPosition);
-		OT.ROTATE(this, lastRotation);
-		OT.SCALE(this, lastScale);
+		FT.MOVE(this,lastPosition);
+		FT.ROTATE(this, lastRotation);
+		FT.SCALE(this, lastScale);
 	}
 	protected void afterModelLoaded()
 	{

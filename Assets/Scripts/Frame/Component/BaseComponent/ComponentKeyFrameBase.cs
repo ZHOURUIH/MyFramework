@@ -4,9 +4,8 @@ public class ComponentKeyFrameBase : GameComponent, IComponentBreakable
 {
 	// 用于设置的参数
 	protected AnimationCurve mKeyFrame;     // 当前使用的关键帧
-	protected KeyFrameCallback mTremblingCallBack;
-	protected KeyFrameCallback mTrembleDoneCallBack;
-	protected float mAmplitude;
+	protected KeyFrameCallback mDoingCallback;
+	protected KeyFrameCallback mDoneCallback;
 	protected float mPlayLength;	// 小于0表示无限播放, 大于0表示播放length时长
 	protected float mStopValue;		// 当组件停止时,需要应用的关键帧值
 	protected float mOnceLength;    // 关键帧长度默认为1秒
@@ -22,13 +21,28 @@ public class ComponentKeyFrameBase : GameComponent, IComponentBreakable
 	protected PLAY_STATE mPlayState;
 	public ComponentKeyFrameBase()
 	{
-		mKeyframeID = 0;
 		mLoop = true;
 		mFullOnce = true;
-		mAmplitude = 1.0f;
-		mOnceLength = 1.0f; // 关键帧长度默认为1秒
+		mOnceLength = 1.0f;
 		mPlayState = PLAY_STATE.STOP;
-		clearCallback();
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mKeyFrame = null;
+		mDoingCallback = null;
+		mDoneCallback = null;
+		mPlayLength = 0.0f;
+		mStopValue = 0.0f;
+		mOnceLength = 1.0f;
+		mOffset = 0.0f;
+		mKeyframeID = 0;
+		mFullOnce = true;
+		mLoop = true;
+		mCurrentTime = 0.0f;
+		mPlayedTime = 0.0f;
+		mCurValue = 0.0f;
+		mPlayState = PLAY_STATE.STOP;
 	}
 	public override void setActive(bool active)
 	{
@@ -38,7 +52,7 @@ public class ComponentKeyFrameBase : GameComponent, IComponentBreakable
 			stop();
 		}
 	}
-	public virtual void play(int keyframe, bool loop, float onceLength, float offset, bool fullOnce, float amplitude)
+	public virtual void play(int keyframe, bool loop, float onceLength, float offset, bool fullOnce)
 	{
 		if (!isActive())
 		{
@@ -71,7 +85,6 @@ public class ComponentKeyFrameBase : GameComponent, IComponentBreakable
 		mLoop = loop;
 		mOffset = offset;
 		mCurrentTime = mOffset;
-		mAmplitude = amplitude;
 		mPlayedTime = 0.0f;
 		if (mLoop)
 		{
@@ -116,7 +129,7 @@ public class ComponentKeyFrameBase : GameComponent, IComponentBreakable
 		}
 		if (state == PLAY_STATE.PLAY)
 		{
-			play(mKeyframeID, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
+			play(mKeyframeID, mLoop, mOnceLength, mOffset, mFullOnce);
 		}
 		else if (state == PLAY_STATE.STOP)
 		{
@@ -133,11 +146,11 @@ public class ComponentKeyFrameBase : GameComponent, IComponentBreakable
 	}
 	public void setTremblingCallback(KeyFrameCallback callback)
 	{
-		setCallback(callback, ref mTremblingCallBack, this);
+		setCallback(callback, ref mDoingCallback, this);
 	}
 	public void setTrembleDoneCallback(KeyFrameCallback callback)
 	{
-		setCallback(callback, ref mTrembleDoneCallBack, this);
+		setCallback(callback, ref mDoneCallback, this);
 	}
 	public void notifyBreak()
 	{
@@ -148,7 +161,6 @@ public class ComponentKeyFrameBase : GameComponent, IComponentBreakable
 	// 获得成员变量
 	public bool isLoop() { return mLoop; }
 	public float getOnceLength() { return mOnceLength; }
-	public float getAmplitude() { return mAmplitude; }
 	public float getOffset() { return mOffset; }
 	public bool isFullOnce() { return mFullOnce; }
 	public PLAY_STATE getState() { return mPlayState; }
@@ -160,7 +172,6 @@ public class ComponentKeyFrameBase : GameComponent, IComponentBreakable
 	// 设置成员变量
 	public void setLoop(bool loop) { mLoop = loop; }
 	public void setOnceLength(float length) { mOnceLength = length; }
-	public void setAmplitude(float amplitude) { mAmplitude = amplitude; }
 	public void setOffset(float offset) { mOffset = offset; }
 	public void setFullOnce(bool fullOnce) { mFullOnce = fullOnce; }
 	public void setCurrentTime(float time) { mCurrentTime = time; }
@@ -168,18 +179,18 @@ public class ComponentKeyFrameBase : GameComponent, IComponentBreakable
 	//----------------------------------------------------------------------------------------------------------------------------
 	protected void clearCallback()
 	{
-		mTremblingCallBack = null;
-		mTrembleDoneCallBack = null;
+		mDoingCallback = null;
+		mDoneCallback = null;
 	}
 	protected void afterApplyTrembling(bool done)
 	{
-		mTremblingCallBack?.Invoke(this, false);
+		mDoingCallback?.Invoke(this, false);
 		if (done)
 		{
 			setActive(false);
 			// 强制停止组件
 			stop(true);
-			doneCallback(ref mTrembleDoneCallBack, this);
+			doneCallback(ref mDoneCallback, this);
 		}
 	}
 	protected static void doneCallback(ref KeyFrameCallback curDoneCallback, ComponentKeyFrameBase component)

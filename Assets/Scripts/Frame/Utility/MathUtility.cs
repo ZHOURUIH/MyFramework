@@ -125,6 +125,7 @@ public class MathUtility : StringUtility
 	private static Point[] mTempDirect4 = new Point[4];
 	private static Vector3[] mTempControlPoint = new Vector3[4];
 	private static PathNode[] mTempNodeList;
+	private static int[] mGreaterPow2 = new int[513];
 	private static float[] sin_tb;
 	private static float[] cos_tb;
 	private const int mMaxFFTCount = 1024 * 8;
@@ -178,28 +179,61 @@ public class MathUtility : StringUtility
 		}
 		return finalValue;
 	}
+	public static float pow10(int power) { return pow(10, power); }
+	public static float pow2(int power) { return 1 << power; }
+	public static int getGreaterPowValue(int value, int pow)
+	{
+		int powValue = 1;
+		for(int i = 0; i < 31; ++i)
+		{
+			if (powValue >= value)
+			{
+				break;
+			}
+			powValue *= pow;
+		}
+		return powValue;
+	}
 	// 获得大于value的第一个2的n次方的数,value需要大于0
 	public static int getGreaterPow2(int value)
 	{
-		if (value <= 0)
+		if (mGreaterPow2[0] == 0)
 		{
-			return 0;
+			initGreaterPow2();
+		}
+		if (value < mGreaterPow2.Length)
+		{
+			return mGreaterPow2[value];
 		}
 		if (isPow2(value))
 		{
 			return value;
 		}
-		int curValue = 1;
-		int maxPow = 31;
-		for(int i = 0; i < maxPow; ++i)
+		// 由于2的9次方以下都可以通过查表的方式获得,所以此处直接从10次方开始
+		// 分2个档位,2的15次方,这样处理更快一些,比二分查找或顺序查找都快
+		const int Level0 = 15;
+		if (value < 1 << Level0)
 		{
-			if(curValue >= value)
+			for (int i = 10; i <= Level0; ++i)
 			{
-				return curValue;
+				if (1 << i >= value)
+				{
+					return 1 << i;
+				}
 			}
-			curValue <<= 1;
 		}
-		return curValue;
+		else
+		{
+			for (int i = Level0 + 1; i < 32; ++i)
+			{
+				if (1 << i >= value)
+				{
+					return 1 << i;
+				}
+			}
+		}
+		UnityUtility.logError("无法获取大于指定数的第一个2的n次方的数:" + value);
+		return 0;
 	}
 	// 得到数轴上浮点数右边的第一个整数,向上取整
 	public static int ceil(float value)
@@ -476,7 +510,7 @@ public class MathUtility : StringUtility
 							}
 							else
 							{
-								str = remove(str, i, i + 1);
+								str = str.Remove(i, 1);
 							}
 							changeMark = true;
 							break;
@@ -614,7 +648,7 @@ public class MathUtility : StringUtility
 	// precision表示小数点后保留几位小数
 	public static void checkFloat(ref float value, int precision = 4)
 	{
-		float helper = pow(10, precision);
+		float helper = pow10(precision);
 		int newValue = floor(value * helper + 0.5f);
 		value = newValue / helper;
 	}
@@ -1005,15 +1039,13 @@ public class MathUtility : StringUtility
 	}
 	public static bool intersectLineIgnoreY(Line3 line0, Line3 line1, out Vector3 intersect)
 	{
-		Vector2 point;
-		bool ret = intersectLine2(line0.toLine2IgnoreY(), line1.toLine2IgnoreY(), out point);
+		bool ret = intersectLine2(line0.toLine2IgnoreY(), line1.toLine2IgnoreY(), out Vector2 point);
 		intersect = new Vector3(point.x, 0.0f, point.y);
 		return ret;
 	}
 	public static bool intersectLineIgnoreX(Line3 line0, Line3 line1, out Vector3 intersect)
 	{
-		Vector2 point;
-		bool ret = intersectLine2(line0.toLine2IgnoreX(), line1.toLine2IgnoreX(), out point);
+		bool ret = intersectLine2(line0.toLine2IgnoreX(), line1.toLine2IgnoreX(), out Vector2 point);
 		intersect = new Vector3(0.0f, point.y, point.x);
 		return ret;
 	}
@@ -1117,13 +1149,10 @@ public class MathUtility : StringUtility
 	// 计算线段与三角形是否相交
 	public static bool intersectLineTriangle(Line2 line, Triangle2 triangle, out TriangleIntersectResult intersectResult, bool checkEndPoint = false)
 	{
-		Vector2 intersect0;
-		Vector2 intersect1;
-		Vector2 intersect2;
 		// 对三条边都要检测,计算出最近的一个交点
-		bool result0 = intersectLineSection(line, new Line2(triangle.mPoint0, triangle.mPoint1), out intersect0, checkEndPoint);
-		bool result1 = intersectLineSection(line, new Line2(triangle.mPoint1, triangle.mPoint2), out intersect1, checkEndPoint);
-		bool result2 = intersectLineSection(line, new Line2(triangle.mPoint2, triangle.mPoint0), out intersect2, checkEndPoint);
+		bool result0 = intersectLineSection(line, new Line2(triangle.mPoint0, triangle.mPoint1), out Vector2 intersect0, checkEndPoint);
+		bool result1 = intersectLineSection(line, new Line2(triangle.mPoint1, triangle.mPoint2), out Vector2 intersect1, checkEndPoint);
+		bool result2 = intersectLineSection(line, new Line2(triangle.mPoint2, triangle.mPoint0), out Vector2 intersect2, checkEndPoint);
 		Vector2 point = Vector2.zero;
 		Vector2 linePoint0 = Vector2.zero;
 		Vector2 linePoint1 = Vector2.zero;
@@ -3191,5 +3220,19 @@ public class MathUtility : StringUtility
 		T temp0 = list[index0];
 		list[index0] = list[index1];
 		list[index1] = temp0;
+	}
+	protected static void initGreaterPow2()
+	{
+		for (int i = 0; i < mGreaterPow2.Length; ++i)
+		{
+			if (i <= 1)
+			{
+				mGreaterPow2[i] = 2;
+			}
+			else
+			{
+				mGreaterPow2[i] = getGreaterPowValue(i, 2);
+			}
+		}
 	}
 }

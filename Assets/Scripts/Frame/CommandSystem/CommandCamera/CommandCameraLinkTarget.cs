@@ -14,9 +14,9 @@ public class CommandCameraLinkTarget : Command
 	public bool mLookAtTarget;              // 是否始终看向目标
 	public bool mAutoProcessKey;            // 是否在断开连接器后可以使用按键控制摄像机
 	public bool mImmediately;				// 是否直接将摄像机设置到当前连接器的正常位置
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mTarget = null;
 		mSwitchType = null;
 		mLinker = null;
@@ -41,13 +41,13 @@ public class CommandCameraLinkTarget : Command
 	}
 	public override void execute()
 	{
-		GameCamera camera = mReceiver as GameCamera;
+		var camera = mReceiver as GameCamera;
 		camera.linkTarget(mLinker, mTarget);
 		if (mTarget != null)
 		{
 			// 停止正在进行的摄像机运动
-			OT.MOVE(camera, camera.getPosition());
-			OT.ROTATE(camera, camera.getRotation());
+			FT.MOVE(camera, camera.getPosition());
+			FT.ROTATE(camera, camera.getRotation());
 			mLinker.setLookAtTarget(mLookAtTarget);
 			mLinker.setLookAtOffset(mLookatOffset);
 			// 不使用原来的相对位置,则设置新的相对位置

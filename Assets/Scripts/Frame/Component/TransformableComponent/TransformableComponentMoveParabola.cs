@@ -9,12 +9,22 @@ public class TransformableComponentMoveParabola : ComponentKeyFrameNormal, IComp
 	protected float mFactorA;       // mFactorA越大,抛物线的顶点越高
 	protected float mFactorB;       // 根据mFactorA和起点,终点计算出的抛物线公式中的参数
 	protected float mTopHeight;     // 抛物线的最高点高度,相对于起点
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mStartPos = Vector3.zero;
+		mTargetPos = Vector3.zero;
+		mTempB = Vector3.zero;
+		mFactorA = 0.0f;
+		mFactorB = 0.0f;
+		mTopHeight = 0.0f;
+	}
 	public void setTargetPos(Vector3 pos) { mTargetPos = pos; }
 	public void setStartPos(Vector3 pos) { mStartPos = pos; }
 	public void setTopHeight(float top) { mTopHeight = abs(top); }
-	public override void play(int keyframe, bool loop, float onceLength, float offset, bool fullOnce, float amplitude)
+	public override void play(int keyframe, bool loop, float onceLength, float offset, bool fullOnce)
 	{
-		base.play(keyframe, loop, onceLength, offset, fullOnce, amplitude);
+		base.play(keyframe, loop, onceLength, offset, fullOnce);
 		// 首先将起点和终点平移至原点
 		mTempB = mTargetPos - mStartPos;
 		// 即使起点和终点相同，也需要执行高度上的抛物线移动

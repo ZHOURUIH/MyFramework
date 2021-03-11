@@ -44,7 +44,7 @@ public class DictionaryPool : FrameSystem
 	public Dictionary<DictionaryType, HashSet<IEnumerable>> getInusedList() { return mInusedList; }
 	public Dictionary<DictionaryType, HashSet<IEnumerable>> getUnusedList() { return mUnusedList; }
 	// onlyOnce表示是否仅当作临时列表使用
-	public new Dictionary<K, V> newList<K, V>(out Dictionary<K, V> obj, bool onlyOnce = true)
+	public Dictionary<K, V> newList<K, V>(out Dictionary<K, V> obj, bool onlyOnce = true)
 	{
 		obj = null;
 		if (!isMainThread())
@@ -72,7 +72,7 @@ public class DictionaryPool : FrameSystem
 		addInuse(obj, onlyOnce);
 		return obj;
 	}
-	public new void destroyList<K, V>(Dictionary<K, V> list)
+	public void destroyList<K, V>(Dictionary<K, V> list)
 	{
 		if (!isMainThread())
 		{

@@ -8,9 +8,9 @@ public class CommandTransformableTrackTarget : Command
 	public TrackCallback mDoingCallback;
 	public Vector3 mOffset;
 	public float mSpeed;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mTarget = null;
 		mDoneCallback = null;
 		mDoingCallback = null;
@@ -19,8 +19,8 @@ public class CommandTransformableTrackTarget : Command
 	}
 	public override void execute()
 	{
-		Transformable obj = mReceiver as Transformable;
-		ComponentTrackTargetNormal component = obj.getComponent(out component);
+		var obj = mReceiver as Transformable;
+		obj.getComponent(out ComponentTrackTargetNormal component);
 		component.setActive(true);
 		component.setSpeed(mSpeed);
 		component.setTargetOffset(mOffset);

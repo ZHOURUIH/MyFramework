@@ -7,12 +7,13 @@ public class ClassPool : FrameSystem
 {
 	protected Dictionary<Type, HashSet<IClassObject>> mInusedList;
 	protected Dictionary<Type, HashSet<IClassObject>> mUnusedList;
+	protected static ulong mAssignIDSeed;
 	public ClassPool()
 	{
 		mInusedList = new Dictionary<Type, HashSet<IClassObject>>();
 		mUnusedList = new Dictionary<Type, HashSet<IClassObject>>();
 	}
-	public new IClassObject newClass(Type type)
+	public IClassObject newClass(Type type)
 	{
 		return newClass(type, out _);
 	}
@@ -45,8 +46,12 @@ public class ClassPool : FrameSystem
 		else
 		{
 			obj = createInstance<IClassObject>(type);
+			// 创建实例时重置是为了与后续复用的实例状态保持一致
+			obj.resetProperty();
 			isNewObject = true;
 		}
+		obj.setAssignID(++mAssignIDSeed);
+		obj.setDestroy(false);
 		// 添加到已使用列表
 		addInuse(obj);
 		return obj;
@@ -62,7 +67,7 @@ public class ClassPool : FrameSystem
 		}
 		return obj;
 	}
-	public new void destroyClass(IClassObject classObject)
+	public void destroyClass(IClassObject classObject)
 	{
 		if (!isMainThread())
 		{
@@ -70,6 +75,7 @@ public class ClassPool : FrameSystem
 			return;
 		}
 		classObject.resetProperty();
+		classObject.setDestroy(true);
 		addUnuse(classObject);
 		removeInuse(classObject);
 	}
@@ -82,6 +88,7 @@ public class ClassPool : FrameSystem
 		}
 		bool inuse = isInuse(classObject);
 		classObject.resetProperty();
+		classObject.setDestroy(true);
 		// 从已使用列表中移除
 		if (inuse)
 		{

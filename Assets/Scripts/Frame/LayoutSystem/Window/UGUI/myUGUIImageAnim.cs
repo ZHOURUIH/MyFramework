@@ -140,7 +140,7 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 	{
 		if (clear)
 		{
-			List<TextureAnimCallBack> tempList = newList(out tempList);
+			LIST(out List<TextureAnimCallBack> tempList);
 			tempList.AddRange(mPlayEndCallbackList);
 			mPlayEndCallbackList.Clear();
 			// 如果回调函数当前不为空,则是中断了更新
@@ -149,7 +149,7 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 			{
 				tempList[i](this, true);
 			}
-			destroyList(tempList);
+			UN_LIST(tempList);
 		}
 		if(callback != null)
 		{
@@ -210,7 +210,7 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 		}
 		if(callback)
 		{
-			List<TextureAnimCallBack> tempList = newList(out tempList);
+			LIST(out List<TextureAnimCallBack> tempList);
 			tempList.AddRange(mPlayEndCallbackList);
 			mPlayEndCallbackList.Clear();
 			int count = tempList.Count;
@@ -218,7 +218,7 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 			{
 				tempList[i](this, isBreak);
 			}
-			destroyList(tempList);
+			UN_LIST(tempList);
 		}
 		else
 		{

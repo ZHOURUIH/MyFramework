@@ -117,7 +117,7 @@ public class GlobalTouchSystem : FrameSystem
 		if (touchCount >= 2)
 		{
 			// 此处未考虑到触点离开窗口时以及再次进入窗口所引起的结束多点触控和开始多点触控的判断
-			List<IMouseEventCollect> endMultiWindow = newList(out endMultiWindow);
+			LIST(out List<IMouseEventCollect>  endMultiWindow);
 			mTempMultiTouchPoint.Clear();
 			mTempStartMultiWindow.Clear();
 			mTempMovingMultiWindow.Clear();
@@ -184,7 +184,7 @@ public class GlobalTouchSystem : FrameSystem
 			{
 				if (!mMultiTouchWindowList.ContainsKey(item.Key))
 				{
-					var info = newClass(Typeof<MultiTouchInfo>()) as MultiTouchInfo;
+					CLASS(out MultiTouchInfo info);
 					info.mWindow = item.Key;
 					info.mPhase = TouchPhase.Began;
 					info.mFinger0 = item.Value[0].fingerId;
@@ -226,11 +226,11 @@ public class GlobalTouchSystem : FrameSystem
 				item.onMultiTouchEnd();
 				if (mMultiTouchWindowList.TryGetValue(item, out MultiTouchInfo info))
 				{
-					destroyClass(info);
+					UN_CLASS(info);
 					mMultiTouchWindowList.Remove(item);
 				}
 			}
-			destroyList(endMultiWindow);
+			UN_LIST(endMultiWindow);
 		}
 		else
 		{
@@ -618,7 +618,7 @@ public class GlobalTouchSystem : FrameSystem
 		}
 		continueRay = true;
 		RaycastHit hit;
-		List<DistanceSortHelper> sortList = newList(out sortList);
+		LIST(out List<DistanceSortHelper> sortList);
 		int objCount = moveObjectList.Count;
 		for(int i = 0; i < objCount; ++i)
 		{
@@ -642,7 +642,7 @@ public class GlobalTouchSystem : FrameSystem
 				break;
 			}
 		}
-		destroyList(sortList);
+		UN_LIST(sortList);
 	}
 	// ignorePassRay表示是否忽略窗口的isPassRay属性,true表示认为所有的都允许射线穿透
 	// 但是ignorePassRay不会影响到PassOnlyArea和ParentPassOnly
@@ -658,9 +658,9 @@ public class GlobalTouchSystem : FrameSystem
 			retList.Clear();
 		}
 		// mParentPassOnlyList需要重新整理,排除未启用的布局的窗口
-		List<IMouseEventCollect> activeParentList = newList(out activeParentList);
+		LIST(out List<IMouseEventCollect> activeParentList);
 		// 在只允许父节点穿透的列表中已成功穿透的父节点列表
-		List<IMouseEventCollect> passParent = newList(out passParent);
+		LIST(out List<IMouseEventCollect> passParent);
 
 		// 筛选出已激活的父节点穿透窗口
 		int allParentCount = mParentPassOnlyList.Count;
@@ -718,8 +718,8 @@ public class GlobalTouchSystem : FrameSystem
 				break;
 			}
 		}
-		destroyList(passParent);
-		destroyList(activeParentList);
+		UN_LIST(passParent);
+		UN_LIST(activeParentList);
 	}
 	// obj的所有父节点中是否允许射线选中obj
 	// bindParentList是当前激活的已绑定的仅父节点区域穿透的列表

@@ -8,37 +8,35 @@ public class CommandTimeManagerScaleTime : Command
 	public float mStartScale;
 	public float mTargetScale;
 	public float mOnceLength;
-	public float mAmplitude;
 	public float mOffset;
 	public bool mFullOnce;
 	public bool mLoop;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mDoingCallBack = null;
 		mDoneCallBack = null;
 		mKeyframe = KEY_FRAME.NONE;
 		mStartScale = 1.0f;
 		mTargetScale = 1.0f;
 		mOnceLength = 1.0f;
-		mAmplitude = 1.0f;
 		mOffset = 0.0f;
 		mFullOnce = false;
 		mLoop = false;
 	}
 	public override void execute()
 	{
-		TimeComponentScale component = mTimeManager.getComponent(out component);
+		mTimeManager.getComponent(out TimeComponentScale component);
 		component.setTremblingCallback(mDoingCallBack);
 		component.setTrembleDoneCallback(mDoneCallBack);
 		component.setActive(true);
 		component.setStartScale(mStartScale);
 		component.setTargetScale(mTargetScale);
-		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
+		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce);
 	}
 	public override string showDebugInfo()
 	{
-		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mStartScale:" + mStartScale +
-			", mTargetScale:" + mTargetScale + ", mLoop:" + mLoop + ", mAmplitude:" + mAmplitude + ", mFullOnce:" + mFullOnce;
+		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + 
+			", mStartScale:" + mStartScale + ", mTargetScale:" + mTargetScale + ", mLoop:" + mLoop + ", mFullOnce:" + mFullOnce;
 	}
 }

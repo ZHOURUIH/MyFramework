@@ -17,6 +17,13 @@ public class CharacterDecisionTree : GameComponent
 		base.init(owner);
 		mTimer.init(1.0f, 1.0f);
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mNodeList.Clear();
+		mRootNode = null;
+		mTimer.stop();
+	}
 	public override void destroy()
 	{
 		clear();
@@ -37,14 +44,14 @@ public class CharacterDecisionTree : GameComponent
 		// 先清空子节点
 		if(node.mChildList.Count > 0)
 		{
-			List<DTreeNode> childList = newList(out childList);
+			LIST(out List<DTreeNode> childList);
 			childList.AddRange(node.mChildList);
 			int count = childList.Count;
 			for(int i = 0; i < count; ++i)
 			{
 				clearNode(childList[i]);
 			}
-			destroyList(childList);
+			UN_LIST(childList);
 		}
 		// 然后将节点自身移除
 		removeNode(node);
@@ -113,7 +120,7 @@ public class CharacterDecisionTree : GameComponent
 		}
 		if (mTimer.tickTimer(elapsedTime))
 		{
-			List<DTreeNode> deadList = newList(out deadList);
+			LIST(out List<DTreeNode> deadList);
 			foreach (var item in mNodeList)
 			{
 				if(item.Value.mDeadNode)
@@ -127,7 +134,7 @@ public class CharacterDecisionTree : GameComponent
 			{
 				clearNode(deadList[i]);
 			}
-			destroyList(deadList);
+			UN_LIST(deadList);
 			// 从根节点开始遍历
 			if (mRootNode != null && mRootNode.condition())
 			{

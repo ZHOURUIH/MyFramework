@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
 
 // 可用于WindowObjectPool和WindowObjectPoolMap的类,常用于可回收复用的窗口
 // 每次创建新的对象时都从template克隆

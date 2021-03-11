@@ -19,6 +19,13 @@ public class CharacterStateMachine : GameComponent
 		base.init(owner);
 		mPlayer = owner as Character;
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mStateTypeList.clear();
+		mStateMap.Clear();
+		mPlayer = null;
+	}
 	public override void destroy()
 	{
 		// 移除全部状态
@@ -28,10 +35,10 @@ public class CharacterStateMachine : GameComponent
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		var stateTypeList = mStateTypeList.StartForeach();
+		var stateTypeList = mStateTypeList.startForeach();
 		foreach (var itemList in stateTypeList)
 		{
-			var stateList = itemList.Value.StartForeach();
+			var stateList = itemList.Value.startForeach();
 			foreach(var item in stateList)
 			{
 				if (!item.isActive())
@@ -46,17 +53,17 @@ public class CharacterStateMachine : GameComponent
 					item.keyProcess(frameTime);
 				}
 			}
-			itemList.Value.EndForeach(stateList);
+			itemList.Value.endForeach(stateList);
 		}
-		mStateTypeList.EndForeach(stateTypeList);
+		mStateTypeList.endForeach(stateTypeList);
 	}
 	public override void fixedUpdate(float elapsedTime)
 	{
 		base.fixedUpdate(elapsedTime);
-		var stateTypeList = mStateTypeList.StartForeach();
+		var stateTypeList = mStateTypeList.startForeach();
 		foreach (var itemList in stateTypeList)
 		{
-			var stateList = itemList.Value.StartForeach();
+			var stateList = itemList.Value.startForeach();
 			foreach (var item in stateList)
 			{
 				if (!item.isActive())
@@ -65,9 +72,9 @@ public class CharacterStateMachine : GameComponent
 				}
 				item.fixedUpdate(elapsedTime);
 			}
-			itemList.Value.EndForeach(stateList);
+			itemList.Value.endForeach(stateList);
 		}
-		mStateTypeList.EndForeach(stateTypeList);
+		mStateTypeList.endForeach(stateTypeList);
 	}
 	public bool addState(Type type, StateParam param, out PlayerState state, float stateTime, uint id = 0)
 	{
@@ -91,12 +98,12 @@ public class CharacterStateMachine : GameComponent
 		state.enter();
 
 		// 添加到状态列表
-		if (!mStateTypeList.TryGetValue(type, out SafeDeepList<PlayerState> stateList))
+		if (!mStateTypeList.tryGetValue(type, out SafeDeepList<PlayerState> stateList))
 		{
 			stateList = new SafeDeepList<PlayerState>();
-			mStateTypeList.Add(type, stateList);
+			mStateTypeList.add(type, stateList);
 		}
-		stateList.Add(state);
+		stateList.add(state);
 		mStateMap.Add(state.getID(), state);
 		return true;
 	}
@@ -116,8 +123,8 @@ public class CharacterStateMachine : GameComponent
 		state.setActive(false);
 
 		// 从状态列表中移除
-		mStateTypeList.TryGetValue(Typeof(state), out SafeDeepList<PlayerState> stateList);
-		stateList.Remove(state);
+		mStateTypeList.tryGetValue(Typeof(state), out SafeDeepList<PlayerState> stateList);
+		stateList.remove(state);
 		mStateMap.Remove(state.getID());
 
 		state.leave(isBreak, param);
@@ -129,7 +136,7 @@ public class CharacterStateMachine : GameComponent
 	// 移除一个状态组中的所有状态
 	public void removeStateInGroup(Type group, bool isBreak, string param)
 	{
-		var stateUpdateList = mStateTypeList.StartForeach();
+		var stateUpdateList = mStateTypeList.startForeach();
 		foreach (var item in stateUpdateList)
 		{
 			Type stateType = item.Key;
@@ -139,33 +146,33 @@ public class CharacterStateMachine : GameComponent
 			}
 			if (groupList.Contains(group))
 			{
-				var updateList = item.Value.StartForeach();
+				var updateList = item.Value.startForeach();
 				foreach(var state in updateList)
 				{
 					removeState(state, isBreak, param);
 				}
-				item.Value.EndForeach(updateList);
+				item.Value.endForeach(updateList);
 			}
 		}
-		mStateTypeList.EndForeach(stateUpdateList);
+		mStateTypeList.endForeach(stateUpdateList);
 	}
 	public void clearState()
 	{
 		// 遍历当前列表,待添加列表,退出所有状态,清空列表,通知角色
-		var stateUpdateList = mStateTypeList.StartForeach();
+		var stateUpdateList = mStateTypeList.startForeach();
 		foreach (var item in stateUpdateList)
 		{
-			var updateList = item.Value.StartForeach();
+			var updateList = item.Value.startForeach();
 			foreach (var state in updateList)
 			{
-				state.leave(true, FrameDefine.DESTROY_PLAYER_STATE);
+				state.destroy();
 				state.setActive(false);
 				destroyState(state);
 			}
-			item.Value.EndForeach(updateList);
+			item.Value.endForeach(updateList);
 		}
-		mStateTypeList.EndForeach(stateUpdateList);
-		mStateTypeList.Clear();
+		mStateTypeList.endForeach(stateUpdateList);
+		mStateTypeList.clear();
 	}
 	public SafeDeepDictionary<Type, SafeDeepList<PlayerState>> getStateList() { return mStateTypeList; }
 	public PlayerState getState(uint id)
@@ -175,16 +182,16 @@ public class CharacterStateMachine : GameComponent
 	}
 	public SafeDeepList<PlayerState> getState(Type type)
 	{
-		mStateTypeList.TryGetValue(type, out SafeDeepList<PlayerState> stateList);
+		mStateTypeList.tryGetValue(type, out SafeDeepList<PlayerState> stateList);
 		return stateList;
 	}
 	public PlayerState getFirstState(Type type)
 	{
-		if (!mStateTypeList.TryGetValue(type, out SafeDeepList<PlayerState> stateList))
+		if (!mStateTypeList.tryGetValue(type, out SafeDeepList<PlayerState> stateList))
 		{
 			return null;
 		}
-		foreach (var item in stateList.GetMainList())
+		foreach (var item in stateList.getMainList())
 		{
 			if (item.isActive())
 			{
@@ -204,9 +211,9 @@ public class CharacterStateMachine : GameComponent
 		for (int i = 0; i < count; ++i)
 		{
 			var curStateList = getState(groupStateList[i]);
-			if (curStateList != null && curStateList.Count() > 0)
+			if (curStateList != null && curStateList.count() > 0)
 			{
-				return curStateList.GetMainList()[0];
+				return curStateList.getMainList()[0];
 			}
 		}
 		return null;
@@ -224,7 +231,7 @@ public class CharacterStateMachine : GameComponent
 			var curStateList = getState(groupStateList[i]);
 			if(curStateList != null)
 			{
-				stateList.AddRange(curStateList.GetMainList());
+				stateList.AddRange(curStateList.getMainList());
 			}
 		}
 	}
@@ -287,7 +294,7 @@ public class CharacterStateMachine : GameComponent
 	protected PlayerState createState(Type type, StateParam param, uint id = 0)
 	{
 		// 用对象池的方式创建状态对象
-		var state = newClass(type) as PlayerState;
+		var state = CLASS<PlayerState>(type);
 		state.setParam(param);
 		if (id == 0)
 		{
@@ -298,7 +305,7 @@ public class CharacterStateMachine : GameComponent
 	}
 	protected void destroyState(PlayerState state)
 	{
-		destroyClass(state);
+		UN_CLASS(state);
 	}
 	protected bool canAddState(PlayerState state)
 	{
@@ -308,10 +315,10 @@ public class CharacterStateMachine : GameComponent
 		}
 		Type stateType = Typeof(state);
 		// 检查是否有跟要添加的状态互斥且不能移除的状态
-		var stateTypeList = mStateTypeList.GetMainList();
+		var stateTypeList = mStateTypeList.getMainList();
 		foreach (var itemList in stateTypeList)
 		{
-			var stateList = itemList.Value.GetMainList();
+			var stateList = itemList.Value.getMainList();
 			foreach (var item in stateList)
 			{
 				if (item != state && item.isActive() && !allowAddStateByGroup(stateType, Typeof(item)))
@@ -378,10 +385,10 @@ public class CharacterStateMachine : GameComponent
 
 		Type stateType = Typeof(state);
 		// 移除状态组互斥的状态
-		var stateForeachList = mStateTypeList.StartForeach();
+		var stateForeachList = mStateTypeList.startForeach();
 		foreach (var itemList in stateForeachList)
 		{
-			var stateList = itemList.Value.StartForeach();
+			var stateList = itemList.Value.startForeach();
 			foreach (var item in stateList)
 			{
 				if (item != state && item.isActive() && !allowKeepStateByGroup(stateType, Typeof(item)))
@@ -389,9 +396,9 @@ public class CharacterStateMachine : GameComponent
 					removeState(item, true);
 				}
 			}
-			itemList.Value.EndForeach(stateList);
+			itemList.Value.endForeach(stateList);
 		}
-		mStateTypeList.EndForeach(stateForeachList);
+		mStateTypeList.endForeach(stateForeachList);
 	}
 	// 添加了newState以后是否还会保留existState
 	protected bool allowKeepStateByGroup(Type newState, Type existState)

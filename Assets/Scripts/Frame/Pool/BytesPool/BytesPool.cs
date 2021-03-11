@@ -33,7 +33,6 @@ public class BytesPool : FrameSystem
 			return null;
 		}
 		byte[] bytes = null;
-		// 锁定期间不能调用任何其他非库函数,否则可能会发生死锁
 		// 先从未使用的列表中查找是否有可用的对象
 		if (mUnusedList.TryGetValue(size, out HashSet<byte[]> bytesLis) && bytesLis.Count > 0)
 		{

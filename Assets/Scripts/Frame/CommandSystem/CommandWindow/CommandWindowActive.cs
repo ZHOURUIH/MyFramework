@@ -3,14 +3,14 @@
 public class CommandWindowActive : Command
 {
 	public bool mActive;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mActive = true;
 	}
 	public override void execute()
 	{
-		myUIObject uiObjcet = mReceiver as myUIObject;
+		var uiObjcet = mReceiver as myUIObject;
 		uiObjcet.setActive(mActive);
 	}
 	public override string showDebugInfo()

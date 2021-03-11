@@ -49,7 +49,7 @@ public class ObjectPool : FrameSystem
 		int groupCount = mAsyncLoadGroup.Count;
 		if(groupCount > 0)
 		{
-			List<AsyncLoadGroup> tempList = newList(out tempList);
+			LIST(out List<AsyncLoadGroup> tempList);
 			for (int i = 0; i < groupCount; ++i)
 			{
 				if (mAsyncLoadGroup[i].isAllLoaded())
@@ -64,14 +64,14 @@ public class ObjectPool : FrameSystem
 			{
 				var item = tempList[i];
 				item.mCallback(item.mNameList, item.mUserData);
-				destroyClass(item);
+				UN_CLASS(item);
 			}
-			destroyList(tempList);
+			UN_LIST(tempList);
 		}
 	}
 	public void createObjectAsync(List<string> fileWithPath, CreateObjectGroupCallback callback, int objectTag, object userData = null)
 	{
-		var group = newClass(Typeof<AsyncLoadGroup>()) as AsyncLoadGroup;
+		CLASS(out AsyncLoadGroup group);
 		group.mCallback = callback;
 		group.mUserData = userData;
 		mAsyncLoadGroup.Add(group);
@@ -108,7 +108,7 @@ public class ObjectPool : FrameSystem
 		}
 		else
 		{
-			var param = newClass(Typeof<PrefabLoadParam>()) as PrefabLoadParam;
+			CLASS(out PrefabLoadParam param);
 			param.mCallback = callback;
 			param.mTag = objectTag;
 			param.mUserData = userData;
@@ -122,7 +122,7 @@ public class ObjectPool : FrameSystem
 		ObjectInfo objInfo = getUnusedObject(fileWithPath);
 		if (objInfo == null)
 		{
-			objInfo = newClass(Typeof<ObjectInfo>()) as ObjectInfo;
+			CLASS(out objInfo);
 			GameObject prefab = mResourceManager.loadResource<GameObject>(fileWithPath);
 			if (prefab == null)
 			{
@@ -141,7 +141,7 @@ public class ObjectPool : FrameSystem
 	}
 	public void destroyAllWithTag(int objectTag)
 	{
-		List<ObjectInfo> tempList = newList(out tempList);
+		LIST(out List<ObjectInfo> tempList);
 		foreach (var item in mInstanceList)
 		{
 			if (item.Value.getTag() == objectTag)
@@ -154,7 +154,7 @@ public class ObjectPool : FrameSystem
 		{
 			destroyObject(ref tempList[i].mObject, true);
 		}
-		destroyList(tempList);
+		UN_LIST(tempList);
 	}
 	public void destroyObject(ref GameObject obj, bool destroyReally)
 	{
@@ -193,7 +193,7 @@ public class ObjectPool : FrameSystem
 	}
 	protected void onPrefabGroupLoaded(Object asset, Object[] subAssets, byte[] bytes, object userData, string loadPath)
 	{
-		var objInfo = newClass(Typeof<ObjectInfo>()) as ObjectInfo;
+		CLASS(out ObjectInfo objInfo);
 		objInfo.setTag((int)userData);
 		objInfo.setUsing(true);
 		// 实例化,只能同步进行
@@ -218,17 +218,17 @@ public class ObjectPool : FrameSystem
 		PrefabLoadParam param = userData as PrefabLoadParam;
 		if (asset == null)
 		{
-			destroyClass(param);
+			UN_CLASS(param);
 			return;
 		}
-		var objInfo = newClass(Typeof<ObjectInfo>()) as ObjectInfo;
+		CLASS(out ObjectInfo objInfo);
 		objInfo.setTag(param.mTag);
 		objInfo.setUsing(true);
 		// 实例化,只能同步进行
 		objInfo.createObject(asset as GameObject, loadPath);
 		addObject(objInfo);
 		objectLoaded(objInfo.mObject, param.mCallback, param.mUserData);
-		destroyClass(param);
+		UN_CLASS(param);
 	}
 	protected ObjectInfo getUnusedObject(string fileWithPath)
 	{
@@ -265,6 +265,6 @@ public class ObjectPool : FrameSystem
 			infoList.Remove(objInfo.mObject);
 		}
 		mInstanceList.Remove(objInfo.mObject);
-		destroyClass(objInfo);
+		UN_CLASS(objInfo);
 	}
 }

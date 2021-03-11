@@ -3,8 +3,8 @@ using System;
 
 public class WindowComponentDrag : ComponentDrag
 {
-	protected myUIObject mWindow;
 	protected myUIObject mDragHoverWindow;
+	protected myUIObject mWindow;
 	protected OnDraging mOnDraging;
 	protected bool mMovable;
 	public WindowComponentDrag()
@@ -15,6 +15,14 @@ public class WindowComponentDrag : ComponentDrag
 	{
 		base.init(owner);
 		mWindow = mComponentOwner as myUIObject;
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mDragHoverWindow = null;
+		mWindow = null;
+		mOnDraging = null;
+		mMovable = true;
 	}
 	public void setDragingCallback(OnDraging callback) { mOnDraging = callback; }
 	public override void setActive(bool active)

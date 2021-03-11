@@ -1,6 +1,6 @@
 ﻿using System;
 
-public class CommandReceiver : GameBase
+public class CommandReceiver : GameBasePooledObject
 {
 	protected string mName;
 	public virtual void receiveCommand(Command cmd)
@@ -11,8 +11,12 @@ public class CommandReceiver : GameBase
 		cmd.setState(EXECUTE_STATE.EXECUTED);
 		cmd.invokeEndCallBack();
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mName = null;
+	}
 	public virtual string getName() { return mName; }
-	// 谨慎使用设置名字
 	public virtual void setName(string name) { mName = name; }
 	public virtual void destroy()
 	{

@@ -3,14 +3,14 @@
 public class CommandSocketConnectClientConnect : Command
 {
 	public bool mAsync;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mAsync = false;
 	}
 	public override void execute()
 	{
-		SocketConnectClient socketClient = mReceiver as SocketConnectClient;
+		var socketClient = mReceiver as SocketConnectClient;
 		socketClient.startConnect(mAsync);
 	}
 }

@@ -6,9 +6,9 @@ public class CommandTransformableLerpRotation : Command
 	public LerpCallback mLerpDoneCallBack;
 	public Vector3 mTargetRotation;
 	public float mLerpSpeed;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mLerpingCallBack = null;
 		mLerpDoneCallBack = null;
 		mTargetRotation = Vector3.zero;
@@ -16,8 +16,8 @@ public class CommandTransformableLerpRotation : Command
 	}
 	public override void execute()
 	{
-		Transformable obj = mReceiver as Transformable;
-		TransformableComponentLerpRotation component = obj.getComponent(out component);
+		var obj = mReceiver as Transformable;
+		obj.getComponent(out TransformableComponentLerpRotation component);
 		component.setLerpingCallback(mLerpingCallBack);
 		component.setLerpDoneCallback(mLerpDoneCallBack);
 		component.setActive(true);

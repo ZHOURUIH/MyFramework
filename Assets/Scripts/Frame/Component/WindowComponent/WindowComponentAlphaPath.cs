@@ -5,7 +5,7 @@ public class WindowComponentAlphaPath : ComponentPathAlphaNormal, IComponentModi
 	//------------------------------------------------------------------------------------------------------------
 	protected override void setValue(float value)
 	{
-		myUIObject obj = mComponentOwner as myUIObject;
+		var obj = mComponentOwner as myUIObject;
 		obj.setAlpha(value, false);
 	}
 }

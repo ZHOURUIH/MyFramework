@@ -7,9 +7,9 @@ public class CommandGameScenePlayAudio : Command
 	public float mVolume;
 	public bool mUseVolumeCoe;       // 是否启用数据表格中的音量系数
 	public bool mLoop;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mSound = SOUND_DEFINE.MIN;
 		mSoundFileName = null;
 		mLoop = false;
@@ -18,8 +18,8 @@ public class CommandGameScenePlayAudio : Command
 	}
 	public override void execute()
 	{
-		GameScene gameScene = mReceiver as GameScene;
-		GameSceneComponentAudio component = gameScene.getComponent(out component);
+		var gameScene = mReceiver as GameScene;
+		gameScene.getComponent(out GameSceneComponentAudio component);
 		string soundName = mSound != SOUND_DEFINE.MIN ? mAudioManager.getAudioName(mSound) : mSoundFileName;
 		if (mUseVolumeCoe)
 		{

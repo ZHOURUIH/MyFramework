@@ -2,6 +2,7 @@
 using UnityEngine;
 using Mono.Data.Sqlite;
 using System.Collections.Generic;
+using System.Text;
 
 public class SQLiteData : GameBase
 {
@@ -21,54 +22,65 @@ public class SQLiteData : GameBase
 	{
 		appendValueInt(ref valueString, mID);
 	}
-	public string getValue(string paramName) { return mValues[paramName]; }
+	public virtual void insert(MyStringBuilder valueString)
+	{
+		appendValueInt(valueString, mID);
+	}
+	public string getValue(string paramName) 
+	{
+		if(!mValues.TryGetValue(paramName, out string value))
+		{
+			logError("找不到字段名:" + paramName);
+		}
+		return value;
+	}
 	//--------------------------------------------------------------------------------------------------------
 	protected void parseParam(SqliteDataReader reader, ref List<bool> value, string paramName)
 	{
 		string str = reader[paramName].ToString();
-		stringToBoolArray(str, value);
+		stringToBools(str, value);
 		mValues.Add(paramName, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref List<float> value, string paramName)
 	{
 		string str = reader[paramName].ToString();
-		stringToFloatArray(str, value);
+		stringToFloats(str, value);
 		mValues.Add(paramName, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref List<int> value, string paramName)
 	{
 		string str = reader[paramName].ToString();
-		stringToIntArray(str, value);
+		stringToInts(str, value);
 		mValues.Add(paramName, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref List<ushort> value, string paramName)
 	{
 		string str = reader[paramName].ToString();
-		stringToUShortArray(str, value);
+		stringToUShorts(str, value);
 		mValues.Add(paramName, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref List<uint> value, string paramName)
 	{
 		string str = reader[paramName].ToString();
-		stringToUIntArray(str, value);
+		stringToUInts(str, value);
 		mValues.Add(paramName, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref List<byte> value, string paramName)
 	{
 		string str = reader[paramName].ToString();
-		stringToByteArray(str, value);
+		stringToBytes(str, value);
 		mValues.Add(paramName, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref List<sbyte> value, string paramName)
 	{
 		string str = reader[paramName].ToString();
-		stringToSByteArray(str, value);
+		stringToSBytes(str, value);
 		mValues.Add(paramName, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref List<string> value, string paramName)
 	{
 		string str = reader[paramName].ToString();
-		stringToStringArray(str, value);
+		stringToStrings(str, value);
 		mValues.Add(paramName, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref string value, string paramName)

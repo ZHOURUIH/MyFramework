@@ -13,7 +13,7 @@ public class GameKeyframeEditor : GameEditorBase
 
 		if (GUILayout.Button("´´½¨"))
 		{
-			GameKeyframe keyframe = target as GameKeyframe;
+			var keyframe = target as GameKeyframe;
 			keyframe.CreateKeyframe();
 			EditorUtility.SetDirty(target);
 		}
@@ -24,7 +24,7 @@ public class GameKeyframeEditor : GameEditorBase
 	protected void DrawCommonProperties ()
 	{
 		List<CurveInfo> deleteKeyList = null;
-		GameKeyframe keyframe = target as GameKeyframe;
+		var keyframe = target as GameKeyframe;
 		if(keyframe.mCurveList != null)
 		{
 			foreach (var item in keyframe.mCurveList)

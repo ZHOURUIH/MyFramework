@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System;
 
-public class AsyncLoadGroup : FrameBase, IClassObject
+public class AsyncLoadGroup : FrameBasePooledObject
 {
 	public Dictionary<string, GameObject> mNameList;
 	public CreateObjectGroupCallback mCallback;
@@ -29,8 +29,9 @@ public class AsyncLoadGroup : FrameBase, IClassObject
 			activeObject(item.Value);
 		}
 	}
-	public void resetProperty()
+	public override void resetProperty()
 	{
+		base.resetProperty();
 		mNameList.Clear();
 		mCallback = null;
 		mUserData = null;

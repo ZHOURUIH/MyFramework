@@ -14,6 +14,14 @@ public class CameraLinkerAcceleration : CameraLinker
 		mSpringZ = new Spring();
 		mUseTargetYaw = true;
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mSpringX.reset();
+		mSpringY.reset();
+		mSpringZ.reset();
+		mUseTargetYaw = true;
+	}
 	public override void setRelativePosition(Vector3 pos, Type switchType = null, bool useDefaultSwitchSpeed = true, float switchSpeed = 1.0f)
 	{
 		base.setRelativePosition(pos, switchType, useDefaultSwitchSpeed, switchSpeed);

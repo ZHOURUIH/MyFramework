@@ -2,46 +2,38 @@
 
 public class CommandTransformableRotate : Command
 {
-	public KeyFrameCallback mTremblingCallBack;
-	public KeyFrameCallback mTrembleDoneCallBack;
+	public KeyFrameCallback mDoingCallback;
+	public KeyFrameCallback mDoneCallback;
 	public Vector3 mStartRotation;
 	public Vector3 mTargetRotation;
 	public KEY_FRAME mKeyframe;
 	public float mOnceLength;
-	public float mAmplitude;
 	public float mOffset;
-	public bool mRandomOffset;
 	public bool mFullOnce;
 	public bool mLoop;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
-		mTremblingCallBack = null;
-		mTrembleDoneCallBack = null;
+		base.resetProperty();
+		mDoingCallback = null;
+		mDoneCallback = null;
 		mStartRotation = Vector3.zero;
 		mTargetRotation = Vector3.zero;
 		mKeyframe = KEY_FRAME.NONE;
 		mOnceLength = 1.0f;
-		mAmplitude = 1.0f;
 		mOffset = 0.0f;
-		mRandomOffset = false;
 		mFullOnce = true;
 		mLoop = false;
 	}
 	public override void execute()
 	{
-		Transformable obj = mReceiver as Transformable;
-		TransformableComponentRotate component = obj.getComponent(out component);
-		component.setTremblingCallback(mTremblingCallBack);
-		component.setTrembleDoneCallback(mTrembleDoneCallBack);
+		var obj = mReceiver as Transformable;
+		obj.getComponent(out TransformableComponentRotate component);
+		component.setTremblingCallback(mDoingCallback);
+		component.setTrembleDoneCallback(mDoneCallback);
 		component.setActive(true);
-		if (mRandomOffset)
-		{
-			mOffset = randomFloat(0.0f, mOnceLength);
-		}
 		component.setTargetRotation(mTargetRotation);
 		component.setStartRotation(mStartRotation);
-		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
+		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce);
 		if (component.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
@@ -50,8 +42,7 @@ public class CommandTransformableRotate : Command
 	}
 	public override string showDebugInfo()
 	{
-		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mLoop:" + mLoop +
-			", mAmplitude:" + mAmplitude + ", mFullOnce:" + mFullOnce + ", mRandomOffset:" + mRandomOffset + ", mStartRotation:" + mStartRotation
-			+ ", mTargetRotation:" + mTargetRotation;
+		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mLoop:" + mLoop
+			+ ", mFullOnce:" + mFullOnce + ", mStartRotation:" + mStartRotation + ", mTargetRotation:" + mTargetRotation;
 	}
 }

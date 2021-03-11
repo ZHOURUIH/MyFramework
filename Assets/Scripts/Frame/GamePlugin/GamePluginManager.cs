@@ -44,7 +44,7 @@ public class GamePluginManager : FrameSystem
 		{
 			return;
 		}
-		List<string> fileList = newList(out fileList);
+		LIST(out List<string> fileList);
 		findFiles(FrameDefine.F_GAME_PLUGIN_PATH, fileList, FrameDefine.DLL_PLUGIN_SUFFIX);
 		int count = fileList.Count;
 		for (int i = 0; i < count; ++i)
@@ -53,7 +53,7 @@ public class GamePluginManager : FrameSystem
 			openFile(fileList[i], out fileBuffer, true);
 			loadPlugin(fileBuffer, getFileName(fileList[i]));
 		}
-		destroyList(fileList);
+		UN_LIST(fileList);
 #endif
 	}
 	protected bool loadPlugin(byte[] rawDll, string fileName)

@@ -4,10 +4,11 @@ using System;
 // 不支持带参构造的类,因为在再次利用时参数无法正确传递
 public class ClassPoolSingle : FrameBase
 {
-	protected Type mType;
 	protected HashSet<IClassObject> mInusedList;
 	protected HashSet<IClassObject> mUnusedList;
 	protected ThreadLock mListLock;
+	protected Type mType;
+	protected static ulong mAssignIDSeed;
 	public ClassPoolSingle()
 	{
 		mInusedList = new HashSet<IClassObject>();
@@ -31,23 +32,27 @@ public class ClassPoolSingle : FrameBase
 				break;
 			}
 			mUnusedList.Remove(obj);
-			isNewObject = false;
 		}
 		// 未使用列表中没有,创建一个新的
 		else
 		{
 			obj = createInstance<IClassObject>(mType);
+			// 创建实例时重置是为了与后续复用的实例状态保持一致
+			obj.resetProperty();
 			isNewObject = true;
 		}
+		obj.setAssignID(++mAssignIDSeed);
+		obj.setDestroy(false);
 		// 添加到已使用列表
 		mInusedList.Add(obj);
 		mListLock.unlock();
 		return obj;
 	}
-	public new void destroyClass(IClassObject classObject)
+	public void destroyClass(IClassObject classObject)
 	{
 		mListLock.waitForUnlock();
 		classObject.resetProperty();
+		classObject.setDestroy(true);
 		// 加入未使用列表
 		if (!mUnusedList.Add(classObject))
 		{
@@ -65,6 +70,7 @@ public class ClassPoolSingle : FrameBase
 		bool inuse = isInuse(classObject);
 		mListLock.waitForUnlock();
 		classObject.resetProperty();
+		classObject.setDestroy(true);
 		// 从已使用列表中移除
 		if (inuse)
 		{

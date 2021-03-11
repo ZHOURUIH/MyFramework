@@ -3,15 +3,15 @@
 public class CommandGameSceneChangeAudioVolume : Command
 {
 	public float mVolume;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mVolume = 0.0f;
 	}
 	public override void execute()
 	{
-		GameScene gameScene = mReceiver as GameScene;
-		GameSceneComponentAudio audio = gameScene.getComponent(out audio);
+		var gameScene = mReceiver as GameScene;
+		gameScene.getComponent(out GameSceneComponentAudio audio);
 		audio?.setVolume(mVolume);
 	}
 	public override string showDebugInfo()

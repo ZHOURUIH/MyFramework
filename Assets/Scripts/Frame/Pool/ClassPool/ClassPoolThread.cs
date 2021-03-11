@@ -43,7 +43,7 @@ public class ClassPoolThread : FrameSystem
 		}
 		return obj;
 	}
-	public new void destroyClass(IClassObject classObject)
+	public void destroyClass(IClassObject classObject)
 	{
 		mListLock.waitForUnlock();
 		if (!mPoolList.TryGetValue(Typeof(classObject), out ClassPoolSingle singlePool))

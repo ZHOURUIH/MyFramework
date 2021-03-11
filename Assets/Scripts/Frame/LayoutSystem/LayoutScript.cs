@@ -4,7 +4,7 @@ using System;
 
 public abstract class LayoutScript : GameBase, IDelayCmdWatcher
 {
-	protected List<int> mDelayCmdList;  // 布局显示和隐藏时的延迟命令列表,当命令执行时,会从列表中移除该命令
+	protected HashSet<ulong> mDelayCmdList;  // 布局显示和隐藏时的延迟命令列表,当命令执行时,会从列表中移除该命令
 	protected CommandCallback mCmdCallback;
 	protected GameLayout mLayout;
 	protected myUIObject mRoot;
@@ -12,7 +12,7 @@ public abstract class LayoutScript : GameBase, IDelayCmdWatcher
 	protected int mID;
 	public LayoutScript()
 	{
-		mDelayCmdList = new List<int>();
+		mDelayCmdList = new HashSet<ulong>();
 		mCmdCallback = onCmdStarted;
 	}
 	public virtual void destroy()
@@ -287,30 +287,28 @@ public abstract class LayoutScript : GameBase, IDelayCmdWatcher
 	public Type getType() { return mType; }
 	public virtual void addDelayCmd(Command cmd)
 	{
-		mDelayCmdList.Add(cmd.mAssignID);
+		mDelayCmdList.Add(cmd.getAssignID());
 		cmd.addStartCommandCallback(mCmdCallback);
 	}
-	public virtual void interruptCommand(int assignID, bool showError = true)
+	public virtual void interruptCommand(ulong assignID, bool showError = true)
 	{
-		if (mDelayCmdList.Contains(assignID))
+		if (mDelayCmdList.Remove(assignID))
 		{
-			mDelayCmdList.Remove(assignID);
 			mCommandSystem.interruptCommand(assignID, showError);
 		}
 	}
 	public virtual void onCmdStarted(Command cmd)
 	{
-		if (!mDelayCmdList.Remove(cmd.mAssignID))
+		if (!mDelayCmdList.Remove(cmd.getAssignID()))
 		{
 			logError("命令执行后移除命令失败!");
 		}
 	}
 	public virtual void interruptAllCommand()
 	{
-		int count = mDelayCmdList.Count;
-		for (int i = 0; i < count; ++i)
+		foreach(var item in mDelayCmdList)
 		{
-			mCommandSystem.interruptCommand(mDelayCmdList[i], false);
+			mCommandSystem.interruptCommand(item, false);
 		}
 		mDelayCmdList.Clear();
 	}

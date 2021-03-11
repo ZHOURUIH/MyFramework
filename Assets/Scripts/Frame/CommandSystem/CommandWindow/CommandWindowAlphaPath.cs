@@ -6,19 +6,17 @@ public class CommandWindowAlphaPath : Command
 	public KeyFrameCallback mDoingCallBack;
 	public KeyFrameCallback mDoneCallBack;
 	public float mValueOffset;			// 透明偏移,计算出的值会再加上这个偏移作为最终透明
-	public float mAmplitude;
 	public float mOffset;
 	public float mSpeed;
 	public bool mFullOnce;
 	public bool mLoop;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mValueKeyFrame = null;
 		mDoingCallBack = null;
 		mDoneCallBack = null;
 		mOffset = 0.0f;
-		mAmplitude = 1.0f;
 		mSpeed = 1.0f;
 		mValueOffset = 1.0f;
 		mLoop = false;
@@ -26,8 +24,8 @@ public class CommandWindowAlphaPath : Command
 	}
 	public override void execute()
 	{
-		myUIObject obj = mReceiver as myUIObject;
-		WindowComponentAlphaPath component = obj.getComponent(out component);
+		var obj = mReceiver as myUIObject;
+		obj.getComponent(out WindowComponentAlphaPath component);
 		component.setTremblingCallback(mDoingCallBack);
 		component.setTrembleDoneCallback(mDoneCallBack);
 		component.setActive(true);
@@ -43,7 +41,6 @@ public class CommandWindowAlphaPath : Command
 	}
 	public override string showDebugInfo()
 	{
-		return base.showDebugInfo() + ": mSpeed:" + mSpeed + ", mOffset:" + mOffset + 
-			", mLoop:" + mLoop + ", mAmplitude:" + mAmplitude + ", mFullOnce:" + mFullOnce;
+		return base.showDebugInfo() + ", mOffset:" + mOffset + ", mLoop:" + mLoop + ", mFullOnce:" + mFullOnce;
 	}
 }

@@ -46,6 +46,12 @@ public class ComponentAudio : GameComponent
 	{
 		return mAudioSource != null && mAudioSource.isPlaying;
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mAudioSource = null;
+		mAudioName = null;
+	}
 	//--------------------------------------------------------------------------------------------------------------------------
 	protected virtual void assignAudioSource() { }
 	protected void setAudioSource(AudioSource source)

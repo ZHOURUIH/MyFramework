@@ -7,12 +7,13 @@ public class UGUIAtlas
 	public Texture2D mTexture;
 }
 
-public class AtlasLoadParam : IClassObject
+public class AtlasLoadParam : GameBasePooledObject
 {
 	public AtlasLoadDone mCallback;
 	public object mUserData;
-	public void resetProperty()
+	public override void resetProperty()
 	{
+		base.resetProperty();
 		mCallback = null;
 		mUserData = null;
 	}

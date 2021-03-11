@@ -32,7 +32,7 @@ public class ComponentKeyFramePhysics : ComponentKeyFrameBase
 					mCurrentTime = 0.0f;
 				}
 			}
-			mCurValue = mKeyFrame.Evaluate(mCurrentTime / mOnceLength) * mAmplitude;
+			mCurValue = mKeyFrame.Evaluate(mCurrentTime / mOnceLength);
 			applyTrembling(mCurValue);
 			afterApplyTrembling(done);
 		}

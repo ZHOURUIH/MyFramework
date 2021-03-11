@@ -16,8 +16,17 @@ public class CameraLinkerSmoothFollow : CameraLinker
 		mCheckDirectionList = new Dictionary<CHECK_DIRECTION, List<CheckLayer>>();
 		mSpeedRecover = 0.5f;
 		mNormalSpeed = 5.0f;
-		mFollowPositionSpeed = 5.0f;
 		mFollowPositionSpeed = mNormalSpeed;
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mCheckDirectionList.Clear();
+		mCheckLayer.Clear();
+		mSpeedRecover = 0.5f;
+		mNormalSpeed = 5.0f;
+		mFollowPositionSpeed = mNormalSpeed;
+		mIgnoreY = false; ;
 	}
 	public void setFollowPositionSpeed(float speed) { mFollowPositionSpeed = speed; }
 	public void setIgnoreY(bool ignore) { mIgnoreY = ignore; }

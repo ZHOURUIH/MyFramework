@@ -1,16 +1,16 @@
 ﻿using System;
 using UnityEngine;
 
-class CommandTransformableTrackTargetPhysics : Command
+public class CommandTransformableTrackTargetPhysics : Command
 {
 	public Transformable mTarget;
 	public TrackCallback mDoneCallback;
 	public TrackCallback mTrackingCallback;
 	public Vector3 mOffset;
 	public float mSpeed;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mTarget = null;
 		mDoneCallback = null;
 		mTrackingCallback = null;
@@ -19,8 +19,8 @@ class CommandTransformableTrackTargetPhysics : Command
 	}
 	public override void execute()
 	{
-		Transformable obj = mReceiver as Transformable;
-		ComponentTrackTargetPhysics component = obj.getComponent(out component);
+		var obj = mReceiver as Transformable;
+		obj.getComponent(out ComponentTrackTargetPhysics component);
 		component.setSpeed(mSpeed);
 		component.setTargetOffset(mOffset);
 		component.setActive(true);

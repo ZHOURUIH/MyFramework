@@ -190,6 +190,7 @@ public class GameEffect : MovableObject
 	{
 		base.resetProperty();
 		mParticleSystems = null;
+		mEffectAnimators = null;
 		mIsDead = false;
 		mMaxActiveTime = -1.0f;
 		mLifeTimer.stop();
@@ -198,5 +199,6 @@ public class GameEffect : MovableObject
 		mEffectDestroyCallback = null;
 		mDestroyUserData = null;
 		mPlayState = PLAY_STATE.STOP;
+		mNextIgnoreTimeScale = false;
 	}
 }

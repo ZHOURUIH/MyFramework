@@ -7,21 +7,19 @@ public class CommandTransformableMovePath : Command
 	public KeyFrameCallback mDoingCallBack;
 	public KeyFrameCallback mDoneCallBack;
 	public Vector3 mValueOffset;			// 位置偏移,计算出的位置会再加上这个偏移作为最终世界坐标
-	public float mAmplitude;
 	public float mOffset;
 	public float mSpeed;
 	public bool mFullOnce;
 	public bool mLoop;
 	public KEY_FRAME mKeyframe;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mValueKeyFrame = null;
 		mDoingCallBack = null;
 		mDoneCallBack = null;
 		mValueOffset = Vector3.zero;
 		mOffset = 0.0f;
-		mAmplitude = 1.0f;
 		mSpeed = 1.0f;
 		mLoop = false;
 		mFullOnce = false;
@@ -29,8 +27,8 @@ public class CommandTransformableMovePath : Command
 	}
 	public override void execute()
 	{
-		Transformable obj = mReceiver as Transformable;
-		TransformableComponentMovePath component = obj.getComponent(out component);
+		var obj = mReceiver as Transformable;
+		obj.getComponent(out TransformableComponentMovePath component);
 		component.setTremblingCallback(mDoingCallBack);
 		component.setTrembleDoneCallback(mDoneCallBack);
 		component.setActive(true);
@@ -46,7 +44,6 @@ public class CommandTransformableMovePath : Command
 	}
 	public override string showDebugInfo()
 	{
-		return base.showDebugInfo() + ": mSpeed:" + mSpeed + ", mOffset:" + mOffset + 
-			", mLoop:" + mLoop + ", mAmplitude:" + mAmplitude + ", mFullOnce:" + mFullOnce;
+		return base.showDebugInfo() + ", mOffset:" + mOffset + ", mLoop:" + mLoop + ", mFullOnce:" + mFullOnce;
 	}
 }

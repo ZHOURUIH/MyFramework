@@ -34,9 +34,9 @@ public class myUGUILine : myUGUIObject
 	}
 	public void setPointListSmooth(IList<Vector3> pointList, int bezierDetail = 10)
 	{
-		List<Vector3> curveList = newList(out curveList);
+		LIST(out List<Vector3> curveList);
 		getCurvePoints(pointList, curveList, false, bezierDetail);
 		setPointList(curveList);
-		destroyList(curveList);
+		UN_LIST(curveList);
 	}
 }

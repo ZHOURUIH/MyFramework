@@ -20,8 +20,7 @@ public class USHORT : OBJECT
 	public void set(ushort value) { mValue = value; }
 	public override bool readFromBuffer(byte[] buffer, ref int index)
 	{
-		bool success;
-		mValue = readUShort(buffer, ref index, out success);
+		mValue = readUShort(buffer, ref index, out bool success);
 		return success;
 	}
 	public override bool writeToBuffer(byte[] buffer, ref int index)

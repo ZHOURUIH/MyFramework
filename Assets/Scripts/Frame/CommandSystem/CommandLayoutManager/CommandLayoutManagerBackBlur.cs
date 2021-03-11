@@ -5,9 +5,9 @@ public class CommandLayoutManagerBackBlur : Command
 {
 	public List<GameLayout> mExcludeLayout;
 	public bool mBlur;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mExcludeLayout = null;
 		mBlur = true;
 	}
@@ -21,7 +21,7 @@ public class CommandLayoutManagerBackBlur : Command
 		{
 			maxOrder = getMax(mExcludeLayout[i].getRenderOrder(), maxOrder);
 		}
-		var mainList = layoutList.GetMainList();
+		var mainList = layoutList.getMainList();
 		foreach (var item in mainList)
 		{
 			GameLayout layout = item.Value;

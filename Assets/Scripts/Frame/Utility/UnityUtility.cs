@@ -1249,11 +1249,15 @@ public class UnityUtility : FileUtility
 		}
 		return validElementCount;
 	}
-	public static bool arrayContains<T>(T[] array, int arrayLen, T value) where T : class
+	public static bool arrayContains<T>(T[] array, T value, int arrayLen = -1) where T : class
 	{
+		if (arrayLen == -1)
+		{
+			arrayLen = array.Length;
+		}
 		for(int i = 0; i < arrayLen; ++i)
 		{
-			if(array[i] == value)
+			if(array[i].Equals(value))
 			{
 				return true;
 			}

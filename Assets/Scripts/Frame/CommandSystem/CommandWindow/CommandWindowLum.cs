@@ -2,40 +2,38 @@
 
 public class CommandWindowLum : Command
 {
-	public KeyFrameCallback mTremblingCallBack;
-	public KeyFrameCallback mTrembleDoneCallBack;
+	public KeyFrameCallback mDoingCallback;
+	public KeyFrameCallback mDoneCallback;
 	public KEY_FRAME mKeyframe;
 	public float mOnceLength;
 	public float mOffset;
 	public float mStartLum;
 	public float mTargetLum;
-	public float mAmplitude;
 	public bool mFullOnce;
 	public bool mLoop;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
-		mTremblingCallBack = null;
-		mTrembleDoneCallBack = null;
+		base.resetProperty();
+		mDoingCallback = null;
+		mDoneCallback = null;
 		mKeyframe = KEY_FRAME.NONE;
 		mOnceLength = 1.0f;
 		mOffset = 0.0f;
 		mStartLum = 0.0f;
 		mTargetLum = 0.0f;
-		mAmplitude = 1.0f;
 		mFullOnce = true;
 		mLoop = false;
 	}
 	public override void execute()
 	{
-		myUIObject obj = mReceiver as myUIObject;
-		WindowComponentLum component = obj.getComponent(out component);
-		component.setTremblingCallback(mTremblingCallBack);
-		component.setTrembleDoneCallback(mTrembleDoneCallBack);
+		var obj = mReceiver as myUIObject;
+		obj.getComponent(out WindowComponentLum component);
+		component.setTremblingCallback(mDoingCallback);
+		component.setTrembleDoneCallback(mDoneCallback);
 		component.setActive(true);
 		component.setStartLum(mStartLum);
 		component.setTargetLum(mTargetLum);
-		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
+		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce);
 		if (component.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
@@ -45,6 +43,6 @@ public class CommandWindowLum : Command
 	public override string showDebugInfo()
 	{
 		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mStartLum:" + mStartLum +
-			", mTargetLum:" + mTargetLum + ", mLoop:" + mLoop + ", mAmplitude:" + mAmplitude + ", mFullOnce:" + mFullOnce;
+			", mTargetLum:" + mTargetLum + ", mLoop:" + mLoop + ", mFullOnce:" + mFullOnce;
 	}
 }

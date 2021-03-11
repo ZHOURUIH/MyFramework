@@ -159,7 +159,7 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		}
 		else
 		{
-			var param = newClass(Typeof<LoadMaterialParam>()) as LoadMaterialParam;
+			CLASS(out LoadMaterialParam param);
 			param.mMaterialName = materialName;
 			param.mNewMaterial = mIsNewMaterial;
 			mResourceManager.loadResourceAsync<Material>(FrameDefine.R_MATERIAL_PATH + materialName, mMaterialCallback, param);
@@ -177,7 +177,7 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		{
 			return;
 		}
-		Material material = res as Material;
+		var material = res as Material;
 		var param = userData as LoadMaterialParam;
 		if (param.mNewMaterial)
 		{
@@ -189,6 +189,6 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		{
 			mRawImage.material = material;
 		}
-		destroyClass(param);
+		UN_CLASS(param);
 	}
 }

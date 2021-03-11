@@ -7,9 +7,9 @@ public class CommandLayoutManagerVisible : Command
 	public bool mForce;
 	public bool mImmediately;
 	public bool mVisibility;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mLayoutID = LAYOUT.NONE;
 		mParam = null;
 		mForce = false;

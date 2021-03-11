@@ -2,14 +2,14 @@
 
 public class CommandGameSceneStopAudio : Command
 {
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 	}
 	public override void execute()
 	{
-		GameScene gameScene = mReceiver as GameScene;
-		GameSceneComponentAudio component = gameScene.getComponent(out component);
+		var gameScene = mReceiver as GameScene;
+		gameScene.getComponent(out GameSceneComponentAudio component);
 		component?.stop();
 	}
 }

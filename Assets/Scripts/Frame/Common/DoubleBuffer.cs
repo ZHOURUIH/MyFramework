@@ -17,7 +17,6 @@ public class DoubleBuffer<T> : FrameBase
 		mBufferList[0] = new List<T>();
 		mBufferList[1] = new List<T>();
 		mBufferLock = new ThreadLock();
-		mWriteListLimit = 0;
 		mWriteIndex = 0;
 		mReadIndex = 1;
 	}

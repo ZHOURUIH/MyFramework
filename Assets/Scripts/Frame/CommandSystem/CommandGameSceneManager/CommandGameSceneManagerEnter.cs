@@ -5,9 +5,9 @@ public class CommandGameSceneManagerEnter : Command
 	public Type mSceneType;
 	public Type mStartProcedure;
 	public string mIntent;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mSceneType = null;
 		mStartProcedure = null;
 		mIntent = null;

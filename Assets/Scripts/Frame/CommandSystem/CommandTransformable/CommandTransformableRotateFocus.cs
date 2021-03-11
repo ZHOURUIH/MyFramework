@@ -1,20 +1,20 @@
 ﻿using System;
 using UnityEngine;
 
-class CommandTransformableRotateFocus : Command
+public class CommandTransformableRotateFocus : Command
 {
 	public Transformable mTarget;
 	public Vector3 mOffset;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mTarget = null;
 		mOffset = Vector3.zero;
 	}
 	public override void execute()
 	{
-		Transformable obj = mReceiver as Transformable;
-		TransformableComponentRotateFocus component = obj.getComponent(out component);
+		var obj = mReceiver as Transformable;
+		obj.getComponent(out TransformableComponentRotateFocus component);
 		component.setActive(true);
 		component.setFocusTarget(mTarget);
 		component.setFocusOffset(mOffset);

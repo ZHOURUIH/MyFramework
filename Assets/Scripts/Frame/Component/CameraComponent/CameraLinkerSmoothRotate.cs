@@ -9,6 +9,12 @@ public class CameraLinkerSmoothRotate : CameraLinker
 	{
 		mSmoothRotateSpeed = 5.0f;
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mCurRelative = Vector3.zero;
+		mSmoothRotateSpeed = 5.0f;
+	}
 	//-------------------------------------------------------------------------------------------------------------
 	protected override void updateLinker(float elapsedTime)
 	{

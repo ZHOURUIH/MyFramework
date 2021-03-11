@@ -6,6 +6,12 @@ public class WindowComponentSlider : ComponentKeyFrameNormal
 	protected float mTargetValue;
 	public void setTargetValue(float value) { mTargetValue = value; }
 	public void setStartValue(float value) { mStartValue = value; }
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mStartValue = 0.0f;
+		mTargetValue = 0.0f;
+	}
 	//-----------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{

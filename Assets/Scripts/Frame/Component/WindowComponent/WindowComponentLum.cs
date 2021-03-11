@@ -6,6 +6,12 @@ public class WindowComponentLum : ComponentKeyFrameNormal
 	protected float mTargetLum;
 	public void setStartLum(float lum) { mStartLum = lum; }
 	public void setTargetLum(float lum) { mTargetLum = lum; }
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mStartLum = 0.0f;
+		mTargetLum = 0.0f;
+	}
 	//------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{

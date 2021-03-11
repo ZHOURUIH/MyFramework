@@ -1,35 +1,31 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 using System;
 
-public abstract class ComponentOwner : CommandReceiver, IClassObject
+public abstract class ComponentOwner : CommandReceiver
 {
-	protected SafeDictionary<Type, GameComponent> mAllComponentTypeList;// 组件类型列表,first是组件的类型名
-	protected List<GameComponent> mComponentList;                       // 组件列表,保存着组件之间的更新顺序
+	protected SafeDictionary<Type, GameComponent> mAllComponentTypeList;	// 组件类型列表,first是组件的类型名
+	protected SafeList<GameComponent> mComponentList;                       // 组件列表,保存着组件之间的更新顺序
 	protected bool mIgnoreTimeScale;
 	public ComponentOwner()
 	{
-		mComponentList = new List<GameComponent>();
 		mAllComponentTypeList = new SafeDictionary<Type, GameComponent>();
+		mComponentList = new SafeList<GameComponent>();
 	}
 	public override void destroy()
 	{
-		var componentList = mAllComponentTypeList.GetUpdateList();
-		foreach (var item in componentList)
-		{
-			item.Value.notifyOwnerDestroy();
-		}
-		componentList = mAllComponentTypeList.GetUpdateList();
+		var componentList = mAllComponentTypeList.getUpdateList();
 		foreach (var item in componentList)
 		{
 			item.Value.destroy();
-			removeComponentFromList(item.Value);
+			UN_CLASS(item.Value);
 		}
+		mAllComponentTypeList.clear();
+		mComponentList.clear();
 		base.destroy();
 	}
 	public virtual void setActive(bool active)
 	{
-		var componentList = mAllComponentTypeList.GetUpdateList();
+		var componentList = mAllComponentTypeList.getUpdateList();
 		foreach (var item in componentList)
 		{
 			item.Value.notifyOwnerActive(active);
@@ -38,15 +34,16 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 	// 更新正常更新的组件
 	public virtual void update(float elapsedTime)
 	{
-		int rootComponentCount = mComponentList.Count;
+		var updateList = mComponentList.getUpdateList();
+		int rootComponentCount = updateList.Count;
 		for (int i = 0; i < rootComponentCount; ++i)
 		{
 			// 数量为0,表示在更新组件的过程中当前对象被销毁
-			if (mComponentList.Count == 0)
+			if (updateList.Count == 0)
 			{
 				return;
 			}
-			GameComponent component = mComponentList[i];
+			GameComponent component = updateList[i];
 			if (component != null && component.isActive())
 			{
 				if (!component.isIgnoreTimeScale())
@@ -63,10 +60,11 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 	// 后更新
 	public virtual void lateUpdate(float elapsedTime)
 	{
-		int rootComponentCount = mComponentList.Count;
+		var updateList = mComponentList.getUpdateList();
+		int rootComponentCount = updateList.Count;
 		for (int i = 0; i < rootComponentCount; ++i)
 		{
-			GameComponent component = mComponentList[i];
+			GameComponent component = updateList[i];
 			if (component != null && component.isActive())
 			{
 				if (!component.isIgnoreTimeScale())
@@ -83,10 +81,11 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 	// 物理更新
 	public virtual void fixedUpdate(float elapsedTime)
 	{
-		int rootComponentCount = mComponentList.Count;
+		var updateList = mComponentList.getUpdateList();
+		int rootComponentCount = updateList.Count;
 		for (int i = 0; i < rootComponentCount; ++i)
 		{
-			GameComponent component = mComponentList[i];
+			GameComponent component = updateList[i];
 			if (component != null && component.isActive())
 			{
 				if (!component.isIgnoreTimeScale())
@@ -101,30 +100,20 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 		}
 	}
 	public virtual void notifyAddComponent(GameComponent component) { }
-	public static GameComponent createIndependentComponent(Type type, bool initComponent = true)
-	{
-		GameComponent component = createInstance<GameComponent>(type);
-		component.setType(type);
-		// 创建组件并且设置拥有者,然后初始化
-		if (initComponent)
-		{
-			component?.init(null);
-		}
-		return component;
-	}
 	public GameComponent addComponent(Type type, bool active = false)
 	{
 		// 不能创建重名的组件
-		if (mAllComponentTypeList.ContainsKey(type))
+		if (mAllComponentTypeList.containsKey(type))
 		{
 			logError("there is component : " + type);
 			return null;
 		}
-		GameComponent component = createIndependentComponent(type, false);
+		var component = CLASS<GameComponent>(type);
 		if (component == null)
 		{
 			return null;
 		}
+		component.setType(type);
 		component.init(this);
 		// 将组件加入列表
 		addComponentToList(component);
@@ -157,7 +146,7 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 	}
 	public GameComponent getComponent(Type type, bool needActive = false, bool addIfNull = true)
 	{
-		if (mAllComponentTypeList.TryGetValue(type, out GameComponent component))
+		if (mAllComponentTypeList.tryGetValue(type, out GameComponent component))
 		{
 			if (!needActive || component.isActive())
 			{
@@ -198,7 +187,7 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 			breakComponent<IComponentModifyScale>(component);
 		}
 	}
-	public List<GameComponent> getComponentList() { return mComponentList; }
+	public SafeList<GameComponent> getComponentList() { return mComponentList; }
 	public bool isIgnoreTimeScale() { return mIgnoreTimeScale; }
 	// componentOnly表示是否只设置组件不受时间缩放影响,如果只有组件受影响,则Owner本身还是受到时间缩放影响的
 	public virtual void setIgnoreTimeScale(bool ignore, bool componentOnly = false)
@@ -207,48 +196,32 @@ public abstract class ComponentOwner : CommandReceiver, IClassObject
 		{
 			mIgnoreTimeScale = ignore;
 		}
-		int count = mComponentList.Count;
+		var mainList = mComponentList.getMainList();
+		int count = mainList.Count;
 		for (int i = 0; i < count; ++i)
 		{
-			mComponentList[i].setIgnoreTimeScale(ignore);
+			mainList[i].setIgnoreTimeScale(ignore);
 		}
 	}
-	public virtual void resetProperty()
+	public override void resetProperty()
 	{
-		setIgnoreTimeScale(false);
-		// 停止所有组件
-		var componentList = mAllComponentTypeList.GetUpdateList();
-		foreach (var item in componentList)
-		{
-			item.Value.resetProperty();
-			item.Value.setActive(item.Value.isDefaultActive());
-		}
+		base.resetProperty();
+		mAllComponentTypeList.clear();
+		mComponentList.clear();
+		mIgnoreTimeScale = false;
 	}
 	//---------------------------------------------------------------------------------------------------
 	// 此函数由子类调用
 	protected virtual void initComponents() { }
-	protected void addComponentToList(GameComponent component, int componentPos = -1)
+	protected void addComponentToList(GameComponent component)
 	{
-		Type type = Typeof(component);
-		if (componentPos == -1)
-		{
-			mComponentList.Add(component);
-		}
-		else
-		{
-			mComponentList.Insert(componentPos, component);
-		}
-		mAllComponentTypeList.Add(type, component);
-	}
-	protected void removeComponentFromList(GameComponent component)
-	{
-		mComponentList.Remove(component);
-		mAllComponentTypeList.Remove(Typeof(component));
+		mComponentList.add(component);
+		mAllComponentTypeList.add(Typeof(component), component);
 	}
 	protected void breakComponent<T>(GameComponent exceptComponent)
 	{
 		// 中断所有可中断的组件
-		var componentList = mAllComponentTypeList.GetUpdateList();
+		var componentList = mAllComponentTypeList.getUpdateList();
 		foreach (var item in componentList)
 		{
 			GameComponent component = item.Value;

@@ -8,6 +8,14 @@ public class TransformableComponentLockPosition : GameComponent, IComponentModif
 	public bool mLockX;
 	public bool mLockY;
 	public bool mLockZ;
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mLockPosition = Vector3.zero;
+		mLockX = false;
+		mLockY = false;
+		mLockZ = false;
+	}
 	public void setLockPosition(Vector3 pos) { mLockPosition = pos; }
 	public void setLock(bool lockX, bool lockY, bool lockZ)
 	{
@@ -21,7 +29,7 @@ public class TransformableComponentLockPosition : GameComponent, IComponentModif
 	}
 	public override void update(float elapsedTime)
 	{
-		Transformable obj = mComponentOwner as Transformable;
+		var obj = mComponentOwner as Transformable;
 		Vector3 worldPos = obj.getWorldPosition();
 		if(mLockX)
 		{

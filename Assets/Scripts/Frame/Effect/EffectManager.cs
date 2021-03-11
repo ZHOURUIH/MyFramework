@@ -43,7 +43,7 @@ public class EffectManager : FrameSystem
 			{
 				if(deadList == null)
 				{
-					deadList = newList(out deadList);
+					LIST(out deadList);
 				}
 				deadList.Add(item);
 			}
@@ -56,7 +56,7 @@ public class EffectManager : FrameSystem
 			{
 				destroyEffect(deadList[i]);
 			}
-			destroyList(deadList);
+			UN_LIST(deadList);
 		}
 	}
 	public List<GameEffect> getEffectList() { return mEffectList; }
@@ -103,7 +103,7 @@ public class EffectManager : FrameSystem
 			effect.setIgnoreTimeScale(false);
 			effect.destroy();
 			mEffectList.Remove(effect);
-			destroyClass(effect);
+			UN_CLASS(effect);
 			effect = null;
 		}
 	}
@@ -114,7 +114,7 @@ public class EffectManager : FrameSystem
 	// 检查特效是否还有效,特效物体已经被销毁的视为无效特效,将被清除
 	public void clearInvalidEffect()
 	{
-		List<GameEffect> tempList = newList(out tempList);
+		LIST(out List<GameEffect> tempList);
 		tempList.AddRange(mEffectList);
 		int count = tempList.Count;
 		for(int i = 0; i < count; ++i)
@@ -142,7 +142,7 @@ public class EffectManager : FrameSystem
 				destroyEffect(ref effect);
 			}
 		}
-		destroyList(tempList);
+		UN_LIST(tempList);
 	}
 	//----------------------------------------------------------------------------------------------------------
 	protected void onEffectLoaded(GameObject go, object userData)
@@ -165,7 +165,7 @@ public class EffectManager : FrameSystem
 			logError("物体来自于特效池,但是标记为外部物体:" + name);
 			return null;
 		}
-		var gameEffect = newClass(Typeof<GameEffect>()) as GameEffect;
+		CLASS(out GameEffect gameEffect);
 		gameEffect.setName(name);
 		gameEffect.setObject(go);
 		gameEffect.setExistObject(existObject);

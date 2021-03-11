@@ -14,6 +14,14 @@ public class ComponentLerp : GameComponent, IComponentBreakable
 			stop();
 		}
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mLerpingCallBack = null;
+		mLerpDoneCallBack = null;
+		mPlayState = PLAY_STATE.NONE;
+		mLerpSpeed = 0.0f;
+	}
 	public virtual void play()
 	{
 		if(isFloatZero(mLerpSpeed))

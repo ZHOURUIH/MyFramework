@@ -4,7 +4,7 @@ using System;
 public abstract class SceneProcedure : GameBase, IDelayCmdWatcher
 {
 	protected Dictionary<Type, SceneProcedure> mChildProcedureList; // 子流程列表
-	protected List<int> mDelayCmdList;          // 流程进入时的延迟命令列表,当命令执行时,会从列表中移除该命令	
+	protected HashSet<ulong> mDelayCmdList;		// 流程进入时的延迟命令列表,当命令执行时,会从列表中移除该命令	
 	protected CommandCallback mCmdStartCallback;// 命令开始的回调,保存变量是为了避免GC
 	protected SceneProcedure mParentProcedure;	// 父流程
 	protected SceneProcedure mPrepareNext;      // 准备退出到的流程
@@ -15,7 +15,7 @@ public abstract class SceneProcedure : GameBase, IDelayCmdWatcher
 	protected bool mInited;                     // 是否已经初始化,子节点在初始化时需要先确保父节点已经初始化
 	public SceneProcedure()
 	{
-		mDelayCmdList = new List<int>();
+		mDelayCmdList = new HashSet<ulong>();
 		mChildProcedureList = new Dictionary<Type, SceneProcedure>();
 		mPrepareTimer = new MyTimer();
 		mPrepareIntent = null;
@@ -78,7 +78,7 @@ public abstract class SceneProcedure : GameBase, IDelayCmdWatcher
 		if (mPrepareTimer.tickTimer(elapsedTime))
 		{
 			// 超过了准备时间,强制跳转流程
-			CommandGameSceneChangeProcedure cmd = newMainCmd(out cmd);
+			CMD(out CommandGameSceneChangeProcedure cmd);
 			cmd.mProcedure = mPrepareNext.mType;
 			cmd.mIntent = mPrepareIntent;
 			pushCommand(cmd, mGameScene);
@@ -93,12 +93,7 @@ public abstract class SceneProcedure : GameBase, IDelayCmdWatcher
 	public void exit(SceneProcedure exitTo, SceneProcedure nextPro)
 	{
 		// 中断自己所有未执行的命令
-		int count = mDelayCmdList.Count;
-		for (int i = 0; i < count; ++i)
-		{
-			mCommandSystem.interruptCommand(mDelayCmdList[i]);
-		}
-		mDelayCmdList.Clear();
+		interruptAllCommand();
 		// 当停止目标为自己时,则不再退出,此时需要判断当前将要进入的流程是否为当前流程的子流程
 		// 如果是,则需要调用onExitToChild,执行退出当前并且进入子流程的操作
 		// 如果不是则不需要调用,不需要执行任何退出操作
@@ -137,21 +132,21 @@ public abstract class SceneProcedure : GameBase, IDelayCmdWatcher
 		// 然后再处理自己的按键响应
 		onKeyProcess(elapsedTime);
 	}
-	public void getParentList(ref List<SceneProcedure> parentList)
+	public void getParentList(List<SceneProcedure> parentList)
 	{
 		// 由于父节点列表中需要包含自己,所以先加入自己
 		parentList.Add(this);
 		// 再加入父节点的所有父节点
-		mParentProcedure?.getParentList(ref parentList);
+		mParentProcedure?.getParentList(parentList);
 	}
 	// 获得自己和otherProcedure的共同的父节点
 	public SceneProcedure getSameParent(SceneProcedure otherProcedure)
 	{
 		// 获得两个流程的父节点列表
-		List<SceneProcedure> tempList0 = newList(out tempList0);
-		List<SceneProcedure> tempList1 = newList(out tempList1);
-		getParentList(ref tempList0);
-		otherProcedure.getParentList(ref tempList1);
+		LIST(out List<SceneProcedure> tempList0);
+		LIST(out List<SceneProcedure> tempList1);
+		getParentList(tempList0);
+		otherProcedure.getParentList(tempList1);
 		// 从前往后判断,找到第一个相同的父节点
 		int count0 = tempList0.Count;
 		for(int i = 0; i < count0; ++i)
@@ -162,14 +157,14 @@ public abstract class SceneProcedure : GameBase, IDelayCmdWatcher
 			{
 				if (thisParent == tempList1[j])
 				{
-					destroyList(tempList0);
-					destroyList(tempList1);
+					UN_LIST(tempList0);
+					UN_LIST(tempList1);
 					return thisParent;
 				}
 			}
 		}
-		destroyList(tempList0);
-		destroyList(tempList1);
+		UN_LIST(tempList0);
+		UN_LIST(tempList1);
 		return null;
 	}
 	public bool isThisOrParent(Type type)
@@ -237,30 +232,28 @@ public abstract class SceneProcedure : GameBase, IDelayCmdWatcher
 	}
 	public virtual void addDelayCmd(Command cmd)
 	{
-		mDelayCmdList.Add(cmd.mAssignID);
+		mDelayCmdList.Add(cmd.getAssignID());
 		cmd.addStartCommandCallback(mCmdStartCallback);
 	}
 	public virtual void onCmdStarted(Command cmd)
 	{
-		if (!mDelayCmdList.Remove(cmd.mAssignID))
+		if (!mDelayCmdList.Remove(cmd.getAssignID()))
 		{
 			logError("命令执行后移除流程命令失败");
 		}
 	}
-	public virtual void interruptCommand(int assignID, bool showError = true)
+	public virtual void interruptCommand(ulong assignID, bool showError = true)
 	{
-		if (mDelayCmdList.Contains(assignID))
+		if (mDelayCmdList.Remove(assignID))
 		{
-			mDelayCmdList.Remove(assignID);
 			mCommandSystem.interruptCommand(assignID, showError);
 		}
 	}
 	public virtual void interruptAllCommand()
 	{
-		int count = mDelayCmdList.Count;
-		for (int i = 0; i < count; ++i)
+		foreach(var item in mDelayCmdList)
 		{
-			mCommandSystem.interruptCommand(mDelayCmdList[i], false);
+			mCommandSystem.interruptCommand(item, false);
 		}
 		mDelayCmdList.Clear();
 	}

@@ -21,6 +21,23 @@ public class ComponentDrag : GameComponent
 		mStartDragThreshold = 20.0f;
 		mDragStartAngleThreshold = toRadian(45.0f);
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mDragStartCallback = null;
+		mDragEndCallback = null;
+		mDragEndTotallyCallback = null;
+		mDragingCallback = null;
+		mInterruptCallback = null;
+		mPrepareDragMousePosition = Vector3.zero;
+		mDragMouseOffset = Vector3.zero;
+		mAllowDragDirection = Vector2.zero;
+		mStartDragThreshold = 20.0f;
+		mDragStartAngleThreshold = toRadian(45.0f);
+		mPreparingDrag = false;
+		mDrag = false;
+		mTouchFinger = 0;
+	}
 	public override void update(float elapsedTime)
 	{
 		int touchCount = Input.touchCount;
@@ -128,8 +145,9 @@ public class ComponentDrag : GameComponent
 		mDrag = false;
 		mPreparingDrag = false;
 	}
-	public override void notifyOwnerDestroy()
+	public override void destroy()
 	{
+		base.destroy();
 		mDrag = false;
 		mPreparingDrag = false;
 	}

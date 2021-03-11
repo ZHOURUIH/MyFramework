@@ -6,7 +6,7 @@ public class WindowComponentAudio : ComponentAudio
 	//--------------------------------------------------------------------------------------------------------------
 	protected override void assignAudioSource()
 	{
-		myUIObject window = mComponentOwner as myUIObject;
+		var window = mComponentOwner as myUIObject;
 		AudioSource audioSource = window.getAudioSource();
 		if (audioSource == null)
 		{

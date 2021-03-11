@@ -3,6 +3,7 @@ using Mono.Data.Sqlite;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 
 public class SQLiteTable : GameBase
 {
@@ -43,23 +44,25 @@ public class SQLiteTable : GameBase
 	}
 	public SqliteDataReader doQuery()
 	{
-		string queryStr = "SELECT * FROM " + mTableName;
-		return mSQLite.queryReader(queryStr);
+		return mSQLite.queryReader("SELECT * FROM " + mTableName);
 	}
 	public SqliteDataReader doQuery(string condition)
 	{
-		string queryStr = "SELECT * FROM " + mTableName + " WHERE " + condition;
-		return mSQLite.queryReader(queryStr);
+		MyStringBuilder builder = newBuilder();
+		builder.Append("SELECT * FROM ", mTableName, " WHERE ", condition);
+		return mSQLite.queryReader(valueDestroyBuilder(builder));
 	}
 	public void doUpdate(string updateString, string conditionString)
 	{
-		string queryStr = "UPDATE " + mTableName + " SET " + updateString + " WHERE " + conditionString;
-		mSQLite.queryNonReader(queryStr);
+		MyStringBuilder builder = newBuilder();
+		builder.Append("UPDATE ", mTableName, " SET ", updateString, " WHERE ", conditionString);
+		mSQLite.queryNonReader(valueDestroyBuilder(builder));
 	}
 	public void doInsert(string valueString)
 	{
-		string queryString = "INSERT INTO " + mTableName + " VALUES (" + valueString + ")";
-		mSQLite.queryNonReader(queryString);
+		MyStringBuilder builder = newBuilder();
+		builder.Append("INSERT INTO ", mTableName, " VALUES (", valueString, ")");
+		mSQLite.queryNonReader(valueDestroyBuilder(builder));
 	}
 	public SqliteDataReader queryReader(string queryString)
 	{
@@ -71,9 +74,9 @@ public class SQLiteTable : GameBase
 		{
 			return data;
 		}
-		string condition = EMPTY;
-		appendConditionInt(ref condition, SQLiteData.ID, id, EMPTY);
-		parseReader(doQuery(condition), out data);
+		MyStringBuilder condition = newBuilder();
+		appendConditionInt(condition, SQLiteData.ID, id, EMPTY);
+		parseReader(doQuery(valueDestroyBuilder(condition)), out data);
 		mDataList.Add(id, data);
 		return data;
 	}
@@ -81,9 +84,9 @@ public class SQLiteTable : GameBase
 	{
 		if (!mDataList.TryGetValue(id, out data))
 		{
-			string condition = EMPTY;
-			appendConditionInt(ref condition, SQLiteData.ID, id, EMPTY);
-			parseReader(doQuery(condition), out data);
+			MyStringBuilder condition = newBuilder();
+			appendConditionInt(condition, SQLiteData.ID, id, EMPTY);
+			parseReader(doQuery(valueDestroyBuilder(condition)), out data);
 			mDataList.Add(id, data);
 		}
 		if (type != mDataClassType)
@@ -92,30 +95,6 @@ public class SQLiteTable : GameBase
 			data = null;
 		}
 		return data;
-	}
-	public SQLiteData query(Type type, int id)
-	{
-		SQLiteData data;
-		query(type, id, out data);
-		return data;
-	}
-	public void queryAll<T>(Type type, List<T> dataList) where T : SQLiteData
-	{
-		if (type != mDataClassType)
-		{
-			logError("sqlite table type error, this type:" + mDataClassType + ", param type:" + type);
-			return;
-		}
-		parseReader(type, doQuery(), dataList);
-		int count = dataList.Count;
-		for(int i = 0; i < count; ++i)
-		{
-			T item = dataList[i];
-			if (!mDataList.ContainsKey(item.mID))
-			{
-				mDataList.Add(item.mID, item);
-			}
-		}
 	}
 	public void insert<T>(T data) where T : SQLiteData
 	{
@@ -128,13 +107,37 @@ public class SQLiteTable : GameBase
 			logError("sqlite table type error, this type:" + mDataClassType + ", param type:" + Typeof(data));
 			return;
 		}
-		string valueString = EMPTY;
-		data.insert(ref valueString);
-		removeLastComma(ref valueString);
-		doInsert(valueString);
+		MyStringBuilder valueString = newBuilder();
+		data.insert(valueString);
+		removeLastComma(valueString);
+		doInsert(valueDestroyBuilder(valueString));
 		mDataList.Add(data.mID, data);
 	}
 	//---------------------------------------------------------------------------------------------------------------------------
+	protected SQLiteData query(Type type, int id)
+	{
+		SQLiteData data;
+		query(type, id, out data);
+		return data;
+	}
+	protected void queryAll(Type type, IList dataList)
+	{
+		if (type != mDataClassType)
+		{
+			logError("sqlite table type error, this type:" + mDataClassType + ", param type:" + type);
+			return;
+		}
+		parseReader(type, doQuery(), dataList);
+		int count = dataList.Count;
+		for (int i = 0; i < count; ++i)
+		{
+			var item = (SQLiteData)dataList[i];
+			if (!mDataList.ContainsKey(item.mID))
+			{
+				mDataList.Add(item.mID, item);
+			}
+		}
+	}
 	protected void parseReader(Type type, SqliteDataReader reader, out SQLiteData data)
 	{
 		data = null;
@@ -143,7 +146,11 @@ public class SQLiteTable : GameBase
 			logError("sqlite table type error, this type:" + mDataClassType + ", param type:" + type);
 			return;
 		}
-		if (reader != null && reader.Read())
+		if(reader == null)
+		{
+			return;
+		}
+		if (reader.Read())
 		{
 			data = createInstance<SQLiteData>(type);
 			data.mTable = this;
@@ -169,17 +176,18 @@ public class SQLiteTable : GameBase
 			logError("sqlite table type error, this type:" + mDataClassType + ", param type:" + type);
 			return;
 		}
-		if (reader != null)
+		if (reader == null)
 		{
-			while (reader.Read())
-			{
-				SQLiteData data = createInstance<SQLiteData>(type);
-				data.mTable = this;
-				data.parse(reader);
-				dataList.Add(data);
-			}
-			reader.Close();
+			return;
 		}
+		while (reader.Read())
+		{
+			SQLiteData data = createInstance<SQLiteData>(type);
+			data.mTable = this;
+			data.parse(reader);
+			dataList.Add(data);
+		}
+		reader.Close();
 	}
 }
 #endif

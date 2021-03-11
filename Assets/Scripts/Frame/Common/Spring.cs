@@ -12,6 +12,10 @@ public class Spring : FrameBase
 	protected float mPreAcce;
 	public Spring()
 	{
+		reset();
+	}
+	public void reset()
+	{
 		mNormalLength = 0.0f;
 		mCurLength = 0.0f;
 		mSpringK = 1.0f;

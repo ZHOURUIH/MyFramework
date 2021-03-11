@@ -2,9 +2,6 @@
 
 public class MovableObject : Transformable, IMouseEventCollect
 {
-	protected GameObject mObject;
-	protected Transform mTransform;
-	protected AudioSource mAudioSource;
 	protected ObjectClickCallback mClickCallback;
 	protected ObjectHoverCallback mHoverCallback;
 	protected ObjectPressCallback mPressCallback;
@@ -12,8 +9,11 @@ public class MovableObject : Transformable, IMouseEventCollect
 	protected OnMouseEnter mOnMouseEnter;
 	protected OnMouseLeave mOnMouseLeave;
 	protected OnMouseDown mOnMouseDown;
-	protected OnMouseUp mOnMouseUp;
 	protected OnMouseMove mOnMouseMove;
+	protected OnMouseUp mOnMouseUp;
+	protected AudioSource mAudioSource;
+	protected GameObject mObject;
+	protected Transform mTransform;
 	protected Vector3 mLastPhysicsSpeedVector;  // FixedUpdate中上一帧的移动速度
 	protected Vector3 mLastPhysicsPosition;     // 上一帧FixedUpdate中的位置
 	protected Vector3 mPhysicsAcceleration;     // FixedUpdate中的加速度
@@ -23,12 +23,11 @@ public class MovableObject : Transformable, IMouseEventCollect
 	protected Vector3 mMoveSpeedVector;         // 当前移动速度向量,根据上一帧的位置和当前位置以及时间计算出来的实时速度
 	protected Vector3 mLastSpeedVector;         // 上一帧的移动速度向量
 	protected Vector3 mLastPosition;            // 上一帧的位置
-	protected float mMoveSpeed;                 // 当前实时移动速率
+	protected float mRealtimeMoveSpeed;			// 当前实时移动速率
 	protected uint mObjectID;                   // 物体的客户端ID
 	protected bool mMovedDuringFrame;           // 角色在这一帧内是否移动过
 	protected bool mHasLastPosition;            // mLastPosition是否有效
 	protected bool mDestroyObject;              // 如果是外部管理的节点,则一定不要在MovableObject自动销毁
-	protected bool mDestroied;                  // 物体是否已经销毁
 	protected bool mMouseHovered;               // 鼠标当前是否悬停在物体上
 	protected bool mHandleInput;                // 是否接收鼠标输入事件
 	protected bool mPassRay;                    // 是否允许射线穿透
@@ -50,7 +49,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 			destroyGameObject(ref mObject);
 		}
 		mTransform = null;
-		mDestroied = true;
+		mDestroy = true;
 	}
 	public virtual void setObject(GameObject obj, bool destroyOld = true)
 	{
@@ -73,7 +72,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	}
 	public virtual void init()
 	{
-		mDestroied = false;
+		mDestroy = false;
 		initComponents();
 	}
 	public override void update(float elapsedTime)
@@ -89,7 +88,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 			mCurFramePosition = getPosition();
 			mLastSpeedVector = mMoveSpeedVector;
 			mMoveSpeedVector = mHasLastPosition ? (mCurFramePosition - mLastPosition) / elapsedTime : Vector3.zero;
-			mMoveSpeed = getLength(mMoveSpeedVector);
+			mRealtimeMoveSpeed = getLength(mMoveSpeedVector);
 			mMovedDuringFrame = !isVectorEqual(mLastPosition, mCurFramePosition) && mHasLastPosition;
 			mHasLastPosition = true;
 		}
@@ -107,7 +106,6 @@ public class MovableObject : Transformable, IMouseEventCollect
 		mPhysicsAcceleration = (mPhysicsSpeedVector - mLastPhysicsSpeedVector) / elapsedTime;
 		mLastPhysicsSpeedVector = mPhysicsSpeedVector;
 	}
-	public bool isDestroy() { return mDestroied; }
 	public AudioSource createAudioSource()
 	{
 		return mAudioSource = mObject.AddComponent<AudioSource>();
@@ -243,7 +241,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public virtual bool isMouseHovered() { return mMouseHovered; }
 	public virtual bool isChildOf(IMouseEventCollect parent)
 	{
-		MovableObject obj = parent as MovableObject;
+		var obj = parent as MovableObject;
 		if (obj == null)
 		{
 			return false;
@@ -353,9 +351,9 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public void copyObjectTransform(GameObject obj)
 	{
 		Transform objTrans = obj.transform;
-		OT.MOVE(this, objTrans.localPosition);
-		OT.ROTATE(this, objTrans.localEulerAngles);
-		OT.SCALE(this, objTrans.localScale);
+		FT.MOVE(this, objTrans.localPosition);
+		FT.ROTATE(this, objTrans.localEulerAngles);
+		FT.SCALE(this, objTrans.localScale);
 	}
 	public void enableAllColliders(bool enable)
 	{
@@ -390,13 +388,17 @@ public class MovableObject : Transformable, IMouseEventCollect
 		mClickCallback = null;
 		mHoverCallback = null;
 		mPressCallback = null;
+		mOnScreenMouseUp = null;
 		mMovedDuringFrame = false;
 		mHasLastPosition = false;
 		mDestroyObject = true;
-		mDestroied = false;
 		mMouseHovered = false;
 		mHandleInput = true;
-		mPassRay = false;
+		mPassRay = true;
+		mEnableFixedUpdate = true;
+		mRealtimeMoveSpeed = 0.0f;
+		// mObjectID不重置
+		//mObjectID = 0;
 	}
 	public virtual void onMouseEnter()
 	{

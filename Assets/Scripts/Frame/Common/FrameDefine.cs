@@ -251,12 +251,13 @@ public enum ASPECT_BASE : byte
 	NONE,
 }
 
-public class LoadMaterialParam : IClassObject
+public class LoadMaterialParam : FrameBasePooledObject
 {
 	public string mMaterialName;
 	public bool mNewMaterial;
-	public void resetProperty()
+	public override void resetProperty()
 	{
+		base.resetProperty();
 		mMaterialName = null;
 		mNewMaterial = false;
 	}
@@ -423,6 +424,9 @@ public class FrameDefine
 #if UNITY_ANDROID && !UNITY_EDITOR
 	public static string F_ASSET_BUNDLE_PATH = Application.dataPath + "!assets/";
 #endif
+	public static string F_SCRIPTS_PATH = F_ASSETS_PATH + SCRIPTS + "/";
+	public static string F_SCRIPTS_FRAME_PATH = F_SCRIPTS_PATH + FRAME + "/";
+	public static string F_SCRIPTS_GAME_PATH = F_SCRIPTS_PATH + GAME + "/";
 	public static string F_HOT_FIX_PATH = F_PROJECT_PATH + HOT_FIX + "/";
 	public static string F_GAME_RESOURCES_PATH = F_ASSETS_PATH + GAME_RESOURCES + "/";
 	public static string F_PLUGINS_PATH = F_ASSETS_PATH + PLUGINS + "/";
@@ -484,7 +488,6 @@ public class FrameDefine
 	public static string[] SOUND_OWNER_NAME = new string[] { "Window", "Scene" };
 	public const string UGUI_DEFAULT_MATERIAL = "UGUIDefault";
 	public const string COMMON_NUMBER_STYLE = "CommonNumber";
-	public const string DESTROY_PLAYER_STATE = "Destroy";
 	public const string UI_CAMERA = "UICamera";
 	public const string BLUR_CAMERA = "BlurCamera";
 	public const string UGUI_ROOT = "UGUIRoot";

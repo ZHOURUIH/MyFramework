@@ -6,9 +6,9 @@ public class CommandCharacterManagerCreateCharacter : Command
 	public Type mCharacterType;
 	public string mName;
 	public bool mCreateNode;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mCharacterType = null;
 		mName = null;
 		mCreateNode = true;

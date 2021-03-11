@@ -43,7 +43,7 @@ public class LayoutManager : FrameSystem
 			// 显示布局时,如果当前正在显示有背景模糊的布局,则需要判断当前布局是否需要模糊
 			if (mBackBlurLayoutList.Count > 0)
 			{
-				CommandLayoutManagerBackBlur cmd = newMainCmd(out cmd, false);
+				CMD(out CommandLayoutManagerBackBlur cmd, false);
 				cmd.mExcludeLayout = mBackBlurLayoutList;
 				cmd.mBlur = mBackBlurLayoutList.Count > 0;
 				pushCommand(cmd, this);
@@ -55,7 +55,7 @@ public class LayoutManager : FrameSystem
 			{
 				mBackBlurLayoutList.Remove(layout);
 			}
-			CommandLayoutManagerBackBlur cmd = newMainCmd(out cmd, false);
+			CMD(out CommandLayoutManagerBackBlur cmd, false);
 			cmd.mExcludeLayout = mBackBlurLayoutList;
 			cmd.mBlur = mBackBlurLayoutList.Count > 0;
 			pushCommand(cmd, this);
@@ -68,7 +68,7 @@ public class LayoutManager : FrameSystem
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		var updateList = mLayoutList.GetUpdateList();
+		var updateList = mLayoutList.getUpdateList();
 		foreach (var item in updateList)
 		{
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -82,7 +82,7 @@ public class LayoutManager : FrameSystem
 	}
 	public override void onDrawGizmos()
 	{
-		var updateList = mLayoutList.GetUpdateList();
+		var updateList = mLayoutList.getUpdateList();
 		foreach (var item in updateList)
 		{
 			item.Value.onDrawGizmos();
@@ -91,7 +91,7 @@ public class LayoutManager : FrameSystem
 	public override void lateUpdate(float elapsedTime)
 	{
 		base.lateUpdate(elapsedTime);
-		var updateList = mLayoutList.GetUpdateList();
+		var updateList = mLayoutList.getUpdateList();
 		foreach (var item in updateList)
 		{
 			item.Value.lateUpdate(elapsedTime);
@@ -99,12 +99,12 @@ public class LayoutManager : FrameSystem
 	}
 	public override void destroy()
 	{
-		var updateList = mLayoutList.GetUpdateList();
+		var updateList = mLayoutList.getUpdateList();
 		foreach (var item in updateList)
 		{
 			item.Value.destroy();
 		}
-		mLayoutList.Clear();
+		mLayoutList.clear();
 		mLayoutTypeToPath.Clear();
 		mLayoutPathToType.Clear();
 		mLayoutAsyncList.Clear();
@@ -134,7 +134,7 @@ public class LayoutManager : FrameSystem
 	}
 	public GameLayout getGameLayout(int id)
 	{
-		mLayoutList.TryGetValue(id, out GameLayout layout);
+		mLayoutList.tryGetValue(id, out GameLayout layout);
 		return layout;
 	}
 	public SafeDictionary<int, GameLayout> getLayoutList() { return mLayoutList; }
@@ -169,7 +169,7 @@ public class LayoutManager : FrameSystem
 	}
 	public GameLayout createLayout(LayoutInfo info, bool async)
 	{
-		if (mLayoutList.TryGetValue(info.mID, out GameLayout existLayout))
+		if (mLayoutList.tryGetValue(info.mID, out GameLayout existLayout))
 		{
 			if (async)
 			{
@@ -202,7 +202,7 @@ public class LayoutManager : FrameSystem
 		{
 			return;
 		}
-		mLayoutList.Remove(id);
+		mLayoutList.remove(id);
 		layout.destroy();
 	}
 	public LayoutScript createScript(GameLayout layout)
@@ -221,7 +221,7 @@ public class LayoutManager : FrameSystem
 	public void getAllLayoutBoxCollider(List<Collider> colliders)
 	{
 		colliders.Clear();
-		var mainList = mLayoutList.GetMainList();
+		var mainList = mLayoutList.getMainList();
 		foreach (var item in mainList)
 		{
 			item.Value.getAllCollider(colliders, true);
@@ -245,7 +245,7 @@ public class LayoutManager : FrameSystem
 	public int getTopLayoutOrder(GameLayout exceptLayout, bool alwaysTop)
 	{
 		int maxOrder = 0;
-		var mainList = mLayoutList.GetMainList();
+		var mainList = mLayoutList.getMainList();
 		foreach (var item in mainList)
 		{
 			GameLayout layout = item.Value;
@@ -287,7 +287,7 @@ public class LayoutManager : FrameSystem
 		layout.setIsScene(info.mIsScene);
 		layout.setOrderType(info.mOrderType);
 		layout.init(generateRenderOrder(layout, info.mRenderOrder, info.mOrderType));
-		mLayoutList.Add(info.mID, layout);
+		mLayoutList.add(info.mID, layout);
 		return layout;
 	}
 }

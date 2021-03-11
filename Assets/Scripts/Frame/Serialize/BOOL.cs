@@ -20,8 +20,7 @@ public class BOOL : OBJECT
 	public void set(bool value) { mValue = value; }
 	public override bool readFromBuffer(byte[] buffer, ref int index)
 	{
-		bool success;
-		mValue = readBool(buffer, ref index, out success);
+		mValue = readBool(buffer, ref index, out bool success);
 		return success;
 	}
 	public override bool writeToBuffer(byte[] buffer, ref int index)

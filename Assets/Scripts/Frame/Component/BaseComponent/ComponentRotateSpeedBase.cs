@@ -3,12 +3,20 @@
 public class ComponentRotateSpeedBase : GameComponent, IComponentModifyRotation, IComponentBreakable
 {
 	public PLAY_STATE mPlayState;
-	public Vector3 mRotateSpeed;				// 欧拉角旋转速度
 	public Vector3 mRotateAcceleration;			// 旋转加速度
+	public Vector3 mRotateSpeed;				// 欧拉角旋转速度
 	public Vector3 mCurRotation;
 	public ComponentRotateSpeedBase()
 	{
 		mPlayState = PLAY_STATE.STOP;
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mPlayState = PLAY_STATE.STOP;
+		mRotateAcceleration = Vector3.zero;
+		mRotateSpeed = Vector3.zero;
+		mCurRotation = Vector3.zero;
 	}
 	public Vector3 getRotateSpeed() { return mRotateSpeed; }
 	public Vector3 getRotateAcceleration() { return mRotateAcceleration; }

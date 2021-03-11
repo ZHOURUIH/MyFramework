@@ -23,8 +23,7 @@ public class BYTE : OBJECT
 	public void set(byte value) { mValue = value; }
 	public override bool readFromBuffer(byte[] buffer, ref int index)
 	{
-		bool success;
-		mValue = readByte(buffer, ref index, out success);
+		mValue = readByte(buffer, ref index, out bool success);
 		return success;
 	}
 	public override bool writeToBuffer(byte[] buffer, ref int index)

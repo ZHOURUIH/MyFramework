@@ -4,7 +4,7 @@ using System;
 public class FrameSystem : ComponentOwner
 {
 	protected GameObject mObject;
-	protected bool mDestroy;       // 是否已经销毁
+	protected bool mSystemDestroy;       // 是否已经销毁
 	protected bool mCreateObject;
 	protected int mInitOrder;
 	protected int mUpdateOrder;
@@ -30,7 +30,6 @@ public class FrameSystem : ComponentOwner
 	public void setDestroyOrder(int order) { mDestroyOrder = order; }
 	public void setCreateObject(bool create) { mCreateObject = create; }
 	public GameObject getObject() { return mObject; }
-	public bool isDestroy() { return mDestroy; }
 	public virtual void onDrawGizmos() { }
 	// a小于b返回-1, a等于b返回0, a大于b返回1,升序排序
 	static public int compareInit(FrameSystem a, FrameSystem b)

@@ -43,6 +43,26 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		mSendThread.start(sendSocket);
 		mReceiveThread.start(receiveSocket);
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mReceiveBuffer.clear();
+		mOutputBuffer.clear();
+		mReceivePacketHistory.Clear();
+		mInputBuffer.clear();
+		// mConnectStateLock,mSocketLock不需要重置
+		//mConnectStateLock;
+		//mSocketLock;
+		mIPAddress = null;
+		mReceiveThread.stop();
+		mSendThread.stop();
+		mHeartBeatTimer.stop();
+		mSocket = null;
+		memset(mRecvBuff, (byte)0);
+		mHeartBeatTimes = 0;
+		mPort = 0;
+		mNetState = NET_STATE.NONE;
+	}
 	public bool isUnconnected() { return mNetState != NET_STATE.CONNECTED && mNetState != NET_STATE.CONNECTING; }
 	public void startConnect(bool async)
 	{
@@ -89,6 +109,11 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		int count = readList.Count;
 		for (int i = 0; i < count; ++i)
 		{
+			if(readList[i] == null)
+			{
+				logError("消息为空");
+				continue;
+			}
 			readList[i].execute();
 			mSocketFactoryThread.destroyPacket(readList[i]);
 		}
@@ -421,7 +446,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		{
 			clearSocket();
 		}
-		CommandSocketConnectClientState cmd = newMainCmd(out cmd, false, true);
+		CMD(out CommandSocketConnectClientState cmd, false, true);
 		if (cmd != null)
 		{
 			cmd.mErrorCode = errorCode;

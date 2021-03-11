@@ -5,15 +5,15 @@ public class CommandSocketConnectServerAcceptClient : Command
 {
 	public Socket mSocket;
 	public string mIP;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mSocket = null;
 		mIP = null;
 	}
 	public override void execute()
 	{
-		SocketConnectServer connectServer = mReceiver as SocketConnectServer;
+		var connectServer = mReceiver as SocketConnectServer;
 		connectServer?.notifyAcceptedClient(mSocket, mIP);
 	}
 	public override string showDebugInfo()

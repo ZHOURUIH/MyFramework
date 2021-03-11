@@ -28,6 +28,7 @@ public class ListPoolThread : FrameSystem
 	{
 		base.update(elapsedTime);
 #if UNITY_EDITOR
+		mListLock.waitForUnlock();
 		foreach (var item in mInusedList)
 		{
 			if (item.Value.Count == 0)
@@ -40,13 +41,14 @@ public class ListPoolThread : FrameSystem
 				break;
 			}
 		}
+		mListLock.unlock();
 #endif
 	}
 	public Dictionary<Type, HashSet<IList>> getPersistentInusedList() { return mPersistentInuseList; }
 	public Dictionary<Type, HashSet<IList>> getInusedList() { return mInusedList; }
 	public Dictionary<Type, HashSet<IList>> getUnusedList() { return mUnusedList; }
 	// onlyOnce表示是否仅当作临时列表使用
-	public new List<T> newList<T>(out List<T> obj, bool onlyOnce = true, int capacity = 0)
+	public List<T> newList<T>(out List<T> obj, bool onlyOnce = true, int capacity = 0)
 	{
 		obj = null;
 		// 锁定期间不能调用任何其他非库函数,否则可能会发生死锁
@@ -83,7 +85,7 @@ public class ListPoolThread : FrameSystem
 		mListLock.unlock();
 		return obj;
 	}
-	public new void destroyList<T>(List<T> list)
+	public void destroyList<T>(List<T> list)
 	{
 		mListLock.waitForUnlock();
 		try

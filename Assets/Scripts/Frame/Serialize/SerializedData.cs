@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-public abstract class SerializedData : GameBase
+public abstract class SerializedData : GameBasePooledObject
 {
 	protected List<OBJECT> mParameterInfoList;
 	protected int mReadDataSize;            // 写入数据时,总共写入的数据大小
@@ -11,6 +11,15 @@ public abstract class SerializedData : GameBase
 	{
 		mParameterInfoList = new List<OBJECT>();
 		mIntReplaceULLong = true;
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		// 由于子类特殊原因,不重置
+		//mParameterInfoList.Clear();
+		//mReadDataSize = 0;
+		//mMaxDataSize = 0;
+		//mIntReplaceULLong = true;
 	}
 	public int read(byte[] buffer, int offset = 0)
 	{

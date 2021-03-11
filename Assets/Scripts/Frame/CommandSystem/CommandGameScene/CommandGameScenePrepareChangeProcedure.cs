@@ -5,16 +5,16 @@ public class CommandGameScenePrepareChangeProcedure : Command
 	public Type mProcedure;
 	public string mIntent;
 	public float mPrepareTime;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mProcedure = null;
 		mIntent = null;
 		mPrepareTime = -1.0f;
 	}
 	public override void execute()
 	{
-		GameScene gameScene = mReceiver as GameScene;
+		var gameScene = mReceiver as GameScene;
 		// 准备时间必须大于0
 		if (mPrepareTime <= 0.0f)
 		{

@@ -5,17 +5,17 @@ public class CommandTransformableRotateSpeed : Command
 	public Vector3 mStartAngle;
 	public Vector3 mRotateSpeed;
 	public Vector3 mRotateAcceleration;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mStartAngle = Vector3.zero;
 		mRotateSpeed = Vector3.zero;
 		mRotateAcceleration = Vector3.zero;
 	}
 	public override void execute()
 	{
-		Transformable obj = mReceiver as Transformable;
-		TransformableComponentRotateSpeed component = obj.getComponent(out component);
+		var obj = mReceiver as Transformable;
+		obj.getComponent(out TransformableComponentRotateSpeed component);
 		component.setActive(true);
 		component.startRotateSpeed(mStartAngle, mRotateSpeed, mRotateAcceleration);
 		// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭

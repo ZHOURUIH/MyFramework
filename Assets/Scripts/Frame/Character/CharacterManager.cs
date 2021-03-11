@@ -18,7 +18,7 @@ public class CharacterManager : FrameSystem
 	public override void destroy()
 	{
 		base.destroy();
-		var updateList = mCharacterGUIDList.GetMainList();
+		var updateList = mCharacterGUIDList.getMainList();
 		foreach (var character in updateList)
 		{
 			character.Value.destroy();
@@ -31,7 +31,7 @@ public class CharacterManager : FrameSystem
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		var updateList = mCharacterGUIDList.GetUpdateList();
+		var updateList = mCharacterGUIDList.getUpdateList();
 		foreach (var item in updateList)
 		{
 			Character character = item.Value;
@@ -45,7 +45,7 @@ public class CharacterManager : FrameSystem
 	public override void lateUpdate(float elapsedTime)
 	{
 		base.lateUpdate(elapsedTime);
-		foreach (var item in mCharacterGUIDList.GetUpdateList())
+		foreach (var item in mCharacterGUIDList.getUpdateList())
 		{
 			Character character = item.Value;
 			if (character != null && character.isActive())
@@ -76,10 +76,10 @@ public class CharacterManager : FrameSystem
 	public ICharacterMyself getIMyself() { return mMyself; }
 	public Character getCharacter(ulong characterID)
 	{
-		mCharacterGUIDList.TryGetValue(characterID, out Character character);
+		mCharacterGUIDList.tryGetValue(characterID, out Character character);
 		return character;
 	}
-	public Dictionary<ulong, Character> getCharacterList() { return mCharacterGUIDList.GetMainList(); }
+	public Dictionary<ulong, Character> getCharacterList() { return mCharacterGUIDList.getMainList(); }
 	public void activeCharacter(ulong id, bool active)
 	{
 		activeCharacter(getCharacter(id), active);
@@ -95,7 +95,7 @@ public class CharacterManager : FrameSystem
 	}
 	public Character createCharacter(string name, Type type, ulong id, bool createNode)
 	{
-		if (mCharacterGUIDList.ContainsKey(id))
+		if (mCharacterGUIDList.containsKey(id))
 		{
 			logError("there is a character id : " + id + "! can not create again!");
 			return null;
@@ -149,11 +149,11 @@ public class CharacterManager : FrameSystem
 		}
 		characterList.Add(guid, character);
 		// 加入ID索引表
-		if (mCharacterGUIDList.ContainsKey(guid))
+		if (mCharacterGUIDList.containsKey(guid))
 		{
 			logError("there is a character id : " + guid + ", can not add again!");
 		}
-		mCharacterGUIDList.Add(guid, character);
+		mCharacterGUIDList.add(guid, character);
 		if (character.isEnableFixedUpdate())
 		{
 			mFixedUpdateList.Add(guid, character);
@@ -173,7 +173,7 @@ public class CharacterManager : FrameSystem
 			characterList.Remove(guid);
 		}
 		// 从ID索引表中移除
-		mCharacterGUIDList.Remove(guid);
+		mCharacterGUIDList.remove(guid);
 		mFixedUpdateList.Remove(guid);
 	}
 	protected void destroyCharacter(Character character)

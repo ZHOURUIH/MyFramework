@@ -6,7 +6,7 @@ public class GameSceneComponentAudio : ComponentAudio
 	//---------------------------------------------------------------------------------------------------------------------------
 	protected override void assignAudioSource()
 	{
-		GameScene gameScene = mComponentOwner as GameScene;
+		var gameScene = mComponentOwner as GameScene;
 		AudioSource audioSource = gameScene.getAudioSource();
 		if (audioSource == null)
 		{

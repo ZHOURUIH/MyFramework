@@ -7,9 +7,9 @@ public class CommandCharacterAddState : Command
 	public UINT mOutStateID;    // 用于返回添加的状态的ID
 	public float mStateTime;    // 状态持续时间,小于0表示不修改默认持续时间
 	public uint mStateID;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mStateType = null;
 		mParam = null;
 		mOutStateID = null;
@@ -18,7 +18,7 @@ public class CommandCharacterAddState : Command
 	}
 	public override void execute()
 	{
-		Character character = mReceiver as Character;
+		var character = mReceiver as Character;
 		if (mStateType == null)
 		{
 			return;
@@ -31,7 +31,7 @@ public class CommandCharacterAddState : Command
 		mResult?.set(ret);
 		if(mParam != null)
 		{
-			destroyClass(mParam);
+			UN_CLASS(mParam);
 			state.setParam(null);
 		}
 	}

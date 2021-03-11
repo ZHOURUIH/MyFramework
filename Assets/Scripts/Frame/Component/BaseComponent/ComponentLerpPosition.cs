@@ -9,6 +9,12 @@ public abstract class ComponentLerpPosition : ComponentLerp, IComponentModifyPos
 	{
 		mMinRange = 0.001f;
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mTargetPosition = Vector3.zero;
+		mMinRange = 0.001f;
+	}
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);

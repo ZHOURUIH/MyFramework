@@ -19,13 +19,13 @@ public class UGUISlider : ComponentOwner, ISlider
 	protected bool mDraging;
 	public UGUISlider(LayoutScript script)
 	{
-		mName = "UGUISlider";
 		mScript = script;
 		mDirection = DRAG_DIRECTION.HORIZONTAL;
 		mMode = SLIDER_MODE.FILL;
 	}
 	public void init(myUGUIObject background, myUGUIObject foreground, myUGUIObject thumb = null, SLIDER_MODE mode = SLIDER_MODE.FILL)
 	{
+		mName = "UGUISlider";
 		mMode = mode;
 		mBackground = background;
 		mForeground = foreground;
@@ -61,6 +61,24 @@ public class UGUISlider : ComponentOwner, ISlider
 			}
 		}
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		// mScript不重置
+		//mScript = null;
+		mBackground = null;
+		mForeground = null;
+		mThumb = null;
+		mSliderStartCallback = null;
+		mSliderEndCallback = null;
+		mSliderCallback = null;
+		mDirection = DRAG_DIRECTION.HORIZONTAL;
+		mMode = SLIDER_MODE.FILL;
+		mOriginForegroundSize = Vector2.zero;
+		mOriginForegroundPosition = Vector3.zero;
+		mSliderValue = 0.0f;
+		mDraging = false;
+	}
 	public void setEnable(bool enable) { mBackground.setHandleInput(enable); }
 	public void setDirection(DRAG_DIRECTION direction) { mDirection = direction; }
 	public void setStartCallback(SliderCallback callback) { mSliderStartCallback = callback; }
@@ -78,7 +96,7 @@ public class UGUISlider : ComponentOwner, ISlider
 		saturate(ref mSliderValue);
 		if(mThumb != null)
 		{
-			OT.MOVE(mThumb, sliderValueToThumbPos(mSliderValue));
+			FT.MOVE(mThumb, sliderValueToThumbPos(mSliderValue));
 		}
 		if (mForeground != null)
 		{
@@ -93,7 +111,7 @@ public class UGUISlider : ComponentOwner, ISlider
 					float newWidth = mSliderValue * mOriginForegroundSize.x;
 					Vector3 newForePos = mOriginForegroundPosition;
 					newForePos.x = mOriginForegroundPosition.x - mOriginForegroundSize.x * 0.5f + newWidth * 0.5f;
-					OT.MOVE(mForeground, newForePos);
+					FT.MOVE(mForeground, newForePos);
 					mForeground.setWindowSize(new Vector2(newWidth, mOriginForegroundSize.y));
 				}
 				else if (mDirection == DRAG_DIRECTION.VERTICAL)
@@ -101,7 +119,7 @@ public class UGUISlider : ComponentOwner, ISlider
 					float newHeight = mSliderValue * mOriginForegroundSize.y;
 					Vector3 newForePos = mOriginForegroundPosition;
 					newForePos.y = mOriginForegroundPosition.y - mOriginForegroundSize.y * 0.5f + newHeight * 0.5f;
-					OT.MOVE(mForeground, newForePos);
+					FT.MOVE(mForeground, newForePos);
 					mForeground.setWindowSize(new Vector2(mOriginForegroundSize.x, newHeight));
 				}
 			}

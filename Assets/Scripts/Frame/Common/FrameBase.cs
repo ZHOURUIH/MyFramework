@@ -47,6 +47,8 @@ public class FrameBase : UnityUtility
 	public static SocketFactoryThread mSocketFactoryThread;
 	public static PathKeyframeManager mPathKeyframeManager;
 	public static EventSystem mEventSystem;
+	public static StringBuilderPool mStringBuilderPool;
+	public static StringBuilderPoolThread mStringBuilderPoolThread;
 #if USE_ILRUNTIME
 	public static ILRSystem mILRSystem;
 #endif
@@ -94,24 +96,26 @@ public class FrameBase : UnityUtility
 		mSocketFactoryThread = mGameFramework.getSystem(Typeof<SocketFactoryThread>()) as SocketFactoryThread;
 		mPathKeyframeManager = mGameFramework.getSystem(Typeof<PathKeyframeManager>()) as PathKeyframeManager;
 		mEventSystem = mGameFramework.getSystem(Typeof<EventSystem>()) as EventSystem;
+		mStringBuilderPool = mGameFramework.getSystem(Typeof<StringBuilderPool>()) as StringBuilderPool;
+		mStringBuilderPoolThread = mGameFramework.getSystem(Typeof<StringBuilderPoolThread>()) as StringBuilderPoolThread;
 #if USE_ILRUNTIME
 		mILRSystem = mGameFramework.getSystem(Typeof<ILRSystem>()) as ILRSystem;
 #endif
 	}
 	// 方便书写代码添加的命令相关函数
 	// 创建主工程中的命令实例
-	public static T newMainCmd<T>(out T cmd, bool show = true, bool delay = false) where T : Command
+	public static T CMD<T>(out T cmd, bool show = true, bool delay = false) where T : Command
 	{
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("无法使用newMainCmd创建非主工程的命令");
+			logError("无法使用CMD创建非主工程的命令");
 		}
 		return cmd = mCommandSystem.newCmd(type, show, delay) as T;
 	}
 	public static void pushMainCommand<T>(CommandReceiver cmdReceiver, bool show = true, bool delay = false) where T : Command
 	{
-		T cmd = newMainCmd(out cmd);
+		CMD(out T cmd, show, delay);
 		mCommandSystem.pushCommand(cmd, cmdReceiver);
 	}
 	public static void pushCommand(Command cmd, CommandReceiver cmdReceiver)
@@ -120,7 +124,7 @@ public class FrameBase : UnityUtility
 	}
 	public static T pushDelayMainCommand<T>(IDelayCmdWatcher watcher, CommandReceiver cmdReceiver, float delayExecute = 0.001f, bool show = true) where T : Command
 	{
-		T cmd = newMainCmd(out cmd, show, true);
+		CMD(out T cmd, show, true);
 		mCommandSystem.pushDelayCommand(cmd, cmdReceiver, delayExecute, watcher);
 		return cmd;
 	}
@@ -138,14 +142,14 @@ public class FrameBase : UnityUtility
 	}
 	public static void changeProcedure(Type procedure, string intent = null)
 	{
-		CommandGameSceneChangeProcedure cmd = newMainCmd(out cmd);
+		CMD(out CommandGameSceneChangeProcedure cmd);
 		cmd.mProcedure = procedure;
 		cmd.mIntent = intent;
 		pushCommand(cmd, mGameSceneManager.getCurScene());
 	}
 	public static CommandGameSceneChangeProcedure changeProcedureDelay(Type procedure, float delayTime = 0.001f, string intent = null)
 	{
-		CommandGameSceneChangeProcedure cmd = newMainCmd(out cmd, true, true);
+		CMD(out CommandGameSceneChangeProcedure cmd, true, true);
 		cmd.mProcedure = procedure;
 		cmd.mIntent = intent;
 		pushDelayCommand(cmd, mGameSceneManager.getCurScene(), delayTime);
@@ -153,7 +157,7 @@ public class FrameBase : UnityUtility
 	}
 	public static void prepareChangeProcedure(Type procedure, float prepareTime = 0.001f, string intent = null)
 	{
-		CommandGameScenePrepareChangeProcedure cmd = newMainCmd(out cmd);
+		CMD(out CommandGameScenePrepareChangeProcedure cmd);
 		cmd.mProcedure = procedure;
 		cmd.mIntent = intent;
 		cmd.mPrepareTime = prepareTime;
@@ -183,28 +187,52 @@ public class FrameBase : UnityUtility
 	{
 		return mGameSceneManager.getCurScene();
 	}
-	public static List<T> newList<T>(out List<T> list, bool onlyOnce = true, int capacity = 0)
+	public static List<T> LIST<T>(out List<T> list, bool onlyOnce = true)
 	{
-		return mListPool.newList(out list, onlyOnce, capacity);
+		return mListPool.newList(out list, onlyOnce);
 	}
-	public static void destroyList<T>(List<T> list)
+	public static void UN_LIST<T>(List<T> list)
 	{
 		mListPool.destroyList(list);
 	}
-	public static Dictionary<K, V> newList<K, V>(out Dictionary<K, V> list, bool onlyOnce = true)
+	public static Dictionary<K, V> LIST<K, V>(out Dictionary<K, V> list, bool onlyOnce = true)
 	{
 		return mDictionaryPool.newList(out list, onlyOnce);
 	}
-	public static void destroyList<K, V>(Dictionary<K, V> list)
+	public static void UN_LIST<K, V>(Dictionary<K, V> list)
 	{
 		mDictionaryPool.destroyList(list);
 	}
-	public static IClassObject newClass(Type type)
+	public static T CLASS<T>(out T value) where T : class, IClassObject
 	{
-		return mClassPool.newClass(type);
+		Type type = Typeof<T>();
+		value = mClassPool.newClass(type) as T;
+		return value;
 	}
-	public static void destroyClass(IClassObject obj)
+	public static T CLASS<T>(Type type) where T : class, IClassObject
+	{
+		return mClassPool.newClass(type) as T;
+	}
+	public static void UN_CLASS(IClassObject obj)
 	{
 		mClassPool.destroyClass(obj);
+	}
+	public static MyStringBuilder newBuilder()
+	{
+		if(mStringBuilderPool == null)
+		{
+			return new MyStringBuilder();
+		}
+		return mStringBuilderPool.newBuilder();
+	}
+	public static void destroyBuilder(MyStringBuilder builder, bool destroyReally = false)
+	{
+		mStringBuilderPool?.destroyBuilder(builder, destroyReally);
+	}
+	public static string valueDestroyBuilder(MyStringBuilder builder, bool destroyReally = false)
+	{
+		string str = builder.ToString();
+		mStringBuilderPool?.destroyBuilder(builder, destroyReally);
+		return str;
 	}
 }

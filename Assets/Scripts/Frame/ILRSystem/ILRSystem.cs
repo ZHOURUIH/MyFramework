@@ -25,7 +25,6 @@ public class ILRSystem : FrameSystem
 	{
 		destroyILR();
 	}
-	public override void update(float elapsedTime) { }
 	public ILRAppDomain getAppDomain() { return mAppDomain; }
 	public void destroyILR()
 	{

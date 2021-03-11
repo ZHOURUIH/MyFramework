@@ -6,9 +6,9 @@ public class CommandTransformableLockPosition : Command
 	public bool mLockX;
 	public bool mLockY;
 	public bool mLockZ;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mLockPosition = Vector3.zero;
 		mLockX = false;
 		mLockY = false;
@@ -16,8 +16,8 @@ public class CommandTransformableLockPosition : Command
 	}
 	public override void execute()
 	{
-		Transformable obj = mReceiver as Transformable;
-		TransformableComponentLockPosition component = obj.getComponent(out component);
+		var obj = mReceiver as Transformable;
+		obj.getComponent(out TransformableComponentLockPosition component);
 		component.setActive(true);
 		component.setLockPosition(mLockPosition);
 		component.setLock(mLockX, mLockY, mLockZ);

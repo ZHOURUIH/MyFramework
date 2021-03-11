@@ -7,9 +7,9 @@ public class CommandWindowPlayAudio : Command
 	public float mVolume;
 	public bool mUseVolumeCoe;       // 是否启用数据表格中的音量系数
 	public bool mLoop;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mSound = SOUND_DEFINE.MIN;
 		mSoundFileName = null;
 		mVolume = 1.0f;
@@ -18,8 +18,8 @@ public class CommandWindowPlayAudio : Command
 	}
 	public override void execute()
 	{
-		myUIObject obj = mReceiver as myUIObject;
-		WindowComponentAudio component = obj.getComponent(out component);
+		var obj = mReceiver as myUIObject;
+		obj.getComponent(out WindowComponentAudio component);
 		component.setActive(true);
 		string soundName = mSound != SOUND_DEFINE.MIN ? mAudioManager.getAudioName(mSound) : mSoundFileName;
 		if (mUseVolumeCoe)

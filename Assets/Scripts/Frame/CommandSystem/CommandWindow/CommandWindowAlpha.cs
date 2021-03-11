@@ -2,40 +2,38 @@
 
 public class CommandWindowAlpha : Command
 {
-	public KeyFrameCallback mTremblingCallBack;
-	public KeyFrameCallback mTrembleDoneCallBack;
+	public KeyFrameCallback mDoingCallback;
+	public KeyFrameCallback mDoneCallback;
 	public KEY_FRAME mKeyframe;
 	public float mOnceLength;
 	public float mOffset;
 	public float mStartAlpha;
 	public float mTargetAlpha;
-	public float mAmplitude;
 	public bool mFullOnce;
 	public bool mLoop;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
-		mTremblingCallBack = null;
-		mTrembleDoneCallBack = null;
+		base.resetProperty();
+		mDoingCallback = null;
+		mDoneCallback = null;
 		mKeyframe = KEY_FRAME.NONE;
 		mOnceLength = 1.0f;
 		mOffset = 0.0f;
 		mStartAlpha = 1.0f;
 		mTargetAlpha = 1.0f;
-		mAmplitude = 1.0f;
 		mFullOnce = false;
 		mLoop = false;
 	}
 	public override void execute()
 	{
-		myUIObject obj = mReceiver as myUIObject;
-		WindowComponentAlpha component = obj.getComponent(out component);
-		component.setTremblingCallback(mTremblingCallBack);
-		component.setTrembleDoneCallback(mTrembleDoneCallBack);
+		var obj = mReceiver as myUIObject;
+		obj.getComponent(out WindowComponentAlpha component);
+		component.setTremblingCallback(mDoingCallback);
+		component.setTrembleDoneCallback(mDoneCallback);
 		component.setActive(true);
 		component.setStartAlpha(mStartAlpha);
 		component.setTargetAlpha(mTargetAlpha);
-		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce, mAmplitude);
+		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce);
 		if (component.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
@@ -44,7 +42,7 @@ public class CommandWindowAlpha : Command
 	}
 	public override string showDebugInfo()
 	{
-		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mStartAlpha:" + mStartAlpha +
-			", mTargetAlpha:" + mTargetAlpha + ", mLoop:" + mLoop + ", mAmplitude:" + mAmplitude + ", mFullOnce:" + mFullOnce;
+		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mStartAlpha:" + 
+			mStartAlpha + ", mTargetAlpha:" + mTargetAlpha + ", mLoop:" + mLoop + ", mFullOnce:" + mFullOnce;
 	}
 }

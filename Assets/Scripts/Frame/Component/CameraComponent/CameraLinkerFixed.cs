@@ -8,6 +8,11 @@ public class CameraLinkerFixed : CameraLinker
 	{
 		mUseTargetYaw = true;
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mUseTargetYaw = true;
+	}
 	public void setUseTargetYaw(bool use) { mUseTargetYaw = use; }
 	public bool isUseTargetYaw() { return mUseTargetYaw; }
 	//---------------------------------------------------------------------------------------
