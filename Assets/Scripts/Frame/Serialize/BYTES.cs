@@ -6,6 +6,25 @@ public class BYTES : OBJECTS
 {
 	protected const int TYPE_SIZE = sizeof(byte);
 	public byte[] mValue;
+	public byte this[int index]
+	{
+		get
+		{
+			if (index >= mElementCount)
+			{
+				logError("下标超出有效数据长度");
+			}
+			return mValue[index];
+		}
+		set
+		{
+			if (index >= mElementCount)
+			{
+				logError("下标超出有效数据长度");
+			}
+			mValue[index] = value;
+		}
+	}
 	public BYTES(int count)
 	{
 		mValue = new byte[count];
@@ -110,6 +129,16 @@ public class BYTES : OBJECTS
 			length = mValue.Length - startIndex;
 		}
 		return bytesToString(mValue, startIndex, length);
+	}
+	public string getString(ref int startIndex, int length = -1)
+	{
+		if (length == -1)
+		{
+			length = mValue.Length - startIndex;
+		}
+		string str = bytesToString(mValue, startIndex, length);
+		startIndex += length;
+		return str;
 	}
 	public string getString(Encoding encoding, int startIndex = 0, int length = -1)
 	{

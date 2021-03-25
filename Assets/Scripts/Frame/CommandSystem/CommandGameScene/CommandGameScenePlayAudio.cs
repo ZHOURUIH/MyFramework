@@ -27,9 +27,12 @@ public class CommandGameScenePlayAudio : Command
 		}
 		component.play(soundName, mLoop, mVolume);
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
 		string soundName = mSound != SOUND_DEFINE.MIN ? mAudioManager.getAudioName(mSound) : mSoundFileName;
-		return base.showDebugInfo() + ": mSound:" + mSound + ", soundName:" + soundName + ", mLoop:" + mLoop + ", mVolume:" + mVolume;
+		builder.Append(": mSound:", mSound.ToString()).
+				Append(", soundName:", soundName).
+				Append(", mLoop:", mLoop).
+				Append(", mVolume:", mVolume);
 	}
 }

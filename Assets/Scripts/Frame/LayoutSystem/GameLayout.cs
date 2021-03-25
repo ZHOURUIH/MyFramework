@@ -23,6 +23,10 @@ public class GameLayout : FrameBase
 	protected bool mIsScene;					// 是否为场景,如果是场景,就不将布局挂在NGUIRoot或者UGUIRoot下
 	protected LAYOUT_ORDER mRenderOrderType;	// 布局渲染顺序的计算方式
 	protected static List<LayoutScriptCallback> mLayoutScriptCallback = new List<LayoutScriptCallback>();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+	protected string Profiler_UpdateLayout;
+	protected string Profiler_UpdateScript;
+#endif
 	public GameLayout()
 	{
 		mGameObjectSearchList = new Dictionary<GameObject, myUIObject>();
@@ -70,6 +74,10 @@ public class GameLayout : FrameBase
 	}
 	public void init(int renderOrder)
 	{
+#if UNITY_EDITOR
+		Profiler_UpdateLayout = "UpdateLayout" + getName();
+		Profiler_UpdateScript = "UpdateScript" + getName();
+#endif
 		mScript = mLayoutManager.createScript(this);
 		int count = mLayoutScriptCallback.Count;
 		for(int i = 0; i < count; ++i)
@@ -90,10 +98,10 @@ public class GameLayout : FrameBase
 			// 去除自带的锚点
 			// 在unity2020中,不知道为什么实例化以后的RectTransform的大小会自动变为窗口大小,为了适配计算正确,这里需要重置一次
 			RectTransform rectTransform = mRoot.getRectTransform();
-			Vector3 size = WidgetUtility.getRectSize(rectTransform);
+			Vector3 size = getRectSize(rectTransform);
 			rectTransform.anchorMin = Vector2.one * 0.5f;
 			rectTransform.anchorMax = Vector2.one * 0.5f;
-			WidgetUtility.setRectSize(rectTransform, new Vector2(GameDefine.STANDARD_WIDTH, GameDefine.STANDARD_HEIGHT), false);
+			setRectSize(rectTransform, new Vector2(GameDefine.STANDARD_WIDTH, GameDefine.STANDARD_HEIGHT), false);
 		}
 
 		mRoot.setDestroyImmediately(true);
@@ -125,7 +133,7 @@ public class GameLayout : FrameBase
 		if (isVisible() && mScript != null && mScriptInited)
 		{
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-			Profiler.BeginSample("UpdateLayout:" + getName());
+			Profiler.BeginSample(Profiler_UpdateLayout);
 #endif
 			// 先更新所有的UI物体
 			var updateList = mObjectList.getUpdateList();
@@ -138,7 +146,7 @@ public class GameLayout : FrameBase
 			}
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 			Profiler.EndSample();
-			Profiler.BeginSample("UpdateScript:" + getName());
+			Profiler.BeginSample(Profiler_UpdateScript);
 #endif
 			mScript.update(elapsedTime);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

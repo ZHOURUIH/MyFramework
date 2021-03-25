@@ -21,8 +21,10 @@ public class CommandTransformableRotateSpeed : Command
 		// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
 		obj.setEnable(true);
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		return base.showDebugInfo() + ": mStartAngle:" + mStartAngle + ", mRotateSpeed:" + mRotateSpeed + ", mRotateAcceleration:" + mRotateAcceleration;
+		builder.Append(": mStartAngle:", mStartAngle).
+				Append(", mRotateSpeed:", mRotateSpeed).
+				Append(", mRotateAcceleration:", mRotateAcceleration);
 	}
 }

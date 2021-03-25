@@ -40,9 +40,14 @@ public class CommandTransformableMovePhysics : Command
 			obj.setEnable(true);
 		}
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mStartPos:" + 
-			mStartPos + ", mTargetPos:" + mTargetPos + ", mLoop:" + mLoop + ", mFullOnce:" + mFullOnce;
+		builder.Append(": mKeyframe:", mKeyframe.ToString()).
+				Append(", mOnceLength:", mOnceLength).
+				Append(", mOffset:", mOffset).
+				Append(", mStartPos:", mStartPos).
+				Append(", mTargetPos:", mTargetPos).
+				Append(", mLoop:", mLoop).
+				Append(", mFullOnce:", mFullOnce);
 	}
 }

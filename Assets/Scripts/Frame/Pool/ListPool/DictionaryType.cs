@@ -17,4 +17,8 @@ public struct DictionaryType : IEquatable<DictionaryType>
 	{
 		return mKeyType.GetHashCode() + mValueType.GetHashCode();
 	}
+	public override string ToString()
+	{
+		return mKeyType + "," + mValueType;
+	}
 }

@@ -22,39 +22,57 @@ namespace ILRuntime.Runtime.Generated
             MethodBase method;
             Type[] args;
             Type type = typeof(global::PlayerState);
+            args = new Type[]{};
+            method = type.GetMethod("destroy", flag, null, args, null);
+            app.RegisterCLRMethodRedirection(method, destroy_0);
             args = new Type[]{typeof(global::Character)};
             method = type.GetMethod("setPlayer", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, setPlayer_0);
+            app.RegisterCLRMethodRedirection(method, setPlayer_1);
             args = new Type[]{};
             method = type.GetMethod("canEnter", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, canEnter_1);
+            app.RegisterCLRMethodRedirection(method, canEnter_2);
             args = new Type[]{};
             method = type.GetMethod("enter", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, enter_2);
+            app.RegisterCLRMethodRedirection(method, enter_3);
             args = new Type[]{typeof(System.Single)};
             method = type.GetMethod("update", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, update_3);
+            app.RegisterCLRMethodRedirection(method, update_4);
             args = new Type[]{typeof(System.Single)};
             method = type.GetMethod("fixedUpdate", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, fixedUpdate_4);
+            app.RegisterCLRMethodRedirection(method, fixedUpdate_5);
             args = new Type[]{typeof(System.Boolean), typeof(System.String)};
             method = type.GetMethod("leave", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, leave_5);
+            app.RegisterCLRMethodRedirection(method, leave_6);
             args = new Type[]{typeof(System.Single)};
             method = type.GetMethod("keyProcess", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, keyProcess_6);
+            app.RegisterCLRMethodRedirection(method, keyProcess_7);
             args = new Type[]{};
             method = type.GetMethod("getPriority", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, getPriority_7);
+            app.RegisterCLRMethodRedirection(method, getPriority_8);
             args = new Type[]{};
             method = type.GetMethod("resetProperty", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, resetProperty_8);
+            app.RegisterCLRMethodRedirection(method, resetProperty_9);
 
 
         }
 
 
-        static StackObject* setPlayer_0(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* destroy_0(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        {
+            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
+            StackObject* ptr_of_this_method;
+            StackObject* __ret = ILIntepreter.Minus(__esp, 1);
+
+            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
+            global::PlayerState instance_of_this_method = (global::PlayerState)typeof(global::PlayerState).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            __intp.Free(ptr_of_this_method);
+
+            instance_of_this_method.destroy();
+
+            return __ret;
+        }
+
+        static StackObject* setPlayer_1(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -73,7 +91,7 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* canEnter_1(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* canEnter_2(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -90,7 +108,7 @@ namespace ILRuntime.Runtime.Generated
             return __ret + 1;
         }
 
-        static StackObject* enter_2(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* enter_3(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -105,7 +123,7 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* update_3(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* update_4(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -123,7 +141,7 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* fixedUpdate_4(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* fixedUpdate_5(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -141,7 +159,7 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* leave_5(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* leave_6(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -163,7 +181,7 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* keyProcess_6(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* keyProcess_7(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -181,7 +199,7 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* getPriority_7(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* getPriority_8(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -198,7 +216,7 @@ namespace ILRuntime.Runtime.Generated
             return __ret + 1;
         }
 
-        static StackObject* resetProperty_8(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* resetProperty_9(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;

@@ -35,9 +35,14 @@ public class CommandCameraOrthoSize : Command
 		component.setTargetOrthoSize(mTargetOrthoSize);
 		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce);
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mStartFOV:" + mStartOrthoSize +
-			", mTargetFOV:" + mTargetOrthoSize + ", mLoop:" + mLoop + ", mFullOnce:" + mFullOnce;
+		builder.Append(": mKeyframe:", mKeyframe.ToString()).
+				Append(", mOnceLength:", mOnceLength).
+				Append(", mOffset:", mOffset).
+				Append(", mStartFOV:", mStartOrthoSize).
+				Append(", mTargetFOV:", mTargetOrthoSize).
+				Append(", mLoop:", mLoop).
+				Append(", mFullOnce:", mFullOnce);
 	}
 }

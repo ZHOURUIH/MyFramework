@@ -3,7 +3,6 @@
 public class CommandLayoutManagerLoad : Command 
 {
 	public LayoutAsyncDone mCallback;
-	public GameLayout mResultLayout;
 	public LAYOUT_ORDER mOrderType;
 	public string mParam;
 	public bool mImmediatelyShow;
@@ -17,7 +16,6 @@ public class CommandLayoutManagerLoad : Command
 	{
 		base.resetProperty();
 		mCallback = null;
-		mResultLayout = null;
 		mLayoutID = LAYOUT.NONE;
 		mOrderType = LAYOUT_ORDER.ALWAYS_TOP;
 		mParam = null;
@@ -36,30 +34,34 @@ public class CommandLayoutManagerLoad : Command
 		info.mOrderType = mOrderType;
 		info.mIsScene = mIsScene;
 		info.mCallback = mCallback;
-		mResultLayout = mLayoutManager.createLayout(info, mAsync);
-		if (mResultLayout == null)
+		GameLayout layout = mLayoutManager.createLayout(info, mAsync);
+		if (layout == null)
 		{
 			return;
 		}
 		// 计算实际的渲染顺序
-		int renderOrder = mLayoutManager.generateRenderOrder(mResultLayout, mRenderOrder, mOrderType);
+		int renderOrder = mLayoutManager.generateRenderOrder(layout, mRenderOrder, mOrderType);
 		// 顺序有改变,则设置最新的顺序
-		if (mResultLayout.getRenderOrder() != renderOrder)
+		if (layout.getRenderOrder() != renderOrder)
 		{
-			mResultLayout.setRenderOrder(renderOrder);
+			layout.setRenderOrder(renderOrder);
 		}
 		if (mVisible)
 		{
-			mResultLayout.setVisible(mVisible, mImmediatelyShow, mParam);
+			layout.setVisible(mVisible, mImmediatelyShow, mParam);
 		}
 		// 隐藏时需要设置强制隐藏,不通知脚本,因为通常这种情况只是想后台加载布局
 		else
 		{
-			mResultLayout.setVisibleForce(mVisible);
+			layout.setVisibleForce(mVisible);
 		}
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		return base.showDebugInfo() + ": mLayoutID:" + mLayoutID + ", mVisible:" + mVisible + ", mResultLayout:" + mResultLayout + ", mRenderOrder:" + mRenderOrder + ", mAsync:" + mAsync + ", mCallback:" + mCallback + ", mParam:" + mParam;
+		builder.Append(": mLayoutID:", mLayoutID).
+				Append(", mVisible:", mVisible).
+				Append(", mRenderOrder:", mRenderOrder).
+				Append(", mAsync:", mAsync).
+				Append(", mParam:", mParam);
 	}
 }

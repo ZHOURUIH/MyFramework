@@ -145,11 +145,11 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		if (mResourceManager.isSyncLoadAvalaible())
 		{
 			Material mat;
-			Material loadedMaterial = mResourceManager.loadResource<Material>(FrameDefine.R_MATERIAL_PATH + materialName);
+			var loadedMaterial = mResourceManager.loadResource<Material>(FrameDefine.R_MATERIAL_PATH + materialName);
 			if (mIsNewMaterial)
 			{
 				mat = new Material(loadedMaterial);
-				mat.name = materialName + "_" + mID;
+				mat.name = materialName + "_" + IToS(mID);
 			}
 			else
 			{
@@ -182,7 +182,7 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		if (param.mNewMaterial)
 		{
 			Material newMat = new Material(material);
-			newMat.name = param.mMaterialName + "_" + mID;
+			newMat.name = param.mMaterialName + "_" + IToS(mID);
 			mRawImage.material = newMat;
 		}
 		else

@@ -29,23 +29,26 @@ namespace ILRuntime.Runtime.Generated
             method = type.GetMethod("init", flag, null, args, null);
             app.RegisterCLRMethodRedirection(method, init_1);
             args = new Type[]{};
+            method = type.GetMethod("resetProperty", flag, null, args, null);
+            app.RegisterCLRMethodRedirection(method, resetProperty_2);
+            args = new Type[]{};
             method = type.GetMethod("destroy", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, destroy_2);
+            app.RegisterCLRMethodRedirection(method, destroy_3);
             args = new Type[]{typeof(System.Single)};
             method = type.GetMethod("update", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, update_3);
+            app.RegisterCLRMethodRedirection(method, update_4);
             args = new Type[]{typeof(System.Single)};
             method = type.GetMethod("lateUpdate", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, lateUpdate_4);
+            app.RegisterCLRMethodRedirection(method, lateUpdate_5);
             args = new Type[]{typeof(System.Single)};
             method = type.GetMethod("keyProcess", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, keyProcess_5);
+            app.RegisterCLRMethodRedirection(method, keyProcess_6);
             args = new Type[]{};
             method = type.GetMethod("exit", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, exit_6);
+            app.RegisterCLRMethodRedirection(method, exit_7);
             args = new Type[]{};
             method = type.GetMethod("createSceneProcedure", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, createSceneProcedure_7);
+            app.RegisterCLRMethodRedirection(method, createSceneProcedure_8);
 
 
         }
@@ -94,7 +97,22 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* destroy_2(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* resetProperty_2(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        {
+            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
+            StackObject* ptr_of_this_method;
+            StackObject* __ret = ILIntepreter.Minus(__esp, 1);
+
+            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
+            global::GameScene instance_of_this_method = (global::GameScene)typeof(global::GameScene).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            __intp.Free(ptr_of_this_method);
+
+            instance_of_this_method.resetProperty();
+
+            return __ret;
+        }
+
+        static StackObject* destroy_3(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -109,7 +127,7 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* update_3(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* update_4(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -127,7 +145,7 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* lateUpdate_4(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* lateUpdate_5(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -145,7 +163,7 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* keyProcess_5(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* keyProcess_6(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -163,7 +181,7 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* exit_6(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* exit_7(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -178,7 +196,7 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* createSceneProcedure_7(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* createSceneProcedure_8(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;

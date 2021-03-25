@@ -37,10 +37,9 @@ public class AssetBundleLoader : FrameBase
 			{
 				return false;
 			}
-			byte[] fileBuffer;
-			int fileSize = openFile(path, out fileBuffer, false);
+			int fileSize = openFile(path, out byte[] fileBuffer, false);
 			initAssetConfig(fileBuffer, fileSize);
-			releaseFileBuffer(fileBuffer);
+			releaseFile(fileBuffer);
 		}
 		else
 		{
@@ -573,7 +572,7 @@ public class AssetBundleLoader : FrameBase
 	}
 	protected void initAssetConfig(byte[] fileBuffer, int fileSize)
 	{
-		byte[] tempStringBuffer = mBytesPool.newBytes(256);
+		ARRAY(out byte[] tempStringBuffer, 256);
 		mAssetBundleInfoList.Clear();
 		mAssetToBundleInfo.Clear();
 		Serializer serializer = new Serializer(fileBuffer, fileSize);
@@ -605,7 +604,7 @@ public class AssetBundleLoader : FrameBase
 				bundleInfo.addParent(getFileNameNoSuffix(bytesToString(tempStringBuffer)));
 			}
 		}
-		mBytesPool.destroyBytes(tempStringBuffer);
+		UN_ARRAY(tempStringBuffer);
 		// 配置清单解析完毕后,为每个AssetBundleInfo查找对应的依赖项
 		foreach (var info in mAssetBundleInfoList)
 		{

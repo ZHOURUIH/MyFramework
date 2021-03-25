@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using System;
 
@@ -17,6 +16,7 @@ public class myUGUINumber : myUGUIImage
 	protected const char mAddMark = '+';
 	protected const char mMinusMark = '-';
 	protected const char mDotMark = '.';
+	protected static string mAllMark = EMPTY + mAddMark + mMinusMark + mDotMark;
 	protected int mInterval;
 	protected int mMaxCount;
 	public myUGUINumber()
@@ -51,7 +51,7 @@ public class myUGUINumber : myUGUIImage
 		}
 		for (int i = 0; i < 10; ++i)
 		{
-			mSpriteList[i] = mTPSpriteManager.getSprite(atlasName, mNumberStyle + "_" + i);
+			mSpriteList[i] = mTPSpriteManager.getSprite(atlasName, mNumberStyle + "_" + IToS(i));
 		}
 		mAddSprite = mTPSpriteManager.getSprite(atlasName, mNumberStyle + "_add");
 		mMinusSprite = mTPSpriteManager.getSprite(atlasName, mNumberStyle + "_minus");
@@ -298,18 +298,18 @@ public class myUGUINumber : myUGUIImage
 		mNumberList.Clear();
 		for (int i = 0; i < mMaxCount + 1; ++i)
 		{
-			string name = mName + "_" + i;
-			mNumberList.Add(mLayout.getScript().createObject<myUGUIImage>(this, name, false, false, false));
+			mNumberList.Add(mLayout.getScript().createObject<myUGUIImage>(this, mName + "_" + IToS(i), false, false, false));
 		}
 		refreshNumber();
 	}
 	public void setNumber(int num, int limitLen = 0)
 	{
-		setNumber(intToString(num, limitLen));
+		setNumber(IToS(num, limitLen));
 	}
 	public void setNumber(string num)
 	{
-		mNumber = checkUIntString(num, EMPTY + mAddMark + mMinusMark + mDotMark);
+		mNumber = num;
+		checkUIntString(mNumber, mAllMark);
 		// 设置的数字字符串不能超过最大数量
 		if (mNumber.Length > mMaxCount)
 		{

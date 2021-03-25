@@ -13,8 +13,8 @@ public class CommandGameSceneBackToLastProcedure : Command
 		var gameScene = mReceiver as GameScene;
 		gameScene.backToLastProcedure(mIntent);
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		return base.showDebugInfo() + ": mIntent:" + mIntent;
+		builder.Append(": mIntent:", mIntent);
 	}
 }

@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class ListPoolThreadDebug : MonoBehaviour
 {
-	public List<string> PersistentInuseList = new List<string>();
 	public List<string> InuseList = new List<string>();
 	public List<string> UnuseList = new List<string>();
 	public void Update()
@@ -12,26 +11,26 @@ public class ListPoolThreadDebug : MonoBehaviour
 		{
 			return;
 		}
-		PersistentInuseList.Clear();
-		var persistentInuse = FrameBase.mListPool.getPersistentInusedList();
-		foreach (var item in persistentInuse)
-		{
-			PersistentInuseList.Add(item.Key + ", 数量:" + item.Value.Count);
-		}
-
+		FrameBase.mListPoolThread.lockList();
 		InuseList.Clear();
-		var inuse = FrameBase.mListPool.getInusedList();
+		var inuse = FrameBase.mListPoolThread.getInusedList();
 		foreach(var item in inuse)
 		{
-			InuseList.Add(item.Key + ", 数量:" + item.Value.Count);
+			if (item.Value.Count > 0)
+			{
+				InuseList.Add(item.Key.ToString() + ", 数量:" + StringUtility.IToS(item.Value.Count));
+			}
 		}
 
 		UnuseList.Clear();
-		var unuse = FrameBase.mListPool.getUnusedList();
+		var unuse = FrameBase.mListPoolThread.getUnusedList();
 		foreach (var item in unuse)
 		{
-			UnuseList.Add(item.Key + ", 数量:" + item.Value.Count);
+			if(item.Value.Count > 0)
+			{
+				UnuseList.Add(item.Key.ToString() + ", 数量:" + StringUtility.IToS(item.Value.Count));
+			}
 		}
+		FrameBase.mListPoolThread.unlockList();
 	}
-	//-------------------------------------------------------------------------------------------------------
 }

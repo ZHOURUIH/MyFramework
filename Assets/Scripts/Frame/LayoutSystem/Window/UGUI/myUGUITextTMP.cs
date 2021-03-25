@@ -30,7 +30,7 @@ public class myUGUITextTMP : myUGUIObject
 	}
 	public void setText(int value)
 	{
-		setText(intToString(value));
+		setText(IToS(value));
 	}
 	public string getText() { return mText.text; }
 	public override float getAlpha() { return mText.color.a; }

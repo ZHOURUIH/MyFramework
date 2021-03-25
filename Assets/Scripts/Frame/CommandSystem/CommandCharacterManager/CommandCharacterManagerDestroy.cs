@@ -15,8 +15,8 @@ public class CommandCharacterManagerDestroy : Command
 			mCharacterManager.destroyCharacter(mGUID);
 		}
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		return base.showDebugInfo() + ": mGUID:" + mGUID;
+		builder.Append(": mGUID:", mGUID);
 	}
 }

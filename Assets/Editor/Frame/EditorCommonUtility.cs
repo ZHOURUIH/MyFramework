@@ -44,12 +44,12 @@ public class EditorCommonUtility : UnityUtility
 	public static int searchFiles(string pattern, string guid, string fileName, bool loadFile, Dictionary<string, UnityEngine.Object> refrenceList, Dictionary<string, List<FileGUIDLines>> allFileText)
 	{
 		int[] guidNextIndex;
-		StringUtility.generateNextIndex(guid, out guidNextIndex);
+		generateNextIndex(guid, out guidNextIndex);
 		rightToLeft(ref fileName);
 		string metaSuffix = ".meta";
 		if (allFileText == null)
 		{
-			string[] files = Directory.GetFiles(UnityEngine.Application.dataPath + "/" + FrameDefine.GAME_RESOURCES, pattern, SearchOption.AllDirectories);
+			string[] files = Directory.GetFiles(Application.dataPath + "/" + FrameDefine.GAME_RESOURCES, pattern, SearchOption.AllDirectories);
 			for (int i = 0; i < files.Length; ++i)
 			{
 				string file = files[i];
@@ -334,7 +334,7 @@ public class EditorCommonUtility : UnityUtility
 		string metaSuffix = ".meta";
 		if(allFileText == null)
 		{
-			string[] files = Directory.GetFiles(UnityEngine.Application.dataPath + "/" + FrameDefine.GAME_RESOURCES, "*.*", SearchOption.AllDirectories);
+			string[] files = Directory.GetFiles(Application.dataPath + "/" + FrameDefine.GAME_RESOURCES, "*.*", SearchOption.AllDirectories);
 			foreach (var item in files)
 			{
 				string file = item;

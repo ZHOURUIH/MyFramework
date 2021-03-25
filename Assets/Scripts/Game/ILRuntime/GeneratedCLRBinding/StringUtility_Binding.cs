@@ -23,14 +23,14 @@ namespace ILRuntime.Runtime.Generated
             Type[] args;
             Type type = typeof(global::StringUtility);
             args = new Type[]{typeof(System.Single), typeof(System.Int32), typeof(System.Boolean)};
-            method = type.GetMethod("floatToString", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, floatToString_0);
+            method = type.GetMethod("FToS", flag, null, args, null);
+            app.RegisterCLRMethodRedirection(method, FToS_0);
 
 
         }
 
 
-        static StackObject* floatToString_0(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* FToS_0(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -46,7 +46,7 @@ namespace ILRuntime.Runtime.Generated
             System.Single @value = *(float*)&ptr_of_this_method->Value;
 
 
-            var result_of_this_method = global::StringUtility.floatToString(@value, @precision, @removeTailZero);
+            var result_of_this_method = global::StringUtility.FToS(@value, @precision, @removeTailZero);
 
             return ILIntepreter.PushObject(__ret, __mStack, result_of_this_method);
         }

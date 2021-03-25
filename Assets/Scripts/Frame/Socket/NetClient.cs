@@ -41,7 +41,7 @@ public abstract class NetClient : GameBase
 		// 包类型的高2位表示了当前包体是用几个字节存储的
 		ushort packetType = packet.getPacketType();
 		// 需要先序列化消息,同时获得包体实际的长度
-		byte[] bodyBuffer = mBytesPool.newBytes(getGreaterPow2(packet.generateSize(true)));
+		ARRAY(out byte[] bodyBuffer, getGreaterPow2(packet.generateSize(true)));
 		int realPacketSize = packet.write(bodyBuffer);
 		string debugInfo = null;
 		if (packet.showInfo())
@@ -53,7 +53,7 @@ public abstract class NetClient : GameBase
 
 		if (realPacketSize < 0)
 		{
-			mBytesPool.destroyBytes(bodyBuffer);
+			UN_ARRAY(bodyBuffer);
 			logError("消息序列化失败!");
 			return;
 		}
@@ -84,29 +84,29 @@ public abstract class NetClient : GameBase
 			setBit(ref packetType, sizeof(ushort) * 8 - 1, 1);
 			setBit(ref packetType, sizeof(ushort) * 8 - 2, 0);
 		}
-		byte[] packetData = mBytesPoolThread.newBytes(getGreaterPow2(sizeof(ushort) + headerSize + packetSize));
+		ARRAY_THREAD(out byte[] packetData, getGreaterPow2(sizeof(ushort) + headerSize + packetSize));
 		int index = 0;
 		// 本次消息包的数据长度,因为byte[]本身的长度并不代表要发送的实际的长度,所以将数据长度保存下来
 		writeUShort(packetData, ref index, (ushort)(headerSize + packetSize));
 		// 消息类型
 		writeUShort(packetData, ref index, packetType);
 		// 消息长度,按实际消息长度写入长度的字节内容
-		if (headerSize - sizeof(ushort) == sizeof(byte))
+		if (headerSize == sizeof(ushort) + sizeof(byte))
 		{
 			writeByte(packetData, ref index, (byte)packetSize);
 		}
-		else if(headerSize - sizeof(ushort) == sizeof(ushort))
+		else if(headerSize == sizeof(ushort) + sizeof(ushort))
 		{
 			writeUShort(packetData, ref index, packetSize);
 		}
 		// 写入包体数据
 		writeBytes(packetData, ref index, bodyBuffer, -1, -1, realPacketSize);
-		mBytesPool.destroyBytes(bodyBuffer);
+		UN_ARRAY(bodyBuffer);
 		// 添加到写缓冲中
 		mOutputBuffer.add(packetData);
 		if (debugInfo != null)
 		{
-			clientInfo("已发送 : " + debugInfo + ", 字节数:" + packetSize);
+			clientInfo("已发送 : " + debugInfo + ", 字节数:" + IToS(packetSize));
 		}
 	}
 	public void processSend()
@@ -136,7 +136,7 @@ public abstract class NetClient : GameBase
 		// 回收所有byte[]
 		for (int i = 0; i < count; ++i)
 		{
-			mBytesPoolThread.destroyBytes(readList[i]);
+			UN_ARRAY_THREAD(readList[i]);
 		}
 		readList.Clear();
 	}
@@ -171,7 +171,7 @@ public abstract class NetClient : GameBase
 			SocketPacket packet = readList[i];
 			if (packet.showInfo())
 			{
-				clientInfo("type:" + packet.getPacketType() + ", " + packet.debugInfo());
+				clientInfo("type:" + IToS(packet.getPacketType()) + ", " + packet.debugInfo());
 			}
 			packet.execute();
 			destroyPacket(packet);
@@ -270,14 +270,11 @@ public abstract class NetClient : GameBase
 	protected void clientInfo(string info)
 	{
 		Character player = mCharacterManager.getCharacter(mCharacterGUID);
-		string name = player != null ? player.getName() : EMPTY;
-		string fullInfo = "IP:" + mIP + ", 角色GUID:" + uintToString(mCharacterGUID) + ", 名字:" + name + " ||\t" + info;
-		log(fullInfo);
+		log(strcat("IP:", mIP, ", 角色GUID:", IToS(mCharacterGUID), ", 名字:", player?.getName(), " ||\t", info));
 	}
 	protected void clientError(string info)
 	{
 		Character player = mCharacterManager.getCharacter(mCharacterGUID);
-		string name = player != null ? player.getName() : EMPTY;
-		logError("IP:" + mIP + ", 角色GUID:" + uintToString(mCharacterGUID) + ", 名字:" + name + " ||\t" + info);
+		logError(strcat("IP:", mIP, ", 角色GUID:", IToS(mCharacterGUID), ", 名字:", player?.getName(), " ||\t", info));
 	}
 }

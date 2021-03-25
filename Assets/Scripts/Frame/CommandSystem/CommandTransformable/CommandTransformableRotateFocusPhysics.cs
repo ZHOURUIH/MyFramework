@@ -21,9 +21,8 @@ public class CommandTransformableRotateFocusPhysics : Command
 		// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
 		obj.setEnable(true);
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		string target = mTarget != null ? mTarget.getName() : EMPTY;
-		return base.showDebugInfo() + ": target:" + target;
+		builder.Append(": target:", mTarget?.getName());
 	}
 }

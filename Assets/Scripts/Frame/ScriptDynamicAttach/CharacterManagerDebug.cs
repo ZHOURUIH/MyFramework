@@ -14,7 +14,7 @@ public class CharacterManagerDebug : MonoBehaviour
 		var characterList = FrameBase.mCharacterManager.getCharacterList();
 		foreach(var item in characterList)
 		{
-			CharacterList.Add(item.Key + ", " + item.Value.getName());
+			CharacterList.Add(item.Key.ToString() + ", " + item.Value.getName());
 		}
 	}
 }

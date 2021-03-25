@@ -20,7 +20,7 @@ namespace HotFix
         static CrossBindingMethodInfo<global::SceneProcedure> monPrepareExit_10 = new CrossBindingMethodInfo<global::SceneProcedure>("onPrepareExit");
         static CrossBindingMethodInfo<global::Command> maddDelayCmd_11 = new CrossBindingMethodInfo<global::Command>("addDelayCmd");
         static CrossBindingMethodInfo<global::Command> monCmdStarted_12 = new CrossBindingMethodInfo<global::Command>("onCmdStarted");
-        static CrossBindingMethodInfo<System.Int32, System.Boolean> minterruptCommand_13 = new CrossBindingMethodInfo<System.Int32, System.Boolean>("interruptCommand");
+        static CrossBindingMethodInfo<System.UInt64, System.Boolean> minterruptCommand_13 = new CrossBindingMethodInfo<System.UInt64, System.Boolean>("interruptCommand");
         static CrossBindingMethodInfo minterruptAllCommand_14 = new CrossBindingMethodInfo("interruptAllCommand");
         static CrossBindingMethodInfo mnotifyConstructDone_15 = new CrossBindingMethodInfo("notifyConstructDone");
         public override Type BaseCLRType
@@ -160,7 +160,7 @@ namespace HotFix
                     monCmdStarted_12.Invoke(this.instance, cmd);
             }
 
-            public override void interruptCommand(System.Int32 assignID, System.Boolean showError)
+            public override void interruptCommand(System.UInt64 assignID, System.Boolean showError)
             {
                 if (minterruptCommand_13.CheckShouldInvokeBase(this.instance))
                     base.interruptCommand(assignID, showError);

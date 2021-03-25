@@ -11,7 +11,18 @@ public class ClassPoolThread : FrameSystem
 	{
 		mPoolList = new Dictionary<Type, ClassPoolSingle>();
 		mListLock = new ThreadLock();
+		mCreateObject = true;
 	}
+	public override void init()
+	{
+		base.init();
+#if UNITY_EDITOR
+		mObject.AddComponent<ClassPoolThreadDebug>();
+#endif
+	}
+	public void lockList() { mListLock.waitForUnlock(); }
+	public void unlockList() { mListLock.unlock(); }
+	public Dictionary<Type, ClassPoolSingle> getPoolList() { return mPoolList; }
 	// 返回值表示是否是new出来的对象,false则为从回收列表中重复使用的对象
 	public IClassObject newClass(Type type, out bool isNewObject)
 	{

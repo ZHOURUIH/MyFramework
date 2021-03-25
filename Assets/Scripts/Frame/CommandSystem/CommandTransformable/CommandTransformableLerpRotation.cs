@@ -30,8 +30,9 @@ public class CommandTransformableLerpRotation : Command
 			obj.setEnable(true);
 		}
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		return base.showDebugInfo() + ": mLerpSpeed:" + mLerpSpeed + ", mTargetRotation:" + mTargetRotation;
+		builder.Append(": mLerpSpeed:", mLerpSpeed).
+				Append(", mTargetRotation:", mTargetRotation);
 	}
 }

@@ -5,6 +5,25 @@ public class FLOATS : OBJECTS
 {
 	protected const int TYPE_SIZE = sizeof(float);
 	public float[] mValue;
+	public float this[int index]
+	{
+		get 
+		{
+			if (index >= mElementCount)
+			{
+				logError("下标超出有效数据长度");
+			}
+			return mValue[index]; 
+		}
+		set 
+		{
+			if(index >= mElementCount)
+			{
+				logError("下标超出有效数据长度");
+			}
+			mValue[index] = value; 
+		}
+	}
 	public FLOATS(int count)
 	{
 		mValue = new float[count];

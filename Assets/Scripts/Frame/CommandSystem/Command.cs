@@ -38,7 +38,7 @@ public class Command : GameBasePooledObject
 	// 命令执行
 	public virtual void execute() { }
 	// 调试信息，由CommandSystem调用
-	public virtual string showDebugInfo()			{ return Typeof(this).ToString(); }
+	public virtual void showDebugInfo(MyStringBuilder builder) { builder.Append(Typeof(this).ToString()); }
 	public bool isShowDebugInfo()					{ return mShowDebugInfo; }
 	public bool isDelayCommand()					{ return mDelayCommand; }
 	public CommandReceiver getReceiver()			{ return mReceiver; }

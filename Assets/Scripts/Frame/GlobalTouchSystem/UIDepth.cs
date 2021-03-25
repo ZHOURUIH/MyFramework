@@ -95,16 +95,16 @@ public class UIDepth : FrameBase
 	public int getPriority() { return mPriority; }
 	public string toDepthString()
 	{
-		string str = EMPTY;
+		MyStringBuilder str = STRING();
 		for(int i = 0; i < BYTE_LENGTH * DEPTH_COUNT / LEVEL_LENGTH; ++i)
 		{
 			int longIndex = i / (BYTE_LENGTH / LEVEL_LENGTH);
 			int ushortIndexInLong = i % (BYTE_LENGTH / LEVEL_LENGTH);
 			int offsetBit = (BYTE_LENGTH - LEVEL_LENGTH - ushortIndexInLong * LEVEL_LENGTH) * 8;
 			int levelDepth = (int)((mWindowDepth[longIndex] & ((ulong)ushort.MaxValue << offsetBit)) >> offsetBit);
-			str += intToString(levelDepth) + " ";
+			str.Append(IToS(levelDepth) + " ");
 		}
-		return str;
+		return END_STRING(str);
 	}
 	public static int compare(UIDepth depth0, UIDepth depth1)
 	{

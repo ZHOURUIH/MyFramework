@@ -159,7 +159,7 @@ public class EditorMenu : EditorCommonUtility
 	public static bool OnOpenAsset(int instanceID, int line)
 	{
 		// 自定义函数，用来获取log中的stacktrace，定义在后面。
-		string stack_trace = getStackTrace();
+		string stack_trace = findStackTrace();
 		// 通过stacktrace来定位是否是我们自定义的log，我的log中有特殊文字 "检测ResetProperty()"
 		if (isEmpty(stack_trace))
 		{
@@ -178,7 +178,7 @@ public class EditorMenu : EditorCommonUtility
 				}
 				else if (startWith(debugInfoLines[i], "Line:"))
 				{
-					fileLine = stringToInt(removeStartString(debugInfoLines[i], "Line:"));
+					fileLine = SToI(removeStartString(debugInfoLines[i], "Line:"));
 				}
 			}
 			UnityEngine.Object codeObject = AssetDatabase.LoadAssetAtPath(filePath, typeof(UnityEngine.Object));
@@ -351,7 +351,7 @@ public class EditorMenu : EditorCommonUtility
 			fileInfos.Add(className, info);
 		}
 	}
-	protected static string getStackTrace()
+	protected static string findStackTrace()
 	{
 		// 找到UnityEditor.EditorWindow的assembly
 		var assembly_unity_editor = Assembly.GetAssembly(typeof(EditorWindow));

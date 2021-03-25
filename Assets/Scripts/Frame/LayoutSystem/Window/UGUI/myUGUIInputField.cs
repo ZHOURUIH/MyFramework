@@ -61,7 +61,7 @@ public class myUGUIInputField : myUGUIObject, IInputField
 		}
 	}
 	public void setText(string value) { mInputField.text = value; }
-	public void setText(float value) { setText(floatToString(value, 2)); }
+	public void setText(float value) { setText(FToS(value, 2)); }
 	public string getText() { return mInputField.text; }
 	public bool isFocused() { return mInputField.isFocused; }
 	public bool isVisible() { return isActive(); }

@@ -12,14 +12,13 @@ public class EventSystem : FrameSystem
 	}
 	public void pushEvent(int eventType, GameEvent param)
 	{
-		if (!mListenerEventList.TryGetValue(eventType, out List<GameEventInfo> infoList))
+		if (mListenerEventList.TryGetValue(eventType, out List<GameEventInfo> infoList))
 		{
-			return;
-		}
-		int infoCount = infoList.Count;
-		for(int i = 0; i < infoCount; ++i)
-		{
-			infoList[i].mCallback(param);
+			int infoCount = infoList.Count;
+			for (int i = 0; i < infoCount; ++i)
+			{
+				infoList[i].mCallback(param);
+			}
 		}
 		// 回收事件参数
 		UN_CLASS(param);

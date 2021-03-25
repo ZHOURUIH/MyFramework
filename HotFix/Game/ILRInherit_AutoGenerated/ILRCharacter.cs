@@ -74,6 +74,10 @@ public class ILRCharacter : Character
 	public override void setIgnoreTimeScale(bool ignore, bool componentOnly = false) { base.setIgnoreTimeScale(ignore, componentOnly); }
 	public override void receiveCommand(Command cmd) { base.receiveCommand(cmd); }
 	public override string getName() { return base.getName(); }
+	public override void setDestroy(bool isDestroy) { base.setDestroy(isDestroy); }
+	public override bool isDestroy() { return base.isDestroy(); }
+	public override void setAssignID(UInt64 assignID) { base.setAssignID(assignID); }
+	public override UInt64 getAssignID() { return base.getAssignID(); }
 	public override void notifyConstructDone() { base.notifyConstructDone(); }
 	public override bool Equals(object obj) { return base.Equals(obj); }
 	public override int GetHashCode() { return base.GetHashCode(); }

@@ -5,6 +5,25 @@ public class SHORTS : OBJECTS
 {
 	protected const int TYPE_SIZE = sizeof(short);
 	public short[] mValue;
+	public short this[int index]
+	{
+		get
+		{
+			if (index >= mElementCount)
+			{
+				logError("下标超出有效数据长度");
+			}
+			return mValue[index];
+		}
+		set
+		{
+			if (index >= mElementCount)
+			{
+				logError("下标超出有效数据长度");
+			}
+			mValue[index] = value;
+		}
+	}
 	public SHORTS(int count)
 	{
 		mValue = new short[count];

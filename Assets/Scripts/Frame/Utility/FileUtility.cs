@@ -9,6 +9,7 @@ public class FileUtility : MathUtility
 	private static List<string> mTempPatternList = new List<string>();
 	private static List<string> mTempFileList = new List<string>();
 	private static List<string> mTempFileList1 = new List<string>();
+	public static new void initUtility() { }
 	public static void validPath(ref string path)
 	{
 		if (isEmpty(path))
@@ -21,18 +22,18 @@ public class FileUtility : MathUtility
 			path += "/";
 		}
 	}
-	public static void releaseFileBuffer(byte[] fileBuffer)
+	public static void releaseFile(byte[] fileBuffer)
 	{
 #if !UNITY_ANDROID || UNITY_EDITOR
 		// 非安卓或编辑器下需要使用BytesPool进行回收
 		// 如果数组大于等于16KB,则交给GC自动回收,否则就回收到自己的池中
-		FrameBase.mBytesPoolThread.destroyBytes(fileBuffer, fileBuffer.Length >= 1024 * 16);
+		FrameBase.UN_ARRAY_THREAD(fileBuffer, fileBuffer.Length >= 1024 * 16);
 #else
 		// 安卓真机下打开文件时不再进行回收,由GC自动回收
 #endif
 	}
 	// 打开一个二进制文件,fileName为绝对路径,返回值为文件长度
-	// 使用完毕后需要使用releaseFileBuffer回收文件内存
+	// 使用完毕后需要使用releaseFile回收文件内存
 	public static int openFile(string fileName, out byte[] fileBuffer, bool errorIfNull)
 	{
 		fileBuffer = null;
@@ -49,7 +50,7 @@ public class FileUtility : MathUtility
 				return 0;
 			}
 			int fileSize = (int)fs.Length;
-			fileBuffer = FrameBase.mBytesPoolThread.newBytes(getGreaterPow2(fileSize));
+			FrameBase.ARRAY_THREAD(out fileBuffer, getGreaterPow2(fileSize));
 			fs.Read(fileBuffer, 0, fileSize);
 			fs.Close();
 			fs.Dispose();

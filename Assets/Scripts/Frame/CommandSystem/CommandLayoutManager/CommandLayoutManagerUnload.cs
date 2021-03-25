@@ -12,8 +12,8 @@ public class CommandLayoutManagerUnload : Command
 	{
 		mLayoutManager.destroyLayout(mLayoutID);
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		return base.showDebugInfo() + ": mLayoutID:" + mLayoutID;
+		builder.Append(": mLayoutID:", mLayoutID);
 	}
 }

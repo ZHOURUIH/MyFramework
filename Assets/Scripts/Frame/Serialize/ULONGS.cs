@@ -6,6 +6,25 @@ public class ULONGS : OBJECTS
 	protected const int TYPE_SIZE = sizeof(long);
 	public ulong[] mValue;
 	protected bool mIntReplace;
+	public ulong this[int index]
+	{
+		get
+		{
+			if (index >= mElementCount)
+			{
+				logError("下标超出有效数据长度");
+			}
+			return mValue[index];
+		}
+		set
+		{
+			if (index >= mElementCount)
+			{
+				logError("下标超出有效数据长度");
+			}
+			mValue[index] = value;
+		}
+	}
 	public ULONGS(int count)
 	{
 		mValue = new ulong[count];
@@ -43,8 +62,7 @@ public class ULONGS : OBJECTS
 			return readULongs(buffer, ref index, mValue);
 		}
 		// 先读取数据的实际字节长度
-		bool success;
-		setRealSize(readUShort(buffer, ref index, out success));
+		setRealSize(readUShort(buffer, ref index, out bool success));
 		if (!success)
 		{
 			return false;

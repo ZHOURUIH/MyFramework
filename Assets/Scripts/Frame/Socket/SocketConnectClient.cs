@@ -109,9 +109,9 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		int count = readList.Count;
 		for (int i = 0; i < count; ++i)
 		{
+			// 此处为空的原因未知
 			if(readList[i] == null)
 			{
-				logError("消息为空");
 				continue;
 			}
 			readList[i].execute();
@@ -149,14 +149,14 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		// 需要先序列化消息,同时获得包体实际的长度,提前获取包类型
 		// 包类型的高2位表示了当前包体是用几个字节存储的
 		ushort packetType = packet.getPacketType();
-		byte[] bodyBuffer = mBytesPool.newBytes(getGreaterPow2(packet.generateSize(true)));
+		ARRAY(out byte[] bodyBuffer, getGreaterPow2(packet.generateSize(true)));
 		int realPacketSize = packet.write(bodyBuffer);
 		// 序列化完以后立即销毁消息包
 		mSocketFactory.destroyPacket(packet);
 
 		if (realPacketSize < 0)
 		{
-			mBytesPool.destroyBytes(bodyBuffer);
+			UN_ARRAY(bodyBuffer);
 			logError("消息序列化失败!");
 			return;
 		}
@@ -187,29 +187,28 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 			setBit(ref packetType, sizeof(ushort) * 8 - 1, 1);
 			setBit(ref packetType, sizeof(ushort) * 8 - 2, 0);
 		}
-
-		byte[] packetData = mBytesPoolThread.newBytes(getGreaterPow2(sizeof(ushort) + headerSize + packetSize));
+		ARRAY_THREAD(out byte[] packetData, getGreaterPow2(sizeof(ushort) + headerSize + packetSize));
 		int index = 0;
 		// 本次消息包的数据长度,因为byte[]本身的长度并不代表要发送的实际的长度,所以将数据长度保存下来
 		writeUShort(packetData, ref index, (ushort)(headerSize + packetSize));
 		// 消息类型
 		writeUShort(packetData, ref index, packetType);
 		// 消息长度,按实际消息长度写入长度的字节内容
-		if (headerSize - sizeof(ushort) == sizeof(byte))
+		if (headerSize == sizeof(ushort) + sizeof(byte))
 		{
 			writeByte(packetData, ref index, (byte)packetSize);
 		}
-		else if (headerSize - sizeof(ushort) == sizeof(ushort))
+		else if (headerSize == sizeof(ushort) + sizeof(ushort))
 		{
 			writeUShort(packetData, ref index, packetSize);
 		}
 		// 写入包体数据
 		writeBytes(packetData, ref index, bodyBuffer, -1, -1, realPacketSize);
-		mBytesPool.destroyBytes(bodyBuffer);
+		UN_ARRAY(bodyBuffer);
 		// 添加到写缓冲中
 		mOutputBuffer.add(packetData);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-		log("已发送 : " + packet.getPacketType() + ", 字节数:" + packetSize, LOG_LEVEL.LOW);
+		log("已发送 : " + IToS(packet.getPacketType()) + ", 字节数:" + IToS(packetSize), LOG_LEVEL.LOW);
 #endif
 	}
 	public NET_STATE getNetState() { return mNetState; }
@@ -255,6 +254,11 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 			for (int i = 0; i < count; ++i)
 			{
 				byte[] item = readList[i];
+				// 此处为空的原因未知
+				if(item == null)
+				{
+					continue;
+				}
 				int temp = 0;
 				// dataLength表示item的有效数据长度,包含dataLength本身占的2个字节
 				ushort dataLength = (ushort)(readUShort(item, ref temp, out _) + sizeof(ushort));
@@ -280,7 +284,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		// 回收缓冲区的内存
 		for (int i = 0; i < count; ++i)
 		{
-			mBytesPoolThread.destroyBytes(readList[i]);
+			UN_ARRAY_THREAD(readList[i]);
 		}
 		readList.Clear();
 	}
@@ -385,7 +389,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 			logError("接收字节数与解析后消息包字节数不一致:" + type + ",接收:" + packetSize + ", 解析:" + readDataCount);
 		}
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-		string info = "已接收 : " + type + ", 字节数:" + readDataCount;
+		string info = "已接收 : " + IToS(type) + ", 字节数:" + IToS(readDataCount);
 		log(info, LOG_LEVEL.LOW);
 		mReceivePacketHistory.Enqueue(info);
 		if (mReceivePacketHistory.Count > 10)
@@ -397,12 +401,12 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 	}
 	protected void debugHistoryPacket()
 	{
-		string info = "最后接收的消息:\n";
+		MyStringBuilder info = STRING_THREAD("最后接收的消息:\n");
 		foreach (var item in mReceivePacketHistory)
 		{
-			info += item + "\n";
+			info.Append(item, "\n");
 		}
-		logError(info);
+		logError(END_STRING_THREAD(info));
 	}
 	protected void onConnectEnd(IAsyncResult ar)
 	{
@@ -446,7 +450,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		{
 			clearSocket();
 		}
-		CMD(out CommandSocketConnectClientState cmd, false, true);
+		CMD_DELAY(out CommandSocketConnectClientState cmd, false);
 		if (cmd != null)
 		{
 			cmd.mErrorCode = errorCode;

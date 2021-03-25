@@ -30,10 +30,10 @@ public class CommandGameScenePrepareChangeProcedure : Command
 		}
 		gameScene.prepareChangeProcedure(mProcedure, mPrepareTime, mIntent);
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		string procedure = mProcedure != null ? mProcedure.ToString() : "null";
-		string intent = mIntent != null ? mIntent : EMPTY;
-		return base.showDebugInfo() + ": mProcedure:" + procedure + ", mIntent:" + intent + ", mPrepareTime:" + mPrepareTime;
+		builder.Append(": mProcedure:", mProcedure).
+				Append(", mIntent:", mIntent).
+				Append(", mPrepareTime:", mPrepareTime);
 	}
 }

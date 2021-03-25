@@ -91,10 +91,11 @@ public class PathKeyframeManager : FrameSystem
 		int lineCount = lines.Length;
 		for(int i = 0; i < lineCount; ++i)
 		{
+			lines[i] = removeAll(lines[i], "\r");
 			string[] elems = split(lines[i], true, ":");
 			if (elems.Length == 2)
 			{
-				path.Add(stringToFloat(elems[0]), stringToVector3(elems[1]));
+				path.Add(SToF(elems[0]), stringToVector3(elems[1]));
 			}
 			else
 			{
@@ -109,10 +110,11 @@ public class PathKeyframeManager : FrameSystem
 		int lineCount = lines.Length;
 		for (int i = 0; i < lineCount; ++i)
 		{
+			lines[i] = removeAll(lines[i], "\r");
 			string[] elems = split(lines[i], true, ":");
 			if (elems.Length == 2)
 			{
-				path.Add(stringToFloat(elems[0]), stringToFloat(elems[1]));
+				path.Add(SToF(elems[0]), SToF(elems[1]));
 			}
 			else
 			{

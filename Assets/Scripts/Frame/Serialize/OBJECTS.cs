@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public abstract class OBJECTS : OBJECT
 {
-	public ushort mRealSize;	// 表示数组中有效的字节个数
+	public ushort mRealSize;    // 表示数组中有效的字节个数,但是在使用int替换ullong时不表示真实数据长度
 	public bool mVariableLength;// true表示数组长度为变长,false表示数组长度为定长
 	public int mElementCount;   // 表示数组中有效的元素个数
 	public abstract void setRealSize(ushort realSize);

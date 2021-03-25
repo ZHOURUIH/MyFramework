@@ -83,7 +83,7 @@ public class HttpUtility : FrameSystem
 		bool isTempHelperBytes = helperBytes == null;
 		if(helperBytes == null)
 		{
-			helperBytes = mBytesPoolThread.newBytes(1024);
+			ARRAY_THREAD(out helperBytes, 1024);
 		}
 		int readCount;
 		do
@@ -95,7 +95,7 @@ public class HttpUtility : FrameSystem
 		} while (readCount > 0);
 		if(isTempHelperBytes)
 		{
-			mBytesPoolThread.destroyBytes(helperBytes);
+			UN_ARRAY_THREAD(helperBytes);
 		}
 		byte[] dataBytes = downloadStream.ToArray();
 		downloadStream.Close();
@@ -108,8 +108,11 @@ public class HttpUtility : FrameSystem
 	{
 		// 以模拟表单的形式上传数据
 		string boundary = "----" + DateTime.Now.Ticks.ToString("x");
-		string fileFormdataTemplate = "\r\n--" + boundary + "\r\nContent-Disposition: form-data; name=\"{0}\"; filename=\"{1}\"" + "\r\nContent-Type: application/octet-stream" + "\r\n\r\n";
-		string dataFormdataTemplate = "\r\n--" + boundary + "\r\nContent-Disposition: form-data; name=\"{0}\"" + "\r\n\r\n{1}";
+		string fileFormdataTemplate = "\r\n--" + boundary + "\r\n" + 
+									"Content-Disposition: form-data; name=\"{0}\"; filename=\"{1}\"" + "\r\n" + 
+									"Content-Type: application/octet-stream" + "\r\n\r\n";
+		string dataFormdataTemplate = "\r\n--" + boundary + "\r\n" + 
+									"Content-Disposition: form-data; name=\"{0}\"" + "\r\n\r\n{1}";
 		MemoryStream postStream = new MemoryStream();
 		int count = itemList.Count;
 		for(int i = 0; i < count; ++i)
@@ -265,18 +268,18 @@ public class HttpUtility : FrameSystem
 	}
 	static public string generateHttpGet(string url, Dictionary<string, string> get)
 	{
-		string Parameters = EMPTY;
+		MyStringBuilder parameters = STRING();
 		if (get.Count > 0)
 		{
-			Parameters = "?";
+			parameters.Append("?");
 			// 从集合中取出所有参数，设置表单参数（AddField()).  
 			foreach (var post_arg in get)
 			{
-				Parameters += post_arg.Key + "=" + post_arg.Value + "&";
+				parameters.Append(post_arg.Key, "=", post_arg.Value, "&");
 			}
-			removeLast(ref Parameters, '&');
+			parameters.Remove(parameters.Length - 1);
 		}
-		return url + Parameters;
+		return url + END_STRING(parameters);
 	}
 	static public JsonData httpWebRequestGet(string urlString, OnHttpWebRequestCallback callback = null, object userData = null, bool logError = true)
 	{

@@ -5,6 +5,25 @@ public class LONGS : OBJECTS
 {
 	protected const int TYPE_SIZE = sizeof(long);
 	public long[] mValue;
+	public long this[int index]
+	{
+		get
+		{
+			if (index >= mElementCount)
+			{
+				logError("下标超出有效数据长度");
+			}
+			return mValue[index];
+		}
+		set
+		{
+			if (index >= mElementCount)
+			{
+				logError("下标超出有效数据长度");
+			}
+			mValue[index] = value;
+		}
+	}
 	public LONGS(int count)
 	{
 		mValue = new long[count];

@@ -28,13 +28,10 @@ public class CommandCharacterRemoveState : Command
 			stateMachine.removeState(mState, false, mParam);
 		}
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		string group = EMPTY;
-		if(mStateGroup != null)
-		{
-			group = ", mStateGroup:" + mStateGroup;
-		}
-		return base.showDebugInfo() + ": mState:" + mState + group;
+		builder.Append(": mState:", mState?.GetType()).
+				Append(", mStateGroup:", mStateGroup?.ToString()).
+				Append(", mParam:", mParam);
 	}
 }

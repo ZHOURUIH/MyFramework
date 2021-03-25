@@ -47,14 +47,14 @@ namespace ILRuntime.Runtime.Generated
                 }
             }
             args = new Type[]{typeof(global::CommandCharacterManagerCreateCharacter)};
-            if (genericMethods.TryGetValue("newMainCmd", out lst))
+            if (genericMethods.TryGetValue("CMD", out lst))
             {
                 foreach(var m in lst)
                 {
-                    if(m.MatchGenericParameters(args, typeof(global::CommandCharacterManagerCreateCharacter), typeof(global::CommandCharacterManagerCreateCharacter).MakeByRefType(), typeof(System.Boolean), typeof(System.Boolean)))
+                    if(m.MatchGenericParameters(args, typeof(global::CommandCharacterManagerCreateCharacter), typeof(global::CommandCharacterManagerCreateCharacter).MakeByRefType(), typeof(System.Boolean)))
                     {
                         method = m.MakeGenericMethod(args);
-                        app.RegisterCLRMethodRedirection(method, newMainCmd_3);
+                        app.RegisterCLRMethodRedirection(method, CMD_3);
 
                         break;
                     }
@@ -64,14 +64,14 @@ namespace ILRuntime.Runtime.Generated
             method = type.GetMethod("pushCommand", flag, null, args, null);
             app.RegisterCLRMethodRedirection(method, pushCommand_4);
             args = new Type[]{typeof(global::CommandCharacterManagerDestroy)};
-            if (genericMethods.TryGetValue("newMainCmd", out lst))
+            if (genericMethods.TryGetValue("CMD", out lst))
             {
                 foreach(var m in lst)
                 {
-                    if(m.MatchGenericParameters(args, typeof(global::CommandCharacterManagerDestroy), typeof(global::CommandCharacterManagerDestroy).MakeByRefType(), typeof(System.Boolean), typeof(System.Boolean)))
+                    if(m.MatchGenericParameters(args, typeof(global::CommandCharacterManagerDestroy), typeof(global::CommandCharacterManagerDestroy).MakeByRefType(), typeof(System.Boolean)))
                     {
                         method = m.MakeGenericMethod(args);
-                        app.RegisterCLRMethodRedirection(method, newMainCmd_5);
+                        app.RegisterCLRMethodRedirection(method, CMD_5);
 
                         break;
                     }
@@ -177,29 +177,24 @@ namespace ILRuntime.Runtime.Generated
             return ILIntepreter.PushObject(__ret, __mStack, result_of_this_method);
         }
 
-        static StackObject* newMainCmd_3(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* CMD_3(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 3);
+            StackObject* __ret = ILIntepreter.Minus(__esp, 2);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            System.Boolean @delay = ptr_of_this_method->Value == 1;
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
             System.Boolean @show = ptr_of_this_method->Value == 1;
 
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 3);
+            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
             global::CommandCharacterManagerCreateCharacter @cmd = (global::CommandCharacterManagerCreateCharacter)typeof(global::CommandCharacterManagerCreateCharacter).CheckCLRTypes(__intp.RetriveObject(ptr_of_this_method, __mStack));
 
 
-            var result_of_this_method = global::FrameBase.newMainCmd<global::CommandCharacterManagerCreateCharacter>(out @cmd, @show, @delay);
+            var result_of_this_method = global::FrameBase.CMD<global::CommandCharacterManagerCreateCharacter>(out @cmd, @show);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
             __intp.Free(ptr_of_this_method);
             ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            __intp.Free(ptr_of_this_method);
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 3);
             switch(ptr_of_this_method->ObjectType)
             {
                 case ObjectTypes.StackObjectReference:
@@ -282,29 +277,24 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* newMainCmd_5(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* CMD_5(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 3);
+            StackObject* __ret = ILIntepreter.Minus(__esp, 2);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            System.Boolean @delay = ptr_of_this_method->Value == 1;
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
             System.Boolean @show = ptr_of_this_method->Value == 1;
 
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 3);
+            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
             global::CommandCharacterManagerDestroy @cmd = (global::CommandCharacterManagerDestroy)typeof(global::CommandCharacterManagerDestroy).CheckCLRTypes(__intp.RetriveObject(ptr_of_this_method, __mStack));
 
 
-            var result_of_this_method = global::FrameBase.newMainCmd<global::CommandCharacterManagerDestroy>(out @cmd, @show, @delay);
+            var result_of_this_method = global::FrameBase.CMD<global::CommandCharacterManagerDestroy>(out @cmd, @show);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
             __intp.Free(ptr_of_this_method);
             ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            __intp.Free(ptr_of_this_method);
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 3);
             switch(ptr_of_this_method->ObjectType)
             {
                 case ObjectTypes.StackObjectReference:

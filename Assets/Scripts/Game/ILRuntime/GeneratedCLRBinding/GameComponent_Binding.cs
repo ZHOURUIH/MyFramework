@@ -49,9 +49,6 @@ namespace ILRuntime.Runtime.Generated
             args = new Type[]{typeof(System.Boolean)};
             method = type.GetMethod("notifyOwnerActive", flag, null, args, null);
             app.RegisterCLRMethodRedirection(method, notifyOwnerActive_8);
-            args = new Type[]{};
-            method = type.GetMethod("notifyOwnerDestroy", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, notifyOwnerDestroy_9);
 
 
         }
@@ -210,21 +207,6 @@ namespace ILRuntime.Runtime.Generated
             __intp.Free(ptr_of_this_method);
 
             instance_of_this_method.notifyOwnerActive(@active);
-
-            return __ret;
-        }
-
-        static StackObject* notifyOwnerDestroy_9(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 1);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            global::GameComponent instance_of_this_method = (global::GameComponent)typeof(global::GameComponent).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            instance_of_this_method.notifyOwnerDestroy();
 
             return __ret;
         }

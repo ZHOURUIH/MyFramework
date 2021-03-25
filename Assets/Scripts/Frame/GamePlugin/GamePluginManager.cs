@@ -49,9 +49,9 @@ public class GamePluginManager : FrameSystem
 		int count = fileList.Count;
 		for (int i = 0; i < count; ++i)
 		{
-			byte[] fileBuffer = null;
-			openFile(fileList[i], out fileBuffer, true);
+			openFile(fileList[i], out byte[] fileBuffer, true);
 			loadPlugin(fileBuffer, getFileName(fileList[i]));
+			releaseFile(fileBuffer);
 		}
 		UN_LIST(fileList);
 #endif

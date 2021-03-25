@@ -40,9 +40,14 @@ public class CommandWindowHSL : Command
 			obj.setEnable(true);
 		}
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mStartHSL:" + mStartHSL
-			+ ", mTargetHSL:" + mTargetHSL + ", mLoop:" + mLoop + ", mFullOnce:" + mFullOnce;
+		builder.Append(": mKeyframe:", mKeyframe.ToString()).
+				Append(", mOnceLength:", mOnceLength).
+				Append(", mOffset:", mOffset).
+				Append(", mStartHSL:", mStartHSL).
+				Append(", mTargetHSL:", mTargetHSL).
+				Append(", mLoop:", mLoop).
+				Append(", mFullOnce:", mFullOnce);
 	}
 }

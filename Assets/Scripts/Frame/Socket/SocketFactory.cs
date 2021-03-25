@@ -23,7 +23,7 @@ public class SocketFactory : FrameSystem
 	}
 	public SocketPacket createSocketPacket(ushort type)
 	{
-		var socketPacket = mClassPool.newClass(mPacketTypeList[type].mClassType, out bool isNewObject) as SocketPacket;
+		var socketPacket = mClassPool.newClass(mPacketTypeList[type].mClassType, out bool isNewObject, true) as SocketPacket;
 		if (isNewObject)
 		{
 			socketPacket.init(type);
@@ -34,7 +34,7 @@ public class SocketFactory : FrameSystem
 	{
 		// newClass只会执行类的构造函数,,所以其余的初始化工作需要由调用的地方来执行
 		// 如果是新创建的一个对象,则需要进行初始化,如果是使用之前的对象,则不需要操作
-		var packet = mClassPool.newClass(type, out bool isNewObject) as SocketPacket;
+		var packet = mClassPool.newClass(type, out bool isNewObject, true) as SocketPacket;
 		if (isNewObject)
 		{
 			packet.init(mClassTypeList[type].mType);

@@ -27,9 +27,9 @@ public class CommandGameSceneChangeProcedure : Command
 		}
 		gameScene.changeProcedure(mProcedure, mIntent);
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		string procedure = mProcedure != null ? mProcedure.ToString() : null;
-		return base.showDebugInfo() + ": mProcedure:" + procedure + ", mIntent:" + mIntent;
+		builder.Append(": mProcedure:", mProcedure).
+				Append(", mIntent:", mIntent);
 	}
 }

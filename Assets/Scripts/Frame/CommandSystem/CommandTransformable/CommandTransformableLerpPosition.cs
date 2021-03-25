@@ -30,8 +30,9 @@ public class CommandTransformableLerpPosition : Command
 			obj.setEnable(true);
 		}
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		return base.showDebugInfo() + ": mLerpSpeed:" + mLerpSpeed + ", mTargetPosition:" + mTargetPosition;
+		builder.Append(": mLerpSpeed:", mLerpSpeed).
+				Append(", mTargetPosition:", mTargetPosition);
 	}
 }

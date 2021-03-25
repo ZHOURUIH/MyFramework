@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class DictionaryPoolThreadDebug : MonoBehaviour
 {
-	public List<string> PersistentInuseList = new List<string>();
 	public List<string> InuseList = new List<string>();
 	public List<string> UnuseList = new List<string>();
 	public void Update()
@@ -12,26 +11,26 @@ public class DictionaryPoolThreadDebug : MonoBehaviour
 		{
 			return;
 		}
-		PersistentInuseList.Clear();
-		var persistentInuse = FrameBase.mDictionaryPoolThread.getPersistentInusedList();
-		foreach (var item in persistentInuse)
-		{
-			PersistentInuseList.Add(item.Key + ":" + item.Value.Count);
-		}
-
+		FrameBase.mDictionaryPoolThread.lockList();
 		InuseList.Clear();
 		var inuse = FrameBase.mDictionaryPoolThread.getInusedList();
 		foreach(var item in inuse)
 		{
-			InuseList.Add(item.Key + ":" + item.Value.Count);
+			if(item.Value.Count > 0)
+			{
+				InuseList.Add(item.Key.ToString() + ":" + StringUtility.IToS(item.Value.Count));
+			}
 		}
 
 		UnuseList.Clear();
 		var unuse = FrameBase.mDictionaryPoolThread.getUnusedList();
 		foreach (var item in unuse)
 		{
-			UnuseList.Add(item.Key + ":" + item.Value.Count);
+			if (item.Value.Count > 0)
+			{
+				UnuseList.Add(item.Key.ToString() + ":" + StringUtility.IToS(item.Value.Count));
+			}
 		}
+		FrameBase.mDictionaryPoolThread.unlockList();
 	}
-	//-------------------------------------------------------------------------------------------------------
 }

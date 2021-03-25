@@ -34,9 +34,14 @@ public class CommandTimeManagerScaleTime : Command
 		component.setTargetScale(mTargetScale);
 		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce);
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + 
-			", mStartScale:" + mStartScale + ", mTargetScale:" + mTargetScale + ", mLoop:" + mLoop + ", mFullOnce:" + mFullOnce;
+		builder.Append(": mKeyframe:", mKeyframe.ToString());
+		builder.Append(", mOnceLength:", mOnceLength);
+		builder.Append(", mOffset:", mOffset);
+		builder.Append(", mStartScale:", mStartScale);
+		builder.Append(", mTargetScale:", mTargetScale);
+		builder.Append(", mLoop:", mLoop);
+		builder.Append(", mFullOnce:", mFullOnce);
 	}
 }

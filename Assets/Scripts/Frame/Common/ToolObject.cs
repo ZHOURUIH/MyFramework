@@ -37,7 +37,7 @@ public class OT : FrameBase
 		{
 			return;
 		}
-		CMD(out CommandCameraFOV cmd, false, false);
+		CMD(out CommandCameraFOV cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartFOV = start;
@@ -62,7 +62,7 @@ public class OT : FrameBase
 		{
 			return;
 		}
-		CMD(out CommandCameraOrthoSize cmd, false, false);
+		CMD(out CommandCameraOrthoSize cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartOrthoSize = startFOV;
@@ -91,7 +91,7 @@ public class OT : FrameBase
 		{
 			return null;
 		}
-		CMD(out CommandMovableObjectActive cmd, false, true);
+		CMD_DELAY(out CommandMovableObjectActive cmd, false);
 		cmd.mActive = active;
 		cmd.addStartCommandCallback(startCallback);
 		pushDelayCommand(cmd, obj, dealyTime, watcher);
@@ -103,7 +103,7 @@ public class OT : FrameBase
 	#region 时间缩放
 	public static void TIME(float scale)
 	{
-		CMD(out CommandTimeManagerScaleTime cmd, true, false);
+		CMD(out CommandTimeManagerScaleTime cmd, true);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartScale = scale;
 		cmd.mTargetScale = scale;
@@ -151,7 +151,7 @@ public class OT : FrameBase
 	}
 	public static void TIME_EX(KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
 	{
-		CMD(out CommandTimeManagerScaleTime cmd, false, false);
+		CMD(out CommandTimeManagerScaleTime cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartScale = start;
@@ -164,7 +164,7 @@ public class OT : FrameBase
 	}
 	public static CommandTimeManagerScaleTime TIME_DELAY(IDelayCmdWatcher watcher, float delayTime, float scale)
 	{
-		CMD(out CommandTimeManagerScaleTime cmd, false, true);
+		CMD_DELAY(out CommandTimeManagerScaleTime cmd, false);
 		cmd.mStartScale = scale;
 		cmd.mTargetScale = scale;
 		cmd.mOnceLength = 0.0f;
@@ -198,7 +198,7 @@ public class OT : FrameBase
 	}
 	public static CommandTimeManagerScaleTime TIME_DELAY_EX(IDelayCmdWatcher watcher, float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
 	{
-		CMD(out CommandTimeManagerScaleTime cmd, false, true);
+		CMD_DELAY(out CommandTimeManagerScaleTime cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mStartScale = start;
 		cmd.mTargetScale = target;
@@ -299,7 +299,7 @@ public class OT : FrameBase
 			logError("sound name must be valid, use CommandMovableObjectPlayAudio AUDIO_DELAY(MovableObject obj, float delayTime) to stop sound");
 			return null;
 		}
-		CMD(out CommandMovableObjectPlayAudio cmd, false, true);
+		CMD_DELAY(out CommandMovableObjectPlayAudio cmd, false);
 		cmd.mSound = sound;
 		cmd.mLoop = loop;
 		cmd.mVolume = volume;
@@ -383,7 +383,7 @@ public class OT : FrameBase
 		{
 			return null;
 		}
-		CMD(out CommandMovableObjectAlpha cmd, false, true);
+		CMD_DELAY(out CommandMovableObjectAlpha cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartAlpha = alpha;
 		cmd.mTargetAlpha = alpha;
@@ -429,7 +429,7 @@ public class OT : FrameBase
 			logError("时间或关键帧不能为空,如果要停止组件,CommandMovableObjectAlpha ALPHA_DELAY(MovableObject obj, float delayTime, float alpha)");
 			return null;
 		}
-		CMD(out CommandMovableObjectAlpha cmd, false, true);
+		CMD_DELAY(out CommandMovableObjectAlpha cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
@@ -535,7 +535,7 @@ public class OT : FrameBase
 		{
 			return null;
 		}
-		CMD(out CommandMovableObjectAlphaPath cmd, false, true);
+		CMD_DELAY(out CommandMovableObjectAlphaPath cmd, false);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;

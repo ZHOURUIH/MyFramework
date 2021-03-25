@@ -24,6 +24,7 @@ public class UnityUtility : FileUtility
 	protected static int mMainThreadID;
 	protected static bool mShowMessageBox = true;
 	protected static LOG_LEVEL mLogLevel = LOG_LEVEL.NORMAL;
+	public static new void initUtility() { }
 	public static void setMainThreadID(int mainThreadID) { mMainThreadID = mainThreadID; }
 	public static bool isMainThread() { return Thread.CurrentThread.ManagedThreadId == mMainThreadID; }
 	public static void setLogCallback(onLog callback) { mOnLog = callback; }
@@ -47,14 +48,15 @@ public class UnityUtility : FileUtility
 			// 运行一次只显示一次提示框,避免在循环中报错时一直弹窗
 			mShowMessageBox = false;
 		}
-		string time = getTime(TIME_DISPLAY.HMSM);
+		// 此处不能使用MyStringBuilder拼接的字符串,因为可能会造成无限递归而堆栈溢出
+		string time = getTimeNoBuilder(TIME_DISPLAY.HMSM);
 		string trackStr = new StackTrace().ToString();
 #if !UNITY_EDITOR
 		// 打包后使用LocalLog打印日志
 		FrameBase.mLocalLog?.log(time + ": error: " + info + ", stack: " + trackStr);
 #endif
 		UnityEngine.Debug.LogError(time + ": error: " + info + ", stack: " + trackStr);
-		mOnLog?.Invoke(time, "error: " + info + ", stack: " + trackStr, LOG_LEVEL.FORCE, true);
+		mOnLog?.Invoke(time, ": error: " + info + ", stack: " + trackStr, LOG_LEVEL.FORCE, true);
 	}
 	public static void log(string info, LOG_LEVEL level = LOG_LEVEL.NORMAL)
 	{
@@ -62,12 +64,21 @@ public class UnityUtility : FileUtility
 		{
 			return;
 		}
-		string time = getTime(TIME_DISPLAY.HMSM);
+		string time;
+		if (isMainThread())
+		{
+			time = getTime(TIME_DISPLAY.HMSM);
+		}
+		else
+		{
+			time = getTimeThread(TIME_DISPLAY.HMSM);
+		}
+		string fullInfo = time + ": " + info;
 #if !UNITY_EDITOR
 		// 打包后使用LocalLog打印日志
-		FrameBase.mLocalLog?.log(getTime(TIME_DISPLAY.HMSM) + ": " + info);
+		FrameBase.mLocalLog?.log(fullInfo);
 #endif
-		UnityEngine.Debug.Log(time + ": " + info);
+		UnityEngine.Debug.Log(fullInfo);
 		mOnLog?.Invoke(time, info, level, false);
 	}
 	public static void logWarning(string info, LOG_LEVEL level = LOG_LEVEL.NORMAL)
@@ -76,23 +87,40 @@ public class UnityUtility : FileUtility
 		{
 			return;
 		}
-		string time = getTime(TIME_DISPLAY.HMSM);
+		
+		string time;
+		if (isMainThread())
+		{
+			time = getTime(TIME_DISPLAY.HMSM);
+		}
+		else
+		{
+			time = getTimeThread(TIME_DISPLAY.HMSM);
+		}
+		string fullInfo = time + ": " + info;
 #if !UNITY_EDITOR
 		// 打包后使用LocalLog打印日志
-		FrameBase.mLocalLog?.log(getTime(TIME_DISPLAY.HMSM) + ": " + info);
+		FrameBase.mLocalLog?.log(fullInfo);
 #endif
-		UnityEngine.Debug.LogWarning(time + ": " + info);
+		UnityEngine.Debug.LogWarning(fullInfo);
 		mOnLog?.Invoke(time, info, level, false);
 	}
 	// 获取从1970年1月1日到现在所经过的毫秒数
 	public static long timeGetTime()
 	{
-		TimeSpan timeForm19700101 = DateTime.Now - new DateTime(1970, 1, 1);
-		return (long)timeForm19700101.TotalMilliseconds;
+		return (long)(DateTime.Now - new DateTime(1970, 1, 1)).TotalMilliseconds;
 	}
 	public static string getTime(TIME_DISPLAY display)
 	{
 		return getTime(DateTime.Now, display);
+	}
+	public static string getTimeThread(TIME_DISPLAY display)
+	{
+		return getTimeThread(DateTime.Now, display);
+	}
+	public static string getTimeNoBuilder(TIME_DISPLAY display)
+	{
+		return getTimeNoBuilder(DateTime.Now, display);
 	}
 	public static string getTime(int timeSecond, TIME_DISPLAY display)
 	{
@@ -101,11 +129,11 @@ public class UnityUtility : FileUtility
 		int hour = min / 60;
 		if (display == TIME_DISPLAY.HMSM)
 		{
-			return hour + ":" + min + ":" + second;
+			return strcat(IToS(hour), ":", IToS(min), ":", IToS(second));
 		}
 		else if (display == TIME_DISPLAY.HMS_2)
 		{
-			return intToString(hour, 2) + ":" + intToString(min, 2) + ":" + intToString(second, 2);
+			return strcat(IToS(hour, 2), ":", IToS(min, 2), ":", IToS(second, 2));
 		}
 		else if (display == TIME_DISPLAY.DHMS_ZH)
 		{
@@ -118,35 +146,69 @@ public class UnityUtility : FileUtility
 			// 大于等于1天
 			if (totalDay > 0)
 			{
-				return totalDay + "天" + curHour + "时" + curMin + "分" + curSecond + "秒";
+				return strcat(IToS(totalDay), "天", IToS(curHour), "时", IToS(curMin), "分", IToS(curSecond) + "秒");
 			}
 			// 小于1天,并且大于等于1小时
 			else if (totalHour > 0)
 			{
-				return totalHour + "时" + curMin + "分" + curSecond + "秒";
+				return strcat(IToS(totalHour), "时", IToS(curMin), "分", IToS(curSecond) + "秒");
 			}
 			// 小于1小时,并且大于等于1分钟
 			else if (totalMin > 0)
 			{
-				return totalMin + "分" + curSecond + "秒";
+				return IToS(totalMin) + "分" + IToS(curSecond) + "秒";
 			}
 			return timeSecond + "秒";
 		}
 		return EMPTY;
 	}
+	// 可以在多线程中调用的获取当前时间字符串
+	public static string getTimeThread(DateTime time, TIME_DISPLAY display)
+	{
+		if (display == TIME_DISPLAY.HMSM)
+		{
+			return strcat_thread(IToS(time.Hour), ":", IToS(time.Minute), ":", IToS(time.Second), ":", IToS(time.Millisecond));
+		}
+		else if (display == TIME_DISPLAY.HMS_2)
+		{
+			return strcat_thread(IToS(time.Hour, 2), ":", IToS(time.Minute, 2), ":", IToS(time.Second, 2));
+		}
+		else if (display == TIME_DISPLAY.DHMS_ZH)
+		{
+			return strcat_thread(IToS(time.Hour), "时", IToS(time.Minute), "分", IToS(time.Second), "秒");
+		}
+		return EMPTY;
+	}
+	// 只能在主线程中调用的获取当前时间字符串
 	public static string getTime(DateTime time, TIME_DISPLAY display)
 	{
 		if (display == TIME_DISPLAY.HMSM)
 		{
-			return time.Hour + ":" + time.Minute + ":" + time.Second + ":" + time.Millisecond;
+			return strcat(IToS(time.Hour), ":", IToS(time.Minute), ":", IToS(time.Second), ":", IToS(time.Millisecond));
 		}
 		else if (display == TIME_DISPLAY.HMS_2)
 		{
-			return intToString(time.Hour, 2) + ":" + intToString(time.Minute, 2) + ":" + intToString(time.Second, 2);
+			return strcat(IToS(time.Hour, 2), ":", IToS(time.Minute, 2), ":", IToS(time.Second, 2));
 		}
 		else if (display == TIME_DISPLAY.DHMS_ZH)
 		{
-			return time.Hour + "时" + time.Minute + "分" + time.Second + "秒";
+			return strcat(IToS(time.Hour), "时", IToS(time.Minute), "分", IToS(time.Second), "秒");
+		}
+		return EMPTY;
+	}
+	public static string getTimeNoBuilder(DateTime time, TIME_DISPLAY display)
+	{
+		if (display == TIME_DISPLAY.HMSM)
+		{
+			return IToS(time.Hour) + ":" + IToS(time.Minute) + ":" + IToS(time.Second) + ":" + IToS(time.Millisecond);
+		}
+		else if (display == TIME_DISPLAY.HMS_2)
+		{
+			return IToS(time.Hour, 2) + ":" + IToS(time.Minute, 2) + ":" + IToS(time.Second, 2);
+		}
+		else if (display == TIME_DISPLAY.DHMS_ZH)
+		{
+			return IToS(time.Hour) + "时" + IToS(time.Minute) + "分" + IToS(time.Second) + "秒";
 		}
 		return EMPTY;
 	}
@@ -313,7 +375,7 @@ public class UnityUtility : FileUtility
 	public static void findShaders(GameObject go)
 	{
 		// 普通渲染器
-		Renderer[] renderers = go.GetComponentsInChildren<Renderer>(true);
+		var renderers = go.GetComponentsInChildren<Renderer>(true);
 		int rendererCount = renderers.Length;
 		for (int i = 0; i < rendererCount; ++i)
 		{
@@ -325,7 +387,7 @@ public class UnityUtility : FileUtility
 			}
 		}
 		// 可能会用到材质的组件
-		Projector[] projectors = go.GetComponentsInChildren<Projector>(true);
+		var projectors = go.GetComponentsInChildren<Projector>(true);
 		int projectorCount = projectors.Length;
 		for (int i = 0; i < projectorCount; ++i)
 		{
@@ -334,7 +396,7 @@ public class UnityUtility : FileUtility
 	}
 	public static void findUGUIShaders(GameObject go)
 	{
-		Graphic[] renderers = go.GetComponentsInChildren<Graphic>(true);
+		var renderers = go.GetComponentsInChildren<Graphic>(true);
 		int rendererCount = renderers.Length;
 		for (int i = 0; i < rendererCount; ++i)
 		{
@@ -445,7 +507,7 @@ public class UnityUtility : FileUtility
 	}
 	// screenCenterAsZero为false表示返回的坐标是以屏幕左下角为原点的坐标
 	// screenCenterAsZero为true表示返回的坐标是以屏幕中心为原点的坐标
-	public static Vector3 worldToScreenPos(Vector3 worldPos, Camera camera, bool screenCenterAsZero = true)
+	public static Vector3 worldToScreen(Vector3 worldPos, Camera camera, bool screenCenterAsZero = true)
 	{
 		Vector3 screenPosition = camera.WorldToScreenPoint(worldPos);
 		if (screenCenterAsZero)
@@ -455,21 +517,21 @@ public class UnityUtility : FileUtility
 		screenPosition.z = 0.0f;
 		return screenPosition;
 	}
-	public static Vector3 worldToScreenPos(Vector3 worldPos, bool screenCenterAsZero = true)
+	public static Vector3 worldToScreen(Vector3 worldPos, bool screenCenterAsZero = true)
 	{
-		return worldToScreenPos(worldPos, FrameBase.mCameraManager.getMainCamera().getCamera(), screenCenterAsZero);
+		return worldToScreen(worldPos, FrameBase.mCameraManager.getMainCamera().getCamera(), screenCenterAsZero);
 	}
-	public static Vector3 worldUIToScreenPos(Vector3 worldPos)
+	public static Vector3 worldUIToScreen(Vector3 worldPos)
 	{
-		return worldToScreenPos(worldPos, getUICamera());
+		return worldToScreen(worldPos, getUICamera());
 	}
 	public static bool isGameObjectInScreen(Vector3 worldPos)
 	{
-		Vector3 screenPos = worldToScreenPos(worldPos, false);
+		Vector3 screenPos = worldToScreen(worldPos, false);
 		return screenPos.z >= 0.0f && inRange((Vector2)screenPos, Vector2.zero, getRootSize());
 	}
 	// screenCenterAsZero为true表示返回的坐标是以window的中心为原点,false表示以window的左下角为原点
-	public static Vector2 screenPosToWindowPos(Vector2 screenPos, myUIObject window, bool screenCenterAsZero = true)
+	public static Vector2 screenPosToWindow(Vector2 screenPos, myUIObject window, bool screenCenterAsZero = true)
 	{
 		Camera camera = getUICamera();
 		Vector2 cameraSize = new Vector2(camera.pixelWidth, camera.pixelHeight);
@@ -588,6 +650,26 @@ public class UnityUtility : FileUtility
 	{
 		StackTrace st = new StackTrace(preFrameCount, true);
 		return st.GetFrame(0).GetFileName();
+	}
+	// 此处不使用MyStringBuilder,因为打印堆栈时一般都是产生了某些错误,再使用MyStringBuilder可能会引起无限递归
+	public static string getStackTrace()
+	{
+		string fullTrace = "";
+		StackTrace trace = new StackTrace(true);
+		for(int i = 0; i < trace.FrameCount; ++i)
+		{
+			if(i == 0)
+			{
+				continue;
+			}	
+			StackFrame frame = trace.GetFrame(i);
+			if(isEmpty(frame.GetFileName()))
+			{
+				break;
+			}
+			fullTrace += "at " + frame.GetFileName() + ":" + frame.GetFileLineNumber() + "\n";
+		}
+		return fullTrace;
 	}
 	public static uint makeID()
 	{
@@ -1273,7 +1355,7 @@ public class UnityUtility : FileUtility
 #if USE_ILRUNTIME
 		if (typeof(CrossBindingAdaptorType).IsAssignableFrom(type))
 		{
-			logError("无法获取热更工程中的类型");
+			logError("无法获取热更工程中的类型,请确保没有在热更工程中调用Typeof<>(), 在热更工程中获取类型请使用typeof()");
 			return null;
 		}
 		if(typeof(ILTypeInstance).IsAssignableFrom(type))

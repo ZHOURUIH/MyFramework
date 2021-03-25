@@ -5,20 +5,49 @@ using System;
 // 只能在主线程使用的对象池
 public class ClassPool : FrameSystem
 {
+	protected Dictionary<Type, HashSet<IClassObject>> mPersistentInuseList;
 	protected Dictionary<Type, HashSet<IClassObject>> mInusedList;
 	protected Dictionary<Type, HashSet<IClassObject>> mUnusedList;
+	protected Dictionary<IClassObject, string> mObjectStack;
 	protected static ulong mAssignIDSeed;
 	public ClassPool()
 	{
+		mPersistentInuseList = new Dictionary<Type, HashSet<IClassObject>>();
 		mInusedList = new Dictionary<Type, HashSet<IClassObject>>();
 		mUnusedList = new Dictionary<Type, HashSet<IClassObject>>();
+		mObjectStack = new Dictionary<IClassObject, string>();
+		mCreateObject = true;
 	}
-	public IClassObject newClass(Type type)
+	public override void init()
 	{
-		return newClass(type, out _);
+		base.init();
+#if UNITY_EDITOR
+		mObject.AddComponent<ClassPoolDebug>();
+#endif
+	}
+	public override void update(float elapsedTime)
+	{
+		base.update(elapsedTime);
+#if UNITY_EDITOR
+		foreach (var item in mInusedList)
+		{
+			foreach (var itemList in item.Value)
+			{
+				logError("有临时对象正在使用中,是否在申请后忘记回收到池中! create stack:\n" + mObjectStack[itemList] + "\n");
+				break;
+			}
+		}
+#endif
+	}
+	public Dictionary<Type, HashSet<IClassObject>> getPersistentInusedList() { return mPersistentInuseList; }
+	public Dictionary<Type, HashSet<IClassObject>> getInusedList() { return mInusedList; }
+	public Dictionary<Type, HashSet<IClassObject>> getUnusedList() { return mUnusedList; }
+	public IClassObject newClass(Type type, bool onlyOnce)
+	{
+		return newClass(type, out _, onlyOnce);
 	}
 	// 返回值表示是否是new出来的对象,false则为从回收列表中重复使用的对象
-	public IClassObject newClass(Type type, out bool isNewObject)
+	public IClassObject newClass(Type type, out bool isNewObject, bool onlyOnce)
 	{
 		isNewObject = false;
 		if(!isMainThread())
@@ -53,13 +82,23 @@ public class ClassPool : FrameSystem
 		obj.setAssignID(++mAssignIDSeed);
 		obj.setDestroy(false);
 		// 添加到已使用列表
-		addInuse(obj);
+		addInuse(obj, onlyOnce);
+#if UNITY_EDITOR
+		if(mGameFramework.isEnablePoolStackTrace())
+		{
+			mObjectStack.Add(obj, getStackTrace());
+		}
+		else
+		{
+			mObjectStack.Add(obj, EMPTY);
+		}
+#endif
 		return obj;
 	}
 	// 仅用于主工程中的类,否则无法识别
-	public T newClass<T>(out T obj) where T : class, IClassObject
+	public T newClass<T>(out T obj, bool onlyOnce) where T : class, IClassObject
 	{
-		IClassObject classObj = newClass(Typeof<T>());
+		IClassObject classObj = newClass(Typeof<T>(), onlyOnce);
 		obj = classObj as T;
 		if (obj == null)
 		{
@@ -74,6 +113,9 @@ public class ClassPool : FrameSystem
 			logError("只能在主线程中使用ClassPool,子线程中请使用ClassPoolThread代替");
 			return;
 		}
+#if UNITY_EDITOR
+		mObjectStack.Remove(classObject);
+#endif
 		classObject.resetProperty();
 		classObject.setDestroy(true);
 		addUnuse(classObject);
@@ -86,6 +128,9 @@ public class ClassPool : FrameSystem
 			logError("只能在主线程中使用ClassPool,子线程中请使用ClassPoolThread代替");
 			return;
 		}
+#if UNITY_EDITOR
+		mObjectStack.Remove(classObject);
+#endif
 		bool inuse = isInuse(classObject);
 		classObject.resetProperty();
 		classObject.setDestroy(true);
@@ -113,21 +158,31 @@ public class ClassPool : FrameSystem
 		return mInusedList.TryGetValue(Typeof(classObject), out HashSet<IClassObject> list) && list.Contains(classObject);
 	}
 	//----------------------------------------------------------------------------------------------------------------------------------------------
-	protected void addInuse(IClassObject classObject)
+	protected void addInuse(IClassObject classObject, bool onlyOnce)
 	{
 		Type type = Typeof(classObject);
-		if (!mInusedList.TryGetValue(type, out HashSet<IClassObject> objList))
+		HashSet<IClassObject> objList;
+		if (onlyOnce)
 		{
-			objList = new HashSet<IClassObject>();
-			mInusedList.Add(type, objList);
+			if (!mInusedList.TryGetValue(type, out objList))
+			{
+				objList = new HashSet<IClassObject>();
+				mInusedList.Add(type, objList);
+			}
 		}
 		else
 		{
-			if (objList.Contains(classObject))
+			if (!mPersistentInuseList.TryGetValue(type, out objList))
 			{
-				logError("object is in inused list");
-				return;
+				objList = new HashSet<IClassObject>();
+				mPersistentInuseList.Add(type, objList);
 			}
+		}
+		
+		if (objList.Contains(classObject))
+		{
+			logError("object is in inused list");
+			return;
 		}
 		// 加入使用列表
 		objList.Add(classObject);
@@ -136,7 +191,9 @@ public class ClassPool : FrameSystem
 	{
 		// 从使用列表移除,要确保操作的都是从本类创建的实例
 		Type type = Typeof(classObject);
-		if (!mInusedList.TryGetValue(type, out HashSet<IClassObject> classList))
+		HashSet<IClassObject> classList;
+		if (!mInusedList.TryGetValue(type, out classList) && 
+			!mPersistentInuseList.TryGetValue(type, out classList))
 		{
 			logError("can not find class type in Inused List! Type: " + type);
 		}

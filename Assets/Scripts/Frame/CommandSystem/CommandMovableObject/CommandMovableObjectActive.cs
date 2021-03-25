@@ -13,8 +13,8 @@ public class CommandMovableObjectActive : Command
 		var obj = mReceiver as MovableObject;
 		obj.setActive(mActive);
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		return base.showDebugInfo() + ": mActive:" + mActive;
+		builder.Append(": mActive:", mActive);
 	}
 }

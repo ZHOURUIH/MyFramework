@@ -16,22 +16,27 @@ public class DictionaryPoolDebug : MonoBehaviour
 		var persistentInuse = FrameBase.mDictionaryPool.getPersistentInusedList();
 		foreach (var item in persistentInuse)
 		{
-			PersistentInuseList.Add(item.Key + ":" + item.Value.Count);
+			PersistentInuseList.Add(item.Key.ToString() + ":" + StringUtility.IToS(item.Value.Count));
 		}
 
 		InuseList.Clear();
 		var inuse = FrameBase.mDictionaryPool.getInusedList();
 		foreach(var item in inuse)
 		{
-			InuseList.Add(item.Key + ":" + item.Value.Count);
+			if(item.Value.Count > 0)
+			{
+				InuseList.Add(item.Key.ToString() + ":" + StringUtility.IToS(item.Value.Count));
+			}
 		}
 
 		UnuseList.Clear();
 		var unuse = FrameBase.mDictionaryPool.getUnusedList();
 		foreach (var item in unuse)
 		{
-			UnuseList.Add(item.Key + ":" + item.Value.Count);
+			if(item.Value.Count > 0)
+			{
+				UnuseList.Add(item.Key.ToString() + ":" + StringUtility.IToS(item.Value.Count));
+			}
 		}
 	}
-	//-------------------------------------------------------------------------------------------------------
 }

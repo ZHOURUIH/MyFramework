@@ -43,9 +43,14 @@ public class CommandGameSceneAudioVolume : Command
 		component.setTargetVolume(mTargetVolume);
 		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce);
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mStartVolume:" + mStartVolume +
-			", mTargetVolume:" + mTargetVolume + ", mLoop:" + mLoop + ", mFullOnce:" + mFullOnce;
+		builder.Append(": mKeyframe:", mKeyframe.ToString()).
+				Append(", mOnceLength:", mOnceLength).
+				Append(", mOffset:", mOffset).
+				Append(", mStartVolume:", mStartVolume).
+				Append(", mTargetVolume:", mTargetVolume).
+				Append(", mLoop:", mLoop).
+				Append(", mFullOnce:", mFullOnce);
 	}
 }

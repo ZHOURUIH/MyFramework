@@ -35,9 +35,14 @@ public class CommandCameraFOV : Command
 		component.setTargetFOV(mTargetFOV);
 		component.play((int)mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce);
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mStartFOV:" + mStartFOV +
-			", mTargetFOV:" + mTargetFOV + ", mLoop:" + mLoop + ", mFullOnce:" + mFullOnce;
+		builder.Append(": mKeyframe:", mKeyframe.ToString()).
+				Append(", mOnceLength:", mOnceLength).
+				Append(", mOffset:", mOffset).
+				Append(", mStartFOV:", mStartFOV).
+				Append(", mTargetFOV:", mTargetFOV).
+				Append(", mLoop:", mLoop).
+				Append(", mFullOnce:", mFullOnce);
 	}
 }

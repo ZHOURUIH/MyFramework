@@ -59,8 +59,7 @@ public class WavSound : FrameBase
 	public int getMixPCMDataCount() { return mDataSize / (sizeof(short) * mSoundChannels); }
 	public bool readFile(string file)
 	{
-		byte[] fileData;
-		openFile(file, out fileData, true);
+		openFile(file, out byte[]  fileData, true);
 		mFileName = file;
 		Serializer serializer = new Serializer(fileData);
 		serializer.read(out mRiffMark);
@@ -87,7 +86,7 @@ public class WavSound : FrameBase
 			mDataBuffer = new byte[mDataSize];
 			serializer.readBuffer(mDataBuffer, mDataSize, mDataSize);
 		} while (bytesToString(mDataMark) != "data");
-		releaseFileBuffer(fileData);
+		releaseFile(fileData);
 		refreshFileSize();
 		int mixDataCount = getMixPCMDataCount();
 		mMixPCMData = new short[mixDataCount];
@@ -96,22 +95,20 @@ public class WavSound : FrameBase
 	}
 	public static void generateMixPCMData(short[] mixPCMData, int mixDataCount, short channelCount, byte[] dataBuffer, int bufferSize)
 	{
+		ARRAY(out byte[] tempBytes, 2);
 		// 如果单声道,则直接将mDataBuffer的数据拷贝到mMixPCMData中
 		if (channelCount == 1)
 		{
-			byte[] tempBytes = mBytesPool.newBytes(2);
 			for (int i = 0; i < mixDataCount; ++i)
 			{
 				tempBytes[0] = dataBuffer[2 * i + 0];
 				tempBytes[1] = dataBuffer[2 * i + 1];
 				mixPCMData[i] = bytesToShort(tempBytes);
 			}
-			mBytesPool.destroyBytes(tempBytes);
 		}
 		// 如果有两个声道,则将左右两个声道的平均值赋值到mMixPCMData中
 		else if (channelCount == 2)
 		{
-			byte[] tempBytes = mBytesPool.newBytes(2);
 			for (int i = 0; i < mixDataCount; ++i)
 			{
 				tempBytes[0] = dataBuffer[4 * i + 0];
@@ -122,8 +119,8 @@ public class WavSound : FrameBase
 				short shortData1 = bytesToShort(tempBytes);
 				mixPCMData[i] = (short)((shortData0 + shortData1) * 0.5f);
 			}
-			mBytesPool.destroyBytes(tempBytes);
 		}
+		UN_ARRAY(tempBytes);
 	}
 	public static void generateMixPCMData(short[] mixPCMData, int mixDataCount, short channelCount, short[] dataBuffer, int bufferSize)
 	{

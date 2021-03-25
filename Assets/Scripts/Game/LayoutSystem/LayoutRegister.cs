@@ -24,11 +24,15 @@ public class LayoutRegister : GameBase
 	//----------------------------------------------------------------------------------------------------------------------------------------------------------------
 	protected static void registeLayout<T>(int layout, string name) where T : LayoutScript
 	{
-		mLayoutManager.registeLayout(typeof(T), layout, name);
+		registeLayout<T>(layout, name, EMPTY);
+	}
+	protected static void registeLayout<T>(int layout, string name, string prePath) where T : LayoutScript
+	{
+		mLayoutManager.registeLayout(Typeof<T>(), layout, prePath + name + "/" + name);
 	}
 	protected static bool assign<T>(ref T thisScript, LayoutScript value, bool created) where T : LayoutScript
 	{
-		if (typeof(T) == value.GetType())
+		if (Typeof<T>() == Typeof(value))
 		{
 			thisScript = created ? value as T : null;
 			return true;

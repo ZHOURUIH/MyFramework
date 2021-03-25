@@ -16,11 +16,10 @@ public class CommandGameSceneManagerEnter : Command
 	{
 		mGameSceneManager.enterScene(mSceneType, mStartProcedure, mIntent);
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		string scene = mSceneType != null ? mSceneType.ToString() : "null";
-		string procedure = mStartProcedure != null ? mStartProcedure.ToString() : "null";
-		string intent = mIntent != null ? mIntent : EMPTY;
-		return base.showDebugInfo() + ": mSceneType:" + scene + ", mStartProcedure:" + procedure + ", mIntent:" + intent;
+		builder.Append(": mSceneType:", mSceneType).
+				Append(", mStartProcedure:", mStartProcedure).
+				Append(", mIntent:", mIntent);
 	}
 }

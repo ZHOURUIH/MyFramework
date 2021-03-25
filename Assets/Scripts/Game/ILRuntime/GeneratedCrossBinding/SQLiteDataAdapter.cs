@@ -51,7 +51,9 @@ namespace HotFix
             }
         }
         static insert_1Info minsert_1 = new insert_1Info();
-        static CrossBindingMethodInfo mnotifyConstructDone_2 = new CrossBindingMethodInfo("notifyConstructDone");
+        static CrossBindingMethodInfo<global::MyStringBuilder> minsert_2 = new CrossBindingMethodInfo<global::MyStringBuilder>("insert");
+        static CrossBindingFunctionInfo<System.Boolean> mcheckData_3 = new CrossBindingFunctionInfo<System.Boolean>("checkData");
+        static CrossBindingMethodInfo mnotifyConstructDone_4 = new CrossBindingMethodInfo("notifyConstructDone");
         public override Type BaseCLRType
         {
             get
@@ -107,12 +109,28 @@ namespace HotFix
                     minsert_1.Invoke(this.instance, ref valueString);
             }
 
+            public override void insert(global::MyStringBuilder valueString)
+            {
+                if (minsert_2.CheckShouldInvokeBase(this.instance))
+                    base.insert(valueString);
+                else
+                    minsert_2.Invoke(this.instance, valueString);
+            }
+
+            public override System.Boolean checkData()
+            {
+                if (mcheckData_3.CheckShouldInvokeBase(this.instance))
+                    return base.checkData();
+                else
+                    return mcheckData_3.Invoke(this.instance);
+            }
+
             public override void notifyConstructDone()
             {
-                if (mnotifyConstructDone_2.CheckShouldInvokeBase(this.instance))
+                if (mnotifyConstructDone_4.CheckShouldInvokeBase(this.instance))
                     base.notifyConstructDone();
                 else
-                    mnotifyConstructDone_2.Invoke(this.instance);
+                    mnotifyConstructDone_4.Invoke(this.instance);
             }
 
             public override string ToString()

@@ -5,6 +5,25 @@ public class UINTS : OBJECTS
 {
 	protected const int TYPE_SIZE = sizeof(uint);
 	public uint[] mValue;
+	public uint this[int index]
+	{
+		get
+		{
+			if (index >= mElementCount)
+			{
+				logError("下标超出有效数据长度");
+			}
+			return mValue[index];
+		}
+		set
+		{
+			if (index >= mElementCount)
+			{
+				logError("下标超出有效数据长度");
+			}
+			mValue[index] = value;
+		}
+	}
 	public UINTS(int count)
 	{
 		mValue = new uint[count];

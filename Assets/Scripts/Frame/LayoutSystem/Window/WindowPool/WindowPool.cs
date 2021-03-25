@@ -36,11 +36,11 @@ public class WindowPool<T> where T : myUIObject, new()
 		{
 			if(mTemplate != null)
 			{
-				window = mScript.cloneObject(parent, mTemplate, name);
+				window = mScript.cloneObject(parent, mTemplate, name, true, sortChild, sortChild);
 			}
 			else
 			{
-				window = mScript.createObject<T>(name);
+				window = mScript.createObject<T>(name, true, sortChild, sortChild);
 			}
 		}
 		mInusedList.Add(window);

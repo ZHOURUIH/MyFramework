@@ -20,7 +20,7 @@ public class ScriptDemo : LayoutScript
 	{
 		Vector3 curPos = mLabel.getPosition();
 		Vector3 targetPos = curPos + new Vector3(100.0f, 0.0f, 0.0f);
-		LT.MOVE(mLabel, KEY_FRAME.ZERO_ONE_ZERO, curPos, targetPos, 1.0f, true);
+		FT.MOVE(mLabel, KEY_FRAME.ZERO_ONE_ZERO, curPos, targetPos, 1.0f, true);
 	}
 	public void setText(string text)
 	{

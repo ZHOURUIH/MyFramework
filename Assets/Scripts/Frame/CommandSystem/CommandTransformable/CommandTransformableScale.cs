@@ -40,9 +40,14 @@ public class CommandTransformableScale : Command
 			obj.setEnable(true);
 		}
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		return base.showDebugInfo() + ": mKeyframe:" + mKeyframe + ", mOnceLength:" + mOnceLength + ", mOffset:" + mOffset + ", mLoop:" + mLoop
-			+ ", mFullOnce:" + mFullOnce + ", mStartScale:" + mStartScale + ", mTargetScale:" + mTargetScale;
+		builder.Append(": mKeyframe:", mKeyframe.ToString()).
+				Append(", mOnceLength:", mOnceLength).
+				Append(", mOffset:", mOffset).
+				Append(", mLoop:", mLoop).
+				Append(", mFullOnce:", mFullOnce).
+				Append(", mStartScale:", mStartScale).
+				Append(", mTargetScale:", mTargetScale);
 	}
 }

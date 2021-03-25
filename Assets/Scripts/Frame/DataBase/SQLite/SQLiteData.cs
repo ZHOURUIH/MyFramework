@@ -2,7 +2,6 @@
 using UnityEngine;
 using Mono.Data.Sqlite;
 using System.Collections.Generic;
-using System.Text;
 
 public class SQLiteData : GameBase
 {
@@ -34,6 +33,7 @@ public class SQLiteData : GameBase
 		}
 		return value;
 	}
+	public virtual bool checkData() { return true; }
 	//--------------------------------------------------------------------------------------------------------
 	protected void parseParam(SqliteDataReader reader, ref List<bool> value, string paramName)
 	{
@@ -92,49 +92,49 @@ public class SQLiteData : GameBase
 	protected void parseParam(SqliteDataReader reader, ref float value, string paramName)
 	{
 		string str = reader[paramName].ToString();
-		value = stringToFloat(str);
+		value = SToF(str);
 		mValues.Add(paramName, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref uint value, string paramName)
 	{
 		string str = reader[paramName].ToString();
-		value = (uint)stringToInt(str);
+		value = (uint)SToI(str);
 		mValues.Add(paramName, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref int value, string paramName)
 	{
 		string str = reader[paramName].ToString();
-		value = stringToInt(str);
+		value = SToI(str);
 		mValues.Add(paramName, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref ushort value, string paramName)
 	{
 		string str = reader[paramName].ToString();
-		value = (ushort)stringToInt(str);
+		value = (ushort)SToI(str);
 		mValues.Add(paramName, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref short value, string paramName)
 	{
 		string str = reader[paramName].ToString();
-		value = (short)stringToInt(str);
+		value = (short)SToI(str);
 		mValues.Add(paramName, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref byte value, string paramName)
 	{
 		string str = reader[paramName].ToString();
-		value = (byte)stringToInt(str);
+		value = (byte)SToI(str);
 		mValues.Add(paramName, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref sbyte value, string paramName)
 	{
 		string str = reader[paramName].ToString();
-		value = (sbyte)stringToInt(str);
+		value = (sbyte)SToI(str);
 		mValues.Add(paramName, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref bool value, string paramName)
 	{
 		string str = reader[paramName].ToString();
-		value = stringToInt(str) != 0;
+		value = SToI(str) != 0;
 		mValues.Add(paramName, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref Vector2 value, string paramName)

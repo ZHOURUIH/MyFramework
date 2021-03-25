@@ -37,6 +37,7 @@ namespace ILRuntime.Runtime.Generated
             System_Object_Binding.Register(app);
             MovableObject_Binding.Register(app);
             CommandReceiver_Binding.Register(app);
+            GameBasePooledObject_Binding.Register(app);
             Command_Binding.Register(app);
             FrameSystem_Binding.Register(app);
             GameComponent_Binding.Register(app);
@@ -47,9 +48,9 @@ namespace ILRuntime.Runtime.Generated
             LayoutScript_Binding.Register(app);
             SQLiteData_Binding.Register(app);
             SQLiteTable_Binding.Register(app);
-            StateParam_Binding.Register(app);
             GameLayout_Binding.Register(app);
             LayoutManager_Binding.Register(app);
+            FT_Binding.Register(app);
             StringUtility_Binding.Register(app);
             System_String_Binding.Register(app);
             myUGUIText_Binding.Register(app);

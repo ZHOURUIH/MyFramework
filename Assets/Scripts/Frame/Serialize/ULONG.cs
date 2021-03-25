@@ -34,8 +34,7 @@ public class ULONG : OBJECT
 			// 恢复标记位,右移一位
 			int value = readInt(buffer, ref index, out success);
 			setLowestBit(ref value, 0);
-			value >>= 1;
-			mValue = (ulong)value;
+			mValue = (ulong)(value >> 1);
 		}
 		else
 		{
@@ -48,8 +47,7 @@ public class ULONG : OBJECT
 		if (mIntReplace && mValue < 0x7FFFFFFF)
 		{
 			// 左移一位,设置标记位
-			int value = (int)mValue;
-			value <<= 1;
+			int value = (int)mValue << 1;
 			setLowestBit(ref value, 1);
 			return writeInt(buffer, ref index, value);
 		}

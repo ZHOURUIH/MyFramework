@@ -34,8 +34,10 @@ public class CommandMovableObjectAlphaPath : Command
 		component.setValueOffset(mValueOffset);
 		component.play(mLoop, mOffset, mFullOnce);
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		return base.showDebugInfo() + ", mOffset:" + mOffset + ", mLoop:" + mLoop + ", mFullOnce:" + mFullOnce;
+		builder.Append(", mOffset:", mOffset).
+				Append(", mLoop:", mLoop).
+				Append(", mFullOnce:", mFullOnce);
 	}
 }

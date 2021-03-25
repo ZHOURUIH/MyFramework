@@ -42,8 +42,12 @@ public class CommandLayoutManagerVisible : Command
 			layout.setVisibleForce(mVisibility);
 		}
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		return base.showDebugInfo() + ": mLayoutID:" + mLayoutID + ", mVisibility:" + mVisibility + ", mForce:" + mForce + ", mImmediately:" + mImmediately + ", mParam:" + mParam;
+		builder.Append(": mLayoutID:", mLayoutID).
+				Append(", mVisibility:", mVisibility).
+				Append(", mForce:", mForce).
+				Append(", mImmediately:", mImmediately).
+				Append(", mParam:", mParam);
 	}
 }

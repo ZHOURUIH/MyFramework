@@ -16,11 +16,11 @@ public class ScriptGaming : ILRLayoutScript
 	public override void init(){}
 	public void setAvatarPosition(Vector3 pos)
 	{
-		LT.MOVE(mAvatar, pos);
+		FT.MOVE(mAvatar, pos);
 	}
 	public void setSpeed(float speed)
 	{
-		mSpeed.setText("速度:" + floatToString(speed, 0));
+		mSpeed.setText("速度:" + FToS(speed, 0));
 	}
 	//------------------------------------------------------------------------------------------------
 }

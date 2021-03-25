@@ -98,7 +98,7 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 			int index = 0;
 			while(true)
 			{
-				string name = mTextureSetName + "_" + intToString(index++);
+				string name = mTextureSetName + "_" + IToS(index++);
 				if (!sprites.ContainsKey(name))
 				{
 					break;

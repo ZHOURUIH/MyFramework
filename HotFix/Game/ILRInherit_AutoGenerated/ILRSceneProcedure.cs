@@ -15,7 +15,7 @@ public abstract class ILRSceneProcedure : SceneProcedure
 	protected override void onPrepareExit(SceneProcedure nextPreocedure) { base.onPrepareExit(nextPreocedure); }
 	public override void addDelayCmd(Command cmd) { base.addDelayCmd(cmd); }
 	public override void onCmdStarted(Command cmd) { base.onCmdStarted(cmd); }
-	public override void interruptCommand(int assignID, bool showError = true) { base.interruptCommand(assignID, showError); }
+	public override void interruptCommand(UInt64 assignID, bool showError = true) { base.interruptCommand(assignID, showError); }
 	public override void interruptAllCommand() { base.interruptAllCommand(); }
 	public override void notifyConstructDone() { base.notifyConstructDone(); }
 	public override bool Equals(object obj) { return base.Equals(obj); }

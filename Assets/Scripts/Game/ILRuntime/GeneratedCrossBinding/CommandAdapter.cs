@@ -7,10 +7,14 @@ namespace HotFix
 {   
     public class CommandAdapter : CrossBindingAdaptor
     {
-        static CrossBindingMethodInfo minit_0 = new CrossBindingMethodInfo("init");
+        static CrossBindingMethodInfo mresetProperty_0 = new CrossBindingMethodInfo("resetProperty");
         static CrossBindingMethodInfo mexecute_1 = new CrossBindingMethodInfo("execute");
-        static CrossBindingFunctionInfo<System.String> mshowDebugInfo_2 = new CrossBindingFunctionInfo<System.String>("showDebugInfo");
-        static CrossBindingMethodInfo mnotifyConstructDone_3 = new CrossBindingMethodInfo("notifyConstructDone");
+        static CrossBindingMethodInfo<global::MyStringBuilder> mshowDebugInfo_2 = new CrossBindingMethodInfo<global::MyStringBuilder>("showDebugInfo");
+        static CrossBindingMethodInfo<System.Boolean> msetDestroy_3 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
+        static CrossBindingFunctionInfo<System.Boolean> misDestroy_4 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
+        static CrossBindingMethodInfo<System.UInt64> msetAssignID_5 = new CrossBindingMethodInfo<System.UInt64>("setAssignID");
+        static CrossBindingFunctionInfo<System.UInt64> mgetAssignID_6 = new CrossBindingFunctionInfo<System.UInt64>("getAssignID");
+        static CrossBindingMethodInfo mnotifyConstructDone_7 = new CrossBindingMethodInfo("notifyConstructDone");
         public override Type BaseCLRType
         {
             get
@@ -50,12 +54,12 @@ namespace HotFix
 
             public ILTypeInstance ILInstance { get { return instance; } }
 
-            public override void init()
+            public override void resetProperty()
             {
-                if (minit_0.CheckShouldInvokeBase(this.instance))
-                    base.init();
+                if (mresetProperty_0.CheckShouldInvokeBase(this.instance))
+                    base.resetProperty();
                 else
-                    minit_0.Invoke(this.instance);
+                    mresetProperty_0.Invoke(this.instance);
             }
 
             public override void execute()
@@ -66,20 +70,52 @@ namespace HotFix
                     mexecute_1.Invoke(this.instance);
             }
 
-            public override System.String showDebugInfo()
+            public override void showDebugInfo(global::MyStringBuilder builder)
             {
                 if (mshowDebugInfo_2.CheckShouldInvokeBase(this.instance))
-                    return base.showDebugInfo();
+                    base.showDebugInfo(builder);
                 else
-                    return mshowDebugInfo_2.Invoke(this.instance);
+                    mshowDebugInfo_2.Invoke(this.instance, builder);
+            }
+
+            public override void setDestroy(System.Boolean isDestroy)
+            {
+                if (msetDestroy_3.CheckShouldInvokeBase(this.instance))
+                    base.setDestroy(isDestroy);
+                else
+                    msetDestroy_3.Invoke(this.instance, isDestroy);
+            }
+
+            public override System.Boolean isDestroy()
+            {
+                if (misDestroy_4.CheckShouldInvokeBase(this.instance))
+                    return base.isDestroy();
+                else
+                    return misDestroy_4.Invoke(this.instance);
+            }
+
+            public override void setAssignID(System.UInt64 assignID)
+            {
+                if (msetAssignID_5.CheckShouldInvokeBase(this.instance))
+                    base.setAssignID(assignID);
+                else
+                    msetAssignID_5.Invoke(this.instance, assignID);
+            }
+
+            public override System.UInt64 getAssignID()
+            {
+                if (mgetAssignID_6.CheckShouldInvokeBase(this.instance))
+                    return base.getAssignID();
+                else
+                    return mgetAssignID_6.Invoke(this.instance);
             }
 
             public override void notifyConstructDone()
             {
-                if (mnotifyConstructDone_3.CheckShouldInvokeBase(this.instance))
+                if (mnotifyConstructDone_7.CheckShouldInvokeBase(this.instance))
                     base.notifyConstructDone();
                 else
-                    mnotifyConstructDone_3.Invoke(this.instance);
+                    mnotifyConstructDone_7.Invoke(this.instance);
             }
 
             public override string ToString()

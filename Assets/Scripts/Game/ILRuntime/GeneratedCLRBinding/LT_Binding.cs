@@ -31,9 +31,6 @@ namespace ILRuntime.Runtime.Generated
             args = new Type[]{typeof(System.Int32), typeof(System.Boolean), typeof(System.String)};
             method = type.GetMethod("HIDE_LAYOUT", flag, null, args, null);
             app.RegisterCLRMethodRedirection(method, HIDE_LAYOUT_2);
-            args = new Type[]{typeof(global::Transformable), typeof(UnityEngine.Vector3)};
-            method = type.GetMethod("MOVE", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, MOVE_3);
 
 
         }
@@ -87,31 +84,6 @@ namespace ILRuntime.Runtime.Generated
 
 
             global::LT.HIDE_LAYOUT(@id, @immediately, @param);
-
-            return __ret;
-        }
-
-        static StackObject* MOVE_3(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 2);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            UnityEngine.Vector3 @pos = new UnityEngine.Vector3();
-            if (ILRuntime.Runtime.Generated.CLRBindings.s_UnityEngine_Vector3_Binding_Binder != null) {
-                ILRuntime.Runtime.Generated.CLRBindings.s_UnityEngine_Vector3_Binding_Binder.ParseValue(ref @pos, __intp, ptr_of_this_method, __mStack, true);
-            } else {
-                @pos = (UnityEngine.Vector3)typeof(UnityEngine.Vector3).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-                __intp.Free(ptr_of_this_method);
-            }
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            global::Transformable @obj = (global::Transformable)typeof(global::Transformable).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-
-            global::LT.MOVE(@obj, @pos);
 
             return __ret;
         }

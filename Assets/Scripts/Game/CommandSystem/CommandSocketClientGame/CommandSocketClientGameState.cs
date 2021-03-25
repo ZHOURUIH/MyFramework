@@ -3,18 +3,18 @@
 public class CommandSocketClientGameState : Command
 {
 	public NET_STATE mNetState;
-	public override void init()
+	public override void resetProperty()
 	{
-		base.init();
+		base.resetProperty();
 		mNetState = NET_STATE.SERVER_CLOSE;
 	}
 	public override void execute()
 	{
 		;
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		return base.showDebugInfo() + ": mNetState:" + mNetState;
+		builder.Append(": mNetState:", mNetState.ToString());
 	}
 	//------------------------------------------------------------------------------------
 	protected static void onMessageOK(bool ok, object userData)

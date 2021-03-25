@@ -9,8 +9,8 @@ public class MainSceneGaming : ILRSceneProcedure
 	protected override void onInit(SceneProcedure lastProcedure, string intent)
 	{
 		LT.LOAD_UGUI_SHOW(LAYOUT_ILR.GAMING);
-		uint id = (uint)makeID();
-		CommandCharacterManagerCreateCharacter cmd = newMainCmd(out cmd);
+		uint id = makeID();
+		CMD(out CommandCharacterManagerCreateCharacter cmd);
 		cmd.mCharacterType = typeof(CharacterGame);
 		cmd.mName = "test";
 		cmd.mID = id;
@@ -20,7 +20,7 @@ public class MainSceneGaming : ILRSceneProcedure
 	protected override void onExit(SceneProcedure nextProcedure)
 	{
 		LT.HIDE_LAYOUT(LAYOUT_ILR.GAMING);
-		CommandCharacterManagerDestroy cmd = newMainCmd(out cmd);
+		CMD(out CommandCharacterManagerDestroy cmd);
 		cmd.mGUID = mPlayer.getGUID();
 		pushCommand(cmd, mCharacterManager);
 	}

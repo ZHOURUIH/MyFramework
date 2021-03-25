@@ -14,7 +14,7 @@ public abstract class ILRLayoutScript : LayoutScript
 	public override void onShow(bool immediately, string param) { base.onShow(immediately, param); }
 	public override void onHide(bool immediately, string param) { base.onHide(immediately, param); }
 	public override void addDelayCmd(Command cmd) { base.addDelayCmd(cmd); }
-	public override void interruptCommand(int assignID, bool showError = true) { base.interruptCommand(assignID, showError); }
+	public override void interruptCommand(UInt64 assignID, bool showError = true) { base.interruptCommand(assignID, showError); }
 	public override void onCmdStarted(Command cmd) { base.onCmdStarted(cmd); }
 	public override void interruptAllCommand() { base.interruptAllCommand(); }
 	public override void notifyConstructDone() { base.notifyConstructDone(); }

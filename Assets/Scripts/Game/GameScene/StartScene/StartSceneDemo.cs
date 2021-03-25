@@ -26,7 +26,7 @@ public class StartSceneDemo : SceneProcedure
 		{
 			mProgress += elapsedTime * 0.5f;
 			clampMax(ref mProgress, 1.0f);
-			mScriptDemo.setText("ILRuntime热更生效,加载进度:" + floatToString(mProgress, 2));
+			mScriptDemo.setText("ILRuntime热更生效,加载进度:" + FToS(mProgress, 2));
 		}
 		// 所有资源和热更代码下载完毕后,重新加载热更代码,以及热更后的资源
 		if (mProgress >= 1.0f)

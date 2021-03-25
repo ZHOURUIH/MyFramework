@@ -110,7 +110,12 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 		{
 			item = createInstance<T>(mObjectType);
 			item.setScript(mScript);
-			item.assignWindow(mItemParentInuse, mTemplate, mPreName + makeID());
+#if UNITY_EDITOR
+			string name = mPreName + makeID();
+#else
+			string name = mPreName;
+#endif
+			item.assignWindow(mItemParentInuse, mTemplate, name);
 			item.init();
 		}
 		item.setAssignID(++mAssignIDSeed);

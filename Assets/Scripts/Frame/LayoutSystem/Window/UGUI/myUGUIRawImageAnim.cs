@@ -76,12 +76,10 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 		mTextureNameList.Clear();
 		mTextureSetName = textureSetName;
 		mSubPath = subPath;
-		string path = FrameDefine.R_TEXTURE_ANIM_PATH + mSubPath + mTextureSetName;
-		string preName = path + "/" + mTextureSetName + "_";
+		string preName = strcat(FrameDefine.R_TEXTURE_ANIM_PATH, mSubPath, mTextureSetName, "/", mTextureSetName, "_");
 		for (int i = 0; ; ++i)
 		{
-			string name = preName + intToString(i);
-			Texture tex = mResourceManager.loadResource<Texture>(name, false);
+			Texture tex = mResourceManager.loadResource<Texture>(preName + IToS(i), false);
 			if (tex == null)
 			{
 				break;

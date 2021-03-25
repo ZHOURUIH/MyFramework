@@ -149,41 +149,27 @@ public abstract class ConfigBase : FrameSystem
 	protected bool hasParameter(GAME_STRING param) { return mStringList.ContainsKey(param); }
 	protected string generateFloatFile()
 	{
-		string preString = "// 注意\r\n// 每个参数上一行必须是该参数的注释\r\n// 可以添加任意的换行和空格\r\n// 变量命名应与代码中枚举命名相同\r\n\r\n";
+		MyStringBuilder fileString = STRING("// 注意\r\n// 每个参数上一行必须是该参数的注释\r\n// 可以添加任意的换行和空格\r\n// 变量命名应与代码中枚举命名相同\r\n\r\n");
 		string nextLineStr = "\r\n\r\n";
-		string fileString = preString;
 		foreach (var info in mFloatList)
 		{
-			fileString += "// ";
-			fileString += info.Value.mComment;
-			fileString += "\r\n";
-			fileString += info.Value.mTypeString;
-			fileString += " = ";
-			fileString += floatToString(info.Value.mValue, 2);
-			fileString += nextLineStr;
+			fileString.Append("// ", info.Value.mComment, "\r\n");
+			fileString.Append(info.Value.mTypeString, " = ", FToS(info.Value.mValue, 2), nextLineStr);
 		}
 		// 移除最后的\r\n\r\n
-		fileString = fileString.Substring(0, fileString.Length - nextLineStr.Length);
-		return fileString;
+		return END_STRING(fileString.Remove(fileString.Length - nextLineStr.Length));
 	}
 	protected string generateStringFile()
 	{
-		string preString = "// 注意\r\n// 每个参数上一行必须是该参数的注释\r\n// 可以添加任意的换行和空格\r\n// 变量命名应与代码中枚举命名相同\r\n\r\n";
+		MyStringBuilder fileString = STRING("// 注意\r\n// 每个参数上一行必须是该参数的注释\r\n// 可以添加任意的换行和空格\r\n// 变量命名应与代码中枚举命名相同\r\n\r\n");
 		string nextLineStr = "\r\n\r\n";
-		string fileString = preString;
 		foreach (var info in mStringList)
 		{
-			fileString += "// ";
-			fileString += info.Value.mComment;
-			fileString += "\r\n";
-			fileString += info.Value.mTypeString;
-			fileString += " = ";
-			fileString += info.Value.mValue;
-			fileString += nextLineStr;
+			fileString.Append("// ", info.Value.mComment, "\r\n");
+			fileString.Append(info.Value.mTypeString, " = ", info.Value.mValue, nextLineStr);
 		}
 		// 移除最后的\r\n\r\n
-		fileString = fileString.Substring(0, fileString.Length - nextLineStr.Length);
-		return fileString;
+		return END_STRING(fileString.Remove(fileString.Length - nextLineStr.Length));
 	}
 	// fileName为StreamAssets/Config目录下的相对路径
 	protected void readFile(string fileName, bool floatParam)
@@ -246,7 +232,7 @@ public abstract class ConfigBase : FrameSystem
 				GAME_FLOAT def = floatNameToType(item.Key);
 				if (def != GAME_FLOAT.NONE)
 				{
-					setFloat(def, stringToFloat(item.Value.mValue), item.Value.mComment);
+					setFloat(def, SToF(item.Value.mValue), item.Value.mComment);
 				}
 			}
 			else

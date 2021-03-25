@@ -35,15 +35,19 @@ public class ResourcesManagerDebug : MonoBehaviour
 		var bundleList = assetBundleLoader.getAssetBundleInfoList();
 		foreach(var item in bundleList)
 		{
-			if(item.Value.getAssetBundle() != null)
+			if(item.Value.getAssetBundle() == null)
 			{
-				mLoadedAssetBundleListKeys.Add(item.Key);
-				AssetBundleDebug bundleDebug = new AssetBundleDebug(item.Value.getBundleName());
-				bundleDebug.mAssetList.AddRange(item.Value.getAssetList().Values);
-				bundleDebug.mParentBundles.AddRange(item.Value.getParents().Keys);
-				bundleDebug.mChildBundles.AddRange(item.Value.getChildren().Keys);
-				mLoadedAssetBundleListValues.Add(bundleDebug);
+				continue;
 			}
+			mLoadedAssetBundleListKeys.Add(item.Key);
+			AssetBundleDebug bundleDebug = new AssetBundleDebug(item.Value.getBundleName());
+			bundleDebug.mAssetList.Clear();
+			bundleDebug.mParentBundles.Clear();
+			bundleDebug.mChildBundles.Clear();
+			bundleDebug.mAssetList.AddRange(item.Value.getAssetList().Values);
+			bundleDebug.mParentBundles.AddRange(item.Value.getParents().Keys);
+			bundleDebug.mChildBundles.AddRange(item.Value.getChildren().Keys);
+			mLoadedAssetBundleListValues.Add(bundleDebug);
 		}
 	}
 }

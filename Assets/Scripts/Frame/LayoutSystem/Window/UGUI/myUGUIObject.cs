@@ -29,7 +29,7 @@ public class myUGUIObject : myUIObject
 		// 确保RectTransform和BoxCollider一样大
 		if (mRectTransform != null && mBoxCollider != null)
 		{
-			if (mRectTransform.rect.width != mBoxCollider.size.x || mRectTransform.rect.height != mBoxCollider.size.y)
+			if (!isFloatEqual(mRectTransform.rect.width, mBoxCollider.size.x) || !isFloatEqual(mRectTransform.rect.height, mBoxCollider.size.y))
 			{
 				mBoxCollider.size = mRectTransform.rect.size;
 				mBoxCollider.center = multiVector2(mRectTransform.rect.size, new Vector2(0.5f, 0.5f) - mRectTransform.pivot);
@@ -40,7 +40,7 @@ public class myUGUIObject : myUIObject
 	public override bool selfAlphaChild() { return false; }
 	public override void setWindowSize(Vector2 size)
 	{
-		WidgetUtility.setRectSize(mRectTransform, size, false);
+		setRectSize(mRectTransform, size, false);
 	}
 	public override Vector2 getWindowSize(bool transformed = false)
 	{

@@ -136,28 +136,10 @@ public class MathUtility : StringUtility
 	public const float HALF_PI_RADIAN = Mathf.PI * 0.5f;                    // 1.57f
 	public const float PI_DEGREE = Mathf.PI * Mathf.Rad2Deg;                // 180.0f
 	public const float PI_RADIAN = Mathf.PI;                                // 3.14f
-	protected static void initFFTParam()
+	public static new void initUtility()
 	{
-		sin_tb = new float[]
-		{  // 精度(PI PI/2 PI/4 PI/8 PI/16 ... PI/(2^k))
-			0.000000f, 1.000000f, 0.707107f, 0.382683f, 0.195090f, 0.098017f,
-			0.049068f, 0.024541f, 0.012272f, 0.006136f, 0.003068f, 0.001534f,
-			0.000767f, 0.000383f, 0.000192f, 0.000096f, 0.000048f, 0.000024f,
-			0.000012f, 0.000006f, 0.000003f, 0.000003f, 0.000003f, 0.000003f,
-			0.000003f
-		};
-		cos_tb = new float[]
-		{  // 精度(PI PI/2 PI/4 PI/8 PI/16 ... PI/(2^k))
-			-1.000000f, 0.000000f, 0.707107f, 0.923880f, 0.980785f, 0.995185f,
-			0.998795f, 0.999699f, 0.999925f, 0.999981f, 0.999995f, 0.999999f,
-			1.000000f, 1.000000f, 1.000000f, 1.000000f, 1.000000f, 1.000000f,
-			1.000000f, 1.000000f, 1.000000f, 1.000000f, 1.000000f, 1.000000f,
-			1.000000f
-		};
-		for (int i = 0; i < mComplexList.Length; ++i)
-		{
-			mComplexList[i] = new Complex();
-		}
+		initFFTParam();
+		initGreaterPow2();
 	}
 	public static bool hasMask(int value, int mask)
 	{
@@ -197,10 +179,6 @@ public class MathUtility : StringUtility
 	// 获得大于value的第一个2的n次方的数,value需要大于0
 	public static int getGreaterPow2(int value)
 	{
-		if (mGreaterPow2[0] == 0)
-		{
-			initGreaterPow2();
-		}
 		if (value < mGreaterPow2.Length)
 		{
 			return mGreaterPow2[value];
@@ -442,7 +420,7 @@ public class MathUtility : StringUtility
 	public static float calculateFloat(string str)
 	{
 		// 判断字符串是否含有非法字符,也就是除数字,小数点,运算符以外的字符
-		str = checkFloatString(str, "+-*/()");
+		checkFloatString(str, "+-*/()");
 		// 判断左右括号数量是否相等
 		int leftBracketCount = 0;
 		int rightBracketCount = 0;
@@ -537,7 +515,7 @@ public class MathUtility : StringUtility
 			// 遍历到了最后一个字符,则直接把最后一个数字放入列表,然后退出循环
 			if (i == str.Length - 1)
 			{
-				numbers.Add(stringToFloat(str.Substring(beginpos, str.Length - beginpos)));
+				numbers.Add(SToF(str.Substring(beginpos, str.Length - beginpos)));
 				break;
 			}
 			// 找到第一个运算符
@@ -545,7 +523,7 @@ public class MathUtility : StringUtility
 			{
 				if (i != 0)
 				{
-					numbers.Add(stringToFloat(str.Substring(beginpos, i - beginpos)));
+					numbers.Add(SToF(str.Substring(beginpos, i - beginpos)));
 				}
 				// 如果在表达式的开始就发现了运算符,则表示第一个数是负数,那就处理为0减去这个数的绝对值
 				else
@@ -2597,10 +2575,6 @@ public class MathUtility : StringUtility
 			UnityUtility.logError("pcm data count is too many, data count : " + dataCount + ", max count : " + mMaxFFTCount);
 			return;
 		}
-		if (mComplexList == null)
-		{
-			initFFTParam();
-		}
 		for (int i = 0; i < dataCount; ++i)
 		{
 			mComplexList[i] = new Complex(pcmData[i], 0.0f);
@@ -2622,10 +2596,6 @@ public class MathUtility : StringUtility
 	*/
 	protected static void fft(Complex[] x, int count)
 	{
-		if (sin_tb == null)
-		{
-			initFFTParam();
-		}
 		int i, j, k;
 		float sR, sI, uR, uI;
 		Complex tempComplex = new Complex();
@@ -3233,6 +3203,29 @@ public class MathUtility : StringUtility
 			{
 				mGreaterPow2[i] = getGreaterPowValue(i, 2);
 			}
+		}
+	}
+	protected static void initFFTParam()
+	{
+		sin_tb = new float[]
+		{  // 精度(PI PI/2 PI/4 PI/8 PI/16 ... PI/(2^k))
+			0.000000f, 1.000000f, 0.707107f, 0.382683f, 0.195090f, 0.098017f,
+			0.049068f, 0.024541f, 0.012272f, 0.006136f, 0.003068f, 0.001534f,
+			0.000767f, 0.000383f, 0.000192f, 0.000096f, 0.000048f, 0.000024f,
+			0.000012f, 0.000006f, 0.000003f, 0.000003f, 0.000003f, 0.000003f,
+			0.000003f
+		};
+		cos_tb = new float[]
+		{  // 精度(PI PI/2 PI/4 PI/8 PI/16 ... PI/(2^k))
+			-1.000000f, 0.000000f, 0.707107f, 0.923880f, 0.980785f, 0.995185f,
+			0.998795f, 0.999699f, 0.999925f, 0.999981f, 0.999995f, 0.999999f,
+			1.000000f, 1.000000f, 1.000000f, 1.000000f, 1.000000f, 1.000000f,
+			1.000000f, 1.000000f, 1.000000f, 1.000000f, 1.000000f, 1.000000f,
+			1.000000f
+		};
+		for (int i = 0; i < mComplexList.Length; ++i)
+		{
+			mComplexList[i] = new Complex();
 		}
 	}
 }

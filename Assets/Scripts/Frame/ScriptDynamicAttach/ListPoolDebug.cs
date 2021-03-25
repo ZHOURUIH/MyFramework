@@ -16,22 +16,30 @@ public class ListPoolDebug : MonoBehaviour
 		var persistentInuse = FrameBase.mListPool.getPersistentInusedList();
 		foreach (var item in persistentInuse)
 		{
-			PersistentInuseList.Add(item.Key + ", 数量:" + item.Value.Count);
+			if (item.Value.Count > 0)
+			{
+				PersistentInuseList.Add(item.Key.ToString() + ", 数量:" + StringUtility.IToS(item.Value.Count));
+			}
 		}
 
 		InuseList.Clear();
 		var inuse = FrameBase.mListPool.getInusedList();
 		foreach(var item in inuse)
 		{
-			InuseList.Add(item.Key + ", 数量:" + item.Value.Count);
+			if (item.Value.Count > 0)
+			{
+				InuseList.Add(item.Key.ToString() + ", 数量:" + StringUtility.IToS(item.Value.Count));
+			}
 		}
 
 		UnuseList.Clear();
 		var unuse = FrameBase.mListPool.getUnusedList();
 		foreach (var item in unuse)
 		{
-			UnuseList.Add(item.Key + ", 数量:" + item.Value.Count);
+			if (item.Value.Count > 0)
+			{
+				UnuseList.Add(item.Key.ToString() + ", 数量:" + StringUtility.IToS(item.Value.Count));
+			}
 		}
 	}
-	//-------------------------------------------------------------------------------------------------------
 }

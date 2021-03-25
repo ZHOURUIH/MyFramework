@@ -8,11 +8,13 @@ public class DictionaryPool : FrameSystem
 	protected Dictionary<DictionaryType, HashSet<IEnumerable>> mPersistentInuseList;	// 持久使用的列表对象
 	protected Dictionary<DictionaryType, HashSet<IEnumerable>> mInusedList;			// 仅当前栈帧中使用的列表对象
 	protected Dictionary<DictionaryType, HashSet<IEnumerable>> mUnusedList;
+	protected Dictionary<IEnumerable, string> mObjectStack;
 	public DictionaryPool()
 	{
 		mPersistentInuseList = new Dictionary<DictionaryType, HashSet<IEnumerable>>();
 		mInusedList = new Dictionary<DictionaryType, HashSet<IEnumerable>>();
 		mUnusedList = new Dictionary<DictionaryType, HashSet<IEnumerable>>();
+		mObjectStack = new Dictionary<IEnumerable, string>();
 		mCreateObject = true;
 	}
 	public override void init()
@@ -28,13 +30,9 @@ public class DictionaryPool : FrameSystem
 #if UNITY_EDITOR
 		foreach (var item in mInusedList)
 		{
-			if (item.Value.Count == 0)
-			{
-				continue;
-			}
 			foreach (var itemList in item.Value)
 			{
-				logError("有临时列表对象正在使用中,是否在申请后忘记回收到池中! type:" + Typeof(itemList));
+				logError("有临时对象正在使用中,是否在申请后忘记回收到池中! create stack:" + mObjectStack[itemList] + "\n");
 				break;
 			}
 		}
@@ -44,9 +42,9 @@ public class DictionaryPool : FrameSystem
 	public Dictionary<DictionaryType, HashSet<IEnumerable>> getInusedList() { return mInusedList; }
 	public Dictionary<DictionaryType, HashSet<IEnumerable>> getUnusedList() { return mUnusedList; }
 	// onlyOnce表示是否仅当作临时列表使用
-	public Dictionary<K, V> newList<K, V>(out Dictionary<K, V> obj, bool onlyOnce = true)
+	public Dictionary<K, V> newList<K, V>(out Dictionary<K, V> list, bool onlyOnce = true)
 	{
-		obj = null;
+		list = null;
 		if (!isMainThread())
 		{
 			logError("只能在主线程中使用DictionaryPool,子线程中请使用DictionaryPoolThread代替");
@@ -58,19 +56,29 @@ public class DictionaryPool : FrameSystem
 		{
 			foreach(var item in valueList)
 			{
-				obj = item as Dictionary<K, V>;
+				list = item as Dictionary<K, V>;
 				break;
 			}
-			valueList.Remove(obj);
+			valueList.Remove(list);
 		}
 		// 未使用列表中没有,创建一个新的
 		else
 		{
-			obj = new Dictionary<K, V>();
+			list = new Dictionary<K, V>();
 		}
 		// 标记为已使用
-		addInuse(obj, onlyOnce);
-		return obj;
+		addInuse(list, onlyOnce);
+#if UNITY_EDITOR
+		if (mGameFramework.isEnablePoolStackTrace())
+		{
+			mObjectStack.Add(list, getStackTrace());
+		}
+		else
+		{
+			mObjectStack.Add(list, EMPTY);
+		}
+#endif
+		return list;
 	}
 	public void destroyList<K, V>(Dictionary<K, V> list)
 	{
@@ -79,6 +87,9 @@ public class DictionaryPool : FrameSystem
 			logError("只能在主线程中使用DictionaryPool,子线程中请使用DictionaryPoolThread代替");
 			return;
 		}
+#if UNITY_EDITOR
+		mObjectStack.Remove(list);
+#endif
 		list.Clear();
 		addUnuse(list);
 		removeInuse(list);

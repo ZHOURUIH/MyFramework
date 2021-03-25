@@ -2,6 +2,7 @@
 using System;
 
 // 不支持带参构造的类,因为在再次利用时参数无法正确传递
+// 多线程的对象池无法判断临时对象有没有正常回收,因为子线程的帧与主线程不同步
 public class ClassPoolSingle : FrameBase
 {
 	protected HashSet<IClassObject> mInusedList;
@@ -17,6 +18,10 @@ public class ClassPoolSingle : FrameBase
 	}
 	public void setType(Type type) { mType = type; }
 	public Type getType() { return mType; }
+	public void lockList() { mListLock.waitForUnlock(); }
+	public void unlockList() { mListLock.unlock(); }
+	public HashSet<IClassObject> getInusedList() { return mInusedList; }
+	public HashSet<IClassObject> getUnusedList() { return mUnusedList; }
 	// 返回值表示是否是new出来的对象,false则为从回收列表中重复使用的对象
 	public IClassObject newClass(out bool isNewObject)
 	{
@@ -44,7 +49,7 @@ public class ClassPoolSingle : FrameBase
 		obj.setAssignID(++mAssignIDSeed);
 		obj.setDestroy(false);
 		// 添加到已使用列表
-		mInusedList.Add(obj);
+		addInuse(obj);
 		mListLock.unlock();
 		return obj;
 	}
@@ -59,10 +64,7 @@ public class ClassPoolSingle : FrameBase
 			logError("对象已经在未使用列表中,无法再次销毁! Type: " + mType);
 		}
 		// 从使用列表移除,要确保操作的都是从本类创建的实例
-		if (!mInusedList.Remove(classObject))
-		{
-			logError("从未使用列表中移除失败! Type: " + mType);
-		}
+		removeInuse(classObject);
 		mListLock.unlock();
 	}
 	public void destroyClassReally(IClassObject classObject)
@@ -75,10 +77,7 @@ public class ClassPoolSingle : FrameBase
 		if (inuse)
 		{
 			// 从使用列表移除,要确保操作的都是从本类创建的实例
-			if (!mInusedList.Remove(classObject))
-			{
-				logError("在未使用列表中找不到对象! Type: " + mType);
-			}
+			removeInuse(classObject);
 		}
 		// 从未使用列表中移除
 		else
@@ -93,5 +92,20 @@ public class ClassPoolSingle : FrameBase
 		bool inuse = mInusedList.Contains(classObject);
 		mListLock.unlock();
 		return inuse;
+	}
+	//------------------------------------
+	protected void addInuse(IClassObject obj)
+	{
+		if (!mInusedList.Add(obj))
+		{
+			logError("加入已使用列表失败, Type: " + mType);
+		}
+	}
+	protected void removeInuse(IClassObject obj)
+	{
+		if(!mInusedList.Remove(obj))
+		{
+			logError("已使用列表找不到指定对象, Type: " + mType);
+		}
 	}
 }

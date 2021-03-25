@@ -18,7 +18,7 @@ namespace HotFix
         static CrossBindingMethodInfo<System.Boolean, System.String> monShow_8 = new CrossBindingMethodInfo<System.Boolean, System.String>("onShow");
         static CrossBindingMethodInfo<System.Boolean, System.String> monHide_9 = new CrossBindingMethodInfo<System.Boolean, System.String>("onHide");
         static CrossBindingMethodInfo<global::Command> maddDelayCmd_10 = new CrossBindingMethodInfo<global::Command>("addDelayCmd");
-        static CrossBindingMethodInfo<System.Int32, System.Boolean> minterruptCommand_11 = new CrossBindingMethodInfo<System.Int32, System.Boolean>("interruptCommand");
+        static CrossBindingMethodInfo<System.UInt64, System.Boolean> minterruptCommand_11 = new CrossBindingMethodInfo<System.UInt64, System.Boolean>("interruptCommand");
         static CrossBindingMethodInfo<global::Command> monCmdStarted_12 = new CrossBindingMethodInfo<global::Command>("onCmdStarted");
         static CrossBindingMethodInfo minterruptAllCommand_13 = new CrossBindingMethodInfo("interruptAllCommand");
         static CrossBindingMethodInfo mnotifyConstructDone_14 = new CrossBindingMethodInfo("notifyConstructDone");
@@ -146,7 +146,7 @@ namespace HotFix
                     maddDelayCmd_10.Invoke(this.instance, cmd);
             }
 
-            public override void interruptCommand(System.Int32 assignID, System.Boolean showError)
+            public override void interruptCommand(System.UInt64 assignID, System.Boolean showError)
             {
                 if (minterruptCommand_11.CheckShouldInvokeBase(this.instance))
                     base.interruptCommand(assignID, showError);

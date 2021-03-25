@@ -1,5 +1,6 @@
 ﻿#if USE_ILRUNTIME
 using UnityEditor;
+using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,6 +29,7 @@ public class ILRuntimeCLRBinding
 	public static void GenerateCLRBindingByAnalysis()
 	{
 		// 用新的分析热更dll调用引用来生成绑定代码
+		Debug.Log("如果自动分析有报错,先尝试重新编译热更工程后再分析,如果生成完毕后SQLite有报错,则可能是命名空间引起的,将其中的错误相关代码还原即可");
 		ILRAppDomain domain = new ILRAppDomain();
 		string dllPath = FrameDefine.P_STREAMING_ASSETS_PATH + FrameDefine.ILR_FILE_NAME;
 		using (FileStream fs = new FileStream(dllPath, FileMode.Open, FileAccess.Read))

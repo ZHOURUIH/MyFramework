@@ -173,12 +173,12 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 		// 查看是否允许同步加载
 		if (mResourceManager.isSyncLoadAvalaible())
 		{
-			Material mat = null;
+			Material mat;
 			Material loadedMaterial = mResourceManager.loadResource<Material>(FrameDefine.R_MATERIAL_PATH + materialName);
 			if(mIsNewMaterial)
 			{
 				mat = new Material(loadedMaterial);
-				mat.name = materialName + "_" + mID;
+				mat.name = materialName + "_" + IToS(mID);
 			}
 			else
 			{
@@ -287,7 +287,7 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 			// 只有当下次还加载相同的材质时才会直接返回已加载的材质
 			// 如果要卸载最开始加载出来的材质,只能通过卸载整个文件夹的资源来卸载
 			Material newMat = new Material(material);
-			newMat.name = param.mMaterialName + "_" + mID;
+			newMat.name = param.mMaterialName + "_" + IToS(mID);
 			mImage.material = newMat;
 		}
 		else

@@ -34,6 +34,9 @@ namespace ILRuntime.Runtime.Generated
             args = new Type[]{typeof(System.Boolean)};
             method = type.GetMethod("setEnable", flag, null, args, null);
             app.RegisterCLRMethodRedirection(method, setEnable_3);
+            args = new Type[]{};
+            method = type.GetMethod("resetProperty", flag, null, args, null);
+            app.RegisterCLRMethodRedirection(method, resetProperty_4);
 
 
         }
@@ -114,6 +117,21 @@ namespace ILRuntime.Runtime.Generated
             __intp.Free(ptr_of_this_method);
 
             instance_of_this_method.setEnable(@enable);
+
+            return __ret;
+        }
+
+        static StackObject* resetProperty_4(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        {
+            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
+            StackObject* ptr_of_this_method;
+            StackObject* __ret = ILIntepreter.Minus(__esp, 1);
+
+            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
+            global::Transformable instance_of_this_method = (global::Transformable)typeof(global::Transformable).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            __intp.Free(ptr_of_this_method);
+
+            instance_of_this_method.resetProperty();
 
             return __ret;
         }

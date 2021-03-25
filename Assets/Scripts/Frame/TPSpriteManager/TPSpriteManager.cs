@@ -124,7 +124,9 @@ public class TPSpriteManager : FrameSystem
 	{
 		if (!mSpriteNameList.ContainsKey(atlasName))
 		{
-			var param = new AtlasLoadParam() { mCallback = callback, mUserData = userData };
+			CLASS(out AtlasLoadParam param);
+			param.mCallback = callback;
+			param.mUserData = userData;
 			mResourceManager.loadSubResourceAsync<Sprite>(atlasName, mAtlasCallback, param, errorIfNull);
 		}
 	}
@@ -137,6 +139,7 @@ public class TPSpriteManager : FrameSystem
 		}
 		var param = (AtlasLoadParam)userData;
 		param.mCallback?.Invoke(atlas, param.mUserData);
+		UN_CLASS(param);
 	}
 	// 同步加载图集
 	protected UGUIAtlas loadAtlas(string atlasName, bool errorIfNull = true)

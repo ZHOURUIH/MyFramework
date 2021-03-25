@@ -41,7 +41,7 @@ public class WindowComponentDrag : ComponentDrag
 	{
 		if (mMovable)
 		{
-			mWindow.setPosition(screenPosToWindowPos(screenPos - mDragMouseOffset, mWindow.getParent()));
+			mWindow.setPosition(screenPosToWindow(screenPos - mDragMouseOffset, mWindow.getParent()));
 		}
 	}
 	protected override Vector3 getScreenPosition()

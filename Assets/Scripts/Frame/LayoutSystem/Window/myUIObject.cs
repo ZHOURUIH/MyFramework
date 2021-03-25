@@ -5,7 +5,8 @@ using UnityEngine;
 public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObject>
 {
 	protected static Comparison<myUIObject> mCompareSiblingIndex = compareSiblingIndex;
-	protected List<myUIObject> mChildList;						// 子节点列表,与GameObject的子节点顺序保持一致
+	protected HashSet<myUIObject> mChildSet;                    // 子节点列表,用于查询是否有子节点
+	protected List<myUIObject> mChildList;                      // 子节点列表,与GameObject的子节点顺序保持一致
 	protected ObjectDoubleClickCallback mDoubleClickCallback;	// 双击回调
 	protected ObjectPreClickCallback mObjectPreClickCallback;	// 单击的预回调,单击时会首先调用此回调
 	protected OnReceiveDragCallback mReceiveDragCallback;		// 接收到有物体拖到当前窗口时的回调
@@ -51,6 +52,7 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 		mID = makeID();
 		mDepth = new UIDepth();
 		mChildList = new List<myUIObject>();
+		mChildSet = new HashSet<myUIObject>();
 		mLongPressTimeThreshold = 1.0f;
 		mPressedTime = -1.0f;
 		mLongPressLengthThreshold = -1.0f;
@@ -129,9 +131,10 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	}
 	public void addChild(myUIObject child, bool needSortChild = true)
 	{
-		if (!mChildList.Contains(child))
+		if (!mChildSet.Contains(child))
 		{
 			mChildList.Add(child);
+			mChildSet.Add(child);
 		}
 		// 添加子节点后根据子节点顺序进行排序
 		if (needSortChild)
@@ -142,6 +145,7 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	public void removeChild(myUIObject child)
 	{
 		mChildList.Remove(child);
+		mChildSet.Remove(child);
 	}
 	public AudioSource createAudioSource()
 	{

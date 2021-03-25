@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
 
 public class myUGUIText : myUGUIObject
 {
@@ -21,9 +20,17 @@ public class myUGUIText : myUGUIObject
 			logError(Typeof(this) + " can not find " + Typeof<Text>() + ", window:" + mName + ", layout:" + mLayout.getName());
 		}
 	}
+	public void setText(MyStringBuilder text, bool preferredHeight = false)
+	{
+		setText(END_STRING(text), preferredHeight);
+	}
 	public void setText(string text, bool preferredHeight = false)
 	{
-		if (mText.text != text)
+		if(text == null)
+		{
+			mText.text = EMPTY;
+		}
+		else if (mText.text != text)
 		{
 			mText.text = text;
 		}
@@ -34,7 +41,7 @@ public class myUGUIText : myUGUIObject
 	}
 	public void setText(int value)
 	{
-		setText(intToString(value));
+		setText(IToS(value));
 	}
 	public void applyPreferredHeight(float width = 0.0f)
 	{

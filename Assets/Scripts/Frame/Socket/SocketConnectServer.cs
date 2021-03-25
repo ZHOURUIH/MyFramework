@@ -95,8 +95,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 		mClientSendLock.waitForUnlock();
 		if (mClientList.TryGetValue(clientID, out NetClient cient))
 		{
-			log("客户端断开连接:角色ID:" + uintToString(cient.getCharacterGUID()) +
-					",原因:" + cient.getDeadReason() + ", 剩余连接数:" + (mClientList.Count - 1));
+			log(strcat("客户端断开连接:角色ID:", IToS(cient.getCharacterGUID()), ",原因:", cient.getDeadReason(), ", 剩余连接数:", IToS(mClientList.Count - 1)));
 			cient.destroy();
 			mClientList.Remove(clientID);
 		}
@@ -136,7 +135,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 	protected void acceptThread(ref bool run)
 	{
 		Socket client = mServerSocket.Accept();
-		CMD(out CommandSocketConnectServerAcceptClient cmdAccept, true, true);
+		CMD_DELAY(out CommandSocketConnectServerAcceptClient cmdAccept, true);
 		cmdAccept.mSocket = client;
 		cmdAccept.mIP = null;
 		pushDelayCommand(cmdAccept, this);

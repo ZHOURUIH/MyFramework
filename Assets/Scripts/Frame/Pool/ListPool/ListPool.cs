@@ -6,13 +6,15 @@ using System;
 public class ListPool : FrameSystem
 {
 	protected Dictionary<Type, HashSet<IList>> mPersistentInuseList;	// 持久使用的列表对象
-	protected Dictionary<Type, HashSet<IList>> mInusedList;			// 仅当前栈帧中使用的列表对象
+	protected Dictionary<Type, HashSet<IList>> mInusedList;				// 仅当前栈帧中使用的列表对象
 	protected Dictionary<Type, HashSet<IList>> mUnusedList;
+	protected Dictionary<IList, string> mObjectStack;
 	public ListPool()
 	{
 		mPersistentInuseList = new Dictionary<Type, HashSet<IList>>();
 		mInusedList = new Dictionary<Type, HashSet<IList>>();
 		mUnusedList = new Dictionary<Type, HashSet<IList>>();
+		mObjectStack = new Dictionary<IList, string>();
 		mCreateObject = true;
 	}
 	public override void init()
@@ -28,13 +30,9 @@ public class ListPool : FrameSystem
 #if UNITY_EDITOR
 		foreach (var item in mInusedList)
 		{
-			if (item.Value.Count == 0)
-			{
-				continue;
-			}
 			foreach (var itemList in item.Value)
 			{
-				logError("有临时列表对象正在使用中,是否在申请后忘记回收到池中! type:" + Typeof(itemList));
+				logError("有临时对象正在使用中,是否在申请后忘记回收到池中! create stack:" + mObjectStack[itemList] + "\n");
 				break;
 			}
 		}
@@ -44,9 +42,9 @@ public class ListPool : FrameSystem
 	public Dictionary<Type, HashSet<IList>> getInusedList() { return mInusedList; }
 	public Dictionary<Type, HashSet<IList>> getUnusedList() { return mUnusedList; }
 	// onlyOnce表示是否仅当作临时列表使用
-	public List<T> newList<T>(out List<T> obj, bool onlyOnce = true)
+	public List<T> newList<T>(out List<T> list, bool onlyOnce = true)
 	{
-		obj = null;
+		list = null;
 		if(!isMainThread())
 		{
 			logError("只能在主线程使用ListPool,子线程请使用ListPoolThread代替");
@@ -58,19 +56,29 @@ public class ListPool : FrameSystem
 		{
 			foreach(var item in valueList)
 			{
-				obj = item as List<T>;
+				list = item as List<T>;
 				break;
 			}
-			valueList.Remove(obj);
+			valueList.Remove(list);
 		}
 		// 未使用列表中没有,创建一个新的
 		else
 		{
-			obj = new List<T>();
+			list = new List<T>();
 		}
 		// 标记为已使用
-		addInuse(obj, onlyOnce);
-		return obj;
+		addInuse(list, onlyOnce);
+#if UNITY_EDITOR
+		if (mGameFramework.isEnablePoolStackTrace())
+		{
+			mObjectStack.Add(list, getStackTrace());
+		}
+		else
+		{
+			mObjectStack.Add(list, EMPTY);
+		}
+#endif
+		return list;
 	}
 	public void destroyList<T>(List<T> list)
 	{
@@ -79,6 +87,9 @@ public class ListPool : FrameSystem
 			logError("只能在主线程使用ListPool,子线程请使用ListPoolThread代替");
 			return;
 		}
+#if UNITY_EDITOR
+		mObjectStack.Remove(list);
+#endif
 		list.Clear();
 		addUnuse(list);
 		removeInuse(list);

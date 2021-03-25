@@ -40,9 +40,6 @@ namespace ILRuntime.Runtime.Generated
             args = new Type[]{typeof(global::GameComponent)};
             method = type.GetMethod("notifyComponentChanged", flag, null, args, null);
             app.RegisterCLRMethodRedirection(method, notifyComponentChanged_5);
-            args = new Type[]{typeof(global::PlayerState)};
-            method = type.GetMethod("notifyStateChanged", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, notifyStateChanged_6);
 
 
         }
@@ -146,24 +143,6 @@ namespace ILRuntime.Runtime.Generated
             __intp.Free(ptr_of_this_method);
 
             instance_of_this_method.notifyComponentChanged(@component);
-
-            return __ret;
-        }
-
-        static StackObject* notifyStateChanged_6(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 2);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            global::PlayerState @state = (global::PlayerState)typeof(global::PlayerState).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            global::Character instance_of_this_method = (global::Character)typeof(global::Character).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
 
             return __ret;
         }

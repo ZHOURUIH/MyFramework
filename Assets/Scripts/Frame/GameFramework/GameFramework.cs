@@ -16,12 +16,14 @@ public class GameFramework : MonoBehaviour
 	protected DateTime mCurTime;
 	protected float mThisFrameTime;
 	protected bool mEnableScriptDebug;
+	protected bool mEnablePoolStackTrace;							// 是否启用对象池中的堆栈追踪
 	protected bool mEnableKeyboard;
 	protected bool mPauseFrame;
 	protected int mCurFrameCount;
 	protected int mFPS;
 	public void Start()
 	{
+		Profiler.BeginSample("Start");
 		UnityUtility.setMainThreadID(Thread.CurrentThread.ManagedThreadId);
 		Application.targetFrameRate = 60;
 		AppDomain app = AppDomain.CurrentDomain;
@@ -31,6 +33,14 @@ public class GameFramework : MonoBehaviour
 		mFrameComponentUpdate = new List<FrameSystem>();
 		mFrameComponentDestroy = new List<FrameSystem>();
 		mTimeLock = new ThreadTimeLock(15);
+
+		BinaryUtility.initUtility();
+		StringUtility.initUtility();
+		MathUtility.initUtility();
+		FileUtility.initUtility();
+		UnityUtility.initUtility();
+		WidgetUtility.initUtility();
+
 		// 本地日志的初始化在移动平台上依赖于插件,所以在本地日志系统之前注册插件
 		registeFrameSystem(UnityUtility.Typeof<AndroidPluginManager>());
 		registeFrameSystem(UnityUtility.Typeof<AndroidAssetLoader>());
@@ -69,6 +79,7 @@ public class GameFramework : MonoBehaviour
 		// 初始化完毕后启动游戏
 		launch();
 		mCurTime = DateTime.Now;
+		Profiler.EndSample();
 	}
 	void UnhandledException(object sender, UnhandledExceptionEventArgs e)
 	{
@@ -204,9 +215,9 @@ public class GameFramework : MonoBehaviour
 			{
 				UIDepth depth = resultList[i].getDepth();
 				UnityUtility.log("窗口:" + resultList[i].getName() +
-										", 深度:layout:" + depth.toDepthString() +
-										", priority:" + depth.getPriority(),
-										LOG_LEVEL.FORCE);
+								 ", 深度:layout:" + depth.toDepthString() +
+								 ", priority:" + depth.getPriority(),
+								 LOG_LEVEL.FORCE);
 			}
 		}
 		// F3启用或禁用用作调试的脚本的更新
@@ -223,6 +234,7 @@ public class GameFramework : MonoBehaviour
 		}
 		return null;
 	}
+	public bool isEnablePoolStackTrace() { return mEnablePoolStackTrace; }
 	public bool isEnableScriptDebug() { return mEnableScriptDebug; }
 	public void setPasueFrame(bool value) { mPauseFrame = value; }
 	public bool isPasueFrame() { return mPauseFrame; }
@@ -446,9 +458,8 @@ public class GameFramework : MonoBehaviour
 		registeFrameSystem(UnityUtility.Typeof<FrameConfig>());
 		registeFrameSystem(UnityUtility.Typeof<HttpUtility>());
 #if !UNITY_IOS && !NO_SQLITE
-		registeFrameSystem(UnityUtility.Typeof<SQLite>());
+		registeFrameSystem(UnityUtility.Typeof<SQLiteManager>());
 #endif
-		registeFrameSystem(UnityUtility.Typeof<DataBase>());
 		registeFrameSystem(UnityUtility.Typeof<CommandSystem>(), -1, -1, 2001);  // 命令系统在大部分管理器都销毁完毕后再销毁
 		registeFrameSystem(UnityUtility.Typeof<GlobalTouchSystem>());
 		registeFrameSystem(UnityUtility.Typeof<CharacterManager>());
@@ -467,8 +478,8 @@ public class GameFramework : MonoBehaviour
 		registeFrameSystem(UnityUtility.Typeof<ListPoolThread>(), -1, -1, 3104);
 		registeFrameSystem(UnityUtility.Typeof<DictionaryPool>(), -1, -1, 3105);
 		registeFrameSystem(UnityUtility.Typeof<DictionaryPoolThread>(), -1, -1, 3106);
-		registeFrameSystem(UnityUtility.Typeof<BytesPool>(), -1, -1, 3107);
-		registeFrameSystem(UnityUtility.Typeof<BytesPoolThread>(), -1, -1, 3108);
+		registeFrameSystem(UnityUtility.Typeof<ArrayPool>(), -1, -1, 3107);
+		registeFrameSystem(UnityUtility.Typeof<ArrayPoolThread>(), -1, -1, 3108);
 		registeFrameSystem(UnityUtility.Typeof<HeadTextureManager>());
 		registeFrameSystem(UnityUtility.Typeof<MovableObjectManager>());
 		registeFrameSystem(UnityUtility.Typeof<EffectManager>());
@@ -477,8 +488,6 @@ public class GameFramework : MonoBehaviour
 		registeFrameSystem(UnityUtility.Typeof<SocketFactoryThread>());
 		registeFrameSystem(UnityUtility.Typeof<PathKeyframeManager>());
 		registeFrameSystem(UnityUtility.Typeof<EventSystem>());
-		registeFrameSystem(UnityUtility.Typeof<StringBuilderPool>());
-		registeFrameSystem(UnityUtility.Typeof<StringBuilderPoolThread>());
 #if USE_ILRUNTIME
 		registeFrameSystem(UnityUtility.Typeof<ILRSystem>());
 #endif

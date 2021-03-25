@@ -2,11 +2,12 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class WidgetUtility : FrameBase
+public class WidgetUtility : UnityUtility
 {
 	// 用于避免GC而保存的变量
 	private static Vector3[] mRootCorner = null;
 	private static Vector3[] mTempCorners = new Vector3[4];
+	public static new void initUtility() { }
 	// 父节点在父节点坐标系下的各条边
 	public static void getParentSides(GameObject parent, Vector3[] sides)
 	{

@@ -26,8 +26,11 @@ public class CommandCharacterManagerCreateCharacter : Command
 		}
 		mCharacterManager.createCharacter(mName, mCharacterType, mID, mCreateNode);
 	}
-	public override string showDebugInfo()
+	public override void showDebugInfo(MyStringBuilder builder)
 	{
-		return base.showDebugInfo() + ": mName:" + mName + ", mCharacterType:" + mCharacterType.ToString() + ", mID:" + mID;
+		builder.Append(": mName:", mName).
+				Append(", mCharacterType:", mCharacterType.ToString()).
+				Append(", mID:", mID).
+				Append(", mCreateNode:", mCreateNode);
 	}
 }

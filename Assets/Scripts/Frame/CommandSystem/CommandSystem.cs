@@ -108,7 +108,10 @@ public class CommandSystem : FrameSystem
 			Command cmd = mCommandBufferProcess[i];
 			if (cmd.getAssignID() == assignID)
 			{
-				log("CMD : interrupt command " + assignID + " : " + cmd.showDebugInfo() + ", receiver : " + cmd.getReceiver().getName(), LOG_LEVEL.HIGH);
+				MyStringBuilder builder = STRING("CMD : interrupt command ", LToS(assignID), " : ");
+				cmd.showDebugInfo(builder);
+				builder.Append(", receiver : ", cmd.getReceiver().getName());
+				log(END_STRING(builder), LOG_LEVEL.HIGH);
 				mCommandBufferProcess.Remove(cmd);
 				// 销毁回收命令
 				mClassPoolThread.destroyClass(cmd);
@@ -171,14 +174,19 @@ public class CommandSystem : FrameSystem
 		}
 		if (cmd.isDelayCommand())
 		{
-			logError("cmd is a delay cmd! can not use pushCommand!" + cmd.getAssignID() + ", " + cmd.showDebugInfo());
+			MyStringBuilder builder = STRING("cmd is a delay cmd! can not use pushCommand!", LToS(cmd.getAssignID()), ", ");
+			cmd.showDebugInfo(builder);
+			logError(END_STRING(builder));
 			return;
 		}
 		cmd.setReceiver(cmdReceiver);
 		if (cmd.isShowDebugInfo())
 		{
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-			log("CMD : " + cmd.getAssignID() + ", " + cmd.showDebugInfo() + ", receiver : " + cmdReceiver.getName(), LOG_LEVEL.NORMAL);
+			MyStringBuilder builder = STRING("CMD : ", LToS(cmd.getAssignID()), ", ");
+			cmd.showDebugInfo(builder);
+			builder.Append(", receiver : ", cmdReceiver.getName());
+			log(END_STRING(builder), LOG_LEVEL.NORMAL);
 #endif
 		}
 		cmdReceiver.receiveCommand(cmd);
@@ -223,14 +231,19 @@ public class CommandSystem : FrameSystem
 		}
 		if (!cmd.isDelayCommand())
 		{
-			logError("cmd is not a delay command, Command : " + cmd.getAssignID() + ", " + cmd.showDebugInfo());
+			MyStringBuilder builder = STRING("cmd is not a delay command, Command : ", LToS(cmd.getAssignID()), ", ");
+			cmd.showDebugInfo(builder);
+			logError(END_STRING(builder));
 			return;
 		}
 		clampMin(ref delayExecute);
 		if (cmd.isShowDebugInfo())
 		{
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-			log("CMD : delay cmd : " + cmd.getAssignID() + ", " + delayExecute + ", info : " + cmd.showDebugInfo() + ", receiver : " + cmdReceiver.getName(), LOG_LEVEL.NORMAL);
+			MyStringBuilder builder = STRING("CMD : delay cmd : ", LToS(cmd.getAssignID()), ", ", FToS(delayExecute), ", info : ");
+			cmd.showDebugInfo(builder);
+			builder.Append(", receiver : ", cmdReceiver.getName());
+			log(END_STRING(builder), LOG_LEVEL.NORMAL);
 #endif
 		}
 		cmd.setDelayTime(delayExecute);

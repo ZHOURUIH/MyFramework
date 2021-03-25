@@ -13,8 +13,8 @@ public class FrameBasePooledObject : FrameBase, IClassObject
 		mDestroy = true;
 		mAssignID = 0;
 	}
-	public void setDestroy(bool isDestroy) { mDestroy = isDestroy; }
-	public bool isDestroy() { return mDestroy; }
-	public void setAssignID(ulong assignID) { mAssignID = assignID; }
-	public ulong getAssignID() { return mAssignID; }
+	public virtual void setDestroy(bool isDestroy) { mDestroy = isDestroy; }
+	public virtual bool isDestroy() { return mDestroy; }
+	public virtual void setAssignID(ulong assignID) { mAssignID = assignID; }
+	public virtual ulong getAssignID() { return mAssignID; }
 }
