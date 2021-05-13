@@ -2,7 +2,7 @@
 using System.Collections;
 using System;
 
-public class MainSceneExit : ILRSceneProcedure
+public class MainSceneExit : SceneProcedure
 {
 	protected override void onInit(SceneProcedure lastProcedure, string intent) { }
 	protected override void onExit(SceneProcedure nextProcedure)

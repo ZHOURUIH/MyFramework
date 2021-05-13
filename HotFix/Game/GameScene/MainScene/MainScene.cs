@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-public class MainScene : ILRGameScene
+public class MainScene : GameScene
 {
 	public override void assignStartExitProcedure()
 	{

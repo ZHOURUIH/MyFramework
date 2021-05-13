@@ -3,7 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-public class MainSceneLogin : ILRSceneProcedure
+public class MainSceneLogin : SceneProcedure
 {
 	protected override void onInit(SceneProcedure lastProcedure, string intent)
 	{

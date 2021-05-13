@@ -3,7 +3,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class COMCharacterController : ILRGameComponent
+public class COMCharacterController : GameComponent
 {
 	protected CharacterGame mPlayer;
 	public override void init(ComponentOwner owner)

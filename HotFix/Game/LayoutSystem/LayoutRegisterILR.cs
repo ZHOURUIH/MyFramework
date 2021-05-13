@@ -5,10 +5,11 @@ using System.Collections.Generic;
 
 public class LayoutRegisterILR : GB
 {
-	public static void registeAllLayout()
+	public static void registeAll()
 	{
 		registeLayout<ScriptLogin>(LAYOUT_ILR.LOGIN, "UILogin");
 		registeLayout<ScriptGaming>(LAYOUT_ILR.GAMING, "UIGaming");
+
 		GameLayout.addScriptCallback(onScriptChanged);
 	}
 	public static void onScriptChanged(LayoutScript script, bool created = true)

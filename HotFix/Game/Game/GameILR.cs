@@ -5,17 +5,57 @@ using System.Collections.Generic;
 
 public class GameILR : GB
 {
-	public static void startILR()
+	protected static List<FrameSystem> mFrameComponentInit = new List<FrameSystem>();		// 存储框架组件,用于初始化
+	public static void start()
 	{
-		// 启动之前需要先进行注册
-		registeAll();
+		// 创建系统组件
+		initFrameSystem();
+		mGameFramework.sortList();
+		mFrameComponentInit.Sort(FrameSystem.compareInit);
 
-		CommandGameSceneManagerEnter cmd = newILRCmd(out cmd);
+		// 获取系统组件对象
+		GB gameBaseILR = new GB();
+		gameBaseILR.notifyConstructDone();
+
+		// 注册对象类型
+		registeAll();
+		GameUtilityILR.initGameUtilityILR();
+
+		// 初始化所有系统组件
+		int count = mFrameComponentInit.Count;
+		for (int i = 0; i < count; ++i)
+		{
+			try
+			{
+				DateTime start = DateTime.Now;
+				mFrameComponentInit[i].init();
+				log(mFrameComponentInit[i].getName() + "初始化消耗时间:" + (DateTime.Now - start).TotalMilliseconds, LOG_LEVEL.FORCE);
+			}
+			catch (Exception e)
+			{
+				logError("init failed! :" + mFrameComponentInit[i].getName() + ", info:" + e.Message + ", stack:" + e.StackTrace);
+			}
+		}
+
+		// 进入登录流程
+		CMD_ILR(out CmdGameSceneManagerEnter cmd);
 		cmd.mSceneType = typeof(MainScene);
-		pushCommand(cmd, mGameSceneManager);
+		pushCommand(cmd,mGameSceneManager);
 	}
-	public static void registeAll()
+	//----------------------------------------------------------------------------------------------------------------------------------
+	protected static void registeAll()
 	{
-		LayoutRegisterILR.registeAllLayout();
+		LayoutRegisterILR.registeAll();
+		SQLiteRegisterILR.registeAll();
+	}
+	protected static void initFrameSystem()
+	{
+		registeILRFrameSystem<GameConfig>();
+		registeILRFrameSystem<DemoSystem>();
+	}
+	protected static void registeILRFrameSystem<T>() where T : FrameSystem
+	{
+		T frameSystem = mGameFramework.registeFrameSystem(typeof(T)) as T;
+		mFrameComponentInit.Add(frameSystem);
 	}
 }

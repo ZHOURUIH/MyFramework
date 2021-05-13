@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class ScriptLogin : ILRLayoutScript
+public class ScriptLogin : LayoutScript
 {
 	protected myUGUIObject mLogin;
 	public override void assignWindow()

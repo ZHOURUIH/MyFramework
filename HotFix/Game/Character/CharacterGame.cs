@@ -3,7 +3,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class CharacterGame : ILRCharacter
+public class CharacterGame : Character
 {
 	protected CharacterGameData mData;
 	protected COMCharacterController mController;

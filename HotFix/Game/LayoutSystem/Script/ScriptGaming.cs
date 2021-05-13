@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class ScriptGaming : ILRLayoutScript
+public class ScriptGaming : LayoutScript
 {
 	protected myUGUIObject mBackground;
 	protected myUGUIObject mAvatar;
