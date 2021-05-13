@@ -23,47 +23,8 @@ namespace ILRuntime.Runtime.Generated
             Type[] args;
             Type type = typeof(global::LayoutScript);
             args = new Type[]{};
-            method = type.GetMethod("destroy", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, destroy_0);
-            args = new Type[]{};
-            method = type.GetMethod("init", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, init_1);
-            args = new Type[]{typeof(System.Single)};
-            method = type.GetMethod("update", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, update_2);
-            args = new Type[]{typeof(System.Single)};
-            method = type.GetMethod("lateUpdate", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, lateUpdate_3);
-            args = new Type[]{};
-            method = type.GetMethod("onReset", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, onReset_4);
-            args = new Type[]{};
-            method = type.GetMethod("onGameState", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, onGameState_5);
-            args = new Type[]{};
-            method = type.GetMethod("onDrawGizmos", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, onDrawGizmos_6);
-            args = new Type[]{typeof(System.Boolean), typeof(System.String)};
-            method = type.GetMethod("onShow", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, onShow_7);
-            args = new Type[]{typeof(System.Boolean), typeof(System.String)};
-            method = type.GetMethod("onHide", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, onHide_8);
-            args = new Type[]{typeof(global::Command)};
-            method = type.GetMethod("addDelayCmd", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, addDelayCmd_9);
-            args = new Type[]{typeof(System.UInt64), typeof(System.Boolean)};
-            method = type.GetMethod("interruptCommand", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, interruptCommand_10);
-            args = new Type[]{typeof(global::Command)};
-            method = type.GetMethod("onCmdStarted", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, onCmdStarted_11);
-            args = new Type[]{};
-            method = type.GetMethod("interruptAllCommand", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, interruptAllCommand_12);
-            args = new Type[]{};
             method = type.GetMethod("getType", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, getType_13);
+            app.RegisterCLRMethodRedirection(method, getType_0);
             Dictionary<string, List<MethodInfo>> genericMethods = new Dictionary<string, List<MethodInfo>>();
             List<MethodInfo> lst = null;                    
             foreach(var m in type.GetMethods())
@@ -86,7 +47,7 @@ namespace ILRuntime.Runtime.Generated
                     if(m.MatchGenericParameters(args, typeof(global::myUGUIObject), typeof(global::myUGUIObject).MakeByRefType(), typeof(System.String), typeof(System.Int32)))
                     {
                         method = m.MakeGenericMethod(args);
-                        app.RegisterCLRMethodRedirection(method, newObject_14);
+                        app.RegisterCLRMethodRedirection(method, newObject_1);
 
                         break;
                     }
@@ -100,7 +61,7 @@ namespace ILRuntime.Runtime.Generated
                     if(m.MatchGenericParameters(args, typeof(global::myUGUIObject), typeof(global::myUGUIObject).MakeByRefType(), typeof(global::myUIObject), typeof(System.String), typeof(System.Int32), typeof(System.Boolean), typeof(System.Boolean)))
                     {
                         method = m.MakeGenericMethod(args);
-                        app.RegisterCLRMethodRedirection(method, newObject_15);
+                        app.RegisterCLRMethodRedirection(method, newObject_2);
 
                         break;
                     }
@@ -114,7 +75,7 @@ namespace ILRuntime.Runtime.Generated
                     if(m.MatchGenericParameters(args, typeof(global::myUGUIText), typeof(global::myUGUIText).MakeByRefType(), typeof(global::myUIObject), typeof(System.String), typeof(System.Int32), typeof(System.Boolean), typeof(System.Boolean)))
                     {
                         method = m.MakeGenericMethod(args);
-                        app.RegisterCLRMethodRedirection(method, newObject_16);
+                        app.RegisterCLRMethodRedirection(method, newObject_3);
 
                         break;
                     }
@@ -122,242 +83,13 @@ namespace ILRuntime.Runtime.Generated
             }
             args = new Type[]{typeof(global::myUIObject), typeof(global::ObjectClickCallback)};
             method = type.GetMethod("registeCollider", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, registeCollider_17);
+            app.RegisterCLRMethodRedirection(method, registeCollider_4);
 
 
         }
 
 
-        static StackObject* destroy_0(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 1);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            instance_of_this_method.destroy();
-
-            return __ret;
-        }
-
-        static StackObject* init_1(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 1);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            instance_of_this_method.init();
-
-            return __ret;
-        }
-
-        static StackObject* update_2(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 2);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            System.Single @elapsedTime = *(float*)&ptr_of_this_method->Value;
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            instance_of_this_method.update(@elapsedTime);
-
-            return __ret;
-        }
-
-        static StackObject* lateUpdate_3(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 2);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            System.Single @elapsedTime = *(float*)&ptr_of_this_method->Value;
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            instance_of_this_method.lateUpdate(@elapsedTime);
-
-            return __ret;
-        }
-
-        static StackObject* onReset_4(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 1);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            instance_of_this_method.onReset();
-
-            return __ret;
-        }
-
-        static StackObject* onGameState_5(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 1);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            instance_of_this_method.onGameState();
-
-            return __ret;
-        }
-
-        static StackObject* onDrawGizmos_6(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 1);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            instance_of_this_method.onDrawGizmos();
-
-            return __ret;
-        }
-
-        static StackObject* onShow_7(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 3);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            System.String @param = (System.String)typeof(System.String).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            System.Boolean @immediately = ptr_of_this_method->Value == 1;
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 3);
-            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            instance_of_this_method.onShow(@immediately, @param);
-
-            return __ret;
-        }
-
-        static StackObject* onHide_8(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 3);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            System.String @param = (System.String)typeof(System.String).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            System.Boolean @immediately = ptr_of_this_method->Value == 1;
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 3);
-            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            instance_of_this_method.onHide(@immediately, @param);
-
-            return __ret;
-        }
-
-        static StackObject* addDelayCmd_9(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 2);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            global::Command @cmd = (global::Command)typeof(global::Command).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            instance_of_this_method.addDelayCmd(@cmd);
-
-            return __ret;
-        }
-
-        static StackObject* interruptCommand_10(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 3);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            System.Boolean @showError = ptr_of_this_method->Value == 1;
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            System.UInt64 @assignID = *(ulong*)&ptr_of_this_method->Value;
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 3);
-            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            instance_of_this_method.interruptCommand(@assignID, @showError);
-
-            return __ret;
-        }
-
-        static StackObject* onCmdStarted_11(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 2);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            global::Command @cmd = (global::Command)typeof(global::Command).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            instance_of_this_method.onCmdStarted(@cmd);
-
-            return __ret;
-        }
-
-        static StackObject* interruptAllCommand_12(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 1);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            instance_of_this_method.interruptAllCommand();
-
-            return __ret;
-        }
-
-        static StackObject* getType_13(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* getType_0(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -372,7 +104,7 @@ namespace ILRuntime.Runtime.Generated
             return ILIntepreter.PushObject(__ret, __mStack, result_of_this_method);
         }
 
-        static StackObject* newObject_14(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* newObject_1(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -461,7 +193,7 @@ namespace ILRuntime.Runtime.Generated
             return ILIntepreter.PushObject(__ret, __mStack, result_of_this_method);
         }
 
-        static StackObject* newObject_15(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* newObject_2(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -565,7 +297,7 @@ namespace ILRuntime.Runtime.Generated
             return ILIntepreter.PushObject(__ret, __mStack, result_of_this_method);
         }
 
-        static StackObject* newObject_16(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* newObject_3(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -669,7 +401,7 @@ namespace ILRuntime.Runtime.Generated
             return ILIntepreter.PushObject(__ret, __mStack, result_of_this_method);
         }
 
-        static StackObject* registeCollider_17(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* registeCollider_4(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;

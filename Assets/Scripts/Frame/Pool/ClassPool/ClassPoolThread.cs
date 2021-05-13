@@ -24,7 +24,7 @@ public class ClassPoolThread : FrameSystem
 	public void unlockList() { mListLock.unlock(); }
 	public Dictionary<Type, ClassPoolSingle> getPoolList() { return mPoolList; }
 	// 返回值表示是否是new出来的对象,false则为从回收列表中重复使用的对象
-	public IClassObject newClass(Type type, out bool isNewObject)
+	public ClassObject newClass(Type type, out bool isNewObject)
 	{
 		isNewObject = false;
 		if (type == null)
@@ -44,9 +44,9 @@ public class ClassPoolThread : FrameSystem
 		return singlePool.newClass(out isNewObject);
 	}
 	// 仅用于主工程中的类,否则无法识别
-	public T newClass<T>(out T obj) where T : class, IClassObject
+	public T newClass<T>(out T obj) where T : ClassObject
 	{
-		IClassObject classObj = newClass(Typeof<T>(), out _);
+		ClassObject classObj = newClass(Typeof<T>(), out _);
 		obj = classObj as T;
 		if (obj == null)
 		{
@@ -54,7 +54,7 @@ public class ClassPoolThread : FrameSystem
 		}
 		return obj;
 	}
-	public void destroyClass(IClassObject classObject)
+	public void destroyClass(ClassObject classObject)
 	{
 		mListLock.waitForUnlock();
 		if (!mPoolList.TryGetValue(Typeof(classObject), out ClassPoolSingle singlePool))
@@ -64,7 +64,7 @@ public class ClassPoolThread : FrameSystem
 		singlePool.destroyClass(classObject);
 		mListLock.unlock();
 	}
-	public void destroyClassReally(IClassObject classObject)
+	public void destroyClassReally(ClassObject classObject)
 	{
 		mListLock.waitForUnlock();
 		if (!mPoolList.TryGetValue(Typeof(classObject), out ClassPoolSingle singlePool))
@@ -74,7 +74,7 @@ public class ClassPoolThread : FrameSystem
 		singlePool.destroyClassReally(classObject);
 		mListLock.unlock();
 	}
-	public bool isInuse(IClassObject classObject)
+	public bool isInuse(ClassObject classObject)
 	{
 		mListLock.waitForUnlock();
 		if (!mPoolList.TryGetValue(Typeof(classObject), out ClassPoolSingle singlePool))

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class MultiTouchInfo : FrameBasePooledObject
+public class MultiTouchInfo : FrameBase
 {
 	public IMouseEventCollect mWindow;
 	public int mFinger0;

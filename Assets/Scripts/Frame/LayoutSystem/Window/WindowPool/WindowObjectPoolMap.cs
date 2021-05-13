@@ -120,7 +120,7 @@ public class WindowObjectPoolMap<Key, T> : FrameBase where T : PooledWindow
 		}
 		mUsedItemList.Clear();
 	}
-	public void unuseItem(Key key)
+	public void unuseItem(Key key, bool showError = true)
 	{
 		if (key == null)
 		{
@@ -128,7 +128,10 @@ public class WindowObjectPoolMap<Key, T> : FrameBase where T : PooledWindow
 		}
 		if (!mUsedItemList.TryGetValue(key, out T item))
 		{
-			logError("此窗口物体不属于当前窗口物体池,无法回收");
+			if(showError)
+			{
+				logError("此窗口物体不属于当前窗口物体池,无法回收");
+			}
 			return;
 		}
 		item.recycle();

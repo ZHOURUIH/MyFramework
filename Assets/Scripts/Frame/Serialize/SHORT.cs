@@ -7,13 +7,13 @@ public class SHORT : OBJECT
 	public short mValue;
 	public SHORT()
 	{
-		mType = Typeof<short>();
+		mType = typeof(short);
 		mSize = TYPE_SIZE;
 	}
 	public SHORT(short value)
 	{
 		mValue = value;
-		mType = Typeof<short>();
+		mType = typeof(short);
 		mSize = TYPE_SIZE;
 	}
 	public override void zero() { mValue = 0; }

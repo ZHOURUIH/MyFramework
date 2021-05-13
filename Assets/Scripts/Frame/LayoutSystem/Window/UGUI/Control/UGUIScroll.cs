@@ -455,14 +455,14 @@ public class UGUIScroll : FrameBase
 		}
 		scroll(focusIndex, focusTime);
 	}
-	protected void onMouseDown(Vector2 mousePos)
+	protected void onMouseDown(Vector3 mousePos, int touchID)
 	{
 		mMouseDown = true;
 		mState = SCROLL_STATE.DRAGING;
 		mScrollSpeed = 0.0f;
 	}
 	// 鼠标在屏幕上抬起
-	protected void onScreenMouseUp(IMouseEventCollect obj, Vector2 mousePos)
+	protected void onScreenMouseUp(IMouseEventCollect obj, Vector3 mousePos, int touchID)
 	{
 		mMouseDown = false;
 		// 正在拖动时鼠标抬起,则开始逐渐减速到0
@@ -471,7 +471,7 @@ public class UGUIScroll : FrameBase
 			mState = SCROLL_STATE.SCROLL_TO_STOP;
 		}
 	}
-	protected void onMouseMove(ref Vector3 mousePos, ref Vector3 moveDelta, float moveTime)
+	protected void onMouseMove(Vector3 mousePos, Vector3 moveDelta, float moveTime, int touchID)
 	{
 		// 鼠标未按下时不允许改变移动速度
 		if (!mMouseDown)
@@ -487,7 +487,7 @@ public class UGUIScroll : FrameBase
 			mScrollSpeed = sign(moveDelta.y) * abs(moveDelta.y / moveTime) * mDragSensitive * 0.01f;
 		}
 	}
-	protected void onMouseStay(Vector2 mousePos)
+	protected void onMouseStay(Vector3 mousePos, int touchID)
 	{
 		if (!mMouseDown)
 		{

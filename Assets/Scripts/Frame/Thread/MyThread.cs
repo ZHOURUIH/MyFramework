@@ -6,13 +6,15 @@ public class MyThread : FrameBase
 	protected MyThreadCallback mCallback;
 	protected ThreadTimeLock mTimeLock;
 	protected Thread mThread;
+	protected BOOL mRun;
 	protected string mName;
-	protected bool mIsBackground;       // 是否为后台线程,如果是后台线程,则在应用程序关闭时,子线程会自动强制关闭
-	protected bool mRunning;
-	protected bool mFinish;
-	protected bool mPause;
+	protected volatile bool mIsBackground;       // 是否为后台线程,如果是后台线程,则在应用程序关闭时,子线程会自动强制关闭
+	protected volatile bool mRunning;
+	protected volatile bool mFinish;
+	protected volatile bool mPause;
 	public MyThread(string name)
 	{
+		mRun = new BOOL();
 		mName = name;
 		mCallback = null;
 		mThread = null;
@@ -58,16 +60,22 @@ public class MyThread : FrameBase
 		{
 			return;
 		}
-		mRunning = false;
-		while (!mIsBackground && !mFinish) 
+		try
 		{
-			Thread.Sleep(0);
+			mRunning = false;
+			while (!mIsBackground && !mFinish)
+			{
+				Thread.Sleep(0);
+			}
+			mThread = null;
+			mCallback = null;
+			mTimeLock = null;
+			mPause = false;
 		}
-		mThread?.Abort();
-		mThread = null;
-		mCallback = null;
-		mTimeLock = null;
-		mPause = false;
+		catch(Exception e)
+		{
+			logError("线程退出出现异常:" + mName + ", exception:" + e.Message);
+		}
 		log("线程退出完成! 线程名 : " + mName, LOG_LEVEL.FORCE);
 	}
 	protected void run()
@@ -82,9 +90,9 @@ public class MyThread : FrameBase
 				{
 					continue;
 				}
-				bool run = true;
-				mCallback(ref run);
-				if (!run)
+				mRun.set(true);
+				mCallback(mRun);
+				if (!mRun.mValue)
 				{
 					break;
 				}
@@ -95,5 +103,6 @@ public class MyThread : FrameBase
 			}
 		}
 		mFinish = true;
+		mThread?.Abort();
 	}
 }

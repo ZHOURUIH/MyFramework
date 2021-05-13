@@ -30,7 +30,7 @@ public class myUGUIInputField : myUGUIObject, IInputField
 		}
 		if (mInputField == null)
 		{
-			logError(Typeof(this) + " can not find " + Typeof<InputField>() + ", window:" + mName + ", layout:" + mLayout.getName());
+			logError(Typeof(this) + " can not find " + typeof(InputField) + ", window:" + mName + ", layout:" + mLayout.getName());
 		}
 	}
 	public override void setAlpha(float alpha, bool fadeChild)

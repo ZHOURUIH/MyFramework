@@ -8,42 +8,6 @@ using LitJson;
 using System.Security.Cryptography.X509Certificates;
 using System.Net.Security;
 
-public delegate void OnHttpWebRequestCallback(JsonData data, object userData);
-public struct RequestThreadParam
-{
-	public HttpWebRequest mRequest;
-	public OnHttpWebRequestCallback mCallback;
-	public Thread mThread;
-	public byte[] mByteArray;
-	public object mUserData;
-	public string mFullURL;
-	public bool mLogError;
-}
-
-// 作为字段参数时,只填写mKey和mValue
-// 作为文件内容时,只填写mFileContont和mFileName
-public struct FormItem
-{
-	public byte[] mFileContent;
-	public string mFileName;
-	public string mKey;
-	public string mValue;
-	public FormItem(byte[] file, string fileName)
-	{
-		mFileContent = file;
-		mFileName = fileName;
-		mKey = "";
-		mValue = "";
-	}
-	public FormItem(string key, string value)
-	{
-		mFileContent = null;
-		mFileName = "";
-		mKey = key;
-		mValue = value;
-	}
-}
-
 public class HttpUtility : FrameSystem
 {
 	protected static List<Thread> mHttpThreadList;
@@ -57,7 +21,7 @@ public class HttpUtility : FrameSystem
 	{
 		ThreadListLock.waitForUnlock();
 		int count = mHttpThreadList.Count;
-		for(int i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			mHttpThreadList[i].Abort();
 			mHttpThreadList[i] = null;
@@ -68,7 +32,7 @@ public class HttpUtility : FrameSystem
 		base.destroy();
 	}
 	// 同步下载文件
-	public static byte[] downloadFile(string url, int offset = 0, byte[] helperBytes = null, string fileName = EMPTY, 
+	public static byte[] downloadFile(string url, int offset = 0, byte[] helperBytes = null, string fileName = EMPTY,
 										StartDownloadCallback startCallback = null, DownloadingCallback downloading = null)
 	{
 		log("开始http下载:" + url, LOG_LEVEL.FORCE);
@@ -81,9 +45,9 @@ public class HttpUtility : FrameSystem
 		Stream inStream = response.GetResponseStream();// 获取http
 		MemoryStream downloadStream = new MemoryStream();
 		bool isTempHelperBytes = helperBytes == null;
-		if(helperBytes == null)
+		if (helperBytes == null)
 		{
-			ARRAY_THREAD(out helperBytes, 1024);
+			ARRAY_MAIN_THREAD(out helperBytes, 1024);
 		}
 		int readCount;
 		do
@@ -93,9 +57,9 @@ public class HttpUtility : FrameSystem
 			downloadStream.Write(helperBytes, 0, readCount);// 写流
 			downloading?.Invoke(fileName, fileSize, downloadStream.Length);
 		} while (readCount > 0);
-		if(isTempHelperBytes)
+		if (isTempHelperBytes)
 		{
-			UN_ARRAY_THREAD(helperBytes);
+			UN_ARRAY_MAIN_THREAD(helperBytes);
 		}
 		byte[] dataBytes = downloadStream.ToArray();
 		downloadStream.Close();
@@ -108,14 +72,14 @@ public class HttpUtility : FrameSystem
 	{
 		// 以模拟表单的形式上传数据
 		string boundary = "----" + DateTime.Now.Ticks.ToString("x");
-		string fileFormdataTemplate = "\r\n--" + boundary + "\r\n" + 
-									"Content-Disposition: form-data; name=\"{0}\"; filename=\"{1}\"" + "\r\n" + 
+		string fileFormdataTemplate = "\r\n--" + boundary + "\r\n" +
+									"Content-Disposition: form-data; name=\"{0}\"; filename=\"{1}\"" + "\r\n" +
 									"Content-Type: application/octet-stream" + "\r\n\r\n";
-		string dataFormdataTemplate = "\r\n--" + boundary + "\r\n" + 
+		string dataFormdataTemplate = "\r\n--" + boundary + "\r\n" +
 									"Content-Disposition: form-data; name=\"{0}\"" + "\r\n\r\n{1}";
 		MemoryStream postStream = new MemoryStream();
 		int count = itemList.Count;
-		for(int i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			FormItem item = itemList[i];
 			string formdata = null;
@@ -133,7 +97,7 @@ public class HttpUtility : FrameSystem
 			if (postStream.Length == 0)
 			{
 				formdataBytes = stringToBytes(formdata.Substring(2, formdata.Length - 2), Encoding.UTF8);
-			}	
+			}
 			else
 			{
 				formdataBytes = stringToBytes(formdata, Encoding.UTF8);
@@ -292,7 +256,7 @@ public class HttpUtility : FrameSystem
 		httprequest.AllowAutoRedirect = true;
 		httprequest.MaximumAutomaticRedirections = 2;
 		httprequest.Timeout = 10000;// 设定超时10秒
-		// 异步
+									// 异步
 		if (callback != null)
 		{
 			var threadParam = new RequestThreadParam();
@@ -316,7 +280,7 @@ public class HttpUtility : FrameSystem
 		{
 			try
 			{
-				HttpWebResponse response = (HttpWebResponse)httprequest.GetResponse();
+				var response = (HttpWebResponse)httprequest.GetResponse();
 				Stream steam = response.GetResponseStream();
 				StreamReader reader = new StreamReader(steam, Encoding.UTF8);
 				string pageStr = reader.ReadToEnd();

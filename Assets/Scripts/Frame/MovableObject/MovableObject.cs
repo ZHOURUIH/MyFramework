@@ -132,32 +132,32 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public virtual GameObject getObject() { return mObject; }
 	public bool isUnityComponentEnabled<T>() where T : Behaviour
 	{
-		T component = getUnityComponent<T>(false);
-		return component != null && component.enabled;
+		T com = getUnityComponent<T>(false);
+		return com != null && com.enabled;
 	}
 	public void enableUnityComponent<T>(bool enable) where T : Behaviour
 	{
-		T component = getUnityComponent<T>();
-		if (component != null)
+		T com = getUnityComponent<T>();
+		if (com != null)
 		{
-			component.enabled = enable;
+			com.enabled = enable;
 		}
 	}
 	public T getUnityComponent<T>(bool addIfNotExist = true) where T : Component
 	{
-		T component = mObject.GetComponent<T>();
-		if (component == null && addIfNotExist)
+		T com = mObject.GetComponent<T>();
+		if (com == null && addIfNotExist)
 		{
-			component = mObject.AddComponent<T>();
+			com = mObject.AddComponent<T>();
 		}
-		return component;
+		return com;
 	}
-	public void getUnityComponent<T>(out T component, bool addIfNotExist = true) where T : Component
+	public void getUnityComponent<T>(out T com, bool addIfNotExist = true) where T : Component
 	{
-		component = mObject.GetComponent<T>();
-		if (component == null && addIfNotExist)
+		com = mObject.GetComponent<T>();
+		if (com == null && addIfNotExist)
 		{
-			component = mObject.AddComponent<T>();
+			com = mObject.AddComponent<T>();
 		}
 	}
 	public T[] getUnityComponentsInChild<T>(bool includeInactive = true) where T : Component
@@ -237,7 +237,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public virtual UIDepth getDepth() { return null; }
 	public virtual bool isReceiveScreenMouse() { return mOnScreenMouseUp != null; }
 	public virtual bool isPassRay() { return mPassRay; }
-	public virtual bool isDragable() { return getComponent<MovableObjectComponentDrag>(true, false) != null; }
+	public virtual bool isDragable() { return getComponent<COMMovableObjectDrag>(true, false) != null; }
 	public virtual bool isMouseHovered() { return mMouseHovered; }
 	public virtual bool isChildOf(IMouseEventCollect parent)
 	{
@@ -400,51 +400,51 @@ public class MovableObject : Transformable, IMouseEventCollect
 		// mObjectID不重置
 		//mObjectID = 0;
 	}
-	public virtual void onMouseEnter()
+	public virtual void onMouseEnter(int touchID)
 	{
 		mMouseHovered = true;
 		mHoverCallback?.Invoke(this, true);
-		mOnMouseEnter?.Invoke(this);
+		mOnMouseEnter?.Invoke(this, touchID);
 	}
-	public virtual void onMouseLeave()
+	public virtual void onMouseLeave(int touchID)
 	{
 		mMouseHovered = false;
 		mHoverCallback?.Invoke(this, false);
-		mOnMouseLeave?.Invoke(this);
+		mOnMouseLeave?.Invoke(this, touchID);
 	}
 	// 鼠标左键在窗口内按下
-	public virtual void onMouseDown(Vector3 mousePos)
+	public virtual void onMouseDown(Vector3 mousePos, int touchID)
 	{
 		mMouseDownPosition = mousePos;
 		mPressCallback?.Invoke(this, true);
-		mOnMouseDown?.Invoke(mousePos);
+		mOnMouseDown?.Invoke(mousePos, touchID);
 	}
 	// 鼠标左键在窗口内放开
-	public virtual void onMouseUp(Vector3 mousePos)
+	public virtual void onMouseUp(Vector3 mousePos, int touchID)
 	{
 		mPressCallback?.Invoke(this, false);
 		if (lengthLess(mMouseDownPosition - mousePos, FrameDefine.CLICK_THRESHOLD))
 		{
 			mClickCallback?.Invoke(this);
 		}
-		mOnMouseUp?.Invoke(mousePos);
+		mOnMouseUp?.Invoke(mousePos, touchID);
 	}
 	// 鼠标在窗口内,并且有移动
-	public virtual void onMouseMove(ref Vector3 mousePos, ref Vector3 moveDelta, float moveTime)
+	public virtual void onMouseMove(Vector3 mousePos, Vector3 moveDelta, float moveTime, int touchID)
 	{
-		mOnMouseMove?.Invoke(ref mousePos, ref moveDelta, moveTime);
+		mOnMouseMove?.Invoke(mousePos, moveDelta, moveTime, touchID);
 	}
-	public virtual void onMouseStay(Vector3 mousePos) { }
-	public virtual void onScreenMouseDown(Vector3 mousePos) { }
+	public virtual void onMouseStay(Vector3 mousePos, int touchID) { }
+	public virtual void onScreenMouseDown(Vector3 mousePos, int touchID) { }
 	// 鼠标在屏幕上抬起
-	public virtual void onScreenMouseUp(Vector3 mousePos)
+	public virtual void onScreenMouseUp(Vector3 mousePos, int touchID)
 	{
-		mOnScreenMouseUp?.Invoke(this, mousePos);
+		mOnScreenMouseUp?.Invoke(this, mousePos, touchID);
 	}
-	public virtual void onReceiveDrag(IMouseEventCollect dragObj, ref bool continueEvent) { }
+	public virtual void onReceiveDrag(IMouseEventCollect dragObj, BOOL continueEvent) { }
 	public virtual void onDragHoverd(IMouseEventCollect dragObj, bool hover) { }
-	public virtual void onMultiTouchStart(Vector2 touch0, Vector2 touch1) { }
-	public virtual void onMultiTouchMove(Vector2 touch0, Vector2 lastTouch0, Vector2 touch1, Vector2 lastTouch1) { }
+	public virtual void onMultiTouchStart(Vector3 touch0, Vector3 touch1) { }
+	public virtual void onMultiTouchMove(Vector3 touch0, Vector3 lastTouch0, Vector3 touch1, Vector3 lastTouch1) { }
 	public virtual void onMultiTouchEnd() { }
 	public virtual void setAlpha(float alpha)
 	{

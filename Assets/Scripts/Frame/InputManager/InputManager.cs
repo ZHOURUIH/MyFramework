@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 public class InputManager : FrameSystem
 {
-	protected HashSet<IInputField> mInputFieldList;
-	protected Vector3 mLastMousePosition;
-	protected Vector3 mCurMousePosition;
-	protected Vector3 mMouseDelta;
-	protected int mFocusMask;
+	protected HashSet<IInputField> mInputFieldList;	// 输入框列表,用于判断当前是否正在输入
+	protected Vector3 mLastMousePosition;			// 上一帧的鼠标坐标
+	protected Vector3 mCurMousePosition;            // 当前鼠标坐标,以左下角为原点的坐标
+	protected Vector3 mMouseDelta;					// 这一帧的鼠标移动量
+	protected int mFocusMask;						// 当前的输入掩码,是输入框的输入还是快捷键输入
 	public InputManager()
 	{
 		mInputFieldList = new HashSet<IInputField>();
@@ -23,16 +23,12 @@ public class InputManager : FrameSystem
 		mMouseDelta = mCurMousePosition - mLastMousePosition;
 		mLastMousePosition = mCurMousePosition;
 		bool inputting = false;
-		// 避免在列表为空时仍然会有GC,所以添加一个判断
-		if (mInputFieldList.Count > 0)
+		foreach (var item in mInputFieldList)
 		{
-			foreach (var item in mInputFieldList)
+			if (item.isVisible() && item.isFocused())
 			{
-				if (item.isVisible() && item.isFocused())
-				{
-					inputting = true;
-					break;
-				}
+				inputting = true;
+				break;
 			}
 		}
 		setMask(inputting ? FOCUS_MASK.UI : FOCUS_MASK.SCENE);

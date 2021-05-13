@@ -1,4 +1,9 @@
 ﻿using System;
 
-public class GameEvent : GameBasePooledObject
-{}
+public class GameEvent : FrameBase
+{
+	public override void resetProperty()
+	{
+		base.resetProperty();
+	}
+}

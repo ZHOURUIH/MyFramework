@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-public class Command : GameBasePooledObject
+public class Command : FrameBase
 {
 	protected List<CommandCallback> mStartCallback;	// 命令开始执行时的回调函数
 	protected List<CommandCallback> mEndCallback;	// 命令执行完毕时的回调函数

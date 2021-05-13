@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-public abstract class SerializedData : GameBasePooledObject
+public abstract class SerializedData : FrameBase
 {
 	protected List<OBJECT> mParameterInfoList;
 	protected int mReadDataSize;            // 写入数据时,总共写入的数据大小

@@ -4,22 +4,24 @@ using UnityEngine;
 
 public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 {
-	protected List<TextureAnimCallBack> mPlayEndCallbackList;  // 一个序列播放完时的回调函数,只在非循环播放状态下有效
-	protected List<TextureAnimCallBack> mPlayingCallbackList;  // 一个序列正在播放时的回调函数
-	protected List<string> mTextureNameList;
+	protected List<TextureAnimCallback> mPlayEndCallbackList;  // 一个序列播放完时的回调函数,只在非循环播放状态下有效
+	protected List<TextureAnimCallback> mPlayingCallbackList;  // 一个序列正在播放时的回调函数
 	protected List<Vector2> mTexturePosList;
+	protected List<string> mTextureNameList;
+	protected List<Sprite> mSpriteList;
 	protected OnPlayEndCallback mPlayEndCallback;
 	protected OnPlayingCallback mPlayingCallback;
 	protected AnimControl mControl;
-	protected EFFECT_ALIGN mEffectAlign;
 	protected string mTextureSetName;
 	protected bool mUseTextureSize;
+	protected EFFECT_ALIGN mEffectAlign;
 	public myUGUIImageAnim()
 	{
 		mControl = new AnimControl();
 		mTextureNameList = new List<string>();
-		mPlayEndCallbackList = new List<TextureAnimCallBack>();
-		mPlayingCallbackList = new List<TextureAnimCallBack>();
+		mSpriteList = new List<Sprite>();
+		mPlayEndCallbackList = new List<TextureAnimCallback>();
+		mPlayingCallbackList = new List<TextureAnimCallback>();
 		mPlayEndCallback = onPlayEnd;
 		mPlayingCallback = onPlaying;
 		mUseTextureSize = false;
@@ -35,8 +37,7 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 			int index = spriteName.LastIndexOf('_');
 			if (index >= 0)
 			{
-				string textureSetName = spriteName.Substring(0, index);
-				setTextureSet(textureSetName);
+				setTextureSet(spriteName.Substring(0, index));
 			}
 		}
 		mControl.setObject(this);
@@ -91,6 +92,7 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 			return;
 		}
 		mTextureNameList.Clear();
+		mSpriteList.Clear();
 		mTextureSetName = textureSetName;
 		if (mAtlas != null && !isEmpty(mTextureSetName))
 		{
@@ -103,6 +105,7 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 				{
 					break;
 				}
+				mSpriteList.Add(sprites[name]);
 				mTextureNameList.Add(name);
 			}
 			if(getTextureFrameCount() == 0)
@@ -136,11 +139,11 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 	public void pause() { mControl.pause(); }
 	public int getCurFrameIndex() { return mControl.getCurFrameIndex(); }
 	public void setCurFrameIndex(int index) { mControl.setCurFrameIndex(index); }
-	public void addPlayEndCallback(TextureAnimCallBack callback, bool clear = true)
+	public void addPlayEndCallback(TextureAnimCallback callback, bool clear = true)
 	{
-		if (clear)
+		if (clear && mPlayEndCallbackList.Count > 0)
 		{
-			LIST(out List<TextureAnimCallBack> tempList);
+			LIST_MAIN(out List<TextureAnimCallback> tempList);
 			tempList.AddRange(mPlayEndCallbackList);
 			mPlayEndCallbackList.Clear();
 			// 如果回调函数当前不为空,则是中断了更新
@@ -149,14 +152,14 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 			{
 				tempList[i](this, true);
 			}
-			UN_LIST(tempList);
+			UN_LIST_MAIN(tempList);
 		}
 		if(callback != null)
 		{
 			mPlayEndCallbackList.Add(callback);
 		}
 	}
-	public void addPlayingCallback(TextureAnimCallBack callback, bool clear = true)
+	public void addPlayingCallback(TextureAnimCallback callback, bool clear = true)
 	{
 		if(clear)
 		{
@@ -174,7 +177,7 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 		{
 			return;
 		}
-		setSpriteName(mTextureNameList[mControl.getCurFrameIndex()], mUseTextureSize);
+		setSprite(mSpriteList[mControl.getCurFrameIndex()], mUseTextureSize);
 		// 使用位置列表进行校正
 		if (mEffectAlign == EFFECT_ALIGN.POSITION_LIST)
 		{
@@ -208,21 +211,24 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 		{
 			setActive(false);
 		}
-		if(callback)
+		if(mPlayEndCallbackList.Count > 0)
 		{
-			LIST(out List<TextureAnimCallBack> tempList);
-			tempList.AddRange(mPlayEndCallbackList);
-			mPlayEndCallbackList.Clear();
-			int count = tempList.Count;
-			for(int i = 0; i < count; ++i)
+			if (callback)
 			{
-				tempList[i](this, isBreak);
+				LIST_MAIN(out List<TextureAnimCallback> tempList);
+				tempList.AddRange(mPlayEndCallbackList);
+				mPlayEndCallbackList.Clear();
+				int count = tempList.Count;
+				for (int i = 0; i < count; ++i)
+				{
+					tempList[i](this, isBreak);
+				}
+				UN_LIST_MAIN(tempList);
 			}
-			UN_LIST(tempList);
-		}
-		else
-		{
-			mPlayEndCallbackList.Clear();
+			else
+			{
+				mPlayEndCallbackList.Clear();
+			}
 		}
 	}
 }

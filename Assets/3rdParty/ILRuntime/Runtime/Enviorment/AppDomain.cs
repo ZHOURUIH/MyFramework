@@ -14,6 +14,8 @@ using ILRuntime.Runtime.Intepreter;
 using ILRuntime.Runtime.Debugger;
 using ILRuntime.Runtime.Stack;
 using ILRuntime.Other;
+using ILRuntime.Runtime.Intepreter.RegisterVM;
+
 namespace ILRuntime.Runtime.Enviorment
 {
     public unsafe delegate StackObject* CLRRedirectionDelegate(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj);
@@ -30,6 +32,12 @@ namespace ILRuntime.Runtime.Enviorment
         public int StaticFieldSize;
         public int MethodBodySize;
         public int TotalSize;
+    }
+
+    public struct PrewarmInfo
+    {
+        public string TypeName;
+        public string[] MethodNames;
     }
     public class AppDomain
     {
@@ -49,33 +57,40 @@ namespace ILRuntime.Runtime.Enviorment
         Dictionary<Type, CLRMemberwiseCloneDelegate> memberwiseCloneMap = new Dictionary<Type, CLRMemberwiseCloneDelegate>(new ByReferenceKeyComparer<Type>());
         Dictionary<Type, CLRCreateDefaultInstanceDelegate> createDefaultInstanceMap = new Dictionary<Type, CLRCreateDefaultInstanceDelegate>(new ByReferenceKeyComparer<Type>());
         Dictionary<Type, CLRCreateArrayInstanceDelegate> createArrayInstanceMap = new Dictionary<Type, CLRCreateArrayInstanceDelegate>(new ByReferenceKeyComparer<Type>());
-        IType voidType, intType, longType, boolType, floatType, doubleType, objectType;
+        IType voidType, intType, longType, boolType, floatType, doubleType, objectType, jitAttributeType;
         DelegateManager dMgr;
         Assembly[] loadedAssemblies;
         Dictionary<string, byte[]> references = new Dictionary<string, byte[]>();
         DebugService debugService;
+        AsyncJITCompileWorker jitWorker = new AsyncJITCompileWorker();
+        int defaultJITFlags;
 
         /// <summary>
         /// Determine if invoking unbinded CLR method(using reflection) is allowed
         /// </summary>
         public bool AllowUnboundCLRMethod { get; set; }
 
-#if DEBUG && (UNITY_EDITOR || UNITY_ANDROID || UNITY_IPHONE)
+#if DEBUG && !NO_PROFILER
         public int UnityMainThreadID { get; set; }
         public bool IsNotUnityMainThread()
         {
             return UnityMainThreadID != 0 && (UnityMainThreadID != System.Threading.Thread.CurrentThread.ManagedThreadId);
         }
 #endif
+
         internal bool SuppressStaticConstructor { get; set; }
 
-        public unsafe AppDomain()
+        public int DefaultJITFlags { get { return defaultJITFlags; } }
+
+        public unsafe AppDomain(int defaultJITFlags = ILRuntimeJITFlags.None)
         {
             AllowUnboundCLRMethod = true;
             InvocationContext.InitializeDefaultConverters();
             loadedAssemblies = System.AppDomain.CurrentDomain.GetAssemblies();
             var mi = typeof(System.Runtime.CompilerServices.RuntimeHelpers).GetMethod("InitializeArray");
             RegisterCLRMethodRedirection(mi, CLRRedirections.InitializeArray);
+            mi = typeof(AppDomain).GetMethod("GetCurrentStackTrace");
+            RegisterCLRMethodRedirection(mi, CLRRedirections.GetCurrentStackTrace);
             foreach (var i in typeof(System.Activator).GetMethods())
             {
                 if (i.Name == "CreateInstance" && i.IsGenericMethodDefinition)
@@ -142,14 +157,18 @@ namespace ILRuntime.Runtime.Enviorment
                 {
                     RegisterCLRMethodRedirection(i, CLRRedirections.EnumGetNames);
                 }
-                if(i.Name == "GetName")
+                if (i.Name == "GetName")
                 {
                     RegisterCLRMethodRedirection(i, CLRRedirections.EnumGetName);
                 }
 #if NET_4_6 || NET_STANDARD_2_0
-                if(i.Name == "HasFlag")
+                if (i.Name == "HasFlag")
                 {
                     RegisterCLRMethodRedirection(i, CLRRedirections.EnumHasFlag);
+                }
+                if (i.Name == "CompareTo")
+                {
+                    RegisterCLRMethodRedirection(i, CLRRedirections.EnumCompareTo);
                 }
 #endif
                 if (i.Name == "ToObject" && i.GetParameters()[1].ParameterType == typeof(int))
@@ -167,9 +186,16 @@ namespace ILRuntime.Runtime.Enviorment
                 return dele;
             });
 
-            RegisterCrossBindingAdaptor(new Adaptors.AttributeAdaptor());
+            RegisterCrossBindingAdaptor(new Adapters.AttributeAdapter());
 
             debugService = new Debugger.DebugService(this);
+            this.defaultJITFlags = defaultJITFlags & (ILRuntimeJITFlags.JITImmediately | ILRuntimeJITFlags.JITOnDemand);
+        }
+
+        public void Dispose()
+        {
+            debugService.StopDebugService();
+            jitWorker.Dispose();
         }
 
         public IType VoidType { get { return voidType; } }
@@ -179,6 +205,8 @@ namespace ILRuntime.Runtime.Enviorment
         public IType FloatType { get { return floatType; } }
         public IType DoubleType { get { return doubleType; } }
         public IType ObjectType { get { return objectType; } }
+
+        public IType JITAttributeType { get { return jitAttributeType; } }
 
         /// <summary>
         /// Attention, this property isn't thread safe
@@ -199,6 +227,10 @@ namespace ILRuntime.Runtime.Enviorment
 
         public DelegateManager DelegateManager { get { return dMgr; } }
 
+        internal void EnqueueJITCompileJob(ILMethod method)
+        {
+            jitWorker.QueueCompileJob(method);
+        }
 
         /// <summary>
         /// 加载Assembly 文件，从指定的路径
@@ -221,6 +253,11 @@ namespace ILRuntime.Runtime.Enviorment
                     fs.Dispose();
                 }
             }
+        }
+
+        public string GetCurrentStackTrace()
+        {
+            throw new NotSupportedException("Cannot call this method from CLR side");
         }
 
 #if USE_MDB || USE_PDB
@@ -425,6 +462,7 @@ namespace ILRuntime.Runtime.Enviorment
                 floatType = GetType("System.Single");
                 doubleType = GetType("System.Double");
                 objectType = GetType("System.Object");
+                jitAttributeType = GetType("ILRuntime.Runtime.ILRuntimeJITAttribute");
             }
 #if DEBUG && !DISABLE_ILRUNTIME_DEBUG
             debugService.NotifyModuleLoaded(module.Name);
@@ -517,8 +555,8 @@ namespace ILRuntime.Runtime.Enviorment
             string baseType;
             List<string> genericParams;
             bool isArray;
-
-            ParseGenericType(fullname, out baseType, out genericParams, out isArray);
+            byte rank;
+            ParseGenericType(fullname, out baseType, out genericParams, out isArray, out rank);
 
 
             bool isByRef = baseType.EndsWith("&");
@@ -539,7 +577,13 @@ namespace ILRuntime.Runtime.Enviorment
                     KeyValuePair<string, IType>[] genericArguments = new KeyValuePair<string, IType>[genericParams.Count];
                     for (int i = 0; i < genericArguments.Length; i++)
                     {
-                        string key = "!" + i;
+                        string key = null;
+                        if (bt is ILType ilt)
+                        {
+                            key = ilt.TypeDefinition.GenericParameters[i].FullName;
+                        }
+                        else
+                            key = "!" + i;
                         IType val = GetType(genericParams[i]);
                         if (val == null)
                             return null;
@@ -563,7 +607,7 @@ namespace ILRuntime.Runtime.Enviorment
                             /*if (genericParams[i].Contains(","))
                                 sb.Append(genericParams[i].Substring(0, genericParams[i].IndexOf(',')));
                             else*/
-                                sb.Append(genericParams[i]);
+                            sb.Append(genericParams[i]);
                         }
                         sb.Append('>');
                         var asmName = sb.ToString();
@@ -574,7 +618,7 @@ namespace ILRuntime.Runtime.Enviorment
 
                 if (isArray)
                 {
-                    bt = bt.MakeArrayType(1);
+                    bt = bt.MakeArrayType(rank);
                     if (bt is CLRType)
                         clrTypeMapping[bt.TypeForCLR] = bt;
                     mapType[bt.FullName] = bt;
@@ -622,15 +666,17 @@ namespace ILRuntime.Runtime.Enviorment
             return null;
         }
 
-        internal static void ParseGenericType(string fullname, out string baseType, out List<string> genericParams, out bool isArray)
+        internal static void ParseGenericType(string fullname, out string baseType, out List<string> genericParams, out bool isArray, out byte rank)
         {
             StringBuilder sb = new StringBuilder();
             int depth = 0;
+            rank = 0;
             baseType = "";
             genericParams = null;
             if (fullname.Length > 2 && fullname.Substring(fullname.Length - 2) == "[]")
             {
                 fullname = fullname.Substring(0, fullname.Length - 2);
+                rank = 1;
                 isArray = true;
             }
             else
@@ -657,6 +703,8 @@ namespace ILRuntime.Runtime.Enviorment
                             name = name.Substring(1, name.Length - 2);
                         if (!string.IsNullOrEmpty(name))
                             genericParams.Add(name);
+                        else
+                            ++rank;
                         sb.Length = 0;
                         continue;
                     }
@@ -670,11 +718,12 @@ namespace ILRuntime.Runtime.Enviorment
                                 name = name.Substring(1, name.Length - 2);
                             if (!string.IsNullOrEmpty(name))
                                 genericParams.Add(name);
-                            else if (!string.IsNullOrEmpty(name))
+                            else if (!string.IsNullOrEmpty(baseType))
                             {
                                 if (!isArray)
                                 {
                                     isArray = true;
+                                    ++rank;
                                 }
                                 else
                                 {
@@ -972,18 +1021,45 @@ namespace ILRuntime.Runtime.Enviorment
         /// Prewarm all methods of the specified type
         /// </summary>
         /// <param name="type"></param>
-        public void Prewarm(string type)
+        /// <param name="recursive"></param>
+        public void Prewarm(string type, bool recursive = true)
         {
             IType t = GetType(type);
             if (t == null || t is CLRType)
                 return;
             var methods = t.GetMethods();
-            foreach(var i in methods)
+            foreach (var i in methods)
             {
-                ((ILMethod)i).Prewarm();
+                ((ILMethod)i).Prewarm(recursive);
             }
         }
 
+        /// <summary>
+        /// Prewarm all methods specified by the parameter
+        /// </summary>
+        /// <param name="info"></param>
+        /// <param name="recursive"></param>
+        public void Prewarm(PrewarmInfo[] info, bool recursive = true)
+        {
+            foreach(var i in info)
+            {
+                IType t = GetType(i.TypeName);
+                if (t == null || t is CLRType || i.MethodNames == null)
+                    continue;
+                var methods = t.GetMethods();
+                foreach (var mn in i.MethodNames)
+                {
+                    foreach(var j in methods)
+                    {
+                        ILMethod m = (ILMethod)j;
+                        if(m.Name == mn && m.GenericParameterCount == 0)
+                        {
+                            m.Prewarm(recursive);
+                        }
+                    }
+                }
+            }
+        }
         /// <summary>
         /// Invoke a method
         /// </summary>
@@ -1082,6 +1158,7 @@ namespace ILRuntime.Runtime.Enviorment
 #endif
                 inteptreter.Stack.ManagedStack.Clear();
                 inteptreter.Stack.Frames.Clear();
+                inteptreter.Stack.ClearAllocator();
                 freeIntepreters.Enqueue(inteptreter);
 #if DEBUG && !DISABLE_ILRUNTIME_DEBUG
                 //debugService.ThreadEnded(inteptreter);

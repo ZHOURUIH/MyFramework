@@ -20,9 +20,14 @@ namespace HotFix
         static CrossBindingMethodInfo<global::SceneProcedure> monPrepareExit_10 = new CrossBindingMethodInfo<global::SceneProcedure>("onPrepareExit");
         static CrossBindingMethodInfo<global::Command> maddDelayCmd_11 = new CrossBindingMethodInfo<global::Command>("addDelayCmd");
         static CrossBindingMethodInfo<global::Command> monCmdStarted_12 = new CrossBindingMethodInfo<global::Command>("onCmdStarted");
-        static CrossBindingMethodInfo<System.UInt64, System.Boolean> minterruptCommand_13 = new CrossBindingMethodInfo<System.UInt64, System.Boolean>("interruptCommand");
+        static CrossBindingMethodInfo<System.Int64, System.Boolean> minterruptCommand_13 = new CrossBindingMethodInfo<System.Int64, System.Boolean>("interruptCommand");
         static CrossBindingMethodInfo minterruptAllCommand_14 = new CrossBindingMethodInfo("interruptAllCommand");
         static CrossBindingMethodInfo mnotifyConstructDone_15 = new CrossBindingMethodInfo("notifyConstructDone");
+        static CrossBindingMethodInfo mresetProperty_16 = new CrossBindingMethodInfo("resetProperty");
+        static CrossBindingMethodInfo<System.Boolean> msetDestroy_17 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
+        static CrossBindingFunctionInfo<System.Boolean> misDestroy_18 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
+        static CrossBindingMethodInfo<System.Int64> msetAssignID_19 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
+        static CrossBindingFunctionInfo<System.Int64> mgetAssignID_20 = new CrossBindingFunctionInfo<System.Int64>("getAssignID");
         public override Type BaseCLRType
         {
             get
@@ -160,7 +165,7 @@ namespace HotFix
                     monCmdStarted_12.Invoke(this.instance, cmd);
             }
 
-            public override void interruptCommand(System.UInt64 assignID, System.Boolean showError)
+            public override void interruptCommand(System.Int64 assignID, System.Boolean showError)
             {
                 if (minterruptCommand_13.CheckShouldInvokeBase(this.instance))
                     base.interruptCommand(assignID, showError);
@@ -182,6 +187,46 @@ namespace HotFix
                     base.notifyConstructDone();
                 else
                     mnotifyConstructDone_15.Invoke(this.instance);
+            }
+
+            public override void resetProperty()
+            {
+                if (mresetProperty_16.CheckShouldInvokeBase(this.instance))
+                    base.resetProperty();
+                else
+                    mresetProperty_16.Invoke(this.instance);
+            }
+
+            public override void setDestroy(System.Boolean isDestroy)
+            {
+                if (msetDestroy_17.CheckShouldInvokeBase(this.instance))
+                    base.setDestroy(isDestroy);
+                else
+                    msetDestroy_17.Invoke(this.instance, isDestroy);
+            }
+
+            public override System.Boolean isDestroy()
+            {
+                if (misDestroy_18.CheckShouldInvokeBase(this.instance))
+                    return base.isDestroy();
+                else
+                    return misDestroy_18.Invoke(this.instance);
+            }
+
+            public override void setAssignID(System.Int64 assignID)
+            {
+                if (msetAssignID_19.CheckShouldInvokeBase(this.instance))
+                    base.setAssignID(assignID);
+                else
+                    msetAssignID_19.Invoke(this.instance, assignID);
+            }
+
+            public override System.Int64 getAssignID()
+            {
+                if (mgetAssignID_20.CheckShouldInvokeBase(this.instance))
+                    return base.getAssignID();
+                else
+                    return mgetAssignID_20.Invoke(this.instance);
             }
 
             public override string ToString()

@@ -9,22 +9,22 @@ using ILRAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
 public class ILRUtility : FrameBase
 {
 	// 调用静态函数,带返回值的
-	public static T callStatic<T>(string type, string method, params object[] p)
+	public static T callStatic<T>(string method, params object[] p)
 	{
 		if (mILRSystem.getAppDomain() == null)
 		{
 			return default;
 		}
-		return (T)mILRSystem.getAppDomain().Invoke(type, method, null, p);
+		return (T)mILRSystem.getAppDomain().Invoke(FrameDefine.ILR_EXPORT, method, null, p);
 	}
 	// 调用静态函数,不带返回值
-	public static void callStatic(string type, string method, params object[] p)
+	public static void callStatic(string method, params object[] p)
 	{
 		if (mILRSystem.getAppDomain() == null)
 		{
 			return;
 		}
-		mILRSystem.getAppDomain().Invoke(type, method, null, p);
+		mILRSystem.getAppDomain().Invoke(FrameDefine.ILR_EXPORT, method, null, p);
 	}
 	// 调用成员函数,带返回值
 	public static T callMethod<T>(string type, string method, object instance, params object[] p)

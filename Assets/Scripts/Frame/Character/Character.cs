@@ -2,25 +2,23 @@
 using System.Collections.Generic;
 using System;
 
-public interface ICharacterMyself
-{ }
-
 public class Character : MovableObject
 {
 	protected Dictionary<string, float> mAnimationLenghtList;
-	protected CharacterStateMachine mStateMachine;
-	protected CharacterDecisionTree mDecisionTree;
-	protected CharacterComponentModel mAvatar;
+	protected COMCharacterStateMachine mStateMachine;
+	protected COMCharacterDecisionTree mDecisionTree;
+	protected CreateObjectCallback mModelLoadCallback;
+	protected OnCharacterLoaded mCharacterLoadedCallback;
+	protected COMCharacterModel mAvatar;
 	protected CharacterBaseData	mBaseData;	//玩家数据
 	protected Rigidbody mRigidBody;
 	protected Type mCharacterType;          // 角色类型
-	protected OnCharacterLoaded mCharacterLoadedCallback;
-	protected CreateObjectCallback mModelLoadCallback;
 	protected string mModelPath;
 	protected string mAnimationControllerPath;
 	protected object mUserData;
-	protected ulong mGUID;
+	protected long mGUID;
 	protected int mModelTag;
+	protected bool mIsMyself;				// 是否为主角实例,为了提高效率,不使用虚函数判断
 	public Character()
 	{
 		mAnimationLenghtList = new Dictionary<string, float>();
@@ -28,7 +26,8 @@ public class Character : MovableObject
 	}
 	protected virtual CharacterBaseData createCharacterData(){return new CharacterBaseData();}
 	public void setCharacterType(Type type) { mCharacterType = type; }
-	public void setID(ulong id){mGUID = id;}
+	public bool isMyself() { return mIsMyself; }
+	public void setID(long id){mGUID = id;}
 	public override void init()
 	{
 		mBaseData = createCharacterData();
@@ -52,8 +51,9 @@ public class Character : MovableObject
 		mAnimationControllerPath = null;
 		mUserData = null;
 		mModelTag = 0;
-		// mModelLoadCallback不重置
+		// mModelLoadCallback,mIsMyself不重置
 		// mModelLoadCallback = null;
+		// mIsMyself = false;
 	}
 	public void initModelAsync(string modelPath, OnCharacterLoaded callback, object userData, string animationControllerPath = null)
 	{
@@ -104,16 +104,16 @@ public class Character : MovableObject
 		mAnimationLenghtList.Add(name, length);
 		return length;
 	}
-	public virtual void notifyComponentChanged(GameComponent component) {}
+	public virtual void notifyComponentChanged(GameComponent com) {}
 	public CharacterBaseData getBaseData() { return mBaseData; }
 	public Type getType() { return mCharacterType; }
-	public CharacterComponentModel getAvatar() { return mAvatar; }
+	public COMCharacterModel getAvatar() { return mAvatar; }
 	public Animation getAnimation() { return mAvatar.getAnimation(); }
 	public Animator getAnimator() { return mAvatar.getAnimator(); }
 	public Rigidbody getRigidBody() { return mRigidBody; }
-	public ulong getGUID() { return mGUID; }
-	public CharacterDecisionTree getDecisionTree() { return mDecisionTree; }
-	public CharacterStateMachine getStateMachine() { return mStateMachine; }
+	public long getGUID() { return mGUID; }
+	public COMCharacterDecisionTree getDecisionTree() { return mDecisionTree; }
+	public COMCharacterStateMachine getStateMachine() { return mStateMachine; }
 	public PlayerState getFirstGroupState(Type group) { return mStateMachine.getFirstGroupState(group); }
 	public PlayerState getFirstState(Type type) { return mStateMachine.getFirstState(type); }
 	public PlayerState getState(uint id) { return mStateMachine.getState(id); }
@@ -124,9 +124,9 @@ public class Character : MovableObject
 	protected override void initComponents()
 	{
 		base.initComponents();
-		mAvatar = addComponent(Typeof<CharacterComponentModel>(), true) as CharacterComponentModel;
-		mStateMachine = addComponent(Typeof<CharacterStateMachine>(), true) as CharacterStateMachine;
-		mDecisionTree = addComponent(Typeof<CharacterDecisionTree>()) as CharacterDecisionTree;
+		mAvatar = addComponent(typeof(COMCharacterModel), true) as COMCharacterModel;
+		mStateMachine = addComponent(typeof(COMCharacterStateMachine), true) as COMCharacterStateMachine;
+		mDecisionTree = addComponent(typeof(COMCharacterDecisionTree)) as COMCharacterDecisionTree;
 	}
 	protected void onModelLoaded(GameObject go, object userData)
 	{

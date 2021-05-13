@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class myUGUIDragView : myUGUIObject
 {
-	protected WindowComponentDragView mDragViewComponent;
+	protected COMWindowDragView mDragViewComponent;
 	public myUGUIDragView()
 	{
 		mEnable = true;
@@ -27,25 +27,25 @@ public class myUGUIDragView : myUGUIObject
 	{
 		mDragViewComponent.autoResetPosition();
 	}
-	public override void onMouseDown(Vector3 mousePos)
+	public override void onMouseDown(Vector3 mousePos, int touchID)
 	{
-		base.onMouseDown(mousePos);
+		base.onMouseDown(mousePos, touchID);
 		mDragViewComponent.onMouseDown(mousePos);
 	}
 	// 鼠标在屏幕上抬起
-	public override void onScreenMouseUp(Vector3 mousePos)
+	public override void onScreenMouseUp(Vector3 mousePos, int touchID)
 	{
-		base.onScreenMouseUp(mousePos);
+		base.onScreenMouseUp(mousePos, touchID);
 		mDragViewComponent.onScreenMouseUp();
 	}
-	public override void onMouseMove(ref Vector3 mousePos, ref Vector3 moveDelta, float moveTime)
+	public override void onMouseMove(Vector3 mousePos, Vector3 moveDelta, float moveTime, int touchID)
 	{
-		base.onMouseMove(ref mousePos, ref moveDelta, moveTime);
-		mDragViewComponent.onMouseMove(ref mousePos, ref moveDelta, moveTime);
+		base.onMouseMove(mousePos, moveDelta, moveTime, touchID);
+		mDragViewComponent.onMouseMove(mousePos, moveDelta, moveTime);
 	}
-	public override void onMouseStay(Vector3 mousePos)
+	public override void onMouseStay(Vector3 mousePos, int touchID)
 	{
-		base.onMouseStay(mousePos);
+		base.onMouseStay(mousePos, touchID);
 		mDragViewComponent.onMouseStay();
 	}
 	public override void setWindowSize(Vector2 size)
@@ -209,6 +209,6 @@ public class myUGUIDragView : myUGUIObject
 	protected override void initComponents()
 	{
 		base.initComponents();
-		mDragViewComponent = addComponent(Typeof<WindowComponentDragView>(), true) as WindowComponentDragView;
+		mDragViewComponent = addComponent(typeof(COMWindowDragView), true) as COMWindowDragView;
 	}
 }

@@ -49,7 +49,7 @@ public class ObjectPool : FrameSystem
 		int groupCount = mAsyncLoadGroup.Count;
 		if(groupCount > 0)
 		{
-			LIST(out List<AsyncLoadGroup> tempList);
+			LIST_MAIN(out List<AsyncLoadGroup> tempList);
 			for (int i = 0; i < groupCount; ++i)
 			{
 				if (mAsyncLoadGroup[i].isAllLoaded())
@@ -66,12 +66,12 @@ public class ObjectPool : FrameSystem
 				item.mCallback(item.mNameList, item.mUserData);
 				UN_CLASS(item);
 			}
-			UN_LIST(tempList);
+			UN_LIST_MAIN(tempList);
 		}
 	}
 	public void createObjectAsync(List<string> fileWithPath, CreateObjectGroupCallback callback, int objectTag, object userData = null)
 	{
-		CLASS(out AsyncLoadGroup group);
+		CLASS_MAIN(out AsyncLoadGroup group);
 		group.mCallback = callback;
 		group.mUserData = userData;
 		mAsyncLoadGroup.Add(group);
@@ -108,7 +108,7 @@ public class ObjectPool : FrameSystem
 		}
 		else
 		{
-			CLASS(out PrefabLoadParam param);
+			CLASS_MAIN(out PrefabLoadParam param);
 			param.mCallback = callback;
 			param.mTag = objectTag;
 			param.mUserData = userData;
@@ -122,7 +122,7 @@ public class ObjectPool : FrameSystem
 		ObjectInfo objInfo = getUnusedObject(fileWithPath);
 		if (objInfo == null)
 		{
-			CLASS(out objInfo);
+			CLASS_MAIN(out objInfo);
 			GameObject prefab = mResourceManager.loadResource<GameObject>(fileWithPath);
 			if (prefab == null)
 			{
@@ -141,7 +141,7 @@ public class ObjectPool : FrameSystem
 	}
 	public void destroyAllWithTag(int objectTag)
 	{
-		LIST(out List<ObjectInfo> tempList);
+		LIST_MAIN(out List<ObjectInfo> tempList);
 		foreach (var item in mInstanceList)
 		{
 			if (item.Value.getTag() == objectTag)
@@ -154,7 +154,7 @@ public class ObjectPool : FrameSystem
 		{
 			destroyObject(ref tempList[i].mObject, true);
 		}
-		UN_LIST(tempList);
+		UN_LIST_MAIN(tempList);
 	}
 	public void destroyObject(ref GameObject obj, bool destroyReally)
 	{
@@ -193,7 +193,7 @@ public class ObjectPool : FrameSystem
 	}
 	protected void onPrefabGroupLoaded(Object asset, Object[] subAssets, byte[] bytes, object userData, string loadPath)
 	{
-		CLASS(out ObjectInfo objInfo);
+		CLASS_MAIN(out ObjectInfo objInfo);
 		objInfo.setTag((int)userData);
 		objInfo.setUsing(true);
 		// 实例化,只能同步进行
@@ -221,7 +221,7 @@ public class ObjectPool : FrameSystem
 			UN_CLASS(param);
 			return;
 		}
-		CLASS(out ObjectInfo objInfo);
+		CLASS_MAIN(out ObjectInfo objInfo);
 		objInfo.setTag(param.mTag);
 		objInfo.setUsing(true);
 		// 实例化,只能同步进行

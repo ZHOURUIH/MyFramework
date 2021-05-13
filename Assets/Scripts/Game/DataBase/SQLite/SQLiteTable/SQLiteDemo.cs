@@ -9,7 +9,7 @@ public class TDDemo : SQLiteData
 	public override void parse(SqliteDataReader reader)
 	{
 		base.parse(reader);
-		parseParam(reader, ref mDemoColName, DemoColName);
+		parseParam(reader, ref mDemoColName, 1);
 	}
 }
 

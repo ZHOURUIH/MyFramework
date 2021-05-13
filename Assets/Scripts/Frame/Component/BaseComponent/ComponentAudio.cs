@@ -28,7 +28,7 @@ public class ComponentAudio : GameComponent
 		mAudioManager.playClip(mAudioSource, name, isLoop, volume);
 		mAudioName = name;
 	}
-	public void play(SOUND_DEFINE sound, bool loop, float volume)
+	public void play(int sound, bool loop, float volume)
 	{
 		play(mAudioManager.getAudioName(sound), loop, volume);
 	}

@@ -8,26 +8,24 @@ using System.Threading;
 using ILRuntime.Runtime;
 using ILRuntime.Runtime.Enviorment;
 using ILRuntime.Runtime.Intepreter;
-using ILRAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
-using ILRuntime.CLR.TypeSystem;
+using ILRuntime.Reflection;
 #endif
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 using UnityEngine.UI;
 
-public delegate void onLog(string time, string info, LOG_LEVEL level, bool isError);
 public class UnityUtility : FileUtility
 {
-	protected static onLog mOnLog;
+	protected static OnLog mOnLog;
 	protected static uint mIDMaker;
 	protected static int mMainThreadID;
 	protected static bool mShowMessageBox = true;
-	protected static LOG_LEVEL mLogLevel = LOG_LEVEL.NORMAL;
+	protected static LOG_LEVEL mLogLevel = LOG_LEVEL.FORCE;
 	public static new void initUtility() { }
 	public static void setMainThreadID(int mainThreadID) { mMainThreadID = mainThreadID; }
 	public static bool isMainThread() { return Thread.CurrentThread.ManagedThreadId == mMainThreadID; }
-	public static void setLogCallback(onLog callback) { mOnLog = callback; }
+	public static void setLogCallback(OnLog callback) { mOnLog = callback; }
 	public static void setLogLevel(LOG_LEVEL level)
 	{
 		mLogLevel = level;
@@ -53,7 +51,7 @@ public class UnityUtility : FileUtility
 		string trackStr = new StackTrace().ToString();
 #if !UNITY_EDITOR
 		// 打包后使用LocalLog打印日志
-		FrameBase.mLocalLog?.log(time + ": error: " + info + ", stack: " + trackStr);
+		//FrameBase.mLocalLog?.log(time + ": error: " + info + ", stack: " + trackStr);
 #endif
 		UnityEngine.Debug.LogError(time + ": error: " + info + ", stack: " + trackStr);
 		mOnLog?.Invoke(time, ": error: " + info + ", stack: " + trackStr, LOG_LEVEL.FORCE, true);
@@ -76,7 +74,7 @@ public class UnityUtility : FileUtility
 		string fullInfo = time + ": " + info;
 #if !UNITY_EDITOR
 		// 打包后使用LocalLog打印日志
-		FrameBase.mLocalLog?.log(fullInfo);
+		//FrameBase.mLocalLog?.log(fullInfo);
 #endif
 		UnityEngine.Debug.Log(fullInfo);
 		mOnLog?.Invoke(time, info, level, false);
@@ -100,7 +98,7 @@ public class UnityUtility : FileUtility
 		string fullInfo = time + ": " + info;
 #if !UNITY_EDITOR
 		// 打包后使用LocalLog打印日志
-		FrameBase.mLocalLog?.log(fullInfo);
+		//FrameBase.mLocalLog?.log(fullInfo);
 #endif
 		UnityEngine.Debug.LogWarning(fullInfo);
 		mOnLog?.Invoke(time, info, level, false);
@@ -122,7 +120,12 @@ public class UnityUtility : FileUtility
 	{
 		return getTimeNoBuilder(DateTime.Now, display);
 	}
-	public static string getTime(int timeSecond, TIME_DISPLAY display)
+	public static string getTime(long timeStamp, TIME_DISPLAY display)
+	{
+		return getTime(timeStampToDateTime(timeStamp), display);
+	}
+	// 一般用于倒计时显示的字符串
+	public static string getRemainTime(int timeSecond, TIME_DISPLAY display)
 	{
 		int min = timeSecond / 60;
 		int second = timeSecond % 60;
@@ -177,6 +180,10 @@ public class UnityUtility : FileUtility
 		{
 			return strcat_thread(IToS(time.Hour), "时", IToS(time.Minute), "分", IToS(time.Second), "秒");
 		}
+		else if(display == TIME_DISPLAY.YMD_ZH)
+		{
+			return strcat_thread(IToS(time.Year), "年", IToS(time.Month), "月", IToS(time.Day), "日");
+		}
 		return EMPTY;
 	}
 	// 只能在主线程中调用的获取当前时间字符串
@@ -193,6 +200,10 @@ public class UnityUtility : FileUtility
 		else if (display == TIME_DISPLAY.DHMS_ZH)
 		{
 			return strcat(IToS(time.Hour), "时", IToS(time.Minute), "分", IToS(time.Second), "秒");
+		}
+		else if (display == TIME_DISPLAY.YMD_ZH)
+		{
+			return strcat_thread(IToS(time.Year), "年", IToS(time.Month), "月", IToS(time.Day), "日");
 		}
 		return EMPTY;
 	}
@@ -439,16 +450,27 @@ public class UnityUtility : FileUtility
 		T obj;
 		try
 		{
+#if USE_ILRUNTIME
+			if(classType is ILRuntimeWrapperType)
+			{
+				obj = Activator.CreateInstance((classType as ILRuntimeWrapperType).CLRType.TypeForCLR, param) as T;
+			}
+			else if (classType is ILRuntimeType)
+			{
+				obj = (classType as ILRuntimeType).ILType.Instantiate(param).CLRInstance as T;
+			}
+			else
+			{
+				obj = Activator.CreateInstance(classType, param) as T;
+			}
+#else
 			obj = Activator.CreateInstance(classType, param) as T;
+#endif
 		}
 		catch (Exception e)
 		{
-#if USE_ILRUNTIME
-			obj = FrameBase.mILRSystem.getAppDomain().Instantiate<T>(classType.Name, param);
-#else
 			logError("create instance error! " + e.Message + ", inner error:" + e.InnerException?.Message);
 			obj = null;
-#endif
 		}
 		return obj;
 	}
@@ -606,10 +628,10 @@ public class UnityUtility : FileUtility
 		{
 			return null;
 		}
-		T component = parent.GetComponent<T>();
-		if (component != null)
+		T com = parent.GetComponent<T>();
+		if (com != null)
 		{
-			return component;
+			return com;
 		}
 		return getComponentInParent<T>(parent.gameObject);
 	}
@@ -670,6 +692,11 @@ public class UnityUtility : FileUtility
 			fullTrace += "at " + frame.GetFileName() + ":" + frame.GetFileLineNumber() + "\n";
 		}
 		return fullTrace;
+	}
+	// 此处只是定义一个空函数,为了能够进行重定向,因为只有在重定向中才能获取真正的堆栈信息
+	public static string getILRStackTrace()
+	{
+		return "";
 	}
 	public static uint makeID()
 	{
@@ -1353,14 +1380,13 @@ public class UnityUtility : FileUtility
 	{
 		Type type = typeof(T);
 #if USE_ILRUNTIME
-		if (typeof(CrossBindingAdaptorType).IsAssignableFrom(type))
+		if (typeof(CrossBindingAdaptorType).IsAssignableFrom(type) ||
+			typeof(ILTypeInstance).IsAssignableFrom(type) ||
+			typeof(ILRuntimeWrapperType).IsAssignableFrom(type) ||
+			typeof(ILRuntimeType).IsAssignableFrom(type))
 		{
-			logError("无法获取热更工程中的类型,请确保没有在热更工程中调用Typeof<>(), 在热更工程中获取类型请使用typeof()");
-			return null;
-		}
-		if(typeof(ILTypeInstance).IsAssignableFrom(type))
-		{
-			logError("无法获取热更工程中的类型");
+			logError("无法获取热更工程中的类型,请确保没有在热更工程中调用Typeof<>(), 在热更工程中获取类型请使用typeof()," +
+					"或者没有调用CMD_MAIN,PACKET_MAIN,LIST_MAIN这类的只能在主工程中调用的函数");
 			return null;
 		}
 #endif

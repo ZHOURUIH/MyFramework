@@ -22,7 +22,7 @@ public class myUGUIScrollRect : myUGUIObject
 		}
 		if (mScrollRect == null)
 		{
-			logError(Typeof(this) + " can not find " + Typeof<ScrollRect>() + ", window:" + mName + ", layout:" + mLayout.getName());
+			logError(Typeof(this) + " can not find " + typeof(ScrollRect) + ", window:" + mName + ", layout:" + mLayout.getName());
 		}
 	}
 	public override void update(float elapsedTime)

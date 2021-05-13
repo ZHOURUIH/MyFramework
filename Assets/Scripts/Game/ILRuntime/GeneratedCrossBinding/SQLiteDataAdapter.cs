@@ -7,7 +7,7 @@ namespace HotFix
 {   
     public class SQLiteDataAdapter : CrossBindingAdaptor
     {
-        static CrossBindingMethodInfo<Mono.Data.Sqlite.SqliteDataReader> mparse_0 = new CrossBindingMethodInfo<Mono.Data.Sqlite.SqliteDataReader>("parse");
+        static CrossBindingMethodInfo<global::Mono.Data.Sqlite.SqliteDataReader> mparse_0 = new CrossBindingMethodInfo<global::Mono.Data.Sqlite.SqliteDataReader>("parse");
         class insert_1Info : CrossBindingMethodInfo
         {
             static Type[] pTypes = new Type[] {typeof(System.String).MakeByRefType()};
@@ -24,6 +24,7 @@ namespace HotFix
             public void Invoke(ILTypeInstance instance, ref System.String valueString)
             {
                 EnsureMethod(instance);
+
                 if (method != null)
                 {
                     invoking = true;
@@ -54,6 +55,11 @@ namespace HotFix
         static CrossBindingMethodInfo<global::MyStringBuilder> minsert_2 = new CrossBindingMethodInfo<global::MyStringBuilder>("insert");
         static CrossBindingFunctionInfo<System.Boolean> mcheckData_3 = new CrossBindingFunctionInfo<System.Boolean>("checkData");
         static CrossBindingMethodInfo mnotifyConstructDone_4 = new CrossBindingMethodInfo("notifyConstructDone");
+        static CrossBindingMethodInfo mresetProperty_5 = new CrossBindingMethodInfo("resetProperty");
+        static CrossBindingMethodInfo<System.Boolean> msetDestroy_6 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
+        static CrossBindingFunctionInfo<System.Boolean> misDestroy_7 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
+        static CrossBindingMethodInfo<System.Int64> msetAssignID_8 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
+        static CrossBindingFunctionInfo<System.Int64> mgetAssignID_9 = new CrossBindingFunctionInfo<System.Int64>("getAssignID");
         public override Type BaseCLRType
         {
             get
@@ -93,7 +99,7 @@ namespace HotFix
 
             public ILTypeInstance ILInstance { get { return instance; } }
 
-            public override void parse(Mono.Data.Sqlite.SqliteDataReader reader)
+            public override void parse(global::Mono.Data.Sqlite.SqliteDataReader reader)
             {
                 if (mparse_0.CheckShouldInvokeBase(this.instance))
                     base.parse(reader);
@@ -131,6 +137,46 @@ namespace HotFix
                     base.notifyConstructDone();
                 else
                     mnotifyConstructDone_4.Invoke(this.instance);
+            }
+
+            public override void resetProperty()
+            {
+                if (mresetProperty_5.CheckShouldInvokeBase(this.instance))
+                    base.resetProperty();
+                else
+                    mresetProperty_5.Invoke(this.instance);
+            }
+
+            public override void setDestroy(System.Boolean isDestroy)
+            {
+                if (msetDestroy_6.CheckShouldInvokeBase(this.instance))
+                    base.setDestroy(isDestroy);
+                else
+                    msetDestroy_6.Invoke(this.instance, isDestroy);
+            }
+
+            public override System.Boolean isDestroy()
+            {
+                if (misDestroy_7.CheckShouldInvokeBase(this.instance))
+                    return base.isDestroy();
+                else
+                    return misDestroy_7.Invoke(this.instance);
+            }
+
+            public override void setAssignID(System.Int64 assignID)
+            {
+                if (msetAssignID_8.CheckShouldInvokeBase(this.instance))
+                    base.setAssignID(assignID);
+                else
+                    msetAssignID_8.Invoke(this.instance, assignID);
+            }
+
+            public override System.Int64 getAssignID()
+            {
+                if (mgetAssignID_9.CheckShouldInvokeBase(this.instance))
+                    return base.getAssignID();
+                else
+                    return mgetAssignID_9.Invoke(this.instance);
             }
 
             public override string ToString()

@@ -7,48 +7,48 @@ using UnityEngine.U2D;
 
 public class ResourceManager : FrameSystem
 {
-	public static string mResourceRootPath = FrameDefine.F_STREAMING_ASSETS_PATH; // 当mLoadSource为1时,AssetBundle资源所在根目录,以/结尾,默认为StreamingAssets,可以为远端目录
-	public static bool mLocalRootPath = true;							// mResourceRootPath是否为本地的路径
-	public static bool mPersistentFirst = true;							// 当从AssetBundle加载资源时,是否先去persistentDataPath中查找资源
-	protected static Dictionary<Type, List<string>> mTypeSuffixList;    // 资源类型对应的后缀名
+	protected Dictionary<Type, List<string>> mTypeSuffixList;    // 资源类型对应的后缀名
 	protected AssetBundleLoader mAssetBundleLoader;
 	protected ResourceLoader mResourceLoader;
-	protected LOAD_SOURCE mLoadSource;									// 0为从Resources加载,1为从AssetBundle加载
+	protected string mResourceRootPath;							// 当mLoadSource为1时,AssetBundle资源所在根目录,以/结尾,默认为StreamingAssets,可以为远端目录
+	protected bool mLocalRootPath;								// mResourceRootPath是否为本地的路径
+	protected LOAD_SOURCE mLoadSource;                          // 0为从Resources加载,1为从AssetBundle加载
 	public ResourceManager()
 	{
 		mCreateObject = true;
+		mResourceRootPath = FrameDefine.FULL_RESOURCE_PATH;
+		mLocalRootPath = true;
 		mAssetBundleLoader = new AssetBundleLoader();
 		mResourceLoader = new ResourceLoader();
 		mTypeSuffixList = new Dictionary<Type, List<string>>();
-		registeSuffix(Typeof<Texture>(), ".png");
-		registeSuffix(Typeof<Texture2D>(), ".png");
-		registeSuffix(Typeof<GameObject>(), ".prefab");
-		registeSuffix(Typeof<GameObject>(), ".fbx");
-		registeSuffix(Typeof<Material>(), ".mat");
-		registeSuffix(Typeof<Shader>(), ".shader");
-		registeSuffix(Typeof<AudioClip>(), ".wav");
-		registeSuffix(Typeof<AudioClip>(), ".ogg");
-		registeSuffix(Typeof<AudioClip>(), ".mp3");
-		registeSuffix(Typeof<TextAsset>(), ".txt");
-		registeSuffix(Typeof<TextAsset>(), ".bytes");
-		registeSuffix(Typeof<RuntimeAnimatorController>(), ".controller");
-		registeSuffix(Typeof<RuntimeAnimatorController>(), ".overrideController");
-		registeSuffix(Typeof<SpriteAtlas>(), ".spriteatlas");
-		registeSuffix(Typeof<Sprite>(), ".png");
-		registeSuffix(Typeof<UnityEngine.Object>(), ".asset");
+		registeSuffix(typeof(Texture), ".png");
+		registeSuffix(typeof(Texture2D), ".png");
+		registeSuffix(typeof(GameObject), ".prefab");
+		registeSuffix(typeof(GameObject), ".fbx");
+		registeSuffix(typeof(Material), ".mat");
+		registeSuffix(typeof(Shader), ".shader");
+		registeSuffix(typeof(AudioClip), ".wav");
+		registeSuffix(typeof(AudioClip), ".ogg");
+		registeSuffix(typeof(AudioClip), ".mp3");
+		registeSuffix(typeof(TextAsset), ".txt");
+		registeSuffix(typeof(TextAsset), ".bytes");
+		registeSuffix(typeof(RuntimeAnimatorController), ".controller");
+		registeSuffix(typeof(RuntimeAnimatorController), ".overrideController");
+		registeSuffix(typeof(SpriteAtlas), ".spriteatlas");
+		registeSuffix(typeof(Sprite), ".png");
+		registeSuffix(typeof(UnityEngine.Object), ".asset");
 	}
 	public override void init()
 	{
 		base.init();
 #if UNITY_EDITOR
-		mLoadSource = (LOAD_SOURCE)(int)mFrameConfig.getFloat(GAME_FLOAT.LOAD_RESOURCES);
+		mLoadSource = (LOAD_SOURCE)(int)mFrameConfig.getFloat(FRAME_FLOAT.LOAD_RESOURCES);
 #else
 		mLoadSource = LOAD_SOURCE.ASSET_BUNDLE;
 #endif
 #if UNITY_EDITOR
 		mObject.AddComponent<ResourcesManagerDebug>();
 #endif
-		mPersistentFirst = (int)mFrameConfig.getFloat(GAME_FLOAT.PERSISTENT_DATA_FIRST) != 0;
 		// 如果从Resources加载,则固定为默认值
 		if (mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
@@ -76,7 +76,8 @@ public class ResourceManager : FrameSystem
 		mResourceLoader?.destroy();
 		base.destroy();
 	}
-	public bool isPersistentFirst() { return mPersistentFirst; }
+	public string getResourceRootPath() { return mResourceRootPath; }
+	public bool isLocalRootPath() { return mLocalRootPath; }
 	public AssetBundleLoader getAssetBundleLoader() { return mAssetBundleLoader; }
 	// 卸载加载的资源,不是实例化出的物体
 	public bool unload<T>(ref T obj) where T : UnityEngine.Object
@@ -299,17 +300,9 @@ public class ResourceManager : FrameSystem
 	public void loadStreamingAssetsFile(string filePath, out byte[] fileBytes)
 	{
 		// 优先从PersistentDataPath中加载
-		fileBytes = null;
-		if (mPersistentFirst && isFileExist(FrameDefine.F_PERSISTENT_DATA_PATH + filePath))
-		{
-			openFile(FrameDefine.F_PERSISTENT_DATA_PATH + filePath, out fileBytes, false);
-		}
-		if(fileBytes == null && isFileExist(FrameDefine.F_STREAMING_ASSETS_PATH + filePath))
-		{
-			openFile(FrameDefine.F_STREAMING_ASSETS_PATH + filePath, out fileBytes, false);
-		}
+		openFile(FrameDefine.FULL_RESOURCE_PATH + filePath, out fileBytes, false);
 	}
-	public static List<string> adjustResourceName<T>(string fileName, List<string> fileList, bool lower = true) where T : UnityEngine.Object
+	public List<string> adjustResourceName<T>(string fileName, List<string> fileList, bool lower = true) where T : UnityEngine.Object
 	{
 		// 将\\转为/,加上后缀名,转为小写
 		rightToLeft(ref fileName);
@@ -325,7 +318,7 @@ public class ResourceManager : FrameSystem
 		return fileList;
 	}
 	// 开放为公有的函数,让外部也能自己注册文件对应类型
-	public static void registeSuffix(Type t, string suffix)
+	public void registeSuffix(Type t, string suffix)
 	{
 		if (!mTypeSuffixList.TryGetValue(t, out List<string> list))
 		{
@@ -338,17 +331,21 @@ public class ResourceManager : FrameSystem
 	protected IEnumerator loadAssetsUrl(string url, Type assetsType, AssetLoadDoneCallback callback, object userData = null)
 	{
 		log("开始下载: " + url, LOG_LEVEL.HIGH);
-		if (assetsType == Typeof<AudioClip>())
+		if (assetsType == typeof(AudioClip))
 		{
 			yield return loadAudioClipWithURL(url, callback, userData);
 		}
-		else if (assetsType == Typeof<Texture2D>() || assetsType == Typeof<Texture>())
+		else if (assetsType == typeof(Texture2D) || assetsType == typeof(Texture))
 		{
 			yield return loadTextureWithURL(url, callback, userData);
 		}
-		else if (assetsType == Typeof<AssetBundle>())
+		else if (assetsType == typeof(AssetBundle))
 		{
 			yield return loadAssetBundleWithURL(url, callback, userData);
+		}
+		else
+		{
+			yield return loadFileWithURL(url, callback, userData);
 		}
 	}
 	protected IEnumerator loadAssetBundleWithURL(string url, AssetLoadDoneCallback callback, object userData = null)
@@ -359,12 +356,12 @@ public class ResourceManager : FrameSystem
 		yield return www;
 		if (www.error != null)
 		{
-			log("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.HIGH);
+			log("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.FORCE);
 			callback?.Invoke(null, null, null, userData, url);
 		}
 		else
 		{
-			log("下载成功:" + url, LOG_LEVEL.HIGH);
+			log("下载成功:" + url, LOG_LEVEL.FORCE);
 			downloadHandler.assetBundle.name = url;
 			callback?.Invoke(downloadHandler.assetBundle, null, www.downloadHandler.data, userData, url);
 		}
@@ -378,12 +375,12 @@ public class ResourceManager : FrameSystem
 		yield return www;
 		if (www.error != null)
 		{
-			log("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.HIGH);
+			log("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.FORCE);
 			callback?.Invoke(null, null, null, userData, url);
 		}
 		else
 		{
-			log("下载成功:" + url, LOG_LEVEL.HIGH);
+			log("下载成功:" + url, LOG_LEVEL.FORCE);
 			downloadHandler.audioClip.name = url;
 			callback?.Invoke(downloadHandler.audioClip, null, www.downloadHandler.data, userData, url);
 		}
@@ -396,20 +393,37 @@ public class ResourceManager : FrameSystem
 		yield return www;
 		if (www.error != null)
 		{
-			log("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.HIGH);
+			log("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.FORCE);
 			callback?.Invoke(null, null, null, userData, url);
 		}
 		else
 		{
-			log("下载成功:" + url, LOG_LEVEL.HIGH);
+			log("下载成功:" + url, LOG_LEVEL.FORCE);
 			Texture2D tex = DownloadHandlerTexture.GetContent(www);
 			tex.name = url;
 			callback?.Invoke(tex, null, www.downloadHandler.data, userData, url);
 		}
 		www.Dispose();
 	}
+	protected IEnumerator loadFileWithURL(string url, AssetLoadDoneCallback callback, object userData = null)
+	{
+		// 由于UnityWebRequest无法下载成功,原因暂时未知,所以还是使用WWW进行下载
+		WWW www = new WWW(url);
+		yield return www;
+		if (www.error != null)
+		{
+			log("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.FORCE);
+			callback?.Invoke(null, null, null, userData, url);
+		}
+		else
+		{
+			log("下载成功:" + url + ", size:" + www.bytes.Length, LOG_LEVEL.FORCE);
+			callback?.Invoke(null, null, www.bytes, userData, url);
+		}
+		www.Dispose();
+	}
 	// 为资源名加上对应的后缀名
-	protected static List<string> addSuffix(string fileName, Type type, List<string> fileList)
+	protected List<string> addSuffix(string fileName, Type type, List<string> fileList)
 	{
 		fileList.Clear();
 		if (!mTypeSuffixList.TryGetValue(type, out List<string> list))

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 public class EventSystem : FrameSystem
 {
-	protected Dictionary<IEventListener, List<GameEventInfo>> mListenerInfoList;	// 每个监听者所监听的所有事件信息列表
-	protected Dictionary<int, List<GameEventInfo>> mListenerEventList;				// 每个事件对应的监听者列表
+	protected Dictionary<object, List<GameEventInfo>> mListenerList;		// 每个监听者所监听的所有事件信息列表
+	protected Dictionary<int, List<GameEventInfo>> mListenerEventList;		// 每个事件对应的监听者列表
 	public EventSystem()
 	{
-		mListenerInfoList = new Dictionary<IEventListener, List<GameEventInfo>>();
+		mListenerList = new Dictionary<object, List<GameEventInfo>>();
 		mListenerEventList = new Dictionary<int, List<GameEventInfo>>();
 	}
 	public void pushEvent(int eventType, GameEvent param)
@@ -23,9 +23,9 @@ public class EventSystem : FrameSystem
 		// 回收事件参数
 		UN_CLASS(param);
 	}
-	public void listenEvent(int eventType, EventCallback callback, IEventListener listener)
+	public void listenEvent(int eventType, EventCallback callback, object listener)
 	{
-		CLASS(out GameEventInfo info);
+		CLASS_MAIN(out GameEventInfo info);
 		info.mCallback = callback;
 		info.mType = eventType;
 		info.mLisntener = listener;
@@ -35,16 +35,16 @@ public class EventSystem : FrameSystem
 			mListenerEventList.Add(eventType, eventList);
 		}
 		eventList.Add(info);
-		if (!mListenerInfoList.TryGetValue(listener, out List<GameEventInfo> infoList))
+		if (!mListenerList.TryGetValue(listener, out List<GameEventInfo> infoList))
 		{
 			infoList = new List<GameEventInfo>();
-			mListenerInfoList.Add(listener, infoList);
+			mListenerList.Add(listener, infoList);
 		}
 		infoList.Add(info);
 	}
-	public void unlistenEvent(IEventListener listener)
+	public void unlistenEvent(object listener)
 	{
-		if (!mListenerInfoList.TryGetValue(listener, out List<GameEventInfo> infoList))
+		if (!mListenerList.TryGetValue(listener, out List<GameEventInfo> infoList))
 		{
 			return;
 		}
@@ -52,16 +52,17 @@ public class EventSystem : FrameSystem
 		for(int i = 0; i < infoCount; ++i)
 		{
 			GameEventInfo info = infoList[i];
-			if (mListenerEventList.TryGetValue(info.mType, out List<GameEventInfo> eventList))
+			if (!mListenerEventList.TryGetValue(info.mType, out List<GameEventInfo> eventList))
 			{
-				eventList.Remove(info);
-				if (eventList.Count == 0)
-				{
-					mListenerEventList.Remove(info.mType);
-				}
+				continue;
+			}
+			eventList.Remove(info);
+			if (eventList.Count == 0)
+			{
+				mListenerEventList.Remove(info.mType);
 			}
 		}
 		infoList.Clear();
-		mListenerInfoList.Remove(listener);
+		mListenerList.Remove(listener);
 	}
 }

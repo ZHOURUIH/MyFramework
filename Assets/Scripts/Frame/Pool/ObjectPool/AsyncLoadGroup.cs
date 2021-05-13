@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System;
 
-public class AsyncLoadGroup : FrameBasePooledObject
+public class AsyncLoadGroup : FrameBase
 {
 	public Dictionary<string, GameObject> mNameList;
 	public CreateObjectGroupCallback mCallback;

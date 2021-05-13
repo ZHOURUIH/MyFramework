@@ -4,15 +4,15 @@ using System.Collections.Generic;
 public class AudioManager : FrameSystem
 {
 	protected Dictionary<string, AudioInfo> mAudioClipList;     // 音效资源列表
-	protected Dictionary<SOUND_DEFINE, string> mSoundDefineMap; // 音效定义与音效名的映射
-	protected Dictionary<SOUND_DEFINE, float> mVolumeScale;
+	protected Dictionary<int, string> mSoundDefineMap; // 音效定义与音效名的映射
+	protected Dictionary<int, float> mVolumeScale;
 	protected AssetLoadDoneCallback mAudioLoadCallback;
 	protected int mLoadedCount;
 	public AudioManager()
 	{
 		mAudioClipList = new Dictionary<string, AudioInfo>();
-		mSoundDefineMap = new Dictionary<SOUND_DEFINE, string>();
-		mVolumeScale = new Dictionary<SOUND_DEFINE, float>();
+		mSoundDefineMap = new Dictionary<int, string>();
+		mVolumeScale = new Dictionary<int, float>();
 		mAudioLoadCallback = onAudioLoaded;
 	}
 	public override void destroy()
@@ -24,6 +24,7 @@ public class AudioManager : FrameSystem
 			{
 				destroyGameObject(item.Value.mClip);
 			}
+			UN_CLASS(item.Value);
 		}
 		mAudioClipList.Clear();
 		base.destroy();
@@ -33,7 +34,7 @@ public class AudioManager : FrameSystem
 		string audioName = getFileNameNoSuffix(url, true);
 		if(!mAudioClipList.TryGetValue(audioName, out AudioInfo info))
 		{
-			info = new AudioInfo();
+			CLASS_MAIN(out info);
 			info.mAudioName = audioName;
 			info.mAudioPath = getFilePath(url);
 			info.mClip = null;
@@ -79,7 +80,7 @@ public class AudioManager : FrameSystem
 			loadAudio(info, async);
 		}
 	}
-	public void loadAudio(SOUND_DEFINE sound, bool async = true)
+	public void loadAudio(int sound, bool async = true)
 	{
 		if(!mSoundDefineMap.TryGetValue(sound, out string audioName))
 		{
@@ -101,9 +102,9 @@ public class AudioManager : FrameSystem
 		}
 		return info.mClip.length;
 	}
-	public float getAudioLength(SOUND_DEFINE sound)
+	public float getAudioLength(int sound)
 	{
-		string soundName = sound != SOUND_DEFINE.MIN ? mAudioManager.getAudioName(sound) : null;
+		string soundName = sound != 0 ? mAudioManager.getAudioName(sound) : null;
 		return getAudioLength(soundName);
 	}
 	// volume范围0-1,load表示如果音效未加载,则加载音效
@@ -161,7 +162,7 @@ public class AudioManager : FrameSystem
 	}
 	public bool isLoadDone() { return mLoadedCount == mAudioClipList.Count; }
 	public float getLoadedPercent() { return (float)mLoadedCount / mAudioClipList.Count; }
-	public float getVolumeScale(SOUND_DEFINE sound)
+	public float getVolumeScale(int sound)
 	{
 		if (mVolumeScale.TryGetValue(sound, out float volume))
 		{
@@ -169,7 +170,7 @@ public class AudioManager : FrameSystem
 		}
 		return 1.0f;
 	}
-	public string getAudioName(SOUND_DEFINE soundDefine)
+	public string getAudioName(int soundDefine)
 	{
 		if (mSoundDefineMap.TryGetValue(soundDefine, out string name))
 		{
@@ -183,7 +184,7 @@ public class AudioManager : FrameSystem
 		string audioName = getFileNameNoSuffix(fileName, true);
 		if(!mAudioClipList.ContainsKey(audioName))
 		{
-			AudioInfo newInfo = new AudioInfo();
+			CLASS_MAIN(out AudioInfo newInfo);
 			newInfo.mAudioName = audioName;
 			newInfo.mAudioPath = getFilePath(fileName);
 			newInfo.mClip = null;
@@ -194,7 +195,7 @@ public class AudioManager : FrameSystem
 		}
 	}
 	// 注册可以使用枚举访问的音效
-	public void registeSoundDefine(SOUND_DEFINE soundID, string audioName, string fileName, float volumeScale)
+	public void registeSoundDefine(int soundID, string audioName, string fileName, float volumeScale)
 	{
 		if (mSoundDefineMap.ContainsKey(soundID))
 		{
@@ -227,14 +228,16 @@ public class AudioManager : FrameSystem
 		if (async)
 		{
 			mResourceManager.loadResourceAsync<AudioClip>(fullName, mAudioLoadCallback);
-			return;
 		}
-		++mLoadedCount;
-		AudioClip audio = mResourceManager.loadResource<AudioClip>(fullName);
-		if (audio != null)
+		else
 		{
-			info.mClip = audio;
-			info.mState = LOAD_STATE.LOADED;
+			++mLoadedCount;
+			AudioClip audio = mResourceManager.loadResource<AudioClip>(fullName);
+			if (audio != null)
+			{
+				info.mClip = audio;
+				info.mState = LOAD_STATE.LOADED;
+			}
 		}
 	}
 	protected void onAudioLoaded(Object assets, Object[] subAssets, byte[] bytes, object userData, string loadPath)

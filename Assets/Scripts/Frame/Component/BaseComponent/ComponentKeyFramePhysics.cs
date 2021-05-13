@@ -1,6 +1,6 @@
 ﻿using System;
 
-public class ComponentKeyFramePhysics : ComponentKeyFrameBase
+public class ComponentKeyFramePhysics : ComponentKeyFrame
 {
 	public override void fixedUpdate(float elapsedTime)
 	{

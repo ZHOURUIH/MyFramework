@@ -155,7 +155,7 @@ public class UGUISlider : ComponentOwner, ISlider
 		}
 		return value;
 	}
-	protected void onMouseDown(Vector2 mousePos)
+	protected void onMouseDown(Vector3 mousePos, int touchID)
 	{
 		// 先调用开始回调
 		mSliderStartCallback?.Invoke();
@@ -163,7 +163,7 @@ public class UGUISlider : ComponentOwner, ISlider
 		updateSlider(screenPosToSliderValue(mousePos));
 		mDraging = true;
 	}
-	protected void onScreenMouseUp(IMouseEventCollect obj, Vector2 mousePos)
+	protected void onScreenMouseUp(IMouseEventCollect obj, Vector3 mousePos, int touchID)
 	{
 		// 调用结束回调
 		if (!mDraging)
@@ -173,7 +173,7 @@ public class UGUISlider : ComponentOwner, ISlider
 		mDraging = false;
 		mSliderEndCallback?.Invoke();
 	}
-	protected void onMouseMove(ref Vector3 mousePos, ref Vector3 moveDelta, float moveTime)
+	protected void onMouseMove(Vector3 mousePos, Vector3 moveDelta, float moveTime, int touchID)
 	{
 		if (!mDraging)
 		{

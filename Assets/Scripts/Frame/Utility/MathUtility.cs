@@ -2,122 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public struct Line2
-{
-	public Vector2 mStart;
-	public Vector2 mEnd;
-	public Line2(Vector2 start, Vector2 end)
-	{
-		mStart = start;
-		mEnd = end;
-	}
-	public Line3 toLine3()
-	{
-		return new Line3(mStart, mEnd);
-	}
-}
-
-public struct Line3
-{
-	public Vector3 mStart;
-	public Vector3 mEnd;
-	public Line3(Vector3 start, Vector3 end)
-	{
-		mStart = start;
-		mEnd = end;
-	}
-	public Line2 toLine2IgnoreY()
-	{
-		return new Line2(new Vector2(mStart.x, mStart.z), new Vector2(mEnd.x, mEnd.z));
-	}
-	public Line2 toLine2IgnoreX()
-	{
-		return new Line2(new Vector2(mStart.z, mStart.y), new Vector2(mEnd.z, mEnd.y));
-	}
-}
-
-public struct Triangle2
-{
-	public Vector2 mPoint0;
-	public Vector2 mPoint1;
-	public Vector2 mPoint2;
-	public Triangle2(Vector2 point0, Vector2 point1, Vector2 point2)
-	{
-		mPoint0 = point0;
-		mPoint1 = point1;
-		mPoint2 = point2;
-	}
-}
-
-public struct TriangleIntersectResult
-{
-	public Vector2 mIntersectPoint; // 交点
-	public Vector2 mLinePoint0;     // 交点所在的三角形的一条边的起点
-	public Vector2 mLinePoint1;     // 交点所在的三角形的一条边的终点
-}
-
-public struct PolygonIntersectResult
-{
-	public Vector2 mIntersectPoint0;// 第一个交点
-	public Vector2 mIntersectPoint1;// 第二个交点
-	public Line2 mLine0;			// 第一个交点所在线段
-	public Line2 mLine1;			// 第二个交点所在线段
-}
-
-public struct Circle3
-{
-	public Vector3 mCenter;
-	public float mRadius;
-	public Circle3(Vector3 center, float radius)
-	{
-		mCenter = center;
-		mRadius = radius;
-	}
-}
-
-// 寻路节点
-public struct PathNode
-{
-	public int mG;              // 到已经找到的上一个节点的实际消耗
-	public int mH;              // 到终点的预估消耗
-	public int mF;              // 预估消耗加实际消耗
-	public int mIndex;          // 该节点的下标
-	public int mParent;         // 该节点的父节点
-	public NODE_STATE mState;   // 0表示没有在开启或者关闭列表里，1表示在开启，2表示在关闭
-	public PathNode(int g, int h, int f, int index, int parent, NODE_STATE state)
-	{
-		mG = g;
-		mH = h;
-		mF = f;
-		mIndex = index;
-		mParent = parent;
-		mState = state;
-	}
-	public void init(int index)
-	{
-		mG = 0;
-		mH = 0;
-		mF = 0;
-		mIndex = index;
-		mParent = -1;
-		mState = NODE_STATE.NONE;
-	}
-};
-public struct Point
-{
-	public int x;
-	public int y;
-	public Point(int xx, int yy)
-	{
-		x = xx;
-		y = yy;
-	}
-	public int toIndex(int width)
-	{
-		return y * width + x;
-	}
-}
-
 public class MathUtility : StringUtility
 {
 	private static List<PathNode> mTempOpenList = new List<PathNode>();
@@ -2054,8 +1938,10 @@ public class MathUtility : StringUtility
 	public static int getMin(int a, int b) { return a < b ? a : b; }
 	public static float getMin(float a, float b) { return a < b ? a : b; }
 	public static uint getMin(uint a, uint b) { return a < b ? a : b; }
+	public static long getMin(long a, long b) { return a < b ? a : b; }
 	public static int getMax(int a, int b) { return a > b ? a : b; }
 	public static float getMax(float a, float b) { return a > b ? a : b; }
+	public static long getMax(long a, long b) { return a > b ? a : b; }
 	public static uint getMax(uint a, uint b) { return a > b ? a : b; }
 	public static float inverseLerp(float a, float b, float value)
 	{
@@ -2180,6 +2066,26 @@ public class MathUtility : StringUtility
 			value = max;
 		}
 	}
+	public static void clamp(ref long value, long min, long max)
+	{
+		if (min > max)
+		{
+			return;
+		}
+		if (min == max)
+		{
+			value = min;
+			return;
+		}
+		if (value < min)
+		{
+			value = min;
+		}
+		else if (value > max)
+		{
+			value = max;
+		}
+	}
 	public static float clamp(float value, float min, float max)
 	{
 		if (min > max || isFloatEqual(min, max))
@@ -2216,7 +2122,34 @@ public class MathUtility : StringUtility
 		}
 		return value;
 	}
+	public static long clamp(long value, long min, long max)
+	{
+		if (min > max)
+		{
+			return value;
+		}
+		if (min == max)
+		{
+			return min;
+		}
+		if (value < min)
+		{
+			return min;
+		}
+		else if (value > max)
+		{
+			return max;
+		}
+		return value;
+	}
 	public static void clampMin(ref int value, int min = 0)
+	{
+		if (value < min)
+		{
+			value = min;
+		}
+	}
+	public static void clampMin(ref long value, long min = 0)
 	{
 		if (value < min)
 		{
@@ -2232,21 +2165,24 @@ public class MathUtility : StringUtility
 	}
 	public static float clampMin(float value, float min = 0.0f)
 	{
-		if (value < min)
-		{
-			return min;
-		}
-		return value;
+		return value < min ? min : value;
 	}
 	public static int clampMin(int value, int min = 0)
 	{
-		if (value < min)
-		{
-			return min;
-		}
-		return value;
+		return value < min ? min : value;
+	}
+	public static long clampMin(long value, int min = 0)
+	{
+		return value < min ? min : value;
 	}
 	public static void clampMax(ref int value, int max)
+	{
+		if (value > max)
+		{
+			value = max;
+		}
+	}
+	public static void clampMax(ref long value, long max)
 	{
 		if (value > max)
 		{
@@ -2262,19 +2198,15 @@ public class MathUtility : StringUtility
 	}
 	public static int clampMax(int value, int max)
 	{
-		if (value > max)
-		{
-			return max;
-		}
-		return value;
+		return value > max ? max : value;
+	}
+	public static long clampMax(long value, long max)
+	{
+		return value > max ? max : value;
 	}
 	public static float clampMax(float value, float max)
 	{
-		if (value > max)
-		{
-			return max;
-		}
-		return value;
+		return value > max ? max : value;
 	}
 	public static bool isFloatZero(float value, float precision = 0.0001f)
 	{

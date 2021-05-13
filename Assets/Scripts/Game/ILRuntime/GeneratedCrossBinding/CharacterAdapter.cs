@@ -54,107 +54,18 @@ namespace HotFix
         static CrossBindingMethodInfo<global::ObjectClickCallback> msetClickCallback_44 = new CrossBindingMethodInfo<global::ObjectClickCallback>("setClickCallback");
         static CrossBindingMethodInfo<global::ObjectHoverCallback> msetHoverCallback_45 = new CrossBindingMethodInfo<global::ObjectHoverCallback>("setHoverCallback");
         static CrossBindingMethodInfo<global::ObjectPressCallback> msetPressCallback_46 = new CrossBindingMethodInfo<global::ObjectPressCallback>("setPressCallback");
-        static CrossBindingMethodInfo monMouseEnter_47 = new CrossBindingMethodInfo("onMouseEnter");
-        static CrossBindingMethodInfo monMouseLeave_48 = new CrossBindingMethodInfo("onMouseLeave");
-        static CrossBindingMethodInfo<UnityEngine.Vector3> monMouseDown_49 = new CrossBindingMethodInfo<UnityEngine.Vector3>("onMouseDown");
-        static CrossBindingMethodInfo<UnityEngine.Vector3> monMouseUp_50 = new CrossBindingMethodInfo<UnityEngine.Vector3>("onMouseUp");
-        class onMouseMove_51Info : CrossBindingMethodInfo
-        {
-            static Type[] pTypes = new Type[] {typeof(UnityEngine.Vector3).MakeByRefType(), typeof(UnityEngine.Vector3).MakeByRefType(), typeof(System.Single)};
-
-            public onMouseMove_51Info()
-                : base("onMouseMove")
-            {
-
-            }
-
-            protected override Type ReturnType { get { return null; } }
-
-            protected override Type[] Parameters { get { return pTypes; } }
-            public void Invoke(ILTypeInstance instance, ref UnityEngine.Vector3 mousePos, ref UnityEngine.Vector3 moveDelta, System.Single moveTime)
-            {
-                EnsureMethod(instance);
-                if (method != null)
-                {
-                    invoking = true;
-                    try
-                    {
-                        using (var ctx = domain.BeginInvoke(method))
-                        {
-                            ctx.PushObject(mousePos);
-                            ctx.PushObject(moveDelta);
-                            ctx.PushObject(instance);
-                            ctx.PushReference(0);
-                            ctx.PushReference(1);
-                            ctx.PushInteger(moveTime);
-                            ctx.Invoke();
-                            mousePos = ctx.ReadObject<UnityEngine.Vector3>(0);
-                            moveDelta = ctx.ReadObject<UnityEngine.Vector3>(1);
-                        }
-                    }
-                    finally
-                    {
-                        invoking = false;
-                    }
-                }
-            }
-
-            public override void Invoke(ILTypeInstance instance)
-            {
-                throw new NotSupportedException();
-            }
-        }
-        static onMouseMove_51Info monMouseMove_51 = new onMouseMove_51Info();
-        static CrossBindingMethodInfo<UnityEngine.Vector3> monMouseStay_52 = new CrossBindingMethodInfo<UnityEngine.Vector3>("onMouseStay");
-        static CrossBindingMethodInfo<UnityEngine.Vector3> monScreenMouseDown_53 = new CrossBindingMethodInfo<UnityEngine.Vector3>("onScreenMouseDown");
-        static CrossBindingMethodInfo<UnityEngine.Vector3> monScreenMouseUp_54 = new CrossBindingMethodInfo<UnityEngine.Vector3>("onScreenMouseUp");
-        class onReceiveDrag_55Info : CrossBindingMethodInfo
-        {
-            static Type[] pTypes = new Type[] {typeof(global::IMouseEventCollect), typeof(System.Boolean).MakeByRefType()};
-
-            public onReceiveDrag_55Info()
-                : base("onReceiveDrag")
-            {
-
-            }
-
-            protected override Type ReturnType { get { return null; } }
-
-            protected override Type[] Parameters { get { return pTypes; } }
-            public void Invoke(ILTypeInstance instance, global::IMouseEventCollect dragObj, ref System.Boolean continueEvent)
-            {
-                EnsureMethod(instance);
-                if (method != null)
-                {
-                    invoking = true;
-                    try
-                    {
-                        using (var ctx = domain.BeginInvoke(method))
-                        {
-                            ctx.PushObject(continueEvent);
-                            ctx.PushObject(instance);
-                            ctx.PushObject(dragObj);
-                            ctx.PushReference(0);
-                            ctx.Invoke();
-                            continueEvent = ctx.ReadObject<System.Boolean>(0);
-                        }
-                    }
-                    finally
-                    {
-                        invoking = false;
-                    }
-                }
-            }
-
-            public override void Invoke(ILTypeInstance instance)
-            {
-                throw new NotSupportedException();
-            }
-        }
-        static onReceiveDrag_55Info monReceiveDrag_55 = new onReceiveDrag_55Info();
+        static CrossBindingMethodInfo<System.Int32> monMouseEnter_47 = new CrossBindingMethodInfo<System.Int32>("onMouseEnter");
+        static CrossBindingMethodInfo<System.Int32> monMouseLeave_48 = new CrossBindingMethodInfo<System.Int32>("onMouseLeave");
+        static CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32> monMouseDown_49 = new CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32>("onMouseDown");
+        static CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32> monMouseUp_50 = new CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32>("onMouseUp");
+        static CrossBindingMethodInfo<UnityEngine.Vector3, UnityEngine.Vector3, System.Single, System.Int32> monMouseMove_51 = new CrossBindingMethodInfo<UnityEngine.Vector3, UnityEngine.Vector3, System.Single, System.Int32>("onMouseMove");
+        static CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32> monMouseStay_52 = new CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32>("onMouseStay");
+        static CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32> monScreenMouseDown_53 = new CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32>("onScreenMouseDown");
+        static CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32> monScreenMouseUp_54 = new CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32>("onScreenMouseUp");
+        static CrossBindingMethodInfo<global::IMouseEventCollect, global::BOOL> monReceiveDrag_55 = new CrossBindingMethodInfo<global::IMouseEventCollect, global::BOOL>("onReceiveDrag");
         static CrossBindingMethodInfo<global::IMouseEventCollect, System.Boolean> monDragHoverd_56 = new CrossBindingMethodInfo<global::IMouseEventCollect, System.Boolean>("onDragHoverd");
-        static CrossBindingMethodInfo<UnityEngine.Vector2, UnityEngine.Vector2> monMultiTouchStart_57 = new CrossBindingMethodInfo<UnityEngine.Vector2, UnityEngine.Vector2>("onMultiTouchStart");
-        static CrossBindingMethodInfo<UnityEngine.Vector2, UnityEngine.Vector2, UnityEngine.Vector2, UnityEngine.Vector2> monMultiTouchMove_58 = new CrossBindingMethodInfo<UnityEngine.Vector2, UnityEngine.Vector2, UnityEngine.Vector2, UnityEngine.Vector2>("onMultiTouchMove");
+        static CrossBindingMethodInfo<UnityEngine.Vector3, UnityEngine.Vector3> monMultiTouchStart_57 = new CrossBindingMethodInfo<UnityEngine.Vector3, UnityEngine.Vector3>("onMultiTouchStart");
+        static CrossBindingMethodInfo<UnityEngine.Vector3, UnityEngine.Vector3, UnityEngine.Vector3, UnityEngine.Vector3> monMultiTouchMove_58 = new CrossBindingMethodInfo<UnityEngine.Vector3, UnityEngine.Vector3, UnityEngine.Vector3, UnityEngine.Vector3>("onMultiTouchMove");
         static CrossBindingMethodInfo monMultiTouchEnd_59 = new CrossBindingMethodInfo("onMultiTouchEnd");
         static CrossBindingMethodInfo<System.Single> msetAlpha_60 = new CrossBindingMethodInfo<System.Single>("setAlpha");
         static CrossBindingFunctionInfo<System.Single> mgetAlpha_61 = new CrossBindingFunctionInfo<System.Single>("getAlpha");
@@ -165,11 +76,11 @@ namespace HotFix
         static CrossBindingMethodInfo<System.Boolean, System.Boolean> msetIgnoreTimeScale_66 = new CrossBindingMethodInfo<System.Boolean, System.Boolean>("setIgnoreTimeScale");
         static CrossBindingMethodInfo<global::Command> mreceiveCommand_67 = new CrossBindingMethodInfo<global::Command>("receiveCommand");
         static CrossBindingFunctionInfo<System.String> mgetName_68 = new CrossBindingFunctionInfo<System.String>("getName");
-        static CrossBindingMethodInfo<System.Boolean> msetDestroy_69 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
-        static CrossBindingFunctionInfo<System.Boolean> misDestroy_70 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
-        static CrossBindingMethodInfo<System.UInt64> msetAssignID_71 = new CrossBindingMethodInfo<System.UInt64>("setAssignID");
-        static CrossBindingFunctionInfo<System.UInt64> mgetAssignID_72 = new CrossBindingFunctionInfo<System.UInt64>("getAssignID");
-        static CrossBindingMethodInfo mnotifyConstructDone_73 = new CrossBindingMethodInfo("notifyConstructDone");
+        static CrossBindingMethodInfo mnotifyConstructDone_69 = new CrossBindingMethodInfo("notifyConstructDone");
+        static CrossBindingMethodInfo<System.Boolean> msetDestroy_70 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
+        static CrossBindingFunctionInfo<System.Boolean> misDestroy_71 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
+        static CrossBindingMethodInfo<System.Int64> msetAssignID_72 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
+        static CrossBindingFunctionInfo<System.Int64> mgetAssignID_73 = new CrossBindingFunctionInfo<System.Int64>("getAssignID");
         public override Type BaseCLRType
         {
             get
@@ -249,12 +160,12 @@ namespace HotFix
                     return mgetAnimationLength_4.Invoke(this.instance, name);
             }
 
-            public override void notifyComponentChanged(global::GameComponent component)
+            public override void notifyComponentChanged(global::GameComponent com)
             {
                 if (mnotifyComponentChanged_5.CheckShouldInvokeBase(this.instance))
-                    base.notifyComponentChanged(component);
+                    base.notifyComponentChanged(com);
                 else
-                    mnotifyComponentChanged_5.Invoke(this.instance, component);
+                    mnotifyComponentChanged_5.Invoke(this.instance, com);
             }
 
             protected override void initComponents()
@@ -585,76 +496,76 @@ namespace HotFix
                     msetPressCallback_46.Invoke(this.instance, callback);
             }
 
-            public override void onMouseEnter()
+            public override void onMouseEnter(System.Int32 touchID)
             {
                 if (monMouseEnter_47.CheckShouldInvokeBase(this.instance))
-                    base.onMouseEnter();
+                    base.onMouseEnter(touchID);
                 else
-                    monMouseEnter_47.Invoke(this.instance);
+                    monMouseEnter_47.Invoke(this.instance, touchID);
             }
 
-            public override void onMouseLeave()
+            public override void onMouseLeave(System.Int32 touchID)
             {
                 if (monMouseLeave_48.CheckShouldInvokeBase(this.instance))
-                    base.onMouseLeave();
+                    base.onMouseLeave(touchID);
                 else
-                    monMouseLeave_48.Invoke(this.instance);
+                    monMouseLeave_48.Invoke(this.instance, touchID);
             }
 
-            public override void onMouseDown(UnityEngine.Vector3 mousePos)
+            public override void onMouseDown(UnityEngine.Vector3 mousePos, System.Int32 touchID)
             {
                 if (monMouseDown_49.CheckShouldInvokeBase(this.instance))
-                    base.onMouseDown(mousePos);
+                    base.onMouseDown(mousePos, touchID);
                 else
-                    monMouseDown_49.Invoke(this.instance, mousePos);
+                    monMouseDown_49.Invoke(this.instance, mousePos, touchID);
             }
 
-            public override void onMouseUp(UnityEngine.Vector3 mousePos)
+            public override void onMouseUp(UnityEngine.Vector3 mousePos, System.Int32 touchID)
             {
                 if (monMouseUp_50.CheckShouldInvokeBase(this.instance))
-                    base.onMouseUp(mousePos);
+                    base.onMouseUp(mousePos, touchID);
                 else
-                    monMouseUp_50.Invoke(this.instance, mousePos);
+                    monMouseUp_50.Invoke(this.instance, mousePos, touchID);
             }
 
-            public override void onMouseMove(ref UnityEngine.Vector3 mousePos, ref UnityEngine.Vector3 moveDelta, System.Single moveTime)
+            public override void onMouseMove(UnityEngine.Vector3 mousePos, UnityEngine.Vector3 moveDelta, System.Single moveTime, System.Int32 touchID)
             {
                 if (monMouseMove_51.CheckShouldInvokeBase(this.instance))
-                    base.onMouseMove(ref mousePos, ref moveDelta, moveTime);
+                    base.onMouseMove(mousePos, moveDelta, moveTime, touchID);
                 else
-                    monMouseMove_51.Invoke(this.instance, ref mousePos, ref moveDelta, moveTime);
+                    monMouseMove_51.Invoke(this.instance, mousePos, moveDelta, moveTime, touchID);
             }
 
-            public override void onMouseStay(UnityEngine.Vector3 mousePos)
+            public override void onMouseStay(UnityEngine.Vector3 mousePos, System.Int32 touchID)
             {
                 if (monMouseStay_52.CheckShouldInvokeBase(this.instance))
-                    base.onMouseStay(mousePos);
+                    base.onMouseStay(mousePos, touchID);
                 else
-                    monMouseStay_52.Invoke(this.instance, mousePos);
+                    monMouseStay_52.Invoke(this.instance, mousePos, touchID);
             }
 
-            public override void onScreenMouseDown(UnityEngine.Vector3 mousePos)
+            public override void onScreenMouseDown(UnityEngine.Vector3 mousePos, System.Int32 touchID)
             {
                 if (monScreenMouseDown_53.CheckShouldInvokeBase(this.instance))
-                    base.onScreenMouseDown(mousePos);
+                    base.onScreenMouseDown(mousePos, touchID);
                 else
-                    monScreenMouseDown_53.Invoke(this.instance, mousePos);
+                    monScreenMouseDown_53.Invoke(this.instance, mousePos, touchID);
             }
 
-            public override void onScreenMouseUp(UnityEngine.Vector3 mousePos)
+            public override void onScreenMouseUp(UnityEngine.Vector3 mousePos, System.Int32 touchID)
             {
                 if (monScreenMouseUp_54.CheckShouldInvokeBase(this.instance))
-                    base.onScreenMouseUp(mousePos);
+                    base.onScreenMouseUp(mousePos, touchID);
                 else
-                    monScreenMouseUp_54.Invoke(this.instance, mousePos);
+                    monScreenMouseUp_54.Invoke(this.instance, mousePos, touchID);
             }
 
-            public override void onReceiveDrag(global::IMouseEventCollect dragObj, ref System.Boolean continueEvent)
+            public override void onReceiveDrag(global::IMouseEventCollect dragObj, global::BOOL continueEvent)
             {
                 if (monReceiveDrag_55.CheckShouldInvokeBase(this.instance))
-                    base.onReceiveDrag(dragObj, ref continueEvent);
+                    base.onReceiveDrag(dragObj, continueEvent);
                 else
-                    monReceiveDrag_55.Invoke(this.instance, dragObj, ref continueEvent);
+                    monReceiveDrag_55.Invoke(this.instance, dragObj, continueEvent);
             }
 
             public override void onDragHoverd(global::IMouseEventCollect dragObj, System.Boolean hover)
@@ -665,7 +576,7 @@ namespace HotFix
                     monDragHoverd_56.Invoke(this.instance, dragObj, hover);
             }
 
-            public override void onMultiTouchStart(UnityEngine.Vector2 touch0, UnityEngine.Vector2 touch1)
+            public override void onMultiTouchStart(UnityEngine.Vector3 touch0, UnityEngine.Vector3 touch1)
             {
                 if (monMultiTouchStart_57.CheckShouldInvokeBase(this.instance))
                     base.onMultiTouchStart(touch0, touch1);
@@ -673,7 +584,7 @@ namespace HotFix
                     monMultiTouchStart_57.Invoke(this.instance, touch0, touch1);
             }
 
-            public override void onMultiTouchMove(UnityEngine.Vector2 touch0, UnityEngine.Vector2 lastTouch0, UnityEngine.Vector2 touch1, UnityEngine.Vector2 lastTouch1)
+            public override void onMultiTouchMove(UnityEngine.Vector3 touch0, UnityEngine.Vector3 lastTouch0, UnityEngine.Vector3 touch1, UnityEngine.Vector3 lastTouch1)
             {
                 if (monMultiTouchMove_58.CheckShouldInvokeBase(this.instance))
                     base.onMultiTouchMove(touch0, lastTouch0, touch1, lastTouch1);
@@ -729,12 +640,12 @@ namespace HotFix
                     mlateUpdate_64.Invoke(this.instance, elapsedTime);
             }
 
-            public override void notifyAddComponent(global::GameComponent component)
+            public override void notifyAddComponent(global::GameComponent com)
             {
                 if (mnotifyAddComponent_65.CheckShouldInvokeBase(this.instance))
-                    base.notifyAddComponent(component);
+                    base.notifyAddComponent(com);
                 else
-                    mnotifyAddComponent_65.Invoke(this.instance, component);
+                    mnotifyAddComponent_65.Invoke(this.instance, com);
             }
 
             public override void setIgnoreTimeScale(System.Boolean ignore, System.Boolean componentOnly)
@@ -761,44 +672,44 @@ namespace HotFix
                     return mgetName_68.Invoke(this.instance);
             }
 
+            public override void notifyConstructDone()
+            {
+                if (mnotifyConstructDone_69.CheckShouldInvokeBase(this.instance))
+                    base.notifyConstructDone();
+                else
+                    mnotifyConstructDone_69.Invoke(this.instance);
+            }
+
             public override void setDestroy(System.Boolean isDestroy)
             {
-                if (msetDestroy_69.CheckShouldInvokeBase(this.instance))
+                if (msetDestroy_70.CheckShouldInvokeBase(this.instance))
                     base.setDestroy(isDestroy);
                 else
-                    msetDestroy_69.Invoke(this.instance, isDestroy);
+                    msetDestroy_70.Invoke(this.instance, isDestroy);
             }
 
             public override System.Boolean isDestroy()
             {
-                if (misDestroy_70.CheckShouldInvokeBase(this.instance))
+                if (misDestroy_71.CheckShouldInvokeBase(this.instance))
                     return base.isDestroy();
                 else
-                    return misDestroy_70.Invoke(this.instance);
+                    return misDestroy_71.Invoke(this.instance);
             }
 
-            public override void setAssignID(System.UInt64 assignID)
+            public override void setAssignID(System.Int64 assignID)
             {
-                if (msetAssignID_71.CheckShouldInvokeBase(this.instance))
+                if (msetAssignID_72.CheckShouldInvokeBase(this.instance))
                     base.setAssignID(assignID);
                 else
-                    msetAssignID_71.Invoke(this.instance, assignID);
+                    msetAssignID_72.Invoke(this.instance, assignID);
             }
 
-            public override System.UInt64 getAssignID()
+            public override System.Int64 getAssignID()
             {
-                if (mgetAssignID_72.CheckShouldInvokeBase(this.instance))
+                if (mgetAssignID_73.CheckShouldInvokeBase(this.instance))
                     return base.getAssignID();
                 else
-                    return mgetAssignID_72.Invoke(this.instance);
-            }
-
-            public override void notifyConstructDone()
-            {
-                if (mnotifyConstructDone_73.CheckShouldInvokeBase(this.instance))
-                    base.notifyConstructDone();
-                else
-                    mnotifyConstructDone_73.Invoke(this.instance);
+                    return mgetAssignID_73.Invoke(this.instance);
             }
 
             public override string ToString()

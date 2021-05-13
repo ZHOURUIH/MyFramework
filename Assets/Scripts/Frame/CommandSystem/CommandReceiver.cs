@@ -1,6 +1,6 @@
 ﻿using System;
 
-public class CommandReceiver : GameBasePooledObject
+public class CommandReceiver : FrameBase
 {
 	protected string mName;
 	public virtual void receiveCommand(Command cmd)

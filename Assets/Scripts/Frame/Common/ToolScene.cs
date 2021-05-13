@@ -7,15 +7,15 @@ public class ST : FrameBase
 	#region 播放场景音效
 	public static void AUDIO()
 	{
-		pushMainCommand<CommandGameScenePlayAudio>(mGameSceneManager.getCurScene(), false);
+		pushMainCommand<CmdGameScenePlayAudio>(mGameSceneManager.getCurScene(), false);
 	}
-	public static void AUDIO(SOUND_DEFINE sound)
+	public static void AUDIO(int sound)
 	{
 		AUDIO(sound, true, 1.0f);
 	}
-	public static void AUDIO(SOUND_DEFINE sound, bool loop, float volume)
+	public static void AUDIO(int sound, bool loop, float volume)
 	{
-		CMD(out CommandGameScenePlayAudio cmd, false);
+		CMD_MAIN(out CmdGameScenePlayAudio cmd, false);
 		cmd.mSound = sound;
 		cmd.mLoop = loop;
 		cmd.mVolume = volume;
@@ -23,7 +23,7 @@ public class ST : FrameBase
 	}
 	public static void AUDIO(string sound, bool loop, float volume)
 	{
-		CMD(out CommandGameScenePlayAudio cmd, false);
+		CMD_MAIN(out CmdGameScenePlayAudio cmd, false);
 		cmd.mSoundFileName = sound;
 		cmd.mLoop = loop;
 		cmd.mVolume = volume;
@@ -34,35 +34,35 @@ public class ST : FrameBase
 	#region 场景音效音量
 	public static void AUDIO_VOLUME()
 	{
-		pushMainCommand<CommandGameSceneAudioVolume>(mGameSceneManager.getCurScene(), false);
+		pushMainCommand<CmdGameSceneAudioVolume>(mGameSceneManager.getCurScene(), false);
 	}
-	public static void AUDIO_VOLUME(float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound)
+	public static void AUDIO_VOLUME(float start, float target, float onceLength, int volumeCoeSound)
 	{
-		AUDIO_VOLUME_EX(KEY_FRAME.ZERO_ONE, start, target, onceLength, volumeCoeSound, false, null, null);
+		AUDIO_VOLUME_EX(KEY_CURVE.ZERO_ONE, start, target, onceLength, volumeCoeSound, false, null, null);
 	}
-	public static void AUDIO_VOLUME(KEY_FRAME keyframe, float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound, bool loop)
+	public static void AUDIO_VOLUME(int keyframe, float start, float target, float onceLength, int volumeCoeSound, bool loop)
 	{
 		AUDIO_VOLUME_EX(keyframe, start, target, onceLength, volumeCoeSound, loop, null, null);
 	}
-	public static void AUDIO_VOLUME_EX(float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound, KeyFrameCallback fadeDoneCallback)
+	public static void AUDIO_VOLUME_EX(float start, float target, float onceLength, int volumeCoeSound, KeyFrameCallback fadeDoneCallback)
 	{
-		AUDIO_VOLUME_EX(KEY_FRAME.ZERO_ONE, start, target, onceLength, volumeCoeSound, false, null, fadeDoneCallback);
+		AUDIO_VOLUME_EX(KEY_CURVE.ZERO_ONE, start, target, onceLength, volumeCoeSound, false, null, fadeDoneCallback);
 	}
-	public static void AUDIO_VOLUME_EX(KEY_FRAME keyframe, float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound, bool loop, KeyFrameCallback fadeDoneCallback)
+	public static void AUDIO_VOLUME_EX(int keyframe, float start, float target, float onceLength, int volumeCoeSound, bool loop, KeyFrameCallback fadeDoneCallback)
 	{
 		AUDIO_VOLUME_EX(keyframe, start, target, onceLength, volumeCoeSound, loop, null, fadeDoneCallback);
 	}
-	public static void AUDIO_VOLUME_EX(KEY_FRAME keyframe, float start, float target, float onceLength, SOUND_DEFINE volumeCoeSound, bool loop, KeyFrameCallback fadingCallback, KeyFrameCallback fadeDoneCallback)
+	public static void AUDIO_VOLUME_EX(int keyframe, float start, float target, float onceLength, int volumeCoeSound, bool loop, KeyFrameCallback fadingCallback, KeyFrameCallback fadeDoneCallback)
 	{
-		CMD(out CommandGameSceneAudioVolume cmd, false);
+		CMD_MAIN(out CmdGameSceneAudioVolume cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mStartVolume = start;
 		cmd.mTargetVolume = target;
 		cmd.mSoundVolumeCoe = volumeCoeSound;
 		cmd.mOnceLength = onceLength;
 		cmd.mLoop = loop;
-		cmd.mFadingCallback = fadingCallback;
-		cmd.mFadeDoneCallback = fadeDoneCallback;
+		cmd.mDoingCallback = fadingCallback;
+		cmd.mDoneCallback = fadeDoneCallback;
 		pushCommand(cmd, mGameSceneManager.getCurScene());
 	}
 	#endregion

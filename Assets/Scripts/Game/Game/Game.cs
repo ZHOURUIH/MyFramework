@@ -9,7 +9,7 @@ public class Game : GameFramework
 	protected override void initFrameSystem()
 	{
 		base.initFrameSystem();
-		registeFrameSystem(UnityUtility.Typeof<GameConfig>());
+		registeFrameSystem(typeof(BattleSystem));
 	}
 	protected override void init()
 	{
@@ -34,7 +34,7 @@ public class Game : GameFramework
 	protected override void launch()
 	{
 		base.launch();
-		FrameBase.CMD(out CommandGameSceneManagerEnter cmd, false);
+		FrameBase.CMD_MAIN(out CmdGameSceneManagerEnter cmd, false);
 		cmd.mSceneType = typeof(StartScene);
 		FrameBase.pushCommand(cmd, FrameBase.mGameSceneManager);
 	}

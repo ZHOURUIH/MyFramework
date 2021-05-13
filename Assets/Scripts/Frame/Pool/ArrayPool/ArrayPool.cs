@@ -115,29 +115,18 @@ public class ArrayPool : FrameSystem
 	{
 		Type type = typeof(T);
 		int length = array.Length;
-		Dictionary<int, HashSet<Array>> typeList;
-		if (onlyOnce)
+		var inuseList = onlyOnce ? mInusedList : mPersistentInuseList;
+		if (!inuseList.TryGetValue(type, out Dictionary<int, HashSet<Array>> typeList))
 		{
-			if (!mInusedList.TryGetValue(type, out typeList))
-			{
-				typeList = new Dictionary<int, HashSet<Array>>();
-				mInusedList.Add(type, typeList);
-			}
-		}
-		else
-		{
-			if (!mPersistentInuseList.TryGetValue(type, out typeList))
-			{
-				typeList = new Dictionary<int, HashSet<Array>>();
-				mPersistentInuseList.Add(type, typeList);
-			}
+			typeList = new Dictionary<int, HashSet<Array>>();
+			inuseList.Add(type, typeList);
 		}
 		if (!typeList.TryGetValue(length, out HashSet<Array> arrayList))
 		{
 			arrayList = new HashSet<Array>();
 			typeList.Add(length, arrayList);
 		}
-		if (arrayList.Count > 0 && arrayList.Contains(array))
+		else if (arrayList.Contains(array))
 		{
 			logError("array is in inuse list!");
 			return;
@@ -150,29 +139,21 @@ public class ArrayPool : FrameSystem
 		// 从使用列表移除,要确保操作的都是从本类创建的实例
 		Type type = typeof(T);
 		int length = array.Length;
+		Dictionary<int, HashSet<Array>> typeList;
 		HashSet<Array> arrayList;
-		if (mInusedList.TryGetValue(type, out Dictionary<int, HashSet<Array>> typeList) &&
-			typeList.TryGetValue(length, out arrayList))
+		if (mInusedList.TryGetValue(type, out typeList) &&
+			typeList.TryGetValue(length, out arrayList) &&
+			arrayList.Remove(array))
 		{
-			if (!arrayList.Remove(array))
-			{
-				logError("Inused List not contains size!");
-				return;
-			}
+			return;
 		}
-		else if (mPersistentInuseList.TryGetValue(type, out Dictionary<int, HashSet<Array>> persistentTypeList) &&
-				 persistentTypeList.TryGetValue(length, out arrayList))
+		if (mPersistentInuseList.TryGetValue(type, out typeList) &&
+			typeList.TryGetValue(length, out arrayList) &&
+			arrayList.Remove(array))
 		{
-			if (!arrayList.Remove(array))
-			{
-				logError("Inused List not contains size!");
-				return;
-			}
+			return;
 		}
-		else
-		{
-			logError("can not find size in Inused List! size : " + length);
-		}
+		logError("can not find size in Inused List! size : " + length);
 	}
 	protected void addUnuse<T>(T[] array)
 	{
@@ -189,7 +170,7 @@ public class ArrayPool : FrameSystem
 			arrayList = new HashSet<Array>();
 			typeList.Add(length, arrayList);
 		}
-		if(arrayList.Count > 0 && arrayList.Contains(array))
+		else if (arrayList.Contains(array))
 		{
 			logError("array is in Unused list! can not add again!");
 		}

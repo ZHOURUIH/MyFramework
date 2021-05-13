@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 
 // 决策树节点基类,DTree表示DecisionTree
-public class DTreeNode : GameBase
+public class DTreeNode : FrameBase
 {
 	public Dictionary<uint, DTreeNode> mChildMap;   // 以子节点的ID为索引的子节点列表
 	public List<DTreeNode> mChildList;              // 带顺序的子节点列表

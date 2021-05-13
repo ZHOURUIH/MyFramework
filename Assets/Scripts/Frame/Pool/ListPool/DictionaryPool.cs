@@ -5,16 +5,16 @@ using System.Collections.Generic;
 // 仅能在主线程中使用的字典列表池
 public class DictionaryPool : FrameSystem
 {
-	protected Dictionary<DictionaryType, HashSet<IEnumerable>> mPersistentInuseList;	// 持久使用的列表对象
-	protected Dictionary<DictionaryType, HashSet<IEnumerable>> mInusedList;			// 仅当前栈帧中使用的列表对象
-	protected Dictionary<DictionaryType, HashSet<IEnumerable>> mUnusedList;
-	protected Dictionary<IEnumerable, string> mObjectStack;
+	protected Dictionary<DictionaryType, HashSet<ICollection>> mPersistentInuseList;	// 持久使用的列表对象
+	protected Dictionary<DictionaryType, HashSet<ICollection>> mInusedList;			// 仅当前栈帧中使用的列表对象
+	protected Dictionary<DictionaryType, HashSet<ICollection>> mUnusedList;
+	protected Dictionary<ICollection, string> mObjectStack;
 	public DictionaryPool()
 	{
-		mPersistentInuseList = new Dictionary<DictionaryType, HashSet<IEnumerable>>();
-		mInusedList = new Dictionary<DictionaryType, HashSet<IEnumerable>>();
-		mUnusedList = new Dictionary<DictionaryType, HashSet<IEnumerable>>();
-		mObjectStack = new Dictionary<IEnumerable, string>();
+		mPersistentInuseList = new Dictionary<DictionaryType, HashSet<ICollection>>();
+		mInusedList = new Dictionary<DictionaryType, HashSet<ICollection>>();
+		mUnusedList = new Dictionary<DictionaryType, HashSet<ICollection>>();
+		mObjectStack = new Dictionary<ICollection, string>();
 		mCreateObject = true;
 	}
 	public override void init()
@@ -32,31 +32,31 @@ public class DictionaryPool : FrameSystem
 		{
 			foreach (var itemList in item.Value)
 			{
-				logError("有临时对象正在使用中,是否在申请后忘记回收到池中! create stack:" + mObjectStack[itemList] + "\n");
+				logError("DictionaryPool有临时对象正在使用中,是否在申请后忘记回收到池中! create stack:" + mObjectStack[itemList] + "\n");
 				break;
 			}
 		}
 #endif
 	}
-	public Dictionary<DictionaryType, HashSet<IEnumerable>> getPersistentInusedList() { return mPersistentInuseList; }
-	public Dictionary<DictionaryType, HashSet<IEnumerable>> getInusedList() { return mInusedList; }
-	public Dictionary<DictionaryType, HashSet<IEnumerable>> getUnusedList() { return mUnusedList; }
+	public Dictionary<DictionaryType, HashSet<ICollection>> getPersistentInusedList() { return mPersistentInuseList; }
+	public Dictionary<DictionaryType, HashSet<ICollection>> getInusedList() { return mInusedList; }
+	public Dictionary<DictionaryType, HashSet<ICollection>> getUnusedList() { return mUnusedList; }
 	// onlyOnce表示是否仅当作临时列表使用
-	public Dictionary<K, V> newList<K, V>(out Dictionary<K, V> list, bool onlyOnce = true)
+	public ICollection newList(Type keyType, Type valueType, Type listType, string stackTrace, bool onlyOnce = true)
 	{
-		list = null;
 		if (!isMainThread())
 		{
 			logError("只能在主线程中使用DictionaryPool,子线程中请使用DictionaryPoolThread代替");
 			return null;
 		}
-		var type = new DictionaryType(Typeof<K>(), Typeof<V>());
+		ICollection list = null;
+		var type = new DictionaryType(keyType, valueType);
 		// 先从未使用的列表中查找是否有可用的对象
-		if (mUnusedList.TryGetValue(type, out HashSet<IEnumerable> valueList) && valueList.Count > 0)
+		if (mUnusedList.TryGetValue(type, out HashSet<ICollection> valueList) && valueList.Count > 0)
 		{
 			foreach(var item in valueList)
 			{
-				list = item as Dictionary<K, V>;
+				list = item;
 				break;
 			}
 			valueList.Remove(list);
@@ -64,23 +64,16 @@ public class DictionaryPool : FrameSystem
 		// 未使用列表中没有,创建一个新的
 		else
 		{
-			list = new Dictionary<K, V>();
+			list = createInstance<ICollection>(listType);
 		}
 		// 标记为已使用
-		addInuse(list, onlyOnce);
+		addInuse(list, type, onlyOnce);
 #if UNITY_EDITOR
-		if (mGameFramework.isEnablePoolStackTrace())
-		{
-			mObjectStack.Add(list, getStackTrace());
-		}
-		else
-		{
-			mObjectStack.Add(list, EMPTY);
-		}
+		mObjectStack.Add(list, stackTrace);
 #endif
 		return list;
 	}
-	public void destroyList<K, V>(Dictionary<K, V> list)
+	public void destroyList(ICollection list, Type keyType, Type valueType)
 	{
 		if (!isMainThread())
 		{
@@ -90,93 +83,56 @@ public class DictionaryPool : FrameSystem
 #if UNITY_EDITOR
 		mObjectStack.Remove(list);
 #endif
-		list.Clear();
-		addUnuse(list);
-		removeInuse(list);
+		if(list.Count > 0)
+		{
+			logError("销毁列表时需要手动清空列表");
+		}
+		var type = new DictionaryType(keyType, valueType);
+		addUnuse(list, type);
+		removeInuse(list, type);
 	}
 	//----------------------------------------------------------------------------------------------------------------------------------------------
-	protected void addInuse<K, V>(Dictionary<K, V> list, bool onlyOnce)
+	protected void addInuse(ICollection list, DictionaryType type, bool onlyOnce)
 	{
-		var type = new DictionaryType(Typeof<K>(), Typeof<V>());
-		// 加入仅临时使用的列表对象的列表中
-		if (onlyOnce)
+		var inuseList = onlyOnce ? mInusedList : mPersistentInuseList;
+		if (!inuseList.TryGetValue(type, out HashSet<ICollection> valueList))
 		{
-			if (mInusedList.TryGetValue(type, out HashSet<IEnumerable> valueList))
-			{
-				if (valueList.Contains(list))
-				{
-					logError("list object is in inuse list!");
-					return;
-				}
-			}
-			else
-			{
-				valueList = new HashSet<IEnumerable>();
-				mInusedList.Add(type, valueList);
-			}
-			valueList.Add(list);
+			valueList = new HashSet<ICollection>();
+			inuseList.Add(type, valueList);
 		}
-		// 加入持久使用的列表对象的列表中
-		else
+		else if (valueList.Contains(list))
 		{
-			if (mPersistentInuseList.TryGetValue(type, out HashSet<IEnumerable> valueList))
-			{
-				if (valueList.Contains(list))
-				{
-					logError("list object is in inuse list!");
-					return;
-				}
-			}
-			else
-			{
-				valueList = new HashSet<IEnumerable>();
-				mPersistentInuseList.Add(type, valueList);
-			}
-			valueList.Add(list);
-		}
-	}
-	protected void removeInuse<K, V>(Dictionary<K, V> list)
-	{
-		// 从使用列表移除,要确保操作的都是从本类创建的实例
-		var type = new DictionaryType(Typeof<K>(), Typeof<V>());
-		if (mInusedList.TryGetValue(type, out HashSet<IEnumerable> valueList))
-		{
-			if (!valueList.Remove(list))
-			{
-				logError("Inused List not contains class object!");
-				return;
-			}
-		}
-		else if(mPersistentInuseList.TryGetValue(type, out HashSet<IEnumerable> persistentValueList))
-		{
-			if (!persistentValueList.Remove(list))
-			{
-				logError("Inused List not contains class object!");
-				return;
-			}
-		}
-		else
-		{
-			logError("can not find class type in Inused List! type : " + type);
+			logError("list object is in inuse list!");
 			return;
 		}
+		valueList.Add(list);
 	}
-	protected void addUnuse<K, V>(Dictionary<K, V> list)
+	protected void removeInuse(ICollection list, DictionaryType type)
+	{
+		// 从使用列表移除,要确保操作的都是从本类创建的实例
+		HashSet<ICollection> valueList;
+		if (mInusedList.TryGetValue(type, out valueList) && valueList.Remove(list))
+		{
+			return;
+		}
+		if (mPersistentInuseList.TryGetValue(type, out valueList) && valueList.Remove(list))
+		{
+			return;
+		}
+		logError("can not find class type in Inused List! type : " + type);
+	}
+	protected void addUnuse(ICollection list, DictionaryType type)
 	{
 		// 加入未使用列表
-		var type = new DictionaryType(Typeof<K>(), Typeof<V>());
-		if (mUnusedList.TryGetValue(type, out HashSet<IEnumerable> valueList))
+		if (!mUnusedList.TryGetValue(type, out HashSet<ICollection> valueList))
 		{
-			if (valueList.Contains(list))
-			{
-				logError("list Object is in Unused list! can not add again!");
-				return;
-			}
-		}
-		else
-		{
-			valueList = new HashSet<IEnumerable>();
+			valueList = new HashSet<ICollection>();
 			mUnusedList.Add(type, valueList);
+		}
+		else if (valueList.Contains(list))
+		{
+			logError("list Object is in Unused list! can not add again!");
+			return;
 		}
 		valueList.Add(list);
 	}

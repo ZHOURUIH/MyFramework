@@ -5,8 +5,8 @@ public class DTreeControlRandom : DTreeControl
 {
 	public override void execute()
 	{
-		LIST(out List<DTreeNode> availableChildList);
-		LIST(out List<float> oddsList);
+		LIST_MAIN(out List<DTreeNode> availableChildList);
+		LIST_MAIN(out List<float> oddsList);
 		// 按子节点顺序查看子节点是否满足条件
 		int count = mChildList.Count;
 		for (int i = 0; i < count; ++i)
@@ -25,8 +25,8 @@ public class DTreeControlRandom : DTreeControl
 		{
 			availableChildList[index].execute();
 		}
-		UN_LIST(availableChildList);
-		UN_LIST(oddsList);
+		UN_LIST_MAIN(availableChildList);
+		UN_LIST_MAIN(oddsList);
 	}
 	//--------------------------------------------------------------------------------------------------------------
 }

@@ -77,9 +77,9 @@ public class AnimControl : FrameBase
 					}
 					else
 					{
+						// 非循环播放时播放完成后,停止播放
 						if (mLoopMode == LOOP_MODE.ONCE)
 						{
-							// 非循环播放时播放完成后,停止播放
 							stop(mAutoResetIndex, true, false);
 						}
 						// 普通循环,则将下标重置到终止下标
@@ -126,17 +126,7 @@ public class AnimControl : FrameBase
 	public float getPlayedTime() { return mPlayedTime; }
 	public float getLength() { return mTextureCount * mInterval; }
 	// 获得实际的终止下标,如果是自动获得,则返回最后一张的下标
-	public int getRealEndIndex()
-	{
-		if (mEndIndex < 0)
-		{
-			return getMax(getTextureFrameCount() - 1, 0);
-		}
-		else
-		{
-			return mEndIndex;
-		}
-	}
+	public int getRealEndIndex() { return mEndIndex >= 0 ? mEndIndex : getMax(getTextureFrameCount() - 1, 0); }
 	public void setLoop(LOOP_MODE loop) { mLoopMode = loop; }
 	public void setInterval(float interval) { mInterval = interval; }
 	public void setSpeed(float speed) { setInterval(speedToInterval(speed)); }

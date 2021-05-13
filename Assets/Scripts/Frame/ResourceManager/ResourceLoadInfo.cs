@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class ResourceLoadInfo : GameBasePooledObject
+public class ResourceLoadInfo : FrameBase
 {	
 	public List<AssetLoadDoneCallback> mCallback;
 	public List<object> mUserData;

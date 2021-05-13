@@ -1,6 +1,6 @@
 ﻿using System;
 
-public class PrefabLoadParam : GameBasePooledObject
+public class PrefabLoadParam : FrameBase
 {
 	public CreateObjectCallback mCallback;
 	public object mUserData;

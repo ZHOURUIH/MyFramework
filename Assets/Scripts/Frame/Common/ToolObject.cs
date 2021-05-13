@@ -13,7 +13,7 @@ public class OT : FrameBase
 		{
 			return;
 		}
-		CMD(out CommandCameraFOV cmd, false);
+		CMD_MAIN(out CmdCameraFOV cmd, false);
 		cmd.mStartFOV = fov;
 		cmd.mTargetFOV = fov;
 		cmd.mOnceLength = 0.0f;
@@ -21,23 +21,23 @@ public class OT : FrameBase
 	}
 	public static void FOV(GameCamera obj, float start, float target, float onceLength)
 	{
-		FOV_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		FOV_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void FOV(GameCamera obj, KEY_FRAME keyframe, float start, float target, float onceLength)
+	public static void FOV(GameCamera obj, int keyframe, float start, float target, float onceLength)
 	{
 		FOV_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
 	public static void FOV_EX(GameCamera obj, float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		FOV_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		FOV_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static void FOV_EX(GameCamera obj, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
+	public static void FOV_EX(GameCamera obj, int keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return;
 		}
-		CMD(out CommandCameraFOV cmd, false);
+		CMD_MAIN(out CmdCameraFOV cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartFOV = start;
@@ -50,19 +50,19 @@ public class OT : FrameBase
 	}
 	public static void ORTHO_SIZE(GameCamera obj, float start, float target, float onceLength)
 	{
-		ORTHO_SIZE_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		ORTHO_SIZE_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
 	public static void ORTHO_SIZE_EX(GameCamera obj, float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		ORTHO_SIZE_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		ORTHO_SIZE_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static void ORTHO_SIZE_EX(GameCamera obj, KEY_FRAME keyframe, float startFOV, float targetFOV, float onceLength, bool loop, float offset, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
+	public static void ORTHO_SIZE_EX(GameCamera obj, int keyframe, float startFOV, float targetFOV, float onceLength, bool loop, float offset, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return;
 		}
-		CMD(out CommandCameraOrthoSize cmd, false);
+		CMD_MAIN(out CmdCameraOrthoSize cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartOrthoSize = startFOV;
@@ -81,17 +81,17 @@ public class OT : FrameBase
 	{
 		obj?.setActive(active);
 	}
-	public static CommandMovableObjectActive ACTIVE_DELAY(IDelayCmdWatcher watcher, MovableObject obj, bool active, float delayTime)
+	public static CmdMovableObjectActive ACTIVE_DELAY(IDelayCmdWatcher watcher, MovableObject obj, bool active, float delayTime)
 	{
 		return ACTIVE_DELAY_EX(watcher, obj, active, delayTime, null);
 	}
-	public static CommandMovableObjectActive ACTIVE_DELAY_EX(IDelayCmdWatcher watcher, MovableObject obj, bool active, float dealyTime, CommandCallback startCallback)
+	public static CmdMovableObjectActive ACTIVE_DELAY_EX(IDelayCmdWatcher watcher, MovableObject obj, bool active, float dealyTime, CommandCallback startCallback)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		CMD_DELAY(out CommandMovableObjectActive cmd, false);
+		CMD_MAIN_DELAY(out CmdMovableObjectActive cmd, false);
 		cmd.mActive = active;
 		cmd.addStartCommandCallback(startCallback);
 		pushDelayCommand(cmd, obj, dealyTime, watcher);
@@ -103,7 +103,7 @@ public class OT : FrameBase
 	#region 时间缩放
 	public static void TIME(float scale)
 	{
-		CMD(out CommandTimeManagerScaleTime cmd, true);
+		CMD_MAIN(out CmdTimeManagerScaleTime cmd, true);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartScale = scale;
 		cmd.mTargetScale = scale;
@@ -111,47 +111,47 @@ public class OT : FrameBase
 	}
 	public static void TIME(float start, float target, float onceLength)
 	{
-		TIME_EX(KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		TIME_EX(KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void TIME(KEY_FRAME keyframe, float start, float target, float onceLength)
+	public static void TIME(int keyframe, float start, float target, float onceLength)
 	{
 		TIME_EX(keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void TIME(KEY_FRAME keyframe, float start, float target, float onceLength, bool loop)
+	public static void TIME(int keyframe, float start, float target, float onceLength, bool loop)
 	{
 		TIME_EX(keyframe, start, target, onceLength, loop, 0.0f, null, null);
 	}
-	public static void TIME(KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset)
+	public static void TIME(int keyframe, float start, float target, float onceLength, bool loop, float offset)
 	{
 		TIME_EX(keyframe, start, target, onceLength, loop, offset, null, null);
 	}
 	public static void TIME_EX(float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		TIME_EX(KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		TIME_EX(KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static void TIME_EX(float start, float target, float onceLength, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
 	{
-		TIME_EX(KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallBack, doneCallback);
+		TIME_EX(KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallBack, doneCallback);
 	}
 	public static void TIME_EX(float start, float target, float onceLength, float offsetTime, KeyFrameCallback doneCallback)
 	{
-		TIME_EX(KEY_FRAME.ZERO_ONE, start, target, onceLength, false, offsetTime, null, doneCallback);
+		TIME_EX(KEY_CURVE.ZERO_ONE, start, target, onceLength, false, offsetTime, null, doneCallback);
 	}
 	public static void TIME_EX(float start, float target, float onceLength, float offsetTime, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
 	{
-		TIME_EX(KEY_FRAME.ZERO_ONE, start, target, onceLength, false, offsetTime, doingCallBack, doneCallback);
+		TIME_EX(KEY_CURVE.ZERO_ONE, start, target, onceLength, false, offsetTime, doingCallBack, doneCallback);
 	}
-	public static void TIME_EX(KEY_FRAME keyframe, float start, float target, float onceLength, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
+	public static void TIME_EX(int keyframe, float start, float target, float onceLength, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
 	{
 		TIME_EX(keyframe, start, target, onceLength, false, 0.0f, doingCallBack, doneCallback);
 	}
-	public static void TIME_EX(KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
+	public static void TIME_EX(int keyframe, float start, float target, float onceLength, bool loop, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
 	{
 		TIME_EX(keyframe, start, target, onceLength, loop, 0.0f, doingCallBack, doneCallback);
 	}
-	public static void TIME_EX(KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
+	public static void TIME_EX(int keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallback)
 	{
-		CMD(out CommandTimeManagerScaleTime cmd, false);
+		CMD_MAIN(out CmdTimeManagerScaleTime cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartScale = start;
@@ -162,9 +162,9 @@ public class OT : FrameBase
 		cmd.mDoneCallBack = doneCallback;
 		pushCommand(cmd, mTimeManager);
 	}
-	public static CommandTimeManagerScaleTime TIME_DELAY(IDelayCmdWatcher watcher, float delayTime, float scale)
+	public static CmdTimeManagerScaleTime TIME_DELAY(IDelayCmdWatcher watcher, float delayTime, float scale)
 	{
-		CMD_DELAY(out CommandTimeManagerScaleTime cmd, false);
+		CMD_MAIN_DELAY(out CmdTimeManagerScaleTime cmd, false);
 		cmd.mStartScale = scale;
 		cmd.mTargetScale = scale;
 		cmd.mOnceLength = 0.0f;
@@ -172,33 +172,33 @@ public class OT : FrameBase
 		cmd.setIgnoreTimeScale(true);
 		return cmd;
 	}
-	public static CommandTimeManagerScaleTime TIME_DELAY(IDelayCmdWatcher watcher, float delayTime, float start, float target, float onceLength)
+	public static CmdTimeManagerScaleTime TIME_DELAY(IDelayCmdWatcher watcher, float delayTime, float start, float target, float onceLength)
 	{
-		return TIME_DELAY_EX(watcher, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		return TIME_DELAY_EX(watcher, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandTimeManagerScaleTime TIME_DELAY_EX(IDelayCmdWatcher watcher, float delayTime, float start, float target, float onceLength, KeyFrameCallback moveDoneCallback)
+	public static CmdTimeManagerScaleTime TIME_DELAY_EX(IDelayCmdWatcher watcher, float delayTime, float start, float target, float onceLength, KeyFrameCallback moveDoneCallback)
 	{
-		return TIME_DELAY_EX(watcher, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, moveDoneCallback);
+		return TIME_DELAY_EX(watcher, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, moveDoneCallback);
 	}
-	public static CommandTimeManagerScaleTime TIME_DELAY_EX(IDelayCmdWatcher watcher, float delayTime, float start, float target, float onceLength, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
+	public static CmdTimeManagerScaleTime TIME_DELAY_EX(IDelayCmdWatcher watcher, float delayTime, float start, float target, float onceLength, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
 	{
-		return TIME_DELAY_EX(watcher, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, movingCallback, moveDoneCallback);
+		return TIME_DELAY_EX(watcher, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, movingCallback, moveDoneCallback);
 	}
-	public static CommandTimeManagerScaleTime TIME_DELAY_EX(IDelayCmdWatcher watcher, float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength)
+	public static CmdTimeManagerScaleTime TIME_DELAY_EX(IDelayCmdWatcher watcher, float delayTime, int keyframe, float start, float target, float onceLength)
 	{
 		return TIME_DELAY_EX(watcher, delayTime, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandTimeManagerScaleTime TIME_DELAY_EX(IDelayCmdWatcher watcher, float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop)
+	public static CmdTimeManagerScaleTime TIME_DELAY_EX(IDelayCmdWatcher watcher, float delayTime, int keyframe, float start, float target, float onceLength, bool loop)
 	{
 		return TIME_DELAY_EX(watcher, delayTime, keyframe, start, target, onceLength, loop, 0.0f, null, null);
 	}
-	public static CommandTimeManagerScaleTime TIME_DELAY_EX(IDelayCmdWatcher watcher, float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset)
+	public static CmdTimeManagerScaleTime TIME_DELAY_EX(IDelayCmdWatcher watcher, float delayTime, int keyframe, float start, float target, float onceLength, bool loop, float offset)
 	{
 		return TIME_DELAY_EX(watcher, delayTime, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
-	public static CommandTimeManagerScaleTime TIME_DELAY_EX(IDelayCmdWatcher watcher, float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
+	public static CmdTimeManagerScaleTime TIME_DELAY_EX(IDelayCmdWatcher watcher, float delayTime, int keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
 	{
-		CMD_DELAY(out CommandTimeManagerScaleTime cmd, false);
+		CMD_MAIN_DELAY(out CmdTimeManagerScaleTime cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mStartScale = start;
 		cmd.mTargetScale = target;
@@ -221,7 +221,7 @@ public class OT : FrameBase
 		{
 			return;
 		}
-		pushMainCommand<CommandMovableObjectPlayAudio>(obj, false);
+		pushMainCommand<CmdMovableObjectPlayAudio>(obj, false);
 	}
 	public static void AUDIO(MovableObject obj, string sound, bool loop, float volume)
 	{
@@ -234,72 +234,72 @@ public class OT : FrameBase
 			logError("sound name must be valid, use void AUDIO(MovableObject obj) to stop sound");
 			return;
 		}
-		CMD(out CommandMovableObjectPlayAudio cmd, false);
+		CMD_MAIN(out CmdMovableObjectPlayAudio cmd, false);
 		cmd.mSoundFileName = sound;
 		cmd.mLoop = loop;
 		cmd.mVolume = volume;
 		pushCommand(cmd, obj);
 	}
-	public static void AUDIO(MovableObject obj, SOUND_DEFINE sound, bool loop)
+	public static void AUDIO(MovableObject obj, int sound, bool loop)
 	{
 		AUDIO(obj, sound, loop, 1.0f, true);
 	}
-	public static void AUDIO(MovableObject obj, SOUND_DEFINE sound, bool loop, float volume)
+	public static void AUDIO(MovableObject obj, int sound, bool loop, float volume)
 	{
 		AUDIO(obj, sound, loop, volume, true);
 	}
-	public static void AUDIO(MovableObject obj, SOUND_DEFINE sound, bool loop, float volume, bool useVolumeCoe)
+	public static void AUDIO(MovableObject obj, int sound, bool loop, float volume, bool useVolumeCoe)
 	{
 		if (obj == null)
 		{
 			return;
 		}
-		string name = (sound != SOUND_DEFINE.MIN) ? mAudioManager.getAudioName(sound) : null;
+		string name = sound != 0 ? mAudioManager.getAudioName(sound) : null;
 		if (isEmpty(name))
 		{
 			logError("sound name must be valid, use void AUDIO(MovableObject obj) to stop sound");
 			return;
 		}
-		CMD(out CommandMovableObjectPlayAudio cmd, false);
+		CMD_MAIN(out CmdMovableObjectPlayAudio cmd, false);
 		cmd.mSound = sound;
 		cmd.mLoop = loop;
 		cmd.mVolume = volume;
 		cmd.mUseVolumeCoe = useVolumeCoe;
 		pushCommand(cmd, obj);
 	}
-	public static CommandMovableObjectPlayAudio AUDIO_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime)
+	public static CmdMovableObjectPlayAudio AUDIO_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		return pushDelayMainCommand<CommandMovableObjectPlayAudio>(watcher, obj, delayTime, false);
+		return pushDelayMainCommand<CmdMovableObjectPlayAudio>(watcher, obj, delayTime, false);
 	}
-	public static CommandMovableObjectPlayAudio AUDIO_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, SOUND_DEFINE sound)
+	public static CmdMovableObjectPlayAudio AUDIO_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, int sound)
 	{
 		return AUDIO_DELAY(watcher, obj, delayTime, sound, false, 1.0f, true);
 	}
-	public static CommandMovableObjectPlayAudio AUDIO_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, SOUND_DEFINE sound, float volume)
+	public static CmdMovableObjectPlayAudio AUDIO_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, int sound, float volume)
 	{
 		return AUDIO_DELAY(watcher, obj, delayTime, sound, false, volume, true);
 	}
-	public static CommandMovableObjectPlayAudio AUDIO_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, SOUND_DEFINE sound, bool loop)
+	public static CmdMovableObjectPlayAudio AUDIO_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, int sound, bool loop)
 	{
 		return AUDIO_DELAY(watcher, obj, delayTime, sound, loop, 1.0f, true);
 	}
-	public static CommandMovableObjectPlayAudio AUDIO_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, SOUND_DEFINE sound, bool loop, float volume, bool useVolumeCoe)
+	public static CmdMovableObjectPlayAudio AUDIO_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, int sound, bool loop, float volume, bool useVolumeCoe)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		string name = (sound != SOUND_DEFINE.MIN) ? mAudioManager.getAudioName(sound) : null;
+		string name = sound != 0 ? mAudioManager.getAudioName(sound) : null;
 		if (isEmpty(name))
 		{
 			logError("sound name must be valid, use CommandMovableObjectPlayAudio AUDIO_DELAY(MovableObject obj, float delayTime) to stop sound");
 			return null;
 		}
-		CMD_DELAY(out CommandMovableObjectPlayAudio cmd, false);
+		CMD_MAIN_DELAY(out CmdMovableObjectPlayAudio cmd, false);
 		cmd.mSound = sound;
 		cmd.mLoop = loop;
 		cmd.mVolume = volume;
@@ -317,7 +317,7 @@ public class OT : FrameBase
 		{
 			return;
 		}
-		CMD(out CommandMovableObjectAlpha cmd, false);
+		CMD_MAIN(out CmdMovableObjectAlpha cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartAlpha = alpha;
 		cmd.mTargetAlpha = alpha;
@@ -325,48 +325,48 @@ public class OT : FrameBase
 	}
 	public static void ALPHA(MovableObject obj, float start, float target, float onceLength)
 	{
-		ALPHA_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		ALPHA_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void ALPHA(MovableObject obj, KEY_FRAME keyframe, float start, float target, float onceLength)
+	public static void ALPHA(MovableObject obj, int keyframe, float start, float target, float onceLength)
 	{
 		ALPHA_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void ALPHA(MovableObject obj, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop)
+	public static void ALPHA(MovableObject obj, int keyframe, float start, float target, float onceLength, bool loop)
 	{
 		ALPHA_EX(obj, keyframe, start, target, onceLength, loop, 0.0f, null, null);
 	}
-	public static void ALPHA(MovableObject obj, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset)
+	public static void ALPHA(MovableObject obj, int keyframe, float start, float target, float onceLength, bool loop, float offset)
 	{
 		ALPHA_EX(obj, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
 	public static void ALPHA_EX(MovableObject obj, float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		ALPHA_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		ALPHA_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static void ALPHA_EX(MovableObject obj, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		ALPHA_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		ALPHA_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void ALPHA_EX(MovableObject obj, KEY_FRAME keyframe, float start, float target, float onceLength, KeyFrameCallback doneCallback)
+	public static void ALPHA_EX(MovableObject obj, int keyframe, float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
 		ALPHA_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static void ALPHA_EX(MovableObject obj, KEY_FRAME keyframe, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void ALPHA_EX(MovableObject obj, int keyframe, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		ALPHA_EX(obj, keyframe, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void ALPHA_EX(MovableObject obj, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void ALPHA_EX(MovableObject obj, int keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return;
 		}
-		if (keyframe == KEY_FRAME.NONE || isFloatZero(onceLength))
+		if (keyframe == KEY_CURVE.NONE || isFloatZero(onceLength))
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ALPHA(MovableObject obj, float alpha)");
 			return;
 		}
-		CMD(out CommandMovableObjectAlpha cmd, false);
+		CMD_MAIN(out CmdMovableObjectAlpha cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
@@ -377,59 +377,59 @@ public class OT : FrameBase
 		cmd.mDoneCallback = doneCallback;
 		pushCommand(cmd, obj);
 	}
-	public static CommandMovableObjectAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, float alpha)
+	public static CmdMovableObjectAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, float alpha)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		CMD_DELAY(out CommandMovableObjectAlpha cmd, false);
+		CMD_MAIN_DELAY(out CmdMovableObjectAlpha cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartAlpha = alpha;
 		cmd.mTargetAlpha = alpha;
 		pushDelayCommand(cmd, obj, delayTime, watcher);
 		return cmd;
 	}
-	public static CommandMovableObjectAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, float start, float target, float onceLength)
+	public static CmdMovableObjectAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, float start, float target, float onceLength)
 	{
-		return ALPHA_DELAY_EX(watcher, obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		return ALPHA_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandMovableObjectAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength)
+	public static CmdMovableObjectAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, int keyframe, float start, float target, float onceLength)
 	{
 		return ALPHA_DELAY_EX(watcher, obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandMovableObjectAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop)
+	public static CmdMovableObjectAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, int keyframe, float start, float target, float onceLength, bool loop)
 	{
 		return ALPHA_DELAY_EX(watcher, obj, delayTime, keyframe, start, target, onceLength, loop, 0.0f, null, null);
 	}
-	public static CommandMovableObjectAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset)
+	public static CmdMovableObjectAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, int keyframe, float start, float target, float onceLength, bool loop, float offset)
 	{
 		return ALPHA_DELAY_EX(watcher, obj, delayTime, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
-	public static CommandMovableObjectAlpha ALPHA_DELAY_EX(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, float start, float target, float onceLength, KeyFrameCallback doneCallback)
+	public static CmdMovableObjectAlpha ALPHA_DELAY_EX(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		return ALPHA_DELAY_EX(watcher, obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		return ALPHA_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static CommandMovableObjectAlpha ALPHA_DELAY_EX(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdMovableObjectAlpha ALPHA_DELAY_EX(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		return ALPHA_DELAY_EX(watcher, obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		return ALPHA_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CommandMovableObjectAlpha ALPHA_DELAY_EX(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdMovableObjectAlpha ALPHA_DELAY_EX(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, int keyframe, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return ALPHA_DELAY_EX(watcher, obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CommandMovableObjectAlpha ALPHA_DELAY_EX(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdMovableObjectAlpha ALPHA_DELAY_EX(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, int keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		if (keyframe == KEY_FRAME.NONE || isFloatZero(onceLength))
+		if (keyframe == KEY_CURVE.NONE || isFloatZero(onceLength))
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,CommandMovableObjectAlpha ALPHA_DELAY(MovableObject obj, float delayTime, float alpha)");
 			return null;
 		}
-		CMD_DELAY(out CommandMovableObjectAlpha cmd, false);
+		CMD_MAIN_DELAY(out CmdMovableObjectAlpha cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
@@ -451,7 +451,7 @@ public class OT : FrameBase
 		{
 			return;
 		}
-		pushMainCommand<CommandMovableObjectAlphaPath>(obj, false);
+		pushMainCommand<CmdMovableObjectAlphaPath>(obj, false);
 	}
 	public static void ALPHA_PATH(MovableObject obj, Dictionary<float, float> valueKeyFrame)
 	{
@@ -483,7 +483,7 @@ public class OT : FrameBase
 		{
 			return;
 		}
-		CMD(out CommandMovableObjectAlphaPath cmd, false);
+		CMD_MAIN(out CmdMovableObjectAlphaPath cmd, false);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -493,49 +493,49 @@ public class OT : FrameBase
 		cmd.mDoneCallBack = doneCallback;
 		pushCommand(cmd, obj);
 	}
-	public static CommandMovableObjectAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime)
+	public static CmdMovableObjectAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		return pushDelayMainCommand<CommandMovableObjectAlphaPath>(watcher, obj, delayTime, false);
+		return pushDelayMainCommand<CmdMovableObjectAlphaPath>(watcher, obj, delayTime, false);
 	}
-	public static CommandMovableObjectAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, Dictionary<float, float> valueKeyFrame)
+	public static CmdMovableObjectAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, Dictionary<float, float> valueKeyFrame)
 	{
 		return ALPH_PATH_DELAY_EX(watcher, obj, delayTime, valueKeyFrame, 1.0f, 1.0f, false, 0.0f, null, null);
 	}
-	public static CommandMovableObjectAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset)
+	public static CmdMovableObjectAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset)
 	{
 		return ALPH_PATH_DELAY_EX(watcher, obj, delayTime, valueKeyFrame, valueOffset, 1.0f, false, 0.0f, null, null);
 	}
-	public static CommandMovableObjectAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed)
+	public static CmdMovableObjectAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed)
 	{
 		return ALPH_PATH_DELAY_EX(watcher, obj, delayTime, valueKeyFrame, valueOffset, speed, false, 0.0f, null, null);
 	}
-	public static CommandMovableObjectAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop)
+	public static CmdMovableObjectAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop)
 	{
 		return ALPH_PATH_DELAY_EX(watcher, obj, delayTime, valueKeyFrame, valueOffset, speed, loop, 0.0f, null, null);
 	}
-	public static CommandMovableObjectAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop, float offset)
+	public static CmdMovableObjectAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop, float offset)
 	{
 		return ALPH_PATH_DELAY_EX(watcher, obj, delayTime, valueKeyFrame, valueOffset, speed, loop, offset, null, null);
 	}
-	public static CommandMovableObjectAlphaPath ALPH_PATH_DELAY_EX(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, KeyFrameCallback doneCallback)
+	public static CmdMovableObjectAlphaPath ALPH_PATH_DELAY_EX(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, KeyFrameCallback doneCallback)
 	{
 		return ALPH_PATH_DELAY_EX(watcher, obj, delayTime, valueKeyFrame, valueOffset, speed, false, 0.0f, null, doneCallback);
 	}
-	public static CommandMovableObjectAlphaPath ALPH_PATH_DELAY_EX(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdMovableObjectAlphaPath ALPH_PATH_DELAY_EX(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return ALPH_PATH_DELAY_EX(watcher, obj, delayTime, valueKeyFrame, valueOffset, speed, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CommandMovableObjectAlphaPath ALPH_PATH_DELAY_EX(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdMovableObjectAlphaPath ALPH_PATH_DELAY_EX(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		CMD_DELAY(out CommandMovableObjectAlphaPath cmd, false);
+		CMD_MAIN_DELAY(out CmdMovableObjectAlphaPath cmd, false);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -547,4 +547,30 @@ public class OT : FrameBase
 		return cmd;
 	}
 	#endregion
+	//--------------------------------------------------------------------------------------------------------------------------------------------
+	// 基础数据类型的渐变
+	public static MyTweenerFloat TWEEN_FLOAT(float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	{
+		return TWEEN_FLOAT_EX(KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+	}
+	public static MyTweenerFloat TWEEN_FLOAT_EX(int keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	{
+		if (keyframe == KEY_CURVE.NONE || isFloatZero(onceLength))
+		{
+			logError("时间或关键帧不能为空,如果要停止组件,请使用void ALPHA(MovableObject obj, float alpha)");
+			return null;
+		}
+		MyTweenerFloat tweenerFloat = mTweenerManager.createTweenerFloat();
+		CMD_MAIN(out CmdMyTweenerFloat cmd, false);
+		cmd.mKeyframeID = keyframe;
+		cmd.mLoop = loop;
+		cmd.mOnceLength = onceLength;
+		cmd.mOffset = offset;
+		cmd.mStartAlpha = start;
+		cmd.mTargetAlpha = target;
+		cmd.mTremblingCallBack = doingCallback;
+		cmd.mTrembleDoneCallBack = doneCallback;
+		pushCommand(cmd, tweenerFloat);
+		return tweenerFloat;
+	}
 }

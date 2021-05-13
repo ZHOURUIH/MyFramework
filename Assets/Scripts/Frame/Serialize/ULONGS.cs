@@ -28,13 +28,13 @@ public class ULONGS : OBJECTS
 	public ULONGS(int count)
 	{
 		mValue = new ulong[count];
-		mType = Typeof<long[]>();
+		mType = typeof(ulong[]);
 		mSize = TYPE_SIZE * mValue.Length;
 	}
 	public ULONGS(ulong[] value)
 	{
 		mValue = value;
-		mType = Typeof<ulong[]>();
+		mType = typeof(ulong[]);
 		mSize = TYPE_SIZE * mValue.Length;
 	}
 	public override void setIntReplaceULLong(bool replace)
@@ -86,9 +86,13 @@ public class ULONGS : OBJECTS
 			if (i == 0)
 			{
 				setLowestBit(ref value, 0);
-				value >>= 1;
+				// 因为右移ing可能会使符号位变为1从而变成负数,最终造成数据错误,所以需要转换为uint进行右移
+				mValue[i] = ((uint)value) >> 1;
 			}
-			mValue[i] = (ulong)value;
+			else
+			{
+				mValue[i] = (ulong)value;
+			}
 			if (!success)
 			{
 				return false;

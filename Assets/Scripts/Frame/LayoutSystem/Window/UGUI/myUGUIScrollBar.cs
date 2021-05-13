@@ -26,7 +26,7 @@ public class myUGUIScrollBar : myUGUIObject
 		}
 		if (mScrollBar == null)
 		{
-			logError(Typeof(this) + " can not find " + Typeof<Scrollbar>() + ", window:" + mName + ", layout:" + mLayout.getName());
+			logError(Typeof(this) + " can not find " + typeof(Scrollbar) + ", window:" + mName + ", layout:" + mLayout.getName());
 		}
 	}
 	public void setValue(float value) { mScrollBar.value = value; }

@@ -4,8 +4,7 @@ using System.Collections.Generic;
 
 // 管理类初始化完成调用
 // 这个父类的添加是方便代码的书写
-// 继承FileUtility是为了在调用工具函数时方便,把四个完全独立的工具函数类串起来继承,所有继承自FrameBase的类都可以直接访问四大工具类中的函数
-public class FrameBase : WidgetUtility
+public class FrameBase : ClassObject
 {
 	// FrameSystem
 	public static GameFramework mGameFramework;
@@ -31,6 +30,8 @@ public class FrameBase : WidgetUtility
 	public static ClassPoolThread mClassPoolThread;
 	public static ListPool mListPool;
 	public static ListPoolThread mListPoolThread;
+	public static HashSetPool mHashSetPool;
+	public static HashSetPoolThread mHashSetPoolThread;
 	public static DictionaryPool mDictionaryPool;
 	public static DictionaryPoolThread mDictionaryPoolThread;
 	public static ArrayPool mArrayPool;
@@ -46,59 +47,102 @@ public class FrameBase : WidgetUtility
 	public static SocketFactoryThread mSocketFactoryThread;
 	public static PathKeyframeManager mPathKeyframeManager;
 	public static EventSystem mEventSystem;
+	public static TweenerManager mTweenerManager;
 #if USE_ILRUNTIME
 	public static ILRSystem mILRSystem;
 #endif
 #if !UNITY_EDITOR
-	public static LocalLog mLocalLog;
+	//public static LocalLog mLocalLog;
 #endif
 	public virtual void notifyConstructDone()
 	{
 		mGameFramework = GameFramework.mGameFramework;
-		mCommandSystem = mGameFramework.getSystem(Typeof<CommandSystem>()) as CommandSystem;
-		mAudioManager = mGameFramework.getSystem(Typeof<AudioManager>()) as AudioManager;
-		mGameSceneManager = mGameFramework.getSystem(Typeof<GameSceneManager>()) as GameSceneManager;
-		mCharacterManager = mGameFramework.getSystem(Typeof<CharacterManager>()) as CharacterManager;
-		mLayoutManager = mGameFramework.getSystem(Typeof<LayoutManager>()) as LayoutManager;
-		mKeyFrameManager = mGameFramework.getSystem(Typeof<KeyFrameManager>()) as KeyFrameManager;
-		mGlobalTouchSystem = mGameFramework.getSystem(Typeof<GlobalTouchSystem>()) as GlobalTouchSystem;
-		mShaderManager = mGameFramework.getSystem(Typeof<ShaderManager>()) as ShaderManager;
+		mCommandSystem = mGameFramework.getSystem(typeof(CommandSystem)) as CommandSystem;
+		mAudioManager = mGameFramework.getSystem(typeof(AudioManager)) as AudioManager;
+		mGameSceneManager = mGameFramework.getSystem(typeof(GameSceneManager)) as GameSceneManager;
+		mCharacterManager = mGameFramework.getSystem(typeof(CharacterManager)) as CharacterManager;
+		mLayoutManager = mGameFramework.getSystem(typeof(LayoutManager)) as LayoutManager;
+		mKeyFrameManager = mGameFramework.getSystem(typeof(KeyFrameManager)) as KeyFrameManager;
+		mGlobalTouchSystem = mGameFramework.getSystem(typeof(GlobalTouchSystem)) as GlobalTouchSystem;
+		mShaderManager = mGameFramework.getSystem(typeof(ShaderManager)) as ShaderManager;
 #if !UNITY_IOS && !NO_SQLITE
-		mSQLiteManager = mGameFramework.getSystem(Typeof<SQLiteManager>()) as SQLiteManager;
+		mSQLiteManager = mGameFramework.getSystem(typeof(SQLiteManager)) as SQLiteManager;
 #endif
-		mCameraManager = mGameFramework.getSystem(Typeof<CameraManager>()) as CameraManager;
-		mResourceManager = mGameFramework.getSystem(Typeof<ResourceManager>()) as ResourceManager;
-		mApplicationConfig = mGameFramework.getSystem(Typeof<ApplicationConfig>()) as ApplicationConfig;
-		mFrameConfig = mGameFramework.getSystem(Typeof<FrameConfig>()) as FrameConfig;
-		mObjectPool = mGameFramework.getSystem(Typeof<ObjectPool>()) as ObjectPool;
-		mInputManager = mGameFramework.getSystem(Typeof<InputManager>()) as InputManager;
-		mSceneSystem = mGameFramework.getSystem(Typeof<SceneSystem>()) as SceneSystem;
-		mClassPool = mGameFramework.getSystem(Typeof<ClassPool>()) as ClassPool;
-		mClassPoolThread = mGameFramework.getSystem(Typeof<ClassPoolThread>()) as ClassPoolThread;
-		mListPool = mGameFramework.getSystem(Typeof<ListPool>()) as ListPool;
-		mListPoolThread = mGameFramework.getSystem(Typeof<ListPoolThread>()) as ListPoolThread;
-		mDictionaryPool = mGameFramework.getSystem(Typeof<DictionaryPool>()) as DictionaryPool;
-		mDictionaryPoolThread = mGameFramework.getSystem(Typeof<DictionaryPoolThread>()) as DictionaryPoolThread;
-		mArrayPool = mGameFramework.getSystem(Typeof<ArrayPool>()) as ArrayPool;
-		mArrayPoolThread = mGameFramework.getSystem(Typeof<ArrayPoolThread>()) as ArrayPoolThread;
-		mAndroidPluginManager = mGameFramework.getSystem(Typeof<AndroidPluginManager>()) as AndroidPluginManager;
-		mAndroidAssetLoader = mGameFramework.getSystem(Typeof<AndroidAssetLoader>()) as AndroidAssetLoader;
-		mHeadTextureManager = mGameFramework.getSystem(Typeof<HeadTextureManager>()) as HeadTextureManager;
-		mTimeManager = mGameFramework.getSystem(Typeof<TimeManager>()) as TimeManager;
-		mMovableObjectManager = mGameFramework.getSystem(Typeof<MovableObjectManager>()) as MovableObjectManager;
-		mEffectManager = mGameFramework.getSystem(Typeof<EffectManager>()) as EffectManager;
-		mTPSpriteManager = mGameFramework.getSystem(Typeof<TPSpriteManager>()) as TPSpriteManager;
-		mSocketFactory = mGameFramework.getSystem(Typeof<SocketFactory>()) as SocketFactory;
-		mSocketFactoryThread = mGameFramework.getSystem(Typeof<SocketFactoryThread>()) as SocketFactoryThread;
-		mPathKeyframeManager = mGameFramework.getSystem(Typeof<PathKeyframeManager>()) as PathKeyframeManager;
-		mEventSystem = mGameFramework.getSystem(Typeof<EventSystem>()) as EventSystem;
+		mCameraManager = mGameFramework.getSystem(typeof(CameraManager)) as CameraManager;
+		mResourceManager = mGameFramework.getSystem(typeof(ResourceManager)) as ResourceManager;
+		mApplicationConfig = mGameFramework.getSystem(typeof(ApplicationConfig)) as ApplicationConfig;
+		mFrameConfig = mGameFramework.getSystem(typeof(FrameConfig)) as FrameConfig;
+		mObjectPool = mGameFramework.getSystem(typeof(ObjectPool)) as ObjectPool;
+		mInputManager = mGameFramework.getSystem(typeof(InputManager)) as InputManager;
+		mSceneSystem = mGameFramework.getSystem(typeof(SceneSystem)) as SceneSystem;
+		mClassPool = mGameFramework.getSystem(typeof(ClassPool)) as ClassPool;
+		mClassPoolThread = mGameFramework.getSystem(typeof(ClassPoolThread)) as ClassPoolThread;
+		mListPool = mGameFramework.getSystem(typeof(ListPool)) as ListPool;
+		mListPoolThread = mGameFramework.getSystem(typeof(ListPoolThread)) as ListPoolThread;
+		mHashSetPool = mGameFramework.getSystem(typeof(HashSetPool)) as HashSetPool;
+		mHashSetPoolThread = mGameFramework.getSystem(typeof(HashSetPoolThread)) as HashSetPoolThread;
+		mDictionaryPool = mGameFramework.getSystem(typeof(DictionaryPool)) as DictionaryPool;
+		mDictionaryPoolThread = mGameFramework.getSystem(typeof(DictionaryPoolThread)) as DictionaryPoolThread;
+		mArrayPool = mGameFramework.getSystem(typeof(ArrayPool)) as ArrayPool;
+		mArrayPoolThread = mGameFramework.getSystem(typeof(ArrayPoolThread)) as ArrayPoolThread;
+		mAndroidPluginManager = mGameFramework.getSystem(typeof(AndroidPluginManager)) as AndroidPluginManager;
+		mAndroidAssetLoader = mGameFramework.getSystem(typeof(AndroidAssetLoader)) as AndroidAssetLoader;
+		mHeadTextureManager = mGameFramework.getSystem(typeof(HeadTextureManager)) as HeadTextureManager;
+		mTimeManager = mGameFramework.getSystem(typeof(TimeManager)) as TimeManager;
+		mMovableObjectManager = mGameFramework.getSystem(typeof(MovableObjectManager)) as MovableObjectManager;
+		mEffectManager = mGameFramework.getSystem(typeof(EffectManager)) as EffectManager;
+		mTPSpriteManager = mGameFramework.getSystem(typeof(TPSpriteManager)) as TPSpriteManager;
+		mSocketFactory = mGameFramework.getSystem(typeof(SocketFactory)) as SocketFactory;
+		mSocketFactoryThread = mGameFramework.getSystem(typeof(SocketFactoryThread)) as SocketFactoryThread;
+		mPathKeyframeManager = mGameFramework.getSystem(typeof(PathKeyframeManager)) as PathKeyframeManager;
+		mEventSystem = mGameFramework.getSystem(typeof(EventSystem)) as EventSystem;
+		mTweenerManager = mGameFramework.getSystem(typeof(TweenerManager)) as TweenerManager;
 #if USE_ILRUNTIME
-		mILRSystem = mGameFramework.getSystem(Typeof<ILRSystem>()) as ILRSystem;
+		mILRSystem = mGameFramework.getSystem(typeof(ILRSystem)) as ILRSystem;
 #endif
 	}
 	// 方便书写代码添加的命令相关函数
-	// 创建主工程中的命令实例
-	public static T CMD<T>(out T cmd, bool show = true) where T : Command
+	public static void changeProcedure(Type procedure, string intent = null)
+	{
+		CMD_MAIN(out CmdGameSceneChangeProcedure cmd);
+		cmd.mProcedure = procedure;
+		cmd.mIntent = intent;
+		pushCommand(cmd, mGameSceneManager.getCurScene());
+	}
+	public static CmdGameSceneChangeProcedure changeProcedureDelay(Type procedure, float delayTime = 0.001f, string intent = null)
+	{
+		CMD_MAIN_DELAY(out CmdGameSceneChangeProcedure cmd, true);
+		cmd.mProcedure = procedure;
+		cmd.mIntent = intent;
+		pushDelayCommand(cmd, mGameSceneManager.getCurScene(), delayTime);
+		return cmd;
+	}
+	public static void prepareChangeProcedure(Type procedure, float prepareTime = 0.001f, string intent = null)
+	{
+		CMD_MAIN(out CmdGameScenePrepareChangeProcedure cmd);
+		cmd.mProcedure = procedure;
+		cmd.mIntent = intent;
+		cmd.mPrepareTime = prepareTime;
+		pushCommand(cmd, mGameSceneManager.getCurScene());
+	}
+	public static bool getKeyCurrentDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return mInputManager.getKeyCurrentDown(key, mask); }
+	public static bool getKeyCurrentUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return mInputManager.getKeyCurrentUp(key, mask); }
+	public static bool getKeyDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return mInputManager.getKeyDown(key, mask); }
+	public static bool getKeyUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return mInputManager.getKeyUp(key, mask); }
+	public static Vector3 getMousePosition() { return mGlobalTouchSystem.getCurMousePosition(); }
+	public static GameScene getCurScene() { return mGameSceneManager.getCurScene(); }
+	// 百分比一般用于属性增幅之类的
+	public static string toPercent(string value, int precision = 1) { return FToS(SToF(value) * 100, precision); }
+	public static string toPercent(float value, int precision = 1) { return FToS(value * 100, precision); }
+	// 几率类的一般是万分比的格式填写的
+	public static string toProbability(string value) { return FToS(SToF(value) * 0.01f); }
+	public static T PACKET_MAIN<T>(out T packet) where T : SocketPacket
+	{
+		return packet = mSocketFactory.createSocketPacket(typeof(T)) as T;
+	}
+	//-----------------------------------------------------------------------------------------------------------------------------------
+	// 命令
+	public static T CMD_MAIN<T>(out T cmd, bool show = true) where T : Command
 	{
 		Type type = Typeof<T>();
 		if (type == null)
@@ -107,7 +151,7 @@ public class FrameBase : WidgetUtility
 		}
 		return cmd = mCommandSystem.newCmd(type, show) as T;
 	}
-	public static T CMD_DELAY<T>(out T cmd, bool show = true) where T : Command
+	public static T CMD_MAIN_DELAY<T>(out T cmd, bool show = true) where T : Command
 	{
 		Type type = Typeof<T>();
 		if (type == null)
@@ -118,7 +162,7 @@ public class FrameBase : WidgetUtility
 	}
 	public static void pushMainCommand<T>(CommandReceiver cmdReceiver, bool show = true) where T : Command
 	{
-		CMD(out T cmd, show);
+		CMD_MAIN(out T cmd, show);
 		mCommandSystem.pushCommand(cmd, cmdReceiver);
 	}
 	public static void pushCommand(Command cmd, CommandReceiver cmdReceiver)
@@ -127,7 +171,7 @@ public class FrameBase : WidgetUtility
 	}
 	public static T pushDelayMainCommand<T>(IDelayCmdWatcher watcher, CommandReceiver cmdReceiver, float delayExecute = 0.001f, bool show = true) where T : Command
 	{
-		CMD_DELAY(out T cmd, show);
+		CMD_MAIN_DELAY(out T cmd, show);
 		mCommandSystem.pushDelayCommand(cmd, cmdReceiver, delayExecute, watcher);
 		return cmd;
 	}
@@ -143,124 +187,137 @@ public class FrameBase : WidgetUtility
 	{
 		mCommandSystem.pushDelayCommand(cmd, cmdReceiver, 0.0f, null);
 	}
-	public static void changeProcedure(Type procedure, string intent = null)
+	//-----------------------------------------------------------------------------------------------------------------------------------
+	// 对象池
+	public static void LIST_MAIN<T>(out List<T> list)
 	{
-		CMD(out CommandGameSceneChangeProcedure cmd);
-		cmd.mProcedure = procedure;
-		cmd.mIntent = intent;
-		pushCommand(cmd, mGameSceneManager.getCurScene());
+		string stackTrace = EMPTY;
+		if(mGameFramework.isEnablePoolStackTrace())
+		{
+			stackTrace = getStackTrace();
+		}
+		list = mListPool.newList(Typeof<T>(), Typeof<List<T>>(), stackTrace, true) as List<T>;
 	}
-	public static CommandGameSceneChangeProcedure changeProcedureDelay(Type procedure, float delayTime = 0.001f, string intent = null)
+	public static void LIST_MAIN_PERSIST<T>(out List<T> list)
 	{
-		CMD_DELAY(out CommandGameSceneChangeProcedure cmd, true);
-		cmd.mProcedure = procedure;
-		cmd.mIntent = intent;
-		pushDelayCommand(cmd, mGameSceneManager.getCurScene(), delayTime);
-		return cmd;
+		string stackTrace = EMPTY;
+		if (mGameFramework.isEnablePoolStackTrace())
+		{
+			stackTrace = getStackTrace();
+		}
+		list = mListPool.newList(Typeof<T>(), Typeof<List<T>>(), stackTrace, false) as List<T>;
 	}
-	public static void prepareChangeProcedure(Type procedure, float prepareTime = 0.001f, string intent = null)
+	public static void UN_LIST_MAIN<T>(List<T> list)
 	{
-		CMD(out CommandGameScenePrepareChangeProcedure cmd);
-		cmd.mProcedure = procedure;
-		cmd.mIntent = intent;
-		cmd.mPrepareTime = prepareTime;
-		pushCommand(cmd, mGameSceneManager.getCurScene());
+		mListPool?.destroyList(list, Typeof<T>());
 	}
-	public static bool getKeyCurrentDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE)
+	public static void LIST_MAIN<T>(out HashSet<T> list)
 	{
-		return mInputManager.getKeyCurrentDown(key, mask);
+		string stackTrace = EMPTY;
+		if (mGameFramework.isEnablePoolStackTrace())
+		{
+			stackTrace = getStackTrace();
+		}
+		list = mHashSetPool.newList(Typeof<T>(), Typeof<HashSet<T>>(), stackTrace, true) as HashSet<T>;
 	}
-	public static bool getKeyCurrentUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE)
+	public static void LIST_MAIN_PERSIST<T>(out HashSet<T> list)
 	{
-		return mInputManager.getKeyCurrentUp(key, mask);
+		string stackTrace = EMPTY;
+		if (mGameFramework.isEnablePoolStackTrace())
+		{
+			stackTrace = getStackTrace();
+		}
+		list = mHashSetPool.newList(Typeof<T>(), Typeof<HashSet<T>>(), stackTrace, false) as HashSet<T>;
 	}
-	public static bool getKeyDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE)
+	public static void UN_LIST_MAIN<T>(HashSet<T> list)
 	{
-		return mInputManager.getKeyDown(key, mask);
+		list.Clear();
+		mHashSetPool?.destroyList(list, Typeof<T>());
 	}
-	public static bool getKeyUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE)
+	public static void LIST_MAIN<K, V>(out Dictionary<K, V> list)
 	{
-		return mInputManager.getKeyUp(key, mask);
+		string stackTrace = EMPTY;
+		if (mGameFramework.isEnablePoolStackTrace())
+		{
+			stackTrace = getStackTrace();
+		}
+		list = mDictionaryPool.newList(Typeof<K>(), Typeof<V>(), Typeof<Dictionary<K, V>>(), stackTrace, true) as Dictionary<K, V>;
 	}
-	public static Vector3 getMousePosition()
+	public static void LIST_MAIN_PERSIST<K, V>(out Dictionary<K, V> list)
 	{
-		return mGlobalTouchSystem.getCurMousePosition();
+		string stackTrace = EMPTY;
+		if (mGameFramework.isEnablePoolStackTrace())
+		{
+			stackTrace = getStackTrace();
+		}
+		list = mDictionaryPool.newList(Typeof<K>(), Typeof<V>(), Typeof<Dictionary<K, V>>(), stackTrace, false) as Dictionary<K, V>;
 	}
-	public static GameScene getCurScene()
+	public static void UN_LIST_MAIN<K, V>(Dictionary<K, V> list)
 	{
-		return mGameSceneManager.getCurScene();
+		list.Clear();
+		mDictionaryPool?.destroyList(list, Typeof<K>(), Typeof<V>());
 	}
-	public static void LIST<T>(out List<T> list, bool onlyOnce = true)
-	{
-		mListPool.newList(out list, onlyOnce);
-	}
-	public static void UN_LIST<T>(List<T> list)
-	{
-		mListPool?.destroyList(list);
-	}
-	public static void LIST<K, V>(out Dictionary<K, V> list, bool onlyOnce = true)
-	{
-		mDictionaryPool.newList(out list, onlyOnce);
-	}
-	public static void UN_LIST<K, V>(Dictionary<K, V> list)
-	{
-		mDictionaryPool?.destroyList(list);
-	}
-	public static void CLASS_ONCE<T>(out T value) where T : class, IClassObject
+	public static void CLASS_MAIN_ONCE<T>(out T value) where T : ClassObject
 	{
 		value = mClassPool?.newClass(Typeof<T>(), true) as T;
 	}
-	public static T CLASS_ONCE<T>(Type type) where T : class, IClassObject
+	public static ClassObject CLASS_MAIN_ONCE(Type type)
 	{
-		return mClassPool?.newClass(type, true) as T;
+		return mClassPool?.newClass(type, true);
 	}
-	public static void CLASS<T>(out T value) where T : class, IClassObject
+	public static void CLASS_MAIN<T>(out T value) where T : ClassObject
 	{
 		value = mClassPool?.newClass(Typeof<T>(), false) as T;
 	}
-	public static T CLASS<T>(Type type) where T : class, IClassObject
+	public static ClassObject CLASS_MAIN(Type type)
 	{
-		return mClassPool?.newClass(type, false) as T;
+		return mClassPool?.newClass(type, false);
 	}
-	public static void CLASS_THREAD<T>(out T value) where T : class, IClassObject
+	public static void CLASS_MAIN_THREAD<T>(out T value) where T : ClassObject
 	{
 		value = mClassPoolThread?.newClass(Typeof<T>(), out _) as T;
 	}
-	public static T CLASS_THREAD<T>(Type type) where T : class, IClassObject
+	public static T CLASS_MAIN_THREAD<T>(Type type) where T : ClassObject
 	{
 		return mClassPoolThread?.newClass(type, out _) as T;
 	}
-	public static void UN_CLASS(IClassObject obj)
+	public static void UN_CLASS(ClassObject obj)
 	{
 		mClassPool?.destroyClass(obj);
 	}
-	public static void UN_CLASS_THREAD(IClassObject obj)
+	public static void UN_CLASS_THREAD(ClassObject obj)
 	{
 		mClassPoolThread?.destroyClass(obj);
 	}
-	public static void ARRAY<T>(out T[] array, int count, bool onlyOnce = true)
+	public static void ARRAY_MAIN<T>(out T[] array, int count)
 	{
-		array = mArrayPool.newArray<T>(count, onlyOnce);
+		array = mArrayPool.newArray<T>(count, true);
 	}
-	public static void UN_ARRAY<T>(T[] array, bool destroyReally = false)
+	public static void ARRAY_MAIN_PERSIST<T>(out T[] array, int count)
+	{
+		array = mArrayPool.newArray<T>(count, false);
+	}
+	public static void UN_ARRAY_MAIN<T>(T[] array, bool destroyReally = false)
 	{
 		mArrayPool.destroyArray(array, destroyReally);
 	}
-	public static void ARRAY_THREAD<T>(out T[] array, int count)
+	public static void ARRAY_MAIN_THREAD<T>(out T[] array, int count)
 	{
 		array = mArrayPoolThread.newArray<T>(count);
 	}
-	public static void UN_ARRAY_THREAD<T>(T[] array, bool destroyReally = false)
+	public static void UN_ARRAY_MAIN_THREAD<T>(T[] array, bool destroyReally = false)
 	{
 		mArrayPoolThread.destroyArray(array, destroyReally);
 	}
+	//-----------------------------------------------------------------------------------------------------------------------------------
+	// 字符串拼接
 	public static MyStringBuilder STRING()
 	{
 		if(mClassPool == null)
 		{
 			return new MyStringBuilder();
 		}
-		return CLASS_ONCE<MyStringBuilder>(Typeof<MyStringBuilder>());
+		return CLASS_MAIN_ONCE(typeof(MyStringBuilder)) as MyStringBuilder;
 	}
 	public static MyStringBuilder STRING(string str)
 	{
@@ -308,7 +365,7 @@ public class FrameBase : WidgetUtility
 		{
 			return new MyStringBuilder();
 		}
-		return CLASS_THREAD<MyStringBuilder>(Typeof<MyStringBuilder>());
+		return CLASS_MAIN_THREAD<MyStringBuilder>(typeof(MyStringBuilder));
 	}
 	public static MyStringBuilder STRING_THREAD(string str)
 	{

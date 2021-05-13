@@ -2,7 +2,7 @@
 
 public class MyTimer : FrameBase
 {
-	public float mTimeInterval = 0.0f;	// 计时间隔,小于等于0表示任意时刻都已经完成计时
+	public float mTimeInterval;			// 计时间隔,小于等于0表示任意时刻都已经完成计时
 	public float mCurTime = -1.0f;		// 当前计时时间,大于等于0表示正在计时,小于0表示未开始计时
 	public bool mLoop;					// 是否循环计时,循环计时时到达计时后将减去一个间隔再开始计时,不循环时则停止计时
 	public void init(float defaultTime, float interval, bool loop = true)

@@ -7,8 +7,12 @@ namespace HotFix
 {   
     public class SQLiteTableAdapter : CrossBindingAdaptor
     {
-        static CrossBindingMethodInfo mlinkTable_0 = new CrossBindingMethodInfo("linkTable");
-        static CrossBindingMethodInfo mnotifyConstructDone_1 = new CrossBindingMethodInfo("notifyConstructDone");
+        static CrossBindingMethodInfo mnotifyConstructDone_0 = new CrossBindingMethodInfo("notifyConstructDone");
+        static CrossBindingMethodInfo mresetProperty_1 = new CrossBindingMethodInfo("resetProperty");
+        static CrossBindingMethodInfo<System.Boolean> msetDestroy_2 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
+        static CrossBindingFunctionInfo<System.Boolean> misDestroy_3 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
+        static CrossBindingMethodInfo<System.Int64> msetAssignID_4 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
+        static CrossBindingFunctionInfo<System.Int64> mgetAssignID_5 = new CrossBindingFunctionInfo<System.Int64>("getAssignID");
         public override Type BaseCLRType
         {
             get
@@ -48,20 +52,52 @@ namespace HotFix
 
             public ILTypeInstance ILInstance { get { return instance; } }
 
-            public override void linkTable()
-            {
-                if (mlinkTable_0.CheckShouldInvokeBase(this.instance))
-                    base.linkTable();
-                else
-                    mlinkTable_0.Invoke(this.instance);
-            }
-
             public override void notifyConstructDone()
             {
-                if (mnotifyConstructDone_1.CheckShouldInvokeBase(this.instance))
+                if (mnotifyConstructDone_0.CheckShouldInvokeBase(this.instance))
                     base.notifyConstructDone();
                 else
-                    mnotifyConstructDone_1.Invoke(this.instance);
+                    mnotifyConstructDone_0.Invoke(this.instance);
+            }
+
+            public override void resetProperty()
+            {
+                if (mresetProperty_1.CheckShouldInvokeBase(this.instance))
+                    base.resetProperty();
+                else
+                    mresetProperty_1.Invoke(this.instance);
+            }
+
+            public override void setDestroy(System.Boolean isDestroy)
+            {
+                if (msetDestroy_2.CheckShouldInvokeBase(this.instance))
+                    base.setDestroy(isDestroy);
+                else
+                    msetDestroy_2.Invoke(this.instance, isDestroy);
+            }
+
+            public override System.Boolean isDestroy()
+            {
+                if (misDestroy_3.CheckShouldInvokeBase(this.instance))
+                    return base.isDestroy();
+                else
+                    return misDestroy_3.Invoke(this.instance);
+            }
+
+            public override void setAssignID(System.Int64 assignID)
+            {
+                if (msetAssignID_4.CheckShouldInvokeBase(this.instance))
+                    base.setAssignID(assignID);
+                else
+                    msetAssignID_4.Invoke(this.instance, assignID);
+            }
+
+            public override System.Int64 getAssignID()
+            {
+                if (mgetAssignID_5.CheckShouldInvokeBase(this.instance))
+                    return base.getAssignID();
+                else
+                    return mgetAssignID_5.Invoke(this.instance);
             }
 
             public override string ToString()

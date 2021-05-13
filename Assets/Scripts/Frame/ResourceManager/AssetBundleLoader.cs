@@ -10,8 +10,8 @@ public class AssetBundleLoader : FrameBase
 	protected Dictionary<string, AssetBundleInfo> mRequestAssetList;
 	protected Dictionary<string, AssetInfo> mAssetToBundleInfo;
 	protected List<AssetBundleInfo> mRequestBundleList;
+	protected HashSet<Coroutine> mCoroutineList;
 	protected WaitForEndOfFrame mWaitForEndOfFrame;
-	protected AssetLoadDoneCallback mConfigLoadCallback;
 	protected const int ASSET_BUNDLE_COROUTINE = 8;
 	protected const int ASSET_COROUTINE = 4;
 	protected int mAssetBundleCoroutineCount;
@@ -24,14 +24,16 @@ public class AssetBundleLoader : FrameBase
 		mRequestBundleList = new List<AssetBundleInfo>();
 		mRequestAssetList = new Dictionary<string, AssetBundleInfo>();
 		mAssetToAssetBundleInfo = new Dictionary<UnityEngine.Object, AssetBundleInfo>();
+		mCoroutineList = new HashSet<Coroutine>();
 		mWaitForEndOfFrame = new WaitForEndOfFrame();
-		mConfigLoadCallback = onAssetConfigDownloaded;
 	}
 	public bool init()
 	{
+		// 卸载所有已加载的AssetBundle
+		unloadAll();
 		// 如果资源目录为本地目录,则
-		string path = ResourceManager.mResourceRootPath + "StreamingAssets.bytes";
-		if (ResourceManager.mLocalRootPath)
+		string path = mResourceManager.getResourceRootPath() + "StreamingAssets.bytes";
+		if (mResourceManager.isLocalRootPath())
 		{
 			if (!isFileExist(path))
 			{
@@ -43,7 +45,7 @@ public class AssetBundleLoader : FrameBase
 		}
 		else
 		{
-			mResourceManager.loadAssetsFromUrl(path, mConfigLoadCallback);
+			mResourceManager.loadAssetsFromUrl(path, onAssetConfigDownloaded);
 		}
 		return true;
 	}
@@ -64,7 +66,7 @@ public class AssetBundleLoader : FrameBase
 				info.loadParentAsync();
 				if (info.isAllParentLoaded())
 				{
-					mGameFramework.StartCoroutine(loadAssetBundleCoroutine(info));
+					mCoroutineList.Add(mGameFramework.StartCoroutine(loadAssetBundleCoroutine(info)));
 					mRequestBundleList.RemoveAt(i);
 					break;
 				}
@@ -75,7 +77,7 @@ public class AssetBundleLoader : FrameBase
 		{
 			foreach(var item in mRequestAssetList)
 			{
-				mGameFramework.StartCoroutine(loadAssetCoroutine(item.Value, item.Key));
+				mCoroutineList.Add(mGameFramework.StartCoroutine(loadAssetCoroutine(item.Value, item.Key)));
 				mRequestAssetList.Remove(item.Key);
 				break;
 			}
@@ -87,9 +89,17 @@ public class AssetBundleLoader : FrameBase
 	}
 	public void unloadAll()
 	{
+		foreach(var item in mCoroutineList)
+		{
+			mGameFramework.StopCoroutine(item);
+		}
+		mCoroutineList.Clear();
+		mAssetBundleCoroutineCount = 0;
+		mAssetCoroutineCount = 0;
 		// 还未开始加载的异步加载资源需要从等待列表中移除
 		mRequestAssetList.Clear();
 		mRequestBundleList.Clear();
+		mAssetToAssetBundleInfo.Clear();
 		foreach (var item in mAssetBundleInfoList)
 		{
 			item.Value.unload();
@@ -120,41 +130,43 @@ public class AssetBundleLoader : FrameBase
 	}
 	public void unloadAssetBundle(string bundleName)
 	{
-		if(mAssetBundleInfoList.TryGetValue(bundleName, out AssetBundleInfo info))
+		if(!mAssetBundleInfoList.TryGetValue(bundleName, out AssetBundleInfo info))
 		{
-			var assetList = info.getAssetList();
-			foreach(var item in assetList)
-			{
-				mAssetToAssetBundleInfo.Remove(item.Value.getAsset());
-			}
-			info.unload();
+			return;
 		}
+		var assetList = info.getAssetList();
+		foreach (var item in assetList)
+		{
+			mAssetToAssetBundleInfo.Remove(item.Value.getAsset());
+		}
+		info.unload();
 	}
 	// 卸载指定路径中的所有资源包
 	public void unloadPath(string path)
 	{
-		LIST(out List<string> tempList);
+		LIST_MAIN(out List<string> tempList);
 		foreach (var item in mAssetBundleInfoList)
 		{
-			if (startWith(item.Key, path))
+			if (!startWith(item.Key, path))
 			{
-				tempList.Clear();
-				// 还未开始加载的异步加载资源需要从等待列表中移除
-				tempList.AddRange(mRequestAssetList.Keys);
-				int count = tempList.Count;
-				for(int i= 0; i < count; ++i)
-				{
-					string assetName = tempList[i];
-					if (mRequestAssetList[assetName] == item.Value)
-					{
-						mRequestAssetList.Remove(assetName);
-					}
-				}
-				mRequestBundleList.Remove(item.Value);
-				item.Value.unload();
+				continue;
 			}
+			tempList.Clear();
+			// 还未开始加载的异步加载资源需要从等待列表中移除
+			tempList.AddRange(mRequestAssetList.Keys);
+			int count = tempList.Count;
+			for (int i = 0; i < count; ++i)
+			{
+				string assetName = tempList[i];
+				if (mRequestAssetList[assetName] == item.Value)
+				{
+					mRequestAssetList.Remove(assetName);
+				}
+			}
+			mRequestBundleList.Remove(item.Value);
+			item.Value.unload();
 		}
-		UN_LIST(tempList);
+		UN_LIST_MAIN(tempList);
 	}
 	// 得到文件夹中的所有文件,文件夹被打包成一个AssetBundle,返回AssetBundle中的所有资源名
 	public void getFileList(string path, List<string> list)
@@ -169,13 +181,14 @@ public class AssetBundleLoader : FrameBase
 		// 该文件夹被打包成一个AssetBundle
 		foreach (var item in mAssetBundleInfoList)
 		{
-			if (startWith(item.Key, path))
+			if (!startWith(item.Key, path))
 			{
-				var assetList = item.Value.getAssetList();
-				foreach (var asset in assetList)
-				{
-					list.Add(getFileNameNoSuffix(asset.Key));
-				}
+				continue;
+			}
+			var assetList = item.Value.getAssetList();
+			foreach (var asset in assetList)
+			{
+				list.Add(getFileNameNoSuffix(asset.Key));
 			}
 		}
 	}
@@ -187,26 +200,27 @@ public class AssetBundleLoader : FrameBase
 			logError("AssetBundleLoader is not inited!");
 			return false;
 		}
-		LIST(out List<string> fileNameList);
-		ResourceManager.adjustResourceName<T>(fileName, fileNameList);
+		LIST_MAIN(out List<string> fileNameList);
+		mResourceManager.adjustResourceName<T>(fileName, fileNameList);
 		// 只返回第一个找到的资源
 		int count = fileNameList.Count;
 		for (int i = 0; i < count; ++i)
 		{
 			string fileNameWithSuffix = fileNameList[i];
 			// 找不到资源则直接返回
-			if (mAssetToBundleInfo.TryGetValue(fileNameWithSuffix, out AssetInfo asset))
+			if (!mAssetToBundleInfo.TryGetValue(fileNameWithSuffix, out AssetInfo asset))
 			{
-				UN_LIST(fileNameList);
-				AssetBundleInfo bundleInfo = asset.getAssetBundle();
-				if (bundleInfo.getLoadState() != LOAD_STATE.LOADED)
-				{
-					return false;
-				}
-				return bundleInfo.getAssetInfo(fileNameWithSuffix).isLoaded();
+				continue;
 			}
+			UN_LIST_MAIN(fileNameList);
+			AssetBundleInfo bundleInfo = asset.getAssetBundle();
+			if (bundleInfo.getLoadState() != LOAD_STATE.LOADED)
+			{
+				return false;
+			}
+			return bundleInfo.getAssetInfo(fileNameWithSuffix).isLoaded();
 		}
-		UN_LIST(fileNameList);
+		UN_LIST_MAIN(fileNameList);
 		return false;
 	}
 	// 获得资源,如果资源包未加载,则返回空
@@ -217,21 +231,21 @@ public class AssetBundleLoader : FrameBase
 			logError("AssetBundleLoader is not inited!");
 			return null;
 		}
-		LIST(out List<string> fileNameList);
-		ResourceManager.adjustResourceName<T>(fileName, fileNameList);
+		LIST_MAIN(out List<string> fileNameList);
+		mResourceManager.adjustResourceName<T>(fileName, fileNameList);
 		// 只返回第一个找到的资源
 		int count = fileNameList.Count;
 		for (int i = 0; i < count; ++i)
 		{
 			string fileNameWithSuffix = fileNameList[i];
-			if (mAssetToBundleInfo.TryGetValue(fileNameWithSuffix, out AssetInfo info))
+			if (!mAssetToBundleInfo.TryGetValue(fileNameWithSuffix, out AssetInfo info))
 			{
-				UN_LIST(fileNameList);
-				AssetBundleInfo bundleInfo = info.getAssetBundle();
-				return bundleInfo.getAssetInfo(fileNameWithSuffix).getAsset() as T;
+				continue;
 			}
+			UN_LIST_MAIN(fileNameList);
+			return info.getAssetBundle().getAssetInfo(fileNameWithSuffix).getAsset() as T;
 		}
-		UN_LIST(fileNameList);
+		UN_LIST_MAIN(fileNameList);
 		return null;
 	}
 	// 检查指定的已加载的AssetBundle的依赖项是否有未加载的情况,如果有未加载的则同步加载
@@ -241,10 +255,8 @@ public class AssetBundleLoader : FrameBase
 		{
 			return;
 		}
-		if (mAssetBundleInfoList.TryGetValue(bundleName, out AssetBundleInfo info))
-		{
-			info.checkAssetBundleDependenceLoaded();
-		}
+		mAssetBundleInfoList.TryGetValue(bundleName, out AssetBundleInfo info);
+		info?.checkAssetBundleDependenceLoaded();
 	}
 	// 异步加载资源包
 	public void loadAssetBundleAsync(string bundleName, AssetBundleLoadCallback callback, object userData = null)
@@ -288,15 +300,16 @@ public class AssetBundleLoader : FrameBase
 			// 加载完毕,返回资源列表
 			if (bundleInfo.getLoadState() == LOAD_STATE.LOADED)
 			{
-				if(assetList != null)
+				if(assetList == null)
 				{
-					var bundleAssetlist = bundleInfo.getAssetList();
-					foreach (var item in bundleAssetlist)
+					return;
+				}
+				var bundleAssetlist = bundleInfo.getAssetList();
+				foreach (var item in bundleAssetlist)
+				{
+					if (item.Value.isLoaded())
 					{
-						if (item.Value.isLoaded())
-						{
-							assetList.Add(item.Value.getAsset());
-						}
+						assetList.Add(item.Value.getAsset());
 					}
 				}
 				return;
@@ -312,25 +325,25 @@ public class AssetBundleLoader : FrameBase
 			logError("AssetBundleLoader is not inited!");
 			return false;
 		}
-		LIST(out List<string> fileNameList);
-		ResourceManager.adjustResourceName<T>(fileName, fileNameList);
+		LIST_MAIN(out List<string> fileNameList);
+		mResourceManager.adjustResourceName<T>(fileName, fileNameList);
 		// 只加载第一个找到的资源,所以不允许有重名的同类资源
 		int loadedCount = 0;
 		int count = fileNameList.Count;
 		for (int i = 0; i < count; ++i)
 		{
 			string fileNameWithSuffix = fileNameList[i];
-			if (mAssetToBundleInfo.TryGetValue(fileNameWithSuffix, out AssetInfo asset))
+			if (!mAssetToBundleInfo.TryGetValue(fileNameWithSuffix, out AssetInfo asset))
 			{
-				AssetBundleInfo bundleInfo = asset.getAssetBundle();
-				if (bundleInfo.loadSubAssetAsync(ref fileNameWithSuffix, callback, fileName, userData))
-				{
-					++loadedCount;
-					break;
-				}
+				continue;
+			}
+			if (asset.getAssetBundle().loadSubAssetAsync(ref fileNameWithSuffix, callback, fileName, userData))
+			{
+				++loadedCount;
+				break;
 			}
 		}
-		UN_LIST(fileNameList);
+		UN_LIST_MAIN(fileNameList);
 		return loadedCount != 0;
 	}
 	// 同步加载资源,文件名称,不带后缀,Resources下的相对路径
@@ -341,25 +354,25 @@ public class AssetBundleLoader : FrameBase
 			logError("AssetBundleLoader is not inited!");
 			return null;
 		}
-		LIST(out List<string> fileNameList);
-		ResourceManager.adjustResourceName<T>(fileName, fileNameList);
+		LIST_MAIN(out List<string> fileNameList);
+		mResourceManager.adjustResourceName<T>(fileName, fileNameList);
 		// 只加载第一个找到的资源,所以不允许有重名的同类资源
 		UnityEngine.Object[] res = null;
 		int count = fileNameList.Count;
 		for (int i = 0; i < count; ++i)
 		{
 			string fileNameWithSuffix = fileNameList[i];
-			if (mAssetToBundleInfo.TryGetValue(fileNameWithSuffix, out AssetInfo asset))
+			if (!mAssetToBundleInfo.TryGetValue(fileNameWithSuffix, out AssetInfo asset))
 			{
-				AssetBundleInfo bundleInfo = asset.getAssetBundle();
-				res = bundleInfo.loadSubAsset(ref fileNameWithSuffix);
-				if (res != null)
-				{
-					break;
-				}
+				continue;
+			}
+			res = asset.getAssetBundle().loadSubAsset(ref fileNameWithSuffix);
+			if (res != null)
+			{
+				break;
 			}
 		}
-		UN_LIST(fileNameList);
+		UN_LIST_MAIN(fileNameList);
 		return res;
 	}
 	// 同步加载资源,文件名称,不带后缀,Resources下的相对路径
@@ -370,24 +383,25 @@ public class AssetBundleLoader : FrameBase
 			logError("AssetBundleLoader is not inited!");
 			return null;
 		}
-		LIST(out List<string> fileNameList);
-		ResourceManager.adjustResourceName<T>(fileName, fileNameList);
+		LIST_MAIN(out List<string> fileNameList);
+		mResourceManager.adjustResourceName<T>(fileName, fileNameList);
 		// 只加载第一个找到的资源,所以不允许有重名的同类资源
 		T res = null;
 		int count = fileNameList.Count;
 		for (int i = 0; i < count; ++i)
 		{
 			string fileNameWithSuffix = fileNameList[i];
-			if (mAssetToBundleInfo.TryGetValue(fileNameWithSuffix, out AssetInfo asset))
+			if (!mAssetToBundleInfo.TryGetValue(fileNameWithSuffix, out AssetInfo asset))
 			{
-				res = asset.getAssetBundle().loadAsset<T>(ref fileNameWithSuffix);
-				if(res != null)
-				{
-					break;
-				}
+				continue;
+			}
+			res = asset.getAssetBundle().loadAsset<T>(ref fileNameWithSuffix);
+			if (res != null)
+			{
+				break;
 			}
 		}
-		UN_LIST(fileNameList);
+		UN_LIST_MAIN(fileNameList);
 		return res;
 	}
 	// 异步加载资源
@@ -398,24 +412,25 @@ public class AssetBundleLoader : FrameBase
 			logError("AssetBundleLoader is not inited!");
 			return false;
 		}
-		LIST(out List<string> fileNameList);
-		ResourceManager.adjustResourceName<T>(fileName, fileNameList);
+		LIST_MAIN(out List<string> fileNameList);
+		mResourceManager.adjustResourceName<T>(fileName, fileNameList);
 		// 只加载第一个找到的资源,所以不允许有重名的同类资源
 		int loadedCount = 0;
 		int count = fileNameList.Count;
 		for(int i = 0; i < count; ++i)
 		{
 			string fileNameWithSuffix = fileNameList[i];
-			if (mAssetToBundleInfo.TryGetValue(fileNameWithSuffix, out AssetInfo asset))
+			if (!mAssetToBundleInfo.TryGetValue(fileNameWithSuffix, out AssetInfo asset))
 			{
-				if (asset.getAssetBundle().loadAssetAsync(fileNameWithSuffix, doneCallback, fileName, userData))
-				{
-					++loadedCount;
-					break;
-				}
+				continue;
+			}
+			if (asset.getAssetBundle().loadAssetAsync(fileNameWithSuffix, doneCallback, fileName, userData))
+			{
+				++loadedCount;
+				break;
 			}
 		}
-		UN_LIST(fileNameList);
+		UN_LIST_MAIN(fileNameList);
 		return loadedCount != 0;
 	}
 	// 请求异步加载资源包
@@ -443,10 +458,6 @@ public class AssetBundleLoader : FrameBase
 			mRequestAssetList.Add(fileNameWithSuffix, bundleInfo);
 		}
 	}
-	public void updateAssetBundleConfig(byte[] fileBuffer)
-	{
-		initAssetConfig(fileBuffer, fileBuffer.Length);
-	}
 	public void notifyAssetLoaded(UnityEngine.Object asset, AssetBundleInfo bundle)
 	{
 		// 保存加载出的资源与资源包的信息
@@ -470,55 +481,25 @@ public class AssetBundleLoader : FrameBase
 #endif
 		bundleInfo.setLoadState(LOAD_STATE.LOADING);
 		AssetBundle assetBundle = null;
+		string path = mResourceManager.getResourceRootPath() + bundleInfo.getBundleFileName();
 		// 加载远端文件时使用www
-		if (!ResourceManager.mLocalRootPath)
+		if (!mResourceManager.isLocalRootPath())
 		{
-			if (ResourceManager.mPersistentFirst)
+			checkDownloadPath(ref path, mResourceManager.isLocalRootPath());
+			UnityWebRequest www = new UnityWebRequest(path);
+			DownloadHandlerAssetBundle downloadHandler = new DownloadHandlerAssetBundle(path, 0);
+			www.downloadHandler = downloadHandler;
+			yield return www;
+			if (www.error == null)
 			{
-				string path = FrameDefine.F_PERSISTENT_DATA_PATH + bundleInfo.getBundleFileName();
-				checkDownloadPath(ref path, ResourceManager.mLocalRootPath);
-				UnityWebRequest www = new UnityWebRequest(path);
-				DownloadHandlerAssetBundle downloadHandler = new DownloadHandlerAssetBundle(path, 0);
-				www.downloadHandler = downloadHandler;
-				yield return www;
-				if (www.error == null)
-				{
-					assetBundle = downloadHandler.assetBundle;
-				}
-				www.Dispose();
+				assetBundle = downloadHandler.assetBundle;
 			}
-			if(assetBundle == null)
-			{
-				string path = ResourceManager.mResourceRootPath + bundleInfo.getBundleFileName();
-				checkDownloadPath(ref path, ResourceManager.mLocalRootPath);
-				UnityWebRequest www = new UnityWebRequest(path);
-				DownloadHandlerAssetBundle downloadHandler = new DownloadHandlerAssetBundle(path, 0);
-				www.downloadHandler = downloadHandler;
-				yield return www;
-				if (www.error == null)
-				{
-					assetBundle = downloadHandler.assetBundle;
-				}
-				www.Dispose();
-			}
+			www.Dispose();
 		}
 		// 直接从文件加载,只能加载本地文件
 		else
 		{
-			AssetBundleCreateRequest request = null;
-			string path = FrameDefine.F_PERSISTENT_DATA_PATH + bundleInfo.getBundleFileName();
-			if (ResourceManager.mPersistentFirst && isFileExist(path))
-			{
-				request = AssetBundle.LoadFromFileAsync(path);
-			}
-			if(request == null)
-			{
-				path = ResourceManager.mResourceRootPath + bundleInfo.getBundleFileName();
-				if(isFileExist(path))
-				{
-					request = AssetBundle.LoadFromFileAsync(path);
-				}
-			}
+			AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(path);
 			if (request != null)
 			{
 				yield return request;
@@ -572,7 +553,8 @@ public class AssetBundleLoader : FrameBase
 	}
 	protected void initAssetConfig(byte[] fileBuffer, int fileSize)
 	{
-		ARRAY(out byte[] tempStringBuffer, 256);
+		mInited = false;
+		ARRAY_MAIN(out byte[] tempStringBuffer, 256);
 		mAssetBundleInfoList.Clear();
 		mAssetToBundleInfo.Clear();
 		Serializer serializer = new Serializer(fileBuffer, fileSize);
@@ -604,7 +586,7 @@ public class AssetBundleLoader : FrameBase
 				bundleInfo.addParent(getFileNameNoSuffix(bytesToString(tempStringBuffer)));
 			}
 		}
-		UN_ARRAY(tempStringBuffer);
+		UN_ARRAY_MAIN(tempStringBuffer);
 		// 配置清单解析完毕后,为每个AssetBundleInfo查找对应的依赖项
 		foreach (var info in mAssetBundleInfoList)
 		{

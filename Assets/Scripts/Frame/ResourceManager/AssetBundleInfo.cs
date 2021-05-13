@@ -111,7 +111,7 @@ public class AssetBundleInfo : FrameBase
 	// 查找所有依赖项
 	public void findAllDependence()
 	{
-		LIST(out List<string> tempList);
+		LIST_MAIN(out List<string> tempList);
 		tempList.AddRange(mParents.Keys);
 		int count = tempList.Count;
 		for(int i = 0; i < count; ++i)
@@ -123,7 +123,7 @@ public class AssetBundleInfo : FrameBase
 			// 并且通知父节点添加自己为子节点
 			info.addChild(this);
 		}
-		UN_LIST(tempList);
+		UN_LIST_MAIN(tempList);
 	}
 	// 所有依赖项是否都已经加载完成
 	public bool isAllParentLoaded()
@@ -140,6 +140,11 @@ public class AssetBundleInfo : FrameBase
 	// 同步加载资源包
 	public void loadAssetBundle()
 	{
+		if(!mResourceManager.isLocalRootPath())
+		{
+			logError("当前资源目录为远程目录,无法同步加载");
+			return;
+		}
 		if (mLoadState != LOAD_STATE.UNLOAD && mLoadState != LOAD_STATE.NONE)
 		{
 			return;
@@ -152,30 +157,15 @@ public class AssetBundleInfo : FrameBase
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 		log("加载AssetBundle:" + mBundleFileName, LOG_LEVEL.NORMAL);
 #endif
-		// 先去persistentDataPath中查找资源
-		string path = FrameDefine.F_PERSISTENT_DATA_PATH + mBundleFileName;
-		if (ResourceManager.mPersistentFirst && isFileExist(path))
-		{
-			mAssetBundle = AssetBundle.LoadFromFile(path);
-		}
-		// 找不到再去指定目录中查找资源
-		if (mAssetBundle == null)
-		{
-			path = ResourceManager.mResourceRootPath + mBundleFileName;
-			// 安卓平台下,如果是从StreamingAssets读取AssetBundle文件,则需要使用指定的路径
+		string path = mResourceManager.getResourceRootPath() + mBundleFileName;
+		// 安卓平台下,如果是从StreamingAssets读取AssetBundle文件,则需要使用指定的路径
 #if UNITY_ANDROID && !UNITY_EDITOR
-			if (ResourceManager.mResourceRootPath == FrameDefine.F_STREAMING_ASSETS_PATH)
-			{
-				path = FrameDefine.F_ASSET_BUNDLE_PATH + mBundleFileName;
-			}
-#endif
-			// 远端目录不判断文件是否存在,本地路径如果是StreamingAssets中
-			// 则需要使用FrameDefine.F_STREAMING_ASSETS_PATH而不是FrameDefine.F_ASSET_BUNDLE_PATH
-			if (!ResourceManager.mLocalRootPath || isFileExist(ResourceManager.mResourceRootPath + mBundleFileName))
-			{
-				mAssetBundle = AssetBundle.LoadFromFile(path);
-			}
+		if (mResourceManager.getResourceRootPath() == FrameDefine.F_STREAMING_ASSETS_PATH)
+		{
+			path = FrameDefine.F_ASSET_BUNDLE_PATH + mBundleFileName;
 		}
+#endif
+		mAssetBundle = AssetBundle.LoadFromFile(path);
 		if (mAssetBundle == null)
 		{
 			logError("can not load asset bundle : " + mBundleFileName);

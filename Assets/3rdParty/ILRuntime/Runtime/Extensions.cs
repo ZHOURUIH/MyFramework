@@ -9,15 +9,35 @@ namespace ILRuntime.Runtime
 {
     public static class Extensions
     {
+        public static bool GetJITFlags(this Mono.Cecil.CustomAttribute attribute, Enviorment.AppDomain appdomain, out int flags)
+        {
+            var at = appdomain.GetType(attribute.AttributeType, null, null);
+            flags = ILRuntimeJITFlags.None;
+            if (at == appdomain.JITAttributeType)
+            {
+                if (attribute.HasConstructorArguments)
+                {
+                    flags = (int)attribute.ConstructorArguments[0].Value;
+                }
+                else
+                    flags = ILRuntimeJITFlags.JITOnDemand;
+                return true;
+            }
+            else
+                return false;
+        }
         public static void GetClassName(this Type type, out string clsName, out string realClsName, out bool isByRef, bool simpleClassName = false)
         {
             isByRef = type.IsByRef;
             int arrayRank = 1;
-            bool isArray = type.IsArray;
+            
             if (isByRef)
             {
                 type = type.GetElementType();
             }
+
+            bool isArray = type.IsArray;
+
             if (isArray)
             {
                 arrayRank = type.GetArrayRank();
@@ -71,7 +91,30 @@ namespace ILRuntime.Runtime
             else
             {
                 clsName = simpleClassName ? "" : (!string.IsNullOrEmpty(type.Namespace) ? type.Namespace.Replace(".", "_") + "_" : "");
-                realNamespace = !string.IsNullOrEmpty(type.Namespace) ? type.Namespace + "." : "global::";
+
+                if (string.IsNullOrEmpty(type.Namespace))
+                {
+                    if (type.IsArray)
+                    {
+                        var elementType = type.GetElementType();
+                        if (elementType.IsNested && elementType.DeclaringType != null)
+                        {
+                            realNamespace = elementType.Namespace + "." + elementType.DeclaringType.Name + ".";
+                        }
+                        else
+                        {
+                            realNamespace = elementType.Namespace + ".";
+                        }
+                    }
+                    else
+                    {
+                        realNamespace = "global::";
+                    }
+                }
+                else
+                {
+                    realNamespace = type.Namespace + ".";
+                }
             }
             clsName = clsName + type.Name.Replace(".", "_").Replace("`", "_").Replace("<", "_").Replace(">", "_");
             bool isGeneric = false;
@@ -109,6 +152,11 @@ namespace ILRuntime.Runtime
             if (!simpleClassName)
                 clsName += "_Binding";
 
+            // 因为SQLite的命名空间会跟已有的命名空间冲突,所以加上global
+            if (type.Namespace == "Mono.Data.Sqlite")
+            {
+                realNamespace = "global::" + realNamespace;
+            }
             realClsName = realNamespace;
             if (isGeneric)
             {
@@ -141,7 +189,6 @@ namespace ILRuntime.Runtime
                     realClsName = sb.ToString();
                 }
             }
-
         }
         public static int ToInt32(this object obj)
         {

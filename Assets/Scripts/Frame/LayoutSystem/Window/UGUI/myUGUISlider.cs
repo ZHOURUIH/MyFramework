@@ -20,7 +20,7 @@ public class myUGUISlider : myUGUIObject, ISlider
 		}
 		if (mSlider == null)
 		{
-			logError(Typeof(this) + " can not find " + Typeof<Slider>() + ", window:" + mName + ", layout:" + mLayout.getName());
+			logError(Typeof(this) + " can not find " + typeof(Slider) + ", window:" + mName + ", layout:" + mLayout.getName());
 		}
 	}
 	public Slider getSlider() { return mSlider; }

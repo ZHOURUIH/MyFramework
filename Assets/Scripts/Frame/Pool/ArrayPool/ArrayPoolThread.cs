@@ -104,7 +104,7 @@ public class ArrayPoolThread : FrameSystem
 			arrayList = new HashSet<Array>();
 			typeList.Add(length, arrayList);
 		}
-		if (arrayList.Count > 0 && arrayList.Contains(array))
+		else if (arrayList.Contains(array))
 		{
 			logError("array is in inuse list!");
 			return;
@@ -139,7 +139,7 @@ public class ArrayPoolThread : FrameSystem
 			arrayList = new HashSet<Array>();
 			typeList.Add(length, arrayList);
 		}
-		if (arrayList.Count > 0 && arrayList.Contains(array))
+		else if (arrayList.Contains(array))
 		{
 			logError("array is in Unused list! can not add again!");
 		}

@@ -1,6 +1,6 @@
 ﻿using System;
 
-public abstract class GameComponent : GameBasePooledObject
+public abstract class GameComponent : FrameBase
 {
 	protected ComponentOwner mComponentOwner;   // 该组件的拥有者
 	protected Type mType;						// 组件类型,因为有些组件可能在热更工厂中,无法通过GetType获取正确的类型,所以保存一个

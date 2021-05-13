@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 
 // 根据一个类,生成重写了这个类的所有虚函数的新的类
-public class TypeUtility
+public class TypeUtility : WidgetUtility
 {
 	protected static Dictionary<Type, string> mBasicTypeToString;
 	protected static Dictionary<string, Type> mBasicFullStringToType;
@@ -52,7 +52,9 @@ public class TypeUtility
 		mBasicTypeToString.Add(typeof(double), "double");
 		mBasicTypeToString.Add(typeof(string), "string");
 		mBasicTypeToString.Add(typeof(object), "object");
-		foreach(var item in mBasicTypeToString)
+		mBasicTypeToString.Add(typeof(ulong), "ulong");
+		mBasicTypeToString.Add(typeof(long), "long");
+		foreach (var item in mBasicTypeToString)
 		{
 			mBasicFullStringToType.Add(item.Key.ToString(), item.Key);
 		}

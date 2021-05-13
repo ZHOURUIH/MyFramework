@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System;
+using System.Collections.Generic;
 
 public class ComponentDrag : GameComponent
 {	
@@ -10,7 +11,8 @@ public class ComponentDrag : GameComponent
 	protected OnDragCallback mInterruptCallback;		// 拖拽被中断的回调,暂时只在多点触控时生效
 	protected Vector3 mPrepareDragMousePosition;		// 鼠标刚按下时的坐标
 	protected Vector3 mDragMouseOffset;					// 开始拖拽时,鼠标位置与窗口位置的偏移
-	protected Vector2 mAllowDragDirection;				// 允许开始拖拽的方向,为0则表示不限制开始拖拽的方向
+	protected Vector2 mAllowDragDirection;              // 允许开始拖拽的方向,为0则表示不限制开始拖拽的方向
+	protected BOOL mAllowDrag;							// 用于避免GC
 	protected float mStartDragThreshold;				// 开始拖拽的阈值,在准备拖拽阶段,拖拽的距离超过阈值后进入拖拽状态
 	protected float mDragStartAngleThreshold;			// 如果有允许开始拖拽的方向,则表示当实际拖拽方向与允许的方向夹角,弧度制
 	protected bool mPreparingDrag;						// 鼠标按下时只是准备开始拖动,当鼠标在准备状态下移动一定距离以后才会开始真正的拖动
@@ -18,6 +20,7 @@ public class ComponentDrag : GameComponent
 	protected int mTouchFinger;							// 如果是手指通过触屏操作的拖动,则表示拖动的触点
 	public ComponentDrag()
 	{
+		mAllowDrag = new BOOL();
 		mStartDragThreshold = 20.0f;
 		mDragStartAngleThreshold = toRadian(45.0f);
 	}
@@ -37,6 +40,7 @@ public class ComponentDrag : GameComponent
 		mPreparingDrag = false;
 		mDrag = false;
 		mTouchFinger = 0;
+		mAllowDrag.set(false);
 	}
 	public override void update(float elapsedTime)
 	{
@@ -169,48 +173,56 @@ public class ComponentDrag : GameComponent
 	protected bool checkStartTouchDrag(ref Touch touch)
 	{
 		Vector3 mousePosition = touch.position;
-		if (mouseInObject(ref mousePosition))
+		if (!mouseInObject(ref mousePosition))
 		{
-			// 拖拽消息不向下传递, 从上往下查找,如果前面没有窗口需要有拖拽消息被处理,则当前窗口响应拖拽消息
-			var hoverWindowList = mGlobalTouchSystem.getAllHoverWindow(ref mousePosition);
-			int count = hoverWindowList.Count;
-			for(int i = 0; i < count; ++i)
+			return false;
+		}
+		bool result = false;
+		// 拖拽消息不向下传递, 从上往下查找,如果前面没有窗口需要有拖拽消息被处理,则当前窗口响应拖拽消息
+		LIST_MAIN(out List<IMouseEventCollect> hoverList);
+		mGlobalTouchSystem.getAllHoverWindow(hoverList, ref mousePosition);
+		int count = hoverList.Count;
+		for(int i = 0; i < count; ++i)
+		{
+			IMouseEventCollect item = hoverList[i];
+			if (item == mComponentOwner as IMouseEventCollect)
 			{
-				IMouseEventCollect item = hoverWindowList[i];
-				if (item == mComponentOwner as IMouseEventCollect)
-				{
-					onMouseDown(mousePosition);
-					return true;
-				}
-				if (item.isDragable())
-				{
-					break;
-				}
+				onMouseDown(mousePosition);
+				result = true;
+				break;
+			}
+			if (item.isDragable())
+			{
+				break;
 			}
 		}
-		return false;
+		UN_LIST_MAIN(hoverList);
+		return result;
 	}
 	protected void checkStartDrag(Vector3 mousePosition)
 	{
-		if (mInputManager.getMouseDown(MOUSE_BUTTON.LEFT) && mouseInObject(ref mousePosition))
+		if (!mInputManager.getMouseDown(MOUSE_BUTTON.LEFT) || !mouseInObject(ref mousePosition))
 		{
-			// 从上往下查找,如果前面没有窗口需要有拖拽消息被处理,则当前窗口响应拖拽消息
-			var hoverWindowList = mGlobalTouchSystem.getAllHoverWindow(ref mousePosition);
-			int count = hoverWindowList.Count;
-			for (int i = 0; i < count; ++i)
+			return;
+		}
+		// 从上往下查找,如果前面没有窗口需要有拖拽消息被处理,则当前窗口响应拖拽消息
+		LIST_MAIN(out List<IMouseEventCollect> hoverList);
+		mGlobalTouchSystem.getAllHoverWindow(hoverList, ref mousePosition);
+		int count = hoverList.Count;
+		for (int i = 0; i < count; ++i)
+		{
+			IMouseEventCollect item = hoverList[i];
+			if (item == mComponentOwner as IMouseEventCollect)
 			{
-				IMouseEventCollect item = hoverWindowList[i];
-				if (item == mComponentOwner as IMouseEventCollect)
-				{
-					onMouseDown(mousePosition);
-					break;
-				}
-				else if (item.isDragable())
-				{
-					break;
-				}
+				onMouseDown(mousePosition);
+				break;
+			}
+			else if (item.isDragable())
+			{
+				break;
 			}
 		}
+		UN_LIST_MAIN(hoverList);
 	}
 	protected void onMouseDown(Vector3 mousePosition)
 	{
@@ -264,9 +276,9 @@ public class ComponentDrag : GameComponent
 		mDragMouseOffset = mousePos - getScreenPosition();
 		if (mDragStartCallback != null)
 		{
-			bool allowDrag = true;
-			mDragStartCallback(mComponentOwner, ref allowDrag);
-			return allowDrag;
+			mAllowDrag.set(true);
+			mDragStartCallback(mComponentOwner, mAllowDrag);
+			return mAllowDrag.mValue;
 		}
 		return true;
 	}

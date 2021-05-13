@@ -25,7 +25,7 @@ public class ImageAtlasPath : MonoBehaviour
 		Image image = GetComponent<Image>();
 		if (image == null)
 		{
-			Debug.LogError("can not find Image component");
+			Debug.LogError("can not find Image com");
 			return;
 		}
 		mAtlasPath = AssetDatabase.GetAssetPath(image.mainTexture);

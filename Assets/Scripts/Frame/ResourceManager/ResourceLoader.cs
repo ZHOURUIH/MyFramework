@@ -58,7 +58,7 @@ public class ResourceLoader : FrameBase
 	// 卸载指定路径中的所有资源
 	public void unloadPath(string path)
 	{
-		LIST(out List<string> tempList);
+		LIST_MAIN(out List<string> tempList);
 		tempList.AddRange(mLoadedPath.Keys);
 		int count = tempList.Count;
 		for(int i = 0; i < count; ++i)
@@ -88,7 +88,7 @@ public class ResourceLoader : FrameBase
 			}
 			mLoadedPath.Remove(item0);
 		}
-		UN_LIST(tempList);
+		UN_LIST_MAIN(tempList);
 	}
 	public bool isResourceLoaded(string name)
 	{
@@ -200,7 +200,7 @@ public class ResourceLoader : FrameBase
 		// 还没有加载则开始异步加载
 		else
 		{
-			CLASS(out info);
+			CLASS_MAIN(out info);
 			info.mPath = path;
 			info.mResouceName = name;
 			info.mState = LOAD_STATE.LOADING;
@@ -218,14 +218,14 @@ public class ResourceLoader : FrameBase
 		{
 			return;
 		}
-		CLASS(out ResourceLoadInfo info);
+		CLASS_MAIN(out ResourceLoadInfo info);
 		info.mPath = path;
 		info.mResouceName = name;
 		info.mState = LOAD_STATE.LOADING;
 		resList.Add(info.mResouceName, info);
 #if UNITY_EDITOR
-		LIST(out List<string> fileNameList);
-		ResourceManager.adjustResourceName<T>(name, fileNameList, false);
+		LIST_MAIN(out List<string> fileNameList);
+		mResourceManager.adjustResourceName<T>(name, fileNameList, false);
 		int fileCount = fileNameList.Count;
 		for(int i = 0; i < fileCount; ++i)
 		{
@@ -237,7 +237,7 @@ public class ResourceLoader : FrameBase
 				break;
 			}
 		}
-		UN_LIST(fileNameList);
+		UN_LIST_MAIN(fileNameList);
 #else
 		info.mObject = Resources.Load(name, Typeof<T>());
 		info.mSubObjects = Resources.LoadAll(name);
@@ -251,8 +251,8 @@ public class ResourceLoader : FrameBase
 	protected IEnumerator loadResourceCoroutine<T>(ResourceLoadInfo info) where T : Object
 	{
 #if UNITY_EDITOR
-		LIST(out List<string> fileNameList);
-		ResourceManager.adjustResourceName<T>(info.mResouceName, fileNameList, false);
+		LIST_MAIN(out List<string> fileNameList);
+		mResourceManager.adjustResourceName<T>(info.mResouceName, fileNameList, false);
 		int fileCount = fileNameList.Count;
 		for (int i = 0; i < fileCount; ++i)
 		{
@@ -264,7 +264,7 @@ public class ResourceLoader : FrameBase
 				break;
 			}
 		}
-		UN_LIST(fileNameList);
+		UN_LIST_MAIN(fileNameList);
 		yield return null;
 #else
 		ResourceRequest request = Resources.LoadAsync<T>(info.mResouceName);

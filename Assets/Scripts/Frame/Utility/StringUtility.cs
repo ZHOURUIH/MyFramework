@@ -262,7 +262,7 @@ public class StringUtility : BinaryUtility
 		}
 		return int.Parse(str);
 	}
-	public static long stringToLong(string str)
+	public static long SToL(string str)
 	{
 		checkIntString(str);
 		if (isEmpty(str))
@@ -271,7 +271,7 @@ public class StringUtility : BinaryUtility
 		}
 		return long.Parse(str);
 	}
-	public static ulong stringToULong(string str)
+	public static ulong SToUL(string str)
 	{
 		checkUIntString(str);
 		if (isEmpty(str))
@@ -280,7 +280,7 @@ public class StringUtility : BinaryUtility
 		}
 		return ulong.Parse(str);
 	}
-	public static uint stringToUInt(string str)
+	public static uint SToUInt(string str)
 	{
 		checkUIntString(str);
 		if (isEmpty(str))
@@ -289,7 +289,7 @@ public class StringUtility : BinaryUtility
 		}
 		return uint.Parse(str);
 	}
-	public static Vector2 stringToVector2(string value, string seperate = ",")
+	public static Vector2 SToVector2(string value, string seperate = ",")
 	{
 		if (isEmpty(value) || value == "0,0")
 		{
@@ -329,7 +329,7 @@ public class StringUtility : BinaryUtility
 		}
 		return result;
 	}
-	public static Vector3 stringToVector3(string value, string seperate = ",")
+	public static Vector3 SToVector3(string value, string seperate = ",")
 	{
 		if (isEmpty(value) || value == "0,0,0")
 		{
@@ -346,7 +346,7 @@ public class StringUtility : BinaryUtility
 		v.z = SToF(splitList[2]);
 		return v;
 	}
-	public static Vector4 stringToVector4(string value, string seperate = ",")
+	public static Vector4 SToVector4(string value, string seperate = ",")
 	{
 		if (isEmpty(value) || value == "0,0,0,0")
 		{
@@ -1178,17 +1178,21 @@ public class StringUtility : BinaryUtility
 		insertNumberComma(ref retString);
 		return retString;
 	}
+	public static string LToSComma(long value)
+	{
+		string retString = LToS(value);
+		insertNumberComma(ref retString);
+		return retString;
+	}
+	public static string ULToSComma(ulong value)
+	{
+		string retString = ULToS(value);
+		insertNumberComma(ref retString);
+		return retString;
+	}
 	public static string IToSComma(uint value)
 	{
 		return IToSComma((int)value);
-	}
-	public static string LToS(ulong value, int minLength = 0)
-	{
-		return LToS((long)value, minLength);
-	}
-	public static string LToSComma(ulong value)
-	{
-		return LToSComma((long)value);
 	}
 	public static string LToS(long value, int minLength = 0)
 	{
@@ -1212,10 +1216,26 @@ public class StringUtility : BinaryUtility
 		}
 		return retString;
 	}
-	public static string LToSComma(long value)
+	public static string ULToS(ulong value, int minLength = 0)
 	{
-		string retString = LToS(value);
-		insertNumberComma(ref retString);
+		string retString;
+		// 先尝试查表获取
+		if (value >= 0 && value < (ulong)mIntToString.Length)
+		{
+			retString = mIntToString[value];
+		}
+		else
+		{
+			retString = value.ToString();
+		}
+		int addLen = minLength - retString.Length;
+		if (addLen > 0)
+		{
+			for (int i = 0; i < addLen; ++i)
+			{
+				retString = "0" + retString;
+			}
+		}
 		return retString;
 	}
 	public static string vector2IntToString(Vector2Int value, int limitLength = 0)
@@ -1276,6 +1296,16 @@ public class StringUtility : BinaryUtility
 			replace(builder, pos, pos + key.Length, newWords);
 			startPos = pos + newWords.Length;
 		}
+	}
+	// 移除str的从开头到stopChar的部分,包括stopChar,findFromStart为true表示寻找第一个stopChar,false表示寻找最后一个stopChar
+	public static string removeStart(string str, char stopChar, bool findFromStart)
+	{
+		int pos = findFromStart ? str.IndexOf(stopChar) : str.LastIndexOf(stopChar);
+		if(pos < 0)
+		{
+			return str;
+		}
+		return str.Substring(pos + 1);
 	}
 	public static string removeAll(string str, params string[] key)
 	{
@@ -1472,7 +1502,7 @@ public class StringUtility : BinaryUtility
 			return 0;
 		}
 		int dataCount = str.Length >> 1;
-		FrameBase.ARRAY_THREAD(out bytes, MathUtility.getGreaterPow2(dataCount));
+		FrameBase.ARRAY_MAIN_THREAD(out bytes, MathUtility.getGreaterPow2(dataCount));
 		for (int i = 0; i < dataCount; ++i)
 		{
 			bytes[i] = hexStringToByte(str, i * 2);
@@ -1481,7 +1511,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static void releaseHexStringBytes(byte[] bytes)
 	{
-		FrameBase.UN_ARRAY_THREAD(bytes);
+		FrameBase.UN_ARRAY_MAIN_THREAD(bytes);
 	}
 	public static string fileSizeString(long size)
 	{

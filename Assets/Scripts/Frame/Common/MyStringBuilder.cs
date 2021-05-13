@@ -2,7 +2,7 @@
 using System.Text;
 using UnityEngine;
 
-public class MyStringBuilder : FrameBasePooledObject
+public class MyStringBuilder : FrameBase
 {
 	protected StringBuilder mBuilder;
 	public MyStringBuilder()
@@ -96,7 +96,7 @@ public class MyStringBuilder : FrameBasePooledObject
 	}
 	public MyStringBuilder Append(ulong value)
 	{
-		mBuilder.Append(LToS(value));
+		mBuilder.Append(ULToS(value));
 		return this;
 	}
 	public MyStringBuilder Append(Vector2 value)
@@ -178,7 +178,7 @@ public class MyStringBuilder : FrameBasePooledObject
 	}
 	public MyStringBuilder Append(string str0, ulong value)
 	{
-		return Append(str0, LToS(value));
+		return Append(str0, ULToS(value));
 	}
 	public MyStringBuilder Append(string str0, Vector2 value)
 	{

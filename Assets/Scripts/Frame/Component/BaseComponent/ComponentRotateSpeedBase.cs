@@ -28,7 +28,7 @@ public class ComponentRotateSpeedBase : GameComponent, IComponentModifyRotation,
 		mCurRotation = startAngle;
 		mRotateSpeed = rotateSpeed;
 		mRotateAcceleration = rotateAcceleration;
-		applyRotation(ref mCurRotation, false, true);
+		applyRotation(ref mCurRotation);
 		// 如果速度和加速度都为0,则停止旋转
 		if (isVectorZero(ref rotateSpeed) && isVectorZero(ref rotateAcceleration))
 		{
@@ -67,6 +67,6 @@ public class ComponentRotateSpeedBase : GameComponent, IComponentModifyRotation,
 	public PLAY_STATE getPlayState() { return mPlayState; }
 	public void notifyBreak(){}
 	//--------------------------------------------------------------------------------------------------------------------------------------
-	protected virtual void applyRotation(ref Vector3 rotation, bool done = false, bool refreshNow = false) { }
+	protected virtual void applyRotation(ref Vector3 rotation) { }
 	protected virtual Vector3 getCurRotation() { return Vector3.zero; }
 }

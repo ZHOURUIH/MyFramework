@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System;
 
-public abstract class SceneProcedure : GameBase, IDelayCmdWatcher
+public abstract class SceneProcedure : IDelayCmdWatcher
 {
 	protected Dictionary<Type, SceneProcedure> mChildProcedureList; // 子流程列表
-	protected HashSet<ulong> mDelayCmdList;		// 流程进入时的延迟命令列表,当命令执行时,会从列表中移除该命令	
+	protected HashSet<long> mDelayCmdList;		// 流程进入时的延迟命令列表,当命令执行时,会从列表中移除该命令	
 	protected CommandCallback mCmdStartCallback;// 命令开始的回调,保存变量是为了避免GC
 	protected SceneProcedure mParentProcedure;	// 父流程
 	protected SceneProcedure mPrepareNext;      // 准备退出到的流程
@@ -15,7 +15,7 @@ public abstract class SceneProcedure : GameBase, IDelayCmdWatcher
 	protected bool mInited;                     // 是否已经初始化,子节点在初始化时需要先确保父节点已经初始化
 	public SceneProcedure()
 	{
-		mDelayCmdList = new HashSet<ulong>();
+		mDelayCmdList = new HashSet<long>();
 		mChildProcedureList = new Dictionary<Type, SceneProcedure>();
 		mPrepareTimer = new MyTimer();
 		mPrepareIntent = null;
@@ -78,7 +78,7 @@ public abstract class SceneProcedure : GameBase, IDelayCmdWatcher
 		if (mPrepareTimer.tickTimer(elapsedTime))
 		{
 			// 超过了准备时间,强制跳转流程
-			CMD(out CommandGameSceneChangeProcedure cmd);
+			CMD_MAIN(out CmdGameSceneChangeProcedure cmd);
 			cmd.mProcedure = mPrepareNext.mType;
 			cmd.mIntent = mPrepareIntent;
 			pushCommand(cmd, mGameScene);
@@ -143,8 +143,8 @@ public abstract class SceneProcedure : GameBase, IDelayCmdWatcher
 	public SceneProcedure getSameParent(SceneProcedure otherProcedure)
 	{
 		// 获得两个流程的父节点列表
-		LIST(out List<SceneProcedure> tempList0);
-		LIST(out List<SceneProcedure> tempList1);
+		LIST_MAIN(out List<SceneProcedure> tempList0);
+		LIST_MAIN(out List<SceneProcedure> tempList1);
 		getParentList(tempList0);
 		otherProcedure.getParentList(tempList1);
 		// 从前往后判断,找到第一个相同的父节点
@@ -157,14 +157,14 @@ public abstract class SceneProcedure : GameBase, IDelayCmdWatcher
 			{
 				if (thisParent == tempList1[j])
 				{
-					UN_LIST(tempList0);
-					UN_LIST(tempList1);
+					UN_LIST_MAIN(tempList0);
+					UN_LIST_MAIN(tempList1);
 					return thisParent;
 				}
 			}
 		}
-		UN_LIST(tempList0);
-		UN_LIST(tempList1);
+		UN_LIST_MAIN(tempList0);
+		UN_LIST_MAIN(tempList1);
 		return null;
 	}
 	public bool isThisOrParent(Type type)
@@ -230,26 +230,26 @@ public abstract class SceneProcedure : GameBase, IDelayCmdWatcher
 		mChildProcedureList.Add(child.mType, child);
 		return true;
 	}
-	public virtual void addDelayCmd(Command cmd)
+	public override void addDelayCmd(Command cmd)
 	{
 		mDelayCmdList.Add(cmd.getAssignID());
 		cmd.addStartCommandCallback(mCmdStartCallback);
 	}
-	public virtual void onCmdStarted(Command cmd)
+	public override void onCmdStarted(Command cmd)
 	{
 		if (!mDelayCmdList.Remove(cmd.getAssignID()))
 		{
 			logError("命令执行后移除流程命令失败");
 		}
 	}
-	public virtual void interruptCommand(ulong assignID, bool showError = true)
+	public override void interruptCommand(long assignID, bool showError = true)
 	{
 		if (mDelayCmdList.Remove(assignID))
 		{
 			mCommandSystem.interruptCommand(assignID, showError);
 		}
 	}
-	public virtual void interruptAllCommand()
+	public override void interruptAllCommand()
 	{
 		foreach(var item in mDelayCmdList)
 		{

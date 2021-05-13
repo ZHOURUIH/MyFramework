@@ -106,6 +106,7 @@ namespace ILRuntime.Runtime.Enviorment
         bool invocated;
         int paramCnt;
         bool hasReturn;
+        bool useRegister;
 
         static bool defaultConverterIntialized = false;
         internal static void InitializeDefaultConverters()
@@ -200,7 +201,27 @@ namespace ILRuntime.Runtime.Enviorment
             invocated = false;
             paramCnt = 0;
             hasReturn = method.ReturnType != domain.VoidType;
+            useRegister = method.ShouldUseRegisterVM;
         }
+
+        internal void SetInvoked(StackObject* esp)
+        {
+            this.esp = esp - 1;
+            invocated = true;
+        }
+
+        internal StackObject* ESP
+        {
+            get => esp;
+            set
+            {
+                esp = value;
+            }
+        }
+
+        internal ILIntepreter Intepreter => intp;
+
+        internal IList<object> ManagedStack => mStack;
 
         public void PushBool(bool val)
         {
@@ -223,6 +244,8 @@ namespace ILRuntime.Runtime.Enviorment
             esp->Value = val;
             esp->ValueLow = 0;
 
+            if (useRegister)
+                mStack.Add(null);
             esp++;
             paramCnt++;
         }
@@ -232,6 +255,8 @@ namespace ILRuntime.Runtime.Enviorment
             esp->ObjectType = ObjectTypes.Long;
             *(long*)&esp->Value = val;
 
+            if (useRegister)
+                mStack.Add(null);
             esp++;
             paramCnt++;
         }
@@ -246,6 +271,8 @@ namespace ILRuntime.Runtime.Enviorment
             esp->ObjectType = ObjectTypes.Float;
             *(float*)&esp->Value = val;
 
+            if (useRegister)
+                mStack.Add(null);
             esp++;
             paramCnt++;
         }
@@ -259,7 +286,8 @@ namespace ILRuntime.Runtime.Enviorment
         {
             esp->ObjectType = ObjectTypes.Double;
             *(double*)&esp->Value = val;
-
+            if (useRegister)
+                mStack.Add(null);
             esp++;
             paramCnt++;
         }
@@ -268,7 +296,10 @@ namespace ILRuntime.Runtime.Enviorment
         {
             if (obj is CrossBindingAdaptorType)
                 obj = ((CrossBindingAdaptorType)obj).ILInstance;
-            esp = ILIntepreter.PushObject(esp, mStack, obj, isBox);
+            var res = ILIntepreter.PushObject(esp, mStack, obj, isBox);
+            if (esp->ObjectType < ObjectTypes.Object && useRegister)
+                mStack.Add(null);
+            esp = res;
             paramCnt++;
         }
 
@@ -277,6 +308,8 @@ namespace ILRuntime.Runtime.Enviorment
             var dst = ILIntepreter.Add(ebp, index);
             esp->ObjectType = ObjectTypes.StackObjectReference;
             *(long*)&esp->Value = (long)dst;
+            if (useRegister)
+                mStack.Add(null);
             esp++;
         }
 
@@ -330,7 +363,10 @@ namespace ILRuntime.Runtime.Enviorment
             if (cnt != paramCnt)
                 throw new ArgumentException("Argument count mismatch");
             bool unhandledException;
-            esp = intp.Execute(method, esp, out unhandledException);
+            if (useRegister)
+                esp = intp.ExecuteR(method, esp, out unhandledException);
+            else
+                esp = intp.Execute(method, esp, out unhandledException);
             esp--;
         }
 

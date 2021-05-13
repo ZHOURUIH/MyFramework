@@ -3,16 +3,16 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 
-public class SceneInstance : GameBase
+public class SceneInstance : FrameBase
 {
 	public SceneLoadCallback mLoadCallback;
 	public AsyncOperation mOperation;
 	public GameObject mRoot;
 	public Scene mScene;
-	public LOAD_STATE mState;
 	public string mName;
 	public bool mActiveLoaded;      // 加载完毕后是否立即显示
 	public bool mInited;
+	public LOAD_STATE mState;
 	public virtual void init()
 	{
 		if(mInited)
@@ -36,10 +36,7 @@ public class SceneInstance : GameBase
 			mRoot.SetActive(active);
 		}
 	}
-	public bool getActive()
-	{
-		return mRoot != null && mRoot.activeSelf;
-	}
+	public bool getActive() { return mRoot != null && mRoot.activeSelf; }
 	public void setName(string name) { mName = name; }
 	public GameObject getRoot() { return mRoot; }
 	public virtual void onShow() { }

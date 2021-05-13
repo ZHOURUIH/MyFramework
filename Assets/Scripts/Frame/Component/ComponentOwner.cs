@@ -13,7 +13,7 @@ public abstract class ComponentOwner : CommandReceiver
 	}
 	public override void destroy()
 	{
-		var componentList = mAllComponentTypeList.getUpdateList();
+		var componentList = mAllComponentTypeList.startForeach();
 		foreach (var item in componentList)
 		{
 			item.Value.destroy();
@@ -25,7 +25,7 @@ public abstract class ComponentOwner : CommandReceiver
 	}
 	public virtual void setActive(bool active)
 	{
-		var componentList = mAllComponentTypeList.getUpdateList();
+		var componentList = mAllComponentTypeList.startForeach();
 		foreach (var item in componentList)
 		{
 			item.Value.notifyOwnerActive(active);
@@ -34,7 +34,7 @@ public abstract class ComponentOwner : CommandReceiver
 	// 更新正常更新的组件
 	public virtual void update(float elapsedTime)
 	{
-		var updateList = mComponentList.getUpdateList();
+		var updateList = mComponentList.startForeach();
 		int rootComponentCount = updateList.Count;
 		for (int i = 0; i < rootComponentCount; ++i)
 		{
@@ -43,16 +43,16 @@ public abstract class ComponentOwner : CommandReceiver
 			{
 				return;
 			}
-			GameComponent component = updateList[i];
-			if (component != null && component.isActive())
+			GameComponent com = updateList[i];
+			if (com != null && com.isActive())
 			{
-				if (!component.isIgnoreTimeScale())
+				if (!com.isIgnoreTimeScale())
 				{
-					component.update(elapsedTime);
+					com.update(elapsedTime);
 				}
 				else
 				{
-					component.update(Time.unscaledDeltaTime);
+					com.update(Time.unscaledDeltaTime);
 				}
 			}
 		}
@@ -60,20 +60,20 @@ public abstract class ComponentOwner : CommandReceiver
 	// 后更新
 	public virtual void lateUpdate(float elapsedTime)
 	{
-		var updateList = mComponentList.getUpdateList();
+		var updateList = mComponentList.startForeach();
 		int rootComponentCount = updateList.Count;
 		for (int i = 0; i < rootComponentCount; ++i)
 		{
-			GameComponent component = updateList[i];
-			if (component != null && component.isActive())
+			GameComponent com = updateList[i];
+			if (com != null && com.isActive())
 			{
-				if (!component.isIgnoreTimeScale())
+				if (!com.isIgnoreTimeScale())
 				{
-					component.lateUpdate(elapsedTime);
+					com.lateUpdate(elapsedTime);
 				}
 				else
 				{
-					component.lateUpdate(Time.unscaledDeltaTime);
+					com.lateUpdate(Time.unscaledDeltaTime);
 				}
 			}
 		}
@@ -81,47 +81,47 @@ public abstract class ComponentOwner : CommandReceiver
 	// 物理更新
 	public virtual void fixedUpdate(float elapsedTime)
 	{
-		var updateList = mComponentList.getUpdateList();
+		var updateList = mComponentList.startForeach();
 		int rootComponentCount = updateList.Count;
 		for (int i = 0; i < rootComponentCount; ++i)
 		{
-			GameComponent component = updateList[i];
-			if (component != null && component.isActive())
+			GameComponent com = updateList[i];
+			if (com != null && com.isActive())
 			{
-				if (!component.isIgnoreTimeScale())
+				if (!com.isIgnoreTimeScale())
 				{
-					component.fixedUpdate(elapsedTime);
+					com.fixedUpdate(elapsedTime);
 				}
 				else
 				{
-					component.fixedUpdate(Time.unscaledDeltaTime);
+					com.fixedUpdate(Time.unscaledDeltaTime);
 				}
 			}
 		}
 	}
-	public virtual void notifyAddComponent(GameComponent component) { }
+	public virtual void notifyAddComponent(GameComponent com) { }
 	public GameComponent addComponent(Type type, bool active = false)
 	{
 		// 不能创建重名的组件
 		if (mAllComponentTypeList.containsKey(type))
 		{
-			logError("there is component : " + type);
+			logError("there is com : " + type);
 			return null;
 		}
-		var component = CLASS<GameComponent>(type);
-		if (component == null)
+		var com = CLASS_MAIN(type) as GameComponent;
+		if (com == null)
 		{
 			return null;
 		}
-		component.setType(type);
-		component.init(this);
+		com.setType(type);
+		com.init(this);
 		// 将组件加入列表
-		addComponentToList(component);
+		addComponentToList(com);
 		// 通知创建了组件
-		notifyAddComponent(component);
-		component.setActive(active);
-		component.setDefaultActive(active);
-		return component;
+		notifyAddComponent(com);
+		com.setActive(active);
+		com.setDefaultActive(active);
+		return com;
 	}
 	public SafeDictionary<Type, GameComponent> getAllComponent() { return mAllComponentTypeList; }
 	public T getComponent<T>(bool needActive = false, bool addIfNull = true) where T : GameComponent
@@ -134,23 +134,23 @@ public abstract class ComponentOwner : CommandReceiver
 		}
 		return getComponent(type, needActive, addIfNull) as T;
 	}
-	public T getComponent<T>(out T component, bool needActive = false, bool addIfNull = true) where T : GameComponent
+	public T getComponent<T>(out T com, bool needActive = false, bool addIfNull = true) where T : GameComponent
 	{
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("无法使用getComponent<T>(out T component, bool needActive, bool addIfNull)获取非主工程中的组件");
+			logError("无法使用getComponent<T>(out T com, bool needActive, bool addIfNull)获取非主工程中的组件");
 			logError("如果需要获取非主工程中的组件,使用T getComponent<T>(Type type, bool needActive, bool addIfNull)");
 		}
-		return component = getComponent(type, needActive, addIfNull) as T;
+		return com = getComponent(type, needActive, addIfNull) as T;
 	}
 	public GameComponent getComponent(Type type, bool needActive = false, bool addIfNull = true)
 	{
-		if (mAllComponentTypeList.tryGetValue(type, out GameComponent component))
+		if (mAllComponentTypeList.tryGetValue(type, out GameComponent com))
 		{
-			if (!needActive || component.isActive())
+			if (!needActive || com.isActive())
 			{
-				return component;
+				return com;
 			}
 		}
 		if (addIfNull)
@@ -161,30 +161,30 @@ public abstract class ComponentOwner : CommandReceiver
 	}
 	public void activeComponent(Type type, bool active = true, bool addIfNull = false)
 	{
-		GameComponent component = getComponent(type, false, addIfNull);
-		component?.setActive(active);
+		GameComponent com = getComponent(type, false, addIfNull);
+		com?.setActive(active);
 	}
-	public void notifyComponentStart(GameComponent component)
+	public void notifyComponentStart(GameComponent com)
 	{
-		if (component is IComponentModifyAlpha)
+		if (com is IComponentModifyAlpha)
 		{
-			breakComponent<IComponentModifyAlpha>(component);
+			breakComponent<IComponentModifyAlpha>(com);
 		}
-		if (component is IComponentModifyColor)
+		if (com is IComponentModifyColor)
 		{
-			breakComponent<IComponentModifyColor>(component);
+			breakComponent<IComponentModifyColor>(com);
 		}
-		if (component is IComponentModifyPosition)
+		if (com is IComponentModifyPosition)
 		{
-			breakComponent<IComponentModifyPosition>(component);
+			breakComponent<IComponentModifyPosition>(com);
 		}
-		if (component is IComponentModifyRotation)
+		if (com is IComponentModifyRotation)
 		{
-			breakComponent<IComponentModifyRotation>(component);
+			breakComponent<IComponentModifyRotation>(com);
 		}
-		if (component is IComponentModifyScale)
+		if (com is IComponentModifyScale)
 		{
-			breakComponent<IComponentModifyScale>(component);
+			breakComponent<IComponentModifyScale>(com);
 		}
 	}
 	public SafeList<GameComponent> getComponentList() { return mComponentList; }
@@ -213,25 +213,25 @@ public abstract class ComponentOwner : CommandReceiver
 	//---------------------------------------------------------------------------------------------------
 	// 此函数由子类调用
 	protected virtual void initComponents() { }
-	protected void addComponentToList(GameComponent component)
+	protected void addComponentToList(GameComponent com)
 	{
-		mComponentList.add(component);
-		mAllComponentTypeList.add(Typeof(component), component);
+		mComponentList.add(com);
+		mAllComponentTypeList.add(Typeof(com), com);
 	}
 	protected void breakComponent<T>(GameComponent exceptComponent)
 	{
 		// 中断所有可中断的组件
-		var componentList = mAllComponentTypeList.getUpdateList();
+		var componentList = mAllComponentTypeList.startForeach();
 		foreach (var item in componentList)
 		{
-			GameComponent component = item.Value;
-			if (component.isActive() &&
-				component is T &&
-				component is IComponentBreakable &&
-				component != exceptComponent)
+			GameComponent com = item.Value;
+			if (com.isActive() &&
+				com is T &&
+				com is IComponentBreakable &&
+				com != exceptComponent)
 			{
-				(component as IComponentBreakable).notifyBreak();
-				component.setActive(false);
+				(com as IComponentBreakable).notifyBreak();
+				com.setActive(false);
 			}
 		}
 	}

@@ -2,20 +2,21 @@
 using UnityEngine;
 using Mono.Data.Sqlite;
 using System.Collections.Generic;
+using System;
 
-public class SQLiteData : GameBase
+public class SQLiteData : FrameBase
 {
-	public Dictionary<string, string> mValues;
+	public Dictionary<int, string> mValues;
 	public SQLiteTable mTable;
 	public static string ID = "ID";
 	public int mID;
 	public SQLiteData()
 	{
-		mValues = new Dictionary<string, string>();
+		mValues = new Dictionary<int, string>();
 	}
 	public virtual void parse(SqliteDataReader reader)
 	{
-		parseParam(reader, ref mID, ID);
+		parseParam(reader, ref mID, 0);
 	}
 	public virtual void insert(ref string valueString)
 	{
@@ -25,135 +26,187 @@ public class SQLiteData : GameBase
 	{
 		appendValueInt(valueString, mID);
 	}
-	public string getValue(string paramName) 
+	public string getValue(int index) 
 	{
-		if(!mValues.TryGetValue(paramName, out string value))
+		if(!mValues.TryGetValue(index, out string value))
 		{
-			logError("找不到字段名:" + paramName);
+			logError("找不到字段下标:" + index);
 		}
 		return value;
 	}
 	public virtual bool checkData() { return true; }
 	//--------------------------------------------------------------------------------------------------------
-	protected void parseParam(SqliteDataReader reader, ref List<bool> value, string paramName)
+	protected int getParamInt(SqliteDataReader reader, int index)
 	{
-		string str = reader[paramName].ToString();
+		int value = 0;
+		try
+		{
+			object data = reader[index];
+#if UNITY_EDITOR
+			if(data.GetType() != typeof(long))
+			{
+				logError("该列数据不是int类型,无法获取, colIndex:" + index + ", table:" + mTable.getTableName());
+			}
+#endif
+			value = (int)(long)data;
+		}
+		catch (Exception e)
+		{
+			logError(e.Message + ", colIndex:" + index);
+		}
+		return value;
+	}
+	protected float getParamFloat(SqliteDataReader reader, int index)
+	{
+		float value = 0;
+		try
+		{
+			object data = reader[index];
+#if UNITY_EDITOR
+			if (data.GetType() != typeof(float))
+			{
+				logError("该列数据不是float类型,无法获取, colIndex:" + index + ", table:" + mTable.getTableName());
+			}
+#endif
+			value = (float)data;
+		}
+		catch (Exception e)
+		{
+			logError(e.Message + ", colIndex:" + index);
+		}
+		return value;
+	}
+	protected string getParamString(SqliteDataReader reader, int index)
+	{
+		string str = null;
+		try
+		{
+			object data = reader[index];
+#if UNITY_EDITOR
+			if (data.GetType() != typeof(string))
+			{
+				logError("该列数据不是string类型,无法获取, colIndex:" + index + ", table:" + mTable.getTableName());
+			}
+#endif
+			str = (string)data;
+		}
+		catch (Exception e)
+		{
+			logError(e.Message + ", colIndex:" + index);
+		}
+		return str;
+	}
+	protected void parseParam(SqliteDataReader reader, ref List<bool> value, int index)
+	{
+		string str = getParamString(reader, index);
 		stringToBools(str, value);
-		mValues.Add(paramName, str);
+		mValues.Add(index, str);
 	}
-	protected void parseParam(SqliteDataReader reader, ref List<float> value, string paramName)
+	protected void parseParam(SqliteDataReader reader, ref List<float> value, int index)
 	{
-		string str = reader[paramName].ToString();
+		string str = getParamString(reader, index);
 		stringToFloats(str, value);
-		mValues.Add(paramName, str);
+		mValues.Add(index, str);
 	}
-	protected void parseParam(SqliteDataReader reader, ref List<int> value, string paramName)
+	protected void parseParam(SqliteDataReader reader, ref List<int> value, int index)
 	{
-		string str = reader[paramName].ToString();
+		string str = getParamString(reader, index);
 		stringToInts(str, value);
-		mValues.Add(paramName, str);
+		mValues.Add(index, str);
 	}
-	protected void parseParam(SqliteDataReader reader, ref List<ushort> value, string paramName)
+	protected void parseParam(SqliteDataReader reader, ref List<ushort> value, int index)
 	{
-		string str = reader[paramName].ToString();
+		string str = getParamString(reader, index);
 		stringToUShorts(str, value);
-		mValues.Add(paramName, str);
+		mValues.Add(index, str);
 	}
-	protected void parseParam(SqliteDataReader reader, ref List<uint> value, string paramName)
+	protected void parseParam(SqliteDataReader reader, ref List<uint> value, int index)
 	{
-		string str = reader[paramName].ToString();
+		string str = getParamString(reader, index);
 		stringToUInts(str, value);
-		mValues.Add(paramName, str);
+		mValues.Add(index, str);
 	}
-	protected void parseParam(SqliteDataReader reader, ref List<byte> value, string paramName)
+	protected void parseParam(SqliteDataReader reader, ref List<byte> value, int index)
 	{
-		string str = reader[paramName].ToString();
+		string str = getParamString(reader, index);
 		stringToBytes(str, value);
-		mValues.Add(paramName, str);
+		mValues.Add(index, str);
 	}
-	protected void parseParam(SqliteDataReader reader, ref List<sbyte> value, string paramName)
+	protected void parseParam(SqliteDataReader reader, ref List<sbyte> value, int index)
 	{
-		string str = reader[paramName].ToString();
+		string str = getParamString(reader, index);
 		stringToSBytes(str, value);
-		mValues.Add(paramName, str);
+		mValues.Add(index, str);
 	}
-	protected void parseParam(SqliteDataReader reader, ref List<string> value, string paramName)
+	protected void parseParam(SqliteDataReader reader, ref List<string> value, int index)
 	{
-		string str = reader[paramName].ToString();
+		string str = getParamString(reader, index);
 		stringToStrings(str, value);
-		mValues.Add(paramName, str);
+		mValues.Add(index, str);
 	}
-	protected void parseParam(SqliteDataReader reader, ref string value, string paramName)
+	protected void parseParam(SqliteDataReader reader, ref string value, int index)
 	{
-		string str = reader[paramName].ToString();
+		string str = getParamString(reader, index);
 		value = str;
-		mValues.Add(paramName, str);
+		mValues.Add(index, str);
 	}
-	protected void parseParam(SqliteDataReader reader, ref float value, string paramName)
+	protected void parseParam(SqliteDataReader reader, ref float value, int index)
 	{
-		string str = reader[paramName].ToString();
-		value = SToF(str);
-		mValues.Add(paramName, str);
+		value = getParamFloat(reader, index);
+		mValues.Add(index, EMPTY);
 	}
-	protected void parseParam(SqliteDataReader reader, ref uint value, string paramName)
+	protected void parseParam(SqliteDataReader reader, ref uint value, int index)
 	{
-		string str = reader[paramName].ToString();
-		value = (uint)SToI(str);
-		mValues.Add(paramName, str);
+		value = (uint)getParamInt(reader, index);
+		mValues.Add(index, EMPTY);
 	}
-	protected void parseParam(SqliteDataReader reader, ref int value, string paramName)
+	protected void parseParam(SqliteDataReader reader, ref int value, int index)
 	{
-		string str = reader[paramName].ToString();
-		value = SToI(str);
-		mValues.Add(paramName, str);
+		value = getParamInt(reader, index);
+		mValues.Add(index, EMPTY);
 	}
-	protected void parseParam(SqliteDataReader reader, ref ushort value, string paramName)
+	protected void parseParam(SqliteDataReader reader, ref ushort value, int index)
 	{
-		string str = reader[paramName].ToString();
-		value = (ushort)SToI(str);
-		mValues.Add(paramName, str);
+		value = (ushort)getParamInt(reader, index);
+		mValues.Add(index, EMPTY);
 	}
-	protected void parseParam(SqliteDataReader reader, ref short value, string paramName)
+	protected void parseParam(SqliteDataReader reader, ref short value, int index)
 	{
-		string str = reader[paramName].ToString();
-		value = (short)SToI(str);
-		mValues.Add(paramName, str);
+		value = (short)getParamInt(reader, index);
+		mValues.Add(index, EMPTY);
 	}
-	protected void parseParam(SqliteDataReader reader, ref byte value, string paramName)
+	protected void parseParam(SqliteDataReader reader, ref byte value, int index)
 	{
-		string str = reader[paramName].ToString();
-		value = (byte)SToI(str);
-		mValues.Add(paramName, str);
+		value = (byte)getParamInt(reader, index);
+		mValues.Add(index, EMPTY);
 	}
-	protected void parseParam(SqliteDataReader reader, ref sbyte value, string paramName)
+	protected void parseParam(SqliteDataReader reader, ref sbyte value, int index)
 	{
-		string str = reader[paramName].ToString();
-		value = (sbyte)SToI(str);
-		mValues.Add(paramName, str);
+		value = (sbyte)getParamInt(reader, index);
+		mValues.Add(index, EMPTY);
 	}
-	protected void parseParam(SqliteDataReader reader, ref bool value, string paramName)
+	protected void parseParam(SqliteDataReader reader, ref bool value, int index)
 	{
-		string str = reader[paramName].ToString();
-		value = SToI(str) != 0;
-		mValues.Add(paramName, str);
+		value = getParamInt(reader, index) != 0;
+		mValues.Add(index, EMPTY);
 	}
-	protected void parseParam(SqliteDataReader reader, ref Vector2 value, string paramName)
+	protected void parseParam(SqliteDataReader reader, ref Vector2 value, int index)
 	{
-		string str = reader[paramName].ToString();
-		value = stringToVector2(str);
-		mValues.Add(paramName, str);
+		string str = getParamString(reader, index);
+		value = SToVector2(str);
+		mValues.Add(index, str);
 	}
-	protected void parseParam(SqliteDataReader reader, ref Vector2Int value, string paramName)
+	protected void parseParam(SqliteDataReader reader, ref Vector2Int value, int index)
 	{
-		string str = reader[paramName].ToString();
+		string str = getParamString(reader, index);
 		value = stringToVector2Int(str);
-		mValues.Add(paramName, str);
+		mValues.Add(index, str);
 	}
-	protected void parseParam(SqliteDataReader reader, ref Vector3 value, string paramName)
+	protected void parseParam(SqliteDataReader reader, ref Vector3 value, int index)
 	{
-		string str = reader[paramName].ToString();
-		value = stringToVector3(str);
-		mValues.Add(paramName, str);
+		string str = getParamString(reader, index);
+		value = SToVector3(str);
+		mValues.Add(index, str);
 	}
 }
 

@@ -32,74 +32,48 @@ namespace ILRuntime.Runtime.Generated
             args = new Type[]{typeof(System.Type), typeof(System.Single), typeof(System.String)};
             method = type.GetMethod("changeProcedureDelay", flag, null, args, null);
             app.RegisterCLRMethodRedirection(method, changeProcedureDelay_2);
-            Dictionary<string, List<MethodInfo>> genericMethods = new Dictionary<string, List<MethodInfo>>();
-            List<MethodInfo> lst = null;                    
-            foreach(var m in type.GetMethods())
-            {
-                if(m.IsGenericMethodDefinition)
-                {
-                    if (!genericMethods.TryGetValue(m.Name, out lst))
-                    {
-                        lst = new List<MethodInfo>();
-                        genericMethods[m.Name] = lst;
-                    }
-                    lst.Add(m);
-                }
-            }
-            args = new Type[]{typeof(global::CommandCharacterManagerCreateCharacter)};
-            if (genericMethods.TryGetValue("CMD", out lst))
-            {
-                foreach(var m in lst)
-                {
-                    if(m.MatchGenericParameters(args, typeof(global::CommandCharacterManagerCreateCharacter), typeof(global::CommandCharacterManagerCreateCharacter).MakeByRefType(), typeof(System.Boolean)))
-                    {
-                        method = m.MakeGenericMethod(args);
-                        app.RegisterCLRMethodRedirection(method, CMD_3);
-
-                        break;
-                    }
-                }
-            }
             args = new Type[]{typeof(global::Command), typeof(global::CommandReceiver)};
             method = type.GetMethod("pushCommand", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, pushCommand_4);
-            args = new Type[]{typeof(global::CommandCharacterManagerDestroy)};
-            if (genericMethods.TryGetValue("CMD", out lst))
-            {
-                foreach(var m in lst)
-                {
-                    if(m.MatchGenericParameters(args, typeof(global::CommandCharacterManagerDestroy), typeof(global::CommandCharacterManagerDestroy).MakeByRefType(), typeof(System.Boolean)))
-                    {
-                        method = m.MakeGenericMethod(args);
-                        app.RegisterCLRMethodRedirection(method, CMD_5);
-
-                        break;
-                    }
-                }
-            }
+            app.RegisterCLRMethodRedirection(method, pushCommand_3);
             args = new Type[]{};
             method = type.GetMethod("notifyConstructDone", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, notifyConstructDone_6);
+            app.RegisterCLRMethodRedirection(method, notifyConstructDone_4);
             args = new Type[]{typeof(System.Type), typeof(System.String)};
             method = type.GetMethod("changeProcedure", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, changeProcedure_7);
+            app.RegisterCLRMethodRedirection(method, changeProcedure_5);
 
+            field = type.GetField("mGameFramework", flag);
+            app.RegisterCLRFieldGetter(field, get_mGameFramework_0);
+            app.RegisterCLRFieldSetter(field, set_mGameFramework_0);
+            app.RegisterCLRFieldBinding(field, CopyToStack_mGameFramework_0, AssignFromStack_mGameFramework_0);
+            field = type.GetField("mEventSystem", flag);
+            app.RegisterCLRFieldGetter(field, get_mEventSystem_1);
+            app.RegisterCLRFieldSetter(field, set_mEventSystem_1);
+            app.RegisterCLRFieldBinding(field, CopyToStack_mEventSystem_1, AssignFromStack_mEventSystem_1);
             field = type.GetField("mCommandSystem", flag);
-            app.RegisterCLRFieldGetter(field, get_mCommandSystem_0);
-            app.RegisterCLRFieldSetter(field, set_mCommandSystem_0);
-            app.RegisterCLRFieldBinding(field, CopyToStack_mCommandSystem_0, AssignFromStack_mCommandSystem_0);
+            app.RegisterCLRFieldGetter(field, get_mCommandSystem_2);
+            app.RegisterCLRFieldSetter(field, set_mCommandSystem_2);
+            app.RegisterCLRFieldBinding(field, CopyToStack_mCommandSystem_2, AssignFromStack_mCommandSystem_2);
+            field = type.GetField("mClassPool", flag);
+            app.RegisterCLRFieldGetter(field, get_mClassPool_3);
+            app.RegisterCLRFieldSetter(field, set_mClassPool_3);
+            app.RegisterCLRFieldBinding(field, CopyToStack_mClassPool_3, AssignFromStack_mClassPool_3);
+            field = type.GetField("mClassPoolThread", flag);
+            app.RegisterCLRFieldGetter(field, get_mClassPoolThread_4);
+            app.RegisterCLRFieldSetter(field, set_mClassPoolThread_4);
+            app.RegisterCLRFieldBinding(field, CopyToStack_mClassPoolThread_4, AssignFromStack_mClassPoolThread_4);
             field = type.GetField("mCharacterManager", flag);
-            app.RegisterCLRFieldGetter(field, get_mCharacterManager_1);
-            app.RegisterCLRFieldSetter(field, set_mCharacterManager_1);
-            app.RegisterCLRFieldBinding(field, CopyToStack_mCharacterManager_1, AssignFromStack_mCharacterManager_1);
+            app.RegisterCLRFieldGetter(field, get_mCharacterManager_5);
+            app.RegisterCLRFieldSetter(field, set_mCharacterManager_5);
+            app.RegisterCLRFieldBinding(field, CopyToStack_mCharacterManager_5, AssignFromStack_mCharacterManager_5);
             field = type.GetField("mGameSceneManager", flag);
-            app.RegisterCLRFieldGetter(field, get_mGameSceneManager_2);
-            app.RegisterCLRFieldSetter(field, set_mGameSceneManager_2);
-            app.RegisterCLRFieldBinding(field, CopyToStack_mGameSceneManager_2, AssignFromStack_mGameSceneManager_2);
+            app.RegisterCLRFieldGetter(field, get_mGameSceneManager_6);
+            app.RegisterCLRFieldSetter(field, set_mGameSceneManager_6);
+            app.RegisterCLRFieldBinding(field, CopyToStack_mGameSceneManager_6, AssignFromStack_mGameSceneManager_6);
             field = type.GetField("mLayoutManager", flag);
-            app.RegisterCLRFieldGetter(field, get_mLayoutManager_3);
-            app.RegisterCLRFieldSetter(field, set_mLayoutManager_3);
-            app.RegisterCLRFieldBinding(field, CopyToStack_mLayoutManager_3, AssignFromStack_mLayoutManager_3);
+            app.RegisterCLRFieldGetter(field, get_mLayoutManager_7);
+            app.RegisterCLRFieldSetter(field, set_mLayoutManager_7);
+            app.RegisterCLRFieldBinding(field, CopyToStack_mLayoutManager_7, AssignFromStack_mLayoutManager_7);
 
 
         }
@@ -177,87 +151,7 @@ namespace ILRuntime.Runtime.Generated
             return ILIntepreter.PushObject(__ret, __mStack, result_of_this_method);
         }
 
-        static StackObject* CMD_3(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 2);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            System.Boolean @show = ptr_of_this_method->Value == 1;
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            global::CommandCharacterManagerCreateCharacter @cmd = (global::CommandCharacterManagerCreateCharacter)typeof(global::CommandCharacterManagerCreateCharacter).CheckCLRTypes(__intp.RetriveObject(ptr_of_this_method, __mStack));
-
-
-            var result_of_this_method = global::FrameBase.CMD<global::CommandCharacterManagerCreateCharacter>(out @cmd, @show);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            __intp.Free(ptr_of_this_method);
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            switch(ptr_of_this_method->ObjectType)
-            {
-                case ObjectTypes.StackObjectReference:
-                    {
-                        var ___dst = ILIntepreter.ResolveReference(ptr_of_this_method);
-                        object ___obj = @cmd;
-                        if (___dst->ObjectType >= ObjectTypes.Object)
-                        {
-                            if (___obj is CrossBindingAdaptorType)
-                                ___obj = ((CrossBindingAdaptorType)___obj).ILInstance;
-                            __mStack[___dst->Value] = ___obj;
-                        }
-                        else
-                        {
-                            ILIntepreter.UnboxObject(___dst, ___obj, __mStack, __domain);
-                        }
-                    }
-                    break;
-                case ObjectTypes.FieldReference:
-                    {
-                        var ___obj = __mStack[ptr_of_this_method->Value];
-                        if(___obj is ILTypeInstance)
-                        {
-                            ((ILTypeInstance)___obj)[ptr_of_this_method->ValueLow] = @cmd;
-                        }
-                        else
-                        {
-                            var ___type = __domain.GetType(___obj.GetType()) as CLRType;
-                            ___type.SetFieldValue(ptr_of_this_method->ValueLow, ref ___obj, @cmd);
-                        }
-                    }
-                    break;
-                case ObjectTypes.StaticFieldReference:
-                    {
-                        var ___type = __domain.GetType(ptr_of_this_method->Value);
-                        if(___type is ILType)
-                        {
-                            ((ILType)___type).StaticInstance[ptr_of_this_method->ValueLow] = @cmd;
-                        }
-                        else
-                        {
-                            ((CLRType)___type).SetStaticFieldValue(ptr_of_this_method->ValueLow, @cmd);
-                        }
-                    }
-                    break;
-                 case ObjectTypes.ArrayReference:
-                    {
-                        var instance_of_arrayReference = __mStack[ptr_of_this_method->Value] as global::CommandCharacterManagerCreateCharacter[];
-                        instance_of_arrayReference[ptr_of_this_method->ValueLow] = @cmd;
-                    }
-                    break;
-            }
-
-            __intp.Free(ptr_of_this_method);
-            object obj_result_of_this_method = result_of_this_method;
-            if(obj_result_of_this_method is CrossBindingAdaptorType)
-            {    
-                return ILIntepreter.PushObject(__ret, __mStack, ((CrossBindingAdaptorType)obj_result_of_this_method).ILInstance);
-            }
-            return ILIntepreter.PushObject(__ret, __mStack, result_of_this_method);
-        }
-
-        static StackObject* pushCommand_4(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* pushCommand_3(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -277,87 +171,7 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* CMD_5(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 2);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            System.Boolean @show = ptr_of_this_method->Value == 1;
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            global::CommandCharacterManagerDestroy @cmd = (global::CommandCharacterManagerDestroy)typeof(global::CommandCharacterManagerDestroy).CheckCLRTypes(__intp.RetriveObject(ptr_of_this_method, __mStack));
-
-
-            var result_of_this_method = global::FrameBase.CMD<global::CommandCharacterManagerDestroy>(out @cmd, @show);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            __intp.Free(ptr_of_this_method);
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            switch(ptr_of_this_method->ObjectType)
-            {
-                case ObjectTypes.StackObjectReference:
-                    {
-                        var ___dst = ILIntepreter.ResolveReference(ptr_of_this_method);
-                        object ___obj = @cmd;
-                        if (___dst->ObjectType >= ObjectTypes.Object)
-                        {
-                            if (___obj is CrossBindingAdaptorType)
-                                ___obj = ((CrossBindingAdaptorType)___obj).ILInstance;
-                            __mStack[___dst->Value] = ___obj;
-                        }
-                        else
-                        {
-                            ILIntepreter.UnboxObject(___dst, ___obj, __mStack, __domain);
-                        }
-                    }
-                    break;
-                case ObjectTypes.FieldReference:
-                    {
-                        var ___obj = __mStack[ptr_of_this_method->Value];
-                        if(___obj is ILTypeInstance)
-                        {
-                            ((ILTypeInstance)___obj)[ptr_of_this_method->ValueLow] = @cmd;
-                        }
-                        else
-                        {
-                            var ___type = __domain.GetType(___obj.GetType()) as CLRType;
-                            ___type.SetFieldValue(ptr_of_this_method->ValueLow, ref ___obj, @cmd);
-                        }
-                    }
-                    break;
-                case ObjectTypes.StaticFieldReference:
-                    {
-                        var ___type = __domain.GetType(ptr_of_this_method->Value);
-                        if(___type is ILType)
-                        {
-                            ((ILType)___type).StaticInstance[ptr_of_this_method->ValueLow] = @cmd;
-                        }
-                        else
-                        {
-                            ((CLRType)___type).SetStaticFieldValue(ptr_of_this_method->ValueLow, @cmd);
-                        }
-                    }
-                    break;
-                 case ObjectTypes.ArrayReference:
-                    {
-                        var instance_of_arrayReference = __mStack[ptr_of_this_method->Value] as global::CommandCharacterManagerDestroy[];
-                        instance_of_arrayReference[ptr_of_this_method->ValueLow] = @cmd;
-                    }
-                    break;
-            }
-
-            __intp.Free(ptr_of_this_method);
-            object obj_result_of_this_method = result_of_this_method;
-            if(obj_result_of_this_method is CrossBindingAdaptorType)
-            {    
-                return ILIntepreter.PushObject(__ret, __mStack, ((CrossBindingAdaptorType)obj_result_of_this_method).ILInstance);
-            }
-            return ILIntepreter.PushObject(__ret, __mStack, result_of_this_method);
-        }
-
-        static StackObject* notifyConstructDone_6(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* notifyConstructDone_4(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -372,7 +186,7 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* changeProcedure_7(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* changeProcedure_5(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
@@ -393,12 +207,70 @@ namespace ILRuntime.Runtime.Generated
         }
 
 
-        static object get_mCommandSystem_0(ref object o)
+        static object get_mGameFramework_0(ref object o)
+        {
+            return global::FrameBase.mGameFramework;
+        }
+
+        static StackObject* CopyToStack_mGameFramework_0(ref object o, ILIntepreter __intp, StackObject* __ret, IList<object> __mStack)
+        {
+            var result_of_this_method = global::FrameBase.mGameFramework;
+            object obj_result_of_this_method = result_of_this_method;
+            if(obj_result_of_this_method is CrossBindingAdaptorType)
+            {    
+                return ILIntepreter.PushObject(__ret, __mStack, ((CrossBindingAdaptorType)obj_result_of_this_method).ILInstance);
+            }
+            return ILIntepreter.PushObject(__ret, __mStack, result_of_this_method);
+        }
+
+        static void set_mGameFramework_0(ref object o, object v)
+        {
+            global::FrameBase.mGameFramework = (global::GameFramework)v;
+        }
+
+        static StackObject* AssignFromStack_mGameFramework_0(ref object o, ILIntepreter __intp, StackObject* ptr_of_this_method, IList<object> __mStack)
+        {
+            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
+            global::GameFramework @mGameFramework = (global::GameFramework)typeof(global::GameFramework).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            global::FrameBase.mGameFramework = @mGameFramework;
+            return ptr_of_this_method;
+        }
+
+        static object get_mEventSystem_1(ref object o)
+        {
+            return global::FrameBase.mEventSystem;
+        }
+
+        static StackObject* CopyToStack_mEventSystem_1(ref object o, ILIntepreter __intp, StackObject* __ret, IList<object> __mStack)
+        {
+            var result_of_this_method = global::FrameBase.mEventSystem;
+            object obj_result_of_this_method = result_of_this_method;
+            if(obj_result_of_this_method is CrossBindingAdaptorType)
+            {    
+                return ILIntepreter.PushObject(__ret, __mStack, ((CrossBindingAdaptorType)obj_result_of_this_method).ILInstance);
+            }
+            return ILIntepreter.PushObject(__ret, __mStack, result_of_this_method);
+        }
+
+        static void set_mEventSystem_1(ref object o, object v)
+        {
+            global::FrameBase.mEventSystem = (global::EventSystem)v;
+        }
+
+        static StackObject* AssignFromStack_mEventSystem_1(ref object o, ILIntepreter __intp, StackObject* ptr_of_this_method, IList<object> __mStack)
+        {
+            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
+            global::EventSystem @mEventSystem = (global::EventSystem)typeof(global::EventSystem).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            global::FrameBase.mEventSystem = @mEventSystem;
+            return ptr_of_this_method;
+        }
+
+        static object get_mCommandSystem_2(ref object o)
         {
             return global::FrameBase.mCommandSystem;
         }
 
-        static StackObject* CopyToStack_mCommandSystem_0(ref object o, ILIntepreter __intp, StackObject* __ret, IList<object> __mStack)
+        static StackObject* CopyToStack_mCommandSystem_2(ref object o, ILIntepreter __intp, StackObject* __ret, IList<object> __mStack)
         {
             var result_of_this_method = global::FrameBase.mCommandSystem;
             object obj_result_of_this_method = result_of_this_method;
@@ -409,12 +281,12 @@ namespace ILRuntime.Runtime.Generated
             return ILIntepreter.PushObject(__ret, __mStack, result_of_this_method);
         }
 
-        static void set_mCommandSystem_0(ref object o, object v)
+        static void set_mCommandSystem_2(ref object o, object v)
         {
             global::FrameBase.mCommandSystem = (global::CommandSystem)v;
         }
 
-        static StackObject* AssignFromStack_mCommandSystem_0(ref object o, ILIntepreter __intp, StackObject* ptr_of_this_method, IList<object> __mStack)
+        static StackObject* AssignFromStack_mCommandSystem_2(ref object o, ILIntepreter __intp, StackObject* ptr_of_this_method, IList<object> __mStack)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             global::CommandSystem @mCommandSystem = (global::CommandSystem)typeof(global::CommandSystem).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
@@ -422,12 +294,70 @@ namespace ILRuntime.Runtime.Generated
             return ptr_of_this_method;
         }
 
-        static object get_mCharacterManager_1(ref object o)
+        static object get_mClassPool_3(ref object o)
+        {
+            return global::FrameBase.mClassPool;
+        }
+
+        static StackObject* CopyToStack_mClassPool_3(ref object o, ILIntepreter __intp, StackObject* __ret, IList<object> __mStack)
+        {
+            var result_of_this_method = global::FrameBase.mClassPool;
+            object obj_result_of_this_method = result_of_this_method;
+            if(obj_result_of_this_method is CrossBindingAdaptorType)
+            {    
+                return ILIntepreter.PushObject(__ret, __mStack, ((CrossBindingAdaptorType)obj_result_of_this_method).ILInstance);
+            }
+            return ILIntepreter.PushObject(__ret, __mStack, result_of_this_method);
+        }
+
+        static void set_mClassPool_3(ref object o, object v)
+        {
+            global::FrameBase.mClassPool = (global::ClassPool)v;
+        }
+
+        static StackObject* AssignFromStack_mClassPool_3(ref object o, ILIntepreter __intp, StackObject* ptr_of_this_method, IList<object> __mStack)
+        {
+            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
+            global::ClassPool @mClassPool = (global::ClassPool)typeof(global::ClassPool).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            global::FrameBase.mClassPool = @mClassPool;
+            return ptr_of_this_method;
+        }
+
+        static object get_mClassPoolThread_4(ref object o)
+        {
+            return global::FrameBase.mClassPoolThread;
+        }
+
+        static StackObject* CopyToStack_mClassPoolThread_4(ref object o, ILIntepreter __intp, StackObject* __ret, IList<object> __mStack)
+        {
+            var result_of_this_method = global::FrameBase.mClassPoolThread;
+            object obj_result_of_this_method = result_of_this_method;
+            if(obj_result_of_this_method is CrossBindingAdaptorType)
+            {    
+                return ILIntepreter.PushObject(__ret, __mStack, ((CrossBindingAdaptorType)obj_result_of_this_method).ILInstance);
+            }
+            return ILIntepreter.PushObject(__ret, __mStack, result_of_this_method);
+        }
+
+        static void set_mClassPoolThread_4(ref object o, object v)
+        {
+            global::FrameBase.mClassPoolThread = (global::ClassPoolThread)v;
+        }
+
+        static StackObject* AssignFromStack_mClassPoolThread_4(ref object o, ILIntepreter __intp, StackObject* ptr_of_this_method, IList<object> __mStack)
+        {
+            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
+            global::ClassPoolThread @mClassPoolThread = (global::ClassPoolThread)typeof(global::ClassPoolThread).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            global::FrameBase.mClassPoolThread = @mClassPoolThread;
+            return ptr_of_this_method;
+        }
+
+        static object get_mCharacterManager_5(ref object o)
         {
             return global::FrameBase.mCharacterManager;
         }
 
-        static StackObject* CopyToStack_mCharacterManager_1(ref object o, ILIntepreter __intp, StackObject* __ret, IList<object> __mStack)
+        static StackObject* CopyToStack_mCharacterManager_5(ref object o, ILIntepreter __intp, StackObject* __ret, IList<object> __mStack)
         {
             var result_of_this_method = global::FrameBase.mCharacterManager;
             object obj_result_of_this_method = result_of_this_method;
@@ -438,12 +368,12 @@ namespace ILRuntime.Runtime.Generated
             return ILIntepreter.PushObject(__ret, __mStack, result_of_this_method);
         }
 
-        static void set_mCharacterManager_1(ref object o, object v)
+        static void set_mCharacterManager_5(ref object o, object v)
         {
             global::FrameBase.mCharacterManager = (global::CharacterManager)v;
         }
 
-        static StackObject* AssignFromStack_mCharacterManager_1(ref object o, ILIntepreter __intp, StackObject* ptr_of_this_method, IList<object> __mStack)
+        static StackObject* AssignFromStack_mCharacterManager_5(ref object o, ILIntepreter __intp, StackObject* ptr_of_this_method, IList<object> __mStack)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             global::CharacterManager @mCharacterManager = (global::CharacterManager)typeof(global::CharacterManager).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
@@ -451,12 +381,12 @@ namespace ILRuntime.Runtime.Generated
             return ptr_of_this_method;
         }
 
-        static object get_mGameSceneManager_2(ref object o)
+        static object get_mGameSceneManager_6(ref object o)
         {
             return global::FrameBase.mGameSceneManager;
         }
 
-        static StackObject* CopyToStack_mGameSceneManager_2(ref object o, ILIntepreter __intp, StackObject* __ret, IList<object> __mStack)
+        static StackObject* CopyToStack_mGameSceneManager_6(ref object o, ILIntepreter __intp, StackObject* __ret, IList<object> __mStack)
         {
             var result_of_this_method = global::FrameBase.mGameSceneManager;
             object obj_result_of_this_method = result_of_this_method;
@@ -467,12 +397,12 @@ namespace ILRuntime.Runtime.Generated
             return ILIntepreter.PushObject(__ret, __mStack, result_of_this_method);
         }
 
-        static void set_mGameSceneManager_2(ref object o, object v)
+        static void set_mGameSceneManager_6(ref object o, object v)
         {
             global::FrameBase.mGameSceneManager = (global::GameSceneManager)v;
         }
 
-        static StackObject* AssignFromStack_mGameSceneManager_2(ref object o, ILIntepreter __intp, StackObject* ptr_of_this_method, IList<object> __mStack)
+        static StackObject* AssignFromStack_mGameSceneManager_6(ref object o, ILIntepreter __intp, StackObject* ptr_of_this_method, IList<object> __mStack)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             global::GameSceneManager @mGameSceneManager = (global::GameSceneManager)typeof(global::GameSceneManager).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
@@ -480,12 +410,12 @@ namespace ILRuntime.Runtime.Generated
             return ptr_of_this_method;
         }
 
-        static object get_mLayoutManager_3(ref object o)
+        static object get_mLayoutManager_7(ref object o)
         {
             return global::FrameBase.mLayoutManager;
         }
 
-        static StackObject* CopyToStack_mLayoutManager_3(ref object o, ILIntepreter __intp, StackObject* __ret, IList<object> __mStack)
+        static StackObject* CopyToStack_mLayoutManager_7(ref object o, ILIntepreter __intp, StackObject* __ret, IList<object> __mStack)
         {
             var result_of_this_method = global::FrameBase.mLayoutManager;
             object obj_result_of_this_method = result_of_this_method;
@@ -496,12 +426,12 @@ namespace ILRuntime.Runtime.Generated
             return ILIntepreter.PushObject(__ret, __mStack, result_of_this_method);
         }
 
-        static void set_mLayoutManager_3(ref object o, object v)
+        static void set_mLayoutManager_7(ref object o, object v)
         {
             global::FrameBase.mLayoutManager = (global::LayoutManager)v;
         }
 
-        static StackObject* AssignFromStack_mLayoutManager_3(ref object o, ILIntepreter __intp, StackObject* ptr_of_this_method, IList<object> __mStack)
+        static StackObject* AssignFromStack_mLayoutManager_7(ref object o, ILIntepreter __intp, StackObject* ptr_of_this_method, IList<object> __mStack)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             global::LayoutManager @mLayoutManager = (global::LayoutManager)typeof(global::LayoutManager).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));

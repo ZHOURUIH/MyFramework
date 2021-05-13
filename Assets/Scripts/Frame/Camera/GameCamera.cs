@@ -105,13 +105,13 @@ public class GameCamera : MovableObject
 		setPosition(getPosition() - mPositionOffset + offset);
 		mPositionOffset = offset;
 	}
-	public override void notifyAddComponent(GameComponent component)
+	public override void notifyAddComponent(GameComponent com)
 	{
-		base.notifyAddComponent(component);
+		base.notifyAddComponent(com);
 		// 如果是连接器,则还要加入连接器列表中
-		if (component is CameraLinker)
+		if (com is CameraLinker)
 		{
-			mLinkerList.Add((CameraLinker)component);
+			mLinkerList.Add((CameraLinker)com);
 		}
 	}
 	public void linkTarget(CameraLinker linker, MovableObject target)

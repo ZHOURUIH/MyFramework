@@ -14,9 +14,9 @@ public class StartSceneDemo : SceneProcedure
 		LT.LOAD_UGUI_SHOW(LAYOUT.DEMO);
 #if USE_ILRUNTIME
 		mProgress = 0.0f;
-		mScriptDemo.setText("ILRuntime热更生效");
+		GameBase.mScriptDemo.setText("ILRuntime热更生效");
 #else
-		mScriptDemo.setText("非ILRuntime,请在PlayerSettings中添加USE_ILRUNTIME宏以启用ILRuntime热更");
+		GameBase.mScriptDemo.setText("非ILRuntime,请在PlayerSettings中添加USE_ILRUNTIME宏以启用ILRuntime热更");
 #endif
 	}
 	protected override void onUpdate(float elapsedTime)
@@ -26,12 +26,12 @@ public class StartSceneDemo : SceneProcedure
 		{
 			mProgress += elapsedTime * 0.5f;
 			clampMax(ref mProgress, 1.0f);
-			mScriptDemo.setText("ILRuntime热更生效,加载进度:" + FToS(mProgress, 2));
+			GameBase.mScriptDemo.setText("ILRuntime热更生效,加载进度:" + FToS(mProgress, 2));
 		}
 		// 所有资源和热更代码下载完毕后,重新加载热更代码,以及热更后的资源
 		if (mProgress >= 1.0f)
 		{
-			mILRSystem.launchILR(ILRLaunch.OnILRuntimeInitialized);
+			mILRSystem.launchILR();
 			mProgress = -1.0f;
 		}
 #endif

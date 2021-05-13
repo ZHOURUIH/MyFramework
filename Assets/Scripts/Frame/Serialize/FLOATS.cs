@@ -27,13 +27,13 @@ public class FLOATS : OBJECTS
 	public FLOATS(int count)
 	{
 		mValue = new float[count];
-		mType = Typeof<float[]>();
+		mType = typeof(float[]);
 		mSize = TYPE_SIZE * mValue.Length;
 	}
 	public FLOATS(float[] value)
 	{
 		mValue = value;
-		mType = Typeof<float[]>();
+		mType = typeof(float[]);
 		mSize = TYPE_SIZE * mValue.Length;
 	}
 	public override void setRealSize(ushort realSize)

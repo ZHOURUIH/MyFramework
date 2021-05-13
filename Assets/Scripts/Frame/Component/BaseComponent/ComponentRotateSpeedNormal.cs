@@ -8,7 +8,7 @@ public class ComponentRotateSpeedNormal : ComponentRotateSpeedBase
 		{
 			mCurRotation += mRotateSpeed * elapsedTime;
 			adjustAngle360(ref mCurRotation);
-			applyRotation(ref mCurRotation, false);
+			applyRotation(ref mCurRotation);
 			mRotateSpeed += mRotateAcceleration * elapsedTime;
 		}
 		base.update(elapsedTime);

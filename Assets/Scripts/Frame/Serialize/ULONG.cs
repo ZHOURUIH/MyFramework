@@ -8,13 +8,13 @@ public class ULONG : OBJECT
 	protected bool mIntReplace;
 	public ULONG()
 	{
-		mType = Typeof<ulong>();
+		mType = typeof(ulong);
 		mSize = TYPE_SIZE;
 	}
 	public ULONG(ulong value)
 	{
 		mValue = value;
-		mType = Typeof<ulong>();
+		mType = typeof(ulong);
 		mSize = TYPE_SIZE;
 	}
 	public override void setIntReplaceULLong(bool replace)
@@ -34,7 +34,8 @@ public class ULONG : OBJECT
 			// 恢复标记位,右移一位
 			int value = readInt(buffer, ref index, out success);
 			setLowestBit(ref value, 0);
-			mValue = (ulong)(value >> 1);
+			// 因为右移ing可能会使符号位变为1从而变成负数,最终造成数据错误,所以需要转换为uint进行右移
+			mValue = ((uint)value) >> 1;
 		}
 		else
 		{

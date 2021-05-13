@@ -9,7 +9,7 @@ public class LT : FrameBase
 	#region 布局
 	public static void LOAD_LAYOUT(int id, int renderOrder, LAYOUT_ORDER orderType, bool visible, bool immediately, string param, bool isScene, bool isAsync, LayoutAsyncDone callback)
 	{
-		CMD(out CommandLayoutManagerLoad cmd, true);
+		CMD_MAIN(out CmdLayoutManagerLoad cmd, true);
 		cmd.mLayoutID = id;
 		cmd.mVisible = visible;
 		cmd.mRenderOrder = renderOrder;
@@ -107,7 +107,7 @@ public class LT : FrameBase
 	}
 	public static void VISIBLE_LAYOUT(int id, bool visible, bool immediately = false, string param = null)
 	{
-		CMD(out CommandLayoutManagerVisible cmd, true);
+		CMD_MAIN(out CmdLayoutManagerVisible cmd, true);
 		cmd.mLayoutID = id;
 		cmd.mForce = false;
 		cmd.mVisibility = visible;
@@ -117,40 +117,40 @@ public class LT : FrameBase
 	}
 	public static void VISIBLE_LAYOUT_FORCE(int id, bool visible)
 	{
-		CMD(out CommandLayoutManagerVisible cmd, true);
+		CMD_MAIN(out CmdLayoutManagerVisible cmd, true);
 		cmd.mLayoutID = id;
 		cmd.mForce = true;
 		cmd.mVisibility = visible;
 		cmd.mImmediately = false;
 		pushCommand(cmd, mLayoutManager);
 	}
-	public static CommandLayoutManagerVisible HIDE_LAYOUT_DELAY(IDelayCmdWatcher watcher, float delayTime, int id, bool immediately = false, string param = null)
+	public static CmdLayoutManagerVisible HIDE_LAYOUT_DELAY(IDelayCmdWatcher watcher, float delayTime, int id, bool immediately = false, string param = null)
 	{
 		return VISIBLE_LAYOUT_DELAY(watcher, delayTime, id, false, immediately, param);
 	}
-	public static CommandLayoutManagerVisible HIDE_LAYOUT_DELAY_FORCE(IDelayCmdWatcher watcher, float delayTime, int id)
+	public static CmdLayoutManagerVisible HIDE_LAYOUT_DELAY_FORCE(IDelayCmdWatcher watcher, float delayTime, int id)
 	{
 		return VISIBLE_LAYOUT_DELAY_FORCE(watcher, delayTime, id, false);
 	}
-	public static CommandLayoutManagerVisible SHOW_LAYOUT_DELAY(IDelayCmdWatcher watcher, float delayTime, int id, bool immediately = false, string param = null)
+	public static CmdLayoutManagerVisible SHOW_LAYOUT_DELAY(IDelayCmdWatcher watcher, float delayTime, int id, bool immediately = false, string param = null)
 	{
 		return VISIBLE_LAYOUT_DELAY(watcher, delayTime, id, true, immediately, param);
 	}
-	public static CommandLayoutManagerVisible SHOW_LAYOUT_DELAY_EX(IDelayCmdWatcher watcher, float delayTime, int id, CommandCallback start, bool immediately = false, string param = null)
+	public static CmdLayoutManagerVisible SHOW_LAYOUT_DELAY_EX(IDelayCmdWatcher watcher, float delayTime, int id, CommandCallback start, bool immediately = false, string param = null)
 	{
 		return VISIBLE_LAYOUT_DELAY_EX(watcher, delayTime, id, true, start, immediately, param);
 	}
-	public static CommandLayoutManagerVisible SHOW_LAYOUT_DELAY_FORCE(IDelayCmdWatcher watcher, float delayTime, int id)
+	public static CmdLayoutManagerVisible SHOW_LAYOUT_DELAY_FORCE(IDelayCmdWatcher watcher, float delayTime, int id)
 	{
 		return VISIBLE_LAYOUT_DELAY_FORCE(watcher, delayTime, id, true);
 	}
-	public static CommandLayoutManagerVisible VISIBLE_LAYOUT_DELAY(IDelayCmdWatcher watcher, float delayTime, int id, bool visible, bool immediately = false, string param = null)
+	public static CmdLayoutManagerVisible VISIBLE_LAYOUT_DELAY(IDelayCmdWatcher watcher, float delayTime, int id, bool visible, bool immediately = false, string param = null)
 	{
 		return VISIBLE_LAYOUT_DELAY_EX(watcher, delayTime, id, visible, null, immediately, param);
 	}
-	public static CommandLayoutManagerVisible VISIBLE_LAYOUT_DELAY_EX(IDelayCmdWatcher watcher, float delayTime, int id, bool visible, CommandCallback start, bool immediately = false, string param = null)
+	public static CmdLayoutManagerVisible VISIBLE_LAYOUT_DELAY_EX(IDelayCmdWatcher watcher, float delayTime, int id, bool visible, CommandCallback start, bool immediately = false, string param = null)
 	{
-		CMD_DELAY(out CommandLayoutManagerVisible cmd, true);
+		CMD_MAIN_DELAY(out CmdLayoutManagerVisible cmd, true);
 		cmd.mLayoutID = id;
 		cmd.mForce = false;
 		cmd.mVisibility = visible;
@@ -160,9 +160,9 @@ public class LT : FrameBase
 		pushDelayCommand(cmd, mLayoutManager, delayTime, watcher);
 		return cmd;
 	}
-	public static CommandLayoutManagerVisible VISIBLE_LAYOUT_DELAY_FORCE(IDelayCmdWatcher watcher, float delayTime, int type, bool visible)
+	public static CmdLayoutManagerVisible VISIBLE_LAYOUT_DELAY_FORCE(IDelayCmdWatcher watcher, float delayTime, int type, bool visible)
 	{
-		CMD_DELAY(out CommandLayoutManagerVisible cmd, true);
+		CMD_MAIN_DELAY(out CmdLayoutManagerVisible cmd, true);
 		cmd.mLayoutID = type;
 		cmd.mForce = true;
 		cmd.mVisibility = visible;
@@ -176,13 +176,13 @@ public class LT : FrameBase
 	{
 		// 需要首先强制隐藏布局
 		HIDE_LAYOUT_FORCE(id);
-		CMD(out CommandLayoutManagerUnload cmd, true);
+		CMD_MAIN(out CmdLayoutManagerUnload cmd, true);
 		cmd.mLayoutID = id;
 		pushCommand(cmd, mLayoutManager);
 	}
 	public static void UNLOAD_LAYOUT_DELAY(IDelayCmdWatcher watcher, int id, float delayTime)
 	{
-		CMD_DELAY(out CommandLayoutManagerUnload cmd, true);
+		CMD_MAIN_DELAY(out CmdLayoutManagerUnload cmd, true);
 		cmd.mLayoutID = id;
 		pushDelayCommand(cmd, mLayoutManager, delayTime, watcher);
 	}
@@ -193,17 +193,17 @@ public class LT : FrameBase
 	{
 		obj?.setActive(active);
 	}
-	public static CommandWindowActive ACTIVE_DELAY(IDelayCmdWatcher watcher, myUIObject obj, bool active)
+	public static CmdWindowActive ACTIVE_DELAY(IDelayCmdWatcher watcher, myUIObject obj, bool active)
 	{
 		return ACTIVE_DELAY_EX(watcher, obj, active, 0.001f, null);
 	}
-	public static CommandWindowActive ACTIVE_DELAY(IDelayCmdWatcher watcher, myUIObject obj, bool active, float delayTime)
+	public static CmdWindowActive ACTIVE_DELAY(IDelayCmdWatcher watcher, myUIObject obj, bool active, float delayTime)
 	{
 		return ACTIVE_DELAY_EX(watcher, obj, active, delayTime, null);
 	}
-	public static CommandWindowActive ACTIVE_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, bool active, float delayTime, CommandCallback startCallback)
+	public static CmdWindowActive ACTIVE_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, bool active, float delayTime, CommandCallback startCallback)
 	{
-		CMD_DELAY(out CommandWindowActive cmd, false);
+		CMD_MAIN_DELAY(out CmdWindowActive cmd, false);
 		cmd.mActive = active;
 		cmd.addStartCommandCallback(startCallback);
 		pushDelayCommand(cmd, obj, delayTime, watcher);
@@ -215,7 +215,7 @@ public class LT : FrameBase
 	#region 进度条
 	public static void SLIDER(ComponentOwner slider, float value)
 	{
-		CMD(out CommandWindowSlider cmd, false);
+		CMD_MAIN(out CmdWindowSlider cmd, false);
 		cmd.mStartValue = value;
 		cmd.mTargetValue = value;
 		cmd.mOnceLength = 0.0f;
@@ -223,11 +223,11 @@ public class LT : FrameBase
 	}
 	public static void SLIDER(ComponentOwner slider, float start, float target, float time)
 	{
-		CMD(out CommandWindowSlider cmd, false);
+		CMD_MAIN(out CmdWindowSlider cmd, false);
 		cmd.mStartValue = start;
 		cmd.mTargetValue = target;
 		cmd.mOnceLength = time;
-		cmd.mKeyframe = KEY_FRAME.ZERO_ONE;
+		cmd.mKeyframe = KEY_CURVE.ZERO_ONE;
 		pushCommand(cmd, slider);
 	}
 	#endregion
@@ -235,7 +235,7 @@ public class LT : FrameBase
 	#region 窗口填充
 	public static void FILL(myUIObject obj, float value = 1.0f)
 	{
-		CMD(out CommandWindowFill cmd, false);
+		CMD_MAIN(out CmdWindowFill cmd, false);
 		cmd.mStartValue = value;
 		cmd.mTargetValue = value;
 		cmd.mOnceLength = 0.0f;
@@ -243,19 +243,19 @@ public class LT : FrameBase
 	}
 	public static void FILL(myUIObject obj, float start, float target, float time)
 	{
-		FILL_EX(obj, KEY_FRAME.ZERO_ONE, start, target, time, null, null);
+		FILL_EX(obj, KEY_CURVE.ZERO_ONE, start, target, time, null, null);
 	}
-	public static void FILL(myUIObject obj, KEY_FRAME keyframe, float start, float target, float time)
+	public static void FILL(myUIObject obj, int keyframe, float start, float target, float time)
 	{
 		FILL_EX(obj, keyframe, start, target, time, null, null);
 	}
 	public static void FILL_EX(myUIObject obj, float start, float target, float time, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		FILL_EX(obj, KEY_FRAME.ZERO_ONE, start, target, time, doingCallback, doneCallback);
+		FILL_EX(obj, KEY_CURVE.ZERO_ONE, start, target, time, doingCallback, doneCallback);
 	}
-	public static void FILL_EX(myUIObject obj, KEY_FRAME keyframe, float start, float target, float time, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void FILL_EX(myUIObject obj, int keyframe, float start, float target, float time, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		CMD(out CommandWindowFill cmd, false);
+		CMD_MAIN(out CmdWindowFill cmd, false);
 		cmd.mStartValue = start;
 		cmd.mTargetValue = target;
 		cmd.mOnceLength = time;
@@ -264,17 +264,17 @@ public class LT : FrameBase
 		cmd.mDoneCallback = doneCallback;
 		pushCommand(cmd, obj);
 	}
-	public static CommandWindowFill FILL_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, float start, float target, float time)
+	public static CmdWindowFill FILL_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, float start, float target, float time)
 	{
 		return FILL_DELAY_EX(watcher, obj, delayTime, start, target, time, null);
 	}
-	public static CommandWindowFill FILL_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, float start, float target, float time, KeyFrameCallback doneCallback)
+	public static CmdWindowFill FILL_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, float start, float target, float time, KeyFrameCallback doneCallback)
 	{
-		CMD_DELAY(out CommandWindowFill cmd, false);
+		CMD_MAIN_DELAY(out CmdWindowFill cmd, false);
 		cmd.mStartValue = start;
 		cmd.mTargetValue = target;
 		cmd.mOnceLength = time;
-		cmd.mKeyframe = KEY_FRAME.ZERO_ONE;
+		cmd.mKeyframe = KEY_CURVE.ZERO_ONE;
 		cmd.mDoneCallback = doneCallback;
 		pushDelayCommand(cmd, obj, delayTime, watcher);
 		return cmd;
@@ -285,7 +285,7 @@ public class LT : FrameBase
 	#region 透明度
 	public static void ALPHA(myUIObject obj, float alpha = 1.0f)
 	{
-		CMD(out CommandWindowAlpha cmd, false);
+		CMD_MAIN(out CmdWindowAlpha cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartAlpha = alpha;
 		cmd.mTargetAlpha = alpha;
@@ -293,44 +293,44 @@ public class LT : FrameBase
 	}
 	public static void ALPHA(myUIObject obj, float start, float target, float onceLength)
 	{
-		ALPHA_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		ALPHA_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void ALPHA(myUIObject obj, KEY_FRAME keyframe, float start, float target, float onceLength)
+	public static void ALPHA(myUIObject obj, int keyframe, float start, float target, float onceLength)
 	{
 		ALPHA_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void ALPHA(myUIObject obj, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop)
+	public static void ALPHA(myUIObject obj, int keyframe, float start, float target, float onceLength, bool loop)
 	{
 		ALPHA_EX(obj, keyframe, start, target, onceLength, loop, 0.0f, null, null);
 	}
-	public static void ALPHA(myUIObject obj, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset)
+	public static void ALPHA(myUIObject obj, int keyframe, float start, float target, float onceLength, bool loop, float offset)
 	{
 		ALPHA_EX(obj, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
 	public static void ALPHA_EX(myUIObject obj, float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		ALPHA_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		ALPHA_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static void ALPHA_EX(myUIObject obj, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		ALPHA_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		ALPHA_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void ALPHA_EX(myUIObject obj, KEY_FRAME keyframe, float start, float target, float onceLength, KeyFrameCallback doneCallback)
+	public static void ALPHA_EX(myUIObject obj, int keyframe, float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
 		ALPHA_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static void ALPHA_EX(myUIObject obj, KEY_FRAME keyframe, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void ALPHA_EX(myUIObject obj, int keyframe, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		ALPHA_EX(obj, keyframe, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void ALPHA_EX(myUIObject obj, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void ALPHA_EX(myUIObject obj, int keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		if (keyframe == KEY_FRAME.NONE || isFloatZero(onceLength))
+		if (keyframe == KEY_CURVE.NONE || isFloatZero(onceLength))
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ALPHA(myUIObject obj, float alpha)");
 			return;
 		}
-		CMD(out CommandWindowAlpha cmd, false);
+		CMD_MAIN(out CmdWindowAlpha cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
@@ -341,51 +341,51 @@ public class LT : FrameBase
 		cmd.mDoneCallback = doneCallback;
 		pushCommand(cmd, obj);
 	}
-	public static CommandWindowAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, float alpha)
+	public static CmdWindowAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, float alpha)
 	{
-		CMD_DELAY(out CommandWindowAlpha cmd, false);
+		CMD_MAIN_DELAY(out CmdWindowAlpha cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartAlpha = alpha;
 		cmd.mTargetAlpha = alpha;
 		pushDelayCommand(cmd, obj, delayTime, watcher);
 		return cmd;
 	}
-	public static CommandWindowAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, float start, float target, float onceLength)
+	public static CmdWindowAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, float start, float target, float onceLength)
 	{
-		return ALPHA_DELAY_EX(watcher, obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		return ALPHA_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandWindowAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength)
+	public static CmdWindowAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, int keyframe, float start, float target, float onceLength)
 	{
 		return ALPHA_DELAY_EX(watcher, obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandWindowAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop)
+	public static CmdWindowAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, int keyframe, float start, float target, float onceLength, bool loop)
 	{
 		return ALPHA_DELAY_EX(watcher, obj, delayTime, keyframe, start, target, onceLength, loop, 0.0f, null, null);
 	}
-	public static CommandWindowAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset)
+	public static CmdWindowAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, int keyframe, float start, float target, float onceLength, bool loop, float offset)
 	{
 		return ALPHA_DELAY_EX(watcher, obj, delayTime, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
-	public static CommandWindowAlpha ALPHA_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, float start, float target, float onceLength, KeyFrameCallback doneCallback)
+	public static CmdWindowAlpha ALPHA_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		return ALPHA_DELAY_EX(watcher, obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		return ALPHA_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static CommandWindowAlpha ALPHA_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdWindowAlpha ALPHA_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		return ALPHA_DELAY_EX(watcher, obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		return ALPHA_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CommandWindowAlpha ALPHA_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdWindowAlpha ALPHA_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, int keyframe, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return ALPHA_DELAY_EX(watcher, obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CommandWindowAlpha ALPHA_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdWindowAlpha ALPHA_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, int keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		if (keyframe == KEY_FRAME.NONE || isFloatZero(onceLength))
+		if (keyframe == KEY_CURVE.NONE || isFloatZero(onceLength))
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用CommandWindowAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, float alpha)");
 			return null;
 		}
-		CMD_DELAY(out CommandWindowAlpha cmd, false);
+		CMD_MAIN_DELAY(out CmdWindowAlpha cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
@@ -401,9 +401,13 @@ public class LT : FrameBase
 	//--------------------------------------------------------------------------------------------------------------------------------------------
 	// 颜色,也包含透明度
 	#region 颜色
+	public static void COLOR(myUIObject obj)
+	{
+		COLOR(obj, Color.white);
+	}
 	public static void COLOR(myUIObject obj, Color color)
 	{
-		CMD(out CommandWindowColor cmd, false);
+		CMD_MAIN(out CmdWindowColor cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartColor = color;
 		cmd.mTargetColor = color;
@@ -411,44 +415,44 @@ public class LT : FrameBase
 	}
 	public static void COLOR(myUIObject obj, Color start, Color target, float onceLength)
 	{
-		COLOR_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		COLOR_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void COLOR(myUIObject obj, KEY_FRAME keyframe, Color start, Color target, float onceLength)
+	public static void COLOR(myUIObject obj, int keyframe, Color start, Color target, float onceLength)
 	{
 		COLOR_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void COLOR(myUIObject obj, KEY_FRAME keyframe, Color start, Color target, float onceLength, bool loop)
+	public static void COLOR(myUIObject obj, int keyframe, Color start, Color target, float onceLength, bool loop)
 	{
 		COLOR_EX(obj, keyframe, start, target, onceLength, loop, 0.0f, null, null);
 	}
-	public static void COLOR(myUIObject obj, KEY_FRAME keyframe, Color start, Color target, float onceLength, bool loop, float offset)
+	public static void COLOR(myUIObject obj, int keyframe, Color start, Color target, float onceLength, bool loop, float offset)
 	{
 		COLOR_EX(obj, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
 	public static void COLOR_EX(myUIObject obj, Color start, Color target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		COLOR_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		COLOR_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
 	public static void COLOR_EX(myUIObject obj, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		COLOR_EX(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		COLOR_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void COLOR_EX(myUIObject obj, KEY_FRAME keyframe, Color start, Color target, float onceLength, KeyFrameCallback doneCallback)
+	public static void COLOR_EX(myUIObject obj, int keyframe, Color start, Color target, float onceLength, KeyFrameCallback doneCallback)
 	{
 		COLOR_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static void COLOR_EX(myUIObject obj, KEY_FRAME keyframe, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void COLOR_EX(myUIObject obj, int keyframe, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		COLOR_EX(obj, keyframe, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void COLOR_EX(myUIObject obj, KEY_FRAME keyframe, Color start, Color target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void COLOR_EX(myUIObject obj, int keyframe, Color start, Color target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		if (keyframe == KEY_FRAME.NONE || isFloatZero(onceLength))
+		if (keyframe == KEY_CURVE.NONE || isFloatZero(onceLength))
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ALPHA(myUIObject obj, float alpha)");
 			return;
 		}
-		CMD(out CommandWindowColor cmd, false);
+		CMD_MAIN(out CmdWindowColor cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
@@ -459,51 +463,51 @@ public class LT : FrameBase
 		cmd.mDoneCallback = doneCallback;
 		pushCommand(cmd, obj);
 	}
-	public static CommandWindowColor COLOR_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Color color)
+	public static CmdWindowColor COLOR_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Color color)
 	{
-		CMD_DELAY(out CommandWindowColor cmd, false);
+		CMD_MAIN_DELAY(out CmdWindowColor cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartColor = color;
 		cmd.mTargetColor = color;
 		pushDelayCommand(cmd, obj, delayTime, watcher);
 		return cmd;
 	}
-	public static CommandWindowColor COLOR_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Color start, Color target, float onceLength)
+	public static CmdWindowColor COLOR_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Color start, Color target, float onceLength)
 	{
-		return COLOR_DELAY_EX(watcher, obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+		return COLOR_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandWindowColor COLOR_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, KEY_FRAME keyframe, Color start, Color target, float onceLength)
+	public static CmdWindowColor COLOR_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, int keyframe, Color start, Color target, float onceLength)
 	{
 		return COLOR_DELAY_EX(watcher, obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CommandWindowColor COLOR_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, KEY_FRAME keyframe, Color start, Color target, float onceLength, bool loop)
+	public static CmdWindowColor COLOR_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, int keyframe, Color start, Color target, float onceLength, bool loop)
 	{
 		return COLOR_DELAY_EX(watcher, obj, delayTime, keyframe, start, target, onceLength, loop, 0.0f, null, null);
 	}
-	public static CommandWindowColor COLOR_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, KEY_FRAME keyframe, Color start, Color target, float onceLength, bool loop, float offset)
+	public static CmdWindowColor COLOR_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, int keyframe, Color start, Color target, float onceLength, bool loop, float offset)
 	{
 		return COLOR_DELAY_EX(watcher, obj, delayTime, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
-	public static CommandWindowColor COLOR_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Color start, Color target, float onceLength, KeyFrameCallback doneCallback)
+	public static CmdWindowColor COLOR_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Color start, Color target, float onceLength, KeyFrameCallback doneCallback)
 	{
-		return COLOR_DELAY_EX(watcher, obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+		return COLOR_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static CommandWindowColor COLOR_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdWindowColor COLOR_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		return COLOR_DELAY_EX(watcher, obj, delayTime, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+		return COLOR_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CommandWindowColor COLOR_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, KEY_FRAME keyframe, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdWindowColor COLOR_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, int keyframe, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return COLOR_DELAY_EX(watcher, obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CommandWindowColor COLOR_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, KEY_FRAME keyframe, Color start, Color target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdWindowColor COLOR_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, int keyframe, Color start, Color target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		if (keyframe == KEY_FRAME.NONE || isFloatZero(onceLength))
+		if (keyframe == KEY_CURVE.NONE || isFloatZero(onceLength))
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用CommandWindowAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, float alpha)");
 			return null;
 		}
-		CMD_DELAY(out CommandWindowColor cmd, false);
+		CMD_MAIN_DELAY(out CmdWindowColor cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
@@ -525,7 +529,7 @@ public class LT : FrameBase
 		{
 			return;
 		}
-		pushMainCommand<CommandWindowAlphaPath>(obj, false);
+		pushMainCommand<CmdWindowAlphaPath>(obj, false);
 	}
 	public static void ALPHA_PATH(myUIObject obj, Dictionary<float, float> valueKeyFrame)
 	{
@@ -557,7 +561,7 @@ public class LT : FrameBase
 		{
 			return;
 		}
-		CMD(out CommandWindowAlphaPath cmd, false);
+		CMD_MAIN(out CmdWindowAlphaPath cmd, false);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -567,49 +571,49 @@ public class LT : FrameBase
 		cmd.mDoneCallBack = doneCallback;
 		pushCommand(cmd, obj);
 	}
-	public static CommandWindowAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime)
+	public static CmdWindowAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		return pushDelayMainCommand<CommandWindowAlphaPath>(watcher, obj, delayTime, false);
+		return pushDelayMainCommand<CmdWindowAlphaPath>(watcher, obj, delayTime, false);
 	}
-	public static CommandWindowAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame)
+	public static CmdWindowAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame)
 	{
 		return ALPH_PATH_DELAY_EX(watcher, obj, delayTime, valueKeyFrame, 1.0f, 1.0f, false, 0.0f, null, null);
 	}
-	public static CommandWindowAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset)
+	public static CmdWindowAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset)
 	{
 		return ALPH_PATH_DELAY_EX(watcher, obj, delayTime, valueKeyFrame, valueOffset, 1.0f, false, 0.0f, null, null);
 	}
-	public static CommandWindowAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed)
+	public static CmdWindowAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed)
 	{
 		return ALPH_PATH_DELAY_EX(watcher, obj, delayTime, valueKeyFrame, valueOffset, speed, false, 0.0f, null, null);
 	}
-	public static CommandWindowAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop)
+	public static CmdWindowAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop)
 	{
 		return ALPH_PATH_DELAY_EX(watcher, obj, delayTime, valueKeyFrame, valueOffset, speed, loop, 0.0f, null, null);
 	}
-	public static CommandWindowAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop, float offset)
+	public static CmdWindowAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop, float offset)
 	{
 		return ALPH_PATH_DELAY_EX(watcher, obj, delayTime, valueKeyFrame, valueOffset, speed, loop, offset, null, null);
 	}
-	public static CommandWindowAlphaPath ALPH_PATH_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, KeyFrameCallback doneCallback)
+	public static CmdWindowAlphaPath ALPH_PATH_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, KeyFrameCallback doneCallback)
 	{
 		return ALPH_PATH_DELAY_EX(watcher, obj, delayTime, valueKeyFrame, valueOffset, speed, false, 0.0f, null, doneCallback);
 	}
-	public static CommandWindowAlphaPath ALPH_PATH_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdWindowAlphaPath ALPH_PATH_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return ALPH_PATH_DELAY_EX(watcher, obj, delayTime, valueKeyFrame, valueOffset, speed, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CommandWindowAlphaPath ALPH_PATH_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdWindowAlphaPath ALPH_PATH_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		CMD_DELAY(out CommandWindowAlphaPath cmd, false);
+		CMD_MAIN_DELAY(out CmdWindowAlphaPath cmd, false);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -626,7 +630,7 @@ public class LT : FrameBase
 	#region HSL
 	public static void HSL(myUIObject obj, Vector3 hsl)
 	{
-		CMD(out CommandWindowHSL cmd, false);
+		CMD_MAIN(out CmdWindowHSL cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartHSL = hsl;
 		cmd.mTargetHSL = hsl;
@@ -634,15 +638,15 @@ public class LT : FrameBase
 	}
 	public static void HSL(myUIObject obj, Vector3 start, Vector3 target, float onceLength)
 	{
-		HSL(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f);
+		HSL(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f);
 	}
-	public static void HSL(myUIObject obj, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength)
+	public static void HSL(myUIObject obj, int keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
 		HSL(obj, keyframe, start, target, onceLength, false, 0.0f);
 	}
-	public static void HSL(myUIObject obj, KEY_FRAME keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
+	public static void HSL(myUIObject obj, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
 	{
-		CMD(out CommandWindowHSL cmd, false);
+		CMD_MAIN(out CmdWindowHSL cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
@@ -657,7 +661,7 @@ public class LT : FrameBase
 	#region 亮度
 	public static void LUM(myUIObject obj, float lum)
 	{
-		CMD(out CommandWindowLum cmd, false);
+		CMD_MAIN(out CmdWindowLum cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartLum = lum;
 		cmd.mTargetLum = lum;
@@ -665,15 +669,15 @@ public class LT : FrameBase
 	}
 	public static void LUM(myUIObject obj, float start, float target, float onceLength)
 	{
-		LUM(obj, KEY_FRAME.ZERO_ONE, start, target, onceLength, false, 0.0f);
+		LUM(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f);
 	}
-	public static void LUM(myUIObject obj, KEY_FRAME keyframe, float start, float target, float onceLength)
+	public static void LUM(myUIObject obj, int keyframe, float start, float target, float onceLength)
 	{
 		LUM(obj, keyframe, start, target, onceLength, false, 0.0f);
 	}
-	public static void LUM(myUIObject obj, KEY_FRAME keyframe, float start, float target, float onceLength, bool loop, float offset)
+	public static void LUM(myUIObject obj, int keyframe, float start, float target, float onceLength, bool loop, float offset)
 	{
-		CMD(out CommandWindowLum cmd, false);
+		CMD_MAIN(out CmdWindowLum cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
@@ -688,19 +692,19 @@ public class LT : FrameBase
 	#region 播放界面音效
 	public static void AUDIO(myUIObject obj)
 	{
-		pushMainCommand<CommandWindowPlayAudio>(obj, false);
+		pushMainCommand<CmdWindowPlayAudio>(obj, false);
 	}
-	public static void AUDIO(myUIObject obj, SOUND_DEFINE sound)
+	public static void AUDIO(myUIObject obj, int sound)
 	{
 		AUDIO(obj, sound, false, 1.0f);
 	}
-	public static void AUDIO(myUIObject obj, SOUND_DEFINE sound, bool loop)
+	public static void AUDIO(myUIObject obj, int sound, bool loop)
 	{
 		AUDIO(obj, sound, loop, 1.0f);
 	}
-	public static void AUDIO(myUIObject obj, SOUND_DEFINE sound, bool loop, float volume)
+	public static void AUDIO(myUIObject obj, int sound, bool loop, float volume)
 	{
-		CMD(out CommandWindowPlayAudio cmd, false);
+		CMD_MAIN(out CmdWindowPlayAudio cmd, false);
 		cmd.mSound = sound;
 		cmd.mLoop = loop;
 		cmd.mVolume = volume;
@@ -709,24 +713,24 @@ public class LT : FrameBase
 	// keyframe为sound文件夹的相对路径,
 	public static void AUDIO(myUIObject obj, string name, bool loop, float volume)
 	{
-		CMD(out CommandWindowPlayAudio cmd, false);
+		CMD_MAIN(out CmdWindowPlayAudio cmd, false);
 		cmd.mSoundFileName = name;
 		cmd.mLoop = loop;
 		cmd.mVolume = volume;
 		pushCommand(cmd, obj);
 	}
-	public static CommandWindowPlayAudio AUDIO_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, SOUND_DEFINE sound, bool loop, float volume)
+	public static CmdWindowPlayAudio AUDIO_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, int sound, bool loop, float volume)
 	{
-		CMD_DELAY(out CommandWindowPlayAudio cmd, false);
+		CMD_MAIN_DELAY(out CmdWindowPlayAudio cmd, false);
 		cmd.mSound = sound;
 		cmd.mLoop = loop;
 		cmd.mVolume = volume;
 		pushDelayCommand(cmd, obj, delayTime, watcher);
 		return cmd;
 	}
-	public static CommandWindowPlayAudio AUDIO_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, SOUND_DEFINE sound, bool loop)
+	public static CmdWindowPlayAudio AUDIO_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, int sound, bool loop)
 	{
-		CMD_DELAY(out CommandWindowPlayAudio cmd, false);
+		CMD_MAIN_DELAY(out CmdWindowPlayAudio cmd, false);
 		cmd.mSound = sound;
 		cmd.mLoop = loop;
 		cmd.mUseVolumeCoe = true;

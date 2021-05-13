@@ -19,6 +19,6 @@ public class CommandSocketClientGameState : Command
 	//------------------------------------------------------------------------------------
 	protected static void onMessageOK(bool ok, object userData)
 	{
-		mGame.stop();
+		mGameFramework.stop();
 	}
 }

@@ -1,9 +1,9 @@
 ﻿using System;
 
-public class StateParam : GameBasePooledObject
-{}
+public class StateParam : FrameBase
+{ }
 
-public class PlayerState : GameBasePooledObject
+public class PlayerState : FrameBase
 {
 	protected CharacterBaseData mData;          // 状态所属角色的数据
 	protected OnStateLeave mOnLeave;			// 外部可设置的当前状态退出时的回调
@@ -93,7 +93,7 @@ public class PlayerState : GameBasePooledObject
 	// 要在当前状态中移除自身,可以使用removeSelf,或者直接将mStateTime设置为0,将时间设置为0最安全
 	protected void removeSelf(string param = null)
 	{
-		CMD(out CommandCharacterRemoveState cmd, false);
+		CMD_MAIN(out CmdCharacterRemoveState cmd, false);
 		cmd.mState = this;
 		cmd.mParam = param;
 		pushCommand(cmd, mPlayer);

@@ -1,8 +1,8 @@
 ﻿using System;
 
-public class GameEventInfo : GameBasePooledObject
+public class GameEventInfo : FrameBase
 {
-	public IEventListener mLisntener;
+	public object mLisntener;
 	public EventCallback mCallback;
 	public int mType;
 	public override void resetProperty()

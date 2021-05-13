@@ -2,7 +2,7 @@
 using System;
 
 [Serializable]
-public class ObjectInfo : FrameBasePooledObject
+public class ObjectInfo : FrameBase
 {
 	public GameObject mObject;
 	public string mFileWithPath;

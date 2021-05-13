@@ -10,6 +10,11 @@ public class StreamBuffer : FrameBase
 	{
 		resizeBuffer(bufferSize);
 	}
+	public void destroy()
+	{
+		UN_ARRAY_MAIN_THREAD(mBuffer);
+		mBuffer = null;
+	}
 	public byte[] getData(){return mBuffer;}
 	public int getDataLength(){return mDataLength;}
 	public void merge(StreamBuffer stream)
@@ -48,16 +53,17 @@ public class StreamBuffer : FrameBase
 		if (mBuffer != null)
 		{
 			// 创建新的缓冲区,将原来的数据拷贝到新缓冲区中,销毁原缓冲区,指向新缓冲区
-			byte[] newBuffer = new byte[mBufferSize];
+			ARRAY_MAIN_THREAD(out byte[] newBuffer, mBufferSize);
 			if (mDataLength > 0)
 			{
 				memcpy(newBuffer, mBuffer, 0, 0, mDataLength);
 			}
+			UN_ARRAY_MAIN_THREAD(mBuffer);
 			mBuffer = newBuffer;
 		}
 		else
 		{
-			mBuffer = new byte[mBufferSize];
+			ARRAY_MAIN_THREAD(out mBuffer, mBufferSize);
 		}
 	}
 }

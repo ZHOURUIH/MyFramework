@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 
 // 根据一个类,生成重写了这个类的所有虚函数的新的类
-public class ClassTypeGenerator
+public class ClassTypeGenerator : TypeUtility
 {
 	protected List<string> mNameSpaceList;
 	public ClassTypeGenerator()
@@ -18,6 +18,7 @@ public class ClassTypeGenerator
 		}
 		bool isAbstract = false;
 		string allMethodString = "";
+		collectNamespace(type.BaseType);
 		MethodInfo[] methods = type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 		foreach (var item in methods)
 		{
@@ -36,11 +37,11 @@ public class ClassTypeGenerator
 		classBody += "using System;\r\n";
 		classBody += "using System.Collections;\r\n";
 		classBody += "using System.Collections.Generic;\r\n";
-		foreach(var item in mNameSpaceList)
+		foreach (var item in mNameSpaceList)
 		{
 			classBody += "using " + item + ";\r\n";
 		}
-		classBody += "\t\n";
+		classBody += "\r\n";
 		classBody += "public ";
 		if(isAbstract)
 		{
@@ -48,16 +49,20 @@ public class ClassTypeGenerator
 		}
 		classBody += "class ";
 		classBody += "ILR" + type.Name + " : " + type.Name + "\r\n";
-		classBody += "{\t\n";
+		classBody += "{\r\n";
 		classBody += allMethodString;
-		classBody += "}\t\n";
-		FileUtility.writeTxtFile(path + "ILR" + type.Name + ".cs", classBody);
+		classBody += "}\r\n";
+		writeTxtFile(path + "ILR" + type.Name + ".cs", classBody);
 	}
 	//--------------------------------------------------------------------------------------------
 	protected void collectNamespace(Type type)
 	{
+		if(type == null)
+		{
+			return;
+		}
 		// 这三个是默认包含的
-		if (StringUtility.isEmpty(type.Namespace) || 
+		if (isEmpty(type.Namespace) || 
 			type.Namespace == "System" ||
 			type.Namespace == "System..Collections" ||
 			type.Namespace == "System..Collections.Generic")
@@ -158,48 +163,44 @@ public class ClassTypeGenerator
 		{
 			if (defaultValue != null)
 			{
-				UnityUtility.logError("参数类型为class,但是默认值不为空");
+				logError("参数类型为class,但是默认值不为空");
 			}
 			defaultString += " = null";
 		}
 		else
 		{
-			UnityUtility.logError("无法识别默认参数类型:" + type);
+			logError("无法识别默认参数类型:" + type);
 		}
 		return defaultString;
 	}
 	protected string getTypeString(Type type)
 	{
-		if (TypeUtility.getTypeName(type) != null)
+		if (getTypeName(type) != null)
 		{
-			return TypeUtility.getTypeName(type);
+			return getTypeName(type);
 		}
 		string typeString = type.ToString();
 		// 去除引用符号
-		typeString = typeString.Replace("&", "");
+		typeString = removeAll(typeString, "&");
 		// 因为bool和ref bool在typeof后的值不一致,所以所有的基础类型都要判断
-		if (TypeUtility.getTypeName(typeString) != null)
+		if (getTypeName(typeString) != null)
 		{
-			return TypeUtility.getTypeName(typeString);
+			return getTypeName(typeString);
 		}
 		// 有命名空间的去掉命名空间
-		if (typeString.Contains("."))
-		{
-			return typeString.Substring(typeString.LastIndexOf('.') + 1);
-		}
+		typeString = removeStart(typeString, '.', false);
 		// 类,基础数据类型以外的值类型,接口,则直接返回类型字符串
 		if (type.IsClass || type.IsValueType || type.IsInterface)
 		{
 			return typeString;
 		}
-		UnityUtility.logError("未知的类型,无法获取类型字符串:" + type);
+		logError("未知的类型,无法获取类型字符串:" + type);
 		return "";
 	}
 	protected string generateMethodString(MethodInfo method)
 	{
-		string methodString = "";
 		collectNamespace(method.ReturnType);
-		methodString += getPublixPrivatePrefix(method) + "override " + getTypeString(method.ReturnType) + " ";
+		string methodString = getPublixPrivatePrefix(method) + "override " + getTypeString(method.ReturnType) + " ";
 		// 函数形式参数列表的字符串
 		string paramString = "";
 		// 函数体内调用基类函数时的实际参数列表的字符串

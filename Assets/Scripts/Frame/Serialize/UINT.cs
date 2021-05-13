@@ -7,13 +7,13 @@ public class UINT : OBJECT
 	public uint mValue;
 	public UINT()
 	{
-		mType = Typeof<uint>();
+		mType = typeof(uint);
 		mSize = TYPE_SIZE;
 	}
 	public UINT(uint value)
 	{
 		mValue = value;
-		mType = Typeof<uint>();
+		mType = typeof(uint);
 		mSize = TYPE_SIZE;
 	}
 	public override void zero() { mValue = 0; }

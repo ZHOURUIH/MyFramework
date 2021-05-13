@@ -27,7 +27,7 @@ public class FileUtility : MathUtility
 #if !UNITY_ANDROID || UNITY_EDITOR
 		// 非安卓或编辑器下需要使用BytesPool进行回收
 		// 如果数组大于等于16KB,则交给GC自动回收,否则就回收到自己的池中
-		FrameBase.UN_ARRAY_THREAD(fileBuffer, fileBuffer.Length >= 1024 * 16);
+		FrameBase.UN_ARRAY_MAIN_THREAD(fileBuffer, fileBuffer.Length >= 1024 * 16);
 #else
 		// 安卓真机下打开文件时不再进行回收,由GC自动回收
 #endif
@@ -50,7 +50,7 @@ public class FileUtility : MathUtility
 				return 0;
 			}
 			int fileSize = (int)fs.Length;
-			FrameBase.ARRAY_THREAD(out fileBuffer, getGreaterPow2(fileSize));
+			FrameBase.ARRAY_MAIN_THREAD(out fileBuffer, getGreaterPow2(fileSize));
 			fs.Read(fileBuffer, 0, fileSize);
 			fs.Close();
 			fs.Dispose();
@@ -123,6 +123,19 @@ public class FileUtility : MathUtility
 			return null;
 		}
 	}
+	public static void openTxtFileLines(string filePath, out string[] fileLines, bool errorIfNull)
+	{
+		string fileContent = openTxtFile(filePath, errorIfNull);
+		fileLines = split(fileContent, true, "\n");
+		if(fileLines == null)
+		{
+			return;
+		}
+		for(int i = 0; i < fileLines.Length; ++i)
+		{
+			fileLines[i] = removeAll(fileLines[i], "\r");
+		}
+	}
 	// 写一个文本文件,fileName为绝对路径,content是写入的字符串
 	public static void writeFile(string fileName, byte[] buffer, int size, bool appendData = false)
 	{
@@ -184,6 +197,10 @@ public class FileUtility : MathUtility
 		return;
 #endif
 		validPath(ref path);
+		if(!isDirExist(path))
+		{
+			return;
+		}
 		string[] dirList = Directory.GetDirectories(path);
 		// 先删除所有文件夹
 		int dirCount = dirList.Length;

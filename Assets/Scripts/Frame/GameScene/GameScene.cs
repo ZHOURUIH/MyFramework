@@ -51,7 +51,7 @@ public abstract class GameScene : ComponentOwner
 	}
 	public void enterStartProcedure()
 	{
-		CMD(out CommandGameSceneChangeProcedure cmd);
+		CMD_MAIN(out CmdGameSceneChangeProcedure cmd);
 		cmd.mProcedure = mTempStartProcedure != null ? mTempStartProcedure : mStartProcedure;
 		cmd.mIntent = mTempStartIntent;
 		pushCommand(cmd, this);
@@ -97,7 +97,7 @@ public abstract class GameScene : ComponentOwner
 	public virtual void exit()
 	{
 		// 首先进入退出流程,然后再退出最后的流程
-		CMD(out CommandGameSceneChangeProcedure cmd);
+		CMD_MAIN(out CmdGameSceneChangeProcedure cmd);
 		cmd.mProcedure = mExitProcedure;
 		pushCommand(cmd, this);
 		mCurProcedure?.exit(null, null);

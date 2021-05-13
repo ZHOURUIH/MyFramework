@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System;
 
-public abstract class LayoutScript : GameBase, IDelayCmdWatcher
+public abstract class LayoutScript : IDelayCmdWatcher
 {
-	protected HashSet<ulong> mDelayCmdList;  // 布局显示和隐藏时的延迟命令列表,当命令执行时,会从列表中移除该命令
+	protected HashSet<long> mDelayCmdList;  // 布局显示和隐藏时的延迟命令列表,当命令执行时,会从列表中移除该命令
 	protected CommandCallback mCmdCallback;
 	protected GameLayout mLayout;
 	protected myUIObject mRoot;
@@ -12,14 +12,14 @@ public abstract class LayoutScript : GameBase, IDelayCmdWatcher
 	protected int mID;
 	public LayoutScript()
 	{
-		mDelayCmdList = new HashSet<ulong>();
+		mDelayCmdList = new HashSet<long>();
 		mCmdCallback = onCmdStarted;
 	}
 	public virtual void destroy()
 	{
 		interruptAllCommand();
 	}
-	public void setLayout(GameLayout layout) 
+	public virtual void setLayout(GameLayout layout) 
 	{
 		mLayout = layout;
 		mID = mLayout.getID(); 
@@ -29,6 +29,10 @@ public abstract class LayoutScript : GameBase, IDelayCmdWatcher
 	public GameLayout getLayout() { return mLayout; }
 	public void setRoot(myUIObject root) { mRoot = root; }
 	public myUIObject getRoot() { return mRoot; }
+	public void notifyUIObjectNeedUpdate(myUIObject uiObj, bool needUpdate)
+	{
+		mLayout.notifyUIObjectNeedUpdate(uiObj, needUpdate);
+	}
 	public void registeCollider(myUIObject obj, ObjectClickCallback clickCallback, ObjectPreClickCallback preClick, object preClickUserData, bool passRay = false)
 	{
 		setObjectCallback(obj, clickCallback, null, null);
@@ -285,26 +289,26 @@ public abstract class LayoutScript : GameBase, IDelayCmdWatcher
 	}
 	public void setType(Type type) { mType = type; }
 	public Type getType() { return mType; }
-	public virtual void addDelayCmd(Command cmd)
+	public override void addDelayCmd(Command cmd)
 	{
 		mDelayCmdList.Add(cmd.getAssignID());
 		cmd.addStartCommandCallback(mCmdCallback);
 	}
-	public virtual void interruptCommand(ulong assignID, bool showError = true)
+	public override void interruptCommand(long assignID, bool showError = true)
 	{
 		if (mDelayCmdList.Remove(assignID))
 		{
 			mCommandSystem.interruptCommand(assignID, showError);
 		}
 	}
-	public virtual void onCmdStarted(Command cmd)
+	public override void onCmdStarted(Command cmd)
 	{
 		if (!mDelayCmdList.Remove(cmd.getAssignID()))
 		{
 			logError("命令执行后移除命令失败!");
 		}
 	}
-	public virtual void interruptAllCommand()
+	public override void interruptAllCommand()
 	{
 		foreach(var item in mDelayCmdList)
 		{

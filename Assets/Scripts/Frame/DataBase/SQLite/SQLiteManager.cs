@@ -19,18 +19,11 @@ public class SQLiteManager : FrameSystem
 		var table = createInstance<SQLiteTable>(type);
 		table.setTableName(tableName);
 		table.setDataType(dataType);
-		table.init();
+		table.init(stringToBytes(GameDefine.SQLITE_ENCRYPT_KEY));
 		mTableList.Add(Typeof(table), table);
 		mTableNameList.Add(tableName, table);
 		mTableDataTypeList.Add(dataType, table);
 		return table;
-	}
-	public void linkAllTable()
-	{
-		foreach(var item in mTableList)
-		{
-			item.Value.linkTable();
-		}
 	}
 	public override void destroy()
 	{

@@ -2,45 +2,22 @@
 using System.Text;
 using System.Text.RegularExpressions;
 
-public struct FloatParameter
-{
-	public float mValue;
-	public string mComment;
-	public GAME_FLOAT mType;
-	public string mTypeString;
-}
-
-public struct StringParameter
-{
-	public string mValue;
-	public string mComment;
-	public GAME_STRING mType;
-	public string mTypeString;
-}
-
-public struct ConfigInfo
-{
-	public string mComment;
-	public string mName;
-	public string mValue;
-}
-
 public abstract class ConfigBase : FrameSystem
 {
-	protected Dictionary<string, GAME_FLOAT> mFloatNameToDefine;
-	protected Dictionary<GAME_FLOAT, string> mFloatDefineToName;
-	protected Dictionary<string, GAME_STRING> mStringNameToDefine;
-	protected Dictionary<GAME_STRING, string> mStringDefineToName;
-	protected Dictionary<GAME_FLOAT, FloatParameter> mFloatList;
-	protected Dictionary<GAME_STRING, StringParameter> mStringList;
+	protected Dictionary<string, int> mFloatNameToDefine;
+	protected Dictionary<int, string> mFloatDefineToName;
+	protected Dictionary<string, int> mStringNameToDefine;
+	protected Dictionary<int, string> mStringDefineToName;
+	protected Dictionary<int, FloatParameter> mFloatList;
+	protected Dictionary<int, StringParameter> mStringList;
 	public ConfigBase()
 	{
-		mFloatNameToDefine = new Dictionary<string, GAME_FLOAT>();
-		mFloatDefineToName = new Dictionary<GAME_FLOAT, string>();
-		mStringNameToDefine = new Dictionary<string, GAME_STRING>();
-		mStringDefineToName = new Dictionary<GAME_STRING, string>();
-		mFloatList = new Dictionary<GAME_FLOAT, FloatParameter>();
-		mStringList = new Dictionary<GAME_STRING, StringParameter>();
+		mFloatNameToDefine = new Dictionary<string, int>();
+		mFloatDefineToName = new Dictionary<int, string>();
+		mStringNameToDefine = new Dictionary<string, int>();
+		mStringDefineToName = new Dictionary<int, string>();
+		mFloatList = new Dictionary<int, FloatParameter>();
+		mStringList = new Dictionary<int, StringParameter>();
 	}
 	public override void init()
 	{
@@ -50,7 +27,7 @@ public abstract class ConfigBase : FrameSystem
 		readConfig();
 	}
 	public abstract void writeConfig();
-	public float getFloat(GAME_FLOAT param)
+	public float getFloat(int param)
 	{
 		if(mFloatList.TryGetValue(param, out FloatParameter floatParam))
 		{
@@ -58,7 +35,7 @@ public abstract class ConfigBase : FrameSystem
 		}
 		return 0.0f;
 	}
-	public string getString(GAME_STRING param)
+	public string getString(int param)
 	{
 		if(mStringList.TryGetValue(param, out StringParameter strinParam))
 		{
@@ -66,7 +43,7 @@ public abstract class ConfigBase : FrameSystem
 		}
 		return EMPTY;
 	}
-	public void setFloat(GAME_FLOAT param, float value, string comment = null)
+	public void setFloat(int param, float value, string comment = null)
 	{
 		if (!mFloatList.TryGetValue(param, out FloatParameter floatParam))
 		{
@@ -87,7 +64,7 @@ public abstract class ConfigBase : FrameSystem
 			mFloatList[param] = floatParam;
 		}
 	}
-	public void setString(GAME_STRING param, string value, string comment = null)
+	public void setString(int param, string value, string comment = null)
 	{
 		if (!mStringList.TryGetValue(param, out StringParameter stringParam))
 		{
@@ -109,44 +86,44 @@ public abstract class ConfigBase : FrameSystem
 		}
 	}
 	//----------------------------------------------------------------------------------------------------------------------------------------------
-	protected void addFloat(GAME_FLOAT type)
+	protected void addFloat(string paramName, int type)
 	{
-		mFloatNameToDefine.Add(type.ToString(), type);
-		mFloatDefineToName.Add(type, type.ToString());
+		mFloatNameToDefine.Add(paramName, type);
+		mFloatDefineToName.Add(type, paramName);
 	}
-	protected void addString(GAME_STRING type)
+	protected void addString(string paramName, int type)
 	{
-		mStringNameToDefine.Add(type.ToString(), type);
-		mStringDefineToName.Add(type, type.ToString());
+		mStringNameToDefine.Add(paramName, type);
+		mStringDefineToName.Add(type, paramName);
 	}
-	protected string floatTypeToName(GAME_FLOAT type)
+	protected string floatTypeToName(int type)
 	{
 		mFloatDefineToName.TryGetValue(type, out string value);
 		return value;
 	}
-	protected GAME_FLOAT floatNameToType(string name)
+	protected int floatNameToType(string name)
 	{
-		if (mFloatNameToDefine.TryGetValue(name, out GAME_FLOAT type))
+		if (mFloatNameToDefine.TryGetValue(name, out int type))
 		{
 			return type;
 		}
-		return GAME_FLOAT.NONE;
+		return 0;
 	}
-	protected string stringTypeToName(GAME_STRING type)
+	protected string stringTypeToName(int type)
 	{
 		mStringDefineToName.TryGetValue(type, out string str);
 		return str;
 	}
-	protected GAME_STRING stringNameToType(string name)
+	protected int stringNameToType(string name)
 	{
-		if (mStringNameToDefine.TryGetValue(name, out GAME_STRING type))
+		if (mStringNameToDefine.TryGetValue(name, out int type))
 		{
 			return type;
 		}
-		return GAME_STRING.NONE;
+		return 0;
 	}
-	protected bool hasParameter(GAME_FLOAT param) { return mFloatList.ContainsKey(param); }
-	protected bool hasParameter(GAME_STRING param) { return mStringList.ContainsKey(param); }
+	protected bool hasFloatParam(int param) { return mFloatList.ContainsKey(param); }
+	protected bool hasStringParam(int param) { return mStringList.ContainsKey(param); }
 	protected string generateFloatFile()
 	{
 		MyStringBuilder fileString = STRING("// 注意\r\n// 每个参数上一行必须是该参数的注释\r\n// 可以添加任意的换行和空格\r\n// 变量命名应与代码中枚举命名相同\r\n\r\n");
@@ -176,7 +153,7 @@ public abstract class ConfigBase : FrameSystem
 	{
 		// 资源目录为本地目录,直接读取本地文件,否则使用http同步下载文件
 		string text;
-		if (ResourceManager.mLocalRootPath)
+		if (mResourceManager.isLocalRootPath())
 		{
 			text = openTxtFile(fileName, false);
 		}
@@ -229,16 +206,16 @@ public abstract class ConfigBase : FrameSystem
 		{
 			if (floatParam)
 			{
-				GAME_FLOAT def = floatNameToType(item.Key);
-				if (def != GAME_FLOAT.NONE)
+				int def = floatNameToType(item.Key);
+				if (def != 0)
 				{
 					setFloat(def, SToF(item.Value.mValue), item.Value.mComment);
 				}
 			}
 			else
 			{
-				GAME_STRING def = stringNameToType(item.Key);
-				if (def != GAME_STRING.NONE)
+				int def = stringNameToType(item.Key);
+				if (def != 0)
 				{
 					setString(def, item.Value.mValue, item.Value.mComment);
 				}

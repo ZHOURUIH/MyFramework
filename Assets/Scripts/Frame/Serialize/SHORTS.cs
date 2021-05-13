@@ -27,13 +27,13 @@ public class SHORTS : OBJECTS
 	public SHORTS(int count)
 	{
 		mValue = new short[count];
-		mType = Typeof<short[]>();
+		mType = typeof(short[]);
 		mSize = TYPE_SIZE * mValue.Length;
 	}
 	public SHORTS(short[] value)
 	{
 		mValue = value;
-		mType = Typeof<short[]>();
+		mType = typeof(short[]);
 		mSize = TYPE_SIZE * mValue.Length;
 	}
 	public override void setRealSize(ushort realSize)

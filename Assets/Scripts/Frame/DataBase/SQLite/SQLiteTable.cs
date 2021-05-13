@@ -4,9 +4,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-public class SQLiteTable : GameBase
+public class SQLiteTable : FrameBase
 {
-	protected Dictionary<string, List<SQLiteTable>> mLinkTable; // 字段索引的表格
 	protected Dictionary<int, SQLiteData> mDataList;
 	protected SqliteConnection mConnection;
 	protected SqliteCommand mCommand;
@@ -15,28 +14,30 @@ public class SQLiteTable : GameBase
 	protected bool mFullData;		// 数据是否已经全部查询过了
 	public SQLiteTable()
 	{
-		mLinkTable = new Dictionary<string, List<SQLiteTable>>();
 		mDataList = new Dictionary<int, SQLiteData>();
 	}
-	public void init()
+	public void init(byte[] encryptKey)
 	{
 		try
 		{
+#if UNITY_ANDROID && !UNITY_EDITOR
+			string fullPath = FrameDefine.F_PERSIS_DATA_BASE_PATH + mTableName + ".db";
+#else
 			string fullPath = FrameDefine.F_ASSETS_DATA_BASE_PATH + mTableName + ".db";
+#endif
 			if (isFileExist(fullPath))
 			{
-#if UNITY_ANDROID && !UNITY_EDITOR
-				// 将文件拷贝到persistentDataPath目录中,因为只有该目录才拥有读写权限
-				string persisFullPath = FrameDefine.F_PERSIS_DATA_BASE_PATH + mTableName + ".db";
-				copyFile(fullPath, persisFullPath);
-				fullPath = persisFullPath;
-#endif
-				mConnection = new SqliteConnection("URI=file:" + fullPath);   // 创建SQLite对象的同时，创建SqliteConnection对象  
-				mConnection.Open();                         // 打开数据库链接
-				if (mConnection != null && mCommand == null)
+				// 解密文件
+				byte[] fileBuffer;
+				int fileSize = openFile(fullPath, out fileBuffer, true);
+				for(int i = 0; i < fileSize; ++i)
 				{
-					mCommand = mConnection.CreateCommand();
+					fileBuffer[i] ^= encryptKey[i % encryptKey.Length];
 				}
+				// 将解密后的数据写入新的目录
+				string newPath = getFilePath(fullPath) + "/temp/" + mTableName + ".db";
+				writeFile(newPath, fileBuffer, fileSize);
+				connect(newPath);
 			}
 		}
 		catch (Exception e)
@@ -96,7 +97,6 @@ public class SQLiteTable : GameBase
 	public void setDataType(Type dataClassType) { mDataClassType = dataClassType; }
 	public void setTableName(string name) { mTableName = name; }
 	public string getTableName() { return mTableName; }
-	public virtual void linkTable() { }
 	public void checkSQLite() 
 	{
 		List<SQLiteData> list = new List<SQLiteData>();
@@ -106,31 +106,9 @@ public class SQLiteTable : GameBase
 		{
 			if (!list[i].checkData())
 			{
-				logError("表格数据发现错误:Type:" + GetType() + ", ID:" + list[i].mID);
+				logError("表格数据发现错误:Type:" + Typeof(this) + ", ID:" + list[i].mID);
 			}
 		}
-	}
-	public List<SQLiteTable> getLinkTables(string paramName)
-	{
-		mLinkTable.TryGetValue(paramName, out List<SQLiteTable> tableList);
-		return tableList;
-	}
-	public SQLiteTable getLinkTable(string paramName)
-	{
-		if (mLinkTable.TryGetValue(paramName, out List<SQLiteTable> tableList))
-		{
-			return tableList[0];
-		}
-		return null;
-	}
-	public void link(string paramName, SQLiteTable table)
-	{
-		if (!mLinkTable.TryGetValue(paramName, out List<SQLiteTable> tableList))
-		{
-			tableList = new List<SQLiteTable>();
-			mLinkTable.Add(paramName, tableList);
-		}
-		tableList.Add(table);
 	}
 	public SqliteDataReader doQuery()
 	{

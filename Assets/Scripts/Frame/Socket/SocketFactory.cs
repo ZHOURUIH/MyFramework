@@ -2,12 +2,6 @@
 using System;
 using System.Collections.Generic;
 
-public struct PacketInfo
-{
-	public ushort mType;
-	public Type mClassType;
-}
-
 public class SocketFactory : FrameSystem
 {
 	protected Dictionary<ushort, PacketInfo> mPacketTypeList;

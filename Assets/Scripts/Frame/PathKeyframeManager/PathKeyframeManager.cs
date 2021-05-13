@@ -60,7 +60,7 @@ public class PathKeyframeManager : FrameSystem
 	//----------------------------------------------------------------------------------------------------------------------------
 	protected void readAllFile(Dictionary<string, Dictionary<float, Vector3>> list, string suffix)
 	{
-		LIST(out List<string> fileList);
+		LIST_MAIN(out List<string> fileList);
 		findStreamingAssetsFiles(FrameDefine.F_PATH_KEYFRAME_PATH, fileList, suffix, true, true);
 		int fileCount = fileList.Count;
 		for (int i = 0; i < fileCount; ++i)
@@ -69,11 +69,11 @@ public class PathKeyframeManager : FrameSystem
 			readPathFile(fileList[i], pathList);
 			list.Add(getFileNameNoSuffix(fileList[i], true), pathList);
 		}
-		UN_LIST(fileList);
+		UN_LIST_MAIN(fileList);
 	}
 	protected void readAllFile(Dictionary<string, Dictionary<float, float>> list, string suffix)
 	{
-		LIST(out List<string> fileList);
+		LIST_MAIN(out List<string> fileList);
 		findStreamingAssetsFiles(FrameDefine.F_PATH_KEYFRAME_PATH, fileList, suffix, true, true);
 		int fileCount = fileList.Count;
 		for (int i = 0; i < fileCount; ++i)
@@ -82,7 +82,7 @@ public class PathKeyframeManager : FrameSystem
 			readPathFile(fileList[i], pathList);
 			list.Add(getFileNameNoSuffix(fileList[i], true), pathList);
 		}
-		UN_LIST(fileList);
+		UN_LIST_MAIN(fileList);
 	}
 	protected void readPathFile(string filePath, Dictionary<float, Vector3> path)
 	{
@@ -95,7 +95,7 @@ public class PathKeyframeManager : FrameSystem
 			string[] elems = split(lines[i], true, ":");
 			if (elems.Length == 2)
 			{
-				path.Add(SToF(elems[0]), stringToVector3(elems[1]));
+				path.Add(SToF(elems[0]), SToVector3(elems[1]));
 			}
 			else
 			{

@@ -2,30 +2,13 @@
 using System;
 using System.Collections.Generic;
 
-public class UGUIAtlas
-{
-	public Texture2D mTexture;
-}
-
-public class AtlasLoadParam : GameBasePooledObject
-{
-	public AtlasLoadDone mCallback;
-	public object mUserData;
-	public override void resetProperty()
-	{
-		base.resetProperty();
-		mCallback = null;
-		mUserData = null;
-	}
-}
-
 // 用于UGUI的multi sprite管理
 public class TPSpriteManager : FrameSystem
 {
-	protected Dictionary<string, Dictionary<string, Sprite>> mSpriteNameList;// key是图集的路径,相对于GameResources
-	protected Dictionary<UGUIAtlas, Dictionary<string, Sprite>> mSpriteList;
-	protected Dictionary<string, UGUIAtlas> mAtlasNameList;					// key是图集的路径,相对于GameResources
-	protected Dictionary<UGUIAtlas, string> mAtlasList;                     // value是图集的路径,相对于GameResources
+	protected Dictionary<UGUIAtlas, Dictionary<string, Sprite>> mSpriteList;	// 保存一个图集中的所有图片
+	protected Dictionary<string, Dictionary<string, Sprite>> mSpriteNameList;	// key是图集的路径,相对于GameResources
+	protected Dictionary<string, UGUIAtlas> mAtlasNameList;						// key是图集的路径,相对于GameResources
+	protected Dictionary<UGUIAtlas, string> mAtlasList;							// value是图集的路径,相对于GameResources
 	protected AssetLoadDoneCallback mAtlasCallback;
 	public TPSpriteManager()
 	{
@@ -35,25 +18,26 @@ public class TPSpriteManager : FrameSystem
 		mAtlasList = new Dictionary<UGUIAtlas, string>();
 		mAtlasCallback = onAtlasLoaded;
 	}
+	public void destroyAll()
+	{
+		mSpriteList.Clear();
+		mSpriteNameList.Clear();
+		mAtlasNameList.Clear();
+		mAtlasList.Clear();
+	}
 	public Dictionary<string, Sprite> getSprites(string atlasName, bool errorIfNull = true)
 	{
 		if (!mSpriteNameList.ContainsKey(atlasName))
 		{
 			loadAtlas(atlasName, errorIfNull);
 		}
-		if (mSpriteNameList.TryGetValue(atlasName, out Dictionary<string, Sprite> spriteList))
-		{
-			return spriteList;
-		}
-		return null;
+		mSpriteNameList.TryGetValue(atlasName, out Dictionary<string, Sprite> spriteList);
+		return spriteList;
 	}
 	public Dictionary<string, Sprite> getSprites(UGUIAtlas atlas)
 	{
-		if (mSpriteList.TryGetValue(atlas, out Dictionary<string, Sprite> spriteList))
-		{
-			return spriteList;
-		}
-		return null;
+		mSpriteList.TryGetValue(atlas, out Dictionary<string, Sprite> spriteList);
+		return spriteList;
 	}
 	public Sprite getSprite(UGUIAtlas atlas, string spriteName)
 	{
@@ -124,7 +108,7 @@ public class TPSpriteManager : FrameSystem
 	{
 		if (!mSpriteNameList.ContainsKey(atlasName))
 		{
-			CLASS(out AtlasLoadParam param);
+			CLASS_MAIN(out AtlasLoadParam param);
 			param.mCallback = callback;
 			param.mUserData = userData;
 			mResourceManager.loadSubResourceAsync<Sprite>(atlasName, mAtlasCallback, param, errorIfNull);

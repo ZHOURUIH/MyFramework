@@ -28,13 +28,13 @@ public class BYTES : OBJECTS
 	public BYTES(int count)
 	{
 		mValue = new byte[count];
-		mType = Typeof<byte[]>();
+		mType = typeof(byte[]);
 		mSize = TYPE_SIZE * mValue.Length;
 	}
 	public BYTES(byte[] value)
 	{
 		mValue = value;
-		mType = Typeof<byte[]>();
+		mType = typeof(byte[]);
 		mSize = TYPE_SIZE * mValue.Length;
 	}
 	public override void setRealSize(ushort realSize)

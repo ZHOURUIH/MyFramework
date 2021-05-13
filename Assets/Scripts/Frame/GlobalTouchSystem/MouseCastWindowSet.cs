@@ -22,6 +22,11 @@ public class MouseCastWindowSet : FrameBase
 		{
 			return;
 		}
+		if (window.isDestroy())
+		{
+			logError("窗口已经被销毁,无法访问:" + window.getName());
+			return;
+		}
 		mWindowOrderList.Add(window);
 		mWindowSet.Add(window);
 		mDepthDirty = true;
@@ -48,6 +53,11 @@ public class MouseCastWindowSet : FrameBase
 	{
 		if (!mWindowSet.Remove(window))
 		{
+			return;
+		}
+		if (window.isDestroy())
+		{
+			logError("窗口已经被销毁,无法访问:" + window.getName());
 			return;
 		}
 		mWindowOrderList.Remove(window);

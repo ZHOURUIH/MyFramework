@@ -6,7 +6,8 @@ using UnityEngine.Profiling;
 public class GameLayout : FrameBase
 {
 	protected Dictionary<GameObject, myUIObject> mGameObjectSearchList; // 用于根据GameObject查找UI
-	protected SafeDictionary<uint, myUIObject> mObjectList;              // 布局中UI物体列表,用于保存所有已获取的UI
+	protected SafeDictionary<uint, myUIObject> mNeedUpdateList;			// mObjectList中需要更新的窗口列表
+	protected SafeDictionary<uint, myUIObject> mObjectList;             // 布局中UI物体列表,用于保存所有已获取的UI
 	protected LayoutScript mScript;				// 布局脚本
 	protected GameObject mPrefab;				// 布局预设,布局从该预设实例化
 	protected myUGUICanvas mRoot;				// 布局根节点
@@ -20,7 +21,8 @@ public class GameLayout : FrameBase
 	protected bool mAnchorApplied;				// 是否已经完成了自适应的调整
 	protected bool mScriptInited;				// 脚本是否已经初始化
 	protected bool mBlurBack;					// 布局显示时是否需要使布局背后(比当前布局层级低)的所有布局模糊显示
-	protected bool mIsScene;					// 是否为场景,如果是场景,就不将布局挂在NGUIRoot或者UGUIRoot下
+	protected bool mIsScene;                    // 是否为场景,如果是场景,就不将布局挂在NGUIRoot或者UGUIRoot下
+	protected bool mDefaultUpdateWindow;		// 是否默认就将所有注册的窗口添加到更新列表中,默认是添加的,在某些需要重点优化的布局中可以选择将哪些窗口放入更新列表
 	protected LAYOUT_ORDER mRenderOrderType;	// 布局渲染顺序的计算方式
 	protected static List<LayoutScriptCallback> mLayoutScriptCallback = new List<LayoutScriptCallback>();
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -30,8 +32,10 @@ public class GameLayout : FrameBase
 	public GameLayout()
 	{
 		mGameObjectSearchList = new Dictionary<GameObject, myUIObject>();
+		mNeedUpdateList = new SafeDictionary<uint, myUIObject>();
 		mObjectList = new SafeDictionary<uint, myUIObject>();
 		mCheckBoxAnchor = true;
+		mDefaultUpdateWindow = true;
 	}
 	public static void addScriptCallback(LayoutScriptCallback callback)
 	{
@@ -74,7 +78,7 @@ public class GameLayout : FrameBase
 	}
 	public void init(int renderOrder)
 	{
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 		Profiler_UpdateLayout = "UpdateLayout" + getName();
 		Profiler_UpdateScript = "UpdateScript" + getName();
 #endif
@@ -136,7 +140,7 @@ public class GameLayout : FrameBase
 			Profiler.BeginSample(Profiler_UpdateLayout);
 #endif
 			// 先更新所有的UI物体
-			var updateList = mObjectList.getUpdateList();
+			var updateList = mObjectList.startForeach();
 			foreach (var obj in updateList)
 			{
 				if (obj.Value.canUpdate())
@@ -254,14 +258,35 @@ public class GameLayout : FrameBase
 	public bool isCheckBoxAnchor() { return mCheckBoxAnchor; }
 	public void setIgnoreTimeScale(bool ignore) { mIgnoreTimeScale = ignore; }
 	public bool isIgnoreTimeScale() { return mIgnoreTimeScale; }
+	public void setDefaultUpdateWindow(bool defaultUpdate) { mDefaultUpdateWindow = defaultUpdate; }
+	public bool canUIObjectUpdate(myUIObject uiObj) { return mNeedUpdateList.containsKey(uiObj.getID()); }
+	public void notifyUIObjectNeedUpdate(myUIObject uiObj, bool needUpdate)
+	{
+		if (needUpdate)
+		{
+			if(!mNeedUpdateList.containsKey(uiObj.getID()))
+			{
+				mNeedUpdateList.add(uiObj.getID(), uiObj);
+			}
+		}
+		else
+		{
+			mNeedUpdateList.remove(uiObj.getID());
+		}
+	}
 	public void registerUIObject(myUIObject uiObj)
 	{
 		mObjectList.add(uiObj.getID(), uiObj);
 		mGameObjectSearchList.Add(uiObj.getObject(), uiObj);
+		if(mDefaultUpdateWindow || uiObj.isEnable())
+		{
+			mNeedUpdateList.add(uiObj.getID(), uiObj);
+		}
 	}
 	public void unregisterUIObject(myUIObject uiObj)
 	{
 		mObjectList.remove(uiObj.getID());
+		mNeedUpdateList.remove(uiObj.getID());
 		mGameObjectSearchList.Remove(uiObj.getObject());
 	}
 	public void setLayer(string layer)

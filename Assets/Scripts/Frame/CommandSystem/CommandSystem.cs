@@ -76,7 +76,7 @@ public class CommandSystem : FrameSystem
 		cmd.setDelayCommand(delay);
 		return cmd;
 	}
-	public void interruptCommand(List<ulong> assignIDList, bool showError = true)
+	public void interruptCommand(List<long> assignIDList, bool showError = true)
 	{
 		int count = assignIDList.Count;
 		for(int i = 0; i < count; ++i)
@@ -85,7 +85,7 @@ public class CommandSystem : FrameSystem
 		}
 	}
 	// 中断命令
-	public bool interruptCommand(ulong assignID, bool showError = true)
+	public bool interruptCommand(long assignID, bool showError = true)
 	{
 		// 如果命令系统已经销毁了,则不能再中断命令
 		if(mDestroy)
@@ -163,7 +163,7 @@ public class CommandSystem : FrameSystem
 		}
 		if (cmdReceiver == null)
 		{
-			logError("receiver is null! cmd : " + (cmd != null ? cmd.GetType().ToString() : EMPTY));
+			logError("receiver is null! cmd : " + (cmd != null ? Typeof(cmd).ToString() : EMPTY));
 			return;
 		}
 		if (cmd.isDestroy())
@@ -220,7 +220,7 @@ public class CommandSystem : FrameSystem
 		}
 		if(cmdReceiver == null)
 		{
-			logError("receiver is null! cmd : " + (cmd != null ? cmd.GetType().ToString() : EMPTY));
+			logError("receiver is null! cmd : " + (cmd != null ? Typeof(cmd).ToString() : EMPTY));
 			return;
 		}
 		if (cmd.isDestroy())

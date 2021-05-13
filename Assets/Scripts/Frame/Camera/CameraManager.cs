@@ -76,7 +76,7 @@ public class CameraManager : FrameSystem
 		}
 		if (obj != null)
 		{
-			camera = new GameCamera();
+			CLASS_MAIN(out camera);
 			camera.setName(name);
 			camera.init();
 			camera.setObject(obj);
@@ -131,6 +131,7 @@ public class CameraManager : FrameSystem
 		}
 		activeCamera(camera, false);
 		camera.destroy();
+		UN_CLASS(camera);
 		mCameraList.Remove(camera);
 		if (camera == mMainCamera)
 		{

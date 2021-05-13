@@ -4,13 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 
-public struct SceneRegisteInfo
-{
-	public string mName;
-	public string mScenePath;
-	public Type mSceneType;
-}
-
 public class SceneSystem : FrameSystem
 {
 	protected Dictionary<string, SceneRegisteInfo> mSceneRegisteList;
@@ -18,12 +11,14 @@ public class SceneSystem : FrameSystem
 	protected List<SceneLoadCallback> mDirectLoadCallback;  // 请求加载已经加载的场景时的回调,因为这些回调需要延迟一帧调用,所以放入列表中再调用
 	protected List<SceneInstance> mLoadList;
 	protected AssetBundleLoadCallback mSceneLoadCallback;
+	protected WaitForEndOfFrame mWaitEndFrame;
 	public SceneSystem()
 	{
 		mSceneList = new Dictionary<string, SceneInstance>();
 		mSceneRegisteList = new Dictionary<string, SceneRegisteInfo>();
 		mLoadList = new List<SceneInstance>();
 		mDirectLoadCallback = new List<SceneLoadCallback>();
+		mWaitEndFrame = new WaitForEndOfFrame();
 		mSceneLoadCallback = onSceneAssetBundleLoaded;
 	}
 	public override void destroy()
@@ -38,7 +33,7 @@ public class SceneSystem : FrameSystem
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		if(mDirectLoadCallback.Count > 0)
+		if (mDirectLoadCallback.Count > 0)
 		{
 			// 只调用列表中第一个回调,避免回调中再次对该列表进行修改,且需要在列表中移除后再调用
 			SceneLoadCallback callback = mDirectLoadCallback[0];
@@ -46,7 +41,7 @@ public class SceneSystem : FrameSystem
 			callback(1.0f, true);
 		}
 		// 场景AssetBundle加载完毕时才开始加载场景
-		for(int i = 0; i < mLoadList.Count; ++i)
+		for (int i = 0; i < mLoadList.Count; ++i)
 		{
 			if (mLoadList[i].mState == LOAD_STATE.UNLOAD)
 			{
@@ -57,9 +52,9 @@ public class SceneSystem : FrameSystem
 				mLoadList.RemoveAt(i--);
 			}
 		}
-		foreach(var item in mSceneList)
+		foreach (var item in mSceneList)
 		{
-			if(item.Value.getActive())
+			if (item.Value.getActive())
 			{
 				item.Value.update(elapsedTime);
 			}
@@ -81,7 +76,7 @@ public class SceneSystem : FrameSystem
 	}
 	public string getScenePath(string name)
 	{
-		if(mSceneRegisteList.TryGetValue(name, out SceneRegisteInfo info))
+		if (mSceneRegisteList.TryGetValue(name, out SceneRegisteInfo info))
 		{
 			return info.mScenePath;
 		}
@@ -116,12 +111,12 @@ public class SceneSystem : FrameSystem
 			return;
 		}
 		// 如果需要隐藏其他场景,则遍历所有场景设置可见性
-		if(hideOther)
+		if (hideOther)
 		{
-			foreach(var item in mSceneList)
+			foreach (var item in mSceneList)
 			{
 				item.Value.setActive(name == item.Key);
-				if(name == item.Key)
+				if (name == item.Key)
 				{
 					item.Value.onShow();
 				}
@@ -137,7 +132,7 @@ public class SceneSystem : FrameSystem
 			scene.setActive(true);
 			scene.onShow();
 		}
-		if(mainScene)
+		if (mainScene)
 		{
 			setMainScene(name);
 		}
@@ -170,7 +165,7 @@ public class SceneSystem : FrameSystem
 		// 销毁场景,并且从列表中移除
 		unloadSceneOnly(name);
 		mSceneList.Remove(name);
-		if(unloadPath)
+		if (unloadPath)
 		{
 			mResourceManager.unloadPath(mSceneRegisteList[name].mScenePath);
 		}
@@ -179,9 +174,9 @@ public class SceneSystem : FrameSystem
 	public void unloadOtherScene(string dontUnloadSceneName)
 	{
 		var tempList = new Dictionary<string, SceneInstance>(mSceneList);
-		foreach(var item in tempList)
+		foreach (var item in tempList)
 		{
-			if(item.Key != dontUnloadSceneName)
+			if (item.Key != dontUnloadSceneName)
 			{
 				unloadScene(item.Key);
 			}
@@ -199,7 +194,6 @@ public class SceneSystem : FrameSystem
 		scene.mOperation = SceneManager.LoadSceneAsync(scene.mName, LoadSceneMode.Additive);
 		// allowSceneActivation指定了加载场景时是否需要调用场景中所有脚本的Awake和Start,以及贴图材质的引用等等
 		scene.mOperation.allowSceneActivation = true;
-		WaitForEndOfFrame waitEndFrame = new WaitForEndOfFrame();
 		while (true)
 		{
 			scene.mLoadCallback?.Invoke(scene.mOperation.progress, false);
@@ -210,7 +204,7 @@ public class SceneSystem : FrameSystem
 			{
 				break;
 			}
-			yield return waitEndFrame;
+			yield return mWaitEndFrame;
 		}
 		// 首先获得场景
 		scene.mScene = SceneManager.GetSceneByName(scene.mName);
@@ -218,7 +212,7 @@ public class SceneSystem : FrameSystem
 		scene.mRoot = getGameObject(scene.mName + "_Root", true);
 		// 加载完毕后就立即初始化
 		scene.init();
-		if(scene.mActiveLoaded)
+		if (scene.mActiveLoaded)
 		{
 			showScene(scene.mName);
 		}
@@ -231,12 +225,12 @@ public class SceneSystem : FrameSystem
 	}
 	protected SceneInstance createScene(string sceneName)
 	{
-		if(!mSceneRegisteList.TryGetValue(sceneName, out SceneRegisteInfo info))
+		if (!mSceneRegisteList.TryGetValue(sceneName, out SceneRegisteInfo info))
 		{
 			logError("scene :" + sceneName + " is not registed!");
 			return null;
 		}
-		SceneInstance scene =  createInstance<SceneInstance>(info.mSceneType);
+		SceneInstance scene = createInstance<SceneInstance>(info.mSceneType);
 		scene.setName(sceneName);
 		return scene;
 	}
@@ -248,13 +242,6 @@ public class SceneSystem : FrameSystem
 			return;
 		}
 		scene.destroy();
-		if (scene.mRoot != null)
-		{
-#if UNITY_5_3_5
-			SceneManager.UnloadScene(name);
-#else
-			SceneManager.UnloadSceneAsync(name);
-#endif
-		}
+		SceneManager.UnloadSceneAsync(name);
 	}
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using ILRuntime.Mono.Cecil;
+using ILRuntime.Runtime;
 using ILRuntime.Runtime.Enviorment;
 using ILRuntime.CLR.Method;
 using ILRuntime.Runtime.Intepreter;
@@ -44,9 +45,12 @@ namespace ILRuntime.CLR.TypeSystem
         IType firstCLRBaseType, firstCLRInterface;
         int hashCode = -1;
         static int instance_id = 0x10000000;
+        int jitFlags;
         public TypeDefinition TypeDefinition { get { return definition; } }
         bool mToStringGot, mEqualsGot, mGetHashCodeGot;
         IMethod mToString, mEquals, mGetHashCode;
+        int valuetypeFieldCount, valuetypeManagedCount;
+        bool valuetypeSizeCalculated;
 
         public IMethod ToStringMethod
         {
@@ -206,7 +210,7 @@ namespace ILRuntime.CLR.TypeSystem
         {
             get
             {
-                return  typeRef.HasGenericParameters && genericArguments == null;
+                return typeRef.HasGenericParameters && genericArguments == null;
             }
         }
 
@@ -283,6 +287,7 @@ namespace ILRuntime.CLR.TypeSystem
             this.typeRef = def;
             RetriveDefinitino(def);
             appdomain = domain;
+            jitFlags = domain.DefaultJITFlags;
         }
 
         /// <summary>
@@ -452,6 +457,24 @@ namespace ILRuntime.CLR.TypeSystem
         }
 
         string fullName, fullNameForNested;
+
+        public string FullNameForNested
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(fullNameForNested))
+                {
+                    if (typeRef.IsNested)
+                    {
+                        fullNameForNested = FullName.Replace("/", ".");
+                    }
+                    else
+                        fullNameForNested = FullName;
+                }
+                return fullNameForNested;
+            }
+        }
+
         public string FullName
         {
             get
@@ -477,12 +500,14 @@ namespace ILRuntime.CLR.TypeSystem
                     }
                     else
                         fullName = typeRef.FullName;
+                    /* 
                     if (typeRef.IsNested)
                     {
                         fullNameForNested = fullName.Replace("/", ".");
                     }
                     else
                         fullNameForNested = fullName;
+                    */
                 }
                 return fullName;
             }
@@ -675,14 +700,26 @@ namespace ILRuntime.CLR.TypeSystem
             constructors = new List<ILMethod>();
             if (definition == null)
                 return;
+            if (definition.HasCustomAttributes)
+            {
+                for (int i = 0; i < definition.CustomAttributes.Count; i++)
+                {
+                    int f;
+                    if (definition.CustomAttributes[i].GetJITFlags(AppDomain, out f))
+                    {
+                        this.jitFlags = f;
+                        break;
+                    }
+                }
+            }
             foreach (var i in definition.Methods)
             {
                 if (i.IsConstructor)
                 {
                     if (i.IsStatic)
-                        staticConstructor = new ILMethod(i, this, appdomain);
+                        staticConstructor = new ILMethod(i, this, appdomain, jitFlags);
                     else
-                        constructors.Add(new ILMethod(i, this, appdomain));
+                        constructors.Add(new ILMethod(i, this, appdomain, jitFlags));
                 }
                 else
                 {
@@ -692,7 +729,7 @@ namespace ILRuntime.CLR.TypeSystem
                         lst = new List<ILMethod>();
                         methods[i.Name] = lst;
                     }
-                    var m = new ILMethod(i, this, appdomain);
+                    var m = new ILMethod(i, this, appdomain, jitFlags);
                     lst.Add(m);
                 }
             }
@@ -723,30 +760,28 @@ namespace ILRuntime.CLR.TypeSystem
             }
 
             var m = GetMethod(method.Name, method.Parameters, genericArguments, method.ReturnType, true);
+            if (m == null && BaseType != null)
+            {
+                m = BaseType.GetVirtualMethod(method);
+                if (m != null)
+                    return m;
+            }
             if (m == null && method.DeclearingType.IsInterface)
             {
-                if(method.DeclearingType is ILType)
+                if (method.DeclearingType is ILType)
                 {
                     ILType iltype = (ILType)method.DeclearingType;
-                    m = GetMethod(string.Format("{0}.{1}", iltype.fullNameForNested, method.Name), method.Parameters, genericArguments, method.ReturnType, true);
+                    m = GetMethod(string.Format("{0}.{1}", iltype.FullNameForNested, method.Name), method.Parameters, genericArguments, method.ReturnType, true);
                 }
                 else
                     m = GetMethod(string.Format("{0}.{1}", method.DeclearingType.FullName, method.Name), method.Parameters, genericArguments, method.ReturnType, true);
             }
 
-            if (m == null)
-            {
-                if (BaseType != null)
-                {
-                    return BaseType.GetVirtualMethod(method);
-                }
-                else
-                    return null;//BaseType == null means base type is Object or Enum
-            }
-            else if (m.IsGenericInstance == method.IsGenericInstance)
+            if (m == null || m.IsGenericInstance == method.IsGenericInstance)
                 return m;
             else
                 return method;
+
         }
 
         public IMethod GetMethod(string name, List<IType> param, IType[] genericArguments, IType returnType = null, bool declaredOnly = false)
@@ -766,7 +801,7 @@ namespace ILRuntime.CLR.TypeSystem
                         bool match = true;
                         if (genericArguments != null && i.GenericParameterCount == genericArguments.Length && genericMethod == null)
                         {
-                            genericMethod = CheckGenericParams(i, param, ref match);
+                            genericMethod = CheckGenericParams(i, param, genericArguments, ref match);
                         }
                         else
                         {
@@ -834,7 +869,26 @@ namespace ILRuntime.CLR.TypeSystem
             }
         }
 
-        ILMethod CheckGenericParams(ILMethod i, List<IType> param, ref bool match)
+        bool IsGenericArgumentMatch(IType p, IType p2, IType[] genericArguments)
+        {
+            bool found = false;
+            foreach (var a in genericArguments)
+            {
+                if (a == p2)
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                return false;
+            }
+            else
+                return true;
+        }
+
+        ILMethod CheckGenericParams(ILMethod i, List<IType> param, IType[] genericArguments, ref bool match)
         {
             ILMethod genericMethod = null;
             if (param != null)
@@ -842,22 +896,39 @@ namespace ILRuntime.CLR.TypeSystem
                 for (int j = 0; j < param.Count; j++)
                 {
                     var p = i.Parameters[j];
+                    if (p.IsGenericParameter)
+                    {
+                        if (IsGenericArgumentMatch(p, param[j], genericArguments))
+                            continue;
+                        else
+                        {
+                            match = false;
+                            break;
+                        }
+                    }
                     if (p.IsByRef)
                         p = p.ElementType;
                     if (p.IsArray)
                         p = p.ElementType;
-
-                    if (p.IsGenericParameter)
-                        continue;
 
                     var p2 = param[j];
                     if (p2.IsByRef)
                         p2 = p2.ElementType;
                     if (p2.IsArray)
                         p2 = p2.ElementType;
+                    if (p.IsGenericParameter)
+                    {
+                        if (i.Parameters[j].IsByRef == param[j].IsByRef && i.Parameters[j].IsArray == param[j].IsArray && IsGenericArgumentMatch(p, p2, genericArguments))
+                            continue;
+                        else
+                        {
+                            match = false;
+                            break;
+                        }
+                    }
                     if (p.HasGenericParameter)
                     {
-                        if(p.Name != p2.Name)
+                        if (p.Name != p2.Name)
                         {
                             match = false;
                             break;
@@ -990,7 +1061,7 @@ namespace ILRuntime.CLR.TypeSystem
         void InitializeFields()
         {
             fieldMapping = new Dictionary<string, int>();
-            if(definition == null)
+            if (definition == null)
             {
                 fieldTypes = new IType[0];
                 fieldDefinitions = new FieldDefinition[0];
@@ -1238,11 +1309,11 @@ namespace ILRuntime.CLR.TypeSystem
         public unsafe int GetMethodBodySizeInMemory()
         {
             int size = 0;
-            if(methods != null)
+            if (methods != null)
             {
-                foreach(var i in methods)
+                foreach (var i in methods)
                 {
-                    foreach(var j in i.Value)
+                    foreach (var j in i.Value)
                     {
                         if (j.HasBody)
                         {
@@ -1252,6 +1323,50 @@ namespace ILRuntime.CLR.TypeSystem
                 }
             }
             return size;
+        }
+
+        public void GetValueTypeSize(out int fieldCout, out int managedCount)
+        {
+            if (!valuetypeSizeCalculated)
+            {
+                valuetypeFieldCount = FieldTypes.Length + 1;
+                valuetypeManagedCount = 0;
+                for (int i = 0; i < FieldTypes.Length; i++)
+                {
+                    var ft = FieldTypes[i];
+                    if (ft.IsValueType)
+                    {
+                        if (!ft.IsPrimitive && !ft.IsEnum)
+                        {
+                            if (ft is ILType || ((CLRType)ft).ValueTypeBinder != null)
+                            {
+                                int fSize, fmCnt;
+                                ft.GetValueTypeSize(out fSize, out fmCnt);
+                                valuetypeFieldCount += fSize;
+                                valuetypeManagedCount += fmCnt;
+                            }
+                            else
+                            {
+                                valuetypeManagedCount++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        valuetypeManagedCount++;
+                    }
+                }
+                if (BaseType != null && BaseType is ILType)
+                {
+                    int fSize, fmCnt;
+                    BaseType.GetValueTypeSize(out fSize, out fmCnt);
+                    valuetypeFieldCount += fSize - 1;//no header for base type fields
+                    valuetypeManagedCount += fmCnt;
+                }
+                valuetypeSizeCalculated = true;
+            }
+            fieldCout = valuetypeFieldCount;
+            managedCount = valuetypeManagedCount;
         }
 
         public override int GetHashCode()

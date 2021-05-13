@@ -1,12 +1,7 @@
 ﻿using System.Net.Sockets;
 
-public interface IClient
-{
-	uint getClientGUID();
-}
-
 // 当前程序作为服务器时,NetClient代表一个连接到服务器的客户端
-public abstract class NetClient : GameBase
+public abstract class NetClient : FrameBase
 {
 	protected DoubleBuffer<byte[]> mOutputBuffer;   // 使用双缓冲提高发送消息的效率
 	protected DoubleBuffer<SocketPacket> mReceiveBuffer;
@@ -41,7 +36,7 @@ public abstract class NetClient : GameBase
 		// 包类型的高2位表示了当前包体是用几个字节存储的
 		ushort packetType = packet.getPacketType();
 		// 需要先序列化消息,同时获得包体实际的长度
-		ARRAY(out byte[] bodyBuffer, getGreaterPow2(packet.generateSize(true)));
+		ARRAY_MAIN(out byte[] bodyBuffer, getGreaterPow2(packet.generateSize(true)));
 		int realPacketSize = packet.write(bodyBuffer);
 		string debugInfo = null;
 		if (packet.showInfo())
@@ -53,7 +48,7 @@ public abstract class NetClient : GameBase
 
 		if (realPacketSize < 0)
 		{
-			UN_ARRAY(bodyBuffer);
+			UN_ARRAY_MAIN(bodyBuffer);
 			logError("消息序列化失败!");
 			return;
 		}
@@ -84,7 +79,7 @@ public abstract class NetClient : GameBase
 			setBit(ref packetType, sizeof(ushort) * 8 - 1, 1);
 			setBit(ref packetType, sizeof(ushort) * 8 - 2, 0);
 		}
-		ARRAY_THREAD(out byte[] packetData, getGreaterPow2(sizeof(ushort) + headerSize + packetSize));
+		ARRAY_MAIN_THREAD(out byte[] packetData, getGreaterPow2(sizeof(ushort) + headerSize + packetSize));
 		int index = 0;
 		// 本次消息包的数据长度,因为byte[]本身的长度并不代表要发送的实际的长度,所以将数据长度保存下来
 		writeUShort(packetData, ref index, (ushort)(headerSize + packetSize));
@@ -101,7 +96,7 @@ public abstract class NetClient : GameBase
 		}
 		// 写入包体数据
 		writeBytes(packetData, ref index, bodyBuffer, -1, -1, realPacketSize);
-		UN_ARRAY(bodyBuffer);
+		UN_ARRAY_MAIN(bodyBuffer);
 		// 添加到写缓冲中
 		mOutputBuffer.add(packetData);
 		if (debugInfo != null)
@@ -136,7 +131,7 @@ public abstract class NetClient : GameBase
 		// 回收所有byte[]
 		for (int i = 0; i < count; ++i)
 		{
-			UN_ARRAY_THREAD(readList[i]);
+			UN_ARRAY_MAIN_THREAD(readList[i]);
 		}
 		readList.Clear();
 	}

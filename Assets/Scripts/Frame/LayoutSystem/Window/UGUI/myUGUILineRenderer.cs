@@ -30,7 +30,7 @@ public class myUGUILineRenderer : myUGUIObject
 	}
 	public void setPointListBezier(Vector3[] pointList, int bezierDetail = 10)
 	{
-		LIST(out List<Vector3> curveList);
+		LIST_MAIN(out List<Vector3> curveList);
 		getBezierPoints(pointList, curveList, mLineRenderer.loop, bezierDetail);
 		Vector3[] pointArray = new Vector3[curveList.Count];
 		int count = curveList.Count;
@@ -39,11 +39,11 @@ public class myUGUILineRenderer : myUGUIObject
 			pointArray[i] = curveList[i];
 		}
 		setPointList(pointArray);
-		UN_LIST(curveList);
+		UN_LIST_MAIN(curveList);
 	}
 	public void setPointListSmooth(Vector3[] pointList, int bezierDetail = 10)
 	{
-		LIST(out List<Vector3> curveList);
+		LIST_MAIN(out List<Vector3> curveList);
 		getCurvePoints(pointList, curveList, mLineRenderer.loop, bezierDetail);
 		Vector3[] pointArray = new Vector3[curveList.Count];
 		int count = curveList.Count;
@@ -52,6 +52,6 @@ public class myUGUILineRenderer : myUGUIObject
 			pointArray[i] = curveList[i];
 		}
 		setPointList(pointArray);
-		UN_LIST(curveList);
+		UN_LIST_MAIN(curveList);
 	}
 }

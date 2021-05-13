@@ -27,20 +27,19 @@ public class ListPoolThread : FrameSystem
 	public Dictionary<Type, HashSet<IList>> getInusedList() { return mInusedList; }
 	public Dictionary<Type, HashSet<IList>> getUnusedList() { return mUnusedList; }
 	// onlyOnce表示是否仅当作临时列表使用
-	public List<T> newList<T>(out List<T> list)
+	public IList newList(Type elementType, Type listType)
 	{
-		list = null;
+		IList list = null;
 		// 锁定期间不能调用任何其他非库函数,否则可能会发生死锁
 		mListLock.waitForUnlock();
 		try
 		{
-			Type elementType = Typeof<T>();
 			// 先从未使用的列表中查找是否有可用的对象
 			if (mUnusedList.TryGetValue(elementType, out HashSet<IList> valueList) && valueList.Count > 0)
 			{
 				foreach (var item in valueList)
 				{
-					list = item as List<T>;
+					list = item;
 					break;
 				}
 				valueList.Remove(list);
@@ -48,10 +47,10 @@ public class ListPoolThread : FrameSystem
 			// 未使用列表中没有,创建一个新的
 			else
 			{
-				list = new List<T>();
+				list = createInstance<IList>(listType);
 			}
 			// 标记为已使用
-			addInuse(list);
+			addInuse(list, elementType);
 		}
 		catch (Exception e)
 		{
@@ -60,14 +59,14 @@ public class ListPoolThread : FrameSystem
 		mListLock.unlock();
 		return list;
 	}
-	public void destroyList<T>(List<T> list)
+	public void destroyList(IList list, Type type)
 	{
 		mListLock.waitForUnlock();
 		try
 		{
 			list.Clear();
-			addUnuse(list);
-			removeInuse(list);
+			addUnuse(list, type);
+			removeInuse(list, type);
 		}
 		catch (Exception e)
 		{
@@ -76,9 +75,8 @@ public class ListPoolThread : FrameSystem
 		mListLock.unlock();
 	}
 	//----------------------------------------------------------------------------------------------------------------------------------------------
-	protected void addInuse<T>(List<T> list)
+	protected void addInuse(IList list, Type type)
 	{
-		Type type = Typeof<T>();
 		if (mInusedList.TryGetValue(type, out HashSet<IList> valueList))
 		{
 			if (valueList.Contains(list))
@@ -94,10 +92,9 @@ public class ListPoolThread : FrameSystem
 		}
 		valueList.Add(list);
 	}
-	protected void removeInuse<T>(List<T> list)
+	protected void removeInuse(IList list, Type type)
 	{
 		// 从使用列表移除,要确保操作的都是从本类创建的实例
-		Type type = Typeof<T>();
 		if (mInusedList.TryGetValue(type, out HashSet<IList> valueList))
 		{
 			if (!valueList.Remove(list))
@@ -108,10 +105,9 @@ public class ListPoolThread : FrameSystem
 		}
 		logError("can not find class type in Inused List! type : " + type);
 	}
-	protected void addUnuse<T>(List<T> list)
+	protected void addUnuse(IList list, Type type)
 	{
 		// 加入未使用列表
-		Type type = Typeof<T>();
 		if (mUnusedList.TryGetValue(type, out HashSet<IList> valueList))
 		{
 			if (valueList.Contains(list))

@@ -17,7 +17,7 @@ public class myUGUIText : myUGUIObject
 		}
 		if (mText == null)
 		{
-			logError(Typeof(this) + " can not find " + Typeof<Text>() + ", window:" + mName + ", layout:" + mLayout.getName());
+			logError(Typeof(this) + " can not find " + typeof(Text) + ", window:" + mName + ", layout:" + mLayout.getName());
 		}
 	}
 	public void setText(MyStringBuilder text, bool preferredHeight = false)

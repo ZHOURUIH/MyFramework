@@ -9,8 +9,8 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	protected List<myUIObject> mChildList;                      // 子节点列表,与GameObject的子节点顺序保持一致
 	protected ObjectDoubleClickCallback mDoubleClickCallback;	// 双击回调
 	protected ObjectPreClickCallback mObjectPreClickCallback;	// 单击的预回调,单击时会首先调用此回调
-	protected OnReceiveDragCallback mReceiveDragCallback;		// 接收到有物体拖到当前窗口时的回调
-	protected OnDragHoverCallback mDragHoverCallback;			// 有物体拖拽悬停到当前窗口时的回调
+	protected OnReceiveDrag mReceiveDragCallback;				// 接收到有物体拖到当前窗口时的回调
+	protected OnDragHover mDragHoverCallback;					// 有物体拖拽悬停到当前窗口时的回调
 	protected ObjectClickCallback mClickCallback;				// 单击回调,在预回调之后调用
 	protected ObjectHoverCallback mHoverCallback;				// 悬停回调
 	protected ObjectPressCallback mPressCallback;				// 按下时回调
@@ -26,26 +26,26 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	protected OnMouseStay mOnMouseStay;							// 鼠标静止在当前窗口内的回调
 	protected OnMouseDown mOnMouseDown;							// 鼠标按下的回调
 	protected OnMouseUp mOnMouseUp;								// 鼠标抬起的回调
-	protected AudioSource mAudioSource;
-	protected BoxCollider mBoxCollider;
-	protected Transform mTransform;
-	protected GameLayout mLayout;
-	protected GameObject mObject;
-	protected myUIObject mParent;
-	protected UIDepth mDepth;                       // UI深度,深度越大,渲染越靠前,仅UGUI使用
-	protected Vector3 mMouseDownPosition;			// 鼠标按下时在窗口中的位置,鼠标在窗口中移动时该值不改变
-	protected Vector3 mLastWorldScale;				// 上一次设置的世界缩放值
-	protected object mObjectPreClickUserData;		// 回调函数参数
-	protected float mLongPressLengthThreshold;      // 小于0表示不判断鼠标移动对长按检测的影响
-	protected float mLongPressTimeThreshold;        // 长按的时间阈值,超过阈值时检测为长按
-	protected float mLastClickTime;                 // 上一次点击距离当前的时间,小于0表示未计时,大于等于0表示正在计时
-	protected float mPressedTime;                   // 小于0表示未计时,大于等于0表示正在计时长按操作,防止长时间按下时总会每隔指定时间调用一次回调
-	protected uint mID;								// 每个窗口的唯一ID
-	protected bool mDestroyImmediately;             // 销毁窗口时是否立即销毁
-	protected bool mDepthOverAllChild;				// 计算深度时是否将深度设置为所有子节点之上,实际调整的是mExtraDepth
-	protected bool mMouseHovered;                   // 当前鼠标是否悬停在窗口上
-	protected bool mPressing;                       // 鼠标当前是否在窗口中处于按下状态,鼠标离开窗口时认为鼠标不在按下状态
-	protected bool mPassRay;                        // 当存在且注册了碰撞体时是否允许射线穿透
+	protected AudioSource mAudioSource;							// 音频组件
+	protected BoxCollider mBoxCollider;							// 碰撞组件
+	protected Transform mTransform;								// 变换组件
+	protected GameLayout mLayout;								// 所属布局
+	protected GameObject mObject;								// 物体节点
+	protected myUIObject mParent;								// 父节点窗口
+	protected UIDepth mDepth;									// UI深度,深度越大,渲染越靠前,仅UGUI使用
+	protected Vector3 mMouseDownPosition;						// 鼠标按下时在窗口中的位置,鼠标在窗口中移动时该值不改变
+	protected Vector3 mLastWorldScale;							// 上一次设置的世界缩放值
+	protected object mObjectPreClickUserData;					// 回调函数参数
+	protected float mLongPressLengthThreshold;					// 小于0表示不判断鼠标移动对长按检测的影响
+	protected float mLongPressTimeThreshold;					// 长按的时间阈值,超过阈值时检测为长按
+	protected float mLastClickTime;								// 上一次点击距离当前的时间,小于0表示未计时,大于等于0表示正在计时
+	protected float mPressedTime;								// 小于0表示未计时,大于等于0表示正在计时长按操作,防止长时间按下时总会每隔指定时间调用一次回调
+	protected uint mID;											// 每个窗口的唯一ID
+	protected bool mDestroyImmediately;							// 销毁窗口时是否立即销毁
+	protected bool mDepthOverAllChild;							// 计算深度时是否将深度设置为所有子节点之上,实际调整的是mExtraDepth
+	protected bool mMouseHovered;								// 当前鼠标是否悬停在窗口上
+	protected bool mPressing;									// 鼠标当前是否在窗口中处于按下状态,鼠标离开窗口时认为鼠标不在按下状态
+	protected bool mPassRay;									// 当存在且注册了碰撞体时是否允许射线穿透
 	protected static bool mAllowDestroyWindow = false;
 	public myUIObject()
 	{
@@ -58,7 +58,8 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 		mLongPressLengthThreshold = -1.0f;
 		mLastClickTime = -1.0f;
 		mPassRay = true;
-		mEnable = false;	// 出于效率考虑,窗口默认不启用更新,只有部分窗口和使用组件进行变化时才自动启用更新
+		mEnable = false;    // 出于效率考虑,窗口默认不启用更新,只有部分窗口和使用组件进行变化时才自动启用更新
+		mDestroy = false;	// 由于一般myUIObject不会使用对象池来管理,所以构造时就设置当前对象为有效
 	}
 	public override void destroy()
 	{
@@ -67,6 +68,7 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 			logError("can not call window's destroy()! use destroyWindow(myUIObject window, bool destroyReally) instead");
 		}
 		base.destroy();
+		mDestroy = true;
 	}
 	public static void destroyWindow(myUIObject window, bool destroyReally)
 	{
@@ -77,14 +79,14 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 		// 先销毁所有子节点,因为遍历中会修改子节点列表,所需需要复制一个列表
 		if (window.mChildList.Count > 0)
 		{
-			LIST(out List<myUIObject> childList);
+			LIST_MAIN(out List<myUIObject> childList);
 			childList.AddRange(window.mChildList);
 			int childCount = childList.Count;
 			for (int i = 0; i < childCount; ++i)
 			{
 				destroyWindow(childList[i], destroyReally);
 			}
-			UN_LIST(childList);
+			UN_LIST_MAIN(childList);
 		}
 		window.getParent()?.removeChild(window);
 		// 再销毁自己
@@ -151,7 +153,7 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	{
 		return mAudioSource = mObject.AddComponent<AudioSource>();
 	}
-	public bool canUpdate() { return mObject.activeSelf && mEnable; }
+	public bool canUpdate() { return mObject.activeInHierarchy && mEnable; }
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
@@ -259,19 +261,19 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	public virtual bool isActiveInHierarchy() { return mObject.activeInHierarchy; }
 	public T getUnityComponent<T>(bool addIfNotExist = true) where T : Component
 	{
-		T component = mObject.GetComponent<T>();
-		if (component == null && addIfNotExist)
+		T com = mObject.GetComponent<T>();
+		if (com == null && addIfNotExist)
 		{
-			component = mObject.AddComponent<T>();
+			com = mObject.AddComponent<T>();
 		}
-		return component;
+		return com;
 	}
-	public void getUnityComponent<T>(out T component, bool addIfNotExist = true) where T : Component
+	public void getUnityComponent<T>(out T com, bool addIfNotExist = true) where T : Component
 	{
-		component = mObject.GetComponent<T>();
-		if (component == null && addIfNotExist)
+		com = mObject.GetComponent<T>();
+		if (com == null && addIfNotExist)
 		{
-			component = mObject.AddComponent<T>();
+			com = mObject.AddComponent<T>();
 		}
 	}
 	public Collider getCollider() { return mBoxCollider; }
@@ -322,7 +324,7 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	}
 	// 是否支持递归改变子节点的透明度
 	public virtual bool selfAlphaChild() { return false; }
-	public virtual bool isDragable() { return getComponent<WindowComponentDrag>(true, false) != null; }
+	public virtual bool isDragable() { return getComponent<COMWindowDrag>(true, false) != null; }
 	public bool isMouseHovered() { return mMouseHovered; }
 	public virtual bool isChildOf(IMouseEventCollect parent)
 	{
@@ -432,8 +434,8 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 		mLongPressTimeThreshold = pressTime;
 	}
 	public void setOnLongPressing(OnLongPressing callback) { mOnLongPressing = callback; }
-	public void setReceiveDragCallback(OnReceiveDragCallback callback) { mReceiveDragCallback = callback; }
-	public void setDragHoverCallback(OnDragHoverCallback callback) { mDragHoverCallback = callback; }
+	public void setReceiveDragCallback(OnReceiveDrag callback) { mReceiveDragCallback = callback; }
+	public void setDragHoverCallback(OnDragHover callback) { mDragHoverCallback = callback; }
 	public void setOnMouseEnter(OnMouseEnter callback) { mOnMouseEnter = callback; }
 	public void setOnMouseLeave(OnMouseLeave callback) { mOnMouseLeave = callback; }
 	public void setOnMouseDown(OnMouseDown callback) { mOnMouseDown = callback; }
@@ -446,7 +448,7 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	public void setMultiTouchMove(OnMultiTouchMove callback) { mOnMultiTouchMove = callback; }
 	// callback
 	//--------------------------------------------------------------------------------------------------------------------------------
-	public virtual void onMultiTouchStart(Vector2 touch0, Vector2 touch1)
+	public virtual void onMultiTouchStart(Vector3 touch0, Vector3 touch1)
 	{
 		mOnMultiTouchStart?.Invoke(touch0, touch1);
 	}
@@ -454,37 +456,37 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	{
 		mOnMultiTouchEnd?.Invoke();
 	}
-	public virtual void onMultiTouchMove(Vector2 touch0, Vector2 lastTouch0, Vector2 touch1, Vector2 lastTouch1)
+	public virtual void onMultiTouchMove(Vector3 touch0, Vector3 lastTouch0, Vector3 touch1, Vector3 lastTouch1)
 	{
 		mOnMultiTouchMove?.Invoke(touch0, lastTouch0, touch1, lastTouch1);
 	}
-	public virtual void onMouseEnter()
+	public virtual void onMouseEnter(int touchID)
 	{
 		mMouseHovered = true;
 		mHoverCallback?.Invoke(this, true);
-		mOnMouseEnter?.Invoke(this);
+		mOnMouseEnter?.Invoke(this, touchID);
 	}
-	public virtual void onMouseLeave()
+	public virtual void onMouseLeave(int touchID)
 	{
 		mMouseHovered = false;
 		mPressing = false;
 		mPressedTime = -1.0f;
 		mHoverCallback?.Invoke(this, false);
-		mOnMouseLeave?.Invoke(this);
+		mOnMouseLeave?.Invoke(this, touchID);
 		mOnLongPressing?.Invoke(0.0f);
 	}
 	// 鼠标左键在窗口内按下
-	public virtual void onMouseDown(Vector3 mousePos)
+	public virtual void onMouseDown(Vector3 mousePos, int touchID)
 	{
 		mPressing = true;
 		mPressedTime = 0.0f;
 		mMouseDownPosition = mousePos;
 		mPressCallback?.Invoke(this, true);
-		mOnMouseDown?.Invoke(mousePos);
+		mOnMouseDown?.Invoke(mousePos, touchID);
 		mOnLongPressing?.Invoke(0.0f);
 	}
 	// 鼠标左键在窗口内放开
-	public virtual void onMouseUp(Vector3 mousePos)
+	public virtual void onMouseUp(Vector3 mousePos, int touchID)
 	{
 		mPressing = false;
 		mPressedTime = -1.0f;
@@ -505,35 +507,35 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 				mLastClickTime = 0.0f;
 			}
 		}
-		mOnMouseUp?.Invoke(mousePos);
+		mOnMouseUp?.Invoke(mousePos, touchID);
 		mOnLongPressing?.Invoke(0.0f);
 	}
 	// 鼠标在窗口内,并且有移动
-	public virtual void onMouseMove(ref Vector3 mousePos, ref Vector3 moveDelta, float moveTime)
+	public virtual void onMouseMove(Vector3 mousePos, Vector3 moveDelta, float moveTime, int touchID)
 	{
-		mOnMouseMove?.Invoke(ref mousePos, ref moveDelta, moveTime);
+		mOnMouseMove?.Invoke(mousePos, moveDelta, moveTime, touchID);
 	}
 	// 鼠标在窗口内,但是不移动
-	public virtual void onMouseStay(Vector3 mousePos)
+	public virtual void onMouseStay(Vector3 mousePos, int touchID)
 	{
-		mOnMouseStay?.Invoke(mousePos);
+		mOnMouseStay?.Invoke(mousePos, touchID);
 	}
 	// 鼠标在屏幕上抬起
-	public virtual void onScreenMouseUp(Vector3 mousePos)
+	public virtual void onScreenMouseUp(Vector3 mousePos, int touchID)
 	{
 		mPressing = false;
 		mPressedTime = -1.0f;
-		mOnScreenMouseUp?.Invoke(this, mousePos);
+		mOnScreenMouseUp?.Invoke(this, mousePos, touchID);
 	}
 	// 鼠标在屏幕上按下
-	public virtual void onScreenMouseDown(Vector3 mousePos) { }
+	public virtual void onScreenMouseDown(Vector3 mousePos, int touchID) { }
 	// 有物体拖动到了当前窗口上
-	public virtual void onReceiveDrag(IMouseEventCollect dragObj, ref bool continueEvent)
+	public virtual void onReceiveDrag(IMouseEventCollect dragObj, BOOL continueEvent)
 	{
 		if (mReceiveDragCallback != null)
 		{
-			continueEvent = false;
-			mReceiveDragCallback(dragObj, ref continueEvent);
+			continueEvent.set(false);
+			mReceiveDragCallback(dragObj, continueEvent);
 		}
 	}
 	// 有物体拖动到了当前窗口上

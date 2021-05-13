@@ -116,7 +116,7 @@ public class EditorMenu : EditorCommonUtility
 				}
 			}
 			// 判断类是否继承自 IClassObject  
-			if (isIgnoreClass || !typeof(IClassObject).IsAssignableFrom(type))
+			if (isIgnoreClass || !typeof(ClassObject).IsAssignableFrom(type))
 			{
 				continue;
 			}

@@ -20,6 +20,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 	protected byte[] mRecvBuff;
 	protected byte mHeartBeatTimes;
 	protected int mPort;
+	protected bool mConnectDestroy;
 	protected NET_STATE mNetState;
 	public SocketConnectClient()
 	{
@@ -61,6 +62,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		memset(mRecvBuff, (byte)0);
 		mHeartBeatTimes = 0;
 		mPort = 0;
+		mConnectDestroy = false;
 		mNetState = NET_STATE.NONE;
 	}
 	public bool isUnconnected() { return mNetState != NET_STATE.CONNECTED && mNetState != NET_STATE.CONNECTING; }
@@ -122,6 +124,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 	public override void destroy()
 	{
 		base.destroy();
+		mConnectDestroy = true;
 		clearSocket();
 		mSendThread.destroy();
 		mReceiveThread.destroy();
@@ -139,7 +142,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 	{
 		sendPacket(mSocketFactory.createSocketPacket(type));
 	}
-	public new void sendPacket(SocketPacket packet)
+	public void sendPacket(SocketPacket packet)
 	{
 		if (mSocket == null || !mSocket.Connected || mNetState != NET_STATE.CONNECTED)
 		{
@@ -149,14 +152,14 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		// 需要先序列化消息,同时获得包体实际的长度,提前获取包类型
 		// 包类型的高2位表示了当前包体是用几个字节存储的
 		ushort packetType = packet.getPacketType();
-		ARRAY(out byte[] bodyBuffer, getGreaterPow2(packet.generateSize(true)));
+		ARRAY_MAIN(out byte[] bodyBuffer, getGreaterPow2(packet.generateSize(true)));
 		int realPacketSize = packet.write(bodyBuffer);
 		// 序列化完以后立即销毁消息包
 		mSocketFactory.destroyPacket(packet);
 
 		if (realPacketSize < 0)
 		{
-			UN_ARRAY(bodyBuffer);
+			UN_ARRAY_MAIN(bodyBuffer);
 			logError("消息序列化失败!");
 			return;
 		}
@@ -187,7 +190,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 			setBit(ref packetType, sizeof(ushort) * 8 - 1, 1);
 			setBit(ref packetType, sizeof(ushort) * 8 - 2, 0);
 		}
-		ARRAY_THREAD(out byte[] packetData, getGreaterPow2(sizeof(ushort) + headerSize + packetSize));
+		ARRAY_MAIN_THREAD(out byte[] packetData, getGreaterPow2(sizeof(ushort) + headerSize + packetSize));
 		int index = 0;
 		// 本次消息包的数据长度,因为byte[]本身的长度并不代表要发送的实际的长度,所以将数据长度保存下来
 		writeUShort(packetData, ref index, (ushort)(headerSize + packetSize));
@@ -204,7 +207,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		}
 		// 写入包体数据
 		writeBytes(packetData, ref index, bodyBuffer, -1, -1, realPacketSize);
-		UN_ARRAY(bodyBuffer);
+		UN_ARRAY_MAIN(bodyBuffer);
 		// 添加到写缓冲中
 		mOutputBuffer.add(packetData);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -220,6 +223,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 			if (mSocket.Connected)
 			{
 				mSocket.Shutdown(SocketShutdown.Both);
+				mSocket.Disconnect(false);
 			}
 			mSocket.Close();
 			mSocket.Dispose();
@@ -240,7 +244,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 	protected abstract bool checkPacketType(int type);
 	protected abstract void heartBeat();
 	// 发送Socket消息
-	protected void sendSocket(ref bool run)
+	protected void sendSocket(BOOL run)
 	{
 		if (mSocket == null || !mSocket.Connected || mNetState != NET_STATE.CONNECTED)
 		{
@@ -282,14 +286,15 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 			socketException(e);
 		}
 		// 回收缓冲区的内存
+		count = readList.Count;
 		for (int i = 0; i < count; ++i)
 		{
-			UN_ARRAY_THREAD(readList[i]);
+			UN_ARRAY_MAIN_THREAD(readList[i]);
 		}
 		readList.Clear();
 	}
 	// 接收Socket消息
-	protected void receiveSocket(ref bool run)
+	protected void receiveSocket(BOOL run)
 	{
 		if (mSocket == null || !mSocket.Connected || mNetState != NET_STATE.CONNECTED)
 		{
@@ -390,7 +395,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		}
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 		string info = "已接收 : " + IToS(type) + ", 字节数:" + IToS(readDataCount);
-		log(info, LOG_LEVEL.LOW);
+		//log(info, LOG_LEVEL.LOW);
 		mReceivePacketHistory.Enqueue(info);
 		if (mReceivePacketHistory.Count > 10)
 		{
@@ -450,11 +455,14 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		{
 			clearSocket();
 		}
-		CMD_DELAY(out CommandSocketConnectClientState cmd, false);
-		if (cmd != null)
+		if(!mConnectDestroy)
 		{
-			cmd.mErrorCode = errorCode;
-			pushDelayCommand(cmd, this);
+			CMD_MAIN_DELAY(out CmdSocketConnectClientState cmd, false);
+			if (cmd != null)
+			{
+				cmd.mErrorCode = errorCode;
+				pushDelayCommand(cmd, this);
+			}
 		}
 		mConnectStateLock.unlock();
 	}

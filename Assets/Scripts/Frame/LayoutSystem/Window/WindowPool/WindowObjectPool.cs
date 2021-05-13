@@ -13,7 +13,7 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 	protected myUIObject mTemplate;
 	protected Type mObjectType;
 	protected string mPreName;
-	protected int mAssignIDSeed;		// 分配ID种子,用于设置唯一分配ID,只会递增,不会减少
+	protected long mAssignIDSeed;		// 分配ID种子,用于设置唯一分配ID,只会递增,不会减少
 	public WindowObjectPool(LayoutScript script)
 	{
 		mScript = script;
@@ -145,7 +145,7 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 	}
 	public void unuseItem(T item)
 	{
-		if (item.GetType() != mObjectType)
+		if (Typeof(item) != mObjectType)
 		{
 			logError("物体类型与池类型不一致,无法回收");
 			return;

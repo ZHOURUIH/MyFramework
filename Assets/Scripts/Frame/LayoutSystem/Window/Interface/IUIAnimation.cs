@@ -29,8 +29,8 @@ public interface IUIAnimation
 	void stop(bool resetStartIndex = true, bool callback = true, bool isBreak = true);
 	void play();
 	void pause();
-	void addPlayEndCallback(TextureAnimCallBack callback, bool clear = true);
-	void addPlayingCallback(TextureAnimCallBack callback, bool clear = true);
+	void addPlayEndCallback(TextureAnimCallback callback, bool clear = true);
+	void addPlayingCallback(TextureAnimCallback callback, bool clear = true);
 	int getCurFrameIndex();
 	void setCurFrameIndex(int index);
 }

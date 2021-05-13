@@ -43,7 +43,7 @@ public class LayoutManager : FrameSystem
 			// 显示布局时,如果当前正在显示有背景模糊的布局,则需要判断当前布局是否需要模糊
 			if (mBackBlurLayoutList.Count > 0)
 			{
-				CMD(out CommandLayoutManagerBackBlur cmd, false);
+				CMD_MAIN(out CmdLayoutManagerBackBlur cmd, false);
 				cmd.mExcludeLayout = mBackBlurLayoutList;
 				cmd.mBlur = mBackBlurLayoutList.Count > 0;
 				pushCommand(cmd, this);
@@ -55,7 +55,7 @@ public class LayoutManager : FrameSystem
 			{
 				mBackBlurLayoutList.Remove(layout);
 			}
-			CMD(out CommandLayoutManagerBackBlur cmd, false);
+			CMD_MAIN(out CmdLayoutManagerBackBlur cmd, false);
 			cmd.mExcludeLayout = mBackBlurLayoutList;
 			cmd.mBlur = mBackBlurLayoutList.Count > 0;
 			pushCommand(cmd, this);
@@ -68,7 +68,7 @@ public class LayoutManager : FrameSystem
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		var updateList = mLayoutList.getUpdateList();
+		var updateList = mLayoutList.startForeach();
 		foreach (var item in updateList)
 		{
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -82,7 +82,7 @@ public class LayoutManager : FrameSystem
 	}
 	public override void onDrawGizmos()
 	{
-		var updateList = mLayoutList.getUpdateList();
+		var updateList = mLayoutList.startForeach();
 		foreach (var item in updateList)
 		{
 			item.Value.onDrawGizmos();
@@ -91,7 +91,7 @@ public class LayoutManager : FrameSystem
 	public override void lateUpdate(float elapsedTime)
 	{
 		base.lateUpdate(elapsedTime);
-		var updateList = mLayoutList.getUpdateList();
+		var updateList = mLayoutList.startForeach();
 		foreach (var item in updateList)
 		{
 			item.Value.lateUpdate(elapsedTime);
@@ -99,7 +99,7 @@ public class LayoutManager : FrameSystem
 	}
 	public override void destroy()
 	{
-		var updateList = mLayoutList.getUpdateList();
+		var updateList = mLayoutList.startForeach();
 		foreach (var item in updateList)
 		{
 			item.Value.destroy();

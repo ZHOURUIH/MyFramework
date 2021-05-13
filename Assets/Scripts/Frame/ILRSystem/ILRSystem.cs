@@ -5,21 +5,18 @@ using ILRAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
 using UnityEngine;
 using System.Threading;
 using System.Collections;
-
-public delegate void OnHotFixLoaded(ILRAppDomain appDomain);
+using ILRuntime.Runtime;
 
 public class ILRSystem : FrameSystem
 {
 	protected ILRAppDomain mAppDomain;
 	protected MemoryStream mDllFile;
 	protected MemoryStream mPDBFile;
-	protected OnHotFixLoaded mOnHotFixLoaded;
-	public void launchILR(OnHotFixLoaded callback)
+	public void launchILR()
 	{
-		mOnHotFixLoaded = callback;
 		destroyILR();
 		mAppDomain = new ILRAppDomain();
-		mGame.StartCoroutine(loadILRuntime());
+		mGameFramework.StartCoroutine(loadILRuntime());
 	}
 	public override void destroy()
 	{
@@ -28,9 +25,10 @@ public class ILRSystem : FrameSystem
 	public ILRAppDomain getAppDomain() { return mAppDomain; }
 	public void destroyILR()
 	{
-		mAppDomain = null;
+		mAppDomain?.Dispose();
 		mDllFile?.Dispose();
 		mPDBFile?.Dispose();
+		mAppDomain = null;
 		mDllFile = null;
 		mPDBFile = null;
 	}
@@ -77,7 +75,7 @@ public class ILRSystem : FrameSystem
 		//由于Unity的Profiler接口只允许在主线程使用，为了避免出异常，需要告诉ILRuntime主线程的线程ID才能正确将函数运行耗时报告给Profiler
 		mAppDomain.UnityMainThreadID = Thread.CurrentThread.ManagedThreadId;
 #endif
-		mOnHotFixLoaded?.Invoke(mAppDomain);
+		ILRLaunchFrame.OnILRuntimeInitialized(mAppDomain);
 	}
 }
 #endif

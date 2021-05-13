@@ -28,15 +28,6 @@ namespace ILRuntime.Runtime.Generated
             args = new Type[]{typeof(UnityEngine.Vector3)};
             method = type.GetMethod("setPosition", flag, null, args, null);
             app.RegisterCLRMethodRedirection(method, setPosition_1);
-            args = new Type[]{};
-            method = type.GetMethod("isEnable", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, isEnable_2);
-            args = new Type[]{typeof(System.Boolean)};
-            method = type.GetMethod("setEnable", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, setEnable_3);
-            args = new Type[]{};
-            method = type.GetMethod("resetProperty", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, resetProperty_4);
 
 
         }
@@ -82,56 +73,6 @@ namespace ILRuntime.Runtime.Generated
             __intp.Free(ptr_of_this_method);
 
             instance_of_this_method.setPosition(@pos);
-
-            return __ret;
-        }
-
-        static StackObject* isEnable_2(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 1);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            global::Transformable instance_of_this_method = (global::Transformable)typeof(global::Transformable).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            var result_of_this_method = instance_of_this_method.isEnable();
-
-            __ret->ObjectType = ObjectTypes.Integer;
-            __ret->Value = result_of_this_method ? 1 : 0;
-            return __ret + 1;
-        }
-
-        static StackObject* setEnable_3(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 2);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            System.Boolean @enable = ptr_of_this_method->Value == 1;
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            global::Transformable instance_of_this_method = (global::Transformable)typeof(global::Transformable).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            instance_of_this_method.setEnable(@enable);
-
-            return __ret;
-        }
-
-        static StackObject* resetProperty_4(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
-        {
-            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 1);
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            global::Transformable instance_of_this_method = (global::Transformable)typeof(global::Transformable).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
-
-            instance_of_this_method.resetProperty();
 
             return __ret;
         }

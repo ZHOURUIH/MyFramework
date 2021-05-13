@@ -5,29 +5,29 @@ using System;
 // 多线程的对象池无法判断临时对象有没有正常回收,因为子线程的帧与主线程不同步
 public class ClassPoolSingle : FrameBase
 {
-	protected HashSet<IClassObject> mInusedList;
-	protected HashSet<IClassObject> mUnusedList;
+	protected HashSet<ClassObject> mInusedList;
+	protected HashSet<ClassObject> mUnusedList;
 	protected ThreadLock mListLock;
 	protected Type mType;
-	protected static ulong mAssignIDSeed;
+	protected static long mAssignIDSeed;
 	public ClassPoolSingle()
 	{
-		mInusedList = new HashSet<IClassObject>();
-		mUnusedList = new HashSet<IClassObject>();
+		mInusedList = new HashSet<ClassObject>();
+		mUnusedList = new HashSet<ClassObject>();
 		mListLock = new ThreadLock();
 	}
 	public void setType(Type type) { mType = type; }
 	public Type getType() { return mType; }
 	public void lockList() { mListLock.waitForUnlock(); }
 	public void unlockList() { mListLock.unlock(); }
-	public HashSet<IClassObject> getInusedList() { return mInusedList; }
-	public HashSet<IClassObject> getUnusedList() { return mUnusedList; }
+	public HashSet<ClassObject> getInusedList() { return mInusedList; }
+	public HashSet<ClassObject> getUnusedList() { return mUnusedList; }
 	// 返回值表示是否是new出来的对象,false则为从回收列表中重复使用的对象
-	public IClassObject newClass(out bool isNewObject)
+	public ClassObject newClass(out bool isNewObject)
 	{
 		mListLock.waitForUnlock();
 		isNewObject = false;
-		IClassObject obj = null;
+		ClassObject obj = null;
 		// 先从未使用的列表中查找是否有可用的对象
 		if (mUnusedList.Count > 0)
 		{
@@ -41,7 +41,7 @@ public class ClassPoolSingle : FrameBase
 		// 未使用列表中没有,创建一个新的
 		else
 		{
-			obj = createInstance<IClassObject>(mType);
+			obj = createInstance<ClassObject>(mType);
 			// 创建实例时重置是为了与后续复用的实例状态保持一致
 			obj.resetProperty();
 			isNewObject = true;
@@ -53,7 +53,7 @@ public class ClassPoolSingle : FrameBase
 		mListLock.unlock();
 		return obj;
 	}
-	public void destroyClass(IClassObject classObject)
+	public void destroyClass(ClassObject classObject)
 	{
 		mListLock.waitForUnlock();
 		classObject.resetProperty();
@@ -67,7 +67,7 @@ public class ClassPoolSingle : FrameBase
 		removeInuse(classObject);
 		mListLock.unlock();
 	}
-	public void destroyClassReally(IClassObject classObject)
+	public void destroyClassReally(ClassObject classObject)
 	{
 		bool inuse = isInuse(classObject);
 		mListLock.waitForUnlock();
@@ -86,7 +86,7 @@ public class ClassPoolSingle : FrameBase
 		}
 		mListLock.unlock();
 	}
-	public bool isInuse(IClassObject classObject)
+	public bool isInuse(ClassObject classObject)
 	{
 		mListLock.waitForUnlock();
 		bool inuse = mInusedList.Contains(classObject);
@@ -94,14 +94,14 @@ public class ClassPoolSingle : FrameBase
 		return inuse;
 	}
 	//------------------------------------
-	protected void addInuse(IClassObject obj)
+	protected void addInuse(ClassObject obj)
 	{
 		if (!mInusedList.Add(obj))
 		{
 			logError("加入已使用列表失败, Type: " + mType);
 		}
 	}
-	protected void removeInuse(IClassObject obj)
+	protected void removeInuse(ClassObject obj)
 	{
 		if(!mInusedList.Remove(obj))
 		{

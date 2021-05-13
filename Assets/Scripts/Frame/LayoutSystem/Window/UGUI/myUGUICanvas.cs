@@ -17,7 +17,7 @@ public class myUGUICanvas : myUGUIObject
 		}
 		if (mCanvas == null)
 		{
-			logError(Typeof(this) + " can not find " + Typeof<Canvas>() + ", window:" + mName + ", layout:" + mLayout.getName());
+			logError(Typeof(this) + " can not find " + typeof(Canvas) + ", window:" + mName + ", layout:" + mLayout.getName());
 		}
 		mCanvas.overrideSorting = true;
 		// 添加GraphicRaycaster

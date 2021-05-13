@@ -27,7 +27,7 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		}
 		if(mRawImage == null)
 		{
-			logError(Typeof(this) + " can not find " + Typeof<RawImage>() + ", window:" + mName + ", layout:" + mLayout.getName());
+			logError(Typeof(this) + " can not find " + typeof(RawImage) + ", window:" + mName + ", layout:" + mLayout.getName());
 		}
 		string materialName = getMaterialName();
 		// 不再将默认材质替换为自定义的默认材质,只判断其他材质
@@ -159,7 +159,7 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		}
 		else
 		{
-			CLASS(out LoadMaterialParam param);
+			CLASS_MAIN(out LoadMaterialParam param);
 			param.mMaterialName = materialName;
 			param.mNewMaterial = mIsNewMaterial;
 			mResourceManager.loadResourceAsync<Material>(FrameDefine.R_MATERIAL_PATH + materialName, mMaterialCallback, param);

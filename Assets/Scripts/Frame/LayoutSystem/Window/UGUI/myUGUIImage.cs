@@ -29,7 +29,7 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 		}
 		if (mImage == null)
 		{
-			logError(Typeof(this) + " can not find " + Typeof<Image>() + ", window:" + mName + ", layout:" + mLayout.getName());
+			logError(Typeof(this) + " can not find " + typeof(Image) + ", window:" + mName + ", layout:" + mLayout.getName());
 		}
 		mOriginSprite = mImage.sprite;
 		// 获取初始的精灵所在图集
@@ -188,7 +188,7 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 		}
 		else
 		{
-			CLASS(out LoadMaterialParam param);
+			CLASS_MAIN(out LoadMaterialParam param);
 			param.mMaterialName = materialName;
 			param.mNewMaterial = mIsNewMaterial;
 			mResourceManager.loadResourceAsync<Material>(FrameDefine.R_MATERIAL_PATH + materialName, mMaterialLoadCallback, param);
@@ -259,6 +259,7 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 	public override void setColor(Color color) { mImage.color = color; }
 	public void setColor(Vector3 color) { mImage.color = new Color(color.x, color.y, color.z); }
 	public override Color getColor() { return mImage.color; }
+	public void setUGUIRaycastTarget(bool enable) { mImage.raycastTarget = enable; }
 	public string getOriginTextureName() { return mOriginTextureName; }
 	public void setOriginTextureName(string textureName) { mOriginTextureName = textureName; }
 	// 自动计算图片的原始名称,也就是不带后缀的名称,后缀默认以_分隔

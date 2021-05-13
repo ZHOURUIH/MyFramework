@@ -32,7 +32,7 @@ public class ListPool : FrameSystem
 		{
 			foreach (var itemList in item.Value)
 			{
-				logError("有临时对象正在使用中,是否在申请后忘记回收到池中! create stack:" + mObjectStack[itemList] + "\n");
+				logError("ListPool有临时对象正在使用中,是否在申请后忘记回收到池中! create stack:" + mObjectStack[itemList] + "\n");
 				break;
 			}
 		}
@@ -42,21 +42,20 @@ public class ListPool : FrameSystem
 	public Dictionary<Type, HashSet<IList>> getInusedList() { return mInusedList; }
 	public Dictionary<Type, HashSet<IList>> getUnusedList() { return mUnusedList; }
 	// onlyOnce表示是否仅当作临时列表使用
-	public List<T> newList<T>(out List<T> list, bool onlyOnce = true)
+	public IList newList(Type elementType, Type listType, string stackTrace, bool onlyOnce = true)
 	{
-		list = null;
 		if(!isMainThread())
 		{
 			logError("只能在主线程使用ListPool,子线程请使用ListPoolThread代替");
 			return null;
 		}
-		Type elementType = Typeof<T>();
+		IList list = null;
 		// 先从未使用的列表中查找是否有可用的对象
 		if (mUnusedList.TryGetValue(elementType, out HashSet<IList> valueList) && valueList.Count > 0)
 		{
 			foreach(var item in valueList)
 			{
-				list = item as List<T>;
+				list = item;
 				break;
 			}
 			valueList.Remove(list);
@@ -64,23 +63,16 @@ public class ListPool : FrameSystem
 		// 未使用列表中没有,创建一个新的
 		else
 		{
-			list = new List<T>();
+			list = createInstance<IList>(listType);
 		}
 		// 标记为已使用
-		addInuse(list, onlyOnce);
+		addInuse(list, elementType, onlyOnce);
 #if UNITY_EDITOR
-		if (mGameFramework.isEnablePoolStackTrace())
-		{
-			mObjectStack.Add(list, getStackTrace());
-		}
-		else
-		{
-			mObjectStack.Add(list, EMPTY);
-		}
+		mObjectStack.Add(list, stackTrace);
 #endif
 		return list;
 	}
-	public void destroyList<T>(List<T> list)
+	public void destroyList(IList list, Type type)
 	{
 		if (!isMainThread())
 		{
@@ -91,92 +83,52 @@ public class ListPool : FrameSystem
 		mObjectStack.Remove(list);
 #endif
 		list.Clear();
-		addUnuse(list);
-		removeInuse(list);
+		addUnuse(list, type);
+		removeInuse(list, type);
 	}
 	//----------------------------------------------------------------------------------------------------------------------------------------------
-	protected void addInuse<T>(List<T> list, bool onlyOnce)
+	protected void addInuse(IList list, Type type, bool onlyOnce)
 	{
-		Type type = Typeof<T>();
 		// 加入仅临时使用的列表对象的列表中
-		if(onlyOnce)
+		var inuseList = onlyOnce ? mInusedList : mPersistentInuseList;
+		if (!inuseList.TryGetValue(type, out HashSet<IList> valueList))
 		{
-			if (mInusedList.TryGetValue(type, out HashSet<IList> valueList))
-			{
-				if (valueList.Contains(list))
-				{
-					logError("list object is in inuse list!");
-					return;
-				}
-			}
-			else
-			{
-				valueList = new HashSet<IList>();
-				mInusedList.Add(type, valueList);
-			}
-			valueList.Add(list);
+			valueList = new HashSet<IList>();
+			inuseList.Add(type, valueList);
 		}
-		// 加入持久使用的列表对象的列表中
-		else
+		else if (valueList.Contains(list))
 		{
-			if (mPersistentInuseList.TryGetValue(type, out HashSet<IList> valueList))
-			{
-				if (valueList.Contains(list))
-				{
-					logError("list object is in inuse list!");
-					return;
-				}
-			}
-			else
-			{
-				valueList = new HashSet<IList>();
-				mPersistentInuseList.Add(type, valueList);
-			}
-			valueList.Add(list);
-		}
-	}
-	protected void removeInuse<T>(List<T> list)
-	{
-		// 从使用列表移除,要确保操作的都是从本类创建的实例
-		Type type = Typeof<T>();
-		if (mInusedList.TryGetValue(type, out HashSet<IList> valueList))
-		{
-			if (!valueList.Remove(list))
-			{
-				logError("Inused List not contains class object!");
-				return;
-			}
-		}
-		else if(mPersistentInuseList.TryGetValue(type, out HashSet<IList> persistentValueList))
-		{
-			if (!persistentValueList.Remove(list))
-			{
-				logError("Inused List not contains class object!");
-				return;
-			}
-		}
-		else
-		{
-			logError("can not find class type in Inused List! type : " + type);
+			logError("list object is in inuse list!");
 			return;
 		}
+		valueList.Add(list);
 	}
-	protected void addUnuse<T>(List<T> list)
+	protected void removeInuse(IList list, Type type)
+	{
+		// 从使用列表移除,要确保操作的都是从本类创建的实例
+		HashSet<IList> valueList;
+		if (mInusedList.TryGetValue(type, out valueList) && valueList.Remove(list))
+		{
+			return;
+		}
+		if (mPersistentInuseList.TryGetValue(type, out valueList) && valueList.Remove(list))
+		{
+			return;
+		}
+		logError("can not find class type in Inused List! type : " + type);
+	}
+	protected void addUnuse(IList list, Type type)
 	{
 		// 加入未使用列表
-		Type type = Typeof<T>();
-		if (mUnusedList.TryGetValue(type, out HashSet<IList> valueList))
-		{
-			if (valueList.Contains(list))
-			{
-				logError("list Object is in Unused list! can not add again!");
-				return;
-			}
-		}
-		else
+		if (!mUnusedList.TryGetValue(type, out HashSet<IList> valueList))
 		{
 			valueList = new HashSet<IList>();
 			mUnusedList.Add(type, valueList);
+		}
+		else if (valueList.Contains(list))
+		{
+			logError("list Object is in Unused list! can not add again!");
+			return;
 		}
 		valueList.Add(list);
 	}

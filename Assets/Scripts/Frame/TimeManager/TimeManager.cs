@@ -10,6 +10,6 @@ public class TimeManager : FrameSystem
 	{
 		base.initComponents();
 		// 这里只能使用未缩放的时间,否则会被自己的时间缩放所影响
-		(addComponent(Typeof<TimeComponentScale>()) as TimeComponentScale).setIgnoreTimeScale(true);
+		addComponent(typeof(COMTimeScale)).setIgnoreTimeScale(true);
 	}
 }

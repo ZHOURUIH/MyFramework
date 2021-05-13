@@ -4,23 +4,23 @@ using UnityEngine;
 
 public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 {
-	protected List<TextureAnimCallBack> mPlayEndCallback;  // 一个序列播放完时的回调函数,只在非循环播放状态下有效
-	protected List<TextureAnimCallBack> mPlayingCallback;  // 一个序列正在播放时的回调函数
-	protected List<Texture> mTextureNameList;
+	protected List<TextureAnimCallback> mPlayEndCallback;  // 一个序列播放完时的回调函数,只在非循环播放状态下有效
+	protected List<TextureAnimCallback> mPlayingCallback;  // 一个序列正在播放时的回调函数
 	protected List<Vector2> mTexturePosList;
+	protected List<Texture> mTextureList;
+	protected OnPlayEndCallback mThisPlayEnd;
+	protected OnPlayingCallback mThisPlaying;
 	protected AnimControl mControl;
 	protected string mTextureSetName;
 	protected string mSubPath;
 	protected bool mUseTextureSize;
-	protected OnPlayEndCallback mThisPlayEnd;
-	protected OnPlayingCallback mThisPlaying;
 	public myUGUIRawImageAnim()
 	{
-		mTextureNameList = new List<Texture>();
+		mTextureList = new List<Texture>();
 		mControl = new AnimControl();
 		mUseTextureSize = false;
-		mPlayEndCallback = new List<TextureAnimCallBack>();
-		mPlayingCallback = new List<TextureAnimCallBack>();
+		mPlayEndCallback = new List<TextureAnimCallback>();
+		mPlayingCallback = new List<TextureAnimCallback>();
 		mTextureSetName = EMPTY;
 		mSubPath = EMPTY;
 		mThisPlayEnd = onPlayEnd;
@@ -46,15 +46,15 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		if (mTextureNameList.Count == 0)
+		if (mTextureList.Count == 0)
 		{
 			setTexture(null, false);
 		}
 		mControl.update(elapsedTime);
 	}
 	public string getTextureSet() { return mTextureSetName; }
-	public int getTextureFrameCount() { return mTextureNameList.Count; }
-	public void setUseTextureSize(bool useSize){mUseTextureSize = useSize;}
+	public int getTextureFrameCount() { return mTextureList.Count; }
+	public void setUseTextureSize(bool useSize) { mUseTextureSize = useSize; }
 	public void setSubPath(string subPath) { mSubPath = subPath; }
 	public string getSubPath() { return mSubPath; }
 	public void setTexturePosList(List<Vector2> posList) { mTexturePosList = posList; }
@@ -73,7 +73,7 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 		{
 			return;
 		}
-		mTextureNameList.Clear();
+		mTextureList.Clear();
 		mTextureSetName = textureSetName;
 		mSubPath = subPath;
 		string preName = strcat(FrameDefine.R_TEXTURE_ANIM_PATH, mSubPath, mTextureSetName, "/", mTextureSetName, "_");
@@ -84,10 +84,10 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 			{
 				break;
 			}
-			mTextureNameList.Add(tex);
+			mTextureList.Add(tex);
 		}
 		mControl.setFrameCount(getTextureFrameCount());
-		if(mTextureNameList.Count == 0)
+		if (mTextureList.Count == 0)
 		{
 			logError("invalid texture set! " + textureSetName + ", subPath : " + subPath);
 		}
@@ -114,24 +114,24 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 	public void pause() { mControl.pause(); }
 	public int getCurFrameIndex() { return mControl.getCurFrameIndex(); }
 	public void setCurFrameIndex(int index) { mControl.setCurFrameIndex(index); }
-	public void addPlayEndCallback(TextureAnimCallBack callback, bool clear = true)
+	public void addPlayEndCallback(TextureAnimCallback callback, bool clear = true)
 	{
-		if(clear)
+		if (clear && mPlayEndCallback.Count > 0)
 		{
-			LIST(out List<TextureAnimCallBack> tempList);
+			LIST_MAIN(out List<TextureAnimCallback> tempList);
 			tempList.AddRange(mPlayEndCallback);
 			mPlayEndCallback.Clear();
 			// 如果回调函数当前不为空,则是中断了更新
 			int count = tempList.Count;
-			for(int i = 0; i < count; ++i)
+			for (int i = 0; i < count; ++i)
 			{
 				tempList[i](this, true);
 			}
-			UN_LIST(tempList);
+			UN_LIST_MAIN(tempList);
 		}
 		mPlayEndCallback.Add(callback);
 	}
-	public void addPlayingCallback(TextureAnimCallBack callback, bool clear = true)
+	public void addPlayingCallback(TextureAnimCallback callback, bool clear = true)
 	{
 		if (clear)
 		{
@@ -145,18 +145,18 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 	//---------------------------------------------------------------------------------------------------------------------------------------------------
 	protected void onPlaying(AnimControl control, int frame, bool isPlaying)
 	{
-		if (mControl.getCurFrameIndex() >= mTextureNameList.Count)
+		if (mControl.getCurFrameIndex() >= mTextureList.Count)
 		{
 			return;
 		}
-		setTexture(mTextureNameList[mControl.getCurFrameIndex()], mUseTextureSize);
-		if(mTexturePosList != null)
+		setTexture(mTextureList[mControl.getCurFrameIndex()], mUseTextureSize);
+		if (mTexturePosList != null)
 		{
-			int positionIndex = (int)(frame / (float)mTextureNameList.Count * mTexturePosList.Count + 0.5f);
+			int positionIndex = (int)(frame / (float)mTextureList.Count * mTexturePosList.Count + 0.5f);
 			setPosition(mTexturePosList[positionIndex]);
 		}
 		int count = mPlayingCallback.Count;
-		for(int i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			mPlayingCallback[i](this, false);
 		}
@@ -168,21 +168,24 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 		{
 			setActive(false);
 		}
-		if(callback)
+		if (mPlayEndCallback.Count > 0)
 		{
-			LIST(out List<TextureAnimCallBack> tempList);
-			tempList.AddRange(mPlayEndCallback);
-			mPlayEndCallback.Clear();
-			int count = tempList.Count;
-			for(int i = 0; i < count; ++i)
+			if (callback)
 			{
-				tempList[i](this, isBreak);
+				LIST_MAIN(out List<TextureAnimCallback> tempList);
+				tempList.AddRange(mPlayEndCallback);
+				mPlayEndCallback.Clear();
+				int count = tempList.Count;
+				for (int i = 0; i < count; ++i)
+				{
+					tempList[i](this, isBreak);
+				}
+				UN_LIST_MAIN(tempList);
 			}
-			UN_LIST(tempList);
-		}
-		else
-		{
-			mPlayEndCallback.Clear();
+			else
+			{
+				mPlayEndCallback.Clear();
+			}
 		}
 	}
 }

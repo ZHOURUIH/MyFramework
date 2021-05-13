@@ -72,20 +72,20 @@ public class ComponentLerp : GameComponent, IComponentBreakable
 		setLerpDoneCallback(null);
 	}
 	//----------------------------------------------------------------------------------------------------------------------------
-	protected static void setCallback(LerpCallback callback, ref LerpCallback curCallback, ComponentLerp component)
+	protected static void setCallback(LerpCallback callback, ref LerpCallback curCallback, ComponentLerp com)
 	{
 		LerpCallback tempCallback = curCallback;
 		curCallback = null;
 		// 如果回调函数当前不为空,则是中断了正在进行的变化
-		tempCallback?.Invoke(component, true);
+		tempCallback?.Invoke(com, true);
 		curCallback = callback;
 	}
-	protected static void doneCallback(ref LerpCallback curDoneCallback, ComponentLerp component)
+	protected static void doneCallback(ref LerpCallback curDoneCallback, ComponentLerp com)
 	{
 		// 先保存回调,然后再调用回调之前就清空回调,确保在回调函数执行时已经完全完成
 		LerpCallback tempCallback = curDoneCallback;
-		component.clearCallback();
-		tempCallback?.Invoke(component, false);
+		com.clearCallback();
+		tempCallback?.Invoke(com, false);
 	}
 	protected void clearCallback()
     {

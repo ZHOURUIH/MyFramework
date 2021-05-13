@@ -7,7 +7,7 @@ public class GameBase : FrameBase
 {
 	// FrameComponent
 	public static Game mGame;
-	public static GameConfig mGameConfig;
+	public static BattleSystem mBattleSystem;
 	// SQLiteTable
 	public static SQLiteDemo mSQLiteDemo;
 	// LayoutScript
@@ -17,6 +17,6 @@ public class GameBase : FrameBase
 	{
 		base.notifyConstructDone();
 		mGame = mGameFramework as Game;
-		mGameConfig = mGame.getSystem(Typeof<GameConfig>()) as GameConfig;
+		mBattleSystem = mGame.getSystem(typeof(BattleSystem)) as BattleSystem;
 	}
 }

@@ -18,7 +18,7 @@ public class myUGUITextTMP : myUGUIObject
 		}
 		if (mText == null)
 		{
-			logError(Typeof(this) + " can not find " + Typeof<TextMeshProUGUI>() + ", window:" + mName + ", layout:" + mLayout.getName());
+			logError(Typeof(this) + " can not find " + typeof(TextMeshProUGUI) + ", window:" + mName + ", layout:" + mLayout.getName());
 		}
 	}
 	public void setText(string text)

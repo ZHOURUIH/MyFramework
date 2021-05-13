@@ -27,13 +27,13 @@ public class UINTS : OBJECTS
 	public UINTS(int count)
 	{
 		mValue = new uint[count];
-		mType = Typeof<uint[]>();
+		mType = typeof(uint[]);
 		mSize = TYPE_SIZE * mValue.Length;
 	}
 	public UINTS(uint[] value)
 	{
 		mValue = value;
-		mType = Typeof<uint[]>();
+		mType = typeof(uint[]);
 		mSize = TYPE_SIZE * mValue.Length;
 	}
 	public override void setRealSize(ushort realSize)

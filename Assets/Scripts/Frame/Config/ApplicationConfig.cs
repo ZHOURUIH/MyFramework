@@ -5,35 +5,28 @@ public class ApplicationConfig : ConfigBase
 	public override void writeConfig()
 	{
 		// 只有资源目录为本地目录时才可以写入
-		if (ResourceManager.mLocalRootPath)
+		if (mResourceManager.isLocalRootPath())
 		{
-			writeTxtFile(ResourceManager.mResourceRootPath + FrameDefine.SA_CONFIG_PATH + "ApplicationSetting.txt", generateFloatFile());
+			writeTxtFile(mResourceManager.getResourceRootPath() + FrameDefine.SA_CONFIG_PATH + "ApplicationSetting.txt", generateFloatFile());
 		}
 	}
 	//---------------------------------------------------------------------------------------------------------------------------------
 	protected override void addFloat()
 	{
-		addFloat(GAME_FLOAT.FULL_SCREEN);
-		addFloat(GAME_FLOAT.SCREEN_WIDTH);
-		addFloat(GAME_FLOAT.SCREEN_HEIGHT);
-		addFloat(GAME_FLOAT.FORCE_TOP);
-		addFloat(GAME_FLOAT.USE_FIXED_TIME);
-		addFloat(GAME_FLOAT.FIXED_TIME);
-		addFloat(GAME_FLOAT.VSYNC);
-		if (mFloatNameToDefine.Count != (int)GAME_FLOAT.APPLICATION_MAX - (int)GAME_FLOAT.APPLICATION_MIN - 1)
-		{
-			logError("not all float parameter added!");
-		}
+		addFloat("FULL_SCREEN", APPLICATION_FLOAT.FULL_SCREEN);
+		addFloat("SCREEN_WIDTH", APPLICATION_FLOAT.SCREEN_WIDTH);
+		addFloat("SCREEN_HEIGHT", APPLICATION_FLOAT.SCREEN_HEIGHT);
+		addFloat("FORCE_TOP", APPLICATION_FLOAT.FORCE_TOP);
+		addFloat("USE_FIXED_TIME", APPLICATION_FLOAT.USE_FIXED_TIME);
+		addFloat("FIXED_TIME", APPLICATION_FLOAT.FIXED_TIME);
+		addFloat("VSYNC", APPLICATION_FLOAT.VSYNC);
 	}
 	protected override void addString()
 	{
-		if (mStringNameToDefine.Count != (int)GAME_STRING.APPLICATION_MAX - (int)GAME_STRING.APPLICATION_MIN - 1)
-		{
-			logError("not all string parameter added!");
-		}
+		;
 	}
 	protected override void readConfig()
 	{
-		readFile(ResourceManager.mResourceRootPath + FrameDefine.SA_CONFIG_PATH + "ApplicationSetting.txt", true);
+		readFile(mResourceManager.getResourceRootPath() + FrameDefine.SA_CONFIG_PATH + "ApplicationSetting.txt", true);
 	}
 }

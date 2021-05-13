@@ -25,14 +25,15 @@ public class GameKeyframe : MonoBehaviour
 			mCurveList = new List<CurveInfo>();
 		}
 		Dictionary<int, CurveInfo> searchList = new Dictionary<int, CurveInfo>();
-		int key = 1;
+		// ID从101开始,100以内是内置曲线
+		int key = 101;
 		while(mCurveList.Find((CurveInfo info) => { return info.mID == key; }) != null)
 		{
 			++key;
 		}
-		AnimationCurve curve = new AnimationCurve(new Keyframe(0f, 0f, 0f, 1f), new Keyframe(1f, 1f, 1f, 0f));
+		AnimationCurve curve = new AnimationCurve(new Keyframe(0.0f, 0.0f, 0.0f, 1.0f), new Keyframe(1.0f, 1.0f, 1.0f, 0.0f));
 		mCurveList.Add(new CurveInfo(key, curve));
-		mCurveList.Sort((CurveInfo x, CurveInfo y)=> { return MathUtility.sign(x.mID - y.mID); });
+		mCurveList.Sort((CurveInfo x, CurveInfo y) => { return MathUtility.sign(x.mID - y.mID); });
 		return curve;
 	}
 	public void DestroyKeyframe(CurveInfo info)
