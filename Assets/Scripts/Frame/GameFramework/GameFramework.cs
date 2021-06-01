@@ -221,13 +221,13 @@ public class GameFramework : MonoBehaviour
 	public virtual void keyProcess()
 	{
 		// F1切换日志等级
-		if (FrameBase.getKeyCurrentDown(KeyCode.F1))
+		if (FrameBase.isKeyCurrentDown(KeyCode.F1))
 		{
 			int newLevel = ((int)UnityUtility.getLogLevel() + 1) % (int)LOG_LEVEL.MAX;
 			UnityUtility.setLogLevel((LOG_LEVEL)newLevel);
 		}
 		// F2检测当前鼠标坐标下有哪些窗口
-		if (FrameBase.getKeyCurrentDown(KeyCode.F2))
+		if (FrameBase.isKeyCurrentDown(KeyCode.F2))
 		{
 			Vector3 mousePos = FrameBase.getMousePosition();
 			FrameBase.LIST_MAIN(out List<IMouseEventCollect> hoverList);
@@ -244,7 +244,7 @@ public class GameFramework : MonoBehaviour
 			FrameBase.UN_LIST_MAIN(hoverList);
 		}
 		// F3启用或禁用用作调试的脚本的更新
-		if (FrameBase.getKeyCurrentDown(KeyCode.F3))
+		if (FrameBase.isKeyCurrentDown(KeyCode.F3))
 		{
 			mEnableScriptDebug = !mEnableScriptDebug;
 		}
@@ -511,7 +511,7 @@ public class GameFramework : MonoBehaviour
 		registeFrameSystem(typeof(DllImportSystem));
 		registeFrameSystem(typeof(ShaderManager));
 		registeFrameSystem(typeof(CameraManager));
-		registeFrameSystem(typeof(InputManager));
+		registeFrameSystem(typeof(InputSystem));
 		registeFrameSystem(typeof(SceneSystem));
 		registeFrameSystem(typeof(GamePluginManager));
 		registeFrameSystem(typeof(ClassPool), -1, -1, 3101);

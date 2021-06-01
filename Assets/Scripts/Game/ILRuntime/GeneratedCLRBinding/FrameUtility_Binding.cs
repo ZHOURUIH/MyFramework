@@ -57,10 +57,7 @@ namespace ILRuntime.Runtime.Generated
             __intp.Free(ptr_of_this_method);
 
 
-            var result_of_this_method = global::FrameUtility.getKeyDown(@key, @mask);
-
             __ret->ObjectType = ObjectTypes.Integer;
-            __ret->Value = result_of_this_method ? 1 : 0;
             return __ret + 1;
         }
 
@@ -79,10 +76,8 @@ namespace ILRuntime.Runtime.Generated
             __intp.Free(ptr_of_this_method);
 
 
-            var result_of_this_method = global::FrameUtility.getKeyCurrentDown(@key, @mask);
 
             __ret->ObjectType = ObjectTypes.Integer;
-            __ret->Value = result_of_this_method ? 1 : 0;
             return __ret + 1;
         }
 

@@ -25,7 +25,7 @@ public class FrameBase : ClassObject
 	public static ApplicationConfig mApplicationConfig;
 	public static FrameConfig mFrameConfig;
 	public static ObjectPool mObjectPool;
-	public static InputManager mInputManager;
+	public static InputSystem mInputSystem;
 	public static SceneSystem mSceneSystem;
 	public static ClassPool mClassPool;
 	public static ClassPoolThread mClassPoolThread;
@@ -80,7 +80,7 @@ public class FrameBase : ClassObject
 		getFrameSystemMain(out mApplicationConfig);
 		getFrameSystemMain(out mFrameConfig);
 		getFrameSystemMain(out mObjectPool);
-		getFrameSystemMain(out mInputManager);
+		getFrameSystemMain(out mInputSystem);
 		getFrameSystemMain(out mSceneSystem);
 		getFrameSystemMain(out mClassPool);
 		getFrameSystemMain(out mClassPoolThread);

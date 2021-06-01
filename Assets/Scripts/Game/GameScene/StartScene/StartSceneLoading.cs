@@ -14,7 +14,7 @@ public class StartSceneLoading : SceneProcedure
 	}
 	protected override void onUpdate(float elapsedTime)
 	{
-		if(getKeyCurrentDown(KeyCode.Escape))
+		if(isKeyCurrentDown(KeyCode.Escape))
 		{
 			changeProcedure(Typeof<StartSceneDemo>());
 		}

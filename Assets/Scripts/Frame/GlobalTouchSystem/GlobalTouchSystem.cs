@@ -271,13 +271,13 @@ public class GlobalTouchSystem : FrameSystem
 			// 鼠标点击屏幕
 			else if (touchCount == 0)
 			{
-				if (mInputManager.getMouseCurrentDown(MOUSE_BUTTON.LEFT))
+				if (mInputSystem.isMouseCurrentDown(MOUSE_BUTTON.LEFT))
 				{
 					mCurTouchID = (int)MOUSE_BUTTON.LEFT;
 					curTouchID = mCurTouchID;
 					notifyGlobalPress(true, curTouchID);
 				}
-				else if (mInputManager.getMouseCurrentUp(MOUSE_BUTTON.LEFT))
+				else if (mInputSystem.isMouseCurrentUp(MOUSE_BUTTON.LEFT))
 				{
 					curTouchID = (int)MOUSE_BUTTON.LEFT;
 					notifyGlobalPress(false, curTouchID);

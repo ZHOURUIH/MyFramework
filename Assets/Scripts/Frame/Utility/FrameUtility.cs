@@ -28,10 +28,10 @@ public class FrameUtility : WidgetUtility
 		cmd.mPrepareTime = prepareTime;
 		pushCommand(cmd, FrameBase.mGameSceneManager.getCurScene());
 	}
-	public static bool getKeyCurrentDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputManager.getKeyCurrentDown(key, mask); }
-	public static bool getKeyCurrentUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputManager.getKeyCurrentUp(key, mask); }
-	public static bool getKeyDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputManager.getKeyDown(key, mask); }
-	public static bool getKeyUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputManager.getKeyUp(key, mask); }
+	public static bool isKeyCurrentDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputSystem.isKeyCurrentDown(key, mask); }
+	public static bool isKeyCurrentUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputSystem.isKeyCurrentUp(key, mask); }
+	public static bool isKeyDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputSystem.isKeyDown(key, mask); }
+	public static bool isKeyUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputSystem.isKeyUp(key, mask); }
 	public static Vector3 getMousePosition() { return FrameBase.mGlobalTouchSystem.getCurMousePosition(); }
 	public static GameScene getCurScene() { return FrameBase.mGameSceneManager.getCurScene(); }
 	// 百分比一般用于属性增幅之类的

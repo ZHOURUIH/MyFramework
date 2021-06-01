@@ -1,17 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-public class KeyInfo : FrameBase
-{
-	public object mListener;
-	public OnKeyCurrentDown mCallback;
-	public KeyCode mKey;
-	public bool mCtrlDown;
-	public bool mShiftDown;
-	public bool mAltDown;
-}
-
-public class InputManager : FrameSystem
+public class InputSystem : FrameSystem
 {
 	protected Dictionary<object, Dictionary<OnKeyCurrentDown, KeyInfo>> mListenerList;
 	protected SafeDictionary<KeyCode, SafeList<KeyInfo>> mKeyListenList;	// 按键按下的监听回调列表
@@ -20,7 +10,7 @@ public class InputManager : FrameSystem
 	protected Vector3 mCurMousePosition;					// 当前鼠标坐标,以左下角为原点的坐标
 	protected Vector3 mMouseDelta;							// 这一帧的鼠标移动量
 	protected int mFocusMask;								// 当前的输入掩码,是输入框的输入还是快捷键输入
-	public InputManager()
+	public InputSystem()
 	{
 		mListenerList = new Dictionary<object, Dictionary<OnKeyCurrentDown, KeyInfo>>();
 		mKeyListenList = new SafeDictionary<KeyCode, SafeList<KeyInfo>>();
@@ -102,9 +92,9 @@ public class InputManager : FrameSystem
 		}
 		setMask(inputting ? FOCUS_MASK.UI : FOCUS_MASK.SCENE);
 
-		bool isCtrlDown = getKeyDown(KeyCode.LeftControl) || getKeyDown(KeyCode.RightControl);
-		bool isShiftDown = getKeyDown(KeyCode.LeftShift) || getKeyDown(KeyCode.RightShift);
-		bool isAltDown = getKeyDown(KeyCode.LeftAlt) || getKeyDown(KeyCode.RightAlt);
+		bool isCtrlDown = isKeyDown(KeyCode.LeftControl) || isKeyDown(KeyCode.RightControl);
+		bool isShiftDown = isKeyDown(KeyCode.LeftShift) || isKeyDown(KeyCode.RightShift);
+		bool isAltDown = isKeyDown(KeyCode.LeftAlt) || isKeyDown(KeyCode.RightAlt);
 		int helperKeyMask = generateHelperKeyMask(isCtrlDown, isShiftDown, isAltDown);
 		// 遍历监听列表,发送监听事件
 		foreach (var item in mKeyListenList.startForeach())
@@ -115,7 +105,7 @@ public class InputManager : FrameSystem
 			{
 				continue;
 			}
-			if(!getKeyCurrentDown(item.Key, FOCUS_MASK.SCENE))
+			if(!isKeyCurrentDown(item.Key, FOCUS_MASK.SCENE))
 			{
 				continue;
 			}
@@ -129,6 +119,43 @@ public class InputManager : FrameSystem
 			}
 		}
 	}
+	public void setMouseVisible(bool visible) { Cursor.visible = visible; }
+	public new Vector3 getMousePosition() { return mCurMousePosition; }
+	public Vector3 getMouseDelta() { return mMouseDelta; }
+	public float getMouseWheelDelta() { return Input.mouseScrollDelta.y; }
+	public bool isMouseDown(MOUSE_BUTTON mouse, FOCUS_MASK mask = FOCUS_MASK.NONE)
+	{
+		return isMouseKeepDown(mouse, mask) || isMouseCurrentDown(mouse, mask);
+	}
+	public bool isMouseKeepDown(MOUSE_BUTTON mouse, FOCUS_MASK mask = FOCUS_MASK.NONE)
+	{
+		return Input.GetMouseButton((int)mouse) && hasMask(mask);
+	}
+	public bool isMouseCurrentDown(MOUSE_BUTTON mouse, FOCUS_MASK mask = FOCUS_MASK.NONE)
+	{
+		return Input.GetMouseButtonDown((int)mouse) && hasMask(mask);
+	}
+	public bool isMouseCurrentUp(MOUSE_BUTTON mouse, FOCUS_MASK mask = FOCUS_MASK.NONE)
+	{
+		return Input.GetMouseButtonUp((int)mouse) && hasMask(mask);
+	}
+	public new bool isKeyCurrentDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE)
+	{
+		return Input.GetKeyDown(key) && hasMask(mask);
+	}
+	public new bool isKeyCurrentUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE)
+	{
+		return Input.GetKeyUp(key) && hasMask(mask);
+	}
+	public new bool isKeyDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE)
+	{
+		return (Input.GetKeyDown(key) || Input.GetKey(key)) && hasMask(mask);
+	}
+	public new bool isKeyUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE)
+	{
+		return (Input.GetKeyUp(key) || !Input.GetKey(key)) && hasMask(mask);
+	}
+	//------------------------------------------------------------------------------------------------------------------------
 	protected int generateHelperKeyMask(bool ctrlDown, bool shiftDown, bool altDown)
 	{
 		int curHelperKeyMask = 0;
@@ -145,41 +172,5 @@ public class InputManager : FrameSystem
 			curHelperKeyMask |= 1 << 2;
 		}
 		return curHelperKeyMask;
-	}
-	public void setMouseVisible(bool visible) { Cursor.visible = visible; }
-	public new Vector3 getMousePosition() { return mCurMousePosition; }
-	public Vector3 getMouseDelta() { return mMouseDelta; }
-	public float getMouseWheelDelta() { return Input.mouseScrollDelta.y; }
-	public bool getMouseDown(MOUSE_BUTTON mouse, FOCUS_MASK mask = FOCUS_MASK.NONE)
-	{
-		return getMouseKeepDown(mouse, mask) || getMouseCurrentDown(mouse, mask);
-	}
-	public bool getMouseKeepDown(MOUSE_BUTTON mouse, FOCUS_MASK mask = FOCUS_MASK.NONE)
-	{
-		return Input.GetMouseButton((int)mouse) && hasMask(mask);
-	}
-	public bool getMouseCurrentDown(MOUSE_BUTTON mouse, FOCUS_MASK mask = FOCUS_MASK.NONE)
-	{
-		return Input.GetMouseButtonDown((int)mouse) && hasMask(mask);
-	}
-	public bool getMouseCurrentUp(MOUSE_BUTTON mouse, FOCUS_MASK mask = FOCUS_MASK.NONE)
-	{
-		return Input.GetMouseButtonUp((int)mouse) && hasMask(mask);
-	}
-	public new virtual bool getKeyCurrentDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE)
-	{
-		return Input.GetKeyDown(key) && hasMask(mask);
-	}
-	public new virtual bool getKeyCurrentUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE)
-	{
-		return Input.GetKeyUp(key) && hasMask(mask);
-	}
-	public new virtual bool getKeyDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE)
-	{
-		return (Input.GetKeyDown(key) || Input.GetKey(key)) && hasMask(mask);
-	}
-	public new virtual bool getKeyUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE)
-	{
-		return (Input.GetKeyUp(key) || !Input.GetKey(key)) && hasMask(mask);
 	}
 }

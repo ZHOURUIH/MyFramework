@@ -83,7 +83,7 @@ public class myUGUIInputField : myUGUIObject, IInputField
 	protected void onEditEnd(string value) 
 	{
 		// 只处理由回车触发的输入结束
-		if (mEndNeedEnter && !getKeyDown(KeyCode.Return) && !getKeyDown(KeyCode.KeypadEnter))
+		if (mEndNeedEnter && !isKeyDown(KeyCode.Return) && !isKeyDown(KeyCode.KeypadEnter))
 		{
 			return;
 		}

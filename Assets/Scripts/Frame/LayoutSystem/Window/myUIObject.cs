@@ -97,7 +97,7 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 		mGlobalTouchSystem.unregisteCollider(window);
 		if (window is IInputField)
 		{
-			mInputManager.unregisteInputField(window as IInputField);
+			mInputSystem.unregisteInputField(window as IInputField);
 		}
 		window.mLayout?.unregisterUIObject(window);
 		window.mLayout = null;

@@ -84,16 +84,16 @@ public class GameCamera : MovableObject
 				}
 			}
 			// 鼠标旋转摄像机
-			if (mInputManager.getMouseKeepDown(MOUSE_BUTTON.RIGHT) || mInputManager.getMouseCurrentDown(MOUSE_BUTTON.RIGHT))
+			if (mInputSystem.isMouseKeepDown(MOUSE_BUTTON.RIGHT) || mInputSystem.isMouseCurrentDown(MOUSE_BUTTON.RIGHT))
 			{
-				Vector2 moveDelta = mInputManager.getMouseDelta();
+				Vector2 moveDelta = mInputSystem.getMouseDelta();
 				if (!isFloatZero(moveDelta.x) || !isFloatZero(moveDelta.y))
 				{
 					yawPitch(moveDelta.x * mMouseSpeed, -moveDelta.y * mMouseSpeed);
 				}
 			}
 			// 鼠标滚轮移动摄像机
-			float mouseWheelDelta = mInputManager.getMouseWheelDelta();
+			float mouseWheelDelta = mInputSystem.getMouseWheelDelta();
 			if (!isFloatZero(mouseWheelDelta))
 			{
 				move(Vector3.forward * mouseWheelDelta * (10.0f / 120.0f));

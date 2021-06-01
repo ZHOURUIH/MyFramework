@@ -107,13 +107,13 @@ public abstract class LayoutScript : IDelayCmdWatcher
 	}
 	public void registeInputField(IInputField inputField)
 	{
-		mInputManager.registeInputField(inputField);
+		mInputSystem.registeInputField(inputField);
 		// 所有的输入框都是不能穿透射线的
 		registeCollider(inputField as myUIObject);
 	}
 	public void unregisteInputField(IInputField inputField)
 	{
-		mInputManager.unregisteInputField(inputField);
+		mInputSystem.unregisteInputField(inputField);
 	}
 	public void bindPassOnlyParent(myUIObject obj)
 	{
