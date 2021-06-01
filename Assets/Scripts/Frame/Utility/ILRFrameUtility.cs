@@ -6,7 +6,7 @@ using UnityEngine;
 using ILRAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
 
 // 用于访问ILR工程
-public class ILRUtility : FrameBase
+public class ILRFrameUtility : FrameBase
 {
 	public static void socketState()
 	{

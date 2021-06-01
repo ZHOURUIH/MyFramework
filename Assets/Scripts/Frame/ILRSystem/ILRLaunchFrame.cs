@@ -21,7 +21,7 @@ public class ILRLaunchFrame : FrameBase
 		// 跨域调用的委托
 		registeAllDelegate(appDomain);
 		CLRBindings.Initialize(appDomain);
-		ILRUtility.start();
+		ILRFrameUtility.start();
 		mGameFramework.hotFixInited();
 	}
 	public static void registeValueTypeBinder(ILRAppDomain appDomain)
