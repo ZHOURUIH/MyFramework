@@ -17,7 +17,7 @@ public class CmdSocketConnectClientState : Command
 		}
 		var socketClient = mReceiver as SocketConnectClient;
 #if USE_ILRUNTIME
-		ILRUtility.callStatic("socketState");
+		ILRUtility.socketState();
 #else
 		CMD(out CmdSocketClientGameState cmd, false);
 		cmd.mNetState = socketClient.getNetState();

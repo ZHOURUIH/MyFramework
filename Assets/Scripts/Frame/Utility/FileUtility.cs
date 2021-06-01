@@ -45,7 +45,7 @@ public class FileUtility : MathUtility
 			{
 				if(errorIfNull)
 				{
-					UnityUtility.log("open file failed! filename : " + fileName);
+					UnityUtility.logError("open file failed! filename : " + fileName);
 				}
 				return 0;
 			}

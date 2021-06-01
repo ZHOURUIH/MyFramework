@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-// 根据一个类,生成重写了这个类的所有虚函数的新的类
-public class TypeUtility : WidgetUtility
+// 根据一个类,生成重写了这个类的所有虚函数的新的类(已弃用)
+public class TypeUtility : FrameUtility
 {
 	protected static Dictionary<Type, string> mBasicTypeToString;
 	protected static Dictionary<string, Type> mBasicFullStringToType;

@@ -18,7 +18,7 @@ public delegate void SceneActiveCallback();
 public delegate void LayoutAsyncDone(GameLayout layout);
 public delegate void VideoCallback(string videoName, bool isBreak);
 public delegate void VideoErrorCallback(ErrorCode errorCode);
-public delegate void TrackCallback(ComponentTrackTargetBase com, bool breakTrack);
+public delegate void TrackCallback(ComponentTrackTarget com, bool breakTrack);
 public delegate void OnReceiveDrag(IMouseEventCollect dragObj, BOOL continueEvent);
 public delegate void OnDragHover(IMouseEventCollect dragObj, bool hover);
 public delegate void OnMouseEnter(IMouseEventCollect obj, int touchID);
@@ -62,6 +62,7 @@ public delegate void OnStateLeave(PlayerState state, bool isBreak, string param)
 public delegate void EventCallback(GameEvent param);
 public delegate void OnEffectDestroy(GameEffect effect, object userData);
 public delegate void ConnectCallback(SocketConnectClient client);
+public delegate void OnKeyCurrentDown();
 #if USE_ILRUNTIME
 public delegate void OnHotFixLoaded(ILRAppDomain appDomain);
 #endif

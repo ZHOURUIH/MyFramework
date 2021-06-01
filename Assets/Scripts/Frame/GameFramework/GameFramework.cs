@@ -494,6 +494,7 @@ public class GameFramework : MonoBehaviour
 	protected virtual void initFrameSystem()
 	{
 		registeFrameSystem(typeof(TimeManager));
+		registeFrameSystem(typeof(GlobalCmdReceiver));
 		registeFrameSystem(typeof(ApplicationConfig));
 		registeFrameSystem(typeof(FrameConfig));
 		registeFrameSystem(typeof(HttpUtility));
@@ -507,7 +508,7 @@ public class GameFramework : MonoBehaviour
 		registeFrameSystem(typeof(AudioManager));
 		registeFrameSystem(typeof(GameSceneManager));
 		registeFrameSystem(typeof(KeyFrameManager));
-		registeFrameSystem(typeof(DllImportExtern));
+		registeFrameSystem(typeof(DllImportSystem));
 		registeFrameSystem(typeof(ShaderManager));
 		registeFrameSystem(typeof(CameraManager));
 		registeFrameSystem(typeof(InputManager));

@@ -10,7 +10,7 @@ using ILRAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
 using System.Reflection;
 
 [Obfuscation(Exclude = true)]
-public class ILRuntimeCLRBinding : WidgetUtility
+public class ILRuntimeCLRBinding : FrameUtility
 {
 	[MenuItem("ILRuntime/生成跨域继承适配器")]
 	public static void GenerateCrossbindAdapter()
@@ -25,7 +25,12 @@ public class ILRuntimeCLRBinding : WidgetUtility
 		HashSet<Type> classTypeList = new HashSet<Type>();
 		ILRLaunchFrame.collectCrossInheritClass(classTypeList);
 		// 先删除所有自动生成的文件
-		deleteFolder(FrameDefine.F_SCRIPTS_ILRUNTIME_PATH + "GeneratedCrossBinding/");
+		List<string> oldFiles = new List<string>();
+		findFiles(FrameDefine.F_SCRIPTS_ILRUNTIME_PATH + "GeneratedCrossBinding/", oldFiles, ".cs");
+		foreach(var item in oldFiles)
+		{
+			deleteFile(item);
+		}
 		foreach(var item in classTypeList)
 		{
 			generateAdapter(item);

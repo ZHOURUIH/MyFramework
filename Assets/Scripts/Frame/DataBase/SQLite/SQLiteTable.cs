@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 public class SQLiteTable : FrameBase
 {
-	protected Dictionary<int, SQLiteData> mDataList;
+	protected Dictionary<int, SQLiteData> mDataMap;
 	protected SqliteConnection mConnection;
 	protected SqliteCommand mCommand;
 	protected string mTableName;
@@ -14,7 +14,7 @@ public class SQLiteTable : FrameBase
 	protected bool mFullData;		// 数据是否已经全部查询过了
 	public SQLiteTable()
 	{
-		mDataList = new Dictionary<int, SQLiteData>();
+		mDataMap = new Dictionary<int, SQLiteData>();
 	}
 	public void init(byte[] encryptKey)
 	{
@@ -27,9 +27,11 @@ public class SQLiteTable : FrameBase
 #endif
 			if (isFileExist(fullPath))
 			{
+				clearCommand();
+				clearConnection();
+				clearAll();
 				// 解密文件
-				byte[] fileBuffer;
-				int fileSize = openFile(fullPath, out fileBuffer, true);
+				int fileSize = openFile(fullPath, out byte[] fileBuffer, true);
 				for(int i = 0; i < fileSize; ++i)
 				{
 					fileBuffer[i] ^= encryptKey[i % encryptKey.Length];
@@ -37,23 +39,23 @@ public class SQLiteTable : FrameBase
 				// 将解密后的数据写入新的目录
 				string newPath = getFilePath(fullPath) + "/temp/" + mTableName + ".db";
 				writeFile(newPath, fileBuffer, fileSize);
+				releaseFile(fileBuffer);
 				connect(newPath);
 			}
 		}
 		catch (Exception e)
 		{
-			log("打开数据库失败:" + e.Message, LOG_LEVEL.FORCE);
+			logError("打开数据库失败:" + e.Message + ", stack:" + e.StackTrace);
 		}
 	}
 	public void destroy()
 	{
 		clearCommand();
 		clearConnection();
+		clearAll();
 	}
 	public void connect(string fullFileName)
 	{
-		clearCommand();
-		clearConnection();
 		if (isFileExist(fullFileName))
 		{
 			// 创建SQLite对象的同时，创建SqliteConnection对象  
@@ -99,7 +101,7 @@ public class SQLiteTable : FrameBase
 	public string getTableName() { return mTableName; }
 	public void checkSQLite() 
 	{
-		List<SQLiteData> list = new List<SQLiteData>();
+		LIST_MAIN(out List<SQLiteData> list);
 		queryAll(mDataClassType, list);
 		int count = list.Count;
 		for (int i = 0; i < count; ++i)
@@ -109,6 +111,7 @@ public class SQLiteTable : FrameBase
 				logError("表格数据发现错误:Type:" + Typeof(this) + ", ID:" + list[i].mID);
 			}
 		}
+		UN_LIST_MAIN(list);
 	}
 	public SqliteDataReader doQuery()
 	{
@@ -128,24 +131,24 @@ public class SQLiteTable : FrameBase
 	}
 	public SQLiteData query(int id, out SQLiteData data)
 	{
-		if (mDataList.TryGetValue(id, out data))
+		if (mDataMap.TryGetValue(id, out data))
 		{
 			return data;
 		}
 		MyStringBuilder condition = STRING();
 		appendConditionInt(condition, SQLiteData.ID, id, EMPTY);
 		parseReader(doQuery(END_STRING(condition)), out data);
-		mDataList.Add(id, data);
+		mDataMap.Add(id, data);
 		return data;
 	}
 	public SQLiteData query(Type type, int id, out SQLiteData data)
 	{
-		if (!mDataList.TryGetValue(id, out data))
+		if (!mDataMap.TryGetValue(id, out data))
 		{
 			MyStringBuilder condition = STRING();
 			appendConditionInt(condition, SQLiteData.ID, id, EMPTY);
 			parseReader(doQuery(END_STRING(condition)), out data);
-			mDataList.Add(id, data);
+			mDataMap.Add(id, data);
 		}
 		if (type != mDataClassType)
 		{
@@ -156,7 +159,7 @@ public class SQLiteTable : FrameBase
 	}
 	public void insert<T>(T data) where T : SQLiteData
 	{
-		if(mDataList.ContainsKey(data.mID))
+		if(mDataMap.ContainsKey(data.mID))
 		{
 			return;
 		}
@@ -169,7 +172,7 @@ public class SQLiteTable : FrameBase
 		data.insert(valueString);
 		removeLastComma(valueString);
 		doInsert(END_STRING(valueString));
-		mDataList.Add(data.mID, data);
+		mDataMap.Add(data.mID, data);
 	}
 	public void queryAll<T>(Type type, List<T> dataList) where T : SQLiteData
 	{
@@ -182,8 +185,8 @@ public class SQLiteTable : FrameBase
 		// 已经全部查询过了,则返回已查询的数据
 		if(mFullData)
 		{
-			dataList.Capacity = mDataList.Count;
-			foreach(var item in mDataList)
+			dataList.Capacity = mDataMap.Count;
+			foreach(var item in mDataMap)
 			{
 				dataList.Add(item.Value as T);
 			}
@@ -193,15 +196,20 @@ public class SQLiteTable : FrameBase
 		// 没有全部查询过时,从表中全部查询一次,此处会舍弃之前查询的全部数据,重新申请一个字典,因为只有构造时才能设置初始容量
 		mFullData = true;
 		parseReader(type, doQuery(), dataList);
-		mDataList = new Dictionary<int, SQLiteData>(dataList.Count);
+		mDataMap = new Dictionary<int, SQLiteData>(dataList.Count);
 		int count = dataList.Count;
 		for (int i = 0; i < count; ++i)
 		{
-			var item = (SQLiteData)dataList[i];
-			mDataList.Add(item.mID, item);
+			SQLiteData item = dataList[i];
+			mDataMap.Add(item.mID, item);
 		}
 	}
 	//---------------------------------------------------------------------------------------------------------------------------
+	protected virtual void clearAll()
+	{
+		mDataMap.Clear();
+		mFullData = false;
+	}
 	protected SQLiteData query(Type type, int id)
 	{
 		SQLiteData data;

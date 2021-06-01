@@ -11,7 +11,6 @@ public class MyThread : FrameBase
 	protected volatile bool mIsBackground;       // 是否为后台线程,如果是后台线程,则在应用程序关闭时,子线程会自动强制关闭
 	protected volatile bool mRunning;
 	protected volatile bool mFinish;
-	protected volatile bool mPause;
 	public MyThread(string name)
 	{
 		mRun = new BOOL();
@@ -22,7 +21,6 @@ public class MyThread : FrameBase
 		mIsBackground = true;
 		mRunning = false;
 		mFinish = true;
-		mPause = false;
 	}
 	public void destroy()
 	{
@@ -52,7 +50,6 @@ public class MyThread : FrameBase
 		mThread.IsBackground = mIsBackground;
 		log("线程启动成功 : " + mName, LOG_LEVEL.FORCE);
 	}
-	public void pause(bool isPause) { mPause = isPause; }
 	public bool isFinished() { return mFinish; }
 	public void stop()
 	{
@@ -70,7 +67,6 @@ public class MyThread : FrameBase
 			mThread = null;
 			mCallback = null;
 			mTimeLock = null;
-			mPause = false;
 		}
 		catch(Exception e)
 		{
@@ -86,12 +82,8 @@ public class MyThread : FrameBase
 			mTimeLock.update();
 			try
 			{
-				if (mPause)
-				{
-					continue;
-				}
 				mRun.set(true);
-				mCallback(mRun);
+				mCallback?.Invoke(mRun);
 				if (!mRun.mValue)
 				{
 					break;

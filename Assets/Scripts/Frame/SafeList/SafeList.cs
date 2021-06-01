@@ -77,6 +77,15 @@ public class SafeList<T> : FrameBase
 		}
 		mModifyList.Add(new SafeListModify<T>(value, false));
 	}
+	public void removeAt(int index)
+	{
+		if(index < 0 || index >= mMainList.Count)
+		{
+			return;
+		}
+		mModifyList.Add(new SafeListModify<T>(mMainList[index], false));
+		mMainList.RemoveAt(index);
+	}
 	// 清空所有数据,不能正在遍历时调用
 	public void clear()
 	{

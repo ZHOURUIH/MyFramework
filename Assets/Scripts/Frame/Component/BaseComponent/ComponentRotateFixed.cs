@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class ComponentRotateFixedBase : GameComponent, IComponentModifyRotation, IComponentBreakable
+public class ComponentRotateFixed : GameComponent, IComponentModifyRotation, IComponentBreakable
 {
 	public Vector3 mFixedEuler;
 	public override void resetProperty()

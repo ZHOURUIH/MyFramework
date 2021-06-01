@@ -10,18 +10,12 @@ public class ULONGS : OBJECTS
 	{
 		get
 		{
-			if (index >= mElementCount)
-			{
-				logError("下标超出有效数据长度");
-			}
+			checkIndex(index);
 			return mValue[index];
 		}
 		set
 		{
-			if (index >= mElementCount)
-			{
-				logError("下标超出有效数据长度");
-			}
+			checkIndex(index);
 			mValue[index] = value;
 		}
 	}

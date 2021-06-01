@@ -35,7 +35,7 @@ public class LocalLog : FrameBase
 		//mLogBufferList.add(info);
 	}
 	//-----------------------------------------------------------------------------------------------------------
-	protected void writeLocalLog(ref bool run)
+	protected void writeLocalLog(BOOL run)
 	{
 		// 将当前写入缓冲区中的内容写入文件
 		writeLogToFile();

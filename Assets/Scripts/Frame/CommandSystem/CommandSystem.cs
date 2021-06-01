@@ -156,6 +156,8 @@ public class CommandSystem : FrameSystem
 		{
 			return;
 		}
+		// 如果已经确定在运行时不会出现以下情况的错误,则在打包后就可以不需要再检测了
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 		if (cmd == null)
 		{
 			logError("cmd is null! receiver : " + (cmdReceiver != null ? cmdReceiver.getName() : EMPTY));
@@ -179,17 +181,22 @@ public class CommandSystem : FrameSystem
 			logError(END_STRING(builder));
 			return;
 		}
+#endif
 		cmd.setReceiver(cmdReceiver);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 		if (cmd.isShowDebugInfo())
 		{
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 			MyStringBuilder builder = STRING("CMD : ", LToS(cmd.getAssignID()), ", ");
 			cmd.showDebugInfo(builder);
 			builder.Append(", receiver : ", cmdReceiver.getName());
 			log(END_STRING(builder), LOG_LEVEL.NORMAL);
-#endif
 		}
-		cmdReceiver.receiveCommand(cmd);
+#endif
+		cmd.invokeStartCallBack();
+		cmd.setState(EXECUTE_STATE.EXECUTING);
+		cmd.execute();
+		cmd.setState(EXECUTE_STATE.EXECUTED);
+		cmd.invokeEndCallBack();
 		// 销毁回收命令
 		mClassPoolThread?.destroyClass(cmd);
 	}
@@ -213,6 +220,8 @@ public class CommandSystem : FrameSystem
 		{
 			return;
 		}
+		// 如果已经确定在运行时不会出现以下情况的错误,则在打包后就可以不需要再检测了
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 		if (cmd == null)
 		{
 			logError("cmd is null! receiver : " + (cmdReceiver != null ? cmdReceiver.getName() : EMPTY));
@@ -236,16 +245,17 @@ public class CommandSystem : FrameSystem
 			logError(END_STRING(builder));
 			return;
 		}
+#endif
 		clampMin(ref delayExecute);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 		if (cmd.isShowDebugInfo())
 		{
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 			MyStringBuilder builder = STRING("CMD : delay cmd : ", LToS(cmd.getAssignID()), ", ", FToS(delayExecute), ", info : ");
 			cmd.showDebugInfo(builder);
 			builder.Append(", receiver : ", cmdReceiver.getName());
 			log(END_STRING(builder), LOG_LEVEL.NORMAL);
-#endif
 		}
+#endif
 		cmd.setDelayTime(delayExecute);
 		cmd.setReceiver(cmdReceiver);
 		mBufferLock.waitForUnlock();
@@ -285,7 +295,7 @@ public class CommandSystem : FrameSystem
 			}
 		}
 	}
-	//-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------------------------------------------------------------
 	protected void syncCommandBuffer()
 	{
 		mBufferLock.waitForUnlock();

@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-public class ComponentTrackTargetNormal : ComponentTrackTargetBase
+public class ComponentTrackTargetNormal : ComponentTrackTarget
 {
 	public override void update(float elapsedTime)
 	{

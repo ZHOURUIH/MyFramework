@@ -8,7 +8,6 @@ namespace HotFix
     public class CommandAdapter : CrossBindingAdaptor
     {
         static CrossBindingMethodInfo mresetProperty_0 = new CrossBindingMethodInfo("resetProperty");
-        static CrossBindingMethodInfo mexecute_1 = new CrossBindingMethodInfo("execute");
         static CrossBindingMethodInfo<global::MyStringBuilder> mshowDebugInfo_2 = new CrossBindingMethodInfo<global::MyStringBuilder>("showDebugInfo");
         static CrossBindingMethodInfo mnotifyConstructDone_3 = new CrossBindingMethodInfo("notifyConstructDone");
         static CrossBindingMethodInfo<System.Boolean> msetDestroy_4 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
@@ -38,6 +37,7 @@ namespace HotFix
 
         public class Adapter : global::Command, CrossBindingAdaptorType
         {
+            protected CrossBindingMethodInfo mexecute_1 = new CrossBindingMethodInfo("execute");
             ILTypeInstance instance;
             ILRuntime.Runtime.Enviorment.AppDomain appdomain;
 

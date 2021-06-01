@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System;
 
-public class COMTransformableRotateFixedPhysics : ComponentRotateFixedBase
+public class COMTransformableRotateFixedPhysics : ComponentRotateFixed
 {
 	public override void fixedUpdate(float elapsedTime)
 	{

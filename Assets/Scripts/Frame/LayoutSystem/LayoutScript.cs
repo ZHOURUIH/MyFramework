@@ -8,12 +8,14 @@ public abstract class LayoutScript : IDelayCmdWatcher
 	protected CommandCallback mCmdCallback;
 	protected GameLayout mLayout;
 	protected myUIObject mRoot;
-	protected Type mType;				// 因为有些布局可能是在ILRuntime中,所以类型获取可能不正确,需要将类型存储下来
-	protected int mID;
+	protected Type mType;					// 因为有些布局可能是在ILRuntime中,所以类型获取可能不正确,需要将类型存储下来
+	protected int mID;						// 布局ID,与GameLayout中的ID一致
+	protected bool mNeedUpdate;				// 布局脚本是否需要指定update,为了提高效率,可以不执行不必要的update
 	public LayoutScript()
 	{
 		mDelayCmdList = new HashSet<long>();
 		mCmdCallback = onCmdStarted;
+		mNeedUpdate = true;
 	}
 	public virtual void destroy()
 	{
@@ -24,6 +26,7 @@ public abstract class LayoutScript : IDelayCmdWatcher
 		mLayout = layout;
 		mID = mLayout.getID(); 
 	}
+	public bool isNeedUpdate() { return mNeedUpdate; }
 	public bool isVisible() { return mLayout.isVisible(); }
 	public int getID() { return mID; }
 	public GameLayout getLayout() { return mLayout; }

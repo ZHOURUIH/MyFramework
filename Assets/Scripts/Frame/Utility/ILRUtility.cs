@@ -8,8 +8,17 @@ using ILRAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
 // 用于访问ILR工程
 public class ILRUtility : FrameBase
 {
-	// 调用静态函数,带返回值的
-	public static T callStatic<T>(string method, params object[] p)
+	public static void socketState()
+	{
+		callStatic("socketState");
+	}
+	public static void start()
+	{
+		callStatic("start");
+	}
+	//----------------------------------------------------------------------------------------------------------------------------------
+	// 调用热更工程中ILRExport类的静态函数,带返回值的
+	protected static T callStatic<T>(string method, params object[] p)
 	{
 		if (mILRSystem.getAppDomain() == null)
 		{
@@ -17,8 +26,8 @@ public class ILRUtility : FrameBase
 		}
 		return (T)mILRSystem.getAppDomain().Invoke(FrameDefine.ILR_EXPORT, method, null, p);
 	}
-	// 调用静态函数,不带返回值
-	public static void callStatic(string method, params object[] p)
+	// 调用热更工程中ILRExport类的静态函数,不带返回值
+	protected static void callStatic(string method, params object[] p)
 	{
 		if (mILRSystem.getAppDomain() == null)
 		{
@@ -27,7 +36,7 @@ public class ILRUtility : FrameBase
 		mILRSystem.getAppDomain().Invoke(FrameDefine.ILR_EXPORT, method, null, p);
 	}
 	// 调用成员函数,带返回值
-	public static T callMethod<T>(string type, string method, object instance, params object[] p)
+	protected static T callMethod<T>(string type, string method, object instance, params object[] p)
 	{
 		if (mILRSystem.getAppDomain() == null)
 		{
@@ -36,7 +45,7 @@ public class ILRUtility : FrameBase
 		return (T)mILRSystem.getAppDomain().Invoke(type, method, instance, p);
 	}
 	// 调用成员函数,不带返回值
-	public static void callMethod(string type, string method, object instance, params object[] p)
+	protected static void callMethod(string type, string method, object instance, params object[] p)
 	{
 		if (mILRSystem.getAppDomain() == null)
 		{

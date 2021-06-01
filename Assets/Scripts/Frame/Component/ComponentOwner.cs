@@ -34,6 +34,10 @@ public abstract class ComponentOwner : CommandReceiver
 	// 更新正常更新的组件
 	public virtual void update(float elapsedTime)
 	{
+		if(mComponentList.count() == 0)
+		{
+			return;
+		}
 		var updateList = mComponentList.startForeach();
 		int rootComponentCount = updateList.Count;
 		for (int i = 0; i < rootComponentCount; ++i)

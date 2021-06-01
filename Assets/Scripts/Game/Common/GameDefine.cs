@@ -16,7 +16,7 @@ public class GameDefine : FrameDefine
 	// UI的制作标准,所有UI都是按1920*1080标准分辨率制作的
 	public const int STANDARD_WIDTH = 1920;
 	public const int STANDARD_HEIGHT = 1080;
-	public static string SQLITE_ENCRYPT_KEY = "ASLDIHQWILDjadiuahrfiqwdo!@##*^%ishduhasf#*$^(][][dajfgsdf奥斯杜埃松恩哎u的物品*(%&#$";
+	public static byte[] SQLITE_ENCRYPT_KEY = BinaryUtility.stringToBytes("ASLDIHQWILDjadiuahrfiqwdo!@##*^%ishduhasf#*$^(][][dajfgsdf奥斯杜埃松恩哎u的物品*(%&#$");
 	// 常量定义
 	//-----------------------------------------------------------------------------------------------------------------
 	// 标签

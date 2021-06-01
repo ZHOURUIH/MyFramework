@@ -20,14 +20,12 @@ namespace HotFix
         static CrossBindingMethodInfo<System.Boolean, System.Boolean> msetIgnoreTimeScale_10 = new CrossBindingMethodInfo<System.Boolean, System.Boolean>("setIgnoreTimeScale");
         static CrossBindingMethodInfo mresetProperty_11 = new CrossBindingMethodInfo("resetProperty");
         static CrossBindingMethodInfo minitComponents_12 = new CrossBindingMethodInfo("initComponents");
-        static CrossBindingMethodInfo<global::Command> mreceiveCommand_13 = new CrossBindingMethodInfo<global::Command>("receiveCommand");
-        static CrossBindingFunctionInfo<System.String> mgetName_14 = new CrossBindingFunctionInfo<System.String>("getName");
-        static CrossBindingMethodInfo<System.String> msetName_15 = new CrossBindingMethodInfo<System.String>("setName");
-        static CrossBindingMethodInfo mnotifyConstructDone_16 = new CrossBindingMethodInfo("notifyConstructDone");
-        static CrossBindingMethodInfo<System.Boolean> msetDestroy_17 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
-        static CrossBindingFunctionInfo<System.Boolean> misDestroy_18 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
-        static CrossBindingMethodInfo<System.Int64> msetAssignID_19 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
-        static CrossBindingFunctionInfo<System.Int64> mgetAssignID_20 = new CrossBindingFunctionInfo<System.Int64>("getAssignID");
+        static CrossBindingMethodInfo<System.String> msetName_13 = new CrossBindingMethodInfo<System.String>("setName");
+        static CrossBindingMethodInfo mnotifyConstructDone_14 = new CrossBindingMethodInfo("notifyConstructDone");
+        static CrossBindingMethodInfo<System.Boolean> msetDestroy_15 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
+        static CrossBindingFunctionInfo<System.Boolean> misDestroy_16 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
+        static CrossBindingMethodInfo<System.Int64> msetAssignID_17 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
+        static CrossBindingFunctionInfo<System.Int64> mgetAssignID_18 = new CrossBindingFunctionInfo<System.Int64>("getAssignID");
         public override Type BaseCLRType
         {
             get
@@ -171,68 +169,52 @@ namespace HotFix
                     minitComponents_12.Invoke(this.instance);
             }
 
-            public override void receiveCommand(global::Command cmd)
-            {
-                if (mreceiveCommand_13.CheckShouldInvokeBase(this.instance))
-                    base.receiveCommand(cmd);
-                else
-                    mreceiveCommand_13.Invoke(this.instance, cmd);
-            }
-
-            public override System.String getName()
-            {
-                if (mgetName_14.CheckShouldInvokeBase(this.instance))
-                    return base.getName();
-                else
-                    return mgetName_14.Invoke(this.instance);
-            }
-
             public override void setName(System.String name)
             {
-                if (msetName_15.CheckShouldInvokeBase(this.instance))
+                if (msetName_13.CheckShouldInvokeBase(this.instance))
                     base.setName(name);
                 else
-                    msetName_15.Invoke(this.instance, name);
+                    msetName_13.Invoke(this.instance, name);
             }
 
             public override void notifyConstructDone()
             {
-                if (mnotifyConstructDone_16.CheckShouldInvokeBase(this.instance))
+                if (mnotifyConstructDone_14.CheckShouldInvokeBase(this.instance))
                     base.notifyConstructDone();
                 else
-                    mnotifyConstructDone_16.Invoke(this.instance);
+                    mnotifyConstructDone_14.Invoke(this.instance);
             }
 
             public override void setDestroy(System.Boolean isDestroy)
             {
-                if (msetDestroy_17.CheckShouldInvokeBase(this.instance))
+                if (msetDestroy_15.CheckShouldInvokeBase(this.instance))
                     base.setDestroy(isDestroy);
                 else
-                    msetDestroy_17.Invoke(this.instance, isDestroy);
+                    msetDestroy_15.Invoke(this.instance, isDestroy);
             }
 
             public override System.Boolean isDestroy()
             {
-                if (misDestroy_18.CheckShouldInvokeBase(this.instance))
+                if (misDestroy_16.CheckShouldInvokeBase(this.instance))
                     return base.isDestroy();
                 else
-                    return misDestroy_18.Invoke(this.instance);
+                    return misDestroy_16.Invoke(this.instance);
             }
 
             public override void setAssignID(System.Int64 assignID)
             {
-                if (msetAssignID_19.CheckShouldInvokeBase(this.instance))
+                if (msetAssignID_17.CheckShouldInvokeBase(this.instance))
                     base.setAssignID(assignID);
                 else
-                    msetAssignID_19.Invoke(this.instance, assignID);
+                    msetAssignID_17.Invoke(this.instance, assignID);
             }
 
             public override System.Int64 getAssignID()
             {
-                if (mgetAssignID_20.CheckShouldInvokeBase(this.instance))
+                if (mgetAssignID_18.CheckShouldInvokeBase(this.instance))
                     return base.getAssignID();
                 else
-                    return mgetAssignID_20.Invoke(this.instance);
+                    return mgetAssignID_18.Invoke(this.instance);
             }
 
             public override string ToString()

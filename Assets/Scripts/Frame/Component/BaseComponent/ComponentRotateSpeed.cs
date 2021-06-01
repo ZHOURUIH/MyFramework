@@ -1,12 +1,12 @@
 ﻿using UnityEngine;
 
-public class ComponentRotateSpeedBase : GameComponent, IComponentModifyRotation, IComponentBreakable
+public class ComponentRotateSpeed : GameComponent, IComponentModifyRotation, IComponentBreakable
 {
 	public PLAY_STATE mPlayState;
 	public Vector3 mRotateAcceleration;			// 旋转加速度
 	public Vector3 mRotateSpeed;				// 欧拉角旋转速度
 	public Vector3 mCurRotation;
-	public ComponentRotateSpeedBase()
+	public ComponentRotateSpeed()
 	{
 		mPlayState = PLAY_STATE.STOP;
 	}

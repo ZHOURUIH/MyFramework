@@ -25,7 +25,7 @@ public class Dll : FrameBase
 		mFunctionList = null;
 	}
 	public string getName() { return mLibraryName; }
-	public Delegate getFunction(string funcName, Type t)
+	public T getFunction<T>(string funcName, Type t) where T : Delegate
 	{
 #if UNITY_STANDALONE_WIN
 		if (!mFunctionList.TryGetValue(funcName, out Delegate value))
@@ -34,14 +34,14 @@ public class Dll : FrameBase
 			if(api == IntPtr.Zero)
 			{
 				logError("can not find function, name : " + funcName);
-				return null;
+				return default(T);
 			}
 			value = Marshal.GetDelegateForFunctionPointer(api, t);
 			mFunctionList.Add(funcName, value);
 		}
-		return value;
+		return value as T;
 #else
-		return null;
+		return default(T);
 #endif
 	}
 }

@@ -74,13 +74,11 @@ namespace HotFix
         static CrossBindingMethodInfo<System.Single> mlateUpdate_64 = new CrossBindingMethodInfo<System.Single>("lateUpdate");
         static CrossBindingMethodInfo<global::GameComponent> mnotifyAddComponent_65 = new CrossBindingMethodInfo<global::GameComponent>("notifyAddComponent");
         static CrossBindingMethodInfo<System.Boolean, System.Boolean> msetIgnoreTimeScale_66 = new CrossBindingMethodInfo<System.Boolean, System.Boolean>("setIgnoreTimeScale");
-        static CrossBindingMethodInfo<global::Command> mreceiveCommand_67 = new CrossBindingMethodInfo<global::Command>("receiveCommand");
-        static CrossBindingFunctionInfo<System.String> mgetName_68 = new CrossBindingFunctionInfo<System.String>("getName");
-        static CrossBindingMethodInfo mnotifyConstructDone_69 = new CrossBindingMethodInfo("notifyConstructDone");
-        static CrossBindingMethodInfo<System.Boolean> msetDestroy_70 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
-        static CrossBindingFunctionInfo<System.Boolean> misDestroy_71 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
-        static CrossBindingMethodInfo<System.Int64> msetAssignID_72 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
-        static CrossBindingFunctionInfo<System.Int64> mgetAssignID_73 = new CrossBindingFunctionInfo<System.Int64>("getAssignID");
+        static CrossBindingMethodInfo mnotifyConstructDone_67 = new CrossBindingMethodInfo("notifyConstructDone");
+        static CrossBindingMethodInfo<System.Boolean> msetDestroy_68 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
+        static CrossBindingFunctionInfo<System.Boolean> misDestroy_69 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
+        static CrossBindingMethodInfo<System.Int64> msetAssignID_70 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
+        static CrossBindingFunctionInfo<System.Int64> mgetAssignID_71 = new CrossBindingFunctionInfo<System.Int64>("getAssignID");
         public override Type BaseCLRType
         {
             get
@@ -656,60 +654,44 @@ namespace HotFix
                     msetIgnoreTimeScale_66.Invoke(this.instance, ignore, componentOnly);
             }
 
-            public override void receiveCommand(global::Command cmd)
-            {
-                if (mreceiveCommand_67.CheckShouldInvokeBase(this.instance))
-                    base.receiveCommand(cmd);
-                else
-                    mreceiveCommand_67.Invoke(this.instance, cmd);
-            }
-
-            public override System.String getName()
-            {
-                if (mgetName_68.CheckShouldInvokeBase(this.instance))
-                    return base.getName();
-                else
-                    return mgetName_68.Invoke(this.instance);
-            }
-
             public override void notifyConstructDone()
             {
-                if (mnotifyConstructDone_69.CheckShouldInvokeBase(this.instance))
+                if (mnotifyConstructDone_67.CheckShouldInvokeBase(this.instance))
                     base.notifyConstructDone();
                 else
-                    mnotifyConstructDone_69.Invoke(this.instance);
+                    mnotifyConstructDone_67.Invoke(this.instance);
             }
 
             public override void setDestroy(System.Boolean isDestroy)
             {
-                if (msetDestroy_70.CheckShouldInvokeBase(this.instance))
+                if (msetDestroy_68.CheckShouldInvokeBase(this.instance))
                     base.setDestroy(isDestroy);
                 else
-                    msetDestroy_70.Invoke(this.instance, isDestroy);
+                    msetDestroy_68.Invoke(this.instance, isDestroy);
             }
 
             public override System.Boolean isDestroy()
             {
-                if (misDestroy_71.CheckShouldInvokeBase(this.instance))
+                if (misDestroy_69.CheckShouldInvokeBase(this.instance))
                     return base.isDestroy();
                 else
-                    return misDestroy_71.Invoke(this.instance);
+                    return misDestroy_69.Invoke(this.instance);
             }
 
             public override void setAssignID(System.Int64 assignID)
             {
-                if (msetAssignID_72.CheckShouldInvokeBase(this.instance))
+                if (msetAssignID_70.CheckShouldInvokeBase(this.instance))
                     base.setAssignID(assignID);
                 else
-                    msetAssignID_72.Invoke(this.instance, assignID);
+                    msetAssignID_70.Invoke(this.instance, assignID);
             }
 
             public override System.Int64 getAssignID()
             {
-                if (mgetAssignID_73.CheckShouldInvokeBase(this.instance))
+                if (mgetAssignID_71.CheckShouldInvokeBase(this.instance))
                     return base.getAssignID();
                 else
-                    return mgetAssignID_73.Invoke(this.instance);
+                    return mgetAssignID_71.Invoke(this.instance);
             }
 
             public override string ToString()

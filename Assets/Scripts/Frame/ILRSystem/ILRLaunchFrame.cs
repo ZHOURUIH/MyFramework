@@ -10,7 +10,7 @@ using LitJson;
 using ILRuntime.Runtime.Intepreter;
 
 // 用于实现ILR加载完毕以后的一些初始化操作
-public class ILRLaunchFrame
+public class ILRLaunchFrame : FrameBase
 {
 	public static void OnILRuntimeInitialized(ILRAppDomain appDomain)
 	{
@@ -21,8 +21,8 @@ public class ILRLaunchFrame
 		// 跨域调用的委托
 		registeAllDelegate(appDomain);
 		CLRBindings.Initialize(appDomain);
-		ILRUtility.callStatic("start");
-		FrameBase.mGameFramework.hotFixInited();
+		ILRUtility.start();
+		mGameFramework.hotFixInited();
 	}
 	public static void registeValueTypeBinder(ILRAppDomain appDomain)
 	{
@@ -37,6 +37,7 @@ public class ILRLaunchFrame
 	{
 		// 收集所有需要生成适配器的类
 		classList.Add(typeof(FrameBase));
+		classList.Add(typeof(ClassObject));
 		classList.Add(typeof(GameScene));
 		classList.Add(typeof(LayoutScript));
 		classList.Add(typeof(SceneProcedure));
@@ -75,7 +76,7 @@ public class ILRLaunchFrame
 		delegateManager.RegisterMethodDelegate<ComponentOwner>();
 		delegateManager.RegisterMethodDelegate<ComponentOwner, BOOL>();
 		delegateManager.RegisterMethodDelegate<Character, object>();
-		delegateManager.RegisterMethodDelegate<ComponentTrackTargetBase, bool>();
+		delegateManager.RegisterMethodDelegate<ComponentTrackTarget, bool>();
 		delegateManager.RegisterMethodDelegate<ComponentKeyFrame, bool>();
 		delegateManager.RegisterMethodDelegate<ComponentLerp, bool>();
 		delegateManager.RegisterMethodDelegate<Command>();
@@ -181,7 +182,7 @@ public class ILRLaunchFrame
 		});
 		delegateManager.RegisterDelegateConvertor<TrackCallback>((action) =>
 		{
-			return new TrackCallback((com, breakTrack) => { ((Action<ComponentTrackTargetBase, bool>)action)(com, breakTrack); });
+			return new TrackCallback((com, breakTrack) => { ((Action<ComponentTrackTarget, bool>)action)(com, breakTrack); });
 		});
 		delegateManager.RegisterDelegateConvertor<OnReceiveDrag>((action) =>
 		{
@@ -360,6 +361,10 @@ public class ILRLaunchFrame
 		delegateManager.RegisterDelegateConvertor<ConnectCallback>((action) =>
 		{
 			return new ConnectCallback((client) => { ((Action<SocketConnectClient>)action)(client); });
+		});
+		delegateManager.RegisterDelegateConvertor<OnKeyCurrentDown>((action) =>
+		{
+			return new OnKeyCurrentDown(() => { ((Action)action)(); });
 		});
 
 		ILRLaunch.registeAllDelegate(appDomain);

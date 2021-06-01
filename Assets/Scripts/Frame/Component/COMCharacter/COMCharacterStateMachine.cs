@@ -20,7 +20,7 @@ public class COMCharacterStateMachine : GameComponent
 	{
 		base.init(owner);
 		mPlayer = owner as Character;
-		if(mGroupStateList != null)
+		if (mGroupStateList != null)
 		{
 			foreach (var item in mGroupStateList)
 			{

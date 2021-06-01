@@ -10,6 +10,7 @@ public static class CrossAdapterRegister
 	public static void registeCrossAdaptor(ILRAppDomain appDomain)
 	{
 		appDomain.RegisterCrossBindingAdaptor(new FrameBaseAdapter());
+		appDomain.RegisterCrossBindingAdaptor(new ClassObjectAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new GameSceneAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new LayoutScriptAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new SceneProcedureAdapter());

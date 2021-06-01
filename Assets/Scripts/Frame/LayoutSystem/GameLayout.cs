@@ -100,7 +100,7 @@ public class GameLayout : FrameBase
 		if (mRoot != null)
 		{
 			// 去除自带的锚点
-			// 在unity2020中,不知道为什么实例化以后的RectTransform的大小会自动变为窗口大小,为了适配计算正确,这里需要重置一次
+			// 在unity2020中,不知道为什么实例化以后的RectTransform的大小会自动变为视图窗口大小,为了适配计算正确,这里需要重置一次
 			RectTransform rectTransform = mRoot.getRectTransform();
 			Vector3 size = getRectSize(rectTransform);
 			rectTransform.anchorMin = Vector2.one * 0.5f;
@@ -130,33 +130,43 @@ public class GameLayout : FrameBase
 	}
 	public void update(float elapsedTime)
 	{
-		if(mIgnoreTimeScale)
+		if (!isVisible() || mScript == null || !mScriptInited)
+		{
+			return;
+		}
+
+		if (mIgnoreTimeScale)
 		{
 			elapsedTime = Time.unscaledDeltaTime;
 		}
-		if (isVisible() && mScript != null && mScriptInited)
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+		Profiler.BeginSample(Profiler_UpdateLayout);
+#endif
+		// 更新所有的UI物体
+		foreach (var item in mObjectList.startForeach())
 		{
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-			Profiler.BeginSample(Profiler_UpdateLayout);
-#endif
-			// 先更新所有的UI物体
-			var updateList = mObjectList.startForeach();
-			foreach (var obj in updateList)
+			myUIObject uiObj = item.Value;
+			if (uiObj.canUpdate())
 			{
-				if (obj.Value.canUpdate())
-				{
-					obj.Value.update(elapsedTime);
-				}
+				uiObj.update(elapsedTime);
 			}
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-			Profiler.EndSample();
-			Profiler.BeginSample(Profiler_UpdateScript);
-#endif
-			mScript.update(elapsedTime);
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-			Profiler.EndSample();
-#endif
 		}
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+		Profiler.EndSample();
+#endif
+
+		// 更新脚本逻辑
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+		Profiler.BeginSample(Profiler_UpdateScript);
+#endif
+		if (mScript.isNeedUpdate())
+		{
+			mScript.update(elapsedTime);
+		}
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+		Profiler.EndSample();
+#endif
 	}
 	public void onDrawGizmos()
 	{

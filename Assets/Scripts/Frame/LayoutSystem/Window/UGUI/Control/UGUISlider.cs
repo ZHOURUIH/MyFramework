@@ -17,11 +17,14 @@ public class UGUISlider : ComponentOwner, ISlider
 	protected Vector3 mOriginForegroundPosition;
 	protected float mSliderValue;
 	protected bool mDraging;
-	public UGUISlider(LayoutScript script)
+	public UGUISlider()
 	{
-		mScript = script;
 		mDirection = DRAG_DIRECTION.HORIZONTAL;
 		mMode = SLIDER_MODE.FILL;
+	}
+	public void setScript(LayoutScript script)
+	{
+		mScript = script;
 	}
 	public void init(myUGUIObject background, myUGUIObject foreground, myUGUIObject thumb = null, SLIDER_MODE mode = SLIDER_MODE.FILL)
 	{
@@ -35,9 +38,9 @@ public class UGUISlider : ComponentOwner, ISlider
 			logError("Foreground must be parent of Thumb");
 			return;
 		}
-		if(mMode == SLIDER_MODE.SIZING)
+		mOriginForegroundSize = mForeground.getWindowSize();
+		if (mMode == SLIDER_MODE.SIZING)
 		{
-			mOriginForegroundSize = mForeground.getWindowSize();
 			mOriginForegroundPosition = mForeground.getPosition();
 			if(mBackground == null)
 			{
@@ -64,8 +67,7 @@ public class UGUISlider : ComponentOwner, ISlider
 	public override void resetProperty()
 	{
 		base.resetProperty();
-		// mScript不重置
-		//mScript = null;
+		mScript = null;
 		mBackground = null;
 		mForeground = null;
 		mThumb = null;

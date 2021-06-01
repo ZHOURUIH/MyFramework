@@ -18,4 +18,11 @@ public abstract class OBJECTS : OBJECT
 		}
 		return mRealSize;
 	}
+	public void checkIndex(int index)
+	{
+		if (index >= mElementCount)
+		{
+			logError("下标超出有效数据长度:index:" + IToS(index) + ", mElementCount:" + IToS(mElementCount));
+		}
+	}
 }

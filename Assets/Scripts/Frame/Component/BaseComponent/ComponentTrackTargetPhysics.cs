@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class ComponentTrackTargetPhysics : ComponentTrackTargetBase
+public class ComponentTrackTargetPhysics : ComponentTrackTarget
 {
 	public override void fixedUpdate(float elapsedTime)
 	{

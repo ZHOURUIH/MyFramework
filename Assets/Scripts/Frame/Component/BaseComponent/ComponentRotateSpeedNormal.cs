@@ -1,6 +1,6 @@
 ﻿using System;
 
-public class ComponentRotateSpeedNormal : ComponentRotateSpeedBase
+public class ComponentRotateSpeedNormal : ComponentRotateSpeed
 {
 	public override void update(float elapsedTime) 
 	{

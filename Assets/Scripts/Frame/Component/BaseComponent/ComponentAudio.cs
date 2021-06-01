@@ -4,7 +4,7 @@ public class ComponentAudio : GameComponent
 {
 	protected AudioSource mAudioSource;
 	protected string mAudioName;
-	public void setLoop(bool loop = false)
+	public void setLoop(bool loop)
 	{
 		mAudioManager.setLoop(mAudioSource, loop);
 	}

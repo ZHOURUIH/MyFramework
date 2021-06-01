@@ -4,10 +4,10 @@ using System.Collections.Generic;
 public class AudioManager : FrameSystem
 {
 	protected Dictionary<string, AudioInfo> mAudioClipList;     // 音效资源列表
-	protected Dictionary<int, string> mSoundDefineMap; // 音效定义与音效名的映射
-	protected Dictionary<int, float> mVolumeScale;
-	protected AssetLoadDoneCallback mAudioLoadCallback;
-	protected int mLoadedCount;
+	protected Dictionary<int, string> mSoundDefineMap;			// 音效定义与音效名的映射
+	protected Dictionary<int, float> mVolumeScale;				// 音量缩放表,记录每个音效的音量缩放值
+	protected AssetLoadDoneCallback mAudioLoadCallback;			// 单个音效文件加载完毕的回调,为了避免GC
+	protected int mLoadedCount;									// 音效已加载数量
 	public AudioManager()
 	{
 		mAudioClipList = new Dictionary<string, AudioInfo>();

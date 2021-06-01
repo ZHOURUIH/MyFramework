@@ -7,7 +7,7 @@ using UnityEngine;
 public abstract class WindowItem : GameBase
 {
 	protected LayoutScript mScript;
-	protected myUGUIObject mRoot;		// 需要在子类中被赋值
+	protected myUGUIObject mRoot;
 	public virtual void setScript(LayoutScript script) { mScript = script; }
 	public virtual void assignWindow(myUIObject parent, string name)
 	{

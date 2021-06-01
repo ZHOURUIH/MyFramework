@@ -29,12 +29,13 @@ namespace ILRuntime.Runtime.Generated
         {
             GameComponent_Binding.Register(app);
             UnityEngine_Vector3_Binding.Register(app);
-            FrameBase_Binding.Register(app);
+            FrameUtility_Binding.Register(app);
             MathUtility_Binding.Register(app);
             Transformable_Binding.Register(app);
             System_Type_Binding.Register(app);
             ComponentOwner_Binding.Register(app);
             GameBase_Binding.Register(app);
+            FrameBase_Binding.Register(app);
             GameFramework_Binding.Register(app);
             EventSystem_Binding.Register(app);
             CommandSystem_Binding.Register(app);
@@ -44,6 +45,7 @@ namespace ILRuntime.Runtime.Generated
             System_String_Binding.Register(app);
             FileUtility_Binding.Register(app);
             ClassObject_Binding.Register(app);
+            FrameSystem_Binding.Register(app);
             GameScene_Binding.Register(app);
             LT_Binding.Register(app);
             UnityUtility_Binding.Register(app);
@@ -53,7 +55,6 @@ namespace ILRuntime.Runtime.Generated
             CmdCharacterManagerDestroy_Binding.Register(app);
             System_Collections_Generic_List_1_FrameSystem_Binding.Register(app);
             System_DateTime_Binding.Register(app);
-            FrameSystem_Binding.Register(app);
             CommandReceiver_Binding.Register(app);
             System_TimeSpan_Binding.Register(app);
             System_Double_Binding.Register(app);

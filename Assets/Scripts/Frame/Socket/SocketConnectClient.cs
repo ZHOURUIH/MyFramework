@@ -6,9 +6,11 @@ using System.Collections.Generic;
 // 当前程序作为客户端时使用
 public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 {
-	protected DoubleBuffer<SocketPacket> mReceiveBuffer;
-	protected DoubleBuffer<byte[]> mOutputBuffer;       // 使用双缓冲提高发送消息的效率
+	protected DoubleBuffer<SocketPacket> mReceiveBuffer;		// 在主线程中执行的消息列表
+	protected List<SocketPacket> mThreadReceiveBuffer;			// 在子线程中执行的消息列表
+	protected DoubleBuffer<byte[]> mOutputBuffer;				// 使用双缓冲提高发送消息的效率
 	protected Queue<string> mReceivePacketHistory;
+	protected HashSet<ushort> mThreadPacketList;				// 标记需要在子线程中执行的消息类型列表
 	protected StreamBuffer mInputBuffer;
 	protected ThreadLock mConnectStateLock;
 	protected ThreadLock mSocketLock;
@@ -24,8 +26,10 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 	protected NET_STATE mNetState;
 	public SocketConnectClient()
 	{
-		mOutputBuffer = new DoubleBuffer<byte[]>();
+		mThreadReceiveBuffer = new List<SocketPacket>();
 		mReceiveBuffer = new DoubleBuffer<SocketPacket>();
+		mOutputBuffer = new DoubleBuffer<byte[]>();
+		mThreadPacketList = new HashSet<ushort>();
 		mReceiveThread = new MyThread("SocketReceive");
 		mSendThread = new MyThread("SocketSend");
 		mRecvBuff = new byte[8 * 1024];
@@ -47,6 +51,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 	public override void resetProperty()
 	{
 		base.resetProperty();
+		mThreadReceiveBuffer.Clear();
 		mReceiveBuffer.clear();
 		mOutputBuffer.clear();
 		mReceivePacketHistory.Clear();
@@ -240,6 +245,8 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		mHeartBeatTimes = 0;
 		mInputBuffer.clear();
 	}
+	// 标记指定类型的消息在子线程执行
+	public void addExecuteThreadPacket(ushort packetType) { mThreadPacketList.Add(packetType); }
 	//---------------------------------------------------------------------------------------------------------------------------------------
 	protected abstract bool checkPacketType(int type);
 	protected abstract void heartBeat();
@@ -387,7 +394,17 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 			mInputBuffer.clear();
 			return PARSE_RESULT.ERROR;
 		}
-		mReceiveBuffer.add(packetReply);
+		// 主线程执行的消息则放入消息缓冲区
+		if(!mThreadPacketList.Contains(packetReply.getPacketType()))
+		{
+			mReceiveBuffer.add(packetReply);
+		}
+		// 子线程的消息则直接执行
+		else
+		{
+			packetReply.execute();
+			mSocketFactoryThread.destroyPacket(packetReply);
+		}
 		mInputBuffer.removeData(0, index);
 		if (readDataCount != packetSize)
 		{

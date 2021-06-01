@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class ComponentTrackTargetBase : GameComponent, IComponentModifyPosition, IComponentBreakable
+public class ComponentTrackTarget : GameComponent, IComponentModifyPosition, IComponentBreakable
 {
 	protected TrackCallback mTrackingCallback;
 	protected TrackCallback mDoneCallback;

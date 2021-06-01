@@ -293,6 +293,9 @@ public class MathUtility : StringUtility
 	{
 		return (value & (value - 1)) == 0;
 	}
+	// 是否为偶数
+	// 对于a % b的计算,如果b为2的n次方,则a % b等效于a & (b - 1)
+	public static bool isEven(int value) { return (value & 1) == 0; }
 	public static float getNearest(float value, float p0, float p1)
 	{
 		return abs(value - p0) < abs(value - p1) ? p0 : p1;

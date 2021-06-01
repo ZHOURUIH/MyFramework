@@ -1555,6 +1555,10 @@ public class StringUtility : BinaryUtility
 	// returnEndIndex表示返回值是否是字符串结束的下一个字符的下标
 	public static int findFirstSubstr(string res, string pattern, int startPos = 0, bool returnEndIndex = false, bool sensitive = true)
 	{
+		if(res == null)
+		{
+			return -1;
+		}
 		if (!sensitive)
 		{
 			// 全转换为小写

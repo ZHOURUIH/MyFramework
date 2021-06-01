@@ -3,20 +3,12 @@
 public class CommandReceiver : FrameBase
 {
 	protected string mName;
-	public virtual void receiveCommand(Command cmd)
-	{
-		cmd.invokeStartCallBack();
-		cmd.setState(EXECUTE_STATE.EXECUTING);
-		cmd.execute();
-		cmd.setState(EXECUTE_STATE.EXECUTED);
-		cmd.invokeEndCallBack();
-	}
 	public override void resetProperty()
 	{
 		base.resetProperty();
 		mName = null;
 	}
-	public virtual string getName() { return mName; }
+	public string getName() { return mName; }
 	public virtual void setName(string name) { mName = name; }
 	public virtual void destroy()
 	{

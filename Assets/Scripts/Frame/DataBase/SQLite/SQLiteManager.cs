@@ -14,12 +14,21 @@ public class SQLiteManager : FrameSystem
 		mTableDataTypeList = new Dictionary<Type, SQLiteTable>();
 		mTableList = new Dictionary<Type, SQLiteTable>();
 	}
+	public override void resourceAvailable()
+	{
+		base.resourceAvailable();
+		// 资源更新完毕后需要将所有已经加载的表格重新加载一次
+		foreach(var item in mTableList)
+		{
+			item.Value.init(GameDefine.SQLITE_ENCRYPT_KEY);
+		}
+	}
 	public SQLiteTable registeTable(Type type, Type dataType, string tableName)
 	{
 		var table = createInstance<SQLiteTable>(type);
 		table.setTableName(tableName);
 		table.setDataType(dataType);
-		table.init(stringToBytes(GameDefine.SQLITE_ENCRYPT_KEY));
+		table.init(GameDefine.SQLITE_ENCRYPT_KEY);
 		mTableList.Add(Typeof(table), table);
 		mTableNameList.Add(tableName, table);
 		mTableDataTypeList.Add(dataType, table);
