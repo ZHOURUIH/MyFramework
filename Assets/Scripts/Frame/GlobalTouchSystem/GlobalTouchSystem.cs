@@ -10,7 +10,7 @@ public class GlobalTouchSystem : FrameSystem
 	protected HashSet<IMouseEventCollect> mAllObjectSet;        // 所有参与鼠标或触摸事件的窗口和物体列表
 	protected List<MouseCastWindowSet> mMouseCastWindowList;    // 所有窗口所对应的摄像机的列表,每个摄像机的窗口列表根据深度排序
 	protected List<MouseCastObjectSet> mMouseCastObjectList;    // 所有场景中物体所对应的摄像机的列表,每个摄像机的物体列表根据深度排序
-	protected IMouseEventCollect mHoverWindow;					// 鼠标当前悬停的窗口
+	protected List<IMouseEventCollect> mHoverWindowList;		// 鼠标当前悬停的窗口列表
 	protected MyTimer mStayTimer;								// 鼠标停留的计时器
 	protected Vector3 mLastMousePosition;						// 上一帧鼠标的位置
 	protected Vector3 mCurTouchPosition;                        // 在模拟触摸屏的条件下,当前触摸点
@@ -28,6 +28,7 @@ public class GlobalTouchSystem : FrameSystem
 		mMultiTouchWindowList = new Dictionary<IMouseEventCollect, MultiTouchInfo>();
 		mPassOnlyArea = new SafeDictionary<IMouseEventCollect, IMouseEventCollect>();
 		mParentPassOnlyList = new HashSet<IMouseEventCollect>();
+		mHoverWindowList = new List<IMouseEventCollect>();
 		mStayTimer = new MyTimer();
 		mSimulateTouch = true;
 		mUseHover = true;
@@ -56,7 +57,8 @@ public class GlobalTouchSystem : FrameSystem
 		}
 	}
 	public Vector3 getCurMousePosition() { return mSimulateTouch ? mCurTouchPosition : Input.mousePosition; }
-	public IMouseEventCollect getHoverWindow() { return mHoverWindow; }
+	public List<IMouseEventCollect> getHoverWindowList() { return mHoverWindowList; }
+	public IMouseEventCollect getTopHoverWindow() { return mHoverWindowList.Count > 0 ? mHoverWindowList[0] : null; }
 	public IMouseEventCollect getHoverWindow(ref Vector3 pos, IMouseEventCollect ignoreWindow = null, bool ignorePassRay = false)
 	{
 		// 返回最上层的窗口
@@ -298,14 +300,10 @@ public class GlobalTouchSystem : FrameSystem
 				checkHoverWindow(ref curMousePosition, true, curTouchID);
 				// 鼠标移动事件
 				Vector3 moveDelta = curMousePosition - mLastMousePosition;
-				mHoverWindow?.onMouseMove(curMousePosition, moveDelta, elapsedTime, curTouchID);
-				// 给鼠标按下时选中的所有窗口发送鼠标移动的消息
-				foreach(var item in mMouseDownWindowList)
+				int hoverCount = mHoverWindowList.Count;
+				for(int i = 0; i < hoverCount; ++i)
 				{
-					if (item != mHoverWindow)
-					{
-						item.onMouseMove(curMousePosition, moveDelta, elapsedTime, curTouchID);
-					}
+					mHoverWindowList[i].onMouseMove(curMousePosition, moveDelta, elapsedTime, curTouchID);
 				}
 				mLastMousePosition = curMousePosition;
 				// 如果在一个窗口上停留超过0.05秒没有移动,则触发停留在窗口上的事件
@@ -315,11 +313,11 @@ public class GlobalTouchSystem : FrameSystem
 			{
 				if (mStayTimer.tickTimer(elapsedTime))
 				{
-					mHoverWindow?.onMouseStay(curMousePosition, curTouchID);
-					// 给鼠标按下时选中的所有窗口发送鼠标移动的消息
-					foreach (var item in mMouseDownWindowList)
+					// 超过停留时间阈值时,通知当前悬停窗口鼠标停留
+					int hoverCount = mHoverWindowList.Count;
+					for (int i = 0; i < hoverCount; ++i)
 					{
-						item.onMouseStay(curMousePosition, curTouchID);
+						mHoverWindowList[i].onMouseStay(curMousePosition, curTouchID);
 					}
 				}
 			}
@@ -442,10 +440,7 @@ public class GlobalTouchSystem : FrameSystem
 		{
 			return;
 		}
-		if (mHoverWindow == obj)
-		{
-			mHoverWindow = null;
-		}
+		mHoverWindowList.Remove(obj);
 		if (obj is myUIObject)
 		{
 			int count = mMouseCastWindowList.Count;
@@ -784,34 +779,37 @@ public class GlobalTouchSystem : FrameSystem
 	}
 	protected void checkHoverWindow(ref Vector3 mousePos, bool mouseDown, int touchID)
 	{
-		IMouseEventCollect newWindow = null;
+		LIST_MAIN(out List<IMouseEventCollect> hoverList);
 		// 模拟触摸状态下,如果鼠标未按下,则不会悬停在任何窗口上
 		if (mouseDown || !mSimulateTouch)
 		{
 			// 计算鼠标当前所在最前端的窗口
-			newWindow = getHoverWindow(ref mousePos);
+			getAllHoverWindow(hoverList, ref mousePos);
 		}
-		// 判断鼠标是否还在当前窗口内
-		if (mHoverWindow != null)
+
+		// 判断鼠标是否还在当前窗口内,鼠标已经移动到了其他窗口中,发送鼠标离开的事件
+		int oldCount = mHoverWindowList.Count;
+		for(int i = 0; i < oldCount; ++i)
 		{
-			// 鼠标已经移动到了其他窗口中,发送鼠标离开的事件
-			if (newWindow != mHoverWindow)
+			IMouseEventCollect window = mHoverWindowList[i];
+			if (!hoverList.Contains(window))
 			{
 				// 不过也许此时悬停窗口已经不接收输入事件了或者碰撞盒子被禁用了,需要判断一下
-				if (mHoverWindow.isActive() && mHoverWindow.isHandleInput())
+				if (window.isActive() && window.isHandleInput())
 				{
-					mHoverWindow.onMouseLeave(touchID);
+					window.onMouseLeave(touchID);
 				}
-				// 找到鼠标所在的新的窗口,给该窗口发送鼠标进入的事件
-				newWindow?.onMouseEnter(touchID);
 			}
 		}
-		// 如果上一帧鼠标没有在任何窗口内,则计算这一帧鼠标所在的窗口
-		else
+
+		// 给窗口发送鼠标进入的事件 
+		int newCount = hoverList.Count;
+		for (int i = 0; i < newCount; ++i)
 		{
-			// 发送鼠标进入的事件
-			newWindow?.onMouseEnter(touchID);
+			hoverList[i].onMouseEnter(touchID);
 		}
-		mHoverWindow = newWindow;
+		mHoverWindowList.Clear();
+		mHoverWindowList.AddRange(hoverList);
+		UN_LIST_MAIN(hoverList);
 	}
 }

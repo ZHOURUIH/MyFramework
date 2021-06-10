@@ -110,7 +110,7 @@ public class LT : FrameBase
 		CMD_MAIN(out CmdLayoutManagerVisible cmd, true);
 		cmd.mLayoutID = id;
 		cmd.mForce = false;
-		cmd.mVisibility = visible;
+		cmd.mVisible = visible;
 		cmd.mImmediately = immediately;
 		cmd.mParam = param;
 		pushCommand(cmd, mLayoutManager);
@@ -120,7 +120,7 @@ public class LT : FrameBase
 		CMD_MAIN(out CmdLayoutManagerVisible cmd, true);
 		cmd.mLayoutID = id;
 		cmd.mForce = true;
-		cmd.mVisibility = visible;
+		cmd.mVisible = visible;
 		cmd.mImmediately = false;
 		pushCommand(cmd, mLayoutManager);
 	}
@@ -153,7 +153,7 @@ public class LT : FrameBase
 		CMD_MAIN_DELAY(out CmdLayoutManagerVisible cmd, true);
 		cmd.mLayoutID = id;
 		cmd.mForce = false;
-		cmd.mVisibility = visible;
+		cmd.mVisible = visible;
 		cmd.mImmediately = immediately;
 		cmd.mParam = param;
 		cmd.addStartCommandCallback(start);
@@ -165,7 +165,7 @@ public class LT : FrameBase
 		CMD_MAIN_DELAY(out CmdLayoutManagerVisible cmd, true);
 		cmd.mLayoutID = type;
 		cmd.mForce = true;
-		cmd.mVisibility = visible;
+		cmd.mVisible = visible;
 		cmd.mImmediately = false;
 		pushDelayCommand(cmd, mLayoutManager, delayTime, watcher);
 		return cmd;

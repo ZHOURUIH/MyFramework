@@ -186,10 +186,7 @@ public class ILRLaunchFrame : FrameBase
 		});
 		delegateManager.RegisterDelegateConvertor<OnReceiveDrag>((action) =>
 		{
-			return new OnReceiveDrag((IMouseEventCollect dragObj, BOOL continueEvent) =>
-			{
-				((Action<IMouseEventCollect, BOOL>)action)(dragObj, continueEvent);
-			});
+			return new OnReceiveDrag((dragObj, continueEvent) => { ((Action<IMouseEventCollect, BOOL>)action)(dragObj, continueEvent); });
 		});
 		delegateManager.RegisterDelegateConvertor<OnDragHover>((action) =>
 		{
@@ -213,10 +210,7 @@ public class ILRLaunchFrame : FrameBase
 		});
 		delegateManager.RegisterDelegateConvertor<OnMouseMove>((action) =>
 		{
-			return new OnMouseMove((Vector3 mousePos, Vector3 moveDelta, float moveTime, int touchID) =>
-			{
-				((Action<Vector3, Vector3, float>)action)(mousePos, moveDelta, moveTime);
-			});
+			return new OnMouseMove((mousePos, moveDelta, moveTime, touchID) => { ((Action<Vector3, Vector3, float>)action)(mousePos, moveDelta, moveTime); });
 		});
 		delegateManager.RegisterDelegateConvertor<OnMouseStay>((action) =>
 		{

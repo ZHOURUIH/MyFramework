@@ -1227,26 +1227,79 @@ public class UnityUtility : FileUtility
         return render.sharedMaterial;
 #endif
 	}
-	// 自动排列一个节点下的所有子节点的位置,从上往下紧密排列
+	// 从左上角开始排列子节点,每行的数量固定,并且会改变子节点的大小
+	public static void autoGrid(myUGUIObject root, int columnCount, Vector2 gridSize, Vector2 interval, bool resizeRootSize = true)
+	{
+		RectTransform transform = root.getRectTransform();
+		// 先找出所有激活的子节点
+		FrameUtility.LIST_MAIN(out List<RectTransform> childList);
+		int childCount = transform.childCount;
+		for (int i = 0; i < childCount; ++i)
+		{
+			var childRect = transform.GetChild(i).GetComponent<RectTransform>();
+			if (childRect.gameObject.activeSelf)
+			{
+				childList.Add(childRect);
+			}
+		}
+
+		// 计算父节点大小
+		Vector2 rootSize = root.getWindowSize();
+		int activeChildCount = childList.Count;
+		if (resizeRootSize)
+		{
+			int lineCount = ceil(activeChildCount / (float)columnCount);
+			if(lineCount == 1)
+			{
+				rootSize.x = activeChildCount * gridSize.x + (activeChildCount - 1) * interval.x;
+			}
+			else
+			{
+				rootSize.x = columnCount * gridSize.x + (columnCount - 1) * interval.x;
+			}
+			rootSize.y = lineCount * gridSize.y + (lineCount - 1) * interval.y;
+			root.setWindowSize(rootSize);
+		}
+
+		// 计算子节点坐标,始终让子节点位于父节点的矩形范围内,并且会考虑父节点的pivot
+		Vector2 posOffset = new Vector2(-rootSize.x * transform.pivot.x, rootSize.y * (1.0f - transform.pivot.y));
+		for (int i = 0; i < activeChildCount; ++i)
+		{
+			RectTransform child = childList[i];
+			int indexX = i % columnCount;
+			int indexY = i / columnCount;
+			child.localPosition = new Vector2(gridSize.x * 0.5f + indexX * gridSize.x + indexX * interval.x, 
+											  -gridSize.y * 0.5f - indexY * gridSize.y - indexY * interval.y) + posOffset;
+			WidgetUtility.setRectSize(child, gridSize, false);
+		}
+		FrameUtility.UN_LIST_MAIN(childList);
+	}
+	// 自动排列一个节点下的所有子节点的位置,从上往下紧密排列,并且不改变子节点的大小
 	public static void autoGridVertical(myUGUIObject root, float interval = 0.0f, bool resizeRootSize = true, float minHeight = 0.0f)
 	{
 		RectTransform transform = root.getRectTransform();
+		// 先找出所有激活的子节点
+		FrameUtility.LIST_MAIN(out List<RectTransform> childList);
 		int childCount = transform.childCount;
-		Vector2 rootSize = root.getWindowSize();
+		for (int i = 0; i < childCount; ++i)
+		{
+			var childRect = transform.GetChild(i).GetComponent<RectTransform>();
+			if (childRect.gameObject.activeSelf)
+			{
+				childList.Add(childRect);
+			}
+		}
+
 		// 如果要同时修改root的窗口大小为排列以后的内容大小，则需要提前获取内容排列后的宽高
+		Vector2 rootSize = root.getWindowSize();
 		if (resizeRootSize)
 		{
 			float height = 0.0f;
-			for (int i = 0; i < childCount; ++i)
+			for (int i = 0; i < childList.Count; ++i)
 			{
-				RectTransform childRect = transform.GetChild(i).GetComponent<RectTransform>();
-				if (!childRect.gameObject.activeSelf)
-				{
-					continue;
-				}
-				height += childRect.rect.height;
+				height += childList[i].rect.height;
 				// 最后一个子节点后不再添加间隔
-				if (i != childCount - 1)
+				if (i != childList.Count - 1)
 				{
 					height += interval;
 				}
@@ -1254,44 +1307,49 @@ public class UnityUtility : FileUtility
 			rootSize.y = clampMin(height, minHeight);
 			root.setWindowSize(rootSize);
 		}
+
+		// 计算子节点坐标
 		float currentTop = rootSize.y * (1.0f - transform.pivot.y);
-		for (int i = 0; i < childCount; ++i)
+		for (int i = 0; i < childList.Count; ++i)
 		{
-			RectTransform childRect = transform.GetChild(i).GetComponent<RectTransform>();
-			if (!childRect.gameObject.activeSelf)
-			{
-				continue;
-			}
+			RectTransform childRect = childList[i];
 			float curHeight = childRect.rect.height;
 			childRect.localPosition = new Vector3(childRect.localPosition.x, currentTop - curHeight * 0.5f);
 			currentTop -= curHeight;
 			// 最后一个子节点后不再添加间隔
-			if (i != childCount - 1)
+			if (i != childList.Count - 1)
 			{
 				currentTop -= interval;
 			}
 		}
+		FrameUtility.UN_LIST_MAIN(childList);
 	}
-	// 自动排列一个节点下的所有子节点的位置,从左往右紧密排列
+	// 自动排列一个节点下的所有子节点的位置,从左往右紧密排列,并且不改变子节点的大小
 	public static void autoGridHorizontal(myUGUIObject root, float interval = 0.0f, bool resizeRootSize = true, float minWidth = 0.0f)
 	{
 		RectTransform transform = root.getRectTransform();
+		// 先找出所有激活的子节点
+		FrameUtility.LIST_MAIN(out List<RectTransform> childList);
 		int childCount = transform.childCount;
-		Vector2 rootSize = root.getWindowSize();
+		for (int i = 0; i < childCount; ++i)
+		{
+			var childRect = transform.GetChild(i).GetComponent<RectTransform>();
+			if (childRect.gameObject.activeSelf)
+			{
+				childList.Add(childRect);
+			}
+		}
+
 		// 如果要同时修改root的窗口大小为排列以后的内容大小，则需要提前获取内容排列后的宽高
+		Vector2 rootSize = root.getWindowSize();
 		if (resizeRootSize)
 		{
 			float width = 0.0f;
-			for (int i = 0; i < childCount; ++i)
+			for (int i = 0; i < childList.Count; ++i)
 			{
-				RectTransform childRect = transform.GetChild(i).GetComponent<RectTransform>();
-				if (!childRect.gameObject.activeSelf)
-				{
-					continue;
-				}
-				width += childRect.rect.width;
+				width += childList[i].rect.width;
 				// 最后一个子节点后不再添加间隔
-				if (i != childCount - 1)
+				if (i != childList.Count - 1)
 				{
 					width += interval;
 				}
@@ -1299,19 +1357,17 @@ public class UnityUtility : FileUtility
 			rootSize.x = clampMin(width, minWidth);
 			root.setWindowSize(rootSize);
 		}
+
+		// 计算子节点坐标
 		float currentLeft = rootSize.x * transform.pivot.x;
-		for (int i = 0; i < childCount; ++i)
+		for (int i = 0; i < childList.Count; ++i)
 		{
-			RectTransform childRect = transform.GetChild(i).GetComponent<RectTransform>();
-			if (!childRect.gameObject.activeSelf)
-			{
-				continue;
-			}
+			RectTransform childRect = childList[i];
 			float curWidth = childRect.rect.width;
 			childRect.localPosition = new Vector3(currentLeft + curWidth * 0.5f, childRect.localPosition.y);
 			currentLeft += curWidth;
 			// 最后一个子节点后不再添加间隔
-			if (i != childCount - 1)
+			if (i != childList.Count - 1)
 			{
 				currentLeft += interval;
 			}

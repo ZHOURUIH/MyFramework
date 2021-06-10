@@ -226,8 +226,6 @@ public class GameLayout : FrameBase
 		{
 			return;
 		}
-		// 通知布局管理器布局显示或隐藏
-		mLayoutManager.notifyLayoutVisible(visible, this);
 		// 设置布局显示或者隐藏时需要先通知脚本开始显示或隐藏
 		mScript.notifyStartShowOrHide();
 		// 显示布局时立即显示
@@ -254,7 +252,6 @@ public class GameLayout : FrameBase
 		{
 			return;
 		}
-		mLayoutManager.notifyLayoutVisible(visible, this);
 		// 直接设置布局显示或隐藏
 		mRoot.setActive(visible);
 	}

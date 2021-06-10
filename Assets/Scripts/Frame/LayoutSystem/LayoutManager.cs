@@ -11,10 +11,11 @@ public class LayoutManager : FrameSystem
 	protected Dictionary<int, string> mLayoutTypeToPath;
 	protected Dictionary<string, int> mLayoutPathToType;
 	protected Dictionary<int, Type> mScriptRegisteList;
-	protected List<GameLayout> mBackBlurLayoutList;         // 需要背景模糊的布局的列表
-	protected AssetLoadDoneCallback mLayoutLoadCallback;    // 保存回调变量,避免GC
-	protected myUGUICanvas mUGUIRoot;                       // 所有UI的根节点
-	protected bool mUseAnchor;                              // 是否启用锚点来自动调节窗口的大小和位置
+	protected List<GameLayout> mBackBlurLayoutList;             // 需要背景模糊的布局的列表
+	protected COMLayoutManagerEscHide mCOMEscHide;				// Esc按键事件传递逻辑的组件
+	protected AssetLoadDoneCallback mLayoutLoadCallback;		// 保存回调变量,避免GC
+	protected myUGUICanvas mUGUIRoot;							// 所有UI的根节点
+	protected bool mUseAnchor;									// 是否启用锚点来自动调节窗口的大小和位置
 	public LayoutManager()
 	{
 		mUseAnchor = true;
@@ -32,8 +33,13 @@ public class LayoutManager : FrameSystem
 	public new Canvas getUGUIRootComponent() { return mUGUIRoot.getCanvas(); }
 	public myUIObject getUIRoot() { return mUGUIRoot; }
 	public GameObject getRootObject() { return mUGUIRoot?.getObject(); }
+	public void notifyLayoutRenderOrder(GameLayout layout)
+	{
+		mCOMEscHide.notifyLayoutRenderOrder();
+	}
 	public void notifyLayoutVisible(bool visible, GameLayout layout)
 	{
+		mCOMEscHide.notifyLayoutVisible(visible, layout);
 		if (visible)
 		{
 			if (layout.isBlurBack())
@@ -99,6 +105,7 @@ public class LayoutManager : FrameSystem
 	}
 	public override void destroy()
 	{
+		mInputSystem.unlistenKey(this);
 		var updateList = mLayoutList.startForeach();
 		foreach (var item in updateList)
 		{
@@ -202,6 +209,7 @@ public class LayoutManager : FrameSystem
 		{
 			return;
 		}
+		mCOMEscHide.notifyLayoutDestroy(layout);
 		mLayoutList.remove(id);
 		layout.destroy();
 	}
@@ -269,6 +277,11 @@ public class LayoutManager : FrameSystem
 		return maxOrder;
 	}
 	//-----------------------------------------------------------------------------------------------------------------
+	protected override void initComponents()
+	{
+		base.initComponents();
+		mCOMEscHide = addComponent(typeof(COMLayoutManagerEscHide)) as COMLayoutManagerEscHide;
+	}
 	protected void onLayoutPrefabLoaded(UnityEngine.Object asset, UnityEngine.Object[] subAssets, byte[] bytes, object userData, string loadPath)
 	{
 		LayoutInfo info = mLayoutAsyncList[asset.name];

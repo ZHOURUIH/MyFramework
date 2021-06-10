@@ -26,6 +26,7 @@ public abstract class LayoutScript : IDelayCmdWatcher
 		mLayout = layout;
 		mID = mLayout.getID(); 
 	}
+	public virtual bool onESCDown() { return false; }
 	public bool isNeedUpdate() { return mNeedUpdate; }
 	public bool isVisible() { return mLayout.isVisible(); }
 	public int getID() { return mID; }

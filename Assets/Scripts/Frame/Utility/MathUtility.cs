@@ -2689,49 +2689,52 @@ public class MathUtility : StringUtility
 		}
 		int originCount = originPoint.Count;
 		int middleCount = loop ? originCount : originCount - 1;
-		List<Vector3> midpoints = new List<Vector3>(middleCount);
+		FrameUtility.LIST_MAIN(out List<Vector3> midPoints);
+		midPoints.Capacity = middleCount;
 		// 生成中点       
 		for (int i = 0; i < middleCount; ++i)
 		{
-			midpoints.Add((originPoint[i] + originPoint[(i + 1) % originCount]) * 0.5f);
+			midPoints.Add((originPoint[i] + originPoint[(i + 1) % originCount]) * 0.5f);
 		}
 
 		// 平移中点,计算每个顶点的两个控制点
-		List<Vector3> extrapoints = new List<Vector3>(2 * originCount);
+		FrameUtility.LIST_MAIN(out List<Vector3> extraPoints);
+		extraPoints.Capacity = 2 * originCount;
 		for (int i = 0; i < originCount; ++i)
 		{
 			if (!loop)
 			{
 				if (i == 0)
 				{
-					extrapoints[0] = originPoint[0];
-					extrapoints[1] = originPoint[0];
+					extraPoints[0] = originPoint[0];
+					extraPoints[1] = originPoint[0];
 				}
 				else if (i == originCount - 1)
 				{
-					extrapoints[i * 2 + 0] = originPoint[originCount - 1];
-					extrapoints[i * 2 + 1] = originPoint[originCount - 1];
+					extraPoints[i * 2 + 0] = originPoint[originCount - 1];
+					extraPoints[i * 2 + 1] = originPoint[originCount - 1];
 				}
 				else
 				{
-					Vector3 midinmid = (midpoints[i] + midpoints[i - 1]) * 0.5f;
+					Vector3 midinmid = (midPoints[i] + midPoints[i - 1]) * 0.5f;
 					// 朝 originPoint[i]方向收缩
-					extrapoints[2 * i + 0] = originPoint[i] + (midpoints[i - 1] - midinmid) * scale;
+					extraPoints[2 * i + 0] = originPoint[i] + (midPoints[i - 1] - midinmid) * scale;
 					// 朝 originPoint[i]方向收缩
-					extrapoints[2 * i + 1] = originPoint[i] + (midpoints[i] - midinmid) * scale;
+					extraPoints[2 * i + 1] = originPoint[i] + (midPoints[i] - midinmid) * scale;
 
 				}
 			}
 			else
 			{
 				int backi = (i + originCount - 1) % originCount;
-				Vector3 midinmid = (midpoints[i] + midpoints[backi]) * 0.5f;
+				Vector3 midinmid = (midPoints[i] + midPoints[backi]) * 0.5f;
 				// 朝 originPoint[i]方向收缩
-				extrapoints[2 * i + 0] = originPoint[i] + (midpoints[backi] - midinmid) * scale;
+				extraPoints[2 * i + 0] = originPoint[i] + (midPoints[backi] - midinmid) * scale;
 				// 朝 originPoint[i]方向收缩
-				extrapoints[2 * i + 1] = originPoint[i] + (midpoints[i] - midinmid) * scale;
+				extraPoints[2 * i + 1] = originPoint[i] + (midPoints[i] - midinmid) * scale;
 			}
 		}
+		FrameUtility.UN_LIST_MAIN(midPoints);
 
 		int bezierCount = loop ? originCount : originCount - 1;
 		float step = 1 / (float)(detail - 1);
@@ -2739,8 +2742,8 @@ public class MathUtility : StringUtility
 		for (int i = 0; i < bezierCount; ++i)
 		{
 			mTempControlPoint[0] = originPoint[i];
-			mTempControlPoint[1] = extrapoints[2 * i + 1];
-			mTempControlPoint[2] = extrapoints[2 * (i + 1) % extrapoints.Count];
+			mTempControlPoint[1] = extraPoints[2 * i + 1];
+			mTempControlPoint[2] = extraPoints[2 * (i + 1) % extraPoints.Count];
 			mTempControlPoint[3] = originPoint[(i + 1) % originCount];
 			for (int j = 0; j < detail; ++j)
 			{
@@ -2752,6 +2755,7 @@ public class MathUtility : StringUtility
 				}
 			}
 		}
+		FrameUtility.UN_LIST_MAIN(extraPoints);
 	}
 	public static uint generateGUID()
 	{

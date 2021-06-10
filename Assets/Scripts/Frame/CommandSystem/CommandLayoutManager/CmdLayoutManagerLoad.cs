@@ -42,7 +42,10 @@ public class CmdLayoutManagerLoad : Command
 		// 顺序有改变,则设置最新的顺序
 		if (layout.getRenderOrder() != renderOrder)
 		{
-			layout.setRenderOrder(renderOrder);
+			CMD_MAIN(out CmdLayoutManagerRenderOrder cmd);
+			cmd.mLayoutID = mLayoutID;
+			cmd.mRenderOrder = renderOrder;
+			pushCommand(cmd, mLayoutManager);
 		}
 		if (mVisible)
 		{
@@ -53,6 +56,8 @@ public class CmdLayoutManagerLoad : Command
 		{
 			layout.setVisibleForce(mVisible);
 		}
+		// 通知布局管理器布局显示或隐藏
+		mLayoutManager.notifyLayoutVisible(mVisible, layout);
 	}
 	public override void showDebugInfo(MyStringBuilder builder)
 	{

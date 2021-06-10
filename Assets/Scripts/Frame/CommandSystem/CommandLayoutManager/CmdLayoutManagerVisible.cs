@@ -5,7 +5,7 @@ public class CmdLayoutManagerVisible : Command
 	public string mParam;
 	public int mLayoutID;
 	public bool mImmediately;
-	public bool mVisibility;
+	public bool mVisible;
 	public bool mForce;
 	public override void resetProperty()
 	{
@@ -14,7 +14,7 @@ public class CmdLayoutManagerVisible : Command
 		mParam = null;
 		mForce = false;
 		mImmediately = false;
-		mVisibility = true;
+		mVisible = true;
 	}
 	public override void execute()
 	{
@@ -25,27 +25,32 @@ public class CmdLayoutManagerVisible : Command
 		}
 		// 自动计算渲染顺序的布局在显示时,需要重新计算当前渲染顺序
 		LAYOUT_ORDER orderType = layout.getRenderOrderType();
-		if (mVisibility && (orderType == LAYOUT_ORDER.ALWAYS_TOP_AUTO || orderType == LAYOUT_ORDER.AUTO))
+		if (mVisible && (orderType == LAYOUT_ORDER.ALWAYS_TOP_AUTO || orderType == LAYOUT_ORDER.AUTO))
 		{
 			int renderOrder = mLayoutManager.generateRenderOrder(layout, layout.getRenderOrder(), orderType);
-			if (renderOrder != layout.getRenderOrder())
+			if (layout.getRenderOrder() != renderOrder)
 			{
-				layout.setRenderOrder(renderOrder);
+				CMD_MAIN(out CmdLayoutManagerRenderOrder cmd);
+				cmd.mLayout = layout;
+				cmd.mRenderOrder = renderOrder;
+				pushCommand(cmd, mLayoutManager);
 			}
 		}
 		if (!mForce)
 		{
-			layout.setVisible(mVisibility, mImmediately, mParam);
+			layout.setVisible(mVisible, mImmediately, mParam);
 		}
 		else
 		{
-			layout.setVisibleForce(mVisibility);
+			layout.setVisibleForce(mVisible);
 		}
+		// 通知布局管理器布局显示或隐藏
+		mLayoutManager.notifyLayoutVisible(mVisible, layout);
 	}
 	public override void showDebugInfo(MyStringBuilder builder)
 	{
 		builder.Append(": mLayoutID:", mLayoutID).
-				Append(", mVisibility:", mVisibility).
+				Append(", mVisible:", mVisible).
 				Append(", mForce:", mForce).
 				Append(", mImmediately:", mImmediately).
 				Append(", mParam:", mParam);
