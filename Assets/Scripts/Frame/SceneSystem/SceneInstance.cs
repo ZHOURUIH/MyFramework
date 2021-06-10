@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 
 public class SceneInstance : FrameBase
 {
-	public SceneLoadCallback mLoadCallback;
+	public Action<float, bool> mLoadCallback;
 	public AsyncOperation mOperation;
 	public GameObject mRoot;
 	public Scene mScene;

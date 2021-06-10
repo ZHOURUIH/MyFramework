@@ -8,7 +8,6 @@ public class SceneSystem : FrameSystem
 {
 	protected Dictionary<string, SceneRegisteInfo> mSceneRegisteList;
 	protected Dictionary<string, SceneInstance> mSceneList;
-	protected List<SceneLoadCallback> mDirectLoadCallback;  // 请求加载已经加载的场景时的回调,因为这些回调需要延迟一帧调用,所以放入列表中再调用
 	protected List<SceneInstance> mLoadList;
 	protected AssetBundleLoadCallback mSceneLoadCallback;
 	protected WaitForEndOfFrame mWaitEndFrame;
@@ -17,7 +16,6 @@ public class SceneSystem : FrameSystem
 		mSceneList = new Dictionary<string, SceneInstance>();
 		mSceneRegisteList = new Dictionary<string, SceneRegisteInfo>();
 		mLoadList = new List<SceneInstance>();
-		mDirectLoadCallback = new List<SceneLoadCallback>();
 		mWaitEndFrame = new WaitForEndOfFrame();
 		mSceneLoadCallback = onSceneAssetBundleLoaded;
 	}
@@ -33,13 +31,6 @@ public class SceneSystem : FrameSystem
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		if (mDirectLoadCallback.Count > 0)
-		{
-			// 只调用列表中第一个回调,避免回调中再次对该列表进行修改,且需要在列表中移除后再调用
-			SceneLoadCallback callback = mDirectLoadCallback[0];
-			mDirectLoadCallback.RemoveAt(0);
-			callback(1.0f, true);
-		}
 		// 场景AssetBundle加载完毕时才开始加载场景
 		for (int i = 0; i < mLoadList.Count; ++i)
 		{
@@ -139,7 +130,7 @@ public class SceneSystem : FrameSystem
 	}
 	// 目前只支持异步加载,因为SceneManager.LoadScene并不是真正地同步加载
 	// 该方法只能保证在这一帧结束后场景能加载完毕,但是函数返回后场景并没有加载完毕
-	public void loadSceneAsync(string sceneName, bool active, SceneLoadCallback callback)
+	public void loadSceneAsync(string sceneName, bool active, Action<float, bool> callback)
 	{
 		// 如果场景已经加载,则直接返回
 		if (mSceneList.ContainsKey(sceneName))
@@ -147,7 +138,11 @@ public class SceneSystem : FrameSystem
 			showScene(sceneName);
 			if (callback != null)
 			{
-				mDirectLoadCallback.Add(callback);
+				CMD_MAIN(out CmdGlobalDelayCallParam2<float, bool> cmdDelay);
+				cmdDelay.mFunction = callback;
+				cmdDelay.mParam0 = 1.0f;
+				cmdDelay.mParam1 = true;
+				pushDelayCommand(cmdDelay, mGlobalCmdReceiver);
 			}
 			return;
 		}
