@@ -112,7 +112,7 @@ public abstract class ComponentOwner : CommandReceiver
 			logError("there is com : " + type);
 			return null;
 		}
-		var com = CLASS_MAIN(type) as GameComponent;
+		var com = CLASS(type) as GameComponent;
 		if (com == null)
 		{
 			return null;
