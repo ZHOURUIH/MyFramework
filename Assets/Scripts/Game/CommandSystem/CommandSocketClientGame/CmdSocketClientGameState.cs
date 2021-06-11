@@ -1,6 +1,6 @@
 ﻿using System;
 
-public class CommandSocketClientGameState : Command
+public class CmdSocketClientGameState : Command
 {
 	public NET_STATE mNetState;
 	public override void resetProperty()
