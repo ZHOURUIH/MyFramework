@@ -7,7 +7,9 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEditor.Callbacks;
+#if USE_ILRUNTIME
 using ILRuntime.Runtime.Enviorment;
+#endif
 
 public class ClassInfo
 {
@@ -99,7 +101,9 @@ public class EditorMenu : EditorCommonUtility
 		ignoreBaseClass.Add(typeof(myUIObject));
 		ignoreBaseClass.Add(typeof(FrameSystem));
 		ignoreBaseClass.Add(typeof(SocketPacket));
+#if USE_ILRUNTIME
 		ignoreBaseClass.Add(typeof(CrossBindingAdaptorType));
+#endif
 		// 获取到类型
 		Type[] types = assemly.GetTypes();
 		for (int i = 0; i < types.Length; ++i)
