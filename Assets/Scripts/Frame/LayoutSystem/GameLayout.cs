@@ -105,7 +105,7 @@ public class GameLayout : FrameBase
 			Vector3 size = getRectSize(rectTransform);
 			rectTransform.anchorMin = Vector2.one * 0.5f;
 			rectTransform.anchorMax = Vector2.one * 0.5f;
-			setRectSize(rectTransform, new Vector2(GameDefine.STANDARD_WIDTH, GameDefine.STANDARD_HEIGHT), false);
+			setRectSize(rectTransform, new Vector2(FrameDefineExtra.STANDARD_WIDTH, FrameDefineExtra.STANDARD_HEIGHT), false);
 		}
 
 		mRoot.setDestroyImmediately(true);

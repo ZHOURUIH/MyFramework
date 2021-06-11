@@ -38,12 +38,12 @@ public class AnchorMenu
 		// 恢复摄像机设置
 		GameObject uguiRootObj = UnityUtility.getGameObject(FrameDefine.UGUI_ROOT);
 		RectTransform transform = uguiRootObj.GetComponent<RectTransform>();
-		transform.offsetMin = new Vector2(-GameDefine.STANDARD_WIDTH * 0.5f, -GameDefine.STANDARD_HEIGHT * 0.5f);
-		transform.offsetMax = new Vector2(GameDefine.STANDARD_WIDTH * 0.5f, GameDefine.STANDARD_HEIGHT * 0.5f);
+		transform.offsetMin = new Vector2(-FrameDefineExtra.STANDARD_WIDTH * 0.5f, -FrameDefineExtra.STANDARD_HEIGHT * 0.5f);
+		transform.offsetMax = new Vector2(FrameDefineExtra.STANDARD_WIDTH * 0.5f, FrameDefineExtra.STANDARD_HEIGHT * 0.5f);
 		transform.anchorMax = Vector2.zero;
 		transform.anchorMin = Vector2.zero;
 		GameObject uguiCamera = UnityUtility.getGameObject(FrameDefine.UI_CAMERA, uguiRootObj, true);
-		uguiCamera.transform.localPosition = new Vector3(0.0f, 0.0f, -GameDefine.STANDARD_HEIGHT * 0.5f);
+		uguiCamera.transform.localPosition = new Vector3(0.0f, 0.0f, -FrameDefineExtra.STANDARD_HEIGHT * 0.5f);
 	}
 	[MenuItem(mAutoAnchorMenuName + mPaddingAnchorMenuName + "AddAnchor")]
 	public static void addPaddingAnchor()

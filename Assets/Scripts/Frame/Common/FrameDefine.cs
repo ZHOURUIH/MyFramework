@@ -197,4 +197,5 @@ public class FrameDefine
 	public const string LAYER_UI = "UI";
 	public const string LAYER_UI_BLUR = "UIBlur";
 	public const string LAYER_DEFAULT = "Default";
+	public const string LAYER_UGUI = "UGUI";
 }

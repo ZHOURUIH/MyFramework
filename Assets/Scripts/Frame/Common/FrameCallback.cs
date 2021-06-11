@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using RenderHeads.Media.AVProVideo;
 using LitJson;
+#if USE_ILRUNTIME
 using ILRAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
+#endif
 
 // 游戏委托定义-------------------------------------------------------------------------------------------------------------
 public delegate void OnLog(string time, string info, LOG_LEVEL level, bool isError);

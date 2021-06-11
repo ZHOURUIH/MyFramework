@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 // 管理类初始化完成调用
 // 这个父类的添加是方便代码的书写
@@ -17,6 +16,11 @@ public class GameBase : FrameBase
 	{
 		base.notifyConstructDone();
 		mGame = mGameFramework as Game;
-		mBattleSystem = mGame.getSystem(typeof(BattleSystem)) as BattleSystem;
+		getMainSystem(out mBattleSystem);
+	}
+	//-----------------------------------------------------------------------------------------------------------------------------------------------
+	protected void getMainSystem<T>(out T system) where T : FrameSystem
+	{
+		system = mGame.getSystem(typeof(T)) as T;
 	}
 }

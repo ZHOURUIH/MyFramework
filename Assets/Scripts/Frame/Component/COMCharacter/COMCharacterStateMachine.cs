@@ -285,7 +285,7 @@ public class COMCharacterStateMachine : GameComponent
 	protected PlayerState createState(Type type, StateParam param, uint id = 0)
 	{
 		// 用对象池的方式创建状态对象
-		var state = CLASS_MAIN(type) as PlayerState;
+		var state = CLASS(type) as PlayerState;
 		state.setParam(param);
 		if (id == 0)
 		{

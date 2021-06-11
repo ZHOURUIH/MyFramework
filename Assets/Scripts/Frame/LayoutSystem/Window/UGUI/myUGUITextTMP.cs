@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#if USE_TMP
+using UnityEngine;
 using System.Collections;
 using TMPro;
 
@@ -48,3 +49,4 @@ public class myUGUITextTMP : myUGUIObject
 	public TMP_FontAsset getFont() { return mText.font; }
 	public void setAlignment(TextAlignmentOptions textAnchor) { mText.alignment = textAnchor; }
 }
+#endif

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
+// 用来代替UGUI的EventSystem,统一多摄像机的鼠标事件通知
 public class GlobalTouchSystem : FrameSystem
 {
 	protected Dictionary<IMouseEventCollect, MultiTouchInfo> mMultiTouchWindowList;         // 当前已经被多点触控的窗口列表

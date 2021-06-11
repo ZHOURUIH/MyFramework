@@ -20,7 +20,7 @@ public class SQLiteManager : FrameSystem
 		// 资源更新完毕后需要将所有已经加载的表格重新加载一次
 		foreach(var item in mTableList)
 		{
-			item.Value.init(GameDefine.SQLITE_ENCRYPT_KEY);
+			item.Value.init(FrameDefineExtra.SQLITE_ENCRYPT_KEY);
 		}
 	}
 	public SQLiteTable registeTable(Type type, Type dataType, string tableName)
@@ -28,7 +28,7 @@ public class SQLiteManager : FrameSystem
 		var table = createInstance<SQLiteTable>(type);
 		table.setTableName(tableName);
 		table.setDataType(dataType);
-		table.init(GameDefine.SQLITE_ENCRYPT_KEY);
+		table.init(FrameDefineExtra.SQLITE_ENCRYPT_KEY);
 		mTableList.Add(Typeof(table), table);
 		mTableNameList.Add(tableName, table);
 		mTableDataTypeList.Add(dataType, table);

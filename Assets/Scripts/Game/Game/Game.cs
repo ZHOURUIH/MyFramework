@@ -34,8 +34,6 @@ public class Game : GameFramework
 	protected override void launch()
 	{
 		base.launch();
-		FrameBase.CMD_MAIN(out CmdGameSceneManagerEnter cmd, false);
-		cmd.mSceneType = typeof(StartScene);
-		FrameBase.pushCommand(cmd, FrameBase.mGameSceneManager);
+		FrameUtility.enterSceneMain<StartScene>();
 	}
 }

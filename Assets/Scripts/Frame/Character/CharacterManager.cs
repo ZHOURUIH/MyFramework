@@ -100,7 +100,7 @@ public class CharacterManager : FrameSystem
 			logError("there is a character id : " + id + "! can not create again!");
 			return null;
 		}
-		Character newCharacter = createInstance<Character>(type);
+		var newCharacter = CLASS(type) as Character;
 		newCharacter.setName(name);
 		newCharacter.setCharacterType(type);
 		// 如果是玩家自己,则记录下来
@@ -174,10 +174,9 @@ public class CharacterManager : FrameSystem
 		{
 			return;
 		}
-		Type type = character.getType();
 		long guid = character.getGUID();
 		// 从角色分类列表中移除
-		if (mCharacterTypeList.TryGetValue(type, out Dictionary<long, Character> characterList))
+		if (mCharacterTypeList.TryGetValue(character.getType(), out Dictionary<long, Character> characterList))
 		{
 			characterList.Remove(guid);
 		}
@@ -193,5 +192,6 @@ public class CharacterManager : FrameSystem
 		{
 			mMyself = null;
 		}
+		UN_CLASS(character);
 	}
 }

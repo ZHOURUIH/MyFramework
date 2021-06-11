@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#if USE_TMP
+using UnityEngine;
 using System.Collections;
 using System;
 using TMPro;
@@ -50,3 +51,4 @@ public class myUGUIInputFieldTMP : myUGUIObject
 	//------------------------------------------------------------------------------------------------
 	protected void OnEndEdit(string value) { mAction?.Invoke(value); }
 }
+#endif

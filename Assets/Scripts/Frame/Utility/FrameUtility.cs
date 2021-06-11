@@ -5,6 +5,38 @@ using UnityEngine;
 public class FrameUtility : WidgetUtility
 {
 	// 方便书写代码添加的命令相关函数
+	// 主工程中可调用的跳转流程的函数
+	public static void changeProcedureMain<T>(string intent = null) where T : SceneProcedure
+	{
+		CMD_MAIN(out CmdGameSceneChangeProcedure cmd);
+		cmd.mProcedure = typeof(T);
+		cmd.mIntent = intent;
+		pushCommand(cmd, FrameBase.mGameSceneManager.getCurScene());
+	}
+	public static CmdGameSceneChangeProcedure changeProcedureMainDelay<T>(float delayTime = 0.001f, string intent = null) where T : SceneProcedure
+	{
+		CMD_MAIN_DELAY(out CmdGameSceneChangeProcedure cmd, true);
+		cmd.mProcedure = typeof(T);
+		cmd.mIntent = intent;
+		pushDelayCommand(cmd, FrameBase.mGameSceneManager.getCurScene(), delayTime);
+		return cmd;
+	}
+	public static void prepareChangeProcedureMain<T>(float prepareTime = 0.001f, string intent = null) where T : SceneProcedure
+	{
+		CMD_MAIN(out CmdGameScenePrepareChangeProcedure cmd);
+		cmd.mProcedure = typeof(T);
+		cmd.mIntent = intent;
+		cmd.mPrepareTime = prepareTime;
+		pushCommand(cmd, FrameBase.mGameSceneManager.getCurScene());
+	}
+	public static void enterSceneMain<T>(Type startProcedure = null, string intent = null) where T : GameScene
+	{
+		CMD_MAIN(out CmdGameSceneManagerEnter cmd);
+		cmd.mSceneType = typeof(T);
+		cmd.mStartProcedure = startProcedure;
+		cmd.mIntent = intent;
+		pushCommand(cmd, FrameBase.mGameSceneManager);
+	}
 	public static void changeProcedure(Type procedure, string intent = null)
 	{
 		CMD_MAIN(out CmdGameSceneChangeProcedure cmd);
@@ -27,6 +59,14 @@ public class FrameUtility : WidgetUtility
 		cmd.mIntent = intent;
 		cmd.mPrepareTime = prepareTime;
 		pushCommand(cmd, FrameBase.mGameSceneManager.getCurScene());
+	}
+	public static void enterScene(Type sceneType, Type startProcedure = null, string intent = null)
+	{
+		CMD_MAIN(out CmdGameSceneManagerEnter cmd);
+		cmd.mSceneType = sceneType;
+		cmd.mStartProcedure = startProcedure;
+		cmd.mIntent = intent;
+		pushCommand(cmd, FrameBase.mGameSceneManager);
 	}
 	public static bool isKeyCurrentDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputSystem.isKeyCurrentDown(key, mask); }
 	public static bool isKeyCurrentUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputSystem.isKeyCurrentUp(key, mask); }
@@ -192,7 +232,7 @@ public class FrameUtility : WidgetUtility
 #endif
 		value = FrameBase.mClassPool?.newClass(type, true) as T;
 	}
-	public static ClassObject CLASS_MAIN_ONCE(Type type)
+	public static ClassObject CLASS_ONCE(Type type)
 	{
 		return FrameBase.mClassPool?.newClass(type, true);
 	}
@@ -209,7 +249,7 @@ public class FrameUtility : WidgetUtility
 #endif
 		value = FrameBase.mClassPool?.newClass(type, false) as T;
 	}
-	public static ClassObject CLASS_MAIN(Type type)
+	public static ClassObject CLASS(Type type)
 	{
 		return FrameBase.mClassPool?.newClass(type, false);
 	}
@@ -226,7 +266,7 @@ public class FrameUtility : WidgetUtility
 #endif
 		value = FrameBase.mClassPoolThread?.newClass(type, out _) as T;
 	}
-	public static ClassObject CLASS_MAIN_THREAD(Type type)
+	public static ClassObject CLASS_THREAD(Type type)
 	{
 		return FrameBase.mClassPoolThread?.newClass(type, out _);
 	}
@@ -268,7 +308,7 @@ public class FrameUtility : WidgetUtility
 		{
 			return new MyStringBuilder();
 		}
-		return CLASS_MAIN_ONCE(typeof(MyStringBuilder)) as MyStringBuilder;
+		return CLASS_ONCE(typeof(MyStringBuilder)) as MyStringBuilder;
 	}
 	public static MyStringBuilder STRING(string str)
 	{
@@ -316,7 +356,7 @@ public class FrameUtility : WidgetUtility
 		{
 			return new MyStringBuilder();
 		}
-		return CLASS_MAIN_THREAD(typeof(MyStringBuilder)) as MyStringBuilder;
+		return CLASS_THREAD(typeof(MyStringBuilder)) as MyStringBuilder;
 	}
 	public static MyStringBuilder STRING_THREAD(string str)
 	{

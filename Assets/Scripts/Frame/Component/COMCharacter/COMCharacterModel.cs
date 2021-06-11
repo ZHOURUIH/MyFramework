@@ -2,6 +2,7 @@
 
 public class COMCharacterModel : GameComponent
 {
+	protected CharacterController mController;
 	protected GameObject mObject;
 	protected Transform mModelTransform;
 	protected Animation mAnimation;
@@ -17,6 +18,7 @@ public class COMCharacterModel : GameComponent
 	{
 		base.resetProperty();
 		mModelTransform = null;
+		mController = null;
 		mAnimator = null;
 		mAnimation = null;
 		mObject = null;
@@ -37,6 +39,7 @@ public class COMCharacterModel : GameComponent
 			return;
 		}
 		mObject.SetActive(mActive);
+		mController = mObject.GetComponent<CharacterController>();
 		mModelTransform = mObject.GetComponent<Transform>();
 		mAnimator = mObject.GetComponent<Animator>();
 		// 如果根节点找不到,则在第一级子节点中查找
@@ -67,6 +70,7 @@ public class COMCharacterModel : GameComponent
 			}
 		}
 	}
+	public CharacterController getCharacterController() { return mController; }
 	public Animator getAnimator() { return mAnimator; }
 	public Animation getAnimation() { return mAnimation; }
 	public GameObject getModel() { return mObject; }
@@ -86,6 +90,7 @@ public class COMCharacterModel : GameComponent
 	{
 		mObjectPool.destroyObject(ref mObject, mDestroyReally);
 		mModelTransform = null;
+		mController = null;
 		mAnimator = null;
 		mAnimation = null;
 		mModelPath = null;
