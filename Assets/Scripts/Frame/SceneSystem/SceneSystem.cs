@@ -203,8 +203,8 @@ public class SceneSystem : FrameSystem
 		}
 		// 首先获得场景
 		scene.mScene = SceneManager.GetSceneByName(scene.mName);
-		// 获得了场景根节点才能使场景显示或隐藏
-		scene.mRoot = getGameObject(scene.mName + "_Root", true);
+		// 获得了场景根节点才能使场景显示或隐藏,为了尽量避免此处查找节点错误,所以不能使用容易重名的名字
+		scene.mRoot = getGameObject(scene.mName + "_Root", true, false);
 		// 加载完毕后就立即初始化
 		scene.init();
 		if (scene.mActiveLoaded)

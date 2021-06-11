@@ -76,6 +76,10 @@ public class myUGUIObject : myUIObject
 		}
 		UN_LIST_MAIN(tempList);
 	}
+	public void setUGUIClick(VoidDelegate callback)
+	{
+		EventTriggerListener.Get(mObject).onClick = callback;
+	}
 	//--------------------------------------------------------------------------------------------------------
 	protected static int compareZDecending(Transform a, Transform b)
 	{

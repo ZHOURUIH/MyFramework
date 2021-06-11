@@ -16,7 +16,7 @@ public class CameraManager : FrameSystem
 	{
 		base.init();
 		mUGUICamera = createCamera(FrameDefine.UI_CAMERA, mLayoutManager.getRootObject());
-		mUGUIBlurCamera = createCamera(FrameDefine.BLUR_CAMERA, mLayoutManager.getRootObject(), false, false);
+		mUGUIBlurCamera = createCamera(FrameDefine.BLUR_CAMERA, mLayoutManager.getRootObject(), false, false, false);
 		mMainCamera = createCamera(FrameDefine.MAIN_CAMERA);
 	}
 	public override void update(float elapsedTime)
@@ -63,9 +63,8 @@ public class CameraManager : FrameSystem
 		}
 		return null;
 	}
-	public GameCamera createCamera(string name, GameObject parent = null, bool newCamera = false, bool active = true)
+	public GameCamera createCamera(string name, GameObject parent = null, bool newCamera = false, bool active = true, bool errorIfFailed = true)
 	{
-		GameCamera camera = null;
 		// 摄像机节点是否是自己创建的
 		bool isNewNode = false;
 		GameObject obj = getGameObject(name, parent, false, false);
@@ -74,16 +73,21 @@ public class CameraManager : FrameSystem
 			obj = createGameObject(name, parent);
 			isNewNode = true;
 		}
-		if (obj != null)
+		if (obj == null)
 		{
-			CLASS_MAIN(out camera);
-			camera.setName(name);
-			camera.init();
-			camera.setObject(obj);
-			// 只有自己创建的摄像机节点才可以销毁
-			camera.setDestroyObject(isNewNode);
-			mCameraList.Add(camera);
+			if (errorIfFailed)
+			{
+				logError("创建摄像机失败, name:" + name);
+			}
+			return null;
 		}
+		CLASS_MAIN(out GameCamera camera);
+		camera.setName(name);
+		camera.init();
+		camera.setObject(obj);
+		// 只有自己创建的摄像机节点才可以销毁
+		camera.setDestroyObject(isNewNode);
+		mCameraList.Add(camera);
 		activeCamera(camera, active);
 		return camera;
 	}
@@ -93,33 +97,20 @@ public class CameraManager : FrameSystem
 		{
 			return;
 		}
-		if (mUGUICamera != null)
-		{
-			OT.ACTIVE(camera, active);
-			// 如果有非UI摄像机的音频监听组件启用,则禁用UI摄像机的音频监听组件
-			bool otherCameraListenerEnabled = false;
-			int count = mCameraList.Count;
-			for (int i = 0; i < count; ++i)
-			{
-				GameCamera item = mCameraList[i];
-				if (item != mUGUICamera)
-				{
-					if (item.isActive() && item.isUnityComponentEnabled<AudioListener>())
-					{
-						otherCameraListenerEnabled = true;
-						break;
-					}
-				}
-			}
-			// 设置UI摄像机的音频监听组件
-			if (mUGUICamera != null && mUGUICamera.isActive())
-			{
-				mUGUICamera.enableUnityComponent<AudioListener>(!otherCameraListenerEnabled);
-			}
-		}
+		OT.ACTIVE(camera, active);
+		checkCameraAudioListener();
 	}
 	public GameCamera getMainCamera() { return mMainCamera; }
-	public void setMainCamera(GameCamera mainCamera) { mMainCamera = mainCamera; }
+	public void setMainCamera(GameCamera mainCamera)
+	{
+		// 如果当前已经有主摄像机了,则禁用主摄像机
+		if (mMainCamera != null)
+		{
+			activeCamera(mMainCamera, false);
+		}
+		mMainCamera = mainCamera;
+		checkCameraAudioListener();
+	}
 	public new GameCamera getUICamera() { return mUGUICamera; }
 	public GameCamera getUIBlurCamera() { return mUGUIBlurCamera; }
 	public void activeBlurCamera(bool active) { OT.ACTIVE(mUGUIBlurCamera, active); }
@@ -144,6 +135,44 @@ public class CameraManager : FrameSystem
 		else if (camera == mUGUIBlurCamera)
 		{
 			mUGUIBlurCamera = null;
+		}
+	}
+	//-------------------------------------------------------------------------------------------------------------------------------------
+	// 检查所有摄像机的音频监听,确保主摄像机优先作为音频监听,没有主摄像机,则使用UI相机,没有UI相机,才使用第一个被启用的摄像机作为音频监听
+	protected void checkCameraAudioListener()
+	{
+		if (mMainCamera != null && mMainCamera.isActive())
+		{
+			setCameraAudioListener(mMainCamera);
+		}
+		else if (mUGUICamera != null && mUGUICamera.isActive())
+		{
+			setCameraAudioListener(mUGUICamera);
+		}
+		else
+		{
+			int count = mCameraList.Count;
+			for (int i = 0; i < count; ++i)
+			{
+				GameCamera item = mCameraList[i];
+				if (item.isActive())
+				{
+					setCameraAudioListener(item);
+				}
+			}
+		}
+	}
+	protected void setCameraAudioListener(GameCamera camera)
+	{
+		if (!camera.isActive())
+		{
+			return;
+		}
+		int count = mCameraList.Count;
+		for (int i = 0; i < count; ++i)
+		{
+			GameCamera item = mCameraList[i];
+			item.enableUnityComponent<AudioListener>(camera == item);
 		}
 	}
 }

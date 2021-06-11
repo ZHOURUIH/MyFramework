@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
-using System.Collections;
 
 public class myUGUIButton : myUGUIObject
 {
@@ -16,5 +16,9 @@ public class myUGUIButton : myUGUIObject
 			mRectTransform = mObject.GetComponent<RectTransform>();
 			mTransform = mRectTransform;
 		}
+	}
+	public void setUGUIClick(UnityAction callback)
+	{
+		mButton.onClick.AddListener(callback);
 	}
 }

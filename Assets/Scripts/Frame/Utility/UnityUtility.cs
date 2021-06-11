@@ -1177,8 +1177,8 @@ public class UnityUtility : FileUtility
 	public static Vector2 getScreenScale(Vector2 rootSize)
 	{
 		Vector2 scale = Vector2.one;
-		scale.x = rootSize.x * (1.0f / GameDefine.STANDARD_WIDTH);
-		scale.y = rootSize.y * (1.0f / GameDefine.STANDARD_HEIGHT);
+		scale.x = rootSize.x * (1.0f / FrameDefineExtra.STANDARD_WIDTH);
+		scale.y = rootSize.y * (1.0f / FrameDefineExtra.STANDARD_HEIGHT);
 		return scale;
 	}
 	public static Vector2 adjustScreenScale(ASPECT_BASE aspectBase = ASPECT_BASE.AUTO)

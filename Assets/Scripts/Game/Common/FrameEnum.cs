@@ -32,6 +32,7 @@ public enum SOUND_DEFINE : byte
 {
 	MIN = 0,
 };
+
 // 游戏中的公共变量定义
 public enum GAME_FLOAT : byte
 {
