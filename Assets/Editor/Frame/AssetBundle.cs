@@ -90,7 +90,7 @@ public class AssetBundlePack : EditorCommonUtility
 			// 清理不打包的AssetBundle名
 			List<string> allFiles = new List<string>();
 			findFiles(FrameDefine.F_GAME_RESOURCES_PATH, allFiles);
-			clearUnPackAssetBundleName(allFiles, GameDefine.mUnPackFolder);
+			clearUnPackAssetBundleName(allFiles, FrameDefineExtra.mUnPackFolder);
 			// 设置bunderName
 			mAssetBundleMap.Clear();
 			List<string> resList = new List<string>();
@@ -306,7 +306,7 @@ public class AssetBundlePack : EditorCommonUtility
 	// fullPath是以Asset开头的路径
 	protected static bool setAssetBundleName(string fullPath)
 	{
-		if (isUnpackPath(fullPath, GameDefine.mUnPackFolder))
+		if (isUnpackPath(fullPath, FrameDefineExtra.mUnPackFolder))
 		{
 			return true;
 		}
@@ -377,10 +377,10 @@ public class AssetBundlePack : EditorCommonUtility
 	}
 	protected static bool isKeepFolderOrMeta(string name)
 	{
-		int count = GameDefine.mKeepFolder.Length;
+		int count = FrameDefineExtra.mKeepFolder.Length;
 		for (int i = 0; i < count; ++i)
 		{
-			if (GameDefine.mKeepFolder[i] == name || GameDefine.mKeepFolder[i] + ".meta" == name)
+			if (FrameDefineExtra.mKeepFolder[i] == name || FrameDefineExtra.mKeepFolder[i] + ".meta" == name)
 			{
 				return true;
 			}

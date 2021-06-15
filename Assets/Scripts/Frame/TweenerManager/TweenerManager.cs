@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
+// Tweener是用于代替Dotween这种的缓动操作
 public class TweenerManager : FrameSystem
 {
 	protected SafeDictionary<long, MyTweener> mTweenerList;
