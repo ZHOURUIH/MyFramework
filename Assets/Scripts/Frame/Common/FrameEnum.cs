@@ -329,3 +329,11 @@ public enum TRANSFORM_ASYNC : byte
 	USE_AVATAR,             // 使用模型节点的值同步到角色节点
 	USE_CHARACTER,          // 使用角色节点的值同步到模型节点
 }
+
+// 摄像机连接器的更新时机
+public enum LINKER_UPDATE : byte
+{
+	UPDATE,                 // 执行Update时更新
+	LATE_UPDATE,            // 执行LateUpdate时更新
+	FIXED_UPDATE,           // 执行FixedUpdate时更新
+}

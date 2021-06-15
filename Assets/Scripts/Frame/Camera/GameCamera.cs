@@ -1,15 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GameCamera : MovableObject
 {
 	protected List<CameraLinker> mLinkerList;	// 由于对连接器的操作比较多,所以单独放到一个表中,组件列表中不变
 	protected CameraLinker mCurLinker;			// 只是记录当前连接器方便外部获取
-	protected Camera mCamera;
-	protected Vector3 mPositionOffset;
+	protected Camera mCamera;					// 摄像机组件
 	protected float mCameraMoveSpeed;			// 使用按键控制时的移动速度
 	protected float mMouseSpeed;				// 鼠标转动摄像机的速度
-	protected int mLastVisibleLayer;
+	protected int mLastVisibleLayer;			// 上一次的渲染层
 	protected bool mProcessKey;					// 锁定摄像机的按键控制
 	// 如果要实现摄像机震动,则需要将摄像机挂接到一个节点上,一般操作的是父节点的Transform,震动时是操作摄像机自身节点的Transform
 	public GameCamera()
@@ -36,7 +36,6 @@ public class GameCamera : MovableObject
 		mCameraMoveSpeed = 30.0f;
 		mMouseSpeed = 0.1f;
 		mProcessKey = false;
-		mPositionOffset = Vector3.zero;
 		mLastVisibleLayer = 0;
 	}
 	public override void update(float elapsedTime)
@@ -100,30 +99,12 @@ public class GameCamera : MovableObject
 			}
 		}
 	}
-	public void setCameraPositionOffset(Vector3 offset)
+	public CameraLinker linkTarget(Type linkerType, MovableObject target)
 	{
-		setPosition(getPosition() - mPositionOffset + offset);
-		mPositionOffset = offset;
-	}
-	public override void notifyAddComponent(GameComponent com)
-	{
-		base.notifyAddComponent(com);
-		// 如果是连接器,则还要加入连接器列表中
-		if (com is CameraLinker)
+		var linker = getComponent(linkerType) as CameraLinker;
+		if(linker == null)
 		{
-			mLinkerList.Add((CameraLinker)com);
-		}
-	}
-	public void linkTarget(CameraLinker linker, MovableObject target)
-	{
-		if(!mAllComponentTypeList.containsValue(linker))
-		{
-			return;
-		}
-		// 如果不是连接器则直接返回
-		if (linker != null)
-		{
-			return;
+			return null;
 		}
 		int count = mLinkerList.Count;
 		for(int i = 0; i < count; ++i)
@@ -142,6 +123,7 @@ public class GameCamera : MovableObject
 		{
 			mCurLinker = null;
 		}
+		return mCurLinker;
 	}
 	public Camera getCamera(){ return mCamera;}
 	public void setProcessKey(bool process) { mProcessKey = process; }
@@ -195,4 +177,18 @@ public class GameCamera : MovableObject
 	}
 	public int getLastVisibleLayer() { return mLastVisibleLayer; }
 	public void setRenderTarget(RenderTexture renderTarget) { mCamera.targetTexture = renderTarget; }
+	// 因为允许外部扩展连接器,所以此函数为public
+	public void addLinker(Type type)
+	{
+		mLinkerList.Add(addComponent(type) as CameraLinker);
+	}
+	//-----------------------------------------------------------------------------------------------------------------------------------------------
+	protected override void initComponents()
+	{
+		base.initComponents();
+		addLinker(typeof(CameraLinkerAcceleration));
+		addLinker(typeof(CameraLinkerFixed));
+		addLinker(typeof(CameraLinkerSmoothFollow));
+		addLinker(typeof(CameraLinkerSmoothRotate));
+	}
 }

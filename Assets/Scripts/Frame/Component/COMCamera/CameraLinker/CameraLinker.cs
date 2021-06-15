@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,17 +7,17 @@ using UnityEngine;
 public class CameraLinker : GameComponent
 {
 	protected Dictionary<Type, CameraLinkerSwitch> mSwitchList; // 转换器列表
-	protected CameraLinkerSwitch mCurSwitch;// 当前转换器
-	protected MovableObject mLinkObject;	// 摄像机跟随的物体
-	protected GameCamera mCamera;			// 所属摄像机
-	protected Vector3 mRelativePosition;    // 相对位置
-	protected Vector3 mLookAtOffset;        // 焦点的偏移,实际摄像机的焦点是物体的位置加上偏移
-	protected bool mLateUpdate;				// 是否在LateUpdate中更新连接器
-	protected bool mLookAtTarget;           // 是否在摄像机运动过程中一直看向目标位置
+	protected CameraLinkerSwitch mCurSwitch;                    // 当前转换器
+	protected MovableObject mLinkObject;                        // 摄像机跟随的物体
+	protected GameCamera mCamera;                               // 所属摄像机
+	protected Vector3 mRelativePosition;                        // 相对位置
+	protected Vector3 mLookAtOffset;                            // 焦点的偏移,实际摄像机的焦点是物体的位置加上偏移
+	protected LINKER_UPDATE mUpdateMoment;                      // 连接器更新时机
+	protected bool mLookAtTarget;                               // 是否在摄像机运动过程中一直看向目标位置
 	public CameraLinker()
 	{
 		mLookAtOffset = new Vector3(0.0f, 2.0f, 0.0f);
-		mLateUpdate = true;
+		mUpdateMoment = LINKER_UPDATE.LATE_UPDATE;
 		mSwitchList = new Dictionary<Type, CameraLinkerSwitch>();
 	}
 	public override void init(ComponentOwner owner)
@@ -24,6 +25,11 @@ public class CameraLinker : GameComponent
 		base.init(owner);
 		initSwitch();
 		mCamera = mComponentOwner as GameCamera;
+	}
+	public override void destroy()
+	{
+		base.destroy();
+		destroySwitch();
 	}
 	public override void resetProperty()
 	{
@@ -34,7 +40,7 @@ public class CameraLinker : GameComponent
 		mCamera = null;
 		mRelativePosition = Vector3.zero;
 		mLookAtOffset = new Vector3(0.0f, 2.0f, 0.0f);
-		mLateUpdate = true;
+		mUpdateMoment = LINKER_UPDATE.LATE_UPDATE;
 		mLookAtTarget = false;
 	}
 	public override void update(float elapsedTime)
@@ -44,7 +50,7 @@ public class CameraLinker : GameComponent
 		{
 			return;
 		}
-		if (!mLateUpdate)
+		if (mUpdateMoment == LINKER_UPDATE.UPDATE)
 		{
 			mCurSwitch?.update(elapsedTime);
 			updateLinker(elapsedTime);
@@ -57,7 +63,20 @@ public class CameraLinker : GameComponent
 		{
 			return;
 		}
-		if (mLateUpdate)
+		if (mUpdateMoment == LINKER_UPDATE.LATE_UPDATE)
+		{
+			mCurSwitch?.update(elapsedTime);
+			updateLinker(elapsedTime);
+		}
+	}
+	public override void fixedUpdate(float elapsedTime)
+	{
+		base.fixedUpdate(elapsedTime);
+		if (mLinkObject == null)
+		{
+			return;
+		}
+		if (mUpdateMoment == LINKER_UPDATE.FIXED_UPDATE)
 		{
 			mCurSwitch?.update(elapsedTime);
 			updateLinker(elapsedTime);
@@ -73,23 +92,15 @@ public class CameraLinker : GameComponent
 		mCamera.setPosition(newPos);
 		if (mLookAtTarget)
 		{
-			//让摄像机朝向
-			Vector3 cameraDir = mLinkObject.getWorldPosition() + mLookAtOffset - mCamera.getPosition();
-			Vector3 angles = getLookAtRotation(cameraDir);
-			mCamera.setRotation(angles);
+			// 让摄像机朝向目标
+			mCamera.lookAt(mLinkObject.getWorldPosition() + mLookAtOffset - mCamera.getPosition());
 		}
 	}
-	public override void destroy()
-	{
-		base.destroy();
-		destroySwitch();
-	}
+	public void setUpdateMoment(LINKER_UPDATE moment) { mUpdateMoment = moment; }
 	public void setLinkObject(MovableObject obj) { mLinkObject = obj; }
 	public MovableObject getLinkObject() { return mLinkObject; }
 	public Vector3 getRelativePosition() { return mRelativePosition; }
-	public virtual void setRelativePosition(Vector3 pos, Type switchType = null, 
-											bool useDefaultSwitchSpeed = true, 
-											float switchSpeed = 1.0f)
+	public virtual void setRelativePosition(Vector3 pos, Type switchType = null, bool useDefaultSwitchSpeed = true, float switchSpeed = 1.0f)
 	{
 		// 如果不使用转换器,则直接设置位置
 		if (switchType == null)
@@ -107,7 +118,7 @@ public class CameraLinker : GameComponent
 			return;
 		}
 		// 如果不使用默认速度,其实是转换器当前的速度,则设置新的速度
-		if(useDefaultSwitchSpeed)
+		if (useDefaultSwitchSpeed)
 		{
 			switchSpeed = mCurSwitch.getSwitchSpeed();
 		}
@@ -144,7 +155,7 @@ public class CameraLinker : GameComponent
 	}
 	protected void destroySwitch()
 	{
-		foreach(var item in mSwitchList)
+		foreach (var item in mSwitchList)
 		{
 			item.Value.destroy();
 		}

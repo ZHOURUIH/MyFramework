@@ -7,19 +7,19 @@ public class CmdCameraLinkTarget : Command
 	protected float mSwitchSpeed;           // 转换器的速度
 	protected bool mUseOriginRelative;      // 是否使用连接器原来的相对位置
 	protected bool mUseLastSwitchSpeed;     // 是否使用当前连接器的速度
-	public MovableObject mTarget;
-	public CameraLinker mLinker;
+	public MovableObject mTarget;           // 摄像机要连接的对象
+	public Type mLinkerType;                // 连接器的类型
 	public Vector3 mLookatOffset;           // 看向目标的位置偏移
-	public Type mSwitchType;				// 转换器的类型
+	public Type mSwitchType;                // 转换器的类型
 	public bool mLookAtTarget;              // 是否始终看向目标
 	public bool mAutoProcessKey;            // 是否在断开连接器后可以使用按键控制摄像机
-	public bool mImmediately;				// 是否直接将摄像机设置到当前连接器的正常位置
+	public bool mImmediately;               // 是否直接将摄像机设置到当前连接器的正常位置
 	public override void resetProperty()
 	{
 		base.resetProperty();
 		mTarget = null;
 		mSwitchType = null;
-		mLinker = null;
+		mLinkerType = null;
 		mLookAtTarget = true;
 		mLookatOffset = Vector3.zero;
 		mUseOriginRelative = true;
@@ -42,22 +42,22 @@ public class CmdCameraLinkTarget : Command
 	public override void execute()
 	{
 		var camera = mReceiver as GameCamera;
-		camera.linkTarget(mLinker, mTarget);
+		CameraLinker linker = camera.linkTarget(mLinkerType, mTarget);
 		if (mTarget != null)
 		{
 			// 停止正在进行的摄像机运动
 			FT.MOVE(camera, camera.getPosition());
 			FT.ROTATE(camera, camera.getRotation());
-			mLinker.setLookAtTarget(mLookAtTarget);
-			mLinker.setLookAtOffset(mLookatOffset);
+			linker.setLookAtTarget(mLookAtTarget);
+			linker.setLookAtOffset(mLookatOffset);
 			// 不使用原来的相对位置,则设置新的相对位置
 			if (!mUseOriginRelative)
 			{
-				mLinker.setRelativePosition(mRelativePosition, mSwitchType, mUseLastSwitchSpeed, mSwitchSpeed);
+				linker.setRelativePosition(mRelativePosition, mSwitchType, mUseLastSwitchSpeed, mSwitchSpeed);
 			}
 			if (mImmediately)
 			{
-				mLinker.applyRelativePosition(mLinker.getNormalRelativePosition());
+				linker.applyRelativePosition(linker.getNormalRelativePosition());
 			}
 		}
 	}

@@ -10,7 +10,7 @@ public class Character : MovableObject
 	protected CreateObjectCallback mModelLoadCallback;
 	protected OnCharacterLoaded mCharacterLoadedCallback;
 	protected COMCharacterAvatar mAvatar;
-	protected CharacterBaseData	mBaseData;	//玩家数据
+	protected CharacterBaseData mBaseData;  //玩家数据
 	protected Rigidbody mRigidBody;
 	protected Type mCharacterType;          // 角色类型
 	protected string mModelPath;
@@ -18,13 +18,13 @@ public class Character : MovableObject
 	protected object mUserData;
 	protected long mGUID;
 	protected int mModelTag;
-	protected bool mIsMyself;				// 是否为主角实例,为了提高效率,不使用虚函数判断
+	protected bool mIsMyself;               // 是否为主角实例,为了提高效率,不使用虚函数判断
 	public Character()
 	{
 		mAnimationLenghtList = new Dictionary<string, float>();
 		mModelLoadCallback = onModelLoaded;
 	}
-	protected virtual CharacterBaseData createCharacterData(){return new CharacterBaseData();}
+	protected virtual CharacterBaseData createCharacterData() { return new CharacterBaseData(); }
 	public override void init()
 	{
 		mBaseData = createCharacterData();
@@ -56,7 +56,7 @@ public class Character : MovableObject
 	public bool isMyself() { return mIsMyself; }
 	public void setID(long id) { mGUID = id; }
 	// 异步加载模型
-	public void initModelAsync(string modelPath, OnCharacterLoaded callback, object userData, string animationControllerPath = null)
+	public void initModelAsync(string modelPath, OnCharacterLoaded callback = null, object userData = null, string animationControllerPath = null)
 	{
 		mModelPath = modelPath;
 		mAnimationControllerPath = animationControllerPath;
@@ -106,7 +106,7 @@ public class Character : MovableObject
 		mAnimationLenghtList.Add(name, length);
 		return length;
 	}
-	public virtual void notifyComponentChanged(GameComponent com) {}
+	public virtual void notifyComponentChanged(GameComponent com) { }
 	public CharacterBaseData getBaseData() { return mBaseData; }
 	public Type getType() { return mCharacterType; }
 	public COMCharacterAvatar getAvatar() { return mAvatar; }
@@ -122,7 +122,7 @@ public class Character : MovableObject
 	public SafeDeepDictionary<Type, SafeDeepList<CharacterState>> getStateList() { return mStateMachine.getStateList(); }
 	public bool hasState(Type state) { return mStateMachine.hasState(state); }
 	public bool hasStateGroup(Type group) { return mStateMachine.hasStateGroup(group); }
-	//------------------------------------------------------------------------------------------------------------------------------------------------
+	//-------------------------------------------------------------------------------------------------------------------------------------------------------
 	protected override void initComponents()
 	{
 		base.initComponents();
