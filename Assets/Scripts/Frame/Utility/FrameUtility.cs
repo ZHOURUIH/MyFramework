@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class FrameUtility : WidgetUtility
 {
-	// 方便书写代码添加的命令相关函数
+	public static GameCamera getMainCamera() { return FrameBase.mCameraManager.getMainCamera(); }
 	// 主工程中可调用的跳转流程的函数
 	public static void changeProcedureMain<T>(string intent = null) where T : SceneProcedure
 	{

@@ -100,7 +100,7 @@ public class CameraManager : FrameSystem
 		OT.ACTIVE(camera, active);
 		checkCameraAudioListener();
 	}
-	public GameCamera getMainCamera() { return mMainCamera; }
+	public new GameCamera getMainCamera() { return mMainCamera; }
 	public void setMainCamera(GameCamera mainCamera)
 	{
 		// 如果当前已经有主摄像机了,则禁用主摄像机

@@ -1513,6 +1513,21 @@ public class MathUtility : StringUtility
 		inRay = normalize(inRay);
 		return inRay - 2 * getProjection(inRay, normalize(normal));
 	}
+	public static Vector3 clampLength(Vector3 vec, float maxLength)
+	{
+		if (lengthGreater(vec, maxLength))
+		{
+			return normalize(vec) * maxLength;
+		}
+		return vec;
+	}
+	public static void clampLength(ref Vector3 vec, float maxLength)
+	{
+		if (lengthGreater(vec, maxLength))
+		{
+			vec = normalize(vec) * maxLength;
+		}
+	}
 	public static Vector3 resetX(Vector3 v) { return new Vector3(0.0f, v.y, v.z); }
 	public static Vector3 resetY(Vector3 v) { return new Vector3(v.x, 0.0f, v.z); }
 	public static Vector3 resetZ(Vector3 v) { return new Vector3(v.x, v.y, 0.0f); }

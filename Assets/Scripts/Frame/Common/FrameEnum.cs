@@ -314,3 +314,18 @@ public enum ASPECT_BASE : byte
 	INVERSE_AUTO,				// 取宽高缩放值中最大的,保证缩放以后不会在屏幕范围留出空白
 	NONE,
 }
+
+// 模型节点与角色节点的关系
+public enum AVATAR_RELATIONSHIP : byte
+{
+	AVATAR_AS_CHARACTER,    // 模型节点就是角色节点
+	AVATAR_ALONE,           // 模型节点是单独的节点,不挂接在角色节点下,不会自动同步两个节点的变换
+	AVATAR_AS_CHILD,        // 模型节点是角色节点的子节点
+}
+
+// 模型节点与角色节点的同步方式
+public enum TRANSFORM_ASYNC : byte
+{
+	USE_AVATAR,             // 使用模型节点的值同步到角色节点
+	USE_CHARACTER,          // 使用角色节点的值同步到模型节点
+}

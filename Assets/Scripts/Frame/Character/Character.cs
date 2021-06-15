@@ -9,7 +9,7 @@ public class Character : MovableObject
 	protected COMCharacterDecisionTree mDecisionTree;
 	protected CreateObjectCallback mModelLoadCallback;
 	protected OnCharacterLoaded mCharacterLoadedCallback;
-	protected COMCharacterModel mAvatar;
+	protected COMCharacterAvatar mAvatar;
 	protected CharacterBaseData	mBaseData;	//玩家数据
 	protected Rigidbody mRigidBody;
 	protected Type mCharacterType;          // 角色类型
@@ -25,9 +25,6 @@ public class Character : MovableObject
 		mModelLoadCallback = onModelLoaded;
 	}
 	protected virtual CharacterBaseData createCharacterData(){return new CharacterBaseData();}
-	public void setCharacterType(Type type) { mCharacterType = type; }
-	public bool isMyself() { return mIsMyself; }
-	public void setID(long id){mGUID = id;}
 	public override void init()
 	{
 		mBaseData = createCharacterData();
@@ -55,6 +52,10 @@ public class Character : MovableObject
 		// mModelLoadCallback = null;
 		// mIsMyself = false;
 	}
+	public void setCharacterType(Type type) { mCharacterType = type; }
+	public bool isMyself() { return mIsMyself; }
+	public void setID(long id) { mGUID = id; }
+	// 异步加载模型
 	public void initModelAsync(string modelPath, OnCharacterLoaded callback, object userData, string animationControllerPath = null)
 	{
 		mModelPath = modelPath;
@@ -67,6 +68,7 @@ public class Character : MovableObject
 			mObjectPool.createObjectAsync(mModelPath, mModelLoadCallback, mModelTag);
 		}
 	}
+	// 同步加载模型
 	public void initModel(string modelPath, string animationControllerPath = null)
 	{
 		mModelPath = modelPath;
@@ -107,7 +109,7 @@ public class Character : MovableObject
 	public virtual void notifyComponentChanged(GameComponent com) {}
 	public CharacterBaseData getBaseData() { return mBaseData; }
 	public Type getType() { return mCharacterType; }
-	public COMCharacterModel getAvatar() { return mAvatar; }
+	public COMCharacterAvatar getAvatar() { return mAvatar; }
 	public Animation getAnimation() { return mAvatar.getAnimation(); }
 	public Animator getAnimator() { return mAvatar.getAnimator(); }
 	public Rigidbody getRigidBody() { return mRigidBody; }
@@ -120,11 +122,11 @@ public class Character : MovableObject
 	public SafeDeepDictionary<Type, SafeDeepList<CharacterState>> getStateList() { return mStateMachine.getStateList(); }
 	public bool hasState(Type state) { return mStateMachine.hasState(state); }
 	public bool hasStateGroup(Type group) { return mStateMachine.hasStateGroup(group); }
-	//--------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------------------------
 	protected override void initComponents()
 	{
 		base.initComponents();
-		mAvatar = addComponent(typeof(COMCharacterModel), true) as COMCharacterModel;
+		mAvatar = addComponent(typeof(COMCharacterAvatar), true) as COMCharacterAvatar;
 		mStateMachine = addComponent(typeof(COMCharacterStateMachine), true) as COMCharacterStateMachine;
 		mDecisionTree = addComponent(typeof(COMCharacterDecisionTree)) as COMCharacterDecisionTree;
 	}
@@ -135,13 +137,8 @@ public class Character : MovableObject
 	}
 	protected virtual void notifyModelLoaded(GameObject go)
 	{
-		setNormalProperty(go, mObject);
-		mAvatar.setModel(go, mModelPath);
+		mAvatar.notifyModelLoaded(go, mAnimationControllerPath);
 		mRigidBody = go.GetComponent<Rigidbody>();
-		if (!isEmpty(mAnimationControllerPath))
-		{
-			mAvatar.getAnimator().runtimeAnimatorController = mResourceManager.loadResource<RuntimeAnimatorController>(mAnimationControllerPath);
-		}
 	}
 	protected void afterModelLoaded()
 	{
