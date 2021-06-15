@@ -2,7 +2,7 @@
 
 public class CmdCharacterRemoveState : Command
 {
-	public PlayerState mState;
+	public CharacterState mState;
 	public Type mStateGroup;
 	public string mParam;
 	public override void resetProperty()

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class FrameUtility : WidgetUtility
 {
-	// 方便书写代码添加的命令相关函数
+	public static GameCamera getMainCamera() { return FrameBase.mCameraManager.getMainCamera(); }
 	// 主工程中可调用的跳转流程的函数
 	public static void changeProcedureMain<T>(string intent = null) where T : SceneProcedure
 	{
@@ -253,18 +253,10 @@ public class FrameUtility : WidgetUtility
 	{
 		return FrameBase.mClassPool?.newClass(type, false);
 	}
-	public static void CLASS_MAIN_THREAD<T>(out T value) where T : ClassObject
+	// 由于热更工程无法使用多线程,所以此处不考虑热更工程
+	public static void CLASS_THREAD<T>(out T value) where T : ClassObject
 	{
-#if UNITY_EDITOR
-		Type type = Typeof<T>();
-		if (type == null)
-		{
-			logError("无法使用CLASS_MAIN_THREAD创建非主工程的对象");
-		}
-#else
-		Type type = typeof(T);
-#endif
-		value = FrameBase.mClassPoolThread?.newClass(type, out _) as T;
+		value = FrameBase.mClassPoolThread?.newClass(typeof(T), out _) as T;
 	}
 	public static ClassObject CLASS_THREAD(Type type)
 	{
@@ -292,11 +284,11 @@ public class FrameUtility : WidgetUtility
 	{
 		FrameBase.mArrayPool.destroyArray(array, destroyReally);
 	}
-	public static void ARRAY_MAIN_THREAD<T>(out T[] array, int count)
+	public static void ARRAY_THREAD<T>(out T[] array, int count)
 	{
 		array = FrameBase.mArrayPoolThread.newArray<T>(count);
 	}
-	public static void UN_ARRAY_MAIN_THREAD<T>(T[] array, bool destroyReally = false)
+	public static void UN_ARRAY_THREAD<T>(T[] array, bool destroyReally = false)
 	{
 		FrameBase.mArrayPoolThread.destroyArray(array, destroyReally);
 	}

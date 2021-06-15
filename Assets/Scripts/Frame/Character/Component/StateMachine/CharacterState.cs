@@ -3,7 +3,7 @@
 public class StateParam : FrameBase
 { }
 
-public class PlayerState : FrameBase
+public class CharacterState : FrameBase
 {
 	protected CharacterBaseData mData;          // 状态所属角色的数据
 	protected OnStateLeave mOnLeave;			// 外部可设置的当前状态退出时的回调
@@ -17,7 +17,7 @@ public class PlayerState : FrameBase
 	protected bool mActive;                     // 状态是否激活
 	protected BUFF_STATE_TYPE mBuffStateType;   // buff类型
 	protected STATE_MUTEX mMutexType;			// 该状态是否允许叠加
-	public PlayerState()
+	public CharacterState()
 	{
 		mMutexType = STATE_MUTEX.COEXIST;
 		mBuffStateType = BUFF_STATE_TYPE.NONE;

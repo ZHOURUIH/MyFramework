@@ -47,7 +47,7 @@ public class HttpUtility : FrameSystem
 		bool isTempHelperBytes = helperBytes == null;
 		if (helperBytes == null)
 		{
-			ARRAY_MAIN_THREAD(out helperBytes, 1024);
+			ARRAY_THREAD(out helperBytes, 1024);
 		}
 		int readCount;
 		do
@@ -59,7 +59,7 @@ public class HttpUtility : FrameSystem
 		} while (readCount > 0);
 		if (isTempHelperBytes)
 		{
-			UN_ARRAY_MAIN_THREAD(helperBytes);
+			UN_ARRAY_THREAD(helperBytes);
 		}
 		byte[] dataBytes = downloadStream.ToArray();
 		downloadStream.Close();

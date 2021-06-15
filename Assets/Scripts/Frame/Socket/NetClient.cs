@@ -79,7 +79,7 @@ public abstract class NetClient : FrameBase
 			setBit(ref packetType, sizeof(ushort) * 8 - 1, 1);
 			setBit(ref packetType, sizeof(ushort) * 8 - 2, 0);
 		}
-		ARRAY_MAIN_THREAD(out byte[] packetData, getGreaterPow2(sizeof(ushort) + headerSize + packetSize));
+		ARRAY_THREAD(out byte[] packetData, getGreaterPow2(sizeof(ushort) + headerSize + packetSize));
 		int index = 0;
 		// 本次消息包的数据长度,因为byte[]本身的长度并不代表要发送的实际的长度,所以将数据长度保存下来
 		writeUShort(packetData, ref index, (ushort)(headerSize + packetSize));
@@ -131,7 +131,7 @@ public abstract class NetClient : FrameBase
 		// 回收所有byte[]
 		for (int i = 0; i < count; ++i)
 		{
-			UN_ARRAY_MAIN_THREAD(readList[i]);
+			UN_ARRAY_THREAD(readList[i]);
 		}
 		readList.Clear();
 	}

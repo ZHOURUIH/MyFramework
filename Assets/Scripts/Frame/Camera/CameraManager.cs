@@ -45,6 +45,15 @@ public class CameraManager : FrameSystem
 			mCameraList[i].lateUpdate(elapsedTime);
 		}
 	}
+	public override void fixedUpdate(float elapsedTime)
+	{
+		base.fixedUpdate(elapsedTime);
+		int count = mCameraList.Count;
+		for (int i = 0; i < count; ++i)
+		{
+			mCameraList[i].fixedUpdate(elapsedTime);
+		}
+	}
 	// 获得摄像机,名字是场景中摄像机的名字
 	public GameCamera getCamera(string name, GameObject parent = null, bool createIfNull = true)
 	{
@@ -100,7 +109,7 @@ public class CameraManager : FrameSystem
 		OT.ACTIVE(camera, active);
 		checkCameraAudioListener();
 	}
-	public GameCamera getMainCamera() { return mMainCamera; }
+	public new GameCamera getMainCamera() { return mMainCamera; }
 	public void setMainCamera(GameCamera mainCamera)
 	{
 		// 如果当前已经有主摄像机了,则禁用主摄像机

@@ -13,33 +13,15 @@ public struct CheckLayer
 		mDirection = direction;
 		mCheckDistance = checkDistance;
 		mMinDistance = minDistance;
-		if (direction == CHECK_DIRECTION.DOWN)
+		switch (direction)
 		{
-			mDirectionVector = Vector3.down;
-		}
-		else if (direction == CHECK_DIRECTION.UP)
-		{
-			mDirectionVector = Vector3.up;
-		}
-		else if (direction == CHECK_DIRECTION.LEFT)
-		{
-			mDirectionVector = Vector3.left;
-		}
-		else if (direction == CHECK_DIRECTION.RIGHT)
-		{
-			mDirectionVector = Vector3.right;
-		}
-		else if (direction == CHECK_DIRECTION.FORWARD)
-		{
-			mDirectionVector = Vector3.forward;
-		}
-		else if (direction == CHECK_DIRECTION.BACK)
-		{
-			mDirectionVector = Vector3.back;
-		}
-		else
-		{
-			mDirectionVector = Vector3.zero;
+			case CHECK_DIRECTION.DOWN:		mDirectionVector = Vector3.down;	break;
+			case CHECK_DIRECTION.UP:		mDirectionVector = Vector3.up;		break;
+			case CHECK_DIRECTION.LEFT:		mDirectionVector = Vector3.left;	break;
+			case CHECK_DIRECTION.RIGHT:		mDirectionVector = Vector3.right;	break;
+			case CHECK_DIRECTION.FORWARD:	mDirectionVector = Vector3.forward; break;
+			case CHECK_DIRECTION.BACK:		mDirectionVector = Vector3.back;	break;
+			default:						mDirectionVector = Vector3.zero;	break;
 		}
 	}
 }

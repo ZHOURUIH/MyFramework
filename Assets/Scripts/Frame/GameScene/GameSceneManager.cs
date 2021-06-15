@@ -12,7 +12,7 @@ public class GameSceneManager : FrameSystem
 		mCreateObject = true;
 	}
 	public new GameScene getCurScene(){ return mCurScene; }
-	public bool enterScene(Type type, Type startProcedure, string intent)
+	public new bool enterScene(Type type, Type startProcedure, string intent)
 	{
 		// 再次进入当前的场景,只是从初始流程开始执行,并不会重新执行进入场景的操作
 		if (mCurScene != null && Typeof(mCurScene) == type)

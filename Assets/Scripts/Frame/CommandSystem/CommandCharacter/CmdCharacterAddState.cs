@@ -23,7 +23,7 @@ public class CmdCharacterAddState : Command
 		{
 			return;
 		}
-		bool ret = character.getStateMachine().addState(mStateType, mParam, out PlayerState state, mStateTime, mStateID);
+		bool ret = character.getStateMachine().addState(mStateType, mParam, out CharacterState state, mStateTime, mStateID);
 		if (ret)
 		{
 			mOutStateID?.set(state.getID());

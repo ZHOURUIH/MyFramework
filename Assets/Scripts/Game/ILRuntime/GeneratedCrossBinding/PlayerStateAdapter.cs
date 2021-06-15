@@ -26,7 +26,7 @@ namespace HotFix
         {
             get
             {
-                return typeof(global::PlayerState);
+                return typeof(global::CharacterState);
             }
         }
 
@@ -43,7 +43,7 @@ namespace HotFix
             return new Adapter(appdomain, instance);
         }
 
-        public class Adapter : global::PlayerState, CrossBindingAdaptorType
+        public class Adapter : global::CharacterState, CrossBindingAdaptorType
         {
             ILTypeInstance instance;
             ILRuntime.Runtime.Enviorment.AppDomain appdomain;

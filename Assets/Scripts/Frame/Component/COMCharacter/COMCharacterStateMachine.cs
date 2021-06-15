@@ -4,28 +4,23 @@ using System.Collections.Generic;
 
 public class COMCharacterStateMachine : GameComponent
 {
-	protected static Dictionary<Type, List<Type>> mStateGroupList;  // 查找状态所在的所有组,key为状态类型,value为该状态所在的所有状态组
-	protected static Dictionary<Type, StateGroup> mGroupStateList;  // 查找该组中的所有状态
-	protected SafeDeepDictionary<Type, SafeDeepList<PlayerState>> mStateTypeList;   // 以状态类型为索引的状态列表
-	protected Dictionary<Type, int> mGroupStateCountList;			// 存储每个状态组中拥有的状态数量,key是组类型,value是当前该组中拥有的状态数量
-	protected Dictionary<uint, PlayerState> mStateMap;				// 以状态唯一ID为索引的列表,只用来根据ID查找状态
-	protected Character mPlayer;									// 状态机所属角色
+	protected SafeDeepDictionary<Type, SafeDeepList<CharacterState>> mStateTypeList;   // 以状态类型为索引的状态列表
+	protected Dictionary<Type, int> mGroupStateCountList;           // 存储每个状态组中拥有的状态数量,key是组类型,value是当前该组中拥有的状态数量
+	protected Dictionary<uint, CharacterState> mStateMap;               // 以状态唯一ID为索引的列表,只用来根据ID查找状态
+	protected Character mPlayer;                                    // 状态机所属角色
 	public COMCharacterStateMachine()
 	{
-		mStateTypeList = new SafeDeepDictionary<Type, SafeDeepList<PlayerState>>();
-		mStateMap = new Dictionary<uint, PlayerState>();
+		mStateTypeList = new SafeDeepDictionary<Type, SafeDeepList<CharacterState>>();
+		mStateMap = new Dictionary<uint, CharacterState>();
 		mGroupStateCountList = new Dictionary<Type, int>();
 	}
 	public override void init(ComponentOwner owner)
 	{
 		base.init(owner);
 		mPlayer = owner as Character;
-		if (mGroupStateList != null)
+		foreach (var item in mStateManager.getGroupStateList())
 		{
-			foreach (var item in mGroupStateList)
-			{
-				mGroupStateCountList.Add(item.Key, 0);
-			}
+			mGroupStateCountList.Add(item.Key, 0);
 		}
 	}
 	public override void resetProperty()
@@ -50,7 +45,7 @@ public class COMCharacterStateMachine : GameComponent
 		foreach (var itemList in stateTypeList)
 		{
 			var stateList = itemList.Value.startForeach();
-			foreach(var item in stateList)
+			foreach (var item in stateList)
 			{
 				if (!item.isActive())
 				{
@@ -87,17 +82,17 @@ public class COMCharacterStateMachine : GameComponent
 		}
 		mStateTypeList.endForeach(stateTypeList);
 	}
-	public bool addState(Type type, StateParam param, out PlayerState state, float stateTime, uint id = 0)
+	public bool addState(Type type, StateParam param, out CharacterState state, float stateTime, uint id = 0)
 	{
 		state = createState(type, param, id);
 		state.setPlayer(mPlayer);
-		
+
 		if (stateTime >= 0.0f)
 		{
 			state.setStateMaxTime(stateTime);
 			state.setStateTime(stateTime);
 		}
-		if(!canAddState(state))
+		if (!canAddState(state))
 		{
 			destroyState(state);
 			return false;
@@ -113,7 +108,7 @@ public class COMCharacterStateMachine : GameComponent
 		return true;
 	}
 	// isBreak表示是否是因为与要添加的状态冲突,所以才移除的状态
-	public bool removeState(PlayerState state, bool isBreak, string param = null)
+	public bool removeState(CharacterState state, bool isBreak, string param = null)
 	{
 		if (!mStateMap.ContainsKey(state.getID()))
 		{
@@ -142,15 +137,11 @@ public class COMCharacterStateMachine : GameComponent
 		var stateUpdateList = mStateTypeList.startForeach();
 		foreach (var item in stateUpdateList)
 		{
-			Type stateType = item.Key;
-			if (!mStateGroupList.TryGetValue(stateType, out List<Type> groupList))
-			{
-				continue;
-			}
-			if (groupList.Contains(group))
+			List<Type> groupList = mStateManager.getGroupList(item.Key);
+			if (groupList != null && groupList.Contains(group))
 			{
 				var updateList = item.Value.startForeach();
-				foreach(var state in updateList)
+				foreach (var state in updateList)
 				{
 					removeState(state, isBreak, param);
 				}
@@ -177,20 +168,20 @@ public class COMCharacterStateMachine : GameComponent
 		mStateTypeList.endForeach(stateUpdateList);
 		mStateTypeList.clear();
 	}
-	public SafeDeepDictionary<Type, SafeDeepList<PlayerState>> getStateList() { return mStateTypeList; }
-	public PlayerState getState(uint id)
+	public SafeDeepDictionary<Type, SafeDeepList<CharacterState>> getStateList() { return mStateTypeList; }
+	public CharacterState getState(uint id)
 	{
-		mStateMap.TryGetValue(id, out PlayerState state);
+		mStateMap.TryGetValue(id, out CharacterState state);
 		return state;
 	}
-	public SafeDeepList<PlayerState> getState(Type type)
+	public SafeDeepList<CharacterState> getState(Type type)
 	{
-		mStateTypeList.tryGetValue(type, out SafeDeepList<PlayerState> stateList);
+		mStateTypeList.tryGetValue(type, out SafeDeepList<CharacterState> stateList);
 		return stateList;
 	}
-	public PlayerState getFirstState(Type type)
+	public CharacterState getFirstState(Type type)
 	{
-		if (!mStateTypeList.tryGetValue(type, out SafeDeepList<PlayerState> stateList))
+		if (!mStateTypeList.tryGetValue(type, out SafeDeepList<CharacterState> stateList))
 		{
 			return null;
 		}
@@ -203,13 +194,14 @@ public class COMCharacterStateMachine : GameComponent
 		}
 		return null;
 	}
-	public PlayerState getFirstGroupState(Type groupType)
+	public CharacterState getFirstGroupState(Type groupType)
 	{
-		if (!mGroupStateList.TryGetValue(groupType, out StateGroup stateGroup))
+		StateGroup group = mStateManager.getGroup(groupType);
+		if (group == null)
 		{
 			return null;
 		}
-		foreach (var item in stateGroup.mStateList)
+		foreach (var item in group.mStateList)
 		{
 			var curStateList = getState(item);
 			if (curStateList != null && curStateList.count() > 0)
@@ -219,73 +211,30 @@ public class COMCharacterStateMachine : GameComponent
 		}
 		return null;
 	}
-	public void getGroupState(Type groupType, List<PlayerState> stateList)
+	public void getGroupState(Type groupType, List<CharacterState> stateList)
 	{
-		if (!mGroupStateList.TryGetValue(groupType, out StateGroup stateGroup))
+		StateGroup group = mStateManager.getGroup(groupType);
+		if (group == null)
 		{
 			return;
 		}
-		foreach(var item in stateGroup.mStateList)
+		foreach (var item in group.mStateList)
 		{
 			var curStateList = getState(item);
-			if(curStateList != null)
+			if (curStateList != null)
 			{
 				stateList.AddRange(curStateList.getMainList());
 			}
 		}
 	}
 	// 是否拥有该组的任意一个状态
-	public bool hasStateGroup(Type group)
-	{
-		return mGroupStateCountList[group] > 0;
-	}
-	public bool hasState(Type state)
-	{
-		return getFirstState(state) != null;
-	}
-	public static void registeGroup(Type type, GROUP_MUTEX mutex = GROUP_MUTEX.COEXIST)
-	{
-		if (mGroupStateList == null)
-		{
-			mGroupStateList = new Dictionary<Type, StateGroup>();
-		}
-		var group = createInstance<StateGroup>(type);
-		group.setMutex(mutex);
-		mGroupStateList.Add(type, group);
-	}
-	public static void assignGroup(Type groupType, Type state, bool mainState = false)
-	{
-		if (mStateGroupList == null)
-		{
-			mStateGroupList = new Dictionary<Type, List<Type>>();
-		}
-		if (!mStateGroupList.TryGetValue(state, out List<Type> stateTypeList))
-		{
-			stateTypeList = new List<Type>();
-			mStateGroupList.Add(state, stateTypeList);
-		}
-		stateTypeList.Add(groupType);
-		if (!mGroupStateList.TryGetValue(groupType, out StateGroup group))
-		{
-			logError("找不到状态组,无法将状态指定到组中,状态组类型:" + groupType);
-			return;
-		}
-		group.addState(state);
-		if (mainState)
-		{
-			group.setMainState(state);
-		}
-	}
-	public static StateGroup getStateGroup(Type groupType)
-	{
-		mGroupStateList.TryGetValue(groupType, out StateGroup group);
-		return group;
-	}
-	//----------------------------------------------------------------------------------------------------------------
-	protected PlayerState createState(Type type, StateParam param, uint id = 0)
+	public bool hasStateGroup(Type group) { return mGroupStateCountList[group] > 0; }
+	public bool hasState(Type state) { return getFirstState(state) != null; }
+	//---------------------------------------------------------------------------------------------------------------------------------------
+	protected CharacterState createState(Type type, StateParam param, uint id = 0)
 	{
 		// 用对象池的方式创建状态对象
-		var state = CLASS(type) as PlayerState;
+		var state = CLASS(type) as CharacterState;
 		state.setParam(param);
 		if (id == 0)
 		{
@@ -294,11 +243,11 @@ public class COMCharacterStateMachine : GameComponent
 		state.setID(id);
 		return state;
 	}
-	protected void destroyState(PlayerState state)
+	protected void destroyState(CharacterState state)
 	{
 		UN_CLASS(state);
 	}
-	protected bool canAddState(PlayerState state)
+	protected bool canAddState(CharacterState state)
 	{
 		if (!mutexWithExistState(state, out _))
 		{
@@ -312,7 +261,7 @@ public class COMCharacterStateMachine : GameComponent
 			var stateList = itemList.Value.getMainList();
 			foreach (var item in stateList)
 			{
-				if (item != state && item.isActive() && !allowAddStateByGroup(stateType, Typeof(item)))
+				if (item != state && item.isActive() && !mStateManager.allowAddStateByGroup(stateType, Typeof(item)))
 				{
 					return false;
 				}
@@ -326,11 +275,11 @@ public class COMCharacterStateMachine : GameComponent
 		return true;
 	}
 	// 是否因为与当前已存在的同类型的互斥而无法添加此状态,返回值表示是否可以添加新的状态,如果可添加,则needRemoveState返回需要被移除的状态
-	protected bool mutexWithExistState(PlayerState state, out PlayerState needRemoveState)
+	protected bool mutexWithExistState(CharacterState state, out CharacterState needRemoveState)
 	{
 		needRemoveState = null;
 		// 移除自身不可共存的状态
-		PlayerState existState = getFirstState(Typeof(state));
+		CharacterState existState = getFirstState(Typeof(state));
 		if (existState == null)
 		{
 			return true;
@@ -343,7 +292,7 @@ public class COMCharacterStateMachine : GameComponent
 			return true;
 		}
 		// 不允许添加新状态
-		else if (operate == STATE_MUTEX.CAN_NOT_ADD_NEW)
+		else if (operate == STATE_MUTEX.NO_NEW)
 		{
 			return false;
 		}
@@ -364,10 +313,10 @@ public class COMCharacterStateMachine : GameComponent
 		}
 		return true;
 	}
-	protected void removeMutexState(PlayerState state)
+	protected void removeMutexState(CharacterState state)
 	{
 		// 移除自身不可共存的状态
-		PlayerState needRemoveState;
+		CharacterState needRemoveState;
 		mutexWithExistState(state, out needRemoveState);
 		if (needRemoveState != null)
 		{
@@ -382,7 +331,7 @@ public class COMCharacterStateMachine : GameComponent
 			var stateList = itemList.Value.startForeach();
 			foreach (var item in stateList)
 			{
-				if (item != state && item.isActive() && !allowKeepStateByGroup(stateType, Typeof(item)))
+				if (item != state && item.isActive() && !mStateManager.allowKeepStateByGroup(stateType, Typeof(item)))
 				{
 					removeState(item, true);
 				}
@@ -391,185 +340,40 @@ public class COMCharacterStateMachine : GameComponent
 		}
 		mStateTypeList.endForeach(stateForeachList);
 	}
-	// 添加了newState以后是否还会保留existState
-	protected bool allowKeepStateByGroup(Type newState, Type existState)
-	{
-		// 此处不考虑同类型状态,因为在这之前已经判断过了
-		if(newState == existState)
-		{
-			return true;
-		}
-		if (!mStateGroupList.TryGetValue(newState, out List<Type> newGroup) ||
-			!mStateGroupList.TryGetValue(existState, out List<Type> existGroup))
-		{
-			return true;
-		}
-		// 有一个状态不属于任何状态组时两个状态是可以共存的
-		if(newGroup == null || existGroup == null)
-		{
-			return true;
-		}
-		int count0 = newGroup.Count;
-		int count1 = existGroup.Count;
-		for(int i = 0; i < count0; ++i)
-		{
-			StateGroup group = mGroupStateList[newGroup[i]];
-			for (int j = 0; j < count1; ++j)
-			{
-				if(newGroup[i] != existGroup[j])
-				{
-					continue;
-				}
-				// 状态可共存
-				if (group.mMutex == GROUP_MUTEX.COEXIST)
-				{
-					;
-				}
-				// 仅与主状态互斥,添加主状态时移除其他所有状态
-				else if (group.mMutex == GROUP_MUTEX.MUTEX_WITH_MAIN)
-				{
-					if (group.mMainState == newState)
-					{
-						return false;
-					}
-				}
-				// 仅与主状态互斥,添加主状态时移除其他所有状态
-				else if (group.mMutex == GROUP_MUTEX.MUTEX_WITH_MAIN_ONLY)
-				{
-					if (group.mMainState == newState)
-					{
-						return false;
-					}
-				}
-				// 不可添加新状态
-				else if (group.mMutex == GROUP_MUTEX.NO_NEW)
-				{
-					return false;
-				}
-				// 添加新状态时移除所有旧状态
-				else if (group.mMutex == GROUP_MUTEX.REMOVE_OTHERS)
-				{
-					return false;
-				}
-				// 主状态反向互斥,添加其他状态时,立即将主状态移除
-				else if (group.mMutex == GROUP_MUTEX.MUTEX_INVERSE_MAIN)
-				{
-					// 存在主状态,则将主状态移除
-					if(group.mMainState == existState)
-					{
-						return false;
-					}
-				}
-			}
-		}
-		return true;
-	}
-	// 当存在existState时,是否允许添加newState
-	protected bool allowAddStateByGroup(Type newState, Type existState)
-	{
-		// 此处不考虑同类型状态,因为在这之前已经判断过了
-		if (newState == existState)
-		{
-			return true;
-		}
-		// 任意一个状态没有所属组,则不在同一组
-		if (!mStateGroupList.TryGetValue(newState, out List<Type> newGroup) ||
-			!mStateGroupList.TryGetValue(existState, out List<Type> existGroup))
-		{
-			return true;
-		}
-		// 有一个状态不属于任何状态组时两个状态是可以共存的
-		if (newGroup == null || existGroup == null)
-		{
-			return true;
-		}
-		int count0 = newGroup.Count;
-		int count1 = existGroup.Count;
-		for (int i = 0; i < count0; ++i)
-		{
-			StateGroup group = mGroupStateList[newGroup[i]];
-			for (int j = 0; j < count1; ++j)
-			{
-				// 属于同一状态组,并且该状态组中的所有状态都不能共存,而且不允许添加跟当前状态互斥的状态,则不允许添加该状态
-				if (newGroup[i] != existGroup[j])
-				{
-					continue;
-				}
-				// 状态可共存
-				if (group.mMutex == GROUP_MUTEX.COEXIST)
-				{
-					;
-				}
-				// 仅与主状态互斥,有主状态时不可添加其他状态,没有主状态时可任意添加其他状态
-				else if (group.mMutex == GROUP_MUTEX.MUTEX_WITH_MAIN)
-				{
-					// 有主状态时不可添加其他状态
-					if (group.mMainState == existState)
-					{
-						return false;
-					}
-				}
-				// 仅与主状态互斥,无论是否有主状态都可以添加其他状态
-				else if (group.mMutex == GROUP_MUTEX.MUTEX_WITH_MAIN_ONLY)
-				{
-					;
-				}
-				// 不可添加新状态
-				else if (group.mMutex == GROUP_MUTEX.NO_NEW)
-				{
-					return false;
-				}
-				// 添加新状态时移除所有旧状态
-				else if (group.mMutex == GROUP_MUTEX.REMOVE_OTHERS)
-				{
-					;
-				}
-				// 主状态反向互斥,有其他状态时,不允许添加主状态
-				else if (group.mMutex == GROUP_MUTEX.MUTEX_INVERSE_MAIN)
-				{
-					if(group.mMainState == newState)
-					{
-						return false;
-					}
-				}
-			}
-		}
-		return true;
-	}
-	protected void addStateToList(PlayerState state)
+	protected void addStateToList(CharacterState state)
 	{
 		Type type = Typeof(state);
-		if (!mStateTypeList.tryGetValue(type, out SafeDeepList<PlayerState> stateList))
+		if (!mStateTypeList.tryGetValue(type, out SafeDeepList<CharacterState> stateList))
 		{
-			stateList = new SafeDeepList<PlayerState>();
+			stateList = new SafeDeepList<CharacterState>();
 			mStateTypeList.add(type, stateList);
 		}
 		stateList.add(state);
 		mStateMap.Add(state.getID(), state);
 
 		// 添加状态组计数
-		mStateGroupList.TryGetValue(type, out List<Type> groupList);
-		if(groupList != null)
+		List<Type> groupList = mStateManager.getGroupList(type);
+		if (groupList != null)
 		{
 			int groupCount = groupList.Count;
-			for(int i = 0; i < groupCount; ++i)
+			for (int i = 0; i < groupCount; ++i)
 			{
 				mGroupStateCountList[groupList[i]] += 1;
 			}
 		}
 	}
-	protected void removeStateFromList(PlayerState state)
+	protected void removeStateFromList(CharacterState state)
 	{
 		Type type = Typeof(state);
-		mStateTypeList.tryGetValue(type, out SafeDeepList<PlayerState> stateList);
-		if(stateList == null)
+		mStateTypeList.tryGetValue(type, out SafeDeepList<CharacterState> stateList);
+		if (stateList == null)
 		{
 			logError("state type error:" + type.Name);
 		}
 		stateList.remove(state);
 		mStateMap.Remove(state.getID());
 		// 从状态组计数中移除
-		mStateGroupList.TryGetValue(type, out List<Type> groupList);
+		List<Type> groupList = mStateManager.getGroupList(type);
 		if (groupList != null)
 		{
 			int groupCount = groupList.Count;
