@@ -5,28 +5,27 @@ using System.Collections.Generic;
 public class StateGroup : FrameBase
 {
 	public HashSet<Type> mStateList;
+	public StateGroupMutex mMutex;      // 该组中的状态是否可以共存
 	public Type mMainState;
-	public GROUP_MUTEX mMutex;      // 该组中的状态是否可以共存
 	public StateGroup()
-	{	
+	{
 		mStateList = new HashSet<Type>();
 	}
-	public void setMutex(GROUP_MUTEX mutex) { mMutex = mutex; }
+	public void setMutex(GROUP_MUTEX mutex)
+	{
+		mMutex = mStateManager.createMutex(mutex, this);
+	}
 	public void setMainState(Type type)
 	{
-		if(mMainState != null)
+		if (mMainState != null)
 		{
 			logError("state group's main state is not empty!");
 			return;
 		}
 		mMainState = type;
 	}
-	public void addState(Type type)
-	{
-		mStateList.Add(type);
-	}
-	public bool hasState(Type type)
-	{
-		return mStateList.Contains(type);
-	}
+	public void addState(Type type) { mStateList.Add(type); }
+	public bool hasState(Type type) { return mStateList.Contains(type); }
+	public bool allowKeepState(Type newState, Type existState) { return mMutex.allowKeepState(newState, existState); }
+	public bool allowAddState(Type newState, Type existState) { return mMutex.allowAddState(newState, existState); }
 }

@@ -1502,7 +1502,7 @@ public class StringUtility : BinaryUtility
 			return 0;
 		}
 		int dataCount = str.Length >> 1;
-		FrameBase.ARRAY_MAIN_THREAD(out bytes, MathUtility.getGreaterPow2(dataCount));
+		FrameBase.ARRAY_THREAD(out bytes, MathUtility.getGreaterPow2(dataCount));
 		for (int i = 0; i < dataCount; ++i)
 		{
 			bytes[i] = hexStringToByte(str, i * 2);
@@ -1511,7 +1511,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static void releaseHexStringBytes(byte[] bytes)
 	{
-		FrameBase.UN_ARRAY_MAIN_THREAD(bytes);
+		FrameBase.UN_ARRAY_THREAD(bytes);
 	}
 	public static string fileSizeString(long size)
 	{

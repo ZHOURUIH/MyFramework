@@ -68,141 +68,141 @@ public class KEY_CURVE
 // 数字窗口中数字的停靠位置
 public enum DOCKING_POSITION : byte
 {
-	LEFT,		// 横向排列时,向左停靠
-	RIGHT,      // 横向排列时,向右停靠
-	CENTER,     // 中间对齐
-	TOP,		// 纵向排列时,向顶部停靠
-	BOTTOM,     // 纵向排列时,向底部停靠
+	LEFT,					// 横向排列时,向左停靠
+	RIGHT,					// 横向排列时,向右停靠
+	CENTER,					// 中间对齐
+	TOP,					// 纵向排列时,向顶部停靠
+	BOTTOM,					// 纵向排列时,向底部停靠
 }
 
 // 数字窗口中数字的排列方向
 public enum NUMBER_DIRECTION : byte
 {
-	HORIZONTAL,	// 横向排列
-	VERTICAL,	// 纵向排列
+	HORIZONTAL,				// 横向排列
+	VERTICAL,				// 纵向排列
 }
 
 // 循环方式
 public enum LOOP_MODE : byte
 {
-	ONCE,		// 单次不循环
-	LOOP,		// 循环
-	PING_PONG,	// 以来回的方式循环
+	ONCE,					// 单次不循环
+	LOOP,					// 循环
+	PING_PONG,				// 以来回的方式循环
 }
 
 // 播放状态
 public enum PLAY_STATE : byte
 {
-	NONE,	// 无效状态
-	PLAY,	// 正在播放
-	PAUSE,	// 已暂停
-	STOP,	// 已停止
+	NONE,					// 无效状态
+	PLAY,					// 正在播放
+	PAUSE,					// 已暂停
+	STOP,					// 已停止
 }
 
 // 加载状态
 public enum LOAD_STATE : byte
 {
-	NONE,			// 无效状态
-	UNLOAD,			// 已卸载
-	WAIT_FOR_LOAD,	// 等待加载
-	LOADING,		// 正在加载
-	LOADED,			// 已加载
+	NONE,					// 无效状态
+	UNLOAD,					// 已卸载
+	WAIT_FOR_LOAD,			// 等待加载
+	LOADING,				// 正在加载
+	LOADED,					// 已加载
 }
 
 // 拖拽滑动操作相关的方向类型
 public enum DRAG_DIRECTION : byte
 {
-	HORIZONTAL,		// 只能横向滑动
-	VERTICAL,		// 只能纵向滑动
-	FREE,			// 可自由滑动
+	HORIZONTAL,				// 只能横向滑动
+	VERTICAL,				// 只能纵向滑动
+	FREE,					// 可自由滑动
 }
 
 // 滑动组件滑动区域限制类型
 public enum CLAMP_TYPE : byte
 {
-	CENTER_IN_RECT,  // 限制中心点不能超过父窗口的区域
-	EDGE_IN_RECT,    // 限制边界不能超过父窗口的区域
+	CENTER_IN_RECT,			// 限制中心点不能超过父窗口的区域
+	EDGE_IN_RECT,			// 限制边界不能超过父窗口的区域
 }
 
 // 网络状态
 public enum NET_STATE : byte
 {
-	NONE,			// 无效值
-	CONNECTING,     // 正在连接
-	CONNECTED,      // 已连接
-	SERVER_CLOSE,   // 服务器已关闭
-	NET_CLOSE,      // 网络已断开
+	NONE,					// 无效值
+	CONNECTING,				// 正在连接
+	CONNECTED,				// 已连接
+	SERVER_CLOSE,			// 服务器已关闭
+	NET_CLOSE,				// 网络已断开
 }
 
 // 网络消息解析结果
 public enum PARSE_RESULT : byte
 {
-	SUCCESS,		// 解析成功
-	ERROR,			// 解析错误
-	NOT_ENOUGH,		// 数据量不足
+	SUCCESS,				// 解析成功
+	ERROR,					// 解析错误
+	NOT_ENOUGH,				// 数据量不足
 }
 
 // 日志等级
 public enum LOG_LEVEL : byte
 {
-	FORCE,		// 强制显示
-	HIGH,		// 高
-	NORMAL,		// 正常
-	LOW,		// 低
-	MAX,		// 无效值
+	FORCE,					// 强制显示
+	HIGH,					// 高
+	NORMAL,					// 正常
+	LOW,					// 低
+	MAX,					// 无效值
 }
 
 // 摄像机碰撞的检测方向
 public enum CHECK_DIRECTION : byte
 {
-	DOWN,		// 向下碰撞检测,检测到碰撞后,摄像机向上移动
-	UP,			// 向上检测
-	LEFT,       // 向左检测
-	RIGHT,      // 向右检测
-	FORWARD,    // 向前检测
-	BACK,       // 向后检测
+	DOWN,					// 向下碰撞检测,检测到碰撞后,摄像机向上移动
+	UP,						// 向上检测
+	LEFT,					// 向左检测
+	RIGHT,					// 向右检测
+	FORWARD,				// 向前检测
+	BACK,					// 向后检测
 }
 
 // 鼠标按键
 public enum MOUSE_BUTTON : byte
 {
-	LEFT,		// 左键
-	RIGHT,		// 右键
-	MIDDLE,		// 中键
+	LEFT,					// 左键
+	RIGHT,					// 右键
+	MIDDLE,					// 中键
 }
 
 // 输入事件的状态掩码
 public enum FOCUS_MASK : ushort
 {
-	NONE = 0,			// 无掩码
-	SCENE = 1 << 1,		// 可处理场景中的输入
-	UI = 1 << 2,		// 可处理UI的输入
-	OTHER = 1 << 3,		// 可处理其他输入
+	NONE = 0,				// 无掩码
+	SCENE = 1 << 1,			// 可处理场景中的输入
+	UI = 1 << 2,			// 可处理UI的输入
+	OTHER = 1 << 3,			// 可处理其他输入
 }
 
 // 滚动窗口的状态
 public enum SCROLL_STATE : byte
 {
-	NONE,            // 无状态
-	SCROLL_TARGET,   // 自动匀速滚动到目标点
-	DRAGING,         // 鼠标拖动
-	SCROLL_TO_STOP,  // 鼠标抬起后自动减速到停止
+	NONE,					// 无状态
+	SCROLL_TARGET,			// 自动匀速滚动到目标点
+	DRAGING,				// 鼠标拖动
+	SCROLL_TO_STOP,			// 鼠标抬起后自动减速到停止
 }
 
 // 滑动条实现方式的类型
 public enum SLIDER_MODE : byte
 {
-	FILL,    // 通过调整图片填充来实现滑动条
-	SIZING,  // 通过调整窗口大小来实现滑动条
+	FILL,					// 通过调整图片填充来实现滑动条
+	SIZING,					// 通过调整窗口大小来实现滑动条
 }
 
 // 添加同一状态时的操作选项
 public enum STATE_MUTEX : byte
 {
-	CAN_NOT_ADD_NEW,    // 不可添加相同的新状态
-	REMOVE_OLD,         // 添加新状态,移除互斥的旧状态
-	COEXIST,            // 新旧状态可共存
-	KEEP_HIGH_PRIORITY, // 保留新旧状态中优先级最高的
+	NO_NEW,					// 不可添加相同的新状态
+	REMOVE_OLD,				// 添加新状态,移除互斥的旧状态
+	COEXIST,				// 新旧状态可共存
+	KEEP_HIGH_PRIORITY,		// 保留新旧状态中优先级最高的
 }
 
 // 同一状态组中的状态互斥选项
@@ -219,65 +219,65 @@ public enum GROUP_MUTEX : byte
 // 命令执行状态
 public enum EXECUTE_STATE : byte
 {
-	NOT_EXECUTE,	// 未执行
-	EXECUTING,		// 正在执行
-	EXECUTED,		// 已执行
+	NOT_EXECUTE,			// 未执行
+	EXECUTING,				// 正在执行
+	EXECUTED,				// 已执行
 }
 
 // 寻路中的节点状态
 public enum NODE_STATE : byte
 {
-	NONE,	// 无状态
-	OPEN,	// 在开启列表中
-	CLOSE,	// 在关闭列表中
+	NONE,					// 无状态
+	OPEN,					// 在开启列表中
+	CLOSE,					// 在关闭列表中
 }
 
 // 加载资源的来源
 public enum LOAD_SOURCE : byte
 {
-	RESOURCES,		// 从Resources加载
-	ASSET_BUNDLE,	// 从AssetBundle加载
+	RESOURCES,				// 从Resources加载
+	ASSET_BUNDLE,			// 从AssetBundle加载
 }
 
 // 状态的buff类型
 public enum BUFF_STATE_TYPE : byte
 {
-	NONE,       // 既不属于buff,也不属于debuff
-	BUFF,       // 属于buff
-	DEBUFF,     // 属于debuff
+	NONE,					// 既不属于buff,也不属于debuff
+	BUFF,					// 属于buff
+	DEBUFF,					// 属于debuff
 }
 
 // 时间字符串显示格式
 public enum TIME_DISPLAY : byte
 {
-	HMSM,		// 以Hour:Minute:Second:Millisecond形式显示,并且不补0
-	HMS_2,		// 以Hour:Minute:Second形式显示,并且每个数都显示为2位数
-	DHMS_ZH,	// 以Day天Hour小时Minute分Second秒的形式显示
-	YMD_ZH,		// 以Year年Month月Day天的形式显示
+	HMSM,					// 以Hour:Minute:Second:Millisecond形式显示,并且不补0
+	HMS_2,					// 以Hour:Minute:Second形式显示,并且每个数都显示为2位数
+	DHMS_ZH,				// 以Day天Hour小时Minute分Second秒的形式显示
+	YMD_ZH,					// 以Year年Month月Day天的形式显示
 }
 
 // 布局渲染顺序的计算类型
 public enum LAYOUT_ORDER : byte
 {
-	ALWAYS_TOP,			// 总在最上层,并且需要自己指定渲染顺序
-	ALWAYS_TOP_AUTO,	// 总在最上层,并且自动计算渲染顺序,设置为最上层中的最大深度
-	AUTO,				// 自动计算,布局显示时设置为除开所有总在最上层的布局中的最大深度
-	FIXED,				// 固定渲染顺序,并且不可以超过总在最上层的布局
+	ALWAYS_TOP,				// 总在最上层,并且需要自己指定渲染顺序
+	ALWAYS_TOP_AUTO,		// 总在最上层,并且自动计算渲染顺序,设置为最上层中的最大深度
+	AUTO,					// 自动计算,布局显示时设置为除开所有总在最上层的布局中的最大深度
+	FIXED,					// 固定渲染顺序,并且不可以超过总在最上层的布局
 }
 
 // 每一帧校正图片位置时的选项
 public enum EFFECT_ALIGN : byte
 {
-	NONE,           // 特效中心对齐父节点中心
-	PARENT_BOTTOM,  // 特效底部对齐父节点底部
-	POSITION_LIST,  // 使用位置列表对每一帧进行校正
+	NONE,					// 特效中心对齐父节点中心
+	PARENT_BOTTOM,			// 特效底部对齐父节点底部
+	POSITION_LIST,			// 使用位置列表对每一帧进行校正
 }
 
 // 角度的单位
 public enum ANGLE : byte
 { 
-	RADIAN,	// 弧度制
-	DEGREE,	// 角度制
+	RADIAN,					// 弧度制
+	DEGREE,					// 角度制
 }
 
 public enum ANCHOR_MODE : byte
@@ -308,9 +308,9 @@ public enum VERTICAL_PADDING : sbyte
 // 缩放比例的计算方式
 public enum ASPECT_BASE : byte
 {
-	USE_WIDTH_SCALE,    // 使用宽的缩放值来缩放控件
-	USE_HEIGHT_SCALE,   // 使用高的缩放值来缩放控件
-	AUTO,               // 取宽高缩放值中最小的,保证缩放以后不会超出屏幕范围
-	INVERSE_AUTO,       // 取宽高缩放值中最大的,保证缩放以后不会在屏幕范围留出空白
+	USE_WIDTH_SCALE,			// 使用宽的缩放值来缩放控件
+	USE_HEIGHT_SCALE,			// 使用高的缩放值来缩放控件
+	AUTO,						// 取宽高缩放值中最小的,保证缩放以后不会超出屏幕范围
+	INVERSE_AUTO,				// 取宽高缩放值中最大的,保证缩放以后不会在屏幕范围留出空白
 	NONE,
 }

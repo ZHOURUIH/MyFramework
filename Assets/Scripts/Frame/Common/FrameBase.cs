@@ -49,16 +49,13 @@ public class FrameBase : ClassObject
 	public static PathKeyframeManager mPathKeyframeManager;
 	public static EventSystem mEventSystem;
 	public static TweenerManager mTweenerManager;
+	public static StateManager mStateManager;
 #if USE_ILRUNTIME
 	public static ILRSystem mILRSystem;
 #endif
 #if !UNITY_EDITOR
 	//public static LocalLog mLocalLog;
 #endif
-	protected static void getFrameSystemMain<T>(out T system) where T : FrameSystem
-	{
-		system = mGameFramework.getSystem(typeof(T)) as T;
-	}
 	public virtual void notifyConstructDone()
 	{
 		mGameFramework = GameFramework.mGameFramework;
@@ -104,8 +101,14 @@ public class FrameBase : ClassObject
 		getFrameSystemMain(out mPathKeyframeManager);
 		getFrameSystemMain(out mEventSystem);
 		getFrameSystemMain(out mTweenerManager);
+		getFrameSystemMain(out mStateManager);
 #if USE_ILRUNTIME
 		getFrameSystemMain(out mILRSystem);
 #endif
+	}
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	protected static void getFrameSystemMain<T>(out T system) where T : FrameSystem
+	{
+		system = mGameFramework.getSystem(typeof(T)) as T;
 	}
 }

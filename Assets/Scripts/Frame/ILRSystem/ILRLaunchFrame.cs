@@ -45,7 +45,7 @@ public class ILRLaunchFrame : FrameBase
 		classList.Add(typeof(CharacterBaseData));
 		classList.Add(typeof(GameComponent));
 		classList.Add(typeof(StateParam));
-		classList.Add(typeof(PlayerState));
+		classList.Add(typeof(CharacterState));
 		classList.Add(typeof(StateGroup));
 		classList.Add(typeof(Command));
 		classList.Add(typeof(SQLiteTable));
@@ -97,7 +97,7 @@ public class ILRLaunchFrame : FrameBase
 		delegateManager.RegisterMethodDelegate<LayoutScript, bool>();
 		delegateManager.RegisterMethodDelegate<myUIObject, object>();
 		delegateManager.RegisterMethodDelegate<UnityEngine.Object, UnityEngine.Object[], byte[], object, string>();
-		delegateManager.RegisterMethodDelegate<PlayerState, bool, string>();
+		delegateManager.RegisterMethodDelegate<CharacterState, bool, string>();
 		delegateManager.RegisterMethodDelegate<SocketConnectClient>();
 		delegateManager.RegisterMethodDelegate<Texture, string>();
 		delegateManager.RegisterMethodDelegate<Texture2D, object>();
@@ -342,7 +342,7 @@ public class ILRLaunchFrame : FrameBase
 		});
 		delegateManager.RegisterDelegateConvertor<OnStateLeave>((action) =>
 		{
-			return new OnStateLeave((state, isBreak, param) => { ((Action<PlayerState, bool, string>)action)(state, isBreak, param); });
+			return new OnStateLeave((state, isBreak, param) => { ((Action<CharacterState, bool, string>)action)(state, isBreak, param); });
 		});
 		delegateManager.RegisterDelegateConvertor<EventCallback>((action) =>
 		{

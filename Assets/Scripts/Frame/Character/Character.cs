@@ -114,10 +114,10 @@ public class Character : MovableObject
 	public long getGUID() { return mGUID; }
 	public COMCharacterDecisionTree getDecisionTree() { return mDecisionTree; }
 	public COMCharacterStateMachine getStateMachine() { return mStateMachine; }
-	public PlayerState getFirstGroupState(Type group) { return mStateMachine.getFirstGroupState(group); }
-	public PlayerState getFirstState(Type type) { return mStateMachine.getFirstState(type); }
-	public PlayerState getState(uint id) { return mStateMachine.getState(id); }
-	public SafeDeepDictionary<Type, SafeDeepList<PlayerState>> getStateList() { return mStateMachine.getStateList(); }
+	public CharacterState getFirstGroupState(Type group) { return mStateMachine.getFirstGroupState(group); }
+	public CharacterState getFirstState(Type type) { return mStateMachine.getFirstState(type); }
+	public CharacterState getState(uint id) { return mStateMachine.getState(id); }
+	public SafeDeepDictionary<Type, SafeDeepList<CharacterState>> getStateList() { return mStateMachine.getStateList(); }
 	public bool hasState(Type state) { return mStateMachine.hasState(state); }
 	public bool hasStateGroup(Type group) { return mStateMachine.hasStateGroup(group); }
 	//--------------------------------------------------------------------------------------------------------------
@@ -135,22 +135,13 @@ public class Character : MovableObject
 	}
 	protected virtual void notifyModelLoaded(GameObject go)
 	{
-		Vector3 lastPosition = getPosition();
-		Vector3 lastRotation = getRotation();
-		Vector3 lastScale = getScale();
-		setObject(go, true);
-		// 将外部节点设置为角色节点后,角色在销毁时就不能自动销毁节点,否则会出错
-		setDestroyObject(false);
-		setParent(mCharacterManager.getObject());
+		setNormalProperty(go, mObject);
 		mAvatar.setModel(go, mModelPath);
 		mRigidBody = go.GetComponent<Rigidbody>();
 		if (!isEmpty(mAnimationControllerPath))
 		{
 			mAvatar.getAnimator().runtimeAnimatorController = mResourceManager.loadResource<RuntimeAnimatorController>(mAnimationControllerPath);
 		}
-		FT.MOVE(this,lastPosition);
-		FT.ROTATE(this, lastRotation);
-		FT.SCALE(this, lastScale);
 	}
 	protected void afterModelLoaded()
 	{

@@ -60,7 +60,7 @@ public delegate void CreateObjectGroupCallback(Dictionary<string, GameObject> go
 public delegate void OnEffectLoadedCallback(GameEffect effect, object userData);
 public delegate void AtlasLoadDone(UGUIAtlas atlas, object userData);
 public delegate void OnInputField(string str);
-public delegate void OnStateLeave(PlayerState state, bool isBreak, string param);
+public delegate void OnStateLeave(CharacterState state, bool isBreak, string param);
 public delegate void EventCallback(GameEvent param);
 public delegate void OnEffectDestroy(GameEffect effect, object userData);
 public delegate void ConnectCallback(SocketConnectClient client);
