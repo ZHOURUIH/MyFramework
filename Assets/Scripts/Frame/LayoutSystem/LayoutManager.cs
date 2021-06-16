@@ -280,7 +280,7 @@ public class LayoutManager : FrameSystem
 	protected override void initComponents()
 	{
 		base.initComponents();
-		mCOMEscHide = addComponent(typeof(COMLayoutManagerEscHide)) as COMLayoutManagerEscHide;
+		addComponent(out mCOMEscHide);
 	}
 	protected void onLayoutPrefabLoaded(UnityEngine.Object asset, UnityEngine.Object[] subAssets, byte[] bytes, object userData, string loadPath)
 	{

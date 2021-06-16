@@ -85,8 +85,8 @@ public class Character : MovableObject
 	protected override void initComponents()
 	{
 		base.initComponents();
-		mAvatar = addComponent(typeof(COMCharacterAvatar), true) as COMCharacterAvatar;
-		mStateMachine = addComponent(typeof(COMCharacterStateMachine), true) as COMCharacterStateMachine;
-		mDecisionTree = addComponent(typeof(COMCharacterDecisionTree)) as COMCharacterDecisionTree;
+		addComponent(out mAvatar, true);
+		addComponent(out mStateMachine, true);
+		addComponent(out mDecisionTree);
 	}
 }
