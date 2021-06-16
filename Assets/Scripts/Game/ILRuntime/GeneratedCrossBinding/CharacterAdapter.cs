@@ -158,14 +158,6 @@ namespace HotFix
                     return mgetAnimationLength_4.Invoke(this.instance, name);
             }
 
-            public override void notifyComponentChanged(global::GameComponent com)
-            {
-                if (mnotifyComponentChanged_5.CheckShouldInvokeBase(this.instance))
-                    base.notifyComponentChanged(com);
-                else
-                    mnotifyComponentChanged_5.Invoke(this.instance, com);
-            }
-
             protected override void initComponents()
             {
                 if (minitComponents_6.CheckShouldInvokeBase(this.instance))
@@ -174,12 +166,12 @@ namespace HotFix
                     minitComponents_6.Invoke(this.instance);
             }
 
-            protected override void notifyModelLoaded(UnityEngine.GameObject go)
+            public override void notifyModelLoaded()
             {
                 if (mnotifyModelLoaded_7.CheckShouldInvokeBase(this.instance))
-                    base.notifyModelLoaded(go);
+                    base.notifyModelLoaded();
                 else
-                    mnotifyModelLoaded_7.Invoke(this.instance, go);
+                    mnotifyModelLoaded_7.Invoke(this.instance);
             }
 
             public override void destroy()
