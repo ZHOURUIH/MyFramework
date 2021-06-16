@@ -27,6 +27,11 @@ public class StateManager : FrameSystem
 		mStateTypeList.TryGetValue(id, out Type type);
 		return type;
 	}
+	public Type getParamType(int id)
+	{
+		mStateParamList.TryGetValue(id, out Type type);
+		return type;
+	}
 	public StateParam createStateParam(int id)
 	{
 		if (!mStateParamList.TryGetValue(id, out Type type))
@@ -60,10 +65,10 @@ public class StateManager : FrameSystem
 		groupMutex.setGroup(group);
 		return groupMutex;
 	}
-	public void registeState<State, Param>(int id) where State : CharacterState where Param : StateParam
+	public void registeState(int id, Type stateType, Type paramType)
 	{
-		mStateTypeList.Add(id, typeof(State));
-		mStateParamList.Add(id, typeof(Param));
+		mStateTypeList.Add(id, stateType);
+		mStateParamList.Add(id, paramType);
 	}
 	public void registeGroup(Type type, GROUP_MUTEX mutex = GROUP_MUTEX.COEXIST)
 	{
