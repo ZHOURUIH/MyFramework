@@ -90,7 +90,7 @@ public class CameraManager : FrameSystem
 			}
 			return null;
 		}
-		CLASS_MAIN(out GameCamera camera);
+		CLASS(out GameCamera camera);
 		camera.setName(name);
 		camera.init();
 		camera.setObject(obj);

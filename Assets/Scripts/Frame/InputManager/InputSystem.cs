@@ -19,7 +19,7 @@ public class InputSystem : FrameSystem
 	// 添加对于指定按键的当前按下事件监听
 	public void listenKeyCurrentDown(KeyCode key, OnKeyCurrentDown callback, object listener, bool ctrlDown = false, bool shiftDown = false, bool altDown = false)
 	{
-		CLASS_MAIN(out KeyInfo info);
+		CLASS(out KeyInfo info);
 		info.mCallback = callback;
 		info.mListener = listener;
 		info.mKey = key;
@@ -34,7 +34,7 @@ public class InputSystem : FrameSystem
 		list.add(info);
 		if(!mListenerList.TryGetValue(listener, out Dictionary<OnKeyCurrentDown, KeyInfo> callbcakList))
 		{
-			LIST_MAIN_PERSIST(out callbcakList);
+			LIST_PERSIST(out callbcakList);
 			mListenerList.Add(listener, callbcakList);
 		}
 		callbcakList.Add(callback, info);
@@ -68,7 +68,7 @@ public class InputSystem : FrameSystem
 				}
 			}
 		}
-		UN_LIST_MAIN(list);
+		UN_LIST(list);
 		mListenerList.Remove(listener);
 	}
 	public void registeInputField(IInputField inputField) { mInputFieldList.Add(inputField); }

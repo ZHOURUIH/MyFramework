@@ -34,7 +34,7 @@ public class AudioManager : FrameSystem
 		string audioName = getFileNameNoSuffix(url, true);
 		if(!mAudioClipList.TryGetValue(audioName, out AudioInfo info))
 		{
-			CLASS_MAIN(out info);
+			CLASS(out info);
 			info.mAudioName = audioName;
 			info.mAudioPath = getFilePath(url);
 			info.mClip = null;
@@ -184,7 +184,7 @@ public class AudioManager : FrameSystem
 		string audioName = getFileNameNoSuffix(fileName, true);
 		if(!mAudioClipList.ContainsKey(audioName))
 		{
-			CLASS_MAIN(out AudioInfo newInfo);
+			CLASS(out AudioInfo newInfo);
 			newInfo.mAudioName = audioName;
 			newInfo.mAudioPath = getFilePath(fileName);
 			newInfo.mClip = null;

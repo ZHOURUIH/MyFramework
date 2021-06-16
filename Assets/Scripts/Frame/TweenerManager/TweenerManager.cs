@@ -23,7 +23,7 @@ public class TweenerManager : FrameSystem
 	}
 	public MyTweenerFloat createTweenerFloat()
 	{
-		CLASS_MAIN(out MyTweenerFloat tweener);
+		CLASS(out MyTweenerFloat tweener);
 		tweener.init();
 		mTweenerList.add(tweener.getAssignID(), tweener);
 		return tweener;

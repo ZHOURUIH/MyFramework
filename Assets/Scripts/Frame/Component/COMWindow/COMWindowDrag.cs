@@ -77,7 +77,7 @@ public class COMWindowDrag : ComponentDrag
 		// 在接收逻辑之前通知基类拖拽结束,因为一般在接收拖拽时的逻辑会产生不可预知的结果
 		base.onDragEnd(mousePos);
 		// 判断当前鼠标所在位置是否有窗口
-		LIST_MAIN(out List<IMouseEventCollect> receiveWindow);
+		LIST(out List<IMouseEventCollect> receiveWindow);
 		mGlobalTouchSystem.getAllHoverWindow(receiveWindow, ref mousePos, mWindow);
 		int count = receiveWindow.Count;
 		for(int i = 0; i < count; ++i)
@@ -89,7 +89,7 @@ public class COMWindowDrag : ComponentDrag
 				break;
 			}
 		}
-		UN_LIST_MAIN(receiveWindow);
+		UN_LIST(receiveWindow);
 		// 拖拽操作完全结束
 		notifyDragEndTotally();
 	}

@@ -78,7 +78,7 @@ public abstract class SceneProcedure : IDelayCmdWatcher
 		if (mPrepareTimer.tickTimer(elapsedTime))
 		{
 			// 超过了准备时间,强制跳转流程
-			CMD_MAIN(out CmdGameSceneChangeProcedure cmd);
+			CMD(out CmdGameSceneChangeProcedure cmd);
 			cmd.mProcedure = mPrepareNext.mType;
 			cmd.mIntent = mPrepareIntent;
 			pushCommand(cmd, mGameScene);
@@ -143,29 +143,30 @@ public abstract class SceneProcedure : IDelayCmdWatcher
 	public SceneProcedure getSameParent(SceneProcedure otherProcedure)
 	{
 		// 获得两个流程的父节点列表
-		LIST_MAIN(out List<SceneProcedure> tempList0);
-		LIST_MAIN(out List<SceneProcedure> tempList1);
+		LIST(out List<SceneProcedure> tempList0);
+		LIST(out List<SceneProcedure> tempList1);
 		getParentList(tempList0);
 		otherProcedure.getParentList(tempList1);
+		SceneProcedure sameParent = null;
 		// 从前往后判断,找到第一个相同的父节点
 		int count0 = tempList0.Count;
-		for(int i = 0; i < count0; ++i)
+		for (int i = 0; i < count0; ++i)
 		{
-			var thisParent = tempList0[i];
+			SceneProcedure thisParent = tempList0[i];
 			int count1 = tempList1.Count;
-			for(int j = 0; j < count1; ++j)
+			for (int j = 0; j < count1; ++j)
 			{
 				if (thisParent == tempList1[j])
 				{
-					UN_LIST_MAIN(tempList0);
-					UN_LIST_MAIN(tempList1);
-					return thisParent;
+					sameParent = thisParent;
+					i = count0;
+					break;
 				}
 			}
 		}
-		UN_LIST_MAIN(tempList0);
-		UN_LIST_MAIN(tempList1);
-		return null;
+		UN_LIST(tempList0);
+		UN_LIST(tempList1);
+		return sameParent;
 	}
 	public bool isThisOrParent(Type type)
 	{

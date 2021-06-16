@@ -1232,7 +1232,7 @@ public class UnityUtility : FileUtility
 	{
 		RectTransform transform = root.getRectTransform();
 		// 先找出所有激活的子节点
-		FrameUtility.LIST_MAIN(out List<RectTransform> childList);
+		FrameUtility.LIST(out List<RectTransform> childList);
 		int childCount = transform.childCount;
 		for (int i = 0; i < childCount; ++i)
 		{
@@ -1272,14 +1272,14 @@ public class UnityUtility : FileUtility
 											  -gridSize.y * 0.5f - indexY * gridSize.y - indexY * interval.y) + posOffset;
 			WidgetUtility.setRectSize(child, gridSize, false);
 		}
-		FrameUtility.UN_LIST_MAIN(childList);
+		FrameUtility.UN_LIST(childList);
 	}
 	// 自动排列一个节点下的所有子节点的位置,从上往下紧密排列,并且不改变子节点的大小
 	public static void autoGridVertical(myUGUIObject root, float interval = 0.0f, bool resizeRootSize = true, float minHeight = 0.0f)
 	{
 		RectTransform transform = root.getRectTransform();
 		// 先找出所有激活的子节点
-		FrameUtility.LIST_MAIN(out List<RectTransform> childList);
+		FrameUtility.LIST(out List<RectTransform> childList);
 		int childCount = transform.childCount;
 		for (int i = 0; i < childCount; ++i)
 		{
@@ -1322,14 +1322,14 @@ public class UnityUtility : FileUtility
 				currentTop -= interval;
 			}
 		}
-		FrameUtility.UN_LIST_MAIN(childList);
+		FrameUtility.UN_LIST(childList);
 	}
 	// 自动排列一个节点下的所有子节点的位置,从左往右紧密排列,并且不改变子节点的大小
 	public static void autoGridHorizontal(myUGUIObject root, float interval = 0.0f, bool resizeRootSize = true, float minWidth = 0.0f)
 	{
 		RectTransform transform = root.getRectTransform();
 		// 先找出所有激活的子节点
-		FrameUtility.LIST_MAIN(out List<RectTransform> childList);
+		FrameUtility.LIST(out List<RectTransform> childList);
 		int childCount = transform.childCount;
 		for (int i = 0; i < childCount; ++i)
 		{

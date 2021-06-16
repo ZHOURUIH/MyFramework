@@ -34,6 +34,6 @@ public class Game : GameFramework
 	protected override void launch()
 	{
 		base.launch();
-		FrameUtility.enterSceneMain<StartScene>();
+		FrameUtility.enterScene<StartScene>();
 	}
 }

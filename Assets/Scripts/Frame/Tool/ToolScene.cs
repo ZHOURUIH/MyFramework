@@ -15,7 +15,7 @@ public class ST : FrameBase
 	}
 	public static void AUDIO(int sound, bool loop, float volume)
 	{
-		CMD_MAIN(out CmdGameScenePlayAudio cmd, false);
+		CMD(out CmdGameScenePlayAudio cmd, false);
 		cmd.mSound = sound;
 		cmd.mLoop = loop;
 		cmd.mVolume = volume;
@@ -23,7 +23,7 @@ public class ST : FrameBase
 	}
 	public static void AUDIO(string sound, bool loop, float volume)
 	{
-		CMD_MAIN(out CmdGameScenePlayAudio cmd, false);
+		CMD(out CmdGameScenePlayAudio cmd, false);
 		cmd.mSoundFileName = sound;
 		cmd.mLoop = loop;
 		cmd.mVolume = volume;
@@ -54,7 +54,7 @@ public class ST : FrameBase
 	}
 	public static void AUDIO_VOLUME_EX(int keyframe, float start, float target, float onceLength, int volumeCoeSound, bool loop, KeyFrameCallback fadingCallback, KeyFrameCallback fadeDoneCallback)
 	{
-		CMD_MAIN(out CmdGameSceneAudioVolume cmd, false);
+		CMD(out CmdGameSceneAudioVolume cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mStartVolume = start;
 		cmd.mTargetVolume = target;

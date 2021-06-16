@@ -42,7 +42,7 @@ public class CmdLayoutManagerLoad : Command
 		// 顺序有改变,则设置最新的顺序
 		if (layout.getRenderOrder() != renderOrder)
 		{
-			CMD_MAIN(out CmdLayoutManagerRenderOrder cmd);
+			CMD(out CmdLayoutManagerRenderOrder cmd);
 			cmd.mLayoutID = mLayoutID;
 			cmd.mRenderOrder = renderOrder;
 			pushCommand(cmd, mLayoutManager);

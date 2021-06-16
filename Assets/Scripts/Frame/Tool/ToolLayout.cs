@@ -9,7 +9,7 @@ public class LT : FrameBase
 	#region 布局
 	public static void LOAD_LAYOUT(int id, int renderOrder, LAYOUT_ORDER orderType, bool visible, bool immediately, string param, bool isScene, bool isAsync, LayoutAsyncDone callback)
 	{
-		CMD_MAIN(out CmdLayoutManagerLoad cmd, true);
+		CMD(out CmdLayoutManagerLoad cmd, true);
 		cmd.mLayoutID = id;
 		cmd.mVisible = visible;
 		cmd.mRenderOrder = renderOrder;
@@ -107,7 +107,7 @@ public class LT : FrameBase
 	}
 	public static void VISIBLE_LAYOUT(int id, bool visible, bool immediately = false, string param = null)
 	{
-		CMD_MAIN(out CmdLayoutManagerVisible cmd, true);
+		CMD(out CmdLayoutManagerVisible cmd, true);
 		cmd.mLayoutID = id;
 		cmd.mForce = false;
 		cmd.mVisible = visible;
@@ -117,7 +117,7 @@ public class LT : FrameBase
 	}
 	public static void VISIBLE_LAYOUT_FORCE(int id, bool visible)
 	{
-		CMD_MAIN(out CmdLayoutManagerVisible cmd, true);
+		CMD(out CmdLayoutManagerVisible cmd, true);
 		cmd.mLayoutID = id;
 		cmd.mForce = true;
 		cmd.mVisible = visible;
@@ -150,7 +150,7 @@ public class LT : FrameBase
 	}
 	public static CmdLayoutManagerVisible VISIBLE_LAYOUT_DELAY_EX(IDelayCmdWatcher watcher, float delayTime, int id, bool visible, CommandCallback start, bool immediately = false, string param = null)
 	{
-		CMD_MAIN_DELAY(out CmdLayoutManagerVisible cmd, true);
+		CMD_DELAY(out CmdLayoutManagerVisible cmd, true);
 		cmd.mLayoutID = id;
 		cmd.mForce = false;
 		cmd.mVisible = visible;
@@ -162,7 +162,7 @@ public class LT : FrameBase
 	}
 	public static CmdLayoutManagerVisible VISIBLE_LAYOUT_DELAY_FORCE(IDelayCmdWatcher watcher, float delayTime, int type, bool visible)
 	{
-		CMD_MAIN_DELAY(out CmdLayoutManagerVisible cmd, true);
+		CMD_DELAY(out CmdLayoutManagerVisible cmd, true);
 		cmd.mLayoutID = type;
 		cmd.mForce = true;
 		cmd.mVisible = visible;
@@ -176,13 +176,13 @@ public class LT : FrameBase
 	{
 		// 需要首先强制隐藏布局
 		HIDE_LAYOUT_FORCE(id);
-		CMD_MAIN(out CmdLayoutManagerUnload cmd, true);
+		CMD(out CmdLayoutManagerUnload cmd, true);
 		cmd.mLayoutID = id;
 		pushCommand(cmd, mLayoutManager);
 	}
 	public static void UNLOAD_LAYOUT_DELAY(IDelayCmdWatcher watcher, int id, float delayTime)
 	{
-		CMD_MAIN_DELAY(out CmdLayoutManagerUnload cmd, true);
+		CMD_DELAY(out CmdLayoutManagerUnload cmd, true);
 		cmd.mLayoutID = id;
 		pushDelayCommand(cmd, mLayoutManager, delayTime, watcher);
 	}
@@ -203,7 +203,7 @@ public class LT : FrameBase
 	}
 	public static CmdWindowActive ACTIVE_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, bool active, float delayTime, CommandCallback startCallback)
 	{
-		CMD_MAIN_DELAY(out CmdWindowActive cmd, false);
+		CMD_DELAY(out CmdWindowActive cmd, false);
 		cmd.mActive = active;
 		cmd.addStartCommandCallback(startCallback);
 		pushDelayCommand(cmd, obj, delayTime, watcher);
@@ -215,7 +215,7 @@ public class LT : FrameBase
 	#region 进度条
 	public static void SLIDER(ComponentOwner slider, float value)
 	{
-		CMD_MAIN(out CmdWindowSlider cmd, false);
+		CMD(out CmdWindowSlider cmd, false);
 		cmd.mStartValue = value;
 		cmd.mTargetValue = value;
 		cmd.mOnceLength = 0.0f;
@@ -223,7 +223,7 @@ public class LT : FrameBase
 	}
 	public static void SLIDER(ComponentOwner slider, float start, float target, float time)
 	{
-		CMD_MAIN(out CmdWindowSlider cmd, false);
+		CMD(out CmdWindowSlider cmd, false);
 		cmd.mStartValue = start;
 		cmd.mTargetValue = target;
 		cmd.mOnceLength = time;
@@ -235,7 +235,7 @@ public class LT : FrameBase
 	#region 窗口填充
 	public static void FILL(myUIObject obj, float value = 1.0f)
 	{
-		CMD_MAIN(out CmdWindowFill cmd, false);
+		CMD(out CmdWindowFill cmd, false);
 		cmd.mStartValue = value;
 		cmd.mTargetValue = value;
 		cmd.mOnceLength = 0.0f;
@@ -255,7 +255,7 @@ public class LT : FrameBase
 	}
 	public static void FILL_EX(myUIObject obj, int keyframe, float start, float target, float time, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		CMD_MAIN(out CmdWindowFill cmd, false);
+		CMD(out CmdWindowFill cmd, false);
 		cmd.mStartValue = start;
 		cmd.mTargetValue = target;
 		cmd.mOnceLength = time;
@@ -270,7 +270,7 @@ public class LT : FrameBase
 	}
 	public static CmdWindowFill FILL_DELAY_EX(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, float start, float target, float time, KeyFrameCallback doneCallback)
 	{
-		CMD_MAIN_DELAY(out CmdWindowFill cmd, false);
+		CMD_DELAY(out CmdWindowFill cmd, false);
 		cmd.mStartValue = start;
 		cmd.mTargetValue = target;
 		cmd.mOnceLength = time;
@@ -285,7 +285,7 @@ public class LT : FrameBase
 	#region 透明度
 	public static void ALPHA(myUIObject obj, float alpha = 1.0f)
 	{
-		CMD_MAIN(out CmdWindowAlpha cmd, false);
+		CMD(out CmdWindowAlpha cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartAlpha = alpha;
 		cmd.mTargetAlpha = alpha;
@@ -330,7 +330,7 @@ public class LT : FrameBase
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ALPHA(myUIObject obj, float alpha)");
 			return;
 		}
-		CMD_MAIN(out CmdWindowAlpha cmd, false);
+		CMD(out CmdWindowAlpha cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
@@ -343,7 +343,7 @@ public class LT : FrameBase
 	}
 	public static CmdWindowAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, float alpha)
 	{
-		CMD_MAIN_DELAY(out CmdWindowAlpha cmd, false);
+		CMD_DELAY(out CmdWindowAlpha cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartAlpha = alpha;
 		cmd.mTargetAlpha = alpha;
@@ -385,7 +385,7 @@ public class LT : FrameBase
 			logError("时间或关键帧不能为空,如果要停止组件,请使用CommandWindowAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, float alpha)");
 			return null;
 		}
-		CMD_MAIN_DELAY(out CmdWindowAlpha cmd, false);
+		CMD_DELAY(out CmdWindowAlpha cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
@@ -407,7 +407,7 @@ public class LT : FrameBase
 	}
 	public static void COLOR(myUIObject obj, Color color)
 	{
-		CMD_MAIN(out CmdWindowColor cmd, false);
+		CMD(out CmdWindowColor cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartColor = color;
 		cmd.mTargetColor = color;
@@ -452,7 +452,7 @@ public class LT : FrameBase
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ALPHA(myUIObject obj, float alpha)");
 			return;
 		}
-		CMD_MAIN(out CmdWindowColor cmd, false);
+		CMD(out CmdWindowColor cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
@@ -465,7 +465,7 @@ public class LT : FrameBase
 	}
 	public static CmdWindowColor COLOR_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Color color)
 	{
-		CMD_MAIN_DELAY(out CmdWindowColor cmd, false);
+		CMD_DELAY(out CmdWindowColor cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartColor = color;
 		cmd.mTargetColor = color;
@@ -507,7 +507,7 @@ public class LT : FrameBase
 			logError("时间或关键帧不能为空,如果要停止组件,请使用CommandWindowAlpha ALPHA_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, float alpha)");
 			return null;
 		}
-		CMD_MAIN_DELAY(out CmdWindowColor cmd, false);
+		CMD_DELAY(out CmdWindowColor cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
@@ -561,7 +561,7 @@ public class LT : FrameBase
 		{
 			return;
 		}
-		CMD_MAIN(out CmdWindowAlphaPath cmd, false);
+		CMD(out CmdWindowAlphaPath cmd, false);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -613,7 +613,7 @@ public class LT : FrameBase
 		{
 			return null;
 		}
-		CMD_MAIN_DELAY(out CmdWindowAlphaPath cmd, false);
+		CMD_DELAY(out CmdWindowAlphaPath cmd, false);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -630,7 +630,7 @@ public class LT : FrameBase
 	#region HSL
 	public static void HSL(myUIObject obj, Vector3 hsl)
 	{
-		CMD_MAIN(out CmdWindowHSL cmd, false);
+		CMD(out CmdWindowHSL cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartHSL = hsl;
 		cmd.mTargetHSL = hsl;
@@ -646,7 +646,7 @@ public class LT : FrameBase
 	}
 	public static void HSL(myUIObject obj, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
 	{
-		CMD_MAIN(out CmdWindowHSL cmd, false);
+		CMD(out CmdWindowHSL cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
@@ -661,7 +661,7 @@ public class LT : FrameBase
 	#region 亮度
 	public static void LUM(myUIObject obj, float lum)
 	{
-		CMD_MAIN(out CmdWindowLum cmd, false);
+		CMD(out CmdWindowLum cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartLum = lum;
 		cmd.mTargetLum = lum;
@@ -677,7 +677,7 @@ public class LT : FrameBase
 	}
 	public static void LUM(myUIObject obj, int keyframe, float start, float target, float onceLength, bool loop, float offset)
 	{
-		CMD_MAIN(out CmdWindowLum cmd, false);
+		CMD(out CmdWindowLum cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
@@ -704,7 +704,7 @@ public class LT : FrameBase
 	}
 	public static void AUDIO(myUIObject obj, int sound, bool loop, float volume)
 	{
-		CMD_MAIN(out CmdWindowPlayAudio cmd, false);
+		CMD(out CmdWindowPlayAudio cmd, false);
 		cmd.mSound = sound;
 		cmd.mLoop = loop;
 		cmd.mVolume = volume;
@@ -713,7 +713,7 @@ public class LT : FrameBase
 	// keyframe为sound文件夹的相对路径,
 	public static void AUDIO(myUIObject obj, string name, bool loop, float volume)
 	{
-		CMD_MAIN(out CmdWindowPlayAudio cmd, false);
+		CMD(out CmdWindowPlayAudio cmd, false);
 		cmd.mSoundFileName = name;
 		cmd.mLoop = loop;
 		cmd.mVolume = volume;
@@ -721,7 +721,7 @@ public class LT : FrameBase
 	}
 	public static CmdWindowPlayAudio AUDIO_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, int sound, bool loop, float volume)
 	{
-		CMD_MAIN_DELAY(out CmdWindowPlayAudio cmd, false);
+		CMD_DELAY(out CmdWindowPlayAudio cmd, false);
 		cmd.mSound = sound;
 		cmd.mLoop = loop;
 		cmd.mVolume = volume;
@@ -730,7 +730,7 @@ public class LT : FrameBase
 	}
 	public static CmdWindowPlayAudio AUDIO_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, int sound, bool loop)
 	{
-		CMD_MAIN_DELAY(out CmdWindowPlayAudio cmd, false);
+		CMD_DELAY(out CmdWindowPlayAudio cmd, false);
 		cmd.mSound = sound;
 		cmd.mLoop = loop;
 		cmd.mUseVolumeCoe = true;

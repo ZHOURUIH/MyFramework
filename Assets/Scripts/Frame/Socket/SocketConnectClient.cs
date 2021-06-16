@@ -157,14 +157,14 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		// 需要先序列化消息,同时获得包体实际的长度,提前获取包类型
 		// 包类型的高2位表示了当前包体是用几个字节存储的
 		ushort packetType = packet.getPacketType();
-		ARRAY_MAIN(out byte[] bodyBuffer, getGreaterPow2(packet.generateSize(true)));
+		ARRAY(out byte[] bodyBuffer, getGreaterPow2(packet.generateSize(true)));
 		int realPacketSize = packet.write(bodyBuffer);
 		// 序列化完以后立即销毁消息包
 		mSocketFactory.destroyPacket(packet);
 
 		if (realPacketSize < 0)
 		{
-			UN_ARRAY_MAIN(bodyBuffer);
+			UN_ARRAY(bodyBuffer);
 			logError("消息序列化失败!");
 			return;
 		}
@@ -212,7 +212,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		}
 		// 写入包体数据
 		writeBytes(packetData, ref index, bodyBuffer, -1, -1, realPacketSize);
-		UN_ARRAY_MAIN(bodyBuffer);
+		UN_ARRAY(bodyBuffer);
 		// 添加到写缓冲中
 		mOutputBuffer.add(packetData);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -474,7 +474,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		}
 		if(!mConnectDestroy)
 		{
-			CMD_MAIN_DELAY(out CmdSocketConnectClientState cmd, false);
+			CMD_DELAY(out CmdSocketConnectClientState cmd, false);
 			if (cmd != null)
 			{
 				cmd.mErrorCode = errorCode;

@@ -230,7 +230,7 @@ public class GameFramework : MonoBehaviour
 		if (FrameBase.isKeyCurrentDown(KeyCode.F2))
 		{
 			Vector3 mousePos = FrameBase.getMousePosition();
-			FrameBase.LIST_MAIN(out List<IMouseEventCollect> hoverList);
+			FrameBase.LIST(out List<IMouseEventCollect> hoverList);
 			FrameBase.mGlobalTouchSystem.getAllHoverWindow(hoverList, ref mousePos, null, true);
 			int resultCount = hoverList.Count;
 			for (int i = 0; i < resultCount; ++i)
@@ -241,7 +241,7 @@ public class GameFramework : MonoBehaviour
 								 ", priority:" + depth.getPriority(),
 								 LOG_LEVEL.FORCE);
 			}
-			FrameBase.UN_LIST_MAIN(hoverList);
+			FrameBase.UN_LIST(hoverList);
 		}
 		// F3启用或禁用用作调试的脚本的更新
 		if (FrameBase.isKeyCurrentDown(KeyCode.F3))

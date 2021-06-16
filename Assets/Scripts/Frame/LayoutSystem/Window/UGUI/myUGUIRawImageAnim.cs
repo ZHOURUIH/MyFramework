@@ -118,7 +118,7 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 	{
 		if (clear && mPlayEndCallback.Count > 0)
 		{
-			LIST_MAIN(out List<TextureAnimCallback> tempList);
+			LIST(out List<TextureAnimCallback> tempList);
 			tempList.AddRange(mPlayEndCallback);
 			mPlayEndCallback.Clear();
 			// 如果回调函数当前不为空,则是中断了更新
@@ -127,7 +127,7 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 			{
 				tempList[i](this, true);
 			}
-			UN_LIST_MAIN(tempList);
+			UN_LIST(tempList);
 		}
 		mPlayEndCallback.Add(callback);
 	}
@@ -172,7 +172,7 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 		{
 			if (callback)
 			{
-				LIST_MAIN(out List<TextureAnimCallback> tempList);
+				LIST(out List<TextureAnimCallback> tempList);
 				tempList.AddRange(mPlayEndCallback);
 				mPlayEndCallback.Clear();
 				int count = tempList.Count;
@@ -180,7 +180,7 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 				{
 					tempList[i](this, isBreak);
 				}
-				UN_LIST_MAIN(tempList);
+				UN_LIST(tempList);
 			}
 			else
 			{

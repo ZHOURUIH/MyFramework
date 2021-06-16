@@ -146,7 +146,7 @@ public class COMWindowDragView : GameComponent
 				}
 				else
 				{
-					ARRAY_MAIN(out float[] disArray, 4);
+					ARRAY(out float[] disArray, 4);
 					disArray[0] = abs(curPosition.x - minPos.x);
 					disArray[1] = abs(curPosition.x - maxPos.x);
 					disArray[2] = abs(curPosition.y - minPos.y);
@@ -161,7 +161,7 @@ public class COMWindowDragView : GameComponent
 							minDistance = disArray[i];
 						}
 					}
-					UN_ARRAY_MAIN(disArray);
+					UN_ARRAY(disArray);
 
 					if(minIndex == 0)
 					{

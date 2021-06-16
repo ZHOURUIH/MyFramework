@@ -49,7 +49,7 @@ public class LayoutManager : FrameSystem
 			// 显示布局时,如果当前正在显示有背景模糊的布局,则需要判断当前布局是否需要模糊
 			if (mBackBlurLayoutList.Count > 0)
 			{
-				CMD_MAIN(out CmdLayoutManagerBackBlur cmd, false);
+				CMD(out CmdLayoutManagerBackBlur cmd, false);
 				cmd.mExcludeLayout = mBackBlurLayoutList;
 				cmd.mBlur = mBackBlurLayoutList.Count > 0;
 				pushCommand(cmd, this);
@@ -61,7 +61,7 @@ public class LayoutManager : FrameSystem
 			{
 				mBackBlurLayoutList.Remove(layout);
 			}
-			CMD_MAIN(out CmdLayoutManagerBackBlur cmd, false);
+			CMD(out CmdLayoutManagerBackBlur cmd, false);
 			cmd.mExcludeLayout = mBackBlurLayoutList;
 			cmd.mBlur = mBackBlurLayoutList.Count > 0;
 			pushCommand(cmd, this);
@@ -280,7 +280,7 @@ public class LayoutManager : FrameSystem
 	protected override void initComponents()
 	{
 		base.initComponents();
-		addComponent(out mCOMEscHide);
+		addComponent(out mCOMEscHide, true);
 	}
 	protected void onLayoutPrefabLoaded(UnityEngine.Object asset, UnityEngine.Object[] subAssets, byte[] bytes, object userData, string loadPath)
 	{

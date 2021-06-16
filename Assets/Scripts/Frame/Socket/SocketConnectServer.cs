@@ -66,7 +66,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 	{
 		base.update(elapsedTime);
 		// 更新客户端,找出是否有客户端需要断开连接
-		LIST_MAIN(out List<uint> tempLogoutList);
+		LIST(out List<uint> tempLogoutList);
 		foreach (var item in mClientList)
 		{
 			item.Value.update(elapsedTime);
@@ -82,7 +82,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 		{
 			disconnectSocket(tempLogoutList[i]);
 		}
-		UN_LIST_MAIN(tempLogoutList);
+		UN_LIST(tempLogoutList);
 		// 心跳
 		if (mHeartBeatTimer.tickTimer(elapsedTime))
 		{
@@ -135,7 +135,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 	protected void acceptThread(BOOL run)
 	{
 		Socket client = mServerSocket.Accept();
-		CMD_MAIN_DELAY(out CmdSocketConnectServerAcceptClient cmdAccept, true);
+		CMD_DELAY(out CmdSocketConnectServerAcceptClient cmdAccept, true);
 		cmdAccept.mSocket = client;
 		cmdAccept.mIP = null;
 		pushDelayCommand(cmdAccept, this);
@@ -150,7 +150,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 		mClientSendLock.waitForUnlock();
 		try
 		{
-			LIST_MAIN(out List<Socket> tempWriteList);
+			LIST(out List<Socket> tempWriteList);
 			foreach (var item in mClientList)
 			{
 				tempWriteList.Add(item.Value.getSocket());
@@ -166,7 +166,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 					}
 				}
 			}
-			UN_LIST_MAIN(tempWriteList);
+			UN_LIST(tempWriteList);
 		}
 		catch (Exception e)
 		{
@@ -184,7 +184,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 		mClientRecvLock.waitForUnlock();
 		try
 		{
-			LIST_MAIN(out List<Socket> tempReadList);
+			LIST(out List<Socket> tempReadList);
 			foreach (var item in mClientList)
 			{
 				tempReadList.Add(item.Value.getSocket());
@@ -202,7 +202,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 					}
 				}
 			}
-			UN_LIST_MAIN(tempReadList);
+			UN_LIST(tempReadList);
 		}
 		catch (SocketException e)
 		{

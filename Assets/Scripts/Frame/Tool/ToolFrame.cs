@@ -14,7 +14,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD_MAIN(out CmdTransformableRotateFixed cmd, false);
+		CMD(out CmdTransformableRotateFixed cmd, false);
 		cmd.mActive = lockRotation;
 		pushCommand(cmd, obj);
 	}
@@ -24,7 +24,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD_MAIN(out CmdTransformableRotateFixed cmd, false);
+		CMD(out CmdTransformableRotateFixed cmd, false);
 		cmd.mActive = lockRotation;
 		cmd.mFixedEuler = rot;
 		pushCommand(cmd, obj);
@@ -39,7 +39,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD_MAIN(out CmdTransformableRotate cmd, false);
+		CMD(out CmdTransformableRotate cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartRotation = rotation;
 		cmd.mTargetRotation = rotation;
@@ -76,7 +76,7 @@ public class FT : FrameBase
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ROTATE(Transformable obj, Vector3 rotation)");
 			return;
 		}
-		CMD_MAIN(out CmdTransformableRotate cmd, false);
+		CMD(out CmdTransformableRotate cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartRotation = start;
@@ -93,7 +93,7 @@ public class FT : FrameBase
 		{
 			return null;
 		}
-		CMD_MAIN_DELAY(out CmdTransformableRotate cmd, false);
+		CMD_DELAY(out CmdTransformableRotate cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartRotation = rotation;
 		cmd.mTargetRotation = rotation;
@@ -123,7 +123,7 @@ public class FT : FrameBase
 			logError("时间或关键帧不能为空,如果要停止组件,请使用CommandTransformableRotate ROTATE_DELAY(Transformable obj, float delayTime, Vector3 rotation)");
 			return null;
 		}
-		CMD_MAIN_DELAY(out CmdTransformableRotate cmd, false);
+		CMD_DELAY(out CmdTransformableRotate cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartRotation = start;
@@ -151,7 +151,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD_MAIN(out CmdTransformableRotateSpeed cmd, false);
+		CMD(out CmdTransformableRotateSpeed cmd, false);
 		cmd.mRotateSpeed = speed;
 		cmd.mStartAngle = startAngle;
 		cmd.mRotateAcceleration = rotateAccelerationValue;
@@ -171,7 +171,7 @@ public class FT : FrameBase
 		{
 			return null;
 		}
-		CMD_MAIN_DELAY(out CmdTransformableRotateSpeed cmd, false);
+		CMD_DELAY(out CmdTransformableRotateSpeed cmd, false);
 		cmd.mRotateSpeed = speed;
 		cmd.mStartAngle = startAngle;
 		cmd.mRotateAcceleration = rotateAccelerationValue;
@@ -183,20 +183,20 @@ public class FT : FrameBase
 	#region 在物理更新中用关键帧旋转物体
 	public static void ROTATE_FIXED_PHY(Transformable obj, bool lockRotation = true)
 	{
-		CMD_MAIN(out CmdTransformableRotateFixedPhysics cmd, false);
+		CMD(out CmdTransformableRotateFixedPhysics cmd, false);
 		cmd.mActive = lockRotation;
 		pushCommand(cmd, obj);
 	}
 	public static void ROTATE_FIXED_PHY(Transformable obj, Vector3 rot, bool lockRotation = true)
 	{
-		CMD_MAIN(out CmdTransformableRotateFixedPhysics cmd, false);
+		CMD(out CmdTransformableRotateFixedPhysics cmd, false);
 		cmd.mActive = lockRotation;
 		cmd.mFixedEuler = rot;
 		pushCommand(cmd, obj);
 	}
 	public static void ROTATE_PHY(Transformable obj, Vector3 rotation)
 	{
-		CMD_MAIN(out CmdTransformableRotatePhysics cmd, false);
+		CMD(out CmdTransformableRotatePhysics cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartRotation = rotation;
 		cmd.mTargetRotation = rotation;
@@ -229,7 +229,7 @@ public class FT : FrameBase
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ROTATE_PHY(Transformable obj, Vector3 rotation)");
 			return;
 		}
-		CMD_MAIN(out CmdTransformableRotatePhysics cmd, false);
+		CMD(out CmdTransformableRotatePhysics cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartRotation = start;
@@ -242,7 +242,7 @@ public class FT : FrameBase
 	}
 	public static CmdTransformableRotatePhysics ROTATE_PHY_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 rotation)
 	{
-		CMD_MAIN_DELAY(out CmdTransformableRotatePhysics cmd, false);
+		CMD_DELAY(out CmdTransformableRotatePhysics cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartRotation = rotation;
 		cmd.mTargetRotation = rotation;
@@ -268,7 +268,7 @@ public class FT : FrameBase
 			logError("时间或关键帧不能为空,如果要停止组件,请使用CommandTransformableRotatePhysics ROTATE_PHY_DELAY(Transformable obj, float delayTime, Vector3 rotation)");
 			return null;
 		}
-		CMD_MAIN_DELAY(out CmdTransformableRotatePhysics cmd, false);
+		CMD_DELAY(out CmdTransformableRotatePhysics cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartRotation = start;
@@ -292,7 +292,7 @@ public class FT : FrameBase
 	}
 	public static void ROTATE_SPEED_PHY(Transformable obj, Vector3 speed, Vector3 startAngle, Vector3 rotateAccelerationValue)
 	{
-		CMD_MAIN(out CmdTransformableRotateSpeedPhysics cmd, false);
+		CMD(out CmdTransformableRotateSpeedPhysics cmd, false);
 		cmd.mRotateSpeed = speed;
 		cmd.mStartAngle = startAngle;
 		cmd.mRotateAcceleration = rotateAccelerationValue;
@@ -308,7 +308,7 @@ public class FT : FrameBase
 	}
 	public static CmdTransformableRotateSpeedPhysics ROTATE_SPEED_PHY_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 speed, Vector3 startAngle, Vector3 rotateAccelerationValue)
 	{
-		CMD_MAIN_DELAY(out CmdTransformableRotateSpeedPhysics cmd, false);
+		CMD_DELAY(out CmdTransformableRotateSpeedPhysics cmd, false);
 		cmd.mRotateSpeed = speed;
 		cmd.mStartAngle = startAngle;
 		cmd.mRotateAcceleration = rotateAccelerationValue;
@@ -365,7 +365,7 @@ public class FT : FrameBase
 	}
 	public static void ROTATE_CURVE_EX(Transformable obj, int keyframe, List<Vector3> rotList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		CMD_MAIN(out CmdTransformableRotateCurve cmd, false);
+		CMD(out CmdTransformableRotateCurve cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mRotateList = rotList;
@@ -405,7 +405,7 @@ public class FT : FrameBase
 	}
 	public static CmdTransformableRotateCurve ROTATE_CURVE_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> rotList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		CMD_MAIN_DELAY(out CmdTransformableRotateCurve cmd, false);
+		CMD_DELAY(out CmdTransformableRotateCurve cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mRotateList = rotList;
 		cmd.mOnceLength = onceLength;
@@ -426,7 +426,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD_MAIN(out CmdTransformableMove cmd, false);
+		CMD(out CmdTransformableMove cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartPos = Vector3.zero;
 		cmd.mTargetPos = Vector3.zero;
@@ -438,7 +438,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD_MAIN(out CmdTransformableMove cmd, false);
+		CMD(out CmdTransformableMove cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartPos = pos;
 		cmd.mTargetPos = pos;
@@ -494,7 +494,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD_MAIN(out CmdTransformableMove cmd, false);
+		CMD(out CmdTransformableMove cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartPos = startPos;
@@ -511,7 +511,7 @@ public class FT : FrameBase
 		{
 			return null;
 		}
-		CMD_MAIN_DELAY(out CmdTransformableMove cmd, false);
+		CMD_DELAY(out CmdTransformableMove cmd, false);
 		cmd.mStartPos = pos;
 		cmd.mTargetPos = pos;
 		cmd.mOnceLength = 0.0f;
@@ -556,7 +556,7 @@ public class FT : FrameBase
 		{
 			return null;
 		}
-		CMD_MAIN_DELAY(out CmdTransformableMove cmd, false);
+		CMD_DELAY(out CmdTransformableMove cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mStartPos = startPos;
 		cmd.mTargetPos = targetPos;
@@ -573,7 +573,7 @@ public class FT : FrameBase
 	#region 在物理更新中用关键帧移动物体
 	public static void MOVE_PHY(Transformable obj, Vector3 pos)
 	{
-		CMD_MAIN(out CmdTransformableMovePhysics cmd, false);
+		CMD(out CmdTransformableMovePhysics cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartPos = pos;
 		cmd.mTargetPos = pos;
@@ -621,7 +621,7 @@ public class FT : FrameBase
 	}
 	public static void MOVE_PHY_EX(Transformable obj, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		CMD_MAIN(out CmdTransformableMovePhysics cmd, false);
+		CMD(out CmdTransformableMovePhysics cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartPos = startPos;
@@ -634,7 +634,7 @@ public class FT : FrameBase
 	}
 	public static CmdTransformableMovePhysics MOVE_PHY_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 pos)
 	{
-		CMD_MAIN_DELAY(out CmdTransformableMovePhysics cmd, false);
+		CMD_DELAY(out CmdTransformableMovePhysics cmd, false);
 		cmd.mStartPos = pos;
 		cmd.mTargetPos = pos;
 		cmd.mOnceLength = 0.0f;
@@ -667,7 +667,7 @@ public class FT : FrameBase
 	}
 	public static CmdTransformableMovePhysics MOVE_PHY_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		CMD_MAIN_DELAY(out CmdTransformableMovePhysics cmd, false);
+		CMD_DELAY(out CmdTransformableMovePhysics cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mStartPos = startPos;
 		cmd.mTargetPos = targetPos;
@@ -737,7 +737,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD_MAIN(out CmdTransformableMoveParabola cmd, false);
+		CMD(out CmdTransformableMoveParabola cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartPos = startPos;
@@ -787,7 +787,7 @@ public class FT : FrameBase
 		{
 			return null;
 		}
-		CMD_MAIN_DELAY(out CmdTransformableMoveParabola cmd, false);
+		CMD_DELAY(out CmdTransformableMoveParabola cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mStartPos = startPos;
 		cmd.mTargetPos = targetPos;
@@ -858,7 +858,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD_MAIN(out CmdTransformableMoveCurve cmd, false);
+		CMD(out CmdTransformableMoveCurve cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mPosList = posList;
@@ -906,7 +906,7 @@ public class FT : FrameBase
 		{
 			return null;
 		}
-		CMD_MAIN_DELAY(out CmdTransformableMoveCurve cmd, false);
+		CMD_DELAY(out CmdTransformableMoveCurve cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mPosList = posList;
 		cmd.mOnceLength = onceLength;
@@ -967,7 +967,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD_MAIN(out CmdTransformableMovePath cmd, false);
+		CMD(out CmdTransformableMovePath cmd, false);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -1020,7 +1020,7 @@ public class FT : FrameBase
 		{
 			return null;
 		}
-		CMD_MAIN_DELAY(out CmdTransformableMovePath cmd, false);
+		CMD_DELAY(out CmdTransformableMovePath cmd, false);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -1063,7 +1063,7 @@ public class FT : FrameBase
 			logError("速度不能为0,如果要停止组件,请使用void LERP_POSITION(Transformable obj)");
 			return;
 		}
-		CMD_MAIN(out CmdTransformableLerpPosition cmd, false);
+		CMD(out CmdTransformableLerpPosition cmd, false);
 		cmd.mTargetPosition = targetPosition;
 		cmd.mLerpSpeed = lerpSpeed;
 		cmd.mDoingCallBack = doingCallback;
@@ -1097,7 +1097,7 @@ public class FT : FrameBase
 			logError("速度不能为0,如果要停止组件,请使用void LERP_POSITION_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime)");
 			return null;
 		}
-		CMD_MAIN_DELAY(out CmdTransformableLerpPosition cmd, false);
+		CMD_DELAY(out CmdTransformableLerpPosition cmd, false);
 		cmd.mTargetPosition = targetPosition;
 		cmd.mLerpSpeed = lerpSpeed;
 		cmd.mDoingCallBack = doingCallback;
@@ -1136,7 +1136,7 @@ public class FT : FrameBase
 			logError("速度不能为0,如果要停止组件,请使用void LERP_ROTATION(Transformable obj)");
 			return;
 		}
-		CMD_MAIN(out CmdTransformableLerpRotation cmd, false);
+		CMD(out CmdTransformableLerpRotation cmd, false);
 		cmd.mTargetRotation = targetRotation;
 		cmd.mLerpSpeed = lerpSpeed;
 		cmd.mDoingCallBack = doingCallback;
@@ -1170,7 +1170,7 @@ public class FT : FrameBase
 			logError("速度不能为0,如果要停止组件,请使用void LERP_ROTATION_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime)");
 			return null;
 		}
-		CMD_MAIN_DELAY(out CmdTransformableLerpRotation cmd, false);
+		CMD_DELAY(out CmdTransformableLerpRotation cmd, false);
 		cmd.mTargetRotation = targetRotation;
 		cmd.mLerpSpeed = lerpSpeed;
 		cmd.mDoingCallBack = doingCallback;
@@ -1220,7 +1220,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD_MAIN(out CmdTransformableRotatePath cmd, false);
+		CMD(out CmdTransformableRotatePath cmd, false);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -1273,7 +1273,7 @@ public class FT : FrameBase
 		{
 			return null;
 		}
-		CMD_MAIN_DELAY(out CmdTransformableRotatePath cmd, false);
+		CMD_DELAY(out CmdTransformableRotatePath cmd, false);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -1315,7 +1315,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD_MAIN(out CmdTransformableTrackTarget cmd, false);
+		CMD(out CmdTransformableTrackTarget cmd, false);
 		cmd.mTarget = target;
 		cmd.mSpeed = speed;
 		cmd.mOffset = offset;
@@ -1341,7 +1341,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD_MAIN(out CmdTransformableRotateFocus cmd, false);
+		CMD(out CmdTransformableRotateFocus cmd, false);
 		cmd.mTarget = target;
 		cmd.mOffset = offset;
 		pushCommand(cmd, obj);
@@ -1372,7 +1372,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD_MAIN(out CmdTransformableLockPosition cmd, false);
+		CMD(out CmdTransformableLockPosition cmd, false);
 		cmd.mLockPosition = pos;
 		cmd.mLockX = lockX;
 		cmd.mLockY = lockY;
@@ -1393,7 +1393,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD_MAIN(out CmdTransformableScale cmd, false);
+		CMD(out CmdTransformableScale cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartScale = scale;
 		cmd.mTargetScale = scale;
@@ -1449,7 +1449,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD_MAIN(out CmdTransformableScale cmd, false);
+		CMD(out CmdTransformableScale cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mOffset = offset;
@@ -1466,7 +1466,7 @@ public class FT : FrameBase
 		{
 			return null;
 		}
-		CMD_MAIN_DELAY(out CmdTransformableScale cmd, false);
+		CMD_DELAY(out CmdTransformableScale cmd, false);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartScale = scale;
 		cmd.mTargetScale = scale;
@@ -1507,7 +1507,7 @@ public class FT : FrameBase
 		{
 			return null;
 		}
-		CMD_MAIN_DELAY(out CmdTransformableScale cmd, false);
+		CMD_DELAY(out CmdTransformableScale cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mOffset = offset;
@@ -1561,7 +1561,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD_MAIN(out CmdTransformableScalePath cmd, false);
+		CMD(out CmdTransformableScalePath cmd, false);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -1614,7 +1614,7 @@ public class FT : FrameBase
 		{
 			return null;
 		}
-		CMD_MAIN_DELAY(out CmdTransformableScalePath cmd, false);
+		CMD_DELAY(out CmdTransformableScalePath cmd, false);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -1675,7 +1675,7 @@ public class FT : FrameBase
 	}
 	public static void SCALE_CURVE_EX(Transformable obj, int keyframe, List<Vector3> scaleList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		CMD_MAIN(out CmdTransformableScaleCurve cmd, false);
+		CMD(out CmdTransformableScaleCurve cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mScaleList = scaleList;
@@ -1715,7 +1715,7 @@ public class FT : FrameBase
 	}
 	public static CmdTransformableScaleCurve SCALE_CURVE_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> scaleList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		CMD_MAIN_DELAY(out CmdTransformableScaleCurve cmd, false);
+		CMD_DELAY(out CmdTransformableScaleCurve cmd, false);
 		cmd.mKeyframe = keyframe;
 		cmd.mScaleList = scaleList;
 		cmd.mOnceLength = onceLength;
