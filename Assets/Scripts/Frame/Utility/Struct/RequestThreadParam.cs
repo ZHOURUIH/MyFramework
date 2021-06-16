@@ -1,10 +1,12 @@
-﻿using System.Net;
+﻿using LitJson;
+using System;
+using System.Net;
 using System.Threading;
 
 public struct RequestThreadParam
 {
 	public HttpWebRequest mRequest;
-	public OnHttpWebRequestCallback mCallback;
+	public Action<JsonData, object> mCallback;
 	public Thread mThread;
 	public byte[] mByteArray;
 	public object mUserData;

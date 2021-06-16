@@ -14,14 +14,14 @@ public class SafeDeepList<T> : FrameBase
 	public List<T> startForeach() 
 	{
 		// 由于需要考虑嵌套,所以只能创建一个新的列表,复制当前主列表的数据
-		LIST_MAIN(out List<T>  tempList);
+		LIST(out List<T>  tempList);
 		tempList.AddRange(mMainList);
 		return tempList;
 	}
 	// 遍历结束后,需要手动调用endForeach,对临时列表进行回收
 	public void endForeach(List<T> list)
 	{
-		UN_LIST_MAIN(list);
+		UN_LIST(list);
 	}
 	// 获取主列表,存储着当前实时的数据列表,所有的删除和新增都会立即更新此列表
 	// 不能用主列表进行遍历,要遍历应该使用startForeach

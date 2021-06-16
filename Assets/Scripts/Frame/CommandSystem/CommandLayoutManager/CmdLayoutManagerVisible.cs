@@ -30,7 +30,7 @@ public class CmdLayoutManagerVisible : Command
 			int renderOrder = mLayoutManager.generateRenderOrder(layout, layout.getRenderOrder(), orderType);
 			if (layout.getRenderOrder() != renderOrder)
 			{
-				CMD_MAIN(out CmdLayoutManagerRenderOrder cmd);
+				CMD(out CmdLayoutManagerRenderOrder cmd);
 				cmd.mLayout = layout;
 				cmd.mRenderOrder = renderOrder;
 				pushCommand(cmd, mLayoutManager);

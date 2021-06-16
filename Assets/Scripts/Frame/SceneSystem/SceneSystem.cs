@@ -138,7 +138,7 @@ public class SceneSystem : FrameSystem
 			showScene(sceneName);
 			if (callback != null)
 			{
-				CMD_MAIN(out CmdGlobalDelayCallParam2<float, bool> cmdDelay);
+				CMD(out CmdGlobalDelayCallParam2<float, bool> cmdDelay);
 				cmdDelay.mFunction = callback;
 				cmdDelay.mParam0 = 1.0f;
 				cmdDelay.mParam1 = true;

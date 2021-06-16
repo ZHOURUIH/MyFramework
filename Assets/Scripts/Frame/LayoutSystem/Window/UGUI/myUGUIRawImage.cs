@@ -159,7 +159,7 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		}
 		else
 		{
-			CLASS_MAIN(out LoadMaterialParam param);
+			CLASS(out LoadMaterialParam param);
 			param.mMaterialName = materialName;
 			param.mNewMaterial = mIsNewMaterial;
 			mResourceManager.loadResourceAsync<Material>(FrameDefine.R_MATERIAL_PATH + materialName, mMaterialCallback, param);

@@ -1,6 +1,5 @@
 ﻿using System;
 
-
 public class MyTweenerFloat : MyTweener
 {
 	protected COMMyTweenerFloat mComponentFloat;
@@ -13,6 +12,6 @@ public class MyTweenerFloat : MyTweener
 	//---------------------------------------------------------------------------------------------------
 	protected override void initComponents()
 	{
-		mComponentFloat = addComponent(typeof(COMMyTweenerFloat)) as COMMyTweenerFloat;
+		addComponent(out mComponentFloat);
 	}
 }

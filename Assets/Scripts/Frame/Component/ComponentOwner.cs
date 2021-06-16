@@ -3,7 +3,7 @@ using System;
 
 public abstract class ComponentOwner : CommandReceiver
 {
-	protected SafeDictionary<Type, GameComponent> mAllComponentTypeList;	// 组件类型列表,first是组件的类型名
+	protected SafeDictionary<Type, GameComponent> mAllComponentTypeList;    // 组件类型列表,first是组件的类型名
 	protected SafeList<GameComponent> mComponentList;                       // 组件列表,保存着组件之间的更新顺序
 	protected bool mIgnoreTimeScale;
 	public ComponentOwner()
@@ -34,7 +34,7 @@ public abstract class ComponentOwner : CommandReceiver
 	// 更新正常更新的组件
 	public virtual void update(float elapsedTime)
 	{
-		if(mComponentList.count() == 0)
+		if (mComponentList.count() == 0)
 		{
 			return;
 		}
@@ -126,6 +126,26 @@ public abstract class ComponentOwner : CommandReceiver
 		com.setActive(active);
 		com.setDefaultActive(active);
 		return com;
+	}
+	public T addComponent<T>(bool active = false) where T : GameComponent
+	{
+		Type type = Typeof<T>();
+		if (type == null)
+		{
+			logError("无法使用addComponent<T>(bool active = false)添加非主工程中的组件");
+			logError("如果需要获取非主工程中的组件,使用GameComponent addComponent(Type type, bool active = false)");
+		}
+		return addComponent(type, active) as T;
+	}
+	public void addComponent<T>(out T component, bool active = false) where T : GameComponent
+	{
+		Type type = Typeof<T>();
+		if (type == null)
+		{
+			logError("无法使用addComponent<T>(out T component, bool active = false)添加非主工程中的组件");
+			logError("如果需要获取非主工程中的组件,使用GameComponent addComponent(Type type, bool active = false)");
+		}
+		component = addComponent(type, active) as T;
 	}
 	public SafeDictionary<Type, GameComponent> getAllComponent() { return mAllComponentTypeList; }
 	public T getComponent<T>(bool needActive = false, bool addIfNull = true) where T : GameComponent

@@ -79,14 +79,14 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 		// 先销毁所有子节点,因为遍历中会修改子节点列表,所需需要复制一个列表
 		if (window.mChildList.Count > 0)
 		{
-			LIST_MAIN(out List<myUIObject> childList);
+			LIST(out List<myUIObject> childList);
 			childList.AddRange(window.mChildList);
 			int childCount = childList.Count;
 			for (int i = 0; i < childCount; ++i)
 			{
 				destroyWindow(childList[i], destroyReally);
 			}
-			UN_LIST_MAIN(childList);
+			UN_LIST(childList);
 		}
 		window.getParent()?.removeChild(window);
 		// 再销毁自己

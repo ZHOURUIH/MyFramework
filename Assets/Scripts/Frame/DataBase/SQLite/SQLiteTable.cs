@@ -101,7 +101,7 @@ public class SQLiteTable : FrameBase
 	public string getTableName() { return mTableName; }
 	public void checkSQLite() 
 	{
-		LIST_MAIN(out List<SQLiteData> list);
+		LIST(out List<SQLiteData> list);
 		queryAll(mDataClassType, list);
 		int count = list.Count;
 		for (int i = 0; i < count; ++i)
@@ -111,7 +111,7 @@ public class SQLiteTable : FrameBase
 				logError("表格数据发现错误:Type:" + Typeof(this) + ", ID:" + list[i].mID);
 			}
 		}
-		UN_LIST_MAIN(list);
+		UN_LIST(list);
 	}
 	public SqliteDataReader doQuery()
 	{

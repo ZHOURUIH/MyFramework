@@ -209,6 +209,6 @@ public class myUGUIDragView : myUGUIObject
 	protected override void initComponents()
 	{
 		base.initComponents();
-		mDragViewComponent = addComponent(typeof(COMWindowDragView), true) as COMWindowDragView;
+		addComponent(out mDragViewComponent, true);
 	}
 }

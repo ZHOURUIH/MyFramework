@@ -95,7 +95,7 @@ public class WavSound : FrameBase
 	}
 	public static void generateMixPCMData(short[] mixPCMData, int mixDataCount, short channelCount, byte[] dataBuffer, int bufferSize)
 	{
-		ARRAY_MAIN(out byte[] tempBytes, 2);
+		ARRAY(out byte[] tempBytes, 2);
 		// 如果单声道,则直接将mDataBuffer的数据拷贝到mMixPCMData中
 		if (channelCount == 1)
 		{
@@ -120,7 +120,7 @@ public class WavSound : FrameBase
 				mixPCMData[i] = (short)((shortData0 + shortData1) * 0.5f);
 			}
 		}
-		UN_ARRAY_MAIN(tempBytes);
+		UN_ARRAY(tempBytes);
 	}
 	public static void generateMixPCMData(short[] mixPCMData, int mixDataCount, short channelCount, short[] dataBuffer, int bufferSize)
 	{

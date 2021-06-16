@@ -108,7 +108,7 @@ public class TPSpriteManager : FrameSystem
 	{
 		if (!mSpriteNameList.ContainsKey(atlasName))
 		{
-			CLASS_MAIN(out AtlasLoadParam param);
+			CLASS(out AtlasLoadParam param);
 			param.mCallback = callback;
 			param.mUserData = userData;
 			mResourceManager.loadSubResourceAsync<Sprite>(atlasName, mAtlasCallback, param, errorIfNull);

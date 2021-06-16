@@ -179,7 +179,7 @@ public class ComponentDrag : GameComponent
 		}
 		bool result = false;
 		// 拖拽消息不向下传递, 从上往下查找,如果前面没有窗口需要有拖拽消息被处理,则当前窗口响应拖拽消息
-		LIST_MAIN(out List<IMouseEventCollect> hoverList);
+		LIST(out List<IMouseEventCollect> hoverList);
 		mGlobalTouchSystem.getAllHoverWindow(hoverList, ref mousePosition);
 		int count = hoverList.Count;
 		for(int i = 0; i < count; ++i)
@@ -196,7 +196,7 @@ public class ComponentDrag : GameComponent
 				break;
 			}
 		}
-		UN_LIST_MAIN(hoverList);
+		UN_LIST(hoverList);
 		return result;
 	}
 	protected void checkStartDrag(Vector3 mousePosition)
@@ -206,7 +206,7 @@ public class ComponentDrag : GameComponent
 			return;
 		}
 		// 从上往下查找,如果前面没有窗口需要有拖拽消息被处理,则当前窗口响应拖拽消息
-		LIST_MAIN(out List<IMouseEventCollect> hoverList);
+		LIST(out List<IMouseEventCollect> hoverList);
 		mGlobalTouchSystem.getAllHoverWindow(hoverList, ref mousePosition);
 		int count = hoverList.Count;
 		for (int i = 0; i < count; ++i)
@@ -222,7 +222,7 @@ public class ComponentDrag : GameComponent
 				break;
 			}
 		}
-		UN_LIST_MAIN(hoverList);
+		UN_LIST(hoverList);
 	}
 	protected void onMouseDown(Vector3 mousePosition)
 	{

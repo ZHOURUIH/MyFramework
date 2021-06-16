@@ -63,7 +63,7 @@ public class GlobalTouchSystem : FrameSystem
 	public IMouseEventCollect getHoverWindow(ref Vector3 pos, IMouseEventCollect ignoreWindow = null, bool ignorePassRay = false)
 	{
 		// 返回最上层的窗口
-		LIST_MAIN(out List<IMouseEventCollect> resultList);
+		LIST(out List<IMouseEventCollect> resultList);
 		globalRaycast(resultList, ref pos, ignorePassRay);
 		IMouseEventCollect forwardButton = null;
 		int count = resultList.Count;
@@ -76,13 +76,13 @@ public class GlobalTouchSystem : FrameSystem
 				break;
 			}
 		}
-		UN_LIST_MAIN(resultList);
+		UN_LIST(resultList);
 		return forwardButton;
 	}
 	// 越顶层的窗口越靠近列表前面
 	public void getAllHoverWindow(List<IMouseEventCollect> hoverList, ref Vector3 pos, IMouseEventCollect ignoreWindow = null, bool ignorePassRay = false)
 	{
-		LIST_MAIN(out List<IMouseEventCollect> resultList);
+		LIST(out List<IMouseEventCollect> resultList);
 		globalRaycast(resultList, ref pos, ignorePassRay);
 		int count = resultList.Count;
 		for(int i = 0; i < count; ++i)
@@ -93,7 +93,7 @@ public class GlobalTouchSystem : FrameSystem
 				hoverList.Add(window);
 			}
 		}
-		UN_LIST_MAIN(resultList);
+		UN_LIST(resultList);
 	}
 	public override void update(float elapsedTime)
 	{
@@ -109,12 +109,12 @@ public class GlobalTouchSystem : FrameSystem
 			mCurTouchID = -1;
 
 			// 此处未考虑到触点离开窗口时以及再次进入窗口所引起的结束多点触控和开始多点触控的判断
-			LIST_MAIN(out List<IMouseEventCollect>  endMultiWindow);
-			LIST_MAIN(out Dictionary<int, Touch> tempMultiTouchPoint);
-			LIST_MAIN(out Dictionary<IMouseEventCollect, List<Touch>> tempStartMultiWindow);
-			LIST_MAIN(out Dictionary<IMouseEventCollect, List<Touch>> tempMovingMultiWindow);
+			LIST(out List<IMouseEventCollect>  endMultiWindow);
+			LIST(out Dictionary<int, Touch> tempMultiTouchPoint);
+			LIST(out Dictionary<IMouseEventCollect, List<Touch>> tempStartMultiWindow);
+			LIST(out Dictionary<IMouseEventCollect, List<Touch>> tempMovingMultiWindow);
 			// 多点触控时所有拥有触点的窗口
-			LIST_MAIN(out Dictionary<IMouseEventCollect, Dictionary<int, Touch>> touchInWindow);
+			LIST(out Dictionary<IMouseEventCollect, Dictionary<int, Touch>> touchInWindow);
 			// 查找触点所在窗口
 			for (int i = 0; i < touchCount; ++i)
 			{
@@ -126,7 +126,7 @@ public class GlobalTouchSystem : FrameSystem
 				{
 					if (!touchInWindow.TryGetValue(hoverWindow, out Dictionary<int, Touch> touchList))
 					{
-						LIST_MAIN(out touchList);
+						LIST(out touchList);
 						touchInWindow.Add(hoverWindow, touchList);
 					}
 					// 每个窗口最多有两个触点
@@ -164,13 +164,13 @@ public class GlobalTouchSystem : FrameSystem
 					}
 					else if (isStart)
 					{
-						LIST_MAIN(out List<Touch> list);
+						LIST(out List<Touch> list);
 						list.AddRange(touchesInWindow.Values);
 						tempStartMultiWindow.Add(item.Key, list);
 					}
 					else
 					{
-						LIST_MAIN(out List<Touch> list);
+						LIST(out List<Touch> list);
 						list.AddRange(touchesInWindow.Values);
 						tempMovingMultiWindow.Add(item.Key, list);
 					}
@@ -179,16 +179,16 @@ public class GlobalTouchSystem : FrameSystem
 
 			foreach(var item in touchInWindow)
 			{
-				UN_LIST_MAIN(item.Value);
+				UN_LIST(item.Value);
 			}
-			UN_LIST_MAIN(touchInWindow);
+			UN_LIST(touchInWindow);
 
 			// 新增的多点触控窗口
 			foreach (var item in tempStartMultiWindow)
 			{
 				if (!mMultiTouchWindowList.ContainsKey(item.Key))
 				{
-					CLASS_MAIN(out MultiTouchInfo info);
+					CLASS(out MultiTouchInfo info);
 					info.mWindow = item.Key;
 					info.mPhase = TouchPhase.Began;
 					info.mFinger0 = item.Value[0].fingerId;
@@ -204,9 +204,9 @@ public class GlobalTouchSystem : FrameSystem
 
 			foreach(var item in tempStartMultiWindow)
 			{
-				UN_LIST_MAIN(item.Value);
+				UN_LIST(item.Value);
 			}
-			UN_LIST_MAIN(tempStartMultiWindow);
+			UN_LIST(tempStartMultiWindow);
 
 			// 更新已存在的多点触控窗口
 			foreach (var item in mMultiTouchWindowList)
@@ -232,9 +232,9 @@ public class GlobalTouchSystem : FrameSystem
 
 			foreach (var item in tempMovingMultiWindow)
 			{
-				UN_LIST_MAIN(item.Value);
+				UN_LIST(item.Value);
 			}
-			UN_LIST_MAIN(tempMovingMultiWindow);
+			UN_LIST(tempMovingMultiWindow);
 
 			// 结束多点触控的窗口
 			int endCount = endMultiWindow.Count;
@@ -248,8 +248,8 @@ public class GlobalTouchSystem : FrameSystem
 					mMultiTouchWindowList.Remove(item);
 				}
 			}
-			UN_LIST_MAIN(endMultiWindow);
-			UN_LIST_MAIN(tempMultiTouchPoint);
+			UN_LIST(endMultiWindow);
+			UN_LIST(tempMultiTouchPoint);
 		}
 		else
 		{
@@ -549,7 +549,7 @@ public class GlobalTouchSystem : FrameSystem
 				item.onScreenMouseUp(mousePosition, touchID);
 			}
 		}
-		LIST_MAIN(out List<IMouseEventCollect> raycast);
+		LIST(out List<IMouseEventCollect> raycast);
 		globalRaycast(raycast, ref mousePosition);
 		int count = raycast.Count;
 		for(int i = 0; i < count; ++i)
@@ -580,7 +580,7 @@ public class GlobalTouchSystem : FrameSystem
 				mMouseDownWindowList.Add(raycast[i]);
 			}
 		}
-		UN_LIST_MAIN(raycast);
+		UN_LIST(raycast);
 	}
 	// 全局射线检测
 	protected void globalRaycast(List<IMouseEventCollect> resultList, ref Vector3 mousePos, bool ignorePassRay = false)
@@ -651,7 +651,7 @@ public class GlobalTouchSystem : FrameSystem
 		}
 		continueRay = true;
 		RaycastHit hit;
-		LIST_MAIN(out List<DistanceSortHelper> sortList);
+		LIST(out List<DistanceSortHelper> sortList);
 		int objCount = moveObjectList.Count;
 		for(int i = 0; i < objCount; ++i)
 		{
@@ -675,7 +675,7 @@ public class GlobalTouchSystem : FrameSystem
 				break;
 			}
 		}
-		UN_LIST_MAIN(sortList);
+		UN_LIST(sortList);
 	}
 	// ignorePassRay表示是否忽略窗口的isPassRay属性,true表示认为所有的都允许射线穿透
 	// 但是ignorePassRay不会影响到PassOnlyArea和ParentPassOnly
@@ -691,9 +691,9 @@ public class GlobalTouchSystem : FrameSystem
 			retList.Clear();
 		}
 		// mParentPassOnlyList需要重新整理,排除未启用的布局的窗口
-		LIST_MAIN(out HashSet<IMouseEventCollect> activeParentList);
+		LIST(out HashSet<IMouseEventCollect> activeParentList);
 		// 在只允许父节点穿透的列表中已成功穿透的父节点列表
-		LIST_MAIN(out HashSet<IMouseEventCollect> passParent);
+		LIST(out HashSet<IMouseEventCollect> passParent);
 
 		// 筛选出已激活的父节点穿透窗口
 		foreach(var item in mParentPassOnlyList)
@@ -760,8 +760,8 @@ public class GlobalTouchSystem : FrameSystem
 				break;
 			}
 		}
-		UN_LIST_MAIN(passParent);
-		UN_LIST_MAIN(activeParentList);
+		UN_LIST(passParent);
+		UN_LIST(activeParentList);
 	}
 	// obj的所有父节点中是否允许射线选中obj
 	// bindParentList是当前激活的已绑定的仅父节点区域穿透的列表
@@ -780,7 +780,7 @@ public class GlobalTouchSystem : FrameSystem
 	}
 	protected void checkHoverWindow(ref Vector3 mousePos, bool mouseDown, int touchID)
 	{
-		LIST_MAIN(out List<IMouseEventCollect> hoverList);
+		LIST(out List<IMouseEventCollect> hoverList);
 		// 模拟触摸状态下,如果鼠标未按下,则不会悬停在任何窗口上
 		if (mouseDown || !mSimulateTouch)
 		{
@@ -811,6 +811,6 @@ public class GlobalTouchSystem : FrameSystem
 		}
 		mHoverWindowList.Clear();
 		mHoverWindowList.AddRange(hoverList);
-		UN_LIST_MAIN(hoverList);
+		UN_LIST(hoverList);
 	}
 }

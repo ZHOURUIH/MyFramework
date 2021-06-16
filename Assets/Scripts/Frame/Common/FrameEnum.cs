@@ -330,6 +330,14 @@ public enum TRANSFORM_ASYNC : byte
 	USE_CHARACTER,          // 使用角色节点的值同步到模型节点
 }
 
+// 同步位置的时机
+public enum TRANSFORM_SYNC_TIME : byte
+{
+	UPDATE,                 // 执行Update时更新
+	LATE_UPDATE,            // 执行LateUpdate时更新
+	FIXED_UPDATE,           // 执行FixedUpdate时更新
+}
+
 // 摄像机连接器的更新时机
 public enum LINKER_UPDATE : byte
 {

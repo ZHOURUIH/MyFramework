@@ -7,7 +7,7 @@ public class ObjectPool : FrameSystem
 	protected Dictionary<GameObject, ObjectInfo> mInstanceList;
 	protected List<AsyncLoadGroup> mAsyncLoadGroup;
 	protected AssetLoadDoneCallback mPrefabGroupCallback;       // 预先保存下函数的委托,避免传参时产生GC
-	protected AssetLoadDoneCallback mPrefabCallback;			// 预先保存下函数的委托,避免传参时产生GC
+	protected AssetLoadDoneCallback mPrefabCallback;            // 预先保存下函数的委托,避免传参时产生GC
 	public ObjectPool()
 	{
 		mInstanceFileList = new Dictionary<string, Dictionary<GameObject, ObjectInfo>>();
@@ -47,9 +47,9 @@ public class ObjectPool : FrameSystem
 		// 遍历加载组,组中所有资源加载完毕时调用回调
 		// 为避免在调用的回调中再次异步加载资源组而引起的迭代器失效,所以使用另外一个临时列表
 		int groupCount = mAsyncLoadGroup.Count;
-		if(groupCount > 0)
+		if (groupCount > 0)
 		{
-			LIST_MAIN(out List<AsyncLoadGroup> tempList);
+			LIST(out List<AsyncLoadGroup> tempList);
 			for (int i = 0; i < groupCount; ++i)
 			{
 				if (mAsyncLoadGroup[i].isAllLoaded())
@@ -60,23 +60,23 @@ public class ObjectPool : FrameSystem
 				}
 			}
 			int count = tempList.Count;
-			for(int i = 0; i < count; ++i)
+			for (int i = 0; i < count; ++i)
 			{
 				var item = tempList[i];
 				item.mCallback(item.mNameList, item.mUserData);
 				UN_CLASS(item);
 			}
-			UN_LIST_MAIN(tempList);
+			UN_LIST(tempList);
 		}
 	}
 	public void createObjectAsync(List<string> fileWithPath, CreateObjectGroupCallback callback, int objectTag, object userData = null)
 	{
-		CLASS_MAIN(out AsyncLoadGroup group);
+		CLASS(out AsyncLoadGroup group);
 		group.mCallback = callback;
 		group.mUserData = userData;
 		mAsyncLoadGroup.Add(group);
 		int count = fileWithPath.Count;
-		for(int i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			var item = fileWithPath[i];
 			group.mNameList.Add(item, null);
@@ -108,7 +108,7 @@ public class ObjectPool : FrameSystem
 		}
 		else
 		{
-			CLASS_MAIN(out PrefabLoadParam param);
+			CLASS(out PrefabLoadParam param);
 			param.mCallback = callback;
 			param.mTag = objectTag;
 			param.mUserData = userData;
@@ -122,12 +122,12 @@ public class ObjectPool : FrameSystem
 		ObjectInfo objInfo = getUnusedObject(fileWithPath);
 		if (objInfo == null)
 		{
-			CLASS_MAIN(out objInfo);
 			GameObject prefab = mResourceManager.loadResource<GameObject>(fileWithPath);
 			if (prefab == null)
 			{
 				return null;
 			}
+			CLASS(out objInfo);
 			objInfo.createObject(prefab, fileWithPath);
 			addObject(objInfo);
 		}
@@ -141,7 +141,7 @@ public class ObjectPool : FrameSystem
 	}
 	public void destroyAllWithTag(int objectTag)
 	{
-		LIST_MAIN(out List<ObjectInfo> tempList);
+		LIST(out List<ObjectInfo> tempList);
 		foreach (var item in mInstanceList)
 		{
 			if (item.Value.getTag() == objectTag)
@@ -150,11 +150,11 @@ public class ObjectPool : FrameSystem
 			}
 		}
 		int count = tempList.Count;
-		for(int i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			destroyObject(ref tempList[i].mObject, true);
 		}
-		UN_LIST_MAIN(tempList);
+		UN_LIST(tempList);
 	}
 	public void destroyObject(ref GameObject obj, bool destroyReally)
 	{
@@ -180,7 +180,7 @@ public class ObjectPool : FrameSystem
 		obj = null;
 	}
 	public bool isExistInPool(GameObject go) { return go != null && mInstanceList.ContainsKey(go); }
-	public Dictionary<string, Dictionary<GameObject, ObjectInfo>> getInstanceFileList() {return mInstanceFileList;}
+	public Dictionary<string, Dictionary<GameObject, ObjectInfo>> getInstanceFileList() { return mInstanceFileList; }
 	public Dictionary<GameObject, ObjectInfo> getInstanceList() { return mInstanceList; }
 	//------------------------------------------------------------------------------------------------------------------------
 	protected void objectLoaded(GameObject go, CreateObjectCallback callback, object userData)
@@ -193,14 +193,14 @@ public class ObjectPool : FrameSystem
 	}
 	protected void onPrefabGroupLoaded(Object asset, Object[] subAssets, byte[] bytes, object userData, string loadPath)
 	{
-		CLASS_MAIN(out ObjectInfo objInfo);
+		CLASS(out ObjectInfo objInfo);
 		objInfo.setTag((int)userData);
 		objInfo.setUsing(true);
 		// 实例化,只能同步进行
 		objInfo.createObject(asset as GameObject, loadPath);
 		addObject(objInfo);
 		int count = mAsyncLoadGroup.Count;
-		for(int i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			var item = mAsyncLoadGroup[i];
 			if (item.mNameList.ContainsKey(objInfo.mFileWithPath))
@@ -221,7 +221,7 @@ public class ObjectPool : FrameSystem
 			UN_CLASS(param);
 			return;
 		}
-		CLASS_MAIN(out ObjectInfo objInfo);
+		CLASS(out ObjectInfo objInfo);
 		objInfo.setTag(param.mTag);
 		objInfo.setUsing(true);
 		// 实例化,只能同步进行

@@ -93,7 +93,7 @@ public class myUGUIObject : myUIObject
 	public void refreshChildDepthByPositionZ()
 	{
 		// z值越大的子节点越靠后
-		LIST_MAIN(out List<Transform> tempList);
+		LIST(out List<Transform> tempList);
 		tempList.Clear();
 		int childCount = getChildCount();
 		for (int i = 0; i < childCount; ++i)
@@ -106,7 +106,7 @@ public class myUGUIObject : myUIObject
 		{
 			tempList[i].SetSiblingIndex(i);
 		}
-		UN_LIST_MAIN(tempList);
+		UN_LIST(tempList);
 	}
 	public void setUGUIClick(Action<PointerEventData, GameObject> callback) { mOnUGUIClick = callback; }
 	public void setUGUIMouseDown(Action<PointerEventData, GameObject> callback) { mOnUGUIMouseDown = callback; }

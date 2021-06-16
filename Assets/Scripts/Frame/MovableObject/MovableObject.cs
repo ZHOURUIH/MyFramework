@@ -49,7 +49,6 @@ public class MovableObject : Transformable, IMouseEventCollect
 			destroyGameObject(ref mObject);
 		}
 		mTransform = null;
-		mDestroy = true;
 	}
 	public virtual void setObject(GameObject obj, bool destroyOld = true)
 	{
@@ -72,7 +71,6 @@ public class MovableObject : Transformable, IMouseEventCollect
 	}
 	public virtual void init()
 	{
-		mDestroy = false;
 		initComponents();
 	}
 	public override void update(float elapsedTime)

@@ -144,7 +144,7 @@ public class AssetBundleLoader : FrameBase
 	// 卸载指定路径中的所有资源包
 	public void unloadPath(string path)
 	{
-		LIST_MAIN(out List<string> tempList);
+		LIST(out List<string> tempList);
 		foreach (var item in mAssetBundleInfoList)
 		{
 			if (!startWith(item.Key, path))
@@ -166,7 +166,7 @@ public class AssetBundleLoader : FrameBase
 			mRequestBundleList.Remove(item.Value);
 			item.Value.unload();
 		}
-		UN_LIST_MAIN(tempList);
+		UN_LIST(tempList);
 	}
 	// 得到文件夹中的所有文件,文件夹被打包成一个AssetBundle,返回AssetBundle中的所有资源名
 	public void getFileList(string path, List<string> list)
@@ -200,7 +200,7 @@ public class AssetBundleLoader : FrameBase
 			logError("AssetBundleLoader is not inited!");
 			return false;
 		}
-		LIST_MAIN(out List<string> fileNameList);
+		LIST(out List<string> fileNameList);
 		mResourceManager.adjustResourceName<T>(fileName, fileNameList);
 		// 只返回第一个找到的资源
 		int count = fileNameList.Count;
@@ -212,7 +212,7 @@ public class AssetBundleLoader : FrameBase
 			{
 				continue;
 			}
-			UN_LIST_MAIN(fileNameList);
+			UN_LIST(fileNameList);
 			AssetBundleInfo bundleInfo = asset.getAssetBundle();
 			if (bundleInfo.getLoadState() != LOAD_STATE.LOADED)
 			{
@@ -220,7 +220,7 @@ public class AssetBundleLoader : FrameBase
 			}
 			return bundleInfo.getAssetInfo(fileNameWithSuffix).isLoaded();
 		}
-		UN_LIST_MAIN(fileNameList);
+		UN_LIST(fileNameList);
 		return false;
 	}
 	// 获得资源,如果资源包未加载,则返回空
@@ -231,7 +231,7 @@ public class AssetBundleLoader : FrameBase
 			logError("AssetBundleLoader is not inited!");
 			return null;
 		}
-		LIST_MAIN(out List<string> fileNameList);
+		LIST(out List<string> fileNameList);
 		mResourceManager.adjustResourceName<T>(fileName, fileNameList);
 		// 只返回第一个找到的资源
 		int count = fileNameList.Count;
@@ -242,10 +242,10 @@ public class AssetBundleLoader : FrameBase
 			{
 				continue;
 			}
-			UN_LIST_MAIN(fileNameList);
+			UN_LIST(fileNameList);
 			return info.getAssetBundle().getAssetInfo(fileNameWithSuffix).getAsset() as T;
 		}
-		UN_LIST_MAIN(fileNameList);
+		UN_LIST(fileNameList);
 		return null;
 	}
 	// 检查指定的已加载的AssetBundle的依赖项是否有未加载的情况,如果有未加载的则同步加载
@@ -325,7 +325,7 @@ public class AssetBundleLoader : FrameBase
 			logError("AssetBundleLoader is not inited!");
 			return false;
 		}
-		LIST_MAIN(out List<string> fileNameList);
+		LIST(out List<string> fileNameList);
 		mResourceManager.adjustResourceName<T>(fileName, fileNameList);
 		// 只加载第一个找到的资源,所以不允许有重名的同类资源
 		int loadedCount = 0;
@@ -343,7 +343,7 @@ public class AssetBundleLoader : FrameBase
 				break;
 			}
 		}
-		UN_LIST_MAIN(fileNameList);
+		UN_LIST(fileNameList);
 		return loadedCount != 0;
 	}
 	// 同步加载资源,文件名称,不带后缀,Resources下的相对路径
@@ -354,7 +354,7 @@ public class AssetBundleLoader : FrameBase
 			logError("AssetBundleLoader is not inited!");
 			return null;
 		}
-		LIST_MAIN(out List<string> fileNameList);
+		LIST(out List<string> fileNameList);
 		mResourceManager.adjustResourceName<T>(fileName, fileNameList);
 		// 只加载第一个找到的资源,所以不允许有重名的同类资源
 		UnityEngine.Object[] res = null;
@@ -372,7 +372,7 @@ public class AssetBundleLoader : FrameBase
 				break;
 			}
 		}
-		UN_LIST_MAIN(fileNameList);
+		UN_LIST(fileNameList);
 		return res;
 	}
 	// 同步加载资源,文件名称,不带后缀,Resources下的相对路径
@@ -383,7 +383,7 @@ public class AssetBundleLoader : FrameBase
 			logError("AssetBundleLoader is not inited!");
 			return null;
 		}
-		LIST_MAIN(out List<string> fileNameList);
+		LIST(out List<string> fileNameList);
 		mResourceManager.adjustResourceName<T>(fileName, fileNameList);
 		// 只加载第一个找到的资源,所以不允许有重名的同类资源
 		T res = null;
@@ -401,7 +401,7 @@ public class AssetBundleLoader : FrameBase
 				break;
 			}
 		}
-		UN_LIST_MAIN(fileNameList);
+		UN_LIST(fileNameList);
 		return res;
 	}
 	// 异步加载资源
@@ -412,7 +412,7 @@ public class AssetBundleLoader : FrameBase
 			logError("AssetBundleLoader is not inited!");
 			return false;
 		}
-		LIST_MAIN(out List<string> fileNameList);
+		LIST(out List<string> fileNameList);
 		mResourceManager.adjustResourceName<T>(fileName, fileNameList);
 		// 只加载第一个找到的资源,所以不允许有重名的同类资源
 		int loadedCount = 0;
@@ -430,7 +430,7 @@ public class AssetBundleLoader : FrameBase
 				break;
 			}
 		}
-		UN_LIST_MAIN(fileNameList);
+		UN_LIST(fileNameList);
 		return loadedCount != 0;
 	}
 	// 请求异步加载资源包
@@ -554,7 +554,7 @@ public class AssetBundleLoader : FrameBase
 	protected void initAssetConfig(byte[] fileBuffer, int fileSize)
 	{
 		mInited = false;
-		ARRAY_MAIN(out byte[] tempStringBuffer, 256);
+		ARRAY(out byte[] tempStringBuffer, 256);
 		mAssetBundleInfoList.Clear();
 		mAssetToBundleInfo.Clear();
 		Serializer serializer = new Serializer(fileBuffer, fileSize);
@@ -586,7 +586,7 @@ public class AssetBundleLoader : FrameBase
 				bundleInfo.addParent(getFileNameNoSuffix(bytesToString(tempStringBuffer)));
 			}
 		}
-		UN_ARRAY_MAIN(tempStringBuffer);
+		UN_ARRAY(tempStringBuffer);
 		// 配置清单解析完毕后,为每个AssetBundleInfo查找对应的依赖项
 		foreach (var info in mAssetBundleInfoList)
 		{

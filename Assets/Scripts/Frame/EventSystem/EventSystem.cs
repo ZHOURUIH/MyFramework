@@ -25,7 +25,7 @@ public class EventSystem : FrameSystem
 	}
 	public void listenEvent(int eventType, EventCallback callback, object listener)
 	{
-		CLASS_MAIN(out GameEventInfo info);
+		CLASS(out GameEventInfo info);
 		info.mCallback = callback;
 		info.mType = eventType;
 		info.mLisntener = listener;

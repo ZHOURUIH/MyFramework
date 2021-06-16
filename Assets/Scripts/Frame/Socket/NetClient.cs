@@ -36,7 +36,7 @@ public abstract class NetClient : FrameBase
 		// 包类型的高2位表示了当前包体是用几个字节存储的
 		ushort packetType = packet.getPacketType();
 		// 需要先序列化消息,同时获得包体实际的长度
-		ARRAY_MAIN(out byte[] bodyBuffer, getGreaterPow2(packet.generateSize(true)));
+		ARRAY(out byte[] bodyBuffer, getGreaterPow2(packet.generateSize(true)));
 		int realPacketSize = packet.write(bodyBuffer);
 		string debugInfo = null;
 		if (packet.showInfo())
@@ -48,7 +48,7 @@ public abstract class NetClient : FrameBase
 
 		if (realPacketSize < 0)
 		{
-			UN_ARRAY_MAIN(bodyBuffer);
+			UN_ARRAY(bodyBuffer);
 			logError("消息序列化失败!");
 			return;
 		}
@@ -96,7 +96,7 @@ public abstract class NetClient : FrameBase
 		}
 		// 写入包体数据
 		writeBytes(packetData, ref index, bodyBuffer, -1, -1, realPacketSize);
-		UN_ARRAY_MAIN(bodyBuffer);
+		UN_ARRAY(bodyBuffer);
 		// 添加到写缓冲中
 		mOutputBuffer.add(packetData);
 		if (debugInfo != null)

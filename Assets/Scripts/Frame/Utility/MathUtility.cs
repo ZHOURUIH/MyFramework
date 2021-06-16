@@ -2704,7 +2704,7 @@ public class MathUtility : StringUtility
 		}
 		int originCount = originPoint.Count;
 		int middleCount = loop ? originCount : originCount - 1;
-		FrameUtility.LIST_MAIN(out List<Vector3> midPoints);
+		FrameUtility.LIST(out List<Vector3> midPoints);
 		midPoints.Capacity = middleCount;
 		// 生成中点       
 		for (int i = 0; i < middleCount; ++i)
@@ -2713,7 +2713,7 @@ public class MathUtility : StringUtility
 		}
 
 		// 平移中点,计算每个顶点的两个控制点
-		FrameUtility.LIST_MAIN(out List<Vector3> extraPoints);
+		FrameUtility.LIST(out List<Vector3> extraPoints);
 		extraPoints.Capacity = 2 * originCount;
 		for (int i = 0; i < originCount; ++i)
 		{
@@ -2749,7 +2749,7 @@ public class MathUtility : StringUtility
 				extraPoints[2 * i + 1] = originPoint[i] + (midPoints[i] - midinmid) * scale;
 			}
 		}
-		FrameUtility.UN_LIST_MAIN(midPoints);
+		FrameUtility.UN_LIST(midPoints);
 
 		int bezierCount = loop ? originCount : originCount - 1;
 		float step = 1 / (float)(detail - 1);
@@ -2770,7 +2770,7 @@ public class MathUtility : StringUtility
 				}
 			}
 		}
-		FrameUtility.UN_LIST_MAIN(extraPoints);
+		FrameUtility.UN_LIST(extraPoints);
 	}
 	public static uint generateGUID()
 	{

@@ -93,7 +93,7 @@ public class CharacterState : FrameBase
 	// 要在当前状态中移除自身,可以使用removeSelf,或者直接将mStateTime设置为0,将时间设置为0最安全
 	protected void removeSelf(string param = null)
 	{
-		CMD_MAIN(out CmdCharacterRemoveState cmd, false);
+		CMD(out CmdCharacterRemoveState cmd, false);
 		cmd.mState = this;
 		cmd.mParam = param;
 		pushCommand(cmd, mPlayer);

@@ -88,7 +88,7 @@ public class KeyFrameManager : FrameSystem
 	protected void onKeyFrameLoaded(UnityEngine.Object asset, UnityEngine.Object[] subAsset, byte[] bytes, object userData, string loadPath)
 	{
 		// 删除所有ID小于100的,也就是通过加载资源获得的曲线
-		LIST_MAIN(out List<int> deleteKeys);
+		LIST(out List<int> deleteKeys);
 		foreach (var item in mCurveList)
 		{
 			if (item.Key < (int)KEY_CURVE.BUILDIN_CURVE)
@@ -100,7 +100,7 @@ public class KeyFrameManager : FrameSystem
 		{
 			mCurveList.Remove(item);
 		}
-		UN_LIST_MAIN(deleteKeys);
+		UN_LIST(deleteKeys);
 
 		GameObject keyFrameObject = instantiatePrefab(mObject, asset as GameObject, getFileName(asset.name), true);
 		// 查找关键帧曲线,加入列表中

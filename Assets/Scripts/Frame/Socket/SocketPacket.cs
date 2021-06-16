@@ -10,15 +10,14 @@ public class SocketPacket : SerializedData
 	public SocketPacket()
 	{
 		mPacketID = makeID();
-		mDestroy = true;
 	}
 	public void setConnect(ISocketConnect connect) { mConnect = connect; }
-	public virtual void init(ushort type)
+	public virtual void init()
 	{
-		mType = type;
 		fillParams();
 		zeroParams();
 	}
+	public void setPacketType(ushort type) { mType = type; }
 	public ushort getPacketType() { return mType; }
 	// 如果是服务器向客户端发送的消息,则需要重写该函数
 	public virtual void execute() { }
@@ -32,9 +31,9 @@ public class SocketPacket : SerializedData
 		mClientID = 0;
 		mClient = null;
 		mConnect = null;
-		// mPacketID,Type不需要重置
+		// mPacketID,mType不需要重置
 		// mPacketID = 0;
-		// mType = null;
+		// mType = 0;
 	}
 	public void setClient(NetClient client) { mClient = client; }
 	public void setClientID(uint clientID) { mClientID = clientID; }
