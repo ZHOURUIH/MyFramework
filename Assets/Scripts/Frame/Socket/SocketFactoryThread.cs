@@ -3,25 +3,19 @@ using System.Collections.Generic;
 
 public class SocketFactoryThread : FrameSystem
 {
-	protected Dictionary<ushort, PacketInfo> mPacketTypeList;
-	protected Dictionary<Type, PacketInfo> mClassTypeList;
-	public SocketFactoryThread()
-	{
-		mPacketTypeList = new Dictionary<ushort, PacketInfo>();
-		mClassTypeList = new Dictionary<Type, PacketInfo>();
-	}
 	public void destroyPacket(SocketPacket packet)
 	{
 		mClassPoolThread.destroyClass(packet);
 	}
 	public SocketPacket createSocketPacket(ushort type)
 	{
-		var socketPacket = mClassPoolThread.newClass(mPacketTypeList[type].mClassType, out bool isNewObject) as SocketPacket;
+		var packet = mClassPoolThread.newClass(mSocketTypeManager.getPacketType(type), out bool isNewObject) as SocketPacket;
 		if (isNewObject)
 		{
-			socketPacket.init(type);
+			packet.setPacketType(type);
+			packet.init();
 		}
-		return socketPacket;
+		return packet;
 	}
 	public SocketPacket createSocketPacket(Type type)
 	{
@@ -30,27 +24,9 @@ public class SocketFactoryThread : FrameSystem
 		var packet = mClassPoolThread.newClass(type, out bool isNewObject) as SocketPacket;
 		if (isNewObject)
 		{
-			packet.init(mClassTypeList[type].mType);
+			packet.setPacketType(mSocketTypeManager.getPacketTypeID(type));
+			packet.init();
 		}
 		return packet;
-	}
-	public void registePacket(Type classType, ushort type)
-	{
-		PacketInfo info = new PacketInfo();
-		info.mClassType = classType;
-		info.mType = type;
-		mPacketTypeList.Add(type, info);
-		mClassTypeList.Add(info.mClassType, info);
-		// 只能添加到列表以后才能获取到包的大小
-		mPacketTypeList[type] = info;
-		mClassTypeList[info.mClassType] = info;
-	}
-	public int getPacketTypeCount() { return mPacketTypeList.Count; }
-	public void checkRegisteCount(int needCount, int preCount, string packetType)
-	{
-		if (mPacketTypeList.Count - preCount != needCount)
-		{
-			logError(packetType + " : not all packet registered! cur count : " + (mPacketTypeList.Count - preCount) + ", need count : " + needCount);
-		}
 	}
 }

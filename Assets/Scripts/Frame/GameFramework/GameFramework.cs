@@ -533,6 +533,7 @@ public class GameFramework : MonoBehaviour
 		registeFrameSystem(typeof(PathKeyframeManager));
 		registeFrameSystem(typeof(EventSystem));
 		registeFrameSystem(typeof(StateManager));
+		registeFrameSystem(typeof(SocketTypeManager));
 #if USE_ILRUNTIME
 		// ILRSystem需要在很多系统后面销毁,因为很多Game层的系统位于ILRuntime中,需要等到所有其他系统销毁后,ILRSystem才能销毁
 		registeFrameSystem(typeof(ILRSystem), -1, -1, 3999);

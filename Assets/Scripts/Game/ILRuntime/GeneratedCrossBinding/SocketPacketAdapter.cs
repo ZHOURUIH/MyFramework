@@ -57,12 +57,12 @@ namespace HotFix
 
             public ILTypeInstance ILInstance { get { return instance; } }
 
-            public override void init(System.UInt16 type)
+            public override void init()
             {
                 if (minit_0.CheckShouldInvokeBase(this.instance))
-                    base.init(type);
+                    base.init();
                 else
-                    minit_0.Invoke(this.instance, type);
+                    minit_0.Invoke(this.instance);
             }
 
             public override void execute()

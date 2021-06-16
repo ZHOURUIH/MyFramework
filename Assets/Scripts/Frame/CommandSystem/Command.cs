@@ -18,7 +18,6 @@ public class Command : FrameBase
 		mCmdID = makeID();
 		mEndCallback = new List<CommandCallback>();
 		mStartCallback = new List<CommandCallback>();
-		mDestroy = true;
 	}
 	public override void resetProperty()
 	{

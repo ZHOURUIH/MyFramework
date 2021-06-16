@@ -9,13 +9,16 @@ public class FrameSystem : ComponentOwner
 	protected int mInitOrder;
 	protected int mUpdateOrder;
 	protected int mDestroyOrder;
+	public FrameSystem()
+	{
+		mDestroy = false;   // 由于一般FrameSystem不会使用对象池来管理,所以构造时就设置当前对象为有效
+	}
 	public virtual void init()
 	{
 		if (mCreateObject)
 		{
 			mObject = createGameObject(Typeof(this).ToString(), mGameFramework.getGameFrameObject());
 		}
-		mDestroy = false;
 		initComponents();
 	}
 	public override void destroy()

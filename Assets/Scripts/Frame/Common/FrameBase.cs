@@ -50,6 +50,7 @@ public class FrameBase : ClassObject
 	public static EventSystem mEventSystem;
 	public static TweenerManager mTweenerManager;
 	public static StateManager mStateManager;
+	public static SocketTypeManager mSocketTypeManager;
 #if USE_ILRUNTIME
 	public static ILRSystem mILRSystem;
 #endif
@@ -102,6 +103,7 @@ public class FrameBase : ClassObject
 		getFrameSystemMain(out mEventSystem);
 		getFrameSystemMain(out mTweenerManager);
 		getFrameSystemMain(out mStateManager);
+		getFrameSystemMain(out mSocketTypeManager);
 #if USE_ILRUNTIME
 		getFrameSystemMain(out mILRSystem);
 #endif
