@@ -63,8 +63,22 @@ public class CommandSystem : FrameSystem
 		// 执行完后清空列表
 		mExecuteList.Clear();
 	}
-	// 创建命令
-	public Command newCmd(Type type, bool show = true, bool delay = false)
+	// 在主线程中创建命令
+	public Command newCmd(Type type, bool show, bool delay)
+	{
+		// 如果命令系统已经销毁了,则不能再创建命令
+		if (mDestroy)
+		{
+			return null;
+		}
+		var cmd = mClassPool.newClass(type, false) as Command;
+		cmd.setShowDebugInfo(show);
+		cmd.setDelayCommand(delay);
+		cmd.setThreadCommand(false);
+		return cmd;
+	}
+	// 在子线程中创建命令
+	public Command newCmdThread(Type type, bool show, bool delay)
 	{
 		// 如果命令系统已经销毁了,则不能再创建命令
 		if (mDestroy)
@@ -74,6 +88,7 @@ public class CommandSystem : FrameSystem
 		var cmd = mClassPoolThread.newClass(type, out _) as Command;
 		cmd.setShowDebugInfo(show);
 		cmd.setDelayCommand(delay);
+		cmd.setThreadCommand(true);
 		return cmd;
 	}
 	public void interruptCommand(List<long> assignIDList, bool showError = true)
@@ -114,7 +129,7 @@ public class CommandSystem : FrameSystem
 				log(END_STRING(builder), LOG_LEVEL.HIGH);
 				mCommandBufferProcess.Remove(cmd);
 				// 销毁回收命令
-				mClassPoolThread.destroyClass(cmd);
+				destroyCmd(cmd);
 				return true;
 			}
 		}
@@ -138,6 +153,18 @@ public class CommandSystem : FrameSystem
 		}
 		return success;
 	}
+	// 在子线程中发送一个指定类型的命令
+	public void pushCommandThread(Type type, CommandReceiver cmdReceiver, bool show = true)
+	{
+		// 如果命令系统已经销毁了,则不能再发送命令
+		if (mDestroy)
+		{
+			return;
+		}
+		Command cmd = newCmdThread(type, show, false);
+		pushCommand(cmd, cmdReceiver);
+	}
+	// 在主线程中发送一个指定类型的命令
 	public void pushCommand(Type type, CommandReceiver cmdReceiver, bool show = true)
 	{
 		// 如果命令系统已经销毁了,则不能再发送命令
@@ -148,7 +175,7 @@ public class CommandSystem : FrameSystem
 		Command cmd = newCmd(type, show, false);
 		pushCommand(cmd, cmdReceiver);
 	}
-	// 执行命令
+	// 在当前线程中执行命令
 	public new void pushCommand(Command cmd, CommandReceiver cmdReceiver)
 	{
 		// 如果命令系统已经销毁了,则不能再发送命令
@@ -198,8 +225,21 @@ public class CommandSystem : FrameSystem
 		cmd.setState(EXECUTE_STATE.EXECUTED);
 		cmd.invokeEndCallBack();
 		// 销毁回收命令
-		mClassPoolThread?.destroyClass(cmd);
+		destroyCmd(cmd);
 	}
+	// 在子线程中发送一个指定类型的命令,并且会延迟到主线程执行
+	public Command pushDelayCommandThread(Type type, CommandReceiver cmdReceiver, float delayExecute, bool show, IDelayCmdWatcher watcher)
+	{
+		// 如果命令系统已经销毁了,则不能再发送命令
+		if (mDestroy)
+		{
+			return null;
+		}
+		Command cmd = newCmdThread(type, show, true);
+		pushDelayCommand(cmd, cmdReceiver, delayExecute, watcher);
+		return cmd;
+	}
+	// 在主线程中发送一个指定类型的命令,并且在主线程中延迟执行
 	public Command pushDelayCommand(Type type, CommandReceiver cmdReceiver, float delayExecute, bool show, IDelayCmdWatcher watcher)
 	{
 		// 如果命令系统已经销毁了,则不能再发送命令
@@ -211,8 +251,7 @@ public class CommandSystem : FrameSystem
 		pushDelayCommand(cmd, cmdReceiver, delayExecute, watcher);
 		return cmd;
 	}
-	// delayExecute是命令延时执行的时间,默认为0,只有new出来的命令才能延时执行
-	// 子线程中发出的命令必须是延时执行的命令!
+	// 延迟执行命令,会延迟到主线程执行
 	public new void pushDelayCommand(Command cmd, CommandReceiver cmdReceiver, float delayExecute, IDelayCmdWatcher watcher)
 	{
 		// 如果命令系统已经销毁了,则不能再发送命令
@@ -277,7 +316,7 @@ public class CommandSystem : FrameSystem
 			Command cmd = mCommandBufferProcess[i];
 			if (cmd.getReceiver() == receiver)
 			{
-				mClassPoolThread?.destroyClass(cmd);
+				destroyCmd(cmd);
 				mCommandBufferProcess.RemoveAt(i);
 				--i;
 				--processCount;
@@ -302,5 +341,20 @@ public class CommandSystem : FrameSystem
 		mCommandBufferProcess.AddRange(mCommandBufferInput);
 		mCommandBufferInput.Clear();
 		mBufferLock.unlock();
+	}
+	protected void destroyCmd(Command cmd)
+	{
+		if(cmd == null)
+		{
+			return;
+		}
+		if(cmd.isThreadCommand())
+		{
+			mClassPoolThread?.destroyClass(cmd);
+		}
+		else
+		{
+			mClassPool?.destroyClass(cmd);
+		}
 	}
 }

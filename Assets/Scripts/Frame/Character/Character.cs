@@ -7,7 +7,7 @@ public class Character : MovableObject
 	protected COMCharacterStateMachine mStateMachine;			// 状态机组件
 	protected COMCharacterDecisionTree mDecisionTree;			// 决策树组件
 	protected COMCharacterAvatar mAvatar;						// 模型组件
-	protected CharacterBaseData mBaseData;						// 玩家数据
+	protected CharacterData mBaseData;						// 玩家数据
 	protected Type mCharacterType;								// 角色类型
 	protected long mGUID;										// 角色的唯一ID
 	protected bool mIsMyself;									// 是否为主角实例,为了提高效率,不使用虚函数判断
@@ -65,7 +65,7 @@ public class Character : MovableObject
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
 	// get
 	public bool isMyself()									{ return mIsMyself; }
-	public CharacterBaseData getBaseData()					{ return mBaseData; }
+	public CharacterData getBaseData()					{ return mBaseData; }
 	public Type getType()									{ return mCharacterType; }
 	public COMCharacterAvatar getAvatar()					{ return mAvatar; }
 	public Animation getAnimation()							{ return mAvatar.getAnimation(); }
@@ -81,7 +81,7 @@ public class Character : MovableObject
 	public bool hasState(Type state)						{ return mStateMachine.hasState(state); }
 	public bool hasStateGroup(Type group)					{ return mStateMachine.hasStateGroup(group); }
 	//-------------------------------------------------------------------------------------------------------------------------------------------------------
-	protected virtual CharacterBaseData createCharacterData() { return new CharacterBaseData(); }
+	protected virtual CharacterData createCharacterData() { return new CharacterData(); }
 	protected override void initComponents()
 	{
 		base.initComponents();

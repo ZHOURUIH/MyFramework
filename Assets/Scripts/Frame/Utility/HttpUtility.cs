@@ -66,7 +66,7 @@ public class HttpUtility : FrameSystem
 		logForce("http下载完成:" + url);
 		return dataBytes;
 	}
-	public static string httpPostFile(string url, List<FormItem> itemList, Action<string, object> callback, object callbakcUserData, bool logError)
+	public static string httpPostFile(string url, List<FormItem> itemList, Action<string, object> callback, object callbakcUserData)
 	{
 		// 以模拟表单的形式上传数据
 		string boundary = "----" + DateTime.Now.Ticks.ToString("x");
@@ -111,11 +111,11 @@ public class HttpUtility : FrameSystem
 		byte[] footer = stringToBytes("\r\n--" + boundary + "--\r\n", Encoding.UTF8);
 		postStream.Write(footer, 0, footer.Length);
 		// 发送请求
-		string ret = httpPost(url, postStream.GetBuffer(), (int)postStream.Length, callback, callbakcUserData, logError);
+		string ret = httpPost(url, postStream.GetBuffer(), (int)postStream.Length, callback, callbakcUserData);
 		postStream.Close();
 		return ret;
 	}
-	public static string httpPost(string url, byte[] data, int dataLength, string contentType, Dictionary<string, string> header, Action<string, object> callback, object callbakcUserData, bool logError)
+	public static string httpPost(string url, byte[] data, int dataLength, string contentType, Dictionary<string, string> header, Action<string, object> callback, object callbakcUserData)
 	{
 		if(dataLength < 0)
 		{
@@ -147,7 +147,6 @@ public class HttpUtility : FrameSystem
 			threadParam.mCallback = callback;
 			threadParam.mUserData = callbakcUserData;
 			threadParam.mFullURL = url;
-			threadParam.mLogError = logError;
 			Thread httpThread = new Thread(waitHttpPost);
 			threadParam.mThread = httpThread;
 			httpThread.Start(threadParam);
@@ -182,21 +181,21 @@ public class HttpUtility : FrameSystem
 		}
 		return null;
 	}
-	public static string httpPost(string url, byte[] data, int dataLength = -1, Action<string, object> callback = null, object callbakcUserData = null, bool logError = true)
+	public static string httpPost(string url, byte[] data, int dataLength = -1, Action<string, object> callback = null, object callbakcUserData = null)
 	{
-		return httpPost(url, data, dataLength, "application/x-www-form-urlencoded", null, callback, callbakcUserData, logError);
+		return httpPost(url, data, dataLength, "application/x-www-form-urlencoded", null, callback, callbakcUserData);
 	}
-	public static string httpPost(string url, string param, Action<string, object> callback = null, object callbakcUserData = null, bool logError = true)
+	public static string httpPost(string url, string param, Action<string, object> callback = null, object callbakcUserData = null)
 	{
-		return httpPost(url, stringToBytes(param, Encoding.UTF8), -1, "application/x-www-form-urlencoded", null, callback, callbakcUserData, logError);
+		return httpPost(url, stringToBytes(param, Encoding.UTF8), -1, "application/x-www-form-urlencoded", null, callback, callbakcUserData);
 	}
-	public static string httpPost(string url, string param, string contentType, Action<string, object> callback = null, object callbakcUserData = null, bool logError = true)
+	public static string httpPost(string url, string param, string contentType, Action<string, object> callback = null, object callbakcUserData = null)
 	{
-		return httpPost(url, stringToBytes(param, Encoding.UTF8), -1, contentType, null, callback, callbakcUserData, logError);
+		return httpPost(url, stringToBytes(param, Encoding.UTF8), -1, contentType, null, callback, callbakcUserData);
 	}
-	public static string httpPost(string url, string param, string contentType, Dictionary<string, string> header, bool logError = true)
+	public static string httpPost(string url, string param, string contentType, Dictionary<string, string> header)
 	{
-		return httpPost(url, stringToBytes(param, Encoding.UTF8), -1, contentType, header, null, null, logError);
+		return httpPost(url, stringToBytes(param, Encoding.UTF8), -1, contentType, header, null, null);
 	}
 	public static string generateHttpGet(string url, Dictionary<string, string> get)
 	{
@@ -222,14 +221,30 @@ public class HttpUtility : FrameSystem
 		}
 		return END_STRING(parameters);
 	}
-	public static string httpGet(string urlString, Action<string, object> callback = null, object userData = null, bool logError = true)
+	public static string httpGet(string urlString)
+	{
+		return httpGet(urlString, "application/x-www-form-urlencoded");
+	}
+	public static string httpGet(string urlString, string contentType)
+	{
+		return httpGet(urlString, contentType);
+	}
+	public static string httpGet(string urlString, Action<string, object> callback)
+	{
+		return httpGet(urlString, "application/x-www-form-urlencoded", callback, null);
+	}
+	public static string httpGet(string urlString, Action<string, object> callback, object userData)
+	{
+		return httpGet(urlString, "application/x-www-form-urlencoded", callback, userData);
+	}
+	public static string httpGet(string urlString, string contentType, Action<string, object> callback, object userData)
 	{
 		// 根据url地址创建HTTpWebRequest对象
 		var httprequest = (HttpWebRequest)WebRequest.Create(new Uri(urlString));
 		httprequest.Method = "GET";
 		httprequest.KeepAlive = false;
 		httprequest.ProtocolVersion = HttpVersion.Version11;
-		httprequest.ContentType = "application/x-www-form-urlencoded";
+		httprequest.ContentType = contentType;
 		httprequest.AllowAutoRedirect = true;
 		httprequest.MaximumAutomaticRedirections = 2;
 		httprequest.Timeout = 10000;
@@ -242,7 +257,6 @@ public class HttpUtility : FrameSystem
 			threadParam.mCallback = callback;
 			threadParam.mUserData = userData;
 			threadParam.mFullURL = urlString;
-			threadParam.mLogError = logError;
 			Thread httpThread = new Thread(waitHttpGet);
 			threadParam.mThread = httpThread;
 			httpThread.Start(threadParam);
@@ -287,7 +301,7 @@ public class HttpUtility : FrameSystem
 			var reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
 
 			// 延迟到主线程执行
-			CMD_DELAY(out CmdGlobalDelayCallParam2<string, object> cmd);
+			CMD_DELAY_THREAD(out CmdGlobalDelayCallParam2<string, object> cmd);
 			cmd.mFunction = threadParam.mCallback;
 			cmd.mParam0 = reader.ReadToEnd();
 			cmd.mParam1 = threadParam.mUserData;
@@ -319,7 +333,7 @@ public class HttpUtility : FrameSystem
 			StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
 
 			// 延迟到主线程执行
-			CMD_DELAY(out CmdGlobalDelayCallParam2<string, object> cmd);
+			CMD_DELAY_THREAD(out CmdGlobalDelayCallParam2<string, object> cmd);
 			cmd.mFunction = threadParam.mCallback;
 			cmd.mParam0 = reader.ReadToEnd();
 			cmd.mParam1 = threadParam.mUserData;

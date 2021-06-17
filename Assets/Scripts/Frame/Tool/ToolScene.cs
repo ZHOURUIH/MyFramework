@@ -7,7 +7,7 @@ public class ST : FrameBase
 	#region 播放场景音效
 	public static void AUDIO()
 	{
-		pushMainCommand<CmdGameScenePlayAudio>(mGameSceneManager.getCurScene(), false);
+		pushCommand<CmdGameScenePlayAudio>(mGameSceneManager.getCurScene(), false);
 	}
 	public static void AUDIO(int sound)
 	{
@@ -34,7 +34,7 @@ public class ST : FrameBase
 	#region 场景音效音量
 	public static void AUDIO_VOLUME()
 	{
-		pushMainCommand<CmdGameSceneAudioVolume>(mGameSceneManager.getCurScene(), false);
+		pushCommand<CmdGameSceneAudioVolume>(mGameSceneManager.getCurScene(), false);
 	}
 	public static void AUDIO_VOLUME(float start, float target, float onceLength, int volumeCoeSound)
 	{

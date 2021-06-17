@@ -140,6 +140,7 @@ public class FrameUtility : WidgetUtility
 	}
 	//-----------------------------------------------------------------------------------------------------------------------------------
 	// 命令
+	// 在主线程中创建立即执行的命令
 	public static T CMD<T>(out T cmd, bool show = true) where T : Command
 	{
 #if UNITY_EDITOR && USE_ILRUNTIME
@@ -151,8 +152,9 @@ public class FrameUtility : WidgetUtility
 #else
 		Type type = typeof(T);
 #endif
-		return cmd = FrameBase.mCommandSystem.newCmd(type, show) as T;
+		return cmd = FrameBase.mCommandSystem.newCmd(type, show, false) as T;
 	}
+	// 在主线程中创建延迟执行的命令
 	public static T CMD_DELAY<T>(out T cmd, bool show = true) where T : Command
 	{
 #if UNITY_EDITOR && USE_ILRUNTIME
@@ -166,32 +168,71 @@ public class FrameUtility : WidgetUtility
 #endif
 		return cmd = FrameBase.mCommandSystem.newCmd(type, show, true) as T;
 	}
-	public static void pushMainCommand<T>(CommandReceiver cmdReceiver, bool show = true) where T : Command
+	// 在子线程中创建立即执行的命令
+	public static T CMD_THREAD<T>(out T cmd, bool show = true) where T : Command
+	{
+#if UNITY_EDITOR && USE_ILRUNTIME
+		Type type = Typeof<T>();
+		if (type == null)
+		{
+			logError("热更工程无法使用CMD_THREAD");
+		}
+#else
+		Type type = typeof(T);
+#endif
+		return cmd = FrameBase.mCommandSystem.newCmdThread(type, show, false) as T;
+	}
+	// 在子线程中创建延迟执行的命令
+	public static T CMD_DELAY_THREAD<T>(out T cmd, bool show = true) where T : Command
+	{
+#if UNITY_EDITOR && USE_ILRUNTIME
+		Type type = Typeof<T>();
+		if (type == null)
+		{
+			logError("热更工程无法使用CMD_DELAY_THREAD");
+		}
+#else
+		Type type = typeof(T);
+#endif
+		return cmd = FrameBase.mCommandSystem.newCmdThread(type, show, true) as T;
+	}
+	public static void pushCommandThread<T>(CommandReceiver cmdReceiver, bool show = true) where T : Command
+	{
+		CMD_THREAD(out T cmd, show);
+		pushCommand(cmd, cmdReceiver);
+	}
+	public static void pushCommand<T>(CommandReceiver cmdReceiver, bool show = true) where T : Command
 	{
 		CMD(out T cmd, show);
-		FrameBase.mCommandSystem.pushCommand(cmd, cmdReceiver);
+		pushCommand(cmd, cmdReceiver);
 	}
 	public static void pushCommand(Command cmd, CommandReceiver cmdReceiver)
 	{
 		FrameBase.mCommandSystem.pushCommand(cmd, cmdReceiver);
 	}
-	public static T pushDelayMainCommand<T>(IDelayCmdWatcher watcher, CommandReceiver cmdReceiver, float delayExecute = 0.001f, bool show = true) where T : Command
+	public static T pushDelayCommandThread<T>(IDelayCmdWatcher watcher, CommandReceiver cmdReceiver, float delayExecute = 0.001f, bool show = true) where T : Command
+	{
+		CMD_DELAY_THREAD(out T cmd, show);
+		pushDelayCommand(cmd, cmdReceiver, delayExecute, watcher);
+		return cmd;
+	}
+	public static T pushDelayCommand<T>(IDelayCmdWatcher watcher, CommandReceiver cmdReceiver, float delayExecute = 0.001f, bool show = true) where T : Command
 	{
 		CMD_DELAY(out T cmd, show);
-		FrameBase.mCommandSystem.pushDelayCommand(cmd, cmdReceiver, delayExecute, watcher);
+		pushDelayCommand(cmd, cmdReceiver, delayExecute, watcher);
 		return cmd;
+	}
+	public static void pushDelayCommand(Command cmd, CommandReceiver cmdReceiver, float delayExecute)
+	{
+		pushDelayCommand(cmd, cmdReceiver, delayExecute, null);
+	}
+	public static void pushDelayCommand(Command cmd, CommandReceiver cmdReceiver)
+	{
+		pushDelayCommand(cmd, cmdReceiver, 0.0f, null);
 	}
 	public static void pushDelayCommand(Command cmd, CommandReceiver cmdReceiver, float delayExecute, IDelayCmdWatcher watcher)
 	{
 		FrameBase.mCommandSystem.pushDelayCommand(cmd, cmdReceiver, delayExecute, watcher);
-	}
-	public static void pushDelayCommand(Command cmd, CommandReceiver cmdReceiver, float delayExecute)
-	{
-		FrameBase.mCommandSystem.pushDelayCommand(cmd, cmdReceiver, delayExecute, null);
-	}
-	public static void pushDelayCommand(Command cmd, CommandReceiver cmdReceiver)
-	{
-		FrameBase.mCommandSystem.pushDelayCommand(cmd, cmdReceiver, 0.0f, null);
 	}
 	//-----------------------------------------------------------------------------------------------------------------------------------
 	// 列表对象池

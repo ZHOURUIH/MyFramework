@@ -474,7 +474,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		}
 		if(!mConnectDestroy)
 		{
-			CMD_DELAY(out CmdSocketConnectClientState cmd, false);
+			CMD_DELAY_THREAD(out CmdSocketConnectClientState cmd, false);
 			if (cmd != null)
 			{
 				cmd.mErrorCode = errorCode;

@@ -7,7 +7,7 @@ namespace HotFix
 {   
     public class CharacterAdapter : CrossBindingAdaptor
     {
-        static CrossBindingFunctionInfo<global::CharacterBaseData> mcreateCharacterData_0 = new CrossBindingFunctionInfo<global::CharacterBaseData>("createCharacterData");
+        static CrossBindingFunctionInfo<global::CharacterData> mcreateCharacterData_0 = new CrossBindingFunctionInfo<global::CharacterData>("createCharacterData");
         static CrossBindingMethodInfo minit_1 = new CrossBindingMethodInfo("init");
         static CrossBindingMethodInfo mresetProperty_2 = new CrossBindingMethodInfo("resetProperty");
         static CrossBindingMethodInfo mdestroyModel_3 = new CrossBindingMethodInfo("destroyModel");
@@ -118,7 +118,7 @@ namespace HotFix
 
             public ILTypeInstance ILInstance { get { return instance; } }
 
-            protected override global::CharacterBaseData createCharacterData()
+            protected override global::CharacterData createCharacterData()
             {
                 if (mcreateCharacterData_0.CheckShouldInvokeBase(this.instance))
                     return base.createCharacterData();

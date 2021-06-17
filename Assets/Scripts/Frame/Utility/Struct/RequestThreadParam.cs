@@ -11,5 +11,4 @@ public struct RequestThreadParam
 	public byte[] mByteArray;
 	public object mUserData;
 	public string mFullURL;
-	public bool mLogError;
 }

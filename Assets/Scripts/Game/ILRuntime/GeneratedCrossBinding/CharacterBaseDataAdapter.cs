@@ -17,7 +17,7 @@ namespace HotFix
         {
             get
             {
-                return typeof(global::CharacterBaseData);
+                return typeof(global::CharacterData);
             }
         }
 
@@ -34,7 +34,7 @@ namespace HotFix
             return new Adapter(appdomain, instance);
         }
 
-        public class Adapter : global::CharacterBaseData, CrossBindingAdaptorType
+        public class Adapter : global::CharacterData, CrossBindingAdaptorType
         {
             ILTypeInstance instance;
             ILRuntime.Runtime.Enviorment.AppDomain appdomain;

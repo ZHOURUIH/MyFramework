@@ -11,7 +11,8 @@ public class Command : FrameBase
 	protected uint mCmdID;							// 命令ID,每一个命令对象拥有一个唯一ID
 	protected bool mIgnoreTimeScale;				// 命令的延迟时间是否不受时间缩放影响
 	protected bool mShowDebugInfo;					// 是否显示调试信息
-	protected bool mDelayCommand;					// 是否是延迟执行的命令
+	protected bool mThreadCommand;					// 是否是由多线程对象池创建的命令
+	protected bool mDelayCommand;                   // 是否是延迟执行的命令
 	protected EXECUTE_STATE mCmdState;				// 命令执行状态
 	public Command()
 	{
@@ -31,6 +32,7 @@ public class Command : FrameBase
 		mEndCallback.Clear();
 		mStartCallback.Clear();
 		mDelayTime = 0.0f;
+		mThreadCommand = false;
 		// CmdID不重置
 		// mCmdID = 0;
 	}
@@ -45,6 +47,7 @@ public class Command : FrameBase
 	public float getDelayTime()						{ return mDelayTime; }
 	public bool isIgnoreTimeScale()					{ return mIgnoreTimeScale; }
 	public uint getID()								{ return mCmdID; }
+	public bool isThreadCommand()					{ return mThreadCommand; }
 	public void setShowDebugInfo(bool show)			{ mShowDebugInfo = show; }
 	public void setDelayCommand(bool delay)			{ mDelayCommand = delay; }
 	public void setReceiver(CommandReceiver Reciver){ mReceiver = Reciver; }
@@ -52,6 +55,7 @@ public class Command : FrameBase
 	public void setDelayTime(float time)			{ mDelayTime = time; }
 	public void setIgnoreTimeScale(bool ignore)		{ mIgnoreTimeScale = ignore; }
 	public void setResultListen(BOOL result)		{ mResult = result; }
+	public void setThreadCommand(bool threadCmd)	{ mThreadCommand = threadCmd; }
 	public void addEndCommandCallback(CommandCallback cmdCallback)
 	{
 		if (cmdCallback != null)

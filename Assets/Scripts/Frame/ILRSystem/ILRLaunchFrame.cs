@@ -42,7 +42,7 @@ public class ILRLaunchFrame : FrameBase
 		classList.Add(typeof(LayoutScript));
 		classList.Add(typeof(SceneProcedure));
 		classList.Add(typeof(Character));
-		classList.Add(typeof(CharacterBaseData));
+		classList.Add(typeof(CharacterData));
 		classList.Add(typeof(GameComponent));
 		classList.Add(typeof(StateParam));
 		classList.Add(typeof(CharacterState));
