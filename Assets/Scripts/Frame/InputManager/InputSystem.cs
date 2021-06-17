@@ -120,7 +120,7 @@ public class InputSystem : FrameSystem
 		}
 	}
 	public void setMouseVisible(bool visible) { Cursor.visible = visible; }
-	public new Vector3 getMousePosition() { return mCurMousePosition; }
+	public Vector3 getMousePosition() { return mCurMousePosition; }
 	public Vector3 getMouseDelta() { return mMouseDelta; }
 	public float getMouseWheelDelta() { return Input.mouseScrollDelta.y; }
 	public bool isMouseDown(MOUSE_BUTTON mouse, FOCUS_MASK mask = FOCUS_MASK.NONE)

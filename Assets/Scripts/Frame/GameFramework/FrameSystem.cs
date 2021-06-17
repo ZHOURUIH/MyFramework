@@ -4,7 +4,6 @@ using System;
 public class FrameSystem : ComponentOwner
 {
 	protected GameObject mObject;
-	protected bool mSystemDestroy;       // 是否已经销毁
 	protected bool mCreateObject;
 	protected int mInitOrder;
 	protected int mUpdateOrder;

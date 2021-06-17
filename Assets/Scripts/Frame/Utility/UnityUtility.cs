@@ -1442,7 +1442,7 @@ public class UnityUtility : FileUtility
 			typeof(ILRuntimeType).IsAssignableFrom(type))
 		{
 			logError("无法获取热更工程中的类型,请确保没有在热更工程中调用Typeof<>(), 在热更工程中获取类型请使用typeof()," +
-					"或者没有调用CMD_MAIN,PACKET_MAIN,LIST_MAIN这类的只能在主工程中调用的函数");
+					"或者没有调用CMD,PACKET,LIST这类的只能在主工程中调用的函数");
 			return null;
 		}
 #endif
