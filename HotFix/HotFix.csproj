@@ -216,6 +216,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Frame\Utility\FrameUtilityILR.cs" />
     <Compile Include="Game\Character\CharacterComponent\COMCharacterController.cs" />
     <Compile Include="Game\Character\CharacterGameData.cs" />
     <Compile Include="Game\Character\CharacterGame.cs" />
@@ -226,7 +227,6 @@
     <Compile Include="Game\GameConfig\GameConfig.cs" />
     <Compile Include="Game\Common\GameDefineILR.cs" />
     <Compile Include="Game\Common\GameEnum.cs" />
-    <Compile Include="Frame\Utility\FrameUtilityILR.cs" />
     <Compile Include="Game\Utility\GameUtilityILR.cs" />
     <Compile Include="Game\Common\LayoutLoadInfo.cs" />
     <Compile Include="Game\DataBase\SQLite\SQLiteRegisterILR.cs" />

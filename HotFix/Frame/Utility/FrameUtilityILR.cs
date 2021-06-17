@@ -5,10 +5,6 @@ using System.Collections.Generic;
 // 主工程中FrameUtility的ILR版本
 public class FrameUtilityILR : GameBase
 {
-	public static T PACKET_ILR<T>(out T packet) where T : SocketPacket
-	{
-		return packet = mSocketFactory.createSocketPacket(typeof(T)) as T;
-	}
 	public static void pushEvent(int eventType, GameEvent param)
 	{
 		mEventSystem.pushEvent(eventType, param);
