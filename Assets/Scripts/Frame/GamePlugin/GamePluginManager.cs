@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-// 插件后缀为bytes,插件依赖的库在编辑器模式下需要放到Plugins中,打包后放到Managed中
+// 插件后缀为plugin,插件依赖的库在编辑器模式下需要放到Plugins中,打包后放到Managed中
 public class GamePluginManager : FrameSystem
 {
 	protected Dictionary<string, IGamePlugin> mPluginList;

@@ -3,11 +3,11 @@ using System;
 
 public class FrameSystem : ComponentOwner
 {
-	protected GameObject mObject;
-	protected bool mCreateObject;
-	protected int mInitOrder;
-	protected int mUpdateOrder;
-	protected int mDestroyOrder;
+	protected GameObject mObject;		// 管理器节点,一般用于作为管理物体的父节点,或者挂接调试脚本
+	protected int mDestroyOrder;		// 销毁顺序
+	protected int mUpdateOrder;			// 更新顺序
+	protected int mInitOrder;			// 初始化顺序
+	protected bool mCreateObject;		// 是否要创建管理器节点,默认不创建,为了避免在场景结构中显示过多不必要的系统组件节点
 	public FrameSystem()
 	{
 		mDestroy = false;   // 由于一般FrameSystem不会使用对象池来管理,所以构造时就设置当前对象为有效

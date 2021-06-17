@@ -37,13 +37,12 @@ namespace ILRuntime.Runtime.Generated
             GameBase_Binding.Register(app);
             FrameBase_Binding.Register(app);
             GameFramework_Binding.Register(app);
-            EventSystem_Binding.Register(app);
-            CommandSystem_Binding.Register(app);
-            ClassPool_Binding.Register(app);
-            ClassPoolThread_Binding.Register(app);
             FrameDefine_Binding.Register(app);
             System_String_Binding.Register(app);
             FileUtility_Binding.Register(app);
+            EventSystem_Binding.Register(app);
+            ClassPool_Binding.Register(app);
+            ClassPoolThread_Binding.Register(app);
             ClassObject_Binding.Register(app);
             FrameSystem_Binding.Register(app);
             GameScene_Binding.Register(app);

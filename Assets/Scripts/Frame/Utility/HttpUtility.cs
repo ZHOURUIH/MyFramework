@@ -4,7 +4,6 @@ using System.Text;
 using System.IO;
 using System.Net;
 using System.Threading;
-using LitJson;
 using System.Security.Cryptography.X509Certificates;
 using System.Net.Security;
 
@@ -34,7 +33,7 @@ public class HttpUtility : FrameSystem
 	public static byte[] downloadFile(string url, int offset = 0, byte[] helperBytes = null, string fileName = EMPTY,
 										StartDownloadCallback startCallback = null, DownloadingCallback downloading = null)
 	{
-		log("开始http下载:" + url, LOG_LEVEL.FORCE);
+		logForce("开始http下载:" + url);
 		HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
 		request.AddRange(offset);
 		WebResponse response = request.GetResponse();
@@ -64,10 +63,10 @@ public class HttpUtility : FrameSystem
 		downloadStream.Close();
 		inStream.Close();
 		response.Close();
-		log("http下载完成:" + url, LOG_LEVEL.FORCE);
+		logForce("http下载完成:" + url);
 		return dataBytes;
 	}
-	public static JsonData httpPostFile(string url, List<FormItem> itemList, Action<JsonData, object> callback, object callbakcUserData, bool logError)
+	public static string httpPostFile(string url, List<FormItem> itemList, Action<string, object> callback, object callbakcUserData)
 	{
 		// 以模拟表单的形式上传数据
 		string boundary = "----" + DateTime.Now.Ticks.ToString("x");
@@ -76,12 +75,12 @@ public class HttpUtility : FrameSystem
 									"Content-Type: application/octet-stream" + "\r\n\r\n";
 		string dataFormdataTemplate = "\r\n--" + boundary + "\r\n" +
 									"Content-Disposition: form-data; name=\"{0}\"" + "\r\n\r\n{1}";
-		MemoryStream postStream = new MemoryStream();
+		var postStream = new MemoryStream();
 		int count = itemList.Count;
 		for (int i = 0; i < count; ++i)
 		{
 			FormItem item = itemList[i];
-			string formdata = null;
+			string formdata;
 			if (item.mFileContent != null)
 			{
 				formdata = string.Format(fileFormdataTemplate, "fileContent", item.mFileName);
@@ -91,7 +90,7 @@ public class HttpUtility : FrameSystem
 				formdata = string.Format(dataFormdataTemplate, item.mKey, item.mValue);
 			}
 			// 统一处理
-			byte[] formdataBytes = null;
+			byte[] formdataBytes;
 			// 第一行不需要换行
 			if (postStream.Length == 0)
 			{
@@ -111,68 +110,32 @@ public class HttpUtility : FrameSystem
 		// 结尾
 		byte[] footer = stringToBytes("\r\n--" + boundary + "--\r\n", Encoding.UTF8);
 		postStream.Write(footer, 0, footer.Length);
-
-		byte[] postBytes = postStream.ToArray();
-		ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
-		var webRequest = (HttpWebRequest)WebRequest.Create(new Uri(url));
-		webRequest.Method = "POST";
-		webRequest.ContentType = "multipart/form-data; boundary=" + boundary;
-		webRequest.Timeout = 10000;
-		webRequest.Credentials = CredentialCache.DefaultCredentials;
-		webRequest.ContentLength = postBytes.Length;
-		// 异步
-		if (callback != null)
-		{
-			var threadParam = new RequestThreadParam();
-			threadParam.mRequest = webRequest;
-			threadParam.mByteArray = postBytes;
-			threadParam.mCallback = callback;
-			threadParam.mUserData = callbakcUserData;
-			threadParam.mFullURL = url;
-			threadParam.mLogError = logError;
-			Thread httpThread = new Thread(waitHttpPost);
-			threadParam.mThread = httpThread;
-			httpThread.Start(threadParam);
-			httpThread.IsBackground = true;
-			ThreadListLock.waitForUnlock();
-			mHttpThreadList.Add(httpThread);
-			ThreadListLock.unlock();
-			return null;
-		}
-		// 同步
-		else
-		{
-			try
-			{
-				// 附加要POST给服务器的数据到HttpWebRequest对象(附加POST数据的过程比较特殊，它并没有提供一个属性给用户存取，需要写入HttpWebRequest对象提供的一个stream里面。)
-				// 创建一个Stream,赋值是写入HttpWebRequest对象提供的一个stream里面
-				Stream newStream = webRequest.GetRequestStream();
-				newStream.Write(postBytes, 0, postBytes.Length);
-				newStream.Close();
-				// 读取服务器的返回信息
-				var response = (HttpWebResponse)webRequest.GetResponse();
-				var php = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
-				string phpend = php.ReadToEnd();
-				php.Close();
-				response.Close();
-				return JsonMapper.ToObject(phpend);
-			}
-			catch (Exception)
-			{
-				return null;
-			}
-		}
+		// 发送请求
+		string ret = httpPost(url, postStream.GetBuffer(), (int)postStream.Length, callback, callbakcUserData);
+		postStream.Close();
+		return ret;
 	}
-	public static JsonData httpPost(string url, byte[] data, string contentType, Action<JsonData, object> callback, object callbakcUserData, bool logError)
+	public static string httpPost(string url, byte[] data, int dataLength, string contentType, Dictionary<string, string> header, Action<string, object> callback, object callbakcUserData)
 	{
+		if(dataLength < 0)
+		{
+			dataLength = data.Length;
+		}
 		// 初始化新的webRequst
 		// 创建httpWebRequest对象
 		ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
 		var webRequest = (HttpWebRequest)WebRequest.Create(new Uri(url));
 		// 初始化HttpWebRequest对象
 		webRequest.Method = "POST";
+		if (header != null)
+		{
+			foreach (var item in header)
+			{
+				webRequest.Headers.Add(item.Key, item.Value);
+			}
+		}
 		webRequest.ContentType = contentType;
-		webRequest.ContentLength = data.Length;
+		webRequest.ContentLength = dataLength;
 		webRequest.Credentials = CredentialCache.DefaultCredentials;
 		webRequest.Timeout = 10000;
 		// 异步
@@ -184,7 +147,6 @@ public class HttpUtility : FrameSystem
 			threadParam.mCallback = callback;
 			threadParam.mUserData = callbakcUserData;
 			threadParam.mFullURL = url;
-			threadParam.mLogError = logError;
 			Thread httpThread = new Thread(waitHttpPost);
 			threadParam.mThread = httpThread;
 			httpThread.Start(threadParam);
@@ -192,7 +154,6 @@ public class HttpUtility : FrameSystem
 			ThreadListLock.waitForUnlock();
 			mHttpThreadList.Add(httpThread);
 			ThreadListLock.unlock();
-			return null;
 		}
 		// 同步
 		else
@@ -202,7 +163,7 @@ public class HttpUtility : FrameSystem
 				// 附加要POST给服务器的数据到HttpWebRequest对象(附加POST数据的过程比较特殊，它并没有提供一个属性给用户存取，需要写入HttpWebRequest对象提供的一个stream里面。)
 				// 创建一个Stream,赋值是写入HttpWebRequest对象提供的一个stream里面
 				Stream newStream = webRequest.GetRequestStream();
-				newStream.Write(data, 0, data.Length);
+				newStream.Write(data, 0, dataLength);
 				newStream.Close();
 				// 读取服务器的返回信息
 				var response = (HttpWebResponse)webRequest.GetResponse();
@@ -211,49 +172,79 @@ public class HttpUtility : FrameSystem
 				reader.Close();
 				response.Close();
 				webRequest.Abort();
-				return JsonMapper.ToObject(str);
+				return str;
 			}
-			catch (Exception)
+			catch (Exception e)
 			{
-				return null;
+				logForce("http exception:" + e.Message + ", url:" + url);
 			}
 		}
+		return null;
 	}
-	public static JsonData httpPost(string url, byte[] data, Action<JsonData, object> callback = null, object callbakcUserData = null, bool logError = true)
+	public static string httpPost(string url, byte[] data, int dataLength = -1, Action<string, object> callback = null, object callbakcUserData = null)
 	{
-		return httpPost(url, data, "application/x-www-form-urlencoded", callback, callbakcUserData, logError);
+		return httpPost(url, data, dataLength, "application/x-www-form-urlencoded", null, callback, callbakcUserData);
 	}
-	public static JsonData httpPost(string url, string param, Action<JsonData, object> callback = null, object callbakcUserData = null, bool logError = true)
+	public static string httpPost(string url, string param, Action<string, object> callback = null, object callbakcUserData = null)
 	{
-		return httpPost(url, stringToBytes(param, Encoding.UTF8), "application/x-www-form-urlencoded", callback, callbakcUserData, logError);
+		return httpPost(url, stringToBytes(param, Encoding.UTF8), -1, "application/x-www-form-urlencoded", null, callback, callbakcUserData);
 	}
-	public static JsonData httpPost(string url, string param, string contentType, Action<JsonData, object> callback = null, object callbakcUserData = null, bool logError = true)
+	public static string httpPost(string url, string param, string contentType, Action<string, object> callback = null, object callbakcUserData = null)
 	{
-		return httpPost(url, stringToBytes(param, Encoding.UTF8), contentType, callback, callbakcUserData, logError);
+		return httpPost(url, stringToBytes(param, Encoding.UTF8), -1, contentType, null, callback, callbakcUserData);
+	}
+	public static string httpPost(string url, string param, string contentType, Dictionary<string, string> header)
+	{
+		return httpPost(url, stringToBytes(param, Encoding.UTF8), -1, contentType, header, null, null);
 	}
 	public static string generateHttpGet(string url, Dictionary<string, string> get)
 	{
-		MyStringBuilder parameters = STRING();
-		if (get.Count > 0)
+		if (get == null || get.Count == 0)
 		{
-			parameters.Append("?");
-			// 从集合中取出所有参数，设置表单参数（AddField()).  
-			foreach (var post_arg in get)
-			{
-				parameters.Append(post_arg.Key, "=", post_arg.Value, "&");
-			}
-			parameters.Remove(parameters.Length - 1);
+			return url;
 		}
-		return url + END_STRING(parameters);
+		int count = get.Count;
+		MyStringBuilder parameters = STRING(url, "?");
+		// 从集合中取出所有参数，设置表单参数（AddField())
+		int index = 0;
+		foreach(var item in get)
+		{
+			if (index != count - 1)
+			{
+				parameters.Append(item.Key, "=", item.Value, "&");
+			}
+			else
+			{
+				parameters.Append(item.Key, "=", item.Value);
+			}
+			++index;
+		}
+		return END_STRING(parameters);
 	}
-	public static JsonData httpGet(string urlString, Action<JsonData, object> callback = null, object userData = null, bool logError = true)
+	public static string httpGet(string urlString)
+	{
+		return httpGet(urlString, "application/x-www-form-urlencoded");
+	}
+	public static string httpGet(string urlString, string contentType)
+	{
+		return httpGet(urlString, contentType);
+	}
+	public static string httpGet(string urlString, Action<string, object> callback)
+	{
+		return httpGet(urlString, "application/x-www-form-urlencoded", callback, null);
+	}
+	public static string httpGet(string urlString, Action<string, object> callback, object userData)
+	{
+		return httpGet(urlString, "application/x-www-form-urlencoded", callback, userData);
+	}
+	public static string httpGet(string urlString, string contentType, Action<string, object> callback, object userData)
 	{
 		// 根据url地址创建HTTpWebRequest对象
 		var httprequest = (HttpWebRequest)WebRequest.Create(new Uri(urlString));
 		httprequest.Method = "GET";
 		httprequest.KeepAlive = false;
 		httprequest.ProtocolVersion = HttpVersion.Version11;
-		httprequest.ContentType = "application/x-www-form-urlencoded";
+		httprequest.ContentType = contentType;
 		httprequest.AllowAutoRedirect = true;
 		httprequest.MaximumAutomaticRedirections = 2;
 		httprequest.Timeout = 10000;
@@ -266,7 +257,6 @@ public class HttpUtility : FrameSystem
 			threadParam.mCallback = callback;
 			threadParam.mUserData = userData;
 			threadParam.mFullURL = urlString;
-			threadParam.mLogError = logError;
 			Thread httpThread = new Thread(waitHttpGet);
 			threadParam.mThread = httpThread;
 			httpThread.Start(threadParam);
@@ -274,7 +264,6 @@ public class HttpUtility : FrameSystem
 			ThreadListLock.waitForUnlock();
 			mHttpThreadList.Add(httpThread);
 			ThreadListLock.unlock();
-			return null;
 		}
 		// 同步
 		else
@@ -287,14 +276,14 @@ public class HttpUtility : FrameSystem
 				reader.Close();
 				response.Close();
 				httprequest.Abort();
-				return JsonMapper.ToObject(str);
+				return str;
 			}
 			catch (Exception e)
 			{
-				log(e.Message);
-				return null;
+				logForce("http get exception:" + e.Message + ", url:" + urlString);
 			}
 		}
+		return null;
 	}
 	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
 	protected static void waitHttpPost(object param)
@@ -312,9 +301,9 @@ public class HttpUtility : FrameSystem
 			var reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
 
 			// 延迟到主线程执行
-			CMD_DELAY(out CmdGlobalDelayCallParam2<JsonData, object> cmd);
+			CMD_DELAY_THREAD(out CmdGlobalDelayCallParam2<string, object> cmd);
 			cmd.mFunction = threadParam.mCallback;
-			cmd.mParam0 = JsonMapper.ToObject(reader.ReadToEnd());
+			cmd.mParam0 = reader.ReadToEnd();
 			cmd.mParam1 = threadParam.mUserData;
 			pushDelayCommand(cmd, mGlobalCmdReceiver);
 
@@ -344,9 +333,9 @@ public class HttpUtility : FrameSystem
 			StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
 
 			// 延迟到主线程执行
-			CMD_DELAY(out CmdGlobalDelayCallParam2<JsonData, object> cmd);
+			CMD_DELAY_THREAD(out CmdGlobalDelayCallParam2<string, object> cmd);
 			cmd.mFunction = threadParam.mCallback;
-			cmd.mParam0 = JsonMapper.ToObject(reader.ReadToEnd());
+			cmd.mParam0 = reader.ReadToEnd();
 			cmd.mParam1 = threadParam.mUserData;
 			pushDelayCommand(cmd, mGlobalCmdReceiver);
 

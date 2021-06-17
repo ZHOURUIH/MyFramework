@@ -5,7 +5,7 @@ using ILRuntime.Runtime.Intepreter;
 
 namespace HotFix
 {   
-    public class CharacterBaseDataAdapter : CrossBindingAdaptor
+    public class CharacterDataAdapter : CrossBindingAdaptor
     {
         static CrossBindingMethodInfo mnotifyConstructDone_0 = new CrossBindingMethodInfo("notifyConstructDone");
         static CrossBindingMethodInfo mresetProperty_1 = new CrossBindingMethodInfo("resetProperty");
@@ -17,7 +17,7 @@ namespace HotFix
         {
             get
             {
-                return typeof(global::CharacterBaseData);
+                return typeof(global::CharacterData);
             }
         }
 
@@ -34,7 +34,7 @@ namespace HotFix
             return new Adapter(appdomain, instance);
         }
 
-        public class Adapter : global::CharacterBaseData, CrossBindingAdaptorType
+        public class Adapter : global::CharacterData, CrossBindingAdaptorType
         {
             ILTypeInstance instance;
             ILRuntime.Runtime.Enviorment.AppDomain appdomain;

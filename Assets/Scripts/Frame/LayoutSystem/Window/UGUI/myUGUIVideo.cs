@@ -254,7 +254,7 @@ public class myUGUIVideo : myUGUIRawImage
 		}
 		else if (eventType == MediaPlayerEvent.EventType.Error)
 		{
-			log("video error code : " + errorCode, LOG_LEVEL.FORCE);
+			logForce("video error code : " + errorCode);
 			mErrorCallback?.Invoke(errorCode);
 		}
 	}

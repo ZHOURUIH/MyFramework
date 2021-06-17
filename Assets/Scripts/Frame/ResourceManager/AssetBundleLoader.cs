@@ -593,6 +593,6 @@ public class AssetBundleLoader : FrameBase
 			info.Value.findAllDependence();
 		}
 		mInited = true;
-		log("AssetBundle初始化完成, AssetBundle count : " + mAssetBundleInfoList.Count, LOG_LEVEL.FORCE);
+		logForce("AssetBundle初始化完成, AssetBundle count : " + mAssetBundleInfoList.Count);
 	}
 }

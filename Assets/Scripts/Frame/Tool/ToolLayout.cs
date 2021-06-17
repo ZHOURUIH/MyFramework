@@ -529,7 +529,7 @@ public class LT : FrameBase
 		{
 			return;
 		}
-		pushMainCommand<CmdWindowAlphaPath>(obj, false);
+		pushCommand<CmdWindowAlphaPath>(obj, false);
 	}
 	public static void ALPHA_PATH(myUIObject obj, Dictionary<float, float> valueKeyFrame)
 	{
@@ -577,7 +577,7 @@ public class LT : FrameBase
 		{
 			return null;
 		}
-		return pushDelayMainCommand<CmdWindowAlphaPath>(watcher, obj, delayTime, false);
+		return pushDelayCommand<CmdWindowAlphaPath>(watcher, obj, delayTime, false);
 	}
 	public static CmdWindowAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, myUIObject obj, float delayTime, Dictionary<float, float> valueKeyFrame)
 	{
@@ -692,7 +692,7 @@ public class LT : FrameBase
 	#region 播放界面音效
 	public static void AUDIO(myUIObject obj)
 	{
-		pushMainCommand<CmdWindowPlayAudio>(obj, false);
+		pushCommand<CmdWindowPlayAudio>(obj, false);
 	}
 	public static void AUDIO(myUIObject obj, int sound)
 	{

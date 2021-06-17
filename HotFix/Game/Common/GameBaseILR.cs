@@ -19,6 +19,10 @@ public partial class GB : FrameUtilityILR
 		getILRSystem(out mGameConfig);
 		getILRSystem(out mDemoSystem);
 	}
+	public static T PACKET_ILR<T>(out T packet) where T : SocketPacket
+	{
+		return packet = mSocketFactory.createSocketPacket(typeof(T)) as T;
+	}
 	//------------------------------------------------------------------------------------------------------------------------
 	public void getILRSystem<T>(out T system) where T : FrameSystem
 	{

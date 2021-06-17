@@ -221,7 +221,7 @@ public class OT : FrameBase
 		{
 			return;
 		}
-		pushMainCommand<CmdMovableObjectPlayAudio>(obj, false);
+		pushCommand<CmdMovableObjectPlayAudio>(obj, false);
 	}
 	public static void AUDIO(MovableObject obj, string sound, bool loop, float volume)
 	{
@@ -273,7 +273,7 @@ public class OT : FrameBase
 		{
 			return null;
 		}
-		return pushDelayMainCommand<CmdMovableObjectPlayAudio>(watcher, obj, delayTime, false);
+		return pushDelayCommand<CmdMovableObjectPlayAudio>(watcher, obj, delayTime, false);
 	}
 	public static CmdMovableObjectPlayAudio AUDIO_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, int sound)
 	{
@@ -451,7 +451,7 @@ public class OT : FrameBase
 		{
 			return;
 		}
-		pushMainCommand<CmdMovableObjectAlphaPath>(obj, false);
+		pushCommand<CmdMovableObjectAlphaPath>(obj, false);
 	}
 	public static void ALPHA_PATH(MovableObject obj, Dictionary<float, float> valueKeyFrame)
 	{
@@ -499,7 +499,7 @@ public class OT : FrameBase
 		{
 			return null;
 		}
-		return pushDelayMainCommand<CmdMovableObjectAlphaPath>(watcher, obj, delayTime, false);
+		return pushDelayCommand<CmdMovableObjectAlphaPath>(watcher, obj, delayTime, false);
 	}
 	public static CmdMovableObjectAlphaPath ALPH_PATH_DELAY(IDelayCmdWatcher watcher, MovableObject obj, float delayTime, Dictionary<float, float> valueKeyFrame)
 	{

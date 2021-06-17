@@ -5,7 +5,7 @@ using ILRuntime.Runtime.Intepreter;
 
 namespace HotFix
 {   
-    public class PlayerStateAdapter : CrossBindingAdaptor
+    public class CharacterStateAdapter : CrossBindingAdaptor
     {
         static CrossBindingMethodInfo mdestroy_0 = new CrossBindingMethodInfo("destroy");
         static CrossBindingMethodInfo<global::Character> msetPlayer_1 = new CrossBindingMethodInfo<global::Character>("setPlayer");

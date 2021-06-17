@@ -48,7 +48,7 @@ public class MyThread : FrameBase
 		mThread.Name = mName;
 		mThread.Start();
 		mThread.IsBackground = mIsBackground;
-		log("线程启动成功 : " + mName, LOG_LEVEL.FORCE);
+		logForce("线程启动成功 : " + mName);
 	}
 	public bool isFinished() { return mFinish; }
 	public void stop()
@@ -72,7 +72,7 @@ public class MyThread : FrameBase
 		{
 			logError("线程退出出现异常:" + mName + ", exception:" + e.Message);
 		}
-		log("线程退出完成! 线程名 : " + mName, LOG_LEVEL.FORCE);
+		logForce("线程退出完成! 线程名 : " + mName);
 	}
 	protected void run()
 	{

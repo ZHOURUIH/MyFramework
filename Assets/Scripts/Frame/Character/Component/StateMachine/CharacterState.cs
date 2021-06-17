@@ -5,7 +5,7 @@ public class StateParam : FrameBase
 
 public class CharacterState : FrameBase
 {
-	protected CharacterBaseData mData;          // 状态所属角色的数据
+	protected CharacterData mData;          // 状态所属角色的数据
 	protected OnStateLeave mOnLeave;			// 外部可设置的当前状态退出时的回调
 	protected StateParam mParam;				// 此参数只能在enter中使用,执行完enter后就会回收销毁
 	protected Character mPlayer;                // 状态所属角色

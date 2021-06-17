@@ -321,7 +321,7 @@ public class FT : FrameBase
 	#region 以指定角度列表旋转物体
 	public static void ROTATE_CURVE(Transformable obj)
 	{
-		pushMainCommand<CmdTransformableRotateCurve>(obj, false);
+		pushCommand<CmdTransformableRotateCurve>(obj, false);
 	}
 	public static void ROTATE_CURVE(Transformable obj, List<Vector3> rotList, float onceLength)
 	{
@@ -377,7 +377,7 @@ public class FT : FrameBase
 	}
 	public static CmdTransformableRotateCurve ROTATE_CURVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime)
 	{
-		return pushDelayMainCommand<CmdTransformableRotateCurve>(watcher, obj, delayTime, false);
+		return pushDelayCommand<CmdTransformableRotateCurve>(watcher, obj, delayTime, false);
 	}
 	public static CmdTransformableRotateCurve ROTATE_CURVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, List<Vector3> rotList, float onceLength)
 	{
@@ -689,7 +689,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		pushMainCommand<CmdTransformableMoveParabola>(obj, false);
+		pushCommand<CmdTransformableMoveParabola>(obj, false);
 	}
 	public static void MOVE_PARABOLA(Transformable obj, Vector3 start, Vector3 target, float topHeight, float onceLength)
 	{
@@ -755,7 +755,7 @@ public class FT : FrameBase
 		{
 			return null;
 		}
-		return pushDelayMainCommand<CmdTransformableMoveParabola>(watcher, obj, delayTime, false);
+		return pushDelayCommand<CmdTransformableMoveParabola>(watcher, obj, delayTime, false);
 	}
 	public static CmdTransformableMoveParabola MOVE_PARABOLA_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float topHeight, float onceLength)
 	{
@@ -810,7 +810,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		pushMainCommand<CmdTransformableMoveCurve>(obj, false);
+		pushCommand<CmdTransformableMoveCurve>(obj, false);
 	}
 	public static void MOVE_CURVE(Transformable obj, List<Vector3> posList, float onceLength)
 	{
@@ -874,7 +874,7 @@ public class FT : FrameBase
 		{
 			return null;
 		}
-		return pushDelayMainCommand<CmdTransformableMoveCurve>(watcher, obj, delayTime, false);
+		return pushDelayCommand<CmdTransformableMoveCurve>(watcher, obj, delayTime, false);
 	}
 	public static CmdTransformableMoveCurve MOVE_CURVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, List<Vector3> posList, float onceLength)
 	{
@@ -927,7 +927,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		pushMainCommand<CmdTransformableMovePath>(obj, false);
+		pushCommand<CmdTransformableMovePath>(obj, false);
 	}
 	public static void MOVE_PATH(Transformable obj, Dictionary<float, Vector3> valueKeyFrame)
 	{
@@ -984,7 +984,7 @@ public class FT : FrameBase
 		{
 			return null;
 		}
-		return pushDelayMainCommand<CmdTransformableMovePath>(watcher, obj, delayTime, false);
+		return pushDelayCommand<CmdTransformableMovePath>(watcher, obj, delayTime, false);
 	}
 	public static CmdTransformableMovePath MOVE_PATH_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame)
 	{
@@ -1042,7 +1042,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		pushMainCommand<CmdTransformableLerpPosition>(obj, false);
+		pushCommand<CmdTransformableLerpPosition>(obj, false);
 	}
 	public static void LERP_POSITION(Transformable obj, Vector3 targetPosition, float lerpSpeed)
 	{
@@ -1076,7 +1076,7 @@ public class FT : FrameBase
 		{
 			return null;
 		}
-		return pushDelayMainCommand<CmdTransformableLerpPosition>(watcher, obj, delayTime, false);
+		return pushDelayCommand<CmdTransformableLerpPosition>(watcher, obj, delayTime, false);
 	}
 	public static CmdTransformableLerpPosition LERP_POSITION_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 targetPosition, float lerpSpeed)
 	{
@@ -1115,7 +1115,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		pushMainCommand<CmdTransformableLerpRotation>(obj, false);
+		pushCommand<CmdTransformableLerpRotation>(obj, false);
 	}
 	public static void LERP_ROTATION(Transformable obj, Vector3 targetRotation, float lerpSpeed)
 	{
@@ -1149,7 +1149,7 @@ public class FT : FrameBase
 		{
 			return null;
 		}
-		return pushDelayMainCommand<CmdTransformableLerpRotation>(watcher, obj, delayTime, false);
+		return pushDelayCommand<CmdTransformableLerpRotation>(watcher, obj, delayTime, false);
 	}
 	public static CmdTransformableLerpRotation LERP_ROTATION_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 targetRotation, float lerpSpeed)
 	{
@@ -1188,7 +1188,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		pushMainCommand<CmdTransformableRotatePath>(obj, false);
+		pushCommand<CmdTransformableRotatePath>(obj, false);
 	}
 	public static void ROTATE_PATH(Transformable obj, Dictionary<float, Vector3> valueKeyFrame)
 	{
@@ -1237,7 +1237,7 @@ public class FT : FrameBase
 		{
 			return null;
 		}
-		return pushDelayMainCommand<CmdTransformableRotatePath>(watcher, obj, delayTime, false);
+		return pushDelayCommand<CmdTransformableRotatePath>(watcher, obj, delayTime, false);
 	}
 	public static CmdTransformableRotatePath ROTATE_PATH_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame)
 	{
@@ -1529,7 +1529,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		pushMainCommand<CmdTransformableScalePath>(obj, false);
+		pushCommand<CmdTransformableScalePath>(obj, false);
 	}
 	public static void SCALE_PATH(Transformable obj, Dictionary<float, Vector3> valueKeyFrame)
 	{
@@ -1578,7 +1578,7 @@ public class FT : FrameBase
 		{
 			return null;
 		}
-		return pushDelayMainCommand<CmdTransformableScalePath>(watcher, obj, delayTime, false);
+		return pushDelayCommand<CmdTransformableScalePath>(watcher, obj, delayTime, false);
 	}
 	public static CmdTransformableScalePath SCALE_PATH_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame)
 	{
@@ -1631,7 +1631,7 @@ public class FT : FrameBase
 	#region 以指定角度列表旋转物体
 	public static void SCALE_CURVE(Transformable obj)
 	{
-		pushMainCommand<CmdTransformableScaleCurve>(obj, false);
+		pushCommand<CmdTransformableScaleCurve>(obj, false);
 	}
 	public static void SCALE_CURVE(Transformable obj, List<Vector3> scaleList, float onceLength)
 	{
@@ -1687,7 +1687,7 @@ public class FT : FrameBase
 	}
 	public static CmdTransformableScaleCurve SCALE_CURVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime)
 	{
-		return pushDelayMainCommand<CmdTransformableScaleCurve>(watcher, obj, delayTime, false);
+		return pushDelayCommand<CmdTransformableScaleCurve>(watcher, obj, delayTime, false);
 	}
 	public static CmdTransformableScaleCurve SCALE_CURVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, List<Vector3> scaleList, float onceLength)
 	{
