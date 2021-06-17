@@ -2,7 +2,7 @@
 
 public class WavSound : FrameBase
 {
-	protected Serializer mWaveDataSerializer;
+	protected SerializerWrite mWaveDataSerializer;
 	protected string mFileName;
 	protected short[] mMixPCMData;
 	protected short mBlockAlign;    // DATA数据块长度
@@ -61,7 +61,8 @@ public class WavSound : FrameBase
 	{
 		openFile(file, out byte[]  fileData, true);
 		mFileName = file;
-		Serializer serializer = new Serializer(fileData);
+		CLASS_ONCE(out SerializerRead serializer);
+		serializer.init(fileData);
 		serializer.read(out mRiffMark);
 		serializer.read(out mFileSize);
 		serializer.read(out mWaveMark);
@@ -86,6 +87,7 @@ public class WavSound : FrameBase
 			mDataBuffer = new byte[mDataSize];
 			serializer.readBuffer(mDataBuffer, mDataSize, mDataSize);
 		} while (bytesToString(mDataMark) != "data");
+		UN_CLASS(serializer);
 		releaseFile(fileData);
 		refreshFileSize();
 		int mixDataCount = getMixPCMDataCount();
@@ -145,7 +147,7 @@ public class WavSound : FrameBase
 	}
 	public void startWaveStream(WaveFormatEx waveHeader)
 	{
-		mWaveDataSerializer = new Serializer();
+		CLASS(out mWaveDataSerializer);
 		mRiffMark = bytesToInt((byte)'R', (byte)'I', (byte)'F', (byte)'F');
 		mFileSize = 0;
 		mWaveMark = bytesToInt((byte)'W', (byte)'A', (byte)'V', (byte)'E');
@@ -172,7 +174,7 @@ public class WavSound : FrameBase
 		mDataSize = mWaveDataSerializer.getDataSize();
 		mDataBuffer = new byte[mDataSize];
 		memcpy(mDataBuffer, mWaveDataSerializer.getBuffer(), 0, 0, mDataSize);
-		mWaveDataSerializer = null;
+		UN_CLASS(mWaveDataSerializer);
 		int mixDataCount = getMixPCMDataCount();
 		mMixPCMData = new short[mixDataCount];
 		generateMixPCMData(mMixPCMData, mixDataCount, mSoundChannels, mDataBuffer, mDataSize);

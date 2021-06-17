@@ -211,7 +211,7 @@ public class COMWindowDragView : GameComponent
 						// 只有鼠标未按下并且不自动停靠到最近的边时才衰减速度
 						Vector3 prePos = curPosition;
 						mMoveSpeed = lerp(mMoveSpeed, 0.0f, elapsedTime * mAttenuateFactor, 10.0f);
-						curPosition += mMoveNormal * mMoveSpeed * mMoveSpeedScale * elapsedTime;
+						curPosition += mMoveSpeed * mMoveSpeedScale * elapsedTime * mMoveNormal;
 						clampPosition(ref curPosition);
 						if(!isVectorEqual(ref prePos, ref curPosition))
 						{

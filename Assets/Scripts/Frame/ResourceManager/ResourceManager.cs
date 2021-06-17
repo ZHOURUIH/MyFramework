@@ -7,10 +7,10 @@ using UnityEngine.U2D;
 
 public class ResourceManager : FrameSystem
 {
-	protected Dictionary<Type, List<string>> mTypeSuffixList;    // 资源类型对应的后缀名
-	protected AssetBundleLoader mAssetBundleLoader;
-	protected ResourceLoader mResourceLoader;
-	protected string mResourceRootPath;							// 当mLoadSource为1时,AssetBundle资源所在根目录,以/结尾,默认为StreamingAssets,可以为远端目录
+	protected Dictionary<Type, List<string>> mTypeSuffixList;   // 资源类型对应的后缀名
+	protected AssetBundleLoader mAssetBundleLoader;             // 通过AssetBundle加载资源的加载器
+	protected ResourceLoader mResourceLoader;					// 通过Resources或者AssetDataBase加载资源的加载器
+	protected string mResourceRootPath;							// 当mLoadSource为1时,AssetBundle资源所在根目录,以/结尾,不同平台上的默认目录不同,可以设置为远端目录
 	protected bool mLocalRootPath;								// mResourceRootPath是否为本地的路径
 	protected LOAD_SOURCE mLoadSource;                          // 0为从Resources加载,1为从AssetBundle加载
 	public ResourceManager()
@@ -67,8 +67,7 @@ public class ResourceManager : FrameSystem
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		mAssetBundleLoader.update(elapsedTime);
-		mResourceLoader.update(elapsedTime);
+		mAssetBundleLoader.update();
 	}
 	public override void destroy()
 	{
