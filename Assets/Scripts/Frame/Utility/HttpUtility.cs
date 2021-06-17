@@ -4,7 +4,6 @@ using System.Text;
 using System.IO;
 using System.Net;
 using System.Threading;
-using LitJson;
 using System.Security.Cryptography.X509Certificates;
 using System.Net.Security;
 
@@ -76,12 +75,12 @@ public class HttpUtility : FrameSystem
 									"Content-Type: application/octet-stream" + "\r\n\r\n";
 		string dataFormdataTemplate = "\r\n--" + boundary + "\r\n" +
 									"Content-Disposition: form-data; name=\"{0}\"" + "\r\n\r\n{1}";
-		MemoryStream postStream = new MemoryStream();
+		var postStream = new MemoryStream();
 		int count = itemList.Count;
 		for (int i = 0; i < count; ++i)
 		{
 			FormItem item = itemList[i];
-			string formdata = null;
+			string formdata;
 			if (item.mFileContent != null)
 			{
 				formdata = string.Format(fileFormdataTemplate, "fileContent", item.mFileName);
@@ -91,7 +90,7 @@ public class HttpUtility : FrameSystem
 				formdata = string.Format(dataFormdataTemplate, item.mKey, item.mValue);
 			}
 			// 统一处理
-			byte[] formdataBytes = null;
+			byte[] formdataBytes;
 			// 第一行不需要换行
 			if (postStream.Length == 0)
 			{
@@ -111,60 +110,17 @@ public class HttpUtility : FrameSystem
 		// 结尾
 		byte[] footer = stringToBytes("\r\n--" + boundary + "--\r\n", Encoding.UTF8);
 		postStream.Write(footer, 0, footer.Length);
-
-		byte[] postBytes = postStream.ToArray();
-		ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
-		var webRequest = (HttpWebRequest)WebRequest.Create(new Uri(url));
-		webRequest.Method = "POST";
-		webRequest.ContentType = "multipart/form-data; boundary=" + boundary;
-		webRequest.Timeout = 10000;
-		webRequest.Credentials = CredentialCache.DefaultCredentials;
-		webRequest.ContentLength = postBytes.Length;
-		// 异步
-		if (callback != null)
-		{
-			var threadParam = new RequestThreadParam();
-			threadParam.mRequest = webRequest;
-			threadParam.mByteArray = postBytes;
-			threadParam.mCallback = callback;
-			threadParam.mUserData = callbakcUserData;
-			threadParam.mFullURL = url;
-			threadParam.mLogError = logError;
-			Thread httpThread = new Thread(waitHttpPost);
-			threadParam.mThread = httpThread;
-			httpThread.Start(threadParam);
-			httpThread.IsBackground = true;
-			ThreadListLock.waitForUnlock();
-			mHttpThreadList.Add(httpThread);
-			ThreadListLock.unlock();
-			return null;
-		}
-		// 同步
-		else
-		{
-			try
-			{
-				// 附加要POST给服务器的数据到HttpWebRequest对象(附加POST数据的过程比较特殊，它并没有提供一个属性给用户存取，需要写入HttpWebRequest对象提供的一个stream里面。)
-				// 创建一个Stream,赋值是写入HttpWebRequest对象提供的一个stream里面
-				Stream newStream = webRequest.GetRequestStream();
-				newStream.Write(postBytes, 0, postBytes.Length);
-				newStream.Close();
-				// 读取服务器的返回信息
-				var response = (HttpWebResponse)webRequest.GetResponse();
-				var php = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
-				string str = php.ReadToEnd();
-				php.Close();
-				response.Close();
-				return str;
-			}
-			catch (Exception)
-			{
-				return null;
-			}
-		}
+		// 发送请求
+		string ret = httpPost(url, postStream.GetBuffer(), (int)postStream.Length, callback, callbakcUserData, logError);
+		postStream.Close();
+		return ret;
 	}
-	public static string httpPost(string url, byte[] data, string contentType, Dictionary<string, string> header, Action<string, object> callback, object callbakcUserData, bool logError)
+	public static string httpPost(string url, byte[] data, int dataLength, string contentType, Dictionary<string, string> header, Action<string, object> callback, object callbakcUserData, bool logError)
 	{
+		if(dataLength < 0)
+		{
+			dataLength = data.Length;
+		}
 		// 初始化新的webRequst
 		// 创建httpWebRequest对象
 		ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
@@ -179,7 +135,7 @@ public class HttpUtility : FrameSystem
 			}
 		}
 		webRequest.ContentType = contentType;
-		webRequest.ContentLength = data.Length;
+		webRequest.ContentLength = dataLength;
 		webRequest.Credentials = CredentialCache.DefaultCredentials;
 		webRequest.Timeout = 10000;
 		// 异步
@@ -208,7 +164,7 @@ public class HttpUtility : FrameSystem
 				// 附加要POST给服务器的数据到HttpWebRequest对象(附加POST数据的过程比较特殊，它并没有提供一个属性给用户存取，需要写入HttpWebRequest对象提供的一个stream里面。)
 				// 创建一个Stream,赋值是写入HttpWebRequest对象提供的一个stream里面
 				Stream newStream = webRequest.GetRequestStream();
-				newStream.Write(data, 0, data.Length);
+				newStream.Write(data, 0, dataLength);
 				newStream.Close();
 				// 读取服务器的返回信息
 				var response = (HttpWebResponse)webRequest.GetResponse();
@@ -226,21 +182,21 @@ public class HttpUtility : FrameSystem
 		}
 		return null;
 	}
-	public static string httpPost(string url, byte[] data, Action<string, object> callback = null, object callbakcUserData = null, bool logError = true)
+	public static string httpPost(string url, byte[] data, int dataLength = -1, Action<string, object> callback = null, object callbakcUserData = null, bool logError = true)
 	{
-		return httpPost(url, data, "application/x-www-form-urlencoded", null, callback, callbakcUserData, logError);
+		return httpPost(url, data, dataLength, "application/x-www-form-urlencoded", null, callback, callbakcUserData, logError);
 	}
 	public static string httpPost(string url, string param, Action<string, object> callback = null, object callbakcUserData = null, bool logError = true)
 	{
-		return httpPost(url, stringToBytes(param, Encoding.UTF8), "application/x-www-form-urlencoded", null, callback, callbakcUserData, logError);
+		return httpPost(url, stringToBytes(param, Encoding.UTF8), -1, "application/x-www-form-urlencoded", null, callback, callbakcUserData, logError);
 	}
 	public static string httpPost(string url, string param, string contentType, Action<string, object> callback = null, object callbakcUserData = null, bool logError = true)
 	{
-		return httpPost(url, stringToBytes(param, Encoding.UTF8), contentType, null, callback, callbakcUserData, logError);
+		return httpPost(url, stringToBytes(param, Encoding.UTF8), -1, contentType, null, callback, callbakcUserData, logError);
 	}
 	public static string httpPost(string url, string param, string contentType, Dictionary<string, string> header, bool logError = true)
 	{
-		return httpPost(url, stringToBytes(param, Encoding.UTF8), contentType, header, null, null, logError);
+		return httpPost(url, stringToBytes(param, Encoding.UTF8), -1, contentType, header, null, null, logError);
 	}
 	public static string generateHttpGet(string url, Dictionary<string, string> get)
 	{
