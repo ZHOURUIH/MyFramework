@@ -33,15 +33,13 @@ public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 	}
 	public override void update(float elapsedTime)
 	{
-		if (mParentLinker == null)
+		if (mLinker == null)
 		{
 			return;
 		}
 		mRotatedAngle += mSpeed * elapsedTime;
 		// 计算速度
-		float time = mTotalAngle / mSpeed;
-		float distanceSpeed = mDistanceDelta / time;
-		mDistanceCurrent += distanceSpeed * elapsedTime;
+		mDistanceCurrent += mDistanceDelta / (mTotalAngle / mSpeed) * elapsedTime;
 
 		// 顺时针
 		if (mClockwise)
@@ -49,8 +47,8 @@ public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 			if (mRotatedAngle >= mTotalAngle)
 			{
 				mRotatedAngle = mTotalAngle;
-				mParentLinker.setRelativePosition(mTargetRelative);
-				mParentLinker.notifyFinishSwitching(this);
+				mLinker.setRelativePosition(mTargetRelative);
+				mLinker.notifyFinishSwitching();
 				mDistanceCurrent = 0.0f;
 				mRotatedAngle = 0.0f;
 			}
@@ -59,16 +57,13 @@ public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 				// z方向上旋转后的轴
 				Vector3 rotateAxis = rotateVector3(mOriginRelative, mRotatedAngle);
 				// 距离变化
-				Vector3 projectVec = rotateAxis;
-				projectVec.y = 0;
-				projectVec = normalize(projectVec);
-				projectVec *= getLength(ref mOriginRelative) + mDistanceCurrent;
+				Vector3 projectVec = normalize(resetY(rotateAxis)) * (getLength(ref mOriginRelative) + mDistanceCurrent);
 				// 高度变化
 				rotateAxis.y = (mTargetRelative.y - mOriginRelative.y) * (mRotatedAngle / mTotalAngle) + mOriginRelative.y;
 				// 最终值
 				rotateAxis.x = projectVec.x;
 				rotateAxis.z = projectVec.z;
-				mParentLinker.setRelativePosition(rotateAxis);
+				mLinker.setRelativePosition(rotateAxis);
 			}
 		}
 		// 逆时针
@@ -77,23 +72,19 @@ public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 			if (mRotatedAngle <= mTotalAngle)
 			{
 				mRotatedAngle = mTotalAngle;
-				mParentLinker.setRelativePosition(mTargetRelative);
-				mParentLinker.notifyFinishSwitching(this);
+				mLinker.setRelativePosition(mTargetRelative);
+				mLinker.notifyFinishSwitching();
 				mDistanceCurrent = 0.0f;
 				mRotatedAngle = 0.0f;
 			}
 			else
 			{
 				Vector3 rotateAxis = rotateVector3(mOriginRelative, mRotatedAngle);
-				Vector3 projectVec = rotateAxis;
-				projectVec.y = 0;
-				projectVec = normalize(projectVec);
-				projectVec *= getLength(ref mOriginRelative) + mDistanceCurrent;
-
+				Vector3 projectVec = normalize(resetY(rotateAxis)) * (getLength(ref mOriginRelative) + mDistanceCurrent);
 				rotateAxis.y = (mTargetRelative.y - mOriginRelative.y) * (mRotatedAngle / mTotalAngle) + mOriginRelative.y;
 				rotateAxis.x = projectVec.x;
 				rotateAxis.z = projectVec.z;
-				mParentLinker.setRelativePosition(rotateAxis);
+				mLinker.setRelativePosition(rotateAxis);
 			}
 		}
 	}

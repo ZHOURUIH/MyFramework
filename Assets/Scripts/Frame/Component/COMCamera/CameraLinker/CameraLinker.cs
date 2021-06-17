@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,11 +6,11 @@ using UnityEngine;
 public class CameraLinker : GameComponent
 {
 	protected Dictionary<Type, CameraLinkerSwitch> mSwitchList; // 转换器列表
-	protected CameraLinkerSwitch mCurSwitch;                    // 当前转换器
-	protected MovableObject mLinkObject;                        // 摄像机跟随的物体
-	protected GameCamera mCamera;                               // 所属摄像机
-	protected Vector3 mRelativePosition;                        // 相对位置
-	protected Vector3 mLookAtOffset;                            // 焦点的偏移,实际摄像机的焦点是物体的位置加上偏移
+	protected CameraLinkerSwitch mCurSwitch;					// 当前转换器
+	protected MovableObject mLinkObject;						// 摄像机跟随的物体
+	protected GameCamera mCamera;								// 所属摄像机
+	protected Vector3 mRelativePosition;						// 相对位置
+	protected Vector3 mLookAtOffset;							// 焦点的偏移,实际摄像机的焦点是物体的位置加上偏移
 	protected LINKER_UPDATE mUpdateMoment;                      // 连接器更新时机
 	protected bool mLookAtTarget;                               // 是否在摄像机运动过程中一直看向目标位置
 	public CameraLinker()
@@ -118,14 +117,14 @@ public class CameraLinker : GameComponent
 			return;
 		}
 		// 如果不使用默认速度,其实是转换器当前的速度,则设置新的速度
-		if (useDefaultSwitchSpeed)
+		if(useDefaultSwitchSpeed)
 		{
 			switchSpeed = mCurSwitch.getSwitchSpeed();
 		}
 		mCurSwitch.init(mRelativePosition, pos, switchSpeed);
 	}
 	// 由转换器调用,通知连接器转换已经完成
-	public virtual void notifyFinishSwitching(CameraLinkerSwitch fixedSwitch) { mCurSwitch = null; }
+	public void notifyFinishSwitching() { mCurSwitch = null; }
 	public CameraLinkerSwitch getSwitch(Type type)
 	{
 		mSwitchList.TryGetValue(type, out CameraLinkerSwitch linkerSwitch);
@@ -150,12 +149,12 @@ public class CameraLinker : GameComponent
 	protected void addSwitch(Type classType)
 	{
 		var lineSwitch = createInstance<CameraLinkerSwitch>(classType);
-		lineSwitch.initType(this);
+		lineSwitch.setLinker(this);
 		mSwitchList.Add(classType, lineSwitch);
 	}
 	protected void destroySwitch()
 	{
-		foreach (var item in mSwitchList)
+		foreach(var item in mSwitchList)
 		{
 			item.Value.destroy();
 		}

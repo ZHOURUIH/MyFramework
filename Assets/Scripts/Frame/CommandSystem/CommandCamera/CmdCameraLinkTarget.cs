@@ -7,13 +7,12 @@ public class CmdCameraLinkTarget : Command
 	protected float mSwitchSpeed;           // 转换器的速度
 	protected bool mUseOriginRelative;      // 是否使用连接器原来的相对位置
 	protected bool mUseLastSwitchSpeed;     // 是否使用当前连接器的速度
-	public MovableObject mTarget;           // 摄像机要连接的对象
-	public Type mLinkerType;                // 连接器的类型
+	public MovableObject mTarget;			// 摄像机要连接的对象,仅自由连接器允许连接对象为空,其他的连接器都需要一个连接对象
 	public Vector3 mLookatOffset;           // 看向目标的位置偏移
-	public Type mSwitchType;                // 转换器的类型
+	public Type mLinkerType;				// 连接器的类型
+	public Type mSwitchType;				// 转换器的类型
 	public bool mLookAtTarget;              // 是否始终看向目标
-	public bool mAutoProcessKey;            // 是否在断开连接器后可以使用按键控制摄像机
-	public bool mImmediately;               // 是否直接将摄像机设置到当前连接器的正常位置
+	public bool mImmediately;				// 是否直接将摄像机设置到当前连接器的正常位置
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -26,7 +25,6 @@ public class CmdCameraLinkTarget : Command
 		mRelativePosition = Vector3.zero;
 		mUseLastSwitchSpeed = true;
 		mSwitchSpeed = 10.0f;
-		mAutoProcessKey = false;
 		mImmediately = false;
 	}
 	public void setRelativePosition(Vector3 relative)
@@ -43,7 +41,7 @@ public class CmdCameraLinkTarget : Command
 	{
 		var camera = mReceiver as GameCamera;
 		CameraLinker linker = camera.linkTarget(mLinkerType, mTarget);
-		if (mTarget != null)
+		if (linker != null)
 		{
 			// 停止正在进行的摄像机运动
 			FT.MOVE(camera, camera.getPosition());

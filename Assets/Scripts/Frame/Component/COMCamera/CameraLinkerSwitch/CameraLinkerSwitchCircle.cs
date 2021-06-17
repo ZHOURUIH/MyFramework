@@ -20,7 +20,7 @@ public class CameraLinkerSwitchCircle : CameraLinkerSwitch
 	}
 	public override void update(float elapsedTime)
 	{
-		if (mParentLinker == null)
+		if (mLinker == null)
 		{
 			return;
 		}
@@ -29,17 +29,14 @@ public class CameraLinkerSwitchCircle : CameraLinkerSwitch
 		if (mRotatedAngle >= mTotalAngle)
 		{
 			mRotatedAngle = mTotalAngle;
-			mParentLinker.setRelativePosition(mTargetRelative);
-			mParentLinker.notifyFinishSwitching(this);
+			mLinker.setRelativePosition(mTargetRelative);
+			mLinker.notifyFinishSwitching();
 		}
 		else
 		{
-			Vector3 rotateVec = mOriginRelative - mRotateCenter;
-			rotateVec.y = 0.0f;
-			rotateVec = rotateVector3(rotateVec, mRotatedAngle);
-			rotateVec += mRotateCenter;
+			Vector3 rotateVec = rotateVector3(resetY(mOriginRelative - mRotateCenter), mRotatedAngle) + mRotateCenter;
 			rotateVec.y = (mTargetRelative.y - mOriginRelative.y) * (mRotatedAngle / mTotalAngle) + mOriginRelative.y;
-			mParentLinker.setRelativePosition(rotateVec);
+			mLinker.setRelativePosition(rotateVec);
 		}
 	}
 }
