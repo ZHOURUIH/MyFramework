@@ -39,9 +39,7 @@ public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 		}
 		mRotatedAngle += mSpeed * elapsedTime;
 		// 计算速度
-		float time = mTotalAngle / mSpeed;
-		float distanceSpeed = mDistanceDelta / time;
-		mDistanceCurrent += distanceSpeed * elapsedTime;
+		mDistanceCurrent += mDistanceDelta / (mTotalAngle / mSpeed) * elapsedTime;
 
 		// 顺时针
 		if (mClockwise)
@@ -59,10 +57,7 @@ public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 				// z方向上旋转后的轴
 				Vector3 rotateAxis = rotateVector3(mOriginRelative, mRotatedAngle);
 				// 距离变化
-				Vector3 projectVec = rotateAxis;
-				projectVec.y = 0;
-				projectVec = normalize(projectVec);
-				projectVec *= getLength(ref mOriginRelative) + mDistanceCurrent;
+				Vector3 projectVec = normalize(resetY(rotateAxis)) * (getLength(ref mOriginRelative) + mDistanceCurrent);
 				// 高度变化
 				rotateAxis.y = (mTargetRelative.y - mOriginRelative.y) * (mRotatedAngle / mTotalAngle) + mOriginRelative.y;
 				// 最终值
@@ -85,11 +80,7 @@ public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 			else
 			{
 				Vector3 rotateAxis = rotateVector3(mOriginRelative, mRotatedAngle);
-				Vector3 projectVec = rotateAxis;
-				projectVec.y = 0;
-				projectVec = normalize(projectVec);
-				projectVec *= getLength(ref mOriginRelative) + mDistanceCurrent;
-
+				Vector3 projectVec = normalize(resetY(rotateAxis)) * (getLength(ref mOriginRelative) + mDistanceCurrent);
 				rotateAxis.y = (mTargetRelative.y - mOriginRelative.y) * (mRotatedAngle / mTotalAngle) + mOriginRelative.y;
 				rotateAxis.x = projectVec.x;
 				rotateAxis.z = projectVec.z;

@@ -34,10 +34,7 @@ public class CameraLinkerSwitchCircle : CameraLinkerSwitch
 		}
 		else
 		{
-			Vector3 rotateVec = mOriginRelative - mRotateCenter;
-			rotateVec.y = 0.0f;
-			rotateVec = rotateVector3(rotateVec, mRotatedAngle);
-			rotateVec += mRotateCenter;
+			Vector3 rotateVec = rotateVector3(resetY(mOriginRelative - mRotateCenter), mRotatedAngle) + mRotateCenter;
 			rotateVec.y = (mTargetRelative.y - mOriginRelative.y) * (mRotatedAngle / mTotalAngle) + mOriginRelative.y;
 			mParentLinker.setRelativePosition(rotateVec);
 		}

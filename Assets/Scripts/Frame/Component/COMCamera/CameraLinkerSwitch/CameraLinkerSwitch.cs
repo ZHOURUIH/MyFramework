@@ -11,11 +11,6 @@ public abstract class CameraLinkerSwitch : FrameBase
 	// 环形转换器是角速度
 	// 绕目标旋转转换器是角速度
 	protected float mSpeed;
-	public CameraLinkerSwitch(){}
-	public void initType(CameraLinker parentLinker)
-	{
-		mParentLinker = parentLinker;
-	}
 	public virtual void init(Vector3 origin, Vector3 target, float speed)
 	{
 		mOriginRelative = origin;
@@ -27,7 +22,8 @@ public abstract class CameraLinkerSwitch : FrameBase
 	{
 		mParentLinker = null;
 	}
-	public CameraLinker getParent() { return mParentLinker; }
+	public void setLinker(CameraLinker parentLinker) { mParentLinker = parentLinker; }
+	public CameraLinker getLinker() { return mParentLinker; }
 	public void setOriginRelative(Vector3 origin) { mOriginRelative = origin; }
 	public void setTargetRelative(Vector3 target) { mTargetRelative = target; }
 	public Vector3 getOriginRelative() { return mOriginRelative; }
