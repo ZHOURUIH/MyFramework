@@ -15,7 +15,6 @@ public class ResourceLoader : FrameBase
 		mLoadedObjects = new Dictionary<Object, ResourceLoadInfo>();
 	}
 	public void init(){}
-	public void update(float elapsedTime){}
 	public void destroy(){}
 	public void getFileList(string path, List<string> list)
 	{

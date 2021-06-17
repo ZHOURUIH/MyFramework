@@ -142,7 +142,7 @@ public class AssetBundlePack : EditorCommonUtility
 			}
 
 			// 生成配置文件
-			Serializer serializer = new Serializer();
+			var serializer = new SerializerWrite();
 			serializer.write(mAssetBundleMap.Count);
 			foreach (var item in mAssetBundleMap)
 			{

@@ -117,7 +117,7 @@ public class HttpUtility : FrameSystem
 	}
 	public static string httpPost(string url, byte[] data, int dataLength, string contentType, Dictionary<string, string> header, Action<string, object> callback, object callbakcUserData)
 	{
-		if(dataLength < 0)
+		if (dataLength < 0)
 		{
 			dataLength = data.Length;
 		}
@@ -207,7 +207,7 @@ public class HttpUtility : FrameSystem
 		MyStringBuilder parameters = STRING(url, "?");
 		// 从集合中取出所有参数，设置表单参数（AddField())
 		int index = 0;
-		foreach(var item in get)
+		foreach (var item in get)
 		{
 			if (index != count - 1)
 			{
@@ -301,11 +301,7 @@ public class HttpUtility : FrameSystem
 			var reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
 
 			// 延迟到主线程执行
-			CMD_DELAY_THREAD(out CmdGlobalDelayCallParam2<string, object> cmd);
-			cmd.mFunction = threadParam.mCallback;
-			cmd.mParam0 = reader.ReadToEnd();
-			cmd.mParam1 = threadParam.mUserData;
-			pushDelayCommand(cmd, mGlobalCmdReceiver);
+			delayCallThread(threadParam.mCallback, reader.ReadToEnd(), threadParam.mUserData);
 
 			reader.Close();
 			response.Close();
@@ -333,11 +329,7 @@ public class HttpUtility : FrameSystem
 			StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
 
 			// 延迟到主线程执行
-			CMD_DELAY_THREAD(out CmdGlobalDelayCallParam2<string, object> cmd);
-			cmd.mFunction = threadParam.mCallback;
-			cmd.mParam0 = reader.ReadToEnd();
-			cmd.mParam1 = threadParam.mUserData;
-			pushDelayCommand(cmd, mGlobalCmdReceiver);
+			delayCallThread(threadParam.mCallback, reader.ReadToEnd(), threadParam.mUserData);
 
 			reader.Close();
 			response.Close();

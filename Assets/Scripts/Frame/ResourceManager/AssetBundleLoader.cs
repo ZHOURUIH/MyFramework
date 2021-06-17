@@ -49,7 +49,7 @@ public class AssetBundleLoader : FrameBase
 		}
 		return true;
 	}
-	public virtual void update(float elapsedTime)
+	public void update()
 	{
 		if(!mInited)
 		{
@@ -557,7 +557,8 @@ public class AssetBundleLoader : FrameBase
 		ARRAY(out byte[] tempStringBuffer, 256);
 		mAssetBundleInfoList.Clear();
 		mAssetToBundleInfo.Clear();
-		Serializer serializer = new Serializer(fileBuffer, fileSize);
+		CLASS_ONCE(out SerializerRead serializer);
+		serializer.init(fileBuffer, fileSize);
 		serializer.read(out int assetBundleCount);
 		for(int i = 0; i < assetBundleCount; ++i)
 		{
@@ -586,6 +587,7 @@ public class AssetBundleLoader : FrameBase
 				bundleInfo.addParent(getFileNameNoSuffix(bytesToString(tempStringBuffer)));
 			}
 		}
+		UN_CLASS(serializer);
 		UN_ARRAY(tempStringBuffer);
 		// 配置清单解析完毕后,为每个AssetBundleInfo查找对应的依赖项
 		foreach (var info in mAssetBundleInfoList)
