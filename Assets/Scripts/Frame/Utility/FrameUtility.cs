@@ -4,6 +4,57 @@ using UnityEngine;
 
 public class FrameUtility : WidgetUtility
 {
+	protected static UINT mTempStateID = new UINT();
+	// 移除第一个指定类型的状态
+	public static void characterRemoveState<T>(Character character, string param = null) where T : CharacterState
+	{
+#if UNITY_EDITOR && USE_ILRUNTIME
+		Type type = Typeof<T>();
+		if (type == null)
+		{
+			logError("热更工程无法使用characterRemoveState");
+		}
+#else
+		Type type = typeof(T);
+#endif
+		CharacterState state = character.getFirstState(type);
+		if (state == null)
+		{
+			return;
+		}
+		CMD(out CmdCharacterRemoveState cmd);
+		cmd.mState = state;
+		cmd.mParam = param;
+		pushCommand(cmd, character);
+	}
+	// 移除指定的状态
+	public static void characterRemoveState(Character character, CharacterState state, string param = null)
+	{
+		CMD(out CmdCharacterRemoveState cmd);
+		cmd.mState = state;
+		cmd.mParam = param;
+		pushCommand(cmd, character);
+	}
+	// 添加指定类型的状态
+	public static CharacterState characterAddState<T>(Character character, StateParam param = null, float stateTime = -1.0f) where T : CharacterState
+	{
+#if UNITY_EDITOR && USE_ILRUNTIME
+		Type type = Typeof<T>();
+		if (type == null)
+		{
+			logError("热更工程无法使用characterAddState");
+		}
+#else
+		Type type = typeof(T);
+#endif
+		CMD(out CmdCharacterAddState cmd);
+		cmd.mStateType = type;
+		cmd.mParam = param;
+		cmd.mStateTime = stateTime;
+		cmd.mOutStateID = mTempStateID;
+		pushCommand(cmd, character);
+		return character.getState(mTempStateID.mValue);
+	}
 	public static GameCamera getMainCamera() { return FrameBase.mCameraManager.getMainCamera(); }
 	// 主工程中可调用的跳转流程的函数
 	public static void changeProcedure<T>(string intent = null) where T : SceneProcedure
@@ -653,10 +704,120 @@ public class FrameUtility : WidgetUtility
 	{
 		UN_CLASS(builder);
 	}
-	public static long delayCall(Action function, float delayTime)
+	//-----------------------------------------------------------------------------------------------------------------------------------
+	// 在主线程中发起延迟调用函数,函数将在主线程中调用
+	public static long delayCall(Action function, float delayTime = 0.0f)
 	{
 		CMD_DELAY(out CmdGlobalDelayCall cmd);
 		cmd.mFunction = function;
+		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		return cmd.getAssignID();
+	}
+	public static long delayCall<T0>(Action<T0> function, T0 param0, float delayTime = 0.0f)
+	{
+		CMD_DELAY(out CmdGlobalDelayCallParam1<T0> cmd);
+		cmd.mFunction = function;
+		cmd.mParam = param0;
+		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		return cmd.getAssignID();
+	}
+	public static long delayCall<T0, T1>(Action<T0, T1> function, T0 param0, T1 param1, float delayTime = 0.0f)
+	{
+		CMD_DELAY(out CmdGlobalDelayCallParam2<T0, T1> cmd);
+		cmd.mFunction = function;
+		cmd.mParam0 = param0;
+		cmd.mParam1 = param1;
+		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		return cmd.getAssignID();
+	}
+	public static long delayCall<T0, T1, T2>(Action<T0, T1, T2> function, T0 param0, T1 param1, T2 param2, float delayTime = 0.0f)
+	{
+		CMD_DELAY(out CmdGlobalDelayCallParam3<T0, T1, T2> cmd);
+		cmd.mFunction = function;
+		cmd.mParam0 = param0;
+		cmd.mParam1 = param1;
+		cmd.mParam2 = param2;
+		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		return cmd.getAssignID();
+	}
+	public static long delayCall<T0, T1, T2, T3>(Action<T0, T1, T2, T3> function, T0 param0, T1 param1, T2 param2, T3 param3, float delayTime = 0.0f)
+	{
+		CMD_DELAY(out CmdGlobalDelayCallParam4<T0, T1, T2, T3> cmd);
+		cmd.mFunction = function;
+		cmd.mParam0 = param0;
+		cmd.mParam1 = param1;
+		cmd.mParam2 = param2;
+		cmd.mParam3 = param3;
+		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		return cmd.getAssignID();
+	}
+	public static long delayCall<T0, T1, T2, T3, T4>(Action<T0, T1, T2, T3, T4> function, T0 param0, T1 param1, T2 param2, T3 param3, T4 param4, float delayTime = 0.0f)
+	{
+		CMD_DELAY(out CmdGlobalDelayCallParam5<T0, T1, T2, T3, T4> cmd);
+		cmd.mFunction = function;
+		cmd.mParam0 = param0;
+		cmd.mParam1 = param1;
+		cmd.mParam2 = param2;
+		cmd.mParam3 = param3;
+		cmd.mParam4 = param4;
+		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		return cmd.getAssignID();
+	}
+	// 在子线程中发起延迟调用函数,函数将在主线程中调用
+	public static long delayCallThread(Action function, float delayTime = 0.0f)
+	{
+		CMD_DELAY_THREAD(out CmdGlobalDelayCall cmd);
+		cmd.mFunction = function;
+		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		return cmd.getAssignID();
+	}
+	public static long delayCallThread<T0>(Action<T0> function, T0 param0, float delayTime = 0.0f)
+	{
+		CMD_DELAY_THREAD(out CmdGlobalDelayCallParam1<T0> cmd);
+		cmd.mFunction = function;
+		cmd.mParam = param0;
+		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		return cmd.getAssignID();
+	}
+	public static long delayCallThread<T0, T1>(Action<T0, T1> function, T0 param0, T1 param1, float delayTime = 0.0f)
+	{
+		CMD_DELAY_THREAD(out CmdGlobalDelayCallParam2<T0, T1> cmd);
+		cmd.mFunction = function;
+		cmd.mParam0 = param0;
+		cmd.mParam1 = param1;
+		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		return cmd.getAssignID();
+	}
+	public static long delayCallThread<T0, T1, T2>(Action<T0, T1, T2> function, T0 param0, T1 param1, T2 param2, float delayTime = 0.0f)
+	{
+		CMD_DELAY_THREAD(out CmdGlobalDelayCallParam3<T0, T1, T2> cmd);
+		cmd.mFunction = function;
+		cmd.mParam0 = param0;
+		cmd.mParam1 = param1;
+		cmd.mParam2 = param2;
+		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		return cmd.getAssignID();
+	}
+	public static long delayCallThread<T0, T1, T2, T3>(Action<T0, T1, T2, T3> function, T0 param0, T1 param1, T2 param2, T3 param3, float delayTime = 0.0f)
+	{
+		CMD_DELAY_THREAD(out CmdGlobalDelayCallParam4<T0, T1, T2, T3> cmd);
+		cmd.mFunction = function;
+		cmd.mParam0 = param0;
+		cmd.mParam1 = param1;
+		cmd.mParam2 = param2;
+		cmd.mParam3 = param3;
+		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		return cmd.getAssignID();
+	}
+	public static long delayCallThread<T0, T1, T2, T3, T4>(Action<T0, T1, T2, T3, T4> function, T0 param0, T1 param1, T2 param2, T3 param3, T4 param4, float delayTime = 0.0f)
+	{
+		CMD_DELAY_THREAD(out CmdGlobalDelayCallParam5<T0, T1, T2, T3, T4> cmd);
+		cmd.mFunction = function;
+		cmd.mParam0 = param0;
+		cmd.mParam1 = param1;
+		cmd.mParam2 = param2;
+		cmd.mParam3 = param3;
+		cmd.mParam4 = param4;
 		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
 		return cmd.getAssignID();
 	}
