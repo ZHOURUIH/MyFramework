@@ -15,13 +15,13 @@ public class FrameUtilityILR : GameBase
 	}
 	// 命令
 	//----------------------------------------------------------------------------------------------------------------------------------------
-	public static T CMD_ILR<T>(out T cmd, bool show = true) where T : Command
+	public static void CMD_ILR<T>(out T cmd, bool show = true) where T : Command
 	{
-		return cmd = mCommandSystem.newCmd(typeof(T), show) as T;
+		cmd = CMD(typeof(T), show) as T;
 	}
-	public static T CMD_ILR_DELAY<T>(out T cmd, bool show = true) where T : Command
+	public static void CMD_ILR_DELAY<T>(out T cmd, bool show = true) where T : Command
 	{
-		return cmd = mCommandSystem.newCmd(typeof(T), show, true) as T;
+		cmd = CMD_DELAY(typeof(T), show) as T;
 	}
 	public static void pushILRCommand<T>(CommandReceiver cmdReceiver, bool show = true) where T : Command
 	{

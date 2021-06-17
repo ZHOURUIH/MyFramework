@@ -141,7 +141,43 @@ public class FrameUtility : WidgetUtility
 	//-----------------------------------------------------------------------------------------------------------------------------------
 	// 命令
 	// 在主线程中创建立即执行的命令
-	public static T CMD<T>(out T cmd, bool show = true) where T : Command
+	public static Command CMD(Type type, bool show)
+	{
+		Command cmd = FrameBase.mClassPool.newClass(type, false) as Command;
+		cmd.setShowDebugInfo(show);
+		cmd.setDelayCommand(false);
+		cmd.setThreadCommand(false);
+		return cmd;
+	}
+	// 在主线程中创建延迟执行的命令
+	public static Command CMD_DELAY(Type type, bool show)
+	{
+		Command cmd = FrameBase.mClassPool.newClass(type, false) as Command;
+		cmd.setShowDebugInfo(show);
+		cmd.setDelayCommand(true);
+		cmd.setThreadCommand(false);
+		return cmd;
+	}
+	// 在子线程中创建立即执行的命令
+	public static Command CMD_THREAD(Type type, bool show)
+	{
+		Command cmd = FrameBase.mClassPoolThread.newClass(type, out _) as Command;
+		cmd.setShowDebugInfo(show);
+		cmd.setDelayCommand(false);
+		cmd.setThreadCommand(true);
+		return cmd;
+	}
+	// 在子线程中创建延迟执行的命令
+	public static Command CMD_DELAY_THREAD(Type type, bool show)
+	{
+		Command cmd = FrameBase.mClassPoolThread.newClass(type, out _) as Command;
+		cmd.setShowDebugInfo(show);
+		cmd.setDelayCommand(true);
+		cmd.setThreadCommand(true);
+		return cmd;
+	}
+	// 在主线程中创建立即执行的命令
+	public static void CMD<T>(out T cmd, bool show = true) where T : Command
 	{
 #if UNITY_EDITOR && USE_ILRUNTIME
 		Type type = Typeof<T>();
@@ -152,10 +188,10 @@ public class FrameUtility : WidgetUtility
 #else
 		Type type = typeof(T);
 #endif
-		return cmd = FrameBase.mCommandSystem.newCmd(type, show, false) as T;
+		cmd = CMD(type, show) as T;
 	}
 	// 在主线程中创建延迟执行的命令
-	public static T CMD_DELAY<T>(out T cmd, bool show = true) where T : Command
+	public static void CMD_DELAY<T>(out T cmd, bool show = true) where T : Command
 	{
 #if UNITY_EDITOR && USE_ILRUNTIME
 		Type type = Typeof<T>();
@@ -166,10 +202,10 @@ public class FrameUtility : WidgetUtility
 #else
 		Type type = typeof(T);
 #endif
-		return cmd = FrameBase.mCommandSystem.newCmd(type, show, true) as T;
+		cmd = CMD_DELAY(type, show) as T;
 	}
 	// 在子线程中创建立即执行的命令
-	public static T CMD_THREAD<T>(out T cmd, bool show = true) where T : Command
+	public static void CMD_THREAD<T>(out T cmd, bool show = true) where T : Command
 	{
 #if UNITY_EDITOR && USE_ILRUNTIME
 		Type type = Typeof<T>();
@@ -180,10 +216,10 @@ public class FrameUtility : WidgetUtility
 #else
 		Type type = typeof(T);
 #endif
-		return cmd = FrameBase.mCommandSystem.newCmdThread(type, show, false) as T;
+		cmd = CMD_THREAD(type, show) as T;
 	}
 	// 在子线程中创建延迟执行的命令
-	public static T CMD_DELAY_THREAD<T>(out T cmd, bool show = true) where T : Command
+	public static void CMD_DELAY_THREAD<T>(out T cmd, bool show = true) where T : Command
 	{
 #if UNITY_EDITOR && USE_ILRUNTIME
 		Type type = Typeof<T>();
@@ -194,28 +230,33 @@ public class FrameUtility : WidgetUtility
 #else
 		Type type = typeof(T);
 #endif
-		return cmd = FrameBase.mCommandSystem.newCmdThread(type, show, true) as T;
+		cmd = CMD_DELAY_THREAD(type, show) as T;
 	}
+	// 在子线程中发送一个指定类型的命令
 	public static void pushCommandThread<T>(CommandReceiver cmdReceiver, bool show = true) where T : Command
 	{
 		CMD_THREAD(out T cmd, show);
 		pushCommand(cmd, cmdReceiver);
 	}
+	// 在主线程中发送一个指定类型的命令
 	public static void pushCommand<T>(CommandReceiver cmdReceiver, bool show = true) where T : Command
 	{
 		CMD(out T cmd, show);
 		pushCommand(cmd, cmdReceiver);
 	}
+	// 在主线程中发送一个指定类型的命令
 	public static void pushCommand(Command cmd, CommandReceiver cmdReceiver)
 	{
 		FrameBase.mCommandSystem.pushCommand(cmd, cmdReceiver);
 	}
+	// 在子线程中发送一个指定类型的命令,并且会延迟到主线程执行
 	public static T pushDelayCommandThread<T>(IDelayCmdWatcher watcher, CommandReceiver cmdReceiver, float delayExecute = 0.001f, bool show = true) where T : Command
 	{
 		CMD_DELAY_THREAD(out T cmd, show);
 		pushDelayCommand(cmd, cmdReceiver, delayExecute, watcher);
 		return cmd;
 	}
+	// 在主线程中发送一个指定类型的命令,并且在主线程中延迟执行
 	public static T pushDelayCommand<T>(IDelayCmdWatcher watcher, CommandReceiver cmdReceiver, float delayExecute = 0.001f, bool show = true) where T : Command
 	{
 		CMD_DELAY(out T cmd, show);

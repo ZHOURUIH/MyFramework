@@ -7,7 +7,7 @@ namespace HotFix
 {   
     public class SocketPacketAdapter : CrossBindingAdaptor
     {
-        static CrossBindingMethodInfo<System.UInt16> minit_0 = new CrossBindingMethodInfo<System.UInt16>("init");
+        static CrossBindingMethodInfo minit_0 = new CrossBindingMethodInfo("init");
         static CrossBindingMethodInfo mexecute_1 = new CrossBindingMethodInfo("execute");
         static CrossBindingMethodInfo mfillParams_2 = new CrossBindingMethodInfo("fillParams");
         static CrossBindingFunctionInfo<System.String> mdebugInfo_3 = new CrossBindingFunctionInfo<System.String>("debugInfo");

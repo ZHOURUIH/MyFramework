@@ -15,10 +15,10 @@ public static class CrossAdapterRegister
 		appDomain.RegisterCrossBindingAdaptor(new LayoutScriptAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new SceneProcedureAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new CharacterAdapter());
-		appDomain.RegisterCrossBindingAdaptor(new CharacterBaseDataAdapter());
+		appDomain.RegisterCrossBindingAdaptor(new CharacterDataAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new GameComponentAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new StateParamAdapter());
-		appDomain.RegisterCrossBindingAdaptor(new PlayerStateAdapter());
+		appDomain.RegisterCrossBindingAdaptor(new CharacterStateAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new StateGroupAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new CommandAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new SQLiteTableAdapter());

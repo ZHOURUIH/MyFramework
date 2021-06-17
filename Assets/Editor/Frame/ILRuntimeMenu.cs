@@ -22,10 +22,10 @@ public class ILRuntimeCLRBinding : FrameUtility
 		}
 		// 由于跨域继承特殊性太多，自动生成无法实现完全无副作用生成，所以这里提供的代码自动生成主要是给大家生成个初始模版，简化大家的工作
 		// 大多数情况直接使用自动生成的模版即可，如果遇到问题可以手动去修改生成后的文件，因此这里需要大家自行处理是否覆盖的问题
-		HashSet<Type> classTypeList = new HashSet<Type>();
+		var classTypeList = new HashSet<Type>();
 		ILRLaunchFrame.collectCrossInheritClass(classTypeList);
 		// 先删除所有自动生成的文件
-		List<string> oldFiles = new List<string>();
+		var oldFiles = new List<string>();
 		findFiles(FrameDefine.F_SCRIPTS_ILRUNTIME_PATH + "GeneratedCrossBinding/", oldFiles, ".cs");
 		foreach(var item in oldFiles)
 		{
@@ -48,9 +48,9 @@ public class ILRuntimeCLRBinding : FrameUtility
 		}
 		// 用新的分析热更dll调用引用来生成绑定代码
 		Debug.Log("如果自动分析有报错,先尝试重新编译热更工程后再分析");
-		ILRAppDomain domain = new ILRAppDomain();
+		var domain = new ILRAppDomain();
 		string dllPath = FrameDefine.P_STREAMING_ASSETS_PATH + FrameDefine.ILR_FILE_NAME;
-		using (FileStream fs = new FileStream(dllPath, FileMode.Open, FileAccess.Read))
+		using (var fs = new FileStream(dllPath, FileMode.Open, FileAccess.Read))
 		{
 			domain.LoadAssembly(fs);
 			// 这里需要注册所有热更DLL中用到的跨域继承Adapter，否则无法正确抓取引用
@@ -67,7 +67,7 @@ public class ILRuntimeCLRBinding : FrameUtility
 		string prePath = FrameDefine.P_SCRIPTS_ILRUNTIME_PATH + "GeneratedCrossBinding/";
 		createDir(prePath);
 		string fullFileName = prePath + type.Name + "Adapter.cs";
-		using (StreamWriter sw = new StreamWriter(fullFileName))
+		using (var sw = new StreamWriter(fullFileName))
 		{
 			sw.WriteLine(CrossBindingCodeGenerator.GenerateCrossBindingAdapterCode(type, nameSpace));
 		}

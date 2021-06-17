@@ -5,7 +5,7 @@ using ILRuntime.Runtime.Intepreter;
 
 namespace HotFix
 {   
-    public class CharacterBaseDataAdapter : CrossBindingAdaptor
+    public class CharacterDataAdapter : CrossBindingAdaptor
     {
         static CrossBindingMethodInfo mnotifyConstructDone_0 = new CrossBindingMethodInfo("notifyConstructDone");
         static CrossBindingMethodInfo mresetProperty_1 = new CrossBindingMethodInfo("resetProperty");
