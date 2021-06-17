@@ -3,7 +3,7 @@
 // 摄像机连接器的转换器基类,用于实现切换连接器时的各种过渡效果
 public abstract class CameraLinkerSwitch : FrameBase
 {
-	protected CameraLinker mParentLinker;
+	protected CameraLinker mLinker;
 	protected Vector3 mOriginRelative;
 	protected Vector3 mTargetRelative;
 	// 转换器的速度,不同的转换器速度含义不同
@@ -20,14 +20,14 @@ public abstract class CameraLinkerSwitch : FrameBase
 	public abstract void update(float elapsedTime);
 	public virtual void destroy()
 	{
-		mParentLinker = null;
+		mLinker = null;
 	}
-	public void setLinker(CameraLinker parentLinker) { mParentLinker = parentLinker; }
-	public CameraLinker getLinker() { return mParentLinker; }
-	public void setOriginRelative(Vector3 origin) { mOriginRelative = origin; }
-	public void setTargetRelative(Vector3 target) { mTargetRelative = target; }
-	public Vector3 getOriginRelative() { return mOriginRelative; }
-	public Vector3 getTargetRelative() { return mTargetRelative; }
-	public void setSwitchSpeed(float speed) { mSpeed = speed; }
-	public float getSwitchSpeed() { return mSpeed; }
+	public void setLinker(CameraLinker parentLinker)	{ mLinker = parentLinker; }
+	public void setOriginRelative(Vector3 origin)		{ mOriginRelative = origin; }
+	public void setTargetRelative(Vector3 target)		{ mTargetRelative = target; }
+	public void setSwitchSpeed(float speed)				{ mSpeed = speed; }
+	public CameraLinker getLinker()						{ return mLinker; }
+	public Vector3 getOriginRelative()					{ return mOriginRelative; }
+	public Vector3 getTargetRelative()					{ return mTargetRelative; }
+	public float getSwitchSpeed()						{ return mSpeed; }
 }

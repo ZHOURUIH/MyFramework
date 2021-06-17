@@ -124,7 +124,7 @@ public class CameraLinker : GameComponent
 		mCurSwitch.init(mRelativePosition, pos, switchSpeed);
 	}
 	// 由转换器调用,通知连接器转换已经完成
-	public void notifyFinishSwitching(CameraLinkerSwitch fixedSwitch) { mCurSwitch = null; }
+	public void notifyFinishSwitching() { mCurSwitch = null; }
 	public CameraLinkerSwitch getSwitch(Type type)
 	{
 		mSwitchList.TryGetValue(type, out CameraLinkerSwitch linkerSwitch);
