@@ -133,11 +133,11 @@ public class ResourceLoader : FrameBase
 		}
 		else if (info.mState == LOAD_STATE.LOADING)
 		{
-			log("资源正在后台加载,不能同步加载!" + name, LOG_LEVEL.FORCE);
+			logForce("资源正在后台加载,不能同步加载!" + name);
 		}
 		else if (info.mState == LOAD_STATE.UNLOAD)
 		{
-			log("资源已加入列表,但是未加载" + name, LOG_LEVEL.FORCE);
+			logForce("资源已加入列表,但是未加载" + name);
 		}
 		return null;
 	}
@@ -165,11 +165,11 @@ public class ResourceLoader : FrameBase
 		}
 		else if(info.mState == LOAD_STATE.LOADING)
 		{
-			logWarning("资源正在后台加载,不能同步加载!" + name, LOG_LEVEL.FORCE);
+			logWarning("资源正在后台加载,不能同步加载!" + name);
 		}
 		else if(info.mState == LOAD_STATE.UNLOAD)
 		{
-			logWarning("资源已加入列表,但是未加载" + name, LOG_LEVEL.FORCE);
+			logWarning("资源已加入列表,但是未加载" + name);
 		}
 		return null;
 	}

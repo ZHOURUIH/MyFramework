@@ -356,12 +356,12 @@ public class ResourceManager : FrameSystem
 		yield return www;
 		if (www.error != null)
 		{
-			log("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.FORCE);
+			logForce("下载失败 : " + url + ", info : " + www.error);
 			callback?.Invoke(null, null, null, userData, url);
 		}
 		else
 		{
-			log("下载成功:" + url, LOG_LEVEL.FORCE);
+			logForce("下载成功:" + url);
 			downloadHandler.assetBundle.name = url;
 			callback?.Invoke(downloadHandler.assetBundle, null, www.downloadHandler.data, userData, url);
 		}
@@ -375,12 +375,12 @@ public class ResourceManager : FrameSystem
 		yield return www;
 		if (www.error != null)
 		{
-			log("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.FORCE);
+			logForce("下载失败 : " + url + ", info : " + www.error);
 			callback?.Invoke(null, null, null, userData, url);
 		}
 		else
 		{
-			log("下载成功:" + url, LOG_LEVEL.FORCE);
+			logForce("下载成功:" + url);
 			downloadHandler.audioClip.name = url;
 			callback?.Invoke(downloadHandler.audioClip, null, www.downloadHandler.data, userData, url);
 		}
@@ -393,12 +393,12 @@ public class ResourceManager : FrameSystem
 		yield return www;
 		if (www.error != null)
 		{
-			log("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.FORCE);
+			logForce("下载失败 : " + url + ", info : " + www.error);
 			callback?.Invoke(null, null, null, userData, url);
 		}
 		else
 		{
-			log("下载成功:" + url, LOG_LEVEL.FORCE);
+			logForce("下载成功:" + url);
 			Texture2D tex = DownloadHandlerTexture.GetContent(www);
 			tex.name = url;
 			callback?.Invoke(tex, null, www.downloadHandler.data, userData, url);
@@ -412,12 +412,12 @@ public class ResourceManager : FrameSystem
 		yield return www;
 		if (www.error != null)
 		{
-			log("下载失败 : " + url + ", info : " + www.error, LOG_LEVEL.FORCE);
+			logForce("下载失败 : " + url + ", info : " + www.error);
 			callback?.Invoke(null, null, null, userData, url);
 		}
 		else
 		{
-			log("下载成功:" + url + ", size:" + www.bytes.Length, LOG_LEVEL.FORCE);
+			logForce("下载成功:" + url + ", size:" + www.bytes.Length);
 			callback?.Invoke(null, null, www.bytes, userData, url);
 		}
 		www.Dispose();

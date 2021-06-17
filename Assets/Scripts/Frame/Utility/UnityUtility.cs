@@ -29,7 +29,7 @@ public class UnityUtility : FileUtility
 	public static void setLogLevel(LOG_LEVEL level)
 	{
 		mLogLevel = level;
-		log("log level: " + mLogLevel, LOG_LEVEL.FORCE);
+		logForce("log level: " + mLogLevel);
 	}
 	public static LOG_LEVEL getLogLevel()
 	{
@@ -56,6 +56,10 @@ public class UnityUtility : FileUtility
 		UnityEngine.Debug.LogError(time + ": error: " + info + ", stack: " + trackStr);
 		mOnLog?.Invoke(time, ": error: " + info + ", stack: " + trackStr, LOG_LEVEL.FORCE, true);
 	}
+	public static void logForce(string info)
+	{
+		log(info, LOG_LEVEL.FORCE);
+	}
 	public static void log(string info, LOG_LEVEL level = LOG_LEVEL.NORMAL)
 	{
 		if ((int)level > (int)mLogLevel)
@@ -79,13 +83,8 @@ public class UnityUtility : FileUtility
 		UnityEngine.Debug.Log(fullInfo);
 		mOnLog?.Invoke(time, info, level, false);
 	}
-	public static void logWarning(string info, LOG_LEVEL level = LOG_LEVEL.NORMAL)
+	public static void logWarning(string info)
 	{
-		if ((int)level > (int)mLogLevel)
-		{
-			return;
-		}
-		
 		string time;
 		if (isMainThread())
 		{
@@ -101,7 +100,7 @@ public class UnityUtility : FileUtility
 		//FrameBase.mLocalLog?.log(fullInfo);
 #endif
 		UnityEngine.Debug.LogWarning(fullInfo);
-		mOnLog?.Invoke(time, info, level, false);
+		mOnLog?.Invoke(time, info, LOG_LEVEL.FORCE, false);
 	}
 	// 获取从1970年1月1日到现在所经过的毫秒数
 	public static long timeGetTime()

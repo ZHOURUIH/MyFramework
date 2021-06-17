@@ -34,7 +34,7 @@ public class HttpUtility : FrameSystem
 	public static byte[] downloadFile(string url, int offset = 0, byte[] helperBytes = null, string fileName = EMPTY,
 										StartDownloadCallback startCallback = null, DownloadingCallback downloading = null)
 	{
-		log("开始http下载:" + url, LOG_LEVEL.FORCE);
+		logForce("开始http下载:" + url);
 		HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
 		request.AddRange(offset);
 		WebResponse response = request.GetResponse();
@@ -64,7 +64,7 @@ public class HttpUtility : FrameSystem
 		downloadStream.Close();
 		inStream.Close();
 		response.Close();
-		log("http下载完成:" + url, LOG_LEVEL.FORCE);
+		logForce("http下载完成:" + url);
 		return dataBytes;
 	}
 	public static JsonData httpPostFile(string url, List<FormItem> itemList, Action<JsonData, object> callback, object callbakcUserData, bool logError)

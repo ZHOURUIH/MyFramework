@@ -181,7 +181,7 @@ public class FrameDefine
 	public const string ILR_FILE_NAME = "Game.bytes";
 	public const string ILR_PDB_FILE_NAME = "GamePDB.bytes";
 	// dll插件的后缀名
-	public const string DLL_PLUGIN_SUFFIX = ".bytes";
+	public const string DLL_PLUGIN_SUFFIX = ".plugin";
 	// 音效所有者类型名,应该与SOUND_OWNER一致
 	public static string[] SOUND_OWNER_NAME = new string[] { "Window", "Scene" };
 	public const string UGUI_DEFAULT_MATERIAL = "UGUIDefault";

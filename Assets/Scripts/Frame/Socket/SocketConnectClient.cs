@@ -98,7 +98,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 			}
 			catch (SocketException e)
 			{
-				log("init socket exception : " + e.Message, LOG_LEVEL.FORCE);
+				logForce("init socket exception : " + e.Message);
 				socketException(e);
 				return;
 			}
@@ -438,7 +438,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		}
 		catch (SocketException e)
 		{
-			log("init socket exception : " + e.Message, LOG_LEVEL.FORCE);
+			logForce("init socket exception : " + e.Message);
 			socketException(e);
 			return;
 		}

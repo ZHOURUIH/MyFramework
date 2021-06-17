@@ -43,7 +43,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 		}
 		catch (Exception e)
 		{
-			log("init socket exception : " + e.Message + ", stack : " + e.StackTrace, LOG_LEVEL.FORCE);
+			logForce("init socket exception : " + e.Message + ", stack : " + e.StackTrace);
 			mServerSocket.Close();
 			mServerSocket = null;
 			setNetState(NET_STATE.NET_CLOSE);
@@ -170,7 +170,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 		}
 		catch (Exception e)
 		{
-			log("send exception:" + e.Message, LOG_LEVEL.FORCE);
+			logForce("send exception:" + e.Message);
 		}
 		mClientSendLock.unlock();
 	}
@@ -206,7 +206,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 		}
 		catch (SocketException e)
 		{
-			log("recv exception:" + e.Message, LOG_LEVEL.FORCE);
+			logForce("recv exception:" + e.Message);
 			setNetState(NET_STATE.NET_CLOSE);
 		}
 		mClientRecvLock.unlock();
