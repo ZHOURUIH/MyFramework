@@ -42,6 +42,12 @@ public class CameraLinkerFree : CameraLinker
 			{
 				moveLength *= 2.0f;
 			}
+			mMoveForward = 0.0f;
+			mMoveLeft = 0.0f;
+			mMoveBack = 0.0f;
+			mMoveRight = 0.0f;
+			mMoveUp = 0.0f;
+			mMoveDown = 0.0f;
 			// 向前移动摄像机
 			if (isKeyDown(KeyCode.W))
 			{
@@ -92,9 +98,16 @@ public class CameraLinkerFree : CameraLinker
 		}
 
 		// 鼠标旋转摄像机
-		if (mEnableKeyboard && mInputSystem.isMouseDown(MOUSE_BUTTON.RIGHT))
+		if(mEnableKeyboard)
 		{
-			mRotateAngle = mInputSystem.getMouseDelta() * mRotateSpeed;
+			if (mInputSystem.isMouseDown(MOUSE_BUTTON.RIGHT))
+			{
+				mRotateAngle = mInputSystem.getMouseDelta() * mRotateSpeed;
+			}
+			else
+			{
+				mRotateAngle = Vector2.zero;
+			}
 		}
 		if (!isVectorZero(mRotateAngle))
 		{
@@ -102,7 +115,7 @@ public class CameraLinkerFree : CameraLinker
 		}
 
 		// 鼠标滚轮移动摄像机
-		if(mEnableKeyboard)
+		if (mEnableKeyboard)
 		{
 			float mouseWheelDelta = mInputSystem.getMouseWheelDelta();
 			if (!isFloatZero(mouseWheelDelta))
