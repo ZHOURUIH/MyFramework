@@ -807,7 +807,11 @@ public class GlobalTouchSystem : FrameSystem
 		int newCount = hoverList.Count;
 		for (int i = 0; i < newCount; ++i)
 		{
-			hoverList[i].onMouseEnter(touchID);
+			// 上一次鼠标没有在窗口内,这一次在窗口内,才认为是进入
+			if(!mHoverWindowList.Contains(hoverList[i]))
+			{
+				hoverList[i].onMouseEnter(touchID);
+			}
 		}
 		mHoverWindowList.Clear();
 		mHoverWindowList.AddRange(hoverList);
