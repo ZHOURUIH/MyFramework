@@ -7,45 +7,45 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	protected static Comparison<myUIObject> mCompareSiblingIndex = compareSiblingIndex;
 	protected HashSet<myUIObject> mChildSet;                    // 子节点列表,用于查询是否有子节点
 	protected List<myUIObject> mChildList;                      // 子节点列表,与GameObject的子节点顺序保持一致
-	protected ObjectDoubleClickCallback mDoubleClickCallback;   // 双击回调
-	protected ObjectPreClickCallback mObjectPreClickCallback;   // 单击的预回调,单击时会首先调用此回调
-	protected OnReceiveDrag mReceiveDragCallback;               // 接收到有物体拖到当前窗口时的回调
-	protected OnDragHover mDragHoverCallback;                   // 有物体拖拽悬停到当前窗口时的回调
-	protected ObjectClickCallback mClickCallback;               // 单击回调,在预回调之后调用
-	protected ObjectHoverCallback mHoverCallback;               // 悬停回调
-	protected ObjectPressCallback mPressCallback;               // 按下时回调
-	protected OnMultiTouchStart mOnMultiTouchStart;             // 窗口中多点触控开始的回调,只支持两个点的触控
+	protected ObjectDoubleClickCallback mDoubleClickCallback;	// 双击回调
+	protected ObjectPreClickCallback mObjectPreClickCallback;	// 单击的预回调,单击时会首先调用此回调
+	protected OnReceiveDrag mReceiveDragCallback;				// 接收到有物体拖到当前窗口时的回调
+	protected OnDragHover mDragHoverCallback;					// 有物体拖拽悬停到当前窗口时的回调
+	protected ObjectClickCallback mClickCallback;				// 单击回调,在预回调之后调用
+	protected ObjectHoverCallback mHoverCallback;				// 悬停回调
+	protected ObjectPressCallback mPressCallback;				// 按下时回调
+	protected OnMultiTouchStart mOnMultiTouchStart;				// 窗口中多点触控开始的回调,只支持两个点的触控
 	protected OnMultiTouchMove mOnMultiTouchMove;               // 窗口中多点触控移动的回调,只支持两个点的触控
-	protected OnMultiTouchEnd mOnMultiTouchEnd;                 // 窗口中多点触控结束的回调,只支持两个点的触控
-	protected OnScreenMouseUp mOnScreenMouseUp;                 // 屏幕上鼠标抬起的回调,无论鼠标在哪儿
+	protected OnMultiTouchEnd mOnMultiTouchEnd;					// 窗口中多点触控结束的回调,只支持两个点的触控
+	protected OnScreenMouseUp mOnScreenMouseUp;					// 屏幕上鼠标抬起的回调,无论鼠标在哪儿
 	protected OnLongPressing mOnLongPressing;                   // 长按进度回调,可获取当前还有多久到达长按时间阈值
-	protected OnMouseEnter mOnMouseEnter;                       // 鼠标进入时的回调
-	protected OnMouseLeave mOnMouseLeave;                       // 鼠标离开时的回调
+	protected OnMouseEnter mOnMouseEnter;						// 鼠标进入时的回调
+	protected OnMouseLeave mOnMouseLeave;						// 鼠标离开时的回调
 	protected OnLongPress mOnLongPress;                         // 达到长按时间阈值时的回调
-	protected OnMouseMove mOnMouseMove;                         // 鼠标移动的回调
-	protected OnMouseStay mOnMouseStay;                         // 鼠标静止在当前窗口内的回调
-	protected OnMouseDown mOnMouseDown;                         // 鼠标按下的回调
-	protected OnMouseUp mOnMouseUp;                             // 鼠标抬起的回调
-	protected AudioSource mAudioSource;                         // 音频组件
-	protected BoxCollider mBoxCollider;                         // 碰撞组件
-	protected Transform mTransform;                             // 变换组件
-	protected GameLayout mLayout;                               // 所属布局
-	protected GameObject mObject;                               // 物体节点
-	protected myUIObject mParent;                               // 父节点窗口
-	protected UIDepth mDepth;                                   // UI深度,深度越大,渲染越靠前,仅UGUI使用
-	protected Vector3 mMouseDownPosition;                       // 鼠标按下时在窗口中的位置,鼠标在窗口中移动时该值不改变
-	protected Vector3 mLastWorldScale;                          // 上一次设置的世界缩放值
-	protected object mObjectPreClickUserData;                   // 回调函数参数
-	protected float mLongPressLengthThreshold;                  // 小于0表示不判断鼠标移动对长按检测的影响
-	protected float mLongPressTimeThreshold;                    // 长按的时间阈值,超过阈值时检测为长按
-	protected float mLastClickTime;                             // 上一次点击距离当前的时间,小于0表示未计时,大于等于0表示正在计时
-	protected float mPressedTime;                               // 小于0表示未计时,大于等于0表示正在计时长按操作,防止长时间按下时总会每隔指定时间调用一次回调
-	protected uint mID;                                         // 每个窗口的唯一ID
-	protected bool mDestroyImmediately;                         // 销毁窗口时是否立即销毁
-	protected bool mDepthOverAllChild;                          // 计算深度时是否将深度设置为所有子节点之上,实际调整的是mExtraDepth
-	protected bool mMouseHovered;                               // 当前鼠标是否悬停在窗口上
-	protected bool mPressing;                                   // 鼠标当前是否在窗口中处于按下状态,鼠标离开窗口时认为鼠标不在按下状态
-	protected bool mPassRay;                                    // 当存在且注册了碰撞体时是否允许射线穿透
+	protected OnMouseMove mOnMouseMove;							// 鼠标移动的回调
+	protected OnMouseStay mOnMouseStay;							// 鼠标静止在当前窗口内的回调
+	protected OnMouseDown mOnMouseDown;							// 鼠标按下的回调
+	protected OnMouseUp mOnMouseUp;								// 鼠标抬起的回调
+	protected AudioSource mAudioSource;							// 音频组件
+	protected BoxCollider mBoxCollider;							// 碰撞组件
+	protected Transform mTransform;								// 变换组件
+	protected GameLayout mLayout;								// 所属布局
+	protected GameObject mObject;								// 物体节点
+	protected myUIObject mParent;								// 父节点窗口
+	protected UIDepth mDepth;									// UI深度,深度越大,渲染越靠前,仅UGUI使用
+	protected Vector3 mMouseDownPosition;						// 鼠标按下时在窗口中的位置,鼠标在窗口中移动时该值不改变
+	protected Vector3 mLastWorldScale;							// 上一次设置的世界缩放值
+	protected object mObjectPreClickUserData;					// 回调函数参数
+	protected float mLongPressLengthThreshold;					// 小于0表示不判断鼠标移动对长按检测的影响
+	protected float mLongPressTimeThreshold;					// 长按的时间阈值,超过阈值时检测为长按
+	protected float mLastClickTime;								// 上一次点击距离当前的时间,小于0表示未计时,大于等于0表示正在计时
+	protected float mPressedTime;								// 小于0表示未计时,大于等于0表示正在计时长按操作,防止长时间按下时总会每隔指定时间调用一次回调
+	protected uint mID;											// 每个窗口的唯一ID
+	protected bool mDestroyImmediately;							// 销毁窗口时是否立即销毁
+	protected bool mDepthOverAllChild;							// 计算深度时是否将深度设置为所有子节点之上,实际调整的是mExtraDepth
+	protected bool mMouseHovered;								// 当前鼠标是否悬停在窗口上
+	protected bool mPressing;									// 鼠标当前是否在窗口中处于按下状态,鼠标离开窗口时认为鼠标不在按下状态
+	protected bool mPassRay;									// 当存在且注册了碰撞体时是否允许射线穿透
 	protected static bool mAllowDestroyWindow = false;
 	public myUIObject()
 	{
@@ -59,7 +59,7 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 		mLastClickTime = -1.0f;
 		mPassRay = true;
 		mEnable = false;    // 出于效率考虑,窗口默认不启用更新,只有部分窗口和使用组件进行变化时才自动启用更新
-		mDestroy = false;   // 由于一般myUIObject不会使用对象池来管理,所以构造时就设置当前对象为有效
+		mDestroy = false;	// 由于一般myUIObject不会使用对象池来管理,所以构造时就设置当前对象为有效
 	}
 	public override void destroy()
 	{
@@ -277,7 +277,7 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 		}
 	}
 	public Collider getCollider() { return mBoxCollider; }
-	public bool raycast(ref Ray ray, out RaycastHit hit, float maxDistance)
+	public bool raycast(ref Ray ray, out RaycastHit hit, float maxDistance) 
 	{
 		if (!mBoxCollider)
 		{
@@ -401,7 +401,7 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	public void setDestroyImmediately(bool immediately) { mDestroyImmediately = immediately; }
 	public override void setActive(bool active)
 	{
-		if (active == mObject.activeSelf)
+		if(active == mObject.activeSelf)
 		{
 			return;
 		}

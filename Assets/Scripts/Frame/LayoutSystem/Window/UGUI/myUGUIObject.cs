@@ -1,22 +1,21 @@
-﻿using UnityEngine;
+﻿using System;
 using System.Collections.Generic;
-using System;
+using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class myUGUIObject : myUIObject
 {
-	protected Action<PointerEventData, GameObject> mOnUGUIClick;
-	protected Action<PointerEventData, GameObject> mOnUGUIMouseDown;
-	protected Action<PointerEventData, GameObject> mOnUGUIMouseUp;
-	protected Action<PointerEventData, GameObject> mOnUGUIMouseEnter;
-	protected Action<PointerEventData, GameObject> mOnUGUIMouseLeave;
-	protected Action<Vector2> mOnUGUIMouseMove;
-	protected Action mOnUGUIMouseStay;
-	protected EventTriggerListener mEventTriggerListener;
-	protected RectTransform mRectTransform;
-	protected float mDefaultAlpha;
-	protected bool mUGUIMouseDown;
 	protected static Comparison<Transform> mCompareDescend = compareZDecending;
+	protected Action<PointerEventData, GameObject> mOnUGUIMouseEnter;       // 鼠标进入的回调,由UGUI触发
+	protected Action<PointerEventData, GameObject> mOnUGUIMouseLeave;       // 鼠标离开的回调,由UGUI触发
+	protected Action<PointerEventData, GameObject> mOnUGUIMouseDown;        // 鼠标按下的回调,由UGUI触发
+	protected Action<PointerEventData, GameObject> mOnUGUIMouseUp;          // 鼠标抬起的回调,由UGUI触发
+	protected Action<PointerEventData, GameObject> mOnUGUIClick;            // 鼠标点击的回调,由UGUI触发
+	protected EventTriggerListener mEventTriggerListener;                   // UGUI事件监听器,用于接收UGUI的事件
+	protected RectTransform mRectTransform;                                 // UGUI的Transform
+	protected Action<Vector2> mOnUGUIMouseMove;                             // 鼠标移动的回调,由UGUI触发
+	protected Action mOnUGUIMouseStay;                                      // 鼠标在窗口内停止的回调,由UGUI触发
+	protected bool mUGUIMouseDown;                                          // 鼠标当前是否在窗口内按下
 	public override void init()
 	{
 		base.init();
@@ -32,7 +31,7 @@ public class myUGUIObject : myUIObject
 			mBoxCollider.center = multiVector2(mRectTransform.rect.size, new Vector2(0.5f, 0.5f) - mRectTransform.pivot);
 		}
 		// 一开始就注册所有的UI事件,方便后续做事件转发
-		mEventTriggerListener = EventTriggerListener.Get(mObject);
+		mEventTriggerListener = getUnityComponent<EventTriggerListener>();
 		mEventTriggerListener.onClick += onUGUIClick;
 		mEventTriggerListener.onDown += onUGUIMouseDown;
 		mEventTriggerListener.onUp += onUGUIMouseUp;
@@ -74,7 +73,6 @@ public class myUGUIObject : myUIObject
 		}
 	}
 	public RectTransform getRectTransform() { return mRectTransform; }
-	public override bool selfAlphaChild() { return false; }
 	public override void setWindowSize(Vector2 size)
 	{
 		setRectSize(mRectTransform, size, false);
@@ -130,10 +128,7 @@ public class myUGUIObject : myUIObject
 		mEnable = true;
 	}
 	//--------------------------------------------------------------------------------------------------------
-	protected static int compareZDecending(Transform a, Transform b)
-	{
-		return (int)sign(b.localPosition.z - a.localPosition.z);
-	}
+	protected static int compareZDecending(Transform a, Transform b) { return (int)sign(b.localPosition.z - a.localPosition.z); }
 	protected void onUGUIMouseDown(PointerEventData eventData, GameObject go)
 	{
 		mUGUIMouseDown = true;

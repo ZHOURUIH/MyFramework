@@ -34,7 +34,7 @@ public class CameraLinkerSmoothRotate : CameraLinker
 		adjustRadian360(ref targetRadianYaw);
 		adjustRadian360(ref curYaw);
 		float curPitch = getVectorPitch(-mRelativePosition);
-		Vector3 newRelative = -getDirectionFromRadianYawPitch(curYaw, curPitch) * getLength(ref mRelativePosition);
+		Vector3 newRelative = -getDirectionFromRadianYawPitch(curYaw, curPitch) * getLength(mRelativePosition);
 		applyRelativePosition(newRelative);
 	}
 	public override void applyRelativePosition(Vector3 relative)
