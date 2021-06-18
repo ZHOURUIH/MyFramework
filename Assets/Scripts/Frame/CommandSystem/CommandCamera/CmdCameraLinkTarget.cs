@@ -7,12 +7,12 @@ public class CmdCameraLinkTarget : Command
 	protected float mSwitchSpeed;           // 转换器的速度
 	protected bool mUseOriginRelative;      // 是否使用连接器原来的相对位置
 	protected bool mUseLastSwitchSpeed;     // 是否使用当前连接器的速度
-	public MovableObject mTarget;			// 摄像机要连接的对象,仅自由连接器允许连接对象为空,其他的连接器都需要一个连接对象
+	public MovableObject mTarget;           // 摄像机要连接的对象,仅自由连接器允许连接对象为空,其他的连接器都需要一个连接对象
 	public Vector3 mLookatOffset;           // 看向目标的位置偏移
-	public Type mLinkerType;				// 连接器的类型
-	public Type mSwitchType;				// 转换器的类型
+	public Type mLinkerType;                // 连接器的类型
+	public Type mSwitchType;                // 转换器的类型
 	public bool mLookAtTarget;              // 是否始终看向目标
-	public bool mImmediately;				// 是否直接将摄像机设置到当前连接器的正常位置
+	public bool mImmediately;               // 是否直接将摄像机设置到当前连接器的正常位置
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -51,11 +51,20 @@ public class CmdCameraLinkTarget : Command
 			// 不使用原来的相对位置,则设置新的相对位置
 			if (!mUseOriginRelative)
 			{
-				linker.setRelativePosition(mRelativePosition, mSwitchType, mUseLastSwitchSpeed, mSwitchSpeed);
+				// 只有在连接对象的命令中设置的相对位置才认为是原始位置
+				linker.setOriginRelativePosition(mRelativePosition);
+				if (mSwitchType == null)
+				{
+					linker.setRelativePosition(mRelativePosition);
+				}
+				else
+				{
+					linker.setRelativePositionWithSwitch(mRelativePosition, mSwitchType, mUseLastSwitchSpeed, mSwitchSpeed);
+				}
 			}
 			if (mImmediately)
 			{
-				linker.applyRelativePosition(linker.getNormalRelativePosition());
+				linker.applyRelativePosition(linker.getRelativePosition());
 			}
 		}
 	}

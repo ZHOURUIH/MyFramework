@@ -22,7 +22,7 @@ public class FrameUtility : WidgetUtility
 		{
 			return;
 		}
-		CMD(out CmdCharacterRemoveState cmd);
+		CMD(out CmdCharacterRemoveState cmd, false);
 		cmd.mState = state;
 		cmd.mParam = param;
 		pushCommand(cmd, character);
@@ -30,7 +30,7 @@ public class FrameUtility : WidgetUtility
 	// 移除指定的状态
 	public static void characterRemoveState(Character character, CharacterState state, string param = null)
 	{
-		CMD(out CmdCharacterRemoveState cmd);
+		CMD(out CmdCharacterRemoveState cmd, false);
 		cmd.mState = state;
 		cmd.mParam = param;
 		pushCommand(cmd, character);
@@ -47,7 +47,7 @@ public class FrameUtility : WidgetUtility
 #else
 		Type type = typeof(T);
 #endif
-		CMD(out CmdCharacterAddState cmd);
+		CMD(out CmdCharacterAddState cmd, false);
 		cmd.mStateType = type;
 		cmd.mParam = param;
 		cmd.mStateTime = stateTime;

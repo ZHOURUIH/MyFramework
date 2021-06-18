@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using UnityEngine.EventSystems;
 using System;
 
@@ -15,15 +14,6 @@ public class EventTriggerListener : EventTrigger
 	public Action<AxisEventData, GameObject> onMove;
 	public Action<BaseEventData, GameObject> onSelect;
 	public Action<BaseEventData, GameObject> onUpdateSelect;
-	static public EventTriggerListener Get(GameObject go)
-	{
-		var listener = go.GetComponent<EventTriggerListener>();
-		if (listener == null)
-		{
-			listener = go.AddComponent<EventTriggerListener>();
-		}
-		return listener;
-	}
 	public override void OnPointerClick(PointerEventData eventData) { onClick?.Invoke(eventData, gameObject); }
 	public override void OnPointerDown(PointerEventData eventData) { onDown?.Invoke(eventData, gameObject); }
 	public override void OnPointerEnter(PointerEventData eventData) { onEnter?.Invoke(eventData, gameObject); }

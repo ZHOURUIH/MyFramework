@@ -322,8 +322,6 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 		logError("can not get window size with myUIObject");
 		return Vector2.zero;
 	}
-	// 是否支持递归改变子节点的透明度
-	public virtual bool selfAlphaChild() { return false; }
 	public virtual bool isDragable() { return getComponent<COMWindowDrag>(true, false) != null; }
 	public bool isMouseHovered() { return mMouseHovered; }
 	public virtual bool isChildOf(IMouseEventCollect parent)
