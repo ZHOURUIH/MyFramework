@@ -11,6 +11,7 @@ public class myUGUIObject : myUIObject
 	protected Action<PointerEventData, GameObject> mOnUGUIMouseEnter;
 	protected Action<PointerEventData, GameObject> mOnUGUIMouseLeave;
 	protected Action<Vector2> mOnUGUIMouseMove;
+	protected Action mOnUGUIMouseStay;
 	protected EventTriggerListener mEventTriggerListener;
 	protected RectTransform mRectTransform;
 	protected float mDefaultAlpha;
@@ -66,6 +67,10 @@ public class myUGUIObject : myUIObject
 			{
 				mOnUGUIMouseMove?.Invoke(delta);
 			}
+			else
+			{
+				mOnUGUIMouseStay?.Invoke();
+			}
 		}
 	}
 	public RectTransform getRectTransform() { return mRectTransform; }
@@ -113,10 +118,15 @@ public class myUGUIObject : myUIObject
 	public void setUGUIMouseUp(Action<PointerEventData, GameObject> callback) { mOnUGUIMouseUp = callback; }
 	public void setUGUIMouseEnter(Action<PointerEventData, GameObject> callback) { mOnUGUIMouseEnter = callback; }
 	public void setUGUIMouseExit(Action<PointerEventData, GameObject> callback) { mOnUGUIMouseLeave = callback; }
-	public void setUGUIMouseMove(Action<Vector2> callback) 
+	public void setUGUIMouseMove(Action<Vector2> callback)
 	{
 		mOnUGUIMouseMove = callback;
 		// 如果设置了要监听鼠标移动,则需要激活当前窗口
+		mEnable = true;
+	}
+	public void setUGUIMouseStay(Action callback)
+	{
+		mOnUGUIMouseStay = callback;
 		mEnable = true;
 	}
 	//--------------------------------------------------------------------------------------------------------
