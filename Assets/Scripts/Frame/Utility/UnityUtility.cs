@@ -3,38 +3,25 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Diagnostics;
 using System.Reflection;
-using System.Threading;
-#if USE_ILRUNTIME
-using ILRuntime.Runtime;
-using ILRuntime.Runtime.Enviorment;
-using ILRuntime.Runtime.Intepreter;
-using ILRuntime.Reflection;
-#endif
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 using UnityEngine.UI;
 
-public class UnityUtility : FileUtility
+// 与Unity相关的工具函数
+public class UnityUtility : CSharpUtility
 {
 	protected static OnLog mOnLog;
-	protected static uint mIDMaker;
-	protected static int mMainThreadID;
 	protected static bool mShowMessageBox = true;
 	protected static LOG_LEVEL mLogLevel = LOG_LEVEL.FORCE;
 	public static new void initUtility() { }
-	public static void setMainThreadID(int mainThreadID) { mMainThreadID = mainThreadID; }
-	public static bool isMainThread() { return Thread.CurrentThread.ManagedThreadId == mMainThreadID; }
 	public static void setLogCallback(OnLog callback) { mOnLog = callback; }
 	public static void setLogLevel(LOG_LEVEL level)
 	{
 		mLogLevel = level;
 		logForce("log level: " + mLogLevel);
 	}
-	public static LOG_LEVEL getLogLevel()
-	{
-		return mLogLevel;
-	}
+	public static LOG_LEVEL getLogLevel() { return mLogLevel; }
 	public static void logError(string info)
 	{
 		if (isMainThread() && mShowMessageBox)
@@ -101,136 +88,6 @@ public class UnityUtility : FileUtility
 #endif
 		UnityEngine.Debug.LogWarning(fullInfo);
 		mOnLog?.Invoke(time, info, LOG_LEVEL.FORCE, false);
-	}
-	// 获取从1970年1月1日到现在所经过的毫秒数
-	public static long timeGetTime()
-	{
-		return (long)(DateTime.Now - new DateTime(1970, 1, 1)).TotalMilliseconds;
-	}
-	public static string getTime(TIME_DISPLAY display)
-	{
-		return getTime(DateTime.Now, display);
-	}
-	public static string getTimeThread(TIME_DISPLAY display)
-	{
-		return getTimeThread(DateTime.Now, display);
-	}
-	public static string getTimeNoBuilder(TIME_DISPLAY display)
-	{
-		return getTimeNoBuilder(DateTime.Now, display);
-	}
-	public static string getTime(long timeStamp, TIME_DISPLAY display)
-	{
-		return getTime(timeStampToDateTime(timeStamp), display);
-	}
-	// 一般用于倒计时显示的字符串
-	public static string getRemainTime(int timeSecond, TIME_DISPLAY display)
-	{
-		int min = timeSecond / 60;
-		int second = timeSecond % 60;
-		int hour = min / 60;
-		if (display == TIME_DISPLAY.HMSM)
-		{
-			return strcat(IToS(hour), ":", IToS(min), ":", IToS(second));
-		}
-		else if (display == TIME_DISPLAY.HMS_2)
-		{
-			return strcat(IToS(hour, 2), ":", IToS(min, 2), ":", IToS(second, 2));
-		}
-		else if (display == TIME_DISPLAY.DHMS_ZH)
-		{
-			int totalMin = timeSecond / 60;
-			int totalHour = totalMin / 60;
-			int totalDay = totalHour / 24;
-			int curHour = totalHour % 24;
-			int curMin = totalMin % 60;
-			int curSecond = timeSecond % 60;
-			// 大于等于1天
-			if (totalDay > 0)
-			{
-				return strcat(IToS(totalDay), "天", IToS(curHour), "时", IToS(curMin), "分", IToS(curSecond) + "秒");
-			}
-			// 小于1天,并且大于等于1小时
-			else if (totalHour > 0)
-			{
-				return strcat(IToS(totalHour), "时", IToS(curMin), "分", IToS(curSecond) + "秒");
-			}
-			// 小于1小时,并且大于等于1分钟
-			else if (totalMin > 0)
-			{
-				return IToS(totalMin) + "分" + IToS(curSecond) + "秒";
-			}
-			return timeSecond + "秒";
-		}
-		return EMPTY;
-	}
-	// 可以在多线程中调用的获取当前时间字符串
-	public static string getTimeThread(DateTime time, TIME_DISPLAY display)
-	{
-		if (display == TIME_DISPLAY.HMSM)
-		{
-			return strcat_thread(IToS(time.Hour), ":", IToS(time.Minute), ":", IToS(time.Second), ":", IToS(time.Millisecond));
-		}
-		else if (display == TIME_DISPLAY.HMS_2)
-		{
-			return strcat_thread(IToS(time.Hour, 2), ":", IToS(time.Minute, 2), ":", IToS(time.Second, 2));
-		}
-		else if (display == TIME_DISPLAY.DHMS_ZH)
-		{
-			return strcat_thread(IToS(time.Hour), "时", IToS(time.Minute), "分", IToS(time.Second), "秒");
-		}
-		else if(display == TIME_DISPLAY.YMD_ZH)
-		{
-			return strcat_thread(IToS(time.Year), "年", IToS(time.Month), "月", IToS(time.Day), "日");
-		}
-		return EMPTY;
-	}
-	// 只能在主线程中调用的获取当前时间字符串
-	public static string getTime(DateTime time, TIME_DISPLAY display)
-	{
-		if (display == TIME_DISPLAY.HMSM)
-		{
-			return strcat(IToS(time.Hour), ":", IToS(time.Minute), ":", IToS(time.Second), ":", IToS(time.Millisecond));
-		}
-		else if (display == TIME_DISPLAY.HMS_2)
-		{
-			return strcat(IToS(time.Hour, 2), ":", IToS(time.Minute, 2), ":", IToS(time.Second, 2));
-		}
-		else if (display == TIME_DISPLAY.DHMS_ZH)
-		{
-			return strcat(IToS(time.Hour), "时", IToS(time.Minute), "分", IToS(time.Second), "秒");
-		}
-		else if (display == TIME_DISPLAY.YMD_ZH)
-		{
-			return strcat_thread(IToS(time.Year), "年", IToS(time.Month), "月", IToS(time.Day), "日");
-		}
-		return EMPTY;
-	}
-	public static string getTimeNoBuilder(DateTime time, TIME_DISPLAY display)
-	{
-		if (display == TIME_DISPLAY.HMSM)
-		{
-			return IToS(time.Hour) + ":" + IToS(time.Minute) + ":" + IToS(time.Second) + ":" + IToS(time.Millisecond);
-		}
-		else if (display == TIME_DISPLAY.HMS_2)
-		{
-			return IToS(time.Hour, 2) + ":" + IToS(time.Minute, 2) + ":" + IToS(time.Second, 2);
-		}
-		else if (display == TIME_DISPLAY.DHMS_ZH)
-		{
-			return IToS(time.Hour) + "时" + IToS(time.Minute) + "分" + IToS(time.Second) + "秒";
-		}
-		return EMPTY;
-	}
-	// 将时间转化成时间戳,dateTime是本地时间
-	public static long getTimeStamp(DateTime dateTime)
-	{
-		return (long)(dateTime - new DateTime(1970, 1, 1)).TotalSeconds;
-	}
-	// 将时间戳转化成时间,转换后是utc时间
-	public static DateTime timeStampToDateTime(long unixTimeStamp)
-	{
-		return new DateTime(1970, 1, 1).AddSeconds(unixTimeStamp);
 	}
 	public static void messageBox(string info, bool errorOrInfo)
 	{
@@ -444,52 +301,6 @@ public class UnityUtility : FileUtility
 		obj.transform.localScale = scale;
 		obj.transform.name = name;
 	}
-	public static T createInstance<T>(Type classType, params object[] param) where T : class
-	{
-		T obj;
-		try
-		{
-#if USE_ILRUNTIME
-			if(classType is ILRuntimeWrapperType)
-			{
-				obj = Activator.CreateInstance((classType as ILRuntimeWrapperType).CLRType.TypeForCLR, param) as T;
-			}
-			else if (classType is ILRuntimeType)
-			{
-				obj = (classType as ILRuntimeType).ILType.Instantiate(param).CLRInstance as T;
-			}
-			else
-			{
-				obj = Activator.CreateInstance(classType, param) as T;
-			}
-#else
-			obj = Activator.CreateInstance(classType, param) as T;
-#endif
-		}
-		catch (Exception e)
-		{
-			logError("create instance error! " + e.Message + ", inner error:" + e.InnerException?.Message);
-			obj = null;
-		}
-		return obj;
-	}
-	public static T deepCopy<T>(T obj) where T : class
-	{
-		//如果是字符串或值类型则直接返回
-		if (obj == null || obj is string || Typeof(obj).IsValueType)
-		{
-			return obj;
-		}
-		object retval = createInstance<object>(Typeof(obj));
-		FieldInfo[] fields = Typeof(obj).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-		int count = fields.Length;
-		for (int i = 0; i < count; ++i)
-		{
-			FieldInfo field = fields[i];
-			field.SetValue(retval, deepCopy(field.GetValue(obj)));
-		}
-		return (T)retval;
-	}
 	public static void getCameraRay(ref Vector3 screenPos, out Ray ray, Camera camera)
 	{
 		// 不再使用camera.ScreenPointToRay计算射线,因为在摄像机坐标值比较大,比如超过10000时,计算结果会产生比较大的误差
@@ -644,10 +455,6 @@ public class UnityUtility : FileUtility
 	{
 		return 1 << nameToLayerInt(name);
 	}
-	public static void activeObject(GameObject go, bool active = true)
-	{
-		go?.SetActive(active);
-	}
 	public static void activeChilds(GameObject go, bool active = true)
 	{
 		if (go != null)
@@ -659,55 +466,6 @@ public class UnityUtility : FileUtility
 				transform.GetChild(i).gameObject.SetActive(active);
 			}
 		}
-	}
-	// preFrameCount为1表示返回调用getLineNum的行号
-	public static int getLineNum(int preFrameCount = 1)
-	{
-		StackTrace st = new StackTrace(preFrameCount, true);
-		return st.GetFrame(0).GetFileLineNumber();
-	}
-	// preFrameCount为1表示返回调用getCurSourceFileName的文件名
-	public static string getCurSourceFileName(int preFrameCount = 1)
-	{
-		StackTrace st = new StackTrace(preFrameCount, true);
-		return st.GetFrame(0).GetFileName();
-	}
-	// 此处不使用MyStringBuilder,因为打印堆栈时一般都是产生了某些错误,再使用MyStringBuilder可能会引起无限递归
-	public static string getStackTrace()
-	{
-		string fullTrace = "";
-		StackTrace trace = new StackTrace(true);
-		for(int i = 0; i < trace.FrameCount; ++i)
-		{
-			if(i == 0)
-			{
-				continue;
-			}	
-			StackFrame frame = trace.GetFrame(i);
-			if(isEmpty(frame.GetFileName()))
-			{
-				break;
-			}
-			fullTrace += "at " + frame.GetFileName() + ":" + frame.GetFileLineNumber() + "\n";
-		}
-		return fullTrace;
-	}
-	// 此处只是定义一个空函数,为了能够进行重定向,因为只有在重定向中才能获取真正的堆栈信息
-	public static string getILRStackTrace()
-	{
-		return "";
-	}
-	public static uint makeID()
-	{
-		if (mIDMaker >= 0xFFFFFFFF)
-		{
-			logError("ID已超过最大值");
-		}
-		return ++mIDMaker;
-	}
-	public static void notifyIDUsed(uint id)
-	{
-		mIDMaker = getMax(mIDMaker, id);
 	}
 	public static Sprite texture2DToSprite(Texture2D tex)
 	{
@@ -1248,7 +1006,7 @@ public class UnityUtility : FileUtility
 		if (resizeRootSize)
 		{
 			int lineCount = ceil(activeChildCount / (float)columnCount);
-			if(lineCount == 1)
+			if (lineCount == 1)
 			{
 				rootSize.x = activeChildCount * gridSize.x + (activeChildCount - 1) * interval.x;
 			}
@@ -1267,7 +1025,7 @@ public class UnityUtility : FileUtility
 			RectTransform child = childList[i];
 			int indexX = i % columnCount;
 			int indexY = i / columnCount;
-			child.localPosition = new Vector2(gridSize.x * 0.5f + indexX * gridSize.x + indexX * interval.x, 
+			child.localPosition = new Vector2(gridSize.x * 0.5f + indexX * gridSize.x + indexX * interval.x,
 											  -gridSize.y * 0.5f - indexY * gridSize.y - indexY * interval.y) + posOffset;
 			WidgetUtility.setRectSize(child, gridSize, false);
 		}
@@ -1371,88 +1129,5 @@ public class UnityUtility : FileUtility
 				currentLeft += interval;
 			}
 		}
-	}
-	// 移除数组中的第index个元素,validElementCount是数组中有效的元素个数
-	public static void removeElement<T>(T[] array, int validElementCount, int index)
-	{
-		if (index < 0 || index >= validElementCount)
-		{
-			return;
-		}
-		int moveCount = validElementCount - index - 1;
-		for (int i = 0; i < moveCount; ++i)
-		{
-			array[index + i] = array[index + i + 1];
-		}
-	}
-	// 移除数组中的所有value,T为引用类型
-	public static int removeClassElement<T>(T[] array, int validElementCount, T value) where T : class
-	{
-		// 从后往前遍历删除
-		for (int i = validElementCount - 1; i >= 0; --i)
-		{
-			if (array[i] == value)
-			{
-				removeElement(array, validElementCount, i);
-				--validElementCount;
-			}
-		}
-		return validElementCount;
-	}
-	// 移除数组中的所有value,T为继承自IEquatable的值类型
-	public static int removeValueElement<T>(T[] array, int validElementCount, T value) where T : IEquatable<T>
-	{
-		// 从后往前遍历删除
-		for (int i = validElementCount - 1; i >= 0; --i)
-		{
-			if (array[i].Equals(value))
-			{
-				removeElement(array, validElementCount, i);
-				--validElementCount;
-			}
-		}
-		return validElementCount;
-	}
-	public static bool arrayContains<T>(T[] array, T value, int arrayLen = -1) where T : class
-	{
-		if (arrayLen == -1)
-		{
-			arrayLen = array.Length;
-		}
-		for(int i = 0; i < arrayLen; ++i)
-		{
-			if(array[i].Equals(value))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-	// 获取类型,因为ILR的原因,如果是热更工程中的类型,直接使用typeof获取的是错误的类型
-	// 所以需要使用此函数获取真实的类型,要获取真实类型必须要有一个实例
-	// 为了方便调用,所以写在UnityUtility中
-	public static Type Typeof<T>()
-	{
-		Type type = typeof(T);
-#if USE_ILRUNTIME
-		if (typeof(CrossBindingAdaptorType).IsAssignableFrom(type) ||
-			typeof(ILTypeInstance).IsAssignableFrom(type) ||
-			typeof(ILRuntimeWrapperType).IsAssignableFrom(type) ||
-			typeof(ILRuntimeType).IsAssignableFrom(type))
-		{
-			logError("无法获取热更工程中的类型,请确保没有在热更工程中调用Typeof<>(), 在热更工程中获取类型请使用typeof()," +
-					"或者没有调用CMD,PACKET,LIST这类的只能在主工程中调用的函数");
-			return null;
-		}
-#endif
-		return type;
-	}
-	public static Type Typeof(object obj)
-	{
-#if USE_ILRUNTIME
-		return obj?.GetActualType();
-#else
-		return obj?.GetType();
-#endif
 	}
 }

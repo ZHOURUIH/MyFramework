@@ -26,7 +26,7 @@ public class AsyncLoadGroup : FrameBase
 	{
 		foreach (var item in mNameList)
 		{
-			activeObject(item.Value);
+			item.Value.SetActive(true);
 		}
 	}
 	public override void resetProperty()
