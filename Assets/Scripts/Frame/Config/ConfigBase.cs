@@ -161,7 +161,7 @@ public abstract class ConfigBase : FrameSystem
 		{
 			text = bytesToString(HttpUtility.downloadFile(fileName), Encoding.UTF8);
 		}
-		string[] lineList = split(text, true, "\r\n");
+		string[] lineList = split(text, true, "\n");
 		Dictionary<string, ConfigInfo> valueList = new Dictionary<string, ConfigInfo>();
 		string comment = null;
 		// 前4行需要被丢弃
