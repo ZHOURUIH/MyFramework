@@ -24,8 +24,20 @@ public class TimeUtility : FileUtility
 	public static string getTime(long timeStamp, TIME_DISPLAY display) { return getTime(timeStampToDateTimeUTC(timeStamp), display); }
 	// 将时间转化成时间戳,dateTime是本地时间
 	public static long dateTimeToTimeStamp(DateTime dateTime) { return (long)(dateTime - mTime19700101).TotalSeconds; }
+	// 将时间转化成时间戳,dateTime是本地时间
+	public static long dateTimeToTimeStampMS(DateTime dateTime) { return (long)(dateTime - mTime19700101).TotalMilliseconds; }
 	// 将时间戳转化成时间,转换后是utc时间
-	public static DateTime timeStampToDateTimeUTC(long unixTimeStamp) { return mTime19700101.AddSeconds(unixTimeStamp); }
+	public static DateTime timeStampToDateTimeUTC(long timeStamp) { return mTime19700101.AddSeconds(timeStamp); }
+	// 将时间戳转化成时间,转换后是utc时间
+	public static DateTime timeStampMSToDateTimeUTC(long timeStamp) { return mTime19700101.AddMilliseconds(timeStamp); }
+	// 获得当前的本地时间戳,以秒为单位
+	public static long getNowTimeStamp() { return dateTimeToTimeStamp(DateTime.Now); }
+	// 获得当前的本地时间戳,以毫秒为单位
+	public static long getNowTimeStampMS() { return dateTimeToTimeStampMS(DateTime.Now); }
+	// 获得当前的UTC时间戳,以秒为单位
+	public static long getNowUTCTimeStamp() { return dateTimeToTimeStamp(DateTime.UtcNow); }
+	// 获得当前的UTC时间戳,以毫秒为单位
+	public static long getNowUTCTimeStampMS() { return dateTimeToTimeStampMS(DateTime.UtcNow); }
 	// 一般用于倒计时显示的字符串
 	public static string getRemainTime(int timeSecond, TIME_DISPLAY display)
 	{

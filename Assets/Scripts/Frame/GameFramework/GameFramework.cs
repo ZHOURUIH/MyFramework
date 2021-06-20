@@ -83,7 +83,7 @@ public class GameFramework : MonoBehaviour
 		try
 		{
 			// 每帧刷新一次远端时间
-			TimeUtility.generateRemoteTimeStamp();
+			TimeUtility.generateRemoteTimeStampMS();
 			++mCurFrameCount;
 			DateTime now = DateTime.Now;
 			if ((now - mCurTime).TotalMilliseconds >= 1000.0f)
