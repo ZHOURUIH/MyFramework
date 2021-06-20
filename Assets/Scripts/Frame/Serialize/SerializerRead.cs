@@ -52,7 +52,7 @@ public class SerializerRead : FrameBase
 		value = readShort(mBuffer, ref mIndex, out _);
 		return true;
 	}
-	public bool readInverse(out short value)
+	public bool readBigEndian(out short value)
 	{
 		value = 0;
 		int readLen = sizeof(short);
@@ -60,7 +60,7 @@ public class SerializerRead : FrameBase
 		{
 			return false;
 		}
-		value = readShortInverse(mBuffer, ref mIndex, out _);
+		value = readShortBigEndian(mBuffer, ref mIndex, out _);
 		return true;
 	}
 	public bool read(out ushort value)
@@ -74,7 +74,7 @@ public class SerializerRead : FrameBase
 		value = readUShort(mBuffer, ref mIndex, out _);
 		return true;
 	}
-	public bool readInverse(out ushort value)
+	public bool readBigEndian(out ushort value)
 	{
 		value = 0;
 		int readLen = sizeof(ushort);
@@ -82,7 +82,7 @@ public class SerializerRead : FrameBase
 		{
 			return false;
 		}
-		value = readUShortInverse(mBuffer, ref mIndex, out _);
+		value = readUShortBigEndian(mBuffer, ref mIndex, out _);
 		return true;
 	}
 	public bool read(out int value)
@@ -96,7 +96,7 @@ public class SerializerRead : FrameBase
 		value = readInt(mBuffer, ref mIndex, out _);
 		return true;
 	}
-	public bool readInverse(out int value)
+	public bool readBigEndian(out int value)
 	{
 		value = 0;
 		int readLen = sizeof(int);
@@ -104,7 +104,7 @@ public class SerializerRead : FrameBase
 		{
 			return false;
 		}
-		value = readIntInverse(mBuffer, ref mIndex, out _);
+		value = readIntBigEndian(mBuffer, ref mIndex, out _);
 		return true;
 	}
 	public bool read(out uint value)
@@ -118,7 +118,7 @@ public class SerializerRead : FrameBase
 		value = readUInt(mBuffer, ref mIndex, out _);
 		return true;
 	}
-	public bool readInverse(out uint value)
+	public bool readBigEndian(out uint value)
 	{
 		value = 0;
 		int readLen = sizeof(uint);
@@ -126,7 +126,7 @@ public class SerializerRead : FrameBase
 		{
 			return false;
 		}
-		value = readUIntInverse(mBuffer, ref mIndex, out _);
+		value = readUIntBigEndian(mBuffer, ref mIndex, out _);
 		return true;
 	}
 	public bool read(out float value)
@@ -140,7 +140,7 @@ public class SerializerRead : FrameBase
 		value = readFloat(mBuffer, ref mIndex, out _);
 		return true;
 	}
-	public bool readInverse(out float value)
+	public bool readBigEndian(out float value)
 	{
 		value = 0.0f;
 		int readLen = sizeof(float);
@@ -148,7 +148,7 @@ public class SerializerRead : FrameBase
 		{
 			return false;
 		}
-		value = readFloatInverse(mBuffer, ref mIndex, out _);
+		value = readFloatBigEndian(mBuffer, ref mIndex, out _);
 		return true;
 	}
 	public bool readBuffer(byte[] buffer, int readLen, int bufferSize = -1)

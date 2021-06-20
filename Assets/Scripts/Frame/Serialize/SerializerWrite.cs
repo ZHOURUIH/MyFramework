@@ -43,13 +43,13 @@ public class SerializerWrite : FrameBase
 		writeShort(mBuffer, ref mIndex, value);
 		return true;
 	}
-	public bool writeInverse(short value)
+	public bool writeBigEndian(short value)
 	{
 		if (!writeCheck(sizeof(short)))
 		{
 			return false;
 		}
-		writeShortInverse(mBuffer, ref mIndex, value);
+		writeShortBigEndian(mBuffer, ref mIndex, value);
 		return true;
 	}
 	public bool write(ushort value)
@@ -61,13 +61,13 @@ public class SerializerWrite : FrameBase
 		writeUShort(mBuffer, ref mIndex, value);
 		return true;
 	}
-	public bool writeInverse(ushort value)
+	public bool writeBigEndian(ushort value)
 	{
 		if (!writeCheck(sizeof(ushort)))
 		{
 			return false;
 		}
-		writeUShortInverse(mBuffer, ref mIndex, value);
+		writeUShortBigEndian(mBuffer, ref mIndex, value);
 		return true;
 	}
 	public bool write(int value)
@@ -79,13 +79,13 @@ public class SerializerWrite : FrameBase
 		writeInt(mBuffer, ref mIndex, value);
 		return true;
 	}
-	public bool writeInverse(int value)
+	public bool writeBigEndian(int value)
 	{
 		if (!writeCheck(sizeof(int)))
 		{
 			return false;
 		}
-		writeIntInverse(mBuffer, ref mIndex, value);
+		writeIntBigEndian(mBuffer, ref mIndex, value);
 		return true;
 	}
 	public bool write(uint value)
@@ -97,13 +97,13 @@ public class SerializerWrite : FrameBase
 		writeUInt(mBuffer, ref mIndex, value);
 		return true;
 	}
-	public bool writeInverse(uint value)
+	public bool writeBigEndian(uint value)
 	{
 		if (!writeCheck(sizeof(uint)))
 		{
 			return false;
 		}
-		writeUIntInverse(mBuffer, ref mIndex, value);
+		writeUIntBigEndian(mBuffer, ref mIndex, value);
 		return true;
 	}
 	public bool write(float value)
@@ -115,13 +115,13 @@ public class SerializerWrite : FrameBase
 		writeFloat(mBuffer, ref mIndex, value);
 		return true;
 	}
-	public bool writeInverse(float value)
+	public bool writeBigEndian(float value)
 	{
 		if (!writeCheck(sizeof(float)))
 		{
 			return false;
 		}
-		writeFloatInverse(mBuffer, ref mIndex, value);
+		writeFloatBigEndian(mBuffer, ref mIndex, value);
 		return true;
 	}
 	public bool writeBuffer(byte[] buffer, int bufferSize)
