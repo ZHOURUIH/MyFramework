@@ -12,7 +12,7 @@ public class GameFramework : MonoBehaviour
 	protected List<FrameSystem> mFrameComponentUpdate;              // 存储框架组件,用于更新
 	protected List<FrameSystem> mFrameComponentDestroy;             // 存储框架组件,用于销毁
 	protected ThreadTimeLock mTimeLock;								// 用于主线程锁帧,与Application.targetFrameRate功能类似
-	protected GameObject mGameFrameObject;							// 游戏框架根节点
+	protected GameObject mGameFrameObject;                          // 游戏框架根节点
 	protected DateTime mCurTime;									// 记录当前时间
 	protected float mThisFrameTime;									// 当前这一帧的消耗时间
 	protected bool mEnablePoolStackTrace;							// 是否启用对象池中的堆栈追踪,由于堆栈追踪非常耗时,所以默认关闭,只有在需要堆栈调试时,手动修改代码开启追踪
@@ -82,6 +82,8 @@ public class GameFramework : MonoBehaviour
 	{
 		try
 		{
+			// 每帧刷新一次远端时间
+			TimeUtility.generateRemoteTimeStamp();
 			++mCurFrameCount;
 			DateTime now = DateTime.Now;
 			if ((now - mCurTime).TotalMilliseconds >= 1000.0f)
