@@ -29,7 +29,7 @@ public abstract class ConfigBase : FrameSystem
 	public abstract void writeConfig();
 	public float getFloat(int param)
 	{
-		if(mFloatList.TryGetValue(param, out FloatParameter floatParam))
+		if (mFloatList.TryGetValue(param, out FloatParameter floatParam))
 		{
 			return floatParam.mValue;
 		}
@@ -37,7 +37,7 @@ public abstract class ConfigBase : FrameSystem
 	}
 	public string getString(int param)
 	{
-		if(mStringList.TryGetValue(param, out StringParameter strinParam))
+		if (mStringList.TryGetValue(param, out StringParameter strinParam))
 		{
 			return strinParam.mValue;
 		}
@@ -161,7 +161,7 @@ public abstract class ConfigBase : FrameSystem
 		{
 			text = bytesToString(HttpUtility.downloadFile(fileName), Encoding.UTF8);
 		}
-		string[] lineList = split(text, true, "\r\n");
+		string[] lineList = split(text, true, "\n");
 		Dictionary<string, ConfigInfo> valueList = new Dictionary<string, ConfigInfo>();
 		string comment = null;
 		// 前4行需要被丢弃
