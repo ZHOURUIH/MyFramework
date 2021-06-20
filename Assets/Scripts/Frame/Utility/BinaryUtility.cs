@@ -106,7 +106,7 @@ public class BinaryUtility
 		index += sizeof(short);
 		return bytesToShort(buffer[pre + 0], buffer[pre + 1]);
 	}
-	public static short readShortInverse(byte[] buffer, ref int index, out bool success)
+	public static short readShortBigEndian(byte[] buffer, ref int index, out bool success)
 	{
 		success = buffer.Length >= index + sizeof(short);
 		if (!success)
@@ -115,7 +115,7 @@ public class BinaryUtility
 		}
 		int pre = index;
 		index += sizeof(short);
-		return bytesToShortInverse(buffer[pre + 0], buffer[pre + 1]);
+		return bytesToShortBigEndian(buffer[pre + 0], buffer[pre + 1]);
 	}
 	public static ushort readUShort(byte[] buffer, ref int index, out bool success)
 	{
@@ -128,7 +128,7 @@ public class BinaryUtility
 		index += sizeof(ushort);
 		return bytesToUShort(buffer[pre + 0], buffer[pre + 1]);
 	}
-	public static ushort readUShortInverse(byte[] buffer, ref int index, out bool success)
+	public static ushort readUShortBigEndian(byte[] buffer, ref int index, out bool success)
 	{
 		success = buffer.Length >= index + sizeof(ushort);
 		if (!success)
@@ -137,7 +137,7 @@ public class BinaryUtility
 		}
 		int pre = index;
 		index += sizeof(ushort);
-		return bytesToUShortInverse(buffer[pre + 0], buffer[pre + 1]);
+		return bytesToUShortBigEndian(buffer[pre + 0], buffer[pre + 1]);
 	}
 	public static int readInt(byte[] buffer, ref int index, out bool success)
 	{
@@ -150,7 +150,7 @@ public class BinaryUtility
 		index += sizeof(int);
 		return bytesToInt(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3]);
 	}
-	public static int readIntInverse(byte[] buffer, ref int index, out bool success)
+	public static int readIntBigEndian(byte[] buffer, ref int index, out bool success)
 	{
 		success = buffer.Length >= index + sizeof(int);
 		if (!success)
@@ -159,7 +159,7 @@ public class BinaryUtility
 		}
 		int pre = index;
 		index += sizeof(int);
-		return bytesToIntInverse(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3]);
+		return bytesToIntBigEndian(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3]);
 	}
 	public static uint readUInt(byte[] buffer, ref int index, out bool success)
 	{
@@ -172,7 +172,7 @@ public class BinaryUtility
 		index += sizeof(uint);
 		return bytesToUInt(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3]);
 	}
-	public static uint readUIntInverse(byte[] buffer, ref int index, out bool success)
+	public static uint readUIntBigEndian(byte[] buffer, ref int index, out bool success)
 	{
 		success = buffer.Length >= index + sizeof(uint);
 		if (!success)
@@ -181,7 +181,7 @@ public class BinaryUtility
 		}
 		int pre = index;
 		index += sizeof(uint);
-		return bytesToUIntInverse(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3]);
+		return bytesToUIntBigEndian(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3]);
 	}
 	public static long readLong(byte[] buffer, ref int index, out bool success)
 	{
@@ -194,7 +194,7 @@ public class BinaryUtility
 		index += sizeof(long);
 		return bytesToLong(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3], buffer[pre + 4], buffer[pre + 5], buffer[pre + 6], buffer[pre + 7]);
 	}
-	public static long readLongInverse(byte[] buffer, ref int index, out bool success)
+	public static long readLongBigEndian(byte[] buffer, ref int index, out bool success)
 	{
 		success = buffer.Length >= index + sizeof(long);
 		if (!success)
@@ -203,7 +203,7 @@ public class BinaryUtility
 		}
 		int pre = index;
 		index += sizeof(long);
-		return bytesToLongInverse(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3], buffer[pre + 4], buffer[pre + 5], buffer[pre + 6], buffer[pre + 7]);
+		return bytesToLongBigEndian(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3], buffer[pre + 4], buffer[pre + 5], buffer[pre + 6], buffer[pre + 7]);
 	}
 	public static ulong readULong(byte[] buffer, ref int index, out bool success)
 	{
@@ -216,7 +216,7 @@ public class BinaryUtility
 		index += sizeof(ulong);
 		return bytesToULong(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3], buffer[pre + 4], buffer[pre + 5], buffer[pre + 6], buffer[pre + 7]);
 	}
-	public static ulong readULongInverse(byte[] buffer, ref int index, out bool success)
+	public static ulong readULongBigEndian(byte[] buffer, ref int index, out bool success)
 	{
 		success = buffer.Length >= index + sizeof(ulong);
 		if (!success)
@@ -225,7 +225,7 @@ public class BinaryUtility
 		}
 		int pre = index;
 		index += sizeof(ulong);
-		return bytesToULongInverse(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3], buffer[pre + 4], buffer[pre + 5], buffer[pre + 6], buffer[pre + 7]);
+		return bytesToULongBigEndian(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3], buffer[pre + 4], buffer[pre + 5], buffer[pre + 6], buffer[pre + 7]);
 	}
 	public static float readFloat(byte[] buffer, ref int index, out bool success)
 	{
@@ -238,7 +238,7 @@ public class BinaryUtility
 		index += sizeof(float);
 		return bytesToFloat(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3]);
 	}
-	public static float readFloatInverse(byte[] buffer, ref int index, out bool success)
+	public static float readFloatBigEndian(byte[] buffer, ref int index, out bool success)
 	{
 		success = buffer.Length >= index + sizeof(float);
 		if (!success)
@@ -247,7 +247,7 @@ public class BinaryUtility
 		}
 		int pre = index;
 		index += sizeof(float);
-		return bytesToFloatInverse(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3]);
+		return bytesToFloatBigEndian(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3]);
 	}
 	// readCount表示读取的bool的个数,小于0表示按照destBuffer数组长度读取
 	public static bool readBools(byte[] buffer, ref int index, bool[] destBuffer, int readCount = -1)
@@ -312,7 +312,7 @@ public class BinaryUtility
 		return true;
 	}
 	// readCount表示要读取的short个数,小于0表示使用数组长度
-	public static bool readShortsInverse(byte[] buffer, ref int index, short[] destBuffer, int readCount = -1)
+	public static bool readShortsBigEndian(byte[] buffer, ref int index, short[] destBuffer, int readCount = -1)
 	{
 		int shortCount = readCount < 0 ? destBuffer.Length : readCount;
 		if (shortCount > destBuffer.Length)
@@ -321,7 +321,7 @@ public class BinaryUtility
 		}
 		for (int i = 0; i < shortCount; ++i)
 		{
-			destBuffer[i] = readShortInverse(buffer, ref index, out bool success);
+			destBuffer[i] = readShortBigEndian(buffer, ref index, out bool success);
 			if (!success)
 			{
 				return false;
@@ -348,7 +348,7 @@ public class BinaryUtility
 		return true;
 	}
 	// readCount表示要读取的ushort个数,小于0表示使用数组长度
-	public static bool readUShortsInverse(byte[] buffer, ref int index, ushort[] destBuffer, int readCount = -1)
+	public static bool readUShortsBigEndian(byte[] buffer, ref int index, ushort[] destBuffer, int readCount = -1)
 	{
 		int ushortCount = readCount < 0 ? destBuffer.Length : readCount;
 		if (ushortCount > destBuffer.Length)
@@ -357,7 +357,7 @@ public class BinaryUtility
 		}
 		for (int i = 0; i < ushortCount; ++i)
 		{
-			destBuffer[i] = readUShortInverse(buffer, ref index, out bool success);
+			destBuffer[i] = readUShortBigEndian(buffer, ref index, out bool success);
 			if (!success)
 			{
 				return false;
@@ -384,7 +384,7 @@ public class BinaryUtility
 		return true;
 	}
 	// readCount表示要读取的int个数,小于0表示使用destBuffer数组长度
-	public static bool readIntsInverse(byte[] buffer, ref int index, int[] destBuffer, int readCount = -1)
+	public static bool readIntsBigEndian(byte[] buffer, ref int index, int[] destBuffer, int readCount = -1)
 	{
 		int intCount = readCount < 0 ? destBuffer.Length : readCount;
 		if (intCount > destBuffer.Length)
@@ -393,7 +393,7 @@ public class BinaryUtility
 		}
 		for (int i = 0; i < intCount; ++i)
 		{
-			destBuffer[i] = readIntInverse(buffer, ref index, out bool success);
+			destBuffer[i] = readIntBigEndian(buffer, ref index, out bool success);
 			if (!success)
 			{
 				return false;
@@ -420,7 +420,7 @@ public class BinaryUtility
 		return true;
 	}
 	// readCount表示要读取的uint个数,小于0表示使用数组长度
-	public static bool readUIntsInverse(byte[] buffer, ref int index, uint[] destBuffer, int readCount = -1)
+	public static bool readUIntsBigEndian(byte[] buffer, ref int index, uint[] destBuffer, int readCount = -1)
 	{
 		int uintCount = readCount < 0 ? destBuffer.Length : readCount;
 		if (uintCount > destBuffer.Length)
@@ -429,7 +429,7 @@ public class BinaryUtility
 		}
 		for (int i = 0; i < uintCount; ++i)
 		{
-			destBuffer[i] = readUIntInverse(buffer, ref index, out bool success);
+			destBuffer[i] = readUIntBigEndian(buffer, ref index, out bool success);
 			if (!success)
 			{
 				return false;
@@ -456,7 +456,7 @@ public class BinaryUtility
 		return true;
 	}
 	// readCount表示要读取的long个数,小于0表示使用数组长度
-	public static bool readLongsInverse(byte[] buffer, ref int index, long[] destBuffer, int readCount = -1)
+	public static bool readLongsBigEndian(byte[] buffer, ref int index, long[] destBuffer, int readCount = -1)
 	{
 		int longCount = readCount < 0 ? destBuffer.Length : readCount;
 		if (longCount > destBuffer.Length)
@@ -465,7 +465,7 @@ public class BinaryUtility
 		}
 		for (int i = 0; i < longCount; ++i)
 		{
-			destBuffer[i] = readLongInverse(buffer, ref index, out bool success);
+			destBuffer[i] = readLongBigEndian(buffer, ref index, out bool success);
 			if (!success)
 			{
 				return false;
@@ -492,7 +492,7 @@ public class BinaryUtility
 		return true;
 	}
 	// readCount表示要读取的ulong个数,小于0表示使用数组长度
-	public static bool readULongsInverse(byte[] buffer, ref int index, ulong[] destBuffer, int readCount = -1)
+	public static bool readULongsBigEndian(byte[] buffer, ref int index, ulong[] destBuffer, int readCount = -1)
 	{
 		int longCount = readCount < 0 ? destBuffer.Length : readCount;
 		if (longCount > destBuffer.Length)
@@ -501,7 +501,7 @@ public class BinaryUtility
 		}
 		for (int i = 0; i < longCount; ++i)
 		{
-			destBuffer[i] = readULongInverse(buffer, ref index, out bool success);
+			destBuffer[i] = readULongBigEndian(buffer, ref index, out bool success);
 			if (!success)
 			{
 				return false;
@@ -528,7 +528,7 @@ public class BinaryUtility
 		return true;
 	}
 	// readCount表示读取的float的数量,小于0表示使用数组的长度
-	public static bool readFloatsInverse(byte[] buffer, ref int index, float[] destBuffer, int readCount = -1)
+	public static bool readFloatsBigEndian(byte[] buffer, ref int index, float[] destBuffer, int readCount = -1)
 	{
 		int floatCount = readCount < 0 ? destBuffer.Length : readCount;
 		if (floatCount > destBuffer.Length)
@@ -537,7 +537,7 @@ public class BinaryUtility
 		}
 		for (int i = 0; i < floatCount; ++i)
 		{
-			destBuffer[i] = readFloatInverse(buffer, ref index, out bool success);
+			destBuffer[i] = readFloatBigEndian(buffer, ref index, out bool success);
 			if (!success)
 			{
 				return false;
@@ -574,7 +574,7 @@ public class BinaryUtility
 		buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
 		return true;
 	}
-	public static bool writeShortInverse(byte[] buffer, ref int index, short value)
+	public static bool writeShortBigEndian(byte[] buffer, ref int index, short value)
 	{
 		if (buffer.Length < index + sizeof(short))
 		{
@@ -596,7 +596,7 @@ public class BinaryUtility
 		buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
 		return true;
 	}
-	public static bool writeUShortInverse(byte[] buffer, ref int index, ushort value)
+	public static bool writeUShortBigEndian(byte[] buffer, ref int index, ushort value)
 	{
 		if (buffer.Length < index + sizeof(ushort))
 		{
@@ -620,7 +620,7 @@ public class BinaryUtility
 		buffer[index++] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
 		return true;
 	}
-	public static bool writeIntInverse(byte[] buffer, ref int index, int value)
+	public static bool writeIntBigEndian(byte[] buffer, ref int index, int value)
 	{
 		if (buffer.Length < index + sizeof(int))
 		{
@@ -646,7 +646,7 @@ public class BinaryUtility
 		buffer[index++] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
 		return true;
 	}
-	public static bool writeUIntInverse(byte[] buffer, ref int index, uint value)
+	public static bool writeUIntBigEndian(byte[] buffer, ref int index, uint value)
 	{
 		if (buffer.Length < index + sizeof(uint))
 		{
@@ -676,7 +676,7 @@ public class BinaryUtility
 		buffer[index++] = (byte)(((0xFF << (8 * 7)) & value) >> (8 * 7));
 		return true;
 	}
-	public static bool writeLongInverse(byte[] buffer, ref int index, long value)
+	public static bool writeLongBigEndian(byte[] buffer, ref int index, long value)
 	{
 		if (buffer.Length < index + sizeof(long))
 		{
@@ -710,7 +710,7 @@ public class BinaryUtility
 		buffer[index++] = (byte)((((ulong)0xFF << (8 * 7)) & value) >> (8 * 7));
 		return true;
 	}
-	public static bool writeULongInverse(byte[] buffer, ref int index, ulong value)
+	public static bool writeULongBigEndian(byte[] buffer, ref int index, ulong value)
 	{
 		if (buffer.Length < index + sizeof(ulong))
 		{
@@ -741,7 +741,7 @@ public class BinaryUtility
 		buffer[index++] = valueByte[3];
 		return true;
 	}
-	public static bool writeFloatInverse(byte[] buffer, ref int index, float value)
+	public static bool writeFloatBigEndian(byte[] buffer, ref int index, float value)
 	{
 		if (buffer.Length < index + sizeof(float))
 		{
@@ -800,13 +800,13 @@ public class BinaryUtility
 		return ret;
 	}
 	// writeCount表示要写入的short个数,小于0表示写入整个数组
-	public static bool writeShortsInverse(byte[] buffer, ref int index, short[] sourceBuffer, int writeCount = -1)
+	public static bool writeShortsBigEndian(byte[] buffer, ref int index, short[] sourceBuffer, int writeCount = -1)
 	{
 		bool ret = true;
 		int count = writeCount < 0 ? sourceBuffer.Length : writeCount;
 		for (int i = 0; i < count; ++i)
 		{
-			ret = writeShortInverse(buffer, ref index, sourceBuffer[i]) && ret;
+			ret = writeShortBigEndian(buffer, ref index, sourceBuffer[i]) && ret;
 		}
 		return ret;
 	}
@@ -822,13 +822,13 @@ public class BinaryUtility
 		return ret;
 	}
 	// writeCount表示要写入的ushort个数,小于0表示写入整个数组
-	public static bool writeUShortsInverse(byte[] buffer, ref int index, ushort[] sourceBuffer, int writeCount = -1)
+	public static bool writeUShortsBigEndian(byte[] buffer, ref int index, ushort[] sourceBuffer, int writeCount = -1)
 	{
 		bool ret = true;
 		int count = writeCount < 0 ? sourceBuffer.Length : writeCount;
 		for (int i = 0; i < count; ++i)
 		{
-			ret = writeUShortInverse(buffer, ref index, sourceBuffer[i]) && ret;
+			ret = writeUShortBigEndian(buffer, ref index, sourceBuffer[i]) && ret;
 		}
 		return ret;
 	}
@@ -844,13 +844,13 @@ public class BinaryUtility
 		return ret;
 	}
 	// writeCount表示要写入的int个数,小于0表示写入整个数组
-	public static bool writeIntsInverse(byte[] buffer, ref int index, int[] sourceBuffer, int writeCount = -1)
+	public static bool writeIntsBigEndian(byte[] buffer, ref int index, int[] sourceBuffer, int writeCount = -1)
 	{
 		bool ret = true;
 		int count = writeCount < 0 ? sourceBuffer.Length : writeCount;
 		for (int i = 0; i < count; ++i)
 		{
-			ret = writeIntInverse(buffer, ref index, sourceBuffer[i]) && ret;
+			ret = writeIntBigEndian(buffer, ref index, sourceBuffer[i]) && ret;
 		}
 		return ret;
 	}
@@ -866,13 +866,13 @@ public class BinaryUtility
 		return ret;
 	}
 	// writeCount表示要写入的uint个数,小于0表示写入整个数组
-	public static bool writeUIntsInverse(byte[] buffer, ref int index, uint[] sourceBuffer, int writeCount = -1)
+	public static bool writeUIntsBigEndian(byte[] buffer, ref int index, uint[] sourceBuffer, int writeCount = -1)
 	{
 		bool ret = true;
 		int count = writeCount < 0 ? sourceBuffer.Length : writeCount;
 		for (int i = 0; i < count; ++i)
 		{
-			ret = writeUIntInverse(buffer, ref index, sourceBuffer[i]) && ret;
+			ret = writeUIntBigEndian(buffer, ref index, sourceBuffer[i]) && ret;
 		}
 		return ret;
 	}
@@ -888,13 +888,13 @@ public class BinaryUtility
 		return ret;
 	}
 	// writeCount表示要写入的long的个数,小于0表示写入整个数组
-	public static bool writeLongsInverse(byte[] buffer, ref int index, long[] sourceBuffer, int writeCount = -1)
+	public static bool writeLongsBigEndian(byte[] buffer, ref int index, long[] sourceBuffer, int writeCount = -1)
 	{
 		bool ret = true;
 		int count = writeCount < 0 ? sourceBuffer.Length : writeCount;
 		for (int i = 0; i < count; ++i)
 		{
-			ret = writeLongInverse(buffer, ref index, sourceBuffer[i]) && ret;
+			ret = writeLongBigEndian(buffer, ref index, sourceBuffer[i]) && ret;
 		}
 		return ret;
 	}
@@ -910,13 +910,13 @@ public class BinaryUtility
 		return ret;
 	}
 	// writeCount表示要写入的ulong的个数,小于0表示写入整个数组
-	public static bool writeULongsInverse(byte[] buffer, ref int index, ulong[] sourceBuffer, int writeCount = -1)
+	public static bool writeULongsBigEndian(byte[] buffer, ref int index, ulong[] sourceBuffer, int writeCount = -1)
 	{
 		bool ret = true;
 		int count = writeCount < 0 ? sourceBuffer.Length : writeCount;
 		for (int i = 0; i < count; ++i)
 		{
-			ret = writeULongInverse(buffer, ref index, sourceBuffer[i]) && ret;
+			ret = writeULongBigEndian(buffer, ref index, sourceBuffer[i]) && ret;
 		}
 		return ret;
 	}
@@ -932,13 +932,13 @@ public class BinaryUtility
 		return ret;
 	}
 	// writeCount表示要写入的浮点数的数量,小于0表示写入整个数组
-	public static bool writeFloatsInverse(byte[] buffer, ref int index, float[] sourceBuffer, int writeCount = -1)
+	public static bool writeFloatsBigEndian(byte[] buffer, ref int index, float[] sourceBuffer, int writeCount = -1)
 	{
 		bool ret = true;
 		int count = writeCount < 0 ? sourceBuffer.Length : writeCount;
 		for (int i = 0; i < count; ++i)
 		{
-			ret = writeFloatInverse(buffer, ref index, sourceBuffer[i]) && ret;
+			ret = writeFloatBigEndian(buffer, ref index, sourceBuffer[i]) && ret;
 		}
 		return ret;
 	}
@@ -1003,7 +1003,7 @@ public class BinaryUtility
 		bytes[0] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
 		bytes[1] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
 	}
-	public static void shortToBytesInverse(short value, byte[] bytes)
+	public static void shortToBytesBigEndian(short value, byte[] bytes)
 	{
 		if (bytes.Length != sizeof(short))
 		{
@@ -1025,7 +1025,7 @@ public class BinaryUtility
 		bytes[2] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
 		bytes[3] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
 	}
-	public static void intToBytesInverse(int value, byte[] bytes)
+	public static void intToBytesBigEndian(int value, byte[] bytes)
 	{
 		if (bytes.Length != sizeof(int))
 		{
@@ -1049,7 +1049,7 @@ public class BinaryUtility
 		bytes[2] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
 		bytes[3] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
 	}
-	public static void uintToBytesInverse(uint value, byte[] bytes)
+	public static void uintToBytesBigEndian(uint value, byte[] bytes)
 	{
 		if (bytes.Length != sizeof(uint))
 		{
@@ -1077,16 +1077,16 @@ public class BinaryUtility
 		}
 		return bytesToShort(array[0], array[1]);
 	}
-	public static short bytesToShortInverse(byte[] array)
+	public static short bytesToShortBigEndian(byte[] array)
 	{
 		if (array == null)
 		{
 			return 0;
 		}
-		return bytesToShortInverse(array[0], array[1]);
+		return bytesToShortBigEndian(array[0], array[1]);
 	}
 	public static short bytesToShort(byte byte0, byte byte1) { return (short)((byte1 << (8 * 1)) | (byte0 << (8 * 0))); }
-	public static short bytesToShortInverse(byte byte0, byte byte1) { return (short)((byte1 << (8 * 0)) | (byte0 << (8 * 1))); }
+	public static short bytesToShortBigEndian(byte byte0, byte byte1) { return (short)((byte1 << (8 * 0)) | (byte0 << (8 * 1))); }
 	public static ushort bytesToUShort(byte[] array)
 	{
 		if (array == null)
@@ -1095,16 +1095,16 @@ public class BinaryUtility
 		}
 		return bytesToUShort(array[0], array[1]);
 	}
-	public static ushort bytesToUShortInverse(byte[] array)
+	public static ushort bytesToUShortBigEndian(byte[] array)
 	{
 		if (array == null)
 		{
 			return 0;
 		}
-		return bytesToUShortInverse(array[0], array[1]);
+		return bytesToUShortBigEndian(array[0], array[1]);
 	}
 	public static ushort bytesToUShort(byte b0, byte b1) { return (ushort)((b1 << (8 * 1)) | (b0 << (8 * 0))); }
-	public static ushort bytesToUShortInverse(byte b0, byte b1) { return (ushort)((b1 << (8 * 0)) | (b0 << (8 * 1))); }
+	public static ushort bytesToUShortBigEndian(byte b0, byte b1) { return (ushort)((b1 << (8 * 0)) | (b0 << (8 * 1))); }
 	public static int bytesToInt(byte[] array)
 	{
 		if (array == null)
@@ -1113,16 +1113,16 @@ public class BinaryUtility
 		}
 		return bytesToInt(array[0], array[1], array[2], array[3]);
 	}
-	public static int bytesToIntInverse(byte[] array)
+	public static int bytesToIntBigEndian(byte[] array)
 	{
 		if (array == null)
 		{
 			return 0;
 		}
-		return bytesToIntInverse(array[0], array[1], array[2], array[3]);
+		return bytesToIntBigEndian(array[0], array[1], array[2], array[3]);
 	}
 	public static int bytesToInt(byte b0, byte b1, byte b2, byte b3) { return (b3 << (8 * 3)) | (b2 << (8 * 2)) | (b1 << (8 * 1)) | (b0 << (8 * 0)); }
-	public static int bytesToIntInverse(byte b0, byte b1, byte b2, byte b3) { return (b3 << (8 * 0)) | (b2 << (8 * 1)) | (b1 << (8 * 2)) | (b0 << (8 * 3)); }
+	public static int bytesToIntBigEndian(byte b0, byte b1, byte b2, byte b3) { return (b3 << (8 * 0)) | (b2 << (8 * 1)) | (b1 << (8 * 2)) | (b0 << (8 * 3)); }
 	public static uint bytesToUInt(byte[] array)
 	{
 		if (array == null)
@@ -1131,21 +1131,21 @@ public class BinaryUtility
 		}
 		return bytesToUInt(array[0], array[1], array[2], array[3]);
 	}
-	public static uint bytesToUIntInverse(byte[] array)
+	public static uint bytesToUIntBigEndian(byte[] array)
 	{
 		if (array == null)
 		{
 			return 0;
 		}
-		return bytesToUIntInverse(array[0], array[1], array[2], array[3]);
+		return bytesToUIntBigEndian(array[0], array[1], array[2], array[3]);
 	}
 	public static uint bytesToUInt(byte b0, byte b1, byte b2, byte b3) { return (uint)((b3 << (8 * 3)) | (b2 << (8 * 2)) | (b1 << (8 * 1)) | (b0 << (8 * 0))); }
-	public static uint bytesToUIntInverse(byte b0, byte b1, byte b2, byte b3) { return (uint)((b3 << (8 * 0)) | (b2 << (8 * 1)) | (b1 << (8 * 2)) | (b0 << (8 * 3))); }
+	public static uint bytesToUIntBigEndian(byte b0, byte b1, byte b2, byte b3) { return (uint)((b3 << (8 * 0)) | (b2 << (8 * 1)) | (b1 << (8 * 2)) | (b0 << (8 * 3))); }
 	public static long bytesToLong(byte b0, byte b1, byte b2, byte b3, byte b4, byte b5, byte b6, byte b7)
 	{
 		return (long)b7 << (8 * 7) | (long)b6 << (8 * 6) | (long)b5 << (8 * 5) | (long)b4 << (8 * 4) | (long)b3 << (8 * 3) | (long)b2 << (8 * 2) | (long)b1 << (8 * 1) | (long)b0 << (8 * 0);
 	}
-	public static long bytesToLongInverse(byte b0, byte b1, byte b2, byte b3, byte b4, byte b5, byte b6, byte b7)
+	public static long bytesToLongBigEndian(byte b0, byte b1, byte b2, byte b3, byte b4, byte b5, byte b6, byte b7)
 	{
 		return (long)b7 << (8 * 0) | (long)b6 << (8 * 1) | (long)b5 << (8 * 2) | (long)b4 << (8 * 3) | (long)b3 << (8 * 4) | (long)b2 << (8 * 5) | (long)b1 << (8 * 6) | (long)b0 << (8 * 7);
 	}
@@ -1153,7 +1153,7 @@ public class BinaryUtility
 	{
 		return (ulong)b7 << (8 * 7) | (ulong)b6 << (8 * 6) | (ulong)b5 << (8 * 5) | (ulong)b4 << (8 * 4) | (ulong)b3 << (8 * 3) | (ulong)b2 << (8 * 2) | (ulong)b1 << (8 * 1) | (ulong)b0 << (8 * 0);
 	}
-	public static ulong bytesToULongInverse(byte b0, byte b1, byte b2, byte b3, byte b4, byte b5, byte b6, byte b7)
+	public static ulong bytesToULongBigEndian(byte b0, byte b1, byte b2, byte b3, byte b4, byte b5, byte b6, byte b7)
 	{
 		return (ulong)b7 << (8 * 0) | (ulong)b6 << (8 * 1) | (ulong)b5 << (8 * 2) | (ulong)b4 << (8 * 3) | (ulong)b3 << (8 * 4) | (ulong)b2 << (8 * 5) | (ulong)b1 << (8 * 6) | (ulong)b0 << (8 * 7);
 	}
@@ -1176,7 +1176,7 @@ public class BinaryUtility
 		mTempBytes4Lock.unlock();
 		return value;
 	}
-	public static float bytesToFloatInverse(byte byte0, byte byte1, byte byte2, byte byte3)
+	public static float bytesToFloatBigEndian(byte byte0, byte byte1, byte byte2, byte byte3)
 	{
 		mTempBytes4Lock.waitForUnlock();
 		mTempBytes4[0] = byte3;

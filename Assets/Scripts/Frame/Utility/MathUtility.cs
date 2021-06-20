@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class MathUtility : StringUtility
 {
-	private static List<PathNode> mTempOpenList = new List<PathNode>();
+	private static List<AStarNode> mTempOpenList = new List<AStarNode>();
 	private static Point[] mTempDirect8 = new Point[8];
 	private static Point[] mTempDirect4 = new Point[4];
 	private static Vector3[] mTempControlPoint = new Vector3[4];
-	private static PathNode[] mTempNodeList;
+	private static AStarNode[] mTempNodeList;
 	private static int[] mGreaterPow2 = new int[513];
 	private static float[] sin_tb;
 	private static float[] cos_tb;
@@ -1515,7 +1515,7 @@ public class MathUtility : StringUtility
 	}
 	public static Vector3 clampLength(Vector3 vec, float maxLength)
 	{
-		if (lengthGreater(vec, maxLength))
+		if(lengthGreater(vec, maxLength))
 		{
 			return normalize(vec) * maxLength;
 		}
@@ -2927,7 +2927,7 @@ public class MathUtility : StringUtility
 		int height = maxCount / width;
 		if (mTempNodeList == null || mTempNodeList.Length < maxCount)
 		{
-			mTempNodeList = new PathNode[maxCount];
+			mTempNodeList = new AStarNode[maxCount];
 		}
 		int count0 = mTempNodeList.Length;
 		for (int i = 0; i < count0; ++i)
@@ -2935,7 +2935,7 @@ public class MathUtility : StringUtility
 			mTempNodeList[i].init(i);
 		}
 		mTempOpenList.Clear();
-		PathNode parentNode = new PathNode(0, 0, 0, begin.toIndex(width), -1, 0);
+		AStarNode parentNode = new AStarNode(0, 0, 0, begin.toIndex(width), -1, 0);
 		mTempOpenList.Add(parentNode);
 		while (true)
 		{
@@ -2946,7 +2946,7 @@ public class MathUtility : StringUtility
 			int len = mTempOpenList.Count;
 			for (int i = 1; i < len; ++i)
 			{
-				PathNode temp = mTempOpenList[i];
+				AStarNode temp = mTempOpenList[i];
 				if (temp.mF < mTempNodeList[minFIndex].mF)
 				{
 					minFIndex = temp.mIndex;
@@ -2988,7 +2988,7 @@ public class MathUtility : StringUtility
 					dirList[i].y >= 0 && dirList[i].y < height &&
 					map[curIndex])
 				{
-					PathNode curNode = mTempNodeList[curIndex];
+					AStarNode curNode = mTempNodeList[curIndex];
 					if (curNode.mState == NODE_STATE.CLOSE)
 					{
 						continue;
@@ -3047,7 +3047,7 @@ public class MathUtility : StringUtility
 		}
 		foundPath.Clear();
 		foundPath.Add(end.toIndex(width));
-		PathNode road = mTempNodeList[end.toIndex(width)];
+		AStarNode road = mTempNodeList[end.toIndex(width)];
 		while (road.mParent != -1)
 		{
 			foundPath.Add(road.mParent);

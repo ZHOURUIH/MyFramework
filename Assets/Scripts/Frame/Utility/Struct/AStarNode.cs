@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // 寻路节点
-public struct PathNode
+public struct AStarNode
 {
 	public int mG;              // 到已经找到的上一个节点的实际消耗
 	public int mH;              // 到终点的预估消耗
@@ -11,7 +11,7 @@ public struct PathNode
 	public int mIndex;          // 该节点的下标
 	public int mParent;         // 该节点的父节点
 	public NODE_STATE mState;   // 0表示没有在开启或者关闭列表里，1表示在开启，2表示在关闭
-	public PathNode(int g, int h, int f, int index, int parent, NODE_STATE state)
+	public AStarNode(int g, int h, int f, int index, int parent, NODE_STATE state)
 	{
 		mG = g;
 		mH = h;

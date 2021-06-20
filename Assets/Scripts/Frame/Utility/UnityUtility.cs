@@ -1006,7 +1006,7 @@ public class UnityUtility : CSharpUtility
 		if (resizeRootSize)
 		{
 			int lineCount = ceil(activeChildCount / (float)columnCount);
-			if(lineCount == 1)
+			if (lineCount == 1)
 			{
 				rootSize.x = activeChildCount * gridSize.x + (activeChildCount - 1) * interval.x;
 			}
@@ -1025,7 +1025,7 @@ public class UnityUtility : CSharpUtility
 			RectTransform child = childList[i];
 			int indexX = i % columnCount;
 			int indexY = i / columnCount;
-			child.localPosition = new Vector2(gridSize.x * 0.5f + indexX * gridSize.x + indexX * interval.x, 
+			child.localPosition = new Vector2(gridSize.x * 0.5f + indexX * gridSize.x + indexX * interval.x,
 											  -gridSize.y * 0.5f - indexY * gridSize.y - indexY * interval.y) + posOffset;
 			WidgetUtility.setRectSize(child, gridSize, false);
 		}

@@ -20,16 +20,18 @@ public class StringUtility : BinaryUtility
 	{
 		for(int i = 0; i < mIntToString.Length; ++i)
 		{
-			mStringToInt.Add(i.ToString(), i);
-			mIntToString[i] = i.ToString();
+			string iStr = i.ToString();
+			mStringToInt.Add(iStr, i);
+			mIntToString[i] = iStr;
 		}
 		mStringToVector2Cache = new Dictionary<string, Vector2Int>(STRING_TO_VECTOR2INT_MAX_CACHE);
 	}
 	// 只能使用{index}拼接
 	public static string format(string format, params string[] args)
 	{
-		MyStringBuilder builder = FrameBase.STRING(format);
-		MyStringBuilder helpBuilder = FrameBase.STRING();
+		// 由于连续拼接字符串时,会将其转换为数组进行传递,所以为了避免数组的创建,使用一个辅助拼接器
+		MyStringBuilder builder = FrameUtility.STRING(format);
+		MyStringBuilder helpBuilder = FrameUtility.STRING();
 		int index = 0;
 		while (true)
 		{
@@ -47,13 +49,13 @@ public class StringUtility : BinaryUtility
 			replaceAll(builder, indexStr, args[index]);
 			++index;
 		}
-		FrameBase.DESTROY_STRING(helpBuilder);
-		return FrameBase.END_STRING(builder);
+		FrameUtility.DESTROY_STRING(helpBuilder);
+		return FrameUtility.END_STRING(builder);
 	}
 	public static string format(string format, List<string> args)
 	{
-		MyStringBuilder builder = FrameBase.STRING(format);
-		MyStringBuilder helpBuilder = FrameBase.STRING();
+		MyStringBuilder builder = FrameUtility.STRING(format);
+		MyStringBuilder helpBuilder = FrameUtility.STRING();
 		int index = 0;
 		while (true)
 		{
@@ -71,13 +73,13 @@ public class StringUtility : BinaryUtility
 			replaceAll(builder, indexStr, args[index]);
 			++index;
 		}
-		FrameBase.DESTROY_STRING(helpBuilder);
-		return FrameBase.END_STRING(builder);
+		FrameUtility.DESTROY_STRING(helpBuilder);
+		return FrameUtility.END_STRING(builder);
 	}
 	public static string format(string format, List<int> args)
 	{
-		MyStringBuilder builder = FrameBase.STRING(format);
-		MyStringBuilder helpBuilder = FrameBase.STRING();
+		MyStringBuilder builder = FrameUtility.STRING(format);
+		MyStringBuilder helpBuilder = FrameUtility.STRING();
 		int index = 0;
 		while (true)
 		{
@@ -95,13 +97,13 @@ public class StringUtility : BinaryUtility
 			replaceAll(builder, indexStr, IToS(args[index]));
 			++index;
 		}
-		FrameBase.DESTROY_STRING(helpBuilder);
-		return FrameBase.END_STRING(builder);
+		FrameUtility.DESTROY_STRING(helpBuilder);
+		return FrameUtility.END_STRING(builder);
 	}
 	public static string format(string format, params int[] args)
 	{
-		MyStringBuilder builder = FrameBase.STRING(format);
-		MyStringBuilder helpBuilder = FrameBase.STRING();
+		MyStringBuilder builder = FrameUtility.STRING(format);
+		MyStringBuilder helpBuilder = FrameUtility.STRING();
 		int index = 0;
 		while (true)
 		{
@@ -119,13 +121,13 @@ public class StringUtility : BinaryUtility
 			replaceAll(builder, indexStr, IToS(args[index]));
 			++index;
 		}
-		FrameBase.DESTROY_STRING(helpBuilder);
-		return FrameBase.END_STRING(builder);
+		FrameUtility.DESTROY_STRING(helpBuilder);
+		return FrameUtility.END_STRING(builder);
 	}
 	public static string format(string format, List<float> args)
 	{
-		MyStringBuilder builder = FrameBase.STRING(format);
-		MyStringBuilder helpBuilder = FrameBase.STRING();
+		MyStringBuilder builder = FrameUtility.STRING(format);
+		MyStringBuilder helpBuilder = FrameUtility.STRING();
 		int index = 0;
 		while (true)
 		{
@@ -143,13 +145,13 @@ public class StringUtility : BinaryUtility
 			replaceAll(builder, indexStr, FToS(args[index]));
 			++index;
 		}
-		FrameBase.DESTROY_STRING(helpBuilder);
-		return FrameBase.END_STRING(builder);
+		FrameUtility.DESTROY_STRING(helpBuilder);
+		return FrameUtility.END_STRING(builder);
 	}
 	public static string format(string format, params float[] args)
 	{
-		MyStringBuilder builder = FrameBase.STRING(format);
-		MyStringBuilder helpBuilder = FrameBase.STRING();
+		MyStringBuilder builder = FrameUtility.STRING(format);
+		MyStringBuilder helpBuilder = FrameUtility.STRING();
 		int index = 0;
 		while (true)
 		{
@@ -167,8 +169,8 @@ public class StringUtility : BinaryUtility
 			replaceAll(builder, indexStr, FToS(args[index]));
 			++index;
 		}
-		FrameBase.DESTROY_STRING(helpBuilder);
-		return FrameBase.END_STRING(builder);
+		FrameUtility.DESTROY_STRING(helpBuilder);
+		return FrameUtility.END_STRING(builder);
 	}
 	// 使用Length == 0判断是否为空字符串是最快的
 	public static bool isEmpty(string str)
@@ -555,7 +557,7 @@ public class StringUtility : BinaryUtility
 	// 从文件路径中得到最后一级的文件夹名
 	public static string getFolderName(string str)
 	{
-		MyStringBuilder builder = FrameBase.STRING(str);
+		MyStringBuilder builder = FrameUtility.STRING(str);
 		rightToLeft(builder);
 		// 如果有文件名,则先去除文件名
 		int namePos = builder.LastIndexOf('/');
@@ -570,31 +572,31 @@ public class StringUtility : BinaryUtility
 		{
 			builder.Remove(0, namePos + 1);
 		}
-		return FrameBase.END_STRING(builder);
+		return FrameUtility.END_STRING(builder);
 	}
 	// 得到文件路径
 	public static string getFilePath(string fileName)
 	{
-		MyStringBuilder builder = FrameBase.STRING(fileName);
+		MyStringBuilder builder = FrameUtility.STRING(fileName);
 		rightToLeft(builder);
 		int lastPos = builder.LastIndexOf('/');
 		if (lastPos != -1)
 		{
-			return FrameBase.END_STRING(builder.Remove(lastPos));
+			return FrameUtility.END_STRING(builder.Remove(lastPos));
 		}
-		FrameBase.DESTROY_STRING(builder);
+		FrameUtility.DESTROY_STRING(builder);
 		return EMPTY;
 	}
 	public static string getFileName(string str)
 	{
-		MyStringBuilder builder = FrameBase.STRING(str);
+		MyStringBuilder builder = FrameUtility.STRING(str);
 		rightToLeft(builder);
 		int dotPos = builder.LastIndexOf('/');
 		if (dotPos != -1)
 		{
 			builder.Remove(0, dotPos + 1);
 		}
-		return FrameBase.END_STRING(builder);
+		return FrameUtility.END_STRING(builder);
 	}
 	public static string getFileSuffix(string file)
 	{
@@ -611,7 +613,7 @@ public class StringUtility : BinaryUtility
 		{
 			return null;
 		}
-		MyStringBuilder builder = FrameBase.STRING(str);
+		MyStringBuilder builder = FrameUtility.STRING(str);
 		rightToLeft(builder);
 		// 先判断是否移除目录
 		if (removeDir)
@@ -628,7 +630,7 @@ public class StringUtility : BinaryUtility
 		{
 			builder.Remove(dotPos);
 		}
-		return FrameBase.END_STRING(builder);
+		return FrameUtility.END_STRING(builder);
 	}
 	// 如果路径最后有斜杠,则移除结尾的斜杠
 	public static void removeEndSlash(ref string path)
@@ -746,7 +748,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static string floatsToString(float[] values, string seperate = ",")
 	{
-		MyStringBuilder builder = FrameBase.STRING();
+		MyStringBuilder builder = FrameUtility.STRING();
 		int count = values.Length;
 		for (int i = 0; i < count; ++i)
 		{
@@ -756,11 +758,11 @@ public class StringUtility : BinaryUtility
 				builder.Append(seperate);
 			}
 		}
-		return FrameBase.END_STRING(builder);
+		return FrameUtility.END_STRING(builder);
 	}
 	public static string floatsToString(List<float> values, string seperate = ",")
 	{
-		MyStringBuilder builder = FrameBase.STRING();
+		MyStringBuilder builder = FrameUtility.STRING();
 		int count = values.Count;
 		for (int i = 0; i < count; ++i)
 		{
@@ -770,7 +772,7 @@ public class StringUtility : BinaryUtility
 				builder.Append(seperate);
 			}
 		}
-		return FrameBase.END_STRING(builder);
+		return FrameUtility.END_STRING(builder);
 	}
 	public static List<int> stringToInts(string str, string seperate = ",")
 	{
@@ -946,7 +948,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static string intsToString(int[] values, string seperate = ",")
 	{
-		MyStringBuilder builder = FrameBase.STRING();
+		MyStringBuilder builder = FrameUtility.STRING();
 		int count = values.Length;
 		for (int i = 0; i < count; ++i)
 		{
@@ -956,11 +958,11 @@ public class StringUtility : BinaryUtility
 				builder.Append(seperate);
 			}
 		}
-		return FrameBase.END_STRING(builder);
+		return FrameUtility.END_STRING(builder);
 	}
 	public static string intsToString(List<int> values, string seperate = ",")
 	{
-		MyStringBuilder builder = FrameBase.STRING();
+		MyStringBuilder builder = FrameUtility.STRING();
 		int count = values.Count;
 		for (int i = 0; i < count; ++i)
 		{
@@ -970,11 +972,11 @@ public class StringUtility : BinaryUtility
 				builder.Append(seperate);
 			}
 		}
-		return FrameBase.END_STRING(builder);
+		return FrameUtility.END_STRING(builder);
 	}
 	public static string stringsToString(List<string> values, string seperate = ",")
 	{
-		MyStringBuilder builder = FrameBase.STRING();
+		MyStringBuilder builder = FrameUtility.STRING();
 		int count = values.Count;
 		for (int i = 0; i < count; ++i)
 		{
@@ -984,11 +986,11 @@ public class StringUtility : BinaryUtility
 				builder.Append(seperate);
 			}
 		}
-		return FrameBase.END_STRING(builder);
+		return FrameUtility.END_STRING(builder);
 	}
 	public static string stringsToString(string[] values, string seperate = ",")
 	{
-		MyStringBuilder builder = FrameBase.STRING();
+		MyStringBuilder builder = FrameUtility.STRING();
 		int count = values.Length;
 		for (int i = 0; i < count; ++i)
 		{
@@ -998,7 +1000,7 @@ public class StringUtility : BinaryUtility
 				builder.Append(seperate);
 			}
 		}
-		return FrameBase.END_STRING(builder);
+		return FrameUtility.END_STRING(builder);
 	}
 	public static List<string> stringToStrings(string str, string seperate = ",")
 	{
@@ -1099,14 +1101,14 @@ public class StringUtility : BinaryUtility
 			insertStart = 3;
 		}
 		insertStart += 3 * (commaCount - 1);
-		MyStringBuilder builder = FrameBase.STRING(str);
+		MyStringBuilder builder = FrameUtility.STRING(str);
 		// 从后往前插入
 		for (int i = 0; i < commaCount; ++i)
 		{
 			builder.Insert(insertStart, ",");
 			insertStart -= 3;
 		}
-		str = FrameBase.END_STRING(builder);
+		str = FrameUtility.END_STRING(builder);
 	}
 	public static string boolToString(bool value, bool firstUpper = false, bool fullUpper = false)
 	{
@@ -1126,7 +1128,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static string intToChineseString(int value)
 	{
-		MyStringBuilder builder = FrameBase.STRING();
+		MyStringBuilder builder = FrameUtility.STRING();
 		// 大于1亿
 		if(value >= 100000000)
 		{
@@ -1143,7 +1145,7 @@ public class StringUtility : BinaryUtility
 		{
 			builder.Append(value);
 		}
-		return FrameBase.END_STRING(builder);
+		return FrameUtility.END_STRING(builder);
 	}
 	// minLength表示返回字符串的最少数字个数,等于0表示不限制个数,大于0表示如果转换后的数字数量不足minLength个,则在前面补0
 	public static string IToS(int value, int minLength = 0)
@@ -1265,9 +1267,9 @@ public class StringUtility : BinaryUtility
 	// 将str中的[begin,end)替换为reStr
 	public static string replace(string str, int begin, int end, string reStr)
 	{
-		MyStringBuilder builder = FrameBase.STRING(str);
+		MyStringBuilder builder = FrameUtility.STRING(str);
 		replace(builder, begin, end, reStr);
-		return FrameBase.END_STRING(builder);
+		return FrameUtility.END_STRING(builder);
 	}
 	public static void replace(MyStringBuilder str, int begin, int end, string reStr)
 	{
@@ -1279,9 +1281,9 @@ public class StringUtility : BinaryUtility
 	}
 	public static string replaceAll(string str, string key, string newWords)
 	{
-		MyStringBuilder builder = FrameBase.STRING(str);
+		MyStringBuilder builder = FrameUtility.STRING(str);
 		replaceAll(builder, key, newWords);
-		return FrameBase.END_STRING(builder);
+		return FrameUtility.END_STRING(builder);
 	}
 	public static void replaceAll(MyStringBuilder builder, string key, string newWords)
 	{
@@ -1309,13 +1311,13 @@ public class StringUtility : BinaryUtility
 	}
 	public static string removeAll(string str, params string[] key)
 	{
-		MyStringBuilder builder = FrameBase.STRING(str);
+		MyStringBuilder builder = FrameUtility.STRING(str);
 		int keyCount = key.Length;
 		for (int i = 0; i < keyCount; ++i)
 		{
 			replaceAll(builder, key[i], "");
 		}
-		return FrameBase.END_STRING(builder);
+		return FrameUtility.END_STRING(builder);
 	}
 	public static float SToF(string str)
 	{
@@ -1393,7 +1395,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static string bytesToHEXString(byte[] byteList, bool addSpace = true, bool upperOrLower = true, int count = 0)
 	{
-		MyStringBuilder builder = FrameBase.STRING();
+		MyStringBuilder builder = FrameUtility.STRING();
 		int byteCount = count > 0 ? count : byteList.Length;
 		byteCount = MathUtility.getMin(byteList.Length, byteCount);
 		for (int i = 0; i < byteCount; ++i)
@@ -1411,11 +1413,11 @@ public class StringUtility : BinaryUtility
 				byteToHEXString(builder, byteList[i], upperOrLower);
 			}
 		}
-		return FrameBase.END_STRING(builder);
+		return FrameUtility.END_STRING(builder);
 	}
 	public static string byteToHEXString(byte value, bool upperOrLower = true)
 	{
-		MyStringBuilder builder = FrameBase.STRING();
+		MyStringBuilder builder = FrameUtility.STRING();
 		char[] hexChar = upperOrLower ? mHexUpperChar : mHexLowerChar;
 		int high = value / 16;
 		int low = value % 16;
@@ -1435,7 +1437,7 @@ public class StringUtility : BinaryUtility
 		{
 			builder.Append(hexChar[low - 10]);
 		}
-		return FrameBase.END_STRING(builder);
+		return FrameUtility.END_STRING(builder);
 	}
 	public static void byteToHEXString(MyStringBuilder builder, byte value, bool upperOrLower = true)
 	{
@@ -1502,7 +1504,7 @@ public class StringUtility : BinaryUtility
 			return 0;
 		}
 		int dataCount = str.Length >> 1;
-		FrameBase.ARRAY_THREAD(out bytes, MathUtility.getGreaterPow2(dataCount));
+		FrameUtility.ARRAY_THREAD(out bytes, MathUtility.getGreaterPow2(dataCount));
 		for (int i = 0; i < dataCount; ++i)
 		{
 			bytes[i] = hexStringToByte(str, i * 2);
@@ -1511,7 +1513,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static void releaseHexStringBytes(byte[] bytes)
 	{
-		FrameBase.UN_ARRAY_THREAD(bytes);
+		FrameUtility.UN_ARRAY_THREAD(bytes);
 	}
 	public static string fileSizeString(long size)
 	{
@@ -1540,7 +1542,7 @@ public class StringUtility : BinaryUtility
 		{
 			return EMPTY;
 		}
-		return FrameBase.END_STRING(FrameBase.STRING("<color=#", color, ">", str, "</color>"));
+		return FrameUtility.END_STRING(FrameUtility.STRING("<color=#", color, ">", str, "</color>"));
 	}
 	public static MyStringBuilder colorString(string color, MyStringBuilder str)
 	{
@@ -1853,47 +1855,47 @@ public class StringUtility : BinaryUtility
 	// 可以在子线程中使用的字符串拼接,当拼接小于等于4个字符串时,直接使用+号最快,GC与StringBuilder一致
 	public static string strcat_thread(string str0, string str1, string str2, string str3, string str4)
 	{
-		return FrameBase.END_STRING_THREAD(FrameBase.STRING_THREAD(str0, str1, str2, str3, str4));
+		return FrameUtility.END_STRING_THREAD(FrameUtility.STRING_THREAD(str0, str1, str2, str3, str4));
 	}
 	public static string strcat_thread(string str0, string str1, string str2, string str3, string str4, string str5)
 	{
-		return FrameBase.END_STRING_THREAD(FrameBase.STRING_THREAD(str0, str1, str2, str3, str4, str5));
+		return FrameUtility.END_STRING_THREAD(FrameUtility.STRING_THREAD(str0, str1, str2, str3, str4, str5));
 	}
 	public static string strcat_thread(string str0, string str1, string str2, string str3, string str4, string str5, string str6)
 	{
-		return FrameBase.END_STRING_THREAD(FrameBase.STRING_THREAD(str0, str1, str2, str3, str4, str5, str6));
+		return FrameUtility.END_STRING_THREAD(FrameUtility.STRING_THREAD(str0, str1, str2, str3, str4, str5, str6));
 	}
 	public static string strcat_thread(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7)
 	{
-		return FrameBase.END_STRING_THREAD(FrameBase.STRING_THREAD(str0, str1, str2, str3, str4, str5, str6, str7));
+		return FrameUtility.END_STRING_THREAD(FrameUtility.STRING_THREAD(str0, str1, str2, str3, str4, str5, str6, str7));
 	}
 	public static string strcat_thread(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7, string str8)
 	{
-		return FrameBase.END_STRING_THREAD(FrameBase.STRING_THREAD(str0, str1, str2, str3, str4, str5, str6, str7, str8));
+		return FrameUtility.END_STRING_THREAD(FrameUtility.STRING_THREAD(str0, str1, str2, str3, str4, str5, str6, str7, str8));
 	}
 	// 只能在主线程中使用的字符串拼接,当拼接小于等于4个字符串时,直接使用+号最快,GC与StringBuilder一致
 	public static string strcat(string str0, string str1, string str2, string str3, string str4)
 	{
-		return FrameBase.END_STRING(FrameBase.STRING(str0, str1, str2, str3, str4));
+		return FrameUtility.END_STRING(FrameUtility.STRING(str0, str1, str2, str3, str4));
 	}
 	public static string strcat(string str0, string str1, string str2, string str3, string str4, string str5)
 	{
-		return FrameBase.END_STRING(FrameBase.STRING(str0, str1, str2, str3, str4, str5));
+		return FrameUtility.END_STRING(FrameUtility.STRING(str0, str1, str2, str3, str4, str5));
 	}
 	public static string strcat(string str0, string str1, string str2, string str3, string str4, string str5, string str6)
 	{
-		return FrameBase.END_STRING(FrameBase.STRING(str0, str1, str2, str3, str4, str5, str6));
+		return FrameUtility.END_STRING(FrameUtility.STRING(str0, str1, str2, str3, str4, str5, str6));
 	}
 	public static string strcat(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7)
 	{
-		return FrameBase.END_STRING(FrameBase.STRING(str0, str1, str2, str3, str4, str5, str6, str7));
+		return FrameUtility.END_STRING(FrameUtility.STRING(str0, str1, str2, str3, str4, str5, str6, str7));
 	}
 	public static string strcat(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7, string str8)
 	{
-		return FrameBase.END_STRING(FrameBase.STRING(str0, str1, str2, str3, str4, str5, str6, str7, str8));
+		return FrameUtility.END_STRING(FrameUtility.STRING(str0, str1, str2, str3, str4, str5, str6, str7, str8));
 	}
 	public static string strcat(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7, string str8, string str9)
 	{
-		return FrameBase.END_STRING(FrameBase.STRING(str0, str1, str2, str3, str4, str5, str6, str7, str8, str9));
+		return FrameUtility.END_STRING(FrameUtility.STRING(str0, str1, str2, str3, str4, str5, str6, str7, str8, str9));
 	}
 }
