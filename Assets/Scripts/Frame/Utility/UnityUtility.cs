@@ -455,10 +455,6 @@ public class UnityUtility : CSharpUtility
 	{
 		return 1 << nameToLayerInt(name);
 	}
-	public static void activeObject(GameObject go, bool active = true)
-	{
-		go?.SetActive(active);
-	}
 	public static void activeChilds(GameObject go, bool active = true)
 	{
 		if (go != null)

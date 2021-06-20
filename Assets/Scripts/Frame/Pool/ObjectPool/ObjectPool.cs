@@ -86,7 +86,7 @@ public class ObjectPool : FrameSystem
 			{
 				objInfo.setTag(objectTag);
 				objInfo.setUsing(true);
-				activeObject(objInfo.mObject, false);
+				objInfo.mObject.SetActive(false);
 				group.mNameList[item] = objInfo.mObject;
 			}
 			else
@@ -207,7 +207,7 @@ public class ObjectPool : FrameSystem
 			{
 				item.mNameList[objInfo.mFileWithPath] = objInfo.mObject;
 				// 资源组中的物体只有在全部加载完成后才激活
-				activeObject(objInfo.mObject, false);
+				objInfo.mObject.SetActive(false);
 				objectLoaded(objInfo.mObject, null, null);
 				break;
 			}
