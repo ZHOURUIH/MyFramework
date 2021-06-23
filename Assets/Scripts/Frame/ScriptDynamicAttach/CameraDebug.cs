@@ -23,9 +23,12 @@ public class CameraDebug : MonoBehaviour
 		CameraLinker linker = mGameCamera.getCurLinker();
 		if (linker != null)
 		{
-			CurLinkerName = UnityUtility.Typeof(linker).ToString();
-			LinkedObject = linker.getLinkObject().getObject();
-			LinkedObjectName = linker.getLinkObject().getName();
+			CurLinkerName = CSharpUtility.Typeof(linker).ToString();
+			if (linker.getLinkObject() != null)
+			{
+				LinkedObject = linker.getLinkObject().getObject();
+				LinkedObjectName = linker.getLinkObject().getName();
+			}
 			Relative = linker.getRelativePosition();
 			if (LinkedObject != null)
 			{

@@ -42,25 +42,30 @@ public class WidgetUtility : UnityUtility
 			sides[i] = (corners[i] + corners[(i + 1) % 4]) * 0.5f;
 		}
 	}
-	public static void setRectSize(RectTransform rectTransform, Vector2 size, bool adjustFont)
+	public static void setRectSize(RectTransform rectTransform, Vector2 size)
 	{
 		if(rectTransform == null)
 		{
 			return;
 		}
-		Rect rect = rectTransform.rect;
-		float lastHeight = rect.height;
-		Vector2 deltaSize = new Vector2(size.x, size.y) - rect.size;
-		rectTransform.offsetMin -= new Vector2(deltaSize.x * rectTransform.pivot.x, deltaSize.y * rectTransform.pivot.y);
-		rectTransform.offsetMax += new Vector2(deltaSize.x * (1.0f - rectTransform.pivot.x), deltaSize.y * (1.0f - rectTransform.pivot.y));
-		if(adjustFont)
+		Vector2 deltaSize = size - rectTransform.rect.size;
+		Vector2 pivot = rectTransform.pivot;
+		rectTransform.offsetMin -= new Vector2(deltaSize.x * pivot.x, deltaSize.y * pivot.y);
+		rectTransform.offsetMax += new Vector2(deltaSize.x * (1.0f - pivot.x), deltaSize.y * (1.0f - pivot.y));
+	}
+	public static void setRectSizeWithFontSize(RectTransform rectTransform, Vector2 size)
+	{
+		if (rectTransform == null)
 		{
-			// 文字控件需要根据高度重新计算字体大小
-			Text text = rectTransform.GetComponent<Text>();
-			if (text != null)
-			{
-				text.fontSize = floor(text.fontSize / lastHeight * size.y);
-			}
+			return;
+		}
+		float lastHeight = rectTransform.rect.height;
+		setRectSize(rectTransform, size);
+		// 文字控件需要根据高度重新计算字体大小
+		Text text = rectTransform.GetComponent<Text>();
+		if (text != null)
+		{
+			text.fontSize = floor(text.fontSize / lastHeight * size.y);
 		}
 	}
 }

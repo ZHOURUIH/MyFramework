@@ -195,7 +195,7 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 			{
 				Vector2 windowSize = getWindowSize();
 				Vector2 parentSize = parent.getWindowSize();
-				setPosition(replaceY(getPosition(), (windowSize.y - parentSize.y) * 0.5f));
+				setPositionY((windowSize.y - parentSize.y) * 0.5f);
 			}
 		}
 		int count = mPlayingCallbackList.Count;

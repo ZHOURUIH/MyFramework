@@ -15,7 +15,7 @@ public class GameFramework : MonoBehaviour
 	protected GameObject mGameFrameObject;                          // 游戏框架根节点
 	protected DateTime mCurTime;									// 记录当前时间
 	protected float mThisFrameTime;									// 当前这一帧的消耗时间
-	protected bool mEnablePoolStackTrace;							// 是否启用对象池中的堆栈追踪,由于堆栈追踪非常耗时,所以默认关闭,只有在需要堆栈调试时,手动修改代码开启追踪
+	protected bool mEnablePoolStackTrace;							// 是否启用对象池中的堆栈追踪,由于堆栈追踪非常耗时,所以默认关闭,可使用F4动态开启
 	protected bool mEnableScriptDebug;								// 是否启用调试脚本,可使用F3动态开启
 	protected bool mEnableKeyboard;									// 是否启用键盘输入响应,暂时只有GameScene中会使用
 	protected int mCurFrameCount;									// 当前已执行的帧数量
@@ -214,6 +214,7 @@ public class GameFramework : MonoBehaviour
 		{
 			int newLevel = ((int)UnityUtility.getLogLevel() + 1) % (int)LOG_LEVEL.MAX;
 			UnityUtility.setLogLevel((LOG_LEVEL)newLevel);
+			UnityUtility.logForce("当前日志等级:" + (LOG_LEVEL)newLevel);
 		}
 		// F2检测当前鼠标坐标下有哪些窗口
 		if (FrameUtility.isKeyCurrentDown(KeyCode.F2))
@@ -235,6 +236,13 @@ public class GameFramework : MonoBehaviour
 		if (FrameUtility.isKeyCurrentDown(KeyCode.F3))
 		{
 			mEnableScriptDebug = !mEnableScriptDebug;
+			UnityUtility.logForce(mEnableScriptDebug ? "已开启调试脚本" : "已关闭调试脚本", mEnableScriptDebug ? Color.green : Color.red);
+		}
+		// F4启用或禁用
+		if (FrameUtility.isKeyCurrentDown(KeyCode.F4))
+		{
+			mEnablePoolStackTrace = !mEnablePoolStackTrace;
+			UnityUtility.logForce(mEnablePoolStackTrace ? "已开启对象池分配堆栈追踪" : "已关闭对象池分配堆栈追踪", mEnablePoolStackTrace ? Color.green : Color.red);
 		}
 	}
 	public FrameSystem getSystem(Type type)

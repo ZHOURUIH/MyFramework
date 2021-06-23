@@ -1536,13 +1536,31 @@ public class StringUtility : BinaryUtility
 		return FToS(size * (1.0f / (1024.0f * 1024.0f * 1024.0f)), 1) + "GB";
 	}
 	// 在文本显示中将str的颜色设置为color
+	public static string colorStringNoBuilder(string color, string str)
+	{
+		if (isEmpty(str))
+		{
+			return EMPTY;
+		}
+		return "<color=#" + color + ">" + str + "</color>";
+	}
+	// 在文本显示中将str的颜色设置为color
 	public static string colorString(string color, string str)
 	{
 		if (isEmpty(str))
 		{
 			return EMPTY;
 		}
-		return FrameUtility.END_STRING(FrameUtility.STRING("<color=#", color, ">", str, "</color>"));
+		return strcat("<color=#", color, ">", str, "</color>");
+	}
+	// 在文本显示中将str的颜色设置为color
+	public static string colorStringThread(string color, string str)
+	{
+		if (isEmpty(str))
+		{
+			return EMPTY;
+		}
+		return strcat_thread("<color=#", color, ">", str, "</color>");
 	}
 	public static MyStringBuilder colorString(string color, MyStringBuilder str)
 	{
@@ -1553,6 +1571,14 @@ public class StringUtility : BinaryUtility
 		str.InsertFront("<color=#", color, ">");
 		str.Append("</color>");
 		return str;
+	}
+	public static string colorToRGBString(Color32 color)
+	{
+		return byteToHEXString(color.r) + byteToHEXString(color.g) + byteToHEXString(color.b);
+	}
+	public static string colorToRGBAString(Color32 color)
+	{
+		return byteToHEXString(color.r) + byteToHEXString(color.g) + byteToHEXString(color.b) + byteToHEXString(color.a);
 	}
 	// returnEndIndex表示返回值是否是字符串结束的下一个字符的下标
 	public static int findFirstSubstr(string res, string pattern, int startPos = 0, bool returnEndIndex = false, bool sensitive = true)

@@ -25,10 +25,7 @@ public class MathUtility : StringUtility
 		initFFTParam();
 		initGreaterPow2();
 	}
-	public static bool hasMask(int value, int mask)
-	{
-		return (value & ~mask) != 0;
-	}
+	public static bool hasMask(int value, int mask) { return (value & mask) != 0; }
 	public static float KMHtoMS(float kmh) { return kmh * 0.27777f; }       // km/h转m/s
 	public static float MStoKMH(float ms) { return ms * 3.6f; }
 	public static float MtoKM(float m) { return m * 0.001f; }
@@ -502,15 +499,12 @@ public class MathUtility : StringUtility
 		}
 		if (numbers.Count != 1)
 		{
-			// 计算错误
-			return 0;
-		}
-		else
-		{
 			return numbers[0];
 		}
+		// 计算错误
+		return 0;
 	}
-	// precision表示小数点后保留几位小数
+	// 将一个浮点数调整保留一定的小数位,保留的最后一位四舍五入.precision表示小数点后保留几位小数
 	public static void checkFloat(ref float value, int precision = 4)
 	{
 		float helper = pow10(precision);
@@ -529,6 +523,12 @@ public class MathUtility : StringUtility
 		checkInt(ref vec.y, precision);
 		checkInt(ref vec.z, precision);
 	}
+	public static float checkInt(float value, float precision = 0.0001f)
+	{
+		checkInt(ref value, precision);
+		return value;
+	}
+	// 检查一个浮点数是否接近整数,精度范围为precision,如果接近整数,则将此浮点数设置为整数的值
 	public static void checkInt(ref float value, float precision = 0.0001f)
 	{
 		// 先判断是否为0
@@ -594,7 +594,7 @@ public class MathUtility : StringUtility
 		}
 		return randomFloat(0.0f, 1.0f) < odds;
 	}
-	// 根据几率随机选择一个下标
+	// 根据几率随机选择一个下标,oddsList中的元素是权重,几率就是权重除以所有权重的和
 	public static int randomHit(List<ushort> oddsList)
 	{
 		if (oddsList == null || oddsList.Count == 0)
@@ -619,7 +619,7 @@ public class MathUtility : StringUtility
 		}
 		return 0;
 	}
-	// 根据几率随机选择一个下标
+	// 根据几率随机选择一个下标,oddsList中的元素是权重,几率就是权重除以所有权重的和
 	public static int randomHit(List<int> oddsList)
 	{
 		if (oddsList == null || oddsList.Count == 0)
@@ -644,7 +644,7 @@ public class MathUtility : StringUtility
 		}
 		return 0;
 	}
-	// 根据几率随机选择一个下标
+	// 根据几率随机选择一个下标,oddsList中的元素是权重,几率就是权重除以所有权重的和
 	public static int randomHit(List<float> oddsList)
 	{
 		if (oddsList == null || oddsList.Count == 0)
@@ -669,10 +669,12 @@ public class MathUtility : StringUtility
 		}
 		return 0;
 	}
+	// 获取一个min和max之间的随机浮点数
 	public static float randomFloat(float min, float max)
 	{
 		return UnityEngine.Random.Range(min, max);
 	}
+	// 获取一个min和max之间的随机整数,包含max
 	public static int randomInt(int min, int max)
 	{
 		if (min == max)
@@ -713,8 +715,8 @@ public class MathUtility : StringUtility
 		{
 			return true;
 		}
-		v0 = normalize(v0);
-		v1 = normalize(v1);
+		normalize(ref v0);
+		normalize(ref v1);
 		//两个向量方向相反则为在线段上,同向则交点不在线段上
 		return isVectorZero(v0 + v1);
 	}
@@ -877,8 +879,10 @@ public class MathUtility : StringUtility
 	public static bool intersectLineSection(Line2 line0, Line2 line1, out Vector2 intersect, bool checkEndPoint = false)
 	{
 		// 有端点重合
-		if ((isVectorEqual(line0.mStart, line1.mStart) || isVectorEqual(line0.mStart, line1.mEnd)
-			|| isVectorEqual(line0.mEnd, line1.mStart) || isVectorEqual(line0.mEnd, line1.mEnd)))
+		if (isVectorEqual(line0.mStart, line1.mStart) || 
+			isVectorEqual(line0.mStart, line1.mEnd) || 
+			isVectorEqual(line0.mEnd, line1.mStart) || 
+			isVectorEqual(line0.mEnd, line1.mEnd))
 		{
 			// 考虑端点时认为两条线段相交
 			// 不考虑端点时,则两条线段不相交
@@ -1338,13 +1342,12 @@ public class MathUtility : StringUtility
 			dir.z = cos(yaw);
 			dir.x = -sin(yaw);
 			dir.y = -tan(pitch);
-			dir = normalize(dir);
-			return dir;
+			return normalize(dir);
 		}
 	}
 	public static float getVectorYaw(Vector3 vec)
 	{
-		vec = normalize(vec);
+		normalize(ref vec);
 		float fYaw;
 		// 计算航向角,航向角是向量与在X-Z平面上的投影与Z轴正方向的夹角,从上往下看是顺时针为正,逆时针为负
 		Vector3 projectionXZ = new Vector3(vec.x, 0.0f, vec.z);
@@ -1356,8 +1359,8 @@ public class MathUtility : StringUtility
 		}
 		else
 		{
-			projectionXZ = normalize(projectionXZ);
-			fYaw = acos(Vector3.Dot(projectionXZ, Vector3.forward));
+			normalize(ref projectionXZ);
+			fYaw = acos(dot(projectionXZ, Vector3.forward));
 			// 判断航向角的正负,如果x为正,则航向角为负,如果x为,则航向角为正
 			if (vec.x > 0.0f)
 			{
@@ -1371,7 +1374,7 @@ public class MathUtility : StringUtility
 	// 计算向量的俯仰角,朝上时俯仰角小于0,朝下时俯仰角大于0
 	public static float getVectorPitch(Vector3 vec)
 	{
-		vec = normalize(vec);
+		normalize(ref vec);
 		return -asin(vec.y);
 	}
 	// 顺时针旋转为正,逆时针为负
@@ -1474,7 +1477,7 @@ public class MathUtility : StringUtility
 	// fYaw是-PI到PI之间
 	public static void getRadianYawPitchFromDirection(Vector3 dir, ref float fYaw, ref float fPitch)
 	{
-		dir = normalize(dir);
+		normalize(ref dir);
 		// 首先计算俯仰角,俯仰角是向量与X-Z平面的夹角,在上面为负,在下面为正
 		fPitch = getVectorPitch(dir);
 		fYaw = getVectorYaw(dir);
@@ -1510,7 +1513,7 @@ public class MathUtility : StringUtility
 	// 根据入射角和法线得到反射角
 	public static Vector3 getReflection(Vector3 inRay, Vector3 normal)
 	{
-		inRay = normalize(inRay);
+		normalize(ref inRay);
 		return inRay - 2 * getProjection(inRay, normalize(normal));
 	}
 	public static Vector3 clampLength(Vector3 vec, float maxLength)
@@ -1611,12 +1614,9 @@ public class MathUtility : StringUtility
 	// 将矩阵的缩放设置为1,并且不改变位移和旋转
 	public static Matrix4x4 identityMatrix4(ref Matrix4x4 rot)
 	{
-		Vector3 vec0 = new Vector3(rot.m00, rot.m01, rot.m02);
-		Vector3 vec1 = new Vector3(rot.m10, rot.m11, rot.m12);
-		Vector3 vec2 = new Vector3(rot.m20, rot.m21, rot.m22);
-		vec0 = normalize(vec0);
-		vec1 = normalize(vec1);
-		vec2 = normalize(vec2);
+		Vector3 vec0 = normalize(new Vector3(rot.m00, rot.m01, rot.m02));
+		Vector3 vec1 = normalize(new Vector3(rot.m10, rot.m11, rot.m12));
+		Vector3 vec2 = normalize(new Vector3(rot.m20, rot.m21, rot.m22));
 		Matrix4x4 temp = new Matrix4x4();
 		temp.m00 = vec0.x;
 		temp.m01 = vec0.y;
@@ -1739,9 +1739,9 @@ public class MathUtility : StringUtility
 	}
 	public static float getAngleBetweenVector(Vector3 vec1, Vector3 vec2)
 	{
-		Vector3 curVec1 = normalize(vec1);
-		Vector3 curVec2 = normalize(vec2);
-		return acos(dot(ref curVec1, ref curVec2));
+		normalize(ref vec1);
+		normalize(ref vec2);
+		return acos(dot(ref vec1, ref vec2));
 	}
 	public static float getAngleBetweenVector(Vector2 vec1, Vector2 vec2)
 	{
@@ -1832,6 +1832,22 @@ public class MathUtility : StringUtility
 		float inverseLen = 1.0f / length;
 		return new Vector3(vec3.x * inverseLen, vec3.y * inverseLen, vec3.z * inverseLen);
 	}
+	public static void normalize(ref Vector3 vec3)
+	{
+		float length = getLength(ref vec3);
+		if (isFloatZero(length))
+		{
+			return;
+		}
+		if (isFloatEqual(length, 1.0f))
+		{
+			return;
+		}
+		float inverseLen = 1.0f / length;
+		vec3.x *= inverseLen;
+		vec3.y *= inverseLen;
+		vec3.z *= inverseLen;
+	}
 	public static Vector2 normalize(Vector2 vec2)
 	{
 		float length = getLength(ref vec2);
@@ -1845,6 +1861,21 @@ public class MathUtility : StringUtility
 		}
 		float inverseLen = 1.0f / length;
 		return new Vector2(vec2.x * inverseLen, vec2.y * inverseLen);
+	}
+	public static void normalize(ref Vector2 vec2)
+	{
+		float length = getLength(ref vec2);
+		if (isFloatZero(length))
+		{
+			return;
+		}
+		if (isFloatEqual(length, 1.0f))
+		{
+			return;
+		}
+		float inverseLen = 1.0f / length;
+		vec2.x *= inverseLen;
+		vec2.y *= inverseLen;
 	}
 	public static Matrix4x4 eulerAngleToMatrix3(Vector3 angle)
 	{
@@ -2441,7 +2472,7 @@ public class MathUtility : StringUtility
 	public static float getAngleFromVector(Vector3 vec, ANGLE radian = ANGLE.RADIAN)
 	{
 		vec.y = 0.0f;
-		vec = normalize(vec);
+		normalize(ref vec);
 		float angle = acos(vec.z);
 		if (vec.x > 0.0f)
 		{
@@ -2458,8 +2489,7 @@ public class MathUtility : StringUtility
 	}
 	public static float getAngleFromVector2(Vector2 vec)
 	{
-		Vector3 tempVec = new Vector3(vec.x, 0.0f, vec.y);
-		tempVec = normalize(tempVec);
+		Vector3 tempVec = normalize(new Vector3(vec.x, 0.0f, vec.y));
 		float angle = acos(tempVec.z);
 		if (tempVec.x > 0.0f)
 		{

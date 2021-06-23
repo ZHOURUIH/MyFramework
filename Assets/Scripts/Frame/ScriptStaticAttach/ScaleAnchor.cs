@@ -37,13 +37,18 @@ public class ScaleAnchor : MonoBehaviour
 		}
 		mDirty = false;
 		Vector3 realScale = UnityUtility.adjustScreenScale(mScreenScale, mKeepAspect ? mAspectBase : ASPECT_BASE.NONE);
-		float thisWidth = mOriginSize.x * realScale.x;
-		float thisHeight = mOriginSize.y * realScale.y;
-		MathUtility.checkInt(ref thisWidth, 0.001f);
-		MathUtility.checkInt(ref thisHeight, 0.001f);
+		float thisWidth = MathUtility.checkInt(mOriginSize.x * realScale.x, 0.001f);
+		float thisHeight = MathUtility.checkInt(mOriginSize.y * realScale.y, 0.001f);
 		Vector2 newSize = new Vector2(thisWidth, thisHeight);
 		// 只有在刷新时才能确定父节点,所以父节点需要实时获取
-		WidgetUtility.setRectSize(GetComponent<RectTransform>(), newSize, mAdjustFont);
+		if(mAdjustFont)
+		{
+			WidgetUtility.setRectSizeWithFontSize(GetComponent<RectTransform>(), newSize);
+		}
+		else
+		{
+			WidgetUtility.setRectSize(GetComponent<RectTransform>(), newSize);
+		}
 		transform.localPosition = MathUtility.round(MathUtility.multiVector3(mOriginPos, realScale));
 	}
 }

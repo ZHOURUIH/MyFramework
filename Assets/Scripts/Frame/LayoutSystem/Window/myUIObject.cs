@@ -408,6 +408,12 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 		mObject.SetActive(active);
 		base.setActive(active);
 	}
+	public void setPositionX(float x) { setPosition(replaceX(mTransform.localPosition, x)); }
+	public void setPositionY(float y) { setPosition(replaceY(mTransform.localPosition, y)); }
+	public void setPositionZ(float z) { setPosition(replaceZ(mTransform.localPosition, z)); }
+	public void setRotationX(float x) { setRotation(replaceX(mTransform.localEulerAngles, x)); }
+	public void setRotationY(float y) { setRotation(replaceY(mTransform.localEulerAngles, y)); }
+	public void setRotationZ(float z) { setRotation(replaceZ(mTransform.localEulerAngles, z)); }
 	public override void setScale(Vector3 scale) { mTransform.localScale = scale; }
 	public override void setPosition(Vector3 pos) { mTransform.localPosition = pos; }
 	public override void setRotation(Vector3 rot) { mTransform.localEulerAngles = rot; }

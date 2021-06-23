@@ -6,16 +6,16 @@ using UnityEngine.EventSystems;
 public class myUGUIObject : myUIObject
 {
 	protected static Comparison<Transform> mCompareDescend = compareZDecending;
-	protected Action<PointerEventData, GameObject> mOnUGUIMouseEnter;       // 鼠标进入的回调,由UGUI触发
+	protected Action<PointerEventData, GameObject> mOnUGUIMouseEnter;		// 鼠标进入的回调,由UGUI触发
 	protected Action<PointerEventData, GameObject> mOnUGUIMouseLeave;       // 鼠标离开的回调,由UGUI触发
 	protected Action<PointerEventData, GameObject> mOnUGUIMouseDown;        // 鼠标按下的回调,由UGUI触发
 	protected Action<PointerEventData, GameObject> mOnUGUIMouseUp;          // 鼠标抬起的回调,由UGUI触发
 	protected Action<PointerEventData, GameObject> mOnUGUIClick;            // 鼠标点击的回调,由UGUI触发
-	protected EventTriggerListener mEventTriggerListener;                   // UGUI事件监听器,用于接收UGUI的事件
-	protected RectTransform mRectTransform;                                 // UGUI的Transform
+	protected EventTriggerListener mEventTriggerListener;					// UGUI事件监听器,用于接收UGUI的事件
+	protected RectTransform mRectTransform;									// UGUI的Transform
 	protected Action<Vector2> mOnUGUIMouseMove;                             // 鼠标移动的回调,由UGUI触发
 	protected Action mOnUGUIMouseStay;                                      // 鼠标在窗口内停止的回调,由UGUI触发
-	protected bool mUGUIMouseDown;                                          // 鼠标当前是否在窗口内按下
+	protected bool mUGUIMouseDown;											// 鼠标当前是否在窗口内按下
 	public override void init()
 	{
 		base.init();
@@ -72,10 +72,29 @@ public class myUGUIObject : myUIObject
 			}
 		}
 	}
+	// 获得窗口顶部在窗口中的相对于窗口pivot的Y坐标
+	public float getWindowTop() { return getWindowSize().y * (1.0f - getPivot().y); }
+	// 获得窗口底部在窗口中的相对于窗口pivot的Y坐标
+	public float getWindowBottom() { return -getWindowSize().y * getPivot().y; }
+	// 获得窗口左边界在窗口中的相对于窗口pivot的X坐标
+	public float getWindowLeft() { return -getWindowSize().x * getPivot().x; }
+	// 获得窗口右边界在窗口中的相对于窗口pivot的X坐标
+	public float getWindowRight() { return getWindowSize().x * (1.0f - getPivot().x); }
+	// 获取不考虑中心点偏移的坐标,也就是固定获取窗口中心的坐标
+	// 由于pivot的影响,Transform.localPosition获得的坐标并不一定等于窗口中心的坐标
+	public Vector3 getPositionNoPivot()
+	{
+		Vector2 size = getWindowSize();
+		Vector2 pivot = getPivot();
+		Vector2 pivotPosOffset = new Vector2((pivot.x - 0.5f) * size.x, (pivot.y - 0.5f) * size.y);
+		return getPosition() - (Vector3)pivotPosOffset;
+	}
+	public Vector2 getPivot() { return mRectTransform.pivot; }
+	public void setPivot(Vector2 pivot) { mRectTransform.pivot = pivot; }
 	public RectTransform getRectTransform() { return mRectTransform; }
 	public override void setWindowSize(Vector2 size)
 	{
-		setRectSize(mRectTransform, size, false);
+		setRectSize(mRectTransform, size);
 	}
 	public override Vector2 getWindowSize(bool transformed = false)
 	{
@@ -116,13 +135,13 @@ public class myUGUIObject : myUIObject
 	public void setUGUIMouseUp(Action<PointerEventData, GameObject> callback) { mOnUGUIMouseUp = callback; }
 	public void setUGUIMouseEnter(Action<PointerEventData, GameObject> callback) { mOnUGUIMouseEnter = callback; }
 	public void setUGUIMouseExit(Action<PointerEventData, GameObject> callback) { mOnUGUIMouseLeave = callback; }
-	public void setUGUIMouseMove(Action<Vector2> callback)
+	public void setUGUIMouseMove(Action<Vector2> callback) 
 	{
 		mOnUGUIMouseMove = callback;
 		// 如果设置了要监听鼠标移动,则需要激活当前窗口
 		mEnable = true;
 	}
-	public void setUGUIMouseStay(Action callback)
+	public void setUGUIMouseStay(Action callback) 
 	{
 		mOnUGUIMouseStay = callback;
 		mEnable = true;

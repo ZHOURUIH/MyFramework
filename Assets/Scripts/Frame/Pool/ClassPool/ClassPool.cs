@@ -33,7 +33,16 @@ public class ClassPool : FrameSystem
 		{
 			foreach (var itemList in item.Value)
 			{
-				logError("有临时对象正在使用中,是否在申请后忘记回收到池中! create stack:\n" + mObjectStack[itemList] + "\n");
+				string stack = mObjectStack[itemList];
+				if(isEmpty(stack))
+				{
+					stack = "当前未开启对象池的堆栈追踪,可在对象分配前使用F4键开启堆栈追踪,然后就可以在此错误提示中看到对象分配时所在的堆栈\n";
+				}
+				else
+				{
+					stack = "create stack:\n" + stack + "\n";
+				}
+				logError("有临时对象正在使用中,是否在申请后忘记回收到池中! \n" + stack);
 				break;
 			}
 		}

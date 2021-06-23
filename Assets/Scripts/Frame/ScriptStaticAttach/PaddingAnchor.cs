@@ -7,8 +7,8 @@ public struct ComplexPoint
 {
 	public float mRelative;
 	public int mAbsolute;
-	public void setRelative(float relative){mRelative = relative;}
-	public void setAbsolute(float absolute){mAbsolute = (int)(absolute + 0.5f * Mathf.Sign(absolute));}
+	public void setRelative(float relative) { mRelative = relative; }
+	public void setAbsolute(float absolute) { mAbsolute = (int)(absolute + 0.5f * Mathf.Sign(absolute)); }
 }
 
 // 该组件所在的物体不能有旋转,否则会计算错误
@@ -74,7 +74,7 @@ public class PaddingAnchor : MonoBehaviour
 			return;
 		}
 		// 如果窗口带缩放,则可能适配不正确
-		if(!MathUtility.isVectorZero(transform.localScale - Vector3.one))
+		if (!MathUtility.isVectorZero(transform.localScale - Vector3.one))
 		{
 			UnityUtility.logWarning("transform's scale is not 1, may not adapt correctely, " + transform.name + ", scale:" + StringUtility.vector3ToString(transform.localScale, 6));
 		}
@@ -90,15 +90,15 @@ public class PaddingAnchor : MonoBehaviour
 			if (mAnchorMode == ANCHOR_MODE.PADDING_PARENT_SIDE)
 			{
 				// 横向位置
-				if(mHorizontalNearSide == HORIZONTAL_PADDING.LEFT)
+				if (mHorizontalNearSide == HORIZONTAL_PADDING.LEFT)
 				{
 					pos.x = mDistanceToBoard[0].mRelative * mParentSides[0].x + mDistanceToBoard[0].mAbsolute + newSize.x * 0.5f;
 				}
-				else if(mHorizontalNearSide == HORIZONTAL_PADDING.RIGHT)
+				else if (mHorizontalNearSide == HORIZONTAL_PADDING.RIGHT)
 				{
 					pos.x = mDistanceToBoard[2].mRelative * mParentSides[2].x + mDistanceToBoard[2].mAbsolute - newSize.x * 0.5f;
 				}
-				else if(mHorizontalNearSide == HORIZONTAL_PADDING.CENTER)
+				else if (mHorizontalNearSide == HORIZONTAL_PADDING.CENTER)
 				{
 					pos.x = mHorizontalPositionRelative * parentSize.x * 0.5f + mHorizontalPositionAbsolute;
 				}
@@ -117,7 +117,7 @@ public class PaddingAnchor : MonoBehaviour
 				}
 			}
 			// 根据锚点和父节点大小计算各条边的值
-			else if(mAnchorMode != ANCHOR_MODE.NONE)
+			else if (mAnchorMode != ANCHOR_MODE.NONE)
 			{
 				float thisLeft = mAnchorPoint[0].mRelative * mParentSides[0].x + mAnchorPoint[0].mAbsolute;
 				float thisRight = mAnchorPoint[2].mRelative * mParentSides[2].x + mAnchorPoint[2].mAbsolute;
@@ -137,7 +137,14 @@ public class PaddingAnchor : MonoBehaviour
 		{
 			UnityUtility.logError("height:" + newSize.y + " is not valid, consider to modify the PaddingAnchor! " + gameObject.name + ", parent:" + gameObject.transform.parent.name);
 		}
-		WidgetUtility.setRectSize(GetComponent<RectTransform>(), newSize, mAdjustFont);
+		if (mAdjustFont)
+		{
+			WidgetUtility.setRectSizeWithFontSize(GetComponent<RectTransform>(), newSize);
+		}
+		else
+		{
+			WidgetUtility.setRectSize(GetComponent<RectTransform>(), newSize);
+		}
 		transform.localPosition = MathUtility.round(pos);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------------------------
@@ -145,7 +152,7 @@ public class PaddingAnchor : MonoBehaviour
 	protected void setToNearParentSides(bool relative)
 	{
 		GameObject parent = transform.parent.gameObject;
-		if(parent == null)
+		if (parent == null)
 		{
 			return;
 		}
@@ -238,7 +245,7 @@ public class PaddingAnchor : MonoBehaviour
 			WidgetUtility.getParentSides(parent, mParentSides);
 		}
 		int count = mDistanceToBoard.Length;
-		for(int i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			mDistanceToBoard[i].setRelative(0.0f);
 			mDistanceToBoard[i].setAbsolute(0.0f);
@@ -246,7 +253,7 @@ public class PaddingAnchor : MonoBehaviour
 		// 相对于左右边界
 		if (horizontalSide == HORIZONTAL_PADDING.LEFT)
 		{
-			if(relativeDistance)
+			if (relativeDistance)
 			{
 				mDistanceToBoard[0].mRelative = Mathf.Abs(sides[0].x / mParentSides[0].x);
 				mDistanceToBoard[0].setAbsolute(0.0f);
@@ -257,7 +264,7 @@ public class PaddingAnchor : MonoBehaviour
 				mDistanceToBoard[0].setAbsolute(sides[0].x - mParentSides[0].x);
 			}
 		}
-		else if(horizontalSide == HORIZONTAL_PADDING.RIGHT)
+		else if (horizontalSide == HORIZONTAL_PADDING.RIGHT)
 		{
 			if (relativeDistance)
 			{
@@ -270,7 +277,7 @@ public class PaddingAnchor : MonoBehaviour
 				mDistanceToBoard[2].setAbsolute(sides[2].x - mParentSides[2].x);
 			}
 		}
-		else if(horizontalSide == HORIZONTAL_PADDING.CENTER)
+		else if (horizontalSide == HORIZONTAL_PADDING.CENTER)
 		{
 			if (relativeDistance)
 			{
@@ -283,7 +290,7 @@ public class PaddingAnchor : MonoBehaviour
 				mHorizontalPositionAbsolute = (int)(pos.x + 0.5f * Mathf.Sign(pos.x));
 			}
 		}
-		if(verticalSide == VERTICAL_PADDING.TOP)
+		if (verticalSide == VERTICAL_PADDING.TOP)
 		{
 			if (relativeDistance)
 			{
@@ -296,7 +303,7 @@ public class PaddingAnchor : MonoBehaviour
 				mDistanceToBoard[1].setAbsolute(sides[1].y - mParentSides[1].y);
 			}
 		}
-		else if(verticalSide == VERTICAL_PADDING.BOTTOM)
+		else if (verticalSide == VERTICAL_PADDING.BOTTOM)
 		{
 			if (relativeDistance)
 			{

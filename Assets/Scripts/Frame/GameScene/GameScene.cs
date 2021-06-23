@@ -5,15 +5,15 @@ using System.Collections.Generic;
 public abstract class GameScene : ComponentOwner
 {
 	protected Dictionary<Type, SceneProcedure> mSceneProcedureList; // 场景的流程列表
-	protected List<SceneProcedure> mLastProcedureList;  // 所进入过的所有流程
-	protected SceneProcedure mCurProcedure;         // 当前流程
-	protected GameObject mSceneObject;              // 场景对应的GameObject
-	protected AudioSource mAudioSource;             // 场景音频源
-	protected Type mStartProcedure;                 // 起始流程类型,进入场景时会默认进入该流程
-	protected Type mTempStartProcedure;             // 仅使用一次的起始流程类型,设置后进入场景时会默认进入该流程,生效后就清除
-	protected Type mExitProcedure;                  // 场景的退出流程,退出场景进入其他场景时会先进入该流程,一般用作资源卸载
-	protected const int mMaxLastProcedureCount = 8; // mLastProcedureList列表的最大长度,当超过该长度时,会移除列表开始的元素
-	protected string mTempStartIntent;              // 进入mTempStartProcedure时的参数
+	protected List<SceneProcedure> mLastProcedureList;				// 所进入过的所有流程
+	protected SceneProcedure mCurProcedure;							// 当前流程
+	protected GameObject mSceneObject;								// 场景对应的GameObject
+	protected AudioSource mAudioSource;								// 场景音频源
+	protected Type mStartProcedure;									// 起始流程类型,进入场景时会默认进入该流程
+	protected Type mTempStartProcedure;								// 仅使用一次的起始流程类型,设置后进入场景时会默认进入该流程,生效后就清除
+	protected Type mExitProcedure;									// 场景的退出流程,退出场景进入其他场景时会先进入该流程,一般用作资源卸载
+	protected const int mMaxLastProcedureCount = 8;					// mLastProcedureList列表的最大长度,当超过该长度时,会移除列表开始的元素
+	protected string mTempStartIntent;								// 进入mTempStartProcedure时的参数
 	public GameScene()
 	{
 		mSceneProcedureList = new Dictionary<Type, SceneProcedure>();

@@ -7,7 +7,7 @@ public class ObjectPool : FrameSystem
 	protected Dictionary<GameObject, ObjectInfo> mInstanceList;
 	protected List<AsyncLoadGroup> mAsyncLoadGroup;
 	protected AssetLoadDoneCallback mPrefabGroupCallback;       // 预先保存下函数的委托,避免传参时产生GC
-	protected AssetLoadDoneCallback mPrefabCallback;            // 预先保存下函数的委托,避免传参时产生GC
+	protected AssetLoadDoneCallback mPrefabCallback;			// 预先保存下函数的委托,避免传参时产生GC
 	public ObjectPool()
 	{
 		mInstanceFileList = new Dictionary<string, Dictionary<GameObject, ObjectInfo>>();
@@ -47,7 +47,7 @@ public class ObjectPool : FrameSystem
 		// 遍历加载组,组中所有资源加载完毕时调用回调
 		// 为避免在调用的回调中再次异步加载资源组而引起的迭代器失效,所以使用另外一个临时列表
 		int groupCount = mAsyncLoadGroup.Count;
-		if (groupCount > 0)
+		if(groupCount > 0)
 		{
 			LIST(out List<AsyncLoadGroup> tempList);
 			for (int i = 0; i < groupCount; ++i)
@@ -60,7 +60,7 @@ public class ObjectPool : FrameSystem
 				}
 			}
 			int count = tempList.Count;
-			for (int i = 0; i < count; ++i)
+			for(int i = 0; i < count; ++i)
 			{
 				var item = tempList[i];
 				item.mCallback(item.mNameList, item.mUserData);
@@ -76,7 +76,7 @@ public class ObjectPool : FrameSystem
 		group.mUserData = userData;
 		mAsyncLoadGroup.Add(group);
 		int count = fileWithPath.Count;
-		for (int i = 0; i < count; ++i)
+		for(int i = 0; i < count; ++i)
 		{
 			var item = fileWithPath[i];
 			group.mNameList.Add(item, null);
@@ -150,7 +150,7 @@ public class ObjectPool : FrameSystem
 			}
 		}
 		int count = tempList.Count;
-		for (int i = 0; i < count; ++i)
+		for(int i = 0; i < count; ++i)
 		{
 			destroyObject(ref tempList[i].mObject, true);
 		}
@@ -180,7 +180,7 @@ public class ObjectPool : FrameSystem
 		obj = null;
 	}
 	public bool isExistInPool(GameObject go) { return go != null && mInstanceList.ContainsKey(go); }
-	public Dictionary<string, Dictionary<GameObject, ObjectInfo>> getInstanceFileList() { return mInstanceFileList; }
+	public Dictionary<string, Dictionary<GameObject, ObjectInfo>> getInstanceFileList() {return mInstanceFileList;}
 	public Dictionary<GameObject, ObjectInfo> getInstanceList() { return mInstanceList; }
 	//------------------------------------------------------------------------------------------------------------------------
 	protected void objectLoaded(GameObject go, CreateObjectCallback callback, object userData)
@@ -200,7 +200,7 @@ public class ObjectPool : FrameSystem
 		objInfo.createObject(asset as GameObject, loadPath);
 		addObject(objInfo);
 		int count = mAsyncLoadGroup.Count;
-		for (int i = 0; i < count; ++i)
+		for(int i = 0; i < count; ++i)
 		{
 			var item = mAsyncLoadGroup[i];
 			if (item.mNameList.ContainsKey(objInfo.mFileWithPath))

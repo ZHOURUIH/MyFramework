@@ -45,9 +45,33 @@ public class UnityUtility : CSharpUtility
 	}
 	public static void logForce(string info)
 	{
-		log(info, LOG_LEVEL.FORCE);
+		log(info, null, LOG_LEVEL.FORCE);
 	}
-	public static void log(string info, LOG_LEVEL level = LOG_LEVEL.NORMAL)
+	public static void logForce(string info, string color)
+	{
+		log(info, color, LOG_LEVEL.FORCE);
+	}
+	public static void logForce(string info, Color32 color)
+	{
+		log(info, colorToRGBString(color), LOG_LEVEL.FORCE);
+	}
+	public static void log(string info)
+	{
+		log(info, null, LOG_LEVEL.NORMAL);
+	}
+	public static void log(string info, LOG_LEVEL level)
+	{
+		log(info, null, level);
+	}
+	public static void log(string info, string color)
+	{
+		log(info, color, LOG_LEVEL.NORMAL);
+	}
+	public static void log(string info, Color32 color)
+	{
+		log(info, colorToRGBString(color), LOG_LEVEL.NORMAL);
+	}
+	public static void log(string info, string color, LOG_LEVEL level)
 	{
 		if ((int)level > (int)mLogLevel)
 		{
@@ -61,6 +85,10 @@ public class UnityUtility : CSharpUtility
 		else
 		{
 			time = getTimeThread(TIME_DISPLAY.HMSM);
+		}
+		if(!isEmpty(color))
+		{
+			info = colorStringNoBuilder(color, info);
 		}
 		string fullInfo = time + ": " + info;
 #if !UNITY_EDITOR
@@ -1018,8 +1046,9 @@ public class UnityUtility : CSharpUtility
 			root.setWindowSize(rootSize);
 		}
 
-		// 计算子节点坐标,始终让子节点位于父节点的矩形范围内,并且会考虑父节点的pivot
-		Vector2 posOffset = new Vector2(-rootSize.x * transform.pivot.x, rootSize.y * (1.0f - transform.pivot.y));
+		// 计算子节点坐标,始终让子节点位于父节点的矩形范围内
+		// 并且会考虑父节点的pivot,但是不考虑子节点的pivot,所以如果子节点的pivot不在中心,可能会计算错误
+		Vector2 posOffset = new Vector2(root.getWindowLeft(), root.getWindowTop());
 		for (int i = 0; i < activeChildCount; ++i)
 		{
 			RectTransform child = childList[i];
@@ -1027,7 +1056,7 @@ public class UnityUtility : CSharpUtility
 			int indexY = i / columnCount;
 			child.localPosition = new Vector2(gridSize.x * 0.5f + indexX * gridSize.x + indexX * interval.x,
 											  -gridSize.y * 0.5f - indexY * gridSize.y - indexY * interval.y) + posOffset;
-			WidgetUtility.setRectSize(child, gridSize, false);
+			WidgetUtility.setRectSize(child, gridSize);
 		}
 		FrameUtility.UN_LIST(childList);
 	}
@@ -1066,7 +1095,7 @@ public class UnityUtility : CSharpUtility
 		}
 
 		// 计算子节点坐标
-		float currentTop = rootSize.y * (1.0f - transform.pivot.y);
+		float currentTop = root.getWindowTop();
 		for (int i = 0; i < childList.Count; ++i)
 		{
 			RectTransform childRect = childList[i];
@@ -1116,7 +1145,7 @@ public class UnityUtility : CSharpUtility
 		}
 
 		// 计算子节点坐标
-		float currentLeft = rootSize.x * transform.pivot.x;
+		float currentLeft = root.getWindowLeft();
 		for (int i = 0; i < childList.Count; ++i)
 		{
 			RectTransform childRect = childList[i];
@@ -1129,5 +1158,6 @@ public class UnityUtility : CSharpUtility
 				currentLeft += interval;
 			}
 		}
+		FrameUtility.UN_LIST(childList);
 	}
 }
