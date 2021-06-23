@@ -16,7 +16,7 @@ public class FileGUIDLines
 	public List<string> mContainGUIDLines;
 }
 
-public class EditorCommonUtility : UnityUtility
+public class EditorCommonUtility : FrameUtility
 {
 	protected static char[] mHexUpperChar;
 	protected static char[] mHexLowerChar;
@@ -43,8 +43,7 @@ public class EditorCommonUtility : UnityUtility
 	// 查找文件在其他地方的引用情况
 	public static int searchFiles(string pattern, string guid, string fileName, bool loadFile, Dictionary<string, UnityEngine.Object> refrenceList, Dictionary<string, List<FileGUIDLines>> allFileText)
 	{
-		int[] guidNextIndex;
-		generateNextIndex(guid, out guidNextIndex);
+		generateNextIndex(guid, out int[] guidNextIndex);
 		rightToLeft(ref fileName);
 		string metaSuffix = ".meta";
 		if (allFileText == null)
@@ -178,11 +177,9 @@ public class EditorCommonUtility : UnityUtility
 		}
 		bool startTexture = false;
 		string textureStr = "m_Texture";
-		int[] textureNextIndex;
-		generateNextIndex(textureStr, out textureNextIndex);
+		generateNextIndex(textureStr, out int[] textureNextIndex);
 		string guidKey = "guid:";
-		int[] guidNextIndex;
-		generateNextIndex(guidKey, out guidNextIndex);
+		generateNextIndex(guidKey, out int[] guidNextIndex);
 		for (int i = 0; i < materialLines.Length; ++i)
 		{
 			string line = materialLines[i];
@@ -433,8 +430,7 @@ public class EditorCommonUtility : UnityUtility
 	public static void searchSprite(string atlasGUID, string spriteGUID, string spriteName, Dictionary<string, SpriteRefrenceInfo> refrenceList, Dictionary<string, List<FileGUIDLines>> allFileText)
 	{
 		string key = "m_Sprite: {fileID: " + spriteGUID + ", guid: " + atlasGUID;
-		int[] keyNextIndex;
-		generateNextIndex(key, out keyNextIndex);
+		generateNextIndex(key, out int[] keyNextIndex);
 		foreach(var item in allFileText)
 		{
 			string suffix = item.Key;

@@ -81,7 +81,7 @@ public class EditorMenu : EditorCommonUtility
 		saveFileInfo(classInfoList);
 		// 获取Assembly集合
 		Assembly assemly = null;
-		Assembly[] assembly = System.AppDomain.CurrentDomain.GetAssemblies();
+		Assembly[] assembly = AppDomain.CurrentDomain.GetAssemblies();
 		for (int i = 0; i < assembly.Length; ++i)
 		{
 			// 获取工程
@@ -164,7 +164,7 @@ public class EditorMenu : EditorCommonUtility
 	{
 		// 自定义函数，用来获取log中的stacktrace，定义在后面。
 		string stack_trace = findStackTrace();
-		// 通过stacktrace来定位是否是我们自定义的log，我的log中有特殊文字 "检测ResetProperty()"
+		// 通过stacktrace来定位是否是我们自定义的log，我的log中有特殊文字 "检测resetProperty()"
 		if (isEmpty(stack_trace))
 		{
 			return false;
@@ -207,7 +207,7 @@ public class EditorMenu : EditorCommonUtility
 			return;
 		}
 		rectTransform.localPosition = round(rectTransform.localPosition);
-		WidgetUtility.setRectSize(rectTransform, round(WidgetUtility.getRectSize(rectTransform)), false);
+		setRectSize(rectTransform, round(getRectSize(rectTransform)));
 		int childCount = rectTransform.childCount;
 		for (int i = 0; i < childCount; ++i)
 		{
