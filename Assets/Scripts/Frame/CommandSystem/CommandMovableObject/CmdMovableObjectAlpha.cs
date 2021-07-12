@@ -35,7 +35,7 @@ public class CmdMovableObjectAlpha : Command
 		com.setTarget(mTargetAlpha);
 		com.play(mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce);
 	}
-	public override void showDebugInfo(MyStringBuilder builder)
+	public override void debugInfo(MyStringBuilder builder)
 	{
 		builder.Append(": mKeyframe:" , mKeyframe).
 				Append(", mOnceLength:", mOnceLength).

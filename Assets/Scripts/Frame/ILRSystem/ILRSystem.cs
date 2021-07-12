@@ -36,7 +36,7 @@ public class ILRSystem : FrameSystem
 	protected IEnumerator loadILRuntime()
 	{
 		// 下载dll文件
-		string dllDownloadPath = FrameDefine.F_STREAMING_ASSETS_PATH + FrameDefine.ILR_FILE_NAME;
+		string dllDownloadPath = FrameDefine.F_STREAMING_ASSETS_PATH + FrameDefine.ILR_FILE;
 		checkDownloadPath(ref dllDownloadPath, true);
 		WWW wwwDll = new WWW(dllDownloadPath);
 		while (!wwwDll.isDone)
@@ -51,7 +51,7 @@ public class ILRSystem : FrameSystem
 		wwwDll.Dispose();
 		// 下载pdb文件
 #if UNITY_EDITOR
-		string pdbDownloadPath = FrameDefine.F_STREAMING_ASSETS_PATH + FrameDefine.ILR_PDB_FILE_NAME;
+		string pdbDownloadPath = FrameDefine.F_STREAMING_ASSETS_PATH + FrameDefine.ILR_PDB_FILE;
 		checkDownloadPath(ref pdbDownloadPath, true);
 		WWW wwwPDB = new WWW(pdbDownloadPath);
 		while (!wwwPDB.isDone)

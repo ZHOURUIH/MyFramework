@@ -10,7 +10,8 @@ public class FrameSystem : ComponentOwner
 	protected bool mCreateObject;		// 是否要创建管理器节点,默认不创建,为了避免在场景结构中显示过多不必要的系统组件节点
 	public FrameSystem()
 	{
-		mDestroy = false;   // 由于一般FrameSystem不会使用对象池来管理,所以构造时就设置当前对象为有效
+		// 由于一般FrameSystem不会使用对象池来管理,所以构造时就设置当前对象为有效
+		mDestroy = false;
 	}
 	public virtual void init()
 	{

@@ -30,7 +30,7 @@ public class CmdGameScenePrepareChangeProcedure : Command
 		}
 		gameScene.prepareChangeProcedure(mProcedure, mPrepareTime, mIntent);
 	}
-	public override void showDebugInfo(MyStringBuilder builder)
+	public override void debugInfo(MyStringBuilder builder)
 	{
 		builder.Append(": mProcedure:", mProcedure).
 				Append(", mIntent:", mIntent).

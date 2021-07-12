@@ -10,8 +10,8 @@ public class GameEffect : MovableObject
 	protected MyTimer mLifeTimer;		// 特效生存时间计时器
 	protected object mDestroyUserData;	// 销毁回调的自定义参数
 	protected float mMaxActiveTime;		// 显示的最大持续时间
-	protected bool mExistedObject;      // 为true表示特效节点是一个已存在的节点,false表示特效是实时加载的一个节点
-	protected bool mIsDead;             // 粒子系统是否已经死亡
+	protected bool mExistedObject;		// 为true表示特效节点是一个已存在的节点,false表示特效是实时加载的一个节点
+	protected bool mIsDead;				// 粒子系统是否已经死亡
 	protected bool mNextIgnoreTimeScale;
 	public GameEffect()
 	{
@@ -24,7 +24,7 @@ public class GameEffect : MovableObject
 		base.init();
 		setDestroyObject(false);
 	}
-	public override void setObject(GameObject obj, bool destroyOld = true)
+	public override void setObject(GameObject obj, bool destroyOld)
 	{
 		base.setObject(obj, destroyOld);
 		if(mTransform != null)

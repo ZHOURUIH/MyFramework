@@ -22,7 +22,7 @@ public class FrameUtility : WidgetUtility
 		{
 			return;
 		}
-		CMD(out CmdCharacterRemoveState cmd, false);
+		CMD(out CmdCharacterRemoveState cmd, LOG_LEVEL.LOW);
 		cmd.mState = state;
 		cmd.mParam = param;
 		pushCommand(cmd, character);
@@ -30,7 +30,7 @@ public class FrameUtility : WidgetUtility
 	// 移除指定的状态
 	public static void characterRemoveState(Character character, CharacterState state, string param = null)
 	{
-		CMD(out CmdCharacterRemoveState cmd, false);
+		CMD(out CmdCharacterRemoveState cmd, LOG_LEVEL.LOW);
 		cmd.mState = state;
 		cmd.mParam = param;
 		pushCommand(cmd, character);
@@ -47,7 +47,7 @@ public class FrameUtility : WidgetUtility
 #else
 		Type type = typeof(T);
 #endif
-		CMD(out CmdCharacterAddState cmd, false);
+		CMD(out CmdCharacterAddState cmd, LOG_LEVEL.LOW);
 		cmd.mStateType = type;
 		cmd.mParam = param;
 		cmd.mStateTime = stateTime;
@@ -68,10 +68,10 @@ public class FrameUtility : WidgetUtility
 #else
 		Type type = typeof(T);
 #endif
-		CMD(out CmdGameSceneChangeProcedure cmd);
+		CMD(out CmdGameSceneChangeProcedure cmd, LOG_LEVEL.FORCE);
 		cmd.mProcedure = type;
 		cmd.mIntent = intent;
-		pushCommand(cmd, FrameBase.mGameSceneManager.getCurScene());
+		pushCommand(cmd, getCurScene());
 	}
 	public static CmdGameSceneChangeProcedure changeProcedureDelay<T>(float delayTime = 0.001f, string intent = null) where T : SceneProcedure
 	{
@@ -84,10 +84,10 @@ public class FrameUtility : WidgetUtility
 #else
 		Type type = typeof(T);
 #endif
-		CMD_DELAY(out CmdGameSceneChangeProcedure cmd, true);
+		CMD_DELAY(out CmdGameSceneChangeProcedure cmd, LOG_LEVEL.FORCE);
 		cmd.mProcedure = type;
 		cmd.mIntent = intent;
-		pushDelayCommand(cmd, FrameBase.mGameSceneManager.getCurScene(), delayTime);
+		pushDelayCommand(cmd, getCurScene(), delayTime);
 		return cmd;
 	}
 	public static void prepareChangeProcedure<T>(float prepareTime = 0.001f, string intent = null) where T : SceneProcedure
@@ -101,11 +101,11 @@ public class FrameUtility : WidgetUtility
 #else
 		Type type = typeof(T);
 #endif
-		CMD(out CmdGameScenePrepareChangeProcedure cmd);
+		CMD(out CmdGameScenePrepareChangeProcedure cmd, LOG_LEVEL.FORCE);
 		cmd.mProcedure = type;
 		cmd.mIntent = intent;
 		cmd.mPrepareTime = prepareTime;
-		pushCommand(cmd, FrameBase.mGameSceneManager.getCurScene());
+		pushCommand(cmd, getCurScene());
 	}
 	public static void enterScene<T>(Type startProcedure = null, string intent = null) where T : GameScene
 	{
@@ -118,7 +118,7 @@ public class FrameUtility : WidgetUtility
 #else
 		Type type = typeof(T);
 #endif
-		CMD(out CmdGameSceneManagerEnter cmd);
+		CMD(out CmdGameSceneManagerEnter cmd, LOG_LEVEL.FORCE);
 		cmd.mSceneType = type;
 		cmd.mStartProcedure = startProcedure;
 		cmd.mIntent = intent;
@@ -126,30 +126,30 @@ public class FrameUtility : WidgetUtility
 	}
 	public static void changeProcedure(Type procedure, string intent = null)
 	{
-		CMD(out CmdGameSceneChangeProcedure cmd);
+		CMD(out CmdGameSceneChangeProcedure cmd, LOG_LEVEL.FORCE);
 		cmd.mProcedure = procedure;
 		cmd.mIntent = intent;
-		pushCommand(cmd, FrameBase.mGameSceneManager.getCurScene());
+		pushCommand(cmd, getCurScene());
 	}
 	public static CmdGameSceneChangeProcedure changeProcedureDelay(Type procedure, float delayTime = 0.001f, string intent = null)
 	{
-		CMD_DELAY(out CmdGameSceneChangeProcedure cmd, true);
+		CMD_DELAY(out CmdGameSceneChangeProcedure cmd, LOG_LEVEL.FORCE);
 		cmd.mProcedure = procedure;
 		cmd.mIntent = intent;
-		pushDelayCommand(cmd, FrameBase.mGameSceneManager.getCurScene(), delayTime);
+		pushDelayCommand(cmd, getCurScene(), delayTime);
 		return cmd;
 	}
 	public static void prepareChangeProcedure(Type procedure, float prepareTime = 0.001f, string intent = null)
 	{
-		CMD(out CmdGameScenePrepareChangeProcedure cmd);
+		CMD(out CmdGameScenePrepareChangeProcedure cmd, LOG_LEVEL.FORCE);
 		cmd.mProcedure = procedure;
 		cmd.mIntent = intent;
 		cmd.mPrepareTime = prepareTime;
-		pushCommand(cmd, FrameBase.mGameSceneManager.getCurScene());
+		pushCommand(cmd, getCurScene());
 	}
 	public static void enterScene(Type sceneType, Type startProcedure = null, string intent = null)
 	{
-		CMD(out CmdGameSceneManagerEnter cmd);
+		CMD(out CmdGameSceneManagerEnter cmd, LOG_LEVEL.FORCE);
 		cmd.mSceneType = sceneType;
 		cmd.mStartProcedure = startProcedure;
 		cmd.mIntent = intent;
@@ -159,23 +159,28 @@ public class FrameUtility : WidgetUtility
 	public static bool isKeyCurrentUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputSystem.isKeyCurrentUp(key, mask); }
 	public static bool isKeyDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputSystem.isKeyDown(key, mask); }
 	public static bool isKeyUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputSystem.isKeyUp(key, mask); }
+	// 与多点触控相关的逻辑时不能使用此鼠标坐标,应该获取相应触点的坐标,否则会出错误
 	public static Vector3 getMousePosition(bool leftBottomAsOrigin = true)
 	{
 		if (leftBottomAsOrigin)
 		{
-			return FrameBase.mGlobalTouchSystem.getCurMousePosition();
+			return FrameBase.mInputSystem.getMousePosition();
 		}
 		else
 		{
-			return FrameBase.mGlobalTouchSystem.getCurMousePosition() - (Vector3)getScreenSize() * 0.5f;
+			return FrameBase.mInputSystem.getMousePosition() - (Vector3)getScreenSize() * 0.5f;
 		}
 	}
 	public static GameScene getCurScene() { return FrameBase.mGameSceneManager.getCurScene(); }
+	public static bool atProcedure(Type type) { return getCurScene().atProcedure(type); }
+	public static bool atProcedure<T>() where T : SceneProcedure { return getCurScene().atProcedure(typeof(T)); }
 	// 百分比一般用于属性增幅之类的
 	public static string toPercent(string value, int precision = 1) { return FToS(SToF(value) * 100, precision); }
 	public static string toPercent(float value, int precision = 1) { return FToS(value * 100, precision); }
 	// 几率类的一般是万分比的格式填写的
 	public static string toProbability(string value) { return FToS(SToF(value) * 0.01f); }
+	public static Canvas getUGUIRootComponent() { return FrameBase.mLayoutManager?.getUIRoot()?.getCanvas(); }
+	public static Camera getUICamera() { return FrameBase.mCameraManager.getUICamera()?.getCamera(); }
 	public static T PACKET<T>(out T packet) where T : SocketPacket
 	{
 #if UNITY_EDITOR && USE_ILRUNTIME
@@ -192,43 +197,43 @@ public class FrameUtility : WidgetUtility
 	//-----------------------------------------------------------------------------------------------------------------------------------
 	// 命令
 	// 在主线程中创建立即执行的命令
-	public static Command CMD(Type type, bool show)
+	public static Command CMD(Type type, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL)
 	{
 		Command cmd = FrameBase.mClassPool.newClass(type, false) as Command;
-		cmd.setShowDebugInfo(show);
+		cmd.setCmdLogLevel(logLevel);
 		cmd.setDelayCommand(false);
 		cmd.setThreadCommand(false);
 		return cmd;
 	}
 	// 在主线程中创建延迟执行的命令
-	public static Command CMD_DELAY(Type type, bool show)
+	public static Command CMD_DELAY(Type type, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL)
 	{
 		Command cmd = FrameBase.mClassPool.newClass(type, false) as Command;
-		cmd.setShowDebugInfo(show);
+		cmd.setCmdLogLevel(logLevel);
 		cmd.setDelayCommand(true);
 		cmd.setThreadCommand(false);
 		return cmd;
 	}
 	// 在子线程中创建立即执行的命令
-	public static Command CMD_THREAD(Type type, bool show)
+	public static Command CMD_THREAD(Type type, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL)
 	{
 		Command cmd = FrameBase.mClassPoolThread.newClass(type, out _) as Command;
-		cmd.setShowDebugInfo(show);
+		cmd.setCmdLogLevel(logLevel);
 		cmd.setDelayCommand(false);
 		cmd.setThreadCommand(true);
 		return cmd;
 	}
 	// 在子线程中创建延迟执行的命令
-	public static Command CMD_DELAY_THREAD(Type type, bool show)
+	public static Command CMD_DELAY_THREAD(Type type, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL)
 	{
 		Command cmd = FrameBase.mClassPoolThread.newClass(type, out _) as Command;
-		cmd.setShowDebugInfo(show);
+		cmd.setCmdLogLevel(logLevel);
 		cmd.setDelayCommand(true);
 		cmd.setThreadCommand(true);
 		return cmd;
 	}
 	// 在主线程中创建立即执行的命令
-	public static void CMD<T>(out T cmd, bool show = true) where T : Command
+	public static void CMD<T>(out T cmd, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL) where T : Command
 	{
 #if UNITY_EDITOR && USE_ILRUNTIME
 		Type type = Typeof<T>();
@@ -239,10 +244,10 @@ public class FrameUtility : WidgetUtility
 #else
 		Type type = typeof(T);
 #endif
-		cmd = CMD(type, show) as T;
+		cmd = CMD(type, logLevel) as T;
 	}
 	// 在主线程中创建延迟执行的命令
-	public static void CMD_DELAY<T>(out T cmd, bool show = true) where T : Command
+	public static void CMD_DELAY<T>(out T cmd, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL) where T : Command
 	{
 #if UNITY_EDITOR && USE_ILRUNTIME
 		Type type = Typeof<T>();
@@ -253,10 +258,10 @@ public class FrameUtility : WidgetUtility
 #else
 		Type type = typeof(T);
 #endif
-		cmd = CMD_DELAY(type, show) as T;
+		cmd = CMD_DELAY(type, logLevel) as T;
 	}
 	// 在子线程中创建立即执行的命令
-	public static void CMD_THREAD<T>(out T cmd, bool show = true) where T : Command
+	public static void CMD_THREAD<T>(out T cmd, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL) where T : Command
 	{
 #if UNITY_EDITOR && USE_ILRUNTIME
 		Type type = Typeof<T>();
@@ -267,10 +272,10 @@ public class FrameUtility : WidgetUtility
 #else
 		Type type = typeof(T);
 #endif
-		cmd = CMD_THREAD(type, show) as T;
+		cmd = CMD_THREAD(type, logLevel) as T;
 	}
 	// 在子线程中创建延迟执行的命令
-	public static void CMD_DELAY_THREAD<T>(out T cmd, bool show = true) where T : Command
+	public static void CMD_DELAY_THREAD<T>(out T cmd, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL) where T : Command
 	{
 #if UNITY_EDITOR && USE_ILRUNTIME
 		Type type = Typeof<T>();
@@ -281,18 +286,18 @@ public class FrameUtility : WidgetUtility
 #else
 		Type type = typeof(T);
 #endif
-		cmd = CMD_DELAY_THREAD(type, show) as T;
+		cmd = CMD_DELAY_THREAD(type, logLevel) as T;
 	}
 	// 在子线程中发送一个指定类型的命令
-	public static void pushCommandThread<T>(CommandReceiver cmdReceiver, bool show = true) where T : Command
+	public static void pushCommandThread<T>(CommandReceiver cmdReceiver, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL) where T : Command
 	{
-		CMD_THREAD(out T cmd, show);
+		CMD_THREAD(out T cmd, logLevel);
 		pushCommand(cmd, cmdReceiver);
 	}
 	// 在主线程中发送一个指定类型的命令
-	public static void pushCommand<T>(CommandReceiver cmdReceiver, bool show = true) where T : Command
+	public static void pushCommand<T>(CommandReceiver cmdReceiver, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL) where T : Command
 	{
-		CMD(out T cmd, show);
+		CMD(out T cmd, logLevel);
 		pushCommand(cmd, cmdReceiver);
 	}
 	// 在主线程中发送一个指定类型的命令
@@ -301,16 +306,16 @@ public class FrameUtility : WidgetUtility
 		FrameBase.mCommandSystem.pushCommand(cmd, cmdReceiver);
 	}
 	// 在子线程中发送一个指定类型的命令,并且会延迟到主线程执行
-	public static T pushDelayCommandThread<T>(IDelayCmdWatcher watcher, CommandReceiver cmdReceiver, float delayExecute = 0.001f, bool show = true) where T : Command
+	public static T pushDelayCommandThread<T>(DelayCmdWatcher watcher, CommandReceiver cmdReceiver, float delayExecute = 0.001f, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL) where T : Command
 	{
-		CMD_DELAY_THREAD(out T cmd, show);
+		CMD_DELAY_THREAD(out T cmd, logLevel);
 		pushDelayCommand(cmd, cmdReceiver, delayExecute, watcher);
 		return cmd;
 	}
 	// 在主线程中发送一个指定类型的命令,并且在主线程中延迟执行
-	public static T pushDelayCommand<T>(IDelayCmdWatcher watcher, CommandReceiver cmdReceiver, float delayExecute = 0.001f, bool show = true) where T : Command
+	public static T pushDelayCommand<T>(DelayCmdWatcher watcher, CommandReceiver cmdReceiver, float delayExecute = 0.001f, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL) where T : Command
 	{
-		CMD_DELAY(out T cmd, show);
+		CMD_DELAY(out T cmd, logLevel);
 		pushDelayCommand(cmd, cmdReceiver, delayExecute, watcher);
 		return cmd;
 	}
@@ -322,7 +327,7 @@ public class FrameUtility : WidgetUtility
 	{
 		pushDelayCommand(cmd, cmdReceiver, 0.0f, null);
 	}
-	public static void pushDelayCommand(Command cmd, CommandReceiver cmdReceiver, float delayExecute, IDelayCmdWatcher watcher)
+	public static void pushDelayCommand(Command cmd, CommandReceiver cmdReceiver, float delayExecute, DelayCmdWatcher watcher)
 	{
 		FrameBase.mCommandSystem.pushDelayCommand(cmd, cmdReceiver, delayExecute, watcher);
 	}
@@ -340,7 +345,7 @@ public class FrameUtility : WidgetUtility
 		Type type = typeof(T);
 #endif
 		string stackTrace = EMPTY;
-		if (FrameBase.mGameFramework.isEnablePoolStackTrace())
+		if (FrameBase.mGameFramework.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
@@ -358,7 +363,7 @@ public class FrameUtility : WidgetUtility
 		Type type = typeof(T);
 #endif
 		string stackTrace = EMPTY;
-		if (FrameBase.mGameFramework.isEnablePoolStackTrace())
+		if (FrameBase.mGameFramework.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
@@ -389,7 +394,7 @@ public class FrameUtility : WidgetUtility
 		Type type = typeof(T);
 #endif
 		string stackTrace = EMPTY;
-		if (FrameBase.mGameFramework.isEnablePoolStackTrace())
+		if (FrameBase.mGameFramework.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
@@ -407,7 +412,7 @@ public class FrameUtility : WidgetUtility
 		Type type = typeof(T);
 #endif
 		string stackTrace = EMPTY;
-		if (FrameBase.mGameFramework.isEnablePoolStackTrace())
+		if (FrameBase.mGameFramework.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
@@ -441,7 +446,7 @@ public class FrameUtility : WidgetUtility
 		Type typeValue = typeof(V);
 #endif
 		string stackTrace = EMPTY;
-		if (FrameBase.mGameFramework.isEnablePoolStackTrace())
+		if (FrameBase.mGameFramework.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
@@ -461,7 +466,7 @@ public class FrameUtility : WidgetUtility
 		Type typeValue = typeof(V);
 #endif
 		string stackTrace = EMPTY;
-		if (FrameBase.mGameFramework.isEnablePoolStackTrace())
+		if (FrameBase.mGameFramework.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
@@ -582,6 +587,11 @@ public class FrameUtility : WidgetUtility
 			logError("热更工程无法使用ARRAY_THREAD");
 		}
 #endif
+		if(FrameBase.mArrayPoolThread == null)
+		{
+			array = null;
+			return;
+		}
 		array = FrameBase.mArrayPoolThread.newArray<T>(count);
 	}
 	public static void UN_ARRAY_THREAD<T>(T[] array, bool destroyReally = false)
@@ -592,7 +602,7 @@ public class FrameUtility : WidgetUtility
 			logError("热更工程无法使用UN_ARRAY_THREAD");
 		}
 #endif
-		FrameBase.mArrayPoolThread.destroyArray(array, destroyReally);
+		FrameBase.mArrayPoolThread?.destroyArray(array, destroyReally);
 	}
 	//-----------------------------------------------------------------------------------------------------------------------------------
 	// 字符串拼接

@@ -6,7 +6,7 @@ public class ClassPoolThreadDebug : MonoBehaviour
 	public List<string> TypeList = new List<string>();
 	public void Update()
 	{
-		if (!FrameBase.mGameFramework.isEnableScriptDebug())
+		if (!FrameBase.mGameFramework.mEnableScriptDebug)
 		{
 			return;
 		}

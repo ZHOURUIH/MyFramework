@@ -25,7 +25,7 @@ public class CmdCameraLinkTarget : Command
 		mRelativePosition = Vector3.zero;
 		mUseLastSwitchSpeed = true;
 		mSwitchSpeed = 10.0f;
-		mImmediately = false;
+		mImmediately = true;
 	}
 	public void setRelativePosition(Vector3 relative)
 	{

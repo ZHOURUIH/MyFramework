@@ -34,7 +34,7 @@ public class CmdMovableObjectAlphaPath : Command
 		com.setValueOffset(mValueOffset);
 		com.play(mLoop, mOffset, mFullOnce);
 	}
-	public override void showDebugInfo(MyStringBuilder builder)
+	public override void debugInfo(MyStringBuilder builder)
 	{
 		builder.Append(", mOffset:", mOffset).
 				Append(", mLoop:", mLoop).

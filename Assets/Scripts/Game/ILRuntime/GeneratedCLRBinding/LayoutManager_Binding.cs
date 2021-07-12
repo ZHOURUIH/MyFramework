@@ -25,7 +25,7 @@ namespace ILRuntime.Runtime.Generated
             args = new Type[]{typeof(System.Type)};
             method = type.GetMethod("getScriptMappingCount", flag, null, args, null);
             app.RegisterCLRMethodRedirection(method, getScriptMappingCount_0);
-            args = new Type[]{typeof(System.Type), typeof(System.Int32), typeof(System.String)};
+            args = new Type[]{typeof(System.Type), typeof(System.Int32), typeof(System.String), typeof(System.Boolean)};
             method = type.GetMethod("registeLayout", flag, null, args, null);
             app.RegisterCLRMethodRedirection(method, registeLayout_1);
 
@@ -40,11 +40,11 @@ namespace ILRuntime.Runtime.Generated
             StackObject* __ret = ILIntepreter.Minus(__esp, 2);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            System.Type @classType = (System.Type)typeof(System.Type).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            System.Type @classType = (System.Type)typeof(System.Type).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
             __intp.Free(ptr_of_this_method);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            global::LayoutManager instance_of_this_method = (global::LayoutManager)typeof(global::LayoutManager).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            global::LayoutManager instance_of_this_method = (global::LayoutManager)typeof(global::LayoutManager).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
             __intp.Free(ptr_of_this_method);
 
             var result_of_this_method = instance_of_this_method.getScriptMappingCount(@classType);
@@ -58,24 +58,27 @@ namespace ILRuntime.Runtime.Generated
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 4);
+            StackObject* __ret = ILIntepreter.Minus(__esp, 5);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            System.String @name = (System.String)typeof(System.String).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
+            System.Boolean @inResource = ptr_of_this_method->Value == 1;
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            System.Int32 @type = ptr_of_this_method->Value;
+            System.String @name = (System.String)typeof(System.String).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
+            __intp.Free(ptr_of_this_method);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 3);
-            System.Type @classType = (System.Type)typeof(System.Type).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-            __intp.Free(ptr_of_this_method);
+            System.Int32 @id = ptr_of_this_method->Value;
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 4);
-            global::LayoutManager instance_of_this_method = (global::LayoutManager)typeof(global::LayoutManager).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            System.Type @classType = (System.Type)typeof(System.Type).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
             __intp.Free(ptr_of_this_method);
 
-            instance_of_this_method.registeLayout(@classType, @type, @name);
+            ptr_of_this_method = ILIntepreter.Minus(__esp, 5);
+            global::LayoutManager instance_of_this_method = (global::LayoutManager)typeof(global::LayoutManager).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
+            __intp.Free(ptr_of_this_method);
+
+            instance_of_this_method.registeLayout(@classType, @id, @name, @inResource);
 
             return __ret;
         }

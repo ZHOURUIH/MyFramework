@@ -28,9 +28,9 @@ public class CmdLayoutManagerRenderOrder : Command
 			mLayout.setRenderOrder(mRenderOrder);
 		}
 		// 通知布局管理器布局显示或隐藏
-		mLayoutManager.notifyLayoutRenderOrder(mLayout);
+		mLayoutManager.notifyLayoutRenderOrder();
 	}
-	public override void showDebugInfo(MyStringBuilder builder)
+	public override void debugInfo(MyStringBuilder builder)
 	{
 		int layoutID = mLayout != null ? mLayout.getID() : LAYOUT.NONE;
 		if(layoutID == LAYOUT.NONE)

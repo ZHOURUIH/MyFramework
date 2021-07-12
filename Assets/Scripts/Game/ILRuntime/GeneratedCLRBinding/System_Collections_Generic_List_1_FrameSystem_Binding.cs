@@ -49,11 +49,11 @@ namespace ILRuntime.Runtime.Generated
             StackObject* __ret = ILIntepreter.Minus(__esp, 2);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            System.Comparison<global::FrameSystem> @comparison = (System.Comparison<global::FrameSystem>)typeof(System.Comparison<global::FrameSystem>).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            System.Comparison<global::FrameSystem> @comparison = (System.Comparison<global::FrameSystem>)typeof(System.Comparison<global::FrameSystem>).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)8);
             __intp.Free(ptr_of_this_method);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            System.Collections.Generic.List<global::FrameSystem> instance_of_this_method = (System.Collections.Generic.List<global::FrameSystem>)typeof(System.Collections.Generic.List<global::FrameSystem>).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            System.Collections.Generic.List<global::FrameSystem> instance_of_this_method = (System.Collections.Generic.List<global::FrameSystem>)typeof(System.Collections.Generic.List<global::FrameSystem>).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
             __intp.Free(ptr_of_this_method);
 
             instance_of_this_method.Sort(@comparison);
@@ -68,7 +68,7 @@ namespace ILRuntime.Runtime.Generated
             StackObject* __ret = ILIntepreter.Minus(__esp, 1);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            System.Collections.Generic.List<global::FrameSystem> instance_of_this_method = (System.Collections.Generic.List<global::FrameSystem>)typeof(System.Collections.Generic.List<global::FrameSystem>).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            System.Collections.Generic.List<global::FrameSystem> instance_of_this_method = (System.Collections.Generic.List<global::FrameSystem>)typeof(System.Collections.Generic.List<global::FrameSystem>).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
             __intp.Free(ptr_of_this_method);
 
             var result_of_this_method = instance_of_this_method.Count;
@@ -88,7 +88,7 @@ namespace ILRuntime.Runtime.Generated
             System.Int32 @index = ptr_of_this_method->Value;
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            System.Collections.Generic.List<global::FrameSystem> instance_of_this_method = (System.Collections.Generic.List<global::FrameSystem>)typeof(System.Collections.Generic.List<global::FrameSystem>).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            System.Collections.Generic.List<global::FrameSystem> instance_of_this_method = (System.Collections.Generic.List<global::FrameSystem>)typeof(System.Collections.Generic.List<global::FrameSystem>).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
             __intp.Free(ptr_of_this_method);
 
             var result_of_this_method = instance_of_this_method[index];
@@ -108,11 +108,11 @@ namespace ILRuntime.Runtime.Generated
             StackObject* __ret = ILIntepreter.Minus(__esp, 2);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            global::FrameSystem @item = (global::FrameSystem)typeof(global::FrameSystem).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            global::FrameSystem @item = (global::FrameSystem)typeof(global::FrameSystem).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
             __intp.Free(ptr_of_this_method);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            System.Collections.Generic.List<global::FrameSystem> instance_of_this_method = (System.Collections.Generic.List<global::FrameSystem>)typeof(System.Collections.Generic.List<global::FrameSystem>).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            System.Collections.Generic.List<global::FrameSystem> instance_of_this_method = (System.Collections.Generic.List<global::FrameSystem>)typeof(System.Collections.Generic.List<global::FrameSystem>).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
             __intp.Free(ptr_of_this_method);
 
             instance_of_this_method.Add(@item);

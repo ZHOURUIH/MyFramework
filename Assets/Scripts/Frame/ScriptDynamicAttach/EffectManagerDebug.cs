@@ -6,7 +6,7 @@ public class EffectManagerDebug : MonoBehaviour
 	public List<GameObject> EffectList = new List<GameObject>();
 	public void Update()
 	{
-		if (!FrameBase.mGameFramework.isEnableScriptDebug())
+		if (!FrameBase.mGameFramework.mEnableScriptDebug)
 		{
 			return;
 		}

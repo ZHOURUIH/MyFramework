@@ -13,7 +13,7 @@ public class CmdWindowActive : Command
 		var uiObjcet = mReceiver as myUIObject;
 		uiObjcet.setActive(mActive);
 	}
-	public override void showDebugInfo(MyStringBuilder builder)
+	public override void debugInfo(MyStringBuilder builder)
 	{
 		builder.Append(": mActive:", mActive);
 	}

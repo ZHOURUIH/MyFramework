@@ -66,15 +66,17 @@ public class GamePluginManager : FrameSystem
 			for(int i = 0; i < count; ++i)
 			{
 				Type type = types[i];
-				if (type.GetInterfaces().Length > 0)
+				if (type.GetInterfaces().Length == 0)
 				{
-					var instance = assembly.CreateInstance(type.FullName) as IGamePlugin;
-					if (instance != null)
-					{
-						mPluginList.Add(instance.getPluginName(), instance);
-						log("game plugin " + instance.getPluginName() + " load success!");
-					}
+					continue;
 				}
+				var instance = assembly.CreateInstance(type.FullName) as IGamePlugin;
+				if (instance == null)
+				{
+					continue;
+				}
+				mPluginList.Add(instance.getPluginName(), instance);
+				log("game plugin " + instance.getPluginName() + " load success!");
 			}
 		}
 		catch (Exception e)

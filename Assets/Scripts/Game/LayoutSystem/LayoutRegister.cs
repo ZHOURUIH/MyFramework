@@ -22,13 +22,13 @@ public class LayoutRegister : GameBase
 		if (assign(ref mScriptDemoStart, script, created)) return;
 	}
 	//----------------------------------------------------------------------------------------------------------------------------------------------------------------
-	protected static void registeLayout<T>(int layout, string name) where T : LayoutScript
+	protected static void registeLayout<T>(int layout, string name, bool inResource = false) where T : LayoutScript
 	{
-		registeLayout<T>(layout, name, EMPTY);
+		registeLayout<T>(layout, name, EMPTY, inResource);
 	}
-	protected static void registeLayout<T>(int layout, string name, string prePath) where T : LayoutScript
+	protected static void registeLayout<T>(int layout, string name, string prePath, bool inResource) where T : LayoutScript
 	{
-		mLayoutManager.registeLayout(Typeof<T>(), layout, prePath + name + "/" + name);
+		mLayoutManager.registeLayout(Typeof<T>(), layout, prePath + name + "/" + name, inResource);
 	}
 	protected static bool assign<T>(ref T thisScript, LayoutScript value, bool created) where T : LayoutScript
 	{

@@ -24,10 +24,14 @@ public class FileUtility : MathUtility
 	}
 	public static void releaseFile(byte[] fileBuffer)
 	{
+		if (fileBuffer == null)
+		{
+			return;
+		}
 #if !UNITY_ANDROID || UNITY_EDITOR
 		// 非安卓或编辑器下需要使用BytesPool进行回收
 		// 如果数组大于等于16KB,则交给GC自动回收,否则就回收到自己的池中
-		FrameBase.UN_ARRAY_THREAD(fileBuffer, fileBuffer.Length >= 1024 * 16);
+		FrameUtility.UN_ARRAY_THREAD(fileBuffer, fileBuffer.Length >= 1024 * 16);
 #else
 		// 安卓真机下打开文件时不再进行回收,由GC自动回收
 #endif
@@ -50,7 +54,11 @@ public class FileUtility : MathUtility
 				return 0;
 			}
 			int fileSize = (int)fs.Length;
-			FrameBase.ARRAY_THREAD(out fileBuffer, getGreaterPow2(fileSize));
+			FrameUtility.ARRAY_THREAD(out fileBuffer, getGreaterPow2(fileSize));
+			if(fileBuffer == null)
+			{
+				fileBuffer = new byte[fileSize];
+			}
 			fs.Read(fileBuffer, 0, fileSize);
 			fs.Close();
 			fs.Dispose();
@@ -92,7 +100,7 @@ public class FileUtility : MathUtility
 			{
 				if(errorIfNull)
 				{
-					UnityUtility.log("open file failed! filename : " + fileName);
+					UnityUtility.logError("open file failed! filename : " + fileName);
 				}	
 				return null;
 			}
@@ -117,9 +125,12 @@ public class FileUtility : MathUtility
 			return null;
 #endif
 		}
-		catch (Exception)
+		catch (Exception e)
 		{
-			UnityUtility.log("open file failed! filename : " + fileName);
+			if (errorIfNull)
+			{
+				UnityUtility.logError("open file failed! filename : " + fileName + ", info:" + e.Message);
+			}
 			return null;
 		}
 	}
@@ -620,8 +631,9 @@ public class FileUtility : MathUtility
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
 		AndroidAssetLoader.deleteFile(path);
-#endif
+#else
 		File.Delete(path);
+#endif
 	}
 	public static string generateFileMD5(string fileName, bool upperOrLower = true)
 	{

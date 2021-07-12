@@ -69,16 +69,16 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 	public void setItemPreName(string preName) { mPreName = preName; }
 	public List<T> getUsedList() { return mUsedItemList; }
 	public bool isUsed(T item) { return mUsedItemList.Contains(item); }
-	public void checkCapacity(int capacity, bool moveToLastSibling = true, bool needSortChild = true)
+	public void checkCapacity(int capacity, bool moveToLastSibling = true, bool needSortChild = true, bool notifyLayout = true)
 	{
 		int needCount = capacity - mUsedItemList.Count;
 		for (int i = 0; i < needCount; ++i)
 		{
-			newItem(moveToLastSibling, needSortChild);
+			newItem(moveToLastSibling, needSortChild, notifyLayout);
 		}
 	}
 	// 将source从sourcePool中移动到当前池中
-	public void moveItem(WindowObjectPool<T> sourcePool, T source, bool inUsed, bool needSortChild = true)
+	public void moveItem(WindowObjectPool<T> sourcePool, T source, bool inUsed, bool needSortChild = true, bool notifyLayout = true)
 	{
 		// 从原来的池中移除
 		sourcePool.mUsedItemList.Remove(source);
@@ -87,18 +87,18 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 		if (inUsed)
 		{
 			mUsedItemList.Add(source);
-			source.setParent(mItemParentInuse, needSortChild);
+			source.setParent(mItemParentInuse, needSortChild, notifyLayout);
 		}
 		else
 		{
 			mUnusedItemList.Add(source);
-			source.setParent(mItemParentUnuse, needSortChild);
+			source.setParent(mItemParentUnuse, needSortChild, notifyLayout);
 		}
 		// 检查分配ID种子,确保后面池中的已分配ID一定小于分配ID种子
 		mAssignIDSeed = getMax(source.getAssignID(), mAssignIDSeed);
 	}
 	// 因为添加窗口可能会影响所有窗口的深度值,所以如果有需求,需要在完成添加窗口以后手动调用mLayout.notifyObjectOrderChanged()来刷新深度
-	public T newItem(bool moveToLastSibling = true, bool needSortChild = true)
+	public T newItem(bool moveToLastSibling = true, bool needSortChild = true, bool notifyLayout = true)
 	{
 		T item;
 		if (mUnusedItemList.Count > 0)
@@ -121,10 +121,15 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 		item.setAssignID(++mAssignIDSeed);
 		item.reset();
 		item.setVisible(true);
-		item.setParent(mItemParentInuse, needSortChild);
+		// 如果需要移动到子节点列表的末尾,则在设置父节点时可以不用排序
 		if (moveToLastSibling)
 		{
-			item.setAsLastSibling();
+			item.setParent(mItemParentInuse, false, false);
+			item.setAsLastSibling(needSortChild, notifyLayout);
+		}
+		else
+		{
+			item.setParent(mItemParentInuse, needSortChild, notifyLayout);
 		}
 		mUsedItemList.Add(item);
 		return item;
@@ -137,7 +142,7 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 			T item = mUsedItemList[i];
 			item.recycle();
 			item.setVisible(false);
-			item.setParent(mItemParentUnuse, false);
+			item.setParent(mItemParentUnuse, false, false);
 			item.setAssignID(-1);
 		}
 		mUnusedItemList.AddRange(mUsedItemList);
@@ -162,7 +167,7 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 		}
 		item.recycle();
 		item.setVisible(false);
-		item.setParent(mItemParentUnuse, false);
+		item.setParent(mItemParentUnuse, false, false);
 		item.setAssignID(-1);
 		mUnusedItemList.Add(item);
 	}
@@ -182,7 +187,7 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 		{
 			T item = mUsedItemList[startIndex + i];
 			item.setVisible(false);
-			item.setParent(mItemParentUnuse, false);
+			item.setParent(mItemParentUnuse, false, false);
 			mUnusedItemList.Add(item);
 		}
 		mUsedItemList.RemoveRange(startIndex, count);

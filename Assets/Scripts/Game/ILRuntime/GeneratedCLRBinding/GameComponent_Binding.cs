@@ -40,11 +40,11 @@ namespace ILRuntime.Runtime.Generated
             StackObject* __ret = ILIntepreter.Minus(__esp, 2);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            global::ComponentOwner @owner = (global::ComponentOwner)typeof(global::ComponentOwner).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            global::ComponentOwner @owner = (global::ComponentOwner)typeof(global::ComponentOwner).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
             __intp.Free(ptr_of_this_method);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            global::GameComponent instance_of_this_method = (global::GameComponent)typeof(global::GameComponent).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            global::GameComponent instance_of_this_method = (global::GameComponent)typeof(global::GameComponent).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
             __intp.Free(ptr_of_this_method);
 
             instance_of_this_method.init(@owner);
@@ -62,7 +62,7 @@ namespace ILRuntime.Runtime.Generated
             System.Single @elapsedTime = *(float*)&ptr_of_this_method->Value;
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            global::GameComponent instance_of_this_method = (global::GameComponent)typeof(global::GameComponent).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            global::GameComponent instance_of_this_method = (global::GameComponent)typeof(global::GameComponent).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
             __intp.Free(ptr_of_this_method);
 
             instance_of_this_method.update(@elapsedTime);

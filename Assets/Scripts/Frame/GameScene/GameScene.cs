@@ -83,10 +83,6 @@ public abstract class GameScene : ComponentOwner
 	}
 	public virtual void keyProcess(float elapsedTime)
 	{
-		if (!mGameFramework.isEnableKeyboard())
-		{
-			return;
-		}
 		// 在准备退出当前流程时,不响应任何按键操作
 		if (mCurProcedure != null && !mCurProcedure.isPreparingExit())
 		{
@@ -112,7 +108,7 @@ public abstract class GameScene : ComponentOwner
 		return mAudioSource = mSceneObject.AddComponent<AudioSource>();
 	}
 	public virtual void createSceneProcedure() { }
-	public bool atProcedure(Type type)
+	public new bool atProcedure(Type type)
 	{
 		if (mCurProcedure == null)
 		{

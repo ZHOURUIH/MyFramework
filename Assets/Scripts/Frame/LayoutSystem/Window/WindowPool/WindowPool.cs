@@ -19,7 +19,7 @@ public class WindowPool<T> where T : myUIObject, new()
 		mUnusedList = new Stack<T>();
 	}
 	public void setTemplate(T template) { mTemplate = template; }
-	public T newWindow(myUIObject parent, string name = null, bool sortChild = true)
+	public T newWindow(myUIObject parent, string name = null, bool notifyLayout = true, bool sortChild = true)
 	{
 		if (name == null)
 		{
@@ -34,21 +34,20 @@ public class WindowPool<T> where T : myUIObject, new()
 		// 未使用列表中没有就创建新窗口
 		if (window == null)
 		{
-			if(mTemplate != null)
+			if (mTemplate != null)
 			{
-				window = mScript.cloneObject(parent, mTemplate, name, true, sortChild, sortChild);
+				window = mScript.cloneObject(parent, mTemplate, name, true);
 			}
 			else
 			{
-				window = mScript.createObject<T>(name, true, sortChild, sortChild);
+				window = mScript.createObject<T>(name, true);
 			}
 		}
 		mInusedList.Add(window);
 		window.setActive(true);
 		window.setName(name);
-		window.setParent(parent, sortChild);
-		// 此处将是否排序也当作是否通知布局刷新深度
-		window.setAsLastSibling(sortChild);
+		window.setParent(parent, false, false);
+		window.setAsLastSibling(sortChild, notifyLayout);
 		return window;
 	}
 	public void unuseAll()

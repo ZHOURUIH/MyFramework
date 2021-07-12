@@ -52,7 +52,7 @@ namespace ILRuntime.Runtime.Generated
         static StackObject* AssignFromStack_mSceneType_0(ref object o, ILIntepreter __intp, StackObject* ptr_of_this_method, IList<object> __mStack)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            System.Type @mSceneType = (System.Type)typeof(System.Type).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            System.Type @mSceneType = (System.Type)typeof(System.Type).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
             ((global::CmdGameSceneManagerEnter)o).mSceneType = @mSceneType;
             return ptr_of_this_method;
         }

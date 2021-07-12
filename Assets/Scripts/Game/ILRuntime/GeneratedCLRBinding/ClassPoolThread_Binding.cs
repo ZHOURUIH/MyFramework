@@ -40,10 +40,10 @@ namespace ILRuntime.Runtime.Generated
             System.Boolean @isNewObject = __intp.RetriveInt32(ptr_of_this_method, __mStack) == 1;
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            System.Type @type = (System.Type)typeof(System.Type).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            System.Type @type = (System.Type)typeof(System.Type).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 3);
-            global::ClassPoolThread instance_of_this_method = (global::ClassPoolThread)typeof(global::ClassPoolThread).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            global::ClassPoolThread instance_of_this_method = (global::ClassPoolThread)typeof(global::ClassPoolThread).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
 
             var result_of_this_method = instance_of_this_method.newClass(@type, out @isNewObject);
 

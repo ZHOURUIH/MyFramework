@@ -29,7 +29,7 @@ public class LayoutRegisterILR : GB
 	}
 	protected static void registeLayout<T>(int layout, string name, string prePath) where T : LayoutScript
 	{
-		mLayoutManager.registeLayout(typeof(T), layout, prePath + name + "/" + name);
+		mLayoutManager.registeLayout(typeof(T), layout, prePath + name + "/" + name, false);
 	}
 	protected static bool assign<T>(ref T thisScript, LayoutScript value, bool created) where T : LayoutScript
 	{

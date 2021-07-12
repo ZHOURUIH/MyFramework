@@ -298,7 +298,7 @@ public class myUGUINumber : myUGUIImage
 		mNumberList.Clear();
 		for (int i = 0; i < mMaxCount + 1; ++i)
 		{
-			mNumberList.Add(mLayout.getScript().createObject<myUGUIImage>(this, mName + "_" + IToS(i), false, false, false));
+			mNumberList.Add(mLayout.getScript().createObject<myUGUIImage>(this, mName + "_" + IToS(i), false));
 		}
 		refreshNumber();
 	}

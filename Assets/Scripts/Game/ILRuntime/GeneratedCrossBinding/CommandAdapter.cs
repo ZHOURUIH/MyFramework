@@ -8,7 +8,8 @@ namespace HotFix
     public class CommandAdapter : CrossBindingAdaptor
     {
         static CrossBindingMethodInfo mresetProperty_0 = new CrossBindingMethodInfo("resetProperty");
-        static CrossBindingMethodInfo<global::MyStringBuilder> mshowDebugInfo_2 = new CrossBindingMethodInfo<global::MyStringBuilder>("showDebugInfo");
+        static CrossBindingMethodInfo mexecute_1 = new CrossBindingMethodInfo("execute");
+        static CrossBindingMethodInfo<global::MyStringBuilder> mdebugInfo_2 = new CrossBindingMethodInfo<global::MyStringBuilder>("debugInfo");
         static CrossBindingMethodInfo mnotifyConstructDone_3 = new CrossBindingMethodInfo("notifyConstructDone");
         static CrossBindingMethodInfo<System.Boolean> msetDestroy_4 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
         static CrossBindingFunctionInfo<System.Boolean> misDestroy_5 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
@@ -37,7 +38,6 @@ namespace HotFix
 
         public class Adapter : global::Command, CrossBindingAdaptorType
         {
-            protected CrossBindingMethodInfo mexecute_1 = new CrossBindingMethodInfo("execute");
             ILTypeInstance instance;
             ILRuntime.Runtime.Enviorment.AppDomain appdomain;
 
@@ -70,12 +70,12 @@ namespace HotFix
                     mexecute_1.Invoke(this.instance);
             }
 
-            public override void showDebugInfo(global::MyStringBuilder builder)
+            public override void debugInfo(global::MyStringBuilder builder)
             {
-                if (mshowDebugInfo_2.CheckShouldInvokeBase(this.instance))
-                    base.showDebugInfo(builder);
+                if (mdebugInfo_2.CheckShouldInvokeBase(this.instance))
+                    base.debugInfo(builder);
                 else
-                    mshowDebugInfo_2.Invoke(this.instance, builder);
+                    mdebugInfo_2.Invoke(this.instance, builder);
             }
 
             public override void notifyConstructDone()

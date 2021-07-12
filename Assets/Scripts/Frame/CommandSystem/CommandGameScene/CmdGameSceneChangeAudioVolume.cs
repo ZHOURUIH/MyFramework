@@ -14,7 +14,7 @@ public class CmdGameSceneChangeAudioVolume : Command
 		gameScene.getComponent(out COMGameSceneAudio audio);
 		audio?.setVolume(mVolume);
 	}
-	public override void showDebugInfo(MyStringBuilder builder)
+	public override void debugInfo(MyStringBuilder builder)
 	{
 		builder.Append(": mVolume:", mVolume);
 	}

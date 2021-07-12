@@ -44,7 +44,7 @@ namespace ILRuntime.Runtime.Generated
             {
                 foreach(var m in lst)
                 {
-                    if(m.MatchGenericParameters(args, typeof(global::myUGUIObject), typeof(global::myUGUIObject).MakeByRefType(), typeof(System.String), typeof(System.Int32)))
+                    if(m.MatchGenericParameters(args, typeof(global::myUGUIObject), typeof(global::myUGUIObject).MakeByRefType(), typeof(System.String)))
                     {
                         method = m.MakeGenericMethod(args);
                         app.RegisterCLRMethodRedirection(method, newObject_1);
@@ -58,7 +58,7 @@ namespace ILRuntime.Runtime.Generated
             {
                 foreach(var m in lst)
                 {
-                    if(m.MatchGenericParameters(args, typeof(global::myUGUIObject), typeof(global::myUGUIObject).MakeByRefType(), typeof(global::myUIObject), typeof(System.String), typeof(System.Int32), typeof(System.Boolean), typeof(System.Boolean)))
+                    if(m.MatchGenericParameters(args, typeof(global::myUGUIObject), typeof(global::myUGUIObject).MakeByRefType(), typeof(global::myUIObject), typeof(System.String)))
                     {
                         method = m.MakeGenericMethod(args);
                         app.RegisterCLRMethodRedirection(method, newObject_2);
@@ -72,7 +72,7 @@ namespace ILRuntime.Runtime.Generated
             {
                 foreach(var m in lst)
                 {
-                    if(m.MatchGenericParameters(args, typeof(global::myUGUIText), typeof(global::myUGUIText).MakeByRefType(), typeof(global::myUIObject), typeof(System.String), typeof(System.Int32), typeof(System.Boolean), typeof(System.Boolean)))
+                    if(m.MatchGenericParameters(args, typeof(global::myUGUIText), typeof(global::myUGUIText).MakeByRefType(), typeof(global::myUIObject), typeof(System.String)))
                     {
                         method = m.MakeGenericMethod(args);
                         app.RegisterCLRMethodRedirection(method, newObject_3);
@@ -96,7 +96,7 @@ namespace ILRuntime.Runtime.Generated
             StackObject* __ret = ILIntepreter.Minus(__esp, 1);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
             __intp.Free(ptr_of_this_method);
 
             var result_of_this_method = instance_of_this_method.getType();
@@ -108,27 +108,22 @@ namespace ILRuntime.Runtime.Generated
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 4);
+            StackObject* __ret = ILIntepreter.Minus(__esp, 3);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            System.Int32 @active = ptr_of_this_method->Value;
+            System.String @name = (System.String)typeof(System.String).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            System.String @name = (System.String)typeof(System.String).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            global::myUGUIObject @obj = (global::myUGUIObject)typeof(global::myUGUIObject).CheckCLRTypes(__intp.RetriveObject(ptr_of_this_method, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 3);
-            global::myUGUIObject @obj = (global::myUGUIObject)typeof(global::myUGUIObject).CheckCLRTypes(__intp.RetriveObject(ptr_of_this_method, __mStack));
+            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
 
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 4);
-            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-
-            var result_of_this_method = instance_of_this_method.newObject<global::myUGUIObject>(out @obj, @name, @active);
+            var result_of_this_method = instance_of_this_method.newObject<global::myUGUIObject>(out @obj, @name);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
             __intp.Free(ptr_of_this_method);
             ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            __intp.Free(ptr_of_this_method);
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 3);
             switch(ptr_of_this_method->ObjectType)
             {
                 case ObjectTypes.StackObjectReference:
@@ -183,7 +178,7 @@ namespace ILRuntime.Runtime.Generated
             }
 
             __intp.Free(ptr_of_this_method);
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 4);
+            ptr_of_this_method = ILIntepreter.Minus(__esp, 3);
             __intp.Free(ptr_of_this_method);
             object obj_result_of_this_method = result_of_this_method;
             if(obj_result_of_this_method is CrossBindingAdaptorType)
@@ -197,42 +192,27 @@ namespace ILRuntime.Runtime.Generated
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 7);
+            StackObject* __ret = ILIntepreter.Minus(__esp, 4);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            System.Boolean @needSortChild = ptr_of_this_method->Value == 1;
+            System.String @name = (System.String)typeof(System.String).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            System.Boolean @showError = ptr_of_this_method->Value == 1;
+            global::myUIObject @parent = (global::myUIObject)typeof(global::myUIObject).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 3);
-            System.Int32 @active = ptr_of_this_method->Value;
+            global::myUGUIObject @obj = (global::myUGUIObject)typeof(global::myUGUIObject).CheckCLRTypes(__intp.RetriveObject(ptr_of_this_method, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 4);
-            System.String @name = (System.String)typeof(System.String).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
 
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 5);
-            global::myUIObject @parent = (global::myUIObject)typeof(global::myUIObject).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 6);
-            global::myUGUIObject @obj = (global::myUGUIObject)typeof(global::myUGUIObject).CheckCLRTypes(__intp.RetriveObject(ptr_of_this_method, __mStack));
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 7);
-            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-
-            var result_of_this_method = instance_of_this_method.newObject<global::myUGUIObject>(out @obj, @parent, @name, @active, @showError, @needSortChild);
+            var result_of_this_method = instance_of_this_method.newObject<global::myUGUIObject>(out @obj, @parent, @name);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
             __intp.Free(ptr_of_this_method);
             ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
             __intp.Free(ptr_of_this_method);
             ptr_of_this_method = ILIntepreter.Minus(__esp, 3);
-            __intp.Free(ptr_of_this_method);
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 4);
-            __intp.Free(ptr_of_this_method);
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 5);
-            __intp.Free(ptr_of_this_method);
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 6);
             switch(ptr_of_this_method->ObjectType)
             {
                 case ObjectTypes.StackObjectReference:
@@ -287,7 +267,7 @@ namespace ILRuntime.Runtime.Generated
             }
 
             __intp.Free(ptr_of_this_method);
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 7);
+            ptr_of_this_method = ILIntepreter.Minus(__esp, 4);
             __intp.Free(ptr_of_this_method);
             object obj_result_of_this_method = result_of_this_method;
             if(obj_result_of_this_method is CrossBindingAdaptorType)
@@ -301,42 +281,27 @@ namespace ILRuntime.Runtime.Generated
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;
-            StackObject* __ret = ILIntepreter.Minus(__esp, 7);
+            StackObject* __ret = ILIntepreter.Minus(__esp, 4);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            System.Boolean @needSortChild = ptr_of_this_method->Value == 1;
+            System.String @name = (System.String)typeof(System.String).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            System.Boolean @showError = ptr_of_this_method->Value == 1;
+            global::myUIObject @parent = (global::myUIObject)typeof(global::myUIObject).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 3);
-            System.Int32 @active = ptr_of_this_method->Value;
+            global::myUGUIText @obj = (global::myUGUIText)typeof(global::myUGUIText).CheckCLRTypes(__intp.RetriveObject(ptr_of_this_method, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 4);
-            System.String @name = (System.String)typeof(System.String).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
 
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 5);
-            global::myUIObject @parent = (global::myUIObject)typeof(global::myUIObject).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 6);
-            global::myUGUIText @obj = (global::myUGUIText)typeof(global::myUGUIText).CheckCLRTypes(__intp.RetriveObject(ptr_of_this_method, __mStack));
-
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 7);
-            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
-
-            var result_of_this_method = instance_of_this_method.newObject<global::myUGUIText>(out @obj, @parent, @name, @active, @showError, @needSortChild);
+            var result_of_this_method = instance_of_this_method.newObject<global::myUGUIText>(out @obj, @parent, @name);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
             __intp.Free(ptr_of_this_method);
             ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
             __intp.Free(ptr_of_this_method);
             ptr_of_this_method = ILIntepreter.Minus(__esp, 3);
-            __intp.Free(ptr_of_this_method);
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 4);
-            __intp.Free(ptr_of_this_method);
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 5);
-            __intp.Free(ptr_of_this_method);
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 6);
             switch(ptr_of_this_method->ObjectType)
             {
                 case ObjectTypes.StackObjectReference:
@@ -391,7 +356,7 @@ namespace ILRuntime.Runtime.Generated
             }
 
             __intp.Free(ptr_of_this_method);
-            ptr_of_this_method = ILIntepreter.Minus(__esp, 7);
+            ptr_of_this_method = ILIntepreter.Minus(__esp, 4);
             __intp.Free(ptr_of_this_method);
             object obj_result_of_this_method = result_of_this_method;
             if(obj_result_of_this_method is CrossBindingAdaptorType)
@@ -408,15 +373,15 @@ namespace ILRuntime.Runtime.Generated
             StackObject* __ret = ILIntepreter.Minus(__esp, 3);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
-            global::ObjectClickCallback @clickCallback = (global::ObjectClickCallback)typeof(global::ObjectClickCallback).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            global::ObjectClickCallback @clickCallback = (global::ObjectClickCallback)typeof(global::ObjectClickCallback).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)8);
             __intp.Free(ptr_of_this_method);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
-            global::myUIObject @obj = (global::myUIObject)typeof(global::myUIObject).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            global::myUIObject @obj = (global::myUIObject)typeof(global::myUIObject).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
             __intp.Free(ptr_of_this_method);
 
             ptr_of_this_method = ILIntepreter.Minus(__esp, 3);
-            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            global::LayoutScript instance_of_this_method = (global::LayoutScript)typeof(global::LayoutScript).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
             __intp.Free(ptr_of_this_method);
 
             instance_of_this_method.registeCollider(@obj, @clickCallback);

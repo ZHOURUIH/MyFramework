@@ -266,6 +266,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b850dd1f65899f49a51ea4930e5d6ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mFixedTime: 0
+  mScreenHeight: 1080
+  mScreenWidth: 1920
+  mEnablePoolStackTrace: 0
+  mEnableScriptDebug: 0
+  mUseFixedTime: 0
+  mForceTop: 0
+  mLoadSource: 0
+  mWindowMode: 1
+  mLogLevel: 4
 --- !u!4 &733988006
 Transform:
   m_ObjectHideFlags: 0

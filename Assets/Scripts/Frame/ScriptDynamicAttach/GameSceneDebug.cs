@@ -10,7 +10,7 @@ public class GameSceneDebug : MonoBehaviour
 	}
 	public void Update()
 	{
-		if (!FrameBase.mGameFramework.isEnableScriptDebug())
+		if (!FrameBase.mGameFramework.mEnableScriptDebug)
 		{
 			return;
 		}

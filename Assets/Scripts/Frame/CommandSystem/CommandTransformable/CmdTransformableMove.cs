@@ -50,7 +50,7 @@ public class CmdTransformableMove : Command
 			obj.setEnable(true);
 		}
 	}
-	public override void showDebugInfo(MyStringBuilder builder)
+	public override void debugInfo(MyStringBuilder builder)
 	{
 		builder.Append(": mKeyframe:", mKeyframe).
 				Append(", mOnceLength:", mOnceLength).

@@ -8,30 +8,45 @@ public class SQLiteManager : FrameSystem
 	protected Dictionary<string, SQLiteTable> mTableNameList;		// 根据表格名查找表格
 	protected Dictionary<Type, SQLiteTable> mTableDataTypeList;		// 根据数据类型查找表格
 	protected Dictionary<Type, SQLiteTable> mTableList;				// 根据表格类型查找表格
+	protected bool mAutoLoad;										// 是否在资源可用时自动加载所有资源
 	public SQLiteManager()
 	{
 		mTableNameList = new Dictionary<string, SQLiteTable>();
 		mTableDataTypeList = new Dictionary<Type, SQLiteTable>();
 		mTableList = new Dictionary<Type, SQLiteTable>();
+		mAutoLoad = true;
 	}
 	public override void resourceAvailable()
 	{
-		base.resourceAvailable();
-		// 资源更新完毕后需要将所有已经加载的表格重新加载一次
-		foreach(var item in mTableList)
+		if(!mAutoLoad)
 		{
-			item.Value.init(FrameDefineExtra.SQLITE_ENCRYPT_KEY);
+			return;
+		}
+
+		// 资源更新完毕后需要将所有已经加载的表格重新加载一次
+		loadAll();
+	}
+	public void loadAll()
+	{
+		foreach (var item in mTableList)
+		{
+			item.Value.load(FrameDefineExtension.SQLITE_ENCRYPT_KEY);
 		}
 	}
+	public void setAutoLoad(bool autoLoad) { mAutoLoad = autoLoad; }
 	public SQLiteTable registeTable(Type type, Type dataType, string tableName)
 	{
 		var table = createInstance<SQLiteTable>(type);
 		table.setTableName(tableName);
 		table.setDataType(dataType);
-		table.init(FrameDefineExtra.SQLITE_ENCRYPT_KEY);
 		mTableList.Add(Typeof(table), table);
 		mTableNameList.Add(tableName, table);
 		mTableDataTypeList.Add(dataType, table);
+		// 如果在注册时资源已经可用了,则可以直接加载表格
+		if (mGameFramework.isResourceAvailable())
+		{
+			table.load(FrameDefineExtension.SQLITE_ENCRYPT_KEY);
+		}
 		return table;
 	}
 	public override void destroy()

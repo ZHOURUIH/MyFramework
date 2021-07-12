@@ -224,7 +224,6 @@
     <Compile Include="Game\Common\GameBaseILR.cs" />
     <Compile Include="Game\Common\GameBaseSQLiteILR.cs" />
     <Compile Include="Game\Common\GameCallback.cs" />
-    <Compile Include="Game\GameConfig\GameConfig.cs" />
     <Compile Include="Game\Common\GameDefineILR.cs" />
     <Compile Include="Game\Common\GameEnum.cs" />
     <Compile Include="Game\Utility\GameUtilityILR.cs" />

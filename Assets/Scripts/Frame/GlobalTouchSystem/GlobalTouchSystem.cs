@@ -4,8 +4,8 @@ using System.Collections.Generic;
 // 用来代替UGUI的EventSystem,统一多摄像机的鼠标事件通知
 public class GlobalTouchSystem : FrameSystem
 {
-	protected Dictionary<IMouseEventCollect, MultiTouchInfo> mMultiTouchWindowList;         // 当前已经被多点触控的窗口列表
 	protected SafeDictionary<IMouseEventCollect, IMouseEventCollect> mPassOnlyArea;			// 点击穿透区域绑定列表,Key的区域中,只允许Value的区域穿透,Key无论是否设置了允许射线穿透,实际检测时都是不能够穿透的
+	protected Dictionary<IMouseEventCollect, MultiTouchInfo> mMultiTouchWindowList;         // 当前已经被多点触控的窗口列表
 	protected HashSet<IMouseEventCollect> mMouseDownWindowList; // 鼠标按下时所选中的所有窗口和物体
 	protected HashSet<IMouseEventCollect> mParentPassOnlyList;	// 仅父节点区域可穿透的列表
 	protected HashSet<IMouseEventCollect> mAllObjectSet;        // 所有参与鼠标或触摸事件的窗口和物体列表
@@ -22,18 +22,18 @@ public class GlobalTouchSystem : FrameSystem
 	protected bool mUseHover;									// 是否判断鼠标悬停在某个窗口
 	public GlobalTouchSystem()
 	{
+		mPassOnlyArea = new SafeDictionary<IMouseEventCollect, IMouseEventCollect>();
+		mMultiTouchWindowList = new Dictionary<IMouseEventCollect, MultiTouchInfo>();
+		mMouseDownWindowList = new HashSet<IMouseEventCollect>();
+		mParentPassOnlyList = new HashSet<IMouseEventCollect>();
 		mAllObjectSet = new HashSet<IMouseEventCollect>();
 		mMouseCastWindowList = new List<MouseCastWindowSet>();
 		mMouseCastObjectList = new List<MouseCastObjectSet>();
-		mMouseDownWindowList = new HashSet<IMouseEventCollect>();
-		mMultiTouchWindowList = new Dictionary<IMouseEventCollect, MultiTouchInfo>();
-		mPassOnlyArea = new SafeDictionary<IMouseEventCollect, IMouseEventCollect>();
-		mParentPassOnlyList = new HashSet<IMouseEventCollect>();
 		mHoverWindowList = new List<IMouseEventCollect>();
 		mStayTimer = new MyTimer();
+		mUseGlobalTouch = true;
 		mSimulateTouch = true;
 		mUseHover = true;
-		mUseGlobalTouch = true;
 		Input.multiTouchEnabled = true;
 	}
 	public override void init()
@@ -60,11 +60,11 @@ public class GlobalTouchSystem : FrameSystem
 	public Vector3 getCurMousePosition() { return mSimulateTouch ? mCurTouchPosition : Input.mousePosition; }
 	public List<IMouseEventCollect> getHoverWindowList() { return mHoverWindowList; }
 	public IMouseEventCollect getTopHoverWindow() { return mHoverWindowList.Count > 0 ? mHoverWindowList[0] : null; }
-	public IMouseEventCollect getHoverWindow(ref Vector3 pos, IMouseEventCollect ignoreWindow = null, bool ignorePassRay = false)
+	public IMouseEventCollect getHoverWindow(Vector3 pos, IMouseEventCollect ignoreWindow = null, bool ignorePassRay = false)
 	{
 		// 返回最上层的窗口
 		LIST(out List<IMouseEventCollect> resultList);
-		globalRaycast(resultList, ref pos, ignorePassRay);
+		globalRaycast(resultList, pos, ignorePassRay);
 		IMouseEventCollect forwardButton = null;
 		int count = resultList.Count;
 		for(int i = 0; i < count; ++i)
@@ -80,10 +80,10 @@ public class GlobalTouchSystem : FrameSystem
 		return forwardButton;
 	}
 	// 越顶层的窗口越靠近列表前面
-	public void getAllHoverWindow(List<IMouseEventCollect> hoverList, ref Vector3 pos, IMouseEventCollect ignoreWindow = null, bool ignorePassRay = false)
+	public void getAllHoverWindow(List<IMouseEventCollect> hoverList, Vector3 pos, IMouseEventCollect ignoreWindow = null, bool ignorePassRay = false)
 	{
 		LIST(out List<IMouseEventCollect> resultList);
-		globalRaycast(resultList, ref pos, ignorePassRay);
+		globalRaycast(resultList, pos, ignorePassRay);
 		int count = resultList.Count;
 		for(int i = 0; i < count; ++i)
 		{
@@ -121,7 +121,7 @@ public class GlobalTouchSystem : FrameSystem
 				Touch touch = Input.GetTouch(i);
 				tempMultiTouchPoint.Add(touch.fingerId, touch);
 				Vector3 touchPosition = new Vector3(touch.position.x, touch.position.y, 0.0f);
-				IMouseEventCollect hoverWindow = getHoverWindow(ref touchPosition);
+				IMouseEventCollect hoverWindow = getHoverWindow(touchPosition);
 				if (hoverWindow != null)
 				{
 					if (!touchInWindow.TryGetValue(hoverWindow, out Dictionary<int, Touch> touchList))
@@ -295,10 +295,10 @@ public class GlobalTouchSystem : FrameSystem
 			}
 			// 鼠标移动检测
 			Vector3 curMousePosition = getCurMousePosition();
-			if (!isVectorEqual(ref mLastMousePosition, ref curMousePosition))
+			if (!isVectorEqual(mLastMousePosition, curMousePosition))
 			{
 				// 检查当前悬停窗口
-				checkHoverWindow(ref curMousePosition, true, curTouchID);
+				checkHoverWindow(curMousePosition, true, curTouchID);
 				// 鼠标移动事件
 				Vector3 moveDelta = curMousePosition - mLastMousePosition;
 				int hoverCount = mHoverWindowList.Count;
@@ -532,7 +532,7 @@ public class GlobalTouchSystem : FrameSystem
 		}
 		Vector3 mousePosition = getCurMousePosition();
 		// 检查当前悬停窗口
-		checkHoverWindow(ref mousePosition, press, touchID);
+		checkHoverWindow(mousePosition, press, touchID);
 		// 通知屏幕鼠标事件
 		foreach (var item in mAllObjectSet)
 		{
@@ -550,7 +550,7 @@ public class GlobalTouchSystem : FrameSystem
 			}
 		}
 		LIST(out List<IMouseEventCollect> raycast);
-		globalRaycast(raycast, ref mousePosition);
+		globalRaycast(raycast, mousePosition);
 		int count = raycast.Count;
 		for(int i = 0; i < count; ++i)
 		{
@@ -583,7 +583,7 @@ public class GlobalTouchSystem : FrameSystem
 		UN_LIST(raycast);
 	}
 	// 全局射线检测
-	protected void globalRaycast(List<IMouseEventCollect> resultList, ref Vector3 mousePos, bool ignorePassRay = false)
+	protected void globalRaycast(List<IMouseEventCollect> resultList, Vector3 mousePos, bool ignorePassRay = false)
 	{
 		bool continueRay = true;
 		// 每次检测UI时都需要对列表按摄像机深度进行降序排序
@@ -602,8 +602,8 @@ public class GlobalTouchSystem : FrameSystem
 				logError("摄像机已销毁:" + item.getCamera().getName());
 				continue;
 			}
-			getCameraRay(ref mousePos, out Ray ray, item.getCamera().getCamera());
-			raycastLayout(ref ray, item.getWindowOrderList(), resultList, ref continueRay, false, ignorePassRay);
+			Ray ray = getCameraRay(mousePos, item.getCamera().getCamera());
+			raycastLayout(ray, item.getWindowOrderList(), resultList, ref continueRay, false, ignorePassRay);
 		}
 		// UI层允许当前鼠标射线穿过时才检测场景物体
 		if (continueRay)
@@ -626,7 +626,7 @@ public class GlobalTouchSystem : FrameSystem
 				Camera camera;
 				if(item.mCamera == null)
 				{
-					GameCamera mainCamera = mCameraManager.getMainCamera();
+					GameCamera mainCamera = getMainCamera();
 					if (mainCamera == null)
 					{
 						logError("找不到主摄像机,无法检测摄像机射线碰撞");
@@ -638,12 +638,12 @@ public class GlobalTouchSystem : FrameSystem
 				{
 					camera = item.mCamera.getCamera();
 				}
-				getCameraRay(ref mousePos, out Ray ray, camera);
-				raycastMovableObject(ref ray, item.mObjectOrderList, resultList, ref continueRay, false);
+				Ray ray = getCameraRay(mousePos, camera);
+				raycastMovableObject(ray, item.mObjectOrderList, resultList, ref continueRay, false);
 			}
 		}
 	}
-	protected void raycastMovableObject(ref Ray ray, List<IMouseEventCollect> moveObjectList, List<IMouseEventCollect> retList, ref bool continueRay, bool clearList = true)
+	protected void raycastMovableObject(Ray ray, List<IMouseEventCollect> moveObjectList, List<IMouseEventCollect> retList, ref bool continueRay, bool clearList = true)
 	{
 		if(clearList)
 		{
@@ -679,7 +679,7 @@ public class GlobalTouchSystem : FrameSystem
 	}
 	// ignorePassRay表示是否忽略窗口的isPassRay属性,true表示认为所有的都允许射线穿透
 	// 但是ignorePassRay不会影响到PassOnlyArea和ParentPassOnly
-	protected void raycastLayout(ref Ray ray, 
+	protected void raycastLayout(Ray ray, 
 								 List<IMouseEventCollect> windowOrderList, 
 								 List<IMouseEventCollect> retList, 
 								 ref bool continueRay, 
@@ -778,14 +778,14 @@ public class GlobalTouchSystem : FrameSystem
 		}
 		return true;
 	}
-	protected void checkHoverWindow(ref Vector3 mousePos, bool mouseDown, int touchID)
+	protected void checkHoverWindow(Vector3 mousePos, bool mouseDown, int touchID)
 	{
 		LIST(out List<IMouseEventCollect> hoverList);
 		// 模拟触摸状态下,如果鼠标未按下,则不会悬停在任何窗口上
 		if (mouseDown || !mSimulateTouch)
 		{
 			// 计算鼠标当前所在最前端的窗口
-			getAllHoverWindow(hoverList, ref mousePos);
+			getAllHoverWindow(hoverList, mousePos);
 		}
 
 		// 判断鼠标是否还在当前窗口内,鼠标已经移动到了其他窗口中,发送鼠标离开的事件

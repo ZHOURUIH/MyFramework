@@ -361,7 +361,9 @@ namespace ");
                 string clsName, realClsName;
                 bool isByRef;
                 returnType.GetClassName(out clsName, out realClsName, out isByRef, true);
+                sb.Append("typeof(");
                 sb.Append(realClsName);
+                sb.Append(")");
             }
             return sb.ToString();
         }
@@ -512,7 +514,7 @@ namespace ");
             sb.AppendLine("                }");
             if (hasReturn)
                 sb.AppendLine(@"                else
-                    return default(TResult);");
+                    return default(" + rtRealName + ");");
             sb.AppendLine(@"            }
 
             public override void Invoke(ILTypeInstance instance)

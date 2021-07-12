@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 public class InputSystem : FrameSystem
 {
 	protected Dictionary<object, Dictionary<OnKeyCurrentDown, KeyInfo>> mListenerList;
 	protected SafeDictionary<KeyCode, SafeList<KeyInfo>> mKeyListenList;	// 按键按下的监听回调列表
+	protected Dictionary<int, ClickPoint> mClickPointList;	// 这一帧点击的坐标的列表,因为触点数量不一定,所以只是记录这一帧有哪些点击操作
 	protected HashSet<IInputField> mInputFieldList;			// 输入框列表,用于判断当前是否正在输入
 	protected Vector3 mLastMousePosition;					// 上一帧的鼠标坐标
 	protected Vector3 mCurMousePosition;					// 当前鼠标坐标,以左下角为原点的坐标
@@ -15,6 +17,7 @@ public class InputSystem : FrameSystem
 		mListenerList = new Dictionary<object, Dictionary<OnKeyCurrentDown, KeyInfo>>();
 		mKeyListenList = new SafeDictionary<KeyCode, SafeList<KeyInfo>>();
 		mInputFieldList = new HashSet<IInputField>();
+		mClickPointList = new Dictionary<int, ClickPoint>();
 	}
 	// 添加对于指定按键的当前按下事件监听
 	public void listenKeyCurrentDown(KeyCode key, OnKeyCurrentDown callback, object listener, bool ctrlDown = false, bool shiftDown = false, bool altDown = false)
@@ -78,8 +81,67 @@ public class InputSystem : FrameSystem
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
+		// 点击操作会判断触点和鼠标,因为都会产生点击操作
+		// 在触屏上,会将第一个触点也当作鼠标,也就是触屏上使用isMouseCurrentDown实际上是获得的第一个触点的信息
+		// 所以先判断有没有触点,如果没有再判断鼠标
+		if (Input.touchCount == 0)
+		{
+			// 左键
+			if (isMouseCurrentDown(MOUSE_BUTTON.LEFT))
+			{
+				pointDown((int)MOUSE_BUTTON.LEFT, Input.mousePosition);
+			}
+			else if(isMouseCurrentUp(MOUSE_BUTTON.LEFT))
+			{
+				pointUp((int)MOUSE_BUTTON.LEFT, Input.mousePosition);
+			}
+			// 右键
+			if (isMouseCurrentDown(MOUSE_BUTTON.RIGHT))
+			{
+				pointDown((int)MOUSE_BUTTON.RIGHT, Input.mousePosition);
+			}
+			else if (isMouseCurrentUp(MOUSE_BUTTON.RIGHT))
+			{
+				pointUp((int)MOUSE_BUTTON.RIGHT, Input.mousePosition);
+			}
+			// 中键
+			if (isMouseCurrentDown(MOUSE_BUTTON.MIDDLE))
+			{
+				pointDown((int)MOUSE_BUTTON.MIDDLE, Input.mousePosition);
+			}
+			else if (isMouseCurrentUp(MOUSE_BUTTON.MIDDLE))
+			{
+				pointUp((int)MOUSE_BUTTON.MIDDLE, Input.mousePosition);
+			}
+		}
+		else
+		{
+			for(int i = 0; i < Input.touchCount; ++i)
+			{
+				Touch touch = Input.GetTouch(i);
+				if (touch.phase == TouchPhase.Began)
+				{
+					pointDown(touch.fingerId, touch.position);
+				}
+				else if(touch.phase == TouchPhase.Ended)
+				{
+					pointUp(touch.fingerId, touch.position);
+				}
+			}
+		}
+
 		mCurMousePosition = Input.mousePosition;
-		mMouseDelta = mCurMousePosition - mLastMousePosition;
+		// 鼠标任意键按下时,确保这一帧没有鼠标移动量
+		if (isMouseCurrentDown(MOUSE_BUTTON.LEFT) || 
+			isMouseCurrentDown(MOUSE_BUTTON.RIGHT) || 
+			isMouseCurrentDown(MOUSE_BUTTON.MIDDLE))
+		{
+			mMouseDelta = Vector3.zero;
+		}
+		else
+		{
+			mMouseDelta = mCurMousePosition - mLastMousePosition;
+		}
 		mLastMousePosition = mCurMousePosition;
 		bool inputting = false;
 		foreach (var item in mInputFieldList)
@@ -119,6 +181,37 @@ public class InputSystem : FrameSystem
 			}
 		}
 	}
+	public override void lateUpdate(float elapsedTime)
+	{
+		base.lateUpdate(elapsedTime);
+		// 销毁已经不存在的触点
+		List<int> tempList = null;
+		foreach(var item in mClickPointList)
+		{
+			if (!item.Value.isFinish())
+			{
+				continue;
+			}
+			if (tempList == null)
+			{
+				LIST(out tempList);
+			}
+			tempList.Add(item.Key);
+		}
+		if (tempList != null)
+		{
+			int count = tempList.Count;
+			for (int i = 0; i < count; ++i)
+			{
+				int pointID = tempList[i];
+				UN_CLASS(mClickPointList[pointID]);
+				mClickPointList.Remove(pointID);
+			}
+			UN_LIST(tempList);
+		}
+	}
+	// 外部可以通过获取点击操作列表,获取到这一帧的所有点击操作信息,且不分平台,统一触屏和鼠标操作
+	public Dictionary<int, ClickPoint> getClickPointList() { return mClickPointList; }
 	public void setMouseVisible(bool visible) { Cursor.visible = visible; }
 	public Vector3 getMousePosition() { return mCurMousePosition; }
 	public Vector3 getMouseDelta() { return mMouseDelta; }
@@ -172,5 +265,25 @@ public class InputSystem : FrameSystem
 			curHelperKeyMask |= 1 << 2;
 		}
 		return curHelperKeyMask;
+	}
+	protected void pointDown(int pointerID, Vector3 position)
+	{
+		if (mClickPointList.ContainsKey(pointerID))
+		{
+			logError("已包含相同的触点ID, ID:" + IToS(pointerID));
+			return;
+		}
+		CLASS(out ClickPoint point);
+		point.pointDown(pointerID, position);
+		mClickPointList.Add(point.getPointerID(), point);
+	}
+	protected void pointUp(int pointerID, Vector3 position)
+	{
+		if (!mClickPointList.TryGetValue(pointerID, out ClickPoint point))
+		{
+			logError("找不到触点信息, ID:" + pointerID);
+			return;
+		}
+		point.pointUp(position);
 	}
 }

@@ -49,7 +49,7 @@ public class ILRuntimeCLRBinding : FrameUtility
 		// 用新的分析热更dll调用引用来生成绑定代码
 		Debug.Log("如果自动分析有报错,先尝试重新编译热更工程后再分析");
 		var domain = new ILRAppDomain();
-		string dllPath = FrameDefine.P_STREAMING_ASSETS_PATH + FrameDefine.ILR_FILE_NAME;
+		string dllPath = FrameDefine.P_STREAMING_ASSETS_PATH + FrameDefine.ILR_FILE;
 		using (var fs = new FileStream(dllPath, FileMode.Open, FileAccess.Read))
 		{
 			domain.LoadAssembly(fs);

@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System;
-using System.Collections.Generic;
 
 // 管理类初始化完成调用
 // 这个父类的添加是方便代码的书写
@@ -22,8 +21,6 @@ public class FrameBase : ClassObject
 #endif
 	public static CameraManager mCameraManager;
 	public static ResourceManager mResourceManager;
-	public static ApplicationConfig mApplicationConfig;
-	public static FrameConfig mFrameConfig;
 	public static ObjectPool mObjectPool;
 	public static InputSystem mInputSystem;
 	public static SceneSystem mSceneSystem;
@@ -51,6 +48,8 @@ public class FrameBase : ClassObject
 	public static TweenerManager mTweenerManager;
 	public static StateManager mStateManager;
 	public static SocketTypeManager mSocketTypeManager;
+	public static GameObjectPool mGameObjectPool;
+	public static ExcelManager mExcelManager;
 #if USE_ILRUNTIME
 	public static ILRSystem mILRSystem;
 #endif
@@ -75,8 +74,6 @@ public class FrameBase : ClassObject
 #endif
 		getFrameSystemMain(out mCameraManager);
 		getFrameSystemMain(out mResourceManager);
-		getFrameSystemMain(out mApplicationConfig);
-		getFrameSystemMain(out mFrameConfig);
 		getFrameSystemMain(out mObjectPool);
 		getFrameSystemMain(out mInputSystem);
 		getFrameSystemMain(out mSceneSystem);
@@ -104,11 +101,13 @@ public class FrameBase : ClassObject
 		getFrameSystemMain(out mTweenerManager);
 		getFrameSystemMain(out mStateManager);
 		getFrameSystemMain(out mSocketTypeManager);
+		getFrameSystemMain(out mGameObjectPool);
+		getFrameSystemMain(out mExcelManager);
 #if USE_ILRUNTIME
 		getFrameSystemMain(out mILRSystem);
 #endif
 	}
-	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	//---------------------------------------------------------------------------------------------------------------------------------------
 	protected static void getFrameSystemMain<T>(out T system) where T : FrameSystem
 	{
 		system = mGameFramework.getSystem(typeof(T)) as T;

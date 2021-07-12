@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
 using System;
 
-public abstract class SceneProcedure : IDelayCmdWatcher
+public abstract class SceneProcedure : DelayCmdWatcher
 {
 	protected Dictionary<Type, SceneProcedure> mChildProcedureList; // 子流程列表
-	protected HashSet<long> mDelayCmdList;		// 流程进入时的延迟命令列表,当命令执行时,会从列表中移除该命令	
-	protected CommandCallback mCmdStartCallback;// 命令开始的回调,保存变量是为了避免GC
 	protected SceneProcedure mParentProcedure;	// 父流程
 	protected SceneProcedure mPrepareNext;      // 准备退出到的流程
 	protected GameScene mGameScene;             // 流程所属的场景
@@ -15,11 +13,9 @@ public abstract class SceneProcedure : IDelayCmdWatcher
 	protected bool mInited;                     // 是否已经初始化,子节点在初始化时需要先确保父节点已经初始化
 	public SceneProcedure()
 	{
-		mDelayCmdList = new HashSet<long>();
 		mChildProcedureList = new Dictionary<Type, SceneProcedure>();
 		mPrepareTimer = new MyTimer();
 		mPrepareIntent = null;
-		mCmdStartCallback = onCmdStarted;
 	}
 	// 销毁场景时会调用流程的销毁
 	public virtual void destroy() { }
@@ -230,33 +226,6 @@ public abstract class SceneProcedure : IDelayCmdWatcher
 		child.setParent(this);
 		mChildProcedureList.Add(child.mType, child);
 		return true;
-	}
-	public override void addDelayCmd(Command cmd)
-	{
-		mDelayCmdList.Add(cmd.getAssignID());
-		cmd.addStartCommandCallback(mCmdStartCallback);
-	}
-	public override void onCmdStarted(Command cmd)
-	{
-		if (!mDelayCmdList.Remove(cmd.getAssignID()))
-		{
-			logError("命令执行后移除流程命令失败");
-		}
-	}
-	public override void interruptCommand(long assignID, bool showError = true)
-	{
-		if (mDelayCmdList.Remove(assignID))
-		{
-			mCommandSystem.interruptCommand(assignID, showError);
-		}
-	}
-	public override void interruptAllCommand()
-	{
-		foreach(var item in mDelayCmdList)
-		{
-			mCommandSystem.interruptCommand(item, false);
-		}
-		mDelayCmdList.Clear();
 	}
 	//---------------------------------------------------------------------------------------------------------
 	protected bool setParent(SceneProcedure parent)

@@ -11,7 +11,7 @@ public class UnityAndroidLog : MonoBehaviour
 	public static OnAndroidError mOnAndroidError;
 	public void log(string info)
 	{
-		UnityUtility.log("android : " + info, 0);
+		UnityUtility.logForce("android : " + info);
 		mOnAndroidLog?.Invoke(info);
 	}
 	public void logError(string info)

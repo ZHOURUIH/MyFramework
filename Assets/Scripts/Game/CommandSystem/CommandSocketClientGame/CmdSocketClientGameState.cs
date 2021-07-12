@@ -12,7 +12,7 @@ public class CmdSocketClientGameState : Command
 	{
 		;
 	}
-	public override void showDebugInfo(MyStringBuilder builder)
+	public override void debugInfo(MyStringBuilder builder)
 	{
 		builder.Append(": mNetState:", mNetState.ToString());
 	}

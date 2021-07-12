@@ -11,6 +11,7 @@ public class DoubleBuffer<T> : FrameBase
 	protected int mReadIndex;
 	protected int mReadThreadID;
 	protected int mWriteThreadID;
+	protected bool mReading;			// 是否正在使用读列表中
 	public DoubleBuffer()
 	{
 		mBufferList = new List<T>[2];
@@ -23,6 +24,12 @@ public class DoubleBuffer<T> : FrameBase
 	// 切换缓冲区,获得可读列表,在遍历可读列表期间,不能再次调用get,否则会出现不可预知的错误,并且该函数不能在多个线程中调用
 	public List<T> get()
 	{
+		if (mReading)
+		{
+			logError("读列表正在使用中,不能再次获取读列表");
+			return null;
+		}
+		mReading = true;
 		int curThreadID = Thread.CurrentThread.ManagedThreadId;
 		mBufferLock.waitForUnlock();
 		if (mReadThreadID == 0)
@@ -38,6 +45,10 @@ public class DoubleBuffer<T> : FrameBase
 			return null;
 		}
 		return readList;
+	}
+	public void endGet()
+	{
+		mReading = false;
 	}
 	// 向可写列表中添加数据
 	public void add(T value)
@@ -63,6 +74,10 @@ public class DoubleBuffer<T> : FrameBase
 	public void setWriteListLimit(uint limit) { mWriteListLimit = limit; }
 	public void clear()
 	{
+		if (mReading)
+		{
+			logError("正在使用读列表中,无法清空");
+		}
 		mBufferLock.waitForUnlock();
 		mBufferList[mReadIndex].Clear();
 		mBufferList[mWriteIndex].Clear();

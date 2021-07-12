@@ -15,7 +15,6 @@ public class FrameDefine
 	public const string RESOURCES = "Resources";
 	public const string ATLAS = "Atlas";
 	public const string FONT = "Font";
-	public const string GAME_DATA_FILE = "GameDataFile";
 	public const string KEY_FRAME = "KeyFrame";
 	public const string LOWER_KEY_FRAME = "keyframe";
 	public const string LAYOUT_PREFAB = "Layout";
@@ -35,6 +34,9 @@ public class FrameDefine
 	public const string TEXTURE_ANIM = "TextureAnim";
 	public const string UGUI_SUB_PREFAB = "UGUISubPrefab";
 	public const string UGUI_PREFAB = "UGUIPrefab";
+	public const string EXCEL = "Excel";
+	public const string EFFECT = "Effect";
+	public const string CHARACTER = "Character";
 #if UNITY_IPHONE
 	public const string STREAMING_ASSETS = "Raw";
 #elif !UNITY_ANDROID || UNITY_EDITOR
@@ -70,7 +72,6 @@ public class FrameDefine
 	// 由于Android下的StreamingAssets路径不完全以Assets路径开头,与其他平台不一致,所以不定义相对于Asstes的路径
 	public const string SA_CONFIG_PATH = CONFIG + "/";
 	public const string SA_VIDEO_PATH = VIDEO + "/";
-	public const string SA_GAME_DATA_FILE_PATH = GAME_DATA_FILE + "/";
 	public const string SA_DATA_BASE_PATH = DATA_BASE + "/";
 	public const string SA_BUNDLE_KEY_FRAME_PATH = LOWER_KEY_FRAME + "/";
 	public const string SA_BUNDLE_LAYOU_PATH = LOWER_LAYOUT + "/";
@@ -101,8 +102,10 @@ public class FrameDefine
 	public const string R_PARTICLE_PATH = PARTICLE + "/";
 	public const string R_MODEL_PATH = MODEL + "/";
 	public const string R_SCENE_PATH = SCENE + "/";
+	public const string R_EFFECT_PATH = EFFECT + "/";
+	public const string R_CHARACTER_PATH = CHARACTER + "/";
 	// 绝对路径,以F_开头,表示Full
-	public static string F_PROJECT_PATH = Application.dataPath + "/../";
+	public static string F_PROJECT_PATH = StringUtility.getFilePath(Application.dataPath) + "/";
 	public static string F_ASSETS_PATH = Application.dataPath + "/";
 	// 安卓平台上如果访问StreamingAsset下的AssetBundle需要使用特殊路径,且与Application.streamingAssetsPath不同
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -114,26 +117,36 @@ public class FrameDefine
 	public static string F_SCRIPTS_ILRUNTIME_PATH = F_SCRIPTS_GAME_PATH + ILRUNTIME + "/";
 	public static string F_HOT_FIX_PATH = F_PROJECT_PATH + HOT_FIX + "/";
 	public static string F_HOT_FIX_GAME_PATH = F_HOT_FIX_PATH + GAME + "/";
-	public static string F_GAME_RESOURCES_PATH = F_ASSETS_PATH + GAME_RESOURCES + "/";
 	public static string F_PLUGINS_PATH = F_ASSETS_PATH + PLUGINS + "/";
 	public static string F_PERSISTENT_DATA_PATH = Application.persistentDataPath + "/";
 	public static string F_TEMPORARY_CACHE_PATH = Application.temporaryCachePath + "/";
 	public static string F_STREAMING_ASSETS_PATH = Application.streamingAssetsPath + "/";
-	public static string F_ASSETS_DATA_BASE_PATH = F_STREAMING_ASSETS_PATH + DATA_BASE + "/";
-	public static string F_PERSIS_DATA_BASE_PATH = F_PERSISTENT_DATA_PATH + DATA_BASE + "/";
-	public static string F_VIDEO_PATH = F_STREAMING_ASSETS_PATH + VIDEO + "/";
-	public static string F_CONFIG_PATH = F_STREAMING_ASSETS_PATH + CONFIG + "/";
-	public static string F_GAME_DATA_FILE_PATH = F_STREAMING_ASSETS_PATH + GAME_DATA_FILE + "/";
-	public static string F_HELPER_EXE_PATH = F_STREAMING_ASSETS_PATH + HELPER_EXE + "/";
-	public static string F_CUSTOM_SOUND_PATH = F_STREAMING_ASSETS_PATH + CUSTOM_SOUND + "/";
-	public static string F_GAME_PLUGIN_PATH = F_STREAMING_ASSETS_PATH + GAME_PLUGIN + "/";
-	public static string F_ATLAS_PATH = F_GAME_RESOURCES_PATH + ATLAS + "/";
-	public static string F_GAME_ATLAS_PATH = F_ATLAS_PATH + GAME_ATLAS + "/";
-	public static string F_ATLAS_TEXTURE_ANIM_PATH = F_ATLAS_PATH + TEXTURE_ANIM + "/";
-	public static string F_TEXTURE_PATH = F_GAME_RESOURCES_PATH + TEXTURE + "/";
-	public static string F_TEXTURE_GAME_TEXTURE_PATH = F_TEXTURE_PATH + GAME_TEXTURE + "/";
-	public static string F_TEXTURE_ANIM_PATH = F_TEXTURE_PATH + TEXTURE_ANIM + "/";
+	public static string F_GAME_RESOURCES_PATH = F_ASSETS_PATH + GAME_RESOURCES + "/";
+	public static string F_RES_ATLAS_PATH = F_GAME_RESOURCES_PATH + ATLAS + "/";
+	public static string F_RES_GAME_ATLAS_PATH = F_RES_ATLAS_PATH + GAME_ATLAS + "/";
+	public static string F_RES_ATLAS_TEXTURE_ANIM_PATH = F_RES_ATLAS_PATH + TEXTURE_ANIM + "/";
+	public static string F_RES_TEXTURE_PATH = F_GAME_RESOURCES_PATH + TEXTURE + "/";
+	public static string F_RES_TEXTURE_GAME_TEXTURE_PATH = F_RES_TEXTURE_PATH + GAME_TEXTURE + "/";
+	public static string F_RES_TEXTURE_ANIM_PATH = F_RES_TEXTURE_PATH + TEXTURE_ANIM + "/";
+#if !UNITY_EDITOR && UNITY_ANDROID
+	public static string F_PATH_KEYFRAME_PATH = F_PERSISTENT_DATA_PATH + PATH_KEY_FRAME + "/";
+	public static string F_DATA_BASE_PATH = F_PERSISTENT_DATA_PATH + DATA_BASE + "/";
+	public static string F_EXCEL_PATH = F_PERSISTENT_DATA_PATH + EXCEL + "/";
+	public static string F_GAME_PLUGIN_PATH = F_PERSISTENT_DATA_PATH + GAME_PLUGIN + "/";
+	public static string F_CUSTOM_SOUND_PATH = F_PERSISTENT_DATA_PATH + CUSTOM_SOUND + "/";
+	public static string F_HELPER_EXE_PATH = F_PERSISTENT_DATA_PATH + HELPER_EXE + "/";
+	public static string F_CONFIG_PATH = F_PERSISTENT_DATA_PATH + CONFIG + "/";
+	public static string F_VIDEO_PATH = F_PERSISTENT_DATA_PATH + VIDEO + "/";
+#else
 	public static string F_PATH_KEYFRAME_PATH = F_STREAMING_ASSETS_PATH + PATH_KEY_FRAME + "/";
+	public static string F_DATA_BASE_PATH = F_STREAMING_ASSETS_PATH + DATA_BASE + "/";
+	public static string F_EXCEL_PATH = F_STREAMING_ASSETS_PATH + EXCEL + "/";
+	public static string F_GAME_PLUGIN_PATH = F_STREAMING_ASSETS_PATH + GAME_PLUGIN + "/";
+	public static string F_CUSTOM_SOUND_PATH = F_STREAMING_ASSETS_PATH + CUSTOM_SOUND + "/";
+	public static string F_HELPER_EXE_PATH = F_STREAMING_ASSETS_PATH + HELPER_EXE + "/";
+	public static string F_CONFIG_PATH = F_STREAMING_ASSETS_PATH + CONFIG + "/";
+	public static string F_VIDEO_PATH = F_STREAMING_ASSETS_PATH + VIDEO + "/";
+#endif
 #if UNITY_EDITOR
 	public static string FULL_RESOURCE_PATH = F_STREAMING_ASSETS_PATH;
 #elif UNITY_STANDALONE_WIN
@@ -178,8 +191,10 @@ public class FrameDefine
 	// 后缀名
 	public const string DATA_SUFFIX = ".bytes";
 	public const string ASSET_BUNDLE_SUFFIX = ".unity3d";
-	public const string ILR_FILE_NAME = "Game.bytes";
-	public const string ILR_PDB_FILE_NAME = "GamePDB.bytes";
+	public const string ILR_FILE = "Game.bytes";
+	public const string ILR_PDB_FILE = "GamePDB.bytes";
+	public const string STREAMING_ASSETS_VERSION = "StreamingAssets.version";
+	public const string START_SCENE = P_RESOURCES_SCENE_PATH + "start.unity";
 	// dll插件的后缀名
 	public const string DLL_PLUGIN_SUFFIX = ".plugin";
 	// 音效所有者类型名,应该与SOUND_OWNER一致

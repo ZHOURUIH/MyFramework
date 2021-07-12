@@ -8,13 +8,15 @@ public class PathKeyframeManager : FrameSystem
     protected Dictionary<string, Dictionary<float, Vector3>> mTranslatePathList;    // key是文件名,value是对应的位置关键帧列表
 	protected Dictionary<string, Dictionary<float, Vector3>> mRotatePathList;		// key是文件名,value是对应的位置关键帧列表
 	protected Dictionary<string, Dictionary<float, Vector3>> mScalePathList;		// key是文件名,value是对应的位置关键帧列表
-	protected Dictionary<string, Dictionary<float, float>> mAlphaPathList;			// key是文件名,value是对应的位置关键帧列表
+	protected Dictionary<string, Dictionary<float, float>> mAlphaPathList;          // key是文件名,value是对应的位置关键帧列表
+	protected bool mAutoLoad;			// 是否在资源可用时自动加载所有资源
 	public PathKeyframeManager()
 	{
 		mTranslatePathList = new Dictionary<string, Dictionary<float, Vector3>>();
 		mRotatePathList = new Dictionary<string, Dictionary<float, Vector3>>();
 		mScalePathList = new Dictionary<string, Dictionary<float, Vector3>>();
 		mAlphaPathList = new Dictionary<string, Dictionary<float, float>>();
+		mAutoLoad = true;
 	}
 	public override void destroy()
 	{
@@ -27,7 +29,20 @@ public class PathKeyframeManager : FrameSystem
 	public override void init()
 	{
 		base.init();
+	}
+	public override void resourceAvailable()
+	{
+		if(!mAutoLoad)
+		{
+			return;
+		}
+
 		// 加载所有关键帧
+		loadAll();
+	}
+	public void setAutoLoad(bool autoLoad) { mAutoLoad = autoLoad; }
+	public void loadAll()
+	{
 		// 平移
 		readAllFile(mTranslatePathList, ".translate");
 		// 旋转

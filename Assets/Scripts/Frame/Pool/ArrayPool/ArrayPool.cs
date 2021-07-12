@@ -87,7 +87,7 @@ public class ArrayPool : FrameSystem
 		// 标记为已使用
 		addInuse(array, onlyOnce);
 #if UNITY_EDITOR
-		if (mGameFramework.isEnablePoolStackTrace())
+		if (mGameFramework.mEnablePoolStackTrace)
 		{
 			mObjectStack.Add(array, getStackTrace());
 		}

@@ -7,6 +7,7 @@ using System.Reflection;
 using UnityEditor;
 #endif
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 // 与Unity相关的工具函数
 public class UnityUtility : CSharpUtility
@@ -73,7 +74,7 @@ public class UnityUtility : CSharpUtility
 	}
 	public static void log(string info, string color, LOG_LEVEL level)
 	{
-		if ((int)level > (int)mLogLevel)
+		if ((int)level < (int)mLogLevel)
 		{
 			return;
 		}
@@ -329,7 +330,16 @@ public class UnityUtility : CSharpUtility
 		obj.transform.localScale = scale;
 		obj.transform.name = name;
 	}
-	public static void getCameraRay(ref Vector3 screenPos, out Ray ray, Camera camera)
+	public static Ray getMainCameraMouseRay()
+	{
+		return getCameraRay(FrameUtility.getMousePosition(), FrameUtility.getMainCamera().getCamera());
+	}
+	public static Ray getMainCameraRay(Vector3 screenPos)
+	{
+		return getCameraRay(screenPos, FrameUtility.getMainCamera().getCamera());
+	}
+	// screenPos是以屏幕左下角为原点的坐标
+	public static Ray getCameraRay(Vector3 screenPos, Camera camera)
 	{
 		// 不再使用camera.ScreenPointToRay计算射线,因为在摄像机坐标值比较大,比如超过10000时,计算结果会产生比较大的误差
 		// 屏幕坐标转换为相对坐标,以左下角为原点,左上角y为1,右下角x为1
@@ -343,7 +353,7 @@ public class UnityUtility : CSharpUtility
 			// 在远裁剪面上的投射点
 			Vector3 farClipPoint = replaceZ(multiVector2(relativeScreenPos, clipSize) - clipSize * 0.5f, camera.farClipPlane);
 			Vector3 farClipWorldPoint = localToWorld(camera.transform, farClipPoint);
-			ray = new Ray(nearClipWorldPoint, normalize(farClipWorldPoint - nearClipWorldPoint));
+			return new Ray(nearClipWorldPoint, normalize(farClipWorldPoint - nearClipWorldPoint));
 		}
 		else
 		{
@@ -357,13 +367,13 @@ public class UnityUtility : CSharpUtility
 			Vector2 farClipSize = new Vector2(farClipHeight * camera.aspect, farClipHeight);
 			Vector3 farClipPoint = replaceZ(multiVector2(relativeScreenPos, farClipSize) - farClipSize * 0.5f, camera.farClipPlane);
 			Vector3 farClipWorldPoint = localToWorld(camera.transform, farClipPoint);
-			ray = new Ray(nearClipWorldPoint, normalize(farClipWorldPoint - nearClipWorldPoint));
+			return new Ray(nearClipWorldPoint, normalize(farClipWorldPoint - nearClipWorldPoint));
 		}
 	}
-	// 使用输出参数的方式避免多次赋值
-	public static void getUIRay(ref Vector3 screenPos, out Ray ray)
+	// screenPos是以屏幕左下角为原点的坐标
+	public static Ray getUIRay(Vector3 screenPos)
 	{
-		getCameraRay(ref screenPos, out ray, getUICamera());
+		return getCameraRay(screenPos, FrameUtility.getUICamera());
 	}
 	// screenCenterAsZero为false表示返回的坐标是以屏幕左下角为原点的坐标
 	// screenCenterAsZero为true表示返回的坐标是以屏幕中心为原点的坐标
@@ -379,11 +389,11 @@ public class UnityUtility : CSharpUtility
 	}
 	public static Vector3 worldToScreen(Vector3 worldPos, bool screenCenterAsZero = true)
 	{
-		return worldToScreen(worldPos, FrameBase.mCameraManager.getMainCamera().getCamera(), screenCenterAsZero);
+		return worldToScreen(worldPos, FrameUtility.getMainCamera().getCamera(), screenCenterAsZero);
 	}
 	public static Vector3 worldUIToScreen(Vector3 worldPos)
 	{
-		return worldToScreen(worldPos, getUICamera());
+		return worldToScreen(worldPos, FrameUtility.getUICamera());
 	}
 	public static bool isGameObjectInScreen(Vector3 worldPos)
 	{
@@ -393,7 +403,7 @@ public class UnityUtility : CSharpUtility
 	// screenCenterAsZero为true表示返回的坐标是以window的中心为原点,false表示以window的左下角为原点
 	public static Vector2 screenPosToWindow(Vector2 screenPos, myUIObject window, bool screenCenterAsZero = true)
 	{
-		Camera camera = getUICamera();
+		Camera camera = FrameUtility.getUICamera();
 		Vector2 cameraSize = new Vector2(camera.pixelWidth, camera.pixelHeight);
 		Vector2 rootSize = getRootSize();
 		screenPos = multiVector2(devideVector2(screenPos, cameraSize), rootSize);
@@ -532,42 +542,6 @@ public class UnityUtility : CSharpUtility
 #endif
 #endif
 	}
-	public static Canvas getUGUIRootComponent()
-	{
-		if (FrameBase.mLayoutManager?.getRootObject() != null)
-		{
-			return FrameBase.mLayoutManager.getUGUIRootComponent();
-		}
-		return null;
-	}
-	public static Camera getUICamera()
-	{
-		if (FrameBase.mCameraManager?.getUICamera() != null)
-		{
-			return FrameBase.mCameraManager.getUICamera().getCamera();
-		}
-		return null;
-	}
-	// bottomHeight表示输入框下边框的y坐标
-	public static void adjustByVirtualKeyboard(float bottomY, bool reset = false)
-	{
-#if UNITY_ANDROID && !UNITY_EDITOR
-		int keyboardHeight = AndroidPluginManager.getKeyboardHeight();
-		if (keyboardHeight > 0 && !reset)
-		{
-			// 200是软键盘上面的自带的输入框的高度
-			keyboardHeight += 200;
-			float cameraOffset = bottomY + getScreenSize().y * 0.5f - keyboardHeight;
-			FrameBase.mCameraManager.getUICamera(guiType).setCameraPositionOffset(new Vector3(0.0f, cameraOffset, 0.0f));
-		}
-		else
-		{
-			FrameBase.mCameraManager.getUICamera(guiType).setCameraPositionOffset(Vector3.zero);
-		}
-#else
-		logError("call only on android phone!");
-#endif
-	}
 	// 计算的是旋转和缩放以后的包围盒的大小的一半, 如果填了parent,则会将尺寸转成parent坐标系中的值
 	public static Vector3 getHalfBoxSize(BoxCollider collider, GameObject parent)
 	{
@@ -612,14 +586,14 @@ public class UnityUtility : CSharpUtility
 		Vector3 corner7 = worldBoxCenter + new Vector3(-halfSize.x, halfSize.y, halfSize.z);
 		min = new Vector3(9999.0f, 9999.0f, 9999.0f);
 		max = new Vector3(-9999.0f, -9999.0f, -9999.0f);
-		getMinMaxVector3(ref corner0, ref min, ref max);
-		getMinMaxVector3(ref corner1, ref min, ref max);
-		getMinMaxVector3(ref corner2, ref min, ref max);
-		getMinMaxVector3(ref corner3, ref min, ref max);
-		getMinMaxVector3(ref corner4, ref min, ref max);
-		getMinMaxVector3(ref corner5, ref min, ref max);
-		getMinMaxVector3(ref corner6, ref min, ref max);
-		getMinMaxVector3(ref corner7, ref min, ref max);
+		getMinMaxVector3(corner0, ref min, ref max);
+		getMinMaxVector3(corner1, ref min, ref max);
+		getMinMaxVector3(corner2, ref min, ref max);
+		getMinMaxVector3(corner3, ref min, ref max);
+		getMinMaxVector3(corner4, ref min, ref max);
+		getMinMaxVector3(corner5, ref min, ref max);
+		getMinMaxVector3(corner6, ref min, ref max);
+		getMinMaxVector3(corner7, ref min, ref max);
 		checkFloat(ref min, precision);
 		checkFloat(ref max, precision);
 	}
@@ -628,8 +602,8 @@ public class UnityUtility : CSharpUtility
 	{
 		getMinMaxCorner(box0, out Vector3 min0, out Vector3 max0, parent, precision);
 		getMinMaxCorner(box1, out Vector3 min1, out Vector3 max1, parent, precision);
-		return isVector3Less(ref min0, ref max1) && isVector3Greater(ref max0, ref min1) ||
-			   isVector3Less(ref min1, ref max0) && isVector3Greater(ref max1, ref min0);
+		return isVector3Less(min0, max1) && isVector3Greater(max0, min1) ||
+			   isVector3Less(min1, max0) && isVector3Greater(max1, min0);
 	}
 	public static int overlapAllBox(BoxCollider collider, Collider[] results, int layer = -1)
 	{
@@ -669,6 +643,16 @@ public class UnityUtility : CSharpUtility
 		int hitCount = Physics.OverlapCapsuleNonAlloc(point0, point1, collider.radius, results, layer);
 		return removeClassElement(results, hitCount, collider);
 	}
+	public static int overlapAllCapsule(CharacterController collider, Collider[] results, int layer = -1)
+	{
+		Transform transform = collider.transform;
+		Vector3 point0 = collider.center + new Vector3(0.0f, collider.height * 0.5f, 0.0f);
+		Vector3 point1 = collider.center - new Vector3(0.0f, collider.height * 0.5f, 0.0f);
+		point0 = localToWorld(transform, point0);
+		point1 = localToWorld(transform, point1);
+		int hitCount = Physics.OverlapCapsuleNonAlloc(point0, point1, collider.radius, results, layer);
+		return removeClassElement(results, hitCount, collider);
+	}
 	public static int overlapAllCapsule(CapsuleCollider2D collider, Collider2D[] results, int layer = -1)
 	{
 		Transform transform = collider.transform;
@@ -683,8 +667,8 @@ public class UnityUtility : CSharpUtility
 		max0.y = 1.0f;
 		min1.y = 0.0f;
 		max1.y = 1.0f;
-		return isVector3Less(ref min0, ref max1) && isVector3Greater(ref max0, ref min1) ||
-			   isVector3Less(ref min1, ref max0) && isVector3Greater(ref max1, ref min0);
+		return isVector3Less(min0, max1) && isVector3Greater(max0, min1) ||
+			   isVector3Less(min1, max0) && isVector3Greater(max1, min0);
 	}
 	public static bool overlapBoxIgnoreZ(BoxCollider box0, BoxCollider box1, GameObject parent, int precision = 4)
 	{
@@ -694,8 +678,8 @@ public class UnityUtility : CSharpUtility
 		max0.z = 1.0f;
 		min1.z = 0.0f;
 		max1.z = 1.0f;
-		return isVector3Less(ref min0, ref max1) && isVector3Greater(ref max0, ref min1) ||
-			   isVector3Less(ref min1, ref max0) && isVector3Greater(ref max1, ref min0);
+		return isVector3Less(min0, max1) && isVector3Greater(max0, min1) ||
+			   isVector3Less(min1, max0) && isVector3Greater(max1, min0);
 	}
 	public static int overlapCollider(Collider collider, Collider[] results, int layer = -1)
 	{
@@ -748,7 +732,28 @@ public class UnityUtility : CSharpUtility
 		}
 		return hitCount;
 	}
-	public static bool getRaycastPoint(Collider collider, ref Ray ray, ref Vector3 intersectPoint)
+	public static bool raycast(Ray ray, out Collider result, out Vector3 point, int layer = -1)
+	{
+		result = null;
+		point = Vector3.zero;
+		if (!Physics.Raycast(ray, out RaycastHit hitInfo, 10000.0f, layer))
+		{
+			return false;
+		}
+		result = hitInfo.collider;
+		point = hitInfo.point;
+		return true;
+	}
+	public static bool racastAll(Ray ray, RaycastHit[] result, int layer = -1)
+	{
+		if(result == null)
+		{
+			return false;
+		}
+		int hitCount = Physics.RaycastNonAlloc(ray, result, 10000.0f, layer);
+		return hitCount > 0;
+	}
+	public static bool getRaycastPoint(Collider collider, Ray ray, ref Vector3 intersectPoint)
 	{
 		if (collider.Raycast(ray, out RaycastHit hit, 10000.0f))
 		{
@@ -756,6 +761,45 @@ public class UnityUtility : CSharpUtility
 			return true;
 		}
 		return false;
+	}
+	// 获得指定屏幕坐标下的可见UI,可见UI是指已激活且透明度不为0
+	public static GameObject getPointerOnUI(Vector2 screenPosition)
+	{
+		var currentPositionData = new PointerEventData(UnityEngine.EventSystems.EventSystem.current);
+		// 将点击位置的屏幕坐标赋值给点击事件
+		currentPositionData.position = new Vector2(screenPosition.x, screenPosition.y);
+		FrameUtility.LIST(out List<RaycastResult> results);
+		// 向点击处发射射线
+		UnityEngine.EventSystems.EventSystem.current.RaycastAll(currentPositionData, results);
+		// 如果点击到了非透明的图片或者文字,则不可穿透射线
+		GameObject hoverObject = null;
+		int count = results.Count;
+		for (int i = 0; i < count; ++i)
+		{
+			GameObject go = results[i].gameObject;
+			Image image = go.GetComponent<Image>();
+			if (image != null)
+			{
+				if (!isFloatZero(image.color.a))
+				{
+					hoverObject = go;
+					break;
+				}
+				continue;
+			}
+			Text text = go.GetComponent<Text>();
+			if (text != null)
+			{
+				if (!isFloatZero(text.color.a))
+				{
+					hoverObject = go;
+					break;
+				}
+				continue;
+			}
+		}
+		FrameUtility.UN_LIST(results);
+		return hoverObject;
 	}
 	public static void playAllParticle(GameObject go, bool reactive = false)
 	{
@@ -894,21 +938,24 @@ public class UnityUtility : CSharpUtility
 	}
 	public static void applyAnchor(GameObject obj, bool force, GameLayout layout = null)
 	{
-		// 去除UGUI自带的锚点,避免计算错误
-		RectTransform rectTransform = obj.GetComponent<RectTransform>();
-		if (rectTransform != null)
-		{
-			rectTransform.anchorMin = Vector2.one * 0.5f;
-			rectTransform.anchorMax = Vector2.one * 0.5f;
+		var scaleAnchor = obj.GetComponent<ScaleAnchor>();
+		var paddingAnchor = obj.GetComponent<PaddingAnchor>();
+		if (paddingAnchor != null || (scaleAnchor != null && scaleAnchor.mRemoveUGUIAnchor))
+        {
+			// 去除UGUI自带的锚点,避免计算错误
+			RectTransform rectTransform = obj.GetComponent<RectTransform>();
+			if (rectTransform != null)
+			{
+				rectTransform.anchorMin = Vector2.one * 0.5f;
+				rectTransform.anchorMax = Vector2.one * 0.5f;
+			}
 		}
+
 		// 先更新自己
-		obj.GetComponent<ScaleAnchor>()?.updateRect(force);
-		obj.GetComponent<PaddingAnchor>()?.updateRect(force);
-		if (layout != null)
-		{
-			myUIObject uiObj = layout.getUIObject(obj);
-			uiObj?.notifyAnchorApply();
-		}
+		scaleAnchor?.updateRect(force);
+		paddingAnchor?.updateRect(force);
+		layout?.getUIObject(obj)?.notifyAnchorApply();
+
 		// 然后更新所有子节点
 		Transform curTrans = obj.transform;
 		int childCount = curTrans.childCount;
@@ -917,53 +964,36 @@ public class UnityUtility : CSharpUtility
 			applyAnchor(curTrans.GetChild(i).gameObject, force, layout);
 		}
 	}
-	public static Vector2 getScreenSize()
-	{
-		return new Vector2(UnityEngine.Screen.width, UnityEngine.Screen.height);
-	}
 	public static Vector2 getGameViewSize()
 	{
 #if UNITY_EDITOR
 		Type T = Type.GetType("UnityEditor.GameView,UnityEditor");
-		MethodInfo GetMainGameView = T.GetMethod("GetMainGameView", BindingFlags.NonPublic | BindingFlags.Static);
-		object Res = GetMainGameView.Invoke(null, null);
-		var gameView = (EditorWindow)Res;
-		PropertyInfo prop = Typeof(gameView).GetProperty("currentGameViewSize", BindingFlags.NonPublic | BindingFlags.Instance);
-		object gvsize = prop.GetValue(gameView, new object[0] { });
-		Type gvSizeType = Typeof(gvsize);
-		int height = (int)gvSizeType.GetProperty("height", BindingFlags.Public | BindingFlags.Instance).GetValue(gvsize, new object[0] { });
-		int width = (int)gvSizeType.GetProperty("width", BindingFlags.Public | BindingFlags.Instance).GetValue(gvsize, new object[0] { });
-		return new Vector2(width, height);
+		MethodInfo GetSizeOfMainGameView = T.GetMethod("GetSizeOfMainGameView", BindingFlags.NonPublic | BindingFlags.Static);
+		return (Vector2)GetSizeOfMainGameView.Invoke(null, null);
 #else
 		logError("getGameViewSize can only call in editor!");
 		return Vector2.zero;
 #endif
 	}
-	public static Vector2 getRootSize(bool useGameViewSize = false)
+	public static Vector2 getScreenSize()
 	{
-		Vector2 rootSize = Vector2.zero;
-		if (useGameViewSize)
+		return new Vector2(UnityEngine.Screen.width, UnityEngine.Screen.height);
+	}
+	public static Vector2 getRootSize()
+	{
+		Canvas uguiRoot = FrameUtility.getUGUIRootComponent();
+		if (uguiRoot == null)
 		{
-			Vector2 gameViewSize = getGameViewSize();
-			Camera camera = getGameObject(FrameDefine.UGUI_ROOT + "/" + FrameDefine.UI_CAMERA, true).GetComponent<Camera>();
-			rootSize = new Vector2(gameViewSize.y * camera.aspect, gameViewSize.y);
+			return Vector2.zero;
 		}
-		else
-		{
-			Canvas UGUIRoot = getUGUIRootComponent();
-			if (UGUIRoot != null)
-			{
-				Rect rect = UGUIRoot.gameObject.GetComponent<RectTransform>().rect;
-				rootSize = new Vector2(rect.height * getUICamera().aspect, rect.height);
-			}
-		}
-		return rootSize;
+		Rect rect = uguiRoot.gameObject.GetComponent<RectTransform>().rect;
+		return new Vector2(rect.height * FrameUtility.getUICamera().aspect, rect.height);
 	}
 	public static Vector2 getScreenScale(Vector2 rootSize)
 	{
 		Vector2 scale = Vector2.one;
-		scale.x = rootSize.x * (1.0f / FrameDefineExtra.STANDARD_WIDTH);
-		scale.y = rootSize.y * (1.0f / FrameDefineExtra.STANDARD_HEIGHT);
+		scale.x = rootSize.x * (1.0f / FrameDefineExtension.STANDARD_WIDTH);
+		scale.y = rootSize.y * (1.0f / FrameDefineExtension.STANDARD_HEIGHT);
 		return scale;
 	}
 	public static Vector2 adjustScreenScale(ASPECT_BASE aspectBase = ASPECT_BASE.AUTO)

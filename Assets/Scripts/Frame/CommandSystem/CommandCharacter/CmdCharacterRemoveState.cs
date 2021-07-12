@@ -28,7 +28,7 @@ public class CmdCharacterRemoveState : Command
 			stateMachine.removeState(mState, false, mParam);
 		}
 	}
-	public override void showDebugInfo(MyStringBuilder builder)
+	public override void debugInfo(MyStringBuilder builder)
 	{
 		builder.Append(": mState:", Typeof(mState)).
 				Append(", mStateGroup:", mStateGroup?.ToString()).

@@ -4,10 +4,12 @@ using System.Net.Sockets;
 public class CmdSocketConnectClientState : Command
 {
 	public SocketError mErrorCode;
+	public NET_STATE mNetState;
 	public override void resetProperty()
 	{
 		base.resetProperty();
 		mErrorCode = SocketError.Success;
+		mNetState = NET_STATE.NONE;
 	}
 	public override void execute()
 	{
@@ -23,12 +25,13 @@ public class CmdSocketConnectClientState : Command
 		cmd.mNetState = socketClient.getNetState();
 		pushCommand(cmd, socketClient);
 #endif
-		if (socketClient.isUnconnected() && 
+		if (mNetState != NET_STATE.CONNECTED && 
+			mNetState != NET_STATE.CONNECTING && 
 			(mErrorCode == SocketError.ConnectionRefused || mErrorCode == SocketError.NotConnected))
 		{
 			;
 		}
-		else if (socketClient.getNetState() == NET_STATE.CONNECTED)
+		else if (mNetState == NET_STATE.CONNECTED)
 		{
 			socketClient.notifyConnected();
 		}

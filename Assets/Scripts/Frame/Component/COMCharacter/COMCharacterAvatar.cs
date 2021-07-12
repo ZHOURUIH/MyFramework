@@ -6,31 +6,31 @@ public class COMCharacterAvatar : GameComponent
 	protected Dictionary<string, float> mAnimationLengthList;   // 缓存动作时长的列表
 	protected OnCharacterLoaded mCharacterLoadedCallback;       // 角色模型加载完毕的回调
 	protected CreateObjectCallback mModelLoadCallback;          // 保存自身的回调函数,用于避免GC
-	protected CharacterController mController;					// 模型角色控制器组件,仅用于方便获取
-	protected GameObject mObject;								// 模型节点
-	protected Transform mModelTransform;						// 模型变换组件
-	protected Animation mAnimation;								// 模型动作组件,仅用于方便获取
-	protected Character mCharacter;								// 模型所属角色
-	protected Rigidbody mRigidBody;								// 模型刚体组件,仅用于方便获取
+	protected CharacterController mController;                  // 模型角色控制器组件,仅用于方便获取
+	protected GameObject mObject;                               // 模型节点
+	protected Transform mModelTransform;                        // 模型变换组件
+	protected Animation mAnimation;                             // 模型动作组件,仅用于方便获取
+	protected Character mCharacter;                             // 模型所属角色
+	protected Rigidbody mRigidBody;                             // 模型刚体组件,仅用于方便获取
 	protected Animator mAnimator;                               // 模型动画状态机组件,仅用于方便获取
 	protected string mAnimatorControllerPath;                   // 角色动作状态机文件路径,用于在加载模型时使用其他路径的状态机
-	protected string mModelPath;								// 模型文件的相对路径,相对于GameResources
+	protected string mModelPath;                                // 模型文件的相对路径,相对于GameResources
 	protected object mUserData;                                 // 模型加载回调的自定义参数
 	protected int mModelTag;                                    // 模型标签,用于资源池
-	protected bool mDestroyReally;								// 在销毁时是否真正销毁模型,如果不是真正销毁,则是缓存到资源池中
-	protected AVATAR_RELATIONSHIP mRelationship;				// 模型节点与角色节点的关系
-	protected TRANSFORM_ASYNC mPositionSync;					// 位置同步方式,仅在mRelationship为AVATAR_ALONE时生效
-	protected TRANSFORM_ASYNC mRotationSync;					// 旋转同步方式,仅在mRelationship为AVATAR_ALONE时生效
-	protected TRANSFORM_ASYNC mScaleSync;						// 缩放同步方式,仅在mRelationship为AVATAR_ALONE时生效
-	protected TRANSFORM_SYNC_TIME mTransformSyncTime;			// 同步变换的时机
+	protected bool mDestroyReally;                              // 在销毁时是否真正销毁模型,如果不是真正销毁,则是缓存到资源池中
+	protected AVATAR_RELATIONSHIP mRelationship;                // 模型节点与角色节点的关系
+	protected TRANSFORM_SYNC_TIME mTransformSyncTime;           // 同步变换的时机
+	protected TRANSFORM_ASYNC mPositionSync;                    // 位置同步方式,仅在mRelationship为AVATAR_ALONE时生效
+	protected TRANSFORM_ASYNC mRotationSync;                    // 旋转同步方式,仅在mRelationship为AVATAR_ALONE时生效
+	protected TRANSFORM_ASYNC mScaleSync;                       // 缩放同步方式,仅在mRelationship为AVATAR_ALONE时生效
 	public COMCharacterAvatar()
 	{
 		mAnimationLengthList = new Dictionary<string, float>();
 		mRelationship = AVATAR_RELATIONSHIP.AVATAR_AS_CHILD;
+		mTransformSyncTime = TRANSFORM_SYNC_TIME.LATE_UPDATE;
 		mPositionSync = TRANSFORM_ASYNC.USE_CHARACTER;
 		mRotationSync = TRANSFORM_ASYNC.USE_CHARACTER;
 		mScaleSync = TRANSFORM_ASYNC.USE_CHARACTER;
-		mTransformSyncTime = TRANSFORM_SYNC_TIME.LATE_UPDATE;
 		mModelLoadCallback = onModelLoaded;
 	}
 	public override void destroy()
@@ -141,6 +141,7 @@ public class COMCharacterAvatar : GameComponent
 	public Animation getAnimation() { return mAnimation; }
 	public GameObject getModel() { return mObject; }
 	public string getModelPath() { return mModelPath; }
+	public bool isAvatarActive() { return mObject.activeSelf; }
 	public void setModelPath(string modelPath) { mModelPath = modelPath; }
 	public void setAvatarRelationship(AVATAR_RELATIONSHIP relationship) { mRelationship = relationship; }
 	public void setTransformSync(TRANSFORM_ASYNC posSync, TRANSFORM_ASYNC rotSync, TRANSFORM_ASYNC scaleSync)
@@ -174,6 +175,7 @@ public class COMCharacterAvatar : GameComponent
 		mModelPath = null;
 		mRigidBody = null;
 	}
+	public void activeController(bool active) { mController.enabled = active; }
 	//------------------------------------------------------------------------------------------------------------------------------------------------------
 	protected void syncTransform()
 	{
@@ -236,12 +238,15 @@ public class COMCharacterAvatar : GameComponent
 	}
 	protected void onModelLoaded(GameObject go, object userData)
 	{
+		Vector3 lastPosition = mCharacter.getPosition();
+		Vector3 lastRotation = mCharacter.getRotation();
+		Vector3 lastScale = mCharacter.getScale();
+		// 先销毁旧的模型
+		destroyModel();
+
 		// 将模型节点作为角色节点
 		if (mRelationship == AVATAR_RELATIONSHIP.AVATAR_AS_CHARACTER)
 		{
-			Vector3 lastPosition = getPosition();
-			Vector3 lastRotation = getRotation();
-			Vector3 lastScale = getScale();
 			mCharacter.setObject(go, true);
 			// 将外部节点设置为角色节点后,角色在销毁时就不能自动销毁节点,否则会出错
 			mCharacter.setDestroyObject(false);
@@ -254,6 +259,13 @@ public class COMCharacterAvatar : GameComponent
 		else if (mRelationship == AVATAR_RELATIONSHIP.AVATAR_AS_CHILD)
 		{
 			setNormalProperty(go, mCharacter.getObject());
+		}
+		else
+		{
+			Transform transform = go.transform;
+			transform.localPosition = lastPosition;
+			transform.localEulerAngles = lastRotation;
+			transform.localScale = lastScale;
 		}
 
 		setModel(go);

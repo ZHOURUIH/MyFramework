@@ -12,10 +12,38 @@ public abstract class PooledWindow : FrameBase
 	public virtual void destroy() { }
 	public virtual void reset() { }
 	public virtual void recycle() { }
-	public bool isVisible() { return mRoot.isActive(); }
-	public virtual void setVisible(bool visible) { LT.ACTIVE(mRoot, visible); }
-	public void setAsFirstSibling(bool notifyLayout = true) { mRoot.setAsFirstSibling(notifyLayout); }
-	public void setAsLastSibling(bool notifyLayout = true) { mRoot.setAsLastSibling(notifyLayout); }
-	public void setParent(myUIObject parent, bool needSortChild = true) { mRoot.setParent(parent, needSortChild); }
+	public bool isVisible() 
+	{
+		checkRoot();
+		return mRoot.isActive(); 
+	}
+	public virtual void setVisible(bool visible) 
+	{
+		checkRoot();
+		LT.ACTIVE(mRoot, visible); 
+	}
+	public void setAsFirstSibling(bool needSortChild = true, bool refreshUIDepth = true)
+	{
+		checkRoot();
+		mRoot.setAsFirstSibling(needSortChild, refreshUIDepth);
+	}
+	public void setAsLastSibling(bool needSortChild = true, bool refreshUIDepth = true) 
+	{
+		checkRoot();
+		mRoot.setAsLastSibling(needSortChild, refreshUIDepth);
+	}
+	public void setParent(myUIObject parent, bool needSortChild = true, bool notifyLayout = true) 
+	{
+		checkRoot();
+		mRoot.setParent(parent, needSortChild, notifyLayout); 
+	}
 	public myUIObject getRoot() { return mRoot; }
+	//----------------------------------------------------------------------------------------------------------------------------------
+	protected void checkRoot()
+	{
+		if(mRoot == null)
+		{
+			logError("可复用窗口的mRoot为空,请确保在assignWindow中已经给mRoot赋值了");
+		}
+	}
 }

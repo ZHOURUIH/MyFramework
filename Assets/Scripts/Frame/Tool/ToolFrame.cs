@@ -14,7 +14,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdTransformableRotateFixed cmd, false);
+		CMD(out CmdTransformableRotateFixed cmd, LOG_LEVEL.LOW);
 		cmd.mActive = lockRotation;
 		pushCommand(cmd, obj);
 	}
@@ -24,7 +24,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdTransformableRotateFixed cmd, false);
+		CMD(out CmdTransformableRotateFixed cmd, LOG_LEVEL.LOW);
 		cmd.mActive = lockRotation;
 		cmd.mFixedEuler = rot;
 		pushCommand(cmd, obj);
@@ -39,7 +39,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdTransformableRotate cmd, false);
+		CMD(out CmdTransformableRotate cmd, LOG_LEVEL.LOW);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartRotation = rotation;
 		cmd.mTargetRotation = rotation;
@@ -76,7 +76,7 @@ public class FT : FrameBase
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ROTATE(Transformable obj, Vector3 rotation)");
 			return;
 		}
-		CMD(out CmdTransformableRotate cmd, false);
+		CMD(out CmdTransformableRotate cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartRotation = start;
@@ -87,32 +87,32 @@ public class FT : FrameBase
 		cmd.mDoneCallback = doneCallback;
 		pushCommand(cmd, obj);
 	}
-	public static CmdTransformableRotate ROTATE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 rotation)
+	public static CmdTransformableRotate ROTATE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 rotation)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		CMD_DELAY(out CmdTransformableRotate cmd, false);
+		CMD_DELAY(out CmdTransformableRotate cmd, LOG_LEVEL.LOW);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartRotation = rotation;
 		cmd.mTargetRotation = rotation;
 		pushDelayCommand(cmd, obj, delayTime, watcher);
 		return cmd;
 	}
-	public static CmdTransformableRotate ROTATE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float time)
+	public static CmdTransformableRotate ROTATE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float time)
 	{
 		return ROTATE_DELAY(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, time, false, 0.0f);
 	}
-	public static CmdTransformableRotate ROTATE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength)
+	public static CmdTransformableRotate ROTATE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
 		return ROTATE_DELAY(watcher, obj, delayTime, keyframe, start, target, onceLength, false, 0.0f);
 	}
-	public static CmdTransformableRotate ROTATE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop)
+	public static CmdTransformableRotate ROTATE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop)
 	{
 		return ROTATE_DELAY(watcher, obj, delayTime, keyframe, start, target, onceLength, loop, 0.0f);
 	}
-	public static CmdTransformableRotate ROTATE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
+	public static CmdTransformableRotate ROTATE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
 	{
 		if (obj == null)
 		{
@@ -123,7 +123,7 @@ public class FT : FrameBase
 			logError("时间或关键帧不能为空,如果要停止组件,请使用CommandTransformableRotate ROTATE_DELAY(Transformable obj, float delayTime, Vector3 rotation)");
 			return null;
 		}
-		CMD_DELAY(out CmdTransformableRotate cmd, false);
+		CMD_DELAY(out CmdTransformableRotate cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartRotation = start;
@@ -151,27 +151,27 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdTransformableRotateSpeed cmd, false);
+		CMD(out CmdTransformableRotateSpeed cmd, LOG_LEVEL.LOW);
 		cmd.mRotateSpeed = speed;
 		cmd.mStartAngle = startAngle;
 		cmd.mRotateAcceleration = rotateAccelerationValue;
 		pushCommand(cmd, obj);
 	}
-	public static CmdTransformableRotateSpeed ROTATE_SPEED_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 speed)
+	public static CmdTransformableRotateSpeed ROTATE_SPEED_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 speed)
 	{
 		return ROTATE_SPEED_DELAY(watcher, obj, delayTime, speed, Vector3.zero, Vector3.zero);
 	}
-	public static CmdTransformableRotateSpeed ROTATE_SPEED_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 speed, Vector3 startAngle)
+	public static CmdTransformableRotateSpeed ROTATE_SPEED_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 speed, Vector3 startAngle)
 	{
 		return ROTATE_SPEED_DELAY(watcher, obj, delayTime, speed, startAngle, Vector3.zero);
 	}
-	public static CmdTransformableRotateSpeed ROTATE_SPEED_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 speed, Vector3 startAngle, Vector3 rotateAccelerationValue)
+	public static CmdTransformableRotateSpeed ROTATE_SPEED_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 speed, Vector3 startAngle, Vector3 rotateAccelerationValue)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		CMD_DELAY(out CmdTransformableRotateSpeed cmd, false);
+		CMD_DELAY(out CmdTransformableRotateSpeed cmd, LOG_LEVEL.LOW);
 		cmd.mRotateSpeed = speed;
 		cmd.mStartAngle = startAngle;
 		cmd.mRotateAcceleration = rotateAccelerationValue;
@@ -183,20 +183,20 @@ public class FT : FrameBase
 	#region 在物理更新中用关键帧旋转物体
 	public static void ROTATE_FIXED_PHY(Transformable obj, bool lockRotation = true)
 	{
-		CMD(out CmdTransformableRotateFixedPhysics cmd, false);
+		CMD(out CmdTransformableRotateFixedPhysics cmd, LOG_LEVEL.LOW);
 		cmd.mActive = lockRotation;
 		pushCommand(cmd, obj);
 	}
 	public static void ROTATE_FIXED_PHY(Transformable obj, Vector3 rot, bool lockRotation = true)
 	{
-		CMD(out CmdTransformableRotateFixedPhysics cmd, false);
+		CMD(out CmdTransformableRotateFixedPhysics cmd, LOG_LEVEL.LOW);
 		cmd.mActive = lockRotation;
 		cmd.mFixedEuler = rot;
 		pushCommand(cmd, obj);
 	}
 	public static void ROTATE_PHY(Transformable obj, Vector3 rotation)
 	{
-		CMD(out CmdTransformableRotatePhysics cmd, false);
+		CMD(out CmdTransformableRotatePhysics cmd, LOG_LEVEL.LOW);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartRotation = rotation;
 		cmd.mTargetRotation = rotation;
@@ -229,7 +229,7 @@ public class FT : FrameBase
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ROTATE_PHY(Transformable obj, Vector3 rotation)");
 			return;
 		}
-		CMD(out CmdTransformableRotatePhysics cmd, false);
+		CMD(out CmdTransformableRotatePhysics cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartRotation = start;
@@ -240,35 +240,35 @@ public class FT : FrameBase
 		cmd.mDoneCallback = doneCallback;
 		pushCommand(cmd, obj);
 	}
-	public static CmdTransformableRotatePhysics ROTATE_PHY_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 rotation)
+	public static CmdTransformableRotatePhysics ROTATE_PHY_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 rotation)
 	{
-		CMD_DELAY(out CmdTransformableRotatePhysics cmd, false);
+		CMD_DELAY(out CmdTransformableRotatePhysics cmd, LOG_LEVEL.LOW);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartRotation = rotation;
 		cmd.mTargetRotation = rotation;
 		pushDelayCommand(cmd, obj, delayTime, watcher);
 		return cmd;
 	}
-	public static CmdTransformableRotatePhysics ROTATE_PHY_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float time)
+	public static CmdTransformableRotatePhysics ROTATE_PHY_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float time)
 	{
 		return ROTATE_PHY_DELAY(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, time, false, 0.0f);
 	}
-	public static CmdTransformableRotatePhysics ROTATE_PHY_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength)
+	public static CmdTransformableRotatePhysics ROTATE_PHY_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
 		return ROTATE_PHY_DELAY(watcher, obj, delayTime, keyframe, start, target, onceLength, false, 0.0f);
 	}
-	public static CmdTransformableRotatePhysics ROTATE_PHY_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop)
+	public static CmdTransformableRotatePhysics ROTATE_PHY_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop)
 	{
 		return ROTATE_PHY_DELAY(watcher, obj, delayTime, keyframe, start, target, onceLength, loop, 0.0f);
 	}
-	public static CmdTransformableRotatePhysics ROTATE_PHY_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
+	public static CmdTransformableRotatePhysics ROTATE_PHY_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
 	{
 		if (keyframe == KEY_CURVE.NONE || isFloatZero(onceLength))
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用CommandTransformableRotatePhysics ROTATE_PHY_DELAY(Transformable obj, float delayTime, Vector3 rotation)");
 			return null;
 		}
-		CMD_DELAY(out CmdTransformableRotatePhysics cmd, false);
+		CMD_DELAY(out CmdTransformableRotatePhysics cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartRotation = start;
@@ -292,23 +292,23 @@ public class FT : FrameBase
 	}
 	public static void ROTATE_SPEED_PHY(Transformable obj, Vector3 speed, Vector3 startAngle, Vector3 rotateAccelerationValue)
 	{
-		CMD(out CmdTransformableRotateSpeedPhysics cmd, false);
+		CMD(out CmdTransformableRotateSpeedPhysics cmd, LOG_LEVEL.LOW);
 		cmd.mRotateSpeed = speed;
 		cmd.mStartAngle = startAngle;
 		cmd.mRotateAcceleration = rotateAccelerationValue;
 		pushCommand(cmd, obj);
 	}
-	public static CmdTransformableRotateSpeedPhysics ROTATE_SPEED_PHY_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 speed)
+	public static CmdTransformableRotateSpeedPhysics ROTATE_SPEED_PHY_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 speed)
 	{
 		return ROTATE_SPEED_PHY_DELAY(watcher, obj, delayTime, speed, Vector3.zero, Vector3.zero);
 	}
-	public static CmdTransformableRotateSpeedPhysics ROTATE_SPEED_PHY_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 speed, Vector3 startAngle)
+	public static CmdTransformableRotateSpeedPhysics ROTATE_SPEED_PHY_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 speed, Vector3 startAngle)
 	{
 		return ROTATE_SPEED_PHY_DELAY(watcher, obj, delayTime, speed, startAngle, Vector3.zero);
 	}
-	public static CmdTransformableRotateSpeedPhysics ROTATE_SPEED_PHY_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 speed, Vector3 startAngle, Vector3 rotateAccelerationValue)
+	public static CmdTransformableRotateSpeedPhysics ROTATE_SPEED_PHY_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 speed, Vector3 startAngle, Vector3 rotateAccelerationValue)
 	{
-		CMD_DELAY(out CmdTransformableRotateSpeedPhysics cmd, false);
+		CMD_DELAY(out CmdTransformableRotateSpeedPhysics cmd, LOG_LEVEL.LOW);
 		cmd.mRotateSpeed = speed;
 		cmd.mStartAngle = startAngle;
 		cmd.mRotateAcceleration = rotateAccelerationValue;
@@ -321,7 +321,7 @@ public class FT : FrameBase
 	#region 以指定角度列表旋转物体
 	public static void ROTATE_CURVE(Transformable obj)
 	{
-		pushCommand<CmdTransformableRotateCurve>(obj, false);
+		pushCommand<CmdTransformableRotateCurve>(obj, LOG_LEVEL.LOW);
 	}
 	public static void ROTATE_CURVE(Transformable obj, List<Vector3> rotList, float onceLength)
 	{
@@ -365,7 +365,7 @@ public class FT : FrameBase
 	}
 	public static void ROTATE_CURVE_EX(Transformable obj, int keyframe, List<Vector3> rotList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		CMD(out CmdTransformableRotateCurve cmd, false);
+		CMD(out CmdTransformableRotateCurve cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mRotateList = rotList;
@@ -375,37 +375,37 @@ public class FT : FrameBase
 		cmd.mDoneCallback = doneCallback;
 		pushCommand(cmd, obj);
 	}
-	public static CmdTransformableRotateCurve ROTATE_CURVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime)
+	public static CmdTransformableRotateCurve ROTATE_CURVE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime)
 	{
-		return pushDelayCommand<CmdTransformableRotateCurve>(watcher, obj, delayTime, false);
+		return pushDelayCommand<CmdTransformableRotateCurve>(watcher, obj, delayTime, LOG_LEVEL.LOW);
 	}
-	public static CmdTransformableRotateCurve ROTATE_CURVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, List<Vector3> rotList, float onceLength)
+	public static CmdTransformableRotateCurve ROTATE_CURVE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, List<Vector3> rotList, float onceLength)
 	{
 		return ROTATE_CURVE_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, rotList, onceLength, false, 0.0f, null, null);
 	}
-	public static CmdTransformableRotateCurve ROTATE_CURVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> rotList, float onceLength)
+	public static CmdTransformableRotateCurve ROTATE_CURVE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> rotList, float onceLength)
 	{
 		return ROTATE_CURVE_DELAY_EX(watcher, obj, delayTime, keyframe, rotList, onceLength, false, 0.0f, null, null);
 	}
-	public static CmdTransformableRotateCurve ROTATE_CURVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> rotList, float onceLength, bool loop)
+	public static CmdTransformableRotateCurve ROTATE_CURVE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> rotList, float onceLength, bool loop)
 	{
 		return ROTATE_CURVE_DELAY_EX(watcher, obj, delayTime, keyframe, rotList, onceLength, loop, 0.0f, null, null);
 	}
-	public static CmdTransformableRotateCurve ROTATE_CURVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> rotList, float onceLength, bool loop, float offset)
+	public static CmdTransformableRotateCurve ROTATE_CURVE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> rotList, float onceLength, bool loop, float offset)
 	{
 		return ROTATE_CURVE_DELAY_EX(watcher, obj, delayTime, keyframe, rotList, onceLength, loop, offset, null, null);
 	}
-	public static CmdTransformableRotateCurve ROTATE_CURVE_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, List<Vector3> rotList, float onceLength, KeyFrameCallback doneCallback)
+	public static CmdTransformableRotateCurve ROTATE_CURVE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, List<Vector3> rotList, float onceLength, KeyFrameCallback doneCallback)
 	{
 		return ROTATE_CURVE_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, rotList, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static CmdTransformableRotateCurve ROTATE_CURVE_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, List<Vector3> rotList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdTransformableRotateCurve ROTATE_CURVE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, List<Vector3> rotList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return ROTATE_CURVE_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, rotList, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CmdTransformableRotateCurve ROTATE_CURVE_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> rotList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdTransformableRotateCurve ROTATE_CURVE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> rotList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		CMD_DELAY(out CmdTransformableRotateCurve cmd, false);
+		CMD_DELAY(out CmdTransformableRotateCurve cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
 		cmd.mRotateList = rotList;
 		cmd.mOnceLength = onceLength;
@@ -426,7 +426,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdTransformableMove cmd, false);
+		CMD(out CmdTransformableMove cmd, LOG_LEVEL.LOW);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartPos = Vector3.zero;
 		cmd.mTargetPos = Vector3.zero;
@@ -438,7 +438,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdTransformableMove cmd, false);
+		CMD(out CmdTransformableMove cmd, LOG_LEVEL.LOW);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartPos = pos;
 		cmd.mTargetPos = pos;
@@ -494,7 +494,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdTransformableMove cmd, false);
+		CMD(out CmdTransformableMove cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartPos = startPos;
@@ -505,58 +505,58 @@ public class FT : FrameBase
 		cmd.mDoneCallback = trembleDoneCallBack;
 		pushCommand(cmd, obj);
 	}
-	public static CmdTransformableMove MOVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 pos)
+	public static CmdTransformableMove MOVE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 pos)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		CMD_DELAY(out CmdTransformableMove cmd, false);
+		CMD_DELAY(out CmdTransformableMove cmd, LOG_LEVEL.LOW);
 		cmd.mStartPos = pos;
 		cmd.mTargetPos = pos;
 		cmd.mOnceLength = 0.0f;
 		pushDelayCommand(cmd, obj, delayTime, watcher);
 		return cmd;
 	}
-	public static CmdTransformableMove MOVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength)
+	public static CmdTransformableMove MOVE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength)
 	{
 		return MOVE_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CmdTransformableMove MOVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength)
+	public static CmdTransformableMove MOVE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength)
 	{
 		return MOVE_DELAY_EX(watcher, obj, delayTime, keyframe, startPos, targetPos, onceLength, false, 0.0f, null, null);
 	}
-	public static CmdTransformableMove MOVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop)
+	public static CmdTransformableMove MOVE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop)
 	{
 		return MOVE_DELAY_EX(watcher, obj, delayTime, keyframe, startPos, targetPos, onceLength, loop, 0.0f, null, null);
 	}
-	public static CmdTransformableMove MOVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset)
+	public static CmdTransformableMove MOVE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset)
 	{
 		return MOVE_DELAY_EX(watcher, obj, delayTime, keyframe, startPos, targetPos, onceLength, loop, offset, null, null);
 	}
-	public static CmdTransformableMove MOVE_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback moveDoneCallback)
+	public static CmdTransformableMove MOVE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback moveDoneCallback)
 	{
 		return MOVE_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, moveDoneCallback);
 	}
-	public static CmdTransformableMove MOVE_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
+	public static CmdTransformableMove MOVE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
 	{
 		return MOVE_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, movingCallback, moveDoneCallback);
 	}
-	public static CmdTransformableMove MOVE_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, KeyFrameCallback moveDoneCallback)
+	public static CmdTransformableMove MOVE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, KeyFrameCallback moveDoneCallback)
 	{
 		return MOVE_DELAY_EX(watcher, obj, delayTime, keyframe, startPos, targetPos, onceLength, false, 0.0f, null, moveDoneCallback);
 	}
-	public static CmdTransformableMove MOVE_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback moveDoneCallback)
+	public static CmdTransformableMove MOVE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback moveDoneCallback)
 	{
 		return MOVE_DELAY_EX(watcher, obj, delayTime, keyframe, startPos, targetPos, onceLength, loop, offset, null, moveDoneCallback);
 	}
-	public static CmdTransformableMove MOVE_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
+	public static CmdTransformableMove MOVE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback movingCallback, KeyFrameCallback moveDoneCallback)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		CMD_DELAY(out CmdTransformableMove cmd, false);
+		CMD_DELAY(out CmdTransformableMove cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
 		cmd.mStartPos = startPos;
 		cmd.mTargetPos = targetPos;
@@ -573,7 +573,7 @@ public class FT : FrameBase
 	#region 在物理更新中用关键帧移动物体
 	public static void MOVE_PHY(Transformable obj, Vector3 pos)
 	{
-		CMD(out CmdTransformableMovePhysics cmd, false);
+		CMD(out CmdTransformableMovePhysics cmd, LOG_LEVEL.LOW);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartPos = pos;
 		cmd.mTargetPos = pos;
@@ -621,7 +621,7 @@ public class FT : FrameBase
 	}
 	public static void MOVE_PHY_EX(Transformable obj, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		CMD(out CmdTransformableMovePhysics cmd, false);
+		CMD(out CmdTransformableMovePhysics cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartPos = startPos;
@@ -632,42 +632,42 @@ public class FT : FrameBase
 		cmd.mDoneCallback = doneCallback;
 		pushCommand(cmd, obj);
 	}
-	public static CmdTransformableMovePhysics MOVE_PHY_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 pos)
+	public static CmdTransformableMovePhysics MOVE_PHY_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 pos)
 	{
-		CMD_DELAY(out CmdTransformableMovePhysics cmd, false);
+		CMD_DELAY(out CmdTransformableMovePhysics cmd, LOG_LEVEL.LOW);
 		cmd.mStartPos = pos;
 		cmd.mTargetPos = pos;
 		cmd.mOnceLength = 0.0f;
 		pushDelayCommand(cmd, obj, delayTime, watcher);
 		return cmd;
 	}
-	public static CmdTransformableMovePhysics MOVE_PHY_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength)
+	public static CmdTransformableMovePhysics MOVE_PHY_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength)
 	{
 		return MOVE_PHY_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CmdTransformableMovePhysics MOVE_PHY_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength)
+	public static CmdTransformableMovePhysics MOVE_PHY_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength)
 	{
 		return MOVE_PHY_DELAY_EX(watcher, obj, delayTime, keyframe, startPos, targetPos, onceLength, false, 0.0f, null, null);
 	}
-	public static CmdTransformableMovePhysics MOVE_PHY_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop)
+	public static CmdTransformableMovePhysics MOVE_PHY_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop)
 	{
 		return MOVE_PHY_DELAY_EX(watcher, obj, delayTime, keyframe, startPos, targetPos, onceLength, loop, 0.0f, null, null);
 	}
-	public static CmdTransformableMovePhysics MOVE_PHY_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset)
+	public static CmdTransformableMovePhysics MOVE_PHY_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset)
 	{
 		return MOVE_PHY_DELAY_EX(watcher, obj, delayTime, keyframe, startPos, targetPos, onceLength, loop, offset, null, null);
 	}
-	public static CmdTransformableMovePhysics MOVE_PHY_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doneCallback)
+	public static CmdTransformableMovePhysics MOVE_PHY_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doneCallback)
 	{
 		return MOVE_PHY_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static CmdTransformableMovePhysics MOVE_PHY_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdTransformableMovePhysics MOVE_PHY_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return MOVE_PHY_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CmdTransformableMovePhysics MOVE_PHY_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdTransformableMovePhysics MOVE_PHY_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		CMD_DELAY(out CmdTransformableMovePhysics cmd, false);
+		CMD_DELAY(out CmdTransformableMovePhysics cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
 		cmd.mStartPos = startPos;
 		cmd.mTargetPos = targetPos;
@@ -689,7 +689,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		pushCommand<CmdTransformableMoveParabola>(obj, false);
+		pushCommand<CmdTransformableMoveParabola>(obj, LOG_LEVEL.LOW);
 	}
 	public static void MOVE_PARABOLA(Transformable obj, Vector3 start, Vector3 target, float topHeight, float onceLength)
 	{
@@ -737,7 +737,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdTransformableMoveParabola cmd, false);
+		CMD(out CmdTransformableMoveParabola cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartPos = startPos;
@@ -749,45 +749,45 @@ public class FT : FrameBase
 		cmd.mDoneCallback = doneCallback;
 		pushCommand(cmd, obj);
 	}
-	public static CmdTransformableMoveParabola MOVE_PARABOLA_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime)
+	public static CmdTransformableMoveParabola MOVE_PARABOLA_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		return pushDelayCommand<CmdTransformableMoveParabola>(watcher, obj, delayTime, false);
+		return pushDelayCommand<CmdTransformableMoveParabola>(watcher, obj, delayTime, LOG_LEVEL.LOW);
 	}
-	public static CmdTransformableMoveParabola MOVE_PARABOLA_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float topHeight, float onceLength)
+	public static CmdTransformableMoveParabola MOVE_PARABOLA_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float topHeight, float onceLength)
 	{
 		return MOVE_PARABOLA_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, null, null);
 	}
-	public static CmdTransformableMoveParabola MOVE_PARABOLA_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength)
+	public static CmdTransformableMoveParabola MOVE_PARABOLA_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength)
 	{
 		return MOVE_PARABOLA_DELAY_EX(watcher, obj, delayTime, keyframe, startPos, targetPos, topHeight, onceLength, false, 0.0f, null, null);
 	}
-	public static CmdTransformableMoveParabola MOVE_PARABOLA_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop)
+	public static CmdTransformableMoveParabola MOVE_PARABOLA_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop)
 	{
 		return MOVE_PARABOLA_DELAY_EX(watcher, obj, delayTime, keyframe, startPos, targetPos, topHeight, onceLength, loop, 0.0f, null, null);
 	}
-	public static CmdTransformableMoveParabola MOVE_PARABOLA_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop, float offset)
+	public static CmdTransformableMoveParabola MOVE_PARABOLA_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop, float offset)
 	{
 		return MOVE_PARABOLA_DELAY_EX(watcher, obj, delayTime, keyframe, startPos, targetPos, topHeight, onceLength, loop, offset, null, null);
 	}
-	public static CmdTransformableMoveParabola MOVE_PARABOLA_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float topHeight, float onceLength, KeyFrameCallback doneCallback)
+	public static CmdTransformableMoveParabola MOVE_PARABOLA_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float topHeight, float onceLength, KeyFrameCallback doneCallback)
 	{
 		return MOVE_PARABOLA_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static CmdTransformableMoveParabola MOVE_PARABOLA_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float topHeight, float onceLength, KeyFrameCallback movingCallback, KeyFrameCallback doneCallback)
+	public static CmdTransformableMoveParabola MOVE_PARABOLA_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float topHeight, float onceLength, KeyFrameCallback movingCallback, KeyFrameCallback doneCallback)
 	{
 		return MOVE_PARABOLA_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, topHeight, onceLength, false, 0.0f, movingCallback, doneCallback);
 	}
-	public static CmdTransformableMoveParabola MOVE_PARABOLA_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop, float offset, KeyFrameCallback movingCallback, KeyFrameCallback doneCallback)
+	public static CmdTransformableMoveParabola MOVE_PARABOLA_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 startPos, Vector3 targetPos, float topHeight, float onceLength, bool loop, float offset, KeyFrameCallback movingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		CMD_DELAY(out CmdTransformableMoveParabola cmd, false);
+		CMD_DELAY(out CmdTransformableMoveParabola cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
 		cmd.mStartPos = startPos;
 		cmd.mTargetPos = targetPos;
@@ -810,7 +810,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		pushCommand<CmdTransformableMoveCurve>(obj, false);
+		pushCommand<CmdTransformableMoveCurve>(obj, LOG_LEVEL.LOW);
 	}
 	public static void MOVE_CURVE(Transformable obj, List<Vector3> posList, float onceLength)
 	{
@@ -858,7 +858,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdTransformableMoveCurve cmd, false);
+		CMD(out CmdTransformableMoveCurve cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mPosList = posList;
@@ -868,45 +868,45 @@ public class FT : FrameBase
 		cmd.mDoneCallback = doneCallback;
 		pushCommand(cmd, obj);
 	}
-	public static CmdTransformableMoveCurve MOVE_CURVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime)
+	public static CmdTransformableMoveCurve MOVE_CURVE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		return pushDelayCommand<CmdTransformableMoveCurve>(watcher, obj, delayTime, false);
+		return pushDelayCommand<CmdTransformableMoveCurve>(watcher, obj, delayTime, LOG_LEVEL.LOW);
 	}
-	public static CmdTransformableMoveCurve MOVE_CURVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, List<Vector3> posList, float onceLength)
+	public static CmdTransformableMoveCurve MOVE_CURVE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, List<Vector3> posList, float onceLength)
 	{
 		return MOVE_CURVE_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, posList, onceLength, false, 0.0f, null, null);
 	}
-	public static CmdTransformableMoveCurve MOVE_CURVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> posList, float onceLength)
+	public static CmdTransformableMoveCurve MOVE_CURVE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> posList, float onceLength)
 	{
 		return MOVE_CURVE_DELAY_EX(watcher, obj, delayTime, keyframe, posList, onceLength, false, 0.0f, null, null);
 	}
-	public static CmdTransformableMoveCurve MOVE_CURVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> posList, float onceLength, bool loop)
+	public static CmdTransformableMoveCurve MOVE_CURVE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> posList, float onceLength, bool loop)
 	{
 		return MOVE_CURVE_DELAY_EX(watcher, obj, delayTime, keyframe, posList, onceLength, loop, 0.0f, null, null);
 	}
-	public static CmdTransformableMoveCurve MOVE_CURVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> posList, float onceLength, bool loop, float offset)
+	public static CmdTransformableMoveCurve MOVE_CURVE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> posList, float onceLength, bool loop, float offset)
 	{
 		return MOVE_CURVE_DELAY_EX(watcher, obj, delayTime, keyframe, posList, onceLength, loop, offset, null, null);
 	}
-	public static CmdTransformableMoveCurve MOVE_CURVE_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, List<Vector3> posList, float onceLength, KeyFrameCallback doneCallback)
+	public static CmdTransformableMoveCurve MOVE_CURVE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, List<Vector3> posList, float onceLength, KeyFrameCallback doneCallback)
 	{
 		return MOVE_CURVE_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, posList, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static CmdTransformableMoveCurve MOVE_CURVE_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, List<Vector3> posList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdTransformableMoveCurve MOVE_CURVE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, List<Vector3> posList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return MOVE_CURVE_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, posList, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CmdTransformableMoveCurve MOVE_CURVE_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> posList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdTransformableMoveCurve MOVE_CURVE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> posList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		CMD_DELAY(out CmdTransformableMoveCurve cmd, false);
+		CMD_DELAY(out CmdTransformableMoveCurve cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
 		cmd.mPosList = posList;
 		cmd.mOnceLength = onceLength;
@@ -927,7 +927,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		pushCommand<CmdTransformableMovePath>(obj, false);
+		pushCommand<CmdTransformableMovePath>(obj, LOG_LEVEL.LOW);
 	}
 	public static void MOVE_PATH(Transformable obj, Dictionary<float, Vector3> valueKeyFrame)
 	{
@@ -967,7 +967,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdTransformableMovePath cmd, false);
+		CMD(out CmdTransformableMovePath cmd, LOG_LEVEL.LOW);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -978,49 +978,49 @@ public class FT : FrameBase
 		cmd.mKeyframe = keyframe;
 		pushCommand(cmd, obj);
 	}
-	public static CmdTransformableMovePath MOVE_PATH_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime)
+	public static CmdTransformableMovePath MOVE_PATH_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		return pushDelayCommand<CmdTransformableMovePath>(watcher, obj, delayTime, false);
+		return pushDelayCommand<CmdTransformableMovePath>(watcher, obj, delayTime, LOG_LEVEL.LOW);
 	}
-	public static CmdTransformableMovePath MOVE_PATH_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame)
+	public static CmdTransformableMovePath MOVE_PATH_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame)
 	{
 		return MOVE_PATH_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, valueKeyFrame, Vector3.zero, 1.0f, false, 0.0f, null, null);
 	}
-	public static CmdTransformableMovePath MOVE_PATH_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset)
+	public static CmdTransformableMovePath MOVE_PATH_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset)
 	{
 		return MOVE_PATH_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, valueKeyFrame, valueOffset, 1.0f, false, 0.0f, null, null);
 	}
-	public static CmdTransformableMovePath MOVE_PATH_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed)
+	public static CmdTransformableMovePath MOVE_PATH_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed)
 	{
 		return MOVE_PATH_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, valueKeyFrame, valueOffset, speed, false, 0.0f, null, null);
 	}
-	public static CmdTransformableMovePath MOVE_PATH_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, bool loop)
+	public static CmdTransformableMovePath MOVE_PATH_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, bool loop)
 	{
 		return MOVE_PATH_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, valueKeyFrame, valueOffset, speed, loop, 0.0f, null, null);
 	}
-	public static CmdTransformableMovePath MOVE_PATH_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, bool loop, float offset)
+	public static CmdTransformableMovePath MOVE_PATH_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, bool loop, float offset)
 	{
 		return MOVE_PATH_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, valueKeyFrame, valueOffset, speed, loop, offset, null, null);
 	}
-	public static CmdTransformableMovePath MOVE_PATH_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, KeyFrameCallback doneCallback)
+	public static CmdTransformableMovePath MOVE_PATH_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, KeyFrameCallback doneCallback)
 	{
 		return MOVE_PATH_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, valueKeyFrame, valueOffset, speed, false, 0.0f, null, doneCallback);
 	}
-	public static CmdTransformableMovePath MOVE_PATH_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdTransformableMovePath MOVE_PATH_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return MOVE_PATH_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, valueKeyFrame, valueOffset, speed, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CmdTransformableMovePath MOVE_PATH_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdTransformableMovePath MOVE_PATH_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		CMD_DELAY(out CmdTransformableMovePath cmd, false);
+		CMD_DELAY(out CmdTransformableMovePath cmd, LOG_LEVEL.LOW);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -1042,7 +1042,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		pushCommand<CmdTransformableLerpPosition>(obj, false);
+		pushCommand<CmdTransformableLerpPosition>(obj, LOG_LEVEL.LOW);
 	}
 	public static void LERP_POSITION(Transformable obj, Vector3 targetPosition, float lerpSpeed)
 	{
@@ -1063,30 +1063,30 @@ public class FT : FrameBase
 			logError("速度不能为0,如果要停止组件,请使用void LERP_POSITION(Transformable obj)");
 			return;
 		}
-		CMD(out CmdTransformableLerpPosition cmd, false);
+		CMD(out CmdTransformableLerpPosition cmd, LOG_LEVEL.LOW);
 		cmd.mTargetPosition = targetPosition;
 		cmd.mLerpSpeed = lerpSpeed;
 		cmd.mDoingCallBack = doingCallback;
 		cmd.mDoneCallBack = doneCallback;
 		pushCommand(cmd, obj);
 	}
-	public static CmdTransformableLerpPosition LERP_POSITION_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime)
+	public static CmdTransformableLerpPosition LERP_POSITION_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		return pushDelayCommand<CmdTransformableLerpPosition>(watcher, obj, delayTime, false);
+		return pushDelayCommand<CmdTransformableLerpPosition>(watcher, obj, delayTime, LOG_LEVEL.LOW);
 	}
-	public static CmdTransformableLerpPosition LERP_POSITION_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 targetPosition, float lerpSpeed)
+	public static CmdTransformableLerpPosition LERP_POSITION_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 targetPosition, float lerpSpeed)
 	{
 		return LERP_POSITION_DELAY_EX(watcher, obj, delayTime, targetPosition, lerpSpeed, null, null);
 	}
-	public static CmdTransformableLerpPosition LERP_POSITION_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 targetPosition, float lerpSpeed, LerpCallback doneCallback)
+	public static CmdTransformableLerpPosition LERP_POSITION_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 targetPosition, float lerpSpeed, LerpCallback doneCallback)
 	{
 		return LERP_POSITION_DELAY_EX(watcher, obj, delayTime, targetPosition, lerpSpeed, null, doneCallback);
 	}
-	public static CmdTransformableLerpPosition LERP_POSITION_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 targetPosition, float lerpSpeed, LerpCallback doingCallback, LerpCallback doneCallback)
+	public static CmdTransformableLerpPosition LERP_POSITION_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 targetPosition, float lerpSpeed, LerpCallback doingCallback, LerpCallback doneCallback)
 	{
 		if (obj == null)
 		{
@@ -1097,7 +1097,7 @@ public class FT : FrameBase
 			logError("速度不能为0,如果要停止组件,请使用void LERP_POSITION_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime)");
 			return null;
 		}
-		CMD_DELAY(out CmdTransformableLerpPosition cmd, false);
+		CMD_DELAY(out CmdTransformableLerpPosition cmd, LOG_LEVEL.LOW);
 		cmd.mTargetPosition = targetPosition;
 		cmd.mLerpSpeed = lerpSpeed;
 		cmd.mDoingCallBack = doingCallback;
@@ -1115,7 +1115,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		pushCommand<CmdTransformableLerpRotation>(obj, false);
+		pushCommand<CmdTransformableLerpRotation>(obj, LOG_LEVEL.LOW);
 	}
 	public static void LERP_ROTATION(Transformable obj, Vector3 targetRotation, float lerpSpeed)
 	{
@@ -1136,30 +1136,30 @@ public class FT : FrameBase
 			logError("速度不能为0,如果要停止组件,请使用void LERP_ROTATION(Transformable obj)");
 			return;
 		}
-		CMD(out CmdTransformableLerpRotation cmd, false);
+		CMD(out CmdTransformableLerpRotation cmd, LOG_LEVEL.LOW);
 		cmd.mTargetRotation = targetRotation;
 		cmd.mLerpSpeed = lerpSpeed;
 		cmd.mDoingCallBack = doingCallback;
 		cmd.mDoneCallBack = doneCallback;
 		pushCommand(cmd, obj);
 	}
-	public static CmdTransformableLerpRotation LERP_ROTATION_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime)
+	public static CmdTransformableLerpRotation LERP_ROTATION_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		return pushDelayCommand<CmdTransformableLerpRotation>(watcher, obj, delayTime, false);
+		return pushDelayCommand<CmdTransformableLerpRotation>(watcher, obj, delayTime, LOG_LEVEL.LOW);
 	}
-	public static CmdTransformableLerpRotation LERP_ROTATION_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 targetRotation, float lerpSpeed)
+	public static CmdTransformableLerpRotation LERP_ROTATION_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 targetRotation, float lerpSpeed)
 	{
 		return LERP_ROTATION_DELAY_EX(watcher, obj, delayTime, targetRotation, lerpSpeed, null, null);
 	}
-	public static CmdTransformableLerpRotation LERP_ROTATION_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 targetRotation, float lerpSpeed, LerpCallback doneCallback)
+	public static CmdTransformableLerpRotation LERP_ROTATION_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 targetRotation, float lerpSpeed, LerpCallback doneCallback)
 	{
 		return LERP_ROTATION_DELAY_EX(watcher, obj, delayTime, targetRotation, lerpSpeed, null, doneCallback);
 	}
-	public static CmdTransformableLerpRotation LERP_ROTATION_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 targetRotation, float lerpSpeed, LerpCallback doingCallback, LerpCallback doneCallback)
+	public static CmdTransformableLerpRotation LERP_ROTATION_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 targetRotation, float lerpSpeed, LerpCallback doingCallback, LerpCallback doneCallback)
 	{
 		if (obj == null)
 		{
@@ -1170,7 +1170,7 @@ public class FT : FrameBase
 			logError("速度不能为0,如果要停止组件,请使用void LERP_ROTATION_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime)");
 			return null;
 		}
-		CMD_DELAY(out CmdTransformableLerpRotation cmd, false);
+		CMD_DELAY(out CmdTransformableLerpRotation cmd, LOG_LEVEL.LOW);
 		cmd.mTargetRotation = targetRotation;
 		cmd.mLerpSpeed = lerpSpeed;
 		cmd.mDoingCallBack = doingCallback;
@@ -1188,7 +1188,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		pushCommand<CmdTransformableRotatePath>(obj, false);
+		pushCommand<CmdTransformableRotatePath>(obj, LOG_LEVEL.LOW);
 	}
 	public static void ROTATE_PATH(Transformable obj, Dictionary<float, Vector3> valueKeyFrame)
 	{
@@ -1220,7 +1220,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdTransformableRotatePath cmd, false);
+		CMD(out CmdTransformableRotatePath cmd, LOG_LEVEL.LOW);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -1231,49 +1231,49 @@ public class FT : FrameBase
 		cmd.mKeyframe = keyframe;
 		pushCommand(cmd, obj);
 	}
-	public static CmdTransformableRotatePath ROTATE_PATH_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime)
+	public static CmdTransformableRotatePath ROTATE_PATH_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		return pushDelayCommand<CmdTransformableRotatePath>(watcher, obj, delayTime, false);
+		return pushDelayCommand<CmdTransformableRotatePath>(watcher, obj, delayTime, LOG_LEVEL.LOW);
 	}
-	public static CmdTransformableRotatePath ROTATE_PATH_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame)
+	public static CmdTransformableRotatePath ROTATE_PATH_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame)
 	{
 		return ROTATE_PATH_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, valueKeyFrame, Vector3.zero, 1.0f, false, 0.0f, null, null);
 	}
-	public static CmdTransformableRotatePath ROTATE_PATH_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset)
+	public static CmdTransformableRotatePath ROTATE_PATH_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset)
 	{
 		return ROTATE_PATH_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, valueKeyFrame, valueOffset, 1.0f, false, 0.0f, null, null);
 	}
-	public static CmdTransformableRotatePath ROTATE_PATH_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed)
+	public static CmdTransformableRotatePath ROTATE_PATH_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed)
 	{
 		return ROTATE_PATH_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, valueKeyFrame, valueOffset, speed, false, 0.0f, null, null);
 	}
-	public static CmdTransformableRotatePath ROTATE_PATH_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, bool loop)
+	public static CmdTransformableRotatePath ROTATE_PATH_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, bool loop)
 	{
 		return ROTATE_PATH_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, valueKeyFrame, valueOffset, speed, loop, 0.0f, null, null);
 	}
-	public static CmdTransformableRotatePath ROTATE_PATH_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, bool loop, float offset)
+	public static CmdTransformableRotatePath ROTATE_PATH_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, bool loop, float offset)
 	{
 		return ROTATE_PATH_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, valueKeyFrame, valueOffset, speed, loop, offset, null, null);
 	}
-	public static CmdTransformableRotatePath ROTATE_PATH_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, KeyFrameCallback doneCallback)
+	public static CmdTransformableRotatePath ROTATE_PATH_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, KeyFrameCallback doneCallback)
 	{
 		return ROTATE_PATH_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, valueKeyFrame, valueOffset, speed, false, 0.0f, null, doneCallback);
 	}
-	public static CmdTransformableRotatePath ROTATE_PATH_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdTransformableRotatePath ROTATE_PATH_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return ROTATE_PATH_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, valueKeyFrame, valueOffset, speed, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CmdTransformableRotatePath ROTATE_PATH_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdTransformableRotatePath ROTATE_PATH_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		CMD_DELAY(out CmdTransformableRotatePath cmd, false);
+		CMD_DELAY(out CmdTransformableRotatePath cmd, LOG_LEVEL.LOW);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -1315,7 +1315,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdTransformableTrackTarget cmd, false);
+		CMD(out CmdTransformableTrackTarget cmd, LOG_LEVEL.LOW);
 		cmd.mTarget = target;
 		cmd.mSpeed = speed;
 		cmd.mOffset = offset;
@@ -1341,7 +1341,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdTransformableRotateFocus cmd, false);
+		CMD(out CmdTransformableRotateFocus cmd, LOG_LEVEL.LOW);
 		cmd.mTarget = target;
 		cmd.mOffset = offset;
 		pushCommand(cmd, obj);
@@ -1372,7 +1372,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdTransformableLockPosition cmd, false);
+		CMD(out CmdTransformableLockPosition cmd, LOG_LEVEL.LOW);
 		cmd.mLockPosition = pos;
 		cmd.mLockX = lockX;
 		cmd.mLockY = lockY;
@@ -1393,7 +1393,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdTransformableScale cmd, false);
+		CMD(out CmdTransformableScale cmd, LOG_LEVEL.LOW);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartScale = scale;
 		cmd.mTargetScale = scale;
@@ -1449,7 +1449,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdTransformableScale cmd, false);
+		CMD(out CmdTransformableScale cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mOffset = offset;
@@ -1460,54 +1460,54 @@ public class FT : FrameBase
 		cmd.mDoneCallback = doneCallback;
 		pushCommand(cmd, obj);
 	}
-	public static CmdTransformableScale SCALE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 scale)
+	public static CmdTransformableScale SCALE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 scale)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		CMD_DELAY(out CmdTransformableScale cmd, false);
+		CMD_DELAY(out CmdTransformableScale cmd, LOG_LEVEL.LOW);
 		cmd.mOnceLength = 0.0f;
 		cmd.mStartScale = scale;
 		cmd.mTargetScale = scale;
 		pushDelayCommand(cmd, obj, delayTime, watcher);
 		return cmd;
 	}
-	public static CmdTransformableScale SCALE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength)
+	public static CmdTransformableScale SCALE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength)
 	{
 		return SCALE_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CmdTransformableScale SCALE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength)
+	public static CmdTransformableScale SCALE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
 		return SCALE_DELAY_EX(watcher, obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static CmdTransformableScale SCALE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop)
+	public static CmdTransformableScale SCALE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop)
 	{
 		return SCALE_DELAY_EX(watcher, obj, delayTime, keyframe, start, target, onceLength, loop, 0.0f, null, null);
 	}
-	public static CmdTransformableScale SCALE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
+	public static CmdTransformableScale SCALE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
 	{
 		return SCALE_DELAY_EX(watcher, obj, delayTime, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
-	public static CmdTransformableScale SCALE_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdTransformableScale SCALE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return SCALE_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CmdTransformableScale SCALE_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdTransformableScale SCALE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return SCALE_DELAY_EX(watcher, obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CmdTransformableScale SCALE_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdTransformableScale SCALE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return SCALE_DELAY_EX(watcher, obj, delayTime, keyframe, start, target, onceLength, loop, 0.0f, doingCallback, doneCallback);
 	}
-	public static CmdTransformableScale SCALE_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdTransformableScale SCALE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		CMD_DELAY(out CmdTransformableScale cmd, false);
+		CMD_DELAY(out CmdTransformableScale cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mOffset = offset;
@@ -1529,7 +1529,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		pushCommand<CmdTransformableScalePath>(obj, false);
+		pushCommand<CmdTransformableScalePath>(obj, LOG_LEVEL.LOW);
 	}
 	public static void SCALE_PATH(Transformable obj, Dictionary<float, Vector3> valueKeyFrame)
 	{
@@ -1561,7 +1561,7 @@ public class FT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdTransformableScalePath cmd, false);
+		CMD(out CmdTransformableScalePath cmd, LOG_LEVEL.LOW);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -1572,49 +1572,49 @@ public class FT : FrameBase
 		cmd.mKeyframe = keyframe;
 		pushCommand(cmd, obj);
 	}
-	public static CmdTransformableScalePath SCALE_PATH_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime)
+	public static CmdTransformableScalePath SCALE_PATH_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		return pushDelayCommand<CmdTransformableScalePath>(watcher, obj, delayTime, false);
+		return pushDelayCommand<CmdTransformableScalePath>(watcher, obj, delayTime, LOG_LEVEL.LOW);
 	}
-	public static CmdTransformableScalePath SCALE_PATH_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame)
+	public static CmdTransformableScalePath SCALE_PATH_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame)
 	{
 		return SCALE_PATH_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, valueKeyFrame, Vector3.one, 1.0f, false, 0.0f, null, null);
 	}
-	public static CmdTransformableScalePath SCALE_PATH_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset)
+	public static CmdTransformableScalePath SCALE_PATH_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset)
 	{
 		return SCALE_PATH_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, valueKeyFrame, valueOffset, 1.0f, false, 0.0f, null, null);
 	}
-	public static CmdTransformableScalePath SCALE_PATH_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed)
+	public static CmdTransformableScalePath SCALE_PATH_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed)
 	{
 		return SCALE_PATH_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, valueKeyFrame, valueOffset, speed, false, 0.0f, null, null);
 	}
-	public static CmdTransformableScalePath SCALE_PATH_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, bool loop)
+	public static CmdTransformableScalePath SCALE_PATH_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, bool loop)
 	{
 		return SCALE_PATH_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, valueKeyFrame, valueOffset, speed, loop, 0.0f, null, null);
 	}
-	public static CmdTransformableScalePath SCALE_PATH_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, bool loop, float offset)
+	public static CmdTransformableScalePath SCALE_PATH_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, bool loop, float offset)
 	{
 		return SCALE_PATH_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, valueKeyFrame, valueOffset, speed, loop, offset, null, null);
 	}
-	public static CmdTransformableScalePath SCALE_PATH_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, KeyFrameCallback doneCallback)
+	public static CmdTransformableScalePath SCALE_PATH_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, KeyFrameCallback doneCallback)
 	{
 		return SCALE_PATH_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, valueKeyFrame, valueOffset, speed, false, 0.0f, null, doneCallback);
 	}
-	public static CmdTransformableScalePath SCALE_PATH_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdTransformableScalePath SCALE_PATH_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return SCALE_PATH_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, valueKeyFrame, valueOffset, speed, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CmdTransformableScalePath SCALE_PATH_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdTransformableScalePath SCALE_PATH_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Dictionary<float, Vector3> valueKeyFrame, Vector3 valueOffset, float speed, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
 			return null;
 		}
-		CMD_DELAY(out CmdTransformableScalePath cmd, false);
+		CMD_DELAY(out CmdTransformableScalePath cmd, LOG_LEVEL.LOW);
 		cmd.mValueKeyFrame = valueKeyFrame;
 		cmd.mValueOffset = valueOffset;
 		cmd.mSpeed = speed;
@@ -1631,7 +1631,7 @@ public class FT : FrameBase
 	#region 以指定角度列表旋转物体
 	public static void SCALE_CURVE(Transformable obj)
 	{
-		pushCommand<CmdTransformableScaleCurve>(obj, false);
+		pushCommand<CmdTransformableScaleCurve>(obj, LOG_LEVEL.LOW);
 	}
 	public static void SCALE_CURVE(Transformable obj, List<Vector3> scaleList, float onceLength)
 	{
@@ -1675,7 +1675,7 @@ public class FT : FrameBase
 	}
 	public static void SCALE_CURVE_EX(Transformable obj, int keyframe, List<Vector3> scaleList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		CMD(out CmdTransformableScaleCurve cmd, false);
+		CMD(out CmdTransformableScaleCurve cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mScaleList = scaleList;
@@ -1685,37 +1685,37 @@ public class FT : FrameBase
 		cmd.mDoneCallback = doneCallback;
 		pushCommand(cmd, obj);
 	}
-	public static CmdTransformableScaleCurve SCALE_CURVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime)
+	public static CmdTransformableScaleCurve SCALE_CURVE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime)
 	{
-		return pushDelayCommand<CmdTransformableScaleCurve>(watcher, obj, delayTime, false);
+		return pushDelayCommand<CmdTransformableScaleCurve>(watcher, obj, delayTime, LOG_LEVEL.LOW);
 	}
-	public static CmdTransformableScaleCurve SCALE_CURVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, List<Vector3> scaleList, float onceLength)
+	public static CmdTransformableScaleCurve SCALE_CURVE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, List<Vector3> scaleList, float onceLength)
 	{
 		return SCALE_CURVE_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, scaleList, onceLength, false, 0.0f, null, null);
 	}
-	public static CmdTransformableScaleCurve SCALE_CURVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> scaleList, float onceLength)
+	public static CmdTransformableScaleCurve SCALE_CURVE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> scaleList, float onceLength)
 	{
 		return SCALE_CURVE_DELAY_EX(watcher, obj, delayTime, keyframe, scaleList, onceLength, false, 0.0f, null, null);
 	}
-	public static CmdTransformableScaleCurve SCALE_CURVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> scaleList, float onceLength, bool loop)
+	public static CmdTransformableScaleCurve SCALE_CURVE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> scaleList, float onceLength, bool loop)
 	{
 		return SCALE_CURVE_DELAY_EX(watcher, obj, delayTime, keyframe, scaleList, onceLength, loop, 0.0f, null, null);
 	}
-	public static CmdTransformableScaleCurve SCALE_CURVE_DELAY(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> scaleList, float onceLength, bool loop, float offset)
+	public static CmdTransformableScaleCurve SCALE_CURVE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> scaleList, float onceLength, bool loop, float offset)
 	{
 		return SCALE_CURVE_DELAY_EX(watcher, obj, delayTime, keyframe, scaleList, onceLength, loop, offset, null, null);
 	}
-	public static CmdTransformableScaleCurve SCALE_CURVE_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, List<Vector3> scaleList, float onceLength, KeyFrameCallback doneCallback)
+	public static CmdTransformableScaleCurve SCALE_CURVE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, List<Vector3> scaleList, float onceLength, KeyFrameCallback doneCallback)
 	{
 		return SCALE_CURVE_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, scaleList, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static CmdTransformableScaleCurve SCALE_CURVE_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, List<Vector3> scaleList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdTransformableScaleCurve SCALE_CURVE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, List<Vector3> scaleList, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return SCALE_CURVE_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, scaleList, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static CmdTransformableScaleCurve SCALE_CURVE_DELAY_EX(IDelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> scaleList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static CmdTransformableScaleCurve SCALE_CURVE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, List<Vector3> scaleList, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		CMD_DELAY(out CmdTransformableScaleCurve cmd, false);
+		CMD_DELAY(out CmdTransformableScaleCurve cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
 		cmd.mScaleList = scaleList;
 		cmd.mOnceLength = onceLength;

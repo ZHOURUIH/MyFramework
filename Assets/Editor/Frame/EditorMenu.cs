@@ -28,7 +28,7 @@ public class EditorMenu : EditorCommonUtility
 	[MenuItem("快捷操作/启动游戏 _F5", false, 0)]
 	public static void StartGame()
 	{
-		if(!EditorApplication.isPlaying)
+		if (!EditorApplication.isPlaying)
 		{
 			EditorSceneManager.OpenScene(FrameDefine.P_RESOURCES_SCENE_PATH + "start.unity", OpenSceneMode.Single);
 			EditorApplication.isPlaying = true;
@@ -81,7 +81,7 @@ public class EditorMenu : EditorCommonUtility
 		saveFileInfo(classInfoList);
 		// 获取Assembly集合
 		Assembly assemly = null;
-		Assembly[] assembly = AppDomain.CurrentDomain.GetAssemblies();
+		Assembly[] assembly = System.AppDomain.CurrentDomain.GetAssemblies();
 		for (int i = 0; i < assembly.Length; ++i)
 		{
 			// 获取工程
@@ -91,7 +91,7 @@ public class EditorMenu : EditorCommonUtility
 				break;
 			}
 		}
-		if(assemly == null)
+		if (assemly == null)
 		{
 			logError("找不到指定的程序集");
 			return;
@@ -111,7 +111,7 @@ public class EditorMenu : EditorCommonUtility
 			Type type = types[i];
 			// 是否继承自需要忽略的基类
 			bool isIgnoreClass = false;
-			for(int j = 0; j < ignoreBaseClass.Count; ++j)
+			for (int j = 0; j < ignoreBaseClass.Count; ++j)
 			{
 				if (ignoreBaseClass[j].IsAssignableFrom(type))
 				{
@@ -159,8 +159,386 @@ public class EditorMenu : EditorCommonUtility
 		}
 		log("检查完毕");
 	}
+	[MenuItem("检查资源/材质贴图是否存在")]
+	public static void CheckMaterialTextureValid()
+	{
+		bool checkAll = false;
+		string path = AssetDatabase.GetAssetPath(Selection.activeObject);
+		if (isEmpty(path))
+		{
+			if (!EditorUtility.DisplayDialog("材质贴图是否存在", "未选中任何目录,是否想要查找GameResources中所有材质的贴图是否存在?", "确认", "取消"))
+			{
+				return;
+			}
+			checkAll = true;
+			path = FrameDefine.P_GAME_RESOURCES_PATH;
+			removeEndSlash(ref path);
+		}
+		Debug.Log("开始检查材质贴图是否存在:" + path);
+		// 选择的是文件,则只查找文件的引用
+		if (isFileExist(path))
+		{
+			checkMaterialTextureValid(path, getAllResourceFileText());
+		}
+		// 选择的是目录,则查找目录中所有文件的引用
+		else if (isDirExist(path))
+		{
+			if (checkAll || EditorUtility.DisplayDialog("材质贴图是否存在", "确认查找文件夹中所有材质的贴图是否存在? " + path, "确认", "取消"))
+			{
+				var allFileText = getAllResourceFileText();
+				string[] files = Directory.GetFiles(path, "*.mat", SearchOption.AllDirectories);
+				// 因为后缀长度小于等于3时会查找出所有包含此后缀的文件,并不一定只有指定后缀的文件
+				// 所以此处需要过滤掉不需要的文件
+				var validFiles = new List<string>();
+				foreach (var item in files)
+				{
+					if (item.EndsWith(".mat"))
+					{
+						validFiles.Add(item);
+					}
+				}
+				// 开始查找所有文件的引用
+				int count = validFiles.Count;
+				for (int i = 0; i < count; ++i)
+				{
+					EditorUtility.DisplayProgressBar("材质贴图是否存在", "进度:" + (i + 1) + "/" + count, (float)(i + 1) / count);
+					checkMaterialTextureValid(validFiles[i], allFileText);
+				}
+				EditorUtility.ClearProgressBar();
+			}
+		}
+		Debug.Log("完成检查材质贴图是否存在");
+	}
+	[MenuItem("检查资源/材质是否引用了shader未使用的贴图")]
+	public static void CheckMaterialTextureRefrence()
+	{
+		// 查找该文件的所有引用
+		bool checkAll = false;
+		string path = AssetDatabase.GetAssetPath(Selection.activeObject);
+		if (isEmpty(path))
+		{
+			if (!EditorUtility.DisplayDialog("材质是否引用了shader未使用的贴图", "未选中任何目录,是否想要检查GameResources中所有材质的shader的贴图?", "确认", "取消"))
+			{
+				return;
+			}
+			checkAll = true;
+			path = FrameDefine.P_GAME_RESOURCES_PATH;
+			removeEndSlash(ref path);
+		}
+		Debug.Log("开始检查材质是否引用了shader未使用的贴图:" + path);
+		// 选择的是文件,则只查找文件的引用
+		if (isFileExist(path))
+		{
+			checkMaterialTexturePropertyValid(path, getAllResourceFileText(), true);
+		}
+		// 选择的是目录,则查找目录中所有文件的引用
+		else if (isDirExist(path))
+		{
+			if (checkAll || EditorUtility.DisplayDialog("材质是否引用了shader未使用的贴图", "确认查找文件夹中所有材质的贴图属性? " + path, "确认", "取消"))
+			{
+				var allFileText = getAllResourceFileText();
+				string[] files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
+				// 因为后缀长度小于等于3时会查找出所有包含此后缀的文件,并不一定只有指定后缀的文件
+				// 所以此处需要过滤掉不需要的文件
+				var validFiles = new List<string>();
+				foreach (var item in files)
+				{
+					if (item.EndsWith(".mat"))
+					{
+						validFiles.Add(item);
+					}
+				}
+				// 开始查找所有文件的引用
+				int count = validFiles.Count;
+				for (int i = 0; i < count; ++i)
+				{
+					EditorUtility.DisplayProgressBar("材质是否引用了shader未使用的贴图", "进度:" + (i + 1) + "/" + count, (float)(i + 1) / count);
+					checkMaterialTexturePropertyValid(validFiles[i], allFileText, true);
+				}
+				EditorUtility.ClearProgressBar();
+			}
+		}
+		Debug.Log("完成检查材质引用未使用的贴图");
+	}
+	[MenuItem("检查资源/查找资源引用")]
+	public static void SearchRefrence()
+	{
+		// 查找该文件的所有引用
+		bool checkAll = false;
+		string path = AssetDatabase.GetAssetPath(Selection.activeObject);
+		if (isEmpty(path))
+		{
+			if (!EditorUtility.DisplayDialog("查找所有资源引用", "未选中任何目录,是否想要查找GameResources中所有资源的引用?", "确认", "取消"))
+			{
+				return;
+			}
+			checkAll = true;
+			path = FrameDefine.P_GAME_RESOURCES_PATH;
+			removeEndSlash(ref path);
+		}
+		Debug.Log("开始查找资源引用:" + path + "...");
+		// 选择的是文件,则只查找文件的引用
+		if (isFileExist(path))
+		{
+			doSearchRefrence(path, getAllResourceFileText());
+		}
+		// 选择的是目录,则查找目录中所有文件的引用
+		else if (isDirExist(path))
+		{
+			if (checkAll || EditorUtility.DisplayDialog("查找所有资源引用", "确认查找文件夹中所有文件的引用? " + path, "确认", "取消"))
+			{
+				var allFileText = getAllResourceFileText();
+				string[] files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
+				// 不查找meta文件的引用
+				var validFiles = new List<string>();
+				foreach (var item in files)
+				{
+					if (!item.EndsWith(".meta"))
+					{
+						validFiles.Add(item);
+					}
+				}
+				// 开始查找所有文件的引用
+				int count = validFiles.Count;
+				for (int i = 0; i < count; ++i)
+				{
+					EditorUtility.DisplayProgressBar("查找所有资源引用", "进度:" + (i + 1) + "/" + count, (float)(i + 1) / count);
+					doSearchRefrence(validFiles[i], allFileText);
+				}
+				EditorUtility.ClearProgressBar();
+			}
+		}
+		Debug.Log("完成查找资源引用");
+	}
+	[MenuItem("检查资源/查找未引用的资源")]
+	public static void CheckUnusedTexture()
+	{
+		bool checkAll = false;
+		string path = AssetDatabase.GetAssetPath(Selection.activeObject);
+		if (isEmpty(path))
+		{
+			if (!EditorUtility.DisplayDialog("查找未引用的资源", "未选中任何目录,是否想要查找GameResources中所有的未引用的资源?", "确认", "取消"))
+			{
+				return;
+			}
+			checkAll = true;
+			path = FrameDefine.P_GAME_RESOURCES_PATH;
+			removeEndSlash(ref path);
+		}
+		Debug.Log("开始查找未引用的资源:" + path + "...");
+		if (isFileExist(path))
+		{
+			doCheckUnusedTexture(path, getAllResourceFileText());
+		}
+		else if (isDirExist(path))
+		{
+			if (checkAll || EditorUtility.DisplayDialog("查找未引用的资源", "确认查找文件夹中所有未使用资源? " + path, "确认", "取消"))
+			{
+				var allFileText = getAllResourceFileText();
+				string[] files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
+				var validFiles = new List<string>();
+				foreach (var item in files)
+				{
+					if (!endWith(item, ".meta", false))
+					{
+						validFiles.Add(item);
+					}
+				}
+				// 开始查找所有文件的引用
+				int count = validFiles.Count;
+				for (int i = 0; i < count; ++i)
+				{
+					string filePath = validFiles[i];
+					EditorUtility.DisplayProgressBar("查找未引用的资源", "进度:" + (i + 1) + "/" + count, (float)(i + 1) / count);
+					doCheckUnusedTexture(filePath, allFileText);
+				}
+				EditorUtility.ClearProgressBar();
+			}
+		}
+		Debug.Log("完成查找未引用的资源");
+	}
+	[MenuItem("检查资源/检查图集引用")]
+	public static void CheckAtlasRefrence()
+	{
+		bool checkAll = false;
+		string path = AssetDatabase.GetAssetPath(Selection.activeObject);
+		if (isEmpty(path))
+		{
+			if (!EditorUtility.DisplayDialog("检查图集引用", "未选中任何目录,是否想要检查GameResources中所有图集的引用?", "确认", "取消"))
+			{
+				return;
+			}
+			checkAll = true;
+			path = FrameDefine.P_GAME_RESOURCES_PATH;
+			removeEndSlash(ref path);
+		}
+		Debug.Log("开始检查图集引用:" + path + "...");
+		if (isFileExist(path))
+		{
+			if (endWith(path, "png", false))
+			{
+				doCheckAtlasRefrence(path, getAllFileText(FrameDefine.F_GAME_RESOURCES_PATH + FrameDefine.LAYOUT_PREFAB + "/", null));
+			}
+		}
+		else if (isDirExist(path))
+		{
+			if (checkAll || EditorUtility.DisplayDialog("检查图集引用", "确认查找文件夹中图集引用? " + path, "确认", "取消"))
+			{
+				string[] files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
+				// 只查找png
+				var validFiles = new List<string>();
+				foreach (var item in files)
+				{
+					if (endWith(item, "png", false))
+					{
+						validFiles.Add(item);
+					}
+				}
+				var allFileText = getAllFileText(FrameDefine.F_GAME_RESOURCES_PATH + FrameDefine.LAYOUT_PREFAB + "/", null);
+				// 开始查找所有文件的引用
+				int count = validFiles.Count;
+				for (int i = 0; i < count; ++i)
+				{
+					string filePath = validFiles[i];
+					EditorUtility.DisplayProgressBar("检查图集引用", "进度:" + (i + 1) + "/" + count, (float)(i + 1) / count);
+					doCheckAtlasRefrence(filePath, allFileText);
+				}
+				EditorUtility.ClearProgressBar();
+			}
+		}
+		Debug.Log("完成检查图集引用");
+	}
+	[MenuItem("检查资源/检查图集中不存在的图片")]
+	public static void CheckAtlasNotExistSprite()
+	{
+		bool checkAll = false;
+		string path = AssetDatabase.GetAssetPath(Selection.activeObject);
+		if (isEmpty(path))
+		{
+			if (!EditorUtility.DisplayDialog("检查图集中不存在的图片", "未选中任何目录,是否想要检查GameResources中所有图集中不存在的图片?", "确认", "取消"))
+			{
+				return;
+			}
+			checkAll = true;
+			path = FrameDefine.P_GAME_RESOURCES_PATH;
+			removeEndSlash(ref path);
+		}
+		Debug.Log("开始检查图集中不存在的图片:" + path + "...");
+		if (isFileExist(path))
+		{
+			if (endWith(path, "png", false))
+			{
+				doCheckAtlasNotExistSprite(path);
+			}
+		}
+		else if (isDirExist(path))
+		{
+			if (checkAll || EditorUtility.DisplayDialog("检查图集中不存在的图片", "确认查找文件夹中图集中不存在的图片? " + path, "确认", "取消"))
+			{
+				string[] files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
+				// 只查找png
+				var validFiles = new List<string>();
+				foreach (var item in files)
+				{
+					if (endWith(item, "png", false))
+					{
+						validFiles.Add(item);
+					}
+				}
+				// 开始查找所有文件的引用
+				int count = validFiles.Count;
+				for (int i = 0; i < count; ++i)
+				{
+					string filePath = validFiles[i];
+					EditorUtility.DisplayProgressBar("检查图集中不存在的图片", "进度:" + (i + 1) + "/" + count, (float)(i + 1) / count);
+					doCheckAtlasNotExistSprite(filePath);
+				}
+				EditorUtility.ClearProgressBar();
+			}
+		}
+		Debug.Log("完成检查图集中不存在的图片");
+	}
+	[MenuItem("检查资源/删除所有空文件夹")]
+	public static void DeleteAllEmptyFolder()
+	{
+		deleteEmptyFolder(FrameDefine.F_GAME_RESOURCES_PATH);
+	}
+	[MenuItem("检查资源/检查重名文件")]
+	public static void CheckFileNameConflict()
+	{
+		Debug.Log("开始检查重名文件...");
+		var fileList = new List<string>();
+		findFiles(FrameDefine.F_GAME_RESOURCES_PATH, fileList);
+		// 去除meta文件
+		for (int i = 0; i < fileList.Count; ++i)
+		{
+			if (endWith(fileList[i], ".meta"))
+			{
+				fileList.RemoveAt(i);
+				--i;
+			}
+		}
+		int fileCount = fileList.Count;
+		for (int i = 0; i < fileCount; ++i)
+		{
+			EditorUtility.DisplayProgressBar("查找文件目录", "进度:" + (i + 1) + "/" + fileCount, (float)(i + 1) / fileCount);
+			string curFileName = getFileName(fileList[i]);
+			foreach (var item0 in fileList)
+			{
+				if (fileList[i] != item0 && curFileName == getFileName(item0))
+				{
+					string path = fullPathToProjectPath(item0);
+					Debug.LogError("文件命名冲突:" + fileList[i] + "\n" + item0, AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path));
+					break;
+				}
+			}
+		}
+		EditorUtility.ClearProgressBar();
+		Debug.Log("完成检查重名文件");
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected static void doCheckAtlasNotExistSprite(string path)
+	{
+		var notExistSprites = checkAtlasNotExistSprite(path);
+		foreach (var item in notExistSprites)
+		{
+			Debug.Log("图集:" + path + "中的图片:" + item.Value + "不存在", AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path));
+		}
+	}
+	protected static void doCheckAtlasRefrence(string path, Dictionary<string, List<FileGUIDLines>> allFileText)
+	{
+		var refrenceList = new Dictionary<string, SpriteRefrenceInfo>();
+		searchSpriteRefrence(path, refrenceList, allFileText);
+		foreach (var item in refrenceList)
+		{
+			Debug.Log("图集:" + path + "被布局:" + item.Key + "所引用, sprite:" + item.Value.mSpriteName, item.Value.mObject);
+		}
+		Debug.Log("图集" + path + "被" + refrenceList.Count + "个布局引用");
+	}
+	protected static void doCheckUnusedTexture(string path, Dictionary<string, List<FileGUIDLines>> allFileText)
+	{
+		var refrenceMaterialList = new Dictionary<string, UnityEngine.Object>();
+		// 先查找引用该贴图的材质
+		searchFileRefrence(path, false, refrenceMaterialList, allFileText);
+		if (refrenceMaterialList.Count == 0)
+		{
+			Debug.Log("资源未引用:" + path, AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path));
+		}
+	}
+	protected static void doSearchRefrence(string path, Dictionary<string, List<FileGUIDLines>> allFileText)
+	{
+		var refrenceList = new Dictionary<string, UnityEngine.Object>();
+		string fileName = getFileName(path);
+		Debug.Log("<<<<<<<开始查找" + fileName + "的引用.......");
+		searchFileRefrence(path, false, refrenceList, allFileText);
+		foreach (var item in refrenceList)
+		{
+			Debug.Log(item.Key, AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(item.Key));
+		}
+		Debug.Log(">>>>>>>完成查找" + fileName + "的引用, 共有" + refrenceList.Count + "处引用");
+	}
 	[OnOpenAsset(1)]
-	public static bool OnOpenAsset(int instanceID, int line)
+	protected static bool OnOpenAsset(int instanceID, int line)
 	{
 		// 自定义函数，用来获取log中的stacktrace，定义在后面。
 		string stack_trace = findStackTrace();
@@ -199,7 +577,6 @@ public class EditorMenu : EditorCommonUtility
 		}
 		return false;
 	}
-	//------------------------------------------------------------------------------------------------------------------------------
 	protected static void roundRectTransformToInt(RectTransform rectTransform)
 	{
 		if (rectTransform == null)

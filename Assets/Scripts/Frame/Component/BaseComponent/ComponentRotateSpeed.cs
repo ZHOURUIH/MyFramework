@@ -30,7 +30,7 @@ public class ComponentRotateSpeed : GameComponent, IComponentModifyRotation, ICo
 		mRotateAcceleration = rotateAcceleration;
 		applyRotation(ref mCurRotation);
 		// 如果速度和加速度都为0,则停止旋转
-		if (isVectorZero(ref rotateSpeed) && isVectorZero(ref rotateAcceleration))
+		if (isVectorZero(rotateSpeed) && isVectorZero(rotateAcceleration))
 		{
 			setActive(false);
 		}

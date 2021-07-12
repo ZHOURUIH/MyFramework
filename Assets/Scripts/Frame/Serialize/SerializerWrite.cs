@@ -154,15 +154,15 @@ public class SerializerWrite : FrameBase
 		}
 		return true;
 	}
-	public void skipIndex(int skip) { mIndex += skip; }
-	public bool canRead(int readLen) { return mIndex + readLen <= mBufferSize; }
-	public bool canWrite(int writeLen){ return writeLen + mIndex <= mBufferSize; }
-	public byte[] getBuffer() { return mBuffer; }
-	public int getBufferSize() { return mBufferSize; }
-	public int getDataSize() { return mIndex; }
-	public int getIndex() { return mIndex; }
-	public void setIndex(int index) { mIndex = index; }
-	public void setShowError(bool showError) { mShowError = showError; }
+	public void skipIndex(int skip)				{ mIndex += skip; }
+	public bool canRead(int readLen)			{ return mIndex + readLen <= mBufferSize; }
+	public bool canWrite(int writeLen)			{ return writeLen + mIndex <= mBufferSize; }
+	public byte[] getBuffer()					{ return mBuffer; }
+	public int getBufferSize()					{ return mBufferSize; }
+	public int getDataSize()					{ return mIndex; }
+	public int getIndex()						{ return mIndex; }
+	public void setIndex(int index)				{ mIndex = index; }
+	public void setShowError(bool showError)	{ mShowError = showError; }
 	//-------------------------------------------------------------------------------------------------------------------------------------------
 	protected bool writeCheck(int writeLen)
 	{

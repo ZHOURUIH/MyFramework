@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class MovableObjectManager : FrameSystem
 {
 	protected Dictionary<uint, MovableObject> mMovableObjectList;
-	protected List<MovableObject> mMovableObjectOrderList;		// 保存物体顺序的列表,用于更新
+	protected List<MovableObject> mMovableObjectOrderList;			// 保存物体顺序的列表,用于更新
 	public MovableObjectManager()
 	{
 		mMovableObjectList = new Dictionary<uint, MovableObject>();
@@ -28,7 +28,7 @@ public class MovableObjectManager : FrameSystem
 		}
 		MovableObject obj = new MovableObject();
 		obj.setName(go.name);
-		obj.setObject(go);
+		obj.setObject(go, true);
 		obj.setDestroyObject(autoDestroyObject);
 		obj.init();
 		mMovableObjectList.Add(obj.getObjectID(), obj);

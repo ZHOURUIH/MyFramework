@@ -119,7 +119,7 @@ public class COMWindowDragView : GameComponent
 			{
 				clampPosition(ref curPosition);
 			}
-			if(!isVectorEqual(ref prePos, ref curPosition))
+			if(!isVectorEqual(prePos, curPosition))
 			{
 				setPosition(curPosition);
 				mDragingCallback?.Invoke();
@@ -180,7 +180,7 @@ public class COMWindowDragView : GameComponent
 						targetPosition.y = maxPos.y;
 					}
 				}
-				if(!isVectorEqual(ref curPosition, ref targetPosition))
+				if(!isVectorEqual(curPosition, targetPosition))
 				{
 					Vector3 pos = lerp(curPosition, targetPosition, elapsedTime * mMoveToEdgeSpeed);
 					setPosition(pos);
@@ -194,7 +194,7 @@ public class COMWindowDragView : GameComponent
 				if(!isValidPosition(ref curPosition, ref validPos, mAlignTopOrLeft))
 				{
 					Vector3 newPos = lerp(curPosition, validPos, elapsedTime * mAutoClampSpeed);
-					if(!isVectorEqual(ref newPos, ref curPosition))
+					if(!isVectorEqual(newPos, curPosition))
 					{
 						setPosition(newPos);
 					}
@@ -213,7 +213,7 @@ public class COMWindowDragView : GameComponent
 						mMoveSpeed = lerp(mMoveSpeed, 0.0f, elapsedTime * mAttenuateFactor, 10.0f);
 						curPosition += mMoveSpeed * mMoveSpeedScale * elapsedTime * mMoveNormal;
 						clampPosition(ref curPosition);
-						if(!isVectorEqual(ref prePos, ref curPosition))
+						if(!isVectorEqual(prePos, curPosition))
 						{
 							setPosition(curPosition);
 						}
@@ -268,12 +268,12 @@ public class COMWindowDragView : GameComponent
 		{
 			delta.x = 0.0f;
 		}
-		float speed = getLength(ref delta) / moveTime;
+		float speed = getLength(delta) / moveTime;
 		if(!mDraging.mValue)
 		{
 			Vector3 dragDir = mousePos - mMouseDownPos;
 			// 拖动距离大于一定值时才会判断是否开始拖拽
-			if(lengthGreater(ref dragDir, mDragLengthThreshold))
+			if(lengthGreater(dragDir, mDragLengthThreshold))
 			{
 				// 鼠标滑动的方向需要与当前方向一致,否则不能开始滑动
 				bool validDrag = true;

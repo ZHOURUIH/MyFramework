@@ -8,18 +8,20 @@ using UnityEngine.U2D;
 public class ResourceManager : FrameSystem
 {
 	protected Dictionary<Type, List<string>> mTypeSuffixList;   // 资源类型对应的后缀名
-	protected AssetBundleLoader mAssetBundleLoader;             // 通过AssetBundle加载资源的加载器
-	protected ResourceLoader mResourceLoader;					// 通过Resources或者AssetDataBase加载资源的加载器
-	protected string mResourceRootPath;							// 当mLoadSource为1时,AssetBundle资源所在根目录,以/结尾,不同平台上的默认目录不同,可以设置为远端目录
-	protected bool mLocalRootPath;								// mResourceRootPath是否为本地的路径
-	protected LOAD_SOURCE mLoadSource;                          // 0为从Resources加载,1为从AssetBundle加载
+	protected AssetDataBaseLoader mAssetDataBaseLoader;			// 通过AssetDataBase加载资源的加载器,只会在编辑器下使用
+	protected AssetBundleLoader mAssetBundleLoader;             // 通过AssetBundle加载资源的加载器,打包后强制使用AssetBundle加载
+	protected ResourcesLoader mResourcesLoader;					// 通过Resources加载资源的加载器,Resources在编辑器或者打包后都会使用,用于加载Resources中的非热更资源
+	protected string mResourceRootPath;                         // 当mLoadSource为1时,AssetBundle资源所在根目录,以/结尾,不同平台上的默认目录不同,可以设置为远端目录
+	protected bool mLocalRootPath;                              // mResourceRootPath是否为本地的路径
+	protected LOAD_SOURCE mLoadSource;                          // 加载源
 	public ResourceManager()
 	{
 		mCreateObject = true;
 		mResourceRootPath = FrameDefine.FULL_RESOURCE_PATH;
 		mLocalRootPath = true;
+		mAssetDataBaseLoader = new AssetDataBaseLoader();
 		mAssetBundleLoader = new AssetBundleLoader();
-		mResourceLoader = new ResourceLoader();
+		mResourcesLoader = new ResourcesLoader();
 		mTypeSuffixList = new Dictionary<Type, List<string>>();
 		registeSuffix(typeof(Texture), ".png");
 		registeSuffix(typeof(Texture2D), ".png");
@@ -42,7 +44,7 @@ public class ResourceManager : FrameSystem
 	{
 		base.init();
 #if UNITY_EDITOR
-		mLoadSource = (LOAD_SOURCE)(int)mFrameConfig.getFloat(FRAME_FLOAT.LOAD_RESOURCES);
+		mLoadSource = mGameFramework.mLoadSource;
 #else
 		mLoadSource = LOAD_SOURCE.ASSET_BUNDLE;
 #endif
@@ -55,14 +57,10 @@ public class ResourceManager : FrameSystem
 			mResourceRootPath = FrameDefine.F_STREAMING_ASSETS_PATH;
 			mLocalRootPath = true;
 		}
-		if (mLoadSource == LOAD_SOURCE.RESOURCES)
-		{
-			mResourceLoader.init();
-		}
-		else if(mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
-		{
-			mAssetBundleLoader.init();
-		}
+	}
+	public override void resourceAvailable()
+	{
+		mAssetBundleLoader.resourceAvailable();
 	}
 	public override void update(float elapsedTime)
 	{
@@ -72,18 +70,21 @@ public class ResourceManager : FrameSystem
 	public override void destroy()
 	{
 		mAssetBundleLoader?.destroy();
-		mResourceLoader?.destroy();
+		mAssetDataBaseLoader?.destroy();
+		mResourcesLoader?.destroy();
 		base.destroy();
 	}
 	public string getResourceRootPath() { return mResourceRootPath; }
 	public bool isLocalRootPath() { return mLocalRootPath; }
 	public AssetBundleLoader getAssetBundleLoader() { return mAssetBundleLoader; }
+	public AssetDataBaseLoader getAssetDataBaseLoader() { return mAssetDataBaseLoader; }
+	public ResourcesLoader getResourcesLoader() { return mResourcesLoader; }
 	// 卸载加载的资源,不是实例化出的物体
 	public bool unload<T>(ref T obj) where T : UnityEngine.Object
 	{
 		if(mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
-			return mResourceLoader.unloadResource(ref obj);
+			return mAssetDataBaseLoader.unloadResource(ref obj);
 		}
 		if(mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
@@ -91,23 +92,36 @@ public class ResourceManager : FrameSystem
 		}
 		return false;
 	}
+	// 卸载从Resources中加载的资源
+	public bool unloadInResources<T>(ref T obj) where T : UnityEngine.Object
+	{
+		return mResourcesLoader.unloadResource(ref obj);
+	}
 	// 根据文件夹前缀卸载文件夹,实际上与unloadPath逻辑完全一致
 	public void unloadPathPreName(string pathPreName)
 	{
 		unloadPath(pathPreName);
 	}
+	// 卸载指定目录中的所有资源
 	public void unloadPath(string path)
 	{
 		removeEndSlash(ref path);
 		if (mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
-			mResourceLoader.unloadPath(path);
+			mAssetDataBaseLoader.unloadPath(path);
 		}
 		else if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
 			mAssetBundleLoader.unloadPath(path.ToLower());
 		}
 	}
+	// 卸载Resources指定目录中的所有资源
+	public void unloadPathInResources(string path)
+	{
+		removeEndSlash(ref path);
+		mResourcesLoader.unloadPath(path);
+	}
+	// 指定卸载资源包
 	public void unloadAssetBundle(string bundleName)
 	{
 		// 只有从AssetBundle加载才能卸载AssetBundle
@@ -127,7 +141,7 @@ public class ResourceManager : FrameSystem
 		bool ret = false;
 		if (mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
-			ret = mResourceLoader.isResourceLoaded(name);
+			ret = mAssetDataBaseLoader.isResourceLoaded(name);
 		}
 		else if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
@@ -135,18 +149,33 @@ public class ResourceManager : FrameSystem
 		}
 		return ret;
 	}
+	// 在Resources中的指定资源是否已经加载
+	public bool isInResourceLoaded<T>(string name) where T : UnityEngine.Object
+	{
+		return mResourcesLoader.isResourceLoaded(name);
+	}
 	// 获得资源
 	public T getResource<T>(string name, bool errorIfNull = true) where T : UnityEngine.Object
 	{
 		T res = null;
 		if (mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
-			res = mResourceLoader.getResource(name) as T;
+			res = mAssetDataBaseLoader.getResource(name) as T;
 		}
 		else if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
 			res = mAssetBundleLoader.getAsset<T>(name);
 		}
+		if (res == null && errorIfNull)
+		{
+			logError("can not find resource : " + name);
+		}
+		return res;
+	}
+	// 获得在Resources中的资源,如果未加载,则无法获取
+	public T getInResource<T>(string name, bool errorIfNull = true) where T : UnityEngine.Object
+	{
+		T res = mResourcesLoader.getResource(name) as T;
 		if (res == null && errorIfNull)
 		{
 			logError("can not find resource : " + name);
@@ -161,7 +190,7 @@ public class ResourceManager : FrameSystem
 		fileList.Clear();
 		if (mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
-			mResourceLoader.getFileList(path, fileList);
+			mAssetDataBaseLoader.getFileList(path, fileList);
 			if(lower)
 			{
 				int count = fileList.Count;
@@ -214,7 +243,7 @@ public class ResourceManager : FrameSystem
 		T res = null;
 		if (mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
-			res = mResourceLoader.loadResource<T>(name);
+			res = mAssetDataBaseLoader.loadResource<T>(name);
 		}
 		else if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
@@ -230,12 +259,22 @@ public class ResourceManager : FrameSystem
 		}
 		return res;
 	}
+	// name是Resources下的相对路径,errorIfNull表示当找不到资源时是否报错提示
+	public T loadInResource<T>(string name, bool errorIfNull = true) where T : UnityEngine.Object
+	{
+		T res = mResourcesLoader.loadResource<T>(name);
+		if (res == null && errorIfNull)
+		{
+			logError("can not find resource : " + name);
+		}
+		return res;
+	}
 	public UnityEngine.Object[] loadSubResource<T>(string name, bool errorIfNull = true) where T : UnityEngine.Object
 	{
 		UnityEngine.Object[] res = null;
 		if (mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
-			res = mResourceLoader.loadSubResource<T>(name);
+			res = mAssetDataBaseLoader.loadSubResource<T>(name);
 		}
 		else if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
@@ -251,17 +290,35 @@ public class ResourceManager : FrameSystem
 		}
 		return res;
 	}
+	public UnityEngine.Object[] loadInSubResource<T>(string name, bool errorIfNull = true) where T : UnityEngine.Object
+	{
+		UnityEngine.Object[] res = mResourcesLoader.loadSubResource<T>(name);
+		if (res == null && errorIfNull)
+		{
+			logError("can not find resource : " + name);
+		}
+		return res;
+	}
 	public bool loadSubResourceAsync<T>(string name, AssetLoadDoneCallback doneCallback, object userData = null, bool errorIfNull = true) where T : UnityEngine.Object
 	{
 		bool ret = false;
 		if (mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
-			ret = mResourceLoader.loadResourcesAsync<T>(name, doneCallback, userData);
+			ret = mAssetDataBaseLoader.loadResourcesAsync<T>(name, doneCallback, userData);
 		}
 		else if(mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
 			ret = mAssetBundleLoader.loadSubAssetAsync<T>(name, doneCallback, userData);
 		}
+		if (!ret && errorIfNull)
+		{
+			logError("can not find resource : " + name);
+		}
+		return ret;
+	}
+	public bool loadInSubResourceAsync<T>(string name, AssetLoadDoneCallback doneCallback, object userData = null, bool errorIfNull = true) where T : UnityEngine.Object
+	{
+		bool ret = mAssetDataBaseLoader.loadResourcesAsync<T>(name, doneCallback, userData);
 		if (!ret && errorIfNull)
 		{
 			logError("can not find resource : " + name);
@@ -274,12 +331,22 @@ public class ResourceManager : FrameSystem
 		bool ret = false;
 		if (mLoadSource == LOAD_SOURCE.RESOURCES)
 		{
-			ret = mResourceLoader.loadResourcesAsync<T>(name, doneCallback, userData);
+			ret = mAssetDataBaseLoader.loadResourcesAsync<T>(name, doneCallback, userData);
 		}
 		else if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
 			ret = mAssetBundleLoader.loadAssetAsync<T>(name, doneCallback, userData);
 		}
+		if (!ret && errorIfNull)
+		{
+			logError("can not find resource : " + name);
+		}
+		return ret;
+	}
+	// 强制在Resource中加载资源,name是Resources下的相对路径,errorIfNull表示当找不到资源时是否报错提示
+	public bool loadInResourceAsync<T>(string name, AssetLoadDoneCallback doneCallback, object userData = null, bool errorIfNull = true) where T : UnityEngine.Object
+	{
+		bool ret = mResourcesLoader.loadResourcesAsync<T>(name, doneCallback, userData);
 		if (!ret && errorIfNull)
 		{
 			logError("can not find resource : " + name);

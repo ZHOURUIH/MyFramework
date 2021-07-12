@@ -13,6 +13,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 	protected HashSet<ushort> mThreadPacketList;				// 标记需要在子线程中执行的消息类型列表
 	protected StreamBuffer mInputBuffer;
 	protected ThreadLock mConnectStateLock;
+	protected ThreadLock mOutputBufferLock;
 	protected ThreadLock mSocketLock;
 	protected IPAddress mIPAddress;
 	protected MyThread mReceiveThread;
@@ -22,7 +23,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 	protected byte[] mRecvBuff;
 	protected byte mHeartBeatTimes;
 	protected int mPort;
-	protected bool mConnectDestroy;
+	protected bool mManualDisconnect;			// 是否正在主动断开连接
 	protected NET_STATE mNetState;
 	public SocketConnectClient()
 	{
@@ -35,6 +36,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		mRecvBuff = new byte[8 * 1024];
 		mInputBuffer = new StreamBuffer(1024 * 1024);
 		mConnectStateLock = new ThreadLock();
+		mOutputBufferLock = new ThreadLock();
 		mSocketLock = new ThreadLock();
 		mReceivePacketHistory = new Queue<string>();
 		mHeartBeatTimer = new MyTimer();
@@ -56,8 +58,9 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		mOutputBuffer.clear();
 		mReceivePacketHistory.Clear();
 		mInputBuffer.clear();
-		// mConnectStateLock,mSocketLock不需要重置
+		// mConnectStateLock,mOutputBufferLock,mSocketLock不需要重置
 		//mConnectStateLock;
+		//mOutputBufferLock;
 		//mSocketLock;
 		mIPAddress = null;
 		mReceiveThread.stop();
@@ -67,7 +70,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		memset(mRecvBuff, (byte)0);
 		mHeartBeatTimes = 0;
 		mPort = 0;
-		mConnectDestroy = false;
+		mManualDisconnect = false;
 		mNetState = NET_STATE.NONE;
 	}
 	public bool isUnconnected() { return mNetState != NET_STATE.CONNECTED && mNetState != NET_STATE.CONNECTING; }
@@ -77,6 +80,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		{
 			return;
 		}
+		mManualDisconnect = false;
 		notifyNetState(NET_STATE.CONNECTING);
 		// 创建socket
 		mSocketLock.waitForUnlock();
@@ -105,6 +109,21 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 			notifyNetState(NET_STATE.CONNECTED);
 		}
 	}
+	public void disconnect()
+	{
+		mManualDisconnect = true;
+		clearSocket();
+		mHeartBeatTimer.stop(false);
+		var readList = mReceiveBuffer.get();
+		foreach (var item in readList)
+		{
+			mSocketFactoryThread.destroyPacket(item);
+		}
+		mReceiveBuffer.endGet();
+		mReceiveBuffer.clear();
+		// 主动关闭时,网络状态应该是无状态
+		notifyNetState(NET_STATE.NONE);
+	}
 	public virtual void update(float elapsedTime)
 	{
 		if (mHeartBeatTimer.tickTimer(elapsedTime))
@@ -113,23 +132,31 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		}
 		// 解析所有已经收到的消息包
 		var readList = mReceiveBuffer.get();
-		int count = readList.Count;
-		for (int i = 0; i < count; ++i)
+		try
 		{
-			// 此处为空的原因未知
-			if(readList[i] == null)
+			int count = readList.Count;
+			for (int i = 0; i < count; ++i)
 			{
-				continue;
+				// 此处为空的原因未知
+				if (readList[i] == null)
+				{
+					continue;
+				}
+				readList[i].execute();
+				mSocketFactoryThread.destroyPacket(readList[i]);
 			}
-			readList[i].execute();
-			mSocketFactoryThread.destroyPacket(readList[i]);
+		}
+		catch(Exception e)
+		{
+			logError("socket packet error:" + e.Message + ", stack:" + e.StackTrace);
 		}
 		readList.Clear();
+		mReceiveBuffer.endGet();
 	}
 	public override void destroy()
 	{
 		base.destroy();
-		mConnectDestroy = true;
+		mManualDisconnect = true;
 		clearSocket();
 		mSendThread.destroy();
 		mReceiveThread.destroy();
@@ -236,10 +263,13 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		}
 		mSocketLock.unlock();
 	}
+	// 由于连接成功操作可能不在主线程,所以只能是外部在主线程通知网络管理器连接成功
 	public void notifyConnected()
 	{
 		// 建立连接后将消息列表中残留的消息清空
+		mOutputBufferLock.waitForUnlock();
 		mOutputBuffer.clear();
+		mOutputBufferLock.unlock();
 		// 开始心跳计时
 		mHeartBeatTimer.start();
 		mHeartBeatTimes = 0;
@@ -258,6 +288,7 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 			return;
 		}
 		// 获取输出数据的读缓冲区
+		mOutputBufferLock.waitForUnlock();
 		var readList = mOutputBuffer.get();
 		int count = readList.Count;
 		try
@@ -299,6 +330,8 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 			UN_ARRAY_THREAD(readList[i]);
 		}
 		readList.Clear();
+		mOutputBuffer.endGet();
+		mOutputBufferLock.unlock();
 	}
 	// 接收Socket消息
 	protected void receiveSocket(BOOL run)
@@ -442,12 +475,6 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 			socketException(e);
 			return;
 		}
-		// 建立连接后将消息列表中残留的消息清空
-		mOutputBuffer.clear();
-		// 开始心跳计时
-		mHeartBeatTimer.start();
-		mHeartBeatTimes = 0;
-		mInputBuffer.clear();
 		notifyNetState(NET_STATE.CONNECTED);
 	}
 	protected void socketException(SocketException e)
@@ -472,12 +499,13 @@ public abstract class SocketConnectClient : CommandReceiver, ISocketConnect
 		{
 			clearSocket();
 		}
-		if(!mConnectDestroy)
+		if (!mManualDisconnect)
 		{
-			CMD_DELAY_THREAD(out CmdSocketConnectClientState cmd, false);
+			CMD_DELAY_THREAD(out CmdSocketConnectClientState cmd);
 			if (cmd != null)
 			{
 				cmd.mErrorCode = errorCode;
+				cmd.mNetState = mNetState;
 				pushDelayCommand(cmd, this);
 			}
 		}

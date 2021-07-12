@@ -9,7 +9,7 @@ public class CameraLinkerSmoothFollow : CameraLinker
 	protected float mFollowPositionSpeed;
 	protected float mSpeedRecover;
 	protected float mNormalSpeed;
-	protected bool mIgnoreY;                    // 是否忽略Y轴的变化,当Y轴变化时摄像机在Y轴上的位置不会根据时间改变
+	protected bool mIgnoreY;					// 是否忽略Y轴的变化,当Y轴变化时摄像机在Y轴上的位置不会根据时间改变
 	public CameraLinkerSmoothFollow()
 	{
 		mCheckDirectionList = new Dictionary<CHECK_DIRECTION, List<CheckLayer>>();

@@ -35,7 +35,7 @@ public class CmdCharacterAddState : Command
 			state.setParam(null);
 		}
 	}
-	public override void showDebugInfo(MyStringBuilder builder)
+	public override void debugInfo(MyStringBuilder builder)
 	{
 		builder.Append(": mStateType:", mStateType).
 				Append(", mStateTime:", mStateTime);

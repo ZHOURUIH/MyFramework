@@ -50,7 +50,6 @@ public class GameILR : GB
 	}
 	protected static void initFrameSystem()
 	{
-		registeILRFrameSystem<GameConfig>();
 		registeILRFrameSystem<DemoSystem>();
 	}
 	protected static void registeILRFrameSystem<T>() where T : FrameSystem

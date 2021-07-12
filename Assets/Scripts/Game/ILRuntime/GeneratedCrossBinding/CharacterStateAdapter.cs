@@ -8,7 +8,7 @@ namespace HotFix
     public class CharacterStateAdapter : CrossBindingAdaptor
     {
         static CrossBindingMethodInfo mdestroy_0 = new CrossBindingMethodInfo("destroy");
-        static CrossBindingMethodInfo<global::Character> msetPlayer_1 = new CrossBindingMethodInfo<global::Character>("setPlayer");
+        static CrossBindingMethodInfo<global::Character> msetCharacter_1 = new CrossBindingMethodInfo<global::Character>("setCharacter");
         static CrossBindingFunctionInfo<System.Boolean> mcanEnter_2 = new CrossBindingFunctionInfo<System.Boolean>("canEnter");
         static CrossBindingMethodInfo menter_3 = new CrossBindingMethodInfo("enter");
         static CrossBindingMethodInfo<System.Single> mupdate_4 = new CrossBindingMethodInfo<System.Single>("update");
@@ -69,12 +69,12 @@ namespace HotFix
                     mdestroy_0.Invoke(this.instance);
             }
 
-            public override void setPlayer(global::Character player)
+            public override void setCharacter(global::Character character)
             {
-                if (msetPlayer_1.CheckShouldInvokeBase(this.instance))
-                    base.setPlayer(player);
+                if (msetCharacter_1.CheckShouldInvokeBase(this.instance))
+                    base.setCharacter(character);
                 else
-                    msetPlayer_1.Invoke(this.instance, player);
+                    msetCharacter_1.Invoke(this.instance, character);
             }
 
             public override System.Boolean canEnter()

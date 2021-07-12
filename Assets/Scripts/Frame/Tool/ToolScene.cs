@@ -7,7 +7,7 @@ public class ST : FrameBase
 	#region 播放场景音效
 	public static void AUDIO()
 	{
-		pushCommand<CmdGameScenePlayAudio>(mGameSceneManager.getCurScene(), false);
+		pushCommand<CmdGameSceneStopAudio>(getCurScene(), LOG_LEVEL.LOW);
 	}
 	public static void AUDIO(int sound)
 	{
@@ -15,26 +15,26 @@ public class ST : FrameBase
 	}
 	public static void AUDIO(int sound, bool loop, float volume)
 	{
-		CMD(out CmdGameScenePlayAudio cmd, false);
+		CMD(out CmdGameScenePlayAudio cmd, LOG_LEVEL.LOW);
 		cmd.mSound = sound;
 		cmd.mLoop = loop;
 		cmd.mVolume = volume;
-		pushCommand(cmd, mGameSceneManager.getCurScene());
+		pushCommand(cmd, getCurScene());
 	}
 	public static void AUDIO(string sound, bool loop, float volume)
 	{
-		CMD(out CmdGameScenePlayAudio cmd, false);
+		CMD(out CmdGameScenePlayAudio cmd, LOG_LEVEL.LOW);
 		cmd.mSoundFileName = sound;
 		cmd.mLoop = loop;
 		cmd.mVolume = volume;
-		pushCommand(cmd, mGameSceneManager.getCurScene());
+		pushCommand(cmd, getCurScene());
 	}
 	#endregion
 	// 场景音效音量
 	#region 场景音效音量
 	public static void AUDIO_VOLUME()
 	{
-		pushCommand<CmdGameSceneAudioVolume>(mGameSceneManager.getCurScene(), false);
+		pushCommand<CmdGameSceneAudioVolume>(getCurScene(), LOG_LEVEL.LOW);
 	}
 	public static void AUDIO_VOLUME(float start, float target, float onceLength, int volumeCoeSound)
 	{
@@ -54,7 +54,7 @@ public class ST : FrameBase
 	}
 	public static void AUDIO_VOLUME_EX(int keyframe, float start, float target, float onceLength, int volumeCoeSound, bool loop, KeyFrameCallback fadingCallback, KeyFrameCallback fadeDoneCallback)
 	{
-		CMD(out CmdGameSceneAudioVolume cmd, false);
+		CMD(out CmdGameSceneAudioVolume cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
 		cmd.mStartVolume = start;
 		cmd.mTargetVolume = target;
@@ -63,7 +63,7 @@ public class ST : FrameBase
 		cmd.mLoop = loop;
 		cmd.mDoingCallback = fadingCallback;
 		cmd.mDoneCallback = fadeDoneCallback;
-		pushCommand(cmd, mGameSceneManager.getCurScene());
+		pushCommand(cmd, getCurScene());
 	}
 	#endregion
 }

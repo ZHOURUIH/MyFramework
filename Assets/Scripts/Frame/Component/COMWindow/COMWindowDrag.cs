@@ -41,7 +41,7 @@ public class COMWindowDrag : ComponentDrag
 	}
 	public void setMovable(bool movable) { mMovable = movable; }
 	//--------------------------------------------------------------------------------------------------------------
-	protected override void applyScreenPosition(ref Vector3 screenPos)
+	protected override void applyScreenPosition(Vector3 screenPos)
 	{
 		if (mMovable)
 		{
@@ -57,7 +57,7 @@ public class COMWindowDrag : ComponentDrag
 		}
 		return Vector3.zero;
 	}
-	protected override bool mouseInObject(ref Vector3 mousePosition)
+	protected override bool mouseInObject(Vector3 mousePosition)
 	{
 		// 使用当前鼠标位置判断是否悬停,忽略被其他窗口覆盖的情况
 		Collider collider = (mComponentOwner as myUIObject).getCollider();
@@ -66,8 +66,7 @@ public class COMWindowDrag : ComponentDrag
 			logError("not find collider, can not drag!");
 			return false;
 		}
-		getUIRay(ref mousePosition, out Ray ray);
-		return collider.Raycast(ray, out _, 10000.0f);
+		return collider.Raycast(getUIRay(mousePosition), out _, 10000.0f);
 	}
 	protected override void onDragEnd(Vector3 mousePos)
 	{
@@ -78,7 +77,7 @@ public class COMWindowDrag : ComponentDrag
 		base.onDragEnd(mousePos);
 		// 判断当前鼠标所在位置是否有窗口
 		LIST(out List<IMouseEventCollect> receiveWindow);
-		mGlobalTouchSystem.getAllHoverWindow(receiveWindow, ref mousePos, mWindow);
+		mGlobalTouchSystem.getAllHoverWindow(receiveWindow, mousePos, mWindow);
 		int count = receiveWindow.Count;
 		for(int i = 0; i < count; ++i)
 		{
@@ -93,10 +92,10 @@ public class COMWindowDrag : ComponentDrag
 		// 拖拽操作完全结束
 		notifyDragEndTotally();
 	}
-	protected override void onDraging(ref Vector3 mousePos)
+	protected override void onDraging(Vector3 mousePos)
 	{
-		base.onDraging(ref mousePos);
-		IMouseEventCollect curHover = mGlobalTouchSystem.getHoverWindow(ref mousePos, mWindow);
+		base.onDraging(mousePos);
+		IMouseEventCollect curHover = mGlobalTouchSystem.getHoverWindow(mousePos, mWindow);
 		// 悬停的窗口改变了
 		if (curHover != mDragHoverWindow)
 		{

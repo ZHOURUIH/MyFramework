@@ -93,7 +93,7 @@ public class ClassPool : FrameSystem
 		// 添加到已使用列表
 		addInuse(obj, onlyOnce);
 #if UNITY_EDITOR
-		if(mGameFramework.isEnablePoolStackTrace())
+		if(mGameFramework.mEnablePoolStackTrace)
 		{
 			mObjectStack.Add(obj, getStackTrace());
 		}

@@ -5,9 +5,9 @@ using System.Collections.Generic;
 public class COMCharacterStateMachine : GameComponent
 {
 	protected SafeDeepDictionary<Type, SafeDeepList<CharacterState>> mStateTypeList;   // 以状态类型为索引的状态列表
-	protected Dictionary<Type, int> mGroupStateCountList;           // 存储每个状态组中拥有的状态数量,key是组类型,value是当前该组中拥有的状态数量
-	protected Dictionary<uint, CharacterState> mStateMap;               // 以状态唯一ID为索引的列表,只用来根据ID查找状态
-	protected Character mPlayer;                                    // 状态机所属角色
+	protected Dictionary<Type, int> mGroupStateCountList;			// 存储每个状态组中拥有的状态数量,key是组类型,value是当前该组中拥有的状态数量
+	protected Dictionary<uint, CharacterState> mStateMap;			// 以状态唯一ID为索引的列表,只用来根据ID查找状态
+	protected Character mPlayer;									// 状态机所属角色
 	public COMCharacterStateMachine()
 	{
 		mStateTypeList = new SafeDeepDictionary<Type, SafeDeepList<CharacterState>>();
@@ -85,7 +85,7 @@ public class COMCharacterStateMachine : GameComponent
 	public bool addState(Type type, StateParam param, out CharacterState state, float stateTime, uint id = 0)
 	{
 		state = createState(type, param, id);
-		state.setPlayer(mPlayer);
+		state.setCharacter(mPlayer);
 
 		if (stateTime >= 0.0f)
 		{
@@ -169,9 +169,9 @@ public class COMCharacterStateMachine : GameComponent
 		mStateTypeList.clear();
 	}
 	public SafeDeepDictionary<Type, SafeDeepList<CharacterState>> getStateList() { return mStateTypeList; }
-	public CharacterState getState(uint id)
+	public CharacterState getState(uint instanceID)
 	{
-		mStateMap.TryGetValue(id, out CharacterState state);
+		mStateMap.TryGetValue(instanceID, out CharacterState state);
 		return state;
 	}
 	public SafeDeepList<CharacterState> getState(Type type)

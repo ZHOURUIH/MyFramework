@@ -16,7 +16,7 @@ public class CmdSocketConnectServerAcceptClient : Command
 		var connectServer = mReceiver as SocketConnectServer;
 		connectServer?.notifyAcceptedClient(mSocket, mIP);
 	}
-	public override void showDebugInfo(MyStringBuilder builder)
+	public override void debugInfo(MyStringBuilder builder)
 	{
 		builder.Append(": mIP:", mIP);
 	}

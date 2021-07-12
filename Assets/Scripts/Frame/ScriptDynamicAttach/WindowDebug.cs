@@ -2,9 +2,9 @@
 
 public class WindowDebug : MonoBehaviour
 {
+	protected myUIObject mWindow;				// 当前的窗口
 	public bool ForceRefresh;					// 是否强制刷新,无论是否启用了EnableScriptDebug
-	public myUIObject mWindow;
-	public string Depth;
+	public string Depth;						// 窗口深度
 	public float LongPressTimeThreshold;		// 长按的时间阈值,超过阈值时检测为长按
 	public float LongPressLengthThreshold;		// 小于0表示不判断鼠标移动对长按检测的影响
 	public bool DepthOverAllChild;              // 计算深度时是否将深度设置为所有子节点之上,实际调整的是mExtraDepth
@@ -15,7 +15,7 @@ public class WindowDebug : MonoBehaviour
 	public void setWindow(myUIObject window) { mWindow = window; }
 	public void Update()
 	{
-		if (!FrameBase.mGameFramework.isEnableScriptDebug() && !ForceRefresh)
+		if (!FrameBase.mGameFramework.mEnableScriptDebug && !ForceRefresh)
 		{
 			return;
 		}

@@ -57,11 +57,10 @@ public class ILRLaunchFrame : FrameBase
 		classList.Add(typeof(GameBase));
 		classList.Add(typeof(SocketPacket));
 		classList.Add(typeof(GameEvent));
-		classList.Add(typeof(ConfigBase));
 		classList.Add(typeof(WindowItem));
 		classList.Add(typeof(MonoBehaviour));
 		classList.Add(typeof(SocketConnectClient));
-		classList.Add(typeof(IDelayCmdWatcher));
+		classList.Add(typeof(DelayCmdWatcher));
 		ILRLaunch.collectCrossInheritClass(classList);
 	}
 	//-------------------------------------------------------------------------------------------------

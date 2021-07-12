@@ -18,7 +18,7 @@ public class HttpUtility : FrameSystem
 	}
 	public override void destroy()
 	{
-		ThreadListLock.waitForUnlock();
+		ThreadListLock?.waitForUnlock();
 		int count = mHttpThreadList.Count;
 		for (int i = 0; i < count; ++i)
 		{
@@ -26,7 +26,7 @@ public class HttpUtility : FrameSystem
 		}
 		mHttpThreadList.Clear();
 		mHttpThreadList = null;
-		ThreadListLock.unlock();
+		ThreadListLock?.unlock();
 		base.destroy();
 	}
 	// 同步下载文件
@@ -151,9 +151,9 @@ public class HttpUtility : FrameSystem
 			threadParam.mThread = httpThread;
 			httpThread.Start(threadParam);
 			httpThread.IsBackground = true;
-			ThreadListLock.waitForUnlock();
-			mHttpThreadList.Add(httpThread);
-			ThreadListLock.unlock();
+			ThreadListLock?.waitForUnlock();
+			mHttpThreadList?.Add(httpThread);
+			ThreadListLock?.unlock();
 		}
 		// 同步
 		else
@@ -261,9 +261,9 @@ public class HttpUtility : FrameSystem
 			threadParam.mThread = httpThread;
 			httpThread.Start(threadParam);
 			httpThread.IsBackground = true;
-			ThreadListLock.waitForUnlock();
-			mHttpThreadList.Add(httpThread);
-			ThreadListLock.unlock();
+			ThreadListLock?.waitForUnlock();
+			mHttpThreadList?.Add(httpThread);
+			ThreadListLock?.unlock();
 		}
 		// 同步
 		else
@@ -315,9 +315,9 @@ public class HttpUtility : FrameSystem
 		}
 		finally
 		{
-			ThreadListLock.waitForUnlock();
+			ThreadListLock?.waitForUnlock();
 			mHttpThreadList?.Remove(threadParam.mThread);
-			ThreadListLock.unlock();
+			ThreadListLock?.unlock();
 		}
 	}
 	protected static void waitHttpGet(object param)
@@ -343,9 +343,9 @@ public class HttpUtility : FrameSystem
 		}
 		finally
 		{
-			ThreadListLock.waitForUnlock();
+			ThreadListLock?.waitForUnlock();
 			mHttpThreadList?.Remove(threadParam.mThread);
-			ThreadListLock.unlock();
+			ThreadListLock?.unlock();
 		}
 	}
 	protected static bool MyRemoteCertificateValidationCallback(System.Object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)

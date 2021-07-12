@@ -28,7 +28,7 @@ public class WindowShaderPixelMaskCut : WindowShader
 		if (mat != null && mat.shader != null)
 		{
 			mat.SetTexture(mMaskTexID, mMask);
-			if (isVectorZero(ref mMaskSize))
+			if (isVectorZero(mMaskSize))
 			{
 				mMaskSize = new Vector2(mMask.width, mMask.height);
 			}

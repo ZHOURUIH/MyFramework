@@ -35,7 +35,7 @@ public class CmdCameraOrthoSize : Command
 		com.setTarget(mTargetOrthoSize);
 		com.play(mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce);
 	}
-	public override void showDebugInfo(MyStringBuilder builder)
+	public override void debugInfo(MyStringBuilder builder)
 	{
 		builder.Append(": mKeyframe:", mKeyframe).
 				Append(", mOnceLength:", mOnceLength).

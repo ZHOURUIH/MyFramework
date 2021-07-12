@@ -29,7 +29,7 @@ public class TPSpriteManager : FrameSystem
 	{
 		if (!mSpriteNameList.ContainsKey(atlasName))
 		{
-			loadAtlas(atlasName, errorIfNull);
+			loadAtlas(atlasName, false, errorIfNull);
 		}
 		mSpriteNameList.TryGetValue(atlasName, out Dictionary<string, Sprite> spriteList);
 		return spriteList;
@@ -56,7 +56,7 @@ public class TPSpriteManager : FrameSystem
 	{
 		if (!mSpriteNameList.ContainsKey(atlasName) && loadIfNull)
 		{
-			loadAtlas(atlasName, errorIfNull);
+			loadAtlas(atlasName, false, errorIfNull);
 		}
 		if (mSpriteNameList.TryGetValue(atlasName, out Dictionary<string, Sprite> spriteList) &&
 			spriteList.TryGetValue(spriteName, out Sprite sprite))
@@ -73,7 +73,19 @@ public class TPSpriteManager : FrameSystem
 		}
 		if (loadIfNull)
 		{
-			return loadAtlas(atlasName, errorInNull);
+			return loadAtlas(atlasName, false, errorInNull);
+		}
+		return null;
+	}
+	public UGUIAtlas getAtlasInResources(string atlasName, bool errorInNull, bool loadIfNull)
+	{
+		if (mAtlasNameList.TryGetValue(atlasName, out UGUIAtlas atlas))
+		{
+			return atlas;
+		}
+		if (loadIfNull)
+		{
+			return loadAtlas(atlasName, true, errorInNull);
 		}
 		return null;
 	}
@@ -86,7 +98,19 @@ public class TPSpriteManager : FrameSystem
 		}
 		if (loadIfNull)
 		{
-			loadAtlasAsync(atlasName, callback, userData, errorInNull);
+			loadAtlasAsync(atlasName, callback, userData, false, errorInNull);
+		}
+	}
+	public void getAtlasInResourcesAsync(string atlasName, AtlasLoadDone callback, object userData, bool errorInNull, bool loadIfNull)
+	{
+		if (mAtlasNameList.TryGetValue(atlasName, out UGUIAtlas atlas))
+		{
+			callback?.Invoke(atlas, userData);
+			return;
+		}
+		if (loadIfNull)
+		{
+			loadAtlasAsync(atlasName, callback, userData, true, errorInNull);
 		}
 	}
 	public void unloadAtlas(string atlasName)
@@ -104,13 +128,21 @@ public class TPSpriteManager : FrameSystem
 	}
 	//---------------------------------------------------------------------------------------------------------------
 	// 异步加载图集
-	protected void loadAtlasAsync(string atlasName, AtlasLoadDone callback, object userData, bool errorIfNull = true)
+	protected void loadAtlasAsync(string atlasName, AtlasLoadDone callback, object userData, bool inResources, bool errorIfNull)
 	{
-		if (!mSpriteNameList.ContainsKey(atlasName))
+		if (mSpriteNameList.ContainsKey(atlasName))
 		{
-			CLASS(out AtlasLoadParam param);
-			param.mCallback = callback;
-			param.mUserData = userData;
+			return;
+		}
+		CLASS(out AtlasLoadParam param);
+		param.mCallback = callback;
+		param.mUserData = userData;
+		if (inResources)
+		{
+			mResourceManager.loadInSubResourceAsync<Sprite>(atlasName, mAtlasCallback, param, errorIfNull);
+		}
+		else
+		{
 			mResourceManager.loadSubResourceAsync<Sprite>(atlasName, mAtlasCallback, param, errorIfNull);
 		}
 	}
@@ -126,13 +158,21 @@ public class TPSpriteManager : FrameSystem
 		UN_CLASS(param);
 	}
 	// 同步加载图集
-	protected UGUIAtlas loadAtlas(string atlasName, bool errorIfNull = true)
+	protected UGUIAtlas loadAtlas(string atlasName, bool inResources, bool errorIfNull)
 	{
 		if (mSpriteNameList.ContainsKey(atlasName))
 		{
 			return null;
 		}
-		var sprites = mResourceManager.loadSubResource<Sprite>(atlasName, errorIfNull);
+		UnityEngine.Object[] sprites;
+		if (inResources)
+		{
+			sprites = mResourceManager.loadInSubResource<Sprite>(atlasName, errorIfNull);
+		}
+		else
+		{
+			sprites = mResourceManager.loadSubResource<Sprite>(atlasName, errorIfNull);
+		}
 		return atlasLoaded(sprites, atlasName);
 	}
 	// 图集资源已经加载完成,从assets中解析并创建图集信息

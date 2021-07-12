@@ -12,7 +12,7 @@ public class CmdLayoutManagerUnload : Command
 	{
 		mLayoutManager.destroyLayout(mLayoutID);
 	}
-	public override void showDebugInfo(MyStringBuilder builder)
+	public override void debugInfo(MyStringBuilder builder)
 	{
 		builder.Append(": mLayoutID:", mLayoutID);
 	}

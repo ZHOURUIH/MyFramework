@@ -16,15 +16,11 @@ public class SQLiteTable : FrameBase
 	{
 		mDataMap = new Dictionary<int, SQLiteData>();
 	}
-	public void init(byte[] encryptKey)
+	public void load(byte[] encryptKey)
 	{
 		try
 		{
-#if UNITY_ANDROID && !UNITY_EDITOR
-			string fullPath = FrameDefine.F_PERSIS_DATA_BASE_PATH + mTableName + ".db";
-#else
-			string fullPath = FrameDefine.F_ASSETS_DATA_BASE_PATH + mTableName + ".db";
-#endif
+			string fullPath = FrameDefine.F_DATA_BASE_PATH + mTableName + ".db";
 			if (isFileExist(fullPath))
 			{
 				clearCommand();
@@ -129,7 +125,7 @@ public class SQLiteTable : FrameBase
 	{
 		queryNonReader(END_STRING(STRING("INSERT INTO ", mTableName, " VALUES (", valueString, ")")));
 	}
-	public SQLiteData query(int id, out SQLiteData data)
+	public SQLiteData query(int id, out SQLiteData data, bool errorIfNull = true)
 	{
 		if (mDataMap.TryGetValue(id, out data))
 		{
@@ -139,9 +135,13 @@ public class SQLiteTable : FrameBase
 		appendConditionInt(condition, SQLiteData.ID, id, EMPTY);
 		parseReader(doQuery(END_STRING(condition)), out data);
 		mDataMap.Add(id, data);
+		if (data == null && errorIfNull)
+		{
+			logError("表格中找不到指定数据: ID:" + id + ", Type:" + mDataClassType.ToString());
+		}
 		return data;
 	}
-	public SQLiteData query(Type type, int id, out SQLiteData data)
+	public SQLiteData query(Type type, int id, out SQLiteData data, bool errorIfNull = true)
 	{
 		if (!mDataMap.TryGetValue(id, out data))
 		{
@@ -150,11 +150,21 @@ public class SQLiteTable : FrameBase
 			parseReader(doQuery(END_STRING(condition)), out data);
 			mDataMap.Add(id, data);
 		}
+		if (data == null && errorIfNull)
+		{
+			logError("表格中找不到指定数据: ID:" + id + ", Type:" + mDataClassType.ToString());
+		}
 		if (type != mDataClassType)
 		{
 			logError("sqlite table type error, this type:" + mDataClassType + ", param type:" + type);
 			data = null;
 		}
+		return data;
+	}
+	public SQLiteData query(Type type, int id, bool errorIfNull = true)
+	{
+		SQLiteData data;
+		query(type, id, out data, errorIfNull);
 		return data;
 	}
 	public void insert<T>(T data) where T : SQLiteData
@@ -209,12 +219,6 @@ public class SQLiteTable : FrameBase
 	{
 		mDataMap.Clear();
 		mFullData = false;
-	}
-	protected SQLiteData query(Type type, int id)
-	{
-		SQLiteData data;
-		query(type, id, out data);
-		return data;
 	}
 	protected void parseReader(Type type, SqliteDataReader reader, out SQLiteData data)
 	{

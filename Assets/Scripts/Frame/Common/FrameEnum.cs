@@ -2,33 +2,11 @@
 
 // 游戏枚举定义-----------------------------------------------------------------------------------------------
 
-// 应用程序配置参数
-public class APPLICATION_FLOAT
-{
-	public static int NONE = 0;
-	public static int FULL_SCREEN = 1;              // 是否全屏,0为窗口模式,1为全屏,2为无边框窗口
-	public static int SCREEN_WIDTH = 2;             // 分辨率的宽
-	public static int SCREEN_HEIGHT = 3;            // 分辨率的高
-	public static int FORCE_TOP = 4;                // 是否将窗口置顶
-	public static int USE_FIXED_TIME = 5;           // 是否将每帧的时间固定下来
-	public static int FIXED_TIME = 6;               // 每帧的固定时间,单位秒
-	public static int VSYNC = 7;                    // 垂直同步,0为关闭垂直同步,1为开启垂直同步
-}
-
-// 框架配置参数
-public class FRAME_FLOAT
-{
-	public static int NONE = 0;
-	public static int LOAD_RESOURCES = 1;             // 游戏加载资源的路径,0代表在Resources中读取,1代表从AssetBundle中读取
-	public static int LOG_LEVEL = 2;                  // 日志输出等级
-}
-
 // 关键帧ID定义,对应关键帧预设中的曲线ID
 public class KEY_CURVE
 {
 	public static int NONE = 0;
 	// 内置的曲线
-	public static int BUILDIN_CURVE = 1;
 	public static int ZERO_ONE = 2;
 	public static int ZERO_ONE_ZERO = 3;
 	public static int ONE_ZERO = 4;
@@ -63,6 +41,7 @@ public class KEY_CURVE
 	public static int SINE_IN = 33;
 	public static int SINE_OUT = 34;
 	public static int SINE_IN_OUT = 35;
+	public static int MAX_BUILDIN_CURVE = 100;
 }
 
 // 数字窗口中数字的停靠位置
@@ -145,11 +124,11 @@ public enum PARSE_RESULT : byte
 // 日志等级
 public enum LOG_LEVEL : byte
 {
-	FORCE,					// 强制显示
-	HIGH,					// 高
-	NORMAL,					// 正常
-	LOW,					// 低
-	MAX,					// 无效值
+	NONE,		// 无效值
+	LOW,		// 低
+	NORMAL,		// 正常
+	HIGH,		// 高
+	FORCE,		// 强制显示
 }
 
 // 摄像机碰撞的检测方向
@@ -318,30 +297,39 @@ public enum ASPECT_BASE : byte
 // 模型节点与角色节点的关系
 public enum AVATAR_RELATIONSHIP : byte
 {
-	AVATAR_AS_CHARACTER,    // 模型节点就是角色节点
-	AVATAR_ALONE,           // 模型节点是单独的节点,不挂接在角色节点下,不会自动同步两个节点的变换
-	AVATAR_AS_CHILD,        // 模型节点是角色节点的子节点
+	AVATAR_AS_CHARACTER,		// 模型节点就是角色节点
+	AVATAR_ALONE,				// 模型节点是单独的节点,不挂接在角色节点下,不会自动同步两个节点的变换
+	AVATAR_AS_CHILD,			// 模型节点是角色节点的子节点
 }
 
 // 模型节点与角色节点的同步方式
 public enum TRANSFORM_ASYNC : byte
 {
-	USE_AVATAR,             // 使用模型节点的值同步到角色节点
-	USE_CHARACTER,          // 使用角色节点的值同步到模型节点
+	USE_AVATAR,					// 使用模型节点的值同步到角色节点
+	USE_CHARACTER,				// 使用角色节点的值同步到模型节点
 }
 
 // 同步位置的时机
 public enum TRANSFORM_SYNC_TIME : byte
 {
-	UPDATE,                 // 执行Update时更新
-	LATE_UPDATE,            // 执行LateUpdate时更新
-	FIXED_UPDATE,           // 执行FixedUpdate时更新
+	UPDATE,						// 执行Update时更新
+	LATE_UPDATE,				// 执行LateUpdate时更新
+	FIXED_UPDATE,				// 执行FixedUpdate时更新
 }
 
 // 摄像机连接器的更新时机
 public enum LINKER_UPDATE : byte
 {
-	UPDATE,                 // 执行Update时更新
-	LATE_UPDATE,            // 执行LateUpdate时更新
-	FIXED_UPDATE,           // 执行FixedUpdate时更新
+	UPDATE,						// 执行Update时更新
+	LATE_UPDATE,				// 执行LateUpdate时更新
+	FIXED_UPDATE,				// 执行FixedUpdate时更新
+}
+
+// 窗口模式类型
+public enum WINDOW_MODE : byte
+{
+	WINDOWED,						// 带边框的窗口模式
+	FULL_SCREEN,					// 全屏模式
+	NO_BOARD_WINDOW,				// 无边框窗口模式
+	FULL_SCREEN_CUSTOM_RESOLUTION,	// 全屏并且使用配置文件中的分辨率
 }

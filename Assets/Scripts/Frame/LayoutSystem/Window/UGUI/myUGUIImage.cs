@@ -38,9 +38,9 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 			Texture2D curTexture = mOriginSprite.texture;
 			if (curTexture != null)
 			{
-				ImageAtlasPath imageAtlasPath = mObject.GetComponent<ImageAtlasPath>();
+				var imageAtlasPath = mObject.GetComponent<ImageAtlasPath>();
 				string atlasPath;
-				if(imageAtlasPath != null)
+				if (imageAtlasPath != null)
 				{
 					atlasPath = imageAtlasPath.mAtlasPath;
 				}
@@ -48,8 +48,15 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 				{
 					atlasPath = FrameDefine.R_ATLAS_GAME_ATLAS_PATH + curTexture.name + "/" + curTexture.name;
 				}
-				mAtlas = mTPSpriteManager.getAtlas(atlasPath, false, true);
-				if(mAtlas != null && mAtlas.mTexture != curTexture)
+				if (mLayout.isInResources())
+				{
+					mAtlas = mTPSpriteManager.getAtlasInResources(atlasPath, false, true);
+				}
+				else
+				{
+					mAtlas = mTPSpriteManager.getAtlas(atlasPath, false, true);
+				}
+				if (mAtlas != null && mAtlas.mTexture != curTexture)
 				{
 					logError("设置的图集与加载出的图集不一致!可能未添加ImageAtlasPath组件,或者ImageAtlasPath组件中记录的路径错误,或者是在当前物体在重复使用过程中销毁了原始图集");
 				}

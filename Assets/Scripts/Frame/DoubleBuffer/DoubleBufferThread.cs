@@ -10,6 +10,7 @@ public class DoubleBufferThread<T> : FrameBase
 	protected int mWriteIndex;
 	protected int mReadIndex;
 	protected int mReadThreadID;
+	protected bool mReading;
 	public DoubleBufferThread()
 	{
 		mBufferList = new List<T>[2];
@@ -24,6 +25,12 @@ public class DoubleBufferThread<T> : FrameBase
 	{
 		int curThreadID = Thread.CurrentThread.ManagedThreadId;
 		mBufferLock.waitForUnlock();
+		if (mReading)
+		{
+			logError("读列表正在使用中,不能再次获取读列表");
+			return null;
+		}
+		mReading = true;
 		if (mReadThreadID == 0)
 		{
 			mReadThreadID = curThreadID;
@@ -37,6 +44,10 @@ public class DoubleBufferThread<T> : FrameBase
 			return null;
 		}
 		return readList;
+	}
+	public void endGet()
+	{
+		mReading = false;
 	}
 	// 向可写列表中添加数据,可在不同线程中调用
 	public void add(T value)
@@ -52,6 +63,10 @@ public class DoubleBufferThread<T> : FrameBase
 	public void setWriteListLimit(uint limit) { mWriteListLimit = limit; }
 	public void clear()
 	{
+		if (mReading)
+		{
+			logError("正在使用读列表中,无法清空");
+		}
 		mBufferLock.waitForUnlock();
 		mBufferList[mReadIndex].Clear();
 		mBufferList[mWriteIndex].Clear();

@@ -5,7 +5,7 @@ public class LayoutManagerDebug : MonoBehaviour
 	public bool UseAnchor;
 	public void Update()
 	{
-		if (!FrameBase.mGameFramework.isEnableScriptDebug())
+		if (!FrameBase.mGameFramework.mEnableScriptDebug)
 		{
 			return;
 		}

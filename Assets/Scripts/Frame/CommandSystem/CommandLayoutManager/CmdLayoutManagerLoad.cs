@@ -59,7 +59,7 @@ public class CmdLayoutManagerLoad : Command
 		// 通知布局管理器布局显示或隐藏
 		mLayoutManager.notifyLayoutVisible(mVisible, layout);
 	}
-	public override void showDebugInfo(MyStringBuilder builder)
+	public override void debugInfo(MyStringBuilder builder)
 	{
 		builder.Append(": mLayoutID:", mLayoutID).
 				Append(", mVisible:", mVisible).

@@ -6,12 +6,14 @@ public struct FormItem
 {
 	public byte[] mFileContent;
 	public string mFileName;
+	public int mFileLength;
 	public string mKey;
 	public string mValue;
-	public FormItem(byte[] file, string fileName)
+	public FormItem(byte[] file, string fileName, int fileLength = -1)
 	{
 		mFileContent = file;
 		mFileName = fileName;
+		mFileLength = fileLength < 0 ? file.Length : fileLength;
 		mKey = "";
 		mValue = "";
 	}
@@ -19,6 +21,7 @@ public struct FormItem
 	{
 		mFileContent = null;
 		mFileName = "";
+		mFileLength = 0;
 		mKey = key;
 		mValue = value;
 	}

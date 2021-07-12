@@ -6,21 +6,24 @@ using UnityEngine;
 public class CameraLinker : GameComponent
 {
 	protected Dictionary<Type, CameraLinkerSwitch> mSwitchList; // 转换器列表
-	protected CameraLinkerSwitch mCurSwitch;                    // 当前转换器
-	protected MovableObject mLinkObject;                        // 摄像机跟随的物体
-	protected GameCamera mCamera;                               // 所属摄像机
-	protected Vector3 mRelativePosition;                        // 相对位置
-	protected Vector3 mOriginRelativePosition;                  // 原始的相对位置,因为在设置mRelativePosition后可能会由于连接器或者其他原因对其进行动态修改,所以需要记录一个原始的位置
-	protected Vector3 mLookAtOffset;                            // 焦点的偏移,实际摄像机的焦点是物体的位置加上偏移
+	protected CameraLinkerSwitch mCurSwitch;					// 当前转换器
+	protected MovableObject mLinkObject;						// 摄像机跟随的物体
+	protected GameCamera mCamera;								// 所属摄像机
+	protected Vector3 mRelativePosition;						// 相对位置
+	protected Vector3 mOriginRelativePosition;					// 原始的相对位置,因为在设置mRelativePosition后可能会由于连接器或者其他原因对其进行动态修改,所以需要记录一个原始的位置
+	protected Vector3 mLookAtOffset;							// 焦点的偏移,实际摄像机的焦点是物体的位置加上偏移
 	protected LINKER_UPDATE mUpdateMoment;                      // 连接器更新时机
-	protected bool mUseTargetYaw;                               // 是否使用目标物体的旋转来旋转摄像机的位置,给子类使用
+	protected float mMinRelativePitch;							// 如果外部改变了mRelativePosition的值,则mRelativePosition的俯仰角不能小于mMinRelativePitch
+	protected float mMaxRelativePitch;							// 如果外部改变了mRelativePosition的值,则mRelativePosition的俯仰角不能大于mMaxRelativePitch
+	protected bool mUseTargetYaw;								// 是否使用目标物体的旋转来旋转摄像机的位置,给子类使用
 	protected bool mLookAtTarget;                               // 是否在摄像机运动过程中一直看向目标位置
 	public CameraLinker()
 	{
 		mLookAtOffset = new Vector3(0.0f, 2.0f, 0.0f);
 		mUpdateMoment = LINKER_UPDATE.LATE_UPDATE;
 		mSwitchList = new Dictionary<Type, CameraLinkerSwitch>();
-		mUseTargetYaw = true;
+		mMinRelativePitch = toRadian(0.0f);
+		mMaxRelativePitch = toRadian(85.0f);
 	}
 	public override void init(ComponentOwner owner)
 	{
@@ -44,7 +47,9 @@ public class CameraLinker : GameComponent
 		mLookAtOffset = new Vector3(0.0f, 2.0f, 0.0f);
 		mUpdateMoment = LINKER_UPDATE.LATE_UPDATE;
 		mLookAtTarget = false;
-		mUseTargetYaw = true;
+		mUseTargetYaw = false;
+		mMinRelativePitch = toRadian(0.0f);
+		mMaxRelativePitch = toRadian(85.0f);
 	}
 	public override void update(float elapsedTime)
 	{
@@ -85,12 +90,20 @@ public class CameraLinker : GameComponent
 			updateLinker(elapsedTime);
 		}
 	}
+	// 当使用此连接器时调用
+	public virtual void onLinked() { }
+	// 断开此连接器时调用
+	public virtual void onUnlink() { }
 	public virtual void applyRelativePosition(Vector3 relative)
 	{
 		if (mLinkObject == null)
 		{
 			return;
 		}
+        if (mLinkObject.getTransform()==null)
+        {
+			return;
+        }
 		Vector3 newPos = mLinkObject.getWorldPosition() + relative;
 		mCamera.setPosition(newPos);
 		if (mLookAtTarget)
@@ -99,6 +112,8 @@ public class CameraLinker : GameComponent
 			mCamera.lookAt(mLinkObject.getWorldPosition() + mLookAtOffset - mCamera.getPosition());
 		}
 	}
+	public void setMinRelativePitch(float minPitch) { mMinRelativePitch = minPitch; }
+	public void setMaxRelativePitch(float maxPitch) { mMaxRelativePitch = maxPitch; }
 	public void setUseTargetYaw(bool use) { mUseTargetYaw = use; }
 	public bool isUseTargetYaw() { return mUseTargetYaw; }
 	public void setUpdateMoment(LINKER_UPDATE moment) { mUpdateMoment = moment; }
@@ -107,10 +122,31 @@ public class CameraLinker : GameComponent
 	public Vector3 getOriginRelativePosition() { return mOriginRelativePosition; }
 	public void setOriginRelativePosition(Vector3 relative) { mOriginRelativePosition = relative; }
 	public Vector3 getRelativePosition() { return mRelativePosition; }
-	public virtual void setRelativePosition(Vector3 pos) { mRelativePosition = pos; }
-	public virtual void setRelativePositionWithSwitch(Vector3 pos, Type switchType, bool useDefaultSwitchSpeed = true, float switchSpeed = 1.0f)
+	// 水平旋转相对位置
+	public void rotateRelativePositionHorizontal(float deltaAngle)
 	{
-		setRelativePosition(pos);
+		Vector3 relative = rotateVector3(mRelativePosition, Quaternion.AngleAxis(deltaAngle, Vector3.up));
+		setRelativePosition(relative);
+	}
+	// 竖直方向上旋转相对位置
+	public void rotateRelativePositionVertical(float deltaAngle)
+	{
+		Vector3 normal = generateNormal(mRelativePosition, replaceY(mRelativePosition, mRelativePosition.y - 1.0f));
+		Vector3 relative = rotateVector3(mRelativePosition, Quaternion.AngleAxis(deltaAngle, normal));
+		setRelativePosition(relative);
+	}
+	public virtual void setRelativePosition(Vector3 relative)
+	{
+		float curPitch = -getVectorPitch(relative);
+		if (curPitch < mMinRelativePitch || curPitch > mMaxRelativePitch)
+		{
+			setVectorPitch(ref relative, -clamp(curPitch, mMinRelativePitch, mMaxRelativePitch));
+		}
+		mRelativePosition = relative;
+	}
+	public virtual void setRelativePositionWithSwitch(Vector3 relative, Type switchType, bool useDefaultSwitchSpeed = true, float switchSpeed = 1.0f)
+	{
+		setRelativePosition(relative);
 		// 如果不使用转换器,则直接设置位置
 		if (switchType == null)
 		{
@@ -129,7 +165,7 @@ public class CameraLinker : GameComponent
 		{
 			switchSpeed = mCurSwitch.getSwitchSpeed();
 		}
-		mCurSwitch.init(mRelativePosition, pos, switchSpeed);
+		mCurSwitch.init(mRelativePosition, relative, switchSpeed);
 	}
 	// 由转换器调用,通知连接器转换已经完成
 	public void notifyFinishSwitching() { mCurSwitch = null; }

@@ -6,13 +6,26 @@ public class KeyFrameManager : FrameSystem
 {
 	protected Dictionary<int, MyCurve> mCurveList;
 	protected AssetLoadDoneCallback mKeyframeLoadCallback;
-	protected bool mLoaded;
+	protected bool mAutoLoad;		// 是否在资源可访问时自动加载所有关键帧
+	protected bool mLoaded;			// 资源是否加载完毕
 	public KeyFrameManager()
 	{
 		mCurveList = new Dictionary<int, MyCurve>();
 		mKeyframeLoadCallback = onKeyFrameLoaded;
 		mCreateObject = true;
+		mAutoLoad = true;
+
+		loadAllCaculatedCurve();
 	}
+	public override void resourceAvailable()
+	{
+		if(!mAutoLoad)
+		{
+			return;
+		}
+		loadAll(false);
+	}
+	public void setAutoLoad(bool autoLoad) { mAutoLoad = autoLoad; }
 	public MyCurve getKeyFrame(int id)
 	{
 		if (id == 0)
@@ -27,7 +40,66 @@ public class KeyFrameManager : FrameSystem
 	{
 		mLoaded = false;
 
-		// 通过公式计算的曲线
+		// 在编辑器中编辑的曲线
+		if (async)
+		{
+			mResourceManager.loadResourceAsync<GameObject>(FrameDefine.KEY_FRAME_FILE, mKeyframeLoadCallback);
+		}
+		else
+		{
+			GameObject prefab = mResourceManager.loadResource<GameObject>(FrameDefine.KEY_FRAME_FILE);
+			mKeyframeLoadCallback(prefab, null, null, null, FrameDefine.KEY_FRAME_FILE);
+		}
+	}
+	public override void destroy()
+	{
+		mCurveList.Clear();
+		base.destroy();
+	}
+	public bool isLoadDone() { return mLoaded; }
+	//--------------------------------------------------------------------------------------------------------------------------------------
+	protected void createCurve<T>(int curveID) where T : MyCurve, new()
+	{
+		mCurveList.Add(curveID, new T());
+	}
+	protected void onKeyFrameLoaded(UnityEngine.Object asset, UnityEngine.Object[] subAsset, byte[] bytes, object userData, string loadPath)
+	{
+		// 删除所有ID大于100的,也就是通过加载资源获得的曲线
+		LIST(out List<int> deleteKeys);
+		foreach (var item in mCurveList)
+		{
+			if (item.Key > KEY_CURVE.MAX_BUILDIN_CURVE)
+			{
+				deleteKeys.Add(item.Key);
+			}
+		}
+		foreach (var item in deleteKeys)
+		{
+			mCurveList.Remove(item);
+		}
+		UN_LIST(deleteKeys);
+
+		GameObject keyFrameObject = instantiatePrefab(mObject, asset as GameObject, getFileName(asset.name), true);
+		// 查找关键帧曲线,加入列表中
+		var gameKeyframe = keyFrameObject.GetComponent<GameKeyframe>();
+		if (gameKeyframe == null)
+		{
+			logError("object in KeyFrame folder must has GameKeyframe Component!");
+			return;
+		}
+		int count = gameKeyframe.mCurveList.Count;
+		for(int i = 0; i < count; ++i)
+		{
+			var curveInfo = gameKeyframe.mCurveList[i];
+			mCurveList[curveInfo.mID] = new UnityCurve(curveInfo.mCurve);
+		}
+		destroyGameObject(keyFrameObject);
+		mResourceManager.unloadPath(FrameDefine.R_KEY_FRAME_PATH);
+		mLoaded = true;
+	}
+	// 创建所有通过公式计算的曲线
+	protected void loadAllCaculatedCurve()
+	{
 		createCurve<CurveZeroOne>(KEY_CURVE.ZERO_ONE);
 		createCurve<CurveZeroOneZero>(KEY_CURVE.ZERO_ONE_ZERO);
 		createCurve<CurveOneZero>(KEY_CURVE.ONE_ZERO);
@@ -62,62 +134,5 @@ public class KeyFrameManager : FrameSystem
 		createCurve<CurveSineIn>(KEY_CURVE.SINE_IN);
 		createCurve<CurveSineInOut>(KEY_CURVE.SINE_IN_OUT);
 		createCurve<CurveSineOut>(KEY_CURVE.SINE_OUT);
-
-		// 在编辑器中编辑的曲线
-		if (async)
-		{
-			mResourceManager.loadResourceAsync<GameObject>(FrameDefine.KEY_FRAME_FILE, mKeyframeLoadCallback);
-		}
-		else
-		{
-			GameObject prefab = mResourceManager.loadResource<GameObject>(FrameDefine.KEY_FRAME_FILE);
-			mKeyframeLoadCallback(prefab, null, null, null, FrameDefine.KEY_FRAME_FILE);
-		}
-	}
-	public override void destroy()
-	{
-		mCurveList.Clear();
-		base.destroy();
-	}
-	public bool isLoadDone() { return mLoaded; }
-	//--------------------------------------------------------------------------------------------------------------------------------------
-	protected void createCurve<T>(int curveID) where T : MyCurve, new()
-	{
-		mCurveList.Add(curveID, new T());
-	}
-	protected void onKeyFrameLoaded(UnityEngine.Object asset, UnityEngine.Object[] subAsset, byte[] bytes, object userData, string loadPath)
-	{
-		// 删除所有ID小于100的,也就是通过加载资源获得的曲线
-		LIST(out List<int> deleteKeys);
-		foreach (var item in mCurveList)
-		{
-			if (item.Key < (int)KEY_CURVE.BUILDIN_CURVE)
-			{
-				deleteKeys.Add(item.Key);
-			}
-		}
-		foreach (var item in deleteKeys)
-		{
-			mCurveList.Remove(item);
-		}
-		UN_LIST(deleteKeys);
-
-		GameObject keyFrameObject = instantiatePrefab(mObject, asset as GameObject, getFileName(asset.name), true);
-		// 查找关键帧曲线,加入列表中
-		var gameKeyframe = keyFrameObject.GetComponent<GameKeyframe>();
-		if (gameKeyframe == null)
-		{
-			logError("object in KeyFrame folder must has GameKeyframe Component!");
-			return;
-		}
-		int count = gameKeyframe.mCurveList.Count;
-		for(int i = 0; i < count; ++i)
-		{
-			var curveInfo = gameKeyframe.mCurveList[i];
-			mCurveList[curveInfo.mID] = new UnityCurve(curveInfo.mCurve);
-		}
-		destroyGameObject(keyFrameObject);
-		mResourceManager.unloadPath(FrameDefine.R_KEY_FRAME_PATH);
-		mLoaded = true;
 	}
 }

@@ -6,7 +6,7 @@ public class CharacterManagerDebug : MonoBehaviour
 	public List<string> CharacterList = new List<string>();
 	public void Update()
 	{
-		if (!FrameBase.mGameFramework.isEnableScriptDebug())
+		if (!FrameBase.mGameFramework.mEnableScriptDebug)
 		{
 			return;
 		}

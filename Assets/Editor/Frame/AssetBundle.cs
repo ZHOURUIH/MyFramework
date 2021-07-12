@@ -6,9 +6,9 @@ using UnityEditor;
 
 public class AssetBuildBundleInfo
 {
-	public List<string> mAssetNames;	// 带Resources下相对路径,带后缀
-	public List<string> mDependencies;	// 所有依赖的AssetBundle
-	public string mBundleName;			// 所属AssetBundle
+	public List<string> mAssetNames;    // 带Resources下相对路径,带后缀
+	public List<string> mDependencies;  // 所有依赖的AssetBundle
+	public string mBundleName;          // 所属AssetBundle
 	public AssetBuildBundleInfo(string bundleName)
 	{
 		mAssetNames = new List<string>();
@@ -90,14 +90,14 @@ public class AssetBundlePack : EditorCommonUtility
 			// 清理不打包的AssetBundle名
 			List<string> allFiles = new List<string>();
 			findFiles(FrameDefine.F_GAME_RESOURCES_PATH, allFiles);
-			clearUnPackAssetBundleName(allFiles, FrameDefineExtra.mUnPackFolder);
+			clearUnPackAssetBundleName(allFiles, FrameDefineExtension.mUnPackFolder);
 			// 设置bunderName
 			mAssetBundleMap.Clear();
 			List<string> resList = new List<string>();
 			getAllSubResDirs(FrameDefine.P_GAME_RESOURCES_PATH, resList);
 			foreach (string dir in resList)
 			{
-				if(!setAssetBundleName(dir))
+				if (!generateAssetBundleName(dir))
 				{
 					return;
 				}
@@ -129,12 +129,12 @@ public class AssetBundlePack : EditorCommonUtility
 					bundleInfo.AddDependence(depName);
 					dependencySet.Add(depName);
 					// 查找依赖项中是否有依赖当前AssetBundle的
-					if(mDependencyList.TryGetValue(depName, out HashSet<string> depList) && depList.Contains(bundleName))
+					if (mDependencyList.TryGetValue(depName, out HashSet<string> depList) && depList.Contains(bundleName))
 					{
 						messageBox("AssetBundle dependency error! " + depName + ", " + bundleName, true);
 					}
 				}
-				if(mDependencyList.ContainsKey(bundleName))
+				if (mDependencyList.ContainsKey(bundleName))
 				{
 					messageBox("已经存在一个名为:" + bundleName + "的AssetBundle", true);
 				}
@@ -176,7 +176,7 @@ public class AssetBundlePack : EditorCommonUtility
 		if (!isEmpty(getFileSuffix(path)))
 		{
 			string bundleName = refreshFileAssetBundleName(path);
-			if(bundleName == null)
+			if (bundleName == null)
 			{
 				return;
 			}
@@ -203,7 +203,7 @@ public class AssetBundlePack : EditorCommonUtility
 				for (int j = 0; j < fileCount; ++j)
 				{
 					string bundleName = refreshFileAssetBundleName(files[j]);
-					if(isEmpty(bundleName))
+					if (isEmpty(bundleName))
 					{
 						continue;
 					}
@@ -267,7 +267,7 @@ public class AssetBundlePack : EditorCommonUtility
 		return false;
 	}
 	// 刷新指定文件的所属AssetBundle名字
-	protected static string refreshFileAssetBundleName(string file, bool forceSingle = false)
+	protected static string refreshFileAssetBundleName(string file, bool forceSingle = false, bool forceRefreshAssetBundleName = false)
 	{
 		if (endWith(file, ".meta"))
 		{
@@ -288,7 +288,7 @@ public class AssetBundlePack : EditorCommonUtility
 		}
 		string fileName = rightToLeft(file.ToLower());
 		string bundleName = getFileAssetBundleName(fileName, forceSingle);
-		if (importer.assetBundleName != bundleName)
+		if (importer.assetBundleName != bundleName || forceRefreshAssetBundleName)
 		{
 			importer.assetBundleName = bundleName;
 		}
@@ -304,9 +304,9 @@ public class AssetBundlePack : EditorCommonUtility
 		return bundleName;
 	}
 	// fullPath是以Asset开头的路径
-	protected static bool setAssetBundleName(string fullPath)
+	protected static bool generateAssetBundleName(string fullPath)
 	{
-		if (isUnpackPath(fullPath, FrameDefineExtra.mUnPackFolder))
+		if (isUnpackPath(fullPath, FrameDefineExtension.mUnPackFolder))
 		{
 			return true;
 		}
@@ -317,12 +317,13 @@ public class AssetBundlePack : EditorCommonUtility
 		}
 		foreach (string file in files)
 		{
-			if(refreshFileAssetBundleName(rightToLeft(file)) == null)
+			if (refreshFileAssetBundleName(rightToLeft(file)) == null)
 			{
 				return false;
 			}
 		}
 		EditorUtility.UnloadUnusedAssetsImmediate();
+		AssetDatabase.Refresh();
 		return true;
 	}
 	// 递归获取所有子目录文件夹
@@ -377,10 +378,10 @@ public class AssetBundlePack : EditorCommonUtility
 	}
 	protected static bool isKeepFolderOrMeta(string name)
 	{
-		int count = FrameDefineExtra.mKeepFolder.Length;
+		int count = FrameDefineExtension.mKeepFolder.Length;
 		for (int i = 0; i < count; ++i)
 		{
-			if (FrameDefineExtra.mKeepFolder[i] == name || FrameDefineExtra.mKeepFolder[i] + ".meta" == name)
+			if (FrameDefineExtension.mKeepFolder[i] == name || FrameDefineExtension.mKeepFolder[i] + ".meta" == name)
 			{
 				return true;
 			}
@@ -390,17 +391,29 @@ public class AssetBundlePack : EditorCommonUtility
 	// 清理之前设置的bundleName
 	protected static void clearAssetBundleName()
 	{
-		string[] bundleNames = AssetDatabase.GetAllAssetBundleNames();
-		int length = bundleNames.Length;
-		for (int i = 0; i < length; ++i)
+		List<string> allFiles = new List<string>();
+		findFiles(FrameDefine.F_GAME_RESOURCES_PATH, allFiles);
+		int count = allFiles.Count;
+		for(int i = 0; i < count; ++i)
 		{
-			AssetDatabase.RemoveAssetBundleName(bundleNames[i], true);
-			Debug.Log("remove asset bundle name : " + bundleNames[i]);
+			string fileName = fullPathToProjectPath(allFiles[i]);
+			if(endWith(fileName, ".meta"))
+			{
+				continue;
+			}
+			AssetImporter importer = AssetImporter.GetAtPath(fileName);
+			if (importer == null)
+			{
+				continue;
+			}
+			importer.assetBundleName = EMPTY;
 		}
+		AssetDatabase.RemoveUnusedAssetBundleNames();
+		AssetDatabase.Refresh();
 	}
 	protected static void clearUnPackAssetBundleName(List<string> fileList, string[] unpackList)
 	{
-		foreach(var file in fileList)
+		foreach (var file in fileList)
 		{
 			if (endWith(file, ".meta"))
 			{

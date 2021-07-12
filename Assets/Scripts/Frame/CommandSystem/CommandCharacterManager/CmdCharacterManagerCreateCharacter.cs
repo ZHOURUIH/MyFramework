@@ -26,7 +26,7 @@ public class CmdCharacterManagerCreateCharacter : Command
 		}
 		mCharacterManager.createCharacter(mName, mCharacterType, mID, mCreateNode);
 	}
-	public override void showDebugInfo(MyStringBuilder builder)
+	public override void debugInfo(MyStringBuilder builder)
 	{
 		builder.Append(": mName:", mName).
 				Append(", mCharacterType:", mCharacterType.ToString()).

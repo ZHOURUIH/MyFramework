@@ -3,8 +3,8 @@ using System;
 
 public abstract class ComponentOwner : CommandReceiver
 {
-	protected SafeDictionary<Type, GameComponent> mAllComponentTypeList;    // 组件类型列表,first是组件的类型名
-	protected SafeList<GameComponent> mComponentList;                       // 组件列表,保存着组件之间的更新顺序
+	protected SafeDictionary<Type, GameComponent> mAllComponentTypeList;	// 组件类型列表,first是组件的类型名
+	protected SafeList<GameComponent> mComponentList;						// 组件列表,保存着组件之间的更新顺序
 	protected bool mIgnoreTimeScale;
 	public ComponentOwner()
 	{

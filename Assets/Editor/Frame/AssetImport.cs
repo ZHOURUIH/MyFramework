@@ -8,7 +8,7 @@ public class AssetsImport : AssetPostprocessor
 	{
 		foreach (string str in importedAsset)
 		{
-			if (str == FrameDefine.P_STREAMING_ASSETS_PATH + FrameDefine.ILR_FILE_NAME)
+			if (str == FrameDefine.P_STREAMING_ASSETS_PATH + FrameDefine.ILR_FILE)
 			{
 				Debug.Log("热更dll已经更新");
 			}

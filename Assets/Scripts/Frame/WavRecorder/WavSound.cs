@@ -5,11 +5,11 @@ public class WavSound : FrameBase
 	protected SerializerWrite mWaveDataSerializer;
 	protected string mFileName;
 	protected short[] mMixPCMData;
-	protected short mBlockAlign;    // DATA数据块长度
-	protected short mBitsPerSample; // 单个采样数据大小,如果双声道16位,则是4个字节,也叫PCM位宽
-	protected short mOtherSize;     // 附加信息（可选，由上方过滤字节确定）
-	protected short mFormatType;    // 编码格式,为1是PCM编码
-	protected short mSoundChannels; // 声道数
+	protected short mBlockAlign; 	// DATA数据块长度
+	protected short mBitsPerSample;	// 单个采样数据大小,如果双声道16位,则是4个字节,也叫PCM位宽
+	protected short mOtherSize;		// 附加信息（可选，由上方过滤字节确定）
+	protected short mFormatType;	// 编码格式,为1是PCM编码
+	protected short mSoundChannels;	// 声道数
 	protected byte[] mDataMark;		// data标记
 	protected byte[] mDataBuffer;
 	protected int mRiffMark;		// riff标记
@@ -51,15 +51,15 @@ public class WavSound : FrameBase
 		mMixPCMData = null;
 		mWaveDataSerializer = null;
 	}
-	public byte[] getPCMBuffer(){ return mDataBuffer; }
-	public short[] getMixPCMData() { return mMixPCMData; }
-	public int getPCMBufferSize() { return mDataSize; }
-	public short getSoundChannels() { return mSoundChannels; }
-	public int getPCMShortDataCount() { return mDataSize / sizeof(short); }
-	public int getMixPCMDataCount() { return mDataSize / (sizeof(short) * mSoundChannels); }
+	public byte[] getPCMBuffer()		{ return mDataBuffer; }
+	public short[] getMixPCMData()		{ return mMixPCMData; }
+	public int getPCMBufferSize()		{ return mDataSize; }
+	public short getSoundChannels()		{ return mSoundChannels; }
+	public int getPCMShortDataCount()	{ return mDataSize / sizeof(short); }
+	public int getMixPCMDataCount()		{ return mDataSize / (sizeof(short) * mSoundChannels); }
 	public bool readFile(string file)
 	{
-		openFile(file, out byte[]  fileData, true);
+		openFile(file, out byte[] fileData, true);
 		mFileName = file;
 		CLASS_ONCE(out SerializerRead serializer);
 		serializer.init(fileData);

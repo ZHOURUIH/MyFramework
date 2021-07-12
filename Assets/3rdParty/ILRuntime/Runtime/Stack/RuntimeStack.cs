@@ -289,7 +289,7 @@ namespace ILRuntime.Runtime.Stack
         public void AllocValueTypeAndCopy(StackObject* ptr, StackObject* src)
         {
             var dst = ILIntepreter.ResolveReference(src);
-            var type = intepreter.AppDomain.GetType(dst->Value);
+            var type = intepreter.AppDomain.GetTypeByIndex(dst->Value);
             int size, managedCount;
             type.GetValueTypeSize(out size, out managedCount);
             if (allocator == null)
@@ -364,7 +364,7 @@ namespace ILRuntime.Runtime.Stack
         internal void InitializeValueTypeObject(IType type, StackObject* ptr, bool register, ref int managedIdx)
         {
             ptr->ObjectType = ObjectTypes.ValueTypeDescriptor;
-            ptr->Value = type.GetHashCode();
+            ptr->Value = type.TypeIndex;
             ptr->ValueLow = type.TotalFieldCount;
             StackObject* endPtr = ptr - (type.TotalFieldCount + 1);
             
@@ -375,7 +375,9 @@ namespace ILRuntime.Runtime.Stack
                 {
                     var ft = t.FieldTypes[i];
                     StackObject* val = ILIntepreter.Minus(ptr, t.FieldStartIndex + i + 1);
-                    if (ft.IsPrimitive || ft.IsEnum)
+                    if (ft.IsPrimitive)
+                        *val = ft.DefaultObject;
+                    else if (ft.IsEnum)
                         StackObject.Initialized(val, ft);
                     else
                     {
@@ -424,7 +426,9 @@ namespace ILRuntime.Runtime.Stack
                 {
                     var it = t.OrderedFieldTypes[i] as CLRType;
                     StackObject* val = ILIntepreter.Minus(ptr, i + 1);
-                    if (it.IsPrimitive || it.IsEnum)
+                    if (it.IsPrimitive)
+                        *val = it.DefaultObject;
+                    else if (it.IsEnum)
                         StackObject.Initialized(val, it);
                     else
                     {

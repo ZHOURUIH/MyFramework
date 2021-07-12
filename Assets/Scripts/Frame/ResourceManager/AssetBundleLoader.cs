@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
+// 从AssetBundle中加载资源
 public class AssetBundleLoader : FrameBase
 {
 	protected Dictionary<UnityEngine.Object, AssetBundleInfo> mAssetToAssetBundleInfo;
@@ -16,6 +17,7 @@ public class AssetBundleLoader : FrameBase
 	protected const int ASSET_COROUTINE = 4;
 	protected int mAssetBundleCoroutineCount;
 	protected int mAssetCoroutineCount;
+	protected bool mAutoLoad;				// 当资源可用时是否自动初始化AssetBundle
 	protected bool mInited;
 	public AssetBundleLoader()
 	{
@@ -26,9 +28,15 @@ public class AssetBundleLoader : FrameBase
 		mAssetToAssetBundleInfo = new Dictionary<UnityEngine.Object, AssetBundleInfo>();
 		mCoroutineList = new HashSet<Coroutine>();
 		mWaitForEndOfFrame = new WaitForEndOfFrame();
+		mAutoLoad = true;
 	}
-	public bool init()
+	public void resourceAvailable()
 	{
+		if (!mAutoLoad)
+		{
+			return;
+		}
+
 		// 卸载所有已加载的AssetBundle
 		unloadAll();
 		// 如果资源目录为本地目录,则
@@ -37,7 +45,7 @@ public class AssetBundleLoader : FrameBase
 		{
 			if (!isFileExist(path))
 			{
-				return false;
+				return;
 			}
 			int fileSize = openFile(path, out byte[] fileBuffer, false);
 			initAssetConfig(fileBuffer, fileSize);
@@ -47,11 +55,11 @@ public class AssetBundleLoader : FrameBase
 		{
 			mResourceManager.loadAssetsFromUrl(path, onAssetConfigDownloaded);
 		}
-		return true;
 	}
+	public void setAutoLoad(bool autoLoad) { mAutoLoad = autoLoad; }
 	public void update()
 	{
-		if(!mInited)
+		if (!mInited)
 		{
 			return;
 		}
@@ -75,7 +83,7 @@ public class AssetBundleLoader : FrameBase
 		// 处理资源异步加载请求
 		if (mRequestAssetList.Count > 0 && mAssetCoroutineCount < ASSET_COROUTINE)
 		{
-			foreach(var item in mRequestAssetList)
+			foreach (var item in mRequestAssetList)
 			{
 				mCoroutineList.Add(mGameFramework.StartCoroutine(loadAssetCoroutine(item.Value, item.Key)));
 				mRequestAssetList.Remove(item.Key);
@@ -89,7 +97,7 @@ public class AssetBundleLoader : FrameBase
 	}
 	public void unloadAll()
 	{
-		foreach(var item in mCoroutineList)
+		foreach (var item in mCoroutineList)
 		{
 			mGameFramework.StopCoroutine(item);
 		}
@@ -110,7 +118,7 @@ public class AssetBundleLoader : FrameBase
 		// 查找对应的AssetBundle
 		if (!mAssetToAssetBundleInfo.TryGetValue(asset, out AssetBundleInfo info))
 		{
-			return false;			
+			return false;
 		}
 		bool ret = info.unloadAsset(asset);
 		if (ret)
@@ -130,7 +138,7 @@ public class AssetBundleLoader : FrameBase
 	}
 	public void unloadAssetBundle(string bundleName)
 	{
-		if(!mAssetBundleInfoList.TryGetValue(bundleName, out AssetBundleInfo info))
+		if (!mAssetBundleInfoList.TryGetValue(bundleName, out AssetBundleInfo info))
 		{
 			return;
 		}
@@ -300,7 +308,7 @@ public class AssetBundleLoader : FrameBase
 			// 加载完毕,返回资源列表
 			if (bundleInfo.getLoadState() == LOAD_STATE.LOADED)
 			{
-				if(assetList == null)
+				if (assetList == null)
 				{
 					return;
 				}
@@ -417,7 +425,7 @@ public class AssetBundleLoader : FrameBase
 		// 只加载第一个找到的资源,所以不允许有重名的同类资源
 		int loadedCount = 0;
 		int count = fileNameList.Count;
-		for(int i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			string fileNameWithSuffix = fileNameList[i];
 			if (!mAssetToBundleInfo.TryGetValue(fileNameWithSuffix, out AssetInfo asset))
@@ -441,7 +449,7 @@ public class AssetBundleLoader : FrameBase
 			logError("AssetBundleLoader is not inited!");
 			return;
 		}
-		if(!mRequestBundleList.Contains(bundleInfo))
+		if (!mRequestBundleList.Contains(bundleInfo))
 		{
 			mRequestBundleList.Add(bundleInfo);
 		}
@@ -512,7 +520,7 @@ public class AssetBundleLoader : FrameBase
 			}
 		}
 #if UNITY_EDITOR && DEVELOPMENT_BUILD
-		logInfo(bundleInfo.getBundleFileName() + " load bundle done", LOG_LEVEL.NORMAL);
+		log(bundleInfo.getBundleFileName() + " load bundle done", LOG_LEVEL.NORMAL);
 #endif
 		yield return mWaitForEndOfFrame;
 		// 通知AssetBundleInfo
@@ -529,7 +537,7 @@ public class AssetBundleLoader : FrameBase
 			yield break;
 		}
 		bundle.getAssetInfo(fileNameWithSuffix).setLoadState(LOAD_STATE.LOADING);
-		if(bundle.getAssetBundle() != null)
+		if (bundle.getAssetBundle() != null)
 		{
 			AssetBundleRequest assetRequest = bundle.getAssetBundle().LoadAssetWithSubAssetsAsync(FrameDefine.P_GAME_RESOURCES_PATH + fileNameWithSuffix);
 			if (assetRequest == null)
@@ -560,7 +568,7 @@ public class AssetBundleLoader : FrameBase
 		CLASS_ONCE(out SerializerRead serializer);
 		serializer.init(fileBuffer, fileSize);
 		serializer.read(out int assetBundleCount);
-		for(int i = 0; i < assetBundleCount; ++i)
+		for (int i = 0; i < assetBundleCount; ++i)
 		{
 			// AssetBundle名字
 			serializer.readString(tempStringBuffer, tempStringBuffer.Length);
@@ -572,7 +580,7 @@ public class AssetBundleLoader : FrameBase
 			}
 			// AssetBundle包含的所有Asset的名字
 			serializer.read(out int assetCount);
-			for(int k = 0; k < assetCount; ++k)
+			for (int k = 0; k < assetCount; ++k)
 			{
 				serializer.readString(tempStringBuffer, tempStringBuffer.Length);
 				string assetName = bytesToString(tempStringBuffer);

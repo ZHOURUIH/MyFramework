@@ -117,7 +117,7 @@ public class CharacterManager : FrameSystem
 		if(createNode)
 		{
 			GameObject charNode = createGameObject(newCharacter.getName(), mObject);
-			newCharacter.setObject(charNode);
+			newCharacter.setObject(charNode, true);
 		}
 		newCharacter.setID(id);
 		newCharacter.init();

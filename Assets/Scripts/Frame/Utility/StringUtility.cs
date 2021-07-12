@@ -10,15 +10,17 @@ public class StringUtility : BinaryUtility
 	private static List<int> mTempIntList = new List<int>();
 	private static List<float> mTempFloatList = new List<float>();
 	private static List<string> mTempStringList = new List<string>();
-	private static Dictionary<string, int> mStringToInt = new Dictionary<string, int>();
-	private static string[] mIntToString = new string[1025];
+	private static Dictionary<string, int> mStringToInt;
+	private static string[] mIntToString;
 	private static string[] mFloatConvertPercision = new string[] { "f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7" };
 	private static Dictionary<string, Vector2Int> mStringToVector2Cache;
 	private static int STRING_TO_VECTOR2INT_MAX_CACHE = 10240;
 	public const string EMPTY = "";
 	public static new void initUtility() 
 	{
-		for(int i = 0; i < mIntToString.Length; ++i)
+		mIntToString = new string[1025];
+		mStringToInt = new Dictionary<string, int>();
+		for (int i = 0; i < mIntToString.Length; ++i)
 		{
 			string iStr = i.ToString();
 			mStringToInt.Add(iStr, i);
@@ -258,7 +260,7 @@ public class StringUtility : BinaryUtility
 		{
 			return 0;
 		}
-		if(mStringToInt.TryGetValue(str, out int value))
+		if(mStringToInt != null && mStringToInt.TryGetValue(str, out int value))
 		{
 			return value;
 		}
@@ -313,7 +315,7 @@ public class StringUtility : BinaryUtility
 		{
 			return Vector2Int.zero;
 		}
-		if (mStringToVector2Cache.TryGetValue(value, out Vector2Int result))
+		if (mStringToVector2Cache != null && mStringToVector2Cache.TryGetValue(value, out Vector2Int result))
 		{
 			return result;
 		}
@@ -325,7 +327,7 @@ public class StringUtility : BinaryUtility
 		result = new Vector2Int();
 		result.x = SToI(splitList[0]);
 		result.y = SToI(splitList[1]);
-		if (mStringToVector2Cache.Count < STRING_TO_VECTOR2INT_MAX_CACHE)
+		if (mStringToVector2Cache != null && mStringToVector2Cache.Count < STRING_TO_VECTOR2INT_MAX_CACHE)
 		{
 			mStringToVector2Cache.Add(value, result);
 		}
@@ -962,6 +964,10 @@ public class StringUtility : BinaryUtility
 	}
 	public static string intsToString(List<int> values, string seperate = ",")
 	{
+		if (values == null)
+		{
+			return EMPTY;
+		}
 		MyStringBuilder builder = FrameUtility.STRING();
 		int count = values.Count;
 		for (int i = 0; i < count; ++i)
@@ -976,6 +982,10 @@ public class StringUtility : BinaryUtility
 	}
 	public static string stringsToString(List<string> values, string seperate = ",")
 	{
+		if(values == null)
+		{
+			return EMPTY;
+		}
 		MyStringBuilder builder = FrameUtility.STRING();
 		int count = values.Count;
 		for (int i = 0; i < count; ++i)
@@ -990,6 +1000,10 @@ public class StringUtility : BinaryUtility
 	}
 	public static string stringsToString(string[] values, string seperate = ",")
 	{
+		if (values == null)
+		{
+			return EMPTY;
+		}
 		MyStringBuilder builder = FrameUtility.STRING();
 		int count = values.Length;
 		for (int i = 0; i < count; ++i)
@@ -1005,6 +1019,10 @@ public class StringUtility : BinaryUtility
 	public static List<string> stringToStrings(string str, string seperate = ",")
 	{
 		List<string> strList = new List<string>();
+		if (str == null)
+		{
+			return strList;
+		}
 		string[] strArray = split(str, true, seperate);
 		if (strArray != null)
 		{
@@ -1152,7 +1170,7 @@ public class StringUtility : BinaryUtility
 	{
 		string retString;
 		// 先尝试查表获取
-		if(value >= 0 && value < mIntToString.Length)
+		if(value >= 0 && mIntToString != null && value < mIntToString.Length)
 		{
 			retString = mIntToString[value];
 		}
@@ -1200,7 +1218,7 @@ public class StringUtility : BinaryUtility
 	{
 		string retString;
 		// 先尝试查表获取
-		if (value >= 0 && value < mIntToString.Length)
+		if (value >= 0 && mIntToString != null && value < mIntToString.Length)
 		{
 			retString = mIntToString[value];
 		}
@@ -1222,7 +1240,7 @@ public class StringUtility : BinaryUtility
 	{
 		string retString;
 		// 先尝试查表获取
-		if (value >= 0 && value < (ulong)mIntToString.Length)
+		if (value >= 0 && mIntToString != null && value < (ulong)mIntToString.Length)
 		{
 			retString = mIntToString[value];
 		}

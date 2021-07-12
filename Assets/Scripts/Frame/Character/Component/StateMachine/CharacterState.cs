@@ -5,10 +5,10 @@ public class StateParam : FrameBase
 
 public class CharacterState : FrameBase
 {
-	protected CharacterData mData;          // 状态所属角色的数据
+	protected CharacterData mData;				// 状态所属角色的数据
 	protected OnStateLeave mOnLeave;			// 外部可设置的当前状态退出时的回调
 	protected StateParam mParam;				// 此参数只能在enter中使用,执行完enter后就会回收销毁
-	protected Character mPlayer;                // 状态所属角色
+	protected Character mCharacter;				// 状态所属角色
 	protected float mStateMaxTime;              // 状态最大持续时间,小于0表示无限制
 	protected float mStateTime;                 // 该状态持续的时间,小于0表示无限制
 	protected uint mMutexID;                    // 互斥ID,在添加状态时,会判断相同互斥ID的状态是否需要移除,互斥ID相同的状态的互斥操作对应SAME_STATE_OPERATE枚举
@@ -31,10 +31,10 @@ public class CharacterState : FrameBase
 	public void setParam(StateParam param) { mParam = param; }
 	public void setLeaveCallback(OnStateLeave callback) { mOnLeave = callback; }
 	public BUFF_STATE_TYPE getBuffStateType() { return mBuffStateType; }
-	public virtual void setPlayer(Character player)
+	public virtual void setCharacter(Character character)
 	{
-		mPlayer = player;
-		mData = mPlayer.getBaseData();
+		mCharacter = character;
+		mData = mCharacter.getBaseData();
 	}
 	// 当前是否可以进入该状态
 	public virtual bool canEnter() { return true; }
@@ -75,7 +75,7 @@ public class CharacterState : FrameBase
 	{
 		base.resetProperty();
 		mOnLeave = null;
-		mPlayer = null;
+		mCharacter = null;
 		mData = null;
 		mParam = null;
 		mStateMaxTime = -1.0f;
@@ -93,9 +93,9 @@ public class CharacterState : FrameBase
 	// 要在当前状态中移除自身,可以使用removeSelf,或者直接将mStateTime设置为0,将时间设置为0最安全
 	protected void removeSelf(string param = null)
 	{
-		CMD(out CmdCharacterRemoveState cmd, false);
+		CMD(out CmdCharacterRemoveState cmd, LOG_LEVEL.LOW);
 		cmd.mState = this;
 		cmd.mParam = param;
-		pushCommand(cmd, mPlayer);
+		pushCommand(cmd, mCharacter);
 	}
 }

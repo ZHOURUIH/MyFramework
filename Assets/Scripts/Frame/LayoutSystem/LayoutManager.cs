@@ -3,14 +3,22 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Profiling;
 
+public struct LayoutRegisteInfo
+{
+	public Type mScriptType;
+	public string mName;
+	public int mID;
+	public bool mInResource;
+}
+
 public class LayoutManager : FrameSystem
 {
+	protected Dictionary<int, LayoutRegisteInfo> mScriptRegisteList;
 	protected SafeDictionary<int, GameLayout> mLayoutList;
 	protected Dictionary<string, LayoutInfo> mLayoutAsyncList;
 	protected Dictionary<Type, List<int>> mScriptMappingList;
 	protected Dictionary<int, string> mLayoutTypeToPath;
 	protected Dictionary<string, int> mLayoutPathToType;
-	protected Dictionary<int, Type> mScriptRegisteList;
 	protected List<GameLayout> mBackBlurLayoutList;             // 需要背景模糊的布局的列表
 	protected COMLayoutManagerEscHide mCOMEscHide;				// Esc按键事件传递逻辑的组件
 	protected AssetLoadDoneCallback mLayoutLoadCallback;		// 保存回调变量,避免GC
@@ -19,8 +27,8 @@ public class LayoutManager : FrameSystem
 	public LayoutManager()
 	{
 		mUseAnchor = true;
+		mScriptRegisteList = new Dictionary<int, LayoutRegisteInfo>();
 		mScriptMappingList = new Dictionary<Type, List<int>>();
-		mScriptRegisteList = new Dictionary<int, Type>();
 		mLayoutTypeToPath = new Dictionary<int, string>();
 		mLayoutPathToType = new Dictionary<string, int>();
 		mLayoutList = new SafeDictionary<int, GameLayout>();
@@ -31,9 +39,9 @@ public class LayoutManager : FrameSystem
 		mUGUIRoot = LayoutScript.newUIObject<myUGUICanvas>(null, null, getGameObject(FrameDefine.UGUI_ROOT, true));
 	}
 	public new Canvas getUGUIRootComponent() { return mUGUIRoot.getCanvas(); }
-	public myUIObject getUIRoot() { return mUGUIRoot; }
+	public myUGUICanvas getUIRoot() { return mUGUIRoot; }
 	public GameObject getRootObject() { return mUGUIRoot?.getObject(); }
-	public void notifyLayoutRenderOrder(GameLayout layout)
+	public void notifyLayoutRenderOrder()
 	{
 		mCOMEscHide.notifyLayoutRenderOrder();
 	}
@@ -49,7 +57,7 @@ public class LayoutManager : FrameSystem
 			// 显示布局时,如果当前正在显示有背景模糊的布局,则需要判断当前布局是否需要模糊
 			if (mBackBlurLayoutList.Count > 0)
 			{
-				CMD(out CmdLayoutManagerBackBlur cmd, false);
+				CMD(out CmdLayoutManagerBackBlur cmd, LOG_LEVEL.LOW);
 				cmd.mExcludeLayout = mBackBlurLayoutList;
 				cmd.mBlur = mBackBlurLayoutList.Count > 0;
 				pushCommand(cmd, this);
@@ -61,7 +69,7 @@ public class LayoutManager : FrameSystem
 			{
 				mBackBlurLayoutList.Remove(layout);
 			}
-			CMD(out CmdLayoutManagerBackBlur cmd, false);
+			CMD(out CmdLayoutManagerBackBlur cmd, LOG_LEVEL.LOW);
 			cmd.mExcludeLayout = mBackBlurLayoutList;
 			cmd.mBlur = mBackBlurLayoutList.Count > 0;
 			pushCommand(cmd, this);
@@ -191,7 +199,16 @@ public class LayoutManager : FrameSystem
 		if (async)
 		{
 			mLayoutAsyncList.Add(info.mName, info);
-			if (!mResourceManager.loadResourceAsync<GameObject>(fullPath, mLayoutLoadCallback))
+			bool result = false;
+			if (mScriptRegisteList[info.mID].mInResource)
+			{
+				result = mResourceManager.loadInResourceAsync<GameObject>(fullPath, mLayoutLoadCallback);
+			}
+			else
+			{
+				result = mResourceManager.loadResourceAsync<GameObject>(fullPath, mLayoutLoadCallback);
+			}
+			if (!result)
 			{
 				logError("can not find layout : " + path);
 			}
@@ -199,7 +216,14 @@ public class LayoutManager : FrameSystem
 		}
 		else
 		{
-			return newLayout(info, mResourceManager.loadResource<GameObject>(fullPath));
+			if (mScriptRegisteList[info.mID].mInResource)
+			{
+				return newLayout(info, mResourceManager.loadInResource<GameObject>(fullPath));
+			}
+			else
+			{
+				return newLayout(info, mResourceManager.loadResource<GameObject>(fullPath));
+			}
 		}
 	}
 	public void destroyLayout(int id)
@@ -215,14 +239,14 @@ public class LayoutManager : FrameSystem
 	}
 	public LayoutScript createScript(GameLayout layout)
 	{
-		Type type = mScriptRegisteList[layout.getID()];
-		LayoutScript script = createInstance<LayoutScript>(type);
+		LayoutRegisteInfo info = mScriptRegisteList[layout.getID()];
+		LayoutScript script = createInstance<LayoutScript>(info.mScriptType);
 		if (script == null)
 		{
 			logError("界面脚本未注册, ID:" + layout.getID());
 			return null;
 		}
-		script.setType(type);
+		script.setType(info.mScriptType);
 		script.setLayout(layout);
 		return script;
 	}
@@ -235,17 +259,22 @@ public class LayoutManager : FrameSystem
 			item.Value.getAllCollider(colliders, true);
 		}
 	}
-	public void registeLayout(Type classType, int type, string name)
+	public void registeLayout(Type classType, int id, string name, bool inResource)
 	{
-		mLayoutTypeToPath.Add(type, name);
-		mLayoutPathToType.Add(name, type);
-		mScriptRegisteList.Add(type, classType);
+		LayoutRegisteInfo info = new LayoutRegisteInfo();
+		info.mScriptType = classType;
+		info.mName = name;
+		info.mID = id;
+		info.mInResource = inResource;
+		mLayoutTypeToPath.Add(id, name);
+		mLayoutPathToType.Add(name, id);
+		mScriptRegisteList.Add(id, info);
 		if (!mScriptMappingList.TryGetValue(classType, out List<int> list))
 		{
 			list = new List<int>();
 			mScriptMappingList.Add(classType, list);
 		}
-		list.Add(type);
+		list.Add(id);
 	}
 	// 获取已注册的布局数量,而不是已加载的布局数量
 	public int getLayoutCount() { return mLayoutTypeToPath.Count; }
@@ -286,20 +315,25 @@ public class LayoutManager : FrameSystem
 	{
 		LayoutInfo info = mLayoutAsyncList[asset.name];
 		mLayoutAsyncList.Remove(asset.name);
-		GameLayout layout = newLayout(info, asset as GameObject);
-		info.mCallback?.Invoke(layout);
+		info.mCallback?.Invoke(newLayout(info, asset as GameObject));
 	}
 	protected GameLayout newLayout(LayoutInfo info, GameObject prefab)
 	{
-		GameObject layoutParent = info.mIsScene ? null : getRootObject();
-		instantiatePrefab(layoutParent, prefab, info.mName, true);
+		myUIObject layoutParent = info.mIsScene ? null : getUIRoot();
+		GameObject layoutObj = instantiatePrefab(layoutParent?.getObject(), prefab, info.mName, true);
 		GameLayout layout = new GameLayout();
 		layout.setPrefab(prefab);
 		layout.setID(info.mID);
 		layout.setName(info.mName);
-		layout.setIsScene(info.mIsScene);
+		layout.setParent(layoutParent);
 		layout.setOrderType(info.mOrderType);
-		layout.init(generateRenderOrder(layout, info.mRenderOrder, info.mOrderType));
+		layout.setRenderOrder(generateRenderOrder(layout, info.mRenderOrder, info.mOrderType));
+		layout.setInResources(mScriptRegisteList[info.mID].mInResource);
+		layout.init();
+		if(layout.getRoot().getObject() != layoutObj)
+		{
+			logError("布局的根节点不是实例化出来的节点,请确保运行前UI根节点下没有与布局同名的节点");
+		}
 		mLayoutList.add(info.mID, layout);
 		return layout;
 	}

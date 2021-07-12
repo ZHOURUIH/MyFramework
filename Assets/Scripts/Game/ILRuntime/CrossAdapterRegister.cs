@@ -30,11 +30,10 @@ public static class CrossAdapterRegister
 		appDomain.RegisterCrossBindingAdaptor(new GameBaseAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new SocketPacketAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new GameEventAdapter());
-		appDomain.RegisterCrossBindingAdaptor(new ConfigBaseAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new WindowItemAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new MonoBehaviourAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new SocketConnectClientAdapter());
-		appDomain.RegisterCrossBindingAdaptor(new IDelayCmdWatcherAdapter());
+		appDomain.RegisterCrossBindingAdaptor(new DelayCmdWatcherAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new GameDefineAdapter());
 	}
 }

@@ -5,8 +5,8 @@ using UnityEngine;
 public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObject>
 {
 	protected static Comparison<myUIObject> mCompareSiblingIndex = compareSiblingIndex;
-	protected HashSet<myUIObject> mChildSet;                    // 子节点列表,用于查询是否有子节点
-	protected List<myUIObject> mChildList;                      // 子节点列表,与GameObject的子节点顺序保持一致
+	protected HashSet<myUIObject> mChildSet;					// 子节点列表,用于查询是否有子节点
+	protected List<myUIObject> mChildList;						// 子节点列表,与GameObject的子节点顺序保持一致(已排序情况下)
 	protected ObjectDoubleClickCallback mDoubleClickCallback;	// 双击回调
 	protected ObjectPreClickCallback mObjectPreClickCallback;	// 单击的预回调,单击时会首先调用此回调
 	protected OnReceiveDrag mReceiveDragCallback;				// 接收到有物体拖到当前窗口时的回调
@@ -15,22 +15,20 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	protected ObjectHoverCallback mHoverCallback;				// 悬停回调
 	protected ObjectPressCallback mPressCallback;				// 按下时回调
 	protected OnMultiTouchStart mOnMultiTouchStart;				// 窗口中多点触控开始的回调,只支持两个点的触控
-	protected OnMultiTouchMove mOnMultiTouchMove;               // 窗口中多点触控移动的回调,只支持两个点的触控
+	protected OnMultiTouchMove mOnMultiTouchMove;				// 窗口中多点触控移动的回调,只支持两个点的触控
 	protected OnMultiTouchEnd mOnMultiTouchEnd;					// 窗口中多点触控结束的回调,只支持两个点的触控
 	protected OnScreenMouseUp mOnScreenMouseUp;					// 屏幕上鼠标抬起的回调,无论鼠标在哪儿
-	protected OnLongPressing mOnLongPressing;                   // 长按进度回调,可获取当前还有多久到达长按时间阈值
+	protected OnLongPressing mOnLongPressing;					// 长按进度回调,可获取当前还有多久到达长按时间阈值
 	protected OnMouseEnter mOnMouseEnter;						// 鼠标进入时的回调
 	protected OnMouseLeave mOnMouseLeave;						// 鼠标离开时的回调
-	protected OnLongPress mOnLongPress;                         // 达到长按时间阈值时的回调
+	protected OnLongPress mOnLongPress;							// 达到长按时间阈值时的回调
 	protected OnMouseMove mOnMouseMove;							// 鼠标移动的回调
 	protected OnMouseStay mOnMouseStay;							// 鼠标静止在当前窗口内的回调
 	protected OnMouseDown mOnMouseDown;							// 鼠标按下的回调
 	protected OnMouseUp mOnMouseUp;								// 鼠标抬起的回调
 	protected AudioSource mAudioSource;							// 音频组件
 	protected BoxCollider mBoxCollider;							// 碰撞组件
-	protected Transform mTransform;								// 变换组件
 	protected GameLayout mLayout;								// 所属布局
-	protected GameObject mObject;								// 物体节点
 	protected myUIObject mParent;								// 父节点窗口
 	protected UIDepth mDepth;									// UI深度,深度越大,渲染越靠前,仅UGUI使用
 	protected Vector3 mMouseDownPosition;						// 鼠标按下时在窗口中的位置,鼠标在窗口中移动时该值不改变
@@ -38,11 +36,13 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	protected object mObjectPreClickUserData;					// 回调函数参数
 	protected float mLongPressLengthThreshold;					// 小于0表示不判断鼠标移动对长按检测的影响
 	protected float mLongPressTimeThreshold;					// 长按的时间阈值,超过阈值时检测为长按
-	protected float mLastClickTime;								// 上一次点击距离当前的时间,小于0表示未计时,大于等于0表示正在计时
+	protected float mLastClickTime;								// 上一次点击距离当前的时间,小于0表示未计时,大于等于0表示正在计时,用于双击检测
 	protected float mPressedTime;								// 小于0表示未计时,大于等于0表示正在计时长按操作,防止长时间按下时总会每隔指定时间调用一次回调
 	protected uint mID;											// 每个窗口的唯一ID
 	protected bool mDestroyImmediately;							// 销毁窗口时是否立即销毁
 	protected bool mDepthOverAllChild;							// 计算深度时是否将深度设置为所有子节点之上,实际调整的是mExtraDepth
+	protected bool mReceiveLayoutHide;							// 布局隐藏时是否会通知此窗口,默认不通知
+	protected bool mChildOrderSorted;							// 子节点在列表中的顺序是否已经按照面板上的顺序排序了
 	protected bool mMouseHovered;								// 当前鼠标是否悬停在窗口上
 	protected bool mPressing;									// 鼠标当前是否在窗口中处于按下状态,鼠标离开窗口时认为鼠标不在按下状态
 	protected bool mPassRay;									// 当存在且注册了碰撞体时是否允许射线穿透
@@ -101,16 +101,19 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 		}
 		window.mLayout?.unregisterUIObject(window);
 		window.mLayout = null;
+		GameObject go = window.getObject();
 		mAllowDestroyWindow = true;
 		window.destroy();
 		mAllowDestroyWindow = false;
 		if (destroyReally)
 		{
-			destroyGameObject(ref window.mObject, window.mDestroyImmediately);
+			destroyGameObject(go, window.mDestroyImmediately);
 		}
-		window.mObject = null;
 	}
 	public void setLayout(GameLayout layout) { mLayout = layout; }
+	public void setReceiveLayoutHide(bool receive) { mReceiveLayoutHide = receive; }
+	public bool isReceiveLayoutHide() { return mReceiveLayoutHide; }
+	public virtual void onLayoutHide() { }
 	public virtual void init()
 	{
 		initComponents();
@@ -131,32 +134,21 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 			}
 		}
 	}
-	public void addChild(myUIObject child, bool needSortChild = true)
-	{
-		if (!mChildSet.Contains(child))
-		{
-			mChildList.Add(child);
-			mChildSet.Add(child);
-		}
-		// 添加子节点后根据子节点顺序进行排序
-		if (needSortChild)
-		{
-			sortChild();
-		}
-	}
 	public void removeChild(myUIObject child)
 	{
-		mChildList.Remove(child);
-		mChildSet.Remove(child);
+		if (mChildSet.Remove(child))
+		{
+			mChildList.Remove(child);
+		}
 	}
 	public AudioSource createAudioSource()
 	{
 		return mAudioSource = mObject.AddComponent<AudioSource>();
 	}
-	public bool canUpdate() { return mObject.activeInHierarchy && mEnable; }
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
+
 		// 长按检测
 		if ((mOnLongPress != null || mOnLongPressing != null) && mPressing && mPressedTime >= 0.0f)
 		{
@@ -181,16 +173,22 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 				mOnLongPressing?.Invoke(0.0f);
 			}
 		}
-		// 双击计时
-		if (mLastClickTime >= 0.0f && mLastClickTime < FrameDefine.DOUBLE_CLICK_THRESHOLD)
+
+		// 双击间隔计时
+		if(mDoubleClickCallback != null)
 		{
-			mLastClickTime += elapsedTime;
+			// 双击计时
+			if (mLastClickTime >= 0.0f && mLastClickTime < FrameDefine.DOUBLE_CLICK_THRESHOLD)
+			{
+				mLastClickTime += elapsedTime;
+			}
+			// 超过一定时间后停止计时
+			else if (mLastClickTime >= FrameDefine.DOUBLE_CLICK_THRESHOLD)
+			{
+				mLastClickTime = -1.0f;
+			}
 		}
-		// 超过一定时间后停止计时
-		else if (mLastClickTime >= FrameDefine.DOUBLE_CLICK_THRESHOLD)
-		{
-			mLastClickTime = -1.0f;
-		}
+
 		// 检测世界缩放值是否有变化
 		if (!isVectorEqual(mLastWorldScale, getWorldScale()))
 		{
@@ -198,86 +196,60 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 			mLastWorldScale = getWorldScale();
 		}
 	}
-	public virtual void cloneFrom(myUIObject obj)
-	{
-		if (Typeof(obj) != Typeof(this))
-		{
-			logError("ui type is different, can not clone!");
-			return;
-		}
-		setPosition(obj.getPosition());
-		setRotation(obj.getRotation());
-		setScale(obj.getScale());
-	}
-	public void setAsLastSibling(bool notifyLayout = true)
+	public void setAsLastSibling(bool needSortChild = true, bool refreshUIDepth = true)
 	{
 		mTransform.SetAsLastSibling();
-		if (notifyLayout)
+		mChildOrderSorted = false;
+		if (needSortChild)
 		{
 			mParent.sortChild();
-			mLayout.notifyChildChanged(mParent);
+		}
+		if (refreshUIDepth)
+		{
+			mLayout.refreshUIDepth(mParent);
 		}
 	}
-	public void setAsFirstSibling(bool notifyLayout = true)
+	public void setAsFirstSibling(bool needSortChild = true, bool refreshUIDepth = true)
 	{
 		mTransform.SetAsFirstSibling();
-		if (notifyLayout)
+		mChildOrderSorted = false;
+		if (needSortChild)
 		{
 			mParent.sortChild();
-			mLayout.notifyChildChanged(mParent);
+		}
+		if (refreshUIDepth)
+		{
+			mLayout.refreshUIDepth(mParent);
 		}
 	}
-	public void setSibling(int index, bool notifyLayout = true)
+	public void setSibling(int index, bool needSortChild = true, bool refreshUIDepth = true)
 	{
 		if (mTransform.GetSiblingIndex() == index)
 		{
 			return;
 		}
 		mTransform.SetSiblingIndex(index);
-		if (notifyLayout)
+		mChildOrderSorted = false;
+		if (needSortChild)
 		{
 			mParent.sortChild();
-			mLayout.notifyChildChanged(mParent);
+		}
+		if (refreshUIDepth)
+		{
+			mLayout.refreshUIDepth(mParent);
 		}
 	}
-	public override Vector3 localToWorld(Vector3 point) { return localToWorld(mTransform, point); }
-	public override Vector3 worldToLocal(Vector3 point) { return worldToLocal(mTransform, point); }
-	public override Vector3 localToWorldDirection(Vector3 direction) { return localToWorldDirection(mTransform, direction); }
-	public override Vector3 worldToLocalDirection(Vector3 direction) { return worldToLocalDirection(mTransform, direction); }
 	// 当自适应更新完以后调用
 	public virtual void notifyAnchorApply() { }
 	//get
 	//-------------------------------------------------------------------------------------------------------------------------------------
-	public int getSiblingIndex() { return mTransform.GetSiblingIndex(); }
 	public uint getID() { return mID; }
 	public GameLayout getLayout() { return mLayout; }
-	public virtual GameObject getObject() { return mObject; }
 	public List<myUIObject> getChildList() { return mChildList; }
 	public virtual bool isReceiveScreenMouse() { return mOnScreenMouseUp != null; }
 	public myUIObject getParent() { return mParent; }
-	public Transform getTransform() { return mTransform; }
 	public AudioSource getAudioSource() { return mAudioSource; }
-	public override bool isActive() { return mObject.activeSelf; }
-	public virtual bool isActiveInHierarchy() { return mObject.activeInHierarchy; }
-	public T getUnityComponent<T>(bool addIfNotExist = true) where T : Component
-	{
-		T com = mObject.GetComponent<T>();
-		if (com == null && addIfNotExist)
-		{
-			com = mObject.AddComponent<T>();
-		}
-		return com;
-	}
-	public void getUnityComponent<T>(out T com, bool addIfNotExist = true) where T : Component
-	{
-		com = mObject.GetComponent<T>();
-		if (com == null && addIfNotExist)
-		{
-			com = mObject.AddComponent<T>();
-		}
-	}
-	public Collider getCollider() { return mBoxCollider; }
-	public bool raycast(ref Ray ray, out RaycastHit hit, float maxDistance) 
+	public override bool raycast(ref Ray ray, out RaycastHit hit, float maxDistance) 
 	{
 		if (!mBoxCollider)
 		{
@@ -286,28 +258,7 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 		}
 		return mBoxCollider.Raycast(ray, out hit, maxDistance);
 	}
-	public override Vector3 getPosition() { return mTransform.localPosition; }
-	public override Vector3 getScale() { return new Vector2(mTransform.localScale.x, mTransform.localScale.y); }
-	public override Vector3 getRotation()
-	{
-		Vector3 vector3 = mTransform.localEulerAngles;
-		adjustAngle180(ref vector3.z);
-		return vector3;
-	}
-	public override Vector3 getWorldRotation() { return mTransform.eulerAngles; }
-	public override Vector3 getWorldPosition() { return mTransform.position; }
-	public override Vector3 getWorldScale() { return mTransform.lossyScale; }
-	public Vector3 getRotationRadian()
-	{
-		Vector3 vector3 = toRadian(mTransform.localEulerAngles);
-		adjustRadian180(ref vector3.z);
-		return vector3;
-	}
-	public Quaternion getRotationQuat() { return mTransform.localRotation; }
-	public Quaternion getWorldRotationQuat() { return mTransform.rotation; }
-	public int getChildCount() { return mTransform.childCount; }
-	public GameObject getChild(int index) { return mTransform.GetChild(index).gameObject; }
-	public virtual float getAlpha() { return 1.0f; }
+	public override float getAlpha() { return 1.0f; }
 	public virtual Color getColor() { return Color.white; }
 	public virtual float getFillPercent()
 	{
@@ -324,15 +275,6 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	}
 	public virtual bool isDragable() { return getComponent<COMWindowDrag>(true, false) != null; }
 	public bool isMouseHovered() { return mMouseHovered; }
-	public virtual bool isChildOf(IMouseEventCollect parent)
-	{
-		var obj = parent as myUIObject;
-		if (obj == null)
-		{
-			return false;
-		}
-		return mTransform.IsChildOf(obj.getTransform());
-	}
 	public bool isDepthOverAllChild() { return mDepthOverAllChild; }
 	// 递归返回最后一个子节点,如果没有子节点,则返回空
 	public myUIObject getLastChild()
@@ -341,10 +283,14 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 		{
 			return null;
 		}
-		myUIObject lastChild = mChildList[mChildList.Count - 1];
-		if (lastChild.getChildList().Count == 0)
+		if (mChildList.Count > 1 && !mChildOrderSorted)
 		{
-			return mChildList[mChildList.Count - 1];
+			logError("子节点没有被排序,无法获得正确的最后一个子节点");
+		}
+		myUIObject lastChild = mChildList[mChildList.Count - 1];
+		if (lastChild.mChildList.Count == 0)
+		{
+			return lastChild;
 		}
 		return lastChild.getLastChild();
 	}
@@ -352,17 +298,16 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	public float getLongPressLengthThreshold() { return mLongPressLengthThreshold; }
 	//set
 	//-------------------------------------------------------------------------------------------------------------------------------------
-	public void setGameObject(GameObject go)
+	public void setObject(GameObject go)
 	{
 		setName(go.name);
-		mObject = go;
-		mTransform = mObject.transform;
+		setGameObject(go);
 #if UNITY_EDITOR
 		// 由于物体可能使克隆出来的,所以如果已经添加了调试组件,直接获取即可
 		getUnityComponent<WindowDebug>().setWindow(this);
 #endif
 	}
-	public void setParent(myUIObject parent, bool needSortChild = true)
+	public void setParent(myUIObject parent, bool needSortChild, bool notifyLayout)
 	{
 		if (mParent == parent)
 		{
@@ -379,15 +324,7 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 			{
 				mTransform.SetParent(mParent.getTransform());
 			}
-			mParent.addChild(this, needSortChild);
-		}
-	}
-	public override void setName(string name)
-	{
-		base.setName(name);
-		if (mObject != null && mObject.name != name)
-		{
-			mObject.name = name;
+			mParent.addChild(this, needSortChild, notifyLayout);
 		}
 	}
 	public void setDepthOverAllChild(bool depthOver) { mDepthOverAllChild = depthOver; }
@@ -399,27 +336,6 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 		}
 	}
 	public void setDestroyImmediately(bool immediately) { mDestroyImmediately = immediately; }
-	public override void setActive(bool active)
-	{
-		if(active == mObject.activeSelf)
-		{
-			return;
-		}
-		mObject.SetActive(active);
-		base.setActive(active);
-	}
-	public void setPositionX(float x) { setPosition(replaceX(mTransform.localPosition, x)); }
-	public void setPositionY(float y) { setPosition(replaceY(mTransform.localPosition, y)); }
-	public void setPositionZ(float z) { setPosition(replaceZ(mTransform.localPosition, z)); }
-	public void setRotationX(float x) { setRotation(replaceX(mTransform.localEulerAngles, x)); }
-	public void setRotationY(float y) { setRotation(replaceY(mTransform.localEulerAngles, y)); }
-	public void setRotationZ(float z) { setRotation(replaceZ(mTransform.localEulerAngles, z)); }
-	public override void setScale(Vector3 scale) { mTransform.localScale = scale; }
-	public override void setPosition(Vector3 pos) { mTransform.localPosition = pos; }
-	public override void setRotation(Vector3 rot) { mTransform.localEulerAngles = rot; }
-	public override void setWorldRotation(Vector3 rot) { mTransform.eulerAngles = rot; }
-	public override void setWorldPosition(Vector3 pos) { mTransform.position = pos; }
-	public override void setWorldScale(Vector3 scale) { setScale(devideVector3(scale, mParent.getWorldScale())); }
 	public virtual void setAlpha(float alpha, bool fadeChild) { }
 	public virtual void setColor(Color color) { }
 	public virtual void setFillPercent(float percent) { logError("can not set window fill percent with myUIObject"); }
@@ -499,16 +415,19 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 		{
 			mObjectPreClickCallback?.Invoke(this, mObjectPreClickUserData);
 			mClickCallback?.Invoke(this);
-			if (mDoubleClickCallback != null && mLastClickTime > 0.0f && mLastClickTime < FrameDefine.DOUBLE_CLICK_THRESHOLD)
+			if(mDoubleClickCallback != null)
 			{
-				mDoubleClickCallback(this);
-				// 已完成双击操作,结束计时
-				mLastClickTime = -1.0f;
-			}
-			// 未开始双击计时则开始计时
-			if (mLastClickTime < 0.0f)
-			{
-				mLastClickTime = 0.0f;
+				if (mLastClickTime > 0.0f && mLastClickTime < FrameDefine.DOUBLE_CLICK_THRESHOLD)
+				{
+					mDoubleClickCallback(this);
+					// 已完成双击操作,结束计时
+					mLastClickTime = -1.0f;
+				}
+				// 否则开始双击计时
+				else
+				{
+					mLastClickTime = 0.0f;
+				}
 			}
 		}
 		mOnMouseUp?.Invoke(mousePos, touchID);
@@ -551,12 +470,32 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	public bool Equals(myUIObject obj) { return mID == obj.mID; }
 	//----------------------------------------------------------------------------------------------------------------------------------
 	protected virtual void onWorldScaleChanged(Vector2 lastWorldScale) { }
+	protected void addChild(myUIObject child, bool needSortChild, bool notifyLayout)
+	{
+		if (mChildSet.Contains(child))
+		{
+			return;
+		}
+		mChildList.Add(child);
+		mChildSet.Add(child);
+		mChildOrderSorted = false;
+		// 添加子节点后根据子节点顺序进行排序
+		if (needSortChild)
+		{
+			sortChild();
+		}
+		if (notifyLayout)
+		{
+			mLayout.refreshUIDepth(this);
+		}
+	}
 	protected void sortChild()
 	{
 		if (mChildList.Count <= 1)
 		{
 			return;
 		}
+		mChildOrderSorted = true;
 		quickSort(mChildList, mCompareSiblingIndex);
 	}
 	protected static int compareSiblingIndex(myUIObject child0, myUIObject child1)

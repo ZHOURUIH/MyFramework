@@ -11,22 +11,22 @@ public class FrameUtilityILR : GameBase
 	}
 	// 命令
 	//----------------------------------------------------------------------------------------------------------------------------------------
-	public static void CMD_ILR<T>(out T cmd, bool show = true) where T : Command
+	public static void CMD_ILR<T>(out T cmd, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL) where T : Command
 	{
-		cmd = CMD(typeof(T), show) as T;
+		cmd = CMD(typeof(T), logLevel) as T;
 	}
-	public static void CMD_ILR_DELAY<T>(out T cmd, bool show = true) where T : Command
+	public static void CMD_ILR_DELAY<T>(out T cmd, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL) where T : Command
 	{
-		cmd = CMD_DELAY(typeof(T), show) as T;
+		cmd = CMD_DELAY(typeof(T), logLevel) as T;
 	}
-	public static void pushILRCommand<T>(CommandReceiver cmdReceiver, bool show = true) where T : Command
+	public static void pushILRCommand<T>(CommandReceiver cmdReceiver, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL) where T : Command
 	{
-		CMD_ILR(out T cmd, show);
+		CMD_ILR(out T cmd, logLevel);
 		mCommandSystem.pushCommand(cmd, cmdReceiver);
 	}
-	public static T pushDelayILRCommand<T>(IDelayCmdWatcher watcher, CommandReceiver cmdReceiver, float delayExecute = 0.001f, bool show = true) where T : Command
+	public static T pushDelayILRCommand<T>(DelayCmdWatcher watcher, CommandReceiver cmdReceiver, float delayExecute = 0.001f, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL) where T : Command
 	{
-		CMD_ILR_DELAY(out T cmd, show);
+		CMD_ILR_DELAY(out T cmd, logLevel);
 		mCommandSystem.pushDelayCommand(cmd, cmdReceiver, delayExecute, watcher);
 		return cmd;
 	}
@@ -35,7 +35,7 @@ public class FrameUtilityILR : GameBase
 	public static void LIST_ILR<T>(out List<T> list)
 	{
 		string stackTrace = EMPTY;
-		if (mGameFramework.isEnablePoolStackTrace())
+		if (mGameFramework.mEnablePoolStackTrace)
 		{
 			stackTrace = getILRStackTrace();
 		}
@@ -44,7 +44,7 @@ public class FrameUtilityILR : GameBase
 	public static void LIST_ILR_PERSIST<T>(out List<T> list)
 	{
 		string stackTrace = EMPTY;
-		if (mGameFramework.isEnablePoolStackTrace())
+		if (mGameFramework.mEnablePoolStackTrace)
 		{
 			stackTrace = getILRStackTrace();
 		}
@@ -57,7 +57,7 @@ public class FrameUtilityILR : GameBase
 	public static void LIST_ILR<T>(out HashSet<T> list)
 	{
 		string stackTrace = EMPTY;
-		if (mGameFramework.isEnablePoolStackTrace())
+		if (mGameFramework.mEnablePoolStackTrace)
 		{
 			stackTrace = getILRStackTrace();
 		}
@@ -66,7 +66,7 @@ public class FrameUtilityILR : GameBase
 	public static void LIST_ILR_PERSIST<T>(out HashSet<T> list)
 	{
 		string stackTrace = EMPTY;
-		if (mGameFramework.isEnablePoolStackTrace())
+		if (mGameFramework.mEnablePoolStackTrace)
 		{
 			stackTrace = getILRStackTrace();
 		}
@@ -80,7 +80,7 @@ public class FrameUtilityILR : GameBase
 	public static void LIST_ILR<K, V>(out Dictionary<K, V> list)
 	{
 		string stackTrace = EMPTY;
-		if (mGameFramework.isEnablePoolStackTrace())
+		if (mGameFramework.mEnablePoolStackTrace)
 		{
 			stackTrace = getILRStackTrace();
 		}
@@ -89,7 +89,7 @@ public class FrameUtilityILR : GameBase
 	public static void LIST_ILR_PERSIST<K, V>(out Dictionary<K, V> list)
 	{
 		string stackTrace = EMPTY;
-		if (mGameFramework.isEnablePoolStackTrace())
+		if (mGameFramework.mEnablePoolStackTrace)
 		{
 			stackTrace = getILRStackTrace();
 		}

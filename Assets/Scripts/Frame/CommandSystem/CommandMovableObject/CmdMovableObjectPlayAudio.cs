@@ -28,7 +28,7 @@ public class CmdMovableObjectPlayAudio : Command
 		}
 		com.play(soundName, mLoop, mVolume);
 	}
-	public override void showDebugInfo(MyStringBuilder builder)
+	public override void debugInfo(MyStringBuilder builder)
 	{
 		string soundName = mSound != 0 ? mAudioManager.getAudioName(mSound) : mSoundFileName;
 		builder.Append(": mSound:", mSound).

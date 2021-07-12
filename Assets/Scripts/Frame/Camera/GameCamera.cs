@@ -4,15 +4,15 @@ using UnityEngine;
 
 public class GameCamera : MovableObject
 {
-	protected CameraLinker mCurLinker;			// 只是记录当前连接器方便外部获取
-	protected Camera mCamera;					// 摄像机组件
-	protected int mLastVisibleLayer;			// 上一次的渲染层
+	protected CameraLinker mCurLinker;          // 只是记录当前连接器方便外部获取
+	protected Camera mCamera;                   // 摄像机组件
+	protected int mLastVisibleLayer;            // 上一次的渲染层
 	// 如果要实现摄像机震动,则需要将摄像机挂接到一个节点上,一般操作的是父节点的Transform,震动时是操作摄像机自身节点的Transform
 	public GameCamera()
 	{
 		setDestroyObject(false);
 	}
-	public override void setObject(GameObject obj, bool destroyOld = true)
+	public override void setObject(GameObject obj, bool destroyOld)
 	{
 		base.setObject(obj, destroyOld);
 		mCamera = mObject.GetComponent<Camera>();
@@ -29,6 +29,7 @@ public class GameCamera : MovableObject
 	}
 	public void unlinkTarget()
 	{
+		mCurLinker?.onUnlink();
 		mCurLinker?.setLinkObject(null);
 		mCurLinker?.setActive(false);
 		mCurLinker = null;
@@ -36,22 +37,19 @@ public class GameCamera : MovableObject
 	public CameraLinker linkTarget(Type linkerType, MovableObject target)
 	{
 		var linker = getComponent(linkerType) as CameraLinker;
-		if(linker == null)
+		if (linker == null)
 		{
 			return null;
 		}
 		// 先断开旧的连接器
 		unlinkTarget();
-		if (target == null)
-		{
-			return null;
-		}
 		mCurLinker = linker;
 		mCurLinker.setLinkObject(target);
 		mCurLinker.setActive(true);
+		mCurLinker.onLinked();
 		return mCurLinker;
 	}
-	public Camera getCamera(){ return mCamera;}
+	public Camera getCamera() { return mCamera; }
 	public CameraLinker getCurLinker() { return mCurLinker; }
 	public float getNearClip() { return mCamera.nearClipPlane; }
 	public float getFOVX(bool radian = false)
@@ -65,7 +63,7 @@ public class GameCamera : MovableObject
 	}
 	public void setFOVY(float fovy, bool radian = false)
 	{
-		if(radian)
+		if (radian)
 		{
 			fovy = toDegree(fovy);
 		}
@@ -73,7 +71,7 @@ public class GameCamera : MovableObject
 	}
 	public float getFOVY(bool radian = false)
 	{
-		if(radian)
+		if (radian)
 		{
 			return toRadian(mCamera.fieldOfView);
 		}
@@ -92,7 +90,7 @@ public class GameCamera : MovableObject
 	}
 	public void setVisibleLayer(int layer)
 	{
-		if(layer == 0)
+		if (layer == 0)
 		{
 			return;
 		}

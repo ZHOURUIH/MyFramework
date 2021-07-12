@@ -76,7 +76,7 @@ public class WindowObjectPoolMap<Key, T> : FrameBase where T : PooledWindow
 	public myUIObject getInUseParent() { return mItemParentInuse; }
 	public Dictionary<Key, T> getUseList() { return mUsedItemList; }
 	public void setItemPreName(string preName) { mPreName = preName; }
-	public T newItem(Key key, bool asLastSibling = true)
+	public T newItem(Key key, bool moveToLastSibling = true, bool needSortChild = true, bool refreshUIDepth = true)
 	{
 		T item;
 		if (mUnusedItemList.Count > 0)
@@ -99,11 +99,14 @@ public class WindowObjectPoolMap<Key, T> : FrameBase where T : PooledWindow
 		item.setAssignID(++mAssignIDSeed);
 		item.reset();
 		item.setVisible(true);
-		// 将asLastSibling作为是否排序子节点的标记,因为当渲染顺序敏感时,也会对子节点在列表中的顺序敏感
-		item.setParent(mItemParentInuse, asLastSibling);
-		if (asLastSibling)
+		if (moveToLastSibling)
 		{
-			item.setAsLastSibling();
+			item.setParent(mItemParentInuse, false, false);
+			item.setAsLastSibling(needSortChild, refreshUIDepth);
+		}
+		else
+		{
+			item.setParent(mItemParentInuse, needSortChild, refreshUIDepth);
 		}
 		mUsedItemList.Add(key, item);
 		return item;
@@ -114,7 +117,7 @@ public class WindowObjectPoolMap<Key, T> : FrameBase where T : PooledWindow
 		{
 			item.Value.recycle();
 			item.Value.setVisible(false);
-			item.Value.setParent(mItemParentUnuse, false);
+			item.Value.setParent(mItemParentUnuse, false, false);
 			item.Value.setAssignID(-1);
 			mUnusedItemList.Add(item.Value);
 		}
@@ -136,7 +139,7 @@ public class WindowObjectPoolMap<Key, T> : FrameBase where T : PooledWindow
 		}
 		item.recycle();
 		item.setVisible(false);
-		item.setParent(mItemParentUnuse, false);
+		item.setParent(mItemParentUnuse, false, false);
 		item.setAssignID(-1);
 		mUnusedItemList.Add(item);
 		mUsedItemList.Remove(key);

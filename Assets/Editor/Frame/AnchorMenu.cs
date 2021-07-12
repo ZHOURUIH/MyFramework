@@ -10,14 +10,26 @@ public class AnchorMenu
 	[MenuItem(mAutoAnchorMenuName + "Start PreviewAnchor %,")]
 	public static void startPreviewLayoutAnchor()
 	{
-		if(Selection.activeGameObject == null)
+		GameObject go = Selection.activeGameObject;
+		if (go == null)
 		{
-			Debug.Log("需要选中场景结构面板中的节点");
+			Debug.LogError("需要选中场景结构面板中的节点");
 			return;
 		}
+		if (go.transform.parent == null || go.transform.parent.name != FrameDefine.UGUI_ROOT)
+		{
+			Debug.LogError("选中的节点必须是" + FrameDefine.UGUI_ROOT + "的一级子节点");
+			return;
+		}
+		if (go.GetComponent<Canvas>() == null)
+		{
+			Debug.LogError("选中的节点必须拥有Canvas组件");
+			return;
+		}
+
 		Vector2 gameViewSize = UnityUtility.getGameViewSize();
-		string info = "是否要预览" + Selection.activeGameObject.name + "在" + gameViewSize.x + "x" + gameViewSize.y + "下的显示?";
-		if(!EditorUtility.DisplayDialog("预览", info, "确定", "取消"))
+		string info = "是否要预览" + go.name + "在" + gameViewSize.x + "x" + gameViewSize.y + "下的显示?";
+		if (!EditorUtility.DisplayDialog("预览", info, "确定", "取消"))
 		{
 			return;
 		}
@@ -30,7 +42,7 @@ public class AnchorMenu
 		transform.anchorMin = Vector2.zero;
 		GameObject camera = UnityUtility.getGameObject(FrameDefine.UI_CAMERA, uguiRootObj, true);
 		camera.transform.localPosition = new Vector3(0.0f, 0.0f, -gameViewSize.y * 0.5f);
-		UnityUtility.applyAnchor(Selection.activeGameObject, true);
+		UnityUtility.applyAnchor(go, true);
 	}
 	[MenuItem(mAutoAnchorMenuName + "End PreviewAnchor %.")]
 	public static void endPreviewLayoutAnchor()
@@ -38,12 +50,12 @@ public class AnchorMenu
 		// 恢复摄像机设置
 		GameObject uguiRootObj = UnityUtility.getGameObject(FrameDefine.UGUI_ROOT);
 		RectTransform transform = uguiRootObj.GetComponent<RectTransform>();
-		transform.offsetMin = new Vector2(-FrameDefineExtra.STANDARD_WIDTH * 0.5f, -FrameDefineExtra.STANDARD_HEIGHT * 0.5f);
-		transform.offsetMax = new Vector2(FrameDefineExtra.STANDARD_WIDTH * 0.5f, FrameDefineExtra.STANDARD_HEIGHT * 0.5f);
+		transform.offsetMin = new Vector2(-FrameDefineExtension.STANDARD_WIDTH * 0.5f, -FrameDefineExtension.STANDARD_HEIGHT * 0.5f);
+		transform.offsetMax = new Vector2(FrameDefineExtension.STANDARD_WIDTH * 0.5f, FrameDefineExtension.STANDARD_HEIGHT * 0.5f);
 		transform.anchorMax = Vector2.zero;
 		transform.anchorMin = Vector2.zero;
 		GameObject uguiCamera = UnityUtility.getGameObject(FrameDefine.UI_CAMERA, uguiRootObj, true);
-		uguiCamera.transform.localPosition = new Vector3(0.0f, 0.0f, -FrameDefineExtra.STANDARD_HEIGHT * 0.5f);
+		uguiCamera.transform.localPosition = new Vector3(0.0f, 0.0f, -FrameDefineExtension.STANDARD_HEIGHT * 0.5f);
 	}
 	[MenuItem(mAutoAnchorMenuName + mPaddingAnchorMenuName + "AddAnchor")]
 	public static void addPaddingAnchor()
@@ -140,13 +152,13 @@ public class AnchorMenu
 	public static void setSeleteRaycastTarget(GameObject obj, bool target)
 	{
 		// 先设置自己的Anchor
-		if(obj.GetComponent<Graphic>() != null)
+		if (obj.GetComponent<Graphic>() != null)
 		{
 			obj.GetComponent<Graphic>().raycastTarget = target;
 		}
 		// 再设置子节点的Anchor
 		int childCount = obj.transform.childCount;
-		for(int i = 0; i < childCount; ++i)
+		for (int i = 0; i < childCount; ++i)
 		{
 			setSeleteRaycastTarget(obj.transform.GetChild(i).gameObject, target);
 		}

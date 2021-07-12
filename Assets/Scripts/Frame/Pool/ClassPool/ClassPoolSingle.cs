@@ -58,13 +58,15 @@ public class ClassPoolSingle : FrameBase
 		mListLock.waitForUnlock();
 		classObject.resetProperty();
 		classObject.setDestroy(true);
-		// 加入未使用列表
-		if (!mUnusedList.Add(classObject))
+		// 加入未使用列表,从使用列表移除,要确保操作的都是从本类创建的实例
+		if (mUnusedList.Add(classObject))
+		{
+			removeInuse(classObject);
+		}
+		else
 		{
 			logError("对象已经在未使用列表中,无法再次销毁! Type: " + mType);
 		}
-		// 从使用列表移除,要确保操作的都是从本类创建的实例
-		removeInuse(classObject);
 		mListLock.unlock();
 	}
 	public void destroyClassReally(ClassObject classObject)

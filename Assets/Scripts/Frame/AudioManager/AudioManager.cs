@@ -7,13 +7,15 @@ public class AudioManager : FrameSystem
 	protected Dictionary<int, string> mSoundDefineMap;			// 音效定义与音效名的映射
 	protected Dictionary<int, float> mVolumeScale;				// 音量缩放表,记录每个音效的音量缩放值
 	protected AssetLoadDoneCallback mAudioLoadCallback;			// 单个音效文件加载完毕的回调,为了避免GC
-	protected int mLoadedCount;									// 音效已加载数量
+	protected int mLoadedCount;                                 // 音效已加载数量
+	protected bool mAutoLoad;									// 是否在资源可用时自动加载所有已注册的音效
 	public AudioManager()
 	{
 		mAudioClipList = new Dictionary<string, AudioInfo>();
 		mSoundDefineMap = new Dictionary<int, string>();
 		mVolumeScale = new Dictionary<int, float>();
 		mAudioLoadCallback = onAudioLoaded;
+		mAutoLoad = true;
 	}
 	public override void destroy()
 	{
@@ -29,6 +31,15 @@ public class AudioManager : FrameSystem
 		mAudioClipList.Clear();
 		base.destroy();
 	}
+	public override void resourceAvailable()
+	{
+		if (!mAutoLoad)
+		{
+			return;
+		}
+		loadAll(false);
+	}
+	public void setAutoLoad(bool autoLoad) { mAutoLoad = autoLoad; }
 	public void createStreamingAudio(string url, bool load = true)
 	{
 		string audioName = getFileNameNoSuffix(url, true);
@@ -195,13 +206,13 @@ public class AudioManager : FrameSystem
 		}
 	}
 	// 注册可以使用枚举访问的音效
-	public void registeSoundDefine(int soundID, string audioName, string fileName, float volumeScale)
+	public void registeSoundDefine(int soundID, string fileName, float volumeScale = 1.0f)
 	{
 		if (mSoundDefineMap.ContainsKey(soundID))
 		{
 			return;
 		}
-		mSoundDefineMap.Add(soundID, audioName);
+		mSoundDefineMap.Add(soundID, getFileNameNoSuffix(fileName, true));
 		if (!mVolumeScale.ContainsKey(soundID))
 		{
 			mVolumeScale.Add(soundID, volumeScale);

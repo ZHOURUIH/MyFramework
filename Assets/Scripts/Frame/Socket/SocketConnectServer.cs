@@ -135,7 +135,7 @@ public abstract class SocketConnectServer : FrameSystem, ISocketConnect
 	protected void acceptThread(BOOL run)
 	{
 		Socket client = mServerSocket.Accept();
-		CMD_DELAY_THREAD(out CmdSocketConnectServerAcceptClient cmdAccept, true);
+		CMD_DELAY_THREAD(out CmdSocketConnectServerAcceptClient cmdAccept, LOG_LEVEL.FORCE);
 		cmdAccept.mSocket = client;
 		cmdAccept.mIP = null;
 		pushDelayCommand(cmdAccept, this);

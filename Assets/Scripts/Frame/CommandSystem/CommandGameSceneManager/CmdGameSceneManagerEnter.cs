@@ -16,7 +16,7 @@ public class CmdGameSceneManagerEnter : Command
 	{
 		mGameSceneManager.enterScene(mSceneType, mStartProcedure, mIntent);
 	}
-	public override void showDebugInfo(MyStringBuilder builder)
+	public override void debugInfo(MyStringBuilder builder)
 	{
 		builder.Append(": mSceneType:", mSceneType).
 				Append(", mStartProcedure:", mStartProcedure).

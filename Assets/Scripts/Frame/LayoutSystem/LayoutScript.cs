@@ -2,29 +2,25 @@
 using System.Collections.Generic;
 using System;
 
-public abstract class LayoutScript : IDelayCmdWatcher
+public abstract class LayoutScript : DelayCmdWatcher
 {
-	protected HashSet<long> mDelayCmdList;  // 布局显示和隐藏时的延迟命令列表,当命令执行时,会从列表中移除该命令
-	protected CommandCallback mCmdCallback;
 	protected GameLayout mLayout;
 	protected myUIObject mRoot;
-	protected Type mType;					// 因为有些布局可能是在ILRuntime中,所以类型获取可能不正确,需要将类型存储下来
-	protected int mID;						// 布局ID,与GameLayout中的ID一致
-	protected bool mNeedUpdate;				// 布局脚本是否需要指定update,为了提高效率,可以不执行不必要的update
+	protected Type mType;                   // 因为有些布局可能是在ILRuntime中,所以类型获取可能不正确,需要将类型存储下来
+	protected int mID;                      // 布局ID,与GameLayout中的ID一致
+	protected bool mNeedUpdate;             // 布局脚本是否需要指定update,为了提高效率,可以不执行不必要的update
 	public LayoutScript()
 	{
-		mDelayCmdList = new HashSet<long>();
-		mCmdCallback = onCmdStarted;
 		mNeedUpdate = true;
 	}
 	public virtual void destroy()
 	{
 		interruptAllCommand();
 	}
-	public virtual void setLayout(GameLayout layout) 
+	public virtual void setLayout(GameLayout layout)
 	{
 		mLayout = layout;
-		mID = mLayout.getID(); 
+		mID = mLayout.getID();
 	}
 	public virtual bool onESCDown() { return false; }
 	public bool isNeedUpdate() { return mNeedUpdate; }
@@ -159,29 +155,31 @@ public abstract class LayoutScript : IDelayCmdWatcher
 		GameObject gameObject = getGameObject(name, parent.getObject());
 		return gameObject != null;
 	}
+	// 各种形式的创建窗口操作一律不会排序子节点,不会刷新布局中的窗口深度,因为一般都是在assignWindow中调用
+	// 而assignWindow后会刷新当前布局的窗口深度,而子节点排序只有在部分情况下才会使用,大部分情况不会用到
 	// 因为此处可以确定只有主工程的类,所以可以使用new T()
-	public T cloneObject<T>(myUIObject parent, T oriObj, string name, bool active = true, bool refreshUIDepth = true, bool needSortChild = true) where T : myUIObject, new()
+	public T cloneObject<T>(myUIObject parent, T oriObj, string name) where T : myUIObject, new()
+	{
+		return cloneObject(parent, oriObj, name, true);
+	}
+	// 因为此处可以确定只有主工程的类,所以可以使用new T()
+	public T cloneObject<T>(myUIObject parent, T oriObj, string name, bool active) where T : myUIObject, new()
 	{
 		if (parent == null)
 		{
 			parent = mRoot;
 		}
 		GameObject obj = cloneObject(oriObj.getObject(), name);
-		T window = newUIObject<T>(parent, mLayout, obj, needSortChild);
+		T window = newUIObject<T>(parent, mLayout, obj);
 		window.setActive(active);
 		window.cloneFrom(oriObj);
-		// 通知布局有窗口添加
-		if (refreshUIDepth)
-		{
-			mLayout.notifyChildChanged(parent);
-		}
 		return window;
 	}
 	// 创建myUIObject,并且新建GameObject,分配到myUIObject中
 	// 因为此处可以确定只有主工程的类,所以可以使用new T()
 	// refreshUIDepth表示创建后是否需要刷新所属父节点下所有子节点的深度信息
-	// needSortChild表示创建后是否需要对myUIObject中的子节点列表进行排序,使列表的顺序与面板的顺序相同,对需要射线检测的窗口有影响
-	public T createObject<T>(myUIObject parent, string name, bool active = true, bool refreshUIDepth = true, bool needSortChild = true) where T : myUIObject, new()
+	// sortChild表示创建后是否需要对myUIObject中的子节点列表进行排序,使列表的顺序与面板的顺序相同,对需要射线检测的窗口有影响
+	public T createObject<T>(myUIObject parent, string name, bool active) where T : myUIObject, new()
 	{
 		GameObject go = createGameObject(name);
 		if (parent == null)
@@ -189,35 +187,54 @@ public abstract class LayoutScript : IDelayCmdWatcher
 			parent = mRoot;
 		}
 		go.layer = parent.getObject().layer;
-		T obj = newUIObject<T>(parent, mLayout, go, needSortChild);
+		T obj = newUIObject<T>(parent, mLayout, go);
 		obj.setActive(active);
 		go.transform.localScale = Vector3.one;
 		go.transform.localEulerAngles = Vector3.zero;
 		go.transform.localPosition = Vector3.zero;
-		// 通知布局有窗口添加
-		if (refreshUIDepth)
-		{
-			mLayout.notifyChildChanged(parent);
-		}
 		return obj;
 	}
+	public T createObject<T>(myUIObject parent, string name) where T : myUIObject, new()
+	{
+		return createObject<T>(parent, name, true);
+	}
 	// 因为此处可以确定只有主工程的类,所以可以使用new T()
-	public T createObject<T>(string name, bool active = true, bool refreshUIDepth = true, bool needSortChild = true) where T : myUIObject, new()
+	public T createObject<T>(string name, bool active) where T : myUIObject, new()
 	{
-		return createObject<T>(null, name, active, refreshUIDepth, needSortChild);
+		return createObject<T>(null, name, active);
 	}
-	public T newObjectNoSort<T>(out T obj, myUIObject parent, string name, int active = -1, bool showError = true) where T : myUIObject, new()
+	public T newObject<T>(out T obj, string name) where T : myUIObject, new()
 	{
-		return newObject(out obj, parent, name, active, showError, false);
+		return newObject(out obj, mRoot, name, -1, true);
 	}
-	public T newObjectNoSort<T>(out T obj, string name, int active = -1, bool showError = true) where T : myUIObject, new()
+	public T newObject<T>(out T obj, string name, int active) where T : myUIObject, new()
 	{
-		return newObject(out obj, mRoot, name, active, showError, false);
+		return newObject(out obj, mRoot, name, active, true);
+	}
+	public T newObject<T>(out T obj, string name, bool showError) where T : myUIObject, new()
+	{
+		return newObject(out obj, mRoot, name, -1, showError);
+	}
+	public T newObject<T>(out T obj, string name, int active, bool showError) where T : myUIObject, new()
+	{
+		return newObject(out obj, mRoot, name, active, showError);
+	}
+	public T newObject<T>(out T obj, myUIObject parent, string name) where T : myUIObject, new()
+	{
+		return newObject(out obj, parent, name, -1, true);
+	}
+	public T newObject<T>(out T obj, myUIObject parent, string name, int active) where T : myUIObject, new()
+	{
+		return newObject(out obj, parent, name, active, true);
+	}
+	public T newObject<T>(out T obj, myUIObject parent, string name, bool showError) where T : myUIObject, new()
+	{
+		return newObject(out obj, parent, name, -1, showError);
 	}
 	// 创建myUIObject,并且在布局中查找GameObject分配到myUIObject
 	// active为-1则表示不设置active,0表示false,1表示true
 	// 因为此处可以确定只有主工程的类,所以可以使用new T()
-	public T newObject<T>(out T obj, myUIObject parent, string name, int active = -1, bool showError = true, bool needSortChild = true) where T : myUIObject, new()
+	public T newObject<T>(out T obj, myUIObject parent, string name, int active, bool showError) where T : myUIObject, new()
 	{
 		obj = null;
 		GameObject parentObj = parent != null ? parent.getObject() : null;
@@ -226,25 +243,20 @@ public abstract class LayoutScript : IDelayCmdWatcher
 		{
 			return obj;
 		}
-		obj = newUIObject<T>(parent, mLayout, gameObject, needSortChild);
-		if(active >= 0)
+		obj = newUIObject<T>(parent, mLayout, gameObject);
+		if (active >= 0)
 		{
 			obj.setActive(active != 0);
 		}
 		return obj;
 	}
 	// 因为此处可以确定只有主工程的类,所以可以使用new T()
-	public T newObject<T>(out T obj, string name, int active = -1) where T : myUIObject, new()
-	{
-		return newObject(out obj, mRoot, name, active);
-	}
-	// 因为此处可以确定只有主工程的类,所以可以使用new T()
-	public static T newUIObject<T>(myUIObject parent, GameLayout layout, GameObject gameObj, bool needSortChild = true) where T : myUIObject, new()
+	public static T newUIObject<T>(myUIObject parent, GameLayout layout, GameObject go) where T : myUIObject, new()
 	{
 		T obj = new T();
 		obj.setLayout(layout);
-		obj.setGameObject(gameObj);
-		obj.setParent(parent, needSortChild);
+		obj.setObject(go);
+		obj.setParent(parent, false, false);
 		obj.init();
 		// 如果在创建窗口对象时,布局已经完成了自适应,则通知窗口
 		if (layout != null && layout.isAnchorApplied())
@@ -256,7 +268,7 @@ public abstract class LayoutScript : IDelayCmdWatcher
 	public GameObject instantiateObject(myUIObject parent, string prefabPath, string name, int tag = 0)
 	{
 		GameObject go = mObjectPool.createObject(prefabPath, tag);
-		if(go != null)
+		if (go != null)
 		{
 			go.name = name;
 			go.SetActive(false);
@@ -293,32 +305,8 @@ public abstract class LayoutScript : IDelayCmdWatcher
 	}
 	public void setType(Type type) { mType = type; }
 	public Type getType() { return mType; }
-	public override void addDelayCmd(Command cmd)
+	public void close()
 	{
-		mDelayCmdList.Add(cmd.getAssignID());
-		cmd.addStartCommandCallback(mCmdCallback);
+		LT.HIDE_LAYOUT(mID);
 	}
-	public override void interruptCommand(long assignID, bool showError = true)
-	{
-		if (mDelayCmdList.Remove(assignID))
-		{
-			mCommandSystem.interruptCommand(assignID, showError);
-		}
-	}
-	public override void onCmdStarted(Command cmd)
-	{
-		if (!mDelayCmdList.Remove(cmd.getAssignID()))
-		{
-			logError("命令执行后移除命令失败!");
-		}
-	}
-	public override void interruptAllCommand()
-	{
-		foreach(var item in mDelayCmdList)
-		{
-			mCommandSystem.interruptCommand(item, false);
-		}
-		mDelayCmdList.Clear();
-	}
-	//----------------------------------------------------------------------------------------------------
 }

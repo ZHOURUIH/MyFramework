@@ -8,7 +8,7 @@ public class ListPoolDebug : MonoBehaviour
 	public List<string> UnuseList = new List<string>();
 	public void Update()
 	{
-		if (!FrameBase.mGameFramework.isEnableScriptDebug())
+		if (!FrameBase.mGameFramework.mEnableScriptDebug)
 		{
 			return;
 		}

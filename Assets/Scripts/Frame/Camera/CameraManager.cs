@@ -93,7 +93,7 @@ public class CameraManager : FrameSystem
 		CLASS(out GameCamera camera);
 		camera.setName(name);
 		camera.init();
-		camera.setObject(obj);
+		camera.setObject(obj, true);
 		// 只有自己创建的摄像机节点才可以销毁
 		camera.setDestroyObject(isNewNode);
 		mCameraList.Add(camera);

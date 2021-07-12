@@ -134,6 +134,7 @@ public abstract class NetClient : FrameBase
 			UN_ARRAY_THREAD(readList[i]);
 		}
 		readList.Clear();
+		mOutputBuffer.endGet();
 	}
 	public void recvData(byte[] data, int count)
 	{
@@ -172,6 +173,7 @@ public abstract class NetClient : FrameBase
 			destroyPacket(packet);
 		}
 		readList.Clear();
+		mReceiveBuffer.endGet();
 		mConnectTime += elapsedTime;
 		// 判断客户端心跳是否超时
 		if (mHeartBeatTimer.tickTimer(elapsedTime))

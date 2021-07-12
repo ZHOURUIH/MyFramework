@@ -8,15 +8,17 @@ public class ScaleAnchorEditor : GameEditorBase
 	public override void OnInspectorGUI()
 	{
 		anchor = target as ScaleAnchor;
-		anchor.mKeepAspect = displayToggle("KeepAspect", anchor.mKeepAspect, out bool keepAspectModified);
-		anchor.mAdjustFont = displayToggle("AdjustFont", anchor.mAdjustFont, out bool adjustFountModified);
-		bool aspectBaseModified = false;
+
+		bool modified = false;
+		displayToggle("KeepAspect", "是否保持宽高比进行缩放", ref anchor.mKeepAspect, ref modified);
+		displayToggle("AdjustFont", "是否同时调整字体大小", ref anchor.mAdjustFont, ref modified);
+		displayToggle("AdjustPosition", "缩放时是否同时调整位置", ref anchor.mAdjustPosition, ref modified);
+		displayToggle("RemoveUGUIAnchor", "是否需要移除UGUI的锚点", ref anchor.mRemoveUGUIAnchor, ref modified);
 		if (anchor.mKeepAspect)
 		{
-			var aspectBase = (ASPECT_BASE)displayEnum("AspectBase", anchor.mAspectBase, out aspectBaseModified);
-			anchor.mAspectBase = aspectBase;
+			displayEnum("AspectBase", "缩放方式", ref anchor.mAspectBase, ref modified);
 		}
-		if(keepAspectModified || adjustFountModified || aspectBaseModified)
+		if (modified)
 		{
 			EditorUtility.SetDirty(target);
 		}

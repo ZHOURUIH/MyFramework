@@ -4,7 +4,7 @@ public class ComponentRotateSpeedPhysics : ComponentRotateSpeed
 {
 	public override void fixedUpdate(float elapsedTime) 
 	{
-		if (mPlayState == PLAY_STATE.PLAY && !(isVectorZero(ref mRotateSpeed) && isVectorZero(ref mRotateAcceleration)))
+		if (mPlayState == PLAY_STATE.PLAY && !(isVectorZero(mRotateSpeed) && isVectorZero(mRotateAcceleration)))
 		{
 			mCurRotation += mRotateSpeed * elapsedTime;
 			adjustAngle360(ref mCurRotation);

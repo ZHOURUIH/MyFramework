@@ -2,22 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[Serializable]
-public struct AssetBundleDebug
-{
-	public string mBundleName;
-	public List<AssetInfo> mAssetList;
-	public List<string> mParentBundles;
-	public List<string> mChildBundles;
-	public AssetBundleDebug(string name)
-	{
-		mBundleName = name;
-		mAssetList = new List<AssetInfo>();
-		mParentBundles = new List<string>();
-		mChildBundles = new List<string>();
-	}
-}
-
 public class ResourcesManagerDebug : MonoBehaviour
 {
 	// 已加载的AssetBundle列表
@@ -25,7 +9,7 @@ public class ResourcesManagerDebug : MonoBehaviour
 	public List<AssetBundleDebug> mLoadedAssetBundleListValues = new List<AssetBundleDebug>();
 	public void Update()
 	{
-		if (!FrameBase.mGameFramework.isEnableScriptDebug())
+		if (!FrameBase.mGameFramework.mEnableScriptDebug)
 		{
 			return;
 		}

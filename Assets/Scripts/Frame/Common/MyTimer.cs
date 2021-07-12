@@ -52,7 +52,7 @@ public class MyTimer : FrameBase
 	{
 		if(resetInterval)
 		{
-			mTimeInterval = 0.0f;
+			mTimeInterval = -1.0f;
 		}
 		mCurTime = -1.0f;
 	}

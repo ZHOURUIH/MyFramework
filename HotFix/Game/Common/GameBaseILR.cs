@@ -8,7 +8,6 @@ using System.Collections.Generic;
 public partial class GB : FrameUtilityILR
 {
 	// FrameSystem
-	public static GameConfig mGameConfig;
 	public static DemoSystem mDemoSystem;
 	// LayoutScript
 	public static ScriptLogin mScriptLogin;
@@ -16,7 +15,6 @@ public partial class GB : FrameUtilityILR
 	public override void notifyConstructDone()
 	{
 		base.notifyConstructDone();
-		getILRSystem(out mGameConfig);
 		getILRSystem(out mDemoSystem);
 	}
 	public static T PACKET_ILR<T>(out T packet) where T : SocketPacket

@@ -11,6 +11,13 @@ public class CmdSocketConnectClientConnect : Command
 	public override void execute()
 	{
 		var socketClient = mReceiver as SocketConnectClient;
-		socketClient.startConnect(mAsync);
+		try
+		{
+			socketClient.startConnect(mAsync);
+		}
+		catch(Exception e)
+		{
+			logError("连接错误:" + e.Message + ", stack:" + e.StackTrace);
+		}
 	}
 }

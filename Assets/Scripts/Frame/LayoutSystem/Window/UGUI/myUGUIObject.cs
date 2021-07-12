@@ -12,10 +12,10 @@ public class myUGUIObject : myUIObject
 	protected Action<PointerEventData, GameObject> mOnUGUIMouseUp;          // 鼠标抬起的回调,由UGUI触发
 	protected Action<PointerEventData, GameObject> mOnUGUIClick;            // 鼠标点击的回调,由UGUI触发
 	protected EventTriggerListener mEventTriggerListener;					// UGUI事件监听器,用于接收UGUI的事件
+	protected Action<Vector2, Vector3> mOnUGUIMouseMove;					// 鼠标移动的回调,由UGUI触发,第一个参数是这一帧触点的移动量,第二个参数是触点当前的位置
+	protected Action<Vector3> mOnUGUIMouseStay;								// 鼠标在窗口内停止的回调,由UGUI触发,参数是触点当前的位置
+	protected PointerEventData mMousePointer;								// 鼠标在当前窗口按下时的触点信息
 	protected RectTransform mRectTransform;									// UGUI的Transform
-	protected Action<Vector2> mOnUGUIMouseMove;                             // 鼠标移动的回调,由UGUI触发
-	protected Action mOnUGUIMouseStay;                                      // 鼠标在窗口内停止的回调,由UGUI触发
-	protected bool mUGUIMouseDown;											// 鼠标当前是否在窗口内按下
 	public override void init()
 	{
 		base.init();
@@ -37,6 +37,7 @@ public class myUGUIObject : myUIObject
 		mEventTriggerListener.onUp += onUGUIMouseUp;
 		mEventTriggerListener.onEnter += onUGUIMouseEnter;
 		mEventTriggerListener.onExit += onUGUIMouseLeave;
+		mMousePointer = null;
 	}
 	public override void destroy()
 	{
@@ -45,6 +46,7 @@ public class myUGUIObject : myUIObject
 		mEventTriggerListener.onUp -= onUGUIMouseUp;
 		mEventTriggerListener.onEnter -= onUGUIMouseEnter;
 		mEventTriggerListener.onExit -= onUGUIMouseLeave;
+		mMousePointer = null;
 		base.destroy();
 	}
 	public override void update(float elapsedTime)
@@ -59,18 +61,24 @@ public class myUGUIObject : myUIObject
 				mBoxCollider.center = multiVector2(mRectTransform.rect.size, new Vector2(0.5f, 0.5f) - mRectTransform.pivot);
 			}
 		}
-		if (mUGUIMouseDown)
+		if (mMousePointer != null)
 		{
-			Vector3 delta = mInputSystem.getMouseDelta();
+			// 此处应该获取touchID的移动量
+			Vector3 delta = mMousePointer.delta;
 			if (!isVectorZero(delta))
 			{
-				mOnUGUIMouseMove?.Invoke(delta);
+				mOnUGUIMouseMove?.Invoke(delta, mMousePointer.position);
 			}
 			else
 			{
-				mOnUGUIMouseStay?.Invoke();
+				mOnUGUIMouseStay?.Invoke(mMousePointer.position);
 			}
 		}
+	}
+	public override void onLayoutHide() 
+	{
+		// 布局隐藏时需要将触点清除
+		mMousePointer = null;
 	}
 	// 获得窗口顶部在窗口中的相对于窗口pivot的Y坐标
 	public float getWindowTop() { return getWindowSize().y * (1.0f - getPivot().y); }
@@ -131,17 +139,27 @@ public class myUGUIObject : myUIObject
 		UN_LIST(tempList);
 	}
 	public void setUGUIClick(Action<PointerEventData, GameObject> callback) { mOnUGUIClick = callback; }
-	public void setUGUIMouseDown(Action<PointerEventData, GameObject> callback) { mOnUGUIMouseDown = callback; }
-	public void setUGUIMouseUp(Action<PointerEventData, GameObject> callback) { mOnUGUIMouseUp = callback; }
+	public void setUGUIMouseDown(Action<PointerEventData, GameObject> callback) 
+	{
+		mOnUGUIMouseDown = callback;
+		// 因为点击事件会使用触点,为了确保触点的正确状态,所以需要在布局隐藏时清除触点
+		mReceiveLayoutHide = true;
+	}
+	public void setUGUIMouseUp(Action<PointerEventData, GameObject> callback) 
+	{
+		mOnUGUIMouseUp = callback;
+		// 因为点击事件会使用触点,为了确保触点的正确状态,所以需要在布局隐藏时清除触点
+		mReceiveLayoutHide = true;
+	}
 	public void setUGUIMouseEnter(Action<PointerEventData, GameObject> callback) { mOnUGUIMouseEnter = callback; }
 	public void setUGUIMouseExit(Action<PointerEventData, GameObject> callback) { mOnUGUIMouseLeave = callback; }
-	public void setUGUIMouseMove(Action<Vector2> callback) 
+	public void setUGUIMouseMove(Action<Vector2, Vector3> callback) 
 	{
 		mOnUGUIMouseMove = callback;
 		// 如果设置了要监听鼠标移动,则需要激活当前窗口
 		mEnable = true;
 	}
-	public void setUGUIMouseStay(Action callback) 
+	public void setUGUIMouseStay(Action<Vector3> callback)
 	{
 		mOnUGUIMouseStay = callback;
 		mEnable = true;
@@ -150,12 +168,22 @@ public class myUGUIObject : myUIObject
 	protected static int compareZDecending(Transform a, Transform b) { return (int)sign(b.localPosition.z - a.localPosition.z); }
 	protected void onUGUIMouseDown(PointerEventData eventData, GameObject go)
 	{
-		mUGUIMouseDown = true;
+		// 如果当前正在被按下,则不允许再响应按下事件,否则会影响正在进行的按下逻辑
+		if (mMousePointer != null)
+		{
+			return;
+		}		
+		mMousePointer = eventData;
 		mOnUGUIMouseDown?.Invoke(eventData, go);
 	}
 	protected void onUGUIMouseUp(PointerEventData eventData, GameObject go)
 	{
-		mUGUIMouseDown = false;
+		// 不是来自于当前按下的触点的事件不需要处理
+		if (mMousePointer != eventData)
+		{
+			return;
+		}
+		mMousePointer = null;
 		mOnUGUIMouseUp?.Invoke(eventData, go);
 	}
 	protected void onUGUIClick(PointerEventData eventData, GameObject go)

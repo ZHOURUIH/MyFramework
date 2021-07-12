@@ -165,22 +165,22 @@ public class ComponentDrag : GameComponent
 		}
 		mDragMouseOffset = dragOffset;
 		mPreparingDrag = false;
-		applyScreenPosition(ref mousePosition);
-		onDraging(ref mousePosition);
+		applyScreenPosition(mousePosition);
+		onDraging(mousePosition);
 		return true;
 	}
 	//--------------------------------------------------------------------------------------------------------------
 	protected bool checkStartTouchDrag(ref Touch touch)
 	{
 		Vector3 mousePosition = touch.position;
-		if (!mouseInObject(ref mousePosition))
+		if (!mouseInObject(mousePosition))
 		{
 			return false;
 		}
 		bool result = false;
 		// 拖拽消息不向下传递, 从上往下查找,如果前面没有窗口需要有拖拽消息被处理,则当前窗口响应拖拽消息
 		LIST(out List<IMouseEventCollect> hoverList);
-		mGlobalTouchSystem.getAllHoverWindow(hoverList, ref mousePosition);
+		mGlobalTouchSystem.getAllHoverWindow(hoverList, mousePosition);
 		int count = hoverList.Count;
 		for(int i = 0; i < count; ++i)
 		{
@@ -201,13 +201,13 @@ public class ComponentDrag : GameComponent
 	}
 	protected void checkStartDrag(Vector3 mousePosition)
 	{
-		if (!mInputSystem.isMouseDown(MOUSE_BUTTON.LEFT) || !mouseInObject(ref mousePosition))
+		if (!mInputSystem.isMouseDown(MOUSE_BUTTON.LEFT) || !mouseInObject(mousePosition))
 		{
 			return;
 		}
 		// 从上往下查找,如果前面没有窗口需要有拖拽消息被处理,则当前窗口响应拖拽消息
 		LIST(out List<IMouseEventCollect> hoverList);
-		mGlobalTouchSystem.getAllHoverWindow(hoverList, ref mousePosition);
+		mGlobalTouchSystem.getAllHoverWindow(hoverList, mousePosition);
 		int count = hoverList.Count;
 		for (int i = 0; i < count; ++i)
 		{
@@ -244,7 +244,7 @@ public class ComponentDrag : GameComponent
 		if (mPreparingDrag)
 		{
 			Vector2 mouseDelta = mousePosition - mPrepareDragMousePosition;
-			if (lengthGreater(ref mouseDelta, mStartDragThreshold))
+			if (lengthGreater(mouseDelta, mStartDragThreshold))
 			{
 				// 有拖拽方向要求时,只有拖拽方向与设置方向夹角不超过指定角度时才开始拖动
 				if (!isVectorZero(mAllowDragDirection))
@@ -263,13 +263,13 @@ public class ComponentDrag : GameComponent
 		}
 		if (mDrag)
 		{
-			applyScreenPosition(ref mousePosition);
-			onDraging(ref mousePosition);
+			applyScreenPosition(mousePosition);
+			onDraging(mousePosition);
 		}
 	}
-	protected virtual void applyScreenPosition(ref Vector3 screenPos) { }
+	protected virtual void applyScreenPosition(Vector3 screenPos) { }
 	protected virtual Vector3 getScreenPosition() { return Vector3.zero; }
-	protected virtual bool mouseInObject(ref Vector3 mousePosition) { return false; }
+	protected virtual bool mouseInObject(Vector3 mousePosition) { return false; }
 	// 物体开始拖动,返回值表示是否允许开始拖动
 	protected virtual bool onDragStart(Vector3 mousePos)
 	{
@@ -288,7 +288,7 @@ public class ComponentDrag : GameComponent
 		mDragEndCallback?.Invoke(mComponentOwner);
 	}
 	// 当前物体正在拖动
-	protected virtual void onDraging(ref Vector3 mousePos)
+	protected virtual void onDraging(Vector3 mousePos)
 	{
 		mDragingCallback?.Invoke(mComponentOwner);
 	}

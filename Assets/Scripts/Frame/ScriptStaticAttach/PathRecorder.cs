@@ -194,7 +194,7 @@ public class PathRecorder : MonoBehaviour
                 continue;
             }
             Vector3 curValue = path[keys[i]];
-            if(MathUtility.isVectorEqual(ref curValue, ref lastValue))
+            if(MathUtility.isVectorEqual(curValue, lastValue))
             {
                 path.Remove(keys[i]);
             }

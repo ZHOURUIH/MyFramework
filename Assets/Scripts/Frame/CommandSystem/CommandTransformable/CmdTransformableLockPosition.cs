@@ -34,7 +34,7 @@ public class CmdTransformableLockPosition : Command
 		// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
 		obj.setEnable(true);
 	}
-	public override void showDebugInfo(MyStringBuilder builder)
+	public override void debugInfo(MyStringBuilder builder)
 	{
 		builder.Append(": mLockPosition:", mLockPosition).
 				Append(", mLockX:", mLockX).

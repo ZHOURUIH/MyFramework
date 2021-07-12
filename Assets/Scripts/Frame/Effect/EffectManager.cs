@@ -5,12 +5,10 @@ public class EffectManager : FrameSystem
 {
 	protected List<GameEffect> mEffectList;
 	protected CreateObjectCallback mPreloadEffectCallback;
-	protected CreateObjectCallback mEffectCallback;
 	public EffectManager()
 	{
 		mEffectList = new List<GameEffect>();
 		mPreloadEffectCallback = onPreLoadEffectLoaded;
-		mEffectCallback = onEffectLoaded;
 		mCreateObject = true;
 	}
 	public override void init()
@@ -25,12 +23,12 @@ public class EffectManager : FrameSystem
 		base.update(elapsedTime);
 		List<GameEffect> deadList = null;
 		int effectCount = mEffectList.Count;
-		for(int i = 0; i < effectCount; ++i)
+		for (int i = 0; i < effectCount; ++i)
 		{
 			GameEffect item = mEffectList[i];
 			if (item.isActive())
 			{
-				if(!item.isIgnoreTimeScale())
+				if (!item.isIgnoreTimeScale())
 				{
 					item.update(elapsedTime);
 				}
@@ -39,9 +37,9 @@ public class EffectManager : FrameSystem
 					item.update(Time.unscaledDeltaTime);
 				}
 			}
-			if(item.isDead())
+			if (item.isDead())
 			{
-				if(deadList == null)
+				if (deadList == null)
 				{
 					LIST(out deadList);
 				}
@@ -49,10 +47,10 @@ public class EffectManager : FrameSystem
 			}
 		}
 		// 销毁所有已死亡的特效
-		if(deadList != null)
+		if (deadList != null)
 		{
 			int deadCount = deadList.Count;
-			for(int i = 0; i < deadCount; ++i)
+			for (int i = 0; i < deadCount; ++i)
 			{
 				destroyEffect(deadList[i]);
 			}
@@ -62,7 +60,7 @@ public class EffectManager : FrameSystem
 	public List<GameEffect> getEffectList() { return mEffectList; }
 	public void createEffectToPool(string nameWithPath, bool async, int tag)
 	{
-		if(async)
+		if (async)
 		{
 			mObjectPool.createObjectAsync(nameWithPath, mPreloadEffectCallback, tag);
 		}
@@ -92,13 +90,36 @@ public class EffectManager : FrameSystem
 		setNormalProperty(go, parent);
 		return create(go, getFileName(nameWithPath), active, lifeTime, false);
 	}
+	public void createEffectAsync(string nameWithPath, int tag, float lifeTime)
+	{
+		createEffectAsync(nameWithPath, tag, null, true, lifeTime);
+	}
+	public void createEffectAsync(string nameWithPath, int tag, bool active, float lifeTime)
+	{
+		createEffectAsync(nameWithPath, tag, null, active, lifeTime);
+	}
 	public void createEffectAsync(string nameWithPath, int tag, OnEffectLoadedCallback callback)
 	{
-		mObjectPool.createObjectAsync(nameWithPath, mEffectCallback, tag, callback);
+		createEffectAsync(nameWithPath, tag, callback, false, -1.0f);
+	}
+	public void createEffectAsync(string nameWithPath, int tag, OnEffectLoadedCallback callback, bool active)
+	{
+		createEffectAsync(nameWithPath, tag, callback, active, -1.0f);
+	}
+	public void createEffectAsync(string nameWithPath, int tag, OnEffectLoadedCallback callback, bool active, float lifeTime)
+	{
+		mObjectPool.createObjectAsync(nameWithPath, (GameObject go, object userData)=>
+		{
+			if (go == null)
+			{
+				return;
+			}
+			callback?.Invoke(create(go, go.name, active, lifeTime, false), null);
+		}, tag);
 	}
 	public void destroyEffect(ref GameEffect effect)
 	{
-		if(effect != null)
+		if (effect != null)
 		{
 			effect.setIgnoreTimeScale(false);
 			effect.destroy();
@@ -117,14 +138,14 @@ public class EffectManager : FrameSystem
 		LIST(out List<GameEffect> tempList);
 		tempList.AddRange(mEffectList);
 		int count = tempList.Count;
-		for(int i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			GameEffect effect = tempList[i];
 			// 虽然此处isValidEffect已经足够判断特效是否还存在
 			// 但是这样逻辑不严谨,因为依赖于引擎在销毁物体时将所有的引用都置为空
 			// 这是引擎自己的特性,并不是通用操作,所以使用更严谨一些的判断
 			bool effectValid;
-			if(effect.isExistObject())
+			if (effect.isExistObject())
 			{
 				effectValid = effect.isValidEffect();
 			}
@@ -132,12 +153,12 @@ public class EffectManager : FrameSystem
 			{
 				effectValid = mObjectPool.isExistInPool(effect.getObject());
 				// 如果特效物体不是空的,可能是销毁物体时引擎不是立即销毁的,需要手动设置为空
-				if(!effectValid && effect.getObject() != null)
+				if (!effectValid && effect.getObject() != null)
 				{
-					effect.setObject(null);
+					effect.setObject(null, true);
 				}
 			}
-			if(!effectValid)
+			if (!effectValid)
 			{
 				destroyEffect(ref effect);
 			}
@@ -167,7 +188,7 @@ public class EffectManager : FrameSystem
 		}
 		CLASS(out GameEffect gameEffect);
 		gameEffect.setName(name);
-		gameEffect.setObject(go);
+		gameEffect.setObject(go, true);
 		gameEffect.setExistObject(existObject);
 		gameEffect.init();
 		gameEffect.setLifeTime(lifeTime);

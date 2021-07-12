@@ -4,8 +4,8 @@ using System;
 
 public class CommandSystem : FrameSystem
 {
-	protected List<Command> mCommandBufferProcess;	// 用于处理的命令列表
-	protected List<Command> mCommandBufferInput;	// 用于放入命令的命令列表,收集一帧中各个线程的命令
+	protected List<Command> mCommandBufferProcess;  // 用于处理的命令列表
+	protected List<Command> mCommandBufferInput;    // 用于放入命令的命令列表,收集一帧中各个线程的命令
 	protected List<Command> mExecuteList;           // 即将在这一帧执行的命令
 	protected ThreadLock mBufferLock;
 	public CommandSystem()
@@ -66,7 +66,7 @@ public class CommandSystem : FrameSystem
 	public void interruptCommand(List<long> assignIDList, bool showError = true)
 	{
 		int count = assignIDList.Count;
-		for(int i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			interruptCommand(assignIDList[i], showError);
 		}
@@ -75,13 +75,13 @@ public class CommandSystem : FrameSystem
 	public bool interruptCommand(long assignID, bool showError = true)
 	{
 		// 如果命令系统已经销毁了,则不能再中断命令
-		if(mDestroy)
+		if (mDestroy)
 		{
 			return true;
 		}
 		if (assignID < 0)
 		{
-			if(showError)
+			if (showError)
 			{
 				logError("assignID invalid! : " + assignID);
 			}
@@ -90,13 +90,13 @@ public class CommandSystem : FrameSystem
 
 		syncCommandBuffer();
 		int count = mCommandBufferProcess.Count;
-		for(int i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			Command cmd = mCommandBufferProcess[i];
 			if (cmd.getAssignID() == assignID)
 			{
 				MyStringBuilder builder = STRING("CMD : interrupt command ", LToS(assignID), " : ");
-				cmd.showDebugInfo(builder);
+				cmd.debugInfo(builder);
 				builder.Append(", receiver : ", cmd.getReceiver().getName());
 				log(END_STRING(builder), LOG_LEVEL.HIGH);
 				mCommandBufferProcess.Remove(cmd);
@@ -109,7 +109,7 @@ public class CommandSystem : FrameSystem
 		bool success = false;
 		// 在即将执行的列表中查找,不能删除列表元素，只能将接收者设置为空来阻止命令执行,如果正在执行该命令,则没有效果
 		int executeCount = mExecuteList.Count;
-		for(int i = 0; i < executeCount; ++i)
+		for (int i = 0; i < executeCount; ++i)
 		{
 			Command cmd = mExecuteList[i];
 			if (cmd.getAssignID() == assignID)
@@ -119,7 +119,7 @@ public class CommandSystem : FrameSystem
 				break;
 			}
 		}
-		if(!success && showError)
+		if (!success && showError)
 		{
 			logError("not find cmd with assignID! " + assignID);
 		}
@@ -154,19 +154,29 @@ public class CommandSystem : FrameSystem
 		if (cmd.isDelayCommand())
 		{
 			MyStringBuilder builder = STRING("cmd is a delay cmd! can not use pushCommand!", LToS(cmd.getAssignID()), ", ");
-			cmd.showDebugInfo(builder);
+			cmd.debugInfo(builder);
 			logError(END_STRING(builder));
 			return;
 		}
 #endif
 		cmd.setReceiver(cmdReceiver);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-		if (cmd.isShowDebugInfo())
+		if (cmd.getCmdLogLevel() >= getLogLevel())
 		{
-			MyStringBuilder builder = STRING("CMD : ", LToS(cmd.getAssignID()), ", ");
-			cmd.showDebugInfo(builder);
-			builder.Append(", receiver : ", cmdReceiver.getName());
-			log(END_STRING(builder), LOG_LEVEL.NORMAL);
+			if (isMainThread())
+			{
+				MyStringBuilder builder = STRING("CMD : ", LToS(cmd.getAssignID()), ", ");
+				cmd.debugInfo(builder);
+				builder.Append(", receiver : ", cmdReceiver.getName());
+				log(END_STRING(builder), cmd.getCmdLogLevel());
+			}
+			else
+			{
+				MyStringBuilder builder = STRING_THREAD("CMD : ", LToS(cmd.getAssignID()), ", ");
+				cmd.debugInfo(builder);
+				builder.Append(", receiver : ", cmdReceiver.getName());
+				log(END_STRING_THREAD(builder), cmd.getCmdLogLevel());
+			}
 		}
 #endif
 		cmd.invokeStartCallBack();
@@ -178,7 +188,7 @@ public class CommandSystem : FrameSystem
 		destroyCmd(cmd);
 	}
 	// 延迟执行命令,会延迟到主线程执行
-	public new void pushDelayCommand(Command cmd, CommandReceiver cmdReceiver, float delayExecute, IDelayCmdWatcher watcher)
+	public new void pushDelayCommand(Command cmd, CommandReceiver cmdReceiver, float delayExecute, DelayCmdWatcher watcher)
 	{
 		// 如果命令系统已经销毁了,则不能再发送命令
 		if (mDestroy)
@@ -192,7 +202,7 @@ public class CommandSystem : FrameSystem
 			logError("cmd is null! receiver : " + (cmdReceiver != null ? cmdReceiver.getName() : EMPTY));
 			return;
 		}
-		if(cmdReceiver == null)
+		if (cmdReceiver == null)
 		{
 			logError("receiver is null! cmd : " + (cmd != null ? Typeof(cmd).ToString() : EMPTY));
 			return;
@@ -206,19 +216,29 @@ public class CommandSystem : FrameSystem
 		if (!cmd.isDelayCommand())
 		{
 			MyStringBuilder builder = STRING("cmd is not a delay command, Command : ", LToS(cmd.getAssignID()), ", ");
-			cmd.showDebugInfo(builder);
+			cmd.debugInfo(builder);
 			logError(END_STRING(builder));
 			return;
 		}
 #endif
 		clampMin(ref delayExecute);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-		if (cmd.isShowDebugInfo())
+		if (cmd.getCmdLogLevel() >= getLogLevel())
 		{
-			MyStringBuilder builder = STRING("CMD : delay cmd : ", LToS(cmd.getAssignID()), ", ", FToS(delayExecute), ", info : ");
-			cmd.showDebugInfo(builder);
-			builder.Append(", receiver : ", cmdReceiver.getName());
-			log(END_STRING(builder), LOG_LEVEL.NORMAL);
+			if(isMainThread())
+            {
+				MyStringBuilder builder = STRING("CMD : delay cmd : ", LToS(cmd.getAssignID()), ", ", FToS(delayExecute), ", info : ");
+				cmd.debugInfo(builder);
+				builder.Append(", receiver : ", cmdReceiver.getName());
+				log(END_STRING(builder), cmd.getCmdLogLevel());
+			}
+            else
+            {
+				MyStringBuilder builder = STRING_THREAD("CMD : delay cmd : ", LToS(cmd.getAssignID()), ", ", FToS(delayExecute), ", info : ");
+				cmd.debugInfo(builder);
+				builder.Append(", receiver : ", cmdReceiver.getName());
+				log(END_STRING_THREAD(builder), cmd.getCmdLogLevel());
+			}
 		}
 #endif
 		cmd.setDelayTime(delayExecute);
@@ -250,7 +270,7 @@ public class CommandSystem : FrameSystem
 		}
 		// 执行列表中
 		int count = mExecuteList.Count;
-		for(int i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			Command cmd = mExecuteList[i];
 			// 已执行或正在执行的命令不作判断,该列表无法删除元素,只能将接收者设置为null
@@ -270,11 +290,11 @@ public class CommandSystem : FrameSystem
 	}
 	protected void destroyCmd(Command cmd)
 	{
-		if(cmd == null)
+		if (cmd == null)
 		{
 			return;
 		}
-		if(cmd.isThreadCommand())
+		if (cmd.isThreadCommand())
 		{
 			mClassPoolThread?.destroyClass(cmd);
 		}

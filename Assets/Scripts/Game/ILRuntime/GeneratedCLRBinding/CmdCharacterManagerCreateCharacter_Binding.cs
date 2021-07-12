@@ -60,7 +60,7 @@ namespace ILRuntime.Runtime.Generated
         static StackObject* AssignFromStack_mCharacterType_0(ref object o, ILIntepreter __intp, StackObject* ptr_of_this_method, IList<object> __mStack)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            System.Type @mCharacterType = (System.Type)typeof(System.Type).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            System.Type @mCharacterType = (System.Type)typeof(System.Type).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
             ((global::CmdCharacterManagerCreateCharacter)o).mCharacterType = @mCharacterType;
             return ptr_of_this_method;
         }
@@ -84,7 +84,7 @@ namespace ILRuntime.Runtime.Generated
         static StackObject* AssignFromStack_mName_1(ref object o, ILIntepreter __intp, StackObject* ptr_of_this_method, IList<object> __mStack)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
-            System.String @mName = (System.String)typeof(System.String).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack));
+            System.String @mName = (System.String)typeof(System.String).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
             ((global::CmdCharacterManagerCreateCharacter)o).mName = @mName;
             return ptr_of_this_method;
         }

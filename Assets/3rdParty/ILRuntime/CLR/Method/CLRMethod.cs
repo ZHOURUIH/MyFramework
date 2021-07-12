@@ -41,7 +41,7 @@ namespace ILRuntime.CLR.Method
         {
             get
             {
-                return def.Name;
+                return def?.Name;
             }
         }
         public bool HasThis

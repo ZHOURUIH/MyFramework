@@ -12,7 +12,7 @@ public class CameraDebug : MonoBehaviour
 	public List<string> ActiveComponent = new List<string>();
 	public void Update()
 	{
-		if (!FrameBase.mGameFramework.isEnableScriptDebug())
+		if (!FrameBase.mGameFramework.mEnableScriptDebug)
 		{
 			return;
 		}
@@ -24,7 +24,7 @@ public class CameraDebug : MonoBehaviour
 		if (linker != null)
 		{
 			CurLinkerName = CSharpUtility.Typeof(linker).ToString();
-			if (linker.getLinkObject() != null)
+			if(linker.getLinkObject() != null)
 			{
 				LinkedObject = linker.getLinkObject().getObject();
 				LinkedObjectName = linker.getLinkObject().getName();

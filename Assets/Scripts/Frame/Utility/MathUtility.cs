@@ -9,7 +9,7 @@ public class MathUtility : StringUtility
 	private static Point[] mTempDirect4 = new Point[4];
 	private static Vector3[] mTempControlPoint = new Vector3[4];
 	private static AStarNode[] mTempNodeList;
-	private static int[] mGreaterPow2 = new int[513];
+	private static int[] mGreaterPow2;
 	private static float[] sin_tb;
 	private static float[] cos_tb;
 	private const int mMaxFFTCount = 1024 * 8;
@@ -60,7 +60,7 @@ public class MathUtility : StringUtility
 	// 获得大于value的第一个2的n次方的数,value需要大于0
 	public static int getGreaterPow2(int value)
 	{
-		if (value < mGreaterPow2.Length)
+		if (mGreaterPow2 != null && value < mGreaterPow2.Length)
 		{
 			return mGreaterPow2[value];
 		}
@@ -208,10 +208,8 @@ public class MathUtility : StringUtility
 		return Mathf.Acos(value);
 	}
 	public static float atan2(float y, float x) { return Mathf.Atan2(y, x); }
-	public static float dot(ref Vector3 v0, ref Vector3 v1) { return v0.x * v1.x + v0.y * v1.y + v0.z * v1.z; }
 	public static float dot(Vector3 v0, Vector3 v1) { return v0.x * v1.x + v0.y * v1.y + v0.z * v1.z; }
 	public static float sqrt(float value) { return Mathf.Sqrt(value); }
-	public static Vector3 cross(ref Vector3 v0, ref Vector3 v1) { return Vector3.Cross(v0, v1); }
 	public static Vector3 cross(Vector3 v0, Vector3 v1) { return Vector3.Cross(v0, v1); }
 	public static float sign(float value)
 	{
@@ -683,6 +681,11 @@ public class MathUtility : StringUtility
 		}
 		return UnityEngine.Random.Range(min, max + 1);
 	}
+	// 计算两个向量所在平面的法线,unity是左手坐标系
+	public static Vector3 generateNormal(Vector3 vec0, Vector3 vec1)
+	{
+		return cross(vec0, vec1);
+	}
 	// 计算点p在平面on上的投影点,o为平面上一点,n为平面法线
 	public static Vector3 getProjectionOnPlane(Vector3 o, Vector3 n, Vector3 p)
 	{
@@ -818,8 +821,7 @@ public class MathUtility : StringUtility
 	{
 		// 转换为3维向量,通过与Y轴的叉乘得到垂直的向量
 		Vector3 v0 = normalize(new Vector3(linePoint0.x, 0.0f, linePoint0.y) - new Vector3(point.x, 0.0f, point.y));
-		Vector3 v1 = Vector3.up;
-		Vector3 v2 = cross(ref v0, ref v1);
+		Vector3 v2 = cross(v0, Vector3.up);
 		otherPoint = point + new Vector2(v2.x, v2.z);
 	}
 	// 计算一条直线经过point点的平行线
@@ -828,6 +830,7 @@ public class MathUtility : StringUtility
 		Vector3 dir = line.mEnd - line.mStart;
 		otherPoint = point + dir;
 	}
+	// 计算一条直线经过point点的平行线
 	public static void generateParallel(Line2 line, Vector2 point, out Vector2 otherPoint)
 	{
 		Vector2 dir = line.mEnd - line.mStart;
@@ -906,12 +909,14 @@ public class MathUtility : StringUtility
 		}
 		return false;
 	}
+	// 在忽略Y轴的情况下,判断两条直线是否相交,如果相交,则计算交点
 	public static bool intersectLineIgnoreY(Line3 line0, Line3 line1, out Vector3 intersect)
 	{
 		bool ret = intersectLine2(line0.toLine2IgnoreY(), line1.toLine2IgnoreY(), out Vector2 point);
 		intersect = new Vector3(point.x, 0.0f, point.y);
 		return ret;
 	}
+	// 在忽略X轴的情况下,判断两条直线是否相交,如果相交,则计算交点
 	public static bool intersectLineIgnoreX(Line3 line0, Line3 line1, out Vector3 intersect)
 	{
 		bool ret = intersectLine2(line0.toLine2IgnoreX(), line1.toLine2IgnoreX(), out Vector2 point);
@@ -922,12 +927,8 @@ public class MathUtility : StringUtility
 	public static bool intersectLine2(Line2 line0, Line2 line1, out Vector2 intersect)
 	{
 		// 计算两条线的k和b
-		float k0 = 0.0f;
-		float b0 = 0.0f;
-		bool hasK0 = generateLineExpression(line0, ref k0, ref b0);
-		float k1 = 0.0f;
-		float b1 = 0.0f;
-		bool hasK1 = generateLineExpression(line1, ref k1, ref b1);
+		bool hasK0 = generateLineExpression(line0, out float k0, out float b0);
+		bool hasK1 = generateLineExpression(line1, out float k1, out float b1);
 		// 两条竖直的线没有交点,即使两条竖直的线重合也不计算交点
 		if (!hasK0 && !hasK1)
 		{
@@ -962,7 +963,7 @@ public class MathUtility : StringUtility
 		return false;
 	}
 	// k为斜率,也就是cotan(直线与y轴的夹角)
-	public static bool generateLineExpression(Line2 line, ref float k, ref float b)
+	public static bool generateLineExpression(Line2 line, out float k, out float b)
 	{
 		// 一条横着的线,斜率为0
 		if (isFloatZero(line.mStart.y - line.mEnd.y))
@@ -973,6 +974,8 @@ public class MathUtility : StringUtility
 		// 直线是一条竖直的线,没有斜率
 		else if (isFloatZero(line.mStart.x - line.mEnd.x))
 		{
+			k = 0.0f;
+			b = 0.0f;
 			return false;
 		}
 		else
@@ -1070,11 +1073,8 @@ public class MathUtility : StringUtility
 	// 计算线段与三角形是否相交
 	public static bool intersectLineTriangle(Line2 line, Triangle2 triangle, out Vector2 intersectPoint)
 	{
-		float t = 0.0f;
-		float u = 0.0f;
-		float v = 0.0f;
 		Vector2 lineDir = normalize(line.mEnd - line.mStart);
-		bool ret = intersectRayTriangle(line.mStart, lineDir, triangle.mPoint0, triangle.mPoint1, triangle.mPoint2, ref t, ref u, ref v);
+		bool ret = intersectRayTriangle(line.mStart, lineDir, triangle.mPoint0, triangle.mPoint1, triangle.mPoint2, out float t, out float u, out float v);
 		if(ret)
 		{
 			intersectPoint = line.mStart + lineDir * t;
@@ -1098,12 +1098,15 @@ public class MathUtility : StringUtility
 	// v0, v1, v2: vertices of triangle
 	// t(out): weight of the intersection for the ray
 	// u(out), v(out): barycentric coordinate of intersection
-	public static bool intersectRayTriangle(Vector3 orig, Vector3 dir, Vector3 v0, Vector3 v1, Vector3 v2, ref float t, ref float u, ref float v)
+	public static bool intersectRayTriangle(Vector3 orig, Vector3 dir, Vector3 v0, Vector3 v1, Vector3 v2, out float t, out float u, out float v)
 	{
+		t = 0.0f;
+		u = 0.0f;
+		v = 0.0f;
 		Vector3 E1 = v1 - v0;
 		Vector3 E2 = v2 - v0;
-		Vector3 P = cross(ref dir, ref E2);
-		float determinant = dot(ref E1, ref P);
+		Vector3 P = cross(dir, E2);
+		float determinant = dot(E1, P);
 		// keep det > 0, modify T accordingly
 		Vector3 T;
 		if (determinant > 0)
@@ -1121,20 +1124,20 @@ public class MathUtility : StringUtility
 			return false;
 		}
 		// Calculate u and make sure u <= 1
-		u = dot(ref T, ref P);
+		u = dot(T, P);
 		if (u < 0.0f || u > determinant)
 		{
 			return false;
 		}
-		Vector3 Q = cross(ref T, ref E1);
+		Vector3 Q = cross(T, E1);
 		// Calculate v and make sure u + v <= 1
-		v = dot(ref dir, ref Q);
+		v = dot(dir, Q);
 		if(v < 0.0f || u + v > determinant)
 		{
 			return false;
 		}
 		// Calculate t, scale parameters, ray intersects triangle
-		t = dot(ref E2, ref Q);
+		t = dot(E2, Q);
 		float fInvDet = 1.0f / determinant;
 		t *= fInvDet;
 		u *= fInvDet;
@@ -1201,7 +1204,7 @@ public class MathUtility : StringUtility
 		clampMin(ref centerToRightTop.x);
 		clampMin(ref centerToRightTop.y);
 		clampMin(ref centerToRightTop.z);
-		return lengthLess(ref centerToRightTop, circle.mRadius);
+		return lengthLess(centerToRightTop, circle.mRadius);
 	}
 	// 判断圆是否与线段相交,仅限2D平面,且Z轴为0
 	public static bool circleIntersectLine(Circle3 circle, Line3 line)
@@ -1280,6 +1283,7 @@ public class MathUtility : StringUtility
 		}
 		return true;
 	}
+	// 将一个向量调整到距离最近的坐标轴
 	public static void adjustToNearAxis(ref Vector3 dir, bool ignoreY = false)
 	{
 		if (ignoreY)
@@ -1309,6 +1313,7 @@ public class MathUtility : StringUtility
 		}
 		return Quaternion.LookRotation(normalize(forward)).eulerAngles;
 	}
+	// 获得指定朝向的四元数
 	public static Quaternion getLookRotation(Vector3 forward, bool ignoreY = false)
 	{
 		if (ignoreY)
@@ -1317,12 +1322,12 @@ public class MathUtility : StringUtility
 		}
 		return Quaternion.LookRotation(forward);
 	}
+	// 根据航向角和俯仰角计算向量,航向角和俯仰角是角度制的
 	public static Vector3 getDirectionFromDegreeYawPitch(float yaw, float pitch)
 	{
-		yaw = toRadian(yaw);
-		pitch = toRadian(pitch);
-		return getDirectionFromRadianYawPitch(yaw, pitch);
+		return getDirectionFromRadianYawPitch(toRadian(yaw), toRadian(pitch));
 	}
+	// 根据航向角和俯仰角计算向量,航向角和俯仰角是弧度制的
 	public static Vector3 getDirectionFromRadianYawPitch(float yaw, float pitch)
 	{
 		// 如果pitch为90°或者-90°,则直接返回向量,此时无论航向角为多少,向量都是竖直向下或者竖直向上
@@ -1330,28 +1335,22 @@ public class MathUtility : StringUtility
 		{
 			return Vector3.down;
 		}
-		else if (isFloatZero(pitch + HALF_PI_RADIAN))
+		if (isFloatZero(pitch + HALF_PI_RADIAN))
 		{
 			return Vector3.up;
 		}
-		else
-		{
-			// 在unity的坐标系中航向角需要取反
-			yaw = -yaw;
-			Vector3 dir = new Vector3();
-			dir.z = cos(yaw);
-			dir.x = -sin(yaw);
-			dir.y = -tan(pitch);
-			return normalize(dir);
-		}
+		// 在unity的坐标系中航向角需要取反
+		yaw = -yaw;
+		return normalize(new Vector3(-sin(yaw), -tan(pitch), cos(yaw)));
 	}
+	// 计算向量的航向角
 	public static float getVectorYaw(Vector3 vec)
 	{
 		normalize(ref vec);
 		float fYaw;
 		// 计算航向角,航向角是向量与在X-Z平面上的投影与Z轴正方向的夹角,从上往下看是顺时针为正,逆时针为负
 		Vector3 projectionXZ = new Vector3(vec.x, 0.0f, vec.z);
-		float len = getLength(ref projectionXZ);
+		float len = getLength(projectionXZ);
 		// 如果投影的长度为0,则表示俯仰角为90°或者-90°,航向角为0
 		if (isFloatZero(len))
 		{
@@ -1374,8 +1373,21 @@ public class MathUtility : StringUtility
 	// 计算向量的俯仰角,朝上时俯仰角小于0,朝下时俯仰角大于0
 	public static float getVectorPitch(Vector3 vec)
 	{
-		normalize(ref vec);
-		return -asin(vec.y);
+		return -asin(normalize(vec).y);
+	}
+	// 设置一个向量的俯仰角,pitch是弧度制的
+	public static Vector3 setVectorPitch(Vector3 vec, float pitch)
+	{
+		float length = getLength(vec);
+		Vector3 normal = generateNormal(vec, replaceY(vec, vec.y - 1.0f));
+		return setLength(rotateVector3(resetY(vec), Quaternion.AngleAxis(toDegree(pitch), normal)), length);
+	}
+	// 设置一个向量的俯仰角,pitch是弧度制的
+	public static void setVectorPitch(ref Vector3 vec, float pitch)
+	{
+		float length = getLength(vec);
+		Vector3 normal = generateNormal(vec, replaceY(vec, vec.y - 1.0f));
+		vec = setLength(rotateVector3(resetY(vec), Quaternion.AngleAxis(toDegree(pitch), normal)), length);
 	}
 	// 顺时针旋转为正,逆时针为负
 	public static float getAngleFromVector2ToVector2(Vector2 from, Vector2 to, ANGLE radian = ANGLE.RADIAN)
@@ -1387,7 +1399,7 @@ public class MathUtility : StringUtility
 		Vector3 from3 = normalize(new Vector3(from.x, 0.0f, from.y));
 		Vector3 to3 = normalize(new Vector3(to.x, 0.0f, to.y));
 		float angle = getAngleBetweenVector(from3, to3);
-		Vector3 crossVec = cross(ref from3, ref to3);
+		Vector3 crossVec = cross(from3, to3);
 		if (crossVec.y < 0.0f)
 		{
 			angle = -angle;
@@ -1398,14 +1410,17 @@ public class MathUtility : StringUtility
 		}
 		return angle;
 	}
+	// 在忽略Y轴的情况下,判断从from到to的角度的符号,同向或反向是为0
 	public static int getAngleSignFromVectorToVector3IgnoreY(Vector3 from, Vector3 to)
 	{
 		return getAngleSignFromVectorToVector2(new Vector2(from.x, from.z), new Vector2(to.x, to.z));
 	}
+	// 在忽略X轴的情况下,判断从from到to的角度的符号,同向或反向是为0
 	public static int getAngleSignFromVectorToVector3IgnoreX(Vector3 from, Vector3 to)
 	{
 		return getAngleSignFromVectorToVector2(new Vector2(from.z, from.y), new Vector2(to.z, to.y));
 	}
+	// 在忽略Z轴的情况下,判断从from到to的角度的符号,同向或反向是为0
 	public static int getAngleSignFromVectorToVector3IgnoreZ(Vector3 from, Vector3 to)
 	{
 		return getAngleSignFromVectorToVector2(new Vector2(from.x, from.y), new Vector2(to.x, to.y));
@@ -1416,10 +1431,10 @@ public class MathUtility : StringUtility
 		Vector3 from3 = normalize(new Vector3(from.x, 0.0f, from.y));
 		Vector3 to3 = normalize(new Vector3(to.x, 0.0f, to.y));
 		// 两个向量同向或者反向是角度为0,否则角度不为0
-		int angle = isVectorEqual(ref from3, ref to3) || isVectorZero(from3 + to3) ? 0 : 1;
+		int angle = isVectorEqual(from3, to3) || isVectorZero(from3 + to3) ? 0 : 1;
 		if (angle != 0)
 		{
-			Vector3 crossVec = cross(ref from3, ref to3);
+			Vector3 crossVec = cross(from3, to3);
 			if (crossVec.y < 0.0f)
 			{
 				angle = -angle;
@@ -1440,7 +1455,7 @@ public class MathUtility : StringUtility
 			return 0.0f;
 		}
 		float angle = getAngleBetweenVector(from, to);
-		Vector3 crossVec = cross(ref from, ref to);
+		Vector3 crossVec = cross(from, to);
 		if (baseY)
 		{
 			if (crossVec.y < 0.0f)
@@ -1461,21 +1476,21 @@ public class MathUtility : StringUtility
 		}
 		return angle;
 	}
+	// 计算向量的航向角和俯仰角,计算结果为角度制
 	public static Vector3 getDegreeEulerFromDirection(Vector3 dir)
 	{
-		float yaw = 0.0f;
-		float pitch = 0.0f;
-		getDegreeYawPitchFromDirection(dir, ref yaw, ref pitch);
+		getDegreeYawPitchFromDirection(dir, out float yaw, out float pitch);
 		return new Vector3(pitch, yaw, 0.0f);
 	}
-	public static void getDegreeYawPitchFromDirection(Vector3 dir, ref float fYaw, ref float fPitch)
+	// 计算向量的航向角和俯仰角,计算结果为角度制
+	public static void getDegreeYawPitchFromDirection(Vector3 dir, out float fYaw, out float fPitch)
 	{
-		getRadianYawPitchFromDirection(dir, ref fYaw, ref fPitch);
+		getRadianYawPitchFromDirection(dir, out fYaw, out fPitch);
 		fYaw = toDegree(fYaw);
 		fPitch = toDegree(fPitch);
 	}
-	// fYaw是-PI到PI之间
-	public static void getRadianYawPitchFromDirection(Vector3 dir, ref float fYaw, ref float fPitch)
+	// 计算向量的航向角和俯仰角,fYaw是-PI到PI之间
+	public static void getRadianYawPitchFromDirection(Vector3 dir, out float fYaw, out float fPitch)
 	{
 		normalize(ref dir);
 		// 首先计算俯仰角,俯仰角是向量与X-Z平面的夹角,在上面为负,在下面为正
@@ -1483,7 +1498,7 @@ public class MathUtility : StringUtility
 		fYaw = getVectorYaw(dir);
 	}
 	// 给定一段圆弧,以及圆弧圆心角的百分比,计算对应的圆弧上的一个点以及该点的切线方向
-	public static void getPosOnArc(Vector3 circleCenter, Vector3 startArcPos, Vector3 endArcPos, float anglePercent, ref Vector3 pos, ref Vector3 tangencyDir)
+	public static void getPosOnArc(Vector3 circleCenter, Vector3 startArcPos, Vector3 endArcPos, float anglePercent, out Vector3 pos, out Vector3 tangencyDir)
 	{
 		float radius = getLength(startArcPos - circleCenter);
 		Vector3 relativeStart = startArcPos - circleCenter;
@@ -1516,6 +1531,7 @@ public class MathUtility : StringUtility
 		normalize(ref inRay);
 		return inRay - 2 * getProjection(inRay, normalize(normal));
 	}
+	// 将vec的长度限定到maxLength,如果长度未超过,则不作修改
 	public static Vector3 clampLength(Vector3 vec, float maxLength)
 	{
 		if(lengthGreater(vec, maxLength))
@@ -1524,6 +1540,7 @@ public class MathUtility : StringUtility
 		}
 		return vec;
 	}
+	// 将vec的长度限定到maxLength,如果长度未超过,则不作修改
 	public static void clampLength(ref Vector3 vec, float maxLength)
 	{
 		if (lengthGreater(vec, maxLength))
@@ -1531,72 +1548,48 @@ public class MathUtility : StringUtility
 			vec = normalize(vec) * maxLength;
 		}
 	}
+	// 将向量的X设置为0
 	public static Vector3 resetX(Vector3 v) { return new Vector3(0.0f, v.y, v.z); }
+	// 将向量的Y设置为0
 	public static Vector3 resetY(Vector3 v) { return new Vector3(v.x, 0.0f, v.z); }
+	// 将向量的Z设置为0
 	public static Vector3 resetZ(Vector3 v) { return new Vector3(v.x, v.y, 0.0f); }
+	// 将向量的X替换为指定值
 	public static Vector3 replaceX(Vector3 v, float x) { return new Vector3(x, v.y, v.z); }
+	// 将向量的Y替换为指定值
 	public static Vector3 replaceY(Vector3 v, float y) { return new Vector3(v.x, y, v.z); }
+	// 将向量的Z替换为指定值
 	public static Vector3 replaceZ(Vector3 v, float z) { return new Vector3(v.x, v.y, z); }
-	// vec0的3个分量是否都小于vec1的3个分量
-	public static bool isVector3Less(ref Vector3 vec0, ref Vector3 vec1) { return vec0.x < vec1.x && vec0.y < vec1.y && vec0.z < vec1.z; }
 	// vec0的3个分量是否都小于vec1的3个分量
 	public static bool isVector3Less(Vector3 vec0, Vector3 vec1) { return vec0.x < vec1.x && vec0.y < vec1.y && vec0.z < vec1.z; }
 	// vec0的3个分量是否都大于vec1的3个分量
-	public static bool isVector3Greater(ref Vector3 vec0, ref Vector3 vec1) { return vec0.x > vec1.x && vec0.y > vec1.y && vec0.z > vec1.z; }
-	// vec0的3个分量是否都大于vec1的3个分量
 	public static bool isVector3Greater(Vector3 vec0, Vector3 vec1) { return vec0.x > vec1.x && vec0.y > vec1.y && vec0.z > vec1.z; }
-	public static bool isVectorEqual(ref Vector2 vec0, ref Vector2 vec1, float precision = 0.0001f) { return isFloatZero(vec0.x - vec1.x, precision) && isFloatZero(vec0.y - vec1.y, precision); }
 	public static bool isVectorEqual(Vector2 vec0, Vector2 vec1, float precision = 0.0001f) { return isFloatZero(vec0.x - vec1.x, precision) && isFloatZero(vec0.y - vec1.y, precision); }
-	public static bool isVectorEqual(ref Vector3 vec0, ref Vector3 vec1, float precision = 0.0001f) { return isFloatZero(vec0.x - vec1.x, precision) && isFloatZero(vec0.y - vec1.y, precision) && isFloatZero(vec0.z - vec1.z, precision); }
 	public static bool isVectorEqual(Vector3 vec0, Vector3 vec1, float precision = 0.0001f) { return isFloatZero(vec0.x - vec1.x, precision) && isFloatZero(vec0.y - vec1.y, precision) && isFloatZero(vec0.z - vec1.z, precision); }
-	public static bool isVectorZero(ref Vector2 vec, float precision = 0.0001f) { return isFloatZero(vec.x, precision) && isFloatZero(vec.y, precision); }
 	public static bool isVectorZero(Vector2 vec, float precision = 0.0001f) { return isFloatZero(vec.x, precision) && isFloatZero(vec.y, precision); }
-	public static bool isVectorZero(ref Vector3 vec, float precision = 0.0001f) { return isFloatZero(vec.x, precision) && isFloatZero(vec.y, precision) && isFloatZero(vec.z, precision); }
 	public static bool isVectorZero(Vector3 vec, float precision = 0.0001f) { return isFloatZero(vec.x, precision) && isFloatZero(vec.y, precision) && isFloatZero(vec.z, precision); }
-	public static float getLength(ref Vector4 vec) { return sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z + vec.w * vec.w); }
 	public static float getLength(Vector4 vec) { return sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z + vec.w * vec.w); }
-	public static float getLength(ref Vector3 vec) { return sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z); }
 	public static float getLength(Vector3 vec) { return sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z); }
-	public static float getLength(ref Vector2 vec) { return sqrt(vec.x * vec.x + vec.y * vec.y); }
 	public static float getLength(Vector2 vec) { return sqrt(vec.x * vec.x + vec.y * vec.y); }
-	public static float getSquaredLength(ref Vector4 vec) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z + vec.w * vec.w; }
 	public static float getSquaredLength(Vector4 vec) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z + vec.w * vec.w; }
-	public static float getSquaredLength(ref Vector3 vec) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z; }
 	public static float getSquaredLength(Vector3 vec) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z; }
-	public static float getSquaredLength(ref Vector2 vec) { return vec.x * vec.x + vec.y * vec.y; }
 	public static float getSquaredLength(Vector2 vec) { return vec.x * vec.x + vec.y * vec.y; }
 	public static bool lengthLess(Vector2 vec0, Vector2 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y < vec1.x * vec1.x + vec1.y * vec1.y; }
-	public static bool lengthLess(ref Vector2 vec0, ref Vector2 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y < vec1.x * vec1.x + vec1.y * vec1.y; }
 	public static bool lengthLess(Vector2 vec, float length) { return vec.x * vec.x + vec.y * vec.y < length * length; }
-	public static bool lengthLess(ref Vector2 vec, float length) { return vec.x * vec.x + vec.y * vec.y < length * length; }
 	public static bool lengthLess(Vector3 vec0, Vector3 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y + vec0.z * vec0.z < vec1.x * vec1.x + vec1.y * vec1.y + vec1.z * vec1.z; }
-	public static bool lengthLess(ref Vector3 vec0, ref Vector3 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y + vec0.z * vec0.z < vec1.x * vec1.x + vec1.y * vec1.y + vec1.z * vec1.z; }
 	public static bool lengthLess(Vector3 vec, float length) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z < length * length; }
-	public static bool lengthLess(ref Vector3 vec, float length) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z < length * length; }
 	public static bool lengthLessEqual(Vector2 vec0, Vector2 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y <= vec1.x * vec1.x + vec1.y * vec1.y; }
-	public static bool lengthLessEqual(ref Vector2 vec0, ref Vector2 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y <= vec1.x * vec1.x + vec1.y * vec1.y; }
 	public static bool lengthLessEqual(Vector2 vec, float length) { return vec.x * vec.x + vec.y * vec.y <= length * length; }
-	public static bool lengthLessEqual(ref Vector2 vec, float length) { return vec.x * vec.x + vec.y * vec.y <= length * length; }
 	public static bool lengthLessEqual(Vector3 vec0, Vector3 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y + vec0.z * vec0.z <= vec1.x * vec1.x + vec1.y * vec1.y + vec1.z * vec1.z; }
-	public static bool lengthLessEqual(ref Vector3 vec0, ref Vector3 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y + vec0.z * vec0.z <= vec1.x * vec1.x + vec1.y * vec1.y + vec1.z * vec1.z; }
 	public static bool lengthLessEqual(Vector3 vec, float length) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z <= length * length; }
-	public static bool lengthLessEqual(ref Vector3 vec, float length) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z <= length * length; }
 	public static bool lengthGreater(Vector2 vec, float length) { return vec.x * vec.x + vec.y * vec.y > length * length; }
-	public static bool lengthGreater(ref Vector2 vec, float length) { return vec.x * vec.x + vec.y * vec.y > length * length; }
 	public static bool lengthGreater(Vector2 vec0, Vector2 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y > vec1.x * vec1.x + vec1.y * vec1.y; }
-	public static bool lengthGreater(ref Vector2 vec0, ref Vector2 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y > vec1.x * vec1.x + vec1.y * vec1.y; }
 	public static bool lengthGreater(Vector3 vec, float length) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z > length * length; }
-	public static bool lengthGreater(ref Vector3 vec, float length) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z > length * length; }
 	public static bool lengthGreater(Vector3 vec0, Vector3 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y + vec0.z * vec0.z > vec1.x * vec1.x + vec1.y * vec1.y + vec1.z * vec1.z; }
-	public static bool lengthGreater(ref Vector3 vec0, ref Vector3 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y + vec0.z * vec0.z > vec1.x * vec1.x + vec1.y * vec1.y + vec1.z * vec1.z; }
 	public static bool lengthGreaterEqual(Vector2 vec, float length) { return vec.x * vec.x + vec.y * vec.y >= length * length; }
-	public static bool lengthGreaterEqual(ref Vector2 vec, float length) { return vec.x * vec.x + vec.y * vec.y >= length * length; }
 	public static bool lengthGreaterEqual(Vector2 vec0, Vector2 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y >= vec1.x * vec1.x + vec1.y * vec1.y; }
-	public static bool lengthGreaterEqual(ref Vector2 vec0, ref Vector2 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y >= vec1.x * vec1.x + vec1.y * vec1.y; }
 	public static bool lengthGreaterEqual(Vector3 vec, float length) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z >= length * length; }
-	public static bool lengthGreaterEqual(ref Vector3 vec, float length) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z >= length * length; }
 	public static bool lengthGreaterEqual(Vector3 vec0, Vector3 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y + vec0.z * vec0.z >= vec1.x * vec1.x + vec1.y * vec1.y + vec1.z * vec1.z; }
-	public static bool lengthGreaterEqual(ref Vector3 vec0, ref Vector3 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y + vec0.z * vec0.z >= vec1.x * vec1.x + vec1.y * vec1.y + vec1.z * vec1.z; }
 	public static bool isQuaternionEqual(Quaternion value0, Quaternion value1)
 	{
 		return isFloatEqual(value0.x, value1.x) && 
@@ -1604,15 +1597,17 @@ public class MathUtility : StringUtility
 			   isFloatEqual(value0.z, value1.z) && 
 			   isFloatEqual(value0.w, value1.w);
 	}
+	public static Vector3 setLength(Vector3 vec, float length) { return normalize(vec) * length; }
+	public static void setLength(ref Vector3 vec, float length) { vec = normalize(vec) * length; }
 	public static Vector3 getMatrixScale(Matrix4x4 mat)
 	{
 		Vector3 vec0 = new Vector3(mat.m00, mat.m01, mat.m02);
 		Vector3 vec1 = new Vector3(mat.m10, mat.m11, mat.m12);
 		Vector3 vec2 = new Vector3(mat.m20, mat.m21, mat.m22);
-		return new Vector3(getLength(ref vec0), getLength(ref vec1), getLength(ref vec2));
+		return new Vector3(getLength(vec0), getLength(vec1), getLength(vec2));
 	}
 	// 将矩阵的缩放设置为1,并且不改变位移和旋转
-	public static Matrix4x4 identityMatrix4(ref Matrix4x4 rot)
+	public static Matrix4x4 identityMatrix4(Matrix4x4 rot)
 	{
 		Vector3 vec0 = normalize(new Vector3(rot.m00, rot.m01, rot.m02));
 		Vector3 vec1 = normalize(new Vector3(rot.m10, rot.m11, rot.m12));
@@ -1629,9 +1624,9 @@ public class MathUtility : StringUtility
 		temp.m22 = vec2.z;
 		return temp;
 	}
-	public static Vector3 matrixToEulerAngle(ref Matrix4x4 rot)
+	public static Vector3 matrixToEulerAngle(Matrix4x4 rot)
 	{
-		Matrix4x4 tempMat4 = identityMatrix4(ref rot);
+		Matrix4x4 tempMat4 = identityMatrix4(rot);
 		// 计算滚动角
 		// 首先求出矩阵中X-Y平面与世界坐标系水平面的交线
 		// 交线为X = -rot[2][2] / rot[2][0] * Z,然后随意构造出一个向量
@@ -1737,17 +1732,15 @@ public class MathUtility : StringUtility
 		}
 		return new Vector3(angleYaw, anglePitch, angleRoll);
 	}
+	// 返回值是弧度值的角度
 	public static float getAngleBetweenVector(Vector3 vec1, Vector3 vec2)
 	{
-		normalize(ref vec1);
-		normalize(ref vec2);
-		return acos(dot(ref vec1, ref vec2));
+		return acos(dot(normalize(vec1), normalize(vec2)));
 	}
+	// 返回值是弧度值的角度
 	public static float getAngleBetweenVector(Vector2 vec1, Vector2 vec2)
 	{
-		Vector3 curVec1 = normalize(vec1);
-		Vector3 curVec2 = normalize(vec2);
-		return acos(dot(ref curVec1, ref curVec2));
+		return acos(dot(normalize((Vector3)vec1), normalize((Vector3)vec2)));
 	}
 	// 计算点到线的距离
 	public static float getDistanceToLine(Vector3 point, Line3 line)
@@ -1820,7 +1813,7 @@ public class MathUtility : StringUtility
 	}
 	public static Vector3 normalize(Vector3 vec3)
 	{
-		float length = getLength(ref vec3);
+		float length = getLength(vec3);
 		if (isFloatZero(length))
 		{
 			return Vector3.zero;
@@ -1834,7 +1827,7 @@ public class MathUtility : StringUtility
 	}
 	public static void normalize(ref Vector3 vec3)
 	{
-		float length = getLength(ref vec3);
+		float length = getLength(vec3);
 		if (isFloatZero(length))
 		{
 			return;
@@ -1850,7 +1843,7 @@ public class MathUtility : StringUtility
 	}
 	public static Vector2 normalize(Vector2 vec2)
 	{
-		float length = getLength(ref vec2);
+		float length = getLength(vec2);
 		if (isFloatZero(length))
 		{
 			return Vector2.zero;
@@ -1864,7 +1857,7 @@ public class MathUtility : StringUtility
 	}
 	public static void normalize(ref Vector2 vec2)
 	{
-		float length = getLength(ref vec2);
+		float length = getLength(vec2);
 		if (isFloatZero(length))
 		{
 			return;
@@ -1973,9 +1966,9 @@ public class MathUtility : StringUtility
 		int sign = leftOrRight ? 1 : -1;
 		return (-b0 + sqrt(delta) * sign) / (2.0f * a0);
 	}
-	public static Vector3 getMinVector3(ref Vector3 a, ref Vector3 b) { return new Vector3(getMin(a.x, b.x), getMin(a.y, b.y), getMin(a.z, b.z)); }
-	public static Vector3 getMaxVector3(ref Vector3 a, ref Vector3 b) { return new Vector3(getMax(a.x, b.x), getMax(a.y, b.y), getMax(a.z, b.z)); }
-	public static void getMinMaxVector3(ref Vector3 a, ref Vector3 min, ref Vector3 max)
+	public static Vector3 getMinVector3(Vector3 a, Vector3 b) { return new Vector3(getMin(a.x, b.x), getMin(a.y, b.y), getMin(a.z, b.z)); }
+	public static Vector3 getMaxVector3(Vector3 a, Vector3 b) { return new Vector3(getMax(a.x, b.x), getMax(a.y, b.y), getMax(a.z, b.z)); }
+	public static void getMinMaxVector3(Vector3 a, ref Vector3 min, ref Vector3 max)
 	{
 		min.x = getMin(a.x, min.x);
 		min.y = getMin(a.y, min.y);
@@ -2325,18 +2318,7 @@ public class MathUtility : StringUtility
 			   inRange(value.z, point0.z, point1.z, false, precision) &&
 			  (ignoreY || inRange(value.y, point0.y, point1.y, false, precision));
 	}
-	public static bool inRange(ref Vector3 value, ref Vector3 point0, ref Vector3 point1, bool ignoreY = true, float precision = 0.001f)
-	{
-		return inRange(value.x, point0.x, point1.x, false, precision) && 
-			   inRange(value.z, point0.z, point1.z, false, precision) &&
-			  (ignoreY || inRange(value.y, point0.y, point1.y, false, precision));
-	}
 	public static bool inRange(Vector2 value, Vector2 point0, Vector2 point1, float precision = 0.001f)
-	{
-		return inRange(value.x, point0.x, point1.x, false, precision) && 
-			   inRange(value.y, point0.y, point1.y, false, precision);
-	}
-	public static bool inRange(ref Vector2 value, ref Vector2 point0, ref Vector2 point1, float precision = 0.001f)
 	{
 		return inRange(value.x, point0.x, point1.x, false, precision) && 
 			   inRange(value.y, point0.y, point1.y, false, precision);
@@ -2500,25 +2482,15 @@ public class MathUtility : StringUtility
 		angle = -angle;
 		return angle;
 	}
-	public static void rotateVector3(ref Vector3 vec, ref Matrix4x4 transMat3) { vec = transMat3 * vec; }
 	public static Vector3 rotateVector3(Vector3 vec, Matrix4x4 transMat3) { return transMat3 * vec; }
+	public static void rotateVector3(ref Vector3 vec, Matrix4x4 transMat3) { vec = transMat3 * vec; }
 	// 使用一个四元数去旋转一个三维向量
 	public static Vector3 rotateVector3(Vector3 vec, Quaternion transQuat) { return transQuat * vec; }
-	public static Vector3 rotateVector3(Vector3 vec, ref Quaternion transQuat) { return transQuat * vec; }
 	public static void rotateVector3(ref Vector3 vec, Quaternion transQuat) { vec = transQuat * vec; }
-	public static void rotateVector3(ref Vector3 vec, ref Quaternion transQuat) { vec = transQuat * vec; }
 	// 求向量水平顺时针旋转一定角度后的向量,角度范围是-MATH_PI 到 MATH_PI
 	public static Vector3 rotateVector3(Vector3 vec, float radian)
 	{
-		Vector3 temp = vec;
-		temp.y = 0.0f;
-		float tempLength = getLength(ref temp);
-		float questAngle = getAngleFromVector(temp);
-		questAngle += radian;
-		adjustRadian180(ref questAngle);
-		temp = getVectorFromAngle(questAngle) * tempLength;
-		temp.y = vec.y;
-		return temp;
+		return rotateVector3(vec, Quaternion.AngleAxis(toDegree(radian), Vector3.up));
 	}
 	// 求Z轴顺时针旋转一定角度后的向量,角度范围是-MATH_PI 到 MATH_PI
 	public static Vector3 getVectorFromAngle(float radian)
@@ -3177,6 +3149,7 @@ public class MathUtility : StringUtility
 	}
 	protected static void initGreaterPow2()
 	{
+		mGreaterPow2 = new int[513];
 		for (int i = 0; i < mGreaterPow2.Length; ++i)
 		{
 			if (i <= 1)
