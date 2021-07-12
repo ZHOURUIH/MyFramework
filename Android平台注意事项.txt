@@ -1,2 +1,12 @@
 unity2018及以下要求android项目的包名与unity的包名一致,否则无法打包
 unity2019及以上要求android项目的包名与unity的包名不一致,否则无法打包
+实测在unity2020中,需要在AndroidManifest.xml中去除minSdkVersion
+
+如果想要正常打包安卓包,需要对AndroidProject进行一些修改.
+0.首先肯定要装好安卓打包的环境.在unity方面,需要安装AndroidSupport.然后安装AndroidStudio.安装jdk1.8,因为unity目前只支持jdk1.8.安装sdk,可以多装几个版本.安装ndk,AndroidStudio可以安装sdk和ndk,jdk需要自己下载
+1.首先你要确定一个你自己的包名,一般是com.公司名.项目名,但是unity2019及以上版本的包名有一些需要注意的,已经在上面说明了.
+2.根据包名修改AssetLoader.java,MainActivity.java的路径,需要与包名一致.
+3.修改AssetLoader.java,MainActivity.java中第一行的包名,也是与包名一致.
+4.在AndroidStudio中编译Android项目.如果有编译报错,则需要先解决编译错误.
+5.将编译出来的aar解压,然后将AndroidManifest.xml和classes.jar文件拷贝到Assets/Plugins/Android中,然后将AndroidManifest.xml中的minSdkVersion那一行删除.
+6.然后现在就可以正常打包apk了.
