@@ -1,0 +1,2 @@
+Resources目录用于存放不需要热更的资源,一般都是在下载热更资源之前就会使用到的资源,比如检查资源界面,下载界面,确认对话框界面,初始场景,以及他们的引用的资源.
+并且Resources中的所有文件是不能设置AssetBundle名,且不能引用GameResources中的可热更资源.GameResources中也不能引用Resources的资源,否则会造成冗余打包.
