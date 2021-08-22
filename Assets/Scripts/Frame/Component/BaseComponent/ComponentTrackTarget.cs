@@ -49,7 +49,7 @@ public class ComponentTrackTarget : GameComponent, IComponentModifyPosition, ICo
 		setMoveDoneTrack(null, null);
 		setTrackingCallback(null);
 	}
-	//-----------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected virtual Vector3 getPosition()
 	{
 		return (mComponentOwner as Transformable).getPosition();

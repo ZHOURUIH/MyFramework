@@ -4,12 +4,14 @@ using UnityEngine;
 public class WindowShaderMaskCut : WindowShader
 {
 	protected Texture mMask;
-	protected Vector2 mMaskScale = Vector2.one;
+	protected Vector2 mMaskScale;
 	protected int mMaskTexID;
 	protected int mSizeXID;
 	protected int mSizeYID;
 	public WindowShaderMaskCut()
 	{
+		mMask = null;
+		mMaskScale = Vector2.one;
 		mMaskTexID = Shader.PropertyToID("_MaskTex");
 		mSizeXID = Shader.PropertyToID("_SizeX");
 		mSizeYID = Shader.PropertyToID("_SizeY");

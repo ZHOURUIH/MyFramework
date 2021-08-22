@@ -11,6 +11,12 @@ public class ExcelTable : FrameBase
 	{
 		mDataList = new Dictionary<int, ExcelData>();
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mDataList.Clear();
+		mDataType = null;
+	}
 	public void setClassType(Type type) { mDataType = type; }
 	public void read(string fileName)
 	{

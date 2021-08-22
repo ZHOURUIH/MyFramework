@@ -126,7 +126,7 @@ public class TPSpriteManager : FrameSystem
 		mSpriteList.Remove(atlas);
 		mResourceManager.unload(ref atlas.mTexture);
 	}
-	//---------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 异步加载图集
 	protected void loadAtlasAsync(string atlasName, AtlasLoadDone callback, object userData, bool inResources, bool errorIfNull)
 	{

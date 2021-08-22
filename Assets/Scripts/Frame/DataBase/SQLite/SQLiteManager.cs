@@ -1,4 +1,4 @@
-﻿#if !UNITY_IOS && !NO_SQLITE
+﻿#if !NO_SQLITE
 using Mono.Data.Sqlite;
 using System.Collections.Generic;
 using System;

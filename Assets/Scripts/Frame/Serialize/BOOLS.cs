@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 public class BOOLS : OBJECTS
 {
-	protected const int TYPE_SIZE = sizeof(bool);
 	public bool[] mValue;
 	public bool this[int index]
 	{
@@ -19,26 +18,20 @@ public class BOOLS : OBJECTS
 		}
 	}
 	public BOOLS(int count)
+		: base(count)
 	{
 		mValue = new bool[count];
 		mType = typeof(bool[]);
-		mSize = TYPE_SIZE * mValue.Length;
+		mTypeSize = sizeof(bool);
+		mSize = mTypeSize * mValue.Length;
 	}
 	public BOOLS(bool[] value)
+		: base(value.Length)
 	{
 		mValue = value;
 		mType = typeof(bool[]);
-		mSize = TYPE_SIZE * mValue.Length;
-	}
-	public override void setRealSize(ushort realSize)
-	{
-		mRealSize = realSize;
-		mElementCount = mRealSize / TYPE_SIZE;
-	}
-	public override void setElementCount(int elementCount)
-	{
-		mElementCount = elementCount;
-		mRealSize = (ushort)(mElementCount * TYPE_SIZE);
+		mTypeSize = sizeof(bool);
+		mSize = mTypeSize * mValue.Length;
 	}
 	public override void zero() { memset(mValue, false); }
 	public override bool readFromBuffer(byte[] buffer, ref int index)
@@ -47,8 +40,9 @@ public class BOOLS : OBJECTS
 		{
 			return readBools(buffer, ref index, mValue);
 		}
+
 		// 先读取数据的实际字节长度
-		setRealSize(readUShort(buffer, ref index, out bool success));
+		setElementCount(readElementCount(buffer, ref index, out bool success));
 		if (!success)
 		{
 			return success;
@@ -61,8 +55,9 @@ public class BOOLS : OBJECTS
 		{
 			return writeBools(buffer, ref index, mValue);
 		}
+
 		// 先写入数据的实际字节长度
-		if (!writeUShort(buffer, ref index, mRealSize))
+		if (!writeElementCount(buffer, ref index))
 		{
 			return false;
 		}

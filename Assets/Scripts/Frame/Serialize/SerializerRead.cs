@@ -231,7 +231,7 @@ public class SerializerRead : FrameBase
 	public int getIndex() 						{ return mIndex; }
 	public void setIndex(int index) 			{ mIndex = index; }
 	public void setShowError(bool showError)	{ mShowError = showError; }
-	//-------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected bool readCheck(int readLen)
 	{
 		if (mBuffer == null)

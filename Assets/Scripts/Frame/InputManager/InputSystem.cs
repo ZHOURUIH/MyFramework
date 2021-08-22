@@ -6,18 +6,18 @@ public class InputSystem : FrameSystem
 {
 	protected Dictionary<object, Dictionary<OnKeyCurrentDown, KeyInfo>> mListenerList;
 	protected SafeDictionary<KeyCode, SafeList<KeyInfo>> mKeyListenList;	// 按键按下的监听回调列表
-	protected Dictionary<int, ClickPoint> mClickPointList;	// 这一帧点击的坐标的列表,因为触点数量不一定,所以只是记录这一帧有哪些点击操作
-	protected HashSet<IInputField> mInputFieldList;			// 输入框列表,用于判断当前是否正在输入
-	protected Vector3 mLastMousePosition;					// 上一帧的鼠标坐标
-	protected Vector3 mCurMousePosition;					// 当前鼠标坐标,以左下角为原点的坐标
-	protected Vector3 mMouseDelta;							// 这一帧的鼠标移动量
-	protected int mFocusMask;								// 当前的输入掩码,是输入框的输入还是快捷键输入
+	protected SafeDictionary<int, ClickPoint> mClickPointList;	// 这一帧点击的坐标的列表,因为触点数量不一定,所以只是记录这一帧有哪些点击操作
+	protected HashSet<IInputField> mInputFieldList;				// 输入框列表,用于判断当前是否正在输入
+	protected Vector3 mLastMousePosition;						// 上一帧的鼠标坐标
+	protected Vector3 mCurMousePosition;						// 当前鼠标坐标,以左下角为原点的坐标
+	protected Vector3 mMouseDelta;								// 这一帧的鼠标移动量
+	protected int mFocusMask;									// 当前的输入掩码,是输入框的输入还是快捷键输入
 	public InputSystem()
 	{
 		mListenerList = new Dictionary<object, Dictionary<OnKeyCurrentDown, KeyInfo>>();
 		mKeyListenList = new SafeDictionary<KeyCode, SafeList<KeyInfo>>();
 		mInputFieldList = new HashSet<IInputField>();
-		mClickPointList = new Dictionary<int, ClickPoint>();
+		mClickPointList = new SafeDictionary<int, ClickPoint>();
 	}
 	// 添加对于指定按键的当前按下事件监听
 	public void listenKeyCurrentDown(KeyCode key, OnKeyCurrentDown callback, object listener, bool ctrlDown = false, bool shiftDown = false, bool altDown = false)
@@ -35,7 +35,7 @@ public class InputSystem : FrameSystem
 			mKeyListenList.add(key, list);
 		}
 		list.add(info);
-		if(!mListenerList.TryGetValue(listener, out Dictionary<OnKeyCurrentDown, KeyInfo> callbcakList))
+		if (!mListenerList.TryGetValue(listener, out Dictionary<OnKeyCurrentDown, KeyInfo> callbcakList))
 		{
 			LIST_PERSIST(out callbcakList);
 			mListenerList.Add(listener, callbcakList);
@@ -57,7 +57,7 @@ public class InputSystem : FrameSystem
 				continue;
 			}
 			int count = callbackList.count();
-			for(int i = 0; i < count;)
+			for (int i = 0; i < count;)
 			{
 				if (item.Key == callbackList.get(i).mCallback)
 				{
@@ -91,7 +91,7 @@ public class InputSystem : FrameSystem
 			{
 				pointDown((int)MOUSE_BUTTON.LEFT, Input.mousePosition);
 			}
-			else if(isMouseCurrentUp(MOUSE_BUTTON.LEFT))
+			else if (isMouseCurrentUp(MOUSE_BUTTON.LEFT))
 			{
 				pointUp((int)MOUSE_BUTTON.LEFT, Input.mousePosition);
 			}
@@ -116,14 +116,14 @@ public class InputSystem : FrameSystem
 		}
 		else
 		{
-			for(int i = 0; i < Input.touchCount; ++i)
+			for (int i = 0; i < Input.touchCount; ++i)
 			{
 				Touch touch = Input.GetTouch(i);
 				if (touch.phase == TouchPhase.Began)
 				{
 					pointDown(touch.fingerId, touch.position);
 				}
-				else if(touch.phase == TouchPhase.Ended)
+				else if (touch.phase == TouchPhase.Ended)
 				{
 					pointUp(touch.fingerId, touch.position);
 				}
@@ -132,8 +132,8 @@ public class InputSystem : FrameSystem
 
 		mCurMousePosition = Input.mousePosition;
 		// 鼠标任意键按下时,确保这一帧没有鼠标移动量
-		if (isMouseCurrentDown(MOUSE_BUTTON.LEFT) || 
-			isMouseCurrentDown(MOUSE_BUTTON.RIGHT) || 
+		if (isMouseCurrentDown(MOUSE_BUTTON.LEFT) ||
+			isMouseCurrentDown(MOUSE_BUTTON.RIGHT) ||
 			isMouseCurrentDown(MOUSE_BUTTON.MIDDLE))
 		{
 			mMouseDelta = Vector3.zero;
@@ -167,7 +167,7 @@ public class InputSystem : FrameSystem
 			{
 				continue;
 			}
-			if(!isKeyCurrentDown(item.Key, FOCUS_MASK.SCENE))
+			if (!isKeyCurrentDown(item.Key, FOCUS_MASK.SCENE))
 			{
 				continue;
 			}
@@ -185,33 +185,20 @@ public class InputSystem : FrameSystem
 	{
 		base.lateUpdate(elapsedTime);
 		// 销毁已经不存在的触点
-		List<int> tempList = null;
-		foreach(var item in mClickPointList)
+		var clickList = mClickPointList.startForeach();
+		foreach (var item in clickList)
 		{
 			if (!item.Value.isFinish())
 			{
 				continue;
 			}
-			if (tempList == null)
-			{
-				LIST(out tempList);
-			}
-			tempList.Add(item.Key);
-		}
-		if (tempList != null)
-		{
-			int count = tempList.Count;
-			for (int i = 0; i < count; ++i)
-			{
-				int pointID = tempList[i];
-				UN_CLASS(mClickPointList[pointID]);
-				mClickPointList.Remove(pointID);
-			}
-			UN_LIST(tempList);
+			int pointID = item.Key;
+			UN_CLASS(clickList[pointID]);
+			mClickPointList.remove(pointID);
 		}
 	}
 	// 外部可以通过获取点击操作列表,获取到这一帧的所有点击操作信息,且不分平台,统一触屏和鼠标操作
-	public Dictionary<int, ClickPoint> getClickPointList() { return mClickPointList; }
+	public SafeDictionary<int, ClickPoint> getClickPointList() { return mClickPointList; }
 	public void setMouseVisible(bool visible) { Cursor.visible = visible; }
 	public Vector3 getMousePosition() { return mCurMousePosition; }
 	public Vector3 getMouseDelta() { return mMouseDelta; }
@@ -248,7 +235,7 @@ public class InputSystem : FrameSystem
 	{
 		return (Input.GetKeyUp(key) || !Input.GetKey(key)) && hasMask(mask);
 	}
-	//------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected int generateHelperKeyMask(bool ctrlDown, bool shiftDown, bool altDown)
 	{
 		int curHelperKeyMask = 0;
@@ -268,20 +255,21 @@ public class InputSystem : FrameSystem
 	}
 	protected void pointDown(int pointerID, Vector3 position)
 	{
-		if (mClickPointList.ContainsKey(pointerID))
+		if (mClickPointList.containsKey(pointerID))
 		{
-			logError("已包含相同的触点ID, ID:" + IToS(pointerID));
+			logWarning("已包含相同的触点ID, ID:" + IToS(pointerID));
+			mClickPointList.clear();
 			return;
 		}
 		CLASS(out ClickPoint point);
 		point.pointDown(pointerID, position);
-		mClickPointList.Add(point.getPointerID(), point);
+		mClickPointList.add(point.getPointerID(), point);
 	}
 	protected void pointUp(int pointerID, Vector3 position)
 	{
-		if (!mClickPointList.TryGetValue(pointerID, out ClickPoint point))
+		if (!mClickPointList.tryGetValue(pointerID, out ClickPoint point))
 		{
-			logError("找不到触点信息, ID:" + pointerID);
+			logWarning("找不到触点信息, ID:" + pointerID);
 			return;
 		}
 		point.pointUp(position);

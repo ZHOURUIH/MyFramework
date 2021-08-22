@@ -3,7 +3,7 @@ using System;
 
 public class COMWindowAudio : ComponentAudio
 {
-	//--------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void assignAudioSource()
 	{
 		var window = mComponentOwner as myUIObject;

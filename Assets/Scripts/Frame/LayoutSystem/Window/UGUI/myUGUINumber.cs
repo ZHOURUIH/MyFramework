@@ -51,11 +51,11 @@ public class myUGUINumber : myUGUIImage
 		}
 		for (int i = 0; i < 10; ++i)
 		{
-			mSpriteList[i] = mTPSpriteManager.getSprite(atlasName, mNumberStyle + "_" + IToS(i));
+			mSpriteList[i] = getSprite(atlasName, mNumberStyle + "_" + IToS(i));
 		}
-		mAddSprite = mTPSpriteManager.getSprite(atlasName, mNumberStyle + "_add");
-		mMinusSprite = mTPSpriteManager.getSprite(atlasName, mNumberStyle + "_minus");
-		mDotSprite = mTPSpriteManager.getSprite(atlasName, mNumberStyle + "_dot");
+		mAddSprite = getSprite(atlasName, mNumberStyle + "_add");
+		mMinusSprite = getSprite(atlasName, mNumberStyle + "_minus");
+		mDotSprite = getSprite(atlasName, mNumberStyle + "_dot");
 		setMaxCount(10);
 		mImage.enabled = false;
 	}
@@ -121,6 +121,61 @@ public class myUGUINumber : myUGUIImage
 		height += mInterval * (mNumber.Length - 1);
 		return height;
 	}
+	public void setInterval(int interval)
+	{
+		mInterval = interval;
+		refreshNumber();
+	}
+	public void setDockingPosition(DOCKING_POSITION position)
+	{
+		mDockingPosition = position;
+		refreshNumber();
+	}
+	public void setDirection(NUMBER_DIRECTION direction)
+	{
+		mDirection = direction;
+		refreshNumber();
+	}
+	public void setMaxCount(int maxCount)
+	{
+		if (mMaxCount == maxCount)
+		{
+			return;
+		}
+		mMaxCount = maxCount;
+		// 设置的数字字符串不能超过最大数量
+		if (mNumber.Length > mMaxCount)
+		{
+			mNumber = mNumber.Substring(0, mMaxCount);
+		}
+		mNumberList.Clear();
+		for (int i = 0; i < mMaxCount + 1; ++i)
+		{
+			mNumberList.Add(mLayout.getScript().createObject<myUGUIImage>(this, mName + "_" + IToS(i), false));
+		}
+		refreshNumber();
+	}
+	public void setNumber(int num, int limitLen = 0)
+	{
+		setNumber(IToS(num, limitLen));
+	}
+	public void setNumber(string num)
+	{
+		mNumber = num;
+		checkUIntString(mNumber, mAllMark);
+		// 设置的数字字符串不能超过最大数量
+		if (mNumber.Length > mMaxCount)
+		{
+			mNumber = mNumber.Substring(0, mMaxCount);
+		}
+		refreshNumber();
+	}
+	public int getMaxCount() { return mMaxCount; }
+	public string getNumber() { return mNumber; }
+	public int getInterval() { return mInterval; }
+	public string getNumberStyle() { return mNumberStyle; }
+	public DOCKING_POSITION getDockingPosition() { return mDockingPosition; }
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void refreshNumber()
 	{
 		if (isEmpty(mNumber))
@@ -161,7 +216,7 @@ public class myUGUINumber : myUGUIImage
 		if (dotPos != -1)
 		{
 			mNumberList[dotPos].setSpriteOnly(mDotSprite);
-			string floatPart = mNumber.Substring(dotPos + 1, mNumber.Length - dotPos - 1);
+			string floatPart = mNumber.Substring(dotPos + 1);
 			for (int i = 0; i < floatPart.Length; ++i)
 			{
 				mNumberList[i + dotPos + 1].setSpriteOnly(mSpriteList[floatPart[i] - '0']);
@@ -268,59 +323,4 @@ public class myUGUINumber : myUGUIImage
 			}
 		}
 	}
-	public void setInterval(int interval)
-	{
-		mInterval = interval;
-		refreshNumber();
-	}
-	public void setDockingPosition(DOCKING_POSITION position)
-	{
-		mDockingPosition = position;
-		refreshNumber();
-	}
-	public void setDirection(NUMBER_DIRECTION direction)
-	{
-		mDirection = direction;
-		refreshNumber();
-	}
-	public void setMaxCount(int maxCount)
-	{
-		if (mMaxCount == maxCount)
-		{
-			return;
-		}
-		mMaxCount = maxCount;
-		// 设置的数字字符串不能超过最大数量
-		if (mNumber.Length > mMaxCount)
-		{
-			mNumber = mNumber.Substring(0, mMaxCount);
-		}
-		mNumberList.Clear();
-		for (int i = 0; i < mMaxCount + 1; ++i)
-		{
-			mNumberList.Add(mLayout.getScript().createObject<myUGUIImage>(this, mName + "_" + IToS(i), false));
-		}
-		refreshNumber();
-	}
-	public void setNumber(int num, int limitLen = 0)
-	{
-		setNumber(IToS(num, limitLen));
-	}
-	public void setNumber(string num)
-	{
-		mNumber = num;
-		checkUIntString(mNumber, mAllMark);
-		// 设置的数字字符串不能超过最大数量
-		if (mNumber.Length > mMaxCount)
-		{
-			mNumber = mNumber.Substring(0, mMaxCount);
-		}
-		refreshNumber();
-	}
-	public int getMaxCount() { return mMaxCount; }
-	public string getNumber() { return mNumber; }
-	public int getInterval() { return mInterval; }
-	public string getNumberStyle() { return mNumberStyle; }
-	public DOCKING_POSITION getDockingPosition() { return mDockingPosition; }
-	//----------------------------------------------------------------------------------------------------------------
 }

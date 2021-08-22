@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class SCDemo : SocketPacket
+public class SCDemo : NetPacketTCPFrame
 {
 	public UINT mDemoParam = new UINT();
 	protected override void fillParams()

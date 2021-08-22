@@ -13,7 +13,7 @@ public class COMTransformableMove : ComponentKeyFrameNormal, IComponentModifyPos
 	}
 	public void setTarget(Vector3 pos) { mTarget = pos; }
 	public void setStart(Vector3 pos) { mStart = pos; }
-	//-------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
 		(mComponentOwner as Transformable).setPosition(lerpSimple(mStart, mTarget, value));

@@ -5,7 +5,6 @@ using ILRAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
 using UnityEngine;
 using System.Threading;
 using System.Collections;
-using ILRuntime.Runtime;
 
 public class ILRSystem : FrameSystem
 {
@@ -32,12 +31,12 @@ public class ILRSystem : FrameSystem
 		mDllFile = null;
 		mPDBFile = null;
 	}
-	//------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected IEnumerator loadILRuntime()
 	{
 		// 下载dll文件
-		string dllDownloadPath = FrameDefine.F_STREAMING_ASSETS_PATH + FrameDefine.ILR_FILE;
-		checkDownloadPath(ref dllDownloadPath, true);
+		string dllDownloadPath = availablePath(FrameDefine.ILR_FILE);
+		checkDownloadPath(ref dllDownloadPath);
 		WWW wwwDll = new WWW(dllDownloadPath);
 		while (!wwwDll.isDone)
 		{
@@ -45,14 +44,14 @@ public class ILRSystem : FrameSystem
 		}
 		if (!string.IsNullOrEmpty(wwwDll.error))
 		{
-			Debug.LogError(wwwDll.error + ": " + dllDownloadPath);
+			logError(wwwDll.error + ": " + dllDownloadPath);
 		}
 		mDllFile = new MemoryStream(wwwDll.bytes);
 		wwwDll.Dispose();
 		// 下载pdb文件
 #if UNITY_EDITOR
-		string pdbDownloadPath = FrameDefine.F_STREAMING_ASSETS_PATH + FrameDefine.ILR_PDB_FILE;
-		checkDownloadPath(ref pdbDownloadPath, true);
+		string pdbDownloadPath = availablePath(FrameDefine.ILR_PDB_FILE);
+		checkDownloadPath(ref pdbDownloadPath);
 		WWW wwwPDB = new WWW(pdbDownloadPath);
 		while (!wwwPDB.isDone)
 		{
@@ -60,7 +59,7 @@ public class ILRSystem : FrameSystem
 		}
 		if (!string.IsNullOrEmpty(wwwPDB.error))
 		{
-			Debug.LogError(wwwPDB.error + ": " + pdbDownloadPath);
+			logError(wwwPDB.error + ": " + pdbDownloadPath);
 		}
 		mPDBFile = new MemoryStream(wwwPDB.bytes);
 		wwwPDB.Dispose();
@@ -72,10 +71,14 @@ public class ILRSystem : FrameSystem
 		mAppDomain.DebugService.StartDebugService(56000);
 #endif
 #if DEBUG && (UNITY_EDITOR || UNITY_ANDROID || UNITY_IPHONE)
-		//由于Unity的Profiler接口只允许在主线程使用，为了避免出异常，需要告诉ILRuntime主线程的线程ID才能正确将函数运行耗时报告给Profiler
+		// 由于Unity的Profiler接口只允许在主线程使用，为了避免出异常，需要告诉ILRuntime主线程的线程ID才能正确将函数运行耗时报告给Profiler
 		mAppDomain.UnityMainThreadID = Thread.CurrentThread.ManagedThreadId;
 #endif
 		ILRLaunchFrame.OnILRuntimeInitialized(mAppDomain);
+
+		// 初始化完毕后开始执行热更工程中的逻辑
+		ILRFrameUtility.start();
+		mGameFramework.hotFixInited();
 	}
 }
 #endif

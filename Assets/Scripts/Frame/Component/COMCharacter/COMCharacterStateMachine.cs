@@ -230,7 +230,7 @@ public class COMCharacterStateMachine : GameComponent
 	// 是否拥有该组的任意一个状态
 	public bool hasStateGroup(Type group) { return mGroupStateCountList[group] > 0; }
 	public bool hasState(Type state) { return getFirstState(state) != null; }
-	//---------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected CharacterState createState(Type type, StateParam param, uint id = 0)
 	{
 		// 用对象池的方式创建状态对象

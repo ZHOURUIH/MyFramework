@@ -8,10 +8,30 @@ public class AssetsImport : AssetPostprocessor
 	{
 		foreach (string str in importedAsset)
 		{
-			if (str == FrameDefine.P_STREAMING_ASSETS_PATH + FrameDefine.ILR_FILE)
+			if (str == FrameDefine.P_ASSET_BUNDLE_PATH + FrameDefine.ILR_FILE)
 			{
 				Debug.Log("热更dll已经更新");
+				break;
 			}
 		}
+	}
+	// 导入模型前调用
+	public void OnPreprocessModel()
+	{
+		var modelImporter = assetImporter as ModelImporter;
+#if UNITY_2018
+		modelImporter.importMaterials = false;
+#else
+		modelImporter.materialImportMode = ModelImporterMaterialImportMode.None;
+		modelImporter.sortHierarchyByName = true;
+#endif
+		modelImporter.importCameras = false;
+		modelImporter.importLights = false;
+		modelImporter.importBlendShapes = false;
+		modelImporter.importVisibility = false;
+		modelImporter.preserveHierarchy = true;
+		modelImporter.meshCompression = ModelImporterMeshCompression.High;
+		modelImporter.weldVertices = true;
+		modelImporter.importBlendShapeNormals = ModelImporterNormals.None;
 	}
 }

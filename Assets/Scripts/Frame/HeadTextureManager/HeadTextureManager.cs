@@ -4,11 +4,11 @@ using System.Collections.Generic;
 // 微信头像下载管理器
 public class HeadTextureManager : FrameSystem
 {
-    protected Dictionary<string, HeadLoadInfo> mHeadTextureList;
+	protected Dictionary<string, HeadLoadInfo> mHeadTextureList;
 	protected AssetLoadDoneCallback mHeadLoadCallback;
 	public HeadTextureManager()
 	{
-        mHeadTextureList = new Dictionary<string, HeadLoadInfo>();
+		mHeadTextureList = new Dictionary<string, HeadLoadInfo>();
 		mHeadLoadCallback = onLoadWechatHead;
 	}
 	public override void destroy()
@@ -97,7 +97,7 @@ public class HeadTextureManager : FrameSystem
 			mResourceManager.loadAssetsFromUrl<Texture>(url, mHeadLoadCallback, openID);
 		}
 	}
-	//----------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onLoadWechatHead(Object tex, Object[] subAssets, byte[] bytes, object userData, string loadPath)
 	{
 		string openID = userData as string;

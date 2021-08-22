@@ -8,19 +8,28 @@ public class AssetInfo : FrameBase
 	protected List<AssetLoadDoneCallback> mCallback;// 异步加载回调列表
 	protected List<object> mUserData;				// 异步加载回调参数列表
 	protected List<string> mLoadPath;               // 加载资源时使用的路径
-	protected AssetBundleInfo mParentAssetBundle;	// 资源所属的AssetBundle
 	protected UnityEngine.Object[] mSubAssets;		// 资源数组,数组第一个元素为主资源,后面的是子资源
-	protected LOAD_STATE mLoadState;                // LS_NONE表示未加载,LS_UNLOAD表示已卸载
+	protected AssetBundleInfo mParentAssetBundle;	// 资源所属的AssetBundle
 	protected string mAssetName;                    // 资源文件名,带相对于StreamingAssets的相对路径,带后缀
-	public AssetInfo(AssetBundleInfo parent, string name)
+	protected LOAD_STATE mLoadState;                // LS_NONE表示未加载,LS_UNLOAD表示已卸载
+	public AssetInfo()
 	{
-		mParentAssetBundle = parent;
-		mAssetName = name;
-		mSubAssets = null;
 		mCallback = new List<AssetLoadDoneCallback>();
 		mUserData = new List<object>();
 		mLoadPath = new List<string>();
+	}
+	public void setAssetBundleInfo(AssetBundleInfo parent) { mParentAssetBundle = parent; }
+	public void setAssetName(string name) { mAssetName = name; }
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mCallback.Clear();
+		mUserData.Clear();
+		mLoadPath.Clear();
+		mParentAssetBundle = null;
+		mSubAssets = null;
 		mLoadState = LOAD_STATE.NONE;
+		mAssetName = null;
 	}
 	public bool isUnloaded() { return mLoadState == LOAD_STATE.UNLOAD; }
 	public void unload()
@@ -113,7 +122,7 @@ public class AssetInfo : FrameBase
 			mLoadPath.Add(loadPath);
 		}
 	}
-	//------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void callbackAll(UnityEngine.Object[] assets)
 	{
 		int callbackCount = mCallback.Count;

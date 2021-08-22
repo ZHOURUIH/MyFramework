@@ -11,8 +11,8 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 	protected OnPlayEndCallback mThisPlayEnd;
 	protected OnPlayingCallback mThisPlaying;
 	protected AnimControl mControl;
-	protected string mTextureSetName;
-	protected string mSubPath;
+	protected string mTexturePreName;
+	protected string mTexturePath;
 	protected bool mUseTextureSize;
 	public myUGUIRawImageAnim()
 	{
@@ -21,8 +21,8 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 		mUseTextureSize = false;
 		mPlayEndCallback = new List<TextureAnimCallback>();
 		mPlayingCallback = new List<TextureAnimCallback>();
-		mTextureSetName = EMPTY;
-		mSubPath = EMPTY;
+		mTexturePreName = EMPTY;
+		mTexturePath = EMPTY;
 		mThisPlayEnd = onPlayEnd;
 		mThisPlaying = onPlaying;
 		mEnable = true;
@@ -30,15 +30,13 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 	public override void init()
 	{
 		base.init();
-		string textureName = getTextureName();
-		if (!isEmpty(textureName))
+		var animPath = mObject.GetComponent<RawImageAnimPath>();
+		if (animPath == null)
 		{
-			int index = textureName.LastIndexOf('_');
-			if (index >= 0)
-			{
-				setTextureSet(textureName.Substring(0, index));
-			}
+			logError("myUGUIRawImageAnim的节点必须带有RawImageAnimPath组件");
+			return;
 		}
+		setTexturePath(animPath.mTexturePath, animPath.mTextureName, animPath.mImageCount);
 		mControl.setObject(this);
 		mControl.setPlayEndCallback(mThisPlayEnd);
 		mControl.setPlayingCallback(mThisPlaying);
@@ -52,44 +50,31 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 		}
 		mControl.update(elapsedTime);
 	}
-	public string getTextureSet() { return mTextureSetName; }
+	public string getTextureSet() { return mTexturePath; }
 	public int getTextureFrameCount() { return mTextureList.Count; }
 	public void setUseTextureSize(bool useSize) { mUseTextureSize = useSize; }
-	public void setSubPath(string subPath) { mSubPath = subPath; }
-	public string getSubPath() { return mSubPath; }
 	public void setTexturePosList(List<Vector2> posList) { mTexturePosList = posList; }
 	public List<Vector2> getTexturePosList() { return mTexturePosList; }
-	public void setTextureSet(string textureSetName)
+	// texturePath是GameResource下的相对路径,以/结尾,不支持读取Resources中的资源
+	// texturePreName是图片序列的前缀名,不带_
+	public void setTexturePath(string texturePath, string texturePreName, int textureCount)
 	{
-		setTextureSet(textureSetName, mSubPath);
-	}
-	public void setTextureSet(string textureSetName, string subPath)
-	{
-		if (!isEmpty(subPath) && !subPath.EndsWith("/"))
-		{
-			subPath += "/";
-		}
-		if (mTextureSetName == textureSetName && mSubPath == subPath)
+		if (mTexturePath == texturePath && mTexturePreName == texturePreName)
 		{
 			return;
 		}
 		mTextureList.Clear();
-		mTextureSetName = textureSetName;
-		mSubPath = subPath;
-		string preName = strcat(FrameDefine.R_TEXTURE_ANIM_PATH, mSubPath, mTextureSetName, "/", mTextureSetName, "_");
-		for (int i = 0; ; ++i)
+		mTexturePath = texturePath;
+		mTexturePreName = texturePreName;
+		string preName = mTexturePath + mTexturePreName + "_";
+		for (int i = 0; i < textureCount; ++i)
 		{
-			Texture tex = mResourceManager.loadResource<Texture>(preName + IToS(i), false);
-			if (tex == null)
-			{
-				break;
-			}
-			mTextureList.Add(tex);
+			mTextureList.Add(mResourceManager.loadResource<Texture>(preName + IToS(i)));
 		}
 		mControl.setFrameCount(getTextureFrameCount());
 		if (mTextureList.Count == 0)
 		{
-			logError("invalid texture set! " + textureSetName + ", subPath : " + subPath);
+			logError("无效的图片序列帧! mTexturePath: " + mTexturePath + ", mTexturePreName: " + mTexturePreName);
 		}
 	}
 	public LOOP_MODE getLoop() { return mControl.getLoop(); }
@@ -142,7 +127,7 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 			mPlayingCallback.Add(callback);
 		}
 	}
-	//---------------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onPlaying(AnimControl control, int frame, bool isPlaying)
 	{
 		if (mControl.getCurFrameIndex() >= mTextureList.Count)

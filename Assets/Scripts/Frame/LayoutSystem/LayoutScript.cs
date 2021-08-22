@@ -17,6 +17,15 @@ public abstract class LayoutScript : DelayCmdWatcher
 	{
 		interruptAllCommand();
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mLayout = null;
+		mRoot = null;
+		mType = null;
+		mID = 0;
+		mNeedUpdate = true;
+	}
 	public virtual void setLayout(GameLayout layout)
 	{
 		mLayout = layout;
@@ -101,6 +110,12 @@ public abstract class LayoutScript : DelayCmdWatcher
 	public void unregisteCollider(myUIObject obj)
 	{
 		mGlobalTouchSystem.unregisteCollider(obj);
+	}
+	public void registeScrollRect(myUGUIScrollRect scrollRect, myUGUIObject viewport, myUGUIObject content)
+	{
+		scrollRect.initScrollRect(viewport, content);
+		registeCollider(viewport);
+		bindPassOnlyParent(viewport);
 	}
 	public void registeInputField(IInputField inputField)
 	{
@@ -250,6 +265,19 @@ public abstract class LayoutScript : DelayCmdWatcher
 		}
 		return obj;
 	}
+	public T newObject<T>(out T obj, myUIObject parent, GameObject go) where T : myUIObject, new()
+	{
+		return newObject(out obj, parent, go, -1);
+	}
+	public T newObject<T>(out T obj, myUIObject parent, GameObject go, int active) where T : myUIObject, new()
+	{
+		obj = newUIObject<T>(parent, mLayout, go);
+		if (active >= 0)
+		{
+			obj.setActive(active != 0);
+		}
+		return obj;
+	}
 	// 因为此处可以确定只有主工程的类,所以可以使用new T()
 	public static T newUIObject<T>(myUIObject parent, GameLayout layout, GameObject go) where T : myUIObject, new()
 	{
@@ -265,7 +293,7 @@ public abstract class LayoutScript : DelayCmdWatcher
 		}
 		return obj;
 	}
-	public GameObject instantiateObject(myUIObject parent, string prefabPath, string name, int tag = 0)
+	public GameObject instantiate(myUIObject parent, string prefabPath, string name, int tag = 0)
 	{
 		GameObject go = mObjectPool.createObject(prefabPath, tag);
 		if (go != null)
@@ -276,11 +304,11 @@ public abstract class LayoutScript : DelayCmdWatcher
 		}
 		return go;
 	}
-	public void instantiateObject(myUIObject parent, string prefabName)
+	public void instantiate(myUIObject parent, string prefabName)
 	{
-		instantiateObject(parent, prefabName, getFileNameNoSuffix(prefabName, true));
+		instantiate(parent, prefabName, getFileNameNoSuffix(prefabName, true));
 	}
-	public void destroyInstantiateObject(myUIObject window, bool destroyReally)
+	public void destroyInstantiate(myUIObject window, bool destroyReally)
 	{
 		GameObject go = window.getObject();
 		myUIObject.destroyWindow(window, false);
@@ -288,7 +316,7 @@ public abstract class LayoutScript : DelayCmdWatcher
 		// 窗口销毁时不会通知布局刷新深度,因为移除对于深度不会产生影响
 	}
 	// 虽然执行内容与类似,但是为了外部使用方便,所以添加了对于不同方式创建出来的窗口的销毁方法
-	public void destroyClonedObject(myUIObject obj, bool immediately = false)
+	public void destroyCloned(myUIObject obj, bool immediately = false)
 	{
 		destroyObject(obj, immediately);
 	}

@@ -4,12 +4,23 @@ using System.Collections.Generic;
 // 状态组,状态组可以指定哪些状态是互斥的,如果是互斥的,则添加属于该组的状态时,会移除已有的该组中的所有状态
 public class StateGroup : FrameBase
 {
-	public HashSet<Type> mStateList;
-	public StateGroupMutex mMutex;      // 该组中的状态是否可以共存
-	public Type mMainState;
+	public HashSet<Type> mStateList;	// 组中的状态类型
+	public StateGroupMutex mMutex;		// 该组中的状态是否可以共存
+	public Type mMainState;				// 主状态类型
 	public StateGroup()
 	{
 		mStateList = new HashSet<Type>();
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mStateList.Clear();
+		mMutex = null;
+		mMainState = null;
+	}
+	public void destroy()
+	{
+		mStateManager.destroyMutex(mMutex);
 	}
 	public void setMutex(GROUP_MUTEX mutex)
 	{

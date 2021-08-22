@@ -30,22 +30,18 @@ public class myUGUIObject : myUIObject
 			mBoxCollider.size = mRectTransform.rect.size;
 			mBoxCollider.center = multiVector2(mRectTransform.rect.size, new Vector2(0.5f, 0.5f) - mRectTransform.pivot);
 		}
-		// 一开始就注册所有的UI事件,方便后续做事件转发
-		mEventTriggerListener = getUnityComponent<EventTriggerListener>();
-		mEventTriggerListener.onClick += onUGUIClick;
-		mEventTriggerListener.onDown += onUGUIMouseDown;
-		mEventTriggerListener.onUp += onUGUIMouseUp;
-		mEventTriggerListener.onEnter += onUGUIMouseEnter;
-		mEventTriggerListener.onExit += onUGUIMouseLeave;
 		mMousePointer = null;
 	}
 	public override void destroy()
 	{
-		mEventTriggerListener.onClick -= onUGUIClick;
-		mEventTriggerListener.onDown -= onUGUIMouseDown;
-		mEventTriggerListener.onUp -= onUGUIMouseUp;
-		mEventTriggerListener.onEnter -= onUGUIMouseEnter;
-		mEventTriggerListener.onExit -= onUGUIMouseLeave;
+		if (mEventTriggerListener != null)
+		{
+			mEventTriggerListener.onClick -= onUGUIClick;
+			mEventTriggerListener.onDown -= onUGUIMouseDown;
+			mEventTriggerListener.onUp -= onUGUIMouseUp;
+			mEventTriggerListener.onEnter -= onUGUIMouseEnter;
+			mEventTriggerListener.onExit -= onUGUIMouseLeave;
+		}
 		mMousePointer = null;
 		base.destroy();
 	}
@@ -138,33 +134,62 @@ public class myUGUIObject : myUIObject
 		}
 		UN_LIST(tempList);
 	}
-	public void setUGUIClick(Action<PointerEventData, GameObject> callback) { mOnUGUIClick = callback; }
+	public void setUGUIClick(Action<PointerEventData, GameObject> callback) 
+	{
+		checkEventTrigger();
+		mOnUGUIClick = callback; 
+	}
 	public void setUGUIMouseDown(Action<PointerEventData, GameObject> callback) 
 	{
+		checkEventTrigger();
 		mOnUGUIMouseDown = callback;
 		// 因为点击事件会使用触点,为了确保触点的正确状态,所以需要在布局隐藏时清除触点
 		mReceiveLayoutHide = true;
 	}
 	public void setUGUIMouseUp(Action<PointerEventData, GameObject> callback) 
 	{
+		checkEventTrigger();
 		mOnUGUIMouseUp = callback;
 		// 因为点击事件会使用触点,为了确保触点的正确状态,所以需要在布局隐藏时清除触点
 		mReceiveLayoutHide = true;
 	}
-	public void setUGUIMouseEnter(Action<PointerEventData, GameObject> callback) { mOnUGUIMouseEnter = callback; }
-	public void setUGUIMouseExit(Action<PointerEventData, GameObject> callback) { mOnUGUIMouseLeave = callback; }
+	public void setUGUIMouseEnter(Action<PointerEventData, GameObject> callback) 
+	{
+		checkEventTrigger();
+		mOnUGUIMouseEnter = callback; 
+	}
+	public void setUGUIMouseExit(Action<PointerEventData, GameObject> callback) 
+	{
+		checkEventTrigger();
+		mOnUGUIMouseLeave = callback; 
+	}
 	public void setUGUIMouseMove(Action<Vector2, Vector3> callback) 
 	{
+		checkEventTrigger();
 		mOnUGUIMouseMove = callback;
 		// 如果设置了要监听鼠标移动,则需要激活当前窗口
 		mEnable = true;
 	}
 	public void setUGUIMouseStay(Action<Vector3> callback)
 	{
+		checkEventTrigger();
 		mOnUGUIMouseStay = callback;
 		mEnable = true;
 	}
-	//--------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected void checkEventTrigger()
+	{
+		if (mEventTriggerListener != null)
+		{
+			return;
+		}
+		mEventTriggerListener = getUnityComponent<EventTriggerListener>();
+		mEventTriggerListener.onClick += onUGUIClick;
+		mEventTriggerListener.onDown += onUGUIMouseDown;
+		mEventTriggerListener.onUp += onUGUIMouseUp;
+		mEventTriggerListener.onEnter += onUGUIMouseEnter;
+		mEventTriggerListener.onExit += onUGUIMouseLeave;
+	}
 	protected static int compareZDecending(Transform a, Transform b) { return (int)sign(b.localPosition.z - a.localPosition.z); }
 	protected void onUGUIMouseDown(PointerEventData eventData, GameObject go)
 	{

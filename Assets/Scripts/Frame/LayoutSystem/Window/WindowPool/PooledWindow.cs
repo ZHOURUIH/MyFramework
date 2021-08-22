@@ -22,23 +22,23 @@ public abstract class PooledWindow : FrameBase
 		checkRoot();
 		LT.ACTIVE(mRoot, visible); 
 	}
-	public void setAsFirstSibling(bool needSortChild = true, bool refreshUIDepth = true)
+	public void setAsFirstSibling(bool needSortChild = false, bool refreshUIDepth = true)
 	{
 		checkRoot();
 		mRoot.setAsFirstSibling(needSortChild, refreshUIDepth);
 	}
-	public void setAsLastSibling(bool needSortChild = true, bool refreshUIDepth = true) 
+	public void setAsLastSibling(bool needSortChild = false, bool refreshUIDepth = true) 
 	{
 		checkRoot();
 		mRoot.setAsLastSibling(needSortChild, refreshUIDepth);
 	}
-	public void setParent(myUIObject parent, bool needSortChild = true, bool notifyLayout = true) 
+	public void setParent(myUIObject parent, bool needSortChild = false, bool notifyLayout = true) 
 	{
 		checkRoot();
 		mRoot.setParent(parent, needSortChild, notifyLayout); 
 	}
 	public myUIObject getRoot() { return mRoot; }
-	//----------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void checkRoot()
 	{
 		if(mRoot == null)

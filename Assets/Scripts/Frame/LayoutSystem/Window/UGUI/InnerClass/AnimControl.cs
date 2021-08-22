@@ -27,6 +27,25 @@ public class AnimControl : FrameBase
 		mLoopMode = LOOP_MODE.ONCE;
 		mPlayState = PLAY_STATE.STOP;
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mPlayEndCallback = null;
+		mPlayingCallback = null;
+		mControlObject = null;
+		mPlayedTime = 0.0f;
+		mInterval = 0.033f;
+		mCurTime = 0.0f;
+		mCurTextureIndex = 0;
+		mTextureCount = 0;
+		mStartIndex = 0;
+		mEndIndex = -1;
+		mUseTextureSelfSize = true;
+		mAutoResetIndex = true;
+		mPlayDirection = true;
+		mPlayState = PLAY_STATE.STOP;
+		mLoopMode = LOOP_MODE.ONCE;
+	}
 	public void setObject(myUIObject obj) { mControlObject = obj; }
 	public void update(float elapsedTime)
 	{

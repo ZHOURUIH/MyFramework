@@ -15,6 +15,7 @@ public class UnityUtility : CSharpUtility
 	protected static OnLog mOnLog;
 	protected static bool mShowMessageBox = true;
 	protected static LOG_LEVEL mLogLevel = LOG_LEVEL.FORCE;
+	protected static PointerEventData mEventData;		// 缓存一个对象,避免每次都重新new一个
 	public static new void initUtility() { }
 	public static void setLogCallback(OnLog callback) { mOnLog = callback; }
 	public static void setLogLevel(LOG_LEVEL level)
@@ -39,40 +40,44 @@ public class UnityUtility : CSharpUtility
 		string trackStr = new StackTrace().ToString();
 #if !UNITY_EDITOR
 		// 打包后使用LocalLog打印日志
-		//FrameBase.mLocalLog?.log(time + ": error: " + info + ", stack: " + trackStr);
+		// FrameBase.mLocalLog?.log(time + ": error: " + info + ", stack: " + trackStr);
 #endif
 		UnityEngine.Debug.LogError(time + ": error: " + info + ", stack: " + trackStr);
 		mOnLog?.Invoke(time, ": error: " + info + ", stack: " + trackStr, LOG_LEVEL.FORCE, true);
 	}
 	public static void logForce(string info)
 	{
-		log(info, null, LOG_LEVEL.FORCE);
+		log(info, null, LOG_LEVEL.FORCE, null);
+	}
+	public static void logForce(string info, UnityEngine.Object obj)
+	{
+		log(info, null, LOG_LEVEL.FORCE, obj);
 	}
 	public static void logForce(string info, string color)
 	{
-		log(info, color, LOG_LEVEL.FORCE);
+		log(info, color, LOG_LEVEL.FORCE, null);
 	}
 	public static void logForce(string info, Color32 color)
 	{
-		log(info, colorToRGBString(color), LOG_LEVEL.FORCE);
+		log(info, colorToRGBString(color), LOG_LEVEL.FORCE, null);
 	}
 	public static void log(string info)
 	{
-		log(info, null, LOG_LEVEL.NORMAL);
+		log(info, null, LOG_LEVEL.NORMAL, null);
 	}
 	public static void log(string info, LOG_LEVEL level)
 	{
-		log(info, null, level);
+		log(info, null, level, null);
 	}
 	public static void log(string info, string color)
 	{
-		log(info, color, LOG_LEVEL.NORMAL);
+		log(info, color, LOG_LEVEL.NORMAL, null);
 	}
 	public static void log(string info, Color32 color)
 	{
-		log(info, colorToRGBString(color), LOG_LEVEL.NORMAL);
+		log(info, colorToRGBString(color), LOG_LEVEL.NORMAL, null);
 	}
-	public static void log(string info, string color, LOG_LEVEL level)
+	public static void log(string info, string color, LOG_LEVEL level, UnityEngine.Object obj)
 	{
 		if ((int)level < (int)mLogLevel)
 		{
@@ -94,9 +99,9 @@ public class UnityUtility : CSharpUtility
 		string fullInfo = time + ": " + info;
 #if !UNITY_EDITOR
 		// 打包后使用LocalLog打印日志
-		//FrameBase.mLocalLog?.log(fullInfo);
+		// FrameBase.mLocalLog?.log(fullInfo);
 #endif
-		UnityEngine.Debug.Log(fullInfo);
+		UnityEngine.Debug.Log(fullInfo, obj);
 		mOnLog?.Invoke(time, info, level, false);
 	}
 	public static void logWarning(string info)
@@ -113,7 +118,7 @@ public class UnityUtility : CSharpUtility
 		string fullInfo = time + ": " + info;
 #if !UNITY_EDITOR
 		// 打包后使用LocalLog打印日志
-		//FrameBase.mLocalLog?.log(fullInfo);
+		// FrameBase.mLocalLog?.log(fullInfo);
 #endif
 		UnityEngine.Debug.LogWarning(fullInfo);
 		mOnLog?.Invoke(time, info, LOG_LEVEL.FORCE, false);
@@ -214,9 +219,7 @@ public class UnityUtility : CSharpUtility
 
 		if (go == null && errorIfNull)
 		{
-			string file = getCurSourceFileName(2);
-			int line = getLineNum(2);
-			logError("can not find " + name + ". file : " + file + ", line : " + line);
+			logError("can not find " + name + ", parent:" + (parent != null ? parent.name : EMPTY));
 		}
 		return go;
 	}
@@ -301,7 +304,7 @@ public class UnityUtility : CSharpUtility
 	}
 	public static void setNormalProperty(GameObject obj, GameObject parent)
 	{
-		setNormalProperty(obj, parent, obj.name, Vector3.one, Vector3.zero, Vector3.zero);
+		setNormalProperty(obj, parent, null, Vector3.one, Vector3.zero, Vector3.zero);
 	}
 	public static void setNormalProperty(GameObject obj, GameObject parent, string name)
 	{
@@ -313,22 +316,23 @@ public class UnityUtility : CSharpUtility
 	}
 	public static void setNormalProperty(GameObject obj, GameObject parent, Vector3 pos)
 	{
-		setNormalProperty(obj, parent, obj.name, Vector3.one, Vector3.zero, pos);
+		setNormalProperty(obj, parent, null, Vector3.one, Vector3.zero, pos);
 	}
 	public static void setNormalProperty(GameObject obj, GameObject parent, string name, Vector3 scale, Vector3 rot, Vector3 pos)
 	{
-		if (parent != null)
+		Transform objTrans = obj.transform;
+		Transform parentTrans = parent?.transform;
+		if (objTrans.parent != parentTrans)
 		{
-			obj.transform.SetParent(parent.transform);
+			objTrans.SetParent(parentTrans);
 		}
-		else
+		objTrans.localPosition = pos;
+		objTrans.localEulerAngles = rot;
+		objTrans.localScale = scale;
+		if (!isEmpty(name))
 		{
-			obj.transform.SetParent(null);
+			objTrans.name = name;
 		}
-		obj.transform.localPosition = pos;
-		obj.transform.localEulerAngles = rot;
-		obj.transform.localScale = scale;
-		obj.transform.name = name;
 	}
 	public static Ray getMainCameraMouseRay()
 	{
@@ -429,8 +433,21 @@ public class UnityUtility : CSharpUtility
 		}
 		return windowPos;
 	}
+	// 判断点是否在摄像机背面
+	public static bool atCameraBack(Vector3 position, GameCamera camera)
+	{
+		return dot(normalize(position - camera.getPosition()), camera.getForward()) <= 0;
+	}
+	public static bool atCameraBack(Vector3 position)
+	{
+		return atCameraBack(position, FrameUtility.getMainCamera());
+	}
 	public static void setGameObjectLayer(GameObject obj, string layerName)
 	{
+		if (obj == null)
+		{
+			return;
+		}
 		int layer = LayerMask.NameToLayer(layerName);
 		if (!inRange(layer, 1, 32))
 		{
@@ -440,8 +457,12 @@ public class UnityUtility : CSharpUtility
 	}
 	public static void setGameObjectLayer(GameObject obj, int layer)
 	{
+		if (obj == null)
+		{
+			return;
+		}
 		obj.layer = layer;
-		Transform[] childTransformList = obj.transform.GetComponentsInChildren<Transform>(true);
+		var childTransformList = obj.transform.GetComponentsInChildren<Transform>(true);
 		int count = childTransformList.Length;
 		for (int i = 0; i < count; ++i)
 		{
@@ -450,7 +471,7 @@ public class UnityUtility : CSharpUtility
 	}
 	public static void setParticleSortOrder(GameObject obj, int sortOrder)
 	{
-		Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
+		var renderers = obj.GetComponentsInChildren<Renderer>();
 		for (int i = 0; i < renderers.Length; ++i)
 		{
 			renderers[i].sortingOrder = sortOrder;
@@ -458,7 +479,7 @@ public class UnityUtility : CSharpUtility
 	}
 	public static void setParticleSortLayerID(GameObject obj, int layerID)
 	{
-		Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
+		var renderers = obj.GetComponentsInChildren<Renderer>();
 		for (int i = 0; i < renderers.Length; ++i)
 		{
 			renderers[i].sortingLayerID = layerID;
@@ -495,14 +516,15 @@ public class UnityUtility : CSharpUtility
 	}
 	public static void activeChilds(GameObject go, bool active = true)
 	{
-		if (go != null)
+		if (go == null)
 		{
-			Transform transform = go.transform;
-			int childCount = transform.childCount;
-			for (int i = 0; i < childCount; ++i)
-			{
-				transform.GetChild(i).gameObject.SetActive(active);
-			}
+			return;
+		}
+		Transform transform = go.transform;
+		int childCount = transform.childCount;
+		for (int i = 0; i < childCount; ++i)
+		{
+			transform.GetChild(i).gameObject.SetActive(active);
 		}
 	}
 	public static Sprite texture2DToSprite(Texture2D tex)
@@ -513,12 +535,9 @@ public class UnityUtility : CSharpUtility
 		}
 		return Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f));
 	}
-	public static void checkDownloadPath(ref string path, bool localPath)
+	// 通过WWW加载本地资源时,需要确保路径的前缀正确
+	public static void checkDownloadPath(ref string path)
 	{
-		if (!localPath)
-		{
-			return;
-		}
 #if UNITY_EDITOR
 		// 本地加载需要添加file:///前缀
 		if (!startWith(path, "file:///"))
@@ -535,6 +554,12 @@ public class UnityUtility : CSharpUtility
 		}
 #elif UNITY_IOS
 		// ios本地加载需要添加file://前缀
+		if (!startWith(path, "file://"))
+		{
+			path = "file://" + path;
+		}
+#elif UNITY_ANDROID
+		// android本地加载需要添加file://前缀
 		if (!startWith(path, "file://"))
 		{
 			path = "file://" + path;
@@ -584,8 +609,8 @@ public class UnityUtility : CSharpUtility
 		Vector3 corner5 = worldBoxCenter + new Vector3(halfSize.x, halfSize.y, -halfSize.z);
 		Vector3 corner6 = worldBoxCenter + new Vector3(halfSize.x, halfSize.y, halfSize.z);
 		Vector3 corner7 = worldBoxCenter + new Vector3(-halfSize.x, halfSize.y, halfSize.z);
-		min = new Vector3(9999.0f, 9999.0f, 9999.0f);
-		max = new Vector3(-9999.0f, -9999.0f, -9999.0f);
+		min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+		max = new Vector3(float.MinValue, float.MinValue, float.MinValue);
 		getMinMaxVector3(corner0, ref min, ref max);
 		getMinMaxVector3(corner1, ref min, ref max);
 		getMinMaxVector3(corner2, ref min, ref max);
@@ -656,7 +681,8 @@ public class UnityUtility : CSharpUtility
 	public static int overlapAllCapsule(CapsuleCollider2D collider, Collider2D[] results, int layer = -1)
 	{
 		Transform transform = collider.transform;
-		int hitCount = Physics2D.OverlapCapsuleNonAlloc(transform.position, collider.size, collider.direction, transform.localEulerAngles.z, results, layer);
+		float eulerZ = transform.localEulerAngles.z;
+		int hitCount = Physics2D.OverlapCapsuleNonAlloc(transform.position, collider.size, collider.direction, eulerZ, results, layer);
 		return removeClassElement(results, hitCount, collider);
 	}
 	public static bool overlapBoxIgnoreY(BoxCollider box0, BoxCollider box1, GameObject parent, int precision = 4)
@@ -734,9 +760,13 @@ public class UnityUtility : CSharpUtility
 	}
 	public static bool raycast(Ray ray, out Collider result, out Vector3 point, int layer = -1)
 	{
+		return raycast(ray, out result, out point, 10000.0f, layer);
+	}
+	public static bool raycast(Ray ray, out Collider result, out Vector3 point, float maxDistance, int layer = -1)
+	{
 		result = null;
 		point = Vector3.zero;
-		if (!Physics.Raycast(ray, out RaycastHit hitInfo, 10000.0f, layer))
+		if (!Physics.Raycast(ray, out RaycastHit hitInfo, maxDistance, layer))
 		{
 			return false;
 		}
@@ -744,53 +774,101 @@ public class UnityUtility : CSharpUtility
 		point = hitInfo.point;
 		return true;
 	}
-	public static bool racastAll(Ray ray, RaycastHit[] result, int layer = -1)
+	public static int raycastAll(Ray ray, RaycastHit[] result, int layer = -1)
 	{
-		if(result == null)
+		return raycastAll(ray, result, 10000.0f, layer);
+	}
+	public static int raycastAll(Ray ray, RaycastHit[] result, float maxDistance, int layer = -1)
+	{
+		if (result == null)
 		{
-			return false;
+			return 0;
 		}
-		int hitCount = Physics.RaycastNonAlloc(ray, result, 10000.0f, layer);
-		return hitCount > 0;
+		clampMin(ref maxDistance);
+		return Physics.RaycastNonAlloc(ray, result, maxDistance, layer);
 	}
 	public static bool getRaycastPoint(Collider collider, Ray ray, ref Vector3 intersectPoint)
 	{
-		if (collider.Raycast(ray, out RaycastHit hit, 10000.0f))
+		return getRaycastPoint(collider, ray, ref intersectPoint, 10000.0f);
+	}
+	public static bool getRaycastPoint(Collider collider, Ray ray, ref Vector3 intersectPoint, float maxDistance)
+	{
+		clampMin(ref maxDistance);
+		if (collider.Raycast(ray, out RaycastHit hit, maxDistance))
 		{
 			intersectPoint = hit.point;
 			return true;
 		}
 		return false;
 	}
+	// 获得指定屏幕坐标下的可交互UI,比如勾选了RaycastTarget的Image或Text等,Button,InputField等
+	public static void checkUGUIInteractable(Vector2 screenPosition, List<GameObject> clickList)
+	{
+		if (clickList == null)
+		{
+			return;
+		}
+		if (mEventData == null)
+		{
+			mEventData = new PointerEventData(UnityEngine.EventSystems.EventSystem.current);
+		}
+		// 将点击位置的屏幕坐标赋值给点击事件
+		mEventData.position = new Vector2(screenPosition.x, screenPosition.y);
+		FrameUtility.LIST(out List<RaycastResult> results);
+		// 向点击处发射射线
+		UnityEngine.EventSystems.EventSystem.current.RaycastAll(mEventData, results);
+		// 如果点击到了非透明的图片或者文字,则不可穿透射线
+		int count = results.Count;
+		for (int i = 0; i < count; ++i)
+		{
+			GameObject go = results[i].gameObject;
+			var graphic = go.GetComponent<Graphic>();
+			if (graphic != null && graphic.raycastTarget)
+			{
+				clickList.Add(go);
+				continue;
+			}
+			var selectable = go.GetComponent<Selectable>();
+			if(selectable != null && selectable.interactable)
+			{
+				clickList.Add(go);
+				continue;
+			}
+		}
+		FrameUtility.UN_LIST(results);
+	}
 	// 获得指定屏幕坐标下的可见UI,可见UI是指已激活且透明度不为0
 	public static GameObject getPointerOnUI(Vector2 screenPosition)
 	{
-		var currentPositionData = new PointerEventData(UnityEngine.EventSystems.EventSystem.current);
+		if (mEventData == null)
+		{
+			mEventData = new PointerEventData(UnityEngine.EventSystems.EventSystem.current);
+		}
 		// 将点击位置的屏幕坐标赋值给点击事件
-		currentPositionData.position = new Vector2(screenPosition.x, screenPosition.y);
+		mEventData.position = new Vector2(screenPosition.x, screenPosition.y);
 		FrameUtility.LIST(out List<RaycastResult> results);
 		// 向点击处发射射线
-		UnityEngine.EventSystems.EventSystem.current.RaycastAll(currentPositionData, results);
+		UnityEngine.EventSystems.EventSystem.current.RaycastAll(mEventData, results);
 		// 如果点击到了非透明的图片或者文字,则不可穿透射线
 		GameObject hoverObject = null;
 		int count = results.Count;
 		for (int i = 0; i < count; ++i)
 		{
 			GameObject go = results[i].gameObject;
-			Image image = go.GetComponent<Image>();
+			var image = go.GetComponent<Image>();
 			if (image != null)
 			{
-				if (!isFloatZero(image.color.a))
+				if (image.raycastTarget && !isFloatZero(image.color.a))
 				{
 					hoverObject = go;
 					break;
 				}
 				continue;
 			}
-			Text text = go.GetComponent<Text>();
+			var text = go.GetComponent<Text>();
 			if (text != null)
 			{
-				if (!isFloatZero(text.color.a))
+				if (text.raycastTarget && !isFloatZero(text.color.a))
 				{
 					hoverObject = go;
 					break;
@@ -812,7 +890,7 @@ public class UnityUtility : CSharpUtility
 			go.SetActive(false);
 			go.SetActive(true);
 		}
-		ParticleSystem[] particles = go.transform.GetComponentsInChildren<ParticleSystem>();
+		var particles = go.transform.GetComponentsInChildren<ParticleSystem>();
 		int count = particles.Length;
 		for (int i = 0; i < count; ++i)
 		{
@@ -825,7 +903,7 @@ public class UnityUtility : CSharpUtility
 		{
 			return;
 		}
-		ParticleSystem[] particles = go.transform.GetComponentsInChildren<ParticleSystem>();
+		var particles = go.transform.GetComponentsInChildren<ParticleSystem>();
 		int count = particles.Length;
 		for (int i = 0; i < count; ++i)
 		{
@@ -838,7 +916,7 @@ public class UnityUtility : CSharpUtility
 		{
 			return;
 		}
-		ParticleSystem[] particles = go.transform.GetComponentsInChildren<ParticleSystem>();
+		var particles = go.transform.GetComponentsInChildren<ParticleSystem>();
 		int count = particles.Length;
 		for (int i = 0; i < count; ++i)
 		{
@@ -853,7 +931,7 @@ public class UnityUtility : CSharpUtility
 		{
 			return;
 		}
-		ParticleSystem[] particles = go.transform.GetComponentsInChildren<ParticleSystem>();
+		var particles = go.transform.GetComponentsInChildren<ParticleSystem>();
 		int count = particles.Length;
 		for (int i = 0; i < count; ++i)
 		{
@@ -866,8 +944,7 @@ public class UnityUtility : CSharpUtility
 		{
 			return transform.localScale;
 		}
-		Vector3 parentScale = generateWorldScale(transform.parent);
-		return multiVector3(parentScale, transform.localScale);
+		return multiVector3(generateWorldScale(transform.parent), transform.localScale);
 	}
 	public static Quaternion generateWorldRotation(Transform transform)
 	{
@@ -875,8 +952,7 @@ public class UnityUtility : CSharpUtility
 		{
 			return transform.localRotation;
 		}
-		Quaternion parentRotation = generateWorldRotation(transform.parent);
-		return parentRotation * transform.localRotation;
+		return generateWorldRotation(transform.parent) * transform.localRotation;
 	}
 	public static Vector3 generateWorldPosition(Transform transform)
 	{
@@ -884,30 +960,23 @@ public class UnityUtility : CSharpUtility
 		{
 			return transform.localPosition;
 		}
-		Vector3 parentWorldPosition = generateWorldPosition(transform.parent);
 		Vector3 localPosition = transform.localPosition;
-		Quaternion parentRotation = generateWorldRotation(transform.parent);
-		localPosition = rotateVector3(localPosition, parentRotation);
-		Vector3 parentScale = generateWorldScale(transform.parent);
-		localPosition = multiVector3(localPosition, parentScale);
-		return localPosition + parentWorldPosition;
+		localPosition = rotateVector3(localPosition, generateWorldRotation(transform.parent));
+		localPosition = multiVector3(localPosition, generateWorldScale(transform.parent));
+		return localPosition + generateWorldPosition(transform.parent);
 	}
 	public static Vector3 generateLocalPosition(Transform transform, Vector3 worldPosition)
 	{
 		Transform parent = transform.parent;
-		Vector3 parentWorldPosition = generateWorldPosition(parent);
-		Quaternion parentWorldRotation = generateWorldRotation(parent);
-		Vector3 parentWorldScale = generateWorldScale(parent);
-		Vector3 localPosition = worldPosition - parentWorldPosition;
+		Vector3 localPosition = worldPosition - generateWorldPosition(parent);
 		// 还原缩放
-		localPosition = devideVector3(localPosition, parentWorldScale);
+		localPosition = devideVector3(localPosition, generateWorldScale(parent));
 		// 还原旋转
-		localPosition = rotateVector3(localPosition, Quaternion.Inverse(parentWorldRotation));
-		return localPosition;
+		return rotateVector3(localPosition, Quaternion.Inverse(generateWorldRotation(parent)));
 	}
 	public static void setUGUIChildAlpha(GameObject go, float alpha)
 	{
-		Graphic graphic = go.GetComponent<Graphic>();
+		var graphic = go.GetComponent<Graphic>();
 		if (graphic != null)
 		{
 			Color color = graphic.color;
@@ -924,6 +993,10 @@ public class UnityUtility : CSharpUtility
 	}
 	public static float getAnimationLength(Animator animator, string name)
 	{
+		if (animator == null || animator.runtimeAnimatorController == null)
+		{
+			return 0.0f;
+		}
 		var clips = animator.runtimeAnimatorController.animationClips;
 		int count = clips.Length;
 		for (int i = 0; i < count; ++i)
@@ -941,7 +1014,7 @@ public class UnityUtility : CSharpUtility
 		var scaleAnchor = obj.GetComponent<ScaleAnchor>();
 		var paddingAnchor = obj.GetComponent<PaddingAnchor>();
 		if (paddingAnchor != null || (scaleAnchor != null && scaleAnchor.mRemoveUGUIAnchor))
-        {
+		{
 			// 去除UGUI自带的锚点,避免计算错误
 			RectTransform rectTransform = obj.GetComponent<RectTransform>();
 			if (rectTransform != null)
@@ -991,10 +1064,8 @@ public class UnityUtility : CSharpUtility
 	}
 	public static Vector2 getScreenScale(Vector2 rootSize)
 	{
-		Vector2 scale = Vector2.one;
-		scale.x = rootSize.x * (1.0f / FrameDefineExtension.STANDARD_WIDTH);
-		scale.y = rootSize.y * (1.0f / FrameDefineExtension.STANDARD_HEIGHT);
-		return scale;
+		return new Vector2(rootSize.x * (1.0f / FrameDefineExtension.STANDARD_WIDTH), 
+							rootSize.y * (1.0f / FrameDefineExtension.STANDARD_HEIGHT));
 	}
 	public static Vector2 adjustScreenScale(ASPECT_BASE aspectBase = ASPECT_BASE.AUTO)
 	{
@@ -1039,11 +1110,15 @@ public class UnityUtility : CSharpUtility
 #if UNITY_EDITOR
 		return render.material;
 #else
-        return render.sharedMaterial;
+		return render.sharedMaterial;
 #endif
 	}
-	// 从左上角开始排列子节点,每行的数量固定,并且会改变子节点的大小
-	public static void autoGrid(myUGUIObject root, int columnCount, Vector2 gridSize, Vector2 interval, bool resizeRootSize = true)
+	public static void autoGridFixedRootHeight(myUGUIObject root, Vector2 gridSize, CORNER startCorner = CORNER.LEFT_TOP)
+	{
+		autoGridFixedRootHeight(root, gridSize, Vector2.zero, startCorner);
+	}
+	// 保持父节点的高度,从指定角开始纵向排列子节点,并且会改变子节点的大小,gridSize是子节点的大小,startCorner是开始排列的位置
+	public static void autoGridFixedRootHeight(myUGUIObject root, Vector2 gridSize, Vector2 interval, CORNER startCorner = CORNER.LEFT_TOP)
 	{
 		RectTransform transform = root.getRectTransform();
 		// 先找出所有激活的子节点
@@ -1060,38 +1135,96 @@ public class UnityUtility : CSharpUtility
 
 		// 计算父节点大小
 		Vector2 rootSize = root.getWindowSize();
-		int activeChildCount = childList.Count;
-		if (resizeRootSize)
+		Vector3 beforeRealPosition = root.getPositionNoPivot();
+		Vector3 beforeRootLeftTop = new Vector3(beforeRealPosition.x - rootSize.x * 0.5f, beforeRealPosition.y + rootSize.y * 0.5f);
+		Vector3 beforeRootLeftBottom = new Vector3(beforeRealPosition.x - rootSize.x * 0.5f, beforeRealPosition.y - rootSize.y * 0.5f);
+		Vector3 beforeRootRightTop = new Vector3(beforeRealPosition.x + rootSize.x * 0.5f, beforeRealPosition.y + rootSize.y * 0.5f);
+		Vector3 beforeRootRightBottom = new Vector3(beforeRealPosition.x + rootSize.x * 0.5f, beforeRealPosition.y - rootSize.y * 0.5f);
+		int rowCount = 1;
+		if (rootSize.y > gridSize.y)
 		{
-			int lineCount = ceil(activeChildCount / (float)columnCount);
-			if (lineCount == 1)
+			rowCount = (int)((rootSize.y - gridSize.y) / (interval.y + gridSize.y)) + 1;
+		}
+		int activeChildCount = childList.Count;
+		// 固定父节点高度时只能纵向排列
+		int columnCount = activeChildCount / rowCount + clampMax(activeChildCount % rowCount, 1);
+		rootSize.x = columnCount * gridSize.x + (columnCount - 1) * interval.x;
+		root.setWindowSize(rootSize);
+
+		// 计算排列子节点所需的竖直和水平方向的坐标变化符号以及起始坐标,并且调整父节点的坐标
+		Vector2 startPos = Vector2.zero;
+		int horizontalSign = 0;
+		int verticalSign = 0;
+		Vector3 curRealPosition = root.getPositionNoPivot();
+		if (startCorner == CORNER.LEFT_TOP)
+		{
+			startPos = new Vector2(gridSize.x * 0.5f, -gridSize.y * 0.5f) + new Vector2(root.getWindowLeft(), root.getWindowTop());
+			horizontalSign = 1;
+			verticalSign = -1;
+			// 保持左上角的坐标与改变大小之前的左上角坐标一致
+			Vector3 curRootLeftTop = new Vector3(curRealPosition.x - rootSize.x * 0.5f, curRealPosition.y + rootSize.y * 0.5f);
+			if (!isVectorEqual(beforeRootLeftTop, curRootLeftTop))
 			{
-				rootSize.x = activeChildCount * gridSize.x + (activeChildCount - 1) * interval.x;
+				root.setPosition(root.getPosition() + beforeRootLeftTop - curRootLeftTop);
 			}
-			else
+		}
+		else if (startCorner == CORNER.LEFT_BOTTOM)
+		{
+			startPos = new Vector2(gridSize.x * 0.5f, gridSize.y * 0.5f) + new Vector2(root.getWindowLeft(), root.getWindowBottom());
+			horizontalSign = 1;
+			verticalSign = 1;
+			// 保持左下角的坐标与改变大小之前的左下角坐标一致
+			Vector3 curRootLeftBottom = new Vector3(curRealPosition.x - rootSize.x * 0.5f, curRealPosition.y - rootSize.y * 0.5f);
+			if (!isVectorEqual(beforeRootLeftBottom, curRootLeftBottom))
 			{
-				rootSize.x = columnCount * gridSize.x + (columnCount - 1) * interval.x;
+				root.setPosition(root.getPosition() + beforeRootLeftBottom - curRootLeftBottom);
 			}
-			rootSize.y = lineCount * gridSize.y + (lineCount - 1) * interval.y;
-			root.setWindowSize(rootSize);
+		}
+		else if (startCorner == CORNER.RIGHT_TOP)
+		{
+			startPos = new Vector2(-gridSize.x * 0.5f, -gridSize.y * 0.5f) + new Vector2(root.getWindowRight(), root.getWindowTop());
+			horizontalSign = -1;
+			verticalSign = -1;
+			// 保持右上角的坐标与改变大小之前的右上角坐标一致
+			Vector3 curRootRightTop = new Vector3(curRealPosition.x + rootSize.x * 0.5f, curRealPosition.y + rootSize.y * 0.5f);
+			if (!isVectorEqual(beforeRootRightTop, curRootRightTop))
+			{
+				root.setPosition(root.getPosition() + beforeRootRightTop - curRootRightTop);
+			}
+		}
+		else if (startCorner == CORNER.RIGHT_BOTTOM)
+		{
+			startPos = new Vector2(-gridSize.x * 0.5f, gridSize.y * 0.5f) + new Vector2(root.getWindowRight(), root.getWindowBottom());
+			horizontalSign = -1;
+			verticalSign = 1;
+			// 保持右下角的坐标与改变大小之前的右下角坐标一致
+			Vector3 curRootRightBottom = new Vector3(curRealPosition.x + rootSize.x * 0.5f, curRealPosition.y - rootSize.y * 0.5f);
+			if (!isVectorEqual(beforeRootRightBottom, curRootRightBottom))
+			{
+				root.setPosition(root.getPosition() + beforeRootRightBottom - curRootRightBottom);
+			}
 		}
 
 		// 计算子节点坐标,始终让子节点位于父节点的矩形范围内
 		// 并且会考虑父节点的pivot,但是不考虑子节点的pivot,所以如果子节点的pivot不在中心,可能会计算错误
-		Vector2 posOffset = new Vector2(root.getWindowLeft(), root.getWindowTop());
 		for (int i = 0; i < activeChildCount; ++i)
 		{
 			RectTransform child = childList[i];
-			int indexX = i % columnCount;
-			int indexY = i / columnCount;
-			child.localPosition = new Vector2(gridSize.x * 0.5f + indexX * gridSize.x + indexX * interval.x,
-											  -gridSize.y * 0.5f - indexY * gridSize.y - indexY * interval.y) + posOffset;
+			int indexX = i / rowCount;
+			int indexY = i % rowCount;
+			Vector2 pos = new Vector2((indexX * gridSize.x + indexX * interval.x) * horizontalSign, 
+										(indexY * gridSize.y + indexY * interval.y) * verticalSign);
+			child.localPosition = startPos + pos;
 			WidgetUtility.setRectSize(child, gridSize);
 		}
 		FrameUtility.UN_LIST(childList);
 	}
-	// 自动排列一个节点下的所有子节点的位置,从上往下紧密排列,并且不改变子节点的大小
-	public static void autoGridVertical(myUGUIObject root, float interval = 0.0f, bool resizeRootSize = true, float minHeight = 0.0f)
+	public static void autoGridFixedRootWidth(myUGUIObject root, Vector2 gridSize, CORNER startCorner = CORNER.LEFT_TOP)
+	{
+		autoGridFixedRootWidth(root, gridSize, Vector2.zero, startCorner);
+	}
+	// 保持父节点的宽度,从指定角开始横向排列子节点,并且会改变子节点的大小,gridSize是子节点的大小,startCorner是开始排列的位置
+	public static void autoGridFixedRootWidth(myUGUIObject root, Vector2 gridSize, Vector2 interval, CORNER startCorner = CORNER.LEFT_TOP)
 	{
 		RectTransform transform = root.getRectTransform();
 		// 先找出所有激活的子节点
@@ -1106,22 +1239,129 @@ public class UnityUtility : CSharpUtility
 			}
 		}
 
+		// 计算父节点大小
+		Vector2 rootSize = root.getWindowSize();
+		Vector3 beforeRealPos = root.getPositionNoPivot();
+		Vector3 beforeRootLeftTop = new Vector3(beforeRealPos.x - rootSize.x * 0.5f, beforeRealPos.y + rootSize.y * 0.5f);
+		Vector3 beforeRootLeftBottom = new Vector3(beforeRealPos.x - rootSize.x * 0.5f, beforeRealPos.y - rootSize.y * 0.5f);
+		Vector3 beforeRootRightTop = new Vector3(beforeRealPos.x + rootSize.x * 0.5f, beforeRealPos.y + rootSize.y * 0.5f);
+		Vector3 beforeRootRightBottom = new Vector3(beforeRealPos.x + rootSize.x * 0.5f, beforeRealPos.y - rootSize.y * 0.5f);
+		int columnCount = 1;
+		if (rootSize.x > gridSize.x)
+		{
+			columnCount = (int)((rootSize.x - gridSize.x) / (interval.x + gridSize.x)) + 1;
+		}
+		int activeChildCount = childList.Count;
+		int rowCount = ceil(activeChildCount / (float)columnCount);
+		rootSize.y = rowCount * gridSize.y + (rowCount - 1) * interval.y;
+		root.setWindowSize(rootSize);
+
+		// 计算排列子节点所需的竖直和水平方向的坐标变化符号以及起始坐标,并且调整父节点的坐标
+		Vector2 startPos = Vector2.zero;
+		int horizontalSign = 0;
+		int verticalSign = 0;
+		Vector3 curRealPosition = root.getPositionNoPivot();
+		if (startCorner == CORNER.LEFT_TOP)
+		{
+			startPos = new Vector2(gridSize.x * 0.5f, -gridSize.y * 0.5f) + new Vector2(root.getWindowLeft(), root.getWindowTop());
+			horizontalSign = 1;
+			verticalSign = -1;
+			// 保持左上角的坐标与改变大小之前的左上角坐标一致
+			Vector3 curRootLeftTop = new Vector3(curRealPosition.x - rootSize.x * 0.5f, curRealPosition.y + rootSize.y * 0.5f);
+			if (!isVectorEqual(beforeRootLeftTop, curRootLeftTop))
+			{
+				root.setPosition(root.getPosition() + beforeRootLeftTop - curRootLeftTop);
+			}
+		}
+		else if (startCorner == CORNER.LEFT_BOTTOM)
+		{
+			startPos = new Vector2(gridSize.x * 0.5f, gridSize.y * 0.5f) + new Vector2(root.getWindowLeft(), root.getWindowBottom());
+			horizontalSign = 1;
+			verticalSign = 1;
+			// 保持左下角的坐标与改变大小之前的左下角坐标一致
+			Vector3 curRootLeftBottom = new Vector3(curRealPosition.x - rootSize.x * 0.5f, curRealPosition.y - rootSize.y * 0.5f);
+			if (!isVectorEqual(beforeRootLeftBottom, curRootLeftBottom))
+			{
+				root.setPosition(root.getPosition() + beforeRootLeftBottom - curRootLeftBottom);
+			}
+		}
+		else if (startCorner == CORNER.RIGHT_TOP)
+		{
+			startPos = new Vector2(-gridSize.x * 0.5f, -gridSize.y * 0.5f) + new Vector2(root.getWindowRight(), root.getWindowTop());
+			horizontalSign = -1;
+			verticalSign = -1;
+			// 保持右上角的坐标与改变大小之前的右上角坐标一致
+			Vector3 curRootRightTop = new Vector3(curRealPosition.x + rootSize.x * 0.5f, curRealPosition.y + rootSize.y * 0.5f);
+			if (!isVectorEqual(beforeRootRightTop, curRootRightTop))
+			{
+				root.setPosition(root.getPosition() + beforeRootRightTop - curRootRightTop);
+			}
+		}
+		else if (startCorner == CORNER.RIGHT_BOTTOM)
+		{
+			startPos = new Vector2(-gridSize.x * 0.5f, gridSize.y * 0.5f) + new Vector2(root.getWindowRight(), root.getWindowBottom());
+			horizontalSign = -1;
+			verticalSign = 1;
+			// 保持右下角的坐标与改变大小之前的右下角坐标一致
+			Vector3 curRootRightBottom = new Vector3(curRealPosition.x + rootSize.x * 0.5f, curRealPosition.y - rootSize.y * 0.5f);
+			if (!isVectorEqual(beforeRootRightBottom, curRootRightBottom))
+			{
+				root.setPosition(root.getPosition() + beforeRootRightBottom - curRootRightBottom);
+			}
+		}
+
+		// 计算子节点坐标,始终让子节点位于父节点的矩形范围内
+		// 并且会考虑父节点的pivot,但是不考虑子节点的pivot,所以如果子节点的pivot不在中心,可能会计算错误
+		for (int i = 0; i < activeChildCount; ++i)
+		{
+			RectTransform child = childList[i];
+			int indexX = i % columnCount;
+			int indexY = i / columnCount;
+			Vector2 pos = new Vector2((indexX * gridSize.x + indexX * interval.x) * horizontalSign,
+										(indexY * gridSize.y + indexY * interval.y) * verticalSign);
+			child.localPosition = startPos + pos;
+			WidgetUtility.setRectSize(child, gridSize);
+		}
+		FrameUtility.UN_LIST(childList);
+	}
+	// 自动排列一个节点下的所有子节点的位置,从上往下紧密排列,并且不改变子节点的大小
+	public static void autoGridVertical(myUGUIObject root, float interval = 0.0f, float minHeight = 0.0f)
+	{
+		RectTransform transform = root.getRectTransform();
+		// 先找出所有激活的子节点
+		FrameUtility.LIST(out List<RectTransform> childList);
+		int childCount = transform.childCount;
+		for (int i = 0; i < childCount; ++i)
+		{
+			var childRect = transform.GetChild(i).GetComponent<RectTransform>();
+			if (childRect.gameObject.activeSelf)
+			{
+				childList.Add(childRect);
+			}
+		}
+
+		float beforeRootTopY = root.getPositionNoPivot().y + root.getWindowSize().y * 0.5f;
 		// 如果要同时修改root的窗口大小为排列以后的内容大小，则需要提前获取内容排列后的宽高
 		Vector2 rootSize = root.getWindowSize();
-		if (resizeRootSize)
+		float height = 0.0f;
+		for (int i = 0; i < childList.Count; ++i)
 		{
-			float height = 0.0f;
-			for (int i = 0; i < childList.Count; ++i)
+			height += childList[i].rect.height;
+			// 最后一个子节点后不再添加间隔
+			if (i != childList.Count - 1)
 			{
-				height += childList[i].rect.height;
-				// 最后一个子节点后不再添加间隔
-				if (i != childList.Count - 1)
-				{
-					height += interval;
-				}
+				height += interval;
 			}
-			rootSize.y = clampMin(height, minHeight);
-			root.setWindowSize(rootSize);
+		}
+		rootSize.y = clampMin(height, minHeight);
+		root.setWindowSize(rootSize);
+
+		// 改变完父节点的大小后需要保持父节点上边界的y坐标不变
+		float curRootTopY = root.getPositionNoPivot().y + root.getWindowSize().y * 0.5f;
+		if (!isFloatEqual(curRootTopY, beforeRootTopY))
+		{
+			Vector3 rootPos = root.getPosition();
+			root.setPosition(new Vector3(rootPos.x, rootPos.y + beforeRootTopY - curRootTopY, rootPos.z));
 		}
 
 		// 计算子节点坐标
@@ -1141,7 +1381,7 @@ public class UnityUtility : CSharpUtility
 		FrameUtility.UN_LIST(childList);
 	}
 	// 自动排列一个节点下的所有子节点的位置,从左往右紧密排列,并且不改变子节点的大小
-	public static void autoGridHorizontal(myUGUIObject root, float interval = 0.0f, bool resizeRootSize = true, float minWidth = 0.0f)
+	public static void autoGridHorizontal(myUGUIObject root, float interval = 0.0f, float minWidth = 0.0f)
 	{
 		RectTransform transform = root.getRectTransform();
 		// 先找出所有激活的子节点
@@ -1156,22 +1396,28 @@ public class UnityUtility : CSharpUtility
 			}
 		}
 
+		float beforeRootLeftX = root.getPositionNoPivot().x - root.getWindowSize().x * 0.5f;
 		// 如果要同时修改root的窗口大小为排列以后的内容大小，则需要提前获取内容排列后的宽高
 		Vector2 rootSize = root.getWindowSize();
-		if (resizeRootSize)
+		float width = 0.0f;
+		for (int i = 0; i < childList.Count; ++i)
 		{
-			float width = 0.0f;
-			for (int i = 0; i < childList.Count; ++i)
+			width += childList[i].rect.width;
+			// 最后一个子节点后不再添加间隔
+			if (i != childList.Count - 1)
 			{
-				width += childList[i].rect.width;
-				// 最后一个子节点后不再添加间隔
-				if (i != childList.Count - 1)
-				{
-					width += interval;
-				}
+				width += interval;
 			}
-			rootSize.x = clampMin(width, minWidth);
-			root.setWindowSize(rootSize);
+		}
+		rootSize.x = clampMin(width, minWidth);
+		root.setWindowSize(rootSize);
+
+		// 改变完父节点的大小后需要保持父节点左边界的x坐标不变
+		float curRootLeftX = root.getPositionNoPivot().x - root.getWindowSize().x * 0.5f;
+		if (!isFloatEqual(curRootLeftX, beforeRootLeftX))
+		{
+			Vector3 rootPos = root.getPosition();
+			root.setPosition(new Vector3(rootPos.x + beforeRootLeftX - curRootLeftX, rootPos.y, rootPos.z));
 		}
 
 		// 计算子节点坐标

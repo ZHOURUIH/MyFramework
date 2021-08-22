@@ -66,7 +66,7 @@ public class ComponentRotateSpeed : GameComponent, IComponentModifyRotation, ICo
 	}
 	public PLAY_STATE getPlayState() { return mPlayState; }
 	public void notifyBreak(){}
-	//--------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected virtual void applyRotation(ref Vector3 rotation) { }
 	protected virtual Vector3 getCurRotation() { return Vector3.zero; }
 }

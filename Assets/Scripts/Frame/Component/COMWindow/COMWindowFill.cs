@@ -12,7 +12,7 @@ public class COMWindowFill : ComponentKeyFrameNormal
 		mStart = 0.0f;
 		mTarget = 0.0f;
 	}
-	//------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
 		var window = mComponentOwner as myUIObject;

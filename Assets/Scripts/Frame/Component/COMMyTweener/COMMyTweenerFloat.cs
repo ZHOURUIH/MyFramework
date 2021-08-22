@@ -15,7 +15,7 @@ public class COMMyTweenerFloat : ComponentKeyFrameNormal
 		mTarget = 0.0f;
 		mCurFloatValue = 0.0f;
 	}
-	//------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
 		mCurFloatValue = lerpSimple(mStart, mTarget, value);

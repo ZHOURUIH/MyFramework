@@ -4,10 +4,10 @@ using System;
 
 public class CommandSystem : FrameSystem
 {
-	protected List<Command> mCommandBufferProcess;  // 用于处理的命令列表
-	protected List<Command> mCommandBufferInput;    // 用于放入命令的命令列表,收集一帧中各个线程的命令
-	protected List<Command> mExecuteList;           // 即将在这一帧执行的命令
-	protected ThreadLock mBufferLock;
+	protected List<Command> mCommandBufferProcess;	// 用于处理的命令列表
+	protected List<Command> mCommandBufferInput;	// 用于放入命令的命令列表,收集一帧中各个线程的命令
+	protected List<Command> mExecuteList;			// 即将在这一帧执行的命令
+	protected ThreadLock mBufferLock;				// mCommandBufferInput的线程锁
 	public CommandSystem()
 	{
 		mCommandBufferProcess = new List<Command>();
@@ -226,14 +226,14 @@ public class CommandSystem : FrameSystem
 		if (cmd.getCmdLogLevel() >= getLogLevel())
 		{
 			if(isMainThread())
-            {
+			{
 				MyStringBuilder builder = STRING("CMD : delay cmd : ", LToS(cmd.getAssignID()), ", ", FToS(delayExecute), ", info : ");
 				cmd.debugInfo(builder);
 				builder.Append(", receiver : ", cmdReceiver.getName());
 				log(END_STRING(builder), cmd.getCmdLogLevel());
 			}
-            else
-            {
+			else
+			{
 				MyStringBuilder builder = STRING_THREAD("CMD : delay cmd : ", LToS(cmd.getAssignID()), ", ", FToS(delayExecute), ", info : ");
 				cmd.debugInfo(builder);
 				builder.Append(", receiver : ", cmdReceiver.getName());
@@ -280,7 +280,7 @@ public class CommandSystem : FrameSystem
 			}
 		}
 	}
-	//-----------------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void syncCommandBuffer()
 	{
 		mBufferLock.waitForUnlock();

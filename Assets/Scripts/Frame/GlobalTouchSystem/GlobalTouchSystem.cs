@@ -349,17 +349,17 @@ public class GlobalTouchSystem : FrameSystem
 	{
 		if(!mUseGlobalTouch)
 		{
-			logError("Not Active Global Touch!");
+			logWarning("全局输入检测未启用,将无法注册碰撞体!");
 			return;
 		}
 		if (obj.getCollider() == null)
 		{
-			logError("window must has collider that can registeCollider! " + obj.getName());
+			logError("注册碰撞体的物体上找不到碰撞体组件! name:" + obj.getName() + ", " + obj.getDescription());
 			return;
 		}
 		if (mAllObjectSet.Contains(obj))
 		{
-			logError("不能重复注册窗口碰撞体: " + obj.getName());
+			logError("不能重复注册碰撞体: " + obj.getName() + ", " + obj.getDescription());
 			return;
 		}
 		if (obj is myUIObject)
@@ -387,7 +387,8 @@ public class GlobalTouchSystem : FrameSystem
 			}
 			if (mouseCastSet == null)
 			{
-				mouseCastSet = new MouseCastWindowSet(camera);
+				mouseCastSet = new MouseCastWindowSet();
+				mouseCastSet.setCamera(camera);
 				mMouseCastWindowList.Add(mouseCastSet);
 			}
 			mouseCastSet.addWindow(obj);
@@ -407,7 +408,8 @@ public class GlobalTouchSystem : FrameSystem
 			}
 			if (mouseCastSet == null)
 			{
-				mouseCastSet = new MouseCastObjectSet(camera);
+				mouseCastSet = new MouseCastObjectSet();
+				mouseCastSet.setCamera(camera);
 				mMouseCastObjectList.Add(mouseCastSet);
 			}
 			mouseCastSet.addObject(obj);
@@ -419,7 +421,7 @@ public class GlobalTouchSystem : FrameSystem
 	{
 		if (!mAllObjectSet.Contains(parent) || !mAllObjectSet.Contains(passOnlyArea))
 		{
-			logError("需要先注册窗口,才能绑定穿透区域");
+			logError("需要先注册碰撞体,才能绑定穿透区域, name" + passOnlyArea.getName() + ", " + passOnlyArea.getDescription());
 			return;
 		}
 		mPassOnlyArea.add(parent, passOnlyArea);
@@ -429,7 +431,7 @@ public class GlobalTouchSystem : FrameSystem
 	{
 		if (!mAllObjectSet.Contains(parent))
 		{
-			logError("需要先注册窗口,才能绑定父节点穿透区域");
+			logError("需要先注册碰撞体,才能绑定父节点穿透区域, name:" + parent.getName() + ", " + parent.getDescription());
 			return;
 		}
 		mParentPassOnlyList.Add(parent);
@@ -517,7 +519,7 @@ public class GlobalTouchSystem : FrameSystem
 			}
 		}
 	}
-	//--------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void notifyGlobalPress(bool press, int touchID)
 	{
 		// 开始触摸时记录触摸状态,同步上一次的触摸位置
@@ -734,8 +736,10 @@ public class GlobalTouchSystem : FrameSystem
 				// 点击了只允许部分穿透的背景
 				if (mPassOnlyArea.tryGetValue(window, out IMouseEventCollect passOnlyArea))
 				{
-					//判断是否点到了背景中允许穿透的部分,如果是允许穿透的部分,则射线可以继续判断下层的窗口，否则不允许再继续穿透
-					continueRay = passOnlyArea.isActiveInHierarchy() && passOnlyArea.isHandleInput() && passOnlyArea.getCollider().Raycast(ray, out _, 10000.0f);
+					// 判断是否点到了背景中允许穿透的部分,如果是允许穿透的部分,则射线可以继续判断下层的窗口，否则不允许再继续穿透
+					continueRay = passOnlyArea.isActiveInHierarchy() && 
+									passOnlyArea.isHandleInput() && 
+									passOnlyArea.getCollider().Raycast(ray, out _, 10000.0f);
 					if (!continueRay)
 					{
 						break;

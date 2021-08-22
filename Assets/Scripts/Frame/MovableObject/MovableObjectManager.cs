@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
+// MovableObject的管理器,只用于管理MovableObject,其他的派生类则由其他的管理器管理
+// 因为MovableObject的派生类比较多,一般都会派生出其他的子类用作不同的用途
 public class MovableObjectManager : FrameSystem
 {
-	protected Dictionary<uint, MovableObject> mMovableObjectList;
-	protected List<MovableObject> mMovableObjectOrderList;			// 保存物体顺序的列表,用于更新
+	protected Dictionary<uint, MovableObject> mMovableObjectList;   // 所有物体的列表,用于查询
+	protected List<MovableObject> mMovableObjectOrderList;          // 保存物体顺序的列表,用于更新
 	public MovableObjectManager()
 	{
 		mMovableObjectList = new Dictionary<uint, MovableObject>();
@@ -15,46 +17,32 @@ public class MovableObjectManager : FrameSystem
 	{
 		base.update(elapsedTime);
 		int count = mMovableObjectOrderList.Count;
-		for(int i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			mMovableObjectOrderList[i].update(elapsedTime);
 		}
 	}
-	public MovableObject createMovableObject(GameObject go, bool autoDestroyObject)
+	public MovableObject createMovableObject(string name)
 	{
-		if(go == null)
-		{
-			return null;
-		}
-		MovableObject obj = new MovableObject();
-		obj.setName(go.name);
-		obj.setObject(go, true);
-		obj.setDestroyObject(autoDestroyObject);
-		obj.init();
-		mMovableObjectList.Add(obj.getObjectID(), obj);
-		mMovableObjectOrderList.Add(obj);
-		return obj;
+		return createMovableObject(null, name, true);
 	}
-	public MovableObject createMovableObject(string name, bool autoDestroyObject)
+	public MovableObject createMovableObject(GameObject go)
 	{
-		GameObject go = createGameObject(name, mObject);
-		return createMovableObject(go, autoDestroyObject);
+		return createMovableObject(go, go.name, false);
 	}
-	public MovableObject createMovableObject(GameObject parent, string name, bool autoDestroyObject)
+	public MovableObject createMovableObject(GameObject parent, string name)
 	{
-		GameObject go = getGameObject(name, parent);
-		return createMovableObject(go, autoDestroyObject);
+		return createMovableObject(getGameObject(name, parent), name, false);
 	}
 	public void destroyObject(ref MovableObject obj)
 	{
-		if(obj == null)
+		if (obj == null)
 		{
 			return;
 		}
 		obj.destroy();
-		if (mMovableObjectList.ContainsKey(obj.getObjectID()))
+		if (mMovableObjectList.Remove(obj.getObjectID()))
 		{
-			mMovableObjectList.Remove(obj.getObjectID());
 			mMovableObjectOrderList.Remove(obj);
 		}
 		obj = null;
@@ -62,7 +50,7 @@ public class MovableObjectManager : FrameSystem
 	// 将物体移动到列表的尾部,更改更新顺序
 	public void moveObjectIndexToEnd(MovableObject obj)
 	{
-		if(obj == null)
+		if (obj == null)
 		{
 			return;
 		}
@@ -71,5 +59,25 @@ public class MovableObjectManager : FrameSystem
 			mMovableObjectOrderList.Remove(obj);
 			mMovableObjectOrderList.Add(obj);
 		}
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected MovableObject createMovableObject(GameObject go, string name, bool autoManageObject)
+	{
+		if (!autoManageObject && go == null)
+		{
+			logError("在创建MovableObject时如果不指定一个GameObject,则应该设置为自动创建GameObject");
+		}
+		var obj = new MovableObject();
+		obj.setName(name);
+		obj.setAutoManageObject(autoManageObject);
+		// 如果不自动管理节点,则需要设置一个节点,所以需要go和autoCreateObject至少一个是有效的
+		if (!autoManageObject)
+		{
+			obj.setObject(go);
+		}
+		obj.init();
+		mMovableObjectList.Add(obj.getObjectID(), obj);
+		mMovableObjectOrderList.Add(obj);
+		return obj;
 	}
 }

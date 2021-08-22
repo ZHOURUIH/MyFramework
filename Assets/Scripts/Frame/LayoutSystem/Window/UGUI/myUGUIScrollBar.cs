@@ -36,7 +36,7 @@ public class myUGUIScrollBar : myUGUIObject
 		mCallBack = callBack;
 		mScrollBar.onValueChanged.AddListener(mThisValueCallback);
 	}
-	//------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onValueChangeCallBack(float value)
 	{
 		mCallBack?.Invoke(value, this);

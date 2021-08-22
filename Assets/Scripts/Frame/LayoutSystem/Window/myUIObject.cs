@@ -9,8 +9,8 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	protected List<myUIObject> mChildList;						// 子节点列表,与GameObject的子节点顺序保持一致(已排序情况下)
 	protected ObjectDoubleClickCallback mDoubleClickCallback;	// 双击回调
 	protected ObjectPreClickCallback mObjectPreClickCallback;	// 单击的预回调,单击时会首先调用此回调
-	protected OnReceiveDrag mReceiveDragCallback;				// 接收到有物体拖到当前窗口时的回调
-	protected OnDragHover mDragHoverCallback;					// 有物体拖拽悬停到当前窗口时的回调
+	protected OnReceiveDrag mOnReceiveDrag;				// 接收到有物体拖到当前窗口时的回调
+	protected OnDragHover mOnDragHover;					// 有物体拖拽悬停到当前窗口时的回调
 	protected ObjectClickCallback mClickCallback;				// 单击回调,在预回调之后调用
 	protected ObjectHoverCallback mHoverCallback;				// 悬停回调
 	protected ObjectPressCallback mPressCallback;				// 按下时回调
@@ -23,7 +23,9 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	protected OnMouseLeave mOnMouseLeave;						// 鼠标离开时的回调
 	protected OnLongPress mOnLongPress;							// 达到长按时间阈值时的回调
 	protected OnMouseMove mOnMouseMove;							// 鼠标移动的回调
+	protected OnMouseMove mOnMouseDownMove;						// 鼠标按下并移动的回调
 	protected OnMouseStay mOnMouseStay;							// 鼠标静止在当前窗口内的回调
+	protected OnMouseStay mOnMouseDownStay;						// 鼠标按下并静止在当前窗口内的回调
 	protected OnMouseDown mOnMouseDown;							// 鼠标按下的回调
 	protected OnMouseUp mOnMouseUp;								// 鼠标抬起的回调
 	protected AudioSource mAudioSource;							// 音频组件
@@ -241,8 +243,10 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	}
 	// 当自适应更新完以后调用
 	public virtual void notifyAnchorApply() { }
-	//get
-	//-------------------------------------------------------------------------------------------------------------------------------------
+	// 获取描述,UI则返回所处布局名
+	public string getDescription() { return mLayout?.getName(); }
+	// get
+	//------------------------------------------------------------------------------------------------------------------------------
 	public uint getID() { return mID; }
 	public GameLayout getLayout() { return mLayout; }
 	public List<myUIObject> getChildList() { return mChildList; }
@@ -296,12 +300,12 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	}
 	public float getLongPressTimeThreshold() { return mLongPressTimeThreshold; }
 	public float getLongPressLengthThreshold() { return mLongPressLengthThreshold; }
-	//set
-	//-------------------------------------------------------------------------------------------------------------------------------------
-	public void setObject(GameObject go)
+	// set
+	//------------------------------------------------------------------------------------------------------------------------------
+	public override void setObject(GameObject go)
 	{
 		setName(go.name);
-		setGameObject(go);
+		base.setObject(go);
 #if UNITY_EDITOR
 		// 由于物体可能使克隆出来的,所以如果已经添加了调试组件,直接获取即可
 		getUnityComponent<WindowDebug>().setWindow(this);
@@ -354,20 +358,22 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 		mLongPressTimeThreshold = pressTime;
 	}
 	public void setOnLongPressing(OnLongPressing callback) { mOnLongPressing = callback; }
-	public void setReceiveDragCallback(OnReceiveDrag callback) { mReceiveDragCallback = callback; }
-	public void setDragHoverCallback(OnDragHover callback) { mDragHoverCallback = callback; }
+	public void setOnReceiveDrag(OnReceiveDrag callback) { mOnReceiveDrag = callback; }
+	public void setOnDragHover(OnDragHover callback) { mOnDragHover = callback; }
 	public void setOnMouseEnter(OnMouseEnter callback) { mOnMouseEnter = callback; }
 	public void setOnMouseLeave(OnMouseLeave callback) { mOnMouseLeave = callback; }
 	public void setOnMouseDown(OnMouseDown callback) { mOnMouseDown = callback; }
 	public void setOnMouseUp(OnMouseUp callback) { mOnMouseUp = callback; }
 	public void setOnMouseMove(OnMouseMove callback) { mOnMouseMove = callback; }
+	public void setOnMouseDownMove(OnMouseMove callback) { mOnMouseDownMove = callback; }
 	public void setOnMouseStay(OnMouseStay callback) { mOnMouseStay = callback; }
+	public void setOnMouseDownStay(OnMouseStay callback) { mOnMouseDownStay = callback; }
 	public void setOnScreenMouseUp(OnScreenMouseUp callback) { mOnScreenMouseUp = callback; }
 	public void setMultiTouchStart(OnMultiTouchStart callback) { mOnMultiTouchStart = callback; }
 	public void setMultiTouchEnd(OnMultiTouchEnd callback) { mOnMultiTouchEnd = callback; }
 	public void setMultiTouchMove(OnMultiTouchMove callback) { mOnMultiTouchMove = callback; }
 	// callback
-	//--------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	public virtual void onMultiTouchStart(Vector3 touch0, Vector3 touch1)
 	{
 		mOnMultiTouchStart?.Invoke(touch0, touch1);
@@ -437,11 +443,19 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	public virtual void onMouseMove(Vector3 mousePos, Vector3 moveDelta, float moveTime, int touchID)
 	{
 		mOnMouseMove?.Invoke(mousePos, moveDelta, moveTime, touchID);
+		if (mPressing)
+		{
+			mOnMouseDownMove?.Invoke(mousePos, moveDelta, moveTime, touchID);
+		}
 	}
 	// 鼠标在窗口内,但是不移动
 	public virtual void onMouseStay(Vector3 mousePos, int touchID)
 	{
 		mOnMouseStay?.Invoke(mousePos, touchID);
+		if (mPressing)
+		{
+			mOnMouseDownStay?.Invoke(mousePos, touchID);
+		}
 	}
 	// 鼠标在屏幕上抬起
 	public virtual void onScreenMouseUp(Vector3 mousePos, int touchID)
@@ -455,20 +469,20 @@ public class myUIObject : Transformable, IMouseEventCollect, IEquatable<myUIObje
 	// 有物体拖动到了当前窗口上
 	public virtual void onReceiveDrag(IMouseEventCollect dragObj, BOOL continueEvent)
 	{
-		if (mReceiveDragCallback != null)
+		if (mOnReceiveDrag != null)
 		{
 			continueEvent.set(false);
-			mReceiveDragCallback(dragObj, continueEvent);
+			mOnReceiveDrag(dragObj, continueEvent);
 		}
 	}
 	// 有物体拖动到了当前窗口上
 	public virtual void onDragHoverd(IMouseEventCollect dragObj, bool hover)
 	{
-		mDragHoverCallback?.Invoke(dragObj, hover);
+		mOnDragHover?.Invoke(dragObj, hover);
 	}
 	public override int GetHashCode() { return (int)mID; }
 	public bool Equals(myUIObject obj) { return mID == obj.mID; }
-	//----------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected virtual void onWorldScaleChanged(Vector2 lastWorldScale) { }
 	protected void addChild(myUIObject child, bool needSortChild, bool notifyLayout)
 	{

@@ -45,12 +45,7 @@ public class ArrayPoolThread : FrameSystem
 				typeList.TryGetValue(size, out HashSet<Array> arrayList) &&
 				arrayList.Count > 0)
 			{
-				foreach (var item in arrayList)
-				{
-					array = item as T[];
-					break;
-				}
-				arrayList.Remove(array);
+				array = popFirstElement(arrayList) as T[];
 			}
 			// 未使用列表中没有,创建一个新的
 			else
@@ -89,7 +84,7 @@ public class ArrayPoolThread : FrameSystem
 		}
 		mListLock.unlock();
 	}
-	//----------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void addInuse<T>(T[] array)
 	{
 		Type type = typeof(T);

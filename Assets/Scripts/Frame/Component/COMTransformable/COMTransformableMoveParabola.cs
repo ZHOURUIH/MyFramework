@@ -38,7 +38,7 @@ public class COMTransformableMoveParabola : ComponentKeyFrameNormal, IComponentM
 		mFactorB = generateFactorBFromHeight(mTopHeight, mTempB);
 		mFactorA = generateFactorA(mFactorB, mTempB);
 	}
-	//-------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
 		Vector3 curPos = lerpSimple(mStartPos, mTargetPos, value);

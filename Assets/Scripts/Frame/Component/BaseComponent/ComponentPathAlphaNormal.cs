@@ -46,7 +46,7 @@ public abstract class ComponentPathAlphaNormal : ComponentKeyFrameNormal
 		}
 		base.play((int)KEY_CURVE.ZERO_ONE, loop, mMaxLength, timeOffset, fullOnce);
 	}
-	//-------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
 		// 根据当前的距离找出位于哪两个点之间

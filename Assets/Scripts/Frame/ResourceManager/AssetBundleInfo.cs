@@ -3,29 +3,45 @@ using UnityEngine;
 
 public class AssetBundleInfo : FrameBase
 {
-	protected Dictionary<string, AssetBundleInfo> mParents; // 依赖的AssetBundle列表,包含所有的直接和间接的依赖项
 	protected Dictionary<string, AssetBundleInfo> mChildren;// 依赖自己的AssetBundle列表
-	protected Dictionary<string, AssetInfo> mAssetList;     // 资源包中已加载的所有资源
+	protected Dictionary<string, AssetBundleInfo> mParents; // 依赖的AssetBundle列表,包含所有的直接和间接的依赖项
 	protected Dictionary<Object, AssetInfo> mObjectToAsset; // 通过Object查找AssetInfo的列表
+	protected Dictionary<string, AssetInfo> mAssetList;     // 资源包中已加载的所有资源
 	protected List<AssetBundleLoadCallback> mLoadCallback;  // 资源包加载完毕后的回调列表
-	protected List<object> mLoadUserData;                   // 资源包加载完毕后的回调列表参数
 	protected List<AssetInfo> mLoadAsyncList;               // 需要异步加载的资源列表
+	protected List<object> mLoadUserData;                   // 资源包加载完毕后的回调列表参数
 	protected AssetBundle mAssetBundle;                     // 资源包
 	protected LOAD_STATE mLoadState;                        // 资源包加载状态
-	protected string mBundleName;                           // 资源所在的AssetBundle名,相对于StreamingAsset,不含后缀
 	protected string mBundleFileName;						// 资源所在的AssetBundle名,相对于StreamingAsset,含后缀
+	protected string mBundleName;                           // 资源所在的AssetBundle名,相对于StreamingAsset,不含后缀
 	public AssetBundleInfo(string bundleName)
 	{
 		mBundleName = bundleName;
 		mBundleFileName = mBundleName + FrameDefine.ASSET_BUNDLE_SUFFIX;
 		mLoadState = LOAD_STATE.UNLOAD;
-		mParents = new Dictionary<string, AssetBundleInfo>();
 		mChildren = new Dictionary<string, AssetBundleInfo>();
-		mLoadAsyncList = new List<AssetInfo>();
-		mAssetList = new Dictionary<string, AssetInfo>();
+		mParents = new Dictionary<string, AssetBundleInfo>();
 		mObjectToAsset = new Dictionary<Object, AssetInfo>();
+		mAssetList = new Dictionary<string, AssetInfo>();
 		mLoadCallback = new List<AssetBundleLoadCallback>();
+		mLoadAsyncList = new List<AssetInfo>();
 		mLoadUserData = new List<object>();
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mChildren.Clear();
+		mParents.Clear();
+		mObjectToAsset.Clear();
+		mAssetList.Clear();
+		mLoadCallback.Clear();
+		mLoadAsyncList.Clear();
+		mLoadUserData.Clear();
+		mAssetBundle = null;
+		mLoadState = LOAD_STATE.UNLOAD;
+		// mBundleName,mBundleFileName不重置
+		// mBundleFileName = null;
+		// mBundleName = null;
 	}
 	public void unload()
 	{
@@ -85,7 +101,10 @@ public class AssetBundleInfo : FrameBase
 		{
 			logError("there is asset in asset bundle, asset : " + fileNameWithSuffix + ", asset bundle : " + mBundleFileName);
 		}
-		mAssetList.Add(fileNameWithSuffix, new AssetInfo(this, fileNameWithSuffix));
+		var info = new AssetInfo();
+		info.setAssetBundleInfo(this);
+		info.setAssetName(fileNameWithSuffix);
+		mAssetList.Add(fileNameWithSuffix, info);
 	}
 	public AssetInfo getAssetInfo(string fileNameWithSuffix)
 	{
@@ -140,12 +159,7 @@ public class AssetBundleInfo : FrameBase
 	// 同步加载资源包
 	public void loadAssetBundle()
 	{
-		if(!mResourceManager.isLocalRootPath())
-		{
-			logError("当前资源目录为远程目录,无法同步加载");
-			return;
-		}
-		if (mLoadState != LOAD_STATE.UNLOAD && mLoadState != LOAD_STATE.NONE)
+		if (mAssetBundle != null || mLoadState != LOAD_STATE.UNLOAD && mLoadState != LOAD_STATE.NONE)
 		{
 			return;
 		}
@@ -157,15 +171,7 @@ public class AssetBundleInfo : FrameBase
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 		log("加载AssetBundle:" + mBundleFileName, LOG_LEVEL.NORMAL);
 #endif
-		string path = mResourceManager.getResourceRootPath() + mBundleFileName;
-		// 安卓平台下,如果是从StreamingAssets读取AssetBundle文件,则需要使用指定的路径
-#if UNITY_ANDROID && !UNITY_EDITOR
-		if (mResourceManager.getResourceRootPath() == FrameDefine.F_STREAMING_ASSETS_PATH)
-		{
-			path = FrameDefine.F_ASSET_BUNDLE_PATH + mBundleFileName;
-		}
-#endif
-		mAssetBundle = AssetBundle.LoadFromFile(path);
+		mAssetBundle = AssetBundle.LoadFromFile(availablePath(mBundleFileName));
 		if (mAssetBundle == null)
 		{
 			logError("can not load asset bundle : " + mBundleFileName);
@@ -272,7 +278,7 @@ public class AssetBundleInfo : FrameBase
 		}
 		return mAssetList[fileNameWithSuffix].loadSubAssets();
 	}
-	//异步加载资源的子集
+	// 异步加载资源的子集
 	public bool loadSubAssetAsync(ref string fileNameWithSuffix, AssetLoadDoneCallback callback, string loadPath, object userData = null)
 	{
 		// 记录下需要异步加载的资源名
@@ -342,5 +348,5 @@ public class AssetBundleInfo : FrameBase
 		mLoadCallback.Clear();
 		mLoadUserData.Clear();
 	}
-	//-----------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 }

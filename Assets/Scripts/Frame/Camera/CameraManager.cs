@@ -16,8 +16,8 @@ public class CameraManager : FrameSystem
 	{
 		base.init();
 		mUGUICamera = createCamera(FrameDefine.UI_CAMERA, mLayoutManager.getRootObject());
-		mUGUIBlurCamera = createCamera(FrameDefine.BLUR_CAMERA, mLayoutManager.getRootObject(), false, false, false);
-		mMainCamera = createCamera(FrameDefine.MAIN_CAMERA);
+		mUGUIBlurCamera = createCamera(FrameDefine.BLUR_CAMERA, mLayoutManager.getRootObject(), false, false);
+		mMainCamera = createCamera(FrameDefine.MAIN_CAMERA, null);
 	}
 	public override void update(float elapsedTime)
 	{
@@ -72,16 +72,11 @@ public class CameraManager : FrameSystem
 		}
 		return null;
 	}
-	public GameCamera createCamera(string name, GameObject parent = null, bool newCamera = false, bool active = true, bool errorIfFailed = true)
+	// 查找一个已经存在的摄像机节点,并且创建一个GameCamera对象
+	public GameCamera createCamera(string name, GameObject parent, bool active = true, bool errorIfFailed = true)
 	{
 		// 摄像机节点是否是自己创建的
-		bool isNewNode = false;
 		GameObject obj = getGameObject(name, parent, false, false);
-		if (obj == null && newCamera)
-		{
-			obj = createGameObject(name, parent);
-			isNewNode = true;
-		}
 		if (obj == null)
 		{
 			if (errorIfFailed)
@@ -93,9 +88,8 @@ public class CameraManager : FrameSystem
 		CLASS(out GameCamera camera);
 		camera.setName(name);
 		camera.init();
-		camera.setObject(obj, true);
+		camera.setObject(obj);
 		// 只有自己创建的摄像机节点才可以销毁
-		camera.setDestroyObject(isNewNode);
 		mCameraList.Add(camera);
 		activeCamera(camera, active);
 		return camera;
@@ -146,7 +140,7 @@ public class CameraManager : FrameSystem
 			mUGUIBlurCamera = null;
 		}
 	}
-	//-------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 检查所有摄像机的音频监听,确保主摄像机优先作为音频监听,没有主摄像机,则使用UI相机,没有UI相机,才使用第一个被启用的摄像机作为音频监听
 	protected void checkCameraAudioListener()
 	{

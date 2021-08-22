@@ -95,7 +95,7 @@ public class Winmm : FrameBase
 	{
 		return getFunction<waveInGetDevCapsA>()(hwo, ref lpCaps, uSize);
 	}
-	//--------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected static T getFunction<T>() where T : Delegate
 	{
 		return DllImportSystem.Invoke<T>(WINMM_DLL, typeof(T).Name);

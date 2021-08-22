@@ -1,4 +1,4 @@
-﻿#if !UNITY_IOS && !NO_SQLITE
+﻿#if !NO_SQLITE
 using UnityEngine;
 using Mono.Data.Sqlite;
 using System.Collections.Generic;
@@ -13,6 +13,13 @@ public class SQLiteData : FrameBase
 	public SQLiteData()
 	{
 		mValues = new Dictionary<int, string>();
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mValues.Clear();
+		mTable = null;
+		mID = 0;
 	}
 	public virtual void parse(SqliteDataReader reader)
 	{
@@ -35,7 +42,7 @@ public class SQLiteData : FrameBase
 		return value;
 	}
 	public virtual bool checkData() { return true; }
-	//--------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected int getParamInt(SqliteDataReader reader, int index)
 	{
 		int value = 0;

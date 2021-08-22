@@ -37,12 +37,7 @@ public class HashSetPoolThread : FrameSystem
 			// 先从未使用的列表中查找是否有可用的对象
 			if (mUnusedList.TryGetValue(elementType, out HashSet<IEnumerable> valueList) && valueList.Count > 0)
 			{
-				foreach (var item in valueList)
-				{
-					list = item;
-					break;
-				}
-				valueList.Remove(list);
+				list = popFirstElement(valueList);
 			}
 			// 未使用列表中没有,创建一个新的
 			else
@@ -74,7 +69,7 @@ public class HashSetPoolThread : FrameSystem
 		}
 		mListLock.unlock();
 	}
-	//----------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void addInuse(IEnumerable list, Type type)
 	{
 		if (mInusedList.TryGetValue(type, out HashSet<IEnumerable> valueList))

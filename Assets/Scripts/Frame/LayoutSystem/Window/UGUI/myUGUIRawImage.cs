@@ -25,19 +25,17 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 			mRectTransform = mObject.GetComponent<RectTransform>();
 			mTransform = mRectTransform;
 		}
-		if(mRawImage == null)
+		if (mRawImage == null)
 		{
 			logError(Typeof(this) + " can not find " + typeof(RawImage) + ", window:" + mName + ", layout:" + mLayout.getName());
 		}
 		string materialName = getMaterialName();
 		// 不再将默认材质替换为自定义的默认材质,只判断其他材质
-		if (!isEmpty(materialName) && materialName != FrameDefine.BUILDIN_UI_MATERIAL)
+		if (!isEmpty(materialName) && 
+			materialName != FrameDefine.BUILDIN_UI_MATERIAL &&
+			!mShaderManager.isSingleShader(materialName))
 		{
-			bool newMaterial = !mShaderManager.isSingleShader(materialName);
-			if (newMaterial)
-			{
-				setMaterialName(materialName, newMaterial);
-			}
+			setMaterialName(materialName, true);
 		}
 	}
 	public override void destroy()
@@ -54,7 +52,12 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		mRawImage = null;
 		base.destroy();
 	}
-	public void setWindowShader(WindowShader shader) { mWindowShader = shader; }
+	public void setWindowShader(WindowShader shader) 
+	{
+		mWindowShader = shader;
+		// 因为shader参数的需要在update中更新,所以需要启用窗口的更新
+		mEnable = true;
+	}
 	public WindowShader getWindowShader() { return mWindowShader; }
 	public override void update(float elapsedTime)
 	{
@@ -107,20 +110,20 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		}
 		return mRawImage.texture.name;
 	}
-	public void setTextureName(string name, bool useTextureSize = false)
+	public void setTextureName(string name, bool useTextureSize = false, bool loadAsync = false)
 	{
 		if (isEmpty(name))
 		{
 			setTexture(null, useTextureSize);
 			return;
 		}
-		// 允许同步加载时,使用同步加载
-		if (mResourceManager.isSyncLoadAvalaible())
+		// 同步加载
+		if (!loadAsync)
 		{
 			Texture tex = mResourceManager.loadResource<Texture>(name);
 			setTexture(tex, useTextureSize);
 		}
-		// 否则只能使用异步加载
+		// 异步加载
 		else
 		{
 			mResourceManager.loadResourceAsync<Texture>(name, mTextureCallback, useTextureSize);
@@ -134,15 +137,15 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		}
 		return mRawImage.material.name;
 	}
-	public void setMaterialName(string materialName, bool newMaterial)
+	public void setMaterialName(string materialName, bool newMaterial, bool loadAsync = false)
 	{
 		if (mRawImage == null)
 		{
 			return;
 		}
 		mIsNewMaterial = newMaterial;
-		// 查看是否允许同步加载
-		if (mResourceManager.isSyncLoadAvalaible())
+		// 同步加载
+		if (!loadAsync)
 		{
 			Material mat;
 			var loadedMaterial = mResourceManager.loadResource<Material>(FrameDefine.R_MATERIAL_PATH + materialName);
@@ -157,6 +160,7 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 			}
 			mRawImage.material = mat;
 		}
+		// 异步加载
 		else
 		{
 			CLASS(out LoadMaterialParam param);
@@ -165,7 +169,7 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 			mResourceManager.loadResourceAsync<Material>(FrameDefine.R_MATERIAL_PATH + materialName, mMaterialCallback, param);
 		}
 	}
-	//-------------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onTextureLoaded(Object res, Object[] subAssets, byte[] bytes, object userData, string loadPath)
 	{
 		// userData表示是否使用图片尺寸设置窗口大小

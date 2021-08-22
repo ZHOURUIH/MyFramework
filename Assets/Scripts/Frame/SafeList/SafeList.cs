@@ -13,6 +13,13 @@ public class SafeList<T> : FrameBase
 		mUpdateList = new List<T>();
 		mMainList = new List<T>();
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mModifyList.Clear();
+		mUpdateList.Clear();
+		mMainList.Clear();
+	}
 	// 获取用于更新的列表,会自动从主列表同步
 	public List<T> startForeach()
 	{

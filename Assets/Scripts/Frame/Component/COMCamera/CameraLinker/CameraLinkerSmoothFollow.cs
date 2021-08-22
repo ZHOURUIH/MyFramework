@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CameraLinkerSmoothFollow : CameraLinker
+// 相对位置会平滑插值的第三人称连接器
+public class CameraLinkerSmoothFollow : CameraLinkerThirdPerson
 {
 	protected Dictionary<CHECK_DIRECTION, List<CheckLayer>> mCheckDirectionList;   // 对于任意层可以进行多个方向的检测,但是同一层在同一方向不能多次检测
 	protected List<CheckLayer> mCheckLayer;     // 当摄像机碰撞到某些层的时候,需要移动摄像机的目标位置,避免穿插
@@ -61,7 +62,7 @@ public class CameraLinkerSmoothFollow : CameraLinker
 			}
 		}
 	}
-	//---------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void updateLinker(float elapsedTime)
 	{
 		if (!isFloatEqual(mNormalSpeed, mFollowPositionSpeed))

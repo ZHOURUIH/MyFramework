@@ -6,11 +6,17 @@ public class ComponentAudio : GameComponent
 	protected string mAudioName;
 	public void setLoop(bool loop)
 	{
-		mAudioManager.setLoop(mAudioSource, loop);
+		if (mAudioSource != null)
+		{
+			mAudioSource.loop = loop;
+		}
 	}
-	public void setVolume(float vol)
+	public void setVolume(float volume)
 	{
-		mAudioManager.setVolume(mAudioSource, vol);
+		if (mAudioSource != null)
+		{
+			mAudioSource.volume = volume;
+		}
 	}
 	public string getCurAudioName() { return mAudioName; }
 	public virtual void play(string name, bool isLoop, float volume)
@@ -52,7 +58,10 @@ public class ComponentAudio : GameComponent
 		mAudioSource = null;
 		mAudioName = null;
 	}
-	//--------------------------------------------------------------------------------------------------------------------------
+	// 0表示2D音效,1表示3D音效
+	public void setSpatialBlend(float blend) { mAudioSource.spatialBlend = blend; }
+	public float getSpatialBlend() { return mAudioSource.spatialBlend; }
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected virtual void assignAudioSource() { }
 	protected void setAudioSource(AudioSource source)
 	{

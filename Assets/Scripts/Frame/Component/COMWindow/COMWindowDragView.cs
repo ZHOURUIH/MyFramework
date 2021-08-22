@@ -26,7 +26,7 @@ public class COMWindowDragView : GameComponent
 	protected bool mClampInner;
 	protected DRAG_DIRECTION mDragDirection;
 	protected CLAMP_TYPE mClampType;
-	//-------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 用于实时计算的参数
 	protected Vector3 mStartDragWindowPosition;
 	protected Vector3 mStartDragMousePosition;
@@ -35,7 +35,7 @@ public class COMWindowDragView : GameComponent
 	protected BOOL mDraging;			// 是否正在拖动,鼠标按下并且移动速度大于一定值时开始拖动,鼠标放开时,按惯性移动
 	protected float mMoveSpeed;
 	protected bool mMouseDown;			// 鼠标是否在窗口内按下,鼠标抬起会设置为false,但是鼠标离开窗口时仍然为true
-	//-------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 用于避免GC的参数
 	private Vector3[] mMinMaxPos;
 	private bool mMinMaxPosDirty;
@@ -437,16 +437,14 @@ public class COMWindowDragView : GameComponent
 		mStartDragWindowPosition = Vector3.zero;
 		mStartDragMousePosition = Vector3.zero;
 	}
-	//------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected Vector3[] getLocalMinMaxPixelPos()
 	{
 		if(mMinMaxPosDirty)
 		{
 			Vector2 parentWidgetSize = mWindow.getParent().getWindowSize();
 			// 计算父节点的世界缩放
-			Vector2 worldScale = getMatrixScale(mWindow.getTransform().parent.localToWorldMatrix);
-			Vector2 uiRootScale = mLayoutManager.getUIRoot().getScale();
-			Vector2 parentScale = worldScale / uiRootScale;
+			Vector2 parentScale = devideVector3(mWindow.getTransform().parent.lossyScale, mLayoutManager.getUIRoot().getScale());
 			// 计算移动的位置范围
 			Vector2 minPos = parentWidgetSize * 0.5f * mMinRelativePos / parentScale;
 			Vector2 maxPos = parentWidgetSize * 0.5f * mMaxRelativePos / parentScale;

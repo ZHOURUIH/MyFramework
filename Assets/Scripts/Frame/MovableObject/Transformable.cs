@@ -23,6 +23,15 @@ public class Transformable : ComponentOwner
 		mObject = null;
 		mTransform = null;
 	}
+	public virtual void setObject(GameObject obj)
+	{
+		mObject = obj;
+		mTransform = mObject?.transform;
+		if (mObject != null && mObject.name != mName)
+		{
+			mObject.name = mName;
+		}
+	}
 	public override void setActive(bool active)
 	{
 		if(mObject != null)
@@ -79,9 +88,10 @@ public class Transformable : ComponentOwner
 		{
 			return null;
 		}
-		if (mObject.GetComponent<T>() != null)
+		T com = mObject.GetComponent<T>();
+		if (com != null)
 		{
-			return mObject.GetComponent<T>();
+			return com;
 		}
 		return mObject.AddComponent<T>();
 	}
@@ -233,7 +243,14 @@ public class Transformable : ComponentOwner
 	// angle为角度制
 	public void rotateAround(Vector3 axis, float angle) { mTransform.Rotate(axis, angle, Space.Self); }
 	public void rotateAroundWorld(Vector3 axis, float angle) { mTransform.Rotate(axis, angle, Space.World); }
-	public void lookAt(Vector3 direction) { setRotation(getLookAtRotation(direction)); }
+	public void lookAt(Vector3 direction) 
+	{
+		if (isVectorZero(direction))
+		{
+			return;
+		}
+		setRotation(getLookAtRotation(direction)); 
+	}
 	public void lookAtPoint(Vector3 point) { setRotation(getLookAtRotation(point - getPosition())); }
 	public void yawPitch(float yaw, float pitch)
 	{
@@ -296,10 +313,4 @@ public class Transformable : ComponentOwner
 		return getUnityComponent<Renderer>().material.color.a;
 	}
 	public bool canUpdate() { return mObject.activeInHierarchy && mEnable; }
-	//-----------------------------------------------------------------------------------------------------------------------------------
-	protected void setGameObject(GameObject obj)
-	{
-		mObject = obj;
-		mTransform = mObject?.transform;
-	}
 }

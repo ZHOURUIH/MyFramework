@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 
-public class SceneInstance : FrameBase
+public class SceneInstance : DelayCmdWatcher
 {
 	public Action<float, bool> mLoadCallback;
 	public AsyncOperation mOperation;
@@ -24,6 +24,18 @@ public class SceneInstance : FrameBase
 		initGameObject();
 		mInited = true;
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mLoadCallback = null;
+		mOperation = null;
+		mRoot = null;
+		mScene = default;
+		mName = null;
+		mActiveLoaded = false;
+		mInited = false;
+		mState = LOAD_STATE.NONE;
+	}
 	public virtual void destroy()
 	{
 		mInited = false;
@@ -41,7 +53,7 @@ public class SceneInstance : FrameBase
 	public GameObject getRoot() { return mRoot; }
 	public virtual void onShow() { }
 	public virtual void onHide() { }
-	//-------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected virtual void findGameObject() { }
 	protected virtual void initGameObject() { }
 }

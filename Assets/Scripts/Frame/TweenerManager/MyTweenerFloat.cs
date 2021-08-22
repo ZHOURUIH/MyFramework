@@ -9,7 +9,7 @@ public class MyTweenerFloat : MyTweener
 		base.resetProperty();
 		mComponentFloat = null;
 	}
-	//---------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void initComponents()
 	{
 		addComponent(out mComponentFloat);

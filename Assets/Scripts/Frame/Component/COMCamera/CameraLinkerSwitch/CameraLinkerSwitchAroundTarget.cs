@@ -31,6 +31,16 @@ public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 		mDistanceCurrent = 0.0f;
 		mRotatedAngle = 0.0f;
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mDistanceCurrent = 0.0f;
+		mDistanceDelta = 0.0f;
+		mRotatedAngle = 0.0f;
+		mTotalAngle = 0.0f;
+		mClockwise = true;
+		mSpeed = HALF_PI_RADIAN;
+	}
 	public override void update(float elapsedTime)
 	{
 		if (mLinker == null)

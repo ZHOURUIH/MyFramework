@@ -1,7 +1,8 @@
 ﻿using System;
 
 // 可使用对象池进行创建和销毁的对象
-// 继承WidgetUtility是为了在调用工具函数时方便,把一些完全独立的工具函数类串起来继承,所有继承自ClassObject的类都可以直接访问四大工具类中的函数
+// 继承FrameUtility是为了在调用工具函数时方便,把一些完全独立的工具函数类串起来继承
+// 所有继承自ClassObject的类都可以直接访问工具类中的函数
 public class ClassObject : FrameUtility
 {
 	protected long mAssignID;   // 重新分配时的ID,每次分配都会设置一个新的唯一执行ID

@@ -13,7 +13,7 @@ public class COMWindowHSL : ComponentKeyFrameNormal
 		mStart = Vector3.zero;
 		mTarget = Vector3.zero;
 	}
-	//------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
 		if(!(mComponentOwner is IShaderWindow))

@@ -57,7 +57,7 @@ public class KeyFrameManager : FrameSystem
 		base.destroy();
 	}
 	public bool isLoadDone() { return mLoaded; }
-	//--------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void createCurve<T>(int curveID) where T : MyCurve, new()
 	{
 		mCurveList.Add(curveID, new T());
@@ -91,7 +91,9 @@ public class KeyFrameManager : FrameSystem
 		for(int i = 0; i < count; ++i)
 		{
 			var curveInfo = gameKeyframe.mCurveList[i];
-			mCurveList[curveInfo.mID] = new UnityCurve(curveInfo.mCurve);
+			var unityCurve = new UnityCurve();
+			unityCurve.setCurve(curveInfo.mCurve);
+			mCurveList[curveInfo.mID] = unityCurve;
 		}
 		destroyGameObject(keyFrameObject);
 		mResourceManager.unloadPath(FrameDefine.R_KEY_FRAME_PATH);

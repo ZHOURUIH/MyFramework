@@ -48,5 +48,4 @@ public abstract class GameComponent : FrameBase
 	public Type getType() { return mType; }
 	// 通知
 	public virtual void notifyOwnerActive(bool active) { }
-	//------------------------------------------------------------------------------------------------------------------------
 }

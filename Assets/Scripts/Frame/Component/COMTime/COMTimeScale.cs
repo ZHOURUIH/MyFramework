@@ -13,7 +13,7 @@ public class COMTimeScale : ComponentKeyFrameNormal
 	}
 	public void setStart(float scale) { mStart = scale;}
 	public void setTarget(float scale) { mTarget = scale; }
-	//------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
 		Time.timeScale = clampMin(lerpSimple(mStart, mTarget, value));

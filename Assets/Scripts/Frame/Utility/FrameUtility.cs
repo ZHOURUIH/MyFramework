@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// 一些框架层的方便使用的工具函数,包含命令,对象池,列表池,字符串拼接池,延迟执行函数,以及其他的与框架层逻辑有关的工具函数
 public class FrameUtility : WidgetUtility
 {
 	protected static UINT mTempStateID = new UINT();
@@ -12,7 +13,7 @@ public class FrameUtility : WidgetUtility
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用characterRemoveState");
+			logError("热更工程无法使用characterRemoveState<T>, T:" + typeof(T));
 		}
 #else
 		Type type = typeof(T);
@@ -35,6 +36,16 @@ public class FrameUtility : WidgetUtility
 		cmd.mParam = param;
 		pushCommand(cmd, character);
 	}
+	public static CharacterState characterAddState(Type stateType, Character character, StateParam param = null, float stateTime = -1.0f)
+	{
+		CMD(out CmdCharacterAddState cmd, LOG_LEVEL.LOW);
+		cmd.mStateType = stateType;
+		cmd.mParam = param;
+		cmd.mStateTime = stateTime;
+		cmd.mOutStateID = mTempStateID;
+		pushCommand(cmd, character);
+		return character.getState(mTempStateID.mValue);
+	}
 	// 添加指定类型的状态
 	public static CharacterState characterAddState<T>(Character character, StateParam param = null, float stateTime = -1.0f) where T : CharacterState
 	{
@@ -42,20 +53,99 @@ public class FrameUtility : WidgetUtility
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用characterAddState");
+			logError("热更工程无法使用characterAddState<T>, T:" + typeof(T));
 		}
 #else
 		Type type = typeof(T);
 #endif
-		CMD(out CmdCharacterAddState cmd, LOG_LEVEL.LOW);
-		cmd.mStateType = type;
-		cmd.mParam = param;
-		cmd.mStateTime = stateTime;
-		cmd.mOutStateID = mTempStateID;
-		pushCommand(cmd, character);
-		return character.getState(mTempStateID.mValue);
+		return characterAddState(type, character, param, stateTime);
 	}
 	public static GameCamera getMainCamera() { return FrameBase.mCameraManager.getMainCamera(); }
+	public static bool isKeyCurrentDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputSystem.isKeyCurrentDown(key, mask); }
+	public static bool isKeyCurrentUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputSystem.isKeyCurrentUp(key, mask); }
+	public static bool isKeyDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputSystem.isKeyDown(key, mask); }
+	public static bool isKeyUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputSystem.isKeyUp(key, mask); }
+	// 与多点触控相关的逻辑时不能使用此鼠标坐标,应该获取相应触点的坐标,否则会出错误
+	public static Vector3 getMousePosition(bool leftBottomAsOrigin = true)
+	{
+		if (leftBottomAsOrigin)
+		{
+			return FrameBase.mInputSystem.getMousePosition();
+		}
+		else
+		{
+			return FrameBase.mInputSystem.getMousePosition() - (Vector3)getScreenSize() * 0.5f;
+		}
+	}
+	public static GameScene getCurScene() { return FrameBase.mGameSceneManager.getCurScene(); }
+	public static bool atProcedure(Type type) { return getCurScene().atProcedure(type); }
+	public static bool atProcedure<T>() where T : SceneProcedure { return getCurScene().atProcedure(typeof(T)); }
+	// 百分比一般用于属性增幅之类的
+	public static string toPercent(string value, int precision = 1) { return FToS(SToF(value) * 100, precision); }
+	public static string toPercent(float value, int precision = 1) { return FToS(value * 100, precision); }
+	// 几率类的一般是万分比的格式填写的
+	public static string toProbability(string value) { return FToS(SToF(value) * 0.01f); }
+	public static Canvas getUGUIRootComponent() { return FrameBase.mLayoutManager?.getUIRoot()?.getCanvas(); }
+	public static Camera getUICamera() { return FrameBase.mCameraManager.getUICamera()?.getCamera(); }
+	// 将UI的宽高调整为偶数
+	public static void makeSizeEven(myUGUIObject obj)
+	{
+		Vector2 scrollRectSize = obj.getWindowSize();
+		int intScrollSizeX = ceil(scrollRectSize.x);
+		int intScrollSizeY = ceil(scrollRectSize.y);
+		float newScrollSizeX = intScrollSizeX + (intScrollSizeX & 1);
+		float newScrollSizeY = intScrollSizeY + (intScrollSizeY & 1);
+		if (!isFloatEqual(newScrollSizeX, scrollRectSize.x) || !isFloatEqual(newScrollSizeY, scrollRectSize.y))
+		{
+			obj.setWindowSize(new Vector2(newScrollSizeX, newScrollSizeY));
+		}
+	}
+	public static T getData<T>(int id) where T : ExcelData
+	{
+		return FrameBase.mExcelManager.getData<T>(id);
+	}
+	// 直接获取一个指定图集的图片,此图集应该在Atlas/GameAtlas/图集名/图集名
+	public static Sprite getGameAtlasSprite(string atlas, string spriteName)
+	{
+		return FrameBase.mTPSpriteManager.getSprite(FrameDefine.R_ATLAS_GAME_ATLAS_PATH + atlas + "/" + atlas, spriteName);
+	}
+	// atlas是一个GameResources下的相对路径
+	public static Sprite getSprite(string atlas, string spriteName)
+	{
+		return FrameBase.mTPSpriteManager.getSprite(atlas, spriteName);
+	}
+	public static T PACKET<T>(out T packet) where T : NetPacket
+	{
+#if UNITY_EDITOR && USE_ILRUNTIME
+		Type type = Typeof<T>();
+		if (type == null)
+		{
+			logError("热更工程无法使用PACKET<T>, T:" + typeof(T));
+		}
+#else
+		Type type = typeof(T);
+#endif
+		return packet = FrameBase.mSocketFactory.createSocketPacket(type) as T;
+	}
+	// 获得一个合适的文件加载路径,fileName是StreamingAssets下的相对路径,带后缀
+	public static string availablePath(string fileName)
+	{
+		// 只有安卓平台真机上是优先从PersistentDataPath中加载,其他的都是在StreamingAssets中
+#if !UNITY_EDITOR && UNITY_ANDROID
+		// 优先从PersistentDataPath中加载
+		string path = FrameDefine.F_PERSISTENT_DATA_PATH + fileName;
+		if (isFileExist(path))
+		{
+			return path;
+		}
+		// PersistentDataPath中没有,再从AssetBundlePath中加载,原本在StreamingAssets中的文件也都在AssetBundlePath中
+		return FrameDefine.F_ASSET_BUNDLE_PATH + fileName;
+#else
+		return FrameDefine.F_ASSET_BUNDLE_PATH + fileName;
+#endif
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	// 跳转流程或场景的工具函数
 	// 主工程中可调用的跳转流程的函数
 	public static void changeProcedure<T>(string intent = null) where T : SceneProcedure
 	{
@@ -63,7 +153,7 @@ public class FrameUtility : WidgetUtility
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用changeProcedure");
+			logError("热更工程无法使用changeProcedure<T>, T:" + typeof(T));
 		}
 #else
 		Type type = typeof(T);
@@ -79,7 +169,7 @@ public class FrameUtility : WidgetUtility
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用changeProcedure");
+			logError("热更工程无法使用changeProcedure<T>, T:" + typeof(T));
 		}
 #else
 		Type type = typeof(T);
@@ -96,7 +186,7 @@ public class FrameUtility : WidgetUtility
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用changeProcedure");
+			logError("热更工程无法使用changeProcedure<T>, T:" + typeof(T));
 		}
 #else
 		Type type = typeof(T);
@@ -113,7 +203,7 @@ public class FrameUtility : WidgetUtility
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用enterScene");
+			logError("热更工程无法使用enterScene<T>, T:" + typeof(T));
 		}
 #else
 		Type type = typeof(T);
@@ -155,46 +245,7 @@ public class FrameUtility : WidgetUtility
 		cmd.mIntent = intent;
 		pushCommand(cmd, FrameBase.mGameSceneManager);
 	}
-	public static bool isKeyCurrentDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputSystem.isKeyCurrentDown(key, mask); }
-	public static bool isKeyCurrentUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputSystem.isKeyCurrentUp(key, mask); }
-	public static bool isKeyDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputSystem.isKeyDown(key, mask); }
-	public static bool isKeyUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputSystem.isKeyUp(key, mask); }
-	// 与多点触控相关的逻辑时不能使用此鼠标坐标,应该获取相应触点的坐标,否则会出错误
-	public static Vector3 getMousePosition(bool leftBottomAsOrigin = true)
-	{
-		if (leftBottomAsOrigin)
-		{
-			return FrameBase.mInputSystem.getMousePosition();
-		}
-		else
-		{
-			return FrameBase.mInputSystem.getMousePosition() - (Vector3)getScreenSize() * 0.5f;
-		}
-	}
-	public static GameScene getCurScene() { return FrameBase.mGameSceneManager.getCurScene(); }
-	public static bool atProcedure(Type type) { return getCurScene().atProcedure(type); }
-	public static bool atProcedure<T>() where T : SceneProcedure { return getCurScene().atProcedure(typeof(T)); }
-	// 百分比一般用于属性增幅之类的
-	public static string toPercent(string value, int precision = 1) { return FToS(SToF(value) * 100, precision); }
-	public static string toPercent(float value, int precision = 1) { return FToS(value * 100, precision); }
-	// 几率类的一般是万分比的格式填写的
-	public static string toProbability(string value) { return FToS(SToF(value) * 0.01f); }
-	public static Canvas getUGUIRootComponent() { return FrameBase.mLayoutManager?.getUIRoot()?.getCanvas(); }
-	public static Camera getUICamera() { return FrameBase.mCameraManager.getUICamera()?.getCamera(); }
-	public static T PACKET<T>(out T packet) where T : SocketPacket
-	{
-#if UNITY_EDITOR && USE_ILRUNTIME
-		Type type = Typeof<T>();
-		if (type == null)
-		{
-			logError("热更工程无法使用PACKET");
-		}
-#else
-		Type type = typeof(T);
-#endif
-		return packet = FrameBase.mSocketFactory.createSocketPacket(type) as T;
-	}
-	//-----------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 命令
 	// 在主线程中创建立即执行的命令
 	public static Command CMD(Type type, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL)
@@ -239,7 +290,7 @@ public class FrameUtility : WidgetUtility
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用CMD");
+			logError("热更工程无法使用CMD<T>, T:" + typeof(T));
 		}
 #else
 		Type type = typeof(T);
@@ -253,7 +304,7 @@ public class FrameUtility : WidgetUtility
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用CMD_DELAY");
+			logError("热更工程无法使用CMD_DELAY<T>, T:" + typeof(T));
 		}
 #else
 		Type type = typeof(T);
@@ -267,7 +318,7 @@ public class FrameUtility : WidgetUtility
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用CMD_THREAD");
+			logError("热更工程无法使用CMD_THREAD<T>, T:" + typeof(T));
 		}
 #else
 		Type type = typeof(T);
@@ -281,7 +332,7 @@ public class FrameUtility : WidgetUtility
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用CMD_DELAY_THREAD");
+			logError("热更工程无法使用CMD_DELAY_THREAD<T>, T:" + typeof(T));
 		}
 #else
 		Type type = typeof(T);
@@ -331,7 +382,7 @@ public class FrameUtility : WidgetUtility
 	{
 		FrameBase.mCommandSystem.pushDelayCommand(cmd, cmdReceiver, delayExecute, watcher);
 	}
-	//-----------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 列表对象池
 	public static void LIST<T>(out List<T> list)
 	{
@@ -339,7 +390,7 @@ public class FrameUtility : WidgetUtility
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用LIST");
+			logError("热更工程无法使用LIST<T>, T:" + typeof(T));
 		}
 #else
 		Type type = typeof(T);
@@ -357,7 +408,7 @@ public class FrameUtility : WidgetUtility
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用LIST_PERSIST");
+			logError("热更工程无法使用LIST_PERSIST<T>, T:" + typeof(T));
 		}
 #else
 		Type type = typeof(T);
@@ -375,7 +426,7 @@ public class FrameUtility : WidgetUtility
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用UN_LIST");
+			logError("热更工程无法使用UN_LIST<T>, T:" + typeof(T));
 		}
 #else
 		Type type = typeof(T);
@@ -388,7 +439,7 @@ public class FrameUtility : WidgetUtility
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用LIST");
+			logError("热更工程无法使用LIST<T>, T:" + typeof(T));
 		}
 #else
 		Type type = typeof(T);
@@ -406,7 +457,7 @@ public class FrameUtility : WidgetUtility
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用LIST_PERSIST");
+			logError("热更工程无法使用LIST_PERSIST<T>, T:" + typeof(T));
 		}
 #else
 		Type type = typeof(T);
@@ -424,7 +475,7 @@ public class FrameUtility : WidgetUtility
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用UN_LIST");
+			logError("热更工程无法使用UN_LIST<T>, T:" + typeof(T));
 		}
 #else
 		Type type = typeof(T);
@@ -439,7 +490,7 @@ public class FrameUtility : WidgetUtility
 		Type typeValue = Typeof<V>();
 		if (typeKey == null || typeValue == null)
 		{
-			logError("热更工程无法使用LIST");
+			logError("热更工程无法使用LIST<K, V>, K:" + typeof(K) + ", V:" + typeof(V));
 		}
 #else
 		Type typeKey = typeof(K);
@@ -459,7 +510,7 @@ public class FrameUtility : WidgetUtility
 		Type typeValue = Typeof<V>();
 		if (typeKey == null || typeValue == null)
 		{
-			logError("热更工程无法使用LIST_PERSIST");
+			logError("热更工程无法使用LIST_PERSIST<K, V>, K:" + typeof(K) + ", V:" + typeof(V));
 		}
 #else
 		Type typeKey = typeof(K);
@@ -479,7 +530,7 @@ public class FrameUtility : WidgetUtility
 		Type typeValue = Typeof<V>();
 		if (typeKey == null || typeValue == null)
 		{
-			logError("热更工程无法使用UN_LIST");
+			logError("热更工程无法使用UN_LIST<K, V>, K:" + typeof(K) + ", V:" + typeof(V));
 		}
 #else
 		Type typeKey = typeof(K);
@@ -488,7 +539,7 @@ public class FrameUtility : WidgetUtility
 		list.Clear();
 		FrameBase.mDictionaryPool?.destroyList(list, typeKey, typeValue);
 	}
-	//----------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 对象池
 	public static void CLASS_ONCE<T>(out T value) where T : ClassObject
 	{
@@ -496,7 +547,7 @@ public class FrameUtility : WidgetUtility
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用CLASS_ONCE");
+			logError("热更工程无法使用CLASS_ONCE<T>, T:" + typeof(T));
 		}
 #else
 		Type type = typeof(T);
@@ -513,16 +564,48 @@ public class FrameUtility : WidgetUtility
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用CLASS");
+			logError("热更工程无法使用CLASS<T>, T:" + typeof(T));
 		}
 #else
 		Type type = typeof(T);
 #endif
 		value = FrameBase.mClassPool?.newClass(type, false) as T;
 	}
+	public static T CLASS<T>() where T : ClassObject
+	{
+#if UNITY_EDITOR && USE_ILRUNTIME
+		Type type = Typeof<T>();
+		if (type == null)
+		{
+			logError("热更工程无法使用CLASS<T>, T:" + typeof(T));
+		}
+#else
+		Type type = typeof(T);
+#endif
+		return FrameBase.mClassPool?.newClass(type, false) as T;
+	}
+	public static void CLASS<T>(out T value, out bool isNew) where T : ClassObject
+	{
+#if UNITY_EDITOR && USE_ILRUNTIME
+		Type type = Typeof<T>();
+		if (type == null)
+		{
+			logError("热更工程无法使用CLASS<T>, T:" + typeof(T));
+		}
+#else
+		Type type = typeof(T);
+#endif
+		isNew = false;
+		value = FrameBase.mClassPool?.newClass(type, out isNew, false) as T;
+	}
 	public static ClassObject CLASS(Type type)
 	{
 		return FrameBase.mClassPool?.newClass(type, false);
+	}
+	public static ClassObject CLASS(Type type, out bool isNew)
+	{
+		isNew = false;
+		return FrameBase.mClassPool?.newClass(type, out isNew, false);
 	}
 	// 由于热更工程无法使用多线程,所以此处不考虑热更工程
 	public static void CLASS_THREAD<T>(out T value) where T : ClassObject
@@ -530,14 +613,30 @@ public class FrameUtility : WidgetUtility
 #if UNITY_EDITOR && USE_ILRUNTIME
 		if (Typeof<T>() == null)
 		{
-			logError("热更工程无法使用CLASS_THREAD");
+			logError("热更工程无法使用CLASS_THREAD<T>, T:" + typeof(T));
 		}
 #endif
 		value = FrameBase.mClassPoolThread?.newClass(typeof(T), out _) as T;
 	}
+	public static void CLASS_THREAD<T>(out T value, out bool isNew) where T : ClassObject
+	{
+#if UNITY_EDITOR && USE_ILRUNTIME
+		if (Typeof<T>() == null)
+		{
+			logError("热更工程无法使用CLASS_THREAD<T>, T:" + typeof(T));
+		}
+#endif
+		isNew = false;
+		value = FrameBase.mClassPoolThread?.newClass(typeof(T), out isNew) as T;
+	}
 	public static ClassObject CLASS_THREAD(Type type)
 	{
 		return FrameBase.mClassPoolThread?.newClass(type, out _);
+	}
+	public static ClassObject CLASS_THREAD(Type type, out bool isNew)
+	{
+		isNew = false;
+		return FrameBase.mClassPoolThread?.newClass(type, out isNew);
 	}
 	public static void UN_CLASS(ClassObject obj)
 	{
@@ -547,14 +646,14 @@ public class FrameUtility : WidgetUtility
 	{
 		FrameBase.mClassPoolThread?.destroyClass(obj);
 	}
-	//----------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 数组对象池
 	public static void ARRAY<T>(out T[] array, int count)
 	{
 #if UNITY_EDITOR && USE_ILRUNTIME
 		if (Typeof<T>() == null)
 		{
-			logError("热更工程无法使用ARRAY");
+			logError("热更工程无法使用ARRAY<T>, T:" + typeof(T));
 		}
 #endif
 		array = FrameBase.mArrayPool.newArray<T>(count, true);
@@ -564,7 +663,7 @@ public class FrameUtility : WidgetUtility
 #if UNITY_EDITOR && USE_ILRUNTIME
 		if (Typeof<T>() == null)
 		{
-			logError("热更工程无法使用ARRAY_PERSIST");
+			logError("热更工程无法使用ARRAY_PERSIST<T>, T:" + typeof(T));
 		}
 #endif
 		array = FrameBase.mArrayPool.newArray<T>(count, false);
@@ -574,7 +673,7 @@ public class FrameUtility : WidgetUtility
 #if UNITY_EDITOR && USE_ILRUNTIME
 		if (Typeof<T>() == null)
 		{
-			logError("热更工程无法使用UN_ARRAY");
+			logError("热更工程无法使用UN_ARRAY<T>, T:" + typeof(T));
 		}
 #endif
 		FrameBase.mArrayPool.destroyArray(array, destroyReally);
@@ -584,10 +683,10 @@ public class FrameUtility : WidgetUtility
 #if UNITY_EDITOR && USE_ILRUNTIME
 		if (Typeof<T>() == null)
 		{
-			logError("热更工程无法使用ARRAY_THREAD");
+			logError("热更工程无法使用ARRAY_THREAD<T>, T:" + typeof(T));
 		}
 #endif
-		if(FrameBase.mArrayPoolThread == null)
+		if (FrameBase.mArrayPoolThread == null)
 		{
 			array = null;
 			return;
@@ -599,12 +698,12 @@ public class FrameUtility : WidgetUtility
 #if UNITY_EDITOR && USE_ILRUNTIME
 		if (Typeof<T>() == null)
 		{
-			logError("热更工程无法使用UN_ARRAY_THREAD");
+			logError("热更工程无法使用UN_ARRAY_THREAD<T>, T:" + typeof(T));
 		}
 #endif
 		FrameBase.mArrayPoolThread?.destroyArray(array, destroyReally);
 	}
-	//-----------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 字符串拼接
 	public static MyStringBuilder STRING()
 	{
@@ -714,7 +813,7 @@ public class FrameUtility : WidgetUtility
 	{
 		UN_CLASS(builder);
 	}
-	//-----------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 在主线程中发起延迟调用函数,函数将在主线程中调用
 	public static long delayCall(Action function, float delayTime = 0.0f)
 	{

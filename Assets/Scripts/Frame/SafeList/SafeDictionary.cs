@@ -2,10 +2,10 @@
 
 // 非线程安全
 // 可安全遍历的列表,支持在遍历过程中对列表进行修改
+// 由于在增删操作时可能会出现key相同但是value不相同的情况,甚至value的GetHashCode被重写导致即使GetHashCode相同,实例也不同的情况
+// 所以不再进行增量同步,而是按顺序记录所有的操作,使之完全与主列表同步
 public class SafeDictionary<Key, Value> : FrameBase
 {
-	// 由于在增删操作时可能会出现key相同但是value不相同的情况,甚至value的GetHashCode被重写导致即使GetHashCode相同,实例也不同的情况
-	// 所以不再进行增量同步,而是按顺序记录所有的操作,使之完全与主列表同步
 	protected List<SafeDictionaryModify<Key, Value>> mModifyList;   // 记录操作的列表
 	protected Dictionary<Key, Value> mUpdateList;					// 用于遍历更新的列表
 	protected Dictionary<Key, Value> mMainList;						// 用于存储实时数据的列表
@@ -14,6 +14,13 @@ public class SafeDictionary<Key, Value> : FrameBase
 		mModifyList = new List<SafeDictionaryModify<Key, Value>>();
 		mUpdateList = new Dictionary<Key, Value>();
 		mMainList = new Dictionary<Key, Value>();
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mModifyList.Clear();
+		mUpdateList.Clear();
+		mMainList.Clear();
 	}
 	// 获取用于更新的列表,会自动从主列表同步
 	public Dictionary<Key, Value> startForeach()
@@ -70,6 +77,14 @@ public class SafeDictionary<Key, Value> : FrameBase
 	public bool containsKey(Key key) { return mMainList.ContainsKey(key); }
 	public bool containsValue(Value value) { return mMainList.ContainsValue(value); }
 	public int count() { return mMainList.Count; }
+	public void setValue(Key key, Value value) 
+	{
+		if (!mMainList.ContainsKey(key))
+		{
+			return;
+		}
+		mMainList[key] = value; 
+	}
 	public bool add(Key key, Value value)
 	{
 		if (mMainList.ContainsKey(key))

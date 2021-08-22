@@ -20,8 +20,8 @@ public class SerializerWrite : FrameBase
 	{
 		base.resetProperty();
 		// mBuffer,mBufferSize不重置,保证可以尽可能复用数组
-		//mBuffer = null;
-		//mBufferSize = 0;
+		// mBuffer = null;
+		// mBufferSize = 0;
 		mShowError = true;
 		mIndex = 0;
 	}
@@ -163,7 +163,7 @@ public class SerializerWrite : FrameBase
 	public int getIndex()						{ return mIndex; }
 	public void setIndex(int index)				{ mIndex = index; }
 	public void setShowError(bool showError)	{ mShowError = showError; }
-	//-------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected bool writeCheck(int writeLen)
 	{
 		// 如果缓冲区为空,则创建缓冲区

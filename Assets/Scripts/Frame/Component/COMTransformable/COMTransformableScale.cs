@@ -13,7 +13,7 @@ public class COMTransformableScale : ComponentKeyFrameNormal, IComponentModifySc
 	}
 	public void setStart(Vector3 start) { mStart = start; }
 	public void setTarget(Vector3 target) { mTarget = target; }
-	//--------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
 		(mComponentOwner as Transformable).setScale(lerpSimple(mStart, mTarget, value));

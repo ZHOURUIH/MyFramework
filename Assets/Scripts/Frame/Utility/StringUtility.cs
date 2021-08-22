@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 public class StringUtility : BinaryUtility
@@ -211,6 +212,21 @@ public class StringUtility : BinaryUtility
 			return endString.ToLower() == pattern.ToLower();
 		}
 	}
+	// 移除所有的空白字符
+	public static string removeAllEmpty(string str)
+	{
+		return removeAll(str, ' ', '\t');
+	}
+	// 移除开头所有的空白字符
+	public static string removeStartEmpty(string str)
+	{
+		return removeStartAll(str, ' ', '\t');
+	}
+	// 移除结尾所有的空白字符
+	public static string removeEndEmpty(string str)
+	{
+		return removeEndAll(str, ' ', '\t');
+	}
 	public static int getFirstNumberPos(string str)
 	{
 		int strLen = str.Length;
@@ -246,7 +262,7 @@ public class StringUtility : BinaryUtility
 		{
 			return -1;
 		}
-		string numStr = str.Substring(lastPos + 1, str.Length - lastPos - 1);
+		string numStr = str.Substring(lastPos + 1);
 		if (isEmpty(numStr))
 		{
 			return 0;
@@ -293,13 +309,13 @@ public class StringUtility : BinaryUtility
 		}
 		return uint.Parse(str);
 	}
-	public static Vector2 SToVector2(string value, string seperate = ",")
+	public static Vector2 SToVector2(string value, char seperate = ',')
 	{
 		if (isEmpty(value) || value == "0,0")
 		{
 			return Vector2.zero;
 		}
-		string[] splitList = split(value, true, seperate);
+		string[] splitList = split(value, seperate);
 		if (splitList == null || splitList.Length < 2)
 		{
 			return Vector2.zero;
@@ -309,7 +325,7 @@ public class StringUtility : BinaryUtility
 		v.y = SToF(splitList[1]);
 		return v;
 	}
-	public static Vector2Int stringToVector2Int(string value, string seperate = ",")
+	public static Vector2Int stringToVector2Int(string value, char seperate = ',')
 	{
 		if (isEmpty(value) || value == "0,0")
 		{
@@ -319,7 +335,7 @@ public class StringUtility : BinaryUtility
 		{
 			return result;
 		}
-		string[] splitList = split(value, true, seperate);
+		string[] splitList = split(value, seperate);
 		if (splitList == null || splitList.Length < 2)
 		{
 			return Vector2Int.zero;
@@ -333,13 +349,13 @@ public class StringUtility : BinaryUtility
 		}
 		return result;
 	}
-	public static Vector3 SToVector3(string value, string seperate = ",")
+	public static Vector3 SToVector3(string value, char seperate = ',')
 	{
 		if (isEmpty(value) || value == "0,0,0")
 		{
 			return Vector3.zero;
 		}
-		string[] splitList = split(value, true, seperate);
+		string[] splitList = split(value, seperate);
 		if (splitList == null || splitList.Length < 3)
 		{
 			return Vector3.zero;
@@ -350,13 +366,13 @@ public class StringUtility : BinaryUtility
 		v.z = SToF(splitList[2]);
 		return v;
 	}
-	public static Vector4 SToVector4(string value, string seperate = ",")
+	public static Vector4 SToVector4(string value, char seperate = ',')
 	{
 		if (isEmpty(value) || value == "0,0,0,0")
 		{
 			return Vector4.zero;
 		}
-		string[] splitList = split(value, true, seperate);
+		string[] splitList = split(value, seperate);
 		if (splitList == null || splitList.Length < 4)
 		{
 			return Vector4.zero;
@@ -418,6 +434,91 @@ public class StringUtility : BinaryUtility
 				break;
 			}
 		}
+	}
+	public static string removeStartAll(string str, char key)
+	{
+		int removeStartCount = str.Length;
+		for(int i = 0; i < str.Length; ++i)
+		{
+			if (str[i] != key)
+			{
+				removeStartCount = i;
+				break;
+			}
+		}
+		if (removeStartCount > 0)
+		{
+			str = str.Substring(removeStartCount);
+		}
+		return str;
+	}
+	public static string removeStartAll(string str, char key0, char key1)
+	{
+		int removeStartCount = str.Length;
+		for(int i = 0; i < str.Length; ++i)
+		{
+			if (str[i] != key0 && str[i] != key1)
+			{
+				removeStartCount = i;
+				break;
+			}
+		}
+		if (removeStartCount > 0)
+		{
+			str = str.Substring(removeStartCount);
+		}
+		return str;
+	}
+	public static string removeLastAll(string str, char key)
+	{
+		int removeStartCount = str.Length;
+		for(int i = 0; i < str.Length; ++i)
+		{
+			if (str[i] != key)
+			{
+				removeStartCount = i;
+				break;
+			}
+		}
+		if (removeStartCount > 0)
+		{
+			str = str.Substring(removeStartCount);
+		}
+		return str;
+	}
+	public static string removeEndAll(string str, char key)
+	{
+		int removeStartCount = str.Length;
+		for(int i = str.Length - 1; i >= 0; --i)
+		{
+			if (str[i] != key)
+			{
+				removeStartCount = i + 1;
+				break;
+			}
+		}
+		if (removeStartCount > 0 && removeStartCount < str.Length)
+		{
+			str = str.Remove(removeStartCount);
+		}
+		return str;
+	}
+	public static string removeEndAll(string str, char key0, char key1)
+	{
+		int removeStartCount = str.Length;
+		for(int i = str.Length - 1; i >= 0; --i)
+		{
+			if (str[i] != key0 && str[i] != key1)
+			{
+				removeStartCount = i + 1;
+				break;
+			}
+		}
+		if (removeStartCount > 0 && removeStartCount < str.Length)
+		{
+			str = str.Remove(removeStartCount);
+		}
+		return str;
 	}
 	// 去掉整个stream中最后一个出现过的逗号
 	public static void removeLastComma(ref string stream)
@@ -511,6 +612,49 @@ public class StringUtility : BinaryUtility
 			str.Append("\r\n");
 		}
 	}
+	// 解析一个数组类型的json字符串,并将每一个元素的字符串放入elementList中
+	public static void decodeJsonArray(string json, List<string> elementList)
+	{
+		// 如果不是数组类型则无法解析
+		if (json[0] != '[' || json[json.Length - 1] != ']')
+		{
+			return;
+		}
+		int curIndex = 0;
+		while (true)
+		{
+			int startIndex = json.IndexOf('{', curIndex);
+			if (startIndex < 0)
+			{
+				break;
+			}
+			int endIndex = json.IndexOf('}', startIndex);
+			if (endIndex < 0)
+			{
+				break;
+			}
+			elementList.Add(json.Substring(startIndex + 1, endIndex - startIndex - 1));
+			curIndex = endIndex + 1;
+		}
+	}
+	// 解析一个json的结构体,需要所有参数都是字符串类型的
+	public static void decodeJsonStringPair(string json, Dictionary<string, string> paramList)
+	{
+		string[] memberList = split(json, ',');
+		if (memberList == null)
+		{
+			return;
+		}
+		for(int i = 0; i < memberList.Length; ++i)
+		{
+			string[] param = split(memberList[i], ':');
+			if (param == null || param.Length != 2)
+			{
+				continue;
+			}
+			paramList.Add(removeAll(param[0], '\"'), removeAll(param[1], '\"'));
+		}
+	}
 	// 绝对路径转换到相对于Asset的路径
 	public static void fullPathToProjectPath(ref string path)
 	{
@@ -537,6 +681,7 @@ public class StringUtility : BinaryUtility
 		}
 		return path;
 	}
+	// 移除文件的后缀名
 	public static string removeSuffix(string str)
 	{
 		int dotPos = str.IndexOf('.');
@@ -561,6 +706,7 @@ public class StringUtility : BinaryUtility
 	{
 		MyStringBuilder builder = FrameUtility.STRING(str);
 		rightToLeft(builder);
+
 		// 如果有文件名,则先去除文件名
 		int namePos = builder.LastIndexOf('/');
 		int dotPos = builder.LastIndexOf('.');
@@ -568,26 +714,41 @@ public class StringUtility : BinaryUtility
 		{
 			builder.Remove(namePos);
 		}
+
+		// 如果是以/结尾的,则去除结尾的/
+		if (builder[builder.Length - 1] == '/')
+		{
+			builder.Remove(builder.Length - 1);
+		}
+
 		// 再去除当前目录的父级目录
 		namePos = builder.LastIndexOf('/');
-		if (namePos != -1)
+		if (namePos >= 0)
 		{
 			builder.Remove(0, namePos + 1);
 		}
 		return FrameUtility.END_STRING(builder);
 	}
 	// 得到文件路径
-	public static string getFilePath(string fileName)
+	public static string getFilePath(string fileName, bool keepEndSlash = false)
 	{
 		MyStringBuilder builder = FrameUtility.STRING(fileName);
 		rightToLeft(builder);
-		int lastPos = builder.LastIndexOf('/');
-		if (lastPos != -1)
+		// 从倒数第二个开始,因为即使最后一个是/也需要忽略
+		int lastPos = builder.LastIndexOf('/', builder.Length - 2);
+		if (lastPos < 0)
+		{
+			FrameUtility.DESTROY_STRING(builder);
+			return EMPTY;	
+		}
+		if (keepEndSlash)
+		{
+			return FrameUtility.END_STRING(builder.Remove(lastPos + 1));
+		}
+		else
 		{
 			return FrameUtility.END_STRING(builder.Remove(lastPos));
 		}
-		FrameUtility.DESTROY_STRING(builder);
-		return EMPTY;
 	}
 	public static string getFileName(string str)
 	{
@@ -637,14 +798,14 @@ public class StringUtility : BinaryUtility
 	// 如果路径最后有斜杠,则移除结尾的斜杠
 	public static void removeEndSlash(ref string path)
 	{
-		if (endWith(path, "/"))
+		if (path[path.Length - 1] == '/')
 		{
 			path = path.Substring(0, path.Length - 1);
 		}
 	}
 	public static void addEndSlash(ref string path)
 	{
-		if (!isEmpty(path) && !endWith(path, "/"))
+		if (!isEmpty(path) && path[path.Length - 1] != '/')
 		{
 			path += "/";
 		}
@@ -677,6 +838,40 @@ public class StringUtility : BinaryUtility
 	{
 		return str.Replace('/', '\\');
 	}
+	public static char[] generateOtherASCII(params char[] exclude)
+	{
+		int curCount = 0;
+		char[] ascii = new char[0xFF - exclude.Length];
+		for(int i = 1; i < 0xFF + 1; ++i)
+		{
+			if (CSharpUtility.arrayContainsValue(exclude, (char)i))
+			{
+				continue;
+			}
+			if (curCount >= ascii.Length)
+			{
+				UnityUtility.logError("获取ASCII字符数组失败,排除列表中可能存在重复的字符");
+			}
+			ascii[curCount++] = (char)i;
+		}
+		return ascii;
+	}
+	public static void splitLine(string str, out string[] lines, bool removeEmpty = true)
+	{
+		lines = split(str, removeEmpty, '\n');
+		if(lines == null)
+		{
+			return;
+		}
+		for(int i = 0; i < lines.Length; ++i)
+		{
+			lines[i] = removeAll(lines[i], '\r');
+		}
+	}
+	public static string[] split(string str, params string[] keyword)
+	{
+		return split(str, true, keyword);
+	}
 	public static string[] split(string str, bool removeEmpty, params string[] keyword)
 	{
 		if (isEmpty(str))
@@ -695,25 +890,47 @@ public class StringUtility : BinaryUtility
 		}
 		return mTempStringList;
 	}
+	public static string[] split(string str, params char[] keyword)
+	{
+		return split(str, true, keyword);
+	}
+	public static string[] split(string str, bool removeEmpty, params char[] keyword)
+	{
+		if (isEmpty(str))
+		{
+			return null;
+		}
+		return str.Split(keyword, removeEmpty ? StringSplitOptions.RemoveEmptyEntries : StringSplitOptions.None);
+	}
+	// 在使用返回值期间禁止再调用splitNonAlloc
+	public static List<string> splitNonAlloc(string str, bool removeEmpty, params char[] keyword)
+	{
+		mTempStringList.Clear();
+		if (!isEmpty(str))
+		{
+			mTempStringList.AddRange(split(str, removeEmpty, keyword));
+		}
+		return mTempStringList;
+	}
 	// 在使用返回值期间禁止再调用stringToFloatsNonAlloc
-	public static List<float> stringToFloatsNonAlloc(string str, string seperate = ",")
+	public static List<float> stringToFloatsNonAlloc(string str, char seperate = ',')
 	{
 		stringToFloats(str, mTempFloatList, seperate);
 		return mTempFloatList;
 	}
-	public static List<float> stringToFloats(string str, string seperate = ",")
+	public static List<float> stringToFloats(string str, char seperate = ',')
 	{
 		List<float> values = new List<float>();
 		stringToFloats(str, values, seperate);
 		return values;
 	}
-	public static void stringToFloats(string str, ref float[] values, string seperate = ",")
+	public static void stringToFloats(string str, ref float[] values, char seperate = ',')
 	{
 		if (isEmpty(str))
 		{
 			return;
 		}
-		string[] rangeList = split(str, true, seperate);
+		string[] rangeList = split(str, seperate);
 		int len = rangeList.Length;
 		if (values != null && len != values.Length)
 		{
@@ -729,7 +946,7 @@ public class StringUtility : BinaryUtility
 			values[i] = SToF(rangeList[i]);
 		}
 	}
-	public static void stringToFloats(string str, List<float> values, string seperate = ",")
+	public static void stringToFloats(string str, List<float> values, char seperate = ',')
 	{
 		if (values == null)
 		{
@@ -741,14 +958,14 @@ public class StringUtility : BinaryUtility
 		{
 			return;
 		}
-		string[] rangeList = split(str, true, seperate);
+		string[] rangeList = split(str, seperate);
 		int len = rangeList.Length;
 		for (int i = 0; i < len; ++i)
 		{
 			values.Add(SToF(rangeList[i]));
 		}
 	}
-	public static string floatsToString(float[] values, string seperate = ",")
+	public static string floatsToString(float[] values, char seperate = ',')
 	{
 		MyStringBuilder builder = FrameUtility.STRING();
 		int count = values.Length;
@@ -762,7 +979,7 @@ public class StringUtility : BinaryUtility
 		}
 		return FrameUtility.END_STRING(builder);
 	}
-	public static string floatsToString(List<float> values, string seperate = ",")
+	public static string floatsToString(List<float> values, char seperate = ',')
 	{
 		MyStringBuilder builder = FrameUtility.STRING();
 		int count = values.Count;
@@ -776,13 +993,13 @@ public class StringUtility : BinaryUtility
 		}
 		return FrameUtility.END_STRING(builder);
 	}
-	public static List<int> stringToInts(string str, string seperate = ",")
+	public static List<int> stringToInts(string str, char seperate = ',')
 	{
 		List<int> values = new List<int>();
 		stringToInts(str, values, seperate);
 		return values;
 	}
-	public static void stringToInts(string str, List<int> values, string seperate = ",")
+	public static void stringToInts(string str, List<int> values, char seperate = ',')
 	{
 		if (values == null)
 		{
@@ -794,7 +1011,7 @@ public class StringUtility : BinaryUtility
 		{
 			return;
 		}
-		string[] rangeList = split(str, true, seperate);
+		string[] rangeList = split(str, seperate);
 		if (rangeList == null)
 		{
 			return;
@@ -805,13 +1022,13 @@ public class StringUtility : BinaryUtility
 			values.Add(SToI(rangeList[i]));
 		}
 	}
-	public static void stringToInts(string str, ref int[] values, string seperate = ",")
+	public static void stringToInts(string str, ref int[] values, char seperate = ',')
 	{
 		if (isEmpty(str))
 		{
 			return;
 		}
-		string[] rangeList = split(str, true, seperate);
+		string[] rangeList = split(str, seperate);
 		int len = rangeList.Length;
 		if (values != null && len != values.Length)
 		{
@@ -828,12 +1045,12 @@ public class StringUtility : BinaryUtility
 		}
 	}
 	// 在使用返回值期间禁止再调用stringToIntsNonAlloc
-	public static List<int> stringToIntsNonAlloc(string str, string seperate = ",")
+	public static List<int> stringToIntsNonAlloc(string str, char seperate = ',')
 	{
 		stringToInts(str, mTempIntList, seperate);
 		return mTempIntList;
 	}
-	public static void stringToUInts(string str, List<uint> values, string seperate = ",")
+	public static void stringToUInts(string str, List<uint> values, char seperate = ',')
 	{
 		if (values == null)
 		{
@@ -845,7 +1062,7 @@ public class StringUtility : BinaryUtility
 		{
 			return;
 		}
-		string[] rangeList = split(str, true, seperate);
+		string[] rangeList = split(str, seperate);
 		if (rangeList == null)
 		{
 			return;
@@ -856,7 +1073,7 @@ public class StringUtility : BinaryUtility
 			values.Add((uint)SToI(rangeList[i]));
 		}
 	}
-	public static void stringToUShorts(string str, List<ushort> values, string seperate = ",")
+	public static void stringToUShorts(string str, List<ushort> values, char seperate = ',')
 	{
 		if (values == null)
 		{
@@ -868,7 +1085,7 @@ public class StringUtility : BinaryUtility
 		{
 			return;
 		}
-		string[] rangeList = split(str, true, seperate);
+		string[] rangeList = split(str, seperate);
 		if (rangeList == null)
 		{
 			return;
@@ -879,7 +1096,7 @@ public class StringUtility : BinaryUtility
 			values.Add((ushort)SToI(rangeList[i]));
 		}
 	}
-	public static void stringToBools(string str, List<bool> values, string seperate = ",")
+	public static void stringToBools(string str, List<bool> values, char seperate = ',')
 	{
 		if (values == null)
 		{
@@ -891,7 +1108,7 @@ public class StringUtility : BinaryUtility
 		{
 			return;
 		}
-		string[] rangeList = split(str, true, seperate);
+		string[] rangeList = split(str, seperate);
 		if (rangeList == null)
 		{
 			return;
@@ -902,7 +1119,7 @@ public class StringUtility : BinaryUtility
 			values.Add(SToI(rangeList[i]) > 0);
 		}
 	}
-	public static void stringToBytes(string str, List<byte> values, string seperate = ",")
+	public static void stringToBytes(string str, List<byte> values, char seperate = ',')
 	{
 		if (values == null)
 		{
@@ -914,7 +1131,7 @@ public class StringUtility : BinaryUtility
 		{
 			return;
 		}
-		string[] rangeList = split(str, true, seperate);
+		string[] rangeList = split(str, seperate);
 		if (rangeList == null)
 		{
 			return;
@@ -925,7 +1142,7 @@ public class StringUtility : BinaryUtility
 			values.Add((byte)SToI(rangeList[i]));
 		}
 	}
-	public static void stringToSBytes(string str, List<sbyte> values, string seperate = ",")
+	public static void stringToSBytes(string str, List<sbyte> values, char seperate = ',')
 	{
 		if (values == null)
 		{
@@ -937,7 +1154,7 @@ public class StringUtility : BinaryUtility
 		{
 			return;
 		}
-		string[] rangeList = split(str, true, seperate);
+		string[] rangeList = split(str, seperate);
 		if (rangeList == null)
 		{
 			return;
@@ -948,7 +1165,7 @@ public class StringUtility : BinaryUtility
 			values.Add((sbyte)SToI(rangeList[i]));
 		}
 	}
-	public static string intsToString(int[] values, string seperate = ",")
+	public static string intsToString(int[] values, char seperate = ',')
 	{
 		MyStringBuilder builder = FrameUtility.STRING();
 		int count = values.Length;
@@ -962,7 +1179,7 @@ public class StringUtility : BinaryUtility
 		}
 		return FrameUtility.END_STRING(builder);
 	}
-	public static string intsToString(List<int> values, string seperate = ",")
+	public static string intsToString(List<int> values, char seperate = ',')
 	{
 		if (values == null)
 		{
@@ -980,7 +1197,7 @@ public class StringUtility : BinaryUtility
 		}
 		return FrameUtility.END_STRING(builder);
 	}
-	public static string stringsToString(List<string> values, string seperate = ",")
+	public static string stringsToString(List<string> values, char seperate = ',')
 	{
 		if(values == null)
 		{
@@ -998,7 +1215,25 @@ public class StringUtility : BinaryUtility
 		}
 		return FrameUtility.END_STRING(builder);
 	}
-	public static string stringsToString(string[] values, string seperate = ",")
+	public static string stringsToString(List<string> values, string seperate)
+	{
+		if(values == null)
+		{
+			return EMPTY;
+		}
+		MyStringBuilder builder = FrameUtility.STRING();
+		int count = values.Count;
+		for (int i = 0; i < count; ++i)
+		{
+			builder.Append(values[i]);
+			if (i != count - 1)
+			{
+				builder.Append(seperate);
+			}
+		}
+		return FrameUtility.END_STRING(builder);
+	}
+	public static string stringsToString(string[] values, char seperate = ',')
 	{
 		if (values == null)
 		{
@@ -1016,21 +1251,21 @@ public class StringUtility : BinaryUtility
 		}
 		return FrameUtility.END_STRING(builder);
 	}
-	public static List<string> stringToStrings(string str, string seperate = ",")
+	public static List<string> stringToStrings(string str, char seperate = ',')
 	{
 		List<string> strList = new List<string>();
 		if (str == null)
 		{
 			return strList;
 		}
-		string[] strArray = split(str, true, seperate);
+		string[] strArray = split(str, seperate);
 		if (strArray != null)
 		{
 			strList.AddRange(strArray);
 		}
 		return strList;
 	}
-	public static void stringToStrings(string str, List<string> values, string seperate = ",")
+	public static void stringToStrings(string str, List<string> values, char seperate = ',')
 	{
 		if (values == null)
 		{
@@ -1042,7 +1277,7 @@ public class StringUtility : BinaryUtility
 		{
 			return;
 		}
-		string[] rangeList = split(str, true, seperate);
+		string[] rangeList = split(str, seperate);
 		if (rangeList == null)
 		{
 			return;
@@ -1123,7 +1358,7 @@ public class StringUtility : BinaryUtility
 		// 从后往前插入
 		for (int i = 0; i < commaCount; ++i)
 		{
-			builder.Insert(insertStart, ",");
+			builder.Insert(insertStart, ',');
 			insertStart -= 3;
 		}
 		str = FrameUtility.END_STRING(builder);
@@ -1303,6 +1538,12 @@ public class StringUtility : BinaryUtility
 		replaceAll(builder, key, newWords);
 		return FrameUtility.END_STRING(builder);
 	}
+	public static string replaceAll(string str, char key, char newWords)
+	{
+		MyStringBuilder builder = FrameUtility.STRING(str);
+		replaceAll(builder, key, newWords);
+		return FrameUtility.END_STRING(builder);
+	}
 	public static void replaceAll(MyStringBuilder builder, string key, string newWords)
 	{
 		int startPos = 0;
@@ -1317,8 +1558,19 @@ public class StringUtility : BinaryUtility
 			startPos = pos + newWords.Length;
 		}
 	}
+	public static void replaceAll(MyStringBuilder builder, char key, char newWords)
+	{
+		int len = builder.Length;
+		for (int i = 0; i < len; ++i)
+		{
+			if (builder[i] == key)
+			{
+				builder[i] = newWords;
+			}
+		}
+	}
 	// 移除str的从开头到stopChar的部分,包括stopChar,findFromStart为true表示寻找第一个stopChar,false表示寻找最后一个stopChar
-	public static string removeStart(string str, char stopChar, bool findFromStart)
+	public static string removeStartUntil(string str, char stopChar, bool findFromStart)
 	{
 		int pos = findFromStart ? str.IndexOf(stopChar) : str.LastIndexOf(stopChar);
 		if(pos < 0)
@@ -1333,13 +1585,26 @@ public class StringUtility : BinaryUtility
 		int keyCount = key.Length;
 		for (int i = 0; i < keyCount; ++i)
 		{
-			replaceAll(builder, key[i], "");
+			replaceAll(builder, key[i], EMPTY);
+		}
+		return FrameUtility.END_STRING(builder);
+	}
+	public static string removeAll(string str, params char[] key)
+	{
+		MyStringBuilder builder = FrameUtility.STRING(str);
+		for(int i = builder.Length - 1; i >= 0; --i)
+		{
+			// 判断是否是需要移除的字符
+			if (CSharpUtility.arrayContainsValue(key, builder[i]))
+			{
+				builder.Remove(i, 1);
+			}
 		}
 		return FrameUtility.END_STRING(builder);
 	}
 	public static float SToF(string str)
 	{
-		checkFloatString(str, "-");
+		checkFloatString(str);
 		if (isEmpty(str) || str == "-")
 		{
 			return 0.0f;
@@ -1376,7 +1641,7 @@ public class StringUtility : BinaryUtility
 	public static bool checkFloatString(string str, string valid = EMPTY)
 	{
 #if UNITY_EDITOR
-		return checkIntString(str, "." + valid);
+		return checkString(str, "-0123456789.E" + valid);
 #else
 		return true;
 #endif
@@ -1401,8 +1666,8 @@ public class StringUtility : BinaryUtility
 	{
 		if (removeOrTransfer)
 		{
-			name = removeAll(name, "&");
-			name = removeAll(name, "\\");
+			name = removeAll(name, '&');
+			name = removeAll(name, '\\');
 		}
 		else
 		{
@@ -1411,7 +1676,29 @@ public class StringUtility : BinaryUtility
 		}
 		return name;
 	}
-	public static string bytesToHEXString(byte[] byteList, bool addSpace = true, bool upperOrLower = true, int count = 0)
+	public static string bytesToHEXStringThread(byte[] byteList, int count = 0, bool addSpace = true, bool upperOrLower = true)
+	{
+		MyStringBuilder builder = FrameUtility.STRING_THREAD();
+		int byteCount = count > 0 ? count : byteList.Length;
+		byteCount = MathUtility.getMin(byteList.Length, byteCount);
+		for (int i = 0; i < byteCount; ++i)
+		{
+			if (addSpace)
+			{
+				byteToHEXString(builder, byteList[i], upperOrLower);
+				if(i != byteCount - 1)
+				{
+					builder.Append(" ");
+				}
+			}
+			else
+			{
+				byteToHEXString(builder, byteList[i], upperOrLower);
+			}
+		}
+		return FrameUtility.END_STRING_THREAD(builder);
+	}
+	public static string bytesToHEXString(byte[] byteList, int count = 0, bool addSpace = true, bool upperOrLower = true)
 	{
 		MyStringBuilder builder = FrameUtility.STRING();
 		int byteCount = count > 0 ? count : byteList.Length;
@@ -1423,7 +1710,7 @@ public class StringUtility : BinaryUtility
 				byteToHEXString(builder, byteList[i], upperOrLower);
 				if(i != byteCount - 1)
 				{
-					builder.Append(" ");
+					builder.Append(' ');
 				}
 			}
 			else
@@ -1553,6 +1840,18 @@ public class StringUtility : BinaryUtility
 		// 大于1GB
 		return FToS(size * (1.0f / (1024.0f * 1024.0f * 1024.0f)), 1) + "GB";
 	}
+	public static string addSprite(string originString, string spriteName, float width = 1.0f)
+	{
+		return strcat(originString, "<quad width=", FToS(width), " sprite=", spriteName, "/>");
+	}
+	public static void addSprite(ref string originString, string spriteName, float width = 1.0f)
+	{
+		originString = addSprite(originString, spriteName, width);
+	}
+	public static void addSprite(MyStringBuilder originString, string spriteName, float width = 1.0f)
+	{
+		originString.Append("<quad width=").Append(width).Append(" sprite=").Append(spriteName).Append("/>");
+	}
 	// 在文本显示中将str的颜色设置为color
 	public static string colorStringNoBuilder(string color, string str)
 	{
@@ -1599,7 +1898,7 @@ public class StringUtility : BinaryUtility
 		return byteToHEXString(color.r) + byteToHEXString(color.g) + byteToHEXString(color.b) + byteToHEXString(color.a);
 	}
 	// returnEndIndex表示返回值是否是字符串结束的下一个字符的下标
-	public static int findFirstSubstr(string res, string pattern, int startPos = 0, bool returnEndIndex = false, bool sensitive = true)
+	public static int findFirstSubstr(string res, char pattern, int startPos = 0, bool sensitive = true)
 	{
 		if(res == null)
 		{
@@ -1607,9 +1906,27 @@ public class StringUtility : BinaryUtility
 		}
 		if (!sensitive)
 		{
-			// 全转换为小写
-			res = res.ToLower();
-			pattern = pattern.ToLower();
+			pattern = toLower(pattern);
+		}
+		int posFind = -1;
+		int len = res.Length;
+		for (int i = startPos; i < len; ++i)
+		{
+			if ((sensitive && res[i] == pattern) || 
+				(!sensitive && toLower(res[i]) == pattern))
+			{
+				posFind = i;
+				break;
+			}
+		}
+		return posFind;
+	}
+	// returnEndIndex表示返回值是否是字符串结束的下一个字符的下标
+	public static int findFirstSubstr(string res, string pattern, int startPos = 0, bool returnEndIndex = false, bool sensitive = true)
+	{
+		if(res == null)
+		{
+			return -1;
 		}
 		int posFind = -1;
 		int subLen = pattern.Length;
@@ -1620,12 +1937,27 @@ public class StringUtility : BinaryUtility
 			{
 				continue;
 			}
-			int j;
-			for (j = 0; j < subLen; ++j)
+			int j = 0;
+			// 大小写敏感
+			if (sensitive)
 			{
-				if (i + j >= 0 && i + j < len && res[i + j] != pattern[j])
+				for (; j < subLen; ++j)
 				{
-					break;
+					if (i + j >= 0 && i + j < len && res[i + j] != pattern[j])
+					{
+						break;
+					}
+				}
+			}
+			// 大小写不敏感,则需要都转换为小写
+			else
+			{
+				for (; j < subLen; ++j)
+				{
+					if (i + j >= 0 && i + j < len && toLower(res[i + j]) != toLower(pattern[j]))
+					{
+						break;
+					}
 				}
 			}
 			if (j == subLen)
@@ -1641,8 +1973,36 @@ public class StringUtility : BinaryUtility
 		return posFind;
 	}
 	// returnEndIndex表示返回值是否是字符串结束的下一个字符的下标
-	public static int findFirstSubstr(MyStringBuilder res, string pattern, int startPos = 0, bool returnEndIndex = false)
+	public static int findFirstSubstr(MyStringBuilder res, char pattern, int startPos = 0, bool sensitive = true)
 	{
+		if(res == null)
+		{
+			return -1;
+		}
+		if (!sensitive)
+		{
+			pattern = toLower(pattern);
+		}
+		int posFind = -1;
+		int len = res.Length;
+		for (int i = startPos; i < len; ++i)
+		{
+			if ((sensitive && res[i] == pattern) || 
+				(!sensitive && toLower(res[i]) == pattern))
+			{
+				posFind = i;
+				break;
+			}
+		}
+		return posFind;
+	}
+	// returnEndIndex表示返回值是否是字符串结束的下一个字符的下标
+	public static int findFirstSubstr(MyStringBuilder res, string pattern, int startPos = 0, bool returnEndIndex = false, bool sensitive = true)
+	{
+		if (res == null || res.Length < pattern.Length)
+		{
+			return -1;
+		}
 		int posFind = -1;
 		int subLen = pattern.Length;
 		int len = res.Length;
@@ -1653,11 +2013,26 @@ public class StringUtility : BinaryUtility
 				continue;
 			}
 			int j = 0;
-			for (; j < subLen; ++j)
+			// 大小写敏感
+			if (sensitive)
 			{
-				if (i + j >= 0 && i + j < len && res[i + j] != pattern[j])
+				for (; j < subLen; ++j)
 				{
-					break;
+					if (i + j >= 0 && i + j < len && res[i + j] != pattern[j])
+					{
+						break;
+					}
+				}
+			}
+			// 大小写不敏感,则需要都转换为小写
+			else
+			{
+				for (; j < subLen; ++j)
+				{
+					if (i + j >= 0 && i + j < len && toLower(res[i + j]) != toLower(pattern[j]))
+					{
+						break;
+					}
 				}
 			}
 			if (j == subLen)
@@ -1666,7 +2041,7 @@ public class StringUtility : BinaryUtility
 				break;
 			}
 		}
-		if (returnEndIndex && posFind >= 0)
+		if(returnEndIndex && posFind >= 0)
 		{
 			posFind += subLen;
 		}
@@ -1701,6 +2076,87 @@ public class StringUtility : BinaryUtility
 		}
 		return posFind;
 	}
+	// 将字符转换为小写字母
+	public static char toLower(char c)
+	{
+		if (isUpper(c))
+		{
+			return (char)(c + ('a' - 'A'));
+		}
+		return c;
+	}
+	// 将字符转换为大写字母
+	public static char toUpper(char c)
+	{
+		if (isLower(c))
+		{
+			return (char)(c + ('A' - 'a'));
+		}
+		return c;
+	}
+	// 是否为字母
+	public static bool isLetter(char c) { return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'; }
+	// 字符是否为小写字母
+	public static bool isLower(char c) { return c >= 'a' && c <= 'z'; }
+	// 字符是否为大写字母
+	public static bool isUpper(char c) { return c >= 'A' && c <= 'Z'; }
+	// 是否为全大写字母
+	public static bool isUpperString(string str)
+	{
+		foreach (var element in str)
+		{
+			if (isLower(element))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+	// 是否有除数字字母以外的字符
+	public static bool hasSpecialChar(string str)
+	{
+		return Regex.IsMatch(str, "[^0-9a-zA-Z\u4e00-\u9fa5]");
+	}
+	// 是否是整数或浮点数的字符串
+	public static bool isNumeric(string value)
+	{
+		return Regex.IsMatch(value, @"^[+-]?\d*[.]?\d*$");
+	}
+	// 是否为数字
+	public static bool isNumeric(char c) { return c >= '0' && c <= '9'; }
+	// 计算字符的显示宽度,英文字母的宽度为1,汉字的宽度为2
+	public static int generateCharWidth(string str)
+	{
+		int width = 0;
+		for (int i = 0; i < str.Length; ++i)
+		{
+			if (str[i] <= 0x7F)
+			{
+				width += 1;
+			}
+			else
+			{
+				width += 2;
+			}
+		}
+		return width;
+	}
+	public static bool isPhoneNumber(string str)
+	{
+		int length = str.Length;
+		if (length != 11 || str[0] != '1')
+		{
+			return false;
+		}
+		for(int i = 0; i < length; ++i)
+		{
+			if(str[i] < '0' || str[i] > '9')
+			{
+				return false;
+			}
+		}
+		return true;
+	}
 	public static void appendValueString(ref string queryStr, string str)
 	{
 		queryStr += "\"" + str + "\",";
@@ -1716,7 +2172,7 @@ public class StringUtility : BinaryUtility
 	public static void appendValueVector2(MyStringBuilder queryStr, Vector2 value)
 	{
 		vector2ToString(queryStr, value);
-		queryStr.Append(",");
+		queryStr.Append(',');
 	}
 	public static void appendValueVector2Int(ref string queryStr, Vector2Int value)
 	{
@@ -1725,7 +2181,7 @@ public class StringUtility : BinaryUtility
 	public static void appendValueVector2Int(MyStringBuilder queryStr, Vector2Int value)
 	{
 		vector2IntToString(queryStr, value);
-		queryStr.Append(",");
+		queryStr.Append(',');
 	}
 	public static void appendValueVector3(ref string queryStr, Vector3 value)
 	{
@@ -1734,7 +2190,7 @@ public class StringUtility : BinaryUtility
 	public static void appendValueVector3(MyStringBuilder queryStr, Vector3 value)
 	{
 		vector3ToString(queryStr, value);
-		queryStr.Append(",");
+		queryStr.Append(',');
 	}
 	public static void appendValueInt(ref string queryStr, int value)
 	{
@@ -1843,8 +2299,8 @@ public class StringUtility : BinaryUtility
 			// 如果j = -1，或者当前字符匹配成功（即S[i] == P[j]），都令i++，j++      
 			if (j == -1 || str[i] == pattern[j])
 			{
-				i++;
-				j++;
+				++i;
+				++j;
 			}
 			else
 			{

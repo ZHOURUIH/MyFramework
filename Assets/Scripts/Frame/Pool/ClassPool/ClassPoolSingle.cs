@@ -16,6 +16,14 @@ public class ClassPoolSingle : FrameBase
 		mUnusedList = new HashSet<ClassObject>();
 		mListLock = new ThreadLock();
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mInusedList.Clear();
+		mUnusedList.Clear();
+		mListLock.unlock();
+		mType = null;
+	}
 	public void setType(Type type) { mType = type; }
 	public Type getType() { return mType; }
 	public void lockList() { mListLock.waitForUnlock(); }
@@ -27,16 +35,11 @@ public class ClassPoolSingle : FrameBase
 	{
 		mListLock.waitForUnlock();
 		isNewObject = false;
-		ClassObject obj = null;
+		ClassObject obj;
 		// 先从未使用的列表中查找是否有可用的对象
 		if (mUnusedList.Count > 0)
 		{
-			foreach(var item in mUnusedList)
-			{
-				obj = item;
-				break;
-			}
-			mUnusedList.Remove(obj);
+			obj = popFirstElement(mUnusedList);
 		}
 		// 未使用列表中没有,创建一个新的
 		else
@@ -95,7 +98,7 @@ public class ClassPoolSingle : FrameBase
 		mListLock.unlock();
 		return inuse;
 	}
-	//------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void addInuse(ClassObject obj)
 	{
 		if (!mInusedList.Add(obj))

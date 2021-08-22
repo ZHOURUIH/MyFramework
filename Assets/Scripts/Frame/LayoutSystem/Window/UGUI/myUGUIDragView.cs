@@ -205,7 +205,7 @@ public class myUGUIDragView : myUGUIObject
 	public void setDragLengthThreshold(float value) { mDragViewComponent.setDragLengthThreshold(value); }
 	public void setDragAngleThreshold(float radian) { mDragViewComponent.setDragAngleThreshold(radian); }
 	public void setAutoClampSpeed(float speed) { mDragViewComponent.setAutoClampSpeed(speed); }
-	//------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void initComponents()
 	{
 		base.initComponents();

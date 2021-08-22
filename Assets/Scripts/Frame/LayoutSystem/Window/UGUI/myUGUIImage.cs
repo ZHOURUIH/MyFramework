@@ -58,19 +58,18 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 				}
 				if (mAtlas != null && mAtlas.mTexture != curTexture)
 				{
-					logError("设置的图集与加载出的图集不一致!可能未添加ImageAtlasPath组件,或者ImageAtlasPath组件中记录的路径错误,或者是在当前物体在重复使用过程中销毁了原始图集");
+					logError("设置的图集与加载出的图集不一致!可能未添加ImageAtlasPath组件,或者ImageAtlasPath组件中记录的路径错误,或者是在当前物体在重复使用过程中销毁了原始图集\n图集名:" + mOriginSprite.name + ", 记录的图集路径:" + atlasPath);
 				}
 			}
 		}
 		mOriginTextureName = getSpriteName();
 		string materialName = getMaterialName();
 		// 不再将默认材质替换为自定义的默认材质,只判断其他材质
-		if(!isEmpty(materialName) && materialName != FrameDefine.BUILDIN_UI_MATERIAL)
+		if (!isEmpty(materialName) && 
+			materialName != FrameDefine.BUILDIN_UI_MATERIAL && 
+			!mShaderManager.isSingleShader(materialName))
 		{
-			if (!mShaderManager.isSingleShader(materialName))
-			{
-				setMaterialName(materialName, true);
-			}
+			setMaterialName(materialName, true);
 		}
 	}
 	public override void destroy()
@@ -88,7 +87,12 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 		mImage.sprite = mOriginSprite;
 		base.destroy();
 	}
-	public void setWindowShader(WindowShader shader) { mWindowShader = shader; }
+	public void setWindowShader(WindowShader shader)
+	{
+		mWindowShader = shader;
+		// 因为shader参数的需要在update中更新,所以需要启用窗口的更新
+		mEnable = true;
+	}
 	public WindowShader getWindowShader() { return mWindowShader; }
 	public override void update(float elapsedTime)
 	{
@@ -170,19 +174,19 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 	}
 	public Image getImage() { return mImage; }
 	public Sprite getSprite() { return mImage.sprite; }
-	public void setMaterialName(string materialName, bool newMaterial)
+	public void setMaterialName(string materialName, bool newMaterial, bool loadAsync = false)
 	{
 		if(mImage == null)
 		{ 
 			return; 
 		}
 		mIsNewMaterial = newMaterial;
-		// 查看是否允许同步加载
-		if (mResourceManager.isSyncLoadAvalaible())
+		// 同步加载
+		if (!loadAsync)
 		{
 			Material mat;
 			Material loadedMaterial = mResourceManager.loadResource<Material>(FrameDefine.R_MATERIAL_PATH + materialName);
-			if(mIsNewMaterial)
+			if (mIsNewMaterial)
 			{
 				mat = new Material(loadedMaterial);
 				mat.name = materialName + "_" + IToS(mID);
@@ -193,6 +197,7 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 			}
 			mImage.material = mat;
 		}
+		// 异步加载
 		else
 		{
 			CLASS(out LoadMaterialParam param);
@@ -280,7 +285,7 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 		}
 		mOriginTextureName = mOriginTextureName.Substring(0, mOriginTextureName.LastIndexOf(key) + 1);
 	}
-	//----------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onMaterialLoaded(Object res, Object[] subAssets, byte[] bytes, object userData, string loadPath)
 	{
 		if(mImage == null)

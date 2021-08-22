@@ -16,6 +16,14 @@ public class CameraLinkerSwitchLinear : CameraLinkerSwitch
 		mDistance = getLength(mOriginRelative - mTargetRelative);
 		mDirection = normalize(mTargetRelative - mOriginRelative);
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mDirection = Vector3.zero;
+		mMovedDistance = 0.0f;
+		mDistance = 0.0f;
+		mSpeed = 7.0f;
+	}
 	public override void update(float elapsedTime)
 	{
 		if (mLinker == null)

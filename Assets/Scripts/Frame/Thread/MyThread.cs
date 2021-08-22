@@ -14,17 +14,26 @@ public class MyThread : FrameBase
 	public MyThread(string name)
 	{
 		mRun = new BOOL();
+		mTimeLock = new ThreadTimeLock(0);
 		mName = name;
-		mCallback = null;
-		mThread = null;
-		mTimeLock = null;
 		mIsBackground = true;
-		mRunning = false;
 		mFinish = true;
 	}
 	public void destroy()
 	{
 		stop();
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mCallback = null;
+		mTimeLock.setFrameTime(0);
+		mThread = null;
+		mRun.set(false);
+		mName = null;
+		mIsBackground = true;
+		mRunning = false;
+		mFinish = true;
 	}
 	public void setBackground(bool background)
 	{
@@ -74,6 +83,7 @@ public class MyThread : FrameBase
 		}
 		logForce("线程退出完成! 线程名 : " + mName);
 	}
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void run()
 	{
 		mFinish = false;

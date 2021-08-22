@@ -13,7 +13,7 @@ public class COMTransformableRotate : ComponentKeyFrameNormal, IComponentModifyR
 	}
 	public void setStart(Vector3 rot) { mStart = rot; }
 	public void setTarget(Vector3 rot){	mTarget = rot; }
-	//-------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
 		(mComponentOwner as Transformable).setRotation(lerpSimple(mStart, mTarget, value));

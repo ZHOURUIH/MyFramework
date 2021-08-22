@@ -191,7 +191,7 @@ public enum GROUP_MUTEX : byte
 	REMOVE_OTHERS,			// 添加新状态时移除组中的其他所有状态
 	NO_NEW,					// 状态组中有状态时不允许添加新状态
 	MUTEX_WITH_MAIN,		// 仅与主状态互斥,添加主状态时移除其他所有状态,有主状态时不可添加其他状态,没有主状态时可任意添加其他状态
-	MUTEX_WITH_MAIN_ONLY,   // 仅与主状态互斥,添加主状态时移除其他所有状态,无论是否有主状态都可以添加其他状态
+	MUTEX_WITH_MAIN_ONLY,	// 仅与主状态互斥,添加主状态时移除其他所有状态,无论是否有主状态都可以添加其他状态
 	MUTEX_INVERSE_MAIN,		// 主状态反向互斥,有其他状态时,不允许添加主状态,添加其他状态时,立即将主状态移除
 }
 
@@ -332,4 +332,29 @@ public enum WINDOW_MODE : byte
 	FULL_SCREEN,					// 全屏模式
 	NO_BOARD_WINDOW,				// 无边框窗口模式
 	FULL_SCREEN_CUSTOM_RESOLUTION,	// 全屏并且使用配置文件中的分辨率
+}
+
+// 角的类型
+public enum CORNER : byte
+{
+	LEFT_TOP,					// 左上角
+	LEFT_BOTTOM,				// 左下角
+	RIGHT_TOP,					// 右上角
+	RIGHT_BOTTOM,				// 右下角
+}
+
+// 布局的生命周期定义
+public enum LAYOUT_LIFE_CYCLE : byte
+{
+	NONE,						// 无效值
+	ALWAYS,						// 全局常驻
+	PART_USE,					// 只在一些流程中使用
+}
+
+// 调整Content的子节点的方式
+public enum CONTENT_ADJUST : byte
+{ 
+	NONE,					// 无效值,不改变子节点的位置
+	SINGLE_COLUMN_OR_LINE,	// 自动按照单行或者单列进行排列子节点
+	FIXED_WIDTH_OR_HEIGHT,	// 按照固定的父节点宽度或宽度,顺序排列子节点
 }

@@ -3,20 +3,33 @@
 // 决策树节点基类,DTree表示DecisionTree
 public class DTreeNode : FrameBase
 {
-	public Dictionary<uint, DTreeNode> mChildMap;   // 以子节点的ID为索引的子节点列表
-	public List<DTreeNode> mChildList;              // 带顺序的子节点列表
-	public Character mCharacter;
-	public DTreeNode mParent;
-	public object mUserData;        // 用户自定义数据
-	public float mRandomWeight;		// 随机选择时的权重,范围0-1
-	public bool mDeadNode;			// 当前节点是否已死亡
-	public uint mID;                // 节点唯一ID
-	public int mPriority;           // 节点优先级
+	public Dictionary<uint, DTreeNode> mChildMap;	// 以子节点的ID为索引的子节点列表
+	public List<DTreeNode> mChildList;				// 带顺序的子节点列表
+	public Character mCharacter;					// 所属角色
+	public DTreeNode mParent;						// 父节点
+	public object mUserData;						// 用户自定义数据
+	public float mRandomWeight;						// 随机选择时的权重,范围0-1
+	public uint mID;								// 节点唯一ID
+	public int mPriority;							// 节点优先级
+	public bool mDeadNode;							// 当前节点是否已死亡
 	public DTreeNode()
 	{
-		mRandomWeight = 1;
-		mChildList = new List<DTreeNode>();
 		mChildMap = new Dictionary<uint, DTreeNode>();
+		mChildList = new List<DTreeNode>();
+		mRandomWeight = 1.0f;
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mChildMap.Clear();
+		mChildList.Clear();
+		mCharacter = null;
+		mParent = null;
+		mUserData = null;
+		mRandomWeight = 1.0f;
+		mID = 0;
+		mPriority = 0;
+		mDeadNode = false;
 	}
 	public void setID(uint id) { mID = id; }
 	public uint getID() { return mID; }
@@ -65,6 +78,6 @@ public class DTreeNode : FrameBase
 		mChildMap.Remove(child.getID());
 		return true;
 	}
-	//-----------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected virtual void notifyAttachParent(DTreeNode parent) { }
 }

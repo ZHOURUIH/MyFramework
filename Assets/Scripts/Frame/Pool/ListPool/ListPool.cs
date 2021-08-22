@@ -58,16 +58,11 @@ public class ListPool : FrameSystem
 			logError("只能在主线程使用ListPool,子线程请使用ListPoolThread代替");
 			return null;
 		}
-		IList list = null;
+		IList list;
 		// 先从未使用的列表中查找是否有可用的对象
 		if (mUnusedList.TryGetValue(elementType, out HashSet<IList> valueList) && valueList.Count > 0)
 		{
-			foreach(var item in valueList)
-			{
-				list = item;
-				break;
-			}
-			valueList.Remove(list);
+			list = popFirstElement(valueList);
 		}
 		// 未使用列表中没有,创建一个新的
 		else
@@ -95,7 +90,7 @@ public class ListPool : FrameSystem
 		addUnuse(list, type);
 		removeInuse(list, type);
 	}
-	//----------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void addInuse(IList list, Type type, bool onlyOnce)
 	{
 		// 加入仅临时使用的列表对象的列表中

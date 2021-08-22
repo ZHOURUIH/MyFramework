@@ -155,7 +155,7 @@ public class EffectManager : FrameSystem
 				// 如果特效物体不是空的,可能是销毁物体时引擎不是立即销毁的,需要手动设置为空
 				if (!effectValid && effect.getObject() != null)
 				{
-					effect.setObject(null, true);
+					effect.setObject(null);
 				}
 			}
 			if (!effectValid)
@@ -165,7 +165,7 @@ public class EffectManager : FrameSystem
 		}
 		UN_LIST(tempList);
 	}
-	//----------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onEffectLoaded(GameObject go, object userData)
 	{
 		if (go == null)
@@ -188,8 +188,8 @@ public class EffectManager : FrameSystem
 		}
 		CLASS(out GameEffect gameEffect);
 		gameEffect.setName(name);
-		gameEffect.setObject(go, true);
 		gameEffect.setExistObject(existObject);
+		gameEffect.setObject(go);
 		gameEffect.init();
 		gameEffect.setLifeTime(lifeTime);
 		mEffectList.Add(gameEffect);

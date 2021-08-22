@@ -65,19 +65,14 @@ public class ArrayPool : FrameSystem
 			return null;
 		}
 		Type type = typeof(T);
-		T[] array = null;
+		T[] array;
 		// 先从未使用的列表中查找是否有可用的对象
 		if (mUnusedList.TryGetValue(type, out Dictionary<int, HashSet<Array>> typeList) && 
 			typeList.Count > 0 &&
 			typeList.TryGetValue(size, out HashSet<Array> arrayList) &&
 			arrayList.Count > 0)
 		{
-			foreach (var item in arrayList)
-			{
-				array = item as T[];
-				break;
-			}
-			arrayList.Remove(array);
+			array = popFirstElement(arrayList) as T[];
 		}
 		// 未使用列表中没有,创建一个新的
 		else
@@ -119,7 +114,7 @@ public class ArrayPool : FrameSystem
 		}
 		removeInuse(array);
 	}
-	//----------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void addInuse<T>(T[] array, bool onlyOnce)
 	{
 		Type type = typeof(T);

@@ -94,7 +94,7 @@ public class HttpUtility : FrameSystem
 			// 第一行不需要换行
 			if (postStream.Length == 0)
 			{
-				formdataBytes = stringToBytes(formdata.Substring(2, formdata.Length - 2), Encoding.UTF8);
+				formdataBytes = stringToBytes(formdata.Substring(2), Encoding.UTF8);
 			}
 			else
 			{
@@ -160,7 +160,8 @@ public class HttpUtility : FrameSystem
 		{
 			try
 			{
-				// 附加要POST给服务器的数据到HttpWebRequest对象(附加POST数据的过程比较特殊，它并没有提供一个属性给用户存取，需要写入HttpWebRequest对象提供的一个stream里面。)
+				// 附加要POST给服务器的数据到HttpWebRequest对象,附加POST数据的过程比较特殊
+				// 它并没有提供一个属性给用户存取，需要写入HttpWebRequest对象提供的一个stream里面
 				// 创建一个Stream,赋值是写入HttpWebRequest对象提供的一个stream里面
 				Stream newStream = webRequest.GetRequestStream();
 				newStream.Write(data, 0, dataLength);
@@ -285,13 +286,14 @@ public class HttpUtility : FrameSystem
 		}
 		return null;
 	}
-	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected static void waitHttpPost(object param)
 	{
 		var threadParam = (RequestThreadParam)param;
 		try
 		{
-			// 附加要POST给服务器的数据到HttpWebRequest对象(附加POST数据的过程比较特殊，它并没有提供一个属性给用户存取，需要写入HttpWebRequest对象提供的一个stream里面。)
+			// 附加要POST给服务器的数据到HttpWebRequest对象,附加POST数据的过程比较特殊
+			// 它并没有提供一个属性给用户存取，需要写入HttpWebRequest对象提供的一个stream里面
 			// 创建一个Stream,赋值是写入HttpWebRequest对象提供的一个stream里面
 			Stream newStream = threadParam.mRequest.GetRequestStream();
 			newStream.Write(threadParam.mByteArray, 0, threadParam.mByteArray.Length);
@@ -310,7 +312,7 @@ public class HttpUtility : FrameSystem
 		}
 		catch (Exception e)
 		{
-			threadParam.mCallback(null, threadParam.mUserData);
+			delayCallThread(threadParam.mCallback, null, threadParam.mUserData);
 			log("http post result exception:" + e.Message + ", url:" + threadParam.mFullURL);
 		}
 		finally
@@ -338,7 +340,7 @@ public class HttpUtility : FrameSystem
 		}
 		catch (Exception e)
 		{
-			threadParam.mCallback(null, threadParam.mUserData);
+			delayCallThread(threadParam.mCallback, null, threadParam.mUserData);
 			log("http get result exception : " + e.Message + ", url : " + threadParam.mFullURL);
 		}
 		finally

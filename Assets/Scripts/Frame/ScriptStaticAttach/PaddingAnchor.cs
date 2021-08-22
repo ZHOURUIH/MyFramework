@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 [Serializable]
 public struct ComplexPoint
@@ -54,6 +57,17 @@ public class PaddingAnchor : MonoBehaviour
 		mRelativeDistance = relativeDistance;
 		setAnchorMode(mAnchorMode);
 	}
+	public void Reset()
+	{
+		// 挂载该脚本时候检查当前GameView的分辨率是否是标准分辨率
+		Vector2 screenSize = UnityUtility.getGameViewSize();
+		if ((int)screenSize.x != FrameDefineExtension.STANDARD_WIDTH || (int)screenSize.y != FrameDefineExtension.STANDARD_HEIGHT)
+		{
+			EditorUtility.DisplayDialog("错误", "当前分辨率不是标准分辨率,适配结果可能不对,请将Game视图的分辨率修改为" + 
+				FrameDefineExtension.STANDARD_WIDTH + "*" + FrameDefineExtension.STANDARD_HEIGHT, "确定");
+			DestroyImmediate(this);
+		}
+	}
 #endif
 	public void setAnchorMode(ANCHOR_MODE mode)
 	{
@@ -79,7 +93,8 @@ public class PaddingAnchor : MonoBehaviour
 			UnityUtility.logWarning("transform's scale is not 1, may not adapt correctely, " + transform.name + ", scale:" + StringUtility.vector3ToString(transform.localScale, 6));
 		}
 		mDirty = false;
-		Vector2 newSize = GetComponent<RectTransform>().rect.size;
+		var rectTransform = GetComponent<RectTransform>();
+		Vector2 newSize = rectTransform.rect.size;
 		GameObject parent = transform.parent.gameObject;
 		Vector2 parentSize = parent.GetComponent<RectTransform>().rect.size;
 		Vector3 pos = transform.localPosition;
@@ -139,15 +154,15 @@ public class PaddingAnchor : MonoBehaviour
 		}
 		if (mAdjustFont)
 		{
-			WidgetUtility.setRectSizeWithFontSize(GetComponent<RectTransform>(), newSize);
+			WidgetUtility.setRectSizeWithFontSize(rectTransform, newSize);
 		}
 		else
 		{
-			WidgetUtility.setRectSize(GetComponent<RectTransform>(), newSize);
+			WidgetUtility.setRectSize(rectTransform, newSize);
 		}
 		transform.localPosition = MathUtility.round(pos);
 	}
-	//------------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 将锚点设置到距离相对于父节点最近的边,并且各边界到父节点对应边界的距离固定不变
 	protected void setToNearParentSides(bool relative)
 	{

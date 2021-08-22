@@ -14,6 +14,12 @@ public class ResourcesLoader : FrameBase
 	}
 	public void init(){}
 	public void destroy(){}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mLoadedPath.Clear();
+		mLoadedObjects.Clear();
+	}
 	public void getFileList(string path, List<string> list)
 	{
 		List<string> fileList = findResourcesFilesNonAlloc(path);
@@ -50,7 +56,6 @@ public class ResourcesLoader : FrameBase
 		mLoadedObjects.Remove(obj);
 		obj = null;
 		return true;
-		
 	}
 	// 卸载指定路径中的所有资源
 	public void unloadPath(string path)
@@ -207,7 +212,7 @@ public class ResourcesLoader : FrameBase
 		}
 		return true;
 	}
-	//---------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void load<T>(string path, string name) where T : Object
 	{
 		var resList = mLoadedPath[path];

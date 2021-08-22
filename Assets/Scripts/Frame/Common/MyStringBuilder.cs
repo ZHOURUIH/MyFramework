@@ -20,10 +20,19 @@ public class MyStringBuilder : FrameBase
 		mBuilder.Clear();
 		return this;
 	}
-	public int LastIndexOf(char value)
+	// 因为是从后往前找的,startIndex表示从后面的哪个下标开始查找
+	public int LastIndexOf(char value, int startIndex = -1)
 	{
 		int length = mBuilder.Length;
-		for (int i = length - 1; i >= 0; --i)
+		if (startIndex < 0)
+		{
+			startIndex = length - 1;
+		}
+		else
+		{
+			clampMax(ref startIndex, length - 1);
+		}
+		for (int i = startIndex; i >= 0; --i)
 		{
 			if (mBuilder[i] == value)
 			{
@@ -32,10 +41,10 @@ public class MyStringBuilder : FrameBase
 		}
 		return -1;
 	}
-	public int IndexOf(char value)
+	public int IndexOf(char value, int startIndex = 0)
 	{
 		int length = mBuilder.Length;
-		for (int i = 0; i < length; ++i)
+		for (int i = startIndex; i < length; ++i)
 		{
 			if (mBuilder[i] == value)
 			{
@@ -261,6 +270,11 @@ public class MyStringBuilder : FrameBase
 		mBuilder.Insert(index, value);
 		return this;
 	}
+	public MyStringBuilder Insert(int index, char value)
+	{
+		mBuilder.Insert(index, value);
+		return this;
+	}
 	public MyStringBuilder InsertFront(string str0, string str1)
 	{
 		checkCapacity(str0.Length + str1.Length + 1);
@@ -322,7 +336,7 @@ public class MyStringBuilder : FrameBase
 		get { return mBuilder.Length; } 
 		set { mBuilder.Length = value; } 
 	}
-	//----------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void checkCapacity(int increaseSize)
 	{
 		mBuilder.EnsureCapacity(mBuilder.Length + increaseSize);

@@ -16,23 +16,22 @@ public class GameObjectPool : FrameSystem
 	public HashSet<GameObject> getUnusedList() { return mUnusedList; }
 	public GameObject newObject()
 	{
-		GameObject go = null;
+		return newObject(null, mObject);
+	}
+	public GameObject newObject(string name, GameObject parent)
+	{
+		GameObject go;
 		// 先从未使用的列表中查找是否有可用的对象
 		if (mUnusedList.Count > 0)
 		{
-			foreach (var item in mUnusedList)
-			{
-				go = item;
-				break;
-			}
-			mUnusedList.Remove(go);
+			go = popFirstElement(mUnusedList);
 		}
 		// 未使用列表中没有,创建一个新的
 		else
 		{
 			go = new GameObject();
-			setNormalProperty(go, mObject);
 		}
+		setNormalProperty(go, parent, name);
 		// 添加到已使用列表
 		addInuse(go);
 		return go;
@@ -65,7 +64,7 @@ public class GameObjectPool : FrameSystem
 		destroyGameObject(go);
 	}
 	public bool isInuse(GameObject go) { return mInusedList.Contains(go); }
-	//------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void addInuse(GameObject go)
 	{
 		if (!mInusedList.Add(go))

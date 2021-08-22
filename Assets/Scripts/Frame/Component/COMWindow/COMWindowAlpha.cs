@@ -12,7 +12,7 @@ public class COMWindowAlpha : ComponentKeyFrameNormal, IComponentModifyAlpha
 	}
 	public void setStart(float alpha) { mStart = alpha; }
 	public void setTarget(float alpha) { mTarget = alpha; }
-	//------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
 		var obj = mComponentOwner as myUIObject;

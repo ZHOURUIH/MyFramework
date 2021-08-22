@@ -13,7 +13,7 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 	protected int mKeyframeID;
 	protected bool mFullOnce;
 	protected bool mLoop;
-	//---------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 用于实时计算的参数
 	protected float mCurrentTime;       // 从上一次从头开始播放到现在的时长
 	protected float mPlayedTime;        // 本次震动已经播放的时长,从上一次开始播放到现在的累计时长
@@ -157,7 +157,7 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 		setDoingCallback(null);
 		setDoneCallback(null);
 	}
-	//--------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 获得成员变量
 	public bool isLoop() { return mLoop; }
 	public float getOnceLength() { return mOnceLength; }
@@ -168,7 +168,7 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 	public MyCurve getKeyFrame() { return mKeyFrame; }
 	public int getKeyframeID() { return mKeyframeID; }
 	public float getCurValue() { return mCurValue; }
-	//-----------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 设置成员变量
 	public void setLoop(bool loop) { mLoop = loop; }
 	public void setOnceLength(float length) { mOnceLength = length; }
@@ -176,7 +176,7 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 	public void setFullOnce(bool fullOnce) { mFullOnce = fullOnce; }
 	public void setCurrentTime(float time) { mCurrentTime = time; }
 	public void setKeyframeID(int keyframe) { mKeyframeID = keyframe; }
-	//----------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void clearCallback()
 	{
 		mDoingCallback = null;

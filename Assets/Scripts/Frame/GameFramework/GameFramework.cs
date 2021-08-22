@@ -26,6 +26,8 @@ public partial class GameFramework : MonoBehaviour
 		mTimeLock = new ThreadTimeLock(15);
 		Application.targetFrameRate = 60;
 		ServicePointManager.DefaultConnectionLimit = 200;
+		// 每当Transform组件更改时是否自动将变换更改与物理系统同步
+		Physics.autoSyncTransforms = true;
 		AppDomain.CurrentDomain.UnhandledException += UnhandledException;
 		mFrameComponentMap = new Dictionary<string, FrameSystem>();
 		mFrameComponentInit = new List<FrameSystem>();
@@ -47,18 +49,12 @@ public partial class GameFramework : MonoBehaviour
 		registeFrameSystem(typeof(AndroidAssetLoader));
 #if !UNITY_EDITOR
 		// 由于本地日志系统的特殊性,必须在最开始就初始化,由于会出现问题,暂时禁用
-		//FrameBase.mLocalLog = new LocalLog();
-		//FrameBase.mLocalLog.init();
+		// FrameBase.mLocalLog = new LocalLog();
+		// FrameBase.mLocalLog.init();
 #endif
 		UnityUtility.setLogCallback(getLogCallback());
 		UnityUtility.logForce("start game!");
-		UnityUtility.logForce("QualitySettings.currentLevel:" + QualitySettings.GetQualityLevel());
-		UnityUtility.logForce("QualitySettings.activeColorSpace:" + QualitySettings.activeColorSpace);
-		UnityUtility.logForce("Graphics.activeTier:" + Graphics.activeTier);
-		UnityUtility.logForce("SystemInfo.graphicsDeviceType:" + SystemInfo.graphicsDeviceType);
-		UnityUtility.logForce("SystemInfo.maxTextureSize:" + SystemInfo.maxTextureSize);
-		UnityUtility.logForce("SystemInfo.supportsInstancing:" + SystemInfo.supportsInstancing);
-		UnityUtility.logForce("SystemInfo.graphicsShaderLevel:" + SystemInfo.graphicsShaderLevel);
+		dumpSystem();
 		try
 		{
 			DateTime startTime = DateTime.Now;
@@ -98,7 +94,7 @@ public partial class GameFramework : MonoBehaviour
 			update(mThisFrameTime);
 			keyProcess();
 #if !UNITY_EDITOR && !UNITY_STANDALONE_WIN
-			//FrameBase.mLocalLog.update(mThisFrameTime);
+			// FrameBase.mLocalLog.update(mThisFrameTime);
 #endif
 		}
 		catch (Exception e)
@@ -148,8 +144,8 @@ public partial class GameFramework : MonoBehaviour
 		destroy();
 		UnityUtility.logForce("程序退出完毕!");
 #if !UNITY_EDITOR
-		//FrameBase.mLocalLog?.destroy();
-		//FrameBase.mLocalLog = null;
+		// FrameBase.mLocalLog?.destroy();
+		// FrameBase.mLocalLog = null;
 #endif
 	}
 	// 当资源更新完毕后,由外部进行调用
@@ -196,7 +192,7 @@ public partial class GameFramework : MonoBehaviour
 		mFrameComponentUpdate = null;
 		mFrameComponentDestroy = null;
 		mFrameComponentMap = null;
-		// 所有系统组件都销毁完毕后,刷新GameBase和FrameBase中记录的变量
+		// 所有系统组件都销毁完毕后,刷新FrameBase和FrameBase中记录的变量
 		notifyBase();
 	}
 	public void stop()
@@ -243,6 +239,19 @@ public partial class GameFramework : MonoBehaviour
 		{
 			mEnablePoolStackTrace = !mEnablePoolStackTrace;
 			UnityUtility.logForce(mEnablePoolStackTrace ? "已开启对象池分配堆栈追踪" : "已关闭对象池分配堆栈追踪", mEnablePoolStackTrace ? Color.green : Color.red);
+		}
+		// F5检测UGUI事件系统中当前鼠标坐标下有哪些窗口
+		if (FrameUtility.isKeyCurrentDown(KeyCode.F8))
+		{
+			Vector3 mousePos = FrameUtility.getMousePosition();
+			FrameUtility.LIST(out List<GameObject> hoverList);
+			UnityUtility.checkUGUIInteractable(mousePos, hoverList);
+			int resultCount = hoverList.Count;
+			for (int i = 0; i < resultCount; ++i)
+			{
+				UnityUtility.logForce("窗口:" + hoverList[i].name, hoverList[i]);
+			}
+			FrameUtility.UN_LIST(hoverList);
 		}
 	}
 	public FrameSystem getSystem(Type type)
@@ -300,7 +309,7 @@ public partial class GameFramework : MonoBehaviour
 		mFrameComponentUpdate.Sort(FrameSystem.compareUpdate);
 		mFrameComponentDestroy.Sort(FrameSystem.compareDestroy);
 	}
-	//--------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected virtual void update(float elapsedTime)
 	{
 		if (mFrameComponentUpdate == null)
@@ -401,8 +410,7 @@ public partial class GameFramework : MonoBehaviour
 	protected virtual void notifyBase()
 	{
 		// 所有类都构造完成后通知FrameBase
-		FrameBase frameBase = new FrameBase();
-		frameBase.notifyConstructDone();
+		FrameBase.constructFrameDone();
 	}
 	protected virtual void start()
 	{
@@ -412,7 +420,6 @@ public partial class GameFramework : MonoBehaviour
 	}
 	protected virtual void init()
 	{
-		// 必须先初始化配置文件
 		int count = mFrameComponentInit.Count;
 		for (int i = 0; i < count; ++i)
 		{
@@ -427,6 +434,20 @@ public partial class GameFramework : MonoBehaviour
 				UnityUtility.logError("init failed! :" + mFrameComponentInit[i].getName() + ", info:" + e.Message + ", stack:" + e.StackTrace);
 			}
 		}
+
+		for (int i = 0; i < count; ++i)
+		{
+			try
+			{
+				mFrameComponentInit[i].lateInit();
+			}
+			catch (Exception e)
+			{
+				UnityUtility.logError("lateInit failed! :" + mFrameComponentInit[i].getName() + ", info:" + e.Message + ", stack:" + e.StackTrace);
+			}
+		}
+
+		FrameBase.frameSystemInitDone();
 
 		WINDOW_MODE fullScreen = mWindowMode;
 #if UNITY_EDITOR
@@ -457,7 +478,8 @@ public partial class GameFramework : MonoBehaviour
 			windowSize.x = mScreenWidth;
 			windowSize.y = mScreenHeight;
 		}
-		Screen.SetResolution((int)windowSize.x, (int)windowSize.y, fullScreen == WINDOW_MODE.FULL_SCREEN || fullScreen == WINDOW_MODE.FULL_SCREEN_CUSTOM_RESOLUTION);
+		bool fullMode = fullScreen == WINDOW_MODE.FULL_SCREEN || fullScreen == WINDOW_MODE.FULL_SCREEN_CUSTOM_RESOLUTION;
+		Screen.SetResolution((int)windowSize.x, (int)windowSize.y, fullMode);
 		// UGUI
 		GameObject uguiRootObj = UnityUtility.getGameObject(FrameDefine.UGUI_ROOT);
 		RectTransform uguiRectTransform = uguiRootObj.GetComponent<RectTransform>();
@@ -484,7 +506,7 @@ public partial class GameFramework : MonoBehaviour
 		registeFrameSystem(typeof(TimeManager));
 		registeFrameSystem(typeof(GlobalCmdReceiver));
 		registeFrameSystem(typeof(HttpUtility));
-#if !UNITY_IOS && !NO_SQLITE
+#if !NO_SQLITE
 		registeFrameSystem(typeof(SQLiteManager));
 #endif
 		registeFrameSystem(typeof(CommandSystem), -1, -1, 2001);		// 命令系统在大部分管理器都销毁完毕后再销毁
@@ -514,14 +536,16 @@ public partial class GameFramework : MonoBehaviour
 		registeFrameSystem(typeof(MovableObjectManager));
 		registeFrameSystem(typeof(EffectManager));
 		registeFrameSystem(typeof(TPSpriteManager));
-		registeFrameSystem(typeof(SocketFactory));
-		registeFrameSystem(typeof(SocketFactoryThread));
+		registeFrameSystem(typeof(NetPacketFactory));
+		registeFrameSystem(typeof(NetPacketFactoryThread));
 		registeFrameSystem(typeof(PathKeyframeManager));
 		registeFrameSystem(typeof(EventSystem));
 		registeFrameSystem(typeof(StateManager));
-		registeFrameSystem(typeof(SocketTypeManager));
+		registeFrameSystem(typeof(NetPacketTypeManager));
 		registeFrameSystem(typeof(GameObjectPool));
 		registeFrameSystem(typeof(ExcelManager));
+		registeFrameSystem(typeof(RedPointSystem));
+		registeFrameSystem(typeof(GameSetting));
 #if USE_ILRUNTIME
 		// ILRSystem需要在很多系统后面销毁,因为很多Game层的系统位于ILRuntime中,需要等到所有其他系统销毁后,ILRSystem才能销毁
 		registeFrameSystem(typeof(ILRSystem), -1, -1, 3999);
@@ -532,5 +556,18 @@ public partial class GameFramework : MonoBehaviour
 	protected void UnhandledException(object sender, UnhandledExceptionEventArgs e)
 	{
 		UnityUtility.logError(e.ExceptionObject.ToString());
+	}
+	protected void dumpSystem()
+	{
+		UnityUtility.logForce("QualitySettings.currentLevel:" + QualitySettings.GetQualityLevel());
+		UnityUtility.logForce("QualitySettings.activeColorSpace:" + QualitySettings.activeColorSpace);
+		UnityUtility.logForce("Graphics.activeTier:" + Graphics.activeTier);
+		UnityUtility.logForce("SystemInfo.graphicsDeviceType:" + SystemInfo.graphicsDeviceType);
+		UnityUtility.logForce("SystemInfo.maxTextureSize:" + SystemInfo.maxTextureSize);
+		UnityUtility.logForce("SystemInfo.supportsInstancing:" + SystemInfo.supportsInstancing);
+		UnityUtility.logForce("SystemInfo.graphicsShaderLevel:" + SystemInfo.graphicsShaderLevel);
+		UnityUtility.logForce("PersistentDataPath:" + FrameDefine.F_PERSISTENT_DATA_PATH);
+		UnityUtility.logForce("StreamingAssetPath:" + FrameDefine.F_STREAMING_ASSETS_PATH);
+		UnityUtility.logForce("AssetPath:" + FrameDefine.F_ASSETS_PATH);
 	}
 }

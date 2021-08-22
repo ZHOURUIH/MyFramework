@@ -3,7 +3,8 @@ using System;
 
 // 管理类初始化完成调用
 // 这个父类的添加是方便代码的书写
-public class FrameBase : ClassObject
+// 因为要允许应用层来扩展此类,添加自己的系统组件引用,以及其他需要快速访问的变量,所以是partial类
+public partial class FrameBase : ClassObject
 {
 	// FrameSystem
 	public static GameFramework mGameFramework;
@@ -16,9 +17,7 @@ public class FrameBase : ClassObject
 	public static KeyFrameManager mKeyFrameManager;
 	public static GlobalTouchSystem mGlobalTouchSystem;
 	public static ShaderManager mShaderManager;
-#if !UNITY_IOS && !NO_SQLITE
 	public static SQLiteManager mSQLiteManager;
-#endif
 	public static CameraManager mCameraManager;
 	public static ResourceManager mResourceManager;
 	public static ObjectPool mObjectPool;
@@ -41,22 +40,26 @@ public class FrameBase : ClassObject
 	public static MovableObjectManager mMovableObjectManager;
 	public static EffectManager mEffectManager;
 	public static TPSpriteManager mTPSpriteManager;
-	public static SocketFactory mSocketFactory;
-	public static SocketFactoryThread mSocketFactoryThread;
+	public static NetPacketFactory mSocketFactory;
+	public static NetPacketFactoryThread mSocketFactoryThread;
 	public static PathKeyframeManager mPathKeyframeManager;
 	public static EventSystem mEventSystem;
 	public static TweenerManager mTweenerManager;
 	public static StateManager mStateManager;
-	public static SocketTypeManager mSocketTypeManager;
+	public static NetPacketTypeManager mNetPacketTypeManager;
 	public static GameObjectPool mGameObjectPool;
 	public static ExcelManager mExcelManager;
+	public static RedPointSystem mRedPointSystem;
+	public static GameSetting mGameSetting;
 #if USE_ILRUNTIME
 	public static ILRSystem mILRSystem;
 #endif
 #if !UNITY_EDITOR
-	//public static LocalLog mLocalLog;
+	// public static LocalLog mLocalLog;
 #endif
-	public virtual void notifyConstructDone()
+	// 一些方便获取的组件对象
+	public static COMGameSettingAudio mCOMGameSettingAudio;
+	public static void constructFrameDone()
 	{
 		mGameFramework = GameFramework.mGameFramework;
 		getFrameSystemMain(out mCommandSystem);
@@ -100,14 +103,20 @@ public class FrameBase : ClassObject
 		getFrameSystemMain(out mEventSystem);
 		getFrameSystemMain(out mTweenerManager);
 		getFrameSystemMain(out mStateManager);
-		getFrameSystemMain(out mSocketTypeManager);
+		getFrameSystemMain(out mNetPacketTypeManager);
 		getFrameSystemMain(out mGameObjectPool);
 		getFrameSystemMain(out mExcelManager);
+		getFrameSystemMain(out mRedPointSystem);
+		getFrameSystemMain(out mGameSetting);
 #if USE_ILRUNTIME
 		getFrameSystemMain(out mILRSystem);
 #endif
 	}
-	//---------------------------------------------------------------------------------------------------------------------------------------
+	public static void frameSystemInitDone()
+	{
+		mCOMGameSettingAudio = mGameSetting.getComponent<COMGameSettingAudio>(false, false);
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected static void getFrameSystemMain<T>(out T system) where T : FrameSystem
 	{
 		system = mGameFramework.getSystem(typeof(T)) as T;

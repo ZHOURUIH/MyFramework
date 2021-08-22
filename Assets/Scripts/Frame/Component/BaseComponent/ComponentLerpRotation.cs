@@ -34,7 +34,7 @@ public abstract class ComponentLerpRotation : ComponentLerp, IComponentModifyRot
 	public Vector3 getTargetRotation() { return mTargetRotation; }
 	public void setMinRange(float minRange) { mMinRange = minRange; }
 	public float getMinRange() { return mMinRange; }
-	//----------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected abstract void applyRotation(Vector3 rotation);
 	protected abstract Vector3 getRotation();
 }

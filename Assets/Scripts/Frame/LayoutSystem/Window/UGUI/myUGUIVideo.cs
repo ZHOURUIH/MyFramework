@@ -101,36 +101,30 @@ public class myUGUIVideo : myUGUIRawImage
 			mAutoShowOrHide = autoShowOrHide;
 		}
 	}
-	public bool setFileName(string file, string pathUnderStreamingAssets = FrameDefine.SA_VIDEO_PATH)
+	public bool setFileNameInVideoPath(string videoName)
 	{
-		string newFileName = getFileName(file);
-		if (newFileName != mFileName)
+		return setFileName(availablePath(FrameDefine.SA_VIDEO_PATH + videoName));
+	}
+	public bool setFileName(string fullPath)
+	{
+		if (fullPath == mFileName)
 		{
-			setVideoEndCallback(null);
-			if (!file.StartsWith(pathUnderStreamingAssets))
-			{
-				file = pathUnderStreamingAssets + file;
-			}
-			if (!isFileExist(FrameDefine.F_STREAMING_ASSETS_PATH + file))
-			{
-				logError("找不到视频文件 : " + file);
-				return false;
-			}
-			notifyVideoReady(false);
-			mFileName = newFileName;
-			mRawImage.texture = null;
-			mMediaPlayer.OpenVideoFromFile(MediaPlayer.FileLocation.RelativeToStreamingAssetsFolder, file, false);
+			return true;
 		}
-		return true;
+		if (!isFileExist(fullPath))
+		{
+			logError("找不到视频文件 : " + fullPath);
+			return false;
+		}
+		return setFileURL(fullPath);
 	}
 	public bool setFileURL(string url)
 	{
 		setVideoEndCallback(null);
 		notifyVideoReady(false);
-		mFileName = getFileName(url);
+		mFileName = url;
 		mRawImage.texture = null;
-		bool ret = mMediaPlayer.OpenVideoFromFile(MediaPlayer.FileLocation.AbsolutePathOrURL, url, false);
-		return ret;
+		return mMediaPlayer.OpenVideoFromFile(MediaPlayer.FileLocation.AbsolutePathOrURL, url, false);
 	}
 	public string getFileName() { return mFileName; }
 	public void setLoop(bool loop)
@@ -207,7 +201,7 @@ public class myUGUIVideo : myUGUIRawImage
 	}
 	public void setVideoReadyCallback(VideoCallback callback) { mVideoReadyCallback = callback; }
 	public void setErrorCallback(VideoErrorCallback callback) { mErrorCallback = callback; }
-	//----------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void notifyVideoReady(bool ready)
 	{
 		mReady = ready;

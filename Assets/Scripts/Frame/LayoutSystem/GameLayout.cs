@@ -38,33 +38,6 @@ public class GameLayout : FrameBase
 		mCheckBoxAnchor = true;
 		mDefaultUpdateWindow = true;
 	}
-	public static void addScriptCallback(LayoutScriptCallback callback)
-	{
-		if (!mLayoutScriptCallback.Contains(callback))
-		{
-			mLayoutScriptCallback.Add(callback);
-		}
-	}
-	public static void removeScriptCallback(LayoutScriptCallback callback)
-	{
-		mLayoutScriptCallback.Remove(callback);
-	}
-	public void setRenderOrder(int renderOrder)
-	{
-		mRenderOrder = renderOrder;
-		if (mRenderOrder < 0)
-		{
-			logError("布局深度不能小于0,否则无法正确计算窗口深度");
-			return;
-		}
-		if (mRoot == null)
-		{
-			return;
-		}
-		mRoot.setSortingOrder(mRenderOrder);
-		// 刷新所有窗口注册的深度
-		setUIDepth(mRoot, mRenderOrder);
-	}
 	public void init()
 	{
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -113,6 +86,34 @@ public class GameLayout : FrameBase
 		setVisibleForce(false);
 #if UNITY_EDITOR
 		mRoot.getUnityComponent<LayoutDebug>().setLayout(this);
+#endif
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mGameObjectSearchList.Clear();
+		mNeedUpdateList.clear();
+		mObjectList.clear();
+		mRoot = null;
+		mScript = null;
+		mParent = null;
+		mPrefab = null;
+		mName = null;
+		mDefaultLayer = 0;
+		mRenderOrder = 0;
+		mID = 0;
+		mDefaultUpdateWindow = true;
+		mScriptControlHide = false;
+		mIgnoreTimeScale = false;
+		mCheckBoxAnchor = true;
+		mAnchorApplied = false;
+		mScriptInited = false;
+		mInResources = false;
+		mBlurBack = false;
+		mRenderOrderType = LAYOUT_ORDER.ALWAYS_TOP;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+		Profiler_UpdateLayout = null;
+		Profiler_UpdateScript = null;
 #endif
 	}
 	public void update(float elapsedTime)
@@ -187,6 +188,33 @@ public class GameLayout : FrameBase
 		{
 			mResourceManager.unload(ref mPrefab);
 		}
+	}
+	public static void addScriptCallback(LayoutScriptCallback callback)
+	{
+		if (!mLayoutScriptCallback.Contains(callback))
+		{
+			mLayoutScriptCallback.Add(callback);
+		}
+	}
+	public static void removeScriptCallback(LayoutScriptCallback callback)
+	{
+		mLayoutScriptCallback.Remove(callback);
+	}
+	public void setRenderOrder(int renderOrder)
+	{
+		mRenderOrder = renderOrder;
+		if (mRenderOrder < 0)
+		{
+			logError("布局深度不能小于0,否则无法正确计算窗口深度");
+			return;
+		}
+		if (mRoot == null)
+		{
+			return;
+		}
+		mRoot.setSortingOrder(mRenderOrder);
+		// 刷新所有窗口注册的深度
+		setUIDepth(mRoot, mRenderOrder);
 	}
 	public void getAllCollider(List<Collider> colliders, bool append = false)
 	{
@@ -325,7 +353,7 @@ public class GameLayout : FrameBase
 	public void setParent(myUIObject parent)				{ mParent = parent; }
 	public void setID(int id)								{ mID = id; }
 	public void setName(string name)						{ mName = name; }
-	//------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// ignoreInactive表示是否忽略未启用的节点,当includeSelf为true时orderInParent才会生效
 	protected void setUIDepth(myUIObject window, int orderInParent, bool includeSelf = true, bool ignoreInactive = false)
 	{

@@ -12,7 +12,7 @@ public class COMWindowAudioVolume : ComponentKeyFrameNormal
 	}
 	public void setStart(float volume) { mStart = volume; }
 	public void setTarget(float volume) { mTarget = volume; }
-	//------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
 		float newVolume = lerpSimple(mStart, mTarget, value);

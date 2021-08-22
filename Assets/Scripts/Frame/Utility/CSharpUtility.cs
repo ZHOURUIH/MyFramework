@@ -7,7 +7,9 @@ using ILRuntime.Runtime.Intepreter;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 // 与C#有关的工具函数
@@ -23,7 +25,7 @@ public class CSharpUtility : TimeUtility
 		try
 		{
 #if USE_ILRUNTIME
-			if(classType is ILRuntimeWrapperType)
+			if (classType is ILRuntimeWrapperType)
 			{
 				obj = Activator.CreateInstance((classType as ILRuntimeWrapperType).CLRType.TypeForCLR, param) as T;
 			}
@@ -48,7 +50,7 @@ public class CSharpUtility : TimeUtility
 	}
 	public static T deepCopy<T>(T obj) where T : class
 	{
-		//如果是字符串或值类型则直接返回
+		// 如果是字符串或值类型则直接返回
 		if (obj == null || obj is string || Typeof(obj).IsValueType)
 		{
 			return obj;
@@ -150,6 +152,21 @@ public class CSharpUtility : TimeUtility
 		}
 		return validElementCount;
 	}
+	public static bool arrayContainsValue<T>(T[] array, T value, int arrayLen = -1) where T : IEquatable<T>
+	{
+		if (arrayLen == -1)
+		{
+			arrayLen = array.Length;
+		}
+		for (int i = 0; i < arrayLen; ++i)
+		{
+			if (array[i].Equals(value))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 	public static bool arrayContains<T>(T[] array, T value, int arrayLen = -1) where T : class
 	{
 		if (arrayLen == -1)
@@ -164,6 +181,26 @@ public class CSharpUtility : TimeUtility
 			}
 		}
 		return false;
+	}
+	public static IPAddress hostNameToIPAddress(string hostName)
+	{
+		IPAddress[] ipList = Dns.GetHostAddresses(hostName);
+		if (ipList != null && ipList.Length > 0)
+		{
+			return ipList[0];
+		}
+		return null;
+	}
+	public static T popFirstElement<T>(HashSet<T> list)
+	{
+		T elem = default;
+		foreach(var item in list)
+		{
+			elem = item;
+			break;
+		}
+		list.Remove(elem);
+		return elem;
 	}
 	// 获取类型,因为ILR的原因,如果是热更工程中的类型,直接使用typeof获取的是错误的类型
 	// 所以需要使用此函数获取真实的类型,要获取真实类型必须要有一个实例

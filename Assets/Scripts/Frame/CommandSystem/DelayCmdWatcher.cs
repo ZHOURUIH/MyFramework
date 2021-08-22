@@ -3,12 +3,19 @@ using System.Collections.Generic;
 
 public class DelayCmdWatcher : FrameBase
 {
-	protected HashSet<long> mDelayCmdList;  // 布局显示和隐藏时的延迟命令列表,当命令执行时,会从列表中移除该命令
-	protected CommandCallback mCmdCallback;
+	protected HashSet<long> mDelayCmdList;		// 布局显示和隐藏时的延迟命令列表,当命令执行时,会从列表中移除该命令
+	protected CommandCallback mCmdCallback;		// 命令开始执行的回调
 	public DelayCmdWatcher()
 	{
 		mDelayCmdList = new HashSet<long>();
 		mCmdCallback = onCmdStarted;
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mDelayCmdList.Clear();
+		// mCmdCallback不重置
+		// mCmdCallback = null;
 	}
 	public void addDelayCmd(Command cmd)
 	{

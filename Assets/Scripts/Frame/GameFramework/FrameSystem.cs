@@ -21,6 +21,8 @@ public class FrameSystem : ComponentOwner
 		}
 		initComponents();
 	}
+	// 等待所有系统组件的init调用完毕后会调用lateInit,如果在init中会有依赖于其他系统组件的初始化,则可以写在lateInit中
+	public virtual void lateInit() { }
 	public override void destroy()
 	{
 		destroyGameObject(mObject);

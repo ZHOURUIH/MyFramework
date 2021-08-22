@@ -79,7 +79,7 @@ public class myUGUIInputField : myUGUIObject, IInputField
 	public void setCharacterLimit(int limit) { mInputField.characterLimit = limit; }
 	public void setCaretPosition(int pos) { mInputField.caretPosition = pos; }
 	public int getCaretPosition() { return mInputField.caretPosition; }
-	//------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onEditEnd(string value) 
 	{
 		// 只处理由回车触发的输入结束

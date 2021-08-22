@@ -2,7 +2,10 @@
 using UnityEngine.UI;
 
 // 滑动区域窗口
-// 一般如果想要窗口是可操作滑动的,需要关闭Viewport,Content,Item等所有可能拦截射线检测的设置
+// 一般如果想要窗口是可操作滑动的,则需要打开ScrollRect上的Image的RaycastTarget
+// 并且需要关闭Viewport,Content,Item等所有可能拦截射线检测的设置(实际是去掉EventTrigger,因为ScrollRect也是通过EventTrigger监听的)
+// 如果希望Item既可以响应点击,ScrollRect又能够正常滑动,则需要Item是有button组件进行点击,这是UGUI的做法
+// 如果使用GlobalTouchSystem则两者没有任何冲突,滑动和点击互不影响
 public class myUGUIScrollRect : myUGUIObject
 {
 	protected ScrollRect mScrollRect;
@@ -28,24 +31,43 @@ public class myUGUIScrollRect : myUGUIObject
 			logError(Typeof(this) + " can not find " + typeof(ScrollRect) + ", window:" + mName + ", layout:" + mLayout.getName());
 		}
 	}
+	public void initScrollRect(myUGUIObject viewport, myUGUIObject content, float verticalPivot = 1.0f, float horizontalPivot = 0.5f)
+	{
+		mContent = content;
+		mViewport = viewport;
+		setContentPivotVertical(verticalPivot);
+		setContentPivotHorizontal(horizontalPivot);
+	}
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
+		if (mViewport == null || mContent == null)
+		{
+			logError("未找到viewport或content,请确保已经在布局的init中调用了initScrillRect函数进行ScrollRect的初始化");
+		}
+		// 始终确保ScrollRect和Viewport的宽高都是偶数,否则可能会引起在mContent调整位置时总是重新被ScrollRect再校正回来导致Content不停抖动
+		makeSizeEven(this);
+		makeSizeEven(mViewport);
+		// 矫正Content的位置,使之始终为整数
 		if (mScrollRect.vertical && isFloatZero(mScrollRect.velocity.y) ||
 			mScrollRect.horizontal && isFloatZero(mScrollRect.velocity.x))
 		{
 			mContent.setPosition(round(mContent.getPosition()));
 		}
 	}
-	public void setContent(myUGUIObject content) { mContent = content; }
-	public void setViewport(myUGUIObject viewport) { mViewport = viewport; }
 	public myUGUIObject getContent() { return mContent; }
 	public myUGUIObject getViewport() { return mViewport; }
 	public ScrollRect getScrollRect() { return mScrollRect; }
-	// 设置content默认的位置
-	// true表示将content的轴心设置到最上边,方便使其顶部对齐viewport顶部
-	// false表示将content的轴心设置到最下边,方便使其底部对齐viewport底部
-	public void setContentDefaultAlignTop(bool top) { mContent.setPivot(new Vector2(0.5f, top ? 1.0f : 0.0f)); }
+	// 设置content竖直方向的轴心
+	// 1.0表示将content的轴心设置到最上边,使其顶部对齐viewport顶部
+	// 0.5表示将content的轴心设置到中间,使其中间对齐viewport中间
+	// 0.0表示将content的轴心设置到最下边,使其底部对齐viewport底部
+	public void setContentPivotVertical(float pivot) { mContent.setPivot(new Vector2(mContent.getPivot().x, pivot)); }
+	// 设置content水平方向的轴心
+	// 1.0表示将content的轴心设置到最右边,使其右边界对齐viewport右边界
+	// 0.5表示将content的轴心设置到中间,使其中间对齐viewport中间
+	// 0.0表示将content的轴心设置到最左边,使其左边界对齐viewport左边界
+	public void setContentPivotHorizontal(float pivot) { mContent.setPivot(new Vector2(pivot, mContent.getPivot().y)); }
 	public Vector2 getNormalizedPosition() { return mScrollRect.normalizedPosition; }
 	// 设置Content的相对位置，x，y分别为横向和纵向，值的范围是0-1
 	// 0表示Content的左边或下边与父节点的左边或下边对齐，1表示Content的右边或上边与父节点的右边或上边对齐
@@ -64,12 +86,28 @@ public class myUGUIScrollRect : myUGUIObject
 	public void alignContentLeft() { alignContentX(0.0f); }
 	// 使Content的右边界与ScrollRect的右边界对齐,实际上是跟Viewport对齐
 	public void alignContentRight() { alignContentX(1.0f); }
-	// 自动调整Content窗口的大小和位置
-	public void autoAdjustContent()
+	public void autoAdjustContent(Vector2 itemSize)
+	{
+		autoAdjustContent(CONTENT_ADJUST.FIXED_WIDTH_OR_HEIGHT, itemSize);
+	}
+	public void autoAdjustContent(CONTENT_ADJUST type = CONTENT_ADJUST.SINGLE_COLUMN_OR_LINE)
+	{
+		autoAdjustContent(type, Vector2.zero);
+	}
+	// 当子节点在不断增加,需要实时计算content的位置时使用
+	// 自动排列content下的子节点,并且计算然后设置content的位置
+	public void autoAdjustContent(CONTENT_ADJUST adjustType, Vector2 itemSize)
 	{
 		if (mScrollRect.vertical)
 		{
-			autoGridVertical(mContent);
+			if (adjustType == CONTENT_ADJUST.SINGLE_COLUMN_OR_LINE)
+			{
+				autoGridVertical(mContent);
+			}
+			else if(adjustType == CONTENT_ADJUST.FIXED_WIDTH_OR_HEIGHT)
+			{
+				autoGridFixedRootWidth(mContent, itemSize);
+			}
 			// 当Content的大小小于Viewport时,Content顶部对齐Viewport顶部(实际是根据content的pivot计算)
 			if (mViewport.getWindowSize().y >= mContent.getWindowSize().y)
 			{
@@ -83,7 +121,14 @@ public class myUGUIScrollRect : myUGUIObject
 		}
 		else if (mScrollRect.horizontal)
 		{
-			autoGridHorizontal(mContent);
+			if (adjustType == CONTENT_ADJUST.SINGLE_COLUMN_OR_LINE)
+			{
+				autoGridHorizontal(mContent);
+			}
+			else if(adjustType == CONTENT_ADJUST.FIXED_WIDTH_OR_HEIGHT)
+			{
+				autoGridFixedRootHeight(mContent, itemSize);
+			}
 			if (mViewport.getWindowSize().x >= mContent.getWindowSize().x)
 			{
 				alignContentLeft();
@@ -101,8 +146,7 @@ public class myUGUIScrollRect : myUGUIObject
 		mScrollRect.velocity = new Vector2(mScrollRect.velocity.x, 0.0f);
 	}
 	public float getContentTopPos() { return mContent.getPosition().y + mContent.getWindowSize().y * 0.5f; }
-	//-----------------------------------------------------------------------------------------------------------------------------------------------
-	// 
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void alignContentY(float y)
 	{
 		mScrollRect.velocity = new Vector2(mScrollRect.velocity.x, 0.0f);

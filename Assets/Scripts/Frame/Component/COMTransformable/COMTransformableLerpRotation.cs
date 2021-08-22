@@ -3,7 +3,7 @@ using System;
 
 public class COMTransformableLerpRotation : ComponentLerpRotation
 {
-	//-------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyRotation(Vector3 rotation)
 	{
 		(mComponentOwner as Transformable).setRotation(rotation);

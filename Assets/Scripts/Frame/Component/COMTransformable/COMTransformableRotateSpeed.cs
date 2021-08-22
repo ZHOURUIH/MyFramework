@@ -3,7 +3,7 @@ using System;
 
 public class COMTransformableRotateSpeed : ComponentRotateSpeedNormal  
 {
-	//-------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyRotation(ref Vector3 rotation)
 	{
 		(mComponentOwner as Transformable).setRotation(rotation);

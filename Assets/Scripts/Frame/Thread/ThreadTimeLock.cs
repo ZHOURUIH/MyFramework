@@ -2,7 +2,7 @@
 using System.Threading;
 
 // 用于线程锁帧
-public class ThreadTimeLock
+public class ThreadTimeLock : FrameBase
 {
 	protected DateTime mLastTime;
 	protected DateTime mCurTime;
@@ -15,6 +15,13 @@ public class ThreadTimeLock
 		mLastTime = DateTime.Now;
 		mCurTime = mLastTime;
 		mFrameTimeMS = frameTimeMS;
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mLastTime = default;
+		mCurTime = default;
+		mFrameTimeMS = 0;
 		mForceSleep = 0;
 	}
 	public void setForceSleep(int timeMS){mForceSleep = timeMS;}

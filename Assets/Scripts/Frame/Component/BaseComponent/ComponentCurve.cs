@@ -23,7 +23,7 @@ public abstract class ComponentCurve : ComponentKeyFrameNormal
 		base.resetProperty();
 		mKeyPointList.Clear();
 	}
-	//-------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
 		var uiObj = mComponentOwner as Transformable;

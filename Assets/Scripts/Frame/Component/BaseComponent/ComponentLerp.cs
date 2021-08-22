@@ -71,7 +71,7 @@ public class ComponentLerp : GameComponent, IComponentBreakable
 		setLerpingCallback(null);
 		setLerpDoneCallback(null);
 	}
-	//----------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected static void setCallback(LerpCallback callback, ref LerpCallback curCallback, ComponentLerp com)
 	{
 		LerpCallback tempCallback = curCallback;
@@ -88,19 +88,19 @@ public class ComponentLerp : GameComponent, IComponentBreakable
 		tempCallback?.Invoke(com, false);
 	}
 	protected void clearCallback()
-    {
+	{
 		mLerpingCallBack = null;
 		mLerpDoneCallBack = null;
-    }
-    protected void afterApplyLerp(bool done)
-    {
+	}
+	protected void afterApplyLerp(bool done)
+	{
 		mLerpingCallBack?.Invoke(this, false);
-        if (done)
-        {
-            setActive(false);
-            // 强制停止组件
-            stop(true);
-            doneCallback(ref mLerpDoneCallBack, this);
-        }
-    }
+		if (done)
+		{
+			setActive(false);
+			// 强制停止组件
+			stop(true);
+			doneCallback(ref mLerpDoneCallBack, this);
+		}
+	}
 }

@@ -8,5 +8,4 @@ public class COMTransformableRotateFixed : ComponentRotateFixed
 		(mComponentOwner as Transformable).setWorldRotation(mFixedEuler);
 		base.update(elapsedTime);
 	}
-	//---------------------------------------------------------------------------------------------------------------
 }

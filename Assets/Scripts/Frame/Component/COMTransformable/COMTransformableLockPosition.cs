@@ -47,5 +47,4 @@ public class COMTransformableLockPosition : GameComponent, IComponentModifyPosit
 		base.update(elapsedTime);
 	}
 	public void notifyBreak() { }
-	//---------------------------------------------------------------------------------------------------------------
 }

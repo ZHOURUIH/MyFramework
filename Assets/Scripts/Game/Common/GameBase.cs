@@ -2,7 +2,7 @@
 
 // 管理类初始化完成调用
 // 这个父类的添加是方便代码的书写
-public class GameBase : FrameBase
+public partial class FrameBase : ClassObject
 {
 	// FrameComponent
 	public static Game mGame;
@@ -12,14 +12,13 @@ public class GameBase : FrameBase
 	// LayoutScript
 	public static ScriptDemo mScriptDemo;
 	public static ScriptDemoStart mScriptDemoStart;
-	public override void notifyConstructDone()
+	public static void constructGameDone()
 	{
-		base.notifyConstructDone();
 		mGame = mGameFramework as Game;
 		getMainSystem(out mBattleSystem);
 	}
 	//-----------------------------------------------------------------------------------------------------------------------------------------------
-	protected void getMainSystem<T>(out T system) where T : FrameSystem
+	protected static void getMainSystem<T>(out T system) where T : FrameSystem
 	{
 		system = mGame.getSystem(typeof(T)) as T;
 	}

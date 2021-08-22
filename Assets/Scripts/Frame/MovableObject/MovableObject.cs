@@ -22,48 +22,50 @@ public class MovableObject : Transformable, IMouseEventCollect
 	protected Vector3 mLastSpeedVector;				// 上一帧的移动速度向量
 	protected Vector3 mLastPosition;				// 上一帧的位置
 	protected float mRealtimeMoveSpeed;				// 当前实时移动速率
-	protected uint mObjectID;						// 物体的客户端ID
+	protected uint mObjectID;                       // 物体的客户端ID
 	protected bool mEnableFixedUpdate;				// 是否启用FixedUpdate来计算Physics相关属性
+	protected bool mAutoManageObject;				// 是否自动管理GameObject,如果自动管理,则外部不能对其进行重新赋值或者销毁,否则会引起错误
 	protected bool mMovedDuringFrame;				// 角色在这一帧内是否移动过
 	protected bool mHasLastPosition;				// mLastPosition是否有效
-	protected bool mDestroyObject;					// 如果是外部管理的节点,则一定不要在MovableObject自动销毁
 	protected bool mMouseHovered;					// 鼠标当前是否悬停在物体上
 	protected bool mHandleInput;					// 是否接收鼠标输入事件
 	protected bool mPassRay;						// 是否允许射线穿透
 	public MovableObject()
 	{
 		mObjectID = makeID();
-		mDestroyObject = true;
 		mHandleInput = true;
 		mPassRay = true;
 		mEnableFixedUpdate = true;
 	}
 	public override void destroy()
 	{
-		// 因为在基类中会重置mObject,所以需要先保存一个
-		GameObject obj = mObject;
+		// 自动创建的GameObject需要在此处自动销毁
+		if (mAutoManageObject)
+		{
+			mGameObjectPool.destroyObject(mObject);
+			mObject = null;
+		}
 		mGlobalTouchSystem.unregisteCollider(this);
 		base.destroy();
-		if (mDestroyObject)
-		{
-			destroyGameObject(ref obj);
-		}
 	}
-	public virtual void setObject(GameObject obj, bool destroyOld)
+	// mObject需要外部自己创建以及销毁,内部只是引用,不会管理其生命周期
+	// 且此函数需要在init之前调用,这样的话就能检测到setObject是否与mAutoCreateObject冲突,而且初始化也能够正常执行
+	public override void setObject(GameObject obj)
 	{
-		if (destroyOld && mObject != null)
+		if (obj != null && mObject != null)
 		{
-			destroyGameObject(ref mObject);
+			logError("当前GameObject不为空,无法设置新的GameObject");
 		}
-		setGameObject(obj);
+		base.setObject(obj);
 		mAudioSource = mObject?.GetComponent<AudioSource>();
-		if (mObject != null)
-		{
-			mObject.name = mName;
-		}
 	}
 	public virtual void init()
 	{
+		// 自动创建GameObject
+		if (mAutoManageObject)
+		{
+			setObject(mGameObjectPool.newObject());
+		}
 		initComponents();
 	}
 	public override void update(float elapsedTime)
@@ -102,7 +104,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 		return mAudioSource = mObject.AddComponent<AudioSource>();
 	}
 	// get
-	//-------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	public AudioSource getAudioSource()									{ return mAudioSource; }
 	public Vector3 getPhysicsSpeed()									{ return mPhysicsSpeedVector; }
 	public Vector3 getPhysicsAcceleration()								{ return mPhysicsAcceleration; }
@@ -119,11 +121,11 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public virtual bool isPassRay()										{ return mPassRay; }
 	public virtual bool isDragable()									{ return getComponent<COMMovableObjectDrag>(true, false) != null; }
 	public virtual bool isMouseHovered()								{ return mMouseHovered; }
+	public string getDescription()										{ return EMPTY; }
 	// set
-	//-------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	public virtual void setPassRay(bool passRay)						{ mPassRay = passRay; }
 	public virtual void setHandleInput(bool handleInput)				{ mHandleInput = handleInput; }
-	public void setDestroyObject(bool value)							{ mDestroyObject = value; }
 	public void setOnMouseEnter(OnMouseEnter callback)					{ mOnMouseEnter = callback; }
 	public void setOnMouseLeave(OnMouseLeave callback)					{ mOnMouseLeave = callback; }
 	public void setOnMouseDown(OnMouseDown callback)					{ mOnMouseDown = callback; }
@@ -133,6 +135,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public virtual void setHoverCallback(ObjectHoverCallback callback)	{ mHoverCallback = callback; }
 	public virtual void setPressCallback(ObjectPressCallback callback)	{ mPressCallback = callback; }
 	public void setOnScreenMouseUp(OnScreenMouseUp callback)			{ mOnScreenMouseUp = callback; }
+	public void setAutoManageObject(bool autoManage)					{ mAutoManageObject = autoManage; }
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -156,16 +159,16 @@ public class MovableObject : Transformable, IMouseEventCollect
 		mHoverCallback = null;
 		mPressCallback = null;
 		mOnScreenMouseUp = null;
+		mEnableFixedUpdate = true;
+		mAutoManageObject = false;
 		mMovedDuringFrame = false;
 		mHasLastPosition = false;
-		mDestroyObject = true;
 		mMouseHovered = false;
 		mHandleInput = true;
 		mPassRay = true;
-		mEnableFixedUpdate = true;
 		mRealtimeMoveSpeed = 0.0f;
 		// mObjectID不重置
-		//mObjectID = 0;
+		// mObjectID = 0;
 	}
 	public virtual void onMouseEnter(int touchID)
 	{
@@ -213,4 +216,11 @@ public class MovableObject : Transformable, IMouseEventCollect
 	public virtual void onMultiTouchStart(Vector3 touch0, Vector3 touch1) { }
 	public virtual void onMultiTouchMove(Vector3 touch0, Vector3 lastTouch0, Vector3 touch1, Vector3 lastTouch1) { }
 	public virtual void onMultiTouchEnd() { }
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected override void initComponents()
+	{
+		base.initComponents();
+		addComponent<COMMovableObjectAudio>();
+		addComponent<COMMovableObjectVolume>();
+	}
 }

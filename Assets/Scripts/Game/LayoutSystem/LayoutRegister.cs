@@ -3,7 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-public class LayoutRegister : GameBase
+public class LayoutRegister : LayoutRegisterBase
 {
 	public static void registeAllLayout()
 	{
@@ -22,21 +22,4 @@ public class LayoutRegister : GameBase
 		if (assign(ref mScriptDemoStart, script, created)) return;
 	}
 	//----------------------------------------------------------------------------------------------------------------------------------------------------------------
-	protected static void registeLayout<T>(int layout, string name, bool inResource = false) where T : LayoutScript
-	{
-		registeLayout<T>(layout, name, EMPTY, inResource);
-	}
-	protected static void registeLayout<T>(int layout, string name, string prePath, bool inResource) where T : LayoutScript
-	{
-		mLayoutManager.registeLayout(Typeof<T>(), layout, prePath + name + "/" + name, inResource);
-	}
-	protected static bool assign<T>(ref T thisScript, LayoutScript value, bool created) where T : LayoutScript
-	{
-		if (Typeof<T>() == Typeof(value))
-		{
-			thisScript = created ? value as T : null;
-			return true;
-		}
-		return false;
-	}
 }

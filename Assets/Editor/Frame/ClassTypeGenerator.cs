@@ -181,14 +181,14 @@ public class ClassTypeGenerator : TypeUtility
 		}
 		string typeString = type.ToString();
 		// 去除引用符号
-		typeString = removeAll(typeString, "&");
+		typeString = removeAll(typeString, '&');
 		// 因为bool和ref bool在typeof后的值不一致,所以所有的基础类型都要判断
 		if (getTypeName(typeString) != null)
 		{
 			return getTypeName(typeString);
 		}
 		// 有命名空间的去掉命名空间
-		typeString = removeStart(typeString, '.', false);
+		typeString = removeStartUntil(typeString, '.', false);
 		// 类,基础数据类型以外的值类型,接口,则直接返回类型字符串
 		if (type.IsClass || type.IsValueType || type.IsInterface)
 		{

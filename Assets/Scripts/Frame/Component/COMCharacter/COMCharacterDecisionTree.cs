@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-// 决策树,用于自动判断并决定角色应该做出的行为
+// 决策树,用于自动判断并决定角色应该做出的行为,未完善,实际上应该使用BehaviourDesigner
 public class COMCharacterDecisionTree : GameComponent
 {
 	protected Dictionary<uint, DTreeNode> mNodeList;    // 所有的节点列表

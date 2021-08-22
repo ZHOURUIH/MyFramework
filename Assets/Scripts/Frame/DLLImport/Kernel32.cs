@@ -34,24 +34,37 @@ public class Kernel32
 	public const string KERNEL32_DLL = "kernel32.dll";
 	[DllImport(KERNEL32_DLL)]
 	public extern static IntPtr LoadLibrary(string path);
+
 	[DllImport(KERNEL32_DLL)]
 	public extern static IntPtr GetProcAddress(IntPtr lib, string funcName);
+
 	[DllImport(KERNEL32_DLL)]
 	public extern static bool FreeLibrary(IntPtr lib);
+
 	[DllImport(KERNEL32_DLL)]
 	public static extern void GlobalMemoryStatusEx(ref MEMORY_STATUS_EX meminfo);
+
 	[DllImport(KERNEL32_DLL)]
 	public static extern int GetLastError();
+
 	[DllImport(KERNEL32_DLL)]
 	public static extern void SetLastError(int err);
+
 	[DllImport(KERNEL32_DLL, SetLastError = true)]
-	public static extern SafeFileHandle CreateFile(string lpFileName, uint dwDesiredAccess, uint dwShareMode, IntPtr lpSecurityAttributes, uint dwCreationDisposition, uint dwFlagsAndAttributes, IntPtr hTemplateFile);
+	public static extern SafeFileHandle CreateFile(string lpFileName, uint dwDesiredAccess, uint dwShareMode, IntPtr lpSecurityAttributes, 
+													uint dwCreationDisposition, uint dwFlagsAndAttributes, IntPtr hTemplateFile);
+
 	[DllImport(KERNEL32_DLL, SetLastError = true)]
-	public static extern bool ReadFile(SafeFileHandle hFile, byte[] lpBuffer, uint nNumberOfBytesToRead, ref uint lpNumberOfBytesRead, IntPtr lpOverlapped);
+	public static extern bool ReadFile(SafeFileHandle hFile, byte[] lpBuffer, uint nNumberOfBytesToRead, 
+										ref uint lpNumberOfBytesRead, IntPtr lpOverlapped);
+
 	[DllImport(KERNEL32_DLL, SetLastError = true)]
-	public static extern bool WriteFile(SafeFileHandle hFile, byte[] lpBuffer, uint nNumberOfBytesToWrite, ref uint lpNumberOfBytesWritten, IntPtr lpOverlapped);
+	public static extern bool WriteFile(SafeFileHandle hFile, byte[] lpBuffer, uint nNumberOfBytesToWrite, 
+										ref uint lpNumberOfBytesWritten, IntPtr lpOverlapped);
+
 	[DllImport(KERNEL32_DLL)]
 	public static extern void CloseHandle(SafeFileHandle hFile);
+
 	[DllImport(KERNEL32_DLL)]
 	public static extern bool PurgeComm(SafeFileHandle hFile, uint dwFlags);
 }

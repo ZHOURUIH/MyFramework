@@ -5,6 +5,12 @@ public abstract class StateGroupMutex : FrameBase
 {
 	protected StateGroup mGroup;
 	protected GROUP_MUTEX mMutexType;
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mGroup = null;
+		mMutexType = GROUP_MUTEX.COEXIST;
+	}
 	public GROUP_MUTEX getMutexType() { return mMutexType; }
 	public StateGroup getGroup() { return mGroup; }
 	public void setMutexType(GROUP_MUTEX type) { mMutexType = type; }

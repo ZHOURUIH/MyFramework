@@ -48,7 +48,7 @@ public class myUGUIInputFieldTMP : myUGUIObject
 	public string getText() { return mInputField.text; }
 	public bool isFocused() { return mInputField.isFocused; }
 	public bool isVisible() { return isActive(); }
-	//------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void OnEndEdit(string value) { mAction?.Invoke(value); }
 }
 #endif

@@ -11,6 +11,7 @@ public class DistanceSortHelper : IEquatable<DistanceSortHelper>
 		mObject = obj;
 	}
 	public bool Equals(DistanceSortHelper value) { return value.mDistance == mDistance && value.mObject == mObject; }
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected static int distanceAscend(DistanceSortHelper a, DistanceSortHelper b)
 	{
 		return (int)MathUtility.sign(a.mDistance - b.mDistance);

@@ -12,7 +12,7 @@ public class DllImportSystem : FrameSystem
 	{
 		mDllLibraryList = new Dictionary<string, Dll>();
 	}
-	//将要执行的函数转换为委托
+	// 将要执行的函数转换为委托
 	public static T Invoke<T>(string library, string funcName) where T : Delegate
 	{
 		if (!mDllLibraryList.TryGetValue(library, out Dll dll))
@@ -38,7 +38,7 @@ public class DllImportSystem : FrameSystem
 		mDllLibraryList.Clear();
 		base.destroy();
 	}
-	//------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void registerDLL(string name)
 	{
 		Dll dll = new Dll();

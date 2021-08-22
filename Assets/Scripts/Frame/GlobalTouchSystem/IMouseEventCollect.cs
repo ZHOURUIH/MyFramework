@@ -4,6 +4,7 @@ public interface IMouseEventCollect
 {
 	GameObject getObject();
 	string getName();
+	string getDescription();
 	void onMultiTouchStart(Vector3 touch0, Vector3 touch1);
 	void onMultiTouchMove(Vector3 touch0, Vector3 lastTouch0, Vector3 touch1, Vector3 lastTouch1);
 	void onMultiTouchEnd();

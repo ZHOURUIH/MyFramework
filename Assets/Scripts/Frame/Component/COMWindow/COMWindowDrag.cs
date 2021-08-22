@@ -40,7 +40,7 @@ public class COMWindowDrag : ComponentDrag
 		mDragHoverWindow = null;
 	}
 	public void setMovable(bool movable) { mMovable = movable; }
-	//--------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyScreenPosition(Vector3 screenPos)
 	{
 		if (mMovable)

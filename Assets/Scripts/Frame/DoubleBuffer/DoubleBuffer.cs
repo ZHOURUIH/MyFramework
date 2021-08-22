@@ -21,6 +21,19 @@ public class DoubleBuffer<T> : FrameBase
 		mWriteIndex = 0;
 		mReadIndex = 1;
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mBufferList[0].Clear();
+		mBufferList[1].Clear();
+		mBufferLock.unlock();
+		mWriteListLimit = 0;
+		mWriteIndex = 0;
+		mReadIndex = 1;
+		mReadThreadID = 0;
+		mWriteThreadID = 0;
+		mReading = false;
+	}
 	// 切换缓冲区,获得可读列表,在遍历可读列表期间,不能再次调用get,否则会出现不可预知的错误,并且该函数不能在多个线程中调用
 	public List<T> get()
 	{
@@ -83,4 +96,6 @@ public class DoubleBuffer<T> : FrameBase
 		mBufferList[mWriteIndex].Clear();
 		mBufferLock.unlock();
 	}
+	// 只有当完全确定双缓冲的状态时才能直接访问内部列表,否则可能会出错误
+	public List<T>[] getBufferList() { return mBufferList; }
 }

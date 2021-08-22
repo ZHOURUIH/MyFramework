@@ -9,13 +9,13 @@ namespace HotFix
     {
         static CrossBindingMethodInfo minit_0 = new CrossBindingMethodInfo("init");
         static CrossBindingMethodInfo mresetProperty_1 = new CrossBindingMethodInfo("resetProperty");
-        static CrossBindingMethodInfo mdestroyModel_2 = new CrossBindingMethodInfo("destroyModel");
-        static CrossBindingFunctionInfo<System.String, System.Single> mgetAnimationLength_3 = new CrossBindingFunctionInfo<System.String, System.Single>("getAnimationLength");
-        static CrossBindingMethodInfo mnotifyModelLoaded_4 = new CrossBindingMethodInfo("notifyModelLoaded");
-        static CrossBindingFunctionInfo<global::CharacterData> mcreateCharacterData_5 = new CrossBindingFunctionInfo<global::CharacterData>("createCharacterData");
-        static CrossBindingMethodInfo minitComponents_6 = new CrossBindingMethodInfo("initComponents");
-        static CrossBindingMethodInfo mdestroy_7 = new CrossBindingMethodInfo("destroy");
-        static CrossBindingMethodInfo<UnityEngine.GameObject, System.Boolean> msetObject_8 = new CrossBindingMethodInfo<UnityEngine.GameObject, System.Boolean>("setObject");
+        static CrossBindingMethodInfo mdestroy_2 = new CrossBindingMethodInfo("destroy");
+        static CrossBindingMethodInfo<UnityEngine.GameObject> msetObject_3 = new CrossBindingMethodInfo<UnityEngine.GameObject>("setObject");
+        static CrossBindingMethodInfo mdestroyModel_4 = new CrossBindingMethodInfo("destroyModel");
+        static CrossBindingFunctionInfo<System.String, System.Single> mgetAnimationLength_5 = new CrossBindingFunctionInfo<System.String, System.Single>("getAnimationLength");
+        static CrossBindingMethodInfo mnotifyModelLoaded_6 = new CrossBindingMethodInfo("notifyModelLoaded");
+        static CrossBindingFunctionInfo<global::CharacterData> mcreateCharacterData_7 = new CrossBindingFunctionInfo<global::CharacterData>("createCharacterData");
+        static CrossBindingMethodInfo minitComponents_8 = new CrossBindingMethodInfo("initComponents");
         static CrossBindingMethodInfo<System.Single> mupdate_9 = new CrossBindingMethodInfo<System.Single>("update");
         static CrossBindingMethodInfo<System.Single> mfixedUpdate_10 = new CrossBindingMethodInfo<System.Single>("fixedUpdate");
         static CrossBindingFunctionInfo<System.Boolean> misHandleInput_11 = new CrossBindingFunctionInfo<System.Boolean>("isHandleInput");
@@ -123,11 +123,10 @@ namespace HotFix
         static CrossBindingMethodInfo<System.Single> mlateUpdate_60 = new CrossBindingMethodInfo<System.Single>("lateUpdate");
         static CrossBindingMethodInfo<global::GameComponent> mnotifyAddComponent_61 = new CrossBindingMethodInfo<global::GameComponent>("notifyAddComponent");
         static CrossBindingMethodInfo<System.Boolean, System.Boolean> msetIgnoreTimeScale_62 = new CrossBindingMethodInfo<System.Boolean, System.Boolean>("setIgnoreTimeScale");
-        static CrossBindingMethodInfo mnotifyConstructDone_63 = new CrossBindingMethodInfo("notifyConstructDone");
-        static CrossBindingMethodInfo<System.Boolean> msetDestroy_64 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
-        static CrossBindingFunctionInfo<System.Boolean> misDestroy_65 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
-        static CrossBindingMethodInfo<System.Int64> msetAssignID_66 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
-        static CrossBindingFunctionInfo<System.Int64> mgetAssignID_67 = new CrossBindingFunctionInfo<System.Int64>("getAssignID");
+        static CrossBindingMethodInfo<System.Boolean> msetDestroy_63 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
+        static CrossBindingFunctionInfo<System.Boolean> misDestroy_64 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
+        static CrossBindingMethodInfo<System.Int64> msetAssignID_65 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
+        static CrossBindingFunctionInfo<System.Int64> mgetAssignID_66 = new CrossBindingFunctionInfo<System.Int64>("getAssignID");
         public override Type BaseCLRType
         {
             get
@@ -183,60 +182,60 @@ namespace HotFix
                     mresetProperty_1.Invoke(this.instance);
             }
 
+            public override void destroy()
+            {
+                if (mdestroy_2.CheckShouldInvokeBase(this.instance))
+                    base.destroy();
+                else
+                    mdestroy_2.Invoke(this.instance);
+            }
+
+            public override void setObject(UnityEngine.GameObject obj)
+            {
+                if (msetObject_3.CheckShouldInvokeBase(this.instance))
+                    base.setObject(obj);
+                else
+                    msetObject_3.Invoke(this.instance, obj);
+            }
+
             public override void destroyModel()
             {
-                if (mdestroyModel_2.CheckShouldInvokeBase(this.instance))
+                if (mdestroyModel_4.CheckShouldInvokeBase(this.instance))
                     base.destroyModel();
                 else
-                    mdestroyModel_2.Invoke(this.instance);
+                    mdestroyModel_4.Invoke(this.instance);
             }
 
             public override System.Single getAnimationLength(System.String name)
             {
-                if (mgetAnimationLength_3.CheckShouldInvokeBase(this.instance))
+                if (mgetAnimationLength_5.CheckShouldInvokeBase(this.instance))
                     return base.getAnimationLength(name);
                 else
-                    return mgetAnimationLength_3.Invoke(this.instance, name);
+                    return mgetAnimationLength_5.Invoke(this.instance, name);
             }
 
             public override void notifyModelLoaded()
             {
-                if (mnotifyModelLoaded_4.CheckShouldInvokeBase(this.instance))
+                if (mnotifyModelLoaded_6.CheckShouldInvokeBase(this.instance))
                     base.notifyModelLoaded();
                 else
-                    mnotifyModelLoaded_4.Invoke(this.instance);
+                    mnotifyModelLoaded_6.Invoke(this.instance);
             }
 
             protected override global::CharacterData createCharacterData()
             {
-                if (mcreateCharacterData_5.CheckShouldInvokeBase(this.instance))
+                if (mcreateCharacterData_7.CheckShouldInvokeBase(this.instance))
                     return base.createCharacterData();
                 else
-                    return mcreateCharacterData_5.Invoke(this.instance);
+                    return mcreateCharacterData_7.Invoke(this.instance);
             }
 
             protected override void initComponents()
             {
-                if (minitComponents_6.CheckShouldInvokeBase(this.instance))
+                if (minitComponents_8.CheckShouldInvokeBase(this.instance))
                     base.initComponents();
                 else
-                    minitComponents_6.Invoke(this.instance);
-            }
-
-            public override void destroy()
-            {
-                if (mdestroy_7.CheckShouldInvokeBase(this.instance))
-                    base.destroy();
-                else
-                    mdestroy_7.Invoke(this.instance);
-            }
-
-            public override void setObject(UnityEngine.GameObject obj, System.Boolean destroyOld)
-            {
-                if (msetObject_8.CheckShouldInvokeBase(this.instance))
-                    base.setObject(obj, destroyOld);
-                else
-                    msetObject_8.Invoke(this.instance, obj, destroyOld);
+                    minitComponents_8.Invoke(this.instance);
             }
 
             public override void update(System.Single elapsedTime)
@@ -671,44 +670,36 @@ namespace HotFix
                     msetIgnoreTimeScale_62.Invoke(this.instance, ignore, componentOnly);
             }
 
-            public override void notifyConstructDone()
-            {
-                if (mnotifyConstructDone_63.CheckShouldInvokeBase(this.instance))
-                    base.notifyConstructDone();
-                else
-                    mnotifyConstructDone_63.Invoke(this.instance);
-            }
-
             public override void setDestroy(System.Boolean isDestroy)
             {
-                if (msetDestroy_64.CheckShouldInvokeBase(this.instance))
+                if (msetDestroy_63.CheckShouldInvokeBase(this.instance))
                     base.setDestroy(isDestroy);
                 else
-                    msetDestroy_64.Invoke(this.instance, isDestroy);
+                    msetDestroy_63.Invoke(this.instance, isDestroy);
             }
 
             public override System.Boolean isDestroy()
             {
-                if (misDestroy_65.CheckShouldInvokeBase(this.instance))
+                if (misDestroy_64.CheckShouldInvokeBase(this.instance))
                     return base.isDestroy();
                 else
-                    return misDestroy_65.Invoke(this.instance);
+                    return misDestroy_64.Invoke(this.instance);
             }
 
             public override void setAssignID(System.Int64 assignID)
             {
-                if (msetAssignID_66.CheckShouldInvokeBase(this.instance))
+                if (msetAssignID_65.CheckShouldInvokeBase(this.instance))
                     base.setAssignID(assignID);
                 else
-                    msetAssignID_66.Invoke(this.instance, assignID);
+                    msetAssignID_65.Invoke(this.instance, assignID);
             }
 
             public override System.Int64 getAssignID()
             {
-                if (mgetAssignID_67.CheckShouldInvokeBase(this.instance))
+                if (mgetAssignID_66.CheckShouldInvokeBase(this.instance))
                     return base.getAssignID();
                 else
-                    return mgetAssignID_67.Invoke(this.instance);
+                    return mgetAssignID_66.Invoke(this.instance);
             }
 
             public override string ToString()

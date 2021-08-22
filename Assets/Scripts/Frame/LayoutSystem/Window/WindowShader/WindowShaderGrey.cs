@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class WindowShaderGrey : WindowShader
 {
-	protected bool mIsGrey = false;
+	protected bool mIsGrey;
 	protected int mGreyID;
 	public WindowShaderGrey()
 	{

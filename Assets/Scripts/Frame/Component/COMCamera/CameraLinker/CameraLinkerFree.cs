@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
+// 完全自由的摄像机,不连接任何物体
 public class CameraLinkerFree : CameraLinker
 {
 	protected Vector2 mRotateAngle;			// 这一帧旋转的角度,角度制
@@ -16,15 +17,21 @@ public class CameraLinkerFree : CameraLinker
 		mMoveSpeed = 10.0f;
 		mUpdateMoment = LINKER_UPDATE.UPDATE;
 		mEnableKeyboard = true;
+		mLookAtTarget = false;
+		mCheckModelBetween = false;
 	}
 	public override void resetProperty()
 	{
 		base.resetProperty();
+		mRotateAngle = Vector3.zero;
+		mMoveDelta = Vector3.zero;
 		mMouseWheelSpeed = 10.0f / 120.0f;
 		mRotateSpeed = 0.1f;
 		mMoveSpeed = 10.0f;
 		mUpdateMoment = LINKER_UPDATE.UPDATE;
 		mEnableKeyboard = true;
+		mLookAtTarget = false;
+		mCheckModelBetween = false;
 	}
 	public override void update(float elapsedTime)
 	{
@@ -124,4 +131,6 @@ public class CameraLinkerFree : CameraLinker
 	public void setMoveDelta(Vector3 value)		{ mMoveDelta = value; }
 	public void setRotateAngle(Vector2 value)	{ mRotateAngle = value; }
 	public void setEnableKeyboard(bool value)	{ mEnableKeyboard = value; }
+	// 自由摄像机不会看向目标,因为没有目标
+	public override void setLookAtTarget(bool lookat) { mLookAtTarget = false; }
 }

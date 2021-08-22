@@ -49,7 +49,7 @@ public class ILRuntimeCLRBinding : FrameUtility
 		// 用新的分析热更dll调用引用来生成绑定代码
 		Debug.Log("如果自动分析有报错,先尝试重新编译热更工程后再分析");
 		var domain = new ILRAppDomain();
-		string dllPath = FrameDefine.P_STREAMING_ASSETS_PATH + FrameDefine.ILR_FILE;
+		string dllPath = FrameDefine.P_ASSET_BUNDLE_PATH + FrameDefine.ILR_FILE;
 		using (var fs = new FileStream(dllPath, FileMode.Open, FileAccess.Read))
 		{
 			domain.LoadAssembly(fs);
@@ -58,6 +58,23 @@ public class ILRuntimeCLRBinding : FrameUtility
 			// 值类型绑定
 			ILRLaunchFrame.registeValueTypeBinder(domain);
 			BindingCodeGenerator.GenerateBindingCode(domain, FrameDefine.P_SCRIPTS_ILRUNTIME_PATH + "GeneratedCLRBinding");
+			string fileName = FrameDefine.F_SCRIPTS_ILRUNTIME_PATH + "GeneratedCLRBinding/CSharpUtility_Binding.cs";
+			int lineCount = openTxtFileLines(fileName, out string[] fileLines, false);
+			if (fileLines != null)
+			{
+				List<string> lines = new List<string>(fileLines);
+				for (int i = 0; i < lineCount; ++i)
+				{
+					if (lines[i].Contains("CSharpUtility.getILRStackTrace("))
+					{
+						lines[i + 2] = "            // 只能在此处才能获取DLL内的堆栈";
+						lines.Insert(i + 3, "            string stacktrace = __domain.DebugService.GetStackTrace(__intp);");
+						lines.Insert(i + 4, "            return ILIntepreter.PushObject(__ret, __mStack, result_of_this_method + stacktrace);");
+						break;
+					}
+				}
+				writeTxtFile(fileName, stringsToString(lines, "\r\n"));
+			}
 		}
 		AssetDatabase.Refresh();
 	}
@@ -69,8 +86,40 @@ public class ILRuntimeCLRBinding : FrameUtility
 		string fullFileName = prePath + type.Name + "Adapter.cs";
 		using (var sw = new StreamWriter(fullFileName))
 		{
-			sw.WriteLine(CrossBindingCodeGenerator.GenerateCrossBindingAdapterCode(type, nameSpace));
+			string str = CrossBindingCodeGenerator.GenerateCrossBindingAdapterCode(type, nameSpace);
+			// 需要将Command的适配器重新修改一下
+			if (type == typeof(Command))
+			{
+				str = adjustStaticAdapterFunctionDeclare(str, "execute");
+			}
+			sw.WriteLine(str);
 		}
+	}
+	protected static string adjustStaticAdapterFunctionDeclare(string fileContent, string functionName)
+	{
+		splitLine(fileContent, out string[] lines);
+		List<string> lineList = new List<string>(lines);
+		string newExecuteDeclare = null;
+		for(int i = 0; i < lineList.Count; ++i)
+		{
+			// 将execute的函数声明备份,并去除static关键字
+			if (lineList[i].Contains("new CrossBindingMethodInfo(\"" + functionName + "\")"))
+			{
+				newExecuteDeclare = replaceAll(lineList[i], "static ", "    protected ");
+				lineList.RemoveAt(i);
+				--i;
+			}
+			if (newExecuteDeclare == null)
+			{
+				continue;
+			}
+			if (lineList[i].Contains("public class Adapter "))
+			{
+				lineList.Insert(i + 2, newExecuteDeclare);
+				break;
+			}
+		}
+		return stringsToString(lineList, "\r\n");
 	}
 	protected static void generateAdaterRegister(HashSet<Type> typeList, string path)
 	{
@@ -92,12 +141,19 @@ public class ILRuntimeCLRBinding : FrameUtility
 		}
 		line(ref file, "\t}");
 		line(ref file, "}");
-		line(ref file, "#endif");
+		line(ref file, "#endif", false);
 		writeTxtFile(path + "CrossAdapterRegister.cs", file);
 	}
-	protected static void line(ref string str, string line)
+	protected static void line(ref string str, string line, bool returnLine = true)
 	{
-		str += line + "\r\n";
+		if (returnLine)
+		{
+			str += line + "\r\n";
+		}
+		else
+		{
+			str += line;
+		}
 	}
 }
 #endif

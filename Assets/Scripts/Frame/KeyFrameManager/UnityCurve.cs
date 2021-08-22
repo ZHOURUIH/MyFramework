@@ -4,10 +4,12 @@ using UnityEngine;
 public class UnityCurve : MyCurve
 {
 	protected AnimationCurve mCurve;
-	public UnityCurve(AnimationCurve curve)
+	public override void resetProperty()
 	{
-		mCurve = curve;
+		base.resetProperty();
+		mCurve = null;
 	}
+	public void setCurve(AnimationCurve curve) { mCurve = curve; }
 	public override float Evaluate(float time)
 	{
 		if(mCurve == null)

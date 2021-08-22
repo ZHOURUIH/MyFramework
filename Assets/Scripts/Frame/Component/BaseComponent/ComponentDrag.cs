@@ -169,7 +169,7 @@ public class ComponentDrag : GameComponent
 		onDraging(mousePosition);
 		return true;
 	}
-	//--------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected bool checkStartTouchDrag(ref Touch touch)
 	{
 		Vector3 mousePosition = touch.position;

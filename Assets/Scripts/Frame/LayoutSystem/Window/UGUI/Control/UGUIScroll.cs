@@ -6,29 +6,28 @@ public class UGUIScroll : FrameBase
 {
 	protected List<IScrollContainer> mContainerList;// 容器列表,用于获取位置缩放旋转等属性
 	protected List<IScrollItem> mItemList;          // 物体列表,用于显示
-	protected LayoutScript mScript;
+	protected LayoutScript mScript;					// 所属的布局脚本
 	protected myUGUIObject mBackground;				// 用于检测鼠标的按下,移动,抬起
-	protected OnScrollItem mOnScrollItem;
+	protected OnScrollItem mOnScrollItem;			// 滚动的回调
 	protected DRAG_DIRECTION mDragDirection;        // 拖动方向,横向或纵向
-	protected float mFocusSpeedThreshhold;  // 开始聚焦的速度阈值,当滑动速度正在自由降低的阶段时,速度低于该值则会以恒定速度自动聚焦到一个最近的项
-	protected float mMaxControlValue;       // 物体列表中最大的控制值,也代表一个完整周期
-	protected float mMaxContainerValue;		// 容器中最大的控制值
-	protected float mDragSensitive;         // 拖动的灵敏度
-	protected bool mLoop;                   // 是否循环滚动
-	protected bool mItemOnCenter;           // 最终停止时是否聚焦到某一项上
-	protected int mDefaultFocus;            // 容器默认聚焦的下标
-	//------------------------------------------------------------------------------------------------------------------------------------------------------
+	protected float mFocusSpeedThreshhold;			// 开始聚焦的速度阈值,当滑动速度正在自由降低的阶段时,速度低于该值则会以恒定速度自动聚焦到一个最近的项
+	protected float mMaxContainerValue;				// 容器中最大的控制值
+	protected float mMaxControlValue;				// 物体列表中最大的控制值,也代表一个完整周期
+	protected float mDragSensitive;					// 拖动的灵敏度
+	protected int mDefaultFocus;					// 容器默认聚焦的下标
+	protected bool mLoop;							// 是否循环滚动
+	protected bool mItemOnCenter;					// 最终停止时是否聚焦到某一项上
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 用于实时计算的参数
-	protected SCROLL_STATE mState;          // 当前状态
-	protected float mAttenuateFactor;       // 移动速度衰减系数,鼠标在放开时移动速度会逐渐降低,衰减系数越大.速度降低越快
-	protected float mTargetOffsetValue;     // 本次移动的目标值
-	protected float mCurOffset;				// 整体的偏移值,并且会与每一项的原始偏移值叠加
-	protected float mScrollSpeed;           // 当前滚动速度
-	protected bool mMouseDown;              // 鼠标是否在窗口内按下,鼠标抬起或者离开窗口都会设置为false,鼠标按下时,跟随鼠标移动,鼠标放开时,按惯性移动
+	protected SCROLL_STATE mState;					// 当前状态
+	protected float mAttenuateFactor;				// 移动速度衰减系数,鼠标在放开时移动速度会逐渐降低,衰减系数越大.速度降低越快
+	protected float mTargetOffsetValue;				// 本次移动的目标值
+	protected float mCurOffset;						// 整体的偏移值,并且会与每一项的原始偏移值叠加
+	protected float mScrollSpeed;					// 当前滚动速度
+	protected bool mMouseDown;						// 鼠标是否在窗口内按下,鼠标抬起或者离开窗口都会设置为false,鼠标按下时,跟随鼠标移动,鼠标放开时,按惯性移动
 	public UGUIScroll(LayoutScript script)
 	{
 		mScript = script;
-		mState = SCROLL_STATE.NONE;
 		mDragDirection = DRAG_DIRECTION.HORIZONTAL;
 		mContainerList = new List<IScrollContainer>();
 		mItemList = new List<IScrollItem>();
@@ -36,6 +35,30 @@ public class UGUIScroll : FrameBase
 		mFocusSpeedThreshhold = 2.0f;
 		mDragSensitive = 1.0f;
 		mAttenuateFactor = 2.0f;
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mContainerList.Clear();
+		mItemList.Clear();
+		// mScript不重置
+		// mScript = null;
+		mBackground = null;
+		mOnScrollItem = null;
+		mDragDirection = DRAG_DIRECTION.HORIZONTAL;
+		mFocusSpeedThreshhold = 2.0f;
+		mMaxContainerValue = 0.0f;
+		mMaxControlValue = 0.0f;
+		mDragSensitive = 1.0f;
+		mDefaultFocus = 0;
+		mLoop = false;
+		mItemOnCenter = true;
+		mState = SCROLL_STATE.NONE;
+		mAttenuateFactor = 2.0f;
+		mTargetOffsetValue = 0.0f;
+		mCurOffset = 0.0f;
+		mScrollSpeed = 0.0f;
+		mMouseDown = false;
 	}
 	public void setBackground(myUGUIObject background)
 	{
@@ -252,7 +275,7 @@ public class UGUIScroll : FrameBase
 	public void setFocusSpeedThreshhold(float threshold) { mFocusSpeedThreshhold = threshold; }
 	public void setAttenuateFactor(float factor) { mAttenuateFactor = factor; }
 	public void setOnScrollItem(OnScrollItem callback) { mOnScrollItem = callback; }
-	//---------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void updateItem(float controlValue)
 	{
 		// 变化时需要随时更新当前值
@@ -377,7 +400,9 @@ public class UGUIScroll : FrameBase
 				}
 				else
 				{
-					if (abs(mItemList[0].getCurControlValue() - (mMaxControlValue - controlValue)) < abs(mItemList[itemCount - 1].getCurControlValue() - controlValue))
+					float value0 = mItemList[0].getCurControlValue() - (mMaxControlValue - controlValue);
+					float value1 = mItemList[itemCount - 1].getCurControlValue() - controlValue;
+					if (abs(value0) < abs(value1))
 					{
 						index = 0;
 					}
@@ -425,7 +450,9 @@ public class UGUIScroll : FrameBase
 				{
 					if (i > 0)
 					{
-						if (abs(mContainerList[i].getControlValue() - controlValue) > abs(mContainerList[i - 1].getControlValue() - controlValue))
+						float value0 = mContainerList[i].getControlValue() - controlValue;
+						float value1 = mContainerList[i - 1].getControlValue() - controlValue;
+						if (abs(value0) > abs(value1))
 						{
 							index = i;
 						}

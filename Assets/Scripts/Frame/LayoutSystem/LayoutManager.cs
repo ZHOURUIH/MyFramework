@@ -9,11 +9,12 @@ public struct LayoutRegisteInfo
 	public string mName;
 	public int mID;
 	public bool mInResource;
+	public LAYOUT_LIFE_CYCLE mLifeCycle;
 }
 
 public class LayoutManager : FrameSystem
 {
-	protected Dictionary<int, LayoutRegisteInfo> mScriptRegisteList;
+	protected Dictionary<int, LayoutRegisteInfo> mLayoutRegisteList;
 	protected SafeDictionary<int, GameLayout> mLayoutList;
 	protected Dictionary<string, LayoutInfo> mLayoutAsyncList;
 	protected Dictionary<Type, List<int>> mScriptMappingList;
@@ -27,7 +28,7 @@ public class LayoutManager : FrameSystem
 	public LayoutManager()
 	{
 		mUseAnchor = true;
-		mScriptRegisteList = new Dictionary<int, LayoutRegisteInfo>();
+		mLayoutRegisteList = new Dictionary<int, LayoutRegisteInfo>();
 		mScriptMappingList = new Dictionary<Type, List<int>>();
 		mLayoutTypeToPath = new Dictionary<int, string>();
 		mLayoutPathToType = new Dictionary<string, int>();
@@ -200,7 +201,7 @@ public class LayoutManager : FrameSystem
 		{
 			mLayoutAsyncList.Add(info.mName, info);
 			bool result = false;
-			if (mScriptRegisteList[info.mID].mInResource)
+			if (mLayoutRegisteList[info.mID].mInResource)
 			{
 				result = mResourceManager.loadInResourceAsync<GameObject>(fullPath, mLayoutLoadCallback);
 			}
@@ -216,7 +217,7 @@ public class LayoutManager : FrameSystem
 		}
 		else
 		{
-			if (mScriptRegisteList[info.mID].mInResource)
+			if (mLayoutRegisteList[info.mID].mInResource)
 			{
 				return newLayout(info, mResourceManager.loadInResource<GameObject>(fullPath));
 			}
@@ -239,7 +240,7 @@ public class LayoutManager : FrameSystem
 	}
 	public LayoutScript createScript(GameLayout layout)
 	{
-		LayoutRegisteInfo info = mScriptRegisteList[layout.getID()];
+		LayoutRegisteInfo info = mLayoutRegisteList[layout.getID()];
 		LayoutScript script = createInstance<LayoutScript>(info.mScriptType);
 		if (script == null)
 		{
@@ -259,16 +260,17 @@ public class LayoutManager : FrameSystem
 			item.Value.getAllCollider(colliders, true);
 		}
 	}
-	public void registeLayout(Type classType, int id, string name, bool inResource)
+	public void registeLayout(Type classType, int id, string name, bool inResource, LAYOUT_LIFE_CYCLE lifeCycle)
 	{
-		LayoutRegisteInfo info = new LayoutRegisteInfo();
+		var info = new LayoutRegisteInfo();
 		info.mScriptType = classType;
 		info.mName = name;
 		info.mID = id;
 		info.mInResource = inResource;
+		info.mLifeCycle = lifeCycle;
 		mLayoutTypeToPath.Add(id, name);
 		mLayoutPathToType.Add(name, id);
-		mScriptRegisteList.Add(id, info);
+		mLayoutRegisteList.Add(id, info);
 		if (!mScriptMappingList.TryGetValue(classType, out List<int> list))
 		{
 			list = new List<int>();
@@ -305,7 +307,19 @@ public class LayoutManager : FrameSystem
 		}
 		return maxOrder;
 	}
-	//-----------------------------------------------------------------------------------------------------------------
+	// 卸载所有非常驻的布局
+	public void unloadAllPartLayout()
+	{
+		var mainList = mLayoutList.startForeach();
+		foreach (var item in mainList)
+		{
+			if (mLayoutRegisteList[item.Key].mLifeCycle == LAYOUT_LIFE_CYCLE.PART_USE)
+			{
+				LT.UNLOAD_LAYOUT(item.Key);
+			}
+		}
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void initComponents()
 	{
 		base.initComponents();
@@ -328,9 +342,9 @@ public class LayoutManager : FrameSystem
 		layout.setParent(layoutParent);
 		layout.setOrderType(info.mOrderType);
 		layout.setRenderOrder(generateRenderOrder(layout, info.mRenderOrder, info.mOrderType));
-		layout.setInResources(mScriptRegisteList[info.mID].mInResource);
+		layout.setInResources(mLayoutRegisteList[info.mID].mInResource);
 		layout.init();
-		if(layout.getRoot().getObject() != layoutObj)
+		if (layout.getRoot().getObject() != layoutObj)
 		{
 			logError("布局的根节点不是实例化出来的节点,请确保运行前UI根节点下没有与布局同名的节点");
 		}

@@ -234,7 +234,7 @@ public abstract class ComponentOwner : CommandReceiver
 		mComponentList.clear();
 		mIgnoreTimeScale = false;
 	}
-	//---------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 此函数由子类调用
 	protected virtual void initComponents() { }
 	protected void addComponentToList(GameComponent com)

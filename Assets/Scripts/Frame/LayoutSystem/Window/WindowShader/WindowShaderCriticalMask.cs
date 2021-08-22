@@ -3,12 +3,13 @@ using UnityEngine;
 
 public class WindowShaderCriticalMask : WindowShader
 {
-	protected float mCriticalValue = 1.0f;
-	protected bool mInverseVertical = false;
+	protected float mCriticalValue;
+	protected bool mInverseVertical;
 	protected int mCriticalValueID;
 	protected int mInverseVerticalID;
 	public WindowShaderCriticalMask()
 	{
+		mCriticalValue = 1.0f;
 		mCriticalValueID = Shader.PropertyToID("_CriticalValue");
 		mInverseVerticalID = Shader.PropertyToID("_InverseVertical");
 	}

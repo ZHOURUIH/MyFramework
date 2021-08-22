@@ -18,6 +18,14 @@ public class CameraLinkerSwitchCircle : CameraLinkerSwitch
 		mRotateCenter.y = 0.0f;
 		mTotalAngle = PI_RADIAN;
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mRotateCenter = Vector3.zero;
+		mRotatedAngle = 0.0f;
+		mTotalAngle = PI_RADIAN;
+		mSpeed = PI_RADIAN;
+	}
 	public override void update(float elapsedTime)
 	{
 		if (mLinker == null)

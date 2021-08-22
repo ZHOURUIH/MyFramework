@@ -22,8 +22,7 @@ public class Game : GameFramework
 	{
 		base.notifyBase();
 		// 所有类都构造完成后通知GameBase
-		GameBase frameBase = new GameBase();
-		frameBase.notifyConstructDone();
+		FrameBase.constructGameDone();
 	}
 	protected override void registe()
 	{

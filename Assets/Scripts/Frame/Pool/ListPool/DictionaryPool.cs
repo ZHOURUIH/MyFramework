@@ -58,17 +58,12 @@ public class DictionaryPool : FrameSystem
 			logError("只能在主线程中使用DictionaryPool,子线程中请使用DictionaryPoolThread代替");
 			return null;
 		}
-		ICollection list = null;
+		ICollection list;
 		var type = new DictionaryType(keyType, valueType);
 		// 先从未使用的列表中查找是否有可用的对象
 		if (mUnusedList.TryGetValue(type, out HashSet<ICollection> valueList) && valueList.Count > 0)
 		{
-			foreach(var item in valueList)
-			{
-				list = item;
-				break;
-			}
-			valueList.Remove(list);
+			list = popFirstElement(valueList);
 		}
 		// 未使用列表中没有,创建一个新的
 		else
@@ -100,7 +95,7 @@ public class DictionaryPool : FrameSystem
 		addUnuse(list, type);
 		removeInuse(list, type);
 	}
-	//----------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void addInuse(ICollection list, DictionaryType type, bool onlyOnce)
 	{
 		var inuseList = onlyOnce ? mInusedList : mPersistentInuseList;

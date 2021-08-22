@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 public class ULONGS : OBJECTS
 {
-	protected const int TYPE_SIZE = sizeof(long);
 	public ulong[] mValue;
 	protected bool mIntReplace;
 	public ulong this[int index]
@@ -20,43 +19,32 @@ public class ULONGS : OBJECTS
 		}
 	}
 	public ULONGS(int count)
+		: base(count)
 	{
 		mValue = new ulong[count];
 		mType = typeof(ulong[]);
-		mSize = TYPE_SIZE * mValue.Length;
+		mTypeSize = sizeof(ulong);
+		mSize = mTypeSize * mValue.Length;
 	}
 	public ULONGS(ulong[] value)
+		: base(value.Length)
 	{
 		mValue = value;
 		mType = typeof(ulong[]);
-		mSize = TYPE_SIZE * mValue.Length;
+		mTypeSize = sizeof(ulong);
+		mSize = mTypeSize * mValue.Length;
 	}
-	public override void setIntReplaceULLong(bool replace)
-	{
-		mIntReplace = replace;
-	}
-	public override void setRealSize(ushort realSize)
-	{
-		mRealSize = realSize;
-		mElementCount = mRealSize / TYPE_SIZE;
-	}
-	public override void setElementCount(int elementCount)
-	{
-		mElementCount = elementCount;
-		mRealSize = (ushort)(mElementCount * TYPE_SIZE);
-	}
-	public override void zero()
-	{
-		memset(mValue, 0u);
-	}
+	public override void setIntReplaceULLong(bool replace) { mIntReplace = replace; }
+	public override void zero() { memset(mValue, 0u); }
 	public override bool readFromBuffer(byte[] buffer, ref int index)
 	{
 		if (!mVariableLength)
 		{
 			return readULongs(buffer, ref index, mValue);
 		}
+
 		// 先读取数据的实际字节长度
-		setRealSize(readUShort(buffer, ref index, out bool success));
+		setElementCount(readElementCount(buffer, ref index, out bool success));
 		if (!success)
 		{
 			return false;
@@ -65,6 +53,7 @@ public class ULONGS : OBJECTS
 		{
 			return true;
 		}
+
 		// 如果数组的第一个字节的最高位是,则表示每个元素只需要读取4字节的数据,否则还是读取8字节
 		// 因为存储是小端模式,最高的字节在高地址,所以为了方便解析,使低地址的最高位作为标记位,先左移一位,使低字节的最低字节空出来作为标记位
 		// 所以解析时首先找到标记位
@@ -100,6 +89,13 @@ public class ULONGS : OBJECTS
 		{
 			return writeULongs(buffer, ref index, mValue);
 		}
+
+		// 先写入数据的实际字节长度,无论是否使用int代替ullong
+		if (!writeElementCount(buffer, ref index))
+		{
+			return false;
+		}
+
 		bool useInt = true;
 		for (int i = 0; i < mElementCount; ++i)
 		{
@@ -109,11 +105,7 @@ public class ULONGS : OBJECTS
 				break;
 			}
 		}
-		// 先写入数据的实际字节长度,无论是否使用int代替ullong
-		if (!writeUShort(buffer, ref index, mRealSize))
-		{
-			return false;
-		}
+		
 		// 如果使用int就可以表示,则只写入4字节的数据
 		if (useInt)
 		{
@@ -141,7 +133,7 @@ public class ULONGS : OBJECTS
 	public void set(ulong[] value)
 	{
 		int minCount = getMin(value.Length, mValue.Length);
-		memcpy(mValue, value, 0, 0, minCount * TYPE_SIZE);
+		memcpy(mValue, value, 0, 0, minCount * mTypeSize);
 		if (mVariableLength)
 		{
 			setElementCount(minCount);

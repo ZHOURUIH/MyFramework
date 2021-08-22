@@ -3,7 +3,7 @@ using System;
 
 public class COMGameSceneAudio : ComponentAudio
 {
-	//---------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void assignAudioSource()
 	{
 		var gameScene = mComponentOwner as GameScene;

@@ -3,12 +3,9 @@
 // 表示UI的深度
 public class UIDepth : FrameBase
 {
-	// 表示深度的数据类型单个占的字节数
-	public const int BYTE_LENGTH = sizeof(ulong);
-	// 有多少个表示深度的数据类型
-	public const int DEPTH_COUNT = 3;
-	// 每一层使用多少个字节表示
-	public const int LEVEL_LENGTH = 2;
+	public const int BYTE_LENGTH = sizeof(ulong);		// 表示深度的数据类型单个占的字节数
+	public const int DEPTH_COUNT = 3;					// 有多少个表示深度的数据类型
+	public const int LEVEL_LENGTH = 2;					// 每一层使用多少个字节表示
 	// ulong8个字节中每2个字节表示一层深度,所以两个ulong共16个字节最多可以支持8层UI窗口的深度
 	// mWindowDepth[0]的开始2个字节是布局的深度
 	protected ulong[] mWindowDepth;		// 窗口深度,总的深度实际上是每一层深度组合起来的值
@@ -19,6 +16,14 @@ public class UIDepth : FrameBase
 	{
 		mWindowDepth = new ulong[DEPTH_COUNT];
 		mOriginDepth = new ulong[DEPTH_COUNT];
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		memset(mWindowDepth, 0ul);
+		memset(mOriginDepth, 0ul);
+		mDepthLevel = 0;
+		mPriority = 0;
 	}
 	public int getOrderInParent()
 	{

@@ -28,8 +28,11 @@ namespace ILRuntime.Runtime.Generated
         public static void Initialize(ILRuntime.Runtime.Enviorment.AppDomain app)
         {
             FrameBase_Binding.Register(app);
-            EventSystem_Binding.Register(app);
             System_Type_Binding.Register(app);
+            System_String_Binding.Register(app);
+            LayoutManager_Binding.Register(app);
+            System_Object_Binding.Register(app);
+            EventSystem_Binding.Register(app);
             FrameUtility_Binding.Register(app);
             ClassPool_Binding.Register(app);
             ClassPoolThread_Binding.Register(app);
@@ -38,7 +41,6 @@ namespace ILRuntime.Runtime.Generated
             MathUtility_Binding.Register(app);
             Transformable_Binding.Register(app);
             ComponentOwner_Binding.Register(app);
-            GameBase_Binding.Register(app);
             GameFramework_Binding.Register(app);
             ClassObject_Binding.Register(app);
             FrameSystem_Binding.Register(app);
@@ -54,14 +56,11 @@ namespace ILRuntime.Runtime.Generated
             CommandReceiver_Binding.Register(app);
             System_TimeSpan_Binding.Register(app);
             System_Double_Binding.Register(app);
-            System_String_Binding.Register(app);
             UnityUtility_Binding.Register(app);
             System_Exception_Binding.Register(app);
             CmdGameSceneManagerEnter_Binding.Register(app);
             GameLayout_Binding.Register(app);
             LayoutScript_Binding.Register(app);
-            LayoutManager_Binding.Register(app);
-            System_Object_Binding.Register(app);
             FT_Binding.Register(app);
             StringUtility_Binding.Register(app);
             myUGUIText_Binding.Register(app);

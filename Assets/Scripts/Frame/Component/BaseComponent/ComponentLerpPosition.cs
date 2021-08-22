@@ -35,7 +35,7 @@ public abstract class ComponentLerpPosition : ComponentLerp, IComponentModifyPos
 	public Vector3 getTargetPosition() { return mTargetPosition; }
 	public void setMinRange(float minRange) { mMinRange = minRange; }
 	public float getMinRange() { return mMinRange; }
-	//----------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected abstract void applyPosition(Vector3 position);
 	protected abstract Vector3 getPosition();
 }

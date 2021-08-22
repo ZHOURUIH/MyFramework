@@ -176,13 +176,14 @@ public class ObjectPool : FrameSystem
 		{
 			removeObject(info);
 			info.destroyObject();
+			UN_CLASS(info);
 		}
 		obj = null;
 	}
 	public bool isExistInPool(GameObject go) { return go != null && mInstanceList.ContainsKey(go); }
 	public Dictionary<string, Dictionary<GameObject, ObjectInfo>> getInstanceFileList() {return mInstanceFileList;}
 	public Dictionary<GameObject, ObjectInfo> getInstanceList() { return mInstanceList; }
-	//------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void objectLoaded(GameObject go, CreateObjectCallback callback, object userData)
 	{
 		if (go != null)
@@ -265,6 +266,5 @@ public class ObjectPool : FrameSystem
 			infoList.Remove(objInfo.mObject);
 		}
 		mInstanceList.Remove(objInfo.mObject);
-		UN_CLASS(objInfo);
 	}
 }

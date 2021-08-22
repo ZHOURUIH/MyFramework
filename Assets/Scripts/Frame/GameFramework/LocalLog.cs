@@ -32,9 +32,9 @@ public class LocalLog : FrameBase
 	public void log(string info)
 	{
 		// 将日志保存到当前缓冲中
-		//mLogBufferList.add(info);
+		// mLogBufferList.add(info);
 	}
-	//-----------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void writeLocalLog(BOOL run)
 	{
 		// 将当前写入缓冲区中的内容写入文件
@@ -42,18 +42,18 @@ public class LocalLog : FrameBase
 	}
 	protected void writeLogToFile()
 	{
-		//var readList = mLogBufferList.get();
-		//int count = readList.Count;
-		//if (count > 0)
-		//{
-		//	MyStringBuilder totalString = STRING_THREAD();
-		//	for (int i = 0; i < count; ++i)
-		//	{
-		//		totalString.Append(readList[i], "\r\n");
-		//	}
-		//	writeTxtFile(mLogFilePath, END_STRING_THREAD(totalString), true);
-		//}
-		//readList.Clear();
+		// var readList = mLogBufferList.get();
+		// int count = readList.Count;
+		// if (count > 0)
+		// {
+		// 	MyStringBuilder totalString = STRING_THREAD();
+		// 	for (int i = 0; i < count; ++i)
+		// 	{
+		// 		totalString.Append(readList[i], "\r\n");
+		// 	}
+		// 	writeTxtFile(mLogFilePath, END_STRING_THREAD(totalString), true);
+		// }
+		// readList.Clear();
 	}
 }
 #endif

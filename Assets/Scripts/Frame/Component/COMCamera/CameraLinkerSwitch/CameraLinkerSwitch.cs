@@ -17,6 +17,14 @@ public abstract class CameraLinkerSwitch : FrameBase
 		mTargetRelative = target;
 		mSpeed = speed;
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mLinker = null;
+		mOriginRelative = Vector3.zero;
+		mTargetRelative = Vector3.zero;
+		mSpeed = 0.0f;
+	}
 	public abstract void update(float elapsedTime);
 	public virtual void destroy()
 	{

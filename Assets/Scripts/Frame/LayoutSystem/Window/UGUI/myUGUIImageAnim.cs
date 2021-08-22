@@ -80,13 +80,6 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 	public void setEffectAlign(EFFECT_ALIGN align) { mEffectAlign = align; }
 	public void setTextureSet(string textureSetName)
 	{
-		if (mTextureSetName != textureSetName)
-		{
-			setTextureSet(textureSetName, null);
-		}
-	}
-	public void setTextureSet(string textureSetName, string subPath)
-	{
 		if(mTextureSetName == textureSetName)
 		{
 			return;
@@ -170,7 +163,7 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 			mPlayingCallbackList.Add(callback);
 		}
 	}
-	//--------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onPlaying(AnimControl control, int frame, bool isPlaying)
 	{
 		if(mControl.getCurFrameIndex() >= mTextureNameList.Count)

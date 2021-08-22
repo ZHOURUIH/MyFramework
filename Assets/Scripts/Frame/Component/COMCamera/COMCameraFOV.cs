@@ -2,8 +2,8 @@
 
 public class COMCameraFOV : ComponentKeyFrameNormal
 {
-    protected float mTargetFOV;
-    protected float mStartFOV;
+	protected float mTargetFOV;
+	protected float mStartFOV;
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -12,10 +12,10 @@ public class COMCameraFOV : ComponentKeyFrameNormal
 	}
 	public void setStartFOV(float fov) { mStartFOV = fov; }
 	public void setTargetFOV(float fov) { mTargetFOV = fov; }
-	//-------------------------------------------------------------------------------------------------------------
-    protected override void applyTrembling(float value)
-    {
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected override void applyTrembling(float value)
+	{
 		var obj = mComponentOwner as GameCamera;
-        obj.setFOVY(lerpSimple(mStartFOV, mTargetFOV, value));
-    }
+		obj.setFOVY(lerpSimple(mStartFOV, mTargetFOV, value));
+	}
 }

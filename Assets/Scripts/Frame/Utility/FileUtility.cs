@@ -45,9 +45,9 @@ public class FileUtility : MathUtility
 		{
 #if !UNITY_ANDROID || UNITY_EDITOR
 			FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read);
-			if(fs == null)
+			if (fs == null)
 			{
-				if(errorIfNull)
+				if (errorIfNull)
 				{
 					UnityUtility.logError("open file failed! filename : " + fileName);
 				}
@@ -55,7 +55,7 @@ public class FileUtility : MathUtility
 			}
 			int fileSize = (int)fs.Length;
 			FrameUtility.ARRAY_THREAD(out fileBuffer, getGreaterPow2(fileSize));
-			if(fileBuffer == null)
+			if (fileBuffer == null)
 			{
 				fileBuffer = new byte[fileSize];
 			}
@@ -68,7 +68,7 @@ public class FileUtility : MathUtility
 			if (startWith(fileName, FrameDefine.F_STREAMING_ASSETS_PATH))
 			{
 				// 改为相对路径
-				fileName = fileName.Substring(FrameDefine.F_STREAMING_ASSETS_PATH.Length, fileName.Length - FrameDefine.F_STREAMING_ASSETS_PATH.Length);
+				fileName = fileName.Substring(FrameDefine.F_STREAMING_ASSETS_PATH.Length);
 				fileBuffer = AndroidAssetLoader.loadAsset(fileName, errorIfNull);
 			}
 			// 安卓平台如果要读取persistentDataPath的文件,则可以使用File
@@ -98,10 +98,10 @@ public class FileUtility : MathUtility
 			StreamReader streamReader = File.OpenText(fileName);
 			if (streamReader == null)
 			{
-				if(errorIfNull)
+				if (errorIfNull)
 				{
 					UnityUtility.logError("open file failed! filename : " + fileName);
-				}	
+				}
 				return null;
 			}
 			string fileBuffer = streamReader.ReadToEnd();
@@ -113,7 +113,7 @@ public class FileUtility : MathUtility
 			if (startWith(fileName, FrameDefine.F_STREAMING_ASSETS_PATH))
 			{
 				// 改为相对路径
-				fileName = fileName.Substring(FrameDefine.F_STREAMING_ASSETS_PATH.Length, fileName.Length - FrameDefine.F_STREAMING_ASSETS_PATH.Length);
+				fileName = fileName.Substring(FrameDefine.F_STREAMING_ASSETS_PATH.Length);
 				return AndroidAssetLoader.loadTxtAsset(fileName, errorIfNull);
 			}
 			// 安卓平台如果要读取persistentDataPath的文件,则可以使用File
@@ -134,18 +134,12 @@ public class FileUtility : MathUtility
 			return null;
 		}
 	}
-	public static void openTxtFileLines(string filePath, out string[] fileLines, bool errorIfNull)
+	// 打开一个文本文件,fileName为绝对路径,并且自动将文件拆分为多行,移除末尾的换行符(\r或者\n),存储在fileLines中,包含空行,返回值是行数
+	public static int openTxtFileLines(string fileName, out string[] fileLines, bool errorIfNull = true, bool keepEmptyLine = true)
 	{
-		string fileContent = openTxtFile(filePath, errorIfNull);
-		fileLines = split(fileContent, true, "\n");
-		if(fileLines == null)
-		{
-			return;
-		}
-		for(int i = 0; i < fileLines.Length; ++i)
-		{
-			fileLines[i] = removeAll(fileLines[i], "\r");
-		}
+		string fileContent = openTxtFile(fileName, errorIfNull);
+		splitLine(fileContent, out fileLines, !keepEmptyLine);
+		return fileLines.Length;
 	}
 	// 写一个文本文件,fileName为绝对路径,content是写入的字符串
 	public static void writeFile(string fileName, byte[] buffer, int size, bool appendData = false)
@@ -154,7 +148,7 @@ public class FileUtility : MathUtility
 		createDir(getFilePath(fileName));
 #if !UNITY_ANDROID || UNITY_EDITOR
 		FileStream file = null;
-		if(appendData)
+		if (appendData)
 		{
 			file = new FileStream(fileName, FileMode.Append, FileAccess.Write);
 		}
@@ -175,7 +169,7 @@ public class FileUtility : MathUtility
 	{
 #if !UNITY_ANDROID || UNITY_EDITOR
 		byte[] bytes = stringToBytes(content, Encoding.UTF8);
-		if(bytes != null)
+		if (bytes != null)
 		{
 			writeFile(fileName, bytes, bytes.Length, appendData);
 		}
@@ -188,6 +182,7 @@ public class FileUtility : MathUtility
 		}
 #endif
 	}
+	// 重命名文件,参数为绝对路径
 	public static bool renameFile(string fileName, string newName)
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -201,6 +196,7 @@ public class FileUtility : MathUtility
 		Directory.Move(fileName, newName);
 		return true;
 	}
+	// 删除目录,参数为绝对路径
 	public static void deleteFolder(string path)
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -208,27 +204,28 @@ public class FileUtility : MathUtility
 		return;
 #endif
 		validPath(ref path);
-		if(!isDirExist(path))
+		if (!isDirExist(path))
 		{
 			return;
 		}
 		string[] dirList = Directory.GetDirectories(path);
 		// 先删除所有文件夹
 		int dirCount = dirList.Length;
-		for(int i = 0; i < dirCount; ++i)
+		for (int i = 0; i < dirCount; ++i)
 		{
 			deleteFolder(dirList[i]);
 		}
 		// 再删除所有文件
 		string[] fileList = Directory.GetFiles(path);
 		int fileCount = fileList.Length;
-		for(int i = 0; i < fileCount; ++i)
+		for (int i = 0; i < fileCount; ++i)
 		{
 			deleteFile(fileList[i]);
 		}
 		// 再删除文件夹自身
 		Directory.Delete(path);
 	}
+	// 删除path中的所有空目录,参数为绝对路径,deleteSelfIfEmpty表示path本身为空时是否需要删除
 	public static bool deleteEmptyFolder(string path, bool deleteSelfIfEmpty = true)
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -240,7 +237,7 @@ public class FileUtility : MathUtility
 		string[] dirList = Directory.GetDirectories(path);
 		bool isEmpty = true;
 		int dirCount = dirList.Length;
-		for(int i = 0; i < dirCount; ++i)
+		for (int i = 0; i < dirCount; ++i)
 		{
 			isEmpty = deleteEmptyFolder(dirList[i], true) && isEmpty;
 		}
@@ -251,8 +248,13 @@ public class FileUtility : MathUtility
 		}
 		return isEmpty;
 	}
+	// 移动文件,参数为绝对路径
 	public static void moveFile(string source, string dest, bool overwrite = true)
 	{
+		if (!isFileExist(source))
+		{
+			return;
+		}
 #if UNITY_ANDROID && !UNITY_EDITOR
 		UnityUtility.logError("can not copy file on android!");
 		return;
@@ -273,6 +275,7 @@ public class FileUtility : MathUtility
 		}
 		File.Move(source, dest);
 	}
+	// 拷贝文件,参数为绝对路径
 	public static void copyFile(string source, string dest, bool overwrite = true)
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -288,41 +291,54 @@ public class FileUtility : MathUtility
 		File.Copy(source, dest, overwrite);
 #endif
 	}
+	// 删除文件,参数为绝对路径
+	public static void deleteFile(string path)
+	{
+		rightToLeft(ref path);
+#if UNITY_ANDROID && !UNITY_EDITOR
+		AndroidAssetLoader.deleteFile(path);
+#else
+		File.Delete(path);
+#endif
+	}
+	// 获得文件大小,file为绝对路径
 	public static int getFileSize(string file)
 	{
+		rightToLeft(ref file);
 		try
 		{
 #if !UNITY_ANDROID || UNITY_EDITOR
-			FileInfo fileInfo = new FileInfo(file);
-			return (int)fileInfo.Length;
+			return (int)new FileInfo(file).Length;
 #else
 			return AndroidAssetLoader.getFileSize(file);
 #endif
 		}
-		catch
+		catch(Exception e)
 		{
-			UnityUtility.logError("getFileSize error! file:" + file);
+			UnityUtility.logError("getFileSize error! info:" + e.Message + ", file:" + file);
 			return 0;
 		}
 	}
+	// 目录是否存在,dir是绝对路径
 	public static bool isDirExist(string dir)
 	{
-		if(isEmpty(dir) || dir == "./" || dir == "../")
+		if (isEmpty(dir) || dir == "./" || dir == "../")
 		{
 			return true;
 		}
+		validPath(ref dir);
 #if !UNITY_ANDROID || UNITY_EDITOR
 		return Directory.Exists(dir);
 #else
 		// 安卓平台如果要读取StreamingAssets下的文件,只能使用AssetManager
-		if(startWith(dir + "/", FrameDefine.F_STREAMING_ASSETS_PATH))
+		if(startWith(dir, FrameDefine.F_STREAMING_ASSETS_PATH))
 		{
 			// 改为相对路径
-			dir = dir.Substring(FrameDefine.F_STREAMING_ASSETS_PATH.Length, dir.Length - FrameDefine.F_STREAMING_ASSETS_PATH.Length);
+			dir = dir.Substring(FrameDefine.F_STREAMING_ASSETS_PATH.Length);
 			return AndroidAssetLoader.isAssetExist(dir);
 		}
 		// 安卓平台如果要读取persistentDataPath的文件,则可以使用File
-		if (startWith(dir + "/", FrameDefine.F_PERSISTENT_DATA_PATH))
+		if (startWith(dir, FrameDefine.F_PERSISTENT_DATA_PATH))
 		{
 			return AndroidAssetLoader.isDirExist(dir);
 		}
@@ -330,16 +346,17 @@ public class FileUtility : MathUtility
 		return false;
 #endif
 	}
+	// 文件是否存在,fileName为绝对路径
 	public static bool isFileExist(string fileName)
 	{
 #if !UNITY_ANDROID || UNITY_EDITOR
 		return File.Exists(fileName);
 #else
 		// 安卓平台如果要读取StreamingAssets下的文件,只能使用AssetManager
-		if(startWith(fileName, FrameDefine.F_STREAMING_ASSETS_PATH))
+		if (startWith(fileName, FrameDefine.F_STREAMING_ASSETS_PATH))
 		{
 			// 改为相对路径
-			fileName = fileName.Substring(FrameDefine.F_STREAMING_ASSETS_PATH.Length, fileName.Length - FrameDefine.F_STREAMING_ASSETS_PATH.Length);
+			fileName = fileName.Substring(FrameDefine.F_STREAMING_ASSETS_PATH.Length);
 			return AndroidAssetLoader.isAssetExist(fileName);
 		}
 		// 安卓平台如果要读取persistentDataPath的文件,则可以使用File
@@ -351,6 +368,7 @@ public class FileUtility : MathUtility
 		return false;
 #endif
 	}
+	// 创建文件夹,dir绝对路径
 	public static void createDir(string dir)
 	{
 		if (isDirExist(dir))
@@ -369,6 +387,7 @@ public class FileUtility : MathUtility
 		Directory.CreateDirectory(dir);
 #endif
 	}
+	// 查找指定目录下的所有文件,path为GameResources下的相对路径
 	public static List<string> findResourcesFilesNonAlloc(string path, string pattern, bool recursive = true, bool keepAbsolutePath = false)
 	{
 		mTempPatternList.Clear();
@@ -380,14 +399,14 @@ public class FileUtility : MathUtility
 		findResourcesFiles(path, mTempFileList, mTempPatternList, recursive, keepAbsolutePath);
 		return mTempFileList;
 	}
-	// path为GameResources下的相对路径
+	// 查找指定目录下的所有文件,path为GameResources下的相对路径
 	public static List<string> findResourcesFilesNonAlloc(string path, List<string> patterns = null, bool recursive = true, bool keepAbsolutePath = false)
 	{
 		mTempFileList.Clear();
 		findResourcesFiles(path, mTempFileList, patterns, recursive, keepAbsolutePath);
 		return mTempFileList;
 	}
-	// path为GameResources下的相对路径
+	// 查找指定目录下的所有文件,path为GameResources下的相对路径
 	public static void findResourcesFiles(string path, List<string> fileList, string pattern, bool recursive = true, bool keepAbsolutePath = false)
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -401,7 +420,7 @@ public class FileUtility : MathUtility
 		}
 		findResourcesFiles(path, fileList, mTempPatternList, recursive);
 	}
-	// path为GameResources下的相对路径
+	// 查找指定目录下的所有文件,path为GameResources下的相对路径
 	public static void findResourcesFiles(string path, List<string> fileList, List<string> patterns = null, bool recursive = true, bool keepAbsolutePath = false)
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -424,6 +443,7 @@ public class FileUtility : MathUtility
 			}
 		}
 	}
+	// 查找指定目录下的所有文件,path为StreamingAssets下的相对路径
 	public static List<string> findStreamingAssetsFilesNonAlloc(string path, string pattern, bool recursive = true, bool keepAbsolutePath = false)
 	{
 		mTempPatternList.Clear();
@@ -435,13 +455,14 @@ public class FileUtility : MathUtility
 		findStreamingAssetsFiles(path, mTempFileList, mTempPatternList, recursive, keepAbsolutePath);
 		return mTempFileList;
 	}
+	// 查找指定目录下的所有文件,path为StreamingAssets下的相对路径
 	public static List<string> findStreamingAssetsFilesNonAlloc(string path, List<string> patterns = null, bool recursive = true, bool keepAbsolutePath = false)
 	{
 		mTempFileList.Clear();
 		findStreamingAssetsFiles(path, mTempFileList, patterns, recursive, keepAbsolutePath);
 		return mTempFileList;
 	}
-	// path为StreamingAssets下的相对路径
+	// 查找指定目录下的所有文件,path为StreamingAssets下的相对路径
 	public static void findStreamingAssetsFiles(string path, List<string> fileList, string pattern, bool recursive = true, bool keepAbsolutePath = false)
 	{
 		mTempPatternList.Clear();
@@ -451,20 +472,16 @@ public class FileUtility : MathUtility
 		}
 		findStreamingAssetsFiles(path, fileList, mTempPatternList, recursive, keepAbsolutePath);
 	}
-	// path为StreamingAssets下的相对路径,返回的路径列表为绝对路径
+	// 查找指定目录下的所有文件,path为StreamingAssets下的相对路径,返回的路径列表为绝对路径
 	public static void findStreamingAssetsFiles(string path, List<string> fileList, List<string> patterns = null, bool recursive = true, bool keepAbsolutePath = false)
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
 		// 转换为相对路径
-		if (startWith(path, FrameDefine.F_STREAMING_ASSETS_PATH))
-		{
-			path = path.Substring(FrameDefine.F_STREAMING_ASSETS_PATH.Length);
-		}
+		removeStartString(ref path, FrameDefine.F_STREAMING_ASSETS_PATH);
 		AndroidAssetLoader.findAssets(path, fileList, patterns, recursive);
 		// 查找后的路径本身就是相对路径,如果需要保留绝对路径,则需要将路径加上
-		if(keepAbsolutePath)
+		if (keepAbsolutePath)
 		{
-			int removeLength = FrameDefine.F_STREAMING_ASSETS_PATH.Length;
 			int count = fileList.Count;
 			for(int i = 0; i < count; ++i)
 			{
@@ -488,20 +505,16 @@ public class FileUtility : MathUtility
 		}
 #endif
 	}
-	// path为StreamingAssets下的相对路径,返回的路径列表为绝对路径
+	// 查找指定目录下的所有文件,path为StreamingAssets下的相对路径,返回的路径列表为绝对路径
 	public static void findStreamingAssetsFolders(string path, List<string> folderList, bool recursive = true, bool keepAbsolutePath = false)
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
 		// 转换为相对路径
-		if (startWith(path, FrameDefine.F_STREAMING_ASSETS_PATH))
-		{
-			path = path.Substring(FrameDefine.F_STREAMING_ASSETS_PATH.Length);
-		}
+		removeStartString(ref path, FrameDefine.F_STREAMING_ASSETS_PATH);
 		AndroidAssetLoader.findAssetsFolder(path, folderList, recursive);
 		// 查找后的路径本身就是相对路径,如果需要保留绝对路径,则需要将路径加上
-		if(keepAbsolutePath)
+		if (keepAbsolutePath)
 		{
-			int removeLength = FrameDefine.F_STREAMING_ASSETS_PATH.Length;
 			int count = folderList.Count;
 			for(int i = 0; i < count; ++i)
 			{
@@ -526,6 +539,7 @@ public class FileUtility : MathUtility
 		}
 #endif
 	}
+	// 查找指定目录下的所有文件,path为绝对路径
 	public static List<string> findFilesNonAlloc(string path, string pattern, bool recursive = true)
 	{
 		mTempPatternList.Clear();
@@ -537,13 +551,14 @@ public class FileUtility : MathUtility
 		findFiles(path, mTempFileList1, mTempPatternList, recursive);
 		return mTempFileList1;
 	}
+	// 查找指定目录下的所有文件,path为绝对路径
 	public static List<string> findFilesNonAlloc(string path, List<string> patterns = null, bool recursive = true)
 	{
 		mTempFileList1.Clear();
 		findFiles(path, mTempFileList1, patterns, recursive);
 		return mTempFileList1;
 	}
-	// path为绝对路径
+	// 查找指定目录下的所有文件,path为绝对路径
 	public static void findFiles(string path, List<string> fileList, string pattern, bool recursive = true)
 	{
 		mTempPatternList.Clear();
@@ -553,7 +568,7 @@ public class FileUtility : MathUtility
 		}
 		findFiles(path, fileList, mTempPatternList, recursive);
 	}
-	// path为绝对路径
+	// 查找指定目录下的所有文件,path为绝对路径
 	public static void findFiles(string path, List<string> fileList, List<string> patterns = null, bool recursive = true)
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -593,15 +608,14 @@ public class FileUtility : MathUtility
 		{
 			string[] dirs = Directory.GetDirectories(path);
 			int count = dirs.Length;
-			for(int i = 0; i < count; ++i)
+			for (int i = 0; i < count; ++i)
 			{
 				findFiles(dirs[i], fileList, patterns, recursive);
 			}
 		}
 #endif
 	}
-	// 得到指定目录下的所有第一级子目录
-	// path为绝对路径
+	// 得到指定目录下的所有第一级子目录,path为绝对路径
 	public static bool findFolders(string path, List<string> dirList, bool recursive = true)
 	{
 		validPath(ref path);
@@ -627,25 +641,20 @@ public class FileUtility : MathUtility
 #endif
 		return true;
 	}
-	public static void deleteFile(string path)
-	{
-#if UNITY_ANDROID && !UNITY_EDITOR
-		AndroidAssetLoader.deleteFile(path);
-#else
-		File.Delete(path);
-#endif
-	}
+	// 计算一个文件的MD5,fileName为绝对路径
 	public static string generateFileMD5(string fileName, bool upperOrLower = true)
 	{
-#if UNITY_ANDROID && !UNITY_EDITOR
-		UnityUtility.logError("can not generate file md5 on android!");
-		return null;
-#endif
-		FileStream file = new FileStream(fileName, FileMode.Open);
+		int fileSize = openFile(fileName, out byte[] fileContent, true);
+		return generateFileMD5(fileContent, fileSize, upperOrLower);
+	}
+	// 计算一个文件的MD5
+	public static string generateFileMD5(byte[] fileContent, int length = -1, bool upperOrLower = true)
+	{
+		if (length < 0)
+		{
+			length = fileContent.Length;
+		}
 		HashAlgorithm algorithm = MD5.Create();
-		byte[] md5Bytes = algorithm.ComputeHash(file);
-		file.Close();
-		file.Dispose();
-		return bytesToHEXString(md5Bytes, false, upperOrLower);
+		return bytesToHEXString(algorithm.ComputeHash(fileContent, 0, length), 0, false, upperOrLower);
 	}
 }

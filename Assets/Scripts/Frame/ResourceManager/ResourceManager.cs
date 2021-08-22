@@ -11,14 +11,10 @@ public class ResourceManager : FrameSystem
 	protected AssetDataBaseLoader mAssetDataBaseLoader;			// 通过AssetDataBase加载资源的加载器,只会在编辑器下使用
 	protected AssetBundleLoader mAssetBundleLoader;             // 通过AssetBundle加载资源的加载器,打包后强制使用AssetBundle加载
 	protected ResourcesLoader mResourcesLoader;					// 通过Resources加载资源的加载器,Resources在编辑器或者打包后都会使用,用于加载Resources中的非热更资源
-	protected string mResourceRootPath;                         // 当mLoadSource为1时,AssetBundle资源所在根目录,以/结尾,不同平台上的默认目录不同,可以设置为远端目录
-	protected bool mLocalRootPath;                              // mResourceRootPath是否为本地的路径
 	protected LOAD_SOURCE mLoadSource;                          // 加载源
 	public ResourceManager()
 	{
 		mCreateObject = true;
-		mResourceRootPath = FrameDefine.FULL_RESOURCE_PATH;
-		mLocalRootPath = true;
 		mAssetDataBaseLoader = new AssetDataBaseLoader();
 		mAssetBundleLoader = new AssetBundleLoader();
 		mResourcesLoader = new ResourcesLoader();
@@ -51,12 +47,6 @@ public class ResourceManager : FrameSystem
 #if UNITY_EDITOR
 		mObject.AddComponent<ResourcesManagerDebug>();
 #endif
-		// 如果从Resources加载,则固定为默认值
-		if (mLoadSource == LOAD_SOURCE.RESOURCES)
-		{
-			mResourceRootPath = FrameDefine.F_STREAMING_ASSETS_PATH;
-			mLocalRootPath = true;
-		}
 	}
 	public override void resourceAvailable()
 	{
@@ -74,8 +64,6 @@ public class ResourceManager : FrameSystem
 		mResourcesLoader?.destroy();
 		base.destroy();
 	}
-	public string getResourceRootPath() { return mResourceRootPath; }
-	public bool isLocalRootPath() { return mLocalRootPath; }
 	public AssetBundleLoader getAssetBundleLoader() { return mAssetBundleLoader; }
 	public AssetDataBaseLoader getAssetDataBaseLoader() { return mAssetDataBaseLoader; }
 	public ResourcesLoader getResourcesLoader() { return mResourcesLoader; }
@@ -135,7 +123,7 @@ public class ResourceManager : FrameSystem
 	{
 		return mLoadSource == LOAD_SOURCE.RESOURCES || mAssetBundleLoader.isInited();
 	}
-	// 指定资源是否已经加载
+	// 指定资源是否已经加载,name是GameResources下的相对路径,不带后缀
 	public bool isResourceLoaded<T>(string name) where T : UnityEngine.Object
 	{
 		bool ret = false;
@@ -154,7 +142,7 @@ public class ResourceManager : FrameSystem
 	{
 		return mResourcesLoader.isResourceLoaded(name);
 	}
-	// 获得资源
+	// 获得资源,如果没有加载,则获取不到,使用频率可能比较低,name是GameResources下的相对路径,不带后缀
 	public T getResource<T>(string name, bool errorIfNull = true) where T : UnityEngine.Object
 	{
 		T res = null;
@@ -172,7 +160,7 @@ public class ResourceManager : FrameSystem
 		}
 		return res;
 	}
-	// 获得在Resources中的资源,如果未加载,则无法获取
+	// 强制在Resources中获得资源,如果未加载,则无法获取,name是Resources下的相对路径,不带后缀
 	public T getInResource<T>(string name, bool errorIfNull = true) where T : UnityEngine.Object
 	{
 		T res = mResourcesLoader.getResource(name) as T;
@@ -187,29 +175,10 @@ public class ResourceManager : FrameSystem
 	// lower表示是否将返回列表中的字符串全部转为小写
 	public void getFileList(string path, List<string> fileList, bool lower = false)
 	{
-		fileList.Clear();
-		if (mLoadSource == LOAD_SOURCE.RESOURCES)
-		{
-			mAssetDataBaseLoader.getFileList(path, fileList);
-			if(lower)
-			{
-				int count = fileList.Count;
-				for (int i = 0; i < count; ++i)
-				{
-					fileList[i] = fileList[i].ToLower();
-				}
-			}
-		}
-		else if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
-		{
-			mAssetBundleLoader.getFileList(path.ToLower(), fileList);
-		}
+		// 因为资源散布在不同的目录,PersistentDataPath和StreamingAssets,所以获得的文件列表可能不准确,所以不能调用
+		logError("不允许获取文件列表");
 	}
-	public bool isSyncLoadAvalaible()
-	{
-		// 如果从AssetBundle加载,并且资源目录为远端目录,则不能同步加载资源
-		return mLoadSource != LOAD_SOURCE.ASSET_BUNDLE || mLocalRootPath;
-	}
+	// 检查指定资源包的依赖项是否已经加载
 	public void checkAssetBundleDependenceLoaded(string bundleName)
 	{
 		if(mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
@@ -217,6 +186,7 @@ public class ResourceManager : FrameSystem
 			mAssetBundleLoader.checkAssetBundleDependenceLoaded(bundleName.ToLower());
 		}
 	}
+	// 同步加载资源包
 	public void loadAssetBundle(string bundleName)
 	{
 		// 只有从AssetBundle加载时才能加载AssetBundle
@@ -225,6 +195,7 @@ public class ResourceManager : FrameSystem
 			mAssetBundleLoader.loadAssetBundle(bundleName.ToLower(), null);
 		}
 	}
+	// 异步加载资源包
 	public void loadAssetBundleAsync(string bundleName, AssetBundleLoadCallback callback, object userData = null)
 	{
 		if (mLoadSource == LOAD_SOURCE.RESOURCES)
@@ -237,7 +208,7 @@ public class ResourceManager : FrameSystem
 			mAssetBundleLoader.loadAssetBundleAsync(bundleName.ToLower(), callback, userData);
 		}
 	}
-	// name是GameResources下的相对路径,errorIfNull表示当找不到资源时是否报错提示
+	// 同步加载资源,name是GameResources下的相对路径,带后缀名,errorIfNull表示当找不到资源时是否报错提示
 	public T loadResource<T>(string name, bool errorIfNull = true) where T : UnityEngine.Object
 	{
 		T res = null;
@@ -247,10 +218,6 @@ public class ResourceManager : FrameSystem
 		}
 		else if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
-			if(!mLocalRootPath)
-			{
-				logError("资源根目录不是本地目录,不能同步加载:" + name);
-			}
 			res = mAssetBundleLoader.loadAsset<T>(name);
 		}
 		if (res == null && errorIfNull)
@@ -259,7 +226,7 @@ public class ResourceManager : FrameSystem
 		}
 		return res;
 	}
-	// name是Resources下的相对路径,errorIfNull表示当找不到资源时是否报错提示
+	// 强制从Resources中同步加载指定资源,name是Resources下的相对路径,errorIfNull表示当找不到资源时是否报错提示
 	public T loadInResource<T>(string name, bool errorIfNull = true) where T : UnityEngine.Object
 	{
 		T res = mResourcesLoader.loadResource<T>(name);
@@ -269,6 +236,7 @@ public class ResourceManager : FrameSystem
 		}
 		return res;
 	}
+	// 同步加载资源的子资源,一般是图集才会有子资源
 	public UnityEngine.Object[] loadSubResource<T>(string name, bool errorIfNull = true) where T : UnityEngine.Object
 	{
 		UnityEngine.Object[] res = null;
@@ -278,10 +246,6 @@ public class ResourceManager : FrameSystem
 		}
 		else if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
-			if (!mLocalRootPath)
-			{
-				logError("资源根目录不是本地目录,不能同步加载:" + name);
-			}
 			res = mAssetBundleLoader.loadSubAsset<T>(name);
 		}
 		if (res == null && errorIfNull)
@@ -290,6 +254,7 @@ public class ResourceManager : FrameSystem
 		}
 		return res;
 	}
+	// 强制从Resources中同步加载资源的子资源,一般是图集才会有子资源
 	public UnityEngine.Object[] loadInSubResource<T>(string name, bool errorIfNull = true) where T : UnityEngine.Object
 	{
 		UnityEngine.Object[] res = mResourcesLoader.loadSubResource<T>(name);
@@ -299,6 +264,7 @@ public class ResourceManager : FrameSystem
 		}
 		return res;
 	}
+	// 异步加载资源的子资源,一般是图集才会有子资源
 	public bool loadSubResourceAsync<T>(string name, AssetLoadDoneCallback doneCallback, object userData = null, bool errorIfNull = true) where T : UnityEngine.Object
 	{
 		bool ret = false;
@@ -316,6 +282,7 @@ public class ResourceManager : FrameSystem
 		}
 		return ret;
 	}
+	// 强制从Resources中异步加载资源的子资源,一般是图集才会有子资源
 	public bool loadInSubResourceAsync<T>(string name, AssetLoadDoneCallback doneCallback, object userData = null, bool errorIfNull = true) where T : UnityEngine.Object
 	{
 		bool ret = mAssetDataBaseLoader.loadResourcesAsync<T>(name, doneCallback, userData);
@@ -325,7 +292,7 @@ public class ResourceManager : FrameSystem
 		}
 		return ret;
 	}
-	// name是Resources下的相对路径,errorIfNull表示当找不到资源时是否报错提示
+	// 异步加载资源,name是GameResources下的相对路径,带后缀名,errorIfNull表示当找不到资源时是否报错提示
 	public bool loadResourceAsync<T>(string name, AssetLoadDoneCallback doneCallback, object userData = null, bool errorIfNull = true) where T : UnityEngine.Object
 	{
 		bool ret = false;
@@ -343,7 +310,7 @@ public class ResourceManager : FrameSystem
 		}
 		return ret;
 	}
-	// 强制在Resource中加载资源,name是Resources下的相对路径,errorIfNull表示当找不到资源时是否报错提示
+	// 强制在Resource中异步加载资源,name是Resources下的相对路径,errorIfNull表示当找不到资源时是否报错提示
 	public bool loadInResourceAsync<T>(string name, AssetLoadDoneCallback doneCallback, object userData = null, bool errorIfNull = true) where T : UnityEngine.Object
 	{
 		bool ret = mResourcesLoader.loadResourcesAsync<T>(name, doneCallback, userData);
@@ -353,26 +320,24 @@ public class ResourceManager : FrameSystem
 		}
 		return ret;
 	}
+	// 根据一个URL加载资源,一般都是一个网络资源
 	public void loadAssetsFromUrl<T>(string url, AssetLoadDoneCallback callback, object userData = null) where T : UnityEngine.Object
 	{
 		mGameFramework.StartCoroutine(loadAssetsUrl(url, Typeof<T>(), callback, userData));
 	}
+	// 根据一个URL加载资源,一般都是一个网络资源
 	public void loadAssetsFromUrl(string url, AssetLoadDoneCallback callback, object userData = null)
 	{
 		mGameFramework.StartCoroutine(loadAssetsUrl(url, null, callback, userData));
 	}
-	// 加载StreamingAssets中不打包AB的资源,路径为StreamingAssets下的相对路径,带后缀名
-	// 需要调用FileUtility.releaseFileBuffer回收fileBytes
-	public void loadStreamingAssetsFile(string filePath, out byte[] fileBytes)
-	{
-		// 优先从PersistentDataPath中加载
-		openFile(FrameDefine.FULL_RESOURCE_PATH + filePath, out fileBytes, false);
-	}
+	// 指定资源的类型,然后给fileName添加该类型可能拥有的后缀名,放到fileList中
 	public List<string> adjustResourceName<T>(string fileName, List<string> fileList, bool lower = true) where T : UnityEngine.Object
 	{
-		// 将\\转为/,加上后缀名,转为小写
+		// 将\\转为/
 		rightToLeft(ref fileName);
+		// 加上后缀名
 		addSuffix(fileName, Typeof<T>(), fileList);
+		// 转为小写
 		if(lower)
 		{
 			int count = fileList.Count;
@@ -393,10 +358,10 @@ public class ResourceManager : FrameSystem
 		}
 		list.Add(suffix);
 	}
-	//--------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected IEnumerator loadAssetsUrl(string url, Type assetsType, AssetLoadDoneCallback callback, object userData = null)
 	{
-		log("开始下载: " + url, LOG_LEVEL.HIGH);
+		logForce("开始下载: " + url);
 		if (assetsType == typeof(AudioClip))
 		{
 			yield return loadAudioClipWithURL(url, callback, userData);

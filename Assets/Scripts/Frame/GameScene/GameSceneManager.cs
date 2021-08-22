@@ -37,7 +37,7 @@ public class GameSceneManager : FrameSystem
 		}
 		return true;
 	}
-    public override void update(float elapsedTime)
+	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
 		// 如果上一个场景不为空,则将上一个场景销毁

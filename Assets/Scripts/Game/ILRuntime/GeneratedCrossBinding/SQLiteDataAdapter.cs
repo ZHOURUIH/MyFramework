@@ -7,12 +7,13 @@ namespace HotFix
 {   
     public class SQLiteDataAdapter : CrossBindingAdaptor
     {
-        static CrossBindingMethodInfo<global::Mono.Data.Sqlite.SqliteDataReader> mparse_0 = new CrossBindingMethodInfo<global::Mono.Data.Sqlite.SqliteDataReader>("parse");
-        class insert_1Info : CrossBindingMethodInfo
+        static CrossBindingMethodInfo mresetProperty_0 = new CrossBindingMethodInfo("resetProperty");
+        static CrossBindingMethodInfo<global::Mono.Data.Sqlite.SqliteDataReader> mparse_1 = new CrossBindingMethodInfo<global::Mono.Data.Sqlite.SqliteDataReader>("parse");
+        class insert_2Info : CrossBindingMethodInfo
         {
             static Type[] pTypes = new Type[] {typeof(System.String).MakeByRefType()};
 
-            public insert_1Info()
+            public insert_2Info()
                 : base("insert")
             {
 
@@ -51,15 +52,13 @@ namespace HotFix
                 throw new NotSupportedException();
             }
         }
-        static insert_1Info minsert_1 = new insert_1Info();
-        static CrossBindingMethodInfo<global::MyStringBuilder> minsert_2 = new CrossBindingMethodInfo<global::MyStringBuilder>("insert");
-        static CrossBindingFunctionInfo<System.Boolean> mcheckData_3 = new CrossBindingFunctionInfo<System.Boolean>("checkData");
-        static CrossBindingMethodInfo mnotifyConstructDone_4 = new CrossBindingMethodInfo("notifyConstructDone");
-        static CrossBindingMethodInfo mresetProperty_5 = new CrossBindingMethodInfo("resetProperty");
-        static CrossBindingMethodInfo<System.Boolean> msetDestroy_6 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
-        static CrossBindingFunctionInfo<System.Boolean> misDestroy_7 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
-        static CrossBindingMethodInfo<System.Int64> msetAssignID_8 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
-        static CrossBindingFunctionInfo<System.Int64> mgetAssignID_9 = new CrossBindingFunctionInfo<System.Int64>("getAssignID");
+        static insert_2Info minsert_2 = new insert_2Info();
+        static CrossBindingMethodInfo<global::MyStringBuilder> minsert_3 = new CrossBindingMethodInfo<global::MyStringBuilder>("insert");
+        static CrossBindingFunctionInfo<System.Boolean> mcheckData_4 = new CrossBindingFunctionInfo<System.Boolean>("checkData");
+        static CrossBindingMethodInfo<System.Boolean> msetDestroy_5 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
+        static CrossBindingFunctionInfo<System.Boolean> misDestroy_6 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
+        static CrossBindingMethodInfo<System.Int64> msetAssignID_7 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
+        static CrossBindingFunctionInfo<System.Int64> mgetAssignID_8 = new CrossBindingFunctionInfo<System.Int64>("getAssignID");
         public override Type BaseCLRType
         {
             get
@@ -99,84 +98,76 @@ namespace HotFix
 
             public ILTypeInstance ILInstance { get { return instance; } }
 
+            public override void resetProperty()
+            {
+                if (mresetProperty_0.CheckShouldInvokeBase(this.instance))
+                    base.resetProperty();
+                else
+                    mresetProperty_0.Invoke(this.instance);
+            }
+
             public override void parse(global::Mono.Data.Sqlite.SqliteDataReader reader)
             {
-                if (mparse_0.CheckShouldInvokeBase(this.instance))
+                if (mparse_1.CheckShouldInvokeBase(this.instance))
                     base.parse(reader);
                 else
-                    mparse_0.Invoke(this.instance, reader);
+                    mparse_1.Invoke(this.instance, reader);
             }
 
             public override void insert(ref System.String valueString)
             {
-                if (minsert_1.CheckShouldInvokeBase(this.instance))
+                if (minsert_2.CheckShouldInvokeBase(this.instance))
                     base.insert(ref valueString);
                 else
-                    minsert_1.Invoke(this.instance, ref valueString);
+                    minsert_2.Invoke(this.instance, ref valueString);
             }
 
             public override void insert(global::MyStringBuilder valueString)
             {
-                if (minsert_2.CheckShouldInvokeBase(this.instance))
+                if (minsert_3.CheckShouldInvokeBase(this.instance))
                     base.insert(valueString);
                 else
-                    minsert_2.Invoke(this.instance, valueString);
+                    minsert_3.Invoke(this.instance, valueString);
             }
 
             public override System.Boolean checkData()
             {
-                if (mcheckData_3.CheckShouldInvokeBase(this.instance))
+                if (mcheckData_4.CheckShouldInvokeBase(this.instance))
                     return base.checkData();
                 else
-                    return mcheckData_3.Invoke(this.instance);
-            }
-
-            public override void notifyConstructDone()
-            {
-                if (mnotifyConstructDone_4.CheckShouldInvokeBase(this.instance))
-                    base.notifyConstructDone();
-                else
-                    mnotifyConstructDone_4.Invoke(this.instance);
-            }
-
-            public override void resetProperty()
-            {
-                if (mresetProperty_5.CheckShouldInvokeBase(this.instance))
-                    base.resetProperty();
-                else
-                    mresetProperty_5.Invoke(this.instance);
+                    return mcheckData_4.Invoke(this.instance);
             }
 
             public override void setDestroy(System.Boolean isDestroy)
             {
-                if (msetDestroy_6.CheckShouldInvokeBase(this.instance))
+                if (msetDestroy_5.CheckShouldInvokeBase(this.instance))
                     base.setDestroy(isDestroy);
                 else
-                    msetDestroy_6.Invoke(this.instance, isDestroy);
+                    msetDestroy_5.Invoke(this.instance, isDestroy);
             }
 
             public override System.Boolean isDestroy()
             {
-                if (misDestroy_7.CheckShouldInvokeBase(this.instance))
+                if (misDestroy_6.CheckShouldInvokeBase(this.instance))
                     return base.isDestroy();
                 else
-                    return misDestroy_7.Invoke(this.instance);
+                    return misDestroy_6.Invoke(this.instance);
             }
 
             public override void setAssignID(System.Int64 assignID)
             {
-                if (msetAssignID_8.CheckShouldInvokeBase(this.instance))
+                if (msetAssignID_7.CheckShouldInvokeBase(this.instance))
                     base.setAssignID(assignID);
                 else
-                    msetAssignID_8.Invoke(this.instance, assignID);
+                    msetAssignID_7.Invoke(this.instance, assignID);
             }
 
             public override System.Int64 getAssignID()
             {
-                if (mgetAssignID_9.CheckShouldInvokeBase(this.instance))
+                if (mgetAssignID_8.CheckShouldInvokeBase(this.instance))
                     return base.getAssignID();
                 else
-                    return mgetAssignID_9.Invoke(this.instance);
+                    return mgetAssignID_8.Invoke(this.instance);
             }
 
             public override string ToString()

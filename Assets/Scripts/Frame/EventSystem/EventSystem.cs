@@ -10,7 +10,7 @@ public class EventSystem : FrameSystem
 		mListenerList = new Dictionary<object, List<GameEventInfo>>();
 		mListenerEventList = new Dictionary<int, List<GameEventInfo>>();
 	}
-	public void pushEvent(int eventType, GameEvent param)
+	public void pushEvent(int eventType, GameEvent param = null)
 	{
 		if (mListenerEventList.TryGetValue(eventType, out List<GameEventInfo> infoList))
 		{
@@ -21,7 +21,10 @@ public class EventSystem : FrameSystem
 			}
 		}
 		// 回收事件参数
-		UN_CLASS(param);
+		if (param != null)
+		{
+			UN_CLASS(param);
+		}
 	}
 	public void listenEvent(int eventType, EventCallback callback, object listener)
 	{

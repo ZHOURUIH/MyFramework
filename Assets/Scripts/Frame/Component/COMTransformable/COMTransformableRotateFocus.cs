@@ -28,5 +28,4 @@ public class COMTransformableRotateFocus : GameComponent, IComponentModifyRotati
 		base.update(elapsedTime);
 	}
 	public void notifyBreak() { }
-	//---------------------------------------------------------------------------------------------------------------
 }

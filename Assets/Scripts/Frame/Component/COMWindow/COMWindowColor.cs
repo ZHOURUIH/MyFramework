@@ -13,7 +13,7 @@ public class COMWindowColor : ComponentKeyFrameNormal, IComponentModifyAlpha, IC
 	}
 	public void setStart(Color color) { mStart = color; }
 	public void setTarget(Color color) { mTarget = color; }
-	//------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
 		var obj = mComponentOwner as myUIObject;
