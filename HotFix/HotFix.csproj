@@ -216,6 +216,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Frame\LayoutSystem\LayoutRegisterBaseILR.cs" />
     <Compile Include="Frame\Utility\FrameUtilityILR.cs" />
     <Compile Include="Game\Character\CharacterComponent\COMCharacterController.cs" />
     <Compile Include="Game\Character\CharacterGameData.cs" />
@@ -249,7 +250,18 @@
     </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>copy "$(TargetPath)" "$(ProjectDir)..\Assets\StreamingAssets\Game.bytes" /y
-copy "$(TargetDir)\$(ProjectName).pdb" "$(ProjectDir)..\Assets\StreamingAssets\GamePDB.bytes" /y</PostBuildEvent>
+    <PostBuildEvent>if not exist "$(ProjectDir)..\Assets\StreamingAssets\Windows" md "$(ProjectDir)..\Assets\StreamingAssets\Windows"
+if not exist "$(ProjectDir)..\Assets\StreamingAssets\Android" md "$(ProjectDir)..\Assets\StreamingAssets\Android"
+if not exist "$(ProjectDir)..\Assets\StreamingAssets\iOS" md "$(ProjectDir)..\Assets\StreamingAssets\iOS"
+if not exist "$(ProjectDir)..\Assets\StreamingAssets\MacOS" md "$(ProjectDir)..\Assets\StreamingAssets\MacOS"
+
+copy "$(TargetPath)" "$(ProjectDir)..\Assets\StreamingAssets\Windows\Game.bytes" /y
+copy "$(TargetPath)" "$(ProjectDir)..\Assets\StreamingAssets\Android\Game.bytes" /y
+copy "$(TargetPath)" "$(ProjectDir)..\Assets\StreamingAssets\iOS\Game.bytes" /y
+copy "$(TargetPath)" "$(ProjectDir)..\Assets\StreamingAssets\MacOS\Game.bytes" /y
+copy "$(TargetDir)\$(ProjectName).pdb" "$(ProjectDir)..\Assets\StreamingAssets\Windows\GamePDB.bytes" /y
+copy "$(TargetDir)\$(ProjectName).pdb" "$(ProjectDir)..\Assets\StreamingAssets\Android\GamePDB.bytes" /y
+copy "$(TargetDir)\$(ProjectName).pdb" "$(ProjectDir)..\Assets\StreamingAssets\iOS\GamePDB.bytes" /y
+copy "$(TargetDir)\$(ProjectName).pdb" "$(ProjectDir)..\Assets\StreamingAssets\MacOS\GamePDB.bytes" /y</PostBuildEvent>
   </PropertyGroup>
 </Project>

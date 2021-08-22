@@ -3,11 +3,19 @@ using System;
 using System.Collections.Generic;
 
 // 主工程中FrameUtility的ILR版本
-public class FrameUtilityILR : GameBase
+public class FrameUtilityILR : FrameBase
 {
 	public static void pushEvent(int eventType, GameEvent param)
 	{
 		mEventSystem.pushEvent(eventType, param);
+	}
+	public static void changeProcedureILR<T>(string intent = null) where T : SceneProcedure
+	{
+		changeProcedure(typeof(T), intent);
+	}
+	public static void enterSceneILR<T>(Type startProcedure = null, string intent = null) where T : GameScene
+	{
+		enterScene(typeof(T), startProcedure, intent);
 	}
 	// 命令
 	//----------------------------------------------------------------------------------------------------------------------------------------
