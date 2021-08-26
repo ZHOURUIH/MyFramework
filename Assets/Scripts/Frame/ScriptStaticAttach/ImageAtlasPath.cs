@@ -18,14 +18,14 @@ public class ImageAtlasPath : MonoBehaviour
 			mRefresh = false;
 		}
 	}
-	//-------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void refreshPath()
 	{
 #if UNITY_EDITOR
-		Image image = GetComponent<Image>();
+		var image = GetComponent<Image>();
 		if (image == null)
 		{
-			Debug.LogError("can not find Image com");
+			Debug.LogError("can not find Image Component");
 			return;
 		}
 		mAtlasPath = AssetDatabase.GetAssetPath(image.mainTexture);

@@ -68,17 +68,11 @@ public class ClassPool : FrameSystem
 		{
 			return null;
 		}
-		ClassObject obj = null;
+		ClassObject obj;
 		// 先从未使用的列表中查找是否有可用的对象
 		if (mUnusedList.TryGetValue(type, out HashSet<ClassObject> classList) && classList.Count > 0)
 		{
-			foreach (var item in classList)
-			{
-				obj = item;
-				break;
-			}
-			classList.Remove(obj);
-			isNewObject = false;
+			obj = popFirstElement(classList);
 		}
 		// 未使用列表中没有,创建一个新的
 		else
@@ -166,7 +160,7 @@ public class ClassPool : FrameSystem
 		}
 		return mInusedList.TryGetValue(Typeof(classObject), out HashSet<ClassObject> list) && list.Contains(classObject);
 	}
-	//----------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void addInuse(ClassObject classObject, bool onlyOnce)
 	{
 		Type type = Typeof(classObject);

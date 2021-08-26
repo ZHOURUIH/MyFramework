@@ -3,10 +3,11 @@ using UnityEngine;
 
 public class WindowShaderBlurMaskHorizontal : WindowShader
 {
-	protected float mSampleInterval = 1.5f;
+	protected float mSampleInterval;
 	protected int mSampleIntervalID;
 	public WindowShaderBlurMaskHorizontal()
 	{
+		mSampleInterval = 1.5f;
 		mSampleIntervalID = Shader.PropertyToID("_SampleInterval");
 	}
 	public void setSampleInterval(float sampleInterval) { mSampleInterval = sampleInterval; }

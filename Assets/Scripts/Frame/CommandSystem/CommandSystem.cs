@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System;
 
+// 命令系统,用于处理所有命令相关逻辑
 public class CommandSystem : FrameSystem
 {
-	protected List<Command> mCommandBufferProcess;  // 用于处理的命令列表
-	protected List<Command> mCommandBufferInput;    // 用于放入命令的命令列表,收集一帧中各个线程的命令
-	protected List<Command> mExecuteList;           // 即将在这一帧执行的命令
-	protected ThreadLock mBufferLock;
+	protected List<Command> mCommandBufferProcess;	// 用于处理的命令列表
+	protected List<Command> mCommandBufferInput;	// 用于放入命令的命令列表,收集一帧中各个线程的命令
+	protected List<Command> mExecuteList;			// 即将在这一帧执行的命令
+	protected ThreadLock mBufferLock;				// mCommandBufferInput的线程锁
 	public CommandSystem()
 	{
 		mCommandBufferProcess = new List<Command>();
@@ -97,7 +98,7 @@ public class CommandSystem : FrameSystem
 			{
 				MyStringBuilder builder = STRING("CMD : interrupt command ", LToS(assignID), " : ");
 				cmd.debugInfo(builder);
-				builder.Append(", receiver : ", cmd.getReceiver().getName());
+				builder.append(", receiver : ", cmd.getReceiver().getName());
 				log(END_STRING(builder), LOG_LEVEL.HIGH);
 				mCommandBufferProcess.Remove(cmd);
 				// 销毁回收命令
@@ -167,14 +168,14 @@ public class CommandSystem : FrameSystem
 			{
 				MyStringBuilder builder = STRING("CMD : ", LToS(cmd.getAssignID()), ", ");
 				cmd.debugInfo(builder);
-				builder.Append(", receiver : ", cmdReceiver.getName());
+				builder.append(", receiver : ", cmdReceiver.getName());
 				log(END_STRING(builder), cmd.getCmdLogLevel());
 			}
 			else
 			{
 				MyStringBuilder builder = STRING_THREAD("CMD : ", LToS(cmd.getAssignID()), ", ");
 				cmd.debugInfo(builder);
-				builder.Append(", receiver : ", cmdReceiver.getName());
+				builder.append(", receiver : ", cmdReceiver.getName());
 				log(END_STRING_THREAD(builder), cmd.getCmdLogLevel());
 			}
 		}
@@ -226,17 +227,17 @@ public class CommandSystem : FrameSystem
 		if (cmd.getCmdLogLevel() >= getLogLevel())
 		{
 			if(isMainThread())
-            {
+			{
 				MyStringBuilder builder = STRING("CMD : delay cmd : ", LToS(cmd.getAssignID()), ", ", FToS(delayExecute), ", info : ");
 				cmd.debugInfo(builder);
-				builder.Append(", receiver : ", cmdReceiver.getName());
+				builder.append(", receiver : ", cmdReceiver.getName());
 				log(END_STRING(builder), cmd.getCmdLogLevel());
 			}
-            else
-            {
+			else
+			{
 				MyStringBuilder builder = STRING_THREAD("CMD : delay cmd : ", LToS(cmd.getAssignID()), ", ", FToS(delayExecute), ", info : ");
 				cmd.debugInfo(builder);
-				builder.Append(", receiver : ", cmdReceiver.getName());
+				builder.append(", receiver : ", cmdReceiver.getName());
 				log(END_STRING_THREAD(builder), cmd.getCmdLogLevel());
 			}
 		}
@@ -280,7 +281,7 @@ public class CommandSystem : FrameSystem
 			}
 		}
 	}
-	//-----------------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void syncCommandBuffer()
 	{
 		mBufferLock.waitForUnlock();

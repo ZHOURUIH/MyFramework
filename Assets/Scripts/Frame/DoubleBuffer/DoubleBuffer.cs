@@ -4,13 +4,13 @@ using System.Threading;
 // 双缓冲,线程安全的缓冲区,可在一个线程中写入数据,另一个线程中读取数据
 public class DoubleBuffer<T> : FrameBase
 {
-	protected List<T>[] mBufferList;
-	protected ThreadLock mBufferLock;
-	protected uint mWriteListLimit;      // 写缓冲区可存储的最大数量,当到达上限时无法再写入,等于0表示无上限
-	protected int mWriteIndex;
-	protected int mReadIndex;
-	protected int mReadThreadID;
-	protected int mWriteThreadID;
+	protected List<T>[] mBufferList;	// 双缓冲列表
+	protected ThreadLock mBufferLock;	// 双缓冲锁
+	protected uint mWriteListLimit;		// 写缓冲区可存储的最大数量,当到达上限时无法再写入,等于0表示无上限
+	protected int mWriteIndex;			// 当前的写入列表下标
+	protected int mReadIndex;			// 当前的读取列表下标
+	protected int mReadThreadID;		// 读取数据的线程ID
+	protected int mWriteThreadID;		// 写入数据的线程ID
 	protected bool mReading;			// 是否正在使用读列表中
 	public DoubleBuffer()
 	{
@@ -20,6 +20,19 @@ public class DoubleBuffer<T> : FrameBase
 		mBufferLock = new ThreadLock();
 		mWriteIndex = 0;
 		mReadIndex = 1;
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mBufferList[0].Clear();
+		mBufferList[1].Clear();
+		mBufferLock.unlock();
+		mWriteListLimit = 0;
+		mWriteIndex = 0;
+		mReadIndex = 1;
+		mReadThreadID = 0;
+		mWriteThreadID = 0;
+		mReading = false;
 	}
 	// 切换缓冲区,获得可读列表,在遍历可读列表期间,不能再次调用get,否则会出现不可预知的错误,并且该函数不能在多个线程中调用
 	public List<T> get()
@@ -83,4 +96,6 @@ public class DoubleBuffer<T> : FrameBase
 		mBufferList[mWriteIndex].Clear();
 		mBufferLock.unlock();
 	}
+	// 只有当完全确定双缓冲的状态时才能直接访问内部列表,否则可能会出错误
+	public List<T>[] getBufferList() { return mBufferList; }
 }

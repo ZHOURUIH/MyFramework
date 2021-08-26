@@ -23,15 +23,17 @@ public class WavSound : FrameBase
 	public WavSound()
 	{
 		mDataMark = new byte[4];
-		init();
 	}
 	public WavSound(string file)
 	{
-		init();
+		mDataMark = new byte[4];
 		readFile(file);
 	}
-	public void init()
+	public override void resetProperty()
 	{
+		base.resetProperty();
+		mWaveDataSerializer = null;
+		memset(mDataMark, (byte)0);
 		mFileName = null;
 		mRiffMark = 0;
 		mFileSize = 0;
@@ -45,11 +47,9 @@ public class WavSound : FrameBase
 		mBlockAlign = 0;
 		mBitsPerSample = 0;
 		mOtherSize = 0;
-		memset(mDataMark, (byte)0, 4);
 		mDataSize = 0;
 		mDataBuffer = null;
 		mMixPCMData = null;
-		mWaveDataSerializer = null;
 	}
 	public byte[] getPCMBuffer()		{ return mDataBuffer; }
 	public short[] getMixPCMData()		{ return mMixPCMData; }

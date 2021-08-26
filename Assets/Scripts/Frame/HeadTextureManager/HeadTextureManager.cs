@@ -1,14 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-// 微信头像下载管理器
+// 微信头像下载管理器,以后可以扩展,不仅仅是用于下载微信头像
 public class HeadTextureManager : FrameSystem
 {
-    protected Dictionary<string, HeadLoadInfo> mHeadTextureList;
-	protected AssetLoadDoneCallback mHeadLoadCallback;
+	protected Dictionary<string, HeadLoadInfo> mHeadTextureList;		// 正在下载或者已下载的头像信息列表
+	protected AssetLoadDoneCallback mHeadLoadCallback;					// 避免GC的委托
 	public HeadTextureManager()
 	{
-        mHeadTextureList = new Dictionary<string, HeadLoadInfo>();
+		mHeadTextureList = new Dictionary<string, HeadLoadInfo>();
 		mHeadLoadCallback = onLoadWechatHead;
 	}
 	public override void destroy()
@@ -97,11 +97,11 @@ public class HeadTextureManager : FrameSystem
 			mResourceManager.loadAssetsFromUrl<Texture>(url, mHeadLoadCallback, openID);
 		}
 	}
-	//----------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onLoadWechatHead(Object tex, Object[] subAssets, byte[] bytes, object userData, string loadPath)
 	{
-		string openID = userData as string;
-		Texture head = tex as Texture;
+		var openID = userData as string;
+		var head = tex as Texture;
 		HeadLoadInfo info = mHeadTextureList[openID];
 		if (head != null)
 		{

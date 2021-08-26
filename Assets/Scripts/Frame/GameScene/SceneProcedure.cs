@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System;
 
+// 场景流程
 public abstract class SceneProcedure : DelayCmdWatcher
 {
 	protected Dictionary<Type, SceneProcedure> mChildProcedureList; // 子流程列表
@@ -15,31 +16,25 @@ public abstract class SceneProcedure : DelayCmdWatcher
 	{
 		mChildProcedureList = new Dictionary<Type, SceneProcedure>();
 		mPrepareTimer = new MyTimer();
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mChildProcedureList.Clear();
+		mParentProcedure = null;
+		mPrepareNext = null;
+		mGameScene = null;
+		mPrepareTimer.stop();
+		mType = null;
 		mPrepareIntent = null;
+		mInited = false;
 	}
 	// 销毁场景时会调用流程的销毁
 	public virtual void destroy() { }
 	public void setType(Type type) { mType = type; }
 	public void setGameScene(GameScene gameScene) { mGameScene = gameScene; }
-	// 从自己的子流程进入当前流程
-	protected virtual void onInitFromChild(SceneProcedure lastProcedure, string intent) { }
-	// 在进入流程时调用
-	// 在onInit中如果要跳转流程,必须使用延迟命令进行跳转
-	protected abstract void onInit(SceneProcedure lastProcedure, string intent);
-	// 更新流程时调用
-	protected virtual void onUpdate(float elapsedTime) { }
-	protected virtual void onLateUpdate(float elapsedTime) { }
-	// 更新流程时调用
-	protected virtual void onKeyProcess(float elapsedTime) { }
-	// 退出当前流程,进入的不是自己的子流程时调用
-	protected abstract void onExit(SceneProcedure nextProcedure);
-	// 退出当前流程,进入自己的子流程时调用
-	protected virtual void onExitToChild(SceneProcedure nextProcedure) { }
-	// 退出当前流程进入其他任何流程时调用
-	protected virtual void onExitSelf() { }
 	// 进入的目标流程已经准备完成(资源加载完毕等等)时的回调
 	public virtual void onNextProcedurePrepared(SceneProcedure nextPreocedure) { }
-	protected virtual void onPrepareExit(SceneProcedure nextPreocedure) { }
 	// 由GameScene调用
 	// 进入流程
 	public void init(SceneProcedure lastProcedure, string intent)
@@ -227,7 +222,24 @@ public abstract class SceneProcedure : DelayCmdWatcher
 		mChildProcedureList.Add(child.mType, child);
 		return true;
 	}
-	//---------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
+	// 从自己的子流程进入当前流程
+	protected virtual void onInitFromChild(SceneProcedure lastProcedure, string intent) { }
+	// 在进入流程时调用
+	// 在onInit中如果要跳转流程,必须使用延迟命令进行跳转
+	protected abstract void onInit(SceneProcedure lastProcedure, string intent);
+	// 更新流程时调用
+	protected virtual void onUpdate(float elapsedTime) { }
+	protected virtual void onLateUpdate(float elapsedTime) { }
+	// 更新流程时调用
+	protected virtual void onKeyProcess(float elapsedTime) { }
+	// 退出当前流程,进入的不是自己的子流程时调用
+	protected abstract void onExit(SceneProcedure nextProcedure);
+	// 退出当前流程,进入自己的子流程时调用
+	protected virtual void onExitToChild(SceneProcedure nextProcedure) { }
+	// 退出当前流程进入其他任何流程时调用
+	protected virtual void onExitSelf() { }
+	protected virtual void onPrepareExit(SceneProcedure nextPreocedure) { }
 	protected bool setParent(SceneProcedure parent)
 	{
 		if (mParentProcedure != null)
@@ -237,5 +249,4 @@ public abstract class SceneProcedure : DelayCmdWatcher
 		mParentProcedure = parent;
 		return true;
 	}
-	
 }

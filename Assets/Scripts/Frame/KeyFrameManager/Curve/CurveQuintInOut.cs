@@ -1,9 +1,10 @@
 ﻿using System;
 using UnityEngine;
 
+// 五次方曲线
 public class CurveQuintInOut : MyCurve
 {
-	public override float Evaluate(float time)
+	public override float evaluate(float time)
 	{
 		if (time * 0.5f < 1.0f)
 		{

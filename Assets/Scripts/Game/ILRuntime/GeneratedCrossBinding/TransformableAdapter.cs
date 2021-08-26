@@ -9,13 +9,14 @@ namespace HotFix
     {
         static CrossBindingMethodInfo mdestroy_0 = new CrossBindingMethodInfo("destroy");
         static CrossBindingMethodInfo mresetProperty_1 = new CrossBindingMethodInfo("resetProperty");
-        static CrossBindingMethodInfo<System.Boolean> msetActive_2 = new CrossBindingMethodInfo<System.Boolean>("setActive");
-        static CrossBindingMethodInfo<System.String> msetName_3 = new CrossBindingMethodInfo<System.String>("setName");
-        class raycast_4Info : CrossBindingMethodInfo
+        static CrossBindingMethodInfo<UnityEngine.GameObject> msetObject_2 = new CrossBindingMethodInfo<UnityEngine.GameObject>("setObject");
+        static CrossBindingMethodInfo<System.Boolean> msetActive_3 = new CrossBindingMethodInfo<System.Boolean>("setActive");
+        static CrossBindingMethodInfo<System.String> msetName_4 = new CrossBindingMethodInfo<System.String>("setName");
+        class raycast_5Info : CrossBindingMethodInfo
         {
             static Type[] pTypes = new Type[] {typeof(UnityEngine.Ray).MakeByRefType(), typeof(UnityEngine.RaycastHit).MakeByRefType(), typeof(System.Single), typeof(System.Boolean)};
 
-            public raycast_4Info()
+            public raycast_5Info()
                 : base("raycast")
             {
 
@@ -64,36 +65,35 @@ namespace HotFix
                 throw new NotSupportedException();
             }
         }
-        static raycast_4Info mraycast_4 = new raycast_4Info();
-        static CrossBindingFunctionInfo<UnityEngine.GameObject> mgetObject_5 = new CrossBindingFunctionInfo<UnityEngine.GameObject>("getObject");
-        static CrossBindingFunctionInfo<System.Boolean> misActive_6 = new CrossBindingFunctionInfo<System.Boolean>("isActive");
-        static CrossBindingFunctionInfo<System.Boolean> misActiveInHierarchy_7 = new CrossBindingFunctionInfo<System.Boolean>("isActiveInHierarchy");
-        static CrossBindingFunctionInfo<System.Boolean> misEnable_8 = new CrossBindingFunctionInfo<System.Boolean>("isEnable");
-        static CrossBindingMethodInfo<System.Boolean> msetEnable_9 = new CrossBindingMethodInfo<System.Boolean>("setEnable");
-        static CrossBindingFunctionInfo<UnityEngine.Vector3> mgetPosition_10 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getPosition");
-        static CrossBindingFunctionInfo<UnityEngine.Vector3> mgetRotation_11 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getRotation");
-        static CrossBindingMethodInfo<global::myUIObject> mcloneFrom_12 = new CrossBindingMethodInfo<global::myUIObject>("cloneFrom");
-        static CrossBindingFunctionInfo<UnityEngine.Vector3> mgetScale_13 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getScale");
-        static CrossBindingFunctionInfo<UnityEngine.Vector3> mgetWorldPosition_14 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getWorldPosition");
-        static CrossBindingFunctionInfo<UnityEngine.Vector3> mgetWorldScale_15 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getWorldScale");
-        static CrossBindingFunctionInfo<UnityEngine.Vector3> mgetWorldRotation_16 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getWorldRotation");
-        static CrossBindingMethodInfo<UnityEngine.Vector3> msetPosition_17 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setPosition");
-        static CrossBindingMethodInfo<UnityEngine.Vector3> msetScale_18 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setScale");
-        static CrossBindingMethodInfo<UnityEngine.Vector3> msetRotation_19 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setRotation");
-        static CrossBindingMethodInfo<UnityEngine.Vector3> msetWorldPosition_20 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setWorldPosition");
-        static CrossBindingMethodInfo<UnityEngine.Vector3> msetWorldRotation_21 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setWorldRotation");
-        static CrossBindingMethodInfo<UnityEngine.Vector3> msetWorldScale_22 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setWorldScale");
-        static CrossBindingMethodInfo<UnityEngine.Vector3, UnityEngine.Space> mmove_23 = new CrossBindingMethodInfo<UnityEngine.Vector3, UnityEngine.Space>("move");
-        static CrossBindingFunctionInfo<global::IMouseEventCollect, System.Boolean> misChildOf_24 = new CrossBindingFunctionInfo<global::IMouseEventCollect, System.Boolean>("isChildOf");
-        static CrossBindingMethodInfo<System.Single> msetAlpha_25 = new CrossBindingMethodInfo<System.Single>("setAlpha");
-        static CrossBindingFunctionInfo<System.Single> mgetAlpha_26 = new CrossBindingFunctionInfo<System.Single>("getAlpha");
-        static CrossBindingMethodInfo<System.Single> mupdate_27 = new CrossBindingMethodInfo<System.Single>("update");
-        static CrossBindingMethodInfo<System.Single> mlateUpdate_28 = new CrossBindingMethodInfo<System.Single>("lateUpdate");
-        static CrossBindingMethodInfo<System.Single> mfixedUpdate_29 = new CrossBindingMethodInfo<System.Single>("fixedUpdate");
-        static CrossBindingMethodInfo<global::GameComponent> mnotifyAddComponent_30 = new CrossBindingMethodInfo<global::GameComponent>("notifyAddComponent");
-        static CrossBindingMethodInfo<System.Boolean, System.Boolean> msetIgnoreTimeScale_31 = new CrossBindingMethodInfo<System.Boolean, System.Boolean>("setIgnoreTimeScale");
-        static CrossBindingMethodInfo minitComponents_32 = new CrossBindingMethodInfo("initComponents");
-        static CrossBindingMethodInfo mnotifyConstructDone_33 = new CrossBindingMethodInfo("notifyConstructDone");
+        static raycast_5Info mraycast_5 = new raycast_5Info();
+        static CrossBindingFunctionInfo<UnityEngine.GameObject> mgetObject_6 = new CrossBindingFunctionInfo<UnityEngine.GameObject>("getObject");
+        static CrossBindingFunctionInfo<System.Boolean> misActive_7 = new CrossBindingFunctionInfo<System.Boolean>("isActive");
+        static CrossBindingFunctionInfo<System.Boolean> misActiveInHierarchy_8 = new CrossBindingFunctionInfo<System.Boolean>("isActiveInHierarchy");
+        static CrossBindingFunctionInfo<System.Boolean> misEnable_9 = new CrossBindingFunctionInfo<System.Boolean>("isEnable");
+        static CrossBindingMethodInfo<System.Boolean> msetEnable_10 = new CrossBindingMethodInfo<System.Boolean>("setEnable");
+        static CrossBindingFunctionInfo<UnityEngine.Vector3> mgetPosition_11 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getPosition");
+        static CrossBindingFunctionInfo<UnityEngine.Vector3> mgetRotation_12 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getRotation");
+        static CrossBindingMethodInfo<global::myUIObject> mcloneFrom_13 = new CrossBindingMethodInfo<global::myUIObject>("cloneFrom");
+        static CrossBindingFunctionInfo<UnityEngine.Vector3> mgetScale_14 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getScale");
+        static CrossBindingFunctionInfo<UnityEngine.Vector3> mgetWorldPosition_15 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getWorldPosition");
+        static CrossBindingFunctionInfo<UnityEngine.Vector3> mgetWorldScale_16 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getWorldScale");
+        static CrossBindingFunctionInfo<UnityEngine.Vector3> mgetWorldRotation_17 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getWorldRotation");
+        static CrossBindingMethodInfo<UnityEngine.Vector3> msetPosition_18 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setPosition");
+        static CrossBindingMethodInfo<UnityEngine.Vector3> msetScale_19 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setScale");
+        static CrossBindingMethodInfo<UnityEngine.Vector3> msetRotation_20 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setRotation");
+        static CrossBindingMethodInfo<UnityEngine.Vector3> msetWorldPosition_21 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setWorldPosition");
+        static CrossBindingMethodInfo<UnityEngine.Vector3> msetWorldRotation_22 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setWorldRotation");
+        static CrossBindingMethodInfo<UnityEngine.Vector3> msetWorldScale_23 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setWorldScale");
+        static CrossBindingMethodInfo<UnityEngine.Vector3, UnityEngine.Space> mmove_24 = new CrossBindingMethodInfo<UnityEngine.Vector3, UnityEngine.Space>("move");
+        static CrossBindingFunctionInfo<global::IMouseEventCollect, System.Boolean> misChildOf_25 = new CrossBindingFunctionInfo<global::IMouseEventCollect, System.Boolean>("isChildOf");
+        static CrossBindingMethodInfo<System.Single> msetAlpha_26 = new CrossBindingMethodInfo<System.Single>("setAlpha");
+        static CrossBindingFunctionInfo<System.Single> mgetAlpha_27 = new CrossBindingFunctionInfo<System.Single>("getAlpha");
+        static CrossBindingMethodInfo<System.Single> mupdate_28 = new CrossBindingMethodInfo<System.Single>("update");
+        static CrossBindingMethodInfo<System.Single> mlateUpdate_29 = new CrossBindingMethodInfo<System.Single>("lateUpdate");
+        static CrossBindingMethodInfo<System.Single> mfixedUpdate_30 = new CrossBindingMethodInfo<System.Single>("fixedUpdate");
+        static CrossBindingMethodInfo<global::GameComponent> mnotifyAddComponent_31 = new CrossBindingMethodInfo<global::GameComponent>("notifyAddComponent");
+        static CrossBindingMethodInfo<System.Boolean, System.Boolean> msetIgnoreTimeScale_32 = new CrossBindingMethodInfo<System.Boolean, System.Boolean>("setIgnoreTimeScale");
+        static CrossBindingMethodInfo minitComponents_33 = new CrossBindingMethodInfo("initComponents");
         static CrossBindingMethodInfo<System.Boolean> msetDestroy_34 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
         static CrossBindingFunctionInfo<System.Boolean> misDestroy_35 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
         static CrossBindingMethodInfo<System.Int64> msetAssignID_36 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
@@ -153,260 +153,260 @@ namespace HotFix
                     mresetProperty_1.Invoke(this.instance);
             }
 
+            public override void setObject(UnityEngine.GameObject obj)
+            {
+                if (msetObject_2.CheckShouldInvokeBase(this.instance))
+                    base.setObject(obj);
+                else
+                    msetObject_2.Invoke(this.instance, obj);
+            }
+
             public override void setActive(System.Boolean active)
             {
-                if (msetActive_2.CheckShouldInvokeBase(this.instance))
+                if (msetActive_3.CheckShouldInvokeBase(this.instance))
                     base.setActive(active);
                 else
-                    msetActive_2.Invoke(this.instance, active);
+                    msetActive_3.Invoke(this.instance, active);
             }
 
             public override void setName(System.String name)
             {
-                if (msetName_3.CheckShouldInvokeBase(this.instance))
+                if (msetName_4.CheckShouldInvokeBase(this.instance))
                     base.setName(name);
                 else
-                    msetName_3.Invoke(this.instance, name);
+                    msetName_4.Invoke(this.instance, name);
             }
 
             public override System.Boolean raycast(ref UnityEngine.Ray ray, out UnityEngine.RaycastHit hit, System.Single maxDistance)
             {
-                if (mraycast_4.CheckShouldInvokeBase(this.instance))
+                if (mraycast_5.CheckShouldInvokeBase(this.instance))
                     return base.raycast(ref ray, out hit, maxDistance);
                 else
-                    return mraycast_4.Invoke(this.instance, ref ray, out hit, maxDistance);
+                    return mraycast_5.Invoke(this.instance, ref ray, out hit, maxDistance);
             }
 
             public override UnityEngine.GameObject getObject()
             {
-                if (mgetObject_5.CheckShouldInvokeBase(this.instance))
+                if (mgetObject_6.CheckShouldInvokeBase(this.instance))
                     return base.getObject();
                 else
-                    return mgetObject_5.Invoke(this.instance);
+                    return mgetObject_6.Invoke(this.instance);
             }
 
             public override System.Boolean isActive()
             {
-                if (misActive_6.CheckShouldInvokeBase(this.instance))
+                if (misActive_7.CheckShouldInvokeBase(this.instance))
                     return base.isActive();
                 else
-                    return misActive_6.Invoke(this.instance);
+                    return misActive_7.Invoke(this.instance);
             }
 
             public override System.Boolean isActiveInHierarchy()
             {
-                if (misActiveInHierarchy_7.CheckShouldInvokeBase(this.instance))
+                if (misActiveInHierarchy_8.CheckShouldInvokeBase(this.instance))
                     return base.isActiveInHierarchy();
                 else
-                    return misActiveInHierarchy_7.Invoke(this.instance);
+                    return misActiveInHierarchy_8.Invoke(this.instance);
             }
 
             public override System.Boolean isEnable()
             {
-                if (misEnable_8.CheckShouldInvokeBase(this.instance))
+                if (misEnable_9.CheckShouldInvokeBase(this.instance))
                     return base.isEnable();
                 else
-                    return misEnable_8.Invoke(this.instance);
+                    return misEnable_9.Invoke(this.instance);
             }
 
             public override void setEnable(System.Boolean enable)
             {
-                if (msetEnable_9.CheckShouldInvokeBase(this.instance))
+                if (msetEnable_10.CheckShouldInvokeBase(this.instance))
                     base.setEnable(enable);
                 else
-                    msetEnable_9.Invoke(this.instance, enable);
+                    msetEnable_10.Invoke(this.instance, enable);
             }
 
             public override UnityEngine.Vector3 getPosition()
             {
-                if (mgetPosition_10.CheckShouldInvokeBase(this.instance))
+                if (mgetPosition_11.CheckShouldInvokeBase(this.instance))
                     return base.getPosition();
                 else
-                    return mgetPosition_10.Invoke(this.instance);
+                    return mgetPosition_11.Invoke(this.instance);
             }
 
             public override UnityEngine.Vector3 getRotation()
             {
-                if (mgetRotation_11.CheckShouldInvokeBase(this.instance))
+                if (mgetRotation_12.CheckShouldInvokeBase(this.instance))
                     return base.getRotation();
                 else
-                    return mgetRotation_11.Invoke(this.instance);
+                    return mgetRotation_12.Invoke(this.instance);
             }
 
             public override void cloneFrom(global::myUIObject obj)
             {
-                if (mcloneFrom_12.CheckShouldInvokeBase(this.instance))
+                if (mcloneFrom_13.CheckShouldInvokeBase(this.instance))
                     base.cloneFrom(obj);
                 else
-                    mcloneFrom_12.Invoke(this.instance, obj);
+                    mcloneFrom_13.Invoke(this.instance, obj);
             }
 
             public override UnityEngine.Vector3 getScale()
             {
-                if (mgetScale_13.CheckShouldInvokeBase(this.instance))
+                if (mgetScale_14.CheckShouldInvokeBase(this.instance))
                     return base.getScale();
                 else
-                    return mgetScale_13.Invoke(this.instance);
+                    return mgetScale_14.Invoke(this.instance);
             }
 
             public override UnityEngine.Vector3 getWorldPosition()
             {
-                if (mgetWorldPosition_14.CheckShouldInvokeBase(this.instance))
+                if (mgetWorldPosition_15.CheckShouldInvokeBase(this.instance))
                     return base.getWorldPosition();
                 else
-                    return mgetWorldPosition_14.Invoke(this.instance);
+                    return mgetWorldPosition_15.Invoke(this.instance);
             }
 
             public override UnityEngine.Vector3 getWorldScale()
             {
-                if (mgetWorldScale_15.CheckShouldInvokeBase(this.instance))
+                if (mgetWorldScale_16.CheckShouldInvokeBase(this.instance))
                     return base.getWorldScale();
                 else
-                    return mgetWorldScale_15.Invoke(this.instance);
+                    return mgetWorldScale_16.Invoke(this.instance);
             }
 
             public override UnityEngine.Vector3 getWorldRotation()
             {
-                if (mgetWorldRotation_16.CheckShouldInvokeBase(this.instance))
+                if (mgetWorldRotation_17.CheckShouldInvokeBase(this.instance))
                     return base.getWorldRotation();
                 else
-                    return mgetWorldRotation_16.Invoke(this.instance);
+                    return mgetWorldRotation_17.Invoke(this.instance);
             }
 
             public override void setPosition(UnityEngine.Vector3 pos)
             {
-                if (msetPosition_17.CheckShouldInvokeBase(this.instance))
+                if (msetPosition_18.CheckShouldInvokeBase(this.instance))
                     base.setPosition(pos);
                 else
-                    msetPosition_17.Invoke(this.instance, pos);
+                    msetPosition_18.Invoke(this.instance, pos);
             }
 
             public override void setScale(UnityEngine.Vector3 scale)
             {
-                if (msetScale_18.CheckShouldInvokeBase(this.instance))
+                if (msetScale_19.CheckShouldInvokeBase(this.instance))
                     base.setScale(scale);
                 else
-                    msetScale_18.Invoke(this.instance, scale);
+                    msetScale_19.Invoke(this.instance, scale);
             }
 
             public override void setRotation(UnityEngine.Vector3 rot)
             {
-                if (msetRotation_19.CheckShouldInvokeBase(this.instance))
+                if (msetRotation_20.CheckShouldInvokeBase(this.instance))
                     base.setRotation(rot);
                 else
-                    msetRotation_19.Invoke(this.instance, rot);
+                    msetRotation_20.Invoke(this.instance, rot);
             }
 
             public override void setWorldPosition(UnityEngine.Vector3 pos)
             {
-                if (msetWorldPosition_20.CheckShouldInvokeBase(this.instance))
+                if (msetWorldPosition_21.CheckShouldInvokeBase(this.instance))
                     base.setWorldPosition(pos);
                 else
-                    msetWorldPosition_20.Invoke(this.instance, pos);
+                    msetWorldPosition_21.Invoke(this.instance, pos);
             }
 
             public override void setWorldRotation(UnityEngine.Vector3 rot)
             {
-                if (msetWorldRotation_21.CheckShouldInvokeBase(this.instance))
+                if (msetWorldRotation_22.CheckShouldInvokeBase(this.instance))
                     base.setWorldRotation(rot);
                 else
-                    msetWorldRotation_21.Invoke(this.instance, rot);
+                    msetWorldRotation_22.Invoke(this.instance, rot);
             }
 
             public override void setWorldScale(UnityEngine.Vector3 scale)
             {
-                if (msetWorldScale_22.CheckShouldInvokeBase(this.instance))
+                if (msetWorldScale_23.CheckShouldInvokeBase(this.instance))
                     base.setWorldScale(scale);
                 else
-                    msetWorldScale_22.Invoke(this.instance, scale);
+                    msetWorldScale_23.Invoke(this.instance, scale);
             }
 
             public override void move(UnityEngine.Vector3 moveDelta, UnityEngine.Space space)
             {
-                if (mmove_23.CheckShouldInvokeBase(this.instance))
+                if (mmove_24.CheckShouldInvokeBase(this.instance))
                     base.move(moveDelta, space);
                 else
-                    mmove_23.Invoke(this.instance, moveDelta, space);
+                    mmove_24.Invoke(this.instance, moveDelta, space);
             }
 
             public override System.Boolean isChildOf(global::IMouseEventCollect parent)
             {
-                if (misChildOf_24.CheckShouldInvokeBase(this.instance))
+                if (misChildOf_25.CheckShouldInvokeBase(this.instance))
                     return base.isChildOf(parent);
                 else
-                    return misChildOf_24.Invoke(this.instance, parent);
+                    return misChildOf_25.Invoke(this.instance, parent);
             }
 
             public override void setAlpha(System.Single alpha)
             {
-                if (msetAlpha_25.CheckShouldInvokeBase(this.instance))
+                if (msetAlpha_26.CheckShouldInvokeBase(this.instance))
                     base.setAlpha(alpha);
                 else
-                    msetAlpha_25.Invoke(this.instance, alpha);
+                    msetAlpha_26.Invoke(this.instance, alpha);
             }
 
             public override System.Single getAlpha()
             {
-                if (mgetAlpha_26.CheckShouldInvokeBase(this.instance))
+                if (mgetAlpha_27.CheckShouldInvokeBase(this.instance))
                     return base.getAlpha();
                 else
-                    return mgetAlpha_26.Invoke(this.instance);
+                    return mgetAlpha_27.Invoke(this.instance);
             }
 
             public override void update(System.Single elapsedTime)
             {
-                if (mupdate_27.CheckShouldInvokeBase(this.instance))
+                if (mupdate_28.CheckShouldInvokeBase(this.instance))
                     base.update(elapsedTime);
                 else
-                    mupdate_27.Invoke(this.instance, elapsedTime);
+                    mupdate_28.Invoke(this.instance, elapsedTime);
             }
 
             public override void lateUpdate(System.Single elapsedTime)
             {
-                if (mlateUpdate_28.CheckShouldInvokeBase(this.instance))
+                if (mlateUpdate_29.CheckShouldInvokeBase(this.instance))
                     base.lateUpdate(elapsedTime);
                 else
-                    mlateUpdate_28.Invoke(this.instance, elapsedTime);
+                    mlateUpdate_29.Invoke(this.instance, elapsedTime);
             }
 
             public override void fixedUpdate(System.Single elapsedTime)
             {
-                if (mfixedUpdate_29.CheckShouldInvokeBase(this.instance))
+                if (mfixedUpdate_30.CheckShouldInvokeBase(this.instance))
                     base.fixedUpdate(elapsedTime);
                 else
-                    mfixedUpdate_29.Invoke(this.instance, elapsedTime);
+                    mfixedUpdate_30.Invoke(this.instance, elapsedTime);
             }
 
             public override void notifyAddComponent(global::GameComponent com)
             {
-                if (mnotifyAddComponent_30.CheckShouldInvokeBase(this.instance))
+                if (mnotifyAddComponent_31.CheckShouldInvokeBase(this.instance))
                     base.notifyAddComponent(com);
                 else
-                    mnotifyAddComponent_30.Invoke(this.instance, com);
+                    mnotifyAddComponent_31.Invoke(this.instance, com);
             }
 
             public override void setIgnoreTimeScale(System.Boolean ignore, System.Boolean componentOnly)
             {
-                if (msetIgnoreTimeScale_31.CheckShouldInvokeBase(this.instance))
+                if (msetIgnoreTimeScale_32.CheckShouldInvokeBase(this.instance))
                     base.setIgnoreTimeScale(ignore, componentOnly);
                 else
-                    msetIgnoreTimeScale_31.Invoke(this.instance, ignore, componentOnly);
+                    msetIgnoreTimeScale_32.Invoke(this.instance, ignore, componentOnly);
             }
 
             protected override void initComponents()
             {
-                if (minitComponents_32.CheckShouldInvokeBase(this.instance))
+                if (minitComponents_33.CheckShouldInvokeBase(this.instance))
                     base.initComponents();
                 else
-                    minitComponents_32.Invoke(this.instance);
-            }
-
-            public override void notifyConstructDone()
-            {
-                if (mnotifyConstructDone_33.CheckShouldInvokeBase(this.instance))
-                    base.notifyConstructDone();
-                else
-                    mnotifyConstructDone_33.Invoke(this.instance);
+                    minitComponents_33.Invoke(this.instance);
             }
 
             public override void setDestroy(System.Boolean isDestroy)

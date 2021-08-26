@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 public class INTS : OBJECTS
 {
-	protected const int TYPE_SIZE = sizeof(int);
 	public int[] mValue;
 	public int this[int index]
 	{
@@ -19,26 +18,20 @@ public class INTS : OBJECTS
 		}
 	}
 	public INTS(int count)
+		:base(count)
 	{
 		mValue = new int[count];
 		mType = typeof(int[]);
-		mSize = TYPE_SIZE * mValue.Length;
+		mTypeSize = sizeof(int);
+		mSize = mTypeSize * mValue.Length;
 	}
 	public INTS(int[] value)
+		: base(value.Length)
 	{
 		mValue = value;
 		mType = typeof(int[]);
-		mSize = TYPE_SIZE * mValue.Length;
-	}
-	public override void setRealSize(ushort realSize)
-	{
-		mRealSize = realSize;
-		mElementCount = mRealSize / TYPE_SIZE;
-	}
-	public override void setElementCount(int elementCount)
-	{
-		mElementCount = elementCount;
-		mRealSize = (ushort)(mElementCount * TYPE_SIZE);
+		mTypeSize = sizeof(int);
+		mSize = mTypeSize * mValue.Length;
 	}
 	public override void zero() { memset(mValue, 0); }
 	public override bool readFromBuffer(byte[] buffer, ref int index)
@@ -47,8 +40,9 @@ public class INTS : OBJECTS
 		{
 			return readInts(buffer, ref index, mValue);
 		}
+
 		// 先读取数据的实际字节长度
-		setRealSize(readUShort(buffer, ref index, out bool success));
+		setElementCount(readElementCount(buffer, ref index, out bool success));
 		if (!success)
 		{
 			return false;
@@ -61,8 +55,9 @@ public class INTS : OBJECTS
 		{
 			return writeInts(buffer, ref index, mValue);
 		}
+
 		// 先写入数据的实际字节长度
-		if (!writeUShort(buffer, ref index, mRealSize))
+		if (!writeElementCount(buffer, ref index))
 		{
 			return false;
 		}
@@ -71,7 +66,7 @@ public class INTS : OBJECTS
 	public void set(int[] value)
 	{
 		int minCount = getMin(value.Length, mValue.Length);
-		memcpy(mValue, value, 0, 0, minCount * TYPE_SIZE);
+		memcpy(mValue, value, 0, 0, minCount * mTypeSize);
 		if (mVariableLength)
 		{
 			setElementCount(minCount);

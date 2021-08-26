@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 using System;
 
+// 组件拥有者,只有继承了组件拥有者的类才能够添加组件
 public abstract class ComponentOwner : CommandReceiver
 {
 	protected SafeDictionary<Type, GameComponent> mAllComponentTypeList;	// 组件类型列表,first是组件的类型名
 	protected SafeList<GameComponent> mComponentList;						// 组件列表,保存着组件之间的更新顺序
-	protected bool mIgnoreTimeScale;
+	protected bool mIgnoreTimeScale;										// 是否忽略时间缩放
 	public ComponentOwner()
 	{
 		mAllComponentTypeList = new SafeDictionary<Type, GameComponent>();
@@ -234,7 +235,7 @@ public abstract class ComponentOwner : CommandReceiver
 		mComponentList.clear();
 		mIgnoreTimeScale = false;
 	}
-	//---------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 此函数由子类调用
 	protected virtual void initComponents() { }
 	protected void addComponentToList(GameComponent com)

@@ -2,13 +2,14 @@
 using System;
 using System.Collections.Generic;
 
+// UI拖拽组件,用于实现UI拖拽相关功能
 public class COMWindowDrag : ComponentDrag
 {
-	protected myUIObject mDragHoverWindow;
-	protected myUIObject mWindow;
-	protected OnDraging mOnDraging;
-	protected BOOL mContinueEvent;		// 为了避免GC
-	protected bool mMovable;
+	protected myUIObject mDragHoverWindow;		// 当前拖拽时正在悬停的窗口
+	protected myUIObject mWindow;				// 当前组件所属窗口
+	protected OnDraging mOnDraging;				// 拖拽中的回调
+	protected BOOL mContinueEvent;				// 为了避免GC,因为ILR的原因,委托中尽量避免使用ref,所以使用自定义的基础数据类型代替
+	protected bool mMovable;					// 拖拽时是否允许当前窗口跟随移动
 	public COMWindowDrag()
 	{
 		mContinueEvent = new BOOL();
@@ -40,7 +41,7 @@ public class COMWindowDrag : ComponentDrag
 		mDragHoverWindow = null;
 	}
 	public void setMovable(bool movable) { mMovable = movable; }
-	//--------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyScreenPosition(Vector3 screenPos)
 	{
 		if (mMovable)

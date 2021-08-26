@@ -1,12 +1,13 @@
 ﻿using UnityEngine;
 
+// CameraLinkerSmoothFollow中使用的摄像机碰撞相关设置
 public struct CheckLayer
 {
-	public CHECK_DIRECTION mDirection;
-	public Vector3 mDirectionVector;
-	public float mCheckDistance;
-	public float mMinDistance;
-	public int mLayerIndex;
+	public CHECK_DIRECTION mDirection;		// 检测方向
+	public Vector3 mDirectionVector;		// 根据方向得出的检测向量
+	public float mCheckDistance;			// 检测距离
+	public float mMinDistance;				// 检测最近距离
+	public int mLayerIndex;					// 检测的层
 	public CheckLayer(int layerIndex, CHECK_DIRECTION direction, float checkDistance, float minDistance)
 	{
 		mLayerIndex = layerIndex;

@@ -1,14 +1,14 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
 using System;
 using UnityEngine.Events;
 
+// 对UGUI的ScrollBar的封装
 public class myUGUIScrollBar : myUGUIObject
 {
-	protected Scrollbar mScrollBar;
-	protected Action<float, myUGUIScrollBar> mCallBack;
-	protected UnityAction<float> mThisValueCallback;
+	protected Action<float, myUGUIScrollBar> mCallBack;	// 值改变的回调
+	protected UnityAction<float> mThisValueCallback;	// 避免GC的委托
+	protected Scrollbar mScrollBar;						// UGUI的ScrollBar组件
 	public myUGUIScrollBar()
 	{
 		mThisValueCallback = onValueChangeCallBack;
@@ -36,7 +36,7 @@ public class myUGUIScrollBar : myUGUIObject
 		mCallBack = callBack;
 		mScrollBar.onValueChanged.AddListener(mThisValueCallback);
 	}
-	//------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onValueChangeCallBack(float value)
 	{
 		mCallBack?.Invoke(value, this);

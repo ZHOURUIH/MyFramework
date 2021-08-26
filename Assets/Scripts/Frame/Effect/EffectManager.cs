@@ -1,10 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
+// 特效管理器,用于管理所有的3D特效
 public class EffectManager : FrameSystem
 {
-	protected List<GameEffect> mEffectList;
-	protected CreateObjectCallback mPreloadEffectCallback;
+	protected List<GameEffect> mEffectList;					// 特效列表
+	protected CreateObjectCallback mPreloadEffectCallback;	// 预加载完成时的回调,避免GC用
 	public EffectManager()
 	{
 		mEffectList = new List<GameEffect>();
@@ -155,7 +156,7 @@ public class EffectManager : FrameSystem
 				// 如果特效物体不是空的,可能是销毁物体时引擎不是立即销毁的,需要手动设置为空
 				if (!effectValid && effect.getObject() != null)
 				{
-					effect.setObject(null, true);
+					effect.setObject(null);
 				}
 			}
 			if (!effectValid)
@@ -165,7 +166,7 @@ public class EffectManager : FrameSystem
 		}
 		UN_LIST(tempList);
 	}
-	//----------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onEffectLoaded(GameObject go, object userData)
 	{
 		if (go == null)
@@ -188,8 +189,8 @@ public class EffectManager : FrameSystem
 		}
 		CLASS(out GameEffect gameEffect);
 		gameEffect.setName(name);
-		gameEffect.setObject(go, true);
 		gameEffect.setExistObject(existObject);
+		gameEffect.setObject(go);
 		gameEffect.init();
 		gameEffect.setLifeTime(lifeTime);
 		mEffectList.Add(gameEffect);

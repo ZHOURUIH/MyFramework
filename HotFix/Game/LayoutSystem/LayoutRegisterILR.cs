@@ -3,7 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-public class LayoutRegisterILR : GB
+public class LayoutRegisterILR : LayoutRegisterBaseILR
 {
 	public static void registeAll()
 	{
@@ -21,23 +21,5 @@ public class LayoutRegisterILR : GB
 		}
 		if (assign(ref mScriptLogin, script, created)) return;
 		if (assign(ref mScriptGaming, script, created)) return;
-	}
-	//----------------------------------------------------------------------------------------------------------------------------------------------------------------
-	protected static void registeLayout<T>(int layout, string name) where T : LayoutScript
-	{
-		registeLayout<T>(layout, name, EMPTY);
-	}
-	protected static void registeLayout<T>(int layout, string name, string prePath) where T : LayoutScript
-	{
-		mLayoutManager.registeLayout(typeof(T), layout, prePath + name + "/" + name, false);
-	}
-	protected static bool assign<T>(ref T thisScript, LayoutScript value, bool created) where T : LayoutScript
-	{
-		if (typeof(T) == value.GetType())
-		{
-			thisScript = created ? value as T : null;
-			return true;
-		}
-		return false;
 	}
 }

@@ -5,7 +5,7 @@ public class WindowShaderCriticalMaskFadeOutLinearDodge : WindowShaderCriticalMa
 {
 	protected float mFadeOutCriticalValue;
 	protected int mFadeOutCriticalValueID;
-	protected WindowShaderCriticalMaskFadeOutLinearDodge()
+	public WindowShaderCriticalMaskFadeOutLinearDodge()
 	{
 		mFadeOutCriticalValueID = Shader.PropertyToID("_FadeOutCriticalValue");
 	}

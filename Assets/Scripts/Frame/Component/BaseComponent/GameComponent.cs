@@ -1,5 +1,6 @@
 ﻿using System;
 
+// 组件基类,只是使用了MonoBehaviour的组件思想
 public abstract class GameComponent : FrameBase
 {
 	protected ComponentOwner mComponentOwner;   // 该组件的拥有者
@@ -48,5 +49,4 @@ public abstract class GameComponent : FrameBase
 	public Type getType() { return mType; }
 	// 通知
 	public virtual void notifyOwnerActive(bool active) { }
-	//------------------------------------------------------------------------------------------------------------------------
 }

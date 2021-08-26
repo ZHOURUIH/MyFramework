@@ -3,29 +3,34 @@ using System.Collections.Generic;
 
 public class RecorderParser : FrameBase
 {
-	protected WavRecorder mRecorder;		// 采集本地音频输入的录音机
-	protected short[] mFrequencyData;		// 转换后的频域数据
-	protected short[] mAllPCMData;			// 总的PCM数据
-	protected int mFrequencyDataCount;		// 频域数据数量
-	protected int mAllPCMCount;				// 总PCM数据的数量,当前已有的PCM数据数量
-	protected int mRecorderDataBlockSize;	// 音频输入数据一次解析的数据数量
-	protected int mCurDB;					// 当前音量大小
-	protected int mBlockBufferSize;			// 每次接收到的数据缓冲区的大小
+	protected const int RECODER_DATA_BLOCK = 1024;  // 音频输入数据一次解析的数据数量,也是频域数据数量
+	protected const int SAMPLE_RATE = 44100;		// 音频采样频率
+	protected const int BLOCK_BUFFER_SIZE = (int)(SAMPLE_RATE * 0.02f);			// 每次接收到的数据缓冲区的大小
+	protected WavRecorder mRecorder;				// 采集本地音频输入的录音机
+	protected short[] mFrequencyData;				// 转换后的频域数据
+	protected short[] mAllPCMData;					// 总的PCM数据
+	protected int mAllPCMCount;						// 总PCM数据的数量,当前已有的PCM数据数量
+	protected int mCurDB;							// 当前音量大小
 	public RecorderParser()
 	{
 		mCurDB = -96;
-		mAllPCMCount = 0;
-		int sampleRate = 44100;
 		// 采集音频输入
-		mBlockBufferSize = (int)(sampleRate * 0.02f);
-		mRecorder = new WavRecorder(mBlockBufferSize, sampleRate);
+		mRecorder = new WavRecorder(BLOCK_BUFFER_SIZE, SAMPLE_RATE);
 		mRecorder.setRecordCallback(onRecorderData);
 		// 缓冲区大小固定为1024,确保比mBlockBufferSize大
-		mRecorderDataBlockSize = 1024;
-		mAllPCMData = new short[mRecorderDataBlockSize];
+		mAllPCMData = new short[RECODER_DATA_BLOCK];
 		// 频域缓冲区
-		mFrequencyDataCount = mRecorderDataBlockSize;
-		mFrequencyData = new short[mFrequencyDataCount];
+		mFrequencyData = new short[RECODER_DATA_BLOCK];
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mRecorder.resetProperty();
+		mRecorder.setRecordCallback(onRecorderData);
+		memset(mFrequencyData, (short)0);
+		memset(mAllPCMData, (short)0);
+		mAllPCMCount = 0;
+		mCurDB = -96;
 	}
 	public void destroy()
 	{
@@ -36,7 +41,7 @@ public class RecorderParser : FrameBase
 		mRecorder?.update(elapsedTime);
 	}
 	public short[] getFrequencyData() { return mFrequencyData; }
-	public int getFrequencyDataCount() { return mFrequencyDataCount; }
+	public int getFrequencyDataCount() { return RECODER_DATA_BLOCK; }
 	public int getCurDB() { return mCurDB; }
 	public bool startRecord()
 	{
@@ -50,7 +55,7 @@ public class RecorderParser : FrameBase
 	public void setRecordData(short[] data, int dataSize)
 	{
 		// 检测数据量是否正确
-		if (mBlockBufferSize != dataSize)
+		if (BLOCK_BUFFER_SIZE != dataSize)
 		{
 			return;
 		}
@@ -58,12 +63,12 @@ public class RecorderParser : FrameBase
 		// 将已有的数据移到缓冲区头部,然后将新的数据加入尾部
 		if (mAllPCMCount > 0)
 		{
-			memmove(ref mAllPCMData, 0, dataSize, mRecorderDataBlockSize - dataSize);
-			memcpy(mAllPCMData, data, mRecorderDataBlockSize - dataSize, 0, dataSize * sizeof(short));
+			memmove(ref mAllPCMData, 0, dataSize, RECODER_DATA_BLOCK - dataSize);
+			memcpy(mAllPCMData, data, RECODER_DATA_BLOCK - dataSize, 0, dataSize * sizeof(short));
 		}
 		else
 		{
-			memset(mAllPCMData, (short)0, mRecorderDataBlockSize);
+			memset(mAllPCMData, (short)0, RECODER_DATA_BLOCK);
 			memcpy(mAllPCMData, data, 0, 0, dataSize * sizeof(short));
 			mAllPCMCount = dataSize;
 		}
@@ -75,6 +80,6 @@ public class RecorderParser : FrameBase
 	public void updateDBFrequency()
 	{
 		// 计算音量大小和频域
-		mCurDB = pcm_db_count(mAllPCMData, mRecorderDataBlockSize);
+		mCurDB = pcm_db_count(mAllPCMData, RECODER_DATA_BLOCK);
 	}
 }

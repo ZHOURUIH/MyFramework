@@ -6,13 +6,13 @@ using System;
 // 判断鼠标和触点,然后生成点击操作对象
 public class ClickPoint : FrameBase
 {
-	protected DateTime mDownTime;
-	protected DateTime mUpTime;
-	protected Vector3 mDownPosition;
-	protected Vector3 mUpPosition;
-	protected int mPointerID;
-	protected bool mClick;
-	protected bool mFinish;
+	protected DateTime mDownTime;		// 触点按下的时间
+	protected DateTime mUpTime;			// 触点抬起的时间
+	protected Vector3 mDownPosition;	// 触点按下的坐标
+	protected Vector3 mUpPosition;		// 触点抬起的坐标
+	protected int mPointerID;			// 触点ID
+	protected bool mClick;				// 是否已点击
+	protected bool mFinish;				// 是否已完成
 	public override void resetProperty()
 	{
 		base.resetProperty();

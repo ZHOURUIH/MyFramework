@@ -10,20 +10,18 @@ public class Game : GameFramework
 	{
 		base.initFrameSystem();
 		registeFrameSystem(typeof(BattleSystem));
+		registeFrameSystem(typeof(NetManager));
 	}
 	protected override void init()
 	{
 		base.init();
-		// 如果是开发移动端,需要设置SimulateTouch为true
-		FrameBase.mGlobalTouchSystem.setSimulateTouch(false);
 		FrameBase.mLayoutManager.setUseAnchor(false);
 	}
 	protected override void notifyBase()
 	{
 		base.notifyBase();
 		// 所有类都构造完成后通知GameBase
-		GameBase frameBase = new GameBase();
-		frameBase.notifyConstructDone();
+		FrameBase.constructGameDone();
 	}
 	protected override void registe()
 	{

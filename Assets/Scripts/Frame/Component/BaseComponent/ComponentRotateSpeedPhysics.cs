@@ -1,5 +1,6 @@
 ﻿using System;
 
+// 在物理更新中执行旋转
 public class ComponentRotateSpeedPhysics : ComponentRotateSpeed
 {
 	public override void fixedUpdate(float elapsedTime) 

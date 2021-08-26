@@ -16,6 +16,12 @@ public class AssetDataBaseLoader : FrameBase
 		mLoadedObjects = new Dictionary<Object, ResourceLoadInfo>();
 	}
 	public void destroy(){}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mLoadedPath.Clear();
+		mLoadedObjects.Clear();
+	}
 	public void getFileList(string path, List<string> list)
 	{
 		List<string> fileList = findResourcesFilesNonAlloc(path);
@@ -52,7 +58,6 @@ public class AssetDataBaseLoader : FrameBase
 		mLoadedObjects.Remove(obj);
 		obj = null;
 		return true;
-		
 	}
 	// 卸载指定路径中的所有资源
 	public void unloadPath(string path)
@@ -121,7 +126,10 @@ public class AssetDataBaseLoader : FrameBase
 		// 资源未加载,则使用Resources.Load加载资源
 		if (!resList.TryGetValue(name, out ResourceLoadInfo info))
 		{
-			load<T>(path, name);
+			if (!load<T>(path, name))
+			{
+				return null;
+			}
 			// 加载后需要重新获取一次
 			info = resList[name];
 			return info.mSubObjects;
@@ -153,7 +161,10 @@ public class AssetDataBaseLoader : FrameBase
 		// 资源未加载,则使用Resources.Load加载资源
 		if (!resList.TryGetValue(name, out ResourceLoadInfo info))
 		{
-			load<T>(path, name);
+			if (!load<T>(path, name))
+			{
+				return null;
+			}
 			// 加载后需要重新获取一次
 			info = resList[name];
 			return info.mObject as T;
@@ -193,7 +204,7 @@ public class AssetDataBaseLoader : FrameBase
 			// 资源已经下载完毕,直接调用回调
 			else if(info.mState == LOAD_STATE.LOADED)
 			{
-				doneCallback(mLoadedPath[path][name].mObject, mLoadedPath[path][name].mSubObjects, null, userData, name);
+				doneCallback(info.mObject, info.mSubObjects, null, userData, name);
 			}
 		}
 		// 还没有加载则开始异步加载
@@ -209,13 +220,13 @@ public class AssetDataBaseLoader : FrameBase
 		}
 		return true;
 	}
-	//---------------------------------------------------------------------------------------------------------------------------------------
-	protected void load<T>(string path, string name) where T : Object
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected bool load<T>(string path, string name) where T : Object
 	{
 		var resList = mLoadedPath[path];
 		if (resList.ContainsKey(name))
 		{
-			return;
+			return true;
 		}
 		CLASS(out ResourceLoadInfo info);
 		info.mPath = path;
@@ -242,10 +253,16 @@ public class AssetDataBaseLoader : FrameBase
 		info.mSubObjects = Resources.LoadAll(name);
 #endif
 		info.mState = LOAD_STATE.LOADED;
-		if(info.mObject != null)
+		if (info.mObject == null)
 		{
-			mLoadedObjects.Add(info.mObject, info);
+			// 加载失败则从列表中移除
+			logWarning("资源加载失败:" + name);
+			resList.Remove(info.mResouceName);
+			UN_CLASS(info);
+			return false;
 		}
+		mLoadedObjects.Add(info.mObject, info);
+		return true;
 	}
 	protected IEnumerator loadResourceCoroutine<T>(ResourceLoadInfo info) where T : Object
 	{
@@ -274,7 +291,15 @@ public class AssetDataBaseLoader : FrameBase
 		if(info.mObject != null)
 		{
 			mLoadedObjects.Add(info.mObject, info);
+			info.callbackAll(info.mObject, info.mSubObjects, null);
 		}
-		info.callbackAll(info.mObject, info.mSubObjects, null);
+		else
+		{
+			// 加载失败则从列表中移除
+			logWarning("资源加载失败:" + info.mResouceName);
+			mLoadedPath[info.mPath].Remove(info.mResouceName);
+			info.callbackAll(info.mObject, info.mSubObjects, null);
+			UN_CLASS(info);
+		}
 	}
 }

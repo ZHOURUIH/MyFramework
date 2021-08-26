@@ -1,9 +1,10 @@
 ﻿using System;
 using UnityEngine;
 
+// 指数曲线
 public class CurveExpoInOut : MyCurve
 {
-	public override float Evaluate(float time)
+	public override float evaluate(float time)
 	{
 		if (isFloatZero(time))
 		{

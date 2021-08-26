@@ -1,11 +1,12 @@
 ﻿using System;
 using UnityEngine;
 
-public class CameraLinkerAcceleration : CameraLinker
+// 第三人称的摄像机连接器,与连接的物体的相对坐标会随着加速度的增加而增加
+public class CameraLinkerAcceleration : CameraLinkerThirdPerson
 {
-	protected Spring mSpringX;
-	protected Spring mSpringY;
-	protected Spring mSpringZ;
+	protected Spring mSpringX;		// X轴的弹簧
+	protected Spring mSpringY;		// Y轴的弹簧
+	protected Spring mSpringZ;		// Z轴的弹簧
 	public CameraLinkerAcceleration()
 	{
 		mSpringX = new Spring();
@@ -15,9 +16,9 @@ public class CameraLinkerAcceleration : CameraLinker
 	public override void resetProperty()
 	{
 		base.resetProperty();
-		mSpringX.reset();
-		mSpringY.reset();
-		mSpringZ.reset();
+		mSpringX.resetProperty();
+		mSpringY.resetProperty();
+		mSpringZ.resetProperty();
 	}
 	public override void setRelativePosition(Vector3 pos)
 	{
@@ -49,7 +50,7 @@ public class CameraLinkerAcceleration : CameraLinker
 		// 改变摄像机位置
 		mCamera.setPosition(mLinkObject.getPosition() + mRelativePosition);
 	}
-	//----------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void updateLinker(float elapsedTime)
 	{
 		mSpringX.update(elapsedTime);

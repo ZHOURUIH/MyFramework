@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
+// 对UGUICanvas的封装
 public class myUGUICanvas : myUGUIObject
 {
-	protected Canvas mCanvas;
+	protected Canvas mCanvas;		// UGUI的Canvas组件
 	public override void init()
 	{
 		base.init();

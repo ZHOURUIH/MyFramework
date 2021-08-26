@@ -3,32 +3,33 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Profiling;
 
+// 用于表示一个布局
 public class GameLayout : FrameBase
 {
-	protected static List<LayoutScriptCallback> mLayoutScriptCallback = new List<LayoutScriptCallback>();
-	protected Dictionary<GameObject, myUIObject> mGameObjectSearchList; // 用于根据GameObject查找UI
-	protected SafeDictionary<uint, myUIObject> mNeedUpdateList;			// mObjectList中需要更新的窗口列表
-	protected SafeDictionary<uint, myUIObject> mObjectList;             // 布局中UI物体列表,用于保存所有已获取的UI
-	protected myUGUICanvas mRoot;				// 布局根节点
-	protected LayoutScript mScript;				// 布局脚本
-	protected myUIObject mParent;				// 布局父节点,可能是UGUIRoot,也可能为空
-	protected GameObject mPrefab;				// 布局预设,布局从该预设实例化
-	protected string mName;						// 布局名称
-	protected int mDefaultLayer;				// 布局加载时所处的层
-	protected int mRenderOrder;					// 渲染顺序,越大则渲染优先级越高,不能小于0
-	protected int mID;							// 布局ID
-	protected bool mDefaultUpdateWindow;		// 是否默认就将所有注册的窗口添加到更新列表中,默认是添加的,在某些需要重点优化的布局中可以选择将哪些窗口放入更新列表
-	protected bool mScriptControlHide;			// 是否由脚本来控制隐藏
-	protected bool mIgnoreTimeScale;			// 更新布局时是否忽略时间缩放
-	protected bool mCheckBoxAnchor;				// 是否检查布局中所有带碰撞盒的窗口是否自适应分辨率
-	protected bool mAnchorApplied;				// 是否已经完成了自适应的调整
-	protected bool mScriptInited;				// 脚本是否已经初始化
-	protected bool mInResources;				// 是否是从Resources中加载的资源,大部分布局都不是从Resources中加载的
-	protected bool mBlurBack;					// 布局显示时是否需要使布局背后(比当前布局层级低)的所有布局模糊显示
+	protected static List<LayoutScriptCallback> mLayoutScriptCallback = new List<LayoutScriptCallback>();	// 脚本的回调列表
+	protected Dictionary<GameObject, myUIObject> mGameObjectSearchList;									// 用于根据GameObject查找UI
+	protected SafeDictionary<uint, myUIObject> mNeedUpdateList;										// mObjectList中需要更新的窗口列表
+	protected SafeDictionary<uint, myUIObject> mObjectList;											// 布局中UI物体列表,用于保存所有已获取的UI
+	protected myUGUICanvas mRoot;			// 布局根节点
+	protected LayoutScript mScript;			// 布局脚本
+	protected myUIObject mParent;			// 布局父节点,可能是UGUIRoot,也可能为空
+	protected GameObject mPrefab;			// 布局预设,布局从该预设实例化
+	protected string mName;				// 布局名称
+	protected int mDefaultLayer;			// 布局加载时所处的层
+	protected int mRenderOrder;			// 渲染顺序,越大则渲染优先级越高,不能小于0
+	protected int mID;					// 布局ID
+	protected bool mDefaultUpdateWindow;	// 是否默认就将所有注册的窗口添加到更新列表中,默认是添加的,在某些需要重点优化的布局中可以选择将哪些窗口放入更新列表
+	protected bool mScriptControlHide;		// 是否由脚本来控制隐藏
+	protected bool mIgnoreTimeScale;		// 更新布局时是否忽略时间缩放
+	protected bool mCheckBoxAnchor;			// 是否检查布局中所有带碰撞盒的窗口是否自适应分辨率
+	protected bool mAnchorApplied;			// 是否已经完成了自适应的调整
+	protected bool mScriptInited;			// 脚本是否已经初始化
+	protected bool mInResources;			// 是否是从Resources中加载的资源,大部分布局都不是从Resources中加载的
+	protected bool mBlurBack;				// 布局显示时是否需要使布局背后(比当前布局层级低)的所有布局模糊显示
 	protected LAYOUT_ORDER mRenderOrderType;	// 布局渲染顺序的计算方式
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-	protected string Profiler_UpdateLayout;
-	protected string Profiler_UpdateScript;
+	protected string mProfiler_UpdateLayout;	// 预先生成的用于Profiler的字符串
+	protected string mProfiler_UpdateScript;	// 预先生成的用于Profiler的字符串
 #endif
 	public GameLayout()
 	{
@@ -38,38 +39,11 @@ public class GameLayout : FrameBase
 		mCheckBoxAnchor = true;
 		mDefaultUpdateWindow = true;
 	}
-	public static void addScriptCallback(LayoutScriptCallback callback)
-	{
-		if (!mLayoutScriptCallback.Contains(callback))
-		{
-			mLayoutScriptCallback.Add(callback);
-		}
-	}
-	public static void removeScriptCallback(LayoutScriptCallback callback)
-	{
-		mLayoutScriptCallback.Remove(callback);
-	}
-	public void setRenderOrder(int renderOrder)
-	{
-		mRenderOrder = renderOrder;
-		if (mRenderOrder < 0)
-		{
-			logError("布局深度不能小于0,否则无法正确计算窗口深度");
-			return;
-		}
-		if (mRoot == null)
-		{
-			return;
-		}
-		mRoot.setSortingOrder(mRenderOrder);
-		// 刷新所有窗口注册的深度
-		setUIDepth(mRoot, mRenderOrder);
-	}
 	public void init()
 	{
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-		Profiler_UpdateLayout = "UpdateLayout" + getName();
-		Profiler_UpdateScript = "UpdateScript" + getName();
+		mProfiler_UpdateLayout = "UpdateLayout" + getName();
+		mProfiler_UpdateScript = "UpdateScript" + getName();
 #endif
 		mScript = mLayoutManager.createScript(this);
 		int count = mLayoutScriptCallback.Count;
@@ -115,6 +89,34 @@ public class GameLayout : FrameBase
 		mRoot.getUnityComponent<LayoutDebug>().setLayout(this);
 #endif
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mGameObjectSearchList.Clear();
+		mNeedUpdateList.clear();
+		mObjectList.clear();
+		mRoot = null;
+		mScript = null;
+		mParent = null;
+		mPrefab = null;
+		mName = null;
+		mDefaultLayer = 0;
+		mRenderOrder = 0;
+		mID = 0;
+		mDefaultUpdateWindow = true;
+		mScriptControlHide = false;
+		mIgnoreTimeScale = false;
+		mCheckBoxAnchor = true;
+		mAnchorApplied = false;
+		mScriptInited = false;
+		mInResources = false;
+		mBlurBack = false;
+		mRenderOrderType = LAYOUT_ORDER.ALWAYS_TOP;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+		mProfiler_UpdateLayout = null;
+		mProfiler_UpdateScript = null;
+#endif
+	}
 	public void update(float elapsedTime)
 	{
 		if (!isVisible() || mScript == null || !mScriptInited)
@@ -128,7 +130,7 @@ public class GameLayout : FrameBase
 		}
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-		Profiler.BeginSample(Profiler_UpdateLayout);
+		Profiler.BeginSample(mProfiler_UpdateLayout);
 #endif
 		// 更新所有的UI物体
 		foreach (var item in mObjectList.startForeach())
@@ -145,7 +147,7 @@ public class GameLayout : FrameBase
 
 		// 更新脚本逻辑
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-		Profiler.BeginSample(Profiler_UpdateScript);
+		Profiler.BeginSample(mProfiler_UpdateScript);
 #endif
 		if (mScript.isNeedUpdate())
 		{
@@ -187,6 +189,33 @@ public class GameLayout : FrameBase
 		{
 			mResourceManager.unload(ref mPrefab);
 		}
+	}
+	public static void addScriptCallback(LayoutScriptCallback callback)
+	{
+		if (!mLayoutScriptCallback.Contains(callback))
+		{
+			mLayoutScriptCallback.Add(callback);
+		}
+	}
+	public static void removeScriptCallback(LayoutScriptCallback callback)
+	{
+		mLayoutScriptCallback.Remove(callback);
+	}
+	public void setRenderOrder(int renderOrder)
+	{
+		mRenderOrder = renderOrder;
+		if (mRenderOrder < 0)
+		{
+			logError("布局深度不能小于0,否则无法正确计算窗口深度");
+			return;
+		}
+		if (mRoot == null)
+		{
+			return;
+		}
+		mRoot.setSortingOrder(mRenderOrder);
+		// 刷新所有窗口注册的深度
+		setUIDepth(mRoot, mRenderOrder);
 	}
 	public void getAllCollider(List<Collider> colliders, bool append = false)
 	{
@@ -325,7 +354,7 @@ public class GameLayout : FrameBase
 	public void setParent(myUIObject parent)				{ mParent = parent; }
 	public void setID(int id)								{ mID = id; }
 	public void setName(string name)						{ mName = name; }
-	//------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// ignoreInactive表示是否忽略未启用的节点,当includeSelf为true时orderInParent才会生效
 	protected void setUIDepth(myUIObject window, int orderInParent, bool includeSelf = true, bool ignoreInactive = false)
 	{

@@ -8,14 +8,14 @@ namespace HotFix
     public class SceneInstanceAdapter : CrossBindingAdaptor
     {
         static CrossBindingMethodInfo minit_0 = new CrossBindingMethodInfo("init");
-        static CrossBindingMethodInfo mdestroy_1 = new CrossBindingMethodInfo("destroy");
-        static CrossBindingMethodInfo<System.Single> mupdate_2 = new CrossBindingMethodInfo<System.Single>("update");
-        static CrossBindingMethodInfo monShow_3 = new CrossBindingMethodInfo("onShow");
-        static CrossBindingMethodInfo monHide_4 = new CrossBindingMethodInfo("onHide");
-        static CrossBindingMethodInfo mfindGameObject_5 = new CrossBindingMethodInfo("findGameObject");
-        static CrossBindingMethodInfo minitGameObject_6 = new CrossBindingMethodInfo("initGameObject");
-        static CrossBindingMethodInfo mnotifyConstructDone_7 = new CrossBindingMethodInfo("notifyConstructDone");
-        static CrossBindingMethodInfo mresetProperty_8 = new CrossBindingMethodInfo("resetProperty");
+        static CrossBindingMethodInfo mresetProperty_1 = new CrossBindingMethodInfo("resetProperty");
+        static CrossBindingMethodInfo mdestroy_2 = new CrossBindingMethodInfo("destroy");
+        static CrossBindingMethodInfo<System.Single> mupdate_3 = new CrossBindingMethodInfo<System.Single>("update");
+        static CrossBindingMethodInfo monShow_4 = new CrossBindingMethodInfo("onShow");
+        static CrossBindingMethodInfo monHide_5 = new CrossBindingMethodInfo("onHide");
+        static CrossBindingMethodInfo mfindGameObject_6 = new CrossBindingMethodInfo("findGameObject");
+        static CrossBindingMethodInfo minitGameObject_7 = new CrossBindingMethodInfo("initGameObject");
+        static CrossBindingMethodInfo<global::Command> monCmdStarted_8 = new CrossBindingMethodInfo<global::Command>("onCmdStarted");
         static CrossBindingMethodInfo<System.Boolean> msetDestroy_9 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
         static CrossBindingFunctionInfo<System.Boolean> misDestroy_10 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
         static CrossBindingMethodInfo<System.Int64> msetAssignID_11 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
@@ -67,68 +67,68 @@ namespace HotFix
                     minit_0.Invoke(this.instance);
             }
 
+            public override void resetProperty()
+            {
+                if (mresetProperty_1.CheckShouldInvokeBase(this.instance))
+                    base.resetProperty();
+                else
+                    mresetProperty_1.Invoke(this.instance);
+            }
+
             public override void destroy()
             {
-                if (mdestroy_1.CheckShouldInvokeBase(this.instance))
+                if (mdestroy_2.CheckShouldInvokeBase(this.instance))
                     base.destroy();
                 else
-                    mdestroy_1.Invoke(this.instance);
+                    mdestroy_2.Invoke(this.instance);
             }
 
             public override void update(System.Single elapsedTime)
             {
-                if (mupdate_2.CheckShouldInvokeBase(this.instance))
+                if (mupdate_3.CheckShouldInvokeBase(this.instance))
                     base.update(elapsedTime);
                 else
-                    mupdate_2.Invoke(this.instance, elapsedTime);
+                    mupdate_3.Invoke(this.instance, elapsedTime);
             }
 
             public override void onShow()
             {
-                if (monShow_3.CheckShouldInvokeBase(this.instance))
+                if (monShow_4.CheckShouldInvokeBase(this.instance))
                     base.onShow();
                 else
-                    monShow_3.Invoke(this.instance);
+                    monShow_4.Invoke(this.instance);
             }
 
             public override void onHide()
             {
-                if (monHide_4.CheckShouldInvokeBase(this.instance))
+                if (monHide_5.CheckShouldInvokeBase(this.instance))
                     base.onHide();
                 else
-                    monHide_4.Invoke(this.instance);
+                    monHide_5.Invoke(this.instance);
             }
 
             protected override void findGameObject()
             {
-                if (mfindGameObject_5.CheckShouldInvokeBase(this.instance))
+                if (mfindGameObject_6.CheckShouldInvokeBase(this.instance))
                     base.findGameObject();
                 else
-                    mfindGameObject_5.Invoke(this.instance);
+                    mfindGameObject_6.Invoke(this.instance);
             }
 
             protected override void initGameObject()
             {
-                if (minitGameObject_6.CheckShouldInvokeBase(this.instance))
+                if (minitGameObject_7.CheckShouldInvokeBase(this.instance))
                     base.initGameObject();
                 else
-                    minitGameObject_6.Invoke(this.instance);
+                    minitGameObject_7.Invoke(this.instance);
             }
 
-            public override void notifyConstructDone()
+            public override void onCmdStarted(global::Command cmd)
             {
-                if (mnotifyConstructDone_7.CheckShouldInvokeBase(this.instance))
-                    base.notifyConstructDone();
+                if (monCmdStarted_8.CheckShouldInvokeBase(this.instance))
+                    base.onCmdStarted(cmd);
                 else
-                    mnotifyConstructDone_7.Invoke(this.instance);
-            }
-
-            public override void resetProperty()
-            {
-                if (mresetProperty_8.CheckShouldInvokeBase(this.instance))
-                    base.resetProperty();
-                else
-                    mresetProperty_8.Invoke(this.instance);
+                    monCmdStarted_8.Invoke(this.instance, cmd);
             }
 
             public override void setDestroy(System.Boolean isDestroy)

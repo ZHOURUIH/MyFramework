@@ -10,6 +10,11 @@ public class SafeDeepDictionary<Key, Value> : FrameBase
 	{
 		mMainList = new Dictionary<Key, Value>();
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mMainList.Clear();
+	}
 	// 获取用于更新的列表
 	public Dictionary<Key, Value> startForeach() 
 	{

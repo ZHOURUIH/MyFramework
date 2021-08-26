@@ -1,18 +1,26 @@
-﻿#if !UNITY_IOS && !NO_SQLITE
+﻿#if !NO_SQLITE
 using UnityEngine;
 using Mono.Data.Sqlite;
 using System.Collections.Generic;
 using System;
 
+// SQLite数据基类
 public class SQLiteData : FrameBase
 {
-	public Dictionary<int, string> mValues;
-	public SQLiteTable mTable;
-	public static string ID = "ID";
-	public int mID;
+	public Dictionary<int, string> mValues;		// 存储原始的字符串,Key是下标
+	public SQLiteTable mTable;					// 数据所属的表格
+	public static string ID = "ID";				// 固定的ID列名
+	public int mID;								// 数据固定的唯一ID字段
 	public SQLiteData()
 	{
 		mValues = new Dictionary<int, string>();
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mValues.Clear();
+		mTable = null;
+		mID = 0;
 	}
 	public virtual void parse(SqliteDataReader reader)
 	{
@@ -35,7 +43,7 @@ public class SQLiteData : FrameBase
 		return value;
 	}
 	public virtual bool checkData() { return true; }
-	//--------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected int getParamInt(SqliteDataReader reader, int index)
 	{
 		int value = 0;

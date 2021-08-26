@@ -32,13 +32,10 @@ public delegate void OnMouseStay(Vector3 mousePos, int touchID);
 public delegate void OnScreenMouseUp(IMouseEventCollect obj, Vector3 mousePos, int touchID);
 public delegate void OnLongPress();
 public delegate void OnLongPressing(float progress);
-public delegate void OnMultiTouchStart(Vector3 touch0, Vector3 touch1);
-public delegate void OnMultiTouchMove(Vector3 touch0, Vector3 lastPosition0, Vector3 touch1, Vector3 lastPosition1);
-public delegate void OnMultiTouchEnd();
 public delegate void HeadDownloadCallback(Texture head, string openID);
 public delegate void OnDragViewCallback();
 public delegate void OnDragViewStartCallback(BOOL allowDrag);
-public delegate void MyThreadCallback(BOOL run);    // 返回值表示是否继续运行该线程
+public delegate void MyThreadCallback(BOOL run);	// 返回值表示是否继续运行该线程
 public delegate void OnPlayingCallback(AnimControl control, int frame, bool isPlaying); // isPlaying表示是否是在播放过程中触发的该回调
 public delegate void OnPlayEndCallback(AnimControl control, bool callback, bool isBreak);
 public delegate void OnDraging();
@@ -63,8 +60,14 @@ public delegate void OnInputField(string str);
 public delegate void OnStateLeave(CharacterState state, bool isBreak, string param);
 public delegate void EventCallback(GameEvent param);
 public delegate void OnEffectDestroy(GameEffect effect, object userData);
-public delegate void ConnectCallback(SocketConnectClient client);
+public delegate void ConnectCallback(NetConnectTCP client);
 public delegate void OnKeyCurrentDown();
+public delegate myUGUIImage CreateImage();
+public delegate myUGUIImageAnim CreateImageAnim();
+public delegate void DestroyImage(myUGUIImage image);
+public delegate void DestroyImageAnim(myUGUIImageAnim imageAnim);
+public delegate void OnCheck(bool check);
+public delegate void OnDestroyWindow(myUIObject window);
 #if USE_ILRUNTIME
 public delegate void OnHotFixLoaded(ILRAppDomain appDomain);
 #endif

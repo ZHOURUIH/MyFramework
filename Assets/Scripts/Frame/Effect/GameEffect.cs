@@ -1,18 +1,19 @@
 ﻿using UnityEngine;
 
+// 表示3D特效的对象
 public class GameEffect : MovableObject
 {
 	protected ParticleSystem[] mParticleSystems;        // 特效中包含的粒子系统组件列表
-	protected Animator[] mEffectAnimators;
 	protected OnEffectDestroy mEffectDestroyCallback;   // 特效销毁时的回调
-	protected PLAY_STATE mPlayState;    // 特效整体的播放状态
-	protected MyTimer mActiveTimer;		// 特效显示的持续时间计时器
-	protected MyTimer mLifeTimer;		// 特效生存时间计时器
-	protected object mDestroyUserData;	// 销毁回调的自定义参数
-	protected float mMaxActiveTime;		// 显示的最大持续时间
-	protected bool mExistedObject;		// 为true表示特效节点是一个已存在的节点,false表示特效是实时加载的一个节点
-	protected bool mIsDead;				// 粒子系统是否已经死亡
-	protected bool mNextIgnoreTimeScale;
+	protected Animator[] mEffectAnimators;              // 特效中包含的动画组件列表
+	protected MyTimer mActiveTimer;                     // 特效显示的持续时间计时器
+	protected MyTimer mLifeTimer;                       // 特效生存时间计时器
+	protected object mDestroyUserData;                  // 销毁回调的自定义参数
+	protected float mMaxActiveTime;                     // 显示的最大持续时间
+	protected bool mDefaultIgnoreTimeScale;				// 创建时是否忽略时间缩放,用于在停止时恢复忽略时间缩放的设置
+	protected bool mExistedObject;                      // 为true表示特效节点是一个已存在的节点,false表示特效是实时加载的一个节点
+	protected bool mIsDead;                             // 粒子系统是否已经死亡
+	protected PLAY_STATE mPlayState;                    // 特效整体的播放状态
 	public GameEffect()
 	{
 		mActiveTimer = new MyTimer();
@@ -22,12 +23,11 @@ public class GameEffect : MovableObject
 	public override void init()
 	{
 		base.init();
-		setDestroyObject(false);
 	}
-	public override void setObject(GameObject obj, bool destroyOld)
+	public override void setObject(GameObject obj)
 	{
-		base.setObject(obj, destroyOld);
-		if(mTransform != null)
+		base.setObject(obj);
+		if (mTransform != null)
 		{
 			mParticleSystems = mTransform.GetComponentsInChildren<ParticleSystem>();
 			mEffectAnimators = mTransform.GetComponentsInChildren<Animator>();
@@ -63,11 +63,11 @@ public class GameEffect : MovableObject
 				}
 			}
 		}
-		if(mLifeTimer.tickTimer(elapsedTime))
+		if (mLifeTimer.tickTimer(elapsedTime))
 		{
 			mIsDead = true;
 		}
-		if(mActiveTimer.tickTimer(elapsedTime))
+		if (mActiveTimer.tickTimer(elapsedTime))
 		{
 			setActive(false);
 		}
@@ -75,24 +75,24 @@ public class GameEffect : MovableObject
 	public void setExistObject(bool existObject) { mExistedObject = existObject; }
 	public bool isExistObject() { return mExistedObject; }
 	public bool isDead() { return mIsDead; }
-	public void setLifeTime(float time) 
+	public void setLifeTime(float time)
 	{
 		mLifeTimer.init(0.0f, time, false);
-		if(time <= 0.0f)
+		if (time <= 0.0f)
 		{
 			mLifeTimer.stop(false);
 		}
 	}
 	public void setMaxActiveTime(float time) { mMaxActiveTime = time; }
-	public void resetActiveTime() 
+	public void resetActiveTime()
 	{
 		mActiveTimer.init(0.0f, mMaxActiveTime, false);
-		if(mMaxActiveTime <= 0.0f)
+		if (mMaxActiveTime <= 0.0f)
 		{
 			mActiveTimer.stop(false);
 		}
 	}
-	public void setActiveTime(float time) 
+	public void setActiveTime(float time)
 	{
 		mActiveTimer.init(0.0f, time, false);
 		if (time <= 0.0f)
@@ -104,12 +104,12 @@ public class GameEffect : MovableObject
 	public PLAY_STATE getPlayState() { return mPlayState; }
 	public override void setIgnoreTimeScale(bool ignore, bool componentOnly = false)
 	{
-		mNextIgnoreTimeScale = ignore;
+		mDefaultIgnoreTimeScale = ignore;
 		// 如果特效中有动态模型,也需要设置是否受时间影响
 		if (mEffectAnimators != null && mEffectAnimators.Length > 0)
 		{
 			int count = mEffectAnimators.Length;
-			for(int i = 0; i < count; ++i)
+			for (int i = 0; i < count; ++i)
 			{
 				Animator item = mEffectAnimators[i];
 				if (item != null)
@@ -137,7 +137,7 @@ public class GameEffect : MovableObject
 	public void play()
 	{
 		mPlayState = PLAY_STATE.PLAY;
-		if(mParticleSystems == null)
+		if (mParticleSystems == null)
 		{
 			return;
 		}
@@ -170,7 +170,7 @@ public class GameEffect : MovableObject
 		{
 			mParticleSystems[i].Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
 		}
-		setIgnoreTimeScale(mNextIgnoreTimeScale);
+		setIgnoreTimeScale(mDefaultIgnoreTimeScale);
 	}
 	public void restart()
 	{
@@ -199,6 +199,6 @@ public class GameEffect : MovableObject
 		mEffectDestroyCallback = null;
 		mDestroyUserData = null;
 		mPlayState = PLAY_STATE.STOP;
-		mNextIgnoreTimeScale = false;
+		mDefaultIgnoreTimeScale = false;
 	}
 }

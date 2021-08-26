@@ -1,10 +1,11 @@
 ﻿using UnityEngine;
 using System;
 
+// 使物体始终朝向目标的组件
 public class COMTransformableRotateFocus : GameComponent, IComponentModifyRotation, IComponentBreakable
 {
-	protected Transformable mFocusTarget;
-	protected Vector3 mFocusOffset;
+	protected Transformable mFocusTarget;	// 朝向的目标
+	protected Vector3 mFocusOffset;			// 目标的位置偏移
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -28,5 +29,4 @@ public class COMTransformableRotateFocus : GameComponent, IComponentModifyRotati
 		base.update(elapsedTime);
 	}
 	public void notifyBreak() { }
-	//---------------------------------------------------------------------------------------------------------------
 }

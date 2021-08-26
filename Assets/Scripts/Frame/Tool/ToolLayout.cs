@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-// LayoutTools
+// 全部都是对于UI布局或窗口的操作,部分Transformable的通用操作在ToolFrame中
 public class LT : FrameBase
 {
-	//--------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 布局
 	#region 布局
 	public static void LOAD_LAYOUT(int id, int renderOrder, LAYOUT_ORDER orderType, bool visible, bool immediately, string param, bool isScene, bool isAsync, LayoutAsyncDone callback)
@@ -210,7 +210,7 @@ public class LT : FrameBase
 		return cmd;
 	}
 	#endregion
-	//--------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 进度条
 	#region 进度条
 	public static void SLIDER(ComponentOwner slider, float value)
@@ -280,7 +280,7 @@ public class LT : FrameBase
 		return cmd;
 	}
 	#endregion
-	//--------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 透明度
 	#region 透明度
 	public static void ALPHA(myUIObject obj, float alpha = 1.0f)
@@ -398,7 +398,7 @@ public class LT : FrameBase
 		return cmd;
 	}
 	#endregion
-	//--------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 颜色,也包含透明度
 	#region 颜色
 	public static void COLOR(myUIObject obj)
@@ -520,7 +520,7 @@ public class LT : FrameBase
 		return cmd;
 	}
 	#endregion
-	//--------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 以指定点列表以及时间点的路线设置物体透明度
 	#region 以指定点列表以及时间点的路线设置物体透明度
 	public static void ALPHA_PATH(myUIObject obj)
@@ -625,7 +625,7 @@ public class LT : FrameBase
 		return cmd;
 	}
 	#endregion
-	//--------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// HSL
 	#region HSL
 	public static void HSL(myUIObject obj, Vector3 hsl)
@@ -656,7 +656,7 @@ public class LT : FrameBase
 		pushCommand(cmd, obj);
 	}
 	#endregion
-	//--------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 亮度
 	#region 亮度
 	public static void LUM(myUIObject obj, float lum)
@@ -685,57 +685,6 @@ public class LT : FrameBase
 		cmd.mStartLum = start;
 		cmd.mTargetLum = target;
 		pushCommand(cmd, obj);
-	}
-	#endregion
-	//--------------------------------------------------------------------------------------------------------------------------------------------
-	// 音效
-	#region 播放界面音效
-	public static void AUDIO(myUIObject obj)
-	{
-		pushCommand<CmdWindowPlayAudio>(obj, LOG_LEVEL.LOW);
-	}
-	public static void AUDIO(myUIObject obj, int sound)
-	{
-		AUDIO(obj, sound, false, 1.0f);
-	}
-	public static void AUDIO(myUIObject obj, int sound, bool loop)
-	{
-		AUDIO(obj, sound, loop, 1.0f);
-	}
-	public static void AUDIO(myUIObject obj, int sound, bool loop, float volume)
-	{
-		CMD(out CmdWindowPlayAudio cmd, LOG_LEVEL.LOW);
-		cmd.mSound = sound;
-		cmd.mLoop = loop;
-		cmd.mVolume = volume;
-		pushCommand(cmd, obj);
-	}
-	// keyframe为sound文件夹的相对路径,
-	public static void AUDIO(myUIObject obj, string name, bool loop, float volume)
-	{
-		CMD(out CmdWindowPlayAudio cmd, LOG_LEVEL.LOW);
-		cmd.mSoundFileName = name;
-		cmd.mLoop = loop;
-		cmd.mVolume = volume;
-		pushCommand(cmd, obj);
-	}
-	public static CmdWindowPlayAudio AUDIO_DELAY(DelayCmdWatcher watcher, myUIObject obj, float delayTime, int sound, bool loop, float volume)
-	{
-		CMD_DELAY(out CmdWindowPlayAudio cmd, LOG_LEVEL.LOW);
-		cmd.mSound = sound;
-		cmd.mLoop = loop;
-		cmd.mVolume = volume;
-		pushDelayCommand(cmd, obj, delayTime, watcher);
-		return cmd;
-	}
-	public static CmdWindowPlayAudio AUDIO_DELAY(DelayCmdWatcher watcher, myUIObject obj, float delayTime, int sound, bool loop)
-	{
-		CMD_DELAY(out CmdWindowPlayAudio cmd, LOG_LEVEL.LOW);
-		cmd.mSound = sound;
-		cmd.mLoop = loop;
-		cmd.mUseVolumeCoe = true;
-		pushDelayCommand(cmd, obj, delayTime, watcher);
-		return cmd;
 	}
 	#endregion
 }

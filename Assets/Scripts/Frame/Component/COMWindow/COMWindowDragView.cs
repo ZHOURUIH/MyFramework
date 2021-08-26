@@ -2,43 +2,44 @@
 using System;
 using System.Collections.Generic;
 
+// 实现类似与ScrollView的功能的组件,可滑动组件,用于定义窗口的拖拽滑动操作
 public class COMWindowDragView : GameComponent
 {
-	protected List<COMWindowDragView> mMutexDragView; // 与当前组件互斥的滑动组件,两个组件中同一时间只有一个组件响应滑动
-	protected OnDragViewStartCallback mOnDragViewStartCallback;
-	protected OnDragViewCallback mPositionChangeCallback;
-	protected OnDragViewCallback mReleaseDragCallback;
-	protected OnDragViewCallback mDragingCallback;
-	protected myUIObject mWindow;
-	protected Vector3 mMinRelativePos;		// 左边界和下边界或者窗口中心的最小值,具体需要由mClampType决定,-1到1的相对值,相对于父窗口的宽高
-	protected Vector3 mMaxRelativePos;		// 右边界和上边界或者窗口中心的最大值,具体需要由mClampType决定,-1到1的相对值,相对于父窗口的宽高
-	protected float mDragLengthThreshold;   // 拖拽长度的最小值,当拖动距离大于该值时才允许开始拖拽
-	protected float mDragAngleThreshold;    // 拖拽方向与允许拖拽方向的夹角绝对值最大值,弧度制
-	protected float mAttenuateFactor;		// 移动速度衰减系数,鼠标在放开时移动速度会逐渐降低,衰减系数越大.速度降低越快
-	protected float mMoveToEdgeSpeed;		// 自动停靠到最近的边的速度
-	protected float mMoveSpeedScale;		// 鼠标放开后自由移动时的速度缩放
-	protected float mAutoClampSpeed;        // 当列表拖拽到合法范围外时恢复到正常范围内时的速度
-	protected bool mAutoMoveToEdge;			// 是否自动停靠到最近的边
-	protected bool mAlignTopOrLeft;         // 是否对齐左边或上边
-	protected bool mClampInRange;           // 拖拽时是否始终限制在正常范围内
+	protected List<COMWindowDragView> mMutexDragView;			// 与当前组件互斥的滑动组件,两个组件中同一时间只有一个组件响应滑动
+	protected OnDragViewStartCallback mOnDragViewStartCallback;	// 开始拖拽滑动的回调
+	protected OnDragViewCallback mPositionChangeCallback;		// 组件所属窗口位置改变的回调
+	protected OnDragViewCallback mReleaseDragCallback;			// 结束拖拽的回调
+	protected OnDragViewCallback mDragingCallback;				// 拖拽中的回调
+	protected myUIObject mWindow;								// 组件所属窗口
+	protected Vector3 mMinRelativePos;				// 左边界和下边界或者窗口中心的最小值,具体需要由mClampType决定,-1到1的相对值,相对于父窗口的宽高
+	protected Vector3 mMaxRelativePos;				// 右边界和上边界或者窗口中心的最大值,具体需要由mClampType决定,-1到1的相对值,相对于父窗口的宽高
+	protected float mDragLengthThreshold;			// 拖拽长度的最小值,当拖动距离大于该值时才允许开始拖拽
+	protected float mDragAngleThreshold;			// 拖拽方向与允许拖拽方向的夹角绝对值最大值,弧度制
+	protected float mAttenuateFactor;				// 移动速度衰减系数,鼠标在放开时移动速度会逐渐降低,衰减系数越大.速度降低越快
+	protected float mMoveToEdgeSpeed;				// 自动停靠到最近的边的速度
+	protected float mMoveSpeedScale;				// 鼠标放开后自由移动时的速度缩放
+	protected float mAutoClampSpeed;				// 当列表拖拽到合法范围外时恢复到正常范围内时的速度
+	protected bool mAutoMoveToEdge;					// 是否自动停靠到最近的边
+	protected bool mAlignTopOrLeft;					// 是否对齐左边或上边
+	protected bool mClampInRange;					// 拖拽时是否始终限制在正常范围内
 	// 为true表示DragView只能在父节点的区域内滑动,父节点区域小于DragView区域时不能滑动
 	// false表示DragView只能在父节点的区域外滑动,父节点区域大于DragView区域时不能滑动
-	protected bool mClampInner;
-	protected DRAG_DIRECTION mDragDirection;
-	protected CLAMP_TYPE mClampType;
-	//-------------------------------------------------------------------------------------------------------------------------
+	protected bool mClampInner;						// 滑动区域限制类型
+	protected DRAG_DIRECTION mDragDirection;		// 滑动方向
+	protected CLAMP_TYPE mClampType;				// 限制子节点的滑动范围,与mClampInner有点像,但是作用不同
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 用于实时计算的参数
-	protected Vector3 mStartDragWindowPosition;
-	protected Vector3 mStartDragMousePosition;
-	protected Vector3 mMouseDownPos;
-	protected Vector3 mMoveNormal;
-	protected BOOL mDraging;			// 是否正在拖动,鼠标按下并且移动速度大于一定值时开始拖动,鼠标放开时,按惯性移动
-	protected float mMoveSpeed;
-	protected bool mMouseDown;			// 鼠标是否在窗口内按下,鼠标抬起会设置为false,但是鼠标离开窗口时仍然为true
-	//-------------------------------------------------------------------------------------------------------------------------
+	protected Vector3 mStartDragWindowPosition;		// 开始拖拽时的窗口的坐标
+	protected Vector3 mStartDragMousePosition;		// 开始拖拽时的触点坐标
+	protected Vector3 mMouseDownPos;				// 触点按下时的坐标
+	protected Vector3 mMoveDirection;				// 当前拖拽移动的方向
+	protected BOOL mDraging;						// 是否正在拖动,鼠标按下并且移动速度大于一定值时开始拖动,鼠标放开时,按惯性移动
+	protected float mMoveSpeed;						// 移动速度
+	protected bool mMouseDown;						// 鼠标是否在窗口内按下,鼠标抬起会设置为false,但是鼠标离开窗口时仍然为true
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 用于避免GC的参数
-	private Vector3[] mMinMaxPos;
-	private bool mMinMaxPosDirty;
+	private Vector3[] mMinMaxPos;					// 缓存的当前窗口在父节点中可移动的最大和最小的位置
+	private bool mMinMaxPosDirty;					// mMinMaxPos是否需要重新计算
 	public COMWindowDragView()
 	{
 		mDraging = new BOOL();
@@ -91,7 +92,7 @@ public class COMWindowDragView : GameComponent
 		mStartDragWindowPosition = Vector3.zero;
 		mStartDragMousePosition = Vector3.zero;
 		mMouseDownPos = Vector3.zero;
-		mMoveNormal = Vector3.zero;
+		mMoveDirection = Vector3.zero;
 		mMoveSpeed = 0.0f;
 		mMouseDown = false;
 		mDraging.set(false);
@@ -211,7 +212,7 @@ public class COMWindowDragView : GameComponent
 						// 只有鼠标未按下并且不自动停靠到最近的边时才衰减速度
 						Vector3 prePos = curPosition;
 						mMoveSpeed = lerp(mMoveSpeed, 0.0f, elapsedTime * mAttenuateFactor, 10.0f);
-						curPosition += mMoveSpeed * mMoveSpeedScale * elapsedTime * mMoveNormal;
+						curPosition += mMoveSpeed * mMoveSpeedScale * elapsedTime * mMoveDirection;
 						clampPosition(ref curPosition);
 						if(!isVectorEqual(prePos, curPosition))
 						{
@@ -339,13 +340,13 @@ public class COMWindowDragView : GameComponent
 				mStartDragWindowPosition = mWindow.getPosition();
 				mStartDragMousePosition = mousePos;
 				mMoveSpeed = speed;
-				mMoveNormal = normalize(delta);
+				mMoveDirection = normalize(delta);
 			}
 		}
 		else
 		{
 			mMoveSpeed = speed;
-			mMoveNormal = normalize(delta);
+			mMoveDirection = normalize(delta);
 		}
 	}
 	public void onMouseStay()
@@ -431,22 +432,20 @@ public class COMWindowDragView : GameComponent
 		base.setActive(active);
 		// 启用或禁用组件时,需要将实时计算用的参数重置
 		mMoveSpeed = 0.0f;
-		mMoveNormal = Vector3.zero;
+		mMoveDirection = Vector3.zero;
 		mMouseDown = false;
 		mDraging.set(false);
 		mStartDragWindowPosition = Vector3.zero;
 		mStartDragMousePosition = Vector3.zero;
 	}
-	//------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected Vector3[] getLocalMinMaxPixelPos()
 	{
 		if(mMinMaxPosDirty)
 		{
 			Vector2 parentWidgetSize = mWindow.getParent().getWindowSize();
 			// 计算父节点的世界缩放
-			Vector2 worldScale = getMatrixScale(mWindow.getTransform().parent.localToWorldMatrix);
-			Vector2 uiRootScale = mLayoutManager.getUIRoot().getScale();
-			Vector2 parentScale = worldScale / uiRootScale;
+			Vector2 parentScale = devideVector3(mWindow.getTransform().parent.lossyScale, mLayoutManager.getUIRoot().getScale());
 			// 计算移动的位置范围
 			Vector2 minPos = parentWidgetSize * 0.5f * mMinRelativePos / parentScale;
 			Vector2 maxPos = parentWidgetSize * 0.5f * mMaxRelativePos / parentScale;

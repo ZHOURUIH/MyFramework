@@ -1,12 +1,13 @@
 ﻿using UnityEngine;
 
+// 用于执行切换连接器时的不同行为,绕目标旋转来切换连接器,并且相对位置的长度上是插值
 public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 {
-	protected float mDistanceCurrent;
-	protected float mDistanceDelta;
-	protected float mRotatedAngle;
-	protected float mTotalAngle;
-	protected bool mClockwise;
+	protected float mDistanceCurrent;		// 当前的相对距离
+	protected float mDistanceDelta;			// 初始位置到目标位置的距离差值
+	protected float mRotatedAngle;			// 已经旋转过的角度
+	protected float mTotalAngle;			// 总共需要旋转的角度
+	protected bool mClockwise;				// 是否顺时针旋转
 	public CameraLinkerSwitchAroundTarget()
 	{
 		mClockwise = true;
@@ -30,6 +31,16 @@ public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 		mDistanceDelta = getLength(mTargetRelative) - getLength(mOriginRelative);
 		mDistanceCurrent = 0.0f;
 		mRotatedAngle = 0.0f;
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mDistanceCurrent = 0.0f;
+		mDistanceDelta = 0.0f;
+		mRotatedAngle = 0.0f;
+		mTotalAngle = 0.0f;
+		mClockwise = true;
+		mSpeed = HALF_PI_RADIAN;
 	}
 	public override void update(float elapsedTime)
 	{

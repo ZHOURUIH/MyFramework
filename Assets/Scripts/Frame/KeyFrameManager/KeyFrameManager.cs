@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// 关键帧曲线管理器
 public class KeyFrameManager : FrameSystem
 {
-	protected Dictionary<int, MyCurve> mCurveList;
-	protected AssetLoadDoneCallback mKeyframeLoadCallback;
+	protected Dictionary<int, MyCurve> mCurveList;			// 关键帧曲线列表
+	protected AssetLoadDoneCallback mKeyframeLoadCallback;	// 用于避免GC的委托
 	protected bool mAutoLoad;		// 是否在资源可访问时自动加载所有关键帧
 	protected bool mLoaded;			// 资源是否加载完毕
 	public KeyFrameManager()
@@ -57,7 +58,7 @@ public class KeyFrameManager : FrameSystem
 		base.destroy();
 	}
 	public bool isLoadDone() { return mLoaded; }
-	//--------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void createCurve<T>(int curveID) where T : MyCurve, new()
 	{
 		mCurveList.Add(curveID, new T());
@@ -91,7 +92,9 @@ public class KeyFrameManager : FrameSystem
 		for(int i = 0; i < count; ++i)
 		{
 			var curveInfo = gameKeyframe.mCurveList[i];
-			mCurveList[curveInfo.mID] = new UnityCurve(curveInfo.mCurve);
+			var unityCurve = new UnityCurve();
+			unityCurve.setCurve(curveInfo.mCurve);
+			mCurveList[curveInfo.mID] = unityCurve;
 		}
 		destroyGameObject(keyFrameObject);
 		mResourceManager.unloadPath(FrameDefine.R_KEY_FRAME_PATH);

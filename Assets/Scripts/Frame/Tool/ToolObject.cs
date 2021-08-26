@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-// ObjectTools
+// 全部都是对MovableObject的操作,部分Transformable的通用操作在ToolFrame中
 public class OT : FrameBase
 {
-	//--------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 摄像机视角
 	#region 摄像机视角
 	public static void FOV(GameCamera obj, float fov)
@@ -13,7 +13,7 @@ public class OT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdCameraFOV cmd, LOG_LEVEL.LOW);
+		CMD(out CmdGameCameraFOV cmd, LOG_LEVEL.LOW);
 		cmd.mStartFOV = fov;
 		cmd.mTargetFOV = fov;
 		cmd.mOnceLength = 0.0f;
@@ -37,12 +37,12 @@ public class OT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdCameraFOV cmd, LOG_LEVEL.LOW);
+		CMD(out CmdGameCameraFOV cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartFOV = start;
 		cmd.mTargetFOV = target;
-		cmd.mOffset = offset;
+		cmd.mOffsetTime = offset;
 		cmd.mLoop = loop;
 		cmd.mDoingCallback = doingCallBack;
 		cmd.mDoneCallback = doneCallback;
@@ -62,7 +62,7 @@ public class OT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdCameraOrthoSize cmd, LOG_LEVEL.LOW);
+		CMD(out CmdGameCameraOrthoSize cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
 		cmd.mOnceLength = onceLength;
 		cmd.mStartOrthoSize = startFOV;
@@ -74,7 +74,7 @@ public class OT : FrameBase
 		pushCommand(cmd, obj);
 	}
 	#endregion
-	//--------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 显示
 	#region 物体的显示和隐藏
 	public static void ACTIVE(MovableObject obj, bool active = true)
@@ -98,7 +98,7 @@ public class OT : FrameBase
 		return cmd;
 	}
 	#endregion
-	//--------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 时间缩放
 	#region 时间缩放
 	public static void TIME(float scale)
@@ -212,103 +212,7 @@ public class OT : FrameBase
 		return cmd;
 	}
 	#endregion
-	//--------------------------------------------------------------------------------------------------------------------------------------------
-	// 物体音效
-	#region 播放物体音效
-	public static void AUDIO(MovableObject obj)
-	{
-		if (obj == null)
-		{
-			return;
-		}
-		pushCommand<CmdMovableObjectPlayAudio>(obj, LOG_LEVEL.LOW);
-	}
-	public static void AUDIO(MovableObject obj, string sound, bool loop, float volume)
-	{
-		if (obj == null)
-		{
-			return;
-		}
-		if (isEmpty(sound))
-		{
-			logError("sound name must be valid, use void AUDIO(MovableObject obj) to stop sound");
-			return;
-		}
-		CMD(out CmdMovableObjectPlayAudio cmd, LOG_LEVEL.LOW);
-		cmd.mSoundFileName = sound;
-		cmd.mLoop = loop;
-		cmd.mVolume = volume;
-		pushCommand(cmd, obj);
-	}
-	public static void AUDIO(MovableObject obj, int sound, bool loop)
-	{
-		AUDIO(obj, sound, loop, 1.0f, true);
-	}
-	public static void AUDIO(MovableObject obj, int sound, bool loop, float volume)
-	{
-		AUDIO(obj, sound, loop, volume, true);
-	}
-	public static void AUDIO(MovableObject obj, int sound, bool loop, float volume, bool useVolumeCoe)
-	{
-		if (obj == null)
-		{
-			return;
-		}
-		string name = sound != 0 ? mAudioManager.getAudioName(sound) : null;
-		if (isEmpty(name))
-		{
-			logError("sound name must be valid, use void AUDIO(MovableObject obj) to stop sound");
-			return;
-		}
-		CMD(out CmdMovableObjectPlayAudio cmd, LOG_LEVEL.LOW);
-		cmd.mSound = sound;
-		cmd.mLoop = loop;
-		cmd.mVolume = volume;
-		cmd.mUseVolumeCoe = useVolumeCoe;
-		pushCommand(cmd, obj);
-	}
-	public static CmdMovableObjectPlayAudio AUDIO_DELAY(DelayCmdWatcher watcher, MovableObject obj, float delayTime)
-	{
-		if (obj == null)
-		{
-			return null;
-		}
-		return pushDelayCommand<CmdMovableObjectPlayAudio>(watcher, obj, delayTime, LOG_LEVEL.LOW);
-	}
-	public static CmdMovableObjectPlayAudio AUDIO_DELAY(DelayCmdWatcher watcher, MovableObject obj, float delayTime, int sound)
-	{
-		return AUDIO_DELAY(watcher, obj, delayTime, sound, false, 1.0f, true);
-	}
-	public static CmdMovableObjectPlayAudio AUDIO_DELAY(DelayCmdWatcher watcher, MovableObject obj, float delayTime, int sound, float volume)
-	{
-		return AUDIO_DELAY(watcher, obj, delayTime, sound, false, volume, true);
-	}
-	public static CmdMovableObjectPlayAudio AUDIO_DELAY(DelayCmdWatcher watcher, MovableObject obj, float delayTime, int sound, bool loop)
-	{
-		return AUDIO_DELAY(watcher, obj, delayTime, sound, loop, 1.0f, true);
-	}
-	public static CmdMovableObjectPlayAudio AUDIO_DELAY(DelayCmdWatcher watcher, MovableObject obj, float delayTime, int sound, bool loop, float volume, bool useVolumeCoe)
-	{
-		if (obj == null)
-		{
-			return null;
-		}
-		string name = sound != 0 ? mAudioManager.getAudioName(sound) : null;
-		if (isEmpty(name))
-		{
-			logError("sound name must be valid, use CommandMovableObjectPlayAudio AUDIO_DELAY(MovableObject obj, float delayTime) to stop sound");
-			return null;
-		}
-		CMD_DELAY(out CmdMovableObjectPlayAudio cmd, LOG_LEVEL.LOW);
-		cmd.mSound = sound;
-		cmd.mLoop = loop;
-		cmd.mVolume = volume;
-		cmd.mUseVolumeCoe = useVolumeCoe;
-		pushDelayCommand(cmd, obj, delayTime, watcher);
-		return cmd;
-	}
-	#endregion
-	//--------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 透明度
 	#region 透明度
 	public static void ALPHA(MovableObject obj, float alpha = 1.0f)
@@ -442,7 +346,7 @@ public class OT : FrameBase
 		return cmd;
 	}
 	#endregion
-	//--------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 以指定点列表以及时间点的路线设置物体透明度
 	#region 以指定点列表以及时间点的路线设置物体透明度
 	public static void ALPHA_PATH(MovableObject obj)
@@ -547,8 +451,8 @@ public class OT : FrameBase
 		return cmd;
 	}
 	#endregion
-	//--------------------------------------------------------------------------------------------------------------------------------------------
-	// 基础数据类型的渐变
+	//------------------------------------------------------------------------------------------------------------------------------
+	// 基础数据类型的渐变,Tweener的操作由于暂时没有合适的地方放,所以放在这里
 	public static MyTweenerFloat TWEEN_FLOAT(float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return TWEEN_FLOAT_EX(KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
@@ -566,10 +470,10 @@ public class OT : FrameBase
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
 		cmd.mOffset = offset;
-		cmd.mStartAlpha = start;
-		cmd.mTargetAlpha = target;
-		cmd.mTremblingCallBack = doingCallback;
-		cmd.mTrembleDoneCallBack = doneCallback;
+		cmd.mStart = start;
+		cmd.mTarget = target;
+		cmd.mDoingCallBack = doingCallback;
+		cmd.mDoneCallBack = doneCallback;
 		pushCommand(cmd, tweenerFloat);
 		return tweenerFloat;
 	}

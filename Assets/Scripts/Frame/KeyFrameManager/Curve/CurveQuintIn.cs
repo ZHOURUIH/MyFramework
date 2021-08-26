@@ -1,9 +1,10 @@
 ﻿using System;
 using UnityEngine;
 
+// 五次方曲线
 public class CurveQuintIn : MyCurve
 {
-	public override float Evaluate(float time)
+	public override float evaluate(float time)
 	{
 		return time * time * time * time * time;
 	}

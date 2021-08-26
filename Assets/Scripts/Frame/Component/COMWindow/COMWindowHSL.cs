@@ -1,10 +1,11 @@
 ﻿using System;
 using UnityEngine;
 
+// 用于渐变窗口HSL空间颜色的组件
 public class COMWindowHSL : ComponentKeyFrameNormal
 {
-	protected Vector3 mStart;
-	protected Vector3 mTarget;
+	protected Vector3 mStart;		// 起始偏移值
+	protected Vector3 mTarget;		// 目标偏移值
 	public void setStart(Vector3 hsl) { mStart = hsl; }
 	public void setTarget(Vector3 hsl) { mTarget = hsl; }
 	public override void resetProperty()
@@ -13,7 +14,7 @@ public class COMWindowHSL : ComponentKeyFrameNormal
 		mStart = Vector3.zero;
 		mTarget = Vector3.zero;
 	}
-	//------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
 		if(!(mComponentOwner is IShaderWindow))

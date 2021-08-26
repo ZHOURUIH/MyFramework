@@ -12,8 +12,8 @@ public class MathUtility : StringUtility
 	private static int[] mGreaterPow2;
 	private static float[] sin_tb;
 	private static float[] cos_tb;
-	private const int mMaxFFTCount = 1024 * 8;
-	private static Complex[] mComplexList = new Complex[mMaxFFTCount];
+	private const int MAX_FFT_COUNT = 1024 * 8;
+	private static Complex[] mComplexList = new Complex[MAX_FFT_COUNT];
 	public const float TWO_PI_DEGREE = Mathf.PI * Mathf.Rad2Deg * 2.0f;     // 360.0f
 	public const float TWO_PI_RADIAN = Mathf.PI * 2.0f;                     // 6.28f
 	public const float HALF_PI_DEGREE = Mathf.PI * Mathf.Rad2Deg * 0.5f;    // 90.0f
@@ -299,28 +299,26 @@ public class MathUtility : StringUtility
 	{
 		return abs(value - p0) > abs(value - p1) ? p0 : p1;
 	}
+	public static int getCharCount(string str, char c)
+	{
+		int count = 0;
+		int length = str.Length;
+		for (int i = 0; i < length; ++i)
+		{
+			if (str[i] == c)
+			{
+				++count;
+			}
+		}
+		return count;
+	}
 	public static float calculateFloat(string str)
 	{
 		// 判断字符串是否含有非法字符,也就是除数字,小数点,运算符以外的字符
 		checkFloatString(str, "+-*/()");
-		// 判断左右括号数量是否相等
-		int leftBracketCount = 0;
-		int rightBracketCount = 0;
-		int newStrLen = str.Length;
-		for (int i = 0; i < newStrLen; ++i)
+		// 计算错误,左右括号数量不对应
+		if (getCharCount(str, '(') != getCharCount(str, ')'))
 		{
-			if (str[i] == '(')
-			{
-				++leftBracketCount;
-			}
-			else if (str[i] == ')')
-			{
-				++rightBracketCount;
-			}
-		}
-		if (leftBracketCount != rightBracketCount)
-		{
-			// 计算错误,左右括号数量不对应
 			return 0;
 		}
 
@@ -328,84 +326,73 @@ public class MathUtility : StringUtility
 		while (true)
 		{
 			// 先判断有没有括号，如果有括号就先算括号里的,如果没有就退出while循环
-			if (str.IndexOf("(") != -1 || str.IndexOf(")") != -1)
-			{
-				int curpos = str.LastIndexOf("(");
-				string strInBracket = str.Substring(curpos + 1, str.Length - curpos - 1);
-				strInBracket = strInBracket.Substring(0, strInBracket.IndexOf(")"));
-				float ret = calculateFloat(strInBracket);
-				// 如果括号中的计算结果是负数,则标记为负数
-				bool isMinus = false;
-				if (ret < 0)
-				{
-					ret = -ret;
-					isMinus = true;
-				}
-				// 将括号中的计算结果替换原来的表达式,包括括号也一起替换
-				string floatStr = (Math.Round(ret, 4)).ToString();
-				str = replace(str, curpos, curpos + strInBracket.Length + 2, floatStr);
-				byte[] strchar = stringToBytes(str);
-				if (isMinus)
-				{
-					// 如果括号中计算出来是负数,则将负号提取出来,将左边的第一个加减号改为相反的符号
-					bool changeMark = false;
-					for (int i = curpos - 1; i >= 0; --i)
-					{
-						// 找到第一个+号,则直接改为减号,然后退出遍历
-						if (strchar[i] == '+')
-						{
-							strchar[i] = (byte)'-';
-							str = bytesToString(strchar);
-							changeMark = true;
-							break;
-						}
-						// 找到第一个减号,如果减号的左边有数字,则直接改为+号
-						// 如果减号的左边不是数字,则该减号是负号,将减号去掉,
-						else if (strchar[i] == '-')
-						{
-							if (strchar[i - 1] >= '0' && strchar[i - 1] <= '9')
-							{
-								strchar[i] = (byte)'+';
-								str = bytesToString(strchar);
-							}
-							else
-							{
-								str = str.Remove(i, 1);
-							}
-							changeMark = true;
-							break;
-						}
-					}
-					// 如果遍历完了还没有找到可以替换的符号,则在表达式最前面加一个负号
-					if (!changeMark)
-					{
-						str = "-" + str;
-					}
-				}
-			}
-			else
+			if (str.IndexOf('(') == -1 && str.IndexOf(')') == -1)
 			{
 				break;
+			}
+			int curPos = str.LastIndexOf('(');
+			string strInBracket = str.Substring(curPos + 1);
+			strInBracket = strInBracket.Substring(0, strInBracket.IndexOf(')'));
+			float ret = calculateFloat(strInBracket);
+			// 如果括号中的计算结果是负数,则标记为负数
+			bool isMinus = ret < 0;
+			ret = abs(ret);
+			// 将括号中的计算结果替换原来的表达式,包括括号也一起替换
+			str = replace(str, curPos, curPos + strInBracket.Length + 2, Math.Round(ret, 4).ToString());
+			if (isMinus)
+			{
+				// 如果括号中计算出来是负数,则将负号提取出来,将左边的第一个加减号改为相反的符号
+				bool changeMark = false;
+				for (int i = curPos - 1; i >= 0; --i)
+				{
+					// 找到第一个+号,则直接改为减号,然后退出遍历
+					if (str[i] == '+')
+					{
+						replace(str, i, i + 1, "-");
+						changeMark = true;
+						break;
+					}
+					// 找到第一个减号,如果减号的左边有数字,则直接改为+号
+					// 如果减号的左边不是数字,则该减号是负号,将减号去掉,
+					else if (str[i] == '-')
+					{
+						if (isNumeric(str[i - 1]))
+						{
+							replace(str, i, i + 1, "+");
+						}
+						else
+						{
+							str = str.Remove(i, 1);
+						}
+						changeMark = true;
+						break;
+					}
+				}
+				// 如果遍历完了还没有找到可以替换的符号,则在表达式最前面加一个负号
+				if (!changeMark)
+				{
+					str = "-" + str;
+				}
 			}
 		}
 		List<float> numbers = new List<float>();
 		List<char> factors = new List<char>();
 		// 表示上一个运算符的下标+1
-		int beginpos = 0;
+		int beginPos = 0;
 		for (int i = 0; i < str.Length; ++i)
 		{
 			// 遍历到了最后一个字符,则直接把最后一个数字放入列表,然后退出循环
 			if (i == str.Length - 1)
 			{
-				numbers.Add(SToF(str.Substring(beginpos, str.Length - beginpos)));
+				numbers.Add(SToF(str.Substring(beginPos)));
 				break;
 			}
 			// 找到第一个运算符
-			if ((str[i] < '0' || str[i] > '9') && str[i] != '.')
+			if (!isNumeric(str[i]) && str[i] != '.')
 			{
 				if (i != 0)
 				{
-					numbers.Add(SToF(str.Substring(beginpos, i - beginpos)));
+					numbers.Add(SToF(str.Substring(beginPos, i - beginPos)));
 				}
 				// 如果在表达式的开始就发现了运算符,则表示第一个数是负数,那就处理为0减去这个数的绝对值
 				else
@@ -413,7 +400,7 @@ public class MathUtility : StringUtility
 					numbers.Add(0);
 				}
 				factors.Add(str[i]);
-				beginpos = i + 1;
+				beginPos = i + 1;
 			}
 		}
 		if (factors.Count + 1 != numbers.Count)
@@ -692,15 +679,6 @@ public class MathUtility : StringUtility
 		// o在np上的投影点即为交点
 		return getProjectPoint(o, new Line3(p, p + n));
 	}
-	// 该算法是网上找的,计算结果与上面的函数一致
-	//public static Vector3 getProjectionOnPlane(Vector3 o, Vector3 n, Vector3 p)
-	//{
-	//	Vector3 projection = Vector3.zero;
-	//	projection.x = (n.x * n.y * o.y + n.y * n.y * p.x - n.x * n.y * p.y + n.x * n.z * o.z + n.z * n.z * p.x - n.x * n.z* p.z + n.x * n.x * o.x) / (n.x * n.x + n.y * n.y + n.z * n.z);
-	//	projection.y = (n.y * n.z * o.z + n.z * n.z * p.y - n.y * n.z * p.z + n.y * n.x * o.x + n.x * n.x * p.y - n.x * n.y* p.x + n.y * n.y * o.y) / (n.x * n.x + n.y * n.y + n.z * n.z);
-	//	projection.z = (n.x * o.x * n.z + n.x * n.x * p.z - n.x * p.x * n.z + n.y * o.y * n.z + n.y * n.y * p.z - n.y * p.y* n.z + n.z * n.z * o.z) / (n.x * n.x + n.y * n.y + n.z * n.z);
-	//	return projection;
-	//}
 	// 判断两个点是否在线同一边
 	public static bool isSameSidePoint(Line2 line, Vector2 point0, Vector2 point1)
 	{
@@ -720,7 +698,7 @@ public class MathUtility : StringUtility
 		}
 		normalize(ref v0);
 		normalize(ref v1);
-		//两个向量方向相反则为在线段上,同向则交点不在线段上
+		// 两个向量方向相反则为在线段上,同向则交点不在线段上
 		return isVectorZero(v0 + v1);
 	}
 	// 直线与圆的相交检测
@@ -1028,7 +1006,7 @@ public class MathUtility : StringUtility
 		Vector2 point = Vector2.zero;
 		Vector2 linePoint0 = Vector2.zero;
 		Vector2 linePoint1 = Vector2.zero;
-		float closestDistance = 99999.0f * 99999.0f;
+		float closestDistance = float.MaxValue;
 		// 与第一条边相交
 		if (result0)
 		{
@@ -1074,7 +1052,7 @@ public class MathUtility : StringUtility
 	public static bool intersectLineTriangle(Line2 line, Triangle2 triangle, out Vector2 intersectPoint)
 	{
 		Vector2 lineDir = normalize(line.mEnd - line.mStart);
-		bool ret = intersectRayTriangle(line.mStart, lineDir, triangle.mPoint0, triangle.mPoint1, triangle.mPoint2, out float t, out float u, out float v);
+		bool ret = intersectRayTriangle(line.mStart, lineDir, triangle.mPoint0, triangle.mPoint1, triangle.mPoint2, out float t, out _, out _);
 		if(ret)
 		{
 			intersectPoint = line.mStart + lineDir * t;
@@ -1501,23 +1479,23 @@ public class MathUtility : StringUtility
 	public static void getPosOnArc(Vector3 circleCenter, Vector3 startArcPos, Vector3 endArcPos, float anglePercent, out Vector3 pos, out Vector3 tangencyDir)
 	{
 		float radius = getLength(startArcPos - circleCenter);
-		Vector3 relativeStart = startArcPos - circleCenter;
-		Vector3 relativeEnd = endArcPos - circleCenter;
+		Vector3 start = startArcPos - circleCenter;
+		Vector3 end = endArcPos - circleCenter;
 		saturate(ref anglePercent);
 		// 首先判断从起始半径线段到终止半径线段的角度的正负
-		float angleBetween = getAngleFromVector2ToVector2(new Vector2(relativeStart.x, relativeStart.z), new Vector2(relativeEnd.x, relativeEnd.z));
+		float angleBetween = getAngleFromVector2ToVector2(new Vector2(start.x, start.z), new Vector2(end.x, end.z));
 		if (isFloatZero(angleBetween))
 		{
-			pos = normalize(relativeStart) * radius;
+			pos = normalize(start) * radius;
 			tangencyDir = normalize(rotateVector3(-pos, HALF_PI_RADIAN));
 		}
 		// 根据夹角的正负,判断应该顺时针还是逆时针旋转起始半径线段
 		else
 		{
-			pos = normalize(rotateVector3(relativeStart, anglePercent * angleBetween)) * radius;
+			pos = normalize(rotateVector3(start, anglePercent * angleBetween)) * radius;
 			// 计算切线,如果顺时针计算出的切线与从起始点到终止点所成的角度大于90度,则使切线反向
 			tangencyDir = normalize(rotateVector3(-pos, HALF_PI_RADIAN));
-			Vector3 posToEnd = relativeEnd - pos;
+			Vector3 posToEnd = end - pos;
 			if (abs(getAngleFromVector2ToVector2(new Vector2(tangencyDir.x, tangencyDir.z), new Vector2(posToEnd.x, posToEnd.z))) > HALF_PI_RADIAN)
 			{
 				tangencyDir = -tangencyDir;
@@ -1599,13 +1577,6 @@ public class MathUtility : StringUtility
 	}
 	public static Vector3 setLength(Vector3 vec, float length) { return normalize(vec) * length; }
 	public static void setLength(ref Vector3 vec, float length) { vec = normalize(vec) * length; }
-	public static Vector3 getMatrixScale(Matrix4x4 mat)
-	{
-		Vector3 vec0 = new Vector3(mat.m00, mat.m01, mat.m02);
-		Vector3 vec1 = new Vector3(mat.m10, mat.m11, mat.m12);
-		Vector3 vec2 = new Vector3(mat.m20, mat.m21, mat.m22);
-		return new Vector3(getLength(vec0), getLength(vec1), getLength(vec2));
-	}
 	// 将矩阵的缩放设置为1,并且不改变位移和旋转
 	public static Matrix4x4 identityMatrix4(Matrix4x4 rot)
 	{
@@ -2522,9 +2493,9 @@ public class MathUtility : StringUtility
 	// 由于使用了静态成员变量,所以不能在多线程中调用该函数
 	public static void getFrequencyZone(short[] pcmData, int dataCount, short[] frequencyList)
 	{
-		if (dataCount > mMaxFFTCount)
+		if (dataCount > MAX_FFT_COUNT)
 		{
-			UnityUtility.logError("pcm data count is too many, data count : " + dataCount + ", max count : " + mMaxFFTCount);
+			UnityUtility.logError("pcm data count is too many, data count : " + dataCount + ", max count : " + MAX_FFT_COUNT);
 			return;
 		}
 		for (int i = 0; i < dataCount; ++i)
@@ -2535,107 +2506,6 @@ public class MathUtility : StringUtility
 		for (int i = 0; i < dataCount; ++i)
 		{
 			frequencyList[i] = (short)sqrt(mComplexList[i].mReal * mComplexList[i].mReal + mComplexList[i].mImg * mComplexList[i].mImg);
-		}
-	}
-	/*
-	* FFT Algorithm
-	* === Inputs ===
-	* x : complex numbers
-	* N : nodes of FFT. @N should be power of 2, that is 2^(*)
-	* === Output ===
-	* the @x contains the result of FFT algorithm, so the original data
-	* in @x is destroyed, please store them before using FFT.
-	*/
-	protected static void fft(Complex[] x, int count)
-	{
-		int i, j, k;
-		float sR, sI, uR, uI;
-		Complex tempComplex = new Complex();
-
-		/*
-		* bit reversal sorting
-		*/
-		int l = count >> 1;
-		j = l;
-		int forCount = count - 2;
-		for (i = 1; i <= forCount; ++i)
-		{
-			if (i < j)
-			{
-				tempComplex = x[j];
-				x[j] = x[i];
-				x[i] = tempComplex;
-			}
-			k = l;
-			while (k <= j)
-			{
-				j -= k;
-				k >>= 1;
-			}
-			j += k;
-		}
-
-		/*
-		* For Loops
-		*/
-		int dftForCount = count - 1;
-		int le = 1;
-		int halfLe;
-		int M = (int)(Mathf.Log(count) / Mathf.Log(2));
-		int ip;
-		for (l = 0; l < M; ++l)
-		{
-			// 在le左移1位之前保存值,也就是左移以后的值的一半
-			halfLe = le;
-			le <<= 1;
-			uR = 1;
-			uI = 0;
-			sR = cos_tb[l];
-			sI = -sin_tb[l];
-			for (j = 0; j < halfLe; ++j)
-			{
-				/* loop for each sub DFT */
-				for (i = j; i <= dftForCount; i += le)
-				{
-					/* loop for each butterfly */
-					ip = i + halfLe;
-					tempComplex.mReal = x[ip].mReal * uR - x[ip].mImg * uI;
-					tempComplex.mImg = x[ip].mReal * uI + x[ip].mImg * uR;
-					x[ip] = x[i] - tempComplex;
-					x[i] += tempComplex;
-				}
-				tempComplex.mReal = uR;
-				uR = tempComplex.mReal * sR - uI * sI;
-				uI = tempComplex.mReal * sI + uI * sR;
-			}
-		}
-	}
-
-	/*
-	* Inverse FFT Algorithm
-	* === Inputs ===
-	* x : complex numbers
-	* N : nodes of FFT. @N should be power of 2, that is 2^(*)
-	* === Output ===
-	* the @x contains the result of FFT algorithm, so the original data
-	* in @x is destroyed, please store them before using FFT.
-	*/
-	protected static void ifft(Complex[] x, int count)
-	{
-		if(count == 0)
-		{
-			return;
-		}
-		for (int k = 0; k <= count - 1; ++k)
-		{
-			x[k].mImg = -x[k].mImg;
-		}
-		fft(x, count);
-		float inverseCount = 1.0f / count;
-		for (int k = 0; k <= count - 1; ++k)
-		{
-			x[k].mReal = x[k].mReal * inverseCount;
-			x[k].mImg = -x[k].mImg * inverseCount;
 		}
 	}
 	public static void secondToMinuteSecond(int seconds, out int outMin, out int outSec)
@@ -2738,7 +2608,6 @@ public class MathUtility : StringUtility
 					extraPoints[2 * i + 0] = originPoint[i] + (midPoints[i - 1] - midinmid) * scale;
 					// 朝 originPoint[i]方向收缩
 					extraPoints[2 * i + 1] = originPoint[i] + (midPoints[i] - midinmid) * scale;
-
 				}
 			}
 			else
@@ -2780,33 +2649,6 @@ public class MathUtility : StringUtility
 		TimeSpan timeForm19700101 = DateTime.Now - new DateTime(1970, 1, 1);
 		uint halfIntMS = (uint)((ulong)timeForm19700101.TotalMilliseconds % 0x7FFFFFFF);
 		return halfIntMS + (uint)randomInt(0, 0x7FFFFFFF);
-	}
-	protected static float HueToRGB(float v1, float v2, float vH)
-	{
-		if (vH < 0.0f)
-		{
-			vH += 1.0f;
-		}
-		if (vH > 1.0f)
-		{
-			vH -= 1.0f;
-		}
-		if (6.0f * vH < 1.0f)
-		{
-			return v1 + (v2 - v1) * 6.0f * vH;
-		}
-		else if (2.0f * vH < 1.0f)
-		{
-			return v2;
-		}
-		else if (3.0f * vH < 2.0f)
-		{
-			return v1 + (v2 - v1) * (0.667f - vH) * 6.0f;
-		}
-		else
-		{
-			return v1;
-		}
 	}
 	// rgb转换为色相(H),饱和度(S),亮度(L)
 	// HSL和RGB的范围都是0-1
@@ -2866,9 +2708,9 @@ public class MathUtility : StringUtility
 		float H = hsl.x;
 		float S = hsl.y;
 		float L = hsl.z;
-		if (S == 0.0)                       //HSL from 0 to 1
+		if (S == 0.0)                       // HSL from 0 to 1
 		{
-			rgb.x = L;              //RGB results from 0 to 255
+			rgb.x = L;              // RGB results from 0 to 255
 			rgb.y = L;
 			rgb.z = L;
 		}
@@ -3025,7 +2867,7 @@ public class MathUtility : StringUtility
 					// 如果不在开启列表里,则加入开启列表
 					else
 					{
-						//计算G值, H值，F值，并设置这些节点的父节点
+						// 计算G值, H值，F值，并设置这些节点的父节点
 						curNode.mParent = parentNode.mIndex;
 						curNode.mG = G1;
 						curNode.mH = (abs(dirList[i].x - end.x) + abs(dirList[i].y - end.y)) * 10;
@@ -3073,7 +2915,7 @@ public class MathUtility : StringUtility
 	{
 		quickSort(arr, 0, arr.Count - 1, ascend);
 	}
-	//------------------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 可以通过comparison自己决定升序还是降序,所以不再需要额外的参数
 	protected static void quickSort<T>(List<T> arr, int low, int high, Comparison<T> comparison)
 	{
@@ -3183,6 +3025,134 @@ public class MathUtility : StringUtility
 		for (int i = 0; i < mComplexList.Length; ++i)
 		{
 			mComplexList[i] = new Complex();
+		}
+	}
+	/*
+	* FFT Algorithm
+	* === Inputs ===
+	* x : complex numbers
+	* N : nodes of FFT. @N should be power of 2, that is 2^(*)
+	* === Output ===
+	* the @x contains the result of FFT algorithm, so the original data
+	* in @x is destroyed, please store them before using FFT.
+	*/
+	protected static void fft(Complex[] x, int count)
+	{
+		int i, j, k;
+		float sR, sI, uR, uI;
+		Complex tempComplex = new Complex();
+
+		/*
+		* bit reversal sorting
+		*/
+		int l = count >> 1;
+		j = l;
+		int forCount = count - 2;
+		for (i = 1; i <= forCount; ++i)
+		{
+			if (i < j)
+			{
+				tempComplex = x[j];
+				x[j] = x[i];
+				x[i] = tempComplex;
+			}
+			k = l;
+			while (k <= j)
+			{
+				j -= k;
+				k >>= 1;
+			}
+			j += k;
+		}
+
+		/*
+		* For Loops
+		*/
+		int dftForCount = count - 1;
+		int le = 1;
+		int halfLe;
+		int M = (int)(Mathf.Log(count) / Mathf.Log(2));
+		int ip;
+		for (l = 0; l < M; ++l)
+		{
+			// 在le左移1位之前保存值,也就是左移以后的值的一半
+			halfLe = le;
+			le <<= 1;
+			uR = 1;
+			uI = 0;
+			sR = cos_tb[l];
+			sI = -sin_tb[l];
+			for (j = 0; j < halfLe; ++j)
+			{
+				/* loop for each sub DFT */
+				for (i = j; i <= dftForCount; i += le)
+				{
+					/* loop for each butterfly */
+					ip = i + halfLe;
+					tempComplex.mReal = x[ip].mReal * uR - x[ip].mImg * uI;
+					tempComplex.mImg = x[ip].mReal * uI + x[ip].mImg * uR;
+					x[ip] = x[i] - tempComplex;
+					x[i] += tempComplex;
+				}
+				tempComplex.mReal = uR;
+				uR = tempComplex.mReal * sR - uI * sI;
+				uI = tempComplex.mReal * sI + uI * sR;
+			}
+		}
+	}
+
+	/*
+	* Inverse FFT Algorithm
+	* === Inputs ===
+	* x : complex numbers
+	* N : nodes of FFT. @N should be power of 2, that is 2^(*)
+	* === Output ===
+	* the @x contains the result of FFT algorithm, so the original data
+	* in @x is destroyed, please store them before using FFT.
+	*/
+	protected static void ifft(Complex[] x, int count)
+	{
+		if (count == 0)
+		{
+			return;
+		}
+		for (int k = 0; k <= count - 1; ++k)
+		{
+			x[k].mImg = -x[k].mImg;
+		}
+		fft(x, count);
+		float inverseCount = 1.0f / count;
+		for (int k = 0; k <= count - 1; ++k)
+		{
+			x[k].mReal = x[k].mReal * inverseCount;
+			x[k].mImg = -x[k].mImg * inverseCount;
+		}
+	}
+	protected static float HueToRGB(float v1, float v2, float vH)
+	{
+		if (vH < 0.0f)
+		{
+			vH += 1.0f;
+		}
+		if (vH > 1.0f)
+		{
+			vH -= 1.0f;
+		}
+		if (6.0f * vH < 1.0f)
+		{
+			return v1 + (v2 - v1) * 6.0f * vH;
+		}
+		else if (2.0f * vH < 1.0f)
+		{
+			return v2;
+		}
+		else if (3.0f * vH < 2.0f)
+		{
+			return v1 + (v2 - v1) * (0.667f - vH) * 6.0f;
+		}
+		else
+		{
+			return v1;
 		}
 	}
 }

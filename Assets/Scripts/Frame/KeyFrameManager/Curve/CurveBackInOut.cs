@@ -1,9 +1,10 @@
 ﻿using System;
 using UnityEngine;
 
+// 倒退曲线
 public class CurveBackInOut : MyCurve
 {
-	public override float Evaluate(float time)
+	public override float evaluate(float time)
 	{
 		time *= 2.0f;
 		float overshootOrAmplitude = mOvershootOrAmplitude * 1.525f;

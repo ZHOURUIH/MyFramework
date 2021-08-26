@@ -23,6 +23,16 @@ public class UGUILine : FrameBase
 		mMeshRenderer = mObject.GetComponent<MeshRenderer>();
 		mMesh = mObject.GetComponent<MeshFilter>().mesh;
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mPointList.Clear();
+		mMeshRenderer = null;
+		mTransform = null;
+		mObject = null;
+		mMesh = null;
+		mWidth = 10.0f;
+	}
 	public virtual void destroy()
 	{
 		mMesh.Clear();

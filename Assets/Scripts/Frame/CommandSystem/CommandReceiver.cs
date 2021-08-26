@@ -1,8 +1,9 @@
 ﻿using System;
 
+// 命令接收者基类,只有命令接收者的子类可以接收命令
 public class CommandReceiver : FrameBase
 {
-	protected string mName;
+	protected string mName;		// 接收者名字
 	public override void resetProperty()
 	{
 		base.resetProperty();

@@ -3,9 +3,10 @@ using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 
+// 封装的UGUI的Dropdown下拉列表
 public class myUGUIDropdown : myUGUIObject
 {
-	protected Dropdown mDropdown;
+	protected Dropdown mDropdown;	// UGUI的Dropdown组件
 	public override void init()
 	{
 		base.init();

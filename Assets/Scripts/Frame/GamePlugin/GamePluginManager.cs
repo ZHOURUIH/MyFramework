@@ -5,7 +5,7 @@ using System.Reflection;
 // 插件后缀为plugin,插件依赖的库在编辑器模式下需要放到Plugins中,打包后放到Managed中
 public class GamePluginManager : FrameSystem
 {
-	protected Dictionary<string, IGamePlugin> mPluginList;
+	protected Dictionary<string, IGamePlugin> mPluginList;		// 已加载的插件列表
 	public GamePluginManager()
 	{
 		mPluginList = new Dictionary<string, IGamePlugin>();
@@ -36,7 +36,7 @@ public class GamePluginManager : FrameSystem
 		mPluginList.Clear();
 		base.destroy();
 	}
-	//-----------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void loadAllPlugin()
 	{
 #if UNITY_STANDALONE_WIN

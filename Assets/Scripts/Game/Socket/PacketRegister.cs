@@ -2,24 +2,20 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class PacketRegister : GameBase
+public class PacketRegister : FrameBase
 {
 	public static void registeAllPacket()
 	{
 		// 注册所有消息
-		// 控制端->服务器
-		int preCount = mSocketTypeManager.getPacketTypeCount();
+		// 客户端->服务器
 		registePacket<CSDemo>(PACKET_TYPE.CS_DEMO);
-		mSocketTypeManager.checkRegisteCount(PACKET_TYPE.CS_MAX - PACKET_TYPE.CS_MIN - 1, preCount, "CS");
 
-		// 服务器->控制端
-		preCount = mSocketTypeManager.getPacketTypeCount();
+		// 服务器->客户端
 		registePacket<SCDemo>(PACKET_TYPE.SC_DEMO);
-		mSocketTypeManager.checkRegisteCount(PACKET_TYPE.SC_MAX - PACKET_TYPE.SC_MIN - 1, preCount, "SC");
 	}
 	//-----------------------------------------------------------------------------------------------------------------------
-	protected static void registePacket<T>(ushort type) where T : SocketPacket
+	protected static void registePacket<T>(ushort type) where T : NetPacketTCPFrame
 	{
-		mSocketTypeManager.registePacket(Typeof<T>(), type);
+		mNetPacketTypeManager.registePacket(Typeof<T>(), type);
 	}
 }

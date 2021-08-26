@@ -18,7 +18,7 @@ public class GameKeyframe : MonoBehaviour
 {
 	[HideInInspector]
 	public List<CurveInfo> mCurveList;
-	public AnimationCurve CreateKeyframe()
+	public AnimationCurve createKeyframe()
 	{
 		if (mCurveList == null)
 		{
@@ -36,7 +36,7 @@ public class GameKeyframe : MonoBehaviour
 		mCurveList.Sort((CurveInfo x, CurveInfo y) => { return MathUtility.sign(x.mID - y.mID); });
 		return curve;
 	}
-	public void DestroyKeyframe(CurveInfo info)
+	public void destroyKeyframe(CurveInfo info)
 	{
 		mCurveList?.Remove(info);
 	}

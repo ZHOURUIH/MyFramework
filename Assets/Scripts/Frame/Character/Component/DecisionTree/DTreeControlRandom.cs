@@ -28,5 +28,4 @@ public class DTreeControlRandom : DTreeControl
 		UN_LIST(availableChildList);
 		UN_LIST(oddsList);
 	}
-	//--------------------------------------------------------------------------------------------------------------
 }

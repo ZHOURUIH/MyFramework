@@ -1,12 +1,12 @@
 ﻿#if !UNITY_EDITOR
 using System;
 
+// 用于将日志写入到本地文件
 public class LocalLog : FrameBase
 {
-	protected MyThread mWriteLogThread;
-	// 日志双缓冲,使用双缓冲可以快速进行前后台切换,避免数据同步时出现耗时操作
-	protected DoubleBuffer<string> mLogBufferList;
-	protected string mLogFilePath;
+	protected MyThread mWriteLogThread;				// 写文件的线程
+	protected DoubleBuffer<string> mLogBufferList;	// 日志双缓冲,使用双缓冲可以快速进行前后台切换,避免数据同步时出现耗时操作
+	protected string mLogFilePath;					// 文件路径
 	public LocalLog()
 	{
 		mLogBufferList = new DoubleBuffer<string>();
@@ -32,9 +32,9 @@ public class LocalLog : FrameBase
 	public void log(string info)
 	{
 		// 将日志保存到当前缓冲中
-		//mLogBufferList.add(info);
+		// mLogBufferList.add(info);
 	}
-	//-----------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void writeLocalLog(BOOL run)
 	{
 		// 将当前写入缓冲区中的内容写入文件
@@ -42,18 +42,18 @@ public class LocalLog : FrameBase
 	}
 	protected void writeLogToFile()
 	{
-		//var readList = mLogBufferList.get();
-		//int count = readList.Count;
-		//if (count > 0)
-		//{
-		//	MyStringBuilder totalString = STRING_THREAD();
-		//	for (int i = 0; i < count; ++i)
-		//	{
-		//		totalString.Append(readList[i], "\r\n");
-		//	}
-		//	writeTxtFile(mLogFilePath, END_STRING_THREAD(totalString), true);
-		//}
-		//readList.Clear();
+		// var readList = mLogBufferList.get();
+		// int count = readList.Count;
+		// if (count > 0)
+		// {
+		// 	MyStringBuilder totalString = STRING_THREAD();
+		// 	for (int i = 0; i < count; ++i)
+		// 	{
+		// 		totalString.Append(readList[i], "\r\n");
+		// 	}
+		// 	writeTxtFile(mLogFilePath, END_STRING_THREAD(totalString), true);
+		// }
+		// readList.Clear();
 	}
 }
 #endif

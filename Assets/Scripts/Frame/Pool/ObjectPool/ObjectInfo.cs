@@ -6,7 +6,7 @@ public class ObjectInfo : FrameBase
 {
 	public GameObject mObject;
 	public string mFileWithPath;
-	public int mTag;
+	public int mTag;				// 物体的标签,外部给物体添加标签后,方便统一对指定标签的物体进行销毁,从而不用指定具体的实例或名字
 	public bool mUsing;
 	public bool isUsing() { return mUsing; }
 	public void setUsing(bool value) { mUsing = value; }

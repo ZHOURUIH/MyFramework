@@ -1,9 +1,10 @@
 ﻿using System;
 
+// UI的透明度变化组件
 public class COMWindowAlpha : ComponentKeyFrameNormal, IComponentModifyAlpha
 {
-	protected float mStart;
-	protected float mTarget;
+	protected float mStart;		// 起始透明度
+	protected float mTarget;	// 目标透明度
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -12,7 +13,7 @@ public class COMWindowAlpha : ComponentKeyFrameNormal, IComponentModifyAlpha
 	}
 	public void setStart(float alpha) { mStart = alpha; }
 	public void setTarget(float alpha) { mTarget = alpha; }
-	//------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
 		var obj = mComponentOwner as myUIObject;

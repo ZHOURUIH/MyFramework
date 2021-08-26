@@ -1,9 +1,10 @@
 ﻿using System;
 
+// 渐变UI滑动条值的组件
 public class COMWindowSlider : ComponentKeyFrameNormal
 {
-	protected float mStart;   // 移动开始时的位置
-	protected float mTarget;
+	protected float mStart;		// 起始值
+	protected float mTarget;	// 目标值
 	public void setTarget(float value) { mTarget = value; }
 	public void setStart(float value) { mStart = value; }
 	public override void resetProperty()
@@ -12,7 +13,7 @@ public class COMWindowSlider : ComponentKeyFrameNormal
 		mStart = 0.0f;
 		mTarget = 0.0f;
 	}
-	//-----------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
 		if(!(mComponentOwner is ISlider))

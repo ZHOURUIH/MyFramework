@@ -1,12 +1,12 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
 using System;
+using UnityEngine.Events;
 
+// 对UGUI的Slider组件的封装
 public class myUGUISlider : myUGUIObject, ISlider
 {
-	protected Slider mSlider;
-	protected Action<float> onValueChangeCallBack;
+	protected Slider mSlider;	// UGUI的Slider组件
 	public override void init()
 	{
 		base.init();
@@ -29,7 +29,9 @@ public class myUGUISlider : myUGUIObject, ISlider
 		mSlider.maxValue = max;
 		mSlider.minValue = min;
 	}
+	public void setSliderCallback(UnityAction<float> callback) { mSlider.onValueChanged.AddListener(callback); }
 	public void setValue(float value) { mSlider.value = value; }
 	public float getValue() { return mSlider.value; }
 	public void setFillRect(myUGUIObject obj) { mSlider.fillRect = obj.getRectTransform(); }
+	public void setHandleRect(myUGUIObject obj) { mSlider.handleRect = obj.getRectTransform(); }
 }

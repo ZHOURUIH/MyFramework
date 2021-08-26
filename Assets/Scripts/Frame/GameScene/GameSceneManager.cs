@@ -2,10 +2,11 @@
 using System;
 using System.Collections.Generic;
 
+// 逻辑场景管理器
 public class GameSceneManager : FrameSystem
 {
-	protected List<GameScene> mLastSceneList;
-	protected GameScene mCurScene;
+	protected List<GameScene> mLastSceneList;		// 上一个场景的列表,用于在update中延迟销毁上一个场景
+	protected GameScene mCurScene;					// 当前场景
 	public GameSceneManager()
 	{
 		mLastSceneList = new List<GameScene>();
@@ -37,7 +38,7 @@ public class GameSceneManager : FrameSystem
 		}
 		return true;
 	}
-    public override void update(float elapsedTime)
+	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
 		// 如果上一个场景不为空,则将上一个场景销毁

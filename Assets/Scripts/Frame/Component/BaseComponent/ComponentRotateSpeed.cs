@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 
+// 按速度旋转的组件
 public class ComponentRotateSpeed : GameComponent, IComponentModifyRotation, IComponentBreakable
 {
-	public PLAY_STATE mPlayState;
+	public PLAY_STATE mPlayState;				// 播放状态
 	public Vector3 mRotateAcceleration;			// 旋转加速度
 	public Vector3 mRotateSpeed;				// 欧拉角旋转速度
-	public Vector3 mCurRotation;
+	public Vector3 mCurRotation;				// 当前旋转值
 	public ComponentRotateSpeed()
 	{
 		mPlayState = PLAY_STATE.STOP;
@@ -66,7 +67,7 @@ public class ComponentRotateSpeed : GameComponent, IComponentModifyRotation, ICo
 	}
 	public PLAY_STATE getPlayState() { return mPlayState; }
 	public void notifyBreak(){}
-	//--------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected virtual void applyRotation(ref Vector3 rotation) { }
 	protected virtual Vector3 getCurRotation() { return Vector3.zero; }
 }

@@ -1,28 +1,27 @@
 ﻿using UnityEngine;
 
+// 关键帧组件基类
 public class ComponentKeyFrame : GameComponent, IComponentBreakable
 {
 	// 用于设置的参数
-	protected KeyFrameCallback mDoingCallback;
-	protected KeyFrameCallback mDoneCallback;
-	protected MyCurve mKeyFrame;    // 当前使用的关键帧
-	protected float mPlayLength;	// 小于0表示无限播放, 大于0表示播放length时长
-	protected float mStopValue;		// 当组件停止时,需要应用的关键帧值
-	protected float mOnceLength;    // 关键帧长度默认为1秒
-	protected float mOffset;
-	protected int mKeyframeID;
-	protected bool mFullOnce;
-	protected bool mLoop;
-	//---------------------------------------------------------------------------------------------------------------------------------------
+	protected KeyFrameCallback mDoingCallback;	// 变化中回调
+	protected KeyFrameCallback mDoneCallback;	// 变化完成时回调
+	protected MyCurve mKeyFrame;				// 当前使用的关键帧
+	protected float mPlayLength;				// 小于0表示无限播放, 大于0表示播放length时长
+	protected float mStopValue;					// 当组件停止时,需要应用的关键帧值
+	protected float mOnceLength;				// 关键帧长度默认为1秒
+	protected float mOffset;					// 起始的时间偏移
+	protected int mKeyframeID;					// 关键帧曲线ID
+	protected bool mLoop;						// 是否循环
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 用于实时计算的参数
-	protected float mCurrentTime;       // 从上一次从头开始播放到现在的时长
-	protected float mPlayedTime;        // 本次震动已经播放的时长,从上一次开始播放到现在的累计时长
-	protected float mCurValue;
-	protected PLAY_STATE mPlayState;
+	protected float mCurrentTime;				// 从上一次从头开始播放到现在的时长
+	protected float mPlayedTime;				// 本次震动已经播放的时长,从上一次开始播放到现在的累计时长
+	protected float mCurValue;					// 当前曲线上的取值
+	protected PLAY_STATE mPlayState;			// 播放状态
 	public ComponentKeyFrame()
 	{
 		mLoop = true;
-		mFullOnce = true;
 		mOnceLength = 1.0f;
 		mPlayState = PLAY_STATE.STOP;
 	}
@@ -37,7 +36,6 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 		mOnceLength = 1.0f;
 		mOffset = 0.0f;
 		mKeyframeID = 0;
-		mFullOnce = true;
 		mLoop = true;
 		mCurrentTime = 0.0f;
 		mPlayedTime = 0.0f;
@@ -52,7 +50,7 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 			stop();
 		}
 	}
-	public virtual void play(int keyframe, bool loop, float onceLength, float offset, bool fullOnce)
+	public virtual void play(int keyframe, bool loop, float onceLength, float offset)
 	{
 		if (!isActive())
 		{
@@ -74,7 +72,7 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 		}
 		else
 		{
-			mStopValue = mKeyFrame.Evaluate(mKeyFrame.getLength());
+			mStopValue = mKeyFrame.evaluate(mKeyFrame.getLength());
 		}
 		if (offset > onceLength)
 		{
@@ -92,14 +90,7 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 		}
 		else
 		{
-			if (fullOnce)
-			{
-				mPlayLength = mOnceLength;
-			}
-			else
-			{
-				mPlayLength = mOnceLength - offset;
-			}
+			mPlayLength = mOnceLength - offset;
 		}
 		update(0.0f);
 	}
@@ -129,7 +120,7 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 		}
 		if (state == PLAY_STATE.PLAY)
 		{
-			play(mKeyframeID, mLoop, mOnceLength, mOffset, mFullOnce);
+			play(mKeyframeID, mLoop, mOnceLength, mOffset);
 		}
 		else if (state == PLAY_STATE.STOP)
 		{
@@ -157,26 +148,24 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 		setDoingCallback(null);
 		setDoneCallback(null);
 	}
-	//--------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 获得成员变量
 	public bool isLoop() { return mLoop; }
 	public float getOnceLength() { return mOnceLength; }
 	public float getOffset() { return mOffset; }
-	public bool isFullOnce() { return mFullOnce; }
 	public PLAY_STATE getState() { return mPlayState; }
 	public float getCurrentTime() { return mCurrentTime; }
 	public MyCurve getKeyFrame() { return mKeyFrame; }
 	public int getKeyframeID() { return mKeyframeID; }
 	public float getCurValue() { return mCurValue; }
-	//-----------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 设置成员变量
 	public void setLoop(bool loop) { mLoop = loop; }
 	public void setOnceLength(float length) { mOnceLength = length; }
 	public void setOffset(float offset) { mOffset = offset; }
-	public void setFullOnce(bool fullOnce) { mFullOnce = fullOnce; }
 	public void setCurrentTime(float time) { mCurrentTime = time; }
 	public void setKeyframeID(int keyframe) { mKeyframeID = keyframe; }
-	//----------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void clearCallback()
 	{
 		mDoingCallback = null;

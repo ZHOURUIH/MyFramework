@@ -192,7 +192,8 @@ public class BinaryUtility
 		}
 		int pre = index;
 		index += sizeof(long);
-		return bytesToLong(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3], buffer[pre + 4], buffer[pre + 5], buffer[pre + 6], buffer[pre + 7]);
+		return bytesToLong(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3], 
+							buffer[pre + 4], buffer[pre + 5], buffer[pre + 6], buffer[pre + 7]);
 	}
 	public static long readLongBigEndian(byte[] buffer, ref int index, out bool success)
 	{
@@ -203,7 +204,8 @@ public class BinaryUtility
 		}
 		int pre = index;
 		index += sizeof(long);
-		return bytesToLongBigEndian(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3], buffer[pre + 4], buffer[pre + 5], buffer[pre + 6], buffer[pre + 7]);
+		return bytesToLongBigEndian(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3], 
+									buffer[pre + 4], buffer[pre + 5], buffer[pre + 6], buffer[pre + 7]);
 	}
 	public static ulong readULong(byte[] buffer, ref int index, out bool success)
 	{
@@ -214,7 +216,8 @@ public class BinaryUtility
 		}
 		int pre = index;
 		index += sizeof(ulong);
-		return bytesToULong(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3], buffer[pre + 4], buffer[pre + 5], buffer[pre + 6], buffer[pre + 7]);
+		return bytesToULong(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3], 
+							buffer[pre + 4], buffer[pre + 5], buffer[pre + 6], buffer[pre + 7]);
 	}
 	public static ulong readULongBigEndian(byte[] buffer, ref int index, out bool success)
 	{
@@ -225,7 +228,8 @@ public class BinaryUtility
 		}
 		int pre = index;
 		index += sizeof(ulong);
-		return bytesToULongBigEndian(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3], buffer[pre + 4], buffer[pre + 5], buffer[pre + 6], buffer[pre + 7]);
+		return bytesToULongBigEndian(buffer[pre + 0], buffer[pre + 1], buffer[pre + 2], buffer[pre + 3], 
+									buffer[pre + 4], buffer[pre + 5], buffer[pre + 6], buffer[pre + 7]);
 	}
 	public static float readFloat(byte[] buffer, ref int index, out bool success)
 	{
@@ -982,7 +986,8 @@ public class BinaryUtility
 		{
 			length = p.Length;
 		}
-		// 有两种方法清零一个数组,遍历和Array.Clear(),但是两个效率在不同情况下是不一样的,数量小于77时,遍历会快一些,数量大于等于77时,Array.Clear()更快
+		// 有两种方法清零一个数组,遍历和Array.Clear()
+		// 但是两个效率在不同情况下是不一样的,数量小于77时,遍历会快一些,数量大于等于77时,Array.Clear()更快
 		if (length < 77)
 		{
 			for (int i = 0; i < length; ++i)
@@ -1139,23 +1144,33 @@ public class BinaryUtility
 		}
 		return bytesToUIntBigEndian(array[0], array[1], array[2], array[3]);
 	}
-	public static uint bytesToUInt(byte b0, byte b1, byte b2, byte b3) { return (uint)((b3 << (8 * 3)) | (b2 << (8 * 2)) | (b1 << (8 * 1)) | (b0 << (8 * 0))); }
-	public static uint bytesToUIntBigEndian(byte b0, byte b1, byte b2, byte b3) { return (uint)((b3 << (8 * 0)) | (b2 << (8 * 1)) | (b1 << (8 * 2)) | (b0 << (8 * 3))); }
+	public static uint bytesToUInt(byte b0, byte b1, byte b2, byte b3) 
+	{
+		return (uint)((b3 << (8 * 3)) | (b2 << (8 * 2)) | (b1 << (8 * 1)) | (b0 << (8 * 0))); 
+	}
+	public static uint bytesToUIntBigEndian(byte b0, byte b1, byte b2, byte b3) 
+	{
+		return (uint)((b3 << (8 * 0)) | (b2 << (8 * 1)) | (b1 << (8 * 2)) | (b0 << (8 * 3))); 
+	}
 	public static long bytesToLong(byte b0, byte b1, byte b2, byte b3, byte b4, byte b5, byte b6, byte b7)
 	{
-		return (long)b7 << (8 * 7) | (long)b6 << (8 * 6) | (long)b5 << (8 * 5) | (long)b4 << (8 * 4) | (long)b3 << (8 * 3) | (long)b2 << (8 * 2) | (long)b1 << (8 * 1) | (long)b0 << (8 * 0);
+		return (long)b7 << (8 * 7) | (long)b6 << (8 * 6) | (long)b5 << (8 * 5) | (long)b4 << (8 * 4) | 
+				(long)b3 << (8 * 3) | (long)b2 << (8 * 2) | (long)b1 << (8 * 1) | (long)b0 << (8 * 0);
 	}
 	public static long bytesToLongBigEndian(byte b0, byte b1, byte b2, byte b3, byte b4, byte b5, byte b6, byte b7)
 	{
-		return (long)b7 << (8 * 0) | (long)b6 << (8 * 1) | (long)b5 << (8 * 2) | (long)b4 << (8 * 3) | (long)b3 << (8 * 4) | (long)b2 << (8 * 5) | (long)b1 << (8 * 6) | (long)b0 << (8 * 7);
+		return (long)b7 << (8 * 0) | (long)b6 << (8 * 1) | (long)b5 << (8 * 2) | (long)b4 << (8 * 3) | 
+				(long)b3 << (8 * 4) | (long)b2 << (8 * 5) | (long)b1 << (8 * 6) | (long)b0 << (8 * 7);
 	}
 	public static ulong bytesToULong(byte b0, byte b1, byte b2, byte b3, byte b4, byte b5, byte b6, byte b7)
 	{
-		return (ulong)b7 << (8 * 7) | (ulong)b6 << (8 * 6) | (ulong)b5 << (8 * 5) | (ulong)b4 << (8 * 4) | (ulong)b3 << (8 * 3) | (ulong)b2 << (8 * 2) | (ulong)b1 << (8 * 1) | (ulong)b0 << (8 * 0);
+		return (ulong)b7 << (8 * 7) | (ulong)b6 << (8 * 6) | (ulong)b5 << (8 * 5) | (ulong)b4 << (8 * 4) | 
+				(ulong)b3 << (8 * 3) | (ulong)b2 << (8 * 2) | (ulong)b1 << (8 * 1) | (ulong)b0 << (8 * 0);
 	}
 	public static ulong bytesToULongBigEndian(byte b0, byte b1, byte b2, byte b3, byte b4, byte b5, byte b6, byte b7)
 	{
-		return (ulong)b7 << (8 * 0) | (ulong)b6 << (8 * 1) | (ulong)b5 << (8 * 2) | (ulong)b4 << (8 * 3) | (ulong)b3 << (8 * 4) | (ulong)b2 << (8 * 5) | (ulong)b1 << (8 * 6) | (ulong)b0 << (8 * 7);
+		return (ulong)b7 << (8 * 0) | (ulong)b6 << (8 * 1) | (ulong)b5 << (8 * 2) | (ulong)b4 << (8 * 3) | 
+				(ulong)b3 << (8 * 4) | (ulong)b2 << (8 * 5) | (ulong)b1 << (8 * 6) | (ulong)b0 << (8 * 7);
 	}
 	public static float bytesToFloat(byte[] array)
 	{
@@ -1202,6 +1217,14 @@ public class BinaryUtility
 	}
 	public static string bytesToString(byte[] bytes, Encoding encoding = null)
 	{
+		if (bytes == null)
+		{
+			return null;
+		}
+		if (bytes.Length == 0)
+		{
+			return StringUtility.EMPTY;
+		}
 		// 默认为UTF8
 		if (encoding == null)
 		{
@@ -1211,6 +1234,14 @@ public class BinaryUtility
 	}
 	public static string bytesToString(byte[] bytes, int startIndex, int count, Encoding encoding = null)
 	{
+		if (bytes == null || count < 0)
+		{
+			return null;
+		}
+		if (bytes.Length == 0 || count == 0 || startIndex + count > bytes.Length)
+		{
+			return StringUtility.EMPTY;
+		}
 		// 默认为UTF8
 		if (encoding == null)
 		{

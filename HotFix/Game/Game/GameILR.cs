@@ -14,8 +14,7 @@ public class GameILR : GB
 		mFrameComponentInit.Sort(FrameSystem.compareInit);
 
 		// 获取系统组件对象
-		GB gameBaseILR = new GB();
-		gameBaseILR.notifyConstructDone();
+		notifyILRConstructDone();
 
 		// 注册对象类型
 		registeAll();

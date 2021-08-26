@@ -4,15 +4,19 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 #endif
 
+// 表示一个通过Kernel32加载的动态库对象
 public class Dll : FrameBase
 {
-	protected Dictionary<string, Delegate> mFunctionList;
-	protected IntPtr mHandle;
-	protected string mLibraryName;
+	protected Dictionary<string, Delegate> mFunctionList;	// 已经获取的动态库中的函数列表
+	protected IntPtr mHandle;								// 动态库句柄
+	protected string mLibraryName;							// 动态库名字
+	public Dll()
+	{
+		mFunctionList = new Dictionary<string, Delegate>();
+	}
 	public void init(string name)
 	{
 		mLibraryName = name;
-		mFunctionList = new Dictionary<string, Delegate>();
 #if UNITY_STANDALONE_WIN
 		mHandle = Kernel32.LoadLibrary(FrameDefine.F_PLUGINS_PATH + mLibraryName);
 #endif
@@ -22,7 +26,13 @@ public class Dll : FrameBase
 #if UNITY_STANDALONE_WIN
 		Kernel32.FreeLibrary(mHandle);
 #endif
-		mFunctionList = null;
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mFunctionList.Clear();
+		mHandle = IntPtr.Zero;
+		mLibraryName = null;
 	}
 	public string getName() { return mLibraryName; }
 	public T getFunction<T>(string funcName, Type t) where T : Delegate

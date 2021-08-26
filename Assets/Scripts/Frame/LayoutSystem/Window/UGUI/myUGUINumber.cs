@@ -2,23 +2,24 @@
 using System.Collections.Generic;
 using System;
 
+// 可显示数字的窗口
 public class myUGUINumber : myUGUIImage
 {
-	protected List<myUGUIImage> mNumberList;
-	protected DOCKING_POSITION mDockingPosition;
-	protected NUMBER_DIRECTION mDirection;
-	protected Sprite[] mSpriteList;         // 该列表只有10个数字的图片
-	protected Sprite mAddSprite;
-	protected Sprite mMinusSprite;
-	protected Sprite mDotSprite;
-	protected string mNumberStyle;
-	protected string mNumber;
-	protected const char mAddMark = '+';
-	protected const char mMinusMark = '-';
-	protected const char mDotMark = '.';
-	protected static string mAllMark = EMPTY + mAddMark + mMinusMark + mDotMark;
-	protected int mInterval;
-	protected int mMaxCount;
+	protected List<myUGUIImage> mNumberList;		// 数字窗口列表
+	protected DOCKING_POSITION mDockingPosition;	// 数字停靠方式
+	protected NUMBER_DIRECTION mDirection;			// 数字显示方向
+	protected Sprite[] mSpriteList;					// 该列表只有10个数字的图片
+	protected Sprite mAddSprite;					// +号的图片
+	protected Sprite mMinusSprite;					// -号的图片
+	protected Sprite mDotSprite;					// .号的图片
+	protected string mNumberStyle;					// 数字图集名
+	protected string mNumber;						// 当前显示的数字
+	protected const char ADD_MARK = '+';			// +号
+	protected const char MINUS_MARK = '-';			// -号
+	protected const char DOT_MARK = '.';			// .号
+	protected static string mAllMark = EMPTY + ADD_MARK + MINUS_MARK + DOT_MARK;	// 允许显示的除数字以外的符号
+	protected int mInterval;						// 数字显示间隔
+	protected int mMaxCount;						// 数字最大个数
 	public myUGUINumber()
 	{
 		mSpriteList = new Sprite[10];
@@ -51,11 +52,11 @@ public class myUGUINumber : myUGUIImage
 		}
 		for (int i = 0; i < 10; ++i)
 		{
-			mSpriteList[i] = mTPSpriteManager.getSprite(atlasName, mNumberStyle + "_" + IToS(i));
+			mSpriteList[i] = getSprite(atlasName, mNumberStyle + "_" + IToS(i));
 		}
-		mAddSprite = mTPSpriteManager.getSprite(atlasName, mNumberStyle + "_add");
-		mMinusSprite = mTPSpriteManager.getSprite(atlasName, mNumberStyle + "_minus");
-		mDotSprite = mTPSpriteManager.getSprite(atlasName, mNumberStyle + "_dot");
+		mAddSprite = getSprite(atlasName, mNumberStyle + "_add");
+		mMinusSprite = getSprite(atlasName, mNumberStyle + "_minus");
+		mDotSprite = getSprite(atlasName, mNumberStyle + "_dot");
 		setMaxCount(10);
 		mImage.enabled = false;
 	}
@@ -121,6 +122,61 @@ public class myUGUINumber : myUGUIImage
 		height += mInterval * (mNumber.Length - 1);
 		return height;
 	}
+	public void setInterval(int interval)
+	{
+		mInterval = interval;
+		refreshNumber();
+	}
+	public void setDockingPosition(DOCKING_POSITION position)
+	{
+		mDockingPosition = position;
+		refreshNumber();
+	}
+	public void setDirection(NUMBER_DIRECTION direction)
+	{
+		mDirection = direction;
+		refreshNumber();
+	}
+	public void setMaxCount(int maxCount)
+	{
+		if (mMaxCount == maxCount)
+		{
+			return;
+		}
+		mMaxCount = maxCount;
+		// 设置的数字字符串不能超过最大数量
+		if (mNumber.Length > mMaxCount)
+		{
+			mNumber = mNumber.Substring(0, mMaxCount);
+		}
+		mNumberList.Clear();
+		for (int i = 0; i < mMaxCount + 1; ++i)
+		{
+			mNumberList.Add(mLayout.getScript().createObject<myUGUIImage>(this, mName + "_" + IToS(i), false));
+		}
+		refreshNumber();
+	}
+	public void setNumber(int num, int limitLen = 0)
+	{
+		setNumber(IToS(num, limitLen));
+	}
+	public void setNumber(string num)
+	{
+		mNumber = num;
+		checkUIntString(mNumber, mAllMark);
+		// 设置的数字字符串不能超过最大数量
+		if (mNumber.Length > mMaxCount)
+		{
+			mNumber = mNumber.Substring(0, mMaxCount);
+		}
+		refreshNumber();
+	}
+	public int getMaxCount() { return mMaxCount; }
+	public string getNumber() { return mNumber; }
+	public int getInterval() { return mInterval; }
+	public string getNumberStyle() { return mNumberStyle; }
+	public DOCKING_POSITION getDockingPosition() { return mDockingPosition; }
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void refreshNumber()
 	{
 		if (isEmpty(mNumber))
@@ -136,17 +192,17 @@ public class myUGUINumber : myUGUIImage
 		// 数字前最多只允许有一个加号或者减号
 		if (numberStartPos == 1)
 		{
-			if (mNumber[0] == mAddMark)
+			if (mNumber[0] == ADD_MARK)
 			{
 				mNumberList[0].setSpriteOnly(mAddSprite);
 			}
-			else if (mNumber[0] == mMinusMark)
+			else if (mNumber[0] == MINUS_MARK)
 			{
 				mNumberList[0].setSpriteOnly(mMinusSprite);
 			}
 		}
 		// 整数部分
-		int dotPos = mNumber.LastIndexOf(mDotMark);
+		int dotPos = mNumber.LastIndexOf(DOT_MARK);
 		if (!isEmpty(mNumber) && (dotPos == 0 || dotPos == mNumber.Length - 1))
 		{
 			logError("number can not start or end with dot!");
@@ -161,7 +217,7 @@ public class myUGUINumber : myUGUIImage
 		if (dotPos != -1)
 		{
 			mNumberList[dotPos].setSpriteOnly(mDotSprite);
-			string floatPart = mNumber.Substring(dotPos + 1, mNumber.Length - dotPos - 1);
+			string floatPart = mNumber.Substring(dotPos + 1);
 			for (int i = 0; i < floatPart.Length; ++i)
 			{
 				mNumberList[i + dotPos + 1].setSpriteOnly(mSpriteList[floatPart[i] - '0']);
@@ -197,15 +253,15 @@ public class myUGUINumber : myUGUIImage
 			{
 				mNumberList[i].setWindowSize(numberSize);
 			}
-			else if (mNumber[i] == mDotMark)
+			else if (mNumber[i] == DOT_MARK)
 			{
 				mNumberList[i].setWindowSize(mDotSprite.rect.size * numberScale);
 			}
-			else if (mNumber[i] == mAddMark)
+			else if (mNumber[i] == ADD_MARK)
 			{
 				mNumberList[i].setWindowSize(mAddSprite.rect.size * numberScale);
 			}
-			else if (mNumber[i] == mMinusMark)
+			else if (mNumber[i] == MINUS_MARK)
 			{
 				mNumberList[i].setWindowSize(mMinusSprite.rect.size * numberScale);
 			}
@@ -268,59 +324,4 @@ public class myUGUINumber : myUGUIImage
 			}
 		}
 	}
-	public void setInterval(int interval)
-	{
-		mInterval = interval;
-		refreshNumber();
-	}
-	public void setDockingPosition(DOCKING_POSITION position)
-	{
-		mDockingPosition = position;
-		refreshNumber();
-	}
-	public void setDirection(NUMBER_DIRECTION direction)
-	{
-		mDirection = direction;
-		refreshNumber();
-	}
-	public void setMaxCount(int maxCount)
-	{
-		if (mMaxCount == maxCount)
-		{
-			return;
-		}
-		mMaxCount = maxCount;
-		// 设置的数字字符串不能超过最大数量
-		if (mNumber.Length > mMaxCount)
-		{
-			mNumber = mNumber.Substring(0, mMaxCount);
-		}
-		mNumberList.Clear();
-		for (int i = 0; i < mMaxCount + 1; ++i)
-		{
-			mNumberList.Add(mLayout.getScript().createObject<myUGUIImage>(this, mName + "_" + IToS(i), false));
-		}
-		refreshNumber();
-	}
-	public void setNumber(int num, int limitLen = 0)
-	{
-		setNumber(IToS(num, limitLen));
-	}
-	public void setNumber(string num)
-	{
-		mNumber = num;
-		checkUIntString(mNumber, mAllMark);
-		// 设置的数字字符串不能超过最大数量
-		if (mNumber.Length > mMaxCount)
-		{
-			mNumber = mNumber.Substring(0, mMaxCount);
-		}
-		refreshNumber();
-	}
-	public int getMaxCount() { return mMaxCount; }
-	public string getNumber() { return mNumber; }
-	public int getInterval() { return mInterval; }
-	public string getNumberStyle() { return mNumberStyle; }
-	public DOCKING_POSITION getDockingPosition() { return mDockingPosition; }
-	//----------------------------------------------------------------------------------------------------------------
 }

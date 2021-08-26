@@ -1,15 +1,14 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 
 // 监听鼠标事件,然后自动修改显示图片的button
 public class myUGUIImageButton : myUGUIImage
 {
-	protected string mNormalSprite;
-	protected string mPressSprite;
-	protected string mHoverSprite;
-	protected string mSelectedSprite;
-	protected bool mUseStateSprite;
-	protected bool mSelected;
+	protected string mNormalSprite;		// 正常时的图片
+	protected string mPressSprite;		// 按下时的图片
+	protected string mHoverSprite;		// 悬停时的图片
+	protected string mSelectedSprite;	// 选中时的图片
+	protected bool mUseStateSprite;		// 状态改变时是否切换图片
+	protected bool mSelected;			// 是否选中
 	public override void init()
 	{
 		base.init();

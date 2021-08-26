@@ -94,7 +94,7 @@ public class HttpUtility : FrameSystem
 			// 第一行不需要换行
 			if (postStream.Length == 0)
 			{
-				formdataBytes = stringToBytes(formdata.Substring(2, formdata.Length - 2), Encoding.UTF8);
+				formdataBytes = stringToBytes(formdata.Substring(2), Encoding.UTF8);
 			}
 			else
 			{
@@ -123,7 +123,7 @@ public class HttpUtility : FrameSystem
 		}
 		// 初始化新的webRequst
 		// 创建httpWebRequest对象
-		ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
+		ServicePointManager.ServerCertificateValidationCallback = myRemoteCertificateValidationCallback;
 		var webRequest = (HttpWebRequest)WebRequest.Create(new Uri(url));
 		// 初始化HttpWebRequest对象
 		webRequest.Method = "POST";
@@ -160,7 +160,8 @@ public class HttpUtility : FrameSystem
 		{
 			try
 			{
-				// 附加要POST给服务器的数据到HttpWebRequest对象(附加POST数据的过程比较特殊，它并没有提供一个属性给用户存取，需要写入HttpWebRequest对象提供的一个stream里面。)
+				// 附加要POST给服务器的数据到HttpWebRequest对象,附加POST数据的过程比较特殊
+				// 它并没有提供一个属性给用户存取，需要写入HttpWebRequest对象提供的一个stream里面
 				// 创建一个Stream,赋值是写入HttpWebRequest对象提供的一个stream里面
 				Stream newStream = webRequest.GetRequestStream();
 				newStream.Write(data, 0, dataLength);
@@ -211,11 +212,11 @@ public class HttpUtility : FrameSystem
 		{
 			if (index != count - 1)
 			{
-				parameters.Append(item.Key, "=", item.Value, "&");
+				parameters.append(item.Key, "=", item.Value, "&");
 			}
 			else
 			{
-				parameters.Append(item.Key, "=", item.Value);
+				parameters.append(item.Key, "=", item.Value);
 			}
 			++index;
 		}
@@ -285,13 +286,14 @@ public class HttpUtility : FrameSystem
 		}
 		return null;
 	}
-	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected static void waitHttpPost(object param)
 	{
 		var threadParam = (RequestThreadParam)param;
 		try
 		{
-			// 附加要POST给服务器的数据到HttpWebRequest对象(附加POST数据的过程比较特殊，它并没有提供一个属性给用户存取，需要写入HttpWebRequest对象提供的一个stream里面。)
+			// 附加要POST给服务器的数据到HttpWebRequest对象,附加POST数据的过程比较特殊
+			// 它并没有提供一个属性给用户存取，需要写入HttpWebRequest对象提供的一个stream里面
 			// 创建一个Stream,赋值是写入HttpWebRequest对象提供的一个stream里面
 			Stream newStream = threadParam.mRequest.GetRequestStream();
 			newStream.Write(threadParam.mByteArray, 0, threadParam.mByteArray.Length);
@@ -310,7 +312,7 @@ public class HttpUtility : FrameSystem
 		}
 		catch (Exception e)
 		{
-			threadParam.mCallback(null, threadParam.mUserData);
+			delayCallThread(threadParam.mCallback, null, threadParam.mUserData);
 			log("http post result exception:" + e.Message + ", url:" + threadParam.mFullURL);
 		}
 		finally
@@ -338,7 +340,7 @@ public class HttpUtility : FrameSystem
 		}
 		catch (Exception e)
 		{
-			threadParam.mCallback(null, threadParam.mUserData);
+			delayCallThread(threadParam.mCallback, null, threadParam.mUserData);
 			log("http get result exception : " + e.Message + ", url : " + threadParam.mFullURL);
 		}
 		finally
@@ -348,7 +350,7 @@ public class HttpUtility : FrameSystem
 			ThreadListLock?.unlock();
 		}
 	}
-	protected static bool MyRemoteCertificateValidationCallback(System.Object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+	protected static bool myRemoteCertificateValidationCallback(System.Object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
 	{
 		// If there are errors in the certificate chain,
 		// look at each error to determine the cause.

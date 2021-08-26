@@ -2,10 +2,11 @@
 using System;
 using System.Collections.Generic;
 
+// 用于处理一些需要监听ESC键来关闭的布局
 public class COMLayoutManagerEscHide : GameComponent
 {
-	protected List<GameLayout> mLayoutRenderOrderList;			// 按渲染顺序排序的布局列表,只有已显示的列表
 	protected Comparison<GameLayout> mCompareLayoutRenderOrder;	// 比较布局渲染顺序的函数,避免GC
+	protected List<GameLayout> mLayoutRenderOrderList;			// 按渲染顺序排序的布局列表,只有已显示的列表
 	public COMLayoutManagerEscHide()
 	{
 		mLayoutRenderOrderList = new List<GameLayout>();
@@ -15,6 +16,13 @@ public class COMLayoutManagerEscHide : GameComponent
 	{
 		base.init(owner);
 		mInputSystem.listenKeyCurrentDown(KeyCode.Escape, onESCDown, this);
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		// mCompareLayoutRenderOrder不重置
+		// mCompareLayoutRenderOrder = null;
+		mLayoutRenderOrderList.Clear();
 	}
 	public void notifyLayoutRenderOrder()
 	{
@@ -41,7 +49,7 @@ public class COMLayoutManagerEscHide : GameComponent
 	{
 		mLayoutRenderOrderList.Remove(layout);
 	}
-	//-----------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onESCDown()
 	{
 		// 从上往下逐级发送ESC按下事件,有布局处理后就不再传递

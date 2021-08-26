@@ -19,11 +19,11 @@ public class ClassPoolThreadDebug : MonoBehaviour
 			MyStringBuilder builder = FrameBase.STRING(item.Key.ToString());
 			if(item.Value.getInusedList().Count > 0)
 			{
-				builder.Append(", 已使用:", StringUtility.IToS(item.Value.getInusedList().Count));
+				builder.append(", 已使用:", StringUtility.IToS(item.Value.getInusedList().Count));
 			}
 			if(item.Value.getUnusedList().Count > 0)
 			{
-				builder.Append(", 未使用:", StringUtility.IToS(item.Value.getUnusedList().Count));
+				builder.append(", 未使用:", StringUtility.IToS(item.Value.getUnusedList().Count));
 			}
 			TypeList.Add(FrameBase.END_STRING(builder));
 		}

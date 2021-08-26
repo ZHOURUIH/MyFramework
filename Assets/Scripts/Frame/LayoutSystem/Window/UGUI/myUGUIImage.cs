@@ -1,16 +1,17 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-// UGUI的静态图片不支持递归变化透明度
+// 对UGUI的Image的封装,UGUI的静态图片不支持递归变化透明度
 public class myUGUIImage : myUGUIObject, IShaderWindow
 {
-	protected AssetLoadDoneCallback mMaterialLoadCallback;
+	protected AssetLoadDoneCallback mMaterialLoadCallback;		// 避免GC的回调
 	protected WindowShader mWindowShader;	// 图片所使用的shader类,用于动态设置shader参数
-	protected UGUIAtlas mAtlas;				// 图片图集
+	protected UGUIAtlas mAtlas;             // 图片图集
+	protected Material mOriginMaterial;		// 初始的材质,用于重置时恢复材质
 	protected Sprite mOriginSprite;			// 备份加载物体时原始的精灵图片
 	protected Image mImage;					// 图片组件
 	protected string mOriginTextureName;    // 初始图片的名字,用于外部根据初始名字设置其他效果的图片
-	protected bool mIsNewMaterial;
+	protected bool mIsNewMaterial;			// 当前的材质是否是新建的材质对象
 	public myUGUIImage()
 	{
 		mMaterialLoadCallback = onMaterialLoaded;
@@ -32,6 +33,7 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 			logError(Typeof(this) + " can not find " + typeof(Image) + ", window:" + mName + ", layout:" + mLayout.getName());
 		}
 		mOriginSprite = mImage.sprite;
+		mOriginMaterial = mImage.material;
 		// 获取初始的精灵所在图集
 		if (mOriginSprite != null)
 		{
@@ -58,19 +60,18 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 				}
 				if (mAtlas != null && mAtlas.mTexture != curTexture)
 				{
-					logError("设置的图集与加载出的图集不一致!可能未添加ImageAtlasPath组件,或者ImageAtlasPath组件中记录的路径错误,或者是在当前物体在重复使用过程中销毁了原始图集");
+					logError("设置的图集与加载出的图集不一致!可能未添加ImageAtlasPath组件,或者ImageAtlasPath组件中记录的路径错误,或者是在当前物体在重复使用过程中销毁了原始图集\n图集名:" + mOriginSprite.name + ", 记录的图集路径:" + atlasPath);
 				}
 			}
 		}
 		mOriginTextureName = getSpriteName();
 		string materialName = getMaterialName();
 		// 不再将默认材质替换为自定义的默认材质,只判断其他材质
-		if(!isEmpty(materialName) && materialName != FrameDefine.BUILDIN_UI_MATERIAL)
+		if (!isEmpty(materialName) && 
+			materialName != FrameDefine.BUILDIN_UI_MATERIAL && 
+			!mShaderManager.isSingleShader(materialName))
 		{
-			if (!mShaderManager.isSingleShader(materialName))
-			{
-				setMaterialName(materialName, true);
-			}
+			setMaterialName(materialName, true);
 		}
 	}
 	public override void destroy()
@@ -81,14 +82,19 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 #if !UNITY_EDITOR
 			destroyGameObject(mImage.material);
 #endif
-			mImage.material = null;
 		}
 		// 为了尽量确保ImageAtlasPath中记录的图集路径与图集完全一致,在销毁窗口时还原初始的图片
 		// 这样在重复使用当前物体时在校验图集路径时不会出错,但是如果在当前物体使用过程中销毁了原始的图片,则可能会报错
 		mImage.sprite = mOriginSprite;
+		mImage.material = mOriginMaterial;
 		base.destroy();
 	}
-	public void setWindowShader(WindowShader shader) { mWindowShader = shader; }
+	public void setWindowShader(WindowShader shader)
+	{
+		mWindowShader = shader;
+		// 因为shader参数的需要在update中更新,所以需要启用窗口的更新
+		mEnable = true;
+	}
 	public WindowShader getWindowShader() { return mWindowShader; }
 	public override void update(float elapsedTime)
 	{
@@ -170,19 +176,19 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 	}
 	public Image getImage() { return mImage; }
 	public Sprite getSprite() { return mImage.sprite; }
-	public void setMaterialName(string materialName, bool newMaterial)
+	public void setMaterialName(string materialName, bool newMaterial, bool loadAsync = false)
 	{
 		if(mImage == null)
 		{ 
 			return; 
 		}
 		mIsNewMaterial = newMaterial;
-		// 查看是否允许同步加载
-		if (mResourceManager.isSyncLoadAvalaible())
+		// 同步加载
+		if (!loadAsync)
 		{
 			Material mat;
 			Material loadedMaterial = mResourceManager.loadResource<Material>(FrameDefine.R_MATERIAL_PATH + materialName);
-			if(mIsNewMaterial)
+			if (mIsNewMaterial)
 			{
 				mat = new Material(loadedMaterial);
 				mat.name = materialName + "_" + IToS(mID);
@@ -193,6 +199,7 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 			}
 			mImage.material = mat;
 		}
+		// 异步加载
 		else
 		{
 			CLASS(out LoadMaterialParam param);
@@ -280,7 +287,7 @@ public class myUGUIImage : myUGUIObject, IShaderWindow
 		}
 		mOriginTextureName = mOriginTextureName.Substring(0, mOriginTextureName.LastIndexOf(key) + 1);
 	}
-	//----------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onMaterialLoaded(Object res, Object[] subAssets, byte[] bytes, object userData, string loadPath)
 	{
 		if(mImage == null)

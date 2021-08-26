@@ -3,11 +3,12 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
+// Excel导出数据的管理器
 public class ExcelManager : FrameSystem
 {
-	protected Dictionary<string, ExcelRegisteInfo> mTableNameList;
-	protected Dictionary<int, ExcelRegisteInfo> mTableTypeList;
-	protected Dictionary<Type, ExcelTable> mTableList;
+	protected Dictionary<string, ExcelRegisteInfo> mTableNameList;	// 按表格名字索引的表格注册信息列表
+	protected Dictionary<int, ExcelRegisteInfo> mTableTypeList;		// 按表格类型ID索引的表格注册信息列表
+	protected Dictionary<Type, ExcelTable> mTableList;				// 表格数据列表,根据表格中数据的类型进行索引
 	protected bool mAutoLoad;	// 是否在资源可访问时自动加载所有表格,如果表格资源较少,则可以使用此选项,如果较多,则在同步加载时会有较长时间卡顿,可手动加载
 	public ExcelManager()
 	{
@@ -19,7 +20,7 @@ public class ExcelManager : FrameSystem
 	// 资源可访问后开始加载所有的表格文件
 	public override void resourceAvailable()
 	{
-		if(!mAutoLoad)
+		if (!mAutoLoad)
 		{
 			return;
 		}
@@ -28,28 +29,20 @@ public class ExcelManager : FrameSystem
 	public void setAutoLoad(bool autoLoad) { mAutoLoad = autoLoad; }
 	public void loadAll()
 	{
-		LIST(out List<string> files);
-		findFiles(FrameDefine.F_EXCEL_PATH, files, ".data");
-		int fileCount = files.Count;
-		for (int i = 0; i < fileCount; ++i)
+		foreach (var item in mTableNameList)
 		{
-			if (!mTableNameList.TryGetValue(getFileNameNoSuffix(files[i], true), out ExcelRegisteInfo info))
-			{
-				continue;
-			}
+			ExcelRegisteInfo info = item.Value;
 			var table = new ExcelTable();
 			table.setClassType(info.mClassType);
-			table.read(files[i]);
+			table.read(availablePath(FrameDefine.SA_EXCEL_PATH + item.Key + ".data"));
 			mTableList.Add(info.mClassType, table);
 		}
-		UN_LIST(files);
 	}
-
 	public T getData<T>(int id, bool errorIfNull = true) where T : ExcelData
 	{
-		if(!mTableList.TryGetValue(typeof(T), out ExcelTable table))
+		if (!mTableList.TryGetValue(typeof(T), out ExcelTable table))
 		{
-			if(errorIfNull)
+			if (errorIfNull)
 			{
 				logError("表格未注册:" + typeof(T).ToString());
 			}
@@ -78,10 +71,7 @@ public class ExcelManager : FrameSystem
 		}
 		return table.getDataList();
 	}
-	public Dictionary<int, ExcelData> getDataList<T>() where T : ExcelData
-	{
-		return getDataList(typeof(T));
-	}
+	public Dictionary<int, ExcelData> getDataList<T>() where T : ExcelData { return getDataList(typeof(T)); }
 	public void registe(int type, string name, Type classType)
 	{
 		ExcelRegisteInfo info = new ExcelRegisteInfo();

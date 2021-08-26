@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System;
 
+// 物体的抛物线移动组件
 public class COMTransformableMoveParabola : ComponentKeyFrameNormal, IComponentModifyPosition
 {
 	protected Vector3 mStartPos;    // 移动开始时的位置
@@ -22,9 +23,9 @@ public class COMTransformableMoveParabola : ComponentKeyFrameNormal, IComponentM
 	public void setTargetPos(Vector3 pos) { mTargetPos = pos; }
 	public void setStartPos(Vector3 pos) { mStartPos = pos; }
 	public void setTopHeight(float top) { mTopHeight = abs(top); }
-	public override void play(int keyframe, bool loop, float onceLength, float offset, bool fullOnce)
+	public override void play(int keyframe, bool loop, float onceLength, float offset)
 	{
-		base.play(keyframe, loop, onceLength, offset, fullOnce);
+		base.play(keyframe, loop, onceLength, offset);
 		// 首先将起点和终点平移至原点
 		mTempB = mTargetPos - mStartPos;
 		// 即使起点和终点相同，也需要执行高度上的抛物线移动
@@ -38,7 +39,7 @@ public class COMTransformableMoveParabola : ComponentKeyFrameNormal, IComponentM
 		mFactorB = generateFactorBFromHeight(mTopHeight, mTempB);
 		mFactorA = generateFactorA(mFactorB, mTempB);
 	}
-	//-------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
 		Vector3 curPos = lerpSimple(mStartPos, mTargetPos, value);

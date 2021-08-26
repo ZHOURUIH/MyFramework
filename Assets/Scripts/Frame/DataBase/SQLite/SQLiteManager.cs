@@ -1,8 +1,9 @@
-﻿#if !UNITY_IOS && !NO_SQLITE
+﻿#if !NO_SQLITE
 using Mono.Data.Sqlite;
 using System.Collections.Generic;
 using System;
 
+// SQLite数据表格管理器
 public class SQLiteManager : FrameSystem
 {
 	protected Dictionary<string, SQLiteTable> mTableNameList;		// 根据表格名查找表格

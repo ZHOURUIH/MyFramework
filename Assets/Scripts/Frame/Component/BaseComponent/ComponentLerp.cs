@@ -1,11 +1,12 @@
 ﻿using System;
 
+// 插值计算基类
 public class ComponentLerp : GameComponent, IComponentBreakable
 {
-	protected LerpCallback mLerpingCallBack;
-	protected LerpCallback mLerpDoneCallBack;
-	protected PLAY_STATE mPlayState;
-	protected float mLerpSpeed;
+	protected LerpCallback mLerpingCallBack;		// 变化中回调
+	protected LerpCallback mLerpDoneCallBack;		// 变化完成时回调
+	protected PLAY_STATE mPlayState;				// 播放状态
+	protected float mLerpSpeed;						// 插值速度
 	public override void setActive(bool active)
 	{
 		base.setActive(active);
@@ -71,7 +72,7 @@ public class ComponentLerp : GameComponent, IComponentBreakable
 		setLerpingCallback(null);
 		setLerpDoneCallback(null);
 	}
-	//----------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected static void setCallback(LerpCallback callback, ref LerpCallback curCallback, ComponentLerp com)
 	{
 		LerpCallback tempCallback = curCallback;
@@ -88,19 +89,19 @@ public class ComponentLerp : GameComponent, IComponentBreakable
 		tempCallback?.Invoke(com, false);
 	}
 	protected void clearCallback()
-    {
+	{
 		mLerpingCallBack = null;
 		mLerpDoneCallBack = null;
-    }
-    protected void afterApplyLerp(bool done)
-    {
+	}
+	protected void afterApplyLerp(bool done)
+	{
 		mLerpingCallBack?.Invoke(this, false);
-        if (done)
-        {
-            setActive(false);
-            // 强制停止组件
-            stop(true);
-            doneCallback(ref mLerpDoneCallBack, this);
-        }
-    }
+		if (done)
+		{
+			setActive(false);
+			// 强制停止组件
+			stop(true);
+			doneCallback(ref mLerpDoneCallBack, this);
+		}
+	}
 }

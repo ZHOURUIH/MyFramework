@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 
+// 角色状态机组件,用于处理角色状态切换的内部逻辑
 public class COMCharacterStateMachine : GameComponent
 {
 	protected SafeDeepDictionary<Type, SafeDeepList<CharacterState>> mStateTypeList;   // 以状态类型为索引的状态列表
@@ -230,7 +231,7 @@ public class COMCharacterStateMachine : GameComponent
 	// 是否拥有该组的任意一个状态
 	public bool hasStateGroup(Type group) { return mGroupStateCountList[group] > 0; }
 	public bool hasState(Type state) { return getFirstState(state) != null; }
-	//---------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected CharacterState createState(Type type, StateParam param, uint id = 0)
 	{
 		// 用对象池的方式创建状态对象

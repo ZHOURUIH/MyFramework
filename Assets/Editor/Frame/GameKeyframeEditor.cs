@@ -14,7 +14,7 @@ public class GameKeyframeEditor : GameEditorBase
 		if (GUILayout.Button("´´½¨"))
 		{
 			var keyframe = target as GameKeyframe;
-			keyframe.CreateKeyframe();
+			keyframe.createKeyframe();
 			EditorUtility.SetDirty(target);
 		}
 
@@ -55,7 +55,7 @@ public class GameKeyframeEditor : GameEditorBase
 		{
 			foreach(var item in deleteKeyList)
 			{
-				keyframe.DestroyKeyframe(item);
+				keyframe.destroyKeyframe(item);
 			}
 			EditorUtility.SetDirty(target);
 		}

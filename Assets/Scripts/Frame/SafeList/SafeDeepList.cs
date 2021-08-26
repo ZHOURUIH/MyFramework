@@ -10,7 +10,12 @@ public class SafeDeepList<T> : FrameBase
 	{
 		mMainList = new List<T>();
 	}
-	// 获取用于更新的列表,
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mMainList.Clear();
+	}
+	// 获取用于更新的列表
 	public List<T> startForeach() 
 	{
 		// 由于需要考虑嵌套,所以只能创建一个新的列表,复制当前主列表的数据

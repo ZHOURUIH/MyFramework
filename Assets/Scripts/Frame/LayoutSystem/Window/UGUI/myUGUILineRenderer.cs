@@ -3,9 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
+// 使用LineRenderer的方式进行画线的窗口
 public class myUGUILineRenderer : myUGUIObject
 {
-	public LineRenderer mLineRenderer;
+	public LineRenderer mLineRenderer;		// Unity的LineRenderer组件
 	public override void init()
 	{
 		base.init();

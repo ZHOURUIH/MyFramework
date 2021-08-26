@@ -4,7 +4,7 @@ using System.Collections.Generic;
 // 用于加载Android平台下的资源
 public class AndroidAssetLoader : FrameSystem
 {
-	protected static AndroidJavaObject mAssetLoader;
+	protected static AndroidJavaObject mAssetLoader;	// Java中加载类的实例
 	public AndroidAssetLoader()
 	{
 #if !UNITY_EDITOR && UNITY_ANDROID
@@ -48,7 +48,7 @@ public class AndroidAssetLoader : FrameSystem
 		{
 			return;
 		}
-		string pattern = stringsToString(patterns, " ");
+		string pattern = stringsToString(patterns, ' ');
 		var fileListObject = mAssetLoader.Call<AndroidJavaObject>("startFindAssets", path, pattern, recursive);
 		javaListToList(fileListObject, fileList, 1024);
 	}
@@ -61,7 +61,7 @@ public class AndroidAssetLoader : FrameSystem
 		var fileListObject = mAssetLoader.Call<AndroidJavaObject>("startFindAssetsFolder", path, recursive);
 		javaListToList(fileListObject, fileList, 1024);
 	}
-	//-------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 以下函数只能用于Android平台的persistentDataPath目录操作,path为绝对路径
 	public static byte[] loadFile(string path, bool errorIfNull)
 	{
@@ -142,7 +142,7 @@ public class AndroidAssetLoader : FrameSystem
 			return;
 		}
 		checkPersistenDataPath(path);
-		string pattern = stringsToString(patterns, " ");
+		string pattern = stringsToString(patterns, ' ');
 		var fileListObject = mAssetLoader.CallStatic<AndroidJavaObject>("startFindFiles", path, pattern, recursive);
 		javaListToList(fileListObject, fileList, 1024);
 	}
@@ -165,7 +165,7 @@ public class AndroidAssetLoader : FrameSystem
 		checkPersistenDataPath(path);
 		mAssetLoader.CallStatic("createDirectory", path);
 	}
-	//------------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected static void checkPersistenDataPath(string path)
 	{
 		addEndSlash(ref path);

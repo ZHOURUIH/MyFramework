@@ -22,6 +22,16 @@ public class StateManager : FrameSystem
 	{
 		base.init();
 	}
+	public override void destroy()
+	{
+		base.destroy();
+		foreach(var item in mGroupStateList)
+		{
+			item.Value.destroy();
+			UN_CLASS(item.Value);
+		}
+		mGroupStateList.Clear();
+	}
 	public Type getStateType(int id)
 	{
 		mStateTypeList.TryGetValue(id, out Type type);
@@ -58,9 +68,17 @@ public class StateManager : FrameSystem
 		mGroupMutexList.TryGetValue(mutex, out Type type);
 		return type;
 	}
+	public void destroyMutex(StateGroupMutex mutex)
+	{
+		if (mutex == null)
+		{
+			return;
+		}
+		UN_CLASS(mutex);
+	}
 	public StateGroupMutex createMutex(GROUP_MUTEX mutex, StateGroup group)
 	{
-		var groupMutex = createInstance<StateGroupMutex>(getGroupMutex(mutex));
+		var groupMutex = CLASS(getGroupMutex(mutex)) as StateGroupMutex;
 		groupMutex.setMutexType(mutex);
 		groupMutex.setGroup(group);
 		return groupMutex;
@@ -72,7 +90,7 @@ public class StateManager : FrameSystem
 	}
 	public void registeGroup(Type type, GROUP_MUTEX mutex = GROUP_MUTEX.COEXIST)
 	{
-		var group = createInstance<StateGroup>(type);
+		var group = CLASS(type) as StateGroup;
 		group.setMutex(mutex);
 		mGroupStateList.Add(type, group);
 	}
@@ -180,7 +198,7 @@ public class StateManager : FrameSystem
 	{
 		mGroupMutexList.Add(mutex, type);
 	}
-	//------------------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void registeAllGroupMutex()
 	{
 		registeGroupMutex(typeof(StateGroupMutexCoexist), GROUP_MUTEX.COEXIST);

@@ -5,18 +5,16 @@ using System.Collections.Generic;
 // 文件可使用PathRecorder进行录制生成
 public class PathKeyframeManager : FrameSystem
 {
-    protected Dictionary<string, Dictionary<float, Vector3>> mTranslatePathList;    // key是文件名,value是对应的位置关键帧列表
+	protected Dictionary<string, Dictionary<float, Vector3>> mTranslatePathList;    // key是文件名,value是对应的位置关键帧列表
 	protected Dictionary<string, Dictionary<float, Vector3>> mRotatePathList;		// key是文件名,value是对应的位置关键帧列表
 	protected Dictionary<string, Dictionary<float, Vector3>> mScalePathList;		// key是文件名,value是对应的位置关键帧列表
 	protected Dictionary<string, Dictionary<float, float>> mAlphaPathList;          // key是文件名,value是对应的位置关键帧列表
-	protected bool mAutoLoad;			// 是否在资源可用时自动加载所有资源
 	public PathKeyframeManager()
 	{
 		mTranslatePathList = new Dictionary<string, Dictionary<float, Vector3>>();
 		mRotatePathList = new Dictionary<string, Dictionary<float, Vector3>>();
 		mScalePathList = new Dictionary<string, Dictionary<float, Vector3>>();
 		mAlphaPathList = new Dictionary<string, Dictionary<float, float>>();
-		mAutoLoad = true;
 	}
 	public override void destroy()
 	{
@@ -30,111 +28,89 @@ public class PathKeyframeManager : FrameSystem
 	{
 		base.init();
 	}
-	public override void resourceAvailable()
+	public Dictionary<float, Vector3> getTranslatePath(string fileName, bool loadIfNull = true)
 	{
-		if(!mAutoLoad)
+		if (!mTranslatePathList.TryGetValue(fileName, out var translatePath) && loadIfNull)
 		{
-			return;
+			if (!mGameFramework.isResourceAvailable())
+			{
+				return null;
+			}
+			translatePath = new Dictionary<float, Vector3>();
+			readPathFile(availablePath(FrameDefine.SA_PATH_KEYFRAME_PATH + fileName + ".translate"), translatePath);
+			mTranslatePathList.Add(getFileNameNoSuffix(fileName, true), translatePath);
 		}
-
-		// 加载所有关键帧
-		loadAll();
-	}
-	public void setAutoLoad(bool autoLoad) { mAutoLoad = autoLoad; }
-	public void loadAll()
-	{
-		// 平移
-		readAllFile(mTranslatePathList, ".translate");
-		// 旋转
-		readAllFile(mRotatePathList, ".rotate");
-		// 缩放
-		readAllFile(mScalePathList, ".scale");
-		// 透明度
-		readAllFile(mAlphaPathList, ".alpha");
-	}
-	public Dictionary<float, Vector3> getTranslatePath(string fileName)
-	{
-		mTranslatePathList.TryGetValue(fileName, out Dictionary<float, Vector3> translatePath);
 		return translatePath;
 	}
-	public Dictionary<float, Vector3> getRotatePath(string fileName)
+	public Dictionary<float, Vector3> getRotatePath(string fileName, bool loadIfNull = true)
 	{
-		mRotatePathList.TryGetValue(fileName, out Dictionary<float, Vector3> rotatePath);
+		if (!mRotatePathList.TryGetValue(fileName, out var rotatePath) && loadIfNull)
+		{
+			if (!mGameFramework.isResourceAvailable())
+			{
+				return null;
+			}
+			rotatePath = new Dictionary<float, Vector3>();
+			readPathFile(availablePath(FrameDefine.SA_PATH_KEYFRAME_PATH + fileName + ".rotate"), rotatePath);
+			mRotatePathList.Add(getFileNameNoSuffix(fileName, true), rotatePath);
+		}
 		return rotatePath;
 	}
-	public Dictionary<float, Vector3> getScalePath(string fileName)
+	public Dictionary<float, Vector3> getScalePath(string fileName, bool loadIfNull = true)
 	{
-		mScalePathList.TryGetValue(fileName, out Dictionary<float, Vector3> scalePath);
+		if (!mScalePathList.TryGetValue(fileName, out var scalePath) && loadIfNull)
+		{
+			if (!mGameFramework.isResourceAvailable())
+			{
+				return null;
+			}
+			scalePath = new Dictionary<float, Vector3>();
+			readPathFile(availablePath(FrameDefine.SA_PATH_KEYFRAME_PATH + fileName + ".scale"), scalePath);
+			mScalePathList.Add(getFileNameNoSuffix(fileName, true), scalePath);
+		}
 		return scalePath;
 	}
-	public Dictionary<float, float> getAlphaPath(string fileName)
+	public Dictionary<float, float> getAlphaPath(string fileName, bool loadIfNull = true)
 	{
-		mAlphaPathList.TryGetValue(fileName, out Dictionary<float, float> alphaPath);
+		if (!mAlphaPathList.TryGetValue(fileName, out var alphaPath) && loadIfNull)
+		{
+			if (!mGameFramework.isResourceAvailable())
+			{
+				return null;
+			}
+			alphaPath = new Dictionary<float, float>();
+			readPathFile(availablePath(FrameDefine.SA_PATH_KEYFRAME_PATH + fileName + ".alpha"), alphaPath);
+			mAlphaPathList.Add(getFileNameNoSuffix(fileName, true), alphaPath);
+		}
 		return alphaPath;
 	}
-	//----------------------------------------------------------------------------------------------------------------------------
-	protected void readAllFile(Dictionary<string, Dictionary<float, Vector3>> list, string suffix)
-	{
-		LIST(out List<string> fileList);
-		findStreamingAssetsFiles(FrameDefine.F_PATH_KEYFRAME_PATH, fileList, suffix, true, true);
-		int fileCount = fileList.Count;
-		for (int i = 0; i < fileCount; ++i)
-		{
-			var pathList = new Dictionary<float, Vector3>();
-			readPathFile(fileList[i], pathList);
-			list.Add(getFileNameNoSuffix(fileList[i], true), pathList);
-		}
-		UN_LIST(fileList);
-	}
-	protected void readAllFile(Dictionary<string, Dictionary<float, float>> list, string suffix)
-	{
-		LIST(out List<string> fileList);
-		findStreamingAssetsFiles(FrameDefine.F_PATH_KEYFRAME_PATH, fileList, suffix, true, true);
-		int fileCount = fileList.Count;
-		for (int i = 0; i < fileCount; ++i)
-		{
-			var pathList = new Dictionary<float, float>();
-			readPathFile(fileList[i], pathList);
-			list.Add(getFileNameNoSuffix(fileList[i], true), pathList);
-		}
-		UN_LIST(fileList);
-	}
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void readPathFile(string filePath, Dictionary<float, Vector3> path)
 	{
-		string str = openTxtFile(filePath, true);
-		string[] lines = split(str, true, "\n");
-		int lineCount = lines.Length;
+		int lineCount = openTxtFileLines(filePath, out string[] lines, true, false);
 		for(int i = 0; i < lineCount; ++i)
 		{
-			lines[i] = removeAll(lines[i], "\r");
-			string[] elems = split(lines[i], true, ":");
-			if (elems.Length == 2)
-			{
-				path.Add(SToF(elems[0]), SToVector3(elems[1]));
-			}
-			else
+			string[] elems = split(lines[i], ':');
+			if (elems.Length != 2)
 			{
 				logError(filePath + "第" + i + "行错误:" + lines[i]);
+				return;	
 			}
+			path.Add(SToF(elems[0]), SToVector3(elems[1]));
 		}
 	}
 	protected void readPathFile(string filePath, Dictionary<float, float> path)
 	{
-		string str = openTxtFile(filePath, true);
-		string[] lines = split(str, true, "\n");
-		int lineCount = lines.Length;
+		int lineCount = openTxtFileLines(filePath, out string[] lines, true, false);
 		for (int i = 0; i < lineCount; ++i)
 		{
-			lines[i] = removeAll(lines[i], "\r");
-			string[] elems = split(lines[i], true, ":");
-			if (elems.Length == 2)
-			{
-				path.Add(SToF(elems[0]), SToF(elems[1]));
-			}
-			else
+			string[] elems = split(lines[i], ':');
+			if (elems.Length != 2)
 			{
 				logError(filePath + "第" + i + "行错误:" + lines[i]);
+				continue;
 			}
+			path.Add(SToF(elems[0]), SToF(elems[1]));
 		}
 	}
 }

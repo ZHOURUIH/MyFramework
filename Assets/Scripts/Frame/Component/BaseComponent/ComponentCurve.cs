@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
+// 沿指定点变化的组件基类,变化速度恒定
 public abstract class ComponentCurve : ComponentKeyFrameNormal
 {
 	protected List<KeyPoint> mKeyPointList;   // 移动开始时的位置
@@ -23,7 +24,7 @@ public abstract class ComponentCurve : ComponentKeyFrameNormal
 		base.resetProperty();
 		mKeyPointList.Clear();
 	}
-	//-------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
 		var uiObj = mComponentOwner as Transformable;

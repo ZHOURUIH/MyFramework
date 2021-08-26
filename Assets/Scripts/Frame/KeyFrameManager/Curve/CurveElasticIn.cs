@@ -1,9 +1,10 @@
 ﻿using System;
 using UnityEngine;
 
+// 振荡曲线
 public class CurveElasticIn : MyCurve
 {
-	public override float Evaluate(float time)
+	public override float evaluate(float time)
 	{
 		if (isFloatZero(time))
 		{

@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
+// 对UGUI的Text的封装
 public class myUGUIText : myUGUIObject
 {
-	protected Text mText;
+	protected Text mText;	// UGUI的Text组件
 	public override void init()
 	{
 		base.init();

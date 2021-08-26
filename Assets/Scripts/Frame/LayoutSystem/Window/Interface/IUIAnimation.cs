@@ -8,8 +8,6 @@ public interface IUIAnimation
 	void setTexturePosList(List<Vector2> posList);
 	List<Vector2> getTexturePosList();
 	void setUseTextureSize(bool useSize);
-	void setTextureSet(string textureSetName);
-	void setTextureSet(string textureSetName, string subPath);
 	LOOP_MODE getLoop();
 	float getInterval();
 	float getSpeed();

@@ -3,13 +3,20 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
+// Excel表格的基类,表示一个表格
 public class ExcelTable : FrameBase
 {
-	protected Dictionary<int, ExcelData> mDataList;
-	protected Type mDataType;
+	protected Dictionary<int, ExcelData> mDataList;	// 按数据ID进行索引的数据列表
+	protected Type mDataType;						// 数据类型
 	public ExcelTable()
 	{
 		mDataList = new Dictionary<int, ExcelData>();
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mDataList.Clear();
+		mDataType = null;
 	}
 	public void setClassType(Type type) { mDataType = type; }
 	public void read(string fileName)

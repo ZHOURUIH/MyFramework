@@ -2,16 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public delegate void OnDestroyWindow(myUIObject window);
-
-// 因为此处可以确定只有主工程的类,所以可以使用new T()
+// 窗口对象池,因为此处可以确定只有主工程的类,所以可以使用new T()
 public class WindowPool<T> where T : myUIObject, new()
 {
-	protected List<T> mInusedList;
-	protected Stack<T> mUnusedList;
-	protected T mTemplate;
-	protected LayoutScript mScript;
-	protected OnDestroyWindow mDestroyCallback;
+	protected Stack<T> mUnusedList;				// 未使用的窗口列表
+	protected List<T> mInusedList;				// 正在使用的窗口列表,因为需要保证物体的存储顺序,所以使用List
+	protected OnDestroyWindow mDestroyCallback;	// 窗口销毁的回调,用于让外部定义窗口的销毁方式
+	protected LayoutScript mScript;				// 所属布局脚本
+	protected T mTemplate;						// 窗口模板
 	public WindowPool(LayoutScript script)
 	{
 		mScript = script;
@@ -19,7 +17,7 @@ public class WindowPool<T> where T : myUIObject, new()
 		mUnusedList = new Stack<T>();
 	}
 	public void setTemplate(T template) { mTemplate = template; }
-	public T newWindow(myUIObject parent, string name = null, bool notifyLayout = true, bool sortChild = true)
+	public T newWindow(myUIObject parent, string name = null, bool notifyLayout = true)
 	{
 		if (name == null)
 		{
@@ -47,15 +45,13 @@ public class WindowPool<T> where T : myUIObject, new()
 		window.setActive(true);
 		window.setName(name);
 		window.setParent(parent, false, false);
-		window.setAsLastSibling(sortChild, notifyLayout);
+		window.setAsLastSibling(false, notifyLayout);
 		return window;
 	}
 	public void unuseAll()
 	{
-		int count = mInusedList.Count;
-		for(int i = 0; i < count; ++i)
+		foreach(var item in mInusedList)
 		{
-			T item = mInusedList[i];
 			if (mDestroyCallback != null)
 			{
 				mDestroyCallback(item);
@@ -68,15 +64,15 @@ public class WindowPool<T> where T : myUIObject, new()
 		}
 		mInusedList.Clear();
 	}
-	public void unuseWindow(T window)
+	public bool unuseWindow(T window)
 	{
 		if (window == null)
 		{
-			return;
+			return false;
 		}
-		if(!mInusedList.Contains(window))
+		if (!mInusedList.Contains(window))
 		{
-			return;
+			return false;
 		}
 		mInusedList.Remove(window);
 		mUnusedList.Push(window);
@@ -88,6 +84,7 @@ public class WindowPool<T> where T : myUIObject, new()
 		{
 			window.setActive(false);
 		}
+		return true;
 	}
 	public List<T> getWindowList() { return mInusedList; }
 	public void setDestroyCallback(OnDestroyWindow callback) { mDestroyCallback = callback; }

@@ -5,14 +5,15 @@ using System;
 using TMPro;
 using UnityEngine.Events;
 
+// 对TextMeshPro的InputField的封装
 public class myUGUIInputFieldTMP : myUGUIObject
 {
-	protected TMP_InputField mInputField;
-	protected UnityAction<string> mThisEditEnd;
-	protected OnInputField mAction;
+	protected UnityAction<string> mThisEditEnd;		// 避免GC的委托
+	protected TMP_InputField mInputField;			// TextMeshPro的InputField组件
+	protected OnInputField mAction;					// 输入结束时的回调
 	public myUGUIInputFieldTMP()
 	{
-		mThisEditEnd = OnEndEdit;
+		mThisEditEnd = onEndEdit;
 	}
 	public override void init()
 	{
@@ -48,7 +49,7 @@ public class myUGUIInputFieldTMP : myUGUIObject
 	public string getText() { return mInputField.text; }
 	public bool isFocused() { return mInputField.isFocused; }
 	public bool isVisible() { return isActive(); }
-	//------------------------------------------------------------------------------------------------
-	protected void OnEndEdit(string value) { mAction?.Invoke(value); }
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected void onEndEdit(string value) { mAction?.Invoke(value); }
 }
 #endif

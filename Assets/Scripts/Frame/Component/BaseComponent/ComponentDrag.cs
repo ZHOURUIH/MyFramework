@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 
+// 拖拽组件基类
 public class ComponentDrag : GameComponent
 {	
 	protected OnDragStartCallback mDragStartCallback;	// 开始拖拽的回调
@@ -169,7 +170,7 @@ public class ComponentDrag : GameComponent
 		onDraging(mousePosition);
 		return true;
 	}
-	//--------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected bool checkStartTouchDrag(ref Touch touch)
 	{
 		Vector3 mousePosition = touch.position;

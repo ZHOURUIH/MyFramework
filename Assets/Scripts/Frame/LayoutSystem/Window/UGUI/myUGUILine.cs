@@ -3,9 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
+// 使用Mesh的方式进行画线的窗口
 public class myUGUILine : myUGUIObject
 {
-	public UGUILine mUGUILine;
+	public UGUILine mUGUILine;		// 用于画线的对象
 	public myUGUILine()
 	{
 		mUGUILine = new UGUILine();

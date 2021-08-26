@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 public class USHORTS : OBJECTS
 {
-	protected const int TYPE_SIZE = sizeof(ushort);
 	public ushort[] mValue;
 	public ushort this[int index]
 	{
@@ -19,26 +18,20 @@ public class USHORTS : OBJECTS
 		}
 	}
 	public USHORTS(int count)
+		: base(count)
 	{
 		mValue = new ushort[count];
 		mType = typeof(ushort[]);
-		mSize = TYPE_SIZE * mValue.Length;
+		mTypeSize = sizeof(ushort);
+		mSize = mTypeSize * mValue.Length;
 	}
 	public USHORTS(ushort[] value)
+		: base(value.Length)
 	{
 		mValue = value;
 		mType = typeof(ushort[]);
-		mSize = TYPE_SIZE * mValue.Length;
-	}
-	public override void setRealSize(ushort realSize)
-	{
-		mRealSize = realSize;
-		mElementCount = mRealSize / TYPE_SIZE;
-	}
-	public override void setElementCount(int elementCount)
-	{
-		mElementCount = elementCount;
-		mRealSize = (ushort)(mElementCount * TYPE_SIZE);
+		mTypeSize = sizeof(ushort);
+		mSize = mTypeSize * mValue.Length;
 	}
 	public override void zero() { memset(mValue, (ushort)0); }
 	public override bool readFromBuffer(byte[] buffer, ref int index)
@@ -47,7 +40,8 @@ public class USHORTS : OBJECTS
 		{
 			return readUShorts(buffer, ref index, mValue);
 		}
-		setRealSize(readUShort(buffer, ref index, out bool success));
+
+		setElementCount(readElementCount(buffer, ref index, out bool success));
 		if (!success)
 		{
 			return false;
@@ -60,7 +54,8 @@ public class USHORTS : OBJECTS
 		{
 			return writeUShorts(buffer, ref index, mValue);
 		}
-		if (!writeUShort(buffer, ref index, mRealSize))
+
+		if (!writeElementCount(buffer, ref index))
 		{
 			return false;
 		}
@@ -69,7 +64,7 @@ public class USHORTS : OBJECTS
 	public void set(ushort[] value)
 	{
 		int minCount = getMin(value.Length, mValue.Length);
-		memcpy(mValue, value, 0, 0, minCount * TYPE_SIZE);
+		memcpy(mValue, value, 0, 0, minCount * mTypeSize);
 		if (mVariableLength)
 		{
 			setElementCount(minCount);

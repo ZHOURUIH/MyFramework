@@ -4,10 +4,10 @@ using UnityEngine;
 public class WindowShaderMotionBlurCriticalMask : WindowShaderCriticalMask
 {
 	protected Vector2 mSampleCenter;
-	protected float mMinRange = 300.0f;
-	protected float mIncreaseSample = 0.2f;
-	protected int mMaxSample = 30;
-	protected int mSampleInterval = 3;
+	protected float mMinRange;
+	protected float mIncreaseSample;
+	protected int mMaxSample;
+	protected int mSampleInterval;
 	protected int mMinRangeID;
 	protected int mMaxSampleID;
 	protected int mIncreaseSampleID;
@@ -16,6 +16,10 @@ public class WindowShaderMotionBlurCriticalMask : WindowShaderCriticalMask
 	protected int mCenterYID;
 	public WindowShaderMotionBlurCriticalMask()
 	{
+		mMinRange = 300.0f;
+		mIncreaseSample = 0.2f;
+		mMaxSample = 30;
+		mSampleInterval = 3;
 		mMinRangeID = Shader.PropertyToID("_MinRange");
 		mMaxSampleID = Shader.PropertyToID("_MaxSample");
 		mIncreaseSampleID = Shader.PropertyToID("_IncreaseSample");

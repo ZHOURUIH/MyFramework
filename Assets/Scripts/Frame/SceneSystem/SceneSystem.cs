@@ -55,10 +55,7 @@ public class SceneSystem : FrameSystem
 	public void registeScene(Type type, string name, string filePath)
 	{
 		// 路径需要以/结尾
-		if (!endWith(filePath, "/"))
-		{
-			filePath += "/";
-		}
+		validPath(ref filePath);
 		SceneRegisteInfo info = new SceneRegisteInfo();
 		info.mName = name;
 		info.mScenePath = filePath;

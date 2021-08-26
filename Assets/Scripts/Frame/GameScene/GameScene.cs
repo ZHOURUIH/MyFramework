@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 
+// 用于实现一个逻辑场景,一个逻辑场景会包含多个流程,进入一个场景时上一个场景会被销毁
 public abstract class GameScene : ComponentOwner
 {
 	protected Dictionary<Type, SceneProcedure> mSceneProcedureList; // 场景的流程列表
@@ -12,7 +13,7 @@ public abstract class GameScene : ComponentOwner
 	protected Type mStartProcedure;									// 起始流程类型,进入场景时会默认进入该流程
 	protected Type mTempStartProcedure;								// 仅使用一次的起始流程类型,设置后进入场景时会默认进入该流程,生效后就清除
 	protected Type mExitProcedure;									// 场景的退出流程,退出场景进入其他场景时会先进入该流程,一般用作资源卸载
-	protected const int mMaxLastProcedureCount = 8;					// mLastProcedureList列表的最大长度,当超过该长度时,会移除列表开始的元素
+	protected const int MAX_LAST_PROCEDURE_COUNT = 8;				// mLastProcedureList列表的最大长度,当超过该长度时,会移除列表开始的元素
 	protected string mTempStartIntent;								// 进入mTempStartProcedure时的参数
 	public GameScene()
 	{
@@ -152,7 +153,7 @@ public abstract class GameScene : ComponentOwner
 		if (mCurProcedure != null && addToLastList)
 		{
 			mLastProcedureList.Add(mCurProcedure);
-			if (mLastProcedureList.Count > mMaxLastProcedureCount)
+			if (mLastProcedureList.Count > MAX_LAST_PROCEDURE_COUNT)
 			{
 				mLastProcedureList.RemoveAt(0);
 			}

@@ -4,9 +4,7 @@ public interface IMouseEventCollect
 {
 	GameObject getObject();
 	string getName();
-	void onMultiTouchStart(Vector3 touch0, Vector3 touch1);
-	void onMultiTouchMove(Vector3 touch0, Vector3 lastTouch0, Vector3 touch1, Vector3 lastTouch1);
-	void onMultiTouchEnd();
+	string getDescription();
 	bool isDestroy();
 	bool isActive();
 	bool isActiveInHierarchy();
@@ -14,7 +12,6 @@ public interface IMouseEventCollect
 	void onMouseLeave(int touchID);
 	void onMouseEnter(int touchID);
 	void onMouseMove(Vector3 mousePos, Vector3 moveDelta, float moveTime, int touchID);
-	void onMouseStay(Vector3 mousePos, int touchID);
 	Collider getCollider();
 	UIDepth getDepth();
 	bool isReceiveScreenMouse();

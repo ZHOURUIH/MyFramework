@@ -2,19 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// 封装Unity的Camera
 public class GameCamera : MovableObject
 {
-	protected CameraLinker mCurLinker;          // 只是记录当前连接器方便外部获取
-	protected Camera mCamera;                   // 摄像机组件
-	protected int mLastVisibleLayer;            // 上一次的渲染层
+	protected CameraLinker mCurLinker;		// 只是记录当前连接器方便外部获取
+	protected Camera mCamera;				// 摄像机组件
+	protected int mLastVisibleLayer;		// 上一次的渲染层
 	// 如果要实现摄像机震动,则需要将摄像机挂接到一个节点上,一般操作的是父节点的Transform,震动时是操作摄像机自身节点的Transform
-	public GameCamera()
+	public GameCamera(){}
+	public override void setObject(GameObject obj)
 	{
-		setDestroyObject(false);
-	}
-	public override void setObject(GameObject obj, bool destroyOld)
-	{
-		base.setObject(obj, destroyOld);
+		base.setObject(obj);
 		mCamera = mObject.GetComponent<Camera>();
 #if UNITY_EDITOR
 		getUnityComponent<CameraDebug>().setCamera(this);
@@ -99,14 +97,15 @@ public class GameCamera : MovableObject
 	}
 	public int getLastVisibleLayer() { return mLastVisibleLayer; }
 	public void setRenderTarget(RenderTexture renderTarget) { mCamera.targetTexture = renderTarget; }
-	//-----------------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void initComponents()
 	{
 		base.initComponents();
 		addComponent(typeof(CameraLinkerAcceleration));
-		addComponent(typeof(CameraLinkerFixed));
+		addComponent(typeof(CameraLinkerThirdPerson));
 		addComponent(typeof(CameraLinkerFree));
 		addComponent(typeof(CameraLinkerSmoothFollow));
 		addComponent(typeof(CameraLinkerSmoothRotate));
+		addComponent(typeof(CameraLinkerFirstPerson));
 	}
 }

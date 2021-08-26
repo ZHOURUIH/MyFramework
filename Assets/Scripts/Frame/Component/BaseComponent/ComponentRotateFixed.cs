@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 
+// 锁定旋转的组件
 public class ComponentRotateFixed : GameComponent, IComponentModifyRotation, IComponentBreakable
 {
-	public Vector3 mFixedEuler;
+	public Vector3 mFixedEuler;		// 锁定的旋转值
 	public override void resetProperty()
 	{
 		base.resetProperty();

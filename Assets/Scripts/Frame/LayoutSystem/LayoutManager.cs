@@ -3,31 +3,24 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Profiling;
 
-public struct LayoutRegisteInfo
-{
-	public Type mScriptType;
-	public string mName;
-	public int mID;
-	public bool mInResource;
-}
-
+// 布局管理器
 public class LayoutManager : FrameSystem
 {
-	protected Dictionary<int, LayoutRegisteInfo> mScriptRegisteList;
-	protected SafeDictionary<int, GameLayout> mLayoutList;
-	protected Dictionary<string, LayoutInfo> mLayoutAsyncList;
-	protected Dictionary<Type, List<int>> mScriptMappingList;
-	protected Dictionary<int, string> mLayoutTypeToPath;
-	protected Dictionary<string, int> mLayoutPathToType;
-	protected List<GameLayout> mBackBlurLayoutList;             // 需要背景模糊的布局的列表
-	protected COMLayoutManagerEscHide mCOMEscHide;				// Esc按键事件传递逻辑的组件
-	protected AssetLoadDoneCallback mLayoutLoadCallback;		// 保存回调变量,避免GC
-	protected myUGUICanvas mUGUIRoot;							// 所有UI的根节点
-	protected bool mUseAnchor;									// 是否启用锚点来自动调节窗口的大小和位置
+	protected Dictionary<int, LayoutRegisteInfo> mLayoutRegisteList;	// 布局注册信息列表
+	protected SafeDictionary<int, GameLayout> mLayoutList;				// 所有布局的列表
+	protected Dictionary<string, LayoutInfo> mLayoutAsyncList;			// 正在异步加载的布局列表
+	protected Dictionary<Type, List<int>> mScriptMappingList;			// 布局脚本类型与布局ID的映射,允许多个不同的布局共用同一个布局脚本
+	protected Dictionary<int, string> mLayoutTypeToPath;				// 根据布局ID查找布局路径
+	protected Dictionary<string, int> mLayoutPathToType;				// 根据布局路径查找布局ID
+	protected List<GameLayout> mBackBlurLayoutList;						// 需要背景模糊的布局的列表
+	protected COMLayoutManagerEscHide mCOMEscHide;						// Esc按键事件传递逻辑的组件
+	protected AssetLoadDoneCallback mLayoutLoadCallback;				// 保存回调变量,避免GC
+	protected myUGUICanvas mUGUIRoot;									// 所有UI的根节点
+	protected bool mUseAnchor;											// 是否启用锚点来自动调节窗口的大小和位置
 	public LayoutManager()
 	{
 		mUseAnchor = true;
-		mScriptRegisteList = new Dictionary<int, LayoutRegisteInfo>();
+		mLayoutRegisteList = new Dictionary<int, LayoutRegisteInfo>();
 		mScriptMappingList = new Dictionary<Type, List<int>>();
 		mLayoutTypeToPath = new Dictionary<int, string>();
 		mLayoutPathToType = new Dictionary<string, int>();
@@ -200,7 +193,7 @@ public class LayoutManager : FrameSystem
 		{
 			mLayoutAsyncList.Add(info.mName, info);
 			bool result = false;
-			if (mScriptRegisteList[info.mID].mInResource)
+			if (mLayoutRegisteList[info.mID].mInResource)
 			{
 				result = mResourceManager.loadInResourceAsync<GameObject>(fullPath, mLayoutLoadCallback);
 			}
@@ -216,7 +209,7 @@ public class LayoutManager : FrameSystem
 		}
 		else
 		{
-			if (mScriptRegisteList[info.mID].mInResource)
+			if (mLayoutRegisteList[info.mID].mInResource)
 			{
 				return newLayout(info, mResourceManager.loadInResource<GameObject>(fullPath));
 			}
@@ -239,7 +232,7 @@ public class LayoutManager : FrameSystem
 	}
 	public LayoutScript createScript(GameLayout layout)
 	{
-		LayoutRegisteInfo info = mScriptRegisteList[layout.getID()];
+		LayoutRegisteInfo info = mLayoutRegisteList[layout.getID()];
 		LayoutScript script = createInstance<LayoutScript>(info.mScriptType);
 		if (script == null)
 		{
@@ -259,16 +252,17 @@ public class LayoutManager : FrameSystem
 			item.Value.getAllCollider(colliders, true);
 		}
 	}
-	public void registeLayout(Type classType, int id, string name, bool inResource)
+	public void registeLayout(Type classType, int id, string name, bool inResource, LAYOUT_LIFE_CYCLE lifeCycle)
 	{
-		LayoutRegisteInfo info = new LayoutRegisteInfo();
+		var info = new LayoutRegisteInfo();
 		info.mScriptType = classType;
 		info.mName = name;
 		info.mID = id;
 		info.mInResource = inResource;
+		info.mLifeCycle = lifeCycle;
 		mLayoutTypeToPath.Add(id, name);
 		mLayoutPathToType.Add(name, id);
-		mScriptRegisteList.Add(id, info);
+		mLayoutRegisteList.Add(id, info);
 		if (!mScriptMappingList.TryGetValue(classType, out List<int> list))
 		{
 			list = new List<int>();
@@ -305,7 +299,19 @@ public class LayoutManager : FrameSystem
 		}
 		return maxOrder;
 	}
-	//-----------------------------------------------------------------------------------------------------------------
+	// 卸载所有非常驻的布局
+	public void unloadAllPartLayout()
+	{
+		var mainList = mLayoutList.startForeach();
+		foreach (var item in mainList)
+		{
+			if (mLayoutRegisteList[item.Key].mLifeCycle == LAYOUT_LIFE_CYCLE.PART_USE)
+			{
+				LT.UNLOAD_LAYOUT(item.Key);
+			}
+		}
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void initComponents()
 	{
 		base.initComponents();
@@ -328,9 +334,9 @@ public class LayoutManager : FrameSystem
 		layout.setParent(layoutParent);
 		layout.setOrderType(info.mOrderType);
 		layout.setRenderOrder(generateRenderOrder(layout, info.mRenderOrder, info.mOrderType));
-		layout.setInResources(mScriptRegisteList[info.mID].mInResource);
+		layout.setInResources(mLayoutRegisteList[info.mID].mInResource);
 		layout.init();
-		if(layout.getRoot().getObject() != layoutObj)
+		if (layout.getRoot().getObject() != layoutObj)
 		{
 			logError("布局的根节点不是实例化出来的节点,请确保运行前UI根节点下没有与布局同名的节点");
 		}

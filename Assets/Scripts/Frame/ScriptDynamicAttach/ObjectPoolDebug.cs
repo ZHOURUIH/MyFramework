@@ -3,9 +3,9 @@ using UnityEngine;
 
 public class ObjectPoolDebug : MonoBehaviour
 {
-	public List<string> InstanceFileListKeys = new List<string>();
-	public List<GameObject> InstanceListKeys = new List<GameObject>();
-	public List<ObjectInfo> InstanceListValues = new List<ObjectInfo>();
+	public List<string> mInstanceFileListKeys = new List<string>();
+	public List<GameObject> mInstanceListKeys = new List<GameObject>();
+	public List<ObjectInfo> mInstanceListValues = new List<ObjectInfo>();
 	private void Update()
 	{
 		if (!FrameBase.mGameFramework.mEnableScriptDebug)
@@ -16,13 +16,13 @@ public class ObjectPoolDebug : MonoBehaviour
 		{
 			return;
 		}
-		InstanceFileListKeys.Clear();
-		InstanceListKeys.Clear();
-		InstanceListValues.Clear();
+		mInstanceFileListKeys.Clear();
+		mInstanceListKeys.Clear();
+		mInstanceListValues.Clear();
 		var instanceFileList = FrameBase.mObjectPool.getInstanceFileList();
-		InstanceFileListKeys.AddRange(instanceFileList.Keys);
+		mInstanceFileListKeys.AddRange(instanceFileList.Keys);
 		var instanceList = FrameBase.mObjectPool.getInstanceList();
-		InstanceListKeys.AddRange(instanceList.Keys);
-		InstanceListValues.AddRange(instanceList.Values);
+		mInstanceListKeys.AddRange(instanceList.Keys);
+		mInstanceListValues.AddRange(instanceList.Values);
 	}
 }

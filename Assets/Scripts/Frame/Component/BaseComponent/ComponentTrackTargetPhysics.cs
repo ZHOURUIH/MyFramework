@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 
+// 在物理更新中执行追踪
 public class ComponentTrackTargetPhysics : ComponentTrackTarget
 {
 	public override void fixedUpdate(float elapsedTime)

@@ -1,23 +1,23 @@
 ﻿using UnityEngine;
-using System.Collections;
 using RenderHeads.Media.AVProVideo;
 using UnityEngine.Events;
 
+// 用于播放视频的窗口
 public class myUGUIVideo : myUGUIRawImage
 {
-	protected UnityAction<MediaPlayer, MediaPlayerEvent.EventType, ErrorCode> mVideoEventCallback;
-	protected MediaPlayer mMediaPlayer;
-	protected VideoCallback mVideoEndCallback;
-	protected VideoCallback mVideoReadyCallback;
-	protected VideoErrorCallback mErrorCallback;
-	protected PLAY_STATE mNextState;
-	protected string mFileName;
-	protected float mNextRate;
-	protected float mNextSeekTime;
-	protected bool mAutoShowOrHide;
-	protected bool mIsRequires;
-	protected bool mNextLoop;   // 刚设置视频文件,还未加载时,要设置播放状态就需要先保存状态,然后等到视频准备完毕后再设置
-	protected bool mReady;
+	protected UnityAction<MediaPlayer, MediaPlayerEvent.EventType, ErrorCode> mVideoEventCallback;	// 避免GC的委托
+	protected VideoErrorCallback mErrorCallback;		// 错误回调
+	protected VideoCallback mVideoReadyCallback;		// 视频准备完毕的回调
+	protected VideoCallback mVideoEndCallback;			// 视频播放结束的回调
+	protected MediaPlayer mMediaPlayer;					// 视频播放组件
+	protected PLAY_STATE mNextState;					// 缓存的视频播放状态
+	protected string mFileName;							// 视频文件名
+	protected float mNextRate;							// 缓存的视频播放速度
+	protected float mNextSeekTime;						// 缓存的视频播放点
+	protected bool mAutoShowOrHide;						// 是否播放完毕时自动隐藏,开始播放时自动显示
+	protected bool mIsRequires;							// 是否旋转180°
+	protected bool mNextLoop;							// 刚设置视频文件,还未加载时,要设置播放状态就需要先保存状态,然后等到视频准备完毕后再设置
+	protected bool mReady;								// 视频是否已准备完毕
 	public myUGUIVideo()
 	{
 		mVideoEventCallback = onVideoEvent;
@@ -101,36 +101,43 @@ public class myUGUIVideo : myUGUIRawImage
 			mAutoShowOrHide = autoShowOrHide;
 		}
 	}
-	public bool setFileName(string file, string pathUnderStreamingAssets = FrameDefine.SA_VIDEO_PATH)
+	public bool setFileNameInVideoPath(string videoName)
 	{
-		string newFileName = getFileName(file);
-		if (newFileName != mFileName)
+		string fullPath = availablePath(FrameDefine.SA_VIDEO_PATH + videoName);
+		// 如果是PersistentDataPath的资源
+		if (startWith(fullPath, FrameDefine.F_PERSISTENT_DATA_PATH))
 		{
-			setVideoEndCallback(null);
-			if (!file.StartsWith(pathUnderStreamingAssets))
-			{
-				file = pathUnderStreamingAssets + file;
-			}
-			if (!isFileExist(FrameDefine.F_STREAMING_ASSETS_PATH + file))
-			{
-				logError("找不到视频文件 : " + file);
-				return false;
-			}
-			notifyVideoReady(false);
-			mFileName = newFileName;
-			mRawImage.texture = null;
-			mMediaPlayer.OpenVideoFromFile(MediaPlayer.FileLocation.RelativeToStreamingAssetsFolder, file, false);
+			return setFileURL(fullPath, MediaPlayer.FileLocation.AbsolutePathOrURL);
 		}
-		return true;
+		// 否则就是StreamingAssets的资源
+		else
+		{
+			// 因为内部会对StreamingAssets的路径进行重新处理,跟FrameDefine.F_STREAMING_ASSETS_PATH中的处理重复了
+			// 所以只能将相对路径传进去,否则在Android平台下会出现路径错误
+			string relativePath = removeStartString(fullPath, FrameDefine.F_STREAMING_ASSETS_PATH);
+			return setFileURL(Application.streamingAssetsPath + "/" + relativePath, MediaPlayer.FileLocation.RelativeToStreamingAssetsFolder);
+		}
 	}
-	public bool setFileURL(string url)
+	public bool setFileName(string fullPath)
 	{
+		if (!isFileExist(fullPath))
+		{
+			logError("找不到视频文件 : " + fullPath);
+			return false;
+		}
+		return setFileURL(fullPath, MediaPlayer.FileLocation.AbsolutePathOrURL);
+	}
+	public bool setFileURL(string url, MediaPlayer.FileLocation localtion)
+	{
+		if (mFileName == url)
+		{
+			return true;
+		}
 		setVideoEndCallback(null);
 		notifyVideoReady(false);
-		mFileName = getFileName(url);
+		mFileName = url;
 		mRawImage.texture = null;
-		bool ret = mMediaPlayer.OpenVideoFromFile(MediaPlayer.FileLocation.AbsolutePathOrURL, url, false);
-		return ret;
+		return mMediaPlayer.OpenVideoFromFile(localtion, url, false);
 	}
 	public string getFileName() { return mFileName; }
 	public void setLoop(bool loop)
@@ -207,7 +214,7 @@ public class myUGUIVideo : myUGUIRawImage
 	}
 	public void setVideoReadyCallback(VideoCallback callback) { mVideoReadyCallback = callback; }
 	public void setErrorCallback(VideoErrorCallback callback) { mErrorCallback = callback; }
-	//----------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void notifyVideoReady(bool ready)
 	{
 		mReady = ready;

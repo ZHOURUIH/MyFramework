@@ -6,29 +6,45 @@ using UnityEngine.Networking;
 // 从AssetBundle中加载资源
 public class AssetBundleLoader : FrameBase
 {
-	protected Dictionary<UnityEngine.Object, AssetBundleInfo> mAssetToAssetBundleInfo;
+	protected const int ASSET_BUNDLE_COROUTINE = 8;
+	protected const int ASSET_COROUTINE = 4;
+	protected Dictionary<Object, AssetBundleInfo> mAssetToAssetBundleInfo;
 	protected Dictionary<string, AssetBundleInfo> mAssetBundleInfoList;
 	protected Dictionary<string, AssetBundleInfo> mRequestAssetList;
 	protected Dictionary<string, AssetInfo> mAssetToBundleInfo;
 	protected List<AssetBundleInfo> mRequestBundleList;
 	protected HashSet<Coroutine> mCoroutineList;
 	protected WaitForEndOfFrame mWaitForEndOfFrame;
-	protected const int ASSET_BUNDLE_COROUTINE = 8;
-	protected const int ASSET_COROUTINE = 4;
 	protected int mAssetBundleCoroutineCount;
 	protected int mAssetCoroutineCount;
 	protected bool mAutoLoad;				// 当资源可用时是否自动初始化AssetBundle
 	protected bool mInited;
 	public AssetBundleLoader()
 	{
+		mAssetToAssetBundleInfo = new Dictionary<Object, AssetBundleInfo>();
 		mAssetBundleInfoList = new Dictionary<string, AssetBundleInfo>();
+		mRequestAssetList = new Dictionary<string, AssetBundleInfo>();
 		mAssetToBundleInfo = new Dictionary<string, AssetInfo>();
 		mRequestBundleList = new List<AssetBundleInfo>();
-		mRequestAssetList = new Dictionary<string, AssetBundleInfo>();
-		mAssetToAssetBundleInfo = new Dictionary<UnityEngine.Object, AssetBundleInfo>();
 		mCoroutineList = new HashSet<Coroutine>();
 		mWaitForEndOfFrame = new WaitForEndOfFrame();
 		mAutoLoad = true;
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mAssetToAssetBundleInfo.Clear();
+		mAssetBundleInfoList.Clear();
+		mRequestAssetList.Clear();
+		mAssetToBundleInfo.Clear();
+		mRequestBundleList.Clear();
+		mCoroutineList.Clear();
+		// mWaitForEndOfFrame不重置
+		// mWaitForEndOfFrame = null;
+		mAutoLoad = true;
+		mInited = false;
+		mAssetBundleCoroutineCount = 0;
+		mAssetCoroutineCount = 0;
 	}
 	public void resourceAvailable()
 	{
@@ -39,22 +55,13 @@ public class AssetBundleLoader : FrameBase
 
 		// 卸载所有已加载的AssetBundle
 		unloadAll();
-		// 如果资源目录为本地目录,则
-		string path = mResourceManager.getResourceRootPath() + "StreamingAssets.bytes";
-		if (mResourceManager.isLocalRootPath())
+		// 加载AssetBundle的配置文件
+		int fileSize = openFile(availablePath("StreamingAssets.bytes"), out byte[] fileBuffer, false);
+		if (fileBuffer != null)
 		{
-			if (!isFileExist(path))
-			{
-				return;
-			}
-			int fileSize = openFile(path, out byte[] fileBuffer, false);
 			initAssetConfig(fileBuffer, fileSize);
-			releaseFile(fileBuffer);
 		}
-		else
-		{
-			mResourceManager.loadAssetsFromUrl(path, onAssetConfigDownloaded);
-		}
+		releaseFile(fileBuffer);
 	}
 	public void setAutoLoad(bool autoLoad) { mAutoLoad = autoLoad; }
 	public void update()
@@ -113,7 +120,7 @@ public class AssetBundleLoader : FrameBase
 			item.Value.unload();
 		}
 	}
-	public bool unloadAsset<T>(ref T asset) where T : UnityEngine.Object
+	public bool unloadAsset<T>(ref T asset) where T : Object
 	{
 		// 查找对应的AssetBundle
 		if (!mAssetToAssetBundleInfo.TryGetValue(asset, out AssetBundleInfo info))
@@ -242,19 +249,19 @@ public class AssetBundleLoader : FrameBase
 		LIST(out List<string> fileNameList);
 		mResourceManager.adjustResourceName<T>(fileName, fileNameList);
 		// 只返回第一个找到的资源
+		T res = null;
 		int count = fileNameList.Count;
 		for (int i = 0; i < count; ++i)
 		{
 			string fileNameWithSuffix = fileNameList[i];
-			if (!mAssetToBundleInfo.TryGetValue(fileNameWithSuffix, out AssetInfo info))
+			if (mAssetToBundleInfo.TryGetValue(fileNameWithSuffix, out AssetInfo info))
 			{
-				continue;
+				res = info.getAssetBundle().getAssetInfo(fileNameWithSuffix).getAsset() as T;
+				break;
 			}
-			UN_LIST(fileNameList);
-			return info.getAssetBundle().getAssetInfo(fileNameWithSuffix).getAsset() as T;
 		}
 		UN_LIST(fileNameList);
-		return null;
+		return res;
 	}
 	// 检查指定的已加载的AssetBundle的依赖项是否有未加载的情况,如果有未加载的则同步加载
 	public void checkAssetBundleDependenceLoaded(string bundleName)
@@ -466,7 +473,7 @@ public class AssetBundleLoader : FrameBase
 			mRequestAssetList.Add(fileNameWithSuffix, bundleInfo);
 		}
 	}
-	public void notifyAssetLoaded(UnityEngine.Object asset, AssetBundleInfo bundle)
+	public void notifyAssetLoaded(Object asset, AssetBundleInfo bundle)
 	{
 		// 保存加载出的资源与资源包的信息
 		if (asset != null && !mAssetToAssetBundleInfo.ContainsKey(asset))
@@ -474,7 +481,7 @@ public class AssetBundleLoader : FrameBase
 			mAssetToAssetBundleInfo.Add(asset, bundle);
 		}
 	}
-	//-------------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected IEnumerator loadAssetBundleCoroutine(AssetBundleInfo bundleInfo)
 	{
 		++mAssetBundleCoroutineCount;
@@ -489,38 +496,23 @@ public class AssetBundleLoader : FrameBase
 #endif
 		bundleInfo.setLoadState(LOAD_STATE.LOADING);
 		AssetBundle assetBundle = null;
-		string path = mResourceManager.getResourceRootPath() + bundleInfo.getBundleFileName();
-		// 加载远端文件时使用www
-		if (!mResourceManager.isLocalRootPath())
+		string bundleFileName = bundleInfo.getBundleFileName();
+		AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(availablePath(bundleFileName));
+		if (request != null)
 		{
-			checkDownloadPath(ref path, mResourceManager.isLocalRootPath());
-			UnityWebRequest www = new UnityWebRequest(path);
-			DownloadHandlerAssetBundle downloadHandler = new DownloadHandlerAssetBundle(path, 0);
-			www.downloadHandler = downloadHandler;
-			yield return www;
-			if (www.error == null)
-			{
-				assetBundle = downloadHandler.assetBundle;
-			}
-			www.Dispose();
+			yield return request;
+			assetBundle = request.assetBundle;
 		}
-		// 直接从文件加载,只能加载本地文件
 		else
 		{
-			AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(path);
-			if (request != null)
-			{
-				yield return request;
-				assetBundle = request.assetBundle;
-			}
-			else
-			{
-				logError("can not load asset bundle async : " + bundleInfo.getBundleFileName());
-				--mAssetBundleCoroutineCount;
-			}
+			logError("can not load asset bundle async : " + bundleFileName);
+			--mAssetBundleCoroutineCount;
 		}
-#if UNITY_EDITOR && DEVELOPMENT_BUILD
-		log(bundleInfo.getBundleFileName() + " load bundle done", LOG_LEVEL.NORMAL);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+		if (assetBundle != null)
+		{
+			log(bundleFileName + " load bundle done", LOG_LEVEL.NORMAL);
+		}
 #endif
 		yield return mWaitForEndOfFrame;
 		// 通知AssetBundleInfo
@@ -536,10 +528,13 @@ public class AssetBundleLoader : FrameBase
 			--mAssetCoroutineCount;
 			yield break;
 		}
+
+		// 异步从资源包中加载资源
 		bundle.getAssetInfo(fileNameWithSuffix).setLoadState(LOAD_STATE.LOADING);
 		if (bundle.getAssetBundle() != null)
 		{
-			AssetBundleRequest assetRequest = bundle.getAssetBundle().LoadAssetWithSubAssetsAsync(FrameDefine.P_GAME_RESOURCES_PATH + fileNameWithSuffix);
+			string assetPath = FrameDefine.P_GAME_RESOURCES_PATH + fileNameWithSuffix;
+			AssetBundleRequest assetRequest = bundle.getAssetBundle().LoadAssetWithSubAssetsAsync(assetPath);
 			if (assetRequest == null)
 			{
 				logError("can not load asset async : " + fileNameWithSuffix);
@@ -554,10 +549,6 @@ public class AssetBundleLoader : FrameBase
 			bundle.notifyAssetLoaded(fileNameWithSuffix, null);
 		}
 		--mAssetCoroutineCount;
-	}
-	protected void onAssetConfigDownloaded(Object res, Object[] subAssets, byte[] bytes, object userData, string loadPath)
-	{
-		initAssetConfig(bytes, bytes.Length);
 	}
 	protected void initAssetConfig(byte[] fileBuffer, int fileSize)
 	{

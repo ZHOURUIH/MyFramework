@@ -12,17 +12,16 @@ public partial class GB : FrameUtilityILR
 	// LayoutScript
 	public static ScriptLogin mScriptLogin;
 	public static ScriptGaming mScriptGaming;
-	public override void notifyConstructDone()
+	public static void notifyILRConstructDone()
 	{
-		base.notifyConstructDone();
 		getILRSystem(out mDemoSystem);
 	}
-	public static T PACKET_ILR<T>(out T packet) where T : SocketPacket
+	public static T PACKET_ILR<T>(out T packet) where T : NetPacketTCPFrame
 	{
 		return packet = mSocketFactory.createSocketPacket(typeof(T)) as T;
 	}
 	//------------------------------------------------------------------------------------------------------------------------
-	public void getILRSystem<T>(out T system) where T : FrameSystem
+	protected static void getILRSystem<T>(out T system) where T : FrameSystem
 	{
 		system = mGameFramework.getSystem(typeof(T)) as T;
 	}

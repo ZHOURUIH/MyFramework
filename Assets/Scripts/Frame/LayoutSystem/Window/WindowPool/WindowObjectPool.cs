@@ -5,41 +5,51 @@ using UnityEngine;
 
 public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 {
-	protected List<T> mUsedItemList;
-	protected List<T> mUnusedItemList;
-	protected LayoutScript mScript;
-	protected myUIObject mItemParentInuse;
-	protected myUIObject mItemParentUnuse;
-	protected myUIObject mTemplate;
-	protected Type mObjectType;
-	protected string mPreName;
-	protected long mAssignIDSeed;		// 分配ID种子,用于设置唯一分配ID,只会递增,不会减少
+	protected HashSet<T> mUnusedItemList;	// 未使用列表
+	protected List<T> mUsedItemList;		// 正在使用的列表
+	protected LayoutScript mScript;			// 所属的布局脚本
+	protected myUIObject mItemParent;		// 创建节点时默认的父节点
+	protected myUIObject mTemplate;			// 创建节点的模板
+	protected Type mObjectType;				// 物体类型
+	protected string mPreName;				// 创建物体的名字前缀
+	protected long mAssignIDSeed;			// 分配ID种子,用于设置唯一分配ID,只会递增,不会减少
+	protected bool mNewItemMoveToLast;		// 新创建的物体是否需要放到父节点的最后,也就是是否在意其渲染顺序
 	public WindowObjectPool(LayoutScript script)
 	{
 		mScript = script;
 		mUsedItemList = new List<T>();
-		mUnusedItemList = new List<T>();
+		mUnusedItemList = new HashSet<T>();
+		mNewItemMoveToLast = true;
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mUsedItemList.Clear();
+		mUnusedItemList.Clear();
+		// mScript不重置
+		// mScript = null;
+		mItemParent = null;
+		mTemplate = null;
+		mObjectType = null;
+		mPreName = null;
+		mAssignIDSeed = 0;
+		mNewItemMoveToLast = true;
 	}
 	public void destroy()
 	{
 		unuseAll();
-		int count = mUnusedItemList.Count;
-		for(int i = 0; i < count; ++i)
+		foreach(var item in mUnusedItemList)
 		{
-			mUnusedItemList[i].destroy();
+			item.destroy();
 		}
 		mUnusedItemList.Clear();
 	}
 	// 当使用ILRuntime热更时,T类型很可能就是一个热更工程中的类,在主工程中无法根据T获得真正的类型,所以只能由外部传进来类型
-	public void setNode(myUIObject parent, myUIObject template, Type objectType)
+	public void init(myUIObject parent, myUIObject template, Type objectType, bool newItemToLast = true)
 	{
-		setNode(parent, parent, template, objectType);
-	}
-	public void setNode(myUIObject parentInuse, myUIObject parentUnuse, myUIObject template, Type objectType)
-	{
-		mItemParentInuse = parentInuse;
-		mItemParentUnuse = parentUnuse;
+		mItemParent = parent;
 		mTemplate = template;
+		mNewItemMoveToLast = newItemToLast;
 		mPreName = template?.getName();
 		mObjectType = objectType;
 #if UNITY_EDITOR
@@ -65,20 +75,20 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 		}
 #endif
 	}
-	public myUIObject getInUseParent() { return mItemParentInuse; }
+	public myUIObject getInUseParent() { return mItemParent; }
 	public void setItemPreName(string preName) { mPreName = preName; }
 	public List<T> getUsedList() { return mUsedItemList; }
 	public bool isUsed(T item) { return mUsedItemList.Contains(item); }
-	public void checkCapacity(int capacity, bool moveToLastSibling = true, bool needSortChild = true, bool notifyLayout = true)
+	public void checkCapacity(int capacity)
 	{
 		int needCount = capacity - mUsedItemList.Count;
 		for (int i = 0; i < needCount; ++i)
 		{
-			newItem(moveToLastSibling, needSortChild, notifyLayout);
+			newItem();
 		}
 	}
-	// 将source从sourcePool中移动到当前池中
-	public void moveItem(WindowObjectPool<T> sourcePool, T source, bool inUsed, bool needSortChild = true, bool notifyLayout = true)
+	// 将source从sourcePool中移动到当前池中,inUsed表示移动到当前池以后是处于正在使用的状态还是未使用状态
+	public void moveItem(WindowObjectPool<T> sourcePool, T source, bool inUsed, bool moveParent = true)
 	{
 		// 从原来的池中移除
 		sourcePool.mUsedItemList.Remove(source);
@@ -87,24 +97,29 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 		if (inUsed)
 		{
 			mUsedItemList.Add(source);
-			source.setParent(mItemParentInuse, needSortChild, notifyLayout);
 		}
 		else
 		{
 			mUnusedItemList.Add(source);
-			source.setParent(mItemParentUnuse, needSortChild, notifyLayout);
+		}
+		if (moveParent)
+		{
+			source.setParent(mItemParent);
 		}
 		// 检查分配ID种子,确保后面池中的已分配ID一定小于分配ID种子
 		mAssignIDSeed = getMax(source.getAssignID(), mAssignIDSeed);
 	}
-	// 因为添加窗口可能会影响所有窗口的深度值,所以如果有需求,需要在完成添加窗口以后手动调用mLayout.notifyObjectOrderChanged()来刷新深度
-	public T newItem(bool moveToLastSibling = true, bool needSortChild = true, bool notifyLayout = true)
+	public T newItem()
+	{
+		return newItem(mItemParent);
+	}
+	// 因为添加窗口可能会影响所有窗口的深度值,所以如果有需求,需要在完成添加窗口以后手动调用mLayout.refreshUIDepth()来刷新深度
+	public T newItem(myUIObject parent)
 	{
 		T item;
 		if (mUnusedItemList.Count > 0)
 		{
-			item = mUnusedItemList[mUnusedItemList.Count - 1];
-			mUnusedItemList.RemoveAt(mUnusedItemList.Count - 1);
+			item = popFirstElement(mUnusedItemList);
 		}
 		else
 		{
@@ -115,21 +130,15 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 #else
 			string name = mPreName;
 #endif
-			item.assignWindow(mItemParentInuse, mTemplate, name);
+			item.assignWindow(parent, mTemplate, name);
 			item.init();
 		}
 		item.setAssignID(++mAssignIDSeed);
 		item.reset();
 		item.setVisible(true);
-		// 如果需要移动到子节点列表的末尾,则在设置父节点时可以不用排序
-		if (moveToLastSibling)
+		if (mNewItemMoveToLast)
 		{
-			item.setParent(mItemParentInuse, false, false);
-			item.setAsLastSibling(needSortChild, notifyLayout);
-		}
-		else
-		{
-			item.setParent(mItemParentInuse, needSortChild, notifyLayout);
+			item.setAsLastSibling(false, false);
 		}
 		mUsedItemList.Add(item);
 		return item;
@@ -142,10 +151,9 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 			T item = mUsedItemList[i];
 			item.recycle();
 			item.setVisible(false);
-			item.setParent(mItemParentUnuse, false, false);
 			item.setAssignID(-1);
+			mUnusedItemList.Add(item);
 		}
-		mUnusedItemList.AddRange(mUsedItemList);
 		mUsedItemList.Clear();
 	}
 	public void unuseItem(T item)
@@ -167,7 +175,6 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 		}
 		item.recycle();
 		item.setVisible(false);
-		item.setParent(mItemParentUnuse, false, false);
 		item.setAssignID(-1);
 		mUnusedItemList.Add(item);
 	}
@@ -187,7 +194,6 @@ public class WindowObjectPool<T> : FrameBase where T : PooledWindow
 		{
 			T item = mUsedItemList[startIndex + i];
 			item.setVisible(false);
-			item.setParent(mItemParentUnuse, false, false);
 			mUnusedItemList.Add(item);
 		}
 		mUsedItemList.RemoveRange(startIndex, count);

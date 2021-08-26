@@ -2,20 +2,29 @@
 using System;
 using System.Collections.Generic;
 
+// 用于存储触点检测时的窗口
 public class MouseCastWindowSet : FrameBase
 {
-	protected HashSet<IMouseEventCollect> mWindowSet;		// 用于查找的窗口列表
-	protected List<IMouseEventCollect> mWindowOrderList;	// 深度由大到小的窗口列表
-	protected GameCamera mCamera;
-	protected bool mDepthDirty;
-	public static Comparison<MouseCastWindowSet> mComparisonDescend = cameraDepthDescend;
-	public static Comparison<IMouseEventCollect> mUIDepthDescend = UIDepthDescend;
-	public MouseCastWindowSet(GameCamera camera)
+	public static Comparison<MouseCastWindowSet> mComparisonDescend = cameraDepthDescend;	// 避免GC的委托
+	public static Comparison<IMouseEventCollect> mUIDepthDescend = uiDepthDescend;			// 避免GC的委托
+	protected HashSet<IMouseEventCollect> mWindowSet;										// 用于查找的窗口列表
+	protected List<IMouseEventCollect> mWindowOrderList;									// 深度由大到小的窗口列表
+	protected GameCamera mCamera;														// 渲染这些窗口的摄像机
+	protected bool mDepthDirty;														// 是否由于窗口深度改变而需要刷新mWindowOrderList的顺序
+	public MouseCastWindowSet()
 	{
-		mCamera = camera;
 		mWindowOrderList = new List<IMouseEventCollect>();
 		mWindowSet = new HashSet<IMouseEventCollect>();
 	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mWindowSet.Clear();
+		mWindowOrderList.Clear();
+		mCamera = null;
+		mDepthDirty = false;
+	}
+	public void setCamera(GameCamera camera) { mCamera = camera; }
 	public void addWindow(IMouseEventCollect window)
 	{
 		if (mWindowSet.Contains(window))
@@ -63,9 +72,9 @@ public class MouseCastWindowSet : FrameBase
 		mWindowOrderList.Remove(window);
 	}
 	public bool isEmpty() { return mWindowSet.Count == 0; }
-	//-------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// a小于b返回1, a等于b返回0, a大于b返回-1
-	protected static int UIDepthDescend(IMouseEventCollect a, IMouseEventCollect b)
+	protected static int uiDepthDescend(IMouseEventCollect a, IMouseEventCollect b)
 	{
 		return UIDepth.compare(a.getDepth(), b.getDepth());
 	}

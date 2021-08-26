@@ -2,9 +2,10 @@
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-public class myUGUIButton : myUGUIObject
+// 因为button组件一般都是跟Image组件一起的,所以继承myUGUIImage
+public class myUGUIButton : myUGUIImage
 {
-	protected Button mButton;
+	protected Button mButton;		// UGUI的Button组件
 	public override void init()
 	{
 		base.init();
@@ -17,7 +18,7 @@ public class myUGUIButton : myUGUIObject
 			mTransform = mRectTransform;
 		}
 	}
-	public void setUGUIClick(UnityAction callback)
+	public void setUGUIButtonClick(UnityAction callback)
 	{
 		mButton.onClick.AddListener(callback);
 	}

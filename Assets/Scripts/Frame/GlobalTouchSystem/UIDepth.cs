@@ -3,22 +3,27 @@
 // 表示UI的深度
 public class UIDepth : FrameBase
 {
-	// 表示深度的数据类型单个占的字节数
-	public const int BYTE_LENGTH = sizeof(ulong);
-	// 有多少个表示深度的数据类型
-	public const int DEPTH_COUNT = 3;
-	// 每一层使用多少个字节表示
-	public const int LEVEL_LENGTH = 2;
+	public const int BYTE_LENGTH = sizeof(ulong);	// 表示深度的数据类型单个占的字节数
+	public const int DEPTH_COUNT = 3;				// 有多少个表示深度的数据类型
+	public const int LEVEL_LENGTH = 2;				// 每一层使用多少个字节表示
 	// ulong8个字节中每2个字节表示一层深度,所以两个ulong共16个字节最多可以支持8层UI窗口的深度
 	// mWindowDepth[0]的开始2个字节是布局的深度
-	protected ulong[] mWindowDepth;		// 窗口深度,总的深度实际上是每一层深度组合起来的值
-	protected ulong[] mOriginDepth;		// 调整前的深度,因为调整的深度不能影响子节点的深度计算,所以计算子节点的深度时需要使用原始的深度
-	protected int mDepthLevel;          // UI的层级相对于Layout根节点,根节点的层级为0,每增加一层,则DepthLevel加1
-	protected int mPriority;			// 在比较窗口深度时,如果窗口的所有深度都相同,则比较mPriority
+	protected ulong[] mWindowDepth;					// 窗口深度,总的深度实际上是每一层深度组合起来的值
+	protected ulong[] mOriginDepth;					// 调整前的深度,因为调整的深度不能影响子节点的深度计算,所以计算子节点的深度时需要使用原始的深度
+	protected int mDepthLevel;						// UI的层级相对于Layout根节点,根节点的层级为0,每增加一层,则DepthLevel加1
+	protected int mPriority;						// 在比较窗口深度时,如果窗口的所有深度都相同,则比较mPriority
 	public UIDepth()
 	{
 		mWindowDepth = new ulong[DEPTH_COUNT];
 		mOriginDepth = new ulong[DEPTH_COUNT];
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		memset(mWindowDepth, 0ul);
+		memset(mOriginDepth, 0ul);
+		mDepthLevel = 0;
+		mPriority = 0;
 	}
 	public int getOrderInParent()
 	{
@@ -102,7 +107,7 @@ public class UIDepth : FrameBase
 			int ushortIndexInLong = i % (BYTE_LENGTH / LEVEL_LENGTH);
 			int offsetBit = (BYTE_LENGTH - LEVEL_LENGTH - ushortIndexInLong * LEVEL_LENGTH) * 8;
 			int levelDepth = (int)((mWindowDepth[longIndex] & ((ulong)ushort.MaxValue << offsetBit)) >> offsetBit);
-			str.Append(IToS(levelDepth) + " ");
+			str.append(IToS(levelDepth) + " ");
 		}
 		return END_STRING(str);
 	}

@@ -4,7 +4,6 @@ using System.Text;
 
 public class BYTES : OBJECTS
 {
-	protected const int TYPE_SIZE = sizeof(byte);
 	public byte[] mValue;
 	public byte this[int index]
 	{
@@ -20,26 +19,20 @@ public class BYTES : OBJECTS
 		}
 	}
 	public BYTES(int count)
+		: base(count)
 	{
 		mValue = new byte[count];
 		mType = typeof(byte[]);
-		mSize = TYPE_SIZE * mValue.Length;
+		mTypeSize = sizeof(byte);
+		mSize = mTypeSize * mValue.Length;
 	}
 	public BYTES(byte[] value)
+		: base(value.Length)
 	{
 		mValue = value;
 		mType = typeof(byte[]);
-		mSize = TYPE_SIZE * mValue.Length;
-	}
-	public override void setRealSize(ushort realSize)
-	{
-		mRealSize = realSize;
-		mElementCount = mRealSize / TYPE_SIZE;
-	}
-	public override void setElementCount(int elementCount)
-	{
-		mElementCount = elementCount;
-		mRealSize = (ushort)(mElementCount * TYPE_SIZE);
+		mTypeSize = sizeof(byte);
+		mSize = mTypeSize * mValue.Length;
 	}
 	public override void zero() { memset(mValue, (byte)0); }
 	public override bool readFromBuffer(byte[] buffer, ref int index)
@@ -48,8 +41,9 @@ public class BYTES : OBJECTS
 		{
 			return readBytes(buffer, ref index, mValue);
 		}
+
 		// 先读取数据的实际字节长度
-		setRealSize(readUShort(buffer, ref index, out bool success));
+		setElementCount(readElementCount(buffer, ref index, out bool success));
 		if (!success)
 		{
 			return success;
@@ -62,8 +56,9 @@ public class BYTES : OBJECTS
 		{
 			return writeBytes(buffer, ref index, mValue);
 		}
+
 		// 先写入数据的实际字节长度
-		if (!writeUShort(buffer, ref index, mRealSize))
+		if (!writeElementCount(buffer, ref index))
 		{
 			return false;
 		}
@@ -120,7 +115,7 @@ public class BYTES : OBJECTS
 	{
 		if(length == -1)
 		{
-			length = mValue.Length - startIndex;
+			length = mElementCount - startIndex;
 		}
 		return bytesToString(mValue, startIndex, length);
 	}
@@ -128,7 +123,7 @@ public class BYTES : OBJECTS
 	{
 		if (length == -1)
 		{
-			length = mValue.Length - startIndex;
+			length = mElementCount - startIndex;
 		}
 		string str = bytesToString(mValue, startIndex, length);
 		startIndex += length;
@@ -138,7 +133,7 @@ public class BYTES : OBJECTS
 	{
 		if (length == -1)
 		{
-			length = mValue.Length - startIndex;
+			length = mElementCount - startIndex;
 		}
 		return bytesToString(mValue, startIndex, length, encoding);
 	}

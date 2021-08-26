@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// 摄像机的连接器,用于第三人称摄像机的跟随逻辑
+// 摄像机的连接器,用于摄像机的跟随逻辑
 public class CameraLinker : GameComponent
 {
 	protected Dictionary<Type, CameraLinkerSwitch> mSwitchList; // 转换器列表
@@ -12,18 +12,22 @@ public class CameraLinker : GameComponent
 	protected Vector3 mRelativePosition;						// 相对位置
 	protected Vector3 mOriginRelativePosition;					// 原始的相对位置,因为在设置mRelativePosition后可能会由于连接器或者其他原因对其进行动态修改,所以需要记录一个原始的位置
 	protected Vector3 mLookAtOffset;							// 焦点的偏移,实际摄像机的焦点是物体的位置加上偏移
-	protected LINKER_UPDATE mUpdateMoment;                      // 连接器更新时机
 	protected float mMinRelativePitch;							// 如果外部改变了mRelativePosition的值,则mRelativePosition的俯仰角不能小于mMinRelativePitch
 	protected float mMaxRelativePitch;							// 如果外部改变了mRelativePosition的值,则mRelativePosition的俯仰角不能大于mMaxRelativePitch
-	protected bool mUseTargetYaw;								// 是否使用目标物体的旋转来旋转摄像机的位置,给子类使用
-	protected bool mLookAtTarget;                               // 是否在摄像机运动过程中一直看向目标位置
+	protected bool mUseTargetYaw;								// 是否使用目标物体的旋转来旋转摄像机的相对位置,给子类使用
+	protected bool mLookAtTarget;								// 是否在摄像机运动过程中一直看向目标位置
+	protected bool mCheckModelBetween;							// 是否检查摄像机与所看向角色之间的阻挡模型,并且将摄像机拉近避免角色被挡住.需要mLookAtTarget为true
+	protected LINKER_UPDATE mUpdateMoment;						// 连接器更新时机
+	protected int mIgnoreLayer;									// 摄像机跟随过滤空气墙
 	public CameraLinker()
 	{
-		mLookAtOffset = new Vector3(0.0f, 2.0f, 0.0f);
-		mUpdateMoment = LINKER_UPDATE.LATE_UPDATE;
 		mSwitchList = new Dictionary<Type, CameraLinkerSwitch>();
+		mLookAtOffset = new Vector3(0.0f, 2.0f, 0.0f);
 		mMinRelativePitch = toRadian(0.0f);
 		mMaxRelativePitch = toRadian(85.0f);
+		mUpdateMoment = LINKER_UPDATE.LATE_UPDATE;
+		mCheckModelBetween = true;
+		mIgnoreLayer = -1;
 	}
 	public override void init(ComponentOwner owner)
 	{
@@ -44,12 +48,15 @@ public class CameraLinker : GameComponent
 		mLinkObject = null;
 		mCamera = null;
 		mRelativePosition = Vector3.zero;
+		mOriginRelativePosition = Vector3.zero;
 		mLookAtOffset = new Vector3(0.0f, 2.0f, 0.0f);
-		mUpdateMoment = LINKER_UPDATE.LATE_UPDATE;
-		mLookAtTarget = false;
-		mUseTargetYaw = false;
 		mMinRelativePitch = toRadian(0.0f);
 		mMaxRelativePitch = toRadian(85.0f);
+		mUseTargetYaw = false;
+		mLookAtTarget = false;
+		mCheckModelBetween = true;
+		mUpdateMoment = LINKER_UPDATE.LATE_UPDATE; 
+		mIgnoreLayer = -1;
 	}
 	public override void update(float elapsedTime)
 	{
@@ -100,16 +107,64 @@ public class CameraLinker : GameComponent
 		{
 			return;
 		}
-        if (mLinkObject.getTransform()==null)
-        {
+		if (mLinkObject.getTransform() == null)
+		{
 			return;
-        }
+		}
 		Vector3 newPos = mLinkObject.getWorldPosition() + relative;
 		mCamera.setPosition(newPos);
+
 		if (mLookAtTarget)
 		{
+			Vector3 lookAtPos = mLinkObject.getWorldPosition() + mLookAtOffset;
+			// 检查目标与摄像机之间是否有阻挡视线的模型
+			if (mCheckModelBetween)
+			{
+				Vector3 originPos = lookAtPos + setLength(newPos - lookAtPos, 0.1f);
+#if UNITY_EDITOR
+				Debug.DrawLine(originPos, newPos, Color.blue);
+#endif
+				Transform targetTrans = mLinkObject.getTransform();
+				Transform avatarTrans = null;
+				if (mLinkObject is Character)
+				{
+					avatarTrans = (mLinkObject as Character).getAvatar()?.getModel()?.transform;
+				}
+
+				ARRAY(out RaycastHit[] hitRet, 16);
+				float nearestDis = float.MaxValue;
+				Vector3 nearestPoint = Vector3.zero; 
+				int hitCount = raycastAll(new Ray(originPos, newPos - originPos), hitRet, getLength(originPos - newPos), mIgnoreLayer);
+				for (int i = 0; i < hitCount; ++i)
+				{
+					// 需要排除目标的所有子节点,包括目标为角色是的模型节点,因为角色的模型不一定挂接到角色节点下
+					Transform hitTrans = hitRet[i].transform;
+					if (hitTrans == targetTrans || hitTrans.IsChildOf(targetTrans))
+					{
+						continue;
+					}
+					if (avatarTrans != null && (hitTrans == avatarTrans || hitTrans.IsChildOf(avatarTrans)))
+					{
+						continue;
+					}
+
+					// 只判断模型即可,并且需要找到离角色最近的一个交点
+					var meshFilter = hitTrans.GetComponent<MeshFilter>();
+					if (meshFilter != null && meshFilter.sharedMesh != null && hitRet[i].distance < nearestDis)
+					{
+						nearestDis = hitRet[i].distance;
+						nearestPoint = hitRet[i].point;
+					}
+				}
+				UN_ARRAY(hitRet);
+				if (nearestDis < float.MaxValue)
+				{
+					mCamera.setPosition(nearestPoint + setLength(lookAtPos - newPos, 0.1f));
+				}
+			}
+
 			// 让摄像机朝向目标
-			mCamera.lookAt(mLinkObject.getWorldPosition() + mLookAtOffset - mCamera.getPosition());
+			mCamera.lookAtPoint(lookAtPos);
 		}
 	}
 	public void setMinRelativePitch(float minPitch) { mMinRelativePitch = minPitch; }
@@ -123,16 +178,16 @@ public class CameraLinker : GameComponent
 	public void setOriginRelativePosition(Vector3 relative) { mOriginRelativePosition = relative; }
 	public Vector3 getRelativePosition() { return mRelativePosition; }
 	// 水平旋转相对位置
-	public void rotateRelativePositionHorizontal(float deltaAngle)
+	public void rotateRelativePositionHorizontal(float deltaDegree)
 	{
-		Vector3 relative = rotateVector3(mRelativePosition, Quaternion.AngleAxis(deltaAngle, Vector3.up));
+		Vector3 relative = rotateVector3(mRelativePosition, Quaternion.AngleAxis(deltaDegree, Vector3.up));
 		setRelativePosition(relative);
 	}
 	// 竖直方向上旋转相对位置
-	public void rotateRelativePositionVertical(float deltaAngle)
+	public void rotateRelativePositionVertical(float deltaDegree)
 	{
 		Vector3 normal = generateNormal(mRelativePosition, replaceY(mRelativePosition, mRelativePosition.y - 1.0f));
-		Vector3 relative = rotateVector3(mRelativePosition, Quaternion.AngleAxis(deltaAngle, normal));
+		Vector3 relative = rotateVector3(mRelativePosition, Quaternion.AngleAxis(deltaDegree, normal));
 		setRelativePosition(relative);
 	}
 	public virtual void setRelativePosition(Vector3 relative)
@@ -175,10 +230,13 @@ public class CameraLinker : GameComponent
 		return linkerSwitch;
 	}
 	public void setLookAtOffset(Vector3 offset) { mLookAtOffset = offset; }
+	public virtual void setLookAtTarget(bool lookat) { mLookAtTarget = lookat; }
+	public void setCheckModelBetween(bool check) { mCheckModelBetween = check; }
 	public Vector3 getLookAtOffset() { return mLookAtOffset; }
-	public void setLookAtTarget(bool lookat) { mLookAtTarget = lookat; }
 	public bool isLookAtTarget() { return mLookAtTarget; }
-	//------------------------------------------------------------------------------------------------------------------------------------------------
+	public bool isCheckModelBetween() { return mCheckModelBetween; }
+	public void setIgnoreLayerMask(int ignoreLayerMask){ mIgnoreLayer = ignoreLayerMask; }
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected virtual void updateLinker(float elapsedTime) { }
 	protected void initSwitch()
 	{

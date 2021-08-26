@@ -1,10 +1,11 @@
 ﻿using System;
 using UnityEngine;
 
+// 插值位置的组件
 public abstract class ComponentLerpPosition : ComponentLerp, IComponentModifyPosition
 {
-	protected Vector3 mTargetPosition;
-	protected float mMinRange;
+	protected Vector3 mTargetPosition;	// 目标位置
+	protected float mMinRange;			// 最近距离,当差值小于此距离时将直接设置到目标点
 	public ComponentLerpPosition()
 	{
 		mMinRange = 0.001f;
@@ -35,7 +36,7 @@ public abstract class ComponentLerpPosition : ComponentLerp, IComponentModifyPos
 	public Vector3 getTargetPosition() { return mTargetPosition; }
 	public void setMinRange(float minRange) { mMinRange = minRange; }
 	public float getMinRange() { return mMinRange; }
-	//----------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected abstract void applyPosition(Vector3 position);
 	protected abstract Vector3 getPosition();
 }

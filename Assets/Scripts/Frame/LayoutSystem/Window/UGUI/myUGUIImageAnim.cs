@@ -2,23 +2,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Image的序列帧
 public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 {
-	protected List<TextureAnimCallback> mPlayEndCallbackList;  // 一个序列播放完时的回调函数,只在非循环播放状态下有效
-	protected List<TextureAnimCallback> mPlayingCallbackList;  // 一个序列正在播放时的回调函数
-	protected List<Vector2> mTexturePosList;
-	protected List<string> mTextureNameList;
-	protected List<Sprite> mSpriteList;
-	protected OnPlayEndCallback mPlayEndCallback;
-	protected OnPlayingCallback mPlayingCallback;
-	protected AnimControl mControl;
-	protected string mTextureSetName;
-	protected bool mUseTextureSize;
-	protected EFFECT_ALIGN mEffectAlign;
+	protected List<TextureAnimCallback> mPlayEndCallbackList;	// 一个序列播放完时的回调函数,只在非循环播放状态下有效
+	protected List<TextureAnimCallback> mPlayingCallbackList;	// 一个序列正在播放时的回调函数
+	protected List<Vector2> mTexturePosList;					// 每一帧的位置偏移列表
+	protected List<Sprite> mSpriteList;							// 序列帧图片列表
+	protected OnPlayEndCallback mPlayEndCallback;				// 播放完成时的回调
+	protected OnPlayingCallback mPlayingCallback;				// 正在播放的回调
+	protected AnimControl mControl;								// 序列帧控制器
+	protected string mTextureSetName;							// 序列帧名字
+	protected bool mUseTextureSize;								// 是否使用图片的大小改变当前窗口大小
+	protected EFFECT_ALIGN mEffectAlign;						// 图片的位置对齐方式
 	public myUGUIImageAnim()
 	{
 		mControl = new AnimControl();
-		mTextureNameList = new List<string>();
 		mSpriteList = new List<Sprite>();
 		mPlayEndCallbackList = new List<TextureAnimCallback>();
 		mPlayingCallbackList = new List<TextureAnimCallback>();
@@ -47,7 +46,7 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		if (mTextureNameList.Count == 0)
+		if (mSpriteList.Count == 0)
 		{
 			setSpriteName(null, false);
 		}
@@ -66,7 +65,7 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 		setTextureSet(null);
 	}
 	public string getTextureSet() { return mTextureSetName; }
-	public int getTextureFrameCount() { return mTextureNameList.Count; }
+	public int getTextureFrameCount() { return mSpriteList.Count; }
 	public void setUseTextureSize(bool useSize){mUseTextureSize = useSize;}
 	public void setTexturePosList(List<Vector2> posList) 
 	{
@@ -80,18 +79,10 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 	public void setEffectAlign(EFFECT_ALIGN align) { mEffectAlign = align; }
 	public void setTextureSet(string textureSetName)
 	{
-		if (mTextureSetName != textureSetName)
-		{
-			setTextureSet(textureSetName, null);
-		}
-	}
-	public void setTextureSet(string textureSetName, string subPath)
-	{
 		if(mTextureSetName == textureSetName)
 		{
 			return;
 		}
-		mTextureNameList.Clear();
 		mSpriteList.Clear();
 		mTextureSetName = textureSetName;
 		if (mAtlas != null && !isEmpty(mTextureSetName))
@@ -106,7 +97,6 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 					break;
 				}
 				mSpriteList.Add(sprites[name]);
-				mTextureNameList.Add(name);
 			}
 			if(getTextureFrameCount() == 0)
 			{
@@ -170,10 +160,10 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 			mPlayingCallbackList.Add(callback);
 		}
 	}
-	//--------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onPlaying(AnimControl control, int frame, bool isPlaying)
 	{
-		if(mControl.getCurFrameIndex() >= mTextureNameList.Count)
+		if(mControl.getCurFrameIndex() >= mSpriteList.Count)
 		{
 			return;
 		}
@@ -183,7 +173,7 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 		{
 			if (mTexturePosList != null && mTexturePosList.Count > 0)
 			{
-				int positionIndex = (int)(frame / (float)mTextureNameList.Count * mTexturePosList.Count + 0.5f);
+				int positionIndex = (int)(frame / (float)mSpriteList.Count * mTexturePosList.Count + 0.5f);
 				setPosition(mTexturePosList[positionIndex]);
 			}
 		}

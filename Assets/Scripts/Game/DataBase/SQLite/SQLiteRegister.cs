@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class SQLiteRegister : GameBase
+public class SQLiteRegister : FrameBase
 {
 	public static void registeAllTable()
 	{

@@ -4,10 +4,10 @@ using UnityEngine;
 
 // 用于固定数量类,不能用于回收复用窗口
 // 通常只是用于已经在预设中创建好的窗口,创建对象时不会创建新的节点
-public abstract class WindowItem : GameBase
+public abstract class WindowItem : FrameBase
 {
-	protected LayoutScript mScript;
-	protected myUGUIObject mRoot;
+	protected LayoutScript mScript;	// 所属的布局脚本
+	protected myUGUIObject mRoot;	// 根节点
 	public virtual void setScript(LayoutScript script) { mScript = script; }
 	public virtual void assignWindow(myUIObject parent, string name)
 	{

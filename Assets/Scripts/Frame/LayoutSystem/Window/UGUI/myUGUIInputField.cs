@@ -1,17 +1,17 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
 using System;
 using UnityEngine.Events;
 
+// 对UGUI的InputField的封装
 public class myUGUIInputField : myUGUIObject, IInputField
 {
-	protected InputField mInputField;
-	protected UnityAction<string> mThisEditEnd;
-	protected UnityAction<string> mThisEditing;
-	protected OnInputField mEditEndCallback;
-	protected OnInputField mEdittingCallback;
-	protected bool mEndNeedEnter;
+	protected UnityAction<string> mThisEditEnd;		// 避免GC的委托
+	protected UnityAction<string> mThisEditing;		// 避免GC的委托
+	protected OnInputField mEdittingCallback;		// 正在输入的回调
+	protected OnInputField mEditEndCallback;		// 输入结束的回调
+	protected InputField mInputField;				// UGUI的InputField组件
+	protected bool mEndNeedEnter;					// 是否需要按下回车键才会认为是输入结束,false则是只要输入框失去焦点就认为输入结束而调用mEditorEndCallback
 	public myUGUIInputField()
 	{
 		mThisEditEnd = onEditEnd;
@@ -79,7 +79,7 @@ public class myUGUIInputField : myUGUIObject, IInputField
 	public void setCharacterLimit(int limit) { mInputField.characterLimit = limit; }
 	public void setCaretPosition(int pos) { mInputField.caretPosition = pos; }
 	public int getCaretPosition() { return mInputField.caretPosition; }
-	//------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onEditEnd(string value) 
 	{
 		// 只处理由回车触发的输入结束

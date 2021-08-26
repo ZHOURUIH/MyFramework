@@ -142,7 +142,7 @@ public enum CHECK_DIRECTION : byte
 	BACK,					// 向后检测
 }
 
-// 鼠标按键
+// 鼠标按键枚举,同时也是作为鼠标的触点ID,因为鼠标和触点不会同时出现,所以不会冲突
 public enum MOUSE_BUTTON : byte
 {
 	LEFT,					// 左键
@@ -191,7 +191,7 @@ public enum GROUP_MUTEX : byte
 	REMOVE_OTHERS,			// 添加新状态时移除组中的其他所有状态
 	NO_NEW,					// 状态组中有状态时不允许添加新状态
 	MUTEX_WITH_MAIN,		// 仅与主状态互斥,添加主状态时移除其他所有状态,有主状态时不可添加其他状态,没有主状态时可任意添加其他状态
-	MUTEX_WITH_MAIN_ONLY,   // 仅与主状态互斥,添加主状态时移除其他所有状态,无论是否有主状态都可以添加其他状态
+	MUTEX_WITH_MAIN_ONLY,	// 仅与主状态互斥,添加主状态时移除其他所有状态,无论是否有主状态都可以添加其他状态
 	MUTEX_INVERSE_MAIN,		// 主状态反向互斥,有其他状态时,不允许添加主状态,添加其他状态时,立即将主状态移除
 }
 
@@ -259,6 +259,7 @@ public enum ANGLE : byte
 	DEGREE,					// 角度制
 }
 
+// UI适配时的停靠类型
 public enum ANCHOR_MODE : byte
 {
 	NONE,						// 无效值
@@ -269,19 +270,19 @@ public enum ANCHOR_MODE : byte
 // 当mAnchorMode的值为STRETCH_TO_PARENT_SIDE时,x方向上要停靠的边界
 public enum HORIZONTAL_PADDING : sbyte
 {
-	NONE = -1,
-	LEFT,
-	RIGHT,
-	CENTER,
+	NONE = -1,		// 无效值
+	LEFT,			// 向左停靠
+	RIGHT,			// 向右停靠
+	CENTER,			// 以中间停靠
 }
 
 // 当mAnchorMode的值为STRETCH_TO_PARENT_SIDE时,y方向上要停靠的边界
 public enum VERTICAL_PADDING : sbyte
 {
-	NONE = -1,
-	TOP,
-	BOTTOM,
-	CENTER,
+	NONE = -1,		// 无效值
+	TOP,			// 向上停靠
+	BOTTOM,			// 向下停靠
+	CENTER,			// 以中间停靠
 }
 
 // 缩放比例的计算方式
@@ -291,7 +292,7 @@ public enum ASPECT_BASE : byte
 	USE_HEIGHT_SCALE,			// 使用高的缩放值来缩放控件
 	AUTO,						// 取宽高缩放值中最小的,保证缩放以后不会超出屏幕范围
 	INVERSE_AUTO,				// 取宽高缩放值中最大的,保证缩放以后不会在屏幕范围留出空白
-	NONE,
+	NONE,						// 无效值
 }
 
 // 模型节点与角色节点的关系
@@ -332,4 +333,29 @@ public enum WINDOW_MODE : byte
 	FULL_SCREEN,					// 全屏模式
 	NO_BOARD_WINDOW,				// 无边框窗口模式
 	FULL_SCREEN_CUSTOM_RESOLUTION,	// 全屏并且使用配置文件中的分辨率
+}
+
+// 角的类型
+public enum CORNER : byte
+{
+	LEFT_TOP,					// 左上角
+	LEFT_BOTTOM,				// 左下角
+	RIGHT_TOP,					// 右上角
+	RIGHT_BOTTOM,				// 右下角
+}
+
+// 布局的生命周期定义
+public enum LAYOUT_LIFE_CYCLE : byte
+{
+	NONE,						// 无效值
+	ALWAYS,						// 全局常驻
+	PART_USE,					// 只在一些流程中使用
+}
+
+// 调整Content的子节点的方式
+public enum CONTENT_ADJUST : byte
+{ 
+	NONE,					// 无效值,不改变子节点的位置
+	SINGLE_COLUMN_OR_LINE,	// 自动按照单行或者单列进行排列子节点
+	FIXED_WIDTH_OR_HEIGHT,	// 按照固定的父节点宽度或宽度,顺序排列子节点
 }

@@ -1,26 +1,37 @@
-﻿#if !UNITY_IOS && !NO_SQLITE
+﻿#if !NO_SQLITE
 using Mono.Data.Sqlite;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 
+// 表示一个SQLite表格
 public class SQLiteTable : FrameBase
 {
-	protected Dictionary<int, SQLiteData> mDataMap;
-	protected SqliteConnection mConnection;
-	protected SqliteCommand mCommand;
-	protected string mTableName;
-	protected Type mDataClassType;
-	protected bool mFullData;		// 数据是否已经全部查询过了
+	protected Dictionary<int, SQLiteData> mDataMap;		// 以数据ID为索引的数据列表
+	protected SqliteConnection mConnection;				// SQLite所需的Connection
+	protected SqliteCommand mCommand;					// SQLite所需的Command
+	protected string mTableName;						// 表格名称
+	protected Type mDataClassType;						// 数据类型
+	protected bool mFullData;							// 数据是否已经全部查询过了,如果已经全部查询过了,则再次查询时就可以直接全部返回了
 	public SQLiteTable()
 	{
 		mDataMap = new Dictionary<int, SQLiteData>();
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mDataMap.Clear();
+		mConnection = null;
+		mCommand = null;
+		mTableName = null;
+		mDataClassType = null;
+		mFullData = false;
 	}
 	public void load(byte[] encryptKey)
 	{
 		try
 		{
-			string fullPath = FrameDefine.F_DATA_BASE_PATH + mTableName + ".db";
+			string fullPath = availablePath(FrameDefine.SA_DATA_BASE_PATH + mTableName + ".db");
 			if (isFileExist(fullPath))
 			{
 				clearCommand();
@@ -32,8 +43,8 @@ public class SQLiteTable : FrameBase
 				{
 					fileBuffer[i] ^= encryptKey[i % encryptKey.Length];
 				}
-				// 将解密后的数据写入新的目录
-				string newPath = getFilePath(fullPath) + "/temp/" + mTableName + ".db";
+				// 将解密后的数据写入新的目录,需要写入PersistentDataPath
+				string newPath = strcat(FrameDefine.F_PERSISTENT_DATA_PATH, FrameDefine.SA_DATA_BASE_PATH, "/temp/", mTableName, ".db");
 				writeFile(newPath, fileBuffer, fileSize);
 				releaseFile(fileBuffer);
 				connect(newPath);
@@ -214,7 +225,7 @@ public class SQLiteTable : FrameBase
 			mDataMap.Add(item.mID, item);
 		}
 	}
-	//---------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected virtual void clearAll()
 	{
 		mDataMap.Clear();

@@ -16,7 +16,7 @@ public class ILRFrameUtility : FrameBase
 	{
 		callStatic("start");
 	}
-	//----------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 调用热更工程中ILRExport类的静态函数,带返回值的
 	protected static T callStatic<T>(string method, params object[] p)
 	{
@@ -54,7 +54,7 @@ public class ILRFrameUtility : FrameBase
 		mILRSystem.getAppDomain().Invoke(type, method, instance, p);
 	}
 	// 根据名字获取热更工程中的类型
-	public static Type getILRType(string name)
+	protected static Type getILRType(string name)
 	{
 		ILRAppDomain appDomain = mILRSystem.getAppDomain();
 		if (appDomain == null)

@@ -1,14 +1,17 @@
 ﻿using System;
 using UnityEngine;
 
+// 通过Unity中编辑的曲线
 public class UnityCurve : MyCurve
 {
-	protected AnimationCurve mCurve;
-	public UnityCurve(AnimationCurve curve)
+	protected AnimationCurve mCurve;		// unity曲线对象
+	public override void resetProperty()
 	{
-		mCurve = curve;
+		base.resetProperty();
+		mCurve = null;
 	}
-	public override float Evaluate(float time)
+	public void setCurve(AnimationCurve curve) { mCurve = curve; }
+	public override float evaluate(float time)
 	{
 		if(mCurve == null)
 		{

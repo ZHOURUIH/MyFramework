@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System;
 
+// 系统组件基类,一般都是管理器
 public class FrameSystem : ComponentOwner
 {
 	protected GameObject mObject;		// 管理器节点,一般用于作为管理物体的父节点,或者挂接调试脚本
@@ -21,6 +22,8 @@ public class FrameSystem : ComponentOwner
 		}
 		initComponents();
 	}
+	// 等待所有系统组件的init调用完毕后会调用lateInit,如果在init中会有依赖于其他系统组件的初始化,则可以写在lateInit中
+	public virtual void lateInit() { }
 	public override void destroy()
 	{
 		destroyGameObject(mObject);

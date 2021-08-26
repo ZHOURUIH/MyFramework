@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 
+// 用于执行切换连接器时的不同行为,直接平移到目标点
 public class CameraLinkerSwitchLinear : CameraLinkerSwitch
 {
 	protected Vector3 mDirection;		// 此次转换的方向,用于避免不必要的向量重复计算
@@ -15,6 +16,14 @@ public class CameraLinkerSwitchLinear : CameraLinkerSwitch
 		mMovedDistance = 0.0f;
 		mDistance = getLength(mOriginRelative - mTargetRelative);
 		mDirection = normalize(mTargetRelative - mOriginRelative);
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mDirection = Vector3.zero;
+		mMovedDistance = 0.0f;
+		mDistance = 0.0f;
+		mSpeed = 7.0f;
 	}
 	public override void update(float elapsedTime)
 	{

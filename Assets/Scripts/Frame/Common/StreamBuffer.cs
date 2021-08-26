@@ -3,10 +3,15 @@
 // 自定义缓冲区,用于持续写入数据
 public class StreamBuffer : FrameBase
 {
-	protected byte[] mBuffer;
-	protected int mBufferSize;
-	protected int mDataLength;
+	protected byte[] mBuffer;		// 缓冲区
+	protected int mBufferSize;		// 缓冲区大小
+	protected int mDataLength;		// 当前数据大小
+	public StreamBuffer(){}
 	public StreamBuffer(int bufferSize)
+	{
+		init(bufferSize);
+	}
+	public void init(int bufferSize)
 	{
 		resizeBuffer(bufferSize);
 	}
@@ -14,6 +19,13 @@ public class StreamBuffer : FrameBase
 	{
 		UN_ARRAY_THREAD(mBuffer);
 		mBuffer = null;
+	}
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mBuffer = null;
+		mBufferSize = 0;
+		mDataLength = 0;
 	}
 	public byte[] getData(){return mBuffer;}
 	public int getDataLength(){return mDataLength;}
@@ -42,7 +54,7 @@ public class StreamBuffer : FrameBase
 	{
 		mDataLength = 0;
 	}
-	//-------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void resizeBuffer(int size)
 	{
 		if (mBufferSize >= size)

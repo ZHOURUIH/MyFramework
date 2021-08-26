@@ -39,6 +39,20 @@ public class TimeUtility : FileUtility
 	public static long getNowUTCTimeStamp() { return dateTimeToTimeStamp(DateTime.UtcNow); }
 	// 获得当前的UTC时间戳,以毫秒为单位
 	public static long getNowUTCTimeStampMS() { return dateTimeToTimeStampMS(DateTime.UtcNow); }
+	public static string minuteToHourMinuteString(int totalMinute)
+	{
+		minuteToHourMinute(totalMinute, out int hour, out int minute);
+		MyStringBuilder timeStr = FrameUtility.STRING();
+		if (hour > 0 )
+		{
+			timeStr.append(IToS(hour), "小时");
+		}
+		if (minute > 0)
+		{
+			timeStr.append(IToS(minute), "分钟");
+		}
+		return FrameUtility.END_STRING(timeStr);
+	}
 	// 一般用于倒计时显示的字符串
 	public static string getRemainTime(int timeSecond, TIME_DISPLAY display)
 	{

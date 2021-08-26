@@ -3,9 +3,10 @@ using UnityEngine;
 using System.Collections;
 using TMPro;
 
+// 对TextMeshPro的Text组件的封装
 public class myUGUITextTMP : myUGUIObject
 {
-	protected TextMeshProUGUI mText;
+	protected TextMeshProUGUI mText;	// TextMeshPro的Text组件
 	public override void init()
 	{
 		base.init();

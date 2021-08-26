@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System;
 
+// 角色管理器
 public class CharacterManager : FrameSystem
 {
-	protected Dictionary<Type, Dictionary<long, Character>> mCharacterTypeList;    // 角色分类列表
+	protected Dictionary<Type, Dictionary<long, Character>> mCharacterTypeList;	// 角色分类列表
 	protected SafeDictionary<long, Character> mCharacterGUIDList;	// 角色ID索引表
 	protected Dictionary<long, Character> mFixedUpdateList;			// 需要在FixedUpdate中更新的列表,如果直接使用mCharacterGUIDList,会非常慢,而很多时候其实并不需要进行物理更新,所以单独使用一个列表存储
 	protected Character mMyself;									// 玩家自己,方便获取
@@ -73,7 +74,7 @@ public class CharacterManager : FrameSystem
 			}
 		}
 	}
-	public Character getMyself() { return mMyself; }
+	public new Character getMyself() { return mMyself; }
 	public Character getCharacter(long characterID)
 	{
 		mCharacterGUIDList.tryGetValue(characterID, out Character character);
@@ -93,36 +94,32 @@ public class CharacterManager : FrameSystem
 		mCharacterTypeList.TryGetValue(type, out Dictionary<long, Character> characterList);
 		return characterList;
 	}
-	public Character createCharacter(string name, Type type, long id, bool createNode)
+	public Character createCharacter(string name, Type type, long id)
 	{
 		if (mCharacterGUIDList.containsKey(id))
 		{
 			logError("there is a character id : " + id + "! can not create again!");
 			return null;
 		}
-		var newCharacter = CLASS(type) as Character;
-		newCharacter.setName(name);
-		newCharacter.setCharacterType(type);
+		var character = CLASS(type) as Character;
+		character.setName(name);
+		character.setCharacterType(type);
 		// 如果是玩家自己,则记录下来
-		if (newCharacter.isMyself())
+		if (character.isMyself())
 		{
 			if (mMyself != null)
 			{
 				logError("Myself has exist ! can not create again, name : " + (name != null ? name : EMPTY));
 				return null;
 			}
-			mMyself = newCharacter;
+			mMyself = character;
 		}
 		// 将角色挂接到管理器下
-		if(createNode)
-		{
-			GameObject charNode = createGameObject(newCharacter.getName(), mObject);
-			newCharacter.setObject(charNode, true);
-		}
-		newCharacter.setID(id);
-		newCharacter.init();
-		addCharacterToList(newCharacter);
-		return newCharacter;
+		character.createCharacterNode();
+		character.setID(id);
+		character.init();
+		addCharacterToList(character);
+		return character;
 	}
 	public void destroyAllCharacter()
 	{
@@ -141,7 +138,7 @@ public class CharacterManager : FrameSystem
 			destroyCharacter(character);
 		}
 	}
-	//------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void addCharacterToList(Character character)
 	{
 		if (character == null)

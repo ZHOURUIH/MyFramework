@@ -57,11 +57,7 @@ public class EditorCommonUtility : FrameUtility
 			gameObjectToPrefab(path, transform.GetChild(i).gameObject);
 		}
 	}
-	// 图片尺寸是否为2的n次方
-	protected static bool isSizePow2(Texture2D tex)
-	{
-		return isPow2(tex.width) && isPow2(tex.height);
-	}
+	
 	// 查找文件在其他地方的引用情况
 	public static int searchFiles(string pattern, string guid, string fileName, bool loadFile, Dictionary<string, UnityEngine.Object> refrenceList, Dictionary<string, List<FileGUIDLines>> allFileText)
 	{
@@ -101,7 +97,7 @@ public class EditorCommonUtility : FrameUtility
 			{
 				pattern = EMPTY;
 			}
-			if (pattern.StartsWith("*"))
+			if (pattern[0] == '*')
 			{
 				pattern = pattern.Remove(0, 1);
 			}
@@ -147,7 +143,7 @@ public class EditorCommonUtility : FrameUtility
 	// 检查shader是否有指定的属性
 	public static bool checkTextureInShader(string texturePropertyName, string shaderContent)
 	{
-		string[] lines = split(shaderContent, true, "\n");
+		string[] lines = split(shaderContent, '\n');
 		int propertyLine = -1;
 		int propertyStartLine = -1;
 		int propertyEndLine = -1;
@@ -156,9 +152,7 @@ public class EditorCommonUtility : FrameUtility
 		generateNextIndex(texturePropertyKey, out texturePropertyNextIndex);
 		for (int i = 0; i < lines.Length; ++i)
 		{
-			lines[i] = removeAll(lines[i], "\r");
-			lines[i] = removeAll(lines[i], "\t");
-			lines[i] = removeAll(lines[i], " ");
+			lines[i] = removeAll(lines[i], '\r', '\t', ' ');
 			// 找到Properties
 			if (lines[i] == "Properties")
 			{
@@ -192,10 +186,10 @@ public class EditorCommonUtility : FrameUtility
 	public static void checkMaterialTextureValid(string path, Dictionary<string, List<FileGUIDLines>> allFileText)
 	{
 		string materialContent = openTxtFile(projectPathToFullPath(path), true);
-		string[] materialLines = split(materialContent, true, "\r\n");
+		string[] materialLines = split(materialContent, "\r\n");
 		for (int i = 0; i < materialLines.Length; ++i)
 		{
-			materialLines[i] = removeAll(materialLines[i], " ");
+			materialLines[i] = removeAll(materialLines[i], ' ');
 		}
 		bool startTexture = false;
 		string textureStr = "m_Texture";
@@ -216,7 +210,7 @@ public class EditorCommonUtility : FrameUtility
 			else
 			{
 				// 找到属性名
-				if (line.StartsWith("-"))
+				if (line[0] == '-')
 				{
 					string textureLine = materialLines[i + 1];
 					if (KMPSearch(textureLine, textureStr, textureNextIndex) < 0)
@@ -227,7 +221,7 @@ public class EditorCommonUtility : FrameUtility
 					if (KMPSearch(textureLine, guidKey, guidNextIndex) >= 0)
 					{
 						int startIndex = textureLine.IndexOf(guidKey) + guidKey.Length;
-						int endIndex = textureLine.IndexOf(",", startIndex);
+						int endIndex = textureLine.IndexOf(',', startIndex);
 						string textureGUID = textureLine.Substring(startIndex, endIndex - startIndex);
 						string textureFile = findAsset(textureGUID, ".png", false, allFileText);
 						if (textureFile == EMPTY)
@@ -265,15 +259,15 @@ public class EditorCommonUtility : FrameUtility
 	{
 		string shaderGUID = EMPTY;
 		string materialContent = openTxtFile(projectPathToFullPath(path), true);
-		string[] materialLines = split(materialContent, true, "\r\n");
+		string[] materialLines = split(materialContent, "\r\n");
 		foreach (var item in materialLines)
 		{
-			string line = removeAll(item, " ");
+			string line = removeAll(item, ' ');
 			if (line.StartsWith("m_Shader:"))
 			{
 				string key = "guid:";
 				int startIndex = line.IndexOf(key) + key.Length;
-				int endIndex = line.IndexOf(",", startIndex);
+				int endIndex = line.IndexOf(',', startIndex);
 				shaderGUID = line.Substring(startIndex, endIndex - startIndex);
 				break;
 			}
@@ -302,7 +296,7 @@ public class EditorCommonUtility : FrameUtility
 		bool startTexture = false;
 		foreach (var item in materialLines)
 		{
-			string line = removeAll(item, " ");
+			string line = removeAll(item, ' ');
 			if (!startTexture)
 			{
 				// 开始查找贴图属性
@@ -345,79 +339,14 @@ public class EditorCommonUtility : FrameUtility
 			Debug.Log("材质贴图属性正常:" + path);
 		}
 	}
-	// 根据GUID查找资源文件
-	private static string findAsset(string guid, string suffix, bool showAsset, Dictionary<string, List<FileGUIDLines>> allFileText)
-	{
-		int[] guidNextIndex;
-		generateNextIndex(guid, out guidNextIndex);
-		string metaSuffix = ".meta";
-		if (allFileText == null)
-		{
-			string[] files = Directory.GetFiles(Application.dataPath + "/" + FrameDefine.GAME_RESOURCES, "*.*", SearchOption.AllDirectories);
-			foreach (var item in files)
-			{
-				string file = item;
-				if (!endWith(file, suffix + metaSuffix, false))
-				{
-					continue;
-				}
-				if (KMPSearch(File.ReadAllText(file), guid, guidNextIndex) < 0)
-				{
-					continue;
-				}
-				removeEndString(ref file, metaSuffix);
-				if (showAsset)
-				{
-					fullPathToProjectPath(ref file);
-					rightToLeft(ref file);
-					Debug.Log(file, AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(file));
-				}
-				return file;
-			}
-			return EMPTY;
-		}
-		foreach (var item in allFileText)
-		{
-			string curSuffix = item.Key;
-			// 只判断meta文件
-			if (curSuffix != metaSuffix)
-			{
-				continue;
-			}
-			foreach (var fileGUIDLines in item.Value)
-			{
-				string curFile = fileGUIDLines.mProjectFileName;
-				if (!endWith(curFile, suffix + metaSuffix, false))
-				{
-					continue;
-				}
-				foreach (var line in fileGUIDLines.mContainGUIDLines)
-				{
-					if (KMPSearch(line, guid, guidNextIndex) < 0)
-					{
-						continue;
-					}
-					removeEndString(ref curFile, metaSuffix);
-					if (showAsset)
-					{
-						Debug.Log(curFile, AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(curFile));
-					}
-					return curFile;
-				}
-			}
-		}
-		return EMPTY;
-	}
 	public static Dictionary<string, string> getSpriteGUIDs(string path)
 	{
 		Dictionary<string, string> spriteGUIDs = new Dictionary<string, string>();
-		string atlasContent = openTxtFile(projectPathToFullPath(path + ".meta"), true);
-		string[] atlasLines = split(atlasContent, true, "\n");
+		openTxtFileLines(projectPathToFullPath(path + ".meta"), out string[] atlasLines);
 		bool spriteStart = false;
 		foreach (var item in atlasLines)
 		{
-			string line = removeAll(item, " ");
-			line = removeAll(line, "\r");
+			string line = removeAll(item, ' ');
 			if (line == "fileIDToRecycleName:")
 			{
 				spriteStart = true;
@@ -430,7 +359,7 @@ public class EditorCommonUtility : FrameUtility
 			{
 				continue;
 			}
-			string[] elem = split(line, true, ":");
+			string[] elem = split(line, ':');
 			if (elem.Length != 2)
 			{
 				break;
@@ -495,8 +424,7 @@ public class EditorCommonUtility : FrameUtility
 		// 如果是图片文件,则需要查找其中包含的sprite
 		if (isTexture)
 		{
-			string metaContent = openTxtFile(projectPathToFullPath(path + ".meta"), false);
-			string[] lines = split(metaContent, true, "\n");
+			openTxtFileLines(projectPathToFullPath(path + ".meta"), out string[] lines, false);
 			string keyStr = "spriteID: ";
 			int[] keyNextIndex;
 			generateNextIndex(keyStr, out keyNextIndex);
@@ -565,65 +493,224 @@ public class EditorCommonUtility : FrameUtility
 		}
 		return false;
 	}
-	public static bool isGUIDChar(char value)
+	public static bool isGUIDChar(char value) { return isNumeric(value) || isLower(value); }
+	public static Dictionary<string, List<FileGUIDLines>> getAllFileText(string path, string[] patterns = null)
 	{
-		return value >= '0' && value <= '9' || value >= 'a' && value <= 'z';
-	}
-	public static Dictionary<string, List<FileGUIDLines>> getAllFileText(string path, string[] patterns)
-	{
-		string[] supportPatterns = new string[] { ".prefab", ".unity", ".mat", ".asset", ".meta", ".controller", ".overrideController" };
+		List<string> supportPatterns = new List<string>() { ".prefab", ".unity", ".mat", ".asset", ".meta", ".controller", ".overrideController" };
+		if (patterns != null)
+		{
+			supportPatterns.AddRange(patterns);
+		}
 		// key是后缀名,value是该后缀名的文件信息列表
 		Dictionary<string, List<FileGUIDLines>> allFileText = new Dictionary<string, List<FileGUIDLines>>();
-		string[] files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
+		List<string> files = new List<string>();
+		findFiles(path, files, supportPatterns);
 		foreach (var item in files)
 		{
-			if (matchPattern(item, supportPatterns) && matchPattern(item, patterns))
+			string curSuffix = getFileSuffix(item);
+			if (!allFileText.TryGetValue(curSuffix, out List<FileGUIDLines> guidLines))
 			{
-				string curSuffix = getFileSuffix(item);
-				if (!allFileText.TryGetValue(curSuffix, out List<FileGUIDLines> guidLines))
-				{
-					guidLines = new List<FileGUIDLines>();
-					allFileText.Add(curSuffix, guidLines);
-				}
-				FileGUIDLines fileGUIDLines = new FileGUIDLines();
-				string fileContent = File.ReadAllText(item);
-				string[] lines = split(fileContent, true, "\n");
-				List<string> list = new List<string>();
-				foreach (var lineItem in lines)
-				{
-					if (hasGUID(lineItem))
-					{
-						list.Add(lineItem);
-					}
-				}
-				string fileName = item;
-				rightToLeft(ref fileName);
-				fullPathToProjectPath(ref fileName);
-				fileGUIDLines.mProjectFileName = fileName;
-				fileGUIDLines.mContainGUIDLines = list;
-				guidLines.Add(fileGUIDLines);
+				guidLines = new List<FileGUIDLines>();
+				allFileText.Add(curSuffix, guidLines);
 			}
+			FileGUIDLines fileGUIDLines = new FileGUIDLines();
+			string fileContent = File.ReadAllText(item);
+			string[] lines = split(fileContent, '\n');
+			List<string> list = new List<string>();
+			foreach (var lineItem in lines)
+			{
+				if (hasGUID(lineItem))
+				{
+					list.Add(lineItem);
+				}
+			}
+			string fileName = item;
+			rightToLeft(ref fileName);
+			fullPathToProjectPath(ref fileName);
+			fileGUIDLines.mProjectFileName = fileName;
+			fileGUIDLines.mContainGUIDLines = list;
+			guidLines.Add(fileGUIDLines);
 		}
 		return allFileText;
 	}
-	public static bool matchPattern(string fileName, string[] patterns)
+	// 根据后缀获取指定文件路径下的指定资源的所有GUID(filePath:查找路径, assetType : 后缀类型名, tipText : 查找类型提示,默认为空)
+	public static Dictionary<string, string> getAllGUIDBySuffixInFilePath(string filePath, string assetType, string tipText = "")
 	{
-		if (patterns == null)
+		var files = new List<string>();
+		var allGUIDDic = new Dictionary<string, string>();
+		findFiles(filePath, files, assetType);
+		int fileCount = files.Count;
+		for (int i = 0; i < fileCount; ++i)
 		{
-			return true;
-		}
-		if (fileName.EndsWith(".meta"))
-		{
-			return true;
-		}
-		foreach (var item in patterns)
-		{
-			if (fileName.EndsWith(item))
+			displayProgressBar("正在查找所有" + tipText + "资源", "进度:", i + 1, fileCount);
+			string file = files[i];
+			openTxtFileLines(file, out string[] lines);
+			foreach (var line in lines)
 			{
-				return true;
+				if (line.Contains("guid: "))
+				{
+					allGUIDDic.Add(removeStartString(line, "guid: "), file);
+					break;
+				}
 			}
 		}
-		return false;
+		EditorUtility.ClearProgressBar();
+		return allGUIDDic;
+	}
+	// 根据后缀获取指定文件路径下指定类型资源的所有GUID和spriteID(filePath:查找路径, assetType : 后缀类型名,tipText : 查找类型提示,默认为空)
+	public static Dictionary<string, string> getAllGUIDAndSpriteIDBySuffixInFilePath(string filePath, string assetType, string tipText = "")
+	{
+		var files = new List<string>();
+		var allGUIDDic = new Dictionary<string, string>();
+		findFiles(filePath, files, assetType);
+		int fileCount = files.Count;
+		const string spritesArrMark = "TextureImporter:";
+		for (int i = 0; i < fileCount; ++i)
+		{
+			EditorUtility.DisplayProgressBar("正在查找所有" + tipText + "资源", "进度:" + (i + 1) + "/" + fileCount, (float)(i + 1) / fileCount);
+			string file = files[i];
+			openTxtFileLines(file, out string[] lines);
+			for (int j = 0; j < lines.Length - 1; ++j)
+			{
+				if (lines[j].Contains("guid: "))
+				{
+					allGUIDDic.Add(removeStartString(lines[j], "guid: "), file);
+					// 如果.meat文件中guid的下一行为"TextureImporter:"说明这个.meta文件为图集类型的.meta文件
+					if (lines[j + 1].Contains(spritesArrMark))
+					{
+						continue;
+					}
+					break;
+				}
+				if (hasGUID(lines[j]) && lines[j].Contains("spriteID: "))
+				{
+					int startIndex = findFirstSubstr(lines[j], "spriteID: ", 0, true);
+					string spriteID = lines[j].Substring(startIndex);
+					if (!allGUIDDic.ContainsKey(spriteID))
+					{
+						allGUIDDic.Add(spriteID, file);
+					}
+				}
+			}
+		}
+		EditorUtility.ClearProgressBar();
+		return allGUIDDic;
+	}
+	// 获得文件中引用到了cs脚本的所在行
+	public static Dictionary<string, FileGUIDLines> getScriptRefrenceFileText(string path)
+	{
+		// key是后缀名,value是该后缀名的文件信息列表
+		var allFileText = new Dictionary<string, FileGUIDLines>();
+		List<string> files = new List<string>();
+		findFiles(path, files, new List<string>() { ".prefab", ".unity" });
+		int filesCounts = files.Count;
+		int curFileIndex = 0;
+		foreach (var item in files)
+		{
+			EditorUtility.DisplayProgressBar("查找所有脚本文件的引用", "进度:" + (curFileIndex + 1) + "/" + filesCounts, (float)(curFileIndex + 1) / filesCounts);
+			var fileGUIDLines = new FileGUIDLines();
+			openTxtFileLines(item, out string[] lines);
+			List<string> list = new List<string>();
+			foreach (var lineItem in lines)
+			{
+				if (hasGUID(lineItem) && lineItem.Contains("m_Script:"))
+				{
+					int startIndex = findFirstSubstr(lineItem, "guid: ", 0, true);
+					int endIndex = findFirstSubstr(lineItem, ", ", startIndex);
+					list.Add(lineItem.Substring(startIndex, endIndex - startIndex));
+				}
+			}
+			fileGUIDLines.mProjectFileName = fullPathToProjectPath(rightToLeft(item));
+			fileGUIDLines.mContainGUIDLines = list;
+			allFileText.Add(item, fileGUIDLines);
+			++curFileIndex;
+		}
+		EditorUtility.ClearProgressBar();
+		return allFileText;
+	}
+	// 获取引用的所有材质的guid拼接的字符串
+	public static string getGUIDSplitStr(string[] lines, int startIndex)
+	{
+		// 默认材质GUID
+		const string defultGUID = "0000000000000000f000000000000000";
+		string splitStr = "";
+		for (int i = startIndex + 1; i < lines.Length - 1; ++i)
+		{
+			if (!hasGUID(lines[i]))
+			{
+				break;
+			}
+			if (lines[i].Contains(defultGUID))
+			{
+				continue;
+			}
+			int subStartIndex = findFirstSubstr(lines[i], "guid: ", 0, true);
+			int subEndIndex = findFirstSubstr(lines[i], ", ", subStartIndex);
+			splitStr += "-" + lines[i].Substring(subStartIndex, subEndIndex - subStartIndex);
+		}
+		return splitStr;
+	}
+	// 获得文件中引用到了Material的所在行
+	public static Dictionary<string, FileGUIDLines> getMaterialRefrenceFileText(string path)
+	{
+		// key是文件名,value是文件信息列表
+		var allFileText = new Dictionary<string, FileGUIDLines>();
+		List<string> fileList = new List<string>();
+		findFiles(path, fileList, new List<string> { ".prefab", ".unity" });
+		int filesCounts = fileList.Count;
+		int curFileIndex = 0;
+		foreach (var item in fileList)
+		{
+			EditorUtility.DisplayProgressBar("查找所有材质的引用", "进度:" + (curFileIndex + 1) + "/" + filesCounts, (float)(curFileIndex + 1) / filesCounts);
+			var fileGUIDLines = new FileGUIDLines();
+			openTxtFileLines(item, out string[] lines);
+			List<string> list = new List<string>();
+			for (int i = 0; i < lines.Length; ++i)
+			{
+				if (lines[i].Contains("m_Materials:") && !isEmpty(getGUIDSplitStr(lines, i)))
+				{
+					list.Add(getGUIDSplitStr(lines, i));
+				}
+			}
+			fileGUIDLines.mProjectFileName = fullPathToProjectPath(rightToLeft(item));
+			fileGUIDLines.mContainGUIDLines = list;
+			allFileText.Add(item, fileGUIDLines);
+			++curFileIndex;
+		}
+		EditorUtility.ClearProgressBar();
+		return allFileText;
+	}
+	// 获得文件中具有引用的所在行
+	public static Dictionary<string, FileGUIDLines> getAllRefrenceFileText(string path)
+	{
+		// key是后缀名,value是该后缀名的文件信息列表
+		var allFileText = new Dictionary<string, FileGUIDLines>();
+		List<string> files = new List<string>();
+		findFiles(path, files, new List<string>() { ".prefab", ".unity", ".mat", ".controller" });
+		int filesCounts = files.Count;
+		int curFileIndex = 0;
+		foreach (var item in files)
+		{
+			EditorUtility.DisplayProgressBar("查找所有的引用", "进度:" + (curFileIndex + 1) + "/" + filesCounts, (float)(curFileIndex + 1) / filesCounts);
+			var fileGUIDLines = new FileGUIDLines();
+			openTxtFileLines(item, out string[] lines);
+			List<string> list = new List<string>();
+			foreach (var lineItem in lines)
+			{
+				if (hasGUID(lineItem) && lineItem.Contains("guid: "))
+				{
+					int startIndex = findFirstSubstr(lineItem, "guid: ", 0, true);
+					int endIndex = findFirstSubstr(lineItem, ',', startIndex);
+					list.Add(lineItem.Substring(startIndex, endIndex - startIndex));
+				}
+			}
+			fileGUIDLines.mProjectFileName = rightToLeft(item);
+			fileGUIDLines.mContainGUIDLines = list;
+			allFileText.Add(item, fileGUIDLines);
+			++curFileIndex;
+		}
+		EditorUtility.ClearProgressBar();
+		return allFileText;
 	}
 	public static Dictionary<string, string> checkAtlasNotExistSprite(string path)
 	{
@@ -640,110 +727,175 @@ public class EditorCommonUtility : FrameUtility
 		}
 		return notExistsprites;
 	}
-	public static void generateColliderMain()
+	public static BuildReport buildAndroid(string apkPath)
 	{
-		var mSelectGameObjects = Selection.gameObjects;
-		if (mSelectGameObjects == null)
+		return buildGame(apkPath, BuildTarget.Android, BuildTargetGroup.Android);
+	}
+	public static BuildReport buildWindows(string outputPath)
+	{
+		return buildGame(outputPath, BuildTarget.StandaloneWindows, BuildTargetGroup.Standalone);
+	}
+	public static bool fixMeshOfMeshCollider(GameObject go)
+	{
+		if (go == null)
 		{
-			EditorUtility.DisplayDialog("Error", "请先在选中需要设置的物体对象", "确定");
-			return;
+			return false;
 		}
 
-		// 对选中的所有对象遍历生成角色控制器
-		foreach (var item in mSelectGameObjects)
+		bool modified = false;
+		var collider = go.GetComponent<MeshCollider>();
+		var meshFiliter = go.GetComponent<MeshFilter>();
+		if (collider != null && meshFiliter != null)
 		{
-			var mRenderers = item.GetComponentsInChildren<Renderer>();
-			if (mRenderers == null)
+			collider.sharedMesh = meshFiliter.sharedMesh;
+			collider.convex = false;
+			modified = true;
+		}
+		// 修复所有子节点
+		Transform transform = go.transform;
+		for (int i = 0; i < transform.childCount; ++i)
+		{
+			modified |= fixMeshOfMeshCollider(transform.GetChild(i).gameObject);
+		}
+		return modified;
+	}
+	//获取图片的引用信息 filePath 文件路径 assetType类型 tipText提示信息
+	protected static Dictionary<string, Dictionary<string, PrefabNodeItem>> getImageReferenceInfo(string filePath, string assetType, string tipText = "")
+	{
+		//初始化和查找相应文件
+		var files = new List<string>();
+		var allPrefabMap = new Dictionary<string, Dictionary<string, PrefabNodeItem>>();
+		findFiles(filePath, files, assetType);
+		int fileCount = files.Count;
+		string currentID = EMPTY;
+		for (int i = 0; i < fileCount; ++i)
+		{
+			EditorUtility.DisplayProgressBar("正在查找所有" + tipText + "资源", "进度:" + (i + 1) + "/" + fileCount, (float)(i + 1) / fileCount);
+			string file = files[i];
+			allPrefabMap[file] = new Dictionary<string, PrefabNodeItem>();
+			var currentItem = allPrefabMap[file];
+			openTxtFileLines(file, out string[] lines);
+			for (int j = 0; j < lines.Length - 1; ++j)
 			{
-				continue;
+				//处理Prefab的节点ID
+				if (lines[j].StartsWith("---"))
+				{
+					string componentID = lines[j].Substring(findFirstSubstr(lines[j], " &", 0, true));
+					currentItem.Add(componentID, new PrefabNodeItem());
+					currentID = componentID;
+				}
+				//所属GameObject的ID
+				if (lines[j].StartsWith("  m_GameObject:"))
+				{
+					currentItem[currentID].mGameObjectID = lines[j].Substring(findFirstSubstr(lines[j], "fileID: ", 0, true));
+				}
+				//节点名称(只有Prefab文本文件的GameObject才有)
+				if (lines[j].StartsWith("  m_Name:"))
+				{
+					currentItem[currentID].mName = lines[j].Substring(findFirstSubstr(lines[j], ": ", 0, true));
+				}
+				//对应Sprite的ID
+				if (lines[j].StartsWith("  m_Sprite:"))
+				{
+					//部分预制体会存在两行显示的情况,导致索引位置不一致
+					int startIndex = findFirstSubstr(lines[j], "guid: ", 0, true);
+					int endIndex;
+					if (lines[j].Contains(", type"))
+					{
+						endIndex = findLastSubstr(lines[j], ", type:", true, 0);
+					}
+					else
+					{
+						endIndex = lines[j].Length - 1;
+					}
+					currentItem[currentID].mSpriteID = lines[j].Substring(startIndex, endIndex - startIndex);
+				}
 			}
-
-			//计算中心位置
-			var transforms = item.GetComponentsInChildren<Transform>();
-			int posCount = 0;
-			Vector3 centerPos = Vector3.zero;
-			foreach (var tf in transforms)
+		}
+		EditorUtility.ClearProgressBar();
+		return allPrefabMap;
+	}
+	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+	// 根据GUID查找资源文件
+	protected static string findAsset(string guid, string suffix, bool showAsset, Dictionary<string, List<FileGUIDLines>> allFileText)
+	{
+		int[] guidNextIndex;
+		generateNextIndex(guid, out guidNextIndex);
+		string metaSuffix = ".meta";
+		if (allFileText == null)
+		{
+			string[] files = Directory.GetFiles(Application.dataPath + "/" + FrameDefine.GAME_RESOURCES, "*.*", SearchOption.AllDirectories);
+			foreach (var item in files)
 			{
-				if (tf == item.transform)
+				string file = item;
+				if (!endWith(file, suffix + metaSuffix, false))
 				{
 					continue;
 				}
-				centerPos += tf.position;
-				posCount++;
+				if (KMPSearch(File.ReadAllText(file), guid, guidNextIndex) < 0)
+				{
+					continue;
+				}
+				removeEndString(ref file, metaSuffix);
+				if (showAsset)
+				{
+					fullPathToProjectPath(ref file);
+					rightToLeft(ref file);
+					Debug.Log(file, AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(file));
+				}
+				return file;
 			}
-			centerPos = centerPos / posCount;
-
-			// 计算包围盒
-			Bounds mBounds = new Bounds(centerPos, Vector3.zero);
-			foreach (var render in mRenderers)
+			return EMPTY;
+		}
+		foreach (var item in allFileText)
+		{
+			string curSuffix = item.Key;
+			// 只判断meta文件
+			if (curSuffix != metaSuffix)
 			{
-				Bounds bounds = render.bounds;
-				bounds.size = multiVector3(render.bounds.size, render.transform.localScale);
-				bounds.center = render.bounds.center;
-				mBounds.Encapsulate(bounds);
+				continue;
 			}
-
-			// 创建角色控制器并设置参数
-			makeCharacterCollider(item, mBounds);
-			//激活物体MeshCollider
-			activeMeshCollider(item);
-
+			foreach (var fileGUIDLines in item.Value)
+			{
+				string curFile = fileGUIDLines.mProjectFileName;
+				if (!endWith(curFile, suffix + metaSuffix, false))
+				{
+					continue;
+				}
+				foreach (var line in fileGUIDLines.mContainGUIDLines)
+				{
+					if (KMPSearch(line, guid, guidNextIndex) < 0)
+					{
+						continue;
+					}
+					removeEndString(ref curFile, metaSuffix);
+					if (showAsset)
+					{
+						Debug.Log(curFile, AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(curFile));
+					}
+					return curFile;
+				}
+			}
 		}
+		return EMPTY;
 	}
-	static void makeCharacterCollider(GameObject obj, Bounds mBounds)
+	// 图片尺寸是否为2的n次方
+	protected static bool isSizePow2(Texture2D tex)
 	{
-		var characterController = obj.GetComponent<CharacterController>();
-		if (characterController == null)
-		{
-			characterController = obj.AddComponent<CharacterController>();
-		}
-		characterController.enabled = true;
-		characterController.radius = clamp(mBounds.size.x * 0.5f, 0.001f, mBounds.size.z * 0.5f);
-		characterController.height = clampMin(mBounds.size.y, characterController.radius * 2.0f);
-		characterController.center = new Vector3(0.0f, characterController.height * 0.5f, 0.0f);
-		characterController.stepOffset = getMin(characterController.height, 0.3f);
-		characterController.enabled = false;
+		return isPow2(tex.width) && isPow2(tex.height);
 	}
-	static void activeMeshCollider(GameObject obj)
-    {
-		var meshCollider = obj.GetComponent<MeshCollider>();
-        if (meshCollider==null)
-        {
-			meshCollider = obj.AddComponent<MeshCollider>();
-        }
-		meshCollider.enabled = true;
-		meshCollider.convex = true;
-    }
-	public static void generateFloderConfig()
-	{
-		string filePath = EditorUtility.OpenFilePanel("选择保存路径", "", "json");
-		if (isEmpty(filePath))
-		{
-			return;
-		}
-		Dictionary<string, List<string>> saveObjects = new Dictionary<string, List<string>>();
-		saveObjects["ItemNameConfig"] = new List<string>();
-		var mSelectGameObjects = Selection.gameObjects;
-		if (mSelectGameObjects == null)
-		{
-			EditorUtility.DisplayDialog("Error", "请先在选中需要设置的物体对象", "确定");
-			return;
-		}
-		foreach (var item in mSelectGameObjects)
-		{
-			saveObjects["ItemNameConfig"].Add(item.name);
-		}
-		string saveConfigStr = JsonMapper.ToJson(saveObjects);
-		writeTxtFile(filePath, saveConfigStr);
-		EditorUtility.DisplayDialog("Success", "生成成功", "确定");
-	}
-	public static BuildReport buildAndroidGame(string apkPath)
+	protected static BuildReport buildGame(string outputPath, BuildTarget target, BuildTargetGroup targetGroup)
 	{
 		BuildPlayerOptions options = new BuildPlayerOptions();
 		options.scenes = new string[] { FrameDefine.START_SCENE };
-		options.locationPathName = apkPath;
-		options.targetGroup = BuildTargetGroup.Android;
-		options.target = BuildTarget.Android;
+		options.locationPathName = outputPath;
+		options.targetGroup = targetGroup;
+		options.target = target;
 		return BuildPipeline.BuildPlayer(options);
+	}
+	// 进行检查操作
+	protected static void displayProgressBar(string title, string info, int curCount, int totalCount)
+	{
+		EditorUtility.DisplayProgressBar(title, info + (curCount + 1) + "/" + totalCount, (float)(curCount + 1) / totalCount);
 	}
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 
+// 在Update中执行旋转
 public class ComponentRotateSpeedNormal : ComponentRotateSpeed
 {
 	public override void update(float elapsedTime) 

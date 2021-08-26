@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 public class SHORTS : OBJECTS
 {
-	protected const int TYPE_SIZE = sizeof(short);
 	public short[] mValue;
 	public short this[int index]
 	{
@@ -19,26 +18,20 @@ public class SHORTS : OBJECTS
 		}
 	}
 	public SHORTS(int count)
+		: base(count)
 	{
 		mValue = new short[count];
 		mType = typeof(short[]);
-		mSize = TYPE_SIZE * mValue.Length;
+		mTypeSize = sizeof(short);
+		mSize = mTypeSize * mValue.Length;
 	}
 	public SHORTS(short[] value)
+		: base(value.Length)
 	{
 		mValue = value;
 		mType = typeof(short[]);
-		mSize = TYPE_SIZE * mValue.Length;
-	}
-	public override void setRealSize(ushort realSize)
-	{
-		mRealSize = realSize;
-		mElementCount = mRealSize / TYPE_SIZE;
-	}
-	public override void setElementCount(int elementCount)
-	{
-		mElementCount = elementCount;
-		mRealSize = (ushort)(mElementCount * TYPE_SIZE);
+		mTypeSize = sizeof(short);
+		mSize = mTypeSize * mValue.Length;
 	}
 	public override void zero() { memset(mValue, (short)0); }
 	public override bool readFromBuffer(byte[] buffer, ref int index)
@@ -47,8 +40,9 @@ public class SHORTS : OBJECTS
 		{
 			return readShorts(buffer, ref index, mValue);
 		}
+
 		// 先读取数据的实际字节长度
-		setRealSize(readUShort(buffer, ref index, out bool success));
+		setElementCount(readElementCount(buffer, ref index, out bool success));
 		if (!success)
 		{
 			return false;
@@ -61,8 +55,9 @@ public class SHORTS : OBJECTS
 		{
 			return writeShorts(buffer, ref index, mValue);
 		}
+
 		// 先写入数据的实际字节长度
-		if (!writeUShort(buffer, ref index, mRealSize))
+		if (!writeElementCount(buffer, ref index))
 		{
 			return false;
 		}
@@ -71,7 +66,7 @@ public class SHORTS : OBJECTS
 	public void set(short[] value)
 	{
 		int minCount = getMin(value.Length, mValue.Length);
-		memcpy(mValue, value, 0, 0, minCount * TYPE_SIZE);
+		memcpy(mValue, value, 0, 0, minCount * mTypeSize);
 		if (mVariableLength)
 		{
 			setElementCount(minCount);

@@ -16,25 +16,25 @@ public class GameObjectPool : FrameSystem
 	public HashSet<GameObject> getUnusedList() { return mUnusedList; }
 	public GameObject newObject()
 	{
-		GameObject go = null;
+		return newObject(null, mObject);
+	}
+	public GameObject newObject(string name, GameObject parent)
+	{
+		GameObject go;
 		// 先从未使用的列表中查找是否有可用的对象
 		if (mUnusedList.Count > 0)
 		{
-			foreach (var item in mUnusedList)
-			{
-				go = item;
-				break;
-			}
-			mUnusedList.Remove(go);
+			go = popFirstElement(mUnusedList);
 		}
 		// 未使用列表中没有,创建一个新的
 		else
 		{
 			go = new GameObject();
-			setNormalProperty(go, mObject);
 		}
+		setNormalProperty(go, parent, name);
 		// 添加到已使用列表
 		addInuse(go);
+		go.SetActive(true);
 		return go;
 	}
 	// 销毁一个GameObject,但是调用方需要确保此GameObject上已经没有任何的除Transform以外的组件,否则可能会出现复用时错误
@@ -48,6 +48,7 @@ public class GameObjectPool : FrameSystem
 		}
 		// 从使用列表移除,要确保操作的都是从本类创建的实例
 		removeInuse(go);
+		go.SetActive(false);
 	}
 	public void destroyClassReally(GameObject go)
 	{
@@ -65,7 +66,7 @@ public class GameObjectPool : FrameSystem
 		destroyGameObject(go);
 	}
 	public bool isInuse(GameObject go) { return mInusedList.Contains(go); }
-	//------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected void addInuse(GameObject go)
 	{
 		if (!mInusedList.Add(go))
