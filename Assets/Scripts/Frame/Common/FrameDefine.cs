@@ -17,7 +17,7 @@ public class FrameDefine
 	public const string FONT = "Font";
 	public const string KEY_FRAME = "KeyFrame";
 	public const string LOWER_KEY_FRAME = "keyframe";
-	public const string LAYOUT_PREFAB = "Layout";
+	public const string LAYOUT = "Layout";
 	public const string LOWER_LAYOUT = "layout";
 	public const string SCENE = "Scene";
 	public const string SHADER = "Shader";
@@ -34,12 +34,16 @@ public class FrameDefine
 	public const string TEXTURE_ANIM = "TextureAnim";
 	public const string UGUI_SUB_PREFAB = "UGUISubPrefab";
 	public const string UGUI_PREFAB = "UGUIPrefab";
+	public const string PREFAB = "Prefab";
 	public const string EXCEL = "Excel";
 	public const string EFFECT = "Effect";
 	public const string CHARACTER = "Character";
-#if UNITY_IOS
+	// 安卓真机上没有STREAMING_ASSETS的定义
+#if UNITY_EDITOR
+	public const string STREAMING_ASSETS = "StreamingAssets";
+#elif UNITY_IOS
 	public const string STREAMING_ASSETS = "Raw";
-#elif !UNITY_ANDROID || UNITY_EDITOR
+#elif !UNITY_ANDROID
 	public const string STREAMING_ASSETS = "StreamingAssets";
 #endif
 	public const string VIDEO = "Video";
@@ -48,7 +52,7 @@ public class FrameDefine
 	public const string DATA_BASE = "DataBase";
 	public const string MODEL = "Model";
 	public const string GAME_PLUGIN = "GamePlugin";
-	public const string PATH_KEYFRAME = "PathKeyframe";
+	public const string PATH_KEYFRAME = "PathKeyFrame";
 	public const string ILRUNTIME = "ILRuntime";
 	public const string LAYOUT_SYSTEM = "LayoutSystem";
 	public const string SCRIPT = "Script";
@@ -89,7 +93,7 @@ public class FrameDefine
 	public const string P_ATLAS_PATH = P_GAME_RESOURCES_PATH + ATLAS + "/";
 	public const string P_GAME_ATLAS_PATH = P_ATLAS_PATH + GAME_ATLAS + "/";
 	public const string P_ATLAS_TEXTURE_ANIM_PATH = P_ATLAS_PATH + TEXTURE_ANIM + "/";
-	public const string P_LAYOUT_PATH = P_GAME_RESOURCES_PATH + LAYOUT_PREFAB + "/";
+	public const string P_LAYOUT_PATH = P_GAME_RESOURCES_PATH + LAYOUT + "/";
 	public const string P_LAYOUT_PREFAB_PATH = P_LAYOUT_PATH + UGUI_PREFAB + "/";
 	public const string P_TEXTURE_PATH = P_GAME_RESOURCES_PATH + TEXTURE + "/";
 	// 相对路径,相对于StreamingAssets,以SA_开头,表示StreamingAssets
@@ -102,7 +106,7 @@ public class FrameDefine
 	public const string SA_GAME_PLUGIN = GAME_PLUGIN + "/";
 	public const string SA_SOUND_PATH = SOUND + "/";
 	public const string SA_KEY_FRAME_PATH = KEY_FRAME + "/";
-	public const string SA_LAYOUT_PATH = LAYOUT_PREFAB + "/";
+	public const string SA_LAYOUT_PATH = LAYOUT + "/";
 	public const string SA_PATH_KEYFRAME_PATH = PATH_KEYFRAME + "/";
 	public const string SA_EXCEL_PATH = EXCEL + "/";
 	// 相对路径,相对于Resources,R_开头,表示Resources
@@ -115,7 +119,7 @@ public class FrameDefine
 	public const string R_SHADER_PATH = SHADER + "/";
 	public const string R_SHADER_FRAME_PATH = R_SHADER_PATH + FRAME + "/";
 	public const string R_SHADER_GAME_PATH = R_SHADER_PATH + GAME + "/";
-	public const string R_LAYOUT_PATH = LAYOUT_PREFAB + "/";
+	public const string R_LAYOUT_PATH = LAYOUT + "/";
 	public const string R_KEY_FRAME_PATH = KEY_FRAME + "/";
 	public const string R_UGUI_SUB_PREFAB_PATH = R_LAYOUT_PATH + UGUI_SUB_PREFAB + "/";
 	public const string R_UGUI_PREFAB_PATH = R_LAYOUT_PATH + UGUI_PREFAB + "/";
@@ -129,6 +133,7 @@ public class FrameDefine
 	public const string R_SCENE_PATH = SCENE + "/";
 	public const string R_EFFECT_PATH = EFFECT + "/";
 	public const string R_CHARACTER_PATH = CHARACTER + "/";
+	public const string R_PREFAB_PATH = PREFAB + "/";
 	// 绝对路径,以F_开头,表示Full
 	public static string F_PROJECT_PATH = StringUtility.getFilePath(Application.dataPath) + "/";
 	public static string F_ASSETS_PATH = Application.dataPath + "/";
@@ -139,11 +144,13 @@ public class FrameDefine
 	public static string F_HOT_FIX_PATH = F_PROJECT_PATH + HOT_FIX + "/";
 	public static string F_HOT_FIX_GAME_PATH = F_HOT_FIX_PATH + GAME + "/";
 	public static string F_HOT_FIX_FRAME_PATH = F_HOT_FIX_PATH + FRAME + "/";
+	public static string F_HOT_FIX_LAYOUT_PATH = F_HOT_FIX_GAME_PATH + LAYOUT_SYSTEM + "/";
 	public static string F_PLUGINS_PATH = F_ASSETS_PATH + PLUGINS + "/";
 	public static string F_PERSISTENT_DATA_PATH = Application.persistentDataPath + "/";
+	public static string F_PERSISTENT_ASSETS_PATH = F_PERSISTENT_DATA_PATH + ASSETS + "/";
 	public static string F_TEMPORARY_CACHE_PATH = Application.temporaryCachePath + "/";
 	public static string F_SCRIPTS_LAYOUT_PATH = F_SCRIPTS_GAME_PATH + LAYOUT_SYSTEM + "/";
-	public static string F_SCRIPTS_LAYOUT_SYSTEM_PATH = F_SCRIPTS_LAYOUT_PATH + SCRIPT+"/";
+	public static string F_SCRIPTS_LAYOUT_SCRIPT_PATH = F_SCRIPTS_LAYOUT_PATH + SCRIPT + "/";
 	// 安卓平台上如果访问StreamingAsset需要使用特殊路径,且与Application.streamingAssetsPath不同
 #if UNITY_ANDROID && !UNITY_EDITOR
 	public static string F_STREAMING_ASSETS_PATH = Application.dataPath + "!assets/";
@@ -167,8 +174,8 @@ public class FrameDefine
 	public static string F_GAME_RESOURCES_PATH = F_ASSETS_PATH + GAME_RESOURCES + "/";
 	public static string F_RESOURCES_PATH = F_ASSETS_PATH + RESOURCES + "/";
 	public static string F_GAME_PLUGIN_PATH = F_STREAMING_ASSETS_PATH + GAME_PLUGIN + "/";
-	public static string F_LAYOUT_PATH = F_GAME_RESOURCES_PATH + LAYOUT_PREFAB + "/" + UGUI_PREFAB + "/";
-	public static string F_RESOURCES_LAYOUT_PATH = F_RESOURCES_PATH + LAYOUT_PREFAB + "/" ;
+	public static string F_LAYOUT_PATH = F_GAME_RESOURCES_PATH + LAYOUT + "/" + UGUI_PREFAB + "/";
+	public static string F_RESOURCES_LAYOUT_PATH = F_RESOURCES_PATH + LAYOUT + "/" ;
 	public static string F_RESOURCES_LAYOUT_PREFAB_PATH = F_RESOURCES_LAYOUT_PATH + UGUI_PREFAB + "/";
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 常量定义
@@ -203,8 +210,9 @@ public class FrameDefine
 	public const ushort CS_MAX = 5999;
 	public const ushort SC_MIN = 6000;
 	public const ushort SC_MAX = 11999;
-	public const float CLICK_THRESHOLD = 15.0f;			// 点击阈值,当鼠标按下和抬起时的距离不超过该值,则认为是有效点击
-	public const float DOUBLE_CLICK_THRESHOLD = 0.3f;   // 双击时间阈值,两次单击时间大于0并且小于该值时认为是一次双击
+	public const float CLICK_LENGTH = 15.0f;		// 点击距离阈值,当鼠标按下和抬起时的距离不超过该值,则认为是有效点击
+	public const float CLICK_TIME = 0.3f;			// 单击时间阈值,从按下到抬起的时间低于该值时才有可能认为是一次单击
+	public const float DOUBLE_CLICK_TIME = 0.3f;	// 双击时间阈值,两次单击时间大于0并且小于该值时认为是一次双击
 	//------------------------------------------------------------------------------------------------------------------------------
 	public const string KEY_FRAME_FILE = R_KEY_FRAME_PATH + "Keyframe";
 	public const string ILR_EXPORT = "ILRExport";

@@ -54,6 +54,12 @@ public class MyStringBuilder : FrameBase
 		}
 		return -1;
 	}
+	// 命名方式是按照c++的std::endl
+	public MyStringBuilder endl()
+	{
+		mBuilder.Append('\n');
+		return this;
+	}
 	public MyStringBuilder append(char value)
 	{
 		mBuilder.Append(value);
@@ -89,9 +95,9 @@ public class MyStringBuilder : FrameBase
 		mBuilder.Append(IToS(value));
 		return this;
 	}
-	public MyStringBuilder append(float value)
+	public MyStringBuilder append(float value, int precision = 4)
 	{
-		mBuilder.Append(FToS(value));
+		mBuilder.Append(FToS(value, precision));
 		return this;
 	}
 	public MyStringBuilder append(double value)
@@ -109,14 +115,14 @@ public class MyStringBuilder : FrameBase
 		mBuilder.Append(ULToS(value));
 		return this;
 	}
-	public MyStringBuilder append(Vector2 value)
+	public MyStringBuilder append(Vector2 value, int precision = 4)
 	{
-		mBuilder.Append(vector2ToString(value));
+		mBuilder.Append(vector2ToString(value, precision));
 		return this;
 	}
-	public MyStringBuilder append(Vector3 value)
+	public MyStringBuilder append(Vector3 value, int precision = 4)
 	{
-		mBuilder.Append(vector3ToString(value));
+		mBuilder.Append(vector3ToString(value, precision));
 		return this;
 	}
 	public MyStringBuilder append(Color32 value)
@@ -152,6 +158,10 @@ public class MyStringBuilder : FrameBase
 	{
 		return append("<color=#", color, ">", str0, str1, str2, str3, str4, "</color>");
 	}
+	public MyStringBuilder appendLine(string value)
+	{
+		return append(value, "\r\n");
+	}
 	public MyStringBuilder append(string value)
 	{
 		mBuilder.Append(value);
@@ -178,9 +188,21 @@ public class MyStringBuilder : FrameBase
 	{
 		return append(str0, IToS(value));
 	}
-	public MyStringBuilder append(string str0, float value)
+	public MyStringBuilder append(string str0, int value, string str1)
 	{
-		return append(str0, FToS(value));
+		return append(str0, IToS(value), str1);
+	}
+	public MyStringBuilder append(string str0, float value, int precision = 4)
+	{
+		return append(str0, FToS(value, precision));
+	}
+	public MyStringBuilder append(string str0, float value, int precision, string str1)
+	{
+		return append(str0, FToS(value, precision), str1);
+	}
+	public MyStringBuilder append(string str0, float value, string str1)
+	{
+		return append(str0, FToS(value), str1);
 	}
 	public MyStringBuilder append(string str0, bool value)
 	{
@@ -190,13 +212,17 @@ public class MyStringBuilder : FrameBase
 	{
 		return append(str0, ULToS(value));
 	}
-	public MyStringBuilder append(string str0, Vector2 value)
+	public MyStringBuilder append(string str0, ulong value, string str1)
 	{
-		return append(str0, vector2ToString(value));
+		return append(str0, ULToS(value), str1);
 	}
-	public MyStringBuilder append(string str0, Vector3 value)
+	public MyStringBuilder append(string str0, Vector2 value, int precision = 4)
 	{
-		return append(str0, vector3ToString(value));
+		return append(str0, vector2ToString(value, precision));
+	}
+	public MyStringBuilder append(string str0, Vector3 value, int precision = 4)
+	{
+		return append(str0, vector3ToString(value, precision));
 	}
 	public MyStringBuilder append(string str0, Color32 value)
 	{
@@ -327,12 +353,12 @@ public class MyStringBuilder : FrameBase
 	{
 		return mBuilder.ToString(startIndex, length);
 	}
-	public char this[int index] 
+	public char this[int index]		// 根据下标获得字符
 	{
 		get { return mBuilder[index]; }
 		set { mBuilder[index] = value; }
 	}
-	public int Length 
+	public int Length				// 当前字符串长度
 	{
 		get { return mBuilder.Length; } 
 		set { mBuilder.Length = value; } 

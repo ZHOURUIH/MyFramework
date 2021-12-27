@@ -166,14 +166,14 @@ public class CommandSystem : FrameSystem
 		{
 			if (isMainThread())
 			{
-				MyStringBuilder builder = STRING("CMD : ", LToS(cmd.getAssignID()), ", ");
+				MyStringBuilder builder = STRING(Typeof(cmd).ToString(), " : ", LToS(cmd.getAssignID()), ", ");
 				cmd.debugInfo(builder);
 				builder.append(", receiver : ", cmdReceiver.getName());
 				log(END_STRING(builder), cmd.getCmdLogLevel());
 			}
 			else
 			{
-				MyStringBuilder builder = STRING_THREAD("CMD : ", LToS(cmd.getAssignID()), ", ");
+				MyStringBuilder builder = STRING_THREAD(Typeof(cmd).ToString(), " : ", LToS(cmd.getAssignID()), ", ");
 				cmd.debugInfo(builder);
 				builder.append(", receiver : ", cmdReceiver.getName());
 				log(END_STRING_THREAD(builder), cmd.getCmdLogLevel());

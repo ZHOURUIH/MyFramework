@@ -1,13 +1,8 @@
 ﻿using UnityEngine;
 
-// 由于有系统设置影响音量,所以声音播放应该全部使用GT中的函数
 public class AT : FrameBase
 {
-	// 界面的音效,实际上界面几乎不会播放音效,背景音乐和音效都可以通过音效辅助物体的方式播放,且不会有GameObject的隐藏问题
-	// 所以现在已经不再使用界面的AUDIO工具函数了
-
-	// 场景音效音量
-	#region 背景音乐音量
+	// 背景音乐和音效都可以通过音效辅助物体的方式播放,且不会有GameObject的隐藏问题
 	// 只是设置AudioSource组件上的音量,而且只能设置背景音乐的音量,一般不会动态地去修改音效地音量
 	public static void MUSIC_VOLUME()
 	{
@@ -46,19 +41,6 @@ public class AT : FrameBase
 		cmd.mDoneCallback = fadeDoneCallback;
 		pushCommand(cmd, mAudioManager.getMusicHelper());
 	}
-	#endregion
-	//------------------------------------------------------------------------------------------------------------------------------
-	#region 播放物体音效
-	// 播放音效,物体只能播放音效,背景音乐则由音频辅助物体来播放
-	public static void SOUND(MovableObject obj, int sound, float volume)
-	{
-		AUDIO(obj, sound, null, false, volume * mCOMGameSettingAudio.getSoundVolume(), true);
-	}
-	public static void SOUND(MovableObject obj, string sound, float volume)
-	{
-		AUDIO(obj, 0, sound, false, volume * mCOMGameSettingAudio.getSoundVolume(), true);
-	}
-	#endregion
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 通过AudioHelper播放音频,MUSIC是背景音乐,一般比较长且大多都是循环的,SOUND是音效,一般很短,且不循环
 	public static void MUSIC()
@@ -100,7 +82,15 @@ public class AT : FrameBase
 		{
 			return;
 		}
-		SOUND(sound, null, mCOMGameSettingAudio.getSoundVolume(), true);
+		SOUND(Vector3.zero, sound, null, mCOMGameSettingAudio.getSoundVolume(), true);
+	}
+	public static void SOUND(Vector3 pos, int sound)
+	{
+		if (sound == 0)
+		{
+			return;
+		}
+		SOUND(pos, sound, null, mCOMGameSettingAudio.getSoundVolume(), true);
 	}
 	public static void SOUND(int sound, float volume)
 	{
@@ -108,7 +98,15 @@ public class AT : FrameBase
 		{
 			return;
 		}
-		SOUND(sound, null, volume * mCOMGameSettingAudio.getSoundVolume(), true);
+		SOUND(Vector3.zero, sound, null, volume * mCOMGameSettingAudio.getSoundVolume(), true);
+	}
+	public static void SOUND(Vector3 pos, int sound, float volume)
+	{
+		if (sound == 0)
+		{
+			return;
+		}
+		SOUND(pos, sound, null, volume * mCOMGameSettingAudio.getSoundVolume(), true);
 	}
 	public static void SOUND(string sound, float volume)
 	{
@@ -116,13 +114,22 @@ public class AT : FrameBase
 		{
 			return;
 		}
-		SOUND(0, sound, volume * mCOMGameSettingAudio.getSoundVolume(), true);
+		SOUND(Vector3.zero, 0, sound, volume * mCOMGameSettingAudio.getSoundVolume(), true);
+	}
+	public static void SOUND(Vector3 pos, string sound, float volume)
+	{
+		if (sound == null)
+		{
+			return;
+		}
+		SOUND(pos, 0, sound, volume * mCOMGameSettingAudio.getSoundVolume(), true);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 播放音频
-	protected static void SOUND(int sound, string soundName, float volume, bool useVolumeCoe)
+	protected static void SOUND(Vector3 pos, int sound, string soundName, float volume, bool useVolumeCoe)
 	{
 		AudioHelper helper = mAudioManager.getAudioHelper(0.0f);
+		helper.setPosition(pos);
 		AUDIO(helper, sound, soundName, false, volume, useVolumeCoe);
 		// 因为可能播放时才会加载音效,所以在AUDIO_HELPER以后再设置音效时长
 		helper.mRemainTime = mAudioManager.getAudioLength(sound);

@@ -1,26 +1,25 @@
 ﻿using System;
 using UnityEngine;
 
-public delegate void RecordCallback(short[] data, int dataCount);
+#if USE_MICROPHONE
 
+// 音频录音
 public class WavRecorder : FrameBase
 {
-	protected RecordCallback mRecordCallback;
-	protected AudioClip mClip;
-	protected string[] mDeviceList;
-	protected short[] mReceivedData;
+	protected RecordCallback mRecordCallback;	// 录音数据的回调
+	protected AudioClip mClip;					// 录制所需的音频
+	protected string[] mDeviceList;				// 当前录音设备列表
+	protected short[] mReceivedData;			// 录音数据缓冲区
 	protected int mSampleRate;                  // 音频采样率
-	protected int mMaxRecordTime;
-	protected int mStartDevice;
-	protected int mLastPosition;
-	protected int mBufferSize;
-	protected int mCurDataCount;
+	protected int mMaxRecordTime;				// 最大录制时间
+	protected int mStartDevice;					// 开始录制的设备下标
+	protected int mLastPosition;				// 上一次的数据位置
+	protected int mCurDataCount;				// 当前数据量
 	public WavRecorder(int bufferSize, int sampleRate = 44100)
 	{
 		mSampleRate = sampleRate;
 		mDeviceList = Microphone.devices;
-		mBufferSize = bufferSize;
-		mReceivedData = new short[mBufferSize];
+		mReceivedData = new short[bufferSize];
 		mMaxRecordTime = 500;
 		mStartDevice = -1;
 	}
@@ -31,9 +30,8 @@ public class WavRecorder : FrameBase
 		mClip = null;
 		mDeviceList = null;
 		memset(mReceivedData, (short)0);
-		// mSampleRate, mBufferSize不重置
+		// mSampleRate不重置
 		// mSampleRate = 0;
-		// mBufferSize = 0;
 		mMaxRecordTime = 500;
 		mStartDevice = -1;
 		mLastPosition = 0;
@@ -92,7 +90,7 @@ public class WavRecorder : FrameBase
 		}
 		else 
 		{
-			if (mStartDevice!=-1)
+			if (mStartDevice != -1)
 			{
 				mClip = Microphone.Start(mDeviceList[mStartDevice], false, mMaxRecordTime, mSampleRate);
 				mLastPosition = 0;
@@ -103,7 +101,7 @@ public class WavRecorder : FrameBase
 	protected void receiveData(short[] data, int dataCount)
 	{
 		// 缓冲区还能直接放下数据
-		if(mCurDataCount + dataCount <= mBufferSize)
+		if(mCurDataCount + dataCount <= mReceivedData.Length)
 		{
 			memcpy(mReceivedData, data, mCurDataCount, 0, dataCount * sizeof(short));
 			mCurDataCount += dataCount;
@@ -111,17 +109,17 @@ public class WavRecorder : FrameBase
 		// 数据量超出缓冲区
 		else
 		{
-			int copyDataCount = mBufferSize - mCurDataCount;
+			int copyDataCount = mReceivedData.Length - mCurDataCount;
 			memcpy(mReceivedData, data, mCurDataCount, 0, copyDataCount * sizeof(short));
 			// 数据存满后通知回调
-			mRecordCallback(mReceivedData, mBufferSize);
+			mRecordCallback(mReceivedData, mReceivedData.Length);
 			// 清空缓冲区,存储新的数据
 			int remainCount = dataCount - copyDataCount;
 			// 缓冲区无法存放剩下的数据,则将多余的数据丢弃
-			if (remainCount > mBufferSize)
+			if (remainCount > mReceivedData.Length)
 			{
-				memcpy(mReceivedData, data, 0, copyDataCount, (mBufferSize - copyDataCount) * sizeof(short));
-				mCurDataCount = mBufferSize - copyDataCount;
+				memcpy(mReceivedData, data, 0, copyDataCount, (mReceivedData.Length - copyDataCount) * sizeof(short));
+				mCurDataCount = mReceivedData.Length - copyDataCount;
 			}
 			else
 			{
@@ -131,3 +129,4 @@ public class WavRecorder : FrameBase
 		}
 	}
 }
+#endif

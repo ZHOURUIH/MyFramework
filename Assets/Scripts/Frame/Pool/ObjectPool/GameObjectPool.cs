@@ -4,8 +4,8 @@ using System.Collections.Generic;
 // GameObject的池,用于缓存在代码中动态创建的GameObject
 public class GameObjectPool : FrameSystem
 {
-	protected HashSet<GameObject> mInusedList;
-	protected HashSet<GameObject> mUnusedList;
+	protected HashSet<GameObject> mInusedList;	// 已使用的列表
+	protected HashSet<GameObject> mUnusedList;	// 未使用的列表
 	public GameObjectPool()
 	{
 		mInusedList = new HashSet<GameObject>();

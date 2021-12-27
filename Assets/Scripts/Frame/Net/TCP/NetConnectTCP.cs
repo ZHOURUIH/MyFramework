@@ -4,34 +4,34 @@ using System.Net.Sockets;
 using System.Collections.Generic;
 using System.Threading;
 
-// 当前程序作为客户端时使用
+// 当前程序作为客户端时使用,表示一个与TCP服务器的连接
 public abstract class NetConnectTCP : NetConnect
 {
 	protected DoubleBuffer<NetPacketTCP> mReceiveBuffer;		// 在主线程中执行的消息列表
 	protected List<NetPacketTCP> mThreadReceiveBuffer;			// 在子线程中执行的消息列表
 	protected DoubleBuffer<byte[]> mOutputBuffer;				// 使用双缓冲提高发送消息的效率
-	protected Queue<string> mReceivePacketHistory;
+	protected Queue<string> mReceivePacketHistory;				// 接收过的包的缓冲列表
 	protected HashSet<ushort> mThreadPacketList;				// 标记需要在子线程中执行的消息类型列表
-	protected StreamBuffer mInputBuffer;
-	protected ThreadLock mConnectStateLock;
-	protected ThreadLock mOutputBufferLock;
-	protected ThreadLock mSocketLock;
-	protected ThreadLock mTimerLock;
-	protected IPAddress mIPAddress;
-	protected DateTime mPingStartTime;
-	protected MyThread mReceiveThread;
-	protected MyThread mSendThread;
-	protected MyTimer mHeartBeatTimer;
-	protected MyTimer mPingTimer;
-	protected Action mHeartBeatAction;			// 外部设置的用于发送心跳包的函数
-	protected Action mPingCallback;				// 外部设置的用于发送ping包的函数
-	protected Socket mSocket;
-	protected byte[] mRecvBuff;
-	protected long mPing;						// 网络延迟,计算方式是从发出一个ping包到接收到一个回复包的间隔时间
-	protected int mMinPacketSize;				// 解析一个消息包所需的最少字节数
-	protected int mPort;                        // 服务器端口
-	protected bool mManualDisconnect;			// 是否正在主动断开连接
-	protected NET_STATE mNetState;
+	protected StreamBuffer mInputBuffer;						// 接收消息的缓冲区
+	protected ThreadLock mConnectStateLock;						// mNetState的锁
+	protected ThreadLock mOutputBufferLock;						// mOutputBuffer的锁
+	protected ThreadLock mSocketLock;							// mSocket的锁
+	protected ThreadLock mTimerLock;							// mPingTimer的锁
+	protected IPAddress mIPAddress;								// 服务器地址
+	protected DateTime mPingStartTime;							// ping开始的时间
+	protected MyThread mReceiveThread;							// 接收线程
+	protected MyThread mSendThread;								// 发送线程
+	protected MyTimer mHeartBeatTimer;							// 心跳计时器
+	protected MyTimer mPingTimer;								// ping计时器,暂时ping与心跳是分开的
+	protected Action mHeartBeatAction;							// 外部设置的用于发送心跳包的函数
+	protected Action mPingCallback;								// 外部设置的用于发送ping包的函数
+	protected Socket mSocket;									// 套接字实例
+	protected byte[] mRecvBuff;									// 从Socket接收时使用的缓冲区
+	protected long mPing;										// 网络延迟,计算方式是从发出一个ping包到接收到一个回复包的间隔时间
+	protected int mMinPacketSize;								// 解析一个消息包所需的最少字节数
+	protected int mPort;										// 服务器端口
+	protected bool mManualDisconnect;							// 是否正在主动断开连接
+	protected NET_STATE mNetState;								// 网络连接状态
 	public NetConnectTCP()
 	{
 		mThreadReceiveBuffer = new List<NetPacketTCP>();
@@ -110,7 +110,7 @@ public abstract class NetConnectTCP : NetConnect
 		}
 		mSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 		mSocketLock.unlock();
-		logForce("开始连接服务器,IP:" + mIPAddress.ToString() + ", 端口:" + mPort);
+		logForce("开始连接服务器");
 		if (async)
 		{
 			mSocket.BeginConnect(mIPAddress, mPort, onConnectEnd, mSocket);
@@ -127,7 +127,6 @@ public abstract class NetConnectTCP : NetConnect
 				socketException(e);
 				return;
 			}
-			logForce("连接服务器成功,IP:" + mIPAddress.ToString() + ", 端口:" + mPort);
 			notifyNetState(NET_STATE.CONNECTED);
 		}
 	}
@@ -214,11 +213,11 @@ public abstract class NetConnectTCP : NetConnect
 		mTimerLock.unlock();
 	}
 	public int getPing() { return (int)Interlocked.Read(ref mPing); }
-	public void sendPacket(Type type)
+	public void sendNetPacket(Type type)
 	{
-		sendPacket(mSocketFactory.createSocketPacket(type) as NetPacketTCP);
+		sendNetPacket(mSocketFactory.createSocketPacket(type) as NetPacketTCP);
 	}
-	public abstract void sendPacket(NetPacketTCP packet);
+	public abstract void sendNetPacket(NetPacketTCP packet);
 	public NET_STATE getNetState() { return mNetState; }
 	public void clearSocket()
 	{
@@ -410,7 +409,7 @@ public abstract class NetConnectTCP : NetConnect
 			socketException(e);
 			return;
 		}
-		logForce("连接服务器成功,IP:" + mIPAddress.ToString() + ", 端口:" + mPort);
+		logForce("连接服务器成功");
 		notifyNetState(NET_STATE.CONNECTED);
 	}
 	protected void socketException(SocketException e)

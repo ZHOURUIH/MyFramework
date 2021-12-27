@@ -26,10 +26,12 @@ namespace ILRuntime.Runtime.Debugger
         AutoResetEvent evt = new AutoResetEvent(false);
         
         public Action<string> OnBreakPoint;
+        public Action<string> OnILRuntimeException;
 
         public Enviorment.AppDomain AppDomain { get { return domain; } }
 
         public AutoResetEvent BlockEvent { get { return evt; } }
+        public int getDebugPort() { return server.Port; }
 
         public bool IsDebuggerAttached
         {
@@ -52,12 +54,14 @@ namespace ILRuntime.Runtime.Debugger
         /// Start Debugger Server
         /// </summary>
         /// <param name="port">Port to listen on</param>
-        public void StartDebugService(int port)
+        public bool StartDebugService(int port)
         {
 #if DEBUG && !DISABLE_ILRUNTIME_DEBUG
             server = new Debugger.DebuggerServer(this);
             server.Port = port;
-            server.Start();
+            return server.Start();
+#else
+            return false;
 #endif
         }
 

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 
+// 自定义的对short[]的封装,可用于序列化
 public class SHORTS : OBJECTS
 {
-	public short[] mValue;
+	public short[] mValue;		// 值
 	public short this[int index]
 	{
 		get

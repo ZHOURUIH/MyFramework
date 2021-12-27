@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 
+// 自定义的对bool[]的封装,可用于序列化
 public class BOOLS : OBJECTS
 {
-	public bool[] mValue;
+	public bool[] mValue;		// 值
 	public bool this[int index]
 	{
 		get

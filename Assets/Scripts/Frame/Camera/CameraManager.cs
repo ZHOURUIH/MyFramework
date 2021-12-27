@@ -7,6 +7,7 @@ public class CameraManager : FrameSystem
 {
 	protected List<GameCamera> mCameraList;	// 所有摄像机的列表
 	protected GameCamera mUGUIBlurCamera;	// UGUI的背景模糊摄像机
+	protected GameCamera mDefaultCamera;	// 默认的主摄像机
 	protected GameCamera mMainCamera;		// 主摄像机
 	protected GameCamera mUGUICamera;		// UGUI的摄像机
 	public CameraManager()
@@ -18,7 +19,8 @@ public class CameraManager : FrameSystem
 		base.init();
 		mUGUICamera = createCamera(FrameDefine.UI_CAMERA, mLayoutManager.getRootObject());
 		mUGUIBlurCamera = createCamera(FrameDefine.BLUR_CAMERA, mLayoutManager.getRootObject(), false, false);
-		mMainCamera = createCamera(FrameDefine.MAIN_CAMERA, null);
+		mDefaultCamera = createCamera(FrameDefine.MAIN_CAMERA, null);
+		mMainCamera = mDefaultCamera;
 	}
 	public override void update(float elapsedTime)
 	{
@@ -128,9 +130,10 @@ public class CameraManager : FrameSystem
 		camera.destroy();
 		UN_CLASS(camera);
 		mCameraList.Remove(camera);
+		// 当销毁的是主摄像机时,将默认的摄像机作为当前主摄像机,确保任何时候都有一个主摄像机
 		if (camera == mMainCamera)
 		{
-			mMainCamera = null;
+			mMainCamera = mDefaultCamera;
 		}
 		else if (camera == mUGUICamera)
 		{

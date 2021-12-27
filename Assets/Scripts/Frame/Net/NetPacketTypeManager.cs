@@ -5,8 +5,8 @@ using System.Collections.Generic;
 // 管理消息包类型注册的信息
 public class NetPacketTypeManager : FrameSystem
 {
-	protected Dictionary<ushort, PacketInfo> mPacketTypeList;
-	protected Dictionary<Type, PacketInfo> mClassTypeList;
+	protected Dictionary<ushort, PacketInfo> mPacketTypeList;		// 根据消息ID查找消息注册信息
+	protected Dictionary<Type, PacketInfo> mClassTypeList;			// 根据消息类型查找注册信息
 	protected Dictionary<ushort, ushort> mHttpPacketTypeList;       // 根据Http的requestType查询对应的responseType
 	protected Dictionary<string, ushort> mUDPNameList;              // 根据UDP的PacketName查询对应的包类型ID
 	public NetPacketTypeManager()
@@ -20,7 +20,7 @@ public class NetPacketTypeManager : FrameSystem
 	public void registeUDPPacketName(ushort type, string name) { mUDPNameList.Add(name, type); }
 	public void registePacket(Type classType, ushort type)
 	{
-		PacketInfo info = new PacketInfo();
+		var info = new PacketInfo();
 		info.mClassType = classType;
 		info.mType = type;
 		mPacketTypeList.Add(type, info);
@@ -36,11 +36,8 @@ public class NetPacketTypeManager : FrameSystem
 	}
 	public Type getPacketType(ushort typeID)
 	{
-		if (!mPacketTypeList.TryGetValue(typeID, out PacketInfo info))
-		{
-			return null;
-		}
-		return info.mClassType;
+		mPacketTypeList.TryGetValue(typeID, out PacketInfo info);
+		return info?.mClassType;
 	}
 	public ushort getHttpResponseType(ushort requestType)
 	{

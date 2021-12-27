@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 
+// UI窗口调试信息
 public class WindowDebug : MonoBehaviour
 {
 	protected myUIObject mWindow;				// 当前的窗口

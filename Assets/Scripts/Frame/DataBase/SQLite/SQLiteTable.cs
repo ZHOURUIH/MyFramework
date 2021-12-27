@@ -31,7 +31,7 @@ public class SQLiteTable : FrameBase
 	{
 		try
 		{
-			string fullPath = availablePath(FrameDefine.SA_DATA_BASE_PATH + mTableName + ".db");
+			string fullPath = availableReadPath(FrameDefine.SA_DATA_BASE_PATH + mTableName + ".db");
 			if (isFileExist(fullPath))
 			{
 				clearCommand();
@@ -44,7 +44,7 @@ public class SQLiteTable : FrameBase
 					fileBuffer[i] ^= encryptKey[i % encryptKey.Length];
 				}
 				// 将解密后的数据写入新的目录,需要写入PersistentDataPath
-				string newPath = strcat(FrameDefine.F_PERSISTENT_DATA_PATH, FrameDefine.SA_DATA_BASE_PATH, "/temp/", mTableName, ".db");
+				string newPath = availableWritePath(FrameDefine.SA_DATA_BASE_PATH + "temp/" + mTableName + ".db");
 				writeFile(newPath, fileBuffer, fileSize);
 				releaseFile(fileBuffer);
 				connect(newPath);
@@ -106,7 +106,7 @@ public class SQLiteTable : FrameBase
 	public void setDataType(Type dataClassType) { mDataClassType = dataClassType; }
 	public void setTableName(string name) { mTableName = name; }
 	public string getTableName() { return mTableName; }
-	public void checkSQLite() 
+	public virtual void checkSQLite() 
 	{
 		LIST(out List<SQLiteData> list);
 		queryAll(mDataClassType, list);

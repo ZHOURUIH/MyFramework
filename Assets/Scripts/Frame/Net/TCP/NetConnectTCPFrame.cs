@@ -4,6 +4,8 @@ using System.Net;
 // Frame层默认的TCP连接封装类,应用层可根据实际需求仿照此类封装自己的TCP连接类
 public class NetConnectTCPFrame : NetConnectTCP
 {
+	protected EncryptPacket mEncryptPacket;
+	protected DecryptPacket mDecryptPacket;
 	public override void init(IPAddress ip, int port, float heartBeatTimeOut)
 	{
 		base.init(ip, port, heartBeatTimeOut);
@@ -13,7 +15,12 @@ public class NetConnectTCPFrame : NetConnectTCP
 	{
 		base.resetProperty();
 	}
-	public override void sendPacket(NetPacketTCP packet)
+	public void setEncrypt(EncryptPacket encrypt, DecryptPacket decrypt)
+	{
+		mEncryptPacket = encrypt;
+		mDecryptPacket = decrypt;
+	}
+	public override void sendNetPacket(NetPacketTCP packet)
 	{
 		if (mSocket == null || !mSocket.Connected || mNetState != NET_STATE.CONNECTED)
 		{
@@ -35,6 +42,9 @@ public class NetConnectTCPFrame : NetConnectTCP
 			logError("消息序列化失败!");
 			return;
 		}
+
+		// 加密包体
+		mEncryptPacket?.Invoke(bodyBuffer, 0, realPacketSize);
 
 		// 将消息包中的数据准备好,然后放入发送列表中
 		// 开始的2个字节仅用于发送数据长度标记,不会真正发出去
@@ -153,6 +163,9 @@ public class NetConnectTCPFrame : NetConnectTCP
 		{
 			return PARSE_RESULT.NOT_ENOUGH;
 		}
+
+		// 解密包体
+		mDecryptPacket?.Invoke(buffer, index, packetSize);
 
 		// 创建对应的消息包,并设置数据,然后放入列表中等待解析
 		var packetReply = mSocketFactoryThread.createSocketPacket(type) as NetPacketTCPFrame;

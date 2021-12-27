@@ -20,11 +20,14 @@ public class StateGroup : FrameBase
 	}
 	public void destroy()
 	{
-		mStateManager.destroyMutex(mMutex);
+		UN_CLASS(mMutex);
+		mMutex = null;
 	}
 	public void setMutex(GROUP_MUTEX mutex)
 	{
-		mMutex = mStateManager.createMutex(mutex, this);
+		mMutex = CLASS(mStateManager.getGroupMutex(mutex)) as StateGroupMutex;
+		mMutex.setMutexType(mutex);
+		mMutex.setGroup(this);
 	}
 	public void setMainState(Type type)
 	{

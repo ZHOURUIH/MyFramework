@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 
+// 自定义的对ushort[]的封装,可用于序列化
 public class USHORTS : OBJECTS
 {
-	public ushort[] mValue;
+	public ushort[] mValue;			// 值
 	public ushort this[int index]
 	{
 		get

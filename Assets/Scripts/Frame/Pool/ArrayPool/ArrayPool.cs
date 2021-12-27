@@ -6,8 +6,8 @@ public class ArrayPool : FrameSystem
 {
 	protected Dictionary<Type, Dictionary<int, HashSet<Array>>> mPersistentInuseList;	// 持久使用的数组对象
 	protected Dictionary<Type, Dictionary<int, HashSet<Array>>> mInusedList;			// 仅当前栈帧中使用的数组对象
-	protected Dictionary<Type, Dictionary<int, HashSet<Array>>> mUnusedList;
-	protected Dictionary<Array, string> mObjectStack;
+	protected Dictionary<Type, Dictionary<int, HashSet<Array>>> mUnusedList;			// 未使用数组的列表
+	protected Dictionary<Array, string> mObjectStack;									// 堆栈信息存储列表
 	public ArrayPool()
 	{
 		mPersistentInuseList = new Dictionary<Type, Dictionary<int, HashSet<Array>>>();

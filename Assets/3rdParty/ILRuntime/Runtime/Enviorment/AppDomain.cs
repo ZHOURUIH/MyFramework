@@ -682,6 +682,11 @@ namespace ILRuntime.Runtime.Enviorment
             }
             else
                 isArray = false;
+            if (fullname.Length > 2 && fullname.Substring(fullname.Length - 2) == "[]")
+            {
+                baseType = fullname;
+                return;
+            }
             if (fullname.Contains('<') || fullname.Contains('['))
             {
                 foreach (var i in fullname)
@@ -1236,12 +1241,13 @@ namespace ILRuntime.Runtime.Enviorment
             if (token is Mono.Cecil.MethodReference)
             {
                 Mono.Cecil.MethodReference _ref = (token as Mono.Cecil.MethodReference);
-                if (_ref.FullName == "System.Void System.Object::.ctor()")
+                var refFullName = _ref.FullName;
+                if (refFullName == "System.Void System.Object::.ctor()")
                 {
                     mapMethod[hashCode] = null;
                     return null;
                 }
-                if (_ref.FullName == "System.Void System.Attribute::.ctor()")
+                if (refFullName == "System.Void System.Attribute::.ctor()")
                 {
                     mapMethod[hashCode] = null;
                     return null;

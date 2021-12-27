@@ -17,7 +17,7 @@ public class CmdLayoutManagerRenderOrder : Command
 	{
 		if(mLayout == null)
 		{
-			mLayout = mLayoutManager.getGameLayout(mLayoutID);
+			mLayout = mLayoutManager.getLayout(mLayoutID);
 		}
 		if (mLayout == null)
 		{

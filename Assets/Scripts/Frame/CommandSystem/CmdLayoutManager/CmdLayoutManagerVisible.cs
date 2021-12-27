@@ -19,7 +19,7 @@ public class CmdLayoutManagerVisible : Command
 	}
 	public override void execute()
 	{
-		GameLayout layout = mLayoutManager.getGameLayout(mLayoutID);
+		GameLayout layout = mLayoutManager.getLayout(mLayoutID);
 		if (layout == null)
 		{
 			return;

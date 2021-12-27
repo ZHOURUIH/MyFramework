@@ -14,5 +14,7 @@ public class COMMovableObjectAudio : ComponentAudio
 			audioSource = movableObject.createAudioSource();
 		}
 		setAudioSource(audioSource);
+		// 可移动物体的音效默认都是3D音效
+		setSpatialBlend(1.0f);
 	}
 }

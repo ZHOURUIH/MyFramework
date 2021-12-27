@@ -7,7 +7,10 @@ using ILRAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
 #endif
 
 // 游戏委托定义-------------------------------------------------------------------------------------------------------------
+public delegate void OnAndroidLog(string info);
+public delegate void OnAndroidError(string info);
 public delegate void OnLog(string time, string info, LOG_LEVEL level, bool isError);
+public delegate void RecordCallback(short[] data, int dataCount);
 public delegate void OnHttpWebRequestCallback(JsonData data, object userData);
 public delegate void TextureAnimCallback(IUIAnimation window, bool isBreak);
 public delegate void KeyFrameCallback(ComponentKeyFrame com, bool isBreak);
@@ -21,10 +24,10 @@ public delegate void LayoutAsyncDone(GameLayout layout);
 public delegate void VideoCallback(string videoName, bool isBreak);
 public delegate void VideoErrorCallback(ErrorCode errorCode);
 public delegate void TrackCallback(ComponentTrackTarget com, bool breakTrack);
-public delegate void OnReceiveDrag(IMouseEventCollect dragObj, BOOL continueEvent);
-public delegate void OnDragHover(IMouseEventCollect dragObj, bool hover);
-public delegate void OnMouseEnter(IMouseEventCollect obj, int touchID);
-public delegate void OnMouseLeave(IMouseEventCollect obj, int touchID);
+public delegate void OnReceiveDrag(IMouseEventCollect dragObj, Vector3 mousePos, BOOL continueEvent);
+public delegate void OnDragHover(IMouseEventCollect dragObj, Vector3 mousePos, bool hover);
+public delegate void OnMouseEnter(IMouseEventCollect obj, Vector3 mousePos, int touchID);
+public delegate void OnMouseLeave(IMouseEventCollect obj, Vector3 mousePos, int touchID);
 public delegate void OnMouseDown(Vector3 mousePos, int touchID);
 public delegate void OnMouseUp(Vector3 mousePos, int touchID);
 public delegate void OnMouseMove(Vector3 mousePos, Vector3 moveDelta, float moveTime, int touchID);
@@ -41,16 +44,17 @@ public delegate void OnPlayEndCallback(AnimControl control, bool callback, bool 
 public delegate void OnDraging();
 public delegate void OnScrollItem(IScrollItem item, int index);
 public delegate void OnDragCallback(ComponentOwner dragObj);
-public delegate void OnDragStartCallback(ComponentOwner dragObj, BOOL allowDrag);
+public delegate void OnDragStartCallback(ComponentOwner dragObj, TouchPoint touchPoint, BOOL allowDrag);
 public delegate void StartDownloadCallback(string fileName, long totalSize);
 public delegate void DownloadingCallback(string fileName, long fileSize, long downloadedSize);
 public delegate void ObjectPreClickCallback(myUIObject obj, object userData);
-public delegate void ObjectClickCallback(IMouseEventCollect obj);
-public delegate void ObjectDoubleClickCallback(IMouseEventCollect obj);
-public delegate void ObjectHoverCallback(IMouseEventCollect obj, bool hover);
-public delegate void ObjectPressCallback(IMouseEventCollect obj, bool press);
+public delegate void ObjectClickCallback(IMouseEventCollect obj, Vector3 mousePos);
+public delegate void ObjectDoubleClickCallback(IMouseEventCollect obj, Vector3 mousePos);
+public delegate void ObjectHoverCallback(IMouseEventCollect obj, Vector3 mousePos, bool hover);
+public delegate void ObjectPressCallback(IMouseEventCollect obj, Vector3 mousePos, bool press);
 public delegate void SliderCallback();
 public delegate void LayoutScriptCallback(LayoutScript script, bool create);
+public delegate void SceneScriptCallback(SceneInstance instance, bool create);
 public delegate void OnCharacterLoaded(Character character, object userData);
 public delegate void CreateObjectCallback(GameObject go, object userData);
 public delegate void CreateObjectGroupCallback(Dictionary<string, GameObject> go, object userData);
@@ -68,6 +72,8 @@ public delegate void DestroyImage(myUGUIImage image);
 public delegate void DestroyImageAnim(myUGUIImageAnim imageAnim);
 public delegate void OnCheck(bool check);
 public delegate void OnDestroyWindow(myUIObject window);
+public delegate void EncryptPacket(byte[] data, int offset, int length);
+public delegate void DecryptPacket(byte[] data, int offset, int length);
 #if USE_ILRUNTIME
 public delegate void OnHotFixLoaded(ILRAppDomain appDomain);
 #endif

@@ -4,9 +4,9 @@
 // 可安全遍历的列表,支持在遍历过程中对列表进行修改
 public class SafeList<T> : FrameBase
 {
-	protected List<SafeListModify<T>> mModifyList;	// 记录操作的列表,按顺序存储所有的操作
-	protected List<T> mUpdateList;					// 用于遍历更新的列表
-	protected List<T> mMainList;					// 用于存储实时数据的列表
+	protected List<SafeListModify<T>> mModifyList;  // 记录操作的列表,按顺序存储所有的操作
+	protected List<T> mUpdateList;                  // 用于遍历更新的列表
+	protected List<T> mMainList;                    // 用于存储实时数据的列表
 	public SafeList()
 	{
 		mModifyList = new List<SafeListModify<T>>();
@@ -27,7 +27,7 @@ public class SafeList<T> : FrameBase
 		// 所以单独使用了添加列表和移除列表,用来存储主列表的添加和移除的元素
 		int mainCount = mMainList.Count;
 		// 主列表为空,则直接清空即可
-		if(mainCount == 0)
+		if (mainCount == 0)
 		{
 			mUpdateList.Clear();
 		}
@@ -46,7 +46,13 @@ public class SafeList<T> : FrameBase
 					}
 					else
 					{
-						mUpdateList.Remove(value.mValue);
+#if UNITY_EDITOR
+						if (!value.mValue.Equals(mUpdateList[value.mRemoveIndex]))
+						{
+							logError("同步列表数据错误");
+						}
+#endif
+						mUpdateList.RemoveAt(value.mRemoveIndex);
 					}
 				}
 			}
@@ -74,23 +80,25 @@ public class SafeList<T> : FrameBase
 	public void add(T value)
 	{
 		mMainList.Add(value);
-		mModifyList.Add(new SafeListModify<T>(value, true));
+		mModifyList.Add(new SafeListModify<T>(value, true, -1));
 	}
 	public void remove(T value)
 	{
-		if (!mMainList.Remove(value))
+		int index = mMainList.IndexOf(value);
+		if (index < 0 || index >= mMainList.Count)
 		{
 			return;
 		}
-		mModifyList.Add(new SafeListModify<T>(value, false));
+		mMainList.RemoveAt(index);
+		mModifyList.Add(new SafeListModify<T>(value, false, index));
 	}
 	public void removeAt(int index)
 	{
-		if(index < 0 || index >= mMainList.Count)
+		if (index < 0 || index >= mMainList.Count)
 		{
 			return;
 		}
-		mModifyList.Add(new SafeListModify<T>(mMainList[index], false));
+		mModifyList.Add(new SafeListModify<T>(mMainList[index], false, index));
 		mMainList.RemoveAt(index);
 	}
 	// 清空所有数据,不能正在遍历时调用

@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 
+// 自定义的对byte[]的封装,可用于序列化
 public class BYTES : OBJECTS
 {
-	public byte[] mValue;
+	public byte[] mValue;			// 值
 	public byte this[int index]
 	{
 		get

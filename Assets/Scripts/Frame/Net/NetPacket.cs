@@ -1,5 +1,6 @@
 ﻿using System;
 
+// 与服务器交互的消息包基类
 public class NetPacket : FrameBase
 {
 	protected NetConnect mConnect;		// 记录了是从哪个服务器发送过来的

@@ -5,8 +5,8 @@ using UnityEngine;
 // 几乎没有实质性作用,目前只用于判断一个shader是否为不需要复制就可通用的shader
 public class ShaderManager : FrameSystem
 {
-	protected Dictionary<string, Shader> mShaderList;
-	protected List<string> mSingleShaderList;
+	protected Dictionary<string, Shader> mShaderList;	// 已经获取的shader列表
+	protected List<string> mSingleShaderList;			// 不可改变参数的shader列表,也就不需要复制多份材质
 	public ShaderManager()
 	{
 		mShaderList = new Dictionary<string, Shader>();
@@ -24,6 +24,7 @@ public class ShaderManager : FrameSystem
 		registeSingleShader("LinearDodge");
 		registeSingleShader("Multiple");
 		registeSingleShader("SnapPixel");
+		registeSingleShader("UGUIOpaque");
 	}
 	public override void destroy()
 	{

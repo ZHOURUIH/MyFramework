@@ -64,7 +64,6 @@ public partial class FrameBase : ClassObject
 	{
 		mGameFramework = GameFramework.mGameFramework;
 		getFrameSystemMain(out mCommandSystem);
-		getFrameSystemMain(out mCommandSystem);
 		getFrameSystemMain(out mGlobalCmdReceiver);
 		getFrameSystemMain(out mAudioManager);
 		getFrameSystemMain(out mGameSceneManager);
@@ -73,7 +72,7 @@ public partial class FrameBase : ClassObject
 		getFrameSystemMain(out mKeyFrameManager);
 		getFrameSystemMain(out mGlobalTouchSystem);
 		getFrameSystemMain(out mShaderManager);
-#if !UNITY_IOS && !NO_SQLITE
+#if !NO_SQLITE
 		getFrameSystemMain(out mSQLiteManager);
 #endif
 		getFrameSystemMain(out mDllImportSystem);

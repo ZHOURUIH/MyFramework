@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public delegate void OnAndroidLog(string info);
-public delegate void OnAndroidError(string info);
-
+// 用于接收Java中的信息传输
 public class UnityAndroidLog : MonoBehaviour
 {
-	public static OnAndroidLog mOnAndroidLog;
-	public static OnAndroidError mOnAndroidError;
+	public static OnAndroidError mOnAndroidError;	// Java中错误日志的回调函数
+	public static OnAndroidLog mOnAndroidLog;		// Java中普通日志的回调函数,或者是其他由Android主动传到Unity的数据
 	public void log(string info)
 	{
 		UnityUtility.logForce("android : " + info);

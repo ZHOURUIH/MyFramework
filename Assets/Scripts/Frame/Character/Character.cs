@@ -106,7 +106,7 @@ public class Character : MovableObject
 	public COMCharacterStateMachine getStateMachine()		{ return mStateMachine; }
 	public CharacterState getFirstGroupState(Type group)	{ return mStateMachine.getFirstGroupState(group); }
 	public CharacterState getFirstState(Type type)			{ return mStateMachine.getFirstState(type); }
-	public CharacterState getState(uint instanceID)			{ return mStateMachine.getState(instanceID); }
+	public CharacterState getState(long instanceID)			{ return mStateMachine.getState(instanceID); }
 	public SafeDeepDictionary<Type, SafeDeepList<CharacterState>> getStateList() { return mStateMachine.getStateList(); }
 	public bool hasState(Type state)						{ return mStateMachine.hasState(state); }
 	public bool hasStateGroup(Type group)					{ return mStateMachine.hasStateGroup(group); }

@@ -7,12 +7,12 @@ public class COMCharacterStateMachine : GameComponent
 {
 	protected SafeDeepDictionary<Type, SafeDeepList<CharacterState>> mStateTypeList;   // 以状态类型为索引的状态列表
 	protected Dictionary<Type, int> mGroupStateCountList;			// 存储每个状态组中拥有的状态数量,key是组类型,value是当前该组中拥有的状态数量
-	protected Dictionary<uint, CharacterState> mStateMap;			// 以状态唯一ID为索引的列表,只用来根据ID查找状态
+	protected Dictionary<long, CharacterState> mStateMap;			// 以状态唯一ID为索引的列表,只用来根据ID查找状态
 	protected Character mPlayer;									// 状态机所属角色
 	public COMCharacterStateMachine()
 	{
 		mStateTypeList = new SafeDeepDictionary<Type, SafeDeepList<CharacterState>>();
-		mStateMap = new Dictionary<uint, CharacterState>();
+		mStateMap = new Dictionary<long, CharacterState>();
 		mGroupStateCountList = new Dictionary<Type, int>();
 	}
 	public override void init(ComponentOwner owner)
@@ -83,7 +83,7 @@ public class COMCharacterStateMachine : GameComponent
 		}
 		mStateTypeList.endForeach(stateTypeList);
 	}
-	public bool addState(Type type, StateParam param, out CharacterState state, float stateTime, uint id = 0)
+	public bool addState(Type type, StateParam param, out CharacterState state, float stateTime, long id = 0)
 	{
 		state = createState(type, param, id);
 		state.setCharacter(mPlayer);
@@ -170,7 +170,7 @@ public class COMCharacterStateMachine : GameComponent
 		mStateTypeList.clear();
 	}
 	public SafeDeepDictionary<Type, SafeDeepList<CharacterState>> getStateList() { return mStateTypeList; }
-	public CharacterState getState(uint instanceID)
+	public CharacterState getState(long instanceID)
 	{
 		mStateMap.TryGetValue(instanceID, out CharacterState state);
 		return state;
@@ -232,7 +232,7 @@ public class COMCharacterStateMachine : GameComponent
 	public bool hasStateGroup(Type group) { return mGroupStateCountList[group] > 0; }
 	public bool hasState(Type state) { return getFirstState(state) != null; }
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected CharacterState createState(Type type, StateParam param, uint id = 0)
+	protected CharacterState createState(Type type, StateParam param, long id = 0)
 	{
 		// 用对象池的方式创建状态对象
 		var state = CLASS(type) as CharacterState;

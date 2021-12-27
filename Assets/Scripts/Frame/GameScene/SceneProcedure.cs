@@ -69,7 +69,7 @@ public abstract class SceneProcedure : DelayCmdWatcher
 		if (mPrepareTimer.tickTimer(elapsedTime))
 		{
 			// 超过了准备时间,强制跳转流程
-			CMD(out CmdGameSceneChangeProcedure cmd);
+			CMD(out CmdGameSceneChangeProcedure cmd, LOG_LEVEL.FORCE);
 			cmd.mProcedure = mPrepareNext.mType;
 			cmd.mIntent = mPrepareIntent;
 			pushCommand(cmd, mGameScene);

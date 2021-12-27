@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 
+// 表示一个与Http服务器连接
 public abstract class NetConnectHttp : NetConnect
 {
 	protected Dictionary<string, string> mHttpHeader;		// 存储发送消息时所需要的消息头,避免GC
@@ -84,11 +85,11 @@ public abstract class NetConnectHttp : NetConnect
 	{
 		mHeartBeatTimer.start();
 	}
-	public void sendPacket(Type type)
+	public void sendNetPacket(Type type)
 	{
-		sendPacket(mSocketFactory.createSocketPacket(type) as NetPacketHttp);
+		sendNetPacket(mSocketFactory.createSocketPacket(type) as NetPacketHttp);
 	}
-	public virtual void sendPacket(NetPacketHttp packet)
+	public virtual void sendNetPacket(NetPacketHttp packet)
 	{
 		// 添加到写缓冲中
 		CLASS(out HttpSendInfo info);
@@ -121,11 +122,11 @@ public abstract class NetConnectHttp : NetConnect
 				if (mToken != null)
 				{
 					mHttpHeader[mTokenName] = mToken;
-					parsePacket(item.mType, HttpUtility.httpPost(mURL + item.mUrl, item.mMessage, mContentType, mHttpHeader));
+					parsePacket(item.mType, HttpUtility.post(mURL + item.mUrl, item.mMessage, mContentType, mHttpHeader));
 				}
 				else
 				{
-					parsePacket(item.mType, HttpUtility.httpPost(mURL + item.mUrl, item.mMessage, mContentType));
+					parsePacket(item.mType, HttpUtility.post(mURL + item.mUrl, item.mMessage, mContentType));
 				}
 			}
 		}

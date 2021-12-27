@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 
+// 自定义的对ulong的封装,提供类似于ulong指针的功能,可用于序列化
 public class ULONG : OBJECT
 {
-	protected const int TYPE_SIZE = sizeof(long);
-	public ulong mValue;
-	protected bool mIntReplace;
+	public ulong mValue;			// 值
+	protected bool mIntReplace;		// 是否在合适的条件下使用int代替long来减小内存占用
 	public ULONG()
 	{
 		mType = typeof(ulong);
-		mSize = TYPE_SIZE;
+		mSize = sizeof(ulong);
 	}
 	public ULONG(ulong value)
 	{
 		mValue = value;
 		mType = typeof(ulong);
-		mSize = TYPE_SIZE;
+		mSize = sizeof(ulong);
 	}
 	public override void setIntReplaceULLong(bool replace)
 	{
@@ -31,15 +31,14 @@ public class ULONG : OBJECT
 		// 所以解析时首先找到标记位
 		if (mIntReplace && getLowestBit(buffer[index]) == 1)
 		{
-			// 恢复标记位,右移一位
-			int value = readInt(buffer, ref index, out success);
-			setLowestBit(ref value, 0);
-			// 因为右移ing可能会使符号位变为1从而变成负数,最终造成数据错误,所以需要转换为uint进行右移
-			mValue = ((uint)value) >> 1;
+			// 右移一位,还原数据
+			// 因为右移int可能会使符号位改变,最终造成数据错误,所以需要转换为uint进行右移
+			mValue = ((uint)readInt(buffer, ref index, out success)) >> 1;
 		}
 		else
 		{
-			mValue = readULong(buffer, ref index, out success);
+			// 右移一位,还原数据
+			mValue = readULong(buffer, ref index, out success) >> 1;
 		}
 		return success;
 	}
@@ -54,7 +53,8 @@ public class ULONG : OBJECT
 		}
 		else
 		{
-			return writeULong(buffer, ref index, mValue);
+			// 左移一位,使标记位为0
+			return writeULong(buffer, ref index, mValue << 1);
 		}
 	}
 }

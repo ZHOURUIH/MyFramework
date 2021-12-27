@@ -12,12 +12,16 @@ using UnityEngine.EventSystems;
 // 与Unity相关的工具函数
 public class UnityUtility : CSharpUtility
 {
-	protected static OnLog mOnLog;
-	protected static bool mShowMessageBox = true;
-	protected static LOG_LEVEL mLogLevel = LOG_LEVEL.FORCE;
-	protected static PointerEventData mEventData;		// 缓存一个对象,避免每次都重新new一个
-	public static new void initUtility() { }
-	public static void setLogCallback(OnLog callback) { mOnLog = callback; }
+	protected static HashSet<OnLog> mOnLog = new HashSet<OnLog>();	// 用于可以让其他地方监听日志打印
+	protected static bool mShowMessageBox = true;					// 是否显示报错提示框,用来判断提示框显示次数
+	protected static LOG_LEVEL mLogLevel = LOG_LEVEL.FORCE;			// 当前的日志过滤等级
+	protected static PointerEventData mEventData;                   // 缓存一个对象,避免每次都重新new一个
+	protected static Vector2 mScreenSize = new Vector2(Screen.width, Screen.height);				// 屏幕宽高
+	protected static Vector2 mHalfScreenSize = new Vector2(Screen.width >> 1, Screen.height >> 1);  // 屏幕宽高的一半
+	protected static float mScreenAspect = mScreenSize.x / mScreenSize.y;	// 屏幕宽高比
+	protected static Vector2 mScreenScale = new Vector2(mScreenSize.x* (1.0f / FrameDefineExtension.STANDARD_WIDTH), mScreenSize.y* (1.0f / FrameDefineExtension.STANDARD_HEIGHT));	// 当前分辨率相对于标准分辨率的缩放
+	public static void addLogCallback(OnLog callback) { mOnLog.Add(callback); }
+	public static void removeLogCallback(OnLog callback) { mOnLog.Remove(callback); }
 	public static void setLogLevel(LOG_LEVEL level)
 	{
 		mLogLevel = level;
@@ -40,10 +44,13 @@ public class UnityUtility : CSharpUtility
 		string trackStr = new StackTrace().ToString();
 #if !UNITY_EDITOR
 		// 打包后使用LocalLog打印日志
-		// FrameBase.mLocalLog?.log(time + ": error: " + info + ", stack: " + trackStr);
+		// FrameBase.mLocalLog?.log(time + ": error: " + info + "\nstack: " + trackStr);
 #endif
-		UnityEngine.Debug.LogError(time + ": error: " + info + ", stack: " + trackStr);
-		mOnLog?.Invoke(time, ": error: " + info + ", stack: " + trackStr, LOG_LEVEL.FORCE, true);
+		UnityEngine.Debug.LogError(time + ": error: " + info + "\nstack: " + trackStr);
+		foreach(var item in mOnLog)
+		{
+			item?.Invoke(time, "error: " + info + ", stack: " + trackStr, LOG_LEVEL.FORCE, true);
+		}
 	}
 	public static void logForce(string info)
 	{
@@ -102,7 +109,10 @@ public class UnityUtility : CSharpUtility
 		// FrameBase.mLocalLog?.log(fullInfo);
 #endif
 		UnityEngine.Debug.Log(fullInfo, obj);
-		mOnLog?.Invoke(time, info, level, false);
+		foreach (var item in mOnLog)
+		{
+			item?.Invoke(time, info, level, false);
+		}
 	}
 	public static void logWarning(string info)
 	{
@@ -121,7 +131,10 @@ public class UnityUtility : CSharpUtility
 		// FrameBase.mLocalLog?.log(fullInfo);
 #endif
 		UnityEngine.Debug.LogWarning(fullInfo);
-		mOnLog?.Invoke(time, info, LOG_LEVEL.FORCE, false);
+		foreach (var item in mOnLog)
+		{
+			item?.Invoke(time, info, LOG_LEVEL.FORCE, false);
+		}
 	}
 	public static void messageBox(string info, bool errorOrInfo)
 	{
@@ -130,6 +143,32 @@ public class UnityUtility : CSharpUtility
 #if UNITY_EDITOR
 		EditorUtility.DisplayDialog(title, info, "确认");
 #endif
+	}
+	public static void setScreenSize(Vector2Int size, bool fullScreen)
+	{
+		mScreenSize = size;
+		mHalfScreenSize = new Vector2(size.x >> 1, size.y >> 1);
+		mScreenAspect = mScreenSize.x / mScreenSize.y;   // 屏幕宽高比
+		mScreenScale = new Vector2(mScreenSize.x * (1.0f / FrameDefineExtension.STANDARD_WIDTH), mScreenSize.y * (1.0f / FrameDefineExtension.STANDARD_HEIGHT));   // 当前分辨率相对于标准分辨率的缩放
+		Screen.SetResolution(size.x, size.y, fullScreen);
+
+		// UGUI
+		GameObject uguiRootObj = getGameObject(FrameDefine.UGUI_ROOT);
+		var uguiRectTransform = uguiRootObj.GetComponent<RectTransform>();
+		uguiRectTransform.offsetMin = -mScreenSize * 0.5f;
+		uguiRectTransform.offsetMax = mScreenSize * 0.5f;
+		uguiRectTransform.anchorMax = Vector2.one * 0.5f;
+		uguiRectTransform.anchorMin = Vector2.one * 0.5f;
+		GameCamera camera = FrameBase.mCameraManager.getUICamera();
+		if (camera != null)
+		{
+			FT.MOVE(camera, new Vector3(0.0f, 0.0f, -mScreenSize.y * 0.5f / tan(camera.getFOVY(true) * 0.5f)));
+		}
+		GameCamera blurCamera = FrameBase.mCameraManager.getUIBlurCamera();
+		if (blurCamera != null)
+		{
+			FT.MOVE(blurCamera, new Vector3(0.0f, 0.0f, -mScreenSize.y * 0.5f / tan(blurCamera.getFOVY(true) * 0.5f)));
+		}
 	}
 	public static void destroyGameObject(UnityEngine.Object obj, bool immediately = false, bool allowDestroyAssets = false)
 	{
@@ -334,10 +373,12 @@ public class UnityUtility : CSharpUtility
 			objTrans.name = name;
 		}
 	}
+#if UNITY_EDITOR || UNITY_STANDALONE
 	public static Ray getMainCameraMouseRay()
 	{
 		return getCameraRay(FrameUtility.getMousePosition(), FrameUtility.getMainCamera().getCamera());
 	}
+#endif
 	public static Ray getMainCameraRay(Vector3 screenPos)
 	{
 		return getCameraRay(screenPos, FrameUtility.getMainCamera().getCamera());
@@ -386,7 +427,7 @@ public class UnityUtility : CSharpUtility
 		Vector3 screenPosition = camera.WorldToScreenPoint(worldPos);
 		if (screenCenterAsZero)
 		{
-			screenPosition -= (Vector3)(getScreenSize() * 0.5f);
+			screenPosition -= (Vector3)(getHalfScreenSize());
 		}
 		screenPosition.z = 0.0f;
 		return screenPosition;
@@ -404,29 +445,42 @@ public class UnityUtility : CSharpUtility
 		Vector3 screenPos = worldToScreen(worldPos, false);
 		return screenPos.z >= 0.0f && inRange((Vector2)screenPos, Vector2.zero, getRootSize());
 	}
-	// screenCenterAsZero为true表示返回的坐标是以window的中心为原点,false表示以window的左下角为原点
-	public static Vector2 screenPosToWindow(Vector2 screenPos, myUIObject window, bool screenCenterAsZero = true)
+	public static bool isPointInWindow(Vector2 screenPos, myUGUIObject window)
 	{
 		Camera camera = FrameUtility.getUICamera();
 		Vector2 cameraSize = new Vector2(camera.pixelWidth, camera.pixelHeight);
 		Vector2 rootSize = getRootSize();
-		screenPos = multiVector2(devideVector2(screenPos, cameraSize), rootSize);
 		// 将坐标转换到以屏幕中心为原点的坐标
-		screenPos -= rootSize * 0.5f;
+		screenPos = multiVector2(devideVector2(screenPos, cameraSize), rootSize) - rootSize * 0.5f;
+
+		myUGUIObject root = FrameBase.mLayoutManager.getUIRoot();
+		Vector2 parentWorldPosition = devideVector3(window.getWorldPosition(), root.getScale());
+		Vector2 windowPos = devideVector2(screenPos - parentWorldPosition, window.getWorldScale());
+		Vector2 halfWindowSize = window.getWindowSize() * 0.5f;
+		return inRange(windowPos, -halfWindowSize, halfWindowSize);
+	}
+	// screenCenterAsZero为true表示返回的坐标是以window的中心为原点,false表示以window的左下角为原点
+	public static Vector2 screenPosToWindow(Vector2 screenPos, myUIObject window, bool windowCenterAsZero = true)
+	{
+		Camera camera = FrameUtility.getUICamera();
+		Vector2 cameraSize = new Vector2(camera.pixelWidth, camera.pixelHeight);
+		Vector2 rootSize = getRootSize();
+		// 将坐标转换到以屏幕中心为原点的坐标
+		screenPos = multiVector2(devideVector2(screenPos, cameraSize), rootSize) - rootSize * 0.5f;
 		Vector2 windowPos = screenPos;
 		if (window != null)
 		{
-			myUIObject root = FrameBase.mLayoutManager.getUIRoot();
+			myUGUIObject root = FrameBase.mLayoutManager.getUIRoot();
 			Vector2 parentWorldPosition = devideVector3(window.getWorldPosition(), root.getScale());
 			windowPos = devideVector2(screenPos - parentWorldPosition, window.getWorldScale());
-			if (!screenCenterAsZero)
+			if (!windowCenterAsZero)
 			{
 				windowPos += window.getWindowSize() * 0.5f;
 			}
 		}
 		else
 		{
-			if (!screenCenterAsZero)
+			if (!windowCenterAsZero)
 			{
 				windowPos += rootSize * 0.5f;
 			}
@@ -554,6 +608,18 @@ public class UnityUtility : CSharpUtility
 		}
 #elif UNITY_IOS
 		// ios本地加载需要添加file://前缀
+		if (!startWith(path, "file://"))
+		{
+			path = "file://" + path;
+		}
+#elif UNITY_STANDALONE_OSX
+		// macos本地加载需要添加file://前缀
+		if (!startWith(path, "file://"))
+		{
+			path = "file://" + path;
+		}
+#elif UNITY_STANDALONE_LINUX
+		// linux本地加载需要添加file://前缀
 		if (!startWith(path, "file://"))
 		{
 			path = "file://" + path;
@@ -801,84 +867,6 @@ public class UnityUtility : CSharpUtility
 		}
 		return false;
 	}
-	// 获得指定屏幕坐标下的可交互UI,比如勾选了RaycastTarget的Image或Text等,Button,InputField等
-	public static void checkUGUIInteractable(Vector2 screenPosition, List<GameObject> clickList)
-	{
-		if (clickList == null)
-		{
-			return;
-		}
-		if (mEventData == null)
-		{
-			mEventData = new PointerEventData(UnityEngine.EventSystems.EventSystem.current);
-		}
-		// 将点击位置的屏幕坐标赋值给点击事件
-		mEventData.position = new Vector2(screenPosition.x, screenPosition.y);
-		FrameUtility.LIST(out List<RaycastResult> results);
-		// 向点击处发射射线
-		UnityEngine.EventSystems.EventSystem.current.RaycastAll(mEventData, results);
-		// 如果点击到了非透明的图片或者文字,则不可穿透射线
-		int count = results.Count;
-		for (int i = 0; i < count; ++i)
-		{
-			GameObject go = results[i].gameObject;
-			var graphic = go.GetComponent<Graphic>();
-			if (graphic != null && graphic.raycastTarget)
-			{
-				clickList.Add(go);
-				continue;
-			}
-			var selectable = go.GetComponent<Selectable>();
-			if(selectable != null && selectable.interactable)
-			{
-				clickList.Add(go);
-				continue;
-			}
-		}
-		FrameUtility.UN_LIST(results);
-	}
-	// 获得指定屏幕坐标下的可见UI,可见UI是指已激活且透明度不为0
-	public static GameObject getPointerOnUI(Vector2 screenPosition)
-	{
-		if (mEventData == null)
-		{
-			mEventData = new PointerEventData(UnityEngine.EventSystems.EventSystem.current);
-		}
-		// 将点击位置的屏幕坐标赋值给点击事件
-		mEventData.position = new Vector2(screenPosition.x, screenPosition.y);
-		FrameUtility.LIST(out List<RaycastResult> results);
-		// 向点击处发射射线
-		UnityEngine.EventSystems.EventSystem.current.RaycastAll(mEventData, results);
-		// 如果点击到了非透明的图片或者文字,则不可穿透射线
-		GameObject hoverObject = null;
-		int count = results.Count;
-		for (int i = 0; i < count; ++i)
-		{
-			GameObject go = results[i].gameObject;
-			var image = go.GetComponent<Image>();
-			if (image != null)
-			{
-				if (image.raycastTarget && !isFloatZero(image.color.a))
-				{
-					hoverObject = go;
-					break;
-				}
-				continue;
-			}
-			var text = go.GetComponent<Text>();
-			if (text != null)
-			{
-				if (text.raycastTarget && !isFloatZero(text.color.a))
-				{
-					hoverObject = go;
-					break;
-				}
-				continue;
-			}
-		}
-		FrameUtility.UN_LIST(results);
-		return hoverObject;
-	}
 	public static void playAllParticle(GameObject go, bool reactive = false)
 	{
 		if (go == null)
@@ -974,22 +962,17 @@ public class UnityUtility : CSharpUtility
 		// 还原旋转
 		return rotateVector3(localPosition, Quaternion.Inverse(generateWorldRotation(parent)));
 	}
-	public static void setUGUIChildAlpha(GameObject go, float alpha)
+	public static string getTransformPath(Transform transform)
 	{
-		var graphic = go.GetComponent<Graphic>();
-		if (graphic != null)
+		if (transform == null)
 		{
-			Color color = graphic.color;
-			color.a = alpha;
-			graphic.color = color;
+			return EMPTY;
 		}
-		Transform transform = go.transform;
-		int childCount = transform.childCount;
-		for (int i = 0; i < childCount; ++i)
+		if (transform.parent == null)
 		{
-			GameObject child = transform.GetChild(i).gameObject;
-			setUGUIChildAlpha(child, alpha);
+			return transform.name;
 		}
+		return getTransformPath(transform.parent) + "/" + transform.name;
 	}
 	public static float getAnimationLength(Animator animator, string name)
 	{
@@ -1048,28 +1031,26 @@ public class UnityUtility : CSharpUtility
 		return Vector2.zero;
 #endif
 	}
-	public static Vector2 getScreenSize()
-	{
-		return new Vector2(UnityEngine.Screen.width, UnityEngine.Screen.height);
-	}
+	public static Vector2 getScreenSize() { return mScreenSize; }
+	public static Vector2 getHalfScreenSize() { return mHalfScreenSize; }
+	public static float getScreenAspect() { return mScreenAspect; }
 	public static Vector2 getRootSize()
 	{
-		Canvas uguiRoot = FrameUtility.getUGUIRootComponent();
-		if (uguiRoot == null)
-		{
-			return Vector2.zero;
-		}
-		Rect rect = uguiRoot.gameObject.GetComponent<RectTransform>().rect;
-		return new Vector2(rect.height * FrameUtility.getUICamera().aspect, rect.height);
+		return FrameUtility.getUGUIRoot().getWindowSize();
+	}
+	public static Vector2 getScreenScale()
+	{
+		return new Vector2(mScreenSize.x * (1.0f / FrameDefineExtension.STANDARD_WIDTH),
+						   mScreenSize.y * (1.0f / FrameDefineExtension.STANDARD_HEIGHT));
 	}
 	public static Vector2 getScreenScale(Vector2 rootSize)
 	{
 		return new Vector2(rootSize.x * (1.0f / FrameDefineExtension.STANDARD_WIDTH), 
-							rootSize.y * (1.0f / FrameDefineExtension.STANDARD_HEIGHT));
+						   rootSize.y * (1.0f / FrameDefineExtension.STANDARD_HEIGHT));
 	}
 	public static Vector2 adjustScreenScale(ASPECT_BASE aspectBase = ASPECT_BASE.AUTO)
 	{
-		return adjustScreenScale(getScreenScale(getRootSize()), aspectBase);
+		return adjustScreenScale(getScreenScale(), aspectBase);
 	}
 	public static Vector3 adjustScreenScale(Vector2 screenScale, ASPECT_BASE aspectBase = ASPECT_BASE.AUTO)
 	{
@@ -1113,327 +1094,110 @@ public class UnityUtility : CSharpUtility
 		return render.sharedMaterial;
 #endif
 	}
-	public static void autoGridFixedRootHeight(myUGUIObject root, Vector2 gridSize, CORNER startCorner = CORNER.LEFT_TOP)
+	public static string getEnumLabel<T>(T value) where T : Enum
 	{
-		autoGridFixedRootHeight(root, gridSize, Vector2.zero, startCorner);
+		return getEnumLabel(Typeof(value), value.ToString());
 	}
-	// 保持父节点的高度,从指定角开始纵向排列子节点,并且会改变子节点的大小,gridSize是子节点的大小,startCorner是开始排列的位置
-	public static void autoGridFixedRootHeight(myUGUIObject root, Vector2 gridSize, Vector2 interval, CORNER startCorner = CORNER.LEFT_TOP)
+	public static string getEnumLabel(Type type, string name)
 	{
-		RectTransform transform = root.getRectTransform();
-		// 先找出所有激活的子节点
-		FrameUtility.LIST(out List<RectTransform> childList);
-		int childCount = transform.childCount;
-		for (int i = 0; i < childCount; ++i)
+		var list = type.GetMember(name);
+		if (list == null || list.Length == 0)
 		{
-			var childRect = transform.GetChild(i).GetComponent<RectTransform>();
-			if (childRect.gameObject.activeSelf)
+			return name;
+		}
+		var attris = list[0].GetCustomAttributes(false);
+		foreach (var item in attris)
+		{
+			if (item.GetType() == typeof(LabelAttribute))
 			{
-				childList.Add(childRect);
+				return (item as LabelAttribute).getLabel();
 			}
 		}
-
-		// 计算父节点大小
-		Vector2 rootSize = root.getWindowSize();
-		Vector3 beforeRealPosition = root.getPositionNoPivot();
-		Vector3 beforeRootLeftTop = new Vector3(beforeRealPosition.x - rootSize.x * 0.5f, beforeRealPosition.y + rootSize.y * 0.5f);
-		Vector3 beforeRootLeftBottom = new Vector3(beforeRealPosition.x - rootSize.x * 0.5f, beforeRealPosition.y - rootSize.y * 0.5f);
-		Vector3 beforeRootRightTop = new Vector3(beforeRealPosition.x + rootSize.x * 0.5f, beforeRealPosition.y + rootSize.y * 0.5f);
-		Vector3 beforeRootRightBottom = new Vector3(beforeRealPosition.x + rootSize.x * 0.5f, beforeRealPosition.y - rootSize.y * 0.5f);
-		int rowCount = 1;
-		if (rootSize.y > gridSize.y)
-		{
-			rowCount = (int)((rootSize.y - gridSize.y) / (interval.y + gridSize.y)) + 1;
-		}
-		int activeChildCount = childList.Count;
-		// 固定父节点高度时只能纵向排列
-		int columnCount = activeChildCount / rowCount + clampMax(activeChildCount % rowCount, 1);
-		rootSize.x = columnCount * gridSize.x + (columnCount - 1) * interval.x;
-		root.setWindowSize(rootSize);
-
-		// 计算排列子节点所需的竖直和水平方向的坐标变化符号以及起始坐标,并且调整父节点的坐标
-		Vector2 startPos = Vector2.zero;
-		int horizontalSign = 0;
-		int verticalSign = 0;
-		Vector3 curRealPosition = root.getPositionNoPivot();
-		if (startCorner == CORNER.LEFT_TOP)
-		{
-			startPos = new Vector2(gridSize.x * 0.5f, -gridSize.y * 0.5f) + new Vector2(root.getWindowLeft(), root.getWindowTop());
-			horizontalSign = 1;
-			verticalSign = -1;
-			// 保持左上角的坐标与改变大小之前的左上角坐标一致
-			Vector3 curRootLeftTop = new Vector3(curRealPosition.x - rootSize.x * 0.5f, curRealPosition.y + rootSize.y * 0.5f);
-			if (!isVectorEqual(beforeRootLeftTop, curRootLeftTop))
-			{
-				root.setPosition(root.getPosition() + beforeRootLeftTop - curRootLeftTop);
-			}
-		}
-		else if (startCorner == CORNER.LEFT_BOTTOM)
-		{
-			startPos = new Vector2(gridSize.x * 0.5f, gridSize.y * 0.5f) + new Vector2(root.getWindowLeft(), root.getWindowBottom());
-			horizontalSign = 1;
-			verticalSign = 1;
-			// 保持左下角的坐标与改变大小之前的左下角坐标一致
-			Vector3 curRootLeftBottom = new Vector3(curRealPosition.x - rootSize.x * 0.5f, curRealPosition.y - rootSize.y * 0.5f);
-			if (!isVectorEqual(beforeRootLeftBottom, curRootLeftBottom))
-			{
-				root.setPosition(root.getPosition() + beforeRootLeftBottom - curRootLeftBottom);
-			}
-		}
-		else if (startCorner == CORNER.RIGHT_TOP)
-		{
-			startPos = new Vector2(-gridSize.x * 0.5f, -gridSize.y * 0.5f) + new Vector2(root.getWindowRight(), root.getWindowTop());
-			horizontalSign = -1;
-			verticalSign = -1;
-			// 保持右上角的坐标与改变大小之前的右上角坐标一致
-			Vector3 curRootRightTop = new Vector3(curRealPosition.x + rootSize.x * 0.5f, curRealPosition.y + rootSize.y * 0.5f);
-			if (!isVectorEqual(beforeRootRightTop, curRootRightTop))
-			{
-				root.setPosition(root.getPosition() + beforeRootRightTop - curRootRightTop);
-			}
-		}
-		else if (startCorner == CORNER.RIGHT_BOTTOM)
-		{
-			startPos = new Vector2(-gridSize.x * 0.5f, gridSize.y * 0.5f) + new Vector2(root.getWindowRight(), root.getWindowBottom());
-			horizontalSign = -1;
-			verticalSign = 1;
-			// 保持右下角的坐标与改变大小之前的右下角坐标一致
-			Vector3 curRootRightBottom = new Vector3(curRealPosition.x + rootSize.x * 0.5f, curRealPosition.y - rootSize.y * 0.5f);
-			if (!isVectorEqual(beforeRootRightBottom, curRootRightBottom))
-			{
-				root.setPosition(root.getPosition() + beforeRootRightBottom - curRootRightBottom);
-			}
-		}
-
-		// 计算子节点坐标,始终让子节点位于父节点的矩形范围内
-		// 并且会考虑父节点的pivot,但是不考虑子节点的pivot,所以如果子节点的pivot不在中心,可能会计算错误
-		for (int i = 0; i < activeChildCount; ++i)
-		{
-			RectTransform child = childList[i];
-			int indexX = i / rowCount;
-			int indexY = i % rowCount;
-			Vector2 pos = new Vector2((indexX * gridSize.x + indexX * interval.x) * horizontalSign, 
-										(indexY * gridSize.y + indexY * interval.y) * verticalSign);
-			child.localPosition = startPos + pos;
-			WidgetUtility.setRectSize(child, gridSize);
-		}
-		FrameUtility.UN_LIST(childList);
+		return name;
 	}
-	public static void autoGridFixedRootWidth(myUGUIObject root, Vector2 gridSize, CORNER startCorner = CORNER.LEFT_TOP)
+	public static string getEnumToolTip<T>(T value) where T : Enum
 	{
-		autoGridFixedRootWidth(root, gridSize, Vector2.zero, startCorner);
+		return getEnumToolTip(Typeof(value), value.ToString());
 	}
-	// 保持父节点的宽度,从指定角开始横向排列子节点,并且会改变子节点的大小,gridSize是子节点的大小,startCorner是开始排列的位置
-	public static void autoGridFixedRootWidth(myUGUIObject root, Vector2 gridSize, Vector2 interval, CORNER startCorner = CORNER.LEFT_TOP)
+	public static string getEnumToolTip(Type type, string name)
 	{
-		RectTransform transform = root.getRectTransform();
-		// 先找出所有激活的子节点
-		FrameUtility.LIST(out List<RectTransform> childList);
-		int childCount = transform.childCount;
-		for (int i = 0; i < childCount; ++i)
+		var list = type.GetMember(name);
+		if (list == null || list.Length == 0)
 		{
-			var childRect = transform.GetChild(i).GetComponent<RectTransform>();
-			if (childRect.gameObject.activeSelf)
+			return name;
+		}
+		var attris = list[0].GetCustomAttributes(false);
+		foreach (var item in attris)
+		{
+			if (item.GetType() == typeof(TooltipAttribute))
 			{
-				childList.Add(childRect);
+				return (item as TooltipAttribute).tooltip;
 			}
 		}
-
-		// 计算父节点大小
-		Vector2 rootSize = root.getWindowSize();
-		Vector3 beforeRealPos = root.getPositionNoPivot();
-		Vector3 beforeRootLeftTop = new Vector3(beforeRealPos.x - rootSize.x * 0.5f, beforeRealPos.y + rootSize.y * 0.5f);
-		Vector3 beforeRootLeftBottom = new Vector3(beforeRealPos.x - rootSize.x * 0.5f, beforeRealPos.y - rootSize.y * 0.5f);
-		Vector3 beforeRootRightTop = new Vector3(beforeRealPos.x + rootSize.x * 0.5f, beforeRealPos.y + rootSize.y * 0.5f);
-		Vector3 beforeRootRightBottom = new Vector3(beforeRealPos.x + rootSize.x * 0.5f, beforeRealPos.y - rootSize.y * 0.5f);
-		int columnCount = 1;
-		if (rootSize.x > gridSize.x)
-		{
-			columnCount = (int)((rootSize.x - gridSize.x) / (interval.x + gridSize.x)) + 1;
-		}
-		int activeChildCount = childList.Count;
-		int rowCount = ceil(activeChildCount / (float)columnCount);
-		rootSize.y = rowCount * gridSize.y + (rowCount - 1) * interval.y;
-		root.setWindowSize(rootSize);
-
-		// 计算排列子节点所需的竖直和水平方向的坐标变化符号以及起始坐标,并且调整父节点的坐标
-		Vector2 startPos = Vector2.zero;
-		int horizontalSign = 0;
-		int verticalSign = 0;
-		Vector3 curRealPosition = root.getPositionNoPivot();
-		if (startCorner == CORNER.LEFT_TOP)
-		{
-			startPos = new Vector2(gridSize.x * 0.5f, -gridSize.y * 0.5f) + new Vector2(root.getWindowLeft(), root.getWindowTop());
-			horizontalSign = 1;
-			verticalSign = -1;
-			// 保持左上角的坐标与改变大小之前的左上角坐标一致
-			Vector3 curRootLeftTop = new Vector3(curRealPosition.x - rootSize.x * 0.5f, curRealPosition.y + rootSize.y * 0.5f);
-			if (!isVectorEqual(beforeRootLeftTop, curRootLeftTop))
-			{
-				root.setPosition(root.getPosition() + beforeRootLeftTop - curRootLeftTop);
-			}
-		}
-		else if (startCorner == CORNER.LEFT_BOTTOM)
-		{
-			startPos = new Vector2(gridSize.x * 0.5f, gridSize.y * 0.5f) + new Vector2(root.getWindowLeft(), root.getWindowBottom());
-			horizontalSign = 1;
-			verticalSign = 1;
-			// 保持左下角的坐标与改变大小之前的左下角坐标一致
-			Vector3 curRootLeftBottom = new Vector3(curRealPosition.x - rootSize.x * 0.5f, curRealPosition.y - rootSize.y * 0.5f);
-			if (!isVectorEqual(beforeRootLeftBottom, curRootLeftBottom))
-			{
-				root.setPosition(root.getPosition() + beforeRootLeftBottom - curRootLeftBottom);
-			}
-		}
-		else if (startCorner == CORNER.RIGHT_TOP)
-		{
-			startPos = new Vector2(-gridSize.x * 0.5f, -gridSize.y * 0.5f) + new Vector2(root.getWindowRight(), root.getWindowTop());
-			horizontalSign = -1;
-			verticalSign = -1;
-			// 保持右上角的坐标与改变大小之前的右上角坐标一致
-			Vector3 curRootRightTop = new Vector3(curRealPosition.x + rootSize.x * 0.5f, curRealPosition.y + rootSize.y * 0.5f);
-			if (!isVectorEqual(beforeRootRightTop, curRootRightTop))
-			{
-				root.setPosition(root.getPosition() + beforeRootRightTop - curRootRightTop);
-			}
-		}
-		else if (startCorner == CORNER.RIGHT_BOTTOM)
-		{
-			startPos = new Vector2(-gridSize.x * 0.5f, gridSize.y * 0.5f) + new Vector2(root.getWindowRight(), root.getWindowBottom());
-			horizontalSign = -1;
-			verticalSign = 1;
-			// 保持右下角的坐标与改变大小之前的右下角坐标一致
-			Vector3 curRootRightBottom = new Vector3(curRealPosition.x + rootSize.x * 0.5f, curRealPosition.y - rootSize.y * 0.5f);
-			if (!isVectorEqual(beforeRootRightBottom, curRootRightBottom))
-			{
-				root.setPosition(root.getPosition() + beforeRootRightBottom - curRootRightBottom);
-			}
-		}
-
-		// 计算子节点坐标,始终让子节点位于父节点的矩形范围内
-		// 并且会考虑父节点的pivot,但是不考虑子节点的pivot,所以如果子节点的pivot不在中心,可能会计算错误
-		for (int i = 0; i < activeChildCount; ++i)
-		{
-			RectTransform child = childList[i];
-			int indexX = i % columnCount;
-			int indexY = i / columnCount;
-			Vector2 pos = new Vector2((indexX * gridSize.x + indexX * interval.x) * horizontalSign,
-										(indexY * gridSize.y + indexY * interval.y) * verticalSign);
-			child.localPosition = startPos + pos;
-			WidgetUtility.setRectSize(child, gridSize);
-		}
-		FrameUtility.UN_LIST(childList);
+		return name;
 	}
-	// 自动排列一个节点下的所有子节点的位置,从上往下紧密排列,并且不改变子节点的大小
-	public static void autoGridVertical(myUGUIObject root, float interval = 0.0f, float minHeight = 0.0f)
+	public static bool isMobile()
 	{
-		RectTransform transform = root.getRectTransform();
-		// 先找出所有激活的子节点
-		FrameUtility.LIST(out List<RectTransform> childList);
-		int childCount = transform.childCount;
-		for (int i = 0; i < childCount; ++i)
-		{
-			var childRect = transform.GetChild(i).GetComponent<RectTransform>();
-			if (childRect.gameObject.activeSelf)
-			{
-				childList.Add(childRect);
-			}
-		}
-
-		float beforeRootTopY = root.getPositionNoPivot().y + root.getWindowSize().y * 0.5f;
-		// 如果要同时修改root的窗口大小为排列以后的内容大小，则需要提前获取内容排列后的宽高
-		Vector2 rootSize = root.getWindowSize();
-		float height = 0.0f;
-		for (int i = 0; i < childList.Count; ++i)
-		{
-			height += childList[i].rect.height;
-			// 最后一个子节点后不再添加间隔
-			if (i != childList.Count - 1)
-			{
-				height += interval;
-			}
-		}
-		rootSize.y = clampMin(height, minHeight);
-		root.setWindowSize(rootSize);
-
-		// 改变完父节点的大小后需要保持父节点上边界的y坐标不变
-		float curRootTopY = root.getPositionNoPivot().y + root.getWindowSize().y * 0.5f;
-		if (!isFloatEqual(curRootTopY, beforeRootTopY))
-		{
-			Vector3 rootPos = root.getPosition();
-			root.setPosition(new Vector3(rootPos.x, rootPos.y + beforeRootTopY - curRootTopY, rootPos.z));
-		}
-
-		// 计算子节点坐标
-		float currentTop = root.getWindowTop();
-		for (int i = 0; i < childList.Count; ++i)
-		{
-			RectTransform childRect = childList[i];
-			float curHeight = childRect.rect.height;
-			childRect.localPosition = new Vector3(childRect.localPosition.x, currentTop - curHeight * 0.5f);
-			currentTop -= curHeight;
-			// 最后一个子节点后不再添加间隔
-			if (i != childList.Count - 1)
-			{
-				currentTop -= interval;
-			}
-		}
-		FrameUtility.UN_LIST(childList);
+		return isAndroid() || isIOS();
 	}
-	// 自动排列一个节点下的所有子节点的位置,从左往右紧密排列,并且不改变子节点的大小
-	public static void autoGridHorizontal(myUGUIObject root, float interval = 0.0f, float minWidth = 0.0f)
+	public static bool isRealMobile()
 	{
-		RectTransform transform = root.getRectTransform();
-		// 先找出所有激活的子节点
-		FrameUtility.LIST(out List<RectTransform> childList);
-		int childCount = transform.childCount;
-		for (int i = 0; i < childCount; ++i)
-		{
-			var childRect = transform.GetChild(i).GetComponent<RectTransform>();
-			if (childRect.gameObject.activeSelf)
-			{
-				childList.Add(childRect);
-			}
-		}
-
-		float beforeRootLeftX = root.getPositionNoPivot().x - root.getWindowSize().x * 0.5f;
-		// 如果要同时修改root的窗口大小为排列以后的内容大小，则需要提前获取内容排列后的宽高
-		Vector2 rootSize = root.getWindowSize();
-		float width = 0.0f;
-		for (int i = 0; i < childList.Count; ++i)
-		{
-			width += childList[i].rect.width;
-			// 最后一个子节点后不再添加间隔
-			if (i != childList.Count - 1)
-			{
-				width += interval;
-			}
-		}
-		rootSize.x = clampMin(width, minWidth);
-		root.setWindowSize(rootSize);
-
-		// 改变完父节点的大小后需要保持父节点左边界的x坐标不变
-		float curRootLeftX = root.getPositionNoPivot().x - root.getWindowSize().x * 0.5f;
-		if (!isFloatEqual(curRootLeftX, beforeRootLeftX))
-		{
-			Vector3 rootPos = root.getPosition();
-			root.setPosition(new Vector3(rootPos.x + beforeRootLeftX - curRootLeftX, rootPos.y, rootPos.z));
-		}
-
-		// 计算子节点坐标
-		float currentLeft = root.getWindowLeft();
-		for (int i = 0; i < childList.Count; ++i)
-		{
-			RectTransform childRect = childList[i];
-			float curWidth = childRect.rect.width;
-			childRect.localPosition = new Vector3(currentLeft + curWidth * 0.5f, childRect.localPosition.y);
-			currentLeft += curWidth;
-			// 最后一个子节点后不再添加间隔
-			if (i != childList.Count - 1)
-			{
-				currentLeft += interval;
-			}
-		}
-		FrameUtility.UN_LIST(childList);
+		return !isEditor() && (isAndroid() || isIOS());
+	}
+	public static bool isEditor()
+	{
+#if UNITY_EDITOR
+		return true;
+#else
+		return false;
+#endif
+	}
+	public static bool isWindows()
+	{
+#if UNITY_STANDALONE_WIN
+		return true;
+#else
+		return false;
+#endif
+	}
+	public static bool isAndroid()
+	{
+#if UNITY_ANDROID
+		return true;
+#else
+		return false;
+#endif
+	}
+	public static bool isIOS()
+	{
+#if UNITY_IOS
+		return true;
+#else
+		return false;
+#endif
+	}
+	public static bool isMacOS()
+	{
+#if UNITY_STANDALONE_OSX
+		return true;
+#else
+		return false;
+#endif
+	}
+	public static bool isLinux()
+	{
+#if UNITY_STANDALONE_LINUX
+		return true;
+#else
+		return false;
+#endif
+	}
+	public static bool isDevelopment()
+	{
+#if DEVELOPMENT_BUILD
+		return true;
+#else
+		return false;
+#endif
 	}
 }

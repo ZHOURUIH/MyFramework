@@ -6,10 +6,12 @@ using System.Collections.Generic;
 public struct SafeListModify<T>
 {
 	public T mValue;
+	public int mRemoveIndex;
 	public bool mAdd;
-	public SafeListModify(T value, bool add)
+	public SafeListModify(T value, bool add, int removeIndex)
 	{
 		mValue = value;
 		mAdd = add;
+		mRemoveIndex = removeIndex;
 	}
 }

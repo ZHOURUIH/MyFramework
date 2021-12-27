@@ -5,11 +5,11 @@ using System;
 // 只能在主线程使用的对象池
 public class ClassPool : FrameSystem
 {
-	protected Dictionary<Type, HashSet<ClassObject>> mPersistentInuseList;
-	protected Dictionary<Type, HashSet<ClassObject>> mInusedList;
-	protected Dictionary<Type, HashSet<ClassObject>> mUnusedList;
-	protected Dictionary<ClassObject, string> mObjectStack;
-	protected static long mAssignIDSeed;
+	protected Dictionary<Type, HashSet<ClassObject>> mPersistentInuseList;	// 持久使用的对象列表
+	protected Dictionary<Type, HashSet<ClassObject>> mInusedList;			// 仅这一帧使用的对象列表
+	protected Dictionary<Type, HashSet<ClassObject>> mUnusedList;			// 未使用的对象列表
+	protected Dictionary<ClassObject, string> mObjectStack;					// 存储堆栈信息的列表
+	protected static long mAssignIDSeed;									// 分配ID,用于标识每一个分配出去的对象
 	public ClassPool()
 	{
 		mPersistentInuseList = new Dictionary<Type, HashSet<ClassObject>>();

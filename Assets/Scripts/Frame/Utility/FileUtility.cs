@@ -4,12 +4,12 @@ using System.Text;
 using System.IO;
 using System.Security.Cryptography;
 
+// 文件工具函数类
 public class FileUtility : MathUtility
 {
-	private static List<string> mTempPatternList = new List<string>();
-	private static List<string> mTempFileList = new List<string>();
-	private static List<string> mTempFileList1 = new List<string>();
-	public static new void initUtility() { }
+	private static List<string> mTempPatternList = new List<string>();	// 用于避免GC
+	private static List<string> mTempFileList = new List<string>();		// 用于避免GC
+	private static List<string> mTempFileList1 = new List<string>();	// 用于避免GC
 	public static void validPath(ref string path)
 	{
 		if (isEmpty(path))
@@ -49,7 +49,7 @@ public class FileUtility : MathUtility
 			{
 				if (errorIfNull)
 				{
-					UnityUtility.logError("open file failed! filename : " + fileName);
+					UnityUtility.logError("文件加载失败! : " + fileName);
 				}
 				return 0;
 			}
@@ -80,64 +80,43 @@ public class FileUtility : MathUtility
 			{
 				UnityUtility.logError("openFile invalid path : " + fileName);
 			}
+			if (fileBuffer == null && errorIfNull)
+			{
+				UnityUtility.logError("open file failed! filename : " + fileName);
+			}
 			return fileBuffer.Length;
-#endif
-		}
-		catch (Exception)
-		{
-			UnityUtility.log("open file failed! filename : " + fileName);
-		}
-		return 0;
-	}
-	// 打开一个文本文件,fileName为绝对路径
-	public static string openTxtFile(string fileName, bool errorIfNull)
-	{
-		try
-		{
-#if !UNITY_ANDROID || UNITY_EDITOR
-			StreamReader streamReader = File.OpenText(fileName);
-			if (streamReader == null)
-			{
-				if (errorIfNull)
-				{
-					UnityUtility.logError("open file failed! filename : " + fileName);
-				}
-				return null;
-			}
-			string fileBuffer = streamReader.ReadToEnd();
-			streamReader.Close();
-			streamReader.Dispose();
-			return fileBuffer;
-#else
-			// 安卓平台如果要读取StreamingAssets下的文件,只能使用AssetManager
-			if (startWith(fileName, FrameDefine.F_STREAMING_ASSETS_PATH))
-			{
-				// 改为相对路径
-				fileName = fileName.Substring(FrameDefine.F_STREAMING_ASSETS_PATH.Length);
-				return AndroidAssetLoader.loadTxtAsset(fileName, errorIfNull);
-			}
-			// 安卓平台如果要读取persistentDataPath的文件,则可以使用File
-			if (startWith(fileName, FrameDefine.F_PERSISTENT_DATA_PATH))
-			{
-				return AndroidAssetLoader.loadTxtFile(fileName, errorIfNull);
-			}
-			UnityUtility.logError("openTxtFile invalid path : " + fileName);
-			return null;
 #endif
 		}
 		catch (Exception e)
 		{
 			if (errorIfNull)
 			{
-				UnityUtility.logError("open file failed! filename : " + fileName + ", info:" + e.Message);
+				UnityUtility.logError("文件加载失败! : " + fileName + ", info:" + e.Message + ",stack:" + e.StackTrace);
 			}
-			return null;
 		}
+		return 0;
+	}
+	// 打开一个文本文件,fileName为绝对路径
+	public static string openTxtFile(string fileName, bool errorIfNull)
+	{
+		int fileSize = openFile(fileName, out byte[] fileContent, errorIfNull);
+		if (fileSize == 0)
+        {
+			return EMPTY;
+        }
+		string fileBuffer = bytesToString(fileContent, 0, fileSize);
+		releaseFile(fileContent);
+		return fileBuffer;
 	}
 	// 打开一个文本文件,fileName为绝对路径,并且自动将文件拆分为多行,移除末尾的换行符(\r或者\n),存储在fileLines中,包含空行,返回值是行数
 	public static int openTxtFileLines(string fileName, out string[] fileLines, bool errorIfNull = true, bool keepEmptyLine = true)
 	{
 		string fileContent = openTxtFile(fileName, errorIfNull);
+		if (isEmpty(fileContent))
+		{
+			fileLines = null;
+			return 0;
+		}
 		splitLine(fileContent, out fileLines, !keepEmptyLine);
 		return fileLines != null ? fileLines.Length : 0;
 	}
@@ -168,7 +147,7 @@ public class FileUtility : MathUtility
 	public static void writeTxtFile(string fileName, string content, bool appendData = false)
 	{
 #if !UNITY_ANDROID || UNITY_EDITOR
-		byte[] bytes = stringToBytes(content, Encoding.UTF8);
+		byte[] bytes = stringToBytes(content);
 		if (bytes != null)
 		{
 			writeFile(fileName, bytes, bytes.Length, appendData);
@@ -655,6 +634,19 @@ public class FileUtility : MathUtility
 			length = fileContent.Length;
 		}
 		HashAlgorithm algorithm = MD5.Create();
-		return bytesToHEXString(algorithm.ComputeHash(fileContent, 0, length), 0, false, upperOrLower);
+		return bytesToHEXString(algorithm.ComputeHash(fileContent, 0, length), 0, 0, false, upperOrLower);
+	}
+	// 打开一个文本文件进行处理,然后再写回文本文件
+	public static void processFileLine(string fileName, Action<List<string>> process)
+	{
+		FrameUtility.LIST(out List<string> fileLineList);
+		openTxtFileLines(fileName, out string[] fileLines);
+		fileLineList.AddRange(fileLines);
+
+		process(fileLineList);
+
+		string fileTxt = stringsToString(fileLineList, "\r\n");
+		writeTxtFile(fileName, fileTxt);
+		FrameUtility.UN_LIST(fileLineList);
 	}
 }

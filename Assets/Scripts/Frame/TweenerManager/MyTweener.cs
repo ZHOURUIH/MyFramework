@@ -1,5 +1,6 @@
 ﻿using System;
 
+// 自定义的渐变类
 public class MyTweener : ComponentOwner
 {
 	public void init()

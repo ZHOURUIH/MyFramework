@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
+// 自定义的对long[]的封装,可用于序列化
 public class LONGS : OBJECTS
 {
-	public long[] mValue;
-	protected bool mIntReplace;
+	public long[] mValue;			// 值
+	protected bool mIntReplace;		// 是否在合适的条件下使用int代替long来减小内存占用
 	public long this[int index]
 	{
 		get
@@ -69,7 +70,7 @@ public class LONGS : OBJECTS
 			if (i == 0)
 			{
 				setLowestBit(ref value, 0);
-				// 因为右移ing可能会使符号位变为1从而变成负数,最终造成数据错误,所以需要转换为uint进行右移
+				// 因为右移int可能会使符号位变为1从而变成负数,最终造成数据错误,所以需要转换为uint进行右移
 				mValue[i] = ((uint)value) >> 1;
 			}
 			else

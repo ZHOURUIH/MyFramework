@@ -5,11 +5,11 @@ using System;
 // 多线程的对象池无法判断临时对象有没有正常回收,因为子线程的帧与主线程不同步
 public class ClassPoolSingle : FrameBase
 {
-	protected HashSet<ClassObject> mInusedList;
-	protected HashSet<ClassObject> mUnusedList;
-	protected ThreadLock mListLock;
-	protected Type mType;
-	protected static long mAssignIDSeed;
+	protected HashSet<ClassObject> mInusedList;		// 已使用的列表
+	protected HashSet<ClassObject> mUnusedList;		// 未使用的列表
+	protected ThreadLock mListLock;					// 列表的线程锁
+	protected Type mType;							// 对象类型
+	protected static long mAssignIDSeed;			// 分配ID的种子
 	public ClassPoolSingle()
 	{
 		mInusedList = new HashSet<ClassObject>();

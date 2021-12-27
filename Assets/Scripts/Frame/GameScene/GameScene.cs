@@ -27,7 +27,7 @@ public abstract class GameScene : ComponentOwner
 		mSceneObject = createGameObject(mName, mGameSceneManager.getObject());
 		mAudioSource = mSceneObject.GetComponent<AudioSource>();
 #if UNITY_EDITOR
-		mSceneObject.AddComponent<GameSceneDebug>();
+		mSceneObject.AddComponent<GameSceneDebug>().setGameScene(this);
 #endif
 		initComponents();
 		// 创建出所有的场景流程
@@ -52,7 +52,7 @@ public abstract class GameScene : ComponentOwner
 	}
 	public void enterStartProcedure()
 	{
-		CMD(out CmdGameSceneChangeProcedure cmd);
+		CMD(out CmdGameSceneChangeProcedure cmd, LOG_LEVEL.FORCE);
 		cmd.mProcedure = mTempStartProcedure != null ? mTempStartProcedure : mStartProcedure;
 		cmd.mIntent = mTempStartIntent;
 		pushCommand(cmd, this);
@@ -94,7 +94,7 @@ public abstract class GameScene : ComponentOwner
 	public virtual void exit()
 	{
 		// 首先进入退出流程,然后再退出最后的流程
-		CMD(out CmdGameSceneChangeProcedure cmd);
+		CMD(out CmdGameSceneChangeProcedure cmd, LOG_LEVEL.FORCE);
 		cmd.mProcedure = mExitProcedure;
 		pushCommand(cmd, this);
 		mCurProcedure?.exit(null, null);

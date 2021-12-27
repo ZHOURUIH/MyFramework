@@ -47,13 +47,6 @@ public partial class GameFramework : MonoBehaviour
 		mFrameComponentUpdate = new List<FrameSystem>();
 		mFrameComponentDestroy = new List<FrameSystem>();
 
-		BinaryUtility.initUtility();
-		StringUtility.initUtility();
-		MathUtility.initUtility();
-		FileUtility.initUtility();
-		UnityUtility.initUtility();
-		WidgetUtility.initUtility();
-
 		// 设置默认的日志等级
 		UnityUtility.setLogLevel(mLogLevel);
 
@@ -61,11 +54,11 @@ public partial class GameFramework : MonoBehaviour
 		registeFrameSystem(typeof(AndroidPluginManager));
 		registeFrameSystem(typeof(AndroidAssetLoader));
 #if !UNITY_EDITOR
-		// 由于本地日志系统的特殊性,必须在最开始就初始化,由于会出现问题,暂时禁用
+		// 由于本地日志系统的特殊性,必须在最开始就初始化
+		// 由于会出现问题,暂时禁用
 		// FrameBase.mLocalLog = new LocalLog();
 		// FrameBase.mLocalLog.init();
 #endif
-		UnityUtility.setLogCallback(getLogCallback());
 		UnityUtility.logForce("start game!");
 		dumpSystem();
 		try
@@ -189,13 +182,11 @@ public partial class GameFramework : MonoBehaviour
 		int count = mFrameComponentDestroy.Count;
 		for (int i = 0; i < count; ++i)
 		{
-			FrameSystem frameSystem = mFrameComponentDestroy[i];
-			if (frameSystem == null)
-			{
-				continue;
-			}
-			UnityUtility.logForce("start destroy:" + frameSystem.getName());
-			frameSystem.destroy();
+			mFrameComponentDestroy[i]?.willDestroy();
+		}
+		for (int i = 0; i < count; ++i)
+		{
+			mFrameComponentDestroy[i]?.destroy();
 		}
 		mFrameComponentInit.Clear();
 		mFrameComponentUpdate.Clear();
@@ -218,6 +209,7 @@ public partial class GameFramework : MonoBehaviour
 	}
 	public virtual void keyProcess()
 	{
+#if UNITY_EDITOR || UNITY_STANDALONE
 		// F1切换日志等级
 		if (FrameUtility.isKeyCurrentDown(KeyCode.F1))
 		{
@@ -235,9 +227,19 @@ public partial class GameFramework : MonoBehaviour
 			for (int i = 0; i < resultCount; ++i)
 			{
 				UIDepth depth = hoverList[i].getDepth();
-				UnityUtility.logForce("窗口:" + hoverList[i].getName() +
-									", 深度:layout:" + depth.toDepthString() +
-									", priority:" + depth.getPriority());
+				if (hoverList[i] is MovableObject)
+				{
+					UnityUtility.logForce("物体:" + hoverList[i].getName() + 
+										", 深度:" + depth.toDepthString() + 
+										", priority:" + depth.getPriority());
+				}
+				else if(hoverList[i] is myUIObject)
+				{
+					UnityUtility.logForce("窗口:" + hoverList[i].getName() + 
+										", 布局:" + (hoverList[i] as myUIObject).getLayout().getName() + 
+										", 深度:" + depth.toDepthString() +
+										", priority:" + depth.getPriority());
+				}
 			}
 			FrameUtility.UN_LIST(hoverList);
 		}
@@ -258,7 +260,7 @@ public partial class GameFramework : MonoBehaviour
 		{
 			Vector3 mousePos = FrameUtility.getMousePosition();
 			FrameUtility.LIST(out List<GameObject> hoverList);
-			UnityUtility.checkUGUIInteractable(mousePos, hoverList);
+			WidgetUtility.checkUGUIInteractable(mousePos, hoverList);
 			int resultCount = hoverList.Count;
 			for (int i = 0; i < resultCount; ++i)
 			{
@@ -266,6 +268,7 @@ public partial class GameFramework : MonoBehaviour
 			}
 			FrameUtility.UN_LIST(hoverList);
 		}
+#endif
 	}
 	public FrameSystem getSystem(Type type)
 	{
@@ -394,7 +397,13 @@ public partial class GameFramework : MonoBehaviour
 			FrameSystem com = mFrameComponentUpdate[i];
 			if (com != null && !com.isDestroy())
 			{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+				Profiler.BeginSample(com.getName());
+#endif
 				com.lateUpdate(elapsedTime);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+				Profiler.EndSample();
+#endif
 			}
 		}
 	}
@@ -419,7 +428,6 @@ public partial class GameFramework : MonoBehaviour
 			}
 		}
 	}
-	protected virtual OnLog getLogCallback() { return null; }
 	protected virtual void notifyBase()
 	{
 		// 所有类都构造完成后通知FrameBase
@@ -492,24 +500,7 @@ public partial class GameFramework : MonoBehaviour
 			windowSize.y = mScreenHeight;
 		}
 		bool fullMode = fullScreen == WINDOW_MODE.FULL_SCREEN || fullScreen == WINDOW_MODE.FULL_SCREEN_CUSTOM_RESOLUTION;
-		Screen.SetResolution((int)windowSize.x, (int)windowSize.y, fullMode);
-		// UGUI
-		GameObject uguiRootObj = UnityUtility.getGameObject(FrameDefine.UGUI_ROOT);
-		RectTransform uguiRectTransform = uguiRootObj.GetComponent<RectTransform>();
-		uguiRectTransform.offsetMin = -windowSize * 0.5f;
-		uguiRectTransform.offsetMax = windowSize * 0.5f;
-		uguiRectTransform.anchorMax = Vector2.one * 0.5f;
-		uguiRectTransform.anchorMin = Vector2.one * 0.5f;
-		GameCamera camera = FrameBase.mCameraManager.getUICamera();
-		if (camera != null)
-		{
-			FT.MOVE(camera, new Vector3(0.0f, 0.0f, -windowSize.y * 0.5f / MathUtility.tan(camera.getFOVY(true) * 0.5f)));
-		}
-		GameCamera blurCamera = FrameBase.mCameraManager.getUIBlurCamera();
-		if (blurCamera != null)
-		{
-			FT.MOVE(blurCamera, new Vector3(0.0f, 0.0f, -windowSize.y * 0.5f / MathUtility.tan(blurCamera.getFOVY(true) * 0.5f)));
-		}
+		UnityUtility.setScreenSize(new Vector2Int((int)windowSize.x, (int)windowSize.y), fullMode);
 	}
 	protected virtual void registe() { }
 	protected virtual void launch() { }

@@ -6,9 +6,9 @@ using System;
 public class HashSetPool : FrameSystem
 {
 	protected Dictionary<Type, HashSet<IEnumerable>> mPersistentInuseList;	// 持久使用的列表对象
-	protected Dictionary<Type, HashSet<IEnumerable>> mInusedList;				// 仅当前栈帧中使用的列表对象
-	protected Dictionary<Type, HashSet<IEnumerable>> mUnusedList;
-	protected Dictionary<IEnumerable, string> mObjectStack;
+	protected Dictionary<Type, HashSet<IEnumerable>> mInusedList;			// 仅当前栈帧中使用的列表对象
+	protected Dictionary<Type, HashSet<IEnumerable>> mUnusedList;			// 未使用对象的列表
+	protected Dictionary<IEnumerable, string> mObjectStack;					// 存储对象分配堆栈的列表
 	public HashSetPool()
 	{
 		mPersistentInuseList = new Dictionary<Type, HashSet<IEnumerable>>();

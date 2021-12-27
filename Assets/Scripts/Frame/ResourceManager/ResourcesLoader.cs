@@ -5,8 +5,8 @@ using UnityEngine;
 // 从Resources中加载资源
 public class ResourcesLoader : FrameBase
 {
-	protected Dictionary<string, Dictionary<string, ResourceLoadInfo>> mLoadedPath;
-	protected Dictionary<Object, ResourceLoadInfo> mLoadedObjects;
+	protected Dictionary<string, Dictionary<string, ResourceLoadInfo>> mLoadedPath;	// 所有已加载的文件夹
+	protected Dictionary<Object, ResourceLoadInfo> mLoadedObjects;					// 所有的已加载的资源
 	public ResourcesLoader()
 	{
 		mLoadedPath = new Dictionary<string, Dictionary<string, ResourceLoadInfo>>();

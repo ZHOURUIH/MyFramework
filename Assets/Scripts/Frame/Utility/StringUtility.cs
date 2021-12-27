@@ -3,32 +3,22 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
+// 字符串相关工具函数类
 public class StringUtility : BinaryUtility
 {
-	private static char[] mHexUpperChar = new char[] { 'A', 'B', 'C', 'D', 'E', 'F' };
-	private static char[] mHexLowerChar = new char[] { 'a', 'b', 'c', 'd', 'e', 'f' };
-	private static string mHexString = "ABCDEFabcdef0123456789";
-	private static List<int> mTempIntList = new List<int>();
-	private static List<float> mTempFloatList = new List<float>();
-	private static List<string> mTempStringList = new List<string>();
-	private static Dictionary<string, int> mStringToInt;
-	private static string[] mIntToString;
-	private static string[] mFloatConvertPercision = new string[] { "f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7" };
-	private static Dictionary<string, Vector2Int> mStringToVector2Cache;
-	private static int STRING_TO_VECTOR2INT_MAX_CACHE = 10240;
-	public const string EMPTY = "";
-	public static new void initUtility()
-	{
-		mIntToString = new string[1025];
-		mStringToInt = new Dictionary<string, int>();
-		for (int i = 0; i < mIntToString.Length; ++i)
-		{
-			string iStr = i.ToString();
-			mStringToInt.Add(iStr, i);
-			mIntToString[i] = iStr;
-		}
-		mStringToVector2Cache = new Dictionary<string, Vector2Int>(STRING_TO_VECTOR2INT_MAX_CACHE);
-	}
+	private static char[] mHexUpperChar = new char[] { 'A', 'B', 'C', 'D', 'E', 'F' };	// 十六进制中的大写字母
+	private static char[] mHexLowerChar = new char[] { 'a', 'b', 'c', 'd', 'e', 'f' };	// 十六进制中的小写字母
+	private static string mHexString = "ABCDEFabcdef0123456789";						// 十六进制中的所有字符
+	private static List<int> mTempIntList = new List<int>();							// 避免GC
+	private static List<float> mTempFloatList = new List<float>();						// 避免GC
+	private static List<string> mTempStringList = new List<string>();					// 避免GC
+	private static Dictionary<string, int> mStringToInt;								// 用于快速查找字符串转换后的整数
+	private static string[] mIntToString;												// 用于快速获取整数转换后的字符串
+	private static string[] mFloatConvertPercision = new string[] { "f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7" };	// 浮点数转换时精度
+	private static Dictionary<string, Vector2Int> mStringToVector2Cache;				// 字符串转换为2维向量的缓存
+	private static int STRING_TO_VECTOR2INT_MAX_CACHE = 10240;                          // mStringToVector2Cache最大数量
+	static Dictionary<string, string> mInvalidParamChars;                               // invalid characters that cannot be found in a valid method-verb or http header
+	public const string EMPTY = "";														// 表示空字符串
 	// 只能使用{index}拼接
 	public static string format(string format, params string[] args)
 	{
@@ -276,7 +266,11 @@ public class StringUtility : BinaryUtility
 		{
 			return 0;
 		}
-		if (mStringToInt != null && mStringToInt.TryGetValue(str, out int value))
+		if (mStringToInt == null)
+		{
+			initIntToString();
+		}
+		if (mStringToInt.TryGetValue(str, out int value))
 		{
 			return value;
 		}
@@ -331,7 +325,11 @@ public class StringUtility : BinaryUtility
 		{
 			return Vector2Int.zero;
 		}
-		if (mStringToVector2Cache != null && mStringToVector2Cache.TryGetValue(value, out Vector2Int result))
+		if (mStringToVector2Cache == null)
+		{
+			mStringToVector2Cache = new Dictionary<string, Vector2Int>(STRING_TO_VECTOR2INT_MAX_CACHE);
+		}
+		if (mStringToVector2Cache.TryGetValue(value, out Vector2Int result))
 		{
 			return result;
 		}
@@ -343,7 +341,7 @@ public class StringUtility : BinaryUtility
 		result = new Vector2Int();
 		result.x = SToI(splitList[0]);
 		result.y = SToI(splitList[1]);
-		if (mStringToVector2Cache != null && mStringToVector2Cache.Count < STRING_TO_VECTOR2INT_MAX_CACHE)
+		if (mStringToVector2Cache.Count < STRING_TO_VECTOR2INT_MAX_CACHE)
 		{
 			mStringToVector2Cache.Add(value, result);
 		}
@@ -615,6 +613,10 @@ public class StringUtility : BinaryUtility
 	// 解析一个数组类型的json字符串,并将每一个元素的字符串放入elementList中
 	public static void decodeJsonArray(string json, List<string> elementList)
 	{
+		if (isEmpty(json))
+		{
+			return;
+		}
 		// 如果不是数组类型则无法解析
 		if (json[0] != '[' || json[json.Length - 1] != ']')
 		{
@@ -640,6 +642,10 @@ public class StringUtility : BinaryUtility
 	// 解析一个json的结构体,需要所有参数都是字符串类型的
 	public static void decodeJsonStringPair(string json, Dictionary<string, string> paramList)
 	{
+		if (isEmpty(json))
+		{
+			return;
+		}
 		string[] memberList = split(json, ',');
 		if (memberList == null)
 		{
@@ -803,12 +809,28 @@ public class StringUtility : BinaryUtility
 			path = path.Substring(0, path.Length - 1);
 		}
 	}
+	public static string removeEndSlash(string path)
+	{
+		if (path[path.Length - 1] == '/')
+		{
+			path = path.Substring(0, path.Length - 1);
+		}
+		return path;
+	}
 	public static void addEndSlash(ref string path)
 	{
 		if (!isEmpty(path) && path[path.Length - 1] != '/')
 		{
 			path += "/";
 		}
+	}
+	public static string addEndSlash(string path)
+	{
+		if (!isEmpty(path) && path[path.Length - 1] != '/')
+		{
+			path += "/";
+		}
+		return path;
 	}
 	public static string replaceSuffix(string fileName, string suffix)
 	{
@@ -858,14 +880,30 @@ public class StringUtility : BinaryUtility
 	}
 	public static void splitLine(string str, out string[] lines, bool removeEmpty = true)
 	{
-		lines = split(str, removeEmpty, '\n');
-		if (lines == null)
+		lines = null;
+		if (str.IndexOf('\n') >= 0)
 		{
-			return;
+			lines = split(str, removeEmpty, '\n');
+			if (lines == null)
+			{
+				return;
+			}
+			for (int i = 0; i < lines.Length; ++i)
+			{
+				lines[i] = removeAll(lines[i], '\r');
+			}
 		}
-		for (int i = 0; i < lines.Length; ++i)
+		else if(str.IndexOf('\r') >= 0)
 		{
-			lines[i] = removeAll(lines[i], '\r');
+			lines = split(str, removeEmpty, '\r');
+			if (lines == null)
+			{
+				return;
+			}
+			for (int i = 0; i < lines.Length; ++i)
+			{
+				lines[i] = removeAll(lines[i], '\n');
+			}
 		}
 	}
 	public static string[] split(string str, params string[] keyword)
@@ -1403,9 +1441,13 @@ public class StringUtility : BinaryUtility
 	// minLength表示返回字符串的最少数字个数,等于0表示不限制个数,大于0表示如果转换后的数字数量不足minLength个,则在前面补0
 	public static string IToS(int value, int minLength = 0)
 	{
+		if (mIntToString == null)
+		{
+			initIntToString();
+		}
 		string retString;
 		// 先尝试查表获取
-		if (value >= 0 && mIntToString != null && value < mIntToString.Length)
+		if (value >= 0 && value < mIntToString.Length)
 		{
 			retString = mIntToString[value];
 		}
@@ -1451,9 +1493,13 @@ public class StringUtility : BinaryUtility
 	}
 	public static string LToS(long value, int minLength = 0)
 	{
+		if (mIntToString == null)
+		{
+			initIntToString();
+		}
 		string retString;
 		// 先尝试查表获取
-		if (value >= 0 && mIntToString != null && value < mIntToString.Length)
+		if (value >= 0 && value < mIntToString.Length)
 		{
 			retString = mIntToString[value];
 		}
@@ -1473,9 +1519,13 @@ public class StringUtility : BinaryUtility
 	}
 	public static string ULToS(ulong value, int minLength = 0)
 	{
+		if (mIntToString == null)
+		{
+			initIntToString();
+		}
 		string retString;
 		// 先尝试查表获取
-		if (value >= 0 && mIntToString != null && value < (ulong)mIntToString.Length)
+		if (value >= 0 && value < (ulong)mIntToString.Length)
 		{
 			retString = mIntToString[value];
 		}
@@ -1676,16 +1726,16 @@ public class StringUtility : BinaryUtility
 		}
 		return name;
 	}
-	public static string bytesToHEXStringThread(byte[] byteList, int count = 0, bool addSpace = true, bool upperOrLower = true)
+	public static string bytesToHEXStringThread(byte[] byteList, int offset = 0, int count = 0, bool addSpace = true, bool upperOrLower = true)
 	{
 		MyStringBuilder builder = FrameUtility.STRING_THREAD();
-		int byteCount = count > 0 ? count : byteList.Length;
-		byteCount = MathUtility.getMin(byteList.Length, byteCount);
+		int byteCount = count > 0 ? count : byteList.Length - offset;
+		MathUtility.clamp(ref byteCount, 0, byteList.Length - offset);
 		for (int i = 0; i < byteCount; ++i)
 		{
 			if (addSpace)
 			{
-				byteToHEXString(builder, byteList[i], upperOrLower);
+				byteToHEXString(builder, byteList[i + offset], upperOrLower);
 				if (i != byteCount - 1)
 				{
 					builder.append(" ");
@@ -1693,21 +1743,21 @@ public class StringUtility : BinaryUtility
 			}
 			else
 			{
-				byteToHEXString(builder, byteList[i], upperOrLower);
+				byteToHEXString(builder, byteList[i + offset], upperOrLower);
 			}
 		}
 		return FrameUtility.END_STRING_THREAD(builder);
 	}
-	public static string bytesToHEXString(byte[] byteList, int count = 0, bool addSpace = true, bool upperOrLower = true)
+	public static string bytesToHEXString(byte[] byteList, int offset = 0, int count = 0, bool addSpace = true, bool upperOrLower = true)
 	{
 		MyStringBuilder builder = FrameUtility.STRING();
-		int byteCount = count > 0 ? count : byteList.Length;
-		byteCount = MathUtility.getMin(byteList.Length, byteCount);
+		int byteCount = count > 0 ? count : byteList.Length - offset;
+		MathUtility.clamp(ref byteCount, 0, byteList.Length - offset);
 		for (int i = 0; i < byteCount; ++i)
 		{
 			if (addSpace)
 			{
-				byteToHEXString(builder, byteList[i], upperOrLower);
+				byteToHEXString(builder, byteList[i + offset], upperOrLower);
 				if (i != byteCount - 1)
 				{
 					builder.append(' ');
@@ -1715,7 +1765,7 @@ public class StringUtility : BinaryUtility
 			}
 			else
 			{
-				byteToHEXString(builder, byteList[i], upperOrLower);
+				byteToHEXString(builder, byteList[i + offset], upperOrLower);
 			}
 		}
 		return FrameUtility.END_STRING(builder);
@@ -2199,7 +2249,7 @@ public class StringUtility : BinaryUtility
 		return Regex.IsMatch(value, @"^[+-]?\d*[.]?\d*$");
 	}
 	// 是否为数字
-	public static bool isNumeric(char c) { return c >= '0' && c <= '9'; }
+	public static bool isNumberic(char c) { return c >= '0' && c <= '9'; }
 	// 计算字符的显示宽度,英文字母的宽度为1,汉字的宽度为2
 	public static int generateCharWidth(string str)
 	{
@@ -2221,12 +2271,83 @@ public class StringUtility : BinaryUtility
 		}
 		for (int i = 0; i < length; ++i)
 		{
-			if (!isNumeric(str[i]))
+			if (!isNumberic(str[i]))
 			{
 				return false;
 			}
 		}
 		return true;
+	}
+	public static void line(MyStringBuilder str, string line, bool returnLine = true)
+	{
+		if (returnLine)
+		{
+			str.append(line, "\r\n");
+		}
+		else
+		{
+			str.append(line);
+		}
+	}
+	public static void line(ref string str, string line, bool returnLine = true)
+	{
+		if (returnLine)
+		{
+			str += line + "\r\n";
+		}
+		else
+		{
+			str += line;
+		}
+	}
+	public static string nameToUpper(string sqliteName, bool preUnderLine)
+	{
+		// 根据大写字母拆分
+		FrameUtility.LIST(out List<string> macroList);
+		int length = sqliteName.Length;
+		int lastIndex = 0;
+		// 从1开始,因为第0个始终都是大写,会截取出空字符串,最后一个字母也肯不会被分割
+		for (int i = 1; i < length; ++i)
+		{
+			// 以大写字母为分隔符,但是连续的大写字符不能被分隔
+			// 非连续数字也会分隔
+			char curChar = sqliteName[i];
+			char lastChar = sqliteName[i - 1];
+			char nextChar = i + 1 < length ? sqliteName[i + 1] : '\0';
+			if (isUpper(curChar) && (!isUpper(lastChar) || (nextChar != '\0' && !isUpper(nextChar))) ||
+				isNumberic(curChar) && (!isNumberic(lastChar) || (nextChar != '\0' && !isNumberic(nextChar))))
+			{
+				macroList.Add(sqliteName.Substring(lastIndex, i - lastIndex));
+				lastIndex = i;
+			}
+		}
+		macroList.Add(sqliteName.Substring(lastIndex, length - lastIndex));
+
+		MyStringBuilder headerMacro = FrameUtility.STRING();
+		int elementCount = macroList.Count;
+		for (int i = 0; i < elementCount; ++i)
+		{
+			headerMacro.append("_", macroList[i].ToUpper());
+		}
+		if (!preUnderLine)
+		{
+			headerMacro.remove(0, 1);
+		}
+		FrameUtility.UN_LIST(macroList);
+		return FrameUtility.END_STRING(headerMacro);
+	}
+	public static string validateHttpString(string str)
+	{
+		if (mInvalidParamChars == null)
+		{
+			initInvalidChars();
+		}
+		MyStringBuilder builder = FrameUtility.STRING(str);
+		foreach (var item in mInvalidParamChars)
+		{
+			replaceAll(builder, item.Key, item.Value);
+		}
+		return FrameUtility.END_STRING(builder);
 	}
 	public static void appendValueString(ref string queryStr, string str)
 	{
@@ -2444,6 +2565,10 @@ public class StringUtility : BinaryUtility
 	{
 		return FrameUtility.END_STRING_THREAD(FrameUtility.STRING_THREAD(str0, str1, str2, str3, str4, str5, str6, str7, str8));
 	}
+	public static string strcat_thread(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7, string str8, string str9)
+	{
+		return FrameUtility.END_STRING_THREAD(FrameUtility.STRING_THREAD(str0, str1, str2, str3, str4, str5, str6, str7, str8, str9));
+	}
 	// 只能在主线程中使用的字符串拼接,当拼接小于等于4个字符串时,直接使用+号最快,GC与StringBuilder一致
 	public static string strcat(string str0, string str1, string str2, string str3, string str4)
 	{
@@ -2468,5 +2593,43 @@ public class StringUtility : BinaryUtility
 	public static string strcat(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7, string str8, string str9)
 	{
 		return FrameUtility.END_STRING(FrameUtility.STRING(str0, str1, str2, str3, str4, str5, str6, str7, str8, str9));
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected static void initIntToString()
+	{
+		mIntToString = new string[1025];
+		mStringToInt = new Dictionary<string, int>();
+		for (int i = 0; i < mIntToString.Length; ++i)
+		{
+			string iStr = i.ToString();
+			mStringToInt.Add(iStr, i);
+			mIntToString[i] = iStr;
+		}
+	}
+	protected static void initInvalidChars()
+	{
+		mInvalidParamChars = new Dictionary<string, string>();
+		mInvalidParamChars.Add("(", "%28" );
+		mInvalidParamChars.Add(")", "%29");
+		mInvalidParamChars.Add("<", "%3C");
+		mInvalidParamChars.Add(">", "%3E");
+		mInvalidParamChars.Add("@", "%40");
+		mInvalidParamChars.Add(",", "%2C");
+		mInvalidParamChars.Add(";", "%3B");
+		mInvalidParamChars.Add(":", "%3A");
+		mInvalidParamChars.Add("\\", "%5C");
+		mInvalidParamChars.Add("\"", "%22");
+		mInvalidParamChars.Add("\'", "%27");
+		mInvalidParamChars.Add("/", "%2F");
+		mInvalidParamChars.Add("[", "%5B");
+		mInvalidParamChars.Add("]", "%5D");
+		mInvalidParamChars.Add("?", "%3F");
+		mInvalidParamChars.Add("=", "%3D");
+		mInvalidParamChars.Add("{", "%7B");
+		mInvalidParamChars.Add("}", "%7D");
+		mInvalidParamChars.Add(" ", "%20");
+		mInvalidParamChars.Add("\t", "%09");
+		mInvalidParamChars.Add("\r", "%0D");
+		mInvalidParamChars.Add("\n", "%0A");
 	}
 }

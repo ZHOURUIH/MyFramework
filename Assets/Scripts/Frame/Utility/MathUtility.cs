@@ -2,37 +2,35 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// 数学相关工具函数,所有与数学计算相关的函数都在这里
 public class MathUtility : StringUtility
 {
-	private static List<AStarNode> mTempOpenList = new List<AStarNode>();
-	private static Point[] mTempDirect8 = new Point[8];
-	private static Point[] mTempDirect4 = new Point[4];
-	private static Vector3[] mTempControlPoint = new Vector3[4];
-	private static AStarNode[] mTempNodeList;
-	private static int[] mGreaterPow2;
-	private static float[] sin_tb;
-	private static float[] cos_tb;
-	private const int MAX_FFT_COUNT = 1024 * 8;
-	private static Complex[] mComplexList = new Complex[MAX_FFT_COUNT];
+	private static List<AStarNode> mTempOpenList = new List<AStarNode>();	// 避免GC
+	private static Point[] mTempDirect8 = new Point[8];						// 避免GC
+	private static Point[] mTempDirect4 = new Point[4];						// 避免GC
+	private static Vector3[] mTempControlPoint = new Vector3[4];			// 避免GC
+	private static AStarNode[] mTempNodeList;								// 避免GC
+	private static int[] mGreaterPow2;										// 预先生成的每个数字所对应的第一个比它大的2的n次方的数
+	private static float[] mSinList;										// PI/(2^n)的sin值,其中n是下标
+	private static float[] mCosList;										// PI/(2^n)的cos值,其中n是下标
+	private const int MAX_FFT_COUNT = 1024 * 8;								// 计算频域时数据的最大数量
+	private static Complex[] mComplexList = new Complex[MAX_FFT_COUNT];		// 避免GC
 	public const float TWO_PI_DEGREE = Mathf.PI * Mathf.Rad2Deg * 2.0f;     // 360.0f
 	public const float TWO_PI_RADIAN = Mathf.PI * 2.0f;                     // 6.28f
 	public const float HALF_PI_DEGREE = Mathf.PI * Mathf.Rad2Deg * 0.5f;    // 90.0f
 	public const float HALF_PI_RADIAN = Mathf.PI * 0.5f;                    // 1.57f
 	public const float PI_DEGREE = Mathf.PI * Mathf.Rad2Deg;                // 180.0f
 	public const float PI_RADIAN = Mathf.PI;                                // 3.14f
-	public static new void initUtility()
+	public static int generateBatchCount(int totalCount, int batch)
 	{
-		initFFTParam();
-		initGreaterPow2();
+		int batchCount = totalCount / batch;
+		return totalCount - batch * batchCount > 0 ? batchCount + 1 : batchCount;
 	}
 	public static bool hasMask(int value, int mask) { return (value & mask) != 0; }
-	public static float KMHtoMS(float kmh) { return kmh * 0.27777f; }       // km/h转m/s
+	public static float KMHtoMS(float kmh) { return kmh * 0.27777f; }
 	public static float MStoKMH(float ms) { return ms * 3.6f; }
 	public static float MtoKM(float m) { return m * 0.001f; }
-	public static float pow(float value, float power)
-	{
-		return Mathf.Pow(value, power);
-	}
+	public static float pow(float value, float power) { return Mathf.Pow(value, power); }
 	public static float pow(float value, int power)
 	{
 		float finalValue = 1.0f;
@@ -60,6 +58,10 @@ public class MathUtility : StringUtility
 	// 获得大于value的第一个2的n次方的数,value需要大于0
 	public static int getGreaterPow2(int value)
 	{
+		if (mGreaterPow2 == null)
+		{
+			initGreaterPow2();
+		}
 		if (mGreaterPow2 != null && value < mGreaterPow2.Length)
 		{
 			return mGreaterPow2[value];
@@ -283,22 +285,23 @@ public class MathUtility : StringUtility
 		}
 		return 0;
 	}
-	// value是否是2的n次方
-	public static bool isPow2(int value)
+	// 如果是钝角,则获取对应的锐角,弧度制,但是如果大于180度,则可能返回错误的值
+	public static float toAcuteAngleRadian(float angle)
 	{
-		return (value & (value - 1)) == 0;
+		return angle >= HALF_PI_RADIAN ? PI_RADIAN - angle : angle;
 	}
+	// 如果是钝角,则获取对应的锐角,角度制,但是如果大于180度,则可能返回错误的值
+	public static float toAcuteAngleDegree(float angle)
+	{
+		return angle >= HALF_PI_DEGREE ? PI_DEGREE - angle : angle;
+	}
+	// value是否是2的n次方
+	public static bool isPow2(int value) { return (value & (value - 1)) == 0; }
 	// 是否为偶数
 	// 对于a % b的计算,如果b为2的n次方,则a % b等效于a & (b - 1)
 	public static bool isEven(int value) { return (value & 1) == 0; }
-	public static float getNearest(float value, float p0, float p1)
-	{
-		return abs(value - p0) < abs(value - p1) ? p0 : p1;
-	}
-	public static float getFarthest(float value, float p0, float p1)
-	{
-		return abs(value - p0) > abs(value - p1) ? p0 : p1;
-	}
+	public static float getNearest(float value, float p0, float p1) { return abs(value - p0) < abs(value - p1) ? p0 : p1; }
+	public static float getFarthest(float value, float p0, float p1) { return abs(value - p0) > abs(value - p1) ? p0 : p1; }
 	public static int getCharCount(string str, char c)
 	{
 		int count = 0;
@@ -356,7 +359,7 @@ public class MathUtility : StringUtility
 					// 如果减号的左边不是数字,则该减号是负号,将减号去掉,
 					else if (str[i] == '-')
 					{
-						if (isNumeric(str[i - 1]))
+						if (isNumberic(str[i - 1]))
 						{
 							replace(str, i, i + 1, "+");
 						}
@@ -388,7 +391,7 @@ public class MathUtility : StringUtility
 				break;
 			}
 			// 找到第一个运算符
-			if (!isNumeric(str[i]) && str[i] != '.')
+			if (!isNumberic(str[i]) && str[i] != '.')
 			{
 				if (i != 0)
 				{
@@ -668,22 +671,49 @@ public class MathUtility : StringUtility
 		}
 		return UnityEngine.Random.Range(min, max + 1);
 	}
+	// 计算射线与平面的交点,ray为射线，normal为平面法线，point为平面上一点
+	public static Vector3 intersectRayPlane(Ray ray, Vector3 normal, Vector3 point)
+	{
+		// 先计算出射线起点在平面上的投影
+		Vector3 originProjectPoint = getProjectionOnPlane(point, normal, ray.origin);
+		// 计算射线与法线的夹角,弧度制,算出来的角度可能是一个锐角也可能是钝角，与射线的方向和法线方向有关
+		float angle = getAngleBetweenVector(normal, ray.direction);
+		// 射线起点到起点的投影点的距离
+		float originToProjectDistance = getLength(originProjectPoint - ray.origin);
+		// 根据夹角计算出射线交点到射线起始点的距离,如果夹角是钝角，则还是取剩下的锐角的部分
+		// 因为射线只要不与平面平行，就肯定会有一个小于90°的角度
+		float distance = originToProjectDistance / abs(cos(angle));
+		// 根据距离计算出交点
+		return ray.origin + ray.direction * distance;
+	}
 	// 计算两个向量所在平面的法线,unity是左手坐标系
 	public static Vector3 generateNormal(Vector3 vec0, Vector3 vec1)
 	{
 		return cross(vec0, vec1);
 	}
-	// 计算点p在平面on上的投影点,o为平面上一点,n为平面法线
-	public static Vector3 getProjectionOnPlane(Vector3 o, Vector3 n, Vector3 p)
+	// 计算点point在平面planePoint-normal上的投影点,planePoint为平面上一点,normal为平面法线
+	// planePoint在normal-point上的投影点即为交点
+	public static Vector3 getProjectionOnPlane(Vector3 planePoint, Vector3 normal, Vector3 point)
 	{
-		// o在np上的投影点即为交点
-		return getProjectPoint(o, new Line3(p, p + n));
+		return getProjectPoint(planePoint, new Line3(point, point + normal));
+	}
+	// 判断一个点在平面的正面还是反面,-1表示反面,也就是在法线负方向,0表示在平面上,1表示在正面
+	public static int getPointInPlaneSide(Vector3 planePoint, Vector3 normal, Vector3 point)
+	{
+		Vector3 dir = normalize(point - planePoint);
+		float dotResult = dot(dir, normal);
+		// 在平面上
+		if (isFloatZero(dotResult))
+		{
+			return 0;
+		}
+		return (int)sign(dotResult);
 	}
 	// 判断两个点是否在线同一边
 	public static bool isSameSidePoint(Line2 line, Vector2 point0, Vector2 point1)
 	{
-		int angle0 = getAngleSignFromVectorToVector2(point0 - line.mStart, line.mEnd - line.mStart);
-		int angle1 = getAngleSignFromVectorToVector2(point1 - line.mStart, line.mEnd - line.mStart);
+		int angle0 = getAngleSignVector2ToVector2(point0 - line.mStart, line.mEnd - line.mStart);
+		int angle1 = getAngleSignVector2ToVector2(point1 - line.mStart, line.mEnd - line.mStart);
 		return sign(angle0) == sign(angle1);
 	}
 	// 任意一个点是否在一个线段上
@@ -828,9 +858,9 @@ public class MathUtility : StringUtility
 		// 当前点的相邻两个点的从下一个点的连线到上一个点的连线的角度
 		Vector2 lastDir = lastPoint - curPoint;
 		Vector2 nextDir = nextPoint - curPoint;
-		float angle0 = getAngleFromVector2ToVector2(lastDir, nextDir);
+		float angle0 = getAngleVector2ToVector2(lastDir, nextDir);
 		adjustRadian360(ref angle0);
-		float angle1 = getAngleFromVector2ToVector2(vertice[index1] - curPoint, nextDir);
+		float angle1 = getAngleVector2ToVector2(vertice[index1] - curPoint, nextDir);
 		adjustRadian360(ref angle1);
 		// 法线向上时,点是按逆时针来排列,夹角小于邻边角时才有效
 		bool validAngle = angle1 <= angle0;
@@ -1052,8 +1082,8 @@ public class MathUtility : StringUtility
 	public static bool intersectLineTriangle(Line2 line, Triangle2 triangle, out Vector2 intersectPoint)
 	{
 		Vector2 lineDir = normalize(line.mEnd - line.mStart);
-		bool ret = intersectRayTriangle(line.mStart, lineDir, triangle.mPoint0, triangle.mPoint1, triangle.mPoint2, out float t, out _, out _);
-		if(ret)
+		bool ret = intersectRayTriangle(line.mStart, lineDir, triangle.toTriangle3(), out float t, out _, out _);
+		if (ret)
 		{
 			intersectPoint = line.mStart + lineDir * t;
 			// 如果交点超出了线段范围,则不相交
@@ -1069,6 +1099,25 @@ public class MathUtility : StringUtility
 		}
 		return ret;
 	}
+	public static bool intersectRayRect(Vector3 orig, Vector3 dir, Rect3 rect, out float t)
+	{
+		// 当法线朝向屏幕外时,右边的方向
+		Vector3 right = 0.5f * rect.mWidth * cross(rect.mNormal, rect.mUp);
+		Vector3 top = 0.5f * rect.mHeight * rect.mUp;
+		Vector3 rightTop = right + top + rect.mCenter;
+		Vector3 leftTop = -right + top + rect.mCenter;
+		Vector3 rightBottom = right - top + rect.mCenter;
+		Vector3 leftBottom = -right - top + rect.mCenter;
+		if (intersectRayTriangle(orig, dir, new Triangle3(rightTop, rightBottom, leftBottom), out t, out _, out _))
+		{
+			return true;
+		}
+		if (intersectRayTriangle(orig, dir, new Triangle3(rightBottom, leftBottom, leftTop), out t, out _, out _))
+		{
+			return true;
+		}
+		return false;
+	}
 	// Determine whether a ray intersect with a triangle
 	// Parameters
 	// orig: origin of the ray
@@ -1076,24 +1125,24 @@ public class MathUtility : StringUtility
 	// v0, v1, v2: vertices of triangle
 	// t(out): weight of the intersection for the ray
 	// u(out), v(out): barycentric coordinate of intersection
-	public static bool intersectRayTriangle(Vector3 orig, Vector3 dir, Vector3 v0, Vector3 v1, Vector3 v2, out float t, out float u, out float v)
+	public static bool intersectRayTriangle(Vector3 orig, Vector3 dir, Triangle3 triangle, out float t, out float u, out float v)
 	{
 		t = 0.0f;
 		u = 0.0f;
 		v = 0.0f;
-		Vector3 E1 = v1 - v0;
-		Vector3 E2 = v2 - v0;
+		Vector3 E1 = triangle.mPoint1 - triangle.mPoint0;
+		Vector3 E2 = triangle.mPoint2 - triangle.mPoint0;
 		Vector3 P = cross(dir, E2);
 		float determinant = dot(E1, P);
 		// keep det > 0, modify T accordingly
 		Vector3 T;
 		if (determinant > 0)
 		{
-			T = orig - v0;
+			T = orig - triangle.mPoint0;
 		}
 		else
 		{
-			T = v0 - orig;
+			T = triangle.mPoint0 - orig;
 			determinant = -determinant;
 		}
 		// If determinant is near zero, ray lies in plane of triangle
@@ -1240,9 +1289,10 @@ public class MathUtility : StringUtility
 		int pointSide = -999;
 		// 如果点都在所有边的同一侧,则点在多边形内
 		int polygonPointCount = polygon.Count;
-		for(int i = 0; i < polygonPointCount - 1; ++i)
+		for(int i = 0; i < polygonPointCount; ++i)
 		{
-			int side = getAngleSignFromVectorToVector2(point - polygon[i], polygon[i + i] - polygon[i]);
+			int nextPointIndex = i < polygonPointCount - 1 ? i + 1 : 0;
+			int side = getAngleSignVector2ToVector2(point - polygon[i], polygon[nextPointIndex] - polygon[i]);
 			// 如果位于边所在直线上,则忽略
 			if (side == 0)
 			{
@@ -1368,7 +1418,7 @@ public class MathUtility : StringUtility
 		vec = setLength(rotateVector3(resetY(vec), Quaternion.AngleAxis(toDegree(pitch), normal)), length);
 	}
 	// 顺时针旋转为正,逆时针为负
-	public static float getAngleFromVector2ToVector2(Vector2 from, Vector2 to, ANGLE radian = ANGLE.RADIAN)
+	public static float getAngleVector2ToVector2(Vector2 from, Vector2 to, ANGLE radian = ANGLE.RADIAN)
 	{
 		if(isVectorEqual(from, to))
 		{
@@ -1388,27 +1438,27 @@ public class MathUtility : StringUtility
 		}
 		return angle;
 	}
-	// 在忽略Y轴的情况下,判断从from到to的角度的符号,同向或反向是为0
-	public static int getAngleSignFromVectorToVector3IgnoreY(Vector3 from, Vector3 to)
+	// 在忽略Y轴的情况下,判断从from到to的角度的符号,同向或反向时为0
+	public static int getAngleSignVector3ToVector3IgnoreY(Vector3 from, Vector3 to)
 	{
-		return getAngleSignFromVectorToVector2(new Vector2(from.x, from.z), new Vector2(to.x, to.z));
+		return getAngleSignVector2ToVector2(new Vector2(from.x, from.z), new Vector2(to.x, to.z));
 	}
-	// 在忽略X轴的情况下,判断从from到to的角度的符号,同向或反向是为0
-	public static int getAngleSignFromVectorToVector3IgnoreX(Vector3 from, Vector3 to)
+	// 在忽略X轴的情况下,判断从from到to的角度的符号,同向或反向时为0
+	public static int getAngleSignVector3ToVector3IgnoreX(Vector3 from, Vector3 to)
 	{
-		return getAngleSignFromVectorToVector2(new Vector2(from.z, from.y), new Vector2(to.z, to.y));
+		return getAngleSignVector2ToVector2(new Vector2(from.z, from.y), new Vector2(to.z, to.y));
 	}
-	// 在忽略Z轴的情况下,判断从from到to的角度的符号,同向或反向是为0
-	public static int getAngleSignFromVectorToVector3IgnoreZ(Vector3 from, Vector3 to)
+	// 在忽略Z轴的情况下,判断从from到to的角度的符号,同向或反向时为0
+	public static int getAngleSignVector3ToVector3IgnoreZ(Vector3 from, Vector3 to)
 	{
-		return getAngleSignFromVectorToVector2(new Vector2(from.x, from.y), new Vector2(to.x, to.y));
+		return getAngleSignVector2ToVector2(new Vector2(from.x, from.y), new Vector2(to.x, to.y));
 	}
-	// 判断两个向量从from到to的角度的符号,同向或反向是为0
-	public static int getAngleSignFromVectorToVector2(Vector2 from, Vector2 to)
+	// 判断两个向量从from到to的角度的符号,同向或反向时为0
+	public static int getAngleSignVector2ToVector2(Vector2 from, Vector2 to)
 	{
 		Vector3 from3 = normalize(new Vector3(from.x, 0.0f, from.y));
 		Vector3 to3 = normalize(new Vector3(to.x, 0.0f, to.y));
-		// 两个向量同向或者反向是角度为0,否则角度不为0
+		// 两个向量同向或者反向时角度为0,否则角度不为0
 		int angle = isVectorEqual(from3, to3) || isVectorZero(from3 + to3) ? 0 : 1;
 		if (angle != 0)
 		{
@@ -1420,8 +1470,27 @@ public class MathUtility : StringUtility
 		}
 		return sign(angle);
 	}
+	// 计算从from到to的角度，根据法线normal决定角度的正负
+	public static float getAngleVectorToVector(Vector3 from, Vector3 to, Vector3 normal, ANGLE radian = ANGLE.RADIAN)
+	{
+		if(isVectorEqual(from, to))
+		{
+			return 0.0f;
+		}
+		float angle = getAngleBetweenVector(from, to);
+		Vector3 crossVec = cross(from, to);
+		if (!isVectorEqual(normalize(crossVec), normalize(normal)))
+		{
+			angle = -angle;
+		}
+		if (radian == ANGLE.DEGREE)
+		{
+			angle = toDegree(angle);
+		}
+		return angle;
+	}
 	// baseY为true表示将点当成X-Z平面上的点,忽略Y值,false表示将点当成X-Y平面的点
-	public static float getAngleFromVector3ToVector3(Vector3 from, Vector3 to, bool baseY, ANGLE radian = ANGLE.RADIAN)
+	public static float getAngleVectorToVector(Vector3 from, Vector3 to, bool baseY, ANGLE radian = ANGLE.RADIAN)
 	{
 		if (baseY)
 		{
@@ -1483,7 +1552,7 @@ public class MathUtility : StringUtility
 		Vector3 end = endArcPos - circleCenter;
 		saturate(ref anglePercent);
 		// 首先判断从起始半径线段到终止半径线段的角度的正负
-		float angleBetween = getAngleFromVector2ToVector2(new Vector2(start.x, start.z), new Vector2(end.x, end.z));
+		float angleBetween = getAngleVector2ToVector2(new Vector2(start.x, start.z), new Vector2(end.x, end.z));
 		if (isFloatZero(angleBetween))
 		{
 			pos = normalize(start) * radius;
@@ -1496,7 +1565,7 @@ public class MathUtility : StringUtility
 			// 计算切线,如果顺时针计算出的切线与从起始点到终止点所成的角度大于90度,则使切线反向
 			tangencyDir = normalize(rotateVector3(-pos, HALF_PI_RADIAN));
 			Vector3 posToEnd = end - pos;
-			if (abs(getAngleFromVector2ToVector2(new Vector2(tangencyDir.x, tangencyDir.z), new Vector2(posToEnd.x, posToEnd.z))) > HALF_PI_RADIAN)
+			if (abs(getAngleVector2ToVector2(new Vector2(tangencyDir.x, tangencyDir.z), new Vector2(posToEnd.x, posToEnd.z))) > HALF_PI_RADIAN)
 			{
 				tangencyDir = -tangencyDir;
 			}
@@ -1556,6 +1625,7 @@ public class MathUtility : StringUtility
 	public static bool lengthLess(Vector2 vec, float length) { return vec.x * vec.x + vec.y * vec.y < length * length; }
 	public static bool lengthLess(Vector3 vec0, Vector3 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y + vec0.z * vec0.z < vec1.x * vec1.x + vec1.y * vec1.y + vec1.z * vec1.z; }
 	public static bool lengthLess(Vector3 vec, float length) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z < length * length; }
+	public static bool lengthLess(Vector4 vec, float length) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z + vec.w * vec.w < length * length; }
 	public static bool lengthLessEqual(Vector2 vec0, Vector2 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y <= vec1.x * vec1.x + vec1.y * vec1.y; }
 	public static bool lengthLessEqual(Vector2 vec, float length) { return vec.x * vec.x + vec.y * vec.y <= length * length; }
 	public static bool lengthLessEqual(Vector3 vec0, Vector3 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y + vec0.z * vec0.z <= vec1.x * vec1.x + vec1.y * vec1.y + vec1.z * vec1.z; }
@@ -1722,16 +1792,6 @@ public class MathUtility : StringUtility
 	public static float getDistanceToLine(Vector2 point, Line2 line)
 	{
 		return getLength(point - getProjectPoint(point, line));
-	}
-	public static float getDistanceToLineIgnoreY(Vector3 point, Line3 line)
-	{
-		point.y = 0.0f;
-		return getDistanceToLine(point, line);
-	}
-	public static float getDistanceToLineIgnoreX(Vector3 point, Line3 line)
-	{
-		point.x = 0.0f;
-		return getDistanceToLine(point, line);
 	}
 	// 计算点在线上的投影
 	public static Vector3 getProjectPoint(Vector3 point, Line3 line)
@@ -2000,6 +2060,17 @@ public class MathUtility : StringUtility
 	{
 		saturate(ref t);
 		Vector3 value = start + (end - start) * t;
+		// 如果值已经在end的一定范围内了,则直接设置为end
+		if (lengthLess(value - end, minRange))
+		{
+			value = end;
+		}
+		return value;
+	}
+	public static Vector4 lerp(Vector4 start, Vector4 end, float t, float minRange = 0.0f)
+	{
+		saturate(ref t);
+		Vector4 value = start + (end - start) * t;
 		// 如果值已经在end的一定范围内了,则直接设置为end
 		if (lengthLess(value - end, minRange))
 		{
@@ -2281,6 +2352,17 @@ public class MathUtility : StringUtility
 		else
 		{
 			return value >= getMin(range0, range1) - precision && value <= getMax(range0, range1) + precision;
+		}
+	}
+	public static bool inRange(int value, int range0, int range1, bool fixedRangeOrder = false)
+	{
+		if (fixedRangeOrder)
+		{
+			return value >= range0 && value <= range1 ;
+		}
+		else
+		{
+			return value >= getMin(range0, range1) && value <= getMax(range0, range1);
 		}
 	}
 	public static bool inRange(Vector3 value, Vector3 point0, Vector3 point1, bool ignoreY = true, float precision = 0.001f)
@@ -3006,16 +3088,18 @@ public class MathUtility : StringUtility
 	}
 	protected static void initFFTParam()
 	{
-		sin_tb = new float[]
-		{  // 精度(PI PI/2 PI/4 PI/8 PI/16 ... PI/(2^k))
+		// 精度(PI PI/2 PI/4 PI/8 PI/16 ... PI/(2^k))
+		mSinList = new float[]
+		{
 			0.000000f, 1.000000f, 0.707107f, 0.382683f, 0.195090f, 0.098017f,
 			0.049068f, 0.024541f, 0.012272f, 0.006136f, 0.003068f, 0.001534f,
 			0.000767f, 0.000383f, 0.000192f, 0.000096f, 0.000048f, 0.000024f,
 			0.000012f, 0.000006f, 0.000003f, 0.000003f, 0.000003f, 0.000003f,
 			0.000003f
 		};
-		cos_tb = new float[]
-		{  // 精度(PI PI/2 PI/4 PI/8 PI/16 ... PI/(2^k))
+		// 精度(PI PI/2 PI/4 PI/8 PI/16 ... PI/(2^k))
+		mCosList = new float[]
+		{
 			-1.000000f, 0.000000f, 0.707107f, 0.923880f, 0.980785f, 0.995185f,
 			0.998795f, 0.999699f, 0.999925f, 0.999981f, 0.999995f, 0.999999f,
 			1.000000f, 1.000000f, 1.000000f, 1.000000f, 1.000000f, 1.000000f,
@@ -3038,6 +3122,10 @@ public class MathUtility : StringUtility
 	*/
 	protected static void fft(Complex[] x, int count)
 	{
+		if (mSinList == null)
+		{
+			initFFTParam();
+		}
 		int i, j, k;
 		float sR, sI, uR, uI;
 		Complex tempComplex = new Complex();
@@ -3080,8 +3168,8 @@ public class MathUtility : StringUtility
 			le <<= 1;
 			uR = 1;
 			uI = 0;
-			sR = cos_tb[l];
-			sI = -sin_tb[l];
+			sR = mCosList[l];
+			sI = -mSinList[l];
 			for (j = 0; j < halfLe; ++j)
 			{
 				/* loop for each sub DFT */
@@ -3100,7 +3188,6 @@ public class MathUtility : StringUtility
 			}
 		}
 	}
-
 	/*
 	* Inverse FFT Algorithm
 	* === Inputs ===

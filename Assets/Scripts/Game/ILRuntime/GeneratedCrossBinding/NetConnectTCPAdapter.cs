@@ -11,7 +11,7 @@ namespace HotFix
         static CrossBindingMethodInfo mresetProperty_1 = new CrossBindingMethodInfo("resetProperty");
         static CrossBindingMethodInfo<System.Single> mupdate_2 = new CrossBindingMethodInfo<System.Single>("update");
         static CrossBindingMethodInfo mdestroy_3 = new CrossBindingMethodInfo("destroy");
-        static CrossBindingMethodInfo<global::NetPacketTCP> msendPacket_4 = new CrossBindingMethodInfo<global::NetPacketTCP>("sendPacket");
+        static CrossBindingMethodInfo<global::NetPacketTCP> msendNetPacket_4 = new CrossBindingMethodInfo<global::NetPacketTCP>("sendNetPacket");
         class packetRead_5Info : CrossBindingMethodInfo
         {
             static Type[] pTypes = new Type[] {typeof(System.Byte[]), typeof(System.Int32), typeof(System.Int32).MakeByRefType(), typeof(global::NetPacketTCP).MakeByRefType(), typeof(global::PARSE_RESULT)};
@@ -38,7 +38,7 @@ namespace HotFix
                     {
                         using (var ctx = domain.BeginInvoke(method))
                         {
-                            ctx.PushObject(index);
+                            ctx.PushInteger(index);
                             ctx.PushObject(packet);
                             ctx.PushObject(instance);
                             ctx.PushObject(buffer);
@@ -47,7 +47,7 @@ namespace HotFix
                             ctx.PushReference(1);
                             ctx.Invoke();
                             __res = ctx.ReadObject<global::PARSE_RESULT>();
-                            index = ctx.ReadObject<System.Int32>(0);
+                             index = ctx.ReadInteger(0);
                             packet = ctx.ReadObject<global::NetPacketTCP>(1);
                         }
                     }
@@ -143,9 +143,9 @@ namespace HotFix
                     mdestroy_3.Invoke(this.instance);
             }
 
-            public override void sendPacket(global::NetPacketTCP packet)
+            public override void sendNetPacket(global::NetPacketTCP packet)
             {
-                msendPacket_4.Invoke(this.instance, packet);
+                msendNetPacket_4.Invoke(this.instance, packet);
             }
 
             protected override global::PARSE_RESULT packetRead(System.Byte[] buffer, System.Int32 size, ref System.Int32 index, out global::NetPacketTCP packet)

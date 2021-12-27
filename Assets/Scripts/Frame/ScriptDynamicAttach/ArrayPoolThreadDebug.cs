@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
+// 线程安全的ArrayPool调试信息
 public class ArrayPoolThreadDebug : MonoBehaviour
 {
-	public List<string> InuseList = new List<string>();
-	public List<string> UnuseList = new List<string>();
+	public List<string> InuseList = new List<string>();		// 已使用对象列表
+	public List<string> UnuseList = new List<string>();		// 未使用对象列表
 	public void Update()
 	{
 		if (!FrameBase.mGameFramework.mEnableScriptDebug)

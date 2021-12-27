@@ -53,7 +53,7 @@ public class SQLiteData : FrameBase
 #if UNITY_EDITOR
 			if(data.GetType() != typeof(long))
 			{
-				logError("该列数据不是int类型,无法获取, colIndex:" + index + ", table:" + mTable.getTableName());
+				logError("该列数据不是int类型,是" + data.GetType() + ",无法获取, colIndex:" + index + ", table:" + mTable.getTableName());
 			}
 #endif
 			value = (int)(long)data;
@@ -73,7 +73,7 @@ public class SQLiteData : FrameBase
 #if UNITY_EDITOR
 			if (data.GetType() != typeof(float))
 			{
-				logError("该列数据不是float类型,无法获取, colIndex:" + index + ", table:" + mTable.getTableName());
+				logError("该列数据不是float类型,是" + data.GetType() + ",无法获取, colIndex:" + index + ", table:" + mTable.getTableName());
 			}
 #endif
 			value = (float)data;
@@ -93,7 +93,7 @@ public class SQLiteData : FrameBase
 #if UNITY_EDITOR
 			if (data.GetType() != typeof(string))
 			{
-				logError("该列数据不是string类型,无法获取, colIndex:" + index + ", table:" + mTable.getTableName());
+				logError("该列数据不是string类型,是" + data.GetType() + ",无法获取, colIndex:" + index + ", table:" + mTable.getTableName());
 			}
 #endif
 			str = (string)data;

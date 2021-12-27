@@ -1,17 +1,18 @@
 ﻿using UnityEngine;
 
+// 用于解析wav音频文件
 public class WavSound : FrameBase
 {
-	protected SerializerWrite mWaveDataSerializer;
-	protected string mFileName;
-	protected short[] mMixPCMData;
+	protected SerializerWrite mWaveSerializer;	// 数据写入的缓冲区,可以生成wav文件数据,但是没有实现文件写入
+	protected string mFileName;		// 文件名
+	protected short[] mMixPCMData;	// 解析的wav的pcm数据混合后的数据
 	protected short mBlockAlign; 	// DATA数据块长度
 	protected short mBitsPerSample;	// 单个采样数据大小,如果双声道16位,则是4个字节,也叫PCM位宽
 	protected short mOtherSize;		// 附加信息（可选，由上方过滤字节确定）
 	protected short mFormatType;	// 编码格式,为1是PCM编码
 	protected short mSoundChannels;	// 声道数
 	protected byte[] mDataMark;		// data标记
-	protected byte[] mDataBuffer;
+	protected byte[] mDataBuffer;	// 数据区
 	protected int mRiffMark;		// riff标记
 	protected int mFileSize;		// 音频文件大小 - 8,也就是从文件大小字节后到文件结尾的长度
 	protected int mWaveMark;		// wave标记
@@ -19,7 +20,6 @@ public class WavSound : FrameBase
 	protected int mFmtChunkSize;	// fmt块大小
 	protected int mSamplesPerSec;	// 采样频率
 	protected int mAvgBytesPerSec;	// 波形数据传输速率（每秒平均字节数）
-	protected int mDataSize;
 	public WavSound()
 	{
 		mDataMark = new byte[4];
@@ -32,7 +32,7 @@ public class WavSound : FrameBase
 	public override void resetProperty()
 	{
 		base.resetProperty();
-		mWaveDataSerializer = null;
+		mWaveSerializer = null;
 		memset(mDataMark, (byte)0);
 		mFileName = null;
 		mRiffMark = 0;
@@ -47,16 +47,15 @@ public class WavSound : FrameBase
 		mBlockAlign = 0;
 		mBitsPerSample = 0;
 		mOtherSize = 0;
-		mDataSize = 0;
 		mDataBuffer = null;
 		mMixPCMData = null;
 	}
 	public byte[] getPCMBuffer()		{ return mDataBuffer; }
 	public short[] getMixPCMData()		{ return mMixPCMData; }
-	public int getPCMBufferSize()		{ return mDataSize; }
+	public int getPCMBufferSize()		{ return mDataBuffer.Length; }
 	public short getSoundChannels()		{ return mSoundChannels; }
-	public int getPCMShortDataCount()	{ return mDataSize / sizeof(short); }
-	public int getMixPCMDataCount()		{ return mDataSize / (sizeof(short) * mSoundChannels); }
+	public int getPCMShortDataCount()	{ return mDataBuffer.Length / sizeof(short); }
+	public int getMixPCMDataCount()		{ return mDataBuffer.Length / (sizeof(short) * mSoundChannels); }
 	public bool readFile(string file)
 	{
 		openFile(file, out byte[] fileData, true);
@@ -81,18 +80,17 @@ public class WavSound : FrameBase
 		// 如果不是data块,则跳过,重新读取
 		do
 		{
-			mDataBuffer = null;
 			serializer.readBuffer(mDataMark, 4, 4);
-			serializer.read(out mDataSize);
-			mDataBuffer = new byte[mDataSize];
-			serializer.readBuffer(mDataBuffer, mDataSize, mDataSize);
+			serializer.read(out int dataSize);
+			mDataBuffer = new byte[dataSize];
+			serializer.readBuffer(mDataBuffer, mDataBuffer.Length, mDataBuffer.Length);
 		} while (bytesToString(mDataMark) != "data");
 		UN_CLASS(serializer);
 		releaseFile(fileData);
 		refreshFileSize();
 		int mixDataCount = getMixPCMDataCount();
 		mMixPCMData = new short[mixDataCount];
-		generateMixPCMData(mMixPCMData, mixDataCount, mSoundChannels, mDataBuffer, mDataSize);
+		generateMixPCMData(mMixPCMData, mixDataCount, mSoundChannels, mDataBuffer, mDataBuffer.Length);
 		return true;
 	}
 	public static void generateMixPCMData(short[] mixPCMData, int mixDataCount, short channelCount, byte[] dataBuffer, int bufferSize)
@@ -143,11 +141,11 @@ public class WavSound : FrameBase
 	public void refreshFileSize()
 	{
 		// 由于舍弃了fact块,所以需要重新计算文件大小,20是fmt块数据区的起始偏移,8是data块的头的大小
-		mFileSize = 20 - 8 + mFmtChunkSize + 8 + mDataSize;
+		mFileSize = 20 - 8 + mFmtChunkSize + 8 + mDataBuffer.Length;
 	}
 	public void startWaveStream(WaveFormatEx waveHeader)
 	{
-		CLASS(out mWaveDataSerializer);
+		CLASS(out mWaveSerializer);
 		mRiffMark = bytesToInt((byte)'R', (byte)'I', (byte)'F', (byte)'F');
 		mFileSize = 0;
 		mWaveMark = bytesToInt((byte)'W', (byte)'A', (byte)'V', (byte)'E');
@@ -167,17 +165,16 @@ public class WavSound : FrameBase
 	}
 	public void pushWaveStream(byte[] data, int dataSize)
 	{
-		mWaveDataSerializer.writeBuffer(data, dataSize);
+		mWaveSerializer.writeBuffer(data, dataSize);
 	}
 	public void endWaveStream()
 	{
-		mDataSize = mWaveDataSerializer.getDataSize();
-		mDataBuffer = new byte[mDataSize];
-		memcpy(mDataBuffer, mWaveDataSerializer.getBuffer(), 0, 0, mDataSize);
-		UN_CLASS(mWaveDataSerializer);
+		mDataBuffer = new byte[mWaveSerializer.getDataSize()];
+		memcpy(mDataBuffer, mWaveSerializer.getBuffer(), 0, 0, mDataBuffer.Length);
+		UN_CLASS(mWaveSerializer);
 		int mixDataCount = getMixPCMDataCount();
 		mMixPCMData = new short[mixDataCount];
-		generateMixPCMData(mMixPCMData, mixDataCount, mSoundChannels, mDataBuffer, mDataSize);
+		generateMixPCMData(mMixPCMData, mixDataCount, mSoundChannels, mDataBuffer, mDataBuffer.Length);
 		refreshFileSize();
 	}
 }

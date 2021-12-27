@@ -365,9 +365,9 @@
     <Compile Include="Game\GameScene\MainScene\MainSceneLogin.cs" />
     <Compile Include="Game\Game\GameILR.cs" />
     <Compile Include="Game\Game\ILRExport.cs" />
-    <Compile Include="Game\LayoutSystem\LayoutRegisterILR.cs" />
-    <Compile Include="Game\LayoutSystem\Script\ScriptGaming.cs" />
-    <Compile Include="Game\LayoutSystem\Script\ScriptLogin.cs" />
+    <Compile Include="Game\UI\LayoutRegisterILR.cs" />
+    <Compile Include="Game\UI\Script\ScriptGaming.cs" />
+    <Compile Include="Game\UI\Script\ScriptLogin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />

@@ -2,23 +2,35 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+// 物体轨迹记录工具
 public class PathRecorder : MonoBehaviour
 {
-	protected Dictionary<float, Vector3> mTranslatePath = new Dictionary<float, Vector3>();
-	protected Dictionary<float, Vector3> mRotatePath = new Dictionary<float, Vector3>();
-	protected Dictionary<float, Vector3> mScalePath = new Dictionary<float, Vector3>();
-	protected Dictionary<float, float> mAlphaPath = new Dictionary<float, float>();
-	protected float mStartTime;
-	protected bool mRecording;
-	public GameObject mAnimatorObject;
-	public GameObject mRecorderTarget;
-	public string mFilePath;
-	public string mFileName;
-	public bool mRecordeTranslate = true;
-	public bool mRecordeRotate = true;
-	public bool mRecordeScale = true;
-	public bool mRecordeAlpha = true;
-	public bool mStartRecorder;
+	protected Dictionary<float, Vector3> mTranslatePath;	// 记录的位移列表,分开记录是为了可以压缩数据
+	protected Dictionary<float, Vector3> mRotatePath;		// 记录的旋转列表
+	protected Dictionary<float, Vector3> mScalePath;		// 记录的缩放列表
+	protected Dictionary<float, float> mAlphaPath;			// 记录的透明度列表
+	protected float mStartTime;								// 起始时间点
+	protected bool mRecording;								// 是否正在记录
+	public GameObject mAnimatorObject;						// Animator组件所在的节点
+	public GameObject mRecorderTarget;						// 记录轨迹的目标物体
+	public string mFilePath;								// 保存的文件路径
+	public string mFileName;								// 保存的文件名
+	public bool mRecordeTranslate;							// 是否记录平移
+	public bool mRecordeRotate;								// 是否记录旋转
+	public bool mRecordeScale;								// 是否记录缩放
+	public bool mRecordeAlpha;								// 是否记录透明度
+	public bool mStartRecorder;								// 是否开始录制,当作开始按钮使用
+	public PathRecorder()
+	{
+		mTranslatePath = new Dictionary<float, Vector3>();
+		mRotatePath = new Dictionary<float, Vector3>();
+		mScalePath = new Dictionary<float, Vector3>();
+		mAlphaPath = new Dictionary<float, float>();
+		mRecordeTranslate = true;
+		mRecordeRotate = true;
+		mRecordeScale = true;
+		mRecordeAlpha = true;
+	}
 	public void Start()
 	{
 		mAnimatorObject = gameObject;
@@ -39,13 +51,13 @@ public class PathRecorder : MonoBehaviour
 				Debug.LogError("需要指定状态机节点和录制目标");
 				return;
 			}
-			Animator animator = mAnimatorObject.GetComponent<Animator>();
+			var animator = mAnimatorObject.GetComponent<Animator>();
 			if (animator == null)
 			{
 				Debug.LogError("状态机节点上找不到Animator");
 				return;
 			}
-			AnimationRecorder recorder = animator.GetBehaviour<AnimationRecorder>();
+			var recorder = animator.GetBehaviour<AnimationRecorder>();
 			if(recorder == null)
 			{
 				Debug.LogError("找不到AnimationRecorder, 需要在要录制的动画上添加该组件");
@@ -105,6 +117,10 @@ public class PathRecorder : MonoBehaviour
 	}
 	public void notifyRecording()
 	{
+		if (!mRecording)
+		{
+			return;
+		}
 		float curTime = Time.realtimeSinceStartup - mStartTime;
 		if (mRecordeTranslate)
 		{

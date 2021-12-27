@@ -13,4 +13,8 @@ public struct Triangle2
 		mPoint1 = point1;
 		mPoint2 = point2;
 	}
+	public Triangle3 toTriangle3()
+	{
+		return new Triangle3(mPoint0, mPoint1, mPoint2);
+	}
 }

@@ -107,7 +107,7 @@ public class NetPacketTCPFrame : NetPacketTCP
 		for (int i = 0; i < count; ++i)
 		{
 			mParameterInfoList[i].zero();
-			mMaxDataSize += mParameterInfoList[i].mSize;
+			mMaxDataSize += mParameterInfoList[i].getMaxSize();
 		}
 	}
 	protected void pushParam(OBJECT param)

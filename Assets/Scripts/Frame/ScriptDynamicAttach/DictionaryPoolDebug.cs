@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
+// 字典池的调试信息
 public class DictionaryPoolDebug : MonoBehaviour
 {
-	public List<string> PersistentInuseList = new List<string>();
-	public List<string> InuseList = new List<string>();
-	public List<string> UnuseList = new List<string>();
+	public List<string> PersistentInuseList = new List<string>();	// 持久使用的对象列表
+	public List<string> InuseList = new List<string>();				// 单帧使用的对象列表
+	public List<string> UnuseList = new List<string>();				// 未使用的对象列表
 	public void Update()
 	{
 		if (!FrameBase.mGameFramework.mEnableScriptDebug)

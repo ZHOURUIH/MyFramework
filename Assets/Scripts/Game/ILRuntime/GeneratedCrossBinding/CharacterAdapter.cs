@@ -29,16 +29,16 @@ namespace HotFix
         static CrossBindingMethodInfo<global::ObjectClickCallback> msetClickCallback_19 = new CrossBindingMethodInfo<global::ObjectClickCallback>("setClickCallback");
         static CrossBindingMethodInfo<global::ObjectHoverCallback> msetHoverCallback_20 = new CrossBindingMethodInfo<global::ObjectHoverCallback>("setHoverCallback");
         static CrossBindingMethodInfo<global::ObjectPressCallback> msetPressCallback_21 = new CrossBindingMethodInfo<global::ObjectPressCallback>("setPressCallback");
-        static CrossBindingMethodInfo<System.Int32> monMouseEnter_22 = new CrossBindingMethodInfo<System.Int32>("onMouseEnter");
-        static CrossBindingMethodInfo<System.Int32> monMouseLeave_23 = new CrossBindingMethodInfo<System.Int32>("onMouseLeave");
+        static CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32> monMouseEnter_22 = new CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32>("onMouseEnter");
+        static CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32> monMouseLeave_23 = new CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32>("onMouseLeave");
         static CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32> monMouseDown_24 = new CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32>("onMouseDown");
         static CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32> monMouseUp_25 = new CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32>("onMouseUp");
         static CrossBindingMethodInfo<UnityEngine.Vector3, UnityEngine.Vector3, System.Single, System.Int32> monMouseMove_26 = new CrossBindingMethodInfo<UnityEngine.Vector3, UnityEngine.Vector3, System.Single, System.Int32>("onMouseMove");
         static CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32> monMouseStay_27 = new CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32>("onMouseStay");
         static CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32> monScreenMouseDown_28 = new CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32>("onScreenMouseDown");
         static CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32> monScreenMouseUp_29 = new CrossBindingMethodInfo<UnityEngine.Vector3, System.Int32>("onScreenMouseUp");
-        static CrossBindingMethodInfo<global::IMouseEventCollect, global::BOOL> monReceiveDrag_30 = new CrossBindingMethodInfo<global::IMouseEventCollect, global::BOOL>("onReceiveDrag");
-        static CrossBindingMethodInfo<global::IMouseEventCollect, System.Boolean> monDragHoverd_31 = new CrossBindingMethodInfo<global::IMouseEventCollect, System.Boolean>("onDragHoverd");
+        static CrossBindingMethodInfo<global::IMouseEventCollect, UnityEngine.Vector3, global::BOOL> monReceiveDrag_30 = new CrossBindingMethodInfo<global::IMouseEventCollect, UnityEngine.Vector3, global::BOOL>("onReceiveDrag");
+        static CrossBindingMethodInfo<global::IMouseEventCollect, UnityEngine.Vector3, System.Boolean> monDragHoverd_31 = new CrossBindingMethodInfo<global::IMouseEventCollect, UnityEngine.Vector3, System.Boolean>("onDragHoverd");
         static CrossBindingMethodInfo<UnityEngine.Vector3, UnityEngine.Vector3> monMultiTouchStart_32 = new CrossBindingMethodInfo<UnityEngine.Vector3, UnityEngine.Vector3>("onMultiTouchStart");
         static CrossBindingMethodInfo<UnityEngine.Vector3, UnityEngine.Vector3, UnityEngine.Vector3, UnityEngine.Vector3> monMultiTouchMove_33 = new CrossBindingMethodInfo<UnityEngine.Vector3, UnityEngine.Vector3, UnityEngine.Vector3, UnityEngine.Vector3>("onMultiTouchMove");
         static CrossBindingMethodInfo monMultiTouchEnd_34 = new CrossBindingMethodInfo("onMultiTouchEnd");
@@ -75,7 +75,7 @@ namespace HotFix
                             ctx.PushObject(instance);
                             ctx.PushReference(0);
                             ctx.PushReference(1);
-                            ctx.PushInteger(maxDistance);
+                            ctx.PushFloat(maxDistance);
                             ctx.Invoke();
                             __res = ctx.ReadBool();
                             ray = ctx.ReadObject<UnityEngine.Ray>(0);
@@ -342,20 +342,20 @@ namespace HotFix
                     msetPressCallback_21.Invoke(this.instance, callback);
             }
 
-            public override void onMouseEnter(System.Int32 touchID)
+            public override void onMouseEnter(UnityEngine.Vector3 mousePos, System.Int32 touchID)
             {
                 if (monMouseEnter_22.CheckShouldInvokeBase(this.instance))
-                    base.onMouseEnter(touchID);
+                    base.onMouseEnter(mousePos, touchID);
                 else
-                    monMouseEnter_22.Invoke(this.instance, touchID);
+                    monMouseEnter_22.Invoke(this.instance, mousePos, touchID);
             }
 
-            public override void onMouseLeave(System.Int32 touchID)
+            public override void onMouseLeave(UnityEngine.Vector3 mousePos, System.Int32 touchID)
             {
                 if (monMouseLeave_23.CheckShouldInvokeBase(this.instance))
-                    base.onMouseLeave(touchID);
+                    base.onMouseLeave(mousePos, touchID);
                 else
-                    monMouseLeave_23.Invoke(this.instance, touchID);
+                    monMouseLeave_23.Invoke(this.instance, mousePos, touchID);
             }
 
             public override void onMouseDown(UnityEngine.Vector3 mousePos, System.Int32 touchID)
@@ -406,20 +406,20 @@ namespace HotFix
                     monScreenMouseUp_29.Invoke(this.instance, mousePos, touchID);
             }
 
-            public override void onReceiveDrag(global::IMouseEventCollect dragObj, global::BOOL continueEvent)
+            public override void onReceiveDrag(global::IMouseEventCollect dragObj, UnityEngine.Vector3 mousePos, global::BOOL continueEvent)
             {
                 if (monReceiveDrag_30.CheckShouldInvokeBase(this.instance))
-                    base.onReceiveDrag(dragObj, continueEvent);
+                    base.onReceiveDrag(dragObj, mousePos, continueEvent);
                 else
-                    monReceiveDrag_30.Invoke(this.instance, dragObj, continueEvent);
+                    monReceiveDrag_30.Invoke(this.instance, dragObj, mousePos, continueEvent);
             }
 
-            public override void onDragHoverd(global::IMouseEventCollect dragObj, System.Boolean hover)
+            public override void onDragHoverd(global::IMouseEventCollect dragObj, UnityEngine.Vector3 mousePos, System.Boolean hover)
             {
                 if (monDragHoverd_31.CheckShouldInvokeBase(this.instance))
-                    base.onDragHoverd(dragObj, hover);
+                    base.onDragHoverd(dragObj, mousePos, hover);
                 else
-                    monDragHoverd_31.Invoke(this.instance, dragObj, hover);
+                    monDragHoverd_31.Invoke(this.instance, dragObj, mousePos, hover);
             }
 
             public override void onMultiTouchStart(UnityEngine.Vector3 touch0, UnityEngine.Vector3 touch1)

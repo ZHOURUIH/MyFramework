@@ -76,49 +76,15 @@ public class GlobalTouchSystem : FrameSystem
 			return;
 		}
 
-		// 点击操作会判断触点和鼠标,因为都会产生点击操作
-		// 在触屏上,会将第一个触点也当作鼠标,也就是触屏上使用InputManager.isMouseCurrentDown实际上是获得的第一个触点的信息
-		// 所以先判断有没有触点,如果没有再判断鼠标
-		if (Input.touchCount == 0)
+		foreach(var item in mInputSystem.getTouchPointList().startForeach())
 		{
-			if (mInputSystem.isMouseCurrentDown(MOUSE_BUTTON.LEFT))
+			if (item.Value.isCurrentDown())
 			{
-				notifyTouchPress(mInputSystem.getMousePosition(), (int)MOUSE_BUTTON.LEFT);
+				notifyTouchPress(item.Value);
 			}
-			else if (mInputSystem.isMouseCurrentUp(MOUSE_BUTTON.LEFT))
+			else if(item.Value.isCurrentUp())
 			{
-				// 使用鼠标时始终都会有一个触点信息,即使抬起也不会移除
-				notifyTouchRelease(mInputSystem.getMousePosition(), (int)MOUSE_BUTTON.LEFT, false);
-			}
-			else
-			{
-				if (mTouchInfoList.TryGetValue((int)MOUSE_BUTTON.LEFT, out TouchInfo info))
-				{
-					info.setCurPosition(mInputSystem.getMousePosition());
-				}
-			}
-		}
-		else
-		{
-			int count = Input.touchCount;
-			for (int i = 0; i < count; ++i)
-			{
-				Touch touch = Input.GetTouch(i);
-				if (touch.phase == TouchPhase.Began)
-				{
-					notifyTouchPress(touch.position, touch.fingerId);
-				}
-				else if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
-				{
-					notifyTouchRelease(touch.position, touch.fingerId);
-				}
-				else if (touch.phase == TouchPhase.Moved)
-				{
-					if (mTouchInfoList.TryGetValue(touch.fingerId, out TouchInfo info))
-					{
-						info.setCurPosition(touch.position);
-					}
-				}
+				notifyTouchRelease(item.Key);
 			}
 		}
 
@@ -331,15 +297,19 @@ public class GlobalTouchSystem : FrameSystem
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected void notifyTouchPress(Vector3 pos, int touchID)
+	protected void notifyTouchPress(TouchPoint touch)
 	{
+		int touchID = touch.getTouchID();
+		Vector3 pos = touch.getCurPosition();
 		// 触点按下时记录触点的初始位置
 		if (!mTouchInfoList.TryGetValue(touchID, out TouchInfo touchInfo))
 		{
 			CLASS(out touchInfo);
 			mTouchInfoList.Add(touchID, touchInfo);
 		}
-		touchInfo.init(touchID, pos);
+		touchInfo.init(touch);
+		touchInfo.touchPress();
+
 		// 通知全局屏幕触点事件
 		foreach (var item in mAllObjectSet)
 		{
@@ -349,7 +319,7 @@ public class GlobalTouchSystem : FrameSystem
 			}
 			item.onScreenMouseDown(pos, touchID);
 		}
-		var pressList = touchInfo.getPressList();
+		var pressList = touchInfo.getPressList().startForeach();
 		int count = pressList.Count;
 		for (int i = 0; i < count; ++i)
 		{
@@ -362,11 +332,15 @@ public class GlobalTouchSystem : FrameSystem
 			obj.onMouseDown(pos, touchID);
 		}
 	}
-	protected void notifyTouchRelease(Vector3 pos, int touchID, bool removeTouch = true)
+	protected void notifyTouchRelease(int touchID)
 	{
 		// 触点抬起时移除记录的触点位置
-		mTouchInfoList.TryGetValue(touchID, out TouchInfo touchInfo);
+		if (!mTouchInfoList.TryGetValue(touchID, out TouchInfo touchInfo))
+		{
+			return;
+		}
 
+		Vector3 pos = touchInfo.getTouch().getCurPosition();
 		// 通知全局屏幕触点事件
 		foreach (var item in mAllObjectSet)
 		{
@@ -377,7 +351,7 @@ public class GlobalTouchSystem : FrameSystem
 			item.onScreenMouseUp(pos, touchID);
 		}
 
-		var pressList = touchInfo.getPressList();
+		var pressList = touchInfo.getPressList().startForeach();
 		int count = pressList.Count;
 		for (int i = 0; i < count; ++i)
 		{
@@ -390,14 +364,14 @@ public class GlobalTouchSystem : FrameSystem
 			obj.onMouseUp(pos, touchID);
 		}
 
-		if (removeTouch)
+		if (touchInfo.getTouch().isMouse())
 		{
-			mTouchInfoList.Remove(touchID);
-			UN_CLASS(touchInfo);
+			touchInfo.clearPressList();
 		}
 		else
 		{
-			touchInfo.clearPressList();
+			mTouchInfoList.Remove(touchID);
+			UN_CLASS(touchInfo);
 		}
 	}
 	// 全局射线检测

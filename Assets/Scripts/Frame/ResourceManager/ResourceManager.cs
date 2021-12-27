@@ -5,13 +5,14 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.U2D;
 
+// 资源管理器,管理所有资源的加载
 public class ResourceManager : FrameSystem
 {
 	protected Dictionary<Type, List<string>> mTypeSuffixList;   // 资源类型对应的后缀名
 	protected AssetDataBaseLoader mAssetDataBaseLoader;			// 通过AssetDataBase加载资源的加载器,只会在编辑器下使用
 	protected AssetBundleLoader mAssetBundleLoader;             // 通过AssetBundle加载资源的加载器,打包后强制使用AssetBundle加载
 	protected ResourcesLoader mResourcesLoader;					// 通过Resources加载资源的加载器,Resources在编辑器或者打包后都会使用,用于加载Resources中的非热更资源
-	protected LOAD_SOURCE mLoadSource;                          // 加载源
+	protected LOAD_SOURCE mLoadSource;                          // 加载源,从AssetBundle加载还是从AssetDataBase加载
 	public ResourceManager()
 	{
 		mCreateObject = true;
@@ -50,12 +51,18 @@ public class ResourceManager : FrameSystem
 	}
 	public override void resourceAvailable()
 	{
-		mAssetBundleLoader.resourceAvailable();
+		if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
+		{
+			mAssetBundleLoader.resourceAvailable();
+		}
 	}
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		mAssetBundleLoader.update();
+		if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
+		{
+			mAssetBundleLoader.update();
+		}
 	}
 	public override void destroy()
 	{
@@ -361,7 +368,11 @@ public class ResourceManager : FrameSystem
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected IEnumerator loadAssetsUrl(string url, Type assetsType, AssetLoadDoneCallback callback, object userData = null)
 	{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 		logForce("开始下载: " + url);
+#else
+		logForce("开始下载: " + getFileName(url));
+#endif
 		if (assetsType == typeof(AudioClip))
 		{
 			yield return loadAudioClipWithURL(url, callback, userData);
@@ -387,12 +398,20 @@ public class ResourceManager : FrameSystem
 		yield return www;
 		if (www.error != null)
 		{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 			logForce("下载失败 : " + url + ", info : " + www.error);
+#else
+			logForce("下载失败 : " + getFileName(url) + ", info : " + www.error);
+#endif
 			callback?.Invoke(null, null, null, userData, url);
 		}
 		else
 		{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 			logForce("下载成功:" + url);
+#else
+			logForce("下载成功:" + getFileName(url));
+#endif
 			downloadHandler.assetBundle.name = url;
 			callback?.Invoke(downloadHandler.assetBundle, null, www.downloadHandler.data, userData, url);
 		}
@@ -406,12 +425,20 @@ public class ResourceManager : FrameSystem
 		yield return www;
 		if (www.error != null)
 		{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 			logForce("下载失败 : " + url + ", info : " + www.error);
+#else
+			logForce("下载失败 : " + getFileName(url) + ", info : " + www.error);
+#endif
 			callback?.Invoke(null, null, null, userData, url);
 		}
 		else
 		{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 			logForce("下载成功:" + url);
+#else
+			logForce("下载成功:" + getFileName(url));
+#endif
 			downloadHandler.audioClip.name = url;
 			callback?.Invoke(downloadHandler.audioClip, null, www.downloadHandler.data, userData, url);
 		}
@@ -424,12 +451,20 @@ public class ResourceManager : FrameSystem
 		yield return www;
 		if (www.error != null)
 		{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 			logForce("下载失败 : " + url + ", info : " + www.error);
+#else
+			logForce("下载失败 : " + getFileName(url) + ", info : " + www.error);
+#endif
 			callback?.Invoke(null, null, null, userData, url);
 		}
 		else
 		{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 			logForce("下载成功:" + url);
+#else
+			logForce("下载成功:" + getFileName(url));
+#endif
 			Texture2D tex = DownloadHandlerTexture.GetContent(www);
 			tex.name = url;
 			callback?.Invoke(tex, null, www.downloadHandler.data, userData, url);
@@ -443,12 +478,20 @@ public class ResourceManager : FrameSystem
 		yield return www;
 		if (www.error != null)
 		{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 			logForce("下载失败 : " + url + ", info : " + www.error);
+#else
+			logForce("下载失败 : " + getFileName(url) + ", info : " + www.error);
+#endif
 			callback?.Invoke(null, null, null, userData, url);
 		}
 		else
 		{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 			logForce("下载成功:" + url + ", size:" + www.bytes.Length);
+#else
+			logForce("下载成功:" + getFileName(url) + ", size:" + www.bytes.Length);
+#endif
 			callback?.Invoke(null, null, www.bytes, userData, url);
 		}
 		www.Dispose();

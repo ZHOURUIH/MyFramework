@@ -2,22 +2,22 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Collections.Generic;
-using System.IO;
 
+// 表示一个与UDP服务器的连接
 public abstract class NetConnectUDP : NetConnect
 {
 	protected DoubleBuffer<NetPacket> mReceiveBuffer;   // 在主线程中执行的消息列表
 	protected DoubleBuffer<byte[]> mOutputBuffer;       // 使用双缓冲提高发送消息的效率
-	protected ThreadLock mSocketLock;
-	protected IPEndPoint mSendEndPoint;
-	protected EndPoint mRecvEndPoint;
-	protected MyThread mReceiveThread;
-	protected MyThread mSendThread;
-	protected MyTimer mHeartBeatTimer;
-	protected Socket mSocket;
+	protected ThreadLock mSocketLock;					// mSocket的锁
+	protected IPEndPoint mSendEndPoint;					// 发送的目标地址
+	protected EndPoint mRecvEndPoint;					// 接收时的地址
+	protected MyThread mReceiveThread;					// 接收线程
+	protected MyThread mSendThread;						// 发送线程
+	protected MyTimer mHeartBeatTimer;					// 心跳计时器
+	protected Socket mSocket;							// 套接字实例
 	protected Action mHeartBeatAction;                  // 外部设置的用于发送心跳的函数
-	protected byte[] mRecvBuff;
-	protected int mPort;
+	protected byte[] mRecvBuff;							// 从Socket接收数据时的缓冲区
+	protected int mPort;								// 本机绑定UDP的端口
 	public NetConnectUDP()
 	{
 		mReceiveBuffer = new DoubleBuffer<NetPacket>();
@@ -29,12 +29,12 @@ public abstract class NetConnectUDP : NetConnect
 		mRecvEndPoint = new IPEndPoint(IPAddress.Any, 0);
 		mHeartBeatTimer = new MyTimer();
 	}
-	public virtual void init(IPAddress ip, int port, float heartBeatTimeOut)
+	public virtual void init(IPAddress targetIP, int port, int targetPort, float heartBeatTimeOut)
 	{
 		mPort = port;
 		mSendThread.start(sendSocket);
 		mReceiveThread.start(receiveSocket);
-		mSendEndPoint = new IPEndPoint(ip, 8083);
+		mSendEndPoint = new IPEndPoint(targetIP, targetPort);
 		mHeartBeatTimer.init(-1.0f, heartBeatTimeOut, false);
 		mSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 		mSocket.Bind(new IPEndPoint(IPAddress.Any, mPort));
@@ -95,11 +95,11 @@ public abstract class NetConnectUDP : NetConnect
 	public void setHeartBeatAction(Action callback) { mHeartBeatAction = callback; }
 	public int getPort() { return mPort; }
 	public MyThread getReceiveThread() { return mReceiveThread; }
-	public void sendPacket(Type type)
+	public void sendNetPacket(Type type)
 	{
-		sendPacket(mSocketFactory.createSocketPacket(type) as NetPacketUDP);
+		sendNetPacket(mSocketFactory.createSocketPacket(type) as NetPacketUDP);
 	}
-	public abstract void sendPacket(NetPacketUDP packet);
+	public abstract void sendNetPacket(NetPacketUDP packet);
 	public void clearSocket()
 	{
 		mSocketLock.waitForUnlock();

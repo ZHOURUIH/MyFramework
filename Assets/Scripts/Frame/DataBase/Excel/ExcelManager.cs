@@ -34,7 +34,7 @@ public class ExcelManager : FrameSystem
 			ExcelRegisteInfo info = item.Value;
 			var table = new ExcelTable();
 			table.setClassType(info.mClassType);
-			table.read(availablePath(FrameDefine.SA_EXCEL_PATH + item.Key + ".data"));
+			table.read(availableReadPath(FrameDefine.SA_EXCEL_PATH + item.Key + ".data"));
 			mTableList.Add(info.mClassType, table);
 		}
 	}

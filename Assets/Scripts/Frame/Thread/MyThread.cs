@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Threading;
 
+// 对线程的封装
 public class MyThread : FrameBase
 {
-	protected MyThreadCallback mCallback;
-	protected ThreadTimeLock mTimeLock;
-	protected Thread mThread;
-	protected BOOL mRun;
-	protected string mName;
-	protected volatile bool mIsBackground;       // 是否为后台线程,如果是后台线程,则在应用程序关闭时,子线程会自动强制关闭
-	protected volatile bool mRunning;
-	protected volatile bool mFinish;
+	protected MyThreadCallback mCallback;		// 线程执行回调
+	protected ThreadTimeLock mTimeLock;			// 用于线程锁帧
+	protected Thread mThread;					// 线程对象
+	protected BOOL mRun;						// 用于线程执行的输出参数,决定线程是否继续运行
+	protected string mName;						// 线程名字
+	protected volatile bool mIsBackground;		// 是否为后台线程,如果是后台线程,则在应用程序关闭时,子线程会自动强制关闭
+	protected volatile bool mRunning;			// 线程是否正在执行
+	protected volatile bool mFinish;			// 线程是否已经完成执行
 	public MyThread(string name)
 	{
 		mRun = new BOOL();

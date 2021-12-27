@@ -5,9 +5,9 @@ using System;
 // 多线程的对象池无法判断临时对象有没有正常回收,因为子线程的帧与主线程不同步
 public class ArrayPoolThread : FrameSystem
 {
-	protected Dictionary<Type, Dictionary<int, HashSet<Array>>> mInusedList;
-	protected Dictionary<Type, Dictionary<int, HashSet<Array>>> mUnusedList;
-	protected ThreadLock mListLock;
+	protected Dictionary<Type, Dictionary<int, HashSet<Array>>> mInusedList;	// 正在使用数组的列表
+	protected Dictionary<Type, Dictionary<int, HashSet<Array>>> mUnusedList;	// 未使用数组的列表
+	protected ThreadLock mListLock;												// 列表锁
 	public ArrayPoolThread()
 	{
 		mInusedList = new Dictionary<Type, Dictionary<int, HashSet<Array>>>();

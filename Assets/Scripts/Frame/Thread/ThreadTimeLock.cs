@@ -4,23 +4,19 @@ using System.Threading;
 // 用于线程锁帧
 public class ThreadTimeLock : FrameBase
 {
-	protected DateTime mLastTime;
-	protected DateTime mCurTime;
-	protected int mFrameTimeMS;
-	// 每帧无暂停时间时强制暂停的毫秒数
+	protected DateTime mLastTime;	// 上一帧的时间
+	protected int mFrameTimeMS;		// 每一帧希望执行的毫秒数,如果一帧执行时间低于此毫秒数,则会暂停一定时间
 	// 避免线程单帧任务繁重时,导致单帧消耗时间大于设定的固定单帧时间时,CPU占用过高的问题
-	protected int mForceSleep;
+	protected int mForceSleep;		// 每帧无暂停时间时强制暂停的毫秒数,
 	public ThreadTimeLock(int frameTimeMS)
 	{
 		mLastTime = DateTime.Now;
-		mCurTime = mLastTime;
 		mFrameTimeMS = frameTimeMS;
 	}
 	public override void resetProperty()
 	{
 		base.resetProperty();
 		mLastTime = default;
-		mCurTime = default;
 		mFrameTimeMS = 0;
 		mForceSleep = 0;
 	}
@@ -38,9 +34,8 @@ public class ThreadTimeLock : FrameBase
 		{
 			Thread.Sleep(mForceSleep);
 		}
-		mCurTime = DateTime.Now;
-		double frameTime = (mCurTime - mLastTime).TotalMilliseconds;
-		mLastTime = mCurTime;
+		double frameTime = (DateTime.Now - mLastTime).TotalMilliseconds;
+		mLastTime = DateTime.Now;
 		return frameTime;
 	}
 }

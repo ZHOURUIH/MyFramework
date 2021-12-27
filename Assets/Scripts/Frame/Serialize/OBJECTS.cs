@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
+// 封装后的数组数据基类
 public abstract class OBJECTS : OBJECT
 {
-	protected int mTypeSize;                    // 单个元素的大小,由子类决定
-	protected int mMaxElementCount;				// 初始设置的最大的元素个数
-	public int mElementCount;					// 表示数组中有效的元素个数
-	public int mRealSize;						// 表示数组中有效的字节个数,但是在使用int替换ullong时不表示真实数据长度
+	protected int mMaxElementCount;			// 初始设置的最大的元素个数
+	protected int mElementCount;			// 表示数组中有效的元素个数
+	protected int mRealSize;				// 表示数组中有效的字节个数,但是在使用int替换ullong时不表示真实数据长度
+	protected int mTypeSize;				// 单个元素的大小,由子类决定
 	public OBJECTS(int maxCount)
 	{
 		mVariableLength = true;
@@ -22,6 +23,7 @@ public abstract class OBJECTS : OBJECT
 		mElementCount = elementCount;
 		mRealSize = mElementCount * mTypeSize;
 	}
+	public int getElementCount() { return mElementCount; }
 	public int getMaxElementCount() { return mMaxElementCount; }
 	public override int getSize()
 	{

@@ -76,7 +76,7 @@ public class SafeHashSet<T> : FrameBase
 		{
 			return false;
 		}
-		mModifyList.Add(new SafeListModify<T>(value, true));
+		mModifyList.Add(new SafeListModify<T>(value, true, -1));
 		return true;
 	}
 	public bool remove(T value)
@@ -85,7 +85,7 @@ public class SafeHashSet<T> : FrameBase
 		{
 			return false;
 		}
-		mModifyList.Add(new SafeListModify<T>(value, false));
+		mModifyList.Add(new SafeListModify<T>(value, false, -1));
 		return true;
 	}
 	// 清空所有数据,不能正在遍历时调用

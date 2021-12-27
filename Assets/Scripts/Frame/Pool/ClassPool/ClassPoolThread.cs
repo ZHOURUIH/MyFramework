@@ -5,8 +5,8 @@ using System;
 // 线程安全的对象池,但是效率较低
 public class ClassPoolThread : FrameSystem
 {
-	protected Dictionary<Type, ClassPoolSingle> mPoolList;
-	protected ThreadLock mListLock;
+	protected Dictionary<Type, ClassPoolSingle> mPoolList;	// 对象池列表,对应每一个类型的对象池
+	protected ThreadLock mListLock;							// 列表的线程锁
 	public ClassPoolThread()
 	{
 		mPoolList = new Dictionary<Type, ClassPoolSingle>();

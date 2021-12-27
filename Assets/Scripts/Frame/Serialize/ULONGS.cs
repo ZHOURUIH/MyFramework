@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
+// 自定义的对ulong[]的封装,可用于序列化
 public class ULONGS : OBJECTS
 {
-	public ulong[] mValue;
-	protected bool mIntReplace;
+	public ulong[] mValue;			// 值
+	protected bool mIntReplace;		// 是否在合适的条件下使用int代替long来减小内存占用
 	public ulong this[int index]
 	{
 		get
@@ -57,30 +58,51 @@ public class ULONGS : OBJECTS
 		// 如果数组的第一个字节的最高位是,则表示每个元素只需要读取4字节的数据,否则还是读取8字节
 		// 因为存储是小端模式,最高的字节在高地址,所以为了方便解析,使低地址的最高位作为标记位,先左移一位,使低字节的最低字节空出来作为标记位
 		// 所以解析时首先找到标记位
-		if (!mIntReplace || getLowestBit(buffer[index]) == 0)
+		if (mIntReplace && getLowestBit(buffer[index]) != 0)
 		{
-			return readULongs(buffer, ref index, mValue, mElementCount);
-		}
-		int intCount = mElementCount < 0 ? mValue.Length : mElementCount;
-		for (int i = 0; i < intCount; ++i)
-		{
-			int value = readInt(buffer, ref index, out success);
-			// 恢复标记位,右移一位,只需要处理第一个元素
-			if (i == 0)
+			int intCount = mElementCount < 0 ? mValue.Length : mElementCount;
+			for (int i = 0; i < intCount; ++i)
 			{
-				setLowestBit(ref value, 0);
-				// 因为右移ing可能会使符号位变为1从而变成负数,最终造成数据错误,所以需要转换为uint进行右移
-				mValue[i] = ((uint)value) >> 1;
-			}
-			else
-			{
-				mValue[i] = (ulong)value;
-			}
-			if (!success)
-			{
-				return false;
+				int value = readInt(buffer, ref index, out success);
+				// 恢复标记位,右移一位,只需要处理第一个元素
+				if (i == 0)
+				{
+					// 因为右移int可能会使符号位改变,最终造成数据错误,所以需要转换为uint进行右移
+					mValue[i] = ((uint)value) >> 1;
+				}
+				else
+				{
+					mValue[i] = (ulong)value;
+				}
+				if (!success)
+				{
+					return false;
+				}
 			}
 		}
+		else
+		{
+			int intCount = mElementCount < 0 ? mValue.Length : mElementCount;
+			for (int i = 0; i < intCount; ++i)
+			{
+				ulong value = readULong(buffer, ref index, out success);
+				// 恢复标记位,右移一位,只需要处理第一个元素
+				if (i == 0)
+				{
+					// 因为右移int可能会使符号位改变,最终造成数据错误,所以需要转换为uint进行右移
+					mValue[i] = value >> 1;
+				}
+				else
+				{
+					mValue[i] = value;
+				}
+				if (!success)
+				{
+					return false;
+				}
+			}
+		}
+		
 		return true;
 	}
 	public override bool writeToBuffer(byte[] buffer, ref int index)
@@ -127,7 +149,20 @@ public class ULONGS : OBJECTS
 		}
 		else
 		{
-			return writeULongs(buffer, ref index, mValue, mElementCount);
+			bool ret = true;
+			int count = mElementCount < 0 ? mValue.Length : mElementCount;
+			for (int i = 0; i < count; ++i)
+			{
+				ulong value = mValue[i];
+				// 只设置数组的第一个元素的标记位
+				// 左移一位,使标记位为0
+				if (i == 0)
+				{
+					value <<= 1;
+				}
+				ret = writeULong(buffer, ref index, value) && ret;
+			}
+			return ret;
 		}
 	}
 	public void set(ulong[] value)

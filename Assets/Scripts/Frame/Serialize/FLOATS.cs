@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 
+// 自定义的对float[]的封装,可用于序列化
 public class FLOATS : OBJECTS
 {
-	public float[] mValue;
+	public float[] mValue;			// 值
 	public float this[int index]
 	{
 		get 

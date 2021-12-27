@@ -23,13 +23,17 @@ public static class CrossAdapterRegister
 		appDomain.RegisterCrossBindingAdaptor(new CommandAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new SQLiteTableAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new SQLiteDataAdapter());
+		appDomain.RegisterCrossBindingAdaptor(new PooledWindowUGUIAdapter());
+		appDomain.RegisterCrossBindingAdaptor(new PooledWindowUIAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new PooledWindowAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new SceneInstanceAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new FrameSystemAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new TransformableAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new NetPacketAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new GameEventAdapter());
-		appDomain.RegisterCrossBindingAdaptor(new WindowItemAdapter());
+		appDomain.RegisterCrossBindingAdaptor(new WindowObjectAdapter());
+		appDomain.RegisterCrossBindingAdaptor(new WindowObjectUIAdapter());
+		appDomain.RegisterCrossBindingAdaptor(new WindowObjectUGUIAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new MonoBehaviourAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new NetConnectTCPAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new DelayCmdWatcherAdapter());

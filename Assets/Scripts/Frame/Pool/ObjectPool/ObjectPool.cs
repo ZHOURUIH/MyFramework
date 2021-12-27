@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
+// 从资源加载的物体的对象池
 public class ObjectPool : FrameSystem
 {
-	protected Dictionary<string, Dictionary<GameObject, ObjectInfo>> mInstanceFileList;
-	protected Dictionary<GameObject, ObjectInfo> mInstanceList;
-	protected List<AsyncLoadGroup> mAsyncLoadGroup;
+	protected Dictionary<string, Dictionary<GameObject, ObjectInfo>> mInstanceFileList;		// 实例化列表,第一个key是文件名,第二个列表中的key是实例化出的物体,value是物品信息
+	protected Dictionary<GameObject, ObjectInfo> mInstanceList;	// 根据实例化的物体查找的列表
+	protected List<AsyncLoadGroup> mAsyncLoadGroup;				// 物体组的加载信息
 	protected AssetLoadDoneCallback mPrefabGroupCallback;       // 预先保存下函数的委托,避免传参时产生GC
 	protected AssetLoadDoneCallback mPrefabCallback;			// 预先保存下函数的委托,避免传参时产生GC
 	public ObjectPool()
@@ -216,7 +217,7 @@ public class ObjectPool : FrameSystem
 	}
 	protected void onPrefabLoaded(Object asset, Object[] subAssets, byte[] bytes, object userData, string loadPath)
 	{
-		PrefabLoadParam param = userData as PrefabLoadParam;
+		var param = userData as PrefabLoadParam;
 		if (asset == null)
 		{
 			UN_CLASS(param);

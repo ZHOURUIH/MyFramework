@@ -2,7 +2,14 @@
 
 // 状态参数的基类
 public class StateParam : FrameBase
-{ }
+{
+	public float mBuffTime;     // 只用作参数存储,不会在buff中引用
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mBuffTime = 0.0f;
+	}
+}
 
 // 角色状态基类
 public class CharacterState : FrameBase
@@ -11,10 +18,10 @@ public class CharacterState : FrameBase
 	protected OnStateLeave mOnLeave;			// 外部可设置的当前状态退出时的回调
 	protected StateParam mParam;				// 此参数只能在enter中使用,执行完enter后就会回收销毁
 	protected Character mCharacter;				// 状态所属角色
+	protected long mID;							// 状态唯一ID
 	protected float mStateMaxTime;				// 状态最大持续时间,小于0表示无限制
 	protected float mStateTime;					// 该状态持续的时间,小于0表示无限制
 	protected uint mMutexID;					// 互斥ID,在添加状态时,会判断相同互斥ID的状态是否需要移除,互斥ID相同的状态的互斥操作对应SAME_STATE_OPERATE枚举
-	protected uint mID;							// 状态唯一ID
 	protected bool mIgnoreTimeScale;			// 更新时是否忽略时间缩放
 	protected bool mActive;						// 状态是否激活
 	protected BUFF_STATE_TYPE mBuffStateType;	// buff类型
@@ -67,8 +74,8 @@ public class CharacterState : FrameBase
 	public void setStateTime(float time) { mStateTime = time; }
 	public float getStateMaxTime() { return mStateMaxTime; }
 	public float getStateTime() { return mStateTime; }
-	public uint getID() { return mID; }
-	public void setID(uint id) { mID = id; }
+	public long getID() { return mID; }
+	public void setID(long id) { mID = id; }
 	public STATE_MUTEX getMutexType() { return mMutexType; }
 	public void setIgnoreTimeScale(bool ignore) { mIgnoreTimeScale = ignore; }
 	public bool isIgnoreTimeScale() { return mIgnoreTimeScale; }

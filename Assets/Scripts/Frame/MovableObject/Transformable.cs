@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
+// 可变换的物体,2D和3D物体都是可变换,也就是都会包含一个Transform
 public class Transformable : ComponentOwner
 {
 	protected Transform mTransform;     // 变换组件
@@ -62,7 +63,16 @@ public class Transformable : ComponentOwner
 	// 返回第一个碰撞体,当前节点找不到,则会在子节点中寻找
 	public Collider getColliderInChild() { return getUnityComponentInChild<Collider>(true); }
 	// 返回第一个碰撞体,仅在当前节点中寻找
-	public Collider getCollider() { return getUnityComponent<Collider>(); }
+	public Collider getCollider(bool addIfNotExist = false) 
+	{
+		// 由于Collider无法直接添加到GameObject上,所以只能默认添加BoxCollider
+		var collider = getUnityComponent<Collider>(false);
+		if (collider == null && addIfNotExist)
+		{
+			collider = addUnityComponent<BoxCollider>();
+		}
+		return collider;
+	}
 	public override void setName(string name)
 	{
 		base.setName(name);
@@ -165,8 +175,8 @@ public class Transformable : ComponentOwner
 	}
 	public virtual bool isActive() { return mObject.activeSelf; }
 	public virtual bool isActiveInHierarchy() { return mObject.activeInHierarchy; }
-	public string getLayer() { return LayerMask.LayerToName(mObject.layer); }
-	public int getLayerInt() { return mObject.layer; }
+	public string getLayerName() { return LayerMask.LayerToName(mObject.layer); }
+	public int getLayer() { return mObject.layer; }
 	public virtual bool isEnable() { return mEnable; }
 	public virtual void setEnable(bool enable) { mEnable = enable; }
 	public virtual Vector3 getPosition() { return mTransform.localPosition; }
@@ -265,15 +275,16 @@ public class Transformable : ComponentOwner
 		mTransform.localEulerAngles = Vector3.zero;
 		mTransform.localScale = Vector3.one;
 	}
+	public void setLayer(int layer) { mObject.layer = layer; }
 	public void setParent(GameObject parent, bool resetTrans = true)
 	{
 		if (parent == null)
 		{
-			mTransform.parent = null;
+			mTransform.SetParent(null);
 		}
 		else
 		{
-			mTransform.parent = parent.transform;
+			mTransform.SetParent(parent.transform);
 		}
 		if (resetTrans)
 		{

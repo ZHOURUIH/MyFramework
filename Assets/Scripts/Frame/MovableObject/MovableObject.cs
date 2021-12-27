@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 
+// 可移动物体,表示一个3D物体
 public class MovableObject : Transformable, IMouseEventCollect
 {
 	protected ObjectClickCallback mClickCallback;	// 鼠标点击物体的回调
@@ -170,34 +171,57 @@ public class MovableObject : Transformable, IMouseEventCollect
 		// mObjectID不重置
 		// mObjectID = 0;
 	}
-	public virtual void onMouseEnter(int touchID)
+	public virtual void onMouseEnter(Vector3 mousePos, int touchID)
 	{
-		mMouseHovered = true;
-		mHoverCallback?.Invoke(this, true);
-		mOnMouseEnter?.Invoke(this, touchID);
+		if (!mMouseHovered)
+		{
+			mMouseHovered = true;
+			mHoverCallback?.Invoke(this, mousePos, true);
+		}
+		mOnMouseEnter?.Invoke(this, mousePos, touchID);
+		mOnMouseMove?.Invoke(mousePos, Vector3.zero, 0.0f, touchID);
 	}
-	public virtual void onMouseLeave(int touchID)
+	public virtual void onMouseLeave(Vector3 mousePos, int touchID)
 	{
-		mMouseHovered = false;
-		mHoverCallback?.Invoke(this, false);
-		mOnMouseLeave?.Invoke(this, touchID);
+		if (mMouseHovered)
+		{
+			mMouseHovered = false;
+			mHoverCallback?.Invoke(this, mousePos, false);
+		}
+		mOnMouseLeave?.Invoke(this, mousePos, touchID);
 	}
 	// 鼠标左键在窗口内按下
 	public virtual void onMouseDown(Vector3 mousePos, int touchID)
 	{
 		mMouseDownPosition = mousePos;
-		mPressCallback?.Invoke(this, true);
+		mPressCallback?.Invoke(this, mousePos, true);
 		mOnMouseDown?.Invoke(mousePos, touchID);
+
+		// 如果是触屏的触点,则触点在当前物体内按下时,认为时开始悬停
+		TouchPoint touch = mInputSystem.getTouchPoint(touchID);
+		if ((touch == null || !touch.isMouse()) && !mMouseHovered)
+		{
+			mMouseHovered = true;
+			mHoverCallback?.Invoke(this, mousePos, true);
+		}
 	}
 	// 鼠标左键在窗口内放开
 	public virtual void onMouseUp(Vector3 mousePos, int touchID)
 	{
-		mPressCallback?.Invoke(this, false);
-		if (lengthLess(mMouseDownPosition - mousePos, FrameDefine.CLICK_THRESHOLD))
+		mPressCallback?.Invoke(this, mousePos, false);
+		if (lengthLess(mMouseDownPosition - mousePos, FrameDefine.CLICK_LENGTH))
 		{
-			mClickCallback?.Invoke(this);
+			mClickCallback?.Invoke(this, mousePos);
 		}
 		mOnMouseUp?.Invoke(mousePos, touchID);
+
+		// 如果是触屏的触点,则触点在当前物体内抬起时,认为已经取消悬停
+		TouchPoint touch = mInputSystem.getTouchPoint(touchID);
+		if ((touch == null || !touch.isMouse()) && mMouseHovered)
+		{
+			mMouseHovered = false;
+			mHoverCallback?.Invoke(this, mousePos, false);
+		}
 	}
 	// 鼠标在窗口内,并且有移动
 	public virtual void onMouseMove(Vector3 mousePos, Vector3 moveDelta, float moveTime, int touchID)
@@ -211,8 +235,8 @@ public class MovableObject : Transformable, IMouseEventCollect
 	{
 		mOnScreenMouseUp?.Invoke(this, mousePos, touchID);
 	}
-	public virtual void onReceiveDrag(IMouseEventCollect dragObj, BOOL continueEvent) { }
-	public virtual void onDragHoverd(IMouseEventCollect dragObj, bool hover) { }
+	public virtual void onReceiveDrag(IMouseEventCollect dragObj, Vector3 mousePos, BOOL continueEvent) { }
+	public virtual void onDragHoverd(IMouseEventCollect dragObj, Vector3 mousePos, bool hover) { }
 	public virtual void onMultiTouchStart(Vector3 touch0, Vector3 touch1) { }
 	public virtual void onMultiTouchMove(Vector3 touch0, Vector3 lastTouch0, Vector3 touch1, Vector3 lastTouch1) { }
 	public virtual void onMultiTouchEnd() { }

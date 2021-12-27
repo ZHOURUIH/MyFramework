@@ -6,9 +6,9 @@ using System.Collections.Generic;
 // 多线程的对象池无法判断临时对象有没有正常回收,因为子线程的帧与主线程不同步
 public class DictionaryPoolThread : FrameSystem
 {
-	protected Dictionary<DictionaryType, HashSet<ICollection>> mInusedList;
-	protected Dictionary<DictionaryType, HashSet<ICollection>> mUnusedList;
-	protected ThreadLock mListLock;
+	protected Dictionary<DictionaryType, HashSet<ICollection>> mInusedList;	// 已使用的列表
+	protected Dictionary<DictionaryType, HashSet<ICollection>> mUnusedList;	// 未使用的列表
+	protected ThreadLock mListLock;											// 列表的线程锁
 	public DictionaryPoolThread()
 	{
 		mInusedList = new Dictionary<DictionaryType, HashSet<ICollection>>();

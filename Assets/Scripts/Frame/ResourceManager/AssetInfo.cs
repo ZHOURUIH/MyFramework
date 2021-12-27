@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// AssetBundle中的Asset的信息
 [Serializable]
 public class AssetInfo : FrameBase
 {

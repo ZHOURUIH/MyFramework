@@ -43,7 +43,7 @@ namespace HotFix
                             ctx.PushObject(instance);
                             ctx.PushReference(0);
                             ctx.PushReference(1);
-                            ctx.PushInteger(maxDistance);
+                            ctx.PushFloat(maxDistance);
                             ctx.Invoke();
                             __res = ctx.ReadBool();
                             ray = ctx.ReadObject<UnityEngine.Ray>(0);

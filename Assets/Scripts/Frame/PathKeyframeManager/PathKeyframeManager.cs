@@ -37,7 +37,7 @@ public class PathKeyframeManager : FrameSystem
 				return null;
 			}
 			translatePath = new Dictionary<float, Vector3>();
-			readPathFile(availablePath(FrameDefine.SA_PATH_KEYFRAME_PATH + fileName + ".translate"), translatePath);
+			readPathFile(availableReadPath(FrameDefine.SA_PATH_KEYFRAME_PATH + fileName + ".translate"), translatePath);
 			mTranslatePathList.Add(getFileNameNoSuffix(fileName, true), translatePath);
 		}
 		return translatePath;
@@ -51,7 +51,7 @@ public class PathKeyframeManager : FrameSystem
 				return null;
 			}
 			rotatePath = new Dictionary<float, Vector3>();
-			readPathFile(availablePath(FrameDefine.SA_PATH_KEYFRAME_PATH + fileName + ".rotate"), rotatePath);
+			readPathFile(availableReadPath(FrameDefine.SA_PATH_KEYFRAME_PATH + fileName + ".rotate"), rotatePath);
 			mRotatePathList.Add(getFileNameNoSuffix(fileName, true), rotatePath);
 		}
 		return rotatePath;
@@ -65,7 +65,7 @@ public class PathKeyframeManager : FrameSystem
 				return null;
 			}
 			scalePath = new Dictionary<float, Vector3>();
-			readPathFile(availablePath(FrameDefine.SA_PATH_KEYFRAME_PATH + fileName + ".scale"), scalePath);
+			readPathFile(availableReadPath(FrameDefine.SA_PATH_KEYFRAME_PATH + fileName + ".scale"), scalePath);
 			mScalePathList.Add(getFileNameNoSuffix(fileName, true), scalePath);
 		}
 		return scalePath;
@@ -79,7 +79,7 @@ public class PathKeyframeManager : FrameSystem
 				return null;
 			}
 			alphaPath = new Dictionary<float, float>();
-			readPathFile(availablePath(FrameDefine.SA_PATH_KEYFRAME_PATH + fileName + ".alpha"), alphaPath);
+			readPathFile(availableReadPath(FrameDefine.SA_PATH_KEYFRAME_PATH + fileName + ".alpha"), alphaPath);
 			mAlphaPathList.Add(getFileNameNoSuffix(fileName, true), alphaPath);
 		}
 		return alphaPath;

@@ -1,5 +1,6 @@
 ﻿using System;
 
+// TCP消息包基类
 public class NetPacketTCP : NetPacket
 {
 	public NetPacketTCP(){}

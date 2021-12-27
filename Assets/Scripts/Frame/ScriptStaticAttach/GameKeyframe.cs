@@ -2,22 +2,11 @@
 using System;
 using System.Collections.Generic;
 
-[Serializable]
-public class CurveInfo
-{
-	public int mID;
-	public AnimationCurve mCurve;
-	public CurveInfo(int id, AnimationCurve curve)
-	{
-		mID = id;
-		mCurve = curve;
-	}
-}
-
+// 用于实现可以在面板上预览以及编辑所有的关键帧曲线
 public class GameKeyframe : MonoBehaviour
 {
 	[HideInInspector]
-	public List<CurveInfo> mCurveList;
+	public List<CurveInfo> mCurveList;		// 关键帧曲线列表
 	public AnimationCurve createKeyframe()
 	{
 		if (mCurveList == null)

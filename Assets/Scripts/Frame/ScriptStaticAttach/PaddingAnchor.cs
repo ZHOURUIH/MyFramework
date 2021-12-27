@@ -17,25 +17,36 @@ public struct ComplexPoint
 // 该组件所在的物体不能有旋转,否则会计算错误
 public class PaddingAnchor : MonoBehaviour
 {
-	// 用于避免GC而保存的变量
-	private Vector3[] mSides = new Vector3[4];
-	private Vector3[] mLocalCorners = new Vector3[4];
-	protected bool mDirty = true;
-	protected Vector3[] mParentSides = new Vector3[4];
+	private Vector3[] mSides;						// 用于避免GC
+	private Vector3[] mLocalCorners;				// 用于避免GC
+	protected bool mDirty;							// 是否需要刷新数据
+	protected Vector3[] mParentSides;				// 父节点的四条边中心点的坐标
 	// 用于保存属性的变量,需要为public权限
-	public ANCHOR_MODE mAnchorMode;
-	public HORIZONTAL_PADDING mHorizontalNearSide;
-	public VERTICAL_PADDING mVerticalNearSide;
-	public float mHorizontalPositionRelative;
-	public int mHorizontalPositionAbsolute;
-	public float mVerticalPositionRelative;
-	public int mVerticalPositionAbsolute;
-	public bool mRelativeDistance;
-	public bool mAdjustFont = true;
-	// 左上右下,横向中心,纵向中心的顺序
+	public ANCHOR_MODE mAnchorMode;					// 停靠方式
+	public HORIZONTAL_PADDING mHorizontalNearSide;	// 横向停靠方式
+	public VERTICAL_PADDING mVerticalNearSide;		// 纵向停靠方式
+	public float mHorizontalPositionRelative;		// 横向停靠的百分比
+	public int mHorizontalPositionAbsolute;			// 横向停靠的绝对值
+	public float mVerticalPositionRelative;			// 纵向停靠的百分比
+	public int mVerticalPositionAbsolute;			// 纵向停靠的绝对值
+	public bool mRelativeDistance;					// 是否使用相对距离
+	public int mMinFontSize;						// 字体的最小大小
+	public bool mAdjustFont;						// 是否连字体大小也一起调整
 	// 边相对于父节点对应边的距离,Relative是相对于宽或者高的一半,范围0-1,从0到1是对应从中心到各边,Absolute是Relative计算完以后的偏移量,带正负
-	public ComplexPoint[] mDistanceToBoard = new ComplexPoint[4] { new ComplexPoint(), new ComplexPoint(), new ComplexPoint(), new ComplexPoint() };
-	public ComplexPoint[] mAnchorPoint = new ComplexPoint[4] { new ComplexPoint(), new ComplexPoint(), new ComplexPoint(), new ComplexPoint() };
+	public ComplexPoint[] mDistanceToBoard;			// mAnchorMode为PADDING_PARENT_SIDE使用的,左上右下,横向中心,纵向中心的顺序
+	public ComplexPoint[] mAnchorPoint;				// mAnchorMode为STRETCH_TO_PARENT_SIDE使用的,左上右下,横向中心,纵向中心的顺序
+	public PaddingAnchor()
+	{
+		mAnchorMode = ANCHOR_MODE.PADDING_PARENT_SIDE;
+		mDirty = true;
+		mMinFontSize = 12;
+		mAdjustFont = true;
+		mSides = new Vector3[4];
+		mLocalCorners = new Vector3[4];
+		mParentSides = new Vector3[4];
+		mDistanceToBoard = new ComplexPoint[4] { new ComplexPoint(), new ComplexPoint(), new ComplexPoint(), new ComplexPoint() };
+		mAnchorPoint = new ComplexPoint[4] { new ComplexPoint(), new ComplexPoint(), new ComplexPoint(), new ComplexPoint() };
+	}
 #if UNITY_EDITOR
 	public void setAnchorModeInEditor(ANCHOR_MODE mode)
 	{
@@ -132,7 +143,7 @@ public class PaddingAnchor : MonoBehaviour
 				}
 			}
 			// 根据锚点和父节点大小计算各条边的值
-			else if (mAnchorMode != ANCHOR_MODE.NONE)
+			else if (mAnchorMode == ANCHOR_MODE.STRETCH_TO_PARENT_SIDE)
 			{
 				float thisLeft = mAnchorPoint[0].mRelative * mParentSides[0].x + mAnchorPoint[0].mAbsolute;
 				float thisRight = mAnchorPoint[2].mRelative * mParentSides[2].x + mAnchorPoint[2].mAbsolute;
@@ -154,7 +165,7 @@ public class PaddingAnchor : MonoBehaviour
 		}
 		if (mAdjustFont)
 		{
-			WidgetUtility.setRectSizeWithFontSize(rectTransform, newSize);
+			WidgetUtility.setRectSizeWithFontSize(rectTransform, newSize, mMinFontSize);
 		}
 		else
 		{

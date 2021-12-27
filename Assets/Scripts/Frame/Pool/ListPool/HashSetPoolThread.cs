@@ -5,9 +5,9 @@ using System.Collections.Generic;
 // 线程安全的列表池,但效率较低
 public class HashSetPoolThread : FrameSystem
 {
-	protected Dictionary<Type, HashSet<IEnumerable>> mInusedList;
-	protected Dictionary<Type, HashSet<IEnumerable>> mUnusedList;
-	protected ThreadLock mListLock;
+	protected Dictionary<Type, HashSet<IEnumerable>> mInusedList;	// 已使用列表
+	protected Dictionary<Type, HashSet<IEnumerable>> mUnusedList;	// 未使用列表
+	protected ThreadLock mListLock;									// 列表的线程锁
 	public HashSetPoolThread()
 	{
 		mInusedList = new Dictionary<Type, HashSet<IEnumerable>>();

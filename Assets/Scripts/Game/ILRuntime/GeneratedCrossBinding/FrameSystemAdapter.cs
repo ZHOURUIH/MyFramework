@@ -9,23 +9,24 @@ namespace HotFix
     {
         static CrossBindingMethodInfo minit_0 = new CrossBindingMethodInfo("init");
         static CrossBindingMethodInfo mlateInit_1 = new CrossBindingMethodInfo("lateInit");
-        static CrossBindingMethodInfo mdestroy_2 = new CrossBindingMethodInfo("destroy");
-        static CrossBindingMethodInfo mhotFixInited_3 = new CrossBindingMethodInfo("hotFixInited");
-        static CrossBindingMethodInfo mresourceAvailable_4 = new CrossBindingMethodInfo("resourceAvailable");
-        static CrossBindingMethodInfo monDrawGizmos_5 = new CrossBindingMethodInfo("onDrawGizmos");
-        static CrossBindingMethodInfo<System.Boolean> msetActive_6 = new CrossBindingMethodInfo<System.Boolean>("setActive");
-        static CrossBindingMethodInfo<System.Single> mupdate_7 = new CrossBindingMethodInfo<System.Single>("update");
-        static CrossBindingMethodInfo<System.Single> mlateUpdate_8 = new CrossBindingMethodInfo<System.Single>("lateUpdate");
-        static CrossBindingMethodInfo<System.Single> mfixedUpdate_9 = new CrossBindingMethodInfo<System.Single>("fixedUpdate");
-        static CrossBindingMethodInfo<global::GameComponent> mnotifyAddComponent_10 = new CrossBindingMethodInfo<global::GameComponent>("notifyAddComponent");
-        static CrossBindingMethodInfo<System.Boolean, System.Boolean> msetIgnoreTimeScale_11 = new CrossBindingMethodInfo<System.Boolean, System.Boolean>("setIgnoreTimeScale");
-        static CrossBindingMethodInfo mresetProperty_12 = new CrossBindingMethodInfo("resetProperty");
-        static CrossBindingMethodInfo minitComponents_13 = new CrossBindingMethodInfo("initComponents");
-        static CrossBindingMethodInfo<System.String> msetName_14 = new CrossBindingMethodInfo<System.String>("setName");
-        static CrossBindingMethodInfo<System.Boolean> msetDestroy_15 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
-        static CrossBindingFunctionInfo<System.Boolean> misDestroy_16 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
-        static CrossBindingMethodInfo<System.Int64> msetAssignID_17 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
-        static CrossBindingFunctionInfo<System.Int64> mgetAssignID_18 = new CrossBindingFunctionInfo<System.Int64>("getAssignID");
+        static CrossBindingMethodInfo mwillDestroy_2 = new CrossBindingMethodInfo("willDestroy");
+        static CrossBindingMethodInfo mdestroy_3 = new CrossBindingMethodInfo("destroy");
+        static CrossBindingMethodInfo mhotFixInited_4 = new CrossBindingMethodInfo("hotFixInited");
+        static CrossBindingMethodInfo mresourceAvailable_5 = new CrossBindingMethodInfo("resourceAvailable");
+        static CrossBindingMethodInfo monDrawGizmos_6 = new CrossBindingMethodInfo("onDrawGizmos");
+        static CrossBindingMethodInfo<System.Boolean> msetActive_7 = new CrossBindingMethodInfo<System.Boolean>("setActive");
+        static CrossBindingMethodInfo<System.Single> mupdate_8 = new CrossBindingMethodInfo<System.Single>("update");
+        static CrossBindingMethodInfo<System.Single> mlateUpdate_9 = new CrossBindingMethodInfo<System.Single>("lateUpdate");
+        static CrossBindingMethodInfo<System.Single> mfixedUpdate_10 = new CrossBindingMethodInfo<System.Single>("fixedUpdate");
+        static CrossBindingMethodInfo<global::GameComponent> mnotifyAddComponent_11 = new CrossBindingMethodInfo<global::GameComponent>("notifyAddComponent");
+        static CrossBindingMethodInfo<System.Boolean, System.Boolean> msetIgnoreTimeScale_12 = new CrossBindingMethodInfo<System.Boolean, System.Boolean>("setIgnoreTimeScale");
+        static CrossBindingMethodInfo mresetProperty_13 = new CrossBindingMethodInfo("resetProperty");
+        static CrossBindingMethodInfo minitComponents_14 = new CrossBindingMethodInfo("initComponents");
+        static CrossBindingMethodInfo<System.String> msetName_15 = new CrossBindingMethodInfo<System.String>("setName");
+        static CrossBindingMethodInfo<System.Boolean> msetDestroy_16 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
+        static CrossBindingFunctionInfo<System.Boolean> misDestroy_17 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
+        static CrossBindingMethodInfo<System.Int64> msetAssignID_18 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
+        static CrossBindingFunctionInfo<System.Int64> mgetAssignID_19 = new CrossBindingFunctionInfo<System.Int64>("getAssignID");
         public override Type BaseCLRType
         {
             get
@@ -81,140 +82,148 @@ namespace HotFix
                     mlateInit_1.Invoke(this.instance);
             }
 
+            public override void willDestroy()
+            {
+                if (mwillDestroy_2.CheckShouldInvokeBase(this.instance))
+                    base.willDestroy();
+                else
+                    mwillDestroy_2.Invoke(this.instance);
+            }
+
             public override void destroy()
             {
-                if (mdestroy_2.CheckShouldInvokeBase(this.instance))
+                if (mdestroy_3.CheckShouldInvokeBase(this.instance))
                     base.destroy();
                 else
-                    mdestroy_2.Invoke(this.instance);
+                    mdestroy_3.Invoke(this.instance);
             }
 
             public override void hotFixInited()
             {
-                if (mhotFixInited_3.CheckShouldInvokeBase(this.instance))
+                if (mhotFixInited_4.CheckShouldInvokeBase(this.instance))
                     base.hotFixInited();
                 else
-                    mhotFixInited_3.Invoke(this.instance);
+                    mhotFixInited_4.Invoke(this.instance);
             }
 
             public override void resourceAvailable()
             {
-                if (mresourceAvailable_4.CheckShouldInvokeBase(this.instance))
+                if (mresourceAvailable_5.CheckShouldInvokeBase(this.instance))
                     base.resourceAvailable();
                 else
-                    mresourceAvailable_4.Invoke(this.instance);
+                    mresourceAvailable_5.Invoke(this.instance);
             }
 
             public override void onDrawGizmos()
             {
-                if (monDrawGizmos_5.CheckShouldInvokeBase(this.instance))
+                if (monDrawGizmos_6.CheckShouldInvokeBase(this.instance))
                     base.onDrawGizmos();
                 else
-                    monDrawGizmos_5.Invoke(this.instance);
+                    monDrawGizmos_6.Invoke(this.instance);
             }
 
             public override void setActive(System.Boolean active)
             {
-                if (msetActive_6.CheckShouldInvokeBase(this.instance))
+                if (msetActive_7.CheckShouldInvokeBase(this.instance))
                     base.setActive(active);
                 else
-                    msetActive_6.Invoke(this.instance, active);
+                    msetActive_7.Invoke(this.instance, active);
             }
 
             public override void update(System.Single elapsedTime)
             {
-                if (mupdate_7.CheckShouldInvokeBase(this.instance))
+                if (mupdate_8.CheckShouldInvokeBase(this.instance))
                     base.update(elapsedTime);
                 else
-                    mupdate_7.Invoke(this.instance, elapsedTime);
+                    mupdate_8.Invoke(this.instance, elapsedTime);
             }
 
             public override void lateUpdate(System.Single elapsedTime)
             {
-                if (mlateUpdate_8.CheckShouldInvokeBase(this.instance))
+                if (mlateUpdate_9.CheckShouldInvokeBase(this.instance))
                     base.lateUpdate(elapsedTime);
                 else
-                    mlateUpdate_8.Invoke(this.instance, elapsedTime);
+                    mlateUpdate_9.Invoke(this.instance, elapsedTime);
             }
 
             public override void fixedUpdate(System.Single elapsedTime)
             {
-                if (mfixedUpdate_9.CheckShouldInvokeBase(this.instance))
+                if (mfixedUpdate_10.CheckShouldInvokeBase(this.instance))
                     base.fixedUpdate(elapsedTime);
                 else
-                    mfixedUpdate_9.Invoke(this.instance, elapsedTime);
+                    mfixedUpdate_10.Invoke(this.instance, elapsedTime);
             }
 
             public override void notifyAddComponent(global::GameComponent com)
             {
-                if (mnotifyAddComponent_10.CheckShouldInvokeBase(this.instance))
+                if (mnotifyAddComponent_11.CheckShouldInvokeBase(this.instance))
                     base.notifyAddComponent(com);
                 else
-                    mnotifyAddComponent_10.Invoke(this.instance, com);
+                    mnotifyAddComponent_11.Invoke(this.instance, com);
             }
 
             public override void setIgnoreTimeScale(System.Boolean ignore, System.Boolean componentOnly)
             {
-                if (msetIgnoreTimeScale_11.CheckShouldInvokeBase(this.instance))
+                if (msetIgnoreTimeScale_12.CheckShouldInvokeBase(this.instance))
                     base.setIgnoreTimeScale(ignore, componentOnly);
                 else
-                    msetIgnoreTimeScale_11.Invoke(this.instance, ignore, componentOnly);
+                    msetIgnoreTimeScale_12.Invoke(this.instance, ignore, componentOnly);
             }
 
             public override void resetProperty()
             {
-                if (mresetProperty_12.CheckShouldInvokeBase(this.instance))
+                if (mresetProperty_13.CheckShouldInvokeBase(this.instance))
                     base.resetProperty();
                 else
-                    mresetProperty_12.Invoke(this.instance);
+                    mresetProperty_13.Invoke(this.instance);
             }
 
             protected override void initComponents()
             {
-                if (minitComponents_13.CheckShouldInvokeBase(this.instance))
+                if (minitComponents_14.CheckShouldInvokeBase(this.instance))
                     base.initComponents();
                 else
-                    minitComponents_13.Invoke(this.instance);
+                    minitComponents_14.Invoke(this.instance);
             }
 
             public override void setName(System.String name)
             {
-                if (msetName_14.CheckShouldInvokeBase(this.instance))
+                if (msetName_15.CheckShouldInvokeBase(this.instance))
                     base.setName(name);
                 else
-                    msetName_14.Invoke(this.instance, name);
+                    msetName_15.Invoke(this.instance, name);
             }
 
             public override void setDestroy(System.Boolean isDestroy)
             {
-                if (msetDestroy_15.CheckShouldInvokeBase(this.instance))
+                if (msetDestroy_16.CheckShouldInvokeBase(this.instance))
                     base.setDestroy(isDestroy);
                 else
-                    msetDestroy_15.Invoke(this.instance, isDestroy);
+                    msetDestroy_16.Invoke(this.instance, isDestroy);
             }
 
             public override System.Boolean isDestroy()
             {
-                if (misDestroy_16.CheckShouldInvokeBase(this.instance))
+                if (misDestroy_17.CheckShouldInvokeBase(this.instance))
                     return base.isDestroy();
                 else
-                    return misDestroy_16.Invoke(this.instance);
+                    return misDestroy_17.Invoke(this.instance);
             }
 
             public override void setAssignID(System.Int64 assignID)
             {
-                if (msetAssignID_17.CheckShouldInvokeBase(this.instance))
+                if (msetAssignID_18.CheckShouldInvokeBase(this.instance))
                     base.setAssignID(assignID);
                 else
-                    msetAssignID_17.Invoke(this.instance, assignID);
+                    msetAssignID_18.Invoke(this.instance, assignID);
             }
 
             public override System.Int64 getAssignID()
             {
-                if (mgetAssignID_18.CheckShouldInvokeBase(this.instance))
+                if (mgetAssignID_19.CheckShouldInvokeBase(this.instance))
                     return base.getAssignID();
                 else
-                    return mgetAssignID_18.Invoke(this.instance);
+                    return mgetAssignID_19.Invoke(this.instance);
             }
 
             public override string ToString()

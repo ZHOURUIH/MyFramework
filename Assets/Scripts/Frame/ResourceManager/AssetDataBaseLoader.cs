@@ -8,8 +8,8 @@ using UnityEngine;
 // 从AssetDataBase中加载资源
 public class AssetDataBaseLoader : FrameBase
 {
-	protected Dictionary<string, Dictionary<string, ResourceLoadInfo>> mLoadedPath;
-	protected Dictionary<Object, ResourceLoadInfo> mLoadedObjects;
+	protected Dictionary<string, Dictionary<string, ResourceLoadInfo>> mLoadedPath;		// 所有已加载的文件夹
+	protected Dictionary<Object, ResourceLoadInfo> mLoadedObjects;						// 所有的已加载的资源
 	public AssetDataBaseLoader()
 	{
 		mLoadedPath = new Dictionary<string, Dictionary<string, ResourceLoadInfo>>();
@@ -183,7 +183,7 @@ public class AssetDataBaseLoader : FrameBase
 		}
 		return null;
 	}
-	// 异步加载资源,name为Resources下的相对路径,不带后缀
+	// 异步加载资源,name为GameResources下的相对路径,不带后缀
 	public bool loadResourcesAsync<T>(string name, AssetLoadDoneCallback doneCallback, object userData = null) where T : Object
 	{
 		string path = getFilePath(name);

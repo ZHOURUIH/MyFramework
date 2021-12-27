@@ -4,21 +4,24 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine.UI;
 
+// 带图文混排的文字组件
 public class TextImage : Text
 {
-	protected List<myUGUIImage> mImageList;
-	protected List<UIVertex> mVertexStream;
-	protected CreateImage mCreateImage;
-	protected DestroyImage mDestroyImage;
-	// 图片的最后一个顶点的索引
-	protected List<int> mImagesQuadIndex;
-	// 正则取出所需要的属性
-	protected static Regex mRegex = new Regex(@"<quad width=(\d*\.?\d+%?) sprite=(.+?)/>", RegexOptions.Singleline);
+	protected List<myUGUIImage> mImageList;	// 图片列表
+	protected List<UIVertex> mVertexStream;	// 避免GC用
+	protected List<int> mImagesQuadIndex;	// 图片的最后一个顶点的索引
+	protected CreateImage mCreateImage;		// 创建图片的委托,让外边决定怎么创建图片
+	protected DestroyImage mDestroyImage;	// 销毁图片的委托,让外边决定怎么销毁图片
+	protected static Regex mRegex;			// 正则取出所需要的属性
 	public TextImage()
 	{
 		mImageList = new List<myUGUIImage>();
 		mVertexStream = new List<UIVertex>();
 		mImagesQuadIndex = new List<int>();
+		if (mRegex == null)
+		{
+			mRegex = new Regex(@"<quad width=(\d*\.?\d+%?) sprite=(.+?)/>", RegexOptions.Singleline);
+		}
 	}
 	public void setCreateImage(CreateImage callback) { mCreateImage = callback; }
 	public void setDestroyImage(DestroyImage callback) { mDestroyImage = callback; }

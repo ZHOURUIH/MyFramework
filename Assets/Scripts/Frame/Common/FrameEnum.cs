@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 // 游戏枚举定义-----------------------------------------------------------------------------------------------
 
@@ -150,6 +151,15 @@ public enum MOUSE_BUTTON : byte
 	MIDDLE,					// 中键
 }
 
+// 可用的组合键
+public enum COMBINATION_KEY : byte
+{ 
+	NONE,				// 无效值
+	CTRL = 1 << 0,		// Ctrl键掩码
+	SHIFT = 1 << 1,		// Shift键掩码
+	ALT = 1 << 2,		// Alt键掩码
+}
+
 // 输入事件的状态掩码
 public enum FOCUS_MASK : ushort
 {
@@ -231,8 +241,9 @@ public enum TIME_DISPLAY : byte
 {
 	HMSM,					// 以Hour:Minute:Second:Millisecond形式显示,并且不补0
 	HMS_2,					// 以Hour:Minute:Second形式显示,并且每个数都显示为2位数
-	DHMS_ZH,				// 以Day天Hour小时Minute分Second秒的形式显示
-	YMD_ZH,					// 以Year年Month月Day天的形式显示
+	DHMS_ZH,				// 以Day天Hour小时Minute分Second秒的形式显示,获取当前时间时将不会显示天数
+	YMD_ZH,                 // 以Year年Month月Day天的形式显示,只适用于DateTime
+	YMDHM_ZH,               // 以Year年Month月Day天Hour时Minute分的形式显示,只适用于DateTime
 }
 
 // 布局渲染顺序的计算类型
@@ -304,7 +315,7 @@ public enum AVATAR_RELATIONSHIP : byte
 }
 
 // 模型节点与角色节点的同步方式
-public enum TRANSFORM_ASYNC : byte
+public enum TRANSFORM_SYNC : byte
 {
 	USE_AVATAR,					// 使用模型节点的值同步到角色节点
 	USE_CHARACTER,				// 使用角色节点的值同步到模型节点
@@ -329,10 +340,14 @@ public enum LINKER_UPDATE : byte
 // 窗口模式类型
 public enum WINDOW_MODE : byte
 {
+	[Label("窗口"), Tooltip("带边框的窗口模式")]
 	WINDOWED,						// 带边框的窗口模式
+	[Label("全屏"), Tooltip("全屏模式")]
 	FULL_SCREEN,					// 全屏模式
+	[Label("无边框"), Tooltip("无边框窗口模式")]
 	NO_BOARD_WINDOW,				// 无边框窗口模式
-	FULL_SCREEN_CUSTOM_RESOLUTION,	// 全屏并且使用配置文件中的分辨率
+	[Label("自定义全屏"), Tooltip("全屏并且使用下面设置的分辨率")]
+	FULL_SCREEN_CUSTOM_RESOLUTION,  // 全屏并且使用下面设置的分辨率
 }
 
 // 角的类型

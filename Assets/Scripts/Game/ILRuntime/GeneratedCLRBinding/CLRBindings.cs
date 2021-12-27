@@ -59,7 +59,6 @@ namespace ILRuntime.Runtime.Generated
             UnityUtility_Binding.Register(app);
             System_Exception_Binding.Register(app);
             CmdGameSceneManagerEnter_Binding.Register(app);
-            GameLayout_Binding.Register(app);
             LayoutScript_Binding.Register(app);
             FT_Binding.Register(app);
             StringUtility_Binding.Register(app);

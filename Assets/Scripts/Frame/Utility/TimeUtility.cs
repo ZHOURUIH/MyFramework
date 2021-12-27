@@ -4,9 +4,9 @@ using System.Text;
 // 时间工具函数,由于与时间的相关操作比较多,所以单独写到时间工具类中
 public class TimeUtility : FileUtility
 {
-	private static DateTime mTime19700101 = new DateTime(1970, 1, 1);
-	private static long mRemoteTimeStampMS;   // 远端的时间戳
-	private static long mRemoteTimeSpan;      // 本地时间与远端时间的差值,毫秒数
+	private static DateTime mTime19700101 = new DateTime(1970, 1, 1);	// 时间的起始
+	private static long mRemoteTimeStampMS;								// 远端的时间戳
+	private static long mRemoteTimeSpan;								// 本地时间与远端时间的差值,毫秒数
 	// 设置远端的时间戳,计算出本地时间与远端时间的差值
 	public static void setRemoteTimeMS(long remoteTime) { mRemoteTimeSpan = timeGetTimeUTC() - remoteTime; }
 	// 获取从1970年1月1日到现在所经过的毫秒数
@@ -16,13 +16,16 @@ public class TimeUtility : FileUtility
 	// 利用与远端的时间差,刷新计算出远端的时间,一般每帧刷新一次
 	public static void generateRemoteTimeStampMS() { mRemoteTimeStampMS = timeGetTimeUTC() - mRemoteTimeSpan; }
 	public static long getRemoteTimeStampMS() { return mRemoteTimeStampMS; }
-	// 获得时间的字符串,display表示显示的格式,仅可在主线程中调用
+	// 获得当前时间的字符串,display表示显示的格式,仅可在主线程中调用
 	public static string getTime(TIME_DISPLAY display) { return getTime(DateTime.Now, display); }
-	// 获得时间的字符串,display表示显示的格式,可在子线程中调用,效率较低
+	// 获得当前时间的字符串,display表示显示的格式,可在子线程中调用,效率较低
 	public static string getTimeThread(TIME_DISPLAY display) { return getTimeThread(DateTime.Now, display); }
-	// 获得时间的字符串,display表示显示的格式
+	// 获得当前时间的字符串,display表示显示的格式
 	public static string getTimeNoBuilder(TIME_DISPLAY display) { return getTimeNoBuilder(DateTime.Now, display); }
+	// timeStamp是UTC时间戳,显示为UTC时间
 	public static string getTime(long timeStamp, TIME_DISPLAY display) { return getTime(timeStampToDateTimeUTC(timeStamp), display); }
+	// timeStamp是UTC时间戳,会转换为本地时间来显示
+	public static string getLocalTime(long timeStamp, TIME_DISPLAY display) { return getTime(timeStampToDateTimeUTC(timeStamp).ToLocalTime(), display); }
 	// 将时间转化成时间戳,dateTime是本地时间
 	public static long dateTimeToTimeStamp(DateTime dateTime) { return (long)(dateTime - mTime19700101).TotalSeconds; }
 	// 将时间转化成时间戳,dateTime是本地时间
@@ -39,6 +42,31 @@ public class TimeUtility : FileUtility
 	public static long getNowUTCTimeStamp() { return dateTimeToTimeStamp(DateTime.UtcNow); }
 	// 获得当前的UTC时间戳,以毫秒为单位
 	public static long getNowUTCTimeStampMS() { return dateTimeToTimeStampMS(DateTime.UtcNow); }
+	// 获取今天的时间,如果hour为0,就是今天的凌晨0点
+	public static DateTime getTodayTime(int hour, int minute = 0, int second = 0)
+	{
+		DateTime now = DateTime.Now;
+		return new DateTime(now.Year, now.Month, now.Day, hour, minute, second);
+	}
+	// 获得明天的时间,如果hour为0,就是今天的晚上12点
+	public static DateTime getTomorrowTime(int hour, int minute = 0, int second = 0)
+	{
+		DateTime now = DateTime.Now;
+		now = now.AddDays(1);
+		return new DateTime(now.Year, now.Month, now.Day, hour, minute, second);
+	}
+	// 获取从现在到晚上12点的时间差
+	public static TimeSpan getTimeToTodayEnd() 
+	{
+		TimeSpan time = getTomorrowTime(0) - DateTime.Now;
+		return time;
+	}
+	// 获取从现在到晚上12点的时间差秒数
+	public static int getSecondsToTodayEnd() 
+	{
+		TimeSpan time = getTimeToTodayEnd();
+		return (int)time.TotalSeconds; 
+	}
 	public static string minuteToHourMinuteString(int totalMinute)
 	{
 		minuteToHourMinute(totalMinute, out int hour, out int minute);
@@ -54,7 +82,7 @@ public class TimeUtility : FileUtility
 		return FrameUtility.END_STRING(timeStr);
 	}
 	// 一般用于倒计时显示的字符串
-	public static string getRemainTime(int timeSecond, TIME_DISPLAY display)
+	public static string getTime(int timeSecond, TIME_DISPLAY display)
 	{
 		int min = timeSecond / 60;
 		int second = timeSecond % 60;
@@ -78,12 +106,12 @@ public class TimeUtility : FileUtility
 			// 大于等于1天
 			if (totalDay > 0)
 			{
-				return strcat(IToS(totalDay), "天", IToS(curHour), "时", IToS(curMin), "分", IToS(curSecond) + "秒");
+				return strcat(IToS(totalDay), "天", IToS(curHour), "时", IToS(curMin), "分", IToS(curSecond), "秒");
 			}
 			// 小于1天,并且大于等于1小时
 			else if (totalHour > 0)
 			{
-				return strcat(IToS(totalHour), "时", IToS(curMin), "分", IToS(curSecond) + "秒");
+				return strcat(IToS(totalHour), "时", IToS(curMin), "分", IToS(curSecond), "秒");
 			}
 			// 小于1小时,并且大于等于1分钟
 			else if (totalMin > 0)
@@ -113,6 +141,10 @@ public class TimeUtility : FileUtility
 		{
 			return strcat_thread(IToS(time.Year), "年", IToS(time.Month), "月", IToS(time.Day), "日");
 		}
+		else if (display == TIME_DISPLAY.YMDHM_ZH)
+		{
+			return strcat_thread(IToS(time.Year), "年", IToS(time.Month), "月", IToS(time.Day), "日", IToS(time.Hour), "时", IToS(time.Minute), "分");
+		}
 		return EMPTY;
 	}
 	// 只能在主线程中调用的获取当前时间字符串
@@ -132,7 +164,11 @@ public class TimeUtility : FileUtility
 		}
 		else if (display == TIME_DISPLAY.YMD_ZH)
 		{
-			return strcat_thread(IToS(time.Year), "年", IToS(time.Month), "月", IToS(time.Day), "日");
+			return strcat(IToS(time.Year), "年", IToS(time.Month), "月", IToS(time.Day), "日");
+		}
+		else if(display == TIME_DISPLAY.YMDHM_ZH)
+		{
+			return strcat(IToS(time.Year), "年", IToS(time.Month), "月", IToS(time.Day), "日", IToS(time.Hour), "时", IToS(time.Minute), "分");
 		}
 		return EMPTY;
 	}
@@ -176,7 +212,22 @@ public class TimeUtility : FileUtility
 					Append("年").
 					Append(IToS(time.Month)).
 					Append("月").
-					Append(IToS(time.Day)).Append("日");
+					Append(IToS(time.Day)).
+					Append("日");
+			return builder.ToString();
+		}
+		else if (display == TIME_DISPLAY.YMDHM_ZH)
+		{
+			builder.Append(IToS(time.Year)).
+					Append("年").
+					Append(IToS(time.Month)).
+					Append("月").
+					Append(IToS(time.Day)).
+					Append("日").
+					Append(IToS(time.Hour)).
+					Append("时").
+					Append(IToS(time.Minute)).
+					Append("分");
 			return builder.ToString();
 		}
 		return EMPTY;

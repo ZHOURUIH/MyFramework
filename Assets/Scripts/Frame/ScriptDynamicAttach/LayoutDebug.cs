@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 
+// 布局调试信息
 public class LayoutDebug : MonoBehaviour
 {
 	protected GameLayout mLayout;		// 挂接的布局

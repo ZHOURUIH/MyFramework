@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 
+// 自定义的对int[]的封装,可用于序列化
 public class INTS : OBJECTS
 {
-	public int[] mValue;
+	public int[] mValue;			// 值
 	public int this[int index]
 	{
 		get

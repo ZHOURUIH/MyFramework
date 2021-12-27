@@ -44,7 +44,7 @@ public class SQLiteManager : FrameSystem
 		mTableNameList.Add(tableName, table);
 		mTableDataTypeList.Add(dataType, table);
 		// 如果在注册时资源已经可用了,则可以直接加载表格
-		if (mGameFramework.isResourceAvailable())
+		if (mGameFramework == null || mGameFramework.isResourceAvailable())
 		{
 			table.load(FrameDefineExtension.SQLITE_ENCRYPT_KEY);
 		}

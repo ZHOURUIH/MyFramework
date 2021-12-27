@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 
+// 自定义的对long的封装,提供类似于long指针的功能,可用于序列化
 public class LONG : OBJECT
 {
-	protected const int TYPE_SIZE = sizeof(long);
-	public long mValue;
-	protected bool mIntReplace;
+	public long mValue;			// 值
+	protected bool mIntReplace;	// 是否在合适的条件下使用int代替long来减小内存占用
 	public LONG()
 	{
 		mType = typeof(long);
-		mSize = TYPE_SIZE;
+		mSize = sizeof(long);
 	}
 	public LONG(long value)
 	{
 		mValue = value;
 		mType = typeof(long);
-		mSize = TYPE_SIZE;
+		mSize = sizeof(long);
 	}
 	public override void setIntReplaceULLong(bool replace)
 	{

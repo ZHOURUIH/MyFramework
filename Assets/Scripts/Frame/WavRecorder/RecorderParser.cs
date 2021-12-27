@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#if USE_MICROPHONE
+
+// 录音机数据的解析器
 public class RecorderParser : FrameBase
 {
 	protected const int RECODER_DATA_BLOCK = 1024;  // 音频输入数据一次解析的数据数量,也是频域数据数量
 	protected const int SAMPLE_RATE = 44100;		// 音频采样频率
-	protected const int BLOCK_BUFFER_SIZE = (int)(SAMPLE_RATE * 0.02f);			// 每次接收到的数据缓冲区的大小
+	protected const int BLOCK_BUFFER_SIZE = (int)(SAMPLE_RATE * 0.02f);	// 每次接收到的数据缓冲区的大小
 	protected WavRecorder mRecorder;				// 采集本地音频输入的录音机
 	protected short[] mFrequencyData;				// 转换后的频域数据
 	protected short[] mAllPCMData;					// 总的PCM数据
@@ -83,3 +86,4 @@ public class RecorderParser : FrameBase
 		mCurDB = pcm_db_count(mAllPCMData, RECODER_DATA_BLOCK);
 	}
 }
+#endif

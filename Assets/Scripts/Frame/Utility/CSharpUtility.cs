@@ -9,14 +9,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using System.Threading;
 
 // 与C#有关的工具函数
 public class CSharpUtility : TimeUtility
 {
-	protected static uint mIDMaker;
-	protected static int mMainThreadID;
+	protected static uint mIDMaker;			// 用于生成客户端唯一ID的种子
+	protected static int mMainThreadID;		// 主线程ID
 	public static void setMainThreadID(int mainThreadID) { mMainThreadID = mainThreadID; }
 	public static bool isMainThread() { return Thread.CurrentThread.ManagedThreadId == mMainThreadID; }
 	public static T createInstance<T>(Type classType, params object[] param) where T : class
@@ -43,7 +42,7 @@ public class CSharpUtility : TimeUtility
 		}
 		catch (Exception e)
 		{
-			UnityUtility.logError("create instance error! " + e.Message + ", inner error:" + e.InnerException?.Message);
+			UnityUtility.logError("create instance error! " + e.Message + ", type:" + classType.ToString() + ", inner error:" + e.InnerException?.Message);
 			obj = null;
 		}
 		return obj;
@@ -169,6 +168,10 @@ public class CSharpUtility : TimeUtility
 	}
 	public static bool arrayContains<T>(T[] array, T value, int arrayLen = -1) where T : class
 	{
+		if (array == null || array.Length == 0)
+		{
+			return false;
+		}
 		if (arrayLen == -1)
 		{
 			arrayLen = array.Length;
@@ -215,7 +218,7 @@ public class CSharpUtility : TimeUtility
 			typeof(ILRuntimeType).IsAssignableFrom(type))
 		{
 			UnityUtility.logError("无法获取热更工程中的类型,请确保没有在热更工程中调用Typeof<>(), 在热更工程中获取类型请使用typeof()," +
-					"或者没有调用CMD_MAIN,PACKET_MAIN,LIST_MAIN这类的只能在主工程中调用的函数");
+									"或者没有调用CMD_MAIN,PACKET_MAIN,LIST_MAIN这类的只能在主工程中调用的函数");
 			return null;
 		}
 #endif

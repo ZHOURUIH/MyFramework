@@ -5,12 +5,22 @@ using System.Collections.Generic;
 // 允许部分区域穿透UGUI的鼠标事件
 public class UGUIEventThroughArea : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler
 {
-	public Rect mPassOnlyRect;
+	public Rect mPassOnlyRect;      // 可穿透事件的区域
+	protected bool mPassing;		// 当前是否正在穿透事件
 	public void setPassOnlyArea(RectTransform rectTransform)
 	{
 		Rect rect = new Rect();
-		rect.min = UnityUtility.localToWorld(rectTransform, rectTransform.rect.min);
-		rect.max = UnityUtility.localToWorld(rectTransform, rectTransform.rect.max);
+		// 转换为世界坐标,也就是以屏幕中心为原点的坐标,是在父节点的空间下转换
+		if (rectTransform.parent != null)
+		{
+			rect.min = UnityUtility.localToWorld(rectTransform.parent, rectTransform.rect.min);
+			rect.max = UnityUtility.localToWorld(rectTransform.parent, rectTransform.rect.max);
+		}
+		else
+		{
+			rect.min = rectTransform.rect.min;
+			rect.max = rectTransform.rect.max;
+		}
 		setPassOnlyArea(rect);
 	}
 	public void setPassOnlyArea(Rect rect) { mPassOnlyRect = rect; }
@@ -34,11 +44,18 @@ public class UGUIEventThroughArea : MonoBehaviour, IPointerClickHandler, IPointe
 	// 把事件透下去
 	protected void passEvent<T>(PointerEventData data, ExecuteEvents.EventFunction<T> function) where T : IEventSystemHandler
 	{
-		// 触点是否在指定区域内,只允许指定区域内的的事件能穿透下去
-		if (!mPassOnlyRect.Contains(data.position - UnityUtility.getScreenSize() * 0.5f))
+		// 正在穿透时不能再次穿透,否则会出现无限递归的错误
+		if (mPassing)
 		{
 			return;
 		}
+		// 触点是否在指定区域内,只允许指定区域内的的事件能穿透下去
+		// data.position是以左下角为原点的鼠标坐标,需要转换为以屏幕中心为原点的坐标
+		if (!mPassOnlyRect.Contains(data.position - UnityUtility.getHalfScreenSize()))
+		{
+			return;
+		}
+		mPassing = true;
 		FrameUtility.LIST(out List<RaycastResult> results);
 		UnityEngine.EventSystems.EventSystem.current.RaycastAll(data, results);
 		GameObject current = data.pointerCurrentRaycast.gameObject;
@@ -51,5 +68,6 @@ public class UGUIEventThroughArea : MonoBehaviour, IPointerClickHandler, IPointe
 			ExecuteEvents.Execute(results[i].gameObject, data, function);
 		}
 		FrameUtility.UN_LIST(results);
+		mPassing = false;
 	}
 }

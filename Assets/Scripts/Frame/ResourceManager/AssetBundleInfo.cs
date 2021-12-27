@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
+// AssetBundle的信息,存储了AssetBundle中相关的所有数据
 public class AssetBundleInfo : FrameBase
 {
 	protected Dictionary<string, AssetBundleInfo> mChildren;// 依赖自己的AssetBundle列表
 	protected Dictionary<string, AssetBundleInfo> mParents; // 依赖的AssetBundle列表,包含所有的直接和间接的依赖项
 	protected Dictionary<Object, AssetInfo> mObjectToAsset; // 通过Object查找AssetInfo的列表
-	protected Dictionary<string, AssetInfo> mAssetList;     // 资源包中已加载的所有资源
+	protected Dictionary<string, AssetInfo> mAssetList;     // 资源包中的所有资源,初始化时就会填充此列表
 	protected List<AssetBundleLoadCallback> mLoadCallback;  // 资源包加载完毕后的回调列表
 	protected List<AssetInfo> mLoadAsyncList;               // 需要异步加载的资源列表
 	protected List<object> mLoadUserData;                   // 资源包加载完毕后的回调列表参数
@@ -171,7 +172,7 @@ public class AssetBundleInfo : FrameBase
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 		log("加载AssetBundle:" + mBundleFileName, LOG_LEVEL.NORMAL);
 #endif
-		mAssetBundle = AssetBundle.LoadFromFile(availablePath(mBundleFileName));
+		mAssetBundle = AssetBundle.LoadFromFile(availableReadPath(mBundleFileName));
 		if (mAssetBundle == null)
 		{
 			logError("can not load asset bundle : " + mBundleFileName);

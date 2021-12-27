@@ -107,7 +107,7 @@ public class UIDepth : FrameBase
 			int ushortIndexInLong = i % (BYTE_LENGTH / LEVEL_LENGTH);
 			int offsetBit = (BYTE_LENGTH - LEVEL_LENGTH - ushortIndexInLong * LEVEL_LENGTH) * 8;
 			int levelDepth = (int)((mWindowDepth[longIndex] & ((ulong)ushort.MaxValue << offsetBit)) >> offsetBit);
-			str.append(IToS(levelDepth) + " ");
+			str.append(IToS(levelDepth), " ");
 		}
 		return END_STRING(str);
 	}

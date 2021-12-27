@@ -25,9 +25,12 @@ namespace ILRuntime.Runtime.Generated
             args = new Type[]{typeof(System.Type), typeof(System.Int32), typeof(System.String), typeof(System.Boolean), typeof(global::LAYOUT_LIFE_CYCLE)};
             method = type.GetMethod("registeLayout", flag, null, args, null);
             app.RegisterCLRMethodRedirection(method, registeLayout_0);
+            args = new Type[]{typeof(global::LayoutScriptCallback)};
+            method = type.GetMethod("addScriptCallback", flag, null, args, null);
+            app.RegisterCLRMethodRedirection(method, addScriptCallback_1);
             args = new Type[]{typeof(System.Type)};
             method = type.GetMethod("getScriptMappingCount", flag, null, args, null);
-            app.RegisterCLRMethodRedirection(method, getScriptMappingCount_1);
+            app.RegisterCLRMethodRedirection(method, getScriptMappingCount_2);
 
 
         }
@@ -66,7 +69,26 @@ namespace ILRuntime.Runtime.Generated
             return __ret;
         }
 
-        static StackObject* getScriptMappingCount_1(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        static StackObject* addScriptCallback_1(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
+        {
+            ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
+            StackObject* ptr_of_this_method;
+            StackObject* __ret = ILIntepreter.Minus(__esp, 2);
+
+            ptr_of_this_method = ILIntepreter.Minus(__esp, 1);
+            global::LayoutScriptCallback @callback = (global::LayoutScriptCallback)typeof(global::LayoutScriptCallback).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)8);
+            __intp.Free(ptr_of_this_method);
+
+            ptr_of_this_method = ILIntepreter.Minus(__esp, 2);
+            global::LayoutManager instance_of_this_method = (global::LayoutManager)typeof(global::LayoutManager).CheckCLRTypes(StackObject.ToObject(ptr_of_this_method, __domain, __mStack), (CLR.Utils.Extensions.TypeFlags)0);
+            __intp.Free(ptr_of_this_method);
+
+            instance_of_this_method.addScriptCallback(@callback);
+
+            return __ret;
+        }
+
+        static StackObject* getScriptMappingCount_2(ILIntepreter __intp, StackObject* __esp, IList<object> __mStack, CLRMethod __method, bool isNewObj)
         {
             ILRuntime.Runtime.Enviorment.AppDomain __domain = __intp.AppDomain;
             StackObject* ptr_of_this_method;

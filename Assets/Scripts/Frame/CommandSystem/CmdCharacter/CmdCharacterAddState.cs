@@ -5,9 +5,9 @@ public class CmdCharacterAddState : Command
 {
 	public StateParam mParam;	// 状态所需参数
 	public Type mStateType;		// 状态类型
-	public UINT mOutStateID;	// 用于返回添加的状态的ID
+	public LONG mOutStateID;	// 用于返回添加的状态的ID
 	public float mStateTime;	// 状态持续时间,小于0表示不修改默认持续时间
-	public uint mStateID;		// 状态ID,可不填
+	public long mStateID;		// 状态ID,可不填
 	public override void resetProperty()
 	{
 		base.resetProperty();

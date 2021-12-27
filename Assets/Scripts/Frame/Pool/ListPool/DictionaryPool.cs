@@ -6,9 +6,9 @@ using System.Collections.Generic;
 public class DictionaryPool : FrameSystem
 {
 	protected Dictionary<DictionaryType, HashSet<ICollection>> mPersistentInuseList;	// 持久使用的列表对象
-	protected Dictionary<DictionaryType, HashSet<ICollection>> mInusedList;			// 仅当前栈帧中使用的列表对象
-	protected Dictionary<DictionaryType, HashSet<ICollection>> mUnusedList;
-	protected Dictionary<ICollection, string> mObjectStack;
+	protected Dictionary<DictionaryType, HashSet<ICollection>> mInusedList;				// 仅当前栈帧中使用的列表对象
+	protected Dictionary<DictionaryType, HashSet<ICollection>> mUnusedList;				// 未使用的列表
+	protected Dictionary<ICollection, string> mObjectStack;								// 存储对象分配的堆栈信息的列表
 	public DictionaryPool()
 	{
 		mPersistentInuseList = new Dictionary<DictionaryType, HashSet<ICollection>>();

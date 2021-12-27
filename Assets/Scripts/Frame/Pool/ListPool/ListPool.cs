@@ -7,8 +7,8 @@ public class ListPool : FrameSystem
 {
 	protected Dictionary<Type, HashSet<IList>> mPersistentInuseList;	// 持久使用的列表对象
 	protected Dictionary<Type, HashSet<IList>> mInusedList;				// 仅当前栈帧中使用的列表对象
-	protected Dictionary<Type, HashSet<IList>> mUnusedList;
-	protected Dictionary<IList, string> mObjectStack;
+	protected Dictionary<Type, HashSet<IList>> mUnusedList;				// 未使用列表
+	protected Dictionary<IList, string> mObjectStack;					// 对象分配的堆栈信息列表
 	public ListPool()
 	{
 		mPersistentInuseList = new Dictionary<Type, HashSet<IList>>();

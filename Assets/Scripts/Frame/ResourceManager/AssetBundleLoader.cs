@@ -1,24 +1,23 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Networking;
 
 // 从AssetBundle中加载资源
 public class AssetBundleLoader : FrameBase
 {
-	protected const int ASSET_BUNDLE_COROUTINE = 8;
-	protected const int ASSET_COROUTINE = 4;
-	protected Dictionary<Object, AssetBundleInfo> mAssetToAssetBundleInfo;
-	protected Dictionary<string, AssetBundleInfo> mAssetBundleInfoList;
-	protected Dictionary<string, AssetBundleInfo> mRequestAssetList;
-	protected Dictionary<string, AssetInfo> mAssetToBundleInfo;
-	protected List<AssetBundleInfo> mRequestBundleList;
-	protected HashSet<Coroutine> mCoroutineList;
-	protected WaitForEndOfFrame mWaitForEndOfFrame;
-	protected int mAssetBundleCoroutineCount;
-	protected int mAssetCoroutineCount;
-	protected bool mAutoLoad;				// 当资源可用时是否自动初始化AssetBundle
-	protected bool mInited;
+	protected Dictionary<Object, AssetBundleInfo> mAssetToAssetBundleInfo;	// 根据加载的Asset查找所属AssetBundle的列表
+	protected Dictionary<string, AssetBundleInfo> mAssetBundleInfoList;		// 根据名字查找AssetBundle的列表,此名字不含后缀
+	protected Dictionary<string, AssetBundleInfo> mRequestAssetList;		// 请求异步加载的Asset列表
+	protected Dictionary<string, AssetInfo> mAssetToBundleInfo;				// 根据资源文件名查找Asset信息的列表,初始化时就会填充此列表
+	protected List<AssetBundleInfo> mRequestBundleList;						// 请求异步加载的AssetBundle列表
+	protected HashSet<Coroutine> mCoroutineList;							// 当前的协程列表
+	protected WaitForEndOfFrame mWaitForEndOfFrame;							// 用于避免GC
+	protected int mAssetBundleCoroutineCount;								// 当前加载AssetBundle的协程数量
+	protected int mAssetCoroutineCount;										// 当前加载Asset的协程数量
+	protected bool mAutoLoad;												// 当资源可用时是否自动初始化AssetBundle
+	protected bool mInited;													// AssetBundleLoader是否已经初始化
+	protected const int ASSET_BUNDLE_COROUTINE = 8;							// 加载AssetBundle的协程最大数量
+	protected const int ASSET_COROUTINE = 4;								// 加载Asset的协程最大数量
 	public AssetBundleLoader()
 	{
 		mAssetToAssetBundleInfo = new Dictionary<Object, AssetBundleInfo>();
@@ -56,7 +55,7 @@ public class AssetBundleLoader : FrameBase
 		// 卸载所有已加载的AssetBundle
 		unloadAll();
 		// 加载AssetBundle的配置文件
-		int fileSize = openFile(availablePath("StreamingAssets.bytes"), out byte[] fileBuffer, false);
+		int fileSize = openFile(availableReadPath("StreamingAssets.bytes"), out byte[] fileBuffer, false);
 		if (fileBuffer != null)
 		{
 			initAssetConfig(fileBuffer, fileSize);
@@ -497,7 +496,7 @@ public class AssetBundleLoader : FrameBase
 		bundleInfo.setLoadState(LOAD_STATE.LOADING);
 		AssetBundle assetBundle = null;
 		string bundleFileName = bundleInfo.getBundleFileName();
-		AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(availablePath(bundleFileName));
+		AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(availableReadPath(bundleFileName));
 		if (request != null)
 		{
 			yield return request;
@@ -506,7 +505,6 @@ public class AssetBundleLoader : FrameBase
 		else
 		{
 			logError("can not load asset bundle async : " + bundleFileName);
-			--mAssetBundleCoroutineCount;
 		}
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 		if (assetBundle != null)
@@ -522,6 +520,7 @@ public class AssetBundleLoader : FrameBase
 	protected IEnumerator loadAssetCoroutine(AssetBundleInfo bundle, string fileNameWithSuffix)
 	{
 		++mAssetCoroutineCount;
+		// 只有等资源所属的AssetBundle加载完毕以后才能开始加载其中的单个资源
 		if (bundle.getLoadState() != LOAD_STATE.LOADED)
 		{
 			logError("asset bundle is not loaded, can not load asset async!");

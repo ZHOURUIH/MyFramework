@@ -36,7 +36,7 @@ public class ILRSystem : FrameSystem
 	protected IEnumerator loadILRuntime()
 	{
 		// 下载dll文件
-		string dllDownloadPath = availablePath(FrameDefine.ILR_FILE);
+		string dllDownloadPath = availableReadPath(FrameDefine.ILR_FILE);
 		checkDownloadPath(ref dllDownloadPath);
 		WWW wwwDll = new WWW(dllDownloadPath);
 		while (!wwwDll.isDone)
@@ -51,7 +51,7 @@ public class ILRSystem : FrameSystem
 		wwwDll.Dispose();
 		// 下载pdb文件
 #if UNITY_EDITOR
-		string pdbDownloadPath = availablePath(FrameDefine.ILR_PDB_FILE);
+		string pdbDownloadPath = availableReadPath(FrameDefine.ILR_PDB_FILE);
 		checkDownloadPath(ref pdbDownloadPath);
 		WWW wwwPDB = new WWW(pdbDownloadPath);
 		while (!wwwPDB.isDone)
@@ -69,7 +69,14 @@ public class ILRSystem : FrameSystem
 		mAppDomain.LoadAssembly(mDllFile, mPDBFile, new PdbReaderProvider());
 #if UNITY_EDITOR
 		// 固定绑定56000端口,用于ILRuntime调试
-		mAppDomain.DebugService.StartDebugService(56000);
+		if (mAppDomain.DebugService.StartDebugService(56000))
+		{
+			logForce("启动IL调试成功,端口:" + mAppDomain.DebugService.getDebugPort());
+		}
+		else
+		{
+			logError("启动IL调试失败");
+		}
 #endif
 #if DEBUG && (UNITY_EDITOR || UNITY_ANDROID || UNITY_IOS)
 		// 由于Unity的Profiler接口只允许在主线程使用，为了避免出异常，需要告诉ILRuntime主线程的线程ID才能正确将函数运行耗时报告给Profiler

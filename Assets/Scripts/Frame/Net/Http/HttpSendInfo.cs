@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
+// Http消息的发送信息
 public class HttpSendInfo : FrameBase
 {
 	public string mMessage;		// 发送的消息内容

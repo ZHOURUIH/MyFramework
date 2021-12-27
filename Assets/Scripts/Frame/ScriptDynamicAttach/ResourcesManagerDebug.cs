@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// 资源管理器调试信息
 public class ResourcesManagerDebug : MonoBehaviour
 {
-	// 已加载的AssetBundle列表
-	public List<string> mLoadedAssetBundleListKeys = new List<string>();
-	public List<AssetBundleDebug> mLoadedAssetBundleListValues = new List<AssetBundleDebug>();
+	public List<string> mLoadedAssetBundleListKeys = new List<string>();						// 已加载的AssetBundle列表Key
+	public List<AssetBundleDebug> mLoadedAssetBundleListValues = new List<AssetBundleDebug>();	// 已加载的AssetBundle列表Value
 	public void Update()
 	{
 		if (!FrameBase.mGameFramework.mEnableScriptDebug)

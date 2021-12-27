@@ -1,29 +1,21 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-// 设置在编辑模式下也执行该脚本  
+// 设置在编辑模式下也执行该脚本
+// 用于实现模糊的后处理脚本,挂在摄像机上的
 [ExecuteInEditMode]
 public class GaussianBlur : MonoBehaviour
 {
-	// 指定Shader名称  
-	private string ShaderName = "Frame/GaussianBlur";
-	// 着色器和材质实例  
-	public Shader CurShader;
-	private Material CurMaterial;
-	// 几个用于调节参数的中间变量  
-	public static int ChangeValue;
-	public static float ChangeValue2;
-	public static int ChangeValue3;
-	// 降采样次数  
+	private string ShaderName = "Frame/GaussianBlur";	// 指定Shader名称
+	public Shader CurShader;							// 着色器实例
+	private Material CurMaterial;						// 材质实例
 	[Range(0, 6), Tooltip("[降采样次数]向下采样的次数。此值越大,则采样间隔越大,需要处理的像素点越少,运行速度越快。")]
-	public int DownSampleNum = 2;
-	// 模糊扩散度  
+	public int DownSampleNum = 2;						// 降采样次数
 	[Range(0.0f, 20.0f), Tooltip("[模糊扩散度]进行高斯模糊时，相邻像素点的间隔。此值越大相邻像素间隔越远，图像越模糊。但过大的值会导致失真。")]
-	public float BlurSpreadSize = 3.0f;
-	// 迭代次数  
+	public float BlurSpreadSize = 3.0f;					// 模糊扩散度
 	[Range(0, 8), Tooltip("[迭代次数]此值越大,则模糊操作的迭代次数越多，模糊效果越好，但消耗越大。")]
-	public int BlurIterations = 3;
-	public Color mMaskColor = Color.white;
+	public int BlurIterations = 3;						// 迭代次数
+	public Color mMaskColor = Color.white;				// 颜色
 	Material material
 	{
 		get
@@ -38,11 +30,6 @@ public class GaussianBlur : MonoBehaviour
 	}
 	void Start()
 	{
-		// 依次赋值
-		ChangeValue = DownSampleNum;
-		ChangeValue2 = BlurSpreadSize;
-		ChangeValue3 = BlurIterations;
-
 		// 找到当前的Shader文件  
 		if (CurShader == null)
 		{
@@ -79,7 +66,7 @@ public class GaussianBlur : MonoBehaviour
 			{
 				// 【2.1】Shader参数赋值  
 				// 迭代偏移量参数  
-				float iterationOffs = (i * 1.0f);
+				float iterationOffs = i * 1.0f;
 				// Shader的降采样参数赋值  
 				material.SetFloat("_DownSampleValue", BlurSpreadSize * widthMod + iterationOffs);
 
@@ -118,23 +105,8 @@ public class GaussianBlur : MonoBehaviour
 			Graphics.Blit(sourceTexture, destTexture);
 		}
 	}
-	void OnValidate()
-	{
-		// 将编辑器中的值赋值回来，确保在编辑器中值的改变立刻让结果生效  
-		ChangeValue = DownSampleNum;
-		ChangeValue2 = BlurSpreadSize;
-		ChangeValue3 = BlurIterations;
-	}
 	void Update()
 	{
-		// 若程序在运行，进行赋值  
-		if (Application.isPlaying)
-		{
-			// 赋值  
-			DownSampleNum = ChangeValue;
-			BlurSpreadSize = ChangeValue2;
-			BlurIterations = ChangeValue3;
-		}
 		// 若程序没有在运行，去寻找对应的Shader文件  
 #if UNITY_EDITOR
 		if (!Application.isPlaying)

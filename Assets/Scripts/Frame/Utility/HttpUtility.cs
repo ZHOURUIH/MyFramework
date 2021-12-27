@@ -6,11 +6,13 @@ using System.Net;
 using System.Threading;
 using System.Security.Cryptography.X509Certificates;
 using System.Net.Security;
+using UnityEngine;
 
+// 封装的Http的相关操作,因为其中全是静态工具函数,所以名字为Utility,但是由于需要管理一些线程,所以与普通的工具函数类不同
 public class HttpUtility : FrameSystem
 {
-	protected static List<Thread> mHttpThreadList;
-	protected static ThreadLock ThreadListLock;
+	protected static List<Thread> mHttpThreadList;  // 线程列表
+	protected static ThreadLock ThreadListLock;     // 线程列表的锁
 	public HttpUtility()
 	{
 		mHttpThreadList = new List<Thread>();
@@ -33,94 +35,121 @@ public class HttpUtility : FrameSystem
 	public static byte[] downloadFile(string url, int offset = 0, byte[] helperBytes = null, string fileName = EMPTY,
 										StartDownloadCallback startCallback = null, DownloadingCallback downloading = null)
 	{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 		logForce("开始http下载:" + url);
-		HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-		request.AddRange(offset);
-		WebResponse response = request.GetResponse();
-		long fileSize = response.ContentLength + offset;
-		// response.ContentLength只是剩余需要下载的长度,需要加上下载起始偏移才是文件的真实大小
-		startCallback?.Invoke(fileName, fileSize);
-		Stream inStream = response.GetResponseStream();
-		var downloadStream = new MemoryStream();
-		bool isTempHelperBytes = helperBytes == null;
-		if (helperBytes == null)
+#else
+		logForce("开始http下载:" + getFileName(url));
+#endif
+		try
 		{
-			ARRAY_THREAD(out helperBytes, 1024);
+			HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+			request.AddRange(offset);
+			WebResponse response = request.GetResponse();
+			long fileSize = response.ContentLength + offset;
+			// response.ContentLength只是剩余需要下载的长度,需要加上下载起始偏移才是文件的真实大小
+			startCallback?.Invoke(fileName, fileSize);
+			Stream inStream = response.GetResponseStream();
+			var downloadStream = new MemoryStream();
+			bool isTempHelperBytes = helperBytes == null;
+			if (helperBytes == null)
+			{
+				ARRAY_THREAD(out helperBytes, 1024);
+			}
+			int readCount;
+			do
+			{
+				// 从输入流中读取数据放入内存中
+				readCount = inStream.Read(helperBytes, 0, helperBytes.Length);
+				downloadStream.Write(helperBytes, 0, readCount);
+				downloading?.Invoke(fileName, fileSize, downloadStream.Length);
+			} while (readCount > 0);
+			if (isTempHelperBytes)
+			{
+				UN_ARRAY_THREAD(helperBytes);
+			}
+			byte[] dataBytes = downloadStream.ToArray();
+			downloadStream.Close();
+			inStream.Close();
+			response.Close();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+			logForce("http下载完成:" + url);
+#else
+			logForce("http下载完成:" + getFileName(url));
+#endif
+			return dataBytes;
 		}
-		int readCount;
-		do
+		catch (Exception e)
 		{
-			// 从输入流中读取数据放入内存中
-			readCount = inStream.Read(helperBytes, 0, helperBytes.Length);
-			downloadStream.Write(helperBytes, 0, readCount);
-			downloading?.Invoke(fileName, fileSize, downloadStream.Length);
-		} while (readCount > 0);
-		if (isTempHelperBytes)
-		{
-			UN_ARRAY_THREAD(helperBytes);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+			logForce("http下载失败:" + e.Message + ", url:" + url);
+#else
+			logForce("http下载失败:" + e.Message + ", url:" + getFileName(url));
+#endif
 		}
-		byte[] dataBytes = downloadStream.ToArray();
-		downloadStream.Close();
-		inStream.Close();
-		response.Close();
-		logForce("http下载完成:" + url);
-		return dataBytes;
+		return null;
 	}
-	public static string httpPostFile(string url, List<FormItem> itemList, Action<string, object> callback, object callbakcUserData)
+	public static string delete(string url, Dictionary<string, string> paramList, Dictionary<string, string> header, string contentType, Action<string> callback)
+	{
+		// 根据url地址创建HttpWebRequest对象
+		url += generateGetParams(paramList);
+		var webRequest = (HttpWebRequest)WebRequest.Create(new Uri(url));
+		webRequest.Method = "DELETE";
+		webRequest.KeepAlive = true;
+		webRequest.ProtocolVersion = HttpVersion.Version11;
+		webRequest.ContentType = contentType;
+		webRequest.AllowAutoRedirect = true;
+		webRequest.MaximumAutomaticRedirections = 2;
+		webRequest.Timeout = 10000;
+		if (header != null)
+		{
+			foreach (var item in header)
+			{
+				webRequest.Headers.Add(item.Key, item.Value);
+			}
+		}
+		return httpRequest(webRequest, url, callback);
+	}
+	public static string postFile(string url, List<FormItem> formList)
+	{
+		return postFile(url, formList, null);
+	}
+	public static string postFile(string url, List<FormItem> formList, Action<string> callback)
 	{
 		// 以模拟表单的形式上传数据
-		string boundary = "----" + DateTime.Now.Ticks.ToString("x");
-		string fileFormdataTemplate = "\r\n--" + boundary + "\r\n" +
-									"Content-Disposition: form-data; name=\"{0}\"; filename=\"{1}\"" + "\r\n" +
-									"Content-Type: application/octet-stream" + "\r\n\r\n";
-		string dataFormdataTemplate = "\r\n--" + boundary + "\r\n" +
-									"Content-Disposition: form-data; name=\"{0}\"" + "\r\n\r\n{1}";
+		string boundary = DateTime.Now.Ticks.ToString("x");
 		var postStream = new MemoryStream();
-		int count = itemList.Count;
-		for (int i = 0; i < count; ++i)
+		if (formList != null)
 		{
-			FormItem item = itemList[i];
-			string formdata;
-			if (item.mFileContent != null)
+			int count = formList.Count;
+			for (int i = 0; i < count; ++i)
 			{
-				formdata = string.Format(fileFormdataTemplate, "fileContent", item.mFileName);
-			}
-			else
-			{
-				formdata = string.Format(dataFormdataTemplate, item.mKey, item.mValue);
-			}
-			// 统一处理
-			byte[] formdataBytes;
-			// 第一行不需要换行
-			if (postStream.Length == 0)
-			{
-				formdataBytes = stringToBytes(formdata.Substring(2), Encoding.UTF8);
-			}
-			else
-			{
-				formdataBytes = stringToBytes(formdata, Encoding.UTF8);
-			}
-			postStream.Write(formdataBytes, 0, formdataBytes.Length);
-			// 写入文件内容
-			if (item.mFileContent != null && item.mFileContent.Length > 0)
-			{
-				postStream.Write(item.mFileContent, 0, item.mFileContent.Length);
+				formList[i].write(postStream, boundary);
 			}
 		}
 		// 结尾
-		byte[] footer = stringToBytes("\r\n--" + boundary + "--\r\n", Encoding.UTF8);
+		byte[] footer = stringToBytes("\r\n--" + boundary + "--\r\n");
 		postStream.Write(footer, 0, footer.Length);
 		// 发送请求
-		string ret = httpPost(url, postStream.GetBuffer(), (int)postStream.Length, callback, callbakcUserData);
+		string contentType = "multipart/form-data; boundary=" + boundary;
+		string ret = post(url, postStream.GetBuffer(), (int)postStream.Length, contentType, null, callback);
 		postStream.Close();
 		return ret;
 	}
-	public static string httpPost(string url, byte[] data, int dataLength, string contentType, Dictionary<string, string> header, Action<string, object> callback, object callbakcUserData)
+	public static string post(string url, byte[] data, int dataLength, string contentType, Dictionary<string, string> header, Action<string> callback)
 	{
+		// 确认数据长度
 		if (dataLength < 0)
 		{
-			dataLength = data.Length;
+			if (data != null)
+			{
+				dataLength = data.Length;
+			}
+			else
+			{
+				dataLength = 0;
+			}
 		}
+
 		// 初始化新的webRequst
 		// 创建httpWebRequest对象
 		ServicePointManager.ServerCertificateValidationCallback = myRemoteCertificateValidationCallback;
@@ -138,16 +167,91 @@ public class HttpUtility : FrameSystem
 		webRequest.ContentLength = dataLength;
 		webRequest.Credentials = CredentialCache.DefaultCredentials;
 		webRequest.Timeout = 10000;
+		webRequest.AllowAutoRedirect = true;
+		// 附加要POST给服务器的数据到HttpWebRequest对象,附加POST数据的过程比较特殊
+		// 它并没有提供一个属性给用户存取，需要写入HttpWebRequest对象提供的一个stream里面
+		// 创建一个Stream,赋值是写入HttpWebRequest对象提供的一个stream里面
+		if (data != null)
+		{
+			Stream newStream = webRequest.GetRequestStream();
+			newStream.Write(data, 0, dataLength);
+			newStream.Close();
+		}
+
+		return httpRequest(webRequest, url, callback);
+	}
+	public static string post(string url, byte[] data, int dataLength = -1, Action<string> callback = null)
+	{
+		return post(url, data, dataLength, "application/x-www-form-urlencoded", null, callback);
+	}
+	public static string post(string url, string param, Action<string> callback = null)
+	{
+		return post(url, stringToBytes(param), -1, "application/x-www-form-urlencoded", null, callback);
+	}
+	public static string post(string url, string param, string contentType, Action<string> callback = null)
+	{
+		return post(url, stringToBytes(param), -1, contentType, null, callback);
+	}
+	public static string post(string url, string param, string contentType, Dictionary<string, string> header)
+	{
+		return post(url, stringToBytes(param), -1, contentType, header, null);
+	}
+	public static string post(string url, Dictionary<string, string> header, Action<string> callback)
+	{
+		return post(url, null, -1, "application/x-www-form-urlencoded", header, null);
+	}
+	public static string get(string url)
+	{
+		return get(url, null, null, "application/x-www-form-urlencoded", null);
+	}
+	public static string get(string url, string contentType)
+	{
+		return get(url, null, null, contentType, null);
+	}
+	public static string get(string url, Dictionary<string, string> paramList)
+	{
+		return get(url, paramList, null, "application/x-www-form-urlencoded", null);
+	}
+	public static string get(string url, Dictionary<string, string> paramList, Action<string> callback)
+	{
+		return get(url, paramList, null, "application/x-www-form-urlencoded", callback);
+	}
+	public static string get(string url, Action<string> callback)
+	{
+		return get(url, null, null, "application/x-www-form-urlencoded", callback);
+	}
+	public static string get(string url, Dictionary<string, string> paramList, Dictionary<string, string> header, string contentType, Action<string> callback)
+	{
+		// 根据url地址创建HttpWebRequest对象
+		url += generateGetParams(paramList);
+		var webRequest = (HttpWebRequest)WebRequest.Create(new Uri(url));
+		webRequest.Method = "GET";
+		webRequest.KeepAlive = true;
+		webRequest.ProtocolVersion = HttpVersion.Version11;
+		webRequest.ContentType = contentType;
+		webRequest.AllowAutoRedirect = true;
+		webRequest.MaximumAutomaticRedirections = 2;
+		webRequest.Timeout = 10000;
+		if (header != null)
+		{
+			foreach (var item in header)
+			{
+				webRequest.Headers.Add(item.Key, item.Value);
+			}
+		}
+		return httpRequest(webRequest, url, callback);
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected static string httpRequest(HttpWebRequest webRequest, string url, Action<string> callback)
+	{
 		// 异步
 		if (callback != null)
 		{
 			var threadParam = new RequestThreadParam();
 			threadParam.mRequest = webRequest;
-			threadParam.mByteArray = data;
 			threadParam.mCallback = callback;
-			threadParam.mUserData = callbakcUserData;
 			threadParam.mFullURL = url;
-			Thread httpThread = new Thread(waitHttpPost);
+			Thread httpThread = new Thread(waitResponse);
 			threadParam.mThread = httpThread;
 			httpThread.Start(threadParam);
 			httpThread.IsBackground = true;
@@ -160,13 +264,6 @@ public class HttpUtility : FrameSystem
 		{
 			try
 			{
-				// 附加要POST给服务器的数据到HttpWebRequest对象,附加POST数据的过程比较特殊
-				// 它并没有提供一个属性给用户存取，需要写入HttpWebRequest对象提供的一个stream里面
-				// 创建一个Stream,赋值是写入HttpWebRequest对象提供的一个stream里面
-				Stream newStream = webRequest.GetRequestStream();
-				newStream.Write(data, 0, dataLength);
-				newStream.Close();
-				// 读取服务器的返回信息
 				var response = (HttpWebResponse)webRequest.GetResponse();
 				var reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
 				string str = reader.ReadToEnd();
@@ -177,133 +274,26 @@ public class HttpUtility : FrameSystem
 			}
 			catch (Exception e)
 			{
-				logForce("http exception:" + e.Message + ", url:" + url);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+				logForce("http request exception:" + e.Message + ", url:" + url);
+#else
+				logForce("http request exception:" + e.Message + ", url:" + getFileName(url));
+#endif
 			}
 		}
 		return null;
 	}
-	public static string httpPost(string url, byte[] data, int dataLength = -1, Action<string, object> callback = null, object callbakcUserData = null)
-	{
-		return httpPost(url, data, dataLength, "application/x-www-form-urlencoded", null, callback, callbakcUserData);
-	}
-	public static string httpPost(string url, string param, Action<string, object> callback = null, object callbakcUserData = null)
-	{
-		return httpPost(url, stringToBytes(param, Encoding.UTF8), -1, "application/x-www-form-urlencoded", null, callback, callbakcUserData);
-	}
-	public static string httpPost(string url, string param, string contentType, Action<string, object> callback = null, object callbakcUserData = null)
-	{
-		return httpPost(url, stringToBytes(param, Encoding.UTF8), -1, contentType, null, callback, callbakcUserData);
-	}
-	public static string httpPost(string url, string param, string contentType, Dictionary<string, string> header)
-	{
-		return httpPost(url, stringToBytes(param, Encoding.UTF8), -1, contentType, header, null, null);
-	}
-	public static string generateHttpGet(string url, Dictionary<string, string> get)
-	{
-		if (get == null || get.Count == 0)
-		{
-			return url;
-		}
-		int count = get.Count;
-		MyStringBuilder parameters = STRING(url, "?");
-		// 从集合中取出所有参数，设置表单参数（AddField())
-		int index = 0;
-		foreach (var item in get)
-		{
-			if (index != count - 1)
-			{
-				parameters.append(item.Key, "=", item.Value, "&");
-			}
-			else
-			{
-				parameters.append(item.Key, "=", item.Value);
-			}
-			++index;
-		}
-		return END_STRING(parameters);
-	}
-	public static string httpGet(string urlString)
-	{
-		return httpGet(urlString, "application/x-www-form-urlencoded");
-	}
-	public static string httpGet(string urlString, string contentType)
-	{
-		return httpGet(urlString, contentType);
-	}
-	public static string httpGet(string urlString, Action<string, object> callback)
-	{
-		return httpGet(urlString, "application/x-www-form-urlencoded", callback, null);
-	}
-	public static string httpGet(string urlString, Action<string, object> callback, object userData)
-	{
-		return httpGet(urlString, "application/x-www-form-urlencoded", callback, userData);
-	}
-	public static string httpGet(string urlString, string contentType, Action<string, object> callback, object userData)
-	{
-		// 根据url地址创建HTTpWebRequest对象
-		var httprequest = (HttpWebRequest)WebRequest.Create(new Uri(urlString));
-		httprequest.Method = "GET";
-		httprequest.KeepAlive = false;
-		httprequest.ProtocolVersion = HttpVersion.Version11;
-		httprequest.ContentType = contentType;
-		httprequest.AllowAutoRedirect = true;
-		httprequest.MaximumAutomaticRedirections = 2;
-		httprequest.Timeout = 10000;
-		// 异步
-		if (callback != null)
-		{
-			var threadParam = new RequestThreadParam();
-			threadParam.mRequest = httprequest;
-			threadParam.mByteArray = null;
-			threadParam.mCallback = callback;
-			threadParam.mUserData = userData;
-			threadParam.mFullURL = urlString;
-			Thread httpThread = new Thread(waitHttpGet);
-			threadParam.mThread = httpThread;
-			httpThread.Start(threadParam);
-			httpThread.IsBackground = true;
-			ThreadListLock?.waitForUnlock();
-			mHttpThreadList?.Add(httpThread);
-			ThreadListLock?.unlock();
-		}
-		// 同步
-		else
-		{
-			try
-			{
-				var response = (HttpWebResponse)httprequest.GetResponse();
-				var reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
-				string str = reader.ReadToEnd();
-				reader.Close();
-				response.Close();
-				httprequest.Abort();
-				return str;
-			}
-			catch (Exception e)
-			{
-				logForce("http get exception:" + e.Message + ", url:" + urlString);
-			}
-		}
-		return null;
-	}
-	//------------------------------------------------------------------------------------------------------------------------------
-	protected static void waitHttpPost(object param)
+	protected static void waitResponse(object param)
 	{
 		var threadParam = (RequestThreadParam)param;
 		try
 		{
-			// 附加要POST给服务器的数据到HttpWebRequest对象,附加POST数据的过程比较特殊
-			// 它并没有提供一个属性给用户存取，需要写入HttpWebRequest对象提供的一个stream里面
-			// 创建一个Stream,赋值是写入HttpWebRequest对象提供的一个stream里面
-			Stream newStream = threadParam.mRequest.GetRequestStream();
-			newStream.Write(threadParam.mByteArray, 0, threadParam.mByteArray.Length);
-			newStream.Close();
 			// 读取服务器的返回信息
 			var response = (HttpWebResponse)threadParam.mRequest.GetResponse();
 			var reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
 
 			// 延迟到主线程执行
-			delayCallThread(threadParam.mCallback, reader.ReadToEnd(), threadParam.mUserData);
+			delayCallThread(threadParam.mCallback, reader.ReadToEnd());
 
 			reader.Close();
 			response.Close();
@@ -312,7 +302,7 @@ public class HttpUtility : FrameSystem
 		}
 		catch (Exception e)
 		{
-			delayCallThread(threadParam.mCallback, null, threadParam.mUserData);
+			delayCallThread(threadParam.mCallback, null);
 			log("http post result exception:" + e.Message + ", url:" + threadParam.mFullURL);
 		}
 		finally
@@ -322,35 +312,28 @@ public class HttpUtility : FrameSystem
 			ThreadListLock?.unlock();
 		}
 	}
-	protected static void waitHttpGet(object param)
+	protected static string generateGetParams(Dictionary<string, string> paramList)
 	{
-		var threadParam = (RequestThreadParam)param;
-		try
+		if (paramList == null || paramList.Count == 0)
 		{
-			var response = (HttpWebResponse)threadParam.mRequest.GetResponse();
-			StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
-
-			// 延迟到主线程执行
-			delayCallThread(threadParam.mCallback, reader.ReadToEnd(), threadParam.mUserData);
-
-			reader.Close();
-			response.Close();
-			threadParam.mRequest.Abort();
-			threadParam.mRequest = null;
+			return EMPTY;
 		}
-		catch (Exception e)
+		int count = paramList.Count;
+		MyStringBuilder parameters = STRING("?");
+		// 从集合中取出所有参数，设置表单参数（AddField())
+		int index = 0;
+		foreach (var item in paramList)
 		{
-			delayCallThread(threadParam.mCallback, null, threadParam.mUserData);
-			log("http get result exception : " + e.Message + ", url : " + threadParam.mFullURL);
+			parameters.append(item.Key, "=", item.Value);
+			if (index != count - 1)
+			{
+				parameters.append('&');
+			}
+			++index;
 		}
-		finally
-		{
-			ThreadListLock?.waitForUnlock();
-			mHttpThreadList?.Remove(threadParam.mThread);
-			ThreadListLock?.unlock();
-		}
+		return END_STRING(parameters);
 	}
-	protected static bool myRemoteCertificateValidationCallback(System.Object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+	protected static bool myRemoteCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
 	{
 		// If there are errors in the certificate chain,
 		// look at each error to determine the cause.
