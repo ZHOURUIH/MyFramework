@@ -29,7 +29,6 @@ public static class CrossAdapterRegister
 		appDomain.RegisterCrossBindingAdaptor(new TransformableAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new NetPacketAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new GameEventAdapter());
-		appDomain.RegisterCrossBindingAdaptor(new WindowObjectAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new WindowObjectUIAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new WindowObjectUGUIAdapter());
 		appDomain.RegisterCrossBindingAdaptor(new MonoBehaviourAdapter());
