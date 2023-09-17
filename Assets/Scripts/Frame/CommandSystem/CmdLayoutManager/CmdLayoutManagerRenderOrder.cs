@@ -1,43 +1,23 @@
 ﻿using System;
+using static FrameBase;
 
 // 设置布局绝对的渲染顺序
-public class CmdLayoutManagerRenderOrder : Command
+public class CmdLayoutManagerRenderOrder
 {
-	public GameLayout mLayout;
-	public int mLayoutID;
-	public int mRenderOrder;
-	public override void resetProperty()
+	// layout,布局
+	// layoutID,布局ID,如果布局为空,则通过ID获取
+	// renderOrder,绝对渲染顺序
+	public static void execute(GameLayout layout, int renderOrder)
 	{
-		base.resetProperty();
-		mLayout = null;
-		mLayoutID = LAYOUT.NONE;
-		mRenderOrder = 0;
-	}
-	public override void execute()
-	{
-		if(mLayout == null)
-		{
-			mLayout = mLayoutManager.getGameLayout(mLayoutID);
-		}
-		if (mLayout == null)
+		if (layout == null)
 		{
 			return;
 		}
-		if (mRenderOrder != mLayout.getRenderOrder())
+		if (renderOrder != layout.getRenderOrder())
 		{
-			mLayout.setRenderOrder(mRenderOrder);
+			layout.setRenderOrder(renderOrder);
 		}
 		// 通知布局管理器布局显示或隐藏
 		mLayoutManager.notifyLayoutRenderOrder();
-	}
-	public override void debugInfo(MyStringBuilder builder)
-	{
-		int layoutID = mLayout != null ? mLayout.getID() : LAYOUT.NONE;
-		if(layoutID == LAYOUT.NONE)
-		{
-			layoutID = mLayoutID;
-		}
-		builder.Append(": mLayoutID:", layoutID).
-				Append(", mRenderOrder:", mRenderOrder);
 	}
 }

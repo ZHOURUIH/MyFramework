@@ -158,7 +158,16 @@ namespace ILRuntime.Runtime.Intepreter.RegisterVM
                 {
                     if (b.PreviousBlocks.Count == 0)
                     {
-                        if (CheckNeedInitObj(b, r, method.ReturnType != method.AppDomain.VoidType, visitedBlocks))
+                        var lt = def.Body.Variables[r - locVarRegStart];
+                        bool needInitOjb = false;
+                        if (lt.VariableType.IsGenericParameter)
+                        {
+                            var gt = method.FindGenericArgument(lt.VariableType.Name);
+                            needInitOjb = gt.IsValueType && !gt.IsPrimitive;
+                        }
+                        else
+                            needInitOjb = lt.VariableType.IsValueType && !lt.VariableType.IsPrimitive;
+                        if (needInitOjb || CheckNeedInitObj(b, r, method.ReturnType != method.AppDomain.VoidType, visitedBlocks))
                         {
                             OpCodeR code = new OpCodeR();
                             code.Code = OpCodeREnum.Initobj;
@@ -333,7 +342,7 @@ namespace ILRuntime.Runtime.Intepreter.RegisterVM
 #endif
             switchTargets = jumptables;
             var totalRegCnt = Optimizer.CleanupRegister(res, locVarRegStart, hasReturn);
-            stackRegisterCnt = totalRegCnt - baseRegStart;
+            stackRegisterCnt = Math.Max(totalRegCnt - baseRegStart, 0);
 #if OUTPUT_JIT_RESULT
             Console.WriteLine($"Final Results for {method}:");
 
@@ -711,10 +720,10 @@ namespace ILRuntime.Runtime.Intepreter.RegisterVM
                     baseRegIdx--;
                     break;
                 case Code.Nop:
-                case Code.Castclass:
                 case Code.Readonly:
                 case Code.Volatile:
                 case Code.Endfinally:
+                case Code.Rethrow:
                     break;
                 case Code.Leave:
                 case Code.Leave_S:
@@ -923,6 +932,7 @@ namespace ILRuntime.Runtime.Intepreter.RegisterVM
                 case Code.Unbox:
                 case Code.Unbox_Any:
                 case Code.Isinst:
+                case Code.Castclass:
                     op.Register1 = (short)(baseRegIdx - 1);
                     op.Register2 = (short)(baseRegIdx - 1);
                     op.Operand = method.GetTypeTokenHashCode(token);
@@ -1003,7 +1013,7 @@ namespace ILRuntime.Runtime.Intepreter.RegisterVM
                 pCnt = m.ParameterCount;
                 if (!m.IsStatic && op.Code != OpCodeREnum.Newobj)
                     pCnt++;
-                hasReturn = m.ReturnType != appdomain.VoidType;
+                hasReturn = m.ReturnType != appdomain.VoidType && !(m.IsConstructor && op.Code == OpCodeREnum.Call);
                 if (m is ILMethod)
                 {
                     isILMethod = !m.IsDelegateInvoke;
@@ -1011,7 +1021,7 @@ namespace ILRuntime.Runtime.Intepreter.RegisterVM
                     bool noJIT = (ilm.JITFlags & ILRuntimeJITFlags.NoJIT) != ILRuntimeJITFlags.None;
                     bool forceInline = (ilm.JITFlags & ILRuntimeJITFlags.ForceInline) != ILRuntimeJITFlags.None;
                     bool hasExceptionHandler = ilm.Definition.HasBody && ilm.Definition.Body.HasExceptionHandlers;
-                    if (!ilm.IsDelegateInvoke && !ilm.IsVirtual && !noJIT && !hasExceptionHandler && !ilm.Compiling)
+                    if (!ilm.IsDelegateInvoke && !ilm.IsVirtual && !noJIT && !hasExceptionHandler && !ilm.Compiling && !ilm.IsEventAdd && !ilm.IsEventRemove)
                     {
                         var def = ilm.Definition;
                         if (!def.HasBody || forceInline)

@@ -2,7 +2,12 @@
 using Mono.Data.Sqlite;
 using System.Collections.Generic;
 using System;
+using static CSharpUtility;
+using static FrameBase;
+using static FileUtility;
+using static FrameUtility;
 
+// SQLite数据表格管理器
 public class SQLiteManager : FrameSystem
 {
 	protected Dictionary<string, SQLiteTable> mTableNameList;		// 根据表格名查找表格
@@ -28,9 +33,13 @@ public class SQLiteManager : FrameSystem
 	}
 	public void loadAll()
 	{
+		// 加载前先删除之前创建的所有临时文件
+#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
+		deleteFolder(availableWritePath("temp/"));
+#endif
 		foreach (var item in mTableList)
 		{
-			item.Value.load(FrameDefineExtension.SQLITE_ENCRYPT_KEY);
+			item.Value.load();
 		}
 	}
 	public void setAutoLoad(bool autoLoad) { mAutoLoad = autoLoad; }
@@ -43,15 +52,18 @@ public class SQLiteManager : FrameSystem
 		mTableNameList.Add(tableName, table);
 		mTableDataTypeList.Add(dataType, table);
 		// 如果在注册时资源已经可用了,则可以直接加载表格
-		if (mGameFramework.isResourceAvailable())
+		if (mGameFramework == null || mGameFramework.isResourceAvailable())
 		{
-			table.load(FrameDefineExtension.SQLITE_ENCRYPT_KEY);
+			table.load();
 		}
 		return table;
 	}
 	public override void destroy()
 	{
 		base.destroy();
+#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
+		deleteFolder(availableWritePath("temp/"));
+#endif
 		foreach (var item in mTableList)
 		{
 			item.Value.destroy();

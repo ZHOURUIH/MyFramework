@@ -1,10 +1,12 @@
 ﻿using System;
+using static FrameBase;
 
+// 进入到指定的场景
 public class CmdGameSceneManagerEnter : Command
 {
-	public Type mStartProcedure;
-	public Type mSceneType;
-	public string mIntent;
+	public Type mStartProcedure;	// 进入场景后要进入的流程,为空则表示进入场景的默认起始流程
+	public Type mSceneType;			// 场景类型
+	public string mIntent;			// 进入流程时要传递的参数
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -18,8 +20,8 @@ public class CmdGameSceneManagerEnter : Command
 	}
 	public override void debugInfo(MyStringBuilder builder)
 	{
-		builder.Append(": mSceneType:", mSceneType).
-				Append(", mStartProcedure:", mStartProcedure).
-				Append(", mIntent:", mIntent);
+		builder.append(": mSceneType:", mSceneType).
+				append(", mStartProcedure:", mStartProcedure).
+				append(", mIntent:", mIntent);
 	}
 }

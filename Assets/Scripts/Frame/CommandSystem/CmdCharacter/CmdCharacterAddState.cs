@@ -1,43 +1,26 @@
 ﻿using System;
 
-public class CmdCharacterAddState : Command
+// 给角色添加一个状态
+public class CmdCharacterAddState
 {
-	public StateParam mParam;	// 状态所需参数
-	public Type mStateType;		// 状态类型
-	public UINT mOutStateID;	// 用于返回添加的状态的ID
-	public float mStateTime;	// 状态持续时间,小于0表示不修改默认持续时间
-	public uint mStateID;		// 状态ID,可不填
-	public override void resetProperty()
+	// 状态所需参数
+	// 状态类型
+	// 用于返回添加的状态的ID
+	// 状态持续时间,小于0表示不修改默认持续时间
+	// 状态ID,可不填
+	public static CharacterState execute(Character character, Type stateType, StateParam param  = null, float stateTime = -1.0f, long stateID = 0)
 	{
-		base.resetProperty();
-		mStateType = null;
-		mParam = null;
-		mOutStateID = null;
-		mStateTime = -1.0f;
-		mStateID = 0;
-	}
-	public override void execute()
-	{
-		var character = mReceiver as Character;
-		if (mStateType == null)
+		if (stateType == null)
 		{
-			return;
+			return null;
 		}
-		bool ret = character.getStateMachine().addState(mStateType, mParam, out CharacterState state, mStateTime, mStateID);
-		if (ret)
+		COMCharacterStateMachine stateMachine = character.getStateMachine();
+		if (stateMachine == null)
 		{
-			mOutStateID?.set(state.getID());
+			return null;
 		}
-		mResult?.set(ret);
-		if(mParam != null)
-		{
-			UN_CLASS(mParam);
-			state.setParam(null);
-		}
-	}
-	public override void debugInfo(MyStringBuilder builder)
-	{
-		builder.Append(": mStateType:", mStateType).
-				Append(", mStateTime:", mStateTime);
+		CharacterState state = stateMachine.addState(stateType, param, stateTime, stateID);
+		state?.setParam(null);
+		return state;
 	}
 }

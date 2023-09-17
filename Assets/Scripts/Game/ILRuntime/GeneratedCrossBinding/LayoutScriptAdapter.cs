@@ -2,29 +2,16 @@ using System;
 using ILRuntime.CLR.Method;
 using ILRuntime.Runtime.Enviorment;
 using ILRuntime.Runtime.Intepreter;
+#if DEBUG && !DISABLE_ILRUNTIME_DEBUG
+using AutoList = System.Collections.Generic.List<object>;
+#else
+using AutoList = ILRuntime.Other.UncheckedList<object>;
+#endif
 
 namespace HotFix
 {   
     public class LayoutScriptAdapter : CrossBindingAdaptor
     {
-        static CrossBindingMethodInfo mdestroy_0 = new CrossBindingMethodInfo("destroy");
-        static CrossBindingMethodInfo mresetProperty_1 = new CrossBindingMethodInfo("resetProperty");
-        static CrossBindingMethodInfo<global::GameLayout> msetLayout_2 = new CrossBindingMethodInfo<global::GameLayout>("setLayout");
-        static CrossBindingFunctionInfo<System.Boolean> monESCDown_3 = new CrossBindingFunctionInfo<System.Boolean>("onESCDown");
-        static CrossBindingMethodInfo massignWindow_4 = new CrossBindingMethodInfo("assignWindow");
-        static CrossBindingMethodInfo minit_5 = new CrossBindingMethodInfo("init");
-        static CrossBindingMethodInfo<System.Single> mupdate_6 = new CrossBindingMethodInfo<System.Single>("update");
-        static CrossBindingMethodInfo<System.Single> mlateUpdate_7 = new CrossBindingMethodInfo<System.Single>("lateUpdate");
-        static CrossBindingMethodInfo monReset_8 = new CrossBindingMethodInfo("onReset");
-        static CrossBindingMethodInfo monGameState_9 = new CrossBindingMethodInfo("onGameState");
-        static CrossBindingMethodInfo monDrawGizmos_10 = new CrossBindingMethodInfo("onDrawGizmos");
-        static CrossBindingMethodInfo<System.Boolean, System.String> monShow_11 = new CrossBindingMethodInfo<System.Boolean, System.String>("onShow");
-        static CrossBindingMethodInfo<System.Boolean, System.String> monHide_12 = new CrossBindingMethodInfo<System.Boolean, System.String>("onHide");
-        static CrossBindingMethodInfo<global::Command> monCmdStarted_13 = new CrossBindingMethodInfo<global::Command>("onCmdStarted");
-        static CrossBindingMethodInfo<System.Boolean> msetDestroy_14 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
-        static CrossBindingFunctionInfo<System.Boolean> misDestroy_15 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
-        static CrossBindingMethodInfo<System.Int64> msetAssignID_16 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
-        static CrossBindingFunctionInfo<System.Int64> mgetAssignID_17 = new CrossBindingFunctionInfo<System.Int64>("getAssignID");
         public override Type BaseCLRType
         {
             get
@@ -48,6 +35,22 @@ namespace HotFix
 
         public class Adapter : global::LayoutScript, CrossBindingAdaptorType
         {
+            CrossBindingMethodInfo mdestroy_0 = new CrossBindingMethodInfo("destroy");
+            CrossBindingMethodInfo mresetProperty_1 = new CrossBindingMethodInfo("resetProperty");
+            CrossBindingMethodInfo<global::GameLayout> msetLayout_2 = new CrossBindingMethodInfo<global::GameLayout>("setLayout");
+            CrossBindingFunctionInfo<System.Boolean> monESCDown_3 = new CrossBindingFunctionInfo<System.Boolean>("onESCDown");
+            CrossBindingMethodInfo massignWindow_4 = new CrossBindingMethodInfo("assignWindow");
+            CrossBindingMethodInfo minit_5 = new CrossBindingMethodInfo("init");
+            CrossBindingMethodInfo<System.Single> mupdate_6 = new CrossBindingMethodInfo<System.Single>("update");
+            CrossBindingMethodInfo<System.Single> mlateUpdate_7 = new CrossBindingMethodInfo<System.Single>("lateUpdate");
+            CrossBindingMethodInfo monReset_8 = new CrossBindingMethodInfo("onReset");
+            CrossBindingMethodInfo monGameState_9 = new CrossBindingMethodInfo("onGameState");
+            CrossBindingMethodInfo monDrawGizmos_10 = new CrossBindingMethodInfo("onDrawGizmos");
+            CrossBindingMethodInfo<System.Boolean, System.String> monShow_11 = new CrossBindingMethodInfo<System.Boolean, System.String>("onShow");
+            CrossBindingMethodInfo<System.Boolean, System.String> monHide_12 = new CrossBindingMethodInfo<System.Boolean, System.String>("onHide");
+            CrossBindingMethodInfo<global::Command> monCmdStarted_13 = new CrossBindingMethodInfo<global::Command>("onCmdStarted");
+
+            bool isInvokingToString;
             ILTypeInstance instance;
             ILRuntime.Runtime.Enviorment.AppDomain appdomain;
 
@@ -173,45 +176,21 @@ namespace HotFix
                     monCmdStarted_13.Invoke(this.instance, cmd);
             }
 
-            public override void setDestroy(System.Boolean isDestroy)
-            {
-                if (msetDestroy_14.CheckShouldInvokeBase(this.instance))
-                    base.setDestroy(isDestroy);
-                else
-                    msetDestroy_14.Invoke(this.instance, isDestroy);
-            }
-
-            public override System.Boolean isDestroy()
-            {
-                if (misDestroy_15.CheckShouldInvokeBase(this.instance))
-                    return base.isDestroy();
-                else
-                    return misDestroy_15.Invoke(this.instance);
-            }
-
-            public override void setAssignID(System.Int64 assignID)
-            {
-                if (msetAssignID_16.CheckShouldInvokeBase(this.instance))
-                    base.setAssignID(assignID);
-                else
-                    msetAssignID_16.Invoke(this.instance, assignID);
-            }
-
-            public override System.Int64 getAssignID()
-            {
-                if (mgetAssignID_17.CheckShouldInvokeBase(this.instance))
-                    return base.getAssignID();
-                else
-                    return mgetAssignID_17.Invoke(this.instance);
-            }
-
             public override string ToString()
             {
                 IMethod m = appdomain.ObjectType.GetMethod("ToString", 0);
                 m = instance.Type.GetVirtualMethod(m);
                 if (m == null || m is ILMethod)
                 {
-                    return instance.ToString();
+                    if (!isInvokingToString)
+                    {
+                        isInvokingToString = true;
+                        string res = instance.ToString();
+                        isInvokingToString = false;
+                        return res;
+                    }
+                    else
+                        return instance.Type.FullName;
                 }
                 else
                     return instance.Type.FullName;
@@ -219,4 +198,3 @@ namespace HotFix
         }
     }
 }
-

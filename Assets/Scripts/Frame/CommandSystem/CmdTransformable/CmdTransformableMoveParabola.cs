@@ -1,17 +1,19 @@
 ﻿using UnityEngine;
+using static UnityUtility;
+using static MathUtility;
 
+// 以抛物线移动物体
 public class CmdTransformableMoveParabola : Command
 {
-	public KeyFrameCallback mDoingCallback;
-	public KeyFrameCallback mDoneCallback;
-	public Vector3 mStartPos;
-	public Vector3 mTargetPos;
-	public float mOnceLength;
-	public float mOffset;
-	public float mTopHeight;
-	public int mKeyframe;
-	public bool mFullOnce;
-	public bool mLoop;
+	public KeyFrameCallback mDoingCallback;		// 移动中回调
+	public KeyFrameCallback mDoneCallback;		// 移动完成时回调
+	public Vector3 mStartPos;					// 起始位置
+	public Vector3 mTargetPos;					// 目标位置
+	public float mOnceLength;					// 单次所需时间
+	public float mTopHeight;					// 抛物线最高的高度,相对于起始位置
+	public float mOffset;						// 起始时间偏移
+	public int mKeyframe;						// 所使用的关键帧ID
+	public bool mLoop;							// 是否循环
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -23,7 +25,6 @@ public class CmdTransformableMoveParabola : Command
 		mOnceLength = 1.0f;
 		mOffset = 0.0f;
 		mTopHeight = 0.0f;
-		mFullOnce = false;
 		mLoop = false;
 	}
 	public override void execute()
@@ -46,7 +47,7 @@ public class CmdTransformableMoveParabola : Command
 		com.setTargetPos(mTargetPos);
 		com.setStartPos(mStartPos);
 		com.setTopHeight(mTopHeight);
-		com.play(mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce);
+		com.play(mKeyframe, mLoop, mOnceLength, mOffset);
 		if (com.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
@@ -55,13 +56,12 @@ public class CmdTransformableMoveParabola : Command
 	}
 	public override void debugInfo(MyStringBuilder builder)
 	{
-		builder.Append(": mKeyframe:", mKeyframe).
-				Append(", mOnceLength:", mOnceLength).
-				Append(", mOffset:", mOffset).
-				Append(", mStartPos:", mStartPos).
-				Append(", mTargetPos:", mTargetPos).
-				Append(", mTopHeight:", mTopHeight).
-				Append(", mLoop:", mLoop).
-				Append(", mFullOnce:", mFullOnce);
+		builder.append(": mKeyframe:", mKeyframe).
+				append(", mOnceLength:", mOnceLength).
+				append(", mOffset:", mOffset).
+				append(", mStartPos:", mStartPos).
+				append(", mTargetPos:", mTargetPos).
+				append(", mTopHeight:", mTopHeight).
+				append(", mLoop:", mLoop);
 	}
 }

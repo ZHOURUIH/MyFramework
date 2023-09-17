@@ -1,17 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
+using UObject = UnityEngine.Object;
+using static FrameBase;
+using static FrameDefine;
 
+// AssetBundle中的Asset的信息
 [Serializable]
-public class AssetInfo : FrameBase
+public class AssetInfo : ClassObject
 {
-	protected List<AssetLoadDoneCallback> mCallback;// 异步加载回调列表
-	protected List<object> mUserData;				// 异步加载回调参数列表
-	protected List<string> mLoadPath;               // 加载资源时使用的路径
-	protected UnityEngine.Object[] mSubAssets;		// 资源数组,数组第一个元素为主资源,后面的是子资源
-	protected AssetBundleInfo mParentAssetBundle;	// 资源所属的AssetBundle
-	protected string mAssetName;                    // 资源文件名,带相对于StreamingAssets的相对路径,带后缀
-	protected LOAD_STATE mLoadState;                // LS_NONE表示未加载,LS_UNLOAD表示已卸载
+	protected List<AssetLoadDoneCallback> mCallback;	// 异步加载回调列表
+	protected List<object> mUserData;					// 异步加载回调参数列表
+	protected List<string> mLoadPath;					// 加载资源时使用的路径
+	protected UObject[] mSubAssets;						// 资源数组,数组第一个元素为主资源,后面的是子资源
+	protected AssetBundleInfo mParentAssetBundle;		// 资源所属的AssetBundle
+	protected string mAssetName;						// 资源文件名,带相对于StreamingAssets的相对路径,带后缀
+	protected LOAD_STATE mLoadState = LOAD_STATE.UNLOAD;// 加载状态
 	public AssetInfo()
 	{
 		mCallback = new List<AssetLoadDoneCallback>();
@@ -28,24 +31,30 @@ public class AssetInfo : FrameBase
 		mLoadPath.Clear();
 		mParentAssetBundle = null;
 		mSubAssets = null;
-		mLoadState = LOAD_STATE.NONE;
+		mLoadState = LOAD_STATE.UNLOAD;
 		mAssetName = null;
 	}
-	public bool isUnloaded() { return mLoadState == LOAD_STATE.UNLOAD; }
-	public void unload()
+	public LOAD_STATE getLoadState() { return mLoadState; }
+	public void clear()
 	{
 		mSubAssets = null;
 		mLoadState = LOAD_STATE.UNLOAD;
 	}
 	// 同步加载资源
-	public T loadAsset<T>() where T : UnityEngine.Object
+	public T loadAsset<T>() where T : UObject
 	{
 		doLoadAssets();
-		return mSubAssets != null ? mSubAssets[0] as T : null;
+		return mSubAssets != null && mSubAssets.Length > 0 ? mSubAssets[0] as T : null;
 	}
-	public UnityEngine.Object getAsset()
+	// 同步加载所有子资源
+	public UObject[] loadAsset()
 	{
-		return mSubAssets != null ? mSubAssets[0] : null;
+		doLoadAssets();
+		return mSubAssets;
+	}
+	public UObject getAsset()
+	{
+		return mSubAssets != null && mSubAssets.Length > 0 ? mSubAssets[0] : null;
 	}
 	public string getAssetName() { return mAssetName; }
 	public void setLoadState(LOAD_STATE state) { mLoadState = state; }
@@ -55,7 +64,7 @@ public class AssetInfo : FrameBase
 	public void loadAssetAsync()
 	{
 		// 如果资源已经存在,则直接返回
-		if(mSubAssets != null)
+		if (mSubAssets != null)
 		{
 			callbackAll(mSubAssets);
 		}
@@ -65,34 +74,15 @@ public class AssetInfo : FrameBase
 			mResourceManager.getAssetBundleLoader().requestLoadAsset(mParentAssetBundle, mAssetName);
 		}
 	}
-	// 同步加载所有子资源
-	public UnityEngine.Object[] loadSubAssets()
-	{
-		doLoadAssets();
-		return mSubAssets;
-	}
-	// 异步加载所有子资源
-	public void loadSubAssetsAsync()
-	{
-		// 如果资源已经存在,则直接返回
-		if (mSubAssets != null)
-		{
-			callbackAll(mSubAssets);
-		}
-		else
-		{
-			mResourceManager.getAssetBundleLoader().requestLoadAsset(mParentAssetBundle, mAssetName);
-		}
-	}
 	// 资源已经加载完毕
-	public void notifyAssetLoaded(UnityEngine.Object[] assets)
+	public void notifyAssetLoaded(UObject[] assets)
 	{
 		// 检查资源是否正常加载完成,如果在资源异步加载过程中资源包被卸载了,则资源无法正常加载完成
 		bool hasAssets = true;
 		if (assets != null)
 		{
 			int count = assets.Length;
-			for(int i = 0; i < count; ++i)
+			for (int i = 0; i < count; ++i)
 			{
 				if (assets[i] == null)
 				{
@@ -109,21 +99,22 @@ public class AssetInfo : FrameBase
 		else
 		{
 			mSubAssets = null;
-			mLoadState = LOAD_STATE.NONE;
+			mLoadState = LOAD_STATE.UNLOAD;
 		}
 		callbackAll(mSubAssets);
 	}
 	public void addCallback(AssetLoadDoneCallback callback, object userData, string loadPath)
 	{
-		if (callback != null)
+		if (callback == null)
 		{
-			mCallback.Add(callback);
-			mUserData.Add(userData);
-			mLoadPath.Add(loadPath);
+			return;
 		}
+		mCallback.Add(callback);
+		mUserData.Add(userData);
+		mLoadPath.Add(loadPath);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected void callbackAll(UnityEngine.Object[] assets)
+	protected void callbackAll(UObject[] assets)
 	{
 		int callbackCount = mCallback.Count;
 		for (int i = 0; i < callbackCount; ++i)
@@ -136,13 +127,11 @@ public class AssetInfo : FrameBase
 	}
 	protected void doLoadAssets()
 	{
-		if(mSubAssets == null)
+		if (mSubAssets != null)
 		{
-			if(mParentAssetBundle.getAssetBundle() != null)
-			{
-				mSubAssets = mParentAssetBundle.getAssetBundle().LoadAssetWithSubAssets(FrameDefine.P_GAME_RESOURCES_PATH + mAssetName);
-			}
-			mLoadState = LOAD_STATE.LOADED;
+			return;
 		}
+		mSubAssets = mParentAssetBundle.loadAssetWithSubAssets(P_GAME_RESOURCES_PATH + mAssetName);
+		mLoadState = LOAD_STATE.LOADED;
 	}
 }

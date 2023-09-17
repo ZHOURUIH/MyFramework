@@ -1,16 +1,15 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System;
+using static GBR;
+using static FrameBase;
 
 public class LayoutRegisterILR : LayoutRegisterBaseILR
 {
 	public static void registeAll()
 	{
-		registeLayout<ScriptLogin>(LAYOUT_ILR.LOGIN, "UILogin");
-		registeLayout<ScriptGaming>(LAYOUT_ILR.GAMING, "UIGaming");
+		registeLayout<UILogin>(LAYOUT_ILR.LOGIN, "UILogin", "UILogin");
+		registeLayout<UIGaming>(LAYOUT_ILR.GAMING, "UIGaming", "UIGaming");
 
-		GameLayout.addScriptCallback(onScriptChanged);
+		mLayoutManager.addScriptCallback(onScriptChanged);
 	}
 	public static void onScriptChanged(LayoutScript script, bool created = true)
 	{
@@ -19,7 +18,7 @@ public class LayoutRegisterILR : LayoutRegisterBaseILR
 		{
 			return;
 		}
-		if (assign(ref mScriptLogin, script, created)) return;
-		if (assign(ref mScriptGaming, script, created)) return;
+		if (assign(ref mUILogin, script, created)) return;
+		if (assign(ref mUIGaming, script, created)) return;
 	}
 }

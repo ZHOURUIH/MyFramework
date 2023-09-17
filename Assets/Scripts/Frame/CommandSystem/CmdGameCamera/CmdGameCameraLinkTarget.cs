@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
+// 使用指定的连接器将摄像机连接到一个对象上
 public class CmdGameCameraLinkTarget : Command
 {
 	protected Vector3 mRelativePosition;	// 相对位置

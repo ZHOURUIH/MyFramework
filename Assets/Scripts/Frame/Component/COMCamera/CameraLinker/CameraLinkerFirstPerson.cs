@@ -1,5 +1,5 @@
 ﻿using System;
-using UnityEngine;
+using static MathUtility;
 
 // 第一人称连接器,实际也是保持固定的相对距离
 public class CameraLinkerFirstPerson : CameraLinker

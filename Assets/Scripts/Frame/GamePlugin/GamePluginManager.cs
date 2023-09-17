@@ -1,11 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using static UnityUtility;
+using static FrameUtility;
+using static FileUtility;
+using static StringUtility;
+using static FrameDefine;
 
 // 插件后缀为plugin,插件依赖的库在编辑器模式下需要放到Plugins中,打包后放到Managed中
 public class GamePluginManager : FrameSystem
 {
-	protected Dictionary<string, IGamePlugin> mPluginList;
+	protected Dictionary<string, IGamePlugin> mPluginList;		// 已加载的插件列表
 	public GamePluginManager()
 	{
 		mPluginList = new Dictionary<string, IGamePlugin>();
@@ -40,20 +45,19 @@ public class GamePluginManager : FrameSystem
 	protected void loadAllPlugin()
 	{
 #if UNITY_STANDALONE_WIN
-		if(!isDirExist(FrameDefine.F_GAME_PLUGIN_PATH))
+		if(!isDirExist(F_GAME_PLUGIN_PATH))
 		{
 			return;
 		}
-		LIST(out List<string> fileList);
-		findFiles(FrameDefine.F_GAME_PLUGIN_PATH, fileList, FrameDefine.DLL_PLUGIN_SUFFIX);
-		int count = fileList.Count;
-		for (int i = 0; i < count; ++i)
+		using (new ListScope<string>(out var fileList))
 		{
-			openFile(fileList[i], out byte[] fileBuffer, true);
-			loadPlugin(fileBuffer, getFileName(fileList[i]));
-			releaseFile(fileBuffer);
+			findFiles(F_GAME_PLUGIN_PATH, fileList, DLL_PLUGIN_SUFFIX);
+			int count = fileList.Count;
+			for (int i = 0; i < count; ++i)
+			{
+				loadPlugin(openFile(fileList[i], true), getFileName(fileList[i]));
+			}
 		}
-		UN_LIST(fileList);
 #endif
 	}
 	protected bool loadPlugin(byte[] rawDll, string fileName)

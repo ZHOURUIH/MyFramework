@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static MathUtility;
+using static UnityUtility;
+using static CSharpUtility;
 
 // 摄像机的连接器,用于摄像机的跟随逻辑
 public class CameraLinker : GameComponent
@@ -131,32 +134,33 @@ public class CameraLinker : GameComponent
 					avatarTrans = (mLinkObject as Character).getAvatar()?.getModel()?.transform;
 				}
 
-				ARRAY(out RaycastHit[] hitRet, 16);
 				float nearestDis = float.MaxValue;
-				Vector3 nearestPoint = Vector3.zero; 
-				int hitCount = raycastAll(new Ray(originPos, newPos - originPos), hitRet, getLength(originPos - newPos), mIgnoreLayer);
-				for (int i = 0; i < hitCount; ++i)
+				Vector3 nearestPoint = Vector3.zero;
+				using (new ArrayScope<RaycastHit>(out var hitRet, 16))
 				{
-					// 需要排除目标的所有子节点,包括目标为角色是的模型节点,因为角色的模型不一定挂接到角色节点下
-					Transform hitTrans = hitRet[i].transform;
-					if (hitTrans == targetTrans || hitTrans.IsChildOf(targetTrans))
+					int hitCount = raycastAll(new Ray(originPos, newPos - originPos), hitRet, getLength(originPos - newPos), mIgnoreLayer);
+					for (int i = 0; i < hitCount; ++i)
 					{
-						continue;
-					}
-					if (avatarTrans != null && (hitTrans == avatarTrans || hitTrans.IsChildOf(avatarTrans)))
-					{
-						continue;
-					}
+						// 需要排除目标的所有子节点,包括目标为角色是的模型节点,因为角色的模型不一定挂接到角色节点下
+						Transform hitTrans = hitRet[i].transform;
+						if (hitTrans == targetTrans || hitTrans.IsChildOf(targetTrans))
+						{
+							continue;
+						}
+						if (avatarTrans != null && (hitTrans == avatarTrans || hitTrans.IsChildOf(avatarTrans)))
+						{
+							continue;
+						}
 
-					// 只判断模型即可,并且需要找到离角色最近的一个交点
-					var meshFilter = hitTrans.GetComponent<MeshFilter>();
-					if (meshFilter != null && meshFilter.sharedMesh != null && hitRet[i].distance < nearestDis)
-					{
-						nearestDis = hitRet[i].distance;
-						nearestPoint = hitRet[i].point;
+						// 只判断模型即可,并且需要找到离角色最近的一个交点
+						var meshFilter = hitTrans.GetComponent<MeshFilter>();
+						if (meshFilter != null && meshFilter.sharedMesh != null && hitRet[i].distance < nearestDis)
+						{
+							nearestDis = hitRet[i].distance;
+							nearestPoint = hitRet[i].point;
+						}
 					}
 				}
-				UN_ARRAY(hitRet);
 				if (nearestDis < float.MaxValue)
 				{
 					mCamera.setPosition(nearestPoint + setLength(lookAtPos - newPos, 0.1f));

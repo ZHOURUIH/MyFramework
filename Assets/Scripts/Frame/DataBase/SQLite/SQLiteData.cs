@@ -3,13 +3,16 @@ using UnityEngine;
 using Mono.Data.Sqlite;
 using System.Collections.Generic;
 using System;
+using static UnityUtility;
+using static StringUtility;
 
-public class SQLiteData : FrameBase
+// SQLite数据基类
+public class SQLiteData : ClassObject
 {
-	public Dictionary<int, string> mValues;
-	public SQLiteTable mTable;
-	public static string ID = "ID";
-	public int mID;
+	public Dictionary<int, string> mValues;		// 存储原始的字符串,Key是下标
+	public SQLiteTable mTable;					// 数据所属的表格
+	public static string ID = "ID";				// 固定的ID列名
+	public int mID;								// 数据固定的唯一ID字段
 	public SQLiteData()
 	{
 		mValues = new Dictionary<int, string>();
@@ -49,17 +52,33 @@ public class SQLiteData : FrameBase
 		try
 		{
 			object data = reader[index];
-#if UNITY_EDITOR
 			if(data.GetType() != typeof(long))
 			{
-				logError("该列数据不是int类型,无法获取, colIndex:" + index + ", table:" + mTable.getTableName());
+				logError("该列数据不是int类型,是" + data.GetType() + ",无法获取, colIndex:" + index + ", table:" + mTable.getTableName());
 			}
-#endif
 			value = (int)(long)data;
 		}
 		catch (Exception e)
 		{
-			logError(e.Message + ", colIndex:" + index);
+			logException(e, "colIndex:" + index);
+		}
+		return value;
+	}
+	protected long getParamLong(SqliteDataReader reader, int index)
+	{
+		long value = 0;
+		try
+		{
+			object data = reader[index];
+			if (data.GetType() != typeof(long))
+			{
+				logError("该列数据不是int类型,是" + data.GetType() + ",无法获取, colIndex:" + index + ", table:" + mTable.getTableName());
+			}
+			value = (long)data;
+		}
+		catch (Exception e)
+		{
+			logException(e, "colIndex:" + index);
 		}
 		return value;
 	}
@@ -69,17 +88,15 @@ public class SQLiteData : FrameBase
 		try
 		{
 			object data = reader[index];
-#if UNITY_EDITOR
 			if (data.GetType() != typeof(float))
 			{
-				logError("该列数据不是float类型,无法获取, colIndex:" + index + ", table:" + mTable.getTableName());
+				logError("该列数据不是float类型,是" + data.GetType() + ",无法获取, colIndex:" + index + ", table:" + mTable.getTableName());
 			}
-#endif
 			value = (float)data;
 		}
 		catch (Exception e)
 		{
-			logError(e.Message + ", colIndex:" + index);
+			logException(e, "colIndex:" + index);
 		}
 		return value;
 	}
@@ -89,17 +106,15 @@ public class SQLiteData : FrameBase
 		try
 		{
 			object data = reader[index];
-#if UNITY_EDITOR
 			if (data.GetType() != typeof(string))
 			{
-				logError("该列数据不是string类型,无法获取, colIndex:" + index + ", table:" + mTable.getTableName());
+				logError("该列数据不是string类型,是" + data.GetType() + ",无法获取, colIndex:" + index + ", table:" + mTable.getTableName());
 			}
-#endif
 			str = (string)data;
 		}
 		catch (Exception e)
 		{
-			logError(e.Message + ", colIndex:" + index);
+			logException(e, "colIndex:" + index);
 		}
 		return str;
 	}
@@ -153,13 +168,17 @@ public class SQLiteData : FrameBase
 	}
 	protected void parseParam(SqliteDataReader reader, ref string value, int index)
 	{
-		string str = getParamString(reader, index);
-		value = str;
-		mValues.Add(index, str);
+		value = getParamString(reader, index);
+		mValues.Add(index, value);
 	}
 	protected void parseParam(SqliteDataReader reader, ref float value, int index)
 	{
 		value = getParamFloat(reader, index);
+		mValues.Add(index, EMPTY);
+	}
+	protected void parseParam(SqliteDataReader reader, ref long value, int index)
+	{
+		value = getParamLong(reader, index);
 		mValues.Add(index, EMPTY);
 	}
 	protected void parseParam(SqliteDataReader reader, ref uint value, int index)

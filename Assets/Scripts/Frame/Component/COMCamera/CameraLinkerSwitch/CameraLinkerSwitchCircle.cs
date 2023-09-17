@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
+using static MathUtility;
 
+// 用于执行切换连接器时的不同行为,水平方向上的弧形运动, 竖直方向上的直线运动
 public class CameraLinkerSwitchCircle : CameraLinkerSwitch
 {
 	protected Vector3 mRotateCenter;    // 高度忽略的旋转圆心
 	protected float mRotatedAngle;		// 已经旋转过的角度
-	protected float mTotalAngle;
+	protected float mTotalAngle;		// 总共需要旋转的角度
 	public CameraLinkerSwitchCircle()
 	{
 		mTotalAngle = PI_RADIAN;

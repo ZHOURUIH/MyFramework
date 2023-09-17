@@ -1,11 +1,18 @@
 ﻿using System;
+using static MathUtility;
 
+// 插值计算基类
 public class ComponentLerp : GameComponent, IComponentBreakable
 {
-	protected LerpCallback mLerpingCallBack;
-	protected LerpCallback mLerpDoneCallBack;
-	protected PLAY_STATE mPlayState;
-	protected float mLerpSpeed;
+	protected LerpCallback mLerpingCallBack;		// 变化中回调
+	protected LerpCallback mLerpDoneCallBack;		// 变化完成时回调
+	protected PLAY_STATE mPlayState;				// 播放状态
+	protected float mLerpSpeed;                     // 插值速度
+	public override void destroy()
+	{
+		doneCallback(ref mLerpDoneCallBack, this);
+		base.destroy();
+	}
 	public override void setActive(bool active)
 	{
 		base.setActive(active);

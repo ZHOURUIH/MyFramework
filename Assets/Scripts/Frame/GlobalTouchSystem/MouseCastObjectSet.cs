@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using static MathUtility;
 
-public class MouseCastObjectSet : FrameBase
+// 用于存储触点检测时的物体
+public class MouseCastObjectSet : ClassObject
 {
-	public static Comparison<MouseCastObjectSet> mCompareDescend = depthDescend;
-	public List<IMouseEventCollect> mObjectOrderList;
-	public GameCamera mCamera;
+	public static Comparison<MouseCastObjectSet> mCompareDescend = depthDescend;	// 避免GC的委托
+	public List<IMouseEventCollect> mObjectOrderList;		// 物体列表
+	public GameCamera mCamera;								// 渲染此物体列表的摄像机
 	public MouseCastObjectSet()
 	{
 		mObjectOrderList = new List<IMouseEventCollect>();

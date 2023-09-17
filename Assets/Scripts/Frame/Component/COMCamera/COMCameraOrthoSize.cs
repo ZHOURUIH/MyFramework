@@ -1,9 +1,11 @@
 ﻿using System;
+using static MathUtility;
 
+// 渐变摄像机正交大小的组件
 public class COMCameraOrthoSize : ComponentKeyFrameNormal
 {
-	protected float mStart;
-	protected float mTarget;
+	protected float mStart;		// 起始大小
+	protected float mTarget;	// 目标大小
 	public override void resetProperty()
 	{
 		base.resetProperty();

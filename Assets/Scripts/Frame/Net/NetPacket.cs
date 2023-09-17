@@ -1,10 +1,11 @@
 ﻿using System;
+using static CSharpUtility;
 
-public class NetPacket : FrameBase
+// 与服务器交互的消息包基类
+public class NetPacket : ClassObject
 {
 	protected NetConnect mConnect;		// 记录了是从哪个服务器发送过来的
-	protected uint mClientID;           // 客户端ID
-	protected uint mPacketID;           // 对象实例唯一ID
+	protected int mPacketID;            // 对象实例唯一ID
 	protected ushort mType;             // 消息类型
 	public NetPacket()
 	{
@@ -14,6 +15,7 @@ public class NetPacket : FrameBase
 	public virtual void init(){}
 	public void setPacketType(ushort type) { mType = type; }
 	public ushort getPacketType() { return mType; }
+	public virtual bool canExecute() { return true; }
 	// 如果是服务器向客户端发送的消息,则需要重写该函数
 	public virtual void execute() { }
 	public virtual string debugInfo() { return Typeof(this).ToString(); }
@@ -21,13 +23,11 @@ public class NetPacket : FrameBase
 	public override void resetProperty()
 	{
 		base.resetProperty();
-		mClientID = 0;
 		mConnect = null;
 		// mPacketID,mType不需要重置
 		// mPacketID = 0;
 		// mType = 0;
 	}
-	public void setClientID(uint clientID) { mClientID = clientID; }
-	public override int GetHashCode() { return (int)mPacketID; }
+	public override int GetHashCode() { return mPacketID; }
 	public override bool Equals(object obj) { return mPacketID == (obj as NetPacket).mPacketID; }
 }

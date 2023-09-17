@@ -1,16 +1,18 @@
 ﻿using System;
+using static UnityUtility;
+using static MathUtility;
 
+// 渐变窗口透明度
 public class CmdWindowAlpha : Command
 {
-	public KeyFrameCallback mDoingCallback;
-	public KeyFrameCallback mDoneCallback;
-	public float mOnceLength;
-	public float mOffset;
-	public float mStartAlpha;
-	public float mTargetAlpha;
-	public int mKeyframe;
-	public bool mFullOnce;
-	public bool mLoop;
+	public KeyFrameCallback mDoingCallback;		// 变化中回调
+	public KeyFrameCallback mDoneCallback;		// 变化完成时回调
+	public float mTargetAlpha;					// 目标透明度
+	public float mStartAlpha;					// 起始透明度
+	public float mOnceLength;					// 单次所需时间
+	public float mOffset;						// 起始时间偏移
+	public int mKeyframe;						// 所使用的关键帧ID
+	public bool mLoop;							// 是否循环
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -21,7 +23,6 @@ public class CmdWindowAlpha : Command
 		mOffset = 0.0f;
 		mStartAlpha = 1.0f;
 		mTargetAlpha = 1.0f;
-		mFullOnce = false;
 		mLoop = false;
 	}
 	public override void execute()
@@ -39,7 +40,7 @@ public class CmdWindowAlpha : Command
 		com.setActive(true);
 		com.setStart(mStartAlpha);
 		com.setTarget(mTargetAlpha);
-		com.play(mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce);
+		com.play(mKeyframe, mLoop, mOnceLength, mOffset);
 		if (com.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
@@ -48,12 +49,11 @@ public class CmdWindowAlpha : Command
 	}
 	public override void debugInfo(MyStringBuilder builder)
 	{
-		builder.Append(": mKeyframe:", mKeyframe).
-				Append(", mOnceLength:", mOnceLength).
-				Append(", mOffset:", mOffset).
-				Append(", mStartAlpha:", mStartAlpha).
-				Append(", mTargetAlpha:", mTargetAlpha).
-				Append(", mLoop:", mLoop).
-				Append(", mFullOnce:", mFullOnce);
+		builder.append(": mKeyframe:", mKeyframe).
+				append(", mOnceLength:", mOnceLength).
+				append(", mOffset:", mOffset).
+				append(", mStartAlpha:", mStartAlpha).
+				append(", mTargetAlpha:", mTargetAlpha).
+				append(", mLoop:", mLoop);
 	}
 }

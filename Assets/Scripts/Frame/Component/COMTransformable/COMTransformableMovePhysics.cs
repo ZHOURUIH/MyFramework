@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
 using System;
+using static MathUtility;
 
+// 在物理更新中执行的移动组件
 public class COMTransformableMovePhysics : ComponentKeyFramePhysics, IComponentModifyPosition
 {
-	protected Vector3 mStart;    // 移动开始时的位置
-	protected Vector3 mTarget;
+	protected Vector3 mStart;		// 移动开始时的位置
+	protected Vector3 mTarget;		// 移动的目标位置
 	public override void resetProperty()
 	{
 		base.resetProperty();

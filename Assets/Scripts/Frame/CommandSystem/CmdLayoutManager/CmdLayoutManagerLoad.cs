@@ -1,70 +1,54 @@
 ﻿using System;
+using static FrameBase;
 
-public class CmdLayoutManagerLoad : Command 
+// 加载一个布局,一般由LT调用
+public class CmdLayoutManagerLoad
 {
-	public LayoutAsyncDone mCallback;
-	public LAYOUT_ORDER mOrderType;
-	public string mParam;
-	public int mRenderOrder;
-	public int mLayoutID;
-	public bool mImmediatelyShow;
-	public bool mVisible;
-	public bool mIsScene;
-	public bool mAsync;
-	public override void resetProperty()
-	{
-		base.resetProperty();
-		mCallback = null;
-		mLayoutID = LAYOUT.NONE;
-		mOrderType = LAYOUT_ORDER.ALWAYS_TOP;
-		mParam = null;
-		mVisible = true;
-		mAsync = false;
-		mImmediatelyShow = false;
-		mIsScene = false;
-		mRenderOrder = 0;
-	}
-	public override void execute()
+	// 异步加载时的完成回调
+	// 布局的顺序类型
+	// 布局显示或隐藏时要传递的参数
+	// 渲染顺序,与mOrderType配合使用
+	// 布局ID
+	// 是否跳过显示动效立即显示
+	// 加载完毕后是否显示
+	// 是否不挂接到UGUIRoot下,不挂接在UGUIRoot下将由其他摄像机进行渲染
+	// 是否异步加载
+	public static void execute(int layoutID, int renderOrder, LAYOUT_ORDER orderType, string param, 
+		bool immediatelyShow, bool visible, bool isScene, bool async, LayoutAsyncDone callback)
 	{
 		LayoutInfo info = new LayoutInfo();
-		info.mID = mLayoutID;
-		info.mRenderOrder = mRenderOrder;
-		info.mOrderType = mOrderType;
-		info.mIsScene = mIsScene;
-		info.mCallback = mCallback;
-		GameLayout layout = mLayoutManager.createLayout(info, mAsync);
+		info.mID = layoutID;
+		info.mRenderOrder = renderOrder;
+		info.mOrderType = orderType;
+		info.mIsScene = isScene;
+		info.mCallback = callback;
+		GameLayout layout = mLayoutManager.createLayout(info, async);
 		if (layout == null)
 		{
 			return;
 		}
 		// 计算实际的渲染顺序
-		int renderOrder = mLayoutManager.generateRenderOrder(layout, mRenderOrder, mOrderType);
+		int realRenderOrder = mLayoutManager.generateRenderOrder(layout, renderOrder, orderType);
 		// 顺序有改变,则设置最新的顺序
-		if (layout.getRenderOrder() != renderOrder)
+		if (layout.getRenderOrder() != realRenderOrder)
 		{
-			CMD(out CmdLayoutManagerRenderOrder cmd);
-			cmd.mLayoutID = mLayoutID;
-			cmd.mRenderOrder = renderOrder;
-			pushCommand(cmd, mLayoutManager);
+			CmdLayoutManagerRenderOrder.execute(layout, realRenderOrder);
 		}
-		if (mVisible)
+		// 显示状态一致,就不需要再继续执行
+		if (layout.isVisible() == visible)
 		{
-			layout.setVisible(mVisible, mImmediatelyShow, mParam);
+			return;
+		}
+		if (visible)
+		{
+			layout.setVisible(visible, immediatelyShow, param);
 		}
 		// 隐藏时需要设置强制隐藏,不通知脚本,因为通常这种情况只是想后台加载布局
 		else
 		{
-			layout.setVisibleForce(mVisible);
+			layout.setVisibleForce(visible);
 		}
 		// 通知布局管理器布局显示或隐藏
-		mLayoutManager.notifyLayoutVisible(mVisible, layout);
-	}
-	public override void debugInfo(MyStringBuilder builder)
-	{
-		builder.Append(": mLayoutID:", mLayoutID).
-				Append(", mVisible:", mVisible).
-				Append(", mRenderOrder:", mRenderOrder).
-				Append(", mAsync:", mAsync).
-				Append(", mParam:", mParam);
+		mLayoutManager.notifyLayoutVisible(visible, layout);
 	}
 }

@@ -1,28 +1,22 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
+// 从资源加载的物体池的调试信息
 public class ObjectPoolDebug : MonoBehaviour
 {
-	public List<string> InstanceFileListKeys = new List<string>();
-	public List<GameObject> InstanceListKeys = new List<GameObject>();
-	public List<ObjectInfo> InstanceListValues = new List<ObjectInfo>();
+	public List<ObjectInfo> mInstanceListValues = new List<ObjectInfo>();	// 物体信息列表
 	private void Update()
 	{
-		if (!FrameBase.mGameFramework.mEnableScriptDebug)
+		if (FrameBase.mGameFramework == null || !FrameBase.mGameFramework.mEnableScriptDebug)
 		{
 			return;
 		}
-		if (FrameBase.mObjectPool == null)
+		if (FrameBase.mPrefabPoolManager == null)
 		{
 			return;
 		}
-		InstanceFileListKeys.Clear();
-		InstanceListKeys.Clear();
-		InstanceListValues.Clear();
-		var instanceFileList = FrameBase.mObjectPool.getInstanceFileList();
-		InstanceFileListKeys.AddRange(instanceFileList.Keys);
-		var instanceList = FrameBase.mObjectPool.getInstanceList();
-		InstanceListKeys.AddRange(instanceList.Keys);
-		InstanceListValues.AddRange(instanceList.Values);
+		mInstanceListValues.Clear();
+		var instanceList = FrameBase.mPrefabPoolManager.getInstanceList();
+		mInstanceListValues.AddRange(instanceList.Values);
 	}
 }

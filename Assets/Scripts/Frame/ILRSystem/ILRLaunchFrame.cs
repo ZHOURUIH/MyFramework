@@ -3,39 +3,29 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using ILRAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
-using ILRuntime.Runtime.Generated;
 using ILRuntime.Runtime.Enviorment;
 using RenderHeads.Media.AVProVideo;
 using LitJson;
 using ILRuntime.Runtime.Intepreter;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 
 // 用于实现ILR加载完毕以后的一些初始化操作
-public class ILRLaunchFrame : FrameBase
+public abstract class ILRLaunchFrame
 {
-	public static void OnILRuntimeInitialized(ILRAppDomain appDomain)
+	public void onILRuntimeInitialized(ILRAppDomain appDomain)
 	{
-		// 跨域继承适配器
-		CrossAdapterRegister.registeCrossAdaptor(appDomain);
-		// 值类型绑定
-		registeValueTypeBinder(appDomain);
+		crossAdapter(appDomain);
+		valueTypeBind(appDomain);
 		// 跨域调用的委托
 		registeAllDelegate(appDomain);
-		CLRBindings.Initialize(appDomain);
+		clrBind(appDomain);
 	}
-	public static void registeValueTypeBinder(ILRAppDomain appDomain)
-	{
-		appDomain.RegisterValueTypeBinder(typeof(Quaternion), new QuaternionBinder());
-		appDomain.RegisterValueTypeBinder(typeof(Vector2), new Vector2Binder());
-		appDomain.RegisterValueTypeBinder(typeof(Vector2Int), new Vector2IntBinder());
-		appDomain.RegisterValueTypeBinder(typeof(Vector3), new Vector3Binder());
-		appDomain.RegisterValueTypeBinder(typeof(Vector3Int), new Vector3IntBinder());
-		ILRLaunchExtension.registeValueTypeBinder(appDomain);
-	}
-	public static void collectCrossInheritClass(HashSet<Type> classList)
+	public abstract void valueTypeBind(ILRAppDomain appDomain);
+	public virtual void collectCrossInheritClass(HashSet<Type> classList)
 	{
 		// 收集所有需要生成适配器的类
-		classList.Add(typeof(FrameBase));
+		classList.Add(typeof(IDisposable));
 		classList.Add(typeof(ClassObject));
 		classList.Add(typeof(GameScene));
 		classList.Add(typeof(LayoutScript));
@@ -47,31 +37,41 @@ public class ILRLaunchFrame : FrameBase
 		classList.Add(typeof(CharacterState));
 		classList.Add(typeof(StateGroup));
 		classList.Add(typeof(Command));
-		classList.Add(typeof(SQLiteTable));
-		classList.Add(typeof(SQLiteData));
+		classList.Add(typeof(PooledWindowUGUI));
+		classList.Add(typeof(PooledWindowUI));
 		classList.Add(typeof(PooledWindow));
 		classList.Add(typeof(SceneInstance));
 		classList.Add(typeof(FrameSystem));
 		classList.Add(typeof(Transformable));
 		classList.Add(typeof(NetPacket));
 		classList.Add(typeof(GameEvent));
-		classList.Add(typeof(WindowItem));
+		classList.Add(typeof(WindowObject));
+		classList.Add(typeof(WindowObjectUI));
+		classList.Add(typeof(WindowObjectUGUI));
 		classList.Add(typeof(MonoBehaviour));
 		classList.Add(typeof(NetConnectTCP));
 		classList.Add(typeof(DelayCmdWatcher));
-		ILRLaunchExtension.collectCrossInheritClass(classList);
+		classList.Add(typeof(ExcelData));
+		classList.Add(typeof(ExcelTable));
+		classList.Add(typeof(NetPacketFrame));
+		classList.Add(typeof(RedPoint));
+		classList.Add(typeof(RedPointCount));
+		classList.Add(typeof(SerializableBit));
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected static void registeAllDelegate(ILRAppDomain appDomain)
+	protected abstract void clrBind(ILRAppDomain appDomain);
+	protected abstract void crossAdapter(ILRAppDomain appDomain);
+	protected virtual void registeAllDelegate(ILRAppDomain appDomain)
 	{
 		DelegateManager delegateManager = appDomain.DelegateManager;
 		delegateManager.RegisterFunctionDelegate<ILTypeInstance, ILTypeInstance, int>();
 		delegateManager.RegisterFunctionDelegate<int, int, int>();
+		delegateManager.RegisterMethodDelegate<PointerEventData, GameObject>();
 		delegateManager.RegisterMethodDelegate<AnimControl, int, bool>();
 		delegateManager.RegisterMethodDelegate<AnimControl, bool, bool>();
 		delegateManager.RegisterMethodDelegate<AssetBundleInfo, object>();
 		delegateManager.RegisterMethodDelegate<ComponentOwner>();
-		delegateManager.RegisterMethodDelegate<ComponentOwner, BOOL>();
+		delegateManager.RegisterMethodDelegate<ComponentOwner, TouchPoint, BOOL>();
 		delegateManager.RegisterMethodDelegate<Character, object>();
 		delegateManager.RegisterMethodDelegate<ComponentTrackTarget, bool>();
 		delegateManager.RegisterMethodDelegate<ComponentKeyFrame, bool>();
@@ -85,10 +85,9 @@ public class ILRLaunchFrame : FrameBase
 		delegateManager.RegisterMethodDelegate<GameEvent>();
 		delegateManager.RegisterMethodDelegate<IUIAnimation, bool>();
 		delegateManager.RegisterMethodDelegate<IMouseEventCollect>();
-		delegateManager.RegisterMethodDelegate<IMouseEventCollect, int>();
-		delegateManager.RegisterMethodDelegate<IMouseEventCollect, bool>();
-		delegateManager.RegisterMethodDelegate<IMouseEventCollect, BOOL>();
 		delegateManager.RegisterMethodDelegate<IMouseEventCollect, Vector3>();
+		delegateManager.RegisterMethodDelegate<IMouseEventCollect, Vector3, bool>();
+		delegateManager.RegisterMethodDelegate<IMouseEventCollect, Vector3, BOOL>();
 		delegateManager.RegisterMethodDelegate<IMouseEventCollect, Vector3, int>();
 		delegateManager.RegisterMethodDelegate<IScrollItem, int>();
 		delegateManager.RegisterMethodDelegate<LayoutScript, bool>();
@@ -102,8 +101,6 @@ public class ILRLaunchFrame : FrameBase
 		delegateManager.RegisterMethodDelegate<Vector3>();
 		delegateManager.RegisterMethodDelegate<Vector3, int>();
 		delegateManager.RegisterMethodDelegate<Vector3, Vector3, float, int>();
-		delegateManager.RegisterMethodDelegate<Vector3, Vector3>();
-		delegateManager.RegisterMethodDelegate<Vector3, Vector3, Vector3, Vector3>();
 		delegateManager.RegisterMethodDelegate<BOOL>();
 		delegateManager.RegisterMethodDelegate<BOOL, object>();
 		delegateManager.RegisterMethodDelegate<string>();
@@ -111,15 +108,20 @@ public class ILRLaunchFrame : FrameBase
 		delegateManager.RegisterMethodDelegate<string, long>();
 		delegateManager.RegisterMethodDelegate<string, long, long>();
 		delegateManager.RegisterMethodDelegate<string, object>();
+		delegateManager.RegisterMethodDelegate<string, string, LOG_LEVEL, bool>();
 		delegateManager.RegisterMethodDelegate<float>();
 		delegateManager.RegisterMethodDelegate<float, bool>();
 		delegateManager.RegisterMethodDelegate<bool>();
+		delegateManager.RegisterMethodDelegate<UGUICheckbox, bool>();
 
 		delegateManager.RegisterDelegateConvertor<UnityAction>((act) =>
 		{
 			return new UnityAction(() => { ((Action)act)(); });
 		});
-
+		delegateManager.RegisterDelegateConvertor<OnCheck>((act) =>
+		{
+			return new OnCheck((checkbox, check) => { ((Action<UGUICheckbox, bool>)act)(checkbox, check); });
+		});
 		delegateManager.RegisterDelegateConvertor<Comparison<int>>((act) =>
 		{
 			return new Comparison<int>((x, y) => { return ((Func<int, int, int>)act)(x, y); });
@@ -189,19 +191,19 @@ public class ILRLaunchFrame : FrameBase
 		});
 		delegateManager.RegisterDelegateConvertor<OnReceiveDrag>((action) =>
 		{
-			return new OnReceiveDrag((dragObj, continueEvent) => { ((Action<IMouseEventCollect, BOOL>)action)(dragObj, continueEvent); });
+			return new OnReceiveDrag((dragObj, mousePos, continueEvent) => { ((Action<IMouseEventCollect, Vector3, BOOL>)action)(dragObj, mousePos, continueEvent); });
 		});
 		delegateManager.RegisterDelegateConvertor<OnDragHover>((action) =>
 		{
-			return new OnDragHover((dragObj, hover) => { ((Action<IMouseEventCollect, bool>)action)(dragObj, hover); });
+			return new OnDragHover((dragObj, mousePos, hover) => { ((Action<IMouseEventCollect, Vector3, bool>)action)(dragObj, mousePos, hover); });
 		});
 		delegateManager.RegisterDelegateConvertor<OnMouseEnter>((action) =>
 		{
-			return new OnMouseEnter((obj, touchID) => { ((Action<IMouseEventCollect, int>)action)(obj, touchID); });
+			return new OnMouseEnter((obj, mousePos, touchID) => { ((Action<IMouseEventCollect, Vector3, int>)action)(obj, mousePos, touchID); });
 		});
 		delegateManager.RegisterDelegateConvertor<OnMouseLeave>((action) =>
 		{
-			return new OnMouseLeave((obj, touchID) => { ((Action<IMouseEventCollect, int>)action)(obj, touchID); });
+			return new OnMouseLeave((obj, mousePos, touchID) => { ((Action<IMouseEventCollect, Vector3, int>)action)(obj, mousePos, touchID); });
 		});
 		delegateManager.RegisterDelegateConvertor<OnMouseDown>((action) =>
 		{
@@ -213,7 +215,10 @@ public class ILRLaunchFrame : FrameBase
 		});
 		delegateManager.RegisterDelegateConvertor<OnMouseMove>((action) =>
 		{
-			return new OnMouseMove((mousePos, moveDelta, moveTime, touchID) => { ((Action<Vector3, Vector3, float, int>)action)(mousePos, moveDelta, moveTime, touchID); });
+			return new OnMouseMove((mousePos, moveDelta, moveTime, touchID) => 
+			{
+				((Action<Vector3, Vector3, float, int>)action)(mousePos, moveDelta, moveTime, touchID); 
+			});
 		});
 		delegateManager.RegisterDelegateConvertor<OnMouseStay>((action) =>
 		{
@@ -231,18 +236,6 @@ public class ILRLaunchFrame : FrameBase
 		{
 			return new OnLongPressing((progress) => { ((Action<float>)action)(progress); });
 		});
-		delegateManager.RegisterDelegateConvertor<OnMultiTouchStart>((action) =>
-		{
-			return new OnMultiTouchStart((touch0, touch1) => { ((Action<Vector3, Vector3>)action)(touch0, touch1); });
-		});
-		delegateManager.RegisterDelegateConvertor<OnMultiTouchMove>((action) =>
-		{
-			return new OnMultiTouchMove((touch0, lastPosition0, touch1, lastPosition1) => { ((Action<Vector3, Vector3, Vector3, Vector3>)action)(touch0, lastPosition0, touch1, lastPosition1); });
-		});
-		delegateManager.RegisterDelegateConvertor<OnMultiTouchEnd>((action) =>
-		{
-			return new OnMultiTouchEnd(() => { ((Action)action)(); });
-		});
 		delegateManager.RegisterDelegateConvertor<HeadDownloadCallback>((action) =>
 		{
 			return new HeadDownloadCallback((head, openID) => { ((Action<Texture, string>)action)(head, openID); });
@@ -257,7 +250,7 @@ public class ILRLaunchFrame : FrameBase
 		});
 		delegateManager.RegisterDelegateConvertor<MyThreadCallback>((action) =>
 		{
-			return new MyThreadCallback((BOOL allowDrag) => { ((Action<BOOL>)action)(allowDrag); });
+			return new MyThreadCallback((ref bool allowDrag) => { ((Action<bool>)action)(allowDrag); });
 		});
 		delegateManager.RegisterDelegateConvertor<OnPlayingCallback>((action) =>
 		{
@@ -281,7 +274,10 @@ public class ILRLaunchFrame : FrameBase
 		});
 		delegateManager.RegisterDelegateConvertor<OnDragStartCallback>((action) =>
 		{
-			return new OnDragStartCallback((ComponentOwner dragObj, BOOL allowDrag) => { ((Action<ComponentOwner, BOOL>)action)(dragObj, allowDrag); });
+			return new OnDragStartCallback((ComponentOwner dragObj, TouchPoint touchPoint, BOOL allowDrag) => 
+			{
+				((Action<ComponentOwner, TouchPoint, BOOL>)action)(dragObj, touchPoint, allowDrag); 
+			});
 		});
 		delegateManager.RegisterDelegateConvertor<StartDownloadCallback>((action) =>
 		{
@@ -289,7 +285,10 @@ public class ILRLaunchFrame : FrameBase
 		});
 		delegateManager.RegisterDelegateConvertor<DownloadingCallback>((action) =>
 		{
-			return new DownloadingCallback((fileName, fileSize, downloadedSize) => { ((Action<string, long, long>)action)(fileName, fileSize, downloadedSize); });
+			return new DownloadingCallback((fileName, fileSize, downloadedSize) => 
+			{
+				((Action<string, long, long>)action)(fileName, fileSize, downloadedSize); 
+			});
 		});
 		delegateManager.RegisterDelegateConvertor<ObjectPreClickCallback>((action) =>
 		{
@@ -297,19 +296,19 @@ public class ILRLaunchFrame : FrameBase
 		});
 		delegateManager.RegisterDelegateConvertor<ObjectClickCallback>((action) =>
 		{
-			return new ObjectClickCallback((obj) => { ((Action<IMouseEventCollect>)action)(obj); });
+			return new ObjectClickCallback((obj, mousePos) => { ((Action<IMouseEventCollect, Vector3>)action)(obj, mousePos); });
 		});
 		delegateManager.RegisterDelegateConvertor<ObjectDoubleClickCallback>((action) =>
 		{
-			return new ObjectDoubleClickCallback((obj) => { ((Action<IMouseEventCollect>)action)(obj); });
+			return new ObjectDoubleClickCallback((obj, mousePos) => { ((Action<IMouseEventCollect, Vector3>)action)(obj, mousePos); });
 		});
 		delegateManager.RegisterDelegateConvertor<ObjectHoverCallback>((action) =>
 		{
-			return new ObjectHoverCallback((obj, hover) => { ((Action<IMouseEventCollect, bool>)action)(obj, hover); });
+			return new ObjectHoverCallback((obj, mousePos, hover) => { ((Action<IMouseEventCollect, Vector3, bool>)action)(obj, mousePos, hover); });
 		});
 		delegateManager.RegisterDelegateConvertor<ObjectPressCallback>((action) =>
 		{
-			return new ObjectPressCallback((obj, press) => { ((Action<IMouseEventCollect, bool>)action)(obj, press); });
+			return new ObjectPressCallback((obj, mousePos, press) => { ((Action<IMouseEventCollect, Vector3, bool>)action)(obj, mousePos, press); });
 		});
 		delegateManager.RegisterDelegateConvertor<SliderCallback>((action) =>
 		{
@@ -337,7 +336,7 @@ public class ILRLaunchFrame : FrameBase
 		});
 		delegateManager.RegisterDelegateConvertor<AtlasLoadDone>((action) =>
 		{
-			return new AtlasLoadDone((atlas, userData) => { ((Action<UGUIAtlas, object>)action)(atlas, userData); });
+			return new AtlasLoadDone((atlas, userData) => { ((Action<UGUIAtlasPtr, object>)action)(atlas, userData); });
 		});
 		delegateManager.RegisterDelegateConvertor<OnInputField>((action) =>
 		{
@@ -363,8 +362,10 @@ public class ILRLaunchFrame : FrameBase
 		{
 			return new OnKeyCurrentDown(() => { ((Action)action)(); });
 		});
-
-		ILRLaunchExtension.registeAllDelegate(appDomain);
+		delegateManager.RegisterDelegateConvertor<OnLog>((action) =>
+		{
+			return new OnLog((time, info, level, isError) => { ((Action<string, string, LOG_LEVEL, bool>)action)(time, info, level, isError); });
+		});
 	}
 }
 #endif

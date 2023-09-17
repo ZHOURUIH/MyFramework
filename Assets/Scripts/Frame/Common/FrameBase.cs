@@ -1,10 +1,10 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
+using static CSharpUtility;
 
 // 管理类初始化完成调用
 // 这个父类的添加是方便代码的书写
 // 因为要允许应用层来扩展此类,添加自己的系统组件引用,以及其他需要快速访问的变量,所以是partial类
-public partial class FrameBase : ClassObject
+public partial class FrameBase
 {
 	// FrameSystem
 	public static GameFramework mGameFramework;
@@ -18,9 +18,10 @@ public partial class FrameBase : ClassObject
 	public static GlobalTouchSystem mGlobalTouchSystem;
 	public static ShaderManager mShaderManager;
 	public static SQLiteManager mSQLiteManager;
+	public static DllImportSystem mDllImportSystem;
 	public static CameraManager mCameraManager;
 	public static ResourceManager mResourceManager;
-	public static ObjectPool mObjectPool;
+	public static PrefabPoolManager mPrefabPoolManager;
 	public static InputSystem mInputSystem;
 	public static SceneSystem mSceneSystem;
 	public static ClassPool mClassPool;
@@ -41,7 +42,6 @@ public partial class FrameBase : ClassObject
 	public static EffectManager mEffectManager;
 	public static TPSpriteManager mTPSpriteManager;
 	public static NetPacketFactory mSocketFactory;
-	public static NetPacketFactoryThread mSocketFactoryThread;
 	public static PathKeyframeManager mPathKeyframeManager;
 	public static EventSystem mEventSystem;
 	public static TweenerManager mTweenerManager;
@@ -54,15 +54,11 @@ public partial class FrameBase : ClassObject
 #if USE_ILRUNTIME
 	public static ILRSystem mILRSystem;
 #endif
-#if !UNITY_EDITOR
-	// public static LocalLog mLocalLog;
-#endif
 	// 一些方便获取的组件对象
 	public static COMGameSettingAudio mCOMGameSettingAudio;
 	public static void constructFrameDone()
 	{
 		mGameFramework = GameFramework.mGameFramework;
-		getFrameSystemMain(out mCommandSystem);
 		getFrameSystemMain(out mCommandSystem);
 		getFrameSystemMain(out mGlobalCmdReceiver);
 		getFrameSystemMain(out mAudioManager);
@@ -72,12 +68,13 @@ public partial class FrameBase : ClassObject
 		getFrameSystemMain(out mKeyFrameManager);
 		getFrameSystemMain(out mGlobalTouchSystem);
 		getFrameSystemMain(out mShaderManager);
-#if !UNITY_IOS && !NO_SQLITE
+#if !NO_SQLITE
 		getFrameSystemMain(out mSQLiteManager);
 #endif
+		getFrameSystemMain(out mDllImportSystem);
 		getFrameSystemMain(out mCameraManager);
 		getFrameSystemMain(out mResourceManager);
-		getFrameSystemMain(out mObjectPool);
+		getFrameSystemMain(out mPrefabPoolManager);
 		getFrameSystemMain(out mInputSystem);
 		getFrameSystemMain(out mSceneSystem);
 		getFrameSystemMain(out mClassPool);
@@ -98,7 +95,6 @@ public partial class FrameBase : ClassObject
 		getFrameSystemMain(out mEffectManager);
 		getFrameSystemMain(out mTPSpriteManager);
 		getFrameSystemMain(out mSocketFactory);
-		getFrameSystemMain(out mSocketFactoryThread);
 		getFrameSystemMain(out mPathKeyframeManager);
 		getFrameSystemMain(out mEventSystem);
 		getFrameSystemMain(out mTweenerManager);
@@ -116,9 +112,8 @@ public partial class FrameBase : ClassObject
 	{
 		mCOMGameSettingAudio = mGameSetting.getComponent<COMGameSettingAudio>(false, false);
 	}
-	//------------------------------------------------------------------------------------------------------------------------------
-	protected static void getFrameSystemMain<T>(out T system) where T : FrameSystem
+	public static void getFrameSystemMain<T>(out T system) where T : FrameSystem
 	{
-		system = mGameFramework.getSystem(typeof(T)) as T;
+		system = mGameFramework.getSystem(Typeof<T>()) as T;
 	}
 }

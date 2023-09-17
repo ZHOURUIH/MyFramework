@@ -1,16 +1,16 @@
 ﻿using System;
 
+// 用于渐变正交摄像机的正交大小
 public class CmdGameCameraOrthoSize : Command
 {
-	public KeyFrameCallback mDoingCallback;
-	public KeyFrameCallback mDoneCallback;
-	public float mTargetOrthoSize;
-	public float mStartOrthoSize;
-	public float mOnceLength;
-	public float mOffset;
-	public int mKeyframe;
-	public bool mFullOnce;
-	public bool mLoop;
+	public KeyFrameCallback mDoingCallback;	// 变化中的回调
+	public KeyFrameCallback mDoneCallback;	// 变化结束时的回调
+	public float mTargetOrthoSize;			// 起始的大小
+	public float mStartOrthoSize;			// 终止的大小
+	public float mOnceLength;				// 变化的持续时间,如果是循环的,则表示单次的时间
+	public float mOffset;					// 时间起始偏移量
+	public int mKeyframe;					// 所使用的关键帧曲线ID
+	public bool mLoop;						// 是否循环
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -22,7 +22,6 @@ public class CmdGameCameraOrthoSize : Command
 		mStartOrthoSize = 0.0f;
 		mTargetOrthoSize = 0.0f;
 		mLoop = false;
-		mFullOnce = false;
 	}
 	public override void execute()
 	{
@@ -33,16 +32,15 @@ public class CmdGameCameraOrthoSize : Command
 		com.setActive(true);
 		com.setStart(mStartOrthoSize);
 		com.setTarget(mTargetOrthoSize);
-		com.play(mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce);
+		com.play(mKeyframe, mLoop, mOnceLength, mOffset);
 	}
 	public override void debugInfo(MyStringBuilder builder)
 	{
-		builder.Append(": mKeyframe:", mKeyframe).
-				Append(", mOnceLength:", mOnceLength).
-				Append(", mOffset:", mOffset).
-				Append(", mStartFOV:", mStartOrthoSize).
-				Append(", mTargetFOV:", mTargetOrthoSize).
-				Append(", mLoop:", mLoop).
-				Append(", mFullOnce:", mFullOnce);
+		builder.append(": mKeyframe:", mKeyframe).
+				append(", mOnceLength:", mOnceLength).
+				append(", mOffset:", mOffset).
+				append(", mStartFOV:", mStartOrthoSize).
+				append(", mTargetFOV:", mTargetOrthoSize).
+				append(", mLoop:", mLoop);
 	}
 }

@@ -1,10 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using static UnityUtility;
+using static FrameUtility;
+using static FrameBase;
+using static StringUtility;
 
+// 特效管理器,用于管理所有的3D特效
 public class EffectManager : FrameSystem
 {
-	protected List<GameEffect> mEffectList;
-	protected CreateObjectCallback mPreloadEffectCallback;
+	protected List<GameEffect> mEffectList;					// 特效列表
+	protected CreateObjectCallback mPreloadEffectCallback;	// 预加载完成时的回调,避免GC用
 	public EffectManager()
 	{
 		mEffectList = new List<GameEffect>();
@@ -54,7 +59,7 @@ public class EffectManager : FrameSystem
 			{
 				destroyEffect(deadList[i]);
 			}
-			UN_LIST(deadList);
+			UN_LIST(ref deadList);
 		}
 	}
 	public List<GameEffect> getEffectList() { return mEffectList; }
@@ -62,7 +67,7 @@ public class EffectManager : FrameSystem
 	{
 		if (async)
 		{
-			mObjectPool.createObjectAsync(nameWithPath, mPreloadEffectCallback, tag);
+			mPrefabPoolManager.createObjectAsync(nameWithPath, tag, mPreloadEffectCallback);
 		}
 		else
 		{
@@ -82,12 +87,11 @@ public class EffectManager : FrameSystem
 			return null;
 		}
 		// 在parent下创建一个资源路径为nameWithPath的GameObject
-		GameObject go = mObjectPool.createObject(nameWithPath, tag);
+		GameObject go = mPrefabPoolManager.createObject(nameWithPath, tag, parent);
 		if (go == null)
 		{
 			return null;
 		}
-		setNormalProperty(go, parent);
 		return create(go, getFileName(nameWithPath), active, lifeTime, false);
 	}
 	public void createEffectAsync(string nameWithPath, int tag, float lifeTime)
@@ -108,14 +112,14 @@ public class EffectManager : FrameSystem
 	}
 	public void createEffectAsync(string nameWithPath, int tag, OnEffectLoadedCallback callback, bool active, float lifeTime)
 	{
-		mObjectPool.createObjectAsync(nameWithPath, (GameObject go, object userData)=>
+		mPrefabPoolManager.createObjectAsync(nameWithPath, tag, (GameObject go, object userData)=>
 		{
 			if (go == null)
 			{
 				return;
 			}
 			callback?.Invoke(create(go, go.name, active, lifeTime, false), null);
-		}, tag);
+		});
 	}
 	public void destroyEffect(ref GameEffect effect)
 	{
@@ -124,7 +128,7 @@ public class EffectManager : FrameSystem
 			effect.setIgnoreTimeScale(false);
 			effect.destroy();
 			mEffectList.Remove(effect);
-			UN_CLASS(effect);
+			UN_CLASS(ref effect);
 			effect = null;
 		}
 	}
@@ -135,35 +139,36 @@ public class EffectManager : FrameSystem
 	// 检查特效是否还有效,特效物体已经被销毁的视为无效特效,将被清除
 	public void clearInvalidEffect()
 	{
-		LIST(out List<GameEffect> tempList);
-		tempList.AddRange(mEffectList);
-		int count = tempList.Count;
-		for (int i = 0; i < count; ++i)
+		using (new ListScope<GameEffect>(out var tempList))
 		{
-			GameEffect effect = tempList[i];
-			// 虽然此处isValidEffect已经足够判断特效是否还存在
-			// 但是这样逻辑不严谨,因为依赖于引擎在销毁物体时将所有的引用都置为空
-			// 这是引擎自己的特性,并不是通用操作,所以使用更严谨一些的判断
-			bool effectValid;
-			if (effect.isExistObject())
+			tempList.AddRange(mEffectList);
+			int count = tempList.Count;
+			for (int i = 0; i < count; ++i)
 			{
-				effectValid = effect.isValidEffect();
-			}
-			else
-			{
-				effectValid = mObjectPool.isExistInPool(effect.getObject());
-				// 如果特效物体不是空的,可能是销毁物体时引擎不是立即销毁的,需要手动设置为空
-				if (!effectValid && effect.getObject() != null)
+				GameEffect effect = tempList[i];
+				// 虽然此处isValidEffect已经足够判断特效是否还存在
+				// 但是这样逻辑不严谨,因为依赖于引擎在销毁物体时将所有的引用都置为空
+				// 这是引擎自己的特性,并不是通用操作,所以使用更严谨一些的判断
+				bool effectValid;
+				if (effect.isExistObject())
 				{
-					effect.setObject(null);
+					effectValid = effect.isValidEffect();
+				}
+				else
+				{
+					effectValid = mPrefabPoolManager.isExistInPool(effect.getObject());
+					// 如果特效物体不是空的,可能是销毁物体时引擎不是立即销毁的,需要手动设置为空
+					if (!effectValid && effect.getObject() != null)
+					{
+						effect.setObject(null);
+					}
+				}
+				if (!effectValid)
+				{
+					destroyEffect(ref effect);
 				}
 			}
-			if (!effectValid)
-			{
-				destroyEffect(ref effect);
-			}
 		}
-		UN_LIST(tempList);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onEffectLoaded(GameObject go, object userData)
@@ -176,12 +181,12 @@ public class EffectManager : FrameSystem
 	}
 	protected void onPreLoadEffectLoaded(GameObject go, object userData)
 	{
-		mObjectPool.destroyObject(ref go, false);
+		mPrefabPoolManager.destroyObject(ref go, false);
 	}
 	protected GameEffect create(GameObject go, string name, bool active, float lifeTime, bool existObject)
 	{
 		// 查找该物体是否来自于特效池
-		if (mObjectPool.isExistInPool(go) && existObject)
+		if (mPrefabPoolManager.isExistInPool(go) && existObject)
 		{
 			logError("物体来自于特效池,但是标记为外部物体:" + name);
 			return null;

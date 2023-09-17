@@ -1,16 +1,17 @@
 ﻿using System;
+using static FrameBase;
 
+// 渐变时间缩放
 public class CmdTimeManagerScaleTime : Command
 {
-	public KeyFrameCallback mDoingCallBack;
-	public KeyFrameCallback mDoneCallBack;
-	public float mStartScale;
-	public float mTargetScale;
-	public float mOnceLength;
-	public float mOffset;
-	public int mKeyframe;
-	public bool mFullOnce;
-	public bool mLoop;
+	public KeyFrameCallback mDoingCallBack;		// 变化中回调
+	public KeyFrameCallback mDoneCallBack;		// 变化完成时回调
+	public float mStartScale;					// 起始缩放值
+	public float mTargetScale;					// 目标缩放值
+	public float mOnceLength;					// 单次所需时间
+	public float mOffset;						// 起始时间偏移
+	public int mKeyframe;						// 使用的关键帧曲线ID
+	public bool mLoop;							// 是否循环
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -21,7 +22,6 @@ public class CmdTimeManagerScaleTime : Command
 		mTargetScale = 1.0f;
 		mOnceLength = 1.0f;
 		mOffset = 0.0f;
-		mFullOnce = false;
 		mLoop = false;
 	}
 	public override void execute()
@@ -32,16 +32,15 @@ public class CmdTimeManagerScaleTime : Command
 		com.setActive(true);
 		com.setStart(mStartScale);
 		com.setTarget(mTargetScale);
-		com.play(mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce);
+		com.play(mKeyframe, mLoop, mOnceLength, mOffset);
 	}
 	public override void debugInfo(MyStringBuilder builder)
 	{
-		builder.Append(": mKeyframe:", mKeyframe);
-		builder.Append(", mOnceLength:", mOnceLength);
-		builder.Append(", mOffset:", mOffset);
-		builder.Append(", mStartScale:", mStartScale);
-		builder.Append(", mTargetScale:", mTargetScale);
-		builder.Append(", mLoop:", mLoop);
-		builder.Append(", mFullOnce:", mFullOnce);
+		builder.append(": mKeyframe:", mKeyframe).
+				append(", mOnceLength:", mOnceLength).
+				append(", mOffset:", mOffset).
+				append(", mStartScale:", mStartScale).
+				append(", mTargetScale:", mTargetScale).
+				append(", mLoop:", mLoop);
 	}
 }

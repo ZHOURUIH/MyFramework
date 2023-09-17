@@ -1,75 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 
-public class UINTS : OBJECTS
+// 自定义的对uint[]的封装,可用于序列化
+public class UINTS : SerializableBit
 {
-	public uint[] mValue;
+	public List<uint> mValue = new List<uint>();
 	public uint this[int index]
 	{
-		get
-		{
-			checkIndex(index);
-			return mValue[index];
-		}
-		set
-		{
-			checkIndex(index);
-			mValue[index] = value;
-		}
+		get { return mValue[index]; }
+		set { mValue[index] = value; }
 	}
-	public UINTS(int count)
-		: base(count)
+	public int Count { get { return mValue.Count; } }
+	public override void resetProperty() 
 	{
-		mValue = new uint[count];
-		mType = typeof(uint[]);
-		mTypeSize = sizeof(uint);
-		mSize = mTypeSize * mValue.Length;
+		base.resetProperty();
+		mValue.Clear(); 
 	}
-	public UINTS(uint[] value)
-		: base(value.Length)
+	public override bool read(SerializerBitRead reader)
 	{
-		mValue = value;
-		mType = typeof(uint[]);
-		mTypeSize = sizeof(uint);
-		mSize = mTypeSize * mValue.Length;
+		return reader.readList(mValue);
 	}
-	public override void zero() { memset(mValue, (uint)0); }
-	public override bool readFromBuffer(byte[] buffer, ref int index)
+	public override void write(SerializerBitWrite writer)
 	{
-		if (!mVariableLength)
-		{
-			return readUInts(buffer, ref index, mValue);
-		}
-
-		// 先读取数据的实际字节长度
-		setElementCount(readElementCount(buffer, ref index, out bool success));
-		if (!success)
-		{
-			return false;
-		}
-		return readUInts(buffer, ref index, mValue, mElementCount);
+		writer.writeList(mValue);
 	}
-	public override bool writeToBuffer(byte[] buffer, ref int index)
+	public void Add(uint value)
 	{
-		if (!mVariableLength)
-		{
-			return writeUInts(buffer, ref index, mValue);
-		}
-
-		// 先写入数据的实际字节长度
-		if (!writeElementCount(buffer, ref index))
-		{
-			return false;
-		}
-		return writeUInts(buffer, ref index, mValue, mElementCount);
-	}
-	public void set(uint[] value)
-	{
-		int minCount = getMin(value.Length, mValue.Length);
-		memcpy(mValue, value, 0, 0, minCount * mTypeSize);
-		if (mVariableLength)
-		{
-			setElementCount(minCount);
-		}
+		mValue.Add(value);
 	}
 }

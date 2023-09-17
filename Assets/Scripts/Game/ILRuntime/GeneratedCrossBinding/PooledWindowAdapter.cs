@@ -2,23 +2,16 @@ using System;
 using ILRuntime.CLR.Method;
 using ILRuntime.Runtime.Enviorment;
 using ILRuntime.Runtime.Intepreter;
+#if DEBUG && !DISABLE_ILRUNTIME_DEBUG
+using AutoList = System.Collections.Generic.List<object>;
+#else
+using AutoList = ILRuntime.Other.UncheckedList<object>;
+#endif
 
 namespace HotFix
 {   
     public class PooledWindowAdapter : CrossBindingAdaptor
     {
-        static CrossBindingMethodInfo<global::LayoutScript> msetScript_0 = new CrossBindingMethodInfo<global::LayoutScript>("setScript");
-        static CrossBindingMethodInfo<global::myUIObject, global::myUIObject, System.String> massignWindow_1 = new CrossBindingMethodInfo<global::myUIObject, global::myUIObject, System.String>("assignWindow");
-        static CrossBindingMethodInfo minit_2 = new CrossBindingMethodInfo("init");
-        static CrossBindingMethodInfo mdestroy_3 = new CrossBindingMethodInfo("destroy");
-        static CrossBindingMethodInfo mreset_4 = new CrossBindingMethodInfo("reset");
-        static CrossBindingMethodInfo mrecycle_5 = new CrossBindingMethodInfo("recycle");
-        static CrossBindingMethodInfo<System.Boolean> msetVisible_6 = new CrossBindingMethodInfo<System.Boolean>("setVisible");
-        static CrossBindingMethodInfo mresetProperty_7 = new CrossBindingMethodInfo("resetProperty");
-        static CrossBindingMethodInfo<System.Boolean> msetDestroy_8 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
-        static CrossBindingFunctionInfo<System.Boolean> misDestroy_9 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
-        static CrossBindingMethodInfo<System.Int64> msetAssignID_10 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
-        static CrossBindingFunctionInfo<System.Int64> mgetAssignID_11 = new CrossBindingFunctionInfo<System.Int64>("getAssignID");
         public override Type BaseCLRType
         {
             get
@@ -42,6 +35,18 @@ namespace HotFix
 
         public class Adapter : global::PooledWindow, CrossBindingAdaptorType
         {
+            CrossBindingMethodInfo<global::LayoutScript> msetScript_0 = new CrossBindingMethodInfo<global::LayoutScript>("setScript");
+            CrossBindingMethodInfo<global::myUIObject, global::myUIObject, System.String> massignWindow_1 = new CrossBindingMethodInfo<global::myUIObject, global::myUIObject, System.String>("assignWindow");
+            CrossBindingMethodInfo minit_2 = new CrossBindingMethodInfo("init");
+            CrossBindingMethodInfo mdestroy_3 = new CrossBindingMethodInfo("destroy");
+            CrossBindingMethodInfo mreset_4 = new CrossBindingMethodInfo("reset");
+            CrossBindingMethodInfo mrecycle_5 = new CrossBindingMethodInfo("recycle");
+            CrossBindingMethodInfo<System.Boolean> msetVisible_6 = new CrossBindingMethodInfo<System.Boolean>("setVisible");
+            CrossBindingMethodInfo<global::myUIObject, System.Boolean> msetParent_7 = new CrossBindingMethodInfo<global::myUIObject, System.Boolean>("setParent");
+            CrossBindingMethodInfo<System.Boolean> msetAsLastSibling_8 = new CrossBindingMethodInfo<System.Boolean>("setAsLastSibling");
+            CrossBindingMethodInfo mresetProperty_9 = new CrossBindingMethodInfo("resetProperty");
+
+            bool isInvokingToString;
             ILTypeInstance instance;
             ILRuntime.Runtime.Enviorment.AppDomain appdomain;
 
@@ -111,44 +116,28 @@ namespace HotFix
                     msetVisible_6.Invoke(this.instance, visible);
             }
 
+            public override void setParent(global::myUIObject parent, System.Boolean refreshDepth)
+            {
+                if (msetParent_7.CheckShouldInvokeBase(this.instance))
+                    base.setParent(parent, refreshDepth);
+                else
+                    msetParent_7.Invoke(this.instance, parent, refreshDepth);
+            }
+
+            public override void setAsLastSibling(System.Boolean refreshDepth)
+            {
+                if (msetAsLastSibling_8.CheckShouldInvokeBase(this.instance))
+                    base.setAsLastSibling(refreshDepth);
+                else
+                    msetAsLastSibling_8.Invoke(this.instance, refreshDepth);
+            }
+
             public override void resetProperty()
             {
-                if (mresetProperty_7.CheckShouldInvokeBase(this.instance))
+                if (mresetProperty_9.CheckShouldInvokeBase(this.instance))
                     base.resetProperty();
                 else
-                    mresetProperty_7.Invoke(this.instance);
-            }
-
-            public override void setDestroy(System.Boolean isDestroy)
-            {
-                if (msetDestroy_8.CheckShouldInvokeBase(this.instance))
-                    base.setDestroy(isDestroy);
-                else
-                    msetDestroy_8.Invoke(this.instance, isDestroy);
-            }
-
-            public override System.Boolean isDestroy()
-            {
-                if (misDestroy_9.CheckShouldInvokeBase(this.instance))
-                    return base.isDestroy();
-                else
-                    return misDestroy_9.Invoke(this.instance);
-            }
-
-            public override void setAssignID(System.Int64 assignID)
-            {
-                if (msetAssignID_10.CheckShouldInvokeBase(this.instance))
-                    base.setAssignID(assignID);
-                else
-                    msetAssignID_10.Invoke(this.instance, assignID);
-            }
-
-            public override System.Int64 getAssignID()
-            {
-                if (mgetAssignID_11.CheckShouldInvokeBase(this.instance))
-                    return base.getAssignID();
-                else
-                    return mgetAssignID_11.Invoke(this.instance);
+                    mresetProperty_9.Invoke(this.instance);
             }
 
             public override string ToString()
@@ -157,7 +146,15 @@ namespace HotFix
                 m = instance.Type.GetVirtualMethod(m);
                 if (m == null || m is ILMethod)
                 {
-                    return instance.ToString();
+                    if (!isInvokingToString)
+                    {
+                        isInvokingToString = true;
+                        string res = instance.ToString();
+                        isInvokingToString = false;
+                        return res;
+                    }
+                    else
+                        return instance.Type.FullName;
                 }
                 else
                     return instance.Type.FullName;

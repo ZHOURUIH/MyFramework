@@ -1,16 +1,19 @@
 ﻿using UnityEngine;
+using static UnityUtility;
+using static MathUtility;
 
+// 使物体旋转
 public class CmdTransformableRotateSpeed : Command
 {
-	public Vector3 mStartAngle;
-	public Vector3 mRotateSpeed;
-	public Vector3 mRotateAcceleration;
+	public Vector3 mRotateAcceleration;		// 旋转加速度
+	public Vector3 mRotateSpeed;			// 旋转起始速度
+	public Vector3 mStartAngle;				// 旋转起始角度
 	public override void resetProperty()
 	{
 		base.resetProperty();
-		mStartAngle = Vector3.zero;
-		mRotateSpeed = Vector3.zero;
 		mRotateAcceleration = Vector3.zero;
+		mRotateSpeed = Vector3.zero;
+		mStartAngle = Vector3.zero;
 	}
 	public override void execute()
 	{
@@ -33,8 +36,8 @@ public class CmdTransformableRotateSpeed : Command
 	}
 	public override void debugInfo(MyStringBuilder builder)
 	{
-		builder.Append(": mStartAngle:", mStartAngle).
-				Append(", mRotateSpeed:", mRotateSpeed).
-				Append(", mRotateAcceleration:", mRotateAcceleration);
+		builder.append(": mStartAngle:", mStartAngle).
+				append(", mRotateSpeed:", mRotateSpeed).
+				append(", mRotateAcceleration:", mRotateAcceleration);
 	}
 }

@@ -1,7 +1,8 @@
 ﻿using System;
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
+using static GBR;
+using static FrameUtility;
+using static MathUtility;
 
 public class COMCharacterController : GameComponent
 {
@@ -34,19 +35,19 @@ public class COMCharacterController : GameComponent
 		if(isKeyCurrentDown(KeyCode.Q))
 		{
 			mPlayer.getData().mSpeed += 2.0f;
-			GB.mScriptGaming.setSpeed(mPlayer.getData().mSpeed);
+			mUIGaming.setSpeed(mPlayer.getData().mSpeed);
 		}
 		if (isKeyCurrentDown(KeyCode.E))
 		{
 			mPlayer.getData().mSpeed -= 2.0f;
 			clampMin(ref mPlayer.getData().mSpeed, 0.0f);
-			GB.mScriptGaming.setSpeed(mPlayer.getData().mSpeed);
+			mUIGaming.setSpeed(mPlayer.getData().mSpeed);
 		}
 		if (!isVectorZero(moveDir))
 		{
 			moveDir = normalize(moveDir);
 			mPlayer.setPosition(mPlayer.getPosition() + moveDir * mPlayer.getData().mSpeed);
-			GB.mScriptGaming.setAvatarPosition(mPlayer.getPosition());
+			mUIGaming.setAvatarPosition(mPlayer.getPosition());
 		}
 	}
 }

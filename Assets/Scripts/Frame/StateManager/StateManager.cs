@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using static UnityUtility;
+using static FrameUtility;
 
 // 用作全局的状态管理,存储状态的类型相关信息
 public class StateManager : FrameSystem
 {
-	protected Dictionary<GROUP_MUTEX, Type> mGroupMutexList;
-	protected Dictionary<Type, List<Type>> mStateGroupList;  // 查找状态所在的所有组,key为状态类型,value为该状态所在的所有状态组
-	protected Dictionary<Type, StateGroup> mGroupStateList;  // 状态组列表
-	protected Dictionary<int, Type> mStateParamList;
-	protected Dictionary<int, Type> mStateTypeList;
+	protected Dictionary<GROUP_MUTEX, Type> mGroupMutexList;	// 根据枚举查找互斥关系的对象类型
+	protected Dictionary<Type, List<Type>> mStateGroupList;		// 查找状态所在的所有组,key为状态类型,value为该状态所在的所有状态组
+	protected Dictionary<Type, StateGroup> mGroupStateList;		// 状态组列表
+	protected Dictionary<int, Type> mStateParamList;			// 状态参数类型列表
+	protected Dictionary<int, Type> mStateTypeList;				// 状态类型列表
 	public StateManager()
 	{
 		mGroupMutexList = new Dictionary<GROUP_MUTEX, Type>();
@@ -27,8 +29,9 @@ public class StateManager : FrameSystem
 		base.destroy();
 		foreach(var item in mGroupStateList)
 		{
-			item.Value.destroy();
-			UN_CLASS(item.Value);
+			var temp = item.Value;
+			temp.destroy();
+			UN_CLASS(ref temp);
 		}
 		mGroupStateList.Clear();
 	}
@@ -44,12 +47,18 @@ public class StateManager : FrameSystem
 	}
 	public StateParam createStateParam(int id)
 	{
-		if (!mStateParamList.TryGetValue(id, out Type type))
+		Type type = getParamType(id);
+		if (type == null)
 		{
 			return null;
 		}
-		// 创建的参数只允许在这一帧使用
-		return CLASS_ONCE(type) as StateParam;
+		// 创建的参数只允许在这一帧使用,所以需要使用UN_CLASS进行回收
+		var param = CLASS_ONCE(type, out bool isNew) as StateParam;
+		if (isNew)
+		{
+			param.init();
+		}
+		return param;
 	}
 	public Dictionary<Type, StateGroup> getGroupStateList() { return mGroupStateList; }
 	public Dictionary<Type, List<Type>> getStateGroupList() { return mStateGroupList; }
@@ -67,21 +76,6 @@ public class StateManager : FrameSystem
 	{
 		mGroupMutexList.TryGetValue(mutex, out Type type);
 		return type;
-	}
-	public void destroyMutex(StateGroupMutex mutex)
-	{
-		if (mutex == null)
-		{
-			return;
-		}
-		UN_CLASS(mutex);
-	}
-	public StateGroupMutex createMutex(GROUP_MUTEX mutex, StateGroup group)
-	{
-		var groupMutex = CLASS(getGroupMutex(mutex)) as StateGroupMutex;
-		groupMutex.setMutexType(mutex);
-		groupMutex.setGroup(group);
-		return groupMutex;
 	}
 	public void registeState(int id, Type stateType, Type paramType)
 	{

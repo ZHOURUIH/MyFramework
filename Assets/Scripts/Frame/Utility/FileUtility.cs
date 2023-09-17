@@ -1,15 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using System.Security.Cryptography;
+using static UnityUtility;
+using static StringUtility;
+using static MathUtility;
+using static BinaryUtility;
+using static FrameDefine;
+using static FrameUtility;
 
-public class FileUtility : MathUtility
+// 文件工具函数类
+public class FileUtility
 {
-	private static List<string> mTempPatternList = new List<string>();
-	private static List<string> mTempFileList = new List<string>();
-	private static List<string> mTempFileList1 = new List<string>();
-	public static new void initUtility() { }
+	private static List<string> mTempPatternList = new List<string>();	// 用于避免GC
+	private static List<string> mTempFileList = new List<string>();		// 用于避免GC
+	private static List<string> mTempFileList1 = new List<string>();	// 用于避免GC
 	public static void validPath(ref string path)
 	{
 		if (isEmpty(path))
@@ -22,124 +27,83 @@ public class FileUtility : MathUtility
 			path += "/";
 		}
 	}
-	public static void releaseFile(byte[] fileBuffer)
-	{
-		if (fileBuffer == null)
-		{
-			return;
-		}
-#if !UNITY_ANDROID || UNITY_EDITOR
-		// 非安卓或编辑器下需要使用BytesPool进行回收
-		// 如果数组大于等于16KB,则交给GC自动回收,否则就回收到自己的池中
-		FrameUtility.UN_ARRAY_THREAD(fileBuffer, fileBuffer.Length >= 1024 * 16);
-#else
-		// 安卓真机下打开文件时不再进行回收,由GC自动回收
-#endif
-	}
 	// 打开一个二进制文件,fileName为绝对路径,返回值为文件长度
 	// 使用完毕后需要使用releaseFile回收文件内存
-	public static int openFile(string fileName, out byte[] fileBuffer, bool errorIfNull)
+	public static byte[] openFile(string fileName, bool errorIfNull)
 	{
-		fileBuffer = null;
+		byte[] fileBuffer = null;
 		try
 		{
 #if !UNITY_ANDROID || UNITY_EDITOR
-			FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read);
-			if (fs == null)
+			using (FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read))
 			{
-				if (errorIfNull)
+				if (fs == null)
 				{
-					UnityUtility.logError("open file failed! filename : " + fileName);
+					if (errorIfNull)
+					{
+						logError("文件加载失败! : " + fileName);
+					}
+					return null;
 				}
-				return 0;
-			}
-			int fileSize = (int)fs.Length;
-			FrameUtility.ARRAY_THREAD(out fileBuffer, getGreaterPow2(fileSize));
-			if (fileBuffer == null)
-			{
+				int fileSize = (int)fs.Length;
 				fileBuffer = new byte[fileSize];
+				fs.Read(fileBuffer, 0, fileSize);
+				return fileBuffer;
 			}
-			fs.Read(fileBuffer, 0, fileSize);
-			fs.Close();
-			fs.Dispose();
-			return fileSize;
 #else
 			// 安卓平台如果要读取StreamingAssets下的文件,只能使用AssetManager
-			if (startWith(fileName, FrameDefine.F_STREAMING_ASSETS_PATH))
+			if (startWith(fileName, F_STREAMING_ASSETS_PATH))
 			{
 				// 改为相对路径
-				fileName = fileName.Substring(FrameDefine.F_STREAMING_ASSETS_PATH.Length);
+				fileName = fileName.Substring(F_STREAMING_ASSETS_PATH.Length);
 				fileBuffer = AndroidAssetLoader.loadAsset(fileName, errorIfNull);
 			}
 			// 安卓平台如果要读取persistentDataPath的文件,则可以使用File
-			else if (startWith(fileName, FrameDefine.F_PERSISTENT_DATA_PATH))
+			else if (startWith(fileName, F_PERSISTENT_DATA_PATH))
 			{
 				fileBuffer = AndroidAssetLoader.loadFile(fileName, errorIfNull);
 			}
 			else
 			{
-				UnityUtility.logError("openFile invalid path : " + fileName);
+				logError("openFile invalid path : " + fileName);
 			}
-			return fileBuffer.Length;
-#endif
-		}
-		catch (Exception)
-		{
-			UnityUtility.log("open file failed! filename : " + fileName);
-		}
-		return 0;
-	}
-	// 打开一个文本文件,fileName为绝对路径
-	public static string openTxtFile(string fileName, bool errorIfNull)
-	{
-		try
-		{
-#if !UNITY_ANDROID || UNITY_EDITOR
-			StreamReader streamReader = File.OpenText(fileName);
-			if (streamReader == null)
+			if (fileBuffer == null && errorIfNull)
 			{
-				if (errorIfNull)
-				{
-					UnityUtility.logError("open file failed! filename : " + fileName);
-				}
-				return null;
+				logError("open file failed! filename : " + fileName);
 			}
-			string fileBuffer = streamReader.ReadToEnd();
-			streamReader.Close();
-			streamReader.Dispose();
 			return fileBuffer;
-#else
-			// 安卓平台如果要读取StreamingAssets下的文件,只能使用AssetManager
-			if (startWith(fileName, FrameDefine.F_STREAMING_ASSETS_PATH))
-			{
-				// 改为相对路径
-				fileName = fileName.Substring(FrameDefine.F_STREAMING_ASSETS_PATH.Length);
-				return AndroidAssetLoader.loadTxtAsset(fileName, errorIfNull);
-			}
-			// 安卓平台如果要读取persistentDataPath的文件,则可以使用File
-			if (startWith(fileName, FrameDefine.F_PERSISTENT_DATA_PATH))
-			{
-				return AndroidAssetLoader.loadTxtFile(fileName, errorIfNull);
-			}
-			UnityUtility.logError("openTxtFile invalid path : " + fileName);
-			return null;
 #endif
 		}
 		catch (Exception e)
 		{
 			if (errorIfNull)
 			{
-				UnityUtility.logError("open file failed! filename : " + fileName + ", info:" + e.Message);
+				logException(e, "文件加载失败! : " + fileName);
 			}
-			return null;
 		}
+		return null;
+	}
+	// 打开一个文本文件,fileName为绝对路径
+	public static string openTxtFile(string fileName, bool errorIfNull)
+	{
+		byte[] fileContent = openFile(fileName, errorIfNull);
+		if (fileContent == null)
+        {
+			return EMPTY;
+        }
+		return bytesToString(fileContent, 0, fileContent.Length);
 	}
 	// 打开一个文本文件,fileName为绝对路径,并且自动将文件拆分为多行,移除末尾的换行符(\r或者\n),存储在fileLines中,包含空行,返回值是行数
 	public static int openTxtFileLines(string fileName, out string[] fileLines, bool errorIfNull = true, bool keepEmptyLine = true)
 	{
 		string fileContent = openTxtFile(fileName, errorIfNull);
+		if (isEmpty(fileContent))
+		{
+			fileLines = null;
+			return 0;
+		}
 		splitLine(fileContent, out fileLines, !keepEmptyLine);
-		return fileLines.Length;
+		return fileLines != null ? fileLines.Length : 0;
 	}
 	// 写一个文本文件,fileName为绝对路径,content是写入的字符串
 	public static void writeFile(string fileName, byte[] buffer, int size, bool appendData = false)
@@ -147,19 +111,11 @@ public class FileUtility : MathUtility
 		// 检测路径是否存在,如果不存在就创建一个
 		createDir(getFilePath(fileName));
 #if !UNITY_ANDROID || UNITY_EDITOR
-		FileStream file = null;
-		if (appendData)
+		using (FileStream file = new FileStream(fileName, appendData ? FileMode.Append : FileMode.Create, FileAccess.Write))
 		{
-			file = new FileStream(fileName, FileMode.Append, FileAccess.Write);
+			file.Write(buffer, 0, size);
+			file.Flush();
 		}
-		else
-		{
-			file = new FileStream(fileName, FileMode.Create, FileAccess.Write);
-		}
-		file.Write(buffer, 0, size);
-		file.Flush();
-		file.Close();
-		file.Dispose();
 #else
 		AndroidAssetLoader.writeFile(fileName, buffer, size, appendData);
 #endif
@@ -168,7 +124,7 @@ public class FileUtility : MathUtility
 	public static void writeTxtFile(string fileName, string content, bool appendData = false)
 	{
 #if !UNITY_ANDROID || UNITY_EDITOR
-		byte[] bytes = stringToBytes(content, Encoding.UTF8);
+		byte[] bytes = stringToBytes(content);
 		if (bytes != null)
 		{
 			writeFile(fileName, bytes, bytes.Length, appendData);
@@ -186,7 +142,7 @@ public class FileUtility : MathUtility
 	public static bool renameFile(string fileName, string newName)
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
-		UnityUtility.logError("can not rename file on android!");
+		logError("can not rename file on android!");
 		return false;
 #endif
 		if (!isFileExist(fileName) || isFileExist(newName))
@@ -200,7 +156,10 @@ public class FileUtility : MathUtility
 	public static void deleteFolder(string path)
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
-		UnityUtility.logError("can not delete dir on android!");
+		if (!AndroidAssetLoader.deleteDirectory(path))
+		{
+			logWarning("删除目录失败:" + path);
+		}
 		return;
 #endif
 		validPath(ref path);
@@ -229,7 +188,7 @@ public class FileUtility : MathUtility
 	public static bool deleteEmptyFolder(string path, bool deleteSelfIfEmpty = true)
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
-		UnityUtility.logError("can not delete empty dir on android!");
+		logError("can not delete empty dir on android!");
 		return false;
 #endif
 		validPath(ref path);
@@ -256,7 +215,7 @@ public class FileUtility : MathUtility
 			return;
 		}
 #if UNITY_ANDROID && !UNITY_EDITOR
-		UnityUtility.logError("can not copy file on android!");
+		logError("can not move file on android!");
 		return;
 #endif
 		if (isFileExist(dest))
@@ -275,12 +234,26 @@ public class FileUtility : MathUtility
 		}
 		File.Move(source, dest);
 	}
+	// 将StreamingAsset中的文件拷贝到PersistentDataPath中,参数为绝对路径,比直接调用copyFile节省内存
+	public static void copyStreamingAssetToPersistentFile(string source, string dest, bool overwrite = true)
+	{
+#if UNITY_ANDROID && !UNITY_EDITOR
+		// 安卓平台如果要读取StreamingAssets下的文件,只能使用AssetManager
+		if (startWith(source, F_STREAMING_ASSETS_PATH))
+		{
+			// 改为相对路径
+			source = source.Substring(F_STREAMING_ASSETS_PATH.Length);
+		}
+		AndroidAssetLoader.copyAssetToPersistentPath(source, dest, true);
+#else
+		copyFile(source, dest, overwrite);
+#endif
+	}
 	// 拷贝文件,参数为绝对路径
 	public static void copyFile(string source, string dest, bool overwrite = true)
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
-		byte[] fileBuffer;
-		openFile(source, out fileBuffer, true);
+		byte[] fileBuffer = openFile(source, true);
 		if(!isFileExist(dest) || overwrite)
 		{
 			writeFile(dest, fileBuffer, fileBuffer.Length);
@@ -292,13 +265,14 @@ public class FileUtility : MathUtility
 #endif
 	}
 	// 删除文件,参数为绝对路径
-	public static void deleteFile(string path)
+	public static bool deleteFile(string path)
 	{
 		rightToLeft(ref path);
 #if UNITY_ANDROID && !UNITY_EDITOR
-		AndroidAssetLoader.deleteFile(path);
+		return AndroidAssetLoader.deleteFile(path);
 #else
 		File.Delete(path);
+		return true;
 #endif
 	}
 	// 获得文件大小,file为绝对路径
@@ -315,7 +289,7 @@ public class FileUtility : MathUtility
 		}
 		catch(Exception e)
 		{
-			UnityUtility.logError("getFileSize error! info:" + e.Message + ", file:" + file);
+			logException(e, "getFileSize error! file:" + file);
 			return 0;
 		}
 	}
@@ -331,18 +305,18 @@ public class FileUtility : MathUtility
 		return Directory.Exists(dir);
 #else
 		// 安卓平台如果要读取StreamingAssets下的文件,只能使用AssetManager
-		if(startWith(dir, FrameDefine.F_STREAMING_ASSETS_PATH))
+		if(startWith(dir, F_STREAMING_ASSETS_PATH))
 		{
 			// 改为相对路径
-			dir = dir.Substring(FrameDefine.F_STREAMING_ASSETS_PATH.Length);
+			dir = dir.Substring(F_STREAMING_ASSETS_PATH.Length);
 			return AndroidAssetLoader.isAssetExist(dir);
 		}
 		// 安卓平台如果要读取persistentDataPath的文件,则可以使用File
-		if (startWith(dir, FrameDefine.F_PERSISTENT_DATA_PATH))
+		if (startWith(dir, F_PERSISTENT_DATA_PATH))
 		{
 			return AndroidAssetLoader.isDirExist(dir);
 		}
-		UnityUtility.logError("isDirExist invalid path : " + dir);
+		logError("isDirExist invalid path : " + dir);
 		return false;
 #endif
 	}
@@ -353,18 +327,18 @@ public class FileUtility : MathUtility
 		return File.Exists(fileName);
 #else
 		// 安卓平台如果要读取StreamingAssets下的文件,只能使用AssetManager
-		if (startWith(fileName, FrameDefine.F_STREAMING_ASSETS_PATH))
+		if (startWith(fileName, F_STREAMING_ASSETS_PATH))
 		{
 			// 改为相对路径
-			fileName = fileName.Substring(FrameDefine.F_STREAMING_ASSETS_PATH.Length);
+			fileName = fileName.Substring(F_STREAMING_ASSETS_PATH.Length);
 			return AndroidAssetLoader.isAssetExist(fileName);
 		}
 		// 安卓平台如果要读取persistentDataPath的文件,则可以使用File
-		if (startWith(fileName, FrameDefine.F_PERSISTENT_DATA_PATH))
+		if (startWith(fileName, F_PERSISTENT_DATA_PATH))
 		{
 			return AndroidAssetLoader.isFileExist(fileName);
 		}
-		UnityUtility.logError("isFileExist invalid path : " + fileName);
+		logError("isFileExist invalid path : " + fileName);
 		return false;
 #endif
 	}
@@ -382,7 +356,7 @@ public class FileUtility : MathUtility
 			createDir(parentDir);
 		}
 #if UNITY_ANDROID && !UNITY_EDITOR
-		AndroidAssetLoader.createDirectory(dir);
+		AndroidAssetLoader.createDirectoryRecursive(dir);
 #else
 		Directory.CreateDirectory(dir);
 #endif
@@ -410,7 +384,7 @@ public class FileUtility : MathUtility
 	public static void findResourcesFiles(string path, List<string> fileList, string pattern, bool recursive = true, bool keepAbsolutePath = false)
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
-		UnityUtility.logError("can not find resouces files on android!");
+		logError("can not find resouces files on android!");
 		return;
 #endif
 		mTempPatternList.Clear();
@@ -424,18 +398,18 @@ public class FileUtility : MathUtility
 	public static void findResourcesFiles(string path, List<string> fileList, List<string> patterns = null, bool recursive = true, bool keepAbsolutePath = false)
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
-		UnityUtility.logError("can not find resouces files on android!");
+		logError("can not find resouces files on android!");
 		return;
 #endif
 		validPath(ref path);
-		if (!startWith(path, FrameDefine.F_GAME_RESOURCES_PATH))
+		if (!startWith(path, F_GAME_RESOURCES_PATH))
 		{
-			path = FrameDefine.F_GAME_RESOURCES_PATH + path;
+			path = F_GAME_RESOURCES_PATH + path;
 		}
 		findFiles(path, fileList, patterns, recursive);
 		if (!keepAbsolutePath)
 		{
-			int removeLength = FrameDefine.F_GAME_RESOURCES_PATH.Length;
+			int removeLength = F_GAME_RESOURCES_PATH.Length;
 			int count = fileList.Count;
 			for (int i = 0; i < count; ++i)
 			{
@@ -477,7 +451,7 @@ public class FileUtility : MathUtility
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
 		// 转换为相对路径
-		removeStartString(ref path, FrameDefine.F_STREAMING_ASSETS_PATH);
+		removeStartString(ref path, F_STREAMING_ASSETS_PATH);
 		AndroidAssetLoader.findAssets(path, fileList, patterns, recursive);
 		// 查找后的路径本身就是相对路径,如果需要保留绝对路径,则需要将路径加上
 		if (keepAbsolutePath)
@@ -485,18 +459,18 @@ public class FileUtility : MathUtility
 			int count = fileList.Count;
 			for(int i = 0; i < count; ++i)
 			{
-				fileList[i] = FrameDefine.F_STREAMING_ASSETS_PATH + fileList[i];
+				fileList[i] = F_STREAMING_ASSETS_PATH + fileList[i];
 			}
 		}
 #else
-		if (!startWith(path, FrameDefine.F_STREAMING_ASSETS_PATH))
+		if (!startWith(path, F_STREAMING_ASSETS_PATH))
 		{
-			path = FrameDefine.F_STREAMING_ASSETS_PATH + path;
+			path = F_STREAMING_ASSETS_PATH + path;
 		}
 		findFiles(path, fileList, patterns, recursive);
 		if (!keepAbsolutePath)
 		{
-			int removeLength = FrameDefine.F_STREAMING_ASSETS_PATH.Length;
+			int removeLength = F_STREAMING_ASSETS_PATH.Length;
 			int count = fileList.Count;
 			for (int i = 0; i < count; ++i)
 			{
@@ -505,12 +479,12 @@ public class FileUtility : MathUtility
 		}
 #endif
 	}
-	// 查找指定目录下的所有文件,path为StreamingAssets下的相对路径,返回的路径列表为绝对路径
+	// 查找指定目录下的所有目录,path为StreamingAssets下的相对路径,返回的路径列表为绝对路径
 	public static void findStreamingAssetsFolders(string path, List<string> folderList, bool recursive = true, bool keepAbsolutePath = false)
 	{
 #if UNITY_ANDROID && !UNITY_EDITOR
 		// 转换为相对路径
-		removeStartString(ref path, FrameDefine.F_STREAMING_ASSETS_PATH);
+		removeStartString(ref path, F_STREAMING_ASSETS_PATH);
 		AndroidAssetLoader.findAssetsFolder(path, folderList, recursive);
 		// 查找后的路径本身就是相对路径,如果需要保留绝对路径,则需要将路径加上
 		if (keepAbsolutePath)
@@ -518,19 +492,19 @@ public class FileUtility : MathUtility
 			int count = folderList.Count;
 			for(int i = 0; i < count; ++i)
 			{
-				folderList[i] = FrameDefine.F_STREAMING_ASSETS_PATH + folderList[i];
+				folderList[i] = F_STREAMING_ASSETS_PATH + folderList[i];
 			}
 		}
 #else
 		// 非安卓平台则查找普通的文件夹
-		if (!startWith(path, FrameDefine.F_STREAMING_ASSETS_PATH))
+		if (!startWith(path, F_STREAMING_ASSETS_PATH))
 		{
-			path = FrameDefine.F_STREAMING_ASSETS_PATH + path;
+			path = F_STREAMING_ASSETS_PATH + path;
 		}
-		findFolders(path, folderList, recursive);
+		findFolders(path, folderList, null, recursive);
 		if (!keepAbsolutePath)
 		{
-			int removeLength = FrameDefine.F_STREAMING_ASSETS_PATH.Length;
+			int removeLength = F_STREAMING_ASSETS_PATH.Length;
 			int count = folderList.Count;
 			for (int i = 0; i < count; ++i)
 			{
@@ -561,91 +535,148 @@ public class FileUtility : MathUtility
 	// 查找指定目录下的所有文件,path为绝对路径
 	public static void findFiles(string path, List<string> fileList, string pattern, bool recursive = true)
 	{
-		mTempPatternList.Clear();
-		if (!isEmpty(pattern))
+		// 主线程中可以使用静态变量
+		if (CSharpUtility.isMainThread())
 		{
-			mTempPatternList.Add(pattern);
+			mTempPatternList.Clear();
+			if (!isEmpty(pattern))
+			{
+				mTempPatternList.Add(pattern);
+			}
+			findFiles(path, fileList, mTempPatternList, recursive);
 		}
-		findFiles(path, fileList, mTempPatternList, recursive);
+		else
+		{
+			findFiles(path, fileList, new List<string>() { pattern }, recursive);
+		}
 	}
 	// 查找指定目录下的所有文件,path为绝对路径
 	public static void findFiles(string path, List<string> fileList, List<string> patterns = null, bool recursive = true)
 	{
+		try
+		{
 #if UNITY_ANDROID && !UNITY_EDITOR
-		AndroidAssetLoader.findFiles(path, fileList, patterns, recursive);
+			AndroidAssetLoader.findFiles(path, fileList, patterns, recursive);
 #else
-		validPath(ref path);
-		if (!isDirExist(path))
-		{
-			return;
-		}
-		DirectoryInfo folder = new DirectoryInfo(path);
-		FileInfo[] fileInfoList = folder.GetFiles();
-		int fileCount = fileInfoList.Length;
-		int patternCount = patterns != null ? patterns.Count : 0;
-		for (int i = 0; i < fileCount; ++i)
-		{
-			string fileName = fileInfoList[i].Name;
-			// 如果需要过滤后缀名,则判断后缀
-			if (patternCount > 0)
+			validPath(ref path);
+			if (!isDirExist(path))
 			{
-				for (int j = 0; j < patternCount; ++j)
+				return;
+			}
+			DirectoryInfo folder = new DirectoryInfo(path);
+			FileInfo[] fileInfoList = folder.GetFiles();
+			int fileCount = fileInfoList.Length;
+			int patternCount = patterns != null ? patterns.Count : 0;
+			for (int i = 0; i < fileCount; ++i)
+			{
+				string fileName = fileInfoList[i].Name;
+				// 如果需要过滤后缀名,则判断后缀
+				if (patternCount > 0)
 				{
-					if (endWith(fileName, patterns[j], false))
+					for (int j = 0; j < patternCount; ++j)
 					{
-						fileList.Add(path + fileName);
+						if (endWith(fileName, patterns[j], false))
+						{
+							fileList.Add(path + fileName);
+						}
 					}
 				}
+				// 不需要过滤,则直接放入列表
+				else
+				{
+					fileList.Add(path + fileName);
+				}
 			}
-			// 不需要过滤,则直接放入列表
-			else
+			// 查找所有子目录
+			if (recursive)
 			{
-				fileList.Add(path + fileName);
+				string[] dirs = Directory.GetDirectories(path);
+				int count = dirs.Length;
+				for (int i = 0; i < count; ++i)
+				{
+					findFiles(dirs[i], fileList, patterns, recursive);
+				}
 			}
+#endif
 		}
-		// 查找所有子目录
-		if (recursive)
+		// 此处暂时不抛出异常信息
+		catch (Exception e) 
 		{
+#if UNITY_EDITOR
+			logForce(e.Message);
+#endif
+		}
+	}
+	// 得到指定目录下的所有第一级子目录,path为绝对路径
+	public static bool findFolders(string path, List<string> dirList, List<string> excludeList, bool recursive = true)
+	{
+		// 非安卓平台则查找普通文件夹
+		try
+		{
+			validPath(ref path);
+			if (!isDirExist(path))
+			{
+				return false;
+			}
+#if UNITY_ANDROID && !UNITY_EDITOR
+			AndroidAssetLoader.findFolders(path, dirList, recursive);
+#else
 			string[] dirs = Directory.GetDirectories(path);
 			int count = dirs.Length;
 			for (int i = 0; i < count; ++i)
 			{
-				findFiles(dirs[i], fileList, patterns, recursive);
+				string dir = dirs[i];
+				if (excludeList != null && excludeList.Count > 0)
+				{
+					string folderName = getFileNameThread(dir);
+					if (excludeList.Contains(folderName))
+					{
+						continue;
+					}
+				}
+				dirList.Add(dir);
+				if (recursive)
+				{
+					findFolders(dir, dirList, excludeList, recursive);
+				}
 			}
-		}
 #endif
-	}
-	// 得到指定目录下的所有第一级子目录,path为绝对路径
-	public static bool findFolders(string path, List<string> dirList, bool recursive = true)
-	{
-		validPath(ref path);
-		if (!isDirExist(path))
-		{
-			return false;
 		}
-#if UNITY_ANDROID && !UNITY_EDITOR
-		AndroidAssetLoader.findFolders(path, dirList, recursive);
-#else
-		// 非安卓平台则查找普通文件夹
-		string[] dirs = Directory.GetDirectories(path);
-		int count = dirs.Length;
-		for (int i = 0; i < count; ++i)
+		// 只捕获异常,暂时不抛出报错信息
+		catch (Exception e)
 		{
-			string dir = dirs[i];
-			dirList.Add(dir);
-			if (recursive)
-			{
-				findFolders(dir, dirList, recursive);
-			}
-		}
+#if UNITY_EDITOR
+			logForce(e.Message);
 #endif
+		}
 		return true;
 	}
 	// 计算一个文件的MD5,fileName为绝对路径
 	public static string generateFileMD5(string fileName, bool upperOrLower = true)
 	{
-		int fileSize = openFile(fileName, out byte[] fileContent, true);
-		return generateFileMD5(fileContent, fileSize, upperOrLower);
+		// 安卓平台下容易oom,所以调用java的函数通过流的方式来计算md5
+#if !UNITY_EDITOR && UNITY_ANDROID
+		string md5 = AndroidAssetLoader.generateMD5(fileName);
+		if (md5 == null)
+		{
+			return EMPTY;
+		}
+		if (upperOrLower)
+		{
+			return md5.ToUpper();
+		}
+		else
+		{
+			return md5.ToLower();
+		}
+#else
+		byte[] fileContent = openFile(fileName, true);
+		if (fileContent == null)
+		{
+			return EMPTY;
+		}
+		return generateFileMD5(fileContent, fileContent.Length, upperOrLower);
+#endif
 	}
 	// 计算一个文件的MD5
 	public static string generateFileMD5(byte[] fileContent, int length = -1, bool upperOrLower = true)
@@ -655,6 +686,29 @@ public class FileUtility : MathUtility
 			length = fileContent.Length;
 		}
 		HashAlgorithm algorithm = MD5.Create();
-		return bytesToHEXString(algorithm.ComputeHash(fileContent, 0, length), 0, false, upperOrLower);
+		return bytesToHEXString(algorithm.ComputeHash(fileContent, 0, length), 0, 0, false, upperOrLower);
+	}
+	public static string generateFileMD5Thread(byte[] fileContent, int length = -1, bool upperOrLower = true)
+	{
+		if (length < 0)
+		{
+			length = fileContent.Length;
+		}
+		HashAlgorithm algorithm = MD5.Create();
+		return bytesToHEXStringThread(algorithm.ComputeHash(fileContent, 0, length), 0, 0, false, upperOrLower);
+	}
+	// 打开一个文本文件进行处理,然后再写回文本文件
+	public static void processFileLine(string fileName, Action<List<string>> process)
+	{
+		using (new ListScope<string>(out var fileLineList))
+		{
+			openTxtFileLines(fileName, out string[] fileLines);
+			fileLineList.AddRange(fileLines);
+
+			process(fileLineList);
+
+			string fileTxt = stringsToString(fileLineList, "\r\n");
+			writeTxtFile(fileName, fileTxt);
+		}
 	}
 }

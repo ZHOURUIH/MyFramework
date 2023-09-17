@@ -1,5 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using static UnityUtility;
+using static StringUtility;
+using static FrameBase;
+using static BinaryUtility;
+using static FrameDefine;
 
 // 用于管理变换的关键帧文件,主要是用于给Path类的组件提供参数
 // 文件可使用PathRecorder进行录制生成
@@ -37,7 +42,7 @@ public class PathKeyframeManager : FrameSystem
 				return null;
 			}
 			translatePath = new Dictionary<float, Vector3>();
-			readPathFile(availablePath(FrameDefine.SA_PATH_KEYFRAME_PATH + fileName + ".translate"), translatePath);
+			readPathFile(SA_PATH_KEYFRAME_PATH + fileName + "_translate.bytes", translatePath);
 			mTranslatePathList.Add(getFileNameNoSuffix(fileName, true), translatePath);
 		}
 		return translatePath;
@@ -51,7 +56,7 @@ public class PathKeyframeManager : FrameSystem
 				return null;
 			}
 			rotatePath = new Dictionary<float, Vector3>();
-			readPathFile(availablePath(FrameDefine.SA_PATH_KEYFRAME_PATH + fileName + ".rotate"), rotatePath);
+			readPathFile(SA_PATH_KEYFRAME_PATH + fileName + "_rotate.bytes", rotatePath);
 			mRotatePathList.Add(getFileNameNoSuffix(fileName, true), rotatePath);
 		}
 		return rotatePath;
@@ -65,7 +70,7 @@ public class PathKeyframeManager : FrameSystem
 				return null;
 			}
 			scalePath = new Dictionary<float, Vector3>();
-			readPathFile(availablePath(FrameDefine.SA_PATH_KEYFRAME_PATH + fileName + ".scale"), scalePath);
+			readPathFile(SA_PATH_KEYFRAME_PATH + fileName + "_scale.bytes", scalePath);
 			mScalePathList.Add(getFileNameNoSuffix(fileName, true), scalePath);
 		}
 		return scalePath;
@@ -79,7 +84,7 @@ public class PathKeyframeManager : FrameSystem
 				return null;
 			}
 			alphaPath = new Dictionary<float, float>();
-			readPathFile(availablePath(FrameDefine.SA_PATH_KEYFRAME_PATH + fileName + ".alpha"), alphaPath);
+			readPathFile(SA_PATH_KEYFRAME_PATH + fileName + "_alpha.bytes", alphaPath);
 			mAlphaPathList.Add(getFileNameNoSuffix(fileName, true), alphaPath);
 		}
 		return alphaPath;
@@ -87,8 +92,11 @@ public class PathKeyframeManager : FrameSystem
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void readPathFile(string filePath, Dictionary<float, Vector3> path)
 	{
-		int lineCount = openTxtFileLines(filePath, out string[] lines, true, false);
-		for(int i = 0; i < lineCount; ++i)
+		var file = mResourceManager.loadResource<TextAsset>(filePath);
+		string fileString = bytesToString(file.bytes);
+		splitLine(fileString, out string[] lines);
+		int lineCount = lines.Length;
+		for (int i = 0; i < lineCount; ++i)
 		{
 			string[] elems = split(lines[i], ':');
 			if (elems.Length != 2)
@@ -98,10 +106,14 @@ public class PathKeyframeManager : FrameSystem
 			}
 			path.Add(SToF(elems[0]), SToVector3(elems[1]));
 		}
+		mResourceManager.unload(ref file);
 	}
 	protected void readPathFile(string filePath, Dictionary<float, float> path)
 	{
-		int lineCount = openTxtFileLines(filePath, out string[] lines, true, false);
+		var file = mResourceManager.loadResource<TextAsset>(filePath);
+		string fileString = bytesToString(file.bytes);
+		splitLine(fileString, out string[] lines);
+		int lineCount = lines.Length;
 		for (int i = 0; i < lineCount; ++i)
 		{
 			string[] elems = split(lines[i], ':');
@@ -112,5 +124,6 @@ public class PathKeyframeManager : FrameSystem
 			}
 			path.Add(SToF(elems[0]), SToF(elems[1]));
 		}
+		mResourceManager.unload(ref file);
 	}
 }

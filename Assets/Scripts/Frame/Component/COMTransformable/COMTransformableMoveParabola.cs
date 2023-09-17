@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System;
+using static MathUtility;
 
+// 物体的抛物线移动组件
 public class COMTransformableMoveParabola : ComponentKeyFrameNormal, IComponentModifyPosition
 {
 	protected Vector3 mStartPos;    // 移动开始时的位置
@@ -22,9 +24,9 @@ public class COMTransformableMoveParabola : ComponentKeyFrameNormal, IComponentM
 	public void setTargetPos(Vector3 pos) { mTargetPos = pos; }
 	public void setStartPos(Vector3 pos) { mStartPos = pos; }
 	public void setTopHeight(float top) { mTopHeight = abs(top); }
-	public override void play(int keyframe, bool loop, float onceLength, float offset, bool fullOnce)
+	public override void play(int keyframe, bool loop, float onceLength, float offset)
 	{
-		base.play(keyframe, loop, onceLength, offset, fullOnce);
+		base.play(keyframe, loop, onceLength, offset);
 		// 首先将起点和终点平移至原点
 		mTempB = mTargetPos - mStartPos;
 		// 即使起点和终点相同，也需要执行高度上的抛物线移动
@@ -33,7 +35,7 @@ public class COMTransformableMoveParabola : ComponentKeyFrameNormal, IComponentM
 			mTempB = Vector3.forward;
 		}
 		// 绕A点旋转B点到X轴上
-		float angle = -getAngleFromVector3ToVector3(Vector3.forward, mTempB, true, ANGLE.DEGREE) + HALF_PI_DEGREE;
+		float angle = -getAngleVectorToVector(Vector3.forward, mTempB, true, ANGLE.DEGREE) + HALF_PI_DEGREE;
 		mTempB = rotateVector3(mTempB, Quaternion.AngleAxis(angle, Vector3.up));
 		mFactorB = generateFactorBFromHeight(mTopHeight, mTempB);
 		mFactorA = generateFactorA(mFactorB, mTempB);

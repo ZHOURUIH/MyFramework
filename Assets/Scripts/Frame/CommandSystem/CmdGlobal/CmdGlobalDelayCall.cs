@@ -5,7 +5,7 @@ using UnityEngine;
 // 用于延迟调用指定的函数
 public class CmdGlobalDelayCall : Command
 {
-	public Action mFunction;
+	public Action mFunction;		// 延迟调用的函数
 	public override void resetProperty()
 	{
 		base.resetProperty();

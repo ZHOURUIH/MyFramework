@@ -2,20 +2,16 @@ using System;
 using ILRuntime.CLR.Method;
 using ILRuntime.Runtime.Enviorment;
 using ILRuntime.Runtime.Intepreter;
+#if DEBUG && !DISABLE_ILRUNTIME_DEBUG
+using AutoList = System.Collections.Generic.List<object>;
+#else
+using AutoList = ILRuntime.Other.UncheckedList<object>;
+#endif
 
 namespace HotFix
 {   
     public class NetPacketAdapter : CrossBindingAdaptor
     {
-        static CrossBindingMethodInfo minit_0 = new CrossBindingMethodInfo("init");
-        static CrossBindingMethodInfo mexecute_1 = new CrossBindingMethodInfo("execute");
-        static CrossBindingFunctionInfo<System.String> mdebugInfo_2 = new CrossBindingFunctionInfo<System.String>("debugInfo");
-        static CrossBindingFunctionInfo<System.Boolean> mshowInfo_3 = new CrossBindingFunctionInfo<System.Boolean>("showInfo");
-        static CrossBindingMethodInfo mresetProperty_4 = new CrossBindingMethodInfo("resetProperty");
-        static CrossBindingMethodInfo<System.Boolean> msetDestroy_5 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
-        static CrossBindingFunctionInfo<System.Boolean> misDestroy_6 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
-        static CrossBindingMethodInfo<System.Int64> msetAssignID_7 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
-        static CrossBindingFunctionInfo<System.Int64> mgetAssignID_8 = new CrossBindingFunctionInfo<System.Int64>("getAssignID");
         public override Type BaseCLRType
         {
             get
@@ -39,6 +35,14 @@ namespace HotFix
 
         public class Adapter : global::NetPacket, CrossBindingAdaptorType
         {
+            CrossBindingMethodInfo minit_0 = new CrossBindingMethodInfo("init");
+            CrossBindingFunctionInfo<System.Boolean> mcanExecute_1 = new CrossBindingFunctionInfo<System.Boolean>("canExecute");
+            CrossBindingMethodInfo mexecute_2 = new CrossBindingMethodInfo("execute");
+            CrossBindingFunctionInfo<System.String> mdebugInfo_3 = new CrossBindingFunctionInfo<System.String>("debugInfo");
+            CrossBindingFunctionInfo<System.Boolean> mshowInfo_4 = new CrossBindingFunctionInfo<System.Boolean>("showInfo");
+            CrossBindingMethodInfo mresetProperty_5 = new CrossBindingMethodInfo("resetProperty");
+
+            bool isInvokingToString;
             ILTypeInstance instance;
             ILRuntime.Runtime.Enviorment.AppDomain appdomain;
 
@@ -63,68 +67,44 @@ namespace HotFix
                     minit_0.Invoke(this.instance);
             }
 
+            public override System.Boolean canExecute()
+            {
+                if (mcanExecute_1.CheckShouldInvokeBase(this.instance))
+                    return base.canExecute();
+                else
+                    return mcanExecute_1.Invoke(this.instance);
+            }
+
             public override void execute()
             {
-                if (mexecute_1.CheckShouldInvokeBase(this.instance))
+                if (mexecute_2.CheckShouldInvokeBase(this.instance))
                     base.execute();
                 else
-                    mexecute_1.Invoke(this.instance);
+                    mexecute_2.Invoke(this.instance);
             }
 
             public override System.String debugInfo()
             {
-                if (mdebugInfo_2.CheckShouldInvokeBase(this.instance))
+                if (mdebugInfo_3.CheckShouldInvokeBase(this.instance))
                     return base.debugInfo();
                 else
-                    return mdebugInfo_2.Invoke(this.instance);
+                    return mdebugInfo_3.Invoke(this.instance);
             }
 
             public override System.Boolean showInfo()
             {
-                if (mshowInfo_3.CheckShouldInvokeBase(this.instance))
+                if (mshowInfo_4.CheckShouldInvokeBase(this.instance))
                     return base.showInfo();
                 else
-                    return mshowInfo_3.Invoke(this.instance);
+                    return mshowInfo_4.Invoke(this.instance);
             }
 
             public override void resetProperty()
             {
-                if (mresetProperty_4.CheckShouldInvokeBase(this.instance))
+                if (mresetProperty_5.CheckShouldInvokeBase(this.instance))
                     base.resetProperty();
                 else
-                    mresetProperty_4.Invoke(this.instance);
-            }
-
-            public override void setDestroy(System.Boolean isDestroy)
-            {
-                if (msetDestroy_5.CheckShouldInvokeBase(this.instance))
-                    base.setDestroy(isDestroy);
-                else
-                    msetDestroy_5.Invoke(this.instance, isDestroy);
-            }
-
-            public override System.Boolean isDestroy()
-            {
-                if (misDestroy_6.CheckShouldInvokeBase(this.instance))
-                    return base.isDestroy();
-                else
-                    return misDestroy_6.Invoke(this.instance);
-            }
-
-            public override void setAssignID(System.Int64 assignID)
-            {
-                if (msetAssignID_7.CheckShouldInvokeBase(this.instance))
-                    base.setAssignID(assignID);
-                else
-                    msetAssignID_7.Invoke(this.instance, assignID);
-            }
-
-            public override System.Int64 getAssignID()
-            {
-                if (mgetAssignID_8.CheckShouldInvokeBase(this.instance))
-                    return base.getAssignID();
-                else
-                    return mgetAssignID_8.Invoke(this.instance);
+                    mresetProperty_5.Invoke(this.instance);
             }
 
             public override string ToString()
@@ -133,7 +113,15 @@ namespace HotFix
                 m = instance.Type.GetVirtualMethod(m);
                 if (m == null || m is ILMethod)
                 {
-                    return instance.ToString();
+                    if (!isInvokingToString)
+                    {
+                        isInvokingToString = true;
+                        string res = instance.ToString();
+                        isInvokingToString = false;
+                        return res;
+                    }
+                    else
+                        return instance.Type.FullName;
                 }
                 else
                     return instance.Type.FullName;

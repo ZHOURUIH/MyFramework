@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using static UnityUtility;
+using static FrameUtility;
+using static FrameBase;
 
 // 状态组,状态组可以指定哪些状态是互斥的,如果是互斥的,则添加属于该组的状态时,会移除已有的该组中的所有状态
-public class StateGroup : FrameBase
+public class StateGroup : ClassObject
 {
 	public HashSet<Type> mStateList;	// 组中的状态类型
 	public StateGroupMutex mMutex;		// 该组中的状态是否可以共存
@@ -20,11 +23,13 @@ public class StateGroup : FrameBase
 	}
 	public void destroy()
 	{
-		mStateManager.destroyMutex(mMutex);
+		UN_CLASS(ref mMutex);
 	}
 	public void setMutex(GROUP_MUTEX mutex)
 	{
-		mMutex = mStateManager.createMutex(mutex, this);
+		mMutex = CLASS(mStateManager.getGroupMutex(mutex)) as StateGroupMutex;
+		mMutex.setMutexType(mutex);
+		mMutex.setGroup(this);
 	}
 	public void setMainState(Type type)
 	{

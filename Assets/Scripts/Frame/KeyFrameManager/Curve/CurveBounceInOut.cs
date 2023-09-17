@@ -1,9 +1,10 @@
 ﻿using System;
 using UnityEngine;
 
+// 弹跳曲线
 public class CurveBounceInOut : MyCurve
 {
-	public override float Evaluate(float time)
+	public override float evaluate(float time)
 	{
 		return bounceEaseInOut(time);
 	}

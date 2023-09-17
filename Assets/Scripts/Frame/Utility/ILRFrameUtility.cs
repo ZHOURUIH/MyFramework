@@ -1,16 +1,16 @@
 ﻿#if USE_ILRUNTIME
 using ILRuntime.CLR.TypeSystem;
 using System;
-using System.Collections.Generic;
-using UnityEngine;
 using ILRAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
+using static FrameBase;
+using static FrameDefine;
 
 // 用于访问ILR工程
-public class ILRFrameUtility : FrameBase
+public class ILRFrameUtility
 {
-	public static void socketState()
+	public static void socketState(NET_STATE state)
 	{
-		callStatic("socketState");
+		callStatic("socketState", state);
 	}
 	public static void start()
 	{
@@ -24,7 +24,7 @@ public class ILRFrameUtility : FrameBase
 		{
 			return default;
 		}
-		return (T)mILRSystem.getAppDomain().Invoke(FrameDefine.ILR_EXPORT, method, null, p);
+		return (T)mILRSystem.getAppDomain().Invoke(ILR_EXPORT, method, null, p);
 	}
 	// 调用热更工程中ILRExport类的静态函数,不带返回值
 	protected static void callStatic(string method, params object[] p)
@@ -33,7 +33,7 @@ public class ILRFrameUtility : FrameBase
 		{
 			return;
 		}
-		mILRSystem.getAppDomain().Invoke(FrameDefine.ILR_EXPORT, method, null, p);
+		mILRSystem.getAppDomain().Invoke(ILR_EXPORT, method, null, p);
 	}
 	// 调用成员函数,带返回值
 	protected static T callMethod<T>(string type, string method, object instance, params object[] p)

@@ -1,10 +1,12 @@
 ﻿using System;
 using UnityEngine;
+using static UnityUtility;
 
+// 在物理更新中使物体始终朝向指定目标
 public class CmdTransformableRotateFocusPhysics : Command
 {
-	public Transformable mTarget;
-	public Vector3 mOffset;
+	public Transformable mTarget;	// 朝向的目标
+	public Vector3 mOffset;			// 目标位置偏移
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -33,6 +35,6 @@ public class CmdTransformableRotateFocusPhysics : Command
 	}
 	public override void debugInfo(MyStringBuilder builder)
 	{
-		builder.Append(": target:", mTarget?.getName());
+		builder.append(": target:", mTarget?.getName());
 	}
 }

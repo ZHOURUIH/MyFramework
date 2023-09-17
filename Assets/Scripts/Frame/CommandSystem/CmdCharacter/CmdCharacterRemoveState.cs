@@ -1,37 +1,29 @@
 ﻿using System;
 
-public class CmdCharacterRemoveState : Command
+// 移除角色的一个状态
+public class CmdCharacterRemoveState
 {
-	public CharacterState mState;
-	public Type mStateGroup;
-	public string mParam;
-	public override void resetProperty()
+	// state,状态实例
+	// param,移除时要传递的参数
+	public static void execute(Character character, CharacterState state, string param = null)
 	{
-		base.resetProperty();
-		mState = null;
-		mStateGroup = null;
-		mParam = null;
-	}
-	public override void execute()
-	{
-		var character = mReceiver as Character;
-		COMCharacterStateMachine stateMachine = character.getStateMachine();
-		// 移除状态组时,认为状态是强行被中断
-		if (mStateGroup != null)
+		if(state == null)
 		{
-			stateMachine.removeStateInGroup(mStateGroup, true, mParam);
 			return;
 		}
 		// 移除指定状态时认为状态是正常结束
-		if(mState != null)
-		{
-			stateMachine.removeState(mState, false, mParam);
-		}
+		character.getStateMachine().removeState(state, false, param);
 	}
-	public override void debugInfo(MyStringBuilder builder)
+	// stateGroup,状态组,如果填了状态组,则表示会移除角色上所有属于该状态组的状态,并且此处mState的值将不会生效
+	// param,移除时要传递的参数
+	public static void execute(Character character, Type stateGroup, string param = null)
 	{
-		builder.Append(": mState:", Typeof(mState)).
-				Append(", mStateGroup:", mStateGroup?.ToString()).
-				Append(", mParam:", mParam);
+		// 移除状态组时,认为状态是强行被中断
+		if (stateGroup == null)
+		{
+			return;
+		}
+		COMCharacterStateMachine stateMachine = character.getStateMachine();
+		stateMachine.removeStateInGroup(stateGroup, true, param);
 	}
 }

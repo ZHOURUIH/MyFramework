@@ -2,115 +2,127 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Collections.Generic;
-using System.Threading;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+using UnityEngine.Profiling;
+using static StringUtility;
+#endif
+using static UnityUtility;
+using static BinaryUtility;
+using static FrameUtility;
+using static FrameBase;
+using static FrameDefine;
 
-// 当前程序作为客户端时使用
+public struct OutputDataInfo
+{
+	public byte[] mData;
+	public int mDataSize;
+	public OutputDataInfo(byte[] data, int size)
+	{
+		mData = data;
+		mDataSize = size;
+	}
+}
+
+// 当前程序作为客户端时使用,表示一个与TCP服务器的连接
 public abstract class NetConnectTCP : NetConnect
 {
-	protected DoubleBuffer<NetPacketTCP> mReceiveBuffer;		// 在主线程中执行的消息列表
-	protected List<NetPacketTCP> mThreadReceiveBuffer;			// 在子线程中执行的消息列表
-	protected DoubleBuffer<byte[]> mOutputBuffer;				// 使用双缓冲提高发送消息的效率
-	protected Queue<string> mReceivePacketHistory;
-	protected HashSet<ushort> mThreadPacketList;				// 标记需要在子线程中执行的消息类型列表
-	protected StreamBuffer mInputBuffer;
-	protected ThreadLock mConnectStateLock;
-	protected ThreadLock mOutputBufferLock;
-	protected ThreadLock mSocketLock;
-	protected ThreadLock mTimerLock;
-	protected IPAddress mIPAddress;
-	protected DateTime mPingStartTime;
-	protected MyThread mReceiveThread;
-	protected MyThread mSendThread;
-	protected MyTimer mHeartBeatTimer;
-	protected MyTimer mPingTimer;
-	protected Action mHeartBeatAction;			// 外部设置的用于发送心跳包的函数
-	protected Action mPingCallback;				// 外部设置的用于发送ping包的函数
-	protected Socket mSocket;
-	protected byte[] mRecvBuff;
-	protected long mPing;						// 网络延迟,计算方式是从发出一个ping包到接收到一个回复包的间隔时间
-	protected int mMinPacketSize;				// 解析一个消息包所需的最少字节数
-	protected int mPort;                        // 服务器端口
-	protected bool mManualDisconnect;			// 是否正在主动断开连接
-	protected NET_STATE mNetState;
+	protected DoubleBuffer<PacketSimpleInfo> mReceiveBuffer;// 在主线程中执行的消息列表
+	protected DoubleBuffer<OutputDataInfo> mOutputBuffer;	// 使用双缓冲提高发送消息的效率
+	protected Queue<string> mReceivePacketHistory;          // 接收过的包的缓冲列表
+	protected NetStateCallback mNetStateCallback;			// 网络状态改变的回调
+	protected StreamBuffer mInputBuffer;                    // 接收消息的缓冲区
+	protected StreamBuffer mTotalBuffer;					// 最终发出的大的缓冲区
+	protected ThreadLock mConnectStateLock;					// mNetState的锁
+	protected ThreadLock mOutputBufferLock;					// mOutputBuffer的锁
+	protected ThreadLock mSocketLock;						// mSocket的锁
+	protected IPAddress mIPAddress;							// 服务器地址
+	protected DateTime mPingStartTime;						// ping开始的时间
+	protected MyThread mReceiveThread;						// 接收线程
+	protected MyThread mSendThread;							// 发送线程
+	protected MyTimer1 mPingTimer;							// ping计时器
+	protected Action mPingCallback;							// 外部设置的用于发送ping包的函数
+	protected Socket mSocket;								// 套接字实例
+	protected byte[] mRecvBuff;								// 从Socket接收时使用的缓冲区
+	protected int mPing;									// 网络延迟,计算方式是从发出一个ping包到接收到一个回复包的间隔时间
+	protected int mPort;									// 服务器端口
+	protected bool mManualDisconnect;                       // 是否正在主动断开连接
+	protected NET_STATE mNetState;							// 网络连接状态
 	public NetConnectTCP()
 	{
-		mThreadReceiveBuffer = new List<NetPacketTCP>();
-		mReceiveBuffer = new DoubleBuffer<NetPacketTCP>();
-		mOutputBuffer = new DoubleBuffer<byte[]>();
-		mThreadPacketList = new HashSet<ushort>();
-		mReceiveThread = new MyThread("SocketReceive");
-		mSendThread = new MyThread("SocketSend");
-		mRecvBuff = new byte[FrameDefine.TCP_RECEIVE_BUFFER];
+		mReceiveBuffer = new DoubleBuffer<PacketSimpleInfo>();
+		mOutputBuffer = new DoubleBuffer<OutputDataInfo>();
+		mReceiveThread = new MyThread("SocketReceiveTCP");
+		mSendThread = new MyThread("SocketSendTCP");
+		mRecvBuff = new byte[TCP_RECEIVE_BUFFER];
 		mInputBuffer = new StreamBuffer();
+		mTotalBuffer = new StreamBuffer(CLIENT_MAX_PACKET_SIZE * 8);
 		mConnectStateLock = new ThreadLock();
 		mOutputBufferLock = new ThreadLock();
 		mSocketLock = new ThreadLock();
 		mReceivePacketHistory = new Queue<string>();
-		mHeartBeatTimer = new MyTimer();
-		mTimerLock = new ThreadLock();
-		mPingTimer = new MyTimer();
+		mPingTimer = new MyTimer1();
 		mNetState = NET_STATE.NONE;
 	}
-	public virtual void init(IPAddress ip, int port, float heartBeatTimeOut)
+	public virtual void init(IPAddress ip, int port)
 	{
 		mIPAddress = ip;
 		mPort = port;
-		mInputBuffer.init(FrameDefine.TCP_INPUT_BUFFER);
-		mHeartBeatTimer.init(-1.0f, heartBeatTimeOut, false);
-		mSendThread.start(sendSocket);
-		mReceiveThread.start(receiveSocket);
+		mInputBuffer.init(TCP_INPUT_BUFFER);
+		mSendThread.start(sendThread);
+		mReceiveThread.start(receiveThread);
 		// 每2秒发出一个ping包
-		mTimerLock.waitForUnlock();
 		mPingTimer.init(0.0f, 2.0f, false);
-		mTimerLock.unlock();
 	}
 	public override void resetProperty()
 	{
 		base.resetProperty();
-		mThreadReceiveBuffer.Clear();
 		mReceiveBuffer.clear();
 		mOutputBuffer.clear();
 		mReceivePacketHistory.Clear();
 		mInputBuffer.clear();
-		mConnectStateLock.unlock();
-		mOutputBufferLock.unlock();
-		mSocketLock.unlock();
+		//mConnectStateLock.unlock();
+		//mOutputBufferLock.unlock();
+		//mSocketLock.unlock();
 		mIPAddress = null;
 		mReceiveThread.stop();
 		mSendThread.stop();
-		mHeartBeatTimer.stop();
 		mSocket = null;
 		memset(mRecvBuff, (byte)0);
 		mPort = 0;
 		mManualDisconnect = false;
 		mNetState = NET_STATE.NONE;
-		mHeartBeatAction = null;
 		mPingStartTime = default;
 		mPingTimer.stop();
-		mTimerLock.unlock();
-		Interlocked.Exchange(ref mPing, 0);
+		mPing = 0;
 		mPingCallback = null;
-		mMinPacketSize = 0;
-		mThreadPacketList.Clear();
+		mNetStateCallback = null;
 	}
-	public bool isUnconnected() { return mNetState != NET_STATE.CONNECTED && mNetState != NET_STATE.CONNECTING; }
+	public bool isConnected() { return mNetState == NET_STATE.CONNECTED; }
+	public bool isConnecting() { return mNetState == NET_STATE.CONNECTING; }
+	public void setNetStateCallback(NetStateCallback callback) { mNetStateCallback = callback; }
+	public NetStateCallback getNetStateCallback() { return mNetStateCallback; }
 	public void startConnect(bool async)
 	{
-		if (!isUnconnected())
+		if (isConnected() || isConnecting())
 		{
 			return;
 		}
 		mManualDisconnect = false;
 		notifyNetState(NET_STATE.CONNECTING);
 		// 创建socket
-		mSocketLock.waitForUnlock();
-		if (mSocket != null)
+		using (new ThreadLockScope(mSocketLock))
 		{
-			logError("当前Socket不为空");
+			if (mSocket != null)
+			{
+				logError("当前Socket不为空");
+				return;
+			}
+			mSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+			mSocket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, 1);
 		}
-		mSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-		mSocketLock.unlock();
-		logForce("开始连接服务器,IP:" + mIPAddress.ToString() + ", 端口:" + mPort);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+		logForce("开始连接服务器:" + mIPAddress);
+#endif
 		if (async)
 		{
 			mSocket.BeginConnect(mIPAddress, mPort, onConnectEnd, mSocket);
@@ -127,7 +139,6 @@ public abstract class NetConnectTCP : NetConnect
 				socketException(e);
 				return;
 			}
-			logForce("连接服务器成功,IP:" + mIPAddress.ToString() + ", 端口:" + mPort);
 			notifyNetState(NET_STATE.CONNECTED);
 		}
 	}
@@ -135,59 +146,76 @@ public abstract class NetConnectTCP : NetConnect
 	{
 		mManualDisconnect = true;
 		clearSocket();
-		mHeartBeatTimer.stop(false);
-		var readList = mReceiveBuffer.get();
-		foreach (var item in readList)
+		mPingTimer.stop(false);
+		using (new DoubleBufferReader<PacketSimpleInfo>(mReceiveBuffer, out var readList))
 		{
-			mSocketFactoryThread.destroyPacket(item);
+			if (readList != null)
+			{
+				try
+				{
+					foreach (var item in readList)
+					{
+						byte[] data = item.mPacketData;
+						UN_ARRAY_THREAD(ref data);
+					}
+				}
+				catch (Exception e)
+				{
+					logException(e, "使用读列表中错误");
+				}
+			}
 		}
-		mReceiveBuffer.endGet();
 		mReceiveBuffer.clear();
 		// 主动关闭时,网络状态应该是无状态
 		notifyNetState(NET_STATE.NONE);
 	}
 	public virtual void update(float elapsedTime)
 	{
-		if (mNetState == NET_STATE.CONNECTED)
+		if (mNetState == NET_STATE.CONNECTED && mPingCallback != null)
 		{
-			if (mHeartBeatAction != null && mHeartBeatTimer.tickTimer(elapsedTime))
+			if (mPingTimer.tickTimer())
 			{
-				mHeartBeatAction.Invoke();
-			}
-			if (mPingCallback != null)
-			{
-				mTimerLock.waitForUnlock();
-				bool timeDone = mPingTimer.tickTimer(elapsedTime);
-				mTimerLock.unlock();
-				if (timeDone)
-				{
-					mPingStartTime = DateTime.Now;
-					mPingCallback.Invoke();
-				}
+				mPingStartTime = DateTime.Now;
+				mPingCallback.Invoke();
 			}
 		}
 		// 解析所有已经收到的消息包
-		var readList = mReceiveBuffer.get();
-		try
+		using (new DoubleBufferReader<PacketSimpleInfo>(mReceiveBuffer, out var readList))
 		{
-			int count = readList.Count;
-			for (int i = 0; i < count; ++i)
+			if (readList != null)
 			{
-				// 此处为空的原因未知
-				if (readList[i] == null)
+				try
 				{
-					continue;
+					int count = readList.Count;
+					for (int i = 0; i < count; ++i)
+					{
+						PacketSimpleInfo info = readList[i];
+						NetPacket packet = parsePacket(info.mType, info.mPacketData, info.mPacketSize, info.mSequence, info.mFieldFlag);
+						UN_ARRAY_THREAD(ref info.mPacketData);
+						if (packet == null)
+						{
+							continue;
+						}
+						(packet as NetPacketFrame).setSequenceValid(true);
+						if (packet.canExecute())
+						{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+							Profiler.BeginSample(packet.GetType().ToString());
+#endif
+							packet.execute();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+							Profiler.EndSample();
+#endif
+						}
+						mSocketFactory.destroyPacket(packet);
+					}
 				}
-				readList[i].execute();
-				mSocketFactoryThread.destroyPacket(readList[i]);
+				catch (Exception e)
+				{
+					logException(e, "socket packet error");
+				}
 			}
 		}
-		catch(Exception e)
-		{
-			logError("socket packet error:" + e.Message + ", stack:" + e.StackTrace);
-		}
-		readList.Clear();
-		mReceiveBuffer.endGet();
 	}
 	public override void destroy()
 	{
@@ -200,121 +228,134 @@ public abstract class NetConnectTCP : NetConnect
 	public void setPort(int port) { mPort = port; }
 	public void setIPAddress(IPAddress ip) { mIPAddress = ip; }
 	public void setPingAction(Action callback) { mPingCallback = callback; }
-	public void setHeartBeatAction(Action callback) { mHeartBeatAction = callback; }
-	public void notifyHeartBeatRet()
-	{
-		mHeartBeatTimer.start();
-	}
-	// 该函数是在子线程中被调用
 	public void notifyReceivePing()
 	{
-		Interlocked.Exchange(ref mPing, (int)(DateTime.Now - mPingStartTime).TotalMilliseconds);
-		mTimerLock.waitForUnlock();
+		mPing = (int)(DateTime.Now - mPingStartTime).TotalMilliseconds;
 		mPingTimer.start();
-		mTimerLock.unlock();
 	}
-	public int getPing() { return (int)Interlocked.Read(ref mPing); }
-	public void sendPacket(Type type)
-	{
-		sendPacket(mSocketFactory.createSocketPacket(type) as NetPacketTCP);
-	}
-	public abstract void sendPacket(NetPacketTCP packet);
+	public int getPing() { return mPing; }
+	public abstract void sendNetPacket(NetPacket packet);
 	public NET_STATE getNetState() { return mNetState; }
-	public void clearSocket()
+	public virtual void clearSocket()
 	{
-		mSocketLock.waitForUnlock();
-		if (mSocket != null)
+		using (new ThreadLockScope(mSocketLock))
 		{
-			if (mSocket.Connected)
+			try
 			{
-				mSocket.Shutdown(SocketShutdown.Both);
-				mSocket.Disconnect(false);
+				if (mSocket != null)
+				{
+					if (mSocket.Connected)
+					{
+						mSocket.Shutdown(SocketShutdown.Both);
+						mSocket.Disconnect(false);
+					}
+					mSocket.Close();
+					mSocket.Dispose();
+					mSocket = null;
+				}
 			}
-			mSocket.Close();
-			mSocket.Dispose();
-			mSocket = null;
+			catch (Exception e)
+			{
+				logForce("关闭连接时异常：" + e.Message);
+				mSocket = null;
+			}
 		}
-		mSocketLock.unlock();
 	}
 	// 由于连接成功操作可能不在主线程,所以只能是外部在主线程通知网络管理器连接成功
 	public void notifyConnected()
 	{
 		// 建立连接后将消息列表中残留的消息清空,双缓冲中的读写列表都要清空
-		mOutputBufferLock.waitForUnlock();
-		var bufferList = mOutputBuffer.getBufferList();
-		for(int i = 0; i < bufferList.Length; ++i)
+		using (new ThreadLockScope(mOutputBufferLock))
 		{
-			var buffer = bufferList[i];
-			int count = buffer.Count;
-			for(int j = 0; j < count; ++j)
+			var bufferList = mOutputBuffer.getBufferList();
+			for (int i = 0; i < bufferList.Length; ++i)
 			{
-				UN_ARRAY_THREAD(buffer[j]);
+				var list = bufferList[i];
+				for (int j = 0; j < list.Count; ++j)
+				{
+					byte[] data = list[j].mData;
+					UN_ARRAY_THREAD(ref data);
+				}
 			}
+			mOutputBuffer.clear();
 		}
-		mOutputBuffer.clear();
-		mOutputBufferLock.unlock();
 		// 开始心跳计时
-		mHeartBeatTimer.start();
+		mPingTimer.start();
 		mInputBuffer.clear();
 	}
-	// 标记指定类型的消息在子线程执行
-	public void addExecuteThreadPacket(ushort packetType) { mThreadPacketList.Add(packetType); }
 	//------------------------------------------------------------------------------------------------------------------------------
+	protected abstract NetPacket parsePacket(ushort packetType, byte[] buffer, int size, int sequence, ulong fieldFlag);
 	// 发送Socket消息
-	protected void sendSocket(BOOL run)
+	protected void sendThread(ref bool run)
 	{
 		if (mSocket == null || !mSocket.Connected || mNetState != NET_STATE.CONNECTED)
 		{
 			return;
 		}
-		// 获取输出数据的读缓冲区
-		mOutputBufferLock.waitForUnlock();
-		var readList = mOutputBuffer.get();
-		int count = readList.Count;
+		mTotalBuffer.clear();
+		// 获取输出数据的读缓冲区,手动拼接到大的缓冲区中
+		using (new ThreadLockScope(mOutputBufferLock))
+		{
+			using (new DoubleBufferReader<OutputDataInfo>(mOutputBuffer, out var readList))
+			{
+				// 获取不到数据,则没有任何数据需要发送,直接返回即可
+				if (readList == null)
+				{
+					return;
+				}
+				int count = readList.Count;
+				for (int i = 0; i < count; ++i)
+				{
+					OutputDataInfo item = readList[i];
+					if (item.mData == null)
+					{
+						continue;
+					}
+					// 如果加入失败,则说明这一帧要发送的数据太多,先发送出去
+					if (!mTotalBuffer.addData(item.mData, item.mDataSize))
+					{
+						sendTotalData();
+						// 再重新合并,如果这一次还加入失败,说明真的数据太大了
+						mTotalBuffer.addData(item.mData, item.mDataSize);
+					}
+					// 回收缓冲区的内存
+					UN_ARRAY_THREAD(ref item.mData);
+				}
+			}
+		}
+		sendTotalData();
+	}
+	protected void sendTotalData()
+	{
+		int allLength = mTotalBuffer.getDataLength();
+		if (allLength == 0)
+		{
+			return;
+		}
 		try
 		{
-			for (int i = 0; i < count; ++i)
+			byte[] allBytes = mTotalBuffer.getData();
+			int allSendedCount = 0;
+			while (allSendedCount < allLength)
 			{
-				byte[] item = readList[i];
-				// 此处为空的原因未知
-				if(item == null)
+				int thisSendCount = mSocket.Send(allBytes, allSendedCount, allLength - allSendedCount, SocketFlags.None);
+				if (thisSendCount <= 0)
 				{
-					continue;
+					// 服务器异常
+					notifyNetState(NET_STATE.SERVER_CLOSE, SocketError.NotConnected);
+					break;
 				}
-				int temp = 0;
-				// dataLength表示item的有效数据长度,包含dataLength本身占的4个字节
-				int dataLength = readInt(item, ref temp, out _) + sizeof(int);
-				int sendedCount = sizeof(int);
-				while (sendedCount < dataLength)
-				{
-					int thisSendCount = mSocket.Send(item, sendedCount, dataLength - sendedCount, SocketFlags.None);
-					if (thisSendCount <= 0)
-					{
-						// 服务器异常
-						notifyNetState(NET_STATE.SERVER_CLOSE, SocketError.NotConnected);
-						i = count;
-						break;
-					}
-					sendedCount += thisSendCount;
-				}
+				allSendedCount += thisSendCount;
 			}
 		}
 		catch (SocketException e)
 		{
 			socketException(e);
 		}
-		// 回收缓冲区的内存
-		count = readList.Count;
-		for (int i = 0; i < count; ++i)
-		{
-			UN_ARRAY_THREAD(readList[i]);
-		}
-		readList.Clear();
-		mOutputBuffer.endGet();
-		mOutputBufferLock.unlock();
+		mTotalBuffer.clear();
 	}
 	// 接收Socket消息
-	protected void receiveSocket(BOOL run)
+	protected void receiveThread(ref bool run)
 	{
 		if (mSocket == null || !mSocket.Connected || mNetState != NET_STATE.CONNECTED)
 		{
@@ -335,51 +376,42 @@ public abstract class NetConnectTCP : NetConnect
 				notifyNetState(NET_STATE.SERVER_CLOSE, SocketError.NotConnected);
 				return;
 			}
-			mInputBuffer.addData(mRecvBuff, nRecv);
+			if (!mInputBuffer.addData(mRecvBuff, nRecv))
+			{
+				logError("添加数据到缓冲区失败!数量:" + nRecv + ",当前缓冲区中数据:" + mInputBuffer.getDataLength() + ",缓冲区大小:" + mInputBuffer.getBufferSize());
+			}
 			// 解析接收到的数据
-			while (parsePacket() == PARSE_RESULT.SUCCESS) { }
+			while (parseInputBuffer() == PARSE_RESULT.SUCCESS) { }
 		}
 		catch (SocketException e)
 		{
 			socketException(e);
 		}
 	}
-	protected abstract PARSE_RESULT packetRead(byte[] buffer, int size, ref int index, out NetPacketTCP packet);
-	protected PARSE_RESULT parsePacket()
+	protected abstract PARSE_RESULT preParsePacket(byte[] buffer, int size, ref int bitIndex, out byte[] outPacketData, 
+													out ushort packetType, out int packetSize, out int sequence, out ulong fieldFlag);
+	protected PARSE_RESULT parseInputBuffer()
 	{
-		// 可能还没有接收完全,等待下次接收
-		if (mInputBuffer.getDataLength() < mMinPacketSize)
+		int bitIndex = 0;
+		PARSE_RESULT result = preParsePacket(mInputBuffer.getData(), mInputBuffer.getDataLength(), ref bitIndex, out byte[] packetData, 
+											out ushort packetType, out int packetSize, out int sequence, out ulong fieldFlag);
+		if (result != PARSE_RESULT.SUCCESS)
 		{
-			return PARSE_RESULT.NOT_ENOUGH;
+			if (result == PARSE_RESULT.ERROR)
+			{
+				debugHistoryPacket();
+				mInputBuffer.clear();
+			}
+			return result;
 		}
+		mReceiveBuffer.add(new PacketSimpleInfo(packetData, fieldFlag, packetSize, sequence, packetType));
 
-		int index = 0;
-		PARSE_RESULT result = packetRead(mInputBuffer.getData(), mInputBuffer.getDataLength(), ref index, out NetPacketTCP packet);
-		if (result == PARSE_RESULT.NOT_ENOUGH)
+		if (!mInputBuffer.removeData(0, bitCountToByteCount(bitIndex)))
 		{
-			return PARSE_RESULT.NOT_ENOUGH;
+			logError("移除数据失败");
 		}
-		if (result == PARSE_RESULT.ERROR)
-		{
-			debugHistoryPacket();
-			mInputBuffer.clear();
-			return PARSE_RESULT.ERROR;
-		}
-		
-		// 主线程执行的消息则放入消息缓冲区
-		if(!mThreadPacketList.Contains(packet.getPacketType()))
-		{
-			mReceiveBuffer.add(packet);
-		}
-		// 子线程的消息则直接执行
-		else
-		{
-			packet.execute();
-			mSocketFactoryThread.destroyPacket(packet);
-		}
-		mInputBuffer.removeData(0, index);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-		string info = "已接收 : " + IToS(packet.getPacketType()) + ", 字节数:" + IToS(index);
+		string info = "已接收 : " + IToS(packetType) + ", 字节数:" + IToS(bitCountToByteCount(bitIndex));
 		log(info, LOG_LEVEL.LOW);
 		mReceivePacketHistory.Enqueue(info);
 		if (mReceivePacketHistory.Count > 10)
@@ -391,12 +423,15 @@ public abstract class NetConnectTCP : NetConnect
 	}
 	protected void debugHistoryPacket()
 	{
-		MyStringBuilder info = STRING_THREAD("最后接收的消息:\n");
-		foreach (var item in mReceivePacketHistory)
+		using (new ClassThreadScope<MyStringBuilder>(out var info))
 		{
-			info.Append(item, "\n");
+			info.append("最后接收的消息:\n");
+			foreach (var item in mReceivePacketHistory)
+			{
+				info.append(item, "\n");
+			}
+			logError(info.ToString());
 		}
-		logError(END_STRING_THREAD(info));
 	}
 	protected void onConnectEnd(IAsyncResult ar)
 	{
@@ -410,7 +445,7 @@ public abstract class NetConnectTCP : NetConnect
 			socketException(e);
 			return;
 		}
-		logForce("连接服务器成功,IP:" + mIPAddress.ToString() + ", 端口:" + mPort);
+		logForce("连接服务器成功");
 		notifyNetState(NET_STATE.CONNECTED);
 	}
 	protected void socketException(SocketException e)
@@ -429,22 +464,23 @@ public abstract class NetConnectTCP : NetConnect
 	}
 	protected void notifyNetState(NET_STATE state, SocketError errorCode = SocketError.Success)
 	{
-		mConnectStateLock.waitForUnlock();
-		mNetState = state;
-		if (isUnconnected())
+		using (new ThreadLockScope(mConnectStateLock))
 		{
-			clearSocket();
-		}
-		if (!mManualDisconnect)
-		{
-			CMD_DELAY_THREAD(out CmdNetConnectTCPState cmd);
-			if (cmd != null)
+			mNetState = state;
+			if (!isConnected() && !isConnecting())
 			{
-				cmd.mErrorCode = errorCode;
-				cmd.mNetState = mNetState;
-				pushDelayCommand(cmd, this);
+				clearSocket();
+			}
+			if (!mManualDisconnect)
+			{
+				CMD_DELAY_THREAD(out CmdNetConnectTCPState cmd);
+				if (cmd != null)
+				{
+					cmd.mErrorCode = errorCode;
+					cmd.mNetState = mNetState;
+					pushDelayCommand(cmd, this);
+				}
 			}
 		}
-		mConnectStateLock.unlock();
 	}
 }

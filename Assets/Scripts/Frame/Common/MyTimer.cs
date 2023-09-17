@@ -1,6 +1,8 @@
 ﻿using System;
 
-public class MyTimer : FrameBase
+// 自定义的计时器,需要手动调用tickTimer进行更新,返回值为是否到达指定时间
+// 因为使用的是每帧的经过的时间来计时,可能会出现比预计时间短的情况,所以适用于时间不需要特别精确的地方
+public class MyTimer
 {
 	public float mTimeInterval;		// 计时间隔,小于等于0表示任意时刻都已经完成计时
 	public float mCurTime;			// 当前计时时间,大于等于0表示正在计时,小于0表示未开始计时
@@ -14,13 +16,6 @@ public class MyTimer : FrameBase
 		mTimeInterval = interval;
 		mCurTime = defaultTime;
 		mLoop = loop;
-	}
-	public override void resetProperty()
-	{
-		base.resetProperty();
-		mTimeInterval = 0.0f;
-		mCurTime = -1.0f;
-		mLoop = false;
 	}
 	public bool isCounting() { return mCurTime >= 0.0f; }
 	public float getTimePercent() 

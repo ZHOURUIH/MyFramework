@@ -1,179 +1,200 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using static MathUtility;
+using static UnityUtility;
+using static FrameUtility;
+using static CSharpUtility;
+using static FrameDefine;
+using System.Linq;
 
-public class StringUtility : BinaryUtility
+// 字符串相关工具函数类
+public class StringUtility
 {
-	private static char[] mHexUpperChar = new char[] { 'A', 'B', 'C', 'D', 'E', 'F' };
-	private static char[] mHexLowerChar = new char[] { 'a', 'b', 'c', 'd', 'e', 'f' };
-	private static string mHexString = "ABCDEFabcdef0123456789";
-	private static List<int> mTempIntList = new List<int>();
-	private static List<float> mTempFloatList = new List<float>();
-	private static List<string> mTempStringList = new List<string>();
-	private static Dictionary<string, int> mStringToInt;
-	private static string[] mIntToString;
-	private static string[] mFloatConvertPercision = new string[] { "f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7" };
-	private static Dictionary<string, Vector2Int> mStringToVector2Cache;
-	private static int STRING_TO_VECTOR2INT_MAX_CACHE = 10240;
-	public const string EMPTY = "";
-	public static new void initUtility() 
+	private static char[] mHexUpperChar = new char[] { 'A', 'B', 'C', 'D', 'E', 'F' };	// 十六进制中的大写字母
+	private static char[] mHexLowerChar = new char[] { 'a', 'b', 'c', 'd', 'e', 'f' };	// 十六进制中的小写字母
+	private static string mHexString = "ABCDEFabcdef0123456789";						// 十六进制中的所有字符
+	private static List<int> mTempIntList = new List<int>();							// 避免GC
+	private static List<long> mTempLongList = new List<long>();							// 避免GC
+	private static List<float> mTempFloatList = new List<float>();						// 避免GC
+	private static List<string> mTempStringList = new List<string>();					// 避免GC
+	private static Dictionary<string, int> mStringToInt;								// 用于快速查找字符串转换后的整数
+	private static string[] mIntToString;												// 用于快速获取整数转换后的字符串
+	private static string[] mFloatConvertPercision = new string[] { "f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7" };	// 浮点数转换时精度
+	private static Dictionary<string, Vector2Int> mStringToVector2Cache;				// 字符串转换为2维向量的缓存
+	private static int STRING_TO_VECTOR2INT_MAX_CACHE = 10240;                          // mStringToVector2Cache最大数量
+	static Dictionary<string, string> mInvalidParamChars;                               // invalid characters that cannot be found in a valid method-verb or http header
+	public const string EMPTY = "";                                                     // 表示空字符串
+	public static string formatThread(string format, params string[] args)
 	{
-		mIntToString = new string[1025];
-		mStringToInt = new Dictionary<string, int>();
-		for (int i = 0; i < mIntToString.Length; ++i)
+		int index = 0;
+		while (true)
 		{
-			string iStr = i.ToString();
-			mStringToInt.Add(iStr, i);
-			mIntToString[i] = iStr;
+			string indexStr = "{" + index + "}";
+			if (findFirstSubstr(format, indexStr) < 0)
+			{
+				break;
+			}
+			if (index >= args.Length)
+			{
+				logError("参数数量不足");
+			}
+			format = replaceAllThread(format, indexStr, args[index]);
+			++index;
 		}
-		mStringToVector2Cache = new Dictionary<string, Vector2Int>(STRING_TO_VECTOR2INT_MAX_CACHE);
+		return format;
 	}
 	// 只能使用{index}拼接
 	public static string format(string format, params string[] args)
 	{
 		// 由于连续拼接字符串时,会将其转换为数组进行传递,所以为了避免数组的创建,使用一个辅助拼接器
-		MyStringBuilder builder = FrameUtility.STRING(format);
-		MyStringBuilder helpBuilder = FrameUtility.STRING();
-		int index = 0;
-		while (true)
+		using (new ClassScope<MyStringBuilder>(out var builder))
 		{
-			helpBuilder.Clear();
-			helpBuilder.Append("{", IToS(index), "}");
-			string indexStr = helpBuilder.ToString();
-			if (findFirstSubstr(builder, indexStr) < 0)
+			builder.append(format);
+			int index = 0;
+			while (true)
 			{
-				break;
+				string indexStr = "{" + index + "}";
+				if (findFirstSubstr(builder, indexStr) < 0)
+				{
+					break;
+				}
+				if (index >= args.Length)
+				{
+					logError("参数数量不足");
+				}
+				replaceAll(builder, indexStr, args[index]);
+				++index;
 			}
-			if (index >= args.Length)
-			{
-				UnityUtility.logError("参数数量不足");
-			}
-			replaceAll(builder, indexStr, args[index]);
-			++index;
+			return builder.ToString();
 		}
-		FrameUtility.DESTROY_STRING(helpBuilder);
-		return FrameUtility.END_STRING(builder);
 	}
 	public static string format(string format, List<string> args)
 	{
-		MyStringBuilder builder = FrameUtility.STRING(format);
-		MyStringBuilder helpBuilder = FrameUtility.STRING();
-		int index = 0;
-		while (true)
+		using (new ClassScope<MyStringBuilder>(out var builder))
 		{
-			helpBuilder.Clear();
-			helpBuilder.Append("{", IToS(index), "}");
-			string indexStr = helpBuilder.ToString();
-			if (findFirstSubstr(builder, indexStr) < 0)
+			builder.append(format);
+			int index = 0;
+			while (true)
 			{
-				break;
+				string indexStr = "{" + index + "}";
+				if (findFirstSubstr(builder, indexStr) < 0)
+				{
+					break;
+				}
+				if (index >= args.Count)
+				{
+					logError("参数数量不足");
+				}
+				replaceAll(builder, indexStr, args[index]);
+				++index;
 			}
-			if (index >= args.Count)
-			{
-				UnityUtility.logError("参数数量不足");
-			}
-			replaceAll(builder, indexStr, args[index]);
-			++index;
+			return builder.ToString();
 		}
-		FrameUtility.DESTROY_STRING(helpBuilder);
-		return FrameUtility.END_STRING(builder);
 	}
 	public static string format(string format, List<int> args)
 	{
-		MyStringBuilder builder = FrameUtility.STRING(format);
-		MyStringBuilder helpBuilder = FrameUtility.STRING();
-		int index = 0;
-		while (true)
+		using (new ClassScope<MyStringBuilder>(out var builder))
 		{
-			helpBuilder.Clear();
-			helpBuilder.Append("{", IToS(index), "}");
-			string indexStr = helpBuilder.ToString();
-			if (findFirstSubstr(builder, indexStr) < 0)
+			builder.append(format);
+			int index = 0;
+			while (true)
 			{
-				break;
+				string indexStr = "{" + index + "}";
+				if (findFirstSubstr(builder, indexStr) < 0)
+				{
+					break;
+				}
+				if (index >= args.Count)
+				{
+					logError("参数数量不足");
+				}
+				replaceAll(builder, indexStr, IToS(args[index]));
+				++index;
 			}
-			if (index >= args.Count)
-			{
-				UnityUtility.logError("参数数量不足");
-			}
-			replaceAll(builder, indexStr, IToS(args[index]));
-			++index;
+			return builder.ToString();
 		}
-		FrameUtility.DESTROY_STRING(helpBuilder);
-		return FrameUtility.END_STRING(builder);
 	}
 	public static string format(string format, params int[] args)
 	{
-		MyStringBuilder builder = FrameUtility.STRING(format);
-		MyStringBuilder helpBuilder = FrameUtility.STRING();
-		int index = 0;
-		while (true)
+		using (new ClassScope<MyStringBuilder>(out var builder))
 		{
-			helpBuilder.Clear();
-			helpBuilder.Append("{", IToS(index), "}");
-			string indexStr = helpBuilder.ToString();
-			if (findFirstSubstr(builder, indexStr) < 0)
+			builder.append(format);
+			int index = 0;
+			while (true)
 			{
-				break;
+				string indexStr = "{" + index + "}";
+				if (findFirstSubstr(builder, indexStr) < 0)
+				{
+					break;
+				}
+				if (index >= args.Length)
+				{
+					logError("参数数量不足");
+				}
+				replaceAll(builder, indexStr, IToS(args[index]));
+				++index;
 			}
-			if(index >= args.Length)
-			{
-				UnityUtility.logError("参数数量不足");
-			}
-			replaceAll(builder, indexStr, IToS(args[index]));
-			++index;
+			return builder.ToString();
 		}
-		FrameUtility.DESTROY_STRING(helpBuilder);
-		return FrameUtility.END_STRING(builder);
 	}
 	public static string format(string format, List<float> args)
 	{
-		MyStringBuilder builder = FrameUtility.STRING(format);
-		MyStringBuilder helpBuilder = FrameUtility.STRING();
-		int index = 0;
-		while (true)
+		using (new ClassScope<MyStringBuilder>(out var builder))
 		{
-			helpBuilder.Clear();
-			helpBuilder.Append("{", IToS(index), "}");
-			string indexStr = helpBuilder.ToString();
-			if (findFirstSubstr(builder, indexStr) < 0)
+			builder.append(format);
+			using (new ClassScope<MyStringBuilder>(out var helpBuilder))
 			{
-				break;
+				int index = 0;
+				while (true)
+				{
+					helpBuilder.clear();
+					helpBuilder.append("{", IToS(index), "}");
+					string indexStr = helpBuilder.ToString();
+					if (findFirstSubstr(builder, indexStr) < 0)
+					{
+						break;
+					}
+					if (index >= args.Count)
+					{
+						logError("参数数量不足");
+					}
+					replaceAll(builder, indexStr, FToS(args[index]));
+					++index;
+				}
 			}
-			if (index >= args.Count)
-			{
-				UnityUtility.logError("参数数量不足");
-			}
-			replaceAll(builder, indexStr, FToS(args[index]));
-			++index;
+			return builder.ToString();
 		}
-		FrameUtility.DESTROY_STRING(helpBuilder);
-		return FrameUtility.END_STRING(builder);
 	}
 	public static string format(string format, params float[] args)
 	{
-		MyStringBuilder builder = FrameUtility.STRING(format);
-		MyStringBuilder helpBuilder = FrameUtility.STRING();
-		int index = 0;
-		while (true)
+		using (new ClassScope<MyStringBuilder>(out var builder))
 		{
-			helpBuilder.Clear();
-			helpBuilder.Append("{", IToS(index), "}");
-			string indexStr = helpBuilder.ToString();
-			if (findFirstSubstr(builder, indexStr) < 0)
+			builder.append(format);
+			using (new ClassScope<MyStringBuilder>(out var helpBuilder))
 			{
-				break;
+				int index = 0;
+				while (true)
+				{
+					helpBuilder.clear();
+					helpBuilder.append("{", IToS(index), "}");
+					string indexStr = helpBuilder.ToString();
+					if (findFirstSubstr(builder, indexStr) < 0)
+					{
+						break;
+					}
+					if (index >= args.Length)
+					{
+						logError("参数数量不足");
+					}
+					replaceAll(builder, indexStr, FToS(args[index]));
+					++index;
+				}
 			}
-			if (index >= args.Length)
-			{
-				UnityUtility.logError("参数数量不足");
-			}
-			replaceAll(builder, indexStr, FToS(args[index]));
-			++index;
+			return builder.ToString();
 		}
-		FrameUtility.DESTROY_STRING(helpBuilder);
-		return FrameUtility.END_STRING(builder);
 	}
 	// 使用Length == 0判断是否为空字符串是最快的
 	public static bool isEmpty(string str)
@@ -276,7 +297,11 @@ public class StringUtility : BinaryUtility
 		{
 			return 0;
 		}
-		if(mStringToInt != null && mStringToInt.TryGetValue(str, out int value))
+		if (mStringToInt == null)
+		{
+			initIntToString();
+		}
+		if (mStringToInt.TryGetValue(str, out int value))
 		{
 			return value;
 		}
@@ -331,7 +356,11 @@ public class StringUtility : BinaryUtility
 		{
 			return Vector2Int.zero;
 		}
-		if (mStringToVector2Cache != null && mStringToVector2Cache.TryGetValue(value, out Vector2Int result))
+		if (mStringToVector2Cache == null)
+		{
+			mStringToVector2Cache = new Dictionary<string, Vector2Int>(STRING_TO_VECTOR2INT_MAX_CACHE);
+		}
+		if (mStringToVector2Cache.TryGetValue(value, out Vector2Int result))
 		{
 			return result;
 		}
@@ -343,7 +372,7 @@ public class StringUtility : BinaryUtility
 		result = new Vector2Int();
 		result.x = SToI(splitList[0]);
 		result.y = SToI(splitList[1]);
-		if (mStringToVector2Cache != null && mStringToVector2Cache.Count < STRING_TO_VECTOR2INT_MAX_CACHE)
+		if (mStringToVector2Cache.Count < STRING_TO_VECTOR2INT_MAX_CACHE)
 		{
 			mStringToVector2Cache.Add(value, result);
 		}
@@ -391,8 +420,8 @@ public class StringUtility : BinaryUtility
 	}
 	public static string removeEndString(string originStr, string endString, bool sensitive = true)
 	{
-		if (isEmpty(endString) || 
-			isEmpty(originStr) || 
+		if (isEmpty(endString) ||
+			isEmpty(originStr) ||
 			!endWith(originStr, endString, sensitive))
 		{
 			return originStr;
@@ -406,8 +435,8 @@ public class StringUtility : BinaryUtility
 	}
 	public static string removeStartString(string originStr, string startString, bool sensitive = true)
 	{
-		if (isEmpty(startString) || 
-			isEmpty(originStr) || 
+		if (isEmpty(startString) ||
+			isEmpty(originStr) ||
 			!startWith(originStr, startString, sensitive))
 		{
 			return originStr;
@@ -430,7 +459,7 @@ public class StringUtility : BinaryUtility
 		{
 			if (stream[length - 1 - i] == key)
 			{
-				stream.Remove(length - 1 - i, 1);
+				stream.remove(length - 1 - i, 1);
 				break;
 			}
 		}
@@ -438,7 +467,7 @@ public class StringUtility : BinaryUtility
 	public static string removeStartAll(string str, char key)
 	{
 		int removeStartCount = str.Length;
-		for(int i = 0; i < str.Length; ++i)
+		for (int i = 0; i < str.Length; ++i)
 		{
 			if (str[i] != key)
 			{
@@ -455,7 +484,7 @@ public class StringUtility : BinaryUtility
 	public static string removeStartAll(string str, char key0, char key1)
 	{
 		int removeStartCount = str.Length;
-		for(int i = 0; i < str.Length; ++i)
+		for (int i = 0; i < str.Length; ++i)
 		{
 			if (str[i] != key0 && str[i] != key1)
 			{
@@ -472,7 +501,7 @@ public class StringUtility : BinaryUtility
 	public static string removeLastAll(string str, char key)
 	{
 		int removeStartCount = str.Length;
-		for(int i = 0; i < str.Length; ++i)
+		for (int i = 0; i < str.Length; ++i)
 		{
 			if (str[i] != key)
 			{
@@ -489,7 +518,7 @@ public class StringUtility : BinaryUtility
 	public static string removeEndAll(string str, char key)
 	{
 		int removeStartCount = str.Length;
-		for(int i = str.Length - 1; i >= 0; --i)
+		for (int i = str.Length - 1; i >= 0; --i)
 		{
 			if (str[i] != key)
 			{
@@ -506,7 +535,7 @@ public class StringUtility : BinaryUtility
 	public static string removeEndAll(string str, char key0, char key1)
 	{
 		int removeStartCount = str.Length;
-		for(int i = str.Length - 1; i >= 0; --i)
+		for (int i = str.Length - 1; i >= 0; --i)
 		{
 			if (str[i] != key0 && str[i] != key1)
 			{
@@ -535,28 +564,31 @@ public class StringUtility : BinaryUtility
 		// 如果不是最外层的数组,则需要加上数组的名字
 		if (!isEmpty(name))
 		{
-			str.Append("\t", preTableCount);
-			str.Append("\"", name, "\"", ":");
+			str.appendRepeat("\t", preTableCount);
+			str.append("\"", name, "\"", ":");
 			if (returnLine)
 			{
-				str.Append("\r\n");
+				str.append("\r\n");
 			}
 		}
-		str.Append("\t", preTableCount);
-		str.Append("[");
+		str.appendRepeat("\t", preTableCount);
+		str.append("[");
 		if (returnLine)
 		{
-			str.Append("\r\n");
+			str.append("\r\n");
 		}
 	}
 	public static void jsonEndArray(MyStringBuilder str, int preTableCount = 0, bool returnLine = false)
 	{
-		removeLastComma(str);
-		str.Append("\t", preTableCount);
-		str.Append("],");
+		if (str.endWith(','))
+		{
+			str.remove(str.Length - 1);
+		}
+		str.appendRepeat("\t", preTableCount);
+		str.append("],");
 		if (returnLine)
 		{
-			str.Append("\r\n");
+			str.append("\r\n");
 		}
 	}
 	public static void jsonStartStruct(MyStringBuilder str, string name = null, int preTableCount = 0, bool returnLine = false)
@@ -564,57 +596,65 @@ public class StringUtility : BinaryUtility
 		// 如果不是最外层的数组,则需要加上数组的名字
 		if (!isEmpty(name))
 		{
-			str.Append("\t", preTableCount);
-			str.Append("\"", name, "\"", ":");
+			str.appendRepeat("\t", preTableCount);
+			str.append("\"", name, "\"", ":");
 			if (returnLine)
 			{
-				str.Append("\r\n");
+				str.append("\r\n");
 			}
 		}
 		// 如果不是最外层且非数组元素的结构体,则需要加上结构体的名字
-		str.Append("\t", preTableCount);
-		str.Append("{");
+		str.appendRepeat("\t", preTableCount);
+		str.append("{");
 		if (returnLine)
 		{
-			str.Append("\r\n");
+			str.append("\r\n");
 		}
 	}
 	public static void jsonEndStruct(MyStringBuilder str, int preTableCount = 0, bool returnLine = false)
 	{
-		removeLastComma(str);
-		str.Append("\t", preTableCount);
-		str.Append("},");
+		if (str.endWith(','))
+		{
+			str.remove(str.Length - 1);
+		}
+		str.appendRepeat("\t", preTableCount);
+		str.append("},");
 		if (returnLine)
 		{
-			str.Append("\r\n");
+			str.append("\r\n");
 		}
 	}
 	public static void jsonAddPair(MyStringBuilder str, string name, string value, int preTableCount = 0, bool returnLine = false)
 	{
-		str.Append("\t", preTableCount);
+		str.appendRepeat("\t", preTableCount);
 		// 如果是数组中的元素则不需要名字
 		if (!isEmpty(name))
 		{
-			str.Append("\"", name, "\": ");
+			str.append("\"", name, "\": ");
 		}
-		str.Append("\"", value, "\",");
+		str.append("\"", value, "\",");
 		if (returnLine)
 		{
-			str.Append("\r\n");
+			str.append("\r\n");
 		}
 	}
 	public static void jsonAddObject(MyStringBuilder str, string name, string value, int preTableCount = 0, bool returnLine = false)
 	{
-		str.Append("\t", preTableCount);
-		str.Append("\"", name, "\": ", value, ",");
+		str.appendRepeat("\t", preTableCount);
+		str.append("\"", name, "\": ", value, ",");
 		if (returnLine)
 		{
-			str.Append("\r\n");
+			str.append("\r\n");
 		}
 	}
 	// 解析一个数组类型的json字符串,并将每一个元素的字符串放入elementList中
 	public static void decodeJsonArray(string json, List<string> elementList)
 	{
+		elementList.Clear();
+		if (isEmpty(json))
+		{
+			return;
+		}
 		// 如果不是数组类型则无法解析
 		if (json[0] != '[' || json[json.Length - 1] != ']')
 		{
@@ -638,39 +678,70 @@ public class StringUtility : BinaryUtility
 		}
 	}
 	// 解析一个json的结构体,需要所有参数都是字符串类型的
-	public static void decodeJsonStringPair(string json, Dictionary<string, string> paramList)
+	public static void decodeJsonStruct(string json, Dictionary<string, string> paramList)
 	{
-		string[] memberList = split(json, ',');
-		if (memberList == null)
+		paramList.Clear();
+		if (isEmpty(json))
 		{
 			return;
 		}
-		for(int i = 0; i < memberList.Length; ++i)
+		removeStartString(ref json, "{");
+		removeEndString(ref json, "}");
+		json = removeAll(json, '\r', '\n', '\t');
+		using (new ListScope<string>(out var tempStrList))
 		{
-			string[] param = split(memberList[i], ':');
-			if (param == null || param.Length != 2)
+			bool inString = false;
+			int lastElementStart = 0;
+			for (int i = 0; i < json.Length; ++i)
 			{
-				continue;
+				// 遍历到了最后一个字符,则直接放入列表
+				if (i == json.Length - 1)
+				{
+					tempStrList.Add(json.Substring(lastElementStart, i - lastElementStart));
+					break;
+				}
+				// 遇到双引号就是切换是否为字符串的标记
+				if (json[i] == '\"')
+				{
+					inString = !inString;
+					continue;
+				}
+				// 在非字符串中遇到了逗号,表示元素的分隔
+				if (!inString && json[i] == ',')
+				{
+					tempStrList.Add(json.Substring(lastElementStart, i - lastElementStart));
+					// 跳过这个逗号
+					lastElementStart = i + 1;
+				}
 			}
-			paramList.Add(removeAll(param[0], '\"'), removeAll(param[1], '\"'));
+
+			for (int i = 0; i < tempStrList.Count; ++i)
+			{
+				string[] param = split(tempStrList[i], ':');
+				if (param == null || param.Length != 2)
+				{
+					continue;
+				}
+				paramList.Add(removeAll(param[0], '\"'), removeAll(removeStartEmpty(param[1]), '\"'));
+			}
 		}
 	}
 	// 绝对路径转换到相对于Asset的路径
 	public static void fullPathToProjectPath(ref string path)
 	{
-		path = FrameDefine.P_ASSETS_PATH + path.Substring(FrameDefine.F_ASSETS_PATH.Length);
+		path = P_ASSETS_PATH + path.Substring(F_ASSETS_PATH.Length);
 	}
 	public static string fullPathToProjectPath(string path)
 	{
-		return FrameDefine.P_ASSETS_PATH + path.Substring(FrameDefine.F_ASSETS_PATH.Length);
+		return P_ASSETS_PATH + path.Substring(F_ASSETS_PATH.Length);
 	}
 	public static void projectPathToFullPath(ref string path)
 	{
-		path = FrameDefine.F_ASSETS_PATH + path.Substring(FrameDefine.ASSETS.Length + 1);
+		path = F_ASSETS_PATH + path.Substring(ASSETS.Length + 1);
 	}
 	public static string projectPathToFullPath(string path)
 	{
-		return FrameDefine.F_ASSETS_PATH + path.Substring(FrameDefine.ASSETS.Length + 1);
+		return F_ASSETS_PATH + path.Substring(ASSETS.Length + 1);
 	}
 	// 检查后缀,如果字符串没有指定后缀,则在后面加上后缀
 	public static string checkSuffix(string path, string suffix)
@@ -704,62 +775,81 @@ public class StringUtility : BinaryUtility
 	// 从文件路径中得到最后一级的文件夹名
 	public static string getFolderName(string str)
 	{
-		MyStringBuilder builder = FrameUtility.STRING(str);
-		rightToLeft(builder);
-
-		// 如果有文件名,则先去除文件名
-		int namePos = builder.LastIndexOf('/');
-		int dotPos = builder.LastIndexOf('.');
-		if (dotPos > namePos)
+		using (new ClassScope<MyStringBuilder>(out var builder))
 		{
-			builder.Remove(namePos);
-		}
+			builder.append(str);
+			rightToLeft(builder);
 
-		// 如果是以/结尾的,则去除结尾的/
-		if (builder[builder.Length - 1] == '/')
-		{
-			builder.Remove(builder.Length - 1);
-		}
+			// 如果有文件名,则先去除文件名
+			int namePos = builder.lastIndexOf('/');
+			int dotPos = builder.lastIndexOf('.');
+			if (dotPos > namePos)
+			{
+				builder.remove(namePos);
+			}
 
-		// 再去除当前目录的父级目录
-		namePos = builder.LastIndexOf('/');
-		if (namePos >= 0)
-		{
-			builder.Remove(0, namePos + 1);
+			// 如果是以/结尾的,则去除结尾的/
+			if (builder[builder.Length - 1] == '/')
+			{
+				builder.remove(builder.Length - 1);
+			}
+
+			// 再去除当前目录的父级目录
+			namePos = builder.lastIndexOf('/');
+			if (namePos >= 0)
+			{
+				builder.remove(0, namePos + 1);
+			}
+			return builder.ToString();
 		}
-		return FrameUtility.END_STRING(builder);
 	}
 	// 得到文件路径
 	public static string getFilePath(string fileName, bool keepEndSlash = false)
 	{
-		MyStringBuilder builder = FrameUtility.STRING(fileName);
-		rightToLeft(builder);
-		// 从倒数第二个开始,因为即使最后一个是/也需要忽略
-		int lastPos = builder.LastIndexOf('/', builder.Length - 2);
-		if (lastPos < 0)
+		using (new ClassScope<MyStringBuilder>(out var builder))
 		{
-			FrameUtility.DESTROY_STRING(builder);
-			return EMPTY;	
-		}
-		if (keepEndSlash)
-		{
-			return FrameUtility.END_STRING(builder.Remove(lastPos + 1));
-		}
-		else
-		{
-			return FrameUtility.END_STRING(builder.Remove(lastPos));
+			builder.append(fileName);
+			rightToLeft(builder);
+			// 从倒数第二个开始,因为即使最后一个是/也需要忽略
+			int lastPos = builder.lastIndexOf('/', builder.Length - 2);
+			if (lastPos < 0)
+			{
+				return EMPTY;
+			}
+			if (keepEndSlash)
+			{
+				builder.remove(lastPos + 1);
+			}
+			else
+			{
+				builder.remove(lastPos);
+			}
+			return builder.ToString();
 		}
 	}
 	public static string getFileName(string str)
 	{
-		MyStringBuilder builder = FrameUtility.STRING(str);
-		rightToLeft(builder);
+		using (new ClassScope<MyStringBuilder>(out var builder))
+		{
+			builder.append(str);
+			rightToLeft(builder);
+			int dotPos = builder.lastIndexOf('/');
+			if (dotPos != -1)
+			{
+				builder.remove(0, dotPos + 1);
+			}
+			return builder.ToString();
+		}
+	}
+	public static string getFileNameThread(string str)
+	{
+		string builder = rightToLeft(str);
 		int dotPos = builder.LastIndexOf('/');
 		if (dotPos != -1)
 		{
-			builder.Remove(0, dotPos + 1);
+			builder = builder.Remove(0, dotPos + 1);
 		}
-		return FrameUtility.END_STRING(builder);
+		return builder;
 	}
 	public static string getFileSuffix(string file)
 	{
@@ -776,24 +866,27 @@ public class StringUtility : BinaryUtility
 		{
 			return null;
 		}
-		MyStringBuilder builder = FrameUtility.STRING(str);
-		rightToLeft(builder);
-		// 先判断是否移除目录
-		if (removeDir)
+		using (new ClassScope<MyStringBuilder>(out var builder))
 		{
-			int namePos = builder.LastIndexOf('/');
-			if(namePos != -1)
+			builder.append(str);
+			rightToLeft(builder);
+			// 先判断是否移除目录
+			if (removeDir)
 			{
-				builder.Remove(0, namePos + 1);
+				int namePos = builder.lastIndexOf('/');
+				if (namePos != -1)
+				{
+					builder.remove(0, namePos + 1);
+				}
 			}
+			// 移除后缀
+			int dotPos = builder.lastIndexOf('.');
+			if (dotPos != -1)
+			{
+				builder.remove(dotPos);
+			}
+			return builder.ToString();
 		}
-		// 移除后缀
-		int dotPos = builder.LastIndexOf('.');
-		if (dotPos != -1)
-		{
-			builder.Remove(dotPos);
-		}
-		return FrameUtility.END_STRING(builder);
 	}
 	// 如果路径最后有斜杠,则移除结尾的斜杠
 	public static void removeEndSlash(ref string path)
@@ -803,6 +896,14 @@ public class StringUtility : BinaryUtility
 			path = path.Substring(0, path.Length - 1);
 		}
 	}
+	public static string removeEndSlash(string path)
+	{
+		if (path[path.Length - 1] == '/')
+		{
+			path = path.Substring(0, path.Length - 1);
+		}
+		return path;
+	}
 	public static void addEndSlash(ref string path)
 	{
 		if (!isEmpty(path) && path[path.Length - 1] != '/')
@@ -810,13 +911,21 @@ public class StringUtility : BinaryUtility
 			path += "/";
 		}
 	}
+	public static string addEndSlash(string path)
+	{
+		if (!isEmpty(path) && path[path.Length - 1] != '/')
+		{
+			path += "/";
+		}
+		return path;
+	}
 	public static string replaceSuffix(string fileName, string suffix)
 	{
 		return getFileNameNoSuffix(fileName) + suffix;
 	}
 	public static void rightToLeft(MyStringBuilder str)
 	{
-		str.Replace('\\', '/');
+		str.replace('\\', '/');
 	}
 	public static void rightToLeft(ref string str)
 	{
@@ -828,7 +937,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static void leftToRight(MyStringBuilder str)
 	{
-		str.Replace('/', '\\');
+		str.replace('/', '\\');
 	}
 	public static void leftToRight(ref string str)
 	{
@@ -842,15 +951,15 @@ public class StringUtility : BinaryUtility
 	{
 		int curCount = 0;
 		char[] ascii = new char[0xFF - exclude.Length];
-		for(int i = 1; i < 0xFF + 1; ++i)
+		for (int i = 1; i < 0xFF + 1; ++i)
 		{
-			if (CSharpUtility.arrayContainsValue(exclude, (char)i))
+			if (arrayContainsValue(exclude, (char)i))
 			{
 				continue;
 			}
 			if (curCount >= ascii.Length)
 			{
-				UnityUtility.logError("获取ASCII字符数组失败,排除列表中可能存在重复的字符");
+				logError("获取ASCII字符数组失败,排除列表中可能存在重复的字符");
 			}
 			ascii[curCount++] = (char)i;
 		}
@@ -858,14 +967,30 @@ public class StringUtility : BinaryUtility
 	}
 	public static void splitLine(string str, out string[] lines, bool removeEmpty = true)
 	{
-		lines = split(str, removeEmpty, '\n');
-		if(lines == null)
+		lines = null;
+		if (str.IndexOf('\n') >= 0)
 		{
-			return;
+			lines = split(str, removeEmpty, '\n');
+			if (lines == null)
+			{
+				return;
+			}
+			for (int i = 0; i < lines.Length; ++i)
+			{
+				lines[i] = removeAll(lines[i], '\r');
+			}
 		}
-		for(int i = 0; i < lines.Length; ++i)
+		else if(str.IndexOf('\r') >= 0)
 		{
-			lines[i] = removeAll(lines[i], '\r');
+			lines = split(str, removeEmpty, '\r');
+			if (lines == null)
+			{
+				return;
+			}
+			for (int i = 0; i < lines.Length; ++i)
+			{
+				lines[i] = removeAll(lines[i], '\n');
+			}
 		}
 	}
 	public static string[] split(string str, params string[] keyword)
@@ -934,7 +1059,7 @@ public class StringUtility : BinaryUtility
 		int len = rangeList.Length;
 		if (values != null && len != values.Length)
 		{
-			UnityUtility.logError("count is not equal " + str.Length);
+			logError("count is not equal " + str.Length);
 			return;
 		}
 		if (values == null)
@@ -948,12 +1073,12 @@ public class StringUtility : BinaryUtility
 	}
 	public static void stringToFloats(string str, List<float> values, char seperate = ',')
 	{
+		values.Clear();
 		if (values == null)
 		{
-			UnityUtility.logError("values can not be null");
+			logError("values can not be null");
 			return;
 		}
-		values.Clear();
 		if (isEmpty(str))
 		{
 			return;
@@ -967,31 +1092,92 @@ public class StringUtility : BinaryUtility
 	}
 	public static string floatsToString(float[] values, char seperate = ',')
 	{
-		MyStringBuilder builder = FrameUtility.STRING();
-		int count = values.Length;
-		for (int i = 0; i < count; ++i)
+		using (new ClassScope<MyStringBuilder>(out var builder))
 		{
-			builder.Append(FToS(values[i], 2));
-			if (i != count - 1)
+			int count = values.Length;
+			for (int i = 0; i < count; ++i)
 			{
-				builder.Append(seperate);
+				builder.append(FToS(values[i], 2));
+				if (i != count - 1)
+				{
+					builder.append(seperate);
+				}
 			}
+			return builder.ToString();
 		}
-		return FrameUtility.END_STRING(builder);
 	}
 	public static string floatsToString(List<float> values, char seperate = ',')
 	{
-		MyStringBuilder builder = FrameUtility.STRING();
-		int count = values.Count;
-		for (int i = 0; i < count; ++i)
+		using (new ClassScope<MyStringBuilder>(out var builder))
 		{
-			builder.Append(FToS(values[i], 2));
-			if (i != count - 1)
+			int count = values.Count;
+			for (int i = 0; i < count; ++i)
 			{
-				builder.Append(seperate);
+				builder.append(FToS(values[i], 2));
+				if (i != count - 1)
+				{
+					builder.append(seperate);
+				}
 			}
+			return builder.ToString();
 		}
-		return FrameUtility.END_STRING(builder);
+	}
+	public static List<long> stringToLongs(string str, char seperate = ',')
+	{
+		List<long> values = new List<long>();
+		stringToLongs(str, values, seperate);
+		return values;
+	}
+	public static void stringToLongs(string str, List<long> values, char seperate = ',')
+	{
+		values.Clear();
+		if (values == null)
+		{
+			logError("values can not be null");
+			return;
+		}
+		if (isEmpty(str))
+		{
+			return;
+		}
+		string[] rangeList = split(str, seperate);
+		if (rangeList == null)
+		{
+			return;
+		}
+		int len = rangeList.Length;
+		for (int i = 0; i < len; ++i)
+		{
+			values.Add(SToL(rangeList[i]));
+		}
+	}
+	public static void stringToLongs(string str, ref long[] values, char seperate = ',')
+	{
+		if (isEmpty(str))
+		{
+			return;
+		}
+		string[] rangeList = split(str, seperate);
+		int len = rangeList.Length;
+		if (values != null && len != values.Length)
+		{
+			logError("value.Length is not equal " + len + ", str:" + str);
+			return;
+		}
+		if (values == null)
+		{
+			values = new long[len];
+		}
+		for (int i = 0; i < len; ++i)
+		{
+			values[i] = SToL(rangeList[i]);
+		}
+	}
+	// 在使用返回值期间禁止再调用stringToLongsNonAlloc
+	public static List<long> stringToLongsNonAlloc(string str, char seperate = ',')
+	{
+		stringToLongs(str, mTempLongList, seperate);
+		return mTempLongList;
 	}
 	public static List<int> stringToInts(string str, char seperate = ',')
 	{
@@ -1001,12 +1187,12 @@ public class StringUtility : BinaryUtility
 	}
 	public static void stringToInts(string str, List<int> values, char seperate = ',')
 	{
+		values.Clear();
 		if (values == null)
 		{
-			UnityUtility.logError("values can not be null");
+			logError("values can not be null");
 			return;
 		}
-		values.Clear();
 		if (isEmpty(str))
 		{
 			return;
@@ -1032,7 +1218,7 @@ public class StringUtility : BinaryUtility
 		int len = rangeList.Length;
 		if (values != null && len != values.Length)
 		{
-			UnityUtility.logError("value.Length is not equal " + len + ", str:" + str);
+			logError("value.Length is not equal " + len + ", str:" + str);
 			return;
 		}
 		if (values == null)
@@ -1052,12 +1238,12 @@ public class StringUtility : BinaryUtility
 	}
 	public static void stringToUInts(string str, List<uint> values, char seperate = ',')
 	{
+		values.Clear();
 		if (values == null)
 		{
-			UnityUtility.logError("values can not be null");
+			logError("values can not be null");
 			return;
 		}
-		values.Clear();
 		if (isEmpty(str))
 		{
 			return;
@@ -1075,12 +1261,12 @@ public class StringUtility : BinaryUtility
 	}
 	public static void stringToUShorts(string str, List<ushort> values, char seperate = ',')
 	{
+		values.Clear();
 		if (values == null)
 		{
-			UnityUtility.logError("values can not be null");
+			logError("values can not be null");
 			return;
 		}
-		values.Clear();
 		if (isEmpty(str))
 		{
 			return;
@@ -1096,14 +1282,37 @@ public class StringUtility : BinaryUtility
 			values.Add((ushort)SToI(rangeList[i]));
 		}
 	}
-	public static void stringToBools(string str, List<bool> values, char seperate = ',')
+	public static void stringToShorts(string str, List<short> values, char seperate = ',')
 	{
+		values.Clear();
 		if (values == null)
 		{
-			UnityUtility.logError("values can not be null");
+			logError("values can not be null");
 			return;
 		}
+		if (isEmpty(str))
+		{
+			return;
+		}
+		string[] rangeList = split(str, seperate);
+		if (rangeList == null)
+		{
+			return;
+		}
+		int len = rangeList.Length;
+		for (int i = 0; i < len; ++i)
+		{
+			values.Add((short)SToI(rangeList[i]));
+		}
+	}
+	public static void stringToBools(string str, List<bool> values, char seperate = ',')
+	{
 		values.Clear();
+		if (values == null)
+		{
+			logError("values can not be null");
+			return;
+		}
 		if (isEmpty(str))
 		{
 			return;
@@ -1121,12 +1330,12 @@ public class StringUtility : BinaryUtility
 	}
 	public static void stringToBytes(string str, List<byte> values, char seperate = ',')
 	{
+		values.Clear();
 		if (values == null)
 		{
-			UnityUtility.logError("values can not be null");
+			logError("values can not be null");
 			return;
 		}
-		values.Clear();
 		if (isEmpty(str))
 		{
 			return;
@@ -1144,12 +1353,12 @@ public class StringUtility : BinaryUtility
 	}
 	public static void stringToSBytes(string str, List<sbyte> values, char seperate = ',')
 	{
+		values.Clear();
 		if (values == null)
 		{
-			UnityUtility.logError("values can not be null");
+			logError("values can not be null");
 			return;
 		}
-		values.Clear();
 		if (isEmpty(str))
 		{
 			return;
@@ -1165,73 +1374,117 @@ public class StringUtility : BinaryUtility
 			values.Add((sbyte)SToI(rangeList[i]));
 		}
 	}
+	public static string longsToString(long[] values, char seperate = ',')
+	{
+		using (new ClassScope<MyStringBuilder>(out var builder))
+		{
+			int count = values.Length;
+			for (int i = 0; i < count; ++i)
+			{
+				builder.append(LToS(values[i]));
+				if (i != count - 1)
+				{
+					builder.append(seperate);
+				}
+			}
+			return builder.ToString();
+		}
+	}
+	public static string longsToString(List<long> values, char seperate = ',')
+	{
+		if (values == null || values.Count == 0)
+		{
+			return EMPTY;
+		}
+		using (new ClassScope<MyStringBuilder>(out var builder))
+		{
+			int count = values.Count;
+			for (int i = 0; i < count; ++i)
+			{
+				builder.append(LToS(values[i]));
+				if (i != count - 1)
+				{
+					builder.append(seperate);
+				}
+			}
+			return builder.ToString();
+		}
+	}
 	public static string intsToString(int[] values, char seperate = ',')
 	{
-		MyStringBuilder builder = FrameUtility.STRING();
-		int count = values.Length;
-		for (int i = 0; i < count; ++i)
+		using (new ClassScope<MyStringBuilder>(out var builder))
 		{
-			builder.Append(IToS(values[i]));
-			if (i != count - 1)
+			int count = values.Length;
+			for (int i = 0; i < count; ++i)
 			{
-				builder.Append(seperate);
+				builder.append(IToS(values[i]));
+				if (i != count - 1)
+				{
+					builder.append(seperate);
+				}
 			}
+			return builder.ToString();
 		}
-		return FrameUtility.END_STRING(builder);
 	}
 	public static string intsToString(List<int> values, char seperate = ',')
 	{
-		if (values == null)
+		if (values == null || values.Count == 0)
 		{
 			return EMPTY;
 		}
-		MyStringBuilder builder = FrameUtility.STRING();
-		int count = values.Count;
-		for (int i = 0; i < count; ++i)
+		using (new ClassScope<MyStringBuilder>(out var builder))
 		{
-			builder.Append(IToS(values[i]));
-			if (i != count - 1)
+			int count = values.Count;
+			for (int i = 0; i < count; ++i)
 			{
-				builder.Append(seperate);
+				builder.append(IToS(values[i]));
+				if (i != count - 1)
+				{
+					builder.append(seperate);
+				}
 			}
+			return builder.ToString();
 		}
-		return FrameUtility.END_STRING(builder);
 	}
 	public static string stringsToString(List<string> values, char seperate = ',')
 	{
-		if(values == null)
+		if (values == null || values.Count == 0)
 		{
 			return EMPTY;
 		}
-		MyStringBuilder builder = FrameUtility.STRING();
-		int count = values.Count;
-		for (int i = 0; i < count; ++i)
+		using (new ClassScope<MyStringBuilder>(out var builder))
 		{
-			builder.Append(values[i]);
-			if (i != count - 1)
+			int count = values.Count;
+			for (int i = 0; i < count; ++i)
 			{
-				builder.Append(seperate);
+				builder.append(values[i]);
+				if (i != count - 1)
+				{
+					builder.append(seperate);
+				}
 			}
+			return builder.ToString();
 		}
-		return FrameUtility.END_STRING(builder);
 	}
 	public static string stringsToString(List<string> values, string seperate)
 	{
-		if(values == null)
+		if (values == null || values.Count == 0)
 		{
 			return EMPTY;
 		}
-		MyStringBuilder builder = FrameUtility.STRING();
-		int count = values.Count;
-		for (int i = 0; i < count; ++i)
+		using (new ClassScope<MyStringBuilder>(out var builder))
 		{
-			builder.Append(values[i]);
-			if (i != count - 1)
+			int count = values.Count;
+			for (int i = 0; i < count; ++i)
 			{
-				builder.Append(seperate);
+				builder.append(values[i]);
+				if (i != count - 1)
+				{
+					builder.append(seperate);
+				}
 			}
+			return builder.ToString();
 		}
-		return FrameUtility.END_STRING(builder);
 	}
 	public static string stringsToString(string[] values, char seperate = ',')
 	{
@@ -1239,17 +1492,19 @@ public class StringUtility : BinaryUtility
 		{
 			return EMPTY;
 		}
-		MyStringBuilder builder = FrameUtility.STRING();
-		int count = values.Length;
-		for (int i = 0; i < count; ++i)
+		using (new ClassScope<MyStringBuilder>(out var builder))
 		{
-			builder.Append(values[i]);
-			if (i != count - 1)
+			int count = values.Length;
+			for (int i = 0; i < count; ++i)
 			{
-				builder.Append(seperate);
+				builder.append(values[i]);
+				if (i != count - 1)
+				{
+					builder.append(seperate);
+				}
 			}
+			return builder.ToString();
 		}
-		return FrameUtility.END_STRING(builder);
 	}
 	public static List<string> stringToStrings(string str, char seperate = ',')
 	{
@@ -1267,12 +1522,12 @@ public class StringUtility : BinaryUtility
 	}
 	public static void stringToStrings(string str, List<string> values, char seperate = ',')
 	{
+		values.Clear();
 		if (values == null)
 		{
-			UnityUtility.logError("values can not be null");
+			logError("values can not be null");
 			return;
 		}
-		values.Clear();
 		if (isEmpty(str))
 		{
 			return;
@@ -1291,20 +1546,20 @@ public class StringUtility : BinaryUtility
 	// precision表示小数点后保留几位小数,removeTailZero表示是否去除末尾的0
 	public static string FToS(float value, int precision = 4, bool removeTailZero = true)
 	{
-		MathUtility.checkInt(ref value);
-		if(precision == 0)
+		checkInt(ref value);
+		if (precision == 0)
 		{
 			return IToS((int)value);
 		}
-		if(removeTailZero)
+		if (removeTailZero)
 		{
 			// 是否非常接近数轴左边的整数
-			if (MathUtility.isFloatZero(value - (int)value))
+			if (isFloatZero(value - (int)value))
 			{
 				return IToS((int)value);
 			}
 			// 是否非常接近数轴右边的整数
-			if (MathUtility.isFloatZero((int)value + 1 - value))
+			if (isFloatZero((int)value + 1 - value))
 			{
 				return IToS((int)value + 1);
 			}
@@ -1332,7 +1587,7 @@ public class StringUtility : BinaryUtility
 					break;
 				}
 			}
-			if(removeCount > 0)
+			if (removeCount > 0)
 			{
 				str = str.Substring(0, curLen - removeCount);
 			}
@@ -1354,14 +1609,17 @@ public class StringUtility : BinaryUtility
 			insertStart = 3;
 		}
 		insertStart += 3 * (commaCount - 1);
-		MyStringBuilder builder = FrameUtility.STRING(str);
-		// 从后往前插入
-		for (int i = 0; i < commaCount; ++i)
+		using (new ClassScope<MyStringBuilder>(out var builder))
 		{
-			builder.Insert(insertStart, ',');
-			insertStart -= 3;
+			builder.append(str);
+			// 从后往前插入
+			for (int i = 0; i < commaCount; ++i)
+			{
+				builder.insert(insertStart, ',');
+				insertStart -= 3;
+			}
+			str = builder.ToString();
 		}
-		str = FrameUtility.END_STRING(builder);
 	}
 	public static string boolToString(bool value, bool firstUpper = false, bool fullUpper = false)
 	{
@@ -1381,31 +1639,37 @@ public class StringUtility : BinaryUtility
 	}
 	public static string intToChineseString(int value)
 	{
-		MyStringBuilder builder = FrameUtility.STRING();
-		// 大于1亿
-		if(value >= 100000000)
+		using (new ClassScope<MyStringBuilder>(out var builder))
 		{
-			builder.Append(IToS(value / 100000000), "亿");
-			value %= 100000000;
+			// 大于1亿
+			if (value >= 100000000)
+			{
+				builder.append(IToS(value / 100000000), "亿");
+				value %= 100000000;
+			}
+			// 大于1万
+			if (value >= 10000)
+			{
+				builder.append(IToS(value / 10000), "万");
+				value %= 10000;
+			}
+			if (value > 0)
+			{
+				builder.append(value);
+			}
+			return builder.ToString();
 		}
-		// 大于1万
-		if(value >= 10000)
-		{
-			builder.Append(IToS(value / 10000), "万");
-			value %= 10000;
-		}
-		if(value > 0)
-		{
-			builder.Append(value);
-		}
-		return FrameUtility.END_STRING(builder);
 	}
 	// minLength表示返回字符串的最少数字个数,等于0表示不限制个数,大于0表示如果转换后的数字数量不足minLength个,则在前面补0
 	public static string IToS(int value, int minLength = 0)
 	{
+		if (mIntToString == null)
+		{
+			initIntToString();
+		}
 		string retString;
 		// 先尝试查表获取
-		if(value >= 0 && mIntToString != null && value < mIntToString.Length)
+		if (value >= 0 && value < mIntToString.Length)
 		{
 			retString = mIntToString[value];
 		}
@@ -1451,9 +1715,13 @@ public class StringUtility : BinaryUtility
 	}
 	public static string LToS(long value, int minLength = 0)
 	{
+		if (mIntToString == null)
+		{
+			initIntToString();
+		}
 		string retString;
 		// 先尝试查表获取
-		if (value >= 0 && mIntToString != null && value < mIntToString.Length)
+		if (value >= 0 && value < mIntToString.Length)
 		{
 			retString = mIntToString[value];
 		}
@@ -1473,9 +1741,13 @@ public class StringUtility : BinaryUtility
 	}
 	public static string ULToS(ulong value, int minLength = 0)
 	{
+		if (mIntToString == null)
+		{
+			initIntToString();
+		}
 		string retString;
 		// 先尝试查表获取
-		if (value >= 0 && mIntToString != null && value < (ulong)mIntToString.Length)
+		if (value >= 0 && value < (ulong)mIntToString.Length)
 		{
 			retString = mIntToString[value];
 		}
@@ -1499,7 +1771,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static void vector2IntToString(MyStringBuilder builder, Vector2Int value, int limitLength = 0)
 	{
-		builder.Append(IToS(value.x, limitLength), ",", IToS(value.y, limitLength));
+		builder.append(IToS(value.x, limitLength), ",", IToS(value.y, limitLength));
 	}
 	public static string vector2ToString(Vector2 value, int precision = 4)
 	{
@@ -1507,7 +1779,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static void vector2ToString(MyStringBuilder builder, Vector2 value, int precision = 4)
 	{
-		builder.Append(FToS(value.x, precision), ",", FToS(value.y, precision));
+		builder.append(FToS(value.x, precision), ",", FToS(value.y, precision));
 	}
 	public static string vector3ToString(Vector3 value, int precision = 4)
 	{
@@ -1515,34 +1787,67 @@ public class StringUtility : BinaryUtility
 	}
 	public static void vector3ToString(MyStringBuilder builder, Vector3 value, int precision = 4)
 	{
-		builder.Append(FToS(value.x, precision), ",", FToS(value.y, precision), ",", FToS(value.z, precision));
+		builder.append(FToS(value.x, precision), ",", FToS(value.y, precision), ",", FToS(value.z, precision));
+	}
+	public static string replaceThread(string str, int begin, int end, string reStr)
+	{
+		str = str.Remove(begin, end - begin);
+		if (reStr.Length > 0)
+		{
+			str = str.Insert(begin, reStr);
+		}
+		return str;
 	}
 	// 将str中的[begin,end)替换为reStr
 	public static string replace(string str, int begin, int end, string reStr)
 	{
-		MyStringBuilder builder = FrameUtility.STRING(str);
-		replace(builder, begin, end, reStr);
-		return FrameUtility.END_STRING(builder);
+		using (new ClassScope<MyStringBuilder>(out var builder))
+		{
+			builder.append(str);
+			replace(builder, begin, end, reStr);
+			return builder.ToString();
+		}
 	}
 	public static void replace(MyStringBuilder str, int begin, int end, string reStr)
 	{
-		str.Remove(begin, end - begin);
-		if(reStr.Length > 0)
+		str.remove(begin, end - begin);
+		if (reStr.Length > 0)
 		{
-			str.Insert(begin, reStr);
+			str.insert(begin, reStr);
 		}
+	}
+	public static string replaceAllThread(string str, string key, string newWords)
+	{
+		int startPos = 0;
+		while (true)
+		{
+			int pos = findFirstSubstr(str, key, startPos);
+			if (pos < 0)
+			{
+				break;
+			}
+			str = replaceThread(str, pos, pos + key.Length, newWords);
+			startPos = pos + newWords.Length;
+		}
+		return str;
 	}
 	public static string replaceAll(string str, string key, string newWords)
 	{
-		MyStringBuilder builder = FrameUtility.STRING(str);
-		replaceAll(builder, key, newWords);
-		return FrameUtility.END_STRING(builder);
+		using (new ClassScope<MyStringBuilder>(out var builder))
+		{
+			builder.append(str);
+			replaceAll(builder, key, newWords);
+			return builder.ToString();
+		}
 	}
 	public static string replaceAll(string str, char key, char newWords)
 	{
-		MyStringBuilder builder = FrameUtility.STRING(str);
-		replaceAll(builder, key, newWords);
-		return FrameUtility.END_STRING(builder);
+		using (new ClassScope<MyStringBuilder>(out var builder))
+		{
+			builder.append(str);
+			replaceAll(builder, key, newWords);
+			return builder.ToString();
+		}
 	}
 	public static void replaceAll(MyStringBuilder builder, string key, string newWords)
 	{
@@ -1573,7 +1878,7 @@ public class StringUtility : BinaryUtility
 	public static string removeStartUntil(string str, char stopChar, bool findFromStart)
 	{
 		int pos = findFromStart ? str.IndexOf(stopChar) : str.LastIndexOf(stopChar);
-		if(pos < 0)
+		if (pos < 0)
 		{
 			return str;
 		}
@@ -1581,26 +1886,32 @@ public class StringUtility : BinaryUtility
 	}
 	public static string removeAll(string str, params string[] key)
 	{
-		MyStringBuilder builder = FrameUtility.STRING(str);
-		int keyCount = key.Length;
-		for (int i = 0; i < keyCount; ++i)
+		using (new ClassScope<MyStringBuilder>(out var builder))
 		{
-			replaceAll(builder, key[i], EMPTY);
+			builder.append(str);
+			int keyCount = key.Length;
+			for (int i = 0; i < keyCount; ++i)
+			{
+				replaceAll(builder, key[i], EMPTY);
+			}
+			return builder.ToString();
 		}
-		return FrameUtility.END_STRING(builder);
 	}
 	public static string removeAll(string str, params char[] key)
 	{
-		MyStringBuilder builder = FrameUtility.STRING(str);
-		for(int i = builder.Length - 1; i >= 0; --i)
+		using (new ClassScope<MyStringBuilder>(out var builder))
 		{
-			// 判断是否是需要移除的字符
-			if (CSharpUtility.arrayContainsValue(key, builder[i]))
+			builder.append(str);
+			for (int i = builder.Length - 1; i >= 0; --i)
 			{
-				builder.Remove(i, 1);
+				// 判断是否是需要移除的字符
+				if (arrayContainsValue(key, builder[i]))
+				{
+					builder.remove(i, 1);
+				}
 			}
+			return builder.ToString();
 		}
-		return FrameUtility.END_STRING(builder);
 	}
 	public static float SToF(string str)
 	{
@@ -1613,7 +1924,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static int getLength(string str)
 	{
-		byte[] bytes = stringToBytes(str);
+		byte[] bytes = BinaryUtility.stringToBytes(str);
 		for (int i = 0; i < bytes.Length; ++i)
 		{
 			if (bytes[i] == 0)
@@ -1631,7 +1942,7 @@ public class StringUtility : BinaryUtility
 		{
 			if (valid.IndexOf(str[i]) < 0)
 			{
-				UnityUtility.logError("不合法的字符串:" + str);
+				logError("不合法的字符串:" + str);
 				return false;
 			}
 		}
@@ -1676,53 +1987,55 @@ public class StringUtility : BinaryUtility
 		}
 		return name;
 	}
-	public static string bytesToHEXStringThread(byte[] byteList, int count = 0, bool addSpace = true, bool upperOrLower = true)
+	public static string bytesToHEXStringThread(byte[] byteList, int offset = 0, int count = 0, bool addSpace = true, bool upperOrLower = true)
 	{
-		MyStringBuilder builder = FrameUtility.STRING_THREAD();
-		int byteCount = count > 0 ? count : byteList.Length;
-		byteCount = MathUtility.getMin(byteList.Length, byteCount);
+		StringBuilder builder = new StringBuilder();
+		int byteCount = count > 0 ? count : byteList.Length - offset;
+		clamp(ref byteCount, 0, byteList.Length - offset);
 		for (int i = 0; i < byteCount; ++i)
 		{
 			if (addSpace)
 			{
-				byteToHEXString(builder, byteList[i], upperOrLower);
-				if(i != byteCount - 1)
-				{
-					builder.Append(" ");
-				}
-			}
-			else
-			{
-				byteToHEXString(builder, byteList[i], upperOrLower);
-			}
-		}
-		return FrameUtility.END_STRING_THREAD(builder);
-	}
-	public static string bytesToHEXString(byte[] byteList, int count = 0, bool addSpace = true, bool upperOrLower = true)
-	{
-		MyStringBuilder builder = FrameUtility.STRING();
-		int byteCount = count > 0 ? count : byteList.Length;
-		byteCount = MathUtility.getMin(byteList.Length, byteCount);
-		for (int i = 0; i < byteCount; ++i)
-		{
-			if (addSpace)
-			{
-				byteToHEXString(builder, byteList[i], upperOrLower);
-				if(i != byteCount - 1)
+				byteToHEXStringThread(builder, byteList[i + offset], upperOrLower);
+				if (i != byteCount - 1)
 				{
 					builder.Append(' ');
 				}
 			}
 			else
 			{
-				byteToHEXString(builder, byteList[i], upperOrLower);
+				byteToHEXStringThread(builder, byteList[i + offset], upperOrLower);
 			}
 		}
-		return FrameUtility.END_STRING(builder);
+		return builder.ToString();
 	}
-	public static string byteToHEXString(byte value, bool upperOrLower = true)
+	public static string bytesToHEXString(byte[] byteList, int offset = 0, int count = 0, bool addSpace = true, bool upperOrLower = true)
 	{
-		MyStringBuilder builder = FrameUtility.STRING();
+		using (new ClassScope<MyStringBuilder>(out var builder))
+		{
+			int byteCount = count > 0 ? count : byteList.Length - offset;
+			clamp(ref byteCount, 0, byteList.Length - offset);
+			for (int i = 0; i < byteCount; ++i)
+			{
+				if (addSpace)
+				{
+					byteToHEXString(builder, byteList[i + offset], upperOrLower);
+					if (i != byteCount - 1)
+					{
+						builder.append(' ');
+					}
+				}
+				else
+				{
+					byteToHEXString(builder, byteList[i + offset], upperOrLower);
+				}
+			}
+			return builder.ToString();
+		}
+	}
+	public static string byteToHEXStringThread(byte value, bool upperOrLower = true)
+	{
+		StringBuilder builder = new StringBuilder();
 		char[] hexChar = upperOrLower ? mHexUpperChar : mHexLowerChar;
 		int high = value / 16;
 		int low = value % 16;
@@ -1742,7 +2055,55 @@ public class StringUtility : BinaryUtility
 		{
 			builder.Append(hexChar[low - 10]);
 		}
-		return FrameUtility.END_STRING(builder);
+		return builder.ToString();
+	}
+	public static string byteToHEXString(byte value, bool upperOrLower = true)
+	{
+		using (new ClassScope<MyStringBuilder>(out var builder))
+		{
+			char[] hexChar = upperOrLower ? mHexUpperChar : mHexLowerChar;
+			int high = value / 16;
+			int low = value % 16;
+			if (high < 10)
+			{
+				builder.append((char)('0' + high));
+			}
+			else
+			{
+				builder.append(hexChar[high - 10]);
+			}
+			if (low < 10)
+			{
+				builder.append((char)('0' + low));
+			}
+			else
+			{
+				builder.append(hexChar[low - 10]);
+			}
+			return builder.ToString();
+		}
+	}
+	public static void byteToHEXStringThread(StringBuilder builder, byte value, bool upperOrLower = true)
+	{
+		char[] hexChar = upperOrLower ? mHexUpperChar : mHexLowerChar;
+		int high = value / 16;
+		int low = value % 16;
+		if (high < 10)
+		{
+			builder.Append((char)('0' + high));
+		}
+		else
+		{
+			builder.Append(hexChar[high - 10]);
+		}
+		if (low < 10)
+		{
+			builder.Append((char)('0' + low));
+		}
+		else
+		{
+			builder.Append(hexChar[low - 10]);
+		}
 	}
 	public static void byteToHEXString(MyStringBuilder builder, byte value, bool upperOrLower = true)
 	{
@@ -1751,26 +2112,26 @@ public class StringUtility : BinaryUtility
 		int low = value % 16;
 		if (high < 10)
 		{
-			builder.Append((char)('0' + high));
+			builder.append((char)('0' + high));
 		}
 		else
 		{
-			builder.Append(hexChar[high - 10]);
+			builder.append(hexChar[high - 10]);
 		}
 		if (low < 10)
 		{
-			builder.Append((char)('0' + low));
+			builder.append((char)('0' + low));
 		}
 		else
 		{
-			builder.Append(hexChar[low - 10]);
+			builder.append(hexChar[low - 10]);
 		}
 	}
 	public static byte hexStringToByte(string str, int start = 0)
 	{
 		byte highBit = 0;
 		byte lowBit = 0;
-		byte[] strBytes = stringToBytes(str);
+		byte[] strBytes = BinaryUtility.stringToBytes(str);
 		byte highBitChar = strBytes[start];
 		byte lowBitChar = strBytes[start + 1];
 		if (highBitChar >= 'A' && highBitChar <= 'F')
@@ -1809,7 +2170,7 @@ public class StringUtility : BinaryUtility
 			return 0;
 		}
 		int dataCount = str.Length >> 1;
-		FrameUtility.ARRAY_THREAD(out bytes, MathUtility.getGreaterPow2(dataCount));
+		ARRAY_THREAD(out bytes, getGreaterPow2(dataCount));
 		for (int i = 0; i < dataCount; ++i)
 		{
 			bytes[i] = hexStringToByte(str, i * 2);
@@ -1818,7 +2179,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static void releaseHexStringBytes(byte[] bytes)
 	{
-		FrameUtility.UN_ARRAY_THREAD(bytes);
+		UN_ARRAY_THREAD(ref bytes);
 	}
 	public static string fileSizeString(long size)
 	{
@@ -1833,7 +2194,7 @@ public class StringUtility : BinaryUtility
 			return FToS(size * (1.0f / 1024.0f), 1) + "KB";
 		}
 		// 不足1GB
-		if(size < 1024 * 1024 * 1024)
+		if (size < 1024 * 1024 * 1024)
 		{
 			return FToS(size * (1.0f / (1024.0f * 1024.0f)), 1) + "MB";
 		}
@@ -1850,7 +2211,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static void addSprite(MyStringBuilder originString, string spriteName, float width = 1.0f)
 	{
-		originString.Append("<quad width=").Append(width).Append(" sprite=").Append(spriteName).Append("/>");
+		originString.append("<quad width=").append(width).append(" sprite=").append(spriteName).append("/>");
 	}
 	// 在文本显示中将str的颜色设置为color
 	public static string colorStringNoBuilder(string color, string str)
@@ -1870,6 +2231,22 @@ public class StringUtility : BinaryUtility
 		}
 		return strcat("<color=#", color, ">", str, "</color>");
 	}
+	public static string colorString(string color, string str0, string str1)
+	{
+		return strcat("<color=#", color, ">", str0, str1, "</color>");
+	}
+	public static string colorString(string color, string str0, string str1, string str2)
+	{
+		return strcat("<color=#", color, ">", str0, str1, str2, "</color>");
+	}
+	public static string colorString(string color, string str0, string str1, string str2, string str3)
+	{
+		return strcat("<color=#", color, ">", str0, str1, str2, str3, "</color>");
+	}
+	public static string colorString(string color, string str0, string str1, string str2, string str3, string str4)
+	{
+		return strcat("<color=#", color, ">", str0, str1, str2, str3, str4, "</color>");
+	}
 	// 在文本显示中将str的颜色设置为color
 	public static string colorStringThread(string color, string str)
 	{
@@ -1885,8 +2262,8 @@ public class StringUtility : BinaryUtility
 		{
 			return str;
 		}
-		str.InsertFront("<color=#", color, ">");
-		str.Append("</color>");
+		str.insertFront("<color=#", color, ">");
+		str.append("</color>");
 		return str;
 	}
 	public static string colorToRGBString(Color32 color)
@@ -1900,7 +2277,7 @@ public class StringUtility : BinaryUtility
 	// returnEndIndex表示返回值是否是字符串结束的下一个字符的下标
 	public static int findFirstSubstr(string res, char pattern, int startPos = 0, bool sensitive = true)
 	{
-		if(res == null)
+		if (res == null)
 		{
 			return -1;
 		}
@@ -1912,7 +2289,7 @@ public class StringUtility : BinaryUtility
 		int len = res.Length;
 		for (int i = startPos; i < len; ++i)
 		{
-			if ((sensitive && res[i] == pattern) || 
+			if ((sensitive && res[i] == pattern) ||
 				(!sensitive && toLower(res[i]) == pattern))
 			{
 				posFind = i;
@@ -1924,7 +2301,7 @@ public class StringUtility : BinaryUtility
 	// returnEndIndex表示返回值是否是字符串结束的下一个字符的下标
 	public static int findFirstSubstr(string res, string pattern, int startPos = 0, bool returnEndIndex = false, bool sensitive = true)
 	{
-		if(res == null)
+		if (res == null)
 		{
 			return -1;
 		}
@@ -1966,7 +2343,7 @@ public class StringUtility : BinaryUtility
 				break;
 			}
 		}
-		if(returnEndIndex && posFind >= 0)
+		if (returnEndIndex && posFind >= 0)
 		{
 			posFind += subLen;
 		}
@@ -1975,7 +2352,7 @@ public class StringUtility : BinaryUtility
 	// returnEndIndex表示返回值是否是字符串结束的下一个字符的下标
 	public static int findFirstSubstr(MyStringBuilder res, char pattern, int startPos = 0, bool sensitive = true)
 	{
-		if(res == null)
+		if (res == null)
 		{
 			return -1;
 		}
@@ -1987,7 +2364,7 @@ public class StringUtility : BinaryUtility
 		int len = res.Length;
 		for (int i = startPos; i < len; ++i)
 		{
-			if ((sensitive && res[i] == pattern) || 
+			if ((sensitive && res[i] == pattern) ||
 				(!sensitive && toLower(res[i]) == pattern))
 			{
 				posFind = i;
@@ -2041,7 +2418,7 @@ public class StringUtility : BinaryUtility
 				break;
 			}
 		}
-		if(returnEndIndex && posFind >= 0)
+		if (returnEndIndex && posFind >= 0)
 		{
 			posFind += subLen;
 		}
@@ -2075,6 +2452,82 @@ public class StringUtility : BinaryUtility
 			}
 		}
 		return posFind;
+	}
+	// 从后往前找到第一个指定字符,endPos表示从后往前找的开始的下标
+	public static int findLastChar(string str, char c, int endPos = -1)
+	{
+		if (endPos < 0)
+		{
+			endPos = str.Length - 1;
+		}
+		for (int i = endPos; i >= 0; --i)
+		{
+			if (str[i] == c)
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+	// 从前往后去除两个成对字符之间的所有字符(包含两个字符)，并返回他们的下标
+	public static string removeFirstBetweenPairChars(string str, char startChar, char endChar, out int startCharIndex, out int endCharIndex)
+	{
+		endCharIndex = -1;
+		startCharIndex = str.IndexOf(startChar);
+		if (startCharIndex < 0)
+		{
+			return str;
+		}
+
+		// 未配对数量
+		int unpaired = 1;
+		for (int i = startCharIndex + 1; i < str.Length; ++i)
+		{
+			if (str[i] == startChar)
+			{
+				++unpaired;
+			}
+			else if (str[i] == endChar)
+			{
+				--unpaired;
+				if (unpaired == 0)
+				{
+					endCharIndex = i;
+					return str.Remove(startCharIndex, endCharIndex - startCharIndex + 1);
+				}
+			}
+		}
+		return str;
+	}
+	// 从后往前去除两个成对个字符之间的所有字符(包含两个字符)，并返回他们的下标
+	public static string removeLastBetweenPairChars(string str, char startChar, char endChar, out int startCharIndex, out int endCharIndex)
+	{
+		startCharIndex = -1;
+		endCharIndex = str.LastIndexOf(endChar);
+		if (endCharIndex < 0)
+		{
+			return str;
+		}
+
+		// 未配对数量
+		int unpaired = 1;
+		for (int i = endCharIndex - 1; i >= 0; --i)
+		{
+			if (str[i] == endChar)
+			{
+				++unpaired;
+			}
+			else if (str[i] == startChar)
+			{
+				--unpaired;
+				if (unpaired == 0)
+				{
+					startCharIndex = i;
+					return str.Remove(startCharIndex, endCharIndex - startCharIndex + 1);
+				}
+			}
+		}
+		return str;
 	}
 	// 将字符转换为小写字母
 	public static char toLower(char c)
@@ -2124,38 +2577,137 @@ public class StringUtility : BinaryUtility
 	}
 	// 是否为数字
 	public static bool isNumeric(char c) { return c >= '0' && c <= '9'; }
+	public static bool isChinese(char c) { return c >= 0x4E00 && c <= 0x9FBB; }
+	public static bool isASCII(char c) { return c >= 0 && c <= 0x7F; }
+	public static bool hasChinese(string str) 
+	{
+		int length = str.Length;
+		for (int i = 0; i < length; ++i)
+		{
+			if (isChinese(str[i]))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	// 是否有除了中文和ASCII以外的字符
+	public static bool hasNonChineseASCII(string str)
+	{
+		int length = str.Length;
+		for (int i = 0; i < length; ++i)
+		{
+			if (!isChinese(str[i]) && !isASCII(str[i]))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 	// 计算字符的显示宽度,英文字母的宽度为1,汉字的宽度为2
 	public static int generateCharWidth(string str)
 	{
 		int width = 0;
 		for (int i = 0; i < str.Length; ++i)
 		{
-			if (str[i] <= 0x7F)
-			{
-				width += 1;
-			}
-			else
-			{
-				width += 2;
-			}
+			width += str[i] <= 0x7F ? 1 : 2;
 		}
 		return width;
 	}
+	// 判断一个字符串是否为有效的手机号
 	public static bool isPhoneNumber(string str)
 	{
 		int length = str.Length;
+		// 手机号固定11位,以1开头
 		if (length != 11 || str[0] != '1')
 		{
 			return false;
 		}
-		for(int i = 0; i < length; ++i)
+		for (int i = 0; i < length; ++i)
 		{
-			if(str[i] < '0' || str[i] > '9')
+			if (!isNumeric(str[i]))
 			{
 				return false;
 			}
 		}
 		return true;
+	}
+	public static void line(MyStringBuilder str, string line, bool returnLine = true)
+	{
+		if (returnLine)
+		{
+			str.append(line, "\r\n");
+		}
+		else
+		{
+			str.append(line);
+		}
+	}
+	public static void line(ref string str, string line, bool returnLine = true)
+	{
+		if (returnLine)
+		{
+			str += line + "\r\n";
+		}
+		else
+		{
+			str += line;
+		}
+	}
+	public static string nameToUpper(string sqliteName, bool preUnderLine)
+	{
+		// 根据大写字母拆分
+		using (new ListScope<string>(out var macroList))
+		{
+			int length = sqliteName.Length;
+			int lastIndex = 0;
+			// 从1开始,因为第0个始终都是大写,会截取出空字符串,最后一个字母也肯不会被分割
+			for (int i = 1; i < length; ++i)
+			{
+				// 以大写字母为分隔符,但是连续的大写字符不能被分隔
+				// 非连续数字也会分隔
+				char curChar = sqliteName[i];
+				char lastChar = sqliteName[i - 1];
+				char nextChar = i + 1 < length ? sqliteName[i + 1] : '\0';
+				if (isUpper(curChar) && (!isUpper(lastChar) || (nextChar != '\0' && !isUpper(nextChar))) ||
+					isNumeric(curChar) && (!isNumeric(lastChar) || (nextChar != '\0' && !isNumeric(nextChar))))
+				{
+					macroList.Add(sqliteName.Substring(lastIndex, i - lastIndex));
+					lastIndex = i;
+				}
+			}
+			macroList.Add(sqliteName.Substring(lastIndex, length - lastIndex));
+
+			using (new ClassScope<MyStringBuilder>(out var headerMacro))
+			{
+				int elementCount = macroList.Count;
+				for (int i = 0; i < elementCount; ++i)
+				{
+					headerMacro.append("_", macroList[i].ToUpper());
+				}
+				if (!preUnderLine)
+				{
+					headerMacro.remove(0, 1);
+				}
+				return headerMacro.ToString();
+			}
+		}
+	}
+	public static string validateHttpString(string str)
+	{
+		if (mInvalidParamChars == null)
+		{
+			initInvalidChars();
+		}
+		using (new ClassScope<MyStringBuilder>(out var builder))
+		{
+			builder.append(str);
+			foreach (var item in mInvalidParamChars)
+			{
+				replaceAll(builder, item.Key, item.Value);
+			}
+			return builder.ToString();
+		}
 	}
 	public static void appendValueString(ref string queryStr, string str)
 	{
@@ -2163,7 +2715,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static void appendValueString(MyStringBuilder queryStr, string str)
 	{
-		queryStr.Append("\"", str, "\",");
+		queryStr.append("\"", str, "\",");
 	}
 	public static void appendValueVector2(ref string queryStr, Vector2 value)
 	{
@@ -2172,7 +2724,7 @@ public class StringUtility : BinaryUtility
 	public static void appendValueVector2(MyStringBuilder queryStr, Vector2 value)
 	{
 		vector2ToString(queryStr, value);
-		queryStr.Append(',');
+		queryStr.append(',');
 	}
 	public static void appendValueVector2Int(ref string queryStr, Vector2Int value)
 	{
@@ -2181,7 +2733,7 @@ public class StringUtility : BinaryUtility
 	public static void appendValueVector2Int(MyStringBuilder queryStr, Vector2Int value)
 	{
 		vector2IntToString(queryStr, value);
-		queryStr.Append(',');
+		queryStr.append(',');
 	}
 	public static void appendValueVector3(ref string queryStr, Vector3 value)
 	{
@@ -2190,7 +2742,7 @@ public class StringUtility : BinaryUtility
 	public static void appendValueVector3(MyStringBuilder queryStr, Vector3 value)
 	{
 		vector3ToString(queryStr, value);
-		queryStr.Append(',');
+		queryStr.append(',');
 	}
 	public static void appendValueInt(ref string queryStr, int value)
 	{
@@ -2198,7 +2750,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static void appendValueInt(MyStringBuilder queryStr, int value)
 	{
-		queryStr.Append(IToS(value), ",");
+		queryStr.append(IToS(value), ",");
 	}
 	public static void appendValueUInt(ref string queryStr, uint value)
 	{
@@ -2206,7 +2758,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static void appendValueUInt(MyStringBuilder queryStr, uint value)
 	{
-		queryStr.Append(IToS(value), ",");
+		queryStr.append(IToS(value), ",");
 	}
 	public static void appendValueFloat(ref string queryStr, float value)
 	{
@@ -2214,7 +2766,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static void appendValueFloat(MyStringBuilder queryStr, float value)
 	{
-		queryStr.Append(FToS(value), ",");
+		queryStr.append(FToS(value), ",");
 	}
 	public static void appendValueFloats(ref string queryStr, List<float> floatArray)
 	{
@@ -2238,7 +2790,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static void appendConditionString(MyStringBuilder condition, string col, string str, string operate)
 	{
-		condition.Append(col, "=\"", str, "\"", operate);
+		condition.append(col, "=\"", str, "\"", operate);
 	}
 	public static void appendConditionInt(ref string condition, string col, int value, string operate)
 	{
@@ -2246,7 +2798,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static void appendConditionInt(MyStringBuilder condition, string col, int value, string operate)
 	{
-		condition.Append(col, " = ", IToS(value), operate);
+		condition.append(col, " = ", IToS(value), operate);
 	}
 	public static void appendUpdateString(ref string updateStr, string col, string str)
 	{
@@ -2254,7 +2806,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static void appendUpdateString(MyStringBuilder updateStr, string col, string str)
 	{
-		updateStr.Append(col, " = \"", str, "\",");
+		updateStr.append(col, " = \"", str, "\",");
 	}
 	public static void appendUpdateInt(ref string updateStr, string col, int value)
 	{
@@ -2262,7 +2814,7 @@ public class StringUtility : BinaryUtility
 	}
 	public static void appendUpdateInt(MyStringBuilder updateStr, string col, int value)
 	{
-		updateStr.Append(col, " = ", IToS(value), ",");
+		updateStr.append(col, " = ", IToS(value), ",");
 	}
 	public static void appendUpdateInts(ref string updateStr, string col, List<int> intArray)
 	{
@@ -2338,7 +2890,7 @@ public class StringUtility : BinaryUtility
 				if (pattern[j] != pattern[k])
 				{
 					// 之前只有这一行 
-					next[j] = k; 
+					next[j] = k;
 				}
 				else
 				{
@@ -2352,50 +2904,268 @@ public class StringUtility : BinaryUtility
 			}
 		}
 	}
+	public static void recoverStringColor(List<string> lineList, List<List<string>> colorLineList)
+	{
+		if (lineList.Count != colorLineList.Count)
+		{
+			return;
+		}
+		using (new ListScope<KeyValuePair<string, string>>(out var tempList))
+		{
+			for (int i = 0; i < colorLineList.Count; ++i)
+			{
+				// 处理一行文字的颜色,找到每段相同颜色的连续字符,将其连同颜色放入一个列表中
+				int colorStart = -1;
+				string curColor = null;
+				List<string> colorLine = colorLineList[i];
+				string strLine = lineList[i];
+				int lineLength = colorLine.Count;
+				tempList.Clear();
+				for (int j = 0; j < lineLength; ++j)
+				{
+					if (colorStart == -1)
+					{
+						colorStart = j;
+						curColor = colorLine[j];
+					}
+					// 遇到不一样的颜色或者已经遍历到了最后一个,则截取这段字符
+					else if (colorLine[j] != curColor || j == lineLength - 1)
+					{
+						if (j == lineLength - 1)
+						{
+							tempList.Add(new KeyValuePair<string, string>(strLine.Substring(colorStart), curColor));
+						}
+						else
+						{
+							tempList.Add(new KeyValuePair<string, string>(strLine.Substring(colorStart, j - colorStart), curColor));
+							colorStart = j;
+							curColor = colorLine[j];
+						}
+					}
+				}
+				// 再将各个分段的字符串使用颜色拼接起来
+				using (new ClassScope<MyStringBuilder>(out var builder))
+				{
+					for (int j = 0; j < tempList.Count; ++j)
+					{
+						if (tempList[j].Value == null)
+						{
+							builder.append(tempList[j].Key);
+						}
+						else
+						{
+							builder.color(tempList[j].Value, tempList[j].Key);
+						}
+					}
+					lineList[i] = builder.ToString();
+				}
+			}
+		}
+	}
+	// 将文本拆分为多行来显示,originString应该是不带富文本标签的字符串,否则会影响字符长度的计算
+	// 默认每一行至少可以容纳30个字符,所以都是从30开始截取字符串,为了提高效率
+	public static void generateMultiLine(myUGUIText textWindow, string originString, List<string> lineList, int minStringLength = 30)
+	{
+		if (originString.Length < minStringLength)
+		{
+			lineList.Add(originString);
+			return;
+		}
+		int maxContentDisplayWidth = (int)textWindow.getWindowSize().x;
+		int charIndex = minStringLength;
+		int startIndex = 0;
+		while (true)
+		{
+			if (startIndex + charIndex >= originString.Length)
+			{
+				lineList.Add(originString.Substring(startIndex));
+				break;
+			}
+			if (getContentLength(textWindow, originString.Substring(startIndex, charIndex)) >= maxContentDisplayWidth)
+			{
+				// 超出以后需要减少一个字符,避免超出显示范围
+				--charIndex;
+				lineList.Add(originString.Substring(startIndex, charIndex));
+				startIndex += charIndex;
+				charIndex = minStringLength;
+			}
+			else
+			{
+				++charIndex;
+			}
+		}
+	}
+	// 将富文本还原为原始的字符串,暂时只考虑颜色,charColorList的输出长度与返回字符串的长度一致,其中每个元素表示相同下标的字符的颜色
+	public static string getStringNoRichText(string originContent, List<string> charColorList)
+	{
+		charColorList.Capacity = originContent.Length;
+		for (int i = 0; i < originContent.Length; ++i)
+		{
+			charColorList.Add(null);
+		}
+		// 暂时只考虑富文本的颜色
+		string colorPrefix = "<color=#";
+		string colorSuffix = "</color>";
+		// 从后往前移除富文本标签
+		while (true)
+		{
+			int colorStart = originContent.IndexOf(colorPrefix);
+			if (colorStart < 0)
+			{
+				break;
+			}
+			int prefixEndIndex = originContent.IndexOf('>', colorStart);
+			if (prefixEndIndex < 0)
+			{
+				break;
+			}
+			int suffixIndex = originContent.IndexOf(colorSuffix, prefixEndIndex);
+			if (suffixIndex < 0)
+			{
+				break;
+			}
+			string color = originContent.Substring(colorStart + colorPrefix.Length, prefixEndIndex - colorStart - colorPrefix.Length);
+			int colorCharCount = suffixIndex - prefixEndIndex - 1;
+			for (int i = 0; i < colorCharCount; ++i)
+			{
+				charColorList[colorStart + i] = color;
+			}
+			originContent = originContent.Remove(suffixIndex, colorSuffix.Length);
+			originContent = originContent.Remove(colorStart, prefixEndIndex - colorStart + 1);
+		}
+		charColorList.RemoveRange(originContent.Length, charColorList.Count - originContent.Length);
+		return originContent;
+	}
 	// 可以在子线程中使用的字符串拼接,当拼接小于等于4个字符串时,直接使用+号最快,GC与StringBuilder一致
 	public static string strcat_thread(string str0, string str1, string str2, string str3, string str4)
 	{
-		return FrameUtility.END_STRING_THREAD(FrameUtility.STRING_THREAD(str0, str1, str2, str3, str4));
+		using (new ClassThreadScope<MyStringBuilder>(out var builder))
+		{
+			builder.append(str0, str1, str2, str3, str4);
+			return builder.ToString();
+		}
 	}
 	public static string strcat_thread(string str0, string str1, string str2, string str3, string str4, string str5)
 	{
-		return FrameUtility.END_STRING_THREAD(FrameUtility.STRING_THREAD(str0, str1, str2, str3, str4, str5));
+		using (new ClassThreadScope<MyStringBuilder>(out var builder))
+		{
+			builder.append(str0, str1, str2, str3, str4, str5);
+			return builder.ToString();
+		}
 	}
 	public static string strcat_thread(string str0, string str1, string str2, string str3, string str4, string str5, string str6)
 	{
-		return FrameUtility.END_STRING_THREAD(FrameUtility.STRING_THREAD(str0, str1, str2, str3, str4, str5, str6));
+		using (new ClassThreadScope<MyStringBuilder>(out var builder))
+		{
+			builder.append(str0, str1, str2, str3, str4, str5, str6);
+			return builder.ToString();
+		}
 	}
 	public static string strcat_thread(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7)
 	{
-		return FrameUtility.END_STRING_THREAD(FrameUtility.STRING_THREAD(str0, str1, str2, str3, str4, str5, str6, str7));
+		using (new ClassThreadScope<MyStringBuilder>(out var builder))
+		{
+			builder.append(str0, str1, str2, str3, str4, str5, str6, str7);
+			return builder.ToString();
+		}
 	}
 	public static string strcat_thread(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7, string str8)
 	{
-		return FrameUtility.END_STRING_THREAD(FrameUtility.STRING_THREAD(str0, str1, str2, str3, str4, str5, str6, str7, str8));
+		using (new ClassThreadScope<MyStringBuilder>(out var builder))
+		{
+			builder.append(str0, str1, str2, str3, str4, str5, str6, str7, str8);
+			return builder.ToString();
+		}
+	}
+	public static string strcat_thread(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7, string str8, string str9)
+	{
+		using (new ClassThreadScope<MyStringBuilder>(out var builder))
+		{
+			builder.append(str0, str1, str2, str3, str4, str5, str6, str7, str8, str9);
+			return builder.ToString();
+		}
 	}
 	// 只能在主线程中使用的字符串拼接,当拼接小于等于4个字符串时,直接使用+号最快,GC与StringBuilder一致
 	public static string strcat(string str0, string str1, string str2, string str3, string str4)
 	{
-		return FrameUtility.END_STRING(FrameUtility.STRING(str0, str1, str2, str3, str4));
+		using (new ClassScope<MyStringBuilder>(out var builder))
+		{
+			return builder.append(str0, str1, str2, str3, str4).ToString();
+		}
 	}
 	public static string strcat(string str0, string str1, string str2, string str3, string str4, string str5)
 	{
-		return FrameUtility.END_STRING(FrameUtility.STRING(str0, str1, str2, str3, str4, str5));
+		using (new ClassScope<MyStringBuilder>(out var builder))
+		{
+			return builder.append(str0, str1, str2, str3, str4, str5).ToString();
+		}
 	}
 	public static string strcat(string str0, string str1, string str2, string str3, string str4, string str5, string str6)
 	{
-		return FrameUtility.END_STRING(FrameUtility.STRING(str0, str1, str2, str3, str4, str5, str6));
+		using (new ClassScope<MyStringBuilder>(out var builder))
+		{
+			return builder.append(str0, str1, str2, str3, str4, str5, str6).ToString();
+		}
 	}
 	public static string strcat(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7)
 	{
-		return FrameUtility.END_STRING(FrameUtility.STRING(str0, str1, str2, str3, str4, str5, str6, str7));
+		using (new ClassScope<MyStringBuilder>(out var builder))
+		{
+			return builder.append(str0, str1, str2, str3, str4, str5, str6, str7).ToString();
+		}
 	}
 	public static string strcat(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7, string str8)
 	{
-		return FrameUtility.END_STRING(FrameUtility.STRING(str0, str1, str2, str3, str4, str5, str6, str7, str8));
+		using (new ClassScope<MyStringBuilder>(out var builder))
+		{
+			return builder.append(str0, str1, str2, str3, str4, str5, str6, str7, str8).ToString();
+		}
 	}
 	public static string strcat(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7, string str8, string str9)
 	{
-		return FrameUtility.END_STRING(FrameUtility.STRING(str0, str1, str2, str3, str4, str5, str6, str7, str8, str9));
+		using (new ClassScope<MyStringBuilder>(out var builder))
+		{
+			return builder.append(str0, str1, str2, str3, str4, str5, str6, str7, str8, str9).ToString();
+		}
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected static void initIntToString()
+	{
+		mIntToString = new string[10240];
+		mStringToInt = new Dictionary<string, int>();
+		for (int i = 0; i < mIntToString.Length; ++i)
+		{
+			string iStr = i.ToString();
+			mStringToInt.Add(iStr, i);
+			mIntToString[i] = iStr;
+		}
+	}
+	protected static void initInvalidChars()
+	{
+		mInvalidParamChars = new Dictionary<string, string>
+		{
+			{ "(", "%28" },
+			{ ")", "%29" },
+			{ "<", "%3C" },
+			{ ">", "%3E" },
+			{ "@", "%40" },
+			{ ",", "%2C" },
+			{ ";", "%3B" },
+			{ ":", "%3A" },
+			{ "\\", "%5C" },
+			{ "\"", "%22" },
+			{ "\'", "%27" },
+			{ "/", "%2F" },
+			{ "[", "%5B" },
+			{ "]", "%5D" },
+			{ "?", "%3F" },
+			{ "=", "%3D" },
+			{ "{", "%7B" },
+			{ "}", "%7D" },
+			{ " ", "%20" },
+			{ "\t", "%09" },
+			{ "\r", "%0D" },
+			{ "\n", "%0A" }
+		};
 	}
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using static MathUtility;
 
 // 第三人称的摄像机连接器,与连接的物体保持固定的相对坐标
 public class CameraLinkerThirdPerson : CameraLinker

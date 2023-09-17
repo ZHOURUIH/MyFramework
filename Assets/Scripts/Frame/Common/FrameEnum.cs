@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 // 游戏枚举定义-----------------------------------------------------------------------------------------------
 
@@ -44,6 +45,12 @@ public class KEY_CURVE
 	public static int MAX_BUILDIN_CURVE = 100;
 }
 
+// 由于允许可扩展,所以写成类
+public class LAYOUT
+{
+	public static int NONE = 0;
+}
+
 // 数字窗口中数字的停靠位置
 public enum DOCKING_POSITION : byte
 {
@@ -81,7 +88,6 @@ public enum PLAY_STATE : byte
 // 加载状态
 public enum LOAD_STATE : byte
 {
-	NONE,					// 无效状态
 	UNLOAD,					// 已卸载
 	WAIT_FOR_LOAD,			// 等待加载
 	LOADING,				// 正在加载
@@ -142,7 +148,7 @@ public enum CHECK_DIRECTION : byte
 	BACK,					// 向后检测
 }
 
-// 鼠标按键
+// 鼠标按键枚举,同时也是作为鼠标的触点ID,因为鼠标和触点不会同时出现,所以不会冲突
 public enum MOUSE_BUTTON : byte
 {
 	LEFT,					// 左键
@@ -150,13 +156,21 @@ public enum MOUSE_BUTTON : byte
 	MIDDLE,					// 中键
 }
 
-// 输入事件的状态掩码
+// 可用的组合键
+public enum COMBINATION_KEY : byte
+{ 
+	NONE,				// 无效值
+	CTRL = 1 << 0,		// Ctrl键掩码
+	SHIFT = 1 << 1,		// Shift键掩码
+	ALT = 1 << 2,		// Alt键掩码
+}
+
+// 输入事件的状态掩码,初衷是为了区分当前是正在输入状态还是普通状态下按的按键,避免正在输入时触发了快捷键
 public enum FOCUS_MASK : ushort
 {
 	NONE = 0,				// 无掩码
 	SCENE = 1 << 1,			// 可处理场景中的输入
-	UI = 1 << 2,			// 可处理UI的输入
-	OTHER = 1 << 3,			// 可处理其他输入
+	UI = 1 << 2,			// 输入框正在输入
 }
 
 // 滚动窗口的状态
@@ -230,9 +244,12 @@ public enum BUFF_STATE_TYPE : byte
 public enum TIME_DISPLAY : byte
 {
 	HMSM,					// 以Hour:Minute:Second:Millisecond形式显示,并且不补0
-	HMS_2,					// 以Hour:Minute:Second形式显示,并且每个数都显示为2位数
-	DHMS_ZH,				// 以Day天Hour小时Minute分Second秒的形式显示
-	YMD_ZH,					// 以Year年Month月Day天的形式显示
+	HMS_2,                  // 以Hour:Minute:Second形式显示,并且每个数都显示为2位数
+	MS_2,					// 以Minute:Second形式显示,并且每个数都显示为2位数
+	DHMS_ZH,                // 以Day天Hour小时Minute分Second秒的形式显示,获取当前时间时将不会显示天数
+	DHM_ZH,					// 以Day天Hour小时Minute分的形式显示,获取当前时间时将不会显示天数
+	YMD_ZH,                 // 以Year年Month月Day天的形式显示,只适用于DateTime
+	YMDHM_ZH,               // 以Year年Month月Day天Hour时Minute分的形式显示,只适用于DateTime
 }
 
 // 布局渲染顺序的计算类型
@@ -259,29 +276,54 @@ public enum ANGLE : byte
 	DEGREE,					// 角度制
 }
 
+// 横向的方向
+public enum HORIZONTAL_DIRECTION : byte
+{
+	NONE,			// 无效值
+	LEFT,			// 向左并且位于父节点内停靠
+	RIGHT,			// 向右并且位于父节点内停靠
+	CENTER,         // 以中间停靠
+}
+
+// 纵向的方向
+public enum VERTICAL_DIRECTION : byte
+{
+	NONE,			// 无效值
+	TOP,			// 向上并且位于父节点内停靠
+	BOTTOM,			// 向下并且位于父节点内停靠
+	CENTER,         // 以中间停靠
+}
+
+// UI适配时的停靠类型
 public enum ANCHOR_MODE : byte
 {
-	NONE,						// 无效值
-	PADDING_PARENT_SIDE,		// 停靠父节点的指定边界,并且大小不改变,0,1,2,3表示左上右下
+	NONE,                       // 无效值
+	[Tooltip("停靠父节点的指定边界,并且大小不改变")]
+	PADDING_PARENT_SIDE,        // 停靠父节点的指定边界,并且大小不改变,0,1,2,3表示左上右下
+	[Tooltip("将锚点设置到距离相对于父节点最近的边,并且各边界到父节点对应边界的距离固定不变")]
 	STRETCH_TO_PARENT_SIDE,		// 将锚点设置到距离相对于父节点最近的边,并且各边界到父节点对应边界的距离固定不变
 }
 
 // 当mAnchorMode的值为STRETCH_TO_PARENT_SIDE时,x方向上要停靠的边界
 public enum HORIZONTAL_PADDING : sbyte
 {
-	NONE = -1,
-	LEFT,
-	RIGHT,
-	CENTER,
+	NONE = -1,		// 无效值
+	LEFT_IN,		// 向左并且位于父节点内停靠
+	LEFT_OUT,		// 向左并且位于父节点外停靠
+	RIGHT_IN,		// 向右并且位于父节点内停靠
+	RIGHT_OUT,		// 向右并且位于父节点外停靠
+	CENTER,			// 以中间停靠
 }
 
 // 当mAnchorMode的值为STRETCH_TO_PARENT_SIDE时,y方向上要停靠的边界
 public enum VERTICAL_PADDING : sbyte
 {
-	NONE = -1,
-	TOP,
-	BOTTOM,
-	CENTER,
+	NONE = -1,		// 无效值
+	TOP_IN,         // 向上并且位于父节点内停靠
+	TOP_OUT,        // 向上并且位于父节点外停靠
+	BOTTOM_IN,      // 向下并且位于父节点内停靠
+	BOTTOM_OUT,     // 向下并且位于父节点外停靠
+	CENTER,			// 以中间停靠
 }
 
 // 缩放比例的计算方式
@@ -291,7 +333,7 @@ public enum ASPECT_BASE : byte
 	USE_HEIGHT_SCALE,			// 使用高的缩放值来缩放控件
 	AUTO,						// 取宽高缩放值中最小的,保证缩放以后不会超出屏幕范围
 	INVERSE_AUTO,				// 取宽高缩放值中最大的,保证缩放以后不会在屏幕范围留出空白
-	NONE,
+	NONE,						// 无效值
 }
 
 // 模型节点与角色节点的关系
@@ -303,7 +345,7 @@ public enum AVATAR_RELATIONSHIP : byte
 }
 
 // 模型节点与角色节点的同步方式
-public enum TRANSFORM_ASYNC : byte
+public enum TRANSFORM_SYNC : byte
 {
 	USE_AVATAR,					// 使用模型节点的值同步到角色节点
 	USE_CHARACTER,				// 使用角色节点的值同步到模型节点
@@ -328,10 +370,14 @@ public enum LINKER_UPDATE : byte
 // 窗口模式类型
 public enum WINDOW_MODE : byte
 {
+	[Label("窗口"), Tooltip("带边框的窗口模式")]
 	WINDOWED,						// 带边框的窗口模式
+	[Label("全屏"), Tooltip("全屏模式")]
 	FULL_SCREEN,					// 全屏模式
+	[Label("无边框"), Tooltip("无边框窗口模式")]
 	NO_BOARD_WINDOW,				// 无边框窗口模式
-	FULL_SCREEN_CUSTOM_RESOLUTION,	// 全屏并且使用配置文件中的分辨率
+	[Label("自定义全屏"), Tooltip("全屏并且使用下面设置的分辨率")]
+	FULL_SCREEN_CUSTOM_RESOLUTION,  // 全屏并且使用下面设置的分辨率
 }
 
 // 角的类型

@@ -1,33 +1,30 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System;
+using static FrameBase;
+using static UnityUtility;
 
-public class LayoutRegisterBaseILR : GB
+public class LayoutRegisterBaseILR
 {
-	protected static void registeLayout<T>(int layout, string name) where T : LayoutScript
+	protected static void registeLayout<T>(int layout, string mobileName, string standaloneName) where T : LayoutScript
 	{
-		registeLayout<T>(layout, name, EMPTY, false, LAYOUT_LIFE_CYCLE.PART_USE);
+		registeLayout<T>(layout, mobileName, standaloneName, false, LAYOUT_LIFE_CYCLE.PART_USE);
 	}
-	protected static void registeLayout<T>(int layout, string name, LAYOUT_LIFE_CYCLE lifeCycle) where T : LayoutScript
+	protected static void registeLayout<T>(int layout, string mobileName, string standaloneName, LAYOUT_LIFE_CYCLE lifeCycle) where T : LayoutScript
 	{
-		registeLayout<T>(layout, name, EMPTY, false, lifeCycle);
+		registeLayout<T>(layout, mobileName, standaloneName, false, lifeCycle);
 	}
-	protected static void registeLayout<T>(int layout, string name, bool inResource, LAYOUT_LIFE_CYCLE lifeCycle) where T : LayoutScript
+	protected static void registeLayout<T>(int layout, string mobileName, string standaloneName, bool inResource) where T : LayoutScript
 	{
-		registeLayout<T>(layout, name, EMPTY, inResource, lifeCycle);
+		registeLayout<T>(layout, mobileName, standaloneName, inResource, LAYOUT_LIFE_CYCLE.PART_USE);
 	}
-	protected static void registeLayout<T>(int layout, string name, string prePath, bool inResource) where T : LayoutScript
+	protected static void registeLayout<T>(int layout, string mobileName, string standaloneName, bool inResource, LAYOUT_LIFE_CYCLE lifeCycle) where T : LayoutScript
 	{
-		registeLayout<T>(layout, name, prePath, inResource, LAYOUT_LIFE_CYCLE.PART_USE);
-	}
-	protected static void registeLayout<T>(int layout, string name, bool inResource) where T : LayoutScript
-	{
-		registeLayout<T>(layout, name, EMPTY, inResource, LAYOUT_LIFE_CYCLE.PART_USE);
-	}
-	protected static void registeLayout<T>(int layout, string name, string prePath, bool inResource, LAYOUT_LIFE_CYCLE lifeCycle) where T : LayoutScript
-	{
-		mLayoutManager.registeLayout(typeof(T), layout, prePath + name + "/" + name, inResource, lifeCycle);
+		// 根据平台选择使用的文件,如果为空,则选择其中一个不为空的界面名字
+		string layoutName = isMobile() ? mobileName : standaloneName;
+		if (layoutName == null)
+		{
+			layoutName = mobileName != null ? mobileName : standaloneName;
+		}
+		mLayoutManager.registeLayout(typeof(T), layout, layoutName, inResource, lifeCycle);
 	}
 	protected static bool assign<T>(ref T thisScript, LayoutScript value, bool created) where T : LayoutScript
 	{

@@ -1,5 +1,8 @@
 ﻿using System;
 using UnityEngine;
+using static MathUtility;
+using static FrameUtility;
+using static FrameBase;
 
 // 完全自由的摄像机,不连接任何物体
 public class CameraLinkerFree : CameraLinker
@@ -82,17 +85,19 @@ public class CameraLinkerFree : CameraLinker
 		}
 
 		// 鼠标旋转摄像机
+#if UNITY_EDITOR || UNITY_STANDALONE
 		if(mEnableKeyboard)
 		{
-			if (mInputSystem.isMouseDown(MOUSE_BUTTON.RIGHT))
+			if (mInputSystem.isMouseRightDown())
 			{
-				mRotateAngle = mInputSystem.getMouseDelta() * mRotateSpeed;
+				mRotateAngle = mInputSystem.getTouchPoint((int)MOUSE_BUTTON.RIGHT).getMoveDelta() * mRotateSpeed;
 			}
 			else
 			{
 				mRotateAngle = Vector2.zero;
 			}
 		}
+#endif
 		if (!isVectorZero(mRotateAngle))
 		{
 			mCamera.yawPitch(mRotateAngle.x, -mRotateAngle.y);
@@ -101,6 +106,7 @@ public class CameraLinkerFree : CameraLinker
 		// 鼠标滚轮移动摄像机
 		if (mEnableKeyboard)
 		{
+#if UNITY_EDITOR || UNITY_STANDALONE
 			float mouseWheelDelta = mInputSystem.getMouseWheelDelta();
 			if (!isFloatZero(mouseWheelDelta))
 			{
@@ -111,6 +117,7 @@ public class CameraLinkerFree : CameraLinker
 				}
 				mCamera.move(mouseWheelDelta * mMouseWheelSpeed * Vector3.forward);
 			}
+#endif
 		}
 	}
 	// 当使用此连接器时调用

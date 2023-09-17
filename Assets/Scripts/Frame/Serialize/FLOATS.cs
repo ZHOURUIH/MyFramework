@@ -1,84 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 
-public class FLOATS : OBJECTS
+// 自定义的对float[]的封装,可用于序列化
+public class FLOATS : SerializableBit
 {
-	public float[] mValue;
+	public List<float> mValue = new List<float>();			// 值
 	public float this[int index]
 	{
-		get 
-		{
-			checkIndex(index);
-			return mValue[index]; 
-		}
-		set 
-		{
-			checkIndex(index);
-			mValue[index] = value; 
-		}
+		get { return mValue[index]; }
+		set { mValue[index] = value; }
 	}
-	public FLOATS(int count)
-		: base(count)
+	public int Count { get { return mValue.Count; } }
+	public override void resetProperty() 
 	{
-		mValue = new float[count];
-		mType = typeof(float[]);
-		mTypeSize = sizeof(float);
-		mSize = mTypeSize * mValue.Length;
+		base.resetProperty();
+		mValue.Clear();  
 	}
-	public FLOATS(float[] value)
-		: base(value.Length)
+	public override bool read(SerializerBitRead reader)
 	{
-		mValue = value;
-		mType = typeof(float[]);
-		mTypeSize = sizeof(float);
-		mSize = mTypeSize * mValue.Length;
+		return reader.readList(mValue);
 	}
-	public override void zero() { memset(mValue, 0.0f); }
-	public override bool readFromBuffer(byte[] buffer, ref int index)
+	public override void write(SerializerBitWrite writer)
 	{
-		if (!mVariableLength)
-		{
-			return readFloats(buffer, ref index, mValue);
-		}
-
-		// 先读取数据的实际字节长度
-		setElementCount(readElementCount(buffer, ref index, out bool success));
-		if (!success)
-		{
-			return false;
-		}
-		return readFloats(buffer, ref index, mValue, mElementCount);
+		writer.writeList(mValue);
 	}
-	public override bool writeToBuffer(byte[] buffer, ref int index)
+	public void Add(float value)
 	{
-		if (!mVariableLength)
-		{
-			return writeFloats(buffer, ref index, mValue);
-		}
-
-		// 先写入数据的实际字节长度
-		if (!writeElementCount(buffer, ref index))
-		{
-			return false;
-		}
-		return writeFloats(buffer, ref index, mValue, mElementCount);
-	}
-	public void set(float[] value)
-	{
-		int minCount = getMin(value.Length, mValue.Length);
-		memcpy(mValue, value, 0, 0, minCount * mTypeSize);
-		if (mVariableLength)
-		{
-			setElementCount(minCount);
-		}
-	}
-	public void set(float[] value, int destOffset, int srcOffset, int count)
-	{
-		int minCount = getMin(count, mValue.Length);
-		memcpy(mValue, value, destOffset * mTypeSize, srcOffset * mTypeSize, minCount * mTypeSize);
-		if (mVariableLength)
-		{
-			setElementCount(minCount);
-		}
+		mValue.Add(value);
 	}
 }

@@ -1,17 +1,18 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using static UnityUtility;
 
+// 以指定的关键帧路径移动物体
 public class CmdTransformableMovePath : Command
 {
-	public Dictionary<float, Vector3> mValueKeyFrame;
-	public KeyFrameCallback mDoingCallBack;
-	public KeyFrameCallback mDoneCallBack;
-	public Vector3 mValueOffset;			// 位置偏移,计算出的位置会再加上这个偏移作为最终世界坐标
-	public float mOffset;
-	public float mSpeed;
-	public int mKeyframe;
-	public bool mFullOnce;
-	public bool mLoop;
+	public Dictionary<float, Vector3> mValueKeyFrame;	// 时间与位置的关键帧列表
+	public KeyFrameCallback mDoingCallBack;				// 移动中回调
+	public KeyFrameCallback mDoneCallBack;				// 移动完成时回调
+	public Vector3 mValueOffset;						// 位置偏移,计算出的位置会再加上这个偏移作为最终世界坐标
+	public float mOffset;								// 起始时间偏移
+	public float mSpeed;								// 移动速度
+	public int mKeyframe;								// 所使用的关键帧ID
+	public bool mLoop;									// 是否循环
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -22,7 +23,6 @@ public class CmdTransformableMovePath : Command
 		mOffset = 0.0f;
 		mSpeed = 1.0f;
 		mLoop = false;
-		mFullOnce = false;
 		mKeyframe = KEY_CURVE.NONE;
 	}
 	public override void execute()
@@ -45,7 +45,7 @@ public class CmdTransformableMovePath : Command
 		com.setValueKeyFrame(mValueKeyFrame);
 		com.setSpeed(mSpeed);
 		com.setValueOffset(mValueOffset);
-		com.play(mKeyframe, mLoop, mOffset, mFullOnce);
+		com.play(mKeyframe, mLoop, mOffset);
 		if (com.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
@@ -54,8 +54,7 @@ public class CmdTransformableMovePath : Command
 	}
 	public override void debugInfo(MyStringBuilder builder)
 	{
-		builder.Append(", mOffset:", mOffset).
-				Append(", mLoop:", mLoop).
-				Append(", mFullOnce:", mFullOnce);
+		builder.append(", mOffset:", mOffset).
+				append(", mLoop:", mLoop);
 	}
 }

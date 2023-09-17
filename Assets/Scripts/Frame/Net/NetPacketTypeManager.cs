@@ -5,22 +5,28 @@ using System.Collections.Generic;
 // 管理消息包类型注册的信息
 public class NetPacketTypeManager : FrameSystem
 {
-	protected Dictionary<ushort, PacketInfo> mPacketTypeList;
-	protected Dictionary<Type, PacketInfo> mClassTypeList;
+	protected Dictionary<ushort, PacketInfo> mPacketTypeList;		// 根据消息ID查找消息注册信息
+	protected Dictionary<Type, PacketInfo> mClassTypeList;			// 根据消息类型查找注册信息
 	protected Dictionary<ushort, ushort> mHttpPacketTypeList;       // 根据Http的requestType查询对应的responseType
-	protected Dictionary<string, ushort> mUDPNameList;              // 根据UDP的PacketName查询对应的包类型ID
+	protected Dictionary<string, ushort> mUDPNameIDList;            // 根据UDP的PacketName查询对应的包类型ID
+	protected Dictionary<ushort, string> mUDPIDNameList;            // 根据UDP的包类型ID查询对应的PacketName
 	public NetPacketTypeManager()
 	{
 		mPacketTypeList = new Dictionary<ushort, PacketInfo>();
 		mClassTypeList = new Dictionary<Type, PacketInfo>();
 		mHttpPacketTypeList = new Dictionary<ushort, ushort>();
-		mUDPNameList = new Dictionary<string, ushort>();
+		mUDPNameIDList = new Dictionary<string, ushort>();
+		mUDPIDNameList = new Dictionary<ushort, string>();
 	}
 	public void registeHttpPacketType(ushort requestType, ushort responseType) { mHttpPacketTypeList.Add(requestType, responseType); }
-	public void registeUDPPacketName(ushort type, string name) { mUDPNameList.Add(name, type); }
+	public void registeUDPPacketName(ushort type, string name) 
+	{
+		mUDPNameIDList.Add(name, type);
+		mUDPIDNameList.Add(type, name);
+	}
 	public void registePacket(Type classType, ushort type)
 	{
-		PacketInfo info = new PacketInfo();
+		var info = new PacketInfo();
 		info.mClassType = classType;
 		info.mType = type;
 		mPacketTypeList.Add(type, info);
@@ -36,11 +42,8 @@ public class NetPacketTypeManager : FrameSystem
 	}
 	public Type getPacketType(ushort typeID)
 	{
-		if (!mPacketTypeList.TryGetValue(typeID, out PacketInfo info))
-		{
-			return null;
-		}
-		return info.mClassType;
+		mPacketTypeList.TryGetValue(typeID, out PacketInfo info);
+		return info?.mClassType;
 	}
 	public ushort getHttpResponseType(ushort requestType)
 	{
@@ -49,7 +52,11 @@ public class NetPacketTypeManager : FrameSystem
 	}
 	public ushort getUDPPacketType(string packetName)
 	{
-		mUDPNameList.TryGetValue(packetName, out ushort type);
+		mUDPNameIDList.TryGetValue(packetName, out ushort type);
 		return type;
+	}
+	public bool isUDPPacket(ushort type)
+	{
+		return mUDPIDNameList.ContainsKey(type);
 	}
 }

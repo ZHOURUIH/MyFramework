@@ -1,51 +1,49 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using static FrameBase;
+using static StringUtility;
 
+// 线程安全的ArrayPool调试信息
 public class ArrayPoolThreadDebug : MonoBehaviour
 {
-	public List<string> InuseList = new List<string>();
-	public List<string> UnuseList = new List<string>();
+	public List<string> InuseList = new List<string>();		// 已使用对象列表
+	public List<string> UnuseList = new List<string>();		// 未使用对象列表
 	public void Update()
 	{
-		if (!FrameBase.mGameFramework.mEnableScriptDebug)
+		if (mGameFramework == null || !mGameFramework.mEnableScriptDebug)
 		{
 			return;
 		}
 
 		InuseList.Clear();
-		var inuse = FrameBase.mArrayPoolThread.getInusedList();
-		FrameBase.mArrayPoolThread.lockList();
-		foreach (var itemTypeList in inuse)
+		using (new ThreadLockScope(mArrayPoolThread.getLock()))
 		{
-			foreach (var array in itemTypeList.Value)
+			var inuse = mArrayPoolThread.getInusedList();
+			foreach (var itemTypeList in inuse)
 			{
-				if(array.Value.Count > 0)
+				foreach (var array in itemTypeList.Value)
 				{
-					InuseList.Add(StringUtility.strcat(itemTypeList.Key.ToString(), 
-									": 长度:", 
-									StringUtility.IToS(array.Key), 
-									", 个数:", 
-									StringUtility.IToS(array.Value.Count)));
+					if (array.Value.Count == 0)
+					{
+						continue;
+					}
+					InuseList.Add(strcat(itemTypeList.Key.ToString(), ": 长度:", IToS(array.Key), ", 个数:", IToS(array.Value.Count)));
 				}
 			}
-		}
 
-		UnuseList.Clear();
-		var unuse = FrameBase.mArrayPoolThread.getUnusedList();
-		foreach (var itemTypeList in unuse)
-		{
-			foreach (var array in itemTypeList.Value)
+			UnuseList.Clear();
+			var unuse = mArrayPoolThread.getUnusedList();
+			foreach (var itemTypeList in unuse)
 			{
-				if(array.Value.Count > 0)
+				foreach (var array in itemTypeList.Value)
 				{
-					UnuseList.Add(StringUtility.strcat(itemTypeList.Key.ToString(), 
-									": 长度:", 
-									StringUtility.IToS(array.Key), 
-									", 个数:", 
-									StringUtility.IToS(array.Value.Count)));
+					if (array.Value.Count == 0)
+					{
+						continue;
+					}
+					UnuseList.Add(strcat(itemTypeList.Key.ToString(), ": 长度:", IToS(array.Key), ", 个数:", IToS(array.Value.Count)));
 				}
 			}
 		}
-		FrameBase.mArrayPoolThread.unlockList();
 	}
 }

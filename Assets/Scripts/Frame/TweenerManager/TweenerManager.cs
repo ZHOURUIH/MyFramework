@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using static FrameUtility;
 
 // Tweener是用于代替Dotween这种的缓动操作
 public class TweenerManager : FrameSystem
 {
-	protected SafeDictionary<long, MyTweener> mTweenerList;
+	protected SafeDictionary<long, MyTweener> mTweenerList;	// 渐变类的列表
 	public TweenerManager()
 	{
 		mTweenerList = new SafeDictionary<long, MyTweener>();
@@ -20,6 +21,7 @@ public class TweenerManager : FrameSystem
 		{
 			item.Value.update(elapsedTime);
 		}
+		mTweenerList.endForeach();
 	}
 	public MyTweenerFloat createTweenerFloat()
 	{
@@ -35,6 +37,6 @@ public class TweenerManager : FrameSystem
 			return;
 		}
 		mTweenerList.remove(tweener.getAssignID());
-		UN_CLASS(tweener);
+		UN_CLASS(ref tweener);
 	}
 }

@@ -1,48 +1,25 @@
 ﻿using System;
 
-public class CmdGameCameraFOV : Command
+// 设置摄像机的FOV
+public class CmdGameCameraFOV
 {
-	public KeyFrameCallback mDoingCallback;
-	public KeyFrameCallback mDoneCallback;
-	public float mOnceLength;
-	public float mOffset;
-	public float mStartFOV;
-	public float mTargetFOV;
-	public int mKeyframe;
-	public bool mLoop;
-	public bool mFullOnce;
-	public override void resetProperty()
+	// onceLength,变化的持续时间,如果是循环的,则表示单次的时间
+	// offsetTime,时间起始偏移量
+	// startFOV,起始的FOV
+	// targetFOV,终止的FOV
+	// keyframe,所使用的关键帧曲线ID
+	// loop,是否循环
+	// doingCallback,变化中的回调
+	// doneCallback,变化结束时的回调
+	public static void execute(GameCamera camera, float onceLength, float offsetTime, float startFOV, float targetFOV, 
+								int keyframe = 0, bool loop = false, KeyFrameCallback doingCallback = null, KeyFrameCallback doneCallback = null)
 	{
-		base.resetProperty();
-		mDoingCallback = null;
-		mDoneCallback = null;
-		mKeyframe = KEY_CURVE.NONE;
-		mOnceLength = 1.0f;
-		mOffset = 0.0f;
-		mStartFOV = 0.0f;
-		mTargetFOV = 0.0f;
-		mLoop = false;
-		mFullOnce = false;
-	}
-	public override void execute()
-	{
-		var obj = mReceiver as GameCamera;
-		obj.getComponent(out COMCameraFOV com);
-		com.setDoingCallback(mDoingCallback);
-		com.setDoneCallback(mDoneCallback);
+		camera.getComponent(out COMCameraFOV com);
+		com.setDoingCallback(doingCallback);
+		com.setDoneCallback(doneCallback);
 		com.setActive(true);
-		com.setStartFOV(mStartFOV);
-		com.setTargetFOV(mTargetFOV);
-		com.play(mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce);
-	}
-	public override void debugInfo(MyStringBuilder builder)
-	{
-		builder.Append(": mKeyframe:", mKeyframe).
-				Append(", mOnceLength:", mOnceLength).
-				Append(", mOffset:", mOffset).
-				Append(", mStartFOV:", mStartFOV).
-				Append(", mTargetFOV:", mTargetFOV).
-				Append(", mLoop:", mLoop).
-				Append(", mFullOnce:", mFullOnce);
+		com.setStartFOV(startFOV);
+		com.setTargetFOV(targetFOV);
+		com.play(keyframe, loop, onceLength, offsetTime);
 	}
 }

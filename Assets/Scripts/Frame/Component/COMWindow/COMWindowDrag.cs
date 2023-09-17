@@ -1,14 +1,18 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
+using static UnityUtility;
+using static FrameUtility;
+using static FrameBase;
 
+// UI拖拽组件,用于实现UI拖拽相关功能
 public class COMWindowDrag : ComponentDrag
 {
-	protected myUIObject mDragHoverWindow;
-	protected myUIObject mWindow;
-	protected OnDraging mOnDraging;
-	protected BOOL mContinueEvent;		// 为了避免GC
-	protected bool mMovable;
+	protected myUIObject mDragHoverWindow;      // 当前拖拽时正在悬停的窗口
+	protected myUIObject mWindow;               // 当前组件所属窗口
+	protected OnDraging mOnDraging;             // 拖拽中的回调
+	protected BOOL mContinueEvent;              // 为了避免GC,因为ILR的原因,委托中尽量避免使用ref,所以使用自定义的基础数据类型代替
+	protected bool mMovable;                    // 拖拽时是否允许当前窗口跟随移动
 	public COMWindowDrag()
 	{
 		mContinueEvent = new BOOL();
@@ -31,7 +35,7 @@ public class COMWindowDrag : ComponentDrag
 	public void setDragingCallback(OnDraging callback) { mOnDraging = callback; }
 	public override void setActive(bool active)
 	{
-		if(active == isActive())
+		if (active == isActive())
 		{
 			return;
 		}
@@ -51,7 +55,7 @@ public class COMWindowDrag : ComponentDrag
 	protected override Vector3 getScreenPosition()
 	{
 		Camera camera = mCameraManager.getUICamera().getCamera();
-		if(camera != null)
+		if (camera != null)
 		{
 			return camera.WorldToScreenPoint(mWindow.getWorldPosition());
 		}
@@ -71,24 +75,25 @@ public class COMWindowDrag : ComponentDrag
 	protected override void onDragEnd(Vector3 mousePos)
 	{
 		// 拖动结束时,首先通知悬停窗口取消悬停,因为在onDragEnd里面可能会将当前悬停窗口清空
-		mDragHoverWindow?.onDragHoverd(mWindow, false);
+		mDragHoverWindow?.onDragHoverd(mWindow, mousePos, false);
 		mDragHoverWindow = null;
 		// 在接收逻辑之前通知基类拖拽结束,因为一般在接收拖拽时的逻辑会产生不可预知的结果
 		base.onDragEnd(mousePos);
 		// 判断当前鼠标所在位置是否有窗口
-		LIST(out List<IMouseEventCollect> receiveWindow);
-		mGlobalTouchSystem.getAllHoverWindow(receiveWindow, mousePos, mWindow);
-		int count = receiveWindow.Count;
-		for(int i = 0; i < count; ++i)
+		using (new ListScope<IMouseEventCollect>(out var receiveWindow))
 		{
-			mContinueEvent.set(true);
-			receiveWindow[i].onReceiveDrag(mWindow, mContinueEvent);
-			if(!mContinueEvent.mValue)
+			mGlobalTouchSystem.getAllHoverWindow(receiveWindow, mousePos, mWindow);
+			int count = receiveWindow.Count;
+			for (int i = 0; i < count; ++i)
 			{
-				break;
+				mContinueEvent.set(true);
+				receiveWindow[i].onReceiveDrag(mWindow, mousePos, mContinueEvent);
+				if (!mContinueEvent.mValue)
+				{
+					break;
+				}
 			}
 		}
-		UN_LIST(receiveWindow);
 		// 拖拽操作完全结束
 		notifyDragEndTotally();
 	}
@@ -99,15 +104,10 @@ public class COMWindowDrag : ComponentDrag
 		// 悬停的窗口改变了
 		if (curHover != mDragHoverWindow)
 		{
-			mDragHoverWindow?.onDragHoverd(mWindow, false);
+			mDragHoverWindow?.onDragHoverd(mWindow, mousePos, false);
 			mDragHoverWindow = curHover as myUIObject;
-			mDragHoverWindow?.onDragHoverd(mWindow, true);
+			mDragHoverWindow?.onDragHoverd(mWindow, mousePos, true);
 		}
 		mOnDraging?.Invoke();
-	}
-	protected override void onInterrupt()
-	{
-		base.onInterrupt();
-		mDragHoverWindow = null;
 	}
 }

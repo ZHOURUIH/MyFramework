@@ -1,28 +1,31 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System;
+using static UnityUtility;
+using static FrameUtility;
+using static StringUtility;
+using static MathUtility;
 
+// 角色管理器
 public class CharacterManager : FrameSystem
 {
 	protected Dictionary<Type, Dictionary<long, Character>> mCharacterTypeList;	// 角色分类列表
-	protected SafeDictionary<long, Character> mCharacterGUIDList;	// 角色ID索引表
-	protected Dictionary<long, Character> mFixedUpdateList;			// 需要在FixedUpdate中更新的列表,如果直接使用mCharacterGUIDList,会非常慢,而很多时候其实并不需要进行物理更新,所以单独使用一个列表存储
-	protected Character mMyself;									// 玩家自己,方便获取
+	protected SafeDictionary<long, Character> mCharacterUpdateList;		// 用于更新角色的列表
+	protected Dictionary<long, Character> mCharacterGUIDList;			// 角色ID索引表
+	protected Dictionary<long, Character> mFixedUpdateList;				// 需要在FixedUpdate中更新的列表,如果直接使用mCharacterGUIDList,会非常慢,而很多时候其实并不需要进行物理更新,所以单独使用一个列表存储
+	protected Character mMyself;										// 玩家自己,方便获取
 	public CharacterManager()
 	{
 		mCharacterTypeList = new Dictionary<Type, Dictionary<long, Character>>();
-		mCharacterGUIDList = new SafeDictionary<long, Character>();
+		mCharacterUpdateList = new SafeDictionary<long, Character>();
+		mCharacterGUIDList = new Dictionary<long, Character>();
 		mFixedUpdateList = new Dictionary<long, Character>();
 		mCreateObject = true;
 	}
 	public override void destroy()
 	{
 		base.destroy();
-		var updateList = mCharacterGUIDList.getMainList();
-		foreach (var character in updateList)
-		{
-			character.Value.destroy();
-		}
+		destroyAllCharacter();
 		mCharacterTypeList = null;
 		mCharacterGUIDList = null;
 		mFixedUpdateList = null;
@@ -31,8 +34,7 @@ public class CharacterManager : FrameSystem
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		var updateList = mCharacterGUIDList.startForeach();
-		foreach (var item in updateList)
+		foreach (var item in mCharacterUpdateList.startForeach())
 		{
 			Character character = item.Value;
 			if (character == null || !character.isActive())
@@ -41,11 +43,12 @@ public class CharacterManager : FrameSystem
 			}
 			character.update(!character.isIgnoreTimeScale() ? elapsedTime : Time.unscaledDeltaTime);
 		}
+		mCharacterUpdateList.endForeach();
 	}
 	public override void lateUpdate(float elapsedTime)
 	{
 		base.lateUpdate(elapsedTime);
-		foreach (var item in mCharacterGUIDList.startForeach())
+		foreach (var item in mCharacterUpdateList.startForeach())
 		{
 			Character character = item.Value;
 			if (character != null && character.isActive())
@@ -60,6 +63,7 @@ public class CharacterManager : FrameSystem
 				}
 			}
 		}
+		mCharacterUpdateList.endForeach();
 	}
 	public override void fixedUpdate(float elapsedTime)
 	{
@@ -73,29 +77,25 @@ public class CharacterManager : FrameSystem
 			}
 		}
 	}
-	public new Character getMyself() { return mMyself; }
+	public Character getMyself() { return mMyself; }
 	public Character getCharacter(long characterID)
 	{
-		mCharacterGUIDList.tryGetValue(characterID, out Character character);
+		mCharacterGUIDList.TryGetValue(characterID, out Character character);
 		return character;
 	}
-	public Dictionary<long, Character> getCharacterList() { return mCharacterGUIDList.getMainList(); }
-	public void activeCharacter(long id, bool active)
-	{
-		activeCharacter(getCharacter(id), active);
-	}
-	public void activeCharacter(Character character, bool active)
-	{
-		character.setActive(active);
-	}
+	public Dictionary<long, Character> getCharacterList() { return mCharacterGUIDList; }
 	public Dictionary<long, Character> getCharacterListByType(Type type)
 	{
 		mCharacterTypeList.TryGetValue(type, out Dictionary<long, Character> characterList);
 		return characterList;
 	}
-	public Character createCharacter(string name, Type type, long id, bool createNode)
+	public Character createCharacter(string name, Type type, long id = 0, bool managed = true)
 	{
-		if (mCharacterGUIDList.containsKey(id))
+		if (id == 0)
+		{
+			id = generateGUID();
+		}
+		if (mCharacterGUIDList.ContainsKey(id))
 		{
 			logError("there is a character id : " + id + "! can not create again!");
 			return null;
@@ -114,34 +114,55 @@ public class CharacterManager : FrameSystem
 			mMyself = character;
 		}
 		// 将角色挂接到管理器下
-		if (createNode)
-		{
-			character.createCharacterNode();
-		}
+		character.createCharacterNode();
 		character.setID(id);
 		character.init();
-		addCharacterToList(character);
+		addCharacterToList(character, managed);
 		return character;
 	}
 	public void destroyAllCharacter()
 	{
-		var updateList = mCharacterGUIDList.startForeach();
-		foreach(var item in updateList)
+		foreach(var item in mCharacterGUIDList)
 		{
-			destroyCharacter(item.Value);
+			var temp = item.Value;
+			temp.destroy();
+			UN_CLASS(ref temp);
 		}
-		mCharacterGUIDList.clear();
+		mCharacterGUIDList.Clear();
+		mCharacterTypeList.Clear();
+		mCharacterUpdateList.clear();
+		mFixedUpdateList.Clear();
+		mMyself = null;
 	}
 	public void destroyCharacter(long id)
 	{
-		Character character = getCharacter(id);
-		if(character != null)
+		destroyCharacter(getCharacter(id));
+	}
+	public void destroyCharacter(Character character)
+	{
+		if (character == null)
 		{
-			destroyCharacter(character);
+			return;
 		}
+		long guid = character.getGUID();
+		// 从角色分类列表中移除
+		if (mCharacterTypeList.TryGetValue(character.getType(), out Dictionary<long, Character> characterList))
+		{
+			characterList.Remove(guid);
+		}
+		// 从ID索引表中移除
+		mCharacterUpdateList.remove(guid);
+		mCharacterGUIDList.Remove(guid);
+		mFixedUpdateList.Remove(guid);
+		character.destroy();
+		if (mMyself == character)
+		{
+			mMyself = null;
+		}
+		UN_CLASS(ref character);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected void addCharacterToList(Character character)
+	protected void addCharacterToList(Character character, bool managed)
 	{
 		if (character == null)
 		{
@@ -157,40 +178,18 @@ public class CharacterManager : FrameSystem
 		}
 		characterList.Add(guid, character);
 		// 加入ID索引表
-		if (mCharacterGUIDList.containsKey(guid))
+		if (mCharacterGUIDList.ContainsKey(guid))
 		{
 			logError("there is a character id : " + guid + ", can not add again!");
 		}
-		mCharacterGUIDList.add(guid, character);
-		if (character.isEnableFixedUpdate())
+		mCharacterGUIDList.Add(guid, character);
+		if (managed)
 		{
-			mFixedUpdateList.Add(guid, character);
+			mCharacterUpdateList.add(guid, character);
+			if (character.isEnableFixedUpdate())
+			{
+				mFixedUpdateList.Add(guid, character);
+			}
 		}
-	}
-	protected void removeCharacterFromList(Character character)
-	{
-		if (character == null)
-		{
-			return;
-		}
-		long guid = character.getGUID();
-		// 从角色分类列表中移除
-		if (mCharacterTypeList.TryGetValue(character.getType(), out Dictionary<long, Character> characterList))
-		{
-			characterList.Remove(guid);
-		}
-		// 从ID索引表中移除
-		mCharacterGUIDList.remove(guid);
-		mFixedUpdateList.Remove(guid);
-	}
-	protected void destroyCharacter(Character character)
-	{
-		removeCharacterFromList(character);
-		character.destroy();
-		if (mMyself == character)
-		{
-			mMyself = null;
-		}
-		UN_CLASS(character);
 	}
 }

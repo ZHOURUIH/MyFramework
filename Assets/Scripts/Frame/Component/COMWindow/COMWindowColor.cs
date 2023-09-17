@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
 using System;
+using static MathUtility;
 
+// 变化UI颜色的组件
 public class COMWindowColor : ComponentKeyFrameNormal, IComponentModifyAlpha, IComponentModifyColor
 {
-	protected Color mStart;
-	protected Color mTarget;
+	protected Color mStart;		// 起始颜色值
+	protected Color mTarget;	// 目标颜色值
 	public override void resetProperty()
 	{
 		base.resetProperty();

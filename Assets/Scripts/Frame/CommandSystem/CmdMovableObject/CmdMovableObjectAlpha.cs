@@ -1,16 +1,16 @@
 ﻿using System;
 
+// 渐变一个物体的透明度
 public class CmdMovableObjectAlpha : Command
 {
-	public KeyFrameCallback mDoingCallback;
-	public KeyFrameCallback mDoneCallback;
-	public float mStartAlpha;
-	public float mTargetAlpha;
-	public float mOnceLength;
-	public float mOffset;
-	public int mKeyframe;
-	public bool mFullOnce;
-	public bool mLoop;
+	public KeyFrameCallback mDoingCallback;		// 渐变中回调
+	public KeyFrameCallback mDoneCallback;		// 渐变结束时回调
+	public float mStartAlpha;					// 起始透明度
+	public float mTargetAlpha;					// 目标透明度
+	public float mOnceLength;					// 单次需要的时间
+	public float mOffset;						// 起始时间偏移
+	public int mKeyframe;						// 所使用的关键帧曲线ID
+	public bool mLoop;							// 是否循环
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -21,7 +21,6 @@ public class CmdMovableObjectAlpha : Command
 		mTargetAlpha = 1.0f;
 		mOnceLength = 1.0f;
 		mOffset = 0.0f;
-		mFullOnce = false;
 		mLoop = false;
 	}
 	public override void execute()
@@ -33,16 +32,15 @@ public class CmdMovableObjectAlpha : Command
 		com.setActive(true);
 		com.setStart(mStartAlpha);
 		com.setTarget(mTargetAlpha);
-		com.play(mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce);
+		com.play(mKeyframe, mLoop, mOnceLength, mOffset);
 	}
 	public override void debugInfo(MyStringBuilder builder)
 	{
-		builder.Append(": mKeyframe:" , mKeyframe).
-				Append(", mOnceLength:", mOnceLength).
-				Append(", mOffset:", mOffset).
-				Append(", mStartAlpha:", mStartAlpha).
-				Append(", mTargetAlpha:", mTargetAlpha).
-				Append(", mLoop:", mLoop).
-				Append(", mFullOnce:", mFullOnce);
+		builder.append(": mKeyframe:" , mKeyframe).
+				append(", mOnceLength:", mOnceLength).
+				append(", mOffset:", mOffset).
+				append(", mStartAlpha:", mStartAlpha).
+				append(", mTargetAlpha:", mTargetAlpha).
+				append(", mLoop:", mLoop);
 	}
 }

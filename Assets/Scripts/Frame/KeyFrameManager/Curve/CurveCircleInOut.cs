@@ -1,9 +1,11 @@
 ﻿using System;
 using UnityEngine;
+using static MathUtility;
 
+// 圆曲线
 public class CurveCircleInOut : MyCurve
 {
-	public override float Evaluate(float time)
+	public override float evaluate(float time)
 	{
 		time *= 2.0f;
 		if (time < 1.0f)

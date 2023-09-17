@@ -1,13 +1,15 @@
 ﻿using System;
 using UnityEngine;
+using static UnityUtility;
 
+// 在物理更新中追踪一个目标
 public class CmdTransformableTrackTargetPhysics : Command
 {
-	public Transformable mTarget;
-	public TrackCallback mDoingCallback;
-	public TrackCallback mDoneCallback;
-	public Vector3 mOffset;
-	public float mSpeed;
+	public Transformable mTarget;			// 追踪目标
+	public TrackCallback mDoingCallback;	// 追踪时回调
+	public TrackCallback mDoneCallback;		// 追踪结束时回调
+	public Vector3 mOffset;					// 追踪目标位置偏移
+	public float mSpeed;					// 追踪速度
 	public override void resetProperty()
 	{
 		base.resetProperty();

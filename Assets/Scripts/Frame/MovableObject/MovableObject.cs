@@ -1,41 +1,19 @@
 ﻿using UnityEngine;
+using static UnityUtility;
+using static FrameBase;
+using static CSharpUtility;
+using static StringUtility;
 
+// 可移动物体,表示一个3D物体
 public class MovableObject : Transformable, IMouseEventCollect
 {
-	protected ObjectClickCallback mClickCallback;	// 鼠标点击物体的回调
-	protected ObjectHoverCallback mHoverCallback;	// 鼠标悬停在物体上的持续回调
-	protected ObjectPressCallback mPressCallback;	// 鼠标在物体上处于按下状态的持续回调
-	protected OnScreenMouseUp mOnScreenMouseUp;		// 鼠标在任意位置抬起的回调
-	protected OnMouseEnter mOnMouseEnter;			// 鼠标进入物体的回调
-	protected OnMouseLeave mOnMouseLeave;			// 鼠标离开物体的回调
-	protected OnMouseDown mOnMouseDown;				// 鼠标在物体上按下的回调
-	protected OnMouseMove mOnMouseMove;				// 鼠标在物体上移动的回调
-	protected OnMouseUp mOnMouseUp;					// 鼠标在物体上抬起的回调
-	protected AudioSource mAudioSource;				// 音频组件
-	protected Vector3 mLastPhysicsSpeedVector;		// FixedUpdate中上一帧的移动速度
-	protected Vector3 mLastPhysicsPosition;			// 上一帧FixedUpdate中的位置
-	protected Vector3 mPhysicsAcceleration;			// FixedUpdate中的加速度
-	protected Vector3 mPhysicsSpeedVector;			// FixedUpdate中的移动速度
-	protected Vector3 mMouseDownPosition;			// 鼠标按下时在窗口中的位置,鼠标在窗口中移动时该值不改变
-	protected Vector3 mCurFramePosition;			// 当前位置
-	protected Vector3 mMoveSpeedVector;				// 当前移动速度向量,根据上一帧的位置和当前位置以及时间计算出来的实时速度
-	protected Vector3 mLastSpeedVector;				// 上一帧的移动速度向量
-	protected Vector3 mLastPosition;				// 上一帧的位置
-	protected float mRealtimeMoveSpeed;				// 当前实时移动速率
-	protected uint mObjectID;                       // 物体的客户端ID
-	protected bool mEnableFixedUpdate;				// 是否启用FixedUpdate来计算Physics相关属性
+	protected COMMovableObjectInteractive mCOMInteractive;
+	protected COMMovableObjectMoveInfo mCOMMoveInfo;
+	protected int mObjectID;                       // 物体的客户端ID
 	protected bool mAutoManageObject;				// 是否自动管理GameObject,如果自动管理,则外部不能对其进行重新赋值或者销毁,否则会引起错误
-	protected bool mMovedDuringFrame;				// 角色在这一帧内是否移动过
-	protected bool mHasLastPosition;				// mLastPosition是否有效
-	protected bool mMouseHovered;					// 鼠标当前是否悬停在物体上
-	protected bool mHandleInput;					// 是否接收鼠标输入事件
-	protected bool mPassRay;						// 是否允许射线穿透
 	public MovableObject()
 	{
 		mObjectID = makeID();
-		mHandleInput = true;
-		mPassRay = true;
-		mEnableFixedUpdate = true;
 	}
 	public override void destroy()
 	{
@@ -57,7 +35,6 @@ public class MovableObject : Transformable, IMouseEventCollect
 			logError("当前GameObject不为空,无法设置新的GameObject");
 		}
 		base.setObject(obj);
-		mAudioSource = mObject?.GetComponent<AudioSource>();
 	}
 	public virtual void init()
 	{
@@ -68,159 +45,167 @@ public class MovableObject : Transformable, IMouseEventCollect
 		}
 		initComponents();
 	}
-	public override void update(float elapsedTime)
-	{
-		base.update(elapsedTime);
-		if (isDestroy())
-		{
-			return;
-		}
-		if (elapsedTime > 0.0f)
-		{
-			mLastPosition = mCurFramePosition;
-			mCurFramePosition = getPosition();
-			mLastSpeedVector = mMoveSpeedVector;
-			mMoveSpeedVector = mHasLastPosition ? (mCurFramePosition - mLastPosition) / elapsedTime : Vector3.zero;
-			mRealtimeMoveSpeed = getLength(mMoveSpeedVector);
-			mMovedDuringFrame = !isVectorEqual(mLastPosition, mCurFramePosition) && mHasLastPosition;
-			mHasLastPosition = true;
-		}
-	}
-	public override void fixedUpdate(float elapsedTime)
-	{
-		if (!mEnableFixedUpdate)
-		{
-			return;
-		}
-		base.fixedUpdate(elapsedTime);
-		Vector3 curPos = mTransform.localPosition;
-		mPhysicsSpeedVector = (curPos - mLastPhysicsPosition) / elapsedTime;
-		mLastPhysicsPosition = curPos;
-		mPhysicsAcceleration = (mPhysicsSpeedVector - mLastPhysicsSpeedVector) / elapsedTime;
-		mLastPhysicsSpeedVector = mPhysicsSpeedVector;
-	}
-	public AudioSource createAudioSource()
-	{
-		return mAudioSource = mObject.AddComponent<AudioSource>();
-	}
 	// get
 	//------------------------------------------------------------------------------------------------------------------------------
-	public AudioSource getAudioSource()									{ return mAudioSource; }
-	public Vector3 getPhysicsSpeed()									{ return mPhysicsSpeedVector; }
-	public Vector3 getPhysicsAcceleration()								{ return mPhysicsAcceleration; }
-	public uint getObjectID()											{ return mObjectID; }
-	public bool hasMovedDuringFrame()									{ return mMovedDuringFrame; }
-	public bool isEnableFixedUpdate()									{ return mEnableFixedUpdate; }
-	public Vector3 getMoveSpeedVector()									{ return mMoveSpeedVector; }
-	public Vector3 getLastSpeedVector()									{ return mLastSpeedVector; }
-	public Vector3 getLastPosition()									{ return mLastPosition; }
-	public virtual bool isHandleInput()									{ return mHandleInput; }
+	public Vector3 getPhysicsSpeed()									
+	{
+		if (mCOMMoveInfo == null)
+		{
+			logError("未启用移动信息组件,无法获取速度");
+			return Vector3.zero;
+		}
+		return mCOMMoveInfo.getPhysicsSpeed(); 
+	}
+	public Vector3 getPhysicsAcceleration()								
+	{
+		if (mCOMMoveInfo == null)
+		{
+			logError("未启用移动信息组件,无法获取加速度");
+			return Vector3.zero;
+		}
+		return mCOMMoveInfo.getPhysicsAcceleration(); 
+	}
+	public bool hasMovedDuringFrame()									
+	{
+		if (mCOMMoveInfo == null)
+		{
+			logError("未启用移动信息组件,无法获取");
+			return false;
+		}
+		return mCOMMoveInfo.hasMovedDuringFrame(); 
+	}
+	public bool isEnableFixedUpdate()									
+	{
+		return mCOMMoveInfo != null && mCOMMoveInfo.isEnableFixedUpdate(); 
+	}
+	public Vector3 getMoveSpeedVector()									
+	{
+		if (mCOMMoveInfo == null)
+		{
+			logError("未启用移动信息组件,无法获取");
+			return Vector3.zero;
+		}
+		return mCOMMoveInfo.getMoveSpeedVector(); 
+	}
+	public Vector3 getLastSpeedVector()									
+	{
+		if (mCOMMoveInfo == null)
+		{
+			logError("未启用移动信息组件,无法获取");
+			return Vector3.zero;
+		}
+		return mCOMMoveInfo.getLastSpeedVector(); 
+	}
+	public Vector3 getLastPosition()									
+	{
+		if (mCOMMoveInfo == null)
+		{
+			logError("未启用移动信息组件,无法获取");
+			return Vector3.zero;
+		}
+		return mCOMMoveInfo.getLastPosition(); 
+	}
+	public int getObjectID()											{ return mObjectID; }
 	// 可移动物体没有固定深度,只在实时检测时根据相交点来判断深度
 	public virtual UIDepth getDepth()									{ return null; }
-	public virtual bool isReceiveScreenMouse()							{ return mOnScreenMouseUp != null; }
-	public virtual bool isPassRay()										{ return mPassRay; }
+	public virtual bool isHandleInput()									{ return mCOMInteractive != null && mCOMInteractive.isHandleInput(); }
+	public virtual bool isReceiveScreenMouse()							{ return mCOMInteractive != null && mCOMInteractive.isReceiveScreenMouse(); }
+	public virtual bool isPassRay()										{ return mCOMInteractive == null || mCOMInteractive.isPassRay(); }
+	public virtual bool isMouseHovered()								{ return mCOMInteractive != null && mCOMInteractive.isMouseHovered(); }
 	public virtual bool isDragable()									{ return getComponent<COMMovableObjectDrag>(true, false) != null; }
-	public virtual bool isMouseHovered()								{ return mMouseHovered; }
 	public string getDescription()										{ return EMPTY; }
 	// set
 	//------------------------------------------------------------------------------------------------------------------------------
-	public virtual void setPassRay(bool passRay)						{ mPassRay = passRay; }
-	public virtual void setHandleInput(bool handleInput)				{ mHandleInput = handleInput; }
-	public void setOnMouseEnter(OnMouseEnter callback)					{ mOnMouseEnter = callback; }
-	public void setOnMouseLeave(OnMouseLeave callback)					{ mOnMouseLeave = callback; }
-	public void setOnMouseDown(OnMouseDown callback)					{ mOnMouseDown = callback; }
-	public void setOnMouseUp(OnMouseUp callback)						{ mOnMouseUp = callback; }
-	public void setOnMouseMove(OnMouseMove callback)					{ mOnMouseMove = callback; }
-	public virtual void setClickCallback(ObjectClickCallback callback)	{ mClickCallback = callback; }
-	public virtual void setHoverCallback(ObjectHoverCallback callback)	{ mHoverCallback = callback; }
-	public virtual void setPressCallback(ObjectPressCallback callback)	{ mPressCallback = callback; }
-	public void setOnScreenMouseUp(OnScreenMouseUp callback)			{ mOnScreenMouseUp = callback; }
+	public virtual void setPassRay(bool passRay)						{ getCOMInteractive().setPassRay(passRay); }
+	public virtual void setHandleInput(bool handleInput)				{ getCOMInteractive().setHandleInput(handleInput); }
+	public void setOnMouseEnter(OnMouseEnter callback)					{ getCOMInteractive().setOnMouseEnter(callback); }
+	public void setOnMouseLeave(OnMouseLeave callback)					{ getCOMInteractive().setOnMouseLeave(callback); }
+	public void setOnMouseDown(OnMouseDown callback)					{ getCOMInteractive().setOnMouseDown(callback); }
+	public void setOnMouseUp(OnMouseUp callback)						{ getCOMInteractive().setOnMouseUp(callback); }
+	public void setOnMouseMove(OnMouseMove callback)					{ getCOMInteractive().setOnMouseMove(callback); }
+	public virtual void setClickCallback(ObjectClickCallback callback)	{ getCOMInteractive().setClickCallback(callback); }
+	public virtual void setHoverCallback(ObjectHoverCallback callback)	{ getCOMInteractive().setHoverCallback(callback); }
+	public virtual void setPressCallback(ObjectPressCallback callback)	{ getCOMInteractive().setPressCallback(callback); }
+	public void setOnScreenMouseUp(OnScreenMouseUp callback)			{ getCOMInteractive().setOnScreenMouseUp(callback); }
 	public void setAutoManageObject(bool autoManage)					{ mAutoManageObject = autoManage; }
 	public override void resetProperty()
 	{
 		base.resetProperty();
-		// 重置所有成员变量
-		mPhysicsAcceleration = Vector3.zero;
-		mLastPhysicsSpeedVector = Vector3.zero;
-		mPhysicsSpeedVector = Vector3.zero;
-		mLastPhysicsPosition = Vector3.zero;
-		mCurFramePosition = Vector3.zero;
-		mLastPosition = Vector3.zero;
-		mMouseDownPosition = Vector3.zero;
-		mLastSpeedVector = Vector3.zero;
-		mMoveSpeedVector = Vector3.zero;
-		mAudioSource = null;
-		mOnMouseEnter = null;
-		mOnMouseLeave = null;
-		mOnMouseDown = null;
-		mOnMouseUp = null;
-		mOnMouseMove = null;
-		mClickCallback = null;
-		mHoverCallback = null;
-		mPressCallback = null;
-		mOnScreenMouseUp = null;
-		mEnableFixedUpdate = true;
 		mAutoManageObject = false;
-		mMovedDuringFrame = false;
-		mHasLastPosition = false;
-		mMouseHovered = false;
-		mHandleInput = true;
-		mPassRay = true;
-		mRealtimeMoveSpeed = 0.0f;
 		// mObjectID不重置
 		// mObjectID = 0;
 	}
-	public virtual void onMouseEnter(int touchID)
+	public virtual void onMouseEnter(Vector3 mousePos, int touchID)
 	{
-		mMouseHovered = true;
-		mHoverCallback?.Invoke(this, true);
-		mOnMouseEnter?.Invoke(this, touchID);
+		getCOMInteractive().onMouseEnter(mousePos, touchID);
 	}
-	public virtual void onMouseLeave(int touchID)
+	public virtual void onMouseLeave(Vector3 mousePos, int touchID)
 	{
-		mMouseHovered = false;
-		mHoverCallback?.Invoke(this, false);
-		mOnMouseLeave?.Invoke(this, touchID);
+		getCOMInteractive().onMouseLeave(mousePos, touchID);
 	}
 	// 鼠标左键在窗口内按下
 	public virtual void onMouseDown(Vector3 mousePos, int touchID)
 	{
-		mMouseDownPosition = mousePos;
-		mPressCallback?.Invoke(this, true);
-		mOnMouseDown?.Invoke(mousePos, touchID);
+		getCOMInteractive().onMouseDown(mousePos, touchID);
 	}
 	// 鼠标左键在窗口内放开
 	public virtual void onMouseUp(Vector3 mousePos, int touchID)
 	{
-		mPressCallback?.Invoke(this, false);
-		if (lengthLess(mMouseDownPosition - mousePos, FrameDefine.CLICK_THRESHOLD))
-		{
-			mClickCallback?.Invoke(this);
-		}
-		mOnMouseUp?.Invoke(mousePos, touchID);
+		getCOMInteractive().onMouseUp(mousePos, touchID);
 	}
 	// 鼠标在窗口内,并且有移动
 	public virtual void onMouseMove(Vector3 mousePos, Vector3 moveDelta, float moveTime, int touchID)
 	{
-		mOnMouseMove?.Invoke(mousePos, moveDelta, moveTime, touchID);
+		getCOMInteractive().onMouseMove(mousePos, moveDelta, moveTime, touchID);
 	}
-	public virtual void onMouseStay(Vector3 mousePos, int touchID) { }
-	public virtual void onScreenMouseDown(Vector3 mousePos, int touchID) { }
+	public virtual void onMouseStay(Vector3 mousePos, int touchID) 
+	{
+		getCOMInteractive().onMouseStay(mousePos, touchID);
+	}
+	public virtual void onScreenMouseDown(Vector3 mousePos, int touchID) 
+	{
+		getCOMInteractive().onScreenMouseDown(mousePos, touchID);
+	}
 	// 鼠标在屏幕上抬起
 	public virtual void onScreenMouseUp(Vector3 mousePos, int touchID)
 	{
-		mOnScreenMouseUp?.Invoke(this, mousePos, touchID);
+		getCOMInteractive().onScreenMouseUp(mousePos, touchID);
 	}
-	public virtual void onReceiveDrag(IMouseEventCollect dragObj, BOOL continueEvent) { }
-	public virtual void onDragHoverd(IMouseEventCollect dragObj, bool hover) { }
-	public virtual void onMultiTouchStart(Vector3 touch0, Vector3 touch1) { }
-	public virtual void onMultiTouchMove(Vector3 touch0, Vector3 lastTouch0, Vector3 touch1, Vector3 lastTouch1) { }
-	public virtual void onMultiTouchEnd() { }
-	//------------------------------------------------------------------------------------------------------------------------------
-	protected override void initComponents()
+	public virtual void onReceiveDrag(IMouseEventCollect dragObj, Vector3 mousePos, BOOL continueEvent) 
 	{
-		base.initComponents();
-		addComponent<COMMovableObjectAudio>();
-		addComponent<COMMovableObjectVolume>();
+		getCOMInteractive().onReceiveDrag(dragObj, mousePos, continueEvent);
+	}
+	public virtual void onDragHoverd(IMouseEventCollect dragObj, Vector3 mousePos, bool hover) 
+	{
+		getCOMInteractive().onDragHoverd(dragObj, mousePos, hover);
+	}
+	public virtual void onMultiTouchStart(Vector3 touch0, Vector3 touch1) 
+	{
+		getCOMInteractive().onMultiTouchStart(touch0, touch1);
+	}
+	public virtual void onMultiTouchMove(Vector3 touch0, Vector3 lastTouch0, Vector3 touch1, Vector3 lastTouch1) 
+	{
+		getCOMInteractive().onMultiTouchMove(touch0, lastTouch0, touch1, lastTouch1);
+	}
+	public virtual void onMultiTouchEnd() 
+	{
+		getCOMInteractive().onMultiTouchEnd();
+	}
+	public void enableMoveInfo()
+	{
+		if (mCOMMoveInfo != null)
+		{
+			return;
+		}
+		mCOMMoveInfo = addComponent<COMMovableObjectMoveInfo>();
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected COMMovableObjectInteractive getCOMInteractive()
+	{
+		if (mCOMInteractive == null)
+		{
+			mCOMInteractive = addComponent<COMMovableObjectInteractive>();
+		}
+		return mCOMInteractive;
 	}
 }

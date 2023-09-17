@@ -154,15 +154,20 @@ namespace ILRuntime.Reflection
             if (customAttributes == null)
                 InitializeCustomAttribute();
 
-            List<object> res = new List<object>();
+            List<Attribute> res = new List<Attribute>();
             for (int i = 0; i < customAttributes.Length; i++)
             {
-                if (attributeTypes[i].Equals(attributeType))
+                if (attributeTypes[i].Equals(attributeType) || attributeTypes[i].IsSubclassOf(attributeType))
                 {
                     res.Add(customAttributes[i]);
                 }
             }
             return res.ToArray();
+        }
+
+        public override object GetRawConstantValue()
+        {
+            return definition.Constant;
         }
 
         public override object GetValue(object obj)
@@ -172,6 +177,8 @@ namespace ILRuntime.Reflection
                 ILTypeInstance ins;
                 if (isStatic)
                 {
+                    if (definition.HasConstant)
+                        return definition.Constant;
                     ins = ilType.StaticInstance;
                 }
                 else

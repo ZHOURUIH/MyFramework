@@ -1,22 +1,18 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 
-public class KeyInfo : FrameBase
+// 按键信息
+public class KeyInfo : ClassObject
 {
-	public OnKeyCurrentDown mCallback;
-	public object mListener;
-	public bool mShiftDown;
-	public bool mCtrlDown;
-	public bool mAltDown;
-	public KeyCode mKey;
+	public OnKeyCurrentDown mCallback;		// 按键回调
+	public object mListener;				// 监听者
+	public COMBINATION_KEY mCombinationKey;	// 指定可组合的键是否按下
+	public KeyCode mKey;					// 按键值
 	public override void resetProperty()
 	{
 		base.resetProperty();
 		mCallback = null;
 		mListener = null;
-		mShiftDown = false;
-		mCtrlDown = false;
-		mAltDown = false;
+		mCombinationKey = COMBINATION_KEY.NONE;
 		mKey = KeyCode.None;
 	}
 }

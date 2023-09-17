@@ -5,9 +5,7 @@ using System.Threading;
 public struct RequestThreadParam
 {
 	public HttpWebRequest mRequest;
-	public Action<string, object> mCallback;
+	public Action<string> mCallback;
 	public Thread mThread;
-	public byte[] mByteArray;
-	public object mUserData;
 	public string mFullURL;
 }

@@ -1,30 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 
-public class INT : OBJECT
+// 自定义的对int的封装,提供类似于int指针的功能,可用于序列化
+public class INT : SerializableBit
 {
-	protected const int TYPE_SIZE = sizeof(int);
-	public int mValue;
-	public INT()
+	public int mValue;			// 值
+	public override void resetProperty() 
 	{
-		mType = typeof(int);
-		mSize = TYPE_SIZE;
+		base.resetProperty();
+		mValue = 0; 
 	}
-	public INT(int value)
-	{
-		mValue = value;
-		mType = typeof(int);
-		mSize = TYPE_SIZE;
-	}
-	public override void zero() { mValue = 0; }
 	public void set(int value) { mValue = value; }
-	public override bool readFromBuffer(byte[] buffer, ref int index)
+	public override bool read(SerializerBitRead reader)
 	{
-		mValue = readInt(buffer, ref index, out bool success);
-		return success;
+		return reader.read(out mValue);
 	}
-	public override bool writeToBuffer(byte[] buffer, ref int index)
+	public override void write(SerializerBitWrite writer)
 	{
-		return writeInt(buffer, ref index, mValue);
+		writer.write(mValue);
 	}
 }

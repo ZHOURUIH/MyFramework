@@ -1,7 +1,6 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System;
+using static CSharpUtility;
+using static FrameBase;
 
 public class MainSceneGaming : SceneProcedure
 {
@@ -9,19 +8,11 @@ public class MainSceneGaming : SceneProcedure
 	protected override void onInit(SceneProcedure lastProcedure, string intent)
 	{
 		LT.LOAD_UGUI_SHOW(LAYOUT_ILR.GAMING);
-		uint id = makeID();
-		GB.CMD_ILR(out CmdCharacterManagerCreateCharacter cmd);
-		cmd.mCharacterType = typeof(CharacterGame);
-		cmd.mName = "test";
-		cmd.mID = id;
-		pushCommand(cmd, mCharacterManager);
-		mPlayer = mCharacterManager.getCharacter(id) as CharacterGame;
+		mPlayer = mCharacterManager.createCharacter("test", typeof(CharacterGame), makeID()) as CharacterGame;
 	}
 	protected override void onExit(SceneProcedure nextProcedure)
 	{
 		LT.HIDE_LAYOUT(LAYOUT_ILR.GAMING);
-		GB.CMD_ILR(out CmdCharacterManagerDestroy cmd);
-		cmd.mGUID = mPlayer.getGUID();
-		pushCommand(cmd, mCharacterManager);
+		mCharacterManager.destroyCharacter(mPlayer);
 	}
 }

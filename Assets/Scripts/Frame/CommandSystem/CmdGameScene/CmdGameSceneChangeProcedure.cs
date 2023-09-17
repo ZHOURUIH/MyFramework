@@ -1,9 +1,11 @@
 ﻿using System;
+using static UnityUtility;
 
+// 跳转到当前场景指定的流程
 public class CmdGameSceneChangeProcedure : Command
 {
-	public Type mProcedure;
-	public string mIntent;
+	public Type mProcedure;		// 要跳转到的流程类型
+	public string mIntent;		// 跳转时要传递的参数
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -29,7 +31,7 @@ public class CmdGameSceneChangeProcedure : Command
 	}
 	public override void debugInfo(MyStringBuilder builder)
 	{
-		builder.Append(": mProcedure:", mProcedure).
-				Append(", mIntent:", mIntent);
+		builder.append(": mProcedure:", mProcedure).
+				append(", mIntent:", mIntent);
 	}
 }

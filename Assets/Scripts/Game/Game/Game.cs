@@ -1,7 +1,9 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System;
+using static FrameUtility;
+using static FrameBase;
+#if USE_ILRUNTIME
+using ILRAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
+#endif
 
 public class Game : GameFramework
 {
@@ -14,25 +16,30 @@ public class Game : GameFramework
 	protected override void init()
 	{
 		base.init();
-		// 如果是开发移动端,需要设置SimulateTouch为true
-		FrameBase.mGlobalTouchSystem.setSimulateTouch(false);
-		FrameBase.mLayoutManager.setUseAnchor(false);
+		mLayoutManager.setUseAnchor(false);
+#if USE_ILRUNTIME
+		mILRSystem.setInitILRFunc((ILRAppDomain appdomain) =>
+		{
+			ILRLaunchExtension ilr = new ILRLaunchExtension();
+			ilr.onILRuntimeInitialized(appdomain);
+		});
+#endif
 	}
 	protected override void notifyBase()
 	{
 		base.notifyBase();
 		// 所有类都构造完成后通知GameBase
-		FrameBase.constructGameDone();
+		GameBase.constructGameDone();
 	}
 	protected override void registe()
 	{
 		LayoutRegister.registeAllLayout();
-		SQLiteRegister.registeAllTable();
+		SQLiteRegisterMain.registeAllTable();
 		PacketRegister.registeAllPacket();
 	}
 	protected override void launch()
 	{
 		base.launch();
-		FrameUtility.enterScene<StartScene>();
+		enterScene<StartScene>();
 	}
 }

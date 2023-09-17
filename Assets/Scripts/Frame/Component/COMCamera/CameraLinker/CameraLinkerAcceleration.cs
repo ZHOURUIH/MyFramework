@@ -1,12 +1,13 @@
 ﻿using System;
 using UnityEngine;
+using static MathUtility;
 
 // 第三人称的摄像机连接器,与连接的物体的相对坐标会随着加速度的增加而增加
 public class CameraLinkerAcceleration : CameraLinkerThirdPerson
 {
-	protected Spring mSpringX;
-	protected Spring mSpringY;
-	protected Spring mSpringZ;
+	protected Spring mSpringX;		// X轴的弹簧
+	protected Spring mSpringY;		// Y轴的弹簧
+	protected Spring mSpringZ;		// Z轴的弹簧
 	public CameraLinkerAcceleration()
 	{
 		mSpringX = new Spring();

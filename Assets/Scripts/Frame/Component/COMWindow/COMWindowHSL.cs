@@ -1,10 +1,13 @@
 ﻿using System;
 using UnityEngine;
+using static UnityUtility;
+using static MathUtility;
 
+// 用于渐变窗口HSL空间颜色的组件
 public class COMWindowHSL : ComponentKeyFrameNormal
 {
-	protected Vector3 mStart;
-	protected Vector3 mTarget;
+	protected Vector3 mStart;		// 起始偏移值
+	protected Vector3 mTarget;		// 目标偏移值
 	public void setStart(Vector3 hsl) { mStart = hsl; }
 	public void setTarget(Vector3 hsl) { mTarget = hsl; }
 	public override void resetProperty()

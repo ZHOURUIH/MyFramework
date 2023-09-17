@@ -14,11 +14,6 @@ public class CmdSocketClientGameState : Command
 	}
 	public override void debugInfo(MyStringBuilder builder)
 	{
-		builder.Append(": mNetState:", mNetState.ToString());
-	}
-	//------------------------------------------------------------------------------------
-	protected static void onMessageOK(bool ok, object userData)
-	{
-		mGameFramework.stop();
+		builder.append(": mNetState:", mNetState.ToString());
 	}
 }

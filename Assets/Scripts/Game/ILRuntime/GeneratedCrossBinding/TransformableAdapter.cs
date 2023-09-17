@@ -2,102 +2,16 @@ using System;
 using ILRuntime.CLR.Method;
 using ILRuntime.Runtime.Enviorment;
 using ILRuntime.Runtime.Intepreter;
+#if DEBUG && !DISABLE_ILRUNTIME_DEBUG
+using AutoList = System.Collections.Generic.List<object>;
+#else
+using AutoList = ILRuntime.Other.UncheckedList<object>;
+#endif
 
 namespace HotFix
 {   
     public class TransformableAdapter : CrossBindingAdaptor
     {
-        static CrossBindingMethodInfo mdestroy_0 = new CrossBindingMethodInfo("destroy");
-        static CrossBindingMethodInfo mresetProperty_1 = new CrossBindingMethodInfo("resetProperty");
-        static CrossBindingMethodInfo<UnityEngine.GameObject> msetObject_2 = new CrossBindingMethodInfo<UnityEngine.GameObject>("setObject");
-        static CrossBindingMethodInfo<System.Boolean> msetActive_3 = new CrossBindingMethodInfo<System.Boolean>("setActive");
-        static CrossBindingMethodInfo<System.String> msetName_4 = new CrossBindingMethodInfo<System.String>("setName");
-        class raycast_5Info : CrossBindingMethodInfo
-        {
-            static Type[] pTypes = new Type[] {typeof(UnityEngine.Ray).MakeByRefType(), typeof(UnityEngine.RaycastHit).MakeByRefType(), typeof(System.Single), typeof(System.Boolean)};
-
-            public raycast_5Info()
-                : base("raycast")
-            {
-
-            }
-
-            protected override Type ReturnType { get { return typeof(System.Boolean); } }
-
-            protected override Type[] Parameters { get { return pTypes; } }
-            public System.Boolean Invoke(ILTypeInstance instance, ref UnityEngine.Ray ray, out UnityEngine.RaycastHit hit, System.Single maxDistance)
-            {
-                EnsureMethod(instance);
-                    hit = default(UnityEngine.RaycastHit);
-
-                if (method != null)
-                {
-                    invoking = true;
-                    System.Boolean __res = default(System.Boolean);
-                    try
-                    {
-                        using (var ctx = domain.BeginInvoke(method))
-                        {
-                            ctx.PushObject(ray);
-                            ctx.PushObject(hit);
-                            ctx.PushObject(instance);
-                            ctx.PushReference(0);
-                            ctx.PushReference(1);
-                            ctx.PushInteger(maxDistance);
-                            ctx.Invoke();
-                            __res = ctx.ReadBool();
-                            ray = ctx.ReadObject<UnityEngine.Ray>(0);
-                            hit = ctx.ReadObject<UnityEngine.RaycastHit>(1);
-                        }
-                    }
-                    finally
-                    {
-                        invoking = false;
-                    }
-                   return __res;
-                }
-                else
-                    return default(System.Boolean);
-            }
-
-            public override void Invoke(ILTypeInstance instance)
-            {
-                throw new NotSupportedException();
-            }
-        }
-        static raycast_5Info mraycast_5 = new raycast_5Info();
-        static CrossBindingFunctionInfo<UnityEngine.GameObject> mgetObject_6 = new CrossBindingFunctionInfo<UnityEngine.GameObject>("getObject");
-        static CrossBindingFunctionInfo<System.Boolean> misActive_7 = new CrossBindingFunctionInfo<System.Boolean>("isActive");
-        static CrossBindingFunctionInfo<System.Boolean> misActiveInHierarchy_8 = new CrossBindingFunctionInfo<System.Boolean>("isActiveInHierarchy");
-        static CrossBindingFunctionInfo<System.Boolean> misEnable_9 = new CrossBindingFunctionInfo<System.Boolean>("isEnable");
-        static CrossBindingMethodInfo<System.Boolean> msetEnable_10 = new CrossBindingMethodInfo<System.Boolean>("setEnable");
-        static CrossBindingFunctionInfo<UnityEngine.Vector3> mgetPosition_11 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getPosition");
-        static CrossBindingFunctionInfo<UnityEngine.Vector3> mgetRotation_12 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getRotation");
-        static CrossBindingMethodInfo<global::myUIObject> mcloneFrom_13 = new CrossBindingMethodInfo<global::myUIObject>("cloneFrom");
-        static CrossBindingFunctionInfo<UnityEngine.Vector3> mgetScale_14 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getScale");
-        static CrossBindingFunctionInfo<UnityEngine.Vector3> mgetWorldPosition_15 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getWorldPosition");
-        static CrossBindingFunctionInfo<UnityEngine.Vector3> mgetWorldScale_16 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getWorldScale");
-        static CrossBindingFunctionInfo<UnityEngine.Vector3> mgetWorldRotation_17 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getWorldRotation");
-        static CrossBindingMethodInfo<UnityEngine.Vector3> msetPosition_18 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setPosition");
-        static CrossBindingMethodInfo<UnityEngine.Vector3> msetScale_19 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setScale");
-        static CrossBindingMethodInfo<UnityEngine.Vector3> msetRotation_20 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setRotation");
-        static CrossBindingMethodInfo<UnityEngine.Vector3> msetWorldPosition_21 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setWorldPosition");
-        static CrossBindingMethodInfo<UnityEngine.Vector3> msetWorldRotation_22 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setWorldRotation");
-        static CrossBindingMethodInfo<UnityEngine.Vector3> msetWorldScale_23 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setWorldScale");
-        static CrossBindingMethodInfo<UnityEngine.Vector3, UnityEngine.Space> mmove_24 = new CrossBindingMethodInfo<UnityEngine.Vector3, UnityEngine.Space>("move");
-        static CrossBindingFunctionInfo<global::IMouseEventCollect, System.Boolean> misChildOf_25 = new CrossBindingFunctionInfo<global::IMouseEventCollect, System.Boolean>("isChildOf");
-        static CrossBindingMethodInfo<System.Single> msetAlpha_26 = new CrossBindingMethodInfo<System.Single>("setAlpha");
-        static CrossBindingFunctionInfo<System.Single> mgetAlpha_27 = new CrossBindingFunctionInfo<System.Single>("getAlpha");
-        static CrossBindingMethodInfo<System.Single> mupdate_28 = new CrossBindingMethodInfo<System.Single>("update");
-        static CrossBindingMethodInfo<System.Single> mlateUpdate_29 = new CrossBindingMethodInfo<System.Single>("lateUpdate");
-        static CrossBindingMethodInfo<System.Single> mfixedUpdate_30 = new CrossBindingMethodInfo<System.Single>("fixedUpdate");
-        static CrossBindingMethodInfo<global::GameComponent> mnotifyAddComponent_31 = new CrossBindingMethodInfo<global::GameComponent>("notifyAddComponent");
-        static CrossBindingMethodInfo<System.Boolean, System.Boolean> msetIgnoreTimeScale_32 = new CrossBindingMethodInfo<System.Boolean, System.Boolean>("setIgnoreTimeScale");
-        static CrossBindingMethodInfo minitComponents_33 = new CrossBindingMethodInfo("initComponents");
-        static CrossBindingMethodInfo<System.Boolean> msetDestroy_34 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
-        static CrossBindingFunctionInfo<System.Boolean> misDestroy_35 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
-        static CrossBindingMethodInfo<System.Int64> msetAssignID_36 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
-        static CrossBindingFunctionInfo<System.Int64> mgetAssignID_37 = new CrossBindingFunctionInfo<System.Int64>("getAssignID");
         public override Type BaseCLRType
         {
             get
@@ -121,6 +35,96 @@ namespace HotFix
 
         public class Adapter : global::Transformable, CrossBindingAdaptorType
         {
+            CrossBindingMethodInfo mdestroy_0 = new CrossBindingMethodInfo("destroy");
+            CrossBindingMethodInfo mresetProperty_1 = new CrossBindingMethodInfo("resetProperty");
+            CrossBindingMethodInfo<UnityEngine.GameObject> msetObject_2 = new CrossBindingMethodInfo<UnityEngine.GameObject>("setObject");
+            CrossBindingMethodInfo<System.Boolean> msetActive_3 = new CrossBindingMethodInfo<System.Boolean>("setActive");
+            CrossBindingMethodInfo<System.String> msetName_4 = new CrossBindingMethodInfo<System.String>("setName");
+            class raycast_5Info : CrossBindingMethodInfo
+            {
+                static Type[] pTypes = new Type[] {typeof(UnityEngine.Ray).MakeByRefType(), typeof(UnityEngine.RaycastHit).MakeByRefType(), typeof(System.Single), typeof(System.Boolean)};
+
+                public raycast_5Info()
+                    : base("raycast")
+                {
+
+                }
+
+                protected override Type ReturnType { get { return typeof(System.Boolean); } }
+
+                protected override Type[] Parameters { get { return pTypes; } }
+                public System.Boolean Invoke(ILTypeInstance instance, ref UnityEngine.Ray ray, out UnityEngine.RaycastHit hit, System.Single maxDistance)
+                {
+                    EnsureMethod(instance);
+                    hit = default(UnityEngine.RaycastHit);
+
+                    if (method != null)
+                    {
+                        invoking = true;
+                        System.Boolean __res = default(System.Boolean);
+                        try
+                        {
+                            using (var ctx = domain.BeginInvoke(method))
+                            {
+                            ctx.PushObject(ray);
+                            ctx.PushObject(hit);
+                                ctx.PushObject(instance);
+                                ctx.PushReference(0);
+                                ctx.PushReference(1);
+                            ctx.PushFloat(maxDistance);
+                                ctx.Invoke();
+                            __res = ctx.ReadBool();
+                            ray = ctx.ReadObject<UnityEngine.Ray>(0);
+                            hit = ctx.ReadObject<UnityEngine.RaycastHit>(1);
+                            }
+                        }
+                        finally
+                        {
+                            invoking = false;
+                        }
+                       return __res;
+                    }
+                    else
+                        return default(System.Boolean);
+                }
+
+                public override void Invoke(ILTypeInstance instance)
+                {
+                    throw new NotSupportedException();
+                }
+            }
+            raycast_5Info mraycast_5 = new raycast_5Info();
+            CrossBindingFunctionInfo<UnityEngine.GameObject> mgetObject_6 = new CrossBindingFunctionInfo<UnityEngine.GameObject>("getObject");
+            CrossBindingFunctionInfo<System.Boolean> misActive_7 = new CrossBindingFunctionInfo<System.Boolean>("isActive");
+            CrossBindingFunctionInfo<System.Boolean> misActiveInHierarchy_8 = new CrossBindingFunctionInfo<System.Boolean>("isActiveInHierarchy");
+            CrossBindingFunctionInfo<System.Boolean> misEnable_9 = new CrossBindingFunctionInfo<System.Boolean>("isEnable");
+            CrossBindingMethodInfo<System.Boolean> msetEnable_10 = new CrossBindingMethodInfo<System.Boolean>("setEnable");
+            CrossBindingFunctionInfo<UnityEngine.Vector3> mgetPosition_11 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getPosition");
+            CrossBindingFunctionInfo<UnityEngine.Vector3> mgetRotation_12 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getRotation");
+            CrossBindingMethodInfo<global::myUIObject> mcloneFrom_13 = new CrossBindingMethodInfo<global::myUIObject>("cloneFrom");
+            CrossBindingFunctionInfo<UnityEngine.Vector3> mgetScale_14 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getScale");
+            CrossBindingFunctionInfo<UnityEngine.Vector3> mgetWorldPosition_15 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getWorldPosition");
+            CrossBindingFunctionInfo<UnityEngine.Vector3> mgetWorldScale_16 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getWorldScale");
+            CrossBindingFunctionInfo<UnityEngine.Vector3> mgetWorldRotation_17 = new CrossBindingFunctionInfo<UnityEngine.Vector3>("getWorldRotation");
+            CrossBindingMethodInfo<UnityEngine.Vector3> msetPosition_18 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setPosition");
+            CrossBindingMethodInfo<UnityEngine.Vector3> msetScale_19 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setScale");
+            CrossBindingMethodInfo<UnityEngine.Vector3> msetRotation_20 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setRotation");
+            CrossBindingMethodInfo<UnityEngine.Vector3> msetWorldPosition_21 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setWorldPosition");
+            CrossBindingMethodInfo<UnityEngine.Vector3> msetWorldRotation_22 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setWorldRotation");
+            CrossBindingMethodInfo<UnityEngine.Vector3> msetWorldScale_23 = new CrossBindingMethodInfo<UnityEngine.Vector3>("setWorldScale");
+            CrossBindingMethodInfo<UnityEngine.Vector3, UnityEngine.Space> mmove_24 = new CrossBindingMethodInfo<UnityEngine.Vector3, UnityEngine.Space>("move");
+            CrossBindingFunctionInfo<global::IMouseEventCollect, System.Boolean> misChildOf_25 = new CrossBindingFunctionInfo<global::IMouseEventCollect, System.Boolean>("isChildOf");
+            CrossBindingMethodInfo<System.Single> msetAlpha_26 = new CrossBindingMethodInfo<System.Single>("setAlpha");
+            CrossBindingFunctionInfo<System.Single> mgetAlpha_27 = new CrossBindingFunctionInfo<System.Single>("getAlpha");
+            CrossBindingFunctionInfo<System.Boolean> mcanUpdate_28 = new CrossBindingFunctionInfo<System.Boolean>("canUpdate");
+            CrossBindingMethodInfo<System.Single> mupdate_29 = new CrossBindingMethodInfo<System.Single>("update");
+            CrossBindingMethodInfo<System.Single> mlateUpdate_30 = new CrossBindingMethodInfo<System.Single>("lateUpdate");
+            CrossBindingMethodInfo<System.Single> mfixedUpdate_31 = new CrossBindingMethodInfo<System.Single>("fixedUpdate");
+            CrossBindingMethodInfo<global::GameComponent> mnotifyAddComponent_32 = new CrossBindingMethodInfo<global::GameComponent>("notifyAddComponent");
+            CrossBindingMethodInfo<System.Boolean, System.Boolean> msetIgnoreTimeScale_33 = new CrossBindingMethodInfo<System.Boolean, System.Boolean>("setIgnoreTimeScale");
+            CrossBindingMethodInfo minitComponents_34 = new CrossBindingMethodInfo("initComponents");
+
+            bool isInvokingToString;
             ILTypeInstance instance;
             ILRuntime.Runtime.Enviorment.AppDomain appdomain;
 
@@ -361,84 +365,60 @@ namespace HotFix
                     return mgetAlpha_27.Invoke(this.instance);
             }
 
+            public override System.Boolean canUpdate()
+            {
+                if (mcanUpdate_28.CheckShouldInvokeBase(this.instance))
+                    return base.canUpdate();
+                else
+                    return mcanUpdate_28.Invoke(this.instance);
+            }
+
             public override void update(System.Single elapsedTime)
             {
-                if (mupdate_28.CheckShouldInvokeBase(this.instance))
+                if (mupdate_29.CheckShouldInvokeBase(this.instance))
                     base.update(elapsedTime);
                 else
-                    mupdate_28.Invoke(this.instance, elapsedTime);
+                    mupdate_29.Invoke(this.instance, elapsedTime);
             }
 
             public override void lateUpdate(System.Single elapsedTime)
             {
-                if (mlateUpdate_29.CheckShouldInvokeBase(this.instance))
+                if (mlateUpdate_30.CheckShouldInvokeBase(this.instance))
                     base.lateUpdate(elapsedTime);
                 else
-                    mlateUpdate_29.Invoke(this.instance, elapsedTime);
+                    mlateUpdate_30.Invoke(this.instance, elapsedTime);
             }
 
             public override void fixedUpdate(System.Single elapsedTime)
             {
-                if (mfixedUpdate_30.CheckShouldInvokeBase(this.instance))
+                if (mfixedUpdate_31.CheckShouldInvokeBase(this.instance))
                     base.fixedUpdate(elapsedTime);
                 else
-                    mfixedUpdate_30.Invoke(this.instance, elapsedTime);
+                    mfixedUpdate_31.Invoke(this.instance, elapsedTime);
             }
 
             public override void notifyAddComponent(global::GameComponent com)
             {
-                if (mnotifyAddComponent_31.CheckShouldInvokeBase(this.instance))
+                if (mnotifyAddComponent_32.CheckShouldInvokeBase(this.instance))
                     base.notifyAddComponent(com);
                 else
-                    mnotifyAddComponent_31.Invoke(this.instance, com);
+                    mnotifyAddComponent_32.Invoke(this.instance, com);
             }
 
             public override void setIgnoreTimeScale(System.Boolean ignore, System.Boolean componentOnly)
             {
-                if (msetIgnoreTimeScale_32.CheckShouldInvokeBase(this.instance))
+                if (msetIgnoreTimeScale_33.CheckShouldInvokeBase(this.instance))
                     base.setIgnoreTimeScale(ignore, componentOnly);
                 else
-                    msetIgnoreTimeScale_32.Invoke(this.instance, ignore, componentOnly);
+                    msetIgnoreTimeScale_33.Invoke(this.instance, ignore, componentOnly);
             }
 
             protected override void initComponents()
             {
-                if (minitComponents_33.CheckShouldInvokeBase(this.instance))
+                if (minitComponents_34.CheckShouldInvokeBase(this.instance))
                     base.initComponents();
                 else
-                    minitComponents_33.Invoke(this.instance);
-            }
-
-            public override void setDestroy(System.Boolean isDestroy)
-            {
-                if (msetDestroy_34.CheckShouldInvokeBase(this.instance))
-                    base.setDestroy(isDestroy);
-                else
-                    msetDestroy_34.Invoke(this.instance, isDestroy);
-            }
-
-            public override System.Boolean isDestroy()
-            {
-                if (misDestroy_35.CheckShouldInvokeBase(this.instance))
-                    return base.isDestroy();
-                else
-                    return misDestroy_35.Invoke(this.instance);
-            }
-
-            public override void setAssignID(System.Int64 assignID)
-            {
-                if (msetAssignID_36.CheckShouldInvokeBase(this.instance))
-                    base.setAssignID(assignID);
-                else
-                    msetAssignID_36.Invoke(this.instance, assignID);
-            }
-
-            public override System.Int64 getAssignID()
-            {
-                if (mgetAssignID_37.CheckShouldInvokeBase(this.instance))
-                    return base.getAssignID();
-                else
-                    return mgetAssignID_37.Invoke(this.instance);
+                    minitComponents_34.Invoke(this.instance);
             }
 
             public override string ToString()
@@ -447,7 +427,15 @@ namespace HotFix
                 m = instance.Type.GetVirtualMethod(m);
                 if (m == null || m is ILMethod)
                 {
-                    return instance.ToString();
+                    if (!isInvokingToString)
+                    {
+                        isInvokingToString = true;
+                        string res = instance.ToString();
+                        isInvokingToString = false;
+                        return res;
+                    }
+                    else
+                        return instance.Type.FullName;
                 }
                 else
                     return instance.Type.FullName;

@@ -1,9 +1,10 @@
 ﻿using System;
 
-public abstract class MyCurve : FrameBase
+// 通过公式计算出来的曲线基类
+public abstract class MyCurve : ClassObject
 {
-	protected static float mOvershootOrAmplitude = 1.70158f;
-	public abstract float Evaluate(float time);
+	protected static float mOvershootOrAmplitude = 1.70158f;		// 固定参数
+	public abstract float evaluate(float time);
 	public virtual float getLength() { return 1.0f; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected static float bounceEaseIn(float time) { return 1.0f - bounceEaseOut(1.0f - time); }

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class StartScene : GameScene
 {
@@ -10,8 +9,8 @@ public class StartScene : GameScene
 	}
 	public override void createSceneProcedure()
 	{
-		addProcedure(Typeof<StartSceneLoading>());
-		addProcedure(Typeof<StartSceneDemo>());
-		addProcedure(Typeof<StartSceneExit>());
+		addProcedure(typeof(StartSceneLoading));
+		addProcedure(typeof(StartSceneDemo));
+		addProcedure(typeof(StartSceneExit));
 	}
 }

@@ -1,14 +1,16 @@
 ﻿using System;
+using static MathUtility;
 
-public class Spring : FrameBase
+// 用于模拟弹簧的类
+public class Spring : ClassObject
 {
-	protected float mNormalLength;
-	protected float mObjectSpeed;
-	protected float mObjectMass;
-	protected float mCurLength;
-	protected float mMinLength;
-	protected float mSpringK;
-	protected float mPreAcce;
+	protected float mNormalLength;	// 未施加力时弹簧的长度
+	protected float mObjectSpeed;	// 弹簧未固定的一端的移动速度
+	protected float mObjectMass;	// 弹簧未固定的一段的质量
+	protected float mCurLength;		// 当前弹簧的长度
+	protected float mMinLength;		// 弹簧压缩的最小长度
+	protected float mSpringK;		// 弹力系数
+	protected float mPreAcce;		// 用于保存上一帧的加速度
 	protected float mForce;			// 力和速度 只有正负没有方向,正的是沿着拉伸弹簧的方向,负值压缩弹簧的方向
 	public Spring()
 	{

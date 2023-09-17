@@ -1,12 +1,14 @@
 ﻿using UnityEngine;
+using static UnityUtility;
 
+// 追踪目标的组件
 public class ComponentTrackTarget : GameComponent, IComponentModifyPosition, IComponentBreakable
 {
-	protected TrackCallback mTrackingCallback;
-	protected TrackCallback mDoneCallback;
-	protected Transformable mTarget;
-	protected Vector3 mTargetOffset;
-	protected float mSpeed;
+	protected TrackCallback mTrackingCallback;	// 追踪时回调
+	protected TrackCallback mDoneCallback;		// 追踪完成时回调
+	protected Transformable mTarget;			// 追踪目标
+	protected Vector3 mTargetOffset;			// 追踪目标点的偏移
+	protected float mSpeed;						// 追踪速度
 	public override void init(ComponentOwner owner)
 	{
 		base.init(owner);
@@ -14,6 +16,11 @@ public class ComponentTrackTarget : GameComponent, IComponentModifyPosition, ICo
 		{
 			logError("ComponentTrackTarget can only add to Transformable");
 		}
+	}
+	public override void destroy()
+	{
+		mDoneCallback?.Invoke(this, true);
+		base.destroy();
 	}
 	public override void resetProperty()
 	{

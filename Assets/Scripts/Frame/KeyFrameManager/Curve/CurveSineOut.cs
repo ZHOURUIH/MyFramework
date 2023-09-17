@@ -1,9 +1,11 @@
 ﻿using System;
 using UnityEngine;
+using static MathUtility;
 
+// 正弦曲线
 public class CurveSineOut : MyCurve
 {
-	public override float Evaluate(float time)
+	public override float evaluate(float time)
 	{
 		return sin(time * HALF_PI_RADIAN);
 	}

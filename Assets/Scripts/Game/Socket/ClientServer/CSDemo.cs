@@ -1,14 +1,17 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 
-public class CSDemo : NetPacketTCPFrame
+public class CSDemo : NetPacketFrame
 {
-	public UINTS mDemoArray = new UINTS(10);
-	public USHORT mDemoShort = new USHORT();
-	protected override void fillParams()
+	public LONGS mDemoArray = new LONGS();
+	public USHORT mDemoUShort = new USHORT();
+	public override void init()
 	{
-		pushParam(mDemoArray);
-		pushParam(mDemoShort);
+		base.init();
+		addParam(mDemoArray, false);
+		addParam(mDemoUShort, false);
+	}
+	public static void send()
+	{
+		;
 	}
 }

@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Threading;
+using static UnityUtility;
 
-public class MyThread : FrameBase
+// 对线程的封装
+public class MyThread
 {
-	protected MyThreadCallback mCallback;
-	protected ThreadTimeLock mTimeLock;
-	protected Thread mThread;
-	protected BOOL mRun;
-	protected string mName;
-	protected volatile bool mIsBackground;       // 是否为后台线程,如果是后台线程,则在应用程序关闭时,子线程会自动强制关闭
-	protected volatile bool mRunning;
-	protected volatile bool mFinish;
+	protected MyThreadCallback mCallback;		// 线程执行回调
+	protected ThreadTimeLock mTimeLock;			// 用于线程锁帧
+	protected Thread mThread;					// 线程对象
+	protected string mName;						// 线程名字
+	protected volatile bool mIsBackground;		// 是否为后台线程,如果是后台线程,则在应用程序关闭时,子线程会自动强制关闭
+	protected volatile bool mRunning;			// 线程是否正在执行
+	protected volatile bool mFinish;			// 线程是否已经完成执行
 	public MyThread(string name)
 	{
-		mRun = new BOOL();
 		mTimeLock = new ThreadTimeLock(0);
 		mName = name;
 		mIsBackground = true;
@@ -22,18 +22,6 @@ public class MyThread : FrameBase
 	public void destroy()
 	{
 		stop();
-	}
-	public override void resetProperty()
-	{
-		base.resetProperty();
-		mCallback = null;
-		mTimeLock.setFrameTime(0);
-		mThread = null;
-		mRun.set(false);
-		mName = null;
-		mIsBackground = true;
-		mRunning = false;
-		mFinish = true;
 	}
 	public void setBackground(bool background)
 	{
@@ -73,13 +61,14 @@ public class MyThread : FrameBase
 			{
 				Thread.Sleep(0);
 			}
+			mThread.Abort();
 			mThread = null;
 			mCallback = null;
 			mTimeLock = null;
 		}
 		catch(Exception e)
 		{
-			logError("线程退出出现异常:" + mName + ", exception:" + e.Message);
+			logException(e, "线程退出出现异常:" + mName);
 		}
 		logForce("线程退出完成! 线程名 : " + mName);
 	}
@@ -89,19 +78,23 @@ public class MyThread : FrameBase
 		mFinish = false;
 		while (mRunning)
 		{
-			mTimeLock.update();
 			try
 			{
-				mRun.set(true);
-				mCallback?.Invoke(mRun);
-				if (!mRun.mValue)
+				mTimeLock.update();
+				bool run = true;
+				mCallback?.Invoke(ref run);
+				if (!run)
 				{
 					break;
 				}
 			}
+			catch (ThreadAbortException)
+			{
+				// 调用Thread.Abort而正常终止线程
+			}
 			catch (Exception e)
 			{
-				logError("捕获线程异常! 线程名 : " + mName + ", " + e.Message + ", " + e.StackTrace);
+				logException(e, "捕获线程异常! 线程名 : " + mName);
 			}
 		}
 		mFinish = true;

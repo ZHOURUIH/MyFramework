@@ -1,8 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using static UnityUtility;
+using static MathUtility;
+using static FrameBase;
+using static FrameUtility;
 
 // 全部都是对MovableObject的操作,部分Transformable的通用操作在ToolFrame中
-public class OT : FrameBase
+public class OT
 {
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 摄像机视角
@@ -13,11 +17,7 @@ public class OT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdGameCameraFOV cmd, LOG_LEVEL.LOW);
-		cmd.mStartFOV = fov;
-		cmd.mTargetFOV = fov;
-		cmd.mOnceLength = 0.0f;
-		pushCommand(cmd, obj);
+		CmdGameCameraFOV.execute(obj, 0.0f, 0.0f, fov, fov);
 	}
 	public static void FOV(GameCamera obj, float start, float target, float onceLength)
 	{
@@ -37,16 +37,7 @@ public class OT : FrameBase
 		{
 			return;
 		}
-		CMD(out CmdGameCameraFOV cmd, LOG_LEVEL.LOW);
-		cmd.mKeyframe = keyframe;
-		cmd.mOnceLength = onceLength;
-		cmd.mStartFOV = start;
-		cmd.mTargetFOV = target;
-		cmd.mOffset = offset;
-		cmd.mLoop = loop;
-		cmd.mDoingCallback = doingCallBack;
-		cmd.mDoneCallback = doneCallback;
-		pushCommand(cmd, obj);
+		CmdGameCameraFOV.execute(obj, onceLength, offset, start, target, keyframe, loop, doingCallBack, doneCallback);
 	}
 	public static void ORTHO_SIZE(GameCamera obj, float start, float target, float onceLength)
 	{
@@ -470,10 +461,10 @@ public class OT : FrameBase
 		cmd.mLoop = loop;
 		cmd.mOnceLength = onceLength;
 		cmd.mOffset = offset;
-		cmd.mStartAlpha = start;
-		cmd.mTargetAlpha = target;
-		cmd.mTremblingCallBack = doingCallback;
-		cmd.mTrembleDoneCallBack = doneCallback;
+		cmd.mStart = start;
+		cmd.mTarget = target;
+		cmd.mDoingCallBack = doingCallback;
+		cmd.mDoneCallBack = doneCallback;
 		pushCommand(cmd, tweenerFloat);
 		return tweenerFloat;
 	}

@@ -1,11 +1,13 @@
 ﻿using UnityEngine;
+using static UnityUtility;
 
+// 锁定物体的世界坐标不变,可能会有误差
 public class CmdTransformableLockPosition : Command
 {
-	public Vector3 mLockPosition;
-	public bool mLockX;
-	public bool mLockY;
-	public bool mLockZ;
+	public Vector3 mLockPosition;	// 锁定的目标位置
+	public bool mLockX;				// 是否锁定X轴
+	public bool mLockY;				// 是否锁定Y轴
+	public bool mLockZ;				// 是否锁定Z轴
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -36,9 +38,9 @@ public class CmdTransformableLockPosition : Command
 	}
 	public override void debugInfo(MyStringBuilder builder)
 	{
-		builder.Append(": mLockPosition:", mLockPosition).
-				Append(", mLockX:", mLockX).
-				Append(", mLockY:", mLockY).
-				Append(", mLockZ:", mLockZ);
+		builder.append(": mLockPosition:", mLockPosition).
+				append(", mLockX:", mLockX).
+				append(", mLockY:", mLockY).
+				append(", mLockZ:", mLockZ);
 	}
 }

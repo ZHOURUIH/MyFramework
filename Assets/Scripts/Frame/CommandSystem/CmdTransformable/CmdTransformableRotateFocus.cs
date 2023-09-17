@@ -1,10 +1,12 @@
 ﻿using System;
 using UnityEngine;
+using static UnityUtility;
 
+// 使物体始终朝向指定目标
 public class CmdTransformableRotateFocus : Command
 {
-	public Transformable mTarget;
-	public Vector3 mOffset;
+	public Transformable mTarget;	// 朝向的目标
+	public Vector3 mOffset;			// 目标位置偏移
 	public override void resetProperty()
 	{
 		base.resetProperty();

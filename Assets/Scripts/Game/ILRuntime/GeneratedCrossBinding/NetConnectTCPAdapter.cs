@@ -2,76 +2,16 @@ using System;
 using ILRuntime.CLR.Method;
 using ILRuntime.Runtime.Enviorment;
 using ILRuntime.Runtime.Intepreter;
+#if DEBUG && !DISABLE_ILRUNTIME_DEBUG
+using AutoList = System.Collections.Generic.List<object>;
+#else
+using AutoList = ILRuntime.Other.UncheckedList<object>;
+#endif
 
 namespace HotFix
 {   
     public class NetConnectTCPAdapter : CrossBindingAdaptor
     {
-        static CrossBindingMethodInfo<System.Net.IPAddress, System.Int32, System.Single> minit_0 = new CrossBindingMethodInfo<System.Net.IPAddress, System.Int32, System.Single>("init");
-        static CrossBindingMethodInfo mresetProperty_1 = new CrossBindingMethodInfo("resetProperty");
-        static CrossBindingMethodInfo<System.Single> mupdate_2 = new CrossBindingMethodInfo<System.Single>("update");
-        static CrossBindingMethodInfo mdestroy_3 = new CrossBindingMethodInfo("destroy");
-        static CrossBindingMethodInfo<global::NetPacketTCP> msendPacket_4 = new CrossBindingMethodInfo<global::NetPacketTCP>("sendPacket");
-        class packetRead_5Info : CrossBindingMethodInfo
-        {
-            static Type[] pTypes = new Type[] {typeof(System.Byte[]), typeof(System.Int32), typeof(System.Int32).MakeByRefType(), typeof(global::NetPacketTCP).MakeByRefType(), typeof(global::PARSE_RESULT)};
-
-            public packetRead_5Info()
-                : base("packetRead")
-            {
-
-            }
-
-            protected override Type ReturnType { get { return typeof(global::PARSE_RESULT); } }
-
-            protected override Type[] Parameters { get { return pTypes; } }
-            public global::PARSE_RESULT Invoke(ILTypeInstance instance, System.Byte[] buffer, System.Int32 size, ref System.Int32 index, out global::NetPacketTCP packet)
-            {
-                EnsureMethod(instance);
-                    packet = default(NetPacketTCP);
-
-                if (method != null)
-                {
-                    invoking = true;
-                    global::PARSE_RESULT __res = default(global::PARSE_RESULT);
-                    try
-                    {
-                        using (var ctx = domain.BeginInvoke(method))
-                        {
-                            ctx.PushObject(index);
-                            ctx.PushObject(packet);
-                            ctx.PushObject(instance);
-                            ctx.PushObject(buffer);
-                            ctx.PushInteger(size);
-                            ctx.PushReference(0);
-                            ctx.PushReference(1);
-                            ctx.Invoke();
-                            __res = ctx.ReadObject<global::PARSE_RESULT>();
-                            index = ctx.ReadObject<System.Int32>(0);
-                            packet = ctx.ReadObject<global::NetPacketTCP>(1);
-                        }
-                    }
-                    finally
-                    {
-                        invoking = false;
-                    }
-                   return __res;
-                }
-                else
-                    return default(global::PARSE_RESULT);
-            }
-
-            public override void Invoke(ILTypeInstance instance)
-            {
-                throw new NotSupportedException();
-            }
-        }
-        static packetRead_5Info mpacketRead_5 = new packetRead_5Info();
-        static CrossBindingMethodInfo<System.String> msetName_6 = new CrossBindingMethodInfo<System.String>("setName");
-        static CrossBindingMethodInfo<System.Boolean> msetDestroy_7 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
-        static CrossBindingFunctionInfo<System.Boolean> misDestroy_8 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
-        static CrossBindingMethodInfo<System.Int64> msetAssignID_9 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
-        static CrossBindingFunctionInfo<System.Int64> mgetAssignID_10 = new CrossBindingFunctionInfo<System.Int64>("getAssignID");
         public override Type BaseCLRType
         {
             get
@@ -95,6 +35,87 @@ namespace HotFix
 
         public class Adapter : global::NetConnectTCP, CrossBindingAdaptorType
         {
+            CrossBindingMethodInfo<System.Net.IPAddress, System.Int32> minit_0 = new CrossBindingMethodInfo<System.Net.IPAddress, System.Int32>("init");
+            CrossBindingMethodInfo mresetProperty_1 = new CrossBindingMethodInfo("resetProperty");
+            CrossBindingMethodInfo<System.Single> mupdate_2 = new CrossBindingMethodInfo<System.Single>("update");
+            CrossBindingMethodInfo mdestroy_3 = new CrossBindingMethodInfo("destroy");
+            CrossBindingMethodInfo<global::NetPacket> msendNetPacket_4 = new CrossBindingMethodInfo<global::NetPacket>("sendNetPacket");
+            CrossBindingMethodInfo mclearSocket_5 = new CrossBindingMethodInfo("clearSocket");
+            CrossBindingFunctionInfo<System.UInt16, System.Byte[], System.Int32, System.Int32, System.UInt64, global::NetPacket> mparsePacket_6 = new CrossBindingFunctionInfo<System.UInt16, System.Byte[], System.Int32, System.Int32, System.UInt64, global::NetPacket>("parsePacket");
+            class preParsePacket_7Info : CrossBindingMethodInfo
+            {
+                static Type[] pTypes = new Type[] {typeof(System.Byte[]), typeof(System.Int32), typeof(System.Int32).MakeByRefType(), typeof(System.Byte[]).MakeByRefType(), typeof(System.UInt16).MakeByRefType(), typeof(System.Int32).MakeByRefType(), typeof(System.Int32).MakeByRefType(), typeof(System.UInt64).MakeByRefType(), typeof(global::PARSE_RESULT)};
+
+                public preParsePacket_7Info()
+                    : base("preParsePacket")
+                {
+
+                }
+
+                protected override Type ReturnType { get { return typeof(global::PARSE_RESULT); } }
+
+                protected override Type[] Parameters { get { return pTypes; } }
+                public global::PARSE_RESULT Invoke(ILTypeInstance instance, System.Byte[] buffer, System.Int32 size, ref System.Int32 bitIndex, out System.Byte[] outPacketData, out System.UInt16 packetType, out System.Int32 packetSize, out System.Int32 sequence, out System.UInt64 fieldFlag)
+                {
+                    EnsureMethod(instance);
+                    outPacketData = default(System.Byte[]);
+                    packetType = default(System.UInt16);
+                    packetSize = default(System.Int32);
+                    sequence = default(System.Int32);
+                    fieldFlag = default(System.UInt64);
+
+                    if (method != null)
+                    {
+                        invoking = true;
+                        global::PARSE_RESULT __res = default(global::PARSE_RESULT);
+                        try
+                        {
+                            using (var ctx = domain.BeginInvoke(method))
+                            {
+                            ctx.PushInteger(bitIndex);
+                            ctx.PushObject(outPacketData);
+                            ctx.PushInteger(packetType);
+                            ctx.PushInteger(packetSize);
+                            ctx.PushInteger(sequence);
+                            ctx.PushLong((long)fieldFlag);
+                                ctx.PushObject(instance);
+                            ctx.PushObject(buffer);
+                            ctx.PushInteger(size);
+                                ctx.PushReference(0);
+                                ctx.PushReference(1);
+                                ctx.PushReference(2);
+                                ctx.PushReference(3);
+                                ctx.PushReference(4);
+                                ctx.PushReference(5);
+                                ctx.Invoke();
+                            __res = ctx.ReadObject<global::PARSE_RESULT>();
+                             bitIndex = ctx.ReadInteger(0);
+                            outPacketData = ctx.ReadObject<System.Byte[]>(1);
+                            packetType = (ushort)ctx.ReadInteger(2);
+                             packetSize = ctx.ReadInteger(3);
+                             sequence = ctx.ReadInteger(4);
+                            fieldFlag = (ulong)ctx.ReadLong(5);
+                            }
+                        }
+                        finally
+                        {
+                            invoking = false;
+                        }
+                       return __res;
+                    }
+                    else
+                        return default(global::PARSE_RESULT);
+                }
+
+                public override void Invoke(ILTypeInstance instance)
+                {
+                    throw new NotSupportedException();
+                }
+            }
+            preParsePacket_7Info mpreParsePacket_7 = new preParsePacket_7Info();
+            CrossBindingMethodInfo<System.String> msetName_8 = new CrossBindingMethodInfo<System.String>("setName");
+
+            bool isInvokingToString;
             ILTypeInstance instance;
             ILRuntime.Runtime.Enviorment.AppDomain appdomain;
 
@@ -111,12 +132,12 @@ namespace HotFix
 
             public ILTypeInstance ILInstance { get { return instance; } }
 
-            public override void init(System.Net.IPAddress ip, System.Int32 port, System.Single heartBeatTimeOut)
+            public override void init(System.Net.IPAddress ip, System.Int32 port)
             {
                 if (minit_0.CheckShouldInvokeBase(this.instance))
-                    base.init(ip, port, heartBeatTimeOut);
+                    base.init(ip, port);
                 else
-                    minit_0.Invoke(this.instance, ip, port, heartBeatTimeOut);
+                    minit_0.Invoke(this.instance, ip, port);
             }
 
             public override void resetProperty()
@@ -143,54 +164,35 @@ namespace HotFix
                     mdestroy_3.Invoke(this.instance);
             }
 
-            public override void sendPacket(global::NetPacketTCP packet)
+            public override void sendNetPacket(global::NetPacket packet)
             {
-                msendPacket_4.Invoke(this.instance, packet);
+                msendNetPacket_4.Invoke(this.instance, packet);
             }
 
-            protected override global::PARSE_RESULT packetRead(System.Byte[] buffer, System.Int32 size, ref System.Int32 index, out global::NetPacketTCP packet)
+            public override void clearSocket()
             {
-                return mpacketRead_5.Invoke(this.instance, buffer, size, ref index, out packet);
+                if (mclearSocket_5.CheckShouldInvokeBase(this.instance))
+                    base.clearSocket();
+                else
+                    mclearSocket_5.Invoke(this.instance);
+            }
+
+            protected override global::NetPacket parsePacket(System.UInt16 packetType, System.Byte[] buffer, System.Int32 size, System.Int32 sequence, System.UInt64 fieldFlag)
+            {
+                return mparsePacket_6.Invoke(this.instance, packetType, buffer, size, sequence, fieldFlag);
+            }
+
+            protected override global::PARSE_RESULT preParsePacket(System.Byte[] buffer, System.Int32 size, ref System.Int32 bitIndex, out System.Byte[] outPacketData, out System.UInt16 packetType, out System.Int32 packetSize, out System.Int32 sequence, out System.UInt64 fieldFlag)
+            {
+                return mpreParsePacket_7.Invoke(this.instance, buffer, size, ref bitIndex, out outPacketData, out packetType, out packetSize, out sequence, out fieldFlag);
             }
 
             public override void setName(System.String name)
             {
-                if (msetName_6.CheckShouldInvokeBase(this.instance))
+                if (msetName_8.CheckShouldInvokeBase(this.instance))
                     base.setName(name);
                 else
-                    msetName_6.Invoke(this.instance, name);
-            }
-
-            public override void setDestroy(System.Boolean isDestroy)
-            {
-                if (msetDestroy_7.CheckShouldInvokeBase(this.instance))
-                    base.setDestroy(isDestroy);
-                else
-                    msetDestroy_7.Invoke(this.instance, isDestroy);
-            }
-
-            public override System.Boolean isDestroy()
-            {
-                if (misDestroy_8.CheckShouldInvokeBase(this.instance))
-                    return base.isDestroy();
-                else
-                    return misDestroy_8.Invoke(this.instance);
-            }
-
-            public override void setAssignID(System.Int64 assignID)
-            {
-                if (msetAssignID_9.CheckShouldInvokeBase(this.instance))
-                    base.setAssignID(assignID);
-                else
-                    msetAssignID_9.Invoke(this.instance, assignID);
-            }
-
-            public override System.Int64 getAssignID()
-            {
-                if (mgetAssignID_10.CheckShouldInvokeBase(this.instance))
-                    return base.getAssignID();
-                else
-                    return mgetAssignID_10.Invoke(this.instance);
+                    msetName_8.Invoke(this.instance, name);
             }
 
             public override string ToString()
@@ -199,7 +201,15 @@ namespace HotFix
                 m = instance.Type.GetVirtualMethod(m);
                 if (m == null || m is ILMethod)
                 {
-                    return instance.ToString();
+                    if (!isInvokingToString)
+                    {
+                        isInvokingToString = true;
+                        string res = instance.ToString();
+                        isInvokingToString = false;
+                        return res;
+                    }
+                    else
+                        return instance.Type.FullName;
                 }
                 else
                     return instance.Type.FullName;

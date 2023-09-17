@@ -1,9 +1,12 @@
 ﻿using System;
+using static UnityUtility;
+using static MathUtility;
 
+// 渐变UI亮度的组件
 public class COMWindowLum : ComponentKeyFrameNormal
 {
-	protected float mStart;
-	protected float mTarget;
+	protected float mStart;		// 起始亮度
+	protected float mTarget;	// 目标亮度
 	public void setStart(float lum) { mStart = lum; }
 	public void setTarget(float lum) { mTarget = lum; }
 	public override void resetProperty()

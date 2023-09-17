@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
 using System;
+using static MathUtility;
 
+// 物体的音量组件
 public class COMMovableObjectVolume : ComponentKeyFrameNormal
 {
-	protected float mStart;
-	protected float mTarget;
+	protected float mStart;		// 起始音量
+	protected float mTarget;	// 目标音量
 	public override void resetProperty()
 	{
 		base.resetProperty();

@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using static FrameDefine;
+using static UnityUtility;
 #if UNITY_STANDALONE_WIN
 using System.Runtime.InteropServices;
 #endif
 
-public class Dll : FrameBase
+// 表示一个通过Kernel32加载的动态库对象
+public class Dll : ClassObject
 {
-	protected Dictionary<string, Delegate> mFunctionList;
-	protected IntPtr mHandle;
-	protected string mLibraryName;
+	protected Dictionary<string, Delegate> mFunctionList;	// 已经获取的动态库中的函数列表
+	protected IntPtr mHandle;								// 动态库句柄
+	protected string mLibraryName;							// 动态库名字
 	public Dll()
 	{
 		mFunctionList = new Dictionary<string, Delegate>();
@@ -17,7 +20,7 @@ public class Dll : FrameBase
 	{
 		mLibraryName = name;
 #if UNITY_STANDALONE_WIN
-		mHandle = Kernel32.LoadLibrary(FrameDefine.F_PLUGINS_PATH + mLibraryName);
+		mHandle = Kernel32.LoadLibrary(F_PLUGINS_PATH + mLibraryName);
 #endif
 	}
 	public void destroy()

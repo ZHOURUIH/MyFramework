@@ -1,15 +1,16 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using static UnityUtility;
 
 // MovableObject的管理器,只用于管理MovableObject,其他的派生类则由其他的管理器管理
 // 因为MovableObject的派生类比较多,一般都会派生出其他的子类用作不同的用途
 public class MovableObjectManager : FrameSystem
 {
-	protected Dictionary<uint, MovableObject> mMovableObjectList;   // 所有物体的列表,用于查询
+	protected Dictionary<int, MovableObject> mMovableObjectList;   // 所有物体的列表,用于查询
 	protected List<MovableObject> mMovableObjectOrderList;          // 保存物体顺序的列表,用于更新
 	public MovableObjectManager()
 	{
-		mMovableObjectList = new Dictionary<uint, MovableObject>();
+		mMovableObjectList = new Dictionary<int, MovableObject>();
 		mMovableObjectOrderList = new List<MovableObject>();
 		mCreateObject = true;
 	}

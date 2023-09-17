@@ -3,18 +3,29 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
+using static UnityUtility;
+using static FrameBase;
+using static FileUtility;
+using static StringUtility;
+using static CSharpUtility;
+using static FrameUtility;
 
+// 3D场景管理器,管理unity场景资源
 public class SceneSystem : FrameSystem
 {
-	protected Dictionary<string, SceneRegisteInfo> mSceneRegisteList;
-	protected Dictionary<string, SceneInstance> mSceneList;
-	protected List<SceneInstance> mLoadList;
-	protected AssetBundleLoadCallback mSceneLoadCallback;
-	protected WaitForEndOfFrame mWaitEndFrame;
+	protected Dictionary<Type,List<SceneRegisteInfo>> mScriptMappingList;	// 场景脚本类型与场景注册信息的映射,允许多个相似的场景共用同一个场景脚本
+	protected Dictionary<string, SceneRegisteInfo> mSceneRegisteList;		// 场景注册信息
+	protected Dictionary<string, SceneInstance> mSceneList;					// 已经加载的所有场景
+	protected HashSet<SceneScriptCallback> mSceneScriptCallbackList;		// 脚本回调列表
+	protected List<SceneInstance> mLoadList;								// 即将加载的场景列表
+	protected AssetBundleLoadCallback mSceneLoadCallback;					// 避免GC的委托
+	protected WaitForEndOfFrame mWaitEndFrame;								// 用于避免GC
 	public SceneSystem()
 	{
-		mSceneList = new Dictionary<string, SceneInstance>();
+		mScriptMappingList = new Dictionary<Type, List<SceneRegisteInfo>>();
 		mSceneRegisteList = new Dictionary<string, SceneRegisteInfo>();
+		mSceneList = new Dictionary<string, SceneInstance>();
+		mSceneScriptCallbackList = new HashSet<SceneScriptCallback>();
 		mLoadList = new List<SceneInstance>();
 		mWaitEndFrame = new WaitForEndOfFrame();
 		mSceneLoadCallback = onSceneAssetBundleLoaded;
@@ -51,6 +62,17 @@ public class SceneSystem : FrameSystem
 			}
 		}
 	}
+	public void addScriptCallback(SceneScriptCallback callback)
+	{
+		if (!mSceneScriptCallbackList.Contains(callback))
+		{
+			mSceneScriptCallbackList.Add(callback);
+		}
+	}
+	public void removeScriptCallback(SceneScriptCallback callback)
+	{
+		mSceneScriptCallbackList.Remove(callback);
+	}
 	// filePath是场景文件所在目录,不含场景名,最好该目录下包含所有只在这个场景使用的资源
 	public void registeScene(Type type, string name, string filePath)
 	{
@@ -61,6 +83,12 @@ public class SceneSystem : FrameSystem
 		info.mScenePath = filePath;
 		info.mSceneType = type;
 		mSceneRegisteList.Add(name, info);
+		if (!mScriptMappingList.TryGetValue(type,out List<SceneRegisteInfo> list))
+		{
+			list = new List<SceneRegisteInfo>();
+			mScriptMappingList.Add(type, list);
+		}
+		list.Add(info);
 	}
 	public string getScenePath(string name)
 	{
@@ -74,6 +102,10 @@ public class SceneSystem : FrameSystem
 	{
 		mSceneList.TryGetValue(name, out SceneInstance scene);
 		return scene as T;
+	}
+	public int getScriptMappingCount(Type classType)
+	{
+		return mScriptMappingList[classType].Count;
 	}
 	public void setMainScene(string name)
 	{
@@ -220,6 +252,8 @@ public class SceneSystem : FrameSystem
 		}
 		SceneInstance scene = createInstance<SceneInstance>(info.mSceneType);
 		scene.setName(sceneName);
+		scene.setType(info.mSceneType);
+		notifySceneChanged(scene, true);
 		return scene;
 	}
 	// 只销毁场景,不从列表移除
@@ -229,7 +263,15 @@ public class SceneSystem : FrameSystem
 		{
 			return;
 		}
+		notifySceneChanged(scene, false);
 		scene.destroy();
 		SceneManager.UnloadSceneAsync(name);
+	}
+	protected void notifySceneChanged(SceneInstance scene, bool isLoad)
+	{
+		foreach(var item in mSceneScriptCallbackList)
+		{
+			item.Invoke(scene, isLoad);
+		}
 	}
 }

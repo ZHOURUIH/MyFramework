@@ -1,6 +1,8 @@
 ﻿using System;
 using UnityEngine;
+using static MathUtility;
 
+// 在Update中执行追踪
 public class ComponentTrackTargetNormal : ComponentTrackTarget
 {
 	public override void update(float elapsedTime)

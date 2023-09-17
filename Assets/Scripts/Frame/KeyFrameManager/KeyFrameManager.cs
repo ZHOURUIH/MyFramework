@@ -1,11 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityUtility;
+using static FrameBase;
+using static FrameUtility;
+using static StringUtility;
+using static FrameDefine;
 
+// 关键帧曲线管理器
 public class KeyFrameManager : FrameSystem
 {
-	protected Dictionary<int, MyCurve> mCurveList;
-	protected AssetLoadDoneCallback mKeyframeLoadCallback;
+	protected Dictionary<int, MyCurve> mCurveList;			// 关键帧曲线列表
+	protected AssetLoadDoneCallback mKeyframeLoadCallback;	// 用于避免GC的委托
 	protected bool mAutoLoad;		// 是否在资源可访问时自动加载所有关键帧
 	protected bool mLoaded;			// 资源是否加载完毕
 	public KeyFrameManager()
@@ -43,12 +49,12 @@ public class KeyFrameManager : FrameSystem
 		// 在编辑器中编辑的曲线
 		if (async)
 		{
-			mResourceManager.loadResourceAsync<GameObject>(FrameDefine.KEY_FRAME_FILE, mKeyframeLoadCallback);
+			mResourceManager.loadResourceAsync<GameObject>(KEY_FRAME_FILE, mKeyframeLoadCallback);
 		}
 		else
 		{
-			GameObject prefab = mResourceManager.loadResource<GameObject>(FrameDefine.KEY_FRAME_FILE);
-			mKeyframeLoadCallback(prefab, null, null, null, FrameDefine.KEY_FRAME_FILE);
+			GameObject prefab = mResourceManager.loadResource<GameObject>(KEY_FRAME_FILE);
+			mKeyframeLoadCallback(prefab, null, null, null, KEY_FRAME_FILE);
 		}
 	}
 	public override void destroy()
@@ -65,19 +71,20 @@ public class KeyFrameManager : FrameSystem
 	protected void onKeyFrameLoaded(UnityEngine.Object asset, UnityEngine.Object[] subAsset, byte[] bytes, object userData, string loadPath)
 	{
 		// 删除所有ID大于100的,也就是通过加载资源获得的曲线
-		LIST(out List<int> deleteKeys);
-		foreach (var item in mCurveList)
+		using (new ListScope<int>(out var deleteKeys))
 		{
-			if (item.Key > KEY_CURVE.MAX_BUILDIN_CURVE)
+			foreach (var item in mCurveList)
 			{
-				deleteKeys.Add(item.Key);
+				if (item.Key > KEY_CURVE.MAX_BUILDIN_CURVE)
+				{
+					deleteKeys.Add(item.Key);
+				}
+			}
+			foreach (var item in deleteKeys)
+			{
+				mCurveList.Remove(item);
 			}
 		}
-		foreach (var item in deleteKeys)
-		{
-			mCurveList.Remove(item);
-		}
-		UN_LIST(deleteKeys);
 
 		GameObject keyFrameObject = instantiatePrefab(mObject, asset as GameObject, getFileName(asset.name), true);
 		// 查找关键帧曲线,加入列表中
@@ -96,7 +103,7 @@ public class KeyFrameManager : FrameSystem
 			mCurveList[curveInfo.mID] = unityCurve;
 		}
 		destroyGameObject(keyFrameObject);
-		mResourceManager.unloadPath(FrameDefine.R_KEY_FRAME_PATH);
+		mResourceManager.unloadPath(R_KEY_FRAME_PATH);
 		mLoaded = true;
 	}
 	// 创建所有通过公式计算的曲线

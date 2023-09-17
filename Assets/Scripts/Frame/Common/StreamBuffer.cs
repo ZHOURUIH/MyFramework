@@ -1,11 +1,13 @@
 ﻿using System;
+using static FrameUtility;
+using static BinaryUtility;
 
 // 自定义缓冲区,用于持续写入数据
-public class StreamBuffer : FrameBase
+public class StreamBuffer : ClassObject
 {
-	protected byte[] mBuffer;
-	protected int mBufferSize;
-	protected int mDataLength;
+	protected byte[] mBuffer;		// 缓冲区
+	protected int mBufferSize;		// 缓冲区大小
+	protected int mDataLength;		// 当前数据大小
 	public StreamBuffer(){}
 	public StreamBuffer(int bufferSize)
 	{
@@ -17,8 +19,7 @@ public class StreamBuffer : FrameBase
 	}
 	public void destroy()
 	{
-		UN_ARRAY_THREAD(mBuffer);
-		mBuffer = null;
+		UN_ARRAY_THREAD(ref mBuffer);
 	}
 	public override void resetProperty()
 	{
@@ -27,28 +28,45 @@ public class StreamBuffer : FrameBase
 		mBufferSize = 0;
 		mDataLength = 0;
 	}
-	public byte[] getData(){return mBuffer;}
-	public int getDataLength(){return mDataLength;}
-	public void merge(StreamBuffer stream)
+	public byte[] getData(){ return mBuffer; }
+	public int getDataLength(){ return mDataLength; }
+	public int getBufferSize() { return mBufferSize; }
+	public bool merge(StreamBuffer stream)
 	{
-		addData(stream.getData(), stream.getDataLength());
+		return addData(stream.getData(), stream.getDataLength());
 	}
-	public void addData(byte[] data, int count)
+	public bool addData(byte[] data, int count)
 	{
 		// 缓冲区足够放下数据时才处理
-		if (count <= mBufferSize - mDataLength)
+		if (count > mBufferSize - mDataLength)
 		{
-			memcpy(mBuffer, data, mDataLength, 0, count);
-			mDataLength += count;
+			return false;
 		}
+		memcpy(mBuffer, data, mDataLength, 0, count);
+		mDataLength += count;
+		return true;
 	}
-	public void removeData(int start, int count)
+	public bool addData(byte[] data, int offset, int count)
 	{
-		if (mDataLength >= start + count)
+		// 缓冲区足够放下数据时才处理
+		if (count > mBufferSize - mDataLength)
 		{
-			memmove(ref mBuffer, start, start + count, mDataLength - start - count);
-			mDataLength -= count;
+			return false;
 		}
+		memcpy(mBuffer, data, mDataLength, offset, count);
+		mDataLength += count;
+		return true;
+	}
+	public bool removeData(int start, int count)
+	{
+		if (start + count > mDataLength)
+		{
+			return false;
+		}
+		memmove(ref mBuffer, start, start + count, mDataLength - start - count);
+		mDataLength -= count;
+		memset(mBuffer, (byte)0, mDataLength, count);
+		return true;
 	}
 	public void clear()
 	{
@@ -70,7 +88,7 @@ public class StreamBuffer : FrameBase
 			{
 				memcpy(newBuffer, mBuffer, 0, 0, mDataLength);
 			}
-			UN_ARRAY_THREAD(mBuffer);
+			UN_ARRAY_THREAD(ref mBuffer);
 			mBuffer = newBuffer;
 		}
 		else

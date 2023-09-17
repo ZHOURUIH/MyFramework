@@ -1,20 +1,11 @@
 ﻿using System;
 
-public class CmdGameSceneBackToLastProcedure : Command
+// 返回到上一个流程
+public class CmdGameSceneBackToLastProcedure
 {
-	public string mIntent;
-	public override void resetProperty()
+	// intent,跳转流程时要传递的参数
+	public static void execute(GameScene scene, string intent)
 	{
-		base.resetProperty();
-		mIntent = null;
-	}
-	public override void execute()
-	{
-		var gameScene = mReceiver as GameScene;
-		gameScene.backToLastProcedure(mIntent);
-	}
-	public override void debugInfo(MyStringBuilder builder)
-	{
-		builder.Append(": mIntent:", mIntent);
+		scene.backToLastProcedure(intent);
 	}
 }

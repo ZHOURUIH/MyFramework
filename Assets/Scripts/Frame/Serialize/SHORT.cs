@@ -1,30 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 
-public class SHORT : OBJECT
+// 自定义的对short的封装,提供类似于short指针的功能,可用于序列化
+public class SHORT : SerializableBit
 {
-	protected const int TYPE_SIZE = sizeof(short);
-	public short mValue;
-	public SHORT()
+	public short mValue;		// 值
+	public override void resetProperty() 
 	{
-		mType = typeof(short);
-		mSize = TYPE_SIZE;
+		base.resetProperty();
+		mValue = 0; 
 	}
-	public SHORT(short value)
-	{
-		mValue = value;
-		mType = typeof(short);
-		mSize = TYPE_SIZE;
-	}
-	public override void zero() { mValue = 0; }
 	public void set(short value) { mValue = value; }
-	public override bool readFromBuffer(byte[] buffer, ref int index)
+	public override bool read(SerializerBitRead reader)
 	{
-		mValue = readShort(buffer, ref index, out bool success);
-		return success;
+		return reader.read(out mValue);
 	}
-	public override bool writeToBuffer(byte[] buffer, ref int index)
+	public override void write(SerializerBitWrite writer)
 	{
-		return writeShort(buffer, ref index, mValue);
+		writer.write(mValue);
 	}
 }

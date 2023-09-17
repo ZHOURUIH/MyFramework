@@ -1,18 +1,20 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
+using static CSharpUtility;
 
+// 逻辑场景管理器
 public class GameSceneManager : FrameSystem
 {
-	protected List<GameScene> mLastSceneList;
-	protected GameScene mCurScene;
+	protected List<GameScene> mLastSceneList;		// 上一个场景的列表,用于在update中延迟销毁上一个场景
+	protected GameScene mCurScene;					// 当前场景
 	public GameSceneManager()
 	{
 		mLastSceneList = new List<GameScene>();
 		mCreateObject = true;
 	}
-	public new GameScene getCurScene(){ return mCurScene; }
-	public new bool enterScene(Type type, Type startProcedure, string intent)
+	public GameScene getCurScene(){ return mCurScene; }
+	public bool enterScene(Type type, Type startProcedure, string intent)
 	{
 		// 再次进入当前的场景,只是从初始流程开始执行,并不会重新执行进入场景的操作
 		if (mCurScene != null && Typeof(mCurScene) == type)

@@ -3,15 +3,27 @@ using Mono.Data.Sqlite;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using static UnityUtility;
+using static FileUtility;
+using static StringUtility;
+using static CSharpUtility;
+using static BinaryUtility;
+using static FrameBase;
+using static FrameDefine;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+using UnityEngine.Profiling;
+#endif
+using UnityEngine;
+using UnityEditor;
 
-public class SQLiteTable : FrameBase
+// 表示一个SQLite表格
+public class SQLiteTable : ClassObject
 {
-	protected Dictionary<int, SQLiteData> mDataMap;
-	protected SqliteConnection mConnection;
-	protected SqliteCommand mCommand;
-	protected string mTableName;
-	protected Type mDataClassType;
-	protected bool mFullData;		// 数据是否已经全部查询过了
+	protected Dictionary<int, SQLiteData> mDataMap;		// 以数据ID为索引的数据缓存列表
+	protected SqliteConnection mConnection;				// SQLite所需的Connection
+	protected SqliteCommand mCommand;					// SQLite所需的Command
+	protected string mTableName;						// 表格名称
+	protected Type mDataClassType;						// 数据类型
 	public SQLiteTable()
 	{
 		mDataMap = new Dictionary<int, SQLiteData>();
@@ -24,34 +36,69 @@ public class SQLiteTable : FrameBase
 		mCommand = null;
 		mTableName = null;
 		mDataClassType = null;
-		mFullData = false;
 	}
-	public void load(byte[] encryptKey)
+	public byte[] generateEncryptKey()
+	{
+		string preKey = "ASLD" + mTableName;
+		string key = generateFileMD5(stringToBytes(preKey)) + "23y35y9832635872349862365274732047chsudhgkshgwshfoweh238c42384fync9388v45982nc3484";
+		return stringToBytes(key);
+	}
+	public void load()
 	{
 		try
 		{
-			string fullPath = availablePath(FrameDefine.SA_DATA_BASE_PATH + mTableName + ".db");
-			if (isFileExist(fullPath))
+			clearCommand();
+			clearConnection();
+			clearAll();
+			// 解密文件
+			byte[] encryptKey = generateEncryptKey();
+			TextAsset textAsset = null;
+			if (mResourceManager != null)
 			{
-				clearCommand();
-				clearConnection();
-				clearAll();
-				// 解密文件
-				int fileSize = openFile(fullPath, out byte[] fileBuffer, true);
-				for(int i = 0; i < fileSize; ++i)
-				{
-					fileBuffer[i] ^= encryptKey[i % encryptKey.Length];
-				}
-				// 将解密后的数据写入新的目录,需要写入PersistentDataPath
-				string newPath = strcat(FrameDefine.F_PERSISTENT_DATA_PATH, FrameDefine.SA_DATA_BASE_PATH, "/temp/", mTableName, ".db");
-				writeFile(newPath, fileBuffer, fileSize);
-				releaseFile(fileBuffer);
-				connect(newPath);
+				textAsset = mResourceManager.loadResource<TextAsset>(R_SQLITE_PATH + mTableName + ".bytes");
 			}
+			else
+			{
+#if UNITY_EDITOR
+				textAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(P_SQLITE_PATH + mTableName + ".bytes");
+#else
+				return;
+#endif
+			}
+			byte[] fileBuffer = textAsset.bytes;
+			int fileSize = fileBuffer.Length;
+			for (int i = 0; i < fileSize; ++i)
+			{
+				fileBuffer[i] ^= encryptKey[i % encryptKey.Length];
+			}
+			// 将解密后的数据写入新的目录,需要写入临时目录,编辑器中写入固定路径即可
+#if UNITY_EDITOR
+			string newPath = F_TEMPORARY_CACHE_PATH + "../../" + mTableName + "/" + mTableName;
+#else
+			string folder = generateFileMD5(BinaryUtility.stringToBytes(mTableName));
+#if UNITY_STANDALONE_WIN
+			string newPath = F_TEMPORARY_CACHE_PATH + "../../" + folder;
+#else
+			string newPath = FrameUtility.availableWritePath("temp/" + folder);
+#endif
+#endif
+			writeFile(newPath, fileBuffer, fileSize);
+			if (mResourceManager != null)
+			{
+				mResourceManager.unload(ref textAsset);
+			}
+			else
+			{
+#if UNITY_EDITOR
+				Resources.UnloadAsset(textAsset);
+#endif
+			}
+			connect(newPath);
 		}
 		catch (Exception e)
 		{
-			logError("打开数据库失败:" + e.Message + ", stack:" + e.StackTrace);
+			destroy();
+			logException(e, "打开数据库失败");
 		}
 	}
 	public void destroy()
@@ -105,76 +152,41 @@ public class SQLiteTable : FrameBase
 	public void setDataType(Type dataClassType) { mDataClassType = dataClassType; }
 	public void setTableName(string name) { mTableName = name; }
 	public string getTableName() { return mTableName; }
-	public void checkSQLite() 
+	public SqliteDataReader doQuery(string condition = null)
 	{
-		LIST(out List<SQLiteData> list);
-		queryAll(mDataClassType, list);
-		int count = list.Count;
-		for (int i = 0; i < count; ++i)
+		if (!isEmpty(condition))
 		{
-			if (!list[i].checkData())
-			{
-				logError("表格数据发现错误:Type:" + Typeof(this) + ", ID:" + list[i].mID);
-			}
+			return queryReader("SELECT * FROM " + mTableName + " WHERE " + condition);
 		}
-		UN_LIST(list);
-	}
-	public SqliteDataReader doQuery()
-	{
-		return queryReader("SELECT * FROM " + mTableName);
-	}
-	public SqliteDataReader doQuery(string condition)
-	{
-		return queryReader(END_STRING(STRING("SELECT * FROM ", mTableName, " WHERE ", condition)));
+		else
+		{
+			return queryReader("SELECT * FROM " + mTableName);
+		}
 	}
 	public void doUpdate(string updateString, string conditionString)
 	{
-		queryNonReader(END_STRING(STRING("UPDATE ", mTableName, " SET ", updateString, " WHERE ", conditionString)));
+		queryNonReader(strcat("UPDATE ", mTableName, " SET ", updateString, " WHERE ", conditionString));
 	}
 	public void doInsert(string valueString)
 	{
-		queryNonReader(END_STRING(STRING("INSERT INTO ", mTableName, " VALUES (", valueString, ")")));
+		queryNonReader(strcat("INSERT INTO ", mTableName, " VALUES (", valueString, ")"));
 	}
-	public SQLiteData query(int id, out SQLiteData data, bool errorIfNull = true)
+	public SQLiteData query(int id, bool errorIfNull = true)
 	{
-		if (mDataMap.TryGetValue(id, out data))
+		if (mDataMap.TryGetValue(id, out SQLiteData data))
 		{
 			return data;
 		}
-		MyStringBuilder condition = STRING();
-		appendConditionInt(condition, SQLiteData.ID, id, EMPTY);
-		parseReader(doQuery(END_STRING(condition)), out data);
+		using (new ClassScope<MyStringBuilder>(out var condition))
+		{
+			appendConditionInt(condition, SQLiteData.ID, id, EMPTY);
+			parseReader(doQuery(condition.ToString()), out data);
+		}
 		mDataMap.Add(id, data);
 		if (data == null && errorIfNull)
 		{
-			logError("表格中找不到指定数据: ID:" + id + ", Type:" + mDataClassType.ToString());
+			logError("表格中找不到指定数据: ID:" + id + ", Type:" + mDataClassType);
 		}
-		return data;
-	}
-	public SQLiteData query(Type type, int id, out SQLiteData data, bool errorIfNull = true)
-	{
-		if (!mDataMap.TryGetValue(id, out data))
-		{
-			MyStringBuilder condition = STRING();
-			appendConditionInt(condition, SQLiteData.ID, id, EMPTY);
-			parseReader(doQuery(END_STRING(condition)), out data);
-			mDataMap.Add(id, data);
-		}
-		if (data == null && errorIfNull)
-		{
-			logError("表格中找不到指定数据: ID:" + id + ", Type:" + mDataClassType.ToString());
-		}
-		if (type != mDataClassType)
-		{
-			logError("sqlite table type error, this type:" + mDataClassType + ", param type:" + type);
-			data = null;
-		}
-		return data;
-	}
-	public SQLiteData query(Type type, int id, bool errorIfNull = true)
-	{
-		SQLiteData data;
-		query(type, id, out data, errorIfNull);
 		return data;
 	}
 	public void insert<T>(T data) where T : SQLiteData
@@ -188,47 +200,54 @@ public class SQLiteTable : FrameBase
 			logError("sqlite table type error, this type:" + mDataClassType + ", param type:" + Typeof(data));
 			return;
 		}
-		MyStringBuilder valueString = STRING();
-		data.insert(valueString);
-		removeLastComma(valueString);
-		doInsert(END_STRING(valueString));
+		using (new ClassScope<MyStringBuilder>(out var valueString))
+		{
+			data.insert(valueString);
+			removeLastComma(valueString);
+			doInsert(valueString.ToString());
+		}
 		mDataMap.Add(data.mID, data);
 	}
-	public void queryAll<T>(Type type, List<T> dataList) where T : SQLiteData
+	public void queryDataList<T>(string condition, Type type, List<T> dataList) where T : SQLiteData
 	{
 		if (type != mDataClassType)
 		{
 			logError("sqlite table type error, this type:" + mDataClassType + ", param type:" + type);
 			return;
 		}
-
-		// 已经全部查询过了,则返回已查询的数据
-		if(mFullData)
-		{
-			dataList.Capacity = mDataMap.Count;
-			foreach(var item in mDataMap)
-			{
-				dataList.Add(item.Value as T);
-			}
-			return;
-		}
-
-		// 没有全部查询过时,从表中全部查询一次,此处会舍弃之前查询的全部数据,重新申请一个字典,因为只有构造时才能设置初始容量
-		mFullData = true;
-		parseReader(type, doQuery(), dataList);
-		mDataMap = new Dictionary<int, SQLiteData>(dataList.Count);
+		parseReader(type, doQuery(condition), dataList);
 		int count = dataList.Count;
 		for (int i = 0; i < count; ++i)
 		{
-			SQLiteData item = dataList[i];
-			mDataMap.Add(item.mID, item);
+			SQLiteData data = dataList[i];
+			if (!mDataMap.ContainsKey(data.mID))
+			{
+				mDataMap.Add(data.mID, data);
+			}
+		}
+	}
+	public void queryDataList<T>(Type type, List<T> dataList) where T : SQLiteData
+	{
+		if (type != mDataClassType)
+		{
+			logError("sqlite table type error, this type:" + mDataClassType + ", param type:" + type);
+			return;
+		}
+		parseReader(type, doQuery(), dataList);
+		int count = dataList.Count;
+		for (int i = 0; i < count; ++i)
+		{
+			SQLiteData data = dataList[i];
+			if (!mDataMap.ContainsKey(data.mID))
+			{
+				mDataMap.Add(data.mID, data);
+			}
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected virtual void clearAll()
 	{
 		mDataMap.Clear();
-		mFullData = false;
 	}
 	protected void parseReader(Type type, SqliteDataReader reader, out SQLiteData data)
 	{
@@ -272,6 +291,9 @@ public class SQLiteTable : FrameBase
 		{
 			return;
 		}
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+		Profiler.BeginSample("sqlite parseReader " + mTableName);
+#endif
 		while (reader.Read())
 		{
 			var data = createInstance<SQLiteData>(type);
@@ -280,6 +302,9 @@ public class SQLiteTable : FrameBase
 			dataList.Add(data);
 		}
 		reader.Close();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+		Profiler.EndSample();
+#endif
 	}
 	protected void clearConnection()
 	{

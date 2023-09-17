@@ -1,176 +1,246 @@
 ﻿using System;
-using System.Net;
+using static UnityUtility;
+using static FrameBase;
+using static BinaryUtility;
+using static MathUtility;
+using static FrameUtility;
+using static CSharpUtility;
+using static FrameDefine;
 
 // Frame层默认的TCP连接封装类,应用层可根据实际需求仿照此类封装自己的TCP连接类
 public class NetConnectTCPFrame : NetConnectTCP
 {
-	public override void init(IPAddress ip, int port, float heartBeatTimeOut)
+	protected EncryptPacket mEncryptPacket;
+	protected DecryptPacket mDecryptPacket;
+	protected SerializerBitWrite mBitWriter;
+	protected int mLastReceiveSequenceNumber;
+	protected int mSendSequenceNumber;
+	public NetConnectTCPFrame()
 	{
-		base.init(ip, port, heartBeatTimeOut);
-		mMinPacketSize = FrameDefine.PACKET_TYPE_SIZE;
+		mBitWriter = new SerializerBitWrite();
 	}
 	public override void resetProperty()
 	{
 		base.resetProperty();
+		mEncryptPacket = null;
+		mDecryptPacket = null;
+		mLastReceiveSequenceNumber = 0;
+		mSendSequenceNumber = 0;
 	}
-	public override void sendPacket(NetPacketTCP packet)
+	public override void clearSocket()
 	{
+		base.clearSocket();
+		mLastReceiveSequenceNumber = 0;
+		mSendSequenceNumber = 0;
+	}
+	public void setEncrypt(EncryptPacket encrypt, DecryptPacket decrypt)
+	{
+		mEncryptPacket = encrypt;
+		mDecryptPacket = decrypt;
+	}
+	public override void sendNetPacket(NetPacket packet)
+	{
+		if (!isMainThread())
+		{
+			mSocketFactory.destroyPacket(packet);
+			logError("只能在主线程发送消息");
+			return;
+		}
 		if (mSocket == null || !mSocket.Connected || mNetState != NET_STATE.CONNECTED)
 		{
 			mSocketFactory.destroyPacket(packet);
 			return;
 		}
+		
+		var netPacket = packet as NetPacketFrame;
+		if (netPacket.isDestroy())
+		{
+			logError("消息对象已经被销毁,数据无效");
+			return;
+		}
+
 		// 需要先序列化消息,同时获得包体实际的长度,提前获取包类型
 		// 包类型的高2位表示了当前包体是用几个字节存储的
-		var tcpPacket = packet as NetPacketTCPFrame;
-		ushort packetType = tcpPacket.getPacketType();
-		ARRAY(out byte[] bodyBuffer, getGreaterPow2(tcpPacket.generateSize(true)));
-		int realPacketSize = tcpPacket.write(bodyBuffer);
-		// 序列化完以后立即销毁消息包
-		mSocketFactory.destroyPacket(tcpPacket);
-
+		ushort packetType = netPacket.getPacketType();
+		mBitWriter.clear();
+		netPacket.write(mBitWriter, out ulong fieldFlag);
+		int realPacketSize = mBitWriter.getByteCount();
+		byte[] packetBodyData = mBitWriter.getBuffer();
 		if (realPacketSize < 0)
 		{
-			UN_ARRAY(bodyBuffer);
 			logError("消息序列化失败!");
 			return;
 		}
 
+		// 加密包体
+		++mSendSequenceNumber;
+		if (packetBodyData != null)
+		{
+			mEncryptPacket?.Invoke(packetBodyData, 0, realPacketSize, (byte)(packetType + realPacketSize + (mSendSequenceNumber ^ 123 ^ packetType)));
+		}
+
 		// 将消息包中的数据准备好,然后放入发送列表中
-		// 开始的2个字节仅用于发送数据长度标记,不会真正发出去
-		// 接下来的数据是包头,包头的长度为2~6个字节
-		// 包中实际的包头大小
-		int headerSize = FrameDefine.PACKET_TYPE_SIZE;
-		// 包体长度为0,则包头不包含包体长度,包类型高2位全部设置为0
-		if (realPacketSize == 0)
+		using (new ClassScope<SerializerBitWrite>(out var writer))
 		{
-			setBit(ref packetType, FrameDefine.PACKET_TYPE_SIZE * 8 - 1, 0);
-			setBit(ref packetType, FrameDefine.PACKET_TYPE_SIZE * 8 - 2, 0);
+			writer.write(realPacketSize);
+			writer.write(generateCRC16(realPacketSize));
+			writer.write(packetType);
+			writer.write(mSendSequenceNumber);
+			// 写入一位用于获取是否需要使用标记位
+			writer.write(fieldFlag != FULL_FIELD_FLAG);
+			if (fieldFlag != FULL_FIELD_FLAG)
+			{
+				writer.write(fieldFlag);
+			}
+			// 写入包体数据
+			if (packetBodyData != null)
+			{
+				writer.writeBuffer(packetBodyData, realPacketSize);
+			}
+			// 确认字节所有位都已经填充
+			writer.fillZeroToByteEnd();
+			// 校验码
+			writer.write(generateCRC16(writer.getBuffer(), writer.getByteCount()));
+			int curByteCount = writer.getByteCount();
+			// 添加到写缓冲中
+			ARRAY_THREAD(out byte[] packetData, getGreaterPow2(curByteCount));
+			memcpy(packetData, writer.getBuffer(), 0, 0, curByteCount);
+			mOutputBuffer.add(new OutputDataInfo(packetData, curByteCount));
 		}
-		// 包体长度可以使用1个字节表示,则包体长度使用1个字节表示
-		else if (realPacketSize <= 0xFF)
-		{
-			headerSize += sizeof(byte);
-			setBit(ref packetType, FrameDefine.PACKET_TYPE_SIZE * 8 - 1, 0);
-			setBit(ref packetType, FrameDefine.PACKET_TYPE_SIZE * 8 - 2, 1);
-		}
-		// 包体长度使用2个字节表示
-		else if (realPacketSize <= 0xFFFF)
-		{
-			headerSize += sizeof(ushort);
-			setBit(ref packetType, FrameDefine.PACKET_TYPE_SIZE * 8 - 1, 1);
-			setBit(ref packetType, FrameDefine.PACKET_TYPE_SIZE * 8 - 2, 0);
-		}
-		// 包体长度使用4个字节表示
-		else
-		{
-			headerSize += sizeof(int);
-			setBit(ref packetType, FrameDefine.PACKET_TYPE_SIZE * 8 - 1, 1);
-			setBit(ref packetType, FrameDefine.PACKET_TYPE_SIZE * 8 - 2, 1);
-		}
-		ARRAY_THREAD(out byte[] packetData, getGreaterPow2(sizeof(int) + headerSize + realPacketSize));
-		int index = 0;
-		// 本次消息包的数据长度,因为byte[]本身的长度并不代表要发送的实际的长度,所以将数据长度保存下来
-		writeInt(packetData, ref index, headerSize + realPacketSize);
-		// 消息类型
-		writeUShort(packetData, ref index, packetType);
-		// 消息长度,按实际消息长度写入长度的字节内容
-		if (headerSize == FrameDefine.PACKET_TYPE_SIZE + sizeof(byte))
-		{
-			writeByte(packetData, ref index, (byte)realPacketSize);
-		}
-		else if (headerSize == FrameDefine.PACKET_TYPE_SIZE + sizeof(ushort))
-		{
-			writeUShort(packetData, ref index, (ushort)realPacketSize);
-		}
-		else if (headerSize == FrameDefine.PACKET_TYPE_SIZE + sizeof(int))
-		{
-			writeInt(packetData, ref index, realPacketSize);
-		}
-		// 写入包体数据
-		writeBytes(packetData, ref index, bodyBuffer, -1, -1, realPacketSize);
-		UN_ARRAY(bodyBuffer);
-		// 添加到写缓冲中
-		mOutputBuffer.add(packetData);
+		mSocketFactory.destroyPacket(netPacket);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected override PARSE_RESULT packetRead(byte[] buffer, int size, ref int index, out NetPacketTCP packet)
+	protected override PARSE_RESULT preParsePacket(byte[] buffer, int size, ref int bitIndex, out byte[] outPacket, out ushort packetType, 
+													out int packetSize, out int sequence, out ulong fieldFlag)
 	{
-		packet = null;
-		ushort type = readUShort(buffer, ref index, out _);
-		int bit0 = getBit(type, FrameDefine.PACKET_TYPE_SIZE * 8 - 1);
-		int bit1 = getBit(type, FrameDefine.PACKET_TYPE_SIZE * 8 - 2);
-
-		// 获得包体长度
-		int packetSize = 0;
-		// 包体长度为0
-		if (bit0 == 0 && bit1 == 0)
-		{
-			packetSize = 0;
-		}
-		// 包体长度使用1个字节表示
-		else if (bit0 == 0 && bit1 == 1)
-		{
-			if (size < FrameDefine.PACKET_TYPE_SIZE + sizeof(byte))
-			{
-				return PARSE_RESULT.NOT_ENOUGH;
-			}
-			packetSize = readByte(buffer, ref index, out _);
-		}
-		// 包体长度使用2个字节表示
-		else if (bit0 == 1 && bit1 == 0)
-		{
-			if (size < FrameDefine.PACKET_TYPE_SIZE + sizeof(ushort))
-			{
-				return PARSE_RESULT.NOT_ENOUGH;
-			}
-			packetSize = readUShort(buffer, ref index, out _);
-		}
-		// 包体长度使用4个字节表示
-		else if (bit0 == 1 && bit1 == 1)
-		{
-			if (size < FrameDefine.PACKET_TYPE_SIZE + sizeof(int))
-			{
-				return PARSE_RESULT.NOT_ENOUGH;
-			}
-			packetSize = readInt(buffer, ref index, out _);
-		}
-
-		// 还原包类型
-		setBit(ref type, FrameDefine.PACKET_TYPE_SIZE * 8 - 1, 0);
-		setBit(ref type, FrameDefine.PACKET_TYPE_SIZE * 8 - 2, 0);
-		// 客户端接收到的必须是SC类型的
-		if (type <= FrameDefine.SC_MIN || type >= FrameDefine.SC_MAX)
-		{
-			logError("包类型错误:" + type);
-			debugHistoryPacket();
-			mInputBuffer.clear();
-			return PARSE_RESULT.ERROR;
-		}
-
-		// 验证包长度是否正确,未接收完全,等待下次接收
-		if (size < index + packetSize)
+		outPacket = null;
+		packetType = 0;
+		packetSize = 0;
+		sequence = 0;
+		fieldFlag = FULL_FIELD_FLAG;
+		// 可能还没有接收完全,等待下次接收
+		if (size == 0)
 		{
 			return PARSE_RESULT.NOT_ENOUGH;
 		}
 
-		// 创建对应的消息包,并设置数据,然后放入列表中等待解析
-		var packetReply = mSocketFactoryThread.createSocketPacket(type) as NetPacketTCPFrame;
-		packet = packetReply;
-		packet.setConnect(this);
-		int readDataCount = packetReply.read(buffer, ref index);
-		if (packetSize != 0 && readDataCount < 0)
+		using (new ClassThreadScope<SerializerBitRead>(out var reader))
 		{
-			logError("包解析错误:" + type + ", 实际接收字节数:" + packetSize);
-			mSocketFactoryThread.destroyPacket(packet);
-			return PARSE_RESULT.ERROR;
-		}
-		if (readDataCount != packetSize)
-		{
-			logError("接收字节数与解析后消息包字节数不一致:" + type + ",接收:" + packetSize + ", 解析:" + readDataCount);
-			mSocketFactoryThread.destroyPacket(packet);
-			return PARSE_RESULT.ERROR;
+			reader.init(buffer, size, bitIndex);
+			if (!reader.read(out packetSize))
+			{
+				return PARSE_RESULT.NOT_ENOUGH;
+			}
+			if (!reader.read(out ushort packetSizeCRC))
+			{
+				return PARSE_RESULT.NOT_ENOUGH;
+			}
+			if (generateCRC16(packetSize) != packetSizeCRC)
+			{
+				logError("packetSize crc校验失败,size:" + packetSize);
+				return PARSE_RESULT.ERROR;
+			}
+			if (!reader.read(out packetType))
+			{
+				return PARSE_RESULT.NOT_ENOUGH;
+			}
+			if (!reader.read(out sequence))
+			{
+				return PARSE_RESULT.NOT_ENOUGH;
+			}
+			if (!reader.read(out bool useFlag))
+			{
+				return PARSE_RESULT.NOT_ENOUGH;
+			}
+			if (useFlag && !reader.read(out fieldFlag))
+			{
+				return PARSE_RESULT.NOT_ENOUGH;
+			}
+			if (packetSize > 0)
+			{
+				ARRAY_THREAD(out outPacket, getGreaterPow2(packetSize));
+				if (!reader.readBuffer(outPacket, packetSize))
+				{
+					UN_ARRAY_THREAD(ref outPacket);
+					return PARSE_RESULT.NOT_ENOUGH;
+				}
+			}
+			reader.skipToByteEnd();
+
+			// 需要在读crc之前计算包体的crc
+			ushort curCrc = generateCRC16(reader.getBuffer(), reader.getReadByteCount());
+			if (!reader.read(out ushort readCrc))
+			{
+				if (outPacket != null)
+				{
+					UN_ARRAY_THREAD(ref outPacket);
+				}
+				return PARSE_RESULT.NOT_ENOUGH;
+			}
+
+			// 客户端接收到的必须是SC类型的
+			if (!(packetType > SC_GAME_MIN && packetType < SC_GAME_MAX) && 
+				!(packetType > SC_GAME_CORE_MIN && packetType < SC_GAME_CORE_MAX))
+			{
+				if (outPacket != null)
+				{
+					UN_ARRAY_THREAD(ref outPacket);
+				}
+				logError("包类型错误:" + packetType);
+				debugHistoryPacket();
+				mInputBuffer.clear();
+				return PARSE_RESULT.ERROR;
+			}
+
+			// 确认此消息的数据接收完全以后再验证序列号
+			if (sequence != mLastReceiveSequenceNumber + 1 && mLastReceiveSequenceNumber != 0x7FFFFFFF)
+			{
+				// 不通知服务器接收到非法消息,因为可能会有误报
+				//return PARSE_RESULT.ERROR;
+			}
+			mLastReceiveSequenceNumber = sequence;
+
+			if (curCrc != readCrc)
+			{
+				logError("crc校验失败:" + packetType + ",解析出的crc:" + readCrc + ",计算出的crc:" + curCrc);
+				if (outPacket != null)
+				{
+					UN_ARRAY_THREAD(ref outPacket);
+				}
+				return PARSE_RESULT.ERROR;
+			}
+			bitIndex = reader.getBitIndex();
 		}
 		return PARSE_RESULT.SUCCESS;
+	}
+	// 解析包体数据
+	protected override NetPacket parsePacket(ushort packetType, byte[] buffer, int size, int sequence, ulong fieldFlag)
+	{
+		// 创建对应的消息包,并设置数据,然后放入列表中等待解析
+		var packetReply = mSocketFactory.createSocketPacket(packetType) as NetPacketFrame;
+		packetReply.setConnect(this);
+
+		// 解密包体,然后解析包体
+		if (buffer != null && size > 0)
+		{
+			mDecryptPacket?.Invoke(buffer, 0, size, (byte)(packetType + size + (sequence ^ 123 ^ packetType)));
+			int readDataCount = 0;
+			using (new ClassScope<SerializerBitRead>(out var reader))
+			{
+				reader.init(buffer, size);
+				if (!packetReply.read(reader, fieldFlag))
+				{
+					logError("解析失败:" + packetReply.getPacketType());
+				}
+				readDataCount = reader.getReadByteCount();
+			}
+			if (readDataCount != size)
+			{
+				logError("接收字节数与解析后消息包字节数不一致:" + packetType + ",接收:" + size + ", 解析:" + readDataCount + ", type:" + packetType + ", sequence:" + sequence);
+				mSocketFactory.destroyPacket(packetReply);
+				return null;
+			}
+		}
+		return packetReply;
 	}
 }

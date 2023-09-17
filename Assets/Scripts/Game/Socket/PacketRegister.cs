@@ -1,21 +1,19 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 
-public class PacketRegister : FrameBase
+public class PacketRegister
 {
 	public static void registeAllPacket()
 	{
 		// 注册所有消息
 		// 客户端->服务器
-		registePacket<CSDemo>(PACKET_TYPE.CS_DEMO);
+		registePacket(typeof(CSDemo), PACKET_TYPE.CSDemo);
 
 		// 服务器->客户端
-		registePacket<SCDemo>(PACKET_TYPE.SC_DEMO);
+		registePacket(typeof(SCDemo), PACKET_TYPE.SCDemo);
 	}
 	//-----------------------------------------------------------------------------------------------------------------------
-	protected static void registePacket<T>(ushort type) where T : NetPacketTCPFrame
+	protected static void registePacket(Type classType, ushort type)
 	{
-		mNetPacketTypeManager.registePacket(Typeof<T>(), type);
+		FrameBase.mNetPacketTypeManager.registePacket(classType, type);
 	}
 }

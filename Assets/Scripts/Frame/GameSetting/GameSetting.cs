@@ -12,6 +12,6 @@ public class GameSetting : FrameSystem
 	protected override void initComponents()
 	{
 		base.initComponents();
-		addComponent<COMGameSettingAudio>();
+		addInitComponent<COMGameSettingAudio>();
 	}
 }

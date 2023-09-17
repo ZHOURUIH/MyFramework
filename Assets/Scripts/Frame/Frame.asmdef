@@ -1,0 +1,16 @@
+{
+    "name": "Frame",
+    "rootNamespace": "",
+    "references": [
+        "GUID:4529033cfeeaea340aba4ae6a051ff8c"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

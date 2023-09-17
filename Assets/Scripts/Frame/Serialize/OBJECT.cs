@@ -1,16 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 
 // 基础数据类型再包装基类
-public abstract class OBJECT : FrameBase
+public abstract class OBJECT : ClassObject
 {
-	public Type mType;
-	public int mSize;
-	public bool mVariableLength;                // true表示数据长度为变长,一般为数组,false表示数据长度为定长
+	protected Type mType;			// 类型
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		// mType不重置
+		// mType = null;
+		zero();
+	}
 	public abstract void zero();
-	public abstract bool readFromBuffer(byte[] buffer, ref int index);
-	public abstract bool writeToBuffer(byte[] buffer, ref int index);
-	public bool getVariableLength() { return mVariableLength; }
-	public virtual int getSize() { return mSize; }
-	public virtual void setIntReplaceULLong(bool replace) { }
+	public abstract bool readFromBuffer(SerializerBitRead reader);
+	public abstract void writeToBuffer(SerializerBitWrite writer);
 }

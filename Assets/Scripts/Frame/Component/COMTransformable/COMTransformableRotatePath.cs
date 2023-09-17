@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System;
 
+// 物体按指定的旋转关键帧列表进行旋转的组件
 public class COMTransformableRotatePath : ComponentPathNormal, IComponentModifyRotation
 {
 	// 旋转是不能相乘的,只能相加

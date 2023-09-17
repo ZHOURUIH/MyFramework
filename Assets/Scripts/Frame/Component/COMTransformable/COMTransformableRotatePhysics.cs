@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
 using System;
+using static MathUtility;
 
+// 在物理更新中旋转物体的组件
 public class COMTransformableRotatePhysics : ComponentKeyFramePhysics, IComponentModifyRotation
 {
-	protected Vector3 mStart;
-	protected Vector3 mTarget;
+	protected Vector3 mStart;	// 起始旋转值
+	protected Vector3 mTarget;	// 目标旋转值
 	public override void resetProperty()
 	{
 		base.resetProperty();

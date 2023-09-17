@@ -9,7 +9,7 @@ public class NetManager : FrameSystem
 		base.init();
 		mServerConnect = new NetConnectTCPFrame();
 		mServerConnect.setName("Server");
-		mServerConnect.init(null, 0, 30.0f);
+		mServerConnect.init(null, 0);
 	}
 	public void disconnect()
 	{
@@ -33,13 +33,9 @@ public class NetManager : FrameSystem
 		mServerConnect.setIPAddress(IPAddress.Parse(ip));
 		mServerConnect.setPort(port);
 	}
-	public void sendPacket(Type type)
+	public void sendPacket(NetPacketFrame packet)
 	{
-		mServerConnect.sendPacket(type);
-	}
-	public new void sendPacket(NetPacketTCP packet)
-	{
-		mServerConnect.sendPacket(packet);
+		mServerConnect.sendNetPacket(packet);
 	}
 	public int getPing() { return mServerConnect.getPing(); }
 	public NetConnectTCPFrame getConnect() { return mServerConnect; }

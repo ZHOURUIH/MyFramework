@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System;
+using static UnityUtility;
 
+// 物体拖拽组件
 public class COMMovableObjectDrag : ComponentDrag
 {
 	//------------------------------------------------------------------------------------------------------------------------------

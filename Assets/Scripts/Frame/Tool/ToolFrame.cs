@@ -1,8 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using static UnityUtility;
+using static FrameUtility;
+using static MathUtility;
 
 // 用于操作Transformable,大部分的操作是用于代替Dotween的缓动操作,以及扩展的其他操作
-public class FT : FrameBase
+public class FT
 {
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 旋转
@@ -1398,45 +1401,101 @@ public class FT : FrameBase
 		cmd.mTargetScale = scale;
 		pushCommand(cmd, obj);
 	}
+	public static void SCALE(Transformable obj, float scale)
+	{
+		if (obj == null)
+		{
+			return;
+		}
+		CMD(out CmdTransformableScale cmd, LOG_LEVEL.LOW);
+		cmd.mOnceLength = 0.0f;
+		cmd.mStartScale = new Vector3(scale, scale, scale);
+		cmd.mTargetScale = new Vector3(scale, scale, scale);
+		pushCommand(cmd, obj);
+	}
+	public static void SCALE(Transformable obj, float start, float target, float onceLength)
+	{
+		SCALE_EX(obj, KEY_CURVE.ZERO_ONE, new Vector3(start, start, start), new Vector3(target, target, target), onceLength, false, 0.0f, null, null);
+	}
 	public static void SCALE(Transformable obj, Vector3 start, Vector3 target, float onceLength)
 	{
 		SCALE_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+	}
+	public static void SCALE(Transformable obj, int keyframe, float start, float target, float onceLength)
+	{
+		SCALE_EX(obj, keyframe, new Vector3(start, start, start), new Vector3(target, target, target), onceLength, false, 0.0f, null, null);
 	}
 	public static void SCALE(Transformable obj, int keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
 		SCALE_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
+	public static void SCALE(Transformable obj, int keyframe, float start, float target, float onceLength, bool loop)
+	{
+		SCALE_EX(obj, keyframe, new Vector3(start, start, start), new Vector3(target, target, target), onceLength, loop, 0.0f, null, null);
+	}
 	public static void SCALE(Transformable obj, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop)
 	{
 		SCALE_EX(obj, keyframe, start, target, onceLength, loop, 0.0f, null, null);
+	}
+	public static void SCALE(Transformable obj, int keyframe, float start, float target, float onceLength, bool loop, float offset)
+	{
+		SCALE_EX(obj, keyframe, new Vector3(start, start, start), new Vector3(target, target, target), onceLength, loop, offset, null, null);
 	}
 	public static void SCALE(Transformable obj, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
 	{
 		SCALE_EX(obj, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
+	public static void SCALE_EX(Transformable obj, float start, float target, float onceLength, KeyFrameCallback doneCallback)
+	{
+		SCALE_EX(obj, KEY_CURVE.ZERO_ONE, new Vector3(start, start, start), new Vector3(target, target, target), onceLength, false, 0.0f, null, doneCallback);
+	}
 	public static void SCALE_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doneCallback)
 	{
 		SCALE_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
+	}
+	public static void SCALE_EX(Transformable obj, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	{
+		SCALE_EX(obj, KEY_CURVE.ZERO_ONE, new Vector3(start, start, start), new Vector3(target, target, target), onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
 	public static void SCALE_EX(Transformable obj, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		SCALE_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
+	public static void SCALE_EX(Transformable obj, int keyframe, float start, float target, float onceLength, KeyFrameCallback doneCallback)
+	{
+		SCALE_EX(obj, keyframe, new Vector3(start, start, start), new Vector3(target, target, target), onceLength, false, 0.0f, null, doneCallback);
+	}
 	public static void SCALE_EX(Transformable obj, int keyframe, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doneCallback)
 	{
 		SCALE_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, doneCallback);
+	}
+	public static void SCALE_EX(Transformable obj, int keyframe, float start, float target, float onceLength, bool loop, KeyFrameCallback doneCallback)
+	{
+		SCALE_EX(obj, keyframe, new Vector3(start, start, start), new Vector3(target, target, target), onceLength, loop, 0.0f, null, doneCallback);
 	}
 	public static void SCALE_EX(Transformable obj, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, KeyFrameCallback doneCallback)
 	{
 		SCALE_EX(obj, keyframe, start, target, onceLength, loop, 0.0f, null, doneCallback);
 	}
+	public static void SCALE_EX(Transformable obj, int keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doneCallback)
+	{
+		SCALE_EX(obj, keyframe, new Vector3(start, start, start), new Vector3(target, target, target), onceLength, loop, offset, null, doneCallback);
+	}
 	public static void SCALE_EX(Transformable obj, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset, KeyFrameCallback doneCallback)
 	{
 		SCALE_EX(obj, keyframe, start, target, onceLength, loop, offset, null, doneCallback);
 	}
+	public static void SCALE_EX(Transformable obj, int keyframe, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	{
+		SCALE_EX(obj, keyframe, new Vector3(start, start, start), new Vector3(target, target, target), onceLength, false, 0.0f, doingCallback, doneCallback);
+	}
 	public static void SCALE_EX(Transformable obj, int keyframe, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		SCALE_EX(obj, keyframe, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+	}
+	public static void SCALE_EX(Transformable obj, int keyframe, float start, float target, float onceLength, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	{
+		SCALE_EX(obj, keyframe, new Vector3(start, start, start), new Vector3(target, target, target), onceLength, loop, 0.0f, doingCallback, doneCallback);
 	}
 	public static void SCALE_EX(Transformable obj, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
@@ -1472,29 +1531,70 @@ public class FT : FrameBase
 		pushDelayCommand(cmd, obj, delayTime, watcher);
 		return cmd;
 	}
+	public static CmdTransformableScale SCALE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, float scale)
+	{
+		if (obj == null)
+		{
+			return null;
+		}
+		CMD_DELAY(out CmdTransformableScale cmd, LOG_LEVEL.LOW);
+		cmd.mOnceLength = 0.0f;
+		cmd.mStartScale = new Vector3(scale, scale, scale);
+		cmd.mTargetScale = new Vector3(scale, scale, scale);
+		pushDelayCommand(cmd, obj, delayTime, watcher);
+		return cmd;
+	}
+	public static CmdTransformableScale SCALE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, float start, float target, float onceLength)
+	{
+		return SCALE_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, new Vector3(start, start, start), new Vector3(target, target, target), onceLength, false, 0.0f, null, null);
+	}
 	public static CmdTransformableScale SCALE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength)
 	{
 		return SCALE_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
+	}
+	public static CmdTransformableScale SCALE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, float start, float target, float onceLength)
+	{
+		return SCALE_DELAY_EX(watcher, obj, delayTime, keyframe, new Vector3(start, start, start), new Vector3(target, target, target), onceLength, false, 0.0f, null, null);
 	}
 	public static CmdTransformableScale SCALE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
 		return SCALE_DELAY_EX(watcher, obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
+	public static CmdTransformableScale SCALE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, float start, float target, float onceLength, bool loop)
+	{
+		return SCALE_DELAY_EX(watcher, obj, delayTime, keyframe, new Vector3(start, start, start), new Vector3(target, target, target), onceLength, loop, 0.0f, null, null);
+	}
 	public static CmdTransformableScale SCALE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop)
 	{
 		return SCALE_DELAY_EX(watcher, obj, delayTime, keyframe, start, target, onceLength, loop, 0.0f, null, null);
+	}
+	public static CmdTransformableScale SCALE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, float start, float target, float onceLength, bool loop, float offset)
+	{
+		return SCALE_DELAY_EX(watcher, obj, delayTime, keyframe, new Vector3(start, start, start), new Vector3(target, target, target), onceLength, loop, offset, null, null);
 	}
 	public static CmdTransformableScale SCALE_DELAY(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
 	{
 		return SCALE_DELAY_EX(watcher, obj, delayTime, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
+	public static CmdTransformableScale SCALE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	{
+		return SCALE_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, new Vector3(start, start, start), new Vector3(target, target, target), onceLength, false, 0.0f, doingCallback, doneCallback);
+	}
 	public static CmdTransformableScale SCALE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return SCALE_DELAY_EX(watcher, obj, delayTime, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
+	public static CmdTransformableScale SCALE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	{
+		return SCALE_DELAY_EX(watcher, obj, delayTime, keyframe, new Vector3(start, start, start), new Vector3(target, target, target), onceLength, false, 0.0f, doingCallback, doneCallback);
+	}
 	public static CmdTransformableScale SCALE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return SCALE_DELAY_EX(watcher, obj, delayTime, keyframe, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
+	}
+	public static CmdTransformableScale SCALE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, float start, float target, float onceLength, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	{
+		return SCALE_DELAY_EX(watcher, obj, delayTime, keyframe, new Vector3(start, start, start), new Vector3(target, target, target), onceLength, loop, 0.0f, doingCallback, doneCallback);
 	}
 	public static CmdTransformableScale SCALE_DELAY_EX(DelayCmdWatcher watcher, Transformable obj, float delayTime, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{

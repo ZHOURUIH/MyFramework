@@ -1,30 +1,37 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
+using static UnityUtility;
+using static MathUtility;
+using static WidgetUtility;
 
-public class MouseCastWindowSet : FrameBase
+// 用于存储触点检测时的窗口
+public class MouseCastWindowSet : ClassObject
 {
-	public static Comparison<MouseCastWindowSet> mComparisonDescend = cameraDepthDescend;
-	public static Comparison<IMouseEventCollect> mUIDepthDescend = UIDepthDescend;
-	protected HashSet<IMouseEventCollect> mWindowSet;		// 用于查找的窗口列表
-	protected List<IMouseEventCollect> mWindowOrderList;	// 深度由大到小的窗口列表
-	protected GameCamera mCamera;
-	protected bool mDepthDirty;
+	public static Comparison<MouseCastWindowSet> mComparisonDescend = cameraDepthDescend;	// 避免GC的委托
+	public static Comparison<myUIObject> mUIDepthDescend = uiDepthDescend;					// 避免GC的委托
+	protected HashSet<myUIObject> mWindowSet;												// 用于查找的窗口列表
+	protected List<myUIObject> mAvailableList;                                              // 当前可见的窗口,即在窗口范围内并且未被CanvasGroup裁剪的窗口,会进行排序
+	protected GameCamera mCamera;															// 渲染这些窗口的摄像机
+	protected bool mListDirty;                                                              // mUnavailableList和mAvailableList中的数据是否已经失效,用于确保在一帧中只更新一次列表
 	public MouseCastWindowSet()
 	{
-		mWindowOrderList = new List<IMouseEventCollect>();
-		mWindowSet = new HashSet<IMouseEventCollect>();
+		mAvailableList = new List<myUIObject>();
+		mWindowSet = new HashSet<myUIObject>();
 	}
 	public override void resetProperty()
 	{
 		base.resetProperty();
 		mWindowSet.Clear();
-		mWindowOrderList.Clear();
+		mAvailableList.Clear();
 		mCamera = null;
-		mDepthDirty = false;
+	}
+	public void update()
+	{
+		mListDirty = true;
 	}
 	public void setCamera(GameCamera camera) { mCamera = camera; }
-	public void addWindow(IMouseEventCollect window)
+	public void addWindow(myUIObject window)
 	{
 		if (mWindowSet.Contains(window))
 		{
@@ -35,29 +42,32 @@ public class MouseCastWindowSet : FrameBase
 			logError("窗口已经被销毁,无法访问:" + window.getName());
 			return;
 		}
-		mWindowOrderList.Add(window);
 		mWindowSet.Add(window);
-		mDepthDirty = true;
+		mListDirty = true;
 	}
-	public bool hasWindow(IMouseEventCollect window)
+	public bool hasWindow(myUIObject window)
 	{
 		return mWindowSet.Contains(window);
 	}
-	public void windowDepthChanged()
-	{
-		mDepthDirty = true;
-	}
 	public GameCamera getCamera() { return mCamera; }
-	public List<IMouseEventCollect> getWindowOrderList()
+	public List<myUIObject> getWindowOrderList()
 	{
-		if(mDepthDirty)
+		if (mListDirty)
 		{
-			mDepthDirty = false;
-			quickSort(mWindowOrderList, mUIDepthDescend);
+			mAvailableList.Clear();
+			foreach (var item in mWindowSet)
+			{
+				if (item.isActive() && isWindowInScreen(item, mCamera))
+				{
+					mAvailableList.Add(item);
+				}
+			}
+			quickSort(mAvailableList, mUIDepthDescend);
+			mListDirty = false;
 		}
-		return mWindowOrderList;
+		return mAvailableList;
 	}
-	public void removeWindow(IMouseEventCollect window)
+	public void removeWindow(myUIObject window)
 	{
 		if (!mWindowSet.Remove(window))
 		{
@@ -68,12 +78,12 @@ public class MouseCastWindowSet : FrameBase
 			logError("窗口已经被销毁,无法访问:" + window.getName());
 			return;
 		}
-		mWindowOrderList.Remove(window);
+		mAvailableList.Remove(window);
 	}
 	public bool isEmpty() { return mWindowSet.Count == 0; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	// a小于b返回1, a等于b返回0, a大于b返回-1
-	protected static int UIDepthDescend(IMouseEventCollect a, IMouseEventCollect b)
+	protected static int uiDepthDescend(myUIObject a, myUIObject b)
 	{
 		return UIDepth.compare(a.getDepth(), b.getDepth());
 	}

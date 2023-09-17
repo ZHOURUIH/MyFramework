@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using static UnityUtility;
+using static FrameBase;
 
-public class DelayCmdWatcher : FrameBase
+// 用于监听延迟命令的类,确保延迟命令能够得到很好的控制
+public class DelayCmdWatcher : ClassObject
 {
 	protected HashSet<long> mDelayCmdList;		// 布局显示和隐藏时的延迟命令列表,当命令执行时,会从列表中移除该命令
 	protected CommandCallback mCmdCallback;		// 命令开始执行的回调

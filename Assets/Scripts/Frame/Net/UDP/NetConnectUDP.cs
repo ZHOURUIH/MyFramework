@@ -2,88 +2,118 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Collections.Generic;
-using System.IO;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+using UnityEngine.Profiling;
+using static StringUtility;
+#endif
+using static UnityUtility;
+using static FrameBase;
+using static FrameUtility;
+using static BinaryUtility;
+using static FrameDefine;
 
+// 当前程序作为客户端时使用,表示一个与UDP服务器的连接
 public abstract class NetConnectUDP : NetConnect
 {
-	protected DoubleBuffer<NetPacket> mReceiveBuffer;   // 在主线程中执行的消息列表
-	protected DoubleBuffer<byte[]> mOutputBuffer;       // 使用双缓冲提高发送消息的效率
-	protected ThreadLock mSocketLock;
-	protected IPEndPoint mSendEndPoint;
-	protected EndPoint mRecvEndPoint;
-	protected MyThread mReceiveThread;
-	protected MyThread mSendThread;
-	protected MyTimer mHeartBeatTimer;
-	protected Socket mSocket;
-	protected Action mHeartBeatAction;                  // 外部设置的用于发送心跳的函数
-	protected byte[] mRecvBuff;
-	protected int mPort;
+	protected DoubleBuffer<PacketSimpleInfo> mReceiveBuffer;// 在主线程中执行的消息列表
+	protected DoubleBuffer<OutputDataInfo> mOutputBuffer;	// 使用双缓冲提高发送消息的效率
+	protected Queue<string> mReceivePacketHistory;          // 接收过的包的缓冲列表
+	protected StreamBuffer mInputBuffer;                    // 接收消息的缓冲区
+	protected ThreadLock mOutputBufferLock;                 // mOutputBuffer的锁
+	protected ThreadLock mSocketLock;                       // mSocket的锁
+	protected IPEndPoint mSendEndPoint;                     // 发送的目标地址
+	protected EndPoint mRecvEndPoint;						// 接收时的地址
+	protected MyThread mReceiveThread;                      // 接收线程
+	protected MyThread mSendThread;                         // 发送线程
+	protected MyTimer1 mHeartBeatTimer;                     // 心跳计时器
+	protected Socket mSocket;                               // 套接字实例
+	protected Action mHeartBeatAction;                      // 外部设置的用于发送心跳包的函数
+	protected byte[] mRecvBuff;                             // 从Socket接收时使用的缓冲区
 	public NetConnectUDP()
 	{
-		mReceiveBuffer = new DoubleBuffer<NetPacket>();
-		mOutputBuffer = new DoubleBuffer<byte[]>();
-		mReceiveThread = new MyThread("UDPReceive");
-		mSendThread = new MyThread("UDPSend");
-		mRecvBuff = new byte[8 * 1024];
+		mReceiveBuffer = new DoubleBuffer<PacketSimpleInfo>();
+		mOutputBuffer = new DoubleBuffer<OutputDataInfo>();
+		mReceiveThread = new MyThread("SocketReceiveUDP");
+		mSendThread = new MyThread("SocketSendUDP");
+		mHeartBeatTimer = new MyTimer1();
+		mRecvBuff = new byte[TCP_RECEIVE_BUFFER];
+		mInputBuffer = new StreamBuffer();
+		mOutputBufferLock = new ThreadLock();
 		mSocketLock = new ThreadLock();
-		mRecvEndPoint = new IPEndPoint(IPAddress.Any, 0);
-		mHeartBeatTimer = new MyTimer();
+		mReceivePacketHistory = new Queue<string>();
 	}
-	public virtual void init(IPAddress ip, int port, float heartBeatTimeOut)
+	public virtual void init(IPAddress targetIP, int targetPort)
 	{
-		mPort = port;
-		mSendThread.start(sendSocket);
-		mReceiveThread.start(receiveSocket);
-		mSendEndPoint = new IPEndPoint(ip, 8083);
-		mHeartBeatTimer.init(-1.0f, heartBeatTimeOut, false);
-		mSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-		mSocket.Bind(new IPEndPoint(IPAddress.Any, mPort));
+		mSendThread.start(sendThread);
+		mReceiveThread.start(receiveThread, 0, 1);
+		mHeartBeatTimer.init(-1.0f, 1.0f, true);
+		mInputBuffer.init(TCP_INPUT_BUFFER);
+		if (targetIP != null && targetPort != 0)
+		{
+			setIPAddress(targetIP, targetPort);
+		}
 	}
 	public override void resetProperty()
 	{
 		base.resetProperty();
 		mReceiveBuffer.clear();
 		mOutputBuffer.clear();
-		mSocketLock.unlock();
+		mReceivePacketHistory.Clear();
+		mInputBuffer.clear();
+		//mOutputBufferLock.unlock();
+		//mSocketLock.unlock();
+		mSendEndPoint = null;
+		mRecvEndPoint = null;
 		mReceiveThread.stop();
 		mSendThread.stop();
-		mSocket = null;
-		mSendEndPoint = null;
-		memset(mRecvBuff, (byte)0);
 		mHeartBeatTimer.stop();
-		mPort = 0;
+		mSocket = null;
 		mHeartBeatAction = null;
-		// mRecvEndPoint不重置
-		// mRecvEndPoint = null;
+		memset(mRecvBuff, (byte)0);
 	}
 	public virtual void update(float elapsedTime)
 	{
-		if (mHeartBeatAction != null && mHeartBeatTimer.tickTimer(elapsedTime))
+		if (mSocket != null && mHeartBeatAction != null && mHeartBeatTimer.tickTimer())
 		{
 			mHeartBeatAction.Invoke();
 		}
 		// 解析所有已经收到的消息包
-		var readList = mReceiveBuffer.get();
-		try
+		using (new DoubleBufferReader<PacketSimpleInfo>(mReceiveBuffer, out var readList))
 		{
-			int count = readList.Count;
-			for (int i = 0; i < count; ++i)
+			if (readList != null)
 			{
-				// 此处为空的原因未知
-				if (readList[i] == null)
+				try
 				{
-					continue;
+					int count = readList.Count;
+					for (int i = 0; i < count; ++i)
+					{
+						PacketSimpleInfo info = readList[i];
+						NetPacket packet = parsePacket(info.mType, info.mPacketData, info.mPacketSize, info.mFieldFlag);
+						UN_ARRAY_THREAD(ref info.mPacketData);
+						if (packet == null)
+						{
+							continue;
+						}
+						(packet as NetPacketFrame).setSequenceValid(true);
+						if (packet.canExecute())
+						{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+							Profiler.BeginSample(packet.GetType().ToString());
+#endif
+							packet.execute();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+							Profiler.EndSample();
+#endif
+						}
+						mSocketFactory.destroyPacket(packet);
+					}
 				}
-				readList[i].execute();
-				mSocketFactoryThread.destroyPacket(readList[i]);
+				catch (Exception e)
+				{
+					logException(e, "socket packet error");
+				}
 			}
 		}
-		catch (Exception e)
-		{
-			logError("消息处理异常:" + e.Message + ", stack:" + e.StackTrace);
-		}
-		readList.Clear();
-		mReceiveBuffer.endGet();
 	}
 	public override void destroy()
 	{
@@ -92,88 +122,105 @@ public abstract class NetConnectUDP : NetConnect
 		mSendThread.destroy();
 		mReceiveThread.destroy();
 	}
-	public void setHeartBeatAction(Action callback) { mHeartBeatAction = callback; }
-	public int getPort() { return mPort; }
-	public MyThread getReceiveThread() { return mReceiveThread; }
-	public void sendPacket(Type type)
+	public void createSocket()
 	{
-		sendPacket(mSocketFactory.createSocketPacket(type) as NetPacketUDP);
+		mSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 	}
-	public abstract void sendPacket(NetPacketUDP packet);
-	public void clearSocket()
+	public void setIPAddress(IPAddress targetIP, int targetPort)
 	{
-		mSocketLock.waitForUnlock();
-		if (mSocket != null)
-		{
-			try
-			{
-				mSocket.Shutdown(SocketShutdown.Both);
-			}
-			catch(Exception e)
-			{
-				logWarning("udp exception:" + e.Message);
-			}
-			mSocket.Close();
-			mSocket.Dispose();
-			mSocket = null;
-		}
-		mSocketLock.unlock();
+		mSendEndPoint = new IPEndPoint(targetIP, targetPort);
+		mRecvEndPoint = new IPEndPoint(targetIP, targetPort);
 	}
 	public void startHeartBeat()
 	{
 		mHeartBeatTimer.start();
+		mHeartBeatAction?.Invoke();
 	}
-	//------------------------------------------------------------------------------------------------------------------------------
-	protected void sendSocket(BOOL run)
+	public abstract void sendNetPacket(NetPacket packet);
+	public void clearSocket()
 	{
-		if (mSocket == null)
+		using (new ThreadLockScope(mSocketLock))
 		{
-			return;
-		}
-		// 获取输出数据的读缓冲区
-		var readList = mOutputBuffer.get();
-		int count = readList.Count;
-		try
-		{
-			for (int i = 0; i < count; ++i)
+			try
 			{
-				byte[] item = readList[i];
-				// 此处为空的原因未知
-				if(item == null)
+				if (mSocket != null)
 				{
-					continue;
-				}
-				int temp = 0;
-				// dataLength表示item的有效数据长度,包含dataLength本身占的4个字节
-				int dataLength = readInt(item, ref temp, out _) + sizeof(int);
-				int sendedCount = sizeof(int);
-				while (sendedCount < dataLength)
-				{
-					int thisSendCount = mSocket.SendTo(item, sendedCount, dataLength - sendedCount, SocketFlags.None, mSendEndPoint);
-					if (thisSendCount <= 0)
-					{
-						i = count;
-						break;
-					}
-					sendedCount += thisSendCount;
+					mSocket.Close();
+					mSocket.Dispose();
+					mSocket = null;
 				}
 			}
+			catch (Exception e)
+			{
+				logForce("关闭udp连接时异常：" + e.Message);
+				mSocket = null;
+			}
 		}
-		catch (SocketException e)
+		mHeartBeatTimer.stop(false);
+	}
+	public void clearBuffer()
+	{
+		// 将消息列表中残留的消息清空,双缓冲中的读写列表都要清空
+		using (new ThreadLockScope(mOutputBufferLock))
 		{
-			socketException(e);
+			var bufferList = mOutputBuffer.getBufferList();
+			for (int i = 0; i < bufferList.Length; ++i)
+			{
+				var list = bufferList[i];
+				for (int j = 0; j < list.Count; ++j)
+				{
+					byte[] data = list[i].mData;
+					UN_ARRAY_THREAD(ref data);
+				}
+			}
+			mOutputBuffer.clear();
 		}
-		// 回收缓冲区的内存
-		count = readList.Count;
-		for (int i = 0; i < count; ++i)
+		mInputBuffer.clear();
+	}
+	public void setHeartBeatAction(Action callback) { mHeartBeatAction = callback; }
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected abstract NetPacket parsePacket(ushort packetType, byte[] buffer, int size, ulong fieldFlag);
+	// 发送Socket消息
+	protected void sendThread(ref bool run)
+	{
+		if (mSocket == null)
 		{
-			UN_ARRAY_THREAD(readList[i]);
+			return;
 		}
-		readList.Clear();
-		mOutputBuffer.endGet();
+		// 获取输出数据的读缓冲区,手动拼接到大的缓冲区中
+		using (new ThreadLockScope(mOutputBufferLock))
+		{
+			using (new DoubleBufferReader<OutputDataInfo>(mOutputBuffer, out var readList))
+			{
+				if (readList == null)
+				{
+					return;
+				}
+				try
+				{
+					int count = readList.Count;
+					for (int i = 0; i < count; ++i)
+					{
+						OutputDataInfo item = readList[i];
+						if (item.mData == null)
+						{
+							continue;
+						}
+						if (mSocket == null)
+						{
+							return;
+						}
+						mSocket.SendTo(item.mData, 0, item.mDataSize, SocketFlags.None, mSendEndPoint);
+						// 回收缓冲区的内存
+						UN_ARRAY_THREAD(ref item.mData);
+					}
+				}
+				catch (SocketException) { }
+			}
+		}
 	}
 	// 接收Socket消息
-	protected void receiveSocket(BOOL run)
+	protected void receiveThread(ref bool run)
 	{
 		if (mSocket == null)
 		{
@@ -181,32 +228,69 @@ public abstract class NetConnectUDP : NetConnect
 		}
 		try
 		{
-			int nRecv = mSocket.ReceiveFrom(mRecvBuff, ref mRecvEndPoint);
-			if (nRecv <= 0)
+			// 在Receive之前先判断SocketBuffer中有没有数据可以读,因为如果不判断直接调用的话,可能会出现即使SocketBuffer中有数据,
+			// Receive仍然获取不到的问题,具体原因未知,且出现几率也比较小,但是仍然可能会出现.所以先判断再Receive就不会出现这个问题
+			while (mSocket == null || mSocket.Available == 0)
 			{
 				return;
 			}
+			int nRecv = mSocket.ReceiveFrom(mRecvBuff, ref mRecvEndPoint);
+			if (nRecv <= 0)
+			{
+				// 服务器异常
+				return;
+			}
+			if (!mInputBuffer.addData(mRecvBuff, nRecv))
+			{
+				logError("添加数据失败");
+			}
 			// 解析接收到的数据
-			while (parsePacket(mRecvBuff, nRecv) == PARSE_RESULT.SUCCESS) { }
+			while (parseInputBuffer() == PARSE_RESULT.SUCCESS) { }
 		}
-		catch (SocketException e)
-		{
-			socketException(e);
-		}
+		catch(SocketException){ }
 	}
-	protected abstract PARSE_RESULT parsePacket(byte[] data, int size);
-	protected void socketException(SocketException e)
+	protected abstract PARSE_RESULT preParsePacket(byte[] buffer, int size, ref int bitIndex, out byte[] outPacketData, out ushort packetType, out int packetSize, out ulong fieldFlag);
+	protected PARSE_RESULT parseInputBuffer()
 	{
-		// 本地网络异常
-		NET_STATE state = NET_STATE.NET_CLOSE;
-		if (e.SocketErrorCode == SocketError.NetworkUnreachable)
+		int bitIndex = 0;
+		PARSE_RESULT result = preParsePacket(mInputBuffer.getData(), mInputBuffer.getDataLength(), ref bitIndex, out byte[] packetData, 
+											out ushort packetType, out int packetSize, out ulong fieldFlag);
+		if (result != PARSE_RESULT.SUCCESS)
 		{
-			state = NET_STATE.NET_CLOSE;
+			if (result == PARSE_RESULT.ERROR)
+			{
+				debugHistoryPacket();
+				mInputBuffer.clear();
+			}
+			return result;
 		}
-		else if (e.SocketErrorCode == SocketError.ConnectionRefused)
+		mReceiveBuffer.add(new PacketSimpleInfo(packetData, fieldFlag, packetSize, 0, packetType));
+
+		if (!mInputBuffer.removeData(0, bitCountToByteCount(bitIndex)))
 		{
-			state = NET_STATE.SERVER_CLOSE;
+			logError("移除数据失败");
 		}
-		logForce("state:" + state + ", ErrorCode:" + e.SocketErrorCode);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+		string info = "已接收 : " + IToS(packetType) + ", 字节数:" + IToS(bitCountToByteCount(bitIndex));
+		log(info, LOG_LEVEL.LOW);
+		mReceivePacketHistory.Enqueue(info);
+		if (mReceivePacketHistory.Count > 10)
+		{
+			mReceivePacketHistory.Dequeue();
+		}
+#endif
+		return PARSE_RESULT.SUCCESS;
+	}
+	protected void debugHistoryPacket()
+	{
+		using (new ClassThreadScope<MyStringBuilder>(out var info))
+		{
+			info.append("最后接收的消息:\n");
+			foreach (var item in mReceivePacketHistory)
+			{
+				info.append(item, "\n");
+			}
+			logError(info.ToString());
+		}
 	}
 }

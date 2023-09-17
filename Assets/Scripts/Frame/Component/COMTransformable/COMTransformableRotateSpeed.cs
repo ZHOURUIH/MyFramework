@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System;
 
+// 使物体按速度旋转的组件
 public class COMTransformableRotateSpeed : ComponentRotateSpeedNormal  
 {
 	//------------------------------------------------------------------------------------------------------------------------------

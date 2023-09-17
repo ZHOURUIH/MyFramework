@@ -1,5 +1,8 @@
 ﻿using UnityEngine;
+using static FrameBase;
+using static MathUtility;
 
+// 表示3D特效的对象
 public class GameEffect : MovableObject
 {
 	protected ParticleSystem[] mParticleSystems;        // 特效中包含的粒子系统组件列表
@@ -40,7 +43,7 @@ public class GameEffect : MovableObject
 		mEffectAnimators = null;
 		if (!mExistedObject)
 		{
-			mObjectPool.destroyObject(ref mObject, false);
+			mPrefabPoolManager.destroyObject(ref mObject, false);
 		}
 		base.destroy();
 	}

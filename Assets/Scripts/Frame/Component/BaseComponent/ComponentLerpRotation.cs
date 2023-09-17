@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
+using static MathUtility;
 
+// 插值旋转的组件
 public abstract class ComponentLerpRotation : ComponentLerp, IComponentModifyRotation
 {
-	protected Vector3 mTargetRotation;
-	protected float mMinRange;
+	protected Vector3 mTargetRotation;		// 目标旋转
+	protected float mMinRange;				// 最小旋转差值,当差值小于此距离时将直接设置到目标点
 	public ComponentLerpRotation()
 	{
 		mMinRange = 0.001f;

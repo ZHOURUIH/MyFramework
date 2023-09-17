@@ -4,12 +4,18 @@ using System.Collections.Generic;
 using UnityEditor;
 #endif
 using UnityEngine;
+using static FileUtility;
+using static StringUtility;
+using static FrameUtility;
+using static UnityUtility;
+using static FrameBase;
+using static FrameDefine;
 
 // 从AssetDataBase中加载资源
-public class AssetDataBaseLoader : FrameBase
+public class AssetDataBaseLoader : ClassObject
 {
-	protected Dictionary<string, Dictionary<string, ResourceLoadInfo>> mLoadedPath;
-	protected Dictionary<Object, ResourceLoadInfo> mLoadedObjects;
+	protected Dictionary<string, Dictionary<string, ResourceLoadInfo>> mLoadedPath;		// 所有已加载的文件夹
+	protected Dictionary<Object, ResourceLoadInfo> mLoadedObjects;						// 所有的已加载的资源
 	public AssetDataBaseLoader()
 	{
 		mLoadedPath = new Dictionary<string, Dictionary<string, ResourceLoadInfo>>();
@@ -37,7 +43,7 @@ public class AssetDataBaseLoader : FrameBase
 			}
 		}
 	}
-	public bool unloadResource<T>(ref T obj) where T : Object
+	public bool unloadResource<T>(ref T obj, bool showError) where T : Object
 	{
 		if(obj == null)
 		{
@@ -46,7 +52,10 @@ public class AssetDataBaseLoader : FrameBase
 		// 资源已经加载完
 		if(!mLoadedObjects.TryGetValue(obj, out ResourceLoadInfo info))
 		{
-			logWarning("无法卸载资源:" + obj.name + ", 可能未加载,或者已经卸载,或者该资源是子资源,或者正在异步加载");
+			if (showError)
+			{
+				logWarning("无法卸载资源:" + obj.name + ", 可能未加载,或者已经卸载,或者该资源是子资源,或者正在异步加载");
+			}
 			return false;
 		}
 		if (!(obj is GameObject))
@@ -54,7 +63,7 @@ public class AssetDataBaseLoader : FrameBase
 			Resources.UnloadAsset(obj);
 		}
 		mLoadedPath[info.mPath].Remove(info.mResouceName);
-		UN_CLASS(info);
+		UN_CLASS(ref info);
 		mLoadedObjects.Remove(obj);
 		obj = null;
 		return true;
@@ -62,37 +71,38 @@ public class AssetDataBaseLoader : FrameBase
 	// 卸载指定路径中的所有资源
 	public void unloadPath(string path)
 	{
-		LIST(out List<string> tempList);
-		tempList.AddRange(mLoadedPath.Keys);
-		int count = tempList.Count;
-		for(int i = 0; i < count; ++i)
+		using (new ListScope<string>(out var tempList))
 		{
-			string item0 = tempList[i];
-			if (!startWith(item0, path))
+			tempList.AddRange(mLoadedPath.Keys);
+			int count = tempList.Count;
+			for (int i = 0; i < count; ++i)
 			{
-				continue;
-			}
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-			log("unload path: " + item0);
-#endif
-			var list = mLoadedPath[item0];
-			foreach (var item in list)
-			{
-				ResourceLoadInfo info = item.Value;
-				if (info.mObject != null)
+				string item0 = tempList[i];
+				if (!startWith(item0, path))
 				{
-					mLoadedObjects.Remove(info.mObject);
-					if (!(info.mObject is GameObject))
-					{
-						Resources.UnloadAsset(info.mObject);
-					}
-					info.mObject = null;
+					continue;
 				}
-				UN_CLASS(info);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+				log("unload path: " + item0);
+#endif
+				var list = mLoadedPath[item0];
+				foreach (var item in list)
+				{
+					ResourceLoadInfo info = item.Value;
+					if (info.mObject != null)
+					{
+						mLoadedObjects.Remove(info.mObject);
+						if (!(info.mObject is GameObject))
+						{
+							Resources.UnloadAsset(info.mObject);
+						}
+						info.mObject = null;
+					}
+					UN_CLASS(ref info);
+				}
+				mLoadedPath.Remove(item0);
 			}
-			mLoadedPath.Remove(item0);
 		}
-		UN_LIST(tempList);
 	}
 	public bool isResourceLoaded(string name)
 	{
@@ -113,9 +123,10 @@ public class AssetDataBaseLoader : FrameBase
 		}
 		return null;
 	}
-	// 同步加载资源,name为Resources下的相对路径,不带后缀
-	public Object[] loadSubResource<T>(string name) where T : Object
+	// 同步加载资源,name为Resources下的相对路径,带后缀
+	public Object[] loadSubResource<T>(string name, out Object mainAsset) where T : Object
 	{
+		mainAsset = null;
 		string path = getFilePath(name);
 		// 如果文件夹还未加载,则添加文件夹
 		if (!mLoadedPath.TryGetValue(path, out Dictionary<string, ResourceLoadInfo> resList))
@@ -132,10 +143,10 @@ public class AssetDataBaseLoader : FrameBase
 			}
 			// 加载后需要重新获取一次
 			info = resList[name];
-			return info.mSubObjects;
 		}
 		if (info.mState == LOAD_STATE.LOADED)
 		{
+			mainAsset = info.mObject;
 			return info.mSubObjects;
 		}
 		else if (info.mState == LOAD_STATE.LOADING)
@@ -148,7 +159,7 @@ public class AssetDataBaseLoader : FrameBase
 		}
 		return null;
 	}
-	// 同步加载资源,name为Resources下的相对路径,不带后缀
+	// 同步加载资源,name为Resources下的相对路径,带后缀
 	public T loadResource<T>(string name) where T : Object
 	{
 		string path = getFilePath(name);
@@ -183,7 +194,7 @@ public class AssetDataBaseLoader : FrameBase
 		}
 		return null;
 	}
-	// 异步加载资源,name为Resources下的相对路径,不带后缀
+	// 异步加载资源,name为GameResources下的相对路径,带后缀
 	public bool loadResourcesAsync<T>(string name, AssetLoadDoneCallback doneCallback, object userData = null) where T : Object
 	{
 		string path = getFilePath(name);
@@ -234,22 +245,15 @@ public class AssetDataBaseLoader : FrameBase
 		info.mState = LOAD_STATE.LOADING;
 		resList.Add(info.mResouceName, info);
 #if UNITY_EDITOR
-		LIST(out List<string> fileNameList);
-		mResourceManager.adjustResourceName<T>(name, fileNameList, false);
-		int fileCount = fileNameList.Count;
-		for(int i = 0; i < fileCount; ++i)
+		string filePath = P_GAME_RESOURCES_PATH + name;
+		if (isFileExist(filePath))
 		{
-			string filePath = FrameDefine.P_GAME_RESOURCES_PATH + fileNameList[i];
-			if (isFileExist(filePath))
-			{
-				info.mObject = AssetDatabase.LoadAssetAtPath<T>(filePath);
-				info.mSubObjects = AssetDatabase.LoadAllAssetsAtPath(filePath);
-				break;
-			}
+			info.mObject = AssetDatabase.LoadAssetAtPath<T>(filePath);
+			info.mSubObjects = AssetDatabase.LoadAllAssetsAtPath(filePath);
 		}
-		UN_LIST(fileNameList);
 #else
-		info.mObject = Resources.Load(name, Typeof<T>());
+		name = removeSuffix(name);
+		info.mObject = Resources.Load(name, CSharpUtility.Typeof<T>());
 		info.mSubObjects = Resources.LoadAll(name);
 #endif
 		info.mState = LOAD_STATE.LOADED;
@@ -258,7 +262,7 @@ public class AssetDataBaseLoader : FrameBase
 			// 加载失败则从列表中移除
 			logWarning("资源加载失败:" + name);
 			resList.Remove(info.mResouceName);
-			UN_CLASS(info);
+			UN_CLASS(ref info);
 			return false;
 		}
 		mLoadedObjects.Add(info.mObject, info);
@@ -267,23 +271,15 @@ public class AssetDataBaseLoader : FrameBase
 	protected IEnumerator loadResourceCoroutine<T>(ResourceLoadInfo info) where T : Object
 	{
 #if UNITY_EDITOR
-		LIST(out List<string> fileNameList);
-		mResourceManager.adjustResourceName<T>(info.mResouceName, fileNameList, false);
-		int fileCount = fileNameList.Count;
-		for (int i = 0; i < fileCount; ++i)
+		string filePath = P_GAME_RESOURCES_PATH + info.mResouceName;
+		if (isFileExist(filePath))
 		{
-			string filePath = FrameDefine.P_GAME_RESOURCES_PATH + fileNameList[i];
-			if (isFileExist(filePath))
-			{
-				info.mObject = AssetDatabase.LoadAssetAtPath<T>(filePath);
-				info.mSubObjects = AssetDatabase.LoadAllAssetsAtPath(filePath);
-				break;
-			}
+			info.mObject = AssetDatabase.LoadAssetAtPath<T>(filePath);
+			info.mSubObjects = AssetDatabase.LoadAllAssetsAtPath(filePath);
 		}
-		UN_LIST(fileNameList);
 		yield return null;
 #else
-		ResourceRequest request = Resources.LoadAsync<T>(info.mResouceName);
+		ResourceRequest request = Resources.LoadAsync<T>(removeSuffix(info.mResouceName));
 		yield return request;
 		info.mObject = request.asset;
 #endif
@@ -299,7 +295,7 @@ public class AssetDataBaseLoader : FrameBase
 			logWarning("资源加载失败:" + info.mResouceName);
 			mLoadedPath[info.mPath].Remove(info.mResouceName);
 			info.callbackAll(info.mObject, info.mSubObjects, null);
-			UN_CLASS(info);
+			UN_CLASS(ref info);
 		}
 	}
 }

@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 
-public class SCDemo : NetPacketTCPFrame
+public class SCDemo : NetPacketFrame
 {
 	public UINT mDemoParam = new UINT();
-	protected override void fillParams()
+	public override void init()
 	{
-		pushParam(mDemoParam);
+		base.init();
+		addParam(mDemoParam, false);
 	}
 	public override void execute()
 	{

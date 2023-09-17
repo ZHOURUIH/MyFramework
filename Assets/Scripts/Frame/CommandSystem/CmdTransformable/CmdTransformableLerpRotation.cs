@@ -1,11 +1,14 @@
 ﻿using UnityEngine;
+using static UnityUtility;
+using static MathUtility;
 
+// 插值改变一个物体的旋转,如果目标旋转不变,离目标旋转越近,旋转速度越慢
 public class CmdTransformableLerpRotation : Command
 {
-	public LerpCallback mDoingCallBack;
-	public LerpCallback mDoneCallBack;
-	public Vector3 mTargetRotation;
-	public float mLerpSpeed;
+	public LerpCallback mDoingCallBack;		// 插值中回调
+	public LerpCallback mDoneCallBack;		// 插值完成时回调
+	public Vector3 mTargetRotation;			// 目标旋转值
+	public float mLerpSpeed;				// 插值速度
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -42,7 +45,7 @@ public class CmdTransformableLerpRotation : Command
 	}
 	public override void debugInfo(MyStringBuilder builder)
 	{
-		builder.Append(": mLerpSpeed:", mLerpSpeed).
-				Append(", mTargetRotation:", mTargetRotation);
+		builder.append(": mLerpSpeed:", mLerpSpeed).
+				append(", mTargetRotation:", mTargetRotation);
 	}
 }

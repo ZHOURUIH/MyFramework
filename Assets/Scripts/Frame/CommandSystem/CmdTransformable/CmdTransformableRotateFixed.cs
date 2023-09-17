@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
+using static UnityUtility;
 
+// 锁定物体的旋转
 public class CmdTransformableRotateFixed : Command
 {
-	public Vector3 mFixedEuler;
-	public bool mActive;
+public Vector3 mFixedEuler;		// 锁定的旋转值
+	public bool mActive;			// 是否锁定
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -31,7 +33,7 @@ public class CmdTransformableRotateFixed : Command
 	}
 	public override void debugInfo(MyStringBuilder builder)
 	{
-		builder.Append(": mActive:", mActive).
-				Append(", mFixedEuler:", mFixedEuler);
+		builder.append(": mActive:", mActive).
+				append(", mFixedEuler:", mFixedEuler);
 	}
 }

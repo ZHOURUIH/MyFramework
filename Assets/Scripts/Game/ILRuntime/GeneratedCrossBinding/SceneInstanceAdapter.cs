@@ -2,24 +2,16 @@ using System;
 using ILRuntime.CLR.Method;
 using ILRuntime.Runtime.Enviorment;
 using ILRuntime.Runtime.Intepreter;
+#if DEBUG && !DISABLE_ILRUNTIME_DEBUG
+using AutoList = System.Collections.Generic.List<object>;
+#else
+using AutoList = ILRuntime.Other.UncheckedList<object>;
+#endif
 
 namespace HotFix
 {   
     public class SceneInstanceAdapter : CrossBindingAdaptor
     {
-        static CrossBindingMethodInfo minit_0 = new CrossBindingMethodInfo("init");
-        static CrossBindingMethodInfo mresetProperty_1 = new CrossBindingMethodInfo("resetProperty");
-        static CrossBindingMethodInfo mdestroy_2 = new CrossBindingMethodInfo("destroy");
-        static CrossBindingMethodInfo<System.Single> mupdate_3 = new CrossBindingMethodInfo<System.Single>("update");
-        static CrossBindingMethodInfo monShow_4 = new CrossBindingMethodInfo("onShow");
-        static CrossBindingMethodInfo monHide_5 = new CrossBindingMethodInfo("onHide");
-        static CrossBindingMethodInfo mfindGameObject_6 = new CrossBindingMethodInfo("findGameObject");
-        static CrossBindingMethodInfo minitGameObject_7 = new CrossBindingMethodInfo("initGameObject");
-        static CrossBindingMethodInfo<global::Command> monCmdStarted_8 = new CrossBindingMethodInfo<global::Command>("onCmdStarted");
-        static CrossBindingMethodInfo<System.Boolean> msetDestroy_9 = new CrossBindingMethodInfo<System.Boolean>("setDestroy");
-        static CrossBindingFunctionInfo<System.Boolean> misDestroy_10 = new CrossBindingFunctionInfo<System.Boolean>("isDestroy");
-        static CrossBindingMethodInfo<System.Int64> msetAssignID_11 = new CrossBindingMethodInfo<System.Int64>("setAssignID");
-        static CrossBindingFunctionInfo<System.Int64> mgetAssignID_12 = new CrossBindingFunctionInfo<System.Int64>("getAssignID");
         public override Type BaseCLRType
         {
             get
@@ -43,6 +35,17 @@ namespace HotFix
 
         public class Adapter : global::SceneInstance, CrossBindingAdaptorType
         {
+            CrossBindingMethodInfo minit_0 = new CrossBindingMethodInfo("init");
+            CrossBindingMethodInfo mresetProperty_1 = new CrossBindingMethodInfo("resetProperty");
+            CrossBindingMethodInfo mdestroy_2 = new CrossBindingMethodInfo("destroy");
+            CrossBindingMethodInfo<System.Single> mupdate_3 = new CrossBindingMethodInfo<System.Single>("update");
+            CrossBindingMethodInfo monShow_4 = new CrossBindingMethodInfo("onShow");
+            CrossBindingMethodInfo monHide_5 = new CrossBindingMethodInfo("onHide");
+            CrossBindingMethodInfo mfindGameObject_6 = new CrossBindingMethodInfo("findGameObject");
+            CrossBindingMethodInfo minitGameObject_7 = new CrossBindingMethodInfo("initGameObject");
+            CrossBindingMethodInfo<global::Command> monCmdStarted_8 = new CrossBindingMethodInfo<global::Command>("onCmdStarted");
+
+            bool isInvokingToString;
             ILTypeInstance instance;
             ILRuntime.Runtime.Enviorment.AppDomain appdomain;
 
@@ -131,45 +134,21 @@ namespace HotFix
                     monCmdStarted_8.Invoke(this.instance, cmd);
             }
 
-            public override void setDestroy(System.Boolean isDestroy)
-            {
-                if (msetDestroy_9.CheckShouldInvokeBase(this.instance))
-                    base.setDestroy(isDestroy);
-                else
-                    msetDestroy_9.Invoke(this.instance, isDestroy);
-            }
-
-            public override System.Boolean isDestroy()
-            {
-                if (misDestroy_10.CheckShouldInvokeBase(this.instance))
-                    return base.isDestroy();
-                else
-                    return misDestroy_10.Invoke(this.instance);
-            }
-
-            public override void setAssignID(System.Int64 assignID)
-            {
-                if (msetAssignID_11.CheckShouldInvokeBase(this.instance))
-                    base.setAssignID(assignID);
-                else
-                    msetAssignID_11.Invoke(this.instance, assignID);
-            }
-
-            public override System.Int64 getAssignID()
-            {
-                if (mgetAssignID_12.CheckShouldInvokeBase(this.instance))
-                    return base.getAssignID();
-                else
-                    return mgetAssignID_12.Invoke(this.instance);
-            }
-
             public override string ToString()
             {
                 IMethod m = appdomain.ObjectType.GetMethod("ToString", 0);
                 m = instance.Type.GetVirtualMethod(m);
                 if (m == null || m is ILMethod)
                 {
-                    return instance.ToString();
+                    if (!isInvokingToString)
+                    {
+                        isInvokingToString = true;
+                        string res = instance.ToString();
+                        isInvokingToString = false;
+                        return res;
+                    }
+                    else
+                        return instance.Type.FullName;
                 }
                 else
                     return instance.Type.FullName;

@@ -1,25 +1,19 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using static UnityUtility;
+using static FrameUtility;
+using static FrameBase;
+using static MathUtility;
 
 // 全部都是对于UI布局或窗口的操作,部分Transformable的通用操作在ToolFrame中
-public class LT : FrameBase
+public class LT
 {
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 布局
 	#region 布局
 	public static void LOAD_LAYOUT(int id, int renderOrder, LAYOUT_ORDER orderType, bool visible, bool immediately, string param, bool isScene, bool isAsync, LayoutAsyncDone callback)
 	{
-		CMD(out CmdLayoutManagerLoad cmd, LOG_LEVEL.FORCE);
-		cmd.mLayoutID = id;
-		cmd.mVisible = visible;
-		cmd.mRenderOrder = renderOrder;
-		cmd.mOrderType = orderType;
-		cmd.mAsync = isAsync;
-		cmd.mImmediatelyShow = immediately;
-		cmd.mParam = param;
-		cmd.mIsScene = isScene;
-		cmd.mCallback = callback;
-		pushCommand(cmd, mLayoutManager);
+		CmdLayoutManagerLoad.execute(id, renderOrder, orderType, param, immediately, visible, isScene, isAsync, callback);
 	}
 	#region UGUI
 	public static void LOAD_UGUI(int id, bool visible)
@@ -107,7 +101,7 @@ public class LT : FrameBase
 	}
 	public static void VISIBLE_LAYOUT(int id, bool visible, bool immediately = false, string param = null)
 	{
-		CMD(out CmdLayoutManagerVisible cmd, LOG_LEVEL.FORCE);
+		CMD(out CmdLayoutManagerVisible cmd);
 		cmd.mLayoutID = id;
 		cmd.mForce = false;
 		cmd.mVisible = visible;
@@ -117,7 +111,7 @@ public class LT : FrameBase
 	}
 	public static void VISIBLE_LAYOUT_FORCE(int id, bool visible)
 	{
-		CMD(out CmdLayoutManagerVisible cmd, LOG_LEVEL.FORCE);
+		CMD(out CmdLayoutManagerVisible cmd);
 		cmd.mLayoutID = id;
 		cmd.mForce = true;
 		cmd.mVisible = visible;
@@ -150,7 +144,7 @@ public class LT : FrameBase
 	}
 	public static CmdLayoutManagerVisible VISIBLE_LAYOUT_DELAY_EX(DelayCmdWatcher watcher, float delayTime, int id, bool visible, CommandCallback start, bool immediately = false, string param = null)
 	{
-		CMD_DELAY(out CmdLayoutManagerVisible cmd, LOG_LEVEL.FORCE);
+		CMD_DELAY(out CmdLayoutManagerVisible cmd);
 		cmd.mLayoutID = id;
 		cmd.mForce = false;
 		cmd.mVisible = visible;
@@ -162,7 +156,7 @@ public class LT : FrameBase
 	}
 	public static CmdLayoutManagerVisible VISIBLE_LAYOUT_DELAY_FORCE(DelayCmdWatcher watcher, float delayTime, int type, bool visible)
 	{
-		CMD_DELAY(out CmdLayoutManagerVisible cmd, LOG_LEVEL.FORCE);
+		CMD_DELAY(out CmdLayoutManagerVisible cmd);
 		cmd.mLayoutID = type;
 		cmd.mForce = true;
 		cmd.mVisible = visible;
@@ -176,23 +170,11 @@ public class LT : FrameBase
 	{
 		// 需要首先强制隐藏布局
 		HIDE_LAYOUT_FORCE(id);
-		CMD(out CmdLayoutManagerUnload cmd, LOG_LEVEL.FORCE);
-		cmd.mLayoutID = id;
-		pushCommand(cmd, mLayoutManager);
-	}
-	public static void UNLOAD_LAYOUT_DELAY(DelayCmdWatcher watcher, int id, float delayTime)
-	{
-		CMD_DELAY(out CmdLayoutManagerUnload cmd, LOG_LEVEL.FORCE);
-		cmd.mLayoutID = id;
-		pushDelayCommand(cmd, mLayoutManager, delayTime, watcher);
+		CmdLayoutManagerUnload.execute(id);
 	}
 	#endregion
 	#endregion
 	#region 窗口的显示和隐藏
-	public static void ACTIVE(myUIObject obj, bool active = true)
-	{
-		obj?.setActive(active);
-	}
 	public static CmdWindowActive ACTIVE_DELAY(DelayCmdWatcher watcher, myUIObject obj, bool active)
 	{
 		return ACTIVE_DELAY_EX(watcher, obj, active, 0.001f, null);

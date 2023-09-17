@@ -1,16 +1,16 @@
 ﻿using UnityEngine;
 
 // 摄像机连接器的转换器基类,用于实现切换连接器时的各种过渡效果
-public abstract class CameraLinkerSwitch : FrameBase
+public abstract class CameraLinkerSwitch : ClassObject
 {
-	protected CameraLinker mLinker;
-	protected Vector3 mOriginRelative;
-	protected Vector3 mTargetRelative;
+	protected CameraLinker mLinker;				// 所属的连接器
+	protected Vector3 mOriginRelative;			// 初始的相对位置
+	protected Vector3 mTargetRelative;			// 目标的相对位置
 	// 转换器的速度,不同的转换器速度含义不同
 	// 直线转换器是直线速度
 	// 环形转换器是角速度
 	// 绕目标旋转转换器是角速度
-	protected float mSpeed;
+	protected float mSpeed;						// 转换速度
 	public virtual void init(Vector3 origin, Vector3 target, float speed)
 	{
 		mOriginRelative = origin;

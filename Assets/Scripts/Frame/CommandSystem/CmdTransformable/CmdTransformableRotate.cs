@@ -1,16 +1,18 @@
 ﻿using UnityEngine;
+using static UnityUtility;
+using static MathUtility;
 
+// 旋转物体
 public class CmdTransformableRotate : Command
 {
-	public KeyFrameCallback mDoingCallback;
-	public KeyFrameCallback mDoneCallback;
-	public Vector3 mStartRotation;
-	public Vector3 mTargetRotation;
-	public float mOnceLength;
-	public float mOffset;
-	public int mKeyframe;
-	public bool mFullOnce;
-	public bool mLoop;
+	public KeyFrameCallback mDoingCallback;		// 旋转中回调
+	public KeyFrameCallback mDoneCallback;		// 旋转完成时回调
+	public Vector3 mStartRotation;				// 起始旋转值
+	public Vector3 mTargetRotation;				// 目标旋转值
+	public float mOnceLength;					// 单次所需时间
+	public float mOffset;						// 起始时间偏移
+	public int mKeyframe;						// 所使用的关键帧ID
+	public bool mLoop;							// 是否循环
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -21,7 +23,6 @@ public class CmdTransformableRotate : Command
 		mKeyframe = KEY_CURVE.NONE;
 		mOnceLength = 1.0f;
 		mOffset = 0.0f;
-		mFullOnce = true;
 		mLoop = false;
 	}
 	public override void execute()
@@ -43,7 +44,7 @@ public class CmdTransformableRotate : Command
 		com.setActive(true);
 		com.setTarget(mTargetRotation);
 		com.setStart(mStartRotation);
-		com.play(mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce);
+		com.play(mKeyframe, mLoop, mOnceLength, mOffset);
 		if (com.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
@@ -52,12 +53,11 @@ public class CmdTransformableRotate : Command
 	}
 	public override void debugInfo(MyStringBuilder builder)
 	{
-		builder.Append(": mKeyframe:", mKeyframe).
-				Append(", mOnceLength:", mOnceLength).
-				Append(", mOffset:", mOffset).
-				Append(", mLoop:", mLoop).
-				Append(", mFullOnce:", mFullOnce).
-				Append(", mStartRotation:", mStartRotation).
-				Append(", mTargetRotation:", mTargetRotation);
+		builder.append(": mKeyframe:", mKeyframe).
+				append(", mOnceLength:", mOnceLength).
+				append(", mOffset:", mOffset).
+				append(", mLoop:", mLoop).
+				append(", mStartRotation:", mStartRotation).
+				append(", mTargetRotation:", mTargetRotation);
 	}
 }

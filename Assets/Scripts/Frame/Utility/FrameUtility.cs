@@ -1,83 +1,54 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityUtility;
+using static CSharpUtility;
+using static StringUtility;
+using static MathUtility;
+using static BinaryUtility;
+using static FrameBase;
+using static FrameDefine;
 
 // 一些框架层的方便使用的工具函数,包含命令,对象池,列表池,字符串拼接池,延迟执行函数,以及其他的与框架层逻辑有关的工具函数
-public class FrameUtility : WidgetUtility
+public class FrameUtility
 {
-	protected static UINT mTempStateID = new UINT();
+	protected static LONG mTempStateID = new LONG();	// 避免GC
 	// 移除第一个指定类型的状态
 	public static void characterRemoveState<T>(Character character, string param = null) where T : CharacterState
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用characterRemoveState<T>, T:" + typeof(T));
+			logError("热更工程无法使用characterRemoveState<T>");
 		}
-#else
-		Type type = typeof(T);
-#endif
 		CharacterState state = character.getFirstState(type);
 		if (state == null)
 		{
 			return;
 		}
-		CMD(out CmdCharacterRemoveState cmd, LOG_LEVEL.LOW);
-		cmd.mState = state;
-		cmd.mParam = param;
-		pushCommand(cmd, character);
+		CmdCharacterRemoveState.execute(character, state, param);
 	}
-	// 移除指定的状态
-	public static void characterRemoveState(Character character, CharacterState state, string param = null)
-	{
-		CMD(out CmdCharacterRemoveState cmd, LOG_LEVEL.LOW);
-		cmd.mState = state;
-		cmd.mParam = param;
-		pushCommand(cmd, character);
-	}
-	public static CharacterState characterAddState(Type stateType, Character character, StateParam param = null, float stateTime = -1.0f)
-	{
-		CMD(out CmdCharacterAddState cmd, LOG_LEVEL.LOW);
-		cmd.mStateType = stateType;
-		cmd.mParam = param;
-		cmd.mStateTime = stateTime;
-		cmd.mOutStateID = mTempStateID;
-		pushCommand(cmd, character);
-		return character.getState(mTempStateID.mValue);
-	}
-	// 添加指定类型的状态
-	public static CharacterState characterAddState<T>(Character character, StateParam param = null, float stateTime = -1.0f) where T : CharacterState
-	{
-#if UNITY_EDITOR && USE_ILRUNTIME
-		Type type = Typeof<T>();
-		if (type == null)
-		{
-			logError("热更工程无法使用characterAddState<T>, T:" + typeof(T));
-		}
-#else
-		Type type = typeof(T);
-#endif
-		return characterAddState(type, character, param, stateTime);
-	}
-	public static GameCamera getMainCamera() { return FrameBase.mCameraManager.getMainCamera(); }
-	public static bool isKeyCurrentDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputSystem.isKeyCurrentDown(key, mask); }
-	public static bool isKeyCurrentUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputSystem.isKeyCurrentUp(key, mask); }
-	public static bool isKeyDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputSystem.isKeyDown(key, mask); }
-	public static bool isKeyUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return FrameBase.mInputSystem.isKeyUp(key, mask); }
-	// 与多点触控相关的逻辑时不能使用此鼠标坐标,应该获取相应触点的坐标,否则会出错误
+	public static GameCamera getMainCamera() { return mCameraManager.getMainCamera(); }
+	public static bool isKeyCurrentDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return mInputSystem.isKeyCurrentDown(key, mask); }
+	public static bool isKeyCurrentUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return mInputSystem.isKeyCurrentUp(key, mask); }
+	public static bool isKeyDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return mInputSystem.isKeyDown(key, mask); }
+	public static bool isKeyUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return mInputSystem.isKeyUp(key, mask); }
+	// 仅编辑器或桌面端使用,与多点触控相关的逻辑时不能使用此鼠标坐标,应该获取相应触点的坐标,否则会出错误
+#if UNITY_EDITOR || UNITY_STANDALONE
 	public static Vector3 getMousePosition(bool leftBottomAsOrigin = true)
 	{
+		Vector3 mousePos = mInputSystem.getTouchPoint((int)MOUSE_BUTTON.LEFT).getCurPosition();
 		if (leftBottomAsOrigin)
 		{
-			return FrameBase.mInputSystem.getMousePosition();
+			return mousePos;
 		}
 		else
 		{
-			return FrameBase.mInputSystem.getMousePosition() - (Vector3)getScreenSize() * 0.5f;
+			return mousePos - (Vector3)getHalfScreenSize();
 		}
 	}
-	public static GameScene getCurScene() { return FrameBase.mGameSceneManager.getCurScene(); }
+#endif
+	public static GameScene getCurScene() { return mGameSceneManager.getCurScene(); }
 	public static bool atProcedure(Type type) { return getCurScene().atProcedure(type); }
 	public static bool atProcedure<T>() where T : SceneProcedure { return getCurScene().atProcedure(typeof(T)); }
 	// 百分比一般用于属性增幅之类的
@@ -85,8 +56,10 @@ public class FrameUtility : WidgetUtility
 	public static string toPercent(float value, int precision = 1) { return FToS(value * 100, precision); }
 	// 几率类的一般是万分比的格式填写的
 	public static string toProbability(string value) { return FToS(SToF(value) * 0.01f); }
-	public static Canvas getUGUIRootComponent() { return FrameBase.mLayoutManager?.getUIRoot()?.getCanvas(); }
-	public static Camera getUICamera() { return FrameBase.mCameraManager.getUICamera()?.getCamera(); }
+	public static string toProbability(float value) { return FToS(value * 0.01f); }
+	public static myUGUIObject getUGUIRoot() { return mLayoutManager?.getUIRoot(); }
+	public static Canvas getUGUIRootComponent() { return mLayoutManager?.getUIRoot()?.getCanvas(); }
+	public static Camera getUICamera() { return mCameraManager.getUICamera()?.getCamera(); }
 	// 将UI的宽高调整为偶数
 	public static void makeSizeEven(myUGUIObject obj)
 	{
@@ -102,46 +75,42 @@ public class FrameUtility : WidgetUtility
 	}
 	public static T getData<T>(int id) where T : ExcelData
 	{
-		return FrameBase.mExcelManager.getData<T>(id);
-	}
-	// 直接获取一个指定图集的图片,此图集应该在Atlas/GameAtlas/图集名/图集名
-	public static Sprite getGameAtlasSprite(string atlas, string spriteName)
-	{
-		return FrameBase.mTPSpriteManager.getSprite(FrameDefine.R_ATLAS_GAME_ATLAS_PATH + atlas + "/" + atlas, spriteName);
-	}
-	// atlas是一个GameResources下的相对路径
-	public static Sprite getSprite(string atlas, string spriteName)
-	{
-		return FrameBase.mTPSpriteManager.getSprite(atlas, spriteName);
+		return mExcelManager.getData<T>(id);
 	}
 	public static T PACKET<T>(out T packet) where T : NetPacket
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用PACKET<T>, T:" + typeof(T));
+			logError("热更工程无法使用PACKET<T>");
 		}
+		return packet = mSocketFactory.createSocketPacket(type) as T;
+	}
+	// 获得一个合适的文件写入路径,fileName是StreamingAssets下的相对路径,带后缀
+	public static string availableWritePath(string fileName)
+	{
+		// 安卓真机和iOS真机上是优先从PersistentDataPath中加载,其他的都是在StreamingAssets中
+#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
+		return F_PERSISTENT_ASSETS_PATH + fileName;
 #else
-		Type type = typeof(T);
+		return F_ASSET_BUNDLE_PATH + fileName;
 #endif
-		return packet = FrameBase.mSocketFactory.createSocketPacket(type) as T;
 	}
 	// 获得一个合适的文件加载路径,fileName是StreamingAssets下的相对路径,带后缀
-	public static string availablePath(string fileName)
+	public static string availableReadPath(string fileName)
 	{
-		// 只有安卓平台真机上是优先从PersistentDataPath中加载,其他的都是在StreamingAssets中
-#if !UNITY_EDITOR && UNITY_ANDROID
+		// 安卓真机和iOS真机上是优先从PersistentDataPath中加载,其他的都是在StreamingAssets中
+#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
 		// 优先从PersistentDataPath中加载
-		string path = FrameDefine.F_PERSISTENT_DATA_PATH + fileName;
-		if (isFileExist(path))
+		string path = F_PERSISTENT_ASSETS_PATH + fileName;
+		if (FileUtility.isFileExist(path))
 		{
 			return path;
 		}
 		// PersistentDataPath中没有,再从AssetBundlePath中加载,原本在StreamingAssets中的文件也都在AssetBundlePath中
-		return FrameDefine.F_ASSET_BUNDLE_PATH + fileName;
+		return F_ASSET_BUNDLE_PATH + fileName;
 #else
-		return FrameDefine.F_ASSET_BUNDLE_PATH + fileName;
+		return F_ASSET_BUNDLE_PATH + fileName;
 #endif
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
@@ -149,15 +118,11 @@ public class FrameUtility : WidgetUtility
 	// 主工程中可调用的跳转流程的函数
 	public static void changeProcedure<T>(string intent = null) where T : SceneProcedure
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用changeProcedure<T>, T:" + typeof(T));
+			logError("热更工程无法使用changeProcedure<T>");
 		}
-#else
-		Type type = typeof(T);
-#endif
 		CMD(out CmdGameSceneChangeProcedure cmd, LOG_LEVEL.FORCE);
 		cmd.mProcedure = type;
 		cmd.mIntent = intent;
@@ -165,15 +130,11 @@ public class FrameUtility : WidgetUtility
 	}
 	public static CmdGameSceneChangeProcedure changeProcedureDelay<T>(float delayTime = 0.001f, string intent = null) where T : SceneProcedure
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用changeProcedure<T>, T:" + typeof(T));
+			logError("热更工程无法使用changeProcedure<T>");
 		}
-#else
-		Type type = typeof(T);
-#endif
 		CMD_DELAY(out CmdGameSceneChangeProcedure cmd, LOG_LEVEL.FORCE);
 		cmd.mProcedure = type;
 		cmd.mIntent = intent;
@@ -182,37 +143,39 @@ public class FrameUtility : WidgetUtility
 	}
 	public static void prepareChangeProcedure<T>(float prepareTime = 0.001f, string intent = null) where T : SceneProcedure
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用changeProcedure<T>, T:" + typeof(T));
+			logError("热更工程无法使用changeProcedure<T>");
 		}
-#else
-		Type type = typeof(T);
-#endif
-		CMD(out CmdGameScenePrepareChangeProcedure cmd, LOG_LEVEL.FORCE);
-		cmd.mProcedure = type;
-		cmd.mIntent = intent;
-		cmd.mPrepareTime = prepareTime;
-		pushCommand(cmd, getCurScene());
+		CmdGameScenePrepareChangeProcedure.execute(getCurScene(), type, intent, prepareTime);
 	}
 	public static void enterScene<T>(Type startProcedure = null, string intent = null) where T : GameScene
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用enterScene<T>, T:" + typeof(T));
+			logError("热更工程无法使用enterScene<T>");
 		}
-#else
-		Type type = typeof(T);
-#endif
 		CMD(out CmdGameSceneManagerEnter cmd, LOG_LEVEL.FORCE);
 		cmd.mSceneType = type;
 		cmd.mStartProcedure = startProcedure;
 		cmd.mIntent = intent;
-		pushCommand(cmd, FrameBase.mGameSceneManager);
+		pushCommand(cmd, mGameSceneManager);
+	}
+	// 延迟到下一帧跳转
+	public static void enterSceneDelay<T>(Type startProcedure = null, string intent = null) where T : GameScene
+	{
+		Type type = Typeof<T>();
+		if (type == null)
+		{
+			logError("热更工程无法使用enterScene<T>");
+		}
+		CMD_DELAY(out CmdGameSceneManagerEnter cmd, LOG_LEVEL.FORCE);
+		cmd.mSceneType = type;
+		cmd.mStartProcedure = startProcedure;
+		cmd.mIntent = intent;
+		pushDelayCommand(cmd, mGameSceneManager);
 	}
 	public static void changeProcedure(Type procedure, string intent = null)
 	{
@@ -231,11 +194,7 @@ public class FrameUtility : WidgetUtility
 	}
 	public static void prepareChangeProcedure(Type procedure, float prepareTime = 0.001f, string intent = null)
 	{
-		CMD(out CmdGameScenePrepareChangeProcedure cmd, LOG_LEVEL.FORCE);
-		cmd.mProcedure = procedure;
-		cmd.mIntent = intent;
-		cmd.mPrepareTime = prepareTime;
-		pushCommand(cmd, getCurScene());
+		CmdGameScenePrepareChangeProcedure.execute(getCurScene(), procedure, intent, prepareTime);
 	}
 	public static void enterScene(Type sceneType, Type startProcedure = null, string intent = null)
 	{
@@ -243,41 +202,41 @@ public class FrameUtility : WidgetUtility
 		cmd.mSceneType = sceneType;
 		cmd.mStartProcedure = startProcedure;
 		cmd.mIntent = intent;
-		pushCommand(cmd, FrameBase.mGameSceneManager);
+		pushCommand(cmd, mGameSceneManager);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 命令
 	// 在主线程中创建立即执行的命令
-	public static Command CMD(Type type, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL)
+	public static Command CMD(Type type, bool newDirect, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL)
 	{
-		Command cmd = FrameBase.mClassPool.newClass(type, false) as Command;
+		Command cmd = mClassPool.newClass(type, out _, false, newDirect) as Command;
 		cmd.setCmdLogLevel(logLevel);
 		cmd.setDelayCommand(false);
 		cmd.setThreadCommand(false);
 		return cmd;
 	}
 	// 在主线程中创建延迟执行的命令
-	public static Command CMD_DELAY(Type type, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL)
+	public static Command CMD_DELAY(Type type, bool newDirect, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL)
 	{
-		Command cmd = FrameBase.mClassPool.newClass(type, false) as Command;
+		Command cmd = mClassPool.newClass(type, out _, false, newDirect) as Command;
 		cmd.setCmdLogLevel(logLevel);
 		cmd.setDelayCommand(true);
 		cmd.setThreadCommand(false);
 		return cmd;
 	}
 	// 在子线程中创建立即执行的命令
-	public static Command CMD_THREAD(Type type, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL)
+	public static Command CMD_THREAD(Type type, bool newDirect, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL)
 	{
-		Command cmd = FrameBase.mClassPoolThread.newClass(type, out _) as Command;
+		Command cmd = mClassPoolThread.newClass(type, out _, newDirect) as Command;
 		cmd.setCmdLogLevel(logLevel);
 		cmd.setDelayCommand(false);
 		cmd.setThreadCommand(true);
 		return cmd;
 	}
 	// 在子线程中创建延迟执行的命令
-	public static Command CMD_DELAY_THREAD(Type type, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL)
+	public static Command CMD_DELAY_THREAD(Type type, bool newDirect, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL)
 	{
-		Command cmd = FrameBase.mClassPoolThread.newClass(type, out _) as Command;
+		Command cmd = mClassPoolThread.newClass(type, out _, newDirect) as Command;
 		cmd.setCmdLogLevel(logLevel);
 		cmd.setDelayCommand(true);
 		cmd.setThreadCommand(true);
@@ -286,58 +245,42 @@ public class FrameUtility : WidgetUtility
 	// 在主线程中创建立即执行的命令
 	public static void CMD<T>(out T cmd, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL) where T : Command
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用CMD<T>, T:" + typeof(T));
+			logError("热更工程无法使用CMD<T>");
 		}
-#else
-		Type type = typeof(T);
-#endif
-		cmd = CMD(type, logLevel) as T;
+		cmd = CMD(type, true, logLevel) as T;
 	}
 	// 在主线程中创建延迟执行的命令
 	public static void CMD_DELAY<T>(out T cmd, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL) where T : Command
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用CMD_DELAY<T>, T:" + typeof(T));
+			logError("热更工程无法使用CMD_DELAY<T>");
 		}
-#else
-		Type type = typeof(T);
-#endif
-		cmd = CMD_DELAY(type, logLevel) as T;
+		cmd = CMD_DELAY(type, true, logLevel) as T;
 	}
 	// 在子线程中创建立即执行的命令
 	public static void CMD_THREAD<T>(out T cmd, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL) where T : Command
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用CMD_THREAD<T>, T:" + typeof(T));
+			logError("热更工程无法使用CMD_THREAD<T>");
 		}
-#else
-		Type type = typeof(T);
-#endif
-		cmd = CMD_THREAD(type, logLevel) as T;
+		cmd = CMD_THREAD(type, true, logLevel) as T;
 	}
 	// 在子线程中创建延迟执行的命令
 	public static void CMD_DELAY_THREAD<T>(out T cmd, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL) where T : Command
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用CMD_DELAY_THREAD<T>, T:" + typeof(T));
+			logError("热更工程无法使用CMD_DELAY_THREAD<T>");
 		}
-#else
-		Type type = typeof(T);
-#endif
-		cmd = CMD_DELAY_THREAD(type, logLevel) as T;
+		cmd = CMD_DELAY_THREAD(type, true, logLevel) as T;
 	}
 	// 在子线程中发送一个指定类型的命令
 	public static void pushCommandThread<T>(CommandReceiver cmdReceiver, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL) where T : Command
@@ -354,7 +297,7 @@ public class FrameUtility : WidgetUtility
 	// 在主线程中发送一个指定类型的命令
 	public static void pushCommand(Command cmd, CommandReceiver cmdReceiver)
 	{
-		FrameBase.mCommandSystem.pushCommand(cmd, cmdReceiver);
+		mCommandSystem.pushCommand(cmd, cmdReceiver);
 	}
 	// 在子线程中发送一个指定类型的命令,并且会延迟到主线程执行
 	public static T pushDelayCommandThread<T>(DelayCmdWatcher watcher, CommandReceiver cmdReceiver, float delayExecute = 0.001f, LOG_LEVEL logLevel = LOG_LEVEL.NORMAL) where T : Command
@@ -380,438 +323,258 @@ public class FrameUtility : WidgetUtility
 	}
 	public static void pushDelayCommand(Command cmd, CommandReceiver cmdReceiver, float delayExecute, DelayCmdWatcher watcher)
 	{
-		FrameBase.mCommandSystem.pushDelayCommand(cmd, cmdReceiver, delayExecute, watcher);
+		mCommandSystem.pushDelayCommand(cmd, cmdReceiver, delayExecute, watcher);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 列表对象池
 	public static void LIST<T>(out List<T> list)
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
+		if (mGameFramework == null || mListPool == null)
+		{
+			list = new List<T>();
+			return;
+		}
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用LIST<T>, T:" + typeof(T));
+			logError("热更工程无法使用LIST<T>");
 		}
-#else
-		Type type = typeof(T);
-#endif
 		string stackTrace = EMPTY;
-		if (FrameBase.mGameFramework.mEnablePoolStackTrace)
+		if (mGameFramework.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
-		list = FrameBase.mListPool.newList(type, Typeof<List<T>>(), stackTrace, true) as List<T>;
+		list = mListPool.newList(type, typeof(List<T>), stackTrace, true) as List<T>;
 	}
 	public static void LIST_PERSIST<T>(out List<T> list)
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
+		if (mGameFramework == null || mListPool == null)
+		{
+			list = new List<T>();
+			return;
+		}
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用LIST_PERSIST<T>, T:" + typeof(T));
+			logError("热更工程无法使用LIST_PERSIST<T>");
 		}
-#else
-		Type type = typeof(T);
-#endif
 		string stackTrace = EMPTY;
-		if (FrameBase.mGameFramework.mEnablePoolStackTrace)
+		if (mGameFramework.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
-		list = FrameBase.mListPool.newList(type, Typeof<List<T>>(), stackTrace, false) as List<T>;
+		list = mListPool.newList(type, typeof(List<T>), stackTrace, false) as List<T>;
 	}
-	public static void UN_LIST<T>(List<T> list)
+	public static void UN_LIST<T>(ref List<T> list)
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
+		if (mGameFramework == null || mListPool == null)
+		{
+			return;
+		}
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用UN_LIST<T>, T:" + typeof(T));
+			logError("热更工程无法使用UN_LIST<T>");
 		}
-#else
-		Type type = typeof(T);
-#endif
-		FrameBase.mListPool?.destroyList(list, type);
-	}
-	public static void LIST<T>(out HashSet<T> list)
-	{
-#if UNITY_EDITOR && USE_ILRUNTIME
-		Type type = Typeof<T>();
-		if (type == null)
-		{
-			logError("热更工程无法使用LIST<T>, T:" + typeof(T));
-		}
-#else
-		Type type = typeof(T);
-#endif
-		string stackTrace = EMPTY;
-		if (FrameBase.mGameFramework.mEnablePoolStackTrace)
-		{
-			stackTrace = getStackTrace();
-		}
-		list = FrameBase.mHashSetPool.newList(type, Typeof<HashSet<T>>(), stackTrace, true) as HashSet<T>;
+		mListPool?.destroyList(ref list, type);
 	}
 	public static void LIST_PERSIST<T>(out HashSet<T> list)
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
+		if (mGameFramework == null || mListPool == null)
+		{
+			list = new HashSet<T>();
+			return;
+		}
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用LIST_PERSIST<T>, T:" + typeof(T));
+			logError("热更工程无法使用LIST_PERSIST<T>");
 		}
-#else
-		Type type = typeof(T);
-#endif
 		string stackTrace = EMPTY;
-		if (FrameBase.mGameFramework.mEnablePoolStackTrace)
+		if (mGameFramework.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
-		list = FrameBase.mHashSetPool.newList(type, Typeof<HashSet<T>>(), stackTrace, false) as HashSet<T>;
-	}
-	public static void UN_LIST<T>(HashSet<T> list)
-	{
-#if UNITY_EDITOR && USE_ILRUNTIME
-		Type type = Typeof<T>();
-		if (type == null)
-		{
-			logError("热更工程无法使用UN_LIST<T>, T:" + typeof(T));
-		}
-#else
-		Type type = typeof(T);
-#endif
-		list.Clear();
-		FrameBase.mHashSetPool?.destroyList(list, type);
-	}
-	public static void LIST<K, V>(out Dictionary<K, V> list)
-	{
-#if UNITY_EDITOR && USE_ILRUNTIME
-		Type typeKey = Typeof<K>();
-		Type typeValue = Typeof<V>();
-		if (typeKey == null || typeValue == null)
-		{
-			logError("热更工程无法使用LIST<K, V>, K:" + typeof(K) + ", V:" + typeof(V));
-		}
-#else
-		Type typeKey = typeof(K);
-		Type typeValue = typeof(V);
-#endif
-		string stackTrace = EMPTY;
-		if (FrameBase.mGameFramework.mEnablePoolStackTrace)
-		{
-			stackTrace = getStackTrace();
-		}
-		list = FrameBase.mDictionaryPool.newList(typeKey, typeValue, Typeof<Dictionary<K, V>>(), stackTrace, true) as Dictionary<K, V>;
+		list = mHashSetPool.newList(type, typeof(HashSet<T>), stackTrace, false) as HashSet<T>;
 	}
 	public static void LIST_PERSIST<K, V>(out Dictionary<K, V> list)
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
+		if (mGameFramework == null || mListPool == null)
+		{
+			list = new Dictionary<K, V>();
+			return;
+		}
 		Type typeKey = Typeof<K>();
 		Type typeValue = Typeof<V>();
 		if (typeKey == null || typeValue == null)
 		{
-			logError("热更工程无法使用LIST_PERSIST<K, V>, K:" + typeof(K) + ", V:" + typeof(V));
+			logError("热更工程无法使用LIST_PERSIST<K, V>");
 		}
-#else
-		Type typeKey = typeof(K);
-		Type typeValue = typeof(V);
-#endif
 		string stackTrace = EMPTY;
-		if (FrameBase.mGameFramework.mEnablePoolStackTrace)
+		if (mGameFramework.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
-		list = FrameBase.mDictionaryPool.newList(typeKey, typeValue, Typeof<Dictionary<K, V>>(), stackTrace, false) as Dictionary<K, V>;
-	}
-	public static void UN_LIST<K, V>(Dictionary<K, V> list)
-	{
-#if UNITY_EDITOR && USE_ILRUNTIME
-		Type typeKey = Typeof<K>();
-		Type typeValue = Typeof<V>();
-		if (typeKey == null || typeValue == null)
-		{
-			logError("热更工程无法使用UN_LIST<K, V>, K:" + typeof(K) + ", V:" + typeof(V));
-		}
-#else
-		Type typeKey = typeof(K);
-		Type typeValue = typeof(V);
-#endif
-		list.Clear();
-		FrameBase.mDictionaryPool?.destroyList(list, typeKey, typeValue);
+		list = mDictionaryPool.newList(typeKey, typeValue, typeof(Dictionary<K, V>), stackTrace, false) as Dictionary<K, V>;
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 对象池
+	public static ClassObject CLASS_ONCE(Type type, out bool isNew)
+	{
+		isNew = true;
+		if (mClassPool == null)
+		{
+			return createInstance<ClassObject>(type);
+		}
+		return mClassPool?.newClass(type, out isNew, true, false);
+	}
 	public static void CLASS_ONCE<T>(out T value) where T : ClassObject
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
+		if (mClassPool == null)
+		{
+			value = createInstanceDirect<T>(typeof(T));
+			return;
+		}
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用CLASS_ONCE<T>, T:" + typeof(T));
+			logError("热更工程无法使用CLASS<T>");
 		}
-#else
-		Type type = typeof(T);
-#endif
-		value = FrameBase.mClassPool?.newClass(type, true) as T;
-	}
-	public static ClassObject CLASS_ONCE(Type type)
-	{
-		return FrameBase.mClassPool?.newClass(type, true);
+		value = mClassPool?.newClass(type, out _, true, true) as T;
 	}
 	public static void CLASS<T>(out T value) where T : ClassObject
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
+		if (mClassPool == null)
+		{
+			value = createInstanceDirect<T>(typeof(T));
+			return;
+		}
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用CLASS<T>, T:" + typeof(T));
+			logError("热更工程无法使用CLASS<T>");
 		}
-#else
-		Type type = typeof(T);
-#endif
-		value = FrameBase.mClassPool?.newClass(type, false) as T;
+		value = mClassPool?.newClass(type, out _, false, true) as T;
 	}
 	public static T CLASS<T>() where T : ClassObject
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
+		if (mClassPool == null)
+		{
+			return createInstanceDirect<T>(typeof(T));
+		}
 		Type type = Typeof<T>();
 		if (type == null)
 		{
-			logError("热更工程无法使用CLASS<T>, T:" + typeof(T));
+			logError("热更工程无法使用CLASS<T>");
 		}
-#else
-		Type type = typeof(T);
-#endif
-		return FrameBase.mClassPool?.newClass(type, false) as T;
-	}
-	public static void CLASS<T>(out T value, out bool isNew) where T : ClassObject
-	{
-#if UNITY_EDITOR && USE_ILRUNTIME
-		Type type = Typeof<T>();
-		if (type == null)
-		{
-			logError("热更工程无法使用CLASS<T>, T:" + typeof(T));
-		}
-#else
-		Type type = typeof(T);
-#endif
-		isNew = false;
-		value = FrameBase.mClassPool?.newClass(type, out isNew, false) as T;
+		return mClassPool?.newClass(type, out _, false, true) as T;
 	}
 	public static ClassObject CLASS(Type type)
 	{
-		return FrameBase.mClassPool?.newClass(type, false);
+		if (mClassPool == null)
+		{
+			return createInstance<ClassObject>(type);
+		}
+		return mClassPool?.newClass(type, out _, false, false);
 	}
 	public static ClassObject CLASS(Type type, out bool isNew)
 	{
+		if (mClassPool == null)
+		{
+			isNew = true;
+			return createInstance<ClassObject>(type);
+		}
 		isNew = false;
-		return FrameBase.mClassPool?.newClass(type, out isNew, false);
+		return mClassPool?.newClass(type, out isNew, false, false);
 	}
 	// 由于热更工程无法使用多线程,所以此处不考虑热更工程
-	public static void CLASS_THREAD<T>(out T value) where T : ClassObject
+	public static T CLASS_THREAD<T>() where T : ClassObject
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
+		if (mClassPoolThread == null)
+		{
+			return createInstanceDirect<T>(typeof(T));
+		}
 		if (Typeof<T>() == null)
 		{
-			logError("热更工程无法使用CLASS_THREAD<T>, T:" + typeof(T));
+			logError("热更工程无法使用CLASS_THREAD<T>");
 		}
-#endif
-		value = FrameBase.mClassPoolThread?.newClass(typeof(T), out _) as T;
+		return mClassPoolThread?.newClass(typeof(T), out _, true) as T;
 	}
-	public static void CLASS_THREAD<T>(out T value, out bool isNew) where T : ClassObject
+	public static void UN_CLASS<T>(ref T obj) where T : ClassObject
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
-		if (Typeof<T>() == null)
-		{
-			logError("热更工程无法使用CLASS_THREAD<T>, T:" + typeof(T));
-		}
-#endif
-		isNew = false;
-		value = FrameBase.mClassPoolThread?.newClass(typeof(T), out isNew) as T;
+		mClassPool?.destroyClass(ref obj);
 	}
-	public static ClassObject CLASS_THREAD(Type type)
+	public static void UN_CLASS_LIST<T>(List<T> objList) where T : ClassObject
 	{
-		return FrameBase.mClassPoolThread?.newClass(type, out _);
+		mClassPool?.destroyClass(objList);
 	}
-	public static ClassObject CLASS_THREAD(Type type, out bool isNew)
+	public static void UN_CLASS_LIST<K, T>(Dictionary<K, T> objList) where T : ClassObject
 	{
-		isNew = false;
-		return FrameBase.mClassPoolThread?.newClass(type, out isNew);
+		mClassPool?.destroyClass(objList);
 	}
-	public static void UN_CLASS(ClassObject obj)
+	public static void UN_CLASS_THREAD<T>(ref T obj) where T : ClassObject
 	{
-		FrameBase.mClassPool?.destroyClass(obj);
-	}
-	public static void UN_CLASS_THREAD(ClassObject obj)
-	{
-		FrameBase.mClassPoolThread?.destroyClass(obj);
+		mClassPoolThread?.destroyClass(ref obj);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 数组对象池
-	public static void ARRAY<T>(out T[] array, int count)
-	{
-#if UNITY_EDITOR && USE_ILRUNTIME
-		if (Typeof<T>() == null)
-		{
-			logError("热更工程无法使用ARRAY<T>, T:" + typeof(T));
-		}
-#endif
-		array = FrameBase.mArrayPool.newArray<T>(count, true);
-	}
 	public static void ARRAY_PERSIST<T>(out T[] array, int count)
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
 		if (Typeof<T>() == null)
 		{
-			logError("热更工程无法使用ARRAY_PERSIST<T>, T:" + typeof(T));
+			logError("热更工程无法使用ARRAY_PERSIST<T>");
 		}
-#endif
-		array = FrameBase.mArrayPool.newArray<T>(count, false);
+		if (mArrayPool == null)
+		{
+			array = new T[count];
+			return;
+		}
+		array = mArrayPool.newArray<T>(count, false);
 	}
-	public static void UN_ARRAY<T>(T[] array, bool destroyReally = false)
+	public static void UN_ARRAY<T>(ref T[] array, bool destroyReally = false)
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
 		if (Typeof<T>() == null)
 		{
-			logError("热更工程无法使用UN_ARRAY<T>, T:" + typeof(T));
+			logError("热更工程无法使用UN_ARRAY<T>");
 		}
-#endif
-		FrameBase.mArrayPool.destroyArray(array, destroyReally);
+		mArrayPool?.destroyArray(ref array, destroyReally);
+	}
+	public static void UN_ARRAY<T>(List<T[]> arrayList, bool destroyReally = false)
+	{
+		if (Typeof<T>() == null)
+		{
+			logError("热更工程无法使用UN_ARRAY<T>");
+		}
+		mArrayPool?.destroyArray(arrayList, destroyReally);
 	}
 	public static void ARRAY_THREAD<T>(out T[] array, int count)
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
 		if (Typeof<T>() == null)
 		{
-			logError("热更工程无法使用ARRAY_THREAD<T>, T:" + typeof(T));
+			logError("热更工程无法使用ARRAY_THREAD<T>");
 		}
-#endif
-		if (FrameBase.mArrayPoolThread == null)
+		if (mArrayPoolThread == null)
 		{
-			array = null;
+			array = new T[count];
 			return;
 		}
-		array = FrameBase.mArrayPoolThread.newArray<T>(count);
+		array = mArrayPoolThread.newArray<T>(count);
 	}
-	public static void UN_ARRAY_THREAD<T>(T[] array, bool destroyReally = false)
+	public static void UN_ARRAY_THREAD<T>(ref T[] array, bool destroyReally = false)
 	{
-#if UNITY_EDITOR && USE_ILRUNTIME
 		if (Typeof<T>() == null)
 		{
-			logError("热更工程无法使用UN_ARRAY_THREAD<T>, T:" + typeof(T));
+			logError("热更工程无法使用UN_ARRAY_THREAD<T>");
 		}
-#endif
-		FrameBase.mArrayPoolThread?.destroyArray(array, destroyReally);
+		mArrayPoolThread?.destroyArray(ref array, destroyReally);
 	}
-	//------------------------------------------------------------------------------------------------------------------------------
-	// 字符串拼接
-	public static MyStringBuilder STRING()
+	public static void UN_ARRAY_THREAD<T>(List<T[]> arrayList, bool destroyReally = false)
 	{
-		if (FrameBase.mClassPool == null)
+		if (Typeof<T>() == null)
 		{
-			return new MyStringBuilder();
+			logError("热更工程无法使用UN_ARRAY_THREAD<T>");
 		}
-		return CLASS_ONCE(typeof(MyStringBuilder)) as MyStringBuilder;
-	}
-	public static MyStringBuilder STRING(string str)
-	{
-		return STRING().Append(str);
-	}
-	public static MyStringBuilder STRING(string str0, string str1)
-	{
-		return STRING().Append(str0, str1);
-	}
-	public static MyStringBuilder STRING(string str0, string str1, string str2)
-	{
-		return STRING().Append(str0, str1, str2);
-	}
-	public static MyStringBuilder STRING(string str0, string str1, string str2, string str3)
-	{
-		return STRING().Append(str0, str1, str2, str3);
-	}
-	public static MyStringBuilder STRING(string str0, string str1, string str2, string str3, string str4)
-	{
-		return STRING().Append(str0, str1, str2, str3, str4);
-	}
-	public static MyStringBuilder STRING(string str0, string str1, string str2, string str3, string str4, string str5)
-	{
-		return STRING().Append(str0, str1, str2, str3, str4, str5);
-	}
-	public static MyStringBuilder STRING(string str0, string str1, string str2, string str3, string str4, string str5, string str6)
-	{
-		return STRING().Append(str0, str1, str2, str3, str4, str5, str6);
-	}
-	public static MyStringBuilder STRING(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7)
-	{
-		return STRING().Append(str0, str1, str2, str3, str4, str5, str6, str7);
-	}
-	public static MyStringBuilder STRING(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7, string str8)
-	{
-		return STRING().Append(str0, str1, str2, str3, str4, str5, str6, str7, str8);
-	}
-	public static MyStringBuilder STRING(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7, string str8, string str9)
-	{
-		return STRING().Append(str0, str1, str2, str3, str4, str5, str6, str7, str8, str9);
-	}
-	public static MyStringBuilder STRING_THREAD()
-	{
-		if (FrameBase.mClassPoolThread == null)
-		{
-			return new MyStringBuilder();
-		}
-		return CLASS_THREAD(typeof(MyStringBuilder)) as MyStringBuilder;
-	}
-	public static MyStringBuilder STRING_THREAD(string str)
-	{
-		return STRING_THREAD().Append(str);
-	}
-	public static MyStringBuilder STRING_THREAD(string str0, string str1)
-	{
-		return STRING_THREAD().Append(str0, str1);
-	}
-	public static MyStringBuilder STRING_THREAD(string str0, string str1, string str2)
-	{
-		return STRING_THREAD().Append(str0, str1, str2);
-	}
-	public static MyStringBuilder STRING_THREAD(string str0, string str1, string str2, string str3)
-	{
-		return STRING_THREAD().Append(str0, str1, str2, str3);
-	}
-	public static MyStringBuilder STRING_THREAD(string str0, string str1, string str2, string str3, string str4)
-	{
-		return STRING_THREAD().Append(str0, str1, str2, str3, str4);
-	}
-	public static MyStringBuilder STRING_THREAD(string str0, string str1, string str2, string str3, string str4, string str5)
-	{
-		return STRING_THREAD().Append(str0, str1, str2, str3, str4, str5);
-	}
-	public static MyStringBuilder STRING_THREAD(string str0, string str1, string str2, string str3, string str4, string str5, string str6)
-	{
-		return STRING_THREAD().Append(str0, str1, str2, str3, str4, str5, str6);
-	}
-	public static MyStringBuilder STRING_THREAD(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7)
-	{
-		return STRING_THREAD().Append(str0, str1, str2, str3, str4, str5, str6, str7);
-	}
-	public static MyStringBuilder STRING_THREAD(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7, string str8)
-	{
-		return STRING_THREAD().Append(str0, str1, str2, str3, str4, str5, str6, str7, str8);
-	}
-	public static string END_STRING_THREAD(MyStringBuilder builder)
-	{
-		string str = builder.ToString();
-		UN_CLASS_THREAD(builder);
-		return str;
-	}
-	public static string END_STRING(MyStringBuilder builder)
-	{
-		string str = builder.ToString();
-		UN_CLASS(builder);
-		return str;
-	}
-	public static void DESTROY_STRING(MyStringBuilder builder)
-	{
-		UN_CLASS(builder);
+		mArrayPoolThread?.destroyArray(arrayList, destroyReally);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 在主线程中发起延迟调用函数,函数将在主线程中调用
@@ -819,7 +582,7 @@ public class FrameUtility : WidgetUtility
 	{
 		CMD_DELAY(out CmdGlobalDelayCall cmd);
 		cmd.mFunction = function;
-		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		pushDelayCommand(cmd, mGlobalCmdReceiver, delayTime);
 		return cmd.getAssignID();
 	}
 	public static long delayCall<T0>(Action<T0> function, T0 param0, float delayTime = 0.0f)
@@ -827,7 +590,7 @@ public class FrameUtility : WidgetUtility
 		CMD_DELAY(out CmdGlobalDelayCallParam1<T0> cmd);
 		cmd.mFunction = function;
 		cmd.mParam = param0;
-		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		pushDelayCommand(cmd, mGlobalCmdReceiver, delayTime);
 		return cmd.getAssignID();
 	}
 	public static long delayCall<T0, T1>(Action<T0, T1> function, T0 param0, T1 param1, float delayTime = 0.0f)
@@ -836,7 +599,7 @@ public class FrameUtility : WidgetUtility
 		cmd.mFunction = function;
 		cmd.mParam0 = param0;
 		cmd.mParam1 = param1;
-		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		pushDelayCommand(cmd, mGlobalCmdReceiver, delayTime);
 		return cmd.getAssignID();
 	}
 	public static long delayCall<T0, T1, T2>(Action<T0, T1, T2> function, T0 param0, T1 param1, T2 param2, float delayTime = 0.0f)
@@ -846,7 +609,7 @@ public class FrameUtility : WidgetUtility
 		cmd.mParam0 = param0;
 		cmd.mParam1 = param1;
 		cmd.mParam2 = param2;
-		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		pushDelayCommand(cmd, mGlobalCmdReceiver, delayTime);
 		return cmd.getAssignID();
 	}
 	public static long delayCall<T0, T1, T2, T3>(Action<T0, T1, T2, T3> function, T0 param0, T1 param1, T2 param2, T3 param3, float delayTime = 0.0f)
@@ -857,7 +620,7 @@ public class FrameUtility : WidgetUtility
 		cmd.mParam1 = param1;
 		cmd.mParam2 = param2;
 		cmd.mParam3 = param3;
-		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		pushDelayCommand(cmd, mGlobalCmdReceiver, delayTime);
 		return cmd.getAssignID();
 	}
 	public static long delayCall<T0, T1, T2, T3, T4>(Action<T0, T1, T2, T3, T4> function, T0 param0, T1 param1, T2 param2, T3 param3, T4 param4, float delayTime = 0.0f)
@@ -869,7 +632,7 @@ public class FrameUtility : WidgetUtility
 		cmd.mParam2 = param2;
 		cmd.mParam3 = param3;
 		cmd.mParam4 = param4;
-		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		pushDelayCommand(cmd, mGlobalCmdReceiver, delayTime);
 		return cmd.getAssignID();
 	}
 	// 在子线程中发起延迟调用函数,函数将在主线程中调用
@@ -877,7 +640,7 @@ public class FrameUtility : WidgetUtility
 	{
 		CMD_DELAY_THREAD(out CmdGlobalDelayCall cmd);
 		cmd.mFunction = function;
-		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		pushDelayCommand(cmd, mGlobalCmdReceiver, delayTime);
 		return cmd.getAssignID();
 	}
 	public static long delayCallThread<T0>(Action<T0> function, T0 param0, float delayTime = 0.0f)
@@ -885,7 +648,7 @@ public class FrameUtility : WidgetUtility
 		CMD_DELAY_THREAD(out CmdGlobalDelayCallParam1<T0> cmd);
 		cmd.mFunction = function;
 		cmd.mParam = param0;
-		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		pushDelayCommand(cmd, mGlobalCmdReceiver, delayTime);
 		return cmd.getAssignID();
 	}
 	public static long delayCallThread<T0, T1>(Action<T0, T1> function, T0 param0, T1 param1, float delayTime = 0.0f)
@@ -894,7 +657,7 @@ public class FrameUtility : WidgetUtility
 		cmd.mFunction = function;
 		cmd.mParam0 = param0;
 		cmd.mParam1 = param1;
-		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		pushDelayCommand(cmd, mGlobalCmdReceiver, delayTime);
 		return cmd.getAssignID();
 	}
 	public static long delayCallThread<T0, T1, T2>(Action<T0, T1, T2> function, T0 param0, T1 param1, T2 param2, float delayTime = 0.0f)
@@ -904,7 +667,7 @@ public class FrameUtility : WidgetUtility
 		cmd.mParam0 = param0;
 		cmd.mParam1 = param1;
 		cmd.mParam2 = param2;
-		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		pushDelayCommand(cmd, mGlobalCmdReceiver, delayTime);
 		return cmd.getAssignID();
 	}
 	public static long delayCallThread<T0, T1, T2, T3>(Action<T0, T1, T2, T3> function, T0 param0, T1 param1, T2 param2, T3 param3, float delayTime = 0.0f)
@@ -915,7 +678,7 @@ public class FrameUtility : WidgetUtility
 		cmd.mParam1 = param1;
 		cmd.mParam2 = param2;
 		cmd.mParam3 = param3;
-		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		pushDelayCommand(cmd, mGlobalCmdReceiver, delayTime);
 		return cmd.getAssignID();
 	}
 	public static long delayCallThread<T0, T1, T2, T3, T4>(Action<T0, T1, T2, T3, T4> function, T0 param0, T1 param1, T2 param2, T3 param3, T4 param4, float delayTime = 0.0f)
@@ -927,7 +690,21 @@ public class FrameUtility : WidgetUtility
 		cmd.mParam2 = param2;
 		cmd.mParam3 = param3;
 		cmd.mParam4 = param4;
-		pushDelayCommand(cmd, FrameBase.mGlobalCmdReceiver, delayTime);
+		pushDelayCommand(cmd, mGlobalCmdReceiver, delayTime);
 		return cmd.getAssignID();
+	}
+	public static ushort generateCRC16(byte[] buffer, int count, int bufferOffset = 0)
+	{
+		return (ushort)(crc16(0x1F, buffer, count, bufferOffset) ^ 0x123F);
+	}
+	public static ushort generateCRC16(ushort value)
+	{
+		ushortToBytes(value, out byte byte0, out byte byte1);
+		return (ushort)(crc16(0x1F, byte0, byte1) ^ 0x123F);
+	}
+	public static ushort generateCRC16(int value)
+	{
+		intToBytes(value, out byte byte0, out byte byte1, out byte byte2, out byte byte3);
+		return (ushort)(crc16(0x1F, byte0, byte1, byte2, byte3) ^ 0x123F);
 	}
 }

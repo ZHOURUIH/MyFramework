@@ -1,32 +1,40 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using static FrameBase;
+using static StringUtility;
+using static FrameUtility;
 
+// 线性安全的对象池调试信息
 public class ClassPoolThreadDebug : MonoBehaviour
 {
-	public List<string> TypeList = new List<string>();
+	public List<string> TypeList = new List<string>();	// 类型信息列表
 	public void Update()
 	{
-		if (!FrameBase.mGameFramework.mEnableScriptDebug)
+		if (mGameFramework == null || !mGameFramework.mEnableScriptDebug)
 		{
 			return;
 		}
 
-		FrameBase.mClassPoolThread.lockList();
-		TypeList.Clear();
-		var poolList = FrameBase.mClassPoolThread.getPoolList();
-		foreach(var item in poolList)
+		using (new ThreadLockScope(mClassPoolThread.getLock()))
 		{
-			MyStringBuilder builder = FrameBase.STRING(item.Key.ToString());
-			if(item.Value.getInusedList().Count > 0)
+			TypeList.Clear();
+			var poolList = mClassPoolThread.getPoolList();
+			foreach (var item in poolList)
 			{
-				builder.Append(", 已使用:", StringUtility.IToS(item.Value.getInusedList().Count));
+				using (new ClassScope<MyStringBuilder>(out var builder))
+				{
+					builder.append(item.Key.ToString());
+					if (item.Value.getInusedList().Count > 0)
+					{
+						builder.append(", 已使用:", IToS(item.Value.getInusedList().Count));
+					}
+					if (item.Value.getUnusedList().Count > 0)
+					{
+						builder.append(", 未使用:", IToS(item.Value.getUnusedList().Count));
+					}
+					TypeList.Add(builder.ToString());
+				}
 			}
-			if(item.Value.getUnusedList().Count > 0)
-			{
-				builder.Append(", 未使用:", StringUtility.IToS(item.Value.getUnusedList().Count));
-			}
-			TypeList.Add(FrameBase.END_STRING(builder));
 		}
-		FrameBase.mClassPoolThread.unlockList();
 	}
 }

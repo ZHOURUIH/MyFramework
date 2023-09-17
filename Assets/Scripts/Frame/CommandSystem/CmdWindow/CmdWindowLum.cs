@@ -1,16 +1,18 @@
 ﻿using System;
+using static UnityUtility;
+using static MathUtility;
 
+// 渐变一个窗口的亮度,需要此窗口有LumOffset的shader
 public class CmdWindowLum : Command
 {
-	public KeyFrameCallback mDoingCallback;
-	public KeyFrameCallback mDoneCallback;
-	public float mOnceLength;
-	public float mOffset;
-	public float mStartLum;
-	public float mTargetLum;
-	public bool mFullOnce;
-	public bool mLoop;
-	public int mKeyframe;
+	public KeyFrameCallback mDoingCallback;		// 变化中回调
+	public KeyFrameCallback mDoneCallback;		// 变化完成时回调
+	public float mOnceLength;					// 单次所需时间
+	public float mTargetLum;					// 目标亮度
+	public float mStartLum;						// 起始亮度
+	public float mOffset;						// 起始时间偏移
+	public int mKeyframe;						// 所使用的关键帧ID
+	public bool mLoop;							// 是否循环
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -21,7 +23,6 @@ public class CmdWindowLum : Command
 		mOffset = 0.0f;
 		mStartLum = 0.0f;
 		mTargetLum = 0.0f;
-		mFullOnce = true;
 		mLoop = false;
 	}
 	public override void execute()
@@ -39,7 +40,7 @@ public class CmdWindowLum : Command
 		com.setActive(true);
 		com.setStart(mStartLum);
 		com.setTarget(mTargetLum);
-		com.play(mKeyframe, mLoop, mOnceLength, mOffset, mFullOnce);
+		com.play(mKeyframe, mLoop, mOnceLength, mOffset);
 		if (com.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
@@ -48,12 +49,11 @@ public class CmdWindowLum : Command
 	}
 	public override void debugInfo(MyStringBuilder builder)
 	{
-		builder.Append(": mKeyframe:", mKeyframe).
-				Append(", mOnceLength:", mOnceLength).
-				Append(", mOffset:", mOffset).
-				Append(", mStartLum:", mStartLum).
-				Append(", mTargetLum:", mTargetLum).
-				Append(", mLoop:", mLoop).
-				Append(", mFullOnce:", mFullOnce);
+		builder.append(": mKeyframe:", mKeyframe).
+				append(", mOnceLength:", mOnceLength).
+				append(", mOffset:", mOffset).
+				append(", mStartLum:", mStartLum).
+				append(", mTargetLum:", mTargetLum).
+				append(", mLoop:", mLoop);
 	}
 }

@@ -1,10 +1,11 @@
 ﻿using System;
 
-public class PrefabLoadParam : FrameBase
+// 预设加载信息,只用于传参用
+public class PrefabLoadParam : ClassObject
 {
-	public CreateObjectCallback mCallback;
-	public object mUserData;
-	public int mTag;
+	public CreateObjectCallback mCallback;	// 加载回调
+	public object mUserData;				// 回调参数
+	public int mTag;						// 物体标签
 	public override void resetProperty()
 	{
 		base.resetProperty();

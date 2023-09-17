@@ -1,9 +1,10 @@
 ﻿using System;
 using UnityEngine;
 
+// 立方体曲线
 public class CurveCubicInOut : MyCurve
 {
-	public override float Evaluate(float time)
+	public override float evaluate(float time)
 	{
 		if (time * 0.5f < 1.0f)
 		{

@@ -1,12 +1,14 @@
 ﻿using System;
+using static FrameBase;
 
+// 设置布局的显示隐藏
 public class CmdLayoutManagerVisible : Command
 {
-	public string mParam;
-	public int mLayoutID;
-	public bool mImmediately;
-	public bool mVisible;
-	public bool mForce;
+	public string mParam;		// 显示隐藏时要传递的参数
+	public int mLayoutID;		// 布局ID
+	public bool mImmediately;	// 是否跳过显示或隐藏过程
+	public bool mVisible;		// 显示或隐藏
+	public bool mForce;			// 是否强制执行,强制执行时将不会通知布局脚本,仅仅只是设置布局节点的Active
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -18,7 +20,7 @@ public class CmdLayoutManagerVisible : Command
 	}
 	public override void execute()
 	{
-		GameLayout layout = mLayoutManager.getGameLayout(mLayoutID);
+		GameLayout layout = mLayoutManager.getLayout(mLayoutID);
 		if (layout == null)
 		{
 			return;
@@ -30,10 +32,7 @@ public class CmdLayoutManagerVisible : Command
 			int renderOrder = mLayoutManager.generateRenderOrder(layout, layout.getRenderOrder(), orderType);
 			if (layout.getRenderOrder() != renderOrder)
 			{
-				CMD(out CmdLayoutManagerRenderOrder cmd);
-				cmd.mLayout = layout;
-				cmd.mRenderOrder = renderOrder;
-				pushCommand(cmd, mLayoutManager);
+				CmdLayoutManagerRenderOrder.execute(layout, renderOrder);
 			}
 		}
 		if (!mForce)
@@ -49,10 +48,10 @@ public class CmdLayoutManagerVisible : Command
 	}
 	public override void debugInfo(MyStringBuilder builder)
 	{
-		builder.Append(": mLayoutID:", mLayoutID).
-				Append(", mVisible:", mVisible).
-				Append(", mForce:", mForce).
-				Append(", mImmediately:", mImmediately).
-				Append(", mParam:", mParam);
+		builder.append(": mLayoutID:", mLayoutID).
+				append(", mVisible:", mVisible).
+				append(", mForce:", mForce).
+				append(", mImmediately:", mImmediately).
+				append(", mParam:", mParam);
 	}
 }

@@ -1,14 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using static FrameBase;
+using static UnityUtility;
+using static FrameUtility;
+using static HttpUtility;
 
+// 表示一个与Http服务器连接
 public abstract class NetConnectHttp : NetConnect
 {
 	protected Dictionary<string, string> mHttpHeader;		// 存储发送消息时所需要的消息头,避免GC
 	protected DoubleBuffer<HttpSendInfo> mOutputBuffer;		// 使用双缓冲提高发送消息的效率
-	protected DoubleBuffer<NetPacket> mReceiveBuffer;		// 在主线程中执行的消息列表
+	protected DoubleBuffer<KeyValuePair<string, ushort>> mReceiveBuffer;		// 在主线程中执行的消息列表
 	protected MyThread mSendThread;							// 发送线程
-	protected MyTimer mHeartBeatTimer;                      // 心跳计时器
+	protected MyTimer1 mHeartBeatTimer;                     // 心跳计时器
 	protected Action mHeartBeatCallback;					// 外部设置的用于发送心跳的函数
 	protected string mContentType;							// 发送的内容类型
 	protected string mTokenName;							// token的名字
@@ -17,10 +22,10 @@ public abstract class NetConnectHttp : NetConnect
 	public NetConnectHttp()
 	{
 		mHttpHeader = new Dictionary<string, string>();
-		mReceiveBuffer = new DoubleBuffer<NetPacket>();
+		mReceiveBuffer = new DoubleBuffer<KeyValuePair<string, ushort>>();
 		mOutputBuffer = new DoubleBuffer<HttpSendInfo>();
 		mSendThread = new MyThread("HttpSend");
-		mHeartBeatTimer = new MyTimer();
+		mHeartBeatTimer = new MyTimer1();
 	}
 	public void init(string url, string tokenName, string contentType, float heartBeatTimeOut)
 	{
@@ -47,32 +52,40 @@ public abstract class NetConnectHttp : NetConnect
 	}
 	public virtual void update(float elapsedTime)
 	{
-		if (mHeartBeatCallback != null && mHeartBeatTimer.tickTimer(elapsedTime))
+		if (mHeartBeatCallback != null && mHeartBeatTimer.tickTimer())
 		{
 			mHeartBeatCallback.Invoke();
 		}
 		// 解析所有已经收到的消息包
-		var readList = mReceiveBuffer.get();
-		try
+		using (new DoubleBufferReader<KeyValuePair<string, ushort>>(mReceiveBuffer, out var readList))
 		{
-			int count = readList.Count;
-			for (int i = 0; i < count; ++i)
+			if (readList != null)
 			{
-				// 此处为空的原因未知
-				if(readList[i] == null)
+				try
 				{
-					continue;
+					int count = readList.Count;
+					for (int i = 0; i < count; ++i)
+					{
+						var pair = readList[i];
+						// 创建对应的消息包,并设置数据,然后放入列表中等待解析
+						ushort responseType = mNetPacketTypeManager.getHttpResponseType(pair.Value);
+						var packet = mSocketFactory.createSocketPacket(responseType) as NetPacketHttp;
+						packet.setConnect(this);
+						string strData = pair.Key;
+						packet.read(ref strData);
+						if (packet.canExecute())
+						{
+							packet.execute();
+						}
+						mSocketFactory.destroyPacket(packet);
+					}
 				}
-				readList[i].execute();
-				mSocketFactoryThread.destroyPacket(readList[i]);
+				catch (Exception e)
+				{
+					logException(e, "消息处理异常");
+				}
 			}
 		}
-		catch (Exception e)
-		{
-			logError("消息处理异常:" + e.Message + ", stack:" + e.StackTrace);
-		}
-		readList.Clear();
-		mReceiveBuffer.endGet();
 	}
 	public override void destroy()
 	{
@@ -84,11 +97,11 @@ public abstract class NetConnectHttp : NetConnect
 	{
 		mHeartBeatTimer.start();
 	}
-	public void sendPacket(Type type)
+	public void sendNetPacket(Type type)
 	{
-		sendPacket(mSocketFactory.createSocketPacket(type) as NetPacketHttp);
+		sendNetPacket(mSocketFactory.createSocketPacket(type) as NetPacketHttp);
 	}
-	public virtual void sendPacket(NetPacketHttp packet)
+	public virtual void sendNetPacket(NetPacketHttp packet)
 	{
 		// 添加到写缓冲中
 		CLASS(out HttpSendInfo info);
@@ -102,39 +115,42 @@ public abstract class NetConnectHttp : NetConnect
 	public void setToken(string token) { Interlocked.Exchange(ref mToken, token); }
 	public string getToken() { return mToken; }
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected void sendSocket(BOOL run)
+	protected void sendSocket(ref bool run)
 	{
 		// 获取输出数据的读缓冲区
-		var readList = mOutputBuffer.get();
-		int count = readList.Count;
-		try
+		using (new DoubleBufferReader<HttpSendInfo>(mOutputBuffer, out var readList))
 		{
-			for (int i = 0; i < count; ++i)
+			if (readList != null)
 			{
-				HttpSendInfo item = readList[i];
-				// 此处为空的原因未知
-				if (item == null)
+				try
 				{
-					continue;
+					int count = readList.Count;
+					for (int i = 0; i < count; ++i)
+					{
+						HttpSendInfo item = readList[i];
+						// 此处为空的原因未知
+						if (item == null)
+						{
+							continue;
+						}
+						// 发送请求到服务器,并且等待服务器返回后解析回的数据
+						if (mToken != null)
+						{
+							mHttpHeader[mTokenName] = mToken;
+							parsePacket(item.mType, post(mURL + item.mUrl, item.mMessage, mContentType, mHttpHeader));
+						}
+						else
+						{
+							parsePacket(item.mType, post(mURL + item.mUrl, item.mMessage, mContentType));
+						}
+					}
 				}
-				// 发送请求到服务器,并且等待服务器返回后解析回的数据
-				if (mToken != null)
+				catch (Exception e)
 				{
-					mHttpHeader[mTokenName] = mToken;
-					parsePacket(item.mType, HttpUtility.httpPost(mURL + item.mUrl, item.mMessage, mContentType, mHttpHeader));
-				}
-				else
-				{
-					parsePacket(item.mType, HttpUtility.httpPost(mURL + item.mUrl, item.mMessage, mContentType));
+					logForce("http error:" + e.Message + ", stack:" + e.StackTrace);
 				}
 			}
 		}
-		catch (Exception e)
-		{
-			logForce("http error:" + e.Message + ", stack:" + e.StackTrace);
-		}
-		readList.Clear();
-		mOutputBuffer.endGet();
 	}
 	protected void parsePacket(ushort type, string data)
 	{
@@ -143,11 +159,6 @@ public abstract class NetConnectHttp : NetConnect
 			logWarning("http response is null");
 			return;
 		}
-		// 创建对应的消息包,并设置数据,然后放入列表中等待解析
-		ushort responseType = mNetPacketTypeManager.getHttpResponseType(type);
-		var packetReply = mSocketFactoryThread.createSocketPacket(responseType) as NetPacketHttp;
-		packetReply.setConnect(this);
-		packetReply.read(ref data);
-		mReceiveBuffer.add(packetReply);
+		mReceiveBuffer.add(new KeyValuePair<string, ushort>(data, type));
 	}
 }

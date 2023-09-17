@@ -1,9 +1,12 @@
 ﻿using System;
+using static UnityUtility;
+using static MathUtility;
 
+// 渐变UI滑动条值的组件
 public class COMWindowSlider : ComponentKeyFrameNormal
 {
-	protected float mStart;   // 移动开始时的位置
-	protected float mTarget;
+	protected float mStart;		// 起始值
+	protected float mTarget;	// 目标值
 	public void setTarget(float value) { mTarget = value; }
 	public void setStart(float value) { mStart = value; }
 	public override void resetProperty()

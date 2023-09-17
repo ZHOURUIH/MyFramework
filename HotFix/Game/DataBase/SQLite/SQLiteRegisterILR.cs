@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
+using static FrameBase;
 
-public class SQLiteRegisterILR : GB
+public class SQLiteRegisterILR
 {
 	public static void registeAll()
 	{

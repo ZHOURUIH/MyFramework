@@ -9,6 +9,7 @@ using ILRuntime.Other;
 using ILRuntime.Mono.Cecil;
 using ILRuntime.Runtime.Intepreter;
 using System.Reflection;
+using ILRuntime.Reflection;
 
 namespace ILRuntime.CLR.Utils
 {
@@ -111,6 +112,10 @@ namespace ILRuntime.CLR.Utils
             }
             else
             {
+                if (baseType.Contains("["))
+                {
+                    baseType = ReplaceGenericArgument(baseType, argumentName, argumentType, isGA);
+                }
                 bool isAssemblyQualified = baseType.Contains('=');
                 if (isGA && !hasGA && isAssemblyQualified)
                     sb.Append('[');
@@ -197,7 +202,10 @@ namespace ILRuntime.CLR.Utils
         public static TypeFlags GetTypeFlags(this Type pt)
         {
             var result = TypeFlags.Default;
-
+            if(pt is ILRuntimeWrapperType)
+            {
+                pt = ((ILRuntimeWrapperType)pt).RealType;
+            }
             if (!typeFlags.TryGetValue(pt, out result))
             {
                 if (pt.IsPrimitive)
@@ -244,10 +252,7 @@ namespace ILRuntime.CLR.Utils
 
             if ((typeFlags & TypeFlags.IsPrimitive) != 0)
             {
-                if (pt == typeof(int) || pt == typeof(long) || pt == typeof(float) || pt == typeof(double))
-                {
-                    return obj;
-                }
+                if (pt == typeof(int)) return obj;
                 if (pt == typeof(bool) && !(obj is bool))
                 {
                     obj = (int)obj == 1;
@@ -265,7 +270,9 @@ namespace ILRuntime.CLR.Utils
                 else if (pt == typeof(sbyte) && !(obj is sbyte))
                     obj = (sbyte)(int)obj;
                 else if (pt == typeof(ulong) && !(obj is ulong))
+                {
                     obj = (ulong)(long)obj;
+                }
             }
             else if (obj is ILRuntime.Reflection.ILRuntimeWrapperType)
             {
@@ -333,6 +340,13 @@ namespace ILRuntime.CLR.Utils
                     return false;
             }
             return true;
+        }
+
+        public static Type UnWrapper(this Type type)
+        {
+            if (type is ILRuntimeWrapperType)
+                return (type as ILRuntimeWrapperType).RealType;
+            return type;
         }
     }
 }

@@ -14,7 +14,7 @@ using ILRuntime.CLR.TypeSystem;
 using ILRuntime.Reflection;
 namespace ILRuntime.CLR.Method
 {
-    public class ILMethod : IMethod
+    public sealed class ILMethod : IMethod
     {
         OpCode[] body;
         OpCodeR[] bodyRegister;
@@ -27,8 +27,11 @@ namespace ILRuntime.CLR.Method
         ExceptionHandler[] exceptionHandler, exceptionHandlerR;
         KeyValuePair<string, IType>[] genericParameters;
         IType[] genericArguments;
+        ILMethod genericDefinition;
         Dictionary<int, int[]> jumptables, jumptablesR;
         bool isDelegateInvoke;
+        bool isEventAdd, isEventRemove;
+        int eventFieldIndex;
         bool jitPending;
         ILRuntimeMethodInfo refletionMethodInfo;
         ILRuntimeConstructorInfo reflectionCtorInfo;
@@ -157,6 +160,7 @@ namespace ILRuntime.CLR.Method
 
         public IType[] GenericArugmentsArray { get { return genericArguments; } }
 
+        public ILMethod GenericDefinition { get { return genericDefinition; } } 
         public bool ShouldUseRegisterVM
         {
             get
@@ -347,6 +351,27 @@ namespace ILRuntime.CLR.Method
             }
         }
 
+        public bool IsEventAdd
+        {
+            get
+            {
+                return isEventAdd;
+            }
+        }
+
+        public bool IsEventRemove
+        {
+            get
+            {
+                return isEventRemove;
+            }
+        }
+
+        public int EventFieldIndex
+        {
+            get { return eventFieldIndex; }
+        }
+
         public bool IsStatic
         {
             get { return def.IsStatic; }
@@ -405,8 +430,9 @@ namespace ILRuntime.CLR.Method
                     case OpCodeEnum.Callvirt:
                         {
                             var m = appdomain.GetMethod(ins.TokenInteger);
-                            if (m is ILMethod ilm)
+                            if (m is ILMethod)
                             {
+                                ILMethod ilm = (ILMethod)m;
                                 //如果参数alreadyPrewarmed不为空，则不仅prewarm当前方法，还会递归prewarm所有子调用
                                 //如果参数alreadyPrewarmed为空，则只prewarm当前方法
                                 if (alreadyPrewarmed != null)
@@ -414,8 +440,9 @@ namespace ILRuntime.CLR.Method
                                     ilm.Prewarm(alreadyPrewarmed);
                                 }
                             }
-                            else if (m is CLRMethod clrm)
+                            else if (m is CLRMethod)
                             {
+                                CLRMethod clrm = (CLRMethod)m;
                                 ILRuntime.CLR.Utils.Extensions.GetTypeFlags(clrm.DeclearingType.TypeForCLR);
                             }
                         }
@@ -456,8 +483,9 @@ namespace ILRuntime.CLR.Method
                     case OpCodeREnum.Callvirt:
                         {
                             var m = appdomain.GetMethod(ins.Operand);
-                            if (m is ILMethod ilm)
+                            if (m is ILMethod)
                             {
+                                ILMethod ilm = (ILMethod)m;
                                 //如果参数alreadyPrewarmed不为空，则不仅prewarm当前方法，还会递归prewarm所有子调用
                                 //如果参数alreadyPrewarmed为空，则只prewarm当前方法
                                 if (alreadyPrewarmed != null)
@@ -465,8 +493,9 @@ namespace ILRuntime.CLR.Method
                                     ilm.Prewarm(alreadyPrewarmed);
                                 }
                             }
-                            else if (m is CLRMethod clrm)
+                            else if (m is CLRMethod)
                             {
+                                CLRMethod clrm = (CLRMethod)m;
                                 ILRuntime.CLR.Utils.Extensions.GetTypeFlags(clrm.DeclearingType.TypeForCLR);
                             }
                         }
@@ -510,8 +539,9 @@ namespace ILRuntime.CLR.Method
                 {
                     t = appdomain.GetType(v.VariableType, DeclearingType, this);
                 }
-                if (t is CLRType ct)
+                if (t is CLRType)
                 {
+                    CLRType ct = (CLRType)t;
                     var fields = ct.Fields;
                     ILRuntime.CLR.Utils.Extensions.GetTypeFlags(ct.TypeForCLR);
                 }
@@ -562,7 +592,7 @@ namespace ILRuntime.CLR.Method
                         var eh = def.Body.ExceptionHandlers[i];
                         ExceptionHandler e = new ExceptionHandler();
                         e.HandlerStart = addr[eh.HandlerStart];
-                        e.HandlerEnd = addr[eh.HandlerEnd] - 1;
+                        e.HandlerEnd = eh.HandlerEnd != null ? addr[eh.HandlerEnd] - 1 : def.Body.Instructions.Count - 1;
                         e.TryStart = addr[eh.TryStart];
                         e.TryEnd = addr[eh.TryEnd] - 1;
                         switch (eh.HandlerType)
@@ -592,7 +622,10 @@ namespace ILRuntime.CLR.Method
 #endif
             }
             else
+            {
                 body = new OpCode[0];
+                bodyRegister = new OpCodeR[0];
+            }
         }
 
         void InitStackCodeBody(Dictionary<Mono.Cecil.Cil.Instruction, int> addr)
@@ -738,6 +771,7 @@ namespace ILRuntime.CLR.Method
                 case OpCodeEnum.Newarr:
                 case OpCodeEnum.Stobj:
                 case OpCodeEnum.Ldobj:
+                case OpCodeEnum.Castclass:
                     {
                         code.TokenInteger = GetTypeTokenHashCode(token);
                     }
@@ -786,6 +820,13 @@ namespace ILRuntime.CLR.Method
                     }
                     break;
             }
+        }
+
+        public void SetEventAddOrRemove(bool isEventAdd, bool isEventRemove, int fieldIdx)
+        {
+            this.isEventRemove = isEventRemove;
+            this.isEventAdd = isEventAdd;
+            eventFieldIndex = fieldIdx;
         }
 
         internal int GetTypeTokenHashCode(object token)
@@ -919,6 +960,7 @@ namespace ILRuntime.CLR.Method
             ILMethod m = new ILMethod(def, declaringType, appdomain, jitFlags);
             m.genericParameters = genericParameters;
             m.genericArguments = genericArguments;
+            m.genericDefinition = this;
             if (m.def.ReturnType.IsGenericParameter)
             {
                 m.ReturnType = m.FindGenericArgument(m.def.ReturnType.Name);
@@ -945,7 +987,7 @@ namespace ILRuntime.CLR.Method
                         isFirst = false;
                     else
                         sb.Append(", ");
-                    sb.Append(parameters[i].Name);
+                    sb.Append(parameters[i].FullName);
                     sb.Append(' ');
                     sb.Append(def.Parameters[i].Name);
                 }
@@ -960,6 +1002,20 @@ namespace ILRuntime.CLR.Method
             if (hashCode == -1)
                 hashCode = System.Threading.Interlocked.Add(ref instance_id, 1);
             return hashCode;
+        }
+
+
+        bool? isExtend;
+        public bool IsExtend
+        {
+            get
+            {
+                if (isExtend == null)
+                {
+                    isExtend = this.IsExtendMethod();
+                }
+                return isExtend.Value;
+            }
         }
     }
 }

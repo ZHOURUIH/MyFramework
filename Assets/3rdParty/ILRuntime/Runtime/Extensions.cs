@@ -152,11 +152,6 @@ namespace ILRuntime.Runtime
             if (!simpleClassName)
                 clsName += "_Binding";
 
-            // 因为SQLite的命名空间会跟已有的命名空间冲突,所以加上global
-            if (type.Namespace == "Mono.Data.Sqlite")
-            {
-                realNamespace = "global::" + realNamespace;
-            }
             realClsName = realNamespace;
             if (isGeneric)
             {
@@ -189,6 +184,7 @@ namespace ILRuntime.Runtime
                     realClsName = sb.ToString();
                 }
             }
+
         }
         public static int ToInt32(this object obj)
         {

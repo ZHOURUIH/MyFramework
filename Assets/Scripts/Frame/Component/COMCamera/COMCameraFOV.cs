@@ -1,9 +1,11 @@
 ﻿using System;
+using static MathUtility;
 
+// 渐变摄像机FOV的组件
 public class COMCameraFOV : ComponentKeyFrameNormal
 {
-	protected float mTargetFOV;
-	protected float mStartFOV;
+	protected float mTargetFOV;		// 目标FOV
+	protected float mStartFOV;		// 起始FOV
 	public override void resetProperty()
 	{
 		base.resetProperty();

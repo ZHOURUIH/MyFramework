@@ -1,9 +1,11 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
+using static FrameBase;
+using static GBR;
+using static FrameUtilityILR;
+using static UnityUtility;
 
-public class GameILR : GB
+public class GameILR
 {
 	protected static List<FrameSystem> mFrameComponentInit = new List<FrameSystem>();		// 存储框架组件,用于初始化
 	public static void start()
@@ -14,11 +16,10 @@ public class GameILR : GB
 		mFrameComponentInit.Sort(FrameSystem.compareInit);
 
 		// 获取系统组件对象
-		GB.constructILRDone();
+		constructILRDone();
 
 		// 注册对象类型
 		registeAll();
-		GameUtilityILR.initGameUtilityILR();
 
 		// 初始化所有系统组件
 		int count = mFrameComponentInit.Count;
@@ -35,11 +36,22 @@ public class GameILR : GB
 				logError("init failed! :" + mFrameComponentInit[i].getName() + ", info:" + e.Message + ", stack:" + e.StackTrace);
 			}
 		}
+		for (int i = 0; i < count; ++i)
+		{
+			try
+			{
+				DateTime start = DateTime.Now;
+				mFrameComponentInit[i].lateInit();
+				log(mFrameComponentInit[i].getName() + "late初始化消耗时间:" + (DateTime.Now - start).TotalMilliseconds, LOG_LEVEL.FORCE);
+			}
+			catch (Exception e)
+			{
+				logError("late init failed! :" + mFrameComponentInit[i].getName() + ", info:" + e.Message + ", stack:" + e.StackTrace);
+			}
+		}
 
 		// 进入登录流程
-		CMD_ILR(out CmdGameSceneManagerEnter cmd);
-		cmd.mSceneType = typeof(MainScene);
-		pushCommand(cmd,mGameSceneManager);
+		enterSceneILR<MainScene>();
 	}
 	//----------------------------------------------------------------------------------------------------------------------------------
 	protected static void registeAll()

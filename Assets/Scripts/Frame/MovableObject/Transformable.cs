@@ -1,6 +1,10 @@
 ﻿using System;
 using UnityEngine;
+using static UnityUtility;
+using static MathUtility;
+using static CSharpUtility;
 
+// 可变换的物体,2D和3D物体都是可变换,也就是都会包含一个Transform
 public class Transformable : ComponentOwner
 {
 	protected Transform mTransform;     // 变换组件
@@ -34,7 +38,7 @@ public class Transformable : ComponentOwner
 	}
 	public override void setActive(bool active)
 	{
-		if(mObject != null)
+		if (mObject != null)
 		{
 			if (active == mObject.activeSelf)
 			{
@@ -62,7 +66,16 @@ public class Transformable : ComponentOwner
 	// 返回第一个碰撞体,当前节点找不到,则会在子节点中寻找
 	public Collider getColliderInChild() { return getUnityComponentInChild<Collider>(true); }
 	// 返回第一个碰撞体,仅在当前节点中寻找
-	public Collider getCollider() { return getUnityComponent<Collider>(); }
+	public Collider getCollider(bool addIfNotExist = false) 
+	{
+		// 由于Collider无法直接添加到GameObject上,所以只能默认添加BoxCollider
+		var collider = tryGetUnityComponent<Collider>();
+		if (collider == null && addIfNotExist)
+		{
+			collider = addUnityComponent<BoxCollider>();
+		}
+		return collider;
+	}
 	public override void setName(string name)
 	{
 		base.setName(name);
@@ -97,7 +110,7 @@ public class Transformable : ComponentOwner
 	}
 	public bool isUnityComponentEnabled<T>() where T : Behaviour
 	{
-		T com = getUnityComponent<T>(false);
+		T com = tryGetUnityComponent<T>();
 		return com != null && com.enabled;
 	}
 	public void enableUnityComponent<T>(bool enable) where T : Behaviour
@@ -108,22 +121,23 @@ public class Transformable : ComponentOwner
 			com.enabled = enable;
 		}
 	}
-	public T getUnityComponent<T>(bool addIfNotExist = true) where T : Component
+	public T tryGetUnityComponent<T>() where T : Component
+	{
+		mObject.TryGetComponent(out T com);
+		return com;
+	}
+	public void tryGetUnityComponent<T>(out T com) where T : Component
+	{
+		mObject.TryGetComponent<T>(out com);
+	}
+	public T getUnityComponent<T>() where T : Component
 	{
 		T com = mObject.GetComponent<T>();
-		if (com == null && addIfNotExist)
+		if (com == null)
 		{
 			com = mObject.AddComponent<T>();
 		}
 		return com;
-	}
-	public void getUnityComponent<T>(out T com, bool addIfNotExist = true) where T : Component
-	{
-		com = mObject.GetComponent<T>();
-		if (com == null && addIfNotExist)
-		{
-			com = mObject.AddComponent<T>();
-		}
 	}
 	// 从当前节点以及所有子节点中查找指定组件
 	public T[] getUnityComponentsInChild<T>(bool includeInactive = true) where T : Component
@@ -133,7 +147,7 @@ public class Transformable : ComponentOwner
 	// 从指定的子节点中查找指定组件
 	public T getUnityComponentInChild<T>(string childName) where T : Component
 	{
-		GameObject child = getGameObject(childName, mObject);
+		GameObject child = UnityUtility.getGameObject(childName, mObject);
 		return child.GetComponent<T>();
 	}
 	// 从当前以及所有子节点中查找指定组件
@@ -165,8 +179,8 @@ public class Transformable : ComponentOwner
 	}
 	public virtual bool isActive() { return mObject.activeSelf; }
 	public virtual bool isActiveInHierarchy() { return mObject.activeInHierarchy; }
-	public string getLayer() { return LayerMask.LayerToName(mObject.layer); }
-	public int getLayerInt() { return mObject.layer; }
+	public string getLayerName() { return LayerMask.LayerToName(mObject.layer); }
+	public int getLayer() { return mObject.layer; }
 	public virtual bool isEnable() { return mEnable; }
 	public virtual void setEnable(bool enable) { mEnable = enable; }
 	public virtual Vector3 getPosition() { return mTransform.localPosition; }
@@ -219,10 +233,10 @@ public class Transformable : ComponentOwner
 			mTransform.localScale = scale;
 		}
 	}
-	public Vector3 localToWorld(Vector3 point) { return localToWorld(mTransform, point); }
-	public Vector3 worldToLocal(Vector3 point) { return worldToLocal(mTransform, point); }
-	public Vector3 localToWorldDirection(Vector3 direction) { return localToWorldDirection(mTransform, direction); }
-	public Vector3 worldToLocalDirection(Vector3 direction) { return worldToLocalDirection(mTransform, direction); }
+	public Vector3 localToWorld(Vector3 point) { return UnityUtility.localToWorld(mTransform, point); }
+	public Vector3 worldToLocal(Vector3 point) { return UnityUtility.worldToLocal(mTransform, point); }
+	public Vector3 localToWorldDirection(Vector3 direction) { return UnityUtility.localToWorldDirection(mTransform, direction); }
+	public Vector3 worldToLocalDirection(Vector3 direction) { return UnityUtility.worldToLocalDirection(mTransform, direction); }
 	public void setPositionX(float x) { setPosition(replaceX(getPosition(), x)); }
 	public void setPositionY(float y) { setPosition(replaceY(getPosition(), y)); }
 	public void setPositionZ(float z) { setPosition(replaceZ(getPosition(), z)); }
@@ -265,15 +279,16 @@ public class Transformable : ComponentOwner
 		mTransform.localEulerAngles = Vector3.zero;
 		mTransform.localScale = Vector3.one;
 	}
+	public void setLayer(int layer) { mObject.layer = layer; }
 	public void setParent(GameObject parent, bool resetTrans = true)
 	{
 		if (parent == null)
 		{
-			mTransform.parent = null;
+			mTransform.SetParent(null);
 		}
 		else
 		{
-			mTransform.parent = parent.transform;
+			mTransform.SetParent(parent.transform);
 		}
 		if (resetTrans)
 		{
@@ -312,5 +327,5 @@ public class Transformable : ComponentOwner
 	{
 		return getUnityComponent<Renderer>().material.color.a;
 	}
-	public bool canUpdate() { return mObject.activeInHierarchy && mEnable; }
+	public virtual bool canUpdate() { return mEnable && mObject.activeInHierarchy; }
 }

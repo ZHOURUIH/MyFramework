@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 
-public class AudioInfo : FrameBase
+// 包含加载的音频信息
+public class AudioInfo : ClassObject
 {
 	public AudioClip mClip;		// 音频资源
 	public string mAudioName;	// 音效名,含路径,不带后缀名,如果是GameResources中的资源则是相对于GameResources/Sound的路径
@@ -10,7 +11,7 @@ public class AudioInfo : FrameBase
 	{
 		base.resetProperty();
 		mClip = null;
-		mState = LOAD_STATE.NONE;
+		mState = LOAD_STATE.UNLOAD;
 		mAudioName = null;
 		mIsResource = false;
 	}

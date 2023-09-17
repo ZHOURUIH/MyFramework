@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
+using static StringUtility;
+using static UnityUtility;
 
 public struct InterfaceDetails
 {
@@ -14,12 +16,14 @@ public struct InterfaceDetails
 	public int OUT_reportByteLength;
 	public ushort versionNumber;
 }
-public class HIDDevice : FrameBase
+
+// 用于与HID设备交互的,比如USB手柄,用得很少了
+public class HIDDevice
 {
-	protected HIDP_CAPS mCapabilities;
-	protected InterfaceDetails mProductInfo;
-	protected SafeFileHandle mHandle;
-	protected bool mDeviceConnected;
+	protected HIDP_CAPS mCapabilities;			// HID设备
+	protected InterfaceDetails mProductInfo;	// 设备信息
+	protected SafeFileHandle mHandle;			// 句柄
+	protected bool mDeviceConnected;			// 是否已连接
 	// Creates an object to handle read/write functionality for a USB HID device
 	// Uses one filestream for each of read/write to allow for a write to occur during a blocking
 	// asnychronous read
@@ -48,14 +52,6 @@ public class HIDDevice : FrameBase
 	public HIDDevice(string devicePath)
 	{
 		initDevice(devicePath);
-	}
-	public override void resetProperty()
-	{
-		base.resetProperty();
-		mCapabilities = default;
-		mProductInfo = default;
-		mHandle = null;
-		mDeviceConnected = false;
 	}
 	public static InterfaceDetails[] getConnectedDevices()
 	{

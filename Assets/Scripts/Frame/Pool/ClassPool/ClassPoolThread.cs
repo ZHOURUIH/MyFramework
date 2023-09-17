@@ -1,12 +1,14 @@
 ﻿using System.Collections.Generic;
 using System;
+using UnityEngine;
+using static CSharpUtility;
 
 // 不支持带参构造的类,因为在再次利用时参数无法正确传递
 // 线程安全的对象池,但是效率较低
 public class ClassPoolThread : FrameSystem
 {
-	protected Dictionary<Type, ClassPoolSingle> mPoolList;
-	protected ThreadLock mListLock;
+	protected Dictionary<Type, ClassPoolSingle> mPoolList;	// 对象池列表,对应每一个类型的对象池
+	protected ThreadLock mListLock;							// 列表的线程锁
 	public ClassPoolThread()
 	{
 		mPoolList = new Dictionary<Type, ClassPoolSingle>();
@@ -20,11 +22,20 @@ public class ClassPoolThread : FrameSystem
 		mObject.AddComponent<ClassPoolThreadDebug>();
 #endif
 	}
-	public void lockList() { mListLock.waitForUnlock(); }
-	public void unlockList() { mListLock.unlock(); }
+	public ThreadLock getLock() { return mListLock; }
+	public void clearUnused()
+	{
+		using (new ThreadLockScope(mListLock))
+		{
+			foreach (var item in mPoolList)
+			{
+				item.Value.clearUnused();
+			}
+		}
+	}
 	public Dictionary<Type, ClassPoolSingle> getPoolList() { return mPoolList; }
 	// 返回值表示是否是new出来的对象,false则为从回收列表中重复使用的对象
-	public ClassObject newClass(Type type, out bool isNewObject)
+	public ClassObject newClass(Type type, out bool isNewObject, bool newDirect)
 	{
 		isNewObject = false;
 		if (type == null)
@@ -32,57 +43,80 @@ public class ClassPoolThread : FrameSystem
 			return null;
 		}
 		// 锁定期间不能调用任何其他非库函数,否则可能会发生死锁
-		mListLock.waitForUnlock();
-		// 先从未使用的列表中查找是否有可用的对象
-		if (!mPoolList.TryGetValue(type, out ClassPoolSingle singlePool))
+		ClassPoolSingle singlePool = null;
+		using (new ThreadLockScope(mListLock))
 		{
-			singlePool = new ClassPoolSingle();
-			singlePool.setType(type);
-			mPoolList.Add(type, singlePool);
+			// 先从未使用的列表中查找是否有可用的对象
+			if (!mPoolList.TryGetValue(type, out singlePool))
+			{
+				singlePool = new ClassPoolSingle();
+				singlePool.setType(type);
+				mPoolList.Add(type, singlePool);
+			}
 		}
-		mListLock.unlock();
-		return singlePool.newClass(out isNewObject);
+		return singlePool.newClass(out isNewObject, newDirect);
 	}
 	// 仅用于主工程中的类,否则无法识别
-	public T newClass<T>(out T obj) where T : ClassObject
+	public T newClass<T>(out T obj, bool newDirect) where T : ClassObject
 	{
-		ClassObject classObj = newClass(Typeof<T>(), out _);
+		ClassObject classObj = newClass(typeof(T), out _, newDirect);
 		obj = classObj as T;
 		if (obj == null)
 		{
-			logError("创建类实例失败,可能传入的type类型与目标类型不一致");
+			Debug.LogError("创建类实例失败,可能传入的type类型与目标类型不一致");
 		}
 		return obj;
 	}
-	public void destroyClass(ClassObject classObject)
+	public void destroyClass<T>(ref T classObject) where T : ClassObject
 	{
-		mListLock.waitForUnlock();
-		if (!mPoolList.TryGetValue(Typeof(classObject), out ClassPoolSingle singlePool))
+		using (new ThreadLockScope(mListLock))
 		{
-			logError("找不到类对象的对象池");
+			if (!mPoolList.TryGetValue(Typeof(classObject), out ClassPoolSingle singlePool))
+			{
+				Debug.LogError("找不到类对象的对象池");
+			}
+			singlePool.destroyClass(ref classObject);
 		}
-		singlePool.destroyClass(classObject);
-		mListLock.unlock();
 	}
-	public void destroyClassReally(ClassObject classObject)
+	public void destroyClass(List<ClassObject> classObjectList)
 	{
-		mListLock.waitForUnlock();
-		if (!mPoolList.TryGetValue(Typeof(classObject), out ClassPoolSingle singlePool))
+		if (classObjectList.Count == 0)
 		{
-			logError("找不到类对象的对象池");
+			return;
 		}
-		singlePool.destroyClassReally(classObject);
-		mListLock.unlock();
+		using (new ThreadLockScope(mListLock))
+		{
+			if (!mPoolList.TryGetValue(Typeof(classObjectList[0]), out ClassPoolSingle singlePool))
+			{
+				Debug.LogError("找不到类对象的对象池");
+			}
+			singlePool.destroyClass(classObjectList);
+		}
 	}
-	public bool isInuse(ClassObject classObject)
+	public void destroyClassReally(ref ClassObject classObject)
 	{
-		mListLock.waitForUnlock();
-		if (!mPoolList.TryGetValue(Typeof(classObject), out ClassPoolSingle singlePool))
+		using (new ThreadLockScope(mListLock))
 		{
-			logError("找不到类对象的对象池");
+			if (!mPoolList.TryGetValue(Typeof(classObject), out ClassPoolSingle singlePool))
+			{
+				Debug.LogError("找不到类对象的对象池");
+			}
+			singlePool.destroyClassReally(ref classObject);
 		}
-		bool inuse = singlePool.isInuse(classObject);
-		mListLock.unlock();
-		return inuse;
+	}
+	public void destroyClassReally(List<ClassObject> classObjectList)
+	{
+		if (classObjectList.Count == 0)
+		{
+			return;
+		}
+		using (new ThreadLockScope(mListLock))
+		{
+			if (!mPoolList.TryGetValue(Typeof(classObjectList[0]), out ClassPoolSingle singlePool))
+			{
+				Debug.LogError("找不到类对象的对象池");
+			}
+			singlePool.destroyClassReally(classObjectList);
+		}
 	}
 }

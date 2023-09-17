@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System;
 
+// 锁定物体旋转的组件
 public class COMTransformableRotateFixed : ComponentRotateFixed
 {
 	public override void update(float elapsedTime)

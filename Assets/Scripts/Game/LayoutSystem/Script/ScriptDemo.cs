@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
+using static UnityUtility;
 
 public class ScriptDemo : LayoutScript
 {
@@ -27,11 +26,11 @@ public class ScriptDemo : LayoutScript
 		mLabel.setText(text);
 	}
 	//--------------------------------------------------------------------------------------------------------------------------
-	protected void onBackgroundClick(IMouseEventCollect go)
+	protected void onBackgroundClick(IMouseEventCollect go, Vector3 mousePos)
 	{
 		log("点击背景");
 	}
-	protected void onTextClick(IMouseEventCollect go)
+	protected void onTextClick(IMouseEventCollect go, Vector3 mousePos)
 	{
 		log("点击文字");
 	}

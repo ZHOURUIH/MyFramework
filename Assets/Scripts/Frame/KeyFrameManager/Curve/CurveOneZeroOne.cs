@@ -1,9 +1,10 @@
 ﻿using System;
 using UnityEngine;
 
+// 从1到0再到1的折线
 public class CurveOneZeroOne : MyCurve
 {
-	public override float Evaluate(float time)
+	public override float evaluate(float time)
 	{
 		if(time <= 0.5f)
 		{

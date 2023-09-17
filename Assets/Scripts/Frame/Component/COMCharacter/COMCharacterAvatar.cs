@@ -1,5 +1,11 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using static UnityUtility;
+using static StringUtility;
+using static FrameBase;
+using static BinaryUtility;
+using static MathUtility;
+using static FrameDefine;
 
 // 制作角色的动画状态机时需要注意
 // 当动作为非循环动作时,需要勾选CanTransitionToSelf,且添加一个Dirty参数,类型为Trigger
@@ -27,20 +33,20 @@ public class COMCharacterAvatar : GameComponent
 	protected bool mDestroyReally;								// 在销毁时是否真正销毁模型,如果不是真正销毁,则是缓存到资源池中
 	protected AVATAR_RELATIONSHIP mRelationship;				// 模型节点与角色节点的关系
 	protected TRANSFORM_SYNC_TIME mTransformSyncTime;			// 同步变换的时机
-	protected TRANSFORM_ASYNC mPositionSync;					// 位置同步方式,仅在mRelationship为AVATAR_ALONE时生效
-	protected TRANSFORM_ASYNC mRotationSync;					// 旋转同步方式,仅在mRelationship为AVATAR_ALONE时生效
-	protected TRANSFORM_ASYNC mScaleSync;						// 缩放同步方式,仅在mRelationship为AVATAR_ALONE时生效
+	protected TRANSFORM_SYNC mPositionSync;						// 位置同步方式,仅在mRelationship为AVATAR_ALONE时生效
+	protected TRANSFORM_SYNC mRotationSync;						// 旋转同步方式,仅在mRelationship为AVATAR_ALONE时生效
+	protected TRANSFORM_SYNC mScaleSync;						// 缩放同步方式,仅在mRelationship为AVATAR_ALONE时生效
 	public COMCharacterAvatar()
 	{
 		mAnimationLengthList = new Dictionary<string, float>();
 		mRelationship = AVATAR_RELATIONSHIP.AVATAR_AS_CHILD;
 		mTransformSyncTime = TRANSFORM_SYNC_TIME.LATE_UPDATE;
-		mPositionSync = TRANSFORM_ASYNC.USE_CHARACTER;
-		mRotationSync = TRANSFORM_ASYNC.USE_CHARACTER;
-		mScaleSync = TRANSFORM_ASYNC.USE_CHARACTER;
+		mPositionSync = TRANSFORM_SYNC.USE_CHARACTER;
+		mRotationSync = TRANSFORM_SYNC.USE_CHARACTER;
+		mScaleSync = TRANSFORM_SYNC.USE_CHARACTER;
 		mModelLoadCallback = onModelLoaded;
-		mAnimationSpeed = new float[FrameDefine.ANIMATION_LAYER_COUNT] { 1.0f, 1.0f};
-		mAnimationParam = new int[FrameDefine.ANIMATION_LAYER_COUNT];
+		mAnimationSpeed = new float[ANIMATION_LAYER_COUNT] { 1.0f, 1.0f};
+		mAnimationParam = new int[ANIMATION_LAYER_COUNT];
 	}
 	public override void destroy()
 	{
@@ -65,9 +71,9 @@ public class COMCharacterAvatar : GameComponent
 		mModelTag = 0;
 		mDestroyReally = false;
 		mRelationship = AVATAR_RELATIONSHIP.AVATAR_AS_CHILD;
-		mPositionSync = TRANSFORM_ASYNC.USE_CHARACTER;
-		mRotationSync = TRANSFORM_ASYNC.USE_CHARACTER;
-		mScaleSync = TRANSFORM_ASYNC.USE_CHARACTER;
+		mPositionSync = TRANSFORM_SYNC.USE_CHARACTER;
+		mRotationSync = TRANSFORM_SYNC.USE_CHARACTER;
+		mScaleSync = TRANSFORM_SYNC.USE_CHARACTER;
 		mTransformSyncTime = TRANSFORM_SYNC_TIME.LATE_UPDATE;
 		memset(mAnimationSpeed, 1.0f);
 		memset(mAnimationParam, 0);
@@ -114,7 +120,7 @@ public class COMCharacterAvatar : GameComponent
 		{
 			return length;
 		}
-		length = getAnimationLength(mAnimator, name);
+		length = UnityUtility.getAnimationLength(mAnimator, name);
 		mAnimationLengthList.Add(name, length);
 		return length;
 	}
@@ -131,8 +137,8 @@ public class COMCharacterAvatar : GameComponent
 		if (mAnimator != null)
 		{
 			mAnimator.speed = mAnimationSpeed[layer];
-			mAnimator.SetInteger(FrameDefine.ANIMATOR_STATE[layer], mAnimationParam[layer]);
-			mAnimator.SetTrigger(FrameDefine.ANIMATOR_DIRTY[layer]);
+			mAnimator.SetInteger(ANIMATOR_STATE[layer], mAnimationParam[layer]);
+			mAnimator.SetTrigger(ANIMATOR_DIRTY[layer]);
 		}
 	}
 	// 异步加载模型
@@ -144,7 +150,7 @@ public class COMCharacterAvatar : GameComponent
 		mUserData = userData;
 		if (!isEmpty(mModelPath))
 		{
-			mObjectPool.createObjectAsync(mModelPath, mModelLoadCallback, mModelTag);
+			mPrefabPoolManager.createObjectAsync(mModelPath, mModelTag, mModelLoadCallback);
 		}
 	}
 	// 同步加载模型
@@ -156,10 +162,10 @@ public class COMCharacterAvatar : GameComponent
 		mUserData = null;
 		if (!isEmpty(mModelPath))
 		{
-			onModelLoaded(mObjectPool.createObject(mModelPath, mModelTag), null);
+			onModelLoaded(mPrefabPoolManager.createObject(mModelPath, mModelTag), null);
 		}
 	}
-	public void setTransformSync(TRANSFORM_ASYNC posSync, TRANSFORM_ASYNC rotSync, TRANSFORM_ASYNC scaleSync)
+	public void setTransformSync(TRANSFORM_SYNC posSync, TRANSFORM_SYNC rotSync, TRANSFORM_SYNC scaleSync)
 	{
 		mPositionSync = posSync;
 		mRotationSync = rotSync;
@@ -180,7 +186,7 @@ public class COMCharacterAvatar : GameComponent
 		// 需要重置对模型可能做出的所有修改
 		resetLayer();
 		setRootMotion(false);
-		mObjectPool.destroyObject(ref mObject, mDestroyReally);
+		mPrefabPoolManager.destroyObject(ref mObject, mDestroyReally);
 		// 如果模型节点是角色节点,则需要将角色节点也清空
 		if (mRelationship == AVATAR_RELATIONSHIP.AVATAR_AS_CHARACTER)
 		{
@@ -223,9 +229,9 @@ public class COMCharacterAvatar : GameComponent
 	public string getModelPath()										{ return mModelPath; }
 	public bool isAvatarActive()										{ return mObject.activeSelf; }
 	public AVATAR_RELATIONSHIP getAvatarRelationship()					{ return mRelationship; }
-	public TRANSFORM_ASYNC getPositionSync()							{ return mPositionSync; }
-	public TRANSFORM_ASYNC getRotationSync()							{ return mRotationSync; }
-	public TRANSFORM_ASYNC getScaleSync()								{ return mScaleSync; }
+	public TRANSFORM_SYNC getPositionSync()							{ return mPositionSync; }
+	public TRANSFORM_SYNC getRotationSync()							{ return mRotationSync; }
+	public TRANSFORM_SYNC getScaleSync()								{ return mScaleSync; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void syncTransform()
 	{
@@ -238,7 +244,7 @@ public class COMCharacterAvatar : GameComponent
 			return;
 		}
 		// 角色节点与模型节点的同步
-		if (mPositionSync == TRANSFORM_ASYNC.USE_AVATAR)
+		if (mPositionSync == TRANSFORM_SYNC.USE_AVATAR)
 		{
 			Vector3 pos = getPosition();
 			if (!isVectorEqual(mCharacter.getPosition(), pos))
@@ -246,7 +252,7 @@ public class COMCharacterAvatar : GameComponent
 				mCharacter.setPosition(pos);
 			}
 		}
-		else if (mPositionSync == TRANSFORM_ASYNC.USE_CHARACTER)
+		else if (mPositionSync == TRANSFORM_SYNC.USE_CHARACTER)
 		{
 			Vector3 pos = mCharacter.getPosition();
 			if (!isVectorEqual(getPosition(), pos))
@@ -254,7 +260,7 @@ public class COMCharacterAvatar : GameComponent
 				setPosition(pos);
 			}
 		}
-		if (mRotationSync == TRANSFORM_ASYNC.USE_AVATAR)
+		if (mRotationSync == TRANSFORM_SYNC.USE_AVATAR)
 		{
 			Vector3 rot = getRotation();
 			if (!isVectorEqual(mCharacter.getRotation(), rot))
@@ -262,7 +268,7 @@ public class COMCharacterAvatar : GameComponent
 				mCharacter.setRotation(rot);
 			}
 		}
-		else if (mRotationSync == TRANSFORM_ASYNC.USE_CHARACTER)
+		else if (mRotationSync == TRANSFORM_SYNC.USE_CHARACTER)
 		{
 			Vector3 rot = mCharacter.getRotation();
 			if (!isVectorEqual(getRotation(), rot))
@@ -270,7 +276,7 @@ public class COMCharacterAvatar : GameComponent
 				setRotation(rot);
 			}
 		}
-		if (mScaleSync == TRANSFORM_ASYNC.USE_AVATAR)
+		if (mScaleSync == TRANSFORM_SYNC.USE_AVATAR)
 		{
 			Vector3 scale = getScale();
 			if (!isVectorEqual(mCharacter.getScale(), scale))
@@ -278,7 +284,7 @@ public class COMCharacterAvatar : GameComponent
 				mCharacter.setScale(scale);
 			}
 		}
-		else if (mScaleSync == TRANSFORM_ASYNC.USE_CHARACTER)
+		else if (mScaleSync == TRANSFORM_SYNC.USE_CHARACTER)
 		{
 			Vector3 scale = mCharacter.getScale();
 			if (!isVectorEqual(getScale(), scale))

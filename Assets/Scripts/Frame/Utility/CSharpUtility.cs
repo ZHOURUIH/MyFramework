@@ -9,16 +9,36 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Reflection;
-using System.Text.RegularExpressions;
+using System.Text;
 using System.Threading;
+using static UnityUtility;
+using static StringUtility;
+using static MathUtility;
+using System.Runtime.InteropServices;
 
 // 与C#有关的工具函数
-public class CSharpUtility : TimeUtility
+public class CSharpUtility
 {
-	protected static uint mIDMaker;
-	protected static int mMainThreadID;
+	protected static int mIDMaker;			// 用于生成客户端唯一ID的种子
+	protected static int mMainThreadID;		// 主线程ID
 	public static void setMainThreadID(int mainThreadID) { mMainThreadID = mainThreadID; }
 	public static bool isMainThread() { return Thread.CurrentThread.ManagedThreadId == mMainThreadID; }
+	// 不考虑热更类型,直接创建
+	public static T createInstanceDirect<T>(Type classType, params object[] param) where T : class
+	{
+		T obj;
+		try
+		{
+			obj = Activator.CreateInstance(classType, param) as T;
+		}
+		catch (Exception e)
+		{
+			logException(e, "create instance error! type:" + classType);
+			obj = null;
+		}
+		return obj;
+	}
+	// 兼容热更类型的创建
 	public static T createInstance<T>(Type classType, params object[] param) where T : class
 	{
 		T obj;
@@ -43,7 +63,7 @@ public class CSharpUtility : TimeUtility
 		}
 		catch (Exception e)
 		{
-			UnityUtility.logError("create instance error! " + e.Message + ", inner error:" + e.InnerException?.Message);
+			logException(e, "create instance error! type:" + classType);
 			obj = null;
 		}
 		return obj;
@@ -65,6 +85,166 @@ public class CSharpUtility : TimeUtility
 		}
 		return (T)retval;
 	}
+	public static sbyte findMax(List<sbyte> list)
+	{
+		int count = list.Count;
+		sbyte maxValue = list[0];
+		for (int i = 1; i < count; ++i)
+		{
+			clampMin(ref maxValue, list[i]);
+		}
+		return maxValue;
+	}
+	public static byte findMax(List<byte> list)
+	{
+		int count = list.Count;
+		byte maxValue = list[0];
+		for (int i = 1; i < count; ++i)
+		{
+			clampMin(ref maxValue, list[i]);
+		}
+		return maxValue;
+	}
+	public static short findMax(List<short> list)
+	{
+		int count = list.Count;
+		short maxValue = list[0];
+		for (int i = 1; i < count; ++i)
+		{
+			clampMin(ref maxValue, list[i]);
+		}
+		return maxValue;
+	}
+	public static ushort findMax(List<ushort> list)
+	{
+		int count = list.Count;
+		ushort maxValue = list[0];
+		for (int i = 1; i < count; ++i)
+		{
+			clampMin(ref maxValue, list[i]);
+		}
+		return maxValue;
+	}
+	public static int findMax(List<int> list)
+	{
+		int count = list.Count;
+		int maxValue = list[0];
+		for (int i = 1; i < count; ++i)
+		{
+			clampMin(ref maxValue, list[i]);
+		}
+		return maxValue;
+	}
+	public static uint findMax(List<uint> list)
+	{
+		int count = list.Count;
+		uint maxValue = list[0];
+		for (int i = 1; i < count; ++i)
+		{
+			clampMin(ref maxValue, list[i]);
+		}
+		return maxValue;
+	}
+	public static long findMax(List<long> list)
+	{
+		int count = list.Count;
+		long maxValue = list[0];
+		for (int i = 1; i < count; ++i)
+		{
+			clampMin(ref maxValue, list[i]);
+		}
+		return maxValue;
+	}
+	public static ulong findMax(List<ulong> list)
+	{
+		int count = list.Count;
+		ulong maxValue = list[0];
+		for (int i = 1; i < count; ++i)
+		{
+			clampMin(ref maxValue, list[i]);
+		}
+		return maxValue;
+	}
+	public static float findMax(List<float> list)
+	{
+		int count = list.Count;
+		float maxValue = list[0];
+		for (int i = 1; i < count; ++i)
+		{
+			clampMin(ref maxValue, list[i]);
+		}
+		return maxValue;
+	}
+	public static double findMax(List<double> list)
+	{
+		int count = list.Count;
+		double maxValue = list[0];
+		for (int i = 1; i < count; ++i)
+		{
+			clampMin(ref maxValue, list[i]);
+		}
+		return maxValue;
+	}
+	public static sbyte findMaxAbs(List<sbyte> list)
+	{
+		int count = list.Count;
+		sbyte maxValue = abs(list[0]);
+		for (int i = 1; i < count; ++i)
+		{
+			clampMin(ref maxValue, abs(list[i]));
+		}
+		return maxValue;
+	}
+	public static short findMaxAbs(List<short> list)
+	{
+		int count = list.Count;
+		short maxValue = abs(list[0]);
+		for (int i = 1; i < count; ++i)
+		{
+			clampMin(ref maxValue, abs(list[i]));
+		}
+		return maxValue;
+	}
+	public static int findMaxAbs(List<int> list)
+	{
+		int count = list.Count;
+		int maxValue = abs(list[0]);
+		for (int i = 1; i < count; ++i)
+		{
+			clampMin(ref maxValue, abs(list[i]));
+		}
+		return maxValue;
+	}
+	public static long findMaxAbs(List<long> list)
+	{
+		int count = list.Count;
+		long maxValue = abs(list[0]);
+		for (int i = 1; i < count; ++i)
+		{
+			clampMin(ref maxValue, abs(list[i]));
+		}
+		return maxValue;
+	}
+	public static float findMaxAbs(List<float> list)
+	{
+		int count = list.Count;
+		float maxValue = abs(list[0]);
+		for (int i = 1; i < count; ++i)
+		{
+			clampMin(ref maxValue, abs(list[i]));
+		}
+		return maxValue;
+	}
+	public static double findMaxAbs(List<double> list)
+	{
+		int count = list.Count;
+		double maxValue = abs(list[0]);
+		for (int i = 1; i < count; ++i)
+		{
+			clampMin(ref maxValue, abs(list[i]));
+		}
+		return maxValue;
+	}
 	// preFrameCount为1表示返回调用getLineNum的行号
 	public static int getLineNum(int preFrameCount = 1)
 	{
@@ -78,9 +258,10 @@ public class CSharpUtility : TimeUtility
 		return st.GetFrame(0).GetFileName();
 	}
 	// 此处不使用MyStringBuilder,因为打印堆栈时一般都是产生了某些错误,再使用MyStringBuilder可能会引起无限递归
-	public static string getStackTrace()
+	public static string getStackTrace(int depth = 20)
 	{
-		string fullTrace = "";
+		++depth;
+		var fullTrace = new StringBuilder();
 		var trace = new StackTrace(true);
 		for (int i = 0; i < trace.FrameCount; ++i)
 		{
@@ -88,26 +269,33 @@ public class CSharpUtility : TimeUtility
 			{
 				continue;
 			}
+			if (i >= depth)
+			{
+				break;
+			}
 			StackFrame frame = trace.GetFrame(i);
 			if (isEmpty(frame.GetFileName()))
 			{
 				break;
 			}
-			fullTrace += "at " + frame.GetFileName() + ":" + frame.GetFileLineNumber() + "\n";
+			fullTrace.Append("at ");
+			fullTrace.Append(frame.GetFileName());
+			fullTrace.Append(":");
+			fullTrace.AppendLine(IToS(frame.GetFileLineNumber()));
 		}
-		return fullTrace;
+		return fullTrace.ToString();
 	}
 	// 此处只是定义一个空函数,为了能够进行重定向,因为只有在重定向中才能获取真正的堆栈信息
 	public static string getILRStackTrace() { return ""; }
-	public static uint makeID()
+	public static int makeID()
 	{
-		if (mIDMaker >= 0xFFFFFFFF)
+		if (mIDMaker >= 0x7FFFFFFF)
 		{
-			UnityUtility.logError("ID已超过最大值");
+			logError("ID已超过最大值");
 		}
 		return ++mIDMaker;
 	}
-	public static void notifyIDUsed(uint id)
+	public static void notifyIDUsed(int id)
 	{
 		mIDMaker = getMax(mIDMaker, id);
 	}
@@ -169,6 +357,10 @@ public class CSharpUtility : TimeUtility
 	}
 	public static bool arrayContains<T>(T[] array, T value, int arrayLen = -1) where T : class
 	{
+		if (array == null || array.Length == 0)
+		{
+			return false;
+		}
 		if (arrayLen == -1)
 		{
 			arrayLen = array.Length;
@@ -202,6 +394,19 @@ public class CSharpUtility : TimeUtility
 		list.Remove(elem);
 		return elem;
 	}
+	public static bool launchExe(string dir, string args, int timeout, bool hidden = false)
+	{
+		ProcessCreationFlags flags = hidden ? ProcessCreationFlags.CREATE_NO_WINDOW : ProcessCreationFlags.NONE;
+		STARTUPINFO startupinfo = new STARTUPINFO
+		{
+			cb = (uint)Marshal.SizeOf<STARTUPINFO>()
+		};
+		string path = getFilePath(dir);
+		PROCESS_INFORMATION processinfo = new PROCESS_INFORMATION();
+		bool result = Kernel32.CreateProcessW(null, dir + " " + args, IntPtr.Zero, IntPtr.Zero, false, flags, IntPtr.Zero, path, ref startupinfo, ref processinfo);
+		Kernel32.WaitForSingleObject(processinfo.hProcess, timeout);
+		return result;
+	}
 	// 获取类型,因为ILR的原因,如果是热更工程中的类型,直接使用typeof获取的是错误的类型
 	// 所以需要使用此函数获取真实的类型,要获取真实类型必须要有一个实例
 	// 为了方便调用,所以写在CSharpUtility中
@@ -214,8 +419,8 @@ public class CSharpUtility : TimeUtility
 			typeof(ILRuntimeWrapperType).IsAssignableFrom(type) ||
 			typeof(ILRuntimeType).IsAssignableFrom(type))
 		{
-			UnityUtility.logError("无法获取热更工程中的类型,请确保没有在热更工程中调用Typeof<>(), 在热更工程中获取类型请使用typeof()," +
-					"或者没有调用CMD_MAIN,PACKET_MAIN,LIST_MAIN这类的只能在主工程中调用的函数");
+			logError("无法获取热更工程中的类型,请确保没有在热更工程中调用Typeof<>(), 在热更工程中获取类型请使用typeof()," +
+									"或者没有调用CMD_MAIN,PACKET_MAIN,LIST_MAIN这类的只能在主工程中调用的函数");
 			return null;
 		}
 #endif

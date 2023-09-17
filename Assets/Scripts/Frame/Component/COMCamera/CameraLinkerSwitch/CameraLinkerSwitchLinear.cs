@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
+using static MathUtility;
 
+// 用于执行切换连接器时的不同行为,直接平移到目标点
 public class CameraLinkerSwitchLinear : CameraLinkerSwitch
 {
 	protected Vector3 mDirection;		// 此次转换的方向,用于避免不必要的向量重复计算

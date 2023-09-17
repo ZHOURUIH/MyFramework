@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System;
+using static FrameUtility;
 
+// 场景流程
 public abstract class SceneProcedure : DelayCmdWatcher
 {
 	protected Dictionary<Type, SceneProcedure> mChildProcedureList; // 子流程列表
@@ -68,7 +70,7 @@ public abstract class SceneProcedure : DelayCmdWatcher
 		if (mPrepareTimer.tickTimer(elapsedTime))
 		{
 			// 超过了准备时间,强制跳转流程
-			CMD(out CmdGameSceneChangeProcedure cmd);
+			CMD(out CmdGameSceneChangeProcedure cmd, LOG_LEVEL.FORCE);
 			cmd.mProcedure = mPrepareNext.mType;
 			cmd.mIntent = mPrepareIntent;
 			pushCommand(cmd, mGameScene);
@@ -133,29 +135,31 @@ public abstract class SceneProcedure : DelayCmdWatcher
 	public SceneProcedure getSameParent(SceneProcedure otherProcedure)
 	{
 		// 获得两个流程的父节点列表
-		LIST(out List<SceneProcedure> tempList0);
-		LIST(out List<SceneProcedure> tempList1);
-		getParentList(tempList0);
-		otherProcedure.getParentList(tempList1);
 		SceneProcedure sameParent = null;
-		// 从前往后判断,找到第一个相同的父节点
-		int count0 = tempList0.Count;
-		for (int i = 0; i < count0; ++i)
+		using (new ListScope<SceneProcedure>(out var tempList0))
 		{
-			SceneProcedure thisParent = tempList0[i];
-			int count1 = tempList1.Count;
-			for (int j = 0; j < count1; ++j)
+			using (new ListScope<SceneProcedure>(out var tempList1))
 			{
-				if (thisParent == tempList1[j])
+				getParentList(tempList0);
+				otherProcedure.getParentList(tempList1);
+				// 从前往后判断,找到第一个相同的父节点
+				int count0 = tempList0.Count;
+				for (int i = 0; i < count0; ++i)
 				{
-					sameParent = thisParent;
-					i = count0;
-					break;
+					SceneProcedure thisParent = tempList0[i];
+					int count1 = tempList1.Count;
+					for (int j = 0; j < count1; ++j)
+					{
+						if (thisParent == tempList1[j])
+						{
+							sameParent = thisParent;
+							i = count0;
+							break;
+						}
+					}
 				}
 			}
 		}
-		UN_LIST(tempList0);
-		UN_LIST(tempList1);
 		return sameParent;
 	}
 	public bool isThisOrParent(Type type)

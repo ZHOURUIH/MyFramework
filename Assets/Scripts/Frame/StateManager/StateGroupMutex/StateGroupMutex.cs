@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-public abstract class StateGroupMutex : FrameBase
+// 状态组的互斥关系
+public abstract class StateGroupMutex : ClassObject
 {
-	protected StateGroup mGroup;
-	protected GROUP_MUTEX mMutexType;
+	protected StateGroup mGroup;		// 所属的状态组
+	protected GROUP_MUTEX mMutexType;	// 互斥关系类型
 	public override void resetProperty()
 	{
 		base.resetProperty();

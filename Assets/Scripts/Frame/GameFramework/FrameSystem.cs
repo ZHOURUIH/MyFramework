@@ -1,6 +1,11 @@
 ﻿using UnityEngine;
 using System;
+using static CSharpUtility;
+using static UnityUtility;
+using static FrameBase;
+using static MathUtility;
 
+// 系统组件基类,一般都是管理器
 public class FrameSystem : ComponentOwner
 {
 	protected GameObject mObject;		// 管理器节点,一般用于作为管理物体的父节点,或者挂接调试脚本
@@ -23,6 +28,8 @@ public class FrameSystem : ComponentOwner
 	}
 	// 等待所有系统组件的init调用完毕后会调用lateInit,如果在init中会有依赖于其他系统组件的初始化,则可以写在lateInit中
 	public virtual void lateInit() { }
+	// 即将销毁时调用,退出程序时会先调用一次全部系统的即将销毁,再全部调用一次销毁
+	public virtual void willDestroy(){}
 	public override void destroy()
 	{
 		destroyGameObject(mObject);

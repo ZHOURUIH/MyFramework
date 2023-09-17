@@ -1,12 +1,14 @@
 ﻿using UnityEngine;
+using static MathUtility;
 
+// 用于执行切换连接器时的不同行为,绕目标旋转来切换连接器,并且相对位置的长度上是插值
 public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 {
-	protected float mDistanceCurrent;
-	protected float mDistanceDelta;
-	protected float mRotatedAngle;
-	protected float mTotalAngle;
-	protected bool mClockwise;
+	protected float mDistanceCurrent;		// 当前的相对距离
+	protected float mDistanceDelta;			// 初始位置到目标位置的距离差值
+	protected float mRotatedAngle;			// 已经旋转过的角度
+	protected float mTotalAngle;			// 总共需要旋转的角度
+	protected bool mClockwise;				// 是否顺时针旋转
 	public CameraLinkerSwitchAroundTarget()
 	{
 		mClockwise = true;

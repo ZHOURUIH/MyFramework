@@ -13,7 +13,7 @@ using ILRuntime.Runtime.Stack;
 
 namespace ILRuntime.CLR.TypeSystem
 {
-    public class ILType : IType
+    public sealed class ILType : IType
     {
         Dictionary<string, List<ILMethod>> methods;
         TypeReference typeRef;
@@ -276,6 +276,14 @@ namespace ILRuntime.CLR.TypeSystem
                         totalFieldCnt = fieldTypes.Length;
                 }
                 return totalFieldCnt;
+            }
+        }
+
+        internal List<ILType> GenericInstances
+        {
+            get
+            {
+                return genericInstances;
             }
         }
 
@@ -708,52 +716,70 @@ namespace ILRuntime.CLR.TypeSystem
             }
         }
 
-        void InitializeMethods ()
+        void InitializeMethods()
         {
-            methods = new Dictionary<string, List<ILMethod>> ();
-            constructors = new List<ILMethod> ();
-            if ( definition == null )
+            methods = new Dictionary<string, List<ILMethod>>();
+            constructors = new List<ILMethod>();
+            if (definition == null)
                 return;
-            if ( definition.HasCustomAttributes )
+            if (definition.HasCustomAttributes)
             {
-                for ( int i = 0; i < definition.CustomAttributes.Count; i++ )
+                for (int i = 0; i < definition.CustomAttributes.Count; i++)
                 {
                     int f;
-                    if ( definition.CustomAttributes [ i ].GetJITFlags ( AppDomain, out f ) )
+                    if (definition.CustomAttributes[i].GetJITFlags(AppDomain, out f))
                     {
                         this.jitFlags = f;
                         break;
                     }
                 }
             }
-            foreach ( var i in definition.Methods )
+            foreach (var i in definition.Methods)
             {
-                if ( i.IsConstructor )
+                if (i.IsConstructor)
                 {
-                    if ( i.IsStatic )
-                        staticConstructor = new ILMethod ( i, this, appdomain, jitFlags );
+                    if (i.IsStatic)
+                        staticConstructor = new ILMethod(i, this, appdomain, jitFlags);
                     else
-                        constructors.Add ( new ILMethod ( i, this, appdomain, jitFlags ) );
+                        constructors.Add(new ILMethod(i, this, appdomain, jitFlags));
                 }
                 else
                 {
                     List<ILMethod> lst;
-                    if ( !methods.TryGetValue ( i.Name, out lst ) )
+                    if (!methods.TryGetValue(i.Name, out lst))
                     {
-                        lst = new List<ILMethod> ();
-                        methods [ i.Name ] = lst;
+                        lst = new List<ILMethod>();
+                        methods[i.Name] = lst;
                     }
-                    var m = new ILMethod ( i, this, appdomain, jitFlags );
-                    lst.Add ( m );
+                    var m = new ILMethod(i, this, appdomain, jitFlags);
+                    lst.Add(m);
                 }
             }
 
-            if ( !appdomain.SuppressStaticConstructor && !staticConstructorCalled )
+            foreach (var i in definition.Events)
+            {
+                int fieldIdx = -1;
+                InitializeFields();
+                if(i.AddMethod.IsStatic)
+                    staticFieldMapping.TryGetValue(i.Name,out fieldIdx);
+                else
+                    fieldMapping.TryGetValue(i.Name, out fieldIdx);
+                if (methods.TryGetValue(i.AddMethod.Name, out var lst))
+                {
+                    lst[0].SetEventAddOrRemove(true, false, fieldIdx);
+                }
+                if (methods.TryGetValue(i.RemoveMethod.Name, out lst))
+                {
+                    lst[0].SetEventAddOrRemove(false, true, fieldIdx);
+                }
+            }
+
+            if (!appdomain.SuppressStaticConstructor && !staticConstructorCalled)
             {
                 staticConstructorCalled = true;
-                if ( staticConstructor != null && ( !TypeReference.HasGenericParameters || IsGenericInstance ) )
+                if (staticConstructor != null && (!TypeReference.HasGenericParameters || IsGenericInstance))
                 {
-                    appdomain.Invoke ( staticConstructor, null, null );
+                    appdomain.Invoke(staticConstructor, null, null);
                 }
             }
         }
@@ -993,27 +1019,30 @@ namespace ILRuntime.CLR.TypeSystem
             }
             return null;
         }
-
-        public IMethod GetConstructor ( List<IType> param )
+        public IMethod GetConstructor(List<IType> param)
         {
-            if ( constructors == null )
-                InitializeMethods ();
-            foreach ( var i in constructors )
+            return GetConstructor(param, true);
+        }
+        public IMethod GetConstructor(List<IType> param, bool exactMatch = true)
+        {
+            if (constructors == null)
+                InitializeMethods();
+            foreach (var i in constructors)
             {
-                if ( i.ParameterCount == param.Count )
+                if (i.ParameterCount == param.Count)
                 {
                     bool match = true;
 
-                    for ( int j = 0; j < param.Count; j++ )
+                    for (int j = 0; j < param.Count; j++)
                     {
-                        if ( param [ j ] != i.Parameters [ j ] )
+                        if ((exactMatch && param[j] != i.Parameters[j]) || !i.Parameters[j].CanAssignTo(param[j]))
                         {
                             match = false;
                             break;
                         }
                     }
 
-                    if ( match )
+                    if (match)
                         return i;
                 }
             }
@@ -1079,6 +1108,7 @@ namespace ILRuntime.CLR.TypeSystem
             {
                 fieldTypes = new IType [ 0 ];
                 fieldDefinitions = new FieldDefinition [ 0 ];
+                return;
             }
             fieldTypes = new IType [ definition.Fields.Count ];
             fieldDefinitions = new FieldDefinition [ definition.Fields.Count ];
@@ -1217,25 +1247,25 @@ namespace ILRuntime.CLR.TypeSystem
             return res;
         }
 
-        public ILTypeInstance Instantiate ( object [] args )
+        public ILTypeInstance Instantiate(object[] args)
         {
-            var res = new ILTypeInstance ( this );
-            var argsTypes = new List<IType> ( args.Length );
-            foreach ( var o in args )
+            var res = new ILTypeInstance(this);
+            var argsTypes = new List<IType>(args.Length);
+            foreach (var o in args)
             {
-                if ( o is ILTypeInstance )
+                if (o is ILTypeInstance)
                 {
-                    argsTypes.Add ( ( ( ILTypeInstance ) o ).Type );
+                    argsTypes.Add(((ILTypeInstance)o).Type);
                 }
                 else
                 {
-                    argsTypes.Add ( appdomain.GetType ( o.GetType () ) );
+                    argsTypes.Add(appdomain.GetType(o.GetType()));
                 }
             }
-            var m = GetConstructor ( argsTypes );
-            if ( m != null )
+            var m = GetConstructor(argsTypes, false);
+            if (m != null)
             {
-                appdomain.Invoke ( m, res, args );
+                appdomain.Invoke(m, res, args);
             }
 
             return res;

@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
 using System;
+using static MathUtility;
 
+// 缩放物体的组件
 public class COMTransformableScale : ComponentKeyFrameNormal, IComponentModifyScale
 {
-	protected Vector3 mStart;
-	protected Vector3 mTarget;
+	protected Vector3 mStart;		// 起始缩放值
+	protected Vector3 mTarget;		// 目标缩放值
 	public override void resetProperty()
 	{
 		base.resetProperty();

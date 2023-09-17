@@ -1,10 +1,11 @@
 ﻿using UnityEngine;
+using static MathUtility;
 
 // 相对位置固定,但是旋转会平滑过渡的第三人称连接器
 public class CameraLinkerSmoothRotate : CameraLinkerThirdPerson
 {
-	protected Vector3 mCurRelative;
-	protected float mSmoothRotateSpeed;
+	protected Vector3 mCurRelative;		// 当前的相对位置
+	protected float mSmoothRotateSpeed;	// 平滑速度
 	public CameraLinkerSmoothRotate()
 	{
 		mSmoothRotateSpeed = 5.0f;

@@ -1,30 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 
-public class UINT : OBJECT
+// 自定义的对uint的封装,提供类似于uint指针的功能,可用于序列化
+public class UINT : SerializableBit
 {
-	protected const int TYPE_SIZE = sizeof(uint);
-	public uint mValue;
-	public UINT()
+	public uint mValue;		// 值
+	public override void resetProperty() 
 	{
-		mType = typeof(uint);
-		mSize = TYPE_SIZE;
+		base.resetProperty();
+		mValue = 0; 
 	}
-	public UINT(uint value)
-	{
-		mValue = value;
-		mType = typeof(uint);
-		mSize = TYPE_SIZE;
-	}
-	public override void zero() { mValue = 0; }
 	public void set(uint value) { mValue = value; }
-	public override bool readFromBuffer(byte[] buffer, ref int index)
+	public override bool read(SerializerBitRead reader)
 	{
-		mValue = readUInt(buffer, ref index, out bool success);
-		return success;
+		return reader.read(out mValue);
 	}
-	public override bool writeToBuffer(byte[] buffer, ref int index)
+	public override void write(SerializerBitWrite writer)
 	{
-		return writeUInt(buffer, ref index, mValue);
+		writer.write(mValue);
 	}
 }

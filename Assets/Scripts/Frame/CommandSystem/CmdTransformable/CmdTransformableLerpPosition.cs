@@ -1,11 +1,14 @@
 ﻿using UnityEngine;
+using static UnityUtility;
+using static MathUtility;
 
+// 插值改变一个物体的位置,如果目标点不变,离目标点越近,移动速度越慢
 public class CmdTransformableLerpPosition : Command
 {
-	public LerpCallback mDoingCallBack;
-	public LerpCallback mDoneCallBack;
-	public Vector3 mTargetPosition;
-	public float mLerpSpeed;
+	public LerpCallback mDoingCallBack;		// 插值中回调
+	public LerpCallback mDoneCallBack;		// 插值完成时回调
+	public Vector3 mTargetPosition;			// 目标位置
+	public float mLerpSpeed;				// 插值速度
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -42,7 +45,7 @@ public class CmdTransformableLerpPosition : Command
 	}
 	public override void debugInfo(MyStringBuilder builder)
 	{
-		builder.Append(": mLerpSpeed:", mLerpSpeed).
-				Append(", mTargetPosition:", mTargetPosition);
+		builder.append(": mLerpSpeed:", mLerpSpeed).
+				append(", mTargetPosition:", mTargetPosition);
 	}
 }

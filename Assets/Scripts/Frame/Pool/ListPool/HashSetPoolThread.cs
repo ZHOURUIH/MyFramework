@@ -1,17 +1,20 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
+using static UnityUtility;
+using static CSharpUtility;
 
 // 线程安全的列表池,但效率较低
 public class HashSetPoolThread : FrameSystem
 {
-	protected Dictionary<Type, HashSet<IEnumerable>> mInusedList;
-	protected Dictionary<Type, HashSet<IEnumerable>> mUnusedList;
-	protected ThreadLock mListLock;
+	protected Dictionary<Type, HashSet<IEnumerable>> mInusedList;   // 已使用列表,为了提高运行时效率,仅在编辑器下使用
+	protected Dictionary<Type, List<IEnumerable>> mUnusedList;		// 未使用列表
+	protected ThreadLock mListLock;                                 // 列表的线程锁
 	public HashSetPoolThread()
 	{
 		mInusedList = new Dictionary<Type, HashSet<IEnumerable>>();
-		mUnusedList = new Dictionary<Type, HashSet<IEnumerable>>();
+		mUnusedList = new Dictionary<Type, List<IEnumerable>>();
 		mListLock = new ThreadLock();
 		mCreateObject = true;
 	}
@@ -22,52 +25,78 @@ public class HashSetPoolThread : FrameSystem
 		mObject?.AddComponent<HashSetPoolThreadDebug>();
 #endif
 	}
-	public void lockList() { mListLock.waitForUnlock(); }
-	public void unlockList() { mListLock.unlock(); }
+	public ThreadLock getLock() { return mListLock; }
+	public void clearUnused()
+	{
+		using (new ThreadLockScope(mListLock))
+		{
+			mUnusedList.Clear();
+		}
+	}
 	public Dictionary<Type, HashSet<IEnumerable>> getInusedList() { return mInusedList; }
-	public Dictionary<Type, HashSet<IEnumerable>> getUnusedList() { return mUnusedList; }
+	public Dictionary<Type, List<IEnumerable>> getUnusedList() { return mUnusedList; }
 	// onlyOnce表示是否仅当作临时列表使用
 	public IEnumerable newList(Type elementType, Type listType)
 	{
 		IEnumerable list = null;
 		// 锁定期间不能调用任何其他非库函数,否则可能会发生死锁
-		mListLock.waitForUnlock();
-		try
+		using (new ThreadLockScope(mListLock))
 		{
-			// 先从未使用的列表中查找是否有可用的对象
-			if (mUnusedList.TryGetValue(elementType, out HashSet<IEnumerable> valueList) && valueList.Count > 0)
+			try
 			{
-				list = popFirstElement(valueList);
+				// 先从未使用的列表中查找是否有可用的对象
+				if (mUnusedList.TryGetValue(elementType, out List<IEnumerable> valueList) && valueList.Count > 0)
+				{
+					list = valueList[valueList.Count - 1];
+					valueList.RemoveAt(valueList.Count - 1);
+				}
+				// 未使用列表中没有,创建一个新的
+				else
+				{
+					list = createInstance<IEnumerable>(listType);
+#if UNITY_EDITOR
+					mInusedList.TryGetValue(listType, out HashSet<IEnumerable> temp0);
+					int totalCount = 1;
+					if (temp0 != null)
+					{
+						totalCount += temp0.Count;
+					}
+					if (totalCount % 1000 == 0)
+					{
+						Debug.Log("创建的Set总数量已经达到:" + totalCount + "个,type:" + elementType);
+					}
+#endif
+				}
+#if UNITY_EDITOR
+				// 标记为已使用
+				addInuse(list, elementType);
+#endif
 			}
-			// 未使用列表中没有,创建一个新的
-			else
+			catch (Exception e)
 			{
-				list = createInstance<IEnumerable>(listType);
+				logException(e);
 			}
-			// 标记为已使用
-			addInuse(list, elementType);
 		}
-		catch (Exception e)
-		{
-			logError(e.Message);
-		}
-		mListLock.unlock();
 		return list;
 	}
 	// 销毁列表时需要手动清空列表,因为内部无法调用列表的Clear
-	public void destroyList(IEnumerable list, Type elementType)
+	public void destroyList(ref IEnumerable list, Type elementType)
 	{
-		mListLock.waitForUnlock();
-		try
+		using (new ThreadLockScope(mListLock))
 		{
-			addUnuse(list, elementType);
-			removeInuse(list, elementType);
+			try
+			{
+				addUnuse(list, elementType);
+#if UNITY_EDITOR
+				removeInuse(list, elementType);
+#endif
+			}
+			catch (Exception e)
+			{
+				logException(e);
+			}
 		}
-		catch (Exception e)
-		{
-			logError(e.Message);
-		}
-		mListLock.unlock();
+		list = null;
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void addInuse(IEnumerable list, Type type)
@@ -76,7 +105,7 @@ public class HashSetPoolThread : FrameSystem
 		{
 			if (valueList.Contains(list))
 			{
-				logError("list object is in inuse list!");
+				Debug.LogError("list object is in inuse list!");
 				return;
 			}
 		}
@@ -94,26 +123,26 @@ public class HashSetPoolThread : FrameSystem
 		{
 			if (!valueList.Remove(list))
 			{
-				logError("Inused List not contains class object!");
+				Debug.LogError("Inused List not contains class object!");
 				return;
 			}
 		}
-		logError("can not find class type in Inused List! type : " + type);
+		Debug.LogError("can not find class type in Inused List! type : " + type);
 	}
 	protected void addUnuse(IEnumerable list, Type type)
 	{
 		// 加入未使用列表
-		if (mUnusedList.TryGetValue(type, out HashSet<IEnumerable> valueList))
+		if (mUnusedList.TryGetValue(type, out List<IEnumerable> valueList))
 		{
 			if (valueList.Contains(list))
 			{
-				logError("list Object is in Unused list! can not add again!");
+				Debug.LogError("list Object is in Unused list! can not add again!");
 				return;
 			}
 		}
 		else
 		{
-			valueList = new HashSet<IEnumerable>();
+			valueList = new List<IEnumerable>();
 			mUnusedList.Add(type, valueList);
 		}
 		valueList.Add(list);

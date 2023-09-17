@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 
+// 布局调试信息
 public class LayoutDebug : MonoBehaviour
 {
 	protected GameLayout mLayout;		// 挂接的布局
@@ -15,7 +16,7 @@ public class LayoutDebug : MonoBehaviour
 	public void setLayout(GameLayout layout) { mLayout = layout; }
 	public void Update()
 	{
-		if (!FrameBase.mGameFramework.mEnableScriptDebug)
+		if (FrameBase.mGameFramework == null || !FrameBase.mGameFramework.mEnableScriptDebug)
 		{
 			return;
 		}

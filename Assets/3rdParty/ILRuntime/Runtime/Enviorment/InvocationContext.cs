@@ -7,7 +7,11 @@ using ILRuntime.CLR.TypeSystem;
 using ILRuntime.CLR.Utils;
 using ILRuntime.Runtime.Intepreter;
 using ILRuntime.Runtime.Stack;
-
+#if DEBUG && !DISABLE_ILRUNTIME_DEBUG
+using AutoList = System.Collections.Generic.List<object>;
+#else
+using AutoList = ILRuntime.Other.UncheckedList<object>;
+#endif
 namespace ILRuntime.Runtime.Enviorment
 {
     public static class PrimitiveConverter<T>
@@ -93,6 +97,7 @@ namespace ILRuntime.Runtime.Enviorment
         Float,
         Double,
         Enum,
+        ValueType,
         Object,
     }
     public unsafe struct InvocationContext : IDisposable
@@ -102,7 +107,7 @@ namespace ILRuntime.Runtime.Enviorment
         AppDomain domain;
         ILIntepreter intp;
         ILMethod method;
-        IList<object> mStack;
+        AutoList mStack;
         bool invocated;
         int paramCnt;
         bool hasReturn;
@@ -182,6 +187,8 @@ namespace ILRuntime.Runtime.Enviorment
                     return InvocationTypes.Long;
                 return InvocationTypes.Enum;
             }
+            else if (type.IsValueType)
+                return InvocationTypes.ValueType;
             else
                 return InvocationTypes.Object;
         }
@@ -212,16 +219,31 @@ namespace ILRuntime.Runtime.Enviorment
 
         internal StackObject* ESP
         {
-            get => esp;
+            get
+            {
+                return esp;
+            }
             set
             {
                 esp = value;
             }
         }
 
-        internal ILIntepreter Intepreter => intp;
+        internal ILIntepreter Intepreter
+        {
+            get
+            {
+                return intp;
+            }
+        }
 
-        internal IList<object> ManagedStack => mStack;
+        internal AutoList ManagedStack
+        {
+            get
+            {
+                return mStack;
+            }
+        }
 
         public void PushBool(bool val)
         {
@@ -292,6 +314,35 @@ namespace ILRuntime.Runtime.Enviorment
             paramCnt++;
         }
 
+        public void PushValueType<T>(ref T obj)
+        {
+            Type t = typeof(T);
+            bool needPush = false;
+            StackObject* res = default(StackObject*);
+            ValueTypeBinder binder;
+            if (domain.ValueTypeBinders.TryGetValue(t, out binder))
+            {
+                var binderT = binder as ValueTypeBinder<T>;
+                if (binderT != null)
+                {
+                    binderT.PushValue(ref obj, intp, esp, mStack);
+                    if (useRegister)
+                        mStack.Add(null);
+                    res = esp + 1;
+                }
+                else
+                    needPush = true;
+            }
+            else
+                needPush = true;
+            if (needPush)
+            {
+                res = ILIntepreter.PushObject(esp, mStack, obj, true);
+            }
+            esp = res;
+            paramCnt++;
+        }
+
         public void PushObject(object obj, bool isBox = true)
         {
             if (obj is CrossBindingAdaptorType)
@@ -332,6 +383,9 @@ namespace ILRuntime.Runtime.Enviorment
                 case InvocationTypes.Enum:
                     PushObject(val, false);
                     break;
+                case InvocationTypes.ValueType:
+                    PushValueType(ref val);
+                    break;
                 default:
                     PushObject(val);
                     break;
@@ -350,6 +404,8 @@ namespace ILRuntime.Runtime.Enviorment
                     return ReadFloat<T>();
                 case InvocationTypes.Double:
                     return ReadDouble<T>();
+                case InvocationTypes.ValueType:
+                    return ReadValueType<T>();
                 default:
                     return ReadObject<T>();
             }
@@ -449,6 +505,27 @@ namespace ILRuntime.Runtime.Enviorment
         {
             var esp = ILIntepreter.Add(ebp, index);
             return esp->Value == 1;
+        }
+
+        public T ReadValueType<T>()
+        {
+            CheckReturnValue();
+            Type t = typeof(T);
+            T res = default(T);
+            ValueTypeBinder binder;
+            if (domain.ValueTypeBinders.TryGetValue(t, out binder))
+            {
+                var binderT = binder as ValueTypeBinder<T>;
+                if (binderT != null)
+                {
+                    binderT.ParseValue(ref res, intp, esp, mStack);
+                }
+                else
+                    res = (T)t.CheckCLRTypes(StackObject.ToObject(esp, domain, mStack));
+            }
+            else
+                res = (T)t.CheckCLRTypes(StackObject.ToObject(esp, domain, mStack));
+            return res;
         }
 
         public T ReadObject<T>()

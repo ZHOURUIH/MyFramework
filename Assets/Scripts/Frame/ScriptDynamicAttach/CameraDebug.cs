@@ -1,18 +1,20 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using static StringUtility;
 
+// 摄像机调试信息
 public class CameraDebug : MonoBehaviour
 {
-	protected GameCamera mGameCamera;
-	public string CurLinkerName;
-	public string LinkedObjectName;
-	public GameObject LinkedObject;
-	public Vector3 Relative;
-	public Vector3 CurRelative;
-	public List<string> ActiveComponent = new List<string>();
+	protected GameCamera mGameCamera;			// 摄像机对象
+	public string CurLinkerName;				// 当前连接器名字
+	public string LinkedObjectName;				// 当前连接的物体名字
+	public GameObject LinkedObject;				// 当前连接的物体
+	public Vector3 Relative;					// 与物体的正常的相对距离
+	public Vector3 CurRelative;					// 与物体的当前的相对距离,因为可能会插值计算
+	public List<string> ActiveComponent = new List<string>();	// 激活的组件列表
 	public void Update()
 	{
-		if (!FrameBase.mGameFramework.mEnableScriptDebug)
+		if (FrameBase.mGameFramework == null || !FrameBase.mGameFramework.mEnableScriptDebug)
 		{
 			return;
 		}
@@ -41,21 +43,21 @@ public class CameraDebug : MonoBehaviour
 		}
 		else
 		{
-			CurLinkerName = StringUtility.EMPTY;
-			LinkedObjectName = StringUtility.EMPTY;
+			CurLinkerName = EMPTY;
+			LinkedObjectName = EMPTY;
 			LinkedObject = null;
 			Relative = Vector3.zero;
 			CurRelative = Vector3.zero;
 		}
 		ActiveComponent.Clear();
-		var allComponents = mGameCamera.getAllComponent().startForeach();
-		foreach (var item in allComponents)
+		foreach (var item in mGameCamera.getAllComponent().startForeach())
 		{
 			if (item.Value.isActive())
 			{
 				ActiveComponent.Add(item.Key.ToString());
 			}
 		}
+		mGameCamera.getAllComponent().endForeach();
 	}
 	public void setCamera(GameCamera camera)
 	{

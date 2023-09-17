@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using static MathUtility;
 
+// 沿指定点变化的组件基类,变化速度恒定
 public abstract class ComponentCurve : ComponentKeyFrameNormal
 {
 	protected List<KeyPoint> mKeyPointList;   // 移动开始时的位置

@@ -1,16 +1,23 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static FileUtility;
+using static UnityUtility;
+using static FrameUtility;
+using static StringUtility;
+using static FrameBase;
+using static CSharpUtility;
+using UObject = UnityEngine.Object;
 
 // 从Resources中加载资源
-public class ResourcesLoader : FrameBase
+public class ResourcesLoader : ClassObject
 {
-	protected Dictionary<string, Dictionary<string, ResourceLoadInfo>> mLoadedPath;
-	protected Dictionary<Object, ResourceLoadInfo> mLoadedObjects;
+	protected Dictionary<string, Dictionary<string, ResourceLoadInfo>> mLoadedPath;	// 所有已加载的文件夹
+	protected Dictionary<UObject, ResourceLoadInfo> mLoadedObjects;					// 所有的已加载的资源
 	public ResourcesLoader()
 	{
 		mLoadedPath = new Dictionary<string, Dictionary<string, ResourceLoadInfo>>();
-		mLoadedObjects = new Dictionary<Object, ResourceLoadInfo>();
+		mLoadedObjects = new Dictionary<UObject, ResourceLoadInfo>();
 	}
 	public void init(){}
 	public void destroy(){}
@@ -35,7 +42,7 @@ public class ResourcesLoader : FrameBase
 			}
 		}
 	}
-	public bool unloadResource<T>(ref T obj) where T : Object
+	public bool unloadResource<T>(ref T obj, bool showError) where T : UObject
 	{
 		if(obj == null)
 		{
@@ -44,7 +51,10 @@ public class ResourcesLoader : FrameBase
 		// 资源已经加载完
 		if(!mLoadedObjects.TryGetValue(obj, out ResourceLoadInfo info))
 		{
-			logWarning("无法卸载资源:" + obj.name + ", 可能未加载,或者已经卸载,或者该资源是子资源,或者正在异步加载");
+			if (showError)
+			{
+				logWarning("无法卸载资源:" + obj.name + ", 可能未加载,或者已经卸载,或者该资源是子资源,或者正在异步加载");
+			}
 			return false;
 		}
 		if (!(obj is GameObject))
@@ -52,7 +62,7 @@ public class ResourcesLoader : FrameBase
 			Resources.UnloadAsset(obj);
 		}
 		mLoadedPath[info.mPath].Remove(info.mResouceName);
-		UN_CLASS(info);
+		UN_CLASS(ref info);
 		mLoadedObjects.Remove(obj);
 		obj = null;
 		return true;
@@ -60,37 +70,38 @@ public class ResourcesLoader : FrameBase
 	// 卸载指定路径中的所有资源
 	public void unloadPath(string path)
 	{
-		LIST(out List<string> tempList);
-		tempList.AddRange(mLoadedPath.Keys);
-		int count = tempList.Count;
-		for(int i = 0; i < count; ++i)
+		using (new ListScope<string>(out var tempList))
 		{
-			string item0 = tempList[i];
-			if (!startWith(item0, path))
+			tempList.AddRange(mLoadedPath.Keys);
+			int count = tempList.Count;
+			for (int i = 0; i < count; ++i)
 			{
-				continue;
-			}
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-			log("unload path: " + item0);
-#endif
-			var list = mLoadedPath[item0];
-			foreach (var item in list)
-			{
-				ResourceLoadInfo info = item.Value;
-				if (info.mObject != null)
+				string item0 = tempList[i];
+				if (!startWith(item0, path))
 				{
-					mLoadedObjects.Remove(info.mObject);
-					if (!(info.mObject is GameObject))
-					{
-						Resources.UnloadAsset(info.mObject);
-					}
-					info.mObject = null;
+					continue;
 				}
-				UN_CLASS(info);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+				log("unload path: " + item0);
+#endif
+				var list = mLoadedPath[item0];
+				foreach (var item in list)
+				{
+					ResourceLoadInfo info = item.Value;
+					if (info.mObject != null)
+					{
+						mLoadedObjects.Remove(info.mObject);
+						if (!(info.mObject is GameObject))
+						{
+							Resources.UnloadAsset(info.mObject);
+						}
+						info.mObject = null;
+					}
+					UN_CLASS(ref info);
+				}
+				mLoadedPath.Remove(item0);
 			}
-			mLoadedPath.Remove(item0);
 		}
-		UN_LIST(tempList);
 	}
 	public bool isResourceLoaded(string name)
 	{
@@ -101,7 +112,7 @@ public class ResourcesLoader : FrameBase
 		}
 		return false;
 	}
-	public Object getResource(string name)
+	public UObject getResource(string name)
 	{
 		string path = getFilePath(name);
 		if (mLoadedPath.TryGetValue(path, out Dictionary<string, ResourceLoadInfo> resList) && 
@@ -112,8 +123,9 @@ public class ResourcesLoader : FrameBase
 		return null;
 	}
 	// 同步加载资源,name为Resources下的相对路径,不带后缀
-	public Object[] loadSubResource<T>(string name) where T : Object
+	public UObject[] loadSubResource<T>(string name, out UObject mainAsset) where T : UObject
 	{
+		mainAsset = null;
 		string path = getFilePath(name);
 		// 如果文件夹还未加载,则添加文件夹
 		if (!mLoadedPath.TryGetValue(path, out Dictionary<string, ResourceLoadInfo> resList))
@@ -127,10 +139,10 @@ public class ResourcesLoader : FrameBase
 			load<T>(path, name);
 			// 加载后需要重新获取一次
 			info = resList[name];
-			return info.mSubObjects;
 		}
 		if (info.mState == LOAD_STATE.LOADED)
 		{
+			mainAsset = info.mObject;
 			return info.mSubObjects;
 		}
 		else if (info.mState == LOAD_STATE.LOADING)
@@ -144,7 +156,7 @@ public class ResourcesLoader : FrameBase
 		return null;
 	}
 	// 同步加载资源,name为Resources下的相对路径,不带后缀
-	public T loadResource<T>(string name) where T : Object
+	public T loadResource<T>(string name) where T : UObject
 	{
 		string path = getFilePath(name);
 		// 如果文件夹还未加载,则添加文件夹
@@ -176,7 +188,7 @@ public class ResourcesLoader : FrameBase
 		return null;
 	}
 	// 异步加载资源,name为Resources下的相对路径,不带后缀
-	public bool loadResourcesAsync<T>(string name, AssetLoadDoneCallback doneCallback, object userData = null) where T : Object
+	public bool loadResourcesAsync<T>(string name, AssetLoadDoneCallback doneCallback, object userData = null) where T : UObject
 	{
 		string path = getFilePath(name);
 		// 如果文件夹还未加载,则添加文件夹
@@ -213,7 +225,7 @@ public class ResourcesLoader : FrameBase
 		return true;
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected void load<T>(string path, string name) where T : Object
+	protected void load<T>(string path, string name) where T : UObject
 	{
 		var resList = mLoadedPath[path];
 		if (resList.ContainsKey(name))
@@ -233,7 +245,7 @@ public class ResourcesLoader : FrameBase
 			mLoadedObjects.Add(info.mObject, info);
 		}
 	}
-	protected IEnumerator loadResourceCoroutine<T>(ResourceLoadInfo info) where T : Object
+	protected IEnumerator loadResourceCoroutine<T>(ResourceLoadInfo info) where T : UObject
 	{
 		ResourceRequest request = Resources.LoadAsync<T>(info.mResouceName);
 		yield return request;

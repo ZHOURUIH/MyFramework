@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using static CSharpUtility;
 
-public class Command : FrameBase
+// 命令基类
+public class Command : ClassObject
 {
 	protected List<CommandCallback> mStartCallback; // 命令开始执行时的回调函数
 	protected List<CommandCallback> mEndCallback;	// 命令执行完毕时的回调函数
 	protected CommandReceiver mReceiver;			// 命令接受者
 	protected BOOL mResult;							// 命令的执行结果,只用于部分需要知道执行结果的命令使用
 	protected float mDelayTime;						// 命令当前延迟时间
-	protected uint mCmdID;							// 命令ID,每一个命令对象拥有一个唯一ID
+	protected int mCmdID;							// 命令ID,每一个命令对象拥有一个唯一ID
 	protected bool mIgnoreTimeScale;				// 命令的延迟时间是否不受时间缩放影响
 	protected bool mThreadCommand;					// 是否是由多线程对象池创建的命令
 	protected bool mDelayCommand;					// 是否是延迟执行的命令
@@ -39,15 +41,16 @@ public class Command : FrameBase
 	}
 	// 命令执行
 	public virtual void execute() { }
+	public virtual void onInterrupted() { }
 	// 调试信息，由CommandSystem调用
-	public virtual void debugInfo(MyStringBuilder builder) { builder.Append(Typeof(this).ToString()); }
+	public virtual void debugInfo(MyStringBuilder builder) { builder.append(Typeof(this).ToString()); }
 	public LOG_LEVEL getCmdLogLevel() { return mCmdLogLevel; }
 	public bool isDelayCommand() { return mDelayCommand; }
 	public CommandReceiver getReceiver() { return mReceiver; }
 	public EXECUTE_STATE getState() { return mCmdState; }
 	public float getDelayTime() { return mDelayTime; }
 	public bool isIgnoreTimeScale() { return mIgnoreTimeScale; }
-	public uint getID() { return mCmdID; }
+	public int getID() { return mCmdID; }
 	public bool isThreadCommand() { return mThreadCommand; }
 	public void setCmdLogLevel(LOG_LEVEL level) { mCmdLogLevel = level; }
 	public void setDelayCommand(bool delay) { mDelayCommand = delay; }

@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEngine;
+using static MathUtility;
 
+// 封装Unity的Camera
 public class GameCamera : MovableObject
 {
 	protected CameraLinker mCurLinker;		// 只是记录当前连接器方便外部获取
@@ -100,11 +101,11 @@ public class GameCamera : MovableObject
 	protected override void initComponents()
 	{
 		base.initComponents();
-		addComponent(typeof(CameraLinkerAcceleration));
-		addComponent(typeof(CameraLinkerThirdPerson));
-		addComponent(typeof(CameraLinkerFree));
-		addComponent(typeof(CameraLinkerSmoothFollow));
-		addComponent(typeof(CameraLinkerSmoothRotate));
-		addComponent(typeof(CameraLinkerFirstPerson));
+		addInitComponent<CameraLinkerAcceleration>();
+		addInitComponent<CameraLinkerThirdPerson>();
+		addInitComponent<CameraLinkerFree>();
+		addInitComponent<CameraLinkerSmoothFollow>();
+		addInitComponent<CameraLinkerSmoothRotate>();
+		addInitComponent<CameraLinkerFirstPerson>();
 	}
 }

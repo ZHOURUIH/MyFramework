@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
+using static UnityUtility;
 
+// 用于管理所有跟Java交互的对象
 public class AndroidPluginManager : FrameSystem
 {
-	protected static AndroidJavaClass mUnityPlayer;
-	protected static AndroidJavaObject mMainActivity;
+	protected static AndroidJavaClass mUnityPlayer;		// 固定的UnityPlayer的Java实例
+	protected static AndroidJavaObject mMainActivity;	// 固定的MainActivity的Java实例
 	public AndroidPluginManager()
 	{
 #if !UNITY_EDITOR && UNITY_ANDROID
@@ -13,10 +15,10 @@ public class AndroidPluginManager : FrameSystem
 	}
 	public static int getKeyboardHeight()
 	{
-		AndroidJavaObject View = mMainActivity.Get<AndroidJavaObject>("mUnityPlayer").Call<AndroidJavaObject>("getView");
-		AndroidJavaObject Rct = new AndroidJavaObject("android.graphics.Rect");
-		View.Call("getWindowVisibleDisplayFrame", Rct);
-		return (int)getScreenSize().y - Rct.Call<int>("height");
+		var view = mMainActivity.Get<AndroidJavaObject>("mUnityPlayer").Call<AndroidJavaObject>("getView");
+		var rect = new AndroidJavaObject("android.graphics.Rect");
+		view.Call("getWindowVisibleDisplayFrame", rect);
+		return (int)getScreenSize().y - rect.Call<int>("height");
 	}
 	public override void destroy()
 	{

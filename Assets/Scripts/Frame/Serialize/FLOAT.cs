@@ -1,30 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 
-public class FLOAT : OBJECT
+// 自定义的对float的封装,提供类似于float指针的功能,可用于序列化
+public class FLOAT : SerializableBit
 {
-	protected const int TYPE_SIZE = sizeof(float);
-	public float mValue;
-	public FLOAT()
+	public float mValue;			// 值
+	public override void resetProperty() 
 	{
-		mType = typeof(float);
-		mSize = TYPE_SIZE;
+		base.resetProperty();
+		mValue = 0.0f; 
 	}
-	public FLOAT(float value)
-	{
-		mValue = value;
-		mType = typeof(float);
-		mSize = TYPE_SIZE;
-	}
-	public override void zero() { mValue = 0.0f; }
 	public void set(float value) { mValue = value; }
-	public override bool readFromBuffer(byte[] buffer, ref int index)
+	public override bool read(SerializerBitRead reader)
 	{
-		mValue = readFloat(buffer, ref index, out bool success);
-		return success;
+		return reader.read(out mValue);
 	}
-	public override bool writeToBuffer(byte[] buffer, ref int index)
+	public override void write(SerializerBitWrite writer)
 	{
-		return writeFloat(buffer, ref index, mValue);
+		writer.write(mValue);
 	}
 }

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System;
 
+// 用于插值物体旋转的组件
 public class COMTransformableLerpRotation : ComponentLerpRotation
 {
 	//------------------------------------------------------------------------------------------------------------------------------

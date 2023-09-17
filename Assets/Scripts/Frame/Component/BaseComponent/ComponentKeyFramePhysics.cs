@@ -1,5 +1,6 @@
 ﻿using System;
 
+// 在物理更新中执行
 public class ComponentKeyFramePhysics : ComponentKeyFrame
 {
 	public override void fixedUpdate(float elapsedTime)
@@ -32,7 +33,7 @@ public class ComponentKeyFramePhysics : ComponentKeyFrame
 					mCurrentTime = 0.0f;
 				}
 			}
-			mCurValue = mKeyFrame.Evaluate(mCurrentTime / mOnceLength);
+			mCurValue = mKeyFrame.evaluate(mCurrentTime / mOnceLength);
 			applyTrembling(mCurValue);
 			afterApplyTrembling(done);
 		}

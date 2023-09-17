@@ -1,5 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
+using static FrameDefine;
 
 public class AssetsImport : AssetPostprocessor
 {
@@ -8,7 +9,7 @@ public class AssetsImport : AssetPostprocessor
 	{
 		foreach (string str in importedAsset)
 		{
-			if (str == FrameDefine.P_ASSET_BUNDLE_PATH + FrameDefine.ILR_FILE)
+			if (str == P_ASSET_BUNDLE_PATH + ILR_FILE)
 			{
 				Debug.Log("热更dll已经更新");
 				break;

@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
 using System;
+using static MathUtility;
 
+// 物体的平移组件,用于实现物体的平移功能
 public class COMTransformableMove : ComponentKeyFrameNormal, IComponentModifyPosition
 {
 	protected Vector3 mStart;   // 移动开始时的位置
-	protected Vector3 mTarget;
+	protected Vector3 mTarget;	// 移动的目标位置
 	public override void resetProperty()
 	{
 		base.resetProperty();

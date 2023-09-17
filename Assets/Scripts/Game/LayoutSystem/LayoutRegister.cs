@@ -1,15 +1,14 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System;
+using static FrameBase;
+using static GameBase;
 
 public class LayoutRegister : LayoutRegisterBase
 {
 	public static void registeAllLayout()
 	{
-		registeLayout<ScriptDemoStart>(LAYOUT.DEMO_START, "UIDemoStart");
-		registeLayout<ScriptDemo>(LAYOUT.DEMO, "UIDemo");
-		GameLayout.addScriptCallback(onScriptChanged);
+		registeLayout<ScriptDemoStart>(LAYOUT_GAME.DEMO_START, "UIDemoStart");
+		registeLayout<ScriptDemo>(LAYOUT_GAME.DEMO, "UIDemo");
+		mLayoutManager.addScriptCallback(onScriptChanged);
 	}
 	public static void onScriptChanged(LayoutScript script, bool created = true)
 	{

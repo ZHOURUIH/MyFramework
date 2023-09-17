@@ -1,30 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 
-public class BOOL : OBJECT
+// 自定义的对bool的封装,提供类似于bool指针的功能,可用于序列化
+public class BOOL : SerializableBit
 {
-	protected const int TYPE_SIZE = sizeof(bool);
-	public bool mValue;
-	public BOOL()
+	public bool mValue;		// 值
+	public override void resetProperty() 
 	{
-		mType = typeof(bool);
-		mSize = TYPE_SIZE;
+		base.resetProperty();
+		mValue = false; 
 	}
-	public BOOL(bool value)
-	{
-		mValue = value;
-		mType = typeof(bool);
-		mSize = TYPE_SIZE;
-	}
-	public override void zero() { mValue = false; }
 	public void set(bool value) { mValue = value; }
-	public override bool readFromBuffer(byte[] buffer, ref int index)
+	public override bool read(SerializerBitRead reader)
 	{
-		mValue = readBool(buffer, ref index, out bool success);
-		return success;
+		return reader.read(out mValue);
 	}
-	public override bool writeToBuffer(byte[] buffer, ref int index)
+	public override void write(SerializerBitWrite writer)
 	{
-		return writeBool(buffer, ref index, mValue);
+		writer.write(mValue);
 	}
 }

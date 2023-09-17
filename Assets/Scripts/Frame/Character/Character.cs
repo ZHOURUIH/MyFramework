@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 using System;
+using static FrameBase;
+using static FrameUtility;
 
+// 所有角色的基类,提供基础的角色行为
 public class Character : MovableObject
 {
 	protected COMCharacterStateMachine mStateMachine;			// 状态机组件
-	protected COMCharacterDecisionTree mDecisionTree;			// 决策树组件
 	protected COMCharacterAnimation mCOMAnimation;				// 动作逻辑处理的组件
 	protected COMCharacterAvatar mAvatar;						// 模型组件
 	protected CharacterData mBaseData;							// 玩家数据
@@ -13,6 +14,8 @@ public class Character : MovableObject
 	protected long mGUID;										// 角色的唯一ID
 	protected bool mIsMyself;									// 是否为主角实例,为了提高效率,不使用虚函数判断
 	protected bool mCharacterSelfObject;						// 当前的mObject是否为当前类中所创建的节点
+	public Character()
+	{}
 	public override void init()
 	{
 		mBaseData = createCharacterData();
@@ -27,7 +30,6 @@ public class Character : MovableObject
 		mBaseData = null;
 		mAvatar = null;
 		mStateMachine = null;
-		mDecisionTree = null;
 		mGUID = 0;
 		mCharacterType = null;
 		mCharacterSelfObject = false;
@@ -55,16 +57,16 @@ public class Character : MovableObject
 	// 异步加载模型
 	public void initModelAsync(string modelPath, OnCharacterLoaded callback = null, object userData = null, string animationControllerPath = null)
 	{
-		mAvatar.loadModelAsync(modelPath, callback, userData, animationControllerPath);
+		mAvatar?.loadModelAsync(modelPath, callback, userData, animationControllerPath);
 	}
 	// 同步加载模型
 	public void initModel(string modelPath, string animationControllerPath = null)
 	{
-		mAvatar.loadModel(modelPath, animationControllerPath);
+		mAvatar?.loadModel(modelPath, animationControllerPath);
 	}
 	public virtual void destroyModel()
 	{
-		mAvatar.destroyModel();
+		mAvatar?.destroyModel();
 		// 如果销毁模型后角色节点为空了,则需要创建一个新的角色节点
 		if (mObject == null)
 		{
@@ -97,18 +99,24 @@ public class Character : MovableObject
 	public Type getType()									{ return mCharacterType; }
 	public COMCharacterAvatar getAvatar()					{ return mAvatar; }
 	public COMCharacterAnimation getCOMAnimation()			{ return mCOMAnimation; }
-	public Animation getAnimation()							{ return mAvatar.getAnimation(); }
-	public Animator getAnimator()							{ return mAvatar.getAnimator(); }
-	public Rigidbody getRigidBody()							{ return mAvatar.getRigidBody(); }
+	public Animation getAnimation()							{ return mAvatar?.getAnimation(); }
+	public Animator getAnimator()							{ return mAvatar?.getAnimator(); }
+	public Rigidbody getRigidBody()							{ return mAvatar?.getRigidBody(); }
 	public long getGUID()									{ return mGUID; }
-	public COMCharacterDecisionTree getDecisionTree()		{ return mDecisionTree; }
-	public COMCharacterStateMachine getStateMachine()		{ return mStateMachine; }
-	public CharacterState getFirstGroupState(Type group)	{ return mStateMachine.getFirstGroupState(group); }
-	public CharacterState getFirstState(Type type)			{ return mStateMachine.getFirstState(type); }
-	public CharacterState getState(uint instanceID)			{ return mStateMachine.getState(instanceID); }
-	public SafeDeepDictionary<Type, SafeDeepList<CharacterState>> getStateList() { return mStateMachine.getStateList(); }
-	public bool hasState(Type state)						{ return mStateMachine.hasState(state); }
-	public bool hasStateGroup(Type group)					{ return mStateMachine.hasStateGroup(group); }
+	public COMCharacterStateMachine getStateMachine()
+	{
+		if (mStateMachine == null)
+		{
+			addComponent(out mStateMachine, true);
+		}
+		return mStateMachine;
+	}
+	public CharacterState getFirstGroupState(Type group)	{ return getStateMachine()?.getFirstGroupState(group); }
+	public CharacterState getFirstState(Type type)			{ return getStateMachine()?.getFirstState(type); }
+	public CharacterState getState(long instanceID)			{ return getStateMachine()?.getState(instanceID); }
+	public SafeDictionary<Type, SafeList<CharacterState>> getStateList() { return getStateMachine()?.getStateList(); }
+	public bool hasState(Type state)						{ return mStateMachine != null && mStateMachine.hasState(state); }
+	public bool hasStateGroup(Type group)					{ return mStateMachine != null && mStateMachine.hasStateGroup(group); }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected virtual CharacterData createCharacterData()
 	{
@@ -118,9 +126,8 @@ public class Character : MovableObject
 	protected override void initComponents()
 	{
 		base.initComponents();
-		addComponent(out mAvatar, true);
-		addComponent(out mStateMachine, true);
-		addComponent(out mDecisionTree);
-		addComponent(out mCOMAnimation, true);
+		addInitComponent(out mAvatar, true);
+		addInitComponent(out mStateMachine, true);
+		addInitComponent(out mCOMAnimation, true);
 	}
 }

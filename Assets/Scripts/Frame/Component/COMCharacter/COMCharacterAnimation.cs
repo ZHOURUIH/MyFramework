@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
+using static FrameUtility;
 
 // 处理动作相关逻辑
 public class COMCharacterAnimation : GameComponent
 {
-	protected List<AnimationLayer> mLayerList;
+	protected List<AnimationLayer> mLayerList;	// 动画层列表
 	protected Character mCharacter;				// 所属角色
 	public COMCharacterAnimation()
 	{
@@ -29,12 +29,7 @@ public class COMCharacterAnimation : GameComponent
 	}
 	public void clear()
 	{
-		int count = mLayerList.Count;
-		for(int i = 0; i < count; ++i)
-		{
-			UN_CLASS(mLayerList[i]);
-		}
-		mLayerList.Clear();
+		UN_CLASS_LIST(mLayerList);
 	}
 	public override void update(float elapsedTime)
 	{

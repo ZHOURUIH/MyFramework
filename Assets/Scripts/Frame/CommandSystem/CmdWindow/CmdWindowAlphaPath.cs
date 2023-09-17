@@ -1,15 +1,16 @@
 ﻿using System.Collections.Generic;
+using static UnityUtility;
 
+// 以指定的路径渐变窗口透明度
 public class CmdWindowAlphaPath : Command
 {
-	public Dictionary<float, float> mValueKeyFrame;
-	public KeyFrameCallback mDoingCallBack;
-	public KeyFrameCallback mDoneCallBack;
-	public float mValueOffset;			// 透明偏移,计算出的值会再加上这个偏移作为最终透明
-	public float mOffset;
-	public float mSpeed;
-	public bool mFullOnce;
-	public bool mLoop;
+	public Dictionary<float, float> mValueKeyFrame;	// 透明度和时间的关键帧列表
+	public KeyFrameCallback mDoingCallBack;			// 变化中回调
+	public KeyFrameCallback mDoneCallBack;			// 变化完成时回调
+	public float mValueOffset;						// 透明偏移,计算出的值会再加上这个偏移作为最终透明
+	public float mOffset;							// 起始时间偏移
+	public float mSpeed;							// 所使用的关键帧ID
+	public bool mLoop;								// 是否循环
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -20,7 +21,6 @@ public class CmdWindowAlphaPath : Command
 		mSpeed = 1.0f;
 		mValueOffset = 1.0f;
 		mLoop = false;
-		mFullOnce = false;
 	}
 	public override void execute()
 	{
@@ -38,7 +38,7 @@ public class CmdWindowAlphaPath : Command
 		com.setValueKeyFrame(mValueKeyFrame);
 		com.setSpeed(mSpeed);
 		com.setValueOffset(mValueOffset);
-		com.play(mLoop, mOffset, mFullOnce);
+		com.play(mLoop, mOffset);
 		if (com.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
@@ -47,8 +47,7 @@ public class CmdWindowAlphaPath : Command
 	}
 	public override void debugInfo(MyStringBuilder builder)
 	{
-		builder.Append(", mOffset:", mOffset).
-				Append(", mLoop:", mLoop).
-				Append(", mFullOnce:", mFullOnce);
+		builder.append(", mOffset:", mOffset).
+				append(", mLoop:", mLoop);
 	}
 }

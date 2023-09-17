@@ -79,7 +79,7 @@ namespace RenderHeads.Media.AVProVideo
 		private static System.IntPtr _nativeFunction_ExtractFrame;
 #endif
 #if AVPROVIDEO_FIXREGRESSION_TEXTUREQUALITY_UNITY542
-		private int _textureQuality = QualitySettings.masterTextureLimit;
+		private int _textureQuality = QualitySettings.globalTextureMipmapLimit;
 #endif
 
 		public static bool InitialisePlatform()
@@ -862,7 +862,7 @@ namespace RenderHeads.Media.AVProVideo
 				// The code below gets around this issue.  A bug report has been sent to Unity.  So far we have tested and replicated the
 				// "bug" in Windows only, but a user has reported it in Android too.  
 				// Texture.GetNativeTexturePtr() must sync with the rendering thread, so this is a large performance hit!
-				if(_textureQuality != QualitySettings.masterTextureLimit)
+				if(_textureQuality != QualitySettings.globalTextureMipmapLimit)
 				{
 					if (_texture != null && _nativeTexture != System.IntPtr.Zero && _texture.GetNativeTexturePtr() == System.IntPtr.Zero)
 					{
@@ -870,7 +870,7 @@ namespace RenderHeads.Media.AVProVideo
 						_texture.UpdateExternalTexture(_nativeTexture);
 					}
 
-					_textureQuality = QualitySettings.masterTextureLimit;
+					_textureQuality = QualitySettings.globalTextureMipmapLimit;
 				}
 				
 #endif
@@ -994,7 +994,7 @@ namespace RenderHeads.Media.AVProVideo
 			{
 				_texture.UpdateExternalTexture(_nativeTexture);
 			}
-			_textureQuality = QualitySettings.masterTextureLimit;
+			_textureQuality = QualitySettings.globalTextureMipmapLimit;
 		}
 #endif
 

@@ -11,19 +11,23 @@ using ILRuntime.Runtime.Intepreter;
 using ILRuntime.Runtime.Stack;
 using ILRuntime.Reflection;
 using System.Collections;
-
+#if DEBUG && !DISABLE_ILRUNTIME_DEBUG
+using AutoList = System.Collections.Generic.List<object>;
+#else
+using AutoList = ILRuntime.Other.UncheckedList<object>;
+#endif
 namespace ILRuntime.Runtime.Enviorment
 {
     unsafe static class CLRRedirections
     {
-        public static StackObject* GetCurrentStackTrace(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        public static StackObject* GetCurrentStackTrace(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
         {
             StackObject* ret = esp - 1 - 1;
             intp.Free(esp - 1);
 
             return ILIntepreter.PushObject(ret, mStack, intp.AppDomain.DebugService.GetStackTrace(intp));
         }
-        public static StackObject* CreateInstance(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        public static StackObject* CreateInstance(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
         {
             IType[] genericArguments = method.GenericArguments;
             if (genericArguments != null && genericArguments.Length == 1)
@@ -31,10 +35,24 @@ namespace ILRuntime.Runtime.Enviorment
                 var t = genericArguments[0];
                 if (t is ILType)
                 {
-                    return ILIntepreter.PushObject(esp, mStack, ((ILType)t).Instantiate());
+                    if (t.IsValueType && !t.IsEnum)
+                    {
+                        intp.AllocValueType(esp++, t);
+                        return esp;
+                    }
+                    else
+                        return ILIntepreter.PushObject(esp, mStack, ((ILType)t).Instantiate());
                 }
                 else
-                    return ILIntepreter.PushObject(esp, mStack, ((CLRType)t).CreateDefaultInstance());
+                {
+                    if (intp.AppDomain.ValueTypeBinders.ContainsKey(t.TypeForCLR))
+                    {
+                        intp.AllocValueType(esp++, t);
+                        return esp;
+                    }
+                    else
+                        return ILIntepreter.PushObject(esp, mStack, ((CLRType)t).CreateDefaultInstance());
+                }
             }
             else
                 throw new EntryPointNotFoundException();
@@ -55,7 +73,7 @@ namespace ILRuntime.Runtime.Enviorment
                 throw new EntryPointNotFoundException();
         }*/
 
-        public static StackObject* CreateInstance2(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        public static StackObject* CreateInstance2(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
         {
             var p = esp - 1;
             var t = mStack[p->Value] as Type;
@@ -89,7 +107,7 @@ namespace ILRuntime.Runtime.Enviorment
                 return null;
         }*/
 
-        public static StackObject* CreateInstance3(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        public static StackObject* CreateInstance3(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
         {
             var p = esp - 1 - 1;
             var t = mStack[p->Value] as Type;
@@ -117,7 +135,7 @@ namespace ILRuntime.Runtime.Enviorment
                 return ILIntepreter.PushNull(p);
         }
 
-        public static StackObject* GetType(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        public static StackObject* GetType(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
         {
             var p = esp - 1;
             AppDomain dommain = intp.AppDomain;
@@ -130,7 +148,7 @@ namespace ILRuntime.Runtime.Enviorment
                 return ILIntepreter.PushNull(p);
         }
 
-        public static StackObject* TypeEquals(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        public static StackObject* TypeEquals(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
         {
             var ret = ILIntepreter.Minus(esp, 2);
             var p = esp - 1;
@@ -170,7 +188,48 @@ namespace ILRuntime.Runtime.Enviorment
                 return null;
         }*/
 
-        public unsafe static StackObject* InitializeArray(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        public static StackObject* IsAssignableFrom(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
+        {
+            var ret = ILIntepreter.Minus(esp, 2);
+            var p = esp - 1;
+            AppDomain dommain = intp.AppDomain;
+            var other = StackObject.ToObject(p, dommain, mStack);
+            intp.Free(p);
+            p = ILIntepreter.Minus(esp, 2);
+            var instance = StackObject.ToObject(p, dommain, mStack);
+            intp.Free(p);
+            if (instance is ILRuntimeType)
+            {
+                if (other is ILRuntimeType)
+                {
+                    if (((ILRuntimeType)instance).IsAssignableFrom((ILRuntimeType)other))
+                        return ILIntepreter.PushOne(ret);
+                    else
+                        return ILIntepreter.PushZero(ret);
+                }
+                else
+                    return ILIntepreter.PushZero(ret);
+            }
+            else
+            {
+                if (instance is ILRuntimeWrapperType)
+                {
+                    if (((ILRuntimeWrapperType)instance).IsAssignableFrom((Type)other))
+                        return ILIntepreter.PushOne(ret);
+                    else
+                        return ILIntepreter.PushZero(ret);
+                }
+                else
+                {
+                    if (((Type)instance).IsAssignableFrom((Type)other))
+                        return ILIntepreter.PushOne(ret);
+                    else
+                        return ILIntepreter.PushZero(ret);
+                }
+            }
+        }
+
+        public unsafe static StackObject* InitializeArray(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
         {
             var ret = esp - 1 - 1;
             AppDomain domain = intp.AppDomain;
@@ -444,7 +503,7 @@ namespace ILRuntime.Runtime.Enviorment
             return null;
         }*/
 
-        public unsafe static StackObject* DelegateCombine(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        public unsafe static StackObject* DelegateCombine(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
         {
             //Don't ask me why not esp -2, unity won't return the right result
             var ret = esp - 1 - 1;
@@ -551,7 +610,7 @@ namespace ILRuntime.Runtime.Enviorment
                 return dele2;
         }*/
 
-        public unsafe static StackObject* DelegateRemove(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        public unsafe static StackObject* DelegateRemove(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
         {
             //Don't ask me why not esp -2, unity won't return the right result
             var ret = esp - 1 - 1;
@@ -636,8 +695,29 @@ namespace ILRuntime.Runtime.Enviorment
             else
                 return null;
         }*/
+        public unsafe static StackObject* DelegateGetTarget(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
+        {
+            var ret = esp - 1;
+            AppDomain domain = intp.AppDomain;
+            var param = esp - 1;
+            object dele = StackObject.ToObject(param, domain, mStack);
+            intp.Free(param);
+            if (dele != null)
+            {
+                if (dele is IDelegateAdapter)
+                {
+                    return ILIntepreter.PushObject(ret, mStack, ((IDelegateAdapter)dele).Instance);
+                }
+                else
+                {
+                    return ILIntepreter.PushObject(ret, mStack, ((Delegate)dele).Target);
+                }
+            }
+            else
+                throw new NullReferenceException();
+        }
 
-        public unsafe static StackObject* DelegateEqulity(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        public unsafe static StackObject* DelegateEqulity(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
         {
             //Don't ask me why not esp -2, unity won't return the right result
             var ret = esp - 1 - 1;
@@ -722,7 +802,7 @@ namespace ILRuntime.Runtime.Enviorment
                 return dele2 == null;
         }*/
 
-        public unsafe static StackObject* DelegateInequlity(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        public unsafe static StackObject* DelegateInequlity(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
         {
             //Don't ask me why not esp -2, unity won't return the right result
             var ret = esp - 1 - 1;
@@ -802,7 +882,7 @@ namespace ILRuntime.Runtime.Enviorment
                 return dele2 != null;
         }*/
 
-        public static StackObject* GetTypeFromHandle(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        public static StackObject* GetTypeFromHandle(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
         {
             //Nothing to do
             return esp;
@@ -813,7 +893,7 @@ namespace ILRuntime.Runtime.Enviorment
             return param[0];
         }*/
 
-        public unsafe static StackObject* MethodInfoInvoke(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        public unsafe static StackObject* MethodInfoInvoke(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
         {
             AppDomain domain = intp.AppDomain;
             //Don't ask me why not esp - 3, unity won't return the right result
@@ -919,7 +999,7 @@ namespace ILRuntime.Runtime.Enviorment
                 return ((MethodInfo)instance).Invoke(obj, (object[])p);
         }*/
 
-        public unsafe static StackObject* ObjectGetType(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        public unsafe static StackObject* ObjectGetType(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
         {
             AppDomain domain = intp.AppDomain;
             var ret = esp - 1;
@@ -946,7 +1026,7 @@ namespace ILRuntime.Runtime.Enviorment
             else
                 return type;
         }*/
-        public static StackObject* EnumParse(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        public static StackObject* EnumParse(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
         {
             var ret = esp - 1 - 1;
             AppDomain domain = intp.AppDomain;
@@ -1007,7 +1087,7 @@ namespace ILRuntime.Runtime.Enviorment
                 return ILIntepreter.PushObject(ret, mStack, Enum.Parse(t, name), true);
         }
 
-        public static StackObject* EnumGetValues(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        public static StackObject* EnumGetValues(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
         {
             var ret = esp - 1;
             AppDomain domain = intp.AppDomain;
@@ -1065,7 +1145,7 @@ namespace ILRuntime.Runtime.Enviorment
                 return ILIntepreter.PushObject(ret, mStack, Enum.GetValues(t), true);
         }
 
-        public static StackObject* EnumGetNames(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        public static StackObject* EnumGetNames(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
         {
             var ret = esp - 1;
             AppDomain domain = intp.AppDomain;
@@ -1100,7 +1180,7 @@ namespace ILRuntime.Runtime.Enviorment
                 return ILIntepreter.PushObject(ret, mStack, Enum.GetNames(t), true);
         }
 
-        public static StackObject* EnumGetName(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        public static StackObject* EnumGetName(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
         {
             var ret = esp - 1 - 1;
             AppDomain domain = intp.AppDomain;
@@ -1145,7 +1225,7 @@ namespace ILRuntime.Runtime.Enviorment
                 return ILIntepreter.PushObject(ret, mStack, Enum.GetName(t, val), true);
         }
 
-        public static StackObject* EnumToObject(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        public static StackObject* EnumToObject(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
         {
             var ret = esp - 1 - 1;
             AppDomain domain = intp.AppDomain;
@@ -1180,7 +1260,7 @@ namespace ILRuntime.Runtime.Enviorment
                 return ILIntepreter.PushObject(ret, mStack, Enum.GetName(t, val), true);
         }
 #if NET_4_6 || NET_STANDARD_2_0
-        public static StackObject* EnumHasFlag(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        public static StackObject* EnumHasFlag(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
         {
             var ret = esp - 1 - 1;
             AppDomain domain = intp.AppDomain;
@@ -1194,7 +1274,7 @@ namespace ILRuntime.Runtime.Enviorment
             intp.Free(p);
 
             bool res = false;
-            if(ins is ILEnumTypeInstance)
+            if (ins is ILEnumTypeInstance)
             {
                 ILEnumTypeInstance enumIns = (ILEnumTypeInstance)ins;
                 int num = enumIns.Fields[0].Value;
@@ -1211,7 +1291,7 @@ namespace ILRuntime.Runtime.Enviorment
                 return ILIntepreter.PushZero(ret);
         }
 
-        public static StackObject* EnumCompareTo(ILIntepreter intp, StackObject* esp, IList<object> mStack, CLRMethod method, bool isNewObj)
+        public static StackObject* EnumCompareTo(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
         {
             var ret = esp - 1 - 1;
             AppDomain domain = intp.AppDomain;
@@ -1242,5 +1322,264 @@ namespace ILRuntime.Runtime.Enviorment
             return ret + 1;
         }
 #endif
+
+        public static StackObject* DelegateCreateDelegate(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
+        {
+            var ret = esp - 2;
+            AppDomain domain = intp.AppDomain;
+
+            var p = esp - 1;
+            MethodInfo mi = (MethodInfo)StackObject.ToObject(p, domain, mStack);
+            intp.Free(p);
+
+            p = esp - 1 - 1;
+            Type t = (Type)StackObject.ToObject(p, domain, mStack);
+            intp.Free(p);
+
+            if (t is ILRuntimeType)
+            {
+                ILType it = ((ILRuntimeType)t).ILType;
+                if (it.IsDelegate)
+                {
+                    var m = it.GetMethod("Invoke") as ILMethod;
+                    object ins = null;
+                    if (mi is ILRuntimeMethodInfo)
+                    {
+                        ILRuntimeMethodInfo imi = (ILRuntimeMethodInfo)mi;
+                        var ilMethod = imi.ILMethod;
+                        if (ilMethod.DelegateAdapter == null)
+                        {
+                            ilMethod.DelegateAdapter = domain.DelegateManager.FindDelegateAdapter(null, ilMethod, m);
+                        }
+                        ins = ilMethod.DelegateAdapter;
+                    }
+                    else
+                    {
+                        throw new NotSupportedException();
+                    }
+                    return ILIntepreter.PushObject(ret, mStack, ins, true);
+                }
+                else
+                    throw new NotSupportedException(string.Format("{0} is not Delegate", t.FullName));
+            }
+            else if (t is ILRuntimeWrapperType)
+            {
+                ILRuntimeWrapperType iwt = (ILRuntimeWrapperType)t;
+                object ins = null;
+                if (mi is ILRuntimeMethodInfo)
+                {
+                    ILRuntimeMethodInfo imi = (ILRuntimeMethodInfo)mi;
+
+                    ins = domain.DelegateManager.FindDelegateAdapter(iwt.CLRType, null, imi.ILMethod);
+                }
+                else
+                {
+                    ins = Delegate.CreateDelegate(iwt.RealType, mi);
+                }
+                return ILIntepreter.PushObject(ret, mStack, ins, true);
+            }
+            else
+                return ILIntepreter.PushObject(ret, mStack, Delegate.CreateDelegate(t, mi), true);
+        }
+
+        public static StackObject* DelegateCreateDelegate2(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
+        {
+            var ret = esp - 3;
+            AppDomain domain = intp.AppDomain;
+
+            var p = esp - 1;
+            string name = (string)StackObject.ToObject(p, domain, mStack);
+            intp.Free(p);
+
+            p = esp - 2;
+            object obj = (object)StackObject.ToObject(p, domain, mStack);
+            intp.Free(p);
+
+            p = esp - 3;
+            Type t = (Type)StackObject.ToObject(p, domain, mStack);
+            intp.Free(p);
+
+            if (obj == null)
+                throw new ArgumentNullException("Argument target cannot be null");
+
+            if (t is ILRuntimeType)
+            {
+                ILType it = ((ILRuntimeType)t).ILType;
+                if (it.IsDelegate)
+                {
+                    var m = it.GetMethod("Invoke") as ILMethod;
+                    if (obj is ILTypeInstance)
+                    {
+                        ILTypeInstance ii = (ILTypeInstance)obj;
+                        var ilMethod = ii.Type.GetMethod(name) as ILMethod;
+                        if (ilMethod == null)
+                            throw new ArgumentException(string.Format("Cannot find method \"{0}\" in type {1}", name, it.FullName));
+                        if (ilMethod.DelegateAdapter == null)
+                        {
+                            ilMethod.DelegateAdapter = domain.DelegateManager.FindDelegateAdapter(ii, ilMethod, m);
+                        }
+                        object ins = ilMethod.DelegateAdapter;
+                        return ILIntepreter.PushObject(ret, mStack, ins, true);
+                    }
+                    else
+                        throw new NotSupportedException();
+
+                }
+                else
+                    throw new NotSupportedException(string.Format("{0} is not Delegate", t.FullName));
+            }
+            else if (t is ILRuntimeWrapperType)
+            {
+                ILRuntimeWrapperType iwt = (ILRuntimeWrapperType)t;
+                object ins = null;
+                if (obj is ILTypeInstance)
+                {
+                    ILTypeInstance ii = (ILTypeInstance)obj;
+                    var ilMethod = ii.Type.GetMethod(name) as ILMethod;
+                    if (ilMethod == null)
+                        throw new ArgumentException(string.Format("Cannot find method \"{0}\" in type {1}", name, ii.Type.FullName));
+                    ins = domain.DelegateManager.FindDelegateAdapter(iwt.CLRType, ii, ilMethod);
+                }
+                else
+                {
+                    ins = Delegate.CreateDelegate(iwt.RealType, obj, name);
+                }
+                return ILIntepreter.PushObject(ret, mStack, ins, true);
+            }
+            else
+                return ILIntepreter.PushObject(ret, mStack, Delegate.CreateDelegate(t, obj, name), true);
+        }
+        public static StackObject* DelegateCreateDelegate3(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
+        {
+            var ret = esp - 3;
+            AppDomain domain = intp.AppDomain;
+
+            var p = esp - 1;
+            MethodInfo mi = (MethodInfo)StackObject.ToObject(p, domain, mStack);
+            intp.Free(p);
+
+            p = esp - 2;
+            object obj = (object)StackObject.ToObject(p, domain, mStack);
+            intp.Free(p);
+
+            p = esp - 3;
+            Type t = (Type)StackObject.ToObject(p, domain, mStack);
+            intp.Free(p);
+
+            if (t is ILRuntimeType)
+            {
+                ILType it = ((ILRuntimeType)t).ILType;
+                if (it.IsDelegate)
+                {
+                    object ins = null;
+                    if (mi is ILRuntimeMethodInfo)
+                    {
+                        ILRuntimeMethodInfo imi = (ILRuntimeMethodInfo)mi;
+                        var ilMethod = imi.ILMethod;
+                        if (obj != null)
+                        {
+                            ins = ((ILTypeInstance)obj).GetDelegateAdapter(ilMethod);
+                            if (ins == null)
+                            {
+                                var invokeMethod = it.GetMethod("Invoke", ilMethod.ParameterCount);
+                                if (invokeMethod == null && ilMethod.IsExtend)
+                                {
+                                    invokeMethod = it.GetMethod("Invoke", ilMethod.ParameterCount - 1);
+                                }
+                                ins = domain.DelegateManager.FindDelegateAdapter(
+                                    (ILTypeInstance)obj, ilMethod, invokeMethod);
+                            }
+                        }
+                        else
+                        {
+                            if (ilMethod.DelegateAdapter == null)
+                            {
+                                var m = it.GetMethod("Invoke") as ILMethod;
+                                ilMethod.DelegateAdapter = domain.DelegateManager.FindDelegateAdapter(null, ilMethod, m);
+                            }
+                            ins = ilMethod.DelegateAdapter;
+                        }
+                    }
+                    else
+                    {
+                        throw new NotSupportedException();
+                    }
+                    return ILIntepreter.PushObject(ret, mStack, ins, true);
+                }
+                else
+                    throw new NotSupportedException(string.Format("{0} is not Delegate", t.FullName));
+            }
+            else if (t is ILRuntimeWrapperType)
+            {
+                ILRuntimeWrapperType iwt = (ILRuntimeWrapperType)t;
+                object ins = null;
+                if (mi is ILRuntimeMethodInfo)
+                {
+                    ILRuntimeMethodInfo imi = (ILRuntimeMethodInfo)mi;
+
+                    ins = domain.DelegateManager.FindDelegateAdapter(iwt.CLRType, obj as ILTypeInstance, imi.ILMethod);
+                }
+                else
+                {
+                    ins = Delegate.CreateDelegate(iwt.RealType, obj, mi);
+                }
+                return ILIntepreter.PushObject(ret, mStack, ins, true);
+            }
+            else
+                return ILIntepreter.PushObject(ret, mStack, Delegate.CreateDelegate(t, obj, mi), true);
+        }
+
+        public static StackObject* TypeMakeGenericType(ILIntepreter intp, StackObject* esp, AutoList mStack, CLRMethod method, bool isNewObj)
+        {
+            var ret = esp - 2;
+            AppDomain domain = intp.AppDomain;
+
+            var p = esp - 1;
+            Type[] param = (Type[])StackObject.ToObject(p, domain, mStack);
+            intp.Free(p);
+
+            p = esp - 2;
+            Type type = (Type)StackObject.ToObject(p, domain, mStack);
+            IType t = ToIType(type, domain);
+            intp.Free(p);
+
+            if (!t.HasGenericParameter)
+                throw new NotSupportedException(string.Format("{0} is not a generic type", t.FullName));
+            ILType iltype = t as ILType;
+            if(iltype != null)
+            {
+                KeyValuePair<string, IType>[] arr = new KeyValuePair<string, IType>[iltype.TypeDefinition.GenericParameters.Count];
+                for(int i = 0; i < arr.Length; i++)
+                {
+                    arr[i] = new KeyValuePair<string, IType>(iltype.TypeDefinition.GenericParameters[i].Name, ToIType(param[i], domain));
+                }
+                return ILIntepreter.PushObject(ret, mStack, t.MakeGenericInstance(arr).ReflectionType, true);
+            }
+            CLRType clrType = t as CLRType;
+            if(clrType != null)
+            {
+                KeyValuePair<string, IType>[] arr = new KeyValuePair<string, IType>[param.Length];
+                for (int i = 0; i < arr.Length; i++)
+                {
+                    arr[i] = new KeyValuePair<string, IType>("!", ToIType(param[i], domain));
+                }
+                return ILIntepreter.PushObject(ret, mStack, t.MakeGenericInstance(arr).ReflectionType, true);
+            }
+            throw new NotImplementedException();
+        }
+
+        static IType ToIType(Type type, AppDomain domain)
+        {
+            if (type is ILRuntimeType)
+            {
+                return ((ILRuntimeType)type).ILType;
+            }
+            else if (type is ILRuntimeWrapperType)
+            {
+                return ((ILRuntimeWrapperType)type).CLRType;
+            }
+            else
+                return domain.GetType(type);
+        }
     }
 }

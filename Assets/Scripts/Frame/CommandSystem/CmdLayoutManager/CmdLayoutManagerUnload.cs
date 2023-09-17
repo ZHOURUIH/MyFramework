@@ -1,19 +1,12 @@
 ﻿using System;
+using static FrameBase;
 
-public class CmdLayoutManagerUnload : Command 
+// 卸载一个布局
+public class CmdLayoutManagerUnload
 {
-	public int mLayoutID;
-	public override void resetProperty()
+	// layoutID,布局ID
+	public static void execute(int layoutID)
 	{
-		base.resetProperty();
-		mLayoutID = LAYOUT.NONE;
-	}
-	public override void execute()
-	{
-		mLayoutManager.destroyLayout(mLayoutID);
-	}
-	public override void debugInfo(MyStringBuilder builder)
-	{
-		builder.Append(": mLayoutID:", mLayoutID);
+		mLayoutManager.destroyLayout(layoutID);
 	}
 }

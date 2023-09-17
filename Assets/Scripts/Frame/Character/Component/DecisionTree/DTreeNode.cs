@@ -1,20 +1,21 @@
 ﻿using System.Collections.Generic;
+using static UnityUtility;
 
 // 决策树节点基类,DTree表示DecisionTree
-public class DTreeNode : FrameBase
+public class DTreeNode : ClassObject
 {
-	public Dictionary<uint, DTreeNode> mChildMap;	// 以子节点的ID为索引的子节点列表
+	public Dictionary<int, DTreeNode> mChildMap;	// 以子节点的ID为索引的子节点列表
 	public List<DTreeNode> mChildList;				// 带顺序的子节点列表
 	public Character mCharacter;					// 所属角色
 	public DTreeNode mParent;						// 父节点
 	public object mUserData;						// 用户自定义数据
 	public float mRandomWeight;						// 随机选择时的权重,范围0-1
-	public uint mID;								// 节点唯一ID
+	public int mID;								// 节点唯一ID
 	public int mPriority;							// 节点优先级
 	public bool mDeadNode;							// 当前节点是否已死亡
 	public DTreeNode()
 	{
-		mChildMap = new Dictionary<uint, DTreeNode>();
+		mChildMap = new Dictionary<int, DTreeNode>();
 		mChildList = new List<DTreeNode>();
 		mRandomWeight = 1.0f;
 	}
@@ -31,8 +32,8 @@ public class DTreeNode : FrameBase
 		mPriority = 0;
 		mDeadNode = false;
 	}
-	public void setID(uint id) { mID = id; }
-	public uint getID() { return mID; }
+	public void setID(int id) { mID = id; }
+	public int getID() { return mID; }
 	public DTreeNode getParent() { return mParent; }
 	public List<DTreeNode> getChildList() { return mChildList; }
 	public void setUserData(object userData) { mUserData = userData; }

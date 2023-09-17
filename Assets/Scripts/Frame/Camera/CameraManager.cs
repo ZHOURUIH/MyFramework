@@ -1,13 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityUtility;
+using static FrameUtility;
+using static FrameBase;
+using static FrameDefine;
 
+// 游戏摄像机管理器
 public class CameraManager : FrameSystem
 {
-	protected List<GameCamera> mCameraList;
-	protected GameCamera mMainCamera;
-	protected GameCamera mUGUICamera;
-	protected GameCamera mUGUIBlurCamera;
+	protected List<GameCamera> mCameraList;	// 所有摄像机的列表
+	protected GameCamera mUGUIBlurCamera;	// UGUI的背景模糊摄像机
+	protected GameCamera mDefaultCamera;	// 默认的主摄像机
+	protected GameCamera mMainCamera;		// 主摄像机
+	protected GameCamera mUGUICamera;		// UGUI的摄像机
 	public CameraManager()
 	{
 		mCameraList = new List<GameCamera>();
@@ -15,9 +21,10 @@ public class CameraManager : FrameSystem
 	public override void init()
 	{
 		base.init();
-		mUGUICamera = createCamera(FrameDefine.UI_CAMERA, mLayoutManager.getRootObject());
-		mUGUIBlurCamera = createCamera(FrameDefine.BLUR_CAMERA, mLayoutManager.getRootObject(), false, false);
-		mMainCamera = createCamera(FrameDefine.MAIN_CAMERA, null);
+		mUGUICamera = createCamera(UI_CAMERA, mLayoutManager.getRootObject());
+		mUGUIBlurCamera = createCamera(BLUR_CAMERA, mLayoutManager.getRootObject(), false, false);
+		mDefaultCamera = createCamera(MAIN_CAMERA, null);
+		mMainCamera = mDefaultCamera;
 	}
 	public override void update(float elapsedTime)
 	{
@@ -103,7 +110,7 @@ public class CameraManager : FrameSystem
 		OT.ACTIVE(camera, active);
 		checkCameraAudioListener();
 	}
-	public new GameCamera getMainCamera() { return mMainCamera; }
+	public GameCamera getMainCamera() { return mMainCamera; }
 	public void setMainCamera(GameCamera mainCamera)
 	{
 		// 如果当前已经有主摄像机了,则禁用主摄像机
@@ -114,7 +121,7 @@ public class CameraManager : FrameSystem
 		mMainCamera = mainCamera;
 		checkCameraAudioListener();
 	}
-	public new GameCamera getUICamera() { return mUGUICamera; }
+	public GameCamera getUICamera() { return mUGUICamera; }
 	public GameCamera getUIBlurCamera() { return mUGUIBlurCamera; }
 	public void activeBlurCamera(bool active) { OT.ACTIVE(mUGUIBlurCamera, active); }
 	public void destroyCamera(GameCamera camera)
@@ -124,12 +131,11 @@ public class CameraManager : FrameSystem
 			return;
 		}
 		activeCamera(camera, false);
-		camera.destroy();
-		UN_CLASS(camera);
 		mCameraList.Remove(camera);
+		// 当销毁的是主摄像机时,将默认的摄像机作为当前主摄像机,确保任何时候都有一个主摄像机
 		if (camera == mMainCamera)
 		{
-			mMainCamera = null;
+			mMainCamera = mDefaultCamera;
 		}
 		else if (camera == mUGUICamera)
 		{
@@ -139,6 +145,8 @@ public class CameraManager : FrameSystem
 		{
 			mUGUIBlurCamera = null;
 		}
+		camera.destroy();
+		UN_CLASS(ref camera);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 检查所有摄像机的音频监听,确保主摄像机优先作为音频监听,没有主摄像机,则使用UI相机,没有UI相机,才使用第一个被启用的摄像机作为音频监听

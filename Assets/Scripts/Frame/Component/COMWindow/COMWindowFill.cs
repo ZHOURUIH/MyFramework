@@ -1,9 +1,11 @@
 ﻿using System;
+using static MathUtility;
 
+// 用于渐变窗口填充度的组件
 public class COMWindowFill : ComponentKeyFrameNormal
 {
-	protected float mStart;   // 移动开始时的位置
-	protected float mTarget;
+	protected float mStart;		// 起始填充值
+	protected float mTarget;	// 目标填充值
 	public void setTarget(float value) { mTarget = value; }
 	public void setStart(float value) { mStart = value; }
 	public override void resetProperty()

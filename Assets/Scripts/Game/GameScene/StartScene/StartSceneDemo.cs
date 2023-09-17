@@ -1,7 +1,8 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System;
+using static MathUtility;
+using static StringUtility;
+using static GameBase;
+using static FrameBase;
 
 public class StartSceneDemo : SceneProcedure
 {
@@ -11,7 +12,7 @@ public class StartSceneDemo : SceneProcedure
 	protected override void onInit(SceneProcedure lastProcedure, string intent)
 	{
 		// 一般在此处加载界面,加载场景
-		LT.LOAD_UGUI_SHOW(LAYOUT.DEMO);
+		LT.LOAD_UGUI_SHOW(LAYOUT_GAME.DEMO);
 #if USE_ILRUNTIME
 		mProgress = 0.0f;
 		mScriptDemo.setText("ILRuntime热更生效");
@@ -38,6 +39,6 @@ public class StartSceneDemo : SceneProcedure
 	}
 	protected override void onExit(SceneProcedure nextProcedure)
 	{
-		LT.HIDE_LAYOUT(LAYOUT.DEMO);
+		LT.HIDE_LAYOUT(LAYOUT_GAME.DEMO);
 	}
 }

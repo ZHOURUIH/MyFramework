@@ -1,19 +1,23 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
+using static UnityUtility;
+using static StringUtility;
+using static CSharpUtility;
 
 // 仅能在主线程中使用的字典列表池
 public class DictionaryPool : FrameSystem
 {
-	protected Dictionary<DictionaryType, HashSet<ICollection>> mPersistentInuseList;	// 持久使用的列表对象
-	protected Dictionary<DictionaryType, HashSet<ICollection>> mInusedList;			// 仅当前栈帧中使用的列表对象
-	protected Dictionary<DictionaryType, HashSet<ICollection>> mUnusedList;
-	protected Dictionary<ICollection, string> mObjectStack;
+	protected Dictionary<DictionaryType, HashSet<ICollection>> mPersistentInuseList;    // 持久使用的列表对象,为了提高运行时效率,仅在编辑器下使用
+	protected Dictionary<DictionaryType, HashSet<ICollection>> mInusedList;             // 仅当前栈帧中使用的列表对象,为了提高运行时效率,仅在编辑器下使用
+	protected Dictionary<DictionaryType, List<ICollection>> mUnusedList;				// 未使用的列表
+	protected Dictionary<ICollection, string> mObjectStack;                             // 存储对象分配的堆栈信息的列表
 	public DictionaryPool()
 	{
 		mPersistentInuseList = new Dictionary<DictionaryType, HashSet<ICollection>>();
 		mInusedList = new Dictionary<DictionaryType, HashSet<ICollection>>();
-		mUnusedList = new Dictionary<DictionaryType, HashSet<ICollection>>();
+		mUnusedList = new Dictionary<DictionaryType, List<ICollection>>();
 		mObjectStack = new Dictionary<ICollection, string>();
 		mCreateObject = true;
 	}
@@ -47,53 +51,78 @@ public class DictionaryPool : FrameSystem
 		}
 #endif
 	}
+	public void clearUnused() { mUnusedList.Clear(); }
 	public Dictionary<DictionaryType, HashSet<ICollection>> getPersistentInusedList() { return mPersistentInuseList; }
 	public Dictionary<DictionaryType, HashSet<ICollection>> getInusedList() { return mInusedList; }
-	public Dictionary<DictionaryType, HashSet<ICollection>> getUnusedList() { return mUnusedList; }
+	public Dictionary<DictionaryType, List<ICollection>> getUnusedList() { return mUnusedList; }
 	// onlyOnce表示是否仅当作临时列表使用
 	public ICollection newList(Type keyType, Type valueType, Type listType, string stackTrace, bool onlyOnce = true)
 	{
+#if UNITY_EDITOR
 		if (!isMainThread())
 		{
-			logError("只能在主线程中使用DictionaryPool,子线程中请使用DictionaryPoolThread代替");
+			Debug.LogError("只能在主线程中使用DictionaryPool,子线程中请使用DictionaryPoolThread代替");
 			return null;
 		}
+#endif
+
 		ICollection list;
 		var type = new DictionaryType(keyType, valueType);
 		// 先从未使用的列表中查找是否有可用的对象
-		if (mUnusedList.TryGetValue(type, out HashSet<ICollection> valueList) && valueList.Count > 0)
+		if (mUnusedList.TryGetValue(type, out List<ICollection> valueList) && valueList.Count > 0)
 		{
-			list = popFirstElement(valueList);
+			list = valueList[valueList.Count - 1];
+			valueList.RemoveAt(valueList.Count - 1);
 		}
 		// 未使用列表中没有,创建一个新的
 		else
 		{
 			list = createInstance<ICollection>(listType);
+#if UNITY_EDITOR
+			mInusedList.TryGetValue(type, out HashSet<ICollection> temp0);
+			mPersistentInuseList.TryGetValue(type, out HashSet<ICollection> temp1);
+			int totalCount = 1;
+			if (temp0 != null)
+			{
+				totalCount += temp0.Count;
+			}
+			if (temp1 != null)
+			{
+				totalCount += temp1.Count;
+			}
+			if (totalCount % 1000 == 0)
+			{
+				Debug.Log("创建的Dictionary总数量已经达到:" + totalCount + "个,key:" + keyType + ",value:" + valueType);
+			}
+#endif
 		}
+#if UNITY_EDITOR
 		// 标记为已使用
 		addInuse(list, type, onlyOnce);
-#if UNITY_EDITOR
 		mObjectStack.Add(list, stackTrace);
 #endif
 		return list;
 	}
-	public void destroyList(ICollection list, Type keyType, Type valueType)
+	public void destroyList<K, V>(ref Dictionary<K, V> list, Type keyType, Type valueType)
 	{
+#if UNITY_EDITOR
 		if (!isMainThread())
 		{
-			logError("只能在主线程中使用DictionaryPool,子线程中请使用DictionaryPoolThread代替");
+			Debug.LogError("只能在主线程中使用DictionaryPool,子线程中请使用DictionaryPoolThread代替");
 			return;
 		}
-#if UNITY_EDITOR
-		mObjectStack.Remove(list);
 #endif
 		if(list.Count > 0)
 		{
-			logError("销毁列表时需要手动清空列表");
+			Debug.LogError("销毁列表时需要手动清空列表");
 		}
 		var type = new DictionaryType(keyType, valueType);
 		addUnuse(list, type);
+#if UNITY_EDITOR
 		removeInuse(list, type);
+		mObjectStack.Remove(list);
+#endif
+		list = null;
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void addInuse(ICollection list, DictionaryType type, bool onlyOnce)
@@ -104,12 +133,11 @@ public class DictionaryPool : FrameSystem
 			valueList = new HashSet<ICollection>();
 			inuseList.Add(type, valueList);
 		}
-		else if (valueList.Contains(list))
+		if (!valueList.Add(list))
 		{
-			logError("list object is in inuse list!");
+			Debug.LogError("list object is in inuse list!");
 			return;
 		}
-		valueList.Add(list);
 	}
 	protected void removeInuse(ICollection list, DictionaryType type)
 	{
@@ -123,21 +151,23 @@ public class DictionaryPool : FrameSystem
 		{
 			return;
 		}
-		logError("can not find class type in Inused List! type : " + type);
+		Debug.LogError("can not find class type in Inused List! type : " + type);
 	}
 	protected void addUnuse(ICollection list, DictionaryType type)
 	{
 		// 加入未使用列表
-		if (!mUnusedList.TryGetValue(type, out HashSet<ICollection> valueList))
+		if (!mUnusedList.TryGetValue(type, out List<ICollection> valueList))
 		{
-			valueList = new HashSet<ICollection>();
+			valueList = new List<ICollection>();
 			mUnusedList.Add(type, valueList);
 		}
-		else if (valueList.Contains(list))
+#if UNITY_EDITOR
+		if (valueList.Contains(list))
 		{
-			logError("list Object is in Unused list! can not add again!");
+			Debug.LogError("list Object is in Unused list! can not add again!");
 			return;
 		}
+#endif
 		valueList.Add(list);
 	}
 }

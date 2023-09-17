@@ -1,6 +1,7 @@
 ﻿using System;
 
-public abstract class GameComponent : FrameBase
+// 组件基类,只是使用了MonoBehaviour的组件思想
+public abstract class GameComponent : ClassObject
 {
 	protected ComponentOwner mComponentOwner;   // 该组件的拥有者
 	protected Type mType;						// 组件类型,因为有些组件可能在热更工厂中,无法通过GetType获取正确的类型,所以保存一个

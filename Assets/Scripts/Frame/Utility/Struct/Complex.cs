@@ -7,8 +7,8 @@
 // 复数
 public struct Complex : IEquatable<Complex>
 {
-	public float mReal;
-	public float mImg;
+	public float mReal;	// 复数的实数部分
+	public float mImg;	// 复数的虚数部分
 	public bool Equals(Complex value) { return value.mReal == mReal && value.mImg == mImg; }
 	public Complex(float realPart, float imgPart)
 	{

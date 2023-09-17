@@ -1,9 +1,11 @@
 ﻿using System;
+using static MathUtility;
 
+// UI的透明度变化组件
 public class COMWindowAlpha : ComponentKeyFrameNormal, IComponentModifyAlpha
 {
-	protected float mStart;
-	protected float mTarget;
+	protected float mStart;		// 起始透明度
+	protected float mTarget;	// 目标透明度
 	public override void resetProperty()
 	{
 		base.resetProperty();
