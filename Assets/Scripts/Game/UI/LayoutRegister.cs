@@ -1,24 +1,11 @@
-﻿using System;
-using static FrameBase;
+﻿using static LayoutManager;
 using static GameBase;
 
-public class LayoutRegister : LayoutRegisterBase
+public class LayoutRegister
 {
 	public static void registeAllLayout()
 	{
-		registeLayout<ScriptDemoStart>(LAYOUT_GAME.DEMO_START, "UIDemoStart");
-		registeLayout<ScriptDemo>(LAYOUT_GAME.DEMO, "UIDemo");
-		mLayoutManager.addScriptCallback(onScriptChanged);
+		registeLayoutResPart<UIDemoStart>((script) => { mUIDemoStart = script; });
+		registeLayoutResPart<UIDemo>((script) => { mUIDemo = script; });
 	}
-	public static void onScriptChanged(LayoutScript script, bool created = true)
-	{
-		// 只有布局与脚本唯一对应的才能使用变量快速访问
-		if (mLayoutManager.getScriptMappingCount(script.getType()) > 1)
-		{
-			return;
-		}
-		if (assign(ref mScriptDemo, script, created)) return;
-		if (assign(ref mScriptDemoStart, script, created)) return;
-	}
-	//----------------------------------------------------------------------------------------------------------------------------------------------------------------
 }

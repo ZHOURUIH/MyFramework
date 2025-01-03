@@ -7,6 +7,8 @@ using static StringUtility;
 using static FileUtility;
 using static EditorCommonUtility;
 using static FrameDefine;
+using static EditorDefine;
+using static EditorFileUtility;
 
 public class MenuCheckCode
 {
@@ -14,7 +16,6 @@ public class MenuCheckCode
 	public static void doAllScriptCheck()
 	{
 		checkResetProperty();
-		checkHotFixResetProperty();
 		checkCodeEmptyLine();
 		checkProtobufMsgOrder();
 		checkDifferentNodeName();
@@ -22,7 +23,6 @@ public class MenuCheckCode
 		checkPropertyName();
 		checkFunctionOrder();
 		checkComment();
-		checkMemberVariableAssignmentValue();
 		checkCommentStandard();
 		checkSystemFunction();
 		checkCommandName();
@@ -33,42 +33,34 @@ public class MenuCheckCode
 	{
 		Debug.Log("开始检查代码" + KEY_FUNCTION);
 		// 获取Assembly集合
-		Assembly assemly = null;
-		Assembly[] assembly = System.AppDomain.CurrentDomain.GetAssemblies();
-		for (int i = 0; i < assembly.Length; ++i)
+		foreach (Assembly assemly in AppDomain.CurrentDomain.GetAssemblies())
 		{
 			// 获取工程
-			if (assembly[i].GetName().Name == "Assembly-CSharp")
+			if (assemly.GetName().Name == "Game")
 			{
-				assemly = assembly[i];
-				break;
+				doCheckResetProperty(assemly, F_SCRIPTS_PATH);
+				Debug.Log("Game检查完毕");
 			}
+			if (assemly.GetName().Name == "Frame")
+			{
+				doCheckResetProperty(assemly, F_SCRIPTS_PATH);
+				Debug.Log("Frame检查完毕");
+			}
+#if USE_HYBRID_CLR
+			if (assemly.GetName().Name == "HotFix")
+			{
+				doCheckResetProperty(assemly, F_SCRIPTS_PATH);
+				Debug.Log("HotFix检查完毕");
+			}
+#endif
 		}
-		if (assemly == null)
-		{
-			Debug.LogError("找不到指定的程序集");
-			return;
-		}
-
-		doCheckResetProperty(assemly, F_SCRIPTS_PATH);
-		Debug.Log("检查完毕");
-	}
-	[MenuItem("检查代码/检查热更代码" + KEY_FUNCTION, false, 200)]
-	public static void checkHotFixResetProperty()
-	{
-		Debug.Log("开始检查热更代码" + KEY_FUNCTION);
-		doCheckResetProperty(Assembly.Load(openFile(F_ASSET_BUNDLE_PATH + ILR_FILE, true)), F_HOT_FIX_PATH);
-		Debug.Log("检查完毕");
 	}
 	[MenuItem("检查代码/检查代码空行", false, 201)]
 	public static void checkCodeEmptyLine()
 	{
 		Debug.Log("开始检查代码空行...");
-		var fileList = new List<string>();
+		List<string> fileList = new();
 		findFiles(F_SCRIPTS_PATH, fileList, ".cs");
-		// 在热更文件夹中寻找指定文件格式的格式
-		findFiles(F_HOT_FIX_GAME_PATH, fileList, ".cs");
-		findFiles(F_HOT_FIX_FRAME_PATH, fileList, ".cs");
 		int fileCount = fileList.Count;
 		for (int i = 0; i < fileCount; ++i)
 		{
@@ -78,8 +70,7 @@ public class MenuCheckCode
 			{
 				continue;
 			}
-			openTxtFileLines(file, out string[] lines);
-			doCheckEmptyLine(file, lines);
+			doCheckEmptyLine(file, openTxtFileLines(file));
 		}
 		EditorUtility.ClearProgressBar();
 		Debug.Log("完成检查代码空行");
@@ -88,10 +79,8 @@ public class MenuCheckCode
 	public static void checkCodeSpace()
 	{
 		Debug.Log("开始检查代码空格...");
-		var fileList = new List<string>();
+		List<string> fileList = new();
 		findFiles(F_SCRIPTS_PATH, fileList, ".cs");
-		findFiles(F_HOT_FIX_GAME_PATH, fileList, ".cs");
-		findFiles(F_HOT_FIX_FRAME_PATH, fileList, ".cs");
 		int fileCount = fileList.Count;
 		for (int i = 0; i < fileCount; ++i)
 		{
@@ -101,8 +90,7 @@ public class MenuCheckCode
 			{
 				continue;
 			}
-			openTxtFileLines(file, out string[] lines);
-			doCheckSpace(file, lines);
+			doCheckSpace(file, openTxtFileLines(file));
 		}
 		EditorUtility.ClearProgressBar();
 		Debug.Log("完成检查代码空格");
@@ -111,8 +99,7 @@ public class MenuCheckCode
 	public static void checkProtobufMsgOrder()
 	{
 		Debug.Log("开始检查Protobuf的消息字段顺序...");
-		var fileList = new List<string>();
-		findFiles(F_ASSETS_PATH, fileList, ".cs");
+		List<string> fileList = findFilesNonAlloc(F_ASSETS_PATH, ".cs");
 		int fileCount = fileList.Count;
 		for (int i = 0; i < fileCount; ++i)
 		{
@@ -122,8 +109,7 @@ public class MenuCheckCode
 			{
 				continue;
 			}
-			openTxtFileLines(file, out string[] lines);
-			doCheckProtoMemberOrder(file, lines);
+			doCheckProtoMemberOrder(file, openTxtFileLines(file));
 		}
 		EditorUtility.ClearProgressBar();
 		Debug.Log("完成检查Protobuf的消息字段顺序");
@@ -133,35 +119,24 @@ public class MenuCheckCode
 	{
 		Debug.Log("开始检查UI变量名与节点名不一致的代码...");
 		// 缓存所有预制体的Transform
-		var fileListPrefab = new List<string>();
-		findFiles(F_LAYOUT_PATH, fileListPrefab, ".prefab");
-		findFiles(F_RESOURCES_LAYOUT_PREFAB_PATH, fileListPrefab, ".prefab");
-		var prefabChildTransform = new Dictionary<string, Transform[]>();
-		int processCount = fileListPrefab.Count;
-		for (int i = 0; i < processCount; ++i)
+		Dictionary<string, Transform[]> prefabChildTransform = new();
+		foreach (string file in findFilesNonAlloc(F_UI_PREFAB_PATH, ".prefab"))
 		{
-			string filePath = fullPathToProjectPath(fileListPrefab[i]);
-			GameObject targetPrefab = loadGameObject(filePath);
-			var childTrans = targetPrefab.transform.GetComponentsInChildren<Transform>(true);
-			string prefabName = removeStartString(removeSuffix(getFileName(filePath)), "UI");
-			if (!prefabChildTransform.ContainsKey(prefabName))
-			{
-				prefabChildTransform.Add(prefabName, childTrans);
-			}
+			string filePath = fullPathToProjectPath(file);
+			var childTrans = loadGameObject(filePath).transform.GetComponentsInChildren<Transform>(true);
+			string prefabName = removeStartString(removeSuffix(getFileNameWithSuffix(filePath)), "UI");
+			prefabChildTransform.TryAdd(prefabName, childTrans);
 		}
 
 		// 读取cs文件
-		var fileListCS = new List<string>();
-		findFiles(F_SCRIPTS_UI_SCRIPT_PATH, fileListCS, ".cs");
-		// 在热更文件夹中寻找指定文件格式的格式
-		findFiles(F_HOT_FIX_GAME_PATH, fileListCS, ".cs");
-		findFiles(F_HOT_FIX_FRAME_PATH, fileListCS, ".cs");
+		List<string> fileListCS = new();
+		findFiles(F_SCRIPTS_UI_PATH, fileListCS, ".cs");
 		int fileCount = fileListCS.Count;
 		for (int i = 0; i < fileCount; ++i)
 		{
 			string file = fileListCS[i];
-			string fileNameNoSuffix = removeSuffix(getFileName(fullPathToProjectPath(file)));
-			if (!startWith(fileNameNoSuffix, "Script") || isIgnoreFile(file, IGNORE_LAYOUT_SCRIPT))
+			string fileNameNoSuffix = removeSuffix(getFileNameWithSuffix(fullPathToProjectPath(file)));
+			if (!startWith(fileNameNoSuffix, "Script") || isIgnoreFile(file, getIgnoreLayoutScript()))
 			{
 				continue;
 			}
@@ -171,9 +146,8 @@ public class MenuCheckCode
 				Debug.LogError("脚本名为:" + layoutName + "的cs文件没找到相对应的预制体");
 				continue;
 			}
-			openTxtFileLines(file, out string[] lines);
 			displayProgressBar("UI变量名匹配", "进度: ", i + 1, fileCount);
-			doCheckDifferentNodeName(file, layoutName, transforms, lines);
+			doCheckDifferentNodeName(file, layoutName, transforms, openTxtFileLines(file));
 		}
 		EditorUtility.ClearProgressBar();
 		Debug.Log("完成检查UI变量名与节点名不一致的代码");
@@ -183,23 +157,18 @@ public class MenuCheckCode
 	{
 		Debug.Log("开始逐行测代码长度");
 		// 所有代码文件的列表
-		var scriptFileList = new List<string>();
+		List<string> scriptFileList = new();
 		findFiles(F_SCRIPTS_PATH, scriptFileList, ".cs");
-		// 在热更文件夹中寻找指定文件格式的格式
-		findFiles(F_HOT_FIX_GAME_PATH, scriptFileList, ".cs");
-		findFiles(F_HOT_FIX_FRAME_PATH, scriptFileList, ".cs");
 		int fileCount = scriptFileList.Count;
 		for (int i = 0; i < fileCount; i++)
 		{
 			displayProgressBar("检查代码行长度", "进度: ", +1, fileCount);
 			string file = scriptFileList[i];
-			// ILRuntime自动生成的代码，文件忽略列表和MyStringBuilder都不需要检测代码长度
-			if (isIgnoreFile(file, IGNORE_CODE_WIDTH))
+			if (isIgnoreFile(file, getIgnoreCodeWidth()))
 			{
 				continue;
 			}
-			openTxtFileLines(file, out string[] lines);
-			doCheckSingleCheckCodeLineWidth(file, lines);
+			doCheckSingleCheckCodeLineWidth(file, openTxtFileLines(file));
 		}
 		EditorUtility.ClearProgressBar();
 		Debug.Log("检测结束");
@@ -209,24 +178,20 @@ public class MenuCheckCode
 	{
 		Debug.Log("开始检查命名规范");
 		// 所有代码文件的列表
-		var scriptFileList = new List<string>();
+		List<string> scriptFileList = new();
 		// 寻找指定文件格式的格式
 		findFiles(F_SCRIPTS_PATH, scriptFileList, ".cs");
-		// 在热更文件夹中寻找指定文件格式的格式
-		findFiles(F_HOT_FIX_GAME_PATH, scriptFileList, ".cs");
-		findFiles(F_HOT_FIX_FRAME_PATH, scriptFileList, ".cs");
 		// 开始进行检查操作
 		int fileCount = scriptFileList.Count;
 		for (int i = 0; i < fileCount; i++)
 		{
 			displayProgressBar("检查命名规范", "进度: ", i + 1, fileCount);
 			string file = scriptFileList[i];
-			if (isIgnoreFile(file, IGNORE_VARIABLE_CHECK))
+			if (isIgnoreFile(file, getIgnoreVariableCheck()))
 			{
 				continue;
 			}
-			openTxtFileLines(file, out string[] lines);
-			doCheckScriptLineByLine(file, lines);
+			doCheckScriptLineByLine(file, openTxtFileLines(file));
 		}
 		EditorUtility.ClearProgressBar();
 		Debug.Log("结束检查");
@@ -236,12 +201,9 @@ public class MenuCheckCode
 	{
 		Debug.Log("开始检查函数排版");
 		// 所有代码文件的列表
-		var scriptFileList = new List<string>();
+		List<string> scriptFileList = new();
 		// 寻找指定文件格式的格式
 		findFiles(F_SCRIPTS_PATH, scriptFileList, ".cs");
-		// 在热更文件夹中寻找指定文件格式的格式
-		findFiles(F_HOT_FIX_GAME_PATH, scriptFileList, ".cs");
-		findFiles(F_HOT_FIX_FRAME_PATH, scriptFileList, ".cs");
 		// 开始进行检查操作
 		int fileCount = scriptFileList.Count;
 		for (int i = 0; i < fileCount; i++)
@@ -252,8 +214,7 @@ public class MenuCheckCode
 			{
 				continue;
 			}
-			openTxtFileLines(file, out string[] lines);
-			doCheckFunctionOrder(file, lines);
+			doCheckFunctionOrder(file, openTxtFileLines(file));
 		}
 		EditorUtility.ClearProgressBar();
 		Debug.Log("结束检查");
@@ -263,64 +224,30 @@ public class MenuCheckCode
 	{
 		Debug.Log("开始检查注释");
 		// 所有代码文件的列表
-		var scriptFileList = new List<string>();
+		List<string> scriptFileList = new();
 		findFiles(F_SCRIPTS_PATH, scriptFileList, ".cs");
-		// 在热更文件夹中寻找指定文件格式的格式
-		findFiles(F_HOT_FIX_GAME_PATH, scriptFileList, ".cs");
-		findFiles(F_HOT_FIX_FRAME_PATH, scriptFileList, ".cs");
 		int fileCount = scriptFileList.Count;
 		for (int i = 0; i < fileCount; i++)
 		{
 			displayProgressBar("检查注释", "进度: ", i + 1, fileCount);
 			string file = scriptFileList[i];
-			if (isIgnoreFile(file, IGNORE_COMMENT))
+			if (isIgnoreFile(file, getIgnoreComment()))
 			{
 				continue;
 			}
-			openTxtFileLines(file, out string[] lines);
-			doCheckComment(file, lines);
+			doCheckComment(file, openTxtFileLines(file));
 		}
 		EditorUtility.ClearProgressBar();
 		Debug.Log("检测结束");
-	}
-	[MenuItem("检查代码/检查成员变量赋值", false, 209)]
-	public static void checkMemberVariableAssignmentValue()
-	{
-		Debug.Log("开始检查成员变量赋值");
-		// 所有代码文件的列表
-		var scriptFileList = new List<string>();
-		// 寻找指定文件格式的格式
-		findFiles(F_SCRIPTS_PATH, scriptFileList, ".cs");
-		// 在热更文件夹中寻找指定文件格式的格式
-		findFiles(F_HOT_FIX_GAME_PATH, scriptFileList, ".cs");
-		findFiles(F_HOT_FIX_FRAME_PATH, scriptFileList, ".cs");
-		// 开始进行检查操作
-		int fileCount = scriptFileList.Count;
-		for (int i = 0; i < fileCount; i++)
-		{
-			displayProgressBar("检查成员变量赋值", "进度: ", i + 1, fileCount);
-			string file = scriptFileList[i];
-			if (isIgnoreFile(file, IGNORE_CONSTRUCT_VALUE))
-			{
-				continue;
-			}
-			openTxtFileLines(file, out string[] lines);
-			doCheckScriptMemberVariableValueAssignment(file, lines);
-		}
-		EditorUtility.ClearProgressBar();
-		Debug.Log("结束检查");
 	}
 	[MenuItem("检查代码/检查注释后是否添加空格", false, 210)]
 	public static void checkCommentStandard()
 	{
 		Debug.Log("开始检查注释后是否添加空格");
 		// 所有代码文件的列表
-		var scriptFileList = new List<string>();
+		List<string> scriptFileList = new();
 		// 寻找指定文件格式的格式
 		findFiles(F_SCRIPTS_PATH, scriptFileList, ".cs");
-		// 在热更文件夹中寻找指定文件格式的格式
-		findFiles(F_HOT_FIX_GAME_PATH, scriptFileList, ".cs");
-		findFiles(F_HOT_FIX_FRAME_PATH, scriptFileList, ".cs");
 		// 开始进行检查操作
 		int fileCount = scriptFileList.Count;
 		for (int i = 0; i < fileCount; i++)
@@ -331,8 +258,7 @@ public class MenuCheckCode
 			{
 				continue;
 			}
-			openTxtFileLines(filePath, out string[] lines);
-			doCheckCommentStandard(filePath, lines);
+			doCheckCommentStandard(filePath, openTxtFileLines(filePath));
 		}
 		EditorUtility.ClearProgressBar();
 		Debug.Log("结束检测");
@@ -341,23 +267,19 @@ public class MenuCheckCode
 	public static void checkSystemFunction()
 	{
 		Debug.Log("开始检查内置函数调用");
-		var scriptFileList = new List<string>();
+		List<string> scriptFileList = new();
 		findFiles(F_SCRIPTS_PATH, scriptFileList, ".cs");
-		// 在热更文件夹中寻找指定文件格式的格式
-		findFiles(F_HOT_FIX_GAME_PATH, scriptFileList, ".cs");
-		findFiles(F_HOT_FIX_FRAME_PATH, scriptFileList, ".cs");
 
 		int fileCount = scriptFileList.Count;
 		for (int i = 0; i < fileCount; i++)
 		{
-			displayProgressBar("检查UnityEngine", "进度: ", i, fileCount);
+			displayProgressBar("检查UnityEngine", "进度: ", i + 1, fileCount);
 			string file = scriptFileList[i];
-			if (isIgnoreFile(file, IGNORE_SYSTEM_FUNCTION_CHECK))
+			if (isIgnoreFile(file, getIgnoreSystemFunctionCheck()))
 			{
 				continue;
 			}
-			openTxtFileLines(file, out string[] lines);
-			doCheckSystemFunction(file, lines);
+			doCheckSystemFunction(file, openTxtFileLines(file));
 		}
 		EditorUtility.ClearProgressBar();
 		Debug.Log("结束检查");
@@ -368,12 +290,9 @@ public class MenuCheckCode
 	{
 		Debug.Log("开始检查检查命令的命名规范");
 		// 所有代码文件的列表
-		var scriptFileList = new List<string>();
+		List<string> scriptFileList = new();
 		// 寻找指定文件格式的格式
 		findFiles(F_SCRIPTS_PATH, scriptFileList, ".cs");
-		// 在热更文件夹中寻找指定文件格式的格式
-		findFiles(F_HOT_FIX_GAME_PATH, scriptFileList, ".cs");
-		findFiles(F_HOT_FIX_FRAME_PATH, scriptFileList, ".cs");
 		// 加载程序集
 		var assembly = getAssembly("Assembly-CSharp");
 		var hotFixAssembly = loadHotFixAssembly();
@@ -388,8 +307,7 @@ public class MenuCheckCode
 			{
 				continue;
 			}
-			openTxtFileLines(filePath, out string[] lines);
-			doCheckCommandName(filePath, lines, assembly, hotFixAssembly);
+			doCheckCommandName(filePath, openTxtFileLines(filePath), assembly, hotFixAssembly);
 		}
 		EditorUtility.ClearProgressBar();
 		Debug.Log("结束检测");
@@ -399,12 +317,9 @@ public class MenuCheckCode
 	{
 		Debug.Log("开始检查分隔行的宽度");
 		// 所有代码文件的列表
-		var scriptFileList = new List<string>();
+		List<string> scriptFileList = new();
 		// 寻找指定文件格式的格式
 		findFiles(F_SCRIPTS_PATH, scriptFileList, ".cs");
-		// 在热更文件夹中寻找指定文件格式的格式
-		findFiles(F_HOT_FIX_GAME_PATH, scriptFileList, ".cs");
-		findFiles(F_HOT_FIX_FRAME_PATH, scriptFileList, ".cs");
 		// 开始进行检查操作
 		int fileCount = scriptFileList.Count;
 		for (int i = 0; i < fileCount; i++)
@@ -415,10 +330,14 @@ public class MenuCheckCode
 			{
 				continue;
 			}
-			openTxtFileLines(filePath, out string[] lines);
-			doCheckCodeSeparateLineWidth(filePath, lines);
+			doCheckCodeSeparateLineWidth(filePath, openTxtFileLines(filePath));
 		}
 		EditorUtility.ClearProgressBar();
 		Debug.Log("结束检测");
+	}
+	[MenuItem("检查代码/检查热更引用了被裁剪的代码", false, 214)]
+	public static void checkAccessMissingMetadata()
+	{
+		PlatformBase.checkAccessMissingMetadata();
 	}
 }

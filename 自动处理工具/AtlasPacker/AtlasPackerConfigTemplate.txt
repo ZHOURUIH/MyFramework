@@ -1,0 +1,2 @@
+// 将下面的路径改成自己电脑上的对应路径
+AtlasPath=D:\Github\TowerDefence_SheepVillage\Assets\GameResources\Atlas\GameAtlas

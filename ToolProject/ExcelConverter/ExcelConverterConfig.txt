@@ -1,0 +1,3 @@
+ProjectPath=D:\Github\TowerDefence_SheepVillage
+ExcelPath=D:\Github\configs
+FileSuffix=.csv

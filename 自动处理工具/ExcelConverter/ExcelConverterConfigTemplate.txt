@@ -1,0 +1,3 @@
+// 将下面两个路径改成自己电脑上的对应路径
+ProjectPath=D:\Github\TowerDefence_SheepVillage
+ExcelPath=C:\Users\admin\Desktop\Excel

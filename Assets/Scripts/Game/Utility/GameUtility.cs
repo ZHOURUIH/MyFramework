@@ -1,7 +1,12 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-
-public class GameUtility : FrameBase
-{}
+﻿
+public class GameUtility
+{
+	public static bool isHotFixEnable()
+	{
+#if ENABLE_HOTFIX
+		return true;
+#else
+		return false;
+#endif
+	}
+}

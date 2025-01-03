@@ -1,0 +1,165 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{BB9953F0-C5F8-4F16-AD89-BBD661674530}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>AtlasPacker</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>./Utility;./Common;./;./FreeImage;./STL;./Memory;./Thread;./Serialize;./Sqlite;./Sqlite/Table;./Sqlite/sqlite3;./Sqlite/Data;./SceneMap;./Image;./Math;./md5;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>../lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>FreeImage.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackReserveSize>
+      </StackReserveSize>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>./Utility;./Common;./;./FreeImage;./STL;./Memory;./Thread;./Serialize;./Sqlite;./Sqlite/Table;./Sqlite/sqlite3;./Sqlite/Data;./SceneMap;./Image;./Math;./md5;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>FreeImage.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../lib</AdditionalLibraryDirectories>
+      <StackReserveSize>
+      </StackReserveSize>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Common\Config.cpp" />
+    <ClCompile Include="Common\ServerBase.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Math\Quaternion.cpp" />
+    <ClCompile Include="Math\Vector2.cpp" />
+    <ClCompile Include="Math\Vector3.cpp" />
+    <ClCompile Include="md5\md5.cpp" />
+    <ClCompile Include="Memory\txMemoryCheck.cpp" />
+    <ClCompile Include="Memory\txMemoryTrace.cpp" />
+    <ClCompile Include="Memory\txShareMemoryServer.cpp" />
+    <ClCompile Include="Serialize\txSerializedData.cpp" />
+    <ClCompile Include="Serialize\txSerializer.cpp" />
+    <ClCompile Include="STL\mySTL.cpp" />
+    <ClCompile Include="Thread\CustomThread.cpp" />
+    <ClCompile Include="Thread\ThreadLock.cpp" />
+    <ClCompile Include="Thread\TimeLock.cpp" />
+    <ClCompile Include="Utility\BinaryUtility.cpp" />
+    <ClCompile Include="Utility\FileUtility.cpp" />
+    <ClCompile Include="Utility\FrameUtility.cpp" />
+    <ClCompile Include="Utility\ImageUtility.cpp" />
+    <ClCompile Include="Utility\MathUtility.cpp" />
+    <ClCompile Include="Utility\StringUtility.cpp" />
+    <ClCompile Include="Utility\SystemUtility.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Common\Config.h" />
+    <ClInclude Include="Common\ImageDefine.h" />
+    <ClInclude Include="Common\ServerBase.h" />
+    <ClInclude Include="Common\ServerCallback.h" />
+    <ClInclude Include="Common\ServerDefine.h" />
+    <ClInclude Include="Common\ServerEnum.h" />
+    <ClInclude Include="Common\StreamBuffer.h" />
+    <ClInclude Include="Common\txSingleton.h" />
+    <ClInclude Include="FreeImage\FreeImage.h" />
+    <ClInclude Include="Math\Quaternion.h" />
+    <ClInclude Include="Math\Vector2.h" />
+    <ClInclude Include="Math\Vector2Int.h" />
+    <ClInclude Include="Math\Vector2UShort.h" />
+    <ClInclude Include="Math\Vector3.h" />
+    <ClInclude Include="Math\Vector4.h" />
+    <ClInclude Include="Math\Vector4Int.h" />
+    <ClInclude Include="md5\md5.h" />
+    <ClInclude Include="Memory\MemoryInfo.h" />
+    <ClInclude Include="Memory\txMemoryCheck.h" />
+    <ClInclude Include="Memory\txMemoryTrace.h" />
+    <ClInclude Include="Memory\txShareMemoryServer.h" />
+    <ClInclude Include="Serialize\txSerializedData.h" />
+    <ClInclude Include="Serialize\txSerializer.h" />
+    <ClInclude Include="STL\myMap.h" />
+    <ClInclude Include="STL\myQueue.h" />
+    <ClInclude Include="STL\mySafeMap.h" />
+    <ClInclude Include="STL\mySafeSet.h" />
+    <ClInclude Include="STL\mySafeVector.h" />
+    <ClInclude Include="STL\mySet.h" />
+    <ClInclude Include="STL\myStack.h" />
+    <ClInclude Include="STL\mySTL.h" />
+    <ClInclude Include="STL\myVector.h" />
+    <ClInclude Include="Thread\CustomThread.h" />
+    <ClInclude Include="Thread\ThreadLock.h" />
+    <ClInclude Include="Thread\TimeLock.h" />
+    <ClInclude Include="Utility\BinaryUtility.h" />
+    <ClInclude Include="Utility\FileUtility.h" />
+    <ClInclude Include="Utility\FrameUtility.h" />
+    <ClInclude Include="Utility\ImageUtility.h" />
+    <ClInclude Include="Utility\MathUtility.h" />
+    <ClInclude Include="Utility\StringUtility.h" />
+    <ClInclude Include="Utility\SystemUtility.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

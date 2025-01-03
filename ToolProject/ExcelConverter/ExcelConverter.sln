@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31402.337
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelConverter", "ExcelConverter.csproj", "{5657308F-8C0B-4981-8473-6148335C0AA4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7E74072D-0067-4EE8-9DFC-873DF2655021}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5657308F-8C0B-4981-8473-6148335C0AA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5657308F-8C0B-4981-8473-6148335C0AA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5657308F-8C0B-4981-8473-6148335C0AA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5657308F-8C0B-4981-8473-6148335C0AA4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8C46F4FA-AAC5-4F58-8C6C-BC5E39EFA82C}
+	EndGlobalSection
+EndGlobal

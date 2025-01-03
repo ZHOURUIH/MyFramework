@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-
+﻿
 public class StartScene : GameScene
 {
 	public override void assignStartExitProcedure()

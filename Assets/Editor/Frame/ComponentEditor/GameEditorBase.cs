@@ -1,13 +1,12 @@
 using System;
 using UnityEngine;
 using UnityEditor;
-using static UnityUtility;
 
 public class GameEditorBase : Editor
 {
 	public SerializedProperty findProperty(string name)
 	{
-		var property = serializedObject.FindProperty(name);
+		SerializedProperty property = serializedObject.FindProperty(name);
 		if (property == null)
 		{
 			Debug.LogError("找不到属性:" + name + ",确保属性存在并且访问权限为public");
@@ -16,13 +15,23 @@ public class GameEditorBase : Editor
 	}
 	public void displayProperty(string propertyName, string displayName, string toolTip = "", bool includeChildren = true)
 	{
-		var property = findProperty(propertyName);
-		EditorGUILayout.PropertyField(property, new GUIContent(displayName, toolTip), includeChildren);
+		SerializedProperty property = findProperty(propertyName);
+		EditorGUILayout.PropertyField(property, new(displayName, toolTip), includeChildren);
 	}
-	// 直接显示一个bool属性,返回修改以后的值,如果被修改过,则会设置modified为true,否则不改变modefied的值
+	// 直接显示一个bool属性,返回修改以后的值
+	public bool toggle(string displayName, bool value)
+	{
+		return toggle(displayName, "", value);
+	}
+	// 直接显示一个bool属性,返回修改以后的值
 	public bool toggle(string displayName, string toolTip, bool value)
 	{
 		return EditorGUILayout.Toggle(new GUIContent(displayName, toolTip), value);
+	}
+	// 直接显示一个bool属性,并且会改变这个变量本身,返回值为是否改变过
+	public bool toggle(string displayName, ref bool value)
+	{
+		return toggle(displayName, "", ref value);
 	}
 	// 直接显示一个bool属性,并且会改变这个变量本身,返回值为是否改变过
 	public bool toggle(string displayName, string toolTip, ref bool value)
@@ -36,11 +45,13 @@ public class GameEditorBase : Editor
 	public int displayInt(string displayName, string toolTip, int value, ref bool modified)
 	{
 		int retValue = EditorGUILayout.IntField(new GUIContent(displayName, toolTip), value);
-		if (retValue != value)
-		{
-			modified = true;
-		}
+		modified |= retValue != value;
 		return retValue;
+	}
+	// 直接显示一个int属性,并且会改变这个变量本身,返回值为是否改变过
+	public bool displayInt(string displayName, ref int value)
+	{
+		return displayInt(displayName, "", ref value);
 	}
 	// 直接显示一个int属性,并且会改变这个变量本身,返回值为是否改变过
 	public bool displayInt(string displayName, string toolTip, ref int value)
@@ -54,10 +65,7 @@ public class GameEditorBase : Editor
 	public float displayFloat(string displayName, string toolTip, float value, ref bool modified)
 	{
 		float retValue = EditorGUILayout.FloatField(new GUIContent(displayName, toolTip), value);
-		if (retValue != value)
-		{
-			modified = true;
-		}
+		modified |= retValue != value;
 		return retValue;
 	}
 	// 直接显示一个float属性,并且会改变这个变量本身,返回值为是否改变过
@@ -69,40 +77,36 @@ public class GameEditorBase : Editor
 		return modified;
 	}
 	// 直接显示一个枚举属性,返回修改以后的值,如果被修改过,则会设置modified为true,否则不改变modefied的值
-	public T displayEnum<T>(string displayName, string toolTip, T value, ref bool modified) where T : Enum
+	public T displayEnum<T>(string displayName, T value, ref bool modified) where T : Enum
 	{
-		Enum retValue = EditorGUILayout.EnumPopup(new GUIContent(displayName, toolTip), value);
-		if (retValue.CompareTo(value) != 0)
-		{
-			modified = true;
-		}
+		Enum retValue = value;
+		GameEditorWindow.displayEnum(displayName, "", ref retValue);
+		modified |= retValue.CompareTo(value) != 0;
 		return (T)retValue;
 	}
 	// 直接显示一个枚举属性,返回修改以后的值,如果被修改过,则会设置modified为true,否则不改变modefied的值
+	public T displayEnum<T>(string displayName, string toolTip, T value, ref bool modified) where T : Enum
+	{
+		Enum retValue = value;
+		GameEditorWindow.displayEnum(displayName, toolTip, ref retValue);
+		modified |= retValue.CompareTo(value) != 0;
+		return (T)retValue;
+	}
+	// 直接显示一个枚举属性,返回修改以后的值
+	public T displayEnum<T>(string displayName, T value) where T : Enum
+	{
+		return displayEnum(displayName, "", value);
+	}
+	// 直接显示一个枚举属性,返回修改以后的值
 	public T displayEnum<T>(string displayName, string toolTip, T value) where T : Enum
 	{
-		return (T)EditorGUILayout.EnumPopup(new GUIContent(displayName, toolTip), value);
+		GameEditorWindow.displayEnum(displayName, toolTip, ref value);
+		return value;
 	}
 	// 直接显示一个枚举属性,返回值表示是否已经修改过
 	public bool displayEnum<T>(string display, string tip, ref T value) where T : Enum
 	{
-		string[] names = Enum.GetNames(typeof(T));
-		GUIContent[] labels = new GUIContent[names.Length];
-		int[] values = new int[names.Length];
-		int valueIndex = 0;
-		for (int i = 0; i < labels.Length; ++i)
-		{
-			values[i] = i;
-			labels[i] = new GUIContent(getEnumLabel(typeof(T), names[i]), getEnumToolTip(typeof(T), names[i]));
-			if (value.ToString() == names[i])
-			{
-				valueIndex = i;
-			}
-		}
-		int retValue = EditorGUILayout.IntPopup(new GUIContent(display, tip), valueIndex, labels, values);
-		bool modified = retValue != valueIndex;
-		value = (T)Enum.Parse(typeof(T), names[retValue]);
-		return modified;
+		return GameEditorWindow.displayEnum(display, tip, ref value);
 	}
 	// 显示整数的下拉框
 	public int intPopup(string displayName, string[] valueDisplay, int[] values)

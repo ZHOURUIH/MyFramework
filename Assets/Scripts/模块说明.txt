@@ -1,0 +1,13 @@
+依赖关系:
+Frame_Base->Frame_HotFix->HotFix
+					Game->HotFix
+Frame_Base->Frame_Game->Game
+
+
+Frame_Base:不可热更,最基础的内容,包含一些宏和仅编辑器可用的代码
+
+Frame_HotFix:可热更,项目框架层代码
+HotFix:可热更,项目应用层代码
+
+Frame_Game:不可热更,项目非热更代码的框架
+Game:不可热更,项目应用层代码,包含一些游戏启动逻辑

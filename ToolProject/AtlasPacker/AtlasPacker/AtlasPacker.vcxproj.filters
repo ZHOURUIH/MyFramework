@@ -1,0 +1,240 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Utility">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{c4812f77-04da-426d-9613-1a0dfcdef1f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FreeImage">
+      <UniqueIdentifier>{34a9c1f0-c495-44c7-830e-511df080ea56}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="STL">
+      <UniqueIdentifier>{4b5ede1d-fb6d-4273-bf4b-0a5122c52f60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Memory">
+      <UniqueIdentifier>{ffdc7a54-7f92-4054-860d-18e9043d63d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Thread">
+      <UniqueIdentifier>{ff39ed26-1561-4170-93a8-de4fa8a4f813}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Serialize">
+      <UniqueIdentifier>{dddc0fcc-c08b-4519-9aba-79c75c41dea1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math">
+      <UniqueIdentifier>{071a5e6c-6a95-4760-baee-999f48e1f065}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="md5">
+      <UniqueIdentifier>{18504be2-3e00-4628-a078-00235b1e15ed}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory\txMemoryCheck.cpp">
+      <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory\txMemoryTrace.cpp">
+      <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory\txShareMemoryServer.cpp">
+      <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Thread\CustomThread.cpp">
+      <Filter>Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="Thread\ThreadLock.cpp">
+      <Filter>Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="Thread\TimeLock.cpp">
+      <Filter>Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\ServerBase.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Serialize\txSerializedData.cpp">
+      <Filter>Serialize</Filter>
+    </ClCompile>
+    <ClCompile Include="Serialize\txSerializer.cpp">
+      <Filter>Serialize</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\ImageUtility.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="md5\md5.cpp">
+      <Filter>md5</Filter>
+    </ClCompile>
+    <ClCompile Include="STL\mySTL.cpp">
+      <Filter>STL</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\SystemUtility.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\BinaryUtility.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\FileUtility.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\FrameUtility.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\MathUtility.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\StringUtility.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Vector3.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Quaternion.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Vector2.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\Config.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Common\ServerDefine.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="FreeImage\FreeImage.h">
+      <Filter>FreeImage</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\MemoryInfo.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\txMemoryCheck.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\txMemoryTrace.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\txShareMemoryServer.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Thread\CustomThread.h">
+      <Filter>Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="Thread\ThreadLock.h">
+      <Filter>Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="Thread\TimeLock.h">
+      <Filter>Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\ServerBase.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\ServerCallback.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\ServerEnum.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\StreamBuffer.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\txSingleton.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\ImageDefine.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Serialize\txSerializedData.h">
+      <Filter>Serialize</Filter>
+    </ClInclude>
+    <ClInclude Include="Serialize\txSerializer.h">
+      <Filter>Serialize</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\ImageUtility.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="md5\md5.h">
+      <Filter>md5</Filter>
+    </ClInclude>
+    <ClInclude Include="STL\mySafeVector.h">
+      <Filter>STL</Filter>
+    </ClInclude>
+    <ClInclude Include="STL\mySet.h">
+      <Filter>STL</Filter>
+    </ClInclude>
+    <ClInclude Include="STL\myStack.h">
+      <Filter>STL</Filter>
+    </ClInclude>
+    <ClInclude Include="STL\mySTL.h">
+      <Filter>STL</Filter>
+    </ClInclude>
+    <ClInclude Include="STL\myVector.h">
+      <Filter>STL</Filter>
+    </ClInclude>
+    <ClInclude Include="STL\myMap.h">
+      <Filter>STL</Filter>
+    </ClInclude>
+    <ClInclude Include="STL\myQueue.h">
+      <Filter>STL</Filter>
+    </ClInclude>
+    <ClInclude Include="STL\mySafeMap.h">
+      <Filter>STL</Filter>
+    </ClInclude>
+    <ClInclude Include="STL\mySafeSet.h">
+      <Filter>STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\StringUtility.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\SystemUtility.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\BinaryUtility.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\FileUtility.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\FrameUtility.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\MathUtility.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vector2UShort.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vector3.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vector4.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vector4Int.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Quaternion.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vector2.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vector2Int.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\Config.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

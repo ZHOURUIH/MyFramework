@@ -1,5 +1,6 @@
 using UnityEditor;
 using UnityEngine;
+using static MathUtility;
 
 [CustomEditor(typeof(PaddingAnchor), true)]
 public class EditorPaddingAnchor : GameEditorBase
@@ -10,19 +11,19 @@ public class EditorPaddingAnchor : GameEditorBase
 		var paddingAnchor = target as PaddingAnchor;
 
 		bool modified = false;
-		var rectTrans = paddingAnchor.gameObject.GetComponent<RectTransform>();
+		paddingAnchor.gameObject.TryGetComponent<RectTransform>(out var rectTrans);
 		if (rectTrans != null && !Application.isPlaying)
 		{
 			bool needRefresh = false;
 			Vector3 curPos = rectTrans.localPosition;
-			if (!MathUtility.isVectorEqual(paddingAnchor.getLastPosition(), curPos))
+			if (!isVectorEqual(paddingAnchor.getLastPosition(), curPos))
 			{
 				paddingAnchor.setLastPosition(curPos);
 				needRefresh = true;
 				modified = true;
 			}
-			Vector2 curSize = WidgetUtility.getRectSize(rectTrans);
-			if (!MathUtility.isVectorEqual(paddingAnchor.getLastSize(), curSize))
+			Vector2 curSize = rectTrans.rect.size;
+			if (!isVectorEqual(paddingAnchor.getLastSize(), curSize))
 			{
 				paddingAnchor.setLastSize(curSize);
 				needRefresh = true;
@@ -34,16 +35,16 @@ public class EditorPaddingAnchor : GameEditorBase
 			}
 		}
 
-		modified |= toggle("AdjustFont", "是否同时调整字体大小", ref paddingAnchor.mAdjustFont);
-		modified |= displayInt("MinFontSize", "字体的最小尺寸", ref paddingAnchor.mMinFontSize);
+		modified |= toggle("调整字体大小", ref paddingAnchor.mAdjustFont);
+		modified |= displayInt("字体的最小尺寸", ref paddingAnchor.mMinFontSize);
 		// 类似于EditorGUILayout.EnumPopup这种方式显示属性是用于可以在编辑器修改,并且触发指定逻辑
-		var anchorMode = displayEnum("AnchorMode", "停靠类型", paddingAnchor.mAnchorMode);
+		ANCHOR_MODE anchorMode = displayEnum("停靠类型", paddingAnchor.mAnchorMode);
 		if (anchorMode != paddingAnchor.mAnchorMode)
 		{
 			modified = true;
 			paddingAnchor.setAnchorModeInEditor(anchorMode);
 		}
-		var relativePos = toggle("RelativePosition", "存储使用相对值还是绝对值", paddingAnchor.mRelativeDistance);
+		bool relativePos = toggle("是否存储相对值", paddingAnchor.mRelativeDistance);
 		if (relativePos != paddingAnchor.mRelativeDistance)
 		{
 			modified = true;
@@ -52,13 +53,13 @@ public class EditorPaddingAnchor : GameEditorBase
 		// 只是停靠到父节点的某个位置
 		if (paddingAnchor.mAnchorMode == ANCHOR_MODE.PADDING_PARENT_SIDE)
 		{
-			HORIZONTAL_PADDING horizontalPadding = displayEnum("HorizontalPaddingSide", "水平停靠类型", paddingAnchor.mHorizontalNearSide);
+			HORIZONTAL_PADDING horizontalPadding = displayEnum("水平停靠类型", "", paddingAnchor.mHorizontalNearSide);
 			if (horizontalPadding != paddingAnchor.mHorizontalNearSide)
 			{
 				modified = true;
 				paddingAnchor.setHorizontalNearSideInEditor(horizontalPadding);
 			}
-			VERTICAL_PADDING verticalPadding = displayEnum("VerticalPaddingSide", "竖直停靠类型", paddingAnchor.mVerticalNearSide);
+			VERTICAL_PADDING verticalPadding = displayEnum("竖直停靠类型", "", paddingAnchor.mVerticalNearSide);
 			if (verticalPadding != paddingAnchor.mVerticalNearSide)
 			{
 				modified = true;

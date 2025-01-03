@@ -1,7 +1,9 @@
 using UnityEngine;
 using UnityEditor;
-using static UnityUtility;
+using UnityEditor.SceneManagement; 
 using static FrameDefine;
+using static FrameDefineBase;
+using static UnityUtility;
 
 public class MenuAnchor
 {
@@ -22,7 +24,7 @@ public class MenuAnchor
 			Debug.LogError("选中的节点必须是" + UGUI_ROOT + "的一级子节点");
 			return;
 		}
-		if (go.GetComponent<Canvas>() == null)
+		if (!go.TryGetComponent<Canvas>(out _))
 		{
 			Debug.LogError("选中的节点必须拥有Canvas组件");
 			return;
@@ -36,13 +38,13 @@ public class MenuAnchor
 		}
 		// 设置摄像机的Z坐标为视图高的一半,设置画布根节点为屏幕大小
 		GameObject uguiRootObj = getGameObject(UGUI_ROOT);
-		RectTransform transform = uguiRootObj.GetComponent<RectTransform>();
-		transform.offsetMin = new Vector2(-gameViewSize.x * 0.5f, -gameViewSize.y * 0.5f);
-		transform.offsetMax = new Vector2(gameViewSize.x * 0.5f, gameViewSize.y * 0.5f);
+		uguiRootObj.TryGetComponent<RectTransform>(out var transform);
+		transform.offsetMin = new(-gameViewSize.x * 0.5f, -gameViewSize.y * 0.5f);
+		transform.offsetMax = new(gameViewSize.x * 0.5f, gameViewSize.y * 0.5f);
 		transform.anchorMax = Vector2.zero;
 		transform.anchorMin = Vector2.zero;
 		GameObject camera = getGameObject(UI_CAMERA, uguiRootObj, true);
-		camera.transform.localPosition = new Vector3(0.0f, 0.0f, -gameViewSize.y * 0.5f);
+		camera.transform.localPosition = new(0.0f, 0.0f, -gameViewSize.y * 0.5f);
 		applyAnchor(go, true);
 	}
 	[MenuItem(mAutoAnchorMenuName + "End PreviewAnchor %.")]
@@ -50,94 +52,79 @@ public class MenuAnchor
 	{
 		// 恢复摄像机设置
 		GameObject uguiRootObj = getGameObject(UGUI_ROOT);
-		RectTransform transform = uguiRootObj.GetComponent<RectTransform>();
-		transform.offsetMin = new Vector2(-STANDARD_WIDTH >> 1, -STANDARD_HEIGHT >> 1);
-		transform.offsetMax = new Vector2(STANDARD_WIDTH >> 1, STANDARD_HEIGHT >> 1);
+		uguiRootObj.TryGetComponent<RectTransform>(out var transform);
+		transform.offsetMin = new(-STANDARD_WIDTH >> 1, -STANDARD_HEIGHT >> 1);
+		transform.offsetMax = new(STANDARD_WIDTH >> 1, STANDARD_HEIGHT >> 1);
 		transform.anchorMax = Vector2.zero;
 		transform.anchorMin = Vector2.zero;
 		GameObject uguiCamera = getGameObject(UI_CAMERA, uguiRootObj, true);
-		uguiCamera.transform.localPosition = new Vector3(0.0f, 0.0f, -STANDARD_HEIGHT >> 1);
+		uguiCamera.transform.localPosition = new(0.0f, 0.0f, -STANDARD_HEIGHT >> 1);
 	}
 	[MenuItem(mAutoAnchorMenuName + mPaddingAnchorMenuName + "AddAnchor")]
 	public static void addPaddingAnchor()
 	{
-		if (Selection.gameObjects.Length <= 0)
+		if (!checkEditable())
 		{
 			return;
 		}
-
-		checkSelectSameParent();
-		int count = Selection.gameObjects.Length;
-		for (int i = 0; i < count; ++i)
+		foreach (GameObject go in Selection.gameObjects)
 		{
-			addPaddingAnchor(Selection.gameObjects[i]);
+			addPaddingAnchor(go);
 		}
 	}
 	[MenuItem(mAutoAnchorMenuName + mPaddingAnchorMenuName + "RemoveAnchor")]
 	public static void removePaddingAnchor()
 	{
-		if (Selection.gameObjects.Length <= 0)
+		if (!checkEditable())
 		{
 			return;
 		}
-
-		checkSelectSameParent();
-		int count = Selection.gameObjects.Length;
-		for (int i = 0; i < count; ++i)
+		foreach (GameObject go in Selection.gameObjects)
 		{
-			removePaddingAnchor(Selection.gameObjects[i]);
+			removePaddingAnchor(go);
 		}
 	}
 	[MenuItem(mAutoAnchorMenuName + mScaleAnchorMenuName + "AddAnchorKeepAspect &1")]
 	public static void addScaleAnchorKeepAspect()
 	{
-		if (Selection.gameObjects.Length <= 0)
+		if (!checkEditable())
 		{
 			return;
 		}
-
-		checkSelectSameParent();
-		int count = Selection.gameObjects.Length;
-		for (int i = 0; i < count; ++i)
+		foreach (GameObject go in Selection.gameObjects)
 		{
-			addScaleAnchor(Selection.gameObjects[i], true);
+			addScaleAnchor(go, true);
 		}
 	}
 	[MenuItem(mAutoAnchorMenuName + mScaleAnchorMenuName + "AddAnchor")]
 	public static void addScaleAnchor()
 	{
-		if (Selection.gameObjects.Length <= 0)
+		if (!checkEditable())
 		{
 			return;
 		}
-
-		checkSelectSameParent();
-		int count = Selection.gameObjects.Length;
-		for (int i = 0; i < count; ++i)
+		foreach (GameObject go in Selection.gameObjects)
 		{
-			addScaleAnchor(Selection.gameObjects[i], false);
+			addScaleAnchor(go, false);
 		}
 	}
 	[MenuItem(mAutoAnchorMenuName + mScaleAnchorMenuName + "RemoveAnchor &2")]
 	public static void removeScaleAnchor()
 	{
-		if (Selection.gameObjects.Length <= 0)
+		if (!checkEditable())
 		{
 			return;
 		}
-
-		checkSelectSameParent();
-		int count = Selection.gameObjects.Length;
-		for (int i = 0; i < count; ++i)
+		foreach (GameObject go in Selection.gameObjects)
 		{
-			removeScaleAnchor(Selection.gameObjects[i]);
+			removeScaleAnchor(go);
 		}
 	}
 	//-------------------------------------------------------------------------------------------------------------------
-	public static void addPaddingAnchor(GameObject obj)
+	protected static void addPaddingAnchor(GameObject obj)
 	{
 		// 先设置自己的Anchor
-		if (obj.GetComponent<PaddingAnchor>() == null)
+		if (obj.TryGetComponent<RectTransform>(out _) && !obj.TryGetComponent<PaddingAnchor>(out _))
 		{
 			obj.AddComponent<PaddingAnchor>().setAnchorMode(ANCHOR_MODE.STRETCH_TO_PARENT_SIDE);
 		}
@@ -147,13 +134,14 @@ public class MenuAnchor
 		{
 			addPaddingAnchor(obj.transform.GetChild(i).gameObject);
 		}
+		EditorUtility.SetDirty(obj);
 	}
-	public static void removePaddingAnchor(GameObject obj)
+	protected static void removePaddingAnchor(GameObject obj)
 	{
 		// 先销毁自己的Anchor
-		if (obj.GetComponent<PaddingAnchor>() != null)
+		if (obj.TryGetComponent<PaddingAnchor>(out var padding))
 		{
-			destroyGameObject(obj.GetComponent<PaddingAnchor>(), true);
+			destroyUnityObject(padding, true);
 		}
 		// 再销毁子节点的Anchor
 		int childCount = obj.transform.childCount;
@@ -161,34 +149,40 @@ public class MenuAnchor
 		{
 			removePaddingAnchor(obj.transform.GetChild(i).gameObject);
 		}
+		EditorUtility.SetDirty(obj);
 	}
-	public static void addScaleAnchor(GameObject obj, bool keepAspect)
+	protected static void addScaleAnchor(GameObject obj, bool keepAspect)
 	{
 		// 先设置自己的Anchor
-		var anchor = obj.GetComponent<ScaleAnchor>();
-		if (anchor == null)
+		if (obj.TryGetComponent<RectTransform>(out _))
 		{
-			anchor = obj.AddComponent<ScaleAnchor>();
+			if (!obj.TryGetComponent<ScaleAnchor>(out var anchor))
+			{
+				anchor = obj.AddComponent<ScaleAnchor>();
+			}
+			anchor.mKeepAspect = keepAspect;
 		}
-		if (anchor == null)
+		else
 		{
-			Debug.LogError("缩放锚点添加失败,GameObject:" + obj.name);
-			return;
+			if (!obj.TryGetComponent<ScaleAnchor3D>(out var _))
+			{
+				obj.AddComponent<ScaleAnchor3D>();
+			}
 		}
-		anchor.mKeepAspect = keepAspect;
 		// 再设置子节点的Anchor
 		int childCount = obj.transform.childCount;
 		for (int i = 0; i < childCount; ++i)
 		{
 			addScaleAnchor(obj.transform.GetChild(i).gameObject, keepAspect);
 		}
+		EditorUtility.SetDirty(obj);
 	}
-	public static void removeScaleAnchor(GameObject obj)
+	protected static void removeScaleAnchor(GameObject obj)
 	{
 		// 先销毁自己的Anchor
-		if (obj.GetComponent<ScaleAnchor>() != null)
+		if (obj.TryGetComponent<ScaleAnchor>(out var anchor))
 		{
-			destroyGameObject(obj.GetComponent<ScaleAnchor>(), true);
+			destroyUnityObject(anchor, true);
 		}
 		// 再销毁子节点的Anchor
 		int childCount = obj.transform.childCount;
@@ -196,10 +190,24 @@ public class MenuAnchor
 		{
 			removeScaleAnchor(obj.transform.GetChild(i).gameObject);
 		}
+		EditorUtility.SetDirty(obj);
 	}
-	//------------------------------------------------------------------------------------------------------------------------------
-	protected static bool checkSelectSameParent()
+	protected static bool checkEditable()
 	{
+		if (Selection.gameObjects.Length <= 0)
+		{
+			return false;
+		}
+		PrefabStage prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
+		if (prefabStage == null)
+		{
+			return false;
+		}
+		if (prefabStage.assetPath.StartsWith(P_RESOURCES_PATH))
+		{
+			Debug.LogError("编辑的是Resources的Prefab,请使用其他方式添加");
+			return false;
+		}
 		Transform parent = Selection.transforms[0].parent;
 		int count = Selection.gameObjects.Length;
 		for (int i = 1; i < count; ++i)

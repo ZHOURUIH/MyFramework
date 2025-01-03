@@ -1,0 +1,56 @@
+// 克隆仓库
+git clone 仓库地址
+
+// 将没有加入版本库的文件标记为需要添加到版本库
+git add 文件名
+
+// 提交所有修改文件到本地
+git commit -m 提交日志
+
+// 从远端拉取提交内容到本地
+git pull
+
+// 推送本地已提交的修改到远端
+git push
+
+// 查看本地所有文件的状态
+git status
+
+// 查看指定文件的修改内容
+git diff 文件名
+
+// 切换到指定分支,或者还原指定文件的修改
+git checkout 分支名或者文件名
+
+// 基于当前分支新建本地分支
+git checkout -b 分支名
+
+// 将本地的指定分支合并到当前分支
+git merge 分支名
+
+// 查看日志
+git log
+
+// 查看本地分支列表
+git branch
+
+// 查看本地和远端分支列表
+git branch -a
+
+// 查看远端分支列表
+git branch -r
+
+// 删除本地分支,会检查merge状态
+git branch -d
+
+// 强制删除本地分支
+git branch -D
+
+// 删除远端分支,origin是远端的路径
+// 比如查看远端分支时显示remotes/origin/test0,则命令就是git push origin --delete test0
+// 比如查看远端分支时显示remotes/local/test0,则命令就是git push local --delete test0
+git push origin --delete 分支名
+
+// 将本地完全还原到远端状态,相当于删除以后重新克隆,会丢弃所有未push,未commit的修改
+// 比如查看远端分支时显示remotes/origin/test0,则命令就是git reset --hard origin/test0
+git reset --hard 远端分支名

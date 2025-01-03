@@ -1,0 +1,45 @@
+运行游戏
+1.克隆项目
+2.用unity打开,如果编辑器有报错,则解决报错.
+3.打开HotFix.sln,进行编译.编译会自动将编译出的dll拷贝到StreamingAssets对应目录下.
+4.在unity中按F5开始运行游戏.F5,F6,F7分别对应运行,暂停,单步运行三个按钮.F5会自动打开start.unity场景并且开始运行游戏.
+  提示:一般我习惯按F5以后自动跳转到Game视图,如果你也希望如此,可以在Game视图中选择Play Focused
+
+表格操作
+目前暂时使用的是SQLite进行表格配置,后续有时间可以改为其他的,看策划的意思.
+1.游戏中是不会使用SQLite原始表格文件,需要进行一次转换,转换为二进制的才能读取.
+  不直接读取的原因:SQLite提供了C#读写的接口,但是只能读写明文的表格文件,无法读取加密的表格文件.所以为了客户端安全,需要进行转换.(虽然也不能说绝对安全,至少提高了破解门槛).
+  某些情况下会优先选择读写SQLite原始文件:表格数据量比较大,比如几万几十万行数据.读取转换后的文件会非常耗时,读写SQLite原始表格会快很多.
+2.有三个涉及到的目录,SQLite,自动处理工具,自动生成代码.
+  SQLite:存放SQLite原始表格文件.db格式的.可以使用DB Browser for SQLite打开.
+  自动处理工具:里面目前只有一个转换表格的工具,用于将db转换为.bytes,转换后会存放到Assets/GameResources/Excel目录,名字叫Excel也是因为之前的项目是使用的Excel配置的数据
+      配置:复制一份SQLiteToBinaryTableConfigTemplate.txt,改名为SQLiteToBinaryTableConfig.txt,然后打开此文件,将其中的目录改为自己的本地目录
+  自动生成代码:这个工具的工程源文件在Codegenerator_SheepVallige中.是用于根据配置自动生成代码,目前只有生成SQLite的表格读写代码.HotFix/Game/DataBase/Excel下的Data和Table目录中的代码都是自动生成的.
+      配置:复制一份CodeGenerator_Config_Template.txt,改名为CodeGenerator_Config.txt,然后打开此文件,将其中的目录改为自己的本地目录
+所以一般在修改表格后,需要进行以下操作才能在游戏中生效.
+1.运行CodeGenerator_SheepVallige.exe生成对应的代码(如果表格结构没有改变,也没有新增删除表格,则不需要进行此操作)
+2.运行SQLiteToBinaryTable.exe转换表格文件
+
+添加界面
+1.复制一份现有的HotFix/UI/Script下的一个UI脚本文件.改个名字,比如UITest,将其中的类名也改为UITest
+2.在FrameEnumExtra.cs中的LAYOUT_ILR中添加一个界面ID,public static int TEST,ID的值一般顺延
+3.在LayoutRegisterILR.cs中的registerAll函数中添加一行registeLayout<UITest>(LAYOUT_ILR.TEST, "UITest");
+// 如果此脚本会在代码中其他地方进行访问,则需要进行一下操作添加静态变量
+4.在GameBaseILR.cs中添加一行public static UITest mUITest;
+5.在LayoutRegisterILR.cs中的onScriptChanged函数中添加一行if (assign(ref mUITest, script, created)) return;
+
+对象池的使用
+列表类型的对象池
+  如果只是临时使用的列表,可以使用ListScopeILR,有些时候用ListScope不会报错也行
+  持久使用的列表,可以用FrameUtilityILR.LIST_ILR_PERSIST,不过需要注意,在不用的时候要手动使用FrameUtilityILR.UN_LIST_ILR回收
+类对象的对象池
+  临时使用的对象可以用ClassScopeILR
+  持久使用的对象使用FrameUtilityILR.CLASS,也是需要手动进行回收.
+  此类对象需要继承自ClassObject,并且需要重写resetProperty函数,将此类的成员变量重置到刚构造结束的状态(这一点非常重要!!!!菜单可以检查出有没有漏掉成员变量)
+Prefab的对象池
+  PrefabPoolManager.createObject或者createObjectAsync,需要使用PrefabPoolManager.destroyObject进行回收,而且不允许在外部对其进行销毁.
+GameObject的对象池
+  GameObjectPool.newObject,需要使用GameObjectPool.destroyObject进行回收
+  
+字符串
+字符串的操作都在StringUtility有提供函数,包括拼接,转换数字,拆分,查找,文件名相关操作

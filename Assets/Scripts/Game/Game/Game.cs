@@ -1,45 +1,30 @@
-﻿using System;
-using static FrameUtility;
+﻿using static FrameUtility;
 using static FrameBase;
-#if USE_ILRUNTIME
-using ILRAppDomain = ILRuntime.Runtime.Enviorment.AppDomain;
-#endif
+using static GameUtility;
+using static GameDefine;
 
 public class Game : GameFramework
 {
-	//-------------------------------------------------------------------------------------------------------------
-	protected override void initFrameSystem()
+	public override void Awake()
 	{
-		base.initFrameSystem();
-		registeFrameSystem(typeof(BattleSystem));
-	}
-	protected override void init()
-	{
-		base.init();
-		mLayoutManager.setUseAnchor(false);
-#if USE_ILRUNTIME
-		mILRSystem.setInitILRFunc((ILRAppDomain appdomain) =>
+		mOnInitFrameSystem += gameInitFrameSystem;
+		mOnRegisteStuff += gameRegiste;
+		// 这里填写自己的安卓插件包名
+		mOnPackageName += () => { return ANDROID_PLUGIN_BUNDLE_NAME; };
+
+		base.Awake();
+		// 编辑器中或者不下载资源时就强制从StreamingAssets中读取资源
+		if (!isHotFixEnable())
 		{
-			ILRLaunchExtension ilr = new ILRLaunchExtension();
-			ilr.onILRuntimeInitialized(appdomain);
-		});
-#endif
+			AssetVersionSystem.setReadPathType(ASSET_READ_PATH.STREAMING_ASSETS_ONLY);
+		}
+		mScreenOrientationSystem.setAndroidOrientation(ANDROID_ORIENTATION.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+		enterScene<StartScene>();
 	}
-	protected override void notifyBase()
-	{
-		base.notifyBase();
-		// 所有类都构造完成后通知GameBase
-		GameBase.constructGameDone();
-	}
-	protected override void registe()
+	//-------------------------------------------------------------------------------------------------------------
+	protected void gameInitFrameSystem(){}
+	protected void gameRegiste()
 	{
 		LayoutRegister.registeAllLayout();
-		SQLiteRegisterMain.registeAllTable();
-		PacketRegister.registeAllPacket();
-	}
-	protected override void launch()
-	{
-		base.launch();
-		enterScene<StartScene>();
 	}
 }

@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEditor.SceneManagement;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using UObject = UnityEngine.Object;
 using static WidgetUtility;
 using static MathUtility;
 using static EditorCommonUtility;
 using static FileUtility;
 using static FrameDefine;
+using static FrameDefineBase;
 
 public class MenuShortcutOperation
 {
@@ -54,9 +55,10 @@ public class MenuShortcutOperation
 			return;
 		}
 		EditorUtility.SetDirty(go);
-		roundTransformToInt(go.GetComponent<Transform>());
+		go.TryGetComponent<Transform>(out var trans);
+		roundTransformToInt(trans);
 	}
-	[MenuItem("快捷操作/调整父节点使其完全包含所有子节点的范围", false, 31)]
+	[MenuItem("快捷操作/调整父节点使其完全包含所有子节点的范围 %E", false, 31)]
 	public static void adjustParentRect()
 	{
 		var selection = Selection.activeGameObject.transform as RectTransform;
@@ -65,61 +67,31 @@ public class MenuShortcutOperation
 			Debug.LogError("节点必须有RectTransform组件");
 			return;
 		}
-
-		// 获得父节点的四个边界
-		float left = float.MaxValue;
-		float right = float.MinValue;
-		float top = float.MinValue;
-		float bottom = float.MaxValue;
-		int childCount = selection.childCount;
-		if (childCount == 0)
+		if (selection.childCount == 0)
 		{
 			Debug.LogError("选择的节点没有子节点");
 			return;
 		}
-		var childWorldPositionList = new Dictionary<RectTransform, Vector3>();
-		for (int i = 0; i < childCount; ++i)
-		{
-			var child = selection.GetChild(i) as RectTransform;
-			if (child == null)
-			{
-				Debug.LogError("子节点必须有RectTransform组件");
-				return;
-			}
-			Vector2 size = getRectSize(child);
-			Vector3 pos = child.position;
-			left = getMin(pos.x - size.x * 0.5f, left);
-			right = getMax(pos.x + size.x * 0.5f, right);
-			top = getMax(pos.y + size.y * 0.5f, top);
-			bottom = getMin(pos.y - size.y * 0.5f, bottom);
-			childWorldPositionList.Add(child, pos);
-		}
-
-		// 设置父节点新的位置和大小,重新设置所有子节点的世界坐标
-		selection.position = new Vector3(ceil((right + left) * 0.5f), ceil((top + bottom) * 0.5f));
-		setRectSize(selection, new Vector2(ceil(right - left), ceil(top - bottom)));
-		foreach (var item in childWorldPositionList)
-		{
-			item.Key.position = item.Value;
-		}
+		adjustRectTransformToContainsAllChildRect(selection);
 	}
 	[MenuItem("快捷操作/删除所有空文件夹", false, 32)]
 	public static void deleteAllEmptyFolder()
 	{
 		deleteEmptyFolder(F_GAME_RESOURCES_PATH);
+		AssetDatabase.Refresh();
 	}
 	[MenuItem("快捷操作/修复MeshCollider的模型引用", false, 33)]
 	public static void fixMeshCollider()
 	{
 		GameObject[] selectObj = Selection.gameObjects;
-		if (selectObj == null || selectObj.Length == 0)
+		if (selectObj.isEmpty())
 		{
 			Debug.LogError("需要在Hierarchy中选中一个节点");
 			return;
 		}
 
 		bool modified = false;
-		foreach (var item in selectObj)
+		foreach (GameObject item in selectObj)
 		{
 			modified |= fixMeshOfMeshCollider(item);
 		}
@@ -139,7 +111,7 @@ public class MenuShortcutOperation
 		}
 
 		// 对选中的所有对象遍历生成角色控制器
-		foreach (var item in objects)
+		foreach (GameObject item in objects)
 		{
 			var renderers = item.GetComponentsInChildren<Renderer>();
 			if (renderers == null)
@@ -147,7 +119,7 @@ public class MenuShortcutOperation
 				continue;
 			}
 			Vector3 center = Vector3.zero;
-			foreach (var render in renderers)
+			foreach (Renderer render in renderers)
 			{
 				center += render.bounds.center;
 			}
@@ -156,16 +128,15 @@ public class MenuShortcutOperation
 				center /= renderers.Length;
 			}
 			// 计算包围盒
-			Bounds bounds = new Bounds(center, Vector3.zero);
-			foreach (var render in renderers)
+			Bounds bounds = new(center, Vector3.zero);
+			foreach (Renderer render in renderers)
 			{
 				bounds.min = getMinVector3(bounds.min, render.bounds.min);
 				bounds.max = getMaxVector3(bounds.max, render.bounds.max);
 			}
 
 			// 创建角色控制器并设置参数
-			var controller = item.GetComponent<CharacterController>();
-			if (controller == null)
+			if (!item.TryGetComponent<CharacterController>(out var controller))
 			{
 				controller = item.AddComponent<CharacterController>();
 			}
@@ -173,7 +144,7 @@ public class MenuShortcutOperation
 			// 生成的高度不能小于半径的2倍,且不能大于4
 			controller.height = bounds.size.y;
 			controller.radius = clamp(bounds.size.x * 0.5f, 0.001f, controller.height * 0.5f);
-			controller.center = new Vector3(0.0f, bounds.center.y - bounds.size.y * 0.5f + controller.height * 0.5f, 0.0f);
+			controller.center = new(0.0f, bounds.center.y - bounds.size.y * 0.5f + controller.height * 0.5f, 0.0f);
 			controller.slopeLimit = 80.0f;
 			controller.stepOffset = clampMax(0.3f, controller.height + controller.radius * 2.0f);
 			controller.enabled = true;
@@ -191,9 +162,12 @@ public class MenuShortcutOperation
 		}
 		Vector3 scale = go.transform.localScale;
 		var transforms = go.transform.GetComponentsInChildren<RectTransform>(true);
-		foreach (var item in transforms)
+		foreach (RectTransform item in transforms)
 		{
-			item.localPosition = multiVector3(item.localPosition, scale);
+			if (item != go.transform)
+			{
+				item.localPosition = multiVector3(item.localPosition, scale);
+			}
 			setRectSize(item, multiVector2(item.rect.size, scale));
 		}
 		go.transform.localScale = Vector3.one;
@@ -201,33 +175,28 @@ public class MenuShortcutOperation
 	[MenuItem("快捷操作/将Image替换为SpriteRenderer &Q", false, 36)]
 	public static void imageToSpriteRenderer()
 	{
-		GameObject[] objects = Selection.gameObjects;
-		if (objects == null)
+		if (Selection.gameObjects == null)
 		{
 			Debug.LogError("需要在Hierarchy中选中一个节点");
 			return;
 		}
-		for (int i = 0; i < objects.Length; ++i)
+		foreach (GameObject go in Selection.gameObjects)
 		{
-			GameObject go = objects[i];
 			Sprite sprite = null;
 			Material material = null;
-			var image = go.GetComponent<Image>();
-			if (image != null)
+			if (go.TryGetComponent<Image>(out var image))
 			{
 				sprite = image.sprite;
 				material = image.material;
-				GameObject.DestroyImmediate(image);
+				UObject.DestroyImmediate(image);
 			}
-			var canvasRenderer = go.GetComponent<CanvasRenderer>();
-			if (canvasRenderer != null)
+			if (go.TryGetComponent<CanvasRenderer>(out var canvasRenderer))
 			{
-				GameObject.DestroyImmediate(canvasRenderer);
+				UObject.DestroyImmediate(canvasRenderer);
 			}
-			var spriteRenderer = go.GetComponent<SpriteRenderer>();
-			if (spriteRenderer == null)
+			if (!go.TryGetComponent<SpriteRenderer>(out _))
 			{
-				spriteRenderer = go.AddComponent<SpriteRenderer>();
+				var spriteRenderer = go.AddComponent<SpriteRenderer>();
 				spriteRenderer.sprite = sprite;
 				spriteRenderer.material = material;
 			}
@@ -236,21 +205,52 @@ public class MenuShortcutOperation
 	[MenuItem("快捷操作/将字体设置为宋体 &W", false, 36)]
 	public static void setFontToSimsun()
 	{
-		GameObject[] objects = Selection.gameObjects;
-		if (objects == null)
+		if (Selection.gameObjects == null)
 		{
 			Debug.LogError("需要在Hierarchy中选中一个节点");
 			return;
 		}
-		for (int i = 0; i < objects.Length; ++i)
+		foreach (GameObject go in Selection.gameObjects)
 		{
-			var text = objects[i].GetComponent<Text>();
-			if (text == null)
+			if (!go.TryGetComponent<Text>(out var text))
 			{
 				continue;
 			}
 			text.font = AssetDatabase.LoadAssetAtPath<Font>(P_GAME_RESOURCES_PATH + "Font/simsunFull.ttf");
-			EditorUtility.SetDirty(objects[i]);
+			EditorUtility.SetDirty(go);
+		}
+	}
+	[MenuItem("快捷操作/打开PersistentDataPath", false, 37)]
+	public static void openPersistentDataPath()
+	{
+		EditorUtility.RevealInFinder(F_PERSISTENT_DATA_PATH);
+	}
+	[MenuItem("快捷操作/打开TemporaryCachePath", false, 38)]
+	public static void openTemporaryCachePath()
+	{
+		EditorUtility.RevealInFinder(F_TEMPORARY_CACHE_PATH);
+	}
+	[MenuItem("快捷操作/初始化版本号文件", false, 39)]
+	public static void initVersionFile()
+	{
+		if (!isFileExist(F_ASSET_BUNDLE_PATH + VERSION))
+		{
+			writeTxtFile(F_ASSET_BUNDLE_PATH + VERSION, "0.0.0");
+		}
+	}
+	[MenuItem("快捷操作/初始化AOTGenericReferences", false, 40)]
+	public static void initAOTGenericReference()
+	{
+		if (!isFileExist(F_ASSETS_PATH + "HybridCLRGenerate/AOTGenericReferences.cs"))
+		{
+			string str = "using System.Collections.Generic;\n";
+			str += "\n";
+			str += "public class AOTGenericReferences\n";
+			str += "{\n";
+			str += "\tpublic static List<string> PatchedAOTAssemblyList = new();\n";
+			str += "}";
+			writeTxtFile(F_ASSETS_PATH + "HybridCLRGenerate/AOTGenericReferences.cs", str);
+			AssetDatabase.Refresh();
 		}
 	}
 }

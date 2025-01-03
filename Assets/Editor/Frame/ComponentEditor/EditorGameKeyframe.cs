@@ -21,43 +21,38 @@ public class EditorGameKeyframe : GameEditorBase
 		DrawCommonProperties();
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected void DrawCommonProperties ()
+	protected void DrawCommonProperties()
 	{
 		List<CurveInfo> deleteKeyList = null;
 		var keyframe = target as GameKeyframe;
-		if(keyframe.mCurveList != null)
+		foreach (CurveInfo item in keyframe.mCurveList.safe())
 		{
-			foreach (var item in keyframe.mCurveList)
+			beginContents();
+			if (GUILayout.Button("X", GUILayout.Width(20)))
 			{
-				beginContents();
-				if (GUILayout.Button("X", GUILayout.Width(20)))
-				{
-					if (deleteKeyList == null)
-					{
-						deleteKeyList = new List<CurveInfo>();
-					}
-					deleteKeyList.Add(item);
-				}
-				else
-				{
-					GUI.changed = false;
-					EditorGUILayout.CurveField(item.mID.ToString(), item.mCurve, GUILayout.Width(170f), GUILayout.Height(62f));
-					// 如果曲线有改动,则标记整个预设有改动
-					if (GUI.changed)
-					{
-						EditorUtility.SetDirty(target);
-					}
-				}
-				endContents();
+				deleteKeyList ??= new();
+				deleteKeyList.Add(item);
 			}
+			else
+			{
+				GUI.changed = false;
+				EditorGUILayout.CurveField(item.mID.ToString(), item.mCurve, GUILayout.Width(170f), GUILayout.Height(62f));
+				// 如果曲线有改动,则标记整个预设有改动
+				if (GUI.changed)
+				{
+					EditorUtility.SetDirty(target);
+				}
+			}
+			endContents();
 		}
-		if(deleteKeyList != null)
+		if (deleteKeyList == null)
 		{
-			foreach(var item in deleteKeyList)
-			{
-				keyframe.destroyKeyframe(item);
-			}
-			EditorUtility.SetDirty(target);
+			return;
 		}
+		foreach (CurveInfo item in deleteKeyList)
+		{
+			keyframe.destroyKeyframe(item);
+		}
+		EditorUtility.SetDirty(target);
 	}
 }

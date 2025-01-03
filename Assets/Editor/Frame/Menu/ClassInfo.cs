@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 public class ClassInfo
 {
-	public List<string> mLines;
+	public List<string> mLines = new();
 	public string mFilePath;
 	public int mFunctionLine;
-	public ClassInfo()
-	{
-		mLines = new List<string>();
-	}
 }
