@@ -1,6 +1,6 @@
 ﻿using System;
 using static UnityUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameEditorUtility;
 
 // 用来代替普通的long类型,防止内存被修改器修改
@@ -23,7 +23,7 @@ public struct MostSafeLong : IEquatable<MostSafeLong>
 			{
 				logError("校验失败");
 			}
-			mGameFramework.onMemoryModified(9, 0, 0, 0, 0);
+			mGameFrameworkHotFix.onMemoryModified(9, 0, 0, 0, 0);
 		}
 		return curValue;
 	}

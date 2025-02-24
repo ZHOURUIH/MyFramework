@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-// 用于等待多个协程执行完成
+// 用于等待多个协程执行完成,可设置回调,适合在任意时刻使用
 public class AsyncTaskGroup : ClassObject
 {
 	public List<IEnumerator> mEnumerators = new();	// 协程迭代器列表

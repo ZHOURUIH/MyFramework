@@ -1,5 +1,5 @@
 ﻿using System;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // 设置布局的显示隐藏
 public class CmdLayoutManagerVisible

@@ -405,7 +405,7 @@ public class MathUtility
 			bool isMinus = ret < 0;
 			ret = abs(ret);
 			// 将括号中的计算结果替换原来的表达式,包括括号也一起替换
-			str = replace(str, curPos, curPos + strInBracket.Length + 2, Math.Round(ret, 4).ToString());
+			str = str.replace(curPos, curPos + strInBracket.Length + 2, Math.Round(ret, 4).ToString());
 			if (isMinus)
 			{
 				// 如果括号中计算出来是负数,则将负号提取出来,将左边的第一个加减号改为相反的符号
@@ -415,7 +415,7 @@ public class MathUtility
 					// 找到第一个+号,则直接改为减号,然后退出遍历
 					if (str[i] == '+')
 					{
-						replace(str, i, i + 1, "-");
+						str = str.replace(i, i + 1, "-");
 						changeMark = true;
 						break;
 					}
@@ -425,7 +425,7 @@ public class MathUtility
 					{
 						if (isNumeric(str[i - 1]))
 						{
-							replace(str, i, i + 1, "+");
+							str = str.replace(i, i + 1, "+");
 						}
 						else
 						{

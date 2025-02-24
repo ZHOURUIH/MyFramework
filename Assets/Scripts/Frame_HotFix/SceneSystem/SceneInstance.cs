@@ -18,7 +18,7 @@ public class SceneInstance : DelayCmdWatcher
 	protected LOAD_STATE mState;                // 加载状态
 	public SceneInstance()
 	{
-		mState = LOAD_STATE.UNLOAD;
+		mState = LOAD_STATE.NONE;
 	}
 	public virtual void init()
 	{
@@ -43,7 +43,7 @@ public class SceneInstance : DelayCmdWatcher
 		mActiveLoaded = false;
 		mMainScene = false;
 		mInited = false;
-		mState = LOAD_STATE.UNLOAD;
+		mState = LOAD_STATE.NONE;
 	}
 	public override void destroy()
 	{

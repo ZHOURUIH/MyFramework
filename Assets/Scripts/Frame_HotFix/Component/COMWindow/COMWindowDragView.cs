@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static MathUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // 实现类似与ScrollView的功能的组件,可滑动组件,用于定义窗口的拖拽滑动操作
 public class COMWindowDragView : GameComponent

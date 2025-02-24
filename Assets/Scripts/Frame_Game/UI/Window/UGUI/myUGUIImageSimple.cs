@@ -19,22 +19,6 @@ public class myUGUIImageSimple : myUGUIObject
 	}
 	public override bool canUpdate() { return !isCulled() && base.canUpdate(); }
 	public override bool canGenerateDepth() { return !isCulled(); }
-	public void setRenderQueue(int renderQueue)
-	{
-		if (mImage == null || mImage.material == null)
-		{
-			return;
-		}
-		mImage.material.renderQueue = renderQueue;
-	}
-	public int getRenderQueue()
-	{
-		if (mImage == null || mImage.material == null)
-		{
-			return 0;
-		}
-		return mImage.material.renderQueue;
-	}
 	// 只设置图片,不关心所在图集,一般不会用到此函数,只有当确认要设置的图片与当前图片不在同一图集时才会使用
 	// 并且需要自己保证设置不同图集的图片以后不会有什么问题
 	public void setSpriteOnly(Sprite sprite, bool useSpriteSize = false, float sizeScale = 1.0f)
@@ -64,18 +48,6 @@ public class myUGUIImageSimple : myUGUIObject
 	public Image getImage() { return mImage; }
 	public Sprite getSprite() { return mImage.sprite; }
 	public void setMaterial(Material material) { mImage.material = material; }
-	public void setShader(Shader shader, bool force)
-	{
-		if(mImage == null || mImage.material == null)
-		{
-			return;
-		}
-		if (force)
-		{
-			mImage.material.shader = null;
-			mImage.material.shader = shader;
-		}
-	}
 	public string getSpriteName()
 	{
 		if(mImage == null || mImage.sprite == null)

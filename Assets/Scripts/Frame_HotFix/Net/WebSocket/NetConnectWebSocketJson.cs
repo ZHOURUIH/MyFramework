@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net.WebSockets;
 using Newtonsoft.Json;
 using static UnityUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static BinaryUtility;
 using static CSharpUtility;
 using static TimeUtility;

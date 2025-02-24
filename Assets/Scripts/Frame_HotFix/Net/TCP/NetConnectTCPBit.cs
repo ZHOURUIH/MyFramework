@@ -1,5 +1,5 @@
 ﻿using static UnityUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static BinaryUtility;
 using static MathUtility;
 using static FrameUtility;
@@ -196,17 +196,6 @@ public class NetConnectTCPBit : NetConnectTCP
 		{
 			UN_ARRAY_BYTE_THREAD(ref outPacket);
 			return PARSE_RESULT.NOT_ENOUGH;
-		}
-
-		// 客户端接收到的必须是SC类型的
-		if (!(packetType > SC_GAME_MIN && packetType < SC_GAME_MAX) && 
-			!(packetType > SC_GAME_CORE_MIN && packetType < SC_GAME_CORE_MAX))
-		{
-			UN_ARRAY_BYTE_THREAD(ref outPacket);
-			logError("包类型错误:" + packetType);
-			debugHistoryPacket();
-			mInputBuffer.clear();
-			return PARSE_RESULT.ERROR;
 		}
 
 		// 确认此消息的数据接收完全以后再验证序列号

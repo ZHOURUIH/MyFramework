@@ -2,7 +2,7 @@
 using static UnityUtility;
 using static MathUtility;
 using static CSharpUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameEditorUtility;
 
 // 用来代替普通的long类型,防止内存被修改器修改,由于用到了随机数,所以只能在主线程使用
@@ -54,7 +54,7 @@ public struct SafeLong : IEquatable<SafeLong>
 			{
 				logError("校验失败");
 			}
-			mGameFramework.onMemoryModified(1, wgikowneg, hwweg, kgjwe, wgihwne);
+			mGameFrameworkHotFix.onMemoryModified(1, wgikowneg, hwweg, kgjwe, wgihwne);
 		}
 		long value = 0;
 		switch (hwweg)
@@ -75,7 +75,7 @@ public struct SafeLong : IEquatable<SafeLong>
 			{
 				logError("校验失败");
 			}
-			mGameFramework.onMemoryModified(2, wgikowneg, hwweg, kgjwe, wgihwne);
+			mGameFrameworkHotFix.onMemoryModified(2, wgikowneg, hwweg, kgjwe, wgihwne);
 		}
 		return curValue;
 	}

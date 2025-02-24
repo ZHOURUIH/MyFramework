@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using static UnityUtility;
 using static StringUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameDefine;
 
 // 对UGUI的Image的封装,普通版本,提供替换图片的功能,UGUI的静态图片不支持递归变化透明度
@@ -11,7 +11,7 @@ public class myUGUIImage : myUGUIImageSimple
 	protected List<UGUIAtlasPtr> mOriginAtlasPtr = new();	// 图片图集,用于卸载,当前类只关心初始图集的卸载,后续再次设置的图集不关心是否需要卸载,需要外部设置的地方自己关心
 	protected List<UGUIAtlasPtr> mAtlasPtrList = new();		// 图片图集,为了支持多图集,也就是原本属于同一个图集里的图片,但是由于一个图集装不下而不得不拆分到多个图集中,所以使用List类型存储
 	protected Sprite mOriginSprite;							// 备份加载物体时原始的精灵图片
-	protected string mOriginTextureName;					// 初始图片的名字,用于外部根据初始名字设置其他效果的图片
+	protected string mOriginSpriteName;						// 初始图片的名字,用于外部根据初始名字设置其他效果的图片
 	protected bool mOriginAtlasInResources;					// OriginAtlas是否是从Resources中加载的
 	public override void init()
 	{
@@ -29,17 +29,17 @@ public class myUGUIImage : myUGUIImageSimple
 			UGUIAtlasPtr originAtlas = null;
 			string atlasPath = imageAtlasPath.mAtlasPath;
 			// unity_builtin_extra是unity内置的资源,不需要再次加载
-			if (!atlasPath.EndsWith("/unity_builtin_extra"))
+			if (!atlasPath.endWith("/unity_builtin_extra"))
 			{
 				mOriginAtlasInResources = mLayout.isInResources();
 				if (mOriginAtlasInResources)
 				{
-					removeStartString(ref atlasPath, P_RESOURCES_PATH);
+					atlasPath = atlasPath.removeStartString(P_RESOURCES_PATH);
 					originAtlas = mTPSpriteManager.getAtlasInResources(atlasPath, false, true);
 				}
 				else
 				{
-					removeStartString(ref atlasPath, P_GAME_RESOURCES_PATH);
+					atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
 					originAtlas = mTPSpriteManager.getAtlas(atlasPath, false, true);
 				}
 				if (originAtlas == null || !originAtlas.isValid())
@@ -87,7 +87,7 @@ public class myUGUIImage : myUGUIImageSimple
 			}
 			mAtlasPtrList.AddRange(mOriginAtlasPtr);
 		}
-		mOriginTextureName = getSpriteName();
+		mOriginSpriteName = getSpriteName();
 	}
 	public override void destroy()
 	{
@@ -147,18 +147,17 @@ public class myUGUIImage : myUGUIImageSimple
 		mLocalizationManager.registeLocalization(this, chineseSpriteName);
 		collection.addLocalizationObject(this);
 	}
-	public string getOriginTextureName() { return mOriginTextureName; }
-	public void setOriginTextureName(string textureName) { mOriginTextureName = textureName; }
+	public string getOriginSpriteName() { return mOriginSpriteName; }
+	public void setOriginSpriteName(string textureName) { mOriginSpriteName = textureName; }
 	// 自动计算图片的原始名称,也就是不带后缀的名称,后缀默认以_分隔
-	public void generateOriginTextureName(char key = '_')
+	public void generateOriginSpriteName(char key = '_')
 	{
-		int pos = mOriginTextureName.LastIndexOf(key);
-		if (pos < 0)
+		if (!mOriginSpriteName.Contains(key))
 		{
-			logError("texture name is not valid!can not generate origin texture name, texture name : " + mOriginTextureName);
+			logError("texture name is not valid!can not generate origin texture name, texture name : " + mOriginSpriteName);
 			return;
 		}
-		mOriginTextureName = mOriginTextureName.rangeToLastInclude(key);
+		mOriginSpriteName = mOriginSpriteName.rangeToLastInclude(key);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected Sprite getSpriteInAtlas(string spriteName)

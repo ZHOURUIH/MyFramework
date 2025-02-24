@@ -2,7 +2,7 @@
 using UnityEngine;
 using static StringUtility;
 using static CSharpUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using System;
 
 // 摄像机调试信息
@@ -17,7 +17,7 @@ public class CameraDebug : MonoBehaviour
 	public List<string> ActiveComponent = new();	// 激活的组件列表
 	public void Update()
 	{
-		if (mGameFramework == null || !mGameFramework.mParam.mEnableScriptDebug)
+		if (mGameFrameworkHotFix == null || !mGameFrameworkHotFix.mParam.mEnableScriptDebug)
 		{
 			return;
 		}

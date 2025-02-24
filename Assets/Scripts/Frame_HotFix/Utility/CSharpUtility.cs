@@ -685,21 +685,6 @@ public class CSharpUtility
 	{
 		return Dns.GetHostAddresses(hostName).getSafe(0);
 	}
-	public static T peekLast<T>(List<T> list)
-	{
-		return list.getSafe(list.Count - 1);
-	}
-	public static T popFirst<T>(HashSet<T> list)
-	{
-		T elem = default;
-		foreach(T item in list)
-		{
-			elem = item;
-			break;
-		}
-		list.Remove(elem);
-		return elem;
-	}
 	public static bool isEnumValid<T>(T value) where T : Enum
 	{
 		return typeof(T).IsEnumDefined(value);
@@ -725,40 +710,14 @@ public class CSharpUtility
 		Kernel32.WaitForSingleObject(processinfo.hProcess, timeout);
 		return result;
 	}
-	// 直接执行命令行
-	public static void executeCmd(string[] cmdList, bool showError, bool showInfo, StringCallback infoCallback = null)
+	// 以批处理方式运行exe
+	public static void executeExeBatch(string workingDir, string fullExePath, string args, bool showError = true, bool showInfo = true, StringCallback infoCallback = null)
 	{
-		string args = "";
-		int count = cmdList.Length;
-		for (int i = 0; i < count; ++i)
-		{
-			log(cmdList[i]);
-			args += cmdList[i];
-			if (i != count - 1)
-			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-				{
-					args += " & ";
-				}
-				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-				{
-					args += " ; ";
-				}
-			}
-		}
-
 		using Process process = new();
 		ProcessStartInfo startInfo = process.StartInfo;
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-		{
-			startInfo.FileName = "cmd.exe";
-			startInfo.Arguments = "/c " + args;
-		}
-		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-		{
-			startInfo.FileName = "/bin/bash";
-			startInfo.Arguments = "-c \"" + args + "\"";
-		}
+		startInfo.FileName = fullExePath;
+		startInfo.Arguments = args;
+		startInfo.WorkingDirectory = workingDir;
 		startInfo.CreateNoWindow = true;
 		startInfo.UseShellExecute = false;
 		startInfo.RedirectStandardOutput = true;
@@ -779,7 +738,7 @@ public class CSharpUtility
 			{
 				process.OutputDataReceived += (sender, e) =>
 				{
-					if (!e.Data.isEmpty() && e.Data != " ")
+					if (!e.Data.isEmpty())
 					{
 						log(e.Data);
 					}
@@ -790,7 +749,7 @@ public class CSharpUtility
 		{
 			process.ErrorDataReceived += (sender, e) =>
 			{
-				if (!e.Data.isEmpty() && e.Data != " ")
+				if (!e.Data.isEmpty())
 				{
 					logError(e.Data);
 				}
@@ -807,124 +766,31 @@ public class CSharpUtility
 		catch (Exception e)
 		{
 			logError(e.Message);
+		}
+	}
+	// 直接执行命令行,windows下执行cmd,macOS中执行bash
+	public static void executeCmd(string[] cmdList, bool showError, bool showInfo, StringCallback infoCallback = null)
+	{
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			executeExeBatch(null, "cmd.exe", "/c " + stringsToString(cmdList, " & "), showError, showInfo, infoCallback);
+		}
+		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+		{
+			executeExeBatch(null, "/bin/bash", "-c \"" + stringsToString(cmdList, " ; ") + "\"", showError, showInfo, infoCallback);
 		}
 	}
 	// 在指定仓库中执行git命令
 	public static void executeGitCmd(string repoFullPath, string args, bool showError, bool showInfo, StringCallback infoCallback = null)
 	{
-		using Process process = new();
 		log("execute git cmd : " + args);
-		process.StartInfo.FileName = "git";
-		process.StartInfo.Arguments = args;
-		process.StartInfo.WorkingDirectory = repoFullPath;
-		process.StartInfo.CreateNoWindow = true;
-		process.StartInfo.UseShellExecute = false;
-		process.StartInfo.RedirectStandardError = true;
-		process.StartInfo.RedirectStandardOutput = true;
-		if (showInfo)
-		{
-			if (infoCallback != null)
-			{
-				process.OutputDataReceived += (sender, e) =>
-				{
-					if (!e.Data.isEmpty())
-					{
-						infoCallback(e.Data);
-					}
-				};
-			}
-			else
-			{
-				process.OutputDataReceived += (sender, e) =>
-				{
-					if (!e.Data.isEmpty())
-					{
-						log(e.Data);
-					}
-				};
-			}
-		}
-		if (showError)
-		{
-			process.ErrorDataReceived += (sender, e) =>
-			{
-				if (!e.Data.isEmpty())
-				{
-					logError(e.Data);
-				}
-			};
-		}
-
-		try
-		{
-			process.Start();
-			process.BeginOutputReadLine();
-			process.BeginErrorReadLine();
-			process.WaitForExit();
-			process.Close();
-		}
-		catch (Exception e)
-		{
-			logError(e.Message);
-		}
+		executeExeBatch(repoFullPath, "git", args, showError, showInfo, infoCallback);
 	}
-	// 执行脚本文件
+	// 执行脚本文件,macOS中使用
 	public static void executeShell(string args, bool showError, bool showInfo, StringCallback infoCallback = null)
 	{
-		using Process process = new();
 		log("execute shell : " + args);
-		process.StartInfo.FileName = "/bin/sh";
-		process.StartInfo.Arguments = args;
-		process.StartInfo.CreateNoWindow = true;
-		process.StartInfo.UseShellExecute = false;
-		process.StartInfo.RedirectStandardError = true;
-		process.StartInfo.RedirectStandardOutput = true;
-		if (showInfo)
-		{
-			if (infoCallback != null)
-			{
-				process.OutputDataReceived += (sender, e) =>
-				{
-					if (!e.Data.isEmpty())
-					{
-						infoCallback(e.Data);
-					}
-				};
-			}
-			else
-			{
-				process.OutputDataReceived += (sender, e) =>
-				{
-					if (!e.Data.isEmpty())
-					{
-						log(e.Data);
-					}
-				};
-			}
-		}
-		if (showError)
-		{
-			process.ErrorDataReceived += (sender, e) =>
-			{
-				if (!e.Data.isEmpty())
-				{
-					logError(e.Data);
-				}
-			};
-		}
-
-		try
-		{
-			process.Start();
-			process.BeginOutputReadLine();
-			process.BeginErrorReadLine();
-			process.WaitForExit();
-			process.Close();
-		}
-		catch (Exception e)
-		{
-			logError(e.Message);
-		}
+		executeExeBatch(null, "/bin/sh", args, showError, showInfo, infoCallback);
 	}
 	// 压缩为zip文件,路径为绝对路径
 	public static void compressZipFile(string fileNameWithPath, string zipFileNameWithPath)

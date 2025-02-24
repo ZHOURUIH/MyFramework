@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 using static UnityUtility;
 using static FrameUtility;
-using static FrameBase;
+using static MathUtility;
+using static FrameBaseHotFix;
 using static FrameEditorUtility;
 
 public class AT
@@ -266,9 +267,9 @@ public class AT
 			else
 			{
 				helper.mRemainTime = mAudioManager.getAudioLength(soundName);
-				if (MathUtility.isFloatZero(helper.mRemainTime))
+				if (isFloatZero(helper.mRemainTime))
 				{
-					logWarning("webgl中需要提前加载音频,才能设置为非循环播放,");
+					logWarning("webgl中需要提前加载音频,才能设置为非循环播放,name:" + soundName);
 				}
 			}
 		}

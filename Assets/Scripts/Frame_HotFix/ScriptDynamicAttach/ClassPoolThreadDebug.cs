@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static StringUtility;
 
 // 线性安全的对象池调试信息
@@ -9,7 +9,7 @@ public class ClassPoolThreadDebug : MonoBehaviour
 	public List<string> TypeList = new();	// 类型信息列表
 	public void Update()
 	{
-		if (mGameFramework == null || !mGameFramework.mParam.mEnableScriptDebug)
+		if (mGameFrameworkHotFix == null || !mGameFrameworkHotFix.mParam.mEnableScriptDebug)
 		{
 			return;
 		}

@@ -1,4 +1,6 @@
-﻿
+﻿using System;
+
+[Serializable]
 public struct ProductInfo
 {
 	public string productId;

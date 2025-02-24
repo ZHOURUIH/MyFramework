@@ -158,7 +158,7 @@ public class MenuCheckResources
 		Debug.Log("开始检查图集引用:" + path + "...");
 		if (isFileExist(path))
 		{
-			if (endWith(path, "png", false))
+			if (path.endWith("png", false))
 			{
 				doCheckAtlasRefrence(path, getAllFileText(F_UI_PREFAB_PATH));
 			}
@@ -171,7 +171,7 @@ public class MenuCheckResources
 				List<string> validFiles = new();
 				foreach (string item in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
 				{
-					if (endWith(item, "png", false))
+					if (item.endWith("png", false))
 					{
 						validFiles.Add(item);
 					}
@@ -217,8 +217,8 @@ public class MenuCheckResources
 				List<string> validFiles = new();
 				foreach (string item in Directory.GetFiles(path, "*.prefab", SearchOption.AllDirectories))
 				{
-					string file = rightToLeft(item);
-					if (!endWith(file, ".meta", false))
+					string file = item.rightToLeft();
+					if (!file.endWith(".meta", false))
 					{
 						validFiles.Add(file);
 					}
@@ -264,7 +264,7 @@ public class MenuCheckResources
 				List<string> validFiles = new();
 				foreach (string item in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
 				{
-					if (!endWith(item, ".meta", false))
+					if (!item.endWith(".meta", false))
 					{
 						validFiles.Add(item);
 					}
@@ -506,7 +506,7 @@ public class MenuCheckResources
 		Debug.Log("开始检查图集中不存在的图片:" + path + "...");
 		if (isFileExist(path))
 		{
-			if (endWith(path, "png", false))
+			if (path.endWith("png", false))
 			{
 				doCheckAtlasNotExistSprite(path);
 			}
@@ -519,7 +519,7 @@ public class MenuCheckResources
 				List<string> validFiles = new();
 				foreach (string item in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
 				{
-					if (endWith(item, "png", false))
+					if (item.endWith("png", false))
 					{
 						validFiles.Add(item);
 					}
@@ -858,7 +858,7 @@ public class MenuCheckResources
 		{
 			displayProgressBar("检查资源文件名", "进度: ", i + 1, fileCount);
 			string fileName = getFileNameWithSuffix(files[i]);
-			if (!endWith(fileName, ".meta") && (fileName.IndexOf(' ') >= 0 || fileName.IndexOf('/') >= 0))
+			if (!fileName.endWith(".meta") && (fileName.Contains(' ') || fileName.Contains('/')))
 			{
 				Debug.LogError("文件名不能包含空格或斜杠，文件名：" + fileName, loadAsset(files[i]));
 			}

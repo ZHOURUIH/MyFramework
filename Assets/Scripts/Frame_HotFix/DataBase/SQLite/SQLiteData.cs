@@ -30,7 +30,7 @@ public class SQLiteData : ClassObject
 	}
 	public virtual void insert(MyStringBuilder valueString)
 	{
-		appendValueInt(valueString, mID);
+		valueString.appendValueInt(mID);
 	}
 	public string getValue(int index) 
 	{

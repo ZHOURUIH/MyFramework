@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using static FrameDefine;
+using static FrameDefineBase;
 
 public class EditorDefine
 {

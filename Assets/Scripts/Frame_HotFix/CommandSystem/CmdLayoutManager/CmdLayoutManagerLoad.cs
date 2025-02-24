@@ -1,5 +1,5 @@
 ﻿using System;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // 加载一个布局,一般由LT调用
 public class CmdLayoutManagerLoad

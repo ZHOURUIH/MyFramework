@@ -253,4 +253,9 @@ public class MenuShortcutOperation
 			AssetDatabase.Refresh();
 		}
 	}
+	[MenuItem("快捷操作/dll解密", false, 41)]
+	public static void decryptDllFile()
+	{
+		EditorWindow.GetWindow<DecryptDllWindow>(true, "解密dll", true).start();
+	}
 }

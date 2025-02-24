@@ -29,17 +29,17 @@ public class myUGUIImage : myUGUIImageSimple
 			UGUIAtlasPtr originAtlas = null;
 			string atlasPath = imageAtlasPath.mAtlasPath;
 			// unity_builtin_extra是unity内置的资源,不需要再次加载
-			if (!atlasPath.EndsWith("/unity_builtin_extra"))
+			if (!atlasPath.endWith("/unity_builtin_extra"))
 			{
 				mOriginAtlasInResources = mLayout.isInResources();
 				if (mOriginAtlasInResources)
 				{
-					removeStartString(ref atlasPath, P_RESOURCES_PATH);
+					atlasPath = atlasPath.removeStartString(P_RESOURCES_PATH);
 					originAtlas = mTPSpriteManager.getAtlasInResources(atlasPath, false, true);
 				}
 				else
 				{
-					removeStartString(ref atlasPath, P_GAME_RESOURCES_PATH);
+					atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
 					originAtlas = mTPSpriteManager.getAtlas(atlasPath, false, true);
 				}
 				if (originAtlas == null || !originAtlas.isValid())

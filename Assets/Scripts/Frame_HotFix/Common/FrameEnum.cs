@@ -81,7 +81,7 @@ public enum PLAY_STATE : byte
 // 加载状态
 public enum LOAD_STATE : byte
 {
-	UNLOAD,					// 已卸载
+	NONE,					// 无效值
 	WAIT_FOR_LOAD,			// 等待加载
 	DOWNLOADING,			// 正在下载
 	LOADING,				// 正在加载

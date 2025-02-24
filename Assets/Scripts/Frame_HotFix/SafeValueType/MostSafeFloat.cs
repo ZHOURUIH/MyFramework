@@ -1,6 +1,6 @@
 ﻿using System;
 using static UnityUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameEditorUtility;
 
 // 用来代替普通的float类型,防止内存被修改器修改
@@ -23,7 +23,7 @@ public struct MostSafeFloat : IEquatable<MostSafeFloat>
 			{
 				logError("校验失败");
 			}
-			mGameFramework.onMemoryModified(7, 0, 0, 0, 0);
+			mGameFrameworkHotFix.onMemoryModified(7, 0, 0, 0, 0);
 		}
 		return curValue;
 	}

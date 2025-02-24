@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using System.Collections;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -24,7 +25,7 @@ using static FileUtility;
 using static FrameDefine;
 using static FrameDefineBase;
 using static FrameUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // 与Unity相关的工具函数
 public class UnityUtility
@@ -111,7 +112,15 @@ public class UnityUtility
 		{
 			info = colorStringNoBuilder(color, info);
 		}
-		UDebug.Log(getNowTime(TIME_DISPLAY.HMSM) + ": " + info, obj);
+		// isPlayging是unity的接口,只能在主线程使用
+		if (isMainThread() && isPlaying())
+		{
+			UDebug.Log(getNowTime(TIME_DISPLAY.HMSM) + ": " + info, obj);
+		}
+		else
+		{
+			UDebug.Log(info, obj);
+		}
 	}
 	public static void logNoLock(string info, string color, LOG_LEVEL level, UObject obj)
 	{
@@ -119,16 +128,29 @@ public class UnityUtility
 		{
 			return;
 		}
-		string time = getTimeNoLock(TIME_DISPLAY.HMSM);
 		if (!color.isEmpty())
 		{
 			info = colorStringNoBuilder(color, info);
 		}
-		UDebug.Log(time + ": " + info, obj);
+		if (isMainThread() && isPlaying())
+		{
+			UDebug.Log(getTimeNoLock(TIME_DISPLAY.HMSM) + ": " + info, obj);
+		}
+		else
+		{
+			UDebug.Log(info, obj);
+		}
 	}
 	public static void logWarning(string info)
 	{
-		UDebug.LogWarning(getNowTime(TIME_DISPLAY.HMSM) + ": " + info);
+		if (isMainThread() && isPlaying())
+		{
+			UDebug.LogWarning(info);
+		}
+		else
+		{
+			UDebug.LogWarning(getNowTime(TIME_DISPLAY.HMSM) + ": " + info);
+		}
 	}
 	public static void setScreenSize(Vector2 size, bool fullScreen)
 	{
@@ -143,7 +165,7 @@ public class UnityUtility
 		Screen.SetResolution(size.x, size.y, fullScreen);
 
 		// UGUI
-		GameObject uguiRootObj = getGameObject(UGUI_ROOT);
+		GameObject uguiRootObj = getRootGameObject(UGUI_ROOT);
 		uguiRootObj.TryGetComponent<RectTransform>(out var uguiRectTransform);
 		uguiRectTransform.offsetMin = -mScreenSize * 0.5f;
 		uguiRectTransform.offsetMax = mScreenSize * 0.5f;
@@ -215,20 +237,33 @@ public class UnityUtility
 		}
 		return obj;
 	}
-	public static GameObject getGameObject(string name, GameObject parent = null, bool errorIfNull = false, bool recursive = true)
+	public static GameObject getRootGameObject(string name, bool errorIfNull = false)
 	{
 		if (name.isEmpty())
 		{
 			return null;
 		}
+		GameObject go = GameObject.Find(name);
+		if (go == null && errorIfNull)
+		{
+			logError("找不到物体,请确认物体存在且是已激活状态,parent为空时无法查找到未激活的物体:" + name);
+		}
+		return go;
+	}
+	public static GameObject getGameObject(string name, GameObject parent, bool errorIfNull = false, bool recursive = true)
+	{
+		if (name.isEmpty())
+		{
+			return null;
+		}
+		if (parent == null)
+		{
+			logError("parent不能为空,查找无父节点的GameObject请使用getRootGameObject");
+			return null;
+		}
 		GameObject go = null;
 		do
 		{
-			if (parent == null)
-			{
-				go = GameObject.Find(name);
-				break;
-			}
 			Transform trans = parent.transform.Find(name);
 			if (trans != null)
 			{
@@ -253,22 +288,51 @@ public class UnityUtility
 
 		if (go == null && errorIfNull)
 		{
-			if (parent == null)
-			{
-				logError("找不到物体,请确认物体存在且是已激活状态,parent为空时无法查找到未激活的物体:" + name);
-			}
-			else
-			{
-				logError("找不到物体,请确认是否存在:" + name + ", parent:" + (parent != null ? parent.name : EMPTY));
-			}
+			logError("找不到物体,请确认是否存在:" + name + ", parent:" + (parent != null ? parent.name : EMPTY));
 		}
 		return go;
+	}
+	// 查找所有名字为name的GameObject
+	public static void getAllGameObject(List<GameObject> list, string name, GameObject parent, bool recursive = true)
+	{
+		if (name.isEmpty())
+		{
+			return;
+		}
+		if (parent == null)
+		{
+			logError("parent不能为空,查找无父节点的GameObject请使用getRootGameObject");
+			return;
+		}
+		// 第一级子节点中查找
+		Transform parentTrans = parent.transform;
+		int childCount = parentTrans.childCount;
+		for (int i = 0; i < childCount; ++i)
+		{
+			GameObject child = parentTrans.GetChild(i).gameObject;
+			if (child.name == name)
+			{
+				list.Add(child);
+			}
+		}
+		// 递归查找
+		if (recursive)
+		{
+			for (int i = 0; i < childCount; ++i)
+			{
+				getAllGameObject(list, name, parentTrans.GetChild(i).gameObject, true);
+			}
+		}
 	}
 	public static GameObject cloneObject(GameObject oriObj, string name)
 	{
 		GameObject obj = UObject.Instantiate(oriObj);
 		obj.name = name;
 		return obj;
+	}
+	public static void cloneObjectAsync(GameObject oriObj, string name, GameObjectCallback callback)
+	{
+		mGameFrameworkHotFix.StartCoroutine(instantiateCoroutine(oriObj, name, callback));
 	}
 	public static GameObject createGameObject(string name, GameObject parent = null)
 	{
@@ -624,53 +688,32 @@ public class UnityUtility
 		if (isEditor())
 		{
 			// 本地加载需要添加file:///前缀
-			if (!startWith(path, "file:///"))
-			{
-				path = "file:///" + path;
-			}
+			path = path.ensurePrefix("file:///");
 		}
 		// 非编辑器模式下
 		else
 		{
 			if (isWindows())
 			{
-				// windows本地加载需要添加file:///前缀
-				if (!startWith(path, "file:///"))
-				{
-					path = "file:///" + path;
-				}
+				path = path.ensurePrefix("file:///");
 			}
 			else if (isIOS())
 			{
-				// ios本地加载需要添加file://前缀
-				if (!startWith(path, "file://"))
-				{
-					path = "file://" + path;
-				}
+				path = path.ensurePrefix("file://");
 			}
 			else if (isMacOS())
 			{
-				// macos本地加载需要添加file://前缀
-				if (!startWith(path, "file://"))
-				{
-					path = "file://" + path;
-				}
+				path = path.ensurePrefix("file://");
 			}
 			else if (isLinux())
 			{
 				// linux本地加载需要添加file://前缀
-				if (!startWith(path, "file://"))
-				{
-					path = "file://" + path;
-				}
+				path = path.ensurePrefix("file://");
 			}
 			else if (isAndroid())
 			{
 				// android本地加载需要添加jar:file://前缀
-				if (!startWith(path, "jar:file://"))
-				{
-					path = "jar:file://" + path;
-				}
+				path = path.ensurePrefix("jar:file://");
 			}
 		}
 	}
@@ -1337,5 +1380,17 @@ public class UnityUtility
 	public static int getLastError()
 	{
 		return Kernel32.GetLastError();
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected static IEnumerator instantiateCoroutine(GameObject origin, string name, GameObjectCallback callback)
+	{
+		var ret = UObject.InstantiateAsync(origin);
+		yield return ret;
+		GameObject go = ret.Result.getSafe(0);
+		if (go != null)
+		{
+			go.name = name;
+		}
+		callback?.Invoke(go);
 	}
 }

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using static UnityUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static MathUtility;
 
 // 拖拽组件基类

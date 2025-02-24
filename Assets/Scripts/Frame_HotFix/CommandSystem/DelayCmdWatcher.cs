@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using static UnityUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // 用于监听延迟命令的类,确保延迟命令能够得到很好的控制
 public class DelayCmdWatcher : ClassObject

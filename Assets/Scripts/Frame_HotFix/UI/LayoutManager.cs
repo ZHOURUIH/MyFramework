@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static UnityUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static StringUtility;
 using static CSharpUtility;
 using static MathUtility;
@@ -25,7 +25,7 @@ public class LayoutManager : FrameSystem
 	public LayoutManager()
 	{
 		// 在构造中获取UI根节点,确保其他组件能在任意时刻正常访问
-		mUGUIRoot = LayoutScript.newUIObject<myUGUICanvas>(null, null, getGameObject(UGUI_ROOT, null, true));
+		mUGUIRoot = LayoutScript.newUIObject<myUGUICanvas>(null, null, getRootGameObject(UGUI_ROOT, true));
 	}
 	public Canvas getUGUIRootComponent() { return mUGUIRoot.getCanvas(); }
 	public myUGUICanvas getUIRoot() { return mUGUIRoot; }

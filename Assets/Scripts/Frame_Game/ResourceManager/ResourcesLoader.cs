@@ -60,7 +60,7 @@ public class ResourcesLoader
 		using var a = new ListScope<string>(out var tempList);
 		foreach (string item0 in tempList.addRange(mLoadedPath.Keys))
 		{
-			if (!startWith(item0, path))
+			if (!item0.startWith(path))
 			{
 				continue;
 			}
@@ -119,7 +119,7 @@ public class ResourcesLoader
 		{
 			logWarning("资源正在后台加载,不能同步加载!" + name);
 		}
-		else if (info.getState() == LOAD_STATE.UNLOAD)
+		else if (info.getState() == LOAD_STATE.NONE)
 		{
 			logWarning("资源已加入列表,但是未加载" + name);
 		}
@@ -151,7 +151,7 @@ public class ResourcesLoader
 		{
 			logWarning("资源正在后台加载,不能同步加载!" + name);
 		}
-		else if (info.getState() == LOAD_STATE.UNLOAD)
+		else if (info.getState() == LOAD_STATE.NONE)
 		{
 			logWarning("资源已加入列表,但是未加载" + name);
 		}

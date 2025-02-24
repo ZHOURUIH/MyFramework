@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static StringUtility;
 
 // 字典池的调试信息
@@ -11,7 +11,7 @@ public class DictionaryPoolDebug : MonoBehaviour
 	public List<string> UnuseList = new();              // 未使用的对象列表
 	public void Update()
 	{
-		if (mGameFramework == null || !mGameFramework.mParam.mEnableScriptDebug)
+		if (mGameFrameworkHotFix == null || !mGameFrameworkHotFix.mParam.mEnableScriptDebug)
 		{
 			return;
 		}

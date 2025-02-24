@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using static UnityUtility;
 using static MathUtility;
 using static FrameUtility;
-using static CSharpUtility;
 
 // 红点系统,用于处理红点相关的逻辑
 public class RedPointSystem : FrameSystem

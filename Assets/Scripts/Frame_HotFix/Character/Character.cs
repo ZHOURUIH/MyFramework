@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // 所有角色的基类,提供基础的角色行为
 public class Character : MovableObject

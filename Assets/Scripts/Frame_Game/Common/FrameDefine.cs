@@ -9,7 +9,6 @@ public class FrameDefine
 	// 文件夹名
 	public const string ASSETS = "Assets";
 	public const string GAME_RESOURCES = "GameResources";
-	public const string HOTFIX = "HotFix";
 	public const string SCRIPTS = "Scripts";
 	public const string PLUGINS = "Plugins";
 	public const string RESOURCES = "Resources";
@@ -77,7 +76,6 @@ public class FrameDefine
 	// 相对路径,相对于StreamingAssets,以SA_开头,表示StreamingAssets
 	// 由于Android下的StreamingAssets路径不完全以Assets路径开头,与其他平台不一致,所以不定义相对于Asstes的路径
 	public const string SA_VIDEO_PATH = VIDEO + "/";
-	public const string SA_SOUND_PATH = SOUND + "/";
 	// 相对路径,相对于Resources,R_开头,表示Resources
 	public const string R_UI_PATH = UI + "/";
 	public const string R_UI_PREFAB_PATH = R_UI_PATH + UI_PREFAB + "/";
@@ -121,10 +119,7 @@ public class FrameDefine
 	public const string AUDIO_HELPER_FILE = R_MISC_PATH + "AudioHelper.prefab";
 	public const string STREAMING_ASSET_FILE = "StreamingAssets.bytes";
 	// 后缀名
-	public const string DATA_SUFFIX = ".bytes";
 	public const string ASSET_BUNDLE_SUFFIX = ".unity3d";
-	public const string HOTFIX_FRAME_FILE = "Frame_HotFix.dll";
-	public const string HOTFIX_FILE = "HotFix.dll";
 	public const string RESOURCE_AVAILABLE_FILE = "ResourcesAvailable.txt";
 	public const string UI_CAMERA = "UICamera";
 	public const string UGUI_ROOT = "UGUIRoot";

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static CSharpUtility;
 using static StringUtility;
 
@@ -10,19 +10,19 @@ public struct HashSetScope<T> : IDisposable
 	private HashSet<T> mList;		// 分配的对象
 	public HashSetScope(out HashSet<T> list)
 	{
-		if (mGameFramework == null || mHashSetPool == null)
+		if (mGameFrameworkHotFix == null || mHashSetPool == null)
 		{
 			list = new();
 			mList = null;
 			return;
 		}
-		string stackTrace = mGameFramework.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
+		string stackTrace = mGameFrameworkHotFix.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
 		list = mHashSetPool.newList(typeof(T), typeof(HashSet<T>), stackTrace, true) as HashSet<T>;
 		mList = list;
 	}
 	public void Dispose()
 	{
-		if (mGameFramework == null || mHashSetPool == null)
+		if (mGameFrameworkHotFix == null || mHashSetPool == null)
 		{
 			return;
 		}

@@ -4,7 +4,7 @@ using UnityEngine;
 using static UnityUtility;
 using static StringUtility;
 using static CSharpUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameEditorUtility;
 
 // 不支持带参构造的类,因为在再次利用时参数无法正确传递
@@ -111,7 +111,7 @@ public class ClassPool : FrameSystem
 			{
 				Debug.LogError("对象已经在已使用列表中了,不能再添加,是否为持久使用:" + onlyOnce + ", 创建来源:" + IToS(createSource) + ", type:" + type);
 			}
-			mObjectStack.Add(obj, mGameFramework.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY);
+			mObjectStack.Add(obj, mGameFrameworkHotFix.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY);
 		}
 		return obj;
 	}

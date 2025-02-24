@@ -182,6 +182,15 @@ public static class ListExtension
 		}
 		return list.removeAt(list.Count - 1);
 	}
+	public static T getLast<T>(this List<T> list)
+	{
+		int count = list.count();
+		if (count == 0)
+		{
+			return default;
+		}
+		return list[count - 1];
+	}
 	public static int count<T>(this ICollection<T> list)							{ return list?.Count ?? 0; }
 	public static bool isEmptySpan<T>(this Span<T> list)							{ return list == null || list.Length == 0; }
 	public static bool isEmpty<T>(this ICollection<T> list)							{ return list == null || list.Count == 0; }

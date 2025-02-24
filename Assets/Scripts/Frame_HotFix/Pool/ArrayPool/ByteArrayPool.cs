@@ -5,7 +5,7 @@ using static UnityUtility;
 using static StringUtility;
 using static MathUtility;
 using static CSharpUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameEditorUtility;
 
 // 只能在主线程中使用的数组池
@@ -96,7 +96,7 @@ public class ByteArrayPool : FrameSystem
 		if (isEditor())
 		{
 			addInuse(array, onlyOnce);
-			mObjectStack.Add(array, mGameFramework.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY);
+			mObjectStack.Add(array, mGameFrameworkHotFix.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY);
 		}
 		return array;
 	}

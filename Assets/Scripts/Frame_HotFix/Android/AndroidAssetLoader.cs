@@ -216,7 +216,7 @@ public class AndroidAssetLoader : FrameSystem
 	protected static void checkPersistenDataPath(string path)
 	{
 		addEndSlash(ref path);
-		if (!startWith(path, F_PERSISTENT_DATA_PATH))
+		if (!path.startWith(F_PERSISTENT_DATA_PATH))
 		{
 			logError("path must start with " + F_PERSISTENT_DATA_PATH + ", path : " + path);
 		}

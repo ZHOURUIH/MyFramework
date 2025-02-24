@@ -50,7 +50,7 @@ public class ImageAtlasPath : MonoBehaviour
 		Sprite sprite = getSprite();
 		if (sprite != null)
 		{
-			if ((mSpriteName.isEmpty() || mSpriteName != sprite.name) && !mAtlasPath.EndsWith("/unity_builtin_extra"))
+			if ((mSpriteName.isEmpty() || mSpriteName != sprite.name) && !mAtlasPath.endWith("/unity_builtin_extra"))
 			{
 				setSpriteNameInternal(sprite.name);
 			}
@@ -98,9 +98,9 @@ public class ImageAtlasPath : MonoBehaviour
 		{
 			return image.sprite;
 		}
-		if (TryGetComponent<SpriteRenderer>(out var com))
+		if (TryGetComponent<SpriteRenderer>(out var spriteRenderer))
 		{
-			return com.sprite;
+			return spriteRenderer.sprite;
 		}
 		return null;
 	}
@@ -111,9 +111,9 @@ public class ImageAtlasPath : MonoBehaviour
 			image.sprite = sprite;
 			return;
 		}
-		if (TryGetComponent<SpriteRenderer>(out var com))
+		if (TryGetComponent<SpriteRenderer>(out var renderer))
 		{
-			com.sprite = sprite;
+			renderer.sprite = sprite;
 		}
 	}
 }

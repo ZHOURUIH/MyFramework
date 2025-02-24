@@ -298,7 +298,7 @@ public class AssetVersionSystem : FrameSystem
 					}
 					else
 					{
-						log("因为文件列表中文件数量与实际的不一致,所以重新扫描:" + fileListFullPath);
+						log("因为文件列表中文件数量与实际的不一致,所以重新扫描:" + fileListFullPath + ", fileInfoList.Count:" + fileInfoList.Count + ", fileList.Count:" + fileList.Count);
 					}
 				}
 				if (isSame)
@@ -415,5 +415,16 @@ public class AssetVersionSystem : FrameSystem
 		{
 			logError("setFileListToAssetSystem path error:" + path);
 		}
+	}
+	protected bool isIgnorePath(string fullPath, List<string> ignorePath)
+	{
+		foreach (string path in ignorePath.safe())
+		{
+			if (fullPath.Contains(path))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 }

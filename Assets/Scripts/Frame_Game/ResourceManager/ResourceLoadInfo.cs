@@ -10,7 +10,7 @@ public class ResourceLoadInfo : ClassObject
 	protected UObject mObject;								// 资源物体
 	protected string mPath;									// 加载路径,也就是mResouceName中的路径,不带文件名
 	protected string mResourceName;							// GameResources下的相对路径,带后缀
-	protected LOAD_STATE mState = LOAD_STATE.UNLOAD;        // 加载状态
+	protected LOAD_STATE mState = LOAD_STATE.NONE;        // 加载状态
 	public void addCallback(AssetLoadDoneCallback callback, string loadPath)
 	{
 		if (callback == null)
@@ -53,6 +53,6 @@ public class ResourceLoadInfo : ClassObject
 		mObject = null;
 		mPath = null;
 		mResourceName = null;
-		mState = LOAD_STATE.UNLOAD;
+		mState = LOAD_STATE.NONE;
 	}
 }

@@ -4,7 +4,7 @@ using System.Net.Sockets;
 using System.Collections.Generic;
 using static StringUtility;
 using static UnityUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameUtility;
 using static BinaryUtility;
 using static FrameDefine;

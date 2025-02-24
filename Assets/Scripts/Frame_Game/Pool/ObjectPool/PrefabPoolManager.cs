@@ -5,7 +5,6 @@ using UObject = UnityEngine.Object;
 using static UnityUtility;
 using static FrameUtility;
 using static FrameBase;
-using static StringUtility;
 using static CSharpUtility;
 using static FrameEditorUtility;
 
@@ -30,7 +29,7 @@ public class PrefabPoolManager : FrameSystem
 			using var a = new SafeDictionaryReader<string, PrefabPool>(mPrefabPoolList);
 			foreach (var item in a.mReadList)
 			{
-				if (!startWith(item.Key, path))
+				if (!item.Key.startWith(path))
 				{
 					continue;
 				}

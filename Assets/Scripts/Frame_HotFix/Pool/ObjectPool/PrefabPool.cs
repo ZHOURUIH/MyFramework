@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using static UnityUtility;
 using static MathUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameDefine;
 using static FrameUtility;
 
@@ -60,7 +60,7 @@ public class PrefabPool : ClassObject
 		{
 			doInitToPool(tag, count, moveToHide);
 			callback?.Invoke();
-			return new() { mFinish = true };
+			return new CustomAsyncOperation().setFinish();
 		}
 		// 预设未加载,异步加载预设
 		++mAsyncLoading;
@@ -103,7 +103,7 @@ public class PrefabPool : ClassObject
 		if (mPrefab != null)
 		{
 			getOneUnusedAsyncInternal(tag, (ObjectInfo info) => { callback?.Invoke(info, false); });
-			return new() { mFinish = true };
+			return new CustomAsyncOperation().setFinish();
 		}
 		// 预设未加载,异步加载预设
 		++mAsyncLoading;

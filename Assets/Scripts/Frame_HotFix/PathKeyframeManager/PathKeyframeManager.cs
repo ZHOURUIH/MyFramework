@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using static UnityUtility;
 using static StringUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static BinaryUtility;
 using static FrameDefine;
 
@@ -26,12 +26,12 @@ public class PathKeyframeManager : FrameSystem
 	{
 		if (!mTranslatePathList.TryGetValue(fileName, out var translatePath) && loadIfNull)
 		{
-			if (!mGameFramework.isResourceAvailable())
+			if (!mGameFrameworkHotFix.isResourceAvailable())
 			{
 				return null;
 			}
 			translatePath = mTranslatePathList.add(getFileNameNoSuffixNoDir(fileName), new());
-			readPathFile(SA_PATH_KEYFRAME_PATH + fileName + "_translate.bytes", translatePath);
+			readPathFile(R_PATH_KEYFRAME_PATH + fileName + "_translate.bytes", translatePath);
 		}
 		return translatePath;
 	}
@@ -39,12 +39,12 @@ public class PathKeyframeManager : FrameSystem
 	{
 		if (!mRotatePathList.TryGetValue(fileName, out var rotatePath) && loadIfNull)
 		{
-			if (!mGameFramework.isResourceAvailable())
+			if (!mGameFrameworkHotFix.isResourceAvailable())
 			{
 				return null;
 			}
 			rotatePath = mRotatePathList.add(getFileNameNoSuffixNoDir(fileName), new());
-			readPathFile(SA_PATH_KEYFRAME_PATH + fileName + "_rotate.bytes", rotatePath);
+			readPathFile(R_PATH_KEYFRAME_PATH + fileName + "_rotate.bytes", rotatePath);
 		}
 		return rotatePath;
 	}
@@ -52,12 +52,12 @@ public class PathKeyframeManager : FrameSystem
 	{
 		if (!mScalePathList.TryGetValue(fileName, out var scalePath) && loadIfNull)
 		{
-			if (!mGameFramework.isResourceAvailable())
+			if (!mGameFrameworkHotFix.isResourceAvailable())
 			{
 				return null;
 			}
 			scalePath = mScalePathList.add(getFileNameNoSuffixNoDir(fileName), new());
-			readPathFile(SA_PATH_KEYFRAME_PATH + fileName + "_scale.bytes", scalePath);
+			readPathFile(R_PATH_KEYFRAME_PATH + fileName + "_scale.bytes", scalePath);
 		}
 		return scalePath;
 	}
@@ -65,12 +65,12 @@ public class PathKeyframeManager : FrameSystem
 	{
 		if (!mAlphaPathList.TryGetValue(fileName, out var alphaPath) && loadIfNull)
 		{
-			if (!mGameFramework.isResourceAvailable())
+			if (!mGameFrameworkHotFix.isResourceAvailable())
 			{
 				return null;
 			}
 			alphaPath = mAlphaPathList.add(getFileNameNoSuffixNoDir(fileName), new());
-			readPathFile(SA_PATH_KEYFRAME_PATH + fileName + "_alpha.bytes", alphaPath);
+			readPathFile(R_PATH_KEYFRAME_PATH + fileName + "_alpha.bytes", alphaPath);
 		}
 		return alphaPath;
 	}

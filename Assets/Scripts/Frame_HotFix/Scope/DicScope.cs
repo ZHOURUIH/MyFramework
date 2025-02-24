@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static CSharpUtility;
 using static StringUtility;
 
@@ -10,19 +10,19 @@ public struct DicScope<K, V> : IDisposable
 	private Dictionary<K, V> mList;	// 分配的对象
 	public DicScope(out Dictionary<K, V> list)
 	{
-		if (mGameFramework == null || mDictionaryPool == null)
+		if (mGameFrameworkHotFix == null || mDictionaryPool == null)
 		{
 			list = new();
 			mList = null;
 			return;
 		}
-		string stackTrace = mGameFramework.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
+		string stackTrace = mGameFrameworkHotFix.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
 		list = mDictionaryPool.newList(typeof(K), typeof(V), typeof(Dictionary<K, V>), stackTrace, true) as Dictionary<K, V>;
 		mList = list;
 	}
 	public void Dispose()
 	{
-		if (mGameFramework == null || mDictionaryPool == null)
+		if (mGameFrameworkHotFix == null || mDictionaryPool == null)
 		{
 			return;
 		}

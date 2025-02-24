@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using UObject = UnityEngine.Object;
 using static FrameEditorUtility;
 
 // 用于记录Image组件上的图片所在的路径,因为在运行时是没办法获得Image上图片的路径,从而也就无法直到所在的图集
@@ -32,7 +31,7 @@ public class ResImageAtlasPath : MonoBehaviour
 		Sprite sprite = getSprite();
 		if (sprite != null)
 		{
-			if ((mSpriteName.isEmpty() || mSpriteName != sprite.name) && !mAtlasPath.EndsWith("/unity_builtin_extra"))
+			if ((mSpriteName.isEmpty() || mSpriteName != sprite.name) && !mAtlasPath.endWith("/unity_builtin_extra"))
 			{
 				setSpriteNameInternal(sprite.name);
 			}

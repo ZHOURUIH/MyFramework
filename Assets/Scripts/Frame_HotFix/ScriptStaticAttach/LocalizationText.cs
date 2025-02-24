@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using System;
 using System.Collections.Generic;
 using static MathUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameDefine;
 
 // 热更代码使用

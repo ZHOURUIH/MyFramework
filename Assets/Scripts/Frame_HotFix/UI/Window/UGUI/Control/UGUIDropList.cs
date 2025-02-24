@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 using static StringUtility;
 using static WidgetUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static UnityUtility;
 using static MathUtility;
 

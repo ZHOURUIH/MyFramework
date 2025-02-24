@@ -9,7 +9,6 @@ public class FrameDefine
 	// 路径定义
 	// 文件夹名
 	public const string GAME_RESOURCES = "GameResources";
-	public const string HOTFIX = "HotFix";
 	public const string SCRIPTS = "Scripts";
 	public const string PLUGINS = "Plugins";
 	public const string RESOURCES = "Resources";
@@ -74,16 +73,6 @@ public class FrameDefine
 	// 相对路径,相对于StreamingAssets,以SA_开头,表示StreamingAssets
 	// 由于Android下的StreamingAssets路径不完全以Assets路径开头,与其他平台不一致,所以不定义相对于Asstes的路径
 	public const string SA_VIDEO_PATH = VIDEO + "/";
-	public const string SA_SQLITE_PATH = SQLITE + "/";
-	public const string SA_BUNDLE_KEY_FRAME_PATH = LOWER_KEY_FRAME + "/";
-	public const string SA_BUNDLE_UI_PATH = LOWER_UI + "/";
-	public const string SA_CUSTOM_SOUND_PATH = CUSTOM_SOUND + "/";
-	public const string SA_GAME_PLUGIN = GAME_PLUGIN + "/";
-	public const string SA_SOUND_PATH = SOUND + "/";
-	public const string SA_KEY_FRAME_PATH = KEY_FRAME + "/";
-	public const string SA_UI_PATH = UI + "/";
-	public const string SA_UI_PREFAB_PATH = SA_UI_PATH + UI_PREFAB + "/";
-	public const string SA_PATH_KEYFRAME_PATH = PATH_KEYFRAME + "/";
 
 	// 相对路径,相对于Resources,R_开头,表示Resources
 	public const string R_ATLAS_PATH = ATLAS + "/";
@@ -97,6 +86,7 @@ public class FrameDefine
 	public const string R_SHADER_GAME_PATH = R_SHADER_PATH + GAME + "/";
 	public const string R_UI_PATH = UI + "/";
 	public const string R_UI_PREFAB_PATH = R_UI_PATH + UI_PREFAB + "/";
+	public const string R_UI_MATERIAL_PATH = R_UI_PATH + MATERIAL + "/";
 	public const string R_KEY_FRAME_PATH = KEY_FRAME + "/";
 	public const string R_UGUI_SUB_PREFAB_PATH = R_UI_PATH + UGUI_SUB_PREFAB + "/";
 	public const string R_TEXTURE_PATH = TEXTURE + "/";
@@ -163,22 +153,14 @@ public class FrameDefine
 	public const int TCP_RECEIVE_BUFFER = 1024 * 1024;
 	public const int TCP_INPUT_BUFFER = 2 * 1024 * 1024;
 	public const int WEB_SOCKET_RECEIVE_BUFFER = 1024 * 1024;
-	public const int CLIENT_MAX_PACKET_SIZE = 256 * 1024;	// 客户端临时缓冲区大小,应该不小于单个消息包最大的大小,256KB
-	public const int PACKET_TYPE_SIZE = sizeof(ushort);		// 包头中包体类型占的大小
-	public const int PACKET_SEQUENCE_SIZE = sizeof(uint);	// 包头中序列号类型占的大小
-	public const int PACKET_CRC_SIZE = sizeof(ushort);		// 消息包中CRC校验码类型占的大小
-	public const int ALWAYS_TOP_ORDER = 1000;				// 始终在最上层的布局深度从1000开始
-	public const ushort CS_GAME_CORE_MIN = 3000;
-	public const ushort CS_GAME_CORE_MAX = 5999;
-	public const ushort SC_GAME_CORE_MIN = 6000;
-	public const ushort SC_GAME_CORE_MAX = 9999;
-	public const ushort CS_GAME_MIN = 10000;
-	public const ushort CS_GAME_MAX = 19999;
-	public const ushort SC_GAME_MIN = 20000;
-	public const ushort SC_GAME_MAX = 29999;
-	public const float CLICK_LENGTH = 15.0f;		// 点击距离阈值,当鼠标按下和抬起时的距离不超过该值,则认为是有效点击
-	public const float CLICK_TIME = 0.5f;			// 单击时间阈值,从按下到抬起的时间低于该值时才有可能认为是一次单击
-	public const float DOUBLE_CLICK_TIME = 0.3f;    // 双击时间阈值,两次单击时间大于0并且小于该值时认为是一次双击
+	public const int CLIENT_MAX_PACKET_SIZE = 256 * 1024;		// 客户端临时缓冲区大小,应该不小于单个消息包最大的大小,256KB
+	public const int PACKET_TYPE_SIZE = sizeof(ushort);			// 包头中包体类型占的大小
+	public const int PACKET_SEQUENCE_SIZE = sizeof(uint);		// 包头中序列号类型占的大小
+	public const int PACKET_CRC_SIZE = sizeof(ushort);			// 消息包中CRC校验码类型占的大小
+	public const int ALWAYS_TOP_ORDER = 1000;					// 始终在最上层的布局深度从1000开始
+	public const float CLICK_LENGTH = 15.0f;					// 点击距离阈值,当鼠标按下和抬起时的距离不超过该值,则认为是有效点击
+	public const float CLICK_TIME = 0.5f;						// 单击时间阈值,从按下到抬起的时间低于该值时才有可能认为是一次单击
+	public const float DOUBLE_CLICK_TIME = 0.3f;				// 双击时间阈值,两次单击时间大于0并且小于该值时认为是一次双击
 	public const ulong FULL_FIELD_FLAG = 0xFFFFFFFFFFFFFFFF;    // 完全的网络消息标识位
 	public static Vector3 FAR_POSITION = new(99999.0f, 99999.0f, 99999.0f);	// 一个很远的位置,用于移动GameObject到远处来实现隐藏
 	//------------------------------------------------------------------------------------------------------------------------------
@@ -186,14 +168,9 @@ public class FrameDefine
 	public const string AUDIO_HELPER_FILE = R_MISC_PATH + "AudioHelper.prefab";
 	public const string STREAMING_ASSET_FILE = "StreamingAssets.bytes";
 	// 后缀名
-	public const string DATA_SUFFIX = ".bytes";
 	public const string ASSET_BUNDLE_SUFFIX = ".unity3d";
 	public const string RESOURCE_AVAILABLE_FILE = "ResourcesAvailable.txt";
 	public const string START_SCENE = P_RESOURCES_SCENE_PATH + "start.unity";
-	public const string HOTFIX_FILE = "HotFix.dll";
-	public const string HOTFIX_FRAME_FILE = "Frame_HotFix.dll";
-	public const string HOTFIX_BYTES_FILE = HOTFIX_FILE + DATA_SUFFIX;
-	public const string HOTFIX_FRAME_BYTES_FILE = HOTFIX_FRAME_FILE + DATA_SUFFIX;
 	// dll插件的后缀名
 	public const string DLL_PLUGIN_SUFFIX = ".plugin";
 	public const string UGUI_DEFAULT_MATERIAL = "UGUIDefault";

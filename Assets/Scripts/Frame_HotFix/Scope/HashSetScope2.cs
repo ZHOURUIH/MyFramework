@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static CSharpUtility;
 using static StringUtility;
 
@@ -11,7 +11,7 @@ public struct HashSetScope2<T> : IDisposable
 	private HashSet<T> mList1;      // 分配的对象
 	public HashSetScope2(out HashSet<T> list0, out HashSet<T> list1)
 	{
-		if (mGameFramework == null || mHashSetPool == null)
+		if (mGameFrameworkHotFix == null || mHashSetPool == null)
 		{
 			list0 = new();
 			list1 = new();
@@ -19,7 +19,7 @@ public struct HashSetScope2<T> : IDisposable
 			mList1 = null;
 			return;
 		}
-		string stackTrace = mGameFramework.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
+		string stackTrace = mGameFrameworkHotFix.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
 		list0 = mHashSetPool.newList(typeof(T), typeof(HashSet<T>), stackTrace, true) as HashSet<T>;
 		list1 = mHashSetPool.newList(typeof(T), typeof(HashSet<T>), stackTrace, true) as HashSet<T>;
 		mList0 = list0;
@@ -27,7 +27,7 @@ public struct HashSetScope2<T> : IDisposable
 	}
 	public void Dispose()
 	{
-		if (mGameFramework == null || mHashSetPool == null)
+		if (mGameFrameworkHotFix == null || mHashSetPool == null)
 		{
 			return;
 		}

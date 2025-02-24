@@ -4,8 +4,7 @@ using System.Collections.Generic;
 using UObject = UnityEngine.Object;
 using static UnityUtility;
 using static FrameUtility;
-using static FrameBase;
-using static StringUtility;
+using static FrameBaseHotFix;
 using static CSharpUtility;
 using static FrameEditorUtility;
 
@@ -34,7 +33,7 @@ public class PrefabPoolManager : FrameSystem
 			using var a = new SafeDictionaryReader<string, PrefabPool>(mPrefabPoolList);
 			foreach (var item in a.mReadList)
 			{
-				if (!startWith(item.Key, path))
+				if (!item.Key.startWith(path))
 				{
 					continue;
 				}
@@ -145,6 +144,7 @@ public class PrefabPoolManager : FrameSystem
 		}
 	}
 	// 异步创建物体,实际上只是异步加载,实例化还是同步的
+	// fileWithPath是GameResource下的相对路径
 	// failCallback的参数表示是否为资源加载失败而失败
 	public CustomAsyncOperation createObjectAsyncSafe(ClassObject relatedObj, string fileWithPath, int objectTag, bool moveToHide, bool active, GameObjectCallback callback, BoolCallback failCallback = null)
 	{

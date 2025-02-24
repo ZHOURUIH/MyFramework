@@ -1,4 +1,6 @@
-﻿
+﻿using System;
+
+[Serializable]
 public class PurchaseInfo
 {
 	public string purchaseToken;

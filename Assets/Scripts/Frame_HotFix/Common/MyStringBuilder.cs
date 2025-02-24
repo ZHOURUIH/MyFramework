@@ -3,6 +3,7 @@ using System.Text;
 using UnityEngine;
 using static StringUtility;
 using static MathUtility;
+using System.Collections.Generic;
 
 // 自定已的StringBuilder,用于封装C#自己的StringBuilder,提高其效率
 public class MyStringBuilder : ClassObject
@@ -118,12 +119,12 @@ public class MyStringBuilder : ClassObject
 	}
 	public MyStringBuilder append(Vector2 value, int precision = 4)
 	{
-		mBuilder.Append(V2ToS(value, precision));
+		mBuilder.Append(StringUtility.V2ToS(value, precision));
 		return this;
 	}
 	public MyStringBuilder append(Vector3 value, int precision = 4)
 	{
-		mBuilder.Append(V3ToS(value, precision));
+		mBuilder.Append(StringUtility.V3ToS(value, precision));
 		return this;
 	}
 	public MyStringBuilder append(Color32 value)
@@ -247,11 +248,11 @@ public class MyStringBuilder : ClassObject
 	}
 	public MyStringBuilder append(string str0, Vector2 value, int precision = 4)
 	{
-		return append(str0, V2ToS(value, precision));
+		return append(str0, StringUtility.V2ToS(value, precision));
 	}
 	public MyStringBuilder append(string str0, Vector3 value, int precision = 4)
 	{
-		return append(str0, V3ToS(value, precision));
+		return append(str0, StringUtility.V3ToS(value, precision));
 	}
 	public MyStringBuilder append(string str0, Color32 value)
 	{
@@ -380,6 +381,347 @@ public class MyStringBuilder : ClassObject
 		mBuilder.Replace(oldString, newString);
 		return this;
 	}
+	public void replace(int begin, int end, string reStr)
+	{
+		remove(begin, end - begin);
+		if (!reStr.isEmpty())
+		{
+			insert(begin, reStr);
+		}
+	}
+	public void replaceAll(string key, string newWords)
+	{
+		int startPos = 0;
+		while (true)
+		{
+			int pos = findFirstSubstr(key, startPos);
+			if (pos < 0)
+			{
+				break;
+			}
+			replace(pos, pos + key.Length, newWords);
+			startPos = pos + newWords.length();
+		}
+	}
+	public void replaceAll(char key, char newWords)
+	{
+		int len = mBuilder.Length;
+		for (int i = 0; i < len; ++i)
+		{
+			if (mBuilder[i] == key)
+			{
+				mBuilder[i] = newWords;
+			}
+		}
+	}
+	// returnEndIndex表示返回值是否是字符串结束的下一个字符的下标
+	public int findFirstSubstr(char pattern, int startPos = 0, bool sensitive = true)
+	{
+		if (!sensitive)
+		{
+			pattern = toLower(pattern);
+		}
+		int posFind = -1;
+		int len = mBuilder.Length;
+		for (int i = startPos; i < len; ++i)
+		{
+			if ((sensitive && mBuilder[i] == pattern) ||
+				(!sensitive && toLower(mBuilder[i]) == pattern))
+			{
+				posFind = i;
+				break;
+			}
+		}
+		return posFind;
+	}
+	// returnEndIndex表示返回值是否是字符串结束的下一个字符的下标
+	public int findFirstSubstr(string pattern, int startPos = 0, bool returnEndIndex = false, bool sensitive = true)
+	{
+		if (mBuilder.Length < pattern.Length)
+		{
+			return -1;
+		}
+		int posFind = -1;
+		int subLen = pattern.Length;
+		int len = mBuilder.Length;
+		for (int i = startPos; i < len; ++i)
+		{
+			if (len - i < subLen)
+			{
+				continue;
+			}
+			int j = 0;
+			// 大小写敏感
+			if (sensitive)
+			{
+				for (; j < subLen; ++j)
+				{
+					if (i + j >= 0 && i + j < len && mBuilder[i + j] != pattern[j])
+					{
+						break;
+					}
+				}
+			}
+			// 大小写不敏感,则需要都转换为小写
+			else
+			{
+				for (; j < subLen; ++j)
+				{
+					if (i + j >= 0 && i + j < len && toLower(mBuilder[i + j]) != toLower(pattern[j]))
+					{
+						break;
+					}
+				}
+			}
+			if (j == subLen)
+			{
+				posFind = i;
+				break;
+			}
+		}
+		if (returnEndIndex && posFind >= 0)
+		{
+			posFind += subLen;
+		}
+		return posFind;
+	}
+	public void removeLast(char key)
+	{
+		int length = mBuilder.Length;
+		for (int i = 0; i < length; ++i)
+		{
+			if (mBuilder[length - 1 - i] == key)
+			{
+				remove(length - 1 - i, 1);
+				break;
+			}
+		}
+	}
+	public void removeLastComma()
+	{
+		removeLast(',');
+	}
+	// json
+	public void jsonStartArray(string name = null, int preTableCount = 0, bool returnLine = false)
+	{
+		// 如果不是最外层的数组,则需要加上数组的名字
+		if (!name.isEmpty())
+		{
+			appendRepeat("\t", preTableCount);
+			append("\"", name, "\"", ":");
+			if (returnLine)
+			{
+				append("\r\n");
+			}
+		}
+		appendRepeat("\t", preTableCount);
+		append("[");
+		if (returnLine)
+		{
+			append("\r\n");
+		}
+	}
+	public void jsonEndArray(int preTableCount = 0, bool returnLine = false)
+	{
+		if (endWith(','))
+		{
+			remove(mBuilder.Length - 1);
+		}
+		appendRepeat("\t", preTableCount);
+		append("],");
+		if (returnLine)
+		{
+			append("\r\n");
+		}
+	}
+	public void jsonStartStruct(string name = null, int preTableCount = 0, bool returnLine = false)
+	{
+		// 如果不是最外层的数组,则需要加上数组的名字
+		if (!name.isEmpty())
+		{
+			appendRepeat("\t", preTableCount);
+			append("\"", name, "\"", ":");
+			if (returnLine)
+			{
+				append("\r\n");
+			}
+		}
+		// 如果不是最外层且非数组元素的结构体,则需要加上结构体的名字
+		appendRepeat("\t", preTableCount);
+		append("{");
+		if (returnLine)
+		{
+			append("\r\n");
+		}
+	}
+	public void jsonEndStruct(int preTableCount = 0, bool returnLine = false)
+	{
+		if (endWith(','))
+		{
+			remove(mBuilder.Length - 1);
+		}
+		appendRepeat("\t", preTableCount);
+		append("},");
+		if (returnLine)
+		{
+			append("\r\n");
+		}
+	}
+	public void jsonAddPair(string name, string value, int preTableCount = 0, bool returnLine = false)
+	{
+		appendRepeat("\t", preTableCount);
+		// 如果是数组中的元素则不需要名字
+		if (!name.isEmpty())
+		{
+			append("\"", name, "\": ");
+		}
+		append("\"", value, "\",");
+		if (returnLine)
+		{
+			append("\r\n");
+		}
+	}
+	public void jsonAddObject(string name, string value, int preTableCount = 0, bool returnLine = false)
+	{
+		appendRepeat("\t", preTableCount);
+		append("\"", name, "\": ", value, ",");
+		if (returnLine)
+		{
+			append("\r\n");
+		}
+	}
+	public void rightToLeft()
+	{
+		replace('\\', '/');
+	}
+	public void leftToRight()
+	{
+		replace('/', '\\');
+	}
+	public void V2IToS(Vector2Int value, int limitLength = 0)
+	{
+		append(IToS(value.x, limitLength), ",", IToS(value.y, limitLength));
+	}
+	public void V2ToS(Vector2 value, int precision = 4)
+	{
+		append(FToS(value.x, precision), ",", FToS(value.y, precision));
+	}
+	public void V3ToS(Vector3 value, int precision = 4)
+	{
+		append(FToS(value.x, precision), ",", FToS(value.y, precision), ",", FToS(value.z, precision));
+	}
+	public void byteToHEXString(byte value, bool upperOrLower = true)
+	{
+		char[] hexChar = upperOrLower ? mHexUpperChar : mHexLowerChar;
+		// 等效于int high = value / 16;
+		// 等效于int low = value % 16;
+		int high = value >> 4;
+		int low = value & 15;
+		if (high < 10)
+		{
+			append((char)('0' + high));
+		}
+		else
+		{
+			append(hexChar[high - 10]);
+		}
+		if (low < 10)
+		{
+			append((char)('0' + low));
+		}
+		else
+		{
+			append(hexChar[low - 10]);
+		}
+	}
+	public MyStringBuilder colorString(string color)
+	{
+		if (mBuilder.Length == 0)
+		{
+			return this;
+		}
+		insertFront("<color=#", color, ">");
+		append("</color>");
+		return this;
+	}
+	public void addSprite(string spriteName, float width = 1.0f)
+	{
+		append("<quad width=").append(width).append(" sprite=").append(spriteName).append("/>");
+	}
+	public void line(string line, bool returnLine = true)
+	{
+		if (returnLine)
+		{
+			append(line, "\r\n");
+		}
+		else
+		{
+			append(line);
+		}
+	}
+	public void appendValueString(string str)
+	{
+		append("\"", str, "\",");
+	}
+	public void appendValueVector2(Vector2 value)
+	{
+		V2ToS(value);
+		append(',');
+	}
+	public void appendValueVector2Int(Vector2Int value)
+	{
+		V2IToS(value);
+		append(',');
+	}
+	public void appendValueVector3(Vector3 value)
+	{
+		V3ToS(value);
+		append(',');
+	}
+	public void appendValueInt(int value)
+	{
+		append(IToS(value), ",");
+	}
+	public void appendValueUInt(uint value)
+	{
+		append(IToS(value), ",");
+	}
+	public void appendValueFloat(float value)
+	{
+		append(FToS(value), ",");
+	}
+	public void appendValueFloats(List<float> floatArray)
+	{
+		appendValueString(FsToS(floatArray));
+	}
+	public void appendValueInts(List<int> intArray)
+	{
+		appendValueString(IsToS(intArray));
+	}
+	public void appendConditionString(string col, string str, string operate)
+	{
+		append(col, "=\"", str, "\"", operate);
+	}
+	public void appendConditionInt(string col, int value, string operate)
+	{
+		append(col, " = ", IToS(value), operate);
+	}
+	public void appendUpdateString(string col, string str)
+	{
+		append(col, " = \"", str, "\",");
+	}
+	public void appendUpdateInt(string col, int value)
+	{
+		append(col, " = ", IToS(value), ",");
+	}
+	public void appendUpdateInts(string col, List<int> intArray)
+	{
+		appendUpdateString(col, IsToS(intArray));
+	}
+	public void appendUpdateFloats(string col, List<float> floatArray)
+	{
+		appendUpdateString(col, FsToS(floatArray));
+	}
 	public override string ToString()
 	{
 		return mBuilder.ToString();
@@ -388,15 +730,15 @@ public class MyStringBuilder : ClassObject
 	{
 		return mBuilder.ToString(startIndex, length);
 	}
-	public char this[int index]		// 根据下标获得字符
+	public char this[int index]     // 根据下标获得字符
 	{
 		get { return mBuilder[index]; }
 		set { mBuilder[index] = value; }
 	}
-	public int Length				// 当前字符串长度
+	public int Length               // 当前字符串长度
 	{
-		get { return mBuilder.Length; } 
-		set { mBuilder.Length = value; } 
+		get { return mBuilder.Length; }
+		set { mBuilder.Length = value; }
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void checkCapacity(int increaseSize)

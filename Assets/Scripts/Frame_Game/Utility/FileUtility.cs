@@ -41,14 +41,10 @@ public class FileUtility
 			string fileName = fileNameList[i];
 			checkDownloadPath(ref fileName);
 			using var www = UnityWebRequest.Get(fileName);
-			www.SendWebRequest();
-			while (!www.isDone)
-			{
-				yield return null;
-			}
+			yield return www.SendWebRequest();
 			if (errorIfNull && www.downloadHandler.data == null)
 			{
-				logError("open file failed:" + fileName + ", info:" + www.error);
+				logError("open file failed:" + fileName + ", info:" + www.error + ", error:" + www.downloadHandler.error);
 			}
 			callback?.Invoke(fileNameList[i], www.downloadHandler.data);
 		}
@@ -56,22 +52,18 @@ public class FileUtility
 	// fileName为绝对路径
 	public static IEnumerator openFileAsyncInternal(string fileName, bool errorIfNull, BytesCallback callback)
 	{
-		DateTime start = DateTime.Now;
 		if (fileName.isEmpty())
 		{
 			callback?.Invoke(null);
 			yield break;
 		}
+		DateTime start = DateTime.Now;
 		checkDownloadPath(ref fileName);
 		using var www = UnityWebRequest.Get(fileName);
-		www.SendWebRequest();
-		while (!www.isDone)
-		{
-			yield return null;
-		}
+		yield return www.SendWebRequest();
 		if (errorIfNull && www.downloadHandler.data == null)
 		{
-			logError("open file failed:" + fileName + ", info:" + www.error);
+			logError("open file failed:" + fileName + ", info:" + www.error + ", error:" + www.downloadHandler.error);
 		}
 		log("打开文件耗时:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒,file:" + fileName);
 		try
@@ -86,7 +78,7 @@ public class FileUtility
 	// fileName为绝对路径
 	public static void openFileAsync(string fileName, bool errorIfNull, BytesCallback callback)
 	{
-		if (!isFileExist(fileName))
+		if (!isWebGL() && !isFileExist(fileName))
 		{
 			if (errorIfNull)
 			{
@@ -138,7 +130,7 @@ public class FileUtility
 	// 写一个文本文件,fileName为绝对路径,content是写入的字符串
 	public static void writeTxtFile(string fileName, string content, bool appendData = false)
 	{
-		if (isEditor() || !isAndroid())
+		if (isEditor())
 		{
 			byte[] bytes = stringToBytes(content);
 			if (bytes != null)
@@ -146,7 +138,23 @@ public class FileUtility
 				writeFile(fileName, bytes, bytes.Length, appendData);
 			}
 		}
-		else
+		else if (isIOS())
+		{
+			byte[] bytes = stringToBytes(content);
+			if (bytes != null)
+			{
+				writeFile(fileName, bytes, bytes.Length, appendData);
+			}
+		}
+		else if (isWindows())
+		{
+			byte[] bytes = stringToBytes(content);
+			if (bytes != null)
+			{
+				writeFile(fileName, bytes, bytes.Length, appendData);
+			}
+		}
+		else if (isAndroid())
 		{
 			if (mAndroidAssetLoader != null)
 			{
@@ -154,6 +162,10 @@ public class FileUtility
 				createDir(getFilePath(fileName));
 				AndroidAssetLoader.writeTxtFile(fileName, content, appendData);
 			}
+		}
+		else if (isWebGL())
+		{
+			logError("webgl can not use writeTxtFile");
 		}
 	}
 	// 重命名文件,参数为绝对路径
@@ -268,35 +280,70 @@ public class FileUtility
 	// 删除文件,参数为绝对路径
 	public static bool deleteFile(string path)
 	{
-		rightToLeft(ref path);
+		path = path.rightToLeft();
 		if (!isFileExist(path))
 		{
 			return false;
 		}
-		if (!isEditor() && isAndroid())
+		try
 		{
-			return AndroidAssetLoader.deleteFile(path);
+			if (isEditor())
+			{
+				File.Delete(path);
+			}
+			else if (isAndroid())
+			{
+				return AndroidAssetLoader.deleteFile(path);
+			}
+			else if (isIOS())
+			{
+				File.Delete(path);
+			}
+			else if (isWindows())
+			{
+				File.Delete(path);
+			}
+			else if (isWebGL())
+			{
+				logError("webgl can not use deleteFile");
+				return false;
+			}
 		}
-		else
+		catch (Exception e)
 		{
-			File.Delete(path);
-			return true;
+			logException(e);
+			return false;
 		}
+		return true;
 	}
 	// 获得文件大小,file为绝对路径
 	public static int getFileSize(string file)
 	{
-		rightToLeft(ref file);
+		file = file.rightToLeft();
 		try
 		{
-			if (isEditor() || !isAndroid())
+			if (isEditor())
 			{
 				return (int)new FileInfo(file).Length;
 			}
-			else
+			else if (isAndroid())
 			{
 				return AndroidAssetLoader.getFileSize(file);
 			}
+			else if (isIOS())
+			{
+				return (int)new FileInfo(file).Length;
+			}
+			else if (isWindows())
+			{
+				return (int)new FileInfo(file).Length;
+			}
+			else if (isWebGL())
+			{
+				logError("webgl can not use getFileSize");
+				return 0;
+			}
+			return 0;
 		}
 		catch (Exception e)
 		{
@@ -312,27 +359,40 @@ public class FileUtility
 			return true;
 		}
 		validPath(ref dir);
-		if (isEditor() || !isAndroid())
+		if (isEditor())
 		{
 			return Directory.Exists(dir);
 		}
-		else
+		else if (isAndroid())
 		{
 			// 安卓平台如果要读取StreamingAssets下的文件,只能使用AssetManager
-			if (startWith(dir, F_STREAMING_ASSETS_PATH))
+			if (dir.startWith(F_STREAMING_ASSETS_PATH))
 			{
 				// 改为相对路径
-				dir = dir.removeStartCount(F_STREAMING_ASSETS_PATH.Length);
-				return AndroidAssetLoader.isAssetExist(dir);
+				return AndroidAssetLoader.isAssetExist(dir.removeStartCount(F_STREAMING_ASSETS_PATH.Length));
 			}
 			// 安卓平台如果要读取persistentDataPath的文件,则可以使用File
-			if (startWith(dir, F_PERSISTENT_DATA_PATH))
+			if (dir.startWith(F_PERSISTENT_DATA_PATH))
 			{
 				return AndroidAssetLoader.isDirExist(dir);
 			}
 			logError("isDirExist invalid path : " + dir);
 			return false;
 		}
+		else if (isIOS())
+		{
+			return Directory.Exists(dir);
+		}
+		else if (isWindows())
+		{
+			return Directory.Exists(dir);
+		}
+		else if (isWebGL())
+		{
+			logError("webgl can not use isDirExist");
+			return false;
+		}
+		return false;
 	}
 	// 文件是否存在,fileName为绝对路径
 	public static bool isFileExist(string fileName)
@@ -341,27 +401,40 @@ public class FileUtility
 		{
 			return false;
 		}
-		if (isEditor() || !isAndroid())
+		if (isEditor())
 		{
 			return File.Exists(fileName);
 		}
-		else
+		else if (isAndroid())
 		{
 			// 安卓平台如果要读取StreamingAssets下的文件,只能使用AssetManager
-			if (startWith(fileName, F_STREAMING_ASSETS_PATH))
+			if (fileName.startWith(F_STREAMING_ASSETS_PATH))
 			{
 				// 改为相对路径
-				fileName = fileName.removeStartCount(F_STREAMING_ASSETS_PATH.Length);
-				return AndroidAssetLoader.isAssetExist(fileName);
+				return AndroidAssetLoader.isAssetExist(fileName.removeStartCount(F_STREAMING_ASSETS_PATH.Length));
 			}
 			// 安卓平台如果要读取persistentDataPath的文件,则可以使用File
-			if (startWith(fileName, F_PERSISTENT_DATA_PATH))
+			if (fileName.startWith(F_PERSISTENT_DATA_PATH))
 			{
 				return AndroidAssetLoader.isFileExist(fileName);
 			}
 			logError("isFileExist invalid path : " + fileName);
 			return false;
 		}
+		else if (isIOS())
+		{
+			return File.Exists(fileName);
+		}
+		else if (isWindows())
+		{
+			return File.Exists(fileName);
+		}
+		else if (isWebGL())
+		{
+			logError("webgl can not use isFileExist");
+			return false;
+		}
+		return false;
 	}
 	// 创建文件夹,dir绝对路径
 	public static void createDir(string dir)
@@ -376,13 +449,25 @@ public class FileUtility
 		{
 			createDir(parentDir);
 		}
-		if (!isEditor() && isAndroid())
+		if (isEditor())
+		{
+			Directory.CreateDirectory(dir);
+		}
+		else if (isAndroid())
 		{
 			AndroidAssetLoader.createDirectoryRecursive(dir);
 		}
-		else
+		else if (isIOS())
 		{
 			Directory.CreateDirectory(dir);
+		}
+		else if (isWindows())
+		{
+			Directory.CreateDirectory(dir);
+		}
+		else if (isWebGL())
+		{
+			logError("can not use createDir in webgl");
 		}
 	}
 	// 查找指定目录下的所有文件,path为GameResources下的相对路径
@@ -422,10 +507,7 @@ public class FileUtility
 			return;
 		}
 		validPath(ref path);
-		if (!startWith(path, F_GAME_RESOURCES_PATH))
-		{
-			path = F_GAME_RESOURCES_PATH + path;
-		}
+		path = path.ensurePrefix(F_GAME_RESOURCES_PATH);
 		findFilesInternal(path, fileList, patterns, recursive);
 		if (!keepAbsolutePath)
 		{
@@ -466,7 +548,7 @@ public class FileUtility
 		if (!isEditor() && isAndroid())
 		{
 			// 转换为相对路径
-			removeStartString(ref path, F_STREAMING_ASSETS_PATH);
+			path = path.removeStartString(F_STREAMING_ASSETS_PATH);
 			AndroidAssetLoader.findAssets(path, fileList, patterns, recursive);
 			// 查找后的路径本身就是相对路径,如果需要保留绝对路径,则需要将路径加上
 			if (keepAbsolutePath)
@@ -480,10 +562,7 @@ public class FileUtility
 		}
 		else
 		{
-			if (!startWith(path, F_STREAMING_ASSETS_PATH))
-			{
-				path = F_STREAMING_ASSETS_PATH + path;
-			}
+			path = path.ensurePrefix(F_STREAMING_ASSETS_PATH);
 			findFilesInternal(path, fileList, patterns, recursive);
 			if (!keepAbsolutePath)
 			{
@@ -502,7 +581,7 @@ public class FileUtility
 		if (!isEditor() && isAndroid())
 		{
 			// 转换为相对路径
-			removeStartString(ref path, F_STREAMING_ASSETS_PATH);
+			path = path.removeStartString(F_STREAMING_ASSETS_PATH);
 			AndroidAssetLoader.findAssetsFolder(path, folderList, recursive);
 			// 查找后的路径本身就是相对路径,如果需要保留绝对路径,则需要将路径加上
 			if (keepAbsolutePath)
@@ -517,10 +596,7 @@ public class FileUtility
 		else
 		{
 			// 非安卓平台则查找普通的文件夹
-			if (!startWith(path, F_STREAMING_ASSETS_PATH))
-			{
-				path = F_STREAMING_ASSETS_PATH + path;
-			}
+			path = path.ensurePrefix(F_STREAMING_ASSETS_PATH);
 			findFolders(path, folderList, null, recursive);
 			if (!keepAbsolutePath)
 			{
@@ -596,7 +672,7 @@ public class FileUtility
 					{
 						foreach (string pattern in patterns)
 						{
-							if (endWith(fileName, pattern, false))
+							if (fileName.endWith(pattern, false))
 							{
 								fileList.Add(path + fileName);
 							}
@@ -716,7 +792,7 @@ public class FileUtility
 		{
 			if (isIOS())
 			{
-				generateMD5ListAsyncInternalIOS(fileNameList, callback);
+				callback?.Invoke(generateMD5ListInternalIOS(fileNameList));
 			}
 			else
 			{
@@ -746,6 +822,13 @@ public class FileUtility
 			logError(e.Message);
 		}
 		return bytesToHEXString(md5Bytes, 0, 0, false, false);
+	}
+	// 筛选出需要删除的文件
+	public static List<string> checkDeleteFile(Dictionary<string, GameFileInfo> localInfoList, Dictionary<string, GameFileInfo> remoteInfoList)
+	{
+		List<string> deleteList = new();
+		checkDeleteFile(localInfoList, remoteInfoList, deleteList);
+		return deleteList;
 	}
 	// 筛选出需要删除的文件
 	public static void checkDeleteFile(Dictionary<string, GameFileInfo> localInfoList, Dictionary<string, GameFileInfo> remoteInfoList, List<string> deleteList)
@@ -844,6 +927,13 @@ public class FileUtility
 		}
 	}
 	// 筛选出新增和内容被修改的文件
+	public static List<string> checkNeedUploadFile(Dictionary<string, GameFileInfo> remoteList, Dictionary<string, GameFileInfo> localInfoList)
+	{
+		List<string> modifyList = new();
+		checkNeedUploadFile(modifyList, remoteList, localInfoList);
+		return modifyList;
+	}
+	// 筛选出新增和内容被修改的文件
 	public static void checkNeedUploadFile(List<string> modifyList, Dictionary<string, GameFileInfo> remoteList, Dictionary<string, GameFileInfo> localInfoList)
 	{
 		// 新增文件和已修改文件都认为是已修改文件
@@ -906,6 +996,34 @@ public class FileUtility
 		}
 		return true;
 	}
+	// AES 加密
+	public static byte[] encryptAES(byte[] data, byte[] key, byte[] iv)
+	{
+		using Aes aesAlg = Aes.Create();
+		aesAlg.Key = key;
+		aesAlg.IV = iv;
+		using MemoryStream msEncrypt = new();
+		using CryptoStream csEncrypt = new(msEncrypt, aesAlg.CreateEncryptor(), CryptoStreamMode.Write);
+		csEncrypt.Write(data, 0, data.Length);
+		csEncrypt.FlushFinalBlock();
+		return msEncrypt.ToArray();
+	}
+	// AES 解密
+	public static byte[] decryptAES(byte[] data, byte[] key, byte[] iv)
+	{
+		if (key.isEmpty() || iv.isEmpty())
+		{
+			return data;
+		}
+		using Aes aesAlg = Aes.Create();
+		aesAlg.Key = key;
+		aesAlg.IV = iv;
+		using MemoryStream msDecrypt = new(data);
+		using CryptoStream csDecrypt = new(msDecrypt, aesAlg.CreateDecryptor(), CryptoStreamMode.Read);
+		using MemoryStream msResult = new();
+		csDecrypt.CopyTo(msResult);
+		return msResult.ToArray();
+	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected static IEnumerator generateMD5ListAsyncInternal(List<string> fileNameList, StringListCallback callback)
 	{
@@ -947,7 +1065,7 @@ public class FileUtility
 		fs.Read(fileBuffer, 0, fileSize);
 		return fileBuffer;
 	}
-	protected static void generateMD5ListAsyncInternalIOS(List<string> fileNameList, StringListCallback callback)
+	protected static List<string> generateMD5ListInternalIOS(List<string> fileNameList)
 	{
 		List<string> md5List = new();
 		int count = fileNameList.Count;
@@ -956,6 +1074,6 @@ public class FileUtility
 		{
 			md5List[i] = generateFileMD5(openFileIOS(fileNameList[i]));
 		}
-		callback?.Invoke(md5List);
+		return md5List;
 	}
 }

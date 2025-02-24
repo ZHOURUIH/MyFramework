@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static CSharpUtility;
 using static StringUtility;
 
@@ -14,7 +14,7 @@ public struct ListScope4T<T0, T1, T2, T3> : IDisposable
 	private List<T3> mList3;     // 分配的对象
 	public ListScope4T(out List<T0> list0, out List<T1> list1, out List<T2> list2, out List<T3> list3)
 	{
-		if (mGameFramework == null || mListPool == null)
+		if (mGameFrameworkHotFix == null || mListPool == null)
 		{
 			list0 = new();
 			list1 = new();
@@ -26,7 +26,7 @@ public struct ListScope4T<T0, T1, T2, T3> : IDisposable
 			mList3 = null;
 			return;
 		}
-		string stackTrace = mGameFramework.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
+		string stackTrace = mGameFrameworkHotFix.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
 		list0 = mListPool.newList(typeof(T0), typeof(List<T0>), stackTrace, true) as List<T0>;
 		list1 = mListPool.newList(typeof(T1), typeof(List<T1>), stackTrace, true) as List<T1>;
 		list2 = mListPool.newList(typeof(T2), typeof(List<T2>), stackTrace, true) as List<T2>;
@@ -38,7 +38,7 @@ public struct ListScope4T<T0, T1, T2, T3> : IDisposable
 	}
 	public void Dispose()
 	{
-		if (mGameFramework == null || mListPool == null)
+		if (mGameFrameworkHotFix == null || mListPool == null)
 		{
 			return;
 		}

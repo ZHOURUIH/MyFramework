@@ -33,7 +33,7 @@ public class CheckResourcesWindow : GameEditorWindow
 	//------------------------------------------------------------------------------------------------------------------------
 	protected override void onGUI()
 	{
-		string path = rightToLeft(AssetDatabase.GetAssetPath(Selection.activeObject));
+		string path = AssetDatabase.GetAssetPath(Selection.activeObject).rightToLeft();
 		if (path.isEmpty())
 		{
 			path = P_GAME_RESOURCES_PATH;
@@ -59,12 +59,13 @@ public class CheckResourcesWindow : GameEditorWindow
 							HashSet<string> outerRefList = GameMenu.collectUsedFile();
 							foreach (var item in tempList)
 							{
-								RefInfo info = new();
-								info.mFileName = item.Key;
-								info.mRefInGameRes = item.Value;
-								info.mOuterRefCount = outerRefList.Contains(item.Key);
-								info.mObject = AssetDatabase.LoadAssetAtPath<UObject>(item.Key);
-								mFileReferenceList.Add(item.Key, info);
+								mFileReferenceList.Add(item.Key, new()
+								{
+									mFileName = item.Key,
+									mRefInGameRes = item.Value,
+									mOuterRefCount = outerRefList.Contains(item.Key),
+									mObject = AssetDatabase.LoadAssetAtPath<UObject>(item.Key)
+								});
 							}
 						}
 					}
@@ -80,7 +81,7 @@ public class CheckResourcesWindow : GameEditorWindow
 							{
 								if (!item.EndsWith(".meta"))
 								{
-									validFiles.Add(rightToLeft(item));
+									validFiles.Add(item.rightToLeft());
 								}
 							}
 							mFileReferenceList.Clear();
@@ -96,12 +97,13 @@ public class CheckResourcesWindow : GameEditorWindow
 							HashSet<string> outerRefList = GameMenu.collectUsedFile();
 							foreach (var item in tempList)
 							{
-								RefInfo info = new();
-								info.mFileName = item.Key;
-								info.mRefInGameRes = item.Value;
-								info.mOuterRefCount = outerRefList.Contains(item.Key);
-								info.mObject = AssetDatabase.LoadAssetAtPath<UObject>(item.Key);
-								mFileReferenceList.Add(item.Key, info);
+								mFileReferenceList.Add(item.Key, new()
+								{
+									mFileName = item.Key,
+									mRefInGameRes = item.Value,
+									mOuterRefCount = outerRefList.Contains(item.Key),
+									mObject = AssetDatabase.LoadAssetAtPath<UObject>(item.Key)
+								});
 							}
 							EditorUtility.ClearProgressBar();
 						}
@@ -120,7 +122,7 @@ public class CheckResourcesWindow : GameEditorWindow
 				{
 					var allMeta = getAllResourceMeta();
 					allMeta.TryGetValue(mInputGUID, out string filePath);
-					filePath = removeEndString(fullPathToProjectPath(filePath), ".meta");
+					filePath = fullPathToProjectPath(filePath).removeEndString(".meta");
 					Debug.Log("查找到的文件:" + filePath + ", guid:" + mInputGUID, loadAsset(filePath));
 				}
 			}
@@ -241,7 +243,7 @@ public class CheckResourcesWindow : GameEditorWindow
 					string refTipString = EMPTY;
 					foreach (string refFile in refList)
 					{
-						refString += removeStartString(refFile, P_GAME_RESOURCES_PATH) + ",";
+						refString += refFile.removeStartString(P_GAME_RESOURCES_PATH) + ",";
 						refTipString += refFile + "\n";
 					}
 					if (!refString.isEmpty())
@@ -358,6 +360,6 @@ public class CheckResourcesWindow : GameEditorWindow
 	{
 		Dictionary<string, UObject> refrenceList = new();
 		searchFileRefrence(path, false, refrenceList, allFileText, false);
-		refList.add(rightToLeft(path), new(refrenceList.Keys));
+		refList.add(path.rightToLeft(), new(refrenceList.Keys));
 	}
 }

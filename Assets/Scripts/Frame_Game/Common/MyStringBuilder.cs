@@ -380,6 +380,118 @@ public class MyStringBuilder : ClassObject
 		mBuilder.Replace(oldString, newString);
 		return this;
 	}
+	public void replace(int begin, int end, string reStr)
+	{
+		remove(begin, end - begin);
+		if (!reStr.isEmpty())
+		{
+			insert(begin, reStr);
+		}
+	}
+	public void replaceAll(string key, string newWords)
+	{
+		int startPos = 0;
+		while (true)
+		{
+			int pos = findFirstSubstr(key, startPos);
+			if (pos < 0)
+			{
+				break;
+			}
+			replace(pos, pos + key.Length, newWords);
+			startPos = pos + newWords.length();
+		}
+	}
+	public void replaceAll(char key, char newWords)
+	{
+		int len = mBuilder.Length;
+		for (int i = 0; i < len; ++i)
+		{
+			if (mBuilder[i] == key)
+			{
+				mBuilder[i] = newWords;
+			}
+		}
+	}
+	// returnEndIndex表示返回值是否是字符串结束的下一个字符的下标
+	public int findFirstSubstr(string pattern, int startPos = 0, bool returnEndIndex = false, bool sensitive = true)
+	{
+		if (Length < pattern.Length)
+		{
+			return -1;
+		}
+		int posFind = -1;
+		int subLen = pattern.Length;
+		int len = Length;
+		for (int i = startPos; i < len; ++i)
+		{
+			if (len - i < subLen)
+			{
+				continue;
+			}
+			int j = 0;
+			// 大小写敏感
+			if (sensitive)
+			{
+				for (; j < subLen; ++j)
+				{
+					if (i + j >= 0 && i + j < len && mBuilder[i + j] != pattern[j])
+					{
+						break;
+					}
+				}
+			}
+			// 大小写不敏感,则需要都转换为小写
+			else
+			{
+				for (; j < subLen; ++j)
+				{
+					if (i + j >= 0 && i + j < len && toLower(mBuilder[i + j]) != toLower(pattern[j]))
+					{
+						break;
+					}
+				}
+			}
+			if (j == subLen)
+			{
+				posFind = i;
+				break;
+			}
+		}
+		if (returnEndIndex && posFind >= 0)
+		{
+			posFind += subLen;
+		}
+		return posFind;
+	}
+	public void byteToHEXString(byte value, bool upperOrLower = true)
+	{
+		char[] hexChar = upperOrLower ? mHexUpperChar : mHexLowerChar;
+		// 等效于int high = value / 16;
+		// 等效于int low = value % 16;
+		int high = value >> 4;
+		int low = value & 15;
+		if (high < 10)
+		{
+			append((char)('0' + high));
+		}
+		else
+		{
+			append(hexChar[high - 10]);
+		}
+		if (low < 10)
+		{
+			append((char)('0' + low));
+		}
+		else
+		{
+			append(hexChar[low - 10]);
+		}
+	}
+	public void rightToLeft()
+	{
+		replace('\\', '/');
+	}
 	public override string ToString()
 	{
 		return mBuilder.ToString();

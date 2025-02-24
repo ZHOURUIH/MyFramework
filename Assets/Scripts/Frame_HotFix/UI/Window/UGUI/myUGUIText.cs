@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using static MathUtility;
 using static StringUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // 对UGUI的Text的封装
 public class myUGUIText : myUGUIObject

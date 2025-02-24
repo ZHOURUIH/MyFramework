@@ -75,7 +75,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		T item;
 		if (mUnusedItemList.Count > 0)
 		{
-			item = popFirst(mUnusedItemList);
+			item = mUnusedItemList.popFirst();
 			item.setParent(parent, false);
 		}
 		else

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using static UnityUtility;
 using static MathUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // 窗口的碰撞检测相关逻辑
 public class COMWindowCollider : GameComponent

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using static UnityUtility;
 using static FrameUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameDefine;
 using static FrameEditorUtility;
 
@@ -189,7 +189,7 @@ public class EffectManager : FrameSystem
 		if (effect != null)
 		{
 			callback?.Invoke(effect);
-			return new() { mFinish = true };
+			return new CustomAsyncOperation().setFinish();
 		}
 		return mPrefabPoolManager.createObjectAsyncSafe(relatedObject, nameWithPath, tag, moveToHide, true, (GameObject go) =>
 		{
@@ -205,7 +205,7 @@ public class EffectManager : FrameSystem
 		if (effect != null)
 		{
 			callback?.Invoke(effect);
-			return new() { mFinish = true };
+			return new CustomAsyncOperation().setFinish();
 		}
 		return mPrefabPoolManager.createObjectAsync(nameWithPath, tag, moveToHide, true, (GameObject go) =>
 		{

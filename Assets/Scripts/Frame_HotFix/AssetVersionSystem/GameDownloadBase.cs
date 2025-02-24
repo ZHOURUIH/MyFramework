@@ -4,7 +4,7 @@ using static FrameUtility;
 using static StringUtility;
 using static FileUtility;
 using static UnityUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameDefine;
 using static FrameDefineBase;
 using static MathUtility;

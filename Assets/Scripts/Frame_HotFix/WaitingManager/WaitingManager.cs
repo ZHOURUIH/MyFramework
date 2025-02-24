@@ -28,15 +28,15 @@ public class WaitingManager : FrameSystem
 	}
 	public Waiting createWaiting(CustomAsyncOperation op0, Action done)
 	{
-		return createWaiting(() => { return op0.mFinish; }, done);
+		return createWaiting(() => { return !op0.keepWaiting; }, done);
 	}
 	public Waiting createWaiting(CustomAsyncOperation op0, CustomAsyncOperation op1, Action done)
 	{
-		return createWaiting(() => { return op0.mFinish && op1.mFinish; }, done);
+		return createWaiting(() => { return !op0.keepWaiting && !op1.keepWaiting; }, done);
 	}
 	public Waiting createWaiting(CustomAsyncOperation op0, CustomAsyncOperation op1, CustomAsyncOperation op2, Action done)
 	{
-		return createWaiting(() => { return op0.mFinish && op1.mFinish && op2.mFinish; }, done);
+		return createWaiting(() => { return !op0.keepWaiting && !op1.keepWaiting && !op2.keepWaiting; }, done);
 	}
 	public Waiting createWaiting(BoolFunction condition, Action done)
 	{

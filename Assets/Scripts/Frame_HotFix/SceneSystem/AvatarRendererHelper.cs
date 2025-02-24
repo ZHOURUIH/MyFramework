@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static UnityUtility;
 
 // 用于辅助生成渲染到纹理,比如在UI上显示角色,或者其他要将模型渲染到纹理的情况

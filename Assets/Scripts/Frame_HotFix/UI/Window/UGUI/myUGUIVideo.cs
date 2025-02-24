@@ -113,7 +113,7 @@ public class myUGUIVideo : myUGUIRawImage
 	{
 		string fullPath = availableReadPath(SA_VIDEO_PATH + videoName);
 		// 如果是PersistentDataPath的资源
-		if (startWith(fullPath, F_PERSISTENT_ASSETS_PATH))
+		if (fullPath.startWith(F_PERSISTENT_ASSETS_PATH))
 		{
 			return setFileURL(fullPath, MediaPlayer.FileLocation.AbsolutePathOrURL);
 		}
@@ -122,7 +122,7 @@ public class myUGUIVideo : myUGUIRawImage
 		{
 			// 因为内部会对StreamingAssets的路径进行重新处理,跟FrameDefine.F_STREAMING_ASSETS_PATH中的处理重复了
 			// 所以只能将相对路径传进去,否则在Android平台下会出现路径错误
-			string relativePath = removeStartString(fullPath, F_STREAMING_ASSETS_PATH);
+			string relativePath = fullPath.removeStartString(F_STREAMING_ASSETS_PATH);
 			return setFileURL(Application.streamingAssetsPath + "/" + relativePath, MediaPlayer.FileLocation.RelativeToStreamingAssetsFolder);
 		}
 	}

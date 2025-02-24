@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static StringUtility;
 
 // 音频组件,用于执行播放音效相关

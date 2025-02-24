@@ -1,5 +1,5 @@
 ﻿using System;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 public class SQLiteRegister
 {

@@ -1,5 +1,5 @@
 ﻿using System;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // 用于自动从对象池中获取一个T,可用于在子线程中访问,不再使用时会自动释放
 // 需要搭配using来使用,比如using(new ClassThreadScope<T>(out var list))

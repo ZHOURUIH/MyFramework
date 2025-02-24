@@ -1,5 +1,5 @@
 ﻿using static FrameUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 public class MainSceneGaming : SceneProcedure
 {

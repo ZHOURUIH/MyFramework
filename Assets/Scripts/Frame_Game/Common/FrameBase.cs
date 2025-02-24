@@ -1,8 +1,6 @@
 ﻿
-// 管理类初始化完成调用
-// 这个父类的添加是方便代码的书写
-// 因为要允许应用层来扩展此类,添加自己的系统组件引用,以及其他需要快速访问的变量,所以是partial类
-public partial class FrameBase
+// 管理类初始化完成调用,这个类的添加是方便代码的书写
+public class FrameBase
 {
 	// FrameSystem
 	public static GameFramework mGameFramework;
@@ -32,5 +30,4 @@ public partial class FrameBase
 	public static AsyncTaskGroupManager mAsyncTaskGroupManager;
 	public static ScreenOrientationSystem mScreenOrientationSystem;
 	public static WaitingManager mWaitingManager;
-	public static void frameSystemInitDone(){}
 }

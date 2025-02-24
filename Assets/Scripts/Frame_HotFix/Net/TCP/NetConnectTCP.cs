@@ -6,7 +6,7 @@ using static StringUtility;
 using static UnityUtility;
 using static BinaryUtility;
 using static FrameUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameDefine;
 using static FrameEditorUtility;
 
@@ -113,7 +113,7 @@ public abstract class NetConnectTCP : NetConnect
 			}
 			catch (SocketException e)
 			{
-				callback?.Invoke(false);
+				delayCall(callback, false);
 				log("init socket exception : " + e.Message);
 				socketException(e);
 				return;

@@ -62,8 +62,15 @@ public class FrameDefineBase
 	public const string VERSION = "Version";
 	public const string FILE_LIST_REMOTE = "FileList_Remote";
 	public const string FILE_LIST_MD5 = "FileList_MD5";
+	public const string DATA_SUFFIX = ".bytes";
+	public const string HOTFIX = "HotFix";
+	public const string HOTFIX_FRAME = "Frame_HotFix";
+	public const string HOTFIX_FILE = HOTFIX + ".dll";
+	public const string HOTFIX_FRAME_FILE = HOTFIX_FRAME + ".dll";
+	public const string HOTFIX_BYTES_FILE = HOTFIX_FILE + DATA_SUFFIX;
+	public const string HOTFIX_FRAME_BYTES_FILE = HOTFIX_FRAME_FILE + DATA_SUFFIX;
 	// 以下是可扩展的参数,可以修改为自己项目需要的参数
-	// UI的制作标准,所有UI都是按1920*1080标准分辨率制作的
-	public static int STANDARD_WIDTH = 1920;
-	public static int STANDARD_HEIGHT = 1080;
+	// UI的制作标准,所有UI都是按1280*960标准分辨率制作的
+	public static int STANDARD_WIDTH = 1280;
+	public static int STANDARD_HEIGHT = 960;
 }

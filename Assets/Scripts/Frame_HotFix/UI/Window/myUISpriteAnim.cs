@@ -4,7 +4,7 @@ using static UnityUtility;
 using static StringUtility;
 using static MathUtility;
 
-// Image的序列帧
+// Sprite的序列帧
 public class myUISpriteAnim : myUISprite, IUIAnimation
 {
 	protected List<TextureAnimCallback> mPlayEndCallbackList;   // 一个序列播放完时的回调函数,只在非循环播放状态下有效

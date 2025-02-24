@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static CSharpUtility;
 
 [StructLayout(LayoutKind.Sequential)] 

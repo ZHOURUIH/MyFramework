@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using static MathUtility;
 using static FrameUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameEditorUtility;
 
 // 完全自由的摄像机,不连接任何物体

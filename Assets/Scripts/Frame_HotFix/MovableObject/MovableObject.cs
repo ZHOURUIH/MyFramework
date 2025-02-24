@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using static UnityUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static CSharpUtility;
 using static StringUtility;
 

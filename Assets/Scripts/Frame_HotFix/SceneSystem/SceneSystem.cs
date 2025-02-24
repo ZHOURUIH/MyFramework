@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using static UnityUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FileUtility;
 using static StringUtility;
 using static CSharpUtility;
@@ -128,14 +128,14 @@ public class SceneSystem : FrameSystem
 				{
 					loadingCallback?.Invoke(1.0f);
 					loadedCallback?.Invoke();
-					op.mFinish = true;
+					op.setFinish();
 				});
 			}
 		}
 		else
 		{
 			SceneInstance scene = mSceneList.add(sceneName, createScene(sceneName));
-			scene.setState(LOAD_STATE.UNLOAD);
+			scene.setState(LOAD_STATE.NONE);
 			scene.setActiveLoaded(active);
 			scene.setMainScene(mainScene);
 			scene.setLoadingCallback(loadingCallback);
@@ -143,7 +143,7 @@ public class SceneSystem : FrameSystem
 			// scenePath + sceneName表示场景文件AssetBundle的路径,包含文件名
 			mResourceManager.loadAssetBundleAsync(getScenePath(sceneName) + sceneName, (AssetBundleInfo bundle) =>
 			{
-				mGameFramework.StartCoroutine(loadSceneCoroutine(scene, op));
+				mGameFrameworkHotFix.StartCoroutine(loadSceneCoroutine(scene, op));
 			});
 		}
 		return op;
@@ -194,7 +194,7 @@ public class SceneSystem : FrameSystem
 		// 首先获得场景
 		scene.setScene(SceneManager.GetSceneByName(scene.getName()));
 		// 获得了场景根节点才能使场景显示或隐藏,为了尽量避免此处查找节点错误,所以不能使用容易重名的名字
-		scene.setRoot(getGameObject(scene.getName() + "_Root", null, true, false));
+		scene.setRoot(getRootGameObject(scene.getName() + "_Root", true));
 		// 加载完毕后就立即初始化
 		scene.init();
 		if (scene.isActiveLoaded())
@@ -215,7 +215,7 @@ public class SceneSystem : FrameSystem
 		{
 			logException(e);
 		}
-		op.mFinish = true;
+		op.setFinish();
 	}
 	protected SceneInstance createScene(string sceneName)
 	{

@@ -7,7 +7,7 @@ using static FileUtility;
 using static UnityUtility;
 using static FrameUtility;
 using static StringUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameEditorUtility;
 
 // 从Resources中加载资源
@@ -60,7 +60,7 @@ public class ResourcesLoader
 		using var a = new ListScope<string>(out var tempList);
 		foreach (string item0 in tempList.addRange(mLoadedPath.Keys))
 		{
-			if (!startWith(item0, path))
+			if (!item0.startWith(path))
 			{
 				continue;
 			}
@@ -119,7 +119,7 @@ public class ResourcesLoader
 		{
 			logWarning("资源正在后台加载,不能同步加载!" + name);
 		}
-		else if (info.getState() == LOAD_STATE.UNLOAD)
+		else if (info.getState() == LOAD_STATE.NONE)
 		{
 			logWarning("资源已加入列表,但是未加载" + name);
 		}
@@ -151,7 +151,7 @@ public class ResourcesLoader
 		{
 			logWarning("资源正在后台加载,不能同步加载!" + name);
 		}
-		else if (info.getState() == LOAD_STATE.UNLOAD)
+		else if (info.getState() == LOAD_STATE.NONE)
 		{
 			logWarning("资源已加入列表,但是未加载" + name);
 		}
@@ -177,7 +177,7 @@ public class ResourcesLoader
 				info.addCallback((UObject asset, UObject[] assets, byte[] bytes, string loadPath) =>
 				{
 					doneCallback?.Invoke(asset, assets, bytes, loadPath);
-					op.mFinish = true;
+					op.setFinish();
 				}, name);
 			}
 			// 资源已经下载完毕,直接调用回调
@@ -185,7 +185,7 @@ public class ResourcesLoader
 			{
 				ResourceLoadInfo loadInfo = mLoadedPath.get(path).get(name);
 				doneCallback?.Invoke(loadInfo.getObject(), loadInfo.getSubObjects(), null, name);
-				op.mFinish = true;
+				op.setFinish();
 			}
 		}
 		// 还没有加载则开始异步加载
@@ -198,9 +198,9 @@ public class ResourcesLoader
 			info.addCallback((UObject asset, UObject[] assets, byte[] bytes, string loadPath) =>
 			{
 				doneCallback?.Invoke(asset, assets, bytes, loadPath);
-				op.mFinish = true;
+				op.setFinish();
 			}, name);
-			mGameFramework.StartCoroutine(loadResourceCoroutine<T>(info));
+			mGameFrameworkHotFix.StartCoroutine(loadResourceCoroutine<T>(info));
 		}
 		return op;
 	}

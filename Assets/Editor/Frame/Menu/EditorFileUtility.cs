@@ -33,14 +33,14 @@ public class EditorFileUtility
 			return fileBuffer;
 #else
 			// 安卓平台如果要读取StreamingAssets下的文件,只能使用AssetManager
-			if (startWith(fileName, F_STREAMING_ASSETS_PATH))
+			if (fileName.startWith(F_STREAMING_ASSETS_PATH))
 			{
 				// 改为相对路径
 				fileName = fileName.removeStartCount(F_STREAMING_ASSETS_PATH.Length);
 				fileBuffer = AndroidAssetLoader.loadAsset(fileName, errorIfNull);
 			}
 			// 安卓平台如果要读取persistentDataPath的文件,则可以使用File
-			else if (startWith(fileName, F_PERSISTENT_DATA_PATH))
+			else if (fileName.startWith(F_PERSISTENT_DATA_PATH))
 			{
 				fileBuffer = AndroidAssetLoader.loadFile(fileName, errorIfNull);
 			}
@@ -125,5 +125,15 @@ public class EditorFileUtility
 		}
 		HashAlgorithm algorithm = MD5.Create();
 		return bytesToHEXString(algorithm.ComputeHash(fileContent, 0, length), 0, 0, false, upperOrLower);
+	}
+	public static void encryptFileAES(string fileFullPath, byte[] key, byte[] vi)
+	{
+		byte[] fileBytes = openFile(fileFullPath, true);
+		if (fileBytes.count() == 0)
+		{
+			return;
+		}
+		byte[] bytes = encryptAES(fileBytes, key, vi);
+		writeFile(fileFullPath, bytes, bytes.Length);
 	}
 }

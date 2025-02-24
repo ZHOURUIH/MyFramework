@@ -124,7 +124,7 @@ public class MenuCheckCode
 		{
 			string filePath = fullPathToProjectPath(file);
 			var childTrans = loadGameObject(filePath).transform.GetComponentsInChildren<Transform>(true);
-			string prefabName = removeStartString(removeSuffix(getFileNameWithSuffix(filePath)), "UI");
+			string prefabName = removeSuffix(getFileNameWithSuffix(filePath)).removeStartString("UI");
 			prefabChildTransform.TryAdd(prefabName, childTrans);
 		}
 
@@ -136,11 +136,11 @@ public class MenuCheckCode
 		{
 			string file = fileListCS[i];
 			string fileNameNoSuffix = removeSuffix(getFileNameWithSuffix(fullPathToProjectPath(file)));
-			if (!startWith(fileNameNoSuffix, "Script") || isIgnoreFile(file, getIgnoreLayoutScript()))
+			if (!fileNameNoSuffix.startWith("Script") || isIgnoreFile(file, getIgnoreLayoutScript()))
 			{
 				continue;
 			}
-			string layoutName = removeStartString(fileNameNoSuffix, "Script");
+			string layoutName = fileNameNoSuffix.removeStartString("Script");
 			if (!prefabChildTransform.TryGetValue(layoutName, out Transform[] transforms))
 			{
 				Debug.LogError("脚本名为:" + layoutName + "的cs文件没找到相对应的预制体");

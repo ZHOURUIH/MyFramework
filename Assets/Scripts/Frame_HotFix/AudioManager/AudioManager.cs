@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using static FrameUtility;
 using static UnityUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static CSharpUtility;
 using static MathUtility;
 using static FrameDefine;
@@ -85,7 +85,7 @@ public class AudioManager : FrameSystem
 		{
 			info.mAudioName = url;
 			info.mClip = null;
-			info.mState = LOAD_STATE.UNLOAD;
+			info.mState = LOAD_STATE.NONE;
 			info.mIsLocal = false;
 		}
 		if (load && info.mClip == null)
@@ -103,7 +103,7 @@ public class AudioManager : FrameSystem
 		bool ret = mResourceManager.unload(ref info.mClip);
 		if (ret)
 		{
-			info.mState = LOAD_STATE.UNLOAD;
+			info.mState = LOAD_STATE.NONE;
 		}
 		return ret;
 	}
@@ -116,7 +116,7 @@ public class AudioManager : FrameSystem
 	{
 		foreach (AudioInfo item in mAudioList.Values)
 		{
-			if (item.mClip == null && item.mState == LOAD_STATE.UNLOAD)
+			if (item.mClip == null && item.mState == LOAD_STATE.NONE)
 			{
 				loadAudio(item);
 			}
@@ -127,7 +127,7 @@ public class AudioManager : FrameSystem
 	{
 		foreach (AudioInfo item in mAudioList.Values)
 		{
-			if (item.mClip == null && item.mState == LOAD_STATE.UNLOAD)
+			if (item.mClip == null && item.mState == LOAD_STATE.NONE)
 			{
 				loadAudioAsync(item, null);
 			}
@@ -179,7 +179,7 @@ public class AudioManager : FrameSystem
 		// 如果音效为空,则尝试加载
 		if (info.mClip == null)
 		{
-			if (load && info.mState == LOAD_STATE.UNLOAD)
+			if (load && info.mState == LOAD_STATE.NONE)
 			{
 				loadAudioAsync(info, (AudioInfo outInfo) =>
 				{
@@ -235,7 +235,7 @@ public class AudioManager : FrameSystem
 		var newInfo = mAudioList.add(fileNameNoSuffix, CLASS<AudioInfo>());
 		newInfo.mAudioName = fileNameNoSuffix;
 		newInfo.mClip = null;
-		newInfo.mState = LOAD_STATE.UNLOAD;
+		newInfo.mState = LOAD_STATE.NONE;
 		newInfo.mIsLocal = isLocal;
 	}
 	// 注册可以使用枚举访问的音效,fileName是GameResources下的相对路径,带后缀名
@@ -250,7 +250,7 @@ public class AudioManager : FrameSystem
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void loadAudio(AudioInfo info)
 	{
-		if (info == null || info.mClip != null || info.mState != LOAD_STATE.UNLOAD)
+		if (info == null || info.mClip != null || info.mState != LOAD_STATE.NONE)
 		{
 			return;
 		}
@@ -266,7 +266,7 @@ public class AudioManager : FrameSystem
 	}
 	protected void loadAudioAsync(AudioInfo info, AudioInfoCallback callback)
 	{
-		if (info == null || info.mClip != null || info.mState != LOAD_STATE.UNLOAD)
+		if (info == null || info.mClip != null || info.mState != LOAD_STATE.NONE)
 		{
 			callback?.Invoke(null);
 			return;
@@ -299,7 +299,7 @@ public class AudioManager : FrameSystem
 		}
 		else
 		{
-			info.mState = LOAD_STATE.UNLOAD;
+			info.mState = LOAD_STATE.NONE;
 		}
 		++mLoadedCount;
 	}

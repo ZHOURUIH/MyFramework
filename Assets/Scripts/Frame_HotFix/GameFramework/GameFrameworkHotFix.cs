@@ -9,31 +9,31 @@ using static FrameUtility;
 using static FrameDefine;
 using static MathUtility;
 using static TimeUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // 最顶层的节点,也是游戏的入口,管理所有框架组件(管理器)
-public class GameFramework : MonoBehaviour
+public class GameFrameworkHotFix : MonoBehaviour
 {
-	public static GameFramework mGameFramework;										// 框架单例
+	public static GameFrameworkHotFix mGameFrameworkHotFix;							// 框架单例
 	protected Dictionary<string, FrameSystem> mFrameComponentMap = new(128);		// 存储框架组件,用于查找
 	protected Dictionary<string, Action<FrameSystem>> mFrameCallbackList = new(128);// 用于通知框架系统创建或者销毁的回调
 	protected List<FrameSystem> mFrameComponentInit = new(128);						// 存储框架组件,用于初始化
 	protected List<FrameSystem> mFrameComponentUpdate = new(128);					// 存储框架组件,用于更新
 	protected List<FrameSystem> mFrameComponentDestroy = new(128);					// 存储框架组件,用于销毁
-	protected ThreadTimeLock mTimeLock = new(15);					// 用于主线程锁帧,与Application.targetFrameRate功能类似
-	protected GameObject mGameFrameObject;                          // 游戏框架根节点
-	protected DateTime mStartTime;                                  // 启动游戏时的时间
-	protected DateTime mCurTime;                                    // 记录当前时间
-	protected Action mOnApplicationQuitCallBack;					// 程序退出的回调
-	protected BoolCallback mOnApplicationFocusCallBack;				// 程序切换到前台或者切换到后台的回调
-	protected float mThisFrameTime;                                 // 当前这一帧的消耗时间
-	protected long mFrameIndex;                                     // 当前帧下标
-	protected int mCurFrameCount;                                   // 当前已执行的帧数量
-	protected int mFrameRate;										// 当前设置的最大帧率
-	protected int mFPS;                                             // 当前帧率
-	protected bool mResourceAvailable;                              // 资源是否已经可用
-	protected bool mIsDestroy;										// 框架是否已经被销毁
-	public FramworkParam mParam = new();                            // 框架层设置参数
+	protected ThreadTimeLock mTimeLock = new(15);									// 用于主线程锁帧,与Application.targetFrameRate功能类似
+	protected GameObject mGameFrameObject;											// 游戏框架根节点
+	protected DateTime mStartTime;													// 启动游戏时的时间
+	protected DateTime mCurTime;													// 记录当前时间
+	protected Action mOnApplicationQuitCallBack;									// 程序退出的回调
+	protected BoolCallback mOnApplicationFocusCallBack;								// 程序切换到前台或者切换到后台的回调
+	protected float mThisFrameTime;													// 当前这一帧的消耗时间
+	protected long mFrameIndex;														// 当前帧下标
+	protected int mCurFrameCount;													// 当前已执行的帧数量
+	protected int mFrameRate;														// 当前设置的最大帧率
+	protected int mFPS;																// 当前帧率
+	protected bool mResourceAvailable;												// 资源是否已经可用
+	protected bool mIsDestroy;														// 框架是否已经被销毁
+	public FramworkParam mParam = new();											// 框架层设置参数
 	public static Action mOnDestroy;
 	public static Action<int, long, long, long, long> mOnMemoryModifiedCheck;
 	public static Func<string> mOnPackageName;
@@ -41,7 +41,7 @@ public class GameFramework : MonoBehaviour
 	{
 		using var a = new ProfilerScope(0);
 		// 通过代码添加接受java日志的节点
-		GameObject unityLog = getGameObject("UnityLog");
+		GameObject unityLog = getRootGameObject("UnityLog");
 		if (unityLog == null)
 		{
 			unityLog = createGameObject("UnityLog");
@@ -52,8 +52,8 @@ public class GameFramework : MonoBehaviour
 		}
 		// 恢复框架参数
 		mParam = FrameCrossParam.mFramworkParam;
-		FrameBase.mGameFramework = this;
-		mGameFramework = this;
+		FrameBaseHotFix.mGameFrameworkHotFix = this;
+		mGameFrameworkHotFix = this;
 		mGameFrameObject = gameObject;
 		mIsDestroy = false;
 		mStartTime = DateTime.Now;
@@ -96,8 +96,9 @@ public class GameFramework : MonoBehaviour
 	}
 	public static void startHotFix(Action callback)
 	{
-		getGameObject(typeof(GameFramework).Name).AddComponent<GameFramework>();
-		mGameFramework.initAsync(callback);
+		GameObject go = new(typeof(GameFrameworkHotFix).Name);
+		go.AddComponent<GameFrameworkHotFix>();
+		mGameFrameworkHotFix.initAsync(callback);
 	}
 	public DateTime getStartTime() { return mStartTime; }
 	public DateTime getFrameStartTime() { return mTimeLock.getFrameStartTime(); }
@@ -270,24 +271,6 @@ public class GameFramework : MonoBehaviour
 	{
 		return registeFrameSystem<T>((com)=> { callback?.Invoke(com as T); }, initOrder, updateOrder, destroyOrder);
 	}
-	// 注册时可以指定组件的初始化顺序,更新顺序,销毁顺序
-	public T registeFrameSystem<T>(Action<FrameSystem> callback, int initOrder = -1, int updateOrder = -1, int destroyOrder = -1) where T : FrameSystem, new()
-	{
-		T com = new();
-		Type type = typeof(T);
-		string name = type.ToString();
-		com.setName(name);
-		com.setInitOrder(initOrder == -1 ? mFrameComponentMap.Count : initOrder);
-		com.setUpdateOrder(updateOrder == -1 ? mFrameComponentMap.Count : updateOrder);
-		com.setDestroyOrder(destroyOrder == -1 ? mFrameComponentMap.Count : destroyOrder);
-		mFrameComponentMap.Add(name, com);
-		mFrameComponentInit.Add(com);
-		mFrameComponentUpdate.Add(com);
-		mFrameComponentDestroy.Add(com);
-		mFrameCallbackList.Add(name, callback);
-		callback?.Invoke(com);
-		return com;
-	}
 	public void sortList()
 	{
 		mFrameComponentInit.Sort(FrameSystem.compareInit);
@@ -448,8 +431,6 @@ public class GameFramework : MonoBehaviour
 			}
 		}
 
-		frameSystemInitDone();
-
 		WINDOW_MODE fullScreen = mParam.mWindowMode;
 		if (isEditor())
 		{
@@ -458,6 +439,7 @@ public class GameFramework : MonoBehaviour
 		}
 		else if (isWindows())
 		{
+			// windows下读取配置
 			// 设置为无边框窗口,只在Windows平台使用
 			if (fullScreen == WINDOW_MODE.NO_BOARD_WINDOW)
 			{
@@ -472,6 +454,10 @@ public class GameFramework : MonoBehaviour
 		else if (isMobile())
 		{
 			// 移动平台下固定为全屏
+			fullScreen = WINDOW_MODE.FULL_SCREEN;
+		}
+		else if (isWebGL())
+		{
 			fullScreen = WINDOW_MODE.FULL_SCREEN;
 		}
 		Vector2 windowSize;
@@ -548,5 +534,23 @@ public class GameFramework : MonoBehaviour
 	protected void unhandledException(object sender, UnhandledExceptionEventArgs e)
 	{
 		logError(e.ExceptionObject.ToString());
+	}
+	// 注册时可以指定组件的初始化顺序,更新顺序,销毁顺序
+	protected T registeFrameSystem<T>(Action<FrameSystem> callback, int initOrder = -1, int updateOrder = -1, int destroyOrder = -1) where T : FrameSystem, new()
+	{
+		log("注册系统:" + typeof(T) + ", owner:" + GetType());
+		T com = new();
+		string name = typeof(T).ToString();
+		com.setName(name);
+		com.setInitOrder(initOrder == -1 ? mFrameComponentMap.Count : initOrder);
+		com.setUpdateOrder(updateOrder == -1 ? mFrameComponentMap.Count : updateOrder);
+		com.setDestroyOrder(destroyOrder == -1 ? mFrameComponentMap.Count : destroyOrder);
+		mFrameComponentMap.Add(name, com);
+		mFrameComponentInit.Add(com);
+		mFrameComponentUpdate.Add(com);
+		mFrameComponentDestroy.Add(com);
+		mFrameCallbackList.Add(name, callback);
+		callback?.Invoke(com);
+		return com;
 	}
 }

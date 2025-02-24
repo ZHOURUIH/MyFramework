@@ -1,4 +1,4 @@
-﻿using static FrameBase;
+﻿using static FrameBaseHotFix;
 
 // 渐变时间缩放
 public class CmdTimeManagerScaleTime : Command

@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // UI窗口调试信息
 public class WindowDebug : MonoBehaviour
@@ -15,7 +15,7 @@ public class WindowDebug : MonoBehaviour
 	public void setWindow(myUIObject window) { mWindow = window; }
 	public void Update()
 	{
-		if (mGameFramework == null || (!mGameFramework.mParam.mEnableScriptDebug && !ForceRefresh) || mWindow == null)
+		if (mGameFrameworkHotFix == null || (!mGameFrameworkHotFix.mParam.mEnableScriptDebug && !ForceRefresh) || mWindow == null)
 		{
 			return;
 		}

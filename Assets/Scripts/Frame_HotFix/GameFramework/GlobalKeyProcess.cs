@@ -2,7 +2,7 @@
 using static UnityUtility;
 using static FrameUtility;
 using static WidgetUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameEditorUtility;
 
 // 只是汇集一些快捷键操作,不对外提供接口
@@ -61,8 +61,8 @@ public partial class GlobalKeyProcess : FrameSystem
 			// F3启用或禁用用作调试的脚本的更新
 			if (isKeyCurrentDown(KeyCode.F3))
 			{
-				mGameFramework.mParam.mEnableScriptDebug = !mGameFramework.mParam.mEnableScriptDebug;
-				if (mGameFramework.mParam.mEnableScriptDebug)
+				mGameFrameworkHotFix.mParam.mEnableScriptDebug = !mGameFrameworkHotFix.mParam.mEnableScriptDebug;
+				if (mGameFrameworkHotFix.mParam.mEnableScriptDebug)
 				{
 					log("已开启调试脚本", Color.green);
 				}
@@ -74,8 +74,8 @@ public partial class GlobalKeyProcess : FrameSystem
 			// F4启用或禁用
 			if (isKeyCurrentDown(KeyCode.F4))
 			{
-				mGameFramework.mParam.mEnablePoolStackTrace = !mGameFramework.mParam.mEnablePoolStackTrace;
-				if (mGameFramework.mParam.mEnablePoolStackTrace)
+				mGameFrameworkHotFix.mParam.mEnablePoolStackTrace = !mGameFrameworkHotFix.mParam.mEnablePoolStackTrace;
+				if (mGameFrameworkHotFix.mParam.mEnablePoolStackTrace)
 				{
 					log("已开启对象池分配堆栈追踪", Color.green);
 				}

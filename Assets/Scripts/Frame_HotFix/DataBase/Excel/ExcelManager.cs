@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using static FrameBaseHotFix;
+using static FrameDefine;
 using static UnityUtility;
 using static CSharpUtility;
 
@@ -17,23 +19,29 @@ public class ExcelManager : FrameSystem
 	}
 	public void loadAllAsync(Action callback)
 	{
-		int tableCount = mTableList.Count;
-		if (tableCount == 0)
+		if (mTableList.Count == 0)
 		{
 			callback?.Invoke();
 			return;
 		}
-		int finishCount = 0;
-		foreach (ExcelTable item in mTableList.Values)
+		// 提前加载资源包和其中的子资源
+		mResourceManager.loadAssetBundleAsync(EXCEL, (AssetBundleInfo assetBundle) =>
 		{
-			item.openFileAsync(() =>
+			assetBundle?.loadAllSubAssets();
+			// 然后再加载每个表格
+			int tableCount = mTableList.Count;
+			int finishCount = 0;
+			foreach (ExcelTable item in mTableList.Values)
 			{
-				if (++finishCount == tableCount)
+				item.openFileAsync(() =>
 				{
-					callback?.Invoke();
-				}
-			});
-		}
+					if (++finishCount == tableCount)
+					{
+						callback?.Invoke();
+					}
+				});
+			}
+		});
 	}
 	public void reloadAllAsync(Action callback)
 	{
@@ -89,7 +97,7 @@ public class ExcelManager : FrameSystem
 	public ExcelTable registe(string name, Type tableType, Type dataType)
 	{
 		var table = mTableList.add(dataType, createInstance<ExcelTable>(tableType));
-		table.setClassType(dataType);
+		table.setDataType(dataType);
 		table.setTableName(name);
 		return table;
 	}

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using UObject = UnityEngine.Object;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // 用于UGUI的multi sprite管理
 public class AtlasLoaderAssetBundle : AtlasLoaderBase

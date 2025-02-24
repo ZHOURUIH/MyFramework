@@ -9,7 +9,7 @@ using static FileUtility;
 using static StringUtility;
 using static CSharpUtility;
 using static BinaryUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameDefine;
 using static FrameDefineBase;
 using static FrameEditorUtility;
@@ -22,7 +22,8 @@ public class SQLiteTable : ClassObject
 	protected SqliteCommand mCommand;							// SQLite所需的Command
 	protected string mDecryptFileName;							// 解密以后的文件名
 	protected string mTableName;								// 表格名称
-	protected Type mDataClassType;								// 数据类型
+	protected Type mDataClassType;                              // 数据类型
+	protected bool mLoaded;										// 是否已经加载
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -32,22 +33,20 @@ public class SQLiteTable : ClassObject
 		mDecryptFileName = null;
 		mTableName = null;
 		mDataClassType = null;
-	}
-	public byte[] generateEncryptKey()
-	{
-		string key = generateFileMD5(stringToBytes("ASLD" + mTableName)).ToUpper() + "23y35y9832635872349862365274732047chsudhgkshgwshfoweh238c42384fync9388v45982nc3484";
-		return stringToBytes(key);
+		mLoaded = false;
 	}
 	// 返回值是解析以后生成的文件名
 	public void load()
 	{
+		if (mLoaded)
+		{
+			return;
+		}
+		mLoaded = true;
 		try
 		{
-			clearCommand();
-			clearConnection();
-			clearAll();
 			// 解密文件
-			byte[] encryptKey = generateEncryptKey();
+			byte[] encryptKey = stringToBytes(generateFileMD5(stringToBytes("ASLD" + mTableName)).ToUpper() + "23y35y9832635872349862365274732047chsudhgkshgwshfoweh238c42384fync9388v45982nc3484");
 			TextAsset textAsset = null;
 			if (mResourceManager != null)
 			{
@@ -61,10 +60,12 @@ public class SQLiteTable : ClassObject
 				}
 				textAsset = loadAssetAtPath<TextAsset>(P_SQLITE_PATH + mTableName + ".bytes");
 			}
+
 			byte[] fileBuffer = textAsset.bytes;
+			// 只解密128分之1的数据,减少耗时
 			int fileSize = fileBuffer.Length;
 			int index = 0;
-			for (int i = 0; i < fileSize; ++i)
+			for (int i = 0; i < fileSize >> 7; ++i)
 			{
 				fileBuffer[i] ^= encryptKey[index];
 				if (++index >= encryptKey.Length)
@@ -72,13 +73,16 @@ public class SQLiteTable : ClassObject
 					index = 0;
 				}
 			}
+
 			// 将解密后的数据写入新的目录,需要写入临时目录,编辑器中写入固定路径即可
 			mDecryptFileName = generateFileMD5(fileBuffer).ToUpper();
 			string newPath = getDecryptFileFullPath();
-			if (!isFileExist(newPath))
+			// 编辑器下每次都写入更新
+			if (isEditor() || !isFileExist(newPath))
 			{
 				writeFile(newPath, fileBuffer, fileSize);
 			}
+
 			if (mResourceManager != null)
 			{
 				mResourceManager.unload(ref textAsset);
@@ -90,7 +94,14 @@ public class SQLiteTable : ClassObject
 					Resources.UnloadAsset(textAsset);
 				}
 			}
-			connect(newPath);
+
+			// 创建连接
+			if (isFileExist(newPath))
+			{
+				mConnection = new("URI=file:" + newPath);
+				mConnection.Open();
+			}
+			mCommand = mConnection?.CreateCommand();
 		}
 		catch (Exception e)
 		{
@@ -99,49 +110,18 @@ public class SQLiteTable : ClassObject
 		}
 	}
 	public string getDecryptFileName() { return mDecryptFileName; }
-	public string getDecryptFileFullPath()
-	{
-		if (isEditor())
-		{
-			return getDecryptFilePath() + mTableName + "/" + mTableName;
-		}
-		else
-		{
-			return getDecryptFilePath() + mDecryptFileName;
-		}
-	}
 	public static string getDecryptFilePath()
 	{
-		if (isEditor())
-		{
-			return F_TEMPORARY_CACHE_PATH + "../../";
-		}
-		if (isWindows())
-		{
-			return F_TEMPORARY_CACHE_PATH + "../../";
-		}
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
+		return F_TEMPORARY_CACHE_PATH + "../../" + getFolderName(F_PROJECT_PATH) + "/";
+#else
 		return FrameUtility.availableWritePath("temp/");
+#endif
 	}
 	public override void destroy()
 	{
 		base.destroy();
-		clearCommand();
-		clearConnection();
 		clearAll();
-	}
-	public void connect(string fullFileName)
-	{
-		if (isFileExist(fullFileName))
-		{
-			// 创建SQLite对象的同时，创建SqliteConnection对象  
-			mConnection = new("URI=file:" + fullFileName);
-			// 打开数据库链接
-			mConnection.Open();
-		}
-		if (mConnection != null)
-		{
-			mCommand = mConnection.CreateCommand();
-		}
 	}
 	public SqliteDataReader queryReader(string queryString)
 	{
@@ -150,13 +130,12 @@ public class SQLiteTable : ClassObject
 			return null;
 		}
 		mCommand.CommandText = queryString;
-		SqliteDataReader reader = null;
 		try
 		{
-			reader = mCommand.ExecuteReader();
+			return mCommand.ExecuteReader();
 		}
 		catch (Exception) { }
-		return reader;
+		return null;
 	}
 	public void queryNonReader(string queryString)
 	{
@@ -200,7 +179,7 @@ public class SQLiteTable : ClassObject
 			return data;
 		}
 		using var a = new MyStringBuilderScope(out var condition);
-		appendConditionInt(condition, SQLiteData.ID, id, EMPTY);
+		condition.appendConditionInt(SQLiteData.ID, id, EMPTY);
 		parseReader(doQuery(condition.ToString()), out data);
 		mDataMap.Add(id, data);
 		if (data == null && errorIfNull)
@@ -222,7 +201,7 @@ public class SQLiteTable : ClassObject
 		}
 		using var a = new MyStringBuilderScope(out var valueString);
 		data.insert(valueString);
-		removeLastComma(valueString);
+		valueString.removeLastComma();
 		doInsert(valueString.ToString());
 		mDataMap.Add(data.mID, data);
 	}
@@ -239,18 +218,17 @@ public class SQLiteTable : ClassObject
 			mDataMap.TryAdd(data.mID, data);
 		}
 	}
+	public void queryDataList<T>(string condition, List<T> dataList) where T : SQLiteData
+	{
+		queryDataList(condition, typeof(T), dataList);
+	}
 	public void queryDataList<T>(Type type, List<T> dataList) where T : SQLiteData
 	{
-		if (type != mDataClassType)
-		{
-			logError("sqlite table type error, this type:" + mDataClassType + ", param type:" + type);
-			return;
-		}
-		parseReader(type, doQuery(), dataList);
-		foreach (T data in dataList)
-		{
-			mDataMap.TryAdd(data.mID, data);
-		}
+		queryDataList(null, type, dataList);
+	}
+	public void queryDataList<T>(List<T> dataList) where T : SQLiteData
+	{
+		queryDataList(null, typeof(T), dataList);
 	}
 	public void checkData(int checkID, int dataID, string refTableName)
 	{
@@ -287,8 +265,21 @@ public class SQLiteTable : ClassObject
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected virtual void clearAll()
+	protected void clearAll()
 	{
+		mLoaded = false;
+		if (mCommand != null)
+		{
+			mCommand.Cancel();
+			mCommand.Dispose();
+			mCommand = null;
+		}
+		if (mConnection != null)
+		{
+			mConnection.Close();
+			mConnection.Dispose();
+			mConnection = null;
+		}
 		mDataMap.Clear();
 	}
 	protected void parseReader(Type type, SqliteDataReader reader, out SQLiteData data)
@@ -343,25 +334,16 @@ public class SQLiteTable : ClassObject
 		}
 		reader.Close();
 	}
-	protected void clearConnection()
+	protected string getDecryptFileFullPath()
 	{
-		if (mConnection == null)
+		if (isEditor())
 		{
-			return;
+			return getDecryptFilePath() + mTableName + "/" + mTableName;
 		}
-		mConnection.Close();
-		mConnection.Dispose();
-		mConnection = null;
-	}
-	protected void clearCommand()
-	{
-		if (mCommand == null)
+		else
 		{
-			return;
+			return getDecryptFilePath() + mDecryptFileName;
 		}
-		mCommand.Cancel();
-		mCommand.Dispose();
-		mCommand = null;
 	}
 }
 #endif

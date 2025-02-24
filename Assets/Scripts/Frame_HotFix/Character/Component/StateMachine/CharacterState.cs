@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using static FrameUtility;
 using static CSharpUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // 角色状态基类
 public class CharacterState : ClassObject

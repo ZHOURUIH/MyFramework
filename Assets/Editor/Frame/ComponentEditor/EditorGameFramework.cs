@@ -1,12 +1,12 @@
 using UnityEditor;
 
-[CustomEditor(typeof(GameFramework), true)]
+[CustomEditor(typeof(GameFrameworkHotFix), true)]
 public class EditorGameFramework : GameEditorBase
 {
-	protected GameFramework mGameFramework;
+	protected GameFrameworkHotFix mGameFramework;
 	public override void OnInspectorGUI()
 	{
-		mGameFramework = target as GameFramework;
+		mGameFramework = target as GameFrameworkHotFix;
 
 		bool modified = false;
 		modified |= displayEnum("WindowMode", "¥∞ø⁄¿‡–Õ", ref mGameFramework.mParam.mWindowMode);

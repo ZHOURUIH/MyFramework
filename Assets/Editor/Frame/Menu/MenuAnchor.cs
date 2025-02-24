@@ -37,7 +37,7 @@ public class MenuAnchor
 			return;
 		}
 		// 设置摄像机的Z坐标为视图高的一半,设置画布根节点为屏幕大小
-		GameObject uguiRootObj = getGameObject(UGUI_ROOT);
+		GameObject uguiRootObj = getRootGameObject(UGUI_ROOT);
 		uguiRootObj.TryGetComponent<RectTransform>(out var transform);
 		transform.offsetMin = new(-gameViewSize.x * 0.5f, -gameViewSize.y * 0.5f);
 		transform.offsetMax = new(gameViewSize.x * 0.5f, gameViewSize.y * 0.5f);
@@ -51,7 +51,7 @@ public class MenuAnchor
 	public static void endPreviewLayoutAnchor()
 	{
 		// 恢复摄像机设置
-		GameObject uguiRootObj = getGameObject(UGUI_ROOT);
+		GameObject uguiRootObj = getRootGameObject(UGUI_ROOT);
 		uguiRootObj.TryGetComponent<RectTransform>(out var transform);
 		transform.offsetMin = new(-STANDARD_WIDTH >> 1, -STANDARD_HEIGHT >> 1);
 		transform.offsetMax = new(STANDARD_WIDTH >> 1, STANDARD_HEIGHT >> 1);

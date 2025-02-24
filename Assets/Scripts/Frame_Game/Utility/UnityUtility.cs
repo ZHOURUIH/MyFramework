@@ -114,7 +114,7 @@ public class UnityUtility
 		Screen.SetResolution(size.x, size.y, fullScreen);
 
 		// UGUI
-		GameObject uguiRootObj = getGameObject(UGUI_ROOT);
+		GameObject uguiRootObj = getRootGameObject(UGUI_ROOT);
 		uguiRootObj.TryGetComponent<RectTransform>(out var uguiRectTransform);
 		uguiRectTransform.offsetMin = -mScreenSize * 0.5f;
 		uguiRectTransform.offsetMax = mScreenSize * 0.5f;
@@ -166,20 +166,33 @@ public class UnityUtility
 			getGameObjectWithTag(child.gameObject, tag, objList);
 		}
 	}
-	public static GameObject getGameObject(string name, GameObject parent = null, bool errorIfNull = false, bool recursive = true)
+	public static GameObject getRootGameObject(string name, bool errorIfNull = false)
 	{
 		if (name.isEmpty())
 		{
 			return null;
 		}
+		GameObject go = GameObject.Find(name);
+		if (go == null && errorIfNull)
+		{
+			logError("找不到物体,请确认物体存在且是已激活状态,parent为空时无法查找到未激活的物体:" + name);
+		}
+		return go;
+	}
+	public static GameObject getGameObject(string name, GameObject parent, bool errorIfNull = false, bool recursive = true)
+	{
+		if (name.isEmpty())
+		{
+			return null;
+		}
+		if (parent == null)
+		{
+			logError("parent不能为空,查找无父节点的GameObject请使用getRootGameObject");
+			return null;
+		}
 		GameObject go = null;
 		do
 		{
-			if (parent == null)
-			{
-				go = GameObject.Find(name);
-				break;
-			}
 			Transform trans = parent.transform.Find(name);
 			if (trans != null)
 			{
@@ -204,14 +217,7 @@ public class UnityUtility
 
 		if (go == null && errorIfNull)
 		{
-			if (parent == null)
-			{
-				logError("找不到物体,请确认物体存在且是已激活状态,parent为空时无法查找到未激活的物体:" + name );
-			}
-			else
-			{
-				logError("找不到物体,请确认是否存在:" + name + ", parent:" + (parent != null ? parent.name : EMPTY));
-			}
+			logError("找不到物体,请确认是否存在:" + name + ", parent:" + (parent != null ? parent.name : EMPTY));
 		}
 		return go;
 	}
@@ -412,10 +418,7 @@ public class UnityUtility
 		if (isEditor())
 		{
 			// 本地加载需要添加file:///前缀
-			if (!startWith(path, "file:///"))
-			{
-				path = "file:///" + path;
-			}
+			path = path.ensurePrefix("file:///");
 		}
 		// 非编辑器模式下
 		else
@@ -423,42 +426,27 @@ public class UnityUtility
 			if (isWindows())
 			{
 				// windows本地加载需要添加file:///前缀
-				if (!startWith(path, "file:///"))
-				{
-					path = "file:///" + path;
-				}
+				path = path.ensurePrefix("file:///");
 			}
 			else if (isIOS())
 			{
 				// ios本地加载需要添加file://前缀
-				if (!startWith(path, "file://"))
-				{
-					path = "file://" + path;
-				}
+				path = path.ensurePrefix("file://");
 			}
 			else if (isMacOS())
 			{
 				// macos本地加载需要添加file://前缀
-				if (!startWith(path, "file://"))
-				{
-					path = "file://" + path;
-				}
+				path = path.ensurePrefix("file://");
 			}
 			else if (isLinux())
 			{
 				// linux本地加载需要添加file://前缀
-				if (!startWith(path, "file://"))
-				{
-					path = "file://" + path;
-				}
+				path = path.ensurePrefix("file://");
 			}
 			else if (isAndroid())
 			{
 				// android本地加载需要添加jar:file://前缀
-				if (!startWith(path, "jar:file://"))
-				{
-					path = "jar:file://" + path;
-				}
+				path = path.ensurePrefix("jar:file://");
 			}
 		}
 	}

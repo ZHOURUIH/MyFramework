@@ -2,7 +2,6 @@
 using System.Text;
 using System.Collections.Generic;
 using UnityEngine;
-using static StringUtility;
 using static BinaryUtility;
 using static MathUtility;
 

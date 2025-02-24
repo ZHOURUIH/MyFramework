@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using static MathUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // 存放一个触点的悬停和按下的物体
 public class TouchInfo : ClassObject

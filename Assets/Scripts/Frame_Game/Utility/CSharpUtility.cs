@@ -41,11 +41,19 @@ public class CSharpUtility
 			list.addNotNullKey(info.mFileName, info);
 		}
 	}
-	public static bool isIgnorePath(string fullPath, List<string> ignorePath)
+	public static bool arrayContains<T>(T[] array, T value, int arrayLen = -1)
 	{
-		foreach (string path in ignorePath.safe())
+		if (array.isEmpty())
 		{
-			if (fullPath.Contains(path))
+			return false;
+		}
+		if (arrayLen == -1)
+		{
+			arrayLen = array.Length;
+		}
+		for (int i = 0; i < arrayLen; ++i)
+		{
+			if (EqualityComparer<T>.Default.Equals(array[i], value))
 			{
 				return true;
 			}

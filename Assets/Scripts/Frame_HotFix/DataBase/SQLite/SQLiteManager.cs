@@ -3,7 +3,6 @@ using Mono.Data.Sqlite;
 using System.Collections.Generic;
 using System;
 using static CSharpUtility;
-using static FrameBase;
 using static FileUtility;
 using static StringUtility;
 using static FrameEditorUtility;
@@ -22,6 +21,8 @@ public class SQLiteManager : FrameSystem
 			return;
 		}
 
+		// 加载之前也清理一次,因为可能在退出时由于文件被占用而清理不掉,所以启动时也清一次
+		deleteUselessTempFile();
 		// 资源更新完毕后需要将所有已经加载的表格重新加载一次
 		loadAll();
 	}
@@ -41,17 +42,12 @@ public class SQLiteManager : FrameSystem
 		mTableList.Add(table.GetType(), table);
 		mTableNameList.Add(tableName, table);
 		mTableDataTypeList.Add(dataType, table);
-		// 如果在注册时资源已经可用了,则可以直接加载表格
-		if (mGameFramework == null || mGameFramework.isResourceAvailable())
-		{
-			table.load();
-		}
 		return table;
 	}
 	public override void destroy()
 	{
 		base.destroy();
-		// 仅在退出游戏的时候清理一次无用文件
+		// 退出游戏的时候清理一次无用文件
 		if (!isEditor())
 		{
 			deleteUselessTempFile();

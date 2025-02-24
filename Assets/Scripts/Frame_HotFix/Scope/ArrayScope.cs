@@ -1,5 +1,5 @@
 ﻿using System;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // 用于自动从对象池中获取一个T[],不再使用时会自动释放,需要搭配using来使用,比如using(new ArrayScope<T>(out var list, int))
 public struct ArrayScope<T> : IDisposable

@@ -137,7 +137,7 @@ public abstract class AtlasLoaderBase
 		{
 			CLASS(out UGUIAtlasPtr ptr).setAtlas(atlas);
 			callback?.Invoke(ptr);
-			op.mFinish = true;
+			op.setFinish();
 			return op;
 		}
 		if (loadIfNull)
@@ -147,7 +147,7 @@ public abstract class AtlasLoaderBase
 			param.mCallback = (UGUIAtlasPtr atlas) =>
 			{
 				callback?.Invoke(atlas);
-				op.mFinish = true;
+				op.setFinish();
 			};
 			param.mInResources = true;
 			param.mErrorIfNull = errorInNull;

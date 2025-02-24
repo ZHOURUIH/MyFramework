@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using static FrameDefine;
 using static FrameEditorUtility;
 using static UnityUtility;
+using static FileUtility;
 
 // 表示一个通过Kernel32加载的动态库对象
 public class Dll : ClassObject
@@ -14,7 +15,7 @@ public class Dll : ClassObject
 	public void init(string name)
 	{
 		mLibraryName = name;
-		if (isWindows())
+		if (isWindows() && isFileExist(F_PLUGINS_PATH + mLibraryName))
 		{
 			mHandle = Kernel32.LoadLibrary(F_PLUGINS_PATH + mLibraryName);
 		}
@@ -22,7 +23,7 @@ public class Dll : ClassObject
 	public override void destroy()
 	{
 		base.destroy();
-		if (isWindows())
+		if (isWindows() && mHandle != null && mHandle != IntPtr.Zero)
 		{
 			Kernel32.FreeLibrary(mHandle);
 		}
@@ -45,7 +46,7 @@ public class Dll : ClassObject
 				if (api == IntPtr.Zero)
 				{
 					logError("can not find function, name : " + funcName);
-					return default(T);
+					return default;
 				}
 				value = Marshal.GetDelegateForFunctionPointer(api, t);
 				mFunctionList.Add(funcName, value);
@@ -54,7 +55,7 @@ public class Dll : ClassObject
 		}
 		else
 		{
-			return default(T);
+			return default;
 		}
 	}
 }

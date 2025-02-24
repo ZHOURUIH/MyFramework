@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static MathUtility;
 
 // 多指操作组件

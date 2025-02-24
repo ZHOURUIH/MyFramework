@@ -363,7 +363,7 @@ public class ResourceManager : FrameSystem
 	// 强制在Resource中异步加载资源,name是Resources下的相对路径,带后缀,errorIfNull表示当找不到资源时是否报错提示
 	public CustomAsyncOperation loadInResourceAsync<T>(string name, Action<T> doneCallback) where T : UObject
 	{
-		return loadInResourceAsync<T>(name, (UObject asset, UObject[] assets, byte[] bytes, string loadPath) =>
+		return loadInResourceAsync<T>(name, (UObject asset, UObject[] assets, byte[] bytes, string loadPath) => 
 		{
 			doneCallback?.Invoke(asset as T);
 		});
@@ -377,6 +377,19 @@ public class ResourceManager : FrameSystem
 			return null;
 		}
 		return mResourcesLoader.loadResourcesAsync<T>(removeSuffix(name), doneCallback);
+	}
+	// 仅下载一个资源,下载后会写入本地文件,并且更新本地文件信息列表,fileName为带后缀,GameResources下的相对路径
+	public void downloadGameResource(string name, BytesCallback callback)
+	{
+		if (!name.Contains('.'))
+		{
+			logError("资源文件名需要带后缀:" + name);
+			return;
+		}
+		if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
+		{
+			mAssetBundleLoader.downloadAsset(name, callback);
+		}
 	}
 	// 根据一个URL加载资源,一般都是一个网络资源
 	public static void loadAssetsFromUrl<T>(string url, AssetLoadDoneCallback callback, DownloadCallback downloadingCallback = null) where T : UObject

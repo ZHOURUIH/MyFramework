@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static UnityUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static MathUtility;
 
 // 用于处理一些需要监听ESC键来关闭的布局

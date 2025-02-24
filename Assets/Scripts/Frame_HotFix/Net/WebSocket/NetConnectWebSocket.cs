@@ -7,7 +7,7 @@ using static UnityUtility;
 using static BinaryUtility;
 using static FrameUtility;
 using static StringUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameDefine;
 using static FrameEditorUtility;
 

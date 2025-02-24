@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System;
 using static FrameUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // 场景流程
 public abstract class SceneProcedure : DelayCmdWatcher

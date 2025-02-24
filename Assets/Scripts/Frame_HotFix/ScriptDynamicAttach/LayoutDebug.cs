@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // 布局调试信息
 public class LayoutDebug : MonoBehaviour
@@ -16,7 +16,7 @@ public class LayoutDebug : MonoBehaviour
 	public void setLayout(GameLayout layout) { mLayout = layout; }
 	public void Update()
 	{
-		if (mGameFramework == null || !mGameFramework.mParam.mEnableScriptDebug)
+		if (mGameFrameworkHotFix == null || !mGameFrameworkHotFix.mParam.mEnableScriptDebug)
 		{
 			return;
 		}

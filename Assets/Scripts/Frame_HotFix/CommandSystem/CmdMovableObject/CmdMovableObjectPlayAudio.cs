@@ -1,4 +1,4 @@
-﻿using static FrameBase;
+﻿using static FrameBaseHotFix;
 
 // 播放一个物体的音频
 public class CmdMovableObjectPlayAudio

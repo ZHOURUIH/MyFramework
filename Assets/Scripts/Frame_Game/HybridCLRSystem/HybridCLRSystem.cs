@@ -7,7 +7,7 @@ using HybridCLR;
 #endif
 using static FrameBase;
 using static FileUtility;
-using static FrameDefine;
+using static FrameDefineBase;
 using static UnityUtility;
 using static FrameUtility;
 using static StringUtility;
@@ -15,7 +15,7 @@ using static StringUtility;
 // HybridCLR系统,用于启动HybridCLR热更
 public class HybridCLRSystem
 {
-	public static void launchHotFix()
+	public static void launchHotFix(byte[] aesKey, byte[] aesIV, Action errorCallback = null)
 	{
 		try
 		{
@@ -23,9 +23,9 @@ public class HybridCLRSystem
 			backupCrossParam();
 			// 启动热更系统
 #if UNITY_EDITOR || !USE_HYBRID_CLR
-			launchEditor();
+			launchEditor(errorCallback);
 #else
-			launchRuntime();
+			launchRuntime(aesKey, aesIV, errorCallback);
 #endif
 		}
 		catch (Exception e)
@@ -34,7 +34,7 @@ public class HybridCLRSystem
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected static void launchRuntime()
+	protected static void launchRuntime(byte[] aesKey, byte[] aesIV, Action errorCallback)
 	{
 #if USE_HYBRID_CLR
 		Dictionary<string, byte[]> downloadFiles = new();
@@ -45,12 +45,22 @@ public class HybridCLRSystem
 		downloadFiles.Add(HOTFIX_FRAME_FILE, null);
 		downloadFiles.Add(HOTFIX_FILE, null);
 		int finishCount = 0;
-		foreach (string item in downloadFiles.Keys)
+		foreach (string item in new List<string>(downloadFiles.Keys))
 		{
-			string fileName = item + ".bytes";
-			openFileAsync(availableReadPath(fileName), true, (byte[] bytes) =>
+			string fileDllName = item;
+			openFileAsync(availableReadPath(fileDllName + ".bytes"), true, (byte[] bytes) =>
 			{
-				downloadFiles.set(item, bytes);
+				if (bytes == null)
+				{
+					downloadFiles = null;
+					errorCallback?.Invoke();
+					return;
+				}
+				if (downloadFiles == null)
+				{
+					return;
+				}
+				downloadFiles.set(fileDllName, bytes);
 				if (++finishCount < downloadFiles.Count)
 				{
 					return;
@@ -69,13 +79,13 @@ public class HybridCLRSystem
 					}
 				}
 				// 加载以后不再卸载
-				Assembly.Load(downloadFiles.get(HOTFIX_FRAME_FILE));
-				launchInternal(Assembly.Load(downloadFiles.get(HOTFIX_FILE)));
+				Assembly.Load(decryptAES(downloadFiles.get(HOTFIX_FRAME_FILE), aesKey, aesIV));
+				launchInternal(Assembly.Load(decryptAES(downloadFiles.get(HOTFIX_FILE), aesKey, aesIV)));
 			});
 		}
 #endif
 	}
-	protected static void launchEditor()
+	protected static void launchEditor(Action errorCallback)
 	{
 		Assembly hotFixAssembly = null;
 		string dllName = getFileNameNoSuffixNoDir(HOTFIX_FILE);
@@ -86,6 +96,11 @@ public class HybridCLRSystem
 				hotFixAssembly = item;
 				break;
 			}
+		}
+		if (hotFixAssembly == null)
+		{
+			errorCallback?.Invoke();
+			return;
 		}
 		launchInternal(hotFixAssembly);
 	}
@@ -127,7 +142,9 @@ public class HybridCLRSystem
 		{
 			Debug.Log("热更初始化完毕");
 			// 热更初始化完毕后将非热更层加载的所有资源都清除,这样避免中间的黑屏
+			GameObject go = mGameFramework.gameObject;
 			destroyUnityObject(mGameFramework, true);
+			destroyUnityObject(go, true);
 		};
 		// 使用createHotFixInstance创建一个HotFix的实例,然后调用此实例的start函数
 		methodStart.Invoke(methodCreate.Invoke(null, null), new object[1]{ callback });

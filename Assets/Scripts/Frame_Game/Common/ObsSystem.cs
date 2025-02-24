@@ -110,7 +110,7 @@ public class ObsSystem
 		for (int i = 0; i < count; ++i)
 		{
 			GameFileInfo info = fileList[i];
-			removeStartString(ref info.mFileName, path);
+			info.mFileName = info.mFileName.removeStartString(path);
 			fileMap.Add(info.mFileName, info);
 		}
 	}
@@ -205,7 +205,7 @@ public class ObsSystem
 					}
 					else if (name == "ETag")
 					{
-						info.mMD5 = removeAll(reader.Value, "\"");
+						info.mMD5 = reader.Value.removeAll('\"');
 					}
 					else if (name == "Size")
 					{

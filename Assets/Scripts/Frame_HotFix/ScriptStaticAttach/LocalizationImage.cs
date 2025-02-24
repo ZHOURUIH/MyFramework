@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using static FrameBase;
-using static StringUtility;
+using static FrameBaseHotFix;
 using static FrameDefine;
 
 // 用于挂到静态的文本上,也就是只是在界面显示,不会在代码中访问和操作的文本
@@ -28,8 +27,7 @@ public class LocalizationImage : MonoBehaviour
 			Debug.LogError("找不到图集,请添加ImageAtlasPath组件, window:" + gameObject.name);
 			return;
 		}
-		string atlasPath = imageAtlasPath.mAtlasPath;
-		removeStartString(ref atlasPath, P_GAME_RESOURCES_PATH);
+		string atlasPath = imageAtlasPath.mAtlasPath.removeStartString(P_GAME_RESOURCES_PATH);
 		if (mTPSpriteManager != null)
 		{
 			mAtlasPtr = mTPSpriteManager.getAtlas(atlasPath, false, true);
@@ -72,10 +70,10 @@ public class LocalizationImage : MonoBehaviour
 			Debug.LogError("未指定图片:" + mImage.name, gameObject);
 		}
 		mImageNameWithoutSuffix = mImage.sprite.name;
-		if (!endWith(mImageNameWithoutSuffix, "_" + LANGUAGE_CHINESE))
+		if (!mImageNameWithoutSuffix.endWith("_" + LANGUAGE_CHINESE))
 		{
 			Debug.LogError("图片名需要以_" + LANGUAGE_CHINESE + "结尾,GameObject:" + name, gameObject);
 		}
-		removeEndString(ref mImageNameWithoutSuffix, "_" + LANGUAGE_CHINESE);
+		mImageNameWithoutSuffix = mImageNameWithoutSuffix.removeEndString("_" + LANGUAGE_CHINESE);
 	}
 }

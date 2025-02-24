@@ -1,7 +1,7 @@
 ﻿using System;
 using static UnityUtility;
 using static MathUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // 关键帧组件基类
 public class ComponentKeyFrame : GameComponent, IComponentBreakable

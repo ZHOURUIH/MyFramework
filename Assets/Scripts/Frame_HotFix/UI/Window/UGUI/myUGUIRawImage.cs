@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static MathUtility;
 using static StringUtility;
 using static FrameDefine;
@@ -14,7 +14,8 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 	protected RawImage mRawImage;                       // UGUI的RawImage组件
 	protected CanvasGroup mCanvasGroup;					// 用于是否显示
 	protected Material mOriginMaterial;					// 初始的材质,用于重置时恢复材质
-	protected Texture mOriginTexture;					// 初始的图片
+	protected Texture mOriginTexture;                   // 初始的图片
+	protected string mOriginMaterialPath;				// 初始材质的文件路径
 	protected bool mIsNewMaterial;						// 当前的材质是否是新创建的材质对象
 	public override void init()
 	{
@@ -28,13 +29,28 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		}
 		mOriginMaterial = mRawImage.material;
 		mOriginTexture = mRawImage.texture;
-		string materialName = getMaterialName();
+		string materialName = getMaterialName().removeAll(" (Instance)");
 		// 不再将默认材质替换为自定义的默认材质,只判断其他材质
 		if (!materialName.isEmpty() && 
-			materialName != BUILDIN_UI_MATERIAL &&
-			!mShaderManager.isSingleShader(materialName))
+			materialName != BUILDIN_UI_MATERIAL)
 		{
-			setMaterialName(materialName, true);
+			if (mOriginMaterial != null && mObject.TryGetComponent<MaterialPath>(out var comMaterialPath))
+			{
+				mOriginMaterialPath = comMaterialPath.mMaterialPath;
+			}
+			if (mOriginMaterialPath.isEmpty())
+			{
+				logError("没有找到MaterialPath组件,name:" + getName());
+			}
+			mOriginMaterialPath = mOriginMaterialPath.removeStartString(P_GAME_RESOURCES_PATH);
+			if (!mOriginMaterialPath.endWith("/unity_builtin_extra"))
+			{
+				if (!mOriginMaterialPath.Contains('.'))
+				{
+					logError("材质文件需要带后缀:" + mOriginMaterialPath + ",GameObject:" + getName() + ",parent:" + getParent()?.getName());
+				}
+				setMaterialName(mOriginMaterialPath, !mShaderManager.isSingleShader(mOriginMaterial.shader.name));
+			}
 		}
 	}
 	public override void destroy()
@@ -134,16 +150,12 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		// 同步加载
 		if (!loadAsync)
 		{
-			Texture tex = mResourceManager.loadGameResource<Texture>(name);
-			setTexture(tex, useTextureSize);
+			setTexture(mResourceManager.loadGameResource<Texture>(name), useTextureSize);
 		}
 		// 异步加载
 		else
 		{
-			mResourceManager.loadGameResourceAsync<Texture>(name, (Object res, Object[] _, byte[] _, string _)=>
-			{
-				setTexture(res as Texture, useTextureSize);
-			});
+			mResourceManager.loadGameResourceAsync(name, (Texture tex) => { setTexture(tex, useTextureSize); });
 		}
 	}
 	public Material getMaterial() 
@@ -162,34 +174,17 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		}
 		return mRawImage.material.name;
 	}
-	public void setMaterialName(string materialName, bool newMaterial, bool loadAsync = false)
+	public void setMaterialName(string materialPath, bool newMaterial, bool loadAsync = false)
 	{
 		if (mRawImage == null)
 		{
 			return;
 		}
-		string materialPath = R_MATERIAL_PATH + materialName + ".mat";
 		mIsNewMaterial = newMaterial;
-		// 同步加载
-		if (!loadAsync)
-		{
-			Material mat;
-			var loadedMaterial = mResourceManager.loadGameResource<Material>(materialPath);
-			if (mIsNewMaterial)
-			{
-				mat = new(loadedMaterial);
-				mat.name = getFileNameNoSuffixNoDir(materialName) + "_" + IToS(mID);
-			}
-			else
-			{
-				mat = loadedMaterial;
-			}
-			mRawImage.material = mat;
-		}
 		// 异步加载
-		else
+		if (loadAsync)
 		{
-			mResourceManager.loadGameResourceAsync<Material>(materialPath, (Object res, Object[] _, byte[] _, string _)=>
+			mResourceManager.loadGameResourceAsync(materialPath, (Material mat) =>
 			{
 				if (mRawImage == null)
 				{
@@ -197,15 +192,30 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 				}
 				if (mIsNewMaterial)
 				{
-					Material newMat = new(res as Material);
-					newMat.name = getFileNameNoSuffixNoDir(materialName) + "_" + IToS(mID);
+					Material newMat = new(mat);
+					newMat.name = getFileNameNoSuffixNoDir(materialPath) + "_" + IToS(mID);
 					mRawImage.material = newMat;
 				}
 				else
 				{
-					mRawImage.material = res as Material;
+					mRawImage.material = mat;
 				}
 			});
+		}
+		// 同步加载
+		else
+		{
+			var loadedMaterial = mResourceManager.loadGameResource<Material>(materialPath);
+			if (mIsNewMaterial)
+			{
+				Material mat = new(loadedMaterial);
+				mat.name = getFileNameNoSuffixNoDir(materialPath) + "_" + IToS(mID);
+				mRawImage.material = mat;
+			}
+			else
+			{
+				mRawImage.material = loadedMaterial;
+			}
 		}
 	}
 }

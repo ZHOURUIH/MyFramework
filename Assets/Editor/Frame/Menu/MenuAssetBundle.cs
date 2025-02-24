@@ -34,8 +34,7 @@ public class MenuAssetBundle
 			showInfo("需要选中一个.unity3d", true, true);
 			return;
 		}
-		string fileName = removeStartString(selection, P_ASSET_BUNDLE_ANDROID_PATH);
-		findAllDependencies(fileName);
+		findAllDependencies(selection.removeStartString(P_ASSET_BUNDLE_ANDROID_PATH));
 	}
 	// pathToPack为以Asset开头的相对路径,不为空则表示只单独打包此目录或此文件
 	public static bool packAssetBundle(BuildTarget target, string outputPath, bool showMessageBox)
@@ -152,7 +151,7 @@ public class MenuAssetBundle
 			{
 				chain += item0 + "->";
 			}
-			Debug.Log(colorString("00FF00FF", item.Key) + ",依赖链:" + removeEndString(chain, "->"));
+			Debug.Log(colorString("00FF00FF", item.Key) + ",依赖链:" + chain.removeEndString("->"));
 		}
 		Debug.Log("查找" + assetBundleName + "的所有递归依赖项完成");
 	}
@@ -199,7 +198,7 @@ public class MenuAssetBundle
 		// 先检查一次是否有互相依赖的资源
 		foreach (string bundle in manifest.GetAllAssetBundles())
 		{
-			string bundleName = rightToLeft(bundle);
+			string bundleName = bundle.rightToLeft();
 			// 遍历当前AB的所有依赖项
 			foreach (string dep in manifest.GetAllDependencies(bundleName))
 			{
@@ -219,7 +218,7 @@ public class MenuAssetBundle
 		// 遍历所有AB
 		foreach (string bundle in manifest.GetAllAssetBundles())
 		{
-			string bundleName = rightToLeft(bundle);
+			string bundleName = bundle.rightToLeft();
 			BuildAssetBundleInfo bundleInfo = null;
 			if (assetBundleMap != null && !assetBundleMap.TryGetValue(bundleName, out bundleInfo))
 			{
@@ -229,7 +228,7 @@ public class MenuAssetBundle
 			// 遍历当前AB的所有依赖项
 			foreach (string dep in manifest.GetDirectDependencies(bundleName))
 			{
-				string depName = rightToLeft(dep);
+				string depName = dep.rightToLeft();
 				bundleInfo?.AddDependence(depName);
 				dependencySet.Add(depName);
 				// 查找依赖项中是否有依赖当前AssetBundle的
@@ -313,15 +312,15 @@ public class MenuAssetBundle
 	{
 		string bundleName;
 		// unity(但是一般情况下unity场景文件不打包)单个文件打包,就是直接替换后缀名,或者强制为单独一个包的
-		if (endWith(file, ".unity") || forceSingle)
+		if (file.endWith(".unity") || forceSingle)
 		{
-			bundleName = removeStartString(file, P_GAME_RESOURCES_PATH, false);
+			bundleName = file.removeStartString(P_GAME_RESOURCES_PATH, false);
 			bundleName = replaceSuffix(bundleName, ASSET_BUNDLE_SUFFIX);
 		}
 		// 其他文件的AssetBundle就是所属文件夹
 		else
 		{
-			bundleName = removeStartString(getFilePath(file), P_GAME_RESOURCES_PATH, false);
+			bundleName = getFilePath(file).removeStartString(P_GAME_RESOURCES_PATH, false);
 			bundleName += ASSET_BUNDLE_SUFFIX;
 		}
 		return bundleName;
@@ -329,12 +328,11 @@ public class MenuAssetBundle
 	// 判断一个路径是否是不需要打包的路径
 	protected static bool isUnpackPath(string path, List<string> unpackList)
 	{
-		string pathUnderResources = removeStartString(path, P_GAME_RESOURCES_PATH, false) + "/";
-		rightToLeft(ref pathUnderResources);
+		string pathUnderResources = (path.removeStartString(P_GAME_RESOURCES_PATH, false) + "/").rightToLeft();
 		foreach (string name in unpackList)
 		{
 			// 如果该文件夹是不打包的文件夹,则直接返回
-			if (startWith(pathUnderResources, name, false))
+			if (pathUnderResources.startWith(name, false))
 			{
 				return true;
 			}
@@ -344,8 +342,7 @@ public class MenuAssetBundle
 	// 判断一个路径是否是不需要打包的路径
 	protected static bool isForceSinglePath(string path, List<string> singlePathList)
 	{
-		string pathUnderResources = removeStartString(path, P_GAME_RESOURCES_PATH, false) + "/";
-		rightToLeft(ref pathUnderResources);
+		string pathUnderResources = (path.removeStartString(P_GAME_RESOURCES_PATH, false) + "/").rightToLeft();
 		foreach (string name in singlePathList)
 		{
 			// 如果该文件夹是不打包的文件夹,则直接返回
@@ -369,19 +366,19 @@ public class MenuAssetBundle
 		// .cginc是仅编辑器下使用的资源,不能打包AssetBundle
 		// tpsheet文件不打包
 		// LightingData.asset文件不能打包AB,这是一个特殊文件,只用于编辑器
-		if (endWith(file, ".meta") || 
-			endWith(file, ".DS_Store") || 
-			endWith(file, ".cginc") ||
-			endWith(file, ".hlsl") ||
-			endWith(file, ".glslinc") ||
-			endWith(file, ".tpsheet") || 
-			endWith(file, "LightingData.asset"))
+		if (file.endWith(".meta") || 
+			file.endWith(".DS_Store") || 
+			file.endWith(".cginc") ||
+			file.endWith(".hlsl") ||
+			file.endWith(".glslinc") ||
+			file.endWith(".tpsheet") ||
+			file.endWith("LightingData.asset"))
 		{
 			importer.assetBundleName = EMPTY;
 			return EMPTY;
 		}
 		
-		string fileName = rightToLeft(file.ToLower());
+		string fileName = file.ToLower().rightToLeft();
 		string bundleName = getFileAssetBundleName(fileName, forceSingle);
 		if (importer.assetBundleName != bundleName)
 		{
@@ -391,7 +388,7 @@ public class MenuAssetBundle
 		{
 			// 存储bundleInfo
 			// 去除Asset/GameResources/前缀,只保留GameResources下相对路径
-			string assetName = removeStartString(fileName, P_GAME_RESOURCES_PATH, false);
+			string assetName = fileName.removeStartString(P_GAME_RESOURCES_PATH, false);
 			if (!assetBundleMap.TryGetValue(bundleName, out BuildAssetBundleInfo bundleInfo))
 			{
 				bundleInfo = new(bundleName);
@@ -416,7 +413,7 @@ public class MenuAssetBundle
 		bool isForceSingle = isForceSinglePath(fullPath, getForceSingleFolder());
 		foreach (string file in files)
 		{
-			if (refreshFileAssetBundleName(assetBundleMap, rightToLeft(file), isForceSingle) == null)
+			if (refreshFileAssetBundleName(assetBundleMap, file.rightToLeft(), isForceSingle) == null)
 			{
 				showInfo("生成AssetBundle名字失败:" + file, showErrorMessageBox, true);
 				return false;
@@ -442,7 +439,7 @@ public class MenuAssetBundle
 		}
 		foreach (string dir in Directory.GetDirectories(fullPath).safe())
 		{
-			getAllSubResDirsInternal(rightToLeft(dir), dirList);
+			getAllSubResDirsInternal(dir.rightToLeft(), dirList);
 		}
 		dirList.Add(fullPath);
 	}
@@ -490,7 +487,7 @@ public class MenuAssetBundle
 		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH))
 		{
 			string fileName = fullPathToProjectPath(file);
-			if(endWith(fileName, ".meta"))
+			if(fileName.endWith(".meta"))
 			{
 				continue;
 			}
@@ -509,15 +506,15 @@ public class MenuAssetBundle
 	{
 		foreach (string file in fileList)
 		{
-			if (endWith(file, ".meta"))
+			if (file.endWith(".meta"))
 			{
 				continue;
 			}
 			string projectFileName = fullPathToProjectPath(file);
-			string fileName = removeStartString(projectFileName, P_GAME_RESOURCES_PATH, false);
+			string fileName = projectFileName.removeStartString(P_GAME_RESOURCES_PATH, false);
 			foreach (string unpack in unpackList)
 			{
-				if (!startWith(fileName, unpack, false))
+				if (!fileName.startWith(unpack, false))
 				{
 					continue;
 				}

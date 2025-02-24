@@ -1,4 +1,4 @@
-﻿using static FrameBase;
+﻿using static FrameBaseHotFix;
 using static FrameDefine;
 
 // 音频播放的辅助物体

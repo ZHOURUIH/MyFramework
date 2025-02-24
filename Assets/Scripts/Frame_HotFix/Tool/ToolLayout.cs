@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using static UnityUtility;
 using static FrameUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static MathUtility;
 
 // 全部都是对于UI布局或窗口的操作,部分Transformable的通用操作在ToolFrame中
@@ -17,6 +17,7 @@ public class LT
 		return CmdLayoutManagerLoad.execute(type, renderOrder, orderType, visible, isScene, isAsync, callback);
 	}
 	#region UI_SCENE
+	// UI作为场景时深度应该为固定值
 	public static T LOAD_SCENE_HIDE<T>(int renderOrder) where T : LayoutScript
 	{
 		return CmdLayoutManagerLoad.execute(typeof(T), renderOrder, LAYOUT_ORDER.FIXED, false, true, false, null) as T;
@@ -49,6 +50,14 @@ public class LT
 	{
 		CmdLayoutManagerLoad.execute(type, renderOrder, LAYOUT_ORDER.FIXED, true, true, true, callback);
 	}
+	public static LayoutScript LOAD_SCENE(Type type, int renderOrder, bool visible)
+	{
+		return CmdLayoutManagerLoad.execute(type, renderOrder, LAYOUT_ORDER.FIXED, visible, true, false, null);
+	}
+	public static void LOAD_SCENE_ASYNC(Type type, int renderOrder, bool visible, GameLayoutCallback callback)
+	{
+		CmdLayoutManagerLoad.execute(type, renderOrder, LAYOUT_ORDER.FIXED, visible, true, true, callback);
+	}
 	#endregion
 	#region UGUI
 	public static LayoutScript LOAD(Type type, bool visible)
@@ -59,26 +68,17 @@ public class LT
 	{
 		return CmdLayoutManagerLoad.execute(type, renderOrder, orderType, visible, false, false, null);
 	}
-	// UI作为场景时深度应该为固定值
-	public static LayoutScript LOAD_SCENE(Type type, int renderOrder, bool visible)
-	{
-		return CmdLayoutManagerLoad.execute(type, renderOrder, LAYOUT_ORDER.FIXED, visible, true, false, null);
-	}
-	public static void LOAD_SCENE_ASYNC(Type type, int renderOrder, bool visible, GameLayoutCallback callback)
-	{
-		CmdLayoutManagerLoad.execute(type, renderOrder, LAYOUT_ORDER.FIXED, visible, true, true, callback);
-	}
 	public static void LOAD_ASYNC_SHOW(Type type, int renderOrder, LAYOUT_ORDER orderType, GameLayoutCallback callback)
 	{
-		CmdLayoutManagerLoad.execute(type, renderOrder, orderType, true, true, true, callback);
+		CmdLayoutManagerLoad.execute(type, renderOrder, orderType, true, false, true, callback);
 	}
 	public static void LOAD_ASYNC_SHOW<T>(GameLayoutCallback callback) where T : LayoutScript
 	{
-		CmdLayoutManagerLoad.execute(typeof(T), 0, LAYOUT_ORDER.FIXED, true, true, true, callback);
+		CmdLayoutManagerLoad.execute(typeof(T), 0, LAYOUT_ORDER.FIXED, true, false, true, callback);
 	}
 	public static void LOAD_ASYNC_HIDE(Type type, int renderOrder, LAYOUT_ORDER orderType, GameLayoutCallback callback)
 	{
-		CmdLayoutManagerLoad.execute(type, renderOrder, orderType, false, true, true, callback);
+		CmdLayoutManagerLoad.execute(type, renderOrder, orderType, false, false, true, callback);
 	}
 	public static LayoutScript LOAD_TOP_HIDE(Type type)
 	{

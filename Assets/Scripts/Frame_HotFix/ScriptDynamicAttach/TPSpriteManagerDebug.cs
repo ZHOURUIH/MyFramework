@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // 资源管理器调试信息
 public class TPSpriteManagerDebug : MonoBehaviour
@@ -9,7 +9,7 @@ public class TPSpriteManagerDebug : MonoBehaviour
 	public List<UGUIAtlasDebug> mResourcesAtlasList = new();	// 已加载的AssetBundle列表Value
 	public void Update()
 	{
-		if (mGameFramework == null || !mGameFramework.mParam.mEnableScriptDebug)
+		if (mGameFrameworkHotFix == null || !mGameFrameworkHotFix.mParam.mEnableScriptDebug)
 		{
 			return;
 		}

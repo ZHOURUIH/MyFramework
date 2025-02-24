@@ -44,7 +44,7 @@ public class GameFramework : MonoBehaviour
 	{
 		using var a = new ProfilerScope("Start");
 		// 通过代码添加接受java日志的节点
-		GameObject unityLog = getGameObject("UnityLog");
+		GameObject unityLog = getRootGameObject("UnityLog");
 		if (unityLog == null)
 		{
 			unityLog = createGameObject("UnityLog");
@@ -196,6 +196,11 @@ public class GameFramework : MonoBehaviour
 		{
 			destroyUnityObject(gameObject.GetComponent<ResConsoleToScreen>());
 		}
+		GameObject unityLog = getRootGameObject("UnityLog");
+		if (unityLog != null && unityLog.TryGetComponent<ResUnityAndroidLog>(out var comUnityLog))
+		{
+			destroyUnityObject(comUnityLog);
+		}
 		mIsDestroy = true;
 		if (mFrameComponentDestroy == null)
 		{
@@ -230,32 +235,11 @@ public class GameFramework : MonoBehaviour
 		stopApplication();
 	}
 	public GameObject getGameFrameObject() { return mGameFrameObject; }
-	public T registeFrameSystem<T>(Action<T> callback, int initOrder = -1, int updateOrder = -1, int destroyOrder = -1) where T : FrameSystem, new()
-	{
-		return registeFrameSystem<T>((com)=> { callback?.Invoke(com as T); }, initOrder, updateOrder, destroyOrder);
-	}
-	// 注册时可以指定组件的初始化顺序,更新顺序,销毁顺序
-	public T registeFrameSystem<T>(Action<FrameSystem> callback, int initOrder = -1, int updateOrder = -1, int destroyOrder = -1) where T : FrameSystem, new()
-	{
-		T com = new();
-		Type type = typeof(T);
-		string name = type.ToString();
-		com.setName(name);
-		com.setInitOrder(initOrder == -1 ? mFrameComponentMap.Count : initOrder);
-		com.setUpdateOrder(updateOrder == -1 ? mFrameComponentMap.Count : updateOrder);
-		com.setDestroyOrder(destroyOrder == -1 ? mFrameComponentMap.Count : destroyOrder);
-		mFrameComponentMap.Add(name, com);
-		mFrameComponentInit.Add(com);
-		mFrameComponentUpdate.Add(com);
-		mFrameComponentDestroy.Add(com);
-		mFrameCallbackList.Add(name, callback);
-		callback?.Invoke(com);
-		return com;
-	}
 	public void onMemoryModified(int flag, long param0, long param1, long param2, long param3) 
 	{
 		mOnMemoryModifiedCheck?.Invoke(flag, param0, param1, param2, param3);
 	}
+	// 实际上不需要调用,在非热更执行期间加载的全部都是Resource中的资源,不需要AssetBundle
 	public void initAsync(Action callback)
 	{
 		// 先执行所有的preInit
@@ -406,8 +390,6 @@ public class GameFramework : MonoBehaviour
 			}
 		}
 
-		frameSystemInitDone();
-
 		WINDOW_MODE fullScreen = mParam.mWindowMode;
 		if (isEditor())
 		{
@@ -483,5 +465,27 @@ public class GameFramework : MonoBehaviour
 		log("PersistentDataPath:" + F_PERSISTENT_DATA_PATH);
 		log("StreamingAssetPath:" + F_STREAMING_ASSETS_PATH);
 		log("AssetPath:" + F_ASSETS_PATH);
+	}
+	protected T registeFrameSystem<T>(Action<T> callback, int initOrder = -1, int updateOrder = -1, int destroyOrder = -1) where T : FrameSystem, new()
+	{
+		return registeFrameSystem<T>((com) => { callback?.Invoke(com as T); }, initOrder, updateOrder, destroyOrder);
+	}
+	// 注册时可以指定组件的初始化顺序,更新顺序,销毁顺序
+	protected T registeFrameSystem<T>(Action<FrameSystem> callback, int initOrder = -1, int updateOrder = -1, int destroyOrder = -1) where T : FrameSystem, new()
+	{
+		log("注册系统:" + typeof(T) + ", owner:" + GetType());
+		T com = new();
+		string name = typeof(T).ToString();
+		com.setName(name);
+		com.setInitOrder(initOrder == -1 ? mFrameComponentMap.Count : initOrder);
+		com.setUpdateOrder(updateOrder == -1 ? mFrameComponentMap.Count : updateOrder);
+		com.setDestroyOrder(destroyOrder == -1 ? mFrameComponentMap.Count : destroyOrder);
+		mFrameComponentMap.Add(name, com);
+		mFrameComponentInit.Add(com);
+		mFrameComponentUpdate.Add(com);
+		mFrameComponentDestroy.Add(com);
+		mFrameCallbackList.Add(name, callback);
+		callback?.Invoke(com);
+		return com;
 	}
 }

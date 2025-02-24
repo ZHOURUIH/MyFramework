@@ -1,5 +1,4 @@
 ﻿using UnityEditor;
-using UnityEngine;
 #if USE_HYBRID_CLR
 using HybridCLR.Editor;
 using HybridCLR.Editor.Commands;
@@ -7,6 +6,10 @@ using HybridCLR.Editor.HotUpdate;
 #endif
 using System.Collections.Generic;
 using UnityEditor.SceneManagement;
+using System.Runtime.InteropServices;
+#if USE_OBFUSCATOR
+using Flower.UnityObfuscator;
+#endif
 using static FileUtility;
 using static StringUtility;
 using static FrameDefine;
@@ -16,6 +19,7 @@ using static BinaryUtility;
 using static UnityUtility;
 using static EditorCommonUtility;
 using static FrameDefineBase;
+using static FrameEditorUtility;
 
 public abstract class PlatformBase
 {
@@ -23,7 +27,7 @@ public abstract class PlatformBase
 	public static string INSTALL_TIME_TEMP_PATH = F_ASSETS_PATH + "../InstallTimeTemp/";
 	public string mPlatformDefine;
 	public BuildTarget mTarget;
-	public BuildTargetGroup mGroup;
+	public List<string> mIgnoreFile;					// 计算文件列表时需要忽略的文件名
 	public string mAssetBundleFullPath;
 	public string mName;
 	public string mVersion;
@@ -43,14 +47,14 @@ public abstract class PlatformBase
 		deleteFolder(destPath);
 		foreach (string file in fileList)
 		{
-			copyFile(file, destPath + removeStartString(file, mAssetBundleFullPath));
+			copyFile(file, destPath + file.removeStartString(mAssetBundleFullPath));
 		}
 
 		// 更新文件列表信息
-		writeFileList(destPath, out string content);
+		writeFileList(destPath);
 		foreach (string file in fileList)
 		{
-			string relativePath = removeStartString(file, mAssetBundleFullPath);
+			string relativePath = file.removeStartString(mAssetBundleFullPath);
 			if (relativePath != FILE_LIST && 
 				relativePath != FILE_LIST_MD5 &&
 				fileNameList != null &&
@@ -60,7 +64,7 @@ public abstract class PlatformBase
 			}
 		}
 		deleteEmptyFolder(destPath);
-		Debug.Log("资源文件收集完成,共" + fileList.Count + "个文件");
+		log("资源文件收集完成,共" + fileList.Count + "个文件");
 		return true;
 	}
 	public abstract string generateRemotePath();
@@ -77,13 +81,13 @@ public abstract class PlatformBase
 		// 第2个参数excludeDllNames为要排除的aot dll。一般取空列表即可。对于旗舰版本用户，
 		// excludeDllNames需要为dhe程序集列表，因为dhe 程序集会进行热更新，热更新代码中
 		// 引用的dhe程序集中的类型或函数肯定存在。
-		MissingMetadataChecker checker = new (aotDir, new List<string>());
+		MissingMetadataChecker checker = new (aotDir, new List<string> { HOTFIX, HOTFIX_FRAME });
 		string hotUpdateDir = SettingsUtil.GetHotUpdateDllsOutputDirByTarget(target);
 		foreach (string dll in SettingsUtil.HotUpdateAssemblyFilesExcludePreserved)
 		{
 			if (!checker.Check(hotUpdateDir + "/" + dll))
 			{
-				logError("发现访问了被裁剪的代码");
+				logError("发现访问了被裁剪的代码,dll:" + dll);
 			}
 		}
 #endif
@@ -110,6 +114,30 @@ public abstract class PlatformBase
 			copyFile(aotDllSrcPath + aotFile, mAssetBundleFullPath + aotFile + ".bytes");
 		}
 		checkAccessMissingMetadata();
+
+		// 对dll进行混淆,dll顺序很重要,被依赖的需要在前面
+#if USE_OBFUSCATOR
+		log("开始混淆dll");
+		var obfuscatorConfig = loadAssetAtPath<ObfuscatorConfig>(Const.ConfigAssetPath);
+		obfuscatorConfig.obfuscateDllPaths = new string[]
+		{
+			P_ASSET_BUNDLE_PATH + HOTFIX_FRAME_BYTES_FILE,
+			P_ASSET_BUNDLE_PATH + HOTFIX_BYTES_FILE,
+		};
+		string nameMapFolder = "UnityObfuscatorNameMap";
+		createDir(F_PROJECT_PATH + nameMapFolder);
+		CodeObfuscator.DoObfuscate(obfuscatorConfig, nameMapFolder + "/UnityObfuscator-Name_Obfuscate_Map_" + mVersion + ".txt");
+		log("完成混淆dll");
+#endif
+
+		// 对自己编译的热更dll进行加密,检查完以后再加密
+		if (getAESKey().count() == 16)
+		{
+			log("开始加密生成的dll");
+			encryptFileAES(mAssetBundleFullPath + HOTFIX_BYTES_FILE, getAESKey(), getAESIV());
+			encryptFileAES(mAssetBundleFullPath + HOTFIX_FRAME_BYTES_FILE, getAESKey(), getAESIV());
+			log("完成加密生成的dll");
+		}
 #endif
 		return true;
 	}
@@ -118,12 +146,10 @@ public abstract class PlatformBase
 		writeTxtFile(mAssetBundleFullPath + VERSION, mVersion);
 		return true;
 	}
-	public bool writeFileList(string path, out string content)
+	public bool writeFileList(string path)
 	{
-		List<string> ignoreFile = new() { VERSION, FILE_LIST, FILE_LIST_MD5, FILE_LIST_REMOTE, mName, mName + ".manifest" };
 		List<string> ignoreSuffix = new() { ".unity3d.manifest", ".meta" };
-		content = generateFileInfoList(path, false, ignoreFile, null, ignoreSuffix);
-		writeFileList(path, content);
+		writeFileList(path, generateFileInfoList(path, false, mIgnoreFile, null, ignoreSuffix));
 		return true;
 	}
 	public static void writeFileList(string path, string content)
@@ -135,6 +161,9 @@ public abstract class PlatformBase
 	public abstract string getDefaultPlatformDefine();
 	public virtual void generateFolderPreName() { mFolderPreName = ""; }
 	//------------------------------------------------------------------------------------------------------------------------------
+	// 由应用层提供自己的密钥,不提供则不会进行加密,Key和IV长度必须为16个字节
+	protected virtual byte[] getAESKey() { return null; }
+	protected virtual byte[] getAESIV() { return null; }
 	protected BuildOptions generateBuildOption(bool isTest)
 	{
 		BuildOptions options = BuildOptions.None;
@@ -171,11 +200,11 @@ public abstract class PlatformBase
 		// 对当前的宏进行检查,避免由于上一次打包失败没有正确还原宏而导致打包出现问题
 		if (mPlatformDefine != getDefaultPlatformDefine())
 		{
-			Debug.LogWarning("当前的宏定义错误:" + mPlatformDefine + ", 已还原为:" + getDefaultPlatformDefine());
+			logWarning("当前的宏定义错误:" + mPlatformDefine + ", 已还原为:" + getDefaultPlatformDefine());
 			mPlatformDefine = getDefaultPlatformDefine();
 			PlayerSettings.SetScriptingDefineSymbols(getBuildBuildTarget(), mPlatformDefine);
 		}
-		Debug.Log("备份宏:" + mPlatformDefine);
+		log("备份宏:" + mPlatformDefine);
 		configureScriptingDefine();
 
 		if (mBuildHybridCLR)
@@ -197,7 +226,7 @@ public abstract class PlatformBase
 		recoverAssets();
 		// 还原宏定义
 		PlayerSettings.SetScriptingDefineSymbols(getBuildBuildTarget(), mPlatformDefine);
-		Debug.Log("还原宏:" + mPlatformDefine);
+		log("还原宏:" + mPlatformDefine);
 		EditorSceneManager.SaveOpenScenes();
 		// 打开生成文件所在的目录
 		if (!fullPath.isEmpty() && mOpenExplorer)
@@ -225,7 +254,7 @@ public abstract class PlatformBase
 				{
 					// meta和manifest文件不打进包里,所以备份到临时目录
 					// 动态下载的文件备份到BuildTemp,其他的备份到InstallTimeTemp
-					backupDest = endWith(file, ".meta", false) || endWith(file, ".manifest", false) || isDynamicDownloadAsset(file) ? 1 : 2;
+					backupDest = file.endWith(".meta", false) || file.endWith(".manifest", false) || isDynamicDownloadAsset(file) ? 1 : 2;
 				}
 				// 版本号文件不备份
 				else if (file.EndsWith(VERSION))
@@ -264,12 +293,12 @@ public abstract class PlatformBase
 		// GooglePlay平台的包需要在InstallTime备份目录中去计算文件列表
 		if (mGooglePlay)
 		{
-			writeFileList(INSTALL_TIME_TEMP_PATH + mName + "/", out _);
+			writeFileList(INSTALL_TIME_TEMP_PATH + mName + "/");
 		}
 		// 其他情况下需要在AssetBundle目录中生成
 		else
 		{
-			writeFileList(mAssetBundleFullPath, out _);
+			writeFileList(mAssetBundleFullPath);
 		}
 	}
 	protected virtual void recoverAssets()
@@ -302,20 +331,20 @@ public abstract class PlatformBase
 	// 备份一个文件或文件夹到一个临时目录
 	protected static void backupFileToBuildTemp(string fileName)
 	{
-		moveFile(fileName, replaceAll(fileName, F_STREAMING_ASSETS_PATH, BUILD_TEMP_PATH));
+		moveFile(fileName, fileName.replace(F_STREAMING_ASSETS_PATH, BUILD_TEMP_PATH));
 	}
 	protected static void backupFileToInstallTimeTemp(string fileName)
 	{
-		moveFile(fileName, replaceAll(fileName, F_STREAMING_ASSETS_PATH, INSTALL_TIME_TEMP_PATH));
+		moveFile(fileName, fileName.replace(F_STREAMING_ASSETS_PATH, INSTALL_TIME_TEMP_PATH));
 	}
 	// 从临时目录恢复一个文件或文件夹
 	protected static void recoverFileFromBuildTemp(string fileName)
 	{
-		moveFile(fileName, replaceAll(fileName, BUILD_TEMP_PATH, F_STREAMING_ASSETS_PATH));
+		moveFile(fileName, fileName.replace(BUILD_TEMP_PATH, F_STREAMING_ASSETS_PATH));
 	}
 	protected static void recoverFileFromInstallTimeTemp(string fileName)
 	{
-		moveFile(fileName, replaceAll(fileName, INSTALL_TIME_TEMP_PATH, F_STREAMING_ASSETS_PATH));
+		moveFile(fileName, fileName.replace(INSTALL_TIME_TEMP_PATH, F_STREAMING_ASSETS_PATH));
 	}
 	protected static void dialog(string title, string info, string button)
 	{
@@ -342,7 +371,7 @@ public abstract class PlatformBase
 		fileContent += IToS(fileInfoList.Count) + "\n";
 		foreach (string item in fileInfoList)
 		{
-			fileContent += removeStartString(item, assetBundlePath) + "\t" + IToS(getFileSize(item)) + "\t" + generateFileMD5(item, upperOrLower) + "\n";
+			fileContent += item.removeStartString(assetBundlePath) + "\t" + IToS(getFileSize(item)) + "\t" + generateFileMD5(item, upperOrLower) + "\n";
 		}
 		return fileContent;
 	}
@@ -355,7 +384,7 @@ public abstract class PlatformBase
 			{
 				continue;
 			}
-			if (ignoreFiles != null && ignoreFiles.Contains(removeStartString(newPath, assetBundlePath)))
+			if (ignoreFiles != null && ignoreFiles.Contains(newPath.removeStartString(assetBundlePath)))
 			{
 				continue;
 			}
@@ -371,11 +400,102 @@ public abstract class PlatformBase
 		}
 		for (int i = 0; i < ignoreSuffix.Count; ++i)
 		{
-			if (endWith(fileName, ignoreSuffix[i]))
+			if (fileName.endWith(ignoreSuffix[i]))
 			{
 				return true;
 			}
 		}
 		return false;
+	}
+	// 将本地文件夹的所有文件上传到linux服务器的指定目录中,返回值表示是否上传成功并且检测通过,remoteDeletePath是相对路径,removeCopyFullPath是绝对路径
+	protected bool uploadFileToLinuxServer(string localPath, string remoteDeletePath, string removeCopyFullPath, string userNameAndIP, string password)
+	{
+		string deleteShell = "rm -r " + remoteDeletePath;
+		string fetchListShell = "ls -lR " + remoteDeletePath;
+		// 执行命令行将其上传到服务器
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			// 删除远端指定目录
+			string cmd0 = "echo y | plink -ssh " + userNameAndIP + " -pw " + password + " " + deleteShell;
+			// 切换本地磁盘路径
+			string cmd1 = F_PROJECT_PATH.startString(1) + ":";
+			// 将本地的文件夹上传到远端
+			string cmd2 = "echo y | pscp -v -r -pw " + password + " " + localPath + " " + userNameAndIP + ":" + removeCopyFullPath;
+			executeCmd(new string[] { cmd0, cmd1, cmd2 }, false, false);
+
+			List<string> allInfo = new();
+			string cmd3 = "echo y | plink -ssh " + userNameAndIP + " -pw " + password + " " + fetchListShell;
+			executeCmd(new string[] { cmd3 }, false, true, (string info) => { allInfo.Add(info); });
+			return checkUploadedFile(allInfo, remoteDeletePath, localPath);
+		}
+		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+		{
+			// 删除远端指定目录
+			string cmd0 = "/opt/homebrew/bin/sshpass -p \'" + password + "\' ssh " + userNameAndIP + " -tt " + deleteShell;
+			// 将本地的文件夹上传到远端
+			string cmd1 = "/opt/homebrew/bin/sshpass -p \'" + password + "\' scp -r " + localPath + " " + userNameAndIP + ":" + removeCopyFullPath;
+			executeCmd(new string[] { cmd0, cmd1 }, false, false);
+
+			List<string> allInfo = new();
+			string cmd3 = "/opt/homebrew/bin/sshpass -p \'" + password + "\' ssh " + userNameAndIP + " -tt " + fetchListShell;
+			executeCmd(new string[] { cmd3 }, false, true, (string info) => { allInfo.Add(info); });
+			return checkUploadedFile(allInfo, remoteDeletePath, localPath);
+		}
+		return false;
+	}
+	protected bool checkUploadedFile(List<string> output, string remoteDeletePath, string localPath)
+	{
+		Dictionary<string, GameFileInfo> fileInfoList = new();
+		string curDirectory = "";
+		foreach (string line in output)
+		{
+			string[] keys = split(line, ' ');
+			if (keys.Length >= 9)
+			{
+				if (keys[0][0] == '-')
+				{
+					var fileInfo = RemoteFileInfo.parse(keys);
+					if (fileInfo.mFileName == FILE_LIST ||
+						fileInfo.mFileName == FILE_LIST_MD5 ||
+						fileInfo.mFileName == VERSION)
+					{
+						continue;
+					}
+					fileInfo.mFileName = curDirectory + fileInfo.mFileName;
+					fileInfoList.Add(fileInfo.mFileName, fileInfo.toGameFileInfo());
+				}
+			}
+			else
+			{
+				if (line.startWith("total "))
+				{
+					// 目录中文件数量
+				}
+				else
+				{
+					// 当前的目录,去除前缀,去除最后的:,如果路径不为空,就加上/,如果通过
+					curDirectory = line.removeAll('\'').removeStartString(remoteDeletePath).removeEndString(":");
+					if (!curDirectory.isEmpty())
+					{
+						curDirectory += "/";
+					}
+				}
+			}
+		}
+
+		// 对比文件列表
+		Dictionary<string, GameFileInfo> localFileInfoList = new();
+		parseFileList(openTxtFile(localPath + "/" + FILE_LIST, true), localFileInfoList);
+
+		if (checkDiff(localFileInfoList, fileInfoList, false))
+		{
+			log("上传成功");
+			return true;
+		}
+		else
+		{
+			logError("上传后本地与远端文件列表不一致");
+			return false;
+		}
 	}
 }

@@ -14,9 +14,9 @@ using static FrameEditorUtility;
 // 从AssetDataBase中加载资源
 public class AssetDataBaseLoader
 {
-	protected Dictionary<string, Dictionary<string, ResourceLoadInfo>> mLoadedPath = new();		// 所有已加载的文件夹
-	protected Dictionary<UObject, ResourceLoadInfo> mLoadedObjects = new();						// 所有的已加载的资源
-	public void destroy(){}
+	protected Dictionary<string, Dictionary<string, ResourceLoadInfo>> mLoadedPath = new();     // 所有已加载的文件夹
+	protected Dictionary<UObject, ResourceLoadInfo> mLoadedObjects = new();                     // 所有的已加载的资源
+	public void destroy() { }
 	public void getFileList(string path, List<string> list)
 	{
 		List<string> fileList = findResourcesFilesNonAlloc(path);
@@ -37,7 +37,7 @@ public class AssetDataBaseLoader
 			return false;
 		}
 		// 资源已经加载完
-		if(!mLoadedObjects.Remove(obj, out ResourceLoadInfo info))
+		if (!mLoadedObjects.Remove(obj, out ResourceLoadInfo info))
 		{
 			if (showError)
 			{
@@ -60,7 +60,7 @@ public class AssetDataBaseLoader
 		using var a = new ListScope<string>(out var tempList);
 		foreach (string item0 in tempList.addRange(mLoadedPath.Keys))
 		{
-			if (!startWith(item0, path))
+			if (!item0.startWith(path))
 			{
 				continue;
 			}
@@ -122,7 +122,7 @@ public class AssetDataBaseLoader
 		{
 			logWarning("资源正在后台加载,不能同步加载!" + name);
 		}
-		else if (info.getState() == LOAD_STATE.UNLOAD)
+		else if (info.getState() == LOAD_STATE.NONE)
 		{
 			logWarning("资源已加入列表,但是未加载" + name);
 		}
@@ -145,7 +145,7 @@ public class AssetDataBaseLoader
 			info = resList.get(name);
 			return info.getObject() as T;
 		}
-		if(info.getState() == LOAD_STATE.LOADED)
+		if (info.getState() == LOAD_STATE.LOADED)
 		{
 			return info.getObject() as T;
 		}
@@ -153,11 +153,11 @@ public class AssetDataBaseLoader
 		{
 			logWarning("资源正在后台下载,不能同步加载!" + name);
 		}
-		else if(info.getState() == LOAD_STATE.LOADING)
+		else if (info.getState() == LOAD_STATE.LOADING)
 		{
 			logWarning("资源正在后台加载,不能同步加载!" + name);
 		}
-		else if(info.getState() == LOAD_STATE.UNLOAD)
+		else if (info.getState() == LOAD_STATE.NONE)
 		{
 			logWarning("资源已加入列表,但是未加载" + name);
 		}
@@ -175,7 +175,7 @@ public class AssetDataBaseLoader
 		{
 			// 资源正在下载或加载,将回调添加到回调列表中,等待加载完毕
 			if (info.getState() == LOAD_STATE.DOWNLOADING || info.getState() == LOAD_STATE.LOADING)
-			{	
+			{
 				info.addCallback((UObject asset, UObject[] assets, byte[] bytes, string loadPath) =>
 				{
 					op.mFinish = true;
@@ -183,7 +183,7 @@ public class AssetDataBaseLoader
 				}, name);
 			}
 			// 资源已经加载完毕,直接调用回调
-			else if(info.getState() == LOAD_STATE.LOADED)
+			else if (info.getState() == LOAD_STATE.LOADED)
 			{
 				doneCallback?.Invoke(info.getObject(), info.getSubObjects(), null, name);
 				op.mFinish = true;

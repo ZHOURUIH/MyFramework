@@ -18,14 +18,12 @@ public class LayoutManager : FrameSystem
 	protected Dictionary<string, LayoutInfo> mLayoutAsyncList = new();			// 正在异步加载的布局列表
 	protected Dictionary<Type, string> mLayoutTypeToPath = new();				// 根据布局ID查找布局路径
 	protected Dictionary<string, Type> mLayoutPathToType = new();				// 根据布局路径查找布局ID
-	protected AssetLoadDoneCallback mLayoutLoadCallback;						// 保存回调变量,避免GC
 	protected myUGUICanvas mUGUIRoot;											// 所有UI的根节点
 	protected bool mUseAnchor = true;											// 是否启用锚点来自动调节窗口的大小和位置
 	public LayoutManager()
 	{
-		mLayoutLoadCallback = onLayoutPrefabLoaded;
 		// 在构造中获取UI根节点,确保其他组件能在任意时刻正常访问
-		mUGUIRoot = LayoutScript.newUIObject<myUGUICanvas>(null, null, getGameObject(UGUI_ROOT, null, true));
+		mUGUIRoot = LayoutScript.newUIObject<myUGUICanvas>(null, null, getRootGameObject(UGUI_ROOT, true));
 	}
 	public myUGUICanvas getUIRoot() { return mUGUIRoot; }
 	public GameObject getRootObject() { return mUGUIRoot?.getObject(); }
@@ -280,13 +278,6 @@ public class LayoutManager : FrameSystem
 		mLayoutManager.registeLayout(typeof(T), name, inResource, lifeCycle, (script) => { callback?.Invoke(script as T); });
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected void onLayoutPrefabLoaded(UnityEngine.Object asset, UnityEngine.Object[] subAssets, byte[] bytes, string loadPath)
-	{
-		if (mLayoutAsyncList.Remove(asset.name, out LayoutInfo info))
-		{
-			info.mCallback?.Invoke(newLayout(info, asset as GameObject));
-		}
-	}
 	protected GameLayout newLayout(LayoutInfo info, GameObject prefab)
 	{
 		myUIObject layoutParent = info.mIsScene ? null : getUIRoot();

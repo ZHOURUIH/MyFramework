@@ -1,7 +1,7 @@
 ﻿using System;
 using static UnityUtility;
 using static FrameUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static CSharpUtility;
 
 // 在主线程中使用的消息包工厂

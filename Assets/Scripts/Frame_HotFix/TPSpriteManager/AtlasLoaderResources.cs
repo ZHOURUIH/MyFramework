@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using static FrameBase;
+using static FrameBaseHotFix;
 using UObject = UnityEngine.Object;
 
 // 用于UGUI的multi sprite管理

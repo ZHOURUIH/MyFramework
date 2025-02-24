@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using static UnityUtility;
 using static FrameUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static CSharpUtility;
 using static MathUtility;
 
@@ -125,7 +125,7 @@ public class COMCharacterStateMachine : GameComponent
 			// 如果时间是0,则不再调整时间,因为会立即移除掉
 			if (stateTime > 0.0f)
 			{
-				state.setStateTime(stateTime + (float)(DateTime.Now - mGameFramework.getFrameStartTime()).TotalSeconds);
+				state.setStateTime(stateTime + (float)(DateTime.Now - mGameFrameworkHotFix.getFrameStartTime()).TotalSeconds);
 			}
 			else
 			{

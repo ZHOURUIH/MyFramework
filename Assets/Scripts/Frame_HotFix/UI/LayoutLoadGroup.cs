@@ -20,6 +20,11 @@ public class LayoutLoadGroup : ClassObject
 		mLoadedCount = 0;
 		mAutoDestroy = false;
 	}
+	public override void destroy()
+	{
+		base.destroy();
+		UN_CLASS_LIST(mLoadInfo);
+	}
 	public static LayoutLoadGroup create(bool autoDestroy = true)
 	{
 		var obj = CLASS<LayoutLoadGroup>();
@@ -68,10 +73,6 @@ public class LayoutLoadGroup : ClassObject
 	{
 		addSceneUI(typeof(T), order);
 	}
-	public void clear()
-	{
-		UN_CLASS_LIST(mLoadInfo);
-	}
 	public float getProgress() { return divide(mLoadedCount, mLoadInfo.Count); }
 	public bool isAllLoaded() { return mLoadedCount == mLoadInfo.Count; }
 	//------------------------------------------------------------------------------------------------------------------------------
@@ -90,11 +91,10 @@ public class LayoutLoadGroup : ClassObject
 		}
 		delayCall(() =>
 		{
-			op.mFinish = true;
+			op.setFinish();
 			Action temp = mLoadedCallback;
 			if (mAutoDestroy)
 			{
-				clear();
 				UN_CLASS(this);
 			}
 			temp?.Invoke();

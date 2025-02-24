@@ -10,8 +10,8 @@ using static FrameEditorUtility;
 // 字符串相关工具函数类
 public class StringUtility
 {
-	private static char[] mHexUpperChar = new char[] { 'A', 'B', 'C', 'D', 'E', 'F' };	// 十六进制中的大写字母
-	private static char[] mHexLowerChar = new char[] { 'a', 'b', 'c', 'd', 'e', 'f' };	// 十六进制中的小写字母
+	public static char[] mHexUpperChar = new char[] { 'A', 'B', 'C', 'D', 'E', 'F' };   // 十六进制中的大写字母
+	public static char[] mHexLowerChar = new char[] { 'a', 'b', 'c', 'd', 'e', 'f' };	// 十六进制中的小写字母
 	private static Dictionary<string, int> mStringToInt;								// 用于快速查找字符串转换后的整数
 	private static string[] mIntToString;												// 用于快速获取整数转换后的字符串
 	private static string[] mFloatConvertPercision = new string[] { "f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7" };	// 浮点数转换时精度
@@ -22,9 +22,9 @@ public class StringUtility
 		using var a = new MyStringBuilderScope(out var builder);
 		builder.append(format);
 		string indexStr = "{0}";
-		if (findFirstSubstr(format, indexStr) >= 0)
+		if (format.findFirstSubstr(indexStr) >= 0)
 		{
-			replaceAll(builder, indexStr, args);
+			builder.replaceAll(indexStr, args);
 		}
 		return builder.ToString();
 	}
@@ -34,68 +34,21 @@ public class StringUtility
 		using var a = new MyStringBuilderScope(out var builder);
 		builder.append(format);
 		string indexStr0 = "{0}";
-		if (findFirstSubstr(format, indexStr0) >= 0)
+		if (format.findFirstSubstr(indexStr0) >= 0)
 		{
-			replaceAll(builder, indexStr0, args0);
+			builder.replaceAll(indexStr0, args0);
 		}
 		string indexStr1 = "{1}";
-		if (findFirstSubstr(format, indexStr1) >= 0)
+		if (format.findFirstSubstr(indexStr1) >= 0)
 		{
-			replaceAll(builder, indexStr1, args1);
+			builder.replaceAll(indexStr1, args1);
 		}
 		return builder.ToString();
-	}
-	public static bool startWith(string oriString, string pattern, bool sensitive = true)
-	{
-		if (oriString.Length < pattern.Length)
-		{
-			return false;
-		}
-		string startString = oriString.startString(pattern.Length);
-		if (sensitive)
-		{
-			return startString == pattern;
-		}
-		else
-		{
-			return startString.ToLower() == pattern.ToLower();
-		}
-	}
-	public static bool endWith(string oriString, string pattern, bool sensitive = true)
-	{
-		if (oriString.Length < pattern.Length)
-		{
-			return false;
-		}
-		string endString = oriString.endString(pattern.Length);
-		if (sensitive)
-		{
-			return endString == pattern;
-		}
-		else
-		{
-			return endString.ToLower() == pattern.ToLower();
-		}
 	}
 	public static long SToL(string str)
 	{
 		checkIntString(str);
 		return !str.isEmpty() ? long.Parse(str) : 0;
-	}
-	// 如果originStr以startString为开头,则移除originStr结尾的startString
-	public static void removeStartString(ref string originStr, string startString, bool sensitive = true)
-	{
-		originStr = removeStartString(originStr, startString, sensitive);
-	}
-	public static string removeStartString(string originStr, string startString, bool sensitive = true)
-	{
-		if (startString.isEmpty() ||
-			originStr.isEmpty() ||
-			!startWith(originStr, startString, sensitive))
-		{
-			return originStr;
-		}
-		return originStr.removeStartCount(startString.Length);
 	}
 	// 得到文件路径
 	public static string getFilePath(string fileName, bool keepEndSlash = false)
@@ -104,7 +57,7 @@ public class StringUtility
 		{
 			using var a = new MyStringBuilderScope(out var builder);
 			builder.append(fileName);
-			rightToLeft(builder);
+			builder.rightToLeft();
 			// 从倒数第二个开始,因为即使最后一个是/也需要忽略
 			int lastPos = builder.lastIndexOf('/', builder.Length - 2);
 			if (lastPos < 0)
@@ -118,7 +71,7 @@ public class StringUtility
 		{
 			using var a = new ClassThreadScope<MyStringBuilder>(out var builder);
 			builder.append(fileName);
-			rightToLeft(builder);
+			builder.rightToLeft();
 			// 从倒数第二个开始,因为即使最后一个是/也需要忽略
 			int lastPos = builder.lastIndexOf('/', builder.Length - 2);
 			if (lastPos < 0)
@@ -134,7 +87,7 @@ public class StringUtility
 	{
 		using var a = new MyStringBuilderScope(out var builder);
 		builder.append(str);
-		rightToLeft(builder);
+		builder.rightToLeft();
 		int dotPos = builder.lastIndexOf('/');
 		if (dotPos != -1)
 		{
@@ -144,7 +97,7 @@ public class StringUtility
 	}
 	public static string getFileNameThread(string str)
 	{
-		string builder = rightToLeft(str);
+		string builder = str.rightToLeft();
 		int dotPos = builder.LastIndexOf('/');
 		if (dotPos != -1)
 		{
@@ -170,7 +123,7 @@ public class StringUtility
 		}
 		using var a = new MyStringBuilderScope(out var builder);
 		builder.append(str);
-		rightToLeft(builder);
+		builder.rightToLeft();
 		// 移除后缀
 		int dotPos = builder.lastIndexOf('.');
 		if (dotPos != -1)
@@ -188,7 +141,7 @@ public class StringUtility
 		}
 		using var a = new MyStringBuilderScope(out var builder);
 		builder.append(str);
-		rightToLeft(builder);
+		builder.rightToLeft();
 		int namePos = builder.lastIndexOf('/');
 		if (namePos != -1)
 		{
@@ -232,26 +185,6 @@ public class StringUtility
 		{
 			path += "/";
 		}
-	}
-	public static void rightToLeft(MyStringBuilder str)
-	{
-		str.replace('\\', '/');
-	}
-	public static void rightToLeft(ref string str)
-	{
-		if (str == null)
-		{
-			return;
-		}
-		str = str.Replace('\\', '/');
-	}
-	public static string rightToLeft(string str)
-	{
-		if (str == null)
-		{
-			return null;
-		}
-		return str.Replace('\\', '/');
 	}
 	public static void splitLine(string str, out string[] lines, bool removeEmpty = true)
 	{
@@ -498,39 +431,6 @@ public class StringUtility
 	{
 		return strcat(FToS(value.x, precision), ",", FToS(value.y, precision), ",", FToS(value.z, precision));
 	}
-	public static void replace(MyStringBuilder str, int begin, int end, string reStr)
-	{
-		str.remove(begin, end - begin);
-		if (!reStr.isEmpty())
-		{
-			str.insert(begin, reStr);
-		}
-	}
-	public static void replaceAll(MyStringBuilder builder, string key, string newWords)
-	{
-		int startPos = 0;
-		while (true)
-		{
-			int pos = findFirstSubstr(builder, key, startPos);
-			if (pos < 0)
-			{
-				break;
-			}
-			replace(builder, pos, pos + key.Length, newWords);
-			startPos = pos + newWords.length();
-		}
-	}
-	public static string removeAll(string str, params string[] key)
-	{
-		using var a = new MyStringBuilderScope(out var builder);
-		builder.append(str);
-		int keyCount = key.Length;
-		for (int i = 0; i < keyCount; ++i)
-		{
-			replaceAll(builder, key[i], EMPTY);
-		}
-		return builder.ToString();
-	}
 	public static bool checkString(string str, string valid)
 	{
 		if (isEditor())
@@ -566,7 +466,7 @@ public class StringUtility
 			{
 				if (addSpace)
 				{
-					byteToHEXString(builder, byteList[i + offset], upperOrLower);
+					builder.byteToHEXString(byteList[i + offset], upperOrLower);
 					if (i != byteCount - 1)
 					{
 						builder.append(' ');
@@ -574,7 +474,7 @@ public class StringUtility
 				}
 				else
 				{
-					byteToHEXString(builder, byteList[i + offset], upperOrLower);
+					builder.byteToHEXString(byteList[i + offset], upperOrLower);
 				}
 			}
 			return builder.ToString();
@@ -626,30 +526,6 @@ public class StringUtility
 			builder.Append(hexChar[low - 10]);
 		}
 	}
-	public static void byteToHEXString(MyStringBuilder builder, byte value, bool upperOrLower = true)
-	{
-		char[] hexChar = upperOrLower ? mHexUpperChar : mHexLowerChar;
-		// 等效于int high = value / 16;
-		// 等效于int low = value % 16;
-		int high = value >> 4;
-		int low = value & 15;
-		if (high < 10)
-		{
-			builder.append((char)('0' + high));
-		}
-		else
-		{
-			builder.append(hexChar[high - 10]);
-		}
-		if (low < 10)
-		{
-			builder.append((char)('0' + low));
-		}
-		else
-		{
-			builder.append(hexChar[low - 10]);
-		}
-	}
 	public static string fileSizeString(long size)
 	{
 		// 不足1KB
@@ -678,108 +554,6 @@ public class StringUtility
 			return EMPTY;
 		}
 		return "<color=#" + color + ">" + str + "</color>";
-	}
-	// returnEndIndex表示返回值是否是字符串结束的下一个字符的下标
-	public static int findFirstSubstr(string res, string pattern, int startPos = 0, bool returnEndIndex = false, bool sensitive = true)
-	{
-		if (res == null)
-		{
-			return -1;
-		}
-		int posFind = -1;
-		int subLen = pattern.Length;
-		int len = res.Length;
-		for (int i = startPos; i < len; ++i)
-		{
-			if (len - i < subLen)
-			{
-				continue;
-			}
-			int j = 0;
-			// 大小写敏感
-			if (sensitive)
-			{
-				for (; j < subLen; ++j)
-				{
-					if (i + j >= 0 && i + j < len && res[i + j] != pattern[j])
-					{
-						break;
-					}
-				}
-			}
-			// 大小写不敏感,则需要都转换为小写
-			else
-			{
-				for (; j < subLen; ++j)
-				{
-					if (i + j >= 0 && i + j < len && toLower(res[i + j]) != toLower(pattern[j]))
-					{
-						break;
-					}
-				}
-			}
-			if (j == subLen)
-			{
-				posFind = i;
-				break;
-			}
-		}
-		if (returnEndIndex && posFind >= 0)
-		{
-			posFind += subLen;
-		}
-		return posFind;
-	}
-	// returnEndIndex表示返回值是否是字符串结束的下一个字符的下标
-	public static int findFirstSubstr(MyStringBuilder res, string pattern, int startPos = 0, bool returnEndIndex = false, bool sensitive = true)
-	{
-		if (res == null || res.Length < pattern.Length)
-		{
-			return -1;
-		}
-		int posFind = -1;
-		int subLen = pattern.Length;
-		int len = res.Length;
-		for (int i = startPos; i < len; ++i)
-		{
-			if (len - i < subLen)
-			{
-				continue;
-			}
-			int j = 0;
-			// 大小写敏感
-			if (sensitive)
-			{
-				for (; j < subLen; ++j)
-				{
-					if (i + j >= 0 && i + j < len && res[i + j] != pattern[j])
-					{
-						break;
-					}
-				}
-			}
-			// 大小写不敏感,则需要都转换为小写
-			else
-			{
-				for (; j < subLen; ++j)
-				{
-					if (i + j >= 0 && i + j < len && toLower(res[i + j]) != toLower(pattern[j]))
-					{
-						break;
-					}
-				}
-			}
-			if (j == subLen)
-			{
-				posFind = i;
-				break;
-			}
-		}
-		if (returnEndIndex && posFind >= 0)
-		{
-			posFind += subLen;
-		}
-		return posFind;
 	}
 	// 将字符转换为小写字母
 	public static char toLower(char c)

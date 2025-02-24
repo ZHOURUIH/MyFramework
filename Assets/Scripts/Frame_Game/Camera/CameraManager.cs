@@ -22,7 +22,7 @@ public class CameraManager : FrameSystem
 	{
 		base.init();
 		mUGUICamera = createCamera(UI_CAMERA, mLayoutManager.getRootObject());
-		mDefaultCamera = createCamera(MAIN_CAMERA, null);
+		mDefaultCamera = createCamera(MAIN_CAMERA);
 		mMainCamera = mDefaultCamera;
 		// 主动调用主摄像机的激活操作,这样可以确认主摄像机的音频监听组件是生效的
 		activeCamera(mMainCamera, true);
@@ -86,6 +86,16 @@ public class CameraManager : FrameSystem
 		}
 #endif
 		return camera;
+	}
+	public GameCamera createCamera(string name, bool active = true, bool errorIfFailed = true, bool addUICameraStack = true)
+	{
+		// 摄像机节点是否是自己创建的
+		GameObject obj = getRootGameObject(name, errorIfFailed);
+		if (obj == null)
+		{
+			return null;
+		}
+		return createCamera(obj, active, addUICameraStack);
 	}
 	// 查找一个已经存在的摄像机节点,并且创建一个GameCamera对象,如果是用于渲染到纹理的摄像机,则不能添加UI摄像机到显示栈中
 	public GameCamera createCamera(string name, GameObject parent, bool active = true, bool errorIfFailed = true, bool addUICameraStack = true)

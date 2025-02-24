@@ -1,4 +1,4 @@
-﻿using static FrameBase;
+﻿using static FrameBaseHotFix;
 
 public class MainSceneExit : SceneProcedure
 {

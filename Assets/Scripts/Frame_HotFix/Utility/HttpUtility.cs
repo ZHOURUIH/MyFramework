@@ -12,7 +12,7 @@ using static UnityUtility;
 using static FrameUtility;
 using static BinaryUtility;
 using static StringUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // 封装的Http的相关操作,因为其中全是静态工具函数,所以名字为Utility,但是由于需要管理一些线程,所以与普通的工具函数类不同
 public class HttpUtility
@@ -109,7 +109,7 @@ public class HttpUtility
 	// 异步post请求
 	public static void httpPostAsyncWebGL(string url, byte[] data, string contentType, Dictionary<string, string> header, UnityHttpCallback callback)
 	{
-		mGameFramework.StartCoroutine(sendPostRequest(url, data, contentType, header, callback));
+		mGameFrameworkHotFix.StartCoroutine(sendPostRequest(url, data, contentType, header, callback));
 	}
 	// 同步post请求
 	public static string httpPost(string url, out WebExceptionStatus status, out HttpStatusCode code, byte[] data, int dataLength = -1)
@@ -397,7 +397,7 @@ public class HttpUtility
 			status = WebExceptionStatus.UnknownError;
 			logWarning("http post result exception:" + e.Message + ", statusCode:" + statusCode + ", url:" + url);
 		}
-		if (mGameFramework != null && !mGameFramework.isDestroy())
+		if (mGameFrameworkHotFix != null && !mGameFrameworkHotFix.isDestroy())
 		{
 			callback?.Invoke(resStr, status, statusCode);
 		}
@@ -436,7 +436,7 @@ public class HttpUtility
 			status = WebExceptionStatus.UnknownError;
 			logWarning("http post result exception:" + e.Message + ", statusCode:" + statusCode + ", url:" + url);
 		}
-		if (mGameFramework != null && !mGameFramework.isDestroy())
+		if (mGameFrameworkHotFix != null && !mGameFrameworkHotFix.isDestroy())
 		{
 			callback?.Invoke(resStr, status, statusCode);
 		}

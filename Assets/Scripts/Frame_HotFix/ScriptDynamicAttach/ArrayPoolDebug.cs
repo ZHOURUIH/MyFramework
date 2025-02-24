@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using static StringUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // ArrayPool的调试信息
 public class ArrayPoolDebug : MonoBehaviour
@@ -11,7 +11,7 @@ public class ArrayPoolDebug : MonoBehaviour
 	public List<string> UnuseList = new();					// 未使用的列表对象
 	public void Update()
 	{
-		if (mGameFramework == null || !mGameFramework.mParam.mEnableScriptDebug)
+		if (mGameFrameworkHotFix == null || !mGameFrameworkHotFix.mParam.mEnableScriptDebug)
 		{
 			return;
 		}

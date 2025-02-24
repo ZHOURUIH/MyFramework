@@ -2,7 +2,7 @@
 using static UnityUtility;
 using static MathUtility;
 using static CSharpUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameEditorUtility;
 
 // 用来代替普通的float类型,防止内存被修改器修改,由于用到了随机数,所以只能在主线程使用
@@ -54,7 +54,7 @@ public struct SafeFloat : IEquatable<SafeFloat>
 			{
 				logError("校验失败");
 			}
-			mGameFramework.onMemoryModified(5, qgoqjg, qwfb, asgihfasg, khsgh);
+			mGameFrameworkHotFix.onMemoryModified(5, qgoqjg, qwfb, asgihfasg, khsgh);
 		}
 		int value = 0;
 		switch (khsgh)
@@ -75,7 +75,7 @@ public struct SafeFloat : IEquatable<SafeFloat>
 			{
 				logError("校验失败");
 			}
-			mGameFramework.onMemoryModified(6, qgoqjg, qwfb, asgihfasg, khsgh);
+			mGameFrameworkHotFix.onMemoryModified(6, qgoqjg, qwfb, asgihfasg, khsgh);
 		}
 		return curValue;
 	}

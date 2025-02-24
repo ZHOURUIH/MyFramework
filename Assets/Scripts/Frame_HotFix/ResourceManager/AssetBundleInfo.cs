@@ -3,7 +3,7 @@ using UnityEngine;
 using UObject = UnityEngine.Object;
 using static UnityUtility;
 using static FrameUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameDefine;
 using static CSharpUtility;
 using static FrameEditorUtility;
@@ -19,7 +19,7 @@ public class AssetBundleInfo : ClassObject
 	protected List<AssetBundleBytesCallback> mDownloadCallback = new(); // 资源包下载完毕后的回调列表
 	protected HashSet<AssetInfo> mLoadAsyncList = new();				// AssetBundle还未加载完时请求的异步加载的资源列表
 	protected AssetBundle mAssetBundle;									// 资源包内存镜像
-	protected LOAD_STATE mLoadState = LOAD_STATE.UNLOAD;				// 资源包加载状态
+	protected LOAD_STATE mLoadState = LOAD_STATE.NONE;				// 资源包加载状态
 	protected string mBundleFileName;									// 资源所在的AssetBundle名,相对于StreamingAsset,含后缀
 	protected string mBundleName;										// 资源所在的AssetBundle名,相对于StreamingAsset,不含后缀
 	protected float mWillUnloadTime = -1.0f;							// 引用计数变为0时的计时,小于0表示还有引用,不会被卸载,大于等于0表示计数为0,即将在一定时间后卸载
@@ -40,7 +40,7 @@ public class AssetBundleInfo : ClassObject
 		mDownloadCallback.Clear();
 		mLoadAsyncList.Clear();
 		mAssetBundle = null;
-		mLoadState = LOAD_STATE.UNLOAD;
+		mLoadState = LOAD_STATE.NONE;
 		// mBundleName,mBundleFileName不重置
 		// mBundleFileName = null;
 		// mBundleName = null;
@@ -76,7 +76,7 @@ public class AssetBundleInfo : ClassObject
 		{
 			item.clear();
 		}
-		mLoadState = LOAD_STATE.UNLOAD;
+		mLoadState = LOAD_STATE.NONE;
 		// 通知依赖项,自己被卸载了
 		foreach (AssetBundleInfo item in mParents.Values)
 		{
@@ -109,16 +109,14 @@ public class AssetBundleInfo : ClassObject
 		}
 		return true;
 	}
-	public Dictionary<string, AssetBundleInfo> getParents() { return mParents; }
-	public Dictionary<string, AssetBundleInfo> getChildren() { return mChildren; }
-	public Dictionary<string, AssetInfo> getAssetList() { return mAssetList; }
-	public string getBundleName() { return mBundleName; }
-	public string getBundleFileName() { return mBundleFileName; }
-	public LOAD_STATE getLoadState() { return mLoadState; }
-	public void setLoadState(LOAD_STATE state) { mLoadState = state; }
-	public UObject[] loadAssetWithSubAssets(string name) { return mAssetBundle.LoadAssetWithSubAssets(name); }
-	public UObject[] loadAll() { return mAssetBundle.LoadAllAssets(); }
-	public AssetBundleRequest loadAssetWithSubAssetsAsync(string name) { return mAssetBundle.LoadAssetWithSubAssetsAsync(name); }
+	public Dictionary<string, AssetBundleInfo> getParents()		{ return mParents; }
+	public Dictionary<string, AssetBundleInfo> getChildren()	{ return mChildren; }
+	public Dictionary<string, AssetInfo> getAssetList()			{ return mAssetList; }
+	public string getBundleName()								{ return mBundleName; }
+	public string getBundleFileName()							{ return mBundleFileName; }
+	public LOAD_STATE getLoadState()							{ return mLoadState; }
+	public AssetBundle getAssetBundle()							{ return mAssetBundle; }
+	public void setLoadState(LOAD_STATE state)					{ mLoadState = state; }
 	public void addAssetName(string fileNameWithSuffix)
 	{
 		if (mAssetList.ContainsKey(fileNameWithSuffix))
@@ -187,7 +185,7 @@ public class AssetBundleInfo : ClassObject
 		{
 			return;
 		}
-		if (mLoadState != LOAD_STATE.UNLOAD)
+		if (mLoadState != LOAD_STATE.NONE)
 		{
 			logError("资源包正在异步加载,无法开始同步加载." + mBundleFileName);
 			return;
@@ -220,7 +218,7 @@ public class AssetBundleInfo : ClassObject
 		{
 			item.checkAssetBundleDependenceLoaded();
 		}
-		if (mLoadState == LOAD_STATE.UNLOAD)
+		if (mLoadState == LOAD_STATE.NONE)
 		{
 			loadAssetBundle();
 		}
@@ -238,7 +236,7 @@ public class AssetBundleInfo : ClassObject
 		// 还未加载完成时,则加入等待列表
 		mLoadCallback.addNotNull(callback);
 		// 如果还未开始加载,则加载资源包
-		if (mLoadState == LOAD_STATE.UNLOAD)
+		if (mLoadState == LOAD_STATE.NONE)
 		{
 			// 先确保所有依赖项已经加载
 			loadParentAsync();
@@ -285,6 +283,25 @@ public class AssetBundleInfo : ClassObject
 		}
 		return objs;
 	}
+	// 同步加载所有子集
+	public void loadAllSubAssets()
+	{
+		foreach (AssetInfo assetInfo in mAssetList.Values)
+		{
+			// 确认是否正常加载完成,如果当前资源包已经卸载,则无法完成加载资源
+			if (mLoadState != LOAD_STATE.NONE)
+			{
+				assetInfo.loadAsset();
+				UObject asset = assetInfo.getAsset();
+				if (asset != null)
+				{
+					mObjectToAsset.TryAdd(asset, assetInfo);
+					mResourceManager.getAssetBundleLoader().notifyAssetLoaded(asset, this);
+				}
+			}
+			assetInfo.callbackAll();
+		}
+	}
 	// 异步加载资源
 	public CustomAsyncOperation loadAssetAsync(string fileNameWithSuffix, AssetLoadDoneCallback callback, string loadPath)
 	{
@@ -294,9 +311,25 @@ public class AssetBundleInfo : ClassObject
 		info.addCallback((UObject asset, UObject[] assets, byte[] bytes, string loadPath) =>
 		{
 			callback?.Invoke(asset, assets, bytes, loadPath);
-			op.mFinish = true;
+			op.setFinish();
 		}, loadPath);
-		loadAssetAsyncInternal(fileNameWithSuffix);
+
+		// 如果资源包已经加载,则可以直接异步加载资源
+		if (mLoadState == LOAD_STATE.LOADED)
+		{
+			info.loadAssetAsync();
+		}
+		// 如果当前资源包还未加载完毕,则需要等待资源包加载完以后才能加载资源
+		else
+		{
+			// AssetBundle未加载完成时,记录下需要异步加载的资源名,等待AssetBundle加载完毕后再加载Asset
+			mLoadAsyncList.Add(info);
+			// 还没有开始加载则开始加载AssetBundle
+			if (mLoadState == LOAD_STATE.NONE)
+			{
+				loadAssetBundleAsync(null);
+			}
+		}
 		return op;
 	}
 	// 资源异步加载完成
@@ -304,7 +337,7 @@ public class AssetBundleInfo : ClassObject
 	{
 		AssetInfo assetInfo = mAssetList.get(fileNameWithSuffix);
 		// 确认是否正常加载完成,如果当前资源包已经卸载,则无法完成加载资源
-		if (mLoadState != LOAD_STATE.UNLOAD)
+		if (mLoadState != LOAD_STATE.NONE)
 		{
 			assetInfo.setSubAssets(assets);
 			UObject asset = assetInfo.getAsset();
@@ -320,13 +353,13 @@ public class AssetBundleInfo : ClassObject
 	public void notifyAssetBundleAsyncLoaded(AssetBundle assetBundle)
 	{
 		mAssetBundle = assetBundle;
-		if (mLoadState != LOAD_STATE.UNLOAD)
+		if (mLoadState != LOAD_STATE.NONE)
 		{
 			mLoadState = LOAD_STATE.LOADED;
 			// 异步加载请求的资源
 			foreach (AssetInfo item in mLoadAsyncList)
 			{
-				loadAssetAsyncInternal(item.getAssetName());
+				mAssetList.get(item.getAssetName()).loadAssetAsync();
 			}
 		}
 		// 加载状态为已卸载,表示在异步加载过程中,资源包被卸载掉了
@@ -356,26 +389,6 @@ public class AssetBundleInfo : ClassObject
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected void loadAssetAsyncInternal(string fileNameWithSuffix)
-	{
-		AssetInfo info = mAssetList.get(fileNameWithSuffix);
-		// 如果资源包已经加载,则可以直接异步加载资源
-		if (mLoadState == LOAD_STATE.LOADED)
-		{
-			info.loadAssetAsync();
-		}
-		// 如果当前资源包还未加载完毕,则需要等待资源包加载完以后才能加载资源
-		else
-		{
-			// AssetBundle未加载完成时,记录下需要异步加载的资源名,等待AssetBundle加载完毕后再加载Asset
-			mLoadAsyncList.Add(info);
-			// 还没有开始加载则开始加载AssetBundle
-			if (mLoadState == LOAD_STATE.UNLOAD)
-			{
-				loadAssetBundleAsync(null);
-			}
-		}
-	}
 	// 尝试卸载AssetBundle,卸载需要满足两个条件
 	// 当前AssetBundle内的所有资源已经没有正在使用
 	// 已经没有其他的正在使用的AssetBundle引用了自己
@@ -388,7 +401,7 @@ public class AssetBundleInfo : ClassObject
 		// 如果资源包的资源已经没有在使用中,则卸载当前资源包
 		foreach (AssetInfo item in mAssetList.Values)
 		{
-			if (item.getLoadState() != LOAD_STATE.UNLOAD)
+			if (item.getLoadState() != LOAD_STATE.NONE)
 			{
 				return false;
 			}
@@ -397,7 +410,7 @@ public class AssetBundleInfo : ClassObject
 		// 当前已经没有正在使用的AssetBundle引用了自己时才可以卸载
 		foreach (AssetBundleInfo item in mChildren.Values)
 		{
-			if (item.getLoadState() != LOAD_STATE.UNLOAD)
+			if (item.getLoadState() != LOAD_STATE.NONE)
 			{
 				return false;
 			}

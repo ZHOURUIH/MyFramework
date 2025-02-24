@@ -11,7 +11,7 @@ public class AudioInfo : ClassObject
 	{
 		base.resetProperty();
 		mClip = null;
-		mState = LOAD_STATE.UNLOAD;
+		mState = LOAD_STATE.NONE;
 		mAudioName = null;
 		mIsLocal = false;
 	}

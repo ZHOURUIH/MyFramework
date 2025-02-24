@@ -10,16 +10,16 @@ public class ShaderManager : FrameSystem
 	public override void init()
 	{
 		base.init();
-		registeSingleShader("NGUIDefault");
-		registeSingleShader("UGUIDefault");
-		registeSingleShader("UGUIVideo");
-		registeSingleShader("BlurMaskDownSample");
-		registeSingleShader("EdgeAlpha");
-		registeSingleShader("Feather");
-		registeSingleShader("LinearDodge");
-		registeSingleShader("Multiple");
-		registeSingleShader("SnapPixel");
-		registeSingleShader("UGUIOpaque");
+		registeSingleShader("Frame/NGUIDefault");
+		registeSingleShader("Frame/UGUIDefault");
+		registeSingleShader("Frame/UGUIVideo");
+		registeSingleShader("Frame/BlurMaskDownSample");
+		registeSingleShader("Frame/EdgeAlpha");
+		registeSingleShader("Frame/Feather");
+		registeSingleShader("Frame/LinearDodge");
+		registeSingleShader("Frame/Multiple");
+		registeSingleShader("Frame/SnapPixel");
+		registeSingleShader("Frame/UGUIOpaque");
 	}
 	public override void destroy()
 	{
@@ -40,12 +40,6 @@ public class ShaderManager : FrameSystem
 		}
 		return mShaderList.add(name, shader);
 	}
-	public bool isSingleShader(string shaderName)
-	{
-		return mSingleShaderList.Contains(shaderName);
-	}
-	public void registeSingleShader(string shaderName)
-	{
-		mSingleShaderList.addUnique(shaderName);
-	}
+	public bool isSingleShader(string shaderName) { return mSingleShaderList.Contains(shaderName); }
+	public void registeSingleShader(string shaderName) { mSingleShaderList.addUnique(shaderName); }
 }

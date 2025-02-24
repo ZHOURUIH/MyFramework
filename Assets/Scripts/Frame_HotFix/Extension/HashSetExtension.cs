@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+﻿using System.Collections.Generic;
 using static System.Linq.Enumerable;
-using static FrameUtility;
-using static UnityUtility;
 
 public static class HashSetExtension
 {
@@ -74,6 +70,17 @@ public static class HashSetExtension
 		{
 			return item;
 		}
-		return (T)default;
+		return default;
+	}
+	public static T popFirst<T>(this HashSet<T> list)
+	{
+		T elem = default;
+		foreach (T item in list)
+		{
+			elem = item;
+			break;
+		}
+		list.Remove(elem);
+		return elem;
 	}
 }

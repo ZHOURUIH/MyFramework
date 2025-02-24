@@ -1,4 +1,4 @@
-﻿using static FrameBase;
+﻿using static FrameBaseHotFix;
 
 // 设置布局绝对的渲染顺序
 public class CmdLayoutManagerRenderOrder

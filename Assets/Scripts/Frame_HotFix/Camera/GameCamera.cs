@@ -67,6 +67,12 @@ public class GameCamera : MovableObject
 		float radianFovX = atan(getAspect() * tan(getFOVY(true) * 0.5f)) * 2.0f;
 		return radian ? radianFovX : toDegree(radianFovX);
 	}
+	// 计算透视投影下显示的宽高,与屏幕大小无关,只是指定距离下视锥体的截面宽高
+	public Vector2 getViewSize(float distance)
+	{
+		float viewHeight = tan(getFOVY(true) * 0.5f) * abs(distance) * 2.0f;
+		return new(viewHeight * getAspect(), viewHeight);
+	}
 	// radian为true表示输入的fovy是弧度制的值,false表示角度制的值
 	public void setFOVY(float fovy, bool radian = false)
 	{

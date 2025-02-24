@@ -138,11 +138,11 @@ public class LocalizationManager : FrameSystem
 		{
 			localization.mImageNameWithoutSuffix = null;
 		}
-		if (endWith(chineseSpriteName, "_" + LANGUAGE_CHINESE))
+		if (chineseSpriteName.endWith("_" + LANGUAGE_CHINESE))
 		{
 			logError("多语言图片名需要以_" + LANGUAGE_CHINESE + "结尾");
 		}
-		removeEndString(ref chineseSpriteName, LANGUAGE_CHINESE);
+		chineseSpriteName = chineseSpriteName.removeEndString(LANGUAGE_CHINESE);
 		localization.mImageNameWithoutSuffix = chineseSpriteName;
 		localization.mObject.setSpriteName(localization.mImageNameWithoutSuffix + mCurrentLanguage);
 	}

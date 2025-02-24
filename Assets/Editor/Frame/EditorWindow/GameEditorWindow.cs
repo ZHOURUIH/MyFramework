@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using static UnityUtility;
-using static StringUtility;
 
 public class GameEditorWindow : EditorWindow
 {
@@ -29,7 +28,7 @@ public class GameEditorWindow : EditorWindow
 		{
 			values[i] = i;
 			// 携带斜杠会导致下拉列表无法显示出双斜杠后面的文字,所以需要去除斜杠
-			labels[i] = new(removeAll(options[i], "/"));
+			labels[i] = new(options[i].removeAll('/'));
 		}
 		int retValue = EditorGUILayout.IntPopup(new GUIContent(display, tip), selection, labels, values);
 		bool modified = retValue != selection;

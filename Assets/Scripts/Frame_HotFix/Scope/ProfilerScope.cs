@@ -11,24 +11,32 @@ public struct ProfilerScope : IDisposable
 	private bool mBeginSample;
 	public ProfilerScope(string name)
 	{
-		mBeginSample = true;
 		if (isEditor() || isDevelopment())
 		{
+			mBeginSample = true;
 			Profiler.BeginSample(name);
+		}
+		else
+		{
+			mBeginSample = false;
 		}
 	}
 	// id固定填0即可,用于避免直接调用默认构造
 	public ProfilerScope(int id, [CallerMemberName] string callerName = null, [CallerLineNumber] int line = 0, [CallerFilePath] string file = null)
 	{
-		mBeginSample = true;
 		if (isEditor() || isDevelopment())
 		{
+			mBeginSample = true;
 			Profiler.BeginSample(callerName + "," + getFileNameNoSuffixNoDir(file) + ":" + IToS(line));
+		}
+		else
+		{
+			mBeginSample = false;
 		}
 	}
 	public void Dispose()
 	{
-		if (isEditor() || isDevelopment() && mBeginSample)
+		if (mBeginSample)
 		{
 			Profiler.EndSample();
 		}

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 [Serializable]
 public class PrefabPoolDebugInfo
@@ -19,7 +19,7 @@ public class ObjectPoolDebug : MonoBehaviour
 	public List<PrefabPoolDebugInfo> mPrefabPoolInfo = new();	// 预设列表
 	private void Update()
 	{
-		if (mGameFramework == null || !mGameFramework.mParam.mEnableScriptDebug || mPrefabPoolManager == null)
+		if (mGameFrameworkHotFix == null || !mGameFrameworkHotFix.mParam.mEnableScriptDebug || mPrefabPoolManager == null)
 		{
 			return;
 		}

@@ -2,7 +2,7 @@
 using static UnityUtility;
 using static MathUtility;
 using static CSharpUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameEditorUtility;
 
 // 用来代替普通的int类型,防止内存被修改器修改,由于用到了随机数,所以只能在主线程使用
@@ -54,7 +54,7 @@ public struct SafeInt : IEquatable<SafeInt>
 			{
 				logError("校验失败");
 			}
-			mGameFramework.onMemoryModified(3, wghwe, woghjwe, gikoweg, gikowjeg);
+			mGameFrameworkHotFix.onMemoryModified(3, wghwe, woghjwe, gikoweg, gikowjeg);
 		}
 		int value = 0;
 		switch (wghwe)
@@ -75,7 +75,7 @@ public struct SafeInt : IEquatable<SafeInt>
 			{
 				logError("校验失败");
 			}
-			mGameFramework.onMemoryModified(4, wghwe, woghjwe, gikoweg, gikowjeg);
+			mGameFrameworkHotFix.onMemoryModified(4, wghwe, woghjwe, gikoweg, gikowjeg);
 		}
 		return curValue;
 	}

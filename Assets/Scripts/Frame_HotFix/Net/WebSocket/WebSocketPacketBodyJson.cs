@@ -1,5 +1,8 @@
-﻿
+﻿using System;
+
 // 传输的外层数据结构
+
+[Serializable]
 public class WebSocketPacketBodyJson
 {
 	public string message_type;

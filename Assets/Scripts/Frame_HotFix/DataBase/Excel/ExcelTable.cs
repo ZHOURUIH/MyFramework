@@ -3,7 +3,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using static UnityUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FileUtility;
 using static CSharpUtility;
 using static BinaryUtility;
@@ -21,7 +21,7 @@ public class ExcelTable
 	protected bool mResourceAvailable;						// 资源文件是否已经可以使用,加载前需要确保资源更新完毕,而不是读取到旧资源
 	public string getTableName() { return mTableName; }
 	public void setTableName(string name) { mTableName = name; }
-	public void setClassType(Type type) { mDataType = type; }
+	public void setDataType(Type type) { mDataType = type; }
 	public void setResourceAvailable(bool available) { mResourceAvailable = available; }
 	public bool isFileOpened() { return mDataMap.Count > 0 || mTableFileData != null || mTableFileBytes != null; }
 	public virtual void checkAllData() { }
@@ -176,7 +176,7 @@ public class ExcelTable
 	// 解密
 	protected void decodeFile(byte[] fileBuffer)
 	{
-		string key = generateFileMD5(stringToBytes("AAAA" + mTableName)).ToUpper() + "123456789";
+		string key = generateFileMD5(stringToBytes("ASLD" + mTableName)).ToUpper() + "23y35y983";
 		int keyIndex = 0;
 		int fileLength = fileBuffer.Length;
 		for (int i = 0; i < fileLength; ++i)

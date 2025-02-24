@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static CSharpUtility;
 using static StringUtility;
 
@@ -10,19 +10,19 @@ public struct ListScope<T> : IDisposable
 	private List<T> mList;       // 分配的对象
 	public ListScope(out List<T> list)
 	{
-		if (mGameFramework == null || mListPool == null)
+		if (mGameFrameworkHotFix == null || mListPool == null)
 		{
 			list = new();
 			mList = null;
 			return;
 		}
-		string stackTrace = mGameFramework.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
+		string stackTrace = mGameFrameworkHotFix.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
 		list = mListPool.newList(typeof(T), typeof(List<T>), stackTrace, true) as List<T>;
 		mList = list;
 	}
 	public void Dispose()
 	{
-		if (mGameFramework == null || mListPool == null)
+		if (mGameFrameworkHotFix == null || mListPool == null)
 		{
 			return;
 		}

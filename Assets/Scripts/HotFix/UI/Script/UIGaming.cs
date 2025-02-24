@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using static StringUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 public class UIGaming : LayoutScript
 {

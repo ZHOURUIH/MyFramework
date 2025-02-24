@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using static UnityUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 public class WindowObjectBase : ILocalizationCollection
 {

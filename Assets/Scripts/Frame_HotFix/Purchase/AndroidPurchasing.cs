@@ -5,6 +5,7 @@ using static FrameEditorUtility;
 
 public class AndroidPurchasing : FrameSystem
 {
+#if USE_PURCHASING
 	protected AndroidJavaObject mGooglePlayBilling;
 	protected AndroidPurchaseNotification mNotification;
 	protected Dictionary<string, ProductInfo> mAllInfo;
@@ -72,4 +73,5 @@ public class AndroidPurchasing : FrameSystem
 		}
 		return mAllInfo;
 	}
+#endif
 }

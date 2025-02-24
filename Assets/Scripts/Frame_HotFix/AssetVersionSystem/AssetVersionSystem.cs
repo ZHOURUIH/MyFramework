@@ -8,7 +8,7 @@ using static FileUtility;
 using static StringUtility;
 using static BinaryUtility;
 using static FrameUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameDefineBase;
 using static FrameEditorUtility;
 

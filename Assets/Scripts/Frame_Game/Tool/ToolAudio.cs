@@ -96,7 +96,7 @@ public class AT
 				helper.mRemainTime = mAudioManager.getAudioLength(soundName);
 				if (MathUtility.isFloatZero(helper.mRemainTime))
 				{
-					logWarning("webgl中需要提前加载音频,才能设置为非循环播放,");
+					logWarning("webgl中需要提前加载音频,才能设置为非循环播放,name:" + soundName);
 				}
 			}
 		}

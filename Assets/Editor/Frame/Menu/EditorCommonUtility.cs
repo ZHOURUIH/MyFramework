@@ -91,7 +91,7 @@ public class EditorCommonUtility
 	public static int searchFiles(string pattern, string guid, string fileName, bool loadFile, Dictionary<string, UObject> refrenceList, Dictionary<string, List<FileGUIDLines>> allFileText, bool checkUnuseOnly)
 	{
 		generateNextIndex(guid, out int[] guidNextIndex);
-		rightToLeft(ref fileName);
+		fileName = fileName.rightToLeft();
 		string metaSuffix = ".meta";
 		if (pattern == "*.*")
 		{
@@ -103,7 +103,7 @@ public class EditorCommonUtility
 		}
 		foreach (var item in allFileText)
 		{
-			if (!endWith(item.Key, pattern, false))
+			if (!item.Key.endWith(pattern, false))
 			{
 				continue;
 			}
@@ -113,7 +113,7 @@ public class EditorCommonUtility
 				// 简单过滤一下meta文件的判断,因为meta文件的文件名最后一个字符肯定是a
 				if (curFile[^1] == 'a')
 				{
-					removeEndString(ref curFile, metaSuffix);
+					curFile = curFile.removeEndString(metaSuffix);
 				}
 				foreach (string line in fileGUIDLines.mContainGUIDLines)
 				{
@@ -135,7 +135,7 @@ public class EditorCommonUtility
 			}
 
 			// 在非文本文件中查找是否有引用
-			if (endWith(pattern, ".asset"))
+			if (pattern.endWith(".asset"))
 			{
 				foreach (FileGUIDLines fileGUIDLines in item.Value)
 				{
@@ -200,7 +200,7 @@ public class EditorCommonUtility
 		generateNextIndex(texturePropertyKey, out int[] texturePropertyNextIndex);
 		for (int i = 0; i < lines.Length; ++i)
 		{
-			lines[i] = removeAllEmpty(lines[i]);
+			lines[i] = lines[i].removeAllEmpty();
 			string line = lines[i];
 			// 找到Properties
 			if (line == "Properties")
@@ -237,7 +237,7 @@ public class EditorCommonUtility
 		openTxtFileLines(projectPathToFullPath(path), out string[] materialLines);
 		for (int i = 0; i < materialLines.Length; ++i)
 		{
-			materialLines[i] = removeAll(materialLines[i], ' ');
+			materialLines[i] = materialLines[i].removeAll(' ');
 		}
 		bool startTexture = false;
 		string textureStr = "m_Texture";
@@ -255,13 +255,13 @@ public class EditorCommonUtility
 					string key = "guid:";
 					int startIndex = line.IndexOf(key) + key.Length;
 					string shaderGUID = line.rangeToFirst(startIndex, ',');
-					if (shaderGUID.isEmpty() || 
-						endWith(shaderGUID, "000000") ||
+					if (shaderGUID.isEmpty() ||
+						shaderGUID.endWith("000000") ||
 						!allFileMeta.TryGetValue(shaderGUID, out string shaderFile))
 					{
 						return;
 					}
-					shaderContent = openTxtFile(removeEndString(shaderFile, ".meta"), true);
+					shaderContent = openTxtFile(shaderFile.removeEndString(".meta"), true);
 					if (shaderContent.isEmpty())
 					{
 						return;
@@ -277,7 +277,7 @@ public class EditorCommonUtility
 			// 找到属性名
 			if (line[0] == '-')
 			{
-				if (!checkTextureInShader(removeAll(line, ' ').removeStartCount(1), shaderContent))
+				if (!checkTextureInShader(line.removeAll(' ').removeStartCount(1), shaderContent))
 				{
 					// 过滤材质没使用的贴图属性
 					continue;
@@ -299,7 +299,7 @@ public class EditorCommonUtility
 				}
 			}
 			// 贴图属性查找结束
-			if (startWith(line, "m_Floats:") || startWith(line, "m_Colors:") || startWith(line, "m_Ints:"))
+			if (line.startWith("m_Floats:") || line.startWith("m_Colors:") || line.startWith("m_Ints:"))
 			{
 				break;
 			}
@@ -313,7 +313,7 @@ public class EditorCommonUtility
 		// 找到shader的guid
 		foreach (string item in materialLines)
 		{
-			string line = removeAll(item, ' ');
+			string line = item.removeAll(' ');
 			if (line.StartsWith("m_Shader:"))
 			{
 				string key = "guid:";
@@ -326,7 +326,7 @@ public class EditorCommonUtility
 		{
 			return;
 		}
-		if (endWith(shaderGUID, "000000"))
+		if (shaderGUID.endWith("000000"))
 		{
 			Debug.LogError("材质使用了内置shader,无法找到shader文件", loadAsset(path));
 			return;
@@ -337,7 +337,7 @@ public class EditorCommonUtility
 			Debug.LogWarning("can not find material shader:" + path, loadAsset(path));
 			return;
 		}
-		string shaderContent = openTxtFile(removeEndString(shaderFile, ".meta"), true);
+		string shaderContent = openTxtFile(shaderFile.removeEndString(".meta"), true);
 		if (shaderContent.isEmpty())
 		{
 			return;
@@ -348,7 +348,7 @@ public class EditorCommonUtility
 		bool startTexture = false;
 		foreach (string item in materialLines)
 		{
-			string line = removeAll(item, ' ');
+			string line = item.removeAll(' ');
 			if (!startTexture)
 			{
 				// 开始查找贴图属性
@@ -399,7 +399,7 @@ public class EditorCommonUtility
 		bool spriteStart = false;
 		foreach (string item in openTxtFileLines(projectPathToFullPath(path + ".meta")))
 		{
-			string line = removeAll(item, ' ');
+			string line = item.removeAll(' ');
 			if (line == "fileIDToRecycleName:")
 			{
 				spriteStart = true;
@@ -486,11 +486,11 @@ public class EditorCommonUtility
 				}
 			}
 		}
-		bool isShader = endWith(path, ".shader", false) || endWith(path, ".shadergraph", false);
-		bool isSubShader = endWith(path, ".shadersubgraph", false);
-		bool isAnimClip = endWith(path, ".anim", false);
-		bool isAnimator = endWith(path, ".controller", false) || endWith(path, ".overrideController", false);
-		bool isModel = endWith(path, ".fbx", false);
+		bool isShader = path.endWith(".shader", false) || path.endWith(".shadergraph", false);
+		bool isSubShader = path.endWith(".shadersubgraph", false);
+		bool isAnimClip = path.endWith(".anim", false);
+		bool isAnimator = path.endWith(".controller", false) || path.endWith(".overrideController", false);
+		bool isModel = path.endWith(".fbx", false);
 		foreach (string item in guidList)
 		{
 			// 只有贴图和shader才会从材质中查找引用
@@ -567,7 +567,7 @@ public class EditorCommonUtility
 		{
 			if (allMetaList.TryGetValue(guid, out string otherPath))
 			{
-				otherPath = removeEndString(otherPath, ".meta");
+				otherPath = otherPath.removeEndString(".meta");
 				refrenceList.Add(otherPath, loadFile ? loadAsset(otherPath) : null);
 			}
 		}
@@ -646,13 +646,13 @@ public class EditorCommonUtility
 	}
 	public static bool isTextureSuffix(string suffixWithDot)
 	{
-		return endWith(suffixWithDot, ".png", false) ||
-			   endWith(suffixWithDot, ".tga", false) ||
-			   endWith(suffixWithDot, ".jpg", false) ||
-			   endWith(suffixWithDot, ".cubemap", false) ||
-			   endWith(suffixWithDot, ".exr", false) ||
-			   endWith(suffixWithDot, ".psd", false) ||
-			   endWith(suffixWithDot, ".tif", false);
+		return suffixWithDot.endWith(".png", false) ||
+			   suffixWithDot.endWith(".tga", false) ||
+			   suffixWithDot.endWith(".jpg", false) ||
+			   suffixWithDot.endWith(".cubemap", false) ||
+			   suffixWithDot.endWith(".exr", false) ||
+			   suffixWithDot.endWith(".psd", false) ||
+			   suffixWithDot.endWith(".tif", false);
 	}
 	public static Dictionary<string, List<FileGUIDLines>> getAllFileText(string path, string[] patterns = null)
 	{
@@ -668,7 +668,7 @@ public class EditorCommonUtility
 	}
 	public static FileGUIDLines getGUIDsInFile(string path)
 	{
-		string suffixNoMeta = removeEndString(getFileSuffix(path), ".meta");
+		string suffixNoMeta = getFileSuffix(path).removeEndString(".meta");
 		// 图片的meta中不会有任何文件的引用
 		if (isTextureSuffix(suffixNoMeta))
 		{
@@ -681,10 +681,10 @@ public class EditorCommonUtility
 			list.addNotEmpty(getGUIDString(lineItem));
 		}
 		FileGUIDLines fileGUIDLines = new();
-		string fileName = fullPathToProjectPath(rightToLeft(path));
+		string fileName = fullPathToProjectPath(path.rightToLeft());
 		fileGUIDLines.mProjectFileName = fileName;
 		fileGUIDLines.mContainGUIDLines = list;
-		if (endWith(path, ".asset"))
+		if (path.endWith(".asset"))
 		{
 			// TerrainData不是文本格式的,所以只能加载为对象来访问
 			fileGUIDLines.mObject = loadAsset(fileName) as TerrainData;
@@ -705,7 +705,7 @@ public class EditorCommonUtility
 			{
 				if (line.Contains("guid: "))
 				{
-					allGUIDDic.Add(removeStartString(line, "guid: "), file);
+					allGUIDDic.Add(line.removeStartString("guid: "), file);
 					break;
 				}
 			}
@@ -727,9 +727,10 @@ public class EditorCommonUtility
 			openTxtFileLines(file, out string[] lines);
 			for (int j = 0; j < lines.Length - 1; ++j)
 			{
-				if (lines[j].Contains("guid: "))
+				string line = lines[j];
+				if (line.Contains("guid: "))
 				{
-					allGUIDDic.Add(removeStartString(lines[j], "guid: "), file);
+					allGUIDDic.Add(line.removeStartString("guid: "), file);
 					// 如果.meat文件中guid的下一行为"TextureImporter:"说明这个.meta文件为图集类型的.meta文件
 					if (lines[j + 1].Contains(spritesArrMark))
 					{
@@ -737,10 +738,10 @@ public class EditorCommonUtility
 					}
 					break;
 				}
-				if (hasGUID(lines[j]) && lines[j].Contains("spriteID: "))
+				if (hasGUID(line) && line.Contains("spriteID: "))
 				{
-					int startIndex = findFirstSubstr(lines[j], "spriteID: ", 0, true);
-					allGUIDDic.TryAdd(lines[j].removeStartCount(startIndex), file);
+					int startIndex = line.findFirstSubstr("spriteID: ", 0, true);
+					allGUIDDic.TryAdd(line.removeStartCount(startIndex), file);
 				}
 			}
 		}
@@ -765,12 +766,12 @@ public class EditorCommonUtility
 			{
 				if (hasGUID(lineItem) && lineItem.Contains("m_Script:"))
 				{
-					int startIndex = findFirstSubstr(lineItem, "guid: ", 0, true);
-					int endIndex = findFirstSubstr(lineItem, ", ", startIndex);
+					int startIndex = lineItem.findFirstSubstr("guid: ", 0, true);
+					int endIndex = lineItem.findFirstSubstr(", ", startIndex);
 					list.Add(lineItem.range(startIndex, endIndex));
 				}
 			}
-			fileGUIDLines.mProjectFileName = fullPathToProjectPath(rightToLeft(item));
+			fileGUIDLines.mProjectFileName = fullPathToProjectPath(item.rightToLeft());
 			fileGUIDLines.mContainGUIDLines = list;
 			allFileText.Add(item, fileGUIDLines);
 		}
@@ -794,8 +795,8 @@ public class EditorCommonUtility
 			{
 				continue;
 			}
-			int subStartIndex = findFirstSubstr(line, "guid: ", 0, true);
-			int subEndIndex = findFirstSubstr(line, ", ", subStartIndex);
+			int subStartIndex = line.findFirstSubstr("guid: ", 0, true);
+			int subEndIndex = line.findFirstSubstr(", ", subStartIndex);
 			splitStr += "-" + line.range(subStartIndex, subEndIndex);
 		}
 		return splitStr;
@@ -822,7 +823,7 @@ public class EditorCommonUtility
 					list.Add(getGUIDSplitStr(lines, i));
 				}
 			}
-			fileGUIDLines.mProjectFileName = fullPathToProjectPath(rightToLeft(item));
+			fileGUIDLines.mProjectFileName = fullPathToProjectPath(item.rightToLeft());
 			fileGUIDLines.mContainGUIDLines = list;
 			allFileText.Add(item, fileGUIDLines);
 		}
@@ -846,11 +847,11 @@ public class EditorCommonUtility
 			{
 				if (hasGUID(lineItem) && lineItem.Contains("guid: "))
 				{
-					list.Add(lineItem.rangeToFirst(findFirstSubstr(lineItem, "guid: ", 0, true), ','));
+					list.Add(lineItem.rangeToFirst(lineItem.findFirstSubstr("guid: ", 0, true), ','));
 				}
 			}
 			FileGUIDLines fileGUIDLines = new();
-			fileGUIDLines.mProjectFileName = rightToLeft(item);
+			fileGUIDLines.mProjectFileName = item.rightToLeft();
 			fileGUIDLines.mContainGUIDLines = list;
 			allFileText.Add(item, fileGUIDLines);
 		}
@@ -1067,10 +1068,10 @@ public class EditorCommonUtility
 		}
 
 		// 从后往前把所有的空格和制表符移除
-		codeLine = removeEndEmpty(codeLine);
+		codeLine = codeLine.removeEndEmpty();
 
 		// 移除模板参数
-		codeLine = removeFirstBetweenPairChars(codeLine, '<', '>', out _, out _);
+		codeLine = codeLine.removeFirstBetweenPairChars('<', '>', out _, out _);
 
 		// 先根据空格分割字符串
 		string[] elements = split(codeLine, ' ', '\t');
@@ -1131,11 +1132,11 @@ public class EditorCommonUtility
 		int startIndex;
 		if (!isClassLine(codeLine))
 		{
-			startIndex = findFirstSubstr(codeLine, " struct ", 0, true);
+			startIndex = codeLine.findFirstSubstr(" struct ", 0, true);
 		}
 		else
 		{
-			startIndex = findFirstSubstr(codeLine, " class ", 0, true);
+			startIndex = codeLine.findFirstSubstr(" class ", 0, true);
 		}
 		if (startIndex < 0)
 		{
@@ -1190,9 +1191,9 @@ public class EditorCommonUtility
 		for (int i = 0; i < lines.Length; ++i)
 		{
 			// 如果是文件流,网址行,移除干扰字符串
-			lines[i] = lines[i].removeStartCount(findFirstSubstr(lines[i], "://", 0, true));
+			lines[i] = lines[i].removeStartCount(lines[i].findFirstSubstr("://", 0, true));
 			// 注释下标
-			int noteIndex = findFirstSubstr(lines[i], "//", 0, true);
+			int noteIndex = lines[i].findFirstSubstr("//", 0, true);
 			if (noteIndex < 0)
 			{
 				continue;
@@ -1209,7 +1210,7 @@ public class EditorCommonUtility
 				continue;
 			}
 			// 移除所有空格和制表符
-			noteStr = removeAllEmpty(noteStr);
+			noteStr = noteStr.removeAllEmpty();
 			if (noteStr.Length == 0)
 			{
 				Debug.LogError("注释后没有内容, 应当移除注释" + addFileLine(filePath, i + 1));
@@ -1364,7 +1365,7 @@ public class EditorCommonUtility
 				continue;
 			}
 			// 类名以Debug结尾且继承自MonoBehaviour的类, 需要忽略
-			if (findBaseClassName(codeLine) == typeof(MonoBehaviour).Name && endWith(className, "Debug"))
+			if (findBaseClassName(codeLine) == typeof(MonoBehaviour).Name && className.endWith("Debug"))
 			{
 				continue;
 			}
@@ -1657,7 +1658,7 @@ public class EditorCommonUtility
 			setCheckRefObjectsList(missingRefObjectsList, assetPath, lineData.Value);
 			UObject obj = loadAsset(assetPath);
 			Debug.LogError("有" + missingType + "的引用丢失" + obj.name + "\n" + stringsToString(missingRefObjectsList, '\n'), obj);
-			if (endWith(assetPath, ".unity"))
+			if (assetPath.endWith(".unity"))
 			{
 				for (int i = 0; i < missingRefObjectsList.Count; ++i)
 				{
@@ -1671,8 +1672,8 @@ public class EditorCommonUtility
 	// errorRefAssetDic的第一个Key是文件的路径,第二个Key是非法引用的GUID,Value是此非法GUID的文件名
 	// guidList的key是GUID,value是此GUID的文件名
 	public static void doCheckRefGUIDInFilePath(Dictionary<string, Dictionary<string, string>> errorRefAssetDic,
-												   Dictionary<string, FileGUIDLines> fileDic,
-												   Dictionary<string, string> guidList)
+												Dictionary<string, FileGUIDLines> fileDic,
+												Dictionary<string, string> guidList)
 	{
 		foreach (FileGUIDLines projectFile in fileDic.Values)
 		{
@@ -1709,7 +1710,7 @@ public class EditorCommonUtility
 			}
 			if (line.Contains("[ProtoMember("))
 			{
-				if (SToI(line.rangeToFirst(findFirstSubstr(line, "[ProtoMember(", 0, true), ',')) - 1 != realOrder++)
+				if (SToI(line.rangeToFirst(line.findFirstSubstr("[ProtoMember(", 0, true), ',')) - 1 != realOrder++)
 				{
 					Debug.LogError("Protobuf的消息字段顺序检测:有不符合规定的字段顺序." + addFileLine(file, i + 1));
 				}
@@ -1727,7 +1728,7 @@ public class EditorCommonUtility
 		// 移除开始的空格和空行
 		for (int i = 0; i < lines.Length; ++i)
 		{
-			lines[i] = removeStartEmpty(lines[i]);
+			lines[i] = lines[i].removeStartEmpty();
 		}
 
 		// 函数名的上一行不能为空行,需要保留空白字符进行检测
@@ -1765,7 +1766,7 @@ public class EditorCommonUtility
 		// 先去除所有行的空白字符
 		for (int i = 0; i < lines.Length; ++i)
 		{
-			lines[i] = removeAllEmpty(lines[i]);
+			lines[i] = lines[i].removeAllEmpty();
 		}
 		// 不能有两个连续空行
 		for (int i = 0; i < lines.Length - 1; ++i)
@@ -1950,8 +1951,8 @@ public class EditorCommonUtility
 					continue;
 				}
 				string variableStr = split(line, ' ')[^1];
-				removeStartString(ref variableStr, "m");
-				removeEndString(ref variableStr, ";");
+				variableStr = variableStr.removeStartString("m");
+				variableStr = variableStr.removeEndString(";");
 				linesDic.Add(variableStr, i + 1);
 			}
 			else
@@ -2048,7 +2049,7 @@ public class EditorCommonUtility
 	{
 		codeLine = removeComment(codeLine);
 		codeLine = removeQuotedStrings(codeLine);
-		return findFirstSubstr(codeLine, " class ") >= 0;
+		return codeLine.findFirstSubstr(" class ") >= 0;
 	}
 	// 判断一行字符串是不是函数名声明行,如果是,则返回是否为构造函数,函数名
 	public static bool findFunctionName(string line, out bool isConstructor, out string functionName)
@@ -2063,7 +2064,7 @@ public class EditorCommonUtility
 		line = removeComment(line);
 		line = removeQuotedStrings(line);
 		// 消除所有的尖括号内的字符
-		line = removeFirstBetweenPairChars(line, '<', '>', out _, out _);
+		line = line.removeFirstBetweenPairChars('<', '>', out _, out _);
 
 		// 先根据空格分割字符串
 		string[] elements = split(line, ' ', '\t');
@@ -2122,11 +2123,11 @@ public class EditorCommonUtility
 			str0 == "foreach" ||
 			str0 == "for" ||
 			str0 == "switch" ||
-			startWith(str0, "if(") ||
-			startWith(str0, "for(") ||
-			startWith(str0, "while(") ||
-			startWith(str0, "foreach(") ||
-			startWith(str0, "switch("))
+			str0.startWith("if(") ||
+			str0.startWith("for(") ||
+			str0.startWith("while(") ||
+			str0.startWith("foreach(") ||
+			str0.startWith("switch("))
 		{
 			return false;
 		}
@@ -2258,7 +2259,7 @@ public class EditorCommonUtility
 				return;
 			}
 		}
-		if (rightToLeft(refFilePath) != getFilePath(rightToLeft(path)))
+		if (refFilePath.rightToLeft() != getFilePath(path.rightToLeft()))
 		{
 			Debug.LogError(path + " 只被 " + refFilePath + "中的文件引用,但是没有在同一个目录", loadAsset(path));
 			Debug.LogError("所在目录:" + refFilePath, loadAsset(refrenceList.First().Key));
@@ -2271,7 +2272,7 @@ public class EditorCommonUtility
 	// 确保路径为相对于Project的路径
 	public static string ensureProjectPath(string filePath)
 	{
-		if (!startWith(filePath, P_ASSETS_PATH) && filePath.StartsWith(F_ASSETS_PATH))
+		if (!filePath.startWith(P_ASSETS_PATH) && filePath.startWith(F_ASSETS_PATH))
 		{
 			// Assets资源路径
 			filePath = fullPathToProjectPath(filePath);
@@ -2316,7 +2317,7 @@ public class EditorCommonUtility
 	{
 		for (int i = 0; i < fileList.Count; ++i)
 		{
-			if (endWith(fileList[i], ".meta"))
+			if (fileList[i].endWith(".meta"))
 			{
 				fileList.RemoveAt(i--);
 			}
@@ -2552,7 +2553,7 @@ public class EditorCommonUtility
 				string line = fileLines[i];
 				if (line.Contains("namespace "))
 				{
-					int startIndex = findFirstSubstr(line, "namespace ", 0, true);
+					int startIndex = line.findFirstSubstr("namespace ", 0, true);
 					if (line.Contains('{'))
 					{
 						nameSpace = line.rangeToFirst(startIndex, '{') + ".";
@@ -2582,18 +2583,18 @@ public class EditorCommonUtility
 		List<string> classLines = new();
 		for (int i = 0; i < endIndex - startIndex + 1; ++i)
 		{
-			classLines.Add(removeAll(fileLines[i + startIndex], '\t'));
+			classLines.Add(fileLines[i + startIndex].removeAll('\t'));
 		}
 		string headLine = fileLines[startIndex];
-		int nameStartIndex = findFirstSubstr(headLine, "class ", 0, true);
+		int nameStartIndex = headLine.findFirstSubstr("class ", 0, true);
 		string className;
 		if (headLine.Contains(':'))
 		{
-			className = removeAll(nameSpace + headLine.rangeToFirst(nameStartIndex, ':'), ' ');
+			className = nameSpace + headLine.rangeToFirst(nameStartIndex, ':').removeAll(' ');
 		}
 		else
 		{
-			className = removeAll(nameSpace + headLine.removeStartCount(nameStartIndex), ' ');
+			className = nameSpace + headLine.removeStartCount(nameStartIndex).removeAll(' ');
 		}
 		// 模板类,则去除模板属性,只保留类名
 		int templateIndex = className.IndexOf('<');
@@ -2762,7 +2763,7 @@ public class EditorCommonUtility
 		// 类名的上一行需要写对于该类的注释
 		while (true)
 		{
-			string lastLine = removeAllEmpty(lines[lastIndex]);
+			string lastLine = lines[lastIndex].removeAllEmpty();
 			if (lastLine.Contains("//"))
 			{
 				break;
@@ -2785,7 +2786,7 @@ public class EditorCommonUtility
 		for (int i = index + 1; i < endIndex; ++i)
 		{
 			string line = lines[i];
-			if (line.IndexOf('{') < 0 && !line.Contains("//") && !hasLowerLetter(line))
+			if (line.IndexOf('{') < 0 && !line.Contains("//") && !line.hasLowerLetter())
 			{
 				Debug.LogError("添加" + enumName + "." + line + "的注释!!!" + addFileLine(filePath, i + 1));
 			}
@@ -2803,7 +2804,7 @@ public class EditorCommonUtility
 		// 类名的上一行需要写对于该类的注释
 		while (true)
 		{
-			string lastLine = removeAllEmpty(lines[lastIndex]);
+			string lastLine = lines[lastIndex].removeAllEmpty();
 			if (lastLine.Contains("//"))
 			{
 				break;
@@ -2817,7 +2818,7 @@ public class EditorCommonUtility
 		}
 
 		// 类成员变量的后面需要写该成员变量的注释,myUGUI的变量除外.GameBase,FrameBase的除外
-		if (className == typeof(FrameBase).Name)
+		if (className == typeof(FrameBaseHotFix).Name)
 		{
 			return;
 		}
@@ -2915,7 +2916,7 @@ public class EditorCommonUtility
 		while (true)
 		{
 			// 移除className之前的字符串。
-			int firstIndex = findFirstSubstr(codeLine, className, 0, false);
+			int firstIndex = codeLine.findFirstSubstr(className, 0, false);
 			if (firstIndex < 0)
 			{
 				break;
@@ -3081,7 +3082,7 @@ public class EditorCommonUtility
 				continue;
 			}
 
-			int index = findFirstSubstr(code, " guid: ", 0, true);
+			int index = code.findFirstSubstr(" guid: ", 0, true);
 			if (index < 0)
 			{
 				Debug.LogError("UI节点图片为空，filePath:" + filePath + ", 节点名:" + findGameObejctNameInPrefab(lines, i), loadAsset(filePath));
@@ -3110,7 +3111,7 @@ public class EditorCommonUtility
 			{
 				continue;
 			}
-			int index = findFirstSubstr(code, " guid: ", 0, true);
+			int index = code.findFirstSubstr(" guid: ", 0, true);
 			if (index < 0)
 			{
 				Debug.LogError("UI节点字体为空，filePath:" + filePath + ", 节点名称:" + findGameObejctNameInPrefab(lines, i), loadAsset(filePath));
@@ -3134,7 +3135,7 @@ public class EditorCommonUtility
 			// 然后从这一行开始往下找,找到名字
 			for (int j = i + 1; j < lines.Length; ++j)
 			{
-				int nameIndex = findFirstSubstr(lines[j], "m_Name: ", 0, true);
+				int nameIndex = lines[j].findFirstSubstr("m_Name: ", 0, true);
 				if (nameIndex >= 0)
 				{
 					return lines[j].removeStartCount(nameIndex);
@@ -3279,7 +3280,7 @@ public class EditorCommonUtility
 				if (line.StartsWith("GameObject:"))
 				{
 					string lastLine = lines[j - 1];
-					string gameObjectID = lastLine.removeStartCount(findFirstSubstr(lastLine, " &", 0, true));
+					string gameObjectID = lastLine.removeStartCount(lastLine.findFirstSubstr(" &", 0, true));
 					currentItem.Add(gameObjectID, new());
 					currentID = gameObjectID;
 					gameObjectName = null;
@@ -3289,7 +3290,7 @@ public class EditorCommonUtility
 				{
 					if (gameObjectName == null)
 					{
-						gameObjectName = line.removeStartCount(findFirstSubstr(line, ": ", 0, true));
+						gameObjectName = line.removeStartCount(line.findFirstSubstr(": ", 0, true));
 						currentItem.get(currentID).mGameObjectName = gameObjectName;
 					}
 				}
@@ -3297,7 +3298,7 @@ public class EditorCommonUtility
 				else if (line.Contains(" " + key + ":"))
 				{
 					// 部分预制体会存在两行显示的情况,导致索引位置不一致
-					int startIndex = findFirstSubstr(line, "guid: ", 0, true);
+					int startIndex = line.findFirstSubstr("guid: ", 0, true);
 					if (startIndex >= 0)
 					{
 						currentItem.get(currentID).mResourceID = line.range(startIndex, line.IndexOf(", type:"));
@@ -3318,14 +3319,23 @@ public class EditorCommonUtility
 		options.target = target;
 		options.options = buildOptions;
 		BuildReport report = BuildPipeline.BuildPlayer(options);
-		// 打包完成后删除其中无用的目录,等待10秒,否则可能会因为文件被占用而删除失败
+		AssetDatabase.Refresh();
+		// 暂停10秒,等到打包处理完再进行删除
 		Thread.Sleep(10000);
 		try
 		{
 			if (report.summary.result == BuildResult.Succeeded)
 			{
-				deleteFolder(removeSuffix(outputPath) + "_BackUpThisFolder_ButDontShipItWithYourGame");
-				deleteFolder(removeSuffix(outputPath) + "_BurstDebugInformation_DoNotShip");
+				List<string> dirList = new();
+				findFolders(getFilePath(outputPath), dirList, null);
+				foreach (string dir in dirList)
+				{
+					if (dir.Contains("_BackUpThisFolder_ButDontShipItWithYourGame") ||
+						dir.Contains("_BurstDebugInformation_DoNotShip"))
+					{
+						deleteFolder(dir);
+					}
+				}
 			}
 		}
 		catch (Exception e)
@@ -3356,13 +3366,13 @@ public class EditorCommonUtility
 		int fileLine = 0;
 		foreach (string infoLine in splitLine(stack_trace))
 		{
-			if (startWith(infoLine, "File:"))
+			if (infoLine.startWith("File:"))
 			{
-				filePath = removeStartString(infoLine, "File:");
+				filePath = infoLine.removeStartString("File:");
 			}
-			else if (startWith(infoLine, "Line:"))
+			else if (infoLine.startWith("Line:"))
 			{
-				fileLine = SToI(removeStartString(infoLine, "Line:"));
+				fileLine = SToI(infoLine.removeStartString("Line:"));
 			}
 		}
 

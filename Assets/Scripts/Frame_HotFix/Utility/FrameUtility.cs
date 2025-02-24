@@ -7,7 +7,7 @@ using static StringUtility;
 using static FileUtility;
 using static MathUtility;
 using static BinaryUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameDefine;
 using static FrameDefineBase;
 using static FrameEditorUtility;
@@ -285,13 +285,13 @@ public class FrameUtility
 	}
 	public static void LIST<T>(out List<T> list)
 	{
-		if (mGameFramework == null || mListPool == null)
+		if (mGameFrameworkHotFix == null || mListPool == null)
 		{
 			list = new();
 			return;
 		}
 		string stackTrace = EMPTY;
-		if (mGameFramework.mParam.mEnablePoolStackTrace)
+		if (mGameFrameworkHotFix.mParam.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
@@ -304,13 +304,13 @@ public class FrameUtility
 	}
 	public static void LIST_PERSIST<T>(out List<T> list)
 	{
-		if (mGameFramework == null || mListPool == null)
+		if (mGameFrameworkHotFix == null || mListPool == null)
 		{
 			list = new();
 			return;
 		}
 		string stackTrace = EMPTY;
-		if (mGameFramework.mParam.mEnablePoolStackTrace)
+		if (mGameFrameworkHotFix.mParam.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
@@ -322,7 +322,7 @@ public class FrameUtility
 	}
 	public static void UN_LIST<T>(ref List<T> list)
 	{
-		if (mGameFramework == null || mListPool == null || list == null)
+		if (mGameFrameworkHotFix == null || mListPool == null || list == null)
 		{
 			return;
 		}
@@ -335,13 +335,13 @@ public class FrameUtility
 	}
 	public static void SET_PERSIST<T>(out HashSet<T> list)
 	{
-		if (mGameFramework == null || mListPool == null)
+		if (mGameFrameworkHotFix == null || mListPool == null)
 		{
 			list = new();
 			return;
 		}
 		string stackTrace = EMPTY;
-		if (mGameFramework.mParam.mEnablePoolStackTrace)
+		if (mGameFrameworkHotFix.mParam.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
@@ -353,7 +353,7 @@ public class FrameUtility
 	}
 	public static void UN_SET<T>(ref HashSet<T> list)
 	{
-		if (mGameFramework == null || mHashSetPool == null || list == null)
+		if (mGameFrameworkHotFix == null || mHashSetPool == null || list == null)
 		{
 			return;
 		}
@@ -366,13 +366,13 @@ public class FrameUtility
 	}
 	public static void DIC_PERSIST<K, V>(out Dictionary<K, V> list)
 	{
-		if (mGameFramework == null || mListPool == null)
+		if (mGameFrameworkHotFix == null || mListPool == null)
 		{
 			list = new();
 			return;
 		}
 		string stackTrace = EMPTY;
-		if (mGameFramework.mParam.mEnablePoolStackTrace)
+		if (mGameFrameworkHotFix.mParam.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
@@ -384,7 +384,7 @@ public class FrameUtility
 	}
 	public static void UN_DIC<K, V>(ref Dictionary<K, V> list)
 	{
-		if (mGameFramework == null || mDictionaryPool == null || list == null)
+		if (mGameFrameworkHotFix == null || mDictionaryPool == null || list == null)
 		{
 			return;
 		}

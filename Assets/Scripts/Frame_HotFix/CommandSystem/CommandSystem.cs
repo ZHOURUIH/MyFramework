@@ -5,7 +5,7 @@ using static UnityUtility;
 using static StringUtility;
 using static CSharpUtility;
 using static MathUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameEditorUtility;
 
 // 命令系统,用于处理所有命令相关逻辑

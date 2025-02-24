@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using static MathUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameDefine;
 
 // 物体的鼠标事件逻辑组件

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using static UnityUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // 红点的基类
 public class RedPoint : ClassObject

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using static MathUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static UnityUtility;
 using static FrameDefine;
 

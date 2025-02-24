@@ -13,7 +13,7 @@ public class AssetInfo : ClassObject
 	protected UObject[] mSubAssets;								// 资源数组,数组第一个元素为主资源,后面的是子资源
 	protected AssetBundleInfo mParentAssetBundle;				// 资源所属的AssetBundle
 	protected string mAssetName;								// 资源文件名,带相对于StreamingAssets的相对路径,带后缀
-	protected LOAD_STATE mLoadState = LOAD_STATE.UNLOAD;        // 加载状态
+	protected LOAD_STATE mLoadState = LOAD_STATE.NONE;        // 加载状态
 	public void setAssetBundleInfo(AssetBundleInfo parent) { mParentAssetBundle = parent; }
 	public void setAssetName(string name) { mAssetName = name; }
 	public override void resetProperty()
@@ -24,13 +24,13 @@ public class AssetInfo : ClassObject
 		mSubAssets = null;
 		mParentAssetBundle = null;
 		mAssetName = null;
-		mLoadState = LOAD_STATE.UNLOAD;
+		mLoadState = LOAD_STATE.NONE;
 	}
 	public LOAD_STATE getLoadState() { return mLoadState; }
 	public void clear()
 	{
 		mSubAssets = null;
-		mLoadState = LOAD_STATE.UNLOAD;
+		mLoadState = LOAD_STATE.NONE;
 	}
 	// 同步加载资源
 	public T loadAsset<T>() where T : UObject
@@ -84,7 +84,7 @@ public class AssetInfo : ClassObject
 		else
 		{
 			mSubAssets = null;
-			mLoadState = LOAD_STATE.UNLOAD;
+			mLoadState = LOAD_STATE.NONE;
 		}
 	}
 	public void addCallback(AssetLoadDoneCallback callback, string loadPath)
@@ -115,7 +115,7 @@ public class AssetInfo : ClassObject
 		{
 			return;
 		}
-		mSubAssets = mParentAssetBundle.loadAssetWithSubAssets(P_GAME_RESOURCES_PATH + mAssetName);
+		mSubAssets = mParentAssetBundle.getAssetBundle().LoadAssetWithSubAssets(P_GAME_RESOURCES_PATH + mAssetName);
 		mLoadState = LOAD_STATE.LOADED;
 	}
 }

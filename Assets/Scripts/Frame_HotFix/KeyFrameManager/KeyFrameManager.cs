@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using static UnityUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static StringUtility;
 using static FrameDefine;
 

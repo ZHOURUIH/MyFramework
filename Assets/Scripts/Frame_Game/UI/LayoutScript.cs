@@ -93,7 +93,15 @@ public abstract class LayoutScript : DelayCmdWatcher
 	{
 		obj = null;
 		GameObject parentObj = parent?.getObject();
-		GameObject gameObject = getGameObject(name, parentObj, showError, false);
+		GameObject gameObject;
+		if (parentObj == null)
+		{
+			gameObject = getRootGameObject(name, showError);
+		}
+		else
+		{
+			gameObject = getGameObject(name, parentObj, showError, false);
+		}
 		if (gameObject == null)
 		{
 			return obj;

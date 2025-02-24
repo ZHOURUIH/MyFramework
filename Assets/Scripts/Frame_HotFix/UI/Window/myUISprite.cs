@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using static UnityUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static StringUtility;
 using static MathUtility;
 using static FrameDefine;
@@ -12,10 +12,11 @@ public class myUISprite : myUIObject, IShaderWindow
 	protected SpriteRenderer mSpriteRenderer;   // 图片组件
 	protected WindowShader mWindowShader;       // 图片所使用的shader类,用于动态设置shader参数
 	protected UGUIAtlasPtr mOriginAtlasPtr;     // 图片图集,用于卸载,当前类只关心初始图集的卸载,后续再次设置的图集不关心是否需要卸载,需要外部设置的地方自己关心
-	protected UGUIAtlasPtr mAtlasPtr;			// 图片图集
+	protected UGUIAtlasPtr mAtlasPtr;           // 图片图集
 	protected Material mOriginMaterial;         // 初始的材质,用于重置时恢复材质
 	protected Sprite mOriginSprite;             // 备份加载物体时原始的精灵图片
-	protected string mOriginTextureName;        // 初始图片的名字,用于外部根据初始名字设置其他效果的图片
+	protected string mOriginMaterialPath;       // 原始材质的文件路径
+	protected string mOriginSpriteName;         // 初始图片的名字,用于外部根据初始名字设置其他效果的图片
 	protected bool mIsNewMaterial;              // 当前的材质是否是新建的材质对象
 	protected bool mOriginAtlasInResources;		// OriginAtlas是否是从Resources中加载的
 	public override void init()
@@ -24,22 +25,23 @@ public class myUISprite : myUIObject, IShaderWindow
 		// 获取image组件,如果没有则添加,这样是为了使用代码新创建一个image窗口时能够正常使用image组件
 		mSpriteRenderer = getOrAddUnityComponent<SpriteRenderer>();
 		mOriginSprite = mSpriteRenderer.sprite;
-		mOriginMaterial = mSpriteRenderer.material;
+		mOriginMaterial = mSpriteRenderer.sharedMaterial;
+		mOriginSpriteName = getSpriteName();
 		// mOriginSprite无法简单使用?.来判断是否为空,需要显式判断
 		Texture2D curTexture = mOriginSprite != null ? mOriginSprite.texture : null;
 		// 获取初始的精灵所在图集
 		if (curTexture != null)
 		{
 			string atlasPath;
-			if (mObject.TryGetComponent<ImageAtlasPath>(out var imageAtlasPath))
+			if (mObject.TryGetComponent<ImageAtlasPath>(out var comImageAtlasPath))
 			{
 				if (mOriginAtlasInResources)
 				{
-					atlasPath = removeStartString(imageAtlasPath.mAtlasPath, P_RESOURCES_PATH);
+					atlasPath = comImageAtlasPath.mAtlasPath.removeStartString(P_RESOURCES_PATH);
 				}
 				else
 				{
-					atlasPath = removeStartString(imageAtlasPath.mAtlasPath, P_GAME_RESOURCES_PATH);
+					atlasPath = comImageAtlasPath.mAtlasPath.removeStartString(P_GAME_RESOURCES_PATH);
 				}
 			}
 			else
@@ -58,7 +60,7 @@ public class myUISprite : myUIObject, IShaderWindow
 			if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
 			{
 				logError("无法加载初始化的图集:" + atlasPath + ",Texture:" + curTexture.name + ",GameObject:" + getGameObjectPath(mObject) +
-					",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
+					",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (comImageAtlasPath != null ? comImageAtlasPath.mAtlasPath : EMPTY));
 			}
 			if (mOriginAtlasPtr != null && mOriginAtlasPtr.isValid() && mOriginAtlasPtr.getTexture() != curTexture)
 			{
@@ -66,16 +68,29 @@ public class myUISprite : myUIObject, IShaderWindow
 			}
 			mAtlasPtr = mOriginAtlasPtr;
 		}
-		mOriginTextureName = getSpriteName();
-		string materialName = getMaterialName();
-		materialName = removeAll(materialName, " (Instance)");
+		string materialName = getMaterialName().removeAll(" (Instance)");
 		// 不再将默认材质替换为自定义的默认材质,只判断其他材质
 		if (!materialName.isEmpty() &&
 			materialName != DEFAULT_MATERIAL &&
-			materialName != SPRITE_DEFAULT_MATERIAL &&
-			!mShaderManager.isSingleShader(materialName))
+			materialName != SPRITE_DEFAULT_MATERIAL)
 		{
-			setMaterialName(materialName, true);
+			if (mOriginMaterial != null && mObject.TryGetComponent<MaterialPath>(out var comMaterialPath))
+			{
+				mOriginMaterialPath = comMaterialPath.mMaterialPath;
+			}
+			if (mOriginMaterialPath.isEmpty())
+			{
+				logError("没有找到MaterialPath组件,name:" + getName());
+			}
+			mOriginMaterialPath = mOriginMaterialPath.removeStartString(P_GAME_RESOURCES_PATH);
+			if (!mOriginMaterialPath.endWith("/unity_builtin_extra"))
+			{
+				if (!mOriginMaterialPath.Contains('.'))
+				{
+					logError("材质文件需要带后缀:" + mOriginMaterialPath + ",GameObject:" + getName() + ",parent:" + getParent()?.getName());
+				}
+				setMaterialName(mOriginMaterialPath, !mShaderManager.isSingleShader(mOriginMaterial.shader.name));
+			}
 		}
 	}
 	public override void destroy()
@@ -85,13 +100,13 @@ public class myUISprite : myUIObject, IShaderWindow
 		{
 			if (!isEditor())
 			{
-				destroyUnityObject(mSpriteRenderer.material);
+				destroyUnityObject(mSpriteRenderer.sharedMaterial);
 			}
 		}
 		// 为了尽量确保ImageAtlasPath中记录的图集路径与图集完全一致,在销毁窗口时还原初始的图片
 		// 这样在重复使用当前物体时在校验图集路径时不会出错,但是如果在当前物体使用过程中销毁了原始的图片,则可能会报错
 		mSpriteRenderer.sprite = mOriginSprite;
-		mSpriteRenderer.material = mOriginMaterial;
+		setMaterial(mOriginMaterial);
 		setAlpha(1.0f);
 		if (mOriginAtlasInResources)
 		{
@@ -112,21 +127,51 @@ public class myUISprite : myUIObject, IShaderWindow
 	public override bool isCulled() { return isFloatZero(getAlpha()); }
 	public override bool canUpdate() { return !isCulled() && base.canUpdate(); }
 	public override bool canGenerateDepth() { return !isCulled(); }
-	public void setRenderQueue(int renderQueue) 
+	public void setWindowShader(WindowShader shader)
 	{
-		if (mSpriteRenderer == null || mSpriteRenderer.material == null)
+		mWindowShader = shader;
+		// 因为shader参数的需要在update中更新,所以需要启用窗口的更新
+		mNeedUpdate = true;
+	}
+	public WindowShader getWindowShader() { return mWindowShader; }
+	public override void update(float elapsedTime)
+	{
+		base.update(elapsedTime);
+		if (mWindowShader != null && !isCulled() && mSpriteRenderer.sharedMaterial != null)
+		{
+			mWindowShader.applyShader(mSpriteRenderer.sharedMaterial);
+		}
+	}
+	public void setRenderQueue(int renderQueue, bool shareMaterial = false) 
+	{
+		if (mSpriteRenderer == null)
 		{
 			return;
 		}
-		mSpriteRenderer.material.renderQueue = renderQueue;
+		if (shareMaterial)
+		{
+			if (mSpriteRenderer.sharedMaterial == null)
+			{
+				return;
+			}
+			mSpriteRenderer.sharedMaterial.renderQueue = renderQueue;
+		}
+		else
+		{
+			if (mSpriteRenderer.material == null)
+			{
+				return;
+			}
+			mSpriteRenderer.material.renderQueue = renderQueue;
+		}
 	}
 	public int getRenderQueue()
 	{
-		if (mSpriteRenderer == null || mSpriteRenderer.material == null)
+		if (mSpriteRenderer == null || mSpriteRenderer.sharedMaterial == null)
 		{
 			return 0;
 		}
-		return mSpriteRenderer.material.renderQueue;
+		return mSpriteRenderer.sharedMaterial.renderQueue;
 	}
 	public override Vector2 getWindowSize(bool transformed = false)
 	{
@@ -141,25 +186,6 @@ public class myUISprite : myUIObject, IShaderWindow
 		else
 		{
 			return getSpriteSize();
-		}
-	}
-	public void setWindowShader(WindowShader shader)
-	{
-		mWindowShader = shader;
-		// 因为shader参数的需要在update中更新,所以需要启用窗口的更新
-		mNeedUpdate = true;
-	}
-	public WindowShader getWindowShader() { return mWindowShader; }
-	public override void update(float elapsedTime)
-	{
-		base.update(elapsedTime);
-		if (isCulled())
-		{
-			return;
-		}
-		if (mSpriteRenderer.material != null)
-		{
-			mWindowShader?.applyShader(mSpriteRenderer.material);
 		}
 	}
 	public UGUIAtlasPtr getAtlas() { return mAtlasPtr; }
@@ -220,76 +246,72 @@ public class myUISprite : myUIObject, IShaderWindow
 		}
 		return mSpriteRenderer.sprite.rect.size;
 	}
-	public SpriteRenderer getImage() { return mSpriteRenderer; }
-	public Sprite getSprite() { return mSpriteRenderer.sprite; }
-	public void setOrderInLayer(int order) { mSpriteRenderer.sortingOrder = order; }
-	public int getOrderInLayer() { return mSpriteRenderer.sortingOrder; }
-	public void setRendererPrority(int priority) { mSpriteRenderer.rendererPriority = priority; }
-	public int getRendererPrority() { return mSpriteRenderer.rendererPriority; }
-	public void setMaterialName(string materialName, bool newMaterial, bool loadAsync = false)
+	public SpriteRenderer getSpriteRenderer()		{ return mSpriteRenderer; }
+	public Sprite getSprite()						{ return mSpriteRenderer.sprite; }
+	public void setOrderInLayer(int order)			{ mSpriteRenderer.sortingOrder = order; }
+	public int getOrderInLayer()					{ return mSpriteRenderer.sortingOrder; }
+	public void setRendererPrority(int priority)	{ mSpriteRenderer.rendererPriority = priority; }
+	public int getRendererPrority()					{ return mSpriteRenderer.rendererPriority; }
+	public string getOriginMaterialPath()			{ return mOriginMaterialPath; }
+	// materialPath是GameResources下的相对路径,带后缀
+	public void setMaterialName(string materialPath, bool newMaterial, bool loadAsync = false)
 	{
 		if (mSpriteRenderer == null)
 		{
 			return;
 		}
 		mIsNewMaterial = newMaterial;
-		string materialPath = R_MATERIAL_PATH + materialName + ".mat";
-		// 同步加载
-		if (!loadAsync)
-		{
-			Material mat;
-			var loadedMaterial = mResourceManager.loadGameResource<Material>(materialPath);
-			if (mIsNewMaterial)
-			{
-				mat = new(loadedMaterial);
-				mat.name = materialName + "_" + IToS(mID);
-			}
-			else
-			{
-				mat = loadedMaterial;
-			}
-			mSpriteRenderer.material = mat;
-		}
 		// 异步加载
-		else
+		if (loadAsync)
 		{
-			mResourceManager.loadGameResourceAsync<Material>(materialPath, (Object res, Object[] objs, byte[] bytes, string path) =>
+			mResourceManager.loadGameResourceAsync(materialPath, (Material mat) =>
 			{
 				if (mSpriteRenderer == null)
 				{
 					return;
 				}
-				var material = res as Material;
 				if (mIsNewMaterial)
 				{
 					// 当需要复制一个新的材质时,刚加载出来的材质实际上就不会再用到了
 					// 只有当下次还加载相同的材质时才会直接返回已加载的材质
 					// 如果要卸载最开始加载出来的材质,只能通过卸载整个文件夹的资源来卸载
-					Material newMat = new(material);
-					newMat.name = materialName + "_" + IToS(mID);
-					mSpriteRenderer.material = newMat;
+					Material newMat = new(mat);
+					newMat.name = getFileNameNoSuffixNoDir(materialPath) + "_" + IToS(mID);
+					setMaterial(newMat);
 				}
 				else
 				{
-					mSpriteRenderer.material = material;
+					setMaterial(mat);
 				}
 			});
 		}
+		// 同步加载
+		else
+		{
+			var loadedMaterial = mResourceManager.loadGameResource<Material>(materialPath);
+			if (mIsNewMaterial)
+			{
+				Material mat = new(loadedMaterial);
+				mat.name = getFileNameNoSuffixNoDir(materialPath) + "_" + IToS(mID);
+				setMaterial(mat);
+			}
+			else
+			{
+				setMaterial(loadedMaterial);
+			}
+		}
 	}
-	public void setMaterial(Material material)
-	{
-		mSpriteRenderer.material = material;
-	}
+	public void setMaterial(Material mat)  { mSpriteRenderer.material = mat; }
 	public void setShader(Shader shader, bool force)
 	{
-		if (mSpriteRenderer == null || mSpriteRenderer.material == null)
+		if (mSpriteRenderer == null || mSpriteRenderer.sharedMaterial == null)
 		{
 			return;
 		}
 		if (force)
 		{
-			mSpriteRenderer.material.shader = null;
-			mSpriteRenderer.material.shader = shader;
+			mSpriteRenderer.sharedMaterial.shader = null;
+			mSpriteRenderer.sharedMaterial.shader = shader;
 		}
 	}
 	public string getSpriteName()
@@ -306,23 +328,23 @@ public class myUISprite : myUIObject, IShaderWindow
 		{
 			return null;
 		}
-		return mSpriteRenderer.material;
+		return mSpriteRenderer.sharedMaterial;
 	}
 	public string getMaterialName()
 	{
-		if (mSpriteRenderer == null || mSpriteRenderer.material == null)
+		if (mSpriteRenderer == null || mSpriteRenderer.sharedMaterial == null)
 		{
 			return null;
 		}
-		return mSpriteRenderer.material.name;
+		return mSpriteRenderer.sharedMaterial.name;
 	}
 	public string getShaderName()
 	{
-		if (mSpriteRenderer.material == null || mSpriteRenderer.material.shader == null)
+		if (mSpriteRenderer.sharedMaterial == null || mSpriteRenderer.sharedMaterial.shader == null)
 		{
 			return null;
 		}
-		return mSpriteRenderer.material.shader.name;
+		return mSpriteRenderer.sharedMaterial.shader.name;
 	}
 	public override void setAlpha(float alpha, bool fadeChild)
 	{
@@ -353,18 +375,17 @@ public class myUISprite : myUIObject, IShaderWindow
 		mSpriteRenderer.color = new(color.x, color.y, color.z);
 	}
 	public override Color getColor() { return mSpriteRenderer.color; }
-	public string getOriginTextureName() { return mOriginTextureName; }
-	public void setOriginTextureName(string textureName) { mOriginTextureName = textureName; }
+	public string getOriginSpriteName() { return mOriginSpriteName; }
+	public void setOriginSpriteName(string textureName) { mOriginSpriteName = textureName; }
 	// 自动计算图片的原始名称,也就是不带后缀的名称,后缀默认以_分隔
-	public void generateOriginTextureName(char key = '_')
+	public void generateOriginSpriteName(char key = '_')
 	{
-		int pos = mOriginTextureName.LastIndexOf(key);
-		if (pos < 0)
+		if (!mOriginSpriteName.Contains(key))
 		{
-			logError("texture name is not valid!can not generate origin texture name, texture name : " + mOriginTextureName);
+			logError("texture name is not valid!can not generate origin texture name, texture name : " + mOriginSpriteName);
 			return;
 		}
-		mOriginTextureName = mOriginTextureName.rangeToLastInclude(key);
+		mOriginSpriteName = mOriginSpriteName.rangeToLastInclude(key);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void ensureColliderSize()

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using static MathUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // 自定义的滑动列表,基于容器(相当于状态的预设),物体(用于显示的物体),物体的各个状态在每个容器之间插值计算
 // 需要在初始化时主动调用initScroll,也需要主动调用update

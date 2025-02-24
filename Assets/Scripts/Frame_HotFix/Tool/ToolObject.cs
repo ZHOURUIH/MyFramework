@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using static UnityUtility;
 using static MathUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 using static FrameUtility;
 
 // 全部都是对MovableObject的操作,部分Transformable的通用操作在ToolFrame中

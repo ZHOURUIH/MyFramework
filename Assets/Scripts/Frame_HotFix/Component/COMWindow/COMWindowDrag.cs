@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using static UnityUtility;
-using static FrameBase;
+using static FrameBaseHotFix;
 
 // UI拖拽组件,用于实现UI拖拽相关功能
 public class COMWindowDrag : ComponentDrag
