@@ -176,7 +176,7 @@ public class ExcelTable
 	// 解密
 	protected void decodeFile(byte[] fileBuffer)
 	{
-		string key = generateFileMD5(stringToBytes("ASLD" + mTableName)).ToUpper() + "23y35y983";
+		string key = generateFileMD5(stringToBytes("AAAA" + mTableName)).ToUpper() + "123456789";
 		int keyIndex = 0;
 		int fileLength = fileBuffer.Length;
 		for (int i = 0; i < fileLength; ++i)

@@ -5,9 +5,9 @@
 public partial class GBH
 {
 	// FrameSystem
+	public static NetManager mNetManager;
 	public static DemoSystem mDemoSystem;
 	public static BattleSystem mBattleSystem;
-	public static NetManager mNetManager;
 	// LayoutScript
 	public static UILogin mUILogin;
 	public static UIGaming mUIGaming;

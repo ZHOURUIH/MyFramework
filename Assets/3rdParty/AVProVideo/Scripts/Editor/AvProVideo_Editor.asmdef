@@ -2,7 +2,7 @@
     "name": "AvProVideo_Editor",
     "rootNamespace": "",
     "references": [
-        "GUID:3fdc6d4e183460a4999fe287203cdbbe"
+        "GUID:c6b886fb0f653c4478204c4fade375fd"
     ],
     "includePlatforms": [
         "Editor"

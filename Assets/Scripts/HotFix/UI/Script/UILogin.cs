@@ -1,5 +1,4 @@
-﻿using static FrameUtility;
-
+﻿
 public class UILogin : LayoutScript
 {
 	protected myUGUIObject mLogin;
@@ -18,6 +17,6 @@ public class UILogin : LayoutScript
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onLoginClick()
 	{
-		changeProcedure<MainSceneGaming>();
+		CSLogin.send();
 	}
 }

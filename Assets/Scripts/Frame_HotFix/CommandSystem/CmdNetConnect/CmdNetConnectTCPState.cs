@@ -36,6 +36,6 @@ public class CmdNetConnectTCPState : Command
 		{
 			logWarning("未知连接错误:" + mErrorCode);
 		}
-		socketClient.getNetStateCallback()(mNetState, mLastNetState);
+		socketClient.getNetStateCallback()?.Invoke(mNetState, mLastNetState);
 	}
 }

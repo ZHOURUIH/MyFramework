@@ -741,7 +741,7 @@ public class ExcelConverter : FileUtility
 				return false;
 			}
 			// 重新计算密钥
-			string key = generateMD5("ASLD" + tableName) + "23y35y983";
+			string key = generateMD5("AAAA" + tableName) + "123456789";
 			byte[] buffer = fileWriter.getBuffer();
 			int dataSize = fileWriter.getDataSize();
 			for (int i = 0; i < dataSize; ++i)
@@ -768,7 +768,7 @@ public class ExcelConverter : FileUtility
 		{
 			int rowCount = table.getRowCount();
 			int colCount = table.getColumnCount();
-			// 生成二进制的data文件
+			// 生成文本的data文件
 			string fileContent = EMPTY;
 			for (int i = ROW_HEADER; i < rowCount; ++i)
 			{

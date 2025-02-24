@@ -1,14 +1,17 @@
-﻿
-// 作为客户端时接收以及发送的类型
+﻿using System;
+
 public class PACKET_TYPE
 {
-	// CS表示Client->Server
-	public const ushort CS_MIN = 10000;
-	public const ushort CSDemo = 10001;
-	public const ushort CS_MAX = 10002;
+	public static ushort MIN = 0;
 
-	// SC表示Server->Client
-	public const ushort SC_MIN = 20000;
-	public const ushort SCDemo = 20001;
-	public const ushort SC_MAX = 20002;
-};
+	public static ushort CS_CHECK_PACKET_VERSION = 10001;
+	public static ushort CS_SERVER_CHECK_PING = 10002;
+	public static ushort CS_ATTACK = 10003;
+	public static ushort CS_LOGIN = 10004;
+
+	public static ushort SC_CHECK_PACKET_VERSION = 20001;
+	public static ushort SC_SERVER_CHECK_PING = 20002;
+	public static ushort SC_CHARACTER_FULL_GAME_DATA = 20003;
+	public static ushort SC_GET_ITEM_TIP = 20004;
+	public static ushort SC_ATTACK = 20005;
+}
