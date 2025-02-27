@@ -19,3 +19,14 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+#谷歌登录
+#-if class androidx.credentials.CredentialManager
+#-keep class androidx.credentials.playservices.** {
+#  *;
+#}
+
+# 保留整个 MainClass 类及其所有方法
+-keep class com.test.test1.MainClass {
+    *;
+}

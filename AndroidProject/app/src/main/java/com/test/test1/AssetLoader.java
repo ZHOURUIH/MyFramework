@@ -12,12 +12,25 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class AssetLoader
 {
-    protected static byte[] mHelperBytes;
+    public static AssetLoader mAssetLoader;
+    protected static byte[] mHelperBytes = new byte[1024 * 1024];
+    protected  static byte[] mMD5Buffer = new byte[1024 * 1024];
     protected AssetManager mAssetManager;
-    public void setAssetManager(AssetManager assetManager){mAssetManager = assetManager;}
+    public static AssetLoader getAssetLoader(AssetManager assetManager)
+    {
+        if (mAssetLoader == null)
+        {
+            mAssetLoader = new AssetLoader();
+            mAssetLoader.mAssetManager = assetManager;
+        }
+        return mAssetLoader;
+    }
     public boolean isAssetExist(String path)
     {
         try
@@ -90,7 +103,7 @@ public class AssetLoader
         findAssetFolders(path, folderList, recursive);
         return folderList;
     }
-    // 获取列表中指定下标的文件列表,因为c#中没办法直接使用java的List对象(原谅我没有别的办法了),所以需要传入java中获取string
+    // 获取列表中指定下标的文件列表,因为c#中没办法直接使用java的List对象,所以需要传入java中获取string
     public static String getListElement(List<String> list, int index)
     {
         int count = list.size();
@@ -99,6 +112,53 @@ public class AssetLoader
             return list.get(index);
         }
         return "";
+    }
+    // 获取列表中指定下标的文件列表,因为c#中没办法直接使用java的List对象,所以需要传入java中获取列表长度
+    public static int getListSize(List<String> list)
+    {
+        return list.size();
+    }
+    public void copyAssetToPersistentPath(String sourcePath, String destPath, boolean errorIfNull)
+    {
+        InputStream inputStream = null;
+        try
+        {
+            inputStream = mAssetManager.open(sourcePath);
+            if(inputStream == null)
+            {
+                if(errorIfNull)
+                {
+                    unityError("can not open file : " + sourcePath);
+                }
+                return;
+            }
+        }
+        catch (IOException e)
+        {
+            unityLog("copyAssetToPersistentPath open failed : path : " + sourcePath + ", info:" + e.getMessage() + ", " + e.getStackTrace());
+            return;
+        }
+
+        FileOutputStream outputStream = null;
+        createDirectoryRecursive(getFilePath(destPath));
+        File file = new File(destPath);
+        if(file.exists())
+        {
+            file.deleteOnExit();
+        }
+        try
+        {
+            file.createNewFile();
+            outputStream = new FileOutputStream(file);
+            inputStreamToOutputStream(inputStream, outputStream);
+            outputStream.flush();
+            outputStream.close();
+        }
+        catch (Exception e)
+        {
+            unityLog("copyAssetToPersistentPath write failed : path : " + destPath + ", info:" + e.getMessage() + ", " + e.getStackTrace());
+            return;
+        }
     }
     //-------------------------------------------------------------------------------------------------------------------------------------------------------------
     // 以下函数只用于persistentDataPath的读写
@@ -158,19 +218,20 @@ public class AssetLoader
     {
         try
         {
-            createDirectory(getFilePath(path));
+            createDirectoryRecursive(getFilePath(path));
             File file = new File(path);
             if(!file.exists())
             {
                 file.createNewFile();
             }
-            if(!appendData)
+            else if(!appendData)
             {
                 file.deleteOnExit();
                 file.createNewFile();
             }
             FileOutputStream outputStream = new FileOutputStream(file);
             outputStream.write(buffer, 0, writeCount);
+            outputStream.flush();
             outputStream.close();
         }
         catch (Exception e)
@@ -190,10 +251,18 @@ public class AssetLoader
             unityError("writeTxtFile exception, path:" + path + ", info:" + e.getMessage() + ",stack:" + e.getStackTrace());
         }
     }
-    public static void deleteFile(String path)
+    public static boolean deleteFile(String path)
     {
         File file = new File(path);
-        file.deleteOnExit();
+        if (!file.exists())
+        {
+            return true;
+        }
+        if (!file.isFile())
+        {
+            return false;
+        }
+        return file.delete();
     }
     public static boolean isDirExist(String path)
     {
@@ -248,12 +317,49 @@ public class AssetLoader
         findFolders(path, folderList, recursive);
         return folderList;
     }
-    public static void createDirectory(String path)
+    public static boolean isPathExist(String path)
     {
+        File file = new File(path);
+        return file.exists();
+    }
+    public static void createDirectoryRecursive(String path)
+    {
+        String parent = getFilePath(path);
+        if (!isPathExist(parent))
+        {
+            createDirectoryRecursive(parent);
+        }
         File file = new File(path);
         if(!file.exists())
         {
             file.mkdir();
+        }
+    }
+    private static boolean deleteDirectory(String path)
+    {
+        try
+        {
+            File file = new File(path);
+            if (!file.exists())
+            {
+                return true;
+            }
+            if (file.isDirectory())
+            {
+                String[] children = file.list();
+                // 递归删除目录中的子目录下
+                for (int i = 0; i < children.length; ++i)
+                {
+                    deleteDirectory(path + "/" + children[i]);
+                }
+            }
+            // 目录此时为空，可以删除
+            return file.delete();
+        }
+        catch (Exception e)
+        {
+            unityError("文件夹删除失败:" + path + ", info:" + e.getMessage());
+            return false;
         }
     }
     public static void unityLog(String info)
@@ -264,16 +370,69 @@ public class AssetLoader
     {
         UnityPlayer.UnitySendMessage("UnityLog", "logError", info);
     }
+    public static String generateMD5(String path) throws IOException
+    {
+        FileInputStream fileInputStream = null;
+        DigestInputStream digestInputStream = null;
+        try
+        {
+            // 拿到一个MD5转换器(同样，这里可以换成SHA1)
+            MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+            // 使用DigestInputStream
+            fileInputStream = new FileInputStream(path);
+            digestInputStream = new DigestInputStream(fileInputStream, messageDigest);
+            // read的过程中进行MD5处理，直到读完文件
+            while (digestInputStream.read(mMD5Buffer) > 0);
+            // 获取最终的MessageDigest
+            messageDigest = digestInputStream.getMessageDigest();
+            return bytesToHexString(messageDigest.digest());
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+            return null;
+        }
+        finally
+        {
+            try
+            {
+                if (digestInputStream != null)
+                {
+                    digestInputStream.close();
+                }
+            }
+            catch (Exception e) {}
+            try
+            {
+                if (fileInputStream != null)
+                {
+                    fileInputStream.close();
+                }
+            }
+            catch (Exception e) {}
+        }
+    }
     //------------------------------------------------------------------------------------------------------------------------------------------------------
+    // 将字节数组换成成16进制的字符串
+    public static String bytesToHexString(byte[] byteArray)
+    {
+        String hexString = "";
+        for (int i = 0; i < byteArray.length; ++i)
+        {
+            String stmp = (Integer.toHexString(byteArray[i] & 0XFF));
+            if (stmp.length() == 1)
+            {
+                stmp = "0" + stmp;
+            }
+            hexString += stmp;
+        }
+        return hexString;
+    }
     private static byte[] streamToBytes(InputStream inputStream, int length)
     {
+        System.gc();
         try
         {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            if(mHelperBytes == null)
-            {
-                mHelperBytes = new byte[1024 * 1024];
-            }
             while(true)
             {
                 int len = inputStream.read(mHelperBytes);
@@ -290,6 +449,26 @@ public class AssetLoader
         {
             unityError("streamToBytes exception : " + e.getStackTrace());
            return null;
+        }
+    }
+    private static void inputStreamToOutputStream(InputStream inputStream, FileOutputStream output)
+    {
+        System.gc();
+        try
+        {
+            while(true)
+            {
+                int len = inputStream.read(mHelperBytes);
+                if(len < 0)
+                {
+                    break;
+                }
+                output.write(mHelperBytes, 0, len);
+            }
+        }
+        catch(Exception e)
+        {
+            unityError("inputStreamToOutputStream exception : " + e.getStackTrace());
         }
     }
     protected static boolean endsWith(String str, String pattern, boolean caseSensitive)
@@ -337,6 +516,10 @@ public class AssetLoader
             path += "/";
         }
         File[] fileInfoList = folder.listFiles();
+        if (fileInfoList == null)
+        {
+            return;
+        }
         int fileCount = fileInfoList.length;
         int patternCount = patterns != null ? patterns.length : 0;
         for (int i = 0; i < fileCount; ++i)
