@@ -70,11 +70,13 @@ public class PrefabPool : ClassObject
 			--mAsyncLoading;
 			if (asset == null)
 			{
+				callback?.Invoke();
 				return;
 			}
 			if (assignID != getAssignID())
 			{
 				mResourceManager.unload(ref asset);
+				callback?.Invoke();
 				return;
 			}
 			setPrefab(asset);
@@ -216,17 +218,20 @@ public class PrefabPool : ClassObject
 			// 实例化,同步进行
 			objInfo.createObject(mPrefab, mFileName);
 			GameObject go = objInfo.getObject();
-			// 隐藏物体,并且将物体重新挂接到预设管理器下,重置物体变换
-			setNormalProperty(go, mPrefabPoolManager.getObject());
-			if (moveToHide)
+			if (go != null)
 			{
-				go.transform.localPosition = FAR_POSITION;
-			}
-			else
-			{
-				if (go.activeSelf)
+				// 隐藏物体,并且将物体重新挂接到预设管理器下,重置物体变换
+				setNormalProperty(go, mPrefabPoolManager.getObject());
+				if (moveToHide)
 				{
-					go.SetActive(false);
+					go.transform.localPosition = FAR_POSITION;
+				}
+				else
+				{
+					if (go.activeSelf)
+					{
+						go.SetActive(false);
+					}
 				}
 			}
 			objInfo.setUsing(false);

@@ -41,7 +41,14 @@ public class MovableObject : Transformable, IMouseEventCollect
 		{
 			destroySelfCreateObject();
 		}
-		base.setObject(obj);
+		if (obj == null)
+		{
+			selfCreateObject();
+		}
+		else
+		{
+			base.setObject(obj);
+		}
 	}
 	public virtual void init()
 	{

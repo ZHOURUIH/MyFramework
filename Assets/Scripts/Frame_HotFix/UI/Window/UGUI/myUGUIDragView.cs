@@ -8,6 +8,7 @@ using static MathUtility;
 public class myUGUIDragView : myUGUIObject
 {
 	protected COMWindowDragView mDragViewComponent;     // 拖拽滑动组件
+	protected bool mInited;
 	public myUGUIDragView()
 	{
 		mNeedUpdate = true;
@@ -44,6 +45,7 @@ public class myUGUIDragView : myUGUIObject
 		setClampInner(clampInner);
 		setAllowDragOnlyOverParentSize(allowDragOnlyOverParentSize);
 		setClampInRange(clampInRange);
+		mInited = true;
 	}
 	public override bool isReceiveScreenMouse() { return true; }
 	// 显式调用调整窗口位置
@@ -59,6 +61,10 @@ public class myUGUIDragView : myUGUIObject
 	{
 		base.onMouseDown(mousePos, touchID);
 		mDragViewComponent.onMouseDown(mousePos, touchID);
+		if (!mInited)
+		{
+			logError("COMWindowDragView组件未初始化,是否忘记调用了myUGUIDragView的initDragView?");
+		}
 	}
 	// 鼠标在屏幕上抬起
 	public override void onScreenMouseUp(Vector3 mousePos, int touchID)

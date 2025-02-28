@@ -14,7 +14,8 @@ public class UGUISlider : WindowObjectUGUI, ISlider
 	protected Vector3 mOriginForegroundPosition;	// 进度窗口初始的位置
 	protected Vector2 mOriginForegroundSize;		// 进度窗口初始的大小
 	protected float mSliderValue;					// 当前的滑动值
-	protected bool mDraging;						// 是否正在拖拽滑动
+	protected bool mDraging;                        // 是否正在拖拽滑动
+	protected bool mEnableDrag;						// 是否需要启用手指滑动进度条
 	protected DRAG_DIRECTION mDirection;			// 滑动方向
 	protected SLIDER_MODE mMode;                    // 滑动条显示的实现方式
 	public UGUISlider(LayoutScript script)
@@ -29,14 +30,24 @@ public class UGUISlider : WindowObjectUGUI, ISlider
 		newObject(out mForeground, "Foreground");
 		newObject(out mThumb, mForeground, "Thumb", false);
 	}
-	public override void init()
+	// 不需要外部调用init,由对象池来调用
+	public override void init(){}
+	// 需要调用initSlider来进行初始化设置
+	public void initSlider(bool enableDrag, DRAG_DIRECTION direction, SLIDER_MODE mode, Action sliderCallback)
 	{
+		mEnableDrag = enableDrag;
+		mDirection = direction;
+		mMode = mode;
+		mSliderCallback = sliderCallback;
 		mOriginForegroundSize = mForeground.getWindowSize();
 		mOriginForegroundPosition = mForeground.getPosition();
-		mRoot.registeCollider();
-		mRoot.setOnMouseDown(onMouseDown);
-		mRoot.setOnScreenMouseUp(onScreenMouseUp);
-		mRoot.setOnMouseMove(onMouseMove);
+		if (mEnableDrag)
+		{
+			mRoot.registeCollider();
+			mRoot.setOnMouseDown(onMouseDown);
+			mRoot.setOnScreenMouseUp(onScreenMouseUp);
+			mRoot.setOnMouseMove(onMouseMove);
+		}
 	}
 	public void setEnable(bool enable) { mRoot.setHandleInput(enable); }
 	public void setDirection(DRAG_DIRECTION direction) { mDirection = direction; }
@@ -44,13 +55,56 @@ public class UGUISlider : WindowObjectUGUI, ISlider
 	public void setEndCallback(Action callback) { mSliderEndCallback = callback; }
 	public void setSliderCallback(Action callback) { mSliderCallback = callback; }
 	public void setValue(float value) { updateSlider(value); }
+	public void setValueByListView(myUGUIObject content, myUGUIObject viewport)
+	{
+		if (mDirection == DRAG_DIRECTION.VERTICAL)
+		{
+			float maxY = content.getWindowSize().y * 0.5f - viewport.getWindowSize().y * 0.5f;
+			setValue(inverseLerp(maxY, -maxY, content.getPosition().y));
+		}
+		else if (mDirection == DRAG_DIRECTION.HORIZONTAL)
+		{
+			float maxX = content.getWindowSize().x * 0.5f - viewport.getWindowSize().x * 0.5f;
+			setValue(inverseLerp(-maxX, maxX, content.getPosition().x));
+		}
+	}
+	public Vector3 generateListViewContentPosition(myUGUIObject content, myUGUIObject viewport)
+	{
+		if (mDirection == DRAG_DIRECTION.VERTICAL)
+		{
+			float maxY = content.getWindowSize().y * 0.5f - viewport.getWindowSize().y * 0.5f;
+			if (maxY < 0.0f)
+			{
+				return replaceY(content.getPosition(), -maxY);
+			}
+			return replaceY(content.getPosition(), lerp(maxY, -maxY, mSliderValue));
+		}
+		else if (mDirection == DRAG_DIRECTION.HORIZONTAL)
+		{
+			float maxX = content.getWindowSize().x * 0.5f - viewport.getWindowSize().x * 0.5f;
+			if (maxX < 0)
+			{
+				return replaceY(content.getPosition(), maxX);
+			}
+			return replaceY(content.getPosition(), lerp(-maxX, maxX, mSliderValue));
+		}
+		return Vector3.zero;
+	}
 	public float getValue() { return mSliderValue; }
 	public bool isDraging() { return mDraging; }
+	public void setEnableDrag(bool enable) { mEnableDrag = enable; }
+	public bool isEnableDrag() { return mEnableDrag; }
 	public void setSliderMode(SLIDER_MODE mode) { mMode = mode; }
 	public SLIDER_MODE getSliderMode() { return mMode; }
+	public void showForeground(bool show) { mForeground.getImage().enabled = show; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void updateSlider(float value)
 	{
+		if (isVectorEqual(mOriginForegroundSize, Vector2.zero))
+		{
+			logError("foreground的size为0,是否忘记调用了UGUISlider的initSlider?");
+			return;
+		}
 		mSliderValue = value;
 		saturate(ref mSliderValue);
 		if(mMode == SLIDER_MODE.FILL)

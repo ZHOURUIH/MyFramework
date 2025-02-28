@@ -113,62 +113,62 @@ public class myUGUIText : myUGUIObject
 	public void setAlignment(TextAnchor textAnchor) { mText.alignment = textAnchor; }
 	public Text getTextComponent() { return mText; }
 	// 设置可自动本地化的文本内容,collection是myUGUIText对象所属的布局对象或者布局结构体对象,如LayoutScript或WindowObjectUGUI
-	public void setLocalizationText(string mainText, ILocalizationCollection collection)
+	public void setText(string mainText, ILocalizationCollection collection)
 	{
 		mLocalizationManager.registeLocalization(this, mainText);
 		collection.addLocalizationObject(this);
 	}
-	public void setLocalizationText(string mainText, string param, ILocalizationCollection collection)
+	public void setText(string mainText, string param, ILocalizationCollection collection)
 	{
 		mLocalizationManager.registeLocalization(this, mainText, param);
 		collection.addLocalizationObject(this);
 	}
-	public void setLocalizationText(string mainText, string param0, string param1, ILocalizationCollection collection)
+	public void setText(string mainText, string param0, string param1, ILocalizationCollection collection)
 	{
 		mLocalizationManager.registeLocalization(this, mainText, param0, param1);
 		collection.addLocalizationObject(this);
 	}
-	public void setLocalizationText(string mainText, string param0, string param1, string param2, ILocalizationCollection collection)
+	public void setText(string mainText, string param0, string param1, string param2, ILocalizationCollection collection)
 	{
 		mLocalizationManager.registeLocalization(this, mainText, param0, param1, param2);
 		collection.addLocalizationObject(this);
 	}
-	public void setLocalizationText(string mainText, string param0, string param1, string param2, string param3, ILocalizationCollection collection)
+	public void setText(string mainText, string param0, string param1, string param2, string param3, ILocalizationCollection collection)
 	{
 		mLocalizationManager.registeLocalization(this, mainText, param0, param1, param2, param3);
 		collection.addLocalizationObject(this);
 	}
-	public void setLocalizationText(string mainText, Span<string> param, ILocalizationCollection collection)
+	public void setText(string mainText, Span<string> param, ILocalizationCollection collection)
 	{
 		mLocalizationManager.registeLocalization(this, mainText, param);
 		collection.addLocalizationObject(this);
 	}
-	public void setLocalizationText(string mainText, IList<string> paramList, ILocalizationCollection collection)
+	public void setText(string mainText, IList<string> paramList, ILocalizationCollection collection)
 	{
 		mLocalizationManager.registeLocalization(this, mainText, paramList);
 		collection.addLocalizationObject(this);
 	}
-	public void setLocalizationText(string mainText, OnLocalization callback, ILocalizationCollection collection)
+	public void setText(string mainText, OnLocalization callback, ILocalizationCollection collection)
 	{
 		mLocalizationManager.registeLocalization(this, mainText, callback);
 		collection.addLocalizationObject(this);
 	}
-	public void setLocalizationText(string mainText, string param, OnLocalization callback, ILocalizationCollection collection)
+	public void setText(string mainText, string param, OnLocalization callback, ILocalizationCollection collection)
 	{
 		mLocalizationManager.registeLocalization(this, mainText, param, callback);
 		collection.addLocalizationObject(this);
 	}
-	public void setLocalizationText(string mainText, string param0, string param1, OnLocalization callback, ILocalizationCollection collection)
+	public void setText(string mainText, string param0, string param1, OnLocalization callback, ILocalizationCollection collection)
 	{
 		mLocalizationManager.registeLocalization(this, mainText, param0, param1, callback);
 		collection.addLocalizationObject(this);
 	}
-	public void setLocalizationText(string mainText, IList<string> paramList, OnLocalization callback, ILocalizationCollection collection)
+	public void setText(string mainText, IList<string> paramList, OnLocalization callback, ILocalizationCollection collection)
 	{
 		mLocalizationManager.registeLocalization(this, mainText, paramList, callback);
 		collection.addLocalizationObject(this);
 	}
-	public void setLocalizationText(int textID, ILocalizationCollection collection)
+	public void setText(int textID, ILocalizationCollection collection)
 	{
 		mLocalizationManager.registeLocalization(this, textID);
 		collection.addLocalizationObject(this);

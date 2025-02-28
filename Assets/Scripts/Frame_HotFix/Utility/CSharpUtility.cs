@@ -711,7 +711,7 @@ public class CSharpUtility
 		return result;
 	}
 	// 以批处理方式运行exe
-	public static void executeExeBatch(string workingDir, string fullExePath, string args, bool showError = true, bool showInfo = true, StringCallback infoCallback = null)
+	public static void executeExeBatch(string workingDir, string fullExePath, string args, int waitMilliSeconds = -1, bool showError = true, bool showInfo = true, StringCallback infoCallback = null)
 	{
 		using Process process = new();
 		ProcessStartInfo startInfo = process.StartInfo;
@@ -760,7 +760,7 @@ public class CSharpUtility
 			process.Start();
 			process.BeginOutputReadLine();
 			process.BeginErrorReadLine();
-			process.WaitForExit();
+			process.WaitForExit(waitMilliSeconds);
 			process.Close();
 		}
 		catch (Exception e)
@@ -773,24 +773,24 @@ public class CSharpUtility
 	{
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
-			executeExeBatch(null, "cmd.exe", "/c " + stringsToString(cmdList, " & "), showError, showInfo, infoCallback);
+			executeExeBatch(null, "cmd.exe", "/c " + stringsToString(cmdList, " & "), -1, showError, showInfo, infoCallback);
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
-			executeExeBatch(null, "/bin/bash", "-c \"" + stringsToString(cmdList, " ; ") + "\"", showError, showInfo, infoCallback);
+			executeExeBatch(null, "/bin/bash", "-c \"" + stringsToString(cmdList, " ; ") + "\"", -1, showError, showInfo, infoCallback);
 		}
 	}
 	// 在指定仓库中执行git命令
 	public static void executeGitCmd(string repoFullPath, string args, bool showError, bool showInfo, StringCallback infoCallback = null)
 	{
 		log("execute git cmd : " + args);
-		executeExeBatch(repoFullPath, "git", args, showError, showInfo, infoCallback);
+		executeExeBatch(repoFullPath, "git", args, -1, showError, showInfo, infoCallback);
 	}
 	// 执行脚本文件,macOS中使用
 	public static void executeShell(string args, bool showError, bool showInfo, StringCallback infoCallback = null)
 	{
 		log("execute shell : " + args);
-		executeExeBatch(null, "/bin/sh", args, showError, showInfo, infoCallback);
+		executeExeBatch(null, "/bin/sh", args, -1, showError, showInfo, infoCallback);
 	}
 	// 压缩为zip文件,路径为绝对路径
 	public static void compressZipFile(string fileNameWithPath, string zipFileNameWithPath)

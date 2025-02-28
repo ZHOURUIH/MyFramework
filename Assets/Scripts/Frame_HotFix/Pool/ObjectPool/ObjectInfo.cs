@@ -32,12 +32,21 @@ public class ObjectInfo : ClassObject
 	// 同步创建物体
 	public void createObject(GameObject prefab, string fileWithPath)
 	{
+		if (prefab == null)
+		{
+			return;
+		}
 		mObject = instantiatePrefab(null, prefab, getFileNameWithSuffix(prefab.name), true);
 		mFileWithPath = fileWithPath;
 	}
 	// 异步创建物体
 	public void createObjectAsync(GameObject prefab, string fileWithPath, Action<ObjectInfo> callback)
 	{
+		if (prefab == null)
+		{
+			callback?.Invoke(this);
+			return;
+		}
 #if UNITY_6000_0_OR_NEWER
 		long curAssignID = mAssignID;
 		instantiatePrefabAsync(prefab, getFileName(prefab.name), true, (GameObject go)=> 

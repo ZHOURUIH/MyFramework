@@ -314,6 +314,7 @@ public class ResourceManager : FrameSystem
 		if (!name.Contains('.'))
 		{
 			logError("资源文件名需要带后缀:" + name);
+			doneCallback?.Invoke(null, null, null, name);
 			return null;
 		}
 		if (mLoadSource == LOAD_SOURCE.ASSET_DATABASE)

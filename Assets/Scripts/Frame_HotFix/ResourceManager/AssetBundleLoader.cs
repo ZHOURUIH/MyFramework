@@ -307,6 +307,7 @@ public class AssetBundleLoader
 		if (!mInited)
 		{
 			logError("AssetBundleLoader is not inited!");
+			doneCallback?.Invoke(null, null, null, fileName);
 			return null;
 		}
 		string fileNameLower = fileName.ToLower();

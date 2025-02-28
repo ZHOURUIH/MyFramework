@@ -23,6 +23,11 @@ public class KeyFrameManager : FrameSystem
 		// 在编辑器中编辑的曲线
 		mResourceManager.loadGameResourceAsync(KEY_FRAME_FILE, (GameObject asset) =>
 		{
+			if (asset == null)
+			{
+				callback?.Invoke();
+				return;
+			}
 			// 删除所有ID大于100的,也就是通过加载资源获得的曲线
 			int deleteCount = 0;
 			Span<int> deleteKeys = stackalloc int[mCurveList.Count];
@@ -43,6 +48,7 @@ public class KeyFrameManager : FrameSystem
 			if (!keyFrameObject.TryGetComponent<GameKeyframe>(out var gameKeyframe))
 			{
 				logError("object in KeyFrame folder must has GameKeyframe Component!");
+				callback?.Invoke();
 				return;
 			}
 			foreach (CurveInfo curveInfo in gameKeyframe.mCurveList)

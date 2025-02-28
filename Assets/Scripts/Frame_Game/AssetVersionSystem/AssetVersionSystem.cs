@@ -78,6 +78,11 @@ public class AssetVersionSystem : FrameSystem
 		{
 			return F_ASSET_BUNDLE_PATH + filePath;
 		}
+		else if (mReadPathType == ASSET_READ_PATH.REMOTE_ASSETS_ONLY)
+		{
+			// 返回null,会自动开始下载
+			return null;
+		}
 		logError("无法获取文件路径,filePath:" + filePath);
 		return null;
 	}

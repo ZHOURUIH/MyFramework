@@ -10,6 +10,7 @@ using static FrameUtility;
 using static BinaryUtility;
 using static StringUtility;
 using static FrameBase;
+using static FrameEditorUtility;
 
 // 封装的Http的相关操作,因为其中全是静态工具函数,所以名字为Utility,但是由于需要管理一些线程,所以与普通的工具函数类不同
 public class HttpUtility
@@ -180,6 +181,10 @@ public class HttpUtility
 	// 同步Http请求
 	protected static string httpRequest(HttpWebRequest webRequest, string url, out WebExceptionStatus status, out HttpStatusCode code)
 	{
+		if (isWebGL())
+		{
+			logError("无法在WebGL平台使用C#的Http请求函数");
+		}
 		code = HttpStatusCode.OK;
 		try
 		{
@@ -214,6 +219,10 @@ public class HttpUtility
 	}
 	protected async static void httpRequestAsync(HttpWebRequest webRequest, string url, HttpCallback callback)
 	{
+		if (isWebGL())
+		{
+			logError("无法在WebGL平台使用C#的Http请求函数");
+		}
 		WebExceptionStatus status;
 		HttpStatusCode statusCode = HttpStatusCode.OK;
 		string resStr = null;

@@ -10,7 +10,8 @@ public class ScaleAnchor3D : MonoBehaviour
 	protected bool mFirstUpdate = true;					// 是否为第一次更新,如果是第一次更新,则需要获取原始属性
 	protected Vector2 mScreenScale = Vector2.one;		// 屏幕相对于标准分辨率的缩放
 	protected Vector3 mOriginPos;						// 原始的位置
-	protected Vector2 mOriginScale = Vector2.one;		// 原始的缩放
+	protected Vector2 mOriginScale = Vector2.one;       // 原始的缩放
+	public ASPECT_BASE mAspectBase = ASPECT_BASE.AUTO;
 	public void updateRect(bool force = false)
 	{
 		// 是否为编辑器手动预览操作,手动预览不需要启动游戏
@@ -29,7 +30,7 @@ public class ScaleAnchor3D : MonoBehaviour
 		}
 		mDirty = false;
 		// 只有在刷新时才能确定父节点,所以父节点需要实时获取
-		float scale = adjustScreenScale(mScreenScale, ASPECT_BASE.AUTO).x;
+		float scale = adjustScreenScale(mScreenScale, mAspectBase).x;
 		transform.localScale = mOriginScale * scale;
 		transform.localPosition = mOriginPos * scale;
 	}

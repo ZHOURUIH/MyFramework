@@ -36,4 +36,5 @@ public enum ASSET_READ_PATH : byte
 	NONE,                   // 无效值
 	SAME_TO_REMOTE,         // 读取与远端一致的文件
 	STREAMING_ASSETS_ONLY,  // 只从StreamingAssets中读取
+	REMOTE_ASSETS_ONLY,		// 只从远端读取
 }

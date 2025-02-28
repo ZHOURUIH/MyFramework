@@ -74,7 +74,7 @@ public class LT
 	}
 	public static void LOAD_ASYNC_SHOW<T>(GameLayoutCallback callback) where T : LayoutScript
 	{
-		CmdLayoutManagerLoad.execute(typeof(T), 0, LAYOUT_ORDER.FIXED, true, false, true, callback);
+		CmdLayoutManagerLoad.execute(typeof(T), 0, LAYOUT_ORDER.AUTO, true, false, true, callback);
 	}
 	public static void LOAD_ASYNC_HIDE(Type type, int renderOrder, LAYOUT_ORDER orderType, GameLayoutCallback callback)
 	{
@@ -150,21 +150,21 @@ public class LT
 	{
 		CmdLayoutManagerVisible.execute(type, true, false);
 	}
-	public static void SHOW<T>() where T : LayoutScript
+	public static T SHOW<T>() where T : LayoutScript
 	{
-		CmdLayoutManagerVisible.execute(typeof(T), true, false);
+		return CmdLayoutManagerVisible.execute(typeof(T), true, false) as T;
 	}
 	public static void SHOW_FORCE(Type type)
 	{
 		CmdLayoutManagerVisible.execute(type, true, true);
 	}
-	public static void SHOW_FORCE<T>() where T : LayoutScript
+	public static T SHOW_FORCE<T>() where T : LayoutScript
 	{
-		CmdLayoutManagerVisible.execute(typeof(T), true, true);
+		return CmdLayoutManagerVisible.execute(typeof(T), true, true) as T;
 	}
-	public static void VISIBLE<T>(bool visible) where T : LayoutScript
+	public static T VISIBLE<T>(bool visible) where T : LayoutScript
 	{
-		CmdLayoutManagerVisible.execute(typeof(T), visible, false);
+		return CmdLayoutManagerVisible.execute(typeof(T), visible, false) as T;
 	}
 	public static void VISIBLE(Type type, bool visible)
 	{
@@ -179,14 +179,14 @@ public class LT
 	public static void UNLOAD<T>() where T : LayoutScript
 	{
 		Type type = typeof(T);
-		// 需要首先强制隐藏布局
-		CmdLayoutManagerVisible.execute(type, false, true);
+		// 需要首先隐藏布局
+		CmdLayoutManagerVisible.execute(type, false, false);
 		mLayoutManager.destroyLayout(type);
 	}
 	public static void UNLOAD(Type type)
 	{
-		// 需要首先强制隐藏布局
-		CmdLayoutManagerVisible.execute(type, false, true);
+		// 需要首先隐藏布局
+		CmdLayoutManagerVisible.execute(type, false, false);
 		mLayoutManager.destroyLayout(type);
 	}
 	#endregion

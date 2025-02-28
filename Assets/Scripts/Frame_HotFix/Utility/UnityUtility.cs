@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Collections;
+#if USE_SPINE
+using Spine.Unity;
+#endif
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -961,6 +964,10 @@ public class UnityUtility
 	}
 	public static bool raycast(Ray ray, Collider collider)
 	{
+		if (collider == null)
+		{
+			return false;
+		}
 		return collider.Raycast(ray, out _, 10000.0f);
 	}
 	public static bool raycast(Ray ray, out RaycastHit hitInfo)
@@ -1357,6 +1364,36 @@ public class UnityUtility
 		TextGenerationSettings settings = textComponent.GetGenerationSettings(Vector2.zero);
 		return ceil(divide(textGenerator.GetPreferredWidth(str, settings), textComponent.pixelsPerUnit));
 	}
+#if USE_SPINE
+	public static void playSpineAnimation(SkeletonAnimation comSkeleton, string anim, bool loop, bool force = false)
+	{
+		if (comSkeleton == null || comSkeleton.Skeleton == null)
+		{
+			return;
+		}
+		if (comSkeleton.Skeleton.Data.FindAnimation(anim) == null)
+		{
+			logWarning("动画不存在:" + anim);
+			return;
+		}
+		// 避免重复播放循环动作
+		Spine.AnimationState animState = comSkeleton.AnimationState;
+		Spine.Animation curAnim = animState.GetCurrent(0)?.Animation;
+		if (!force && loop && animState.GetCurrent(0) != null && animState.GetCurrent(0).Loop && curAnim != null && curAnim.Name == anim)
+		{
+			return;
+		}
+		comSkeleton.Skeleton.SetToSetupPose();
+		animState.ClearTracks();
+		animState.SetAnimation(0, anim, loop);
+		comSkeleton.Update(0);
+		comSkeleton.LateUpdate();
+	}
+	public static void stopSpineAnimation(SkeletonAnimation comSkeleton)
+	{
+		comSkeleton.AnimationState.ClearTracks();
+	}
+#endif
 #if USE_URP
 	public static void setRenderScale(float scale)
 	{

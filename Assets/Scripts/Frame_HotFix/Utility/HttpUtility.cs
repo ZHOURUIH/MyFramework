@@ -13,6 +13,7 @@ using static FrameUtility;
 using static BinaryUtility;
 using static StringUtility;
 using static FrameBaseHotFix;
+using static FrameEditorUtility;
 
 // 封装的Http的相关操作,因为其中全是静态工具函数,所以名字为Utility,但是由于需要管理一些线程,所以与普通的工具函数类不同
 public class HttpUtility
@@ -106,10 +107,15 @@ public class HttpUtility
 	{
 		httpRequestAsync(preparePost(url, data, dataLength, contentType, header), url, callback);
 	}
-	// 异步post请求
+	// 异步post请求,webgl可用
 	public static void httpPostAsyncWebGL(string url, byte[] data, string contentType, Dictionary<string, string> header, UnityHttpCallback callback)
 	{
-		mGameFrameworkHotFix.StartCoroutine(sendPostRequest(url, data, contentType, header, callback));
+		mGameFrameworkHotFix.StartCoroutine(unityPost(url, data, contentType, header, callback));
+	}
+	// 异步post请求,webgl可用
+	public static void httpPostAsyncWebGL(string url, string param, UnityHttpCallback callback)
+	{
+		mGameFrameworkHotFix.StartCoroutine(unityPost(url, stringToBytes(param), "application/json", null, callback));
 	}
 	// 同步post请求
 	public static string httpPost(string url, out WebExceptionStatus status, out HttpStatusCode code, byte[] data, int dataLength = -1)
@@ -157,7 +163,7 @@ public class HttpUtility
 		httpPostAsync(url, stringToBytes(param), -1, contentType, header, callback);
 	}
 	// 异步post请求
-	public static void httPostAsync(string url, Dictionary<string, string> header, HttpCallback callback)
+	public static void httpPostAsync(string url, Dictionary<string, string> header, HttpCallback callback)
 	{
 		httpPostAsync(url, null, -1, "application/x-www-form-urlencoded", header, callback);
 	}
@@ -245,39 +251,6 @@ public class HttpUtility
 		stream.Write(footer, 0, footer.Length);
 		contentType = "multipart/form-data; boundary=" + boundary;
 	}
-	protected static HttpWebRequest preparePostWebGL(string url, byte[] data, int dataLength, string contentType, Dictionary<string, string> header, int timeout = 10000)
-	{
-		// 确认数据长度
-		if (dataLength < 0)
-		{
-			dataLength = data.count();
-		}
-
-		// 初始化新的webRequst
-		// 创建httpWebRequest对象
-		ServicePointManager.ServerCertificateValidationCallback = myRemoteCertificateValidationCallback;
-		var webRequest = (HttpWebRequest)WebRequest.Create(new Uri(url));
-		// 初始化HttpWebRequest对象
-		webRequest.Method = "POST";
-		foreach (var item in header.safe())
-		{
-			webRequest.Headers.Add(item.Key, item.Value);
-		}
-		webRequest.ContentType = contentType;
-		webRequest.ContentLength = dataLength;
-		webRequest.Credentials = CredentialCache.DefaultCredentials;
-		webRequest.Timeout = timeout;
-		webRequest.AllowAutoRedirect = true;
-		// 附加要POST给服务器的数据到HttpWebRequest对象,附加POST数据的过程比较特殊
-		// 它并没有提供一个属性给用户存取，需要写入HttpWebRequest对象提供的一个stream里面
-		// 创建一个Stream,赋值是写入HttpWebRequest对象提供的一个stream里面
-		if (data != null)
-		{
-			using Stream newStream = webRequest.GetRequestStream();
-			newStream.Write(data, 0, dataLength);
-		}
-		return webRequest;
-	}
 	protected static HttpWebRequest preparePost(string url, byte[] data, int dataLength, string contentType, Dictionary<string, string> header, int timeout = 10000)
 	{
 		// 确认数据长度
@@ -332,6 +305,10 @@ public class HttpUtility
 	// 同步Http请求
 	protected static string httpRequest(HttpWebRequest webRequest, string url, out WebExceptionStatus status, out HttpStatusCode code)
 	{
+		if (isWebGL())
+		{
+			logError("无法在WebGL平台使用C#的Http请求函数");
+		}
 		code = HttpStatusCode.OK;
 		try
 		{
@@ -366,45 +343,10 @@ public class HttpUtility
 	}
 	protected async static void httpRequestAsync(HttpWebRequest webRequest, string url, HttpCallback callback)
 	{
-		WebExceptionStatus status;
-		HttpStatusCode statusCode = HttpStatusCode.OK;
-		string resStr = null;
-		try
+		if (isWebGL())
 		{
-			var httpResponse = (HttpWebResponse)await webRequest.GetResponseAsync();
-			statusCode = httpResponse.StatusCode;
-			// 读取服务器的返回信息
-			if (statusCode == HttpStatusCode.OK)
-			{
-				using StreamReader reader = new(httpResponse.GetResponseStream(), Encoding.UTF8);
-				resStr = reader.ReadToEnd();
-				status = WebExceptionStatus.Success;
-			}
-			else
-			{
-				resStr = null;
-				status = WebExceptionStatus.UnknownError;
-				logWarning("http post result error, code:" + statusCode + ", url:" + url);
-			}
+			logError("无法在WebGL平台使用C#的Http请求函数");
 		}
-		catch (WebException e)
-		{
-			status = e.Status;
-			logWarning("http post result web exception:" + e.Message + ", status:" + e.Status + ", code:" + statusCode + ", url:" + url);
-		}
-		catch (Exception e)
-		{
-			status = WebExceptionStatus.UnknownError;
-			logWarning("http post result exception:" + e.Message + ", statusCode:" + statusCode + ", url:" + url);
-		}
-		if (mGameFrameworkHotFix != null && !mGameFrameworkHotFix.isDestroy())
-		{
-			callback?.Invoke(resStr, status, statusCode);
-		}
-		webRequest.Abort();
-	}
-	protected async static void httpRequestAsyncWebGL(HttpWebRequest webRequest, string url, HttpCallback callback)
-	{
 		WebExceptionStatus status;
 		HttpStatusCode statusCode = HttpStatusCode.OK;
 		string resStr = null;
@@ -463,7 +405,7 @@ public class HttpUtility
 		}
 		return parameters.ToString();
 	}
-	protected static IEnumerator sendPostRequest(string url, byte[] data, string contentType, Dictionary<string, string> header, UnityHttpCallback callback)
+	protected static IEnumerator unityPost(string url, byte[] data, string contentType, Dictionary<string, string> header, UnityHttpCallback callback)
 	{
 		// 创建一个UnityWebRequest对象，指定为POST请求
 		UnityWebRequest request = new(url, UnityWebRequest.kHttpVerbPOST);
@@ -471,7 +413,7 @@ public class HttpUtility
 		// 设置Content-Type头为application/json
 		request.SetRequestHeader("Content-Type", contentType);
 		request.timeout = 10;
-		foreach (var item in header)
+		foreach (var item in header.safe())
 		{
 			request.SetRequestHeader(item.Key, item.Value);
 		}

@@ -261,8 +261,12 @@ public class PrefabPoolManager : FrameSystem
 	{
 		objInfo.setPool(pool);
 		objInfo.setMoveToHide(moveToHide);
-		addToInstanceList(objInfo);
 		GameObject go = objInfo.getObject();
+		if (go == null)
+		{
+			return;
+		}
+		mInstanceList.TryAdd(go, objInfo);
 		// 返回前先确保物体是挂接到预设管理器下的
 		if (parent == null)
 		{
@@ -283,9 +287,5 @@ public class PrefabPoolManager : FrameSystem
 			prefabPool.setFileName(fileWithPath);
 		}
 		return prefabPool;
-	}
-	protected void addToInstanceList(ObjectInfo obj)
-	{
-		mInstanceList.TryAdd(obj.getObject(), obj);
 	}
 }

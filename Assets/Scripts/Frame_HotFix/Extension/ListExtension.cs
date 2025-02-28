@@ -162,7 +162,7 @@ public static class ListExtension
 		}
 		return list[index];
 	}
-	public static T add<T>(this IList<T> list, T value)
+	public static T add<T>(this List<T> list, T value)
 	{
 		list.Add(value);
 		return value;

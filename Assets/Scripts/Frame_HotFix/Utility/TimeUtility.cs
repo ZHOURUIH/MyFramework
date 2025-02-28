@@ -47,6 +47,18 @@ public class TimeUtility
 	public static long getNowUTCTimeStamp() { return dateTimeToTimeStamp(DateTime.UtcNow); }
 	// 获得当前的UTC时间戳,以毫秒为单位
 	public static long getNowUTCTimeStampMS() { return dateTimeToTimeStampMS(DateTime.UtcNow); }
+	// 判断两个时间戳是否在同一天
+	public static bool isSameDay(long time0, long time1)
+	{
+		return isSameDay(timeStampMSToDateTimeUTC(time0), timeStampMSToDateTimeUTC(time1));
+	}
+	// 判断两个时间是否在同一天
+	public static bool isSameDay(DateTime date0, DateTime date1)
+	{
+		return date0.Year == date1.Year &&
+			   date0.Month == date1.Month &&
+			   date0.Day == date1.Day;
+	}
 	// 获取今天的时间,如果hour为0,就是今天的凌晨0点
 	public static DateTime getTodayTime(int hour, int minute = 0, int second = 0)
 	{
@@ -56,8 +68,7 @@ public class TimeUtility
 	// 获得明天的时间,如果hour为0,就是今天的晚上12点
 	public static DateTime getTomorrowTime(int hour, int minute = 0, int second = 0)
 	{
-		DateTime now = DateTime.Now;
-		now = now.AddDays(1);
+		DateTime now = DateTime.Now.AddDays(1);
 		return new DateTime(now.Year, now.Month, now.Day, hour, minute, second);
 	}
 	// 获取从现在到晚上12点的时间差
@@ -327,28 +338,26 @@ public class TimeUtility
 		}
 		return EMPTY;
 	}
-	public static DateTime getTodayEnd()
+	public static DateTime getDayEnd(long timeSecond) { return timeStampToDateTime(timeSecond).AddDays(1); }
+	public static DateTime getDayEnd() { return getDayEnd(DateTime.Today); }
+	public static DateTime getDayEnd(DateTime dateTime) { return dateTime.AddDays(1); }
+	public static DateTime getWeekEnd() { return getWeekEnd(DateTime.Today); }
+	public static DateTime getWeekEnd(long timeSecond) { return getWeekEnd(timeStampToDateTime(timeSecond)); }
+	public static DateTime getWeekEnd(DateTime dateTime)
 	{
-		return DateTime.Today.AddDays(1);
-	}
-	public static DateTime getWeekEnd()
-	{
-		DateTime dateTime = DateTime.Today;
-		if(dateTime.DayOfWeek == 0)
+		if (dateTime.DayOfWeek == 0)
 		{
 			return dateTime.AddDays(1);
 		}
 		return dateTime.AddDays(7 - (int)dateTime.DayOfWeek + 1);
 	}
-	public static DateTime getMonthEnd()
-	{
-		return new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(1);
-	}
-	public static DateTime getYearEnd()
-	{
-		return new DateTime(DateTime.Today.Year + 1, 1, 1);
-	}
-	public static int getTodayEndRemain() { return (int)(getTodayEnd() - DateTime.Now).TotalSeconds; }
+	public static DateTime getMonthEnd() { return getMonthEnd(DateTime.Today); }
+	public static DateTime getMonthEnd(long timeStamp) { return getMonthEnd(timeStampToDateTime(timeStamp)); }
+	public static DateTime getMonthEnd(DateTime dateTime) { return new DateTime(dateTime.Year, dateTime.Month, 1).AddMonths(1); }
+	public static DateTime getYearEnd() { return getYearEnd(DateTime.Today); }
+	public static DateTime getYearEnd(long timeStamp) { return getYearEnd(timeStampToDateTime(timeStamp)); }
+	public static DateTime getYearEnd(DateTime dateTime) { return new DateTime(dateTime.Year + 1, 1, 1); }
+	public static int getTodayEndRemain() { return (int)(getDayEnd() - DateTime.Now).TotalSeconds; }
 	public static int getWeekEndRemain() { return (int)(getWeekEnd() - DateTime.Now).TotalSeconds; }
 	public static int getMonthEndRemain() { return (int)(getMonthEnd() - DateTime.Now).TotalSeconds; }
 	public static int getYearEndRemain() { return (int)(getYearEnd() - DateTime.Now).TotalSeconds; }

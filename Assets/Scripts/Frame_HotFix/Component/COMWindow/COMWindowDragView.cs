@@ -110,25 +110,25 @@ public class COMWindowDragView : GameComponent
 			Vector3 moveDelta = mInputSystem.getTouchPoint(mTouchID).getCurPosition() - mStartDragMousePosition;
 			if (!isVectorZero(moveDelta))
 			{
-			if (mDragDirection == DRAG_DIRECTION.HORIZONTAL)
-			{
-				moveDelta.y = 0.0f;
+				if (mDragDirection == DRAG_DIRECTION.HORIZONTAL)
+				{
+					moveDelta.y = 0.0f;
+				}
+				else if (mDragDirection == DRAG_DIRECTION.VERTICAL)
+				{
+					moveDelta.x = 0.0f;
+				}
+				curPosition = mStartDragWindowPosition + moveDelta;
+				if (mClampInRange)
+				{
+					clampPosition(ref curPosition);
+				}
+				if (!isVectorEqual(prePos, curPosition))
+				{
+					setPosition(curPosition);
+					mDragingCallback?.Invoke();
+				}
 			}
-			else if (mDragDirection == DRAG_DIRECTION.VERTICAL)
-			{
-				moveDelta.x = 0.0f;
-			}
-			curPosition = mStartDragWindowPosition + moveDelta;
-			if (mClampInRange)
-			{
-				clampPosition(ref curPosition);
-			}
-			if (!isVectorEqual(prePos, curPosition))
-			{
-				setPosition(curPosition);
-				mDragingCallback?.Invoke();
-			}
-		}
 		}
 		else
 		{
