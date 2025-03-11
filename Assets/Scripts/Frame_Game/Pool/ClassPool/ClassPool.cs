@@ -93,7 +93,7 @@ public class ClassPool : FrameSystem
 		{
 			// 添加到已使用列表
 			var inuseList = onlyOnce ? mInusedList : mPersistentInuseList;
-			if (!inuseList.tryGetOrAddNew(type).Add(obj))
+			if (!inuseList.getOrAddNew(type).Add(obj))
 			{
 				Debug.LogError("对象已经在已使用列表中了,不能再添加,是否为持久使用:" + onlyOnce + ", 创建来源:" + IToS(createSource) + ", type:" + type);
 			}
@@ -120,7 +120,7 @@ public class ClassPool : FrameSystem
 
 		// 加入未使用列表
 		Type type = temp.GetType();
-		var objList = mUnusedList.tryGetOrAddNew(type);
+		var objList = mUnusedList.getOrAddNew(type);
 		if (isEditor())
 		{
 			mObjectStack.Remove(temp);
@@ -160,7 +160,7 @@ public class ClassPool : FrameSystem
 			classObject.setPendingDestroy(true);
 			classObject.destroy();
 			Type type = classObject.GetType();
-			var objList = mUnusedList.tryGetOrAddNew(type);
+			var objList = mUnusedList.getOrAddNew(type);
 			if (isEditor())
 			{
 				mObjectStack.Remove(classObject);

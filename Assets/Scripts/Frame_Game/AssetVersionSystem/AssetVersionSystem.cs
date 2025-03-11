@@ -288,8 +288,8 @@ public class AssetVersionSystem : FrameSystem
 					isSame = fileInfoList.Count == fileList.Count;
 					if (isSame)
 					{
-						using var b = new ListScope<string>(out var existFileList);
-						existFileList.addRange(fileInfoList.Keys).Sort();
+						using var b = new ListScope<string>(out var existFileList, fileInfoList.Keys);
+						existFileList.Sort();
 						fileList.Sort();
 						for (int i = 0; i < fileList.Count; ++i)
 						{

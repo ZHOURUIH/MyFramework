@@ -186,7 +186,7 @@ public class CharacterManager : FrameSystem
 		}
 		long guid = character.getGUID();
 		// 加入到角色分类列表
-		mCharacterTypeList.tryGetOrAddNew(character.getType()).Add(guid, character);
+		mCharacterTypeList.getOrAddNew(character.getType()).Add(guid, character);
 		// 加入ID索引表
 		if (!mCharacterGUIDList.TryAdd(guid, character))
 		{

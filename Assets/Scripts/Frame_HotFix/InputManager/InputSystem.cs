@@ -235,7 +235,7 @@ public class InputSystem : FrameSystem
 			mKeyListenList.add(key, list);
 		}
 		list.add(info);
-		mListenerList.tryGetOrAddNew(listener).TryAdd(callback, info);
+		mListenerList.getOrAddNew(listener).TryAdd(callback, info);
 	}
 	// 移除监听者的所有按键监听
 	public void unlistenKey(IEventListener listener)

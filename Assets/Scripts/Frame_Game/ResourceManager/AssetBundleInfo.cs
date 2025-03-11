@@ -150,8 +150,7 @@ public class AssetBundleInfo : ClassObject
 	// 查找所有依赖项
 	public void findAllDependence()
 	{
-		using var a = new ListScope<string>(out var tempList);
-		tempList.AddRange(mParents.Keys);
+		using var a = new ListScope<string>(out var tempList, mParents.Keys);
 		foreach (string depName in tempList)
 		{
 			AssetBundleInfo info = mResourceManager.getAssetBundleLoader().getAssetBundleInfo(depName);
@@ -274,7 +273,7 @@ public class AssetBundleInfo : ClassObject
 		}
 		AssetInfo info = mAssetList.get(fileNameWithSuffix);
 		UObject[] objs = info.loadAsset();
-		UObject asset = objs.getSafe(0);
+		UObject asset = objs.get(0);
 		mainAsset = asset;
 		if (asset != null)
 		{

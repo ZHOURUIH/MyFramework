@@ -95,8 +95,7 @@ public class EditorFileUtility
 	// 打开一个文本文件进行处理,然后再写回文本文件
 	public static void processFileLine(string fileName, Action<List<string>> process)
 	{
-		using var a = new ListScope<string>(out var fileLineList);
-		fileLineList.AddRange(openTxtFileLines(fileName));
+		using var a = new ListScope<string>(out var fileLineList, openTxtFileLines(fileName));
 		process(fileLineList);
 		writeTxtFile(fileName, stringsToString(fileLineList, "\r\n"));
 	}

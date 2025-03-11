@@ -10,11 +10,11 @@ public static class HashSetExtension
 	}
 	public static HashSet<T> setRange<T>(this HashSet<T> list, IEnumerable<T> other)
 	{
+		list.Clear();
 		if (other == null || other.Count() == 0)
 		{
 			return list;
 		}
-		list.Clear();
 		foreach (T item in other)
 		{
 			list.Add(item);

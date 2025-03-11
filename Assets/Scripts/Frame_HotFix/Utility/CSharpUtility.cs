@@ -683,7 +683,7 @@ public class CSharpUtility
 	}
 	public static IPAddress hostNameToIPAddress(string hostName)
 	{
-		return Dns.GetHostAddresses(hostName).getSafe(0);
+		return Dns.GetHostAddresses(hostName).get(0);
 	}
 	public static bool isEnumValid<T>(T value) where T : Enum
 	{
@@ -696,7 +696,7 @@ public class CSharpUtility
 			logError(typeof(T) + "枚举不包含值:" + value);
 		}
 	}
-	public static bool launchExe(string dir, string args, int timeout, bool hidden = false)
+	public static bool launchExe(string dir, string args, int timeoutMilliseconds, bool hidden = false)
 	{
 		ProcessCreationFlags flags = hidden ? ProcessCreationFlags.CREATE_NO_WINDOW : ProcessCreationFlags.NONE;
 		STARTUPINFO startupinfo = new()
@@ -707,7 +707,7 @@ public class CSharpUtility
 		PROCESS_INFORMATION processinfo = new();
 		bool result = Kernel32.CreateProcessW(null, dir + " " + args, IntPtr.Zero, IntPtr.Zero, false, flags, 
 											  IntPtr.Zero, path, ref startupinfo, ref processinfo);
-		Kernel32.WaitForSingleObject(processinfo.hProcess, timeout);
+		Kernel32.WaitForSingleObject(processinfo.hProcess, timeoutMilliseconds);
 		return result;
 	}
 	// 以批处理方式运行exe

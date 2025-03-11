@@ -30,7 +30,7 @@ public class CameraLinkerSmoothFollow : CameraLinkerThirdPerson
 	{
 		CheckLayer checkLayer = new(layer, direction, checkDistance, minDistance);
 		mCheckLayer.Add(checkLayer);
-		mCheckDirectionList.tryGetOrAddNew(direction).Add(checkLayer);
+		mCheckDirectionList.getOrAddNew(direction).Add(checkLayer);
 	}
 	public void removeCheckLayer(int layer, CHECK_DIRECTION direction)
 	{

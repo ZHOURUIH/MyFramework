@@ -112,7 +112,7 @@ public class FrameUtility
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 列表对象池
-	public static void LIST<T>(out List<T> list)
+	public static void LIST<T>(out List<T> list, IEnumerable<T> initList = null)
 	{
 		if (mGameFramework == null || mListPool == null)
 		{
@@ -121,8 +121,12 @@ public class FrameUtility
 		}
 		string stackTrace = mGameFramework.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
 		list = mListPool.newList(typeof(T), typeof(List<T>), stackTrace, true) as List<T>;
+		if (initList != null)
+		{
+			list.AddRange(initList);
+		}
 	}
-	public static void LIST_PERSIST<T>(out List<T> list)
+	public static void LIST_PERSIST<T>(out List<T> list, IEnumerable<T> initList = null)
 	{
 		if (mGameFramework == null || mListPool == null)
 		{
@@ -131,6 +135,10 @@ public class FrameUtility
 		}
 		string stackTrace = mGameFramework.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
 		list = mListPool.newList(typeof(T), typeof(List<T>), stackTrace, false) as List<T>;
+		if (initList != null)
+		{
+			list.AddRange(initList);
+		}
 	}
 	public static void UN_LIST<T>(ref List<T> list)
 	{
@@ -140,7 +148,7 @@ public class FrameUtility
 		}
 		mListPool.destroyList(ref list, typeof(T));
 	}
-	public static void SET_PERSIST<T>(out HashSet<T> list)
+	public static void SET_PERSIST<T>(out HashSet<T> list, IEnumerable<T> initList = null)
 	{
 		if (mGameFramework == null || mListPool == null)
 		{
@@ -149,6 +157,10 @@ public class FrameUtility
 		}
 		string stackTrace = mGameFramework.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
 		list = mHashSetPool.newList(typeof(T), typeof(HashSet<T>), stackTrace, false) as HashSet<T>;
+		if (initList != null)
+		{
+			list.addRange(initList);
+		}
 	}
 	public static void DIC_PERSIST<K, V>(out Dictionary<K, V> list)
 	{

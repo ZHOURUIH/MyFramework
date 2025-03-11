@@ -38,7 +38,7 @@ public class StateManager : FrameSystem
 	}
 	public void assignGroup(Type groupType, Type state, bool mainState = false)
 	{
-		mStateGroupList.tryGetOrAddNew(state).Add(groupType);
+		mStateGroupList.getOrAddNew(state).Add(groupType);
 		if (!mGroupStateList.TryGetValue(groupType, out StateGroup group))
 		{
 			logError("找不到状态组,无法将状态指定到组中,状态组类型:" + groupType);

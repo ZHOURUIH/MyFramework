@@ -1,18 +1,31 @@
-﻿using System.Collections.Generic;
-using UnityEditor.SceneManagement;
+﻿#if USE_TMP
+using TMPro;
+#endif
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEditor.SceneManagement;
 using UObject = UnityEngine.Object;
 using static WidgetUtility;
+using static StringUtility;
 using static MathUtility;
 using static EditorCommonUtility;
 using static FileUtility;
 using static FrameDefine;
 using static FrameDefineBase;
 
+// 添加InitializeOnLoad使每次重新编译后都执行MenuShortcutOperation构造
+[InitializeOnLoad]
 public class MenuShortcutOperation
 {
+	private const string PENDING_RESTART_KEY = "Replay_PendingRestart";
+	private static bool mIsEventRegistered;
+	static MenuShortcutOperation()
+	{
+		// 每次脚本重载后检查未完成的重启操作
+		AssemblyReloadEvents.afterAssemblyReload += CheckPendingRestart;
+		CheckPendingRestart();
+	}
 	[MenuItem("快捷操作/启动游戏 _F5", false, 0)]
 	public static void startGame()
 	{
@@ -36,6 +49,25 @@ public class MenuShortcutOperation
 		if (EditorApplication.isPlaying)
 		{
 			EditorApplication.Step();
+		}
+	}
+	[MenuItem("快捷操作/重新运行 _F8", false, 2)]
+	public static void replayGame()
+	{
+		if (EditorApplication.isPlaying)
+		{
+			// 标记需要重启并退出播放模式
+			EditorPrefs.SetBool(PENDING_RESTART_KEY, true);
+			EditorApplication.isPlaying = false;
+			if (!mIsEventRegistered)
+			{
+				EditorApplication.playModeStateChanged += OnPlayModeChanged;
+				mIsEventRegistered = true;
+			}
+		}
+		else
+		{
+			EditorApplication.isPlaying = true;
 		}
 	}
 	[MenuItem("快捷操作/打开初始场景 _F9", false, 3)]
@@ -257,5 +289,107 @@ public class MenuShortcutOperation
 	public static void decryptDllFile()
 	{
 		EditorWindow.GetWindow<DecryptDllWindow>(true, "解密dll", true).start();
+	}
+#if USE_TMP
+	[MenuItem("快捷操作/将Text替换成TMPro", false, 42)]
+	public static void textToTMPro()
+	{
+		GameObject go = Selection.gameObjects.get(0);
+		if (go == null)
+		{
+			Debug.LogError("需要在Hierarchy中选中一个节点");
+			return;
+		}
+		var list = go.GetComponentsInChildren<Text>();
+		bool dirty = list.count() > 0;
+		foreach (Text item in list)
+		{
+			doTextReplaceToTMPro(item);
+		}
+		if (dirty)
+		{
+			EditorUtility.SetDirty(go);
+		}
+	}
+#endif
+//------------------------------------------------------------------------------------------------------------------------------
+#if USE_TMP
+	protected static void doTextReplaceToTMPro(Text comText)
+	{
+		GameObject go = comText.gameObject;
+		int fontSize = comText.fontSize;
+		string text = comText.text;
+		Color color = comText.color;
+		TextAnchor alignment = comText.alignment;
+		string fontPath = AssetDatabase.GetAssetPath(comText.font);
+		UObject.DestroyImmediate(comText);
+		Color outlineColor = Color.white;
+		if (go.TryGetComponent(out Outline comOutline))
+		{
+			outlineColor = comOutline.effectColor;
+			Debug.LogWarning("需要添加字体描边,颜色:" + colorToRGBAString(outlineColor) + ", 宽度:" + comOutline.effectDistance + ", 文本:" + text, go);
+			UObject.DestroyImmediate(comOutline);
+		}
+		if (!go.TryGetComponent(out TextMeshProUGUI comTMP))
+		{
+			comTMP = go.AddComponent<TextMeshProUGUI>();
+		}
+		comTMP.text = text;
+		comTMP.font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(replaceSuffix(fontPath, ".asset"));
+		comTMP.fontSize = fontSize;
+		comTMP.color = color;
+		switch (alignment)
+		{
+			case TextAnchor.UpperLeft:		comTMP.alignment = TextAlignmentOptions.TopLeft; break;
+			case TextAnchor.UpperCenter:	comTMP.alignment = TextAlignmentOptions.Top; break;
+			case TextAnchor.UpperRight:		comTMP.alignment = TextAlignmentOptions.TopRight; break;
+			case TextAnchor.MiddleLeft:		comTMP.alignment = TextAlignmentOptions.Left; break;
+			case TextAnchor.MiddleCenter:	comTMP.alignment = TextAlignmentOptions.Center; break;
+			case TextAnchor.MiddleRight:	comTMP.alignment = TextAlignmentOptions.Right; break;
+			case TextAnchor.LowerLeft:		comTMP.alignment = TextAlignmentOptions.BottomLeft; break;
+			case TextAnchor.LowerCenter:	comTMP.alignment = TextAlignmentOptions.Bottom; break;
+			case TextAnchor.LowerRight:		comTMP.alignment = TextAlignmentOptions.BottomRight; break;
+		}
+	}
+#endif
+	private static void CheckPendingRestart()
+	{
+		if (EditorPrefs.GetBool(PENDING_RESTART_KEY, false))
+		{
+			EditorPrefs.DeleteKey(PENDING_RESTART_KEY);
+			if (!EditorApplication.isPlaying)
+			{
+				Debug.Log("检测到未完成的重启请求，正在尝试重新触发...");
+				replayGame();
+			}
+		}
+	}
+	private static void OnPlayModeChanged(PlayModeStateChange state)
+	{
+		if (state == PlayModeStateChange.ExitingPlayMode)
+		{
+			// 当退出播放模式时检查编译状态
+			if (EditorApplication.isCompiling)
+			{
+				// 如果正在编译，注册编译完成监听
+				AssemblyReloadEvents.afterAssemblyReload += OnPostCompileRestart;
+				Debug.Log("检测到代码修改，等待编译完成后重启...");
+			}
+		}
+		else if (state == PlayModeStateChange.EnteredEditMode)
+		{
+			EditorApplication.playModeStateChanged -= OnPlayModeChanged;
+			mIsEventRegistered = false;
+			if (!EditorApplication.isCompiling)
+			{
+				EditorApplication.delayCall += () => { EditorApplication.isPlaying = true; };
+			}
+		}
+	}
+	private static void OnPostCompileRestart()
+	{
+		AssemblyReloadEvents.afterAssemblyReload -= OnPostCompileRestart;
+		// 代码编译完成，自动重启播放
+		EditorApplication.delayCall += () => { EditorApplication.isPlaying = true; };
 	}
 }

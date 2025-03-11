@@ -154,7 +154,7 @@ public static class ListExtension
 		}
 		return list;
 	}
-	public static T getSafe<T>(this IList<T> list, int index)
+	public static T get<T>(this IList<T> list, int index)
 	{
 		if (list == null || index < 0 || index >= list.Count)
 		{

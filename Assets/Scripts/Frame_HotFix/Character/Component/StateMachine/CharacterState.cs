@@ -100,7 +100,7 @@ public class CharacterState : ClassObject
 	public void addWillRemoveCallback(IEventListener listener, CharacterStateCallback callback) 
 	{
 		mWillRemoveCallbackList ??= new();
-		mWillRemoveCallbackList.tryGetOrAddListPersist(listener).Add(callback); 
+		mWillRemoveCallbackList.getOrAddListPersist(listener).Add(callback); 
 	}
 	// 移除回调监听,只能移除此监听者的所有监听
 	public void removeWillRemoveCallback(IEventListener listener) 

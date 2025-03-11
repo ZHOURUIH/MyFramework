@@ -39,7 +39,7 @@ public class MenuCheckResources
 				}
 			}
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("完成检查重名文件");
 	}
 	[MenuItem("检查资源/查找文件引用  %Q", false, 2)]
@@ -86,7 +86,7 @@ public class MenuCheckResources
 					displayProgressBar("查找所有资源引用", "进度: ", i + 1, count);
 					doSearchRefrence(validFiles[i], allFileText);
 				}
-				EditorUtility.ClearProgressBar();
+				clearProgressBar();
 				Debug.Log("完成查找资源引用");
 			}
 		}
@@ -135,7 +135,7 @@ public class MenuCheckResources
 					displayProgressBar("查找资源引用了哪些文件", "进度: ", i + 1, count);
 					doSearchResourceRefOther(validFiles[i], allFileText);
 				}
-				EditorUtility.ClearProgressBar();
+				clearProgressBar();
 				Debug.Log("完成查找资源引用了哪些文件");
 			}
 		}
@@ -185,7 +185,7 @@ public class MenuCheckResources
 					displayProgressBar("检查图集引用", "进度: ", i + 1, count);
 					doCheckAtlasRefrence(filePath, allFileText);
 				}
-				EditorUtility.ClearProgressBar();
+				clearProgressBar();
 			}
 		}
 		Debug.Log("完成检查图集引用");
@@ -231,7 +231,7 @@ public class MenuCheckResources
 					displayProgressBar("检查是否添加了适配组件", "进度: ", i + 1, count);
 					doCheckUIHasScaleAnchor(filePath);
 				}
-				EditorUtility.ClearProgressBar();
+				clearProgressBar();
 			}
 		}
 		Debug.Log("完成检查适配组件");
@@ -277,7 +277,7 @@ public class MenuCheckResources
 					displayProgressBar("查找未引用的资源", "进度: ", i + 1, count);
 					doCheckUnusedFile(filePath, allFileText);
 				}
-				EditorUtility.ClearProgressBar();
+				clearProgressBar();
 			}
 		}
 		Debug.Log("完成查找未引用的资源");
@@ -341,7 +341,7 @@ public class MenuCheckResources
 					// 与存着所有的材质球GUID的列表进行比对
 					if (!materialGUIDsList.Contains(guid))
 					{
-						missingRefAssetsList.tryGetOrAddNew(fileInfo.mProjectFileName).Add(guid);
+						missingRefAssetsList.getOrAddNew(fileInfo.mProjectFileName).Add(guid);
 					}
 				}
 			}
@@ -394,7 +394,7 @@ public class MenuCheckResources
 					displayProgressBar("材质贴图是否存在", "进度: ", i + 1, count);
 					EditorCommonUtility.checkMaterialTextureValid(validFiles[i], allFileMeta);
 				}
-				EditorUtility.ClearProgressBar();
+				clearProgressBar();
 			}
 		}
 		Debug.Log("完成检查材质贴图是否存在");
@@ -444,7 +444,7 @@ public class MenuCheckResources
 					displayProgressBar("材质是否引用了shader未使用的贴图", "进度: ", i + 1, count);
 					checkMaterialTexturePropertyValid(validFiles[i], allFileMeta);
 				}
-				EditorUtility.ClearProgressBar();
+				clearProgressBar();
 			}
 		}
 		Debug.Log("完成检查材质引用未使用的贴图");
@@ -532,7 +532,7 @@ public class MenuCheckResources
 					displayProgressBar("检查图集中不存在的图片", "进度: ", i + 1, count);
 					doCheckAtlasNotExistSprite(filePath);
 				}
-				EditorUtility.ClearProgressBar();
+				clearProgressBar();
 			}
 		}
 		Debug.Log("完成检查图集中不存在的图片");
@@ -555,7 +555,7 @@ public class MenuCheckResources
 				continue;
 			}
 			string MD5Str = EditorFileUtility.generateFileMD5(openFile(resourcesFilesList[i], true));
-			hasSameAssetsDic.tryGetOrAddNew(MD5Str).Add(resourcesFilesList[i]);
+			hasSameAssetsDic.getOrAddNew(MD5Str).Add(resourcesFilesList[i]);
 		}
 
 		// 输出结果
@@ -566,7 +566,7 @@ public class MenuCheckResources
 				Debug.LogError("出现重复的资源,路径为: " + stringsToString(element, '\n'), loadAsset(element[0]));
 			}
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("结束检查是否有相同文件");
 	}
 	[MenuItem("检查资源/检查预设根节点是否带变换", false, 111)]
@@ -586,7 +586,7 @@ public class MenuCheckResources
 				Debug.LogError("预设根节点变换错误:" + fileList[i], prefab);
 			}
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("完成检查预设变换");
 	}
 	[MenuItem("检查资源/检查所有Prefab文件MeshCollider的模型Read-Write", false, 112)]
@@ -630,7 +630,7 @@ public class MenuCheckResources
 			}
 			displayProgressBar("预设的模型是否开启Read-Write", "进度: ", i + 1, processCount);
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("------结束检查预设的模型是否开启Read-Write,耗时: " + (DateTime.Now - startTime));
 	}
 	[MenuItem("检查资源/检查所有场景的MeshCollider模型Read-Write", false, 113)]
@@ -683,7 +683,7 @@ public class MenuCheckResources
 				}
 			}
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		// 恢复打开之前的场景
 		EditorSceneManager.OpenScene(curScenePath, OpenSceneMode.Single);
 		Debug.Log("------结束检查所有场景的模型是否开启Read-Write,耗时: " + (DateTime.Now - startTime));
@@ -731,7 +731,7 @@ public class MenuCheckResources
 				Debug.LogError("MeshCollider的Mesh没有开启Read-Write Enable: " + collider.sharedMesh.name, go);
 			}
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("------结束检查场景的Mesh是否开启Read-Write,耗时: " + (DateTime.Now - startTime));
 	}
 	[MenuItem("检查资源/【当前场景】检查场景的Layer空对象", false, 115)]
@@ -768,7 +768,7 @@ public class MenuCheckResources
 				{
 					continue;
 				}
-				missingRefAssetsList.tryGetOrAddNew(fileInfo.mProjectFileName).Add(guid);
+				missingRefAssetsList.getOrAddNew(fileInfo.mProjectFileName).Add(guid);
 			}
 		}
 
@@ -842,7 +842,7 @@ public class MenuCheckResources
 			doCheckBuiltinUI(file, lines);
 			doCheckBuiltinFont(file, lines);
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("完成检查是否有使用了内置图片");
 	}
 	[MenuItem("检查资源/检查资源文件名规范", false, 119)]
@@ -863,7 +863,7 @@ public class MenuCheckResources
 				Debug.LogError("文件名不能包含空格或斜杠，文件名：" + fileName, loadAsset(files[i]));
 			}
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("检测结束");
 	}
 	[MenuItem("检查资源/检查所有UI布局中的Z值是否为0", false, 120)]
@@ -886,7 +886,7 @@ public class MenuCheckResources
 				}
 			}
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("结束检查所有UI布局中的Z值是否为0");
 	}
 	[MenuItem("检查资源/检查所有UI布局中根节点是否为不保持宽高比的ScaleAnchor", false, 121)]
@@ -911,7 +911,7 @@ public class MenuCheckResources
 				Debug.LogError(targetPrefab.name + " 该Layout预制体的根节点ScaleAnchor不满足不保持宽高比条件", targetPrefab);
 			}
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("结束检查所有UI布局中根节点是否为不保持宽高比的ScaleAnchor");
 	}
 	[MenuItem("检查资源/检查prefab中是否有字体引用丢失", false, 122)]
@@ -971,7 +971,7 @@ public class MenuCheckResources
 				}
 			}
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("完成检查");
 	}
 	[MenuItem("检查资源/添加缺失的ImageAtlasPath", false, 124)]
@@ -1000,7 +1000,7 @@ public class MenuCheckResources
 			AssetDatabase.SaveAssetIfDirty(prefabObj);
 		}
 		AssetDatabase.Refresh();
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("完成检查");
 	}
 	[MenuItem("检查资源/修复丢失的Sprite引用", false, 125)]
@@ -1038,7 +1038,7 @@ public class MenuCheckResources
 			AssetDatabase.SaveAssetIfDirty(prefabObj);
 		}
 		AssetDatabase.Refresh();
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("完成修复");
 	}
 	[MenuItem("检查资源/检查所有UI Prefab上的多语言文本组件", false, 125)]
@@ -1065,7 +1065,7 @@ public class MenuCheckResources
 			}
 			AssetDatabase.SaveAssetIfDirty(prefabObj);
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("完成检查");
 	}
 	[MenuItem("检查资源/查找所有UI Prefab上的多语言文本", false, 126)]
@@ -1092,7 +1092,7 @@ public class MenuCheckResources
 			}
 			AssetDatabase.SaveAssetIfDirty(prefabObj);
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("完成检查");
 	}
 	[MenuItem("检查资源/检查所有代码中的中文文本", false, 127)]
@@ -1115,7 +1115,7 @@ public class MenuCheckResources
 				Debug.Log("包含中文字符串的代码:" + lines[j] + ",提取到的中文:" + chineseList[j]);
 			}
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("完成检查");
 	}
 	[MenuItem("检查资源/检查所有UI Prefab上的没有添加多语言的带文字图片", false, 128)]
@@ -1145,7 +1145,7 @@ public class MenuCheckResources
 			}
 			AssetDatabase.SaveAssetIfDirty(prefabObj);
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("完成检查");
 	}
 	[MenuItem("检查资源/检查被单一引用的文件是否与引用其的文件在同一个目录", false, 129)]
@@ -1193,7 +1193,7 @@ public class MenuCheckResources
 					displayProgressBar("检查所有被单一引用的文件", "进度: ", i + 1, count);
 					doCheckSingleUsedFile(validFiles[i], allFileText, false);
 				}
-				EditorUtility.ClearProgressBar();
+				clearProgressBar();
 			}
 		}
 		AssetDatabase.Refresh();

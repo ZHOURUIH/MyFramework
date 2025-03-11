@@ -139,7 +139,7 @@ public class ByteArrayPoolThread : FrameSystem
 	protected void addInuse(byte[] array)
 	{
 		// 加入使用列表
-		if (!mInusedList.tryGetOrAddNew(array.Length).Add(array))
+		if (!mInusedList.getOrAddNew(array.Length).Add(array))
 		{
 			Debug.LogError("array is in inuse list!");
 		}
@@ -167,7 +167,7 @@ public class ByteArrayPoolThread : FrameSystem
 	protected void addUnuse(byte[] array)
 	{
 		// 加入未使用列表
-		var arrayList = mUnusedList.tryGetOrAddNew(array.Length);
+		var arrayList = mUnusedList.getOrAddNew(array.Length);
 		if (isEditor() && arrayList.Contains(array))
 		{
 			Debug.LogError("array is in Unused list! can not add again!");
@@ -179,7 +179,7 @@ public class ByteArrayPoolThread : FrameSystem
 		// 加入未使用列表
 		foreach (byte[] array in allArrayList)
 		{
-			var arrayList = mUnusedList.tryGetOrAddNew(array.Length);
+			var arrayList = mUnusedList.getOrAddNew(array.Length);
 			if (isEditor() && arrayList.Contains(array))
 			{
 				Debug.LogError("array is in Unused list! can not add again!");

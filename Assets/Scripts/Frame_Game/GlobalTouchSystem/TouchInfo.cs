@@ -40,15 +40,7 @@ public class TouchInfo : ClassObject
 
 		using var b = new HashSetScope<IMouseEventCollect>(out var newList);
 		mGlobalTouchSystem.getAllHoverObject(newList, curPos);
-		// 触点是否刚进入了某个窗口,只有触点移动时才检测
-		foreach (IMouseEventCollect item in newList)
-		{
-			// 不过也许此时悬停窗口已经不接收输入事件了或者碰撞盒子被禁用了,需要判断一下
-			if (!mHoverList.Contains(item) && item.isActiveInHierarchy() && item.isHandleInput())
-			{
-				item.onMouseEnter(curPos, touchID);
-			}
-		}
+		// 需要先判断离开,再判断进入,逻辑更通顺一些
 		// 触点是否刚离开了某个窗口,只有触点移动时才检测
 		foreach (IMouseEventCollect item in mHoverList)
 		{
@@ -56,6 +48,15 @@ public class TouchInfo : ClassObject
 			if (!newList.Contains(item) && item.isActiveInHierarchy() && item.isHandleInput())
 			{
 				item.onMouseLeave(curPos, touchID);
+			}
+		}
+		// 触点是否刚进入了某个窗口,只有触点移动时才检测
+		foreach (IMouseEventCollect item in newList)
+		{
+			// 不过也许此时悬停窗口已经不接收输入事件了或者碰撞盒子被禁用了,需要判断一下
+			if (!mHoverList.Contains(item) && item.isActiveInHierarchy() && item.isHandleInput())
+			{
+				item.onMouseEnter(curPos, touchID);
 			}
 		}
 		mHoverList.setRange(newList);

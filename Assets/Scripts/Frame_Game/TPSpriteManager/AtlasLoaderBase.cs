@@ -137,7 +137,7 @@ public abstract class AtlasLoaderBase
 		}
 		if (loadIfNull)
 		{
-			mLoadRequestList.tryGetOrAddListPersist(atlasName).Add(CLASS(out AtlasLoadParam param));
+			mLoadRequestList.getOrAddListPersist(atlasName).Add(CLASS(out AtlasLoadParam param));
 			param.mName = atlasName;
 			param.mCallback = (UGUIAtlasPtr atlas) =>
 			{

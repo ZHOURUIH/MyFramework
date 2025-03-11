@@ -105,7 +105,7 @@ public class CheckResourcesWindow : GameEditorWindow
 									mObject = AssetDatabase.LoadAssetAtPath<UObject>(item.Key)
 								});
 							}
-							EditorUtility.ClearProgressBar();
+							clearProgressBar();
 						}
 					}
 					mCurPage = 0;

@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+#if BYTE_DANCE
+using TTSDK;
+#endif
 using UObject = UnityEngine.Object;
 using static UnityUtility;
 using static StringUtility;
@@ -479,7 +482,11 @@ public class ResourceManager : FrameSystem
 	{
 		float timer = 0.0f;
 		ulong lastDownloaded = 0;
+#if BYTE_DANCE
+		using var www = TTAssetBundle.GetAssetBundle(url);
+#else
 		using var www = UnityWebRequestAssetBundle.GetAssetBundle(url);
+#endif
 		www.SendWebRequest();
 		while (!www.isDone)
 		{
@@ -511,7 +518,11 @@ public class ResourceManager : FrameSystem
 			else
 			{
 				log("下载成功:" + url);
+#if BYTE_DANCE
+				AssetBundle assetBundle = (www.downloadHandler as DownloadHandlerTTAssetBundle).assetBundle;
+#else
 				AssetBundle assetBundle = DownloadHandlerAssetBundle.GetContent(www);
+#endif
 				assetBundle.name = url;
 				callback?.Invoke(assetBundle, null, www.downloadHandler.data, url);
 			}

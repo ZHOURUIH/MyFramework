@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using static StringUtility;
 using static UnityUtility;
+using static FrameUtility;
 
 // 数学相关工具函数,所有与数学计算相关的函数都在这里
 public class MathUtility
@@ -4030,7 +4031,180 @@ public class MathUtility
 		return isVector2Less(min0, max1) && isVector2Greater(max0, min1) ||
 			   isVector2Less(min1, max0) && isVector2Greater(max1, min0);
 	}
+	// 将凹多边形分割为多个凸多边形,暂未经过验证
+	public static void dividePolygonToTriangle(List<Vector2> originPoints, List<ConvexPolygon> polygonList)
+	{
+		using var a = new ListScope<Vector2>(out var tempVertices, originPoints);
+		bool order = isClockwise(tempVertices);
+		// 将多边形拆分成多个凸多边形
+		int startIndex = -1;
+		int curIndex = 0;
+		int maxLoopCount = 10000;
+		while (maxLoopCount-- > 0)
+		{
+			// 已经遍历到了最后一个点还是没找到可以分割的点,则剩下的就是一个凸多边形,至此全部拆分完毕
+			if (curIndex == startIndex)
+			{
+				polygonList.add(CLASS(out ConvexPolygon polygon));
+				polygon.mPoints.addRange(tempVertices);
+				break;
+			}
+			// 已经遍历到了最后一个点,仍然不是凹陷点,则剩下的就是凸多边形,否则就继续循环
+			if (startIndex == -1 && nextIndex(tempVertices.count(), curIndex) == 0 && !isConcavePoint(tempVertices, curIndex, order))
+			{
+				polygonList.add(CLASS(out ConvexPolygon polygon));
+				polygon.mPoints.addRange(tempVertices);
+				break;
+			}
+			// 寻找第一个凹陷点
+			if (startIndex < 0)
+			{
+				if (isConcavePoint(tempVertices, curIndex, order))
+				{
+					startIndex = curIndex;
+				}
+			}
+			else
+			{
+				// 找到了一个凹陷点
+				if (isConcavePoint(tempVertices, curIndex, order))
+				{
+					// 找到了第二个凹陷点
+					// 如果当前点与前一个凹陷点之间没有其他的点,则以此凹陷点为起点
+					if (nextIndex(tempVertices.Count, curIndex) == startIndex || prevIndex(tempVertices.Count, curIndex) == startIndex)
+					{
+						startIndex = curIndex;
+					}
+					// 分割当前凹陷点与前一个凹陷点之间的顶点
+					else
+					{
+						polygonList.add(CLASS(out ConvexPolygon polygon));
+						cutOffPolygon(tempVertices, polygon.mPoints, ref startIndex, ref curIndex);
+					}
+				}
+				// 如果不是凹陷点,但是当前点与找到的前一个凹陷点的夹角已经超过了180度,则以此来分割
+				else
+				{
+					int startNext = nextIndex(tempVertices.Count, startIndex);
+					if (!isConvexVertice(tempVertices, startNext, startIndex, curIndex, order))
+					{
+						polygonList.add(CLASS(out ConvexPolygon polygon));
+						curIndex = prevIndex(tempVertices.Count, curIndex);
+						cutOffPolygon(tempVertices, polygon.mPoints, ref startIndex, ref curIndex);
+					}
+				}
+			}
+			// 下标需要循环
+			curIndex = nextIndex(tempVertices.Count, curIndex);
+		}
+	}
 	//------------------------------------------------------------------------------------------------------------------------------
+	// 一个多边形中的三个点的夹角是否大于180
+	protected static bool isConvexVertice(List<Vector2> points, int index0, int index1, int index2, bool isClockwise)
+	{
+		if (index0 == index2)
+		{
+			return true;
+		}
+		// 计算叉积，判断该点是否为凹陷点
+		float crossProduct = cross(points[index0], points[index1], points[index2]);
+		// 根据整体方向判断凹陷点：如果多边形是顺时针，凹陷点的叉积应该是负的；如果是逆时针，应该是正的
+		if (isClockwise)
+		{
+			return crossProduct > 0;  // 顺时针时，凹陷点应该是正叉积
+		}
+		else
+		{
+			return crossProduct < 0;  // 逆时针时，凹陷点应该是负叉积
+		}
+	}
+	// 计算叉积，返回值表示两个向量的旋转方向
+	protected static float cross(Vector2 p1, Vector2 p2, Vector2 p3)
+	{
+		return (p2.x - p1.x) * (p3.y - p2.y) - (p2.y - p1.y) * (p3.x - p2.x);
+	}
+
+	// 判断多边形的整体方向（顺时针还是逆时针）
+	protected static bool isClockwise(List<Vector2> polygon)
+	{
+		float sum = 0;
+		int n = polygon.Count;
+		for (int i = 0; i < n; i++)
+		{
+			Vector2 p1 = polygon[i];
+			Vector2 p2 = polygon[(i + 1) % n];
+			sum += (p2.x - p1.x) * (p2.y + p1.y);
+		}
+		return sum > 0;  // 如果和大于0，则是顺时针，否则逆时针
+	}
+	// 判断给定多边形的一个点是否是凹陷点
+	protected static bool isConcavePoint(List<Vector2> polygon, int index, bool isClockwise)
+	{
+		int n = polygon.Count;
+		// 获取相邻的两个点
+		Vector2 p0 = polygon[(index - 1 + n) % n];  // 上一个点
+		Vector2 p1 = polygon[index];                 // 当前点
+		Vector2 p2 = polygon[(index + 1) % n];       // 下一个点
+
+		// 计算叉积，判断该点是否为凹陷点
+		float crossProduct = cross(p0, p1, p2);
+		// 根据整体方向判断凹陷点：如果多边形是顺时针，凹陷点的叉积应该是负的；如果是逆时针，应该是正的
+		if (isClockwise)
+		{
+			return crossProduct > 0;  // 顺时针时，凹陷点应该是正叉积
+		}
+		else
+		{
+			return crossProduct < 0;  // 逆时针时，凹陷点应该是负叉积
+		}
+	}
+	protected static void cutOffPolygon(List<Vector2> origin, List<Vector2> dest, ref int start, ref int end)
+	{
+		if (start < end)
+		{
+			for (int i = start; i <= end; ++i)
+			{
+				dest.add(origin[i]);
+			}
+			// 去除已经分割下的顶点时需要保留第一个和最后一个顶点
+			origin.RemoveRange(start + 1, end - (start + 1));
+			end = start;
+			// 重新寻找凹陷点
+			start = -1;
+		}
+		else if (start > end)
+		{
+			// 拆分成两部分,start->0,0->end
+			for (int i = start; i < origin.count(); ++i)
+			{
+				dest.add(origin[i]);
+			}
+			if (end == 0)
+			{
+				origin.RemoveRange(start + 1, clampMin(origin.count() - 1 - (start + 1)));
+			}
+			else
+			{
+				origin.RemoveRange(start + 1, origin.count() - (start + 1));
+			}
+
+			for (int i = 0; i <= end; ++i)
+			{
+				dest.add(origin[i]);
+			}
+			origin.RemoveRange(0, end);
+			start = 0;
+			end = 0;
+		}
+	}
+	protected static int prevIndex(int verticeCount, int index)
+	{
+		return (index - 1 + verticeCount) % verticeCount;
+	}
+	protected static int nextIndex(int verticeCount, int index)
+	{
+		return (index + 1) % verticeCount;
+	}
 	// 可以通过comparison自己决定升序还是降序,所以不再需要额外的参数
 	protected static void quickSort<T>(List<T> arr, int low, int high, Comparison<T> comparison)
 	{

@@ -1,8 +1,6 @@
 ﻿#if USE_TMP
 using UnityEngine;
-using System.Collections;
 using TMPro;
-using static UnityUtility;
 using static StringUtility;
 
 // 对TextMeshPro的Text组件的封装
@@ -45,6 +43,8 @@ public class myUGUITextTMP : myUGUIObject
 	public float getFontSize() { return mText.fontSize; }
 	public void setFontSize(float fontSize) { mText.fontSize = fontSize; }
 	public TMP_FontAsset getFont() { return mText.font; }
+	public float getPreferredWidth() { return mText.preferredWidth; }
+	public float getPreferredHeight() { return mText.preferredHeight; }
 	public void setAlignment(TextAlignmentOptions textAnchor) { mText.alignment = textAnchor; }
 }
 #endif

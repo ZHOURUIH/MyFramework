@@ -340,7 +340,7 @@ public class GlobalTouchSystem : FrameSystem
 		int touchID = touch.getTouchID();
 		Vector3 pos = touch.getCurPosition();
 		// 触点按下时记录触点的初始位置
-		TouchInfo touchInfo = mTouchInfoList.tryGetOrAddClass(touchID);
+		TouchInfo touchInfo = mTouchInfoList.getOrAddClass(touchID);
 		touchInfo.init(touch);
 		touchInfo.touchPress();
 
@@ -733,8 +733,7 @@ public class GlobalTouchSystem : FrameSystem
 		if (mActiveOnlyUIListDirty)
 		{
 			mActiveOnlyUIListDirty = false;
-			using var a = new ListScope<myUIObject>(out var list);
-			list.AddRange(mActiveOnlyUIObject.getMainList());
+			using var a = new ListScope<myUIObject>(out var list, mActiveOnlyUIObject.getMainList());
 			quickSort(list, MouseCastWindowSet.mUIDepthDescend);
 			mActiveOnlyUIObject.setRange(list);
 		}

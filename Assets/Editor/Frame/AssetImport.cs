@@ -36,8 +36,9 @@ public class AssetsImport : AssetPostprocessor
 	// 图片的导入
 	public void OnPostprocessTexture(Texture2D texture)
 	{
-#if !TWO_D_PROJECT
 		var textureImporter = assetImporter as TextureImporter;
+		// 是否启用mipmaps
+#if !TWO_D_PROJECT
 		bool needMipmaps = true;
 		foreach (string path in getNoMipmapsPath())
 		{
@@ -48,6 +49,8 @@ public class AssetsImport : AssetPostprocessor
 			}
 		}
 		textureImporter.mipmapEnabled = needMipmaps;
+#else
+		textureImporter.mipmapEnabled = false;
 #endif
 	}
 	// 导入音频,由编辑器自动在导入音频资源时调用
@@ -91,12 +94,8 @@ public class AssetsImport : AssetPostprocessor
 	public void OnPreprocessModel()
 	{
 		var modelImporter = assetImporter as ModelImporter;
-#if UNITY_2018
-		modelImporter.importMaterials = false;
-#else
 		modelImporter.materialImportMode = ModelImporterMaterialImportMode.None;
 		modelImporter.sortHierarchyByName = true;
-#endif
 		modelImporter.importCameras = false;
 		modelImporter.importLights = false;
 		modelImporter.importBlendShapes = false;

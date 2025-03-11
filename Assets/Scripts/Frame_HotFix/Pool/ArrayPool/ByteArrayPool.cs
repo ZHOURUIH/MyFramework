@@ -156,7 +156,7 @@ public class ByteArrayPool : FrameSystem
 	{
 		var typeList = onlyOnce ? mInusedList : mPersistentInuseList;
 		// 加入使用列表
-		if (!typeList.tryGetOrAddNew(array.Length).Add(array))
+		if (!typeList.getOrAddNew(array.Length).Add(array))
 		{
 			Debug.LogError("array is in inuse list!");
 		}
@@ -194,7 +194,7 @@ public class ByteArrayPool : FrameSystem
 	protected void addUnuse(byte[] array)
 	{
 		// 加入未使用列表
-		var arrayList = mUnusedList.tryGetOrAddNew(array.Length);
+		var arrayList = mUnusedList.getOrAddNew(array.Length);
 		if (isEditor() && arrayList.Contains(array))
 		{
 			Debug.LogError("array is in Unused list! can not add again!");
@@ -206,7 +206,7 @@ public class ByteArrayPool : FrameSystem
 		// 加入未使用列表
 		foreach (byte[] array in allArrayList)
 		{
-			var arrayList = mUnusedList.tryGetOrAddNew(array.Length);
+			var arrayList = mUnusedList.getOrAddNew(array.Length);
 			if (isEditor() && arrayList.Contains(array))
 			{
 				Debug.LogError("array is in Unused list! can not add again!");

@@ -26,19 +26,19 @@ public class TimeUtility
 	// 获得当前时间的字符串,display表示显示的格式
 	public static string getTimeNoBuilder(TIME_DISPLAY display) { return getTimeNoBuilder(DateTime.Now, display); }
 	// timeStamp是UTC时间戳,显示为UTC时间
-	public static string getDateTimeToUTC(long timeStamp, TIME_DISPLAY display) { return getTime(timeStampToDateTimeUTC(timeStamp), display); }
+	public static string getDateTimeToUTC(long utcTimeStamp, TIME_DISPLAY display) { return getTime(timeStampToDateTimeUTC(utcTimeStamp), display); }
 	// timeStamp是UTC时间戳,会转换为本地时间来显示
-	public static string getLocalTime(long timeStamp, TIME_DISPLAY display) { return getTime(timeStampToDateTime(timeStamp), display); }
+	public static string getLocalTime(long utcTimeStamp, TIME_DISPLAY display) { return getTime(timeStampToDateTime(utcTimeStamp), display); }
 	// 将时间转化成时间戳,dateTime是本地时间
 	public static long dateTimeToTimeStamp(DateTime dateTime) { return (long)(dateTime - mTime19700101).TotalSeconds; }
 	// 将时间转化成时间戳,dateTime是本地时间
 	public static long dateTimeToTimeStampMS(DateTime dateTime) { return (long)(dateTime - mTime19700101).TotalMilliseconds; }
 	// 将时间戳转化成时间,转换后是本地时间
-	public static DateTime timeStampToDateTime(long timeStamp) { return mTime19700101.AddSeconds(timeStamp).ToLocalTime(); }
+	public static DateTime timeStampToDateTime(long utcTimeStamp) { return mTime19700101.AddSeconds(utcTimeStamp).ToLocalTime(); }
 	// 将时间戳转化成时间,转换后是utc时间
-	public static DateTime timeStampToDateTimeUTC(long timeStamp) { return mTime19700101.AddSeconds(timeStamp); }
+	public static DateTime timeStampToDateTimeUTC(long utcTimeStamp) { return mTime19700101.AddSeconds(utcTimeStamp); }
 	// 将时间戳转化成时间,转换后是utc时间
-	public static DateTime timeStampMSToDateTimeUTC(long timeStamp) { return mTime19700101.AddMilliseconds(timeStamp); }
+	public static DateTime timeStampMSToDateTimeUTC(long utcTimeStampMS) { return mTime19700101.AddMilliseconds(utcTimeStampMS); }
 	// 获得当前的本地时间戳,以秒为单位
 	public static long getNowTimeStamp() { return dateTimeToTimeStamp(DateTime.Now); }
 	// 获得当前的本地时间戳,以毫秒为单位
@@ -47,10 +47,10 @@ public class TimeUtility
 	public static long getNowUTCTimeStamp() { return dateTimeToTimeStamp(DateTime.UtcNow); }
 	// 获得当前的UTC时间戳,以毫秒为单位
 	public static long getNowUTCTimeStampMS() { return dateTimeToTimeStampMS(DateTime.UtcNow); }
-	// 判断两个时间戳是否在同一天
-	public static bool isSameDay(long time0, long time1)
+	// 判断两个时间戳是否在同一天,time为localtime
+	public static bool isSameDay(long utcTimeStamp0, long utcTimeStamp1)
 	{
-		return isSameDay(timeStampMSToDateTimeUTC(time0), timeStampMSToDateTimeUTC(time1));
+		return isSameDay(timeStampToDateTime(utcTimeStamp0), timeStampToDateTime(utcTimeStamp1));
 	}
 	// 判断两个时间是否在同一天
 	public static bool isSameDay(DateTime date0, DateTime date1)
@@ -59,6 +59,10 @@ public class TimeUtility
 			   date0.Month == date1.Month &&
 			   date0.Day == date1.Day;
 	}
+	// 判断指定时间是否在今天,time为localtime
+	public static bool isTodayTime(long utcTimeStamp) { return isSameDay(timeStampToDateTime(utcTimeStamp), DateTime.Now); }
+	// 判断指定时间是否在今天
+	public static bool isTodayTime(DateTime date) { return isSameDay(date, DateTime.Now); }
 	// 获取今天的时间,如果hour为0,就是今天的凌晨0点
 	public static DateTime getTodayTime(int hour, int minute = 0, int second = 0)
 	{
@@ -72,15 +76,9 @@ public class TimeUtility
 		return new DateTime(now.Year, now.Month, now.Day, hour, minute, second);
 	}
 	// 获取从现在到晚上12点的时间差
-	public static TimeSpan getTimeToTodayEnd() 
-	{
-		return getTomorrowTime(0) - DateTime.Now;
-	}
+	public static TimeSpan getTimeToTodayEnd()  { return getTomorrowTime(0) - DateTime.Now; }
 	// 获取从现在到晚上12点的时间差秒数
-	public static int getSecondsToTodayEnd() 
-	{
-		return (int)getTimeToTodayEnd().TotalSeconds; 
-	}
+	public static int getSecondsToTodayEnd()  { return (int)getTimeToTodayEnd().TotalSeconds;  }
 	public static string minuteToHourMinuteString(int totalMinute)
 	{
 		minuteToHourMinute(totalMinute, out int hour, out int minute);
@@ -338,11 +336,11 @@ public class TimeUtility
 		}
 		return EMPTY;
 	}
-	public static DateTime getDayEnd(long timeSecond) { return timeStampToDateTime(timeSecond).AddDays(1); }
+	public static DateTime getDayEnd(long utcTimeStamp) { return timeStampToDateTime(utcTimeStamp).AddDays(1); }
 	public static DateTime getDayEnd() { return getDayEnd(DateTime.Today); }
 	public static DateTime getDayEnd(DateTime dateTime) { return dateTime.AddDays(1); }
 	public static DateTime getWeekEnd() { return getWeekEnd(DateTime.Today); }
-	public static DateTime getWeekEnd(long timeSecond) { return getWeekEnd(timeStampToDateTime(timeSecond)); }
+	public static DateTime getWeekEnd(long utcTimeStamp) { return getWeekEnd(timeStampToDateTime(utcTimeStamp)); }
 	public static DateTime getWeekEnd(DateTime dateTime)
 	{
 		if (dateTime.DayOfWeek == 0)
@@ -352,10 +350,10 @@ public class TimeUtility
 		return dateTime.AddDays(7 - (int)dateTime.DayOfWeek + 1);
 	}
 	public static DateTime getMonthEnd() { return getMonthEnd(DateTime.Today); }
-	public static DateTime getMonthEnd(long timeStamp) { return getMonthEnd(timeStampToDateTime(timeStamp)); }
+	public static DateTime getMonthEnd(long utcTimeStamp) { return getMonthEnd(timeStampToDateTime(utcTimeStamp)); }
 	public static DateTime getMonthEnd(DateTime dateTime) { return new DateTime(dateTime.Year, dateTime.Month, 1).AddMonths(1); }
 	public static DateTime getYearEnd() { return getYearEnd(DateTime.Today); }
-	public static DateTime getYearEnd(long timeStamp) { return getYearEnd(timeStampToDateTime(timeStamp)); }
+	public static DateTime getYearEnd(long utcTimeStamp) { return getYearEnd(timeStampToDateTime(utcTimeStamp)); }
 	public static DateTime getYearEnd(DateTime dateTime) { return new DateTime(dateTime.Year + 1, 1, 1); }
 	public static int getTodayEndRemain() { return (int)(getDayEnd() - DateTime.Now).TotalSeconds; }
 	public static int getWeekEndRemain() { return (int)(getWeekEnd() - DateTime.Now).TotalSeconds; }

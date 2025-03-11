@@ -102,7 +102,7 @@ public class HashSetPoolThread : FrameSystem
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void addInuse(IEnumerable list, Type type)
 	{
-		if (!mInusedList.tryGetOrAddNew(type).Add(list))
+		if (!mInusedList.getOrAddNew(type).Add(list))
 		{
 			Debug.LogError("list object is in inuse list!");
 		}
@@ -120,7 +120,7 @@ public class HashSetPoolThread : FrameSystem
 	protected void addUnuse(IEnumerable list, Type type)
 	{
 		// 加入未使用列表
-		var valueList = mUnusedList.tryGetOrAddNew(type);
+		var valueList = mUnusedList.getOrAddNew(type);
 		if (isEditor() && valueList.Contains(list))
 		{
 			Debug.LogError("list Object is in Unused list! can not add again!");

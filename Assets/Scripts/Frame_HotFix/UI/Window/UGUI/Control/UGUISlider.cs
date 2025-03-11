@@ -30,11 +30,11 @@ public class UGUISlider : WindowObjectUGUI, ISlider
 		newObject(out mForeground, "Foreground");
 		newObject(out mThumb, mForeground, "Thumb", false);
 	}
-	// 不需要外部调用init,由对象池来调用
 	public override void init(){}
-	// 需要调用initSlider来进行初始化设置
+	// 不需要手动调用init,调用initSlider来进行初始化设置
 	public void initSlider(bool enableDrag, DRAG_DIRECTION direction, SLIDER_MODE mode, Action sliderCallback)
 	{
+		init();
 		mEnableDrag = enableDrag;
 		mDirection = direction;
 		mMode = mode;

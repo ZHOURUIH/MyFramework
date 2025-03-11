@@ -11,12 +11,12 @@ public class ParamSet
 	}
 	public bool setParam(int index, string stringParam) 
 	{
-		if (mSetParamCallbackList.getSafe(index) is FloatCallback floatCallback)
+		if (mSetParamCallbackList.get(index) is FloatCallback floatCallback)
 		{
 			float.TryParse(stringParam, out float value);
 			floatCallback.Invoke(value);
 		}
-		else if (mSetParamCallbackList.getSafe(index) is StringCallback strCallback)
+		else if (mSetParamCallbackList.get(index) is StringCallback strCallback)
 		{
 			strCallback.Invoke(stringParam);
 		}
@@ -28,11 +28,11 @@ public class ParamSet
 	}
 	public bool setParam(int index, float floatParam, string stringParam)
 	{
-		if (mSetParamCallbackList.getSafe(index) is FloatCallback floatCallback)
+		if (mSetParamCallbackList.get(index) is FloatCallback floatCallback)
 		{
 			floatCallback.Invoke(floatParam);
 		}
-		else if (mSetParamCallbackList.getSafe(index) is StringCallback strCallback)
+		else if (mSetParamCallbackList.get(index) is StringCallback strCallback)
 		{
 			strCallback.Invoke(stringParam);
 		}

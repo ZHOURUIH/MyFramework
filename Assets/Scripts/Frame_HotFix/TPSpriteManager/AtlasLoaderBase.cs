@@ -61,8 +61,8 @@ public abstract class AtlasLoaderBase
 				{
 					break;
 				}
-				LIST_PERSIST(out paramList);
-				mLoadingList.Add(atlasName, paramList.addRange(requestList));
+				LIST_PERSIST(out paramList, requestList);
+				mLoadingList.Add(atlasName, paramList);
 				// 开始加载一个新的图集
 				baseLoadAtlasAsync(atlasName, (UObject asset, UObject[] assets, byte[] _, string loadPath) =>
 				{
@@ -142,7 +142,7 @@ public abstract class AtlasLoaderBase
 		}
 		if (loadIfNull)
 		{
-			mLoadRequestList.tryGetOrAddListPersist(atlasName).Add(CLASS(out AtlasLoadParam param));
+			mLoadRequestList.getOrAddListPersist(atlasName).Add(CLASS(out AtlasLoadParam param));
 			param.mName = atlasName;
 			param.mCallback = (UGUIAtlasPtr atlas) =>
 			{

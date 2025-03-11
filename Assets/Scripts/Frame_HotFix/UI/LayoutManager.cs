@@ -57,7 +57,7 @@ public class LayoutManager : FrameSystem
 			}
 			CmdLayoutManagerBackBlur.execute(mBackBlurLayoutList, mBackBlurLayoutList.Count > 0);
 			// 布局在隐藏时都需要确认设置层为UI层
-			setGameObjectLayer(layout.getRoot().getObject(), layout.getDefaultLayer());
+			setGameObjectLayer(layout.getRoot()?.getObject(), layout.getDefaultLayer());
 		}
 	}
 	public void setUseAnchor(bool useAnchor) { mUseAnchor = useAnchor; }

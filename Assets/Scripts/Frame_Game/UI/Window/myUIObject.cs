@@ -63,8 +63,8 @@ public class myUIObject : Transformable, IMouseEventCollect
 		// 先销毁所有子节点,因为遍历中会修改子节点列表,所以需要复制一个列表
 		if (!window.mChildList.isEmpty())
 		{
-			using var a = new ListScope<myUIObject>(out var childList);
-			foreach (myUIObject item in childList.addRange(window.mChildList))
+			using var a = new ListScope<myUIObject>(out var childList, window.mChildList);
+			foreach (myUIObject item in childList)
 			{
 				destroyWindow(item, destroyReally);
 			}

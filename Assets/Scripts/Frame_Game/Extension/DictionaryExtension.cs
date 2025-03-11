@@ -107,7 +107,15 @@ public static class DictionaryExtension
 			dic.Add(key, increase);
 		}
 	}
-	public static Dictionary<T0, T1> tryGetOrAddListPersist<Key, T0, T1>(this IDictionary<Key, Dictionary<T0, T1>> map, Key key)
+	public static void setAllValue<Key, Value>(this IDictionary<Key, Value> map, Value value)
+	{
+		using var a = new ListScope<Key>(out var temp, map.Keys);
+		foreach (Key item in temp)
+		{
+			map[item] = value;
+		}
+	}
+	public static Dictionary<T0, T1> getOrAddListPersist<Key, T0, T1>(this IDictionary<Key, Dictionary<T0, T1>> map, Key key)
 	{
 		if (!map.TryGetValue(key, out var value))
 		{
@@ -116,7 +124,7 @@ public static class DictionaryExtension
 		}
 		return value;
 	}
-	public static T tryGetOrAddClass<Key, T>(this IDictionary<Key, T> map, Key key) where T : ClassObject, new()
+	public static T getOrAddClass<Key, T>(this IDictionary<Key, T> map, Key key) where T : ClassObject, new()
 	{
 		if (!map.TryGetValue(key, out T value))
 		{
@@ -125,7 +133,7 @@ public static class DictionaryExtension
 		return value;
 	}
 	// 返回值表示是否获取到了列表中已经存在的值
-	public static bool tryGetOrAddClass<Key, T>(this IDictionary<Key, T> map, Key key, out T value) where T : ClassObject, new()
+	public static bool getOrAddClass<Key, T>(this IDictionary<Key, T> map, Key key, out T value) where T : ClassObject, new()
 	{
 		if (!map.TryGetValue(key, out value))
 		{
@@ -133,15 +141,6 @@ public static class DictionaryExtension
 			return false;
 		}
 		return true;
-	}
-	public static void setAllValue<Key, Value>(this IDictionary<Key, Value> map, Value value)
-	{
-		using var a = new ListScope<Key>(out var temp);
-		temp.AddRange(map.Keys);
-		foreach (Key item in temp)
-		{
-			map[item] = value;
-		}
 	}
 	// 返回值表示是否为列表中已经存在的对象出来的对象
 	public static bool tryGetOrAddNew<Key, Value>(this IDictionary<Key, Value> map, Key key, out Value value) where Value : new()
@@ -154,7 +153,7 @@ public static class DictionaryExtension
 		}
 		return true;
 	}
-	public static Value tryGetOrAddNew<Key, Value>(this IDictionary<Key, Value> map, Key key) where Value : new()
+	public static Value getOrAddNew<Key, Value>(this IDictionary<Key, Value> map, Key key) where Value : new()
 	{
 		if (!map.TryGetValue(key, out Value value))
 		{
@@ -163,7 +162,7 @@ public static class DictionaryExtension
 		}
 		return value;
 	}
-	public static List<T> tryGetOrAddListPersist<Key, T>(this IDictionary<Key, List<T>> map, Key key)
+	public static List<T> getOrAddListPersist<Key, T>(this IDictionary<Key, List<T>> map, Key key)
 	{
 		if (!map.TryGetValue(key, out var value))
 		{
@@ -172,7 +171,7 @@ public static class DictionaryExtension
 		}
 		return value;
 	}
-	public static HashSet<T> tryGetOrAddListPersist<Key, T>(this IDictionary<Key, HashSet<T>> map, Key key)
+	public static HashSet<T> getOrAddListPersist<Key, T>(this IDictionary<Key, HashSet<T>> map, Key key)
 	{
 		if (!map.TryGetValue(key, out var value))
 		{

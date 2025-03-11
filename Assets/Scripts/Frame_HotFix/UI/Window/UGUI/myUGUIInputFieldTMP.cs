@@ -1,10 +1,7 @@
 ﻿#if USE_TMP
-using UnityEngine;
-using System.Collections;
-using System;
 using TMPro;
+using UnityEngine;
 using UnityEngine.Events;
-using static UnityUtility;
 using static StringUtility;
 
 // 对TextMeshPro的InputField的封装
@@ -12,7 +9,7 @@ public class myUGUIInputFieldTMP : myUGUIObject
 {
 	protected UnityAction<string> mThisEditEnd;     // 避免GC的委托
 	protected TMP_InputField mInputField;			// TextMeshPro的InputField组件
-	protected OnInputField mAction;					// 输入结束时的回调
+	protected StringCallback mAction;				// 输入结束时的回调
 	public myUGUIInputFieldTMP()
 	{
 		mThisEditEnd = onEndEdit;
@@ -35,7 +32,7 @@ public class myUGUIInputFieldTMP : myUGUIObject
 		color.a = alpha;
 		mInputField.textComponent.color = color;
 	}
-	public void setOnEndEdit(OnInputField action)
+	public void setOnEndEdit(StringCallback action)
 	{
 		mAction = action;
 		mInputField.onEndEdit.AddListener(mThisEditEnd);

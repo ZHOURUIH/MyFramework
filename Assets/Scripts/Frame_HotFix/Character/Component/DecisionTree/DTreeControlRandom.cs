@@ -20,6 +20,6 @@ public class DTreeControlRandom : DTreeControl
 			}
 		}
 		// 按照权重随机选择其中一个节点
-		availableChildList.getSafe(randomHit(oddsList, count))?.execute();
+		availableChildList.get(randomHit(oddsList, count))?.execute();
 	}
 }

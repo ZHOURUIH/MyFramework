@@ -142,6 +142,8 @@ public class myUISprite : myUIObject, IShaderWindow
 			mWindowShader.applyShader(mSpriteRenderer.sharedMaterial);
 		}
 	}
+	// 谨慎使用设置RendererQueue,尤其是操作material而非sharedMaterial
+	// 操作material会复制出一个材质实例,从而导致drawcall增加
 	public void setRenderQueue(int renderQueue, bool shareMaterial = false) 
 	{
 		if (mSpriteRenderer == null)

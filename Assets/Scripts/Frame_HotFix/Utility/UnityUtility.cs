@@ -1285,7 +1285,7 @@ public class UnityUtility
 	}
 	public static string getEnumLabel(Type type, string name)
 	{
-		foreach (object item in (type.GetMember(name).getSafe(0)?.GetCustomAttributes(false)).safe())
+		foreach (object item in (type.GetMember(name).get(0)?.GetCustomAttributes(false)).safe())
 		{
 			if (item.GetType() == typeof(EnumLabelAttribute))
 			{
@@ -1300,7 +1300,7 @@ public class UnityUtility
 	}
 	public static string getEnumToolTip(Type type, string name)
 	{
-		foreach (object item in (type.GetMember(name).getSafe(0)?.GetCustomAttributes(false))?.safe())
+		foreach (object item in (type.GetMember(name).get(0)?.GetCustomAttributes(false))?.safe())
 		{
 			if (item.GetType() == typeof(TooltipAttribute))
 			{
@@ -1423,7 +1423,7 @@ public class UnityUtility
 	{
 		var ret = UObject.InstantiateAsync(origin);
 		yield return ret;
-		GameObject go = ret.Result.getSafe(0);
+		GameObject go = ret.Result.get(0);
 		if (go != null)
 		{
 			go.name = name;

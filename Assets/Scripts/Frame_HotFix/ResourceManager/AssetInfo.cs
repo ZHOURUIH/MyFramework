@@ -36,7 +36,7 @@ public class AssetInfo : ClassObject
 	public T loadAsset<T>() where T : UObject
 	{
 		doLoadAssets();
-		return mSubAssets.getSafe(0) as T;
+		return mSubAssets.get(0) as T;
 	}
 	// 同步加载所有子资源
 	public UObject[] loadAsset()
@@ -44,7 +44,7 @@ public class AssetInfo : ClassObject
 		doLoadAssets();
 		return mSubAssets;
 	}
-	public UObject getAsset() { return mSubAssets.getSafe(0); }
+	public UObject getAsset() { return mSubAssets.get(0); }
 	public string getAssetName() { return mAssetName; }
 	public void setLoadState(LOAD_STATE state) { mLoadState = state; }
 	public bool isLoaded() { return mSubAssets != null; }
@@ -105,7 +105,7 @@ public class AssetInfo : ClassObject
 		int callbackCount = callbacks.Count;
 		for (int i = 0; i < callbackCount; ++i)
 		{
-			callbacks[i](mSubAssets.getSafe(0), mSubAssets, null, paths[i]);
+			callbacks[i](mSubAssets.get(0), mSubAssets, null, paths[i]);
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------

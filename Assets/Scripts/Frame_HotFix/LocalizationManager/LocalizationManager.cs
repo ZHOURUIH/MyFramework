@@ -134,7 +134,7 @@ public class LocalizationManager : FrameSystem
 		{
 			logError("动态访问的文本对象不需要挂接LocalizationImage脚本:" + obj.getName());
 		}
-		if (mImageList.tryGetOrAddClass(obj, out ImageObjectLocalization localization))
+		if (mImageList.getOrAddClass(obj, out ImageObjectLocalization localization))
 		{
 			localization.mImageNameWithoutSuffix = null;
 		}
@@ -153,7 +153,7 @@ public class LocalizationManager : FrameSystem
 		{
 			logError("动态访问的文本对象不需要挂接LocalizationText脚本:" + obj.getName());
 		}
-		TextObjectLocalization localization = mTextList.tryGetOrAddClass(obj);
+		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mObject = obj;
 		localization.mText = text;
 		localization.mID = 0;
@@ -168,7 +168,7 @@ public class LocalizationManager : FrameSystem
 		{
 			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
 		}
-		TextObjectLocalization localization = mTextList.tryGetOrAddClass(obj);
+		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mObject = obj;
 		localization.mText = text;
 		localization.mID = 0;
@@ -184,7 +184,7 @@ public class LocalizationManager : FrameSystem
 		{
 			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
 		}
-		TextObjectLocalization localization = mTextList.tryGetOrAddClass(obj);
+		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mID = 0;
 		localization.mCallback = null;
 		localization.mObject = obj;
@@ -201,7 +201,7 @@ public class LocalizationManager : FrameSystem
 		{
 			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
 		}
-		TextObjectLocalization localization = mTextList.tryGetOrAddClass(obj);
+		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mID = 0;
 		localization.mCallback = null;
 		localization.mObject = obj;
@@ -219,7 +219,7 @@ public class LocalizationManager : FrameSystem
 		{
 			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
 		}
-		TextObjectLocalization localization = mTextList.tryGetOrAddClass(obj);
+		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mID = 0;
 		localization.mCallback = null;
 		localization.mObject = obj;
@@ -238,7 +238,7 @@ public class LocalizationManager : FrameSystem
 		{
 			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
 		}
-		TextObjectLocalization localization = mTextList.tryGetOrAddClass(obj);
+		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mID = 0;
 		localization.mCallback = null;
 		localization.mObject = obj;
@@ -253,7 +253,7 @@ public class LocalizationManager : FrameSystem
 		{
 			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
 		}
-		TextObjectLocalization localization = mTextList.tryGetOrAddClass(obj);
+		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mID = 0;
 		localization.mCallback = null;
 		localization.mObject = obj;
@@ -268,7 +268,7 @@ public class LocalizationManager : FrameSystem
 		{
 			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
 		}
-		TextObjectLocalization localization = mTextList.tryGetOrAddClass(obj);
+		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mText = null;
 		localization.mParam.Clear();
 		localization.mCallback = null;
@@ -283,7 +283,7 @@ public class LocalizationManager : FrameSystem
 		{
 			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
 		}
-		TextObjectLocalization localization = mTextList.tryGetOrAddClass(obj);
+		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mID = 0;
 		localization.mParam.Clear();
 		localization.mObject = obj;
@@ -298,7 +298,7 @@ public class LocalizationManager : FrameSystem
 		{
 			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
 		}
-		TextObjectLocalization localization = mTextList.tryGetOrAddClass(obj);
+		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mID = 0;
 		localization.mObject = obj;
 		localization.mText = mainText;
@@ -314,7 +314,7 @@ public class LocalizationManager : FrameSystem
 		{
 			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
 		}
-		TextObjectLocalization localization = mTextList.tryGetOrAddClass(obj);
+		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mID = 0;
 		localization.mObject = obj;
 		localization.mText = mainText;
@@ -331,7 +331,7 @@ public class LocalizationManager : FrameSystem
 		{
 			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
 		}
-		TextObjectLocalization localization = mTextList.tryGetOrAddClass(obj);
+		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mID = 0;
 		localization.mObject = obj;
 		localization.mText = mainText;

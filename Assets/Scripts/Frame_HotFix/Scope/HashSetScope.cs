@@ -8,7 +8,7 @@ using static StringUtility;
 public struct HashSetScope<T> : IDisposable
 {
 	private HashSet<T> mList;		// 分配的对象
-	public HashSetScope(out HashSet<T> list)
+	public HashSetScope(out HashSet<T> list, IEnumerable<T> initList = null)
 	{
 		if (mGameFrameworkHotFix == null || mHashSetPool == null)
 		{
@@ -19,6 +19,10 @@ public struct HashSetScope<T> : IDisposable
 		string stackTrace = mGameFrameworkHotFix.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
 		list = mHashSetPool.newList(typeof(T), typeof(HashSet<T>), stackTrace, true) as HashSet<T>;
 		mList = list;
+		if (initList != null)
+		{
+			mList.addRange(initList);
+		}
 	}
 	public void Dispose()
 	{

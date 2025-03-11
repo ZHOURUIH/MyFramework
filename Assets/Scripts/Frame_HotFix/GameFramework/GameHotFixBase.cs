@@ -75,7 +75,7 @@ public abstract class GameHotFixBase
 			});
 		});
 	}
-	public void callback() { mFinishCallback?.Invoke(); }
+	public static void callback() { mInstance.mFinishCallback?.Invoke(); }
 	//----------------------------------------------------------------------------------------------------------------------------------
 	protected abstract string getAndroidPluginBundleName();
 	protected abstract void registerAll();

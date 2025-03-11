@@ -160,7 +160,7 @@ public class ArrayPool : FrameSystem
 	{
 		var inuseList = onlyOnce ? mInusedList : mPersistentInuseList;
 		// 加入使用列表
-		if (!inuseList.tryGetOrAddNew(typeof(T)).tryGetOrAddNew(array.Length).Add(array))
+		if (!inuseList.getOrAddNew(typeof(T)).getOrAddNew(array.Length).Add(array))
 		{
 			Debug.LogError("array is in inuse list!");
 		}
@@ -208,7 +208,7 @@ public class ArrayPool : FrameSystem
 	protected void addUnuse<T>(T[] array)
 	{
 		// 加入未使用列表
-		var arrayList = mUnusedList.tryGetOrAddNew(typeof(T)).tryGetOrAddNew(array.Length);
+		var arrayList = mUnusedList.getOrAddNew(typeof(T)).getOrAddNew(array.Length);
 		if (isEditor() && arrayList.Contains(array))
 		{
 			Debug.LogError("array is in Unused list! can not add again!");
@@ -218,10 +218,10 @@ public class ArrayPool : FrameSystem
 	protected void addUnuse<T>(ICollection<T[]> allArrayList)
 	{
 		// 加入未使用列表
-		var typeList = mUnusedList.tryGetOrAddNew(typeof(T));
+		var typeList = mUnusedList.getOrAddNew(typeof(T));
 		foreach (T[] array in allArrayList)
 		{
-			var arrayList = typeList.tryGetOrAddNew(array.Length);
+			var arrayList = typeList.getOrAddNew(array.Length);
 			if (isEditor() && arrayList.Contains(array))
 			{
 				Debug.LogError("array is in Unused list! can not add again!");

@@ -81,7 +81,7 @@ public class AudioManager : FrameSystem
 	public void setMaxAudioCount(int maxCount) { mMaxAudioCount = maxCount; }
 	public void createStreamingAudio(string url, AudioInfoCallback callback, bool load = true)
 	{
-		if (!mAudioList.tryGetOrAddClass(url, out AudioInfo info))
+		if (!mAudioList.getOrAddClass(url, out AudioInfo info))
 		{
 			info.mAudioName = url;
 			info.mClip = null;

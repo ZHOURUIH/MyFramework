@@ -57,7 +57,7 @@ public class SceneSystem : FrameSystem
 		info.mScenePath = filePath;
 		info.mSceneType = type;
 		info.mCallback = callback;
-		mScriptMappingList.tryGetOrAddNew(type).Add(info);
+		mScriptMappingList.getOrAddNew(type).Add(info);
 	}
 	public string getScenePath(string name) { return mSceneRegisteList.get(name)?.mScenePath ?? EMPTY; }
 	public T getScene<T>(string name) where T : SceneInstance { return mSceneList.get(name) as T; }
@@ -162,8 +162,8 @@ public class SceneSystem : FrameSystem
 	// 卸载除了dontUnloadSceneName以外的其他场景,初始默认场景除外
 	public void unloadOtherScene(string dontUnloadSceneName, bool unloadPath = true)
 	{
-		using var a = new ListScope<string>(out var tempList);
-		foreach (string sceneName in tempList.addRange(mSceneList.Keys))
+		using var a = new ListScope<string>(out var tempList, mSceneList.Keys);
+		foreach (string sceneName in tempList)
 		{
 			if (sceneName != dontUnloadSceneName)
 			{

@@ -72,7 +72,7 @@ public class MenuCheckCode
 			}
 			doCheckEmptyLine(file, openTxtFileLines(file));
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("完成检查代码空行");
 	}
 	[MenuItem("检查代码/检查代码空格", false, 202)]
@@ -92,7 +92,7 @@ public class MenuCheckCode
 			}
 			doCheckSpace(file, openTxtFileLines(file));
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("完成检查代码空格");
 	}
 	[MenuItem("检查代码/检查代码Protobuf消息字段顺序", false, 203)]
@@ -111,7 +111,7 @@ public class MenuCheckCode
 			}
 			doCheckProtoMemberOrder(file, openTxtFileLines(file));
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("完成检查Protobuf的消息字段顺序");
 	}
 	[MenuItem("检查代码/检查UI变量名", false, 204)]
@@ -149,7 +149,7 @@ public class MenuCheckCode
 			displayProgressBar("UI变量名匹配", "进度: ", i + 1, fileCount);
 			doCheckDifferentNodeName(file, layoutName, transforms, openTxtFileLines(file));
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("完成检查UI变量名与节点名不一致的代码");
 	}
 	[MenuItem("检查代码/检查单行代码长度", false, 205)]
@@ -170,7 +170,7 @@ public class MenuCheckCode
 			}
 			doCheckSingleCheckCodeLineWidth(file, openTxtFileLines(file));
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("检测结束");
 	}
 	[MenuItem("检查代码/检查命名规范", false, 206)]
@@ -193,7 +193,7 @@ public class MenuCheckCode
 			}
 			doCheckScriptLineByLine(file, openTxtFileLines(file));
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("结束检查");
 	}
 	[MenuItem("检查代码/检查函数排版", false, 207)]
@@ -216,7 +216,7 @@ public class MenuCheckCode
 			}
 			doCheckFunctionOrder(file, openTxtFileLines(file));
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("结束检查");
 	}
 	[MenuItem("检查代码/检查注释", false, 208)]
@@ -237,7 +237,7 @@ public class MenuCheckCode
 			}
 			doCheckComment(file, openTxtFileLines(file));
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("检测结束");
 	}
 	[MenuItem("检查代码/检查注释后是否添加空格", false, 210)]
@@ -260,7 +260,7 @@ public class MenuCheckCode
 			}
 			doCheckCommentStandard(filePath, openTxtFileLines(filePath));
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("结束检测");
 	}
 	[MenuItem("检查代码/检查内置函数的调用", false, 211)]
@@ -281,7 +281,7 @@ public class MenuCheckCode
 			}
 			doCheckSystemFunction(file, openTxtFileLines(file));
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("结束检查");
 	}
 	[MenuItem("检查代码/检查命令命名规范", false, 212)]
@@ -309,7 +309,7 @@ public class MenuCheckCode
 			}
 			doCheckCommandName(filePath, openTxtFileLines(filePath), assembly, hotFixAssembly);
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("结束检测");
 	}
 	[MenuItem("检查代码/代码分隔行长度", false, 213)]
@@ -332,7 +332,7 @@ public class MenuCheckCode
 			}
 			doCheckCodeSeparateLineWidth(filePath, openTxtFileLines(filePath));
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		Debug.Log("结束检测");
 	}
 	[MenuItem("检查代码/检查热更引用了被裁剪的代码", false, 214)]

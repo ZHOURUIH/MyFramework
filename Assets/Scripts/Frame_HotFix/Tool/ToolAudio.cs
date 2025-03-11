@@ -209,7 +209,7 @@ public class AT
 			logError("sound name must be valid, use void MUSIC(bool unloadCurMusic) to stop music");
 			return;
 		}
-		playInternal(mAudioManager.getMusicHelper(), soundName, volume, loop);
+		playInternal(mAudioManager.getMusicHelper(), soundName, volume * mCOMGameSettingAudio.getMusicVolume(), loop);
 	}
 	// 播放音频
 	protected static AudioHelper SOUND_3D_Internal(Vector3 pos, int sound, string soundName, float volume, bool loop)
@@ -231,7 +231,7 @@ public class AT
 		AudioHelper helper = mAudioManager.getAudioHelper(0.0f);
 		helper.setSpatialBlend(1.0f);
 		helper.setPosition(pos);
-		playInternal(helper, soundName, volume, loop);
+		playInternal(helper, soundName, volume * mCOMGameSettingAudio.getSoundVolume(), loop);
 		return helper;
 	}
 	protected static AudioHelper SOUND_2D_Internal(int sound, string soundName, float volume, bool loop)
@@ -252,14 +252,14 @@ public class AT
 
 		AudioHelper helper = mAudioManager.getAudioHelper(0.0f);
 		helper.setSpatialBlend(0.0f);
-		playInternal(helper, soundName, volume, loop);
+		playInternal(helper, soundName, volume * mCOMGameSettingAudio.getSoundVolume(), loop);
 		return helper;
 	}
 	protected static void playInternal(AudioHelper helper, string soundName, float volume, bool loop)
 	{
 		if (isWebGL())
 		{
-			CmdMovableObjectPlayAudio.execute(helper, soundName, volume * mCOMGameSettingAudio.getSoundVolume(), loop);
+			CmdMovableObjectPlayAudio.execute(helper, soundName, volume, loop);
 			if (loop)
 			{
 				helper.mRemainTime = -1.0f;
@@ -280,7 +280,7 @@ public class AT
 			{
 				mAudioManager.loadAudio(soundName);
 			}
-			CmdMovableObjectPlayAudio.execute(helper, soundName, volume * mCOMGameSettingAudio.getSoundVolume(), loop);
+			CmdMovableObjectPlayAudio.execute(helper, soundName, volume, loop);
 			helper.mRemainTime = loop ? -1.0f : mAudioManager.getAudioLength(soundName);
 		}
 	}

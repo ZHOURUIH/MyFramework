@@ -45,7 +45,7 @@ public class ClassPoolThread : FrameSystem
 		using (new ThreadLockScope(mListLock))
 		{
 			// 先从未使用的列表中查找是否有可用的对象
-			if (!mPoolList.tryGetOrAddNew(type, out singlePool))
+			if (!mPoolList.getOrAddNew(type, out singlePool))
 			{
 				singlePool.setType(type);
 			}

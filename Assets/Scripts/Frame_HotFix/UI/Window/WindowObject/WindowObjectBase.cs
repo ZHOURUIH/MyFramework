@@ -12,9 +12,9 @@ public class WindowObjectBase : ILocalizationCollection
 		mScript = script;
 	}
 	public virtual void assignWindow(myUIObject parent, myUIObject template, string name) { }
-	// 需要主动调用
+	// 第一次创建时调用,如果是对象池中的物体,则由对象池调用,非对象池物体需要在使用的地方自己调用
 	public virtual void init() { mDestroied = false; }
-	// 需要主动调用
+	// 每次被分配使用时调用,如果是对象池中的物体,则由对象池调用,非对象池物体需要在使用的地方自己调用
 	public virtual void reset() { }
 	public virtual void destroy()
 	{

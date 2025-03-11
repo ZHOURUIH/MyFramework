@@ -115,7 +115,7 @@ public class ListPool : FrameSystem
 	{
 		// 加入仅临时使用的列表对象的列表中
 		var inuseList = onlyOnce ? mInusedList : mPersistentInuseList;
-		if (!inuseList.tryGetOrAddNew(elementType).Add(list))
+		if (!inuseList.getOrAddNew(elementType).Add(list))
 		{
 			Debug.LogError("list object is in inuse list!");
 			return;
@@ -138,7 +138,7 @@ public class ListPool : FrameSystem
 	protected void addUnuse(IList list, Type elementType)
 	{
 		// 加入未使用列表
-		var valueList = mUnusedList.tryGetOrAddNew(elementType);
+		var valueList = mUnusedList.getOrAddNew(elementType);
 		if (isEditor() && valueList.Contains(list))
 		{
 			Debug.LogError("list Object is in Unused list! can not add again!");

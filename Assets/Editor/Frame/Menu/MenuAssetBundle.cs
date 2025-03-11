@@ -272,7 +272,7 @@ public class MenuAssetBundle
 			string bundleName = refreshFileAssetBundleName(null, path);
 			if (!bundleName.isEmpty())
 			{
-				assetBundleList.tryGetOrAddNew(bundleName).Add(path);
+				assetBundleList.getOrAddNew(bundleName).Add(path);
 			}
 		}
 		// path是目录
@@ -285,7 +285,7 @@ public class MenuAssetBundle
 					string bundleName = refreshFileAssetBundleName(null, file);
 					if (!bundleName.isEmpty())
 					{
-						assetBundleList.tryGetOrAddNew(bundleName).Add(file);
+						assetBundleList.getOrAddNew(bundleName).Add(file);
 					}
 				}
 			}

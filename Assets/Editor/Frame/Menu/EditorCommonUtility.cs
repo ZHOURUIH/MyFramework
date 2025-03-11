@@ -662,7 +662,7 @@ public class EditorCommonUtility
 		Dictionary<string, List<FileGUIDLines>> allFileText = new();
 		foreach (string item in findFilesNonAlloc(path, supportPatterns))
 		{
-			allFileText.tryGetOrAddNew(getFileSuffix(item)).addNotNull(getGUIDsInFile(item));
+			allFileText.getOrAddNew(getFileSuffix(item)).addNotNull(getGUIDsInFile(item));
 		}
 		return allFileText;
 	}
@@ -710,7 +710,7 @@ public class EditorCommonUtility
 				}
 			}
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		return allGUIDDic;
 	}
 	// 根据后缀获取指定文件路径下指定类型资源的所有GUID和spriteID(filePath:查找路径, assetType : 后缀类型名,tipText : 查找类型提示,默认为空)
@@ -745,7 +745,7 @@ public class EditorCommonUtility
 				}
 			}
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		return allGUIDDic;
 	}
 	// 获得文件中引用到了cs脚本的所在行
@@ -775,7 +775,7 @@ public class EditorCommonUtility
 			fileGUIDLines.mContainGUIDLines = list;
 			allFileText.Add(item, fileGUIDLines);
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		return allFileText;
 	}
 	// 获取引用的所有材质的guid拼接的字符串
@@ -827,7 +827,7 @@ public class EditorCommonUtility
 			fileGUIDLines.mContainGUIDLines = list;
 			allFileText.Add(item, fileGUIDLines);
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		return allFileText;
 	}
 	// 获得文件中具有引用的所在行
@@ -855,7 +855,7 @@ public class EditorCommonUtility
 			fileGUIDLines.mContainGUIDLines = list;
 			allFileText.Add(item, fileGUIDLines);
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		return allFileText;
 	}
 	public static Dictionary<string, string> checkAtlasNotExistSprite(string path)
@@ -952,7 +952,11 @@ public class EditorCommonUtility
 	}
 	public static void displayProgressBar(string title, string info, int curCount, int totalCount)
 	{
-		EditorUtility.DisplayProgressBar(title, info + (curCount + 1) + "/" + totalCount, (float)(curCount + 1) / totalCount);
+		EditorUtility.DisplayProgressBar(title, info + " " + (curCount + 1) + "/" + totalCount, (float)(curCount + 1) / totalCount);
+	}
+	public static void clearProgressBar()
+	{
+		EditorUtility.ClearProgressBar();
 	}
 	public static UObject loadAsset(string filePath)
 	{
@@ -1681,7 +1685,7 @@ public class EditorCommonUtility
 			{
 				if (guidList.TryGetValue(guid, out string fileName))
 				{
-					errorRefAssetDic.tryGetOrAddNew(projectFile.mProjectFileName).Add(guid, fileName);
+					errorRefAssetDic.getOrAddNew(projectFile.mProjectFileName).Add(guid, fileName);
 				}
 			}
 		}

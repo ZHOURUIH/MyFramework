@@ -243,13 +243,13 @@ public class EffectManager : FrameSystem
 			return;
 		}
 		string effectName = effect.getFilePath();
-		mInusedEffectList.tryGetOrAddNew(effectName).Remove(effect);
+		mInusedEffectList.getOrAddNew(effectName).Remove(effect);
 		// 当GameObject为空时,可能是在销毁无效的特效,所以只能彻底清除
 		if (destroyReally || effect.getObject() == null)
 		{
 			effect.setTemp(false);
 			// 也要从mUnusedEffectList中移除
-			mUnusedEffectList.tryGetOrAddNew(effectName).Remove(effect);
+			mUnusedEffectList.getOrAddNew(effectName).Remove(effect);
 			destroyEffect(ref effect);
 			return;
 		}
@@ -270,7 +270,7 @@ public class EffectManager : FrameSystem
 
 		mEffectList.remove(effect);
 		// 回收到未使用列表中
-		mUnusedEffectList.tryGetOrAddNew(effectName).Add(effect);
+		mUnusedEffectList.getOrAddNew(effectName).Add(effect);
 		// 该特效支持移动到远处来隐藏,并且父节点是Prefab对象池的节点时,才能进行移动隐藏
 		if (effect.isMoveToHide() && effect.getObject().transform.parent == mPrefabPoolManager.getObject().transform)
 		{
@@ -430,7 +430,7 @@ public class EffectManager : FrameSystem
 		{
 			effect.setParent(parent);
 		}
-		mInusedEffectList.tryGetOrAddNew(nameWithPath).Add(effect);
+		mInusedEffectList.getOrAddNew(nameWithPath).Add(effect);
 		return mEffectList.add(effect);
 	}
 	protected GameEffect postCreateEffectFromPool(GameObject go, string nameWithPath, Transformable attachedParent, GameObject parent, int tag, Vector3 pos, bool moveToHide, bool active, float lifeTime, bool isTemp)
@@ -444,7 +444,7 @@ public class EffectManager : FrameSystem
 		if (attachedParent != null)
 		{
 			attachedParent.addDestroyCallback(mObjectDestroyCallback);
-			mEffectAttachList.tryGetOrAddListPersist(attachedParent).Add(effect);
+			mEffectAttachList.getOrAddListPersist(attachedParent).Add(effect);
 		}
 		if (parent != null)
 		{
@@ -458,7 +458,7 @@ public class EffectManager : FrameSystem
 		}
 		if (isTemp)
 		{
-			mInusedEffectList.tryGetOrAddNew(nameWithPath).Add(effect);
+			mInusedEffectList.getOrAddNew(nameWithPath).Add(effect);
 		}
 		effect.setTemp(isTemp);
 		return mEffectList.add(effect);

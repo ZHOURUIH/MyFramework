@@ -217,7 +217,7 @@ public class GlobalTouchSystem : FrameSystem
 		int touchID = touch.getTouchID();
 		Vector3 pos = touch.getCurPosition();
 		// 触点按下时记录触点的初始位置
-		TouchInfo touchInfo = mTouchInfoList.tryGetOrAddClass(touchID);
+		TouchInfo touchInfo = mTouchInfoList.getOrAddClass(touchID);
 		touchInfo.init(touch);
 		touchInfo.touchPress();
 

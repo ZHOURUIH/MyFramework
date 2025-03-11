@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+#if BYTE_DANCE
+using TTSDK;
+#endif
 using UObject = UnityEngine.Object;
 using static UnityUtility;
 using static FrameUtility;
@@ -17,9 +20,9 @@ public class AssetBundleInfo : ClassObject
 	protected Dictionary<string, AssetInfo> mAssetList = new();			// 资源包中的所有资源,初始化时就会填充此列表
 	protected List<AssetBundleCallback> mLoadCallback = new();			// 资源包加载完毕后的回调列表
 	protected List<AssetBundleBytesCallback> mDownloadCallback = new(); // 资源包下载完毕后的回调列表
-	protected HashSet<AssetInfo> mLoadAsyncList = new();				// AssetBundle还未加载完时请求的异步加载的资源列表
+	protected HashSet<AssetInfo> mLoadAsyncList = new();                // AssetBundle还未加载完时请求的异步加载的资源列表
 	protected AssetBundle mAssetBundle;									// 资源包内存镜像
-	protected LOAD_STATE mLoadState = LOAD_STATE.NONE;				// 资源包加载状态
+	protected LOAD_STATE mLoadState = LOAD_STATE.NONE;					// 资源包加载状态
 	protected string mBundleFileName;									// 资源所在的AssetBundle名,相对于StreamingAsset,含后缀
 	protected string mBundleName;										// 资源所在的AssetBundle名,相对于StreamingAsset,不含后缀
 	protected float mWillUnloadTime = -1.0f;							// 引用计数变为0时的计时,小于0表示还有引用,不会被卸载,大于等于0表示计数为0,即将在一定时间后卸载
@@ -68,7 +71,11 @@ public class AssetBundleInfo : ClassObject
 			// 其他资源包中的资源引用到此资源时,也会自动从此AssetBundle内存镜像中加载需要的资源
 			// 所以卸载镜像,将会造成这些自动加载失败,仅在当前资源包内已经没有任何资源在使用了,并且
 			// 其他资源包中的资源实例没有对当前资源包进行引用时才会卸载
+#if BYTE_DANCE
+			mAssetBundle.TTUnload(true);
+#else
 			mAssetBundle.Unload(true);
+#endif
 			mAssetBundle = null;
 		}
 		mObjectToAsset.Clear();
@@ -150,8 +157,7 @@ public class AssetBundleInfo : ClassObject
 	// 查找所有依赖项
 	public void findAllDependence()
 	{
-		using var a = new ListScope<string>(out var tempList);
-		tempList.AddRange(mParents.Keys);
+		using var a = new ListScope<string>(out var tempList, mParents.Keys);
 		foreach (string depName in tempList)
 		{
 			AssetBundleInfo info = mResourceManager.getAssetBundleLoader().getAssetBundleInfo(depName);
@@ -274,7 +280,7 @@ public class AssetBundleInfo : ClassObject
 		}
 		AssetInfo info = mAssetList.get(fileNameWithSuffix);
 		UObject[] objs = info.loadAsset();
-		UObject asset = objs.getSafe(0);
+		UObject asset = objs.get(0);
 		mainAsset = asset;
 		if (asset != null)
 		{

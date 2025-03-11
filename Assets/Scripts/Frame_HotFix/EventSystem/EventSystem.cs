@@ -128,22 +128,22 @@ public class EventSystem : FrameSystem
 		GameEventRegisteInfo info = createEventAddToListenList(eventType, 0, callback, listener);
 
 		// 加入全局事件监听列表中
-		mGlobalListenerEventList.tryGetOrAddClass(info.mEventType).add(info);
+		mGlobalListenerEventList.getOrAddClass(info.mEventType).add(info);
 	}
 	public void listenEvent<T>(Action<T> callback, IEventListener listener) where T : GameEvent
 	{
 		GameEventRegisteInfo info = createEventAddToListenList(0, callback, listener);
 
 		// 加入全局事件监听列表中
-		mGlobalListenerEventList.tryGetOrAddClass(info.mEventType).add(info);
+		mGlobalListenerEventList.getOrAddClass(info.mEventType).add(info);
 	}
 	public void listenEvent<T>(long characterID, Action<T> callback, IEventListener listener) where T : GameEvent
 	{
 		GameEventRegisteInfo info = createEventAddToListenList(characterID, callback, listener);
 
 		// 加入指定角色事件监听列表中
-		var characterEventList = mCharacterEventList.tryGetOrAddListPersist(characterID);
-		characterEventList.tryGetOrAddClass(info.mEventType).add(info);
+		var characterEventList = mCharacterEventList.getOrAddListPersist(characterID);
+		characterEventList.getOrAddClass(info.mEventType).add(info);
 	}
 	public void unlistenEvent(IEventListener listener)
 	{
@@ -223,7 +223,7 @@ public class EventSystem : FrameSystem
 		info.mCharacterID = characterID;
 		info.mCallback = callback;
 		info.mListener = listener;
-		return mListenerList.tryGetOrAddListPersist(listener).add(info);
+		return mListenerList.getOrAddListPersist(listener).add(info);
 	}
 	protected GameEventRegisteInfo createEventAddToListenList(Type eventType, long characterID, Action callback, IEventListener listener)
 	{
@@ -232,7 +232,7 @@ public class EventSystem : FrameSystem
 		info.mCharacterID = characterID;
 		info.mBaseCallback = callback;
 		info.mListener = listener;
-		return mListenerList.tryGetOrAddListPersist(listener).add(info);
+		return mListenerList.getOrAddListPersist(listener).add(info);
 	}
 	protected void removeFromCharacterListenList(GameEventRegisteInfo info)
 	{

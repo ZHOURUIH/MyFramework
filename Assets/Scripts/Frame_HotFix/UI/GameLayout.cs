@@ -267,7 +267,7 @@ public class GameLayout
 	public Type getType()									{ return mType; }
 	public int getRenderOrder()								{ return mRenderOrder; }
 	public int getDefaultLayer()							{ return mDefaultLayer; }
-	public bool isVisible()									{ return mRoot.isActiveInHierarchy(); }
+	public bool isVisible()									{ return mRoot != null && mRoot.isActiveInHierarchy(); }
 	public bool isCheckBoxAnchor()							{ return mCheckBoxAnchor; }
 	public bool isIgnoreTimeScale()							{ return mIgnoreTimeScale; }
 	public bool canUIObjectUpdate(myUIObject uiObj)			{ return mNeedUpdateList.contains(uiObj); }

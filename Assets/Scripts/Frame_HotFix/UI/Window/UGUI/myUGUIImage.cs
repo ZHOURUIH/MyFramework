@@ -104,7 +104,7 @@ public class myUGUIImage : myUGUIImageSimple
 		}
 		base.destroy();
 	}
-	public UGUIAtlasPtr getAtlas() { return mAtlasPtrList.getSafe(0); }
+	public UGUIAtlasPtr getAtlas() { return mAtlasPtrList.get(0); }
 	public virtual void setAtlas(UGUIAtlasPtr atlas, bool clearSprite = false, bool force = false)
 	{
 		if (mImage == null)

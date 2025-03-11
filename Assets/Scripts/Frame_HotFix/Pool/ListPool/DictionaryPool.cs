@@ -117,7 +117,7 @@ public class DictionaryPool : FrameSystem
 	protected void addInuse(ICollection list, DictionaryType type, bool onlyOnce)
 	{
 		var inuseList = onlyOnce ? mInusedList : mPersistentInuseList;
-		if (!inuseList.tryGetOrAddNew(type).Add(list))
+		if (!inuseList.getOrAddNew(type).Add(list))
 		{
 			Debug.LogError("list object is in inuse list!");
 			return;
@@ -140,7 +140,7 @@ public class DictionaryPool : FrameSystem
 	protected void addUnuse(ICollection list, DictionaryType type)
 	{
 		// 加入未使用列表
-		var valueList = mUnusedList.tryGetOrAddNew(type);
+		var valueList = mUnusedList.getOrAddNew(type);
 		if (isEditor() && valueList.Contains(list))
 		{
 			Debug.LogError("list Object is in Unused list! can not add again!");

@@ -92,7 +92,7 @@ public class ArrayPoolThread : FrameSystem
 	protected void addInuse<T>(T[] array)
 	{
 		// 加入使用列表
-		if (!mInusedList.tryGetOrAddNew(typeof(T)).tryGetOrAddNew(array.Length).Add(array))
+		if (!mInusedList.getOrAddNew(typeof(T)).getOrAddNew(array.Length).Add(array))
 		{
 			Debug.LogError("array is in inuse list!");
 		}
@@ -111,7 +111,7 @@ public class ArrayPoolThread : FrameSystem
 	protected void addUnuse<T>(T[] array)
 	{
 		// 加入未使用列表
-		var arrayList = mUnusedList.tryGetOrAddNew(typeof(T)).tryGetOrAddNew(array.Length);
+		var arrayList = mUnusedList.getOrAddNew(typeof(T)).getOrAddNew(array.Length);
 		if (isEditor() && arrayList.Contains(array))
 		{
 			Debug.LogError("array is in Unused list! can not add again!");

@@ -278,12 +278,12 @@ public class FrameUtility
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 列表对象池
-	public static List<T> LIST<T>()
+	public static List<T> LIST<T>(IEnumerable<T> initList = null)
 	{
-		LIST(out List<T> list);
+		LIST(out List<T> list, initList);
 		return list;
 	}
-	public static void LIST<T>(out List<T> list)
+	public static void LIST<T>(out List<T> list, IEnumerable<T> initList = null)
 	{
 		if (mGameFrameworkHotFix == null || mListPool == null)
 		{
@@ -296,13 +296,17 @@ public class FrameUtility
 			stackTrace = getStackTrace();
 		}
 		list = mListPool.newList(typeof(T), typeof(List<T>), stackTrace, true) as List<T>;
+		if (initList != null)
+		{
+			list.AddRange(initList);
+		}
 	}
-	public static List<T> LIST_PERSIST<T>()
+	public static List<T> LIST_PERSIST<T>(IEnumerable<T> initList = null)
 	{
-		LIST_PERSIST(out List<T> list);
+		LIST_PERSIST(out List<T> list, initList);
 		return list;
 	}
-	public static void LIST_PERSIST<T>(out List<T> list)
+	public static void LIST_PERSIST<T>(out List<T> list, IEnumerable<T> initList = null)
 	{
 		if (mGameFrameworkHotFix == null || mListPool == null)
 		{
@@ -315,6 +319,10 @@ public class FrameUtility
 			stackTrace = getStackTrace();
 		}
 		list = mListPool.newList(typeof(T), typeof(List<T>), stackTrace, false) as List<T>;
+		if (initList != null)
+		{
+			list.AddRange(initList);
+		}
 	}
 	public static void UN_LIST<T>(List<T> list)
 	{
@@ -333,7 +341,7 @@ public class FrameUtility
 		SET_PERSIST(out HashSet<T> list);
 		return list;
 	}
-	public static void SET_PERSIST<T>(out HashSet<T> list)
+	public static void SET_PERSIST<T>(out HashSet<T> list, IEnumerable<T> initList = null)
 	{
 		if (mGameFrameworkHotFix == null || mListPool == null)
 		{
@@ -346,6 +354,10 @@ public class FrameUtility
 			stackTrace = getStackTrace();
 		}
 		list = mHashSetPool.newList(typeof(T), typeof(HashSet<T>), stackTrace, false) as HashSet<T>;
+		if (initList != null)
+		{
+			list.addRange(initList);
+		}
 	}
 	public static void UN_SET<T>(HashSet<T> list)
 	{

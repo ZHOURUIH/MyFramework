@@ -57,8 +57,8 @@ public class ResourcesLoader
 	// 卸载指定路径中的所有资源
 	public void unloadPath(string path)
 	{
-		using var a = new ListScope<string>(out var tempList);
-		foreach (string item0 in tempList.addRange(mLoadedPath.Keys))
+		using var a = new ListScope<string>(out var tempList, mLoadedPath.Keys);
+		foreach (string item0 in tempList)
 		{
 			if (!item0.startWith(path))
 			{
@@ -98,7 +98,7 @@ public class ResourcesLoader
 		mainAsset = null;
 		string path = getFilePath(name);
 		// 如果文件夹还未加载,则添加文件夹
-		var resList = mLoadedPath.tryGetOrAddNew(path);
+		var resList = mLoadedPath.getOrAddNew(path);
 		// 资源未加载,则使用Resources.Load加载资源
 		if (!resList.TryGetValue(name, out ResourceLoadInfo info))
 		{
@@ -130,7 +130,7 @@ public class ResourcesLoader
 	{
 		string path = getFilePath(name);
 		// 如果文件夹还未加载,则添加文件夹
-		var resList = mLoadedPath.tryGetOrAddNew(path);
+		var resList = mLoadedPath.getOrAddNew(path);
 		// 资源未加载,则使用Resources.Load加载资源
 		if (!resList.TryGetValue(name, out ResourceLoadInfo info))
 		{
@@ -163,7 +163,7 @@ public class ResourcesLoader
 		CustomAsyncOperation op = new();
 		string path = getFilePath(name);
 		// 如果文件夹还未加载,则添加文件夹
-		var resList = mLoadedPath.tryGetOrAddNew(path);
+		var resList = mLoadedPath.getOrAddNew(path);
 		// 已经加载,则返回true
 		if (resList.TryGetValue(name, out ResourceLoadInfo info))
 		{
