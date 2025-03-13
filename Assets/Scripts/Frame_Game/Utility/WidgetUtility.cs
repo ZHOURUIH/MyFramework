@@ -141,10 +141,12 @@ public class WidgetUtility
 		{
 			text.fontSize = clampMin(floor(divide(text.fontSize, lastHeight) * size.y), minFontSize);
 		}
+#if USE_TMP
 		else if (rectTransform.TryGetComponent(out TextMeshProUGUI tmproText))
 		{
 			tmproText.fontSize = clampMin(floor(divide(tmproText.fontSize, lastHeight) * size.y), minFontSize);
 		}
+#endif
 	}
 	public static void setUGUIChildAlpha(GameObject go, float alpha)
 	{
