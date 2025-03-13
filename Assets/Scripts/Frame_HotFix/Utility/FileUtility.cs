@@ -41,8 +41,7 @@ public class FileUtility
 			string fileName = fileNameList[i];
 			checkDownloadPath(ref fileName);
 			using var www = UnityWebRequest.Get(fileName);
-			www.SendWebRequest();
-			yield return www;
+			yield return www.SendWebRequest();
 			if (errorIfNull && www.downloadHandler.data == null)
 			{
 				logError("open file failed:" + fileName + ", info:" + www.error);
@@ -61,8 +60,7 @@ public class FileUtility
 		DateTime start = DateTime.Now;
 		checkDownloadPath(ref fileName);
 		using var www = UnityWebRequest.Get(fileName);
-		www.SendWebRequest();
-		yield return www;
+		yield return www.SendWebRequest();
 		if (errorIfNull && www.downloadHandler.data == null)
 		{
 			logError("open file failed:" + fileName + ", info:" + www.error + ", error:" + www.downloadHandler.error);

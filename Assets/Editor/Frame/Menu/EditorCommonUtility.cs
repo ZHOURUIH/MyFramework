@@ -907,24 +907,37 @@ public class EditorCommonUtility
 		return result;
 	}
 #endif
+	// apkPath是apk的绝对路径
 	public static BuildResult buildAndroid(string apkPath, BuildOptions buildOptions)
 	{
+		createDir(getFilePath(apkPath));
 		return buildGame(apkPath, BuildTarget.Android, BuildTargetGroup.Android, buildOptions);
 	}
+	// outputPath是index.html所在的目录
 	public static BuildResult buildWebGL(string outputPath, BuildOptions buildOptions)
 	{
+		deleteFolder(outputPath);
+		createDir(outputPath);
 		return buildGame(outputPath, BuildTarget.WebGL, BuildTargetGroup.WebGL, buildOptions);
 	}
+	// outputPath是exe的绝对路径
 	public static BuildResult buildWindows(string outputPath, BuildOptions buildOptions)
 	{
+		deleteFolder(getFilePath(outputPath));
+		createDir(getFilePath(outputPath));
 		return buildGame(outputPath, BuildTarget.StandaloneWindows, BuildTargetGroup.Standalone, buildOptions);
 	}
+	// outputPath是xcodeproj所在的目录
 	public static BuildResult buildIOS(string outputPath, BuildOptions buildOptions)
 	{
+		deleteFolder(outputPath);
 		return buildGame(outputPath, BuildTarget.iOS, BuildTargetGroup.iOS, buildOptions);
 	}
+	// outputPath是app文件输出的绝对路径
 	public static BuildResult buildMacOS(string outputPath, BuildOptions buildOptions)
 	{
+		deleteFolder(getFilePath(outputPath));
+		createDir(getFilePath(outputPath));
 		return buildGame(outputPath, BuildTarget.StandaloneOSX, BuildTargetGroup.Standalone, buildOptions);
 	}
 	public static bool fixMeshOfMeshCollider(GameObject go)

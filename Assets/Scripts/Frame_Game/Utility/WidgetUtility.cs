@@ -1,4 +1,7 @@
-﻿using System;
+﻿#if USE_TMP
+using TMPro;
+#endif
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 using static UnityUtility;
@@ -137,6 +140,10 @@ public class WidgetUtility
 		if (rectTransform.TryGetComponent(out Text text))
 		{
 			text.fontSize = clampMin(floor(divide(text.fontSize, lastHeight) * size.y), minFontSize);
+		}
+		else if (rectTransform.TryGetComponent(out TextMeshProUGUI tmproText))
+		{
+			tmproText.fontSize = clampMin(floor(divide(tmproText.fontSize, lastHeight) * size.y), minFontSize);
 		}
 	}
 	public static void setUGUIChildAlpha(GameObject go, float alpha)

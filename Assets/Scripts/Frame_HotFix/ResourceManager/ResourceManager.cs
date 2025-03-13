@@ -332,7 +332,7 @@ public class ResourceManager : FrameSystem
 	}
 	public CustomAsyncOperation loadGameResourceAsync<T>(string name, Action<T, string> doneCallback, bool errorIfNull = true) where T : UObject
 	{
-		return loadGameResourceAsync<T>(name, (UObject asset, UObject[] assets, byte[] bytes, string loadPath) =>
+		return loadGameResourceAsync<T>(name, (UObject asset, UObject[] _, byte[] _, string loadPath) =>
 		{
 			doneCallback?.Invoke(asset as T, loadPath);
 		}, errorIfNull);
@@ -340,7 +340,7 @@ public class ResourceManager : FrameSystem
 	public CustomAsyncOperation loadGameResourceAsyncSafe<T>(ClassObject relatedObj, string name, Action<T, string> doneCallback, bool errorIfNull = true) where T : UObject
 	{
 		long assignID = relatedObj.getAssignID();
-		return loadGameResourceAsync<T>(name, (UObject asset, UObject[] assets, byte[] bytes, string loadPath) =>
+		return loadGameResourceAsync<T>(name, (UObject asset, UObject[] _, byte[] _, string loadPath) =>
 		{
 			if (assignID != relatedObj.getAssignID())
 			{
@@ -351,7 +351,7 @@ public class ResourceManager : FrameSystem
 	}
 	public CustomAsyncOperation loadGameResourceAsync<T>(string name, Action<T> doneCallback, bool errorIfNull = true) where T : UObject
 	{
-		return loadGameResourceAsync<T>(name, (UObject asset, UObject[] assets, byte[] bytes, string loadPath) =>
+		return loadGameResourceAsync<T>(name, (UObject asset, UObject[] _, byte[] _, string _) =>
 		{
 			doneCallback?.Invoke(asset as T);
 		}, errorIfNull);
@@ -359,7 +359,7 @@ public class ResourceManager : FrameSystem
 	public CustomAsyncOperation loadGameResourceAsyncSafe<T>(ClassObject relatedObj, string name, Action<T> doneCallback, bool errorIfNull = true) where T : UObject
 	{
 		long assignID = relatedObj.getAssignID();
-		return loadGameResourceAsync<T>(name, (UObject asset, UObject[] assets, byte[] bytes, string loadPath) =>
+		return loadGameResourceAsync<T>(name, (UObject asset, UObject[] _, byte[] _, string _) =>
 		{
 			if (assignID != relatedObj.getAssignID())
 			{
@@ -371,7 +371,7 @@ public class ResourceManager : FrameSystem
 	// 强制在Resource中异步加载资源,name是Resources下的相对路径,带后缀,errorIfNull表示当找不到资源时是否报错提示
 	public CustomAsyncOperation loadInResourceAsync<T>(string name, Action<T> doneCallback) where T : UObject
 	{
-		return loadInResourceAsync<T>(name, (UObject asset, UObject[] assets, byte[] bytes, string loadPath) => 
+		return loadInResourceAsync<T>(name, (UObject asset, UObject[] _, byte[] _, string _) => 
 		{
 			doneCallback?.Invoke(asset as T);
 		});
@@ -450,6 +450,11 @@ public class ResourceManager : FrameSystem
 		return loadAssetsUrl(url, typeof(T), callback, downloadingCallback);
 	}
 	// 根据一个URL加载资源,一般都是一个网络资源
+	public static IEnumerator loadAssetsFromUrlWaiting<T>(string url, Action<T> callback, DownloadCallback downloadingCallback = null) where T : UObject
+	{
+		return loadAssetsUrl(url, typeof(T), (UObject asset, UObject[] _, byte[] _, string _) => { callback?.Invoke(asset as T); }, downloadingCallback);
+	}
+	// 根据一个URL加载资源,一般都是一个网络资源
 	public static IEnumerator loadAssetsFromUrlWaiting(string url, AssetLoadDoneCallback callback, DownloadCallback downloadingCallback = null)
 	{
 		return loadAssetsUrl(url, null, callback, downloadingCallback);
@@ -504,8 +509,11 @@ public class ResourceManager : FrameSystem
 					break;
 				}
 			}
-			log("当前计时:" + timer);
-			log("下载中,www.downloadedBytes:" + www.downloadedBytes + ", www.downloadProgress:" + www.downloadProgress);
+			if (isEditor() || isDevelopment())
+			{
+				log("当前计时:" + timer);
+				log("下载中,www.downloadedBytes:" + www.downloadedBytes + ", www.downloadProgress:" + www.downloadProgress);
+			}
 			yield return null;
 		}
 		try
@@ -524,7 +532,7 @@ public class ResourceManager : FrameSystem
 				AssetBundle assetBundle = DownloadHandlerAssetBundle.GetContent(www);
 #endif
 				assetBundle.name = url;
-				callback?.Invoke(assetBundle, null, www.downloadHandler.data, url);
+				callback?.Invoke(assetBundle, null, null, url);
 			}
 		}
 		catch (Exception e)

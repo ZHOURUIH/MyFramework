@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using UnityEditor.Build;
 #if USE_HYBRID_CLR
 using HybridCLR.Editor;
 using HybridCLR.Editor.Commands;
@@ -27,6 +28,8 @@ public abstract class PlatformBase
 	public static string INSTALL_TIME_TEMP_PATH = F_ASSETS_PATH + "../InstallTimeTemp/";
 	public string mPlatformDefine;
 	public BuildTarget mTarget;
+	public BuildTargetGroup mGroup;
+	public NamedBuildTarget mNamedTarget;
 	public List<string> mIgnoreFile;					// 计算文件列表时需要忽略的文件名
 	public string mAssetBundleFullPath;
 	public string mName;
@@ -160,6 +163,85 @@ public abstract class PlatformBase
 	}
 	public abstract string getDefaultPlatformDefine();
 	public virtual void generateFolderPreName() { mFolderPreName = ""; }
+	public static string generateFileInfoList(string assetBundlePath, bool upperOrLower, List<string> ignoreFiles = null, List<string> ignorePath = null, List<string> ignoreSuffix = null)
+	{
+		string fileContent = EMPTY;
+		List<string> fileInfoList = findFileList(assetBundlePath, ignoreFiles, ignorePath, ignoreSuffix);
+		// 计算文件信息
+		// 将所有文件信息写入文件
+		fileContent += IToS(fileInfoList.Count) + "\n";
+		foreach (string item in fileInfoList)
+		{
+			fileContent += item.removeStartString(assetBundlePath) + "\t" + IToS(getFileSize(item)) + "\t" + generateFileMD5(item, upperOrLower) + "\n";
+		}
+		return fileContent;
+	}
+	// 备份一个文件或文件夹到一个临时目录
+	public static void backupFileToBuildTemp(string fileName)
+	{
+		moveFile(fileName, fileName.replace(F_STREAMING_ASSETS_PATH, BUILD_TEMP_PATH));
+	}
+	public static void backupFileToInstallTimeTemp(string fileName)
+	{
+		moveFile(fileName, fileName.replace(F_STREAMING_ASSETS_PATH, INSTALL_TIME_TEMP_PATH));
+	}
+	// 从临时目录恢复一个文件或文件夹
+	public static void recoverFileFromBuildTemp(string fileName)
+	{
+		moveFile(fileName, fileName.replace(BUILD_TEMP_PATH, F_STREAMING_ASSETS_PATH));
+	}
+	public static void recoverFileFromInstallTimeTemp(string fileName)
+	{
+		moveFile(fileName, fileName.replace(INSTALL_TIME_TEMP_PATH, F_STREAMING_ASSETS_PATH));
+	}
+	public static void dialog(string title, string info, string button)
+	{
+		EditorUtility.DisplayDialog(title, info, button);
+	}
+	public static void progressBar(string title, string info, float progress)
+	{
+		EditorUtility.DisplayProgressBar(title, info, progress);
+	}
+	public static void progressBar(string title, string preInfo, int curCount, int totalCount)
+	{
+		displayProgressBar(title, preInfo, curCount, totalCount);
+	}
+	public static void clearProgress()
+	{
+		EditorUtility.ClearProgressBar();
+	}
+	public static List<string> findFileList(string assetBundlePath, List<string> ignoreFiles = null, List<string> ignorePath = null, List<string> ignoreSuffix = null)
+	{
+		List<string> fileInfoList = new();
+		foreach (string newPath in findFilesNonAlloc(assetBundlePath))
+		{
+			if (matchSuffix(ignoreSuffix, newPath) || isIgnorePath(newPath, ignorePath))
+			{
+				continue;
+			}
+			if (ignoreFiles != null && ignoreFiles.Contains(newPath.removeStartString(assetBundlePath)))
+			{
+				continue;
+			}
+			fileInfoList.Add(newPath);
+		}
+		return fileInfoList;
+	}
+	public static bool matchSuffix(List<string> ignoreSuffix, string fileName)
+	{
+		if (ignoreSuffix == null)
+		{
+			return false;
+		}
+		for (int i = 0; i < ignoreSuffix.Count; ++i)
+		{
+			if (fileName.endWith(ignoreSuffix[i]))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 由应用层提供自己的密钥,不提供则不会进行加密,Key和IV长度必须为16个字节
 	protected virtual byte[] getAESKey() { return null; }
@@ -187,9 +269,7 @@ public abstract class PlatformBase
 		EditorUserBuildSettings.buildAppBundle = mGooglePlay;
 		PlayerSettings.bundleVersion = mVersion;
 		// 需要定位查看一次工程中所有的timeline文件,否则打包后无法播放timeline
-		List<string> timelineFiles = new();
-		findFiles(F_GAME_RESOURCES_PATH, timelineFiles, ".playable");
-		foreach (string file in timelineFiles)
+		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, ".playable"))
 		{
 			Selection.activeObject = loadAsset(file);
 			EditorGUIUtility.PingObject(Selection.activeObject);
@@ -322,85 +402,6 @@ public abstract class PlatformBase
 		foreach (string notPackFile in getDynamicDownloadList())
 		{
 			if (fullPath.StartsWith(mAssetBundleFullPath + notPackFile.ToLower()))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-	// 备份一个文件或文件夹到一个临时目录
-	protected static void backupFileToBuildTemp(string fileName)
-	{
-		moveFile(fileName, fileName.replace(F_STREAMING_ASSETS_PATH, BUILD_TEMP_PATH));
-	}
-	protected static void backupFileToInstallTimeTemp(string fileName)
-	{
-		moveFile(fileName, fileName.replace(F_STREAMING_ASSETS_PATH, INSTALL_TIME_TEMP_PATH));
-	}
-	// 从临时目录恢复一个文件或文件夹
-	protected static void recoverFileFromBuildTemp(string fileName)
-	{
-		moveFile(fileName, fileName.replace(BUILD_TEMP_PATH, F_STREAMING_ASSETS_PATH));
-	}
-	protected static void recoverFileFromInstallTimeTemp(string fileName)
-	{
-		moveFile(fileName, fileName.replace(INSTALL_TIME_TEMP_PATH, F_STREAMING_ASSETS_PATH));
-	}
-	protected static void dialog(string title, string info, string button)
-	{
-		EditorUtility.DisplayDialog(title, info, button);
-	}
-	protected static void progressBar(string title, string info, float progress)
-	{
-		EditorUtility.DisplayProgressBar(title, info, progress);
-	}
-	protected static void progressBar(string title, string preInfo, int curCount, int totalCount)
-	{
-		displayProgressBar(title, preInfo, curCount, totalCount);
-	}
-	protected static void clearProgress()
-	{
-		EditorUtility.ClearProgressBar();
-	}
-	protected static string generateFileInfoList(string assetBundlePath, bool upperOrLower, List<string> ignoreFiles = null, List<string> ignorePath = null, List<string> ignoreSuffix = null)
-	{
-		string fileContent = EMPTY;
-		List<string> fileInfoList = findFileList(assetBundlePath, ignoreFiles, ignorePath, ignoreSuffix);
-		// 计算文件信息
-		// 将所有文件信息写入文件
-		fileContent += IToS(fileInfoList.Count) + "\n";
-		foreach (string item in fileInfoList)
-		{
-			fileContent += item.removeStartString(assetBundlePath) + "\t" + IToS(getFileSize(item)) + "\t" + generateFileMD5(item, upperOrLower) + "\n";
-		}
-		return fileContent;
-	}
-	protected static List<string> findFileList(string assetBundlePath, List<string> ignoreFiles = null, List<string> ignorePath = null, List<string> ignoreSuffix = null)
-	{
-		List<string> fileInfoList = new();
-		foreach (string newPath in findFilesNonAlloc(assetBundlePath))
-		{
-			if (matchSuffix(ignoreSuffix, newPath) || isIgnorePath(newPath, ignorePath))
-			{
-				continue;
-			}
-			if (ignoreFiles != null && ignoreFiles.Contains(newPath.removeStartString(assetBundlePath)))
-			{
-				continue;
-			}
-			fileInfoList.Add(newPath);
-		}
-		return fileInfoList;
-	}
-	protected static bool matchSuffix(List<string> ignoreSuffix, string fileName)
-	{
-		if (ignoreSuffix == null)
-		{
-			return false;
-		}
-		for (int i = 0; i < ignoreSuffix.Count; ++i)
-		{
-			if (fileName.endWith(ignoreSuffix[i]))
 			{
 				return true;
 			}

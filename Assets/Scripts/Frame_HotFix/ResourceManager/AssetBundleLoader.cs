@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Networking;
 using UObject = UnityEngine.Object;
 using static UnityUtility;
 using static FrameUtility;
@@ -19,7 +18,6 @@ public class AssetBundleLoader
 	protected Dictionary<UObject, AssetBundleInfo> mAssetToAssetBundleInfo = new();	// 根据加载的Asset查找所属AssetBundle的列表
 	protected Dictionary<string, AssetBundleInfo> mAssetBundleInfoList = new();		// 根据名字查找AssetBundle的列表,此名字不含后缀
 	protected Dictionary<string, AssetInfo> mAssetToBundleInfo = new();				// 根据资源文件名查找Asset信息的列表,初始化时就会填充此列表
-	protected List<AssetBundleInfo> mRequestBundleList = new();						// 请求异步加载的AssetBundle列表
 	protected HashSet<Coroutine> mCoroutineList = new();							// 当前的协程列表
 	protected HashSet<string> mDontUnloadAssetBundle = new();						// 即使没有引用也不会调用卸载的AssetBundle
 	protected WaitForEndOfFrame mWaitForEndOfFrame = new();                         // 用于避免GC
@@ -83,21 +81,6 @@ public class AssetBundleLoader
 			return;
 		}
 
-		// 处理资源包异步加载请求
-		if (mRequestBundleList.Count > 0)
-		{
-			// 找到第一个依赖项已经加载完毕的资源
-			for (int i = 0; i < mRequestBundleList.Count; ++i)
-			{
-				AssetBundleInfo info = mRequestBundleList[i];
-				if (info.isAllParentLoaded())
-				{
-					mCoroutineList.Add(mGameFrameworkHotFix.StartCoroutine(loadAssetBundleCoroutine(info)));
-					mRequestBundleList.RemoveAt(i--);
-				}
-			}
-		}
-
 		// 更新检查所有资源包是否需要卸载
 		foreach (AssetBundleInfo bundle in mAssetBundleInfoList.Values)
 		{
@@ -121,8 +104,6 @@ public class AssetBundleLoader
 			mGameFrameworkHotFix.StopCoroutine(item);
 		}
 		mCoroutineList.Clear();
-		// 还未开始加载的异步加载资源需要从等待列表中移除
-		mRequestBundleList.Clear();
 		mAssetToAssetBundleInfo.Clear();
 		foreach (AssetBundleInfo item in mAssetBundleInfoList.Values)
 		{
@@ -179,7 +160,6 @@ public class AssetBundleLoader
 			{
 				continue;
 			}
-			mRequestBundleList.Remove(item.Value);
 			item.Value.unload();
 		}
 	}
@@ -355,7 +335,7 @@ public class AssetBundleLoader
 			logError("AssetBundleLoader is not inited!");
 			return;
 		}
-		mRequestBundleList.addUnique(bundleInfo);
+		mCoroutineList.Add(mGameFrameworkHotFix.StartCoroutine(loadAssetBundleCoroutine(bundleInfo)));
 	}
 	public void requestLoadAsset(AssetBundleInfo bundleInfo, string fileNameWithSuffix)
 	{
@@ -448,6 +428,10 @@ public class AssetBundleLoader
 		{
 			log(bundleInfo.getBundleFileName() + " start load bundle");
 		}
+		while(!bundleInfo.isAllParentLoaded())
+		{
+			yield return null;
+		}
 		AssetBundle assetBundle = null;
 		string bundleFileName = bundleInfo.getBundleFileName();
 		string fullPath = availableReadPath(bundleFileName);
@@ -469,10 +453,7 @@ public class AssetBundleLoader
 			bundleInfo.setLoadState(LOAD_STATE.LOADING);
 			if (isWebGL())
 			{
-				yield return ResourceManager.loadAssetBundleWithURL(fullPath, (UObject asset, UObject[] _, byte[] _, string _) =>
-				{
-					assetBundle = asset as AssetBundle;
-				});
+				yield return ResourceManager.loadAssetsFromUrlWaiting(fullPath, (AssetBundle asset) => { assetBundle = asset; });
 			}
 			else
 			{

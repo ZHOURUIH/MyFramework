@@ -1,4 +1,7 @@
-﻿using System;
+﻿#if USE_TMP
+using TMPro;
+#endif
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -139,6 +142,10 @@ public class WidgetUtility
 		if (rectTransform.TryGetComponent(out Text text))
 		{
 			text.fontSize = clampMin(floor(divide(text.fontSize, lastHeight) * size.y), minFontSize);
+		}
+		else if (rectTransform.TryGetComponent(out TextMeshProUGUI tmproText))
+		{
+			tmproText.fontSize = clampMin(floor(divide(tmproText.fontSize, lastHeight) * size.y), minFontSize);
 		}
 	}
 	// 限制一个窗口的位置,使其父节点不能超出此窗口的范围,通常用于viewport内的更大的子窗口拖拽时限制位置

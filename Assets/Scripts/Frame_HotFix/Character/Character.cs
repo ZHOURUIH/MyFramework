@@ -70,9 +70,9 @@ public class Character : MovableObject
 		return mStateMachine;
 	}
 	public CharacterState getFirstGroupState(Type group)	{ return getStateMachine()?.getFirstGroupState(group); }
-	public CharacterState getFirstGroupState<T>()			{ return getStateMachine()?.getFirstGroupState(typeof(T)); }
+	public CharacterState getFirstGroupState<T>() where T : StateGroup	{ return getStateMachine()?.getFirstGroupState(typeof(T)); }
 	public CharacterState getFirstState(Type type)			{ return getStateMachine()?.getFirstState(type); }
-	public T getFirstState<T>() where T : CharacterState { return getStateMachine()?.getFirstState(typeof(T)) as T; }
+	public T getFirstState<T>() where T : CharacterState	{ return getStateMachine()?.getFirstState(typeof(T)) as T; }
 	public CharacterState getState(long instanceID)			{ return getStateMachine()?.getState(instanceID); }
 	public SafeDictionary<Type, SafeList<CharacterState>> getStateList() { return getStateMachine()?.getStateList(); }
 	public CharacterState addState(Type type, StateParam param = null, float stateTime = -1.0f, long id = 0)
