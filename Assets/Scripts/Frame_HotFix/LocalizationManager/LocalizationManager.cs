@@ -9,8 +9,8 @@ using static FrameEditorUtility;
 // 本地化系统,用于翻译文本,需要外部设置多语言文本内容
 public class LocalizationManager : FrameSystem
 {
-	protected Dictionary<myUGUIText, TextObjectLocalization> mTextList = new();		// 注册的多语言显示物体
-	protected Dictionary<myUGUIImage, ImageObjectLocalization> mImageList = new();	// 注册的多语言显示物体
+	protected Dictionary<IUGUIText, TextObjectLocalization> mTextList = new();		// 注册的多语言显示物体
+	protected Dictionary<IUGUIImage, ImageObjectLocalization> mImageList = new();	// 注册的多语言显示物体
 	protected Dictionary<string, string> mLocalizationLanguage = new();				// 当前本地语言的列表,以中文为key,value是当前切换的语言
 	protected Dictionary<int, string> mLocalizationLanguageID = new();				// 当前本地语言的列表,以ID为key,value是当前切换的语言
 	protected string mCurrentLanguage;												// 当前选择的语言
@@ -128,7 +128,7 @@ public class LocalizationManager : FrameSystem
 	public void registeAction(Action langchange) { mLanguageCallback += langchange; }
 	// 注销语言切换时的回调
 	public void unregisteAction(Action langchange) { mLanguageCallback -= langchange; }
-	public void registeLocalization(myUGUIImage obj, string chineseSpriteName)
+	public void registeLocalization(IUGUIImage obj, string chineseSpriteName)
 	{
 		if (isEditor() && obj.tryGetUnityComponent<LocalizationImage>() != null)
 		{
@@ -147,7 +147,7 @@ public class LocalizationManager : FrameSystem
 		localization.mObject.setSpriteName(localization.mImageNameWithoutSuffix + mCurrentLanguage);
 	}
 	// 注册需要切换多语言的文本对象,可重复注册
-	public void registeLocalization(myUGUIText obj, string text)
+	public void registeLocalization(IUGUIText obj, string text)
 	{
 		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
 		{
@@ -162,7 +162,7 @@ public class LocalizationManager : FrameSystem
 		localization.mObject.setText(getLocalize(localization.mText, localization.mParam));
 	}
 	// 注册需要切换多语言的文本对象,可重复注册
-	public void registeLocalization(myUGUIText obj, string text, string param)
+	public void registeLocalization(IUGUIText obj, string text, string param)
 	{
 		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
 		{
@@ -178,7 +178,7 @@ public class LocalizationManager : FrameSystem
 		localization.mObject.setText(getLocalize(localization.mText, localization.mParam));
 	}
 	// 注册需要切换多语言的文本对象,可重复注册
-	public void registeLocalization(myUGUIText obj, string text, string param0, string param1)
+	public void registeLocalization(IUGUIText obj, string text, string param0, string param1)
 	{
 		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
 		{
@@ -195,7 +195,7 @@ public class LocalizationManager : FrameSystem
 		localization.mObject.setText(getLocalize(localization.mText, localization.mParam));
 	}
 	// 注册需要切换多语言的文本对象,可重复注册
-	public void registeLocalization(myUGUIText obj, string text, string param0, string param1, string param2)
+	public void registeLocalization(IUGUIText obj, string text, string param0, string param1, string param2)
 	{
 		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
 		{
@@ -213,7 +213,7 @@ public class LocalizationManager : FrameSystem
 		localization.mObject.setText(getLocalize(localization.mText, localization.mParam));
 	}
 	// 注册需要切换多语言的文本对象,可重复注册
-	public void registeLocalization(myUGUIText obj, string text, string param0, string param1, string param2, string param3)
+	public void registeLocalization(IUGUIText obj, string text, string param0, string param1, string param2, string param3)
 	{
 		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
 		{
@@ -232,7 +232,7 @@ public class LocalizationManager : FrameSystem
 		localization.mObject.setText(getLocalize(localization.mText, localization.mParam));
 	}
 	// 注册需要切换多语言的文本对象,可重复注册
-	public void registeLocalization(myUGUIText obj, string text, Span<string> param)
+	public void registeLocalization(IUGUIText obj, string text, Span<string> param)
 	{
 		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
 		{
@@ -247,7 +247,7 @@ public class LocalizationManager : FrameSystem
 		localization.mObject.setText(getLocalize(localization.mText, localization.mParam));
 	}
 	// 注册需要切换多语言的文本对象,可重复注册
-	public void registeLocalization(myUGUIText obj, string text, IList<string> param)
+	public void registeLocalization(IUGUIText obj, string text, IList<string> param)
 	{
 		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
 		{
@@ -262,7 +262,7 @@ public class LocalizationManager : FrameSystem
 		localization.mObject.setText(getLocalize(localization.mText, localization.mParam));
 	}
 	// 注册需要切换多语言的文本对象,可重复注册
-	public void registeLocalization(myUGUIText obj, int id)
+	public void registeLocalization(IUGUIText obj, int id)
 	{
 		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
 		{
@@ -277,7 +277,7 @@ public class LocalizationManager : FrameSystem
 		localization.mObject.setText(getLocalize(localization.mID, localization.mParam));
 	}
 	// 注册需要切换多语言的文本对象,可重复注册
-	public void registeLocalization(myUGUIText obj, string mainText, OnLocalization callback)
+	public void registeLocalization(IUGUIText obj, string mainText, OnLocalization callback)
 	{
 		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
 		{
@@ -292,7 +292,7 @@ public class LocalizationManager : FrameSystem
 		invokeLocalizationCallback(localization);
 	}
 	// 注册需要切换多语言的文本对象,可重复注册
-	public void registeLocalization(myUGUIText obj, string mainText, string param, OnLocalization callback)
+	public void registeLocalization(IUGUIText obj, string mainText, string param, OnLocalization callback)
 	{
 		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
 		{
@@ -308,7 +308,7 @@ public class LocalizationManager : FrameSystem
 		invokeLocalizationCallback(localization);
 	}
 	// 注册需要切换多语言的文本对象,可重复注册
-	public void registeLocalization(myUGUIText obj, string mainText, string param0, string param1, OnLocalization callback)
+	public void registeLocalization(IUGUIText obj, string mainText, string param0, string param1, OnLocalization callback)
 	{
 		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
 		{
@@ -325,7 +325,7 @@ public class LocalizationManager : FrameSystem
 		invokeLocalizationCallback(localization);
 	}
 	// 注册需要切换多语言的文本对象,可重复注册
-	public void registeLocalization(myUGUIText obj, string mainText, IList<string> paramList, OnLocalization callback)
+	public void registeLocalization(IUGUIText obj, string mainText, IList<string> paramList, OnLocalization callback)
 	{
 		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
 		{
@@ -339,11 +339,11 @@ public class LocalizationManager : FrameSystem
 		localization.mCallback = callback;
 		invokeLocalizationCallback(localization);
 	}
-	public void unregisteLocalization<T>(ICollection<T> objList) where T : myUIObject
+	public void unregisteLocalization(ICollection<IUGUIObject> objList)
 	{
-		foreach (T obj in objList.safe())
+		foreach (IUGUIObject obj in objList.safe())
 		{
-			if (obj is myUGUIText text && mTextList.Remove(text, out TextObjectLocalization textLocalization))
+			if (obj is IUGUIText text && mTextList.Remove(text, out TextObjectLocalization textLocalization))
 			{
 				UN_CLASS(ref textLocalization);
 			}
@@ -356,7 +356,7 @@ public class LocalizationManager : FrameSystem
 	// 注销需要切换多语言的文本对象
 	public void unregisteLocalization(myUIObject obj)
 	{
-		if (obj is myUGUIText text && mTextList.Remove(text, out TextObjectLocalization textLocalization))
+		if (obj is IUGUIText text && mTextList.Remove(text, out TextObjectLocalization textLocalization))
 		{
 			UN_CLASS(ref textLocalization);
 		}

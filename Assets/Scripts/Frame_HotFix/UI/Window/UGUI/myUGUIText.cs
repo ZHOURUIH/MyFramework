@@ -7,7 +7,7 @@ using static StringUtility;
 using static FrameBaseHotFix;
 
 // 对UGUI的Text的封装
-public class myUGUIText : myUGUIObject
+public class myUGUIText : myUGUIObject, IUGUIText
 {
 	protected Text mText;				// UGUI的Text组件
 	protected CanvasGroup mCanvasGroup; // 用于是否显示
@@ -43,7 +43,11 @@ public class myUGUIText : myUGUIObject
 	public override bool isCulled() { return mCanvasGroup != null && isFloatZero(mCanvasGroup.alpha); }
 	public override bool canUpdate() { return base.canUpdate() && !isCulled(); }
 	public override bool canGenerateDepth() { return !isCulled(); }
-	public void setText(string text, bool preferredHeight = false)
+	public void setText(string text)
+	{
+		setText(text, false);
+	}
+	public void setText(string text, bool preferredHeight)
 	{
 		if(text == null)
 		{

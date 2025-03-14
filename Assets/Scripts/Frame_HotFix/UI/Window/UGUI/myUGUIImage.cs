@@ -6,7 +6,7 @@ using static FrameBaseHotFix;
 using static FrameDefine;
 
 // 对UGUI的Image的封装,普通版本,提供替换图片的功能,UGUI的静态图片不支持递归变化透明度
-public class myUGUIImage : myUGUIImageSimple
+public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 {
 	protected List<UGUIAtlasPtr> mOriginAtlasPtr = new();	// 图片图集,用于卸载,当前类只关心初始图集的卸载,后续再次设置的图集不关心是否需要卸载,需要外部设置的地方自己关心
 	protected List<UGUIAtlasPtr> mAtlasPtrList = new();		// 图片图集,为了支持多图集,也就是原本属于同一个图集里的图片,但是由于一个图集装不下而不得不拆分到多个图集中,所以使用List类型存储
@@ -115,7 +115,11 @@ public class myUGUIImage : myUGUIImageSimple
 		mAtlasPtrList.addNotNull(atlas);
 		setSprite(clearSprite ? null : atlas?.getSprite(getSpriteName()));
 	}
-	public void setSpriteName(string spriteName, bool useSpriteSize = false, float sizeScale = 1.0f)
+	public void setSpriteName(string spriteName)
+	{
+		setSpriteName(spriteName, false, 1.0f);
+	}
+	public void setSpriteName(string spriteName, bool useSpriteSize, float sizeScale)
 	{
 		if (mImage == null)
 		{

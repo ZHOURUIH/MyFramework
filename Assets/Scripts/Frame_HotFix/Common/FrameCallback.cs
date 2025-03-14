@@ -93,7 +93,7 @@ public delegate void DecryptPacket(byte[] data, int offset, int length, byte par
 public delegate void OnHotKeyCallback(KeyCode key);
 public delegate void NetStateCallback(NET_STATE state, NET_STATE lastState);
 public delegate void CharacterStateCallback(CharacterState state);
-public delegate void OnLocalization(myUGUIText textObj, string localizedText, List<string> localizedParams);
+public delegate void OnLocalization(IUGUIText textObj, string localizedText, List<string> localizedParams);
 public delegate void OnReloadLanguage(string languageType, Dictionary<string, string> zhKeyList, Dictionary<int, string> idKeyList);
 public delegate void CheckAndDownloadFileListCallback(byte[] localFileListBytes, BytesCallback callback);
 public delegate void HttpCallback(string result, WebExceptionStatus status, HttpStatusCode code);

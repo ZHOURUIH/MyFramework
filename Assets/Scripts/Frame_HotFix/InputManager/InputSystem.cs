@@ -100,11 +100,11 @@ public class InputSystem : FrameSystem
 			foreach (TouchPoint item in a.mReadList.Values)
 			{
 				// 此处只更新鼠标的位置,因为touchCount为0时,mTouchPointList种也可能存在这一帧抬起的还未来得及移除的触摸屏的触点
-				if (!item.isMouse())
+				// webgl上也可能在鼠标按下时读取不到触点数量,所以触点数量为0而且又检测到了鼠标按下而添加信息到mTouchPointList,也使用鼠标位置来更新触点
+				if (item.isMouse() || isWebGL())
 				{
-					continue;
+					item.update(Input.mousePosition);
 				}
-				item.update(Input.mousePosition);
 			}
 		}
 		else

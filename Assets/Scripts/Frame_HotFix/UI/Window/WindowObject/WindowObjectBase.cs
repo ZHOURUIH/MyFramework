@@ -4,7 +4,7 @@ using static FrameBaseHotFix;
 
 public class WindowObjectBase : ILocalizationCollection
 {
-	protected HashSet<myUIObject> mLocalizationObjectList;  // 需要本地化的文本对象
+	protected HashSet<IUGUIObject> mLocalizationObjectList; // 需要本地化的文本对象
 	protected LayoutScript mScript;							// 所属的布局脚本
 	protected bool mDestroied;								// 是否已经销毁过了,用于检测重复销毁的
 	public WindowObjectBase(LayoutScript script)
@@ -27,7 +27,7 @@ public class WindowObjectBase : ILocalizationCollection
 		mLocalizationManager?.unregisteLocalization(mLocalizationObjectList);
 		mLocalizationObjectList?.Clear();
 	}
-	public void addLocalizationObject(myUIObject obj)
+	public void addLocalizationObject(IUGUIObject obj)
 	{
 		mLocalizationObjectList ??= new();
 		mLocalizationObjectList.Add(obj);

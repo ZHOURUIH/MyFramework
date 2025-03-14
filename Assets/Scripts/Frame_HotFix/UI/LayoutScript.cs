@@ -17,7 +17,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection
 	protected bool mRegisterChecked;								    // 是否已经检测过了合法性
 	protected HashSet<WindowStructPoolBase> mPoolList;					// 布局中使用的窗口对象池列表,收集后方便统一销毁
 	protected HashSet<WindowObjectBase> mWindowObjectList;				// 布局中使用的非对象池中的窗口对象,收集后方便统一销毁
-	protected HashSet<myUIObject> mLocalizationObjectList;				// 注册的需要本地化的对象,因为每次修改文本显示都会往列表里加,所以使用HashSet
+	protected HashSet<IUGUIObject> mLocalizationObjectList;				// 注册的需要本地化的对象,因为每次修改文本显示都会往列表里加,所以使用HashSet
 	protected GameLayout mLayout;				// 所属布局
 	protected myUGUIObject mRoot;				// 布局中的根节点
 	protected bool mNeedUpdate = true;			// 布局脚本是否需要指定update,为了提高效率,可以不执行当前脚本的update,虽然update可能是空的,但是不调用会效率更高
@@ -114,7 +114,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection
 		passOnlyArea.registeCollider();
 		mGlobalTouchSystem.bindPassOnlyArea(parent, passOnlyArea);
 	}
-	public void addLocalizationObject(myUIObject obj)
+	public void addLocalizationObject(IUGUIObject obj)
 	{
 		mLocalizationObjectList ??= new();
 		mLocalizationObjectList.Add(obj);
