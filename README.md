@@ -1,5 +1,7 @@
 配套服务器:https://github.com/ZHOURUIH/MyServerFramework
 
+更多详细的说明可在[文档目录](https://github.com/ZHOURUIH/MyFramework/tree/master/%E6%96%87%E6%A1%A3)中找到
+
 # MyFramework
 
 框架特点:
