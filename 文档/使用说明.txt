@@ -7,6 +7,7 @@
 
 表格操作
 目前暂时使用的是SQLite进行表格配置,后续有时间可以改为其他的,看策划的意思.
+推荐可以尝试csv格式的Excel表格,并且使用vscode+csv插件进行编辑,既能够满足编辑需求,又能够使用版本控制工具对比和合并
 1.游戏中是不会使用SQLite原始表格文件,需要进行一次转换,转换为二进制的才能读取.
   不直接读取的原因:SQLite提供了C#读写的接口,但是只能读写明文的表格文件,无法读取加密的表格文件.所以为了客户端安全,需要进行转换.(虽然也不能说绝对安全,至少提高了破解门槛).
   某些情况下会优先选择读写SQLite原始文件:表格数据量比较大,比如几万几十万行数据.读取转换后的文件会非常耗时,读写SQLite原始表格会快很多.
@@ -17,29 +18,47 @@
   自动生成代码:这个工具的工程源文件在Codegenerator_SheepVallige中.是用于根据配置自动生成代码,目前只有生成SQLite的表格读写代码.HotFix/Game/DataBase/Excel下的Data和Table目录中的代码都是自动生成的.
       配置:复制一份CodeGenerator_Config_Template.txt,改名为CodeGenerator_Config.txt,然后打开此文件,将其中的目录改为自己的本地目录
 所以一般在修改表格后,需要进行以下操作才能在游戏中生效.
-1.运行CodeGenerator_SheepVallige.exe生成对应的代码(如果表格结构没有改变,也没有新增删除表格,则不需要进行此操作)
+1.运行CodeGenerator.exe生成对应的代码(如果表格结构没有改变,也没有新增删除表格,则不需要进行此操作)
 2.运行SQLiteToBinaryTable.exe转换表格文件
 
 添加界面
 1.复制一份现有的HotFix/UI/Script下的一个UI脚本文件.改个名字,比如UITest,将其中的类名也改为UITest
-2.在FrameEnumExtra.cs中的LAYOUT_ILR中添加一个界面ID,public static int TEST,ID的值一般顺延
-3.在LayoutRegisterILR.cs中的registerAll函数中添加一行registeLayout<UITest>(LAYOUT_ILR.TEST, "UITest");
-// 如果此脚本会在代码中其他地方进行访问,则需要进行一下操作添加静态变量
-4.在GameBaseILR.cs中添加一行public static UITest mUITest;
-5.在LayoutRegisterILR.cs中的onScriptChanged函数中添加一行if (assign(ref mUITest, script, created)) return;
+2.在LayoutRegisterILR.cs中的registerAll函数中添加一行registeLayout<UILogin>((script) => { mUILogin = script; });
+3.在GameBaseILR.cs中添加一行public static UITest mUITest;
 
 对象池的使用
 列表类型的对象池
-  如果只是临时使用的列表,可以使用ListScopeILR,有些时候用ListScope不会报错也行
-  持久使用的列表,可以用FrameUtilityILR.LIST_ILR_PERSIST,不过需要注意,在不用的时候要手动使用FrameUtilityILR.UN_LIST_ILR回收
+	离开作用域后会自动回收
+	using var a = new ListScope<TestA>(out var obj);
+	using var a = new DicScope<TestA>(out var obj);
+	using var a = new HashSetScope<TestA>(out var obj);
+	持久的列表对象池可以使用,需要自己手动使用UN_LIST进行回收
+	LIST(out List<int> obj);
+	UN_LIST(out obj);
 类对象的对象池
-  临时使用的对象可以用ClassScopeILR
+  临时使用的对象可以用
+  using var b = new ClassScope<SerializerRead>(out var reader);
   持久使用的对象使用FrameUtilityILR.CLASS,也是需要手动进行回收.
   此类对象需要继承自ClassObject,并且需要重写resetProperty函数,将此类的成员变量重置到刚构造结束的状态(这一点非常重要!!!!菜单可以检查出有没有漏掉成员变量)
 Prefab的对象池
   PrefabPoolManager.createObject或者createObjectAsync,需要使用PrefabPoolManager.destroyObject进行回收,而且不允许在外部对其进行销毁.
+特效的对象池
+  EffectManager.createEffect,实际上也是调用的PrefabPoolManager的方法,只不过针对特效有一些封装,比如播放临时特效
 GameObject的对象池
   GameObjectPool.newObject,需要使用GameObjectPool.destroyObject进行回收
   
 字符串
 字符串的操作都在StringUtility有提供函数,包括拼接,转换数字,拆分,查找,文件名相关操作
+文件
+FileUtility文件相关的操作,读,写,查找,计算MD5等
+数学计算
+MathUtility,封装了大部分的Mathf方法,也有一些自己写的关于2D或者3D图形的算法
+引擎相关工具函数
+UnityUtility
+Http相关工具函数
+HttpUtility,常用的get,post,delete等
+时间
+TimeUtility
+二进制
+BinaryUtility
+也有很多工具函数是直接以扩展函数的方式实现的,比如ListExtension,DictionaryExtention,HashSetExtension,StringExtension
