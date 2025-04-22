@@ -11,7 +11,7 @@ public struct HashSetScope2<T> : IDisposable
 	private HashSet<T> mList1;      // 分配的对象
 	public HashSetScope2(out HashSet<T> list0, out HashSet<T> list1)
 	{
-		if (mGameFrameworkHotFix == null || mHashSetPool == null)
+		if (GameEntry.getInstance() == null || mHashSetPool == null)
 		{
 			list0 = new();
 			list1 = new();
@@ -19,7 +19,7 @@ public struct HashSetScope2<T> : IDisposable
 			mList1 = null;
 			return;
 		}
-		string stackTrace = mGameFrameworkHotFix.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
+		string stackTrace = GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
 		list0 = mHashSetPool.newList(typeof(T), typeof(HashSet<T>), stackTrace, true) as HashSet<T>;
 		list1 = mHashSetPool.newList(typeof(T), typeof(HashSet<T>), stackTrace, true) as HashSet<T>;
 		mList0 = list0;
@@ -27,10 +27,6 @@ public struct HashSetScope2<T> : IDisposable
 	}
 	public void Dispose()
 	{
-		if (mGameFrameworkHotFix == null || mHashSetPool == null)
-		{
-			return;
-		}
 		Type type = typeof(T);
 		mHashSetPool?.destroyList(ref mList0, type);
 		mHashSetPool?.destroyList(ref mList1, type);

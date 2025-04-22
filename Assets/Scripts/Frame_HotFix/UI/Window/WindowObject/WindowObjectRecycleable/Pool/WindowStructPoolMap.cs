@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using static UnityUtility;
 using static CSharpUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
+using static FrameBaseHotFix;
 
 // 可通过Key索引的复杂窗口对象池
 public class WindowStructPoolMap<Key, T> : WindowStructPoolBase where T : WindowObjectBase, IRecycleable
@@ -71,9 +72,9 @@ public class WindowStructPoolMap<Key, T> : WindowStructPoolBase where T : Window
 		}
 		if (!mUsedItemList.Remove(key, out T item))
 		{
-			if (showError)
+			if (mGameFrameworkHotFix != null && !mGameFrameworkHotFix.isDestroy() && showError)
 			{
-				logError("此窗口物体不属于当前窗口物体池,无法回收,type:" + item.GetType());
+				logError("此窗口物体不属于当前窗口物体池,无法回收,key:" + key + ", type:" + typeof(T));
 			}
 			return;
 		}

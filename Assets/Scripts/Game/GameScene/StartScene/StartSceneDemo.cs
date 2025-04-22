@@ -1,15 +1,26 @@
-﻿using static FrameUtility;
+﻿using static GameBase;
+using static StringUtility;
 
 public class StartSceneDemo : SceneProcedure
 {
-	protected override void onInit(SceneProcedure lastProcedure, string intent)
+	protected float mTime;
+	public override void init()
 	{
 		// 一般在此处加载界面,加载场景
-		LT.LOAD_SHOW<UIDemo>();
-		delayCall(() => { HybridCLRSystem.launchHotFix(null, null, null); }, 3.0f);
+		CmdLayoutManagerLoad.execute(typeof(UIDemo), 0);
 	}
-	protected override void onExit(SceneProcedure nextProcedure)
+	public override void update(float elapsedTime)
 	{
-		LT.HIDE<UIDemo>();
+		base.update(elapsedTime);
+		mTime += elapsedTime;
+		mUIDemo.setText(FToS(3 - mTime, 1) + "秒后进入热更");
+		if (mTime >= 3.0f)
+		{
+			HybridCLRSystem.launchHotFix(null, null, null);
+		}
+	}
+	public override void exit()
+	{
+		mUIDemo?.close();
 	}
 }

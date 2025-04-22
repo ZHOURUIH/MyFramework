@@ -4,14 +4,13 @@ using static FrameUtility;
 using static FrameBaseHotFix;
 
 // 场景流程
-public abstract class SceneProcedure : DelayCmdWatcher
+public class SceneProcedure : DelayCmdWatcher
 {
 	protected Dictionary<Type, SceneProcedure> mChildProcedureList = new(); // 子流程列表
 	protected SceneProcedure mParentProcedure;	// 父流程
 	protected SceneProcedure mPrepareNext;      // 准备退出到的流程
 	protected GameScene mGameScene;             // 流程所属的场景
 	protected MyTimer mPrepareTimer = new();    // 准备退出的计时
-	protected string mPrepareIntent;			// 传递参数用
 	protected bool mInited;                     // 是否已经初始化,子节点在初始化时需要先确保父节点已经初始化
 	public override void resetProperty()
 	{
@@ -21,7 +20,6 @@ public abstract class SceneProcedure : DelayCmdWatcher
 		mPrepareNext = null;
 		mGameScene = null;
 		mPrepareTimer.stop();
-		mPrepareIntent = null;
 		mInited = false;
 	}
 	// 销毁场景时会调用流程的销毁
@@ -32,12 +30,12 @@ public abstract class SceneProcedure : DelayCmdWatcher
 	public virtual void onNextProcedurePrepared(SceneProcedure nextPreocedure) { }
 	// 由GameScene调用
 	// 进入流程
-	public void init(SceneProcedure lastProcedure, string intent)
+	public void init(SceneProcedure lastProcedure)
 	{
 		// 如果父节点还没有初始化,则先初始化父节点
 		if (mParentProcedure != null && !mParentProcedure.mInited)
 		{
-			mParentProcedure.init(lastProcedure, intent);
+			mParentProcedure.init(lastProcedure);
 			// 退出父节点自身而进入子节点
 			mParentProcedure.onExitToChild(this);
 			mParentProcedure.onExitSelf();
@@ -45,11 +43,11 @@ public abstract class SceneProcedure : DelayCmdWatcher
 		// 再初始化自己,如果是从子节点返回到父节点,则需要调用另外一个初始化函数
 		if (lastProcedure != null && lastProcedure.isThisOrParent(GetType()))
 		{
-			onInitFromChild(lastProcedure, intent);
+			onInitFromChild(lastProcedure);
 		}
 		else
 		{
-			onInit(lastProcedure, intent);
+			onInit(lastProcedure);
 		}
 		mInited = true;
 	}
@@ -64,7 +62,7 @@ public abstract class SceneProcedure : DelayCmdWatcher
 		if (mPrepareTimer.tickTimer(elapsedTime))
 		{
 			// 超过了准备时间,强制跳转流程
-			changeProcedure(mPrepareNext.GetType(), mPrepareIntent);
+			changeProcedure(mPrepareNext.GetType());
 		}
 	}
 	public void lateUpdate(float elapsedTime)
@@ -98,13 +96,11 @@ public abstract class SceneProcedure : DelayCmdWatcher
 		// 退出完毕后就修改标记
 		mPrepareTimer.stop();
 		mPrepareNext = null;
-		mPrepareIntent = null;
 	}
-	public void prepareExit(SceneProcedure next, float time, string intent)
+	public void prepareExit(SceneProcedure next, float time)
 	{
 		mPrepareTimer.init(0.0f, time, false);
 		mPrepareNext = next;
-		mPrepareIntent = intent;
 		// 通知自己准备退出
 		onPrepareExit(next);
 	}
@@ -202,17 +198,17 @@ public abstract class SceneProcedure : DelayCmdWatcher
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 从自己的子流程进入当前流程
-	protected virtual void onInitFromChild(SceneProcedure lastProcedure, string intent) { }
+	protected virtual void onInitFromChild(SceneProcedure lastProcedure) { }
 	// 在进入流程时调用
 	// 在onInit中如果要跳转流程,必须使用延迟命令进行跳转
-	protected abstract void onInit(SceneProcedure lastProcedure, string intent);
+	protected virtual void onInit(SceneProcedure lastProcedure) { }
 	// 更新流程时调用
 	protected virtual void onUpdate(float elapsedTime) { }
 	protected virtual void onLateUpdate(float elapsedTime) { }
 	// 更新流程时调用
 	protected virtual void onKeyProcess(float elapsedTime) { }
 	// 退出当前流程,进入的不是自己的子流程时调用
-	protected abstract void onExit(SceneProcedure nextProcedure);
+	protected virtual void onExit(SceneProcedure nextProcedure) { }
 	// 退出当前流程,进入自己的子流程时调用
 	protected virtual void onExitToChild(SceneProcedure nextProcedure) { }
 	// 退出当前流程进入其他任何流程时调用
@@ -228,7 +224,7 @@ public abstract class SceneProcedure : DelayCmdWatcher
 		return true;
 	}
 	// 专为exit流程而封装的一些通用卸载逻辑
-	protected void genericExit(int tag)
+	protected void genericExit(int tag = 0)
 	{
 		// 一般在场景的Exit流程中,卸载该场景的所有布局,确保没有资源遗留
 		mLayoutManager.unloadAllPartLayout();

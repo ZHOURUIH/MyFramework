@@ -21,7 +21,7 @@ public class SafeDictionary<Key, Value> : ClassObject
 		mLastFileName = null;
 		mForeaching = false;
 	}
-	// 获取用于更新的列表,会自动从主列表同步,遍历结束时需要调用endForeach
+	// 获取用于更新的列表,会自动从主列表同步,遍历结束时需要调用endForeach,一般使用SafeDictionaryReader来安全遍历
 	public Dictionary<Key, Value> startForeach(string fileName = null)
 	{
 		if (mForeaching)

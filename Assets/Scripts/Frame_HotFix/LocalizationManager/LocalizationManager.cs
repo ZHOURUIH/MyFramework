@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using static FrameUtility;
 using static StringUtility;
 using static UnityUtility;
-using static FrameDefine;
-using static FrameEditorUtility;
+using static FrameBaseDefine;
+using static FrameBaseUtility;
 
 // 本地化系统,用于翻译文本,需要外部设置多语言文本内容
 public class LocalizationManager : FrameSystem

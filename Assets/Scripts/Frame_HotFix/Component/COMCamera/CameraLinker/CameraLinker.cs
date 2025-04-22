@@ -5,7 +5,7 @@ using static MathUtility;
 using static UnityUtility;
 using static FrameUtility;
 using static BinaryUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 摄像机的连接器,用于摄像机的跟随逻辑
 public class CameraLinker : GameComponent

@@ -2,8 +2,9 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement; 
 using static FrameDefine;
-using static FrameDefineBase;
+using static FrameBaseDefine;
 using static UnityUtility;
+using static FrameBaseUtility;
 
 public class MenuAnchor
 {
@@ -124,9 +125,9 @@ public class MenuAnchor
 	protected static void addPaddingAnchor(GameObject obj)
 	{
 		// 先设置自己的Anchor
-		if (obj.TryGetComponent<RectTransform>(out _) && !obj.TryGetComponent<PaddingAnchor>(out _))
+		if (obj.TryGetComponent<RectTransform>(out _) && getOrAddComponent(obj, out PaddingAnchor com))
 		{
-			obj.AddComponent<PaddingAnchor>().setAnchorMode(ANCHOR_MODE.STRETCH_TO_PARENT_SIDE);
+			com.setAnchorMode(ANCHOR_MODE.STRETCH_TO_PARENT_SIDE);
 		}
 		// 再设置子节点的Anchor
 		int childCount = obj.transform.childCount;
@@ -139,10 +140,7 @@ public class MenuAnchor
 	protected static void removePaddingAnchor(GameObject obj)
 	{
 		// 先销毁自己的Anchor
-		if (obj.TryGetComponent<PaddingAnchor>(out var padding))
-		{
-			destroyUnityObject(padding, true);
-		}
+		destroyComponent<PaddingAnchor>(obj);
 		// 再销毁子节点的Anchor
 		int childCount = obj.transform.childCount;
 		for (int i = 0; i < childCount; ++i)
@@ -156,18 +154,11 @@ public class MenuAnchor
 		// 先设置自己的Anchor
 		if (obj.TryGetComponent<RectTransform>(out _))
 		{
-			if (!obj.TryGetComponent<ScaleAnchor>(out var anchor))
-			{
-				anchor = obj.AddComponent<ScaleAnchor>();
-			}
-			anchor.mKeepAspect = keepAspect;
+			getOrAddComponent<ScaleAnchor>(obj).mKeepAspect = keepAspect;
 		}
 		else
 		{
-			if (!obj.TryGetComponent<ScaleAnchor3D>(out var _))
-			{
-				obj.AddComponent<ScaleAnchor3D>();
-			}
+			getOrAddComponent<ScaleAnchor3D>(obj);
 		}
 		// 再设置子节点的Anchor
 		int childCount = obj.transform.childCount;
@@ -180,10 +171,7 @@ public class MenuAnchor
 	protected static void removeScaleAnchor(GameObject obj)
 	{
 		// 先销毁自己的Anchor
-		if (obj.TryGetComponent<ScaleAnchor>(out var anchor))
-		{
-			destroyUnityObject(anchor, true);
-		}
+		destroyComponent<ScaleAnchor>(obj);
 		// 再销毁子节点的Anchor
 		int childCount = obj.transform.childCount;
 		for (int i = 0; i < childCount; ++i)

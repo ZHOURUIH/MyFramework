@@ -8,7 +8,7 @@ using static FileUtility;
 using static CSharpUtility;
 using static BinaryUtility;
 using static FrameDefine;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // Excel表格的基类,表示一个表格
 public class ExcelTable

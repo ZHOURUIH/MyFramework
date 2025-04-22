@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using static UnityUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 用于Android平台下Google登录
 public class GoogleLogin : FrameSystem

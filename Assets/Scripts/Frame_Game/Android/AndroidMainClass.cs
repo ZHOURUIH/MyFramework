@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
-using static UnityUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 用于加载Android平台下的资源
 public class AndroidMainClass : FrameSystem
@@ -12,28 +11,17 @@ public class AndroidMainClass : FrameSystem
 		{
 			if (classPath.isEmpty())
 			{
-				logError("initJava failed! classPath not valid");
+				logErrorBase("initJava failed! classPath not valid");
 				return;
 			}
 			mMainClass = new(classPath);
 		}
 	}
-	public static AndroidJavaClass getMainClass() { return mMainClass; }
 	public override void destroy()
 	{
 		mMainClass?.Dispose();
 		mMainClass = null;
 		base.destroy();
-	}
-	// 获取当前的电流大小,单位微安
-	public static int getBatteryEnergy()
-	{
-		return mMainClass?.CallStatic<int>("getBatteryEnergy") ?? 0;
-	}
-	// 安装一个apk文件
-	public static void installAPK(string filePath)
-	{
-		mMainClass?.CallStatic("installAPK", filePath);
 	}
 	public static void gameStart()
 	{
@@ -43,7 +31,7 @@ public class AndroidMainClass : FrameSystem
 		}
 		if (mMainClass == null)
 		{
-			logError("MainClass is null");
+			logErrorBase("MainClass is null");
 			return;
 		}
 		mMainClass.CallStatic("gameStart", AndroidPluginManager.getMainActivity());

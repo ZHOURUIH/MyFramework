@@ -1,10 +1,8 @@
 ﻿#if USE_AVPRO_VIDEO
 using UnityEngine;
 using RenderHeads.Media.AVProVideo;
-using UnityEngine.Events;
 using static UnityUtility;
 using static MathUtility;
-using static StringUtility;
 using static FrameUtility;
 using static FileUtility;
 using static FrameDefine;
@@ -13,7 +11,6 @@ using static FrameDefineBase;
 // 用于播放视频的窗口
 public class myUGUIVideo : myUGUIRawImage
 {
-	protected UnityAction<MediaPlayer, MediaPlayerEvent.EventType, ErrorCode> mVideoEventCallback;	// 避免GC的委托
 	protected VideoErrorCallback mErrorCallback;		// 错误回调
 	protected VideoCallback mVideoReadyCallback;		// 视频准备完毕的回调
 	protected VideoCallback mVideoEndCallback;			// 视频播放结束的回调
@@ -28,7 +25,6 @@ public class myUGUIVideo : myUGUIRawImage
 	protected bool mReady;								// 视频是否已准备完毕
 	public myUGUIVideo()
 	{
-		mVideoEventCallback = onVideoEvent;
 		mAutoShowOrHide = true;
 		mNextState = PLAY_STATE.NONE;
 		mNextRate = 1.0f;
@@ -40,7 +36,7 @@ public class myUGUIVideo : myUGUIRawImage
 		base.init();
 		mIsRequires = false;
 		mMediaPlayer = getOrAddUnityComponent<MediaPlayer>();
-		mMediaPlayer.Events.AddListener(mVideoEventCallback);
+		mMediaPlayer.Events.AddListener(onVideoEvent);
 	}
 	public override void update(float elapsedTime)
 	{

@@ -46,8 +46,6 @@ public delegate void AssetLoadDoneCallback(UObject asset, UObject[] assets, byte
 public delegate void DownloadCallback(ulong downloadedBytes, int downloadDelta, double deltaTimeMillis, float percent);
 public delegate void GameLayoutCallback(GameLayout layout);
 public delegate void VideoCallback(string videoName, bool isBreak);
-public delegate void GameDownloadCallback(float progress, PROGRESS_TYPE type, string info, int bytesPerSecond, int downloadRemainSeconds);
-public delegate void GameDownloadTipCallback(DOWNLOAD_TIP type);
 #if USE_AVPRO_VIDEO
 public delegate void VideoErrorCallback(ErrorCode errorCode);
 #endif
@@ -95,7 +93,6 @@ public delegate void NetStateCallback(NET_STATE state, NET_STATE lastState);
 public delegate void CharacterStateCallback(CharacterState state);
 public delegate void OnLocalization(IUGUIText textObj, string localizedText, List<string> localizedParams);
 public delegate void OnReloadLanguage(string languageType, Dictionary<string, string> zhKeyList, Dictionary<int, string> idKeyList);
-public delegate void CheckAndDownloadFileListCallback(byte[] localFileListBytes, BytesCallback callback);
 public delegate void HttpCallback(string result, WebExceptionStatus status, HttpStatusCode code);
 public delegate void UnityHttpCallback(string result, UnityWebRequest.Result status, long code);
 public delegate void AudioInfoCallback(AudioInfo info);

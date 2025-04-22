@@ -3,7 +3,7 @@ using static UnityUtility;
 using static MathUtility;
 using static CSharpUtility;
 using static FrameBaseHotFix;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 用来代替普通的long类型,防止内存被修改器修改,由于用到了随机数,所以只能在主线程使用
 public struct SafeLong : IEquatable<SafeLong>

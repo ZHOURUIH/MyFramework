@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using static UnityUtility;
 using static MathUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 插值改变一个物体的旋转,如果目标旋转不变,离目标旋转越近,旋转速度越慢
 public class CmdTransformableLerpRotation : Command

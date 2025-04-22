@@ -8,7 +8,7 @@ using static FrameUtility;
 using static StringUtility;
 using static FrameBaseHotFix;
 using static FrameDefine;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 当前程序作为客户端时使用,表示一个与WebSocket服务器的连接,用于webgl平台
 public abstract class NetConnectWebSocketWebGL : NetConnect

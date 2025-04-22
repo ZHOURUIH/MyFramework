@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using static UnityUtility;
 using static FrameDefine;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // GameObject的池,用于缓存在代码中动态创建的GameObject
 public class GameObjectPool : FrameSystem
@@ -28,6 +28,7 @@ public class GameObjectPool : FrameSystem
 	public GameObject newObject(string name){ return newObject(name, mObject); }
 	public GameObject newObject(string name, GameObject parent)
 	{
+		bool isNew = false;
 		GameObject go;
 		// 先从未使用的列表中查找是否有可用的对象
 		if (mUnusedList.Count > 0)
@@ -38,16 +39,18 @@ public class GameObjectPool : FrameSystem
 		else
 		{
 			go = new();
-			if (isEditor() && ++mCreatedCount % 1000 == 0)
-			{
-				logNoLock("GameObject数量已经达到了" + mCreatedCount + "个, name:" + name);
-			}
+			isNew = true;
+			++mCreatedCount;
 		}
 		setNormalProperty(go, parent, name);
 		if (isEditor())
 		{
 			// 添加到已使用列表
 			addInuse(go);
+			if (isNew && mCreatedCount % 1000 == 0)
+			{
+				logNoLock("GameObject数量已经达到了" + mCreatedCount + "个, last name:" + name);
+			}
 		}
 		if (!go.activeSelf)
 		{

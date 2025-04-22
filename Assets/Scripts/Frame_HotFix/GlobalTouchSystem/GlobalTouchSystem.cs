@@ -4,7 +4,7 @@ using static UnityUtility;
 using static FrameUtility;
 using static FrameBaseHotFix;
 using static MathUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 用来代替UGUI的EventSystem,统一多摄像机的鼠标事件通知
 public class GlobalTouchSystem : FrameSystem

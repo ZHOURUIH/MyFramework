@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using static UnityUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 用于加载Android平台下的资源
 public class AndroidMainClass : FrameSystem
@@ -29,23 +29,5 @@ public class AndroidMainClass : FrameSystem
 	public static int getBatteryEnergy()
 	{
 		return mMainClass?.CallStatic<int>("getBatteryEnergy") ?? 0;
-	}
-	// 安装一个apk文件
-	public static void installAPK(string filePath)
-	{
-		mMainClass?.CallStatic("installAPK", filePath);
-	}
-	public static void gameStart()
-	{
-		if (isEditor() || !isAndroid())
-		{
-			return;
-		}
-		if (mMainClass == null)
-		{
-			logError("MainClass is null");
-			return;
-		}
-		mMainClass.CallStatic("gameStart", AndroidPluginManager.getMainActivity());
 	}
 }

@@ -4,7 +4,7 @@ using static FrameBaseHotFix;
 public class MainSceneGaming : SceneProcedure
 {
 	protected CharacterGame mPlayer;
-	protected override void onInit(SceneProcedure lastProcedure, string intent)
+	protected override void onInit(SceneProcedure lastProcedure)
 	{
 		mPlayer = mCharacterManager.createCharacter<CharacterGame>("test");
 		LT.LOAD_SHOW<UIGaming>();

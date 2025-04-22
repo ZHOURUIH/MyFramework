@@ -7,7 +7,7 @@ using static FrameBaseHotFix;
 using static CSharpUtility;
 using static MathUtility;
 using static FrameDefine;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 音频管理器
 public class AudioManager : FrameSystem
@@ -17,6 +17,8 @@ public class AudioManager : FrameSystem
 	protected SafeHashSet<AudioHelper> mHelperList = new();         // 音频播放的辅助物体列表,value表示销毁的剩余时间,有时候音效播放找不到合适的对象进行播放,就需要提供一个辅助播放的物体,包含mMusicHelper
 	protected Queue<AudioHelper> mUnusedList = new();				// 未使用列表,用于更轻量缓存AudioHelper对象
 	protected AudioHelper mMusicHelper;								// 全局的背景音乐播放辅助物体,认为同一时间只有一个背景音乐在播放
+	protected float mSoundVolume = 1.0f;							// 音效音量大小
+	protected float mMusicVolume = 1.0f;							// 背景音乐音量大小
 	protected int mLoadedCount;                                     // 音效已加载数量
 	protected int mMaxAudioCount;									// 音效的同时存在数量上限,为0表示不限制
 	public AudioManager()
@@ -74,10 +76,14 @@ public class AudioManager : FrameSystem
 		}
 	}
 	public Dictionary<string, AudioInfo> getAudioList() { return mAudioList; }
-	public void destroyAudioHelper(AudioHelper helper) { unusedHelper(helper); }
-	public AudioHelper getAudioHelper(float audioTime) { return getOneUnusedHelper(audioTime); }
 	public AudioHelper getMusicHelper() { return mMusicHelper; }
 	public int getMaxAudioCount() { return mMaxAudioCount; }
+	public float getSoundVolume() { return mSoundVolume; }
+	public float getMusicVolume() { return mMusicVolume; }
+	public AudioHelper getAudioHelper(float audioTime) { return getOneUnusedHelper(audioTime); }
+	public void setSoundVolume(float volume) { mSoundVolume = volume; }
+	public void setMusicVolume(float volume) { mMusicVolume = volume; }
+	public void destroyAudioHelper(AudioHelper helper) { unusedHelper(helper); }
 	public void setMaxAudioCount(int maxCount) { mMaxAudioCount = maxCount; }
 	public void createStreamingAudio(string url, AudioInfoCallback callback, bool load = true)
 	{

@@ -19,7 +19,7 @@ public class SafeHashSet<T> : ClassObject
 		mLastFileName = null;
 		mForeaching = false;
 	}
-	// 获取用于更新的列表,会自动从主列表同步,遍历结束时需要调用endForeach
+	// 获取用于更新的列表,会自动从主列表同步,遍历结束时需要调用endForeach,一般使用SafeHashSetReader来安全遍历
 	public HashSet<T> startForeach(string fileName = null)
 	{
 		if (mForeaching)

@@ -18,7 +18,7 @@ using UnityEngine.Rendering;
 #endif
 using UObject = UnityEngine.Object;
 using UDebug = UnityEngine.Debug;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 using static CSharpUtility;
 using static StringUtility;
 using static BinaryUtility;
@@ -26,7 +26,7 @@ using static MathUtility;
 using static TimeUtility;
 using static FileUtility;
 using static FrameDefine;
-using static FrameDefineBase;
+using static FrameBaseDefine;
 using static FrameUtility;
 using static FrameBaseHotFix;
 
@@ -36,12 +36,12 @@ public class UnityUtility
 	protected static bool mShowMessageBox = true;					// 是否显示报错提示框,用来判断提示框显示次数
 	protected static LOG_LEVEL mLogLevel = LOG_LEVEL.FORCE;			// 当前的日志过滤等级
 	protected static PointerEventData mEventData;                   // 缓存一个对象,避免每次都重新new一个
-	protected static Vector2 mHardwareScreenSize = new(Screen.currentResolution.width, Screen.currentResolution.height);	// 显示器宽高
-	protected static Vector2 mScreenSize = new(Screen.width, Screen.height);				// 窗口宽高
-	protected static Vector2 mHalfScreenSize = new(Screen.width >> 1, Screen.height >> 1);  // 窗口宽高的一半
-	protected static float mScreenAspect = mScreenSize.x / mScreenSize.y;					// 屏幕宽高比
+	protected static Vector2Int mHardwareScreenSize = new(Screen.currentResolution.width, Screen.currentResolution.height);	// 显示器宽高
+	protected static Vector2Int mScreenSize = new(Screen.width, Screen.height);					// 窗口宽高
+	protected static Vector2Int mHalfScreenSize = new(Screen.width >> 1, Screen.height >> 1);	// 窗口宽高的一半
+	protected static float mScreenAspect = mScreenSize.x / (float)mScreenSize.y;				// 屏幕宽高比
 	protected static Vector2 mScreenScale = new(mScreenSize.x * (1.0f / STANDARD_WIDTH), 
-												mScreenSize.y * (1.0f / STANDARD_HEIGHT));	// 当前分辨率相对于标准分辨率的缩放
+												mScreenSize.y * (1.0f / STANDARD_HEIGHT));		// 当前分辨率相对于标准分辨率的缩放
 	public static void setLogLevel(LOG_LEVEL level)
 	{
 		mLogLevel = level;
@@ -157,23 +157,12 @@ public class UnityUtility
 	}
 	public static void setScreenSize(Vector2 size, bool fullScreen)
 	{
-		setScreenSize(new((int)size.x, (int)size.y), fullScreen);
-	}
-	public static void setScreenSize(Vector2Int size, bool fullScreen)
-	{
-		mScreenSize = size;
-		mHalfScreenSize = new(size.x >> 1, size.y >> 1);
+		mScreenSize.x = (int)size.x;
+		mScreenSize.y = (int)size.y;
+		mHalfScreenSize = new(mScreenSize.x >> 1, mScreenSize.y >> 1);
 		mScreenAspect = divide(mScreenSize.x, mScreenSize.y);   // 屏幕宽高比
 		mScreenScale = new(mScreenSize.x * (1.0f / STANDARD_WIDTH), mScreenSize.y * (1.0f / STANDARD_HEIGHT));   // 当前分辨率相对于标准分辨率的缩放
-		Screen.SetResolution(size.x, size.y, fullScreen);
-
-		// UGUI
-		GameObject uguiRootObj = getRootGameObject(UGUI_ROOT);
-		uguiRootObj.TryGetComponent<RectTransform>(out var uguiRectTransform);
-		uguiRectTransform.offsetMin = -mScreenSize * 0.5f;
-		uguiRectTransform.offsetMax = mScreenSize * 0.5f;
-		uguiRectTransform.anchorMax = Vector2.one * 0.5f;
-		uguiRectTransform.anchorMin = Vector2.one * 0.5f;
+		setScreenSizeBase(mScreenSize, fullScreen);
 		GameCamera camera = mCameraManager.getUICamera();
 		if (camera != null)
 		{
@@ -184,26 +173,6 @@ public class UnityUtility
 		{
 			FT.MOVE(blurCamera, new(0.0f, 0.0f, -divide(mScreenSize.y * 0.5f, tan(blurCamera.getFOVY(true) * 0.5f))));
 		}
-	}
-	public static void destroyUnityObject(UObject obj, bool immediately = false, bool allowDestroyAssets = false)
-	{
-		destroyUnityObject(ref obj, immediately, allowDestroyAssets);
-	}
-	public static void destroyUnityObject<T>(ref T obj, bool immediately = false, bool allowDestroyAssets = false) where T : UObject
-	{
-		if (obj == null)
-		{
-			return;
-		}
-		if (immediately)
-		{
-			UObject.DestroyImmediate(obj, allowDestroyAssets);
-		}
-		else
-		{
-			UObject.Destroy(obj);
-		}
-		obj = null;
 	}
 	public static List<GameObject> getGameObjectWithTag(GameObject parent, string tag)
 	{
@@ -231,6 +200,15 @@ public class UnityUtility
 			getGameObjectWithTag(child.gameObject, tag, objList);
 		}
 	}
+	public static GameObject findOrCreateRootGameObject(string name)
+	{
+		GameObject obj = getRootGameObject(name, false);
+		if (obj == null)
+		{
+			obj = createGameObject(name);
+		}
+		return obj;
+	}
 	public static GameObject findOrCreateGameObject(string name, GameObject parent, bool recursive = true)
 	{
 		GameObject obj = getGameObject(name, parent, false, recursive);
@@ -239,61 +217,6 @@ public class UnityUtility
 			obj = createGameObject(name, parent);
 		}
 		return obj;
-	}
-	public static GameObject getRootGameObject(string name, bool errorIfNull = false)
-	{
-		if (name.isEmpty())
-		{
-			return null;
-		}
-		GameObject go = GameObject.Find(name);
-		if (go == null && errorIfNull)
-		{
-			logError("找不到物体,请确认物体存在且是已激活状态,parent为空时无法查找到未激活的物体:" + name);
-		}
-		return go;
-	}
-	public static GameObject getGameObject(string name, GameObject parent, bool errorIfNull = false, bool recursive = true)
-	{
-		if (name.isEmpty())
-		{
-			return null;
-		}
-		if (parent == null)
-		{
-			logError("parent不能为空,查找无父节点的GameObject请使用getRootGameObject");
-			return null;
-		}
-		GameObject go = null;
-		do
-		{
-			Transform trans = parent.transform.Find(name);
-			if (trans != null)
-			{
-				go = trans.gameObject;
-				break;
-			}
-			// 如果父节点的第一级子节点中找不到,就递归查找
-			if (recursive)
-			{
-				int childCount = parent.transform.childCount;
-				for (int i = 0; i < childCount; ++i)
-				{
-					GameObject thisParent = parent.transform.GetChild(i).gameObject;
-					go = getGameObject(name, thisParent, false, recursive);
-					if (go != null)
-					{
-						break;
-					}
-				}
-			}
-		} while (false);
-
-		if (go == null && errorIfNull)
-		{
-			logError("找不到物体,请确认是否存在:" + name + ", parent:" + (parent != null ? parent.name : EMPTY));
-		}
-		return go;
 	}
 	// 查找所有名字为name的GameObject
 	public static void getAllGameObject(List<GameObject> list, string name, GameObject parent, bool recursive = true)
@@ -335,7 +258,7 @@ public class UnityUtility
 	}
 	public static void cloneObjectAsync(GameObject oriObj, string name, GameObjectCallback callback)
 	{
-		mGameFrameworkHotFix.StartCoroutine(instantiateCoroutine(oriObj, name, callback));
+		GameEntry.getInstance().StartCoroutine(instantiateCoroutine(oriObj, name, callback));
 	}
 	public static GameObject createGameObject(string name, GameObject parent = null)
 	{
@@ -487,7 +410,7 @@ public class UnityUtility
 	}
 	public static Ray getMainCameraScreenCenterRay()
 	{
-		return getCameraRay(getHalfScreenSize(), getMainCamera().getCamera());
+		return getCameraRay((Vector2)getHalfScreenSize(), getMainCamera().getCamera());
 	}
 	public static Ray getMainCameraRay(Vector3 screenPos)
 	{
@@ -537,7 +460,7 @@ public class UnityUtility
 		Vector3 screenPosition = camera.WorldToScreenPoint(worldPos);
 		if (screenCenterAsZero)
 		{
-			screenPosition -= (Vector3)(getHalfScreenSize());
+			screenPosition -= getHalfScreenSize().toVec3();
 		}
 		screenPosition.z = 0.0f;
 		return screenPosition;
@@ -935,7 +858,7 @@ public class UnityUtility
 	}
 	public static bool raycast(Ray ray, out Collider result, out Vector3 point, int layer = -1)
 	{
-		return raycast(ray, out result, out point, 10000.0f, layer);
+		return raycast(ray, out result, out point, 20000.0f, layer);
 	}
 	public static bool raycast(Ray ray, out Collider result, out Vector3 point, float maxDistance, int layer = -1)
 	{
@@ -951,7 +874,7 @@ public class UnityUtility
 	}
 	public static int raycastAll(Ray ray, RaycastHit[] result, int layer = -1)
 	{
-		return raycastAll(ray, result, 10000.0f, layer);
+		return raycastAll(ray, result, 20000.0f, layer);
 	}
 	public static int raycastAll(Ray ray, RaycastHit[] result, float maxDistance, int layer = -1)
 	{
@@ -968,15 +891,15 @@ public class UnityUtility
 		{
 			return false;
 		}
-		return collider.Raycast(ray, out _, 10000.0f);
+		return collider.Raycast(ray, out _, 20000.0f);
 	}
 	public static bool raycast(Ray ray, out RaycastHit hitInfo)
 	{
-		return Physics.Raycast(ray, out hitInfo, 10000.0f, -1);
+		return Physics.Raycast(ray, out hitInfo, 20000.0f, -1);
 	}
 	public static bool getRaycastPoint(Collider collider, Ray ray, ref Vector3 intersectPoint)
 	{
-		return getRaycastPoint(collider, ray, ref intersectPoint, 10000.0f);
+		return getRaycastPoint(collider, ray, ref intersectPoint, 20000.0f);
 	}
 	public static bool getRaycastPoint(Collider collider, Ray ray, ref Vector3 intersectPoint, float maxDistance)
 	{
@@ -1211,17 +1134,13 @@ public class UnityUtility
 			return Vector2.zero;
 		}
 	}
-	public static Vector2 getHardwareScreenSize() { return mHardwareScreenSize; }
-	public static Vector2 getScreenSize() { return mScreenSize; }
-	public static Vector2 getHalfScreenSize() { return mHalfScreenSize; }
+	public static Vector2Int getHardwareScreenSize() { return mHardwareScreenSize; }
+	public static Vector2Int getScreenSize() { return mScreenSize; }
+	public static Vector2Int getHalfScreenSize() { return mHalfScreenSize; }
 	public static float getScreenAspect() { return mScreenAspect; }
 	public static Vector2 getRootSize() { return getUGUIRoot().getWindowSize(); }
 	// 获取屏幕独立的缩放值
-	public static Vector2 getScreenScale() { return getScreenScale(mScreenSize); }
-	public static Vector2 getScreenScale(Vector2 rootSize)
-	{
-		return new(rootSize.x * (1.0f / STANDARD_WIDTH), rootSize.y * (1.0f / STANDARD_HEIGHT));
-	}
+	public static Vector2 getScreenScale() { return FrameBaseUtility.getScreenScale(mScreenSize); }
 	// 根据一定规则,获取屏幕的缩放
 	public static Vector2 getScreenScale(ASPECT_BASE aspectBase) { return adjustScreenScale(getScreenScale(), aspectBase); }
 	public static Vector3 adjustScreenScale(Vector2 screenScale, ASPECT_BASE aspectBase = ASPECT_BASE.AUTO)
@@ -1417,6 +1336,62 @@ public class UnityUtility
 	public static int getLastError()
 	{
 		return Kernel32.GetLastError();
+	}
+	public static int prefsGetInt(string key, int defaultValue = 0)
+	{
+#if UNITY_EDITOR
+		return UnityEngine.PlayerPrefs.GetInt(key, defaultValue);
+#elif BYTE_DANCE
+		return TTSDK.TT.PlayerPrefs.GetInt(key, defaultValue);
+#elif WEIXINMINIGAME
+		return UnityEngine.PlayerPrefs.GetInt(key, defaultValue);
+#else
+		return UnityEngine.PlayerPrefs.GetInt(key, defaultValue);
+#endif
+	}
+	public static void prefsSetInt(string key, int value)
+	{
+#if UNITY_EDITOR
+		UnityEngine.PlayerPrefs.SetInt(key, value);
+		UnityEngine.PlayerPrefs.Save();
+#elif BYTE_DANCE
+		TTSDK.TT.PlayerPrefs.SetInt(key, value);
+		TTSDK.TT.PlayerPrefs.Save();
+#elif WEIXINMINIGAME
+		UnityEngine.PlayerPrefs.SetInt(key, value);
+		UnityEngine.PlayerPrefs.Save();
+#else
+		UnityEngine.PlayerPrefs.SetInt(key, value);
+		UnityEngine.PlayerPrefs.Save();
+#endif
+	}
+	public static string prefsGetString(string key)
+	{
+#if UNITY_EDITOR
+		return UnityEngine.PlayerPrefs.GetString(key);
+#elif BYTE_DANCE
+		return TTSDK.TT.PlayerPrefs.GetString(key);
+#elif WEIXINMINIGAME
+		return UnityEngine.PlayerPrefs.GetString(key);
+#else
+		return UnityEngine.PlayerPrefs.GetString(key);
+#endif
+	}
+	public static void prefsSetString(string key, string value)
+	{
+#if UNITY_EDITOR
+		UnityEngine.PlayerPrefs.SetString(key, value);
+		UnityEngine.PlayerPrefs.Save();
+#elif BYTE_DANCE
+		TTSDK.TT.PlayerPrefs.SetString(key, value);
+		TTSDK.TT.PlayerPrefs.Save();
+#elif WEIXINMINIGAME
+		UnityEngine.PlayerPrefs.SetString(key, value);
+		UnityEngine.PlayerPrefs.Save();
+#else
+		UnityEngine.PlayerPrefs.SetString(key, value);
+		UnityEngine.PlayerPrefs.Save();
+#endif
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected static IEnumerator instantiateCoroutine(GameObject origin, string name, GameObjectCallback callback)

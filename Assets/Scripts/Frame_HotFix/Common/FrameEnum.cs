@@ -78,16 +78,6 @@ public enum PLAY_STATE : byte
 	STOP,					// 已停止
 }
 
-// 加载状态
-public enum LOAD_STATE : byte
-{
-	NONE,					// 无效值
-	WAIT_FOR_LOAD,			// 等待加载
-	DOWNLOADING,			// 正在下载
-	LOADING,				// 正在加载
-	LOADED,					// 已加载
-}
-
 // 拖拽滑动操作相关的方向类型
 public enum DRAG_DIRECTION : byte
 {
@@ -306,21 +296,6 @@ public enum VERTICAL_PADDING : sbyte
 	CENTER,			// 以中间停靠
 }
 
-// 缩放比例的计算方式
-public enum ASPECT_BASE : byte
-{
-	[EnumLabel("根据屏幕宽度进行缩放")]
-	USE_WIDTH_SCALE,            // 使用宽的缩放值来缩放控件
-	[EnumLabel("根据屏幕高度进行缩放")]
-	USE_HEIGHT_SCALE,           // 使用高的缩放值来缩放控件
-	[EnumLabel("根据屏幕宽高中缩放最小的进行缩放")]
-	AUTO,                       // 取宽高缩放值中最小的,保证缩放以后不会超出屏幕范围
-	[EnumLabel("根据屏幕宽高中缩放最大的进行缩放")]
-	INVERSE_AUTO,               // 取宽高缩放值中最大的,保证缩放以后不会在屏幕范围留出空白
-	[EnumLabel("不缩放")]
-	NONE,						// 无效值
-}
-
 // 模型节点与角色节点的关系
 public enum AVATAR_RELATIONSHIP : byte
 {
@@ -393,14 +368,6 @@ public enum HTTP_METHOD : byte
 	GET,        // 以get方式
 }
 
-// 版本号比较结果
-public enum VERSION_COMPARE : byte
-{
-	EQUAL,          // 版本号相同
-	REMOTE_LOWER,   // 远端版本号更小
-	LOCAL_LOWER,	// 本地版本号更小
-}
-
 // 多指操作手势的类型
 public enum MULTI_TOUCH_GESTURE : byte
 {
@@ -448,23 +415,22 @@ public enum ANDROID_ORIENTATION : sbyte
 	SCREEN_ORIENTATION_LOCKED = 14,
 }
 
-// 更新游戏执行的阶段
-public enum PROGRESS_TYPE : byte
+// 日志等级
+public enum LOG_LEVEL : byte
 {
-	CHECKING_UPDATE,    // 检查更新
-	DELETE_FILE,        // 删除本地无用文件
-	DOWNLOAD_RESOURCE,  // 正在下载资源文件
-	FINISH,             // 更新完毕
-	DOWNLOAD_APK,       // 正在下载安装包
-	DOWNLOADED_APK,     // 安装包下载完毕
-	INSTALL_APK,        // 正在安装apk
+	NONE,       // 无效值
+	LOW,        // 低
+	NORMAL,     // 正常
+	HIGH,       // 高
+	FORCE,      // 强制显示
 }
 
-public enum DOWNLOAD_TIP : byte
+// 按键状态
+public enum KEY_STATE : byte
 {
-	NONE,                       // 无效值
-	CHECKING_UPDATE,            // 正在检查更新
-	DOWNLOAD_FAILED,            // 文件下载失败
-	NOT_IN_REMOTE_FILE_LIST,    // 已经下载的文件不存在于远端的文件列表中,一般不会有这个错误
-	VERIFY_FAILED,              // 文件校验失败
+	NONE,           // 无效值
+	CURRENT_DOWN,   // 这一帧按下
+	CURRENT_UP,     // 这一帧抬起
+	KEEP_DOWN,      // 持续按下
+	KEEP_UP,        // 持续抬起,就是一直没按
 }

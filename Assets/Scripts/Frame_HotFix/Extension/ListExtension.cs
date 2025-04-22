@@ -69,7 +69,7 @@ public static class ListExtension
 	}
 	public static List<T> addRange<T>(this List<T> list, IEnumerable<T> other)
 	{
-		if (other == null || other.Count() == 0)
+		if (list == null || other == null || other.Count() == 0)
 		{
 			return list;
 		}
@@ -167,6 +167,32 @@ public static class ListExtension
 		list.Add(value);
 		return value;
 	}
+	public static void add<T>(this List<T> list, T value0, T value1)
+	{
+		list.Add(value0);
+		list.Add(value1);
+	}
+	public static void add<T>(this List<T> list, T value0, T value1, T value2)
+	{
+		list.Add(value0);
+		list.Add(value1);
+		list.Add(value2);
+	}
+	public static void add<T>(this List<T> list, T value0, T value1, T value2, T value3)
+	{
+		list.Add(value0);
+		list.Add(value1);
+		list.Add(value2);
+		list.Add(value3);
+	}
+	public static void add<T>(this List<T> list, T value0, T value1, T value2, T value3, T value4)
+	{
+		list.Add(value0);
+		list.Add(value1);
+		list.Add(value2);
+		list.Add(value3);
+		list.Add(value4);
+	}
 	// 将sourceList中的所有元素添加到list中,并清空sourceList
 	public static List<T> move<T>(this List<T> list, IList<T> sourceList)
 	{
@@ -190,6 +216,37 @@ public static class ListExtension
 			return default;
 		}
 		return list[count - 1];
+	}
+	public static bool isSubList<T>(this List<T> list, IList<T> subList)
+	{
+		if (list.isEmpty() || subList.isEmpty())
+		{
+			return false;
+		}
+		if (list.Count < subList.Count)
+		{
+			return false;
+		}
+		for (int i = 0; i < list.Count; ++i)
+		{
+			if (list.Count - i < subList.Count)
+			{
+				break;
+			}
+			int j = 0;
+			for (; j < subList.Count; ++j)
+			{
+				if (!list[i + j].Equals(subList[j]))
+				{
+					break;
+				}
+			}
+			if (j == subList.Count)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 	public static int count<T>(this ICollection<T> list)							{ return list?.Count ?? 0; }
 	public static bool isEmptySpan<T>(this Span<T> list)							{ return list == null || list.Length == 0; }

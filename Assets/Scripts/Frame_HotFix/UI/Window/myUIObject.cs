@@ -5,7 +5,7 @@ using static UnityUtility;
 using static CSharpUtility;
 using static FrameBaseHotFix;
 using static MathUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // UI对象基类,此基类中不区分具体的UI插件,比如UGUI,NGUI等等
 public class myUIObject : Transformable, IMouseEventCollect
@@ -45,7 +45,7 @@ public class myUIObject : Transformable, IMouseEventCollect
 			return;
 		}
 		base.setActive(active);
-		mGlobalTouchSystem.notifyWindowActiveChanged();
+		mGlobalTouchSystem?.notifyWindowActiveChanged();
 	}
 	public static void collectChild<T>(myUIObject window, List<T> list) where T : myUIObject
 	{

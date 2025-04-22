@@ -2,7 +2,7 @@
 using static MathUtility;
 using static FrameUtility;
 using static FrameBaseHotFix;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 完全自由的摄像机,不连接任何物体
 public class CameraLinkerFree : CameraLinker

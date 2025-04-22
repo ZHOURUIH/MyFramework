@@ -1,6 +1,6 @@
 ﻿using static UnityUtility;
 using static MathUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 渐变一个窗口的亮度,需要此窗口有LumOffset的shader
 public class CmdWindowLum : Command

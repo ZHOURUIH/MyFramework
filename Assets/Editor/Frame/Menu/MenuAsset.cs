@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEditor;
 using System.IO;
-using static FrameDefine;
+using static FrameBaseDefine;
 using static UnityUtility;
 
 public class MenuAsset

@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using static StringUtility;
 using static UnityUtility;
-using static FrameDefine;
-using static FrameEditorUtility;
+using static FrameBaseDefine;
+using static FrameBaseUtility;
 
 // 用于加载Android平台下的资源
 public class AndroidAssetLoader : FrameSystem
@@ -152,7 +152,7 @@ public class AndroidAssetLoader : FrameSystem
 		checkPersistenDataPath(path);
 		return mAssetLoader.CallStatic<int>("getFileSize", path);
 	}
-	public static void findFiles(string path, List<string> fileList, List<string> patterns, bool recursive)
+	public static void findFiles(string path, List<string> fileList, IList<string> patterns, bool recursive)
 	{
 		if (mAssetLoader == null)
 		{
@@ -215,7 +215,7 @@ public class AndroidAssetLoader : FrameSystem
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected static void checkPersistenDataPath(string path)
 	{
-		addEndSlash(ref path);
+		path = path.addEndSlash();
 		if (!path.startWith(F_PERSISTENT_DATA_PATH))
 		{
 			logError("path must start with " + F_PERSISTENT_DATA_PATH + ", path : " + path);

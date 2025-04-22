@@ -22,7 +22,7 @@ using static FrameDefine;
 using static EditorDefine;
 using static UnityUtility;
 using static EditorFileUtility;
-using static FrameDefineBase;
+using static FrameBaseDefine;
 
 public class SpriteRefrenceInfo
 {
@@ -86,11 +86,10 @@ public class EditorCommonUtility
 			gameObjectToPrefab(path, transform.GetChild(i).gameObject);
 		}
 	}
-
-	// 查找文件在其他地方的引用情况
+	// 查找文件在其他地方的引用情况,查找fileName在allFileText中指定后缀的文件中的引用情况
 	public static int searchFiles(string pattern, string guid, string fileName, bool loadFile, Dictionary<string, UObject> refrenceList, Dictionary<string, List<FileGUIDLines>> allFileText, bool checkUnuseOnly)
 	{
-		generateNextIndex(guid, out int[] guidNextIndex);
+		int[] guidNextIndex = null;
 		fileName = fileName.rightToLeft();
 		string metaSuffix = ".meta";
 		if (pattern == "*.*")
@@ -103,6 +102,22 @@ public class EditorCommonUtility
 		}
 		foreach (var item in allFileText)
 		{
+			if (item.Value.Count == 0)
+			{
+				continue;
+			}
+			// 一些文件的meta中肯定不会引用任何文件
+			if (pattern == metaSuffix)
+			{
+				if (item.Key.endWith("bytes.meta") ||
+					item.Key.endWith("tpsheet.meta") ||
+					item.Key.endWith("mp3.meta") ||
+					item.Key.endWith("wave.meta") ||
+					item.Key.endWith("prefab.meta"))
+				{
+					continue;
+				}
+			}
 			if (!item.Key.endWith(pattern, false))
 			{
 				continue;
@@ -118,7 +133,7 @@ public class EditorCommonUtility
 				foreach (string line in fileGUIDLines.mContainGUIDLines)
 				{
 					// 查找是否包含GUID
-					if (KMPSearch(line, guid, guidNextIndex) < 0)
+					if (KMPSearch(line, guid, ref guidNextIndex) < 0)
 					{
 						continue;
 					}
@@ -197,7 +212,7 @@ public class EditorCommonUtility
 		int propertyStartLine = -1;
 		int propertyEndLine = -1;
 		string texturePropertyKey = texturePropertyName + "(";
-		generateNextIndex(texturePropertyKey, out int[] texturePropertyNextIndex);
+		int[] texturePropertyNextIndex = null;
 		for (int i = 0; i < lines.Length; ++i)
 		{
 			lines[i] = lines[i].removeAllEmpty();
@@ -224,7 +239,7 @@ public class EditorCommonUtility
 		}
 		for (int i = propertyStartLine; i <= propertyEndLine; ++i)
 		{
-			if (KMPSearch(lines[i], texturePropertyKey, texturePropertyNextIndex) >= 0)
+			if (KMPSearch(lines[i], texturePropertyKey, ref texturePropertyNextIndex) >= 0)
 			{
 				return true;
 			}
@@ -243,7 +258,7 @@ public class EditorCommonUtility
 		string textureStr = "m_Texture";
 		generateNextIndex(textureStr, out int[] textureNextIndex);
 		string guidKey = "guid:";
-		generateNextIndex(guidKey, out int[] guidNextIndex);
+		int[] guidNextIndex = null;
 		string shaderContent = EMPTY;
 		for (int i = 0; i < materialLines.Length; ++i)
 		{
@@ -283,12 +298,12 @@ public class EditorCommonUtility
 					continue;
 				}
 				string textureLine = materialLines[i + 1];
-				if (KMPSearch(textureLine, textureStr, textureNextIndex) < 0)
+				if (KMPSearch(textureLine, textureStr, ref textureNextIndex) < 0)
 				{
 					Debug.LogError("material texture property error, " + path, loadAsset(path));
 					return;
 				}
-				if (KMPSearch(textureLine, guidKey, guidNextIndex) >= 0)
+				if (KMPSearch(textureLine, guidKey, ref guidNextIndex) >= 0)
 				{
 					int startIndex = textureLine.IndexOf(guidKey) + guidKey.Length;
 					string textureGUID = textureLine.rangeToFirst(startIndex, ',');
@@ -434,7 +449,7 @@ public class EditorCommonUtility
 	public static void searchSprite(string atlasGUID, string spriteGUID, string spriteName, Dictionary<string, SpriteRefrenceInfo> refrenceList, Dictionary<string, List<FileGUIDLines>> allFileText)
 	{
 		string key = "m_Sprite: {fileID: " + spriteGUID + ", guid: " + atlasGUID;
-		generateNextIndex(key, out int[] keyNextIndex);
+		int[] keyNextIndex = null;
 		foreach (var item in allFileText)
 		{
 			string suffix = item.Key;
@@ -446,7 +461,7 @@ public class EditorCommonUtility
 			{
 				foreach (string line in fileGUIDLines.mContainGUIDLines)
 				{
-					if (KMPSearch(line, key, keyNextIndex) < 0)
+					if (KMPSearch(line, key, ref keyNextIndex) < 0)
 					{
 						continue;
 					}
@@ -472,10 +487,10 @@ public class EditorCommonUtility
 		if (isTexture)
 		{
 			string keyStr = "spriteID: ";
-			generateNextIndex(keyStr, out int[] keyNextIndex);
+			int[] keyNextIndex = null;
 			foreach (string item in openTxtFileLines(projectPathToFullPath(path + ".meta"), false))
 			{
-				if (KMPSearch(item, keyStr, keyNextIndex) < 0)
+				if (KMPSearch(item, keyStr, ref keyNextIndex) < 0)
 				{
 					continue;
 				}
@@ -644,15 +659,20 @@ public class EditorCommonUtility
 		}
 		return allFileMeta;
 	}
+	public static List<string> getTextureSuffixList()
+	{
+		return new(){ ".png", ".tga", ".jpg", ".jpeg", ".cubemap", ".exr", ".psd", ".tif" };
+	}
 	public static bool isTextureSuffix(string suffixWithDot)
 	{
-		return suffixWithDot.endWith(".png", false) ||
-			   suffixWithDot.endWith(".tga", false) ||
-			   suffixWithDot.endWith(".jpg", false) ||
-			   suffixWithDot.endWith(".cubemap", false) ||
-			   suffixWithDot.endWith(".exr", false) ||
-			   suffixWithDot.endWith(".psd", false) ||
-			   suffixWithDot.endWith(".tif", false);
+		foreach (string suffix in getTextureSuffixList())
+		{
+			if (suffixWithDot.endWith(suffix, false))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 	public static Dictionary<string, List<FileGUIDLines>> getAllFileText(string path, string[] patterns = null)
 	{
@@ -662,7 +682,11 @@ public class EditorCommonUtility
 		Dictionary<string, List<FileGUIDLines>> allFileText = new();
 		foreach (string item in findFilesNonAlloc(path, supportPatterns))
 		{
-			allFileText.getOrAddNew(getFileSuffix(item)).addNotNull(getGUIDsInFile(item));
+			if (isDirExist(item.removeEndString(".meta")))
+			{
+				continue;
+			}
+			allFileText.getOrAddNew(getFileSuffix(item).ToLower()).addNotNull(getGUIDsInFile(item));
 		}
 		return allFileText;
 	}
@@ -2240,25 +2264,27 @@ public class EditorCommonUtility
 	{
 		Dictionary<string, UObject> refrenceList = new();
 		string fileName = getFileNameWithSuffix(path);
+		DateTime start = DateTime.Now;
 		Debug.Log("<<<<<<<开始查找" + fileName + "的引用.......");
 		searchFileRefrence(path, false, refrenceList, allFileText, false);
 		foreach (string item in refrenceList.Keys)
 		{
 			log(item, Color.green, loadAsset(item));
 		}
-		Debug.Log(">>>>>>>完成查找" + fileName + "的引用, 共有" + refrenceList.Count + "处引用", loadAsset(path));
+		Debug.Log(">>>>>>>完成查找" + fileName + "的引用, 共有" + refrenceList.Count + "处引用, 耗时:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒", loadAsset(path));
 	}
 	public static void doSearchResourceRefOther(string path, Dictionary<string, string> allMetaList)
 	{
 		Dictionary<string, UObject> refrenceList = new();
 		string fileName = getFileNameWithSuffix(path);
+		DateTime start = DateTime.Now;
 		Debug.Log("<<<<<<<开始查找" + fileName + "引用的文件.......");
 		searchFileRefrenceOther(path, false, refrenceList, allMetaList);
 		foreach (string item in refrenceList.Keys)
 		{
 			log(item, Color.green, loadAsset(item));
 		}
-		Debug.Log(">>>>>>>完成查找" + fileName + "引用的文件, 共引用" + refrenceList.Count + "个文件", loadAsset(path));
+		Debug.Log(">>>>>>>完成查找" + fileName + "引用的文件, 共引用" + refrenceList.Count + "个文件, 耗时:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒", loadAsset(path));
 	}
 	public static void doCheckSingleUsedFile(string path, Dictionary<string, List<FileGUIDLines>> allFileText, bool needMoveFile)
 	{
@@ -3218,7 +3244,7 @@ public class EditorCommonUtility
 		return BuildTarget.StandaloneOSX;
 #endif
 	}
-	public static NamedBuildTarget getBuildBuildTarget()
+	public static NamedBuildTarget getNameBuildTarget()
 	{
 		return NamedBuildTarget.FromBuildTargetGroup(getBuildTargetGroup());
 	}

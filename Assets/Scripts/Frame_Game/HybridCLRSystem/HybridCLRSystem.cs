@@ -5,85 +5,155 @@ using UnityEngine;
 #if USE_HYBRID_CLR
 using HybridCLR;
 #endif
-using static FrameBase;
 using static FileUtility;
-using static FrameDefineBase;
-using static UnityUtility;
-using static FrameUtility;
+using static FrameBaseDefine;
 using static StringUtility;
+using static FrameBaseUtility;
+using static FrameBase;
 
 // HybridCLR系统,用于启动HybridCLR热更
 public class HybridCLRSystem
 {
-	public static void launchHotFix(byte[] aesKey, byte[] aesIV, Action errorCallback = null)
+	protected static bool mHotFixLaunched;
+	public static void launchHotFix(byte[] aesKey, byte[] aesIV, Action<string, BytesIntCallback> openOrDownloadDll, Action errorCallback = null)
 	{
+		if (mHotFixLaunched)
+		{
+			logErrorBase("已经启动了热更逻辑,无法再次启动");
+			return;
+		}
+		mHotFixLaunched = true;
 		try
 		{
 			// 存储所有需要跨域的参数
-			backupCrossParam();
+			backupFrameParam();
 			// 启动热更系统
 #if UNITY_EDITOR || !USE_HYBRID_CLR
 			launchEditor(errorCallback);
 #else
-			launchRuntime(aesKey, aesIV, errorCallback);
+			launchRuntime(aesKey, aesIV, openOrDownloadDll, errorCallback);
 #endif
 		}
 		catch (Exception e)
 		{
-			logException(e);
+			logExceptionBase(e);
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected static void launchRuntime(byte[] aesKey, byte[] aesIV, Action errorCallback)
+	protected static void backupFrameParam()
+	{
+		FrameCrossParam.mLocalizationName = ResLocalizationText.mCurLanguage;
+		FrameCrossParam.mDownloadURL = mResourceManager.getDownloadURL();
+		FrameCrossParam.mStreamingAssetsVersion = mAssetVersionSystem.getStreamingAssetsVersion();
+		FrameCrossParam.mPersistentDataVersion = mAssetVersionSystem.getPersistentDataVersion();
+		FrameCrossParam.mRemoteVersion = mAssetVersionSystem.getRemoteVersion();
+		FrameCrossParam.mStreamingAssetsFileList.setRange(mAssetVersionSystem.getStreamingAssetsFile());
+		FrameCrossParam.mPersistentAssetsFileList.setRange(mAssetVersionSystem.getPersistentAssetsFile());
+		FrameCrossParam.mRemoteAssetsFileList.setRange(mAssetVersionSystem.getRemoteAssetsFile());
+		FrameCrossParam.mTotalDownloadedFiles.setRange(mAssetVersionSystem.getTotalDownloadedFiles());
+		FrameCrossParam.mTotalDownloadByteCount = mAssetVersionSystem.getTotalDownloadedByteCount();
+		FrameCrossParam.mAssetReadPath = mAssetVersionSystem.getAssetReadPath();
+	}
+	// 执行AOT补充元数据
+	protected static void loadMetaDataForAOT(Action<string, BytesIntCallback> openOrDownloadDll, Action callback, Action errorCallback)
 	{
 #if USE_HYBRID_CLR
-		Dictionary<string, byte[]> downloadFiles = new();
+		Dictionary<string, byte[]> downloadFilesResource = new();
 		foreach (string aotFile in AOTGenericReferences.PatchedAOTAssemblyList)
 		{
-			downloadFiles.Add(aotFile, null);
+			downloadFilesResource.Add(aotFile + ".bytes", null);
 		}
-		downloadFiles.Add(HOTFIX_FRAME_FILE, null);
-		downloadFiles.Add(HOTFIX_FILE, null);
 		int finishCount = 0;
-		foreach (string item in new List<string>(downloadFiles.Keys))
+		foreach (string item in new List<string>(downloadFilesResource.Keys))
 		{
 			string fileDllName = item;
-			openFileAsync(availableReadPath(fileDllName + ".bytes"), true, (byte[] bytes) =>
+			openOrDownloadDll(fileDllName, (byte[] bytes, int length) =>
 			{
-				if (bytes == null)
+				if (onAOTDownloaded(downloadFilesResource, ref finishCount, fileDllName, bytes, errorCallback))
 				{
-					downloadFiles = null;
-					errorCallback?.Invoke();
-					return;
+					callback?.Invoke();
 				}
-				if (downloadFiles == null)
-				{
-					return;
-				}
-				downloadFiles.set(fileDllName, bytes);
-				if (++finishCount < downloadFiles.Count)
-				{
-					return;
-				}
-				foreach (string aotFile in AOTGenericReferences.PatchedAOTAssemblyList)
-				{
-					// 为aot assembly加载原始metadata
-					// 一旦加载后，如果AOT泛型函数对应native实现不存在，则自动替换为解释模式执行
-					// 加载assembly对应的dll，会自动为它hook。一旦aot泛型函数的native函数不存在，用解释器版本代码
-					// 注意，补充元数据是给AOT dll补充元数据，而不是给热更新dll补充元数据。
-					// 热更新dll不缺元数据，不需要补充，如果调用LoadMetadataForAOTAssembly会返回错误
-					LoadImageErrorCode err = RuntimeApi.LoadMetadataForAOTAssembly(downloadFiles.get(aotFile), HomologousImageMode.SuperSet);
-					if (err != LoadImageErrorCode.OK)
-					{
-						Debug.Log("LoadMetadataForAOTAssembly失败:" + aotFile + ", " + err);
-					}
-				}
-				// 加载以后不再卸载
-				Assembly.Load(decryptAES(downloadFiles.get(HOTFIX_FRAME_FILE), aesKey, aesIV));
-				launchInternal(Assembly.Load(decryptAES(downloadFiles.get(HOTFIX_FILE), aesKey, aesIV)));
 			});
 		}
+#else
+		callback?.Invoke();
 #endif
+	}
+	// 返回值表示是否已经全部下载完成
+	protected static bool onAOTDownloaded(Dictionary<string, byte[]> downloadFilesResource, ref int finishCount, string fileDllName, byte[] bytes, Action errorCallback)
+	{
+		if (bytes == null)
+		{
+			downloadFilesResource = null;
+			errorCallback?.Invoke();
+			return false;
+		}
+		if (downloadFilesResource == null)
+		{
+			return false;
+		}
+		downloadFilesResource.set(fileDllName, bytes);
+		if (++finishCount < downloadFilesResource.Count)
+		{
+			return false;
+		}
+#if USE_HYBRID_CLR
+		foreach (string aotFile in AOTGenericReferences.PatchedAOTAssemblyList)
+		{
+			// 为aot assembly加载原始metadata
+			// 一旦加载后，如果AOT泛型函数对应native实现不存在，则自动替换为解释模式执行
+			// 加载assembly对应的dll，会自动为它hook。一旦aot泛型函数的native函数不存在，用解释器版本代码
+			// 注意，补充元数据是给AOT dll补充元数据，而不是给热更新dll补充元数据。
+			// 热更新dll不缺元数据，不需要补充，如果调用LoadMetadataForAOTAssembly会返回错误
+			LoadImageErrorCode err = RuntimeApi.LoadMetadataForAOTAssembly(downloadFilesResource.get(aotFile + ".bytes"), HomologousImageMode.SuperSet);
+			if (err != LoadImageErrorCode.OK)
+			{
+				Debug.Log("LoadMetadataForAOTAssembly失败:" + aotFile + ", " + err);
+			}
+		}
+#endif
+		return true;
+	}
+	protected static void launchRuntime(byte[] aesKey, byte[] aesIV, Action<string, BytesIntCallback> openOrDownloadDll, Action errorCallback)
+	{
+		loadMetaDataForAOT(openOrDownloadDll, ()=>
+		{
+			Dictionary<string, byte[]> downloadFiles = new()
+			{
+				{ HOTFIX_FRAME_BYTES_FILE, null },
+				{ HOTFIX_BYTES_FILE, null }
+			};
+			int finishCount = 0;
+			foreach (string item in new List<string>(downloadFiles.Keys))
+			{
+				string fileDllName = item;
+				openOrDownloadDll(fileDllName, (byte[] bytes, int length) =>
+				{
+					onHotFixDllLoaded(downloadFiles, ref finishCount, fileDllName, bytes, aesKey, aesIV, errorCallback);
+				});
+			}
+		}, errorCallback);
+	}
+	protected static void onHotFixDllLoaded(Dictionary<string, byte[]> downloadFiles, ref int finishCount, string fileDllName, byte[] bytes, byte[] aesKey, byte[] aesIV, Action errorCallback)
+	{
+		if (bytes == null)
+		{
+			downloadFiles = null;
+			errorCallback?.Invoke();
+			return;
+		}
+		if (downloadFiles == null)
+		{
+			return;
+		}
+		downloadFiles.set(fileDllName, bytes);
+		if (++finishCount < downloadFiles.Count)
+		{
+			return;
+		}
+		// 加载以后不再卸载
+		Assembly.Load(decryptAES(downloadFiles.get(HOTFIX_FRAME_BYTES_FILE), aesKey, aesIV));
+		launchInternal(Assembly.Load(decryptAES(downloadFiles.get(HOTFIX_BYTES_FILE), aesKey, aesIV)));
 	}
 	protected static void launchEditor(Action errorCallback)
 	{
@@ -108,25 +178,25 @@ public class HybridCLRSystem
 	{
 		if (hotFixAssembly == null)
 		{
-			logError("加载热更程序集失败:" + HOTFIX_FILE);
+			logErrorBase("加载热更程序集失败:" + HOTFIX_FILE);
 			return;
 		}
 		Type type = hotFixAssembly.GetType("GameHotFix");
 		if (type == null)
 		{
-			logError("在热更程序集中找不到GameHotFix类");
+			logErrorBase("在热更程序集中找不到GameHotFix类");
 			return;
 		}
 		if (type.BaseType.Name != "GameHotFixBase")
 		{
-			logError("GameHotFix类需要继承自GameHotFixBase");
+			logErrorBase("GameHotFix类需要继承自GameHotFixBase");
 			return;
 		}
 		// 创建热更对象示例的函数签名为public void createHotFixInstance()
 		MethodInfo methodCreate = type.GetMethod("createHotFixInstance");
 		if (methodCreate == null)
 		{
-			logError("在GameHotFix类中找不到静态函数createHotFixInstance");
+			logErrorBase("在GameHotFix类中找不到静态函数createHotFixInstance");
 			return;
 		}
 
@@ -134,7 +204,7 @@ public class HybridCLRSystem
 		MethodInfo methodStart = type.GetMethod("start");
 		if (methodStart == null)
 		{
-			logError("在GameHotFix类中找不到函数start");
+			logErrorBase("在GameHotFix类中找不到函数start");
 			return;
 		}
 		// 执行热更的启动函数
@@ -142,11 +212,10 @@ public class HybridCLRSystem
 		{
 			Debug.Log("热更初始化完毕");
 			// 热更初始化完毕后将非热更层加载的所有资源都清除,这样避免中间的黑屏
-			GameObject go = mGameFramework.gameObject;
-			destroyUnityObject(mGameFramework, true);
-			destroyUnityObject(go, true);
+			GameEntry.getInstance().getFrameworkAOT().destroy();
+			GameEntry.getInstance().setFrameworkAOT(null);
 		};
 		// 使用createHotFixInstance创建一个HotFix的实例,然后调用此实例的start函数
-		methodStart.Invoke(methodCreate.Invoke(null, null), new object[1]{ callback });
+		methodStart.Invoke(methodCreate.Invoke(null, null), new object[1] { callback });
 	}
 }

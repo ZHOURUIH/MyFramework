@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using static UnityUtility;
 using static MathUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 以指定的位置列表进行移动
 public class CmdTransformableMoveCurve : Command

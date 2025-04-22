@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using static UnityUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 以指定的关键帧路径移动物体
 public class CmdTransformableMovePath

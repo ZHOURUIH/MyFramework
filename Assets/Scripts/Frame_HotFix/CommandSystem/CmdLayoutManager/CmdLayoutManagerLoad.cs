@@ -45,11 +45,8 @@ public class CmdLayoutManagerLoad
 	{
 		// 计算实际的渲染顺序
 		int realRenderOrder = mLayoutManager.generateRenderOrder(layout, renderOrder, orderType);
-		// 顺序有改变,则设置最新的顺序
-		if (layout.getRenderOrder() != realRenderOrder)
-		{
-			CmdLayoutManagerRenderOrder.execute(layout, realRenderOrder);
-		}
+		// 设置最新的顺序
+		CmdLayoutManagerRenderOrder.execute(layout, realRenderOrder);
 		// 显示状态一致,就不需要再继续执行
 		if (layout.isVisible() == visible)
 		{

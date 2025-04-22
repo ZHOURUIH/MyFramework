@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEditor;
+using System;
 using System.IO;
 using System.Collections.Generic;
 using UObject = UnityEngine.Object;
@@ -20,7 +21,7 @@ public class RefInfo
 public class CheckResourcesWindow : GameEditorWindow
 {
 	protected Dictionary<string, RefInfo> mFileReferenceList = new();
-	protected Vector2 scrollPosition;			// 滚动条的位置
+	protected ScrollArea mScrollArea = new();	// 滚动区域
 	protected string mInputGUID;				// 要查询的guid
 	protected static int mPageSize = 100;       // 每页显示的数量
 	protected bool mShowOnlyMultiRef;			// 是否仅显示被多个目录所引用文件
@@ -29,6 +30,7 @@ public class CheckResourcesWindow : GameEditorWindow
 	{
 		Show();
 		minSize = new(1200, 800);
+		mScrollArea.init(1500, 600);
 	}
 	//------------------------------------------------------------------------------------------------------------------------
 	protected override void onGUI()
@@ -139,183 +141,183 @@ public class CheckResourcesWindow : GameEditorWindow
 		}
 		using (new GUILayout.VerticalScope())
 		{
-			// 添加滚动区域,设置滚动区域的高度
-			scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.Width(1500), GUILayout.Height(600));
 			Dictionary<string, RefInfo> tempFileRefList = new();
-			if (mShowOnlyMultiRef)
-			{
-				foreach (var item in mFileReferenceList)
-				{
-					List<string> refList = item.Value.mRefInGameRes;
-					if (refList.Count > 1)
-					{
-						bool usedInSingleFolder = true;
-						string refFilePath = null;
-						foreach (string refFile in refList)
-						{
-							if (refFilePath == null)
-							{
-								refFilePath = getFilePath(refFile);
-							}
-							else if (refFilePath != getFilePath(refFile))
-							{
-								usedInSingleFolder = false;
-								break;
-							}
-						}
-						if (!usedInSingleFolder)
-						{
-							tempFileRefList.add(item);
-						}
-					}
-				}
-			}
-			else
-			{
-				tempFileRefList = new(mFileReferenceList);
-			}
-
-			int index = 0;
-			int startIndex = mCurPage * mPageSize;
-			int endIndex = (mCurPage + 1) * mPageSize;
 			// key是sourceFile,Value是destFile
 			Dictionary<string, string> needMoveFileList = new();
 			List<string> needDeleteFileList = new();
-			foreach (var item in tempFileRefList)
+			// 添加滚动区域,设置滚动区域的高度
+			using (new ScrollAreaScope(mScrollArea))
 			{
-				if (index < startIndex || index >= endIndex)
+				if (mShowOnlyMultiRef)
 				{
-					++index;
-					continue;
-				}
-				++index;
-				using (new GUILayout.HorizontalScope())
-				{
-					// 文件名
-					if (button(getFolderName(item.Key) + "/" + getFileNameWithSuffix(item.Key), item.Key, 250))
+					foreach (var item in mFileReferenceList)
 					{
-						if (item.Value.mObject != null)
+						List<string> refList = item.Value.mRefInGameRes;
+						if (refList.Count > 1)
 						{
-							EditorGUIUtility.PingObject(item.Value.mObject);
-							Selection.activeObject = item.Value.mObject;
+							bool usedInSingleFolder = true;
+							string refFilePath = null;
+							foreach (string refFile in refList)
+							{
+								if (refFilePath == null)
+								{
+									refFilePath = getFilePath(refFile);
+								}
+								else if (refFilePath != getFilePath(refFile))
+								{
+									usedInSingleFolder = false;
+									break;
+								}
+							}
+							if (!usedInSingleFolder)
+							{
+								tempFileRefList.add(item);
+							}
 						}
 					}
-					// 文件是否已经移动
-					if (AssetDatabase.GetAssetPath(item.Value.mObject) != item.Key)
-					{
-						labelWidth("已经移动", 100);
-					}
-					else
-					{
-						labelWidth("未移动", 100);
-					}
-					List<string> refList = item.Value.mRefInGameRes;
-					// 引用次数
-					labelWidth(IToS(refList.Count), 100);
-					// 是否被外部引用
-					labelWidth(item.Value.mOuterRefCount ? "是" : "/", 100);
+				}
+				else
+				{
+					tempFileRefList = new(mFileReferenceList);
+				}
 
-					// 过滤一下重复的文件夹
-					Dictionary<string, string> refFolderList = new();
-					foreach (string refFile in refList)
+				int index = 0;
+				int startIndex = mCurPage * mPageSize;
+				int endIndex = (mCurPage + 1) * mPageSize;
+				foreach (var item in tempFileRefList)
+				{
+					if (index < startIndex || index >= endIndex)
 					{
-						refFolderList.TryAdd(getFolderName(refFile), getFilePath(refFile));
+						++index;
+						continue;
 					}
+					++index;
+					using (new GUILayout.HorizontalScope())
+					{
+						// 文件名
+						if (button(getFolderName(item.Key) + "/" + getFileNameWithSuffix(item.Key), item.Key, 250))
+						{
+							if (item.Value.mObject != null)
+							{
+								EditorGUIUtility.PingObject(item.Value.mObject);
+								Selection.activeObject = item.Value.mObject;
+							}
+						}
+						// 文件是否已经移动
+						if (AssetDatabase.GetAssetPath(item.Value.mObject) != item.Key)
+						{
+							labelWidth("已经移动", 100);
+						}
+						else
+						{
+							labelWidth("未移动", 100);
+						}
+						List<string> refList = item.Value.mRefInGameRes;
+						// 引用次数
+						labelWidth(IToS(refList.Count), 100);
+						// 是否被外部引用
+						labelWidth(item.Value.mOuterRefCount ? "是" : "/", 100);
 
-					string allRefFolder = EMPTY;
-					string allRefFolderTip = EMPTY;
-					foreach (var refPair in refFolderList)
-					{
-						allRefFolder += refPair.Key + ",";
-						allRefFolderTip += refPair.Value + "\n";
-					}
-
-					// 所有引用目录
-					labelWidth(allRefFolder, 250, allRefFolderTip);
-
-					// 引用文件名
-					string destPath = null;
-					if (refList.Count == 1)
-					{
-						destPath = getFilePath(refList[0]);
-					}
-					string refString = EMPTY;
-					string refTipString = EMPTY;
-					foreach (string refFile in refList)
-					{
-						refString += refFile.removeStartString(P_GAME_RESOURCES_PATH) + ",";
-						refTipString += refFile + "\n";
-					}
-					if (!refString.isEmpty())
-					{
-						labelWidth(refString, 350, refTipString);
-					}
-					else
-					{
-						labelWidth("/", 350);
-					}
-
-					// 判断是否只被一个文件夹中的文件所引用
-					bool isSingleFolderUsed = false;
-					if (refList.Count > 1)
-					{
-						bool usedInSingleFolder = true;
-						string refFilePath = null;
+						// 过滤一下重复的文件夹
+						Dictionary<string, string> refFolderList = new();
 						foreach (string refFile in refList)
 						{
-							if (refFilePath == null)
-							{
-								refFilePath = getFilePath(refFile);
-							}
-							else if (refFilePath != getFilePath(refFile))
-							{
-								usedInSingleFolder = false;
-								break;
-							}
+							refFolderList.TryAdd(getFolderName(refFile), getFilePath(refFile));
 						}
-						if (usedInSingleFolder)
-						{
-							isSingleFolderUsed = true;
-							destPath = refFilePath;
-						}
-					}
 
-					// 如果文件只在一个地方被引用,则可以移动到被引用的文件夹中,如果此文件已经在指定的文件夹了,则不用显示按钮
-					string fullPath = projectPathToFullPath(item.Key);
-					if ((refList.Count == 1 || isSingleFolderUsed) &&
-						getFilePath(item.Key) != destPath && 
-						isFileExist(fullPath))
-					{
-						string destFile = projectPathToFullPath(destPath + "/") + getFileNameWithSuffix(item.Key);
-						needMoveFileList.add(fullPath, destFile);
-						if (button("将文件移动到引用处", 150))
+						string allRefFolder = EMPTY;
+						string allRefFolderTip = EMPTY;
+						foreach (var refPair in refFolderList)
 						{
-							moveFile(fullPath, destFile);
-							moveFile(fullPath + ".meta", destFile + ".meta");
-							AssetDatabase.Refresh();
+							allRefFolder += refPair.Key + ",";
+							allRefFolderTip += refPair.Value + "\n";
 						}
-					}
-					// 如果文件没有被任何资源引用,也没有外部引用,则可以删除
-					else if (refList.Count == 0 && 
-							!item.Value.mOuterRefCount &&
+
+						// 所有引用目录
+						labelWidth(allRefFolder, 250, allRefFolderTip);
+
+						// 引用文件名
+						string destPath = null;
+						if (refList.Count == 1)
+						{
+							destPath = getFilePath(refList[0]);
+						}
+						string refString = EMPTY;
+						string refTipString = EMPTY;
+						foreach (string refFile in refList)
+						{
+							refString += refFile.removeStartString(P_GAME_RESOURCES_PATH) + ",";
+							refTipString += refFile + "\n";
+						}
+						if (!refString.isEmpty())
+						{
+							labelWidth(refString, 350, refTipString);
+						}
+						else
+						{
+							labelWidth("/", 350);
+						}
+
+						// 判断是否只被一个文件夹中的文件所引用
+						bool isSingleFolderUsed = false;
+						if (refList.Count > 1)
+						{
+							bool usedInSingleFolder = true;
+							string refFilePath = null;
+							foreach (string refFile in refList)
+							{
+								if (refFilePath == null)
+								{
+									refFilePath = getFilePath(refFile);
+								}
+								else if (refFilePath != getFilePath(refFile))
+								{
+									usedInSingleFolder = false;
+									break;
+								}
+							}
+							if (usedInSingleFolder)
+							{
+								isSingleFolderUsed = true;
+								destPath = refFilePath;
+							}
+						}
+
+						// 如果文件只在一个地方被引用,则可以移动到被引用的文件夹中,如果此文件已经在指定的文件夹了,则不用显示按钮
+						string fullPath = projectPathToFullPath(item.Key);
+						if ((refList.Count == 1 || isSingleFolderUsed) &&
+							getFilePath(item.Key) != destPath &&
 							isFileExist(fullPath))
-					{
-						needDeleteFileList.Add(fullPath);
-						if (button("删除文件", 150))
 						{
-							deleteFile(fullPath);
-							deleteFile(fullPath + ".meta");
-							AssetDatabase.Refresh();
+							string destFile = projectPathToFullPath(destPath + "/") + getFileNameWithSuffix(item.Key);
+							needMoveFileList.add(fullPath, destFile);
+							if (button("将文件移动到引用处", 150))
+							{
+								moveFile(fullPath, destFile);
+								moveFile(fullPath + ".meta", destFile + ".meta");
+								AssetDatabase.Refresh();
+							}
 						}
-					}
-					else
-					{
-						labelWidth("无需操作", 250);
+						// 如果文件没有被任何资源引用,也没有外部引用,则可以删除
+						else if (refList.Count == 0 &&
+								!item.Value.mOuterRefCount &&
+								isFileExist(fullPath))
+						{
+							needDeleteFileList.Add(fullPath);
+							if (button("删除文件", 150))
+							{
+								deleteFile(fullPath);
+								deleteFile(fullPath + ".meta");
+								AssetDatabase.Refresh();
+							}
+						}
+						else
+						{
+							labelWidth("无需操作", 250);
+						}
 					}
 				}
 			}
-			// 结束滚动区域
-			GUILayout.EndScrollView();
 
 			using (new GUILayout.HorizontalScope(GUILayout.Width(170)))
 			{
@@ -358,8 +360,10 @@ public class CheckResourcesWindow : GameEditorWindow
 	}
 	protected void doCheck(string path, Dictionary<string, List<string>> refList, Dictionary<string, List<FileGUIDLines>> allFileText)
 	{
+		DateTime start = DateTime.Now;
 		Dictionary<string, UObject> refrenceList = new();
 		searchFileRefrence(path, false, refrenceList, allFileText, false);
 		refList.add(path.rightToLeft(), new(refrenceList.Keys));
+		Debug.Log("查找" + path + "的引用,引用数量:" + refrenceList.Count+ "耗时:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒");
 	}
 }

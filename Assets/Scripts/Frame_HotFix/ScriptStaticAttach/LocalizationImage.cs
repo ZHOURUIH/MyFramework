@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using static FrameBaseHotFix;
+using static FrameBaseDefine;
 using static FrameDefine;
 
 // 用于挂到静态的文本上,也就是只是在界面显示,不会在代码中访问和操作的文本

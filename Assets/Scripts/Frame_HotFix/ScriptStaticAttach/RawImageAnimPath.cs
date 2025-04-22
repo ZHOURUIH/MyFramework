@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 using static FrameDefine;
 using static StringUtility;
 using static FileUtility;

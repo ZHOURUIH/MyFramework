@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 using static UnityUtility;
 using static FrameBaseHotFix;
 using static FileUtility;
+using static FrameBaseUtility;
 using static StringUtility;
 using static CSharpUtility;
 using static FrameUtility;
@@ -143,7 +144,7 @@ public class SceneSystem : FrameSystem
 			// scenePath + sceneName表示场景文件AssetBundle的路径,包含文件名
 			mResourceManager.loadAssetBundleAsync(getScenePath(sceneName) + sceneName, (AssetBundleInfo bundle) =>
 			{
-				mGameFrameworkHotFix.StartCoroutine(loadSceneCoroutine(scene, op));
+				GameEntry.getInstance().StartCoroutine(loadSceneCoroutine(scene, op));
 			});
 		}
 		return op;

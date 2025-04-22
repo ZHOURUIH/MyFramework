@@ -3,7 +3,7 @@ using static FrameBaseHotFix;
 using static BinaryUtility;
 using static MathUtility;
 using static FrameUtility;
-using static CSharpUtility;
+using static FrameBaseUtility;
 using static FrameDefine;
 
 // Frame层默认的TCP连接封装类,按bit传输,应用层可根据实际需求仿照此类封装自己的TCP连接类

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using static UnityUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 以抛物线追踪一个目标
 public class CmdTransformableTrackTargetParabola : Command

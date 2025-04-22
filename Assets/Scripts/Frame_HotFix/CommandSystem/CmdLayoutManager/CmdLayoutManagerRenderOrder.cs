@@ -4,19 +4,14 @@
 public class CmdLayoutManagerRenderOrder
 {
 	// layout,布局
-	// layoutID,布局ID,如果布局为空,则通过ID获取
 	// renderOrder,绝对渲染顺序
 	public static void execute(GameLayout layout, int renderOrder)
 	{
-		if (layout == null)
+		if (layout == null || renderOrder == layout.getRenderOrder())
 		{
 			return;
 		}
-		if (renderOrder != layout.getRenderOrder())
-		{
-			layout.setRenderOrder(renderOrder);
-		}
-		// 通知布局管理器布局显示或隐藏
+		layout.setRenderOrder(renderOrder);
 		mLayoutManager.notifyLayoutRenderOrder();
 	}
 }

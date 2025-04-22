@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using static StringUtility;
-using static FrameDefineBase;
+using static FrameBaseDefine;
 
 // 游戏常量定义-------------------------------------------------------------------------------------------------------------
 public class FrameDefine
@@ -11,7 +11,6 @@ public class FrameDefine
 	public const string GAME_RESOURCES = "GameResources";
 	public const string SCRIPTS = "Scripts";
 	public const string PLUGINS = "Plugins";
-	public const string RESOURCES = "Resources";
 	public const string ATLAS = "Atlas";
 	public const string FONT = "Font";
 	public const string KEY_FRAME = "KeyFrame";
@@ -53,7 +52,6 @@ public class FrameDefine
 	public const string P_SCRIPTS_FRAME_PATH = P_SCRIPTS_PATH + FRAME + "/";
 	public const string P_SCRIPTS_GAME_PATH = P_SCRIPTS_PATH + GAME + "/";
 	public const string P_GAME_RESOURCES_PATH = P_ASSETS_PATH + GAME_RESOURCES + "/";
-	public const string P_RESOURCES_PATH = P_ASSETS_PATH + RESOURCES + "/";
 	public const string P_RESOURCES_SCENE_PATH = P_RESOURCES_PATH + SCENE + "/";
 	public const string P_RESOURCES_ATLAS_PATH = P_RESOURCES_PATH + ATLAS + "/";
 	public const string P_RESOURCES_TEXTURE_PATH = P_RESOURCES_PATH + TEXTURE + "/";
@@ -86,7 +84,6 @@ public class FrameDefine
 	public const string R_SHADER_GAME_PATH = R_SHADER_PATH + GAME + "/";
 	public const string R_UI_PATH = UI + "/";
 	public const string R_UI_PREFAB_PATH = R_UI_PATH + UI_PREFAB + "/";
-	public const string R_UI_MATERIAL_PATH = R_UI_PATH + MATERIAL + "/";
 	public const string R_KEY_FRAME_PATH = KEY_FRAME + "/";
 	public const string R_UGUI_SUB_PREFAB_PATH = R_UI_PATH + UGUI_SUB_PREFAB + "/";
 	public const string R_TEXTURE_PATH = TEXTURE + "/";
@@ -106,15 +103,12 @@ public class FrameDefine
 
 	// 绝对路径,以F_开头,表示Full
 	public static string F_PROJECT_PATH = getFilePath(Application.dataPath) + "/";
-	public static string F_ASSETS_PATH = Application.dataPath + "/";
 	public static string F_SCRIPTS_PATH = F_ASSETS_PATH + SCRIPTS + "/";
 	public static string F_SCRIPTS_FRAME_PATH = F_SCRIPTS_PATH + FRAME + "/";
 	public static string F_SCRIPTS_GAME_PATH = F_SCRIPTS_PATH + GAME + "/";
 	public static string F_SCRIPTS_HOTFIX_PATH = F_SCRIPTS_PATH + HOTFIX + "/";
 	public static string F_SCRIPTS_HOTFIX_UI_PATH = F_SCRIPTS_HOTFIX_PATH + UI + "/";
 	public static string F_PLUGINS_PATH = F_ASSETS_PATH + PLUGINS + "/";
-	public static string F_PERSISTENT_DATA_PATH = Application.persistentDataPath + "/";
-	public static string F_PERSISTENT_ASSETS_PATH = F_PERSISTENT_DATA_PATH + ASSETS + "/";
 	public static string F_SCRIPTS_UI_PATH = F_SCRIPTS_GAME_PATH + UI + "/";
 	public static string F_GAME_RESOURCES_PATH = F_ASSETS_PATH + GAME_RESOURCES + "/";
 	public static string F_RESOURCES_PATH = F_ASSETS_PATH + RESOURCES + "/";
@@ -169,7 +163,6 @@ public class FrameDefine
 	public const string STREAMING_ASSET_FILE = "StreamingAssets.bytes";
 	// 后缀名
 	public const string ASSET_BUNDLE_SUFFIX = ".unity3d";
-	public const string RESOURCE_AVAILABLE_FILE = "ResourcesAvailable.txt";
 	public const string START_SCENE = P_RESOURCES_SCENE_PATH + "start.unity";
 	// dll插件的后缀名
 	public const string DLL_PLUGIN_SUFFIX = ".plugin";
@@ -177,7 +170,6 @@ public class FrameDefine
 	public const string COMMON_NUMBER_STYLE = "CommonNumber";
 	public const string UI_CAMERA = "UICamera";
 	public const string BLUR_CAMERA = "BlurCamera";
-	public const string UGUI_ROOT = "UGUIRoot";
 	public const string MAIN_CAMERA = "MainCamera";
 	// 材质名
 	public const string MAT_MULTIPLE = "Multiple";
@@ -191,10 +183,6 @@ public class FrameDefine
 	public const string LAYER_UGUI = "UGUI";
 	public static int LAYER_INT_UI_BLUR = LayerMask.NameToLayer(LAYER_UI_BLUR);
 	public static int LAYER_INT_DEFAULT = LayerMask.NameToLayer(LAYER_DEFAULT);
-	// 语言名
-	public const string LANGUAGE_CHINESE_TRADITIONAL = "ChineseTraditional";            // 中文繁体语言的名字
-	public const string LANGUAGE_CHINESE = "Chinese";                                   // 中文简体语言的名字
-	public const string LANGUAGE_ENGLISH = "English";                                   // 英文语言的名字
 
 	// Tag
 	public const string TAG_NO_CLICK = "NoClick";

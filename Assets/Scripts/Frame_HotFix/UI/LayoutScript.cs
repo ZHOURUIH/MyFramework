@@ -1,27 +1,27 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
 #if USE_CSHARP_10
 using System.Runtime.CompilerServices;
 #endif
+using UnityEngine;
+using UnityEngine.UI;
 using static UnityUtility;
 using static FrameBaseHotFix;
 using static StringUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 布局脚本基类,用于执行布局相关的逻辑
 public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection
 {
 	protected HashSet<myUGUIScrollRect> mScrollViewRegisteList = new();	// 用于检测ScrollView合法性的列表
 	protected HashSet<IInputField> mInputFieldRegisteList = new();      // 用于检测InputField合法性的列表
-	protected bool mRegisterChecked;								    // 是否已经检测过了合法性
 	protected HashSet<WindowStructPoolBase> mPoolList;					// 布局中使用的窗口对象池列表,收集后方便统一销毁
 	protected HashSet<WindowObjectBase> mWindowObjectList;				// 布局中使用的非对象池中的窗口对象,收集后方便统一销毁
 	protected HashSet<IUGUIObject> mLocalizationObjectList;				// 注册的需要本地化的对象,因为每次修改文本显示都会往列表里加,所以使用HashSet
-	protected GameLayout mLayout;				// 所属布局
-	protected myUGUIObject mRoot;				// 布局中的根节点
-	protected bool mNeedUpdate = true;			// 布局脚本是否需要指定update,为了提高效率,可以不执行当前脚本的update,虽然update可能是空的,但是不调用会效率更高
-	protected bool mEscHide;                    // 按Esc键时是否关闭此界面
+	protected GameLayout mLayout;										// 所属布局
+	protected myUGUIObject mRoot;										// 布局中的根节点
+	protected bool mRegisterChecked;								    // 是否已经检测过了合法性
+	protected bool mNeedUpdate = true;									// 布局脚本是否需要指定update,为了提高效率,可以不执行当前脚本的update,虽然update可能是空的,但是不调用会效率更高
+	protected bool mEscHide;											// 按Esc键时是否关闭此界面
 	public override void destroy()
 	{
 		base.destroy();
@@ -48,9 +48,9 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection
 		base.resetProperty();
 		mScrollViewRegisteList.Clear();
 		mInputFieldRegisteList.Clear();
-		mRegisterChecked = false;
 		mLayout = null;
 		mRoot = null;
+		mRegisterChecked = false;
 		mNeedUpdate = true;
 		mEscHide = false;
 	}
@@ -221,7 +221,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection
 		GameObject go = createGameObject(name);
 		parent ??= mRoot;
 		// UGUI需要添加RectTransform
-		go.AddComponent<RectTransform>();
+		getOrAddComponent<RectTransform>(go);
 		go.layer = parent.getObject().layer;
 		T obj = newUIObject<T>(parent, mLayout, go);
 		obj.setActive(active);
@@ -416,7 +416,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection
 	}
 	public void close()
 	{
-		LT.HIDE(GetType());
+		CmdLayoutManagerVisible.execute(GetType(), false, false);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void clearLocalization()

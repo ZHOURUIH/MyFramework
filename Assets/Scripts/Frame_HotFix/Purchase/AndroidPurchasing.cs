@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 public class AndroidPurchasing : FrameSystem
 {

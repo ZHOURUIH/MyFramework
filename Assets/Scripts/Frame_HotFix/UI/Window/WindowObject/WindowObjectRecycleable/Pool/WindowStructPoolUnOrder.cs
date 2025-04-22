@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using static UnityUtility;
 using static CSharpUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 负责窗口对象池,效率稍微高一些,但是功能会比普通的WindowStructPool少一点,UsedList是无序的
 public class WindowStructPoolUnOrder<T> : WindowStructPoolBase where T : WindowObjectBase, IRecycleable

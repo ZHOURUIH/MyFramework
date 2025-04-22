@@ -1,21 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using static StringUtility;
 using static UnityUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
+using static FrameUtility;
 
 // 输入系统,用于封装Input
 public class InputSystem : FrameSystem
 {
-	protected Dictionary<IEventListener, Dictionary<Action, KeyInfo>> mListenerList = new();	// 以监听者为索引的快捷键监听列表
-	protected SafeDictionary<KeyCode, SafeList<KeyInfo>> mKeyListenList = new();                // 按键按下的监听回调列表
+	protected Dictionary<IEventListener, Dictionary<Action, KeyListenInfo>> mListenerList = new();		// 以监听者为索引的快捷键监听列表
+	protected SafeDictionary<KeyCode, SafeList<KeyListenInfo>> mKeyListenList = new();					// 按键按下的监听回调列表
 	protected SafeDictionary<int, TouchPoint> mTouchPointList = new();  // 触点信息列表,可能与GlobalTouchSystem有一定的重合
-	protected Dictionary<KeyCode, string> mKeyNameList = new();         // 快捷键名字列表
-	protected Dictionary<int, KeyMapping> mDefaultKeyMapping = new();	// 默认的按键映射表,用于游戏恢复默认快捷键设置时使用,需要手动备份默认映射表
-	protected Dictionary<int, KeyMapping> mKeyMapping = new();			// 按键映射表,key是自定义的一个整数,用于当作具体功能的枚举,value是对应的按键
 	protected HashSet<IInputField> mInputFieldList = new();				// 输入框列表,用于判断当前是否正在输入
 	protected SafeList<DeadClick> mLastClickList = new();               // 已经完成单击的行为,用于实现双击的功能
+	protected List<KeyCode> mAllKeys = new();                           // 所有支持的按键列表
 	protected List<KeyCode> mCurKeyDownList = new();					// 这一帧按下的按键列表,每帧都会清空一次,用于在其他地方获取这一帧按下了哪些按键
 	protected List<KeyCode> mCurKeyUpList = new();						// 这一帧抬起的按键列表,每帧都会清空一次,用于在其他地方获取这一帧按下了哪些按键
 	protected int mFocusMask;											// 当前的输入掩码,是输入框的输入还是快捷键输入
@@ -158,7 +156,7 @@ public class InputSystem : FrameSystem
 		// 检测这一帧按下过哪些按键
 		mCurKeyDownList.Clear();
 		mCurKeyUpList.Clear();
-		foreach (KeyCode item in mKeyNameList.Keys)
+		foreach (KeyCode item in mAllKeys)
 		{
 			if (Input.GetKeyDown(item))
 			{
@@ -169,21 +167,21 @@ public class InputSystem : FrameSystem
 				mCurKeyUpList.Add(item);
 			}
 		}
-
+		
 		// 遍历监听列表,发送监听事件
 		COMBINATION_KEY curCombination = COMBINATION_KEY.NONE;
 		curCombination |= isAnyKeyDown(KeyCode.LeftControl, KeyCode.RightControl) ? COMBINATION_KEY.CTRL : COMBINATION_KEY.NONE;
 		curCombination |= isAnyKeyDown(KeyCode.LeftShift, KeyCode.RightShift) ? COMBINATION_KEY.SHIFT : COMBINATION_KEY.NONE;
 		curCombination |= isAnyKeyDown(KeyCode.LeftAlt, KeyCode.RightAlt) ? COMBINATION_KEY.ALT : COMBINATION_KEY.NONE;
-		using var d = new SafeDictionaryReader<KeyCode, SafeList<KeyInfo>>(mKeyListenList);
+		using var d = new SafeDictionaryReader<KeyCode, SafeList<KeyListenInfo>>(mKeyListenList);
 		foreach (var item in d.mReadList)
 		{
 			if (!isKeyCurrentDown(item.Key))
 			{
 				continue;
 			}
-			using var e = new SafeListReader<KeyInfo>(item.Value);
-			foreach (KeyInfo info in e.mReadList)
+			using var e = new SafeListReader<KeyListenInfo>(item.Value);
+			foreach (KeyListenInfo info in e.mReadList)
 			{
 				if (info.mCombinationKey == curCombination)
 				{
@@ -211,6 +209,7 @@ public class InputSystem : FrameSystem
 				if (!touchPoint.isMouse())
 				{
 					mTouchPointList.remove(item.Key);
+					UN_CLASS(ref touchPoint);
 					continue;
 				}
 			}
@@ -221,10 +220,10 @@ public class InputSystem : FrameSystem
 	public void unregisteInputField(IInputField inputField) { mInputFieldList.Remove(inputField); }
 	public void setMask(FOCUS_MASK mask) { mFocusMask = (int)mask; }
 	public bool hasMask(FOCUS_MASK mask) { return mask == FOCUS_MASK.NONE || mFocusMask == 0 || (mFocusMask & (int)mask) != 0; }
-	// 添加对于指定按键的当前按下事件监听
+	// 添加对于指定按键的当前按下事件监听,一般用于一些不重要的临时逻辑,如果是游戏允许自定义的快捷键,需要使用KeyMappingSystem来映射
 	public void listenKeyCurrentDown(KeyCode key, Action callback, IEventListener listener, COMBINATION_KEY combination = COMBINATION_KEY.NONE)
 	{
-		KeyInfo info = new();
+		CLASS(out KeyListenInfo info);
 		info.mCallback = callback;
 		info.mListener = listener;
 		info.mKey = key;
@@ -256,6 +255,7 @@ public class InputSystem : FrameSystem
 			{
 				if (item.Key == callbacks[i].mCallback)
 				{
+					UN_CLASS(callbackList.get(i));
 					callbackList.removeAt(i--);
 				}
 			}
@@ -314,11 +314,7 @@ public class InputSystem : FrameSystem
 	{
 		return mTouchPointList.tryGetValue(pointerID, out TouchPoint point) && point.isCurrentUp();
 	}
-	public TouchPoint getTouchPoint(int pointerID) 
-	{
-		mTouchPointList.tryGetValue(pointerID, out TouchPoint point);
-		return point;
-	}
+	public TouchPoint getTouchPoint(int pointerID) { return mTouchPointList.get(pointerID); }
 	// 外部可以通过获取点击操作列表,获取到这一帧的所有点击操作信息,且不分平台,统一移动端触屏和桌面端鼠标操作(未考虑桌面端的触屏)
 	public SafeDictionary<int, TouchPoint> getTouchPointList() { return mTouchPointList; }
 	public int getTouchPointDownCount()
@@ -486,52 +482,18 @@ public class InputSystem : FrameSystem
 	public bool isKeyUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return mEnableKey && (Input.GetKeyUp(key) || !Input.GetKey(key)) && hasMask(mask); }
 	public void setEnableKey(bool enable) { mEnableKey = enable; }
 	public bool isEnableKey() { return mEnableKey; }
-	// 备份默认的映射表
-	public void makeDefaultKeyMappingList()
-	{
-		mDefaultKeyMapping.setRange(mKeyMapping);
-	}
-	// 恢复到默认的映射表
-	public void restoreDefaultKeyMapping()
-	{
-		mKeyMapping.setRange(mDefaultKeyMapping);
-	}
 	public List<KeyCode> getCurKeyDownList() { return mCurKeyDownList; }
 	public List<KeyCode> getCurKeyUpList() { return mCurKeyUpList; }
-	public Dictionary<int, KeyMapping> getKeyMappingList() { return mKeyMapping; }
-	public string getKeyMappingName(int keyMapping) { return getKeyName(getKeyMapping(keyMapping)); }
-	public string getKeyName(KeyCode key) { return mKeyNameList.get(key, EMPTY); }
-	public void setKeyMapping(int mapping, KeyCode key, string actionName = null)
+	public bool getActiveInput() { return mActiveInput; }
+	public void setActiveInput(bool value)
 	{
-		if (mKeyMapping.TryGetValue(mapping, out KeyMapping curMapping))
+		mActiveInput = value;
+		foreach (var each in mTouchPointList.getMainList().safe())
 		{
-			if (!actionName.isEmpty())
-			{
-				curMapping.mCustomKeyName = actionName;
-			}
+			each.Value.resetState();
 		}
-		else
-		{
-			curMapping = new();
-			curMapping.mCustomKeyName = actionName;
-		}
-		curMapping.mCustomKey = mapping;
-		curMapping.mKey = key;
-		mKeyMapping.addOrSet(mapping, curMapping);
 	}
-	public string getKeyMappingActionName(int mapping) { return mKeyMapping.TryGetValue(mapping, out KeyMapping info) ? info.mCustomKeyName : EMPTY; }
-	public KeyCode getKeyMapping(int mapping) { return mKeyMapping.TryGetValue(mapping, out KeyMapping info) ? info.mKey : KeyCode.None; }
-	public bool isKeyCurrentDown(int mapping)
-	{
-		KeyCode key = getKeyMapping(mapping);
-		return key != KeyCode.None && isKeyCurrentDown(key, FOCUS_MASK.SCENE);
-	}
-	public bool isKeyDown(int mapping)
-	{
-		KeyCode key = getKeyMapping(mapping);
-		return key != KeyCode.None && isKeyDown(key, FOCUS_MASK.SCENE);
-	}
-	public KeyCode getDefaultMappingKey(int mapping) { return mDefaultKeyMapping.TryGetValue(mapping, out KeyMapping key) ? key.mKey : KeyCode.None; }
+	public bool isSupportKey(KeyCode key) { return mAllKeys.Contains(key); }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void pointDown(int pointerID, Vector3 position)
 	{
@@ -551,7 +513,7 @@ public class InputSystem : FrameSystem
 	}
 	protected TouchPoint addTouch(int pointerID, bool isMouse)
 	{
-		TouchPoint point = new();
+		CLASS(out TouchPoint point);
 		point.setMouse(isMouse);
 		point.setTouchID(pointerID);
 		mTouchPointList.add(point.getTouchID(), point);
@@ -559,104 +521,96 @@ public class InputSystem : FrameSystem
 	}
 	protected void initKey()
 	{
-		initSingleKey(KeyCode.A, "A");
-		initSingleKey(KeyCode.B, "B");
-		initSingleKey(KeyCode.C, "C");
-		initSingleKey(KeyCode.D, "D");
-		initSingleKey(KeyCode.E, "E");
-		initSingleKey(KeyCode.F, "F");
-		initSingleKey(KeyCode.G, "G");
-		initSingleKey(KeyCode.H, "H");
-		initSingleKey(KeyCode.I, "I");
-		initSingleKey(KeyCode.J, "J");
-		initSingleKey(KeyCode.K, "K");
-		initSingleKey(KeyCode.L, "L");
-		initSingleKey(KeyCode.M, "M");
-		initSingleKey(KeyCode.N, "N");
-		initSingleKey(KeyCode.O, "O");
-		initSingleKey(KeyCode.P, "P");
-		initSingleKey(KeyCode.Q, "Q");
-		initSingleKey(KeyCode.R, "R");
-		initSingleKey(KeyCode.S, "S");
-		initSingleKey(KeyCode.T, "T");
-		initSingleKey(KeyCode.U, "U");
-		initSingleKey(KeyCode.V, "V");
-		initSingleKey(KeyCode.W, "W");
-		initSingleKey(KeyCode.X, "X");
-		initSingleKey(KeyCode.Y, "Y");
-		initSingleKey(KeyCode.Z, "Z");
-		initSingleKey(KeyCode.Keypad0, "Num0");
-		initSingleKey(KeyCode.Keypad1, "Num1");
-		initSingleKey(KeyCode.Keypad2, "Num2");
-		initSingleKey(KeyCode.Keypad3, "Num3");
-		initSingleKey(KeyCode.Keypad4, "Num4");
-		initSingleKey(KeyCode.Keypad5, "Num5");
-		initSingleKey(KeyCode.Keypad6, "Num6");
-		initSingleKey(KeyCode.Keypad7, "Num7");
-		initSingleKey(KeyCode.Keypad8, "Num8");
-		initSingleKey(KeyCode.Keypad9, "Num9");
-		initSingleKey(KeyCode.KeypadPeriod, "Num.");
-		initSingleKey(KeyCode.KeypadDivide, "Num/");
-		initSingleKey(KeyCode.KeypadMultiply, "Num*");
-		initSingleKey(KeyCode.KeypadMinus, "Num-");
-		initSingleKey(KeyCode.KeypadPlus, "Num+");
-		initSingleKey(KeyCode.Alpha0, "0");
-		initSingleKey(KeyCode.Alpha1, "1");
-		initSingleKey(KeyCode.Alpha2, "2");
-		initSingleKey(KeyCode.Alpha3, "3");
-		initSingleKey(KeyCode.Alpha4, "4");
-		initSingleKey(KeyCode.Alpha5, "5");
-		initSingleKey(KeyCode.Alpha6, "6");
-		initSingleKey(KeyCode.Alpha7, "7");
-		initSingleKey(KeyCode.Alpha8, "8");
-		initSingleKey(KeyCode.Alpha9, "9");
-		initSingleKey(KeyCode.F1, "F1");
-		initSingleKey(KeyCode.F2, "F2");
-		initSingleKey(KeyCode.F3, "F3");
-		initSingleKey(KeyCode.F4, "F4");
-		initSingleKey(KeyCode.F5, "F5");
-		initSingleKey(KeyCode.F6, "F6");
-		initSingleKey(KeyCode.F7, "F7");
-		initSingleKey(KeyCode.F8, "F8");
-		initSingleKey(KeyCode.F9, "F9");
-		initSingleKey(KeyCode.F10, "F10");
-		initSingleKey(KeyCode.F11, "F11");
-		initSingleKey(KeyCode.F12, "F12");
-		initSingleKey(KeyCode.Equals, "=");
-		initSingleKey(KeyCode.Minus, "-");
-		initSingleKey(KeyCode.LeftBracket, "[");
-		initSingleKey(KeyCode.RightBracket, "]");
-		initSingleKey(KeyCode.Backslash, "\\");
-		initSingleKey(KeyCode.Semicolon, ";");
-		initSingleKey(KeyCode.Quote, "'");
-		initSingleKey(KeyCode.Comma, ",");
-		initSingleKey(KeyCode.Period, ".");
-		initSingleKey(KeyCode.Slash, "/");
-		initSingleKey(KeyCode.BackQuote, "`");
-		initSingleKey(KeyCode.Backspace, "Back");
-		initSingleKey(KeyCode.Insert, "Insert");
-		initSingleKey(KeyCode.Delete, "Del");
-		initSingleKey(KeyCode.Home, "Home");
-		initSingleKey(KeyCode.End, "End");
-		initSingleKey(KeyCode.PageUp, "PgUp");
-		initSingleKey(KeyCode.PageDown, "PgDn");
-		initSingleKey(KeyCode.Tab, "Tab");
-		initSingleKey(KeyCode.UpArrow, "↑");
-		initSingleKey(KeyCode.DownArrow, "↓");
-		initSingleKey(KeyCode.LeftArrow, "←");
-		initSingleKey(KeyCode.RightArrow, "→");
-	}
-	protected void initSingleKey(KeyCode key, string name)
-	{
-		mKeyNameList.Add(key, name);
-	}
-	public bool getActiveInput() { return mActiveInput; }
-	public void setActiveInput(bool value)
-	{
-		mActiveInput = value;
-		foreach(var each in mTouchPointList.getMainList().safe())
-		{
-			each.Value.resetState();
-		}
+		mAllKeys.Add(KeyCode.A);
+		mAllKeys.Add(KeyCode.B);
+		mAllKeys.Add(KeyCode.C);
+		mAllKeys.Add(KeyCode.D);
+		mAllKeys.Add(KeyCode.E);
+		mAllKeys.Add(KeyCode.F);
+		mAllKeys.Add(KeyCode.G);
+		mAllKeys.Add(KeyCode.H);
+		mAllKeys.Add(KeyCode.I);
+		mAllKeys.Add(KeyCode.J);
+		mAllKeys.Add(KeyCode.K);
+		mAllKeys.Add(KeyCode.L);
+		mAllKeys.Add(KeyCode.M);
+		mAllKeys.Add(KeyCode.N);
+		mAllKeys.Add(KeyCode.O);
+		mAllKeys.Add(KeyCode.P);
+		mAllKeys.Add(KeyCode.Q);
+		mAllKeys.Add(KeyCode.R);
+		mAllKeys.Add(KeyCode.S);
+		mAllKeys.Add(KeyCode.T);
+		mAllKeys.Add(KeyCode.U);
+		mAllKeys.Add(KeyCode.V);
+		mAllKeys.Add(KeyCode.W);
+		mAllKeys.Add(KeyCode.X);
+		mAllKeys.Add(KeyCode.Y);
+		mAllKeys.Add(KeyCode.Z);
+		mAllKeys.Add(KeyCode.Keypad0);
+		mAllKeys.Add(KeyCode.Keypad1);
+		mAllKeys.Add(KeyCode.Keypad2);
+		mAllKeys.Add(KeyCode.Keypad3);
+		mAllKeys.Add(KeyCode.Keypad4);
+		mAllKeys.Add(KeyCode.Keypad5);
+		mAllKeys.Add(KeyCode.Keypad6);
+		mAllKeys.Add(KeyCode.Keypad7);
+		mAllKeys.Add(KeyCode.Keypad8);
+		mAllKeys.Add(KeyCode.Keypad9);
+		mAllKeys.Add(KeyCode.KeypadPeriod);
+		mAllKeys.Add(KeyCode.KeypadDivide);
+		mAllKeys.Add(KeyCode.KeypadMultiply);
+		mAllKeys.Add(KeyCode.KeypadMinus);
+		mAllKeys.Add(KeyCode.KeypadPlus);
+		mAllKeys.Add(KeyCode.Alpha0);
+		mAllKeys.Add(KeyCode.Alpha1);
+		mAllKeys.Add(KeyCode.Alpha2);
+		mAllKeys.Add(KeyCode.Alpha3);
+		mAllKeys.Add(KeyCode.Alpha4);
+		mAllKeys.Add(KeyCode.Alpha5);
+		mAllKeys.Add(KeyCode.Alpha6);
+		mAllKeys.Add(KeyCode.Alpha7);
+		mAllKeys.Add(KeyCode.Alpha8);
+		mAllKeys.Add(KeyCode.Alpha9);
+		mAllKeys.Add(KeyCode.F1);
+		mAllKeys.Add(KeyCode.F2);
+		mAllKeys.Add(KeyCode.F3);
+		mAllKeys.Add(KeyCode.F4);
+		mAllKeys.Add(KeyCode.F5);
+		mAllKeys.Add(KeyCode.F6);
+		mAllKeys.Add(KeyCode.F7);
+		mAllKeys.Add(KeyCode.F8);
+		mAllKeys.Add(KeyCode.F9);
+		mAllKeys.Add(KeyCode.F10);
+		mAllKeys.Add(KeyCode.F11);
+		mAllKeys.Add(KeyCode.F12);
+		mAllKeys.Add(KeyCode.Equals);
+		mAllKeys.Add(KeyCode.Minus);
+		mAllKeys.Add(KeyCode.LeftBracket);
+		mAllKeys.Add(KeyCode.RightBracket);
+		mAllKeys.Add(KeyCode.Backslash);
+		mAllKeys.Add(KeyCode.Semicolon);
+		mAllKeys.Add(KeyCode.Quote);
+		mAllKeys.Add(KeyCode.Comma);
+		mAllKeys.Add(KeyCode.Period);
+		mAllKeys.Add(KeyCode.Slash);
+		mAllKeys.Add(KeyCode.BackQuote);
+		mAllKeys.Add(KeyCode.Backspace);
+		mAllKeys.Add(KeyCode.Insert);
+		mAllKeys.Add(KeyCode.Delete);
+		mAllKeys.Add(KeyCode.Home);
+		mAllKeys.Add(KeyCode.End);
+		mAllKeys.Add(KeyCode.PageUp);
+		mAllKeys.Add(KeyCode.PageDown);
+		mAllKeys.Add(KeyCode.Tab);
+		mAllKeys.Add(KeyCode.UpArrow);
+		mAllKeys.Add(KeyCode.DownArrow);
+		mAllKeys.Add(KeyCode.LeftArrow);
+		mAllKeys.Add(KeyCode.RightArrow);
+		mAllKeys.Add(KeyCode.Space);
+		mAllKeys.Add(KeyCode.LeftShift);
+		mAllKeys.Add(KeyCode.RightShift);
+		mAllKeys.Add(KeyCode.LeftControl);
+		mAllKeys.Add(KeyCode.RightControl);
 	}
 }

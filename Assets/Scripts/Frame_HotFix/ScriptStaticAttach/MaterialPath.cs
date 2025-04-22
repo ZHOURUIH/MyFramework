@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 用于记录Image组件上的材质所在的路径
 // 所以使用一个组件来在编辑模式下就记录路径

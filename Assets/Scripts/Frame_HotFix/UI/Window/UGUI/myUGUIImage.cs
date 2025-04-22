@@ -4,6 +4,7 @@ using static UnityUtility;
 using static StringUtility;
 using static FrameBaseHotFix;
 using static FrameDefine;
+using static FrameBaseDefine;
 
 // 对UGUI的Image的封装,普通版本,提供替换图片的功能,UGUI的静态图片不支持递归变化透明度
 public class myUGUIImage : myUGUIImageSimple, IUGUIImage
@@ -117,9 +118,9 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 	}
 	public void setSpriteName(string spriteName)
 	{
-		setSpriteName(spriteName, false, 1.0f);
+		setSpriteNamePro(spriteName, false, 1.0f);
 	}
-	public void setSpriteName(string spriteName, bool useSpriteSize, float sizeScale)
+	public void setSpriteNamePro(string spriteName, bool useSpriteSize, float sizeScale)
 	{
 		if (mImage == null)
 		{

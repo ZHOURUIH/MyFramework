@@ -1,10 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System;
 using UnityEngine;
 using static UnityUtility;
 using static CSharpUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 仅能在主线程使用的列表池
 public class ListPool : FrameSystem
@@ -61,6 +61,7 @@ public class ListPool : FrameSystem
 			Debug.LogError("只能在主线程使用ListPool,子线程请使用ListPoolThread代替");
 			return null;
 		}
+		bool isNew = false;
 		IList list;
 		// 先从未使用的列表中查找是否有可用的对象
 		if (mUnusedList.TryGetValue(elementType, out var valueList) && valueList.Count > 0)
@@ -71,22 +72,23 @@ public class ListPool : FrameSystem
 		else
 		{
 			list = createInstance<IList>(listType);
-			if (isEditor())
-			{
-				int totalCount = 1;
-				totalCount += mInusedList.get(listType)?.Count ?? 0;
-				totalCount += mPersistentInuseList.get(listType)?.Count ?? 0;
-				if (totalCount % 1000 == 0)
-				{
-					Debug.Log("创建的List总数量已经达到:" + totalCount + "个,type:" + elementType);
-				}
-			}
+			isNew = true;
 		}
 		if (isEditor())
 		{
 			// 标记为已使用
 			mObjectStack.Add(list, stackTrace);
 			addInuse(list, elementType, onlyOnce);
+			if (isNew)
+			{
+				int totalCount = 0;
+				totalCount += mInusedList.get(elementType)?.Count ?? 0;
+				totalCount += mPersistentInuseList.get(elementType)?.Count ?? 0;
+				if (totalCount % 1000 == 0)
+				{
+					Debug.Log("创建的List总数量已经达到:" + totalCount + "个,type:" + elementType);
+				}
+			}
 		}
 		return list;
 	}

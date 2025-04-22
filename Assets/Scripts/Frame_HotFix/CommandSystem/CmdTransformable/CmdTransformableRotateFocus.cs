@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using static UnityUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 使物体始终朝向指定目标
 public class CmdTransformableRotateFocus : Command

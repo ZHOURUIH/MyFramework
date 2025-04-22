@@ -261,38 +261,14 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 733988006}
-  - component: {fileID: 733988004}
+  - component: {fileID: 733988007}
   m_Layer: 0
-  m_Name: GameFramework
+  m_Name: GameEntry
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &733988004
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 733988003}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b850dd1f65899f49a51ea4930e5d6ae, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mParam:
-    mFixedTime: 0
-    mScreenHeight: 0
-    mScreenWidth: 0
-    mDefaultFrameRate: 60
-    mEnablePoolStackTrace: 0
-    mEnableScriptDebug: 0
-    mUseFixedTime: 0
-    mForceTop: 0
-    mLoadSource: 0
-    mWindowMode: 1
-    mLogLevel: 4
 --- !u!4 &733988006
 Transform:
   m_ObjectHideFlags: 0
@@ -308,6 +284,26 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &733988007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 733988003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8ba37cd44f9bf347821c531d55fdf3c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mFramworkParam:
+    mScreenHeight: 0
+    mScreenWidth: 0
+    mDefaultFrameRate: 60
+    mEnablePoolStackTrace: 0
+    mEnableScriptDebug: 0
+    mLoadSource: 0
+    mWindowMode: 1
 --- !u!1 &1137042466
 GameObject:
   m_ObjectHideFlags: 0

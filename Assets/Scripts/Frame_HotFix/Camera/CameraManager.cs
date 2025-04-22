@@ -6,6 +6,7 @@ using UnityEngine.Rendering.Universal;
 using static UnityUtility;
 using static FrameUtility;
 using static FrameBaseHotFix;
+using static FrameBaseUtility;
 using static FrameDefine;
 using static MathUtility;
 
@@ -92,7 +93,7 @@ public class CameraManager : FrameSystem
 			{
 				foreach (GameCamera overlayCamera in mOverlayCameraList)
 				{
-					cameraData.cameraStack.Add(overlayCamera.getCamera());
+					cameraData.cameraStack.addUnique(overlayCamera.getCamera());
 				}
 			}
 		}
@@ -133,7 +134,12 @@ public class CameraManager : FrameSystem
 			return;
 		}
 		camera.setActive(active);
-		if(checkAudioListener)
+		// 也要确认Camera组件启用
+		if (active)
+		{
+			camera.getCamera().enabled = active;
+		}
+		if (checkAudioListener)
 		{
 			checkCameraAudioListener();
 		}

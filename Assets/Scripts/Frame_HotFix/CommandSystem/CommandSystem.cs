@@ -6,7 +6,7 @@ using static StringUtility;
 using static CSharpUtility;
 using static MathUtility;
 using static FrameBaseHotFix;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 命令系统,用于处理所有命令相关逻辑
 public class CommandSystem : FrameSystem

@@ -10,13 +10,13 @@ public struct HashSetScope<T> : IDisposable
 	private HashSet<T> mList;		// 分配的对象
 	public HashSetScope(out HashSet<T> list, IEnumerable<T> initList = null)
 	{
-		if (mGameFrameworkHotFix == null || mHashSetPool == null)
+		if (GameEntry.getInstance() == null || mHashSetPool == null)
 		{
 			list = new();
 			mList = null;
 			return;
 		}
-		string stackTrace = mGameFrameworkHotFix.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
+		string stackTrace = GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
 		list = mHashSetPool.newList(typeof(T), typeof(HashSet<T>), stackTrace, true) as HashSet<T>;
 		mList = list;
 		if (initList != null)
@@ -26,10 +26,6 @@ public struct HashSetScope<T> : IDisposable
 	}
 	public void Dispose()
 	{
-		if (mGameFrameworkHotFix == null || mHashSetPool == null)
-		{
-			return;
-		}
 		mHashSetPool?.destroyList(ref mList, typeof(T));
 	}
 }

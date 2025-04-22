@@ -9,6 +9,7 @@ using static EditorCommonUtility;
 using static FrameDefine;
 using static EditorDefine;
 using static EditorFileUtility;
+using static FrameBaseDefine;
 
 public class MenuCheckCode
 {
@@ -33,26 +34,15 @@ public class MenuCheckCode
 	{
 		Debug.Log("开始检查代码" + KEY_FUNCTION);
 		// 获取Assembly集合
+		List<string> assemblyList = new() {"Frame_Base", "Frame_HotFix", "Frame_Game", "Game", "HotFix" };
 		foreach (Assembly assemly in AppDomain.CurrentDomain.GetAssemblies())
 		{
 			// 获取工程
-			if (assemly.GetName().Name == "Game")
+			if (assemblyList.Contains(assemly.GetName().Name))
 			{
 				doCheckResetProperty(assemly, F_SCRIPTS_PATH);
-				Debug.Log("Game检查完毕");
+				Debug.Log(assemly.GetName().Name + "检查完毕");
 			}
-			if (assemly.GetName().Name == "Frame")
-			{
-				doCheckResetProperty(assemly, F_SCRIPTS_PATH);
-				Debug.Log("Frame检查完毕");
-			}
-#if USE_HYBRID_CLR
-			if (assemly.GetName().Name == "HotFix")
-			{
-				doCheckResetProperty(assemly, F_SCRIPTS_PATH);
-				Debug.Log("HotFix检查完毕");
-			}
-#endif
 		}
 	}
 	[MenuItem("检查代码/检查代码空行", false, 201)]

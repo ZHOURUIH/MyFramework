@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using static UnityUtility;
 using static MathUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 旋转物体
 public class CmdTransformableRotate : Command

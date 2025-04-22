@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 using static UnityUtility;
 using static MathUtility;
 

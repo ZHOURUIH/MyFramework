@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using static UnityUtility;
 using static CSharpUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 线程安全的列表池,但效率较低
 public class ListPoolThread : FrameSystem
@@ -43,6 +43,7 @@ public class ListPoolThread : FrameSystem
 		{
 			try
 			{
+				bool isNew = false;
 				// 先从未使用的列表中查找是否有可用的对象
 				if (mUnusedList.TryGetValue(elementType, out var valueList) && valueList.Count > 0)
 				{
@@ -52,20 +53,20 @@ public class ListPoolThread : FrameSystem
 				else
 				{
 					list = createInstance<IList>(listType);
-					if (isEditor())
-					{
-						int totalCount = 1;
-						totalCount += mInusedList.get(listType)?.Count ?? 0;
-						if (totalCount % 1000 == 0)
-						{
-							Debug.Log("创建的List总数量已经达到:" + totalCount + "个,type:" + elementType);
-						}
-					}
+					isNew = true;
 				}
 				if (isEditor())
 				{
 					// 标记为已使用
 					addInuse(list, elementType);
+					if (isNew)
+					{
+						int totalCount = mInusedList.get(elementType)?.Count ?? 0;
+						if (totalCount % 1000 == 0)
+						{
+							Debug.Log("创建的List总数量已经达到:" + totalCount + "个,type:" + elementType);
+						}
+					}
 				}
 			}
 			catch (Exception e)

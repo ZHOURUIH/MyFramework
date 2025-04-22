@@ -7,21 +7,22 @@ using static StringUtility;
 using static CSharpUtility;
 using static MathUtility;
 using static FrameDefine;
+using static FrameBaseDefine;
 using static FileUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 布局管理器
 public class LayoutManager : FrameSystem
 {
-	protected Dictionary<Type, LayoutRegisteInfo> mLayoutRegisteList = new();	// 布局注册信息列表
-	protected SafeDictionary<Type, GameLayout> mLayoutList = new();				// 所有布局的列表
-	protected Dictionary<string, LayoutInfo> mLayoutAsyncList = new();			// 正在异步加载的布局列表
-	protected Dictionary<Type, string> mLayoutTypeToPath = new();				// 根据布局ID查找布局路径
-	protected Dictionary<string, Type> mLayoutPathToType = new();				// 根据布局路径查找布局ID
-	protected List<GameLayout> mBackBlurLayoutList = new();						// 需要背景模糊的布局的列表
-	protected COMLayoutManagerEscHide mCOMEscHide;								// Esc按键事件传递逻辑的组件
-	protected myUGUICanvas mUGUIRoot;											// 所有UI的根节点
-	protected bool mUseAnchor = true;											// 是否启用锚点来自动调节窗口的大小和位置
+	protected Dictionary<Type, LayoutRegisteInfo> mLayoutRegisteList = new(128);	// 布局注册信息列表
+	protected SafeDictionary<Type, GameLayout> mLayoutList = new();					// 所有布局的列表
+	protected Dictionary<string, LayoutInfo> mLayoutAsyncList = new(128);			// 正在异步加载的布局列表
+	protected Dictionary<Type, string> mLayoutTypeToPath = new(128);				// 根据布局ID查找布局路径
+	protected Dictionary<string, Type> mLayoutPathToType = new(128);				// 根据布局路径查找布局ID
+	protected List<GameLayout> mBackBlurLayoutList = new(128);						// 需要背景模糊的布局的列表
+	protected COMLayoutManagerEscHide mCOMEscHide;									// Esc按键事件传递逻辑的组件
+	protected myUGUICanvas mUGUIRoot;												// 所有UI的根节点
+	protected bool mUseAnchor = true;												// 是否启用锚点来自动调节窗口的大小和位置
 	public LayoutManager()
 	{
 		// 在构造中获取UI根节点,确保其他组件能在任意时刻正常访问
@@ -158,6 +159,10 @@ public class LayoutManager : FrameSystem
 			return null;
 		}
 		string path = getLayoutPathByType(info.mType);
+		if (path.isEmpty())
+		{
+			logError("没有找到界面的注册信息:" + info.mType);
+		}
 		info.mName = getFileNameNoSuffixNoDir(path);
 		string pathUnderResource = R_UI_PREFAB_PATH + path + ".prefab";
 		if (mLayoutRegisteList.get(info.mType).mInResource)
@@ -177,6 +182,10 @@ public class LayoutManager : FrameSystem
 			return;
 		}
 		string path = getLayoutPathByType(info.mType);
+		if (path.isEmpty())
+		{
+			logError("没有找到界面的注册信息:" + info.mType);
+		}
 		info.mName = getFileNameNoSuffixNoDir(path);
 		string pathUnderResource = R_UI_PREFAB_PATH + path + ".prefab";
 		mLayoutAsyncList.Add(info.mName, info);

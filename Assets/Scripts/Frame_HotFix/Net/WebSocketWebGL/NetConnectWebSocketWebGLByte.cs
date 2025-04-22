@@ -5,7 +5,7 @@ using static FrameUtility;
 using static MathUtility;
 using static FrameBaseHotFix;
 using static FrameDefine;
-using static CSharpUtility;
+using static FrameBaseUtility;
 
 // 当前程序作为客户端时使用,表示一个与WebSocket服务器的连接,按字节传输,用于webgl平台
 public class NetConnectWebSocketWebGLByte : NetConnectWebSocketWebGL

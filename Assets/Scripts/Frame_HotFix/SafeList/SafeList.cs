@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using static UnityUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 非线程安全
 // 可安全遍历的列表,支持在遍历过程中对列表进行修改
@@ -21,7 +22,7 @@ public class SafeList<T> : ClassObject
 		mForeaching = false;
 	}
 	// 获取用于更新的列表,会自动从主列表同步,遍历结束时需要调用endForeach
-	// 搭配SafeListScope使用,using var a = new SafeListScope<T>(safeList, out var readList);
+	// 搭配SafeListScope使用,using var a = new SafeListScope<T>(safeList);然后遍历a.mReadList
 	public List<T> startForeach(string fileName = null)
 	{
 		if (mForeaching)
@@ -83,6 +84,7 @@ public class SafeList<T> : ClassObject
 	public bool contains(T value)	{ return mMainList.Contains(value); }
 	public T get(int index)			{ return mMainList[index]; }
 	public int count()				{ return mMainList.Count; }
+	public T find(Predicate<T> predicate) { return mMainList.Find(predicate); }
 	// 因为只能保证开始遍历时mUpdateList与mMainList一致,但是遍历结束后两个列表可能就不一致了,所以即使没有正在遍历时,也只能是记录操作,而不是直接修改mUpdateList
 	public T add(T value)
 	{

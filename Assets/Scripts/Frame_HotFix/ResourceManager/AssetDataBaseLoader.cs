@@ -7,9 +7,8 @@ using static FileUtility;
 using static StringUtility;
 using static FrameUtility;
 using static UnityUtility;
-using static FrameBaseHotFix;
 using static FrameDefine;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 从AssetDataBase中加载资源
 public class AssetDataBaseLoader
@@ -201,7 +200,7 @@ public class AssetDataBaseLoader
 				op.setFinish();
 				doneCallback?.Invoke(asset, assets, bytes, loadPath);
 			}, name);
-			mGameFrameworkHotFix.StartCoroutine(loadResourceCoroutine<T>(info));
+			GameEntry.getInstance().StartCoroutine(loadResourceCoroutine<T>(info));
 		}
 		return op;
 	}

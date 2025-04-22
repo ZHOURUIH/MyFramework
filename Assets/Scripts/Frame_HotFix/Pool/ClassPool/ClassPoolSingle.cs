@@ -3,7 +3,7 @@ using System;
 using UnityEngine;
 using static UnityUtility;
 using static CSharpUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 不支持带参构造的类,因为在再次利用时参数无法正确传递
 // 多线程的对象池无法判断临时对象有没有正常回收,因为子线程的帧与主线程不同步
@@ -41,6 +41,7 @@ public class ClassPoolSingle : ClassObject
 		{
 			try
 			{
+				bool isNew = false;
 				// 先从未使用的列表中查找是否有可用的对象
 				if (mUnusedList.Count > 0)
 				{
@@ -52,17 +53,21 @@ public class ClassPoolSingle : ClassObject
 					obj = createInstance<ClassObject>(mType);
 					// 创建实例时重置是为了与后续复用的实例状态保持一致
 					obj.resetProperty();
-					if (isEditor() && mInusedList.Count > 0 && mInusedList.Count % 1000 == 0)
-					{
-						Debug.Log("创建的总数量已经达到:" + mInusedList.Count + "个,type:" + mType);
-					}
+					isNew = true;
 				}
 				obj.setAssignID(++mAssignIDSeed);
 				obj.setDestroy(false);
 				// 添加到已使用列表
-				if (isEditor() && !mInusedList.Add(obj))
+				if (isEditor())
 				{
-					Debug.LogError("加入已使用列表失败, Type: " + mType);
+					if (!mInusedList.Add(obj))
+					{
+						Debug.LogError("加入已使用列表失败, Type: " + mType);
+					}
+					if (isNew && mInusedList.Count > 0 && mInusedList.Count % 1000 == 0)
+					{
+						Debug.Log("创建的总数量已经达到:" + mInusedList.Count + "个,type:" + mType);
+					}
 				}
 			}
 			catch (Exception e)

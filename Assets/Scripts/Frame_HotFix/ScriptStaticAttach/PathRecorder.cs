@@ -5,7 +5,7 @@ using static FrameDefine;
 using static StringUtility;
 using static FileUtility;
 using static MathUtility;
-using static FrameDefineBase;
+using static FrameBaseDefine;
 
 // 物体轨迹记录工具
 public class PathRecorder : MonoBehaviour

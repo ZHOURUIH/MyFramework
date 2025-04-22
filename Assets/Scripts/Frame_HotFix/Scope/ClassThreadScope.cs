@@ -19,10 +19,6 @@ public struct ClassThreadScope<T> : IDisposable where T : ClassObject, new()
 	}
 	public void Dispose()
 	{
-		if (mValue == null)
-		{
-			return;
-		}
 		mClassPoolThread?.destroyClass(ref mValue);
 	}
 }

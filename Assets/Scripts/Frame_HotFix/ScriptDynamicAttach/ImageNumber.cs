@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 using static UnityUtility;
 using static MathUtility;
 

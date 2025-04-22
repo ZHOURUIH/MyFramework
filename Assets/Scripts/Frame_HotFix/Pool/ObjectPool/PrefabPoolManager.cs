@@ -6,7 +6,7 @@ using static UnityUtility;
 using static FrameUtility;
 using static FrameBaseHotFix;
 using static CSharpUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 从prefab实例化的物体对象池
 public class PrefabPoolManager : FrameSystem

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System;
 using static UnityUtility;
-using static FrameBaseHotFix;
+using static FrameBaseUtility;
 using static MathUtility;
 
 // 系统组件基类,一般都是管理器
@@ -23,7 +23,7 @@ public class FrameSystem : ComponentOwner
 	{
 		if (mCreateObject)
 		{
-			mObject = createGameObject(GetType().ToString(), mGameFrameworkHotFix.getGameFrameObject());
+			mObject = createGameObject(GetType().ToString(), GameEntry.getInstanceObject());
 		}
 		initComponents();
 	}

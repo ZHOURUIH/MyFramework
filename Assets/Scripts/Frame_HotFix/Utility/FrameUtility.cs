@@ -9,8 +9,8 @@ using static MathUtility;
 using static BinaryUtility;
 using static FrameBaseHotFix;
 using static FrameDefine;
-using static FrameDefineBase;
-using static FrameEditorUtility;
+using static FrameBaseDefine;
+using static FrameBaseUtility;
 
 // 一些框架层的方便使用的工具函数,包含命令,对象池,列表池,字符串拼接池,延迟执行函数,以及其他的与框架层逻辑有关的工具函数
 public class FrameUtility
@@ -27,7 +27,11 @@ public class FrameUtility
 		if (isEditor() || isStandalone())
 		{
 			Vector3 mousePos = mInputSystem.getTouchPoint((int)MOUSE_BUTTON.LEFT).getCurPosition();
-			return leftBottomAsOrigin ? mousePos : mousePos - (Vector3)getHalfScreenSize();
+			if (!leftBottomAsOrigin)
+			{
+				mousePos -= getHalfScreenSize().toVec3();
+			}
+			return mousePos;
 		}
 		else
 		{
@@ -122,42 +126,42 @@ public class FrameUtility
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 跳转流程或场景的工具函数
-	public static void changeProcedure<T>(string intent = null) where T : SceneProcedure
+	public static void changeProcedure<T>() where T : SceneProcedure
 	{
-		getCurScene().changeProcedure<T>(intent);
+		getCurScene().changeProcedure<T>();
 	}
-	public static void changeProcedureDelay<T>(float delayTime = 0.001f, string intent = null) where T : SceneProcedure
+	public static void changeProcedureDelay<T>(float delayTime = 0.001f) where T : SceneProcedure
 	{
-		delayCall(()=>{ getCurScene().changeProcedure<T>(intent); }, delayTime);
+		delayCall(()=>{ getCurScene().changeProcedure<T>(); }, delayTime);
 	}
-	public static void prepareChangeProcedure<T>(float prepareTime = 0.001f, string intent = null) where T : SceneProcedure
+	public static void prepareChangeProcedure<T>(float prepareTime = 0.001f) where T : SceneProcedure
 	{
-		getCurScene().prepareChangeProcedure<T>(prepareTime, intent);
+		getCurScene().prepareChangeProcedure<T>(prepareTime);
 	}
-	public static void enterScene<T>(Type startProcedure = null, string intent = null) where T : GameScene
+	public static void enterScene<T>(Type startProcedure = null) where T : GameScene
 	{
-		mGameSceneManager.enterScene<T>(startProcedure, intent);
+		mGameSceneManager.enterScene<T>(startProcedure);
 	}
 	// 延迟到下一帧跳转
-	public static void enterSceneDelay<T>(Type startProcedure = null, string intent = null) where T : GameScene
+	public static void enterSceneDelay<T>(Type startProcedure = null) where T : GameScene
 	{
-		mGameSceneManager.enterScene<T>(startProcedure, intent);
+		mGameSceneManager.enterScene<T>(startProcedure);
 	}
-	public static void changeProcedure(Type procedure, string intent = null)
+	public static void changeProcedure(Type procedure)
 	{
-		getCurScene().changeProcedure(procedure, intent);
+		getCurScene().changeProcedure(procedure);
 	}
-	public static void changeProcedureDelay(Type procedure, float delayTime = 0.001f, string intent = null)
+	public static void changeProcedureDelay(Type procedure, float delayTime = 0.001f)
 	{
-		delayCall(() => { getCurScene().changeProcedure(procedure, intent); }, delayTime);
+		delayCall(() => { getCurScene().changeProcedure(procedure); }, delayTime);
 	}
-	public static void prepareChangeProcedure(Type procedure, float prepareTime = 0.001f, string intent = null)
+	public static void prepareChangeProcedure(Type procedure, float prepareTime = 0.001f)
 	{
-		getCurScene().prepareChangeProcedure(procedure, prepareTime, intent);
+		getCurScene().prepareChangeProcedure(procedure, prepareTime);
 	}
-	public static void enterScene(Type sceneType, Type startProcedure = null, string intent = null)
+	public static void enterScene(Type sceneType, Type startProcedure = null)
 	{
-		mGameSceneManager.enterScene(sceneType, startProcedure, intent);
+		mGameSceneManager.enterScene(sceneType, startProcedure);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 命令
@@ -285,13 +289,13 @@ public class FrameUtility
 	}
 	public static void LIST<T>(out List<T> list, IEnumerable<T> initList = null)
 	{
-		if (mGameFrameworkHotFix == null || mListPool == null)
+		if (GameEntry.getInstance() == null || mListPool == null)
 		{
 			list = new();
 			return;
 		}
 		string stackTrace = EMPTY;
-		if (mGameFrameworkHotFix.mParam.mEnablePoolStackTrace)
+		if (GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
@@ -308,13 +312,13 @@ public class FrameUtility
 	}
 	public static void LIST_PERSIST<T>(out List<T> list, IEnumerable<T> initList = null)
 	{
-		if (mGameFrameworkHotFix == null || mListPool == null)
+		if (GameEntry.getInstance() == null || mListPool == null)
 		{
 			list = new();
 			return;
 		}
 		string stackTrace = EMPTY;
-		if (mGameFrameworkHotFix.mParam.mEnablePoolStackTrace)
+		if (GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
@@ -330,7 +334,7 @@ public class FrameUtility
 	}
 	public static void UN_LIST<T>(ref List<T> list)
 	{
-		if (mGameFrameworkHotFix == null || mListPool == null || list == null)
+		if (mListPool == null || list == null)
 		{
 			return;
 		}
@@ -343,13 +347,13 @@ public class FrameUtility
 	}
 	public static void SET_PERSIST<T>(out HashSet<T> list, IEnumerable<T> initList = null)
 	{
-		if (mGameFrameworkHotFix == null || mListPool == null)
+		if (GameEntry.getInstance() == null || mListPool == null)
 		{
 			list = new();
 			return;
 		}
 		string stackTrace = EMPTY;
-		if (mGameFrameworkHotFix.mParam.mEnablePoolStackTrace)
+		if (GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
@@ -378,13 +382,13 @@ public class FrameUtility
 	}
 	public static void DIC_PERSIST<K, V>(out Dictionary<K, V> list)
 	{
-		if (mGameFrameworkHotFix == null || mListPool == null)
+		if (GameEntry.getInstance() == null || mListPool == null)
 		{
 			list = new();
 			return;
 		}
 		string stackTrace = EMPTY;
-		if (mGameFrameworkHotFix.mParam.mEnablePoolStackTrace)
+		if (GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
@@ -396,7 +400,7 @@ public class FrameUtility
 	}
 	public static void UN_DIC<K, V>(ref Dictionary<K, V> list)
 	{
-		if (mGameFrameworkHotFix == null || mDictionaryPool == null || list == null)
+		if (mDictionaryPool == null || list == null)
 		{
 			return;
 		}
@@ -1040,15 +1044,16 @@ public class FrameUtility
 	}
 	public static void recoverCrossParam()
 	{
-		mAssetVersionSystem.setPersistentAssetsVersion(FrameCrossParam.mPersistentDataVersion);
-		mAssetVersionSystem.setStreamingAssetsVersion(FrameCrossParam.mStreamingAssetsVersion);
-		mAssetVersionSystem.setRemoteVersion(FrameCrossParam.mRemoteVersion);
 		mResourceManager.setDownloadURL(FrameCrossParam.mDownloadURL);
+		mLocalizationManager.setCurrentLanguage(FrameCrossParam.mLocalizationName);
+		mAssetVersionSystem.setStreamingAssetsVersion(FrameCrossParam.mStreamingAssetsVersion);
+		mAssetVersionSystem.setPersistentAssetsVersion(FrameCrossParam.mPersistentDataVersion);
+		mAssetVersionSystem.setRemoteVersion(FrameCrossParam.mRemoteVersion);
 		mAssetVersionSystem.setStreamingAssetsFile(FrameCrossParam.mStreamingAssetsFileList);
 		mAssetVersionSystem.setPersistentAssetsFile(FrameCrossParam.mPersistentAssetsFileList);
 		mAssetVersionSystem.setRemoteAssetsFile(FrameCrossParam.mRemoteAssetsFileList);
-		mAssetVersionSystem.setDownloadedFiles(FrameCrossParam.mTotalDownloadedFiles);
-		AssetVersionSystem.setReadPathType(FrameCrossParam.mReadPathType);
-		mLocalizationManager.setCurrentLanguage(FrameCrossParam.mLocalizationName);
+		mAssetVersionSystem.setTotalDownloadedFiles(FrameCrossParam.mTotalDownloadedFiles);
+		mAssetVersionSystem.setTotalDownloadedByteCount(FrameCrossParam.mTotalDownloadByteCount);
+		mAssetVersionSystem.setAssetReadPath(FrameCrossParam.mAssetReadPath);
 	}
 }

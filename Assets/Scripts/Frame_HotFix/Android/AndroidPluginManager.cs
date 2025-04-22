@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using static UnityUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 用于管理所有跟Java交互的对象
 public class AndroidPluginManager : FrameSystem
@@ -30,7 +30,7 @@ public class AndroidPluginManager : FrameSystem
 		var view = mMainActivity.Get<AndroidJavaObject>("mUnityPlayer").Call<AndroidJavaObject>("getView");
 		AndroidJavaObject rect = new("android.graphics.Rect");
 		view.Call("getWindowVisibleDisplayFrame", rect);
-		return (int)getScreenSize().y - rect.Call<int>("height");
+		return getScreenSize().y - rect.Call<int>("height");
 	}
 	public override void destroy()
 	{

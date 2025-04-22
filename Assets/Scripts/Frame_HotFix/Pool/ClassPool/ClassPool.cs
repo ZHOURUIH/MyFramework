@@ -4,8 +4,7 @@ using UnityEngine;
 using static UnityUtility;
 using static StringUtility;
 using static CSharpUtility;
-using static FrameBaseHotFix;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 不支持带参构造的类,因为在再次利用时参数无法正确传递
 // 只能在主线程使用的对象池
@@ -74,31 +73,20 @@ public class ClassPool : FrameSystem
 		{
 			return null;
 		}
-		int createSource = 0;
+		bool isNew = false;
 		ClassObject obj;
 		// 先从未使用的列表中查找是否有可用的对象
 		if (mUnusedList.TryGetValue(type, out var classList) && classList.Count > 0)
 		{
 			obj = classList.Dequeue();
-			createSource = 1;
 		}
 		// 未使用列表中没有,创建一个新的
 		else
 		{
 			obj = createInstance<ClassObject>(type);
-			createSource = 3;
 			// 创建实例时重置是为了与后续复用的实例状态保持一致
 			obj.resetProperty();
-			if (isEditor())
-			{
-				int totalCount = 1;
-				totalCount += mInusedList.get(type)?.Count ?? 0;
-				totalCount += mPersistentInuseList.get(type)?.Count ?? 0;
-				if (totalCount % 1000 == 0)
-				{
-					Debug.Log("创建的总数量已经达到:" + totalCount + "个,type:" + type);
-				}
-			}
+			isNew = true;
 		}
 		obj.setAssignID(++mAssignIDSeed);
 		obj.setDestroy(false);
@@ -109,9 +97,20 @@ public class ClassPool : FrameSystem
 			var inuseList = onlyOnce ? mInusedList : mPersistentInuseList;
 			if (!inuseList.getOrAddNew(type).Add(obj))
 			{
-				Debug.LogError("对象已经在已使用列表中了,不能再添加,是否为持久使用:" + onlyOnce + ", 创建来源:" + IToS(createSource) + ", type:" + type);
+				Debug.LogError("对象已经在已使用列表中了,不能再添加,是否为持久使用:" + onlyOnce + ", 新创建创建对象:" + boolToString(isNew) + ", type:" + type);
 			}
-			mObjectStack.Add(obj, mGameFrameworkHotFix.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY);
+			mObjectStack.Add(obj, GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY);
+
+			if (isNew)
+			{
+				int totalCount = 0;
+				totalCount += mInusedList.get(type)?.Count ?? 0;
+				totalCount += mPersistentInuseList.get(type)?.Count ?? 0;
+				if (totalCount % 1000 == 0)
+				{
+					Debug.Log("创建的总数量已经达到:" + totalCount + "个,type:" + type);
+				}
+			}
 		}
 		return obj;
 	}

@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections.Generic;
 using static UnityUtility;
 using static FrameUtility;
-using System;
+using static FrameBaseUtility;
 
 // MovableObject的管理器,只用于管理MovableObject,其他的派生类则由其他的管理器管理
 // 因为MovableObject的派生类比较多,一般都会派生出其他的子类用作不同的用途

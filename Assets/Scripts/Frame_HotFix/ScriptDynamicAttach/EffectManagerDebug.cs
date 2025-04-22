@@ -8,7 +8,7 @@ public class EffectManagerDebug : MonoBehaviour
 	public List<GameObject> EffectList = new(); // 特效列表
 	public void Update()
 	{
-		if (mGameFrameworkHotFix == null || !mGameFrameworkHotFix.mParam.mEnableScriptDebug)
+		if (GameEntry.getInstance() == null || !GameEntry.getInstance().mFramworkParam.mEnableScriptDebug)
 		{
 			return;
 		}

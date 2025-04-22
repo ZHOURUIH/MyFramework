@@ -8,7 +8,7 @@ using static BinaryUtility;
 using static FrameUtility;
 using static FrameBaseHotFix;
 using static FrameDefine;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 当前程序作为客户端时使用,表示一个与TCP服务器的连接,WebGL无法使用
 public abstract class NetConnectTCP : NetConnect

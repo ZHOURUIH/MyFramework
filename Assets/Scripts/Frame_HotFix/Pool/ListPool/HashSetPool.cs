@@ -4,7 +4,7 @@ using System;
 using UnityEngine;
 using static UnityUtility;
 using static CSharpUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 仅能在主线程使用的列表池
 public class HashSetPool : FrameSystem
@@ -62,6 +62,7 @@ public class HashSetPool : FrameSystem
 			return null;
 		}
 
+		bool isNew = false;
 		IEnumerable list;
 		// 先从未使用的列表中查找是否有可用的对象
 		if (mUnusedList.TryGetValue(elementType, out var valueList) && valueList.Count > 0)
@@ -72,22 +73,23 @@ public class HashSetPool : FrameSystem
 		else
 		{
 			list = createInstance<IEnumerable>(listType);
-			if (isEditor())
-			{
-				int totalCount = 1;
-				totalCount += mInusedList.get(listType)?.Count ?? 0;
-				totalCount += mPersistentInuseList.get(listType)?.Count ?? 0;
-				if (totalCount % 1000 == 0)
-				{
-					Debug.Log("创建的Set总数量已经达到:" + totalCount + "个,type:" + elementType);
-				}
-			}
+			isNew = true;
 		}
 		if (isEditor())
 		{
 			// 标记为已使用
 			addInuse(list, elementType, onlyOnce);
 			mObjectStack.Add(list, stackTrace);
+			if (isNew)
+			{
+				int totalCount = 0;
+				totalCount += mInusedList.get(elementType)?.Count ?? 0;
+				totalCount += mPersistentInuseList.get(elementType)?.Count ?? 0;
+				if (totalCount % 1000 == 0)
+				{
+					Debug.Log("创建的Set总数量已经达到:" + totalCount + "个,type:" + elementType);
+				}
+			}
 		}
 		return list;
 	}

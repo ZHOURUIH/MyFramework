@@ -3,7 +3,7 @@ using System;
 using UnityEngine;
 using static UnityUtility;
 using static MathUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 线程安全的数组池,但是效率较低
 // 多线程的对象池无法判断临时对象有没有正常回收,因为子线程的帧与主线程不同步
@@ -52,6 +52,7 @@ public class ArrayPoolThread : FrameSystem
 		{
 			try
 			{
+				bool isNew = false;
 				// 先从未使用的列表中查找是否有可用的对象
 				if (mUnusedList.TryGetValue(type, out var typeList) &&
 					typeList.Count > 0 &&
@@ -64,15 +65,17 @@ public class ArrayPoolThread : FrameSystem
 				else
 				{
 					array = new T[size];
-					if (isEditor() && ++mCreatedCount % 1000 == 0)
-					{
-						logNoLock(typeof(T).ToString() + "[" + size + "]" + "数量已经达到了" + mCreatedCount + "个");
-					}
+					++mCreatedCount;
+					isNew = true;				
 				}
 				// 标记为已使用,为了提高运行时效率,仅在编辑器下才会加入到已使用列表
 				if (isEditor())
 				{
 					addInuse(array);
+					if (isNew && mCreatedCount % 1000 == 0)
+					{
+						logNoLock(typeof(T).ToString() + "[" + size + "]" + "数量已经达到了" + mCreatedCount + "个");
+					}
 				}
 			}
 			catch (Exception e)

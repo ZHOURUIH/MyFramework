@@ -1,7 +1,7 @@
 ﻿
 public class MainSceneLogin : SceneProcedure
 {
-	protected override void onInit(SceneProcedure lastProcedure, string intent)
+	protected override void onInit(SceneProcedure lastProcedure)
 	{
 		LT.LOAD_SHOW<UILogin>();
 	}

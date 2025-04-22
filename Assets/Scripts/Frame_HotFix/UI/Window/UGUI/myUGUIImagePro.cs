@@ -4,7 +4,7 @@ using static FrameBaseHotFix;
 using static MathUtility;
 using static UnityUtility;
 using static FrameDefine;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 对UGUI的Image的封装,包含全部封装功能,UGUI的静态图片不支持递归变化透明度
 public class myUGUIImagePro : myUGUIImage, IShaderWindow

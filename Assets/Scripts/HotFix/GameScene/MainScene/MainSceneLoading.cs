@@ -3,7 +3,7 @@ using static GBH;
 
 public class MainSceneLoading : SceneProcedure
 {
-	protected override void onInit(SceneProcedure lastProcedure, string intent)
+	protected override void onInit(SceneProcedure lastProcedure)
 	{
 		// 连接服务器
 		mNetManager.connect((bool success)=>

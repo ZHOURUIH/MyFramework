@@ -1,7 +1,7 @@
 ﻿using static UnityUtility;
 using static FrameUtility;
 using static FrameBaseHotFix;
-using static CSharpUtility;
+using static FrameBaseUtility;
 using static MathUtility;
 using static BinaryUtility;
 using static FrameDefine;

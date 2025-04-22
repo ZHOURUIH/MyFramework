@@ -5,8 +5,7 @@ using static UnityUtility;
 using static StringUtility;
 using static MathUtility;
 using static CSharpUtility;
-using static FrameBaseHotFix;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 只能在主线程中使用的数组池
 // 专为byte[]实现的对象池
@@ -75,6 +74,7 @@ public class ByteArrayPool : FrameSystem
 			Debug.LogError("只有长度为2的n次方的数组才能使用ArrayPool");
 			return null;
 		}
+		bool isNew = false;
 		byte[] array;
 		// 先从未使用的列表中查找是否有可用的对象
 		if (mUnusedList.Count > 0 &&
@@ -87,16 +87,18 @@ public class ByteArrayPool : FrameSystem
 		else
 		{
 			array = new byte[size];
-			if (isEditor() && ++mCreatedCount % 1000 == 0)
-			{
-				logNoLock("byte[" + size + "]" + "数量已经达到了" + mCreatedCount + "个");
-			}
+			++mCreatedCount;
+			isNew = true;
 		}
 		// 标记为已使用,为了提高运行时效率,仅在编辑器下才会添加到已使用列表
 		if (isEditor())
 		{
 			addInuse(array, onlyOnce);
-			mObjectStack.Add(array, mGameFrameworkHotFix.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY);
+			mObjectStack.Add(array, GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY);
+			if (isNew && mCreatedCount % 1000 == 0)
+			{
+				logNoLock("byte[" + size + "]" + "数量已经达到了" + mCreatedCount + "个");
+			}
 		}
 		return array;
 	}

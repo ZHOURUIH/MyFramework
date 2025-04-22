@@ -20,15 +20,13 @@ public class MainThreadUtil : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     public static void Setup()
     {
-        Instance = new GameObject("MainThreadUtil")
-            .AddComponent<MainThreadUtil>();
+        Instance = new GameObject("MainThreadUtil").AddComponent<MainThreadUtil>();
         synchronizationContext = SynchronizationContext.Current;
     }
 
     public static void Run(IEnumerator waitForUpdate)
     {
-        synchronizationContext.Post(_ => Instance.StartCoroutine(
-                    waitForUpdate), null);
+        synchronizationContext.Post(_ => Instance.StartCoroutine(waitForUpdate), null);
     }
 
     void Awake()

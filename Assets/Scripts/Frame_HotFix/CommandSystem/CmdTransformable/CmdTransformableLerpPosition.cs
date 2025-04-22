@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using static UnityUtility;
 using static MathUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 插值改变一个物体的位置,如果目标点不变,离目标点越近,移动速度越慢
 public class CmdTransformableLerpPosition : Command

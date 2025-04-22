@@ -253,6 +253,15 @@ public class OT
 	#endregion
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 基础数据类型的渐变,Tweener的操作由于暂时没有合适的地方放,所以放在这里
+	public static void TWEEN_FLOAT(ref MyTweenerFloat tweener)
+	{
+		if (tweener == null)
+		{
+			return;
+		}
+		mTweenerManager?.destroyTweener(tweener);
+		tweener = null;
+	}
 	public static MyTweenerFloat TWEEN_FLOAT(float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return TWEEN_FLOAT_EX(KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
@@ -261,7 +270,7 @@ public class OT
 	{
 		if (keyframe == KEY_CURVE.NONE || isFloatZero(onceLength))
 		{
-			logError("时间或关键帧不能为空,如果要停止组件,请使用void ALPHA(MovableObject obj, float alpha)");
+			logError("时间或关键帧不能为空,如果要停止组件,请使用void TWEEN_FLOAT(MyTweenerFloat tweener)");
 			return null;
 		}
 		MyTweenerFloat tweenerFloat = mTweenerManager.createTweenerFloat();

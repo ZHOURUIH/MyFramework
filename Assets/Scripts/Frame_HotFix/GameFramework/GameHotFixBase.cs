@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using static FrameBaseHotFix;
 using static UnityUtility;
 using static FrameUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 public abstract class GameHotFixBase
 {
@@ -17,8 +17,6 @@ public abstract class GameHotFixBase
 		GameFrameworkHotFix.mOnPackageName += getAndroidPluginBundleName;
 		GameFrameworkHotFix.startHotFix(() => 
 		{
-			mGameSetting.getComponent(out mCOMGameSettingAudio);
-
 			// 创建系统组件
 			initFrameSystem();
 			mGameFrameworkHotFix.sortList();

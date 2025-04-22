@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
+using static FrameBaseUtility;
 using static UnityUtility;
 using static MathUtility;
 
@@ -136,10 +137,7 @@ public class Transformable : ComponentOwner
 	}
 	public T getOrAddUnityComponent<T>() where T : Component
 	{
-		if (!mObject.TryGetComponent(out T com))
-		{
-			com = mObject.AddComponent<T>();
-		}
+		FrameBaseUtility.getOrAddComponent<T>(mObject, out T com);
 		return com;
 	}
 	// 从当前节点以及所有子节点中查找指定组件
@@ -165,8 +163,7 @@ public class Transformable : ComponentOwner
 	// 从指定的子节点中查找指定组件
 	public T getUnityComponentInChild<T>(string childName) where T : Component
 	{
-		GameObject child = getGameObject(childName, mObject);
-		child.TryGetComponent(out T com);
+		getGameObject(childName, mObject).TryGetComponent(out T com);
 		return com;
 	}
 	// 从当前以及所有子节点中查找指定组件

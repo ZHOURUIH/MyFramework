@@ -17,12 +17,13 @@ public class PurchasingSystem : FrameSystem, IDetailedStoreListener
 	protected IAppleExtensions mAppleExtension;
 	protected String2Callback mSuccessedCallback;
 	protected StringCallback mFailedCallback;
-	protected Product mPendingProduct;					// 正在处理支付的商品对象,ios
+	protected Product mPendingProduct;					// 正在处理支付的商品对象
 	// 初始化商品,建议在游戏初始化完成的时候就去初始化商品
 	public async void initPurchase(ICollection<string> goodsIDList, bool isSandbox, String2Callback successedCallback, StringCallback failedCallback)
 	{
 		mSuccessedCallback = successedCallback;
 		mFailedCallback = failedCallback;
+		// 这句初始化可能不太需要
 		await UnityServices.InitializeAsync(new InitializationOptions().SetEnvironmentName(isSandbox ? "sandbox" : "production"));
 		AppStore storeType = isIOS() ? AppStore.AppleAppStore : AppStore.GooglePlay;
 		var builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance(storeType));

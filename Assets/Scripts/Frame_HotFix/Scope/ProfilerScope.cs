@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using UnityEngine.Profiling;
 using static StringUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 用于开始一段性能检测,不再使用时会自动释放,需要搭配using来使用,比如using var a = new ProfilerScope("test")
 // 不能直接调用默认构造

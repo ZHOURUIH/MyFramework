@@ -4,7 +4,7 @@ using static UnityUtility;
 using static FrameUtility;
 using static FrameBaseHotFix;
 using static FrameDefine;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 特效管理器,用于管理所有的3D特效
 public class EffectManager : FrameSystem

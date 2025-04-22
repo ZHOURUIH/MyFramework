@@ -1,6 +1,6 @@
 ﻿using static UnityUtility;
 using static MathUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 渐变窗口透明度
 public class CmdWindowAlpha : Command

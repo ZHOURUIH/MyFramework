@@ -5,8 +5,8 @@ using static UnityUtility;
 using static WidgetUtility;
 using static FrameBaseHotFix;
 using static FrameDefine;
-using static FrameDefineBase;
-using static FrameEditorUtility;
+using static FrameBaseDefine;
+using static FrameBaseUtility;
 
 // 用于表示一个布局
 public class GameLayout
@@ -14,23 +14,23 @@ public class GameLayout
 	protected Dictionary<int, myUIObject> mGameObjectSearchList = new();	// 用于根据GameObject查找UI,key是GameObject的InstanceID
 	protected SafeHashSet<myUIObject> mNeedUpdateList = new();				// mObjectList中需要更新的窗口列表
 	protected SafeDictionary<int, myUIObject> mObjectList = new();			// 布局中UI物体列表,用于保存所有已获取的UI
-	protected myUGUICanvas mRoot;				// 布局根节点
-	protected LayoutScript mScript;				// 布局脚本
-	protected myUIObject mParent;				// 布局父节点,可能是UGUIRoot,也可能为空
-	protected GameObject mPrefab;               // 布局预设,布局从该预设实例化
-	protected Type mType;						// 布局的脚本类型
-	protected string mName;						// 布局名称
-	protected int mDefaultLayer;				// 布局加载时所处的层
-	protected int mRenderOrder;					// 渲染顺序,越大则渲染优先级越高,不能小于0
-	protected bool mDefaultUpdateWindow = true;	// 是否默认就将所有注册的窗口添加到更新列表中,默认是添加的,在某些需要重点优化的布局中可以选择将哪些窗口放入更新列表
-	protected bool mScriptControlHide;			// 是否由脚本来控制隐藏
-	protected bool mIgnoreTimeScale;			// 更新布局时是否忽略时间缩放
-	protected bool mCheckBoxAnchor = true;		// 是否检查布局中所有带碰撞盒的窗口是否自适应分辨率
-	protected bool mAnchorApplied;				// 是否已经完成了自适应的调整
-	protected bool mScriptInited;				// 脚本是否已经初始化
-	protected bool mInResources;				// 是否是从Resources中加载的资源,大部分布局都不是从Resources中加载的
-	protected bool mBlurBack;					// 布局显示时是否需要使布局背后(比当前布局层级低)的所有布局模糊显示
-	protected LAYOUT_ORDER mRenderOrderType;	// 布局渲染顺序的计算方式
+	protected myUGUICanvas mRoot;					// 布局根节点
+	protected LayoutScript mScript;					// 布局脚本
+	protected myUIObject mParent;					// 布局父节点,可能是UGUIRoot,也可能为空
+	protected GameObject mPrefab;					// 布局预设,布局从该预设实例化
+	protected Type mType;							// 布局的脚本类型
+	protected string mName;							// 布局名称
+	protected int mDefaultLayer;					// 布局加载时所处的层
+	protected int mRenderOrder;						// 渲染顺序,越大则渲染优先级越高,不能小于0
+	protected bool mDefaultUpdateWindow = true;		// 是否默认就将所有注册的窗口添加到更新列表中,默认是添加的,在某些需要重点优化的布局中可以选择将哪些窗口放入更新列表
+	protected bool mScriptControlHide;				// 是否由脚本来控制隐藏
+	protected bool mIgnoreTimeScale;				// 更新布局时是否忽略时间缩放
+	protected bool mCheckBoxAnchor = true;			// 是否检查布局中所有带碰撞盒的窗口是否自适应分辨率
+	protected bool mAnchorApplied;					// 是否已经完成了自适应的调整
+	protected bool mScriptInited;					// 脚本是否已经初始化
+	protected bool mInResources;					// 是否是从Resources中加载的资源,大部分布局都不是从Resources中加载的
+	protected bool mBlurBack;						// 布局显示时是否需要使布局背后(比当前布局层级低)的所有布局模糊显示
+	protected LAYOUT_ORDER mRenderOrderType;		// 布局渲染顺序的计算方式
 	public void init()
 	{
 		mScript = mLayoutManager.createScript(this);
@@ -173,7 +173,7 @@ public class GameLayout
 	}
 	public void setVisible(bool visible)
 	{
-		if (mScript == null || !mScriptInited || visible == mRoot.isActiveInHierarchy())
+		if (mRoot == null || mScript == null || !mScriptInited || visible == mRoot.isActiveInHierarchy())
 		{
 			return;
 		}
@@ -260,7 +260,7 @@ public class GameLayout
 	}
 	// get
 	public myUIObject getUIObject(GameObject go)			{ return mGameObjectSearchList.get(go.GetInstanceID()); }
-	public myUIObject getRoot()								{ return mRoot; }
+	public myUGUICanvas getRoot()							{ return mRoot; }
 	public LayoutScript getScript()							{ return mScript; }
 	public LAYOUT_ORDER getRenderOrderType()				{ return mRenderOrderType; }
 	public string getName()									{ return mName; }

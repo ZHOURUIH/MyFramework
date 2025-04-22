@@ -1,33 +1,14 @@
 ﻿#if USE_TMP
 using TMPro;
 #endif
-using System;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityUtility;
+using static FrameBaseUtility;
 using static MathUtility;
 
 // RectTransform和UI相关的工具函数类
 public class WidgetUtility
 {
-	// 父节点在父节点坐标系下的各条边
-	public static void getParentSides(GameObject parent, Vector3[] sides)
-	{
-		parent.TryGetComponent<RectTransform>(out var trans);
-		Vector2 size = trans.rect.size;
-		Span<Vector3> tempCorners = stackalloc Vector3[4];
-		tempCorners[0] = new(-size.x * 0.5f, -size.y * 0.5f);
-		tempCorners[1] = new(-size.x * 0.5f, size.y * 0.5f);
-		tempCorners[2] = new(size.x * 0.5f, size.y * 0.5f);
-		tempCorners[3] = new(size.x * 0.5f, -size.y * 0.5f);
-		cornerToSide(tempCorners, sides);
-	}
-	// 窗口是否在屏幕范围内,只检查位置和大小
-	public static bool isWindowInScreen(myUIObject window, GameCamera camera)
-	{
-		Vector3 pos = worldToScreen(window.getWorldPosition(), camera.getCamera());
-		return overlapBox2(pos, window.getWindowSize(), Vector3.zero, getScreenSize());
-	}
 	public static void setPositionNoPivot(RectTransform rect, Vector3 pos, bool applyWindowScale = true)
 	{
 		Vector2 windowSize = rect.rect.size;
@@ -80,11 +61,11 @@ public class WidgetUtility
 		{
 			if (rect.parent == null)
 			{
-				logError("父节点为空,无法计算适配,当前节点:" + rect.name);
+				logErrorBase("父节点为空,无法计算适配,当前节点:" + rect.name);
 			}
 			else
 			{
-				logError("父节点不是RectTransform,无法计算适配,当前节点:" + rect.name + ",父节点:" + rect.parent.name);
+				logErrorBase("父节点不是RectTransform,无法计算适配,当前节点:" + rect.name + ",父节点:" + rect.parent.name);
 			}
 			return Vector3.zero;
 		}
@@ -94,28 +75,6 @@ public class WidgetUtility
 			parentSize = multiVector2(parentSize, parent.lossyScale);
 		}
 		return rect.localPosition + (Vector3)multiVector2(parentSize, parent.pivot - new Vector2(0.5f, 0.5f));
-	}
-	public static void cornerToSide(Span<Vector3> corners, Vector3[] sides)
-	{
-		if (sides.Length != 4)
-		{
-			return;
-		}
-		for (int i = 0; i < 4; ++i)
-		{
-			sides[i] = (corners[i] + corners[(i + 1) % 4]) * 0.5f;
-		}
-	}
-	public static void cornerToSide(Span<Vector3> corners, Span<Vector3> sides)
-	{
-		if (sides.Length != 4)
-		{
-			return;
-		}
-		for (int i = 0; i < 4; ++i)
-		{
-			sides[i] = (corners[i] + corners[(i + 1) % 4]) * 0.5f;
-		}
 	}
 	public static void setRectSize(RectTransform rectTransform, Vector2 size)
 	{
@@ -136,31 +95,20 @@ public class WidgetUtility
 		}
 		float lastHeight = rectTransform.rect.height;
 		setRectSize(rectTransform, size);
+		if (lastHeight < 1.0f)
+		{
+			return;
+		}
 		// 文字控件需要根据高度重新计算字体大小
 		if (rectTransform.TryGetComponent(out Text text))
 		{
-			text.fontSize = clampMin(floor(divide(text.fontSize, lastHeight) * size.y), minFontSize);
+			text.fontSize = Mathf.Clamp((int)Mathf.Floor(text.fontSize / lastHeight * size.y), minFontSize, 200);
 		}
 #if USE_TMP
 		else if (rectTransform.TryGetComponent(out TextMeshProUGUI tmproText))
 		{
-			tmproText.fontSize = clampMin(floor(divide(tmproText.fontSize, lastHeight) * size.y), minFontSize);
+			tmproText.fontSize = Mathf.Clamp((int)Mathf.Floor(tmproText.fontSize / lastHeight * size.y), minFontSize, 200);
 		}
 #endif
-	}
-	public static void setUGUIChildAlpha(GameObject go, float alpha)
-	{
-		if (go.TryGetComponent<Graphic>(out var graphic))
-		{
-			Color color = graphic.color;
-			color.a = alpha;
-			graphic.color = color;
-		}
-		Transform transform = go.transform;
-		int childCount = transform.childCount;
-		for (int i = 0; i < childCount; ++i)
-		{
-			setUGUIChildAlpha(transform.GetChild(i).gameObject, alpha);
-		}
 	}
 }

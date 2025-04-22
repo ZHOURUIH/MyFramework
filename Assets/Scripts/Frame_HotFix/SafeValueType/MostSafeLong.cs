@@ -1,7 +1,7 @@
 ﻿using System;
 using static UnityUtility;
 using static FrameBaseHotFix;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 用来代替普通的long类型,防止内存被修改器修改
 public struct MostSafeLong : IEquatable<MostSafeLong>

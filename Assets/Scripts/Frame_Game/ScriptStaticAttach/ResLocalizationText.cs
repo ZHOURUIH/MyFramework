@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
-using static MathUtility;
-using static FrameDefine;
+using static FrameBaseDefine;
 
 // 非热更代码使用,需要手动将所有语言的文本都填进去,因为没办法读表
 // 用于挂到静态的文本上,也就是只是在界面显示,不会在代码中访问和操作的文本
@@ -36,7 +35,14 @@ public class ResLocalizationText : MonoBehaviour
 		}
 		else
 		{
-			mFontSizeScale = divide(mText.fontSize, mChineseOriginFontSize);
+			if (mChineseOriginFontSize > 0)
+			{
+				mFontSizeScale = mText.fontSize / mChineseOriginFontSize;
+			}
+			else
+			{
+				mFontSizeScale = 1.0f;
+			}
 		}
 		mLocalzation = mText.text;
 
@@ -58,7 +64,7 @@ public class ResLocalizationText : MonoBehaviour
 			{
 				if (item.mLanguage == mCurLanguage)
 				{
-					mText.fontSize = (int)(checkInt(item.mFontSize * mFontSizeScale));
+					mText.fontSize = Mathf.RoundToInt(item.mFontSize * mFontSizeScale);
 				}
 			}
 		}

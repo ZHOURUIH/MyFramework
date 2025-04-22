@@ -1,15 +1,18 @@
 ﻿using UnityEngine;
 
 // 按键映射信息
-public struct KeyMapping
+public class KeyMapping : ClassObject
 {
-	public int mCustomKey;			// 自定义按键值,也就是KeyCode映射到的值,一般是一个枚举
-	public KeyCode mKey;			// 键盘按键
-	public string mCustomKeyName;	// 自定义按键名
-	public KeyMapping(int customKey, KeyCode key, string customKeyName)
+	public int mMappingID;				// 映射对象ID,也就是KeyCode映射到的值,一般是一个枚举
+	public KeyCode mDefaultKey;			// 默认的键盘按键
+	public KeyCode mKey;				// 键盘按键
+	public string mMappingName;			// 映射名字,一般用于显示的,比如移动,攻击
+	public override void resetProperty()
 	{
-		mCustomKey = customKey;
-		mKey = key;
-		mCustomKeyName = customKeyName;
+		base.resetProperty();
+		mMappingID = 0;
+		mDefaultKey = KeyCode.None;
+		mKey = KeyCode.None;
+		mMappingName = null;
 	}
 }

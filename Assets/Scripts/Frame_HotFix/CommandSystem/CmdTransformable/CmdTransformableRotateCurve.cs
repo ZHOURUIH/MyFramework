@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using static UnityUtility;
 using static MathUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 以指定的旋转列表旋转
 public class CmdTransformableRotateCurve : Command

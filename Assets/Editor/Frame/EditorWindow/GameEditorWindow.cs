@@ -12,7 +12,11 @@ public class GameEditorWindow : EditorWindow
 		{
 			onGUI();
 		}
-		catch(Exception e)
+		catch (ExitGUIException)
+		{
+			// 这个异常是正常现象,不认为是一个错误
+		}
+		catch (Exception e)
 		{
 			Debug.Log("exception:" + e.Message + ", stack:" + e.StackTrace);
 		}

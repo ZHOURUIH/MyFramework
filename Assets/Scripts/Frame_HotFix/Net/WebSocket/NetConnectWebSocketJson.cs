@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 using static UnityUtility;
 using static FrameBaseHotFix;
 using static BinaryUtility;
-using static CSharpUtility;
+using static FrameBaseUtility;
 using static TimeUtility;
 using static StringUtility;
 using static FrameUtility;

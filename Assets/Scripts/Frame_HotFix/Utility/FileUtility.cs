@@ -8,10 +8,9 @@ using static UnityUtility;
 using static StringUtility;
 using static BinaryUtility;
 using static FrameDefine;
-using static CSharpUtility;
 using static FrameBaseHotFix;
-using static FrameEditorUtility;
-using static FrameDefineBase;
+using static FrameBaseUtility;
+using static FrameBaseDefine;
 
 // 文件工具函数类
 public class FileUtility
@@ -87,12 +86,12 @@ public class FileUtility
 			callback?.Invoke(null);
 			return;
 		}
-		mGameFrameworkHotFix.StartCoroutine(openFileAsyncInternal(fileName, errorIfNull, callback));
+		GameEntry.getInstance().StartCoroutine(openFileAsyncInternal(fileName, errorIfNull, callback));
 	}
 	// fileNameList为绝对路径
 	public static void openFileListAsync(List<string> fileNameList, bool errorIfNull, StringBytesCallback callback)
 	{
-		mGameFrameworkHotFix.StartCoroutine(openFileListAsyncInternal(fileNameList, errorIfNull, callback));
+		GameEntry.getInstance().StartCoroutine(openFileListAsyncInternal(fileNameList, errorIfNull, callback));
 	}
 	public static void openTxtFileAsync(string fileName, bool errorIfNull, StringCallback callback)
 	{
@@ -156,12 +155,9 @@ public class FileUtility
 		}
 		else if (isAndroid())
 		{
-			if (mAndroidAssetLoader != null)
-			{
-				// 检测路径是否存在,如果不存在就创建一个
-				createDir(getFilePath(fileName));
-				AndroidAssetLoader.writeTxtFile(fileName, content, appendData);
-			}
+			// 检测路径是否存在,如果不存在就创建一个
+			createDir(getFilePath(fileName));
+			AndroidAssetLoader.writeTxtFile(fileName, content, appendData);
 		}
 		else if (isWebGL())
 		{
@@ -446,6 +442,10 @@ public class FileUtility
 	// 创建文件夹,dir绝对路径
 	public static void createDir(string dir)
 	{
+		if (dir.isEmpty())
+		{
+			return;
+		}
 		if (isDirExist(dir))
 		{
 			return;
@@ -626,7 +626,7 @@ public class FileUtility
 		return mTempFileList1;
 	}
 	// 查找指定目录下的所有文件,path为绝对路径
-	public static List<string> findFilesNonAlloc(string path, List<string> patterns = null, bool recursive = true)
+	public static List<string> findFilesNonAlloc(string path, IList<string> patterns = null, bool recursive = true)
 	{
 		mTempFileList1.Clear();
 		findFilesInternal(path, mTempFileList1, patterns, recursive);
@@ -654,7 +654,7 @@ public class FileUtility
 		findFilesInternal(path, fileList, null, true);
 	}
 	// 查找指定目录下的所有文件,path为绝对路径
-	public static void findFilesInternal(string path, List<string> fileList, List<string> patterns, bool recursive)
+	public static void findFilesInternal(string path, List<string> fileList, IList<string> patterns, bool recursive)
 	{
 		try
 		{
@@ -803,7 +803,7 @@ public class FileUtility
 			}
 			else
 			{
-				mGameFrameworkHotFix.StartCoroutine(generateMD5ListAsyncInternal(fileNameList, callback));
+				GameEntry.getInstance().StartCoroutine(generateMD5ListAsyncInternal(fileNameList, callback));
 			}
 		}
 	}
@@ -829,109 +829,6 @@ public class FileUtility
 			logError(e.Message);
 		}
 		return bytesToHEXString(md5Bytes, 0, 0, false, false);
-	}
-	// 筛选出需要删除的文件
-	public static List<string> checkDeleteFile(Dictionary<string, GameFileInfo> localInfoList, Dictionary<string, GameFileInfo> remoteInfoList)
-	{
-		List<string> deleteList = new();
-		checkDeleteFile(localInfoList, remoteInfoList, deleteList);
-		return deleteList;
-	}
-	// 筛选出需要删除的文件
-	public static void checkDeleteFile(Dictionary<string, GameFileInfo> localInfoList, Dictionary<string, GameFileInfo> remoteInfoList, List<string> deleteList)
-	{
-		// 遍历本地文件列表
-		foreach (var item in localInfoList)
-		{
-			// 如果已经不在远端文件列表中,则是已删除的文件
-			// 在本地,但是与远端文件不一致,也需要删除,因为动态下载的文件不会在启动时下载,所以为了避免加载到旧的文件,需要删除本地的旧文件,虽然在资源版本系统中已经判断了是否一致了
-			if (!remoteInfoList.TryGetValue(item.Key, out GameFileInfo remoteInfo) ||
-				remoteInfo.mMD5 != item.Value.mMD5)
-			{
-				deleteList.Add(item.Key);
-			}
-		}
-	}
-	// 筛选出新增和内容被修改的文件
-	public static void checkNeedDownloadFile(List<string> modifyList, Dictionary<string, GameFileInfo> streamingInfoList, Dictionary<string, GameFileInfo> persistentInfoList, Dictionary<string, GameFileInfo> remoteInfoList, List<string> ignorePathList)
-	{
-		// 新增文件和已修改文件都认为是已修改文件
-		// 如果不在本地文件列表中,则是新增的文件,在本地文件中,但是大小或MD5不同,则是已修改的文件
-		// 遍历远端文件列表
-		foreach (GameFileInfo remoteInfo in remoteInfoList.Values)
-		{
-			// 动态下载目录中的文件不需要下载
-			bool isIgnoreFile = false;
-			foreach (string ignorePath in ignorePathList.safe())
-			{
-				if (remoteInfo.mFileName.StartsWith(ignorePath.ToLower()))
-				{
-					isIgnoreFile = true;
-					break;
-				}
-			}
-			if (isIgnoreFile)
-			{
-				continue;
-			}
-
-			GameFileInfo streamInfo = streamingInfoList.get(remoteInfo.mFileName);
-			GameFileInfo persistentInfo = persistentInfoList.get(remoteInfo.mFileName);
-			// streaming或者persistent中的大小和md5都与远端一致,则不需要下载
-			if ((persistentInfo.mFileName != null && persistentInfo.mFileSize == remoteInfo.mFileSize && persistentInfo.mMD5 == remoteInfo.mMD5) ||
-				(streamInfo.mFileName != null && streamInfo.mFileSize == remoteInfo.mFileSize && streamInfo.mMD5 == remoteInfo.mMD5))
-			{
-				continue;
-			}
-
-			modifyList.Add(remoteInfo.mFileName);
-			// 打印出需要下载的原因,用于调试
-			if (streamInfo.mFileName == null && persistentInfo.mFileName == null)
-			{
-				log("文件在本地不存在:" + remoteInfo.mFileName);
-			}
-			else if (streamInfo.mFileName == null && persistentInfo.mFileName != null)
-			{
-				if (persistentInfo.mFileSize != remoteInfo.mFileSize)
-				{
-					log("文件:" + remoteInfo.mFileName + "与远端大小不一致,远端:" + remoteInfo.mFileSize + ", persistent本地:" + persistentInfo.mFileSize);
-				}
-				if (persistentInfo.mMD5 != remoteInfo.mMD5)
-				{
-					log("文件:" + remoteInfo.mFileName + "与远端MD5不一致,远端:" + remoteInfo.mMD5 + ", persistent本地:" + persistentInfo.mMD5);
-				}
-			}
-			else if (streamInfo.mFileName != null && persistentInfo.mFileName == null)
-			{
-				if (streamInfo.mFileSize != remoteInfo.mFileSize)
-				{
-					log("文件:" + remoteInfo.mFileName + "与远端大小不一致,远端:" + remoteInfo.mFileSize + ", StreamingAssets本地:" + streamInfo.mFileSize);
-				}
-				if (streamInfo.mMD5 != remoteInfo.mMD5)
-				{
-					log("文件:" + remoteInfo.mFileName + "与远端MD5不一致,远端:" + remoteInfo.mMD5 + ", StreamingAssets本地:" + streamInfo.mMD5);
-				}
-			}
-			else if (streamInfo.mFileName != null && persistentInfo.mFileName != null)
-			{
-				if (persistentInfo.mFileSize != remoteInfo.mFileSize)
-				{
-					log("文件:" + remoteInfo.mFileName + "与远端大小不一致,远端:" + remoteInfo.mFileSize + ", persistent本地:" + persistentInfo.mFileSize);
-				}
-				if (persistentInfo.mMD5 != remoteInfo.mMD5)
-				{
-					log("文件:" + remoteInfo.mFileName + "与远端MD5不一致,远端:" + remoteInfo.mMD5 + ", persistent本地:" + persistentInfo.mMD5);
-				}
-				if (streamInfo.mFileSize != remoteInfo.mFileSize)
-				{
-					log("文件:" + remoteInfo.mFileName + "与远端大小不一致,远端:" + remoteInfo.mFileSize + ", StreamingAssets本地:" + streamInfo.mFileSize);
-				}
-				if (streamInfo.mMD5 != remoteInfo.mMD5)
-				{
-					log("文件:" + remoteInfo.mFileName + "与远端MD5不一致,远端:" + remoteInfo.mMD5 + ", StreamingAssets本地:" + streamInfo.mMD5);
-				}
-			}
-		}
 	}
 	// 筛选出新增和内容被修改的文件
 	public static List<string> checkNeedUploadFile(Dictionary<string, GameFileInfo> remoteList, Dictionary<string, GameFileInfo> localInfoList)
@@ -1030,6 +927,28 @@ public class FileUtility
 		using MemoryStream msResult = new();
 		csDecrypt.CopyTo(msResult);
 		return msResult.ToArray();
+	}
+	// 筛选出需要删除的文件
+	public static List<string> checkDeleteFile(Dictionary<string, GameFileInfo> localInfoList, Dictionary<string, GameFileInfo> remoteInfoList)
+	{
+		List<string> deleteList = new();
+		checkDeleteFile(localInfoList, remoteInfoList, deleteList);
+		return deleteList;
+	}
+	// 筛选出需要删除的文件
+	public static void checkDeleteFile(Dictionary<string, GameFileInfo> localInfoList, Dictionary<string, GameFileInfo> remoteInfoList, List<string> deleteList)
+	{
+		// 遍历本地文件列表
+		foreach (var item in localInfoList)
+		{
+			// 如果已经不在远端文件列表中,则是已删除的文件
+			// 在本地,但是与远端文件不一致,也需要删除,因为动态下载的文件不会在启动时下载,所以为了避免加载到旧的文件,需要删除本地的旧文件,虽然在资源版本系统中已经判断了是否一致了
+			if (!remoteInfoList.TryGetValue(item.Key, out GameFileInfo remoteInfo) ||
+				remoteInfo.mMD5 != item.Value.mMD5)
+			{
+				deleteList.Add(item.Key);
+			}
+		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected static IEnumerator generateMD5ListAsyncInternal(List<string> fileNameList, StringListCallback callback)

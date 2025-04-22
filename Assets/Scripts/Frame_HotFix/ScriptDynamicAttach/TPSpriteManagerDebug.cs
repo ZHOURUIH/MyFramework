@@ -9,7 +9,7 @@ public class TPSpriteManagerDebug : MonoBehaviour
 	public List<UGUIAtlasDebug> mResourcesAtlasList = new();	// 已加载的AssetBundle列表Value
 	public void Update()
 	{
-		if (mGameFrameworkHotFix == null || !mGameFrameworkHotFix.mParam.mEnableScriptDebug)
+		if (GameEntry.getInstance() == null || !GameEntry.getInstance().mFramworkParam.mEnableScriptDebug)
 		{
 			return;
 		}

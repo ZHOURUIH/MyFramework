@@ -1,6 +1,6 @@
 ﻿using System.Net.WebSockets;
 using NativeWebSocket;
-using static CSharpUtility;
+using static FrameBaseUtility;
 using static UnityUtility;
 
 // 通知网络的连接状态改变

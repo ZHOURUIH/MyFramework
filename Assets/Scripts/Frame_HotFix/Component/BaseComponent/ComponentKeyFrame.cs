@@ -1,5 +1,4 @@
-﻿using System;
-using static UnityUtility;
+﻿using static UnityUtility;
 using static MathUtility;
 using static FrameBaseHotFix;
 

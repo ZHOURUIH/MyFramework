@@ -1,7 +1,7 @@
 ﻿using System.Text;
 
 // 表示一个文件的信息
-public struct GameFileInfo
+public class GameFileInfo
 {
 	public string mFileName;        // StreamingAssets下的相对路径
 	public long mFileSize;          // 文件大小

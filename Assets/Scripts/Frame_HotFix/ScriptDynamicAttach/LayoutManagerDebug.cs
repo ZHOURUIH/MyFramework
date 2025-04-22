@@ -7,7 +7,7 @@ public class LayoutManagerDebug : MonoBehaviour
 	public bool UseAnchor;	// 是否使用自定义自适应组件
 	public void Update()
 	{
-		if (mGameFrameworkHotFix == null || !mGameFrameworkHotFix.mParam.mEnableScriptDebug)
+		if (GameEntry.getInstance() == null || !GameEntry.getInstance().mFramworkParam.mEnableScriptDebug)
 		{
 			return;
 		}

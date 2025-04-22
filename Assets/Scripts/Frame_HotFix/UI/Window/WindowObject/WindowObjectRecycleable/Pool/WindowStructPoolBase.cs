@@ -24,6 +24,7 @@ public class WindowStructPoolBase
 		mNewItemMoveToLast = newItemToLast;
 		mPreName = template?.getName();
 		mObjectType = objectType;
+		mTemplate.setActive(false);
 	}
 	public myUIObject getInUseParent() { return mItemParent; }
 	public void setItemPreName(string preName) { mPreName = preName; }

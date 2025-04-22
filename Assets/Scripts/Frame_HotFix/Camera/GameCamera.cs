@@ -5,7 +5,7 @@ using UnityEngine.Rendering.Universal;
 #endif
 using static MathUtility;
 using static UnityUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 封装Unity的Camera
 public class GameCamera : MovableObject
@@ -27,8 +27,7 @@ public class GameCamera : MovableObject
 	public override void destroy()
 	{
 		base.destroy();
-		tryGetUnityComponent<CameraDebug>(out var debug);
-		destroyUnityObject(ref debug);
+		destroyComponent<CameraDebug>(mObject);
 	}
 	public override void resetProperty()
 	{

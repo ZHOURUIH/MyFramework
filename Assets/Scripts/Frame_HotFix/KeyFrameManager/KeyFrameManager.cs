@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using static UnityUtility;
 using static FrameBaseHotFix;
+using static FrameBaseUtility;
 using static StringUtility;
 using static FrameDefine;
 

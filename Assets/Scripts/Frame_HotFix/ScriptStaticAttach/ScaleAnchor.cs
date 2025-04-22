@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
-using static FrameDefineBase;
+using static FrameBaseDefine;
 using static MathUtility;
 using static UnityUtility;
 using static WidgetUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 缩放自适应组件
 public class ScaleAnchor : MonoBehaviour

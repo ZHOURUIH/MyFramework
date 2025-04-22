@@ -13,7 +13,7 @@ using static FrameUtility;
 using static BinaryUtility;
 using static StringUtility;
 using static FrameBaseHotFix;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 封装的Http的相关操作,因为其中全是静态工具函数,所以名字为Utility,但是由于需要管理一些线程,所以与普通的工具函数类不同
 public class HttpUtility
@@ -110,12 +110,12 @@ public class HttpUtility
 	// 异步post请求,webgl可用
 	public static void httpPostAsyncWebGL(string url, byte[] data, string contentType, Dictionary<string, string> header, UnityHttpCallback callback)
 	{
-		mGameFrameworkHotFix.StartCoroutine(unityPost(url, data, contentType, header, callback));
+		GameEntry.getInstance().StartCoroutine(unityPost(url, data, contentType, header, callback));
 	}
 	// 异步post请求,webgl可用
 	public static void httpPostAsyncWebGL(string url, string param, UnityHttpCallback callback)
 	{
-		mGameFrameworkHotFix.StartCoroutine(unityPost(url, stringToBytes(param), "application/json", null, callback));
+		GameEntry.getInstance().StartCoroutine(unityPost(url, stringToBytes(param), "application/json", null, callback));
 	}
 	// 同步post请求
 	public static string httpPost(string url, out WebExceptionStatus status, out HttpStatusCode code, byte[] data, int dataLength = -1)
@@ -279,8 +279,16 @@ public class HttpUtility
 		// 创建一个Stream,赋值是写入HttpWebRequest对象提供的一个stream里面
 		if (data != null)
 		{
-			using Stream newStream = webRequest.GetRequestStream();
-			newStream.Write(data, 0, dataLength);
+			try
+			{
+				using Stream newStream = webRequest.GetRequestStream();
+				newStream.Write(data, 0, dataLength);
+			}
+			catch(Exception e)
+			{
+				logException(e);
+				return null;
+			}
 		}
 		return webRequest;
 	}
@@ -310,6 +318,11 @@ public class HttpUtility
 			logError("无法在WebGL平台使用C#的Http请求函数");
 		}
 		code = HttpStatusCode.OK;
+		if (webRequest == null)
+		{
+			status = WebExceptionStatus.UnknownError;
+			return null;
+		}
 		try
 		{
 			string str = null;
@@ -346,6 +359,11 @@ public class HttpUtility
 		if (isWebGL())
 		{
 			logError("无法在WebGL平台使用C#的Http请求函数");
+		}
+		if (webRequest == null)
+		{
+			callback?.Invoke(null, WebExceptionStatus.UnknownError, HttpStatusCode.OK);
+			return;
 		}
 		WebExceptionStatus status;
 		HttpStatusCode statusCode = HttpStatusCode.OK;

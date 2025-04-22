@@ -5,7 +5,7 @@ using static MathUtility;
 using static StringUtility;
 using static FrameDefine;
 using static UnityUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 对UGUI的RawImage的封装
 public class myUGUIRawImage : myUGUIObject, IShaderWindow

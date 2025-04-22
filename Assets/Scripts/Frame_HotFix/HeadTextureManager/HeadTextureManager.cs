@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using static UnityUtility;
+using static FrameBaseUtility;
 
 // 微信头像下载管理器,以后可以扩展,不仅仅是用于下载微信头像
 public class HeadTextureManager : FrameSystem

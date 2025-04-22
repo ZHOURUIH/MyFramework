@@ -6,7 +6,7 @@ using static FrameBaseHotFix;
 using static UnityUtility;
 using static BinaryUtility;
 using static FrameUtility;
-using static CSharpUtility;
+using static FrameBaseUtility;
 using static HttpUtility;
 
 // 表示一个与Http服务器连接

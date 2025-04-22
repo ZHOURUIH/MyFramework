@@ -1,4 +1,4 @@
-﻿using static FrameEditorUtility;
+﻿using static FrameBaseUtility;
 
 public class ScreenOrientationSystem : FrameSystem
 {

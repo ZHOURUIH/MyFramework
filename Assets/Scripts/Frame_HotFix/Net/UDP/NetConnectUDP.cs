@@ -8,7 +8,7 @@ using static FrameBaseHotFix;
 using static FrameUtility;
 using static BinaryUtility;
 using static FrameDefine;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 当前程序作为客户端时使用,表示一个与UDP服务器的连接
 public abstract class NetConnectUDP : NetConnect

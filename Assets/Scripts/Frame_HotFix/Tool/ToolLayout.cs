@@ -76,6 +76,10 @@ public class LT
 	{
 		CmdLayoutManagerLoad.execute(typeof(T), 0, LAYOUT_ORDER.AUTO, true, false, true, callback);
 	}
+	public static void LOAD_ASYNC_SHOW<T>() where T : LayoutScript
+	{
+		CmdLayoutManagerLoad.execute(typeof(T), 0, LAYOUT_ORDER.AUTO, true, false, true, null);
+	}
 	public static void LOAD_ASYNC_HIDE(Type type, int renderOrder, LAYOUT_ORDER orderType, GameLayoutCallback callback)
 	{
 		CmdLayoutManagerLoad.execute(type, renderOrder, orderType, false, false, true, callback);

@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using static FrameBaseDefine;
+using static FrameBaseUtility;
 using static StringUtility;
-using static UnityUtility;
-using static FrameDefine;
-using static FrameEditorUtility;
 
 // 用于加载Android平台下的资源
 public class AndroidAssetLoader : FrameSystem
@@ -15,18 +14,18 @@ public class AndroidAssetLoader : FrameSystem
 		{
 			if (classPath.isEmpty())
 			{
-				logError("initJava failed! classPath not valid");
+				logErrorBase("initJava failed! classPath not valid");
 				return;
 			}
 			var assetManager = AndroidPluginManager.getMainActivity().Call<AndroidJavaObject>("getAssets");
 			if (assetManager == null)
 			{
-				logError("assetManager is null");
+				logErrorBase("assetManager is null");
 			}
 			mAssetLoader = new AndroidJavaClass(classPath).CallStatic<AndroidJavaObject>("getAssetLoader", assetManager);
 			if (mAssetLoader == null)
 			{
-				logError("mAssetLoader is null");
+				logErrorBase("mAssetLoader is null");
 			}
 		}
 	}
@@ -215,10 +214,10 @@ public class AndroidAssetLoader : FrameSystem
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected static void checkPersistenDataPath(string path)
 	{
-		addEndSlash(ref path);
+		path = path.addEndSlash();
 		if (!path.startWith(F_PERSISTENT_DATA_PATH))
 		{
-			logError("path must start with " + F_PERSISTENT_DATA_PATH + ", path : " + path);
+			logErrorBase("path must start with " + F_PERSISTENT_DATA_PATH + ", path : " + path);
 		}
 	}
 	protected static int getListSize(AndroidJavaObject javaListObject)

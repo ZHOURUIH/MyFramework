@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.Events;
 using static StringUtility;
 using static FrameUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 对UGUI的InputField的封装
 public class myUGUIInputField : myUGUIImageSimple, IInputField

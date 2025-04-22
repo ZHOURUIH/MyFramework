@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
-using static UnityUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 用于管理所有跟Java交互的对象
 public class AndroidPluginManager : FrameSystem
@@ -19,16 +18,9 @@ public class AndroidPluginManager : FrameSystem
 			mApplication = mMainActivity.Call<AndroidJavaObject>("getApplication");
 			if (mMainActivity == null)
 			{
-				logError("mMainActivity is null");
+				logErrorBase("mMainActivity is null");
 			}
 		}
-	}
-	public static int getKeyboardHeight()
-	{
-		var view = mMainActivity.Get<AndroidJavaObject>("mUnityPlayer").Call<AndroidJavaObject>("getView");
-		AndroidJavaObject rect = new("android.graphics.Rect");
-		view.Call("getWindowVisibleDisplayFrame", rect);
-		return (int)getScreenSize().y - rect.Call<int>("height");
 	}
 	public override void destroy()
 	{
@@ -40,8 +32,6 @@ public class AndroidPluginManager : FrameSystem
 		mApplication = null;
 		base.destroy();
 	}
-	public static AndroidJavaClass getUnityPlayer() { return mUnityPlayer; }
 	public static AndroidJavaObject getMainActivity() { return mMainActivity; }
-	public static AndroidJavaObject getApplication() { return mApplication; }
 	public static string getPackageName() { return mAndroidPackageName; }
 }

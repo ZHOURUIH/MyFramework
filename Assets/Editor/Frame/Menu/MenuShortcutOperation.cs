@@ -9,10 +9,11 @@ using UObject = UnityEngine.Object;
 using static WidgetUtility;
 using static StringUtility;
 using static MathUtility;
+using static FrameBaseUtility;
 using static EditorCommonUtility;
 using static FileUtility;
 using static FrameDefine;
-using static FrameDefineBase;
+using static FrameBaseDefine;
 
 // 添加InitializeOnLoad使每次重新编译后都执行MenuShortcutOperation构造
 [InitializeOnLoad]
@@ -168,10 +169,7 @@ public class MenuShortcutOperation
 			}
 
 			// 创建角色控制器并设置参数
-			if (!item.TryGetComponent<CharacterController>(out var controller))
-			{
-				controller = item.AddComponent<CharacterController>();
-			}
+			var controller = getOrAddComponent<CharacterController>(item);
 
 			// 生成的高度不能小于半径的2倍,且不能大于4
 			controller.height = bounds.size.y;
@@ -222,13 +220,9 @@ public class MenuShortcutOperation
 				material = image.material;
 				UObject.DestroyImmediate(image);
 			}
-			if (go.TryGetComponent<CanvasRenderer>(out var canvasRenderer))
+			destroyComponent<CanvasRenderer>(go);
+			if (getOrAddComponent(go, out SpriteRenderer spriteRenderer))
 			{
-				UObject.DestroyImmediate(canvasRenderer);
-			}
-			if (!go.TryGetComponent<SpriteRenderer>(out _))
-			{
-				var spriteRenderer = go.AddComponent<SpriteRenderer>();
 				spriteRenderer.sprite = sprite;
 				spriteRenderer.material = material;
 			}
@@ -312,7 +306,7 @@ public class MenuShortcutOperation
 		}
 	}
 #endif
-//------------------------------------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------
 #if USE_TMP
 	protected static void doTextReplaceToTMPro(Text comText)
 	{
@@ -330,10 +324,7 @@ public class MenuShortcutOperation
 			Debug.LogWarning("需要添加字体描边,颜色:" + colorToRGBAString(outlineColor) + ", 宽度:" + comOutline.effectDistance + ", 文本:" + text, go);
 			UObject.DestroyImmediate(comOutline);
 		}
-		if (!go.TryGetComponent(out TextMeshProUGUI comTMP))
-		{
-			comTMP = go.AddComponent<TextMeshProUGUI>();
-		}
+		var comTMP = getOrAddComponent<TextMeshProUGUI>(go);
 		comTMP.text = text;
 		comTMP.font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(replaceSuffix(fontPath, ".asset"));
 		comTMP.fontSize = fontSize;

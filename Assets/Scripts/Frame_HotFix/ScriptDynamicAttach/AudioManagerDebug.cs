@@ -9,7 +9,7 @@ public class AudioManagerDebug : MonoBehaviour
 	public List<string> LoadedAudioList = new();	// 已加载音频列表
 	public void Update()
 	{
-		if (mGameFrameworkHotFix == null || !mGameFrameworkHotFix.mParam.mEnableScriptDebug)
+		if (GameEntry.getInstance() == null || !GameEntry.getInstance().mFramworkParam.mEnableScriptDebug)
 		{
 			return;
 		}

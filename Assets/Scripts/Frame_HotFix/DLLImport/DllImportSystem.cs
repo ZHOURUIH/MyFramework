@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using static UnityUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // Dll导入系统
 // Dll导入可以使用两种方式

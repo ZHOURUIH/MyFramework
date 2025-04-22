@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using static FrameDefine;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 using static UnityUtility;
 using static FileUtility;
 

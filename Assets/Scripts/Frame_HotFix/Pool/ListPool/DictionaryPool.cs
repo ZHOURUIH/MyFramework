@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using static UnityUtility;
 using static CSharpUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 仅能在主线程中使用的字典列表池
 public class DictionaryPool : FrameSystem
@@ -62,6 +62,7 @@ public class DictionaryPool : FrameSystem
 			return null;
 		}
 
+		bool isNew = false;
 		ICollection list;
 		DictionaryType type = new(keyType, valueType);
 		// 先从未使用的列表中查找是否有可用的对象
@@ -73,9 +74,17 @@ public class DictionaryPool : FrameSystem
 		else
 		{
 			list = createInstance<ICollection>(listType);
-			if (isEditor())
+			isNew = true;
+		}
+		if (isEditor())
+		{
+			// 标记为已使用
+			addInuse(list, type, onlyOnce);
+			mObjectStack.Add(list, stackTrace);
+
+			if (isNew)
 			{
-				int totalCount = 1;
+				int totalCount = 0;
 				totalCount += mInusedList.get(type)?.Count ?? 0;
 				totalCount += mPersistentInuseList.get(type)?.Count ?? 0;
 				if (totalCount % 1000 == 0)
@@ -83,12 +92,6 @@ public class DictionaryPool : FrameSystem
 					Debug.Log("创建的Dictionary总数量已经达到:" + totalCount + "个,key:" + keyType + ",value:" + valueType);
 				}
 			}
-		}
-		if (isEditor())
-		{
-			// 标记为已使用
-			addInuse(list, type, onlyOnce);
-			mObjectStack.Add(list, stackTrace);
 		}
 		return list;
 	}

@@ -3,7 +3,7 @@ using static UnityUtility;
 using static FrameUtility;
 using static MathUtility;
 using static FrameBaseHotFix;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 public class AT
 {
@@ -209,7 +209,7 @@ public class AT
 			logError("sound name must be valid, use void MUSIC(bool unloadCurMusic) to stop music");
 			return;
 		}
-		playInternal(mAudioManager.getMusicHelper(), soundName, volume * mCOMGameSettingAudio.getMusicVolume(), loop);
+		playInternal(mAudioManager.getMusicHelper(), soundName, volume * mAudioManager.getMusicVolume(), loop);
 	}
 	// 播放音频
 	protected static AudioHelper SOUND_3D_Internal(Vector3 pos, int sound, string soundName, float volume, bool loop)
@@ -231,7 +231,7 @@ public class AT
 		AudioHelper helper = mAudioManager.getAudioHelper(0.0f);
 		helper.setSpatialBlend(1.0f);
 		helper.setPosition(pos);
-		playInternal(helper, soundName, volume * mCOMGameSettingAudio.getSoundVolume(), loop);
+		playInternal(helper, soundName, volume * mAudioManager.getSoundVolume(), loop);
 		return helper;
 	}
 	protected static AudioHelper SOUND_2D_Internal(int sound, string soundName, float volume, bool loop)
@@ -252,7 +252,7 @@ public class AT
 
 		AudioHelper helper = mAudioManager.getAudioHelper(0.0f);
 		helper.setSpatialBlend(0.0f);
-		playInternal(helper, soundName, volume * mCOMGameSettingAudio.getSoundVolume(), loop);
+		playInternal(helper, soundName, volume * mAudioManager.getSoundVolume(), loop);
 		return helper;
 	}
 	protected static void playInternal(AudioHelper helper, string soundName, float volume, bool loop)

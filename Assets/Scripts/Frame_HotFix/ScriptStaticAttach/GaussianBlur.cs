@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 设置在编辑模式下也执行该脚本
 // 用于实现模糊的后处理脚本,挂在摄像机上的

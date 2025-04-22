@@ -49,6 +49,10 @@ public class myUGUIText : myUGUIObject, IUGUIText
 	}
 	public void setText(string text, bool preferredHeight)
 	{
+		if (mText == null)
+		{
+			return;
+		}
 		if(text == null)
 		{
 			mText.text = EMPTY;
@@ -62,7 +66,7 @@ public class myUGUIText : myUGUIObject, IUGUIText
 			applyPreferredHeight();
 		}
 	}
-	public void setText(int value)
+	public void setTextInt(int value)
 	{
 		setText(IToS(value));
 	}

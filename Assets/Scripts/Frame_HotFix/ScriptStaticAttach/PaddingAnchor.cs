@@ -1,10 +1,10 @@
 ﻿using System;
 using UnityEngine;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 using static UnityUtility;
 using static WidgetUtility;
 using static MathUtility;
-using static FrameDefineBase;
+using static FrameBaseDefine;
 using static StringUtility;
 
 // 该组件所在的物体不能有旋转,否则会计算错误

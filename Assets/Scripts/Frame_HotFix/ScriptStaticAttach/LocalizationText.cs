@@ -1,10 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System;
 using System.Collections.Generic;
 using static MathUtility;
 using static FrameBaseHotFix;
-using static FrameDefine;
+using static FrameBaseDefine;
 
 // 热更代码使用
 // 用于挂到静态的文本上,也就是只是在界面显示,不会在代码中访问和操作的文本

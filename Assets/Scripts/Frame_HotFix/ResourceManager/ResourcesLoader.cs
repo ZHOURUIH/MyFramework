@@ -7,8 +7,7 @@ using static FileUtility;
 using static UnityUtility;
 using static FrameUtility;
 using static StringUtility;
-using static FrameBaseHotFix;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 从Resources中加载资源
 public class ResourcesLoader
@@ -200,7 +199,7 @@ public class ResourcesLoader
 				doneCallback?.Invoke(asset, assets, bytes, loadPath);
 				op.setFinish();
 			}, name);
-			mGameFrameworkHotFix.StartCoroutine(loadResourceCoroutine<T>(info));
+			GameEntry.getInstance().StartCoroutine(loadResourceCoroutine<T>(info));
 		}
 		return op;
 	}
@@ -226,6 +225,7 @@ public class ResourcesLoader
 		else
 		{
 			UN_CLASS(ref info);
+			resList.Remove(name);
 		}
 	}
 	protected IEnumerator loadResourceCoroutine<T>(ResourceLoadInfo info) where T : UObject

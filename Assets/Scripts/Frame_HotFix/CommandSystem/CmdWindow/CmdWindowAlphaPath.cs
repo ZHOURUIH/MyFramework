@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using static UnityUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 以指定的路径渐变窗口透明度
 public class CmdWindowAlphaPath

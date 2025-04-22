@@ -2,7 +2,7 @@
 using static UnityUtility;
 using static CSharpUtility;
 using static MathUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 负责窗口对象池,UsedList是有序的
 public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBase, IRecycleable

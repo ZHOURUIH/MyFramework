@@ -20,10 +20,14 @@ public class ObsSystem
 	protected static string mBucketName;
 	protected static string mAccessKey;
 	protected static string mSecureKey;
-	public static void setURL(string url) { mURL = url; }
-	public static void setBucketName(string name) { mBucketName = name; }
-	public static void setAccessKey(string key) { mAccessKey = key; }
-	public static void settSecureKey(string key) { mSecureKey = key; }
+	public static void setURLAndKeys(string url, string bucketName, string accessKey, string secureKey)
+	{
+		mURL = url;
+		mBucketName = bucketName;
+		mAccessKey = accessKey;
+		mSecureKey = secureKey;
+	}
+	public static string getURL() { return mURL; }
 	// 同步下载文件,remotePath是上传到服务器后存储的相对路径,带后缀
 	public static byte[] downloadBytes(string remotePath)
 	{
@@ -31,7 +35,7 @@ public class ObsSystem
 		{
 			return null;
 		}
-		return downloadFile(mURL + "/" + remotePath);
+		return downloadFile(mURL + remotePath);
 	}
 	// 同步下载文件,remotePath是上传到服务器后存储的相对路径,带后缀
 	public static string downloadTxt(string remotePath)
@@ -40,7 +44,7 @@ public class ObsSystem
 		{
 			return EMPTY;
 		}
-		return bytesToString(downloadFile(mURL + "/" + remotePath)) ?? EMPTY;
+		return bytesToString(downloadFile(mURL + remotePath)) ?? EMPTY;
 	}
 	// 异步下载文件,remotePath是上传到服务器后存储的相对路径,带后缀
 	public static void downloadBytes(string remotePath, BytesIntCallback callback)
@@ -50,7 +54,7 @@ public class ObsSystem
 			callback?.Invoke(null, 0);
 			return;
 		}
-		ResourceManager.loadAssetsFromUrl(mURL + "/" + remotePath, (byte[] bytes) => { callback?.Invoke(bytes, bytes.count()); });
+		ResourceManager.loadAssetsFromUrl(mURL + remotePath, (byte[] bytes) => { callback?.Invoke(bytes, bytes.count()); });
 	}
 	// 异步下载文件,字符串格式,remotePath是上传到服务器后存储的相对路径,带后缀
 	public static IEnumerator downloadTxtWaiting(string remotePath, StringIntCallback callback)
@@ -60,7 +64,7 @@ public class ObsSystem
 			callback?.Invoke(null, 0);
 			return null;
 		}
-		return ResourceManager.loadAssetsFromUrlWaiting(mURL + "/" + remotePath, (byte[] bytes) =>
+		return ResourceManager.loadAssetsFromUrlWaiting(mURL + remotePath, (byte[] bytes) =>
 		{
 			callback?.Invoke(bytesToString(bytes) ?? EMPTY, bytes.count());
 		});
@@ -73,7 +77,7 @@ public class ObsSystem
 			callback?.Invoke(null, 0);
 			return null;
 		}
-		return ResourceManager.loadAssetsFromUrlWaiting(mURL + "/" + remotePath, (byte[] bytes) =>
+		return ResourceManager.loadAssetsFromUrlWaiting(mURL + remotePath, (byte[] bytes) =>
 		{
 			callback?.Invoke(bytes, bytes.count());
 		});
@@ -86,7 +90,7 @@ public class ObsSystem
 			callback?.Invoke(null, 0);
 			return;
 		}
-		ResourceManager.loadAssetsFromUrl(mURL + "/" + remotePath, (byte[] bytes) =>
+		ResourceManager.loadAssetsFromUrl(mURL + remotePath, (byte[] bytes) =>
 		{
 			callback?.Invoke(bytesToString(bytes) ?? EMPTY, bytes.count());
 		});
@@ -127,7 +131,7 @@ public class ObsSystem
 			{ "Expires", expires },
 			{ "Signature", signature }
 		};
-		return httpDelete(mURL + "/" + path, out _, out _, paramList, null, contentType) != null;
+		return httpDelete(mURL + path, out _, out _, paramList, null, contentType) != null;
 	}
 	public static Dictionary<string, GameFileInfo> getFileList(string path)
 	{
@@ -143,6 +147,16 @@ public class ObsSystem
 		}
 		fileMap.Clear();
 		using var a = new ListScope<GameFileInfo>(out var fileList);
+		getFileListInternal(path, fileList);
+		foreach (GameFileInfo info in fileList)
+		{
+			info.mFileName = info.mFileName.removeStartString(path);
+			fileMap.Add(info.mFileName, info);
+		}
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	public static void getFileListInternal(string path, List<GameFileInfo> fileList)
+	{
 		using var b = new DicScope<string, string>(out var paramList);
 		string marker = null;
 		string str;
@@ -160,15 +174,7 @@ public class ObsSystem
 				return;
 			}
 		} while (!parseFileList(str, fileList, out marker));
-		int count = fileList.Count;
-		for (int i = 0; i < count; ++i)
-		{
-			GameFileInfo info = fileList[i];
-			info.mFileName = info.mFileName.removeStartString(path);
-			fileMap.Add(info.mFileName, info);
-		}
 	}
-	//------------------------------------------------------------------------------------------------------------------------------
 	protected static List<FormItem> generateUploadFormList(string fullPath, byte[] fileBuffer, string savePath)
 	{
 		if (fileBuffer == null)

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using static UnityUtility;
 using static CSharpUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 线程安全的字典列表池,但是效率较低
 // 多线程的对象池无法判断临时对象有没有正常回收,因为子线程的帧与主线程不同步
@@ -44,6 +44,7 @@ public class DictionaryPoolThread : FrameSystem
 		{
 			try
 			{
+				bool isNew = false;
 				DictionaryType type = new(keyType, valueType);
 				// 先从未使用的列表中查找是否有可用的对象
 				if (mUnusedList.TryGetValue(type, out var valueList) && valueList.Count > 0)
@@ -54,20 +55,21 @@ public class DictionaryPoolThread : FrameSystem
 				else
 				{
 					list = createInstance<ICollection>(listType);
-					if (isEditor())
-					{
-						int totalCount = 1;
-						totalCount += mInusedList.get(type)?.Count ?? 0;
-						if (totalCount % 1000 == 0)
-						{
-							Debug.Log("创建的Dictionary总数量已经达到:" + totalCount + "个,key:" + keyType + ",value:" + valueType);
-						}
-					}
+					isNew = true;
 				}
 				if (isEditor())
 				{
 					// 标记为已使用
 					addInuse(list, type);
+
+					if (isNew)
+					{
+						int totalCount = mInusedList.get(type)?.Count ?? 0;
+						if (totalCount % 1000 == 0)
+						{
+							Debug.Log("创建的Dictionary总数量已经达到:" + totalCount + "个,key:" + keyType + ",value:" + valueType);
+						}
+					}
 				}
 			}
 			catch (Exception e)

@@ -2,7 +2,7 @@
 using static UnityUtility;
 using static FrameUtility;
 using static FrameBaseHotFix;
-using static CSharpUtility;
+using static FrameBaseUtility;
 
 // 在主线程中使用的消息包工厂
 public class NetPacketFactory : FrameSystem

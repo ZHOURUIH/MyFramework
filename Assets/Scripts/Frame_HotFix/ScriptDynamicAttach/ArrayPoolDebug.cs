@@ -11,7 +11,7 @@ public class ArrayPoolDebug : MonoBehaviour
 	public List<string> UnuseList = new();					// 未使用的列表对象
 	public void Update()
 	{
-		if (mGameFrameworkHotFix == null || !mGameFrameworkHotFix.mParam.mEnableScriptDebug)
+		if (GameEntry.getInstance() == null || !GameEntry.getInstance().mFramworkParam.mEnableScriptDebug)
 		{
 			return;
 		}

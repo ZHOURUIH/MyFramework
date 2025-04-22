@@ -18,10 +18,6 @@ public struct ClassScope<T> : IDisposable where T : ClassObject, new()
 	}
 	public void Dispose()
 	{
-		if (mValue == null)
-		{
-			return;
-		}
 		mClassPool?.destroyClass(ref mValue);
 	}
 }

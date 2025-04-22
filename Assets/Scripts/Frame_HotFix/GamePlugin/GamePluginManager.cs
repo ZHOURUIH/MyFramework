@@ -5,7 +5,7 @@ using static UnityUtility;
 using static FileUtility;
 using static StringUtility;
 using static FrameDefine;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 插件后缀为plugin,插件依赖的库在编辑器模式下需要放到Plugins中,打包后放到Managed中
 public class GamePluginManager : FrameSystem

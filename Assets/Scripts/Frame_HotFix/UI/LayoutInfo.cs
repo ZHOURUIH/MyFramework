@@ -8,5 +8,4 @@ public struct LayoutInfo
 	public string mName;				// 布局名字
 	public bool mIsScene;				// 是否为场景布局,场景布局不会挂在UGUIRoot下面
 	public int mRenderOrder;			// 显示顺序
-	public int mDisplayID;				// 显示ID
 }

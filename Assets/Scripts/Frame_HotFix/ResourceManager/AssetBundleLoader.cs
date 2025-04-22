@@ -10,7 +10,8 @@ using static FrameBaseHotFix;
 using static StringUtility;
 using static BinaryUtility;
 using static FrameDefine;
-using static FrameEditorUtility;
+using static FrameBaseDefine;
+using static FrameBaseUtility;
 
 // 从AssetBundle中加载资源
 public class AssetBundleLoader
@@ -35,7 +36,7 @@ public class AssetBundleLoader
 		// 卸载所有已加载的AssetBundle
 		unloadAll();
 		// 加载AssetBundle的配置文件
-		mGameFrameworkHotFix.StartCoroutine(loadStreamingAssetsConfig(callback));
+		GameEntry.getInstance().StartCoroutine(loadStreamingAssetsConfig(callback));
 	}
 	protected IEnumerator loadStreamingAssetsConfig(Action callback)
 	{
@@ -101,7 +102,7 @@ public class AssetBundleLoader
 	{
 		foreach (Coroutine item in mCoroutineList)
 		{
-			mGameFrameworkHotFix.StopCoroutine(item);
+			GameEntry.getInstance().StopCoroutine(item);
 		}
 		mCoroutineList.Clear();
 		mAssetToAssetBundleInfo.Clear();
@@ -335,7 +336,7 @@ public class AssetBundleLoader
 			logError("AssetBundleLoader is not inited!");
 			return;
 		}
-		mCoroutineList.Add(mGameFrameworkHotFix.StartCoroutine(loadAssetBundleCoroutine(bundleInfo)));
+		mCoroutineList.Add(GameEntry.getInstance().StartCoroutine(loadAssetBundleCoroutine(bundleInfo)));
 	}
 	public void requestLoadAsset(AssetBundleInfo bundleInfo, string fileNameWithSuffix)
 	{
@@ -344,7 +345,7 @@ public class AssetBundleLoader
 			logError("AssetBundleLoader is not inited!");
 			return;
 		}
-		mCoroutineList.Add(mGameFrameworkHotFix.StartCoroutine(loadAssetCoroutine(bundleInfo, fileNameWithSuffix)));
+		mCoroutineList.Add(GameEntry.getInstance().StartCoroutine(loadAssetCoroutine(bundleInfo, fileNameWithSuffix)));
 	}
 	public void notifyAssetLoaded(UObject asset, AssetBundleInfo bundle)
 	{
@@ -369,7 +370,7 @@ public class AssetBundleLoader
 			logError("can not find resource : " + fileName + ",请确认文件存在,且带后缀名,且不能使用反斜杠\\," + (fileName.Contains(' ') || fileName.Contains('　') ? "注意此文件名中带有空格" : ""));
 			return;
 		}
-		mCoroutineList.Add(mGameFrameworkHotFix.StartCoroutine(downloadAssetBundleCoroutine(asset.getAssetBundle(), callback)));
+		mCoroutineList.Add(GameEntry.getInstance().StartCoroutine(downloadAssetBundleCoroutine(asset.getAssetBundle(), callback)));
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 下载资源包的协程

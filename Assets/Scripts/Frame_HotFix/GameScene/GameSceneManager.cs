@@ -12,16 +12,16 @@ public class GameSceneManager : FrameSystem
 		mCreateObject = true;
 	}
 	public GameScene getCurScene(){ return mCurScene; }
-	public bool enterScene<T>(Type startProcedure, string intent) where T : GameScene
+	public bool enterScene<T>(Type startProcedure) where T : GameScene
 	{
-		return enterScene(typeof(T), startProcedure, intent);
+		return enterScene(typeof(T), startProcedure);
 	}
-	public bool enterScene(Type type, Type startProcedure, string intent)
+	public bool enterScene(Type type, Type startProcedure)
 	{
 		// 再次进入当前的场景,只是从初始流程开始执行,并不会重新执行进入场景的操作
 		if (mCurScene != null && mCurScene.GetType() == type)
 		{
-			mCurScene.setTempStartProcedure(startProcedure, intent);
+			mCurScene.setTempStartProcedure(startProcedure);
 			mCurScene.enterStartProcedure();
 		}
 		else
@@ -36,7 +36,7 @@ public class GameSceneManager : FrameSystem
 				mCurScene = null;
 			}
 			mCurScene = pScene;
-			mCurScene.setTempStartProcedure(startProcedure, intent);
+			mCurScene.setTempStartProcedure(startProcedure);
 			mCurScene.init();
 		}
 		return true;

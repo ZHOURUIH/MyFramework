@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Text;
+using System.Collections.Generic;
 using UnityEngine;
 using static StringUtility;
 using static MathUtility;
-using System.Collections.Generic;
 
 // 自定已的StringBuilder,用于封装C#自己的StringBuilder,提高其效率
 public class MyStringBuilder : ClassObject

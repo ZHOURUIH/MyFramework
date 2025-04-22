@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 using static FrameUtility;
 using static UnityUtility;
 
@@ -74,6 +74,10 @@ public static class DictionaryExtension
 	public static void setRange<Key, Value>(this IDictionary<Key, Value> map, IDictionary<Key, Value> other)
 	{
 		map.Clear();
+		if (other == null)
+		{
+			return;
+		}
 		foreach (var item in other)
 		{
 			map.Add(item.Key, item.Value);
@@ -81,6 +85,10 @@ public static class DictionaryExtension
 	}
 	public static void addRange<Key, Value>(this IDictionary<Key, Value> map, IDictionary<Key, Value> other)
 	{
+		if (other == null)
+		{
+			return;
+		}
 		foreach (var item in other)
 		{
 			map.Add(item.Key, item.Value);
@@ -180,6 +188,32 @@ public static class DictionaryExtension
 			map.Add(key, value);
 		}
 		return value;
+	}
+	public static void remove<Key, T>(this IDictionary<Key, T> map, Key key0, Key key1)
+	{
+		map.Remove(key0);
+		map.Remove(key1);
+	}
+	public static void remove<Key, T>(this IDictionary<Key, T> map, Key key0, Key key1, Key key2)
+	{
+		map.Remove(key0);
+		map.Remove(key1);
+		map.Remove(key2);
+	}
+	public static void remove<Key, T>(this IDictionary<Key, T> map, Key key0, Key key1, Key key2, Key key3)
+	{
+		map.Remove(key0);
+		map.Remove(key1);
+		map.Remove(key2);
+		map.Remove(key3);
+	}
+	public static void remove<Key, T>(this IDictionary<Key, T> map, Key key0, Key key1, Key key2, Key key3, Key key4)
+	{
+		map.Remove(key0);
+		map.Remove(key1);
+		map.Remove(key2);
+		map.Remove(key3);
+		map.Remove(key4);
 	}
 	public static bool isEmpty<TKey, TValue>(this IDictionary<TKey, TValue> list) { return list == null || list.Count == 0; }
 	public static TValue firstValue<TKey, TValue>(this IDictionary<TKey, TValue> list) { return list.First().Value; }

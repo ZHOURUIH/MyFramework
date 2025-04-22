@@ -14,7 +14,7 @@ public class RedPointCount : RedPoint
 	{
 		addPointUI(point);
 		mPointCountText = text;
-		mPointCountText?.setText(mCount);
+		mPointCountText?.setTextInt(mCount);
 	}
 	public void removePointUI(myUGUIObject point, myUGUIText text)
 	{
@@ -27,7 +27,7 @@ public class RedPointCount : RedPoint
 	public void setCount(int count)
 	{
 		mCount = count;
-		mPointCountText?.setText(mCount);
+		mPointCountText?.setTextInt(mCount);
 		// 数量大于0时肯定会显示红点,为0则不显示
 		setEnable(mCount > 0);
 	}

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using static UnityUtility;
 using static MathUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 以指定的缩放列表缩放物体
 public class CmdTransformableScaleCurve : Command

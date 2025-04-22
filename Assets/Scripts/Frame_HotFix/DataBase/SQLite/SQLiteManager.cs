@@ -5,7 +5,7 @@ using System;
 using static CSharpUtility;
 using static FileUtility;
 using static StringUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // SQLite数据表格管理器
 public class SQLiteManager : FrameSystem
@@ -20,11 +20,16 @@ public class SQLiteManager : FrameSystem
 		{
 			return;
 		}
+		// 如果还没有注册表格,不在执行,没有任何表格加载,而且还会删除已缓存的表格
+		if (mTableNameList.Count == 0)
+		{
+			return;
+		}
 
-		// 加载之前也清理一次,因为可能在退出时由于文件被占用而清理不掉,所以启动时也清一次
-		deleteUselessTempFile();
 		// 资源更新完毕后需要将所有已经加载的表格重新加载一次
 		loadAll();
+		// 加载之前也清理一次,因为可能在退出时由于文件被占用而清理不掉,所以全部加载后也清一次
+		deleteUselessTempFile();
 	}
 	public void loadAll()
 	{

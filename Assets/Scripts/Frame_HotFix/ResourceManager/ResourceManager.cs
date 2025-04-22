@@ -9,8 +9,7 @@ using TTSDK;
 using UObject = UnityEngine.Object;
 using static UnityUtility;
 using static StringUtility;
-using static FrameBaseHotFix;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 资源管理器,管理所有资源的加载
 public class ResourceManager : FrameSystem
@@ -29,7 +28,7 @@ public class ResourceManager : FrameSystem
 	public override void init()
 	{
 		base.init();
-		mLoadSource = isEditor() ? mGameFrameworkHotFix.mParam.mLoadSource : LOAD_SOURCE.ASSET_BUNDLE;
+		mLoadSource = isEditor() ? GameEntry.getInstance().mFramworkParam.mLoadSource : LOAD_SOURCE.ASSET_BUNDLE;
 		if (isEditor())
 		{
 			mObject.AddComponent<ResourcesManagerDebug>();
@@ -402,25 +401,25 @@ public class ResourceManager : FrameSystem
 	// 根据一个URL加载资源,一般都是一个网络资源
 	public static void loadAssetsFromUrl<T>(string url, AssetLoadDoneCallback callback, DownloadCallback downloadingCallback = null) where T : UObject
 	{
-		mGameFrameworkHotFix.StartCoroutine(loadAssetsUrl(url, typeof(T), callback, downloadingCallback));
+		GameEntry.getInstance().StartCoroutine(loadAssetsUrl(url, typeof(T), callback, downloadingCallback));
 	}
 	public static void loadAssetsFromUrl<T>(string url, BytesCallback callback, DownloadCallback downloadingCallback = null) where T : UObject
 	{
-		mGameFrameworkHotFix.StartCoroutine(loadAssetsUrl(url, typeof(T), (UObject _, UObject[] _, byte[] bytes, string _) =>
+		GameEntry.getInstance().StartCoroutine(loadAssetsUrl(url, typeof(T), (UObject _, UObject[] _, byte[] bytes, string _) =>
 		{
 			callback?.Invoke(bytes);
 		}, downloadingCallback));
 	}
 	public static void loadAssetsFromUrl<T>(string url, Action<T> callback, DownloadCallback downloadingCallback = null) where T : UObject
 	{
-		mGameFrameworkHotFix.StartCoroutine(loadAssetsUrl(url, typeof(T), (UObject obj, UObject[] _, byte[] _, string _) =>
+		GameEntry.getInstance().StartCoroutine(loadAssetsUrl(url, typeof(T), (UObject obj, UObject[] _, byte[] _, string _) =>
 		{
 			callback?.Invoke(obj as T);
 		}, downloadingCallback));
 	}
 	public static void loadAssetsFromUrl<T>(string url, Action<T, string> callback, DownloadCallback downloadingCallback = null) where T : UObject
 	{
-		mGameFrameworkHotFix.StartCoroutine(loadAssetsUrl(url, typeof(T), (UObject obj, UObject[] _, byte[] _, string loadPath) =>
+		GameEntry.getInstance().StartCoroutine(loadAssetsUrl(url, typeof(T), (UObject obj, UObject[] _, byte[] _, string loadPath) =>
 		{
 			callback?.Invoke(obj as T, loadPath);
 		}, downloadingCallback));
@@ -428,18 +427,18 @@ public class ResourceManager : FrameSystem
 	// 根据一个URL加载资源,一般都是一个网络资源
 	public static void loadAssetsFromUrl(string url, AssetLoadDoneCallback callback, DownloadCallback downloadingCallback = null)
 	{
-		mGameFrameworkHotFix.StartCoroutine(loadAssetsUrl(url, null, callback, downloadingCallback));
+		GameEntry.getInstance().StartCoroutine(loadAssetsUrl(url, null, callback, downloadingCallback));
 	}
 	public static void loadAssetsFromUrl(string url, BytesCallback callback, DownloadCallback downloadingCallback = null)
 	{
-		mGameFrameworkHotFix.StartCoroutine(loadAssetsUrl(url, null, (UObject _, UObject[] _, byte[] bytes, string _) =>
+		GameEntry.getInstance().StartCoroutine(loadAssetsUrl(url, null, (UObject _, UObject[] _, byte[] bytes, string _) =>
 		{
 			callback?.Invoke(bytes);
 		}, downloadingCallback));
 	}
 	public static void loadAssetsFromUrl(string url, BytesStringCallback callback, DownloadCallback downloadingCallback = null)
 	{
-		mGameFrameworkHotFix.StartCoroutine(loadAssetsUrl(url, null, (UObject _, UObject[] _, byte[] bytes, string loadPath) =>
+		GameEntry.getInstance().StartCoroutine(loadAssetsUrl(url, null, (UObject _, UObject[] _, byte[] bytes, string loadPath) =>
 		{
 			callback?.Invoke(bytes, loadPath);
 		}, downloadingCallback));

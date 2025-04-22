@@ -19,6 +19,7 @@ public class FrameBaseHotFix
 	public static ResourceManager mResourceManager;
 	public static PrefabPoolManager mPrefabPoolManager;
 	public static InputSystem mInputSystem;
+	public static KeyMappingSystem mKeyMappingSystem;
 	public static SceneSystem mSceneSystem;
 	public static GamePluginManager mGamePluginManager;
 	public static ClassPool mClassPool;
@@ -50,7 +51,6 @@ public class FrameBaseHotFix
 	public static GameObjectPool mGameObjectPool;
 	public static ExcelManager mExcelManager;
 	public static RedPointSystem mRedPointSystem;
-	public static GameSetting mGameSetting;
 	public static AssetVersionSystem mAssetVersionSystem;
 	public static GlobalKeyProcess mGlobalKeyProcess;
 	public static LocalizationManager mLocalizationManager;
@@ -62,6 +62,4 @@ public class FrameBaseHotFix
 	public static UndoManager mUndoManager;
 	public static AndroidPurchasing mAndroidPurchasing;
 	public static PurchasingSystem mPurchasingSystem;
-	// 一些方便获取的组件对象
-	public static COMGameSettingAudio mCOMGameSettingAudio;
 }

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
-using static FrameEditorUtility;
-using static FrameDefineBase;
+using static FrameBaseUtility;
+using static FrameBaseDefine;
 using static UnityUtility;
 
 // 缩放自适应组件

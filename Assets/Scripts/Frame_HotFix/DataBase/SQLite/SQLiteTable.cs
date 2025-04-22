@@ -11,8 +11,8 @@ using static CSharpUtility;
 using static BinaryUtility;
 using static FrameBaseHotFix;
 using static FrameDefine;
-using static FrameDefineBase;
-using static FrameEditorUtility;
+using static FrameBaseDefine;
+using static FrameBaseUtility;
 
 // 表示一个SQLite表格
 public class SQLiteTable : ClassObject
@@ -45,8 +45,6 @@ public class SQLiteTable : ClassObject
 		mLoaded = true;
 		try
 		{
-			// 解密文件
-			byte[] encryptKey = stringToBytes(generateFileMD5(stringToBytes("ASLD" + mTableName)).ToUpper() + "23y35y9832635872349862365274732047chsudhgkshgwshfoweh238c42384fync9388v45982nc3484");
 			TextAsset textAsset = null;
 			if (mResourceManager != null)
 			{
@@ -61,8 +59,9 @@ public class SQLiteTable : ClassObject
 				textAsset = loadAssetAtPath<TextAsset>(P_SQLITE_PATH + mTableName + ".bytes");
 			}
 
+			// 解密文件,只解密128分之1的数据,减少耗时
+			byte[] encryptKey = stringToBytes(generateFileMD5(stringToBytes("ASLD" + mTableName)).ToUpper() + "23y35y9832635872349862365274732047chsudhgkshgwshfoweh238c42384fync9388v45982nc3484");
 			byte[] fileBuffer = textAsset.bytes;
-			// 只解密128分之1的数据,减少耗时
 			int fileSize = fileBuffer.Length;
 			int index = 0;
 			for (int i = 0; i < fileSize >> 7; ++i)

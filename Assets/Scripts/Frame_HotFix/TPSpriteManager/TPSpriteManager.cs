@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using static FrameUtility;
 using static UnityUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 用于UGUI的multi sprite管理
 public class TPSpriteManager : FrameSystem

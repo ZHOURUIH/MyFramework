@@ -1,5 +1,6 @@
 ﻿using static StringUtility;
 using static CSharpUtility;
+using static FrameBaseUtility;
 
 public static class StringExtension
 {
@@ -609,7 +610,7 @@ public static class StringExtension
 		{
 			if (len - i < subLen)
 			{
-				continue;
+				break;
 			}
 			int j = 0;
 			// 大小写敏感
@@ -617,7 +618,7 @@ public static class StringExtension
 			{
 				for (; j < subLen; ++j)
 				{
-					if (i + j >= 0 && i + j < len && res[i + j] != pattern[j])
+					if (res[i + j] != pattern[j])
 					{
 						break;
 					}
@@ -628,7 +629,7 @@ public static class StringExtension
 			{
 				for (; j < subLen; ++j)
 				{
-					if (i + j >= 0 && i + j < len && toLower(res[i + j]) != toLower(pattern[j]))
+					if (toLower(res[i + j]) != toLower(pattern[j]))
 					{
 						break;
 					}
@@ -776,5 +777,13 @@ public static class StringExtension
 			return null;
 		}
 		return str.Replace('/', '\\');
+	}
+	public static string addEndSlash(this string path)
+	{
+		if (!path.isEmpty() && path[^1] != '/')
+		{
+			path += "/";
+		}
+		return path;
 	}
 }

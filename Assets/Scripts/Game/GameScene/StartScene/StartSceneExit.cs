@@ -2,10 +2,9 @@
 
 public class StartSceneExit : SceneProcedure
 {
-	protected override void onInit(SceneProcedure lastProcedure, string intent){}
-	protected override void onExit(SceneProcedure nextProcedure)
+	public override void exit()
 	{
-		// 一般在场景的Exit流程中,卸载该场景的所有布局,确保没有资源遗留
-		mLayoutManager.unloadAllPartLayout();
+		// 一般在资源更新结束以后都会卸载所有在res中的资源,虽然很可能在这之前已经调用Game层的destroy了
+		mLayoutManager.unloadAllLayout();
 	}
 }

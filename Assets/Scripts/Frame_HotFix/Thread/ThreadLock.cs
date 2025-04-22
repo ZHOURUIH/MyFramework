@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using static UnityUtility;
 using static CSharpUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 public class ThreadLock
 {

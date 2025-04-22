@@ -3,13 +3,12 @@ public class StartScene : GameScene
 {
 	public override void assignStartExitProcedure()
 	{
-		mStartProcedure = typeof(StartSceneLoading);
+		mStartProcedure = typeof(StartSceneDemo);
 		mExitProcedure = typeof(StartSceneExit);
 	}
 	public override void createSceneProcedure()
 	{
-		addProcedure(typeof(StartSceneLoading));
-		addProcedure(typeof(StartSceneDemo));
-		addProcedure(typeof(StartSceneExit));
+		addProcedure<StartSceneDemo>();
+		addProcedure<StartSceneExit>();
 	}
 }

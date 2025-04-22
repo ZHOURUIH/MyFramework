@@ -12,8 +12,11 @@ using static StringUtility;
 using static MathUtility;
 using static EditorCommonUtility;
 using static FrameDefine;
+using static FrameBaseDefine;
 using static UnityUtility;
 using static EditorFileUtility;
+using static FrameBaseUtility;
+using System.Reflection;
 
 public class MenuCheckResources
 {
@@ -991,9 +994,8 @@ public class MenuCheckResources
 			}
 			foreach (Image image in prefabObj.GetComponentsInChildren<Image>(true))
 			{
-				if (!image.transform.TryGetComponent<ImageAtlasPath>(out _))
+				if (getOrAddComponent(image.gameObject, out ImageAtlasPath com))
 				{
-					image.gameObject.AddComponent<ImageAtlasPath>();
 					Debug.Log("已添加缺失的ImageAtlasPath,window:" + image.name + ", prefab:" + fileList[i], prefabObj);
 				}
 			}
@@ -1199,10 +1201,80 @@ public class MenuCheckResources
 		AssetDatabase.Refresh();
 		Debug.Log("完成检查");
 	}
+	[MenuItem("检查资源/修复图集中图片的ID", false, 131)]
+	public static void repairSpriteID()
+	{
+		string path = AssetDatabase.GetAssetPath(Selection.activeObject);
+		ModifyTexturePacker(path);
+	}
+	public class InternalSpriteInfo
+	{
+		public long InternalID;
+		public string SpriteID;
+	}
+	public static void ModifyTexturePacker(string assetPath)
+	{
+		Dictionary<string, InternalSpriteInfo> keyValuePairs = new();
+		BindingFlags bindingFlags = BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DeclaredOnly;
+		int persistentTypeID = GetPersistentTypeID();
+		MethodInfo makeMethod = typeof(AssetImporter).GetMethod("MakeLocalFileIDWithHash", bindingFlags);
+		MethodInfo spriteIdGenerateMethod = typeof(GUID).GetMethod("CreateGUIDFromSInt64", bindingFlags);
+		SerializedObject serializedObject = new(AssetImporter.GetAtPath(assetPath));
+		SerializedProperty sprites = serializedObject.FindProperty("m_SpriteSheet.m_Sprites");
+		if (sprites.isArray)
+		{
+			int arraySize = sprites.arraySize;
+			for (int i = 0; i < arraySize; i++)
+			{
+				SerializedProperty sprite = sprites.GetArrayElementAtIndex(i);
+				SerializedProperty spriteName = sprite.FindPropertyRelative("m_Name");
+				SerializedProperty spriteId = sprite.FindPropertyRelative("m_SpriteID");
+				SerializedProperty internalId = sprite.FindPropertyRelative("m_InternalID");
+				if (spriteId.stringValue.Equals("00000000000000000800000000000000"))
+				{
+					// internalId是唯一的,重复调用是相同的，不同图集下同名sprite猜测应该会得到同一个值
+					long newIntarnalId = (long)makeMethod?.Invoke(null, new object[] { persistentTypeID, spriteName.stringValue, 0 });
+					GUID obj = (GUID)spriteIdGenerateMethod?.Invoke(null, new object[] { newIntarnalId });
+					internalId.longValue = newIntarnalId;
+					spriteId.stringValue = obj.ToString();
+					keyValuePairs.Add(spriteName.stringValue, new InternalSpriteInfo { InternalID = newIntarnalId, SpriteID = spriteId.stringValue });
+				}
+			}
+		}
+
+		SerializedProperty nameFiledTable = serializedObject.FindProperty("m_SpriteSheet.m_NameFileIdTable");
+		if (nameFiledTable.isArray)
+		{
+			for (int i = 0; i < nameFiledTable.arraySize; i++)
+			{
+				SerializedProperty nameField = nameFiledTable.GetArrayElementAtIndex(i);
+				if (keyValuePairs.TryGetValue(nameField.FindPropertyRelative("first").stringValue, out InternalSpriteInfo id))
+				{
+					nameField.FindPropertyRelative("second").longValue = id.InternalID;
+				}
+			}
+		}
+		serializedObject.ApplyModifiedProperties();
+		AssetDatabase.ForceReserializeAssets(new[] { assetPath }, ForceReserializeAssetsOptions.ReserializeMetadata);
+		AssetDatabase.SaveAssetIfDirty(AssetDatabase.GUIDFromAssetPath(assetPath));
+	}
+	private static int GetPersistentTypeID()
+	{
+		Type unityType = typeof(Editor).Assembly.GetType("UnityEditor.UnityType");
+		PropertyInfo propertyID = unityType.GetProperty("persistentTypeID");
+		MethodInfo method = unityType.GetMethod("FindTypeByName", BindingFlags.Public | BindingFlags.Static);
+		return (int)propertyID.GetValue(method.Invoke(null, new object[] { "Sprite" }));
+	}
+
 	[MenuItem("检查资源/打开检查资源界面", false, 131)]
 	public static void checkResWindows()
 	{
 		EditorWindow.GetWindow<CheckResourcesWindow>(true, "检查资源", true).start();
+	}
+	[MenuItem("检查资源/打开提取文本组件界面", false, 131)]
+	public static void checkFindTextComponentWindows()
+	{
+		EditorWindow.GetWindow<FindTextWindow>(true, "提取文本组件", true).start();
 	}
 	public static void doCheckCodeChinese(string fileName, List<string> chineseLineList, List<string> chineseStrList)
 	{

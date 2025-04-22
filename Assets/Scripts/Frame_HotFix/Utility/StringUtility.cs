@@ -7,9 +7,8 @@ using static MathUtility;
 using static UnityUtility;
 using static FrameUtility;
 using static CSharpUtility;
-using static FrameDefine;
-using static FrameDefineBase;
-using static FrameEditorUtility;
+using static FrameBaseDefine;
+using static FrameBaseUtility;
 
 // 字符串相关工具函数类
 public class StringUtility
@@ -617,21 +616,6 @@ public class StringUtility
 		if (path[^1] == '/' || path[^1] == '\\')
 		{
 			path = path.startString(path.Length - 1);
-		}
-		return path;
-	}
-	public static void addEndSlash(ref string path)
-	{
-		if (!path.isEmpty() && path[^1] != '/')
-		{
-			path += "/";
-		}
-	}
-	public static string addEndSlash(string path)
-	{
-		if (!path.isEmpty() && path[^1] != '/')
-		{
-			path += "/";
 		}
 		return path;
 	}
@@ -1894,7 +1878,12 @@ public class StringUtility
 	{
 		appendUpdateString(ref updateStr, col, FsToS(floatArray));
 	}
-	public static int KMPSearch(string str, string pattern, int[] nextIndex = null)
+	public static int KMPSearch(string str, string pattern)
+	{
+		int[] nextIndex = null;
+		return KMPSearch(str, pattern, ref nextIndex);
+	}
+	public static int KMPSearch(string str, string pattern, ref int[] nextIndex)
 	{
 		int sLen = str.Length;
 		int pLen = pattern.Length;

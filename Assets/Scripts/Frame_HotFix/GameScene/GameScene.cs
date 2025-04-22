@@ -3,9 +3,8 @@ using System;
 using System.Collections.Generic;
 using static UnityUtility;
 using static FrameBaseHotFix;
-using static FrameUtility;
 using static CSharpUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 用于实现一个逻辑场景,一个逻辑场景会包含多个流程,进入一个场景时上一个场景会被销毁
 public abstract class GameScene : ComponentOwner
@@ -18,7 +17,6 @@ public abstract class GameScene : ComponentOwner
 	protected Type mTempStartProcedure;										// 仅使用一次的起始流程类型,设置后进入场景时会默认进入该流程,生效后就清除
 	protected Type mExitProcedure;											// 场景的退出流程,退出场景进入其他场景时会先进入该流程,一般用作资源卸载
 	protected const int MAX_LAST_PROCEDURE_COUNT = 8;						// mLastProcedureList列表的最大长度,当超过该长度时,会移除列表开始的元素
-	protected string mTempStartIntent;										// 进入mTempStartProcedure时的参数
 	// 进入场景时初始化
 	public virtual void init()
 	{
@@ -46,11 +44,10 @@ public abstract class GameScene : ComponentOwner
 		mStartProcedure = null;
 		mTempStartProcedure = null;
 		mExitProcedure = null;
-		mTempStartIntent = null;
 	}
 	public void enterStartProcedure()
 	{
-		changeProcedure(mTempStartProcedure ?? mStartProcedure, mTempStartIntent);
+		changeProcedure(mTempStartProcedure ?? mStartProcedure);
 		mTempStartProcedure = null;
 	}
 	public virtual void willDestroy()
@@ -96,7 +93,7 @@ public abstract class GameScene : ComponentOwner
 	public virtual void exit()
 	{
 		// 首先进入退出流程,然后再退出最后的流程
-		changeProcedure(mExitProcedure, null);
+		changeProcedure(mExitProcedure);
 		mCurProcedure?.exit(null, null);
 		mCurProcedure = null;
 		GC.Collect();
@@ -108,11 +105,11 @@ public abstract class GameScene : ComponentOwner
 	public bool atProcedure<T>() where T : SceneProcedure { return mCurProcedure != null && mCurProcedure.isThisOrParent(typeof(T)); }
 	// 是否在指定的流程,不考虑子流程
 	public bool atSelfProcedure(Type type) { return mCurProcedure != null && mCurProcedure.GetType() == type; }
-	public void prepareChangeProcedure<T>(float time, string intent) where T : SceneProcedure
+	public void prepareChangeProcedure<T>(float time) where T : SceneProcedure
 	{
-		prepareChangeProcedure(typeof(T), time, intent);
+		prepareChangeProcedure(typeof(T), time);
 	}
-	public void prepareChangeProcedure(Type procedure, float time, string intent) 
+	public void prepareChangeProcedure(Type procedure, float time) 
 	{
 		// 准备时间必须大于0
 		if (time <= 0.0f)
@@ -126,24 +123,23 @@ public abstract class GameScene : ComponentOwner
 			logError("procedure is preparing to exit, can not prepare again!");
 			return;
 		}
-		mCurProcedure.prepareExit(mSceneProcedureList.get(procedure), time, intent); 
+		mCurProcedure.prepareExit(mSceneProcedureList.get(procedure), time); 
 	}
-	public void backToLastProcedure(string intend)
+	public void backToLastProcedure()
 	{
 		if (mLastProcedureList.Count == 0)
 		{
 			return;
 		}
 		// 获得上一次进入的流程
-		Type lastType = getLastProcedureType();
-		changeProcedure(lastType, intend, false);
+		changeProcedure(getLastProcedureType(), false);
 		mLastProcedureList.RemoveAt(mLastProcedureList.Count - 1);
 	}
-	public bool changeProcedure<T>(string intent, bool addToLastList = true) where T : SceneProcedure
+	public bool changeProcedure<T>(bool addToLastList = true) where T : SceneProcedure
 	{
-		return changeProcedure(typeof(T), intent, addToLastList);
+		return changeProcedure(typeof(T), addToLastList);
 	}
-	public bool changeProcedure(Type procedureType, string intent, bool addToLastList = true)
+	public bool changeProcedure(Type procedureType, bool addToLastList = true)
 	{
 		// 当流程正在准备跳转流程时,不允许再跳转
 		if (mCurProcedure != null && mCurProcedure.isPreparingExit())
@@ -178,7 +174,7 @@ public abstract class GameScene : ComponentOwner
 			mCurProcedure?.exit(mCurProcedure.getSameParent(targetProcedure), targetProcedure);
 			SceneProcedure lastProcedure = mCurProcedure;
 			mCurProcedure = targetProcedure;
-			mCurProcedure.init(lastProcedure, intent);
+			mCurProcedure.init(lastProcedure);
 		}
 		return true;
 	}
@@ -205,11 +201,7 @@ public abstract class GameScene : ComponentOwner
 	// 获取当前场景的当前流程或父流程中指定类型的流程
 	public SceneProcedure getCurOrParentProcedure(Type type) { return mCurProcedure.getThisOrParent(type); }
 	public T getCurOrParentProcedure<T>() where T : SceneProcedure { return mCurProcedure.getThisOrParent(typeof(T)) as T; }
-	public void setTempStartProcedure(Type procedure, string intent)
-	{
-		mTempStartProcedure = procedure;
-		mTempStartIntent = intent;
-	}
+	public void setTempStartProcedure(Type procedure) { mTempStartProcedure = procedure; }
 	public T addProcedure<T>(Type parent = null) where T : SceneProcedure
 	{
 		return addProcedure(typeof(T), parent) as T;

@@ -10,22 +10,18 @@ public struct DicScope<K, V> : IDisposable
 	private Dictionary<K, V> mList;	// 分配的对象
 	public DicScope(out Dictionary<K, V> list)
 	{
-		if (mGameFrameworkHotFix == null || mDictionaryPool == null)
+		if (GameEntry.getInstance() == null || mDictionaryPool == null)
 		{
 			list = new();
 			mList = null;
 			return;
 		}
-		string stackTrace = mGameFrameworkHotFix.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
+		string stackTrace = GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
 		list = mDictionaryPool.newList(typeof(K), typeof(V), typeof(Dictionary<K, V>), stackTrace, true) as Dictionary<K, V>;
 		mList = list;
 	}
 	public void Dispose()
 	{
-		if (mGameFrameworkHotFix == null || mDictionaryPool == null)
-		{
-			return;
-		}
 		mDictionaryPool?.destroyList(ref mList, typeof(K), typeof(V));
 	}
 }

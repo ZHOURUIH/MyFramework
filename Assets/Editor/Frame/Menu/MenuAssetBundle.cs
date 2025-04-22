@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEditor;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 using static StringUtility;
 using static FileUtility;
 using static FrameDefine;
 using static EditorDefine;
 using static EditorFileUtility;
 using static EditorCommonUtility;
-using static FrameDefineBase;
+using static FrameBaseDefine;
 
 public class MenuAssetBundle
 {
@@ -36,7 +36,6 @@ public class MenuAssetBundle
 		}
 		findAllDependencies(selection.removeStartString(P_ASSET_BUNDLE_ANDROID_PATH));
 	}
-	// pathToPack为以Asset开头的相对路径,不为空则表示只单独打包此目录或此文件
 	public static bool packAssetBundle(BuildTarget target, string outputPath, bool showMessageBox)
 	{
 		Debug.Log("打包全部AssetBundle");
@@ -56,7 +55,13 @@ public class MenuAssetBundle
 			}
 		}
 		// 打包
-		BuildPipeline.BuildAssetBundles(outputPath, BuildAssetBundleOptions.ChunkBasedCompression, target);
+		// 使用LZ4压缩,并且不写入资源类型信息
+		var option = BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode;
+#if WEIXINMINIGAME
+		// 微信的AssetBundle需要添加hash
+		option |= BuildAssetBundleOptions.AppendHashToAssetBundleName;
+#endif
+		BuildPipeline.BuildAssetBundles(outputPath, option, target);
 		AssetDatabase.Refresh();
 		// 检查资源是否有互相依赖的问题,然后构建依赖关系
 		if (!loadAndReadAssetBundleManifest(outputPath, assetBundleMap, null, showMessageBox, true))
@@ -77,10 +82,15 @@ public class MenuAssetBundle
 			serializer.writeList(bundleInfo.mDependencies);
 		}
 		writeFile(outputPath + STREAMING_ASSET_FILE, serializer.getBuffer(), serializer.getDataSize());
+		// 删除所有的manifest文件
+		foreach (string file in findFilesNonAlloc(outputPath, new List<string>() { ".manifest", ".manifest.meta" }))
+		{
+			deleteFile(file);
+		}
 		showInfo("资源打包结束! 耗时 : " + (DateTime.Now - time0), showMessageBox, false);
 		return true;
 	}
-	// pathToPack为以Asset开头的相对路径,不为空则表示只单独打包此目录或此文件
+	// pathToPack为以Asset开头的相对路径,表示只单独打包此目录或此文件
 	public static bool packAssetBundle(BuildTarget target, string outputPath, string pathToPack, bool showMessageBox)
 	{
 		if (pathToPack.isEmpty())
@@ -111,6 +121,10 @@ public class MenuAssetBundle
 			}
 			// 使用LZ4压缩,并且不写入资源类型信息
 			var option = BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode;
+#if WEIXINMINIGAME
+			// 微信的AssetBundle需要添加hash
+			option |= BuildAssetBundleOptions.AppendHashToAssetBundleName;
+#endif
 			BuildPipeline.BuildAssetBundles(outputPath, buildList, option, target);
 			AssetDatabase.Refresh();
 
@@ -127,6 +141,11 @@ public class MenuAssetBundle
 			{
 				writeFile(outputPath + folderName + ".manifest", manifestBytes, manifestBytes.Length);
 			}
+		}
+		// 删除所有的manifest文件
+		foreach (string file in findFilesNonAlloc(outputPath, new List<string>() { ".manifest", ".manifest.meta" }))
+		{
+			deleteFile(file);
 		}
 		showInfo("资源打包结束! 耗时 : " + (DateTime.Now - time0), showMessageBox, false);
 		return true;

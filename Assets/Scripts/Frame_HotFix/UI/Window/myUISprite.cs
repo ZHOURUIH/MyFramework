@@ -4,7 +4,8 @@ using static FrameBaseHotFix;
 using static StringUtility;
 using static MathUtility;
 using static FrameDefine;
-using static FrameEditorUtility;
+using static FrameBaseDefine;
+using static FrameBaseUtility;
 
 // 对SpriteRenderer的封装
 public class myUISprite : myUIObject, IShaderWindow

@@ -2,6 +2,7 @@
 using System;
 using static StringUtility;
 using static UnityUtility;
+using static FrameBaseUtility;
 
 // 已经从资源加载的物体的信息
 [Serializable]

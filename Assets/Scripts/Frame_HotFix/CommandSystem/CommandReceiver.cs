@@ -1,5 +1,5 @@
 ﻿using System.Threading;
-using static CSharpUtility;
+using static FrameBaseUtility;
 using static FrameBaseHotFix;
 
 // 命令接收者基类,只有命令接收者的子类可以接收命令

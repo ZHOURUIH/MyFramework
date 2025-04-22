@@ -20,5 +20,6 @@ public class myUGUICanvas : myUGUIObject
 		getOrAddUnityComponent<GraphicRaycaster>();
 	}
 	public void setSortingOrder(int order) { mCanvas.sortingOrder = order; }
+	public void setSortingLayer(string layerName) { mCanvas.sortingLayerName = layerName; }
 	public Canvas getCanvas() { return mCanvas; }
 }

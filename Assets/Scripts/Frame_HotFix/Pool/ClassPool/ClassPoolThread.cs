@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System;
 using UnityEngine;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 不支持带参构造的类,因为在再次利用时参数无法正确传递
 // 线程安全的对象池,但是效率较低

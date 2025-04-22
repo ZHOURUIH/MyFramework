@@ -2,6 +2,7 @@
 using static UnityUtility;
 using static StringUtility;
 using static FrameDefine;
+using static FrameBaseDefine;
 using static FrameBaseHotFix;
 
 // 可显示数字的窗口,只支持整数,且每个数字图片的大小必须一样,不能显示小数,负数

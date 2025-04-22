@@ -13,7 +13,7 @@ public struct ListScope3<T> : IDisposable
 	private List<T> mList2;      // 分配的对象
 	public ListScope3(out List<T> list0, out List<T> list1, out List<T> list2)
 	{
-		if (mGameFrameworkHotFix == null || mListPool == null)
+		if (GameEntry.getInstance() == null || mListPool == null)
 		{
 			list0 = new();
 			list1 = new();
@@ -23,7 +23,7 @@ public struct ListScope3<T> : IDisposable
 			mList2 = null;
 			return;
 		}
-		string stackTrace = mGameFrameworkHotFix.mParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
+		string stackTrace = GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
 		list0 = mListPool.newList(typeof(T), typeof(List<T>), stackTrace, true) as List<T>;
 		list1 = mListPool.newList(typeof(T), typeof(List<T>), stackTrace, true) as List<T>;
 		list2 = mListPool.newList(typeof(T), typeof(List<T>), stackTrace, true) as List<T>;
@@ -33,13 +33,9 @@ public struct ListScope3<T> : IDisposable
 	}
 	public void Dispose()
 	{
-		if (mGameFrameworkHotFix == null || mListPool == null)
-		{
-			return;
-		}
 		Type type = typeof(T);
-		mListPool.destroyList(ref mList0, type);
-		mListPool.destroyList(ref mList1, type);
-		mListPool.destroyList(ref mList2, type);
+		mListPool?.destroyList(ref mList0, type);
+		mListPool?.destroyList(ref mList1, type);
+		mListPool?.destroyList(ref mList2, type);
 	}
 }

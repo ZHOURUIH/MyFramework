@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using static UnityUtility;
-using static FrameEditorUtility;
+using static FrameBaseUtility;
 
 // 锁定物体的世界坐标不变,可能会有误差
 public class CmdTransformableLockPosition : Command

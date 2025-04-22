@@ -22,9 +22,6 @@ using static FrameDefine;
 public class CSharpUtility
 {
 	protected static int mIDMaker;			// 用于生成客户端唯一ID的种子
-	protected static int mMainThreadID;		// 主线程ID
-	public static void setMainThreadID(int mainThreadID) { mMainThreadID = mainThreadID; }
-	public static bool isMainThread() { return Thread.CurrentThread.ManagedThreadId == mMainThreadID; }
 	public static string getLocalIP()
 	{
 		foreach (IPAddress item in Dns.GetHostAddresses(Dns.GetHostName()))
@@ -399,7 +396,7 @@ public class CSharpUtility
 		foreach (string line in splitLine(content))
 		{
 			var info = GameFileInfo.createInfo(line);
-			list.addNotNullKey(info.mFileName, info);
+			list.addNotNullKey(info?.mFileName, info);
 		}
 	}
 	public static bool isIgnorePath(string fullPath, List<string> ignorePath)
@@ -412,84 +409,6 @@ public class CSharpUtility
 			}
 		}
 		return false;
-	}
-	// 对比两个版本号,返回值表示整个版本号的大小比较结果,lowerVersion表示小版本号的比较结果,higherVersion表示大版本号比较的结果
-	// 此函数只判断3位的版本号,也就是版本号0.版本号1.版本号2的格式,不支持2位的版本号
-	public static VERSION_COMPARE compareVersion3(string remote, string local, out VERSION_COMPARE lowerVersion, out VERSION_COMPARE higherVersion)
-	{
-		if (remote.isEmpty())
-		{
-			lowerVersion = VERSION_COMPARE.REMOTE_LOWER;
-			higherVersion = VERSION_COMPARE.REMOTE_LOWER;
-			return VERSION_COMPARE.REMOTE_LOWER;
-		}
-		if (local.isEmpty())
-		{
-			lowerVersion = VERSION_COMPARE.LOCAL_LOWER;
-			higherVersion = VERSION_COMPARE.LOCAL_LOWER;
-			return VERSION_COMPARE.LOCAL_LOWER;
-		}
-		List<long> sourceFormat = SToLs(remote, '.');
-		List<long> targetFormat = SToLs(local, '.');
-		if (sourceFormat.Count != 3)
-		{
-			lowerVersion = VERSION_COMPARE.REMOTE_LOWER;
-			higherVersion = VERSION_COMPARE.REMOTE_LOWER;
-			return VERSION_COMPARE.REMOTE_LOWER;
-		}
-		if (targetFormat.Count != 3)
-		{
-			lowerVersion = VERSION_COMPARE.LOCAL_LOWER;
-			higherVersion = VERSION_COMPARE.LOCAL_LOWER;
-			return VERSION_COMPARE.LOCAL_LOWER;
-		}
-		lowerVersion = VERSION_COMPARE.EQUAL;
-		higherVersion = VERSION_COMPARE.EQUAL;
-		if (remote == local)
-		{
-			return VERSION_COMPARE.EQUAL;
-		}
-		const long MaxMiddleVersion = 100000000000;
-		long sourceFullVersion = sourceFormat[0] * MaxMiddleVersion * MaxMiddleVersion + sourceFormat[1] * MaxMiddleVersion + sourceFormat[2];
-		long targetFullVersion = targetFormat[0] * MaxMiddleVersion * MaxMiddleVersion + targetFormat[1] * MaxMiddleVersion + targetFormat[2];
-		long sourceBigVersion = sourceFormat[0] * MaxMiddleVersion + sourceFormat[1];
-		long targetBigVersion = targetFormat[0] * MaxMiddleVersion + targetFormat[1];
-		if (sourceBigVersion > targetBigVersion)
-		{
-			higherVersion = VERSION_COMPARE.LOCAL_LOWER;
-		}
-		else if (sourceBigVersion < targetBigVersion)
-		{
-			higherVersion = VERSION_COMPARE.REMOTE_LOWER;
-		}
-		else
-		{
-			higherVersion = VERSION_COMPARE.EQUAL;
-		}
-		if (sourceFormat[2] > targetFormat[2])
-		{
-			lowerVersion = VERSION_COMPARE.LOCAL_LOWER;
-		}
-		else if (sourceFormat[2] < targetFormat[2])
-		{
-			lowerVersion = VERSION_COMPARE.REMOTE_LOWER;
-		}
-		else
-		{
-			lowerVersion = VERSION_COMPARE.EQUAL;
-		}
-		if (sourceFullVersion > targetFullVersion)
-		{
-			return VERSION_COMPARE.LOCAL_LOWER;
-		}
-		else if (sourceFullVersion < targetFullVersion)
-		{
-			return VERSION_COMPARE.REMOTE_LOWER;
-		}
-		else
-		{
-			return VERSION_COMPARE.EQUAL;
-		}
 	}
 	// ensureInterval为true表示保证每次间隔一定不小于interval,false表示保证一定时间内的触发次数,而不保证每次间隔一定小于interval
 	public static bool tickTimerLoop(ref float timer, float elapsedTime, float interval, bool ensureInterval = false)
