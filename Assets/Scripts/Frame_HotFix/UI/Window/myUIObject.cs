@@ -23,6 +23,7 @@ public class myUIObject : Transformable, IMouseEventCollect
 	protected bool mDestroyImmediately;                         // 销毁窗口时是否立即销毁
 	protected bool mReceiveLayoutHide;                          // 布局隐藏时是否会通知此窗口,默认不通知
 	protected bool mChildOrderSorted;                           // 子节点在列表中的顺序是否已经按照面板上的顺序排序了
+	protected bool mIsNewObject;								// 是否是从空的GameObject创建的,一般都是会确认已经存在了对应组件,而不是要动态添加组件
 	public myUIObject()
 	{
 		mID = makeID();
@@ -82,11 +83,11 @@ public class myUIObject : Transformable, IMouseEventCollect
 			mInputSystem?.unregisteInputField(inputField);
 		}
 		window.mLayout?.unregisterUIObject(window);
-		window.mLayout = null;
 		GameObject go = window.getObject();
 		mAllowDestroyWindow = true;
 		window.destroy();
 		mAllowDestroyWindow = false;
+		window.mLayout = null;
 		if (destroyReally)
 		{
 			destroyUnityObject(go, window.mDestroyImmediately);
@@ -121,6 +122,19 @@ public class myUIObject : Transformable, IMouseEventCollect
 			onWorldScaleChanged(mLastWorldScale);
 			mLastWorldScale = getWorldScale();
 		}
+	}
+	public override Collider getCollider(bool addIfNotExist = false)
+	{
+		var collider = tryGetUnityComponent<Collider>();
+		// 由于Collider无法直接添加到GameObject上,所以只能默认添加BoxCollider
+		if (addIfNotExist && collider == null)
+		{
+			collider = getOrAddUnityComponent<BoxCollider>();
+			getCOMCollider().setBoxCollider(collider as BoxCollider);
+			// 新加的碰撞盒需要设置大小
+			ensureColliderSize();
+		}
+		return collider;
 	}
 	public void setAsLastSibling(bool refreshUIDepth = true)
 	{

@@ -103,6 +103,10 @@ public class GameLayout
 
 		// 更新脚本逻辑
 		using var b = new ProfilerScope("UpdateScript");
+		if (mScript.hasDragViewLoopList())
+		{
+			mScript.updateAllDragView();
+		}
 		if (mScript.isNeedUpdate())
 		{
 			mScript.update(elapsedTime);
@@ -183,7 +187,6 @@ public class GameLayout
 		if (visible)
 		{
 			mRoot.setActive(visible);
-			mScript.onReset();
 			mScript.onGameState();
 		}
 		// 隐藏布局时需要判断

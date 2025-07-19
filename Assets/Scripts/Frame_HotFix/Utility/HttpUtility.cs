@@ -84,6 +84,20 @@ public class HttpUtility
 		// 发送请求
 		return httpPost(url, out status, out code, postStream.GetBuffer(), (int)postStream.Length, contentType, null);
 	}
+	// 同步上传文件
+	public static string httpPostFile(string url, out WebExceptionStatus status, out HttpStatusCode code, List<FormItem> formList, int timeout)
+	{
+		if (formList == null)
+		{
+			status = WebExceptionStatus.UnknownError;
+			code = HttpStatusCode.OK;
+			return null;
+		}
+		using MemoryStream postStream = new();
+		preparePostFile(postStream, formList, out string contentType);
+		// 发送请求
+		return httpPost(url, out status, out code, postStream.GetBuffer(), (int)postStream.Length, contentType, null, timeout);
+	}
 	// 异步上传文件
 	public static void httpPostFileAsync(string url, List<FormItem> formList, HttpCallback callback)
 	{
@@ -102,6 +116,11 @@ public class HttpUtility
 	{
 		return httpRequest(preparePost(url, data, dataLength, contentType, header), url, out status, out code);
 	}
+	// 同步post请求
+	public static string httpPost(string url, out WebExceptionStatus status, out HttpStatusCode code, byte[] data, int dataLength, string contentType, Dictionary<string, string> header, int timeout)
+	{
+		return httpRequest(preparePost(url, data, dataLength, contentType, header, timeout), url, out status, out code);
+	}
 	// 异步post请求
 	public static void httpPostAsync(string url, byte[] data, int dataLength, string contentType, Dictionary<string, string> header, HttpCallback callback)
 	{
@@ -110,12 +129,12 @@ public class HttpUtility
 	// 异步post请求,webgl可用
 	public static void httpPostAsyncWebGL(string url, byte[] data, string contentType, Dictionary<string, string> header, UnityHttpCallback callback)
 	{
-		GameEntry.getInstance().StartCoroutine(unityPost(url, data, contentType, header, callback));
+		GameEntry.startCoroutine(unityPost(url, data, contentType, header, callback));
 	}
 	// 异步post请求,webgl可用
 	public static void httpPostAsyncWebGL(string url, string param, UnityHttpCallback callback)
 	{
-		GameEntry.getInstance().StartCoroutine(unityPost(url, stringToBytes(param), "application/json", null, callback));
+		GameEntry.startCoroutine(unityPost(url, stringToBytes(param), "application/json", null, callback));
 	}
 	// 同步post请求
 	public static string httpPost(string url, out WebExceptionStatus status, out HttpStatusCode code, byte[] data, int dataLength = -1)

@@ -12,6 +12,10 @@ public class myUGUITextImage : myUGUIObject
 		base.init();
 		if (!mObject.TryGetComponent(out mTextImage))
 		{
+			if (!mIsNewObject)
+			{
+				logError("需要添加一个TextImage组件,name:" + getName() + ", layout:" + getLayout().getName());
+			}
 			mTextImage = mObject.AddComponent<TextImage>();
 			// 添加UGUI组件后需要重新获取RectTransform
 			mObject.TryGetComponent(out mRectTransform);

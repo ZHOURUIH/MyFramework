@@ -50,7 +50,7 @@ public class ObjectInfo : ClassObject
 		}
 #if UNITY_6000_0_OR_NEWER
 		long curAssignID = mAssignID;
-		instantiatePrefabAsync(prefab, getFileName(prefab.name), true, (GameObject go)=> 
+		instantiatePrefabAsync(prefab, getFileNameWithSuffix(prefab.name), true, (GameObject go)=> 
 		{
 			mObject = go;
 			callback?.Invoke(curAssignID == mAssignID ? this : null);

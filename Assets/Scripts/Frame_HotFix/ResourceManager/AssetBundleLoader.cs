@@ -36,7 +36,7 @@ public class AssetBundleLoader
 		// 卸载所有已加载的AssetBundle
 		unloadAll();
 		// 加载AssetBundle的配置文件
-		GameEntry.getInstance().StartCoroutine(loadStreamingAssetsConfig(callback));
+		GameEntry.startCoroutine(loadStreamingAssetsConfig(callback));
 	}
 	protected IEnumerator loadStreamingAssetsConfig(Action callback)
 	{
@@ -111,6 +111,7 @@ public class AssetBundleLoader
 			item.unload();
 		}
 	}
+	// 这里的泛型T是为了外部能传任意的类型的引用进来,而不是只能传ref UObject
 	public bool unloadAsset<T>(ref T asset, bool showError) where T : UObject
 	{
 		if (asset == null)
@@ -273,10 +274,7 @@ public class AssetBundleLoader
 				}
 				foreach (AssetInfo item in bundleInfo.getAssetList().Values)
 				{
-					if (item.isLoaded())
-					{
-						assetList.Add(item.getAsset());
-					}
+					assetList.addIf(item.getAsset(), item.isLoaded());
 				}
 				return;
 			}
@@ -336,7 +334,7 @@ public class AssetBundleLoader
 			logError("AssetBundleLoader is not inited!");
 			return;
 		}
-		mCoroutineList.Add(GameEntry.getInstance().StartCoroutine(loadAssetBundleCoroutine(bundleInfo)));
+		mCoroutineList.Add(GameEntry.startCoroutine(loadAssetBundleCoroutine(bundleInfo)));
 	}
 	public void requestLoadAsset(AssetBundleInfo bundleInfo, string fileNameWithSuffix)
 	{
@@ -345,7 +343,7 @@ public class AssetBundleLoader
 			logError("AssetBundleLoader is not inited!");
 			return;
 		}
-		mCoroutineList.Add(GameEntry.getInstance().StartCoroutine(loadAssetCoroutine(bundleInfo, fileNameWithSuffix)));
+		mCoroutineList.Add(GameEntry.startCoroutine(loadAssetCoroutine(bundleInfo, fileNameWithSuffix)));
 	}
 	public void notifyAssetLoaded(UObject asset, AssetBundleInfo bundle)
 	{
@@ -370,7 +368,7 @@ public class AssetBundleLoader
 			logError("can not find resource : " + fileName + ",请确认文件存在,且带后缀名,且不能使用反斜杠\\," + (fileName.Contains(' ') || fileName.Contains('　') ? "注意此文件名中带有空格" : ""));
 			return;
 		}
-		mCoroutineList.Add(GameEntry.getInstance().StartCoroutine(downloadAssetBundleCoroutine(asset.getAssetBundle(), callback)));
+		mCoroutineList.Add(GameEntry.startCoroutine(downloadAssetBundleCoroutine(asset.getAssetBundle(), callback)));
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 下载资源包的协程
@@ -500,7 +498,6 @@ public class AssetBundleLoader
 
 		// 异步从资源包中加载资源
 		bundle.getAssetInfo(fileNameWithSuffix).setLoadState(LOAD_STATE.LOADING);
-		bundle.getAssetBundle().LoadAllAssetsAsync();
 		AssetBundleRequest assetRequest = bundle.getAssetBundle().LoadAssetWithSubAssetsAsync(P_GAME_RESOURCES_PATH + fileNameWithSuffix);
 		if (assetRequest == null)
 		{

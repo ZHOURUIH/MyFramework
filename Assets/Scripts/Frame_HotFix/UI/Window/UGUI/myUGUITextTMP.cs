@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using static StringUtility;
 using static FrameBaseHotFix;
+using static UnityUtility;
 
 // 对TextMeshPro的Text组件的封装
 public class myUGUITextTMP : myUGUIObject, IUGUIText
@@ -15,6 +16,10 @@ public class myUGUITextTMP : myUGUIObject, IUGUIText
 		base.init();
 		if (!mObject.TryGetComponent(out mText))
 		{
+			if (!mIsNewObject)
+			{
+				logError("需要添加一个TextMeshProUGUI组件,name:" + getName() + ", layout:" + getLayout().getName());
+			}
 			mText = mObject.AddComponent<TextMeshProUGUI>();
 			// 添加UGUI组件后需要重新获取RectTransform
 			mObject.TryGetComponent(out mRectTransform);
@@ -83,6 +88,7 @@ public class myUGUITextTMP : myUGUIObject, IUGUIText
 	public float getPreferredWidth() { return mText.preferredWidth; }
 	public float getPreferredHeight() { return mText.preferredHeight; }
 	public void setAlignment(TextAlignmentOptions textAnchor) { mText.alignment = textAnchor; }
+	public TextMeshProUGUI getTextComponent() { return mText; }
 	// 设置可自动本地化的文本内容,collection是myUGUIText对象所属的布局对象或者布局结构体对象,如LayoutScript或WindowObjectUGUI
 	public void setText(string mainText, ILocalizationCollection collection)
 	{

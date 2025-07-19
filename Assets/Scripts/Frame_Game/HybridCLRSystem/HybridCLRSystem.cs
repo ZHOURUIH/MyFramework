@@ -8,6 +8,7 @@ using HybridCLR;
 using static FileUtility;
 using static FrameBaseDefine;
 using static StringUtility;
+using static UnityUtility;
 using static FrameBaseUtility;
 using static FrameBase;
 
@@ -192,30 +193,39 @@ public class HybridCLRSystem
 			logErrorBase("GameHotFix类需要继承自GameHotFixBase");
 			return;
 		}
-		// 创建热更对象示例的函数签名为public void createHotFixInstance()
-		MethodInfo methodCreate = type.GetMethod("createHotFixInstance");
-		if (methodCreate == null)
+		Action preStartCallback = () =>
 		{
-			logErrorBase("在GameHotFix类中找不到静态函数createHotFixInstance");
-			return;
-		}
-
-		// 查找start函数
-		MethodInfo methodStart = type.GetMethod("start");
-		if (methodStart == null)
-		{
-			logErrorBase("在GameHotFix类中找不到函数start");
-			return;
-		}
-		// 执行热更的启动函数
-		Action callback = ()=>
-		{
-			Debug.Log("热更初始化完毕");
-			// 热更初始化完毕后将非热更层加载的所有资源都清除,这样避免中间的黑屏
-			GameEntry.getInstance().getFrameworkAOT().destroy();
-			GameEntry.getInstance().setFrameworkAOT(null);
+			// 创建热更对象示例的函数签名为public void createHotFixInstance()
+			MethodInfo methodCreate = type.GetMethod("createHotFixInstance");
+			if (methodCreate == null)
+			{
+				logErrorBase("在GameHotFix类中找不到静态函数createHotFixInstance");
+				return;
+			}
+			// 查找start函数
+			MethodInfo methodStart = type.GetMethod("start");
+			if (methodStart == null)
+			{
+				logErrorBase("在GameHotFix类中找不到函数start");
+				return;
+			}
+			// 执行热更的启动函数
+			Action callback = () =>
+			{
+				Debug.Log("热更初始化完毕");
+				// 热更初始化完毕后将非热更层加载的所有资源都清除,这样避免中间的黑屏
+				GameEntry.getInstance().getFrameworkAOT().destroy();
+				GameEntry.getInstance().setFrameworkAOT(null);
+			};
+			// 使用createHotFixInstance创建一个HotFix的实例,然后调用此实例的start函数
+			methodStart.Invoke(methodCreate.Invoke(null, null), new object[1] { callback });
 		};
-		// 使用createHotFixInstance创建一个HotFix的实例,然后调用此实例的start函数
-		methodStart.Invoke(methodCreate.Invoke(null, null), new object[1] { callback });
+		MethodInfo methodPreStart = getMethodRecursive(type, "preStart", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+		if (methodPreStart == null)
+		{
+			logErrorBase("在GameHotFix类或者父类中找不到静态函数preStart");
+			return;
+		}
+		methodPreStart.Invoke(null, new object[1] { preStartCallback });
 	}
 }

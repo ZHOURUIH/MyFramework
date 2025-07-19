@@ -238,7 +238,7 @@ public class AudioManager : FrameSystem
 		{
 			return;
 		}
-		var newInfo = mAudioList.add(fileNameNoSuffix, CLASS<AudioInfo>());
+		AudioInfo newInfo = mAudioList.addClass(fileNameNoSuffix);
 		newInfo.mAudioName = fileNameNoSuffix;
 		newInfo.mClip = null;
 		newInfo.mState = LOAD_STATE.NONE;

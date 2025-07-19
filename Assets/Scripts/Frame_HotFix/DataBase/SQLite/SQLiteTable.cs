@@ -149,6 +149,7 @@ public class SQLiteTable : ClassObject
 		}
 		catch (Exception) { }
 	}
+	public virtual void checkAllData() { }
 	public void setDataType(Type dataClassType) { mDataClassType = dataClassType; }
 	public void setTableName(string name) { mTableName = name; }
 	public string getTableName() { return mTableName; }
@@ -229,30 +230,36 @@ public class SQLiteTable : ClassObject
 	{
 		queryDataList(null, typeof(T), dataList);
 	}
-	public void checkData(int checkID, int dataID, string refTableName)
+	public Dictionary<int, SQLiteData> queryAll<T>() where T : SQLiteData
+	{
+		using var a = new ListScope<T>(out var list);
+		queryDataList(null, typeof(T), list);
+		return mDataMap;
+	}
+	public void checkData(int checkID, int dataID, ExcelTable refTable)
 	{
 		if (checkID > 0 && query(checkID, false) == null)
 		{
-			logError("can not find item id:" + checkID + " in " + mTableName + ", ref ID:" + dataID + ", ref Table:" + refTableName);
+			logError("can not find item id:" + checkID + " in " + mTableName + ", ref ID:" + dataID + ", ref Table:" + refTable.getTableName());
 		}
 	}
-	public void checkData(List<int> checkIDList, int dataID, string refTableName)
+	public void checkData(List<int> checkIDList, int dataID, ExcelTable refTable)
 	{
 		foreach (int id in checkIDList)
 		{
 			if (query(id, false) == null)
 			{
-				logError("can not find item id:" + id + " in " + mTableName + ", ref ID:" + dataID + ", ref Table:" + refTableName);
+				logError("can not find item id:" + id + " in " + mTableName + ", ref ID:" + dataID + ", ref Table:" + refTable.getTableName());
 			}
 		}
 	}
-	public void checkData(List<ushort> checkIDList, int dataID, string refTableName)
+	public void checkData(List<ushort> checkIDList, int dataID, ExcelTable refTable)
 	{
 		foreach (int id in checkIDList)
 		{
 			if (query(id, false) == null)
 			{
-				logError("can not find item id:" + id + " in " + mTableName + ", ref ID:" + dataID + ", ref Table:" + refTableName);
+				logError("can not find item id:" + id + " in " + mTableName + ", ref ID:" + dataID + ", ref Table:" + refTable.getTableName());
 			}
 		}
 	}

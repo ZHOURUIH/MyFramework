@@ -1,35 +1,36 @@
-﻿using UnityEngine;
-using UnityEngine.Events;
+﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 using static StringUtility;
 using static WidgetUtility;
 using static FrameBaseHotFix;
 using static UnityUtility;
-using static MathUtility;
 
 // 自定义的下拉列表
 public class UGUIDropList : WindowObjectUGUI
 {
 	protected WindowStructPool<DropItem> mItemPool;	// 显示项的对象池
-	protected UnityAction mSelectCallback;			// 选项切换时的回调
-	protected myUGUIObject mMask;					// 点击遮罩,用于点击空白处关闭下拉列表
+	protected Action mSelectCallback;				// 选项切换时的回调
+	protected myUGUIObject mMask;                   // 点击遮罩,用于点击空白处关闭下拉列表
+#if USE_TMP
+	protected myUGUITextTMP mLabel;                 // 显示当前选项的文本
+#else
 	protected myUGUIText mLabel;					// 显示当前选项的文本
-	protected myUGUIScrollRect mOptions;			// 所有选项的下拉框
+#endif
+	protected myUGUIObject mOptions;				// 所有选项的下拉框
 	protected myUGUIObject mViewport;				// 所有选项的父节点
-	protected myUGUIObject mContent;				// 所有选项的父节点
+	protected myUGUIDragView mContent;				// 所有选项的父节点
 	protected myUGUIObject mTemplate;				// 选项的模板
 	protected DropItem mCurSelect;					// 当前选中的选项
-	protected int mMaxViewportLength;				// 下拉列表显示的最大长度,超过此长度就需要滑动才能看到,小于此长度就全部显示
 	protected int mSelectIndex;                     // 当前选中的下标
-	public UGUIDropList(LayoutScript script)
-		: base(script) 
+	public UGUIDropList(IWindowObjectOwner parent) : base(parent)
 	{
-		mItemPool = new(script);
+		mItemPool = new(this);
 	}
-	public override void assignWindow(myUIObject parent, string name)
+	protected override void assignWindowInternal()
 	{
-		base.assignWindow(parent, name);
+		base.assignWindowInternal();
 		newObject(out mLabel, "Label");
 		newObject(out mOptions, "Options");
 		newObject(out mMask, mOptions, "Mask");
@@ -43,35 +44,36 @@ public class UGUIDropList : WindowObjectUGUI
 		mItemPool.init(mContent, mTemplate);
 		mLabel.registeCollider(onClick);
 		mMask.registeCollider(onMaskClick);
-		mScript.registeScrollRect(mOptions, mViewport, mContent);
+		mContent.initDragView(mViewport, DRAG_DIRECTION.VERTICAL);
 		mOptions.setActive(false);
 		mMask.setActive(false);
 		// 确认选项的父节点拥有Canvas组件,可以渲染在所有节点之上
-		mOptions.tryGetUnityComponent(out Canvas optionsCanvas);
-		if (optionsCanvas == null)
-		{
-			logError("下拉列表框的Options节点需要拥有Canvas组件");
-		}
-		else
+		if (mOptions.tryGetUnityComponent(out Canvas optionsCanvas))
 		{
 			optionsCanvas.overrideSorting = true;
 		}
-		
-		mOptions.tryGetUnityComponent(out GraphicRaycaster raycaster);
-		if (raycaster == null)
+		else
+		{
+			logError("下拉列表框的Options节点需要拥有Canvas组件");
+		}
+		if (!mOptions.tryGetUnityComponent<GraphicRaycaster>(out _))
 		{
 			logError("下拉列表框的Options节点需要拥有GraphicRaycaster组件");
 		}
-		mMaxViewportLength = (int)mOptions.getWindowSize().y;
 	}
 	public void clearOptions() 
 	{
 		mSelectIndex = 0;
 		mItemPool.unuseAll(); 
 	}
-	public void setSelectCallback(UnityAction callback) { mSelectCallback = callback; }
+	public void setSelectCallback(Action callback) { mSelectCallback = callback; }
 	public void setOptions(List<string> options, List<int> customValue = null, bool triggerEvent = true) 
 	{
+		if (!mInited)
+		{
+			logError("还未执行初始化,不能设置选项");
+			return;
+		}
 		if (customValue != null && options.Count != customValue.Count)
 		{
 			logError("附加数据的数量与选项的数量不一致");
@@ -90,11 +92,8 @@ public class UGUIDropList : WindowObjectUGUI
 			item.setParent(this);
 		}
 		autoGridVertical(mContent);
+		mContent.alignParentTopCenter();
 		setSelect(0, triggerEvent);
-		int viewportLength = clampMax((int)mContent.getWindowSize().y, mMaxViewportLength);
-		mViewport.setWindowHeight(viewportLength);
-		mOptions.setWindowHeight(viewportLength);
-		mViewport.setPosition(Vector3.zero);
 	}
 	public void setSelect(int value, bool triggerEvent = true) 
 	{
@@ -130,7 +129,6 @@ public class UGUIDropList : WindowObjectUGUI
 			mContent.alignParentTop();
 		}
 	}
-	public void setMaxViewportLegth(int length) { mMaxViewportLength = length; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onClick()
 	{

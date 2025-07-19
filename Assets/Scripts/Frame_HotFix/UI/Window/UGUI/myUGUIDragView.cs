@@ -13,14 +13,6 @@ public class myUGUIDragView : myUGUIObject
 	{
 		mNeedUpdate = true;
 	}
-	public override void init()
-	{
-		base.init();
-		if (mCOMWindowCollider?.getBoxCollider() == null)
-		{
-			logError("DragView must have BoxCollider! name:" + getName());
-		}
-	}
 	public void initDragView(myUGUIObject viewport, DRAG_DIRECTION direction)
 	{
 		initDragView(viewport, direction, toRadian(45.0f), false, true, true);
@@ -118,6 +110,7 @@ public class myUGUIDragView : myUGUIObject
 	public bool isClampInner()													{ return mDragViewComponent.isClampInner(); }
 	public bool isDraging()														{ return mDragViewComponent.isDraging(); }
 	public bool isAllowDragOnlyOverParentSize()									{ return mDragViewComponent.isAllowDragOnlyOverParentSize(); }
+	public COMWindowDragView getDragViewComponent()								{ return mDragViewComponent; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void initComponents()
 	{

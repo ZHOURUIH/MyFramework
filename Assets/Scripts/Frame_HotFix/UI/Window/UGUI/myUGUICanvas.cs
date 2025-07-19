@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using static UnityUtility;
 
 // 对UGUICanvas的封装
 public class myUGUICanvas : myUGUIObject
@@ -10,6 +11,10 @@ public class myUGUICanvas : myUGUIObject
 		base.init();
 		if (!mObject.TryGetComponent(out mCanvas))
 		{
+			if (!mIsNewObject)
+			{
+				logError("需要添加一个Canvas组件,name:" + getName() + ", layout:" + getLayout().getName());
+			}
 			mCanvas = mObject.AddComponent<Canvas>();
 			// 添加UGUI组件后需要重新获取RectTransform
 			mObject.TryGetComponent(out mRectTransform);

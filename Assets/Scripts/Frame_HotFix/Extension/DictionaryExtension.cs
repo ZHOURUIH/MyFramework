@@ -53,6 +53,10 @@ public static class DictionaryExtension
 	{
 		map.Add(pair.Key, pair.Value);
 	}
+	public static Value addClass<Key, Value>(this IDictionary<Key, Value> map, Key key) where Value : ClassObject, new() 
+	{
+		return map.add(key, CLASS<Value>());
+	}
 	public static Value addNotNullKey<Key, Value>(this IDictionary<Key, Value> map, Key key, Value value)
 	{
 		if (key == null)
@@ -216,6 +220,20 @@ public static class DictionaryExtension
 		map.Remove(key4);
 	}
 	public static bool isEmpty<TKey, TValue>(this IDictionary<TKey, TValue> list) { return list == null || list.Count == 0; }
-	public static TValue firstValue<TKey, TValue>(this IDictionary<TKey, TValue> list) { return list.First().Value; }
-	public static TKey firstKey<TKey, TValue>(this IDictionary<TKey, TValue> list) { return list.First().Key; }
+	public static TValue firstValue<TKey, TValue>(this IDictionary<TKey, TValue> list) 
+	{
+		if (list.count() == 0)
+		{
+			return default;
+		}
+		return list.First().Value; 
+	}
+	public static TKey firstKey<TKey, TValue>(this IDictionary<TKey, TValue> list) 
+	{
+		if (list.count() == 0)
+		{
+			return default;
+		}
+		return list.First().Key; 
+	}
 }

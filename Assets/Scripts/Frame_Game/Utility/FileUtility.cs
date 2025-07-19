@@ -80,12 +80,12 @@ public class FileUtility
 			callback?.Invoke(null);
 			return;
 		}
-		GameEntry.getInstance().StartCoroutine(openFileAsyncInternal(fileName, errorIfNull, callback));
+		GameEntry.startCoroutine(openFileAsyncInternal(fileName, errorIfNull, callback));
 	}
 	// fileNameList为绝对路径
 	public static void openFileListAsync(List<string> fileNameList, bool errorIfNull, StringBytesCallback callback)
 	{
-		GameEntry.getInstance().StartCoroutine(openFileListAsyncInternal(fileNameList, errorIfNull, callback));
+		GameEntry.startCoroutine(openFileListAsyncInternal(fileNameList, errorIfNull, callback));
 	}
 	// fileNameList为绝对路径
 	public static IEnumerator openFileListAsyncInternal(List<string> fileNameList, bool errorIfNull, StringBytesCallback callback)
@@ -386,7 +386,7 @@ public class FileUtility
 			}
 			else
 			{
-				GameEntry.getInstance().StartCoroutine(generateMD5ListAsyncInternal(fileNameList, callback));
+				GameEntry.startCoroutine(generateMD5ListAsyncInternal(fileNameList, callback));
 			}
 		}
 	}

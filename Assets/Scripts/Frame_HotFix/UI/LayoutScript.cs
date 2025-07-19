@@ -10,12 +10,15 @@ using static StringUtility;
 using static FrameBaseUtility;
 
 // 布局脚本基类,用于执行布局相关的逻辑
-public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection
+public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, IWindowObjectOwner
 {
 	protected HashSet<myUGUIScrollRect> mScrollViewRegisteList = new();	// 用于检测ScrollView合法性的列表
 	protected HashSet<IInputField> mInputFieldRegisteList = new();      // 用于检测InputField合法性的列表
 	protected HashSet<WindowStructPoolBase> mPoolList;					// 布局中使用的窗口对象池列表,收集后方便统一销毁
+	protected HashSet<WindowStructPoolBase> mPoolRootList;              // mPoolList中由LayoutScript直接持有的对象池
 	protected HashSet<WindowObjectBase> mWindowObjectList;				// 布局中使用的非对象池中的窗口对象,收集后方便统一销毁
+	protected HashSet<WindowObjectBase> mWindowObjectRootList;          // mWindowObjectList中的root节点列表,也就是排除了嵌套在子界面中的对象
+	protected HashSet<IDragViewLoop> mDragViewLoopList;					// 存储界面中的滚动列表,用于调用列表的update
 	protected HashSet<IUGUIObject> mLocalizationObjectList;				// 注册的需要本地化的对象,因为每次修改文本显示都会往列表里加,所以使用HashSet
 	protected GameLayout mLayout;										// 所属布局
 	protected myUGUIObject mRoot;										// 布局中的根节点
@@ -33,14 +36,17 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection
 			item.destroy();
 		}
 		mPoolList?.Clear();
-		foreach (WindowObjectBase item in mWindowObjectList.safe())
+		mPoolRootList?.Clear();
+		foreach (WindowObjectBase item in mWindowObjectRootList.safe())
 		{
 			item.destroy();
 		}
+		mWindowObjectRootList?.Clear();
 		mWindowObjectList?.Clear();
 
 		// 为了避免子类中遗漏注销监听,基类会再次注销监听一次
 		mEventSystem?.unlistenEvent(this);
+		mInputSystem?.unlistenKey(this);
 		interruptAllCommand();
 	}
 	public override void resetProperty()
@@ -74,10 +80,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection
 	}
 	public void registeScrollRect(myUGUIScrollRect scrollRect, myUGUIObject viewport, myUGUIObject content, float verticalPivot = 1.0f, float horizontalPivot = 0.5f)
 	{
-		if (isEditor())
-		{
-			mScrollViewRegisteList.Add(scrollRect);
-		}
+		mScrollViewRegisteList.addIf(scrollRect, isEditor());
 		scrollRect.initScrollRect(viewport, content, verticalPivot, horizontalPivot);
 		// 所有的可滑动列表都是不能穿透射线的
 		scrollRect.registeCollider();
@@ -85,10 +88,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection
 	}
 	public void registeInputField(IInputField inputField)
 	{
-		if (isEditor())
-		{
-			mInputFieldRegisteList.Add(inputField);
-		}
+		mInputFieldRegisteList.addIf(inputField, isEditor());
 		mInputSystem.registeInputField(inputField);
 		// 所有的输入框都是不能穿透射线的
 		(inputField as myUIObject).registeCollider();
@@ -126,6 +126,11 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection
 		{
 			logError("不能重复注册对象池");
 		}
+		if (pool.isRootPool())
+		{
+			mPoolRootList ??= new();
+			mPoolRootList.Add(pool);
+		}
 	}
 	public void addWindowObject(WindowObjectBase windowObj)
 	{
@@ -134,13 +139,49 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection
 		{
 			logError("不能重复注册UI对象");
 		}
+		if (windowObj.isRootWindowObject())
+		{
+			mWindowObjectRootList ??= new();
+			mWindowObjectRootList.Add(windowObj);
+			if (windowObj is IDragViewLoop dragViewLoop)
+			{
+				mDragViewLoopList ??= new();
+				mDragViewLoopList.Add(dragViewLoop);
+			}
+		}
 	}
 	public abstract void assignWindow();
-	public virtual void init() { }
+	public virtual void init() 
+	{
+		foreach (WindowObjectBase item in mWindowObjectRootList.safe())
+		{
+			item.init();
+		}
+	}
+	public bool hasDragViewLoopList() { return mDragViewLoopList.count() > 0; }
+	public void updateAllDragView()
+	{
+		// 更新UI直接创建的滚动列表
+		foreach (IDragViewLoop item in mDragViewLoopList.safe())
+		{
+			if (item.isActive())
+			{
+				item.updateDragView();
+			}
+		}
+		// 更新所有一级子界面的滚动列表
+		foreach (WindowObjectBase item in mWindowObjectRootList.safe())
+		{
+			if (item.isActive() && item.hasDragViewLoopList())
+			{
+				item.updateDragViewLoop();
+			}
+		}
+	}
 	public virtual void update(float elapsedTime) { }
 	public virtual void lateUpdate(float elapsedTime) { }
-	// 在开始显示之前,需要将所有的状态都重置到加载时的状态
-	public virtual void onReset()
+	// 一般是重置布局状态,再根据当前游戏状态设置布局显示前的状态,执行一些显示时的动效
+	public virtual void onGameState() 
 	{
 		if (isEditor() && !mRegisterChecked)
 		{
@@ -166,14 +207,32 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection
 				}
 			}
 		}
+		// 显示界面时自动调用所有非对象池对象的reset,用于通知对象重新显示
+		// 只通知没有父节点的窗口对象,其他带父节点的会由父节点窗口对象来调用
+		foreach (WindowObjectBase item in mWindowObjectRootList.safe())
+		{
+			item.reset();
+		}
 	}
-	// 重置布局状态后,再根据当前游戏状态设置布局显示前的状态
-	public virtual void onGameState() { }
 	public virtual void onDrawGizmos() { }
 	public virtual void onHide()
 	{
 		clearLocalization();
 		mEventSystem?.unlistenEvent(this);
+		// 隐藏界面时调用所有非对象池中对象的onHide,用于通知自身被隐藏了
+		foreach (WindowObjectBase item in mWindowObjectRootList.safe())
+		{
+			if (item.isActive())
+			{
+				item.onHide();
+			}
+		}
+		// 隐藏界面时调用所有对象池的回收,将创建的所有对象都回收掉
+		foreach (WindowStructPoolBase item in mPoolRootList.safe())
+		{
+			item.unuseAll();
+		}
+		mInputSystem?.unlistenKey(this);
 	}
 	// 通知脚本开始显示或隐藏,中断全部命令
 	public void notifyStartShowOrHide()

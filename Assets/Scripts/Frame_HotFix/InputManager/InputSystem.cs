@@ -475,11 +475,11 @@ public class InputSystem : FrameSystem
 		return Input.GetMouseButtonUp((int)MOUSE_BUTTON.MIDDLE); 
 	}
 	// mask表示要检测的输入类型,是UI输入框输入,还是场景全局输入,或者是其他情况下的输入
-	public bool isAnyKeyDown(KeyCode key0, KeyCode key1, FOCUS_MASK mask = FOCUS_MASK.NONE) { return isKeyDown(key0, mask) || isKeyDown(key1, mask); }
-	public bool isKeyCurrentDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return mEnableKey && Input.GetKeyDown(key) && hasMask(mask); }
-	public bool isKeyCurrentUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return mEnableKey && Input.GetKeyUp(key) && hasMask(mask); }
-	public bool isKeyDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return mEnableKey && (Input.GetKeyDown(key) || Input.GetKey(key)) && hasMask(mask); }
-	public bool isKeyUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return mEnableKey && (Input.GetKeyUp(key) || !Input.GetKey(key)) && hasMask(mask); }
+	public bool isAnyKeyDown(KeyCode key0, KeyCode key1, FOCUS_MASK mask = FOCUS_MASK.SCENE) { return isKeyDown(key0, mask) || isKeyDown(key1, mask); }
+	public bool isKeyCurrentDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.SCENE) { return mEnableKey && Input.GetKeyDown(key) && hasMask(mask); }
+	public bool isKeyCurrentUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.SCENE) { return mEnableKey && Input.GetKeyUp(key) && hasMask(mask); }
+	public bool isKeyDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.SCENE) { return mEnableKey && (Input.GetKeyDown(key) || Input.GetKey(key)) && hasMask(mask); }
+	public bool isKeyUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.SCENE) { return mEnableKey && (Input.GetKeyUp(key) || !Input.GetKey(key)) && hasMask(mask); }
 	public void setEnableKey(bool enable) { mEnableKey = enable; }
 	public bool isEnableKey() { return mEnableKey; }
 	public List<KeyCode> getCurKeyDownList() { return mCurKeyDownList; }

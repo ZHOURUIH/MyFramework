@@ -5,23 +5,24 @@ using static StringUtility;
 using static MathUtility;
 
 // 可显示数字的窗口,支持带+-符号,小数点
+// 性能不如myUGUIImageNumber,如果有性能需求,首选myUGUIImageNumber
 public class myUGUINumber : myUGUIImage
 {
 	protected List<myUGUIImageSimple> mNumberList = new();	// 数字窗口列表
-	protected DOCKING_POSITION mDockingPosition;		// 数字停靠方式
-	protected NUMBER_DIRECTION mDirection;				// 数字显示方向
-	protected Sprite[] mSpriteList;						// 该列表只有10个数字的图片
-	protected Sprite mAddSprite;						// +号的图片
-	protected Sprite mMinusSprite;						// -号的图片
-	protected Sprite mDotSprite;						// .号的图片
-	protected string mNumberStyle;						// 数字图集名
-	protected string mNumber = EMPTY;					// 当前显示的数字
-	protected const char ADD_MARK = '+';				// +号
-	protected const char MINUS_MARK = '-';				// -号
-	protected const char DOT_MARK = '.';				// .号
+	protected DOCKING_POSITION mDockingPosition;			// 数字停靠方式
+	protected NUMBER_DIRECTION mDirection;					// 数字显示方向
+	protected Sprite[] mSpriteList;							// 该列表只有10个数字的图片
+	protected Sprite mAddSprite;							// +号的图片
+	protected Sprite mMinusSprite;							// -号的图片
+	protected Sprite mDotSprite;							// .号的图片
+	protected string mNumberStyle;							// 数字图集名
+	protected string mNumber = EMPTY;						// 当前显示的数字
+	protected const char ADD_MARK = '+';					// +号
+	protected const char MINUS_MARK = '-';					// -号
+	protected const char DOT_MARK = '.';					// .号
 	protected static string mAllMark = EMPTY + ADD_MARK + MINUS_MARK + DOT_MARK;	// 允许显示的除数字以外的符号
-	protected int mInterval = 5;						// 数字显示间隔
-	protected int mMaxCount;                            // 数字最大个数
+	protected int mInterval = 5;							// 数字显示间隔
+	protected int mMaxCount;								// 数字最大个数
 	public myUGUINumber()
 	{
 		mSpriteList = new Sprite[10];

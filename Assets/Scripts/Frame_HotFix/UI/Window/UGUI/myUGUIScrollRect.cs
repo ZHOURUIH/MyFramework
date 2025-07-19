@@ -24,6 +24,10 @@ public class myUGUIScrollRect : myUGUIObject
 		base.init();
 		if (!mObject.TryGetComponent(out mScrollRect))
 		{
+			if (!mIsNewObject)
+			{
+				logError("需要添加一个ScrollRect组件,name:" + getName() + ", layout:" + getLayout().getName());
+			}
 			mScrollRect = mObject.AddComponent<ScrollRect>();
 			// 添加UGUI组件后需要重新获取RectTransform
 			mObject.TryGetComponent(out mRectTransform);

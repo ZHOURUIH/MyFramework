@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 using static UnityUtility;
 using static StringUtility;
 using static FrameBaseHotFix;
@@ -9,84 +8,46 @@ using static FrameBaseDefine;
 // 对UGUI的Image的封装,普通版本,提供替换图片的功能,UGUI的静态图片不支持递归变化透明度
 public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 {
-	protected List<UGUIAtlasPtr> mOriginAtlasPtr = new();	// 图片图集,用于卸载,当前类只关心初始图集的卸载,后续再次设置的图集不关心是否需要卸载,需要外部设置的地方自己关心
-	protected List<UGUIAtlasPtr> mAtlasPtrList = new();		// 图片图集,为了支持多图集,也就是原本属于同一个图集里的图片,但是由于一个图集装不下而不得不拆分到多个图集中,所以使用List类型存储
-	protected Sprite mOriginSprite;							// 备份加载物体时原始的精灵图片
-	protected string mOriginSpriteName;						// 初始图片的名字,用于外部根据初始名字设置其他效果的图片
-	protected bool mOriginAtlasInResources;					// OriginAtlas是否是从Resources中加载的
+	protected UGUIAtlasPtr mOriginAtlasPtr;			// 图片图集,用于卸载,当前类只关心初始图集的卸载,后续再次设置的图集不关心是否需要卸载,需要外部设置的地方自己关心
+	protected UGUIAtlasPtr mAtlasPtr;				// 当前正在使用的图集
+	protected Sprite mOriginSprite;					// 备份加载物体时原始的精灵图片
+	protected string mOriginSpriteName;				// 初始图片的名字,用于外部根据初始名字设置其他效果的图片
 	public override void init()
 	{
 		base.init();
 		mOriginSprite = mImage.sprite;
-		// mOriginSprite无法简单使用?.来判断是否为空,需要显式判断
-		Texture2D curTexture = mOriginSprite != null ? mOriginSprite.texture : null;
 		// 获取初始的精灵所在图集
-		if (curTexture != null)
+		if (mOriginSprite != null)
 		{
 			if (!mObject.TryGetComponent<ImageAtlasPath>(out var imageAtlasPath))
 			{
-				logError("找不到图集,请添加ImageAtlasPath组件, window:" + mName + ", layout:" + mLayout.getName());
+				logError("找不到图集,请添加ImageAtlasPath组件, GameObject:" + getGameObjectPath(mObject));
 			}
-			UGUIAtlasPtr originAtlas = null;
 			string atlasPath = imageAtlasPath.mAtlasPath;
 			// unity_builtin_extra是unity内置的资源,不需要再次加载
 			if (!atlasPath.endWith("/unity_builtin_extra"))
 			{
-				mOriginAtlasInResources = mLayout.isInResources();
-				if (mOriginAtlasInResources)
+				if (mLayout.isInResources())
 				{
 					atlasPath = atlasPath.removeStartString(P_RESOURCES_PATH);
-					originAtlas = mTPSpriteManager.getAtlasInResources(atlasPath, false, true);
+					mOriginAtlasPtr = mAtlasManager.getAtlasInResources(atlasPath, false);
 				}
 				else
 				{
 					atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
-					originAtlas = mTPSpriteManager.getAtlas(atlasPath, false, true);
+					mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
 				}
-				if (originAtlas == null || !originAtlas.isValid())
+				if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
 				{
-					logWarning("无法加载初始化的图集:" + atlasPath + ", window:" + mName + ", layout:" + mLayout.getName() +
+					logWarning("无法加载初始化的图集:" + atlasPath + ", GameObject:" + getGameObjectPath(mObject) +
 						",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
 				}
-				if (originAtlas != null && originAtlas.isValid() && originAtlas.getTexture() != curTexture)
-				{
-					logError("设置的图集与加载出的图集不一致!可能未添加ImageAtlasPath组件,或者ImageAtlasPath组件中记录的路径错误," +
-						"或者是在当前物体在重复使用过程中销毁了原始图集\n图片名:" + mOriginSprite.name + ", 记录的图集路径:" + atlasPath + ", 名字:" + mName +
-						"layout:" + mLayout.getName());
-				}
 			}
-			mOriginAtlasPtr.addNotNull(originAtlas);
-			string singleFileName = getFileNameNoSuffixNoDir(atlasPath);
-			// 一般不会拆分到太多图集,所以只是简单判断0,1,2,3即可
-			if (singleFileName != null && 
-				(singleFileName.EndsWith("_0") || singleFileName.EndsWith("_1") || singleFileName.EndsWith("_2") || singleFileName.EndsWith("_3")))
+			else
 			{
-				mOriginAtlasPtr.Clear();
-				// 找到所有序列图集
-				string suffix = getFileSuffix(atlasPath);
-				string cleanName = singleFileName.rangeToLast('_');
-				string filePath = getFilePath(atlasPath, true);
-				int index = 0;
-				while (true)
-				{
-					UGUIAtlasPtr atlas;
-					string pathInGameRes = strcat(filePath, cleanName, "_", IToS(index++), suffix);
-					if (mOriginAtlasInResources)
-					{
-						atlas = mTPSpriteManager.getAtlasInResources(pathInGameRes, false, true);
-					}
-					else
-					{
-						atlas = mTPSpriteManager.getAtlas(pathInGameRes, false, true);
-					}
-					if (atlas == null || !atlas.isValid())
-					{
-						break;
-					}
-					mOriginAtlasPtr.Add(atlas);
-				}
+				logError("需要切换图片的节点上不要使用引擎内置的图片, GameObject:" + getGameObjectPath(mObject));
 			}
-			mAtlasPtrList.AddRange(mOriginAtlasPtr);
+			mAtlasPtr = mOriginAtlasPtr;
 		}
 		mOriginSpriteName = getSpriteName();
 	}
@@ -95,25 +56,24 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 		// 为了尽量确保ImageAtlasPath中记录的图集路径与图集完全一致,在销毁窗口时还原初始的图片
 		// 这样在重复使用当前物体时在校验图集路径时不会出错,但是如果在当前物体使用过程中销毁了原始的图片,则可能会报错
 		mImage.sprite = mOriginSprite;
-		if (mOriginAtlasInResources)
+		if (mLayout.isInResources())
 		{
-			mTPSpriteManager.unloadAtlasInResourcecs(mOriginAtlasPtr);
+			mAtlasManager.unloadAtlasInResourcecs(ref mOriginAtlasPtr);
 		}
 		else
 		{
-			mTPSpriteManager.unloadAtlas(mOriginAtlasPtr);
+			mAtlasManager.unloadAtlas(ref mOriginAtlasPtr);
 		}
 		base.destroy();
 	}
-	public UGUIAtlasPtr getAtlas() { return mAtlasPtrList.get(0); }
+	public UGUIAtlasPtr getAtlas() { return mAtlasPtr; }
 	public virtual void setAtlas(UGUIAtlasPtr atlas, bool clearSprite = false, bool force = false)
 	{
 		if (mImage == null)
 		{
 			return;
 		}
-		mAtlasPtrList.Clear();
-		mAtlasPtrList.addNotNull(atlas);
+		mAtlasPtr = atlas;
 		setSprite(clearSprite ? null : atlas?.getSprite(getSpriteName()));
 	}
 	public void setSpriteName(string spriteName)
@@ -140,7 +100,7 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 		{
 			return;
 		}
-		if (sprite != null && !hasAtlas(sprite.texture))
+		if (sprite != null && !mAtlasPtr.hasSprite(sprite))
 		{
 			logError("设置不同图集的图片可能会引起问题,如果需要设置其他图集的图片,请使用setSpriteOnly");
 		}
@@ -167,25 +127,11 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected Sprite getSpriteInAtlas(string spriteName)
 	{
-		foreach (UGUIAtlasPtr atlas in mAtlasPtrList)
+		Sprite sprite = mAtlasPtr?.getSprite(spriteName);
+		if (sprite != null)
 		{
-			Sprite sprite = atlas?.getSprite(spriteName);
-			if (sprite != null)
-			{
-				return sprite;
-			}
+			return sprite;
 		}
 		return null;
-	}
-	protected bool hasAtlas(Texture2D tex2D)
-	{
-		foreach (UGUIAtlasPtr atlas in mAtlasPtrList)
-		{
-			if (atlas != null && tex2D == atlas.getTexture())
-			{
-				return true;
-			}
-		}
-		return false;
 	}
 }

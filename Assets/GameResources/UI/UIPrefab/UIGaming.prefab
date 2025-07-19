@@ -105,6 +105,7 @@ GameObject:
   - component: {fileID: 4239029306956595298}
   - component: {fileID: 4393639564398603238}
   - component: {fileID: 1146774495981351441}
+  - component: {fileID: 3275463949008853656}
   m_Layer: 5
   m_Name: UIGaming
   m_TagString: Untagged
@@ -173,6 +174,30 @@ MonoBehaviour:
   mRemoveUGUIAnchor: 1
   mKeepAspect: 0
   mAspectBase: 2
+--- !u!114 &3275463949008853656
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3850882776913756647}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1324c7b97d0cd4d4286eaa7aef336d1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mMemberList:
+  - mObject: {fileID: 3579753064797783254}
+    mType: myUGUIObject
+    mDefaultActive: 0
+    mIsArray: 0
+    mArrayLength: 0
+  - mObject: {fileID: 4827924981184722614}
+    mType: myUGUIText
+    mDefaultActive: 0
+    mIsArray: 0
+    mArrayLength: 0
+  mIsPersistent: 0
 --- !u!1 &4581674099179751921
 GameObject:
   m_ObjectHideFlags: 0

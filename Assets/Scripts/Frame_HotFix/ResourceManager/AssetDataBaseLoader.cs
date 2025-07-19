@@ -23,12 +23,10 @@ public class AssetDataBaseLoader
 		list.Clear();
 		foreach (string item in fileList)
 		{
-			if (!item.EndsWith(".meta"))
-			{
-				list.Add(removeSuffix(item));
-			}
+			list.addIf(removeSuffix(item), !item.EndsWith(".meta"));
 		}
 	}
+	// 这里的泛型T是为了外部能传任意的类型的引用进来,而不是只能传ref UObject
 	public bool unloadResource<T>(ref T obj, bool showError) where T : UObject
 	{
 		if (obj == null)
@@ -191,7 +189,7 @@ public class AssetDataBaseLoader
 		// 还没有加载则开始异步加载
 		else
 		{
-			resList.Add(name, CLASS(out info));
+			info = resList.addClass(name);
 			info.setPath(path);
 			info.setResourceName(name);
 			info.setState(LOAD_STATE.LOADING);
@@ -200,7 +198,7 @@ public class AssetDataBaseLoader
 				op.setFinish();
 				doneCallback?.Invoke(asset, assets, bytes, loadPath);
 			}, name);
-			GameEntry.getInstance().StartCoroutine(loadResourceCoroutine<T>(info));
+			GameEntry.startCoroutine(loadResourceCoroutine<T>(info));
 		}
 		return op;
 	}
@@ -212,7 +210,7 @@ public class AssetDataBaseLoader
 		{
 			return true;
 		}
-		resList.Add(name, CLASS(out ResourceLoadInfo info));
+		ResourceLoadInfo info = resList.addClass(name);
 		info.setPath(path);
 		info.setResourceName(name);
 		info.setState(LOAD_STATE.LOADING);

@@ -37,11 +37,10 @@ public class FrameBaseHotFix
 	public static AndroidPluginManager mAndroidPluginManager;
 	public static AndroidAssetLoader mAndroidAssetLoader;
 	public static AndroidMainClass mAndroidMainClass;
-	public static HeadTextureManager mHeadTextureManager;
 	public static TimeManager mTimeManager;
 	public static MovableObjectManager mMovableObjectManager;
 	public static EffectManager mEffectManager;
-	public static TPSpriteManager mTPSpriteManager;
+	public static AtlasManager mAtlasManager;
 	public static NetPacketFactory mNetPacketFactory;
 	public static PathKeyframeManager mPathKeyframeManager;
 	public static EventSystem mEventSystem;
@@ -62,4 +61,5 @@ public class FrameBaseHotFix
 	public static UndoManager mUndoManager;
 	public static AndroidPurchasing mAndroidPurchasing;
 	public static PurchasingSystem mPurchasingSystem;
+	public static AvatarRenderer mAvatarRenderer;
 }

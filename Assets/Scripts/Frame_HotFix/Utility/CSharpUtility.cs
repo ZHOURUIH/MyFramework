@@ -17,6 +17,7 @@ using static StringUtility;
 using static MathUtility;
 using static FileUtility;
 using static FrameDefine;
+using UDebug = UnityEngine.Debug;
 
 // 与C#有关的工具函数
 public class CSharpUtility
@@ -489,8 +490,6 @@ public class CSharpUtility
 		}
 		return fullTrace.ToString();
 	}
-	// 此处只是定义一个空函数,为了能够进行重定向,因为只有在重定向中才能获取真正的堆栈信息
-	public static string getILRStackTrace() { return ""; }
 	public static int makeID()
 	{
 		if (mIDMaker >= 0x7FFFFFFF)
@@ -645,7 +644,7 @@ public class CSharpUtility
 		{
 			if (infoCallback != null)
 			{
-				process.OutputDataReceived += (sender, e) =>
+				process.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
 				{
 					if (!e.Data.isEmpty())
 					{
@@ -655,7 +654,7 @@ public class CSharpUtility
 			}
 			else
 			{
-				process.OutputDataReceived += (sender, e) =>
+				process.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
 				{
 					if (!e.Data.isEmpty())
 					{
@@ -666,11 +665,11 @@ public class CSharpUtility
 		}
 		if (showError)
 		{
-			process.ErrorDataReceived += (sender, e) =>
+			process.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
 			{
-				if (!e.Data.isEmpty())
+				if (e != null && !e.Data.isEmpty())
 				{
-					logError(e.Data);
+					UDebug.LogError(e.Data);
 				}
 			};
 		}

@@ -2,7 +2,7 @@
 // 可显示数字的红点
 public class RedPointCount : RedPoint
 {
-	protected myUGUIText mPointCountText;	// 数字UI
+	protected IUGUIText mPointCountText;	// 数字UI
 	protected int mCount;					// 显示的数字
 	public override void resetProperty()
 	{
@@ -10,13 +10,13 @@ public class RedPointCount : RedPoint
 		mPointCountText = null;
 		mCount = 0;
 	}
-	public void setPointUI(myUGUIObject point, myUGUIText text)
+	public void setPointUI(myUGUIObject point, IUGUIText text)
 	{
 		addPointUI(point);
 		mPointCountText = text;
-		mPointCountText?.setTextInt(mCount);
+		mPointCountText?.setText(mCount);
 	}
-	public void removePointUI(myUGUIObject point, myUGUIText text)
+	public void removePointUI(myUGUIObject point, IUGUIText text)
 	{
 		removePointUI(point);
 		if (mPointCountText == text)
@@ -27,7 +27,7 @@ public class RedPointCount : RedPoint
 	public void setCount(int count)
 	{
 		mCount = count;
-		mPointCountText?.setTextInt(mCount);
+		mPointCountText?.setText(mCount);
 		// 数量大于0时肯定会显示红点,为0则不显示
 		setEnable(mCount > 0);
 	}

@@ -119,16 +119,41 @@ public class WidgetUtility
 			sides[i] = (corners[i] + corners[(i + 1) % 4]) * 0.5f;
 		}
 	}
+	public static void setRectHeight(RectTransform rectTransform, float size)
+	{
+		Vector2 vector = rectTransform.sizeDelta;
+		vector.x = size - getParentSize(rectTransform).x * (rectTransform.anchorMax.x - rectTransform.anchorMin.x);
+		rectTransform.sizeDelta = vector;
+	}
+	public static void setRectWidth(RectTransform rectTransform, float size)
+	{
+		Vector2 vector = rectTransform.sizeDelta;
+		vector.y = size - getParentSize(rectTransform).y * (rectTransform.anchorMax.y - rectTransform.anchorMin.y);
+		rectTransform.sizeDelta = vector;
+	}
 	public static void setRectSize(RectTransform rectTransform, Vector2 size)
 	{
 		if(rectTransform == null)
 		{
 			return;
 		}
-		Vector2 deltaSize = size - rectTransform.rect.size;
-		Vector2 pivot = rectTransform.pivot;
-		rectTransform.offsetMin -= new Vector2(deltaSize.x * pivot.x, deltaSize.y * pivot.y);
-		rectTransform.offsetMax += new Vector2(deltaSize.x * (1.0f - pivot.x), deltaSize.y * (1.0f - pivot.y));
+		//Vector2 deltaSize = size - rectTransform.rect.size;
+		//Vector2 pivot = rectTransform.pivot;
+		//rectTransform.offsetMin -= new Vector2(deltaSize.x * pivot.x, deltaSize.y * pivot.y);
+		//rectTransform.offsetMax += new Vector2(deltaSize.x * (1.0f - pivot.x), deltaSize.y * (1.0f - pivot.y));
+		// 跟上面是等效的
+		Vector2 parentSize = getParentSize(rectTransform);
+		Vector2 anchorMin = rectTransform.anchorMin;
+		Vector2 anchorMax = rectTransform.anchorMax;
+		Vector2 vector = rectTransform.sizeDelta;
+		vector.x = size.x - parentSize.x * (anchorMax.x - anchorMin.x);
+		vector.y = size.y - parentSize.y * (anchorMax.y - anchorMin.y);
+		rectTransform.sizeDelta = vector;
+	}
+	public static Vector2 getParentSize(RectTransform rectTrans)
+	{
+		var rectTransform = rectTrans.parent as RectTransform;
+		return rectTransform != null ? rectTransform.rect.size : Vector2.zero;
 	}
 	public static void setRectSizeWithFontSize(RectTransform rectTransform, Vector2 size, int minFontSize)
 	{
@@ -245,10 +270,7 @@ public class WidgetUtility
 		for (int i = 0; i < childCount; ++i)
 		{
 			var childRect = transform.GetChild(i) as RectTransform;
-			if (childRect != null && childRect.gameObject.activeSelf)
-			{
-				childList.Add(childRect);
-			}
+			childList.addIf(childRect, childRect != null && childRect.gameObject.activeSelf);
 		}
 
 		// 计算父节点大小
@@ -366,10 +388,7 @@ public class WidgetUtility
 		for (int i = 0; i < childCount; ++i)
 		{
 			var childRect = transform.GetChild(i) as RectTransform;
-			if (childRect != null && childRect.gameObject.activeSelf)
-			{
-				childList.Add(childRect);
-			}
+			childList.addIf(childRect, childRect != null && childRect.gameObject.activeSelf);
 		}
 
 		// 计算父节点大小
@@ -510,10 +529,7 @@ public class WidgetUtility
 		for (int i = 0; i < childCount; ++i)
 		{
 			var childRect = transform.GetChild(i) as RectTransform;
-			if (childRect != null && childRect.gameObject.activeSelf)
-			{
-				childList.Add(childRect);
-			}
+			childList.addIf(childRect, childRect != null && childRect.gameObject.activeSelf);
 		}
 
 		// 计算父节点大小
@@ -720,10 +736,7 @@ public class WidgetUtility
 		for (int i = 0; i < childCount; ++i)
 		{
 			var childRect = transform.GetChild(i) as RectTransform;
-			if (childRect != null && childRect.gameObject.activeSelf)
-			{
-				childList.Add(childRect);
-			}
+			childList.addIf(childRect, childRect != null && childRect.gameObject.activeSelf);
 		}
 
 		if (changeRootPosSize)
@@ -814,10 +827,7 @@ public class WidgetUtility
 		for (int i = 0; i < childCount; ++i)
 		{
 			var childRect = transform.GetChild(i) as RectTransform;
-			if (childRect != null && childRect.gameObject.activeSelf)
-			{
-				childList.Add(childRect);
-			}
+			childList.addIf(childRect, childRect != null && childRect.gameObject.activeSelf);
 		}
 						
 		if (changeRootPosSize)

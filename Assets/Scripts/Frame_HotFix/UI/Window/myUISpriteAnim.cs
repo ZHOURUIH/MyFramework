@@ -86,7 +86,7 @@ public class myUISpriteAnim : myUISprite, IUIAnimation
 			while (mSpriteList.addNotNull(mAtlasPtr.getSprite(mTextureSetName + "_" + IToS(index++)))){}
 			if (getTextureFrameCount() == 0)
 			{
-				logError("invalid sprite anim! atlas : " + mAtlasPtr.getTexture().name + ", anim set : " + textureSetName);
+				logError("invalid sprite anim! atlas : " + mAtlasPtr.getFilePath() + ", anim set : " + textureSetName);
 			}
 		}
 		mControl.setFrameCount(getTextureFrameCount());

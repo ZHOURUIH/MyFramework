@@ -12,7 +12,7 @@ using static FrameBaseDefine;
 public class FrameBaseUtility
 {
 	private static bool mShowMessageBox = true;     // 是否显示报错提示框,用来判断提示框显示次数
-	private static int mMainThreadID;				// 主线程ID
+	private static int mMainThreadID;               // 主线程ID
 	public static void stopApplication()
 	{
 #if UNITY_EDITOR
@@ -337,6 +337,10 @@ public class FrameBaseUtility
 	}
 	public static void destroyComponent<T>(GameObject go) where T : Component
 	{
+		if (go == null)
+		{
+			return;
+		}
 		if (go.TryGetComponent<T>(out var com))
 		{
 			destroyUnityObject(com, true);
@@ -344,6 +348,10 @@ public class FrameBaseUtility
 	}
 	public static T getOrAddComponent<T>(GameObject go) where T : Component
 	{
+		if (go == null)
+		{
+			return null;
+		}
 		if (!go.TryGetComponent(out T com))
 		{
 			com = go.AddComponent<T>();
@@ -353,6 +361,11 @@ public class FrameBaseUtility
 	// 返回值表示是否是新添加的组件
 	public static bool getOrAddComponent<T>(GameObject go, out T com) where T : Component
 	{
+		if (go == null)
+		{
+			com = null;
+			return false;
+		}
 		if (!go.TryGetComponent(out com))
 		{
 			com = go.AddComponent<T>();

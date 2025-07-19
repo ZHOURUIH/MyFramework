@@ -23,6 +23,7 @@ public class AndroidMainClass : FrameSystem
 		mMainClass = null;
 		base.destroy();
 	}
+	public static AndroidJavaClass getMainClass() { return mMainClass; }
 	public static void gameStart()
 	{
 		if (isEditor() || !isAndroid())
@@ -34,6 +35,6 @@ public class AndroidMainClass : FrameSystem
 			logErrorBase("MainClass is null");
 			return;
 		}
-		mMainClass.CallStatic("gameStart", AndroidPluginManager.getMainActivity());
+		mMainClass.CallStatic("gameStart", AndroidPluginManager.getMainActivity(), AndroidPluginManager.getApplication());
 	}
 }

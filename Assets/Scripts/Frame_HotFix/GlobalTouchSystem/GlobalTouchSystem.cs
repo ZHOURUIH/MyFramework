@@ -50,17 +50,24 @@ public class GlobalTouchSystem : FrameSystem
 		return forwardButton;
 	}
 	// 越顶层的物体越靠近列表前面
-	public void getAllHoverObject(ICollection<IMouseEventCollect> hoverList, Vector3 pos, IMouseEventCollect ignoreWindow = null, bool ignorePassRay = false)
+	public void getAllHoverObject(HashSet<IMouseEventCollect> hoverList, Vector3 pos, IMouseEventCollect ignoreWindow = null, bool ignorePassRay = false)
 	{
 		hoverList.Clear();
 		using var a = new ListScope<IMouseEventCollect>(out var resultList);
 		globalRaycast(resultList, pos, ignorePassRay);
 		foreach (IMouseEventCollect window in resultList)
 		{
-			if (ignoreWindow != window)
-			{
-				hoverList.Add(window);
-			}
+			hoverList.addIf(window, ignoreWindow != window);
+		}
+	}
+	public void getAllHoverObject(List<IMouseEventCollect> hoverList, Vector3 pos, IMouseEventCollect ignoreWindow = null, bool ignorePassRay = false)
+	{
+		hoverList.Clear();
+		using var a = new ListScope<IMouseEventCollect>(out var resultList);
+		globalRaycast(resultList, pos, ignorePassRay);
+		foreach (IMouseEventCollect window in resultList)
+		{
+			hoverList.addIf(window, ignoreWindow != window);
 		}
 	}
 	public override void update(float elapsedTime)
@@ -116,7 +123,8 @@ public class GlobalTouchSystem : FrameSystem
 	// 注册碰撞器,只有注册了的碰撞器才会进行检测
 	public void registeCollider(IMouseEventCollect obj, GameCamera camera = null)
 	{
-		if (obj.getCollider() == null)
+		// 允许自动添加碰撞盒
+		if (obj.getCollider(true) == null)
 		{
 			logError("注册碰撞体的物体上找不到碰撞体组件! name:" + obj.getName() + ", " + obj.getDescription());
 			return;
@@ -303,10 +311,7 @@ public class GlobalTouchSystem : FrameSystem
 		using var a = new ListScope<myUIObject>(out var list);
 		while (obj != null)
 		{
-			if (mAllObjectSet.Contains(obj))
-			{
-				list.Add(obj);
-			}
+			list.addIf(obj, mAllObjectSet.Contains(obj));
 			obj = obj.getParent();
 		}
 		mActiveOnlyMovableObject.clear();
@@ -318,10 +323,7 @@ public class GlobalTouchSystem : FrameSystem
 		using var a = new ListScope<myUIObject>(out var list);
 		while (obj != null)
 		{
-			if (mAllObjectSet.Contains(obj))
-			{
-				list.Add(obj);
-			}
+			list.addIf(obj, mAllObjectSet.Contains(obj));
 			obj = obj.getParent();
 		}
 		if (list.Count == 0)
@@ -653,10 +655,7 @@ public class GlobalTouchSystem : FrameSystem
 				logError("窗口已经被销毁,无法访问:" + item.getName());
 				continue;
 			}
-			if (item.isActiveInHierarchy())
-			{
-				activeParentList.Add(item);
-			}
+			activeParentList.addIf(item, item.isActiveInHierarchy());
 		}
 
 		// 射线检测
@@ -674,9 +673,8 @@ public class GlobalTouchSystem : FrameSystem
 			{
 				// 点击到了只允许父节点穿透的窗口,记录到列表中
 				// 但是因为父节点一定是在子节点之后判断的,子节点可能已经拦截了射线,从而导致无法检测到父节点
-				if (activeParentList.Contains(window))
+				if (passParent.addIf(window, activeParentList.Contains(window)))
 				{
-					passParent.Add(window);
 					// 特殊窗口暂时不能接收输入事件,所以不放入相交窗口列表中
 					continue;
 				}

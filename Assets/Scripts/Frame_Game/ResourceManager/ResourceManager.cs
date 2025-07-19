@@ -57,7 +57,7 @@ public class ResourceManager : FrameSystem
 	}
 	public static void loadAssetsFromUrl(string url, BytesCallback callback, DownloadCallback downloadingCallback = null)
 	{
-		GameEntry.getInstance().StartCoroutine(loadAssetsUrl(url, (UObject _, UObject[] _, byte[] bytes, string _) =>
+		GameEntry.startCoroutine(loadAssetsUrl(url, (UObject _, UObject[] _, byte[] bytes, string _) =>
 		{
 			callback?.Invoke(bytes);
 		}, downloadingCallback));

@@ -61,10 +61,7 @@ public class RedPointSystem : FrameSystem
 		node.setID(id);
 		node.setParent(parent);
 		node.init();
-		if (parent == null)
-		{
-			mRootNodeList.Add(node);
-		}
+		mRootNodeList.addIf(node, parent == null);
 		return mPointDictionary.add(id, node);
 	}
 	// 移除一个红点,以及其所有的子节点

@@ -19,7 +19,6 @@ public class myUISprite : myUIObject, IShaderWindow
 	protected string mOriginMaterialPath;       // 原始材质的文件路径
 	protected string mOriginSpriteName;         // 初始图片的名字,用于外部根据初始名字设置其他效果的图片
 	protected bool mIsNewMaterial;              // 当前的材质是否是新建的材质对象
-	protected bool mOriginAtlasInResources;		// OriginAtlas是否是从Resources中加载的
 	public override void init()
 	{
 		base.init();
@@ -28,44 +27,29 @@ public class myUISprite : myUIObject, IShaderWindow
 		mOriginSprite = mSpriteRenderer.sprite;
 		mOriginMaterial = mSpriteRenderer.sharedMaterial;
 		mOriginSpriteName = getSpriteName();
-		// mOriginSprite无法简单使用?.来判断是否为空,需要显式判断
-		Texture2D curTexture = mOriginSprite != null ? mOriginSprite.texture : null;
 		// 获取初始的精灵所在图集
-		if (curTexture != null)
+		if (mOriginSprite != null)
 		{
+			if (!mObject.TryGetComponent<ImageAtlasPath>(out var comImageAtlasPath))
+			{
+				logError("需要切换图片的SpriteRenderer组件上找不到ImageAtlasPath组件, GameObject:" + getGameObjectPath(mObject));
+				return;
+			}
 			string atlasPath;
-			if (mObject.TryGetComponent<ImageAtlasPath>(out var comImageAtlasPath))
+			if (mLayout.isInResources())
 			{
-				if (mOriginAtlasInResources)
-				{
-					atlasPath = comImageAtlasPath.mAtlasPath.removeStartString(P_RESOURCES_PATH);
-				}
-				else
-				{
-					atlasPath = comImageAtlasPath.mAtlasPath.removeStartString(P_GAME_RESOURCES_PATH);
-				}
+				atlasPath = comImageAtlasPath.mAtlasPath.removeStartString(P_RESOURCES_PATH);
+				mOriginAtlasPtr = mAtlasManager.getAtlasInResources(atlasPath, false);
 			}
 			else
 			{
-				atlasPath = R_ATLAS_GAME_ATLAS_PATH + curTexture.name + ".png";
-			}
-			mOriginAtlasInResources = mLayout.isInResources();
-			if (mOriginAtlasInResources)
-			{
-				mOriginAtlasPtr = mTPSpriteManager.getAtlasInResources(atlasPath, false, true);
-			}
-			else
-			{
-				mOriginAtlasPtr = mTPSpriteManager.getAtlas(atlasPath, false, true);
+				atlasPath = comImageAtlasPath.mAtlasPath.removeStartString(P_GAME_RESOURCES_PATH);
+				mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
 			}
 			if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
 			{
-				logError("无法加载初始化的图集:" + atlasPath + ",Texture:" + curTexture.name + ",GameObject:" + getGameObjectPath(mObject) +
+				logError("无法加载初始化的图集:" + atlasPath + ",GameObject:" + getGameObjectPath(mObject) +
 					",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (comImageAtlasPath != null ? comImageAtlasPath.mAtlasPath : EMPTY));
-			}
-			if (mOriginAtlasPtr != null && mOriginAtlasPtr.isValid() && mOriginAtlasPtr.getTexture() != curTexture)
-			{
-				logError("设置的图集与加载出的图集不一致!可能未添加ImageAtlasPath组件,或者ImageAtlasPath组件中记录的路径错误,或者是在当前物体在重复使用过程中销毁了原始图集\n图集名:" + mOriginSprite.name + ", 记录的图集路径:" + atlasPath);
 			}
 			mAtlasPtr = mOriginAtlasPtr;
 		}
@@ -109,13 +93,13 @@ public class myUISprite : myUIObject, IShaderWindow
 		mSpriteRenderer.sprite = mOriginSprite;
 		setMaterial(mOriginMaterial);
 		setAlpha(1.0f);
-		if (mOriginAtlasInResources)
+		if (mLayout.isInResources())
 		{
-			mTPSpriteManager.unloadAtlasInResourcecs(ref mOriginAtlasPtr);
+			mAtlasManager.unloadAtlasInResourcecs(ref mOriginAtlasPtr);
 		}
 		else
 		{
-			mTPSpriteManager.unloadAtlas(ref mOriginAtlasPtr);
+			mAtlasManager.unloadAtlas(ref mOriginAtlasPtr);
 		}
 		mAtlasPtr = null;
 		base.destroy();
@@ -221,7 +205,7 @@ public class myUISprite : myUIObject, IShaderWindow
 		{
 			return;
 		}
-		if (sprite != null && mAtlasPtr != null && sprite.texture != mAtlasPtr.getTexture())
+		if (sprite != null && mAtlasPtr != null && !mAtlasPtr.hasSprite(sprite))
 		{
 			logWarning("设置不同图集的图片可能会引起问题,如果需要设置其他图集的图片,请使用setSpriteOnly");
 		}
@@ -237,7 +221,7 @@ public class myUISprite : myUIObject, IShaderWindow
 		}
 		if (sprite != null && !isFloatEqual(sprite.pixelsPerUnit, 1.0f))
 		{
-			logError("sprite的pixelsPerUnit需要为1, name:" + sprite.texture.name);
+			logError("sprite的pixelsPerUnit需要为1, name:" + sprite.name);
 		}
 		mSpriteRenderer.sprite = sprite;
 	}

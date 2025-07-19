@@ -76,6 +76,7 @@ public class FrameBaseDefine
 	public const string FILE_LIST = "FileList";
 	public const string FILE_LIST_REMOTE = "FileList_Remote";
 	public const string FILE_LIST_MD5 = "FileList_MD5";
+	public const string DYNAMIC_SECRET_FILE = "DynamicSecretKey.bytes";
 	// 语言名
 	public const string LANGUAGE_CHINESE_TRADITIONAL = "ChineseTraditional";            // 中文繁体语言的名字
 	public const string LANGUAGE_CHINESE = "Chinese";                                   // 中文简体语言的名字

@@ -100,7 +100,7 @@ public class ResourcesLoader
 			info.setResourceName(name);
 			info.setState(LOAD_STATE.LOADING);
 			info.addCallback(doneCallback, name);
-			GameEntry.getInstance().StartCoroutine(loadResourceCoroutine<T>(info));
+			GameEntry.startCoroutine(loadResourceCoroutine<T>(info));
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------

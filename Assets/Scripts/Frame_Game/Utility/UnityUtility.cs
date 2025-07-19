@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Reflection;
+using UnityEngine;
 using UObject = UnityEngine.Object;
 using static FrameBaseUtility;
 
@@ -126,5 +128,18 @@ public class UnityUtility
 		// Z轴按照Y轴的缩放值来缩放
 		newScale.z = newScale.y;
 		return newScale;
+	}
+	public static MethodInfo getMethodRecursive(Type type, string methodName, BindingFlags flags)
+	{
+		while (type != null)
+		{
+			MethodInfo method = type.GetMethod(methodName, flags);
+			if (method != null)
+			{
+				return method;
+			}
+			type = type.BaseType;
+		}
+		return null;
 	}
 }

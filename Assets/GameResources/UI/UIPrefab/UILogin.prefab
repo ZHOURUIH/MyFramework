@@ -367,6 +367,7 @@ GameObject:
   - component: {fileID: 8692139812225050110}
   - component: {fileID: 5362067070366512617}
   - component: {fileID: 2481270772511125847}
+  - component: {fileID: 1645072512800265069}
   m_Layer: 5
   m_Name: UILogin
   m_TagString: Untagged
@@ -437,3 +438,22 @@ MonoBehaviour:
   mRemoveUGUIAnchor: 1
   mKeepAspect: 0
   mAspectBase: 2
+--- !u!114 &1645072512800265069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8462627078996064467}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1324c7b97d0cd4d4286eaa7aef336d1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mMemberList:
+  - mObject: {fileID: 3649696244049861466}
+    mType: myUGUIObject
+    mDefaultActive: 0
+    mIsArray: 0
+    mArrayLength: 0
+  mIsPersistent: 0

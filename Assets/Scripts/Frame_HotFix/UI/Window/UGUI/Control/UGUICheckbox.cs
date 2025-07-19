@@ -4,13 +4,16 @@
 public class UGUICheckbox : WindowObjectUGUI
 {
 	protected myUGUIObject mMark;       // 勾选图片节点
-	protected myUGUIText mLabel;		// 文字节点
+#if USE_TMP
+	protected myUGUITextTMP mLabel;     // 文字节点
+#else
+	protected myUGUIText mLabel;        // 文字节点
+#endif
 	protected OnCheck mCheckCallback;	// 勾选状态改变的回调
-	public UGUICheckbox(LayoutScript script)
-		:base(script){ }
-	public void assignWindow(myUGUIObject parent, string rootName)
+	public UGUICheckbox(IWindowObjectOwner parent) : base(parent) { }
+	protected override void assignWindowInternal()
 	{
-		base.assignWindow(parent, rootName);
+		base.assignWindowInternal();
 		newObject(out mMark, "Mark");
 		newObject(out mLabel, "Label", false);
 	}
@@ -22,7 +25,11 @@ public class UGUICheckbox : WindowObjectUGUI
 		}
 		mRoot.registeCollider(onCheckClick);
 	}
+#if USE_TMP
+	public myUGUITextTMP getLabelObject() { return mLabel; }
+#else
 	public myUGUIText getLabelObject() { return mLabel; }
+#endif
 	public void setLabel(string label) { mLabel?.setText(label); }
 	public void setOnCheck(OnCheck callback) { mCheckCallback = callback; }
 	public void setChecked(bool check) { mMark.setActive(check); }

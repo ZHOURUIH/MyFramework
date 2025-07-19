@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using static StringUtility;
 using static FrameBaseHotFix;
-using static MathUtility;
 using static UnityUtility;
 using static FrameDefine;
 using static FrameBaseUtility;
@@ -10,11 +9,9 @@ using static FrameBaseUtility;
 public class myUGUIImagePro : myUGUIImage, IShaderWindow
 {
 	protected WindowShader mWindowShader;					// 图片所使用的shader类,用于动态设置shader参数
-	protected CanvasGroup mCanvasGroup;						// 用于是否显示
 	protected Material mOriginMaterial;						// 初始的材质,用于重置时恢复材质
 	protected string mOriginMaterialPath;					// 初始的材质路径
 	protected bool mIsNewMaterial;							// 当前的材质是否是新建的材质对象
-	protected bool mCanvasGroupValid;						// 当前CanvasGroup是否有效,在测试中发现判断mCanvasGroup是否为空的写法会比较耗时,所以替换为bool判断
 	public override void init()
 	{
 		base.init();
@@ -53,27 +50,8 @@ public class myUGUIImagePro : myUGUIImage, IShaderWindow
 			}
 		}
 		mImage.material = mOriginMaterial;
-		if (mCanvasGroup != null)
-		{
-			mCanvasGroup.alpha = 1.0f;
-			mCanvasGroup = null;
-		}
-		mCanvasGroupValid = false;
 		base.destroy();
 	}
-	// 是否剔除渲染
-	public void cull(bool isCull)
-	{
-		if (mCanvasGroup == null)
-		{
-			mCanvasGroup = getOrAddUnityComponent<CanvasGroup>();
-		}
-		mCanvasGroup.alpha = isCull ? 0.0f : 1.0f;
-		mCanvasGroupValid = true;
-	}
-	public override bool isCulled() { return mCanvasGroupValid && isFloatZero(mCanvasGroup.alpha); }
-	public override bool canUpdate() { return !isCulled() && base.canUpdate(); }
-	public override bool canGenerateDepth() { return !isCulled(); }
 	public void setWindowShader(WindowShader shader)
 	{
 		mWindowShader = shader;

@@ -20,15 +20,15 @@ public class TimeUtility
 	public static void setThisTimeMS(long time) { mThisTimeMS = time; }
 	// 获取这一帧的时间戳,时间戳在这一帧内都不变,比getNowTimeStampMS效率高一些
 	public static long getThisTimeMS() { return mThisTimeMS; }
-	public static string getTimeNoLock(TIME_DISPLAY display) { return getTimeNoLock(DateTime.Now, display); }
+	public static string getTimeNoLock(TIME_DISPLAY display) { return getTimeStringNoLock(DateTime.Now, display); }
 	// 获得当前时间的字符串,display表示显示的格式,仅可在主线程中调用
-	public static string getNowTime(TIME_DISPLAY display) { return getTime(DateTime.Now, display); }
+	public static string getNowTime(TIME_DISPLAY display) { return getTimeString(DateTime.Now, display); }
 	// 获得当前时间的字符串,display表示显示的格式
-	public static string getTimeNoBuilder(TIME_DISPLAY display) { return getTimeNoBuilder(DateTime.Now, display); }
+	public static string getTimeNoBuilder(TIME_DISPLAY display) { return getTimeStringNoBuilder(DateTime.Now, display); }
 	// timeStamp是UTC时间戳,显示为UTC时间
-	public static string getDateTimeToUTC(long utcTimeStamp, TIME_DISPLAY display) { return getTime(timeStampToDateTimeUTC(utcTimeStamp), display); }
+	public static string getDateTimeToUTC(long utcTimeStamp, TIME_DISPLAY display) { return getTimeString(timeStampToDateTimeUTC(utcTimeStamp), display); }
 	// timeStamp是UTC时间戳,会转换为本地时间来显示
-	public static string getLocalTime(long utcTimeStamp, TIME_DISPLAY display) { return getTime(timeStampToDateTime(utcTimeStamp), display); }
+	public static string getLocalTime(long utcTimeStamp, TIME_DISPLAY display) { return getTimeString(timeStampToDateTime(utcTimeStamp), display); }
 	// 将时间转化成时间戳,dateTime是本地时间
 	public static long dateTimeToTimeStamp(DateTime dateTime) { return (long)(dateTime - mTime19700101).TotalSeconds; }
 	// 将时间转化成时间戳,dateTime是本地时间
@@ -69,6 +69,16 @@ public class TimeUtility
 		DateTime now = DateTime.Now;
 		return new DateTime(now.Year, now.Month, now.Day, hour, minute, second);
 	}
+	// 获取今天开始的时间
+	public static DateTime getTodayBegin()
+	{
+		return getTodayTime(0);
+	}
+	// 获取今天开始时间的时间戳
+	public static long getTodayBeginTimeStamp()
+	{
+		return dateTimeToTimeStamp(getTodayBegin());
+	}
 	// 获得明天的时间,如果hour为0,就是今天的晚上12点
 	public static DateTime getTomorrowTime(int hour, int minute = 0, int second = 0)
 	{
@@ -79,6 +89,8 @@ public class TimeUtility
 	public static TimeSpan getTimeToTodayEnd()  { return getTomorrowTime(0) - DateTime.Now; }
 	// 获取从现在到晚上12点的时间差秒数
 	public static int getSecondsToTodayEnd()  { return (int)getTimeToTodayEnd().TotalSeconds;  }
+	// 获取一定天数的秒数
+	public static int daysToSeconds(int days) { return 24 * 60 * 60 * days; }
 	public static string minuteToHourMinuteString(int totalMinute)
 	{
 		minuteToHourMinute(totalMinute, out int hour, out int minute);
@@ -94,7 +106,7 @@ public class TimeUtility
 		return timeStr.ToString();
 	}
 	// 一般用于倒计时显示的字符串,只获取数字,自己拼接需要显示的字符串,适用于需要切换多语言的文本
-	public static string getTime(int timeSecond, out int days, out int hours, out int minutes, out int seconds, bool needSecond)
+	public static string getTimeString(int timeSecond, out int days, out int hours, out int minutes, out int seconds, bool needSecond)
 	{
 		int totalMin = timeSecond / 60;
 		int totalHour = totalMin / 60;
@@ -106,7 +118,7 @@ public class TimeUtility
 		hours = curHour;
 		minutes = curMin;
 		seconds = curSecond;
-		string returnStr = EMPTY;
+		string returnStr;
 		if (totalDay > 0)
 		{
 			returnStr = "{0}天{1}时{2}分";
@@ -130,7 +142,7 @@ public class TimeUtility
 		return returnStr + (needSecond ? "{3}秒" : EMPTY);
 	}
 	// 一般用于倒计时显示的字符串,只获取数字,自己拼接需要显示的字符串,适用于需要切换多语言的文本
-	public static string getTime(int timeSecond, out int days, out int hours, out int minutes)
+	public static string getTimeString(int timeSecond, out int days, out int hours, out int minutes)
 	{
 		int totalMin = timeSecond / 60;
 		int totalHour = totalMin / 60;
@@ -152,7 +164,7 @@ public class TimeUtility
 		return "{2}分";
 	}
 	// 一般用于倒计时显示的字符串
-	public static string getTime(int timeSecond, TIME_DISPLAY display)
+	public static string getTimeString(int timeSecond, TIME_DISPLAY display)
 	{
 		int hour = timeSecond / 3600;
         int min = (timeSecond - hour * 3600) / 60;
@@ -216,7 +228,7 @@ public class TimeUtility
 		return EMPTY;
 	}
 	// 只能在主线程中调用的获取当前时间字符串
-	public static string getTime(DateTime time, TIME_DISPLAY display)
+	public static string getTimeString(DateTime time, TIME_DISPLAY display)
 	{
 		if (display == TIME_DISPLAY.HMSM)
 		{
@@ -248,7 +260,7 @@ public class TimeUtility
 		}
 		return EMPTY;
 	}
-	public static string getTimeNoLock(DateTime time, TIME_DISPLAY display)
+	public static string getTimeStringNoLock(DateTime time, TIME_DISPLAY display)
 	{
 		if (display == TIME_DISPLAY.HMSM)
 		{
@@ -281,7 +293,7 @@ public class TimeUtility
 		return EMPTY;
 	}
 	// 不使用自定义的字符串拼接器,使用内置的StringBuilder进行拼接
-	public static string getTimeNoBuilder(DateTime time, TIME_DISPLAY display)
+	public static string getTimeStringNoBuilder(DateTime time, TIME_DISPLAY display)
 	{
 		StringBuilder builder = new(256);
 		if (display == TIME_DISPLAY.HMSM)

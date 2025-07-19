@@ -29,10 +29,7 @@ public class LocalizationImage : MonoBehaviour
 			return;
 		}
 		string atlasPath = imageAtlasPath.mAtlasPath.removeStartString(P_GAME_RESOURCES_PATH);
-		if (mTPSpriteManager != null)
-		{
-			mAtlasPtr = mTPSpriteManager.getAtlas(atlasPath, false, true);
-		}
+		mAtlasPtr = mAtlasManager?.getAtlas(atlasPath, false);
 		updateVariable();
 		mLocalizationManager?.registeAction(onLanguageChanged);
 		onLanguageChanged();
@@ -54,7 +51,7 @@ public class LocalizationImage : MonoBehaviour
 	}
 	private void OnDestroy()
     {
-		mTPSpriteManager?.unloadAtlas(ref mAtlasPtr);
+		mAtlasManager?.unloadAtlas(ref mAtlasPtr);
 		mLocalizationManager?.unregisteAction(onLanguageChanged);
     }
     private void onLanguageChanged()

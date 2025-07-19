@@ -1008,6 +1008,40 @@ public class EditorCommonUtility
 		}
 		return AssetDatabase.LoadAssetAtPath<UObject>(filePath);
 	}
+	public static T loadAsset<T>(string filePath) where T : UObject
+	{
+		if (filePath.isEmpty())
+		{
+			return null;
+		}
+		// 如果是绝对路径,需要转换为项目下的相对路径
+		if (filePath.StartsWith(F_ASSETS_PATH))
+		{
+			filePath = fullPathToProjectPath(filePath);
+		}
+		return AssetDatabase.LoadAssetAtPath<T>(filePath);
+	}
+	public static T loadFirstSubAsset<T>(string filePath) where T : UObject
+	{
+		if (filePath.isEmpty())
+		{
+			return null;
+		}
+		// 如果是绝对路径,需要转换为项目下的相对路径
+		if (filePath.StartsWith(F_ASSETS_PATH))
+		{
+			filePath = fullPathToProjectPath(filePath);
+		}
+		UObject[] assets = AssetDatabase.LoadAllAssetsAtPath(filePath);
+		foreach (UObject asset in assets)
+		{
+			if (asset is T obj)
+			{
+				return obj;
+			}
+		}	
+		return null;
+	}
 	public static GameObject loadGameObject(string filePath)
 	{
 		if (filePath.isEmpty())
@@ -2241,7 +2275,7 @@ public class EditorCommonUtility
 			log("图集:" + path + "中的图片:" + item.Value + "不存在", Color.red, loadAsset(path));
 		}
 	}
-	public static void doCheckAtlasRefrence(string path, Dictionary<string, List<FileGUIDLines>> allFileText)
+	public static void doCheckTPAtlasRefrence(string path, Dictionary<string, List<FileGUIDLines>> allFileText)
 	{
 		Dictionary<string, SpriteRefrenceInfo> refrenceList = new();
 		searchSpriteRefrence(path, refrenceList, allFileText);
@@ -2305,7 +2339,7 @@ public class EditorCommonUtility
 		if (refFilePath.rightToLeft() != getFilePath(path.rightToLeft()))
 		{
 			Debug.LogError(path + " 只被 " + refFilePath + "中的文件引用,但是没有在同一个目录", loadAsset(path));
-			Debug.LogError("所在目录:" + refFilePath, loadAsset(refrenceList.First().Key));
+			Debug.LogError("所在目录:" + refFilePath, loadAsset(refrenceList.firstKey()));
 			if (needMoveFile)
 			{
 				moveFile(projectPathToFullPath(path), projectPathToFullPath(refFilePath + "/") + getFileNameWithSuffix(path));
@@ -3299,6 +3333,50 @@ public class EditorCommonUtility
 			return fullOrInProject ? F_ASSET_BUNDLE_MACOS_PATH : P_ASSET_BUNDLE_MACOS_PATH;
 		}
 		return null;
+	}
+	public static bool multiSpriteToSpritePNG(Texture2D tex2D, string outputPath)
+	{
+		bool backupReadable = tex2D.isReadable;
+		string texPath = AssetDatabase.GetAssetPath(tex2D);
+		bool modified = false;
+		var importer = AssetImporter.GetAtPath(texPath) as TextureImporter;
+		TextureImporterCompression backupCompress = importer.textureCompression;
+		if (!tex2D.isReadable)
+		{
+			importer.isReadable = true;
+			modified = true;
+		}
+		if (tex2D.format != TextureFormat.RGBA32 && tex2D.format != TextureFormat.RGB24)
+		{
+			importer.textureCompression = TextureImporterCompression.Uncompressed;
+			modified = true;
+		}
+		if (modified)
+		{
+			importer.SaveAndReimport();
+		}
+		validPath(ref outputPath);
+		foreach (UObject obj in AssetDatabase.LoadAllAssetsAtPath(texPath))
+		{
+			if (obj is not Sprite sprite)
+			{
+				continue;
+			}
+			Texture2D output = new((int)sprite.rect.width, (int)sprite.rect.height);
+			Rect r = sprite.textureRect;
+			output.SetPixels(sprite.texture.GetPixels((int)r.x, (int)r.y, (int)r.width, (int)r.height));
+			output.Apply();
+			output.name = sprite.name;
+			byte[] bytes = output.EncodeToPNG();
+			writeFile(outputPath + sprite.name + ".png", bytes, bytes.Length);
+		}
+		if (modified)
+		{
+			importer.isReadable = backupReadable;
+			importer.textureCompression = backupCompress;
+			importer.SaveAndReimport();
+		}
+		return true;
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 获取字体的引用信息 filePath 文件路径 assetType类型 tipText提示信息

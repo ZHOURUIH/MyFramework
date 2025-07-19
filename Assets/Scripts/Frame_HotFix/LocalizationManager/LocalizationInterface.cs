@@ -1,5 +1,4 @@
-﻿
-using UnityEngine;
+﻿using UnityEngine;
 
 public interface IUGUIObject
 {
@@ -10,6 +9,7 @@ public interface IUGUIObject
 public interface IUGUIText : IUGUIObject
 {
 	public void setText(string text);
+	public void setText(int text);
 }
 
 public interface IUGUIImage : IUGUIObject

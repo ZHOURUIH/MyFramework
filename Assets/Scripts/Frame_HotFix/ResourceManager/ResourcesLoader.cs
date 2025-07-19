@@ -23,10 +23,7 @@ public class ResourcesLoader
 		list.Clear();
 		foreach (string item in fileList)
 		{
-			if (!item.EndsWith(".meta"))
-			{
-				list.Add(removeSuffix(item));
-			}
+			list.addIf(removeSuffix(item), !item.EndsWith(".meta"));
 		}
 	}
 	public bool unloadResource<T>(ref T obj, bool showError) where T : UObject
@@ -190,7 +187,7 @@ public class ResourcesLoader
 		// 还没有加载则开始异步加载
 		else
 		{
-			info = resList.add(name, CLASS<ResourceLoadInfo>());
+			info = resList.addClass(name);
 			info.setPath(path);
 			info.setResourceName(name);
 			info.setState(LOAD_STATE.LOADING);
@@ -199,7 +196,7 @@ public class ResourcesLoader
 				doneCallback?.Invoke(asset, assets, bytes, loadPath);
 				op.setFinish();
 			}, name);
-			GameEntry.getInstance().StartCoroutine(loadResourceCoroutine<T>(info));
+			GameEntry.startCoroutine(loadResourceCoroutine<T>(info));
 		}
 		return op;
 	}
@@ -211,7 +208,7 @@ public class ResourcesLoader
 		{
 			return;
 		}
-		var info = resList.add(name, CLASS<ResourceLoadInfo>());
+		ResourceLoadInfo info = resList.addClass(name);
 		info.setPath(path);
 		info.setResourceName(name);
 		info.setState(LOAD_STATE.LOADING);

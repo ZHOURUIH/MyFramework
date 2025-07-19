@@ -441,6 +441,11 @@ public class StringUtility
 		{
 			return;
 		}
+		if (path == ASSETS)
+		{
+			path = F_ASSETS_PATH;
+			return;
+		}
 		path = F_ASSETS_PATH + path.removeStartCount(ASSETS.Length + 1);
 	}
 	public static string projectPathToFullPath(string path)
@@ -448,6 +453,10 @@ public class StringUtility
 		if (path.isEmpty())
 		{
 			return path;
+		}
+		if (path == ASSETS)
+		{
+			return F_ASSETS_PATH;
 		}
 		return F_ASSETS_PATH + path.removeStartCount(ASSETS.Length + 1);
 	}
@@ -545,6 +554,7 @@ public class StringUtility
 		}
 		return builder;
 	}
+	// 获得文件的后缀名,带.号
 	public static string getFileSuffix(string file)
 	{
 		int dotPos = file.IndexOf('.', file.LastIndexOf('/'));
@@ -2003,7 +2013,7 @@ public class StringUtility
 				}
 				else
 				{
-					builder.color(item.Value, item.Key);
+					builder.colorString(item.Value, item.Key);
 				}
 			}
 			lineList[i] = builder.ToString();
@@ -2028,7 +2038,40 @@ public class StringUtility
 				lineList.Add(originString.removeStartCount(startIndex));
 				break;
 			}
-			if (getContentLength(textWindow, originString.substr(startIndex, charIndex)) >= maxContentDisplayWidth)
+			if (getContentLength(textWindow.getTextComponent(), originString.substr(startIndex, charIndex)) >= maxContentDisplayWidth)
+			{
+				// 超出以后需要减少一个字符,避免超出显示范围
+				--charIndex;
+				lineList.Add(originString.substr(startIndex, charIndex));
+				startIndex += charIndex;
+				charIndex = minStringLength;
+			}
+			else
+			{
+				++charIndex;
+			}
+		}
+	}
+	// 将文本拆分为多行来显示,originString应该是不带富文本标签的字符串,否则会影响字符长度的计算
+	// 默认每一行至少可以容纳30个字符,所以都是从30开始截取字符串,为了提高效率
+	public static void generateMultiLine(myUGUITextTMP textWindow, string originString, List<string> lineList, int minStringLength = 30)
+	{
+		if (originString.Length < minStringLength)
+		{
+			lineList.Add(originString);
+			return;
+		}
+		int maxContentDisplayWidth = (int)textWindow.getWindowSize().x;
+		int charIndex = minStringLength;
+		int startIndex = 0;
+		while (true)
+		{
+			if (startIndex + charIndex >= originString.Length)
+			{
+				lineList.Add(originString.removeStartCount(startIndex));
+				break;
+			}
+			if (getContentLength(textWindow.getTextComponent(), originString.substr(startIndex, charIndex)) >= maxContentDisplayWidth)
 			{
 				// 超出以后需要减少一个字符,避免超出显示范围
 				--charIndex;

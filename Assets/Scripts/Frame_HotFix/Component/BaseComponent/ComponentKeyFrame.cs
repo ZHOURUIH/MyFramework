@@ -48,8 +48,11 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 	}
 	public override void destroy()
 	{
-		// 销毁前需要确定会执行回调
-		doneCallback(ref mDoneCallback, this, true);
+		// 销毁前需要确定会执行回调,如果整个系统都已经销毁了,就可以不执行,有需求可以再添加
+		if (mGameFrameworkHotFix != null && !mGameFrameworkHotFix.isDestroy())
+		{
+			doneCallback(ref mDoneCallback, this, true);
+		}
 		base.destroy();
 	}
 	public override void setActive(bool active)

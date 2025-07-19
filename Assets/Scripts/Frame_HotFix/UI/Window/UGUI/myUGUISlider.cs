@@ -11,6 +11,10 @@ public class myUGUISlider : myUGUIObject, ISlider
 		base.init();
 		if (!mObject.TryGetComponent(out mSlider))
 		{
+			if (!mIsNewObject)
+			{
+				logError("需要添加一个Slider组件,name:" + getName() + ", layout:" + getLayout().getName());
+			}
 			mSlider = mObject.AddComponent<Slider>();
 			// 添加UGUI组件后需要重新获取RectTransform
 			mObject.TryGetComponent(out mRectTransform);

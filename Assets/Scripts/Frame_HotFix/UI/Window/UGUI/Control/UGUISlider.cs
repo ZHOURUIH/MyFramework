@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.UI;
 using static UnityUtility;
 using static MathUtility;
 
@@ -18,26 +19,33 @@ public class UGUISlider : WindowObjectUGUI, ISlider
 	protected bool mEnableDrag;						// 是否需要启用手指滑动进度条
 	protected DRAG_DIRECTION mDirection;			// 滑动方向
 	protected SLIDER_MODE mMode;                    // 滑动条显示的实现方式
-	public UGUISlider(LayoutScript script)
-		: base(script)
+	public UGUISlider(IWindowObjectOwner parent) : base(parent)
 	{
 		mDirection = DRAG_DIRECTION.HORIZONTAL;
 		mMode = SLIDER_MODE.FILL;
 	}
-	public override void assignWindow(myUIObject parent, string name)
+	protected override void assignWindowInternal()
 	{
-		base.assignWindow(parent, name);
+		base.assignWindowInternal();
 		newObject(out mForeground, "Foreground");
 		newObject(out mThumb, mForeground, "Thumb", false);
 	}
-	public override void init(){}
-	// 不需要手动调用init,调用initSlider来进行初始化设置
-	public void initSlider(bool enableDrag, DRAG_DIRECTION direction, SLIDER_MODE mode, Action sliderCallback)
+	public void initSlider(Action sliderCallback)
 	{
-		init();
+		initSlider(true, DRAG_DIRECTION.HORIZONTAL, sliderCallback);
+	}
+	public void initSlider(bool enableDrag, DRAG_DIRECTION direction, Action sliderCallback)
+	{
 		mEnableDrag = enableDrag;
 		mDirection = direction;
-		mMode = mode;
+		if (mForeground.getImage().type == Image.Type.Filled)
+		{
+			mMode = SLIDER_MODE.FILL;
+		}
+		else
+		{
+			mMode = SLIDER_MODE.SIZING;
+		}
 		mSliderCallback = sliderCallback;
 		mOriginForegroundSize = mForeground.getWindowSize();
 		mOriginForegroundPosition = mForeground.getPosition();
@@ -100,7 +108,7 @@ public class UGUISlider : WindowObjectUGUI, ISlider
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void updateSlider(float value)
 	{
-		if (isVectorEqual(mOriginForegroundSize, Vector2.zero))
+		if (isVectorZero(mOriginForegroundSize))
 		{
 			logError("foreground的size为0,是否忘记调用了UGUISlider的initSlider?");
 			return;
@@ -116,24 +124,17 @@ public class UGUISlider : WindowObjectUGUI, ISlider
 			if (mDirection == DRAG_DIRECTION.HORIZONTAL)
 			{
 				float newWidth = mSliderValue * mOriginForegroundSize.x;
-				Vector3 newForePos = mOriginForegroundPosition;
-				newForePos.x = mOriginForegroundPosition.x - mOriginForegroundSize.x * 0.5f + newWidth * 0.5f;
-				FT.MOVE(mForeground, newForePos);
+				FT.MOVE(mForeground, replaceX(mOriginForegroundPosition, mOriginForegroundPosition.x - mOriginForegroundSize.x * 0.5f + newWidth * 0.5f));
 				mForeground.setWindowSize(new(newWidth, mOriginForegroundSize.y));
 			}
 			else if (mDirection == DRAG_DIRECTION.VERTICAL)
 			{
 				float newHeight = mSliderValue * mOriginForegroundSize.y;
-				Vector3 newForePos = mOriginForegroundPosition;
-				newForePos.y = mOriginForegroundPosition.y - mOriginForegroundSize.y * 0.5f + newHeight * 0.5f;
-				FT.MOVE(mForeground, newForePos);
+				FT.MOVE(mForeground, replaceY(mOriginForegroundPosition, mOriginForegroundPosition.y - mOriginForegroundSize.y * 0.5f + newHeight * 0.5f));
 				mForeground.setWindowSize(new(mOriginForegroundSize.x, newHeight));
 			}
 		}
-		if (mThumb != null)
-		{
-			FT.MOVE(mThumb, sliderValueToThumbPos(mSliderValue));
-		}
+		FT.MOVE(mThumb, sliderValueToThumbPos(mSliderValue));
 	}
 	protected Vector3 sliderValueToThumbPos(float value)
 	{

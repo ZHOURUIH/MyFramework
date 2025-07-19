@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using static FrameBaseHotFix;
+using static FrameBaseUtility;
 using static UnityUtility;
 
 // 用于辅助生成渲染到纹理,比如在UI上显示角色,或者其他要将模型渲染到纹理的情况
 // 默认要渲染的模型位于原点
-public class AvatarRendererHelper
+public class AvatarRenderer : FrameSystem
 {
 	protected Queue<GameCamera> mPostCameraUnuseList = new();
 	protected Queue<GameCamera> mNoPostCameraUnuseList = new();
@@ -13,22 +14,23 @@ public class AvatarRendererHelper
 	protected List<GameCamera> mNoPostCameraUsedList = new();
 	protected GameCamera mCameraPostTemplate;
 	protected GameCamera mCameraNoPostTemplate;
-	protected Vector3 mCameraOriginPos;
+	protected Vector3 mCameraPosOffset;
 	protected Vector3 mAvatarOriginPos;
 	protected int mCurIndex;
-	public void resetProperty()
+	public override void resetProperty()
 	{
+		base.resetProperty();
 		mPostCameraUnuseList.Clear();
 		mNoPostCameraUnuseList.Clear();
 		mPostCameraUsedList.Clear();
 		mNoPostCameraUsedList.Clear();
 		mCameraPostTemplate = null;
 		mCameraNoPostTemplate = null;
-		mCameraOriginPos = Vector3.zero;
+		mCameraPosOffset = Vector3.zero;
 		mAvatarOriginPos = Vector3.zero;
 		mCurIndex = 0;
 	}
-	public void destroy()
+	public override void destroy()
 	{
 		foreach (GameCamera camera in mPostCameraUnuseList)
 		{
@@ -54,24 +56,23 @@ public class AvatarRendererHelper
 		mCameraManager?.destroyCamera(mCameraNoPostTemplate);
 		mCameraPostTemplate = null;
 		mCameraNoPostTemplate = null;
+		base.destroy();
 	}
-	// 需要在init之前调用
-	public void setPostCamera(GameObject go)
+	public void setOriginPosition(Vector3 cameraPosOffset, Vector3 avatarPos)
 	{
-		mCameraPostTemplate = mCameraManager.createCamera(go, 0, true, false);
-		mCameraPostTemplate.setPostProcessing(true);
-		mCameraPostTemplate.setActive(false);
-		mCameraOriginPos = mCameraPostTemplate.getPosition();
+		mCameraPosOffset = cameraPosOffset;
+		mAvatarOriginPos = avatarPos; 
 	}
-	public void setNoPostCamera(GameObject go)
+	public Vector3 createRenderTarget(myUGUIRawImage ui)
 	{
-		mCameraNoPostTemplate = mCameraManager.createCamera(go, 0, true, false);
-		mCameraNoPostTemplate.setPostProcessing(false);
-		mCameraNoPostTemplate.setActive(false);
-	}
-	public void setAvatarPosition(Vector3 pos) { mAvatarOriginPos = pos; }
-	public void createRenderTarget(myUGUIRawImage ui, out Vector3 avatarPos)
-	{
+		if (mCameraNoPostTemplate == null && mCameraPostTemplate == null)
+		{
+			initCamera();
+		}
+
+		// 先尝试将当前的RT回收
+		destroyRenderTarget(ui);
+
 		GameCamera postCamera;
 		GameCamera noPostCamera;
 		// 从未使用列表中获得一个摄像机
@@ -98,19 +99,20 @@ public class AvatarRendererHelper
 		mNoPostCameraUsedList.Add(noPostCamera);
 		// 计算一个新的位置
 		Vector3 posOffset = new(mCurIndex++ * 1000, 0.0f, 0.0f);
-		avatarPos = mAvatarOriginPos + posOffset;
-		postCamera.setPosition(mAvatarOriginPos + posOffset + mCameraOriginPos);
-		noPostCamera.setPosition(mAvatarOriginPos + posOffset + mCameraOriginPos);
+		Vector3 avatarPos = mAvatarOriginPos + posOffset;
+		postCamera.setPosition(avatarPos + mCameraPosOffset);
+		noPostCamera.setPosition(avatarPos + mCameraPosOffset);
 		ui.setActive(true);
 		// 这里需要材质的搭配才能生效
 		Material mat = ui.getMaterial();
 		if (!mat.HasTexture("_map2"))
 		{
 			logError("材质不是MergeTextureMat,无法创建渲染纹理");
-			return;
+			return avatarPos;
 		}
 		mat.SetTexture("_map2", postCamera.createRenderTarget(ui.getWindowSize()));
 		mat.SetTexture("_map1", noPostCamera.createRenderTarget(ui.getWindowSize()));
+		return avatarPos;
 	}
 	public void destroyRenderTarget(myUGUIRawImage ui)
 	{
@@ -141,5 +143,19 @@ public class AvatarRendererHelper
 				break;
 			}
 		}
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected void initCamera()
+	{
+		GameObject go0 = getRootGameObject("RTCamera");
+		mCameraNoPostTemplate = mCameraManager.createCamera(go0, 0, true, false);
+		mCameraNoPostTemplate.setPostProcessing(false);
+		mCameraNoPostTemplate.setActive(false);
+
+		GameObject go1 = getRootGameObject("RTCameraPost");
+		mCameraPostTemplate = mCameraManager.createCamera(go1, 0, true, false);
+		mCameraPostTemplate.setPostProcessing(true);
+		mCameraPostTemplate.setActive(false);
+		mCameraPosOffset = mCameraPostTemplate.getPosition();
 	}
 }

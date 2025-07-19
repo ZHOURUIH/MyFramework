@@ -1,96 +1,118 @@
 ﻿using UnityEngine;
+using UnityEngine.U2D;
 using UnityEngine.UI;
-using UObject = UnityEngine.Object;
+using System.Collections.Generic;
 using static FrameBaseUtility;
+using static FrameBaseDefine;
+using static StringUtility;
+using static FileUtility;
 
 // 用于记录Image组件上的图片所在的路径,因为在运行时是没办法获得Image上图片的路径,从而也就无法直到所在的图集
 // 所以使用一个组件来在编辑模式下就记录路径
+// 兼容TPAtlas和UGUIAtlas
 [ExecuteInEditMode]
 public class ImageAtlasPath : MonoBehaviour
 {
-	public string mAtlasPath;       // 记录的图集路径
-	public string mSpriteName;      // 当前使用的图片名字,图片无效时仍然记录上一次的名字
-	public void OnValidate()
+	[HideInInspector]
+	public Sprite mSprite;				// 记录设置的Sprite,用于对比当前GameObject上的Sprite有没有被修改
+	public string mAtlasPath;			// 记录的图集路径
+	public bool Refresh;				// 刷新标记,用于在面板上手动刷新,因为如果使用SpriteAtlas时自动刷新太耗时,使编辑器变得异常卡顿,所以需要手动刷新
+	public void Awake()
 	{
-		if (isEditor() && !Application.isPlaying)
-		{
-			refreshPath();
-			refreshSpriteName();
-		}
+		enabled = !Application.isPlaying;
+		refresh(true);
+	}
+	public void OnEnable()
+	{
+		refresh(true);
 	}
 	public void Update()
 	{
 		if (isEditor() && !Application.isPlaying)
 		{
-			refreshPath();
-			refreshSpriteName();
+			Sprite newSprite = getSprite();
+			bool force = newSprite != mSprite;
+			mSprite = newSprite;
+			refresh(force);
 		}
 	}
-	public void recover()
+	public bool refresh(bool force = false, Dictionary<string, SpriteAtlas> atlasListCache = null)
 	{
-		if (string.IsNullOrEmpty(mSpriteName) || string.IsNullOrEmpty(mAtlasPath))
+		if (Application.isPlaying)
 		{
-			return;
+			return false;
 		}
-		if (getSprite() != null)
+		if (!Refresh && !force)
 		{
-			return;
+			return false;
 		}
-		UObject[] sprites = loadAllAssetsAtPath(mAtlasPath);
-		UObject atlasObject = loadMainAssetAtPath(mAtlasPath);
-		UGUIAtlas atlas = AtlasLoaderBase.atlasLoaded(sprites, atlasObject, mAtlasPath);
-		if (atlas != null && getSprite() != atlas.getSprite(mSpriteName))
-		{
-			setSprite(atlas.getSprite(mSpriteName));
-		}
+		Refresh = false;
+		return setAtlasPathInternal(getAtlasPath(getSprite(), atlasListCache));
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected void refreshSpriteName()
+	// atlasListCache是提前加载好的SpriteAtlas的列表,用于加速,key是SpriteAtlas的以Assets开头的路径,带后缀
+	protected string getAtlasPath(Sprite sprite, Dictionary<string, SpriteAtlas> atlasListCache = null)
 	{
-		Sprite sprite = getSprite();
-		if (sprite != null)
+		if (sprite == null)
 		{
-			if ((mSpriteName.isEmpty() || mSpriteName != sprite.name) && !mAtlasPath.endWith("/unity_builtin_extra"))
-			{
-				setSpriteNameInternal(sprite.name);
-			}
+			return "";
+		}
+		// 如果图集名字和图片名字一样,则说明是Single的Sprite
+		bool useTPAtlas = sprite.texture.name != sprite.name;
+		if (useTPAtlas)
+		{
+			return getAssetPath(sprite.texture);
 		}
 		else
 		{
-			setSpriteNameInternal(string.Empty);
+			// 先检查当前的图集是否正确
+			if (!mAtlasPath.isEmpty())
+			{
+				SpriteAtlas curAtlas = atlasListCache?.get(mAtlasPath);
+				if (curAtlas == null)
+				{
+					curAtlas = loadAssetAtPath<SpriteAtlas>(mAtlasPath);
+				}
+				if (curAtlas != null && curAtlas.CanBindTo(sprite))
+				{
+					return mAtlasPath;
+				}
+			}
+
+			if (atlasListCache.count() > 0)
+			{
+				foreach (var item in atlasListCache)
+				{
+					if (item.Value.CanBindTo(sprite))
+					{
+						return item.Key;
+					}
+				}
+			}
+			else
+			{
+				List<string> files = new();
+				findFiles(F_ASSETS_PATH, files, ".spriteatlas");
+				foreach (string file in files)
+				{
+					if (loadAssetAtPath<SpriteAtlas>(fullPathToProjectPath(file)).CanBindTo(sprite))
+					{
+						return fullPathToProjectPath(file);
+					}
+				}
+			}
 		}
+		return "";
 	}
-	protected void refreshPath()
-	{
-		Sprite sprite = getSprite();
-		if (sprite == null)
-		{
-			setAtlasPathInternal(string.Empty);
-			return;
-		}
-		Texture texture = sprite.texture;
-		if (texture == null)
-		{
-			setAtlasPathInternal(string.Empty);
-			return;
-		}
-		setAtlasPathInternal(getAssetPath(texture));
-	}
-	protected void setSpriteNameInternal(string spriteName)
-	{
-		if (mSpriteName != spriteName)
-		{
-			mSpriteName = spriteName;
-			setDirty(gameObject);
-		}
-	}
-	protected void setAtlasPathInternal(string path)
+	protected bool setAtlasPathInternal(string path)
 	{
 		if (mAtlasPath != path)
 		{
 			mAtlasPath = path;
 			setDirty(gameObject);
+			return true;
 		}
+		return false;
 	}
 	protected Sprite getSprite()
 	{
@@ -103,17 +125,5 @@ public class ImageAtlasPath : MonoBehaviour
 			return spriteRenderer.sprite;
 		}
 		return null;
-	}
-	protected void setSprite(Sprite sprite)
-	{
-		if (TryGetComponent<Image>(out var image))
-		{
-			image.sprite = sprite;
-			return;
-		}
-		if (TryGetComponent<SpriteRenderer>(out var renderer))
-		{
-			renderer.sprite = sprite;
-		}
 	}
 }

@@ -1,9 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using static System.Linq.Enumerable;
+using static FrameUtility;
 
 public static class ListExtension
 {
+	public static bool removeIf<T>(this List<T> list, T value, bool condition)
+	{
+		if (!condition)
+		{
+			return false;
+		}
+		return list.Remove(value);
+	}
+	public static T removeAtIf<T>(this List<T> list, int index, bool condition)
+	{
+		if (!condition)
+		{
+			return default;
+		}
+		T value = list[index];
+		list.RemoveAt(index);
+		return value;
+	}
 	public static T removeAt<T>(this List<T> list, int index)
 	{
 		T value = list[index];
@@ -49,7 +68,15 @@ public static class ListExtension
 		}
 		return false;
 	}
-	public static bool addNotEmpty(this List<string> list, string value)
+	public static bool addIf<T>(this IList<T> list, T value, bool condition)
+	{
+		if (condition)
+		{
+			list.Add(value);
+		}
+		return condition;
+	}
+	public static bool addNotEmpty(this IList<string> list, string value)
 	{
 		if (!value.isEmpty())
 		{
@@ -57,6 +84,10 @@ public static class ListExtension
 			return true;
 		}
 		return false;
+	}
+	public static T addClass<T>(this List<T> list) where T : ClassObject, new()
+	{
+		return list.add(CLASS<T>());
 	}
 	public static bool addUnique<T>(this List<T> list, T value)
 	{
@@ -162,30 +193,30 @@ public static class ListExtension
 		}
 		return list[index];
 	}
-	public static T add<T>(this List<T> list, T value)
+	public static T add<T>(this IList<T> list, T value)
 	{
 		list.Add(value);
 		return value;
 	}
-	public static void add<T>(this List<T> list, T value0, T value1)
+	public static void add<T>(this IList<T> list, T value0, T value1)
 	{
 		list.Add(value0);
 		list.Add(value1);
 	}
-	public static void add<T>(this List<T> list, T value0, T value1, T value2)
+	public static void add<T>(this IList<T> list, T value0, T value1, T value2)
 	{
 		list.Add(value0);
 		list.Add(value1);
 		list.Add(value2);
 	}
-	public static void add<T>(this List<T> list, T value0, T value1, T value2, T value3)
+	public static void add<T>(this IList<T> list, T value0, T value1, T value2, T value3)
 	{
 		list.Add(value0);
 		list.Add(value1);
 		list.Add(value2);
 		list.Add(value3);
 	}
-	public static void add<T>(this List<T> list, T value0, T value1, T value2, T value3, T value4)
+	public static void add<T>(this IList<T> list, T value0, T value1, T value2, T value3, T value4)
 	{
 		list.Add(value0);
 		list.Add(value1);
@@ -247,6 +278,38 @@ public static class ListExtension
 			}
 		}
 		return false;
+	}
+	public static bool findIndex<T>(this List<T> list, Predicate<T> match, out int index)
+	{
+		index = list.FindIndex(0, list.Count, match);
+		return index >= 0;
+	}
+	public static bool findIndex<T>(this List<T> list, Predicate<T> match, out int index, out T item)
+	{
+		index = list.FindIndex(0, list.Count, match);
+		if (index >= 0)
+		{
+			item = list[index];
+		}
+		else
+		{
+			item = default;
+		}
+		return index >= 0;
+	}
+	public static bool findIndex<T>(this List<T> list, int startIndex, Predicate<T> match, out int index)
+	{
+		index = list.FindIndex(startIndex, list.Count - startIndex, match);
+		return index >= 0;
+	}
+	public static bool findIndex<T>(this List<T> list, int startIndex, int count, Predicate<T> match, out int index)
+	{
+		index = list.FindIndex(startIndex, count, match);
+		return index >= 0;
+	}
+	public static void swap<T>(this List<T> list, int index0, int index1)
+	{
+		(list[index0], list[index1]) = (list[index1], list[index0]);
 	}
 	public static int count<T>(this ICollection<T> list)							{ return list?.Count ?? 0; }
 	public static bool isEmptySpan<T>(this Span<T> list)							{ return list == null || list.Length == 0; }

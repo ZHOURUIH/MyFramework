@@ -128,20 +128,4 @@ public class GameEditorWindow : EditorWindow
 		style.normal.textColor = color;
 		GUILayout.Label(text, style);
 	}
-	protected void beginHorizontal(params GUILayoutOption[] options)
-	{
-		GUILayout.BeginHorizontal(options);
-	}
-	protected void endHorizontal()
-	{
-		GUILayout.EndHorizontal();
-	}
-	protected void beginVertical(params GUILayoutOption[] options)
-	{
-		GUILayout.BeginVertical(options);
-	}
-	protected void endVertical()
-	{
-		GUILayout.EndVertical();
-	}
 }

@@ -29,10 +29,7 @@ public class EventSystem : FrameSystem
 			removeEvent.Clear();
 			foreach (var itemEvent in characterListenerList)
 			{
-				if (itemEvent.Value.count() == 0)
-				{
-					removeEvent.Add(itemEvent.Key);
-				}
+				removeEvent.addIf(itemEvent.Key, itemEvent.Value.count() == 0);
 			}
 			if (removeEvent.Count > 0)
 			{

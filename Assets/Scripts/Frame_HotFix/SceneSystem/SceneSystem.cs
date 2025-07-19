@@ -14,7 +14,7 @@ using static FrameUtility;
 // 3D场景管理器,管理unity场景资源
 public class SceneSystem : FrameSystem
 {
-	protected Dictionary<Type,List<SceneRegisteInfo>> mScriptMappingList = new();	// 场景脚本类型与场景注册信息的映射,允许多个相似的场景共用同一个场景脚本
+	protected Dictionary<Type, List<SceneRegisteInfo>> mScriptMappingList = new();	// 场景脚本类型与场景注册信息的映射,允许多个相似的场景共用同一个场景脚本
 	protected Dictionary<string, SceneRegisteInfo> mSceneRegisteList = new();		// 场景注册信息
 	protected Dictionary<string, SceneInstance> mSceneList = new();					// 已经加载的所有场景
 	public override void destroy()
@@ -142,9 +142,9 @@ public class SceneSystem : FrameSystem
 			scene.setLoadingCallback(loadingCallback);
 			scene.setLoadedCallback(loadedCallback);
 			// scenePath + sceneName表示场景文件AssetBundle的路径,包含文件名
-			mResourceManager.loadAssetBundleAsync(getScenePath(sceneName) + sceneName, (AssetBundleInfo bundle) =>
+			mResourceManager.preloadAssetBundleAsync(getScenePath(sceneName) + sceneName, (AssetBundleInfo bundle) =>
 			{
-				GameEntry.getInstance().StartCoroutine(loadSceneCoroutine(scene, op));
+				GameEntry.startCoroutine(loadSceneCoroutine(scene, op));
 			});
 		}
 		return op;

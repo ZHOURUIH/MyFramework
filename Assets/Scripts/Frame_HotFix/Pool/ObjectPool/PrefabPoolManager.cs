@@ -283,7 +283,7 @@ public class PrefabPoolManager : FrameSystem
 	{
 		if (!mPrefabPoolList.tryGetValue(fileWithPath, out PrefabPool prefabPool))
 		{
-			mPrefabPoolList.add(fileWithPath, CLASS(out prefabPool));
+			prefabPool = mPrefabPoolList.addClass(fileWithPath);
 			prefabPool.setFileName(fileWithPath);
 		}
 		return prefabPool;

@@ -96,7 +96,7 @@ public class ObsSystem
 		});
 	}
 	// fullPath是要上传文件的本地绝对路径,savePath是上传到服务器后存储的相对路径,带后缀
-	public static bool upload(string fullPath, byte[] fileBuffer, string savePath, out WebExceptionStatus status, out HttpStatusCode code)
+	public static bool upload(string fullPath, byte[] fileBuffer, string savePath, out WebExceptionStatus status, out HttpStatusCode code, int timeout)
 	{
 		status = WebExceptionStatus.Success;
 		code = HttpStatusCode.OK;
@@ -104,7 +104,7 @@ public class ObsSystem
 		{
 			return false;
 		}
-		return !savePath.isEmpty() && httpPostFile(mURL, out status, out code, generateUploadFormList(fullPath, fileBuffer, savePath)) != null;
+		return !savePath.isEmpty() && httpPostFile(mURL, out status, out code, generateUploadFormList(fullPath, fileBuffer, savePath), timeout) != null;
 	}
 	public static void uploadAsync(string fullPath, string savePath, HttpCallback callback)
 	{

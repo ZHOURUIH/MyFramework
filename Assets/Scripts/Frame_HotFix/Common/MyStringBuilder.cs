@@ -132,31 +132,31 @@ public class MyStringBuilder : ClassObject
 		mBuilder.Append(value.ToString());
 		return this;
 	}
-	public MyStringBuilder color(string color, int value)
+	public MyStringBuilder colorString(string color, int value)
 	{
 		return append("<color=#", color, ">", IToS(value), "</color>");
 	}
-	public MyStringBuilder color(string color, int value0, string str0, int value1)
+	public MyStringBuilder colorString(string color, int value0, string str0, int value1)
 	{
 		return append("<color=#", color, ">", IToS(value0), str0, IToS(value1), "</color>");
 	}
-	public MyStringBuilder color(string color, string str0)
+	public MyStringBuilder colorString(string color, string str0)
 	{
 		return append("<color=#", color, ">", str0, "</color>");
 	}
-	public MyStringBuilder color(string color, string str0, string str1)
+	public MyStringBuilder colorString(string color, string str0, string str1)
 	{
 		return append("<color=#", color, ">", str0, str1, "</color>");
 	}
-	public MyStringBuilder color(string color, string str0, string str1, string str2)
+	public MyStringBuilder colorString(string color, string str0, string str1, string str2)
 	{
 		return append("<color=#", color, ">", str0, str1, str2, "</color>");
 	}
-	public MyStringBuilder color(string color, string str0, string str1, string str2, string str3)
+	public MyStringBuilder colorString(string color, string str0, string str1, string str2, string str3)
 	{
 		return append("<color=#", color, ">", str0, str1, str2, str3, "</color>");
 	}
-	public MyStringBuilder color(string color, string str0, string str1, string str2, string str3, string str4)
+	public MyStringBuilder colorString(string color, string str0, string str1, string str2, string str3, string str4)
 	{
 		return append("<color=#", color, ">", str0, str1, str2, str3, str4, "</color>");
 	}
@@ -554,14 +554,18 @@ public class MyStringBuilder : ClassObject
 			append("\r\n");
 		}
 	}
-	public void jsonEndStruct(int preTableCount = 0, bool returnLine = false)
+	public void jsonEndStruct(bool keepComma= true, int preTableCount = 0, bool returnLine = false)
 	{
 		if (endWith(','))
 		{
 			remove(mBuilder.Length - 1);
 		}
 		appendRepeat("\t", preTableCount);
-		append("},");
+		append("}");
+		if (keepComma)
+		{
+			append(",");
+		}
 		if (returnLine)
 		{
 			append("\r\n");
@@ -634,7 +638,7 @@ public class MyStringBuilder : ClassObject
 			append(hexChar[low - 10]);
 		}
 	}
-	public MyStringBuilder colorString(string color)
+	public MyStringBuilder setColor(string color)
 	{
 		if (mBuilder.Length == 0)
 		{

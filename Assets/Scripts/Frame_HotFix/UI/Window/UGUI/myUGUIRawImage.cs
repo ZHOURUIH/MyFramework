@@ -22,6 +22,10 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		base.init();
 		if (!mObject.TryGetComponent(out mRawImage))
 		{
+			if (!mIsNewObject)
+			{
+				logError("需要添加一个RawImage组件,name:" + getName() + ", layout:" + getLayout().getName());
+			}
 			mRawImage = mObject.AddComponent<RawImage>();
 			// 添加UGUI组件后需要重新获取RectTransform
 			mObject.TryGetComponent(out mRectTransform);

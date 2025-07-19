@@ -7,6 +7,7 @@ using static FrameBaseHotFix;
 using static FileUtility;
 using static CSharpUtility;
 using static BinaryUtility;
+using static StringUtility;
 using static FrameDefine;
 using static FrameBaseUtility;
 
@@ -24,7 +25,7 @@ public class ExcelTable
 	public void setDataType(Type type) { mDataType = type; }
 	public void setResourceAvailable(bool available) { mResourceAvailable = available; }
 	public bool isFileOpened() { return mDataMap.Count > 0 || mTableFileData != null || mTableFileBytes != null; }
-	public virtual void checkAllData() { }
+	public virtual void checkAllData() { checkAllDataDefault(); }
 	public void openFileAsync(Action callback)
 	{
 		if (mResourceManager == null)
@@ -56,40 +57,6 @@ public class ExcelTable
 			mResourceManager?.unload(ref mTableFileData);
 		}
 	}
-	public T getData<T>(int id, bool errorIfNull = true) where T : ExcelData
-	{
-		if (mDataMap.Count == 0)
-		{
-			readFile();
-		}
-		ExcelData data = mDataMap.get(id);
-		if (data as T == null && errorIfNull)
-		{
-			logError("在表格中找不到数据: ID:" + id + ", 表格:" + mDataType);
-		}
-		return data as T;
-	}
-	public ExcelData getData(int id, bool errorIfNull = true)
-	{
-		if (mDataMap.Count == 0)
-		{
-			readFile();
-		}
-		ExcelData data = mDataMap.get(id);
-		if (data == null && errorIfNull)
-		{
-			logError("在表格中找不到数据: ID:" + id + ", 表格:" + mDataType);
-		}
-		return data;
-	}
-	public Dictionary<int, ExcelData> getDataMap()
-	{
-		if (mDataMap.Count == 0)
-		{
-			readFile();
-		}
-		return mDataMap;
-	}
 	public void parseFile(byte[] fileBuffer)
 	{
 		if (!mResourceAvailable)
@@ -118,32 +85,61 @@ public class ExcelTable
 			}
 		}
 	}
-	public void checkData(int id, int refDataID, ExcelTable table)
+	public void checkEnum<T>(T value, string varName, int dataID) where T : Enum
+	{
+		if (!isEnumValid(value))
+		{
+			logError("enum value error,name:" + varName + " in " + mTableName + ", ID:" + IToS(dataID) + ", Table:" + getTableName());
+		}
+	}
+	public void checkEnum<T>(List<T> valueList, string varName, int dataID) where T : Enum
+	{
+		foreach (T value in valueList)
+		{
+			if (!isEnumValid(value))
+			{
+				logError("enum value error,name:" + varName + " in " + mTableName + ", ID:" + IToS(dataID) + ", Table:" + getTableName());
+			}
+		}
+	}
+	public void checkData(int id, int refDataID, string tableName)
 	{
 		if (id > 0 && getData(id, false) == null)
 		{
-			logError(mTableName + "中ID不存在:" + id + ", 引用此数据的表格:" + table.mTableName + ", ID:" + refDataID);
+			logError(mTableName + "中ID不存在:" + id + ", 引用此数据的表格:" + tableName + ", ID:" + refDataID);
 		}
 	}
-	public void checkData(List<int> ids, int refDataID, ExcelTable table)
+	public void checkData(int id, int refDataID, ExcelTable table)
+	{
+		checkData(id, refDataID, table.mTableName);
+	}
+	public void checkData(List<int> ids, int refDataID, string tableName)
 	{
 		foreach (int id in ids)
 		{
 			if (getData(id, false) == null)
 			{
-				logError(mTableName + "中ID不存在:" + id + ", 引用此数据的表格:" + table.mTableName + ", ID:" + refDataID);
+				logError(mTableName + "中ID不存在:" + id + ", 引用此数据的表格:" + tableName + ", ID:" + refDataID);
+			}
+		}
+	}
+	public void checkData(List<int> ids, int refDataID, ExcelTable table)
+	{
+		checkData(ids, refDataID, table.mTableName);
+	}
+	public void checkData(List<ushort> ids, int refDataID, string tableName)
+	{
+		foreach (int id in ids)
+		{
+			if (getData(id, false) == null)
+			{
+				logError(mTableName + "中ID不存在:" + id + ", 引用此数据的表格:" + tableName + ", ID:" + refDataID);
 			}
 		}
 	}
 	public void checkData(List<ushort> ids, int refDataID, ExcelTable table)
 	{
-		foreach (int id in ids)
-		{
-			if (getData(id, false) == null)
-			{
-				logError(mTableName + "中ID不存在:" + id + ", 引用此数据的表格:" + table.mTableName + ", ID:" + refDataID);
-			}
-		}
+		checkData(ids, refDataID, table.mTableName);
 	}
 	public void checkListPair(IList list0, IList list1, int id)
 	{
@@ -152,7 +148,7 @@ public class ExcelTable
 			logError("列表长度不一致, ID:" + id + ", 表格:" + mTableName + ", 第一个长度:" + list0.Count + ", 第二个长度:" + list1.Count);
 		}
 	}
-	public void checkPath(string path, bool checkSpace = true)
+	public static void checkPath(string path, bool checkSpace = true)
 	{
 		if (path.Contains('\\'))
 		{
@@ -214,10 +210,7 @@ public class ExcelTable
 		decodeFile(fileBuffer);
 
 		using var a = new HashSetScope<int>(out var idsToRemove);
-		foreach (int k in mDataMap.Keys)
-		{
-			idsToRemove.Add(k);
-		}
+		idsToRemove.addRange(mDataMap.Keys);
 		// 解析数据
 		using var b = new ClassScope<SerializerRead>(out var reader);
 		reader.init(fileBuffer, fileBuffer.Length);
@@ -248,4 +241,40 @@ public class ExcelTable
 
 		log("热重载表格数据：" + mTableName);
 	}
+	// 为了避免歧义,getData,getDataMap设置为不允许外部访问
+	protected T getData<T>(int id, bool errorIfNull = true) where T : ExcelData
+	{
+		if (mDataMap.Count == 0)
+		{
+			readFile();
+		}
+		ExcelData data = mDataMap.get(id);
+		if (data as T == null && errorIfNull)
+		{
+			logError("在表格中找不到数据: ID:" + id + ", 表格:" + mDataType);
+		}
+		return data as T;
+	}
+	protected ExcelData getData(int id, bool errorIfNull = true)
+	{
+		if (mDataMap.Count == 0)
+		{
+			readFile();
+		}
+		ExcelData data = mDataMap.get(id);
+		if (data == null && errorIfNull)
+		{
+			logError("在表格中找不到数据: ID:" + id + ", 表格:" + mDataType);
+		}
+		return data;
+	}
+	protected Dictionary<int, ExcelData> getDataMap()
+	{
+		if (mDataMap.Count == 0)
+		{
+			readFile();
+		}
+		return mDataMap;
+	}
+	protected virtual void checkAllDataDefault() { }
 }

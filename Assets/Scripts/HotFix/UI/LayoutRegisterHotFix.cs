@@ -5,7 +5,10 @@ public class LayoutRegisterHotFix
 {
 	public static void registeAll()
 	{
-		registeLayout<UILogin>((script) =>		{ mUILogin = script; });
-		registeLayout<UIGaming>((script) =>		{ mUIGaming = script; });
+		// 需要添加auto generate start和auto generate end才会自动生成代码
+		// auto generate start
+		registeLayout<UIGaming>((script) =>							{ mUIGaming = script; });
+		registeLayout<UILogin>((script) =>							{ mUILogin = script; });
+		// auto generate end
 	}
 }

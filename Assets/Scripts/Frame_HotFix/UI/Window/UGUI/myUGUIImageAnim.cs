@@ -27,7 +27,7 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 	{
 		base.init();
 		string spriteName = getSpriteName();
-		if (spriteName != null && spriteName.Contains('_'))
+		if (!spriteName.isEmpty() && spriteName.Contains('_'))
 		{
 			setTextureSet(spriteName.rangeToLast('_'));
 		}
@@ -57,8 +57,21 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 		// 改变图集时先停止播放
 		stop();
 		base.setAtlas(atlas, clearSprite, force);
-		// 图集改变后清空当前序列帧列表
+		// 图集改变后自动设置默认的序列帧
 		setTextureSet(null);
+	}
+	// 设置图集,并且设置将第一张图片设置为要播放的序列帧
+	public void setAtlasWithFirstSprite(UGUIAtlasPtr atlas, bool clearSprite = false, bool force = false)
+	{
+		if (!force && atlas?.getAtlas() == getAtlas()?.getAtlas())
+		{
+			return;
+		}
+		// 改变图集时先停止播放
+		stop();
+		base.setAtlas(atlas, clearSprite, force);
+		// 图集改变后自动设置默认的序列帧
+		setTextureSet(atlas.getFirstSpriteName().rangeToLast('_'));
 	}
 	public string getTextureSet() { return mTextureSetName; }
 	public int getTextureFrameCount() { return mSpriteList.Count; }
@@ -87,7 +100,7 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 			while (mSpriteList.addNotNull(getSpriteInAtlas(mTextureSetName + "_" + IToS(index++)))){}
 			if (getTextureFrameCount() == 0)
 			{
-				logError("invalid sprite anim! atlas : " + (getAtlas()?.getName() ?? EMPTY) + ", anim set : " + textureSetName);
+				logError("invalid sprite anim! atlas : " + (getAtlas()?.getFilePath() ?? EMPTY) + ", anim set : " + textureSetName);
 			}
 		}
 		mControl.setFrameCount(getTextureFrameCount());

@@ -17,10 +17,10 @@ public class FrameUtility
 {
 	protected static LONG mTempStateID = new();				// 避免GC
 	public static GameCamera getMainCamera() { return mCameraManager?.getMainCamera(); }
-	public static bool isKeyCurrentDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return mInputSystem.isKeyCurrentDown(key, mask); }
-	public static bool isKeyCurrentUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return mInputSystem.isKeyCurrentUp(key, mask); }
-	public static bool isKeyDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return mInputSystem.isKeyDown(key, mask); }
-	public static bool isKeyUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.NONE) { return mInputSystem.isKeyUp(key, mask); }
+	public static bool isKeyCurrentDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.SCENE) { return mInputSystem.isKeyCurrentDown(key, mask); }
+	public static bool isKeyCurrentUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.SCENE) { return mInputSystem.isKeyCurrentUp(key, mask); }
+	public static bool isKeyDown(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.SCENE) { return mInputSystem.isKeyDown(key, mask); }
+	public static bool isKeyUp(KeyCode key, FOCUS_MASK mask = FOCUS_MASK.SCENE) { return mInputSystem.isKeyUp(key, mask); }
 	// 仅编辑器或桌面端使用,与多点触控相关的逻辑时不能使用此鼠标坐标,应该获取相应触点的坐标,否则会出错误
 	public static Vector3 getMousePosition(bool leftBottomAsOrigin = true)
 	{
@@ -78,10 +78,6 @@ public class FrameUtility
 		{
 			obj.setWindowSize(new(newScrollSizeX, newScrollSizeY));
 		}
-	}
-	public static T getData<T>(int id) where T : ExcelData
-	{
-		return mExcelManager.getData<T>(id);
 	}
 	public static T PACKET<T>() where T : NetPacket
 	{

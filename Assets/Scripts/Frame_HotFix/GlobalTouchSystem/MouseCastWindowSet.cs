@@ -48,10 +48,7 @@ public class MouseCastWindowSet : ClassObject
 			mAvailableList.Clear();
 			foreach (myUIObject item in mWindowSet)
 			{
-				if (item.isActiveInHierarchy() && isWindowInScreen(item, mCamera))
-				{
-					mAvailableList.Add(item);
-				}
+				mAvailableList.addIf(item, item.isActiveInHierarchy() && isWindowInScreen(item, mCamera));
 			}
 			quickSort(mAvailableList, mUIDepthDescend);
 			mListDirty = false;

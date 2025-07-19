@@ -118,6 +118,10 @@ public class GameCamera : MovableObject
 		{
 			logError("设置RenderTexture的摄像机不能再添加cameraStack,请移除此摄像机上所有的cameraStack");
 		}
+		if (getOrAddUnityComponent<UniversalAdditionalCameraData>().renderType != CameraRenderType.Base)
+		{
+			logError("只能给Base摄像机添加RenderTarget,否则会添加失败");
+		}
 #endif
 		mCamera.targetTexture = renderTarget;
 	}

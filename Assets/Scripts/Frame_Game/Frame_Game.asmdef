@@ -2,13 +2,10 @@
     "name": "Frame_Game",
     "rootNamespace": "",
     "references": [
-        "GUID:4529033cfeeaea340aba4ae6a051ff8c",
+        "GUID:e08e9c83b7b650a40b80e9ab6278de8d",
         "GUID:13ba8ce62aa80c74598530029cb2d649",
-        "GUID:60bfecf5cb232594891bc622f40d6bed",
-        "GUID:08d1c582746949b40ba6a45cdb776bdf",
-        "GUID:fe25561d224ed4743af4c60938a59d0b",
-        "GUID:70ea675efa2644cef98c7ece24158333",
-        "GUID:e08e9c83b7b650a40b80e9ab6278de8d"
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:4529033cfeeaea340aba4ae6a051ff8c"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

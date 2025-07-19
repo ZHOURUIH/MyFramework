@@ -36,6 +36,10 @@ public class myUGUIVideo : myUGUIRawImage
 		base.init();
 		mIsRequires = false;
 		mMediaPlayer = getOrAddUnityComponent<MediaPlayer>();
+		if (mMediaPlayer == null && !mIsNewObject)
+		{
+			logError("需要添加一个MediaPlayer组件,name:" + getName() + ", layout:" + getLayout().getName());
+		}
 		mMediaPlayer.Events.AddListener(onVideoEvent);
 	}
 	public override void update(float elapsedTime)

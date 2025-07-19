@@ -13,7 +13,7 @@ public class AssetInfo : ClassObject
 	protected UObject[] mSubAssets;								// 资源数组,数组第一个元素为主资源,后面的是子资源
 	protected AssetBundleInfo mParentAssetBundle;				// 资源所属的AssetBundle
 	protected string mAssetName;								// 资源文件名,带相对于StreamingAssets的相对路径,带后缀
-	protected LOAD_STATE mLoadState = LOAD_STATE.NONE;        // 加载状态
+	protected LOAD_STATE mLoadState = LOAD_STATE.NONE;			// 加载状态
 	public void setAssetBundleInfo(AssetBundleInfo parent) { mParentAssetBundle = parent; }
 	public void setAssetName(string name) { mAssetName = name; }
 	public override void resetProperty()

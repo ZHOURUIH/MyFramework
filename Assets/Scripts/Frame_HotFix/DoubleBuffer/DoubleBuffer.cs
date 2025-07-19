@@ -60,10 +60,7 @@ public class DoubleBuffer<T>
 		using (new ThreadLockScope(mBufferLock))
 		{
 			List<T> writeList = mBufferList[mWriteIndex];
-			if (mWriteListLimit == 0 || writeList.Count < mWriteListLimit)
-			{
-				writeList.Add(value);
-			}
+			writeList.addIf(value, mWriteListLimit == 0 || writeList.Count < mWriteListLimit);
 		}
 	}
 	public void setWriteListLimit(int limit) { mWriteListLimit = limit; }

@@ -29,8 +29,7 @@ public class UGUIScroll : WindowObjectUGUI
 	protected float mCurOffset;								// 整体的偏移值,并且会与每一项的原始偏移值叠加
 	protected float mScrollSpeed;							// 当前滚动速度
 	protected bool mMouseDown;								// 鼠标是否在窗口内按下,鼠标抬起或者离开窗口都会设置为false,鼠标按下时,跟随鼠标移动,鼠标放开时,按惯性移动
-	public UGUIScroll(LayoutScript script)
-		:base(script)
+	public UGUIScroll(IWindowObjectOwner parent) : base(parent)
 	{
 		mDragDirection = DRAG_DIRECTION.HORIZONTAL;
 		mFocusSpeedThreshold = 1.5f;

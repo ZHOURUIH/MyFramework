@@ -213,7 +213,7 @@ public class PrefabPool : ClassObject
 		}
 		for (int i = 0; i < needCreate; ++i)
 		{
-			mUnuseList.add(CLASS(out ObjectInfo objInfo));
+			ObjectInfo objInfo = mUnuseList.addClass();
 			objInfo.setTag(tag);
 			// 实例化,同步进行
 			objInfo.createObject(mPrefab, mFileName);
@@ -255,7 +255,7 @@ public class PrefabPool : ClassObject
 		else
 		{
 			// 实例化
-			CLASS(out ObjectInfo objInfo).createObjectAsync(mPrefab, mFileName, (ObjectInfo info) =>
+			CLASS<ObjectInfo>().createObjectAsync(mPrefab, mFileName, (ObjectInfo info) =>
 			{
 				info.setTag(tag);
 				info.setUsing(true);

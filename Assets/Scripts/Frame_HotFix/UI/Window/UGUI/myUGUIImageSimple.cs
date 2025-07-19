@@ -1,22 +1,51 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using static UnityUtility;
+using static MathUtility;
 
 // 对UGUI的Image的封装,简化版,只有Image组件
 public class myUGUIImageSimple : myUGUIObject
 {
+	protected CanvasGroup mCanvasGroup;                     // 用于是否显示
 	protected Image mImage;									// 图片组件
+	protected bool mCanvasGroupValid;                       // 当前CanvasGroup是否有效,在测试中发现判断mCanvasGroup是否为空的写法会比较耗时,所以替换为bool判断
 	public override void init()
 	{
 		base.init();
 		// 获取image组件,如果没有则添加,这样是为了使用代码新创建一个image窗口时能够正常使用image组件
 		if (!mObject.TryGetComponent(out mImage))
 		{
+			if (!mIsNewObject)
+			{
+				logError("需要添加一个Image组件,name:" + getName() + ", layout:" + getLayout().getName());
+			}
 			mImage = mObject.AddComponent<Image>();
 			// 添加UGUI组件后需要重新获取RectTransform
 			mObject.TryGetComponent(out mRectTransform);
 			mTransform = mRectTransform;
 		}
 	}
+	public override void destroy()
+	{
+		if (mCanvasGroup != null)
+		{
+			mCanvasGroup.alpha = 1.0f;
+			mCanvasGroup = null;
+		}
+		mCanvasGroupValid = false;
+		base.destroy();
+	}
+	// 是否剔除渲染
+	public void cull(bool isCull)
+	{
+		if (mCanvasGroup == null)
+		{
+			mCanvasGroup = getOrAddUnityComponent<CanvasGroup>();
+		}
+		mCanvasGroup.alpha = isCull ? 0.0f : 1.0f;
+		mCanvasGroupValid = true;
+	}
+	public override bool isCulled() { return mCanvasGroupValid && isFloatZero(mCanvasGroup.alpha); }
 	public override bool canUpdate() { return !isCulled() && base.canUpdate(); }
 	public override bool canGenerateDepth() { return !isCulled(); }
 	public void setRenderQueue(int renderQueue)

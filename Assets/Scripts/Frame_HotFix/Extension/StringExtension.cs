@@ -254,7 +254,7 @@ public static class StringExtension
 	// 移除开始一定长度的字符串
 	public static string removeStartCount(this string str, int removeCount)
 	{
-		if (str == null || removeCount <= 0)
+		if (str == null || removeCount <= 0 || removeCount > str.Length)
 		{
 			return str;
 		}
@@ -785,5 +785,18 @@ public static class StringExtension
 			path += "/";
 		}
 		return path;
+	}
+	// 去除字符串中所有非数字的字符串,也就是只包含0到9的字符,连小数点,负号都要去掉
+	public static string keepNumberOnly(this string str)
+	{
+		using var a = new MyStringBuilderScope(out var builder);
+		foreach (char c in str)
+		{
+			if (isNumeric(c))
+			{
+				builder.append(c);
+			}
+		}
+		return builder.ToString();
 	}
 }

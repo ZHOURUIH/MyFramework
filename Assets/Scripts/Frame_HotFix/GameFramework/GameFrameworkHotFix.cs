@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using Obfuz;
 using System;
 using System.Collections.Generic;
 using static FrameBaseUtility;
@@ -9,6 +10,7 @@ using static TimeUtility;
 using static FrameBaseHotFix;
 
 // 最顶层的节点,也是游戏的入口,管理所有框架组件(管理器)
+[ObfuzIgnore]
 public class GameFrameworkHotFix : IFramework
 {
 	protected Dictionary<string, FrameSystem> mFrameComponentMap = new(128);		// 存储框架组件,用于查找
@@ -235,9 +237,10 @@ public class GameFrameworkHotFix : IFramework
 	}
 	public T registeFrameSystem<T>(Action<T> callback, int initOrder = -1, int updateOrder = -1, int destroyOrder = -1) where T : FrameSystem, new()
 	{
-		log("注册系统:" + typeof(T) + ", owner:" + GetType());
+		Type type = typeof(T);
+		log("注册系统:" + type.ToString() + ", owner:" + GetType());
 		T com = new();
-		string name = typeof(T).ToString();
+		string name = type.Assembly.FullName.rangeToFirst(',') + "_" + type.ToString();
 		com.setName(name);
 		com.setInitOrder(initOrder == -1 ? mFrameComponentMap.Count : initOrder);
 		com.setUpdateOrder(updateOrder == -1 ? mFrameComponentMap.Count : updateOrder);
@@ -287,7 +290,8 @@ public class GameFrameworkHotFix : IFramework
 
 		if (!isEditor() && isDevelopment())
 		{
-			getOrAddComponent<ConsoleToScreen>(GameEntry.getInstanceObject());
+			// 跟引擎自带的dev的调试控制台功能重合了,所以不再使用
+			//getOrAddComponent<ConsoleToScreen>(GameEntry.getInstanceObject());
 		}
 
 		// 设置默认的日志等级
@@ -391,10 +395,9 @@ public class GameFrameworkHotFix : IFramework
 		registeFrameSystem<ArrayPoolThread>((com) =>		{ mArrayPoolThread = com; }, -1, -1, 3109);
 		registeFrameSystem<ByteArrayPool>((com) =>			{ mByteArrayPool = com; }, -1, -1, 3110);
 		registeFrameSystem<ByteArrayPoolThread>((com) =>	{ mByteArrayPoolThread = com; }, -1, -1, 3111);
-		registeFrameSystem<HeadTextureManager>((com) =>		{ mHeadTextureManager = com; });
 		registeFrameSystem<MovableObjectManager>((com) =>	{ mMovableObjectManager = com; });
 		registeFrameSystem<EffectManager>((com) =>			{ mEffectManager = com; });
-		registeFrameSystem<TPSpriteManager>((com) =>		{ mTPSpriteManager = com; });
+		registeFrameSystem<AtlasManager>((com) =>		{ mAtlasManager = com; });
 		registeFrameSystem<NetPacketFactory>((com) =>		{ mNetPacketFactory = com; });
 		registeFrameSystem<PathKeyframeManager>((com) =>	{ mPathKeyframeManager = com; });
 		registeFrameSystem<EventSystem>((com) =>			{ mEventSystem = com; });
@@ -414,6 +417,7 @@ public class GameFrameworkHotFix : IFramework
 		registeFrameSystem<UndoManager>((com) =>			{ mUndoManager = com; });
 		registeFrameSystem<AndroidPurchasing>((com) =>		{ mAndroidPurchasing = com; });
 		registeFrameSystem<PurchasingSystem>((com) =>		{ mPurchasingSystem = com; });
+		registeFrameSystem<AvatarRenderer>((com) =>			{ mAvatarRenderer = com; });
 		registeFrameSystem<LayoutManager>((com) =>			{ mLayoutManager = com; }, 1000, 1000, -1);			// 布局管理器也需要在最后更新,确保所有游戏逻辑都更新完毕后,再更新界面
 		registeFrameSystem<PrefabPoolManager>((com) =>		{ mPrefabPoolManager = com; }, 2000, 2000, 2000);	// 物体管理器最后注册,销毁所有缓存的资源对象
 	}

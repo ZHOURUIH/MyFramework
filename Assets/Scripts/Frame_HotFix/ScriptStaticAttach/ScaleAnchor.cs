@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using static FrameBaseDefine;
 using static MathUtility;
 using static UnityUtility;
 using static WidgetUtility;
@@ -19,7 +18,7 @@ public class ScaleAnchor : MonoBehaviour
 	public bool mAdjustPosition = true;						// 是否根据缩放值改变位置
 	public bool mRemoveUGUIAnchor = true;					// 是否移除UGUI的锚点
 	public bool mKeepAspect = true;							// 是否保持宽高比
-	public ASPECT_BASE mAspectBase = ASPECT_BASE.AUTO;		// 缩放基准
+	public ASPECT_BASE mAspectBase = ASPECT_BASE.AUTO;		// 如果要保持宽高比时的缩放基准,也就是选择哪个作为缩放值
 	public void updateRect(bool force = false)
 	{
 		// 是否为编辑器手动预览操作,手动预览不需要启动游戏
@@ -41,7 +40,7 @@ public class ScaleAnchor : MonoBehaviour
 			return;
 		}
 		mDirty = false;
-		Vector3 realScale = adjustScreenScale(mScreenScale, mKeepAspect ? mAspectBase : ASPECT_BASE.NONE);
+		Vector3 realScale = getRealScale();
 		float thisWidth = round(mOriginSize.x * realScale.x);
 		float thisHeight = round(mOriginSize.y * realScale.y);
 		Vector2 newSize = new(thisWidth, thisHeight);
@@ -59,19 +58,9 @@ public class ScaleAnchor : MonoBehaviour
 			setPositionNoPivotInParent(rectTransform, round(multiVector3(mOriginPos, realScale)));
 		}
 	}
-	public void Reset()
+	// 获取实际的可直接用于计算的宽高缩放值,会考虑保持宽高比以及缩放基准
+	public Vector2 getRealScale()
 	{
-		if (!isEditor())
-		{
-			return;
-		}
-		// 挂载该脚本时候检查当前GameView的分辨率是否是标准分辨率
-		Vector2 screenSize = getGameViewSize();
-		if ((int)screenSize.x != STANDARD_WIDTH || (int)screenSize.y != STANDARD_HEIGHT)
-		{
-			displayDialog("错误", "当前分辨率不是标准分辨率,适配结果可能不对,请将Game视图的分辨率修改为" +
-				STANDARD_WIDTH + "*" + STANDARD_HEIGHT, "确定");
-			DestroyImmediate(this);
-		}
+		return adjustScreenScale(mScreenScale, mKeepAspect ? mAspectBase : ASPECT_BASE.NONE);
 	}
 }

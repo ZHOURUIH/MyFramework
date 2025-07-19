@@ -120,24 +120,23 @@ public class MenuCheckCode
 
 		// 读取cs文件
 		List<string> fileListCS = new();
-		findFiles(F_SCRIPTS_UI_PATH, fileListCS, ".cs");
+		findFiles(F_SCRIPTS_HOTFIX_UI_PATH, fileListCS, ".cs");
 		int fileCount = fileListCS.Count;
 		for (int i = 0; i < fileCount; ++i)
 		{
 			string file = fileListCS[i];
 			string fileNameNoSuffix = removeSuffix(getFileNameWithSuffix(fullPathToProjectPath(file)));
-			if (!fileNameNoSuffix.startWith("Script") || isIgnoreFile(file, getIgnoreLayoutScript()))
+			if (!fileNameNoSuffix.startWith("UI") || isIgnoreFile(file, getIgnoreLayoutScript()))
 			{
 				continue;
 			}
-			string layoutName = fileNameNoSuffix.removeStartString("Script");
-			if (!prefabChildTransform.TryGetValue(layoutName, out Transform[] transforms))
+			if (!prefabChildTransform.TryGetValue(fileNameNoSuffix, out Transform[] transforms))
 			{
-				Debug.LogError("脚本名为:" + layoutName + "的cs文件没找到相对应的预制体");
+				Debug.LogError("脚本名为:" + fileNameNoSuffix + "的cs文件没找到相对应的预制体");
 				continue;
 			}
 			displayProgressBar("UI变量名匹配", "进度: ", i + 1, fileCount);
-			doCheckDifferentNodeName(file, layoutName, transforms, openTxtFileLines(file));
+			doCheckDifferentNodeName(file, fileNameNoSuffix, transforms, openTxtFileLines(file));
 		}
 		clearProgressBar();
 		Debug.Log("完成检查UI变量名与节点名不一致的代码");

@@ -78,14 +78,27 @@ public class WidgetUtility
 	}
 	public static void setRectSize(RectTransform rectTransform, Vector2 size)
 	{
-		if(rectTransform == null)
+		if (rectTransform == null)
 		{
 			return;
 		}
-		Vector2 deltaSize = size - rectTransform.rect.size;
-		Vector2 pivot = rectTransform.pivot;
-		rectTransform.offsetMin -= new Vector2(deltaSize.x * pivot.x, deltaSize.y * pivot.y);
-		rectTransform.offsetMax += new Vector2(deltaSize.x * (1.0f - pivot.x), deltaSize.y * (1.0f - pivot.y));
+		//Vector2 deltaSize = size - rectTransform.rect.size;
+		//Vector2 pivot = rectTransform.pivot;
+		//rectTransform.offsetMin -= new Vector2(deltaSize.x * pivot.x, deltaSize.y * pivot.y);
+		//rectTransform.offsetMax += new Vector2(deltaSize.x * (1.0f - pivot.x), deltaSize.y * (1.0f - pivot.y));
+		// 跟上面是等效的
+		Vector2 parentSize = getParentSize(rectTransform);
+		Vector2 anchorMin = rectTransform.anchorMin;
+		Vector2 anchorMax = rectTransform.anchorMax;
+		Vector2 vector = rectTransform.sizeDelta;
+		vector.x = size.x - parentSize.x * (anchorMax.x - anchorMin.x);
+		vector.y = size.y - parentSize.y * (anchorMax.y - anchorMin.y);
+		rectTransform.sizeDelta = vector;
+	}
+	public static Vector2 getParentSize(RectTransform rectTrans)
+	{
+		var rectTransform = rectTrans.parent as RectTransform;
+		return rectTransform != null ? rectTransform.rect.size : Vector2.zero;
 	}
 	public static void setRectSizeWithFontSize(RectTransform rectTransform, Vector2 size, int minFontSize)
 	{

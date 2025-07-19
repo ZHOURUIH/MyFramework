@@ -79,7 +79,7 @@ public class ComponentDrag : GameComponent
 	public void setObjectCenterAlignMouse(bool align)					{ mObjectCenterAlignMouse = align; }
 	public void setDragStartCallback(DragStartCallback callback)		{ mDragStartCallback = callback;}
 	public void setDragEndCallback(DragEndCallback callback)			{ mDragEndCallback = callback;}
-	public void setDragEndTotallyCallback(DragEndCallback callback)	{ mDragEndTotallyCallback = callback; }
+	public void setDragEndTotallyCallback(DragEndCallback callback)		{ mDragEndTotallyCallback = callback; }
 	public void setDragingCallback(DragCallback callback)				{ mDragingCallback = callback;}
 	public void setStartDragThreshold(float threshold)					{ mStartDragThreshold = threshold; }
 	public void setAllowDragDirection(Vector2 allowDirection)			{ mAllowDragDirection = allowDirection; }

@@ -191,7 +191,7 @@ public class NetConnectHttp : NetConnect
 		log("[ " + packet.GetType().Name + " ] " + info.mMessage, LOG_LEVEL.LOW);
 
 		// 发送消息需要备份一下
-		mNotResponsePacket.add(packet.GetType(), CLASS<HttpSendInfo>()).cloneFrom(info);
+		mNotResponsePacket.addClass(packet.GetType()).cloneFrom(info);
 
 		mNetPacketFactory.destroyPacket(packet);
 	}

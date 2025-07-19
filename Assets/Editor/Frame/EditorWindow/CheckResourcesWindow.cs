@@ -81,10 +81,7 @@ public class CheckResourcesWindow : GameEditorWindow
 							List<string> validFiles = new();
 							foreach (string item in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
 							{
-								if (!item.EndsWith(".meta"))
-								{
-									validFiles.Add(item.rightToLeft());
-								}
+								validFiles.addIf(item.rightToLeft(), !item.EndsWith(".meta"));
 							}
 							mFileReferenceList.Clear();
 							Dictionary<string, List<string>> tempList = new();

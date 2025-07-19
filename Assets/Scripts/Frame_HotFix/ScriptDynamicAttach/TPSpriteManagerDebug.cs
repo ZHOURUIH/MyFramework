@@ -15,14 +15,14 @@ public class TPSpriteManagerDebug : MonoBehaviour
 		}
 		mAtlasList.Clear();
 		mResourcesAtlasList.Clear();
-		foreach (var item in mTPSpriteManager.getAtlasList().getMainList())
+		foreach (var item in mAtlasManager.getAtlasList().getMainList())
 		{
 			UGUIAtlasDebug info = new();
 			info.mAtlasName = item.Key;
 			info.mRefCount = item.Value.getReferenceCount();
 			mAtlasList.Add(info);
 		}
-		foreach (var item in mTPSpriteManager.getAtlasListInResources().getMainList())
+		foreach (var item in mAtlasManager.getAtlasListInResources().getMainList())
 		{
 			UGUIAtlasDebug info = new();
 			info.mAtlasName = item.Key;

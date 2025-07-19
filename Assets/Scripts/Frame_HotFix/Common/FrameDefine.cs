@@ -14,34 +14,21 @@ public class FrameDefine
 	public const string ATLAS = "Atlas";
 	public const string FONT = "Font";
 	public const string KEY_FRAME = "KeyFrame";
-	public const string LOWER_KEY_FRAME = "keyframe";
 	public const string UI = "UI";
-	public const string LOWER_UI = "ui";
 	public const string SCENE = "Scene";
 	public const string SHADER = "Shader";
-	public const string GAME = "Game";
-	public const string FRAME = "Frame";
-	public const string SKYBOX = "Skybox";
 	public const string SOUND = "Sound";
-	public const string GAME_SOUND = "GameSound";
 	public const string MATERIAL = "Material";
 	public const string TEXTURE = "Texture";
-	public const string GAME_ATLAS = "GameAtlas";
-	public const string GAME_TEXTURE = "GameTexture";
-	public const string NUMBER_STYLE = "NumberStyle";
-	public const string TEXTURE_ANIM = "TextureAnim";
 	public const string UGUI_SUB_PREFAB = "UGUISubPrefab";
 	public const string UI_PREFAB = "UIPrefab";
 	public const string MISC = "Misc";
 	public const string EXCEL = "Excel";
 	public const string SQLITE = "SQLite";
 	public const string EFFECT = "Effect";
-	public const string CHARACTER = "Character";
 	public const string UNUSED = "Unused";
 	public const string VIDEO = "Video";
 	public const string PARTICLE = "Particle";
-	public const string CUSTOM_SOUND = "CustomSound";
-	public const string MODEL = "Model";
 	public const string GAME_PLUGIN = "GamePlugin";
 	public const string PATH_KEYFRAME = "PathKeyFrame";
 	public const string SCRIPT = "Script";
@@ -49,8 +36,6 @@ public class FrameDefine
 
 	// 相对路径,相对于项目,以P_开头,表示Project,一般以Assets开头
 	public const string P_SCRIPTS_PATH = P_ASSETS_PATH + SCRIPTS + "/";
-	public const string P_SCRIPTS_FRAME_PATH = P_SCRIPTS_PATH + FRAME + "/";
-	public const string P_SCRIPTS_GAME_PATH = P_SCRIPTS_PATH + GAME + "/";
 	public const string P_GAME_RESOURCES_PATH = P_ASSETS_PATH + GAME_RESOURCES + "/";
 	public const string P_RESOURCES_SCENE_PATH = P_RESOURCES_PATH + SCENE + "/";
 	public const string P_RESOURCES_ATLAS_PATH = P_RESOURCES_PATH + ATLAS + "/";
@@ -58,8 +43,6 @@ public class FrameDefine
 	public const string P_RESOURCES_UI_PATH = P_RESOURCES_PATH + UI + "/";
 	public const string P_RESOURCES_UI_PREFAB_PATH = P_RESOURCES_UI_PATH + UI_PREFAB + "/";
 	public const string P_ATLAS_PATH = P_GAME_RESOURCES_PATH + ATLAS + "/";
-	public const string P_GAME_ATLAS_PATH = P_ATLAS_PATH + GAME_ATLAS + "/";
-	public const string P_ATLAS_TEXTURE_ANIM_PATH = P_ATLAS_PATH + TEXTURE_ANIM + "/";
 	public const string P_UI_PATH = P_GAME_RESOURCES_PATH + UI + "/";
 	public const string P_UI_PREFAB_PATH = P_UI_PATH + UI_PREFAB + "/";
 	public const string P_TEXTURE_PATH = P_GAME_RESOURCES_PATH + TEXTURE + "/";
@@ -74,28 +57,17 @@ public class FrameDefine
 
 	// 相对路径,相对于Resources,R_开头,表示Resources
 	public const string R_ATLAS_PATH = ATLAS + "/";
-	public const string R_ATLAS_GAME_ATLAS_PATH = R_ATLAS_PATH + GAME_ATLAS + "/";
-	public const string R_ATLAS_TEXTURE_ANIM_PATH = R_ATLAS_PATH + TEXTURE_ANIM + "/";
-	public const string R_ATLAS_NUMBER_STYLE_PATH = R_ATLAS_PATH + NUMBER_STYLE + "/";
 	public const string R_SOUND_PATH = SOUND + "/";
 	public const string R_FONT_PATH = FONT + "/";
 	public const string R_SHADER_PATH = SHADER + "/";
-	public const string R_SHADER_FRAME_PATH = R_SHADER_PATH + FRAME + "/";
-	public const string R_SHADER_GAME_PATH = R_SHADER_PATH + GAME + "/";
 	public const string R_UI_PATH = UI + "/";
 	public const string R_UI_PREFAB_PATH = R_UI_PATH + UI_PREFAB + "/";
 	public const string R_KEY_FRAME_PATH = KEY_FRAME + "/";
 	public const string R_UGUI_SUB_PREFAB_PATH = R_UI_PATH + UGUI_SUB_PREFAB + "/";
-	public const string R_TEXTURE_PATH = TEXTURE + "/";
-	public const string R_GAME_TEXTURE_PATH = R_TEXTURE_PATH + GAME_TEXTURE + "/";
-	public const string R_TEXTURE_ANIM_PATH = R_TEXTURE_PATH + TEXTURE_ANIM + "/";
-	public const string R_NUMBER_STYLE_PATH = R_TEXTURE_PATH + NUMBER_STYLE + "/";
 	public const string R_MATERIAL_PATH = MATERIAL + "/";
 	public const string R_PARTICLE_PATH = PARTICLE + "/";
-	public const string R_MODEL_PATH = MODEL + "/";
 	public const string R_SCENE_PATH = SCENE + "/";
 	public const string R_EFFECT_PATH = EFFECT + "/";
-	public const string R_CHARACTER_PATH = CHARACTER + "/";
 	public const string R_MISC_PATH = MISC + "/";
 	public const string R_EXCEL_PATH = EXCEL + "/";
 	public const string R_SQLITE_PATH = SQLITE + "/";
@@ -104,12 +76,9 @@ public class FrameDefine
 	// 绝对路径,以F_开头,表示Full
 	public static string F_PROJECT_PATH = getFilePath(Application.dataPath) + "/";
 	public static string F_SCRIPTS_PATH = F_ASSETS_PATH + SCRIPTS + "/";
-	public static string F_SCRIPTS_FRAME_PATH = F_SCRIPTS_PATH + FRAME + "/";
-	public static string F_SCRIPTS_GAME_PATH = F_SCRIPTS_PATH + GAME + "/";
 	public static string F_SCRIPTS_HOTFIX_PATH = F_SCRIPTS_PATH + HOTFIX + "/";
 	public static string F_SCRIPTS_HOTFIX_UI_PATH = F_SCRIPTS_HOTFIX_PATH + UI + "/";
 	public static string F_PLUGINS_PATH = F_ASSETS_PATH + PLUGINS + "/";
-	public static string F_SCRIPTS_UI_PATH = F_SCRIPTS_GAME_PATH + UI + "/";
 	public static string F_GAME_RESOURCES_PATH = F_ASSETS_PATH + GAME_RESOURCES + "/";
 	public static string F_RESOURCES_PATH = F_ASSETS_PATH + RESOURCES + "/";
 	public static string F_GAME_PLUGIN_PATH = F_STREAMING_ASSETS_PATH + GAME_PLUGIN + "/";
@@ -118,8 +87,6 @@ public class FrameDefine
 	public static string F_RESORUCES_UI_PATH = F_RESOURCES_PATH + UI + "/";
 	public static string F_RESORUCES_UI_PREFAB_PATH = F_UI_PATH + UI_PREFAB + "/";
 	public static string F_ATLAS_PATH = F_GAME_RESOURCES_PATH + ATLAS + "/";
-	public static string F_EXCEL_PATH = F_GAME_RESOURCES_PATH + EXCEL + "/";
-	public static string F_TEXTURE_PATH = F_GAME_RESOURCES_PATH + TEXTURE + "/";
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 常量定义
 	// 常量数值定义
@@ -161,6 +128,7 @@ public class FrameDefine
 	public const string KEY_FRAME_FILE = R_KEY_FRAME_PATH + "Keyframe.prefab";
 	public const string AUDIO_HELPER_FILE = R_MISC_PATH + "AudioHelper.prefab";
 	public const string STREAMING_ASSET_FILE = "StreamingAssets.bytes";
+	public const string ATLAS_PATH_CONFIG = "AtlasPathConfig.txt";
 	// 后缀名
 	public const string ASSET_BUNDLE_SUFFIX = ".unity3d";
 	public const string START_SCENE = P_RESOURCES_SCENE_PATH + "start.unity";

@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using static MathUtility;
 using static StringUtility;
 using static FrameBaseHotFix;
+using static UnityUtility;
 
 // 对UGUI的Text的封装
 public class myUGUIText : myUGUIObject, IUGUIText
@@ -16,6 +17,10 @@ public class myUGUIText : myUGUIObject, IUGUIText
 		base.init();
 		if (!mObject.TryGetComponent(out mText))
 		{
+			if (!mIsNewObject)
+			{
+				logError("需要添加一个Text组件,name:" + getName() + ", layout:" + getLayout().getName());
+			}
 			mText = mObject.AddComponent<Text>();
 			// 添加UGUI组件后需要重新获取RectTransform
 			mObject.TryGetComponent(out mRectTransform);
@@ -66,7 +71,7 @@ public class myUGUIText : myUGUIObject, IUGUIText
 			applyPreferredHeight();
 		}
 	}
-	public void setTextInt(int value)
+	public void setText(int value)
 	{
 		setText(IToS(value));
 	}

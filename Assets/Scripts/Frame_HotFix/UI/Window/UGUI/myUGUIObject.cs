@@ -176,6 +176,7 @@ public class myUGUIObject : myUIObject
 		{
 			return;
 		}
+		// 还是需要调用setWindowSize,需要触发一些虚函数的调用
 		setWindowSize(replaceY(getWindowSize(), height));
 	}
 	public override void setWindowSize(Vector2 size)

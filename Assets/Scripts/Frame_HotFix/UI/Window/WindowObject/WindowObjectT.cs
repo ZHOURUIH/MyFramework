@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using static UnityUtility;
+using static FrameDefine;
 
 // 用于固定数量类,不能用于回收复用窗口
 // 通常只是用于已经在预设中创建好的窗口,创建对象时不会创建新的节点,也可以选择克隆到指定父节点下
@@ -7,7 +8,8 @@ public class WindowObjectT<T> : WindowObjectBase where T : myUIObject, new()
 {
 	protected T mRoot;                                  // 根节点
 	protected bool mRootIsFromClone;                    // 根节点是否是克隆来的
-	public WindowObjectT(LayoutScript script) : base(script) { }
+	protected bool mChangePositionAsInvisible;			// 是否使用移动位置来代替隐藏
+	public WindowObjectT(IWindowObjectOwner parent) : base(parent) { }
 	// 对象真正从内存中销毁时调用
 	public override void destroy()
 	{
@@ -18,15 +20,42 @@ public class WindowObjectT<T> : WindowObjectBase where T : myUIObject, new()
 			mRoot = null;
 		}
 	}
-	// 在指定的父节点下克隆一个物体
-	public override void assignWindow(myUIObject parent, myUIObject template, string name)
+	// 在parent下根据template克隆一个物体作为Root,设置名字为name
+	public void assignWindow(myUIObject parent, myUIObject template, string name)
 	{
 		mRootIsFromClone = true;
 		mScript.cloneObject(out mRoot, parent, template, name);
+		assignWindowInternal();
 	}
-	public override bool isActive() { return mRoot.isActiveInHierarchy(); }
-	public override void setActive(bool visible) { mRoot.setActive(visible); }
-	public void setPosition(Vector3 pos) { mRoot.setPosition(pos); }
+	// 使用itemRoot作为Root
+	public void assignWindow(myUIObject itemRoot)
+	{
+		mRoot = itemRoot as T;
+		assignWindowInternal();
+	}
+	// 在指定的父节点下获取一个物体,将parent下名字为name的节点作为Root
+	public void assignWindow(myUIObject parent, string name)
+	{
+		newObject(out mRoot, parent, name);
+		assignWindowInternal();
+	}
+	public override bool isActive() { return mRoot?.isActiveInHierarchy() ?? false; }
+	public override void setActive(bool visible) 
+	{
+		base.setActive(visible);
+		if (mChangePositionAsInvisible)
+		{
+			if (!visible)
+			{
+				mRoot.setPosition(FAR_POSITION);
+			}
+		}
+		else
+		{
+			mRoot.setActive(visible);
+		}
+	}
+	public virtual void setPosition(Vector3 pos) { mRoot.setPosition(pos); }
 	public T getRoot() { return mRoot; }
 	public Vector3 getPosition() { return mRoot.getPosition(); }
 	public Vector2 getSize() { return mRoot.getWindowSize(); }

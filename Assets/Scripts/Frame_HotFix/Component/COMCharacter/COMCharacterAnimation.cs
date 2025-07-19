@@ -41,11 +41,10 @@ public class COMCharacterAnimation : GameComponent
 	}
 	public void addLayer(Type defaultType, Type group)
 	{
-		CLASS(out AnimationLayer layer);
+		AnimationLayer layer = mLayerList.addClass();
 		layer.setCharacter(mCharacter);
 		layer.setDefaultState(defaultType);
 		layer.setGroup(group);
 		layer.setLayerIndex(mLayerList.Count);
-		mLayerList.Add(layer);
 	}
 }

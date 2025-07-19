@@ -51,7 +51,7 @@ public class LayoutLoadGroup : ClassObject
 	}
 	public void addLayout(Type type, int order = 0, LAYOUT_ORDER orderType = LAYOUT_ORDER.AUTO)
 	{
-		var info = mLoadInfo.add(type, CLASS<LayoutLoadInfo>());
+		LayoutLoadInfo info = mLoadInfo.addClass(type);
 		info.mType = type;
 		info.mOrder = order;
 		info.mOrderType = orderType;
@@ -59,7 +59,7 @@ public class LayoutLoadGroup : ClassObject
 	}
 	public void addSceneUI(Type type, int order = 0)
 	{
-		var info = mLoadInfo.add(type, CLASS<LayoutLoadInfo>());
+		LayoutLoadInfo info = mLoadInfo.addClass(type);
 		info.mType = type;
 		info.mOrder = order;
 		info.mOrderType = LAYOUT_ORDER.FIXED;

@@ -8,14 +8,14 @@ using static MathUtility;
 // 可变换的物体,2D和3D物体都是可变换,也就是都会包含一个Transform
 public class Transformable : ComponentOwner
 {
-	protected Transform mTransform;				// 变换组件
-	protected GameObject mObject;				// 物体节点
-	protected bool mNeedUpdate;					// 是否启用更新,与Active共同控制是否执行更新
+	protected Transform mTransform;             // 变换组件
+	protected GameObject mObject;               // 物体节点
+	protected bool mNeedUpdate;                 // 是否启用更新,与Active共同控制是否执行更新
 	protected Action mPositionModifyCallback;
 	protected Action mRotationModifyCallback;
 	protected Action mScaleModifyCallback;
 	protected bool mPositionDirty = true;
-	protected Vector3 mPosition;				// 单独存储位置,可以在大多数时候避免访问Transform
+	protected Vector3 mPosition;                // 单独存储位置,可以在大多数时候避免访问Transform
 	public Transformable()
 	{
 		mNeedUpdate = true;
@@ -77,22 +77,15 @@ public class Transformable : ComponentOwner
 	// 返回第一个碰撞体,当前节点找不到,则会在子节点中寻找
 	public Collider getColliderInChild() { return getUnityComponentInChild<Collider>(true); }
 	// 返回第一个碰撞体,仅在当前节点中寻找,允许子类重写此函数,碰撞体可能不在当前节点,或者也不在此节点的子节点中
-	public virtual Collider getCollider(bool addIfNotExist = false) 
+	public virtual Collider getCollider(bool addIfNotExist = false)
 	{
-		if (addIfNotExist)
+		var collider = tryGetUnityComponent<Collider>();
+		// 由于Collider无法直接添加到GameObject上,所以只能默认添加BoxCollider
+		if (addIfNotExist && collider == null)
 		{
-			var collider = tryGetUnityComponent<Collider>();
-			// 由于Collider无法直接添加到GameObject上,所以只能默认添加BoxCollider
-			if (collider == null)
-			{
-				collider = getOrAddUnityComponent<BoxCollider>();
-			}
-			return collider;
+			collider = getOrAddUnityComponent<BoxCollider>();
 		}
-		else
-		{
-			return tryGetUnityComponent<Collider>();
-		}
+		return collider;
 	}
 	public override void setName(string name)
 	{
@@ -112,7 +105,7 @@ public class Transformable : ComponentOwner
 		}
 		return collider.Raycast(ray, out hit, maxDistance);
 	}
-	public virtual GameObject getObject() { return mObject; }
+	public GameObject getObject() { return mObject; }
 	public bool isUnityComponentEnabled<T>() where T : Behaviour
 	{
 		T com = tryGetUnityComponent<T>();
@@ -128,47 +121,81 @@ public class Transformable : ComponentOwner
 	}
 	public T tryGetUnityComponent<T>() where T : Component
 	{
+		if (mObject == null)
+		{
+			return null;
+		}
 		mObject.TryGetComponent(out T com);
 		return com;
 	}
-	public void tryGetUnityComponent<T>(out T com) where T : Component
+	public bool tryGetUnityComponent<T>(out T com) where T : Component
 	{
-		mObject.TryGetComponent(out com);
+		if (mObject == null)
+		{
+			com = null;
+			return false;
+		}
+		return mObject.TryGetComponent(out com);
 	}
 	public T getOrAddUnityComponent<T>() where T : Component
 	{
-		FrameBaseUtility.getOrAddComponent<T>(mObject, out T com);
+		FrameBaseUtility.getOrAddComponent(mObject, out T com);
 		return com;
 	}
 	// 从当前节点以及所有子节点中查找指定组件
 	public void getUnityComponentsInChild<T>(bool includeInactive, List<T> list) where T : Component
 	{
+		if (mObject == null)
+		{
+			return;
+		}
 		mObject.GetComponentsInChildren(includeInactive, list);
 	}
 	// 从当前节点以及所有子节点中查找指定组件
 	public T[] getUnityComponentsInChild<T>(bool includeInactive) where T : Component
 	{
+		if (mObject == null)
+		{
+			return null;
+		}
 		return mObject.GetComponentsInChildren<T>(includeInactive);
 	}
 	// 从当前节点以及所有子节点中查找指定组件,includeInactive默认为false
 	public void getUnityComponentsInChild<T>(List<T> list) where T : Component
 	{
+		if (mObject == null)
+		{
+			return;
+		}
 		mObject.GetComponentsInChildren(list);
 	}
 	// 从当前节点以及所有子节点中查找指定组件,includeInactive默认为false
 	public T[] getUnityComponentsInChild<T>() where T : Component
 	{
+		if (mObject == null)
+		{
+			return null;
+		}
 		return mObject.GetComponentsInChildren<T>();
 	}
 	// 从指定的子节点中查找指定组件
 	public T getUnityComponentInChild<T>(string childName) where T : Component
 	{
-		getGameObject(childName, mObject).TryGetComponent(out T com);
+		GameObject go = getGameObject(childName, mObject);
+		if (go == null)
+		{
+			return null;
+		}
+		go.TryGetComponent(out T com);
 		return com;
 	}
 	// 从当前以及所有子节点中查找指定组件
 	public T getUnityComponentInChild<T>(bool includeInactive = true) where T : Component
 	{
+		if (mObject == null)
+		{
+			return null;
+		}
 		return mObject.GetComponentInChildren<T>(includeInactive);
 	}
 	public GameObject getUnityObject() { return mObject; }
@@ -189,7 +216,7 @@ public class Transformable : ComponentOwner
 	public void removeRotationModifyCallback(Action callback) { mRotationModifyCallback -= callback; }
 	public void addScaleModifyCallback(Action callback) { mScaleModifyCallback += callback; }
 	public void removeScaleModifyCallback(Action callback) { mScaleModifyCallback -= callback; }
-	public Vector3 getPosition() 
+	public Vector3 getPosition()
 	{
 		if (mPositionDirty)
 		{
@@ -220,7 +247,7 @@ public class Transformable : ComponentOwner
 	public GameObject getChild(int index) { return mTransform != null ? mTransform.GetChild(index).gameObject : null; }
 	public Vector3 getScale() { return mTransform != null ? mTransform.localScale : Vector3.zero; }
 	public Vector3 getWorldPosition() { return mTransform != null ? mTransform.position : Vector3.zero; }
-	public Vector3 getWorldScale()  { return mTransform != null ? mTransform.lossyScale : Vector3.zero; }
+	public Vector3 getWorldScale() { return mTransform != null ? mTransform.lossyScale : Vector3.zero; }
 	public Vector3 getWorldRotation() { return mTransform != null ? mTransform.rotation.eulerAngles : Vector3.zero; }
 	public Vector3 getRotationRadian()
 	{
@@ -232,9 +259,9 @@ public class Transformable : ComponentOwner
 		adjustRadian180(ref vector3.z);
 		return vector3;
 	}
-	public Quaternion getRotationQuaternion()  { return mTransform != null ? mTransform.localRotation : Quaternion.identity; }
-	public Quaternion getWorldQuaternionRotation()  { return mTransform != null ? mTransform.rotation : Quaternion.identity; }
-	public void setPosition(Vector3 pos) 
+	public Quaternion getRotationQuaternion() { return mTransform != null ? mTransform.localRotation : Quaternion.identity; }
+	public Quaternion getWorldQuaternionRotation() { return mTransform != null ? mTransform.rotation : Quaternion.identity; }
+	public void setPosition(Vector3 pos)
 	{
 		if (mTransform == null)
 		{
@@ -248,6 +275,10 @@ public class Transformable : ComponentOwner
 		mTransform.localPosition = pos;
 		mPositionModifyCallback?.Invoke();
 	}
+	public void setScale(float scale)
+	{
+		setScale(new Vector3(scale, scale, scale));
+	}
 	public void setScale(Vector3 scale)
 	{
 		if (mTransform == null || isVectorEqual(mTransform.localScale, scale))
@@ -258,7 +289,7 @@ public class Transformable : ComponentOwner
 		mScaleModifyCallback?.Invoke();
 	}
 	// 角度制的欧拉角,分别是绕xyz轴的旋转角度
-	public void setRotation(Vector3 rot) 
+	public void setRotation(Vector3 rot)
 	{
 		if (mTransform == null || isVectorEqual(mTransform.localEulerAngles, rot))
 		{
@@ -277,7 +308,7 @@ public class Transformable : ComponentOwner
 		mTransform.localRotation = rot;
 		mRotationModifyCallback?.Invoke();
 	}
-	public void setWorldPosition(Vector3 pos) 
+	public void setWorldPosition(Vector3 pos)
 	{
 		if (mTransform == null)
 		{
@@ -346,7 +377,7 @@ public class Transformable : ComponentOwner
 		{
 			return;
 		}
-		mTransform.Rotate(rotation, Space.Self); 
+		mTransform.Rotate(rotation, Space.Self);
 	}
 	public void rotateWorld(Vector3 rotation)
 	{
@@ -354,7 +385,7 @@ public class Transformable : ComponentOwner
 		{
 			return;
 		}
-		mTransform.Rotate(rotation, Space.World); 
+		mTransform.Rotate(rotation, Space.World);
 	}
 	// 绕本地坐标系下某个轴原地旋转,angle为角度制
 	public void rotateAround(Vector3 axis, float angle)
@@ -363,7 +394,7 @@ public class Transformable : ComponentOwner
 		{
 			return;
 		}
-		mTransform.Rotate(axis, angle, Space.Self); 
+		mTransform.Rotate(axis, angle, Space.Self);
 	}
 	// 绕世界某条直线旋转
 	public void rotateAround(Vector3 point, Vector3 axis, float angle)
@@ -372,7 +403,7 @@ public class Transformable : ComponentOwner
 		{
 			return;
 		}
-		mTransform.RotateAround(point, axis, angle); 
+		mTransform.RotateAround(point, axis, angle);
 	}
 	public void rotateAroundWorld(Vector3 axis, float angle)
 	{
@@ -382,13 +413,13 @@ public class Transformable : ComponentOwner
 		}
 		mTransform.Rotate(axis, angle, Space.World);
 	}
-	public void lookAt(Vector3 direction) 
+	public void lookAt(Vector3 direction)
 	{
 		if (isVectorZero(direction))
 		{
 			return;
 		}
-		setRotation(getLookAtQuaternion(direction)); 
+		setRotation(getLookAtQuaternion(direction));
 	}
 	public void lookAtPoint(Vector3 point)
 	{
@@ -415,13 +446,13 @@ public class Transformable : ComponentOwner
 		mTransform.localEulerAngles = Vector3.zero;
 		mTransform.localScale = Vector3.one;
 	}
-	public void setLayer(int layer) 
+	public void setLayer(int layer)
 	{
 		if (mObject == null)
 		{
 			return;
 		}
-		mObject.layer = layer; 
+		mObject.layer = layer;
 	}
 	public void setParent(GameObject parent, bool resetTrans = true)
 	{

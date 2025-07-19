@@ -93,6 +93,12 @@ public class CameraManager : FrameSystem
 			{
 				foreach (GameCamera overlayCamera in mOverlayCameraList)
 				{
+					// 注意,此处不能添加其他场景的overlay摄像机,否则不会生效
+					if (isEditor() && overlayCamera.getObject().scene.name != camera.getObject().scene.name)
+					{
+						logWarning("不能添加其他场景的overlay摄像机");
+						continue;
+					}
 					cameraData.cameraStack.addUnique(overlayCamera.getCamera());
 				}
 			}

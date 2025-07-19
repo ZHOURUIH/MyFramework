@@ -86,12 +86,12 @@ public class FileUtility
 			callback?.Invoke(null);
 			return;
 		}
-		GameEntry.getInstance().StartCoroutine(openFileAsyncInternal(fileName, errorIfNull, callback));
+		GameEntry.startCoroutine(openFileAsyncInternal(fileName, errorIfNull, callback));
 	}
 	// fileNameList为绝对路径
 	public static void openFileListAsync(List<string> fileNameList, bool errorIfNull, StringBytesCallback callback)
 	{
-		GameEntry.getInstance().StartCoroutine(openFileListAsyncInternal(fileNameList, errorIfNull, callback));
+		GameEntry.startCoroutine(openFileListAsyncInternal(fileNameList, errorIfNull, callback));
 	}
 	public static void openTxtFileAsync(string fileName, bool errorIfNull, StringCallback callback)
 	{
@@ -107,9 +107,100 @@ public class FileUtility
 			callback?.Invoke(splitLine(bytesToString(bytes)));
 		});
 	}
+	// 打开一个二进制文件,fileName为绝对路径,返回值为文件长度
+	// 使用完毕后需要使用releaseFile回收文件内存
+	// 这里添加Sync后缀是为了避免跟EditorFileUtility命名冲突
+	public static byte[] openFileSync(string fileName, bool errorIfNull)
+	{
+		byte[] fileBuffer = null;
+		try
+		{
+#if !UNITY_ANDROID || UNITY_EDITOR
+			using FileStream fs = new(fileName, FileMode.Open, FileAccess.Read);
+			if (fs == null)
+			{
+				if (errorIfNull)
+				{
+					logError("文件加载失败! : " + fileName);
+				}
+				return null;
+			}
+			int fileSize = (int)fs.Length;
+			fileBuffer = new byte[fileSize];
+			fs.Read(fileBuffer, 0, fileSize);
+			return fileBuffer;
+#else
+			// 安卓平台如果要读取StreamingAssets下的文件,只能使用AssetManager
+			if (fileName.startWith(F_STREAMING_ASSETS_PATH))
+			{
+				// 改为相对路径
+				fileName = fileName.removeStartCount(F_STREAMING_ASSETS_PATH.Length);
+				fileBuffer = AndroidAssetLoader.loadAsset(fileName, errorIfNull);
+			}
+			// 安卓平台如果要读取persistentDataPath的文件,则可以使用File
+			else if (fileName.startWith(F_PERSISTENT_DATA_PATH))
+			{
+				fileBuffer = AndroidAssetLoader.loadFile(fileName, errorIfNull);
+			}
+			else
+			{
+				logError("openFile invalid path : " + fileName);
+			}
+			if (fileBuffer == null && errorIfNull)
+			{
+				logError("open file failed! filename : " + fileName);
+			}
+			return fileBuffer;
+#endif
+		}
+		catch (Exception e)
+		{
+			if (errorIfNull)
+			{
+				logException(e, "文件加载失败! : " + fileName);
+			}
+		}
+		return null;
+	}
+	// 打开一个文本文件,fileName为绝对路径
+	public static string openTxtFileSync(string fileName, bool errorIfNull)
+	{
+		byte[] fileContent = openFileSync(fileName, errorIfNull);
+		if (fileContent == null)
+		{
+			return EMPTY;
+		}
+		return bytesToString(fileContent, 0, fileContent.Length);
+	}
+	// 打开一个文本文件,fileName为绝对路径,并且自动将文件拆分为多行,移除末尾的换行符(\r或者\n),存储在fileLines中,包含空行,返回值是行数
+	public static int openTxtFileLinesSync(string fileName, out string[] fileLines, bool errorIfNull = true, bool keepEmptyLine = true)
+	{
+		string fileContent = openTxtFileSync(fileName, errorIfNull);
+		if (fileContent.isEmpty())
+		{
+			fileLines = null;
+			return 0;
+		}
+		splitLine(fileContent, out fileLines, !keepEmptyLine);
+		return fileLines.count();
+	}
+	// 打开一个文本文件,fileName为绝对路径,并且自动将文件拆分为多行,移除末尾的换行符(\r或者\n),存储在fileLines中,包含空行,返回值是行数
+	public static string[] openTxtFileLinesSync(string fileName, bool errorIfNull = true, bool keepEmptyLine = true)
+	{
+		openTxtFileLinesSync(fileName, out string[] lines, errorIfNull, keepEmptyLine);
+		return lines;
+	}
+	public static void writeFile(string fileName, byte[] buffer, bool appendData = false)
+	{
+		writeFile(fileName, buffer, buffer.Length, appendData);
+	}
 	// 写一个文本文件,fileName为绝对路径,content是写入的字符串
 	public static void writeFile(string fileName, byte[] buffer, int size, bool appendData = false)
 	{
+		if (fileName == null)
+		{
+			return;
+		}
 		// 检测路径是否存在,如果不存在就创建一个
 		createDir(getFilePath(fileName));
 		if (isEditor() || !isAndroid())
@@ -636,22 +727,22 @@ public class FileUtility
 	{
 		findFilesInternal(path, fileList, patterns, true);
 	}
-	public static void findFiles(string path, List<string> fileList, string pattern)
+	public static void findFiles(string path, List<string> fileList, string pattern, bool recursive = true)
 	{
 		if (isMainThread())
 		{
 			mTempPatternList.Clear();
 			mTempPatternList.addNotEmpty(pattern);
-			findFilesInternal(path, fileList, mTempPatternList, true);
+			findFilesInternal(path, fileList, mTempPatternList, recursive);
 		}
 		else
 		{
 			findFilesInternal(path, fileList, new List<string>() { pattern }, true);
 		}
 	}
-	public static void findFiles(string path, List<string> fileList)
+	public static void findFiles(string path, List<string> fileList, bool recursive = true)
 	{
-		findFilesInternal(path, fileList, null, true);
+		findFilesInternal(path, fileList, null, recursive);
 	}
 	// 查找指定目录下的所有文件,path为绝对路径
 	public static void findFilesInternal(string path, List<string> fileList, IList<string> patterns, bool recursive)
@@ -679,10 +770,7 @@ public class FileUtility
 					{
 						foreach (string pattern in patterns)
 						{
-							if (fileName.endWith(pattern, false))
-							{
-								fileList.Add(path + fileName);
-							}
+							fileList.addIf(path + fileName, fileName.endWith(pattern, false));
 						}
 					}
 					// 不需要过滤,则直接放入列表
@@ -803,7 +891,7 @@ public class FileUtility
 			}
 			else
 			{
-				GameEntry.getInstance().StartCoroutine(generateMD5ListAsyncInternal(fileNameList, callback));
+				GameEntry.startCoroutine(generateMD5ListAsyncInternal(fileNameList, callback));
 			}
 		}
 	}

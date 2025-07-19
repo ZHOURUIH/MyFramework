@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Threading;
+using System.Collections;
 using UnityEngine;
 using static FrameBaseUtility;
 using static FrameBaseDefine;
@@ -142,6 +143,10 @@ public class GameEntry : MonoBehaviour
 	public void setFrameworkHotFix(IFramework framework) { mFrameworkHotFix = framework; }
 	public IFramework getFrameworkAOT() { return mFrameworkAOT; }
 	public IFramework getFrameworkHotFix() { return mFrameworkHotFix; }
+	public static Coroutine startCoroutine(IEnumerator routine)
+	{
+		return getInstance().StartCoroutine(routine);
+	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void unhandledException(object sender, UnhandledExceptionEventArgs e)
 	{

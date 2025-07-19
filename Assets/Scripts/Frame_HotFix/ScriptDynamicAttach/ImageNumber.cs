@@ -5,7 +5,7 @@ using static FrameBaseUtility;
 using static UnityUtility;
 using static MathUtility;
 
-// 使用图片来显示数字
+// 使用图片来显示数字,暂时只支持TPAtlas,如果使用SpriteAtlas,纹理坐标会计算错误
 public class ImageNumber : Image
 {
 	protected Dictionary<char, Sprite> mSpriteList = new(); // 图片列表,需要所有图片都是相同大小的

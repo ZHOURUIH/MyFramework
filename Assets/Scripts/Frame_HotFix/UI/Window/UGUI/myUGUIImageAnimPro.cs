@@ -87,7 +87,7 @@ public class myUGUIImageAnimPro : myUGUIImagePro, IUIAnimation
 			while (mSpriteList.addNotNull(getSpriteInAtlas(mTextureSetName + "_" + IToS(index++)))){}
 			if (getTextureFrameCount() == 0)
 			{
-				logError("invalid sprite anim! atlas : " + (getAtlas()?.getName() ?? EMPTY) + ", anim set : " + textureSetName);
+				logError("invalid sprite anim! atlas : " + (getAtlas()?.getFilePath() ?? EMPTY) + ", anim set : " + textureSetName);
 			}
 		}
 		mControl.setFrameCount(getTextureFrameCount());

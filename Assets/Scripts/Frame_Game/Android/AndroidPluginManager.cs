@@ -33,5 +33,6 @@ public class AndroidPluginManager : FrameSystem
 		base.destroy();
 	}
 	public static AndroidJavaObject getMainActivity() { return mMainActivity; }
+	public static AndroidJavaObject getApplication() { return mApplication; }
 	public static string getPackageName() { return mAndroidPackageName; }
 }

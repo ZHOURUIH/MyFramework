@@ -38,8 +38,7 @@ public class SerializerRead : ClassObject
 	}
 	public bool readCustom<T>(out T seri) where T : Serializable, new()
 	{
-		CLASS(out seri);
-		return seri.read(this);
+		return CLASS(out seri).read(this);
 	}
 	public bool readEnumByte<T>(out T value) where T : Enum
 	{

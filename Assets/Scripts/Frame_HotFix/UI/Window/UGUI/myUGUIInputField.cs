@@ -4,6 +4,7 @@ using UnityEngine.Events;
 using static StringUtility;
 using static FrameUtility;
 using static FrameBaseUtility;
+using static UnityUtility;
 
 // 对UGUI的InputField的封装
 public class myUGUIInputField : myUGUIImageSimple, IInputField
@@ -24,6 +25,10 @@ public class myUGUIInputField : myUGUIImageSimple, IInputField
 		base.init();
 		if (!mObject.TryGetComponent(out mInputField))
 		{
+			if (!mIsNewObject)
+			{
+				logError("需要添加一个InputField组件,name:" + getName() + ", layout:" + getLayout().getName());
+			}
 			mInputField = mObject.AddComponent<InputField>();
 			// 添加UGUI组件后需要重新获取RectTransform
 			mObject.TryGetComponent(out mRectTransform);
@@ -40,7 +45,7 @@ public class myUGUIInputField : myUGUIImageSimple, IInputField
 	}
 	// needEnter表示是否需要按下回车键才会认为是输入结束,false则是只要输入框失去焦点就认为输入结束
 	// 移动端上此参数不会生效
-	public void setOnEditEnd(StringCallback action, bool needEnter = true)
+	public void setOnEndEdit(StringCallback action, bool needEnter = true)
 	{
 		mEditEndCallback = action;
 		mEndNeedEnter = needEnter;
@@ -60,6 +65,7 @@ public class myUGUIInputField : myUGUIImageSimple, IInputField
 		}
 	}
 	public void setText(string value) { mInputField.text = value; }
+	public void setText(int value) { setText(IToS(value)); }
 	public void setText(float value) { setText(FToS(value, 2)); }
 	public string getText() { return mInputField.text; }
 	public bool isFocused() { return mInputField.isFocused; }
@@ -82,7 +88,7 @@ public class myUGUIInputField : myUGUIImageSimple, IInputField
 	protected void onEditEnd(string value) 
 	{
 		// 只处理由回车触发的输入结束,移动端不处理
-		if (!isRealMobile() && mEndNeedEnter && !isKeyDown(KeyCode.Return) && !isKeyDown(KeyCode.KeypadEnter))
+		if (!isRealMobile() && mEndNeedEnter && !isKeyDown(KeyCode.Return, FOCUS_MASK.UI) && !isKeyDown(KeyCode.KeypadEnter, FOCUS_MASK.UI))
 		{
 			return;
 		}

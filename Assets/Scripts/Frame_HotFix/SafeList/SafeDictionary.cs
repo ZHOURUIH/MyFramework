@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using static UnityUtility;
+using static FrameUtility;
 
 // 非线程安全
 // 可安全遍历的列表,支持在遍历过程中对列表进行修改
@@ -115,5 +116,15 @@ public class SafeDictionary<Key, Value> : ClassObject
 			mUpdateList.Clear();
 		}
 		mMainList.Clear();
+	}
+}
+
+public static class SafeDictionaryExtension
+{
+	public static T0 addClass<T0, Key>(this SafeDictionary<Key, T0> list, Key key) where T0 : ClassObject, new()
+	{
+		CLASS(out T0 value);
+		list.add(key, value);
+		return value;
 	}
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using static UnityUtility;
+using static FrameUtility;
 using static FrameBaseUtility;
 
 // 非线程安全
@@ -156,5 +157,15 @@ public class SafeList<T> : ClassObject
 			mUpdateList.Clear();
 		}
 		mMainList.Clear();
+	}
+}
+
+public static class SafeListExtension
+{
+	public static T0 addClass<T0>(this SafeList<T0> list) where T0 : ClassObject, new()
+	{
+		CLASS(out T0 value);
+		list.add(value);
+		return value;
 	}
 }

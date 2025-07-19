@@ -14,8 +14,12 @@ public class COMWindowCollider : GameComponent
 	}
 	public void setBoxCollider(BoxCollider collider)
 	{
+		if (mBoxCollider == collider)
+		{
+			return;
+		}
 		mBoxCollider = collider;
-		myUIObject window = mComponentOwner as myUIObject;
+		var window = mComponentOwner as myUIObject;
 		GameLayout layout = window.getLayout();
 		if (layout != null && layout.isCheckBoxAnchor() && mLayoutManager.isUseAnchor())
 		{

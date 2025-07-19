@@ -77,7 +77,7 @@ public class ResourceManager : FrameSystem
 	public string getDownloadURL() { return mAssetBundleLoader.getDownloadURL(); }
 	public int getDownloadTimeout() { return mDownloadTimeout; }
 	public void setDownloadTimeout(int timeout) { mDownloadTimeout = timeout; }
-	// 卸载加载的资源,不是实例化出的物体
+	// 卸载加载的资源,不是实例化出的物体,这里的泛型T是为了外部能传任意的类型的引用进来,而不是只能传ref UObject
 	public bool unload<T>(ref T obj, bool showError = true) where T : UObject
 	{
 		if (obj == null)
@@ -127,7 +127,7 @@ public class ResourceManager : FrameSystem
 		removeEndSlash(ref path);
 		mResourcesLoader.unloadPath(path);
 	}
-	// 指定卸载资源包
+	// 指定卸载资源包,StreamingAssets/平台名下的路径,不带后缀
 	public void unloadAssetBundle(string bundleName)
 	{
 		// 只有从AssetBundle加载才能卸载AssetBundle
@@ -139,6 +139,7 @@ public class ResourceManager : FrameSystem
 	// 指定资源是否已经加载,name是GameResources下的相对路径,带后缀
 	public bool isGameResourceLoaded<T>(string name) where T : UObject
 	{
+		checkRelativePath(name);
 		bool ret = false;
 		if (mLoadSource == LOAD_SOURCE.ASSET_DATABASE)
 		{
@@ -153,21 +154,13 @@ public class ResourceManager : FrameSystem
 	// 在Resources中的指定资源是否已经加载,带后缀
 	public bool isInResourceLoaded<T>(string name) where T : UObject
 	{
-		if (!name.Contains('.'))
-		{
-			logError("资源文件名需要带后缀:" + name);
-			return false;
-		}
+		checkRelativePath(name);
 		return mResourcesLoader.isResourceLoaded(removeSuffix(name));
 	}
 	// 获得资源,如果没有加载,则获取不到,使用频率可能比较低,name是GameResources下的相对路径,带后缀
 	public T getGameResource<T>(string name, bool errorIfNull = true) where T : UObject
 	{
-		if (!name.Contains('.'))
-		{
-			logError("资源文件名需要带后缀:" + name);
-			return null;
-		}
+		checkRelativePath(name);
 		T res = null;
 		if (mLoadSource == LOAD_SOURCE.ASSET_DATABASE)
 		{
@@ -186,11 +179,7 @@ public class ResourceManager : FrameSystem
 	// 强制在Resources中获得资源,如果未加载,则无法获取,name是Resources下的相对路径,带后缀
 	public T getInResource<T>(string name, bool errorIfNull = true) where T : UObject
 	{
-		if (!name.Contains('.'))
-		{
-			logError("资源文件名需要带后缀:" + name);
-			return null;
-		}
+		checkRelativePath(name);
 		T res = mResourcesLoader.getResource(removeSuffix(name)) as T;
 		if (res == null && errorIfNull)
 		{
@@ -198,7 +187,8 @@ public class ResourceManager : FrameSystem
 		}
 		return res;
 	}
-	// 检查指定资源包的依赖项是否已经加载
+	// 检查指定资源包的依赖项是否已经加载,如果没有会强制加载,一般来说用不上
+	// 不会出现还在被其他资源包依赖就已经被卸载的情况,因为卸载的时候会检查是否有被其他资源包依赖,除非是手动强制卸载
 	public void checkAssetBundleDependenceLoaded(string bundleName)
 	{
 		if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
@@ -206,8 +196,8 @@ public class ResourceManager : FrameSystem
 			mAssetBundleLoader.checkAssetBundleDependenceLoaded(bundleName);
 		}
 	}
-	// 同步加载资源包
-	public void loadAssetBundle(string bundleName)
+	// 同步预加载资源包,一般不需要调用,只有需要预加载时才会用到
+	public void preloadAssetBundle(string bundleName)
 	{
 		// 只有从AssetBundle加载时才能加载AssetBundle
 		if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
@@ -215,8 +205,8 @@ public class ResourceManager : FrameSystem
 			mAssetBundleLoader.loadAssetBundle(bundleName, null);
 		}
 	}
-	// 异步加载资源包
-	public void loadAssetBundleAsync(string bundleName, AssetBundleCallback callback)
+	// 异步预加载资源包,一般不需要调用,只有需要预加载时才会用到
+	public void preloadAssetBundleAsync(string bundleName, AssetBundleCallback callback)
 	{
 		if (mLoadSource == LOAD_SOURCE.ASSET_DATABASE)
 		{
@@ -232,11 +222,7 @@ public class ResourceManager : FrameSystem
 	public T loadGameResource<T>(string name, bool errorIfNull = true) where T : UObject
 	{
 		using var a = new ProfilerScope(0);
-		if (!name.Contains('.'))
-		{
-			logError("资源文件名需要带后缀:" + name);
-			return null;
-		}
+		checkRelativePath(name);
 		T res = null;
 		if (mLoadSource == LOAD_SOURCE.ASSET_DATABASE)
 		{
@@ -255,11 +241,7 @@ public class ResourceManager : FrameSystem
 	// 强制从Resources中同步加载指定资源,name是Resources下的相对路径,带后缀名,errorIfNull表示当找不到资源时是否报错提示
 	public T loadInResource<T>(string name, bool errorIfNull = true) where T : UObject
 	{
-		if (!name.Contains('.'))
-		{
-			logError("资源文件名需要带后缀:" + name);
-			return null;
-		}
+		checkRelativePath(name);
 		T res = mResourcesLoader.loadResource<T>(removeSuffix(name));
 		if (res == null && errorIfNull)
 		{
@@ -267,16 +249,11 @@ public class ResourceManager : FrameSystem
 		}
 		return res;
 	}
-	// 同步加载资源的子资源,一般是图集才会有子资源
-	public UObject[] loadGameSubResource<T>(string name, out UObject mainAsset, bool errorIfNull = true) where T : UObject
+	// 同步加载资源的子资源,一般是图集才会有子资源,或者是fbx
+	public UObject[] loadSubGameResource<T>(string name, out UObject mainAsset, bool errorIfNull = true) where T : UObject
 	{
 		using var a = new ProfilerScope(0);
-		if (!name.Contains('.'))
-		{
-			logError("资源文件名需要带后缀:" + name);
-			mainAsset = null;
-			return null;
-		}
+		checkRelativePath(name);
 		mainAsset = null;
 		UObject[] res = null;
 		if (mLoadSource == LOAD_SOURCE.ASSET_DATABASE)
@@ -293,15 +270,10 @@ public class ResourceManager : FrameSystem
 		}
 		return res;
 	}
-	// 强制从Resources中同步加载资源的子资源,一般是图集才会有子资源
-	public UObject[] loadInSubResource<T>(string name, out UObject mainAsset, bool errorIfNull = true) where T : UObject
+	// 强制从Resources中同步加载资源的子资源,一般是图集才会有子资源,或者是fbx
+	public UObject[] loadSubInResource<T>(string name, out UObject mainAsset, bool errorIfNull = true) where T : UObject
 	{
-		if (!name.Contains('.'))
-		{
-			logError("资源文件名需要带后缀:" + name);
-			mainAsset = null;
-			return null;
-		}
+		checkRelativePath(name);
 		UObject[] res = mResourcesLoader.loadSubResource<T>(removeSuffix(name), out mainAsset);
 		if (res == null && errorIfNull)
 		{
@@ -313,12 +285,7 @@ public class ResourceManager : FrameSystem
 	public CustomAsyncOperation loadGameResourceAsync<T>(string name, AssetLoadDoneCallback doneCallback, bool errorIfNull = true) where T : UObject
 	{
 		using var a = new ProfilerScope(0);
-		if (!name.Contains('.'))
-		{
-			logError("资源文件名需要带后缀:" + name);
-			doneCallback?.Invoke(null, null, null, name);
-			return null;
-		}
+		checkRelativePath(name);
 		if (mLoadSource == LOAD_SOURCE.ASSET_DATABASE)
 		{
 			return mAssetDataBaseLoader.loadResourcesAsync<T>(name, doneCallback);
@@ -329,6 +296,7 @@ public class ResourceManager : FrameSystem
 		}
 		return null;
 	}
+	// 异步加载资源,name是GameResources下的相对路径,带后缀名,errorIfNull表示当找不到资源时是否报错提示
 	public CustomAsyncOperation loadGameResourceAsync<T>(string name, Action<T, string> doneCallback, bool errorIfNull = true) where T : UObject
 	{
 		return loadGameResourceAsync<T>(name, (UObject asset, UObject[] _, byte[] _, string loadPath) =>
@@ -336,6 +304,8 @@ public class ResourceManager : FrameSystem
 			doneCallback?.Invoke(asset as T, loadPath);
 		}, errorIfNull);
 	}
+	// 异步加载资源,name是GameResources下的相对路径,带后缀名,errorIfNull表示当找不到资源时是否报错提示
+	// 在relatedObj生命周期内加载资源,如果完成加载后relatedObj已经被销毁,则会自动卸载资源并且不会调用回调
 	public CustomAsyncOperation loadGameResourceAsyncSafe<T>(ClassObject relatedObj, string name, Action<T, string> doneCallback, bool errorIfNull = true) where T : UObject
 	{
 		long assignID = relatedObj.getAssignID();
@@ -343,11 +313,13 @@ public class ResourceManager : FrameSystem
 		{
 			if (assignID != relatedObj.getAssignID())
 			{
+				unload(ref asset);
 				return;
 			}
 			doneCallback?.Invoke(asset as T, loadPath);
 		}, errorIfNull);
 	}
+	// 异步加载资源,name是GameResources下的相对路径,带后缀名,errorIfNull表示当找不到资源时是否报错提示
 	public CustomAsyncOperation loadGameResourceAsync<T>(string name, Action<T> doneCallback, bool errorIfNull = true) where T : UObject
 	{
 		return loadGameResourceAsync<T>(name, (UObject asset, UObject[] _, byte[] _, string _) =>
@@ -355,6 +327,8 @@ public class ResourceManager : FrameSystem
 			doneCallback?.Invoke(asset as T);
 		}, errorIfNull);
 	}
+	// 异步加载资源,name是GameResources下的相对路径,带后缀名,errorIfNull表示当找不到资源时是否报错提示
+	// 在relatedObj生命周期内加载资源,如果完成加载后relatedObj已经被销毁,则会自动卸载资源并且不会调用回调
 	public CustomAsyncOperation loadGameResourceAsyncSafe<T>(ClassObject relatedObj, string name, Action<T> doneCallback, bool errorIfNull = true) where T : UObject
 	{
 		long assignID = relatedObj.getAssignID();
@@ -378,21 +352,13 @@ public class ResourceManager : FrameSystem
 	// 强制在Resource中异步加载资源,name是Resources下的相对路径,带后缀,errorIfNull表示当找不到资源时是否报错提示
 	public CustomAsyncOperation loadInResourceAsync<T>(string name, AssetLoadDoneCallback doneCallback) where T : UObject
 	{
-		if (!name.Contains('.'))
-		{
-			logError("资源文件名需要带后缀:" + name);
-			return null;
-		}
+		checkRelativePath(name);
 		return mResourcesLoader.loadResourcesAsync<T>(removeSuffix(name), doneCallback);
 	}
 	// 仅下载一个资源,下载后会写入本地文件,并且更新本地文件信息列表,fileName为带后缀,GameResources下的相对路径
 	public void downloadGameResource(string name, BytesCallback callback)
 	{
-		if (!name.Contains('.'))
-		{
-			logError("资源文件名需要带后缀:" + name);
-			return;
-		}
+		checkRelativePath(name);
 		if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
 		{
 			mAssetBundleLoader.downloadAsset(name, callback);
@@ -401,25 +367,28 @@ public class ResourceManager : FrameSystem
 	// 根据一个URL加载资源,一般都是一个网络资源
 	public static void loadAssetsFromUrl<T>(string url, AssetLoadDoneCallback callback, DownloadCallback downloadingCallback = null) where T : UObject
 	{
-		GameEntry.getInstance().StartCoroutine(loadAssetsUrl(url, typeof(T), callback, downloadingCallback));
+		GameEntry.startCoroutine(loadAssetsUrl(url, typeof(T), callback, downloadingCallback));
 	}
+	// 根据一个URL加载资源,一般都是一个网络资源
 	public static void loadAssetsFromUrl<T>(string url, BytesCallback callback, DownloadCallback downloadingCallback = null) where T : UObject
 	{
-		GameEntry.getInstance().StartCoroutine(loadAssetsUrl(url, typeof(T), (UObject _, UObject[] _, byte[] bytes, string _) =>
+		GameEntry.startCoroutine(loadAssetsUrl(url, typeof(T), (UObject _, UObject[] _, byte[] bytes, string _) =>
 		{
 			callback?.Invoke(bytes);
 		}, downloadingCallback));
 	}
+	// 根据一个URL加载资源,一般都是一个网络资源
 	public static void loadAssetsFromUrl<T>(string url, Action<T> callback, DownloadCallback downloadingCallback = null) where T : UObject
 	{
-		GameEntry.getInstance().StartCoroutine(loadAssetsUrl(url, typeof(T), (UObject obj, UObject[] _, byte[] _, string _) =>
+		GameEntry.startCoroutine(loadAssetsUrl(url, typeof(T), (UObject obj, UObject[] _, byte[] _, string _) =>
 		{
 			callback?.Invoke(obj as T);
 		}, downloadingCallback));
 	}
+	// 根据一个URL加载资源,一般都是一个网络资源
 	public static void loadAssetsFromUrl<T>(string url, Action<T, string> callback, DownloadCallback downloadingCallback = null) where T : UObject
 	{
-		GameEntry.getInstance().StartCoroutine(loadAssetsUrl(url, typeof(T), (UObject obj, UObject[] _, byte[] _, string loadPath) =>
+		GameEntry.startCoroutine(loadAssetsUrl(url, typeof(T), (UObject obj, UObject[] _, byte[] _, string loadPath) =>
 		{
 			callback?.Invoke(obj as T, loadPath);
 		}, downloadingCallback));
@@ -427,41 +396,45 @@ public class ResourceManager : FrameSystem
 	// 根据一个URL加载资源,一般都是一个网络资源
 	public static void loadAssetsFromUrl(string url, AssetLoadDoneCallback callback, DownloadCallback downloadingCallback = null)
 	{
-		GameEntry.getInstance().StartCoroutine(loadAssetsUrl(url, null, callback, downloadingCallback));
+		GameEntry.startCoroutine(loadAssetsUrl(url, null, callback, downloadingCallback));
 	}
+	// 根据一个URL加载资源,一般都是一个网络资源
 	public static void loadAssetsFromUrl(string url, BytesCallback callback, DownloadCallback downloadingCallback = null)
 	{
-		GameEntry.getInstance().StartCoroutine(loadAssetsUrl(url, null, (UObject _, UObject[] _, byte[] bytes, string _) =>
+		GameEntry.startCoroutine(loadAssetsUrl(url, null, (UObject _, UObject[] _, byte[] bytes, string _) =>
 		{
 			callback?.Invoke(bytes);
 		}, downloadingCallback));
 	}
+	// 根据一个URL加载资源,一般都是一个网络资源
 	public static void loadAssetsFromUrl(string url, BytesStringCallback callback, DownloadCallback downloadingCallback = null)
 	{
-		GameEntry.getInstance().StartCoroutine(loadAssetsUrl(url, null, (UObject _, UObject[] _, byte[] bytes, string loadPath) =>
+		GameEntry.startCoroutine(loadAssetsUrl(url, null, (UObject _, UObject[] _, byte[] bytes, string loadPath) =>
 		{
 			callback?.Invoke(bytes, loadPath);
 		}, downloadingCallback));
 	}
-	// 根据一个URL加载资源,一般都是一个网络资源
+	// 根据一个URL加载资源,一般都是一个网络资源,可在协程中等待
 	public static IEnumerator loadAssetsFromUrlWaiting<T>(string url, AssetLoadDoneCallback callback, DownloadCallback downloadingCallback = null) where T : UObject
 	{
 		return loadAssetsUrl(url, typeof(T), callback, downloadingCallback);
 	}
-	// 根据一个URL加载资源,一般都是一个网络资源
+	// 根据一个URL加载资源,一般都是一个网络资源,可在协程中等待
 	public static IEnumerator loadAssetsFromUrlWaiting<T>(string url, Action<T> callback, DownloadCallback downloadingCallback = null) where T : UObject
 	{
 		return loadAssetsUrl(url, typeof(T), (UObject asset, UObject[] _, byte[] _, string _) => { callback?.Invoke(asset as T); }, downloadingCallback);
 	}
-	// 根据一个URL加载资源,一般都是一个网络资源
+	// 根据一个URL加载资源,一般都是一个网络资源,可在协程中等待
 	public static IEnumerator loadAssetsFromUrlWaiting(string url, AssetLoadDoneCallback callback, DownloadCallback downloadingCallback = null)
 	{
 		return loadAssetsUrl(url, null, callback, downloadingCallback);
 	}
+	// 根据一个URL加载资源,一般都是一个网络资源,可在协程中等待
 	public static IEnumerator loadAssetsFromUrlWaiting(string url, BytesCallback callback, DownloadCallback downloadingCallback = null)
 	{
 		return loadAssetsUrl(url, null, (UObject _, UObject[] _, byte[] bytes, string _) => { callback?.Invoke(bytes); }, downloadingCallback);
 	}
+	// 根据一个URL加载资源,一般都是一个网络资源,可在协程中等待
 	public static IEnumerator loadAssetsUrl(string url, Type assetsType, AssetLoadDoneCallback callback, DownloadCallback downloadingCallback)
 	{
 		log("开始下载: " + url);
@@ -482,6 +455,7 @@ public class ResourceManager : FrameSystem
 			yield return loadFileWithURL(url, callback, downloadingCallback);
 		}
 	}
+	// 根据一个URL加载AssetBundle,可在协程中等待
 	public static IEnumerator loadAssetBundleWithURL(string url, AssetLoadDoneCallback callback)
 	{
 		float timer = 0.0f;
@@ -636,6 +610,29 @@ public class ResourceManager : FrameSystem
 		catch (Exception e)
 		{
 			logException(e);
+		}
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	// 检查路径的合法性,需要带后缀,且需要是相对于GameResources的路径
+	protected static void checkRelativePath(string path)
+	{
+		// 需要带后缀
+		if (!path.Contains('.'))
+		{
+			logError("资源文件名需要带后缀:" + path);
+			return;
+		}
+		// 不能是绝对路径
+		if (path.startWith(FrameBaseDefine.F_ASSETS_PATH))
+		{
+			logError("不能传入绝对路径:" + path);
+			return;
+		}
+		// 不能是以Assets或者Assets/GameResources开头的相对路径
+		if (path.startWith(FrameDefine.P_GAME_RESOURCES_PATH) || path.startWith(FrameBaseDefine.ASSETS))
+		{
+			logError("不能是以Assets或者Assets/GameResources开头的相对路径:" + path);
+			return;
 		}
 	}
 }

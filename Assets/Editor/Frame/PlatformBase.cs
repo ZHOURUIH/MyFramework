@@ -7,13 +7,18 @@ using HybridCLR.Editor.Commands;
 using HybridCLR.Editor.HotUpdate;
 #endif
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 #if USE_OBFUSCATOR
-using Flower.UnityObfuscator;
+using Obfuz;
+using Obfuz.Settings;
+using Obfuz.Utils;
+using Obfuz.EncryptionVM;
 #endif
 using static FileUtility;
 using static StringUtility;
+using static MathUtility;
 using static FrameDefine;
 using static EditorFileUtility;
 using static CSharpUtility;
@@ -29,20 +34,20 @@ public abstract class PlatformBase
 	public BuildTarget mTarget;
 	public BuildTargetGroup mGroup;
 	public NamedBuildTarget mNamedTarget;
-	public string[] mVersionNumber;								// 用于修改本次打包的版本号
-	public List<string> mIgnoreFile;							// 计算文件列表时需要忽略的文件名
-	public string mAssetBundleFullPath;							// AssetBundle的绝对路径
-	public string mName;										// 平台名字,就是StreamingAssets中平台文件夹的名字
+	public string[] mVersionNumber;                             // 用于修改本次打包的版本号
+	public List<string> mIgnoreFile;                            // 计算文件列表时需要忽略的文件名
+	public string mAssetBundleFullPath;                         // AssetBundle的绝对路径
+	public string mName;                                        // 平台名字,就是StreamingAssets中平台文件夹的名字
 	public string mBuildVersion;                                // 打包时的版本号,仅在打包时使用
 	public string mLocalVersion;                                // 当前本地文件中存储的版本号,打包时在build完成后会同步为PackVersion,所以在build过程中是不能使用LocalVersion
-	public string mRemoteVersion;								// 远端的版本号
-	public string mOutputPath = F_PROJECT_PATH + "GameOutput/";	// 输出路径
-	public string mFolderPreName;								// 输出文件夹的名字或者安装包的名字前缀
-	public bool mEnableHotFix;									// 生成的客户端是否启用热更
-	public bool mBuildHybridCLR;								// 打包时是否执行HybridCLR打包,一般都是要执行,检验打包过程时可以不执行以加速打包
-	public bool mGooglePlay;									// 是否打包aab
-	public bool mExportAndroidProject;							// 是否导出为Android工程
-	public bool mOpenExplorer = true;							// 打包完成后是否显示所在文件夹
+	public string mRemoteVersion;                               // 远端的版本号
+	public string mOutputPath = F_PROJECT_PATH + "GameOutput/"; // 输出路径
+	public string mFolderPreName;                               // 输出文件夹的名字或者安装包的名字前缀
+	public bool mEnableHotFix;                                  // 生成的客户端是否启用热更
+	public bool mBuildHybridCLR;                                // 打包时是否执行HybridCLR打包,一般都是要执行,检验打包过程时可以不执行以加速打包
+	public bool mGooglePlay;                                    // 是否打包aab
+	public bool mExportAndroidProject;                          // 是否导出为Android工程
+	public bool mOpenExplorer = true;                           // 打包完成后是否显示所在文件夹
 	// containOnlyFileList如果不为空,则表示只拷贝列表中指定的文件
 	// 可用于单独更新某个文件,比如单独更新表格文件,使之既能够更新FileList,又能单独将要上传的文件放到独立的文件夹中
 	public bool showNeedUploadFile(string destFolderName, string[] containOnlyFileList = null)
@@ -95,7 +100,7 @@ public abstract class PlatformBase
 		// 第2个参数excludeDllNames为要排除的aot dll。一般取空列表即可。对于旗舰版本用户，
 		// excludeDllNames需要为dhe程序集列表，因为dhe 程序集会进行热更新，热更新代码中
 		// 引用的dhe程序集中的类型或函数肯定存在。
-		MissingMetadataChecker checker = new (aotDir, new List<string> { HOTFIX, HOTFIX_FRAME });
+		MissingMetadataChecker checker = new(aotDir, new List<string> { HOTFIX, HOTFIX_FRAME });
 		string hotUpdateDir = SettingsUtil.GetHotUpdateDllsOutputDirByTarget(target);
 		foreach (string dll in SettingsUtil.HotUpdateAssemblyFilesExcludePreserved)
 		{
@@ -125,21 +130,17 @@ public abstract class PlatformBase
 		string aotDllSrcPath = SettingsUtil.GetAssembliesPostIl2CppStripDir(EditorUserBuildSettings.activeBuildTarget) + "/";
 		foreach (string aotFile in AOTGenericReferences.PatchedAOTAssemblyList)
 		{
-			copyFile(aotDllSrcPath + aotFile, mAssetBundleFullPath + aotFile + ".bytes");
+			copyFile(aotDllSrcPath + aotFile, mAssetBundleFullPath + aotFile + DATA_SUFFIX);
 		}
 		checkAccessMissingMetadata();
 
-		// 对dll进行混淆,dll顺序很重要,被依赖的需要在前面
 #if USE_OBFUSCATOR
+		// 对dll进行混淆,dll顺序很重要,被依赖的需要在前面
 		log("开始混淆dll");
-		string[] obfuscateDllPaths = new string[]
-		{
-			P_ASSET_BUNDLE_PATH + HOTFIX_FRAME_BYTES_FILE,
-			P_ASSET_BUNDLE_PATH + HOTFIX_BYTES_FILE,
-		};
-		string nameMapFolder = "UnityObfuscatorNameMap";
-		createDir(F_PROJECT_PATH + nameMapFolder);
-		CodeObfuscator.DoObfuscate(obfuscateDllPaths, nameMapFolder + "/UnityObfuscator-Name_Obfuscate_Map_" + mBuildVersion + ".txt");
+		// 重命名dll,因为混淆时需要dll文件
+		renameFile(F_ASSET_BUNDLE_PATH + HOTFIX_BYTES_FILE, F_ASSET_BUNDLE_PATH + HOTFIX_FILE);
+		renameFile(F_ASSET_BUNDLE_PATH + HOTFIX_FRAME_BYTES_FILE, F_ASSET_BUNDLE_PATH + HOTFIX_FRAME_FILE);
+		obfuscate(mBuildVersion);
 		log("完成混淆dll");
 #endif
 
@@ -326,12 +327,12 @@ public abstract class PlatformBase
 	{
 		mVersionNumber = split(mRemoteVersion, ".");
 		// 需要确保版本号只有3个部分
-		if (mVersionNumber.Length != 3)
+		if (mVersionNumber.count() != 3)
 		{
 			string[] newVersionNumber = new string[3];
 			for (int i = 0; i < newVersionNumber.Length; ++i)
 			{
-				newVersionNumber[i] = i < mVersionNumber.Length ? mVersionNumber[i] : "0";
+				newVersionNumber[i] = i < mVersionNumber.count() ? mVersionNumber[i] : "0";
 			}
 			mVersionNumber = newVersionNumber;
 		}
@@ -444,7 +445,7 @@ public abstract class PlatformBase
 					else
 					{
 						backupDest = BACKUP_TARGET.INSTALL_TIME_TEMP;
-					}	
+					}
 				}
 				// 版本号文件不备份
 				else if (file.EndsWith(VERSION))
@@ -609,4 +610,61 @@ public abstract class PlatformBase
 			return false;
 		}
 	}
+#if USE_OBFUSCATOR
+	protected static List<string> getSearchPath()
+	{
+		string editorExePath = EditorApplication.applicationPath;
+		editorExePath = getFilePath(editorExePath);
+		List<string> searchPaths = new();
+		searchPaths.AddRange(ObfuscatorBuilder.BuildUnityAssemblySearchPaths());
+		searchPaths.Add(editorExePath + "/Data/Managed");
+		searchPaths.Add(F_PROJECT_PATH + SettingsUtil.GetHotUpdateDllsOutputDirByTarget(EditorUserBuildSettings.activeBuildTarget));
+		searchPaths.Add(F_PROJECT_PATH + "Library/PackageCache/com.unity.burst@59eb6f11d242");
+		searchPaths.Add(F_PROJECT_PATH + "Library/PackageCache/com.unity.collections@d49facba0036/Unity.Collections.LowLevel.ILSupport");
+		// mac中的路径
+		searchPaths.Add(EditorApplication.applicationPath + "/Contents/Managed/UnityEngine");
+		searchPaths.Add(EditorApplication.applicationPath + "/Contents/Managed");
+		searchPaths.Add(F_ASSET_BUNDLE_PATH);
+		return searchPaths;
+	}
+	protected static void obfuscate(string version)
+	{
+		SecretSettings secretSettings = ObfuzSettings.Instance.secretSettings;
+		// 因为只混淆热更程序集,所以也只生成动态的密钥
+		secretSettings.defaultDynamicSecretKey = "Code Philosophy-Dynamic" + randomInt(0, 100000000);
+		secretSettings.assembliesUsingDynamicSecretKeys = ObfuzSettings.Instance.assemblySettings.assembliesToObfuscate;
+		secretSettings.randomSeed = (int)(DateTime.Now - new DateTime(1970, 1, 1)).TotalSeconds;
+		ObfuzSettings.Save();
+		byte[] dynamicSecretBytes = KeyGenerator.GenerateKey(secretSettings.defaultDynamicSecretKey, VirtualMachine.SecretKeyLength);
+		writeFile(F_ASSET_BUNDLE_PATH + DYNAMIC_SECRET_FILE, dynamicSecretBytes);
+		AssetDatabase.Refresh();
+
+		var obfuscatorBuilder = ObfuscatorBuilder.FromObfuzSettings(ObfuzSettings.Instance, EditorUserBuildSettings.activeBuildTarget, false);
+		var searchPaths = getSearchPath();
+		foreach (string item in searchPaths)
+		{
+			log("search path:" + item);
+		}
+		obfuscatorBuilder.InsertTopPriorityAssemblySearchPaths(searchPaths);
+		try
+		{
+			obfuscatorBuilder.Build().Run();
+			string srcPath = obfuscatorBuilder.CoreSettingsFacade.obfuscatedAssemblyOutputPath;
+			foreach (string dllName in ObfuzSettings.Instance.assemblySettings.assembliesToObfuscate)
+			{
+				copyFile(srcPath + "/" + dllName + ".dll", F_ASSET_BUNDLE_PATH + "/" + dllName + ".dll.bytes", true);
+				// 因为obfuscatorBuilder.Build().Run();中会将原始dll拷贝到SteamingAssets中,所以需要删除一下
+				deleteFile(F_ASSET_BUNDLE_PATH + "/" + dllName + ".dll");
+			}
+		}
+		catch (Exception e)
+		{
+			logException(e);
+		}
+		// 混淆完以后,将Symbol-mapping.xml备份一下,文件名加上版本号,方便后面还原堆栈
+		// 因为Symbol-mapping.xml会在混淆的时候读取,所以尽量不去动这个文件
+		string originMappingFile = F_PROJECT_PATH + ObfuzSettings.Instance.symbolObfusSettings.symbolMappingFile;
+		copyFile(originMappingFile, replaceSuffix(originMappingFile, version + ".xml"));
+	}
+#endif
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine.UI;
 using UnityEngine.Events;
+using static UnityUtility;
 
 // 对UGUI的ScrollBar的封装
 public class myUGUIScrollBar : myUGUIObject
@@ -17,6 +18,10 @@ public class myUGUIScrollBar : myUGUIObject
 		base.init();
 		if (!mObject.TryGetComponent(out mScrollBar))
 		{
+			if (!mIsNewObject)
+			{
+				logError("需要添加一个Scrollbar组件,name:" + getName() + ", layout:" + getLayout().getName());
+			}
 			mScrollBar = mObject.AddComponent<Scrollbar>();
 			// 添加UGUI组件后需要重新获取RectTransform
 			mObject.TryGetComponent(out mRectTransform);

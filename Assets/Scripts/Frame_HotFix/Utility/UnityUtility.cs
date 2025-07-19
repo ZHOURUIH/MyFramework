@@ -16,6 +16,9 @@ using UnityEngine.EventSystems;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 #endif
+#if USE_TMP
+using TMPro;
+#endif
 using UObject = UnityEngine.Object;
 using UDebug = UnityEngine.Debug;
 using static FrameBaseUtility;
@@ -192,10 +195,7 @@ public class UnityUtility
 		for (int i = 0; i < childCount; ++i)
 		{
 			Transform child = parentTrans.GetChild(i);
-			if (child.CompareTag(tag))
-			{
-				objList.Add(child.gameObject);
-			}
+			objList.addIf(child.gameObject, child.CompareTag(tag));
 			// 递归查找子节点
 			getGameObjectWithTag(child.gameObject, tag, objList);
 		}
@@ -236,10 +236,7 @@ public class UnityUtility
 		for (int i = 0; i < childCount; ++i)
 		{
 			GameObject child = parentTrans.GetChild(i).gameObject;
-			if (child.name == name)
-			{
-				list.Add(child);
-			}
+			list.addIf(child, child.name == name);
 		}
 		// 递归查找
 		if (recursive)
@@ -258,7 +255,7 @@ public class UnityUtility
 	}
 	public static void cloneObjectAsync(GameObject oriObj, string name, GameObjectCallback callback)
 	{
-		GameEntry.getInstance().StartCoroutine(instantiateCoroutine(oriObj, name, callback));
+		GameEntry.startCoroutine(instantiateCoroutine(oriObj, name, callback));
 	}
 	public static GameObject createGameObject(string name, GameObject parent = null)
 	{
@@ -1070,56 +1067,6 @@ public class UnityUtility
 			applyAnchor(curTrans.GetChild(i).gameObject, force, layout);
 		}
 	}
-	public static bool multiSpriteToSpritePNG(Texture2D tex2D, string outputPath)
-	{
-		if (!isEditor())
-		{
-			return false;
-		}
-#if UNITY_EDITOR
-		bool backupReadable = tex2D.isReadable;
-		string texPath = getAssetPath(tex2D);
-		bool modified = false;
-		var importer = AssetImporter.GetAtPath(texPath) as TextureImporter;
-		TextureImporterCompression backupCompress = importer.textureCompression;
-		if (!tex2D.isReadable)
-		{
-			importer.isReadable = true;
-			modified = true;
-		}
-		if (tex2D.format != TextureFormat.RGBA32 && tex2D.format != TextureFormat.RGB24)
-		{
-			importer.textureCompression = TextureImporterCompression.Uncompressed;
-			modified = true;
-		}
-		if (modified)
-		{
-			importer.SaveAndReimport();
-		}
-		validPath(ref outputPath);
-		foreach (UObject obj in loadAllAssetsAtPath(texPath))
-		{
-			if (obj is not Sprite sprite)
-			{
-				continue;
-			}
-			Texture2D output = new((int)sprite.rect.width, (int)sprite.rect.height);
-			Rect r = sprite.textureRect;
-			output.SetPixels(sprite.texture.GetPixels((int)r.x, (int)r.y, (int)r.width, (int)r.height));
-			output.Apply();
-			output.name = sprite.name;
-			byte[] bytes = output.EncodeToPNG();
-			writeFile(outputPath + sprite.name + ".png", bytes, bytes.Length);
-		}
-		if (modified)
-		{
-			importer.isReadable = backupReadable;
-			importer.textureCompression = backupCompress;
-			importer.SaveAndReimport();
-		}
-#endif
-		return true;
-	}
 	public static Vector2 getGameViewSize()
 	{
 		if (isEditor())
@@ -1276,12 +1223,15 @@ public class UnityUtility
 		}
 		return path;
 	}
-	public static int getContentLength(myUGUIText textWindow, string str)
+	public static int getContentLength(Text textComponent, string str)
 	{
-		Text textComponent = textWindow.getTextComponent();
 		TextGenerator textGenerator = textComponent.cachedTextGeneratorForLayout;
 		TextGenerationSettings settings = textComponent.GetGenerationSettings(Vector2.zero);
 		return ceil(divide(textGenerator.GetPreferredWidth(str, settings), textComponent.pixelsPerUnit));
+	}
+	public static int getContentLength(TextMeshProUGUI textComponent, string str)
+	{
+		return (int)textComponent.GetPreferredValues(str, float.PositiveInfinity, 0).x;
 	}
 #if USE_SPINE
 	public static void playSpineAnimation(SkeletonAnimation comSkeleton, string anim, bool loop, bool force = false)
@@ -1317,7 +1267,11 @@ public class UnityUtility
 	public static void setRenderScale(float scale)
 	{
 		// 获取当前活动的URP资产
+#if UNITY_6000_0_OR_NEWER
+		var urpAsset = (UniversalRenderPipelineAsset)GraphicsSettings.defaultRenderPipeline;
+#else
 		var urpAsset = (UniversalRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
+#endif
 		if (urpAsset != null)
 		{
 			urpAsset.renderScale = scale;
@@ -1325,7 +1279,11 @@ public class UnityUtility
 	}
 	public static float getRenderScale()
 	{
+#if UNITY_6000_0_OR_NEWER
+		var urpAsset = (UniversalRenderPipelineAsset)GraphicsSettings.defaultRenderPipeline;
+#else
 		var urpAsset = (UniversalRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
+#endif
 		if (urpAsset == null)
 		{
 			return 0.0f;

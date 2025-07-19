@@ -47,7 +47,7 @@ public class WaitingManager : FrameSystem
 			return null;
 		}
 
-		mList.add(CLASS(out Waiting waiting));
+		Waiting waiting = mList.addClass();
 		waiting.setCondition(condition);
 		waiting.setDoneFunction(done);
 		return waiting;

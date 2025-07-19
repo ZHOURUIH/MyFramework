@@ -13,38 +13,10 @@ using static MathUtility;
 using static EditorCommonUtility;
 using static FrameDefine;
 using static FrameBaseDefine;
-using static UnityUtility;
 using static EditorFileUtility;
-using static FrameBaseUtility;
-using System.Reflection;
 
 public class MenuCheckResources
 {
-	[MenuItem("检查资源/查找重名文件", false, 1)]
-	public static void checkFileNameConflict()
-	{
-		Debug.Log("开始检查重名文件...");
-		// 查找资源文件中的所有文件
-		List<string> fileList = findFilesNonAlloc(F_GAME_RESOURCES_PATH);
-		// 去除meta文件
-		removeMetaFile(fileList);
-		int fileCount = fileList.Count;
-		for (int i = 0; i < fileCount; ++i)
-		{
-			displayProgressBar("查找重名文件", "进度: ", i + 1, fileCount);
-			string curFileName = getFileNameWithSuffix(fileList[i]);
-			foreach (string item0 in fileList)
-			{
-				if (fileList[i] != item0 && curFileName == getFileNameWithSuffix(item0))
-				{
-					Debug.LogError("文件命名冲突:" + fileList[i] + "\n" + item0, loadAsset(fullPathToProjectPath(item0)));
-					break;
-				}
-			}
-		}
-		clearProgressBar();
-		Debug.Log("完成检查重名文件");
-	}
 	[MenuItem("检查资源/查找文件引用  %Q", false, 2)]
 	public static void searchRefrence()
 	{
@@ -77,10 +49,7 @@ public class MenuCheckResources
 				List<string> validFiles = new();
 				foreach (string item in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
 				{
-					if (!item.EndsWith(".meta"))
-					{
-						validFiles.Add(item);
-					}
+					validFiles.addIf(item, !item.EndsWith(".meta"));
 				}
 				// 开始查找所有文件的引用
 				int count = validFiles.Count;
@@ -126,10 +95,7 @@ public class MenuCheckResources
 				List<string> validFiles = new();
 				foreach (string item in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
 				{
-					if (!item.EndsWith(".meta"))
-					{
-						validFiles.Add(item);
-					}
+					validFiles.addIf(item, !item.EndsWith(".meta"));
 				}
 				// 开始查找所有文件的引用
 				int count = validFiles.Count;
@@ -143,8 +109,8 @@ public class MenuCheckResources
 			}
 		}
 	}
-	[MenuItem("检查资源/查找图集引用", false, 4)]
-	public static void checkAtlasRefrence()
+	[MenuItem("检查资源/查找TPAtlas图集引用", false, 4)]
+	public static void checkTPAtlasRefrence()
 	{
 		bool checkAll = false;
 		string path = AssetDatabase.GetAssetPath(Selection.activeObject);
@@ -163,7 +129,7 @@ public class MenuCheckResources
 		{
 			if (path.endWith("png", false))
 			{
-				doCheckAtlasRefrence(path, getAllFileText(F_UI_PREFAB_PATH));
+				doCheckTPAtlasRefrence(path, getAllFileText(F_UI_PREFAB_PATH));
 			}
 		}
 		else if (isDirExist(path))
@@ -174,10 +140,7 @@ public class MenuCheckResources
 				List<string> validFiles = new();
 				foreach (string item in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
 				{
-					if (item.endWith("png", false))
-					{
-						validFiles.Add(item);
-					}
+					validFiles.addIf(item, item.endWith("png", false));
 				}
 				var allFileText = getAllFileText(F_UI_PREFAB_PATH);
 				// 开始查找所有文件的引用
@@ -186,7 +149,7 @@ public class MenuCheckResources
 				{
 					string filePath = validFiles[i];
 					displayProgressBar("检查图集引用", "进度: ", i + 1, count);
-					doCheckAtlasRefrence(filePath, allFileText);
+					doCheckTPAtlasRefrence(filePath, allFileText);
 				}
 				clearProgressBar();
 			}
@@ -221,10 +184,7 @@ public class MenuCheckResources
 				foreach (string item in Directory.GetFiles(path, "*.prefab", SearchOption.AllDirectories))
 				{
 					string file = item.rightToLeft();
-					if (!file.endWith(".meta", false))
-					{
-						validFiles.Add(file);
-					}
+					validFiles.addIf(file, !file.endWith(".meta", false));
 				}
 				// 开始查找所有文件的引用
 				int count = validFiles.Count;
@@ -267,10 +227,7 @@ public class MenuCheckResources
 				List<string> validFiles = new();
 				foreach (string item in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
 				{
-					if (!item.endWith(".meta", false))
-					{
-						validFiles.Add(item);
-					}
+					validFiles.addIf(item, !item.endWith(".meta", false));
 				}
 				// 开始查找所有文件的引用
 				int count = validFiles.Count;
@@ -385,10 +342,7 @@ public class MenuCheckResources
 				List<string> validFiles = new();
 				foreach (string item in Directory.GetFiles(path, "*.mat", SearchOption.AllDirectories))
 				{
-					if (item.EndsWith(".mat"))
-					{
-						validFiles.Add(item);
-					}
+					validFiles.addIf(item, item.EndsWith(".mat"));
 				}
 				// 开始查找所有文件的引用
 				int count = validFiles.Count;
@@ -435,10 +389,7 @@ public class MenuCheckResources
 				List<string> validFiles = new();
 				foreach (string item in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
 				{
-					if (item.EndsWith(".mat"))
-					{
-						validFiles.Add(item);
-					}
+					validFiles.addIf(item, item.EndsWith(".mat"));
 				}
 				// 开始查找所有文件的引用
 				int count = validFiles.Count;
@@ -522,10 +473,7 @@ public class MenuCheckResources
 				List<string> validFiles = new();
 				foreach (string item in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
 				{
-					if (item.endWith("png", false))
-					{
-						validFiles.Add(item);
-					}
+					validFiles.addIf(item, item.endWith("png", false));
 				}
 				// 开始查找所有文件的引用
 				int count = validFiles.Count;
@@ -545,18 +493,24 @@ public class MenuCheckResources
 	{
 		Debug.Log("开始检查是否有重复文件");
 		// 路径下所有资源文件列表
+		List<string> tempFileList = findFilesNonAlloc(P_GAME_RESOURCES_PATH);
+		
+		// 需要排除Unused目录的文件和meta文件
+		List<string> resourcesFilesList = new();
+		foreach (string file in tempFileList)
+		{
+			if (!file.Contains("/Unused/") && !file.endWith(".meta"))
+			{
+				resourcesFilesList.Add(file);
+			}
+		}
+
 		// 重复的资源的路径字典(key: MD5字符串, value: 相同资源的列表)
 		Dictionary<string, List<string>> hasSameAssetsDic = new();
-		List<string> resourcesFilesList = findFilesNonAlloc(P_GAME_RESOURCES_PATH);
 		int fileCount = resourcesFilesList.Count;
 		for (int i = 0; i < fileCount; ++i)
 		{
 			displayProgressBar("正在查找是否有重复资源", "进度: ", i + 1, fileCount);
-			// 忽略.meta文件
-			if (resourcesFilesList[i].Contains(".meta"))
-			{
-				continue;
-			}
 			string MD5Str = EditorFileUtility.generateFileMD5(openFile(resourcesFilesList[i], true));
 			hasSameAssetsDic.getOrAddNew(MD5Str).Add(resourcesFilesList[i]);
 		}
@@ -566,7 +520,7 @@ public class MenuCheckResources
 		{
 			if (element.Count > 1)
 			{
-				Debug.LogError("出现重复的资源,路径为: " + stringsToString(element, '\n'), loadAsset(element[0]));
+				Debug.LogError("出现重复的资源,路径为:\n" + stringsToString(element, '\n'), loadAsset(element[0]));
 			}
 		}
 		clearProgressBar();
@@ -798,36 +752,27 @@ public class MenuCheckResources
 		}
 		Debug.Log("完成检查布局预制体资源的缩放值是否符合规范");
 	}
-	[MenuItem("检查资源/检查布局中是否有Image引用丢失", false, 117)]
-	public static void checkLoseImageReferenceObject()
+	[MenuItem("检查资源/检查布局中是否有空的Image", false, 117)]
+	public static void checkEmptyImageObject()
 	{
-		Debug.Log("开始检查是否有布局文件图片是否引用丢失...");
-		Dictionary<string, UObject> objectList = new();
+		Debug.Log("开始检查是否有空的Image...");
+		Dictionary<string, GameObject> objectList = new();
 		// 查找路径同时加载Prefab对象
 		foreach (string path in findFilesNonAlloc(F_UI_PREFAB_PATH, ".prefab"))
 		{
-			objectList.Add(fullPathToProjectPath(path), loadAsset(fullPathToProjectPath(path)));
+			objectList.Add(fullPathToProjectPath(path), loadAsset(fullPathToProjectPath(path)) as GameObject);
 		}
-
-		// 输入相应日志信息
-		var allSpriteIDMap = getAllGUIDAndSpriteIDBySuffixInFilePath(F_GAME_RESOURCES_PATH, ".meta", "所有对应SpriteID");
-		foreach (var item in getImageReferenceInfo(F_UI_PREFAB_PATH, ".prefab", "检查Image的引用"))
+		foreach (var item in objectList)
 		{
-			foreach (PrefabNodeItem node in item.Value.Values)
+			foreach (Image image in item.Value.GetComponentsInChildren<Image>())
 			{
-				if (node.mResourceID == null || allSpriteIDMap.ContainsKey(node.mResourceID))
+				if (image.sprite == null)
 				{
-					continue;
+					Debug.LogError("布局 " + item.Value.name + "的Image组件没有设置Sprite,obj:" + image.name, item.Value);
 				}
-				if (!objectList.TryGetValue(fullPathToProjectPath(item.Key), out UObject prefabObj))
-				{
-					Debug.LogError("无法查找到预设文件:" + item.Key);
-					continue;
-				}
-				Debug.LogError("布局 " + prefabObj.name + "图片丢失了引用位于节点 " + node.mGameObjectName, prefabObj);
 			}
 		}
-		Debug.Log("完成检查是否有布局文件图片是否引用丢失");
+		Debug.Log("完成检查空的Image");
 	}
 	[MenuItem("检查资源/检查是否使用了内置图片的UI节点", false, 118)]
 	public static void checkBuiltInImageAndReplace()
@@ -869,29 +814,6 @@ public class MenuCheckResources
 		clearProgressBar();
 		Debug.Log("检测结束");
 	}
-	[MenuItem("检查资源/检查所有UI布局中的Z值是否为0", false, 120)]
-	public static void checkLayoutIsZero()
-	{
-		Debug.Log("开始检查所有UI布局中的Z值是否为0");
-		List<string> fileList = findFilesNonAlloc(F_UI_PREFAB_PATH, ".prefab");
-		int processCount = fileList.Count;
-		for (int i = 0; i < processCount; ++i)
-		{
-			displayProgressBar("检查所有UI布局中的Z值是否为0", "进度: ", i + 1, processCount);
-			// 加载指定路径预制体
-			GameObject targetPrefab = loadGameObject(fullPathToProjectPath(fileList[i]));
-			// 获取所有子对象
-			foreach (Transform child in targetPrefab.transform.GetComponentsInChildren<Transform>(true))
-			{
-				if (!isFloatZero(child.localPosition.z))
-				{
-					Debug.LogError(targetPrefab.name + " 该Layout预制体的子节点 " + child.name + "中Z值不为0", targetPrefab);
-				}
-			}
-		}
-		clearProgressBar();
-		Debug.Log("结束检查所有UI布局中的Z值是否为0");
-	}
 	[MenuItem("检查资源/检查所有UI布局中根节点是否为不保持宽高比的ScaleAnchor", false, 121)]
 	public static void checkLayoutRootScaleAnchor()
 	{
@@ -916,132 +838,6 @@ public class MenuCheckResources
 		}
 		clearProgressBar();
 		Debug.Log("结束检查所有UI布局中根节点是否为不保持宽高比的ScaleAnchor");
-	}
-	[MenuItem("检查资源/检查prefab中是否有字体引用丢失", false, 122)]
-	public static void checkLoseFontReferenceObject()
-	{
-		Debug.Log("开始检查是否有prefab文件字体是否引用丢失...");
-		Dictionary<string, UObject> objectList = new();
-		// 查找路径同时加载Prefab对象
-		foreach (string path in findFilesNonAlloc(F_GAME_RESOURCES_PATH, ".prefab"))
-		{
-			objectList.Add(fullPathToProjectPath(path), loadAsset(fullPathToProjectPath(path)));
-		}
-
-		// 输入相应日志信息
-		var allSpriteIDMap = getAllGUIDBySuffixInFilePath(F_GAME_RESOURCES_PATH, ".ttf.meta", "所有对应SpriteID");
-		foreach (var item in getFontReferenceInfo(F_GAME_RESOURCES_PATH, ".prefab", "检查字体的引用"))
-		{
-			foreach (PrefabNodeItem node in item.Value.Values)
-			{
-				// 0000000000000000e000000000000000为内置字体的ID,可忽略
-				if (node.mResourceID == null || 
-					allSpriteIDMap.ContainsKey(node.mResourceID) || 
-					node.mResourceID == "0000000000000000e000000000000000")
-				{
-					continue;
-				}
-				if (!objectList.TryGetValue(fullPathToProjectPath(item.Key), out UObject prefabObj))
-				{
-					Debug.LogError("无法查找到预设文件:" + item.Key);
-					continue;
-				}
-				Debug.LogError("prefab " + prefabObj.name + "字体丢失了引用位于节点 " + node.mGameObjectName, prefabObj);
-			}
-		}
-		Debug.Log("完成检查是否有prefab文件字体是否引用丢失");
-	}
-	[MenuItem("检查资源/查找缺失ImageAtlasPath", false, 123)]
-	public static void checkMissingImageAtlasPath()
-	{
-		Debug.Log("开始检查缺失ImageAtlasPath...");
-		// 查找资源文件中的所有prefab文件
-		List<string> fileList = findFilesNonAlloc(F_ASSETS_PATH, ".prefab");
-		int fileCount = fileList.Count;
-		for (int i = 0; i < fileCount; ++i)
-		{
-			displayProgressBar("查找文件", "进度: ", i + 1, fileCount);
-			GameObject prefabObj = loadGameObject(fullPathToProjectPath(fileList[i]));
-			if (prefabObj == null)
-			{
-				continue;
-			}
-			foreach (Image image in prefabObj.GetComponentsInChildren<Image>(true))
-			{
-				if (!image.transform.TryGetComponent<ImageAtlasPath>(out _))
-				{
-					Debug.LogError("缺失ImageAtlasPath,window:" + image.name + ", prefab:" + fileList[i], prefabObj);
-				}
-			}
-		}
-		clearProgressBar();
-		Debug.Log("完成检查");
-	}
-	[MenuItem("检查资源/添加缺失的ImageAtlasPath", false, 124)]
-	public static void checkFixMissingImageAtlasPath()
-	{
-		Debug.Log("开始检查缺失ImageAtlasPath...");
-		// 查找资源文件中的所有prefab文件
-		List<string> fileList = findFilesNonAlloc(F_ASSETS_PATH, ".prefab");
-		int fileCount = fileList.Count;
-		for (int i = 0; i < fileCount; ++i)
-		{
-			displayProgressBar("查找文件", "进度: ", i + 1, fileCount);
-			GameObject prefabObj = loadGameObject(fullPathToProjectPath(fileList[i]));
-			if (prefabObj == null)
-			{
-				continue;
-			}
-			foreach (Image image in prefabObj.GetComponentsInChildren<Image>(true))
-			{
-				if (getOrAddComponent(image.gameObject, out ImageAtlasPath com))
-				{
-					Debug.Log("已添加缺失的ImageAtlasPath,window:" + image.name + ", prefab:" + fileList[i], prefabObj);
-				}
-			}
-			AssetDatabase.SaveAssetIfDirty(prefabObj);
-		}
-		AssetDatabase.Refresh();
-		clearProgressBar();
-		Debug.Log("完成检查");
-	}
-	[MenuItem("检查资源/修复丢失的Sprite引用", false, 125)]
-	public static void recoverMissingSprite()
-	{
-		Debug.Log("开始修复Sprite...");
-		// 查找资源文件中的所有prefab文件
-		List<string> fileList = findFilesNonAlloc(F_ASSETS_PATH, ".prefab");
-		int fileCount = fileList.Count;
-		for (int i = 0; i < fileCount; ++i)
-		{
-			displayProgressBar("修复Sprite", "进度: ", i + 1, fileCount);
-			GameObject prefabObj = loadGameObject(fullPathToProjectPath(fileList[i]));
-			if (prefabObj == null)
-			{
-				continue;
-			}
-			foreach (Image image in prefabObj.GetComponentsInChildren<Image>(true))
-			{
-				if (!image.transform.TryGetComponent<ImageAtlasPath>(out var com))
-				{
-					continue;
-				}
-				Sprite lastSprite = image.sprite;
-				com.recover();
-				if (lastSprite != image.sprite && image.sprite != null)
-				{
-					Debug.Log("已修复Sprite,window:" + image.gameObject.name + ", prefab:" + fileList[i], prefabObj);
-				}
-				if (image.sprite == null && !com.mSpriteName.isEmpty())
-				{
-					Debug.LogError("修复失败,window:" + getGameObjectPath(image.gameObject) + ", prefab:" + fileList[i], prefabObj);
-				}
-			}
-			AssetDatabase.SaveAssetIfDirty(prefabObj);
-		}
-		AssetDatabase.Refresh();
-		clearProgressBar();
-		Debug.Log("完成修复");
 	}
 	[MenuItem("检查资源/检查所有UI Prefab上的多语言文本组件", false, 125)]
 	public static void checkAllUIPrefabLocalizationComponent()
@@ -1101,9 +897,8 @@ public class MenuCheckResources
 	public static void checkAllCodeChineseText()
 	{
 		Debug.Log("开始检查所有文本...");
-		// 查找资源文件中的所有prefab文件
-		List<string> fileList = findFilesNonAlloc(F_SCRIPTS_GAME_PATH, ".cs");
-		fileList.AddRange(findFilesNonAlloc(F_SCRIPTS_HOTFIX_PATH, ".cs"));
+		// 查找资源文件中的所有代码文件
+		List<string> fileList = findFilesNonAlloc(F_SCRIPTS_PATH, ".cs");
 		int fileCount = fileList.Count;
 		for (int i = 0; i < fileCount; ++i)
 		{
@@ -1114,7 +909,7 @@ public class MenuCheckResources
 			int count = lines.Count;
 			for (int j = 0; j < count; ++j)
 			{
-				Debug.Log("包含中文字符串的代码:" + lines[j] + ",提取到的中文:" + chineseList[j]);
+				Debug.Log("包含中文字符串的代码:" + lines[j].TrimStart() + ",提取到的中文:" + chineseList[j] + ", 所在文件:" + fullPathToProjectPath(fileList[i]));
 			}
 		}
 		clearProgressBar();
@@ -1183,10 +978,7 @@ public class MenuCheckResources
 				List<string> validFiles = new();
 				foreach (string item in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
 				{
-					if (!item.EndsWith(".meta"))
-					{
-						validFiles.Add(item);
-					}
+					validFiles.addIf(item, !item.EndsWith(".meta"));
 				}
 				// 开始查找所有文件的引用
 				int count = validFiles.Count;
@@ -1201,71 +993,6 @@ public class MenuCheckResources
 		AssetDatabase.Refresh();
 		Debug.Log("完成检查");
 	}
-	[MenuItem("检查资源/修复图集中图片的ID", false, 131)]
-	public static void repairSpriteID()
-	{
-		string path = AssetDatabase.GetAssetPath(Selection.activeObject);
-		ModifyTexturePacker(path);
-	}
-	public class InternalSpriteInfo
-	{
-		public long InternalID;
-		public string SpriteID;
-	}
-	public static void ModifyTexturePacker(string assetPath)
-	{
-		Dictionary<string, InternalSpriteInfo> keyValuePairs = new();
-		BindingFlags bindingFlags = BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DeclaredOnly;
-		int persistentTypeID = GetPersistentTypeID();
-		MethodInfo makeMethod = typeof(AssetImporter).GetMethod("MakeLocalFileIDWithHash", bindingFlags);
-		MethodInfo spriteIdGenerateMethod = typeof(GUID).GetMethod("CreateGUIDFromSInt64", bindingFlags);
-		SerializedObject serializedObject = new(AssetImporter.GetAtPath(assetPath));
-		SerializedProperty sprites = serializedObject.FindProperty("m_SpriteSheet.m_Sprites");
-		if (sprites.isArray)
-		{
-			int arraySize = sprites.arraySize;
-			for (int i = 0; i < arraySize; i++)
-			{
-				SerializedProperty sprite = sprites.GetArrayElementAtIndex(i);
-				SerializedProperty spriteName = sprite.FindPropertyRelative("m_Name");
-				SerializedProperty spriteId = sprite.FindPropertyRelative("m_SpriteID");
-				SerializedProperty internalId = sprite.FindPropertyRelative("m_InternalID");
-				if (spriteId.stringValue.Equals("00000000000000000800000000000000"))
-				{
-					// internalId是唯一的,重复调用是相同的，不同图集下同名sprite猜测应该会得到同一个值
-					long newIntarnalId = (long)makeMethod?.Invoke(null, new object[] { persistentTypeID, spriteName.stringValue, 0 });
-					GUID obj = (GUID)spriteIdGenerateMethod?.Invoke(null, new object[] { newIntarnalId });
-					internalId.longValue = newIntarnalId;
-					spriteId.stringValue = obj.ToString();
-					keyValuePairs.Add(spriteName.stringValue, new InternalSpriteInfo { InternalID = newIntarnalId, SpriteID = spriteId.stringValue });
-				}
-			}
-		}
-
-		SerializedProperty nameFiledTable = serializedObject.FindProperty("m_SpriteSheet.m_NameFileIdTable");
-		if (nameFiledTable.isArray)
-		{
-			for (int i = 0; i < nameFiledTable.arraySize; i++)
-			{
-				SerializedProperty nameField = nameFiledTable.GetArrayElementAtIndex(i);
-				if (keyValuePairs.TryGetValue(nameField.FindPropertyRelative("first").stringValue, out InternalSpriteInfo id))
-				{
-					nameField.FindPropertyRelative("second").longValue = id.InternalID;
-				}
-			}
-		}
-		serializedObject.ApplyModifiedProperties();
-		AssetDatabase.ForceReserializeAssets(new[] { assetPath }, ForceReserializeAssetsOptions.ReserializeMetadata);
-		AssetDatabase.SaveAssetIfDirty(AssetDatabase.GUIDFromAssetPath(assetPath));
-	}
-	private static int GetPersistentTypeID()
-	{
-		Type unityType = typeof(Editor).Assembly.GetType("UnityEditor.UnityType");
-		PropertyInfo propertyID = unityType.GetProperty("persistentTypeID");
-		MethodInfo method = unityType.GetMethod("FindTypeByName", BindingFlags.Public | BindingFlags.Static);
-		return (int)propertyID.GetValue(method.Invoke(null, new object[] { "Sprite" }));
-	}
-
 	[MenuItem("检查资源/打开检查资源界面", false, 131)]
 	public static void checkResWindows()
 	{
@@ -1276,7 +1003,8 @@ public class MenuCheckResources
 	{
 		EditorWindow.GetWindow<FindTextWindow>(true, "提取文本组件", true).start();
 	}
-	public static void doCheckCodeChinese(string fileName, List<string> chineseLineList, List<string> chineseStrList)
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected static void doCheckCodeChinese(string fileName, List<string> chineseLineList, List<string> chineseStrList)
 	{
 		// 查找资源文件中的所有prefab文件
 		foreach (string line in openTxtFileLines(fileName))
@@ -1285,6 +1013,8 @@ public class MenuCheckResources
 				line.Contains("logWarning") ||
 				line.Contains("Debug.") ||
 				line.Contains("log") ||
+				line.Contains("logErrorBase") ||
+				line.Contains("logBase") ||
 				line.Contains("CustomLabel") ||
 				line.Contains("//"))
 			{

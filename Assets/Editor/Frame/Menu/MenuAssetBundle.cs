@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.U2D;
 using UnityEditor;
+using UnityEditor.U2D;
 using static FrameBaseUtility;
 using static StringUtility;
 using static FileUtility;
@@ -36,9 +38,48 @@ public class MenuAssetBundle
 		}
 		findAllDependencies(selection.removeStartString(P_ASSET_BUNDLE_ANDROID_PATH));
 	}
+	protected static bool preProcess()
+	{
+		// 收集所有图集,然后将信息写入到图集路径的配置文件中,这个文件会在AtlasManager中用到
+		List<string> pathList = new();
+		HashSet<string> fileNameList = new();
+		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, ".spriteatlas"))
+		{
+			pathList.Add(file.removeStartString(F_GAME_RESOURCES_PATH));
+			if (!fileNameList.Add(getFileNameNoSuffixNoDir(file)))
+			{
+				Debug.LogError("存在重名的图集文件:" + getFileNameNoSuffixNoDir(file));
+				return false;
+			}
+		}
+		writeTxtFile(F_GAME_RESOURCES_PATH + R_MISC_PATH + ATLAS_PATH_CONFIG, stringsToString(pathList, "\r\n"));
+
+		// 设置所有图集不打入包体,虽然不太好理解这个,不过设置为false以后AssetBundle中就不会出现冗余的图片,否则AssetBundle将会变得异常大
+		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, ".spriteatlas"))
+		{
+			loadAsset<SpriteAtlas>(file).SetIncludeInBuild(false);
+		}
+		AssetDatabase.SaveAssets();
+		AssetDatabase.Refresh();
+		return true;
+	}
+	protected static void postProcess()
+	{
+		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, ".spriteatlas"))
+		{
+			loadAsset<SpriteAtlas>(file).SetIncludeInBuild(true);
+		}
+		AssetDatabase.SaveAssets();
+		AssetDatabase.Refresh();
+	}
 	public static bool packAssetBundle(BuildTarget target, string outputPath, bool showMessageBox)
 	{
 		Debug.Log("打包全部AssetBundle");
+
+		if (!preProcess())
+		{
+			return false;
+		}
 		DateTime time0 = DateTime.Now;
 		// 清理输出目录
 		createOrClearOutPath(outputPath);
@@ -87,6 +128,7 @@ public class MenuAssetBundle
 		{
 			deleteFile(file);
 		}
+		postProcess();
 		showInfo("资源打包结束! 耗时 : " + (DateTime.Now - time0), showMessageBox, false);
 		return true;
 	}

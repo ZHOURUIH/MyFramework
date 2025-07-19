@@ -3379,10 +3379,7 @@ public class MathUtility
 			{
 				Vector3 point = getBezier(tempControlPoint, false, j * step);
 				// 如果与上一个点重合了,则不放入列表中
-				if (!isVectorEqual(curveList[^1], point))
-				{
-					curveList.Add(point);
-				}
+				curveList.addIf(point, !isVectorEqual(curveList[^1], point));
 			}
 		}
 	}
@@ -4019,8 +4016,7 @@ public class MathUtility
 		Vector3 max0 = pos0 + size0 * 0.5f;
 		Vector3 min1 = pos1 - size1 * 0.5f;
 		Vector3 max1 = pos1 + size1 * 0.5f;
-		return isVector3Less(min0, max1) && isVector3Greater(max0, min1) ||
-			   isVector3Less(min1, max0) && isVector3Greater(max1, min0);
+		return isVector3Less(min0, max1) && isVector3Greater(max0, min1);
 	}
 	public static bool overlapBox2(Vector2 pos0, Vector2 size0, Vector2 pos1, Vector2 size1)
 	{
@@ -4028,8 +4024,7 @@ public class MathUtility
 		Vector2 max0 = pos0 + size0 * 0.5f;
 		Vector2 min1 = pos1 - size1 * 0.5f;
 		Vector2 max1 = pos1 + size1 * 0.5f;
-		return isVector2Less(min0, max1) && isVector2Greater(max0, min1) ||
-			   isVector2Less(min1, max0) && isVector2Greater(max1, min0);
+		return isVector2Less(min0, max1) && isVector2Greater(max0, min1);
 	}
 	// 将凹多边形分割为多个凸多边形,暂未经过验证
 	public static void dividePolygonToTriangle(List<Vector2> originPoints, List<ConvexPolygon> polygonList)
@@ -4045,15 +4040,13 @@ public class MathUtility
 			// 已经遍历到了最后一个点还是没找到可以分割的点,则剩下的就是一个凸多边形,至此全部拆分完毕
 			if (curIndex == startIndex)
 			{
-				polygonList.add(CLASS(out ConvexPolygon polygon));
-				polygon.mPoints.addRange(tempVertices);
+				polygonList.addClass().mPoints.addRange(tempVertices);
 				break;
 			}
 			// 已经遍历到了最后一个点,仍然不是凹陷点,则剩下的就是凸多边形,否则就继续循环
 			if (startIndex == -1 && nextIndex(tempVertices.count(), curIndex) == 0 && !isConcavePoint(tempVertices, curIndex, order))
 			{
-				polygonList.add(CLASS(out ConvexPolygon polygon));
-				polygon.mPoints.addRange(tempVertices);
+				polygonList.addClass().mPoints.addRange(tempVertices);
 				break;
 			}
 			// 寻找第一个凹陷点
@@ -4078,8 +4071,7 @@ public class MathUtility
 					// 分割当前凹陷点与前一个凹陷点之间的顶点
 					else
 					{
-						polygonList.add(CLASS(out ConvexPolygon polygon));
-						cutOffPolygon(tempVertices, polygon.mPoints, ref startIndex, ref curIndex);
+						cutOffPolygon(tempVertices, polygonList.addClass().mPoints, ref startIndex, ref curIndex);
 					}
 				}
 				// 如果不是凹陷点,但是当前点与找到的前一个凹陷点的夹角已经超过了180度,则以此来分割
@@ -4088,9 +4080,8 @@ public class MathUtility
 					int startNext = nextIndex(tempVertices.Count, startIndex);
 					if (!isConvexVertice(tempVertices, startNext, startIndex, curIndex, order))
 					{
-						polygonList.add(CLASS(out ConvexPolygon polygon));
 						curIndex = prevIndex(tempVertices.Count, curIndex);
-						cutOffPolygon(tempVertices, polygon.mPoints, ref startIndex, ref curIndex);
+						cutOffPolygon(tempVertices, polygonList.addClass().mPoints, ref startIndex, ref curIndex);
 					}
 				}
 			}
@@ -4484,23 +4475,24 @@ public class MathUtility
 	}
 	protected static void postAStar(AStarNode[] nodeList, int endIndex, List<int> foundPath)
 	{
-		if (foundPath != null)
+		if (foundPath == null)
 		{
-			foundPath.Add(endIndex);
-			AStarNode road = nodeList[endIndex];
-			while (road.mParent != -1)
-			{
-				foundPath.Add(road.mParent);
-				road = nodeList[road.mParent];
-			}
-			int count = foundPath.Count;
-			int halfCount = count >> 1;
-			for (int i = 0; i < halfCount; ++i)
-			{
-				int temp = foundPath[i];
-				foundPath[i] = foundPath[count - i - 1];
-				foundPath[count - i - 1] = temp;
-			}
+			return;
+		}
+		foundPath.Add(endIndex);
+		AStarNode road = nodeList[endIndex];
+		while (road.mParent != -1)
+		{
+			foundPath.Add(road.mParent);
+			road = nodeList[road.mParent];
+		}
+		int count = foundPath.Count;
+		int halfCount = count >> 1;
+		for (int i = 0; i < halfCount; ++i)
+		{
+			int temp = foundPath[i];
+			foundPath[i] = foundPath[count - i - 1];
+			foundPath[count - i - 1] = temp;
 		}
 	}
 }

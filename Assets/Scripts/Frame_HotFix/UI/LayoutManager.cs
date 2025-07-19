@@ -40,10 +40,7 @@ public class LayoutManager : FrameSystem
 		mCOMEscHide.notifyLayoutVisible(visible, layout);
 		if (visible)
 		{
-			if (layout.isBlurBack())
-			{
-				mBackBlurLayoutList.Add(layout);
-			}
+			mBackBlurLayoutList.addIf(layout, layout.isBlurBack());
 			// 显示布局时,如果当前正在显示有背景模糊的布局,则需要判断当前布局是否需要模糊
 			if (mBackBlurLayoutList.Count > 0)
 			{
@@ -52,10 +49,7 @@ public class LayoutManager : FrameSystem
 		}
 		else
 		{
-			if (layout.isBlurBack())
-			{
-				mBackBlurLayoutList.Remove(layout);
-			}
+			mBackBlurLayoutList.removeIf(layout, layout.isBlurBack());
 			CmdLayoutManagerBackBlur.execute(mBackBlurLayoutList, mBackBlurLayoutList.Count > 0);
 			// 布局在隐藏时都需要确认设置层为UI层
 			setGameObjectLayer(layout.getRoot()?.getObject(), layout.getDefaultLayer());
@@ -106,7 +100,7 @@ public class LayoutManager : FrameSystem
 	}
 	public override void willDestroy()
 	{
-		mInputSystem.unlistenKey(this);
+		mInputSystem?.unlistenKey(this);
 		using var a = new SafeDictionaryReader<Type, GameLayout>(mLayoutList);
 		foreach (GameLayout item in a.mReadList.Values)
 		{
@@ -117,7 +111,7 @@ public class LayoutManager : FrameSystem
 		mLayoutPathToType.Clear();
 		mLayoutAsyncList.Clear();
 		// 销毁UI摄像机
-		mCameraManager.destroyCamera(mCameraManager.getUICamera(), false);
+		mCameraManager?.destroyCamera(mCameraManager.getUICamera(), false);
 		myUIObject.destroyWindowSingle(mUGUIRoot, false);
 		mUGUIRoot = null;
 		base.willDestroy();
@@ -325,6 +319,20 @@ public class LayoutManager : FrameSystem
 	public static void registeLayout<T>(string name, bool inResource, LAYOUT_LIFE_CYCLE lifeCycle, Action<T> callback) where T : LayoutScript
 	{
 		mLayoutManager.registeLayout(typeof(T), name, inResource, lifeCycle, (script) => { callback?.Invoke(script as T); });
+	}
+	public void testAllLayout()
+	{
+		if (!isEditor())
+		{
+			return;
+		}
+		foreach (Type item in mLayoutRegisteList.Keys)
+		{
+			if (!mLayoutList.containsKey(item))
+			{
+				LT.LOAD_SHOW(item);
+			}
+		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void initComponents()

@@ -27,8 +27,6 @@ public class SceneInstance : DelayCmdWatcher
 			return;
 		}
 		findShaders(mRoot);
-		findGameObject();
-		initGameObject();
 		mInited = true;
 	}
 	public override void resetProperty()
@@ -50,6 +48,8 @@ public class SceneInstance : DelayCmdWatcher
 		base.destroy();
 		mInited = false;
 	}
+	public virtual void onShow() { }
+	public virtual void onHide() { }
 	public virtual void update(float elapsedTime) { }
 	public virtual void lateUpdate(float elapsedTime) { }
 	// 不要直接调用SceneInstance的setActive,应该使用SceneSystem的showScene或者hideScene
@@ -80,9 +80,4 @@ public class SceneInstance : DelayCmdWatcher
 	public Scene getScene()									{ return mScene; }
 	public void callLoading(float percent)					{ mLoadingCallback?.Invoke(percent); }
 	public void callLoaded()								{ mLoadedCallback?.Invoke(); }
-	public virtual void onShow() { }
-	public virtual void onHide() { }
-	//------------------------------------------------------------------------------------------------------------------------------
-	protected virtual void findGameObject() { }
-	protected virtual void initGameObject() { }
 }

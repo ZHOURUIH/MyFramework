@@ -5,9 +5,7 @@ using static StringUtility;
 // 用于将错误日志打印到真机屏幕上
 public class ConsoleToScreen : MonoBehaviour
 {
-    protected List<string> mLines = new();		    // 显示的日志
     protected string mLogStr = "";					// 最终显示的文字
-	protected bool mHasErrorShown;					// 是否已经显示过错误日志了,只显示第一个错误日志,后面的不再显示
 	protected GUIStyle mStyle = new();		        // 显示文字的风格对象
 	protected const int MAX_LINE = 5;				// 最大的行数
     protected const int MAX_LINE_LENGTH = 100;		// 每行最大的字符数
@@ -15,18 +13,17 @@ public class ConsoleToScreen : MonoBehaviour
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onLog(string logString, string stackTrace, LogType type)
     {
-		if (type != LogType.Error || mHasErrorShown)
+		if (type != LogType.Error || !mLogStr.isEmpty())
 		{
 			return;
 		}
-		mHasErrorShown = true;
 
-		mLines.Clear();
+		List<string> lines = new();
 		foreach (string line in splitLine(logString))
         {
             if (line.Length <= MAX_LINE_LENGTH)
             {
-                mLines.Add(line);
+				lines.Add(line);
                 continue;
             }
             int lineCount = line.Length / MAX_LINE_LENGTH + 1;
@@ -34,19 +31,19 @@ public class ConsoleToScreen : MonoBehaviour
             {
                 if ((i + 1) * MAX_LINE_LENGTH <= line.Length)
                 {
-                    mLines.Add(line.substr(i * MAX_LINE_LENGTH, MAX_LINE_LENGTH));
+					lines.Add(line.substr(i * MAX_LINE_LENGTH, MAX_LINE_LENGTH));
                 }
                 else
                 {
-                    mLines.Add(line.substr(i * MAX_LINE_LENGTH, line.Length - i * MAX_LINE_LENGTH));
+					lines.Add(line.substr(i * MAX_LINE_LENGTH, line.Length - i * MAX_LINE_LENGTH));
                 }
-				if (mLines.Count >= MAX_LINE)
+				if (lines.Count >= MAX_LINE)
 				{
 					break;
 				}
             }
         }
-        mLogStr = string.Join("\n", mLines);
+        mLogStr = string.Join("\n", lines);
 	}
 	protected void OnEnable() { Application.logMessageReceived += onLog; }
 	protected void OnDisable() { Application.logMessageReceived -= onLog; }
