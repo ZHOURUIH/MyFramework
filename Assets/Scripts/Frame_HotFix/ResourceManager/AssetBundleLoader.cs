@@ -527,7 +527,7 @@ public class AssetBundleLoader
 		mAssetToBundleInfo.Clear();
 		Span<byte> tempStringBuffer = stackalloc byte[256];
 		using var a = new ClassScope<SerializerRead>(out var serializer);
-		serializer.init(fileBuffer, fileBuffer.Length);
+		serializer.init(fileBuffer);
 		serializer.read(out int assetBundleCount);
 		for (int i = 0; i < assetBundleCount; ++i)
 		{

@@ -5,7 +5,7 @@ using static StringUtility;
 using static MathUtility;
 
 // Sprite的序列帧
-public class myUISpriteAnim : myUISprite, IUIAnimation
+public class myUGUISpriteAnim : myUGUISprite, IUIAnimation
 {
 	protected List<TextureAnimCallback> mPlayEndCallbackList;   // 一个序列播放完时的回调函数,只在非循环播放状态下有效
 	protected List<TextureAnimCallback> mPlayingCallbackList;   // 一个序列正在播放时的回调函数
@@ -16,7 +16,7 @@ public class myUISpriteAnim : myUISprite, IUIAnimation
 	protected AnimControl mControl = new();                     // 序列帧控制器
 	protected string mTextureSetName;                           // 序列帧名字
 	protected EFFECT_ALIGN mEffectAlign;                        // 图片的位置对齐方式
-	public myUISpriteAnim()
+	public myUGUISpriteAnim()
 	{
 		mPlayEndCallback = onPlayEnd;
 		mPlayingCallback = onPlaying;
@@ -163,7 +163,7 @@ public class myUISpriteAnim : myUISprite, IUIAnimation
 		// 对齐父节点的底部
 		else if (mEffectAlign == EFFECT_ALIGN.PARENT_BOTTOM)
 		{
-			myUIObject parent = getParent();
+			myUGUIObject parent = getParent();
 			if (parent != null)
 			{
 				setPositionY((getWindowSize().y - parent.getWindowSize().y) * 0.5f);

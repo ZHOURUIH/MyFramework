@@ -11,12 +11,12 @@ using static FrameBaseUtility;
 // 用于表示一个布局
 public class GameLayout
 {
-	protected Dictionary<int, myUIObject> mGameObjectSearchList = new();	// 用于根据GameObject查找UI,key是GameObject的InstanceID
-	protected SafeHashSet<myUIObject> mNeedUpdateList = new();				// mObjectList中需要更新的窗口列表
-	protected SafeDictionary<int, myUIObject> mObjectList = new();			// 布局中UI物体列表,用于保存所有已获取的UI
+	protected Dictionary<int, myUGUIObject> mGameObjectSearchList = new();	// 用于根据GameObject查找UI,key是GameObject的InstanceID
+	protected SafeHashSet<myUGUIObject> mNeedUpdateList = new();				// mObjectList中需要更新的窗口列表
+	protected SafeDictionary<int, myUGUIObject> mObjectList = new();			// 布局中UI物体列表,用于保存所有已获取的UI
 	protected myUGUICanvas mRoot;					// 布局根节点
 	protected LayoutScript mScript;					// 布局脚本
-	protected myUIObject mParent;					// 布局父节点,可能是UGUIRoot,也可能为空
+	protected myUGUIObject mParent;					// 布局父节点,可能是UGUIRoot,也可能为空
 	protected GameObject mPrefab;					// 布局预设,布局从该预设实例化
 	protected Type mType;							// 布局的脚本类型
 	protected string mName;							// 布局名称
@@ -90,8 +90,8 @@ public class GameLayout
 			// 更新所有的UI物体
 			if (mNeedUpdateList.count() > 0)
 			{
-				using var c = new SafeHashSetReader<myUIObject>(mNeedUpdateList);
-				foreach (myUIObject uiObj in c.mReadList)
+				using var c = new SafeHashSetReader<myUGUIObject>(mNeedUpdateList);
+				foreach (myUGUIObject uiObj in c.mReadList)
 				{
 					if (uiObj.canUpdate())
 					{
@@ -134,7 +134,7 @@ public class GameLayout
 			mScript = null;
 			mLayoutManager.notifyLayoutChanged(this);
 		}
-		myUIObject.destroyWindow(mRoot, true);
+		myUGUIObject.destroyWindow(mRoot, true);
 		mRoot = null;
 		if (mPrefab != null)
 		{
@@ -170,7 +170,7 @@ public class GameLayout
 		{
 			colliders.Clear();
 		}
-		foreach (myUIObject obj in mObjectList.getMainList().Values)
+		foreach (myUGUIObject obj in mObjectList.getMainList().Values)
 		{
 			colliders.addNotNull(obj.getCollider());
 		}
@@ -197,8 +197,8 @@ public class GameLayout
 				mRoot.setActive(visible);
 			}
 			// 通知所有会接收布局隐藏的窗口
-			using var a = new SafeDictionaryReader<int, myUIObject>(mObjectList);
-			foreach (myUIObject item in a.mReadList.Values)
+			using var a = new SafeDictionaryReader<int, myUGUIObject>(mObjectList);
+			foreach (myUGUIObject item in a.mReadList.Values)
 			{
 				if (item.isReceiveLayoutHide())
 				{
@@ -217,8 +217,8 @@ public class GameLayout
 		// 直接设置布局显示或隐藏
 		mRoot.setActive(visible);
 		// 通知所有会接收布局隐藏的窗口
-		using var a = new SafeDictionaryReader<int, myUIObject>(mObjectList);
-		foreach (myUIObject item in a.mReadList.Values)
+		using var a = new SafeDictionaryReader<int, myUGUIObject>(mObjectList);
+		foreach (myUGUIObject item in a.mReadList.Values)
 		{
 			if (item.isReceiveLayoutHide())
 			{
@@ -226,7 +226,7 @@ public class GameLayout
 			}
 		}
 	}
-	public void notifyUIObjectNeedUpdate(myUIObject uiObj, bool needUpdate)
+	public void notifyUIObjectNeedUpdate(myUGUIObject uiObj, bool needUpdate)
 	{
 		if (needUpdate)
 		{
@@ -237,10 +237,10 @@ public class GameLayout
 			mNeedUpdateList.remove(uiObj);
 		}
 	}
-	public void registerUIObject(myUIObject uiObj)
+	public void registerUIObject(myUGUIObject uiObj)
 	{
 		mObjectList.add(uiObj.getID(), uiObj);
-		if (mGameObjectSearchList.TryGetValue(uiObj.getObject().GetInstanceID(), out myUIObject obj))
+		if (mGameObjectSearchList.TryGetValue(uiObj.getObject().GetInstanceID(), out myUGUIObject obj))
 		{
 			logError("两个UI窗口的GameObject实例ID一致,UI窗口对象相同:" + (uiObj != obj) + ",GameObject是否相同：" + (obj.getObject() == uiObj.getObject()) + ", obj name:" + obj.getName() + ", uiObj name:" + uiObj.getName());
 		}
@@ -250,19 +250,19 @@ public class GameLayout
 			mNeedUpdateList.add(uiObj);
 		}
 	}
-	public void unregisterUIObject(myUIObject uiObj)
+	public void unregisterUIObject(myUGUIObject uiObj)
 	{
 		mObjectList.remove(uiObj.getID());
 		mNeedUpdateList.remove(uiObj);
 		mGameObjectSearchList.Remove(uiObj.getObject().GetInstanceID());
 	}
 	// 有节点删除或者增加,或者节点在当前父节点中的位置有改变,parent表示有变动的节点的父节点
-	public void refreshUIDepth(myUIObject parent, bool ignoreInactive)
+	public void refreshUIDepth(myUGUIObject parent, bool ignoreInactive)
 	{
 		setUIDepth(parent, 0, false, ignoreInactive);
 	}
 	// get
-	public myUIObject getUIObject(GameObject go)			{ return mGameObjectSearchList.get(go.GetInstanceID()); }
+	public myUGUIObject getUIObject(GameObject go)			{ return mGameObjectSearchList.get(go.GetInstanceID()); }
 	public myUGUICanvas getRoot()							{ return mRoot; }
 	public LayoutScript getScript()							{ return mScript; }
 	public LAYOUT_ORDER getRenderOrderType()				{ return mRenderOrderType; }
@@ -273,7 +273,7 @@ public class GameLayout
 	public bool isVisible()									{ return mRoot != null && mRoot.isActiveInHierarchy(); }
 	public bool isCheckBoxAnchor()							{ return mCheckBoxAnchor; }
 	public bool isIgnoreTimeScale()							{ return mIgnoreTimeScale; }
-	public bool canUIObjectUpdate(myUIObject uiObj)			{ return mNeedUpdateList.contains(uiObj); }
+	public bool canUIObjectUpdate(myUGUIObject uiObj)			{ return mNeedUpdateList.contains(uiObj); }
 	public bool isScriptControlHide()						{ return mScriptControlHide; }
 	public bool isBlurBack()								{ return mBlurBack; }
 	public bool isAnchorApplied()							{ return mAnchorApplied; }
@@ -290,12 +290,12 @@ public class GameLayout
 	public void setInResources(bool inResources)			{ mInResources = inResources; }
 	public void setLayer(int layer)							{ setGameObjectLayer(mRoot.getObject(), layer); }
 	public void setBlurBack(bool blurBack)					{ mBlurBack = blurBack; }
-	public void setParent(myUIObject parent)				{ mParent = parent; }
+	public void setParent(myUGUIObject parent)				{ mParent = parent; }
 	public void setType(Type type)							{ mType = type; }
 	public void setName(string name)						{ mName = name; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	// ignoreInactive表示是否忽略未启用的节点,当includeSelf为true时orderInParent才会生效
-	protected void setUIDepth(myUIObject window, int orderInParent, bool includeSelf = true, bool ignoreInactive = false)
+	protected void setUIDepth(myUGUIObject window, int orderInParent, bool includeSelf = true, bool ignoreInactive = false)
 	{
 		if (ignoreInactive && !window.isActiveInHierarchy())
 		{
@@ -336,7 +336,7 @@ public class GameLayout
 		}
 
 		// 再设置子窗口的深度,子节点在父节点中的下标从1开始,如果从0开始,则会与默认值的0混淆
-		// 根据面板上的顺序获取子节点,不再依赖myUIObject中存储的mChildList,因为mChildList的顺序不一定与面板上的顺序一致
+		// 根据面板上的顺序获取子节点,不再依赖myUGUIObject中存储的mChildList,因为mChildList的顺序不一定与面板上的顺序一致
 		int childOrder = 0;
 		int childCount = transform.childCount;
 		for (int i = 0; i < childCount; ++i)
@@ -352,7 +352,7 @@ public class GameLayout
 			{
 				continue;
 			}
-			myUIObject child = getUIObject(go);
+			myUGUIObject child = getUIObject(go);
 			// 判断是否允许为此窗口计算深度
 			if (child == null || !child.isAllowGenerateDepth())
 			{

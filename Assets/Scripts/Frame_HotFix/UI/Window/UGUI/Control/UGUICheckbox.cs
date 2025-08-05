@@ -1,7 +1,7 @@
 ﻿using static UnityUtility;
 
 // 自定义的勾选框
-public class UGUICheckbox : WindowObjectUGUI
+public class UGUICheckbox : WindowObjectUGUI, ICommonUI
 {
 	protected myUGUIObject mMark;       // 勾选图片节点
 #if USE_TMP

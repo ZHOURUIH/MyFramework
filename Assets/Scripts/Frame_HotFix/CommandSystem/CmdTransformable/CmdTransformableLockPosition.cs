@@ -21,7 +21,7 @@ public class CmdTransformableLockPosition : Command
 	{
 		var obj = mReceiver as Transformable;
 		if (isEditor() && 
-			obj is myUIObject uiObj && 
+			obj is myUGUIObject uiObj && 
 			(mLockX || mLockY || mLockZ) && 
 			!uiObj.getLayout().canUIObjectUpdate(uiObj))
 		{

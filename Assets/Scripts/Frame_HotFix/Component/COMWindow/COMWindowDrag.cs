@@ -6,12 +6,12 @@ using static FrameBaseHotFix;
 // UI拖拽组件,用于实现UI拖拽相关功能
 public class COMWindowDrag : ComponentDrag
 {
-	protected List<myUIObject> mDragHoverWindowList = new();	// 当前拖拽时正在悬停的窗口
-	protected myUIObject mWindow;								// 当前组件所属窗口
+	protected List<myUGUIObject> mDragHoverWindowList = new();	// 当前拖拽时正在悬停的窗口
+	protected myUGUIObject mWindow;								// 当前组件所属窗口
 	public override void init(ComponentOwner owner)
 	{
 		base.init(owner);
-		mWindow = mComponentOwner as myUIObject;
+		mWindow = mComponentOwner as myUGUIObject;
 	}
 	public override void initDrag(Vector2 dragDirection, float dragStartAngleRadian, bool centerAlignMouse, bool movable)
 	{
@@ -51,7 +51,7 @@ public class COMWindowDrag : ComponentDrag
 	protected override bool mouseInObject(Vector3 mousePosition)
 	{
 		// 使用当前鼠标位置判断是否悬停,忽略被其他窗口覆盖的情况
-		Collider collider = (mComponentOwner as myUIObject).getCollider();
+		Collider collider = (mComponentOwner as myUGUIObject).getCollider();
 		if (collider == null)
 		{
 			logError("not find collider, can not drag!");
@@ -62,7 +62,7 @@ public class COMWindowDrag : ComponentDrag
 	protected override void onDragEnd(Vector3 mousePos, bool cancel)
 	{
 		// 拖动结束时,首先通知悬停窗口取消悬停,因为在onDragEnd里面可能会将当前悬停窗口清空
-		foreach (myUIObject item in mDragHoverWindowList)
+		foreach (myUGUIObject item in mDragHoverWindowList)
 		{
 			item.onDragHoverd(mWindow, mousePos, false);
 		}
@@ -91,7 +91,7 @@ public class COMWindowDrag : ComponentDrag
 		mGlobalTouchSystem.getAllHoverObject(receiveWindow, mousePos, mWindow);
 		foreach (IMouseEventCollect item in receiveWindow)
 		{
-			if (item is not myUIObject curWindow)
+			if (item is not myUGUIObject curWindow)
 			{
 				continue;
 			}
@@ -101,7 +101,7 @@ public class COMWindowDrag : ComponentDrag
 				curWindow.onDragHoverd(mWindow, mousePos, true);
 			}
 		}
-		foreach (myUIObject item in mDragHoverWindowList)
+		foreach (myUGUIObject item in mDragHoverWindowList)
 		{
 			// 之前悬停的窗口不在当前的悬停列表中,则是结束悬停的窗口
 			if (!receiveWindow.Contains(item))
@@ -112,7 +112,7 @@ public class COMWindowDrag : ComponentDrag
 		mDragHoverWindowList.Clear();
 		foreach (IMouseEventCollect item in receiveWindow)
 		{
-			mDragHoverWindowList.addNotNull(item as myUIObject);
+			mDragHoverWindowList.addNotNull(item as myUGUIObject);
 		}
 	}
 }

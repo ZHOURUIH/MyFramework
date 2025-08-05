@@ -192,7 +192,7 @@ public class COMWindowInteractive : GameComponent
 	}
 	public void onMouseEnter(Vector3 mousePos, int touchID)
 	{
-		var obj = mComponentOwner as myUIObject;
+		var obj = mComponentOwner as myUGUIObject;
 		if (!mMouseHovered)
 		{
 			mMouseHovered = true;
@@ -204,7 +204,7 @@ public class COMWindowInteractive : GameComponent
 	}
 	public void onMouseLeave(Vector3 mousePos, int touchID)
 	{
-		var obj = mComponentOwner as myUIObject;
+		var obj = mComponentOwner as myUGUIObject;
 		if (mMouseHovered)
 		{
 			mMouseHovered = false;
@@ -229,7 +229,7 @@ public class COMWindowInteractive : GameComponent
 		mMouseDownTime = DateTime.Now;
 		mDownTouchID = touchID;
 		mPressCallback?.Invoke(true);
-		var obj = mComponentOwner as myUIObject;
+		var obj = mComponentOwner as myUGUIObject;
 		mPressDetailCallback?.Invoke(obj, mousePos, true);
 		mOnMouseDown?.Invoke(mousePos, touchID);
 		foreach (LongPressData data in mLongPressList)
@@ -253,7 +253,7 @@ public class COMWindowInteractive : GameComponent
 		mPressing = false;
 		mPressedTime = -1.0f;
 		mPressCallback?.Invoke(false);
-		var obj = mComponentOwner as myUIObject;
+		var obj = mComponentOwner as myUGUIObject;
 		mPressDetailCallback?.Invoke(obj, mousePos, false);
 		if (lengthLess(mMouseDownPosition - mousePos, CLICK_LENGTH) &&
 		   (DateTime.Now - mMouseDownTime).TotalSeconds < CLICK_TIME)
@@ -303,7 +303,7 @@ public class COMWindowInteractive : GameComponent
 	{
 		mPressing = false;
 		mPressedTime = -1.0f;
-		mOnScreenMouseUp?.Invoke(mComponentOwner as myUIObject, mousePos, touchID);
+		mOnScreenMouseUp?.Invoke(mComponentOwner as myUGUIObject, mousePos, touchID);
 	}
 	// 鼠标在屏幕上按下
 	public void onScreenMouseDown(Vector3 mousePos, int touchID) { }

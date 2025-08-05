@@ -14,7 +14,7 @@ public class CmdTransformableMoveCurveSpan
 			return;
 		}
 		if (isEditor() && 
-			obj is myUIObject uiObj && 
+			obj is myUGUIObject uiObj && 
 			!isFloatZero(onceLength) && 
 			!uiObj.getLayout().canUIObjectUpdate(uiObj))
 		{

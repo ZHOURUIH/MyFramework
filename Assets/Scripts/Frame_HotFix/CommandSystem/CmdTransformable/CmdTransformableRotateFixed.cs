@@ -17,7 +17,7 @@ public class CmdTransformableRotateFixed : Command
 	{
 		var obj = mReceiver as Transformable;
 		if (isEditor() && 
-			obj is myUIObject uiObj && 
+			obj is myUGUIObject uiObj && 
 			mActive && 
 			!uiObj.getLayout().canUIObjectUpdate(uiObj))
 		{

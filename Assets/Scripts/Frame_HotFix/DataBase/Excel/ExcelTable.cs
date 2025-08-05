@@ -20,6 +20,7 @@ public class ExcelTable
 	protected Type mDataType;								// 数据类型
 	protected string mTableName;							// 表格名字
 	protected bool mResourceAvailable;						// 资源文件是否已经可以使用,加载前需要确保资源更新完毕,而不是读取到旧资源
+	protected static Dictionary<string, bool> mCheckPathResultMap = new();	// 为了提高路径检查的效率,避免对相同的路径重复检查而耗费大量时间
 	public string getTableName() { return mTableName; }
 	public void setTableName(string name) { mTableName = name; }
 	public void setDataType(Type type) { mDataType = type; }
@@ -74,7 +75,7 @@ public class ExcelTable
 
 		// 解析数据
 		using var a = new ClassScope<SerializerRead>(out var reader);
-		reader.init(fileBuffer, fileBuffer.Length);
+		reader.init(fileBuffer);
 		while (reader.getIndex() < reader.getDataSize())
 		{
 			var data = createInstance<ExcelData>(mDataType);
@@ -150,6 +151,10 @@ public class ExcelTable
 	}
 	public static void checkPath(string path, bool checkSpace = true)
 	{
+		if (!mCheckPathResultMap.TryAdd(path, true))
+		{
+			return;
+		}
 		if (path.Contains('\\'))
 		{
 			logError("文件路径存在反斜杠:" + path);
@@ -213,7 +218,7 @@ public class ExcelTable
 		idsToRemove.addRange(mDataMap.Keys);
 		// 解析数据
 		using var b = new ClassScope<SerializerRead>(out var reader);
-		reader.init(fileBuffer, fileBuffer.Length);
+		reader.init(fileBuffer);
 		while (reader.getIndex() < reader.getDataSize())
 		{
 			// 假定id是不会变的。先读一个id用于和已有数据对应

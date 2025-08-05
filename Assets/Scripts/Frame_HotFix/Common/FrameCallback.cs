@@ -85,7 +85,7 @@ public delegate myUGUIImageAnim CreateImageAnim();
 public delegate void UGUIImageCallback(myUGUIImage image);
 public delegate void UGUIImageAnimCallback(myUGUIImageAnim imageAnim);
 public delegate void OnCheck(UGUICheckbox checkbox, bool check);
-public delegate void UIObjectCallback(myUIObject window);
+public delegate void UGUIObjectCallback(myUGUIObject window);
 public delegate void EncryptPacket(byte[] data, int offset, int length, byte param);
 public delegate void DecryptPacket(byte[] data, int offset, int length, byte param);
 public delegate void OnHotKeyCallback(KeyCode key);

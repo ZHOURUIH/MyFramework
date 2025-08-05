@@ -39,6 +39,9 @@ public abstract class GameHotFixBase
 				if (isEditor())
 				{
 					mExcelManager.checkAll();
+#if USE_SQLITE
+					mSQLiteManager.checkAll();
+#endif
 				}
 
 				onPreInit();

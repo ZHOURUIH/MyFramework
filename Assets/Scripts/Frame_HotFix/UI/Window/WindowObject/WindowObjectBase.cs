@@ -132,7 +132,7 @@ public class WindowObjectBase : ILocalizationCollection, IWindowObjectOwner
 			onHide();
 		}
 	}
-	public virtual void setParent(myUIObject parent, bool refreshDepth = true) { }
+	public virtual void setParent(myUGUIObject parent, bool refreshDepth = true) { }
 	public virtual void setAsLastSibling(bool refreshDepth = true) { }
 	public virtual void setAsFirstSibling(bool refreshDepth = true) { }
 	public bool isRootWindowObject() { return mParent == null; }
@@ -146,21 +146,13 @@ public class WindowObjectBase : ILocalizationCollection, IWindowObjectOwner
 	}
 	public LayoutScript getScript() { return mScript; }
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected T0 newObject<T0>(out T0 obj, myUIObject parent, string name, bool showError) where T0 : myUIObject, new()
+	protected T0 newObject<T0>(out T0 obj, myUGUIObject parent, string name, bool showError) where T0 : myUGUIObject, new()
 	{
-		return mScript.newObject(out obj, parent, name, -1, showError);
+		return mScript.newObject(out obj, parent, name, showError);
 	}
-	protected T0 newObject<T0>(out T0 obj, myUIObject parent, string name) where T0 : myUIObject, new()
+	protected T0 newObject<T0>(out T0 obj, myUGUIObject parent, string name) where T0 : myUGUIObject, new()
 	{
-		return mScript.newObject(out obj, parent, name, -1, true);
-	}
-	protected T0 newObject<T0>(out T0 obj, myUIObject parent, string name, int active) where T0 : myUIObject, new()
-	{
-		return mScript.newObject(out obj, parent, name, active, true);
-	}
-	protected T newObject<T>(out T obj, myUIObject parent, string name, int active, bool showError) where T : myUIObject, new()
-	{
-		return mScript.newObject(out obj, parent, name, active, showError);
+		return mScript.newObject(out obj, parent, name, true);
 	}
 	protected void addChild(WindowObjectBase child)
 	{

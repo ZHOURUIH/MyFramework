@@ -231,17 +231,6 @@ public class Transformable : ComponentOwner
 		adjustAngle180(ref vector3.z);
 		return vector3;
 	}
-	public virtual void cloneFrom(myUIObject obj)
-	{
-		if (obj.GetType() != GetType())
-		{
-			logError("type is different, can not clone!");
-			return;
-		}
-		setPosition(obj.getPosition());
-		setRotation(obj.getRotationQuaternion());
-		setScale(obj.getScale());
-	}
 	public int getSiblingIndex() { return mTransform != null ? mTransform.GetSiblingIndex() : 0; }
 	public int getChildCount() { return mTransform != null ? mTransform.childCount : 0; }
 	public GameObject getChild(int index) { return mTransform != null ? mTransform.GetChild(index).gameObject : null; }

@@ -21,7 +21,7 @@ public class CmdTransformableMovePath
 			return;
 		}
 		if (isEditor() && 
-			obj is myUIObject uiObj && 
+			obj is myUGUIObject uiObj && 
 			valueKeyFrame != null && 
 			!uiObj.getLayout().canUIObjectUpdate(uiObj))
 		{

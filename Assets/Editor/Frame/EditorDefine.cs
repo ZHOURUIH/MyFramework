@@ -13,6 +13,11 @@ public enum BACKUP_TARGET : byte
 
 public class EditorDefine
 {
+	// 自动生成UI脚本时的UI基类列表
+	public static List<string> getLayoutScriptBaseClass()
+	{
+		return new GameEditorDefine().getLayoutScriptBaseClass_Extension();
+	}
 	// 不开启mipmaps的目录
 	public static List<string> getNoMipmapsPath()
 	{
@@ -223,6 +228,7 @@ public class EditorDefine
 		return list; 
 	}
 	//-----------------------------------------------------------------------------------------------------------------------------
+	protected virtual List<string> getLayoutScriptBaseClass_Extension() { return new(); }
 	protected virtual List<string> getNoMipmapsPath_Extension() { return new(); }
 	protected virtual List<string> getKeepFolder_Extension() { return new(); }
 	protected virtual List<string> getUnpackFolder_Extension() { return new(); }

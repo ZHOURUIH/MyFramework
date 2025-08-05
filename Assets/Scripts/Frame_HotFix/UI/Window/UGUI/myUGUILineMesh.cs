@@ -4,7 +4,7 @@ using UnityEngine;
 using static MathUtility;
 
 // 使用Mesh的方式进行画线的窗口
-public class myUILineMesh : myUGUIObject
+public class myUGUILineMesh : myUGUIObject
 {
 	public UGUILineMesh mUGUILine = new();		// 用于画线的对象
 	public override void init()

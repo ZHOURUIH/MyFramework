@@ -39,6 +39,13 @@ public class SQLiteManager : FrameSystem
 		}
 	}
 	public void setAutoLoad(bool autoLoad) { mAutoLoad = autoLoad; }
+	public void checkAll()
+	{
+		foreach (SQLiteTable item in mTableList.Values)
+		{
+			item.checkAllData();
+		}
+	}
 	public SQLiteTable registeTable(Type type, Type dataType, string tableName)
 	{
 		var table = createInstance<SQLiteTable>(type);

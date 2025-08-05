@@ -6,6 +6,7 @@ using static FrameBaseUtility;
 using static FrameBaseDefine;
 using static StringUtility;
 using static FileUtility;
+using static FrameDefine;
 
 // 用于记录Image组件上的图片所在的路径,因为在运行时是没办法获得Image上图片的路径,从而也就无法直到所在的图集
 // 所以使用一个组件来在编辑模式下就记录路径
@@ -73,7 +74,7 @@ public class ImageAtlasPath : MonoBehaviour
 				{
 					curAtlas = loadAssetAtPath<SpriteAtlas>(mAtlasPath);
 				}
-				if (curAtlas != null && curAtlas.CanBindTo(sprite))
+				if (curAtlas.isSpriteInAtlas(sprite))
 				{
 					return mAtlasPath;
 				}
@@ -83,7 +84,7 @@ public class ImageAtlasPath : MonoBehaviour
 			{
 				foreach (var item in atlasListCache)
 				{
-					if (item.Value.CanBindTo(sprite))
+					if (item.Value.isSpriteInAtlas(sprite))
 					{
 						return item.Key;
 					}
@@ -92,10 +93,10 @@ public class ImageAtlasPath : MonoBehaviour
 			else
 			{
 				List<string> files = new();
-				findFiles(F_ASSETS_PATH, files, ".spriteatlas");
+				findFiles(F_ASSETS_PATH, files, SPRITE_ATLAS_SUFFIX);
 				foreach (string file in files)
 				{
-					if (loadAssetAtPath<SpriteAtlas>(fullPathToProjectPath(file)).CanBindTo(sprite))
+					if (loadAssetAtPath<SpriteAtlas>(fullPathToProjectPath(file)).isSpriteInAtlas(sprite))
 					{
 						return fullPathToProjectPath(file);
 					}
@@ -106,7 +107,12 @@ public class ImageAtlasPath : MonoBehaviour
 	}
 	protected bool setAtlasPathInternal(string path)
 	{
-		if (mAtlasPath != path)
+		Sprite sprite = getSprite();
+		if (sprite != null && path.isEmpty())
+		{
+			Debug.LogError("找不到图片所属的图集:" + sprite.name);
+		}
+		if (mAtlasPath != path && !path.isEmpty())
 		{
 			mAtlasPath = path;
 			setDirty(gameObject);

@@ -5,7 +5,7 @@ using static UnityUtility;
 using static MathUtility;
 
 // 自定义的滑动条
-public class UGUISlider : WindowObjectUGUI, ISlider
+public class UGUISlider : WindowObjectUGUI, ISlider, ICommonUI
 {
 	protected Action mSliderStartCallback;			// 开始拖拽滑动的回调
 	protected Action mSliderEndCallback;			// 结束拖拽滑动的回调

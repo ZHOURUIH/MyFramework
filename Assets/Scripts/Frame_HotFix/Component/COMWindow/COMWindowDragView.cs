@@ -12,7 +12,7 @@ public class COMWindowDragView : GameComponent
 	protected Action mPositionChangeCallback;					// 组件所属窗口位置改变的回调
 	protected Action mReleaseDragCallback;						// 结束拖拽的回调
 	protected Action mDragingCallback;							// 拖拽中的回调
-	protected myUIObject mWindow;                               // 组件所属窗口
+	protected myUGUIObject mWindow;                             // 组件所属窗口
 	protected Vector3 mMinRelativePos;							// 左边界和下边界或者窗口中心的最小值,具体需要由mClampType决定,-1到1的相对值,相对于父窗口的宽高
 	protected Vector3 mMaxRelativePos;							// 右边界和上边界或者窗口中心的最大值,具体需要由mClampType决定,-1到1的相对值,相对于父窗口的宽高
 	protected float mDragLengthThreshold;						// 拖拽长度的最小值,当拖动距离大于该值时才允许开始拖拽
@@ -61,7 +61,7 @@ public class COMWindowDragView : GameComponent
 	public override void init(ComponentOwner owner)
 	{
 		base.init(owner);
-		mWindow = owner as myUIObject;
+		mWindow = owner as myUGUIObject;
 	}
 	public override void resetProperty()
 	{
@@ -350,7 +350,7 @@ public class COMWindowDragView : GameComponent
 		dragView0.mMutexDragView.addUnique(dragView1);
 		dragView1.mMutexDragView.addUnique(dragView0);
 	}
-	public static void mutexDragView(myUIObject dragView0, myUIObject dragView1)
+	public static void mutexDragView(myUGUIObject dragView0, myUGUIObject dragView1)
 	{
 		mutexDragView(dragView0.getOrAddComponent<COMWindowDragView>(),
 					  dragView1.getOrAddComponent<COMWindowDragView>());
@@ -364,7 +364,7 @@ public class COMWindowDragView : GameComponent
 		dragView0.mMutexDragView?.Remove(dragView1);
 		dragView1.mMutexDragView?.Remove(dragView0);
 	}
-	public static void releaseMutexDragView(myUIObject dragView0, myUIObject dragView1)
+	public static void releaseMutexDragView(myUGUIObject dragView0, myUGUIObject dragView1)
 	{
 		releaseMutexDragView(dragView0.getOrAddComponent<COMWindowDragView>(),
 							 dragView1.getOrAddComponent<COMWindowDragView>());

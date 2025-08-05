@@ -354,7 +354,7 @@ public class LocalizationManager : FrameSystem
 		}
 	}
 	// 注销需要切换多语言的文本对象
-	public void unregisteLocalization(myUIObject obj)
+	public void unregisteLocalization(myUGUIObject obj)
 	{
 		if (obj is IUGUIText text && mTextList.Remove(text, out TextObjectLocalization textLocalization))
 		{

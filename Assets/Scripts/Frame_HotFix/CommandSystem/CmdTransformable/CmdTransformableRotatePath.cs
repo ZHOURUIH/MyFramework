@@ -30,7 +30,7 @@ public class CmdTransformableRotatePath : Command
 	{
 		var obj = mReceiver as Transformable;
 		if (isEditor() && 
-			obj is myUIObject uiObj && 
+			obj is myUGUIObject uiObj && 
 			mValueKeyFrame != null && 
 			!uiObj.getLayout().canUIObjectUpdate(uiObj))
 		{

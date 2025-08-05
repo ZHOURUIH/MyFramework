@@ -489,7 +489,7 @@ public class UnityUtility
 		return inRange(windowPos, -halfWindowSize, halfWindowSize);
 	}
 	// screenCenterAsZero为true表示返回的坐标是以window的中心为原点,false表示以window的左下角为原点
-	public static Vector2 screenPosToWindow(Vector2 screenPos, myUIObject window, bool windowCenterAsZero = true)
+	public static Vector2 screenPosToWindow(Vector2 screenPos, myUGUIObject window, bool windowCenterAsZero = true)
 	{
 		Camera camera = getUICamera();
 		Vector2 cameraSize = new(camera.pixelWidth, camera.pixelHeight);
@@ -1175,6 +1175,7 @@ public class UnityUtility
 		}
 		return name;
 	}
+	// 在go的所有层级的父节点中查找名叫parentName的父节点
 	public static GameObject getGameObjectInParent(GameObject go, string parentName)
 	{
 		if (go == null)

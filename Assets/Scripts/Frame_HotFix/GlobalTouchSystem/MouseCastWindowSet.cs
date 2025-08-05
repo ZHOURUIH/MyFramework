@@ -8,9 +8,9 @@ using static WidgetUtility;
 public class MouseCastWindowSet : ClassObject
 {
 	public static Comparison<MouseCastWindowSet> mComparisonDescend = cameraDepthDescend;	// 避免GC的委托
-	public static Comparison<myUIObject> mUIDepthDescend = uiDepthDescend;					// 避免GC的委托
-	protected HashSet<myUIObject> mWindowSet = new();										// 用于查找的窗口列表
-	protected List<myUIObject> mAvailableList = new();                                      // 当前可见的窗口,即在窗口范围内并且未被CanvasGroup裁剪的窗口,会进行排序
+	public static Comparison<myUGUIObject> mUIDepthDescend = uiDepthDescend;				// 避免GC的委托
+	protected HashSet<myUGUIObject> mWindowSet = new();										// 用于查找的窗口列表
+	protected List<myUGUIObject> mAvailableList = new();                                    // 当前可见的窗口,即在窗口范围内并且未被CanvasGroup裁剪的窗口,会进行排序
 	protected GameCamera mCamera;															// 渲染这些窗口的摄像机
 	protected bool mListDirty;                                                              // mAvailableList中的数据是否已经失效,用于确保在一帧中只更新一次列表
 	public override void resetProperty()
@@ -26,7 +26,7 @@ public class MouseCastWindowSet : ClassObject
 		mListDirty = true;
 	}
 	public void setCamera(GameCamera camera) { mCamera = camera; }
-	public void addWindow(myUIObject window)
+	public void addWindow(myUGUIObject window)
 	{
 		if (window.isDestroy())
 		{
@@ -39,14 +39,14 @@ public class MouseCastWindowSet : ClassObject
 		}
 		mListDirty = true;
 	}
-	public bool hasWindow(myUIObject window) { return mWindowSet.Contains(window); }
+	public bool hasWindow(myUGUIObject window) { return mWindowSet.Contains(window); }
 	public GameCamera getCamera() { return mCamera; }
-	public List<myUIObject> getWindowOrderList()
+	public List<myUGUIObject> getWindowOrderList()
 	{
 		if (mListDirty)
 		{
 			mAvailableList.Clear();
-			foreach (myUIObject item in mWindowSet)
+			foreach (myUGUIObject item in mWindowSet)
 			{
 				mAvailableList.addIf(item, item.isActiveInHierarchy() && isWindowInScreen(item, mCamera));
 			}
@@ -59,7 +59,7 @@ public class MouseCastWindowSet : ClassObject
 	{
 		mListDirty = true;
 	}
-	public bool removeWindow(myUIObject window)
+	public bool removeWindow(myUGUIObject window)
 	{
 		if (!mWindowSet.Remove(window))
 		{
@@ -76,7 +76,7 @@ public class MouseCastWindowSet : ClassObject
 	public bool isEmpty() { return mWindowSet.Count == 0; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	// a小于b返回1, a等于b返回0, a大于b返回-1
-	protected static int uiDepthDescend(myUIObject a, myUIObject b)
+	protected static int uiDepthDescend(myUGUIObject a, myUGUIObject b)
 	{
 		return UIDepth.compare(a.getDepth(), b.getDepth());
 	}

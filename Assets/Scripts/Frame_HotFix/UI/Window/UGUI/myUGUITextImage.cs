@@ -23,7 +23,7 @@ public class myUGUITextImage : myUGUIObject
 		}
 
 		// 自动获取该节点下的名为Image的子节点
-		mLayout.getScript().newObject(out mImage, this, "Image", 0, false);
+		mLayout.getScript().newObject(out mImage, this, "Image", false);
 		if (mImage == null)
 		{
 			logError("可图文混排的文本下必须有一个名为Image的子节点");
@@ -31,7 +31,8 @@ public class myUGUITextImage : myUGUIObject
 
 		// 初始化图片模板信息相关
 		mImagePool = new(mLayout.getScript());
-		mImagePool.init(this, mImage, false);
+		mImagePool.assignTemplate(mImage);
+		mImagePool.init(false);
 		mTextImage.setCreateImage(()=> { return mImagePool.newWindow(); });
 		mTextImage.setDestroyImage((myUGUIImage image)=> { mImagePool.unuseWindow(image); });
 	}

@@ -16,7 +16,7 @@ public class COMWindowAlpha : ComponentKeyFrame, IComponentModifyAlpha
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
-		var obj = mComponentOwner as myUIObject;
+		var obj = mComponentOwner as myUGUIObject;
 		// 此处不使用递归透明度变化是为了尽量不影响其他窗口
 		obj.setAlpha(lerpSimple(mStart, mTarget, value), false);
 	}

@@ -307,9 +307,29 @@ public class FrameBaseUtility
 
 		if (go == null && errorIfNull)
 		{
-			logErrorBase("找不到物体,请确认是否存在:" + name + ", parent:" + (parent != null ? parent.name : ""));
+			logErrorBase("找不到物体,请确认是否存在:" + name + ", parent:" + getGameObjectPathBase(parent));
 		}
 		return go;
+	}
+	public static string getGameObjectPathBase(GameObject go)
+	{
+		if (go == null)
+		{
+			return "";
+		}
+		Transform transform = go.transform;
+		string path = go.name;
+		while (true)
+		{
+			Transform parentTrans = transform != null ? transform.parent : null;
+			if (parentTrans == null)
+			{
+				break;
+			}
+			path = parentTrans.name + "/" + path;
+			transform = transform.parent;
+		}
+		return path;
 	}
 	public static Vector2 getScreenScale(Vector2 rootSize)
 	{

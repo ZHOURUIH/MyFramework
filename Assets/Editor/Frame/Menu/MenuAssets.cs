@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using static EditorCommonUtility;
 using static StringUtility;
 using static FileUtility;
+using static FrameDefine;
 using static FrameBaseDefine;
 using static FrameBaseUtility;
 using UObject = UnityEngine.Object;
@@ -93,7 +94,7 @@ public class MenuAssets
 			atlas.Add(new[] { obj });
 
 			// 保存文件
-			string savePath = path + "/" + getFolderName(path) + ".spriteatlas";
+			string savePath = path + "/" + getFolderName(path) + SPRITE_ATLAS_SUFFIX;
 			if (isFileExist(savePath))
 			{
 				AssetDatabase.DeleteAsset(savePath);
@@ -188,7 +189,7 @@ public class MenuAssets
 		{
 			Dictionary<string, SpriteAtlas> atlasListCache = new();
 			List<string> atlasFiles = new();
-			findFiles(F_ASSETS_PATH, atlasFiles, ".spriteatlas");
+			findFiles(F_ASSETS_PATH, atlasFiles, SPRITE_ATLAS_SUFFIX);
 			foreach (string file in atlasFiles)
 			{
 				string path = fullPathToProjectPath(file);
@@ -309,7 +310,67 @@ public class MenuAssets
 			AssetDatabase.Refresh();
 		}
 	}
+	[MenuItem(mMenuName + "给文件夹内所有Prefab的所有节点添加RectTransform", false, 133)]
+	public static void addRectTransformToAllNode()
+	{
+		// 无法通过Selection.gameObjects来判断,只能使用Selection.transforms来判断
+		// 选中的是文件或者文件夹
+		if (Selection.transforms.count() == 0)
+		{
+			List<string> prefabFiles = new();
+			foreach (UObject obj in Selection.GetFiltered(typeof(UObject), SelectionMode.Assets))
+			{
+				string path = AssetDatabase.GetAssetPath(obj);
+				if (Directory.Exists(path))
+				{
+					prefabFiles.Clear();
+					findFiles(projectPathToFullPath(path), prefabFiles, ".prefab");
+					foreach (string file in prefabFiles)
+					{
+						doPrefab(fullPathToProjectPath(file));
+					}
+				}
+				else if (isFileExist(path))
+				{
+					doPrefab(path);
+				}
+			}
+		}
+	}
 	//------------------------------------------------------------------------------------------------------------------------------
+	protected static void doPrefab(string prefabPath)
+	{
+		GameObject prefab = PrefabUtility.LoadPrefabContents(prefabPath);
+		doAddRectTransform(prefab);
+		PrefabUtility.SaveAsPrefabAsset(prefab, prefabPath);
+	}
+	protected static void doAddRectTransform(GameObject current)
+	{
+		if (current.GetComponent<RectTransform>() == null)
+		{
+			Transform oldTransform = current.transform;
+			Vector3 pos = oldTransform.localPosition;
+			Quaternion rot = oldTransform.localRotation;
+			Vector3 scale = oldTransform.localScale;
+
+			var rt = current.AddComponent<RectTransform>();
+			rt.localPosition = pos;
+			rt.localRotation = rot;
+			rt.localScale = scale;
+
+			// 修复布局
+			if (current.TryGetComponent<LayoutElement>(out _))
+			{
+				LayoutRebuilder.ForceRebuildLayoutImmediate(rt);
+			}
+		}
+
+		// 递归处理子对象
+		foreach (Transform child in current.transform)
+		{
+			doAddRectTransform(child.gameObject);
+		}
+	}
 	protected static void setPixelPerUnit(string assetPath, int pixelUnit)
 	{
 		try

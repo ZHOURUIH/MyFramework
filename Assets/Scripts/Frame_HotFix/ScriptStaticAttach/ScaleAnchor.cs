@@ -41,8 +41,8 @@ public class ScaleAnchor : MonoBehaviour
 		}
 		mDirty = false;
 		Vector3 realScale = getRealScale();
-		float thisWidth = round(mOriginSize.x * realScale.x);
-		float thisHeight = round(mOriginSize.y * realScale.y);
+		float thisWidth = floor(mOriginSize.x * realScale.x);
+		float thisHeight = floor(mOriginSize.y * realScale.y);
 		Vector2 newSize = new(thisWidth, thisHeight);
 		// 只有在刷新时才能确定父节点,所以父节点需要实时获取
 		if (mAdjustFont)

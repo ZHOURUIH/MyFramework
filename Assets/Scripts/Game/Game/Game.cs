@@ -22,7 +22,7 @@ public class Game : GameFramework
 		{
 			mAssetVersionSystem.setAssetReadPath(ASSET_READ_PATH.SAME_TO_REMOTE);
 		}
-		mGameSceneManager.enterScene<StartScene>();
+		mGameSceneManager.enterScene<LaunchScene>();
 	}
 	//-------------------------------------------------------------------------------------------------------------
 	protected void gameInitFrameSystem(){}

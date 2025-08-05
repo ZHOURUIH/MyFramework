@@ -16,7 +16,7 @@ public class GlobalTouchSystem : FrameSystem
 	protected List<MouseCastWindowSet> mMouseCastWindowList = new();    // 所有窗口所对应的摄像机的列表,每个摄像机的窗口列表根据深度排序
 	protected List<MouseCastObjectSet> mMouseCastObjectList = new();    // 所有场景中物体所对应的摄像机的列表,每个摄像机的物体列表根据深度排序
 	protected SafeList<MovableObject> mActiveOnlyMovableObject = new();	// 当前只允许交互的3D物体,用于实现类似新手引导之类的功能,限定只能进行指定的操作
-	protected SafeList<myUIObject> mActiveOnlyUIObject = new();			// 当前只允许交互的UI物体,用于实现类似新手引导之类的功能,限定只能进行指定的操作,因为要对UI排序,所以只能分成两个列表
+	protected SafeList<myUGUIObject> mActiveOnlyUIObject = new();		// 当前只允许交互的UI物体,用于实现类似新手引导之类的功能,限定只能进行指定的操作,因为要对UI排序,所以只能分成两个列表
 	protected bool mUseGlobalTouch = true;                              // 是否使用全局触摸检测来进行界面的输入检测
 	protected bool mActiveOnlyUIListDirty;								// UI的仅激活列表是否有修改,需要进行排序
 	public GlobalTouchSystem()
@@ -135,7 +135,7 @@ public class GlobalTouchSystem : FrameSystem
 			return;
 		}
 
-		if (obj is myUIObject uiObj)
+		if (obj is myUGUIObject uiObj)
 		{
 			// 寻找窗口对应的摄像机
 			camera ??= mCameraManager.getUICamera();
@@ -219,7 +219,7 @@ public class GlobalTouchSystem : FrameSystem
 			item.removeObject(obj);
 		}
 
-		if (obj is myUIObject window)
+		if (obj is myUGUIObject window)
 		{
 			mActiveOnlyUIObject.remove(window);
 			int count = mMouseCastWindowList.Count;
@@ -282,7 +282,7 @@ public class GlobalTouchSystem : FrameSystem
 	{
 		mActiveOnlyUIObject.clear();
 		mActiveOnlyMovableObject.clear();
-		if (obj is myUIObject window)
+		if (obj is myUGUIObject window)
 		{
 			mActiveOnlyUIObject.addNotNull(window);
 			mActiveOnlyUIListDirty = true;
@@ -294,7 +294,7 @@ public class GlobalTouchSystem : FrameSystem
 	}
 	public void addActiveOnlyObject(IMouseEventCollect obj)
 	{
-		if (obj is myUIObject window)
+		if (obj is myUGUIObject window)
 		{
 			mActiveOnlyUIObject.addNotNull(window);
 			mActiveOnlyUIListDirty = true;
@@ -306,9 +306,9 @@ public class GlobalTouchSystem : FrameSystem
 	}
 	public bool hasActiveOnlyObject() { return mActiveOnlyMovableObject.count() > 0 || mActiveOnlyUIObject.count() > 0; }
 	// 将obj以及obj的所有父节点都放入列表,适用于滑动列表中的节点响应.因为需要依赖于父节点先接收事件,子节点才能正常接收事件
-	public void setActiveOnlyObjectWithAllParent(myUIObject obj)
+	public void setActiveOnlyObjectWithAllParent(myUGUIObject obj)
 	{
-		using var a = new ListScope<myUIObject>(out var list);
+		using var a = new ListScope<myUGUIObject>(out var list);
 		while (obj != null)
 		{
 			list.addIf(obj, mAllObjectSet.Contains(obj));
@@ -318,9 +318,9 @@ public class GlobalTouchSystem : FrameSystem
 		mActiveOnlyUIObject.setRange(list);
 		mActiveOnlyUIListDirty = true;
 	}
-	public void addActiveOnlyObjectWithAllParent(myUIObject obj)
+	public void addActiveOnlyObjectWithAllParent(myUGUIObject obj)
 	{
-		using var a = new ListScope<myUIObject>(out var list);
+		using var a = new ListScope<myUGUIObject>(out var list);
 		while (obj != null)
 		{
 			list.addIf(obj, mAllObjectSet.Contains(obj));
@@ -330,7 +330,7 @@ public class GlobalTouchSystem : FrameSystem
 		{
 			return;
 		}
-		foreach (myUIObject item in list)
+		foreach (myUGUIObject item in list)
 		{
 			mActiveOnlyUIObject.addUnique(item);
 		}
@@ -369,7 +369,7 @@ public class GlobalTouchSystem : FrameSystem
 		// 只允许指定的物体接收事件时
 		else
 		{
-			using (var a = new SafeListReader<myUIObject>(mActiveOnlyUIObject))
+			using (var a = new SafeListReader<myUGUIObject>(mActiveOnlyUIObject))
 			{ 
 				foreach (IMouseEventCollect item in a.mReadList)
 				{
@@ -392,7 +392,7 @@ public class GlobalTouchSystem : FrameSystem
 			}
 
 			// 因为onScreenMouseDown里可能会移除物体,所以这里还要再判断一次mAllObjectSet.Contains
-			using (var c = new SafeListReader<myUIObject>(mActiveOnlyUIObject))
+			using (var c = new SafeListReader<myUGUIObject>(mActiveOnlyUIObject))
 			{
 				foreach (IMouseEventCollect item in c.mReadList)
 				{
@@ -449,7 +449,7 @@ public class GlobalTouchSystem : FrameSystem
 		else
 		{
 			// 为了保险起见,在每次遍历时都会判断mAllObjectSet.Contains(item)
-			using (var a = new SafeListReader<myUIObject>(mActiveOnlyUIObject))
+			using (var a = new SafeListReader<myUGUIObject>(mActiveOnlyUIObject))
 			{
 				foreach (IMouseEventCollect item in a.mReadList)
 				{
@@ -472,7 +472,7 @@ public class GlobalTouchSystem : FrameSystem
 			}
 
 			// 因为onScreenMouseUp里可能会移除物体,所以这里还要再判断一次mAllObjectSet.Contains
-			using (var c = new SafeListReader<myUIObject>(mActiveOnlyUIObject))
+			using (var c = new SafeListReader<myUGUIObject>(mActiveOnlyUIObject))
 			{
 				foreach (IMouseEventCollect item in c.mReadList)
 				{
@@ -533,10 +533,10 @@ public class GlobalTouchSystem : FrameSystem
 			else if (mActiveOnlyUIObject.count() > 0)
 			{
 				checkActiveOnlyOrder();
-				using var a = new ListScope<myUIObject>(out var list);
+				using var a = new ListScope<myUGUIObject>(out var list);
 				foreach (IMouseEventCollect obj in mActiveOnlyUIObject.getMainList())
 				{
-					if (obj is myUIObject uiObj && item.getWindowOrderList().Contains(uiObj))
+					if (obj is myUGUIObject uiObj && item.getWindowOrderList().Contains(uiObj))
 					{
 						list.Add(uiObj);
 					}
@@ -731,7 +731,7 @@ public class GlobalTouchSystem : FrameSystem
 		if (mActiveOnlyUIListDirty)
 		{
 			mActiveOnlyUIListDirty = false;
-			using var a = new ListScope<myUIObject>(out var list, mActiveOnlyUIObject.getMainList());
+			using var a = new ListScope<myUGUIObject>(out var list, mActiveOnlyUIObject.getMainList());
 			quickSort(list, MouseCastWindowSet.mUIDepthDescend);
 			mActiveOnlyUIObject.setRange(list);
 		}

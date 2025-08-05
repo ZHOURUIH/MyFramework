@@ -164,7 +164,7 @@ public class myUGUIImageAnimPro : myUGUIImagePro, IUIAnimation
 		// 对齐父节点的底部
 		else if (mEffectAlign == EFFECT_ALIGN.PARENT_BOTTOM)
 		{
-			myUIObject parent = getParent();
+			myUGUIObject parent = getParent();
 			if (parent != null)
 			{
 				setPositionY((getWindowSize().y - parent.getWindowSize().y) * 0.5f);

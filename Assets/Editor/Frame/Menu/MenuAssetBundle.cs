@@ -43,7 +43,7 @@ public class MenuAssetBundle
 		// 收集所有图集,然后将信息写入到图集路径的配置文件中,这个文件会在AtlasManager中用到
 		List<string> pathList = new();
 		HashSet<string> fileNameList = new();
-		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, ".spriteatlas"))
+		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, SPRITE_ATLAS_SUFFIX))
 		{
 			pathList.Add(file.removeStartString(F_GAME_RESOURCES_PATH));
 			if (!fileNameList.Add(getFileNameNoSuffixNoDir(file)))
@@ -55,7 +55,7 @@ public class MenuAssetBundle
 		writeTxtFile(F_GAME_RESOURCES_PATH + R_MISC_PATH + ATLAS_PATH_CONFIG, stringsToString(pathList, "\r\n"));
 
 		// 设置所有图集不打入包体,虽然不太好理解这个,不过设置为false以后AssetBundle中就不会出现冗余的图片,否则AssetBundle将会变得异常大
-		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, ".spriteatlas"))
+		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, SPRITE_ATLAS_SUFFIX))
 		{
 			loadAsset<SpriteAtlas>(file).SetIncludeInBuild(false);
 		}
@@ -65,7 +65,7 @@ public class MenuAssetBundle
 	}
 	protected static void postProcess()
 	{
-		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, ".spriteatlas"))
+		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, SPRITE_ATLAS_SUFFIX))
 		{
 			loadAsset<SpriteAtlas>(file).SetIncludeInBuild(true);
 		}

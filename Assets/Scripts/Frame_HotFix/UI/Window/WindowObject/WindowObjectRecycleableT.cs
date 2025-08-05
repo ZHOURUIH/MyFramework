@@ -2,7 +2,7 @@
 // 所有可复用窗口对象的基类
 // 可用于WindowStructPool和WindowStructPoolMap的类,常用于可回收复用的窗口
 // 每次创建新的对象时都从template克隆
-public abstract class WindowObjectRecycleableT<T> : WindowObjectT<T>, IRecycleable where T : myUIObject, new()
+public abstract class WindowObjectRecycleableT<T> : WindowObjectT<T>, IRecycleable where T : myUGUIObject, new()
 {
 	protected long mAssignID = -1;					// 唯一的分配ID
 	public WindowObjectRecycleableT(IWindowObjectOwner parent) : base(parent) {}
@@ -15,12 +15,6 @@ public abstract class WindowObjectRecycleableT<T> : WindowObjectT<T>, IRecycleab
 		checkRoot();
 		base.setActive(active);
 	}
-}
-
-// 根节点是myUIObject类型
-public abstract class WindowRecycleableUI : WindowObjectRecycleableT<myUIObject>
-{
-	public WindowRecycleableUI(IWindowObjectOwner parent) : base(parent) { }
 }
 
 // 根节点是myUGUIObject类型

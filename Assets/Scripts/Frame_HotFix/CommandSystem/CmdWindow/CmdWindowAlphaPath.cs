@@ -12,7 +12,7 @@ public class CmdWindowAlphaPath
 	// 起始时间偏移
 	// 所使用的关键帧ID
 	// 是否循环
-	public static void execute(myUIObject obj, Dictionary<float, float> valueKeyFrame, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallBack, float valueOffset, float timeOffset, float speed, bool loop)
+	public static void execute(myUGUIObject obj, Dictionary<float, float> valueKeyFrame, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallBack, float valueOffset, float timeOffset, float speed, bool loop)
 	{
 		if (obj == null)
 		{
@@ -38,7 +38,7 @@ public class CmdWindowAlphaPath
 			obj.setNeedUpdate(true);
 		}
 	}
-	public static void execute(myUIObject obj)
+	public static void execute(myUGUIObject obj)
 	{
 		obj?.getComponent<COMWindowAlphaPath>()?.stop();
 	}

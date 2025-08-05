@@ -13,13 +13,17 @@ public class myUGUIDragView : myUGUIObject
 	{
 		mNeedUpdate = true;
 	}
-	public void initDragView(myUGUIObject viewport, DRAG_DIRECTION direction)
+	public void initDragView()
 	{
-		initDragView(viewport, direction, toRadian(45.0f), false, true, true);
+		initDragView(DRAG_DIRECTION.VERTICAL, toRadian(45.0f), false, true, true);
 	}
-	public void initDragView(myUGUIObject viewport, DRAG_DIRECTION direction, float angleThresholdRadian)
+	public void initDragView(DRAG_DIRECTION direction)
 	{
-		initDragView(viewport, direction, angleThresholdRadian, false, true, true);
+		initDragView(direction, toRadian(45.0f), false, true, true);
+	}
+	public void initDragView(DRAG_DIRECTION direction, float angleThresholdRadian)
+	{
+		initDragView(direction, angleThresholdRadian, false, true, true);
 	}
 	// angleThresholdRadian表示拖拽方向与允许拖拽方向的夹角绝对值最大值,弧度制
 	// clampInner为true表示DragView只能在父节点的区域内滑动,父节点区域小于DragView区域时不能滑动
@@ -27,9 +31,10 @@ public class myUGUIDragView : myUGUIObject
 	// 一般情况下作为滑动列表时可填false
 	// allowDragOnlyOverParentSize表示是否只有大小超过父节点时才能拖拽,当前节点没有超过父节点时不允许拖拽
 	// clampInRange为true表示拖拽时始终限制在正常范围内
-	public void initDragView(myUGUIObject viewport, DRAG_DIRECTION direction, float angleThresholdRadian, bool clampInner, bool allowDragOnlyOverParentSize, bool clampInRange)
+	public void initDragView(DRAG_DIRECTION direction, float angleThresholdRadian, bool clampInner, bool allowDragOnlyOverParentSize, bool clampInRange)
 	{
-		mLayout.getScript().bindPassOnlyParent(viewport);
+		// 这里直接获取父节点作为viewport
+		mLayout.getScript().bindPassOnlyParent(mParent as myUGUIObject);
 		registeCollider(true);
 		setDepthOverAllChild(true);
 		setDragDirection(direction);
@@ -40,6 +45,7 @@ public class myUGUIDragView : myUGUIObject
 		mInited = true;
 	}
 	public override bool isReceiveScreenMouse() { return true; }
+	public myUGUIObject getViewport() { return mParent as myUGUIObject; }
 	// 显式调用调整窗口位置
 	public void autoClampPosition()
 	{

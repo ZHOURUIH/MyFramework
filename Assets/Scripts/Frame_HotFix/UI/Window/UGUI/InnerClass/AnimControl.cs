@@ -5,7 +5,7 @@ public class AnimControl : ClassObject
 {
 	protected OnPlayEndCallback mPlayEndCallback;   // 一个序列播放完时的回调函数,只在非循环播放状态下有效
 	protected OnPlayingCallback mPlayingCallback;   // 一个序列正在播放时的回调函数
-	protected myUIObject mControlObject;			// 控制的窗口
+	protected myUGUIObject mControlObject;			// 控制的窗口
 	protected float mPlayedTime;                    // 已经播放的时长,不包含循环次数
 	protected float mInterval;                      // 隔多少秒切换图片
 	protected float mCurTime;						// 当前播放计时
@@ -47,7 +47,7 @@ public class AnimControl : ClassObject
 		mPlayState = PLAY_STATE.STOP;
 		mLoopMode = LOOP_MODE.ONCE;
 	}
-	public void setObject(myUIObject obj) { mControlObject = obj; }
+	public void setObject(myUGUIObject obj) { mControlObject = obj; }
 	public void update(float elapsedTime)
 	{
 		if (mPlayState != PLAY_STATE.PLAY)

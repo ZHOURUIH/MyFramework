@@ -5,8 +5,8 @@ public class WindowStructPoolBase
 {
 	protected WindowObjectBase mOwnerObject;	// 如果是WindowObject中创建的对象池,则会存储此WindowObject
 	protected LayoutScript mScript;				// 所属的布局脚本
-	protected myUIObject mItemParent;			// 创建节点时默认的父节点
-	protected myUIObject mTemplate;				// 创建节点时使用的模板
+	protected myUGUIObject mItemParent;			// 创建节点时默认的父节点
+	protected myUGUIObject mTemplate;			// 创建节点时使用的模板
 	protected string mPreName;					// 创建物体的名字前缀
 	protected Type mObjectType;					// 物体类型
 	protected static long mAssignIDSeed;		// 分配ID种子,用于设置唯一分配ID,只会递增,不会减少
@@ -29,17 +29,36 @@ public class WindowStructPoolBase
 		mNewItemMoveToLast = true;
 	}
 	public virtual void destroy() {}
-	public virtual void init(myUIObject parent, myUIObject template, Type objectType, bool newItemToLast = true)
+	public void init(myUGUIObject parent, Type objectType, bool newItemToLast = true)
 	{
 		mItemParent = parent;
-		mTemplate = template;
 		mNewItemMoveToLast = newItemToLast;
-		mPreName = template?.getName();
+		mPreName = mTemplate?.getName();
 		mObjectType = objectType;
 		mTemplate.setActive(false);
 		mInited = true;
 	}
-	public myUIObject getInUseParent() { return mItemParent; }
+	public void assignTemplate(myUGUIObject parent, string name)
+	{
+		mScript.newObject(out myUGUIObject obj, parent, name);
+		mTemplate = obj;
+	}
+	public void assignTemplate<T>(myUGUIObject parent, string name) where T : myUGUIObject, new()
+	{
+		mScript.newObject(out T obj, parent, name);
+		mTemplate = obj;
+	}
+	public void assignTemplate(string name)
+	{
+		mScript.newObject(out myUGUIObject obj, name);
+		mTemplate = obj;
+	}
+	public void assignTemplate(myUGUIObject template)
+	{
+		mTemplate = template;
+	}
+	public myUGUIObject getInUseParent() { return mItemParent; }
+	public myUGUIObject getTemplate() { return mTemplate; }
 	public void setItemPreName(string preName) { mPreName = preName; }
 	public virtual void unuseAll() { }
 	public bool isRootPool() { return mOwnerObject == null; }

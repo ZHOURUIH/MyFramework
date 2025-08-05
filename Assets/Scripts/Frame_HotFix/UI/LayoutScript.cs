@@ -74,7 +74,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	public GameLayout getLayout() { return mLayout; }
 	public void setRoot(myUGUIObject root) { mRoot = root; }
 	public myUGUIObject getRoot() { return mRoot; }
-	public void notifyUIObjectNeedUpdate(myUIObject uiObj, bool needUpdate)
+	public void notifyUIObjectNeedUpdate(myUGUIObject uiObj, bool needUpdate)
 	{
 		mLayout.notifyUIObjectNeedUpdate(uiObj, needUpdate);
 	}
@@ -91,14 +91,14 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		mInputFieldRegisteList.addIf(inputField, isEditor());
 		mInputSystem.registeInputField(inputField);
 		// 所有的输入框都是不能穿透射线的
-		(inputField as myUIObject).registeCollider();
+		(inputField as myUGUIObject).registeCollider();
 	}
 	public void unregisteInputField(IInputField inputField)
 	{
 		mInputSystem.unregisteInputField(inputField);
 	}
 	// parent的区域中才能允许parent的子节点接收射线检测
-	public void bindPassOnlyParent(myUIObject parent)
+	public void bindPassOnlyParent(myUGUIObject parent)
 	{
 		// 设置当前窗口需要调整深度在所有子节点之上,并计算深度调整值
 		parent.setDepthOverAllChild(true);
@@ -108,7 +108,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		mGlobalTouchSystem.bindPassOnlyParent(parent);
 	}
 	// parent的区域中只有passOnlyArea的区域可以穿透
-	public void bindPassOnlyArea(myUIObject parent, myUIObject passOnlyArea)
+	public void bindPassOnlyArea(myUGUIObject parent, myUGUIObject passOnlyArea)
 	{
 		parent.registeCollider();
 		passOnlyArea.registeCollider();
@@ -243,28 +243,28 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	{
 		return hasObject(mRoot, name);
 	}
-	public bool hasObject(myUIObject parent, string name)
+	public bool hasObject(myUGUIObject parent, string name)
 	{
 		parent ??= mRoot;
 		return getGameObject(name, parent.getObject()) != null;
 	}
-	public T cloneObject<T>(myUIObject parent, myUIObject oriObj, string name) where T : myUIObject, new()
+	public T cloneObject<T>(myUGUIObject parent, myUGUIObject oriObj, string name) where T : myUGUIObject, new()
 	{
 		cloneObject(out T target, parent, oriObj, name, true);
 		return target;
 	}
-	public T cloneObject<T>(myUIObject parent, myUIObject oriObj, string name, bool active) where T : myUIObject, new()
+	public T cloneObject<T>(myUGUIObject parent, myUGUIObject oriObj, string name, bool active) where T : myUGUIObject, new()
 	{
 		cloneObject(out T target, parent, oriObj, name, active);
 		return target;
 	}
 	// 各种形式的创建窗口操作一律不会排序子节点,不会刷新布局中的窗口深度,因为一般都是在assignWindow中调用
 	// 而assignWindow后会刷新当前布局的窗口深度,而子节点排序只有在部分情况下才会使用,大部分情况不会用到
-	public void cloneObject<T>(out T target, myUIObject parent, myUIObject oriObj, string name) where T : myUIObject, new()
+	public void cloneObject<T>(out T target, myUGUIObject parent, myUGUIObject oriObj, string name) where T : myUGUIObject, new()
 	{
 		cloneObject(out target, parent, oriObj, name, true);
 	}
-	public void cloneObject<T>(out T target, myUIObject parent, myUIObject oriObj, string name, bool active) where T : myUIObject, new()
+	public void cloneObject<T>(out T target, myUGUIObject parent, myUGUIObject oriObj, string name, bool active) where T : myUGUIObject, new()
 	{
 		parent ??= mRoot;
 		GameObject obj = UnityUtility.cloneObject(oriObj.getObject(), name);
@@ -272,10 +272,10 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		target.setActive(active);
 		target.cloneFrom(oriObj);
 	}
-	// 创建myUIObject,并且新建GameObject,分配到myUIObject中
+	// 创建myUGUIObject,并且新建GameObject,分配到myUGUIObject中
 	// refreshUIDepth表示创建后是否需要刷新所属父节点下所有子节点的深度信息
-	// sortChild表示创建后是否需要对myUIObject中的子节点列表进行排序,使列表的顺序与面板的顺序相同,对需要射线检测的窗口有影响
-	public T createUGUIObject<T>(myUIObject parent, string name, bool active) where T : myUGUIObject, new()
+	// sortChild表示创建后是否需要对myUGUIObject中的子节点列表进行排序,使列表的顺序与面板的顺序相同,对需要射线检测的窗口有影响
+	public T createUGUIObject<T>(myUGUIObject parent, string name, bool active) where T : myUGUIObject, new()
 	{
 		GameObject go = createGameObject(name);
 		parent ??= mRoot;
@@ -289,7 +289,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		go.transform.localPosition = Vector3.zero;
 		return obj;
 	}
-	public T createUIObject<T>(myUIObject parent, string name, bool active) where T : myUIObject, new()
+	public T createUIObject<T>(myUGUIObject parent, string name, bool active) where T : myUGUIObject, new()
 	{
 		GameObject go = createGameObject(name);
 		parent ??= mRoot;
@@ -301,15 +301,15 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		go.transform.localPosition = Vector3.zero;
 		return obj;
 	}
-	public void createUIObject<T>(out T obj, myUIObject parent, string name) where T : myUIObject, new()
+	public void createUIObject<T>(out T obj, myUGUIObject parent, string name) where T : myUGUIObject, new()
 	{
 		obj = createUIObject<T>(parent, name, true);
 	}
-	public T createUGUIObject<T>(myUIObject parent, string name) where T : myUGUIObject, new()
+	public T createUGUIObject<T>(myUGUIObject parent, string name) where T : myUGUIObject, new()
 	{
 		return createUGUIObject<T>(parent, name, true);
 	}
-	public void createUGUIObject<T>(out T obj, myUIObject parent, string name) where T : myUGUIObject, new()
+	public void createUGUIObject<T>(out T obj, myUGUIObject parent, string name) where T : myUGUIObject, new()
 	{
 		obj = createUGUIObject<T>(parent, name, true);
 	}
@@ -317,56 +317,39 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	{
 		return createUGUIObject<T>(null, name, active);
 	}
-	public T newObject<T>(out T obj, string name) where T : myUIObject, new()
-	{
-		return newObject(out obj, mRoot, name, -1, true);
-	}
 	// 仅支持C#10
 #if USE_CSHARP_10
-	public T newObject<T>(out T obj, [CallerArgumentExpression("obj")] string name = "") where T : myUIObject, new()
+	public T newObject<T>(out T obj, [CallerArgumentExpression("obj")] string name = "") where T : myUGUIObject, new()
 	{
-		return newObject(out obj, mRoot, name.rangeToEnd(1), -1, true);
+		return newObject(out obj, mRoot, name.rangeToEnd(1), true);
 	}
-	public T newObject<T>(out T obj, int active, [CallerArgumentExpression("obj")] string name = "") where T : myUIObject, new()
+	public T newObject<T>(out T obj, [CallerArgumentExpression("obj")] string name = "") where T : myUGUIObject, new()
 	{
-		return newObject(out obj, mRoot, name.rangeToEnd(1), active, true);
+		return newObject(out obj, mRoot, name.rangeToEnd(1), true);
 	}
-	public T newObject<T>(out T obj, myUIObject parent, [CallerArgumentExpression("obj")] string name = "") where T : myUIObject, new()
+	public T newObject<T>(out T obj, myUGUIObject parent, [CallerArgumentExpression("obj")] string name = "") where T : myUGUIObject, new()
 	{
-		return newObject(out obj, parent, name.rangeToEnd(1), -1, true);
+		return newObject(out obj, parent, name.rangeToEnd(1), true);
 	}
-	public T newObject<T>(out T obj, myUIObject parent, int active, [CallerArgumentExpression("obj")] string name = "") where T : myUIObject, new()
+	public T newObject<T>(out T obj, myUGUIObject parent, [CallerArgumentExpression("obj")] string name = "") where T : myUGUIObject, new()
 	{
-		return newObject(out obj, parent, name.rangeToEnd(1), active, true);
+		return newObject(out obj, parent, name.rangeToEnd(1), true);
 	}
 #endif
-	public T newObject<T>(out T obj, string name, int active) where T : myUIObject, new()
+	public T newObject<T>(out T obj, string name) where T : myUGUIObject, new()
 	{
-		return newObject(out obj, mRoot, name, active, true);
+		return newObject(out obj, mRoot, name, true);
 	}
-	public T newObject<T>(out T obj, string name, bool showError) where T : myUIObject, new()
+	public T newObject<T>(out T obj, string name, bool showError) where T : myUGUIObject, new()
 	{
-		return newObject(out obj, mRoot, name, -1, showError);
+		return newObject(out obj, mRoot, name, showError);
 	}
-	public T newObject<T>(out T obj, string name, int active, bool showError) where T : myUIObject, new()
+	public T newObject<T>(out T obj, myUGUIObject parent, string name) where T : myUGUIObject, new()
 	{
-		return newObject(out obj, mRoot, name, active, showError);
+		return newObject(out obj, parent, name, true);
 	}
-	public T newObject<T>(out T obj, myUIObject parent, string name) where T : myUIObject, new()
-	{
-		return newObject(out obj, parent, name, -1, true);
-	}
-	public T newObject<T>(out T obj, myUIObject parent, string name, int active) where T : myUIObject, new()
-	{
-		return newObject(out obj, parent, name, active, true);
-	}
-	public T newObject<T>(out T obj, myUIObject parent, string name, bool showError) where T : myUIObject, new()
-	{
-		return newObject(out obj, parent, name, -1, showError);
-	}
-	// 创建myUIObject,并且在布局中查找GameObject分配到myUIObject
-	// active为-1则表示不设置active,0表示false,1表示true
-	public T newObject<T>(out T obj, myUIObject parent, string name, int active, bool showError) where T : myUIObject, new()
+	// 创建myUGUIObject,并且在布局中查找GameObject分配到myUGUIObject
+	public T newObject<T>(out T obj, myUGUIObject parent, string name, bool showError) where T : myUGUIObject, new()
 	{
 		obj = null;
 		GameObject parentObj = parent?.getObject();
@@ -383,27 +366,30 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		{
 			return obj;
 		}
-		obj = newUIObject<T>(parent, mLayout, gameObject);
-		if (active >= 0)
+		myUGUIObject existUIObj = mLayout.getUIObject(gameObject);
+		if (existUIObj != null)
 		{
-			obj.setActive(active != 0);
+			if (showError)
+			{
+				logError("已经创建了相同GameObject的UI对象:" + name);
+				return null;
+			}
+			obj = existUIObj as T;
+			if (obj == null)
+			{
+				logError("已经创建了相同GameObject的UI对象,但是两次创建的类型不一致,第一次创建的类型:" + existUIObj.GetType().ToString() + ", 第二次创建的类型:" + typeof(T).ToString() + ", name:" + name);
+			}
+			return obj;
 		}
+		obj = newUIObject<T>(parent, mLayout, gameObject);
 		return obj;
 	}
-	public T newObject<T>(out T obj, myUIObject parent, GameObject go) where T : myUIObject, new()
-	{
-		return newObject(out obj, parent, go, -1);
-	}
-	public T newObject<T>(out T obj, myUIObject parent, GameObject go, int active) where T : myUIObject, new()
+	public T newObject<T>(out T obj, myUGUIObject parent, GameObject go) where T : myUGUIObject, new()
 	{
 		obj = newUIObject<T>(parent, mLayout, go);
-		if (active >= 0)
-		{
-			obj.setActive(active != 0);
-		}
 		return obj;
 	}
-	public static T newUIObject<T>(myUIObject parent, GameLayout layout, GameObject go) where T : myUIObject, new()
+	public static T newUIObject<T>(myUGUIObject parent, GameLayout layout, GameObject go) where T : myUGUIObject, new()
 	{
 		T obj = new();
 		obj.setLayout(layout);
@@ -417,7 +403,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		}
 		return obj;
 	}
-	public static GameObject instantiate(myUIObject parent, string prefabPath, string name, int tag = 0)
+	public static GameObject instantiate(myUGUIObject parent, string prefabPath, string name, int tag = 0)
 	{
 		GameObject go = mPrefabPoolManager.createObject(prefabPath, tag, false, false, parent.getObject());
 		if (go != null)
@@ -437,23 +423,23 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 			callback?.Invoke(go);
 		});
 	}
-	public static void instantiate(myUIObject parent, string prefabName)
+	public static void instantiate(myUGUIObject parent, string prefabName)
 	{
 		instantiate(parent, prefabName, getFileNameNoSuffixNoDir(prefabName));
 	}
-	public static void destroyInstantiate(myUIObject window, bool destroyReally)
+	public static void destroyInstantiate(myUGUIObject window, bool destroyReally)
 	{
 		if (window == null)
 		{
 			return;
 		}
 		GameObject go = window.getObject();
-		myUIObject.destroyWindow(window, false);
+		myUGUIObject.destroyWindow(window, false);
 		mPrefabPoolManager.destroyObject(ref go, destroyReally);
 		// 窗口销毁时不会通知布局刷新深度,因为移除对于深度不会产生影响
 	}
 	// 虽然执行内容与类似,但是为了外部使用方便,所以添加了对于不同方式创建出来的窗口的销毁方法
-	public static void destroyCloned(myUIObject obj, bool immediately = false)
+	public static void destroyCloned(myUGUIObject obj, bool immediately = false)
 	{
 		destroyObject(obj, immediately);
 	}
@@ -462,15 +448,10 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		destroyObject(obj, immediately);
 		obj = null;
 	}
-	public static void destroyObject(ref myUIObject obj, bool immediately = false)
-	{
-		destroyObject(obj, immediately);
-		obj = null;
-	}
-	public static void destroyObject(myUIObject obj, bool immediately = false)
+	public static void destroyObject(myUGUIObject obj, bool immediately = false)
 	{
 		obj.setDestroyImmediately(immediately);
-		myUIObject.destroyWindow(obj, true);
+		myUGUIObject.destroyWindow(obj, true);
 		// 窗口销毁时不会通知布局刷新深度,因为移除对于深度不会产生影响
 	}
 	public void close()

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using static UnityUtility;
 using static FrameUtility;
+using static FrameDefine;
 using UObject = UnityEngine.Object;
 
 public abstract class AtlasLoaderBase
@@ -184,7 +185,7 @@ public abstract class AtlasLoaderBase
 		{
 			return null;
 		}
-		if (loadPath.endWith(".spriteatlas"))
+		if (loadPath.endWith(SPRITE_ATLAS_SUFFIX))
 		{
 			UGUIAtlas atlas = new();
 			atlas.setFilePath(loadPath);

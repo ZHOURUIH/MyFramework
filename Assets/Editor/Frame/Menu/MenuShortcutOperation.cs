@@ -1,6 +1,5 @@
-﻿using UnityEditor;
-using UnityEngine;
-using UnityEngine.UI;
+﻿using UnityEngine;
+using UnityEditor;
 using UnityEditor.SceneManagement;
 using static MathUtility;
 using static FrameBaseUtility;
@@ -11,7 +10,8 @@ using static FrameBaseDefine;
 
 public class MenuShortcutOperation
 {
-	[MenuItem("快捷操作/启动游戏 _F5", false, 0)]
+	public const string mMenuName = "快捷操作/";
+	[MenuItem(mMenuName + "启动游戏 _F5", false, 0)]
 	public static void startGame()
 	{
 		if (!EditorApplication.isPlaying)
@@ -20,7 +20,7 @@ public class MenuShortcutOperation
 		}
 		EditorApplication.isPlaying = !EditorApplication.isPlaying;
 	}
-	[MenuItem("快捷操作/暂停游戏 _F6", false, 1)]
+	[MenuItem(mMenuName + "暂停游戏 _F6", false, 1)]
 	public static void pauseGame()
 	{
 		if (EditorApplication.isPlaying)
@@ -28,7 +28,7 @@ public class MenuShortcutOperation
 			EditorApplication.isPaused = !EditorApplication.isPaused;
 		}
 	}
-	[MenuItem("快捷操作/单帧执行 _F7", false, 2)]
+	[MenuItem(mMenuName + "单帧执行 _F7", false, 2)]
 	public static void stepGame()
 	{
 		if (EditorApplication.isPlaying)
@@ -36,7 +36,7 @@ public class MenuShortcutOperation
 			EditorApplication.Step();
 		}
 	}
-	[MenuItem("快捷操作/打开初始场景 _F9", false, 3)]
+	[MenuItem(mMenuName + "打开初始场景 _F9", false, 3)]
 	public static void jumpGameSceme()
 	{
 		if (!EditorApplication.isPlaying)
@@ -44,7 +44,7 @@ public class MenuShortcutOperation
 			EditorSceneManager.OpenScene(START_SCENE);
 		}
 	}
-	[MenuItem("快捷操作/修复MeshCollider的模型引用", false, 33)]
+	[MenuItem(mMenuName + "修复MeshCollider的模型引用", false, 33)]
 	public static void fixMeshCollider()
 	{
 		GameObject[] selectObj = Selection.gameObjects;
@@ -64,7 +64,7 @@ public class MenuShortcutOperation
 			EditorUtility.SetDirty(selectObj[0]);
 		}
 	}
-	[MenuItem("快捷操作/生成选中对象的角色控制器", false, 34)]
+	[MenuItem(mMenuName + "生成选中对象的角色控制器", false, 34)]
 	public static void createGameObjectCollider()
 	{
 		GameObject[] objects = Selection.gameObjects;
@@ -112,17 +112,17 @@ public class MenuShortcutOperation
 			controller.skinWidth = 0.01f;
 		}
 	}
-	[MenuItem("快捷操作/打开PersistentDataPath", false, 37)]
+	[MenuItem(mMenuName + "打开PersistentDataPath", false, 37)]
 	public static void openPersistentDataPath()
 	{
 		EditorUtility.RevealInFinder(F_PERSISTENT_DATA_PATH);
 	}
-	[MenuItem("快捷操作/打开TemporaryCachePath", false, 38)]
+	[MenuItem(mMenuName + "打开TemporaryCachePath", false, 38)]
 	public static void openTemporaryCachePath()
 	{
 		EditorUtility.RevealInFinder(F_TEMPORARY_CACHE_PATH);
 	}
-	[MenuItem("快捷操作/初始化版本号文件", false, 39)]
+	[MenuItem(mMenuName + "初始化版本号文件", false, 39)]
 	public static void initVersionFile()
 	{
 		if (!isFileExist(F_ASSET_BUNDLE_PATH + VERSION))
@@ -130,7 +130,7 @@ public class MenuShortcutOperation
 			writeTxtFile(F_ASSET_BUNDLE_PATH + VERSION, "0.0.0");
 		}
 	}
-	[MenuItem("快捷操作/初始化AOTGenericReferences", false, 40)]
+	[MenuItem(mMenuName + "初始化AOTGenericReferences", false, 40)]
 	public static void initAOTGenericReference()
 	{
 		if (!isFileExist(F_ASSETS_PATH + "HybridCLRGenerate/AOTGenericReferences.cs"))
@@ -145,7 +145,7 @@ public class MenuShortcutOperation
 			AssetDatabase.Refresh();
 		}
 	}
-	[MenuItem("快捷操作/dll解密", false, 41)]
+	[MenuItem(mMenuName + "dll解密", false, 41)]
 	public static void decryptDllFile()
 	{
 		EditorWindow.GetWindow<DecryptDllWindow>(true, "解密dll", true).start();

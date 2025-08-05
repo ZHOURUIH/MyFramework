@@ -130,6 +130,7 @@ public class FrameDefine
 	public const string STREAMING_ASSET_FILE = "StreamingAssets.bytes";
 	public const string ATLAS_PATH_CONFIG = "AtlasPathConfig.txt";
 	// 后缀名
+	public const string SPRITE_ATLAS_SUFFIX = ".spriteatlasv2";
 	public const string ASSET_BUNDLE_SUFFIX = ".unity3d";
 	public const string START_SCENE = P_RESOURCES_SCENE_PATH + "start.unity";
 	// dll插件的后缀名

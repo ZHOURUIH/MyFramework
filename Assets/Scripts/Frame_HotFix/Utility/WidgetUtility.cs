@@ -25,7 +25,7 @@ public class WidgetUtility
 		cornerToSide(tempCorners, sides);
 	}
 	// 窗口是否在屏幕范围内,只检查位置和大小
-	public static bool isWindowInScreen(myUIObject window, GameCamera camera)
+	public static bool isWindowInScreen(myUGUIObject window, GameCamera camera)
 	{
 		Vector3 pos = worldToScreen(window.getWorldPosition(), camera.getCamera());
 		return overlapBox2(pos, window.getWindowSize(), Vector3.zero, getScreenSize());

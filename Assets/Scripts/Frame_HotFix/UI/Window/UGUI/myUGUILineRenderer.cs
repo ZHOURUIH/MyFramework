@@ -4,7 +4,7 @@ using static MathUtility;
 using static BinaryUtility;
 
 // 使用LineRenderer的方式进行画线的窗口,用于在界面中画线
-public class myUILineRenderer : myUGUIObject
+public class myUGUILineRenderer : myUGUIObject
 {
 	public LineRenderer mLineRenderer;		// Unity的LineRenderer组件
 	public override void init()

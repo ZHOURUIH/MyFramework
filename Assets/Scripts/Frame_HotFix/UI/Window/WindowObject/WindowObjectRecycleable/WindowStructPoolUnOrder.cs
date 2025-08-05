@@ -19,9 +19,13 @@ public class WindowStructPoolUnOrder<T> : WindowStructPoolBase where T : WindowO
 		}
 		mUnusedItemList.Clear();
 	}
-	public void init(myUIObject parent, myUIObject template, bool newItemToLast = true)
+	public void init(bool newItemToLast = true)
 	{
-		init(parent, template, typeof(T), newItemToLast);
+		init(mTemplate.getParent(), typeof(T), newItemToLast);
+	}
+	public void init(myUGUIObject parent, bool newItemToLast = true)
+	{
+		init(parent, typeof(T), newItemToLast);
 	}
 	public HashSet<T> getUsedList() { return mUsedItemList; }
 	public void checkCapacity(int capacity)
@@ -48,7 +52,7 @@ public class WindowStructPoolUnOrder<T> : WindowStructPoolBase where T : WindowO
 		return newItem(mItemParent);
 	}
 	// 因为添加窗口可能会影响所有窗口的深度值,所以如果有需求,需要在完成添加窗口以后手动调用mLayout.refreshUIDepth()来刷新深度
-	public T newItem(myUIObject parent)
+	public T newItem(myUGUIObject parent)
 	{
 		if (!mInited)
 		{

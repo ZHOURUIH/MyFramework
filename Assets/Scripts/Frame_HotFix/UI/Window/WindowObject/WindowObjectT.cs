@@ -4,7 +4,7 @@ using static FrameDefine;
 
 // 用于固定数量类,不能用于回收复用窗口
 // 通常只是用于已经在预设中创建好的窗口,创建对象时不会创建新的节点,也可以选择克隆到指定父节点下
-public class WindowObjectT<T> : WindowObjectBase where T : myUIObject, new()
+public class WindowObjectT<T> : WindowObjectBase where T : myUGUIObject, new()
 {
 	protected T mRoot;                                  // 根节点
 	protected bool mRootIsFromClone;                    // 根节点是否是克隆来的
@@ -21,20 +21,20 @@ public class WindowObjectT<T> : WindowObjectBase where T : myUIObject, new()
 		}
 	}
 	// 在parent下根据template克隆一个物体作为Root,设置名字为name
-	public void assignWindow(myUIObject parent, myUIObject template, string name)
+	public void assignWindow(myUGUIObject parent, myUGUIObject template, string name)
 	{
 		mRootIsFromClone = true;
 		mScript.cloneObject(out mRoot, parent, template, name);
 		assignWindowInternal();
 	}
 	// 使用itemRoot作为Root
-	public void assignWindow(myUIObject itemRoot)
+	public void assignWindow(myUGUIObject itemRoot)
 	{
 		mRoot = itemRoot as T;
 		assignWindowInternal();
 	}
 	// 在指定的父节点下获取一个物体,将parent下名字为name的节点作为Root
-	public void assignWindow(myUIObject parent, string name)
+	public void assignWindow(myUGUIObject parent, string name)
 	{
 		newObject(out mRoot, parent, name);
 		assignWindowInternal();
@@ -79,7 +79,7 @@ public class WindowObjectT<T> : WindowObjectBase where T : myUIObject, new()
 		checkRoot();
 		mRoot.setAsLastSibling(refreshDepth);
 	}
-	public override void setParent(myUIObject parent, bool refreshDepth = true)
+	public override void setParent(myUGUIObject parent, bool refreshDepth = true)
 	{
 		checkRoot();
 		mRoot.setParent(parent, refreshDepth);
@@ -97,16 +97,12 @@ public class WindowObjectT<T> : WindowObjectBase where T : myUIObject, new()
 			logError("可复用窗口的mRoot为空,请确保在assignWindow中已经给mRoot赋值了");
 		}
 	}
-	protected T0 newObject<T0>(out T0 obj, string name) where T0 : myUIObject, new()
+	protected T0 newObject<T0>(out T0 obj, string name) where T0 : myUGUIObject, new()
 	{
-		return newObject(out obj, mRoot, name, -1, true);
+		return newObject(out obj, mRoot, name, true);
 	}
-	protected T0 newObject<T0>(out T0 obj, string name, bool showError) where T0 : myUIObject, new()
+	protected T0 newObject<T0>(out T0 obj, string name, bool showError) where T0 : myUGUIObject, new()
 	{
-		return newObject(out obj, mRoot, name, -1, showError);
-	}
-	protected T0 newObject<T0>(out T0 obj, string name, int active) where T0 : myUIObject, new()
-	{
-		return newObject(out obj, mRoot, name, active, true);
+		return newObject(out obj, mRoot, name, showError);
 	}
 }

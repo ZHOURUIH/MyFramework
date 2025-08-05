@@ -112,7 +112,7 @@ public class LayoutManager : FrameSystem
 		mLayoutAsyncList.Clear();
 		// 销毁UI摄像机
 		mCameraManager?.destroyCamera(mCameraManager.getUICamera(), false);
-		myUIObject.destroyWindowSingle(mUGUIRoot, false);
+		myUGUIObject.destroyWindowSingle(mUGUIRoot, false);
 		mUGUIRoot = null;
 		base.willDestroy();
 	}
@@ -342,7 +342,7 @@ public class LayoutManager : FrameSystem
 	}
 	protected GameLayout newLayout(LayoutInfo info, GameObject prefab)
 	{
-		myUIObject layoutParent = info.mIsScene ? null : getUIRoot();
+		myUGUIObject layoutParent = info.mIsScene ? null : getUIRoot();
 		GameObject layoutObj = instantiatePrefab(layoutParent?.getObject(), prefab, info.mName, true);
 		GameLayout layout = new();
 		layout.setPrefab(prefab);

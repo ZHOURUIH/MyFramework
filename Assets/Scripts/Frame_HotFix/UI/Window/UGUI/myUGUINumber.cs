@@ -54,7 +54,7 @@ public class myUGUINumber : myUGUIImage
 		Vector2 screenScale = getScreenScale(ASPECT_BASE.AUTO);
 		mInterval = (int)(mInterval * (mDirection == NUMBER_DIRECTION.HORIZONTAL ? screenScale.x : screenScale.y));
 	}
-	public override void cloneFrom(myUIObject obj)
+	public override void cloneFrom(myUGUIObject obj)
 	{
 		base.cloneFrom(obj);
 		var source = obj as myUGUINumber;

@@ -22,7 +22,7 @@ public class CmdTransformableLerpRotation : Command
 	{
 		var obj = mReceiver as Transformable;
 		if (isEditor() && 
-			obj is myUIObject uiObj && 
+			obj is myUGUIObject uiObj && 
 			!isFloatZero(mLerpSpeed) && 
 			!uiObj.getLayout().canUIObjectUpdate(uiObj))
 		{

@@ -799,4 +799,19 @@ public static class StringExtension
 		}
 		return builder.ToString();
 	}
+	public static string removeEndNumber(this string str)
+	{
+		if (isNumeric(str))
+		{
+			return "";
+		}
+		for (int i = str.Length - 1; i >= 0; --i)
+		{
+			if (!isNumeric(str[i]))
+			{
+				return str.startString(i + 1);
+			}
+		}
+		return str;
+	}
 }

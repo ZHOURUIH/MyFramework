@@ -8,7 +8,7 @@ using static FrameBaseHotFix;
 using static UnityUtility;
 
 // 自定义的下拉列表
-public class UGUIDropList : WindowObjectUGUI
+public class UGUIDropList : WindowObjectUGUI, ICommonUI
 {
 	protected WindowStructPool<DropItem> mItemPool;	// 显示项的对象池
 	protected Action mSelectCallback;				// 选项切换时的回调
@@ -36,15 +36,15 @@ public class UGUIDropList : WindowObjectUGUI
 		newObject(out mMask, mOptions, "Mask");
 		newObject(out mViewport, mOptions, "Viewport");
 		newObject(out mContent, mViewport, "Content");
-		newObject(out mTemplate, mContent, "Template", 0);
+		mItemPool.assignTemplate(mContent, "Template");
 	}
 	public override void init()
 	{
 		base.init();
-		mItemPool.init(mContent, mTemplate);
+		mItemPool.init();
 		mLabel.registeCollider(onClick);
 		mMask.registeCollider(onMaskClick);
-		mContent.initDragView(mViewport, DRAG_DIRECTION.VERTICAL);
+		mContent.initDragView(DRAG_DIRECTION.VERTICAL);
 		mOptions.setActive(false);
 		mMask.setActive(false);
 		// 确认选项的父节点拥有Canvas组件,可以渲染在所有节点之上

@@ -218,7 +218,7 @@ public class LT
 	#endregion
 	// 窗口填充
 	#region 窗口填充
-	public static void FILL(myUIObject obj, float value = 1.0f)
+	public static void FILL(myUGUIObject obj, float value = 1.0f)
 	{
 		CMD(out CmdWindowFill cmd, LOG_LEVEL.LOW);
 		cmd.mStartValue = value;
@@ -226,19 +226,19 @@ public class LT
 		cmd.mOnceLength = 0.0f;
 		pushCommand(cmd, obj);
 	}
-	public static void FILL(myUIObject obj, float start, float target, float time)
+	public static void FILL(myUGUIObject obj, float start, float target, float time)
 	{
 		FILL_EX(obj, KEY_CURVE.ZERO_ONE, start, target, time, null, null);
 	}
-	public static void FILL(myUIObject obj, int keyframe, float start, float target, float time)
+	public static void FILL(myUGUIObject obj, int keyframe, float start, float target, float time)
 	{
 		FILL_EX(obj, keyframe, start, target, time, null, null);
 	}
-	public static void FILL_EX(myUIObject obj, float start, float target, float time, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void FILL_EX(myUGUIObject obj, float start, float target, float time, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		FILL_EX(obj, KEY_CURVE.ZERO_ONE, start, target, time, doingCallback, doneCallback);
 	}
-	public static void FILL_EX(myUIObject obj, int keyframe, float start, float target, float time, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void FILL_EX(myUGUIObject obj, int keyframe, float start, float target, float time, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		CMD(out CmdWindowFill cmd, LOG_LEVEL.LOW);
 		cmd.mStartValue = start;
@@ -253,7 +253,7 @@ public class LT
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 透明度
 	#region 透明度
-	public static void ALPHA(myUIObject obj, float alpha = 1.0f)
+	public static void ALPHA(myUGUIObject obj, float alpha = 1.0f)
 	{
 		CMD(out CmdWindowAlpha cmd, LOG_LEVEL.LOW);
 		cmd.mOnceLength = 0.0f;
@@ -261,43 +261,43 @@ public class LT
 		cmd.mTargetAlpha = alpha;
 		pushCommand(cmd, obj);
 	}
-	public static void ALPHA(myUIObject obj, float start, float target, float onceLength)
+	public static void ALPHA(myUGUIObject obj, float start, float target, float onceLength)
 	{
 		ALPHA_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void ALPHA(myUIObject obj, int keyframe, float start, float target, float onceLength)
+	public static void ALPHA(myUGUIObject obj, int keyframe, float start, float target, float onceLength)
 	{
 		ALPHA_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void ALPHA(myUIObject obj, int keyframe, float start, float target, float onceLength, bool loop)
+	public static void ALPHA(myUGUIObject obj, int keyframe, float start, float target, float onceLength, bool loop)
 	{
 		ALPHA_EX(obj, keyframe, start, target, onceLength, loop, 0.0f, null, null);
 	}
-	public static void ALPHA(myUIObject obj, int keyframe, float start, float target, float onceLength, bool loop, float offset)
+	public static void ALPHA(myUGUIObject obj, int keyframe, float start, float target, float onceLength, bool loop, float offset)
 	{
 		ALPHA_EX(obj, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
-	public static void ALPHA_EX(myUIObject obj, float start, float target, float onceLength, KeyFrameCallback doneCallback)
+	public static void ALPHA_EX(myUGUIObject obj, float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
 		ALPHA_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static void ALPHA_EX(myUIObject obj, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void ALPHA_EX(myUGUIObject obj, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		ALPHA_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void ALPHA_EX(myUIObject obj, int keyframe, float start, float target, float onceLength, KeyFrameCallback doneCallback)
+	public static void ALPHA_EX(myUGUIObject obj, int keyframe, float start, float target, float onceLength, KeyFrameCallback doneCallback)
 	{
 		ALPHA_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static void ALPHA_EX(myUIObject obj, int keyframe, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void ALPHA_EX(myUGUIObject obj, int keyframe, float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		ALPHA_EX(obj, keyframe, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void ALPHA_EX(myUIObject obj, int keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void ALPHA_EX(myUGUIObject obj, int keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (keyframe == KEY_CURVE.NONE || isFloatZero(onceLength))
 		{
-			logError("时间或关键帧不能为空,如果要停止组件,请使用void ALPHA(myUIObject obj, float alpha)");
+			logError("时间或关键帧不能为空,如果要停止组件,请使用void ALPHA(myUGUIObject obj, float alpha)");
 			return;
 		}
 		CMD(out CmdWindowAlpha cmd, LOG_LEVEL.LOW);
@@ -315,11 +315,11 @@ public class LT
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 颜色,也包含透明度
 	#region 颜色
-	public static void COLOR(myUIObject obj)
+	public static void COLOR(myUGUIObject obj)
 	{
 		COLOR(obj, Color.white);
 	}
-	public static void COLOR(myUIObject obj, Color color)
+	public static void COLOR(myUGUIObject obj, Color color)
 	{
 		CMD(out CmdWindowColor cmd, LOG_LEVEL.LOW);
 		cmd.mOnceLength = 0.0f;
@@ -327,43 +327,43 @@ public class LT
 		cmd.mTargetColor = color;
 		pushCommand(cmd, obj);
 	}
-	public static void COLOR(myUIObject obj, Color start, Color target, float onceLength)
+	public static void COLOR(myUGUIObject obj, Color start, Color target, float onceLength)
 	{
 		COLOR_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void COLOR(myUIObject obj, int keyframe, Color start, Color target, float onceLength)
+	public static void COLOR(myUGUIObject obj, int keyframe, Color start, Color target, float onceLength)
 	{
 		COLOR_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, null);
 	}
-	public static void COLOR(myUIObject obj, int keyframe, Color start, Color target, float onceLength, bool loop)
+	public static void COLOR(myUGUIObject obj, int keyframe, Color start, Color target, float onceLength, bool loop)
 	{
 		COLOR_EX(obj, keyframe, start, target, onceLength, loop, 0.0f, null, null);
 	}
-	public static void COLOR(myUIObject obj, int keyframe, Color start, Color target, float onceLength, bool loop, float offset)
+	public static void COLOR(myUGUIObject obj, int keyframe, Color start, Color target, float onceLength, bool loop, float offset)
 	{
 		COLOR_EX(obj, keyframe, start, target, onceLength, loop, offset, null, null);
 	}
-	public static void COLOR_EX(myUIObject obj, Color start, Color target, float onceLength, KeyFrameCallback doneCallback)
+	public static void COLOR_EX(myUGUIObject obj, Color start, Color target, float onceLength, KeyFrameCallback doneCallback)
 	{
 		COLOR_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static void COLOR_EX(myUIObject obj, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void COLOR_EX(myUGUIObject obj, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		COLOR_EX(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void COLOR_EX(myUIObject obj, int keyframe, Color start, Color target, float onceLength, KeyFrameCallback doneCallback)
+	public static void COLOR_EX(myUGUIObject obj, int keyframe, Color start, Color target, float onceLength, KeyFrameCallback doneCallback)
 	{
 		COLOR_EX(obj, keyframe, start, target, onceLength, false, 0.0f, null, doneCallback);
 	}
-	public static void COLOR_EX(myUIObject obj, int keyframe, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void COLOR_EX(myUGUIObject obj, int keyframe, Color start, Color target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		COLOR_EX(obj, keyframe, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);
 	}
-	public static void COLOR_EX(myUIObject obj, int keyframe, Color start, Color target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void COLOR_EX(myUGUIObject obj, int keyframe, Color start, Color target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (keyframe == KEY_CURVE.NONE || isFloatZero(onceLength))
 		{
-			logError("时间或关键帧不能为空,如果要停止组件,请使用void ALPHA(myUIObject obj, float alpha)");
+			logError("时间或关键帧不能为空,如果要停止组件,请使用void COLOR(myUGUIObject obj, float alpha)");
 			return;
 		}
 		CMD(out CmdWindowColor cmd, LOG_LEVEL.LOW);
@@ -381,7 +381,7 @@ public class LT
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 以指定点列表以及时间点的路线设置物体透明度
 	#region 以指定点列表以及时间点的路线设置物体透明度
-	public static void ALPHA_PATH(myUIObject obj)
+	public static void ALPHA_PATH(myUGUIObject obj)
 	{
 		if (obj == null)
 		{
@@ -389,31 +389,31 @@ public class LT
 		}
 		CmdWindowAlphaPath.execute(obj);
 	}
-	public static void ALPHA_PATH(myUIObject obj, Dictionary<float, float> valueKeyFrame)
+	public static void ALPHA_PATH(myUGUIObject obj, Dictionary<float, float> valueKeyFrame)
 	{
 		ALPHA_PATH_EX(obj, valueKeyFrame, 1.0f, 1.0f, false, 0.0f, null, null);
 	}
-	public static void ALPHA_PATH(myUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset)
+	public static void ALPHA_PATH(myUGUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset)
 	{
 		ALPHA_PATH_EX(obj, valueKeyFrame, valueOffset, 1.0f, false, 0.0f, null, null);
 	}
-	public static void ALPHA_PATH(myUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed)
+	public static void ALPHA_PATH(myUGUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed)
 	{
 		ALPHA_PATH_EX(obj, valueKeyFrame, valueOffset, speed, false, 0.0f, null, null);
 	}
-	public static void ALPHA_PATH(myUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop)
+	public static void ALPHA_PATH(myUGUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop)
 	{
 		ALPHA_PATH_EX(obj, valueKeyFrame, valueOffset, speed, loop, 0.0f, null, null);
 	}
-	public static void ALPHA_PATH_EX(myUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset, KeyFrameCallback doneCallback)
+	public static void ALPHA_PATH_EX(myUGUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset, KeyFrameCallback doneCallback)
 	{
 		ALPHA_PATH_EX(obj, valueKeyFrame, valueOffset, 1.0f, false, 0.0f, null, doneCallback);
 	}
-	public static void ALPHA_PATH_EX(myUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, KeyFrameCallback doneCallback)
+	public static void ALPHA_PATH_EX(myUGUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, KeyFrameCallback doneCallback)
 	{
 		ALPHA_PATH_EX(obj, valueKeyFrame, valueOffset, speed, false, 0.0f, null, doneCallback);
 	}
-	public static void ALPHA_PATH_EX(myUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop, float timeOffset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	public static void ALPHA_PATH_EX(myUGUIObject obj, Dictionary<float, float> valueKeyFrame, float valueOffset, float speed, bool loop, float timeOffset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		if (obj == null)
 		{
@@ -425,7 +425,7 @@ public class LT
 	//------------------------------------------------------------------------------------------------------------------------------
 	// HSL
 	#region HSL
-	public static void HSL(myUIObject obj, Vector3 hsl)
+	public static void HSL(myUGUIObject obj, Vector3 hsl)
 	{
 		CMD(out CmdWindowHSL cmd, LOG_LEVEL.LOW);
 		cmd.mOnceLength = 0.0f;
@@ -433,15 +433,15 @@ public class LT
 		cmd.mTargetHSL = hsl;
 		pushCommand(cmd, obj);
 	}
-	public static void HSL(myUIObject obj, Vector3 start, Vector3 target, float onceLength)
+	public static void HSL(myUGUIObject obj, Vector3 start, Vector3 target, float onceLength)
 	{
 		HSL(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f);
 	}
-	public static void HSL(myUIObject obj, int keyframe, Vector3 start, Vector3 target, float onceLength)
+	public static void HSL(myUGUIObject obj, int keyframe, Vector3 start, Vector3 target, float onceLength)
 	{
 		HSL(obj, keyframe, start, target, onceLength, false, 0.0f);
 	}
-	public static void HSL(myUIObject obj, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
+	public static void HSL(myUGUIObject obj, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset)
 	{
 		CMD(out CmdWindowHSL cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;
@@ -456,7 +456,7 @@ public class LT
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 亮度
 	#region 亮度
-	public static void LUM(myUIObject obj, float lum)
+	public static void LUM(myUGUIObject obj, float lum)
 	{
 		CMD(out CmdWindowLum cmd, LOG_LEVEL.LOW);
 		cmd.mOnceLength = 0.0f;
@@ -464,15 +464,15 @@ public class LT
 		cmd.mTargetLum = lum;
 		pushCommand(cmd, obj);
 	}
-	public static void LUM(myUIObject obj, float start, float target, float onceLength)
+	public static void LUM(myUGUIObject obj, float start, float target, float onceLength)
 	{
 		LUM(obj, KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f);
 	}
-	public static void LUM(myUIObject obj, int keyframe, float start, float target, float onceLength)
+	public static void LUM(myUGUIObject obj, int keyframe, float start, float target, float onceLength)
 	{
 		LUM(obj, keyframe, start, target, onceLength, false, 0.0f);
 	}
-	public static void LUM(myUIObject obj, int keyframe, float start, float target, float onceLength, bool loop, float offset)
+	public static void LUM(myUGUIObject obj, int keyframe, float start, float target, float onceLength, bool loop, float offset)
 	{
 		CMD(out CmdWindowLum cmd, LOG_LEVEL.LOW);
 		cmd.mKeyframe = keyframe;

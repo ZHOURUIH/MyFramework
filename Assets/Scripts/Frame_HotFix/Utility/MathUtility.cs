@@ -174,7 +174,10 @@ public class MathUtility
 	// 得到数轴上浮点数左边的第一个整数,向下取整
 	public static int floor(float value)
 	{
-		int intValue = (int)(value);
+		// 有时候会出现非常奇怪的现象,value显示是251,但是(int)value转换以后却是250,说明可能value实际是250.999999
+		// 但是由于这种误差是非预期的,也就是说外边可能就是251*1,这种情况需要消除这种误差,使用checkInt即可消除
+		checkInt(ref value);
+		int intValue = (int)value;
 		if (isFloatEqual(intValue, value))
 		{
 			return intValue;
@@ -188,7 +191,7 @@ public class MathUtility
 	// 得到数轴上浮点数左边的第一个整数,向下取整
 	public static int floor(double value)
 	{
-		int intValue = (int)(value);
+		int intValue = (int)value;
 		if (value < 0.0f && value < intValue)
 		{
 			--intValue;
@@ -244,6 +247,13 @@ public class MathUtility
 		value.x = round(value.x);
 		value.y = round(value.y);
 		value.z = round(value.z);
+		return value;
+	}
+	public static Vector3 floor(Vector3 value)
+	{
+		value.x = floor(value.x);
+		value.y = floor(value.y);
+		value.z = floor(value.z);
 		return value;
 	}
 	// value1大于等于value0则返回1,否则返回0
@@ -606,7 +616,7 @@ public class MathUtility
 			{
 				if (isFloatZero(value - (intValue + 1), precision))
 				{
-					value = (intValue + 1);
+					value = intValue + 1;
 				}
 			}
 		}
@@ -626,7 +636,7 @@ public class MathUtility
 				// 如果原值减去整数值的结果的绝对值大于0.5f, 则表示原值可能接近于整数值-1
 				if (isFloatZero(value - (intValue - 1), precision))
 				{
-					value = (intValue - 1);
+					value = intValue - 1;
 				}
 			}
 		}

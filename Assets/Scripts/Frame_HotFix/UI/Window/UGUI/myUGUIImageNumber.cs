@@ -70,7 +70,7 @@ public class myUGUIImageNumber : myUGUIObject
 		// 此处默认数字窗口都是以ASPECT_BASE.AB_AUTO的方式等比放大
 		mImageNumber.setInterval((int)(mImageNumber.getInterval() * getScreenScale(ASPECT_BASE.AUTO).x));
 	}
-	public override void cloneFrom(myUIObject obj)
+	public override void cloneFrom(myUGUIObject obj)
 	{
 		base.cloneFrom(obj);
 		var source = obj as myUGUIImageNumber;

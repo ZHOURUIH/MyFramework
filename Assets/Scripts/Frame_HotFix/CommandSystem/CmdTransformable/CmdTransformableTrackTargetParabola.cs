@@ -31,7 +31,7 @@ public class CmdTransformableTrackTargetParabola : Command
 	{
 		var obj = mReceiver as Transformable;
 		if (isEditor() && 
-			obj is myUIObject uiObj && 
+			obj is myUGUIObject uiObj && 
 			mTarget != null && 
 			!uiObj.getLayout().canUIObjectUpdate(uiObj))
 		{

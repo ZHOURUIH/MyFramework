@@ -7,7 +7,6 @@ using HybridCLR.Editor.Commands;
 using HybridCLR.Editor.HotUpdate;
 #endif
 using System;
-using System.IO;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 #if USE_OBFUSCATOR

@@ -2425,7 +2425,7 @@ public class EditorCommonUtility
 		// 不需要检测的基类
 		List<Type> ignoreBaseClass = new()
 		{
-			typeof(myUIObject),
+			typeof(myUGUIObject),
 			typeof(FrameSystem),
 			typeof(LayoutScript),
 			typeof(WindowShader),

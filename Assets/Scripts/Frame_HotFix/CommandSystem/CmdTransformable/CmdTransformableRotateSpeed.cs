@@ -22,7 +22,7 @@ public class CmdTransformableRotateSpeed : Command
 	{
 		var obj = mReceiver as Transformable;
 		if (isEditor() && 
-			obj is myUIObject uiObj &&
+			obj is myUGUIObject uiObj &&
 			(!isVectorZero(mRotateSpeed) || !isVectorZero(mRotateAcceleration)) && 
 			!uiObj.getLayout().canUIObjectUpdate(uiObj))
 		{

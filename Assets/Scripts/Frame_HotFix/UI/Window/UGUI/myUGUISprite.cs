@@ -8,7 +8,7 @@ using static FrameBaseDefine;
 using static FrameBaseUtility;
 
 // 对SpriteRenderer的封装
-public class myUISprite : myUIObject, IShaderWindow
+public class myUGUISprite : myUGUIObject, IShaderWindow
 {
 	protected SpriteRenderer mSpriteRenderer;   // 图片组件
 	protected WindowShader mWindowShader;       // 图片所使用的shader类,用于动态设置shader参数

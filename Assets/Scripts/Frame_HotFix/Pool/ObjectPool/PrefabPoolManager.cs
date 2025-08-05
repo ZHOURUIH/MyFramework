@@ -281,6 +281,10 @@ public class PrefabPoolManager : FrameSystem
 	// 根据名字获取一个对象池
 	protected PrefabPool getPrefabPool(string fileWithPath)
 	{
+		if (fileWithPath.isEmpty())
+		{
+			logError("fileWithPath is empty");
+		}
 		if (!mPrefabPoolList.tryGetValue(fileWithPath, out PrefabPool prefabPool))
 		{
 			prefabPool = mPrefabPoolList.addClass(fileWithPath);

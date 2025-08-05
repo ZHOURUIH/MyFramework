@@ -28,7 +28,7 @@ public class CmdWindowColor : Command
 	}
 	public override void execute()
 	{
-		var obj = mReceiver as myUIObject;
+		var obj = mReceiver as myUGUIObject;
 		if (isEditor() && 
 			!isFloatZero(mOnceLength) && 
 			!obj.getLayout().canUIObjectUpdate(obj))

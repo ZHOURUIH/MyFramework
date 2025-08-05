@@ -5,5 +5,5 @@ public interface IRecycleable
 	public void recycle();
 	public void setAssignID(long assignID);
 	public long getAssignID();
-	public void assignWindow(myUIObject parent, myUIObject template, string name);
+	public void assignWindow(myUGUIObject parent, myUGUIObject template, string name);
 }

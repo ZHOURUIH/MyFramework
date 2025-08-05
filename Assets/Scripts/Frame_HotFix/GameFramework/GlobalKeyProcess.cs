@@ -42,7 +42,7 @@ public partial class GlobalKeyProcess : FrameSystem
 						info += ", passRay:" + item.isPassRay();
 						log(info);
 					}
-					else if (item is myUIObject uiObj)
+					else if (item is myUGUIObject uiObj)
 					{
 						string info = "窗口:" + uiObj.getName() + ", 布局:" + uiObj.getLayout().getName();
 						if (depth != null)
