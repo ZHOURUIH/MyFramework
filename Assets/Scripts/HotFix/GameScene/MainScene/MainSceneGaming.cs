@@ -1,5 +1,7 @@
 ﻿using static FrameUtility;
 using static FrameBaseHotFix;
+using static UnityUtility;
+using static GBH;
 
 public class MainSceneGaming : SceneProcedure
 {
@@ -16,7 +18,14 @@ public class MainSceneGaming : SceneProcedure
 		// 攻击
 		if (isKeyCurrentDown(UnityEngine.KeyCode.I))
 		{
-			CSAttack.send();
+			if (mNetManager.isConnected())
+			{
+				CSAttack.send();
+			}
+			else
+			{
+				log("正在使用快捷键进行攻击,但是未连接服务器");
+			}
 		}
 	}
 	protected override void onExit(SceneProcedure nextProcedure)

@@ -1,4 +1,6 @@
-﻿
+﻿using static FrameUtility;
+using static GBH;
+
 public class UILogin : LayoutScript
 {
 	// auto generate member start
@@ -21,6 +23,13 @@ public class UILogin : LayoutScript
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onLoginClick()
 	{
-		CSLogin.send();
+		if (mNetManager.isConnected())
+		{
+			CSLogin.send();
+		}
+		else
+		{
+			changeProcedure<MainSceneGaming>();
+		}
 	}
 }

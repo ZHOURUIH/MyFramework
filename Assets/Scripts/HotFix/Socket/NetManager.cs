@@ -48,6 +48,7 @@ public class NetManager : FrameSystem
 		mServerConnect.sendNetPacket(packet);
 	}
 	public int getPing() { return mServerConnect.getPing(); }
+	public bool isConnected() { return mServerConnect.isConnected(); }
 	public NetConnectTCPBit getConnect() { return mServerConnect; }
 	protected void encrypt(byte[] data, int offset, int length, byte param)
 	{
