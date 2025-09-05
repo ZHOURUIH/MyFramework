@@ -205,10 +205,11 @@ public class GameDownload
 	protected void allFinished()
 	{
 		// 更新FileList文件,VERSION文件
-		if (mAssetVersionSystem.getRemoteVersion() != null)
+		string remoteVersion = mAssetVersionSystem.getRemoteVersion();
+		if (!remoteVersion.isEmpty())
 		{
-			writeTxtFile(mDownloadWritePath + VERSION, mAssetVersionSystem.getRemoteVersion());
-			mAssetVersionSystem.setPersistentDataVersion(mAssetVersionSystem.getRemoteVersion());
+			writeTxtFile(mDownloadWritePath + VERSION, remoteVersion);
+			mAssetVersionSystem.setPersistentDataVersion(remoteVersion);
 		}
 		updateLocalFileList();
 

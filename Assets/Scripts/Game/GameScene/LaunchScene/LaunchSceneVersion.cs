@@ -21,6 +21,7 @@ public class LaunchSceneVersion : SceneProcedure
 		}
 		// 正在检查版本号
 		//mUIDownload.setDownloadInfo("正在检查版本号...");
+		doGetRemoteVersion();
 		ObsSystem.downloadTxt(/*getRemoteFolder("") +*/ VERSION, (string version) =>
 		{
 			mAssetVersionSystem.setRemoteVersion(version);
@@ -50,5 +51,29 @@ public class LaunchSceneVersion : SceneProcedure
 			FrameCrossParam.mDownloadURL = mResourceManager.getDownloadURL();
 			mGameSceneManager.getCurScene().changeProcedure<LaunchSceneFileList>();
 		}
+	}
+	protected void doGetRemoteVersion()
+	{
+		ObsSystem.downloadTxt(/*getRemoteFolder("") +*/ VERSION, (string version) =>
+		{
+			if (version.isEmpty())
+			{
+				// 可选弹窗提示是否重试
+				//dialogYesNoResource("无法获取到远端服务器,是否重试?", (bool ok) =>
+				//{
+				//	if (ok)
+				//	{
+				//		doGetRemoteVersion();
+				//	}
+				//	else
+				//	{
+				//		stopApplication();
+				//	}
+				//});
+				return;
+			}
+			mAssetVersionSystem.setRemoteVersion(version);
+			mRemoteDone = true;
+		});
 	}
 }

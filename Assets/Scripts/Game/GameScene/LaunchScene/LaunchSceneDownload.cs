@@ -95,11 +95,11 @@ public class LaunchSceneDownload : SceneProcedure
 	// 如果加载的密钥文件不是最新的,则无法启动游戏
 	protected void checkNeedCopySecret(Action callback)
 	{
-		// 如果StreamingAssets中的版本号大于PersistentData的版本号,则需要将混淆密钥文件拷贝到PersistentData中
+		// 如果StreamingAssets中的版本号大于PersistentData的版本号(所以这里的前提是版本号都是正确的,否则错误拷贝就会无法执行后面混淆后的代码),则需要将混淆密钥文件拷贝到PersistentData中
 		// 确保PersistentData中的密钥文件肯定是最新的
 		string streamVersion = mAssetVersionSystem.getStreamingAssetsVersion();
 		string persistVersion = mAssetVersionSystem.getPersistentDataVersion();
-		VERSION_COMPARE fullCompare = compareVersion3(streamVersion, persistVersion, out _, out VERSION_COMPARE bigCompare);
+		VERSION_COMPARE fullCompare = compareVersion3(streamVersion, persistVersion, out _, out _);
 		logBase("streamVersion:" + streamVersion + ", persistVersion:" + persistVersion + ", fullCompare:" + fullCompare);
 		logBase("isFileExist(F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE):" + isFileExist(F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE));
 		if (!isEditor() && (fullCompare == VERSION_COMPARE.LOCAL_LOWER || !isFileExist(F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE)))
@@ -119,6 +119,8 @@ public class LaunchSceneDownload : SceneProcedure
 					persistInfo.mFileName = streamingInfo.mFileName;
 					persistInfo.mFileSize = streamingInfo.mFileSize;
 					persistInfo.mMD5 = streamingInfo.mMD5;
+					// 拷贝完以后更新FileList
+					writeFileList(F_PERSISTENT_ASSETS_PATH, mAssetVersionSystem.generatePersistentAssetFileList());
 				}
 				callback?.Invoke();
 			});

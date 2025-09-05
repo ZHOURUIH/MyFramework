@@ -90,27 +90,6 @@ public class FrameDefine
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 常量定义
 	// 常量数值定义
-	public const long WS_OVERLAPPED = 0x00000000;
-	public const long WS_POPUP = 0x80000000;
-	public const long WS_CHILD = 0x40000000;
-	public const long WS_MINIMIZE = 0x20000000;
-	public const long WS_VISIBLE = 0x10000000;
-	public const long WS_DISABLED = 0x08000000;
-	public const long WS_CLIPSIBLINGS = 0x04000000;
-	public const long WS_CLIPCHILDREN = 0x02000000;
-	public const long WS_MAXIMIZE = 0x01000000;
-	public const long WS_BORDER = 0x00800000;
-	public const long WS_DLGFRAME = 0x00400000;
-	public const long WS_CAPTION = WS_BORDER | WS_DLGFRAME;
-	public const long WS_VSCROLL = 0x00200000;
-	public const long WS_HSCROLL = 0x00100000;
-	public const long WS_SYSMENU = 0x00080000;
-	public const long WS_THICKFRAME = 0x00040000;
-	public const long WS_GROUP = 0x00020000;
-	public const long WS_TABSTOP = 0x00010000;
-	public const long WS_MINIMIZEBOX = 0x00020000;
-	public const long WS_MAXIMIZEBOX = 0x00010000;
-	public const int GWL_STYLE = -16;
 	public const int TCP_RECEIVE_BUFFER = 1024 * 1024;
 	public const int TCP_INPUT_BUFFER = 2 * 1024 * 1024;
 	public const int WEB_SOCKET_RECEIVE_BUFFER = 1024 * 1024;
@@ -135,23 +114,16 @@ public class FrameDefine
 	public const string START_SCENE = P_RESOURCES_SCENE_PATH + "start.unity";
 	// dll插件的后缀名
 	public const string DLL_PLUGIN_SUFFIX = ".plugin";
-	public const string UGUI_DEFAULT_MATERIAL = "UGUIDefault";
-	public const string COMMON_NUMBER_STYLE = "CommonNumber";
 	public const string UI_CAMERA = "UICamera";
 	public const string BLUR_CAMERA = "BlurCamera";
 	public const string MAIN_CAMERA = "MainCamera";
 	// 材质名
-	public const string MAT_MULTIPLE = "Multiple";
 	public const string BUILDIN_UI_MATERIAL = "Default UI Material";
 	public const string DEFAULT_MATERIAL = "Default-Material";
 	public const string SPRITE_DEFAULT_MATERIAL = "Sprites-Default";
 	// 层
-	public const string LAYER_UI = "UI";
 	public const string LAYER_UI_BLUR = "UIBlur";
-	public const string LAYER_DEFAULT = "Default";
-	public const string LAYER_UGUI = "UGUI";
 	public static int LAYER_INT_UI_BLUR = LayerMask.NameToLayer(LAYER_UI_BLUR);
-	public static int LAYER_INT_DEFAULT = LayerMask.NameToLayer(LAYER_DEFAULT);
 
 	// Tag
 	public const string TAG_NO_CLICK = "NoClick";
