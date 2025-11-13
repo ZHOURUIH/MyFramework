@@ -1,19 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using static FileUtility;
 using static GameUtility;
 using static FrameBaseUtility;
 using static FrameBaseDefine;
 using static FrameBase;
+using static GameDefine;
 
 // 下载更新资源,部分代码可自己实现
 public class LaunchSceneDownload : SceneProcedure
 {
-	// 允许动态下载的目录列表,此列表中的文件不会打包到apk中,也不会在游戏启动时从服务器下载,而是在加载资源时才会进行下载
-	public static List<string> DYNAMIC_DOWNLOAD_LIST = new()
-	{
-		"DynamicDownloading/",
-	};
 	protected GameDownload mInstance;
 	protected int mRemainRetryCount = 3;		// 文件下载失败的剩余自动重试次数,没有剩余次数时将会提示玩家是否重试
 	public LaunchSceneDownload()

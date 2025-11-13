@@ -15,7 +15,6 @@ public class GameHotFix : GameHotFixBase
 	protected override void registerAll()
 	{
 		LayoutRegisterHotFix.registeAll();
-		SQLiteRegister.registeAll();
 		PacketRegister.registeAll();
 	}
 	protected override void initFrameSystem()
