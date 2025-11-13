@@ -1,0 +1,339 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Frame">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Frame\Common">
+      <UniqueIdentifier>{7e85464d-e313-4274-97d9-0d50aa44dd21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frame\Math">
+      <UniqueIdentifier>{1180b2d4-f588-4636-8af6-e2e4c0e13cdd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frame\Serialize">
+      <UniqueIdentifier>{258e3a63-4a6d-4b48-8855-e2196886e6a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frame\Utility">
+      <UniqueIdentifier>{d04057ec-5fb1-4900-9820-44fb6980b552}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Frame\STL">
+      <UniqueIdentifier>{57e790f1-3303-4bf8-a688-6fb54276f9d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frame\Thread">
+      <UniqueIdentifier>{64860071-4972-4921-9c23-c06753f5e1e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frame\Memory">
+      <UniqueIdentifier>{1ea47135-a194-471c-bab3-505020a56063}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frame\SQLite">
+      <UniqueIdentifier>{55d2eeb7-426b-41ed-869d-5e6eaadc802e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frame\Dependency">
+      <UniqueIdentifier>{945c73f1-d7e7-4a53-a5f0-5c386013d4fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frame\Dependency\sqlite3">
+      <UniqueIdentifier>{4e62a2c1-6f9b-4058-9a47-1bbb9ac5898b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frame\Dependency\md5">
+      <UniqueIdentifier>{7a09a7a0-a6f5-4ef5-b5c6-67a6090b26d0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Frame\Common\FrameDefine.cpp">
+      <Filter>Frame\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Common\StreamBuffer.cpp">
+      <Filter>Frame\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Math\Color.cpp">
+      <Filter>Frame\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Math\Vector2.cpp">
+      <Filter>Frame\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Math\Vector3.cpp">
+      <Filter>Frame\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Serialize\SerializedData.cpp">
+      <Filter>Frame\Serialize</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Serialize\Serializer.cpp">
+      <Filter>Frame\Serialize</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Utility\BinaryUtility.cpp">
+      <Filter>Frame\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Utility\FileUtility.cpp">
+      <Filter>Frame\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Utility\MathUtility.cpp">
+      <Filter>Frame\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Utility\StringUtility.cpp">
+      <Filter>Frame\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Utility\SystemUtility.cpp">
+      <Filter>Frame\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\main.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\STL\mySTL.cpp">
+      <Filter>Frame\STL</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Thread\ThreadLock.cpp">
+      <Filter>Frame\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Memory\ThreadArrayMemory.cpp">
+      <Filter>Frame\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Memory\ArrayPool.cpp">
+      <Filter>Frame\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\CodeMySQL.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\CodeNetPacket.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\CodeSQLite.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\CodeState.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Utility\CodeUtility.cpp">
+      <Filter>Frame\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\CodeUnityBuild.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\CodeFrameSystem.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\CodeClassDeclareAndHeader.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\CodeComponent.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\CodeEnumCheck.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\SQLite\SQLiteData.cpp">
+      <Filter>Frame\SQLite</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\SQLite\SQLiteDataReader.cpp">
+      <Filter>Frame\SQLite</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\SQLite\SQLiteManager.cpp">
+      <Filter>Frame\SQLite</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\SQLite\SQLiteTableBase.cpp">
+      <Filter>Frame\SQLite</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Dependency\sqlite3\sqlite3.c">
+      <Filter>Frame\Dependency\sqlite3</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\SQLiteDescription.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\TDDescription.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\CodeBaseCheck.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Dependency\md5\md5.cpp">
+      <Filter>Frame\Dependency\md5</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\SQLiteGlobal.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\TDGlobal.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Frame\Common\StreamBuffer.h">
+      <Filter>Frame\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Common\FrameDefine.h">
+      <Filter>Frame\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Common\ServerEnum.h">
+      <Filter>Frame\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Math\Color.h">
+      <Filter>Frame\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Math\Vector2.h">
+      <Filter>Frame\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Math\Vector2Int.h">
+      <Filter>Frame\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Math\Vector2UShort.h">
+      <Filter>Frame\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Math\Vector3.h">
+      <Filter>Frame\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Math\Vector4.h">
+      <Filter>Frame\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Math\Vector4Int.h">
+      <Filter>Frame\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Serialize\SerializedData.h">
+      <Filter>Frame\Serialize</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Serialize\Serializer.h">
+      <Filter>Frame\Serialize</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Utility\BinaryUtility.h">
+      <Filter>Frame\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Utility\FileUtility.h">
+      <Filter>Frame\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Utility\MathUtility.h">
+      <Filter>Frame\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Utility\StringUtility.h">
+      <Filter>Frame\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Utility\SystemUtility.h">
+      <Filter>Frame\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Utility\Utility.h">
+      <Filter>Frame\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\myMap.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\mySet.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\mySTL.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\myVector.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Thread\ThreadLock.h">
+      <Filter>Frame\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Memory\ThreadArrayMemory.h">
+      <Filter>Frame\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Memory\ArrayPool.h">
+      <Filter>Frame\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\GameDefine.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\CodeMySQL.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\CodeNetPacket.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\CodeSQLite.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\CodeState.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Utility\CodeUtility.h">
+      <Filter>Frame\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\CodeUnityBuild.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\CodeFrameSystem.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\CodeClassDeclareAndHeader.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\CodeComponent.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\CodeEnumCheck.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\SQLite\SelectCount.h">
+      <Filter>Frame\SQLite</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\SQLite\SQLiteData.h">
+      <Filter>Frame\SQLite</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\SQLite\SQLiteDataReader.h">
+      <Filter>Frame\SQLite</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\SQLite\SQLiteManager.h">
+      <Filter>Frame\SQLite</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\SQLite\SQLiteTable.h">
+      <Filter>Frame\SQLite</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\SQLite\SQLiteTableBase.h">
+      <Filter>Frame\SQLite</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\SQLite\SQLiteTableParam.h">
+      <Filter>Frame\SQLite</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Dependency\sqlite3\sqlite3.h">
+      <Filter>Frame\Dependency\sqlite3</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Dependency\sqlite3\sqlite3ext.h">
+      <Filter>Frame\Dependency\sqlite3</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\Array.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Math\Vector2Short.h">
+      <Filter>Frame\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\SQLiteDescription.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\TDDescription.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Utility\IsSubClassOf.h">
+      <Filter>Frame\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Utility\IsPODType.h">
+      <Filter>Frame\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Utility\TypeUtility.h">
+      <Filter>Frame\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\CodeBaseCheck.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Dependency\md5\md5.h">
+      <Filter>Frame\Dependency\md5</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\SQLiteGlobal.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\TDGlobal.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
+  </ItemGroup>
+</Project>

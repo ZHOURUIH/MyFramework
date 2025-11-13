@@ -1,0 +1,9 @@
+﻿#include "FrameDefine.h"
+#include "Color.h"
+
+Color Color::WHITE(0xFF, 0xFF, 0xFF, 0xFF);
+Color Color::BLACK(0, 0, 0, 0xFF);
+Color Color::RED(0xFF, 0, 0, 0xFF);
+Color Color::GREEN(0, 0xFF, 0, 0xFF);
+Color Color::BLUE(0, 0, 0xFF, 0xFF);
+Color Color::GREY(0x7F, 0x7F, 0x7F, 0xFF);
