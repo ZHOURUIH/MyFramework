@@ -1,6 +1,7 @@
 ﻿#if USE_TMP
 using TMPro;
 #endif
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 using static FrameBaseUtility;
@@ -9,6 +10,40 @@ using static MathUtility;
 // RectTransform和UI相关的工具函数类
 public class WidgetUtility
 {
+	// 父节点在父节点坐标系下的各条边
+	public static void getParentSides(GameObject parent, Vector3[] sides)
+	{
+		parent.TryGetComponent<RectTransform>(out var trans);
+		Vector2 size = trans.rect.size;
+		Span<Vector3> tempCorners = stackalloc Vector3[4];
+		tempCorners[0] = new(-size.x * 0.5f, -size.y * 0.5f);
+		tempCorners[1] = new(-size.x * 0.5f, size.y * 0.5f);
+		tempCorners[2] = new(size.x * 0.5f, size.y * 0.5f);
+		tempCorners[3] = new(size.x * 0.5f, -size.y * 0.5f);
+		cornerToSide(tempCorners, sides);
+	}
+	public static void cornerToSide(Span<Vector3> corners, Vector3[] sides)
+	{
+		if (sides.Length != 4)
+		{
+			return;
+		}
+		for (int i = 0; i < 4; ++i)
+		{
+			sides[i] = (corners[i] + corners[(i + 1) % 4]) * 0.5f;
+		}
+	}
+	public static void cornerToSide(Span<Vector3> corners, Span<Vector3> sides)
+	{
+		if (sides.Length != 4)
+		{
+			return;
+		}
+		for (int i = 0; i < 4; ++i)
+		{
+			sides[i] = (corners[i] + corners[(i + 1) % 4]) * 0.5f;
+		}
+	}
 	public static void setPositionNoPivot(RectTransform rect, Vector3 pos, bool applyWindowScale = true)
 	{
 		Vector2 windowSize = rect.rect.size;

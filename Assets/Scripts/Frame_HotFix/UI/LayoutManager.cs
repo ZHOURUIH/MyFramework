@@ -4,21 +4,22 @@ using System.Collections.Generic;
 using static UnityUtility;
 using static FrameBaseHotFix;
 using static StringUtility;
-using static CSharpUtility;
+using static FrameUtility;
 using static MathUtility;
 using static FrameDefine;
 using static FrameBaseDefine;
 using static FileUtility;
 using static FrameBaseUtility;
+using static LT;
 
 // 布局管理器
 public class LayoutManager : FrameSystem
 {
 	protected Dictionary<Type, LayoutRegisteInfo> mLayoutRegisteList = new(128);	// 布局注册信息列表
 	protected SafeDictionary<Type, GameLayout> mLayoutList = new();					// 所有布局的列表
-	protected Dictionary<string, LayoutInfo> mLayoutAsyncList = new(128);			// 正在异步加载的布局列表
 	protected Dictionary<Type, string> mLayoutTypeToPath = new(128);				// 根据布局ID查找布局路径
 	protected Dictionary<string, Type> mLayoutPathToType = new(128);				// 根据布局路径查找布局ID
+	protected HashSet<string> mLoadingLayoutList = new();							// 正在加载的布局列表,用于避免在异步加载时又同步加载
 	protected List<GameLayout> mBackBlurLayoutList = new(128);						// 需要背景模糊的布局的列表
 	protected COMLayoutManagerEscHide mCOMEscHide;									// Esc按键事件传递逻辑的组件
 	protected myUGUICanvas mUGUIRoot;												// 所有UI的根节点
@@ -109,7 +110,6 @@ public class LayoutManager : FrameSystem
 		mLayoutList.clear();
 		mLayoutTypeToPath.Clear();
 		mLayoutPathToType.Clear();
-		mLayoutAsyncList.Clear();
 		// 销毁UI摄像机
 		mCameraManager?.destroyCamera(mCameraManager.getUICamera(), false);
 		myUGUIObject.destroyWindowSingle(mUGUIRoot, false);
@@ -152,6 +152,11 @@ public class LayoutManager : FrameSystem
 			logError("webgl无法同步加载界面");
 			return null;
 		}
+		if (mLoadingLayoutList.Contains(info.mName))
+		{
+			logError("界面正在异步加载,无法同步加载:" + info.mName);
+			return null;
+		}
 		string path = getLayoutPathByType(info.mType);
 		if (path.isEmpty())
 		{
@@ -180,27 +185,24 @@ public class LayoutManager : FrameSystem
 		{
 			logError("没有找到界面的注册信息:" + info.mType);
 		}
-		info.mName = getFileNameNoSuffixNoDir(path);
 		string pathUnderResource = R_UI_PREFAB_PATH + path + ".prefab";
-		mLayoutAsyncList.Add(info.mName, info);
+		info.addCallback(callback);
+		info.mName = getFileNameNoSuffixNoDir(path);
+		mLoadingLayoutList.Add(info.mName);
 		if (mLayoutRegisteList.get(info.mType).mInResource)
 		{
-			mResourceManager.loadInResourceAsync(pathUnderResource, (GameObject asset)=>
+			mResourceManager.loadInResourceAsync(pathUnderResource, (GameObject asset)=> 
 			{
-				if (mLayoutAsyncList.Remove(asset.name, out LayoutInfo info))
-				{
-					callback?.Invoke(newLayout(info, asset));
-				}
+				mLoadingLayoutList.Remove(info.mName);
+				info.callAll(newLayout(info, asset)); 
 			});
 		}
 		else
 		{
-			mResourceManager.loadGameResourceAsync(pathUnderResource, (GameObject asset) =>
+			mResourceManager.loadGameResourceAsync(pathUnderResource, (GameObject asset) => 
 			{
-				if (mLayoutAsyncList.Remove(asset.name, out LayoutInfo info))
-				{
-					callback?.Invoke(newLayout(info, asset));
-				}
+				mLoadingLayoutList.Remove(info.mName);
+				info.callAll(newLayout(info, asset)); 
 			});
 		}
 	}
@@ -211,6 +213,7 @@ public class LayoutManager : FrameSystem
 		{
 			return;
 		}
+		notifyLayoutVisible(false, layout);
 		mCOMEscHide.notifyLayoutDestroy(layout);
 		mLayoutList.remove(type);
 		layout.destroy();
@@ -287,7 +290,7 @@ public class LayoutManager : FrameSystem
 		{
 			if (mLayoutRegisteList.get(type).mLifeCycle == LAYOUT_LIFE_CYCLE.PART_USE)
 			{
-				LT.UNLOAD(type);
+				destroyLayout(type);
 			}
 		}
 	}
@@ -330,7 +333,7 @@ public class LayoutManager : FrameSystem
 		{
 			if (!mLayoutList.containsKey(item))
 			{
-				LT.LOAD_SHOW(item);
+				LOAD(item);
 			}
 		}
 	}
@@ -342,6 +345,11 @@ public class LayoutManager : FrameSystem
 	}
 	protected GameLayout newLayout(LayoutInfo info, GameObject prefab)
 	{
+		// 因为可能会有同时发起多个异步加载请求,所以如果已经创建了就直接返回出去,不再重复创建
+		if (mLayoutList.containsKey(info.mType))
+		{
+			return mLayoutList.get(info.mType);
+		}
 		myUGUIObject layoutParent = info.mIsScene ? null : getUIRoot();
 		GameObject layoutObj = instantiatePrefab(layoutParent?.getObject(), prefab, info.mName, true);
 		GameLayout layout = new();
@@ -355,7 +363,7 @@ public class LayoutManager : FrameSystem
 		layout.init();
 		if (layout.getRoot().getObject() != layoutObj)
 		{
-			logError("布局的根节点不是实例化出来的节点,请确保运行前UI根节点下没有与布局同名的节点");
+			logError("布局的根节点不是实例化出来的节点,请确保运行前UI根节点下没有与布局同名的节点, layout:" + layout.getRoot().getName());
 		}
 		mLayoutList.add(info.mType, layout);
 		return layout;

@@ -207,7 +207,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		}
 		if (sprite != null && mAtlasPtr != null && !mAtlasPtr.hasSprite(sprite))
 		{
-			logWarning("设置不同图集的图片可能会引起问题,如果需要设置其他图集的图片,请使用setSpriteOnly");
+			logWarning("设置不同图集的图片可能会引起问题,如果需要设置其他图集的图片,请使用setSpriteOnly, sprite:" + sprite.name + ", atlas:" + mAtlasPtr.getAtlasName() + ", token:" + mAtlasPtr.getToken() + ", hash:" + mAtlasPtr.GetHashCode() + ", window:" + getGameObjectPath(mObject));
 		}
 		setSpriteOnly(sprite);
 	}
@@ -219,9 +219,9 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		{
 			return;
 		}
-		if (sprite != null && !isFloatEqual(sprite.pixelsPerUnit, 1.0f))
+		if (sprite != null && !isFloatEqual(sprite.pixelsPerUnit, 1.0f) && getScale().x <= 1.0f)
 		{
-			logError("sprite的pixelsPerUnit需要为1, name:" + sprite.name);
+			logWarning("sprite的pixelsPerUnit为1,且Transform缩放为1, 会使最终渲染结果缩小100倍,如果需要显示正常,请调整pixelsPerUnit或者Transform缩放, sprite:" + sprite.name + ", transform:" + getGameObjectPath(mObject));
 		}
 		mSpriteRenderer.sprite = sprite;
 	}
@@ -235,11 +235,11 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 	}
 	public SpriteRenderer getSpriteRenderer()		{ return mSpriteRenderer; }
 	public Sprite getSprite()						{ return mSpriteRenderer.sprite; }
-	public void setOrderInLayer(int order)			{ mSpriteRenderer.sortingOrder = order; }
 	public int getOrderInLayer()					{ return mSpriteRenderer.sortingOrder; }
-	public void setRendererPrority(int priority)	{ mSpriteRenderer.rendererPriority = priority; }
 	public int getRendererPrority()					{ return mSpriteRenderer.rendererPriority; }
 	public string getOriginMaterialPath()			{ return mOriginMaterialPath; }
+	public void setOrderInLayer(int order)			{ mSpriteRenderer.sortingOrder = order; }
+	public void setRendererPrority(int priority)	{ mSpriteRenderer.rendererPriority = priority; }
 	// materialPath是GameResources下的相对路径,带后缀
 	public void setMaterialName(string materialPath, bool newMaterial, bool loadAsync = false)
 	{

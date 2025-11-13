@@ -35,6 +35,10 @@ public class PaddingAnchor : MonoBehaviour
 		mDistanceToBoard = new ComplexPoint[4] { new(), new(), new(), new() };
 		mAnchorPoint = new ComplexPoint[4] { new(), new(), new(), new() };
 	}
+	public void Awake()
+	{
+		enabled = !Application.isPlaying;
+	}
 	public void setAnchorModeInEditor(ANCHOR_MODE mode)
 	{
 		if (isEditor())
@@ -193,21 +197,21 @@ public class PaddingAnchor : MonoBehaviour
 	public Vector2 getLastSize() { return mLastSize; }
 	public void setLastPosition(Vector3 lastPos) { mLastPosition = lastPos; }
 	public void setLastSize(Vector2 lastSize) { mLastSize = lastSize; }
-	public ComplexPoint sideToAbsolute(float thisSide, float parentSide)
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected ComplexPoint sideToAbsolute(float thisSide, float parentSide)
 	{
 		ComplexPoint point = new();
 		point.mRelative = 1.0f;
 		point.setAbsolute(thisSide - parentSide);
 		return point;
 	}
-	public ComplexPoint sideToRelative(float thisSide, float parentSide)
+	protected ComplexPoint sideToRelative(float thisSide, float parentSide)
 	{
 		ComplexPoint point = new();
-		point.mRelative = isFloatZero(parentSide) ? 0.0f : abs(divide(thisSide, parentSide));
+		point.mRelative = abs(divide(thisSide, parentSide));
 		point.setAbsolute(0.0f);
 		return point;
 	}
-	//------------------------------------------------------------------------------------------------------------------------------
 	// 将锚点设置到距离相对于父节点最近的边,并且各边界到父节点对应边界的距离固定不变
 	protected void setToNearParentSides(bool relative)
 	{
@@ -308,11 +312,10 @@ public class PaddingAnchor : MonoBehaviour
 			getSides(parent, sides);
 			getParentSides(parent, mParentSides);
 		}
-		foreach (ComplexPoint dis in mDistanceToBoard)
-		{
-			dis.setRelative(0.0f);
-			dis.setAbsolute(0.0f);
-		}
+		mDistanceToBoard[0] = new();
+		mDistanceToBoard[1] = new();
+		mDistanceToBoard[2] = new();
+		mDistanceToBoard[3] = new();
 		float parentLeft = mParentSides[0].x;
 		float parentRight = mParentSides[2].x;
 		float parentTop = mParentSides[1].y;
@@ -429,7 +432,7 @@ public class PaddingAnchor : MonoBehaviour
 		TryGetComponent<RectTransform>(out var rectTransform);
 		if (!isVectorEqual(rectTransform.pivot, new(0.5f, 0.5f)))
 		{
-			Debug.LogError("UI的pivot错误:" + rectTransform.name);
+			logError("UI的pivot错误:" + rectTransform.name);
 		}
 		Span<Vector3> localCorners = stackalloc Vector3[4];
 		generateLocalCorners(parent, localCorners);
@@ -455,8 +458,7 @@ public class PaddingAnchor : MonoBehaviour
 		localCorners[3] = new(size.x * 0.5f, -size.y * 0.5f);
 		for (int i = 0; i < 4; ++i)
 		{
-			Vector3 worldCorner = localToWorld(rectTransform, localCorners[i]);
-			localCorners[i] = worldToLocal(parent.transform, worldCorner);
+			localCorners[i] = worldToLocal(parent.transform, localToWorld(rectTransform, localCorners[i]));
 		}
 		if (!includeRotation)
 		{

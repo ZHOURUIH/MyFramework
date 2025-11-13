@@ -5,53 +5,39 @@ using static MathUtility;
 using static FrameBaseUtility;
 
 // 以指定的缩放列表缩放物体
-public class CmdTransformableScaleCurve : Command
+public class CmdTransformableScaleCurve
 {
-	public List<Vector3> mScaleList;			// 缩放列表
-	public KeyFrameCallback mDoingCallback;		// 缩放中回调
-	public KeyFrameCallback mDoneCallback;		// 缩放完成时回调
-	public float mOnceLength;					// 单次所需时间
-	public float mOffset;						// 起始时间偏移
-	public int mKeyframe;						// 所使用的关键帧ID
-	public bool mLoop;							// 是否循环
-	public override void resetProperty()
+	// 缩放列表
+	// 缩放中回调
+	// 缩放完成时回调
+	// 单次所需时间
+	// 起始时间偏移
+	// 所使用的关键帧ID
+	// 是否循环
+	public static void execute(ITransformable obj, List<Vector3> scaleList, float onceLength, float offset, int keyframe, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		base.resetProperty();
-		mScaleList = null;
-		mDoingCallback = null;
-		mDoneCallback = null;
-		mKeyframe = KEY_CURVE.NONE;
-		mOnceLength = 1.0f;
-		mOffset = 0.0f;
-		mLoop = false;
-	}
-	public override void execute()
-	{
-		var obj = mReceiver as Transformable;
 		if (isEditor() && 
 			obj is myUGUIObject uiObj && 
-			!isFloatZero(mOnceLength) && 
+			!isFloatZero(onceLength) && 
 			!uiObj.getLayout().canUIObjectUpdate(uiObj))
 		{
 			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + uiObj.getName());
 		}
 		obj.getOrAddComponent(out COMTransformableScaleCurve com);
-		com.setDoingCallback(mDoingCallback);
-		com.setDoneCallback(mDoneCallback);
+		com.setDoingCallback(doingCallback);
+		com.setDoneCallback(doneCallback);
 		com.setActive(true);
-		com.setKeyList(mScaleList);
-		com.play(mKeyframe, mLoop, mOnceLength, mOffset);
+		com.setKeyList(scaleList);
+		com.play(keyframe, loop, onceLength, offset);
 		if (com.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
 			obj.setNeedUpdate(true);
 		}
 	}
-	public override void debugInfo(MyStringBuilder builder)
+	public static void execute(ITransformable obj)
 	{
-		builder.append(": mKeyframe:", mKeyframe).
-				append(", mOnceLength:", mOnceLength).
-				append(", mOffset:", mOffset).
-				append(", mLoop:", mLoop);
+		obj.getOrAddComponent(out COMTransformableScaleCurve com);
+		com.play(0, false, 0.0f, 0.0f);
 	}
 }

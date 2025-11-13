@@ -19,13 +19,13 @@ public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 		base.init(origin, target, speed);
 		if (mClockwise)
 		{
-			mTotalAngle = getAngleFromVector(mTargetRelative) - getAngleFromVector(mOriginRelative);
+			mTotalAngle = getAngleFromVector3(mTargetRelative) - getAngleFromVector3(mOriginRelative);
 			adjustRadian360(ref mTotalAngle);
 			mSpeed = abs(mSpeed);
 		}
 		else
 		{
-			mTotalAngle = getAngleFromVector(mOriginRelative) - getAngleFromVector(mTargetRelative);
+			mTotalAngle = getAngleFromVector3(mOriginRelative) - getAngleFromVector3(mTargetRelative);
 			adjustRadian360(ref mTotalAngle);
 			mSpeed = -abs(mSpeed);
 		}

@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 using static UnityUtility;
-using static CSharpUtility;
+using static FrameUtility;
 using static FrameBaseUtility;
 
 public class ThreadLock
@@ -17,10 +17,16 @@ public class ThreadLock
 		{
 			mTraceStack = true;
 		}
+		ThreadLockManager.registerLock(this);
+	}
+	public void destroy()
+	{
+		ThreadLockManager.unregisterLock(this);
 	}
 	public void setEnable(bool enable) { mEnable = enable; }
 	public void setTrackStack(bool trace) { mTraceStack = trace; }
 	public bool isLocked() { return mLockCount == 1; }
+	public int getThreadLockID() { return mLockThreadID; }
 	public void waitForUnlock()
 	{
 		if (!mEnable)
@@ -33,7 +39,7 @@ public class ThreadLock
 		}
 		// 一直尝试将mLockCount设置为1,然后判断设置之前mLockCount是否为0
 		// 如果mLockCount在这之前为0,则表示锁在其他线程被释放,当前线程成功获得锁
-		while (Interlocked.Exchange(ref mLockCount, 1) != 0) { }
+		while (Interlocked.Exchange(ref mLockCount, 1) != 0) {}
 		mLockThreadID = Thread.CurrentThread.ManagedThreadId;
 		if (mTraceStack)
 		{

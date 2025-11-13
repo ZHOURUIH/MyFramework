@@ -44,7 +44,7 @@ public class AppleLogin : FrameSystem
 		{
 			log("Received revoked callback " + result);
 			mLoginRevokedCallback?.Invoke();
-			PlayerPrefs.DeleteKey(mAppleUserIdKey);
+			prefsDeleteKey(mAppleUserIdKey);
 		});
 	}
 	// 主动点击登录
@@ -53,7 +53,7 @@ public class AppleLogin : FrameSystem
 		mAppleAuthManager.LoginWithAppleId(new AppleAuthLoginArgs(LoginOptions.IncludeEmail | LoginOptions.IncludeFullName), (credential) =>
 		{
 			// If a sign in with apple succeeds, we should have obtained the credential with the user id, name, and email, save it
-			PlayerPrefs.SetString(mAppleUserIdKey, credential.User);
+			prefsSetString(mAppleUserIdKey, credential.User);
 			mLoginSuccessCallback?.Invoke(credential.User, credential);
 		},
 		(error) =>
@@ -67,9 +67,9 @@ public class AppleLogin : FrameSystem
 	public void tryAutoLogin()
 	{
 		// If we have an Apple User Id available, get the credential status for it
-		if (PlayerPrefs.HasKey(mAppleUserIdKey))
+		if (prefsHasKey(mAppleUserIdKey))
 		{
-			string storedAppleUserId = PlayerPrefs.GetString(mAppleUserIdKey);
+			string storedAppleUserId = prefsGetString(mAppleUserIdKey);
 			// If there is an apple ID available, we should check the credential state
 			mAppleAuthManager.GetCredentialState(storedAppleUserId, (state) =>
 			{
@@ -82,12 +82,12 @@ public class AppleLogin : FrameSystem
 				// Discard previous apple user id
 				else if (state == CredentialState.Revoked)
 				{
-					PlayerPrefs.DeleteKey(mAppleUserIdKey);
+					prefsDeleteKey(mAppleUserIdKey);
 					mLoginRevokedCallback?.Invoke();
 				}
 				else if (state == CredentialState.NotFound)
 				{
-					PlayerPrefs.DeleteKey(mAppleUserIdKey);
+					prefsDeleteKey(mAppleUserIdKey);
 					mLoginErrorCallback?.Invoke(AuthorizationErrorCode.Unknown);
 					logWarning("Error while trying to get credential state, CredentialState:" + state);
 				}
@@ -108,7 +108,7 @@ public class AppleLogin : FrameSystem
 				// If it's an Apple credential, save the user ID, for later logins
 				if (credential is IAppleIDCredential)
 				{
-					PlayerPrefs.SetString(mAppleUserIdKey, credential.User);
+					prefsSetString(mAppleUserIdKey, credential.User);
 				}
 				mLoginSuccessCallback?.Invoke(credential.User, credential);
 			}, (error) =>

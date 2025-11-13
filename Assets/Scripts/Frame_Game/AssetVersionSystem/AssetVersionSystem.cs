@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine;
 using static FrameBaseDefine;
 using static FrameBaseUtility;
 using static FileUtility;
@@ -24,6 +25,19 @@ public class AssetVersionSystem : FrameSystem
 	protected bool mStreamingDone;
 	protected bool mRemoteDone;
 	protected bool mCheckFileListFailed;
+	public override void init()
+	{
+		base.init();
+		// 默认情况下,编辑器中或者非热更版,或网页版就强制从StreamingAssets中读取资源
+		if (!isEnableHotFix() || isEditor() || isWebGL())
+		{
+			mAssetReadPath = ASSET_READ_PATH.STREAMING_ASSETS_ONLY;
+		}
+		else
+		{
+			mAssetReadPath = ASSET_READ_PATH.SAME_TO_REMOTE;
+		}
+	}
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
@@ -95,9 +109,21 @@ public class AssetVersionSystem : FrameSystem
 		logErrorBase("无法获取文件路径,filePath:" + filePath);
 		return null;
 	}
-	public void setRemoteVersion(string version) { mRemoteVersion = version ?? "0.0.0"; }
-	public void setStreamingAssetsVersion(string version) { mStreamingAssetsVersion = version ?? "0.0.0"; }
-	public void setPersistentDataVersion(string version) { mPersistentDataVersion = version ?? "0.0.0"; }
+	public void setRemoteVersion(string version)  { mRemoteVersion = checkValidVersion(version); }
+	public void setStreamingAssetsVersion(string version) { mStreamingAssetsVersion = checkValidVersion(version); }
+	public void setPersistentDataVersion(string version) { mPersistentDataVersion = checkValidVersion(version); }
+	public void loadStreamingAssetsVersionAndPersistentDataVersion(Action callback)
+	{
+		openTxtFileAsync(F_ASSET_BUNDLE_PATH + VERSION, !isEditor(), (string version) =>
+		{
+			setStreamingAssetsVersion(version);
+			openTxtFileAsync(F_PERSISTENT_ASSETS_PATH + VERSION, false, (string version) =>
+			{
+				setPersistentDataVersion(version);
+				callback?.Invoke();
+			});
+		});
+	}
 	public void setAssetReadPath(ASSET_READ_PATH read) { mAssetReadPath = read; }
 	public string getRemoteVersion() { return mRemoteVersion; }
 	public string getStreamingAssetsVersion() { return mStreamingAssetsVersion; }
@@ -121,7 +147,7 @@ public class AssetVersionSystem : FrameSystem
 		return mPersistentDataVersion;
 	}
 	// remoteFileListCallback是获取到最新的远端文件列表
-	public void startCheckFileList(bool enableHotFix, string remoteFileListMD5, List<string> ignorePath, List<string> ignoreFile, Action successCallback, Action failCallback, DownloadFileListCallback remoteFileListCallback)
+	public void startCheckFileList(string remoteFileListMD5, List<string> ignorePath, List<string> ignoreFile, Action successCallback, Action failCallback, DownloadFileListCallback remoteFileListCallback)
 	{
 		logBase("Remote Version:" + mRemoteVersion +
 				", Local Version:" + getLocalVersion() +
@@ -139,7 +165,6 @@ public class AssetVersionSystem : FrameSystem
 		ignoreFile.addUnique(VERSION);
 		ignoreFile.addUnique(FILE_LIST);
 		ignoreFile.addUnique(FILE_LIST_MD5);
-		ignoreFile.addUnique(FILE_LIST_REMOTE);
 		ignorePath ??= new();
 		ignorePath.addUnique("/temp/");
 		mSuccessCallback = successCallback;
@@ -154,7 +179,8 @@ public class AssetVersionSystem : FrameSystem
 		// 编辑器下和不下载更新的版本中不获取远端文件列表和PersistentPath的文件列表
 		// 如果本地版本号大于远端的,则不下载,此时远端资源还未上传,本地可以直接正常运行,认为安装的是全量包
 		if (isEditor() || 
-			!enableHotFix || 
+			isWebGL() || 
+			!isEnableHotFix() || 
 			compareVersion3(mRemoteVersion, getLocalVersion(), out _, out _) == VERSION_COMPARE.REMOTE_LOWER)
 		{
 			mPersistentDone = true;
@@ -171,28 +197,26 @@ public class AssetVersionSystem : FrameSystem
 		// 先读本地缓存的文件列表
 		// 如果本地的信息与远端的不一致,再下载,因为要减少不必要的下载量
 		// 减少流量消耗以及时间消耗,下载一次可能会需要消耗500毫秒
-		openFileAsync(F_PERSISTENT_ASSETS_PATH + FILE_LIST_REMOTE, false, (byte[] content) =>
+		string prefsKey = "FileListRemote";
+		string content = PlayerPrefs.GetString(prefsKey);
+		if (content == null || remoteFileListMD5 != generateFileMD5(stringToBytes(content)))
 		{
-			string localMD5 = generateFileMD5(content);
-			if (content == null || remoteFileListMD5 != localMD5)
+			remoteFileListCallback((string content0) =>
 			{
-				remoteFileListCallback((byte[] content0) =>
+				if (content0.isEmpty())
 				{
-					if (content0 == null)
-					{
-						mRemoteFileListFailCallback?.Invoke();
-						return;
-					}
-					// 写到本地
-					writeFile(F_PERSISTENT_ASSETS_PATH + FILE_LIST_REMOTE, content0, content0.Length);
-					checkRemoteList(content0);
-				});
-			}
-			else
-			{
-				checkRemoteList(content);
-			}
-		});
+					mRemoteFileListFailCallback?.Invoke();
+					return;
+				}
+				// 写到本地
+				PlayerPrefs.SetString(prefsKey, content0);
+				checkRemoteList(content0);
+			});
+		}
+		else
+		{
+			checkRemoteList(content);
+		}
 	}
 	// path为绝对路径
 	protected void openFileList(string path, Action callback, List<string> ignorePath, List<string> ignoreFile)
@@ -243,7 +267,7 @@ public class AssetVersionSystem : FrameSystem
 					}
 					else
 					{
-						logBase("因为文件列表中文件数量与实际的不一致,所以重新扫描:" + fileListFullPath);
+						logBase("因为文件列表中文件数量与实际的不一致,所以重新扫描:" + fileListFullPath + ", fileInfoList.Count:" + fileInfoList.Count + ", fileList.Count:" + fileList.Count);
 					}
 				}
 				if (isSame)
@@ -337,12 +361,12 @@ public class AssetVersionSystem : FrameSystem
 			}
 		});
 	}
-	protected void checkRemoteList(byte[] contentBytes)
+	protected void checkRemoteList(string content)
 	{
 		Dictionary<string, GameFileInfo> remoteFileList = new();
 		DateTime start0 = DateTime.Now;
 		// 先检查本地的文件信息是否有效
-		parseFileList(bytesToString(contentBytes), remoteFileList);
+		parseFileList(content, remoteFileList);
 		if (remoteFileList.isEmpty())
 		{
 			mCheckFileListFailed = true;

@@ -1,5 +1,6 @@
 ﻿using System;
 using static FrameBaseHotFix;
+using static FrameUtility;
 
 // 加载一个布局,一般由LT调用
 public class CmdLayoutManagerLoad
@@ -11,34 +12,47 @@ public class CmdLayoutManagerLoad
 	// isScene:是否不挂接到UGUIRoot下,不挂接在UGUIRoot下将由其他摄像机进行渲染
 	// async:是否异步加载
 	// callback异步加载时的完成回调
-	public static LayoutScript execute(Type layoutType, int renderOrder, LAYOUT_ORDER orderType, bool visible, bool isScene, bool async, GameLayoutCallback callback)
+	public static void executeAsync(Type layoutType, int renderOrder, LAYOUT_ORDER orderType, bool visible, bool isScene)
 	{
-		LayoutInfo info = new()
+		executeAsync(layoutType, renderOrder, orderType, visible, isScene, null, null);
+	}
+	public static void executeAsync(Type layoutType, int renderOrder, LAYOUT_ORDER orderType, bool visible, bool isScene, Action callback)
+	{
+		executeAsync(layoutType, renderOrder, orderType, visible, isScene, null, callback);
+	}
+	public static void executeAsync(Type layoutType, int renderOrder, LAYOUT_ORDER orderType, bool visible, bool isScene, GameLayoutCallback callback)
+	{
+		executeAsync(layoutType, renderOrder, orderType, visible, isScene, callback, null);
+	}
+	public static LayoutScript execute(Type layoutType, int renderOrder, LAYOUT_ORDER orderType, bool visible, bool isScene)
+	{
+		using var a = new ClassScope<LayoutInfo>(out var info);
+		info.mType = layoutType;
+		info.mRenderOrder = renderOrder;
+		info.mOrderType = orderType;
+		info.mIsScene = isScene;
+		GameLayout layout = mLayoutManager.createLayout(info);
+		if (layout == null)
 		{
-			mType = layoutType,
-			mRenderOrder = renderOrder,
-			mOrderType = orderType,
-			mIsScene = isScene
-		};
-		if (async)
-		{
-			mLayoutManager.createLayoutAsync(info, (GameLayout layout) =>
-			{
-				postCreate(layout, renderOrder, orderType, visible);
-				callback?.Invoke(layout);
-			});
+			return null;
 		}
-		else
+		postCreate(layout, renderOrder, orderType, visible);
+		return layout.getScript();
+	}
+	protected static void executeAsync(Type layoutType, int renderOrder, LAYOUT_ORDER orderType, bool visible, bool isScene, GameLayoutCallback callback0, Action callback1)
+	{
+		CLASS(out LayoutInfo info);
+		info.mType = layoutType;
+		info.mRenderOrder = renderOrder;
+		info.mOrderType = orderType;
+		info.mIsScene = isScene;
+		mLayoutManager.createLayoutAsync(info, (GameLayout layout) =>
 		{
-			GameLayout layout = mLayoutManager.createLayout(info);
-			if (layout == null)
-			{
-				return null;
-			}
+			UN_CLASS(info);
 			postCreate(layout, renderOrder, orderType, visible);
-			return layout.getScript();
-		}
-		return null;
+			callback0?.Invoke(layout);
+			callback1?.Invoke();
+		});
 	}
 	//---------------------------------------------------------------------------------------------------------------------------
 	protected static void postCreate(GameLayout layout, int renderOrder, LAYOUT_ORDER orderType, bool visible)

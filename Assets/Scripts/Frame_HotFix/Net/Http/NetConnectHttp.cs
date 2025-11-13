@@ -153,6 +153,7 @@ public class NetConnectHttp : NetConnect
 		mReceiveBuffer.clear();
 		mHttpHeader.Clear();
 		mOutputBuffer.destroy();
+		mHeaderLock.destroy();
 		UN_CLASS_LIST(mNotResponsePacket);
 	}
 	public void setHeartBeatAction(Action callback) { mHeartBeatCallback = callback; }

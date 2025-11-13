@@ -8,7 +8,6 @@ using static FrameBaseHotFix;
 using static FileUtility;
 using static FrameBaseUtility;
 using static StringUtility;
-using static CSharpUtility;
 using static FrameUtility;
 
 // 3D场景管理器,管理unity场景资源

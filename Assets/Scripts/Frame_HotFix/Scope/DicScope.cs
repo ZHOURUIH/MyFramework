@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using static FrameBaseHotFix;
-using static CSharpUtility;
+using static FrameUtility;
 using static StringUtility;
 
 // 用于自动从对象池中获取一个Dictionary<K, V>,不再使用时会自动释放,需要搭配using来使用,比如using(new DicScope<K, V>(out var list))

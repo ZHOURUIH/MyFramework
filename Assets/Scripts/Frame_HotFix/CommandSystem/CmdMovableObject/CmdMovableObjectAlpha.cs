@@ -1,45 +1,38 @@
 ﻿
 // 渐变一个物体的透明度
-public class CmdMovableObjectAlpha : Command
+public class CmdMovableObjectAlpha
 {
-	public KeyFrameCallback mDoingCallback;		// 渐变中回调
-	public KeyFrameCallback mDoneCallback;		// 渐变结束时回调
-	public float mStartAlpha;					// 起始透明度
-	public float mTargetAlpha;					// 目标透明度
-	public float mOnceLength;					// 单次需要的时间
-	public float mOffset;						// 起始时间偏移
-	public int mKeyframe;						// 所使用的关键帧曲线ID
-	public bool mLoop;							// 是否循环
-	public override void resetProperty()
+	// 渐变中回调
+	// 渐变结束时回调
+	// 起始透明度
+	// 目标透明度
+	// 单次需要的时间
+	// 起始时间偏移
+	// 所使用的关键帧曲线ID
+	// 是否循环
+	public static void execute(MovableObject obj, float startAlpha, float targetAlpha, float onceLength, float offset, int keyframe, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		base.resetProperty();
-		mDoingCallback = null;
-		mDoneCallback = null;
-		mKeyframe = KEY_CURVE.NONE;
-		mStartAlpha = 1.0f;
-		mTargetAlpha = 1.0f;
-		mOnceLength = 1.0f;
-		mOffset = 0.0f;
-		mLoop = false;
-	}
-	public override void execute()
-	{
-		var obj = mReceiver as ComponentOwner;
+		if (obj == null)
+		{
+			return;
+		}
 		obj.getOrAddComponent(out COMMovableObjectAlpha com);
-		com.setDoingCallback(mDoingCallback);
-		com.setDoneCallback(mDoneCallback);
+		com.setDoingCallback(doingCallback);
+		com.setDoneCallback(doneCallback);
 		com.setActive(true);
-		com.setStart(mStartAlpha);
-		com.setTarget(mTargetAlpha);
-		com.play(mKeyframe, mLoop, mOnceLength, mOffset);
+		com.setStart(startAlpha);
+		com.setTarget(targetAlpha);
+		com.play(keyframe, loop, onceLength, offset);
 	}
-	public override void debugInfo(MyStringBuilder builder)
+	public static void execute(MovableObject obj, float targetAlpha)
 	{
-		builder.append(": mKeyframe:" , mKeyframe).
-				append(", mOnceLength:", mOnceLength).
-				append(", mOffset:", mOffset).
-				append(", mStartAlpha:", mStartAlpha).
-				append(", mTargetAlpha:", mTargetAlpha).
-				append(", mLoop:", mLoop);
+		if (obj == null)
+		{
+			return;
+		}
+		obj.getOrAddComponent(out COMMovableObjectAlpha com);
+		com.setStart(targetAlpha);
+		com.setTarget(targetAlpha);
+		com.play(0, false, 0.0f, 0.0f);
 	}
 }

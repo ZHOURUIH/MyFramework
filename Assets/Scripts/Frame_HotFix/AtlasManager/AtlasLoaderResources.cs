@@ -3,7 +3,7 @@ using UnityEngine.U2D;
 using static FrameBaseHotFix;
 using UObject = UnityEngine.Object;
 
-// 用于UGUI的multi sprite管理
+// 用于图集的加载,从Resources中加载图集
 public class AtlasLoaderResources : AtlasLoaderBase
 {
 	protected override void baseUnloadAtlas(AtlasBase atlas, bool showError) 

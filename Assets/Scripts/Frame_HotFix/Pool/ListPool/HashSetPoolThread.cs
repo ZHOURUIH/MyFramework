@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using static UnityUtility;
-using static CSharpUtility;
+using static FrameUtility;
 using static FrameBaseUtility;
 
 // 线程安全的列表池,但效率较低
@@ -23,6 +23,11 @@ public class HashSetPoolThread : FrameSystem
 		{
 			mObject.AddComponent<HashSetPoolThreadDebug>();
 		}
+	}
+	public override void destroy()
+	{
+		base.destroy();
+		mListLock.destroy();
 	}
 	public ThreadLock getLock() { return mListLock; }
 	public void clearUnused()

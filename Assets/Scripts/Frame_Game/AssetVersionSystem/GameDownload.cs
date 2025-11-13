@@ -136,7 +136,7 @@ public class GameDownload
 			// 单个资源文件下载完毕
 			if (bytes == null)
 			{
-				logBase("下载失败! " + fileName);
+				logWarningBase("下载失败! " + fileName);
 				mTipCallback?.Invoke(DOWNLOAD_TIP.DOWNLOAD_FAILED);
 				return;
 			}
@@ -149,7 +149,7 @@ public class GameDownload
 			// 检查下载的文件是否正确
 			if (!mAssetVersionSystem.getRemoteAssetsFile().TryGetValue(fileName, out GameFileInfo remoteInfo))
 			{
-				logErrorBase("已下载的文件不存在与远端文件列表, 下载的文件:" + fileName);
+				logWarningBase("已下载的文件不存在与远端文件列表, 下载的文件:" + fileName);
 				mTipCallback?.Invoke(DOWNLOAD_TIP.NOT_IN_REMOTE_FILE_LIST);
 				return;
 			}
@@ -163,7 +163,7 @@ public class GameDownload
 				remoteInfo.mFileSize != localInfo.mFileSize ||
 				remoteInfo.mMD5 != localInfo.mMD5)
 			{
-				logErrorBase("下载的文件信息与远端的信息不一致:下载的信息:" + localInfo.mFileName + ", " + localInfo.mFileSize + ", " + localInfo.mMD5 +
+				logWarningBase("下载的文件信息与远端的信息不一致:下载的信息:" + localInfo.mFileName + ", " + localInfo.mFileSize + ", " + localInfo.mMD5 +
 						", 远端的信息:" + remoteInfo.mFileName + ", " + remoteInfo.mFileSize + ", " + remoteInfo.mMD5);
 				mTipCallback?.Invoke(DOWNLOAD_TIP.VERIFY_FAILED);
 			}

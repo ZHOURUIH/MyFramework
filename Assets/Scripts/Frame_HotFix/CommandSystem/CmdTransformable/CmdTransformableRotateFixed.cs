@@ -2,36 +2,28 @@
 using static UnityUtility;
 using static FrameBaseUtility;
 
-// 锁定物体的旋转
-public class CmdTransformableRotateFixed : Command
+// 锁定物体的世界旋转
+public class CmdTransformableRotateFixed
 {
-	public Vector3 mFixedEuler;		// 锁定的旋转值
-	public bool mActive;			// 是否锁定
-	public override void resetProperty()
+	// 锁定的世界旋转值
+	// 是否锁定
+	public static void execute(ITransformable obj, Vector3 fixedEuler, bool active)
 	{
-		base.resetProperty();
-		mFixedEuler = Vector3.zero;
-		mActive = true;
-	}
-	public override void execute()
-	{
-		var obj = mReceiver as Transformable;
+		if (obj == null)
+		{
+			return;
+		}
 		if (isEditor() && 
 			obj is myUGUIObject uiObj && 
-			mActive && 
+			active && 
 			!uiObj.getLayout().canUIObjectUpdate(uiObj))
 		{
 			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + uiObj.getName());
 		}
 		obj.getOrAddComponent(out COMTransformableRotateFixed com);
-		com.setActive(mActive);
-		com.setFixedEuler(mFixedEuler);
+		com.setActive(active);
+		com.setFixedEuler(fixedEuler);
 		// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
 		obj.setNeedUpdate(true);
-	}
-	public override void debugInfo(MyStringBuilder builder)
-	{
-		builder.append(": mActive:", mActive).
-				append(", mFixedEuler:", mFixedEuler);
 	}
 }

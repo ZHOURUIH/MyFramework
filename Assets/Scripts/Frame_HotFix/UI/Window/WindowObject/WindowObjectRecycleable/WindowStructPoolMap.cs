@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using static UnityUtility;
-using static CSharpUtility;
+using static FrameUtility;
 using static FrameBaseUtility;
 
 // 可通过Key索引的复杂窗口对象池
@@ -19,10 +19,6 @@ public class WindowStructPoolMap<Key, T> : WindowStructPoolBase where T : Window
 		}
 		mUnusedItemList.Clear();
 	}
-	public void init()
-	{
-		init(mTemplate.getParent(), typeof(T), true);
-	}
 	public void init(myUGUIObject parent)
 	{
 		init(parent, typeof(T), true);
@@ -39,7 +35,8 @@ public class WindowStructPoolMap<Key, T> : WindowStructPoolBase where T : Window
 	public T getItem(Key key) { return mUsedItemList.get(key); }
 	public Dictionary<Key, T> getUsedList() { return mUsedItemList; }
 	public T newItem(Key key) { return newItem(mItemParent, key); }
-	// 因为添加窗口可能会影响所有窗口的深度值,所以如果有需求,需要在完成添加窗口以后手动调用mLayout.refreshUIDepth()来刷新深度
+	// 因为添加窗口可能会影响所有窗口的深度值,所以如果有需求,需要在完成添加窗口以后手动调用对象池的refreshUIDepth()来刷新深度
+	// 如果是调用了自动排列函数,则会在排列函数中自动调用刷新深度,无需再手动调用
 	public T newItem(myUGUIObject parent, Key key)
 	{
 		if (!mInited)
@@ -74,10 +71,7 @@ public class WindowStructPoolMap<Key, T> : WindowStructPoolBase where T : Window
 		foreach (T item in mUsedItemList.Values)
 		{
 			item.recycle();
-			if (item.isActive())
-			{
-				item.setActive(false);
-			}
+			item.setActive(false);
 			mUnusedItemList.Push(item);
 		}
 		mUsedItemList.Clear();
@@ -97,10 +91,7 @@ public class WindowStructPoolMap<Key, T> : WindowStructPoolBase where T : Window
 			return false;
 		}
 		item.recycle();
-		if (item.isActive())
-		{
-			item.setActive(false);
-		}
+		item.setActive(false);
 		mUnusedItemList.Push(item);
 		return true;
 	}

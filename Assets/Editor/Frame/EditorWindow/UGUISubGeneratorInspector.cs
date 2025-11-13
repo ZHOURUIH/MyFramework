@@ -75,7 +75,10 @@ public class UGUISubGeneratorInspector : GameInspector
 					PrefabStageUtility.GetCurrentPrefabStage().ClearDirtiness();
 					AssetDatabase.Refresh();
 
-					generateScript(generator);
+					if (generator.checkMembers())
+					{
+						generateScript(generator);
+					}
 				}
 			}
 			if (button("打开代码", 300, 25))
@@ -157,7 +160,9 @@ public class UGUISubGeneratorInspector : GameInspector
 			// 对象池节点的代码会特殊判断
 			if (generator.mParentType == "DragViewItem")
 			{
+				line(ref fileContent, "// auto generate classname start");
 				line(ref fileContent, "public class " + subUIName + " : " + generator.mParentType + "<" + subUIName + ".Data>");
+				line(ref fileContent, "// auto generate classname end");
 				line(ref fileContent, "{");
 				line(ref fileContent, "\tpublic class Data : ClassObject");
 				line(ref fileContent, "\t{");
@@ -167,19 +172,14 @@ public class UGUISubGeneratorInspector : GameInspector
 			}
 			else
 			{
+				line(ref fileContent, "// auto generate classname start");
 				line(ref fileContent, "public class " + subUIName + " : " + generator.mParentType);
+				line(ref fileContent, "// auto generate classname end");
 				line(ref fileContent, "{");
 			}
 
 			// 成员变量定义
-			if (generator.mParentType == "DragViewItem")
-			{
-				line(ref fileContent, "\t// auto generate member start");
-			}
-			else
-			{
-				line(ref fileContent, "// auto generate member start");
-			}
+			line(ref fileContent, "\t// auto generate member start");
 			foreach (string str in memberDefineList)
 			{
 				line(ref fileContent, str);
@@ -236,15 +236,29 @@ public class UGUISubGeneratorInspector : GameInspector
 		}
 		else
 		{
-			// 成员变量定义
 			List<string> codeList = null;
 			if (findCustomCode(fileFullPath, ref codeList, out int lineStart0,
+				(string line) => { return line.endWith("// auto generate classname start"); },
+				(string line) => { return line.endWith("// auto generate classname end"); }, false))
+			{
+				if (generator.mParentType == "DragViewItem")
+				{
+					codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType + "<" + subUIName + ".Data>");
+				}
+				else
+				{
+					codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType);
+				}
+			}
+
+			// 成员变量定义
+			if (findCustomCode(fileFullPath, ref codeList, out int lineStart1,
 				(string line) => { return line.endWith("// auto generate member start"); },
 				(string line) => { return line.endWith("// auto generate member end"); }, false))
 			{
 				foreach (string str in memberDefineList)
 				{
-					codeList.Insert(++lineStart0, str);
+					codeList.Insert(++lineStart1, str);
 				}
 			}
 			else
@@ -267,46 +281,42 @@ public class UGUISubGeneratorInspector : GameInspector
 			}
 
 			// 构造函数,即使为空的,也要查找,可以去除旧的不用的行
-			// 
-			if (findCustomCode(fileFullPath, ref codeList, out int lineStart1,
+			if (findCustomCode(fileFullPath, ref codeList, out int lineStart2,
 				(string line) => { return line.endWith("// auto generate constructor start"); },
 				(string line) => { return line.endWith("// auto generate constructor end"); }, false))
 			{
 				foreach (string str in constructorLines)
 				{
-					codeList.Insert(++lineStart1, str);
+					codeList.Insert(++lineStart2, str);
 				}
 			}
-			// 找不到就在构造的第一行插入
+			// 找不到就在构造的第一行插入,子UI肯定是包含构造函数的
 			else
 			{
-				if (!constructorLines.isEmpty())
+				for (int i = 0; i < codeList.Count; ++i)
 				{
-					for (int i = 0; i < codeList.Count; ++i)
+					if (codeList[i].Contains("public " + subUIName + "(IWindowObjectOwner "))
 					{
-						if (codeList[i].Contains("public " + subUIName + "(IWindowObjectOwner "))
+						int lineStart = i + 1;
+						codeList.Insert(++lineStart, "\t\t// auto generate constructor start");
+						foreach (string str in constructorLines)
 						{
-							int lineStart = i + 1;
-							codeList.Insert(++lineStart, "\t\t// auto generate constructor start");
-							foreach (string str in constructorLines)
-							{
-								codeList.Insert(++lineStart, str);
-							}
-							codeList.Insert(++lineStart, "\t\t// auto generate constructor end");
-							break;
+							codeList.Insert(++lineStart, str);
 						}
+						codeList.Insert(++lineStart, "\t\t// auto generate constructor end");
+						break;
 					}
 				}
 			}
 
 			// assignWindowInternal
-			if (findCustomCode(fileFullPath, ref codeList, out int lineStart2,
+			if (findCustomCode(fileFullPath, ref codeList, out int lineStart3,
 				(string line) => { return line.endWith("// auto generate assignWindowInternal start"); },
 				(string line) => { return line.endWith("// auto generate assignWindowInternal end"); }, false))
 			{
 				foreach (string str in generatedAssignLines)
 				{
-					codeList.Insert(++lineStart2, str);
+					codeList.Insert(++lineStart3, str);
 				}
 			}
 			// 找不到就在assignWindowInternal的第一行插入

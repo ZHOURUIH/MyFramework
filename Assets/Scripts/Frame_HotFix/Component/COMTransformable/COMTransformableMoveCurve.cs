@@ -6,6 +6,6 @@ public class COMTransformableMoveCurve : ComponentCurve, IComponentModifyPositio
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void setValue(Vector3 value)
 	{
-		(mComponentOwner as Transformable).setPosition(value);
+		(mComponentOwner as ITransformable).setPosition(value);
 	}
 }

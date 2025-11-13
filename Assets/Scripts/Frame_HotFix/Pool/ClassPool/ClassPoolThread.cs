@@ -21,6 +21,11 @@ public class ClassPoolThread : FrameSystem
 			mObject.AddComponent<ClassPoolThreadDebug>();
 		}
 	}
+	public override void destroy()
+	{
+		base.destroy();
+		mListLock.destroy();
+	}
 	public ThreadLock getLock() { return mListLock; }
 	public void clearUnused()
 	{

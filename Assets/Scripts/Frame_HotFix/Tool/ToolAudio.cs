@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
 using static UnityUtility;
-using static FrameUtility;
-using static MathUtility;
 using static FrameBaseHotFix;
 using static FrameBaseUtility;
 
@@ -32,19 +30,7 @@ public class AT
 	}
 	public static void MUSIC_VOLUME_EX(int keyframe, float start, float target, float onceLength, bool loop, KeyFrameCallback fadingCallback, KeyFrameCallback fadeDoneCallback)
 	{
-		if (mAudioManager == null)
-		{
-			return;
-		}
-		CMD(out CmdMovableObjectVolume cmd, LOG_LEVEL.LOW);
-		cmd.mKeyframe = keyframe;
-		cmd.mStartVolume = start;
-		cmd.mTargetVolume = target;
-		cmd.mOnceLength = onceLength;
-		cmd.mLoop = loop;
-		cmd.mDoingCallback = fadingCallback;
-		cmd.mDoneCallback = fadeDoneCallback;
-		pushCommand(cmd, mAudioManager.getMusicHelper());
+		CmdMovableObjectVolume.execute(mAudioManager?.getMusicHelper(), start, target, onceLength, 0.0f, keyframe, loop, fadingCallback, fadeDoneCallback);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 通过AudioHelper播放音频,MUSIC是背景音乐,一般比较长且大多都是循环的,SOUND是音效,一般很短,且不循环
@@ -64,27 +50,31 @@ public class AT
 	}
 	public static void MUSIC(int sound)
 	{
-		MUSIC_Internal(sound, null, true, 1.0f);
+		MUSIC_Internal(sound, null, true, 1.0f, null);
 	}
 	public static void MUSIC(int sound, bool loop)
 	{
-		MUSIC_Internal(sound, null, loop, 1.0f);
+		MUSIC_Internal(sound, null, loop, 1.0f, null);
+	}
+	public static void MUSIC(int sound, bool loop, AudioInfoCallback callback)
+	{
+		MUSIC_Internal(sound, null, loop, 1.0f, callback);
 	}
 	public static void MUSIC(int sound, bool loop, float volume)
 	{
-		MUSIC_Internal(sound, null, loop, volume);
+		MUSIC_Internal(sound, null, loop, volume, null);
 	}
 	public static void MUSIC(string soundName)
 	{
-		MUSIC_Internal(0, soundName, true, 1.0f);
+		MUSIC_Internal(0, soundName, true, 1.0f, null);
 	}
 	public static void MUSIC(string soundName, bool loop)
 	{
-		MUSIC_Internal(0, soundName, loop, 1.0f);
+		MUSIC_Internal(0, soundName, loop, 1.0f, null);
 	}
 	public static void MUSIC(string soundName, bool loop, float volume)
 	{
-		MUSIC_Internal(0, soundName, loop, volume);
+		MUSIC_Internal(0, soundName, loop, volume, null);
 	}
 	// 播放3D音效
 	public static AudioHelper SOUND_3D(int sound)
@@ -93,7 +83,7 @@ public class AT
 		{
 			return null;
 		}
-		return SOUND_3D_Internal(Vector3.zero, sound, null, 1.0f, false);
+		return SOUND_3D_Internal(Vector3.zero, sound, null, 1.0f, false, null);
 	}
 	public static AudioHelper SOUND_3D(int sound, bool loop)
 	{
@@ -101,7 +91,7 @@ public class AT
 		{
 			return null;
 		}
-		return SOUND_3D_Internal(Vector3.zero, sound, null, 1.0f, loop);
+		return SOUND_3D_Internal(Vector3.zero, sound, null, 1.0f, loop, null);
 	}
 	public static AudioHelper SOUND_3D(Vector3 pos, int sound)
 	{
@@ -109,7 +99,7 @@ public class AT
 		{
 			return null;
 		}
-		return SOUND_3D_Internal(pos, sound, null, 1.0f, false);
+		return SOUND_3D_Internal(pos, sound, null, 1.0f, false, null);
 	}
 	public static AudioHelper SOUND_3D(Vector3 pos, int sound, bool loop)
 	{
@@ -117,7 +107,7 @@ public class AT
 		{
 			return null;
 		}
-		return SOUND_3D_Internal(pos, sound, null, 1.0f, loop);
+		return SOUND_3D_Internal(pos, sound, null, 1.0f, loop, null);
 	}
 	public static AudioHelper SOUND_3D(int sound, float volume)
 	{
@@ -125,7 +115,7 @@ public class AT
 		{
 			return null;
 		}
-		return SOUND_3D_Internal(Vector3.zero, sound, null, volume, false);
+		return SOUND_3D_Internal(Vector3.zero, sound, null, volume, false, null);
 	}
 	public static AudioHelper SOUND_3D(Vector3 pos, int sound, float volume)
 	{
@@ -133,7 +123,7 @@ public class AT
 		{
 			return null;
 		}
-		return SOUND_3D_Internal(pos, sound, null, volume, false);
+		return SOUND_3D_Internal(pos, sound, null, volume, false, null);
 	}
 	public static AudioHelper SOUND_3D(string soundName, float volume)
 	{
@@ -141,7 +131,7 @@ public class AT
 		{
 			return null;
 		}
-		return SOUND_3D_Internal(Vector3.zero, 0, soundName, volume, false);
+		return SOUND_3D_Internal(Vector3.zero, 0, soundName, volume, false, null);
 	}
 	public static AudioHelper SOUND_3D(Vector3 pos, string soundName, float volume)
 	{
@@ -149,7 +139,7 @@ public class AT
 		{
 			return null;
 		}
-		return SOUND_3D_Internal(pos, 0, soundName, volume, false);
+		return SOUND_3D_Internal(pos, 0, soundName, volume, false, null);
 	}
 	// 播放2D音效
 	public static AudioHelper SOUND_2D(int sound)
@@ -158,7 +148,7 @@ public class AT
 		{
 			return null;
 		}
-		return SOUND_2D_Internal(sound, null, 1.0f, false);
+		return SOUND_2D_Internal(sound, null, 1.0f, false, null);
 	}
 	public static AudioHelper SOUND_2D(int sound, bool loop)
 	{
@@ -166,7 +156,7 @@ public class AT
 		{
 			return null;
 		}
-		return SOUND_2D_Internal(sound, null, 1.0f, loop);
+		return SOUND_2D_Internal(sound, null, 1.0f, loop, null);
 	}
 	public static AudioHelper SOUND_2D(int sound, float volume)
 	{
@@ -174,7 +164,7 @@ public class AT
 		{
 			return null;
 		}
-		return SOUND_2D_Internal(sound, null, volume, false);
+		return SOUND_2D_Internal(sound, null, volume, false, null);
 	}
 	public static AudioHelper SOUND_2D(string soundName, float volume)
 	{
@@ -182,7 +172,7 @@ public class AT
 		{
 			return null;
 		} 
-		return SOUND_2D_Internal(0, soundName, volume, false);
+		return SOUND_2D_Internal(0, soundName, volume, false, null);
 	}
 	// 停止在obj上播放的音效
 	public static void SOUND(MovableObject obj)
@@ -194,7 +184,7 @@ public class AT
 		CmdMovableObjectPlayAudio.execute(obj);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected static void MUSIC_Internal(int sound, string soundName, bool loop, float volume)
+	protected static void MUSIC_Internal(int sound, string soundName, bool loop, float volume, AudioInfoCallback callback)
 	{
 		if (mAudioManager == null)
 		{
@@ -209,10 +199,10 @@ public class AT
 			logError("sound name must be valid, use void MUSIC(bool unloadCurMusic) to stop music");
 			return;
 		}
-		playInternal(mAudioManager.getMusicHelper(), soundName, volume * mAudioManager.getMusicVolume(), loop);
+		playInternal(mAudioManager.getMusicHelper(), soundName, volume * mAudioManager.getMusicVolume(), loop, callback);
 	}
 	// 播放音频
-	protected static AudioHelper SOUND_3D_Internal(Vector3 pos, int sound, string soundName, float volume, bool loop)
+	protected static AudioHelper SOUND_3D_Internal(Vector3 pos, int sound, string soundName, float volume, bool loop, AudioInfoCallback callback)
 	{
 		if (mAudioManager == null)
 		{
@@ -231,10 +221,10 @@ public class AT
 		AudioHelper helper = mAudioManager.getAudioHelper(0.0f);
 		helper.setSpatialBlend(1.0f);
 		helper.setPosition(pos);
-		playInternal(helper, soundName, volume * mAudioManager.getSoundVolume(), loop);
+		playInternal(helper, soundName, volume * mAudioManager.getSoundVolume(), loop, callback);
 		return helper;
 	}
-	protected static AudioHelper SOUND_2D_Internal(int sound, string soundName, float volume, bool loop)
+	protected static AudioHelper SOUND_2D_Internal(int sound, string soundName, float volume, bool loop, AudioInfoCallback callback)
 	{
 		if (mAudioManager == null)
 		{
@@ -252,36 +242,24 @@ public class AT
 
 		AudioHelper helper = mAudioManager.getAudioHelper(0.0f);
 		helper.setSpatialBlend(0.0f);
-		playInternal(helper, soundName, volume * mAudioManager.getSoundVolume(), loop);
+		playInternal(helper, soundName, volume * mAudioManager.getSoundVolume(), loop, callback);
 		return helper;
 	}
-	protected static void playInternal(AudioHelper helper, string soundName, float volume, bool loop)
+	protected static void playInternal(AudioHelper helper, string soundName, float volume, bool loop, AudioInfoCallback callback)
 	{
 		if (isWebGL())
 		{
-			CmdMovableObjectPlayAudio.execute(helper, soundName, volume, loop);
-			if (loop)
+			CmdMovableObjectPlayAudio.executeAsync(helper, soundName, volume, loop, (AudioInfo info)=>
 			{
-				helper.mRemainTime = -1.0f;
-			}
-			else
-			{
-				helper.mRemainTime = mAudioManager.getAudioLength(soundName);
-				if (isFloatZero(helper.mRemainTime))
-				{
-					logWarning("webgl中需要提前加载音频,才能设置为非循环播放,name:" + soundName);
-				}
-			}
+				helper.mRemainTime = loop ? -1.0f : info.mClip.length;
+				callback?.Invoke(info);
+			});
 		}
 		else
 		{
-			// 如果后面需要获取音频长度,则需要提前加载
-			if (!loop)
-			{
-				mAudioManager.loadAudio(soundName);
-			}
 			CmdMovableObjectPlayAudio.execute(helper, soundName, volume, loop);
 			helper.mRemainTime = loop ? -1.0f : mAudioManager.getAudioLength(soundName);
+			callback?.Invoke(mAudioManager.getAudio(soundName));
 		}
 	}
 }

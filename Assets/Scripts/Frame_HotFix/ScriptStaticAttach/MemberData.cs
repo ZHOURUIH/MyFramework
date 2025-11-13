@@ -56,7 +56,7 @@ public class MemberData
 			mWindowType == WINDOW_TYPE.COMMON_SUB_UI ||
 			mWindowType == WINDOW_TYPE.SUB_PANEL)
 		{
-			parent = mObject.transform.parent;
+			parent = mObject != null ? mObject.transform.parent : null;
 		}
 		else if (mWindowType == WINDOW_TYPE.SCROLL_LIST)
 		{
@@ -72,15 +72,15 @@ public class MemberData
 	{
 		if (mWindowType == WINDOW_TYPE.NORMAL_WINDOW)
 		{
-			return mObject.name;
+			return mObject != null ? mObject.name : "";
 		}
 		else if (mWindowType == WINDOW_TYPE.COMMON_SUB_UI)
 		{
-			return mObject.name;
+			return mObject != null ? mObject.name : "";
 		}
 		else if (mWindowType == WINDOW_TYPE.SUB_PANEL)
 		{
-			return mObject.name;
+			return mObject != null ? mObject.name : "";
 		}
 		else if (mWindowType == WINDOW_TYPE.SCROLL_LIST)
 		{
@@ -163,6 +163,10 @@ public class MemberData
 	}
 	public void autoSetArrayLength()
 	{
+		if (mObject == null)
+		{
+			return;
+		}
 		GameObject parent = mObject.transform.parent.gameObject;
 		string preName = mObject.name.removeEndString("0");
 		for (int j = 0; j < 1000; ++j)

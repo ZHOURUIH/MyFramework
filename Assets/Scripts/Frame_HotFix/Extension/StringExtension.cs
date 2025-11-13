@@ -1,5 +1,5 @@
 ﻿using static StringUtility;
-using static CSharpUtility;
+using static FrameUtility;
 using static FrameBaseUtility;
 
 public static class StringExtension

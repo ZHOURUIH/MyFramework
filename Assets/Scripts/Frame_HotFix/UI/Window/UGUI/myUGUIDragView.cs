@@ -34,7 +34,7 @@ public class myUGUIDragView : myUGUIObject
 	public void initDragView(DRAG_DIRECTION direction, float angleThresholdRadian, bool clampInner, bool allowDragOnlyOverParentSize, bool clampInRange)
 	{
 		// 这里直接获取父节点作为viewport
-		mLayout.getScript().bindPassOnlyParent(mParent as myUGUIObject);
+		mLayout.getScript().bindPassOnlyParent(mParent);
 		registeCollider(true);
 		setDepthOverAllChild(true);
 		setDragDirection(direction);
@@ -44,8 +44,8 @@ public class myUGUIDragView : myUGUIObject
 		setClampInRange(clampInRange);
 		mInited = true;
 	}
-	public override bool isReceiveScreenMouse() { return true; }
-	public myUGUIObject getViewport() { return mParent as myUGUIObject; }
+	public override bool isReceiveScreenTouch() { return true; }
+	public myUGUIObject getViewport() { return mParent; }
 	// 显式调用调整窗口位置
 	public void autoClampPosition()
 	{
@@ -55,30 +55,30 @@ public class myUGUIDragView : myUGUIObject
 	{
 		mDragViewComponent.autoResetPosition();
 	}
-	public override void onMouseDown(Vector3 mousePos, int touchID)
+	public override void onTouchDown(Vector3 mousePos, int touchID)
 	{
-		base.onMouseDown(mousePos, touchID);
-		mDragViewComponent.onMouseDown(mousePos, touchID);
+		base.onTouchDown(mousePos, touchID);
+		mDragViewComponent.onTouchDown(mousePos, touchID);
 		if (!mInited)
 		{
 			logError("COMWindowDragView组件未初始化,是否忘记调用了myUGUIDragView的initDragView?");
 		}
 	}
 	// 鼠标在屏幕上抬起
-	public override void onScreenMouseUp(Vector3 mousePos, int touchID)
+	public override void onScreenTouchUp(Vector3 mousePos, int touchID)
 	{
-		base.onScreenMouseUp(mousePos, touchID);
-		mDragViewComponent.onScreenMouseUp();
+		base.onScreenTouchUp(mousePos, touchID);
+		mDragViewComponent.onScreenTouchUp();
 	}
-	public override void onMouseMove(Vector3 mousePos, Vector3 moveDelta, float moveTime, int touchID)
+	public override void onTouchMove(Vector3 mousePos, Vector3 moveDelta, float moveTime, int touchID)
 	{
-		base.onMouseMove(mousePos, moveDelta, moveTime, touchID);
-		mDragViewComponent.onMouseMove(mousePos, moveDelta, moveTime, touchID);
+		base.onTouchMove(mousePos, moveDelta, moveTime, touchID);
+		mDragViewComponent.onTouchMove(mousePos, moveDelta, moveTime, touchID);
 	}
-	public override void onMouseStay(Vector3 mousePos, int touchID)
+	public override void onTouchStay(Vector3 mousePos, int touchID)
 	{
-		base.onMouseStay(mousePos, touchID);
-		mDragViewComponent.onMouseStay(touchID);
+		base.onTouchStay(mousePos, touchID);
+		mDragViewComponent.onTouchStay(touchID);
 	}
 	public override void setWindowSize(Vector2 size)
 	{
@@ -98,8 +98,8 @@ public class myUGUIDragView : myUGUIObject
 	public void setMaxRelativePos(Vector3 max)									{ mDragViewComponent.setMaxRelativePos(max); }
 	public void setMinRelativePos(Vector3 min)									{ mDragViewComponent.setMinRelativePos(min); }
 	public void setMoveSpeedScale(float scale)									{ mDragViewComponent.setMoveSpeedScale(scale); }
-	public void setDragViewStartCallback(OnDragViewStartCallback callback)		{ mDragViewComponent.setDragViewStartCallback(callback); }
-	public void setDragingCallback(Action draging)								{ mDragViewComponent.setDragingCallback(draging); }
+	public void setDragViewStartCallback(RefBoolCallback callback)				{ mDragViewComponent.setDragViewStartCallback(callback); }
+	public void setDraggingCallback(Action dragging)							{ mDragViewComponent.setDraggingCallback(dragging); }
 	public void setReleaseDragCallback(Action releaseDrag)						{ mDragViewComponent.setReleaseDragCallback(releaseDrag); }
 	public void setPositionChangeCallback(Action positionChange)				{ mDragViewComponent.setPositionChangeCallback(positionChange); }
 	public void setClampType(CLAMP_TYPE clampType)								{ mDragViewComponent.setClampType(clampType); }
@@ -114,7 +114,7 @@ public class myUGUIDragView : myUGUIObject
 	public Vector3 getMaxRelativePos()											{ return mDragViewComponent.getMaxRelativePos(); }
 	public Vector3 getMinRelativePos()											{ return mDragViewComponent.getMinRelativePos(); }
 	public bool isClampInner()													{ return mDragViewComponent.isClampInner(); }
-	public bool isDraging()														{ return mDragViewComponent.isDraging(); }
+	public bool isDragging()													{ return mDragViewComponent.isDragging(); }
 	public bool isAllowDragOnlyOverParentSize()									{ return mDragViewComponent.isAllowDragOnlyOverParentSize(); }
 	public COMWindowDragView getDragViewComponent()								{ return mDragViewComponent; }
 	//------------------------------------------------------------------------------------------------------------------------------

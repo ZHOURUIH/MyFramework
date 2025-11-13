@@ -1,82 +1,103 @@
 ﻿using System;
 using System.Collections.Generic;
 using static UnityUtility;
-using static MathUtility;
 using static FrameUtility;
 
 // 红点系统,用于处理红点相关的逻辑
+
+// 红点的使用方式主要关注4个点
+// 1.红点的创建,红点应该尽早创建,以便在事件通知时能够被刷新状态
+// 2.红点所关联的UI节点的绑定,用于显示的红点UI节点创建时,就应该与对应的红点对象绑定起来,以便正常更新是否显示
+// 3.红点所关联的UI节点的取消绑定,当UI节点需要被销毁时,应该被取消绑定,比如在recycle,destroy中
+// 4.红点的销毁,红点如果有所属对象的,当所属对象被销毁时,红点应该被销毁,没有所属对象的全局生命周期的红点可以不用销毁
+
+// 也不是所有的看似红点的需求都可以通过此红点系统实现,部分情况下不适合
+// 一个红点UI节点对应多个同类数据时,比如翻页显示时,当前页的奖励领取按钮的红点
+// 红点的关联数据频繁变动时,比如显示当前页的前面所有页是否有奖励可领取的红点
 public class RedPointSystem : FrameSystem
 {
-	protected Dictionary<int, RedPoint> mPointDictionary = new();	// 用于根据ID查找红点的列表
-	protected List<RedPoint> mRootNodeList = new();					// 所有的根节点的红点列表
-	protected int mRedPointIDSeed;									// 用于生成动态红点的ID,确保ID不冲突
-	// 添加红点
-	public RedPoint addRedPoint()
+	protected List<RedPoint> mRedPointList = new();				// 所有的根节点的红点列表
+	public override void update(float elapsedTime)
 	{
-		return addRedPoint(null, 0, null);
+		base.update(elapsedTime);
+		foreach (RedPoint point in mRedPointList)
+		{
+			// 由于只有叶节点才会监听事件,改变刷新状态,所以这里只会去刷新叶节点
+			if (point.isDirty())
+			{
+				point.setDirty(false);
+				point.refresh();
+				notifyRedPointChanged(point);
+			}
+		}
 	}
-	public T addRedPoint<T>() where T : RedPoint
+	public T createRedPoint<T>() where T : RedPoint
 	{
-		return addRedPoint(typeof(T), 0, null) as T;
+		return createRedPoint(typeof(T), null) as T;
 	}
-	public T addRedPoint<T>(int id) where T : RedPoint
+	public RedPoint createRedPoint()
 	{
-		return addRedPoint(typeof(T), id, null) as T;
+		return createRedPoint(null, null);
 	}
-	public T addRedPoint<T>(int id, int parentID) where T : RedPoint
+	public T createRedPoint<T>(out T point) where T : RedPoint
 	{
-		return addRedPoint(typeof(T), id, getRedPoint(parentID)) as T;
+		point = createRedPoint(typeof(T), null) as T;
+		return point;
 	}
-	public RedPoint addRedPoint(Type type)
+	public RedPoint createRedPoint(Type type)
 	{
-		return addRedPoint(type, 0, null);
+		return createRedPoint(type, null);
 	}
-	public RedPoint addRedPoint(Type type, int id)
+	public T createRedPoint<T>(RedPoint parent) where T : RedPoint
 	{
-		return addRedPoint(type, id, null);
+		return createRedPoint(typeof(T), parent) as T;
 	}
-	public RedPoint addRedPoint(Type type, int id, int parentID)
+	public RedPoint createRedPoint(RedPoint parent)
 	{
-		return addRedPoint(type, id, getRedPoint(parentID));
+		return createRedPoint(null, parent);
 	}
-	public RedPoint addRedPoint(Type type, int id, RedPoint parent)
+	public T createRedPoint<T>(out T point, RedPoint parent) where T : RedPoint
+	{
+		point = createRedPoint(typeof(T), parent) as T;
+		return point;
+	}
+	protected RedPoint createRedPoint(Type type, RedPoint parent)
 	{
 		type ??= typeof(RedPoint);
-		if (id == 0)
-		{
-			id = ++mRedPointIDSeed;
-		}
-		else
-		{
-			clampMin(ref mRedPointIDSeed, id);
-		}
-		if (mPointDictionary.ContainsKey(id))
-		{
-			logError("已经存在相同ID的红点了, ID:" + id);
-			return null;
-		}
-
 		// 创建红点
 		var node = CLASS<RedPoint>(type);
-		node.setID(id);
 		node.setParent(parent);
 		node.init();
-		mRootNodeList.addIf(node, parent == null);
-		return mPointDictionary.add(id, node);
+		mRedPointList.add(node);
+		return node;
 	}
 	// 移除一个红点,以及其所有的子节点
-	public void removeRedPoint(RedPoint point)
+	public void destroyRedPoint(RedPoint point)
 	{
-		destroyRedPoint(point);
+		destroyRedPointInternal(point);
 	}
-	// 根据名字获取一个红点
-	public RedPoint getRedPoint(int id) { return mPointDictionary.get(id); }
+	// 移除列表中的红点,以及其所有的子节点
+	public void destroyRedPoint<T>(ICollection<T> pointList) where T : RedPoint
+	{
+		foreach (RedPoint point in pointList)
+		{
+			destroyRedPointInternal(point);
+		}
+		if (pointList is List<T>)
+		{
+			pointList.Clear();
+		}
+	}
 	// 刷新所有节点的状态
 	public void refresh()
 	{
-		foreach (RedPoint point in mRootNodeList)
+		foreach (RedPoint point in mRedPointList)
 		{
-			refreshRedPoint(point);
+			// 只遍历根节点,里面会递归刷新所有子节点
+			if (point.getParent() == null)
+			{
+				refreshRedPoint(point);
+			}
 		}
 	}
 	// 由叶节点发起的状态改变的通知
@@ -113,23 +134,23 @@ public class RedPointSystem : FrameSystem
 		node.refresh();
 	}
 	// 销毁一个红点
-	protected void destroyRedPoint(RedPoint node)
+	protected void destroyRedPointInternal(RedPoint node)
 	{
 		if (node == null)
 		{
 			return;
 		}
-		// 先销毁所有子节点
+		// 先销毁所有子节点,倒序遍历,因为里面会从列表中移除元素
 		var children = node.getChildren();
-		for(int i = 0; i < children.Count; ++i)
+		for(int i = children.Count - 1; i >= 0; --i)
 		{
-			destroyRedPoint(children[i]);
+			destroyRedPointInternal(children[i]);
 		}
-		mPointDictionary.Remove(node.getID());
 		node.setEnable(false);
 		RedPoint parent = node.getParent();
 		// 先将节点从父节点上取下,然后再销毁
 		node.setParent(null);
+		mRedPointList.Remove(node);
 		UN_CLASS(ref node);
 
 		// 当前节点销毁时,需要通知父节点刷新

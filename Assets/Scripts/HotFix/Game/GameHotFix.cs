@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Reflection;
-using static CSharpUtility;
+using static FrameUtility;
 using static GameDefine;
 using static GBH;
 

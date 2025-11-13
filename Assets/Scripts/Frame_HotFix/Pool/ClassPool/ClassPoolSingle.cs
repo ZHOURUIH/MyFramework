@@ -2,7 +2,7 @@
 using System;
 using UnityEngine;
 using static UnityUtility;
-using static CSharpUtility;
+using static FrameUtility;
 using static FrameBaseUtility;
 
 // 不支持带参构造的类,因为在再次利用时参数无法正确传递
@@ -21,6 +21,11 @@ public class ClassPoolSingle : ClassObject
 		mUnusedList.Clear();
 		// mListLock.unlock();
 		mType = null;
+	}
+	public override void destroy()
+	{
+		base.destroy();
+		mListLock.destroy();
 	}
 	public void setType(Type type) { mType = type; }
 	public Type getType() { return mType; }
@@ -57,6 +62,7 @@ public class ClassPoolSingle : ClassObject
 				}
 				obj.setAssignID(++mAssignIDSeed);
 				obj.setDestroy(false);
+				obj.onCreate();
 				// 添加到已使用列表
 				if (isEditor())
 				{
@@ -89,7 +95,6 @@ public class ClassPoolSingle : ClassObject
 		// 先重置属性
 		temp.setPendingDestroy(true);
 		temp.destroy();
-		temp.setDestroy(true);
 		temp.resetProperty();
 
 		// 再加入未使用列表
@@ -125,7 +130,6 @@ public class ClassPoolSingle : ClassObject
 			}
 			classObject.setPendingDestroy(true);
 			classObject.destroy();
-			classObject.setDestroy(true);
 			classObject.resetProperty();
 		}
 		// 再加入未使用列表

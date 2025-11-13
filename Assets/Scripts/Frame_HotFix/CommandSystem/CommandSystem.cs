@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System;
 using static UnityUtility;
 using static StringUtility;
-using static CSharpUtility;
 using static MathUtility;
 using static FrameBaseHotFix;
 using static FrameBaseUtility;
@@ -19,6 +18,7 @@ public class CommandSystem : FrameSystem
 	{
 		mCommandBufferInput.Clear();
 		mCommandBufferProcess.Clear();
+		mBufferLock.destroy();
 		base.destroy();
 	}
 	public override void update(float elapsedTime)

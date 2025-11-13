@@ -38,7 +38,7 @@ public class AssetsImport : AssetPostprocessor
 	{
 		var textureImporter = assetImporter as TextureImporter;
 		// 是否启用mipmaps
-#if !TWO_D_PROJECT
+#if !PROJECT_2D
 		bool needMipmaps = true;
 		foreach (string path in getNoMipmapsPath())
 		{

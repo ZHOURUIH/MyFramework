@@ -5,7 +5,6 @@ using UObject = UnityEngine.Object;
 using static UnityUtility;
 using static FrameUtility;
 using static FrameBaseHotFix;
-using static CSharpUtility;
 using static FrameBaseUtility;
 
 // 从prefab实例化的物体对象池
@@ -86,19 +85,20 @@ public class PrefabPoolManager : FrameSystem
 			using var a = new SafeDictionaryReader<string, PrefabPool>(mPrefabPoolList);
 			foreach (PrefabPool pool in a.mReadList.Values)
 			{
-				if (pool.getInuseCount() == 0 && pool.getAsyncLoadingCount() == 0)
+				if (!pool.isEmptyInUse())
 				{
-					foreach (ObjectInfo obj in pool.getUnuseList())
-					{
-						if (obj?.getObject() == null)
-						{
-							logWarning("object is null:" + obj?.getFileWithPath());
-							continue;
-						}
-						mInstanceList.Remove(obj.getObject());
-					}
-					destroyPool(pool);
+					continue;
 				}
+				foreach (ObjectInfo obj in pool.getUnuseList())
+				{
+					if (obj?.getObject() == null)
+					{
+						logWarning("object is null:" + obj?.getFileWithPath());
+						continue;
+					}
+					mInstanceList.Remove(obj.getObject());
+				}
+				destroyPool(pool);
 			}
 		}
 		if (isEditor())

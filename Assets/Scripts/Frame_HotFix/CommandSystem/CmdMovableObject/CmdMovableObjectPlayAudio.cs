@@ -1,5 +1,4 @@
-﻿using static FrameBaseHotFix;
-
+﻿
 // 播放一个物体的音频
 public class CmdMovableObjectPlayAudio
 {
@@ -7,6 +6,16 @@ public class CmdMovableObjectPlayAudio
 	// 播放的音量
 	// 音效ID,如果音效ID有效,则根据ID进行播放,否则根据音效文件名播放
 	// 是否循环
+	public static void executeAsync(ComponentOwner obj, string soundFileName, float volume, bool loop, AudioInfoCallback callback)
+	{
+		if (obj == null)
+		{
+			return;
+		}
+		obj.getOrAddComponent(out COMMovableObjectAudio com);
+		com.setActive(true);
+		com.playAsync(soundFileName, loop, volume, callback);
+	}
 	public static void execute(ComponentOwner obj, string soundFileName, float volume, bool loop)
 	{
 		if (obj == null)

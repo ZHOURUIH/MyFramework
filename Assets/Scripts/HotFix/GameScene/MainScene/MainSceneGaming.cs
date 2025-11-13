@@ -2,6 +2,7 @@
 using static FrameBaseHotFix;
 using static UnityUtility;
 using static GBH;
+using static LT;
 
 public class MainSceneGaming : SceneProcedure
 {
@@ -9,7 +10,7 @@ public class MainSceneGaming : SceneProcedure
 	protected override void onInit(SceneProcedure lastProcedure)
 	{
 		mPlayer = mCharacterManager.createCharacter<CharacterGame>("test");
-		LT.LOAD_SHOW<UIGaming>();
+		LOAD<UIGaming>();
 	}
 	protected override void onUpdate(float elapsedTime)
 	{
@@ -30,7 +31,7 @@ public class MainSceneGaming : SceneProcedure
 	}
 	protected override void onExit(SceneProcedure nextProcedure)
 	{
-		LT.HIDE<UIGaming>();
+		HIDE<UIGaming>();
 		mCharacterManager?.destroyCharacter(mPlayer);
 	}
 }

@@ -21,41 +21,55 @@ public class WaitingManager : FrameSystem
 				{
 					item.done();
 				}
-				UN_CLASS(item);
-				mList.removeAt(i);
+				if (item.isAutoDestroy())
+				{
+					mList.removeAt(i);
+					UN_CLASS(ref item);
+				}
 			}
 		}
 	}
 	public Waiting createWaiting(CustomAsyncOperation op0, Action done)
 	{
-		return createWaiting(() => { return !op0.keepWaiting; }, done);
+		Waiting wait = createWaiting(done);
+		wait.addAsyncOperation(op0);
+		return wait;
 	}
 	public Waiting createWaiting(CustomAsyncOperation op0, CustomAsyncOperation op1, Action done)
 	{
-		return createWaiting(() => { return !op0.keepWaiting && !op1.keepWaiting; }, done);
+		Waiting wait = createWaiting(done);
+		wait.addAsyncOperation(op0);
+		wait.addAsyncOperation(op1);
+		return wait;
 	}
 	public Waiting createWaiting(CustomAsyncOperation op0, CustomAsyncOperation op1, CustomAsyncOperation op2, Action done)
 	{
-		return createWaiting(() => { return !op0.keepWaiting && !op1.keepWaiting && !op2.keepWaiting; }, done);
+		Waiting wait = createWaiting(done);
+		wait.addAsyncOperation(op0);
+		wait.addAsyncOperation(op1);
+		wait.addAsyncOperation(op2);
+		return wait;
 	}
 	public Waiting createWaiting(BoolFunction condition, Action done)
 	{
-		// 如果条件立即满足,则不再创建对象,直接执行
-		if (condition?.Invoke() ?? false)
-		{
-			done?.Invoke();
-			return null;
-		}
-
+		Waiting wait = createWaiting(done);
+		wait.addCondition(condition);
+		return wait;
+	}
+	public Waiting createWaiting(Action done, bool autoDestroy = true)
+	{
 		Waiting waiting = mList.addClass();
-		waiting.setCondition(condition);
 		waiting.setDoneFunction(done);
+		waiting.setAutoDestroy(autoDestroy);
 		return waiting;
 	}
 	public void cancel(ref Waiting waiting)
 	{
-		UN_CLASS(waiting);
+		destroyWaiting(ref waiting);
+	}
+	public void destroyWaiting(ref Waiting waiting)
+	{
 		mList.remove(waiting);
-		waiting = null;
+		UN_CLASS(ref waiting);
 	}
 }

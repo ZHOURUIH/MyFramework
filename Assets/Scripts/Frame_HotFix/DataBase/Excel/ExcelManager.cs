@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using static FrameBaseHotFix;
+using static UnityUtility;
 using static FrameDefine;
-using static CSharpUtility;
+using static FrameUtility;
 
 // Excel导出数据的管理器
 public class ExcelManager : FrameSystem
@@ -23,6 +24,7 @@ public class ExcelManager : FrameSystem
 			callback?.Invoke();
 			return;
 		}
+		DateTime startTime = DateTime.Now;
 		// 提前加载资源包和其中的子资源
 		mResourceManager.preloadAssetBundleAsync(EXCEL, (AssetBundleInfo assetBundle) =>
 		{
@@ -36,6 +38,7 @@ public class ExcelManager : FrameSystem
 				{
 					if (++finishCount == tableCount)
 					{
+						log("打开所有Excel表格耗时:" + (int)(DateTime.Now - startTime).TotalMilliseconds + "毫秒");
 						callback?.Invoke();
 					}
 				});

@@ -21,7 +21,7 @@ public class UGUITreeList : WindowObjectUGUI, ICommonUI
 	{
 		base.init();
 		mRoot.registeCollider();
-		mContent.initDragView(DRAG_DIRECTION.VERTICAL);
+		mContent.initDragView();
 	}
 	public override void update()
 	{
@@ -67,7 +67,7 @@ public class UGUITreeList : WindowObjectUGUI, ICommonUI
 		{
 			expand(item, true, true);
 		}
-		if(resizeImmediately)
+		if (resizeImmediately)
 		{
 			resizeTreeAreaSize();
 		}
@@ -125,7 +125,7 @@ public class UGUITreeList : WindowObjectUGUI, ICommonUI
 		}
 		return null;
 	}
-	public void resizeTreeAreaSize() 
+	public void resizeTreeAreaSize()
 	{
 		mDirty = false;
 		autoGridVertical(mContent, false);

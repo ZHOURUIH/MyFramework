@@ -1,4 +1,4 @@
-﻿using static CSharpUtility;
+﻿using static FrameUtility;
 
 // 与服务器交互的消息包基类
 public class NetPacket : ClassObject
@@ -11,6 +11,7 @@ public class NetPacket : ClassObject
 		mPacketID = makeID();
 	}
 	public void setConnect(NetConnect connect) { mConnect = connect; }
+	public NetConnect getConnect() { return mConnect; }
 	public void setPacketType(ushort type) { mType = type; }
 	public ushort getPacketType() { return mType; }
 	// 如果是服务器向客户端发送的消息,则需要重写该函数

@@ -156,8 +156,7 @@ public class FileUtility
 			}
 			else if (isWebGL())
 			{
-				logErrorBase("webgl can not use deleteFile");
-				return false;
+				File.Delete(path);
 			}
 		}
 		catch (Exception e)
@@ -222,8 +221,7 @@ public class FileUtility
 		}
 		else if (isWebGL())
 		{
-			logErrorBase("webgl can not use isDirExist");
-			return false;
+			return Directory.Exists(dir);
 		}
 		return false;
 	}
@@ -264,8 +262,7 @@ public class FileUtility
 		}
 		else if (isWebGL())
 		{
-			logErrorBase("webgl can not use isFileExist");
-			return false;
+			return File.Exists(fileName);
 		}
 		return false;
 	}
@@ -300,7 +297,7 @@ public class FileUtility
 		}
 		else if (isWebGL())
 		{
-			logErrorBase("can not use createDir in webgl");
+			Directory.CreateDirectory(dir);
 		}
 	}
 	// 查找指定目录下的所有文件,path为绝对路径
@@ -509,7 +506,11 @@ public class FileUtility
 		}
 		else if (isWebGL())
 		{
-			logErrorBase("webgl can not use writeTxtFile");
+			byte[] bytes = stringToBytes(content);
+			if (bytes != null)
+			{
+				writeFile(fileName, bytes, bytes.Length, appendData);
+			}
 		}
 	}
 	// 筛选出需要删除的文件

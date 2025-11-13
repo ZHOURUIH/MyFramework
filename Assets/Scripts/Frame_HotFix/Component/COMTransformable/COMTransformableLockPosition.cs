@@ -28,7 +28,7 @@ public class COMTransformableLockPosition : GameComponent, IComponentModifyPosit
 	}
 	public override void update(float elapsedTime)
 	{
-		var obj = mComponentOwner as Transformable;
+		var obj = mComponentOwner as ITransformable;
 		Vector3 worldPos = obj.getWorldPosition();
 		if (mLockX)
 		{

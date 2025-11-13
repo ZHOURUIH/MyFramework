@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_STANDALONE_WIN || UNITY_EDITOR
+using System;
 using System.Runtime.InteropServices;
 
 [StructLayout(LayoutKind.Sequential)]
@@ -42,3 +43,4 @@ public class SetupAPI
 	[DllImport(SETUP_API_DLL, CharSet = CharSet.Auto, SetLastError = true)]
 	public static extern bool SetupDiDestroyDeviceInfoList(IntPtr DeviceInfoSet);
 }
+#endif

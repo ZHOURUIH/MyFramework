@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
+using static FrameBaseUtility;
 using static MathUtility;
+using static UnityUtility;
 
 public class WindowPool<T> where T : myUGUIObject, new()
 {
-	protected Stack<T> mUnusedList = new();         // 未使用的窗口列表
+	protected List<T> mUnusedList = new();			// 未使用的窗口列表
 	protected List<T> mInusedList = new();          // 正在使用的窗口列表,因为需要保证物体的存储顺序,所以使用List
 	protected UGUIObjectCallback mDestroyCallback;	// 窗口销毁的回调,用于让外部定义窗口的销毁方式
 	protected LayoutScript mScript;					// 所属布局脚本
@@ -25,10 +27,6 @@ public class WindowPool<T> where T : myUGUIObject, new()
 	public void assignTemplate(myUGUIObject parent, string name)
 	{
 		mScript.newObject(out mTemplate, parent, name);
-	}
-	public void assignTemplate(string name)
-	{
-		mScript.newObject(out mTemplate, name);
 	}
 	public void assignTemplate(T template)
 	{
@@ -53,7 +51,7 @@ public class WindowPool<T> where T : myUGUIObject, new()
 		// 从未使用列表中获取
 		if (mUnusedList.Count > 0)
 		{
-			window = mUnusedList.Pop();
+			window = mUnusedList.popBack();
 			window.setParent(parent, false);
 		}
 		// 未使用列表中没有就创建新窗口
@@ -82,17 +80,27 @@ public class WindowPool<T> where T : myUGUIObject, new()
 			{
 				item.setActive(false);
 			}
-			mUnusedList.Push(item);
+			mUnusedList.Add(item);
 		}
 		mInusedList.Clear();
 	}
 	public bool unuseWindow(T window)
 	{
-		if (window == null || !mInusedList.Remove(window))
+		if (window == null)
 		{
 			return false;
 		}
-		mUnusedList.Push(window);
+		if (isEditor() && mUnusedList.Contains(window))
+		{
+			logError("重复回收窗口,name:" + window.getName());
+			return false;
+		}
+		if (!mInusedList.Remove(window))
+		{
+			logError("要回收的窗口不属于当前对象池, name:" + window.getName());
+			return false;
+		}
+		mUnusedList.Add(window);
 		if (mDestroyCallback != null)
 		{
 			mDestroyCallback(window);
@@ -121,9 +129,7 @@ public class WindowPool<T> where T : myUGUIObject, new()
 		}
 		for (int i = 0; i < count; ++i)
 		{
-			T window = mInusedList[startIndex + i];
-			window.setActive(false);
-			mUnusedList.Push(window);
+			mUnusedList.add(mInusedList[startIndex + i]).setActive(false);
 		}
 		mInusedList.RemoveRange(startIndex, count);
 	}

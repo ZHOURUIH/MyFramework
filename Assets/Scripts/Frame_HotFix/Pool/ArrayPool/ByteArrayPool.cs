@@ -4,7 +4,7 @@ using UnityEngine;
 using static UnityUtility;
 using static StringUtility;
 using static MathUtility;
-using static CSharpUtility;
+using static FrameUtility;
 using static FrameBaseUtility;
 
 // 只能在主线程中使用的数组池

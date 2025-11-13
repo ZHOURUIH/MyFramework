@@ -4,7 +4,6 @@ using System.Text;
 using UnityEngine;
 using static BinaryUtility;
 using static StringUtility;
-using static CSharpUtility;
 using static MathUtility;
 using static FrameUtility;
 

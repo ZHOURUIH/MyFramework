@@ -20,7 +20,6 @@ public class FrameDefine
 	public const string SOUND = "Sound";
 	public const string MATERIAL = "Material";
 	public const string TEXTURE = "Texture";
-	public const string UGUI_SUB_PREFAB = "UGUISubPrefab";
 	public const string UI_PREFAB = "UIPrefab";
 	public const string MISC = "Misc";
 	public const string EXCEL = "Excel";
@@ -63,7 +62,6 @@ public class FrameDefine
 	public const string R_UI_PATH = UI + "/";
 	public const string R_UI_PREFAB_PATH = R_UI_PATH + UI_PREFAB + "/";
 	public const string R_KEY_FRAME_PATH = KEY_FRAME + "/";
-	public const string R_UGUI_SUB_PREFAB_PATH = R_UI_PATH + UGUI_SUB_PREFAB + "/";
 	public const string R_MATERIAL_PATH = MATERIAL + "/";
 	public const string R_PARTICLE_PATH = PARTICLE + "/";
 	public const string R_SCENE_PATH = SCENE + "/";
@@ -105,7 +103,6 @@ public class FrameDefine
 	public static Vector3 FAR_POSITION = new(99999.0f, 99999.0f, 99999.0f);	// 一个很远的位置,用于移动GameObject到远处来实现隐藏
 	//------------------------------------------------------------------------------------------------------------------------------
 	public const string KEY_FRAME_FILE = R_KEY_FRAME_PATH + "Keyframe.prefab";
-	public const string AUDIO_HELPER_FILE = R_MISC_PATH + "AudioHelper.prefab";
 	public const string STREAMING_ASSET_FILE = "StreamingAssets.bytes";
 	public const string ATLAS_PATH_CONFIG = "AtlasPathConfig.txt";
 	// 后缀名

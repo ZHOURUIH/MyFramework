@@ -6,7 +6,7 @@ public class COMTransformableRotateSpeed : ComponentRotateSpeed
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyRotation(ref Vector3 rotation)
 	{
-		(mComponentOwner as Transformable).setRotation(rotation);
+		(mComponentOwner as ITransformable).setRotation(rotation);
 	}
-	protected override Vector3 getCurRotation() { return (mComponentOwner as Transformable).getRotation(); }
+	protected override Vector3 getCurRotation() { return (mComponentOwner as ITransformable).getRotation(); }
 }

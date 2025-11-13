@@ -52,6 +52,28 @@ public class GameFramework : IFramework
 		{
 			logExceptionBase(e, "init failed! " + (e.InnerException?.Message ?? "empty"));
 		}
+
+		// 打印一下当前的版本类型
+		if (!isEditor())
+		{
+			if (isNoHotFixTestClient())
+			{
+				logBase("无热更测试版");
+			}
+			else if (isHotFixTestClient())
+			{
+				logBase("热更测试版");
+			}
+			else
+			{
+				logBase("正式版");
+			}
+			// 编辑器下和测试版打包都不接入sdk
+			if (!isTestClient())
+			{
+				initSDK();
+			}
+		}
 	}
 	public void update(float elapsedTime)
 	{
@@ -103,6 +125,7 @@ public class GameFramework : IFramework
 		mFrameComponentList = null;
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
+	protected virtual void initSDK() { }
 	protected void initFrameSystem()
 	{
 		registeFrameSystem<GameSceneManager>((com) =>		{ mGameSceneManager = com; });

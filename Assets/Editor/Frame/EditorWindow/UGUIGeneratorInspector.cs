@@ -60,8 +60,11 @@ public class UGUIGeneratorInspector : GameInspector
 				PrefabStageUtility.GetCurrentPrefabStage().ClearDirtiness();
 				AssetDatabase.Refresh();
 
-				generateRegister();
-				generateLayoutScript(generator);
+				if (generator.checkMembers())
+				{
+					generateRegister();
+					generateLayoutScript(generator);
+				}
 			}
 			if (button("打开代码", 300, 25))
 			{
@@ -295,6 +298,7 @@ public class UGUIGeneratorInspector : GameInspector
 				}
 			}
 
+			
 			// 构造函数
 			if (findCustomCode(fileFullPath, ref codeList, out int lineStart1,
 				(string line) => { return line.endWith("// auto generate constructor start"); },
@@ -308,10 +312,12 @@ public class UGUIGeneratorInspector : GameInspector
 			// 找不到就在构造的第一行插入
 			else
 			{
+				bool foundConstructor = false;
 				for (int i = 0; i < codeList.Count; ++i)
 				{
 					if (codeList[i].Contains("public " + layoutName + "()"))
 					{
+						foundConstructor = true;
 						int lineStart = i + 1;
 						codeList.Insert(++lineStart, "\t\t// auto generate constructor start");
 						foreach (string str in constructorLines)
@@ -320,6 +326,28 @@ public class UGUIGeneratorInspector : GameInspector
 						}
 						codeList.Insert(++lineStart, "\t\t// auto generate constructor end");
 						break;
+					}
+				}
+				// 如果连构造函数都没找到,就在自动生成的成员变量后面加
+				if (!foundConstructor)
+				{
+					for (int i = 0; i < codeList.Count; ++i)
+					{
+						if (codeList[i].Contains("auto generate member end"))
+						{
+							foundConstructor = true;
+							int lineStart = i;
+							codeList.Insert(++lineStart, "\tpublic " + layoutName + "()");
+							codeList.Insert(++lineStart, "\t{");
+							codeList.Insert(++lineStart, "\t\t// auto generate constructor start");
+							foreach (string str in constructorLines)
+							{
+								codeList.Insert(++lineStart, str);
+							}
+							codeList.Insert(++lineStart, "\t\t// auto generate constructor end");
+							codeList.Insert(++lineStart, "\t}");
+							break;
+						}
 					}
 				}
 			}

@@ -3,31 +3,21 @@
 // 用于序列帧动画的控制
 public class AnimControl : ClassObject
 {
-	protected OnPlayEndCallback mPlayEndCallback;   // 一个序列播放完时的回调函数,只在非循环播放状态下有效
-	protected OnPlayingCallback mPlayingCallback;   // 一个序列正在播放时的回调函数
-	protected myUGUIObject mControlObject;			// 控制的窗口
-	protected float mPlayedTime;                    // 已经播放的时长,不包含循环次数
-	protected float mInterval;                      // 隔多少秒切换图片
-	protected float mCurTime;						// 当前播放计时
-	protected int mCurTextureIndex;					// 当前播放的下标
-	protected int mTextureCount;					// 序列帧数量
-	protected int mStartIndex;                      // 序列帧的起始帧下标,默认为0,即从头开始
-	protected int mEndIndex;                        // 序列帧的终止帧下标,默认为-1,即播放到尾部
-	protected bool mUseTextureSelfSize;             // 在切换图片时是否使用图片自身的大小
-	protected bool mAutoResetIndex;                 // 是否在播放完毕后自动重置当前帧下标,也表示是否在非循环播放完毕后自动隐藏
-	protected bool mPlayDirection;                  // 播放方向,true为正向播放(从mStartIndex到mEndIndex),false为返向播放(从mEndIndex到mStartIndex)
-	protected PLAY_STATE mPlayState;				// 当前播放状态
-	protected LOOP_MODE mLoopMode;					// 循环方式
-	public AnimControl()
-	{
-		mInterval = 0.033f;
-		mEndIndex = -1;
-		mPlayDirection = true;
-		mAutoResetIndex = true;
-		mUseTextureSelfSize = true;
-		mLoopMode = LOOP_MODE.ONCE;
-		mPlayState = PLAY_STATE.STOP;
-	}
+	protected BoolBoolCallback mPlayEndCallback;			// 一个序列播放完时的回调函数,只在非循环播放状态下有效
+	protected IntBoolCallback mPlayingCallback;				// 一个序列正在播放时的回调函数
+	protected myUGUIObject mControlObject;					// 控制的窗口
+	protected float mPlayedTime;							// 已经播放的时长,不包含循环次数
+	protected float mInterval = 0.033f;						// 隔多少秒切换图片
+	protected float mCurTime;								// 当前播放计时
+	protected int mCurTextureIndex;							// 当前播放的下标
+	protected int mTextureCount;							// 序列帧数量
+	protected int mStartIndex;								// 序列帧的起始帧下标,默认为0,即从头开始
+	protected int mEndIndex = -1;							// 序列帧的终止帧下标,默认为-1,即播放到尾部
+	protected bool mUseTextureSelfSize = true;				// 在切换图片时是否使用图片自身的大小
+	protected bool mAutoResetIndex = true;					// 是否在播放完毕后自动重置当前帧下标,也表示是否在非循环播放完毕后自动隐藏
+	protected bool mPlayDirection = true;					// 播放方向,true为正向播放(从mStartIndex到mEndIndex),false为返向播放(从mEndIndex到mStartIndex)
+	protected PLAY_STATE mPlayState = PLAY_STATE.STOP;		// 当前播放状态
+	protected LOOP_MODE mLoopMode = LOOP_MODE.ONCE;			// 循环方式
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -47,7 +37,6 @@ public class AnimControl : ClassObject
 		mPlayState = PLAY_STATE.STOP;
 		mLoopMode = LOOP_MODE.ONCE;
 	}
-	public void setObject(myUGUIObject obj) { mControlObject = obj; }
 	public void update(float elapsedTime)
 	{
 		if (mPlayState != PLAY_STATE.PLAY)
@@ -129,27 +118,34 @@ public class AnimControl : ClassObject
 		{
 			mCurTextureIndex = 0;
 		}
-		if(lastIndex != mCurTextureIndex)
+		if (lastIndex != mCurTextureIndex)
 		{
-			mPlayingCallback?.Invoke(this, mCurTextureIndex, true);
+			mPlayingCallback?.Invoke(mCurTextureIndex, true);
 		}
 	}
-	public LOOP_MODE getLoop() { return mLoopMode; }
-	public float getInterval() { return mInterval; }
-	public float getSpeed() { return intervalToSpeed(mInterval); }
-	public int getStartIndex() { return mStartIndex; }
-	public PLAY_STATE getPlayState() { return mPlayState; }
-	public bool getPlayDirection() { return mPlayDirection; }
-	public int getEndIndex() { return mEndIndex; }
-	public int getTextureFrameCount() { return mTextureCount; }
-	public bool isAutoResetIndex() { return mAutoResetIndex; }
-	public float getPlayedTime() { return mPlayedTime; }
-	public float getLength() { return mTextureCount * mInterval; }
+	public LOOP_MODE getLoop()						{ return mLoopMode; }
+	public float getInterval()						{ return mInterval; }
+	public float getSpeed()							{ return intervalToSpeed(mInterval); }
+	public int getStartIndex()						{ return mStartIndex; }
+	public PLAY_STATE getPlayState()				{ return mPlayState; }
+	public bool getPlayDirection()					{ return mPlayDirection; }
+	public int getEndIndex()						{ return mEndIndex; }
+	public int getTextureFrameCount()				{ return mTextureCount; }
+	public bool isAutoResetIndex()					{ return mAutoResetIndex; }
+	public float getPlayedTime()					{ return mPlayedTime; }
+	public float getLength()						{ return mTextureCount * mInterval; }
 	// 获得实际的终止下标,如果是自动获得,则返回最后一张的下标
-	public int getRealEndIndex() { return mEndIndex >= 0 ? mEndIndex : getMax(getTextureFrameCount() - 1, 0); }
-	public void setLoop(LOOP_MODE loop) { mLoopMode = loop; }
-	public void setInterval(float interval) { mInterval = interval; }
-	public void setSpeed(float speed) { setInterval(speedToInterval(speed)); }
+	public int getRealEndIndex()					{ return mEndIndex >= 0 ? mEndIndex : getMax(getTextureFrameCount() - 1, 0); }
+	public int getCurFrameIndex()					{ return mCurTextureIndex; }
+	public void pause()								{ mPlayState = PLAY_STATE.PAUSE; }
+	public void setPlayEndCallback(BoolBoolCallback callback) { mPlayEndCallback = callback; }
+	public void setPlayingCallback(IntBoolCallback callback) { mPlayingCallback = callback; }
+	public void setObject(myUGUIObject obj)			{ mControlObject = obj; }
+	public void setLoop(LOOP_MODE loop)				{ mLoopMode = loop; }
+	public void setInterval(float interval)			{ mInterval = interval; }
+	public void setSpeed(float speed)				{ setInterval(speedToInterval(speed)); }
+	public void setPlayDirection(bool direction)	{ mPlayDirection = direction; }
+	public void setAutoHide(bool autoReset)			{ mAutoResetIndex = autoReset; }
 	public void setFrameCount(int count)
 	{
 		mTextureCount = count;
@@ -162,11 +158,9 @@ public class AnimControl : ClassObject
 		if (getTextureFrameCount() > 0 && mStartIndex >= 0 && mStartIndex < getTextureFrameCount())
 		{
 			mCurTextureIndex = mStartIndex;
-			mPlayingCallback?.Invoke(this, mCurTextureIndex, false);
+			mPlayingCallback?.Invoke(mCurTextureIndex, false);
 		}
 	}
-	public void setPlayDirection(bool direction) { mPlayDirection = direction; }
-	public void setAutoHide(bool autoReset) { mAutoResetIndex = autoReset; }
 	public void setStartIndex(int startIndex)
 	{
 		mStartIndex = startIndex;
@@ -188,7 +182,7 @@ public class AnimControl : ClassObject
 			setCurFrameIndex(mStartIndex);
 		}
 		// 中断序列帧播放时调用回调函数,只在非循环播放时才调用
-		mPlayEndCallback?.Invoke(this, callback, isBreak);
+		mPlayEndCallback?.Invoke(callback, isBreak);
 	}
 	public void play()
 	{
@@ -196,15 +190,11 @@ public class AnimControl : ClassObject
 		// 开始播放时确认当前序列中下标,以便通知外部回调
 		setCurFrameIndex(mCurTextureIndex); 
 	}
-	public void pause() { mPlayState = PLAY_STATE.PAUSE; }
-	public void setPlayEndCallback(OnPlayEndCallback callback) { mPlayEndCallback = callback; }
-	public void setPlayingCallback(OnPlayingCallback callback) { mPlayingCallback = callback; }
-	public int getCurFrameIndex() { return mCurTextureIndex; }
 	public void setCurFrameIndex(int index)
 	{
 		mCurTextureIndex = index;
 		mCurTime = 0.0f;
 		clamp(ref mCurTextureIndex, mStartIndex, getRealEndIndex());
-		mPlayingCallback?.Invoke(this, mCurTextureIndex, false);
+		mPlayingCallback?.Invoke(mCurTextureIndex, false);
 	}
 }

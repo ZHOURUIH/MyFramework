@@ -11,7 +11,7 @@ using static FrameBaseHotFix;
 using static FrameDefine;
 using static FrameBaseUtility;
 
-// 当前程序作为客户端时使用,表示一个与WebSocket服务器的连接
+// 当前程序作为客户端时使用,表示一个与WebSocket服务器的连接,用于非webgl平台
 public abstract class NetConnectWebSocket : NetConnect
 {
 	protected Queue<PacketReceiveInfo> mReceiveBuffer = new();      // 在主线程中执行的消息列表

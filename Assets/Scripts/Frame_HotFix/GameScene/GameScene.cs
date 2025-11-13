@@ -2,8 +2,8 @@
 using System;
 using System.Collections.Generic;
 using static UnityUtility;
+using static FrameUtility;
 using static FrameBaseHotFix;
-using static CSharpUtility;
 using static FrameBaseUtility;
 
 // 用于实现一个逻辑场景,一个逻辑场景会包含多个流程,进入一个场景时上一个场景会被销毁
@@ -135,27 +135,27 @@ public abstract class GameScene : ComponentOwner
 		changeProcedure(getLastProcedureType(), false);
 		mLastProcedureList.RemoveAt(mLastProcedureList.Count - 1);
 	}
-	public bool changeProcedure<T>(bool addToLastList = true) where T : SceneProcedure
+	public SceneProcedure changeProcedure<T>(bool addToLastList = true) where T : SceneProcedure
 	{
 		return changeProcedure(typeof(T), addToLastList);
 	}
-	public bool changeProcedure(Type procedureType, bool addToLastList = true)
+	public SceneProcedure changeProcedure(Type procedureType, bool addToLastList = true)
 	{
 		// 当流程正在准备跳转流程时,不允许再跳转
 		if (mCurProcedure != null && mCurProcedure.isPreparingExit())
 		{
 			logError("procedure is preparing to change, can not change again!");
-			return false;
+			return null;
 		}
 		// 不能重复进入同一流程
 		if (mCurProcedure != null && mCurProcedure.GetType() == procedureType)
 		{
-			return false;
+			return mCurProcedure;
 		}
 		if (!mSceneProcedureList.TryGetValue(procedureType, out SceneProcedure targetProcedure))
 		{
 			logError("can not find scene procedure : " + procedureType);
-			return false;
+			return null;
 		}
 		log("enter procedure:" + procedureType);
 		// 将上一个流程记录到返回列表中
@@ -176,7 +176,7 @@ public abstract class GameScene : ComponentOwner
 			mCurProcedure = targetProcedure;
 			mCurProcedure.init(lastProcedure);
 		}
-		return true;
+		return mCurProcedure;
 	}
 	// 流程调用,通知场景当前流程已经准备完毕
 	public void notifyProcedurePrepared()

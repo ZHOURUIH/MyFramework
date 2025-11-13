@@ -7,7 +7,7 @@ using static MathUtility;
 // 以指定的位置列表进行移动
 public class CmdTransformableMoveCurveSpan
 {
-	public static void execute(Transformable obj, Span<Vector3> posList, float onceLength, float timeOffset, int keyframe, bool loop, KeyFrameCallback doing, KeyFrameCallback done)
+	public static void execute(ITransformable obj, Span<Vector3> posList, float onceLength, float timeOffset, int keyframe, bool loop, KeyFrameCallback doing, KeyFrameCallback done)
 	{
 		if (obj == null)
 		{

@@ -103,10 +103,7 @@ public class GameLayout
 
 		// 更新脚本逻辑
 		using var b = new ProfilerScope("UpdateScript");
-		if (mScript.hasDragViewLoopList())
-		{
-			mScript.updateAllDragView();
-		}
+		mScript.updateAllDragView();
 		if (mScript.isNeedUpdate())
 		{
 			mScript.update(elapsedTime);
@@ -192,10 +189,6 @@ public class GameLayout
 		// 隐藏布局时需要判断
 		else
 		{
-			if (!mScriptControlHide)
-			{
-				mRoot.setActive(visible);
-			}
 			// 通知所有会接收布局隐藏的窗口
 			using var a = new SafeDictionaryReader<int, myUGUIObject>(mObjectList);
 			foreach (myUGUIObject item in a.mReadList.Values)
@@ -206,6 +199,10 @@ public class GameLayout
 				}
 			}
 			mScript.onHide();
+			if (!mScriptControlHide)
+			{
+				mRoot.setActive(visible);
+			}
 		}
 	}
 	public void setVisibleForce(bool visible)
@@ -259,6 +256,10 @@ public class GameLayout
 	// 有节点删除或者增加,或者节点在当前父节点中的位置有改变,parent表示有变动的节点的父节点
 	public void refreshUIDepth(myUGUIObject parent, bool ignoreInactive)
 	{
+		if (ignoreInactive && !parent.isActiveInHierarchy())
+		{
+			logWarning("要刷新的节点没有被激活,且设置了忽略未激活节点,将不会刷新任何节点的深度");
+		}
 		setUIDepth(parent, 0, false, ignoreInactive);
 	}
 	// get

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_STANDALONE_WIN || UNITY_EDITOR
+using System;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 
@@ -178,3 +179,4 @@ public class Kernel32
     [DllImport("kernel32.dll", SetLastError = true)]
     public static extern IntPtr OpenProcess(ProcessAccessRights access, bool inherit, uint processId);
 }
+#endif

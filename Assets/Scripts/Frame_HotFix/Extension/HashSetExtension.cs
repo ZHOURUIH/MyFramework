@@ -9,6 +9,15 @@ public static class HashSetExtension
 		list.Add(value);
 		return value;
 	}
+	public static bool addNot<T>(this HashSet<T> list, T value, T notValue)
+	{
+		if (value.Equals(notValue))
+		{
+			return false;
+		}
+		list.Add(value);
+		return true;
+	}
 	public static HashSet<T> setRange<T>(this HashSet<T> list, IEnumerable<T> other)
 	{
 		list.Clear();

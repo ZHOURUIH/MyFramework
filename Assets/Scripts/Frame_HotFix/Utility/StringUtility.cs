@@ -6,7 +6,6 @@ using UnityEngine;
 using static MathUtility;
 using static UnityUtility;
 using static FrameUtility;
-using static CSharpUtility;
 using static FrameBaseDefine;
 using static FrameBaseUtility;
 
@@ -2052,6 +2051,7 @@ public class StringUtility
 			}
 		}
 	}
+#if USE_TMP
 	// 将文本拆分为多行来显示,originString应该是不带富文本标签的字符串,否则会影响字符长度的计算
 	// 默认每一行至少可以容纳30个字符,所以都是从30开始截取字符串,为了提高效率
 	public static void generateMultiLine(myUGUITextTMP textWindow, string originString, List<string> lineList, int minStringLength = 30)
@@ -2085,6 +2085,7 @@ public class StringUtility
 			}
 		}
 	}
+#endif
 	// 将富文本还原为原始的字符串,暂时只考虑颜色,charColorList的输出长度与返回字符串的长度一致,其中每个元素表示相同下标的字符的颜色
 	public static string getStringNoRichText(string originContent, List<string> charColorList)
 	{

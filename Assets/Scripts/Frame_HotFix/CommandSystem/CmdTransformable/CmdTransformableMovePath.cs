@@ -14,7 +14,7 @@ public class CmdTransformableMovePath
 	// 移动速度
 	// 所使用的关键帧ID
 	// 是否循环
-	public static void execute(Transformable obj, Dictionary<float, Vector3> valueKeyFrame, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallBack, Vector3 valueOffset, float timeOffset, float speed, int keyframe, bool loop)
+	public static void execute(ITransformable obj, Dictionary<float, Vector3> valueKeyFrame, KeyFrameCallback doingCallBack, KeyFrameCallback doneCallBack, Vector3 valueOffset, float timeOffset, float speed, int keyframe, bool loop)
 	{
 		if (obj == null)
 		{
@@ -41,7 +41,7 @@ public class CmdTransformableMovePath
 			obj.setNeedUpdate(true);
 		}
 	}
-	public static void execute(Transformable obj)
+	public static void execute(ITransformable obj)
 	{
 		obj?.getComponent<COMTransformableMovePath>()?.stop();
 	}

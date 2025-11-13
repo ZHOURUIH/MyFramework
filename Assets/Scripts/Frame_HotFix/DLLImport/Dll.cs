@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_STANDALONE_WIN || UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using static FrameDefine;
@@ -59,3 +60,4 @@ public class Dll : ClassObject
 		}
 	}
 }
+#endif

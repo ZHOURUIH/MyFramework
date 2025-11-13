@@ -37,6 +37,7 @@ public abstract class NetConnectWebSocketWebGL : NetConnect
 		mPingTimer.init(-1.0f, pingTime);
 		mPingTimer.setEnsureInterval(true);
 	}
+	public void setURL(string url) { mURL = url; }
 	public override void resetProperty()
 	{
 		base.resetProperty();

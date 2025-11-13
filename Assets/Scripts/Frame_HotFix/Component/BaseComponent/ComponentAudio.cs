@@ -21,7 +21,7 @@ public class ComponentAudio : GameComponent
 		}
 	}
 	public string getCurAudioName() { return mAudioName; }
-	public virtual void play(string name, bool isLoop, float volume)
+	public void playAsync(string name, bool isLoop, float volume, AudioInfoCallback callback)
 	{
 		// 先确定音频源已经设置
 		if (mAudioSource == null)
@@ -34,7 +34,27 @@ public class ComponentAudio : GameComponent
 			return;
 		}
 		mAudioSource.enabled = true;
-		mAudioManager?.playClip(mAudioSource, name, isLoop, volume);
+		mAudioManager?.playClipAsync(mAudioSource, name, isLoop, volume, true, callback);
+		mAudioName = name;
+	}
+	public void playAsync(int sound, bool loop, float volume)
+	{
+		playAsync(mAudioManager?.getAudioName(sound), loop, volume, null);
+	}
+	public void play(string name, bool isLoop, float volume)
+	{
+		// 先确定音频源已经设置
+		if (mAudioSource == null)
+		{
+			assignAudioSource();
+		}
+		if (name.isEmpty())
+		{
+			stop();
+			return;
+		}
+		mAudioSource.enabled = true;
+		mAudioManager?.playClip(mAudioSource, name, isLoop, volume, true);
 		mAudioName = name;
 	}
 	public void play(int sound, bool loop, float volume)

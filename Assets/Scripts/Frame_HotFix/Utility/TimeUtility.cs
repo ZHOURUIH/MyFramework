@@ -225,6 +225,18 @@ public class TimeUtility
 			}
 			return IToS(totalMin) + "分";
 		}
+		else if (display == TIME_DISPLAY.HM_ZH)
+		{
+			int totalMin = timeSecond / 60;
+			int totalHour = totalMin / 60;
+			int curMin = totalMin % 60;
+			// 小于1天,并且大于等于1小时
+			if (totalHour > 0)
+			{
+				return IToS(totalHour) + "时" + IToS(curMin) + "分";
+			}
+			return IToS(totalMin) + "分";
+		}
 		return EMPTY;
 	}
 	// 只能在主线程中调用的获取当前时间字符串
@@ -244,9 +256,13 @@ public class TimeUtility
 		}
 		else if (display == TIME_DISPLAY.DHMS_ZH)
 		{
-			return strcat(IToS(time.Hour), "时", IToS(time.Minute), "分", IToS(time.Second), "秒");
+			return strcat(IToS(time.Day), "日", IToS(time.Hour), "时", IToS(time.Minute), "分", IToS(time.Second), "秒");
 		}
 		else if (display == TIME_DISPLAY.DHM_ZH)
+		{
+			return strcat(IToS(time.Day), "日", IToS(time.Hour), "时", IToS(time.Minute), "分");
+		}
+		else if (display == TIME_DISPLAY.HM_ZH)
 		{
 			return IToS(time.Hour) + "时" + IToS(time.Minute) + "分";
 		}
@@ -276,9 +292,13 @@ public class TimeUtility
 		}
 		else if (display == TIME_DISPLAY.DHMS_ZH)
 		{
-			return IToS(time.Hour) + "时" + IToS(time.Minute) + "分" + IToS(time.Second) + "秒";
+			return IToS(time.Day) + "日" + IToS(time.Hour) + "时" + IToS(time.Minute) + "分" + IToS(time.Second) + "秒";
 		}
 		else if (display == TIME_DISPLAY.DHM_ZH)
+		{
+			return IToS(time.Day) + "日" + IToS(time.Hour) + "时" + IToS(time.Minute) + "分";
+		}
+		else if (display == TIME_DISPLAY.HM_ZH)
 		{
 			return IToS(time.Hour) + "时" + IToS(time.Minute) + "分";
 		}
@@ -319,12 +339,20 @@ public class TimeUtility
 		}
 		else if (display == TIME_DISPLAY.DHMS_ZH)
 		{
-			builder.Append(IToS(time.Hour)).Append("时").
+			builder.Append(IToS(time.Day)).Append("日").
+					Append(IToS(time.Hour)).Append("时").
 					Append(IToS(time.Minute)).Append("分").
 					Append(IToS(time.Second)).Append("秒");
 			return builder.ToString();
 		}
-		else if (display == TIME_DISPLAY.DHMS_ZH)
+		else if (display == TIME_DISPLAY.DHM_ZH)
+		{
+			builder.Append(IToS(time.Day)).Append("日").
+					Append(IToS(time.Hour)).Append("时").
+					Append(IToS(time.Minute)).Append("分");
+			return builder.ToString();
+		}
+		else if (display == TIME_DISPLAY.HM_ZH)
 		{
 			builder.Append(IToS(time.Hour)).Append("时").
 					Append(IToS(time.Minute)).Append("分");

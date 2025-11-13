@@ -12,7 +12,7 @@ public class RedPointCount : RedPoint
 	}
 	public void setPointUI(myUGUIObject point, IUGUIText text)
 	{
-		addPointUI(point);
+		bindPointUI(point);
 		mPointCountText = text;
 		mPointCountText?.setText(mCount);
 	}

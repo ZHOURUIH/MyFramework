@@ -14,7 +14,8 @@ public class PrefabPool : ClassObject
 	protected List<ObjectInfo> mUnuseList = new();		// 未使用的实例化列表,第一个key是文件名,第二个列表中的key是实例化出的物体,value是物品信息
 	protected GameObject mPrefab;						// 从资源管理器中加载的预设
 	protected string mFileName;                         // 此实例物体的预设文件名,相对于GameResources的路径,带后缀
-	protected int mAsyncLoading;						// 是否有正在进行的异步操作
+	protected int mAsyncLoadingCount;                        // 正在异步加载的数量
+	protected int mAsyncInstantiateCount;				// 正在异步实例化的数量
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -22,7 +23,8 @@ public class PrefabPool : ClassObject
 		mUnuseList.Clear();
 		mPrefab = null;
 		mFileName = null;
-		mAsyncLoading = 0;
+		mAsyncLoadingCount = 0;
+		mAsyncInstantiateCount = 0;
 	}
 	public override void destroy()
 	{
@@ -51,8 +53,8 @@ public class PrefabPool : ClassObject
 	public HashSet<ObjectInfo> getInuseList() { return mInuseList; }
 	public int getInuseCount() { return mInuseList.Count; }
 	public int getUnuseCount() { return mUnuseList.Count; }
-	public bool isEmpty() { return mInuseList.Count == 0 && mUnuseList.Count == 0 && mAsyncLoading == 0; }
-	public int getAsyncLoadingCount() { return mAsyncLoading; }
+	public bool isEmpty() { return mInuseList.Count == 0 && mUnuseList.Count == 0 && mAsyncLoadingCount == 0 && mAsyncInstantiateCount == 0; }
+	public bool isEmptyInUse() { return mInuseList.Count == 0 && mAsyncLoadingCount == 0 && mAsyncInstantiateCount == 0; }
 	// 向池中异步初始化一定数量的对象
 	public CustomAsyncOperation initToPoolAsync(int tag, int count, bool moveToHide, Action callback)
 	{
@@ -63,11 +65,11 @@ public class PrefabPool : ClassObject
 			return new CustomAsyncOperation().setFinish();
 		}
 		// 预设未加载,异步加载预设
-		++mAsyncLoading;
+		++mAsyncLoadingCount;
 		long assignID = getAssignID();
 		return mResourceManager.loadGameResourceAsync(mFileName, (GameObject asset) =>
 		{
-			--mAsyncLoading;
+			--mAsyncLoadingCount;
 			if (asset == null)
 			{
 				callback?.Invoke();
@@ -108,11 +110,11 @@ public class PrefabPool : ClassObject
 			return new CustomAsyncOperation().setFinish();
 		}
 		// 预设未加载,异步加载预设
-		++mAsyncLoading;
+		++mAsyncLoadingCount;
 		long assignID = getAssignID();
 		return mResourceManager.loadGameResourceAsync(mFileName, (GameObject asset) =>
 		{
-			--mAsyncLoading;
+			--mAsyncLoadingCount;
 			if (asset == null)
 			{
 				callback?.Invoke(null, false);
@@ -142,7 +144,7 @@ public class PrefabPool : ClassObject
 			objInfo = mUnuseList.popBack();
 			if (objInfo.getTag() != tag)
 			{
-				logError("不能为同一个物体设置不同的tag, file:" + objInfo.getFileWithPath());
+				logError("不能为同一个物体设置不同的tag, file:" + objInfo.getFileWithPath() + ", 旧tag:" + objInfo.getTag() + ", 新tag:" + tag);
 			}
 		}
 		// 没有就创建一个新的
@@ -167,7 +169,7 @@ public class PrefabPool : ClassObject
 		GameObject go = obj.getObject();
 		if (!mInuseList.Remove(obj))
 		{
-			logError("从使用列表中移除失败:" + go.name);
+			logError("从使用列表中移除失败:" + go.name + ", " + obj.GetHashCode() + ", pool hash:" + GetHashCode());
 		}
 		if (destroyReally)
 		{
@@ -255,8 +257,10 @@ public class PrefabPool : ClassObject
 		else
 		{
 			// 实例化
+			++mAsyncInstantiateCount;
 			CLASS<ObjectInfo>().createObjectAsync(mPrefab, mFileName, (ObjectInfo info) =>
 			{
+				--mAsyncInstantiateCount;
 				info.setTag(tag);
 				info.setUsing(true);
 				callback?.Invoke(mInuseList.add(info));

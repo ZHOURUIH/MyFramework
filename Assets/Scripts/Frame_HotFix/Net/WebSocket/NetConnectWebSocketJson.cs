@@ -16,6 +16,12 @@ public class NetConnectWebSocketJson : NetConnectWebSocket
 {
 	protected Dictionary<Type, string> mPacketTypeIDList = new();
 	protected Dictionary<string, Type> mPacketTypeStringList = new();
+	public override void resetProperty()
+	{
+		base.resetProperty();
+		mPacketTypeIDList.Clear();
+		mPacketTypeStringList.Clear();
+	}
 	public override void sendNetPacket(NetPacket packet)
 	{
 		if (!isMainThread())

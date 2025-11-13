@@ -39,6 +39,12 @@ public class WindowObjectT<T> : WindowObjectBase where T : myUGUIObject, new()
 		newObject(out mRoot, parent, name);
 		assignWindowInternal();
 	}
+	public void assignWindow(myUGUIObject parent, string name, bool showError)
+	{
+		newObject(out mRoot, parent, name, showError);
+		assignWindowInternal();
+	}
+	public bool isValid() { return mRoot != null; }
 	public override bool isActive() { return mRoot?.isActiveInHierarchy() ?? false; }
 	public override void setActive(bool visible) 
 	{

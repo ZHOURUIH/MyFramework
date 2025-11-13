@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 using static UnityUtility;
 using static MathUtility;
 using static WidgetUtility;
-using static CSharpUtility;
+using static FrameUtility;
 using static FrameBaseHotFix;
 using static FrameBaseUtility;
 
@@ -15,7 +15,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	protected static Comparison<Transform> mCompareDescend = compareZDecending;				// 避免GC的回调
 	private static Comparison<myUGUIObject> mCompareSiblingIndex = compareSiblingIndex;		// 用于避免GC的委托
 	private static bool mAllowDestroyWindow = false;				// 是否允许销毁窗口,仅此类内部使用
-	protected COMWindowInteractive mCOMWindowInteractive;			// 鼠标键盘响应逻辑的组件
+	protected ComponentInteractive mCOMWindowInteractive;			// 鼠标键盘响应逻辑的组件
 	protected COMWindowCollider mCOMWindowCollider;					// 碰撞逻辑组件
 	protected HashSet<myUGUIObject> mChildSet;						// 子节点列表,用于查询是否有子节点
 	protected List<myUGUIObject> mChildList;						// 子节点列表,与GameObject的子节点顺序保持一致(已排序情况下),用于获取最后一个子节点
@@ -73,88 +73,88 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		// 布局隐藏时需要将触点清除
 		mCOMWindowUGUIInteractive?.clearMousePointer();
 	}
-	// 将当前窗口的顶部对齐父节点的顶部
-	public void alignParentTop()
+	// 将当前窗口的顶部对齐父节点的顶部,只改Y坐标
+	public void setTopToParentTop()
 	{
 		if (mParent is not myUGUIObject uiObj)
 		{
 			logError("父节点的类型不是myUGUIObject,无法获取其窗口大小");
 			return;
 		}
-		setWindowTopInParent(uiObj.getWindowTop());
+		setWindowTopInParent(uiObj.getWindowTopInSelf());
 	}
-	// 将当前窗口的顶部中心对齐父节点的顶部中心
-	public void alignParentTopCenter()
+	// 将当前窗口的顶部中心对齐父节点的顶部中心,X和Y坐标都改
+	public void setTopCenterToParentTopCenter()
 	{
 		if (mParent is not myUGUIObject uiObj)
 		{
 			logError("父节点的类型不是myUGUIObject,无法获取其窗口大小");
 			return;
 		}
-		setWindowTopInParent(uiObj.getWindowTop());
+		setWindowTopInParent(uiObj.getWindowTopInSelf());
 		setWindowInParentCenterX();
 	}
-	// 将当前窗口的底部对齐父节点的底部
-	public void alignParentBottom()
+	// 将当前窗口的底部对齐父节点的底部,只改变Y坐标
+	public void setBottomToParentBottom()
 	{
 		if (mParent is not myUGUIObject uiObj)
 		{
 			logError("父节点的类型不是myUGUIObject,无法获取其窗口大小");
 			return;
 		}
-		setWindowBottomInParent(uiObj.getWindowBottom());
+		setWindowBottomInParent(uiObj.getWindowBottomInSelf());
 	}
-	// 将当前窗口的底部中心对齐父节点的底部中心
-	public void alignParentBottomCenter()
+	// 将当前窗口的底部中心对齐父节点的底部中心,X和Y坐标都改
+	public void setBottomCenterToParentBottomCenter()
 	{
 		if (mParent is not myUGUIObject uiObj)
 		{
 			logError("父节点的类型不是myUGUIObject,无法获取其窗口大小");
 			return;
 		}
-		setWindowBottomInParent(uiObj.getWindowBottom());
+		setWindowBottomInParent(uiObj.getWindowBottomInSelf());
 		setWindowInParentCenterX();
 	}
-	// 将当前窗口的左边界对齐父节点的左边界
-	public void alignParentLeft()
+	// 将当前窗口的左边界对齐父节点的左边界.只改X坐标
+	public void setLeftToParentLeft()
 	{
 		if (mParent is not myUGUIObject uiObj)
 		{
 			logError("父节点的类型不是myUGUIObject,无法获取其窗口大小");
 			return;
 		}
-		setWindowLeftInParent(uiObj.getWindowLeft());
+		setWindowLeftInParent(uiObj.getWindowLeftInSelf());
 	}
-	// 将当前窗口的左边界中心对齐父节点的左边界中心
-	public void alignParentLeftCenter()
+	// 将当前窗口的左边界中心对齐父节点的左边界中心,X和Y坐标都改
+	public void setLeftCenterToParentLeftCenter()
 	{
 		if (mParent is not myUGUIObject uiObj)
 		{
 			logError("父节点的类型不是myUGUIObject,无法获取其窗口大小");
 			return;
 		}
-		setWindowLeftInParent(uiObj.getWindowLeft());
+		setWindowLeftInParent(uiObj.getWindowLeftInSelf());
 		setWindowInParentCenterY();
 	}
-	// 将当前窗口的右边界对齐父节点的右边界
-	public void alignParentRight()
+	// 将当前窗口的右边界对齐父节点的右边界,只改X坐标
+	public void setRightToParentRight()
 	{
 		if (mParent is not myUGUIObject uiObj)
 		{
 			logError("父节点的类型不是myUGUIObject,无法获取其窗口大小");
 			return;
 		}
-		setWindowRightInParent(uiObj.getWindowRight());
+		setWindowRightInParent(uiObj.getWindowRightInSelf());
 	}
-	// 将当前窗口的右边界中心对齐父节点的右边界中心
-	public void alignParentRightCenter()
+	// 将当前窗口的右边界中心对齐父节点的右边界中心,X和Y坐标都改
+	public void setRightCenterToParentRightCenter()
 	{
 		if (mParent is not myUGUIObject uiObj)
 		{
 			logError("父节点的类型不是myUGUIObject,无法获取其窗口大小");
 			return;
 		}
-		setWindowRightInParent(uiObj.getWindowRight());
+		setWindowRightInParent(uiObj.getWindowRightInSelf());
 		setWindowInParentCenterY();
 	}
 	// 设置窗口在父节点中横向居中
@@ -162,32 +162,112 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	// 设置窗口在父节点中纵向居中
 	public void setWindowInParentCenterY() { setPositionY(0.0f); }
 	// 设置窗口左边界在父节点中的X坐标
-	public void setWindowLeftInParent(float leftInParent) { setPositionX(leftInParent - getWindowLeft()); }
+	public void setWindowLeftInParent(float leftInParent) { setPositionX(leftInParent - getWindowLeftInSelf()); }
 	// 设置窗口右边界在父节点中的X坐标
-	public void setWindowRightInParent(float rightInParent) { setPositionX(rightInParent - getWindowRight()); }
+	public void setWindowRightInParent(float rightInParent) { setPositionX(rightInParent - getWindowRightInSelf()); }
 	// 设置窗口顶部在父节点中的Y坐标
-	public void setWindowTopInParent(float topInParent) { setPositionY(topInParent - getWindowTop()); }
+	public void setWindowTopInParent(float topInParent) { setPositionY(topInParent - getWindowTopInSelf()); }
 	// 设置窗口底部在父节点中的Y坐标
-	public void setWindowBottomInParent(float bottomInParent) { setPositionY(bottomInParent - getWindowBottom()); }
+	public void setWindowBottomInParent(float bottomInParent) { setPositionY(bottomInParent - getWindowBottomInSelf()); }
 	// 获得窗口左边界在父窗口中的X坐标
-	public float getWindowLeftInParent() { return getPosition().x + getWindowLeft(); }
+	public float getWindowLeftInParent() { return getPosition().x + getWindowLeftInSelf(); }
 	// 获得窗口右边界在父窗口中的X坐标
-	public float getWindowRightInParent() { return getPosition().x + getWindowRight(); }
+	public float getWindowRightInParent() { return getPosition().x + getWindowRightInSelf(); }
 	// 获得窗口顶部在父窗口中的Y坐标
-	public float getWindowTopInParent() { return getPosition().y + getWindowTop(); }
+	public float getWindowTopInParent() { return getPosition().y + getWindowTopInSelf(); }
 	// 获得窗口底部在父窗口中的Y坐标
-	public float getWindowBottomInParent() { return getPosition().y + getWindowBottom(); }
+	public float getWindowBottomInParent() { return getPosition().y + getWindowBottomInSelf(); }
 	// 获得窗口顶部在窗口中的相对于窗口pivot的Y坐标
-	public float getWindowTop() { return getWindowSize().y * (1.0f - getPivot().y); }
+	public float getWindowTopInSelf() { return getWindowSize().y * (1.0f - getPivot().y); }
 	// 获得窗口底部在窗口中的相对于窗口pivot的Y坐标
-	public float getWindowBottom() { return -getWindowSize().y * getPivot().y; }
+	public float getWindowBottomInSelf() { return -getWindowSize().y * getPivot().y; }
 	// 获得窗口左边界在窗口中的相对于窗口pivot的X坐标
-	public float getWindowLeft() { return -getWindowSize().x * getPivot().x; }
+	public float getWindowLeftInSelf() { return -getWindowSize().x * getPivot().x; }
 	// 获得窗口右边界在窗口中的相对于窗口pivot的X坐标
-	public float getWindowRight() { return getWindowSize().x * (1.0f - getPivot().x); }
+	public float getWindowRightInSelf() { return getWindowSize().x * (1.0f - getPivot().x); }
 	// 获取不考虑中心点偏移的坐标,也就是固定获取窗口中心的坐标
 	// 由于pivot的影响,Transform.localPosition获得的坐标并不一定等于窗口中心的坐标
 	public Vector3 getPositionNoPivot() { return WidgetUtility.getPositionNoPivot(mRectTransform); }
+	// 使当前窗口右边界对齐另外一个窗口的左边界,只修改x轴,仅限同一父节点下
+	public void setRightToOtherLeft(myUGUIObject other, float interval = 0.0f)
+	{
+		if (other.getParent() != getParent())
+		{
+			logError("只有同一父节点下的节点才能对齐");
+			return;
+		}
+		setPositionX(other.getPosition().x - other.getWindowSize().x * 0.5f - getWindowSize().x * 0.5f - interval);
+	}
+	// 使当前窗口左边界对齐另外一个窗口的右边界,只修改x轴,仅限同一父节点下
+	public void setLeftToOtherRight(myUGUIObject other, float interval = 0.0f)
+	{
+		if (other.getParent() != getParent())
+		{
+			logError("只有同一父节点下的节点才能对齐");
+			return;
+		}
+		setPositionX(other.getPosition().x + other.getWindowSize().x * 0.5f + getWindowSize().x * 0.5f + interval);
+	}
+	// 使当前窗口下边界对齐另外一个窗口的上边界,只修改y轴,仅限同一父节点下
+	public void setBottomToOtherTop(myUGUIObject other, float interval = 0.0f)
+	{
+		if (other.getParent() != getParent())
+		{
+			logError("只有同一父节点下的节点才能对齐");
+			return;
+		}
+		setPositionY(other.getPosition().y + other.getWindowSize().y * 0.5f + getWindowSize().y * 0.5f + interval);
+	}
+	// 使当前窗口上边界对齐另外一个窗口的下边界,只修改y轴,仅限同一父节点下
+	public void setTopToOtherBottom(myUGUIObject other, float interval = 0.0f)
+	{
+		if (other.getParent() != getParent())
+		{
+			logError("只有同一父节点下的节点才能对齐");
+			return;
+		}
+		setPositionY(other.getPosition().y - other.getWindowSize().y * 0.5f - getWindowSize().y * 0.5f - interval);
+	}
+	// 使当前窗口左边界对齐另外一个窗口的左边界,只修改x轴,仅限同一父节点下
+	public void setLeftToOtherLeft(myUGUIObject other, float interval = 0.0f)
+	{
+		if (other.getParent() != getParent())
+		{
+			logError("只有同一父节点下的节点才能对齐");
+			return;
+		}
+		setPositionX(other.getPosition().x - other.getWindowSize().x * 0.5f + getWindowSize().x * 0.5f + interval);
+	}
+	// 使当前窗口左边界对齐另外一个窗口的右边界,只修改x轴,仅限同一父节点下
+	public void setRightToOtherRight(myUGUIObject other, float interval = 0.0f)
+	{
+		if (other.getParent() != getParent())
+		{
+			logError("只有同一父节点下的节点才能对齐");
+			return;
+		}
+		setPositionX(other.getPosition().x + other.getWindowSize().x * 0.5f - getWindowSize().x * 0.5f - interval);
+	}
+	// 使当前窗口下边界对齐另外一个窗口的上边界,只修改y轴,仅限同一父节点下
+	public void setTopToOtherTop(myUGUIObject other, float interval = 0.0f)
+	{
+		if (other.getParent() != getParent())
+		{
+			logError("只有同一父节点下的节点才能对齐");
+			return;
+		}
+		setPositionY(other.getPosition().y + other.getWindowSize().y * 0.5f - getWindowSize().y * 0.5f - interval);
+	}
+	// 使当前窗口上边界对齐另外一个窗口的下边界,只修改y轴,仅限同一父节点下
+	public void setBottomToOtherBottom(myUGUIObject other, float interval = 0.0f)
+	{
+		if (other.getParent() != getParent())
+		{
+			logError("只有同一父节点下的节点才能对齐");
+			return;
+		}
+		setPositionY(other.getPosition().y - other.getWindowSize().y * 0.5f + getWindowSize().y * 0.5f + interval);
+	}
 	public Vector2 getPivot() { return mRectTransform.pivot; }
 	public void setPivot(Vector2 pivot) { mRectTransform.pivot = pivot; }
 	public RectTransform getRectTransform() { return mRectTransform; }
@@ -303,6 +383,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 			logError("can not call window's destroy()! use destroyWindow(myUGUIObject window, bool destroyReally) instead");
 		}
 		base.destroy();
+		// 同样的,由于一般myUGUIObject不会使用对象池来管理,所以销毁时需要手动去标记为已销毁的状态
 		mDestroy = true;
 	}
 	public override void setActive(bool active)
@@ -434,15 +515,15 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	public int getID() { return mID; }
 	public GameLayout getLayout() { return mLayout; }
 	public List<myUGUIObject> getChildList() { return mChildList; }
-	public virtual bool isReceiveScreenMouse() { return mCOMWindowInteractive?.getOnScreenMouseUp() != null; }
+	public virtual bool isReceiveScreenTouch() { return mCOMWindowInteractive?.getOnScreenTouchUp() != null; }
 	public myUGUIObject getParent() { return mParent; }
 	public override float getAlpha() { return 1.0f; }
 	public virtual Color getColor() { return Color.white; }
 	public UIDepth getDepth() { return getCOMInteractive().getDepth(); }
 	public virtual bool isHandleInput() { return mCOMWindowCollider != null && mCOMWindowCollider.isHandleInput(); }
 	public virtual bool isPassRay() { return mCOMWindowInteractive == null || mCOMWindowInteractive.isPassRay(); }
-	public virtual bool isPassDragEvent() { return !isDragable() || (mCOMWindowInteractive != null && mCOMWindowInteractive.isPassDragEvent()); }
-	public virtual bool isDragable() { return getActiveComponent<COMWindowDrag>() != null; }
+	public virtual bool isPassDragEvent() { return !isDraggable() || (mCOMWindowInteractive != null && mCOMWindowInteractive.isPassDragEvent()); }
+	public virtual bool isDraggable() { return getActiveComponent<COMWindowDrag>() != null; }
 	public bool isMouseHovered() { return mCOMWindowInteractive != null && mCOMWindowInteractive.isMouseHovered(); }
 	public int getClickSound() { return mCOMWindowInteractive?.getClickSound() ?? 0; }
 	public bool isDepthOverAllChild() { return mCOMWindowInteractive != null && mCOMWindowInteractive.isDepthOverAllChild(); }
@@ -492,34 +573,34 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	public void setAllowGenerateDepth(bool allowGenerate) { getCOMInteractive().setAllowGenerateDepth(allowGenerate); }
 	public virtual void setColor(Color color) { }
 	public virtual void setFillPercent(float percent) { logError("can not set window fill percent with myUGUIObject"); }
-	public void setPassRay(bool passRay) { getCOMInteractive().setPassRay(passRay); }
-	public void setPassDragEvent(bool pass) { getCOMInteractive().setPassDragEvent(pass); }
-	public void setDepth(UIDepth parentDepth, int orderInParent) { getCOMInteractive().setDepth(parentDepth, orderInParent); }
-	public void setLongPressLengthThreshold(float threshold) { getCOMInteractive().setLongPressLengthThreshold(threshold); }
+	public void setPassRay(bool passRay)								{ getCOMInteractive().setPassRay(passRay); }
+	public void setPassDragEvent(bool pass)								{ getCOMInteractive().setPassDragEvent(pass); }
+	public void setDepth(UIDepth parentDepth, int orderInParent)		{ getCOMInteractive().setDepth(parentDepth, orderInParent); }
+	public void setLongPressLengthThreshold(float threshold)			{ getCOMInteractive().setLongPressLengthThreshold(threshold); }
 	// 自己调用的callback,仅在启用自定义输入系统时生效
-	public void setPreClickCallback(Action callback) { getCOMInteractive().setPreClickCallback(callback); }
-	public void setPreClickDetailCallback(ClickCallback callback) { getCOMInteractive().setPreClickDetailCallback(callback); }
-	public void setClickCallback(Action callback) { getCOMInteractive().setClickCallback(callback); }
-	public void setClickDetailCallback(ClickCallback callback) { getCOMInteractive().setClickDetailCallback(callback); }
-	public void setHoverCallback(BoolCallback callback) { getCOMInteractive().setHoverCallback(callback); }
-	public void setHoverDetailCallback(HoverCallback callback) { getCOMInteractive().setHoverDetailCallback(callback); }
-	public void setPressCallback(BoolCallback callback) { getCOMInteractive().setPressCallback(callback); }
-	public void setPressDetailCallback(PressCallback callback) { getCOMInteractive().setPressDetailCallback(callback); }
-	public void setDoubleClickCallback(Action callback) { getCOMInteractive().setDoubleClickCallback(callback); }
-	public void setDoubleClickDetailCallback(ClickCallback callback) { getCOMInteractive().setDoubleClickDetailCallback(callback); }
-	public void setOnReceiveDrag(OnReceiveDrag callback) { getCOMInteractive().setOnReceiveDrag(callback); }
-	public void setOnDragHover(OnDragHover callback) { getCOMInteractive().setOnDragHover(callback); }
-	public void setOnMouseEnter(OnMouseEnter callback) { getCOMInteractive().setOnMouseEnter(callback); }
-	public void setOnMouseLeave(OnMouseLeave callback) { getCOMInteractive().setOnMouseLeave(callback); }
-	public void setOnMouseDown(Vector3IntCallback callback) { getCOMInteractive().setOnMouseDown(callback); }
-	public void setOnMouseUp(Vector3IntCallback callback) { getCOMInteractive().setOnMouseUp(callback); }
-	public void setOnMouseMove(OnMouseMove callback) { getCOMInteractive().setOnMouseMove(callback); }
-	public void setOnMouseStay(Vector3IntCallback callback) { getCOMInteractive().setOnMouseStay(callback); }
-	public void setOnScreenMouseUp(OnScreenMouseUp callback) { getCOMInteractive().setOnScreenMouseUp(callback); }
-	public void setLayout(GameLayout layout) { mLayout = layout; }
-	public void setReceiveLayoutHide(bool receive) { mReceiveLayoutHide = receive; }
-	public void setColliderForClick(bool forClick) { getCOMInteractive().setColliderForClick(forClick); }
-	public void setClickSound(int sound) { getCOMInteractive().setClickSound(sound); }
+	public void setPreClickCallback(Action callback)					{ getCOMInteractive().setPreClickCallback(callback); }
+	public void setPreClickDetailCallback(Vector3Callback callback)		{ getCOMInteractive().setPreClickDetailCallback(callback); }
+	public void setClickCallback(Action callback)						{ getCOMInteractive().setClickCallback(callback); }
+	public void setClickDetailCallback(Vector3Callback callback)		{ getCOMInteractive().setClickDetailCallback(callback); }
+	public void setHoverCallback(BoolCallback callback)					{ getCOMInteractive().setHoverCallback(callback); }
+	public void setHoverDetailCallback(Vector3BoolCallback callback)	{ getCOMInteractive().setHoverDetailCallback(callback); }
+	public void setPressCallback(BoolCallback callback)					{ getCOMInteractive().setPressCallback(callback); }
+	public void setPressDetailCallback(Vector3BoolCallback callback)	{ getCOMInteractive().setPressDetailCallback(callback); }
+	public void setDoubleClickCallback(Action callback)					{ getCOMInteractive().setDoubleClickCallback(callback); }
+	public void setDoubleClickDetailCallback(Vector3Callback callback)	{ getCOMInteractive().setDoubleClickDetailCallback(callback); }
+	public void setOnReceiveDrag(ReceiveDragCallback callback)			{ getCOMInteractive().setOnReceiveDrag(callback); }
+	public void setOnDragHover(DragHoverCallback callback)				{ getCOMInteractive().setOnDragHover(callback); }
+	public void setOnTouchEnter(Vector3IntCallback callback)			{ getCOMInteractive().setOnTouchEnter(callback); }
+	public void setOnTouchLeave(Vector3IntCallback callback)			{ getCOMInteractive().setOnTouchLeave(callback); }
+	public void setOnTouchDown(Vector3IntCallback callback)				{ getCOMInteractive().setOnTouchDown(callback); }
+	public void setOnTouchUp(Vector3IntCallback callback)				{ getCOMInteractive().setOnTouchUp(callback); }
+	public void setOnTouchMove(TouchMoveCallback callback)					{ getCOMInteractive().setOnTouchMove(callback); }
+	public void setOnTouchStay(Vector3IntCallback callback)				{ getCOMInteractive().setOnTouchStay(callback); }
+	public void setOnScreenTouchUp(Vector3IntCallback callback)			{ getCOMInteractive().setOnScreenTouchUp(callback); }
+	public void setColliderForClick(bool forClick)						{ getCOMInteractive().setColliderForClick(forClick); }
+	public void setClickSound(int sound)								{ getCOMInteractive().setClickSound(sound); }
+	public void setLayout(GameLayout layout)							{ mLayout = layout; }
+	public void setReceiveLayoutHide(bool receive)						{ mReceiveLayoutHide = receive; }
 	public override void setObject(GameObject go)
 	{
 		setName(go.name);
@@ -550,41 +631,41 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 			mParent.addChild(this, refreshDepth);
 		}
 	}
-	public virtual void setHandleInput(bool enable) { mCOMWindowCollider?.enableCollider(enable); }
+	public virtual void setHandleInput(bool enable)							{ mCOMWindowCollider?.enableCollider(enable); }
 	public void addLongPress(Action callback, float pressTime, FloatCallback pressingCallback = null)
 	{
 		getCOMInteractive().addLongPress(callback, pressTime, pressingCallback);
 	}
-	public void removeLongPress(Action callback) { mCOMWindowInteractive?.removeLongPress(callback); }
-	public void clearLongPress() { mCOMWindowInteractive?.clearLongPress(); }
+	public void removeLongPress(Action callback)							{ mCOMWindowInteractive?.removeLongPress(callback); }
+	public void clearLongPress()											{ mCOMWindowInteractive?.clearLongPress(); }
 	// callback
 	//------------------------------------------------------------------------------------------------------------------------------
-	public virtual void onMouseEnter(Vector3 mousePos, int touchID) { mCOMWindowInteractive?.onMouseEnter(mousePos, touchID); }
-	public virtual void onMouseLeave(Vector3 mousePos, int touchID) { mCOMWindowInteractive?.onMouseLeave(mousePos, touchID); }
+	public virtual void onTouchEnter(Vector3 touchPos, int touchID)			{ mCOMWindowInteractive?.onTouchEnter(touchPos, touchID); }
+	public virtual void onTouchLeave(Vector3 touchPos, int touchID)			{ mCOMWindowInteractive?.onTouchLeave(touchPos, touchID); }
 	// 鼠标左键在窗口内按下
-	public virtual void onMouseDown(Vector3 mousePos, int touchID) { mCOMWindowInteractive?.onMouseDown(mousePos, touchID); }
+	public virtual void onTouchDown(Vector3 touchPos, int touchID)			{ mCOMWindowInteractive?.onTouchDown(touchPos, touchID); }
 	// 鼠标左键在窗口内放开
-	public virtual void onMouseUp(Vector3 mousePos, int touchID) { mCOMWindowInteractive?.onMouseUp(mousePos, touchID); }
+	public virtual void onTouchUp(Vector3 touchPos, int touchID)			{ mCOMWindowInteractive?.onTouchUp(touchPos, touchID); }
 	// 触点在移动,此时触点是按下状态,且按下瞬间在窗口范围内
-	public virtual void onMouseMove(Vector3 mousePos, Vector3 moveDelta, float moveTime, int touchID)
+	public virtual void onTouchMove(Vector3 touchPos, Vector3 moveDelta, float moveTime, int touchID)
 	{
-		mCOMWindowInteractive?.onMouseMove(mousePos, moveDelta, moveTime, touchID);
+		mCOMWindowInteractive?.onTouchMove(touchPos, moveDelta, moveTime, touchID);
 	}
 	// 触点没有移动,此时触点是按下状态,且按下瞬间在窗口范围内
-	public virtual void onMouseStay(Vector3 mousePos, int touchID) { mCOMWindowInteractive?.onMouseStay(mousePos, touchID); }
+	public virtual void onTouchStay(Vector3 touchPos, int touchID)			{ mCOMWindowInteractive?.onTouchStay(touchPos, touchID); }
 	// 鼠标在屏幕上抬起
-	public virtual void onScreenMouseUp(Vector3 mousePos, int touchID) { mCOMWindowInteractive?.onScreenMouseUp(mousePos, touchID); }
+	public virtual void onScreenTouchUp(Vector3 touchPos, int touchID)		{ mCOMWindowInteractive?.onScreenTouchUp(touchPos, touchID); }
 	// 鼠标在屏幕上按下
-	public virtual void onScreenMouseDown(Vector3 mousePos, int touchID) { mCOMWindowInteractive?.onScreenMouseDown(mousePos, touchID); }
+	public virtual void onScreenTouchDown(Vector3 touchPos, int touchID)	{ mCOMWindowInteractive?.onScreenTouchDown(touchPos, touchID); }
 	// 有物体拖动到了当前窗口上
-	public virtual void onReceiveDrag(IMouseEventCollect dragObj, Vector3 mousePos, ref bool continueEvent)
+	public virtual void onReceiveDrag(IMouseEventCollect dragObj, Vector3 touchPos, ref bool continueEvent)
 	{
-		mCOMWindowInteractive?.onReceiveDrag(dragObj, mousePos, ref continueEvent);
+		mCOMWindowInteractive?.onReceiveDrag(dragObj, touchPos, ref continueEvent);
 	}
 	// 有物体拖动到了当前窗口上
-	public virtual void onDragHoverd(IMouseEventCollect dragObj, Vector3 mousePos, bool hover)
+	public virtual void onDragHovered(IMouseEventCollect dragObj, Vector3 touchPos, bool hover)
 	{
-		mCOMWindowInteractive?.onDragHoverd(dragObj, mousePos, hover);
+		mCOMWindowInteractive?.onDragHovered(dragObj, touchPos, hover);
 	}
 	public void sortChild()
 	{
@@ -598,7 +679,15 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	// registeEvent,这些函数只是用于简化注册碰撞体的操作
 	public void registeCollider(Action clickCallback, Action preClick, bool passRay = false)
 	{
-		mGlobalTouchSystem.registeCollider(this);
+		mGlobalTouchSystem.registeCollider(this, null, true);
+		setClickCallback(clickCallback);
+		setPreClickCallback(preClick);
+		setPassRay(passRay);
+		setNeedUpdate(true);
+	}
+	public void registeColliderNoError(Action clickCallback, Action preClick, bool passRay = false)
+	{
+		mGlobalTouchSystem.registeCollider(this, null, false);
 		setClickCallback(clickCallback);
 		setPreClickCallback(preClick);
 		setPassRay(passRay);
@@ -607,7 +696,15 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	// 用于接收GlobalTouchSystem处理的输入事件
 	public void registeCollider(Action clickCallback, BoolCallback hoverCallback, BoolCallback pressCallback, bool passRay)
 	{
-		mGlobalTouchSystem.registeCollider(this);
+		mGlobalTouchSystem.registeCollider(this, null, true);
+		setObjectCallback(clickCallback, hoverCallback, pressCallback);
+		setPassRay(passRay);
+		// 由碰撞体的窗口都需要启用更新,以便可以保证窗口大小与碰撞体大小一致
+		setNeedUpdate(true);
+	}
+	public void registeColliderNoError(Action clickCallback, BoolCallback hoverCallback, BoolCallback pressCallback, bool passRay)
+	{
+		mGlobalTouchSystem.registeCollider(this, null, false);
 		setObjectCallback(clickCallback, hoverCallback, pressCallback);
 		setPassRay(passRay);
 		// 由碰撞体的窗口都需要启用更新,以便可以保证窗口大小与碰撞体大小一致
@@ -615,35 +712,71 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	}
 	public void registeCollider(Action clickCallback, BoolCallback hoverCallback, BoolCallback pressCallback, GameCamera camera)
 	{
-		mGlobalTouchSystem.registeCollider(this, camera);
+		mGlobalTouchSystem.registeCollider(this, camera, true);
+		setObjectCallback(clickCallback, hoverCallback, pressCallback);
+		setPassRay(false);
+		setNeedUpdate(true);
+	}
+	public void registeColliderNoError(Action clickCallback, BoolCallback hoverCallback, BoolCallback pressCallback, GameCamera camera)
+	{
+		mGlobalTouchSystem.registeCollider(this, camera, false);
 		setObjectCallback(clickCallback, hoverCallback, pressCallback);
 		setPassRay(false);
 		setNeedUpdate(true);
 	}
 	public void registeCollider(Action clickCallback, BoolCallback hoverCallback, BoolCallback pressCallback)
 	{
-		mGlobalTouchSystem.registeCollider(this);
+		mGlobalTouchSystem.registeCollider(this, null, true);
+		setObjectCallback(clickCallback, hoverCallback, pressCallback);
+		setPassRay(false);
+		setNeedUpdate(true);
+	}
+	public void registeColliderNoError(Action clickCallback, BoolCallback hoverCallback, BoolCallback pressCallback)
+	{
+		mGlobalTouchSystem.registeCollider(this, null, false);
 		setObjectCallback(clickCallback, hoverCallback, pressCallback);
 		setPassRay(false);
 		setNeedUpdate(true);
 	}
 	public void registeCollider(Action clickCallback, bool passRay)
 	{
-		mGlobalTouchSystem.registeCollider(this);
+		mGlobalTouchSystem.registeCollider(this, null, true);
 		setClickCallback(clickCallback);
 		setPassRay(passRay);
 		setNeedUpdate(true);
 	}
-	public void registeCollider(ClickCallback clickCallback, bool passRay)
+	public void registeColliderNoError(Action clickCallback, bool passRay)
 	{
-		mGlobalTouchSystem.registeCollider(this);
+		mGlobalTouchSystem.registeCollider(this, null, false);
+		setClickCallback(clickCallback);
+		setPassRay(passRay);
+		setNeedUpdate(true);
+	}
+	public void registeCollider(Vector3Callback clickCallback, bool passRay)
+	{
+		mGlobalTouchSystem.registeCollider(this, null, true);
+		setClickDetailCallback(clickCallback);
+		setPassRay(passRay);
+		setNeedUpdate(true);
+	}
+	public void registeColliderNoError(Vector3Callback clickCallback, bool passRay)
+	{
+		mGlobalTouchSystem.registeCollider(this, null, false);
 		setClickDetailCallback(clickCallback);
 		setPassRay(passRay);
 		setNeedUpdate(true);
 	}
 	public void registeCollider(Action clickCallback, int clickSound)
 	{
-		mGlobalTouchSystem.registeCollider(this);
+		mGlobalTouchSystem.registeCollider(this, null, true);
+		setClickCallback(clickCallback);
+		setPassRay(false);
+		setNeedUpdate(true);
+		setClickSound(clickSound);
+	}
+	public void registeColliderNoError(Action clickCallback, int clickSound)
+	{
+		mGlobalTouchSystem.registeCollider(this, null, false);
 		setClickCallback(clickCallback);
 		setPassRay(false);
 		setNeedUpdate(true);
@@ -651,15 +784,31 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	}
 	public void registeCollider(Action clickCallback, bool passRay, int clickSound)
 	{
-		mGlobalTouchSystem.registeCollider(this);
+		mGlobalTouchSystem.registeCollider(this, null, true);
 		setClickCallback(clickCallback);
 		setPassRay(passRay);
 		setNeedUpdate(true);
 		setClickSound(clickSound);
 	}
-	public void registeCollider(ClickCallback clickCallback, int clickSound)
+	public void registeColliderNoError(Action clickCallback, bool passRay, int clickSound)
 	{
-		mGlobalTouchSystem.registeCollider(this);
+		mGlobalTouchSystem.registeCollider(this, null, false);
+		setClickCallback(clickCallback);
+		setPassRay(passRay);
+		setNeedUpdate(true);
+		setClickSound(clickSound);
+	}
+	public void registeCollider(Vector3Callback clickCallback, int clickSound)
+	{
+		mGlobalTouchSystem.registeCollider(this, null, true);
+		setClickDetailCallback(clickCallback);
+		setPassRay(false);
+		setNeedUpdate(true);
+		setClickSound(clickSound);
+	}
+	public void registeColliderNoError(Vector3Callback clickCallback, int clickSound)
+	{
+		mGlobalTouchSystem.registeCollider(this, null, false);
 		setClickDetailCallback(clickCallback);
 		setPassRay(false);
 		setNeedUpdate(true);
@@ -667,41 +816,81 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	}
 	public void registeCollider(Action clickCallback)
 	{
-		mGlobalTouchSystem.registeCollider(this);
+		mGlobalTouchSystem.registeCollider(this, null, true);
+		setClickCallback(clickCallback);
+		setPassRay(false);
+		setNeedUpdate(true);
+	}
+	public void registeColliderNoError(Action clickCallback)
+	{
+		mGlobalTouchSystem.registeCollider(this, null, false);
 		setClickCallback(clickCallback);
 		setPassRay(false);
 		setNeedUpdate(true);
 	}
 	public void registeCollider(Action clickCallback, GameCamera camera)
 	{
-		mGlobalTouchSystem.registeCollider(this, camera);
+		mGlobalTouchSystem.registeCollider(this, camera, true);
 		setClickCallback(clickCallback);
 		setPassRay(false);
 		setNeedUpdate(true);
 	}
-	public void registeCollider(ClickCallback clickCallback)
+	public void registeColliderNoError(Action clickCallback, GameCamera camera)
 	{
-		mGlobalTouchSystem.registeCollider(this);
+		mGlobalTouchSystem.registeCollider(this, camera, false);
+		setClickCallback(clickCallback);
+		setPassRay(false);
+		setNeedUpdate(true);
+	}
+	public void registeCollider(Vector3Callback clickCallback)
+	{
+		mGlobalTouchSystem.registeCollider(this, null, true);
 		setClickDetailCallback(clickCallback);
 		setPassRay(false);
 		setNeedUpdate(true);
 	}
-	public void registeCollider(ClickCallback clickCallback, GameCamera camera)
+	public void registeColliderNoError(Vector3Callback clickCallback)
+	{
+		mGlobalTouchSystem.registeCollider(this, null, false);
+		setClickDetailCallback(clickCallback);
+		setPassRay(false);
+		setNeedUpdate(true);
+	}
+	public void registeCollider(Vector3Callback clickCallback, GameCamera camera)
 	{
 		setClickDetailCallback(clickCallback);
-		mGlobalTouchSystem.registeCollider(this, camera);
+		mGlobalTouchSystem.registeCollider(this, camera, true);
+		setPassRay(false);
+		setNeedUpdate(true);
+	}
+	public void registeColliderNoError(Vector3Callback clickCallback, GameCamera camera)
+	{
+		setClickDetailCallback(clickCallback);
+		mGlobalTouchSystem.registeCollider(this, camera, false);
 		setPassRay(false);
 		setNeedUpdate(true);
 	}
 	public void registeCollider(bool passRay)
 	{
-		mGlobalTouchSystem.registeCollider(this);
+		mGlobalTouchSystem.registeCollider(this, null, true);
+		setPassRay(passRay);
+		setNeedUpdate(true);
+	}
+	public void registeColliderNoError(bool passRay)
+	{
+		mGlobalTouchSystem.registeCollider(this, null, false);
 		setPassRay(passRay);
 		setNeedUpdate(true);
 	}
 	public void registeCollider()
 	{
-		mGlobalTouchSystem.registeCollider(this);
+		mGlobalTouchSystem.registeCollider(this, null, true);
+		setPassRay(false);
+		setNeedUpdate(true);
+	}
+	public void registeColliderNoError()
+	{
+		mGlobalTouchSystem.registeCollider(this, null, false);
 		setPassRay(false);
 		setNeedUpdate(true);
 	}
@@ -740,9 +929,9 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	{
 		return sign(child0.getTransform().GetSiblingIndex() - child1.getTransform().GetSiblingIndex());
 	}
-	protected COMWindowInteractive getCOMInteractive()
+	protected ComponentInteractive getCOMInteractive()
 	{
-		return mCOMWindowInteractive ??= addComponent<COMWindowInteractive>(true);
+		return mCOMWindowInteractive ??= addComponent<ComponentInteractive>(true);
 	}
 	protected COMWindowCollider getCOMCollider()
 	{

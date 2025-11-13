@@ -25,6 +25,11 @@ public class ArrayPoolThread : FrameSystem
 			mObject.AddComponent<ArrayPoolThreadDebug>();
 		}
 	}
+	public override void destroy()
+	{
+		base.destroy();
+		mListLock.destroy();
+	}
 	public ThreadLock getLock() { return mListLock; }
 	public void clearUnused()
 	{

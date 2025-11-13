@@ -120,8 +120,8 @@ public class GlobalTouchSystem : FrameSystem
 		}
 	}
 	public bool isColliderRegisted(IMouseEventCollect obj) { return mAllObjectSet.Contains(obj); }
-	// 注册碰撞器,只有注册了的碰撞器才会进行检测
-	public void registeCollider(IMouseEventCollect obj, GameCamera camera = null)
+	// 注册碰撞器,只有注册了的碰撞器才会进行检测,showError是否显示重复注册的报错
+	public void registeCollider(IMouseEventCollect obj, GameCamera camera = null, bool showError = true)
 	{
 		// 允许自动添加碰撞盒
 		if (obj.getCollider(true) == null)
@@ -131,7 +131,10 @@ public class GlobalTouchSystem : FrameSystem
 		}
 		if (mAllObjectSet.Contains(obj))
 		{
-			logError("不能重复注册碰撞体: " + obj.getName() + ", " + obj.getDescription());
+			if (showError)
+			{
+				logError("不能重复注册碰撞体: " + obj.getName() + ", " + obj.getDescription());
+			}
 			return;
 		}
 
@@ -351,9 +354,9 @@ public class GlobalTouchSystem : FrameSystem
 		{
 			foreach (IMouseEventCollect item in mAllObjectSet)
 			{
-				if (item.isReceiveScreenMouse())
+				if (item.isReceiveScreenTouch())
 				{
-					item.onScreenMouseDown(pos, touchID);
+					item.onScreenTouchDown(pos, touchID);
 				}
 			}
 			using var a = new SafeListReader<IMouseEventCollect>(touchInfo.getPressList());
@@ -362,7 +365,7 @@ public class GlobalTouchSystem : FrameSystem
 				// 如果此时窗口已经被销毁了,则不再通知,因为可能在onScreenMouseDown中销毁了
 				if (mAllObjectSet.Contains(obj))
 				{
-					obj.onMouseDown(pos, touchID);
+					obj.onTouchDown(pos, touchID);
 				}
 			}
 		}
@@ -373,9 +376,9 @@ public class GlobalTouchSystem : FrameSystem
 			{ 
 				foreach (IMouseEventCollect item in a.mReadList)
 				{
-					if (mAllObjectSet.Contains(item) && item.isReceiveScreenMouse())
+					if (mAllObjectSet.Contains(item) && item.isReceiveScreenTouch())
 					{
-						item.onScreenMouseDown(pos, touchID);
+						item.onScreenTouchDown(pos, touchID);
 					}
 				}
 			}
@@ -384,9 +387,9 @@ public class GlobalTouchSystem : FrameSystem
 			{
 				foreach (IMouseEventCollect item in b.mReadList)
 				{
-					if (mAllObjectSet.Contains(item) && item.isReceiveScreenMouse())
+					if (mAllObjectSet.Contains(item) && item.isReceiveScreenTouch())
 					{
-						item.onScreenMouseDown(pos, touchID);
+						item.onScreenTouchDown(pos, touchID);
 					}
 				}
 			}
@@ -398,7 +401,7 @@ public class GlobalTouchSystem : FrameSystem
 				{
 					if (mAllObjectSet.Contains(item) && touchInfo.getPressList().contains(item))
 					{
-						item.onMouseDown(pos, touchID);
+						item.onTouchDown(pos, touchID);
 					}
 				}
 			}
@@ -409,7 +412,7 @@ public class GlobalTouchSystem : FrameSystem
 				{
 					if (mAllObjectSet.Contains(item) && touchInfo.getPressList().contains(item))
 					{
-						item.onMouseDown(pos, touchID);
+						item.onTouchDown(pos, touchID);
 					}
 				}
 			}
@@ -429,9 +432,9 @@ public class GlobalTouchSystem : FrameSystem
 		{
 			foreach (IMouseEventCollect item in mAllObjectSet)
 			{
-				if (item.isReceiveScreenMouse())
+				if (item.isReceiveScreenTouch())
 				{
-					item.onScreenMouseUp(pos, touchID);
+					item.onScreenTouchUp(pos, touchID);
 				}
 			}
 
@@ -441,7 +444,7 @@ public class GlobalTouchSystem : FrameSystem
 				// 如果此时窗口已经被销毁了,则不再通知,因为可能在onScreenMouseUp中销毁了
 				if (mAllObjectSet.Contains(obj))
 				{
-					obj.onMouseUp(pos, touchID);
+					obj.onTouchUp(pos, touchID);
 				}
 			}
 		}
@@ -453,9 +456,9 @@ public class GlobalTouchSystem : FrameSystem
 			{
 				foreach (IMouseEventCollect item in a.mReadList)
 				{
-					if (mAllObjectSet.Contains(item) && item.isReceiveScreenMouse())
+					if (mAllObjectSet.Contains(item) && item.isReceiveScreenTouch())
 					{
-						item.onScreenMouseUp(pos, touchID);
+						item.onScreenTouchUp(pos, touchID);
 					}
 				}
 			}
@@ -464,9 +467,9 @@ public class GlobalTouchSystem : FrameSystem
 			{
 				foreach (IMouseEventCollect item in b.mReadList)
 				{
-					if (mAllObjectSet.Contains(item) && item.isReceiveScreenMouse())
+					if (mAllObjectSet.Contains(item) && item.isReceiveScreenTouch())
 					{
-						item.onScreenMouseUp(pos, touchID);
+						item.onScreenTouchUp(pos, touchID);
 					}
 				}
 			}
@@ -478,7 +481,7 @@ public class GlobalTouchSystem : FrameSystem
 				{
 					if (mAllObjectSet.Contains(item) && touchInfo.getPressList().contains(item))
 					{
-						item.onMouseUp(pos, touchID);
+						item.onTouchUp(pos, touchID);
 					}
 				}
 			}
@@ -489,7 +492,7 @@ public class GlobalTouchSystem : FrameSystem
 				{
 					if (mAllObjectSet.Contains(item) && touchInfo.getPressList().contains(item))
 					{
-						item.onMouseUp(pos, touchID);
+						item.onTouchUp(pos, touchID);
 					}
 				}
 			}
@@ -506,7 +509,7 @@ public class GlobalTouchSystem : FrameSystem
 		}
 	}
 	// 全局射线检测
-	protected void globalRaycast(List<IMouseEventCollect> resultList, Vector3 mousePos, bool ignorePassRay = false)
+	protected void globalRaycast(List<IMouseEventCollect> resultList, Vector3 touchPos, bool ignorePassRay = false)
 	{
 		bool continueRay = true;
 		// 每次检测UI时都需要对列表按摄像机深度进行降序排序
@@ -524,7 +527,7 @@ public class GlobalTouchSystem : FrameSystem
 				logError("摄像机已销毁:" + camera.getName());
 				continue;
 			}
-			Ray ray = getCameraRay(mousePos, camera.getCamera());
+			Ray ray = getCameraRay(touchPos, camera.getCamera());
 			// 没有指定的交互物体
 			if (mActiveOnlyUIObject.count() == 0 && mActiveOnlyMovableObject.count() == 0)
 			{
@@ -580,7 +583,7 @@ public class GlobalTouchSystem : FrameSystem
 				}
 				if (mActiveOnlyUIObject.count() == 0 && mActiveOnlyMovableObject.count() == 0)
 				{
-					raycastMovableObject(getCameraRay(mousePos, camera), item.mObjectOrderList, resultList, ref continueRay, false);
+					raycastMovableObject(getCameraRay(touchPos, camera), item.mObjectOrderList, resultList, ref continueRay, false);
 				}
 				else if (mActiveOnlyMovableObject.count() > 0)
 				{
@@ -594,7 +597,7 @@ public class GlobalTouchSystem : FrameSystem
 					}
 					if (list.Count > 0)
 					{
-						raycastMovableObject(getCameraRay(mousePos, camera), list, resultList, ref continueRay, false);
+						raycastMovableObject(getCameraRay(touchPos, camera), list, resultList, ref continueRay, false);
 					}
 				}
 			}

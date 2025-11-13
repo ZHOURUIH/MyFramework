@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UObject = UnityEngine.Object;
 using static UnityUtility;
 
+// 封装的Atlas的基类,通用于SpriteAtlas或MultiSprite的图集
 public abstract class AtlasBase
 {
 	protected Dictionary<string, Sprite> mSpriteList = new();   // 图集中包含的所有图片列表
@@ -21,6 +22,15 @@ public abstract class AtlasBase
 	public int getReferenceCount() { return mReferenceTokenList.Count; }
 	public void setFilePath(string filePath) { mFilePath = filePath; }
 	public void addSprite(Sprite sprite) { mSpriteList.Add(sprite.name, sprite); }
+	public Vector2 getFirstSpriteSize()
+	{
+		Sprite sprite = mSpriteList.firstValue();
+		if (sprite != null)
+		{
+			return sprite.rect.size;
+		}
+		return Vector2.zero;
+	}
 	public void destroy()
 	{
 		mSpriteList.Clear();

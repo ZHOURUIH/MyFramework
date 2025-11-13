@@ -22,8 +22,9 @@ public class UGUIProgress : WindowObjectUGUI, ISlider, ICommonUI
 		newObject(out mProgressBar, "ProgressBar");
 		newObject(out mThumb, "Thumb", false);
 	}
-	public void initProgress()
+	public override void init()
 	{
+		base.init();
 		if (mProgressBar.getImage().type == Image.Type.Filled)
 		{
 			mMode = SLIDER_MODE.FILL;
@@ -51,7 +52,7 @@ public class UGUIProgress : WindowObjectUGUI, ISlider, ICommonUI
 		else if (mMode == SLIDER_MODE.SIZING)
 		{
 			float newWidth = mProgressValue * mOriginProgressSize.x;
-			FT.MOVE(mProgressBar, replaceX(mOriginProgressPosition, mOriginProgressPosition.x - mOriginProgressSize.x * 0.5f + newWidth * 0.5f));
+			mProgressBar.setPositionX(mOriginProgressPosition.x - mOriginProgressSize.x * 0.5f + newWidth * 0.5f);
 			mProgressBar.setWindowSize(new(newWidth, mOriginProgressSize.y));
 		}
 		mThumb?.setPositionX((mProgressValue - 0.5f) * mOriginProgressSize.x);

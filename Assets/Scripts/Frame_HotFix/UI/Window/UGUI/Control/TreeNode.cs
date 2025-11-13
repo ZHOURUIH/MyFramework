@@ -18,7 +18,7 @@ public abstract class UGUITreeNode : WindowRecycleableUGUI
 	public void addChild(UGUITreeNode node) { mChildNodeList.Add(node); }
 	public void setParent(UGUITreeNode parent)
 	{
-		mParent = parent;
+		mParentNode = parent;
 		mDepth = mParentNode?.getChildDepth() ?? 0;
 	}
 	public virtual void setSelect(bool select) { mSelect = select; }

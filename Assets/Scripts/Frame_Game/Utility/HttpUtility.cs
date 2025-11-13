@@ -1,78 +1,36 @@
-﻿using System;
+﻿using System.Text;
+using System.Collections;
 using System.Collections.Generic;
-using System.Text;
-using System.IO;
-using System.Net;
-using static FrameBaseUtility;
+using UnityEngine.Networking;
 
 // 封装的Http的相关操作,因为其中全是静态工具函数,所以名字为Utility,但是由于需要管理一些线程,所以与普通的工具函数类不同
 public class HttpUtility
 {
-	// 同步get请求
-	public static string httpGet(string url, out WebExceptionStatus status, out HttpStatusCode code, Dictionary<string, string> paramList, Dictionary<string, string> header)
+	// 异步get请求,webgl可用
+	public static void httpGetAsyncWebGL(string url, Dictionary<string, string> paramList, UnityHttpCallback callback)
 	{
-		return httpRequest(prepareGet(url, paramList, header, "application/x-www-form-urlencoded"), url, out status, out code);
+		GameEntry.startCoroutine(unityPrepareGet(url, "application/x-www-form-urlencoded", null, paramList, callback, 10));
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected static HttpWebRequest prepareGet(string url, Dictionary<string, string> paramList, Dictionary<string, string> header, string contentType, int timeout = 10000)
+	protected static IEnumerator unityPrepareGet(string url, string contentType, Dictionary<string, string> header, Dictionary<string, string> paramList, UnityHttpCallback callback, int timeoutSecond)
 	{
-		// 根据url地址创建HttpWebRequest对象
 		url += generateGetParams(paramList);
-		var webRequest = (HttpWebRequest)WebRequest.Create(new Uri(url));
-		webRequest.Method = "GET";
-		webRequest.KeepAlive = true;
-		webRequest.ProtocolVersion = HttpVersion.Version11;
-		webRequest.ContentType = contentType;
-		webRequest.AllowAutoRedirect = true;
-		webRequest.MaximumAutomaticRedirections = 2;
-		webRequest.Timeout = timeout;
+		// 创建一个UnityWebRequest对象，指定为GET请求
+		UnityWebRequest request = new(url, UnityWebRequest.kHttpVerbGET);
+		request.downloadHandler = new DownloadHandlerBuffer();
+		// 设置Content-Type头为application/json
+		request.SetRequestHeader("Content-Type", contentType);
+		request.timeout = timeoutSecond;
 		if (header != null)
 		{
 			foreach (var item in header)
 			{
-				webRequest.Headers.Add(item.Key, item.Value);
+				request.SetRequestHeader(item.Key, item.Value);
 			}
 		}
-		return webRequest;
-	}
-	// 同步Http请求
-	protected static string httpRequest(HttpWebRequest webRequest, string url, out WebExceptionStatus status, out HttpStatusCode code)
-	{
-		if (isWebGL())
-		{
-			logErrorBase("无法在WebGL平台使用C#的Http请求函数");
-		}
-		code = HttpStatusCode.OK;
-		try
-		{
-			string str = null;
-			using var response = (HttpWebResponse)webRequest.GetResponse();
-			code = response.StatusCode;
-			if (code == HttpStatusCode.OK || code == HttpStatusCode.NoContent)
-			{
-				status = WebExceptionStatus.Success;
-				using StreamReader reader = new(response.GetResponseStream(), Encoding.UTF8);
-				str = reader.ReadToEnd();
-			}
-			else
-			{
-				status = WebExceptionStatus.UnknownError;
-				logWarningBase("http post result error, code:" + code + ", url:" + url);
-			}
-			webRequest.Abort();
-			return str;
-		}
-		catch (WebException e)
-		{
-			status = e.Status;
-			logWarningBase("http request web exception:" + e.Message + ", status:" + status + ", code:" + code + ", url:" + url);
-		}
-		catch (Exception e)
-		{
-			status = WebExceptionStatus.UnknownError;
-			logWarningBase("http request exception:" + e.Message + ", code:" + code + ", url:" + url);
-		}
-		return null;
+		// 发送请求并等待完成
+		yield return request.SendWebRequest();
+		callback?.Invoke(request.downloadHandler.text, request.result, request.responseCode);
 	}
 	protected static string generateGetParams(Dictionary<string, string> paramList)
 	{

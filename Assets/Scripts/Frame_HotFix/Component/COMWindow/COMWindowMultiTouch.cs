@@ -6,7 +6,7 @@ public class COMWindowMultiTouch : ComponentMultiTouch
 	{
 		base.init(owner);
 		var window = mComponentOwner as myUGUIObject;
-		window.setOnMouseDown(onTouchStart);
-		window.setOnMouseUp(onTouchEnd);
+		window.setOnTouchDown(onTouchStart);
+		window.setOnTouchUp(onTouchEnd);
 	}
 }

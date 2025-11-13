@@ -38,7 +38,7 @@ public abstract class ComponentPathAlpha : ComponentKeyFrame
 		{
 			mMaxLength = 0.0f;
 		}
-		base.play((int)KEY_CURVE.ZERO_ONE, loop, mMaxLength, timeOffset);
+		base.play(KEY_CURVE.ZERO_ONE, loop, mMaxLength, timeOffset);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)

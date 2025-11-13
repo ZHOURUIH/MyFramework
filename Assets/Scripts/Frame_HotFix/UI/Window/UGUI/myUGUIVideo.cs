@@ -6,14 +6,14 @@ using static MathUtility;
 using static FrameUtility;
 using static FileUtility;
 using static FrameDefine;
-using static FrameDefineBase;
+using static FrameBaseDefine;
 
 // 用于播放视频的窗口
 public class myUGUIVideo : myUGUIRawImage
 {
 	protected VideoErrorCallback mErrorCallback;		// 错误回调
-	protected VideoCallback mVideoReadyCallback;		// 视频准备完毕的回调
-	protected VideoCallback mVideoEndCallback;			// 视频播放结束的回调
+	protected StringBoolCallback mVideoReadyCallback;		// 视频准备完毕的回调
+	protected StringBoolCallback mVideoEndCallback;			// 视频播放结束的回调
 	protected MediaPlayer mMediaPlayer;					// 视频播放组件
 	protected PLAY_STATE mNextState;					// 缓存的视频播放状态
 	protected string mFileName;							// 视频文件名
@@ -206,7 +206,7 @@ public class myUGUIVideo : myUGUIRawImage
 			mNextSeekTime = timeMS;
 		}
 	}
-	public void setVideoEndCallback(VideoCallback callback)
+	public void setVideoEndCallback(StringBoolCallback callback)
 	{
 		// 重新设置回调之前,先调用之前的回调
 		clearAndCallEvent(ref mVideoEndCallback, true);
@@ -220,7 +220,7 @@ public class myUGUIVideo : myUGUIRawImage
 	{
 		return mMediaPlayer.Control.IsPlaying();
 	}
-	public void setVideoReadyCallback(VideoCallback callback) { mVideoReadyCallback = callback; }
+	public void setVideoReadyCallback(StringBoolCallback callback) { mVideoReadyCallback = callback; }
 	public void setErrorCallback(VideoErrorCallback callback) { mErrorCallback = callback; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void notifyVideoReady(bool ready)
@@ -244,9 +244,9 @@ public class myUGUIVideo : myUGUIRawImage
 			mNextSeekTime = 0.0f;
 		}
 	}
-	protected void clearAndCallEvent(ref VideoCallback callback, bool isBreak)
+	protected void clearAndCallEvent(ref StringBoolCallback callback, bool isBreak)
 	{
-		VideoCallback temp = callback;
+		StringBoolCallback temp = callback;
 		callback = null;
 		temp?.Invoke(mFileName, isBreak);
 	}

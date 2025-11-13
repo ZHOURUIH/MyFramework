@@ -15,7 +15,7 @@ using UObject = UnityEngine.Object;
 public class MenuGameObject
 {
 	public const string mMenuName = "GameObject/";
-	[MenuItem(mMenuName + "将缩放转换为位置和大小", false, 35)]
+	[MenuItem(mMenuName + "将缩放转换为位置和大小 &R", false, 35)]
 	public static void applyScaleToTransform()
 	{
 		GameObject go = Selection.activeGameObject;

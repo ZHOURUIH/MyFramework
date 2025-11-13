@@ -8,19 +8,19 @@ using static FrameBaseHotFix;
 public class COMWindowDragView : GameComponent
 {
 	protected List<COMWindowDragView> mMutexDragView;           // 与当前组件互斥的滑动组件,两个组件中同一时间只有一个组件响应滑动
-	protected OnDragViewStartCallback mOnDragViewStartCallback; // 开始拖拽滑动的回调
+	protected RefBoolCallback mDragViewStartCallback;			// 开始拖拽滑动的回调
 	protected Action mPositionChangeCallback;					// 组件所属窗口位置改变的回调
 	protected Action mReleaseDragCallback;						// 结束拖拽的回调
-	protected Action mDragingCallback;							// 拖拽中的回调
+	protected Action mDraggingCallback;							// 拖拽中的回调
 	protected myUGUIObject mWindow;                             // 组件所属窗口
-	protected Vector3 mMinRelativePos;							// 左边界和下边界或者窗口中心的最小值,具体需要由mClampType决定,-1到1的相对值,相对于父窗口的宽高
-	protected Vector3 mMaxRelativePos;							// 右边界和上边界或者窗口中心的最大值,具体需要由mClampType决定,-1到1的相对值,相对于父窗口的宽高
-	protected float mDragLengthThreshold;						// 拖拽长度的最小值,当拖动距离大于该值时才允许开始拖拽
+	protected Vector3 mMinRelativePos = -Vector3.one;			// 左边界和下边界或者窗口中心的最小值,具体需要由mClampType决定,-1到1的相对值,相对于父窗口的宽高
+	protected Vector3 mMaxRelativePos = Vector3.one;			// 右边界和上边界或者窗口中心的最大值,具体需要由mClampType决定,-1到1的相对值,相对于父窗口的宽高
+	protected float mDragLengthThreshold = 10.0f;				// 拖拽长度的最小值,当拖动距离大于该值时才允许开始拖拽
 	protected float mDragAngleThreshold;						// 拖拽方向与允许拖拽方向的夹角绝对值最大值,弧度制
-	protected float mAttenuateFactor;							// 移动速度衰减系数,鼠标在放开时移动速度会逐渐降低,衰减系数越大.速度降低越快
-	protected float mMoveToEdgeSpeed;							// 自动停靠到最近的边的速度
-	protected float mMoveSpeedScale;							// 鼠标放开后自由移动时的速度缩放
-	protected float mAutoClampSpeed;							// 当列表拖拽到合法范围外时恢复到正常范围内时的速度
+	protected float mAttenuateFactor = 2.0f;					// 移动速度衰减系数,鼠标在放开时移动速度会逐渐降低,衰减系数越大.速度降低越快
+	protected float mMoveToEdgeSpeed = 5.0f;					// 自动停靠到最近的边的速度
+	protected float mMoveSpeedScale = 1.0f;						// 鼠标放开后自由移动时的速度缩放
+	protected float mAutoClampSpeed = 10.0f;					// 当列表拖拽到合法范围外时恢复到正常范围内时的速度
 	protected bool mAutoMoveToEdge;								// 是否自动停靠到最近的边
 	protected bool mAlignTopOrLeft = true;						// 是否对齐左边或上边
 	protected bool mClampInRange;                               // 拖拽时是否始终限制在正常范围内
@@ -34,12 +34,12 @@ public class COMWindowDragView : GameComponent
 	// 用于实时计算的参数
 	protected Vector3 mStartDragWindowPosition;					// 开始拖拽时的窗口的坐标
 	protected Vector3 mStartDragMousePosition;					// 开始拖拽时的触点坐标
-	protected Vector3 mMouseDownPos;							// 触点按下时的坐标
+	protected Vector3 mTouchDownPos;							// 触点按下时的坐标
 	protected Vector3 mMoveDirection;							// 当前拖拽移动的方向
-	protected BOOL mDraging = new();							// 是否正在拖动,鼠标按下并且移动速度大于一定值时开始拖动,鼠标放开时,按惯性移动
+	protected BOOL mDragging = new();							// 是否正在拖动,鼠标按下并且移动速度大于一定值时开始拖动,鼠标放开时,按惯性移动
 	protected float mMoveSpeed;									// 移动速度
 	protected int mTouchID;										// 操作的触点ID
-	protected bool mMouseDown;									// 鼠标是否在窗口内按下,鼠标抬起会设置为false,但是鼠标离开窗口时仍然为true
+	protected bool mTouchDown;									// 鼠标是否在窗口内按下,鼠标抬起会设置为false,但是鼠标离开窗口时仍然为true
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 用于避免GC的参数
 	private Vector3 mMinPos;									// 缓存的当前窗口在父节点中可移动的最小的位置
@@ -49,14 +49,7 @@ public class COMWindowDragView : GameComponent
 	{
 		mDragDirection = DRAG_DIRECTION.HORIZONTAL;
 		mClampType = CLAMP_TYPE.EDGE_IN_RECT;
-		mMinRelativePos = -Vector3.one;
-		mMaxRelativePos = Vector3.one;
 		mDragAngleThreshold = toRadian(45.0f);
-		mMoveSpeedScale = 1.0f;
-		mAttenuateFactor = 2.0f;
-		mMoveToEdgeSpeed = 5.0f;
-		mDragLengthThreshold = 10.0f;
-		mAutoClampSpeed = 10.0f;
 	}
 	public override void init(ComponentOwner owner)
 	{
@@ -67,10 +60,10 @@ public class COMWindowDragView : GameComponent
 	{
 		base.resetProperty();
 		mMutexDragView?.Clear();
-		mDragingCallback = null;
+		mDraggingCallback = null;
 		mReleaseDragCallback = null;
 		mPositionChangeCallback = null;
-		mOnDragViewStartCallback = null;
+		mDragViewStartCallback = null;
 		mWindow = null;
 		mMinRelativePos = -Vector3.one;
 		mMaxRelativePos = Vector3.one;
@@ -89,12 +82,12 @@ public class COMWindowDragView : GameComponent
 		mClampType = CLAMP_TYPE.EDGE_IN_RECT;
 		mStartDragWindowPosition = Vector3.zero;
 		mStartDragMousePosition = Vector3.zero;
-		mMouseDownPos = Vector3.zero;
+		mTouchDownPos = Vector3.zero;
 		mMoveDirection = Vector3.zero;
-		mDraging.set(false);
+		mDragging.set(false);
 		mMoveSpeed = 0.0f;
 		mTouchID = 0;
-		mMouseDown = false;
+		mTouchDown = false;
 		mMinPos = Vector3.zero;
 		mMaxPos = Vector3.zero;
 		mMinMaxPosDirty = true;
@@ -102,7 +95,7 @@ public class COMWindowDragView : GameComponent
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		if (mDraging.mValue)
+		if (mDragging.mValue)
 		{
 			Vector3 curPosition = mWindow.getPosition();
 			Vector3 prePos = curPosition;
@@ -126,7 +119,7 @@ public class COMWindowDragView : GameComponent
 				if (!isVectorEqual(prePos, curPosition))
 				{
 					setPosition(curPosition);
-					mDragingCallback?.Invoke();
+					mDraggingCallback?.Invoke();
 				}
 			}
 		}
@@ -242,25 +235,25 @@ public class COMWindowDragView : GameComponent
 		resetPosition(ref curPosition, mAlignTopOrLeft);
 		setPosition(curPosition);
 	}
-	public void onMouseDown(Vector3 mousePos, int touchID)
+	public void onTouchDown(Vector3 touchPos, int touchID)
 	{
-		mMouseDown = true;
+		mTouchDown = true;
 		mMoveSpeed = 0.0f;
-		mMouseDownPos = mousePos;
+		mTouchDownPos = touchPos;
 		mTouchID = touchID;
 	}
 	// 鼠标在屏幕上抬起
-	public void onScreenMouseUp()
+	public void onScreenTouchUp()
 	{
-		mMouseDown = false;
-		mDraging.set(false);
+		mTouchDown = false;
+		mDragging.set(false);
 		mReleaseDragCallback?.Invoke();
 		mTouchID = 0;
 	}
-	public void onMouseMove(Vector3 mousePos, Vector3 moveDelta, float moveTime, int touchID)
+	public void onTouchMove(Vector3 touchPos, Vector3 moveDelta, float moveTime, int touchID)
 	{
 		// 触点不一致或鼠标未按下时不允许改变移动速度
-		if (mTouchID != touchID || !mMouseDown)
+		if (mTouchID != touchID || !mTouchDown)
 		{
 			return;
 		}
@@ -274,19 +267,19 @@ public class COMWindowDragView : GameComponent
 			delta.x = 0.0f;
 		}
 		float speed = divide(getLength(delta), moveTime);
-		if (!mDraging.mValue)
+		if (!mDragging.mValue)
 		{
-			Vector3 dragDir = mousePos - mMouseDownPos;
+			Vector3 dragDir = touchPos - mTouchDownPos;
 			// 拖动距离大于一定值时才会判断是否开始拖拽,还要继续检测鼠标移动才能判断是否可以开始拖拽
 			if (lengthGreater(dragDir, mDragLengthThreshold))
 			{
 				if (!checkCanDrag(dragDir))
 				{
-					mMouseDown = false;
+					mTouchDown = false;
 					return;
 				}
 				mStartDragWindowPosition = mWindow.getPosition();
-				mStartDragMousePosition = mousePos;
+				mStartDragMousePosition = touchPos;
 				mMoveSpeed = speed;
 				mMoveDirection = normalize(delta);
 			}
@@ -297,14 +290,14 @@ public class COMWindowDragView : GameComponent
 			mMoveDirection = normalize(delta);
 		}
 	}
-	public void onMouseStay(int touchID)
+	public void onTouchStay(int touchID)
 	{
 		if (mTouchID != touchID)
 		{
 			return;
 		}
 		// 鼠标在窗口内为按下状态,并且没有移动时,确保速度为0
-		if (!mMouseDown)
+		if (!mTouchDown)
 		{
 			return;
 		}
@@ -319,8 +312,8 @@ public class COMWindowDragView : GameComponent
 	public void setMaxRelativePos(Vector3 max)									{ mMaxRelativePos = max; mMinMaxPosDirty = true; }
 	public void setMinRelativePos(Vector3 min)									{ mMinRelativePos = min; mMinMaxPosDirty = true; }
 	public void setMoveSpeedScale(float scale)									{ mMoveSpeedScale = scale; }
-	public void setDragViewStartCallback(OnDragViewStartCallback callback)		{ mOnDragViewStartCallback = callback; }
-	public void setDragingCallback(Action draging)								{ mDragingCallback = draging; }
+	public void setDragViewStartCallback(RefBoolCallback callback)				{ mDragViewStartCallback = callback; }
+	public void setDraggingCallback(Action dragging)							{ mDraggingCallback = dragging; }
 	public void setReleaseDragCallback(Action releaseDrag)						{ mReleaseDragCallback = releaseDrag; }
 	public void setPositionChangeCallback(Action positionChange)				{ mPositionChangeCallback = positionChange; }
 	public void setClampType(CLAMP_TYPE clampType)								{ mClampType = clampType; }
@@ -333,7 +326,7 @@ public class COMWindowDragView : GameComponent
 	public void setAlignTopOrLeft(bool topOrLeft)								{ mAlignTopOrLeft = topOrLeft; }
 	public void setAllowDragOnlyOverParentSize(bool dragOnly)					{ mAllowDragOnlyOverParentSize = dragOnly; }
 	public bool isClampInner()													{ return mClampInner; }
-	public bool isDraging()														{ return mDraging.mValue; }
+	public bool isDragging()													{ return mDragging.mValue; }
 	public DRAG_DIRECTION getDragDirection()									{ return mDragDirection; }
 	public Vector3 getMaxRelativePos()											{ return mMaxRelativePos; }
 	public Vector3 getMinRelativePos()											{ return mMinRelativePos; }
@@ -388,8 +381,8 @@ public class COMWindowDragView : GameComponent
 		// 启用或禁用组件时,需要将实时计算用的参数重置
 		mMoveSpeed = 0.0f;
 		mMoveDirection = Vector3.zero;
-		mMouseDown = false;
-		mDraging.set(false);
+		mTouchDown = false;
+		mDragging.set(false);
 		mStartDragWindowPosition = Vector3.zero;
 		mStartDragMousePosition = Vector3.zero;
 	}
@@ -641,14 +634,14 @@ public class COMWindowDragView : GameComponent
 		foreach (COMWindowDragView item in mMutexDragView.safe())
 		{
 			// 互斥时不允许拖拽
-			if (item.isActive() && item.isDraging())
+			if (item.isActive() && item.isDragging())
 			{
 				return false;
 			}
 		}
-		mDraging.set(true);
-		mOnDragViewStartCallback?.Invoke(ref mDraging.mValid);
+		mDragging.set(true);
+		mDragViewStartCallback?.Invoke(ref mDragging.mValid);
 		// 不允许拖拽
-		return mDraging.mValue;
+		return mDragging.mValue;
 	}
 }

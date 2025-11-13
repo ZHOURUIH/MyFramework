@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_STANDALONE_WIN || UNITY_EDITOR
+using System;
 using static BinaryUtility;
 using static FrameUtility;
 using static FileUtility;
@@ -180,3 +181,4 @@ public class WavSound : ClassObject
 		refreshFileSize();
 	}
 }
+#endif

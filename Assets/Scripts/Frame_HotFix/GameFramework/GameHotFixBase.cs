@@ -32,59 +32,65 @@ public abstract class GameHotFixBase
 			// 注册对象类型
 			registerAll();
 
-			DateTime startTime = DateTime.Now;
-			mExcelManager.loadAllAsync(() =>
-			{
-				log("打开所有表格耗时:" + (int)(DateTime.Now - startTime).TotalMilliseconds + "毫秒");
-				if (isEditor())
-				{
-					mExcelManager.checkAll();
 #if USE_SQLITE
-					mSQLiteManager.checkAll();
+			mSQLiteManager.loadAllAsync(() => 
+			{
 #endif
-				}
-
-				onPreInit();
-				// 初始化所有系统组件
-				foreach (FrameSystem frame in mFrameComponentInit)
-				{
-					try
-					{
-						DateTime start = DateTime.Now;
-						frame.init();
-						log(frame.getName() + "初始化消耗时间:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒");
-					}
-					catch (Exception e)
-					{
-						logError("init failed! :" + frame.getName() + ", info:" + e.Message + ", stack:" + e.StackTrace);
-					}
-				}
-				foreach (FrameSystem frame in mFrameComponentInit)
-				{
-					try
-					{
-						DateTime start = DateTime.Now;
-						frame.lateInit();
-						log(frame.getName() + " late初始化消耗时间:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒");
-					}
-					catch (Exception e)
-					{
-						logError("late init failed! :" + frame.getName() + ", info:" + e.Message + ", stack:" + e.StackTrace);
-					}
-				}
-				onPostInit();
-				log("启动游戏耗时:" + (int)(DateTime.Now - mGameFrameworkHotFix.getStartTime()).TotalMilliseconds + "毫秒");
-				if (mCanCallback)
-				{
-					mFinishCallback?.Invoke();
-				}
-				// 进入主场景
-				enterScene(getStartGameSceneType());
+				mExcelManager.loadAllAsync(() => { onAllLoaded(); });
+#if USE_SQLITE
 			});
+#endif
 		});
 	}
 	public static void callback() { mInstance.mFinishCallback?.Invoke(); }
 	//----------------------------------------------------------------------------------------------------------------------------------
+	protected void onAllLoaded()
+	{
+		if (isEditor())
+		{
+			mExcelManager.checkAll();
+#if USE_SQLITE
+			mSQLiteManager.checkAll();
+#endif
+		}
+
+		onPreInit();
+		// 初始化所有系统组件
+		foreach (FrameSystem frame in mFrameComponentInit)
+		{
+			try
+			{
+				DateTime start = DateTime.Now;
+				frame.init();
+				log(frame.getName() + "初始化消耗时间:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒");
+			}
+			catch (Exception e)
+			{
+				logError("init failed! :" + frame.getName() + ", info:" + e.Message + ", stack:" + e.StackTrace);
+			}
+		}
+		foreach (FrameSystem frame in mFrameComponentInit)
+		{
+			try
+			{
+				DateTime start = DateTime.Now;
+				frame.lateInit();
+				log(frame.getName() + " late初始化消耗时间:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒");
+			}
+			catch (Exception e)
+			{
+				logError("late init failed! :" + frame.getName() + ", info:" + e.Message + ", stack:" + e.StackTrace);
+			}
+		}
+		onPostInit();
+		log("启动游戏耗时:" + (int)(DateTime.Now - mGameFrameworkHotFix.getStartTime()).TotalMilliseconds + "毫秒");
+		if (mCanCallback)
+		{
+			mFinishCallback?.Invoke();
+		}
+		// 进入主场景
+		enterScene(getStartGameSceneType());
+	}
 	protected abstract string getAndroidPluginBundleName();
 	protected abstract void registerAll();
 	protected abstract void initFrameSystem();
@@ -106,8 +112,17 @@ public abstract class GameHotFixBase
 			callback?.Invoke();
 			return;
 		}
-		// 在这之前需要确保PersistentAssets中的密钥文件是最新的
-		GameEntry.startCoroutine(openFileAsync("file://" + F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE, (byte[] bytes) =>
+		// 在这之前需要确保PersistentAssets中的密钥文件是最新的,webgl只会在StreamingAssets中读取
+		string filePath;
+		if (isWebGL())
+		{
+			filePath = F_ASSET_BUNDLE_PATH + DYNAMIC_SECRET_FILE;
+		}
+		else
+		{
+			filePath = "file://" + F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE;
+		}
+		GameEntry.startCoroutine(openFileAsync(filePath, (byte[] bytes) =>
 		{
 			EncryptionService<DefaultDynamicEncryptionScope>.Encryptor = new GeneratedEncryptionVirtualMachine(bytes);
 			try

@@ -95,6 +95,8 @@ public class MenuAssetBundle
 				return false;
 			}
 		}
+		EditorUtility.UnloadUnusedAssetsImmediate();
+		AssetDatabase.Refresh();
 		// 打包
 		// 使用LZ4压缩,并且不写入资源类型信息
 		var option = BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode;
@@ -474,14 +476,12 @@ public class MenuAssetBundle
 		bool isForceSingle = isForceSinglePath(fullPath, getForceSingleFolder());
 		foreach (string file in files)
 		{
-			if (refreshFileAssetBundleName(assetBundleMap, file.rightToLeft(), isForceSingle) == null)
+			if (!file.endWith(".meta") && refreshFileAssetBundleName(assetBundleMap, file.rightToLeft(), isForceSingle) == null)
 			{
 				showInfo("生成AssetBundle名字失败:" + file, showErrorMessageBox, true);
 				return false;
 			}
 		}
-		EditorUtility.UnloadUnusedAssetsImmediate();
-		AssetDatabase.Refresh();
 		return true;
 	}
 	// 递归获取所有子目录文件夹

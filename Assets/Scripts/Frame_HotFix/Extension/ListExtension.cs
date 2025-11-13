@@ -85,6 +85,15 @@ public static class ListExtension
 		}
 		return false;
 	}
+	public static bool addNot<T>(this IList<T> list, T value, T notValue)
+	{
+		if (value.Equals(notValue))
+		{
+			return false;
+		}
+		list.Add(value);
+		return true;
+	}
 	public static T addClass<T>(this List<T> list) where T : ClassObject, new()
 	{
 		return list.add(CLASS<T>());

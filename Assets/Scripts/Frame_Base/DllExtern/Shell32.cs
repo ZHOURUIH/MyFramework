@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_STANDALONE_WIN || UNITY_EDITOR
+using System;
 using System.Runtime.InteropServices;
 
 [StructLayout(LayoutKind.Sequential)]
@@ -78,3 +79,4 @@ public class Shell32
     [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
     public static extern bool ShellExecuteEx(ref SHELLEXECUTEINFO lpExecInfo);
 }
+#endif

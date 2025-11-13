@@ -16,15 +16,15 @@ using UObject = UnityEngine.Object;
 using static MathUtility;
 using static StringUtility;
 using static FileUtility;
-using static CSharpUtility;
 using static WidgetUtility;
+using static FrameUtility;
 using static FrameDefine;
 using static EditorDefine;
 using static UnityUtility;
 using static EditorFileUtility;
 using static FrameBaseDefine;
 
-public class SpriteRefrenceInfo
+public class SpriteReferenceInfo
 {
 	public string mSpriteName;
 	public string mFileName;
@@ -436,7 +436,7 @@ public class EditorCommonUtility
 		}
 		return spriteGUIDs;
 	}
-	public static void searchSpriteRefrence(string path, Dictionary<string, SpriteRefrenceInfo> refrenceList, Dictionary<string, List<FileGUIDLines>> allFileText)
+	public static void searchSpriteRefrence(string path, Dictionary<string, SpriteReferenceInfo> refrenceList, Dictionary<string, List<FileGUIDLines>> allFileText)
 	{
 		refrenceList.Clear();
 		string atlasGUID = AssetDatabase.AssetPathToGUID(path);
@@ -446,7 +446,7 @@ public class EditorCommonUtility
 			searchSprite(atlasGUID, item.Key, item.Value, refrenceList, allFileText);
 		}
 	}
-	public static void searchSprite(string atlasGUID, string spriteGUID, string spriteName, Dictionary<string, SpriteRefrenceInfo> refrenceList, Dictionary<string, List<FileGUIDLines>> allFileText)
+	public static void searchSprite(string atlasGUID, string spriteGUID, string spriteName, Dictionary<string, SpriteReferenceInfo> refrenceList, Dictionary<string, List<FileGUIDLines>> allFileText)
 	{
 		string key = "m_Sprite: {fileID: " + spriteGUID + ", guid: " + atlasGUID;
 		int[] keyNextIndex = null;
@@ -467,7 +467,7 @@ public class EditorCommonUtility
 					}
 					if (!refrenceList.ContainsKey(suffix))
 					{
-						SpriteRefrenceInfo info = new();
+						SpriteReferenceInfo info = new();
 						info.mSpriteName = spriteName;
 						info.mFileName = suffix;
 						info.mObject = loadAsset(suffix);
@@ -2277,7 +2277,7 @@ public class EditorCommonUtility
 	}
 	public static void doCheckTPAtlasRefrence(string path, Dictionary<string, List<FileGUIDLines>> allFileText)
 	{
-		Dictionary<string, SpriteRefrenceInfo> refrenceList = new();
+		Dictionary<string, SpriteReferenceInfo> refrenceList = new();
 		searchSpriteRefrence(path, refrenceList, allFileText);
 		foreach (var item in refrenceList)
 		{
@@ -2421,7 +2421,7 @@ public class EditorCommonUtility
 	{
 		// 遍历目录,存储所有文件名和对应文本内容
 		Dictionary<string, ClassInfo> classInfoList = new();
-		getCSharpFile(path, classInfoList);
+		getCSharpFile(assemly.GetName().Name, path, classInfoList);
 		// 不需要检测的基类
 		List<Type> ignoreBaseClass = new()
 		{
@@ -2476,7 +2476,7 @@ public class EditorCommonUtility
 				continue;
 			}
 			// `表示是模板类
-			string className = type.Name.rangeToFirst('`');
+			string className = assemly.GetName().Name + ":" + type.Name.rangeToFirst('`');
 			if (!classInfoList.TryGetValue(className, out ClassInfo info))
 			{
 				Debug.LogError("class:" + className + " 程序集中有此类,但是代码文件中找不到此类");
@@ -2545,7 +2545,7 @@ public class EditorCommonUtility
 			Debug.LogError("class:" + className + " 没有包含: " + KEY_FUNCTION + "()" + addFileLine(classInfo.mFilePath, classInfo.mFunctionLine));
 			return false;
 		}
-		if (!hasOverride && className != "ClassObject")
+		if (!hasOverride && !className.endWith(":ClassObject"))
 		{
 			Debug.LogError("class:" + className + " 没有重写: " + KEY_FUNCTION + "()" + addFileLine(classInfo.mFilePath, classInfo.mFunctionLine));
 			return false;
@@ -2600,7 +2600,7 @@ public class EditorCommonUtility
 				break;
 			}
 		}
-		if (!callBaseReset && className != "ClassObject")
+		if (!callBaseReset && !className.endWith(":ClassObject"))
 		{
 			Debug.LogError("class:" + className + " 没有调用基类resetProperty" + addFileLine(classInfo.mFilePath, classInfo.mFunctionLine));
 			return false;
@@ -2618,7 +2618,7 @@ public class EditorCommonUtility
 		}
 		return true;
 	}
-	public static void getCSharpFile(string path, Dictionary<string, ClassInfo> fileInfos)
+	public static void getCSharpFile(string dllName, string path, Dictionary<string, ClassInfo> fileInfos)
 	{
 		foreach (string item in findFilesNonAlloc(path, ".cs"))
 		{
@@ -2644,18 +2644,18 @@ public class EditorCommonUtility
 				{
 					if (classBeginIndex >= 0)
 					{
-						parseClass(fileInfos, nameSpace, fileLines, classBeginIndex, i - 1, item);
+						parseClass(fileInfos, nameSpace, dllName, fileLines, classBeginIndex, i - 1, item);
 					}
 					classBeginIndex = i;
 				}
 			}
 			if (classBeginIndex >= 0)
 			{
-				parseClass(fileInfos, nameSpace, fileLines, classBeginIndex, fileLines.Length - 1, item);
+				parseClass(fileInfos, nameSpace, dllName, fileLines, classBeginIndex, fileLines.Length - 1, item);
 			}
 		}
 	}
-	public static void parseClass(Dictionary<string, ClassInfo> fileInfos, string nameSpace, string[] fileLines, int startIndex, int endIndex, string path)
+	public static void parseClass(Dictionary<string, ClassInfo> fileInfos, string nameSpace, string dllName, string[] fileLines, int startIndex, int endIndex, string path)
 	{
 		List<string> classLines = new();
 		for (int i = 0; i < endIndex - startIndex + 1; ++i)
@@ -2667,11 +2667,11 @@ public class EditorCommonUtility
 		string className;
 		if (headLine.Contains(':'))
 		{
-			className = nameSpace + headLine.rangeToFirst(nameStartIndex, ':').removeAll(' ');
+			className = dllName + ":" + nameSpace + headLine.rangeToFirst(nameStartIndex, ':').removeAll(' ');
 		}
 		else
 		{
-			className = nameSpace + headLine.removeStartCount(nameStartIndex).removeAll(' ');
+			className = dllName + ":" + nameSpace + headLine.removeStartCount(nameStartIndex).removeAll(' ');
 		}
 		// 模板类,则去除模板属性,只保留类名
 		int templateIndex = className.IndexOf('<');
@@ -2950,7 +2950,6 @@ public class EditorCommonUtility
 			// 查找UnityEngine.Debug
 			if (findBaseClassName(lines[i]) == typeof(MonoBehaviour).Name ||
 				className == typeof(BinaryUtility).Name ||
-				className == typeof(CSharpUtility).Name ||
 				className == typeof(FileUtility).Name ||
 				className == typeof(FrameUtility).Name ||
 				className == typeof(MathUtility).Name ||

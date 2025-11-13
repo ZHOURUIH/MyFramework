@@ -38,4 +38,11 @@ public class CmdNetConnectTCPState : Command
 		}
 		socketClient.getNetStateCallback()?.Invoke(mNetState, mLastNetState);
 	}
+	public override void debugInfo(MyStringBuilder builder)
+	{
+		base.debugInfo(builder);
+		builder.append("mErrorCode:", mErrorCode.ToString(), ", ").
+				append("mNetState:", mNetState.ToString(), ", ").
+				append("mLastNetState:", mLastNetState.ToString());
+	}
 }

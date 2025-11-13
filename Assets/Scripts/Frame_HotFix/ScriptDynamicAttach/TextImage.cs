@@ -10,15 +10,15 @@ public class TextImage : Text
 	protected List<myUGUIImage> mImageList = new();	// 图片列表
 	protected List<UIVertex> mVertexStream = new();	// 避免GC用
 	protected List<int> mImagesQuadIndex = new();	// 图片的最后一个顶点的索引
-	protected CreateImage mCreateImage;				// 创建图片的委托,让外边决定怎么创建图片
-	protected UGUIImageCallback mDestroyImage;		// 销毁图片的委托,让外边决定怎么销毁图片
+	protected ImageFunction mCreateImage;				// 创建图片的委托,让外边决定怎么创建图片
+	protected ImageCallback mDestroyImage;		// 销毁图片的委托,让外边决定怎么销毁图片
 	protected static Regex mRegex;					// 正则取出所需要的属性
 	public TextImage()
 	{
 		mRegex ??= new(@"<quad width=(\d*\.?\d+%?) sprite=(.+?)/>", RegexOptions.Singleline);
 	}
-	public void setCreateImage(CreateImage callback) { mCreateImage = callback; }
-	public void setDestroyImage(UGUIImageCallback callback) { mDestroyImage = callback; }
+	public void setCreateImage(ImageFunction callback) { mCreateImage = callback; }
+	public void setDestroyImage(ImageCallback callback) { mDestroyImage = callback; }
 	// 此函数由UGUI自动调用
 	public override void SetVerticesDirty()
 	{

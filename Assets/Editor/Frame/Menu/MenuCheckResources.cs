@@ -752,15 +752,15 @@ public class MenuCheckResources
 		}
 		Debug.Log("完成检查布局预制体资源的缩放值是否符合规范");
 	}
-	[MenuItem("检查资源/检查布局中是否有空的Image", false, 117)]
-	public static void checkEmptyImageObject()
+	[MenuItem("检查资源/检查布局中是否有空的Image或Sprite", false, 117)]
+	public static void checkEmptyImageOrSpriteObject()
 	{
-		Debug.Log("开始检查是否有空的Image...");
+		Debug.Log("开始检查是否有空的Image或Sprite...");
 		Dictionary<string, GameObject> objectList = new();
 		// 查找路径同时加载Prefab对象
-		foreach (string path in findFilesNonAlloc(F_UI_PREFAB_PATH, ".prefab"))
+		foreach (string path in findFilesNonAlloc(F_GAME_RESOURCES_PATH, ".prefab"))
 		{
-			objectList.Add(fullPathToProjectPath(path), loadAsset(fullPathToProjectPath(path)) as GameObject);
+			objectList.Add(fullPathToProjectPath(path), loadAsset(path) as GameObject);
 		}
 		foreach (var item in objectList)
 		{
@@ -771,8 +771,15 @@ public class MenuCheckResources
 					Debug.LogError("布局 " + item.Value.name + "的Image组件没有设置Sprite,obj:" + image.name, item.Value);
 				}
 			}
+			foreach (SpriteRenderer spriteRenderer in item.Value.GetComponentsInChildren<SpriteRenderer>())
+			{
+				if (spriteRenderer.sprite == null)
+				{
+					Debug.LogError("Prefab " + item.Value.name + "的SpriteRenderer组件没有设置Sprite,obj:" + spriteRenderer.name, item.Value);
+				}
+			}
 		}
-		Debug.Log("完成检查空的Image");
+		Debug.Log("完成检查空的Image或Sprite");
 	}
 	[MenuItem("检查资源/检查是否使用了内置图片的UI节点", false, 118)]
 	public static void checkBuiltInImageAndReplace()

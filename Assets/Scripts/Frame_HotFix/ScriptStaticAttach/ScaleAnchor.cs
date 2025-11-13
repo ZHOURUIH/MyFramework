@@ -18,7 +18,11 @@ public class ScaleAnchor : MonoBehaviour
 	public bool mAdjustPosition = true;						// 是否根据缩放值改变位置
 	public bool mRemoveUGUIAnchor = true;					// 是否移除UGUI的锚点
 	public bool mKeepAspect = true;							// 是否保持宽高比
-	public ASPECT_BASE mAspectBase = ASPECT_BASE.AUTO;		// 如果要保持宽高比时的缩放基准,也就是选择哪个作为缩放值
+	public ASPECT_BASE mAspectBase = ASPECT_BASE.AUTO;      // 如果要保持宽高比时的缩放基准,也就是选择哪个作为缩放值
+	public void Awake()
+	{
+		enabled = !Application.isPlaying;
+	}
 	public void updateRect(bool force = false)
 	{
 		// 是否为编辑器手动预览操作,手动预览不需要启动游戏

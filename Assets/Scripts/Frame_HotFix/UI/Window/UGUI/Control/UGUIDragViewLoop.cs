@@ -24,6 +24,7 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 	public UGUIDragViewLoop(IWindowObjectOwner parent) : base(parent)
 	{
 		mDisplayItemPool = new(this);
+		mUnuseAllWhenHide = false;
 	}
 	protected override void assignWindowInternal()
 	{
@@ -54,7 +55,7 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 			return;
 		}
 		mContent.initDragView(direction);
-		mDisplayItemPool.init();
+		mDisplayItemPool.init(true);
 		mInterval = mContent.tryGetUnityComponent<ScaleAnchor>().getRealScale() * interval;
 		mItemSize = mDisplayItemPool.getTemplate().getWindowSize();
 		if (mItemSize.x < 1 || mItemSize.y < 1)
@@ -73,57 +74,74 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 		}
 		mScript.getLayout().refreshUIDepth(mContent, refreshDepthIgnoreInactive);
 	}
+	// 仅更新数据列表,要求新设置的数据列表要与之前的长度一致,这样才不需要重新计算Content的大小和所有节点的位置
+	public void updateDataList(List<DataType> dataList)
+	{
+		if (mDataList.count() != dataList.count())
+		{
+			logError("使用updateDataList时需要保持新数据列表与旧数据列表长度一致,新数据长度:" + dataList.count() + ", 旧数据长度:" + mDataList.count());
+			return;
+		}
+		// 先备份一下旧的数据列表,因为在设置数据之前会先调用清空,而清空里面可能会依赖于数据,所以旧数据需要延迟销毁
+		using var a = new ListScope<DataType>(out var tempList, mDataList);
+		mDataList.setRange(dataList);
+		updateDisplayItem();
+		UN_CLASS_LIST(tempList);
+	}
 	// 设置显示的数据,dataList的元素需要从对象池中创建,会在内部进行回收
 	// keepContentTopPos表示是否保持Content的顶部的位置不变,否则将会自动是Content顶部对齐Viewport顶部
 	public void setDataList(List<DataType> dataList, bool keepContentTopPos = false)
 	{
-		UN_CLASS_LIST(mDataList);
+		// 先备份一下旧的数据列表,因为在设置数据之前会先调用清空,而清空里面可能会依赖于数据,所以旧数据需要延迟销毁
+		using var a = new ListScope<DataType>(out var tempList, mDataList);
 		mAllItemPos.Clear();
 		if (dataList.count() == 0)
 		{
 			mContent.setWindowHeight(0);
-			updateDisplayItem();
-			return;
-		}
-		mDataList.setRange(dataList);
-		float contentWidth = mContent.getWindowSize().x;
-		Vector2 curLeftTop = Vector2.zero;
-		// 为了避免浮点计算的误差,使用计数的方式来获得行数,如果通过(最大高度 + 高度间隔) / (节点高度 + 高度间隔)的方式计算,可能会由于误差而算错
-		int rowCount = dataList.Count > 0 ? 1 : 0;
-		for (int i = 0; i < dataList.Count; ++i)
-		{
-			// 这一排已经放不下了, 放到下一排
-			if (curLeftTop.x + mItemSize.x > contentWidth)
-			{
-				curLeftTop = new(0, curLeftTop.y - mInterval.y - mItemSize.y);
-				++rowCount;
-			}
-			mAllItemPos.add(new(curLeftTop.x + mItemSize.x * 0.5f, curLeftTop.y - mItemSize.y * 0.5f));
-			curLeftTop.x += mItemSize.x + mInterval.x;
-		}
-		float maxHeight = mItemSize.y * rowCount + mInterval.y * (rowCount - 1);
-		// 计算完高度, 重新计算所有节点在Content下的位置
-		for (int i = 0; i < mAllItemPos.Count; ++i)
-		{
-			mAllItemPos[i] = new(mAllItemPos[i].x - mContent.getPivot().x * contentWidth, mAllItemPos[i].y + (1 - mContent.getPivot().y) * maxHeight);
-		}
-		// Content的顶部在Viewport中的位置
-		float contentTop = mContent.getPosition().y + mContent.getPivot().y * mContent.getWindowSize().y;
-		// 计算出Content节点的总高度
-		mContent.setWindowHeight(maxHeight);
-		// 只有当top不在Viewport内时才会调整,否则即使调整了,也会自动被拉回
-		if (keepContentTopPos && contentTop >= mViewport.getWindowSize().y * 0.5f)
-		{
-			mContent.setPosition(new(0.0f, contentTop - mContent.getPivot().y * mContent.getWindowSize().y));
 		}
 		else
 		{
-			mContent.alignParentTopCenter();
+			mDataList.setRange(dataList);
+			float contentWidth = mContent.getWindowSize().x;
+			Vector2 curLeftTop = Vector2.zero;
+			// 为了避免浮点计算的误差,使用计数的方式来获得行数,如果通过(最大高度 + 高度间隔) / (节点高度 + 高度间隔)的方式计算,可能会由于误差而算错
+			int rowCount = dataList.Count > 0 ? 1 : 0;
+			for (int i = 0; i < dataList.Count; ++i)
+			{
+				// 这一排已经放不下了, 放到下一排
+				if (curLeftTop.x + mItemSize.x > contentWidth)
+				{
+					curLeftTop = new(0, curLeftTop.y - mInterval.y - mItemSize.y);
+					++rowCount;
+				}
+				mAllItemPos.add(new(curLeftTop.x + mItemSize.x * 0.5f, curLeftTop.y - mItemSize.y * 0.5f));
+				curLeftTop.x += mItemSize.x + mInterval.x;
+			}
+			float maxHeight = mItemSize.y * rowCount + mInterval.y * (rowCount - 1);
+			// 计算完高度, 重新计算所有节点在Content下的位置
+			for (int i = 0; i < mAllItemPos.Count; ++i)
+			{
+				mAllItemPos[i] = new(mAllItemPos[i].x - mContent.getPivot().x * contentWidth, mAllItemPos[i].y + (1 - mContent.getPivot().y) * maxHeight);
+			}
+			// Content的顶部在Viewport中的位置
+			float contentTop = mContent.getPosition().y + mContent.getPivot().y * mContent.getWindowSize().y;
+			// 计算出Content节点的总高度
+			mContent.setWindowHeight(maxHeight);
+			// 只有当top不在Viewport内时才会调整,否则即使调整了,也会自动被拉回
+			if (keepContentTopPos && contentTop >= mViewport.getWindowSize().y * 0.5f)
+			{
+				mContent.setPosition(new(0.0f, contentTop - mContent.getPivot().y * mContent.getWindowSize().y));
+			}
+			else
+			{
+				mContent.setTopCenterToParentTopCenter();
+			}
 		}
 		updateDisplayItem();
+		UN_CLASS_LIST(tempList);
 	}
 	public List<DataType> getDataList() { return mDataList; }
-	// 每次设置DateList时,可以先使用getTempDataList获取一个临时列表,然后填充列表,再调用setDataList将填充好的临时列表传进来
+	// 每次调用setDateList或updateDataList时,可以先使用startSetDataList获取一个临时列表,然后填充列表,再调用setDataList将填充好的临时列表传进来
 	public List<DataType> startSetDataList() 
 	{
 		mTempDataList ??= new();
@@ -132,19 +150,21 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 	}
 	public void setData(int index, DataType data, bool forceRefresh = true)
 	{
-		UN_CLASS(mDataList[index]);
-		mDataList[index] = data;
 		if (forceRefresh)
 		{
 			foreach (T item in mDisplayItemPool.getUsedList())
 			{
 				if (item.getIndex() == index)
 				{
+					item.clearData();
 					item.setData(data);
 					break;
 				}
 			}
 		}
+		// 需要上面执行完清空和设置数据以后才能销毁旧数据,因为清空里面可能会依赖于旧数据
+		UN_CLASS(mDataList[index]);
+		mDataList[index] = data;
 	}
 	public void setDragEnable(bool enable)
 	{
@@ -173,6 +193,7 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 				int dataIndex = i + startItemIndex;
 				item.setActive(dataIndex < mDataList.Count);
 				item.setIndex(dataIndex);
+				item.clearData();
 				if (item.isActive())
 				{
 					item.getRoot().setName("Item" + IToS(dataIndex));
@@ -199,5 +220,21 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 				item.update();
 			}
 		}
+	}
+	public void setContentTopToListTop()
+	{
+		mContent.setTopToParentTop();
+	}
+	public void setContentBottomToListBottom()
+	{
+		mContent.setBottomToParentBottom();
+	}
+	public void setContentLeftToListLeft()
+	{
+		mContent.setLeftToParentLeft();
+	}
+	public void setContentRightToListRight()
+	{
+		mContent.setRightToParentRight();
 	}
 }

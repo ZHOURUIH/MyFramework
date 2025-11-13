@@ -7,7 +7,7 @@ using UnityEngine;
 using static UnityUtility;
 using static FileUtility;
 using static StringUtility;
-using static CSharpUtility;
+using static FrameUtility;
 using static BinaryUtility;
 using static FrameBaseHotFix;
 using static FrameDefine;
@@ -23,7 +23,8 @@ public class SQLiteTable : ClassObject
 	protected string mDecryptFileName;							// 解密以后的文件名
 	protected string mTableName;								// 表格名称
 	protected Type mDataClassType;                              // 数据类型
-	protected bool mLoaded;										// 是否已经加载
+	protected LOAD_STATE mState;                                // 加载状态
+	protected bool mResourceAvailable;							// 资源文件是否已经可以使用,加载前需要确保资源更新完毕,而不是读取到旧资源
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -33,79 +34,75 @@ public class SQLiteTable : ClassObject
 		mDecryptFileName = null;
 		mTableName = null;
 		mDataClassType = null;
-		mLoaded = false;
+		mState = LOAD_STATE.NONE;
 	}
 	// 返回值是解析以后生成的文件名
+	public void loadAsync(Action callback)
+	{
+		if (!mResourceAvailable && isPlaying())
+		{
+			logError("表格资源当前不可使用,无法加载,type:" + mTableName);
+			return;
+		}
+		if (mState == LOAD_STATE.LOADED)
+		{
+			callback?.Invoke();
+			return;
+		}
+		mState = LOAD_STATE.LOADING;
+		if (mResourceManager != null)
+		{
+			mResourceManager.loadGameResourceAsync<TextAsset>(R_SQLITE_PATH + mTableName + ".bytes", (textAsset)=>
+			{
+				mState = LOAD_STATE.LOADED;
+				postLoad(textAsset.bytes);
+				mResourceManager?.unload(ref textAsset);
+				callback?.Invoke();
+			});
+		}
+		else
+		{
+			mState = LOAD_STATE.LOADED;
+			callback?.Invoke();
+		}
+	}
 	public void load()
 	{
-		if (mLoaded)
+		if (!mResourceAvailable && isPlaying())
+		{
+			logError("表格资源当前不可使用,无法加载,type:" + mTableName);
+			return;
+		}
+		if (mState == LOAD_STATE.LOADED)
 		{
 			return;
 		}
-		mLoaded = true;
-		try
+		mState = LOAD_STATE.LOADING;
+		TextAsset textAsset = null;
+		if (mResourceManager != null)
 		{
-			TextAsset textAsset = null;
-			if (mResourceManager != null)
-			{
-				textAsset = mResourceManager.loadGameResource<TextAsset>(R_SQLITE_PATH + mTableName + ".bytes");
-			}
-			else
-			{
-				if (!isEditor())
-				{
-					return;
-				}
-				textAsset = loadAssetAtPath<TextAsset>(P_SQLITE_PATH + mTableName + ".bytes");
-			}
-
-			// 解密文件,只解密128分之1的数据,减少耗时
-			byte[] encryptKey = stringToBytes(generateFileMD5(stringToBytes("ASLD" + mTableName)).ToUpper() + "23y35y9832635872349862365274732047chsudhgkshgwshfoweh238c42384fync9388v45982nc3484");
-			byte[] fileBuffer = textAsset.bytes;
-			int fileSize = fileBuffer.Length;
-			int index = 0;
-			for (int i = 0; i < fileSize >> 7; ++i)
-			{
-				fileBuffer[i] ^= encryptKey[index];
-				if (++index >= encryptKey.Length)
-				{
-					index = 0;
-				}
-			}
-
-			// 将解密后的数据写入新的目录,需要写入临时目录,编辑器中写入固定路径即可
-			mDecryptFileName = generateFileMD5(fileBuffer).ToUpper();
-			string newPath = getDecryptFileFullPath();
-			// 编辑器下每次都写入更新
-			if (isEditor() || !isFileExist(newPath))
-			{
-				writeFile(newPath, fileBuffer, fileSize);
-			}
-
-			if (mResourceManager != null)
-			{
-				mResourceManager.unload(ref textAsset);
-			}
-			else
-			{
-				if (isEditor())
-				{
-					Resources.UnloadAsset(textAsset);
-				}
-			}
-
-			// 创建连接
-			if (isFileExist(newPath))
-			{
-				mConnection = new("URI=file:" + newPath);
-				mConnection.Open();
-			}
-			mCommand = mConnection?.CreateCommand();
+			textAsset = mResourceManager.loadGameResource<TextAsset>(R_SQLITE_PATH + mTableName + ".bytes");
 		}
-		catch (Exception e)
+		else
 		{
-			destroy();
-			logException(e, "打开数据库失败");
+			if (!isEditor())
+			{
+				return;
+			}
+			textAsset = loadAssetAtPath<TextAsset>(P_SQLITE_PATH + mTableName + ".bytes");
+		}
+		mState = LOAD_STATE.LOADED;
+		postLoad(textAsset.bytes);
+		if (mResourceManager != null)
+		{
+			mResourceManager.unload(ref textAsset);
+		}
+		else
+		{
+			if (isEditor())
+			{
+				Resources.UnloadAsset(textAsset);
+			}
 		}
 	}
 	public string getDecryptFileName() { return mDecryptFileName; }
@@ -150,6 +147,7 @@ public class SQLiteTable : ClassObject
 		catch (Exception) { }
 	}
 	public virtual void checkAllData() { }
+	public void setResourceAvailable(bool available) { mResourceAvailable = available; }
 	public void setDataType(Type dataClassType) { mDataClassType = dataClassType; }
 	public void setTableName(string name) { mTableName = name; }
 	public string getTableName() { return mTableName; }
@@ -172,23 +170,42 @@ public class SQLiteTable : ClassObject
 	{
 		queryNonReader(strcat("INSERT INTO ", mTableName, " VALUES (", valueString, ")"));
 	}
-	public SQLiteData query(int id, bool errorIfNull = true)
+	public void checkData(int checkID, int dataID, ExcelTable refTable)
 	{
-		if (mDataMap.TryGetValue(id, out SQLiteData data))
+		if (checkID > 0 && queryInternal(checkID, false) == null)
 		{
-			return data;
+			logError("can not find item id:" + checkID + " in " + mTableName + ", ref ID:" + dataID + ", ref Table:" + refTable.getTableName());
 		}
-		using var a = new MyStringBuilderScope(out var condition);
-		condition.appendConditionInt(SQLiteData.ID, id, EMPTY);
-		parseReader(doQuery(condition.ToString()), out data);
-		mDataMap.Add(id, data);
-		if (data == null && errorIfNull)
-		{
-			logError("表格中找不到指定数据: ID:" + id + ", Type:" + mDataClassType);
-		}
-		return data;
 	}
-	public void insert<T>(T data) where T : SQLiteData
+	public void checkData(List<int> checkIDList, int dataID, ExcelTable refTable)
+	{
+		foreach (int id in checkIDList)
+		{
+			if (queryInternal(id, false) == null)
+			{
+				logError("can not find item id:" + id + " in " + mTableName + ", ref ID:" + dataID + ", ref Table:" + refTable.getTableName());
+			}
+		}
+	}
+	public void checkData(List<ushort> checkIDList, int dataID, ExcelTable refTable)
+	{
+		foreach (int id in checkIDList)
+		{
+			if (queryInternal(id, false) == null)
+			{
+				logError("can not find item id:" + id + " in " + mTableName + ", ref ID:" + dataID + ", ref Table:" + refTable.getTableName());
+			}
+		}
+	}
+	public void checkListPair(IList list0, IList list1, int dataID)
+	{
+		if (list0.Count != list1.Count)
+		{
+			logError("list pair size not match, table:" + mTableName + ", ref ID:" + dataID);
+		}
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected void insertInternal(SQLiteData data)
 	{
 		if (mDataMap.ContainsKey(data.mID))
 		{
@@ -205,75 +222,25 @@ public class SQLiteTable : ClassObject
 		doInsert(valueString.ToString());
 		mDataMap.Add(data.mID, data);
 	}
-	public void queryDataList<T>(string condition, Type type, List<T> dataList) where T : SQLiteData
+	protected SQLiteData queryInternal(int id, bool errorIfNull = true)
 	{
-		if (type != mDataClassType)
+		if (mDataMap.TryGetValue(id, out SQLiteData data))
 		{
-			logError("sqlite table type error, this type:" + mDataClassType + ", param type:" + type);
-			return;
+			return data;
 		}
-		parseReader(type, doQuery(condition), dataList);
-		foreach (T data in dataList)
+		using var a = new MyStringBuilderScope(out var condition);
+		condition.appendConditionInt(SQLiteData.ID, id, EMPTY);
+		parseReader(doQuery(condition.ToString()), out data);
+		mDataMap.Add(id, data);
+		if (data == null && errorIfNull)
 		{
-			mDataMap.TryAdd(data.mID, data);
+			logError("表格中找不到指定数据: ID:" + id + ", Type:" + mDataClassType);
 		}
+		return data;
 	}
-	public void queryDataList<T>(string condition, List<T> dataList) where T : SQLiteData
-	{
-		queryDataList(condition, typeof(T), dataList);
-	}
-	public void queryDataList<T>(Type type, List<T> dataList) where T : SQLiteData
-	{
-		queryDataList(null, type, dataList);
-	}
-	public void queryDataList<T>(List<T> dataList) where T : SQLiteData
-	{
-		queryDataList(null, typeof(T), dataList);
-	}
-	public Dictionary<int, SQLiteData> queryAll<T>() where T : SQLiteData
-	{
-		using var a = new ListScope<T>(out var list);
-		queryDataList(null, typeof(T), list);
-		return mDataMap;
-	}
-	public void checkData(int checkID, int dataID, ExcelTable refTable)
-	{
-		if (checkID > 0 && query(checkID, false) == null)
-		{
-			logError("can not find item id:" + checkID + " in " + mTableName + ", ref ID:" + dataID + ", ref Table:" + refTable.getTableName());
-		}
-	}
-	public void checkData(List<int> checkIDList, int dataID, ExcelTable refTable)
-	{
-		foreach (int id in checkIDList)
-		{
-			if (query(id, false) == null)
-			{
-				logError("can not find item id:" + id + " in " + mTableName + ", ref ID:" + dataID + ", ref Table:" + refTable.getTableName());
-			}
-		}
-	}
-	public void checkData(List<ushort> checkIDList, int dataID, ExcelTable refTable)
-	{
-		foreach (int id in checkIDList)
-		{
-			if (query(id, false) == null)
-			{
-				logError("can not find item id:" + id + " in " + mTableName + ", ref ID:" + dataID + ", ref Table:" + refTable.getTableName());
-			}
-		}
-	}
-	public void checkListPair(IList list0, IList list1, int dataID)
-	{
-		if (list0.Count != list1.Count)
-		{
-			logError("list pair size not match, table:" + mTableName + ", ref ID:" + dataID);
-		}
-	}
-	//------------------------------------------------------------------------------------------------------------------------------
 	protected void clearAll()
 	{
-		mLoaded = false;
+		mState = LOAD_STATE.NONE;
 		if (mCommand != null)
 		{
 			mCommand.Cancel();
@@ -349,6 +316,46 @@ public class SQLiteTable : ClassObject
 		else
 		{
 			return getDecryptFilePath() + mDecryptFileName;
+		}
+	}
+	protected void postLoad(byte[] fileBuffer)
+	{
+		try
+		{
+			// 解密文件,只解密128分之1的数据,减少耗时
+			byte[] encryptKey = stringToBytes(generateFileMD5(stringToBytes("ASLD" + mTableName)).ToUpper() + "23y35y9832635872349862365274732047chsudhgkshgwshfoweh238c42384fync9388v45982nc3484");
+			int fileSize = fileBuffer.Length;
+			int index = 0;
+			for (int i = 0; i < fileSize >> 7; ++i)
+			{
+				fileBuffer[i] ^= encryptKey[index];
+				if (++index >= encryptKey.Length)
+				{
+					index = 0;
+				}
+			}
+
+			// 将解密后的数据写入新的目录,需要写入临时目录,编辑器中写入固定路径即可
+			mDecryptFileName = generateFileMD5(fileBuffer).ToUpper();
+			string newPath = getDecryptFileFullPath();
+			// 编辑器下每次都写入更新
+			if (isEditor() || !isFileExist(newPath))
+			{
+				writeFile(newPath, fileBuffer, fileSize);
+			}
+
+			// 创建连接
+			if (isFileExist(newPath))
+			{
+				mConnection = new("URI=file:" + newPath);
+				mConnection.Open();
+			}
+			mCommand = mConnection?.CreateCommand();
+		}
+		catch (Exception e)
+		{
+			destroy();
+			logException(e, "打开数据库失败");
 		}
 	}
 }

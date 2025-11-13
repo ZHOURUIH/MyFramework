@@ -4,57 +4,50 @@ using static MathUtility;
 using static FrameBaseUtility;
 
 // 渐变一个窗口的颜色
-public class CmdWindowColor : Command
+public class CmdWindowColor
 {
-	public KeyFrameCallback mDoingCallback;		// 变化中回调
-	public KeyFrameCallback mDoneCallback;		// 变化完成时回调
-	public Color mStartColor;					// 起始颜色
-	public Color mTargetColor;					// 目标颜色
-	public float mOnceLength;					// 单次所需时间
-	public float mOffset;						// 起始时间偏移
-	public int mKeyframe;						// 所使用的关键帧ID
-	public bool mLoop;							// 是否循环
-	public override void resetProperty()
+	// 变化中回调
+	// 变化完成时回调
+	// 起始颜色
+	// 目标颜色
+	// 单次所需时间
+	// 起始时间偏移
+	// 所使用的关键帧ID
+	// 是否循环
+	public static void execute(myUGUIObject obj, Color startColor, Color targetColor, float onceLength, float offset, int keyframe, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		base.resetProperty();
-		mDoingCallback = null;
-		mDoneCallback = null;
-		mKeyframe = KEY_CURVE.NONE;
-		mOnceLength = 1.0f;
-		mOffset = 0.0f;
-		mStartColor = Color.white;
-		mTargetColor = Color.white;
-		mLoop = false;
-	}
-	public override void execute()
-	{
-		var obj = mReceiver as myUGUIObject;
+		if (obj == null)
+		{
+			return;
+		}
 		if (isEditor() && 
-			!isFloatZero(mOnceLength) && 
+			!isFloatZero(onceLength) && 
 			!obj.getLayout().canUIObjectUpdate(obj))
 		{
 			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + obj.getName());
 		}
 		obj.getOrAddComponent(out COMWindowColor com);
-		com.setDoingCallback(mDoingCallback);
-		com.setDoneCallback(mDoneCallback);
+		com.setDoingCallback(doingCallback);
+		com.setDoneCallback(doneCallback);
 		com.setActive(true);
-		com.setStart(mStartColor);
-		com.setTarget(mTargetColor);
-		com.play(mKeyframe, mLoop, mOnceLength, mOffset);
+		com.setStart(startColor);
+		com.setTarget(targetColor);
+		com.play(keyframe, loop, onceLength, offset);
 		if (com.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
 			obj.setNeedUpdate(true);
 		}
 	}
-	public override void debugInfo(MyStringBuilder builder)
+	public static void execute(myUGUIObject obj, Color startColor)
 	{
-		builder.append(": mKeyframe:", mKeyframe).
-				append(", mOnceLength:", mOnceLength).
-				append(", mOffset:", mOffset).
-				append(", mStartColor:", mStartColor).
-				append(", mTargetColor:", mTargetColor).
-				append(", mLoop:", mLoop);
+		if (obj == null)
+		{
+			return;
+		}
+		obj.getOrAddComponent(out COMWindowColor com);
+		com.setStart(startColor);
+		com.setTarget(startColor);
+		com.play(0, false, 0.0f, 0.0f);
 	}
 }

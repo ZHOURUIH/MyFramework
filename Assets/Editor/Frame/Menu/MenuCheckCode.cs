@@ -40,7 +40,7 @@ public class MenuCheckCode
 			// 获取工程
 			if (assemblyList.Contains(assemly.GetName().Name))
 			{
-				doCheckResetProperty(assemly, F_SCRIPTS_PATH);
+				doCheckResetProperty(assemly, F_SCRIPTS_PATH + assemly.GetName().Name);
 				Debug.Log(assemly.GetName().Name + "检查完毕");
 			}
 		}

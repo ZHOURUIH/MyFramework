@@ -1,11 +1,18 @@
 ﻿#if USE_SQLITE
+#if UNITY_WEBGL
+#error "webgl not support sqlite! that will report error message:"
+#error "dlopen: Unable to open DLL! Dynamic linking is not supported in WebAssembly builds due to limitations to performance and code size. "
+#error "Please statically link in the needed libraries."
+#endif
 using Mono.Data.Sqlite;
 using System.Collections.Generic;
 using System;
-using static CSharpUtility;
+using static FrameUtility;
+using static UnityUtility;
 using static FileUtility;
 using static StringUtility;
 using static FrameBaseUtility;
+using static FrameBaseHotFix;
 
 // SQLite数据表格管理器
 public class SQLiteManager : FrameSystem
@@ -13,32 +20,44 @@ public class SQLiteManager : FrameSystem
 	protected Dictionary<string, SQLiteTable> mTableNameList = new();		// 根据表格名查找表格
 	protected Dictionary<Type, SQLiteTable> mTableDataTypeList = new();		// 根据数据类型查找表格
 	protected Dictionary<Type, SQLiteTable> mTableList = new();				// 根据表格类型查找表格
-	protected bool mAutoLoad = true;										// 是否在资源可用时自动加载所有资源
 	public override void resourceAvailable()
-	{
-		if (!mAutoLoad)
-		{
-			return;
-		}
-		// 如果还没有注册表格,不在执行,没有任何表格加载,而且还会删除已缓存的表格
-		if (mTableNameList.Count == 0)
-		{
-			return;
-		}
-
-		// 资源更新完毕后需要将所有已经加载的表格重新加载一次
-		loadAll();
-		// 加载之前也清理一次,因为可能在退出时由于文件被占用而清理不掉,所以全部加载后也清一次
-		deleteUselessTempFile();
-	}
-	public void loadAll()
 	{
 		foreach (SQLiteTable item in mTableList.Values)
 		{
-			item.load();
+			item.setResourceAvailable(true);
 		}
 	}
-	public void setAutoLoad(bool autoLoad) { mAutoLoad = autoLoad; }
+	public void loadAllAsync(Action callback)
+	{
+		// 如果还没有注册表格,不在执行,没有任何表格加载,而且还会删除已缓存的表格
+		if (mTableNameList.Count == 0)
+		{
+			callback?.Invoke();
+			return;
+		}
+		// 加载之前也清理一次,因为可能在退出时由于文件被占用而清理不掉
+		deleteUselessTempFile();
+		DateTime startTime = DateTime.Now;
+		// 提前加载资源包和其中的子资源
+		mResourceManager.preloadAssetBundleAsync(FrameDefine.SQLITE, (AssetBundleInfo assetBundle) =>
+		{
+			assetBundle?.loadAllSubAssets();
+			// 然后再加载每个表格
+			int tableCount = mTableList.Count;
+			int finishCount = 0;
+			foreach (SQLiteTable item in mTableList.Values)
+			{
+				item.loadAsync(() =>
+				{
+					if (++finishCount == tableCount)
+					{
+						log("打开所有SQLite表格耗时:" + (int)(DateTime.Now - startTime).TotalMilliseconds + "毫秒");
+						callback?.Invoke();
+					}
+				});
+			}
+		});
+	}
 	public void checkAll()
 	{
 		foreach (SQLiteTable item in mTableList.Values)

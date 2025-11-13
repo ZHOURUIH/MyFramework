@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Xml;
+using UnityEngine.Networking;
 using static HttpUtility;
 using static FileUtility;
 
@@ -30,39 +32,20 @@ public class ObsSystem
 		ResourceManager.loadAssetsFromUrl(mURL + remotePath, (byte[] bytes) => { callback?.Invoke(bytesToString(bytes) ?? ""); });
 	}
 	// fileName是URL下的相对路径
-	public static string getFileMD5(string fileName)
+	public static void getFileMD5(string fileName, StringCallback callback)
 	{
-		foreach (GameFileInfo file in getFileListInternal(fileName))
-		{
-			if (file.mFileName == fileName)
-			{
-				return file.mMD5;
-			}
-		}
-		return null;
+		getFileInfoInternal(fileName, (GameFileInfo info) => { callback?.Invoke(info.mMD5); });
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected static List<GameFileInfo> getFileListInternal(string path)
+	protected static void getFileInfoInternal(string path, Action<GameFileInfo> callback)
 	{
-		List<GameFileInfo> fileList = new();
-		Dictionary<string, string> paramList = new();
-		string marker = null;
-		string str;
-		do
+		Dictionary<string, string> paramList = new() { { "prefix", path } };
+		httpGetAsyncWebGL(mURL, paramList, (string result, UnityWebRequest.Result status, long code) =>
 		{
-			paramList.Clear();
-			if (!marker.isEmpty())
-			{
-				paramList.Add("marker", marker);
-			}
-			paramList.Add("prefix", path);
-			str = httpGet(mURL, out _, out _, paramList, null);
-			if (str == null)
-			{
-				return null;
-			}
-		} while (!parseFileList(str, fileList, out marker));
-		return fileList;
+			List<GameFileInfo> fileList = new();
+			parseFileList(result, fileList, out _);
+			callback?.Invoke(fileList.Count > 0 ? fileList[0] : null);
+		});
 	}
 	// 返回值表示是否已经获取了全部的文件信息,如果没有获取全,nextMarker则会返回下一次获取所需的标记
 	protected static bool parseFileList(string str, List<GameFileInfo> fileList, out string nextMarker)

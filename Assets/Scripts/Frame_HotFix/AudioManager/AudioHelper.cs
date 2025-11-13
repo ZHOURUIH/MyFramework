@@ -1,5 +1,6 @@
-﻿using static FrameBaseHotFix;
-using static FrameDefine;
+﻿using UnityEngine;
+using static FrameBaseHotFix;
+using static FrameBaseUtility;
 
 // 音频播放的辅助物体
 public class AudioHelper : MovableObject
@@ -9,10 +10,14 @@ public class AudioHelper : MovableObject
 	public override void init()
 	{
 		base.init();
-		setObject(mPrefabPoolManager.createObject(AUDIO_HELPER_FILE, 0, false, true));
+		GameObject go = mGameObjectPool.newObject();
+		go.AddComponent<AudioSource>();
+		setObject(go);
 	}
 	public override void destroy()
 	{
+		mObject.TryGetComponent<AudioSource>(out var audioSource);
+		destroyUnityObject(audioSource);
 		mPrefabPoolManager?.destroyObject(ref mObject, false);
 		base.destroy();
 	}

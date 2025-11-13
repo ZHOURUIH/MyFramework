@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using static UnityUtility;
-using static CSharpUtility;
+using static FrameUtility;
 using static FrameBaseUtility;
 
 // 线程安全的字典列表池,但是效率较低
@@ -24,6 +24,11 @@ public class DictionaryPoolThread : FrameSystem
 		{
 			mObject.AddComponent<DictionaryPoolThreadDebug>();
 		}
+	}
+	public override void destroy()
+	{
+		base.destroy();
+		mListLock.destroy();
 	}
 	public ThreadLock getLock() { return mListLock; }
 	public void clearUnused()

@@ -12,6 +12,10 @@ public class ScaleAnchor3D : MonoBehaviour
 	protected Vector3 mOriginPos;						// 原始的位置
 	protected Vector2 mOriginScale = Vector2.one;       // 原始的缩放
 	public ASPECT_BASE mAspectBase = ASPECT_BASE.AUTO;
+	public void Awake()
+	{
+		enabled = !Application.isPlaying;
+	}
 	public void updateRect(bool force = false)
 	{
 		// 是否为编辑器手动预览操作,手动预览不需要启动游戏

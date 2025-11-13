@@ -8,16 +8,19 @@ using static FrameBaseUtility;
 // 用于检测资源的版本号
 public class AssetVersionSystem : FrameSystem
 {
-	protected Dictionary<string, GameFileInfo> mStreamingAssetsFileList = new();
-	protected Dictionary<string, GameFileInfo> mPersistentAssetsFileList = new();
-	protected Dictionary<string, GameFileInfo> mRemoteAssetsFileList = new();
-	protected List<string> mTotalDownloadedFiles = new();			// 已经下载的文件列表,用于统计下载文件记录
-	protected StringCallback mDownloadRemoteFileListCallback;
-	protected string mStreamingAssetsVersion;
-	protected string mPersistentAssetsVersion;
-	protected string mRemoteAssetsVersion;
-	protected long mTotalDownloadByteCount;                         // 已经消耗的总下载量,单位字节,用于统计下载字节数
-	protected static ASSET_READ_PATH mReadPathType = ASSET_READ_PATH.SAME_TO_REMOTE;
+	protected Dictionary<string, GameFileInfo> mStreamingAssetsFileList = new();    // StreamingAssets的资源信息列表
+	protected Dictionary<string, GameFileInfo> mPersistentAssetsFileList = new();   // PersistentData的资源信息列表
+	protected Dictionary<string, GameFileInfo> mRemoteAssetsFileList = new();		// 远端的资源信息列表
+	protected List<string> mTotalDownloadedFiles = new();							// 已经下载的文件列表,用于统计下载文件记录
+	protected string mStreamingAssetsVersion;										// StreamingAssets中的版本号
+	protected string mPersistentAssetsVersion;                                      // PersistentData中的版本号
+	protected string mRemoteAssetsVersion;											// 远端版本号
+	protected long mTotalDownloadByteCount;											// 已经消耗的总下载量,单位字节,用于统计下载字节数
+	protected static ASSET_READ_PATH mReadPathType;									// 资源路径的计算方式
+	public AssetVersionSystem()
+	{
+		mReadPathType = ASSET_READ_PATH.SAME_TO_REMOTE;
+	}
 	public long getTotalDownloadedByteCount() { return mTotalDownloadByteCount; }
 	public List<string> getTotalDownloadedFiles() { return mTotalDownloadedFiles; }
 	public void setTotalDownloadedFiles(List<string> files) { mTotalDownloadedFiles.setRange(files); }

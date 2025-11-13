@@ -3,7 +3,7 @@ using System;
 using UnityEngine;
 using static UnityUtility;
 using static StringUtility;
-using static CSharpUtility;
+using static FrameUtility;
 using static FrameBaseUtility;
 
 // 不支持带参构造的类,因为在再次利用时参数无法正确传递
@@ -90,6 +90,7 @@ public class ClassPool : FrameSystem
 		}
 		obj.setAssignID(++mAssignIDSeed);
 		obj.setDestroy(false);
+		obj.onCreate();
 
 		if (isEditor())
 		{
@@ -159,7 +160,6 @@ public class ClassPool : FrameSystem
 			removeInuse(temp, type);
 		}
 		objList.Enqueue(temp);
-		temp.setDestroy(true);
 		temp.resetProperty();
 	}
 	public void destroyClassList<T>(ICollection<T> classObjectList) where T : ClassObject
@@ -198,7 +198,6 @@ public class ClassPool : FrameSystem
 				}
 				removeInuse(classObject, type);
 			}
-			classObject.setDestroy(true);
 			classObject.resetProperty();
 			// 加入未使用列表
 			objList.Enqueue(classObject);
@@ -240,7 +239,6 @@ public class ClassPool : FrameSystem
 				}
 				removeInuse(classObject, type);
 			}
-			classObject.setDestroy(true);
 			classObject.resetProperty();
 			// 加入未使用列表
 			objList.Enqueue(classObject);

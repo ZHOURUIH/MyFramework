@@ -4,36 +4,31 @@ using static MathUtility;
 using static FrameBaseUtility;
 
 // 插值改变一个物体的位置,如果目标点不变,离目标点越近,移动速度越慢
-public class CmdTransformableLerpPosition : Command
+public class CmdTransformableLerpPosition
 {
-	public LerpCallback mDoingCallBack;		// 插值中回调
-	public LerpCallback mDoneCallBack;		// 插值完成时回调
-	public Vector3 mTargetPosition;			// 目标位置
-	public float mLerpSpeed;				// 插值速度
-	public override void resetProperty()
+	// 目标位置
+	// 插值速度
+	// 插值中回调
+	// 插值完成时回调
+	public static void execute(ITransformable obj, Vector3 targetPosition, float lerpSpeed, LerpCallback doingCallBack, LerpCallback doneCallBack)
 	{
-		base.resetProperty();
-		mDoingCallBack = null;
-		mDoneCallBack = null;
-		mTargetPosition = Vector3.zero;
-		mLerpSpeed = 0.0f;
-	}
-	public override void execute()
-	{
-		var obj = mReceiver as Transformable;
+		if (obj == null)
+		{
+			return;
+		}
 		if (isEditor() && 
 			obj is myUGUIObject uiObj && 
-			!isFloatZero(mLerpSpeed) && 
+			!isFloatZero(lerpSpeed) && 
 			!uiObj.getLayout().canUIObjectUpdate(uiObj))
 		{
 			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + uiObj.getName());
 		}
 		obj.getOrAddComponent(out COMTransformableLerpPosition com);
-		com.setLerpingCallback(mDoingCallBack);
-		com.setLerpDoneCallback(mDoneCallBack);
+		com.setLerpingCallback(doingCallBack);
+		com.setLerpDoneCallback(doneCallBack);
 		com.setActive(true);
-		com.setTargetPosition(mTargetPosition);
-		com.setLerpSpeed(mLerpSpeed);
+		com.setTargetPosition(targetPosition);
+		com.setLerpSpeed(lerpSpeed);
 		com.play();
 		if (com.getState() == PLAY_STATE.PLAY)
 		{
@@ -41,9 +36,14 @@ public class CmdTransformableLerpPosition : Command
 			obj.setNeedUpdate(true);
 		}
 	}
-	public override void debugInfo(MyStringBuilder builder)
+	public static void execute(ITransformable obj)
 	{
-		builder.append(": mLerpSpeed:", mLerpSpeed).
-				append(", mTargetPosition:", mTargetPosition);
+		if (obj == null)
+		{
+			return;
+		}
+		obj.getOrAddComponent(out COMTransformableLerpPosition com);
+		com.stop();
+		com.setActive(false);
 	}
 }

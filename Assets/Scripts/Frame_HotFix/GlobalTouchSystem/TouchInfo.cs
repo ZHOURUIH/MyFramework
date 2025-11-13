@@ -30,11 +30,11 @@ public class TouchInfo : ClassObject
 		{
 			if (isVectorZero(mTouch.getMoveDelta()))
 			{
-				obj.onMouseStay(curPos, mTouch.getTouchID());
+				obj.onTouchStay(curPos, mTouch.getTouchID());
 			}
 			else
 			{
-				obj.onMouseMove(curPos, mTouch.getMoveDelta(), elapsedTime, mTouch.getTouchID());
+				obj.onTouchMove(curPos, mTouch.getMoveDelta(), elapsedTime, mTouch.getTouchID());
 			}
 		}
 
@@ -47,7 +47,7 @@ public class TouchInfo : ClassObject
 			// 不过也许此时悬停窗口已经不接收输入事件了或者碰撞盒子被禁用了,需要判断一下
 			if (!newList.Contains(item) && item.isActiveInHierarchy() && item.isHandleInput())
 			{
-				item.onMouseLeave(curPos, touchID);
+				item.onTouchLeave(curPos, touchID);
 			}
 		}
 		// 触点是否刚进入了某个窗口,只有触点移动时才检测
@@ -56,7 +56,7 @@ public class TouchInfo : ClassObject
 			// 不过也许此时悬停窗口已经不接收输入事件了或者碰撞盒子被禁用了,需要判断一下
 			if (!mHoverList.Contains(item) && item.isActiveInHierarchy() && item.isHandleInput())
 			{
-				item.onMouseEnter(curPos, touchID);
+				item.onTouchEnter(curPos, touchID);
 			}
 		}
 		mHoverList.setRange(newList);

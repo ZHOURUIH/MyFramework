@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_STANDALONE_WIN || UNITY_EDITOR
+using System;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 
@@ -64,3 +65,4 @@ public class HID
 	[DllImport(HID_DLL, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
 	public static extern Boolean HidD_GetManufacturerString(SafeFileHandle hDevice, IntPtr Buffer, uint BufferLength);
 }
+#endif

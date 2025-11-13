@@ -17,6 +17,6 @@ public class COMTransformableRotate : ComponentKeyFrame, IComponentModifyRotatio
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
-		(mComponentOwner as Transformable).setRotation(lerpSimple(mStart, mTarget, value));
+		(mComponentOwner as ITransformable).setRotation(lerpSimple(mStart, mTarget, value));
 	}
 }

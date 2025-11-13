@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using static FrameUtility;
 using static MathUtility;
+using static LT;
 
 // 用于批量异步加载布局,封装一些通用的逻辑,需要通过LayoutLoadGroup.create来创建,会自动回收
 public class LayoutLoadGroup : ClassObject
@@ -40,11 +41,11 @@ public class LayoutLoadGroup : ClassObject
 		{
 			if (item.Value.mIsScene)
 			{
-				LT.LOAD_SCENE_ASYNC_HIDE(item.Key, item.Value.mOrder, (layout) => { onLayoutLoaded(layout, op); });
+				LOAD_SCENE_ASYNC_HIDE(item.Key, item.Value.mOrder, (layout) => { onLayoutLoaded(layout, op); });
 			}
 			else
 			{
-				LT.LOAD_ASYNC_HIDE(item.Key, item.Value.mOrder, item.Value.mOrderType, (layout) => { onLayoutLoaded(layout, op); });
+				LOAD_ASYNC_HIDE(item.Key, item.Value.mOrder, item.Value.mOrderType, (layout) => { onLayoutLoaded(layout, op); });
 			}
 		}
 		return op;
@@ -65,13 +66,29 @@ public class LayoutLoadGroup : ClassObject
 		info.mOrderType = LAYOUT_ORDER.FIXED;
 		info.mIsScene = true;
 	}
-	public void addLayout<T>(int order = 0, LAYOUT_ORDER orderType = LAYOUT_ORDER.AUTO) where T : LayoutScript
-	{
-		addLayout(typeof(T), order, orderType);
-	}
 	public void addSceneUI<T>(int order = 0) where T : LayoutScript
 	{
 		addSceneUI(typeof(T), order);
+	}
+	public void addTopLayout<T>(int order)
+	{
+		addLayout(typeof(T), order, LAYOUT_ORDER.ALWAYS_TOP);
+	}
+	public void addTopLayout<T>()
+	{
+		addLayout(typeof(T), 0, LAYOUT_ORDER.ALWAYS_TOP_AUTO);
+	}
+	public void addLayout<T>() where T : LayoutScript
+	{
+		addLayout(typeof(T), 0, LAYOUT_ORDER.AUTO);
+	}
+	public void addLayout<T>(int order) where T : LayoutScript
+	{
+		addLayout(typeof(T), order, LAYOUT_ORDER.FIXED);
+	}
+	public void addLayout<T>(int order, LAYOUT_ORDER orderType) where T : LayoutScript
+	{
+		addLayout(typeof(T), order, orderType);
 	}
 	public float getProgress() { return divide(mLoadedCount, mLoadInfo.Count); }
 	public bool isAllLoaded() { return mLoadedCount == mLoadInfo.Count; }

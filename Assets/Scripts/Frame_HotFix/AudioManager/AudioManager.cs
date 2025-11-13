@@ -1,12 +1,9 @@
 ﻿using UnityEngine;
-using System;
 using System.Collections.Generic;
 using static FrameUtility;
 using static UnityUtility;
 using static FrameBaseHotFix;
-using static CSharpUtility;
 using static MathUtility;
-using static FrameDefine;
 using static FrameBaseUtility;
 
 // 音频管理器
@@ -20,7 +17,7 @@ public class AudioManager : FrameSystem
 	protected float mSoundVolume = 1.0f;							// 音效音量大小
 	protected float mMusicVolume = 1.0f;							// 背景音乐音量大小
 	protected int mLoadedCount;                                     // 音效已加载数量
-	protected int mMaxAudioCount;									// 音效的同时存在数量上限,为0表示不限制
+	protected int mMaxAudioCount;									// 音效的同时存在数量上限,为0表示不限制,到达上限后,会停止剩余时间最短的音效
 	public AudioManager()
 	{
 		mCreateObject = true;
@@ -32,10 +29,6 @@ public class AudioManager : FrameSystem
 		{
 			mObject.AddComponent<AudioManagerDebug>();
 		}
-	}
-	public override void initAsync(Action callback)
-	{
-		mPrefabPoolManager.initObjectToPoolAsync(AUDIO_HELPER_FILE, 0, 1, false, callback);
 	}
 	public override void destroy()
 	{
@@ -69,13 +62,14 @@ public class AudioManager : FrameSystem
 		foreach (AudioHelper item in a.mReadList)
 		{
 			// 本身就小于0表示不自动销毁
-			if (tickTimerOnce(ref item.mRemainTime, elapsedTime))
+			if (item != mMusicHelper && tickTimerOnce(ref item.mRemainTime, elapsedTime))
 			{
 				unusedHelper(item);
 			}
 		}
 	}
 	public Dictionary<string, AudioInfo> getAudioList() { return mAudioList; }
+	public AudioInfo getAudio(string name) { return mAudioList.get(name); }
 	public AudioHelper getMusicHelper() { return mMusicHelper; }
 	public int getMaxAudioCount() { return mMaxAudioCount; }
 	public float getSoundVolume() { return mSoundVolume; }
@@ -175,8 +169,8 @@ public class AudioManager : FrameSystem
 		return info.mClip.length;
 	}
 	public float getAudioLength(int sound) { return getAudioLength(mAudioManager.getAudioName(sound)); }
-	// volume范围0-1,load表示如果音效未加载,则加载音效,name是GameResources下相对路径,带后缀
-	public void playClip(AudioSource source, string name, bool loop, float volume, bool load = true)
+	// volume范围0-1,load表示如果音效未加载,则异步加载音效,name是GameResources下相对路径,带后缀
+	public void playClipAsync(AudioSource source, string name, bool loop, float volume, bool load = true, AudioInfoCallback callback = null)
 	{
 		if (!mAudioList.TryGetValue(name, out AudioInfo info))
 		{
@@ -191,6 +185,7 @@ public class AudioManager : FrameSystem
 				{
 					if (source == null)
 					{
+						callback?.Invoke(null);
 						return;
 					}
 					source.enabled = true;
@@ -198,21 +193,44 @@ public class AudioManager : FrameSystem
 					source.loop = loop;
 					source.volume = volume;
 					source.Play();
+					callback?.Invoke(outInfo);
 				});
 			}
+			return;
 		}
-		else
+		if (source == null)
 		{
-			if (source == null)
-			{
-				return;
-			}
-			source.enabled = true;
-			source.clip = info.mClip;
-			source.loop = loop;
-			source.volume = volume;
-			source.Play();
+			callback?.Invoke(null);
+			return;
 		}
+		source.enabled = true;
+		source.clip = info.mClip;
+		source.loop = loop;
+		source.volume = volume;
+		source.Play();
+		callback?.Invoke(info);
+	}
+	// volume范围0-1,load表示如果音效未加载,则同步加载音效,name是GameResources下相对路径,带后缀
+	public void playClip(AudioSource source, string name, bool loop, float volume, bool load = true)
+	{
+		if (source == null)
+		{
+			return;
+		}
+		if (!mAudioList.TryGetValue(name, out AudioInfo info))
+		{
+			return;
+		}
+		// 如果音效为空,则尝试加载
+		if (info.mClip == null && load && info.mState == LOAD_STATE.NONE)
+		{
+			loadAudio(info);
+		}
+		source.enabled = true;
+		source.clip = info.mClip;
+		source.loop = loop;
+		source.volume = volume;
+		source.Play();
 	}
 	public void stopClip(AudioSource source)
 	{

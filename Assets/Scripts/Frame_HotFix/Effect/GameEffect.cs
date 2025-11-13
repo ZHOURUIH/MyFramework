@@ -2,7 +2,7 @@
 using UnityEngine;
 using static FrameBaseHotFix;
 using static MathUtility;
-using static CSharpUtility;
+using static FrameUtility;
 
 // 表示3D特效的对象
 public class GameEffect : MovableObject

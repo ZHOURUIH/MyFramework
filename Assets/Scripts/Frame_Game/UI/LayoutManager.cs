@@ -13,7 +13,7 @@ public class LayoutManager : FrameSystem
 {
 	protected Dictionary<Type, LayoutRegisteInfo> mLayoutRegisteList = new();	// 布局注册信息列表
 	protected Dictionary<Type, GameLayout> mLayoutList = new();					// 所有布局的列表
-	protected Dictionary<string, LayoutInfo> mLayoutAsyncList = new();			// 正在异步加载的布局列表
+	protected HashSet<string> mLayoutAsyncList = new();							// 正在异步加载的布局列表
 	protected Canvas mUGUIRoot;													// 所有UI的根节点
 	public LayoutManager()
 	{
@@ -51,6 +51,7 @@ public class LayoutManager : FrameSystem
 	}
 	public string getLayoutPathByType(Type type) { return mLayoutRegisteList.get(type).mFileNameNoSuffix; }
 	public GameLayout getLayout(Type type) { return mLayoutList.get(type); }
+	public GameLayout getLayout<T>() where T : GameLayout { return mLayoutList.get(typeof(T)); }
 	public GameLayout createLayout(LayoutInfo info)
 	{
 		if (mLayoutList.TryGetValue(info.mType, out GameLayout existLayout))
@@ -71,10 +72,15 @@ public class LayoutManager : FrameSystem
 			callback?.Invoke(existLayout);
 			return;
 		}
-		mLayoutAsyncList.Add(info.mType.ToString(), info);
-		mResourceManager.loadInResourceAsync(R_UI_PREFAB_PATH + getLayoutPathByType(info.mType) + ".prefab", (GameObject asset) =>
+		string layoutPath = getLayoutPathByType(info.mType);
+		if (!mLayoutAsyncList.Add(layoutPath))
 		{
-			if (mLayoutAsyncList.Remove(asset.name, out LayoutInfo info))
+			logErrorBase("Frame_Game中的界面正在异步加载中,请勿重复加载(在Frame_HotFix无此限制), LayoutName:" + layoutPath);
+			return;
+		}
+		mResourceManager.loadInResourceAsync(R_UI_PREFAB_PATH + layoutPath + ".prefab", (GameObject asset) =>
+		{
+			if (mLayoutAsyncList.Remove(layoutPath))
 			{
 				callback?.Invoke(newLayout(info, asset));
 			}

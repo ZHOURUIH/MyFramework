@@ -20,6 +20,7 @@ public class DoubleBuffer<T>
 	public void destroy()
 	{
 		clear();
+		mBufferLock.destroy();
 		mReadThreadID = 0;
 		mReading = 0;
 	}

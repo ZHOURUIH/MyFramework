@@ -13,11 +13,7 @@ public class UGUIDropList : WindowObjectUGUI, ICommonUI
 	protected WindowStructPool<DropItem> mItemPool;	// 显示项的对象池
 	protected Action mSelectCallback;				// 选项切换时的回调
 	protected myUGUIObject mMask;                   // 点击遮罩,用于点击空白处关闭下拉列表
-#if USE_TMP
-	protected myUGUITextTMP mLabel;                 // 显示当前选项的文本
-#else
-	protected myUGUIText mLabel;					// 显示当前选项的文本
-#endif
+	protected myUGUITextAuto mLabel;                // 显示当前选项的文本
 	protected myUGUIObject mOptions;				// 所有选项的下拉框
 	protected myUGUIObject mViewport;				// 所有选项的父节点
 	protected myUGUIDragView mContent;				// 所有选项的父节点
@@ -41,10 +37,10 @@ public class UGUIDropList : WindowObjectUGUI, ICommonUI
 	public override void init()
 	{
 		base.init();
-		mItemPool.init();
+		mItemPool.init(true);
 		mLabel.registeCollider(onClick);
 		mMask.registeCollider(onMaskClick);
-		mContent.initDragView(DRAG_DIRECTION.VERTICAL);
+		mContent.initDragView();
 		mOptions.setActive(false);
 		mMask.setActive(false);
 		// 确认选项的父节点拥有Canvas组件,可以渲染在所有节点之上
@@ -56,10 +52,7 @@ public class UGUIDropList : WindowObjectUGUI, ICommonUI
 		{
 			logError("下拉列表框的Options节点需要拥有Canvas组件");
 		}
-		if (!mOptions.tryGetUnityComponent<GraphicRaycaster>(out _))
-		{
-			logError("下拉列表框的Options节点需要拥有GraphicRaycaster组件");
-		}
+		mOptions.getOrAddUnityComponent<GraphicRaycaster>();
 	}
 	public void clearOptions() 
 	{
@@ -92,7 +85,7 @@ public class UGUIDropList : WindowObjectUGUI, ICommonUI
 			item.setParent(this);
 		}
 		autoGridVertical(mContent);
-		mContent.alignParentTopCenter();
+		mContent.setTopCenterToParentTopCenter();
 		setSelect(0, triggerEvent);
 	}
 	public void setSelect(int value, bool triggerEvent = true) 
@@ -126,18 +119,18 @@ public class UGUIDropList : WindowObjectUGUI, ICommonUI
 		{
 			mOptions.getOrAddUnityComponent<Canvas>().sortingOrder = mLayoutManager.generateRenderOrder(null, 0, LAYOUT_ORDER.ALWAYS_TOP_AUTO);
 			mOptions.getLayout().refreshUIDepth(mRoot, true);
-			mContent.alignParentTop();
+			mContent.setTopToParentTop();
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onClick()
 	{
 		Vector3 labelPivot = mLabel.getPositionNoPivot();
-		Vector3 labelSize = mLabel.getWindowSize();
-		float labelLeftInParent = labelPivot.x - labelSize.x * 0.5f;
-		float labelBottomInParent = labelPivot.y - labelSize.y * 0.5f;
-		Vector2 size = mOptions.getWindowSize();
-		mOptions.setPosition(new(labelLeftInParent + size.x * 0.5f, labelBottomInParent - size.y * 0.5f));
+		Vector3 labelHalfSize = mLabel.getWindowSize() * 0.5f;
+		float labelLeftInParent = labelPivot.x - labelHalfSize.x;
+		float labelBottomInParent = labelPivot.y - labelHalfSize.y;
+		Vector2 halfSize = mOptions.getWindowSize() * 0.5f;
+		mOptions.setPosition(new(labelLeftInParent + halfSize.x, labelBottomInParent - halfSize.y));
 		showOptions(true);
 	}
 	protected void onMaskClick()

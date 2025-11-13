@@ -37,8 +37,8 @@ public class ObjectInfo : ClassObject
 		{
 			return;
 		}
-		mObject = instantiatePrefab(null, prefab, getFileNameWithSuffix(prefab.name), true);
 		mFileWithPath = fileWithPath;
+		mObject = instantiatePrefab(null, prefab, getFileNameWithSuffix(prefab.name), true);
 	}
 	// 异步创建物体
 	public void createObjectAsync(GameObject prefab, string fileWithPath, Action<ObjectInfo> callback)
@@ -48,6 +48,7 @@ public class ObjectInfo : ClassObject
 			callback?.Invoke(this);
 			return;
 		}
+		mFileWithPath = fileWithPath;
 #if UNITY_6000_0_OR_NEWER
 		long curAssignID = mAssignID;
 		instantiatePrefabAsync(prefab, getFileNameWithSuffix(prefab.name), true, (GameObject go)=> 
@@ -59,7 +60,6 @@ public class ObjectInfo : ClassObject
 		mObject = instantiatePrefab(null, prefab, getFileNameWithSuffix(prefab.name), true);
 		callback?.Invoke(this);
 #endif
-		mFileWithPath = fileWithPath;
 	}
 	// 销毁物体
 	public void destroyObject()

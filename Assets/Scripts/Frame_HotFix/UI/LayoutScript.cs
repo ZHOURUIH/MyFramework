@@ -24,7 +24,8 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	protected myUGUIObject mRoot;										// 布局中的根节点
 	protected bool mRegisterChecked;								    // 是否已经检测过了合法性
 	protected bool mNeedUpdate = true;									// 布局脚本是否需要指定update,为了提高效率,可以不执行当前脚本的update,虽然update可能是空的,但是不调用会效率更高
-	protected bool mEscHide;											// 按Esc键时是否关闭此界面
+	protected bool mEscHide;                                            // 按Esc键时是否关闭此界面
+	protected bool mUnuseAllWhenHide = true;							// 是否在隐藏时将引用的对象池中的对象全部回收
 	public override void destroy()
 	{
 		base.destroy();
@@ -158,7 +159,6 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 			item.init();
 		}
 	}
-	public bool hasDragViewLoopList() { return mDragViewLoopList.count() > 0; }
 	public void updateAllDragView()
 	{
 		// 更新UI直接创建的滚动列表
@@ -172,7 +172,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		// 更新所有一级子界面的滚动列表
 		foreach (WindowObjectBase item in mWindowObjectRootList.safe())
 		{
-			if (item.isActive() && item.hasDragViewLoopList())
+			if (item.isActive())
 			{
 				item.updateDragViewLoop();
 			}
@@ -227,10 +227,13 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 				item.onHide();
 			}
 		}
-		// 隐藏界面时调用所有对象池的回收,将创建的所有对象都回收掉
-		foreach (WindowStructPoolBase item in mPoolRootList.safe())
+		if (mUnuseAllWhenHide)
 		{
-			item.unuseAll();
+			// 隐藏界面时调用所有对象池的回收,将创建的所有对象都回收掉
+			foreach (WindowStructPoolBase item in mPoolRootList.safe())
+			{
+				item.unuseAll();
+			}
 		}
 		mInputSystem?.unlistenKey(this);
 	}
@@ -412,7 +415,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		}
 		return go;
 	}
-	public static CustomAsyncOperation instantiateAsync(string prefabPath, string name, int tag, GameObjectCallback callback)
+	public static CustomAsyncOperation instantiateAsync(myUGUIObject parent, string prefabPath, string name, int tag, GameObjectCallback callback)
 	{
 		return mPrefabPoolManager.createObjectAsync(prefabPath, tag, false, false, (GameObject go) =>
 		{
@@ -420,12 +423,18 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 			{
 				go.name = name;
 			}
+			setNormalProperty(go, parent.getObject());
 			callback?.Invoke(go);
 		});
 	}
-	public static void instantiate(myUGUIObject parent, string prefabName)
+	public static void instantiate(myUGUIObject parent, string prefabName, int tag)
 	{
-		instantiate(parent, prefabName, getFileNameNoSuffixNoDir(prefabName));
+		instantiate(parent, prefabName, getFileNameNoSuffixNoDir(prefabName), tag);
+	}
+	public static void destroyInstantiate(ref myUGUIObject window, bool destroyReally)
+	{
+		destroyInstantiate(window, destroyReally);
+		window = null;
 	}
 	public static void destroyInstantiate(myUGUIObject window, bool destroyReally)
 	{
@@ -439,6 +448,11 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		// 窗口销毁时不会通知布局刷新深度,因为移除对于深度不会产生影响
 	}
 	// 虽然执行内容与类似,但是为了外部使用方便,所以添加了对于不同方式创建出来的窗口的销毁方法
+	public static void destroyCloned(ref myUGUIObject obj, bool immediately = false)
+	{
+		destroyObject(obj, immediately);
+		obj = null;
+	}
 	public static void destroyCloned(myUGUIObject obj, bool immediately = false)
 	{
 		destroyObject(obj, immediately);
@@ -461,7 +475,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void clearLocalization()
 	{
-		foreach (myUGUIObject item in mLocalizationObjectList.safe())
+		foreach (IUGUIObject item in mLocalizationObjectList.safe())
 		{
 			mLocalizationManager.unregisteLocalization(item);
 		}

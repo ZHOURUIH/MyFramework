@@ -3,13 +3,9 @@
 // 自定义的勾选框
 public class UGUICheckbox : WindowObjectUGUI, ICommonUI
 {
-	protected myUGUIObject mMark;       // 勾选图片节点
-#if USE_TMP
-	protected myUGUITextTMP mLabel;     // 文字节点
-#else
-	protected myUGUIText mLabel;        // 文字节点
-#endif
-	protected OnCheck mCheckCallback;	// 勾选状态改变的回调
+	protected myUGUIObject mMark;				// 勾选图片节点
+	protected myUGUITextAuto mLabel;			// 文字节点
+	protected CheckCallback mCheckCallback;		// 勾选状态改变的回调
 	public UGUICheckbox(IWindowObjectOwner parent) : base(parent) { }
 	protected override void assignWindowInternal()
 	{
@@ -25,19 +21,15 @@ public class UGUICheckbox : WindowObjectUGUI, ICommonUI
 		}
 		mRoot.registeCollider(onCheckClick);
 	}
-#if USE_TMP
-	public myUGUITextTMP getLabelObject() { return mLabel; }
-#else
-	public myUGUIText getLabelObject() { return mLabel; }
-#endif
+	public myUGUITextAuto getLabelObject() { return mLabel; }
 	public void setLabel(string label) { mLabel?.setText(label); }
-	public void setOnCheck(OnCheck callback) { mCheckCallback = callback; }
+	public void setCheckCallback(CheckCallback callback) { mCheckCallback = callback; }
 	public void setChecked(bool check) { mMark.setActive(check); }
 	public bool isChecked() { return mMark.isActiveInHierarchy(); }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onCheckClick()
 	{
 		mMark.setActive(!mMark.isActiveInHierarchy());
-		mCheckCallback?.Invoke(this, mMark.isActiveInHierarchy());
+		mCheckCallback?.Invoke(this);
 	}
 }

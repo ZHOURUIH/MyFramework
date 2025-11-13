@@ -33,19 +33,21 @@ public class myUGUITextTMP : myUGUIObject, IUGUIText
 			mText.text = text;
 		}
 	}
-	public void setText(string text, bool preferredHeight)
+	public void setTextWithPreferredWidth(string text, float extraWidth = 0.0f)
 	{
 		setText(text);
-		if (preferredHeight)
-		{
-			applyPreferredHeight();
-		}
+		applyPreferredWidth(0.0f, extraWidth);
+	}
+	public void setTextWithPreferredHeight(string text, float extraHeight = 0.0f)
+	{
+		setText(text);
+		applyPreferredHeight(0.0f, extraHeight);
 	}
 	public void setText(int value)
 	{
 		setText(IToS(value));
 	}
-	public void applyPreferredWidth(float height = 0.0f)
+	public void applyPreferredWidth(float height = 0.0f, float extraWidth = 0.0f)
 	{
 		if (height <= 0.0f)
 		{
@@ -56,9 +58,9 @@ public class myUGUITextTMP : myUGUIObject, IUGUIText
 			// 如果要改变文本区域的宽度,则需要先修改一次窗口大小,使之根据指定的宽度重新计算preferredHeight
 			setWindowSize(new(getWindowSize().x, height));
 		}
-		setWindowSize(new(mText.preferredWidth, height));
+		setWindowSize(new(mText.preferredWidth + extraWidth, height));
 	}
-	public void applyPreferredHeight(float width = 0.0f)
+	public void applyPreferredHeight(float width = 0.0f, float extraHeight = 0.0f)
 	{
 		if (width <= 0.0f)
 		{
@@ -69,7 +71,7 @@ public class myUGUITextTMP : myUGUIObject, IUGUIText
 			// 如果要改变文本区域的宽度,则需要先修改一次窗口大小,使之根据指定的宽度重新计算preferredHeight
 			setWindowSize(new(width, getWindowSize().y));
 		}
-		setWindowSize(new(width, mText.preferredHeight));
+		setWindowSize(new(width, mText.preferredHeight + extraHeight));
 	}
 	public string getText() { return mText.text; }
 	public override float getAlpha() { return mText.color.a; }
@@ -125,22 +127,22 @@ public class myUGUITextTMP : myUGUIObject, IUGUIText
 		mLocalizationManager.registeLocalization(this, mainText, paramList);
 		collection.addLocalizationObject(this);
 	}
-	public void setText(string mainText, OnLocalization callback, ILocalizationCollection collection)
+	public void setText(string mainText, LocalizationCallback callback, ILocalizationCollection collection)
 	{
 		mLocalizationManager.registeLocalization(this, mainText, callback);
 		collection.addLocalizationObject(this);
 	}
-	public void setText(string mainText, string param, OnLocalization callback, ILocalizationCollection collection)
+	public void setText(string mainText, string param, LocalizationCallback callback, ILocalizationCollection collection)
 	{
 		mLocalizationManager.registeLocalization(this, mainText, param, callback);
 		collection.addLocalizationObject(this);
 	}
-	public void setText(string mainText, string param0, string param1, OnLocalization callback, ILocalizationCollection collection)
+	public void setText(string mainText, string param0, string param1, LocalizationCallback callback, ILocalizationCollection collection)
 	{
 		mLocalizationManager.registeLocalization(this, mainText, param0, param1, callback);
 		collection.addLocalizationObject(this);
 	}
-	public void setText(string mainText, IList<string> paramList, OnLocalization callback, ILocalizationCollection collection)
+	public void setText(string mainText, IList<string> paramList, LocalizationCallback callback, ILocalizationCollection collection)
 	{
 		mLocalizationManager.registeLocalization(this, mainText, paramList, callback);
 		collection.addLocalizationObject(this);

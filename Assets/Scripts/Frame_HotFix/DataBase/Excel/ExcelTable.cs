@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using static UnityUtility;
 using static FrameBaseHotFix;
 using static FileUtility;
-using static CSharpUtility;
+using static FrameUtility;
 using static BinaryUtility;
 using static StringUtility;
 using static FrameDefine;
@@ -29,6 +29,11 @@ public class ExcelTable
 	public virtual void checkAllData() { checkAllDataDefault(); }
 	public void openFileAsync(Action callback)
 	{
+		if (!mResourceAvailable && isPlaying())
+		{
+			logError("表格资源当前不可使用,无法加载,type:" + mTableName);
+			return;
+		}
 		if (mResourceManager == null)
 		{
 			callback?.Invoke();
@@ -60,11 +65,6 @@ public class ExcelTable
 	}
 	public void parseFile(byte[] fileBuffer)
 	{
-		if (!mResourceAvailable)
-		{
-			logError("表格资源当前不可使用,无法加载,type:" + mTableName);
-			return;
-		}
 		if (fileBuffer == null)
 		{
 			return;
@@ -249,11 +249,15 @@ public class ExcelTable
 	// 为了避免歧义,getData,getDataMap设置为不允许外部访问
 	protected T getData<T>(int id, bool errorIfNull = true) where T : ExcelData
 	{
-		if (mDataMap.Count == 0)
+		ExcelData data = null;
+		if (id > 0)
 		{
-			readFile();
+			if (mDataMap.Count == 0)
+			{
+				readFile();
+			}
+			data = mDataMap.get(id);
 		}
-		ExcelData data = mDataMap.get(id);
 		if (data as T == null && errorIfNull)
 		{
 			logError("在表格中找不到数据: ID:" + id + ", 表格:" + mDataType);

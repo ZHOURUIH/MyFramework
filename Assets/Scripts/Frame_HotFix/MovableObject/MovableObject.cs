@@ -1,14 +1,14 @@
 ﻿using System;
 using UnityEngine;
 using static UnityUtility;
-using static FrameBaseHotFix;
-using static CSharpUtility;
+using static FrameUtility;
 using static StringUtility;
+using static FrameBaseHotFix;
 
 // 可移动物体,表示一个3D物体
 public class MovableObject : Transformable, IMouseEventCollect
 {
-	protected COMMovableObjectInteractive mCOMInteractive;	// 交互组件
+	protected ComponentInteractive mCOMInteractive;				// 交互组件,跟UI通用的
 	protected COMMovableObjectMoveInfo mCOMMoveInfo;		// 移动信息组件
 	protected int mObjectID;								// 物体的客户端ID
 	protected bool mSelfCreatedObject;						// 是否已经由MovableObject自己创建一个GameObject作为节点
@@ -133,11 +133,11 @@ public class MovableObject : Transformable, IMouseEventCollect
 	// 可移动物体没有固定深度,只在实时检测时根据相交点来判断深度
 	public virtual UIDepth getDepth()										{ return null; }
 	public virtual bool isHandleInput()										{ return mCOMInteractive != null && mCOMInteractive.isHandleInput(); }
-	public virtual bool isReceiveScreenMouse()								{ return mCOMInteractive != null && mCOMInteractive.isReceiveScreenMouse(); }
+	public virtual bool isReceiveScreenTouch()								{ return mCOMInteractive != null && mCOMInteractive.isReceiveScreenMouse(); }
 	public virtual bool isPassRay()											{ return mCOMInteractive == null || mCOMInteractive.isPassRay(); }
-	public virtual bool isPassDragEvent()									{ return !isDragable() || (mCOMInteractive != null && mCOMInteractive.isPassDragEvent()); }
+	public virtual bool isPassDragEvent()									{ return !isDraggable() || (mCOMInteractive != null && mCOMInteractive.isPassDragEvent()); }
 	public virtual bool isMouseHovered()									{ return mCOMInteractive != null && mCOMInteractive.isMouseHovered(); }
-	public virtual bool isDragable()										{ return getActiveComponent<COMMovableObjectDrag>() != null; }
+	public virtual bool isDraggable()										{ return getActiveComponent<COMMovableObjectDrag>() != null; }
 	public int getClickSound()												{ return mCOMInteractive?.getClickSound() ?? 0; }
 	public string getDescription()											{ return EMPTY; }
 	public bool hasLastPosition()											{ return mCOMMoveInfo != null && mCOMMoveInfo.hasLastPosition(); }
@@ -146,48 +146,45 @@ public class MovableObject : Transformable, IMouseEventCollect
 	//------------------------------------------------------------------------------------------------------------------------------
 	public virtual void setPassRay(bool passRay)							{ getCOMInteractive().setPassRay(passRay); }
 	public virtual void setHandleInput(bool handleInput)					{ getCOMInteractive().setHandleInput(handleInput); }
-	public void setOnMouseEnter(OnMouseEnter callback)						{ getCOMInteractive().setOnMouseEnter(callback); }
-	public void setOnMouseLeave(OnMouseLeave callback)						{ getCOMInteractive().setOnMouseLeave(callback); }
-	public void setOnMouseDown(Vector3IntCallback callback)					{ getCOMInteractive().setOnMouseDown(callback); }
-	public void setOnMouseUp(Vector3IntCallback callback)					{ getCOMInteractive().setOnMouseUp(callback); }
-	public void setOnMouseMove(OnMouseMove callback)						{ getCOMInteractive().setOnMouseMove(callback); }
+	public void setOnTouchEnter(Vector3IntCallback callback)				{ getCOMInteractive().setOnTouchEnter(callback); }
+	public void setOnTouchLeave(Vector3IntCallback callback)				{ getCOMInteractive().setOnTouchLeave(callback); }
+	public void setOnTouchDown(Vector3IntCallback callback)					{ getCOMInteractive().setOnTouchDown(callback); }
+	public void setOnTouchUp(Vector3IntCallback callback)					{ getCOMInteractive().setOnTouchUp(callback); }
+	public void setOnTouchMove(TouchMoveCallback callback)						{ getCOMInteractive().setOnTouchMove(callback); }
 	public virtual void setClickCallback(Action callback)					{ getCOMInteractive().setClickCallback(callback); }
-	public virtual void setClickDetailCallback(ClickCallback callback)		{ getCOMInteractive().setClickDetailCallback(callback); }
+	public virtual void setClickDetailCallback(Vector3Callback callback)	{ getCOMInteractive().setClickDetailCallback(callback); }
 	public virtual void setHoverCallback(BoolCallback callback)				{ getCOMInteractive().setHoverCallback(callback); }
-	public virtual void setHoverDetailCallback(HoverCallback callback)		{ getCOMInteractive().setHoverDetailCallback(callback); }
+	public virtual void setHoverDetailCallback(Vector3BoolCallback callback){ getCOMInteractive().setHoverDetailCallback(callback); }
 	public virtual void setPressCallback(BoolCallback callback)				{ getCOMInteractive().setPressCallback(callback); }
-	public virtual void setPressDetailCallback(PressCallback callback)		{ getCOMInteractive().setPressDetailCallback(callback); }
-	public void setOnScreenMouseUp(OnScreenMouseUp callback)				{ getCOMInteractive().setOnScreenMouseUp(callback); }
+	public virtual void setPressDetailCallback(Vector3BoolCallback callback){ getCOMInteractive().setPressDetailCallback(callback); }
+	public void setOnScreenTouchUp(Vector3IntCallback callback)				{ getCOMInteractive().setOnScreenTouchUp(callback); }
 	public void setDoubleClickCallback(Action callback)						{ getCOMInteractive().setDoubleClickCallback(callback); }
-	public void setDoubleClickDetailCallback(ClickCallback callback)		{ getCOMInteractive().setDoubleClickDetailCallback(callback); }
+	public void setDoubleClickDetailCallback(Vector3Callback callback)		{ getCOMInteractive().setDoubleClickDetailCallback(callback); }
 	public void setPreClickCallback(Action callback)						{ getCOMInteractive().setPreClickCallback(callback); }
-	public void setPreClickDetailCallback(ClickCallback callback)			{ getCOMInteractive().setPreClickDetailCallback(callback); }
+	public void setPreClickDetailCallback(Vector3Callback callback)			{ getCOMInteractive().setPreClickDetailCallback(callback); }
 	public void setClickSound(int sound)									{ getCOMInteractive().setClickSound(sound); }
-	public virtual void onMouseEnter(Vector3 mousePos, int touchID)			{ getCOMInteractive().onMouseEnter(mousePos, touchID); }
-	public virtual void onMouseLeave(Vector3 mousePos, int touchID)			{ getCOMInteractive().onMouseLeave(mousePos, touchID); }
+	public virtual void onTouchEnter(Vector3 touchPos, int touchID)			{ getCOMInteractive().onTouchEnter(touchPos, touchID); }
+	public virtual void onTouchLeave(Vector3 touchPos, int touchID)			{ getCOMInteractive().onTouchLeave(touchPos, touchID); }
 	// 鼠标左键在窗口内按下
-	public virtual void onMouseDown(Vector3 mousePos, int touchID)			{ getCOMInteractive().onMouseDown(mousePos, touchID); }
+	public virtual void onTouchDown(Vector3 touchPos, int touchID)			{ getCOMInteractive().onTouchDown(touchPos, touchID); }
 	// 鼠标左键在窗口内放开
-	public virtual void onMouseUp(Vector3 mousePos, int touchID)			{ getCOMInteractive().onMouseUp(mousePos, touchID); }
+	public virtual void onTouchUp(Vector3 touchPos, int touchID)			{ getCOMInteractive().onTouchUp(touchPos, touchID); }
 	// 鼠标在窗口内,并且有移动
-	public virtual void onMouseMove(Vector3 mousePos, Vector3 moveDelta, float moveTime, int touchID)
+	public virtual void onTouchMove(Vector3 touchPos, Vector3 moveDelta, float moveTime, int touchID)
 	{
-		getCOMInteractive().onMouseMove(mousePos, moveDelta, moveTime, touchID);
+		getCOMInteractive().onTouchMove(touchPos, moveDelta, moveTime, touchID);
 	}
-	public virtual void onMouseStay(Vector3 mousePos, int touchID)			{ getCOMInteractive().onMouseStay(mousePos, touchID); }
-	public virtual void onScreenMouseDown(Vector3 mousePos, int touchID)	{ getCOMInteractive().onScreenMouseDown(mousePos, touchID); }
+	public virtual void onTouchStay(Vector3 touchPos, int touchID)			{ getCOMInteractive().onTouchStay(touchPos, touchID); }
+	public virtual void onScreenTouchDown(Vector3 touchPos, int touchID)	{ getCOMInteractive().onScreenTouchDown(touchPos, touchID); }
 	// 鼠标在屏幕上抬起
-	public virtual void onScreenMouseUp(Vector3 mousePos, int touchID)
+	public virtual void onScreenTouchUp(Vector3 touchPos, int touchID)		{ getCOMInteractive().onScreenTouchUp(touchPos, touchID); }
+	public virtual void onReceiveDrag(IMouseEventCollect dragObj, Vector3 touchPos, ref bool continueEvent) 
 	{
-		getCOMInteractive().onScreenMouseUp(mousePos, touchID);
+		getCOMInteractive().onReceiveDrag(dragObj, touchPos, ref continueEvent);
 	}
-	public virtual void onReceiveDrag(IMouseEventCollect dragObj, Vector3 mousePos, ref bool continueEvent) 
+	public virtual void onDragHovered(IMouseEventCollect dragObj, Vector3 touchPos, bool hover) 
 	{
-		getCOMInteractive().onReceiveDrag(dragObj, mousePos, ref continueEvent);
-	}
-	public virtual void onDragHoverd(IMouseEventCollect dragObj, Vector3 mousePos, bool hover) 
-	{
-		getCOMInteractive().onDragHoverd(dragObj, mousePos, hover);
+		getCOMInteractive().onDragHovered(dragObj, touchPos, hover);
 	}
 	public virtual void onMultiTouchStart(Vector3 touch0, Vector3 touch1) { getCOMInteractive().onMultiTouchStart(touch0, touch1); }
 	public virtual void onMultiTouchMove(Vector3 touch0, Vector3 lastTouch0, Vector3 touch1, Vector3 lastTouch1) 
@@ -200,9 +197,9 @@ public class MovableObject : Transformable, IMouseEventCollect
 		mCOMMoveInfo ??= addComponent<COMMovableObjectMoveInfo>(true);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected COMMovableObjectInteractive getCOMInteractive()
+	protected ComponentInteractive getCOMInteractive()
 	{
-		return mCOMInteractive ??= addComponent<COMMovableObjectInteractive>(false);
+		return mCOMInteractive ??= addComponent<ComponentInteractive>(false);
 	}
 	protected void destroySelfCreateObject()
 	{

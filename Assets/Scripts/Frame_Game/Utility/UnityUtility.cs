@@ -75,7 +75,8 @@ public class UnityUtility
 	public static void applyAnchor(GameObject obj, bool force, GameLayout layout = null)
 	{
 		obj.TryGetComponent<ResScaleAnchor>(out var scaleAnchor);
-		if (scaleAnchor != null)
+		obj.TryGetComponent<ResPaddingAnchor>(out var paddingAnchor);
+		if (scaleAnchor != null || paddingAnchor != null)
 		{
 			// 去除UGUI自带的锚点,避免计算错误
 			if (obj.TryGetComponent<RectTransform>(out var rectTransform))
@@ -89,6 +90,10 @@ public class UnityUtility
 		if (scaleAnchor != null)
 		{
 			scaleAnchor.updateRect(force);
+		}
+		if (paddingAnchor != null)
+		{
+			paddingAnchor.updateRect(force);
 		}
 
 		// 然后更新所有子节点
@@ -141,5 +146,21 @@ public class UnityUtility
 			type = type.BaseType;
 		}
 		return null;
+	}
+	public static Vector3 localToWorld(Transform transform, Vector3 local)
+	{
+		if (transform == null)
+		{
+			return Vector3.zero;
+		}
+		return transform.localToWorldMatrix.MultiplyPoint(local);
+	}
+	public static Vector3 worldToLocal(Transform transform, Vector3 world)
+	{
+		if (transform == null)
+		{
+			return Vector3.zero;
+		}
+		return transform.worldToLocalMatrix.MultiplyPoint(world);
 	}
 }

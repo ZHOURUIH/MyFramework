@@ -1,7 +1,7 @@
-﻿using System;
+﻿#if UNITY_STANDALONE_WIN || UNITY_EDITOR
+using System;
 using System.Runtime.InteropServices;
 using static FrameBaseHotFix;
-using static CSharpUtility;
 
 [StructLayout(LayoutKind.Sequential)] 
 public struct WaveHdr
@@ -104,3 +104,4 @@ public class Winmm
 		return mDllImportSystem.invoke<T>(WINMM_DLL, typeof(T).Name);
 	}
 }
+#endif

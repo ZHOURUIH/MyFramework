@@ -1,45 +1,38 @@
 ﻿
 // 用于渐变正交摄像机的正交大小
-public class CmdGameCameraOrthoSize : Command
+public class CmdGameCameraOrthoSize
 {
-	public KeyFrameCallback mDoingCallback;	// 变化中的回调
-	public KeyFrameCallback mDoneCallback;	// 变化结束时的回调
-	public float mTargetOrthoSize;			// 起始的大小
-	public float mStartOrthoSize;			// 终止的大小
-	public float mOnceLength;				// 变化的持续时间,如果是循环的,则表示单次的时间
-	public float mOffset;					// 时间起始偏移量
-	public int mKeyframe;					// 所使用的关键帧曲线ID
-	public bool mLoop;						// 是否循环
-	public override void resetProperty()
+	// 变化中的回调
+	// 变化结束时的回调
+	// 起始的大小
+	// 终止的大小
+	// 变化的持续时间,如果是循环的,则表示单次的时间
+	// 时间起始偏移量
+	// 所使用的关键帧曲线ID
+	// 是否循环
+	public static void execute(GameCamera camera, float startOrthoSize, float targetOrthoSize, float onceLength, float offset, int keyframe, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		base.resetProperty();
-		mDoingCallback = null;
-		mDoneCallback = null;
-		mKeyframe = KEY_CURVE.NONE;
-		mOnceLength = 1.0f;
-		mOffset = 0.0f;
-		mStartOrthoSize = 0.0f;
-		mTargetOrthoSize = 0.0f;
-		mLoop = false;
-	}
-	public override void execute()
-	{
-		var obj = mReceiver as GameCamera;
-		obj.getOrAddComponent(out COMCameraOrthoSize com);
-		com.setDoingCallback(mDoingCallback);
-		com.setDoneCallback(mDoneCallback);
+		if (camera == null)
+		{
+			return;	
+		}
+		camera.getOrAddComponent(out COMCameraOrthoSize com);
+		com.setDoingCallback(doingCallback);
+		com.setDoneCallback(doneCallback);
 		com.setActive(true);
-		com.setStart(mStartOrthoSize);
-		com.setTarget(mTargetOrthoSize);
-		com.play(mKeyframe, mLoop, mOnceLength, mOffset);
+		com.setStart(startOrthoSize);
+		com.setTarget(targetOrthoSize);
+		com.play(keyframe, loop, onceLength, offset);
 	}
-	public override void debugInfo(MyStringBuilder builder)
+	public static void execute(GameCamera camera, float targetOrthoSize)
 	{
-		builder.append(": mKeyframe:", mKeyframe).
-				append(", mOnceLength:", mOnceLength).
-				append(", mOffset:", mOffset).
-				append(", mStartFOV:", mStartOrthoSize).
-				append(", mTargetFOV:", mTargetOrthoSize).
-				append(", mLoop:", mLoop);
+		if (camera == null)
+		{
+			return;
+		}
+		camera.getOrAddComponent(out COMCameraOrthoSize com);
+		com.setStart(targetOrthoSize);
+		com.setTarget(targetOrthoSize);
+		com.play(0, false, 0.0f, 0.0f);
 	}
 }

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using static UnityUtility;
+using UEventSystem = UnityEngine.EventSystems.EventSystem;
 
 // 允许部分区域穿透UGUI的鼠标事件
 public class UGUIEventThroughArea : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler
@@ -57,7 +58,7 @@ public class UGUIEventThroughArea : MonoBehaviour, IPointerClickHandler, IPointe
 		}
 		mPassing = true;
 		using var a = new ListScope<RaycastResult>(out var results);
-		UnityEngine.EventSystems.EventSystem.current.RaycastAll(data, results);
+		UEventSystem.current.RaycastAll(data, results);
 		GameObject current = data.pointerCurrentRaycast.gameObject;
 		foreach (RaycastResult item in results)
 		{

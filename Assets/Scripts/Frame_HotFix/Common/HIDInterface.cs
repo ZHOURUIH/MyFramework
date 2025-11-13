@@ -1,9 +1,10 @@
-﻿using System;
+﻿#if UNITY_STANDALONE_WIN
+using System;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 using static StringUtility;
 using static UnityUtility;
-using static CSharpUtility;
+using static FrameUtility;
 
 public struct InterfaceDetails
 {
@@ -255,3 +256,4 @@ public class HIDDevice
 		mProductInfo.OUT_reportByteLength = mCapabilities.OutputReportByteLength;
 	}
 }
+#endif

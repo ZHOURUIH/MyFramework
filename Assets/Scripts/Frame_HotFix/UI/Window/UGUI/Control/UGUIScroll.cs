@@ -10,7 +10,7 @@ public class UGUIScroll : WindowObjectUGUI, ICommonUI
 {
 	protected List<IScrollContainer> mContainerList = new();// 容器列表,用于获取位置缩放旋转等属性,每一容器的控制值就是其下标
 	protected List<IScrollItem> mItemList = new();          // 物体列表,用于显示,每一项的控制值就是其下标,所以在下面的代码中会频繁使用其下标来计算位置
-	protected OnScrollItem mOnScrollItem;					// 滚动的回调
+	protected ScrollItemCallback mOnScrollItem;					// 滚动的回调
 	protected MyCurve mScrollToTargetCurve;					// 滚动到指定项使用的曲线
 	protected DRAG_DIRECTION mDragDirection;				// 拖动方向,横向或纵向
 	protected float mFocusSpeedThreshold;					// 开始聚焦的速度阈值,当滑动速度正在自由降低的阶段时,速度低于该值则会以恒定速度自动聚焦到一个最近的项
@@ -39,10 +39,10 @@ public class UGUIScroll : WindowObjectUGUI, ICommonUI
 	}
 	public override void init()
 	{
-		mRoot.setOnMouseDown(onMouseDown);
-		mRoot.setOnScreenMouseUp(onScreenMouseUp);
-		mRoot.setOnMouseMove(onMouseMove);
-		mRoot.setOnMouseStay(onMouseStay);
+		mRoot.setOnTouchDown(onMouseDown);
+		mRoot.setOnScreenTouchUp(onScreenMouseUp);
+		mRoot.setOnTouchMove(onMouseMove);
+		mRoot.setOnTouchStay(onMouseStay);
 		mRoot.registeCollider(true);
 		// 为了能拖拽,所以根节点的深度需要在所有子节点之上
 		mRoot.setDepthOverAllChild(true);
@@ -275,7 +275,7 @@ public class UGUIScroll : WindowObjectUGUI, ICommonUI
 	public void setDragSensitive(float sensitive) { mDragSensitive = sensitive; }
 	public void setFocusSpeedThreshhold(float threshold) { mFocusSpeedThreshold = threshold; }
 	public void setAttenuateFactor(float factor) { mAttenuateFactor = factor; }
-	public void setOnScrollItem(OnScrollItem callback) { mOnScrollItem = callback; }
+	public void setOnScrollItem(ScrollItemCallback callback) { mOnScrollItem = callback; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void updateItem(float controlValue)
 	{
@@ -451,14 +451,14 @@ public class UGUIScroll : WindowObjectUGUI, ICommonUI
 		}
 		return index;
 	}
-	protected void onMouseDown(Vector3 mousePos, int touchID)
+	protected void onMouseDown(Vector3 touchPos, int touchID)
 	{
 		mMouseDown = true;
 		mState = SCROLL_STATE.DRAGING;
 		mScrollSpeed = 0.0f;
 	}
 	// 鼠标在屏幕上抬起
-	protected void onScreenMouseUp(IMouseEventCollect obj, Vector3 mousePos, int touchID)
+	protected void onScreenMouseUp(Vector3 touchPos, int touchID)
 	{
 		mMouseDown = false;
 		// 正在拖动时鼠标抬起,则开始逐渐减速到0
@@ -467,7 +467,7 @@ public class UGUIScroll : WindowObjectUGUI, ICommonUI
 			mState = SCROLL_STATE.SCROLL_TO_STOP;
 		}
 	}
-	protected void onMouseMove(Vector3 mousePos, Vector3 moveDelta, float moveTime, int touchID)
+	protected void onMouseMove(Vector3 touchPos, Vector3 moveDelta, float moveTime, int touchID)
 	{
 		// 鼠标未按下时不允许改变移动速度
 		if (!mMouseDown)
@@ -483,7 +483,7 @@ public class UGUIScroll : WindowObjectUGUI, ICommonUI
 			mScrollSpeed = sign(moveDelta.y) * abs(divide(moveDelta.y, moveTime)) * mDragSensitive * 0.01f;
 		}
 	}
-	protected void onMouseStay(Vector3 mousePos, int touchID)
+	protected void onMouseStay(Vector3 touchPos, int touchID)
 	{
 		if (!mMouseDown)
 		{

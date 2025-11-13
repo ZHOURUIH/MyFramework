@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
-using static UnityUtility;
 using static FrameBaseHotFix;
+using static UnityUtility;
 using static MathUtility;
 
 // 拖拽组件基类
@@ -9,24 +9,21 @@ public class ComponentDrag : GameComponent
 	protected DragStartCallback mDragStartCallback;		// 开始拖拽的回调
 	protected DragEndCallback mDragEndCallback;			// 在结束拖拽,还未进行接收拖拽处理之前调用
 	protected DragEndCallback mDragEndTotallyCallback;	// 在结束拖拽和接收拖拽处理全部完成以后调用
-	protected DragCallback mDragingCallback;			// 拖拽过程中的回调
+	protected DragCallback mDraggingCallback;			// 拖拽过程中的回调
 	protected TouchPoint mTouchPoint;					// 拖动的触点
 	protected Vector3 mPrepareDragMousePosition;		// 鼠标刚按下时的坐标
 	protected Vector3 mDragMouseOffset;					// 开始拖拽时,鼠标位置与窗口位置的偏移
 	protected Vector2 mAllowDragDirection;              // 允许开始拖拽的方向,为0则表示不限制开始拖拽的方向
-	protected float mStartDragThreshold;				// 开始拖拽的阈值,在准备拖拽阶段,拖拽的距离超过阈值后进入拖拽状态
+	protected float mStartDragThreshold = 20.0f;		// 开始拖拽的阈值,在准备拖拽阶段,拖拽的距离超过阈值后进入拖拽状态
 	protected float mDragStartAngleThreshold;			// 如果有允许开始拖拽的方向,则表示当实际拖拽方向与允许的方向夹角,弧度制
 	protected bool mPreparingDrag;						// 鼠标按下时只是准备开始拖动,当鼠标在准备状态下移动一定距离以后才会开始真正的拖动
-	protected bool mDraging;							// 当前是否正在拖拽
+	protected bool mDragging;							// 当前是否正在拖拽
 	protected bool mObjectCenterAlignMouse;             // 拖拽过场中物体的中心是否对齐鼠标位置,设置为true会使mDragMouseOffset始终为0
-	protected bool mMovable;                            // 拖拽时是否允许当前窗口跟随移动
-	protected bool mBreakDragWhenMultiTouch;			// 是否当有多个触点时就中断拖拽,避免与多指操作冲突
+	protected bool mMovable = true;                     // 拖拽时是否允许当前窗口跟随移动
+	protected bool mBreakDragWhenMultiTouch = true;		// 是否当有多个触点时就中断拖拽,避免与多指操作冲突
 	public ComponentDrag()
 	{
-		mStartDragThreshold = 20.0f;
 		mDragStartAngleThreshold = toRadian(45.0f);
-		mMovable = true;
-		mBreakDragWhenMultiTouch = true;
 	}
 	public override void resetProperty()
 	{
@@ -34,7 +31,7 @@ public class ComponentDrag : GameComponent
 		mDragStartCallback = null;
 		mDragEndCallback = null;
 		mDragEndTotallyCallback = null;
-		mDragingCallback = null;
+		mDraggingCallback = null;
 		mTouchPoint = null;
 		mPrepareDragMousePosition = Vector3.zero;
 		mDragMouseOffset = Vector3.zero;
@@ -42,7 +39,7 @@ public class ComponentDrag : GameComponent
 		mStartDragThreshold = 20.0f;
 		mDragStartAngleThreshold = toRadian(45.0f);
 		mPreparingDrag = false;
-		mDraging = false;
+		mDragging = false;
 		mMovable = true;
 		mObjectCenterAlignMouse = false;
 		mBreakDragWhenMultiTouch = true;
@@ -57,7 +54,7 @@ public class ComponentDrag : GameComponent
 	public override void update(float elapsedTime)
 	{
 		// 有触点按下时,检查是否可以开始拖动
-		if (!mDraging && !mPreparingDrag && mInputSystem.getTouchDown(out mTouchPoint))
+		if (!mDragging && !mPreparingDrag && mInputSystem.getTouchDown(out mTouchPoint))
 		{
 			checkStartDrag();
 		}
@@ -68,28 +65,28 @@ public class ComponentDrag : GameComponent
 				touchUp(false);
 			}
 		}
-		if (mDraging || mPreparingDrag)
+		if (mDragging || mPreparingDrag)
 		{
 			touchMove();
 		}
 	}
-	public bool isDraging()												{ return mDraging; }
+	public bool isDragging()											{ return mDragging; }
 	public bool isBreakDragWhenMultiTouch()								{ return mBreakDragWhenMultiTouch; }
 	public TouchPoint getTouchPoint()									{ return mTouchPoint; }
 	public void setObjectCenterAlignMouse(bool align)					{ mObjectCenterAlignMouse = align; }
 	public void setDragStartCallback(DragStartCallback callback)		{ mDragStartCallback = callback;}
 	public void setDragEndCallback(DragEndCallback callback)			{ mDragEndCallback = callback;}
 	public void setDragEndTotallyCallback(DragEndCallback callback)		{ mDragEndTotallyCallback = callback; }
-	public void setDragingCallback(DragCallback callback)				{ mDragingCallback = callback;}
+	public void setDraggingCallback(DragCallback callback)				{ mDraggingCallback = callback;}
 	public void setStartDragThreshold(float threshold)					{ mStartDragThreshold = threshold; }
 	public void setAllowDragDirection(Vector2 allowDirection)			{ mAllowDragDirection = allowDirection; }
 	public void setDragStartAngleThreshold(float radian)				{ mDragStartAngleThreshold = radian; }
 	public void setMovable(bool movable)								{ mMovable = movable; }
 	public void setBreakDragWhenMultiTouch(bool breakDrag)				{ mBreakDragWhenMultiTouch = breakDrag; }
-	public void setDragCallback(DragStartCallback start, DragCallback draging, DragEndCallback end)
+	public void setDragCallback(DragStartCallback start, DragCallback dragging, DragEndCallback end)
 	{
 		mDragStartCallback = start;
-		mDragingCallback = draging;
+		mDraggingCallback = dragging;
 		mDragEndCallback = end;
 	}
 	public void cancelDrag()
@@ -129,20 +126,20 @@ public class ComponentDrag : GameComponent
 	// 手动调用开始拖拽
 	public bool startDrag(TouchPoint touchPoint, Vector3 dragOffset)
 	{
-		mDraging = onDragStart(touchPoint);
-		if(!mDraging)
+		mDragging = onDragStart(touchPoint);
+		if(!mDragging)
 		{
 			return false;
 		}
 		mTouchPoint = touchPoint;
 		mDragMouseOffset = dragOffset;
 		mPreparingDrag = false;
-		Vector3 mousePosition = touchPoint.getCurPosition();
+		Vector3 touchPosition = touchPoint.getCurPosition();
 		if (mMovable)
 		{
-			applyScreenPosition(mousePosition);
+			applyScreenPosition(touchPosition);
 		}
-		onDraging(mousePosition);
+		onDragging(touchPosition);
 		return true;
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
@@ -188,9 +185,9 @@ public class ComponentDrag : GameComponent
 	{
 		// 确保鼠标抬起时所有状态标记为false
 		mPreparingDrag = false;
-		if (mDraging)
+		if (mDragging)
 		{
-			mDraging = false;
+			mDragging = false;
 			Vector3 endPosition = mTouchPoint.getCurPosition();
 			mTouchPoint = null;
 			onDragEnd(endPosition, cancel);
@@ -207,23 +204,23 @@ public class ComponentDrag : GameComponent
 				// 有拖拽方向要求时,只有拖拽方向与设置方向夹角不超过指定角度时才开始拖动
 				if (isVectorZero(mAllowDragDirection) || getAngleBetweenVector(mouseDelta, mAllowDragDirection) < mDragStartAngleThreshold)
 				{
-					mDraging = onDragStart(mTouchPoint);
+					mDragging = onDragStart(mTouchPoint);
 				}
 				mPreparingDrag = false;
 			}
 		}
-		if (mDraging)
+		if (mDragging)
 		{
 			if (mMovable)
 			{
 				applyScreenPosition(touchPosition);
 			}
-			onDraging(touchPosition);
+			onDragging(touchPosition);
 		}
 	}
 	protected virtual void applyScreenPosition(Vector3 screenPos) { }
 	protected virtual Vector3 getScreenPosition() { return Vector3.zero; }
-	protected virtual bool mouseInObject(Vector3 mousePosition) { return false; }
+	protected virtual bool mouseInObject(Vector3 touchPosition) { return false; }
 	// 物体开始拖动,返回值表示是否允许开始拖动
 	protected virtual bool onDragStart(TouchPoint touchPoint)
 	{
@@ -237,18 +234,18 @@ public class ComponentDrag : GameComponent
 		return true;
 	}
 	// 当前物体拖动结束
-	protected virtual void onDragEnd(Vector3 mousePos, bool cancel)
+	protected virtual void onDragEnd(Vector3 touchPos, bool cancel)
 	{
-		mDragEndCallback?.Invoke(mComponentOwner, mousePos, cancel);
+		mDragEndCallback?.Invoke(mComponentOwner, touchPos, cancel);
 	}
 	// 当前物体正在拖动
-	protected virtual void onDraging(Vector3 mousePos)
+	protected virtual void onDragging(Vector3 touchPos)
 	{
-		mDragingCallback?.Invoke(mComponentOwner, mousePos);
+		mDraggingCallback?.Invoke(mComponentOwner, touchPos);
 	}
 	// 由子类调用,在所有逻辑都处理完以后调用
-	protected void notifyDragEndTotally(Vector3 mousePos, bool cancel)
+	protected void notifyDragEndTotally(Vector3 touchPos, bool cancel)
 	{
-		mDragEndTotallyCallback?.Invoke(mComponentOwner, mousePos, cancel);
+		mDragEndTotallyCallback?.Invoke(mComponentOwner, touchPos, cancel);
 	}
 }

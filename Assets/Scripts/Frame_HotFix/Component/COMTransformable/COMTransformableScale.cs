@@ -17,6 +17,6 @@ public class COMTransformableScale : ComponentKeyFrame, IComponentModifyScale
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
-		(mComponentOwner as Transformable).setScale(lerpSimple(mStart, mTarget, value));
+		(mComponentOwner as ITransformable).setScale(lerpSimple(mStart, mTarget, value));
 	}
 }

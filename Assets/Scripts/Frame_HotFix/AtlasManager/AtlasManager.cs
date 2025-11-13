@@ -13,8 +13,8 @@ public class AtlasManager : FrameSystem
 {
 	protected AtlasLoaderAssetBundle mAssetBundleAtlasManager = new();	// 从AssetBundle中加载
 	protected AtlasLoaderResources mResourcesAtlasManager = new();		// 从Resources中加载
-	protected Dictionary<string, SpriteAtlas> mAtlasList;
-	protected Dictionary<string, string> mAtlasPathList;
+	protected Dictionary<string, SpriteAtlas> mAtlasList;				// 已加载的SpriteAtlas列表
+	protected Dictionary<string, string> mAtlasPathList;				// 根据图集名字查找SpriteAtlas文件的路径
 	public AtlasManager()
 	{
 		if (isEditor())

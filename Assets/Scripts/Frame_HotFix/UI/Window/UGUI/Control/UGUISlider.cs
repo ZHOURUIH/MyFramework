@@ -30,6 +30,7 @@ public class UGUISlider : WindowObjectUGUI, ISlider, ICommonUI
 		newObject(out mForeground, "Foreground");
 		newObject(out mThumb, mForeground, "Thumb", false);
 	}
+	// 需要手动调用initSlider,因为跟默认的init参数不一样
 	public void initSlider(Action sliderCallback)
 	{
 		initSlider(true, DRAG_DIRECTION.HORIZONTAL, sliderCallback);
@@ -52,9 +53,9 @@ public class UGUISlider : WindowObjectUGUI, ISlider, ICommonUI
 		if (mEnableDrag)
 		{
 			mRoot.registeCollider();
-			mRoot.setOnMouseDown(onMouseDown);
-			mRoot.setOnScreenMouseUp(onScreenMouseUp);
-			mRoot.setOnMouseMove(onMouseMove);
+			mRoot.setOnTouchDown(onMouseDown);
+			mRoot.setOnScreenTouchUp(onScreenMouseUp);
+			mRoot.setOnTouchMove(onMouseMove);
 		}
 	}
 	public void setEnable(bool enable) { mRoot.setHandleInput(enable); }
@@ -63,6 +64,7 @@ public class UGUISlider : WindowObjectUGUI, ISlider, ICommonUI
 	public void setEndCallback(Action callback) { mSliderEndCallback = callback; }
 	public void setSliderCallback(Action callback) { mSliderCallback = callback; }
 	public void setValue(float value) { updateSlider(value); }
+	// 根据Content在Viewport中的位置来设置当前的值
 	public void setValueByListView(myUGUIObject content, myUGUIObject viewport)
 	{
 		if (mDirection == DRAG_DIRECTION.VERTICAL)
@@ -76,6 +78,7 @@ public class UGUISlider : WindowObjectUGUI, ISlider, ICommonUI
 			setValue(inverseLerp(-maxX, maxX, content.getPosition().x));
 		}
 	}
+	// 根据当前的值计算Content在Viewport中的位置
 	public Vector3 generateListViewContentPosition(myUGUIObject content, myUGUIObject viewport)
 	{
 		if (mDirection == DRAG_DIRECTION.VERTICAL)
@@ -124,17 +127,17 @@ public class UGUISlider : WindowObjectUGUI, ISlider, ICommonUI
 			if (mDirection == DRAG_DIRECTION.HORIZONTAL)
 			{
 				float newWidth = mSliderValue * mOriginForegroundSize.x;
-				FT.MOVE(mForeground, replaceX(mOriginForegroundPosition, mOriginForegroundPosition.x - mOriginForegroundSize.x * 0.5f + newWidth * 0.5f));
+				mForeground.setPositionX(mOriginForegroundPosition.x - mOriginForegroundSize.x * 0.5f + newWidth * 0.5f);
 				mForeground.setWindowSize(new(newWidth, mOriginForegroundSize.y));
 			}
 			else if (mDirection == DRAG_DIRECTION.VERTICAL)
 			{
 				float newHeight = mSliderValue * mOriginForegroundSize.y;
-				FT.MOVE(mForeground, replaceY(mOriginForegroundPosition, mOriginForegroundPosition.y - mOriginForegroundSize.y * 0.5f + newHeight * 0.5f));
+				mForeground.setPositionY(mOriginForegroundPosition.y - mOriginForegroundSize.y * 0.5f + newHeight * 0.5f);
 				mForeground.setWindowSize(new(mOriginForegroundSize.x, newHeight));
 			}
 		}
-		FT.MOVE(mThumb, sliderValueToThumbPos(mSliderValue));
+		mThumb.setPosition(sliderValueToThumbPos(mSliderValue));
 	}
 	protected Vector3 sliderValueToThumbPos(float value)
 	{
@@ -147,7 +150,7 @@ public class UGUISlider : WindowObjectUGUI, ISlider, ICommonUI
 			}
 			else if (mMode == SLIDER_MODE.SIZING)
 			{
-				pos = new(mForeground.getWindowRight(), 0.0f);
+				pos = new(mForeground.getWindowRightInSelf(), 0.0f);
 			}
 		}
 		else if (mDirection == DRAG_DIRECTION.VERTICAL)
@@ -158,21 +161,21 @@ public class UGUISlider : WindowObjectUGUI, ISlider, ICommonUI
 			}
 			else if (mMode == SLIDER_MODE.SIZING)
 			{
-				pos = new(0.0f, mForeground.getWindowTop());
+				pos = new(0.0f, mForeground.getWindowTopInSelf());
 			}
 		}
 		return pos;
 	}
-	protected void onMouseDown(Vector3 mousePos, int touchID)
+	protected void onMouseDown(Vector3 touchPos, int touchID)
 	{
 		// 先调用开始回调
 		mSliderStartCallback?.Invoke();
 		// 计算当前值
-		updateSlider(screenPosToSliderValue(mousePos));
+		updateSlider(screenPosToSliderValue(touchPos));
 		mSliderCallback?.Invoke();
 		mDraging = true;
 	}
-	protected void onScreenMouseUp(IMouseEventCollect obj, Vector3 mousePos, int touchID)
+	protected void onScreenMouseUp(Vector3 touchPos, int touchID)
 	{
 		// 调用结束回调
 		if (!mDraging)
@@ -182,13 +185,13 @@ public class UGUISlider : WindowObjectUGUI, ISlider, ICommonUI
 		mDraging = false;
 		mSliderEndCallback?.Invoke();
 	}
-	protected void onMouseMove(Vector3 mousePos, Vector3 moveDelta, float moveTime, int touchID)
+	protected void onMouseMove(Vector3 touchPos, Vector3 moveDelta, float moveTime, int touchID)
 	{
 		if (!mDraging)
 		{
 			return;
 		}
-		updateSlider(screenPosToSliderValue(mousePos));
+		updateSlider(screenPosToSliderValue(touchPos));
 		mSliderCallback?.Invoke();
 	}
 	protected float screenPosToSliderValue(Vector3 screenPos)

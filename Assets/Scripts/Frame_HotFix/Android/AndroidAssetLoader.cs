@@ -5,7 +5,7 @@ using static UnityUtility;
 using static FrameBaseDefine;
 using static FrameBaseUtility;
 
-// 用于加载Android平台下的资源
+// 用于加载Android平台下的资源,对应java代码中的AssetLoader类
 public class AndroidAssetLoader : FrameSystem
 {
 	protected static AndroidJavaObject mAssetLoader;    // Java中加载类的实例

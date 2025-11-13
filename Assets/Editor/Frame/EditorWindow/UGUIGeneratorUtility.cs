@@ -72,10 +72,14 @@ public class UGUIGeneratorUtility
 						{
 							item.mObject = newObj;
 							// 如果是以0结尾的,就自动设置为静态数组类型的,且自动查找数组长度
-							if (item.mObject != null && item.mObject.name.endWith("0"))
+							if (item.mObject != null)
 							{
-								item.mArrayType = ARRAY_TYPE.STATIC_ARRAY;
-								item.autoSetArrayLength();
+								string name = item.mObject.name;
+								if (getLastNotNumberPos(name) == name.Length - 2 && name.endWith("0"))
+								{
+									item.mArrayType = ARRAY_TYPE.STATIC_ARRAY;
+									item.autoSetArrayLength();
+								}
 							}
 						}
 					}
@@ -402,7 +406,7 @@ public class UGUIGeneratorUtility
 	public static string findScript(string fileNameNoDirNoSuffix)
 	{
 		List<string> fileList = new();
-		findFiles(F_SCRIPTS_PATH, fileList);
+		findFiles(F_SCRIPTS_PATH, fileList, ".cs");
 		foreach (string file in fileList)
 		{
 			if (getFileNameNoSuffixNoDir(file) == fileNameNoDirNoSuffix)
@@ -418,6 +422,7 @@ public class UGUIGeneratorUtility
 		GameObject parent = curData.getParentObject();
 		if (parent == null)
 		{
+			list.Remove(curData);
 			return;
 		}
 		// 父节点是界面的根节点,则不需要传父节点就可以直接创建
@@ -503,7 +508,8 @@ public class UGUIGeneratorUtility
 			parentName += ".getRoot()";
 		}
 		string parentParam = parentName != null ? parentName + ", " : "";
-		lines.Add(prefix + "newObject(out " + typeof(myUGUIObject).ToString() + " " + varName + ", " + parentParam + "\"" + curName + "\");");
+		// 所有的临时变量都需要不显示错误,因为可能会跟之前重复了,但是无法通过名字来判断是否重复,比如之前创建的是数组元素
+		lines.Add(prefix + "newObject(out " + typeof(myUGUIObject).ToString() + " " + varName + ", " + parentParam + "\"" + curName + "\", false);");
 		return varName;
 	}
 	public static void generateAssignWindowLine(string prefix, List<string> lines, string curName, string parentName, bool parentIsSubUI, MemberData data)
@@ -526,6 +532,8 @@ public class UGUIGeneratorUtility
 					string parentParam = parentName ?? "mRoot";
 					lines.Add(prefix + "\tm" + newName + "[i].assignWindow(" + parentParam + ", " + varName + ", \"" + newName + "\" + IToS(i));");
 					lines.Add(prefix + "}");
+					// 动态生成的数组都需要把模板节点隐藏起来
+					lines.Add(prefix + varName + ".setActive(false);");
 				}
 			}
 			else
@@ -714,11 +722,15 @@ public class UGUIGeneratorUtility
 		if (go.TryGetComponent<Text>(out _))
 		{
 			mTempAvailableTypeList.Add(typeof(myUGUIText).ToString());
+#if USE_TMP
+			mTempAvailableTypeList.Add(typeof(myUGUITextAuto).ToString());
+#endif
 		}
 #if USE_TMP
 		if (go.TryGetComponent<TextMeshProUGUI>(out _))
 		{
 			mTempAvailableTypeList.Add(typeof(myUGUITextTMP).ToString());
+			mTempAvailableTypeList.Add(typeof(myUGUITextAuto).ToString());
 		}
 #endif
 		if (go.TryGetComponent<MeshRenderer>(out _))
@@ -739,6 +751,7 @@ public class UGUIGeneratorUtility
 			mNormalWindowList.Add(typeof(myUGUIObject).ToString());
 			mNormalWindowList.Add(typeof(myUGUIText).ToString());
 			mNormalWindowList.Add(typeof(myUGUITextTMP).ToString());
+			mNormalWindowList.Add(typeof(myUGUITextAuto).ToString());
 			mNormalWindowList.Add(typeof(myUGUIImageSimple).ToString());
 			mNormalWindowList.Add(typeof(myUGUIImage).ToString());
 			mNormalWindowList.Add(typeof(myUGUIImagePro).ToString());

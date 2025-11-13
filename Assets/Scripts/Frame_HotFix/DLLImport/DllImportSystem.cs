@@ -9,6 +9,7 @@ using static FrameBaseUtility;
 // 2.通过自定义的Dll类,注册要导入的库文件名,然后内部通过Kernel32中的函数去获取想要调用的函数(仅windows可用)
 public class DllImportSystem : FrameSystem
 {
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR
 	protected Dictionary<string, Dll> mDllLibraryList = new();		// 通过Kernel32导入的动态库列表
 	// 将要执行的函数转换为委托
 	public T invoke<T>(string library, string funcName) where T : Delegate
@@ -42,4 +43,5 @@ public class DllImportSystem : FrameSystem
 	{
 		mDllLibraryList.add(name, new()).init(name);
 	}
+#endif
 }

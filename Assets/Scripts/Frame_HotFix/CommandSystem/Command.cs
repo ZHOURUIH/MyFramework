@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using static CSharpUtility;
+using static FrameUtility;
 
 // 命令基类
 public class Command : ClassObject
@@ -39,7 +39,7 @@ public class Command : ClassObject
 	public virtual void execute() { }
 	public virtual void onInterrupted() { }
 	// 调试信息，由CommandSystem调用
-	public virtual void debugInfo(MyStringBuilder builder) { builder.append(GetType().ToString()); }
+	public virtual void debugInfo(MyStringBuilder builder) { builder.append(GetType().ToString(), ":"); }
 	public LOG_LEVEL getCmdLogLevel() { return mCmdLogLevel; }
 	public bool isDelayCommand() { return mDelayCommand; }
 	public CommandReceiver getReceiver() { return mReceiver; }
@@ -50,7 +50,7 @@ public class Command : ClassObject
 	public bool isThreadCommand() { return mThreadCommand; }
 	public void setCmdLogLevel(LOG_LEVEL level) { mCmdLogLevel = level; }
 	public void setDelayCommand(bool delay) { mDelayCommand = delay; }
-	public void setReceiver(CommandReceiver Reciver) { mReceiver = Reciver; }
+	public void setReceiver(CommandReceiver receiver) { mReceiver = receiver; }
 	public void setState(EXECUTE_STATE state) { mCmdState = state; }
 	public void setDelayTime(float time) { mDelayTime = time; }
 	public void setIgnoreTimeScale(bool ignore) { mIgnoreTimeScale = ignore; }

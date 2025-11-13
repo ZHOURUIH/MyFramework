@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using static FrameBaseHotFix;
-using static CSharpUtility;
+using static FrameUtility;
 using static StringUtility;
 
 // 用于自动从对象池中获取4个List<T>,不再使用时会自动释放

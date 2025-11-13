@@ -13,6 +13,10 @@ public class CmdGameCameraFOV
 	public static void execute(GameCamera camera, float onceLength, float offsetTime, float startFOV, float targetFOV, 
 								int keyframe = 0, bool loop = false, KeyFrameCallback doingCallback = null, KeyFrameCallback doneCallback = null)
 	{
+		if (camera == null)
+		{
+			return;
+		}
 		camera.getOrAddComponent(out COMCameraFOV com);
 		com.setDoingCallback(doingCallback);
 		com.setDoneCallback(doneCallback);

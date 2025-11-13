@@ -6,6 +6,6 @@ public class COMTransformableScaleCurve : ComponentCurve, IComponentModifyScale
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void setValue(Vector3 value)
 	{
-		(mComponentOwner as Transformable).setScale(value);
+		(mComponentOwner as ITransformable).setScale(value);
 	}
 }

@@ -2,7 +2,7 @@
 using static UnityUtility;
 using static FrameBaseUtility;
 
-// 用于加载Android平台下的资源
+// 用于加载Android平台下的资源,对应java代码中的MainClass类
 public class AndroidMainClass : FrameSystem
 {
 	protected static AndroidJavaClass mMainClass;    // Java中加载类的实例

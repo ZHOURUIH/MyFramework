@@ -7,6 +7,7 @@ using static FrameUtility;
 using static FrameDefine;
 using UObject = UnityEngine.Object;
 
+// 用于实现图集的不同加载方式
 public abstract class AtlasLoaderBase
 {
 	protected Dictionary<string, List<AtlasLoadParam>> mLoadRequestList = new();	// 图集异步加载请求列表

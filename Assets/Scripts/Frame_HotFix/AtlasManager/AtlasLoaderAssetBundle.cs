@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UObject = UnityEngine.Object;
 using static FrameBaseHotFix;
 
-// 用于UGUI的multi sprite管理
+// 用于图集的加载,从AssetBundle中加载图集
 public class AtlasLoaderAssetBundle : AtlasLoaderBase
 {
 	protected HashSet<string> mDontUnloadAtlas = new();             // 即使没有引用也不会卸载的图集

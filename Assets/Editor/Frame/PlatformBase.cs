@@ -1,5 +1,6 @@
 ﻿using UnityEditor;
 using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 #if USE_HYBRID_CLR
 using HybridCLR.Editor;
@@ -20,7 +21,7 @@ using static StringUtility;
 using static MathUtility;
 using static FrameDefine;
 using static EditorFileUtility;
-using static CSharpUtility;
+using static FrameUtility;
 using static BinaryUtility;
 using static UnityUtility;
 using static EditorCommonUtility;
@@ -42,16 +43,41 @@ public abstract class PlatformBase
 	public string mRemoteVersion;                               // 远端的版本号
 	public string mOutputPath = F_PROJECT_PATH + "GameOutput/"; // 输出路径
 	public string mFolderPreName;                               // 输出文件夹的名字或者安装包的名字前缀
-	public bool mEnableHotFix;                                  // 生成的客户端是否启用热更
+	public bool mEnableHotFix;                                  // 生成的客户端是否启用热更,webgl暂时不启用热更
+	public bool mTestClient;									// 是否为测试客户端
 	public bool mBuildHybridCLR;                                // 打包时是否执行HybridCLR打包,一般都是要执行,检验打包过程时可以不执行以加速打包
 	public bool mGooglePlay;                                    // 是否打包aab
 	public bool mExportAndroidProject;                          // 是否导出为Android工程
 	public bool mOpenExplorer = true;                           // 打包完成后是否显示所在文件夹
+	public PlatformBase()
+	{
+		BuildTarget target = getBuildTarget();
+		if (target == BuildTarget.Android)
+		{
+			mName = ANDROID;
+		}
+		else if (target == BuildTarget.iOS)
+		{
+			mName = IOS;
+		}
+		else if (target == BuildTarget.StandaloneWindows64 || target == BuildTarget.StandaloneWindows)
+		{
+			mName = WINDOWS;
+		}
+		else if (target == BuildTarget.StandaloneOSX)
+		{
+			mName = MACOS;
+		}
+		else if (target == BuildTarget.WebGL)
+		{
+			mName = WEBGL;
+		}
+	}
 	// containOnlyFileList如果不为空,则表示只拷贝列表中指定的文件
 	// 可用于单独更新某个文件,比如单独更新表格文件,使之既能够更新FileList,又能单独将要上传的文件放到独立的文件夹中
 	public bool showNeedUploadFile(string destFolderName, string[] containOnlyFileList = null)
 	{
-		List<string> ignoreFile = new() { FILE_LIST_REMOTE, mName, mName + ".manifest" };
+		List<string> ignoreFile = new() { mName, mName + ".manifest" };
 		List<string> ignoreSuffix = new() { ".unity3d.manifest", ".meta" };
 		var fileList = findFileList(mAssetBundleFullPath, ignoreFile, null, ignoreSuffix);
 		string dest = F_PROJECT_PATH + "../" + destFolderName + "/";
@@ -139,7 +165,7 @@ public abstract class PlatformBase
 		// 重命名dll,因为混淆时需要dll文件
 		renameFile(F_ASSET_BUNDLE_PATH + HOTFIX_BYTES_FILE, F_ASSET_BUNDLE_PATH + HOTFIX_FILE);
 		renameFile(F_ASSET_BUNDLE_PATH + HOTFIX_FRAME_BYTES_FILE, F_ASSET_BUNDLE_PATH + HOTFIX_FRAME_FILE);
-		obfuscate(mBuildVersion);
+		obfuscate(mBuildVersion, mTestClient);
 		log("完成混淆dll");
 #endif
 
@@ -259,9 +285,15 @@ public abstract class PlatformBase
 			mExportAndroidProject = exportAndroidProject;
 			mBuildHybridCLR = buildHybridCLR;
 			DateTime buildStartTime = DateTime.Now;
-			bool result = buildInternal();
+			if (!preBuild())
+			{
+				return false;
+			}
+			BuildResult result = buildInternal(out string outputFullPath);
+			// 通用打包后处理
+			afterBuild(outputFullPath);
 			log("打包完成:" + result + ", 耗时:" + (DateTime.Now - buildStartTime));
-			return result;
+			return result == BuildResult.Succeeded;
 		}
 		catch (Exception e)
 		{
@@ -292,6 +324,7 @@ public abstract class PlatformBase
 		string number2 = IToS(SToI(mVersionNumber[2]) + 1);
 		return stringsToString(new List<string>() { number0, number1, number2 }, '.');
 	}
+	// 是否仅本地版本号的低位版本号大于远端的低位版本号
 	public bool isMinVersionGreater()
 	{
 		if (mVersionNumber == null)
@@ -336,7 +369,7 @@ public abstract class PlatformBase
 			mVersionNumber = newVersionNumber;
 		}
 	}
-	protected abstract bool buildInternal();
+	protected abstract BuildResult buildInternal(out string outputFullPath);
 	// 由应用层提供自己的密钥,不提供则不会进行加密,Key和IV长度必须为16个字节
 	protected virtual byte[] getAESKey() { return null; }
 	protected virtual byte[] getAESIV() { return null; }
@@ -626,13 +659,14 @@ public abstract class PlatformBase
 		searchPaths.Add(F_ASSET_BUNDLE_PATH);
 		return searchPaths;
 	}
-	protected static void obfuscate(string version)
+	protected static void obfuscate(string version, bool isTest)
 	{
 		SecretSettings secretSettings = ObfuzSettings.Instance.secretSettings;
 		// 因为只混淆热更程序集,所以也只生成动态的密钥
 		secretSettings.defaultDynamicSecretKey = "Code Philosophy-Dynamic" + randomInt(0, 100000000);
 		secretSettings.assembliesUsingDynamicSecretKeys = ObfuzSettings.Instance.assemblySettings.assembliesToObfuscate;
 		secretSettings.randomSeed = (int)(DateTime.Now - new DateTime(1970, 1, 1)).TotalSeconds;
+		ObfuzSettings.Instance.symbolObfusSettings.debug = isTest;
 		ObfuzSettings.Save();
 		byte[] dynamicSecretBytes = KeyGenerator.GenerateKey(secretSettings.defaultDynamicSecretKey, VirtualMachine.SecretKeyLength);
 		writeFile(F_ASSET_BUNDLE_PATH + DYNAMIC_SECRET_FILE, dynamicSecretBytes);

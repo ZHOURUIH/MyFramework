@@ -22,12 +22,16 @@ public static class DictionaryExtension
 		}
 		dic[key] = value;
 	}
-	// 添加或者更新值,并且返回旧的值
-	public static TValue replace<TKey, TValue>(this IDictionary<TKey, TValue> dic, TKey key, TValue value)
+	// 添加或者更新值,并且返回旧的值,只有当值有改变时才会返回被替换的值
+	public static TValue replace<TKey, TValue>(this IDictionary<TKey, TValue> dic, TKey key, TValue value) where TValue : class
 	{
 		dic.TryGetValue(key, out TValue curValue);
-		dic[key] = value;
-		return curValue;
+		if (curValue != value)
+		{
+			dic[key] = value;
+			return curValue;
+		}
+		return null;
 	}
 	// 等效于CollectionExtensions.GetValueOrDefault
 	public static Value get<Key, Value>(this IDictionary<Key, Value> map, Key key, Value defaultValue)

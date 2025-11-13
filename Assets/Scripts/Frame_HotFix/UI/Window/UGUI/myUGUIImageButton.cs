@@ -60,33 +60,33 @@ public class myUGUIImageButton : myUGUIImage
 		mHoverSprite = hoverSprite;
 		mSelectedSprite = selectedSprite;
 	}
-	public override void onMouseEnter(Vector3 mousePos, int touchID)
+	public override void onTouchEnter(Vector3 touchPos, int touchID)
 	{
-		base.onMouseEnter(mousePos, touchID);
+		base.onTouchEnter(touchPos, touchID);
 		if (mUseStateSprite)
 		{
 			setSpriteName(mSelected ? mSelectedSprite : mHoverSprite);
 		}
 	}
-	public override void onMouseLeave(Vector3 mousePos, int touchID)
+	public override void onTouchLeave(Vector3 touchPos, int touchID)
 	{
-		base.onMouseLeave(mousePos, touchID);
+		base.onTouchLeave(touchPos, touchID);
 		if (mUseStateSprite)
 		{
 			setSpriteName(mSelected ? mSelectedSprite : mNormalSprite);
 		}
 	}
-	public override void onMouseDown(Vector3 mousePos, int touchID)
+	public override void onTouchDown(Vector3 touchPos, int touchID)
 	{
-		base.onMouseDown(mousePos, touchID);
+		base.onTouchDown(touchPos, touchID);
 		if (mUseStateSprite)
 		{
 			setSpriteName(mSelected ? mSelectedSprite : mPressSprite);
 		}
 	}
-	public override void onMouseUp(Vector3 mousePos, int touchID)
+	public override void onTouchUp(Vector3 touchPos, int touchID)
 	{
-		base.onMouseUp(mousePos, touchID);
+		base.onTouchUp(touchPos, touchID);
 		// 一般都会再mouseUp时触发点击消息,跳转界面,所以基类中可能会将当前窗口销毁,需要注意
 		if (mUseStateSprite)
 		{

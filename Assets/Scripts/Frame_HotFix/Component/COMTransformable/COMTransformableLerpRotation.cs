@@ -6,10 +6,10 @@ public class COMTransformableLerpRotation : ComponentLerpRotation
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyRotation(Vector3 rotation)
 	{
-		(mComponentOwner as Transformable).setRotation(rotation);
+		(mComponentOwner as ITransformable).setRotation(rotation);
 	}
 	protected override Vector3 getRotation()
 	{
-		return (mComponentOwner as Transformable).getRotation();
+		return (mComponentOwner as ITransformable).getRotation();
 	}
 }

@@ -357,7 +357,14 @@ public class GameFrameworkHotFix : IFramework
 					if (++initedCount == mFrameComponentInit.count())
 					{
 						resourceAvailable();
-						callback?.Invoke();
+						try
+						{
+							callback?.Invoke();
+						}
+						catch(Exception e)
+						{
+							logException(e);
+						}
 					}
 				});
 			}
@@ -397,7 +404,7 @@ public class GameFrameworkHotFix : IFramework
 		registeFrameSystem<ByteArrayPoolThread>((com) =>	{ mByteArrayPoolThread = com; }, -1, -1, 3111);
 		registeFrameSystem<MovableObjectManager>((com) =>	{ mMovableObjectManager = com; });
 		registeFrameSystem<EffectManager>((com) =>			{ mEffectManager = com; });
-		registeFrameSystem<AtlasManager>((com) =>		{ mAtlasManager = com; });
+		registeFrameSystem<AtlasManager>((com) =>			{ mAtlasManager = com; });
 		registeFrameSystem<NetPacketFactory>((com) =>		{ mNetPacketFactory = com; });
 		registeFrameSystem<PathKeyframeManager>((com) =>	{ mPathKeyframeManager = com; });
 		registeFrameSystem<EventSystem>((com) =>			{ mEventSystem = com; });

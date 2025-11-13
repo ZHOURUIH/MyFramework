@@ -12,7 +12,12 @@ public class RawImageAnimPath : MonoBehaviour
 	public string mTexturePath;		// 序列帧所在的目录,相对于GameResources,不带文件名,以/结尾
 	public string mTextureName;		// 序列帧图片名前缀,不带_
 	public int mImageCount;			// 图片序列帧的图片数量,图片的名字中的下标应该从0开始
-	public bool mRefresh = true;	// 是否刷新,当作刷新按钮使用
+	public bool mRefresh = true;    // 是否刷新,当作刷新按钮使用
+	public void Awake()
+	{
+		enabled = !Application.isPlaying;
+		refreshPath();
+	}
 	private void OnValidate()
 	{
 		if(mRefresh)
@@ -24,7 +29,7 @@ public class RawImageAnimPath : MonoBehaviour
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void refreshPath()
 	{
-		if (!isEditor())
+		if (!isEditor() || Application.isPlaying)
 		{
 			return;
 		}

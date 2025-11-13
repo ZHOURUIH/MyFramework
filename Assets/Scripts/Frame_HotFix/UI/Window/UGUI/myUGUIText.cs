@@ -161,22 +161,22 @@ public class myUGUIText : myUGUIObject, IUGUIText
 		mLocalizationManager.registeLocalization(this, mainText, paramList);
 		collection.addLocalizationObject(this);
 	}
-	public void setText(string mainText, OnLocalization callback, ILocalizationCollection collection)
+	public void setText(string mainText, LocalizationCallback callback, ILocalizationCollection collection)
 	{
 		mLocalizationManager.registeLocalization(this, mainText, callback);
 		collection.addLocalizationObject(this);
 	}
-	public void setText(string mainText, string param, OnLocalization callback, ILocalizationCollection collection)
+	public void setText(string mainText, string param, LocalizationCallback callback, ILocalizationCollection collection)
 	{
 		mLocalizationManager.registeLocalization(this, mainText, param, callback);
 		collection.addLocalizationObject(this);
 	}
-	public void setText(string mainText, string param0, string param1, OnLocalization callback, ILocalizationCollection collection)
+	public void setText(string mainText, string param0, string param1, LocalizationCallback callback, ILocalizationCollection collection)
 	{
 		mLocalizationManager.registeLocalization(this, mainText, param0, param1, callback);
 		collection.addLocalizationObject(this);
 	}
-	public void setText(string mainText, IList<string> paramList, OnLocalization callback, ILocalizationCollection collection)
+	public void setText(string mainText, IList<string> paramList, LocalizationCallback callback, ILocalizationCollection collection)
 	{
 		mLocalizationManager.registeLocalization(this, mainText, paramList, callback);
 		collection.addLocalizationObject(this);

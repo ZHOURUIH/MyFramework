@@ -8,8 +8,9 @@ public class CmdLayoutManagerLoad
 	// renderOrder:渲染顺序,与orderType配合使用
 	// visible:加载完毕后是否显示
 	// callback异步加载时的完成回调
-	public static GameLayout execute(Type layoutType, int renderOrder, bool visible = true)
+	public static GameLayout execute<T>(int renderOrder, bool visible = true) where T : GameLayout
 	{
+		Type layoutType = typeof(T);
 		LayoutInfo info = new()
 		{
 			mType = layoutType,
@@ -24,8 +25,17 @@ public class CmdLayoutManagerLoad
 		layout.setVisible(visible);
 		return layout;
 	}
-	public static GameLayout executeAsync(Type layoutType, int renderOrder, bool visible = true, GameLayoutCallback callback = null)
+	public static void executeAsync<T>(int renderOrder, GameLayoutCallback callback) where T : GameLayout
 	{
+		executeAsync<T>(renderOrder, true, callback, null);
+	}
+	public static void executeAsync<T>(int renderOrder, Action callback) where T : GameLayout
+	{
+		executeAsync<T>(renderOrder, true, null, callback);
+	}
+	public static void executeAsync<T>(int renderOrder, bool visible, GameLayoutCallback callback0, Action callback1) where T : GameLayout
+	{
+		Type layoutType = typeof(T);
 		LayoutInfo info = new()
 		{
 			mType = layoutType,
@@ -35,8 +45,8 @@ public class CmdLayoutManagerLoad
 		{
 			layout.setRenderOrder(renderOrder);
 			layout.setVisible(visible);
-			callback?.Invoke(layout);
+			callback0?.Invoke(layout);
+			callback1?.Invoke();
 		});
-		return null;
 	}
 }

@@ -145,6 +145,38 @@ public class FrameBaseUtility
 	{
 		return !isEditor() && isMobile();
 	}
+	public static bool isEnableHotFix()
+	{
+#if ENABLE_HOTFIX
+		return true;
+#else
+		return false;
+#endif
+	}
+	public static bool isOfficialClient()
+	{
+#if UNITY_EDITOR || TEST
+		return false;
+#else
+		return true;
+#endif
+	}
+	public static bool isNoHotFixTestClient()
+	{
+		return isTestClient() && !isEnableHotFix();
+	}
+	public static bool isTestClient()
+	{
+#if TEST
+		return true;
+#else
+		return false;
+#endif
+	}
+	public static bool isHotFixTestClient()
+	{
+		return isTestClient() && isEnableHotFix();
+	}
 	public static bool isEditor()
 	{
 #if UNITY_EDITOR
@@ -254,7 +286,14 @@ public class FrameBaseUtility
 		uguiRectTransform.anchorMax = Vector2.one * 0.5f;
 		uguiRectTransform.anchorMin = Vector2.one * 0.5f;
 		Camera camera = getGameObject("UICamera", uguiRootObj).GetComponent<Camera>();
-		camera.transform.localPosition = new(0.0f, 0.0f, -size.y * 0.5f / Mathf.Tan(camera.fieldOfView * Mathf.Deg2Rad * 0.5f));
+		if (camera.orthographic)
+		{
+			camera.orthographicSize = size.y * 0.5f;
+		}
+		else
+		{
+			camera.transform.localPosition = new(0.0f, 0.0f, -size.y * 0.5f / Mathf.Tan(camera.fieldOfView * Mathf.Deg2Rad * 0.5f));
+		}
 	}
 	public static GameObject getRootGameObject(string name, bool errorIfNull = false)
 	{
@@ -474,5 +513,33 @@ public class FrameBaseUtility
 		{
 			return VERSION_COMPARE.EQUAL;
 		}
+	}
+	public static string checkValidVersion(string version)
+	{
+		checkValidVersion(ref version);
+		return version;
+	}
+	public static bool checkValidVersion(ref string version)
+	{
+		if (string.IsNullOrEmpty(version))
+		{
+			version = "0.0.0";
+			return false;
+		}
+		string[] elements = version.Split(".");
+		if (elements.Length != 3)
+		{
+			version = "0.0.0";
+			return false;
+		}
+		for (int i = 0; i < elements.Length; ++i)
+		{
+			if (!int.TryParse(elements[i], out _))
+			{
+				version = "0.0.0";
+				return false;
+			}
+		}
+		return true;
 	}
 }

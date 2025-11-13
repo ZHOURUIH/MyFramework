@@ -3,30 +3,27 @@ using static UnityUtility;
 using static FrameBaseUtility;
 
 // 使物体始终朝向指定目标
-public class CmdTransformableRotateFocus : Command
+public class CmdTransformableRotateFocus
 {
-	public Transformable mTarget;	// 朝向的目标
-	public Vector3 mOffset;			// 目标位置偏移
-	public override void resetProperty()
+	// 朝向的目标
+	// 目标位置偏移
+	public static void execute(ITransformable obj, ITransformable target, Vector3 offset)
 	{
-		base.resetProperty();
-		mTarget = null;
-		mOffset = Vector3.zero;
-	}
-	public override void execute()
-	{
-		var obj = mReceiver as Transformable;
+		if (obj == null)
+		{
+			return;
+		}
 		if (isEditor() && 
 			obj is myUGUIObject uiObj && 
-			mTarget != null && 
+			target != null && 
 			!uiObj.getLayout().canUIObjectUpdate(uiObj))
 		{
 			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + uiObj.getName());
 		}
 		obj.getOrAddComponent(out COMTransformableRotateFocus com);
 		com.setActive(true);
-		com.setFocusTarget(mTarget);
-		com.setFocusOffset(mOffset);
+		com.setFocusTarget(target);
+		com.setFocusOffset(offset);
 		// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
 		obj.setNeedUpdate(true);
 	}

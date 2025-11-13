@@ -22,7 +22,6 @@ using TMPro;
 using UObject = UnityEngine.Object;
 using UDebug = UnityEngine.Debug;
 using static FrameBaseUtility;
-using static CSharpUtility;
 using static StringUtility;
 using static BinaryUtility;
 using static MathUtility;
@@ -32,6 +31,7 @@ using static FrameDefine;
 using static FrameBaseDefine;
 using static FrameUtility;
 using static FrameBaseHotFix;
+using UEventSystem = UnityEngine.EventSystems.EventSystem;
 
 // 与Unity相关的工具函数
 public class UnityUtility
@@ -70,7 +70,7 @@ public class UnityUtility
 	}
 	public static void logError(string info)
 	{
-		if (isMainThread() && mShowMessageBox)
+		if (isMainThread() && mShowMessageBox && Application.isPlaying)
 		{
 			displayDialog("错误", info, "确认");
 			setPause(true);
@@ -118,7 +118,7 @@ public class UnityUtility
 		{
 			info = colorStringNoBuilder(color, info);
 		}
-		// isPlayging是unity的接口,只能在主线程使用
+		// isPlaying是unity的接口,只能在主线程使用
 		if (isMainThread() && isPlaying())
 		{
 			UDebug.Log(getNowTime(TIME_DISPLAY.HMSM) + ": " + info, obj);
@@ -167,15 +167,9 @@ public class UnityUtility
 		mScreenScale = new(mScreenSize.x * (1.0f / STANDARD_WIDTH), mScreenSize.y * (1.0f / STANDARD_HEIGHT));   // 当前分辨率相对于标准分辨率的缩放
 		setScreenSizeBase(mScreenSize, fullScreen);
 		GameCamera camera = mCameraManager.getUICamera();
-		if (camera != null)
-		{
-			FT.MOVE(camera, new(0.0f, 0.0f, -divide(mScreenSize.y * 0.5f, tan(camera.getFOVY(true) * 0.5f))));
-		}
+		camera?.MOVE(new(0.0f, 0.0f, -divide(mScreenSize.y * 0.5f, tan(camera.getFOVY(true) * 0.5f))));
 		GameCamera blurCamera = mCameraManager.getUIBlurCamera();
-		if (blurCamera != null)
-		{
-			FT.MOVE(blurCamera, new(0.0f, 0.0f, -divide(mScreenSize.y * 0.5f, tan(blurCamera.getFOVY(true) * 0.5f))));
-		}
+		blurCamera?.MOVE(new(0.0f, 0.0f, -divide(mScreenSize.y * 0.5f, tan(blurCamera.getFOVY(true) * 0.5f))));
 	}
 	public static List<GameObject> getGameObjectWithTag(GameObject parent, string tag)
 	{
@@ -350,11 +344,11 @@ public class UnityUtility
 	}
 	public static void raycastUGUI(Vector2 screenPosition, List<RaycastResult> results)
 	{
-		mEventData ??= new(UnityEngine.EventSystems.EventSystem.current);
+		mEventData ??= new(UEventSystem.current);
 		// 将点击位置的屏幕坐标赋值给点击事件
 		mEventData.position = new(screenPosition.x, screenPosition.y);
 		// 向点击处发射射线
-		UnityEngine.EventSystems.EventSystem.current.RaycastAll(mEventData, results);
+		UEventSystem.current.RaycastAll(mEventData, results);
 	}
 	public static void setNormalProperty(GameObject obj, GameObject parent)
 	{
@@ -514,6 +508,20 @@ public class UnityUtility
 			}
 		}
 		return windowPos;
+	}
+	// 判断child是否为parent的递归子节点
+	public static bool isTransformChild(Transform parent, Transform child)
+	{
+		int childCount = parent.childCount;
+		for (int i = 0; i < childCount; ++i)
+		{
+			Transform curTrans = parent.GetChild(i);
+			if (curTrans == child || isTransformChild(curTrans, child))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 	// 判断点是否在摄像机背面
 	public static bool atCameraBack(Vector3 position, GameCamera camera)
@@ -1292,9 +1300,51 @@ public class UnityUtility
 		return urpAsset.renderScale;
 	}
 #endif
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR
 	public static int getLastError()
 	{
 		return Kernel32.GetLastError();
+	}
+#endif
+	public static bool prefsGetBool(string key, bool defaultValue = false)
+	{
+#if UNITY_EDITOR
+		return UnityEngine.PlayerPrefs.GetInt(key, defaultValue ? 1 : 0) > 0;
+#elif BYTE_DANCE
+		return TTSDK.TT.PlayerPrefs.GetInt(key, defaultValue ? 1 : 0) > 0;
+#elif WEIXINMINIGAME
+		return UnityEngine.PlayerPrefs.GetInt(key, defaultValue ? 1 : 0) > 0;
+#else
+		return UnityEngine.PlayerPrefs.GetInt(key, defaultValue ? 1 : 0) > 0;
+#endif
+	}
+	public static void prefsSetBool(string key, bool value, bool save = true)
+	{
+#if UNITY_EDITOR
+		UnityEngine.PlayerPrefs.SetInt(key, value ? 1 : 0);
+		if (save)
+		{
+			UnityEngine.PlayerPrefs.Save();
+		}
+#elif BYTE_DANCE
+		TTSDK.TT.PlayerPrefs.SetInt(key, value ? 1 : 0);
+		if (save)
+		{
+			TTSDK.TT.PlayerPrefs.Save();
+		}
+#elif WEIXINMINIGAME
+		UnityEngine.PlayerPrefs.SetInt(key, value ? 1 : 0);
+		if (save)
+		{
+			UnityEngine.PlayerPrefs.Save();
+		}
+#else
+		UnityEngine.PlayerPrefs.SetInt(key, value ? 1 : 0);
+		if (save)
+		{
+			UnityEngine.PlayerPrefs.Save();
+		}
+#endif
 	}
 	public static int prefsGetInt(string key, int defaultValue = 0)
 	{
@@ -1308,20 +1358,72 @@ public class UnityUtility
 		return UnityEngine.PlayerPrefs.GetInt(key, defaultValue);
 #endif
 	}
-	public static void prefsSetInt(string key, int value)
+	public static void prefsSetInt(string key, int value, bool save = true)
 	{
 #if UNITY_EDITOR
 		UnityEngine.PlayerPrefs.SetInt(key, value);
-		UnityEngine.PlayerPrefs.Save();
+		if (save)
+		{
+			UnityEngine.PlayerPrefs.Save();
+		}
 #elif BYTE_DANCE
 		TTSDK.TT.PlayerPrefs.SetInt(key, value);
-		TTSDK.TT.PlayerPrefs.Save();
+		if (save)
+		{
+			TTSDK.TT.PlayerPrefs.Save();
+		}
 #elif WEIXINMINIGAME
 		UnityEngine.PlayerPrefs.SetInt(key, value);
-		UnityEngine.PlayerPrefs.Save();
+		if (save)
+		{
+			UnityEngine.PlayerPrefs.Save();
+		}
 #else
 		UnityEngine.PlayerPrefs.SetInt(key, value);
-		UnityEngine.PlayerPrefs.Save();
+		if (save)
+		{
+			UnityEngine.PlayerPrefs.Save();
+		}
+#endif
+	}
+	public static float prefsGetFloat(string key, float defaultValue = 0.0f)
+	{
+#if UNITY_EDITOR
+		return UnityEngine.PlayerPrefs.GetFloat(key, defaultValue);
+#elif BYTE_DANCE
+		return TTSDK.TT.PlayerPrefs.GetFloat(key, defaultValue);
+#elif WEIXINMINIGAME
+		return UnityEngine.PlayerPrefs.GetFloat(key, defaultValue);
+#else
+		return UnityEngine.PlayerPrefs.GetFloat(key, defaultValue);
+#endif
+	}
+	public static void prefsSetFloat(string key, float value, bool save = true)
+	{
+#if UNITY_EDITOR
+		UnityEngine.PlayerPrefs.SetFloat(key, value);
+		if (save)
+		{
+			UnityEngine.PlayerPrefs.Save();
+		}
+#elif BYTE_DANCE
+		TTSDK.TT.PlayerPrefs.SetFloat(key, value);
+		if (save)
+		{
+			TTSDK.TT.PlayerPrefs.Save();
+		}
+#elif WEIXINMINIGAME
+		UnityEngine.PlayerPrefs.SetFloat(key, value);
+		if (save)
+		{
+			UnityEngine.PlayerPrefs.Save();
+		}
+#else
+		UnityEngine.PlayerPrefs.SetFloat(key, value);
+		if (save)
+		{
+			UnityEngine.PlayerPrefs.Save();
+		}
 #endif
 	}
 	public static string prefsGetString(string key)
@@ -1336,20 +1438,56 @@ public class UnityUtility
 		return UnityEngine.PlayerPrefs.GetString(key);
 #endif
 	}
-	public static void prefsSetString(string key, string value)
+	public static void prefsSetString(string key, string value, bool save = true)
 	{
 #if UNITY_EDITOR
 		UnityEngine.PlayerPrefs.SetString(key, value);
-		UnityEngine.PlayerPrefs.Save();
+		if (save)
+		{
+			UnityEngine.PlayerPrefs.Save();
+		}
 #elif BYTE_DANCE
 		TTSDK.TT.PlayerPrefs.SetString(key, value);
-		TTSDK.TT.PlayerPrefs.Save();
+		if (save)
+		{
+			TTSDK.TT.PlayerPrefs.Save();
+		}
 #elif WEIXINMINIGAME
 		UnityEngine.PlayerPrefs.SetString(key, value);
-		UnityEngine.PlayerPrefs.Save();
+		if (save)
+		{
+			UnityEngine.PlayerPrefs.Save();
+		}
 #else
 		UnityEngine.PlayerPrefs.SetString(key, value);
-		UnityEngine.PlayerPrefs.Save();
+		if (save)
+		{
+			UnityEngine.PlayerPrefs.Save();
+		}
+#endif
+	}
+	public static bool prefsHasKey(string key)
+	{
+#if UNITY_EDITOR
+		return UnityEngine.PlayerPrefs.HasKey(key);
+#elif BYTE_DANCE
+		return TTSDK.TT.PlayerPrefs.HasKey(key);
+#elif WEIXINMINIGAME
+		return UnityEngine.PlayerPrefs.HasKey(key);
+#else
+		return UnityEngine.PlayerPrefs.HasKey(key);
+#endif
+	}
+	public static void prefsDeleteKey(string key)
+	{
+#if UNITY_EDITOR
+		UnityEngine.PlayerPrefs.DeleteKey(key);
+#elif BYTE_DANCE
+		TTSDK.TT.PlayerPrefs.DeleteKey(key);
+#elif WEIXINMINIGAME
+		UnityEngine.PlayerPrefs.DeleteKey(key);
+#else
+		UnityEngine.PlayerPrefs.DeleteKey(key);
 #endif
 	}
 	//------------------------------------------------------------------------------------------------------------------------------

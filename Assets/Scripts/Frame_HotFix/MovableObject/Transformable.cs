@@ -2,11 +2,10 @@
 using System;
 using System.Collections.Generic;
 using static FrameBaseUtility;
-using static UnityUtility;
 using static MathUtility;
 
 // 可变换的物体,2D和3D物体都是可变换,也就是都会包含一个Transform
-public class Transformable : ComponentOwner
+public class Transformable : ComponentOwner, ITransformable
 {
 	protected Transform mTransform;             // 变换组件
 	protected GameObject mObject;               // 物体节点
@@ -463,9 +462,9 @@ public class Transformable : ComponentOwner
 	public void copyObjectTransform(GameObject obj)
 	{
 		Transform objTrans = obj.transform;
-		FT.MOVE(this, objTrans.localPosition);
-		FT.ROTATE(this, objTrans.localEulerAngles);
-		FT.SCALE(this, objTrans.localScale);
+		this.MOVE(objTrans.localPosition);
+		this.ROTATE(objTrans.localEulerAngles);
+		this.SCALE(objTrans.localScale);
 		mPositionDirty = true;
 	}
 	public virtual bool isChildOf(IMouseEventCollect parent)

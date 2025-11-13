@@ -6,7 +6,7 @@ using UnityEngine;
 using static FrameBaseUtility;
 using static FrameBaseDefine;
 
-// 游戏的入口
+// 用于挂在start场景的节点上,作为程序入口
 public class GameEntry : MonoBehaviour
 {
 	protected static GameEntry mInstance;

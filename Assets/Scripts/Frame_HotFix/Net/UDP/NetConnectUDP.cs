@@ -101,6 +101,9 @@ public abstract class NetConnectUDP : NetConnect
 		mReceiveThread.destroy();
 		mReceiveBuffer.destroy();
 		mOutputBuffer.destroy();
+		mOutputBufferLock.destroy();
+		mInputBufferLock.destroy();
+		mSocketLock.destroy();
 	}
 	public void createSocket()
 	{

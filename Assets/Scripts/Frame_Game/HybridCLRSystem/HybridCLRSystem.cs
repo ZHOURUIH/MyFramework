@@ -24,23 +24,68 @@ public class HybridCLRSystem
 			return;
 		}
 		mHotFixLaunched = true;
-		try
+
+		// 启动之前需要确认拷贝一下混淆密钥
+		preLaunch(() =>
 		{
-			// 存储所有需要跨域的参数
-			backupFrameParam();
-			// 启动热更系统
+			try
+			{
+				// 存储所有需要跨域的参数
+				backupFrameParam();
+				// 启动热更系统
 #if UNITY_EDITOR || !USE_HYBRID_CLR
-			launchEditor(errorCallback);
+				launchEditor(errorCallback);
 #else
-			launchRuntime(aesKey, aesIV, openOrDownloadDll, errorCallback);
+				launchRuntime(aesKey, aesIV, openOrDownloadDll, errorCallback);
 #endif
-		}
-		catch (Exception e)
-		{
-			logExceptionBase(e);
-		}
+			}
+			catch (Exception e)
+			{
+				logExceptionBase(e);
+			}
+		});
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
+	protected static void preLaunch(Action callback)
+	{
+		if (isEditor() || isWebGL())
+		{
+			callback?.Invoke();
+			return;
+		}
+		// 如果StreamingAssets中的版本号大于PersistentData的版本号(所以这里的前提是版本号都是正确的,否则错误拷贝就会无法执行后面混淆后的代码),则需要将混淆密钥文件拷贝到PersistentData中
+		// 确保PersistentData中的密钥文件肯定是最新的
+		string streamVersion = mAssetVersionSystem.getStreamingAssetsVersion();
+		string persistVersion = mAssetVersionSystem.getPersistentDataVersion();
+		VERSION_COMPARE fullCompare = compareVersion3(streamVersion, persistVersion, out _, out _);
+		logBase("streamVersion:" + streamVersion + ", persistVersion:" + persistVersion + ", fullCompare:" + fullCompare);
+		logBase("isFileExist(F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE):" + isFileExist(F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE));
+		if (fullCompare != VERSION_COMPARE.LOCAL_LOWER && isFileExist(F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE))
+		{
+			callback?.Invoke();
+			return;
+		}
+		copyFileAsync(F_ASSET_BUNDLE_PATH + DYNAMIC_SECRET_FILE, F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE, () =>
+		{
+			GameFileInfo streamingInfo = mAssetVersionSystem.getStreamingAssetsFile().get(DYNAMIC_SECRET_FILE);
+			if (streamingInfo != null)
+			{
+				var persistAssetsFiles = mAssetVersionSystem.getPersistentAssetsFile();
+				GameFileInfo persistInfo = persistAssetsFiles.get(DYNAMIC_SECRET_FILE);
+				if (persistInfo == null)
+				{
+					persistInfo = new();
+					persistAssetsFiles.add(DYNAMIC_SECRET_FILE, persistInfo);
+				}
+				persistInfo.mFileName = streamingInfo.mFileName;
+				persistInfo.mFileSize = streamingInfo.mFileSize;
+				persistInfo.mMD5 = streamingInfo.mMD5;
+				// 拷贝完以后更新FileList
+				writeFileList(F_PERSISTENT_ASSETS_PATH, mAssetVersionSystem.generatePersistentAssetFileList());
+			}
+			callback?.Invoke();
+		});
+	}
 	protected static void backupFrameParam()
 	{
 		FrameCrossParam.mLocalizationName = ResLocalizationText.mCurLanguage;
@@ -110,6 +155,8 @@ public class HybridCLRSystem
 			if (err != LoadImageErrorCode.OK)
 			{
 				Debug.Log("LoadMetadataForAOTAssembly失败:" + aotFile + ", " + err);
+				errorCallback?.Invoke();
+				return false;
 			}
 		}
 #endif

@@ -2537,6 +2537,20 @@ public class MathUtility
 		perfectRotationDeltaRadian(ref start.y, ref target.y);
 		perfectRotationDeltaRadian(ref start.z, ref target.z);
 	}
+	// 判断target是否在v0和v1之间,会自动寻找v0和v1的小于180°的夹角
+	public static bool isVector2BetweenVectors(Vector2 target, Vector2 v0, Vector2 v1)
+	{
+		float angle0 = getAngleFromVector2(v0);
+		float angle1 = getAngleFromVector2(v1);
+		float angle = getAngleFromVector2(target);
+		if (abs(angle1 - angle0) > PI_RADIAN)
+		{
+			adjustRadian360(ref angle0);
+			adjustRadian360(ref angle1);
+			adjustRadian360(ref angle);
+		}
+		return angle >= angle0 && angle <= angle1;
+	}
 	public static void clamp(ref float value, float min, float max)
 	{
 		if (min > max || isFloatEqual(min, max))
@@ -3143,7 +3157,7 @@ public class MathUtility
 		return angle;
 	}
 	// 求从z轴到指定向量的水平方向上的顺时针角度,角度范围是-MATH_PI 到 MATH_PI
-	public static float getAngleFromVector(Vector3 vec, ANGLE radian = ANGLE.RADIAN)
+	public static float getAngleFromVector3(Vector3 vec, ANGLE radian = ANGLE.RADIAN)
 	{
 		vec.y = 0.0f;
 		normalize(ref vec);

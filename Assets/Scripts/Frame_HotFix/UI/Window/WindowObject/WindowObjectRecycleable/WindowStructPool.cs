@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using static UnityUtility;
-using static CSharpUtility;
+using static FrameUtility;
 using static MathUtility;
 using static FrameBaseUtility;
 
@@ -20,13 +21,18 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		}
 		mUnusedItemList.Clear();
 	}
-	public void init(bool newItemToLast = true)
+	// 这个init需要在界面中手动调用,因为参数跟默认的init不一样
+	public void init(bool newItemToLast)
 	{
 		init(mTemplate.getParent(), typeof(T), newItemToLast);
 	}
-	public void init(myUGUIObject parent, bool newItemToLast = true)
+	public void init(myUGUIObject parent, bool newItemToLast)
 	{
 		init(parent, typeof(T), newItemToLast);
+	}
+	public void init(Type type, bool newItemToLast)
+	{
+		init(mTemplate.getParent(), type, newItemToLast);
 	}
 	public List<T> getUsedList() { return mUsedItemList; }
 	public bool isUsed(T item) { return mUsedItemList.Contains(item); }
@@ -71,7 +77,8 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 	{
 		return item = newItem(mItemParent);
 	}
-	// 因为添加窗口可能会影响所有窗口的深度值,所以如果有需求,需要在完成添加窗口以后手动调用mLayout.refreshUIDepth()来刷新深度
+	// 因为添加窗口可能会影响所有窗口的深度值,所以如果有需求,需要在完成添加窗口以后手动调用对象池的refreshUIDepth()来刷新深度
+	// 如果是调用了自动排列函数,则会在排列函数中自动调用刷新深度,无需再手动调用
 	public T newItem(myUGUIObject parent = null)
 	{
 		if (!mInited)
@@ -111,10 +118,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		foreach (T item in mUsedItemList)
 		{
 			item.recycle();
-			if (item.isActive())
-			{
-				item.setActive(false);
-			}
+			item.setActive(false);
 			mUnusedItemList.Add(item);
 		}
 		mUsedItemList.Clear();
@@ -144,10 +148,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 			return false;
 		}
 		item.recycle();
-		if (item.isActive())
-		{
-			item.setActive(false);
-		}
+		item.setActive(false);
 		mUnusedItemList.Add(item);
 		return true;
 	}
@@ -171,10 +172,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		{
 			T item = mUsedItemList[startIndex + i];
 			item.recycle();
-			if (item.isActive())
-			{
-				item.setActive(false);
-			}
+			item.setActive(false);
 			mUnusedItemList.Add(item);
 		}
 		mUsedItemList.RemoveRange(startIndex, count);

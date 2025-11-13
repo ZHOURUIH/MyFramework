@@ -20,7 +20,7 @@ public class CameraLinkerAcceleration : CameraLinkerThirdPerson
 		// 获得加速度
 		Vector3 acceleration = mLinkObject.getPhysicsAcceleration();
 		Vector3 curRelative = mCamera.getPosition() - mLinkObject.getPosition();
-		float relativeAngle = getAngleFromVector(curRelative);
+		float relativeAngle = getAngleFromVector3(curRelative);
 		acceleration = rotateVector3(acceleration, relativeAngle) * -1.0f;
 		mSpringX.setCurLength(abs(curRelative.x));
 		mSpringX.setForce(acceleration.x);

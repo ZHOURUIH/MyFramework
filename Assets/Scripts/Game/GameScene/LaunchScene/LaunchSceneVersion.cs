@@ -1,47 +1,35 @@
 ﻿using static FrameBaseUtility;
 using static FrameBaseDefine;
 using static FrameBase;
-using static FileUtility;
 
 public class LaunchSceneVersion : SceneProcedure
 {
 	protected bool mRemoteDone;
-	protected bool mStreamingDone;
-	protected bool mPersistDone;
+	protected bool mStreamingAndPersistDone;
 	public override void init()
 	{
-		CmdLayoutManagerLoad.execute(typeof(UIDemo), 0);
+		CmdLayoutManagerLoad.executeAsync<UIDemo>(0, () =>
+		{
+			if (isEditor() || !isEnableHotFix() || isWebGL())
+			{
+				mAssetVersionSystem.setStreamingAssetsVersion(null);
+				mGameSceneManager.getCurScene().changeProcedure<LaunchSceneDownload>();
+				return;
+			}
+			// 正在检查版本号
+			//mUIDownload.setDownloadInfo("正在检查版本号...");
+			doGetRemoteVersion();
+			mAssetVersionSystem.loadStreamingAssetsVersionAndPersistentDataVersion(() =>
+			{
+				mStreamingAndPersistDone = true;
+			});
+		});
 
-		bool enableHotFix = true;
-		if (isEditor() || !enableHotFix)
-		{
-			mAssetVersionSystem.setStreamingAssetsVersion(null);
-			mGameSceneManager.getCurScene().changeProcedure<LaunchSceneDownload>();
-			return;
-		}
-		// 正在检查版本号
-		//mUIDownload.setDownloadInfo("正在检查版本号...");
-		doGetRemoteVersion();
-		ObsSystem.downloadTxt(/*getRemoteFolder("") +*/ VERSION, (string version) =>
-		{
-			mAssetVersionSystem.setRemoteVersion(version);
-			mRemoteDone = true;
-		});
-		openTxtFileAsync(F_ASSET_BUNDLE_PATH + VERSION, !isEditor(), (string version) =>
-		{
-			mAssetVersionSystem.setStreamingAssetsVersion(version);
-			mStreamingDone = true;
-		});
-		openTxtFileAsync(F_PERSISTENT_ASSETS_PATH + VERSION, false, (string version) =>
-		{
-			mAssetVersionSystem.setPersistentDataVersion(version);
-			mPersistDone = true;
-		});
 	}
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		if (mRemoteDone && mStreamingDone && mPersistDone)
+		if (mRemoteDone && mStreamingAndPersistDone)
 		{
 			logBase("StreamingVersion:" + mAssetVersionSystem.getStreamingAssetsVersion() + 
 					", PersistVersion:" + mAssetVersionSystem.getPersistentDataVersion() + 

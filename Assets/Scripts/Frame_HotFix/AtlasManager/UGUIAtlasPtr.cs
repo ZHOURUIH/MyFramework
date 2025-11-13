@@ -31,7 +31,8 @@ public class UGUIAtlasPtr : ClassObject
 	public Dictionary<string, Sprite> getSpriteList() { return mAtlas?.getSpriteList(); }
 	public string getFilePath() { return mAtlas?.getFilePath(); }
 	public AtlasBase getAtlas() { return mAtlas; }
-	public string getAtlasName() { return mAtlas.getName(); }
+	public string getAtlasName() { return mAtlas?.getName(); }
+	public Vector2 getFirstSpriteSize() { return mAtlas.getFirstSpriteSize(); }
 	public long getToken() { return mToken; }
 	// 只能由AtlasLoaderBase调用
 	public void unuse()
@@ -52,7 +53,7 @@ public class UGUIAtlasPtr : ClassObject
 			logError("atlas is null");
 			return;
 		}
-		mToken = UGUIAtlas.generateToken();
+		mToken = AtlasBase.generateToken();
 		mAtlas.addReference(mToken);
 	}
 }

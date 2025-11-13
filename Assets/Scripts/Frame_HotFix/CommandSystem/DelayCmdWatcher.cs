@@ -18,13 +18,10 @@ public class DelayCmdWatcher : ClassObject
 		// mCmdCallback不重置
 		// mCmdCallback = null;
 	}
-	public override void setDestroy(bool isDestroy)
+	public override void destroy()
 	{
-		base.setDestroy(isDestroy);
-		if (isDestroy)
-		{
-			interruptAllCommand();
-		}
+		base.destroy();
+		interruptAllCommand();
 	}
 	public void addDelayCmd(Command cmd)
 	{

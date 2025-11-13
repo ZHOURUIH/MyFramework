@@ -11,14 +11,16 @@ using static FrameBaseUtility;
 public class myUGUIInputFieldTMP : myUGUIObject, IInputField
 {
 	protected UnityAction<string> mThisEditEnd;     // 避免GC的委托
+	protected UnityAction<string> mThisSubmit;		// 避免GC的委托
 	protected UnityAction<string> mThisEditting;	// 避免GC的委托
 	protected TMP_InputField mInputField;			// TextMeshPro的InputField组件
 	protected StringCallback mOnEndEdit;			// 输入结束时的回调
-	protected StringCallback mOnEditting;           // 输入结束时的回调
-	protected bool mEndNeedEnter;                   // 是否需要按下回车键才会认为是输入结束,false则是只要输入框失去焦点就认为输入结束而调用mEditorEndCallback
+	protected StringCallback mOnSubmitEdit;			// 输入提交时的回调
+	protected StringCallback mOnEditting;           // 输入中的回调
 	public myUGUIInputFieldTMP()
 	{
 		mThisEditEnd = onEndEdit;
+		mThisSubmit = onSubmitEdit;
 		mThisEditting = onEditting;
 	}
 	public override void init()
@@ -43,11 +45,15 @@ public class myUGUIInputFieldTMP : myUGUIObject, IInputField
 		color.a = alpha;
 		mInputField.textComponent.color = color;
 	}
-	public void setOnEndEdit(StringCallback action, bool needEnter = true)
+	public void setOnEndEdit(StringCallback action)
 	{
 		mOnEndEdit = action;
-		mEndNeedEnter = needEnter;
 		mInputField.onEndEdit.AddListener(mThisEditEnd);
+	}
+	public void setOnSubmitEdit(StringCallback action)
+	{
+		mOnSubmitEdit = action;
+		mInputField.onSubmit.AddListener(mThisSubmit);
 	}
 	public void setOnEditting(StringCallback action)
 	{
@@ -86,12 +92,11 @@ public class myUGUIInputFieldTMP : myUGUIObject, IInputField
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onEndEdit(string value) 
 	{
-		// 只处理由回车触发的输入结束,移动端不处理
-		if (!isRealMobile() && mEndNeedEnter && !isKeyDown(KeyCode.Return, FOCUS_MASK.UI) && !isKeyDown(KeyCode.KeypadEnter, FOCUS_MASK.UI))
-		{
-			return;
-		}
 		mOnEndEdit?.Invoke(value); 
+	}
+	protected void onSubmitEdit(string value)
+	{
+		mOnSubmitEdit?.Invoke(value);
 	}
 	protected void onEditting(string value) { mOnEditting?.Invoke(value); }
 }

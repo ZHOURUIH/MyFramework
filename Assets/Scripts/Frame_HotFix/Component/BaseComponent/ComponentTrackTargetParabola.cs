@@ -22,7 +22,7 @@ public class ComponentTrackTargetParabola : ComponentTrackTarget
 		if (mTarget != null && (mTarget.getAssignID() != mTargetAssignID || mTarget.isDestroy()))
 		{
 			mTarget = null;
-			mDoneCallback?.Invoke(this, true);
+			mDoneCallback?.Invoke(true);
 		}
 		if (mTarget == null)
 		{
@@ -44,13 +44,13 @@ public class ComponentTrackTargetParabola : ComponentTrackTarget
 			// 根据X轴的距离,计算出目标点到起点连线上的坐标,不考虑Y轴
 			Vector3 finalPosXZ = setLength(resetY(targetPos - mStartPosition), mLastMovedDistanceX) + mStartPosition;
 			setPosition(replaceY(finalPosXZ, y + mStartPosition.y));
-			mTrackingCallback?.Invoke(this, false);
+			mTrackingCallback?.Invoke(false);
 		}
 		else
 		{
 			setPosition(targetPos);
-			mTrackingCallback?.Invoke(this, false);
-			mDoneCallback?.Invoke(this, false);
+			mTrackingCallback?.Invoke(false);
+			mDoneCallback?.Invoke(false);
 		}
 	}
 }

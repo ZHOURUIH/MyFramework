@@ -5,9 +5,9 @@ using static FrameBaseUtility;
 // 用于管理所有跟Java交互的对象
 public class AndroidPluginManager : FrameSystem
 {
-	protected static AndroidJavaClass mUnityPlayer;		// 固定的UnityPlayer的Java实例
-	protected static AndroidJavaObject mMainActivity;	// 固定的MainActivity的Java实例
-	protected static AndroidJavaObject mApplication;    // 固定的Application的Java实例
+	protected static AndroidJavaClass mUnityPlayer;			// 固定的UnityPlayer的Java实例
+	protected static AndroidJavaObject mMainActivity;		// 固定的MainActivity的Java实例
+	protected static AndroidJavaObject mApplication;		// 固定的Application的Java实例
 	protected static AndroidJavaObject mApplicationContext;	// 固定的ApplicationContext的Java实例
 	protected static string mAndroidPackageName;
 	public static void initAnroidPlugin(string packageName)

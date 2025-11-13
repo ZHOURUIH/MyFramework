@@ -1,7 +1,6 @@
 ﻿using System;
 using static UnityUtility;
 using static MathUtility;
-using static CSharpUtility;
 using static FrameBaseHotFix;
 using static FrameBaseUtility;
 

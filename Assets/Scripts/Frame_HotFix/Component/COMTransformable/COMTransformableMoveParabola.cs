@@ -36,6 +36,6 @@ public class COMTransformableMoveParabola : ComponentKeyFrame, IComponentModifyP
 		// 根据插值计算x,再代入抛物线方程计算y
 		float x = value * mDistanceHori;
 		curPos.y = mStartPos.y + mFactorA * x * x + mFactorB * x;
-		(mComponentOwner as Transformable).setPosition(curPos);
+		(mComponentOwner as ITransformable).setPosition(curPos);
 	}
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_STANDALONE_WIN || UNITY_EDITOR
+using System;
 using System.Runtime.InteropServices;
 
 public class User32
@@ -13,3 +14,4 @@ public class User32
 	[DllImport(USER32_DLL, SetLastError = true)]
 	public extern static IntPtr GetForegroundWindow();
 }
+#endif

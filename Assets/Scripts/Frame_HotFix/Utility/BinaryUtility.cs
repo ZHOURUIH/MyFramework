@@ -4,7 +4,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using static StringUtility;
 using static MathUtility;
-using static CSharpUtility;
+using static FrameUtility;
 
 // 与二进制相关的工具函数
 public class BinaryUtility

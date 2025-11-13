@@ -34,6 +34,7 @@ public abstract class NetConnectTCP : NetConnect
 	protected int mPing;													// 网络延迟,计算方式是从发出一个ping包到接收到一个回复包的间隔时间
 	protected int mPort;													// 服务器端口
 	protected bool mManualDisconnect;										// 是否正在主动断开连接
+	protected bool mManualSendReceive;										// 是否手动去调用doSend和doReceive
 	protected NET_STATE mNetState;											// 网络连接状态
 	public NetConnectTCP()
 	{
@@ -43,9 +44,12 @@ public abstract class NetConnectTCP : NetConnect
 	{
 		mIPAddress = ip;
 		mPort = port;
-		mSendThread.setBackground(false);
-		mSendThread.start(sendThread);
-		mReceiveThread.start(receiveThread);
+		if (!mManualSendReceive)
+		{
+			mSendThread.setBackground(false);
+			mSendThread.start(sendThread);
+			mReceiveThread.start(receiveThread);
+		}
 		// 每2秒发出一个ping包
 		mPingTimer.init(0.0f, 2.0f, false);
 		mPingTimer.setEnsureInterval(true);
@@ -184,10 +188,15 @@ public abstract class NetConnectTCP : NetConnect
 		mReceiveThread.destroy();
 		mOutputBuffer.destroy();
 		mReceiveBuffer.destroy();
+		mConnectStateLock.destroy();
+		mOutputBufferLock.destroy();
+		mSocketLock.destroy();
+		mInputBufferLock.destroy();
 	}
 	public void setPort(int port) { mPort = port; }
 	public void setIPAddress(IPAddress ip) { mIPAddress = ip; }
 	public void setPingAction(Action callback) { mPingCallback = callback; }
+	public void setManualSendReceive(bool manual) { mManualSendReceive = manual; }
 	public void notifyReceivePing()
 	{
 		mPing = (int)(DateTime.Now - mPingStartTime).TotalMilliseconds;
@@ -243,10 +252,8 @@ public abstract class NetConnectTCP : NetConnect
 			mInputBuffer.clear();
 		}
 	}
-	//------------------------------------------------------------------------------------------------------------------------------
-	protected abstract NetPacket parsePacket(ushort packetType, byte[] buffer, int size, int sequence, ulong fieldFlag);
-	// 发送Socket消息
-	protected void sendThread(ref bool run)
+	// doSend和doReceive开放出来方便外部自己处理发送和接收线程,而不是在内部固定在单独的线程中运行
+	public void doSend()
 	{
 		if (mSocket == null || !mSocket.Connected || mNetState != NET_STATE.CONNECTED)
 		{
@@ -280,38 +287,7 @@ public abstract class NetConnectTCP : NetConnect
 		}
 		sendTotalData();
 	}
-	protected void sendTotalData()
-	{
-		int allLength = mTotalBuffer.getDataLength();
-		if (allLength == 0)
-		{
-			return;
-		}
-		try
-		{
-			byte[] allBytes = mTotalBuffer.getData();
-			int allSendedCount = 0;
-			while (allSendedCount < allLength)
-			{
-				int thisSendCount = mSocket.Send(allBytes, allSendedCount, allLength - allSendedCount, SocketFlags.None);
-				if (thisSendCount <= 0)
-				{
-					// 服务器异常
-					notifyNetState(NET_STATE.SERVER_CLOSE, SocketError.NotConnected);
-					break;
-				}
-				allSendedCount += thisSendCount;
-			}
-		}
-		catch (ObjectDisposedException) { }
-		catch (SocketException e)
-		{
-			socketException(e);
-		}
-		mTotalBuffer.clear();
-	}
-	// 接收Socket消息
-	protected void receiveThread(ref bool run)
+	public void doReceive()
 	{
 		if (mSocket == null || !mSocket.Connected || mNetState != NET_STATE.CONNECTED)
 		{
@@ -326,7 +302,13 @@ public abstract class NetConnectTCP : NetConnect
 				return;
 			}
 			int nRecv = mSocket.Receive(mRecvBuff);
-			if (nRecv <= 0)
+			if (nRecv == 0)
+			{
+				// 服务器关闭了连接
+				notifyNetState(NET_STATE.SERVER_ABORT, SocketError.NotConnected);
+				return;
+			}
+			else if (nRecv < 0)
 			{
 				// 服务器异常
 				notifyNetState(NET_STATE.SERVER_CLOSE, SocketError.NotConnected);
@@ -384,6 +366,62 @@ public abstract class NetConnectTCP : NetConnect
 			socketException(e);
 		}
 	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected abstract NetPacket parsePacket(ushort packetType, byte[] buffer, int size, int sequence, ulong fieldFlag);
+	// 发送Socket消息
+	protected void sendThread(ref bool run)
+	{
+		if (mManualSendReceive)
+		{
+			return;
+		}
+		doSend();
+	}
+	// 接收Socket消息
+	protected void receiveThread(ref bool run)
+	{
+		if (mManualSendReceive)
+		{
+			return;
+		}
+		doReceive();
+	}
+	protected void sendTotalData()
+	{
+		int allLength = mTotalBuffer.getDataLength();
+		if (allLength == 0)
+		{
+			return;
+		}
+		try
+		{
+			byte[] allBytes = mTotalBuffer.getData();
+			int allSendedCount = 0;
+			while (allSendedCount < allLength)
+			{
+				int thisSendCount = mSocket.Send(allBytes, allSendedCount, allLength - allSendedCount, SocketFlags.None);
+				if (thisSendCount == 0)
+				{
+					// 服务器关闭了连接
+					notifyNetState(NET_STATE.SERVER_ABORT, SocketError.NotConnected);
+					break;
+				}
+				else if (thisSendCount < 0)
+				{
+					// 服务器异常
+					notifyNetState(NET_STATE.SERVER_CLOSE, SocketError.NotConnected);
+					break;
+				}
+				allSendedCount += thisSendCount;
+			}
+		}
+		catch (ObjectDisposedException) { }
+		catch (SocketException e)
+		{
+			socketException(e);
+		}
+		mTotalBuffer.clear();
+	}
 	protected abstract PARSE_RESULT preParsePacket(byte[] buffer, int size, out int bitIndex, out byte[] outPacketData, 
 													out ushort packetType, out int packetSize, out int sequence, out ulong fieldFlag);
 	protected void debugHistoryPacket()
@@ -408,12 +446,22 @@ public abstract class NetConnectTCP : NetConnect
 		{
 			state = NET_STATE.SERVER_CLOSE;
 		}
+		else if (e.SocketErrorCode == SocketError.ConnectionAborted)
+		{
+			state = NET_STATE.SERVER_ABORT;
+		}
+		// 服务器关闭了连接,而客户端再向服务器发消息时,服务器就会返回ConnectionReset
+		else if (e.SocketErrorCode == SocketError.ConnectionReset)
+		{
+			state = NET_STATE.SERVER_ABORT;
+		}
 		notifyNetState(state, e.SocketErrorCode);
 	}
 	protected void notifyNetState(NET_STATE state, SocketError errorCode = SocketError.Success)
 	{
 		using (new ThreadLockScope(mConnectStateLock))
 		{
+			NET_STATE lastState = mNetState;
 			mNetState = state;
 			if (!isConnected() && !isConnecting())
 			{
@@ -421,11 +469,12 @@ public abstract class NetConnectTCP : NetConnect
 			}
 			if (!mManualDisconnect)
 			{
-				CMD_DELAY_THREAD(out CmdNetConnectTCPState cmd);
+				CMD_DELAY_THREAD(out CmdNetConnectTCPState cmd, LOG_LEVEL.FORCE);
 				if (cmd != null)
 				{
 					cmd.mErrorCode = errorCode;
 					cmd.mNetState = mNetState;
+					cmd.mLastNetState = lastState;
 					pushDelayCommand(cmd, this);
 				}
 			}

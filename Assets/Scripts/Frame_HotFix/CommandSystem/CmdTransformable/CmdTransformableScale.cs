@@ -4,58 +4,56 @@ using static MathUtility;
 using static FrameBaseUtility;
 
 // 缩放物体
-public class CmdTransformableScale : Command
+public class CmdTransformableScale
 {
-	public KeyFrameCallback mDoingCallback;		// 缩放中回调
-	public KeyFrameCallback mDoneCallback;		// 缩放完成时回调
-	public Vector3 mStartScale;					// 起始缩放值
-	public Vector3 mTargetScale;				// 目标缩放值
-	public float mOnceLength;					// 单次所需时间
-	public float mOffset;						// 起始时间偏移
-	public int mKeyframe;						// 所使用的关键帧ID
-	public bool mLoop;							// 是否循环
-	public override void resetProperty()
+	// 缩放中回调
+	// 缩放完成时回调
+	// 起始缩放值
+	// 目标缩放值
+	// 单次所需时间
+	// 起始时间偏移
+	// 所使用的关键帧ID
+	// 是否循环
+	public static void execute(ITransformable obj, Vector3 startScale, Vector3 targetScale, float onceLength, float offset, int keyframe, bool loop, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		base.resetProperty();
-		mDoingCallback = null;
-		mDoneCallback = null;
-		mStartScale = Vector3.one;
-		mTargetScale = Vector3.one;
-		mKeyframe = KEY_CURVE.NONE;
-		mOnceLength = 1.0f;
-		mOffset = 0.0f;
-		mLoop = false;
-	}
-	public override void execute()
-	{
-		var obj = mReceiver as Transformable;
+		if (obj == null)
+		{
+			return;
+		}
 		if (isEditor() && 
 			obj is myUGUIObject uiObj && 
-			!isFloatZero(mOnceLength) && 
+			!isFloatZero(onceLength) && 
 			!uiObj.getLayout().canUIObjectUpdate(uiObj))
 		{
 			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + uiObj.getName());
 		}
 		obj.getOrAddComponent(out COMTransformableScale com);
-		com.setDoingCallback(mDoingCallback);
-		com.setDoneCallback(mDoneCallback);
+		com.setDoingCallback(doingCallback);
+		com.setDoneCallback(doneCallback);
 		com.setActive(true);
-		com.setStart(mStartScale);
-		com.setTarget(mTargetScale);
-		com.play(mKeyframe, mLoop, mOnceLength, mOffset);
+		com.setStart(startScale);
+		com.setTarget(targetScale);
+		com.play(keyframe, loop, onceLength, offset);
 		if (com.getState() == PLAY_STATE.PLAY)
 		{
 			// 需要启用组件更新时,则开启组件拥有者的更新,后续也不会再关闭
 			obj.setNeedUpdate(true);
 		}
 	}
-	public override void debugInfo(MyStringBuilder builder)
+	public static void execute(ITransformable obj, Vector3 startScale)
 	{
-		builder.append(": mKeyframe:", mKeyframe).
-				append(", mOnceLength:", mOnceLength).
-				append(", mOffset:", mOffset).
-				append(", mLoop:", mLoop).
-				append(", mStartScale:", mStartScale).
-				append(", mTargetScale:", mTargetScale);
+		if (obj == null)
+		{
+			return;
+		}
+		obj.getComponent(out COMTransformableScale com);
+		if (com == null || !com.isActive())
+		{
+			obj.setScale(startScale);
+			return;
+		}
+		com.setStart(startScale);
+		com.setTarget(startScale);
+		com.play(0, false, 0.0f, 0.0f);
 	}
 }

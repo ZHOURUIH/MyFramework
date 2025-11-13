@@ -1,21 +1,20 @@
 ﻿using System.Collections.Generic;
 using static FrameUtility;
-using static CSharpUtility;
 using static FrameBaseHotFix;
 
 // 角色状态基类
 public class CharacterState : ClassObject
 {
 	protected Dictionary<IEventListener, List<CharacterStateCallback>> mWillRemoveCallbackList;  // 即将销毁此状态时的回调列表,不一定所有状态都需要这个,需要时才创建
-	protected OnStateLeave mOnLeave;			// 外部可设置的当前状态退出时的回调
+	protected StateLeaveCallback mOnLeave;			// 外部可设置的当前状态退出时的回调
 	private StateParam mParam;					// 此参数只能在enter中使用,执行完enter后就会回收销毁,为了避免类型转换问题,设置为私有的
 	protected Character mCharacter;				// 状态所属角色
-	protected long mID;							// 状态唯一ID
-	protected float mStateMaxTime;				// 状态最大持续时间,小于0表示无限制,实际只是一个数值备份
-	protected float mStateTime;					// 该状态持续的时间,小于0表示无限制,由于需要确保状态从进入到移除的时间一定大于mStateMaxTime,所以在设置状态时间时会有一定的修正
+	protected long mID;                         // 状态唯一ID
+	protected float mStateMaxTime = -1.0f;		// 状态最大持续时间,小于0表示无限制,实际只是一个数值备份
+	protected float mStateTime = -1.0f;			// 该状态持续的时间,小于0表示无限制,由于需要确保状态从进入到移除的时间一定大于mStateMaxTime,所以在设置状态时间时会有一定的修正
 	protected int mMutexID;						// 互斥ID,在添加状态时,会判断相同互斥ID的状态是否需要移除,互斥ID相同的状态的互斥操作对应SAME_STATE_OPERATE枚举
 	protected bool mIgnoreTimeScale;			// 更新时是否忽略时间缩放
-	protected bool mActive;                     // 状态是否激活
+	protected bool mActive = true;              // 状态是否激活
 	protected bool mJustEnter;                  // 是否是这一帧进入的状态,用于避免进入后的同一帧进行第一次的update而导致的时间计算错误
 	protected BUFF_STATE_TYPE mBuffStateType;	// buff类型
 	protected STATE_MUTEX mMutexType;			// 该状态是否允许叠加
@@ -23,9 +22,6 @@ public class CharacterState : ClassObject
 	{
 		mMutexType = STATE_MUTEX.COEXIST;
 		mBuffStateType = BUFF_STATE_TYPE.NONE;
-		mActive = true;
-		mStateMaxTime = -1.0f;
-		mStateTime = -1.0f;
 	}
 	public override void destroy()
 	{
@@ -58,7 +54,7 @@ public class CharacterState : ClassObject
 	public virtual void addSameState(CharacterState newState) { }
 	public void setMutexID(int mutexID)					{ mMutexID = mutexID; }
 	public virtual void setParam(StateParam param)		{ mParam = param; }
-	public void setLeaveCallback(OnStateLeave callback) { mOnLeave = callback; }
+	public void setLeaveCallback(StateLeaveCallback callback) { mOnLeave = callback; }
 	public void setActive(bool active)					{ mActive = active; }
 	public void setStateMaxTime(float stateTime)		{ mStateMaxTime = stateTime; }
 	public void setStateTime(float time)				{ mStateTime = time; }

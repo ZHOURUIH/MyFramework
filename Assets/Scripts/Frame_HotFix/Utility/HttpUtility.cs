@@ -20,7 +20,7 @@ public class HttpUtility
 {
 	// 同步下载文件
 	public static byte[] downloadFile(string url, int offset = 0, byte[] helperBytes = null, string fileName = EMPTY,
-										StartDownloadCallback startCallback = null, DownloadingCallback downloading = null)
+										StringLongCallback startCallback = null, DownloadingCallback downloading = null)
 	{
 		log("开始http下载:" + url);
 		try
@@ -235,6 +235,26 @@ public class HttpUtility
 	{
 		httpRequestAsync(prepareGet(url, paramList, header, contentType, timeout), url, callback);
 	}
+	// 异步get请求,webgl可用
+	public static void httpGetAsyncWebGL(string url, Dictionary<string, string> paramList, Dictionary<string, string> header, string contentType, UnityHttpCallback callback, int timeoutSecond)
+	{
+		GameEntry.startCoroutine(unityPrepareGet(url, contentType, header, paramList, callback, timeoutSecond));
+	}
+	// 异步get请求,webgl可用,带header
+	public static void httpGetAsyncWebGLWithHeader(string url, Dictionary<string, string> header, UnityHttpCallback callback)
+	{
+		GameEntry.startCoroutine(unityPrepareGet(url, "application/x-www-form-urlencoded", null, header, callback, 10));
+	}
+	// 异步get请求,webgl可用,带参数
+	public static void httpGetAsyncWebGLWithParam(string url, Dictionary<string, string> paramList, UnityHttpCallback callback)
+	{
+		GameEntry.startCoroutine(unityPrepareGet(url, "application/x-www-form-urlencoded", null, paramList, callback, 10));
+	}
+	// 异步get请求,webgl可用,不带header,不带参数
+	public static void httpGetAsyncWebGL(string url, UnityHttpCallback callback)
+	{
+		GameEntry.startCoroutine(unityPrepareGet(url, "application/x-www-form-urlencoded", null, null, callback, 10));
+	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected static HttpWebRequest prepareDelete(string url, Dictionary<string, string> paramList, Dictionary<string, string> header, string contentType)
 	{
@@ -278,7 +298,7 @@ public class HttpUtility
 			dataLength = data.count();
 		}
 
-		// 初始化新的webRequst
+		// 初始化新的webRequest
 		// 创建httpWebRequest对象
 		ServicePointManager.ServerCertificateValidationCallback = myRemoteCertificateValidationCallback;
 		var webRequest = (HttpWebRequest)WebRequest.Create(new Uri(url));
@@ -332,7 +352,7 @@ public class HttpUtility
 	// 同步Http请求
 	protected static string httpRequest(HttpWebRequest webRequest, string url, out WebExceptionStatus status, out HttpStatusCode code)
 	{
-		if (isWebGL())
+		if (isWebGL() && isPlaying())
 		{
 			logError("无法在WebGL平台使用C#的Http请求函数");
 		}
@@ -375,7 +395,7 @@ public class HttpUtility
 	}
 	protected async static void httpRequestAsync(HttpWebRequest webRequest, string url, HttpCallback callback)
 	{
-		if (isWebGL())
+		if (isWebGL() && isPlaying())
 		{
 			logError("无法在WebGL平台使用C#的Http请求函数");
 		}
@@ -456,6 +476,23 @@ public class HttpUtility
 		}
 		// 设置下载处理器
 		request.downloadHandler = new DownloadHandlerBuffer();
+		// 发送请求并等待完成
+		yield return request.SendWebRequest();
+		callback?.Invoke(request.downloadHandler.text, request.result, request.responseCode);
+	}
+	protected static IEnumerator unityPrepareGet(string url, string contentType, Dictionary<string, string> header, Dictionary<string, string> paramList, UnityHttpCallback callback, int timeoutSecond)
+	{
+		url += generateGetParams(paramList);
+		// 创建一个UnityWebRequest对象，指定为GET请求
+		UnityWebRequest request = new(url, UnityWebRequest.kHttpVerbGET);
+		request.downloadHandler = new DownloadHandlerBuffer();
+		// 设置Content-Type头为application/json
+		request.SetRequestHeader("Content-Type", contentType);
+		request.timeout = timeoutSecond;
+		foreach (var item in header.safe())
+		{
+			request.SetRequestHeader(item.Key, item.Value);
+		}
 		// 发送请求并等待完成
 		yield return request.SendWebRequest();
 		callback?.Invoke(request.downloadHandler.text, request.result, request.responseCode);

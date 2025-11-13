@@ -1,10 +1,4 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using System;
-using System.Collections.Generic;
-using static MathUtility;
-using static FrameBaseHotFix;
-using static FrameDefine;
+﻿using System;
 
 [Serializable]
 public struct FontSizeInfo

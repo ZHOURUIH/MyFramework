@@ -8,7 +8,6 @@ using static UnityUtility;
 using static FrameUtility;
 using static FrameBaseHotFix;
 using static FrameDefine;
-using static CSharpUtility;
 using static FrameBaseUtility;
 
 // AssetBundle的信息,存储了AssetBundle中相关的所有数据

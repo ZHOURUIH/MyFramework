@@ -10,6 +10,7 @@ public class ConvexPolygon : ClassObject
 	{
 		base.resetProperty();
 		mPoints.Clear();
+		mColor = new(randomFloat(0.0f, 1.0f), randomFloat(0.0f, 1.0f), randomFloat(0.0f, 1.0f));
 	}
 	public void draw()
 	{

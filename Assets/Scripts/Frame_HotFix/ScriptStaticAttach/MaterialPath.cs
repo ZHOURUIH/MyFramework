@@ -8,6 +8,15 @@ using static FrameBaseUtility;
 public class MaterialPath : MonoBehaviour
 {
 	public string mMaterialPath;       // 记录的材质路径
+	public void Awake()
+	{
+		enabled = !Application.isPlaying;
+		refreshPath();
+	}
+	public void OnEnable()
+	{
+		refreshPath();
+	}
 	public void OnValidate()
 	{
 		if (isEditor() && !Application.isPlaying)
@@ -25,6 +34,10 @@ public class MaterialPath : MonoBehaviour
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void refreshPath()
 	{
+		if (Application.isPlaying)
+		{
+			return;
+		}
 		Material material = getMaterial();
 		if (material == null)
 		{

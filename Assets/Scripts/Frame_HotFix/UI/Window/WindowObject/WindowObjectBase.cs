@@ -13,7 +13,8 @@ public class WindowObjectBase : ILocalizationCollection, IWindowObjectOwner
 	protected bool mDestroied;                              // 是否已经销毁过了,用于检测重复销毁的
 	protected bool mInited;                                 // 是否已经初始化过了,用于检测重复初始化
 	protected bool mCalledOnHide;                           // 是否已经调用过了onHide
-	protected bool mNeedUpdate;								// 是否需要调用此对象的update,默认不调用update
+	protected bool mNeedUpdate;                             // 是否需要调用此对象的update,默认不调用update
+	protected bool mUnuseAllWhenHide = true;				// 是否在隐藏时将引用的对象池中的对象全部回收
 	public WindowObjectBase(IWindowObjectOwner parent)
 	{
 		if (parent is WindowObjectBase objBase)
@@ -28,7 +29,7 @@ public class WindowObjectBase : ILocalizationCollection, IWindowObjectOwner
 		}
 		mParent?.addChild(this);
 	}
-	// 第一次创建时调用,如果是对象池中的物体,则由对象池调用,非对象池物体需要在使用的地方自己调用
+	// 第一次创建时调用,如果是对象池中的物体,则由对象池调用,非对象池物体需要在使用的地方自己调用,不过一般会由所在的UI类自动调用
 	public virtual void init() 
 	{
 		if (mInited)
@@ -52,7 +53,6 @@ public class WindowObjectBase : ILocalizationCollection, IWindowObjectOwner
 			item.reset();
 		}
 	}
-	public bool hasDragViewLoopList() { return mDragViewLoopList.count() > 0; }
 	public void updateDragViewLoop()
 	{
 		// 更新自己的滚动列表
@@ -66,7 +66,7 @@ public class WindowObjectBase : ILocalizationCollection, IWindowObjectOwner
 		// 更新所有子节点的滚动列表
 		foreach (WindowObjectBase item in mChildList.safe())
 		{
-			if (item.isActive() && item.hasDragViewLoopList())
+			if (item.isActive())
 			{
 				item.updateDragViewLoop();
 			}
@@ -90,9 +90,12 @@ public class WindowObjectBase : ILocalizationCollection, IWindowObjectOwner
 				item.onHide();
 			}
 		}
-		foreach (WindowStructPoolBase item in mPoolList.safe())
+		if (mUnuseAllWhenHide)
 		{
-			item.unuseAll();
+			foreach (WindowStructPoolBase item in mPoolList.safe())
+			{
+				item.unuseAll();
+			}
 		}
 	}
 	public virtual void destroy()

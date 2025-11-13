@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using static CSharpUtility;
+using static FrameUtility;
 
 // 逻辑场景管理器
 public class GameSceneManager : FrameSystem
@@ -12,11 +12,11 @@ public class GameSceneManager : FrameSystem
 		mCreateObject = true;
 	}
 	public GameScene getCurScene(){ return mCurScene; }
-	public bool enterScene<T>(Type startProcedure) where T : GameScene
+	public SceneProcedure enterScene<T>(Type startProcedure) where T : GameScene
 	{
 		return enterScene(typeof(T), startProcedure);
 	}
-	public bool enterScene(Type type, Type startProcedure)
+	public SceneProcedure enterScene(Type type, Type startProcedure)
 	{
 		// 再次进入当前的场景,只是从初始流程开始执行,并不会重新执行进入场景的操作
 		if (mCurScene != null && mCurScene.GetType() == type)
@@ -39,7 +39,7 @@ public class GameSceneManager : FrameSystem
 			mCurScene.setTempStartProcedure(startProcedure);
 			mCurScene.init();
 		}
-		return true;
+		return mCurScene.getCurProcedure();
 	}
 	public override void update(float elapsedTime)
 	{
