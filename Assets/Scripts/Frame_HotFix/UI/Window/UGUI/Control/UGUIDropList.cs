@@ -26,7 +26,6 @@ public class UGUIDropList : WindowObjectUGUI, ICommonUI
 	}
 	protected override void assignWindowInternal()
 	{
-		base.assignWindowInternal();
 		newObject(out mLabel, "Label");
 		newObject(out mOptions, "Options");
 		newObject(out mMask, mOptions, "Mask");

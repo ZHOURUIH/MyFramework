@@ -73,6 +73,7 @@ public abstract class NetConnectTCP : NetConnect
 		memset(mRecvBuff, (byte)0);
 		mPort = 0;
 		mManualDisconnect = false;
+		mManualSendReceive = false;
 		mNetState = NET_STATE.NONE;
 		mPingStartTime = default;
 		mPingTimer.stop();
@@ -80,10 +81,12 @@ public abstract class NetConnectTCP : NetConnect
 		mPingCallback = null;
 		mNetStateCallback = null;
 	}
-	public bool isConnected() { return mNetState == NET_STATE.CONNECTED; }
-	public bool isConnecting() { return mNetState == NET_STATE.CONNECTING; }
-	public void setNetStateCallback(NetStateCallback callback) { mNetStateCallback = callback; }
-	public NetStateCallback getNetStateCallback() { return mNetStateCallback; }
+	public bool isConnected()									{ return mNetState == NET_STATE.CONNECTED; }
+	public bool isConnecting()									{ return mNetState == NET_STATE.CONNECTING; }
+	public bool isDisconnected()								{ return mNetState != NET_STATE.CONNECTED && mNetState != NET_STATE.CONNECTING; }
+	public bool isManualDisconnect()							{ return mManualDisconnect; }
+	public NetStateCallback getNetStateCallback()				{ return mNetStateCallback; }
+	public void setNetStateCallback(NetStateCallback callback)	{ mNetStateCallback = callback; }
 	public void startConnect(Action<bool> callback)
 	{
 		if (isConnected() || isConnecting())
@@ -105,7 +108,7 @@ public abstract class NetConnectTCP : NetConnect
 			mSocket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 			mSocket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, 1);
 		}
-		if (isEditor() || isDevelopment())
+		if (isDevOrEditor())
 		{
 			log("开始连接服务器:" + mIPAddress);
 		}
@@ -343,7 +346,7 @@ public abstract class NetConnectTCP : NetConnect
 					{
 						logError("移除数据失败");
 					}
-					if (isEditor() || isDevelopment())
+					if (isDevOrEditor())
 					{
 						string info = "已接收 : " + IToS(packetType) + ", 字节数:" + IToS(bitCountToByteCount(bitIndex));
 						log(info, LOG_LEVEL.LOW);
@@ -467,16 +470,13 @@ public abstract class NetConnectTCP : NetConnect
 			{
 				clearSocket();
 			}
-			if (!mManualDisconnect)
+			CMD_DELAY_THREAD(out CmdNetConnectTCPState cmd, LOG_LEVEL.FORCE);
+			if (cmd != null)
 			{
-				CMD_DELAY_THREAD(out CmdNetConnectTCPState cmd, LOG_LEVEL.FORCE);
-				if (cmd != null)
-				{
-					cmd.mErrorCode = errorCode;
-					cmd.mNetState = mNetState;
-					cmd.mLastNetState = lastState;
-					pushDelayCommand(cmd, this);
-				}
+				cmd.mErrorCode = errorCode;
+				cmd.mNetState = mNetState;
+				cmd.mLastNetState = lastState;
+				pushDelayCommand(cmd, this);
 			}
 		}
 	}

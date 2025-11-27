@@ -245,7 +245,7 @@ public abstract class NetConnectUDP : NetConnect
 					{
 						logError("移除数据失败");
 					}
-					if (isEditor() || isDevelopment())
+					if (isDevOrEditor())
 					{
 						string info = "已接收 : " + IToS(packetType) + ", 字节数:" + IToS(bitCountToByteCount(bitIndex));
 						log(info, LOG_LEVEL.LOW);

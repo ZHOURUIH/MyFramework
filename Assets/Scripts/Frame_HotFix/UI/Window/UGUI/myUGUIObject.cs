@@ -62,12 +62,6 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		}
 		mCOMWindowCollider?.setColliderSize(mRectTransform);
 	}
-	public override void resetProperty()
-	{
-		base.resetProperty();
-		mCOMWindowUGUIInteractive = null;
-		mRectTransform = null;
-	}
 	public void onLayoutHide() 
 	{
 		// 布局隐藏时需要将触点清除

@@ -54,6 +54,7 @@ public class COMCharacterStateMachine : GameComponent
 	}
 	public override void update(float elapsedTime)
 	{
+		base.update(elapsedTime);
 		using var b = new SafeListReader<CharacterState>(mStateTickList);
 		foreach (CharacterState state in b.mReadList)
 		{

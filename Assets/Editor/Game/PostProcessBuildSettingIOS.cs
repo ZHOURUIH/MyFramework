@@ -23,9 +23,8 @@ public static class UnityiOSPostProcessBuildSetting
                 array = rootDict.CreateArray("LSApplicationQueriesSchemes");
             }
 			array.AsArray().AddString("mqqapi");
-
 			// 缺少合规证明
-			plist.root.SetBoolean("ITSAppUsesNonExemptEncryption", false);
+			rootDict.SetBoolean("ITSAppUsesNonExemptEncryption", false);
             // 保存plist
             plist.WriteToFile(plistPath);
 
@@ -38,33 +37,91 @@ public static class UnityiOSPostProcessBuildSetting
             string target = proj.GetUnityMainTargetGuid();
             string frameworkGuid = proj.GetUnityFrameworkTargetGuid();
 
-            //// 对所有的编译配置设置选项
-            //proj.AddBuildProperty(target, "OTHER_LDFLAGS", "-ObjC");
-            //proj.SetBuildProperty(target, "ENABLE_BITCODE", "NO");
-            //proj.SetBuildProperty(target, "VALIDATE_WORKSPACE", "YES");
+			// 对所有的编译配置设置选项
+			proj.AddBuildProperty(target, "OTHER_LDFLAGS", "-lz -lc++ -ObjC");
+			proj.SetBuildProperty(target, "PRODUCT_NAME", "这里设置你的游戏名字");
 
-            // 在UnityFramework中添加AppleAuth依赖
-            proj.AddFrameworkToProject(frameworkGuid, "AuthenticationServices.framework", false);
+			// 在UnityFramework中添加AppleAuth依赖
+			proj.AddFrameworkToProject(frameworkGuid, "AuthenticationServices.framework", false);
 
-            //proj.AddFrameworkToProject(target, "HuoSuperSDK.framework", false);
-            //// 添加依赖库,bugly需要
-            //proj.AddFrameworkToProject(target, "Security.framework", false);
-            //proj.AddFrameworkToProject(target, "SystemConfiguration.framework", false);
-            //proj.AddFrameworkToProject(target, "JavaScriptCore.framework", false);
-            //proj.AddFrameworkToProject(target, "libc++.tdb", false);
-            //proj.AddFrameworkToProject(target, "libz.tdb", false);
+			// 添加依赖库,bugly需要
+			proj.AddFrameworkToProject(target, "Security.framework", false);
+			proj.AddFrameworkToProject(target, "SystemConfiguration.framework", false);
+			proj.AddFrameworkToProject(target, "JavaScriptCore.framework", false);
+			proj.AddFrameworkToProject(target, "libc++.tbd", false);
+			proj.AddFrameworkToProject(target, "libz.tbd", false);
+			proj.AddFrameworkToProject(frameworkGuid, "libz.tbd", false);
+			proj.AddFrameworkToProject(frameworkGuid, "libc++.tbd", false);
 
-            //string frameworkTarget = proj.GetUnityFrameworkTargetGuid();
-            //proj.SetBuildProperty(frameworkTarget, "ENABLE_BITCODE", "NO");
-
-            // 保存工程
-            proj.WriteToFile(projPath);
+			// 保存工程
+			proj.WriteToFile(projPath);
+			// 修改UnityAppController,注入bugly的初始化代码
+			AddBuglyToAppDelegate(path, "ios的bugly AppID");
 		}
     }
-    static void AddLibToProject(PBXProject inst, string targetGuid, string lib)
-    {
-        string fileGuid = inst.AddFile("usr/lib/" + lib, "Frameworks/" + lib, PBXSourceTree.Sdk);
-        inst.AddFileToBuild(targetGuid, fileGuid);
-    }
+	static void AddBuglyToAppDelegate(string xcodePath, string buglyAppId)
+	{
+		string appControllerPath = Path.Combine(xcodePath, "Classes/UnityAppController.mm");
+		if (!File.Exists(appControllerPath))
+		{
+			Debug.LogError("未找到 UnityAppController.mm,无法注入 Bugly");
+			return;
+		}
+
+		string content = File.ReadAllText(appControllerPath);
+		// 避免重复注入
+		if (content.Contains("BEGIN Bugly Injection"))
+		{
+			Debug.Log("Bugly 注入已存在，跳过。");
+			return;
+		}
+
+		// 注入 import 部分
+		string importLine = "\n// BEGIN Bugly Injection\n#import <Bugly/Bugly.h>\n";
+		string importCode = importLine + "// END Bugly Injection";
+
+		if (!content.Contains("#import <Bugly/Bugly.h>"))
+		{
+			// 注入到文件最前面（所有 import 之后）
+			int insertIndex = content.IndexOf("#import");
+			if (insertIndex >= 0)
+			{
+				content = content.Insert(content.IndexOf("\n", insertIndex) + 1, importCode + "\n");
+			}
+			else
+			{
+				content = importCode + "\n" + content;
+			}
+		}
+
+		// 在 didFinishLaunchingWithOptions 方法中注入初始化代码
+		string methodHeader = "didFinishLaunchingWithOptions";
+		int methodIndex = content.IndexOf(methodHeader);
+		if (methodIndex < 0)
+		{
+			Debug.LogError("未找到 didFinishLaunchingWithOptions 方法，无法注入 Bugly 初始化代码！");
+			return;
+		}
+
+		// 找到方法体起始位置
+		int braceIndex = content.IndexOf("{", methodIndex);
+		if (braceIndex < 0)
+		{
+			Debug.LogError("didFinishLaunchingWithOptions 方法格式错误！");
+			return;
+		}
+
+		// 注入代码
+		string initCode = $@"
+    // BEGIN Bugly Injection
+    [Bugly startWithAppId:@""{buglyAppId}""];
+    // END Bugly Injection
+";
+
+		content = content.Insert(braceIndex + 1, initCode);
+		// 最终写回
+		File.WriteAllText(appControllerPath, content);
+		Debug.Log("成功自动注入 Bugly 到 UnityAppController.mm");
+	}
 }
 #endif

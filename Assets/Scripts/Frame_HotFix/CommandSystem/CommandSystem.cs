@@ -153,7 +153,7 @@ public class CommandSystem : FrameSystem
 		}
 
 		cmd.setReceiver(cmdReceiver);
-		if (isEditor() ||isDevelopment())
+		if (isDevOrEditor())
 		{
 			if (cmd.getCmdLogLevel() >= getLogLevel())
 			{
@@ -219,7 +219,7 @@ public class CommandSystem : FrameSystem
 			return;
 		}
 		clampMin(ref delayExecute);
-		if (isEditor() || isDevelopment())
+		if (isDevOrEditor())
 		{
 			if (cmd.getCmdLogLevel() >= getLogLevel())
 			{

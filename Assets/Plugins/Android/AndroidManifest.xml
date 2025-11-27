@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.zhourui.micromahjong"
+    package="包名"
     android:installLocation="preferExternal"
     android:versionCode="1"
     android:versionName="1.0" >
@@ -10,22 +10,20 @@
         android:targetSdkVersion="26" />
 
     <application
+		android:name="文件路径.MainApplication"
         android:allowBackup="true"
         android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|fontScale|layoutDirection|density"
         android:hardwareAccelerated="false"
         android:icon="@drawable/app_icon"
         android:label="@string/app_name"
         android:supportsRtl="true" >
-        <activity android:name="com.zhourui.micromahjong.MainActivity" >
+        <activity android:name="com.unity3d.player.UnityPlayerActivity"
+                  android:theme="@style/UnityThemeSelector">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
-            <meta-data
-                android:name="unityplayer.UnityActivity"
-                android:value="true" />
+            <meta-data android:name="unityplayer.UnityActivity" android:value="true" />
         </activity>
     </application>
 

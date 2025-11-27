@@ -57,13 +57,14 @@ public abstract class NetConnectWebSocket : NetConnect
 		mNetState = NET_STATE.NONE;
 		mMessageType = WebSocketMessageType.Text;
 	}
-	public void addHeader(string name, string value) { mHeader.addOrSet(name, value); }
-	public bool isConnected() { return mNetState == NET_STATE.CONNECTED; }
-	public bool isConnecting() { return mNetState == NET_STATE.CONNECTING; }
-	public void setNetStateCallback(NetStateCallback callback) { mNetStateCallback = callback; }
-	public NetStateCallback getNetStateCallback() { return mNetStateCallback; }
-	public void setMessageType(WebSocketMessageType type) { mMessageType = type; }
-	public WebSocketMessageType getMessageType() { return mMessageType; }
+	public void addHeader(string name, string value)			{ mHeader.addOrSet(name, value); }
+	public void setNetStateCallback(NetStateCallback callback)	{ mNetStateCallback = callback; }
+	public void setMessageType(WebSocketMessageType type)		{ mMessageType = type; }
+	public bool isConnected()									{ return mNetState == NET_STATE.CONNECTED; }
+	public bool isConnecting()									{ return mNetState == NET_STATE.CONNECTING; }
+	public bool isDisconnected()								{ return mNetState != NET_STATE.CONNECTED && mNetState != NET_STATE.CONNECTING; }
+	public NetStateCallback getNetStateCallback()				{ return mNetStateCallback; }
+	public WebSocketMessageType getMessageType()				{ return mMessageType; }
 	public async void startConnect(string url, Action<bool> callback)
 	{
 		if (isConnected() || isConnecting())
@@ -72,7 +73,7 @@ public abstract class NetConnectWebSocket : NetConnect
 			return;
 		}
 		mURL = url;
-		if (isEditor() || isDevelopment())
+		if (isDevOrEditor())
 		{
 			log("开始连接服务器:" + mURL);
 		}
@@ -285,7 +286,7 @@ public abstract class NetConnectWebSocket : NetConnect
 					{
 						logError("移除数据失败");
 					}
-					if (isEditor() || isDevelopment())
+					if (isDevOrEditor())
 					{
 						log("已接收 : " + IToS(packetType) + ", 字节数:" + IToS(index), LOG_LEVEL.LOW);
 					}

@@ -7,6 +7,7 @@ public class LaunchSceneFileList : SceneProcedure
 	public string mRemoteListMD5;
 	public override void init()
 	{
+		base.init();
 		//mUIDownload.setDownloadInfo("正在获取资源信息...");
 		// 这里需要自己构造一个远端路径
 		ObsSystem.getFileMD5(/*getRemoteFolder(mAssetVersionSystem.getRemoteVersion()) +*/ FILE_LIST, (string md5)=>
@@ -15,7 +16,6 @@ public class LaunchSceneFileList : SceneProcedure
 			mAssetVersionSystem.startCheckFileList(mRemoteListMD5, null, null, onSuccess, onFailed, checkNeedRequestRemoteFileList);
 		});
 	}
-	public override void exit() { }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onSuccess()
 	{

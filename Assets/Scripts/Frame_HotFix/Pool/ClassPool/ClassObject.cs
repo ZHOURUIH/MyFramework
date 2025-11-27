@@ -19,7 +19,7 @@ public class ClassObject : IEquatable<ClassObject>, IEventListener, IResetProper
 		mDestroy = true;
 		mPendingDestroy = false;
 		// mObjectInstanceID不重置
-		// mObjectInstanceID
+		// mObjectInstanceID = 0
 	}
 	// 每次被分配出去时调用,无论是第一次创建还是从池中获取都会调用,与destroy形成完成的生命周期
 	public virtual void onCreate() { }

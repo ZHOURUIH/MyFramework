@@ -53,6 +53,7 @@ public class ComponentDrag : GameComponent
 	}
 	public override void update(float elapsedTime)
 	{
+		base.update(elapsedTime);
 		// 有触点按下时,检查是否可以开始拖动
 		if (!mDragging && !mPreparingDrag && mInputSystem.getTouchDown(out mTouchPoint))
 		{

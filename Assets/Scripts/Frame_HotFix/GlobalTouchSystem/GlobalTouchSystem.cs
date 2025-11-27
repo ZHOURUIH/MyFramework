@@ -72,6 +72,7 @@ public class GlobalTouchSystem : FrameSystem
 	}
 	public override void update(float elapsedTime)
 	{
+		base.update(elapsedTime);
 		if (!mUseGlobalTouch)
 		{
 			return;

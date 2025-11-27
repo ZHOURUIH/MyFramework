@@ -238,7 +238,10 @@ public class GameFrameworkHotFix : IFramework
 	public T registeFrameSystem<T>(Action<T> callback, int initOrder = -1, int updateOrder = -1, int destroyOrder = -1) where T : FrameSystem, new()
 	{
 		Type type = typeof(T);
-		log("注册系统:" + type.ToString() + ", owner:" + GetType());
+		if (isDevOrEditor())
+		{
+			log("注册系统:" + type.ToString() + ", owner:" + GetType());
+		}
 		T com = new();
 		string name = type.Assembly.FullName.rangeToFirst(',') + "_" + type.ToString();
 		com.setName(name);
@@ -319,7 +322,10 @@ public class GameFrameworkHotFix : IFramework
 				{
 					DateTime start = DateTime.Now;
 					frame.init();
-					log(frame.getName() + "初始化消耗时间:" + (int)(DateTime.Now - start).TotalMilliseconds);
+					if (isDevOrEditor())
+					{
+						log(frame.getName() + "初始化消耗时间:" + (int)(DateTime.Now - start).TotalMilliseconds);
+					}
 				}
 				catch (Exception e)
 				{
@@ -404,7 +410,7 @@ public class GameFrameworkHotFix : IFramework
 		registeFrameSystem<ByteArrayPoolThread>((com) =>	{ mByteArrayPoolThread = com; }, -1, -1, 3111);
 		registeFrameSystem<MovableObjectManager>((com) =>	{ mMovableObjectManager = com; });
 		registeFrameSystem<EffectManager>((com) =>			{ mEffectManager = com; });
-		registeFrameSystem<AtlasManager>((com) =>			{ mAtlasManager = com; });
+		registeFrameSystem<AtlasManager>((com) =>		{ mAtlasManager = com; });
 		registeFrameSystem<NetPacketFactory>((com) =>		{ mNetPacketFactory = com; });
 		registeFrameSystem<PathKeyframeManager>((com) =>	{ mPathKeyframeManager = com; });
 		registeFrameSystem<EventSystem>((com) =>			{ mEventSystem = com; });

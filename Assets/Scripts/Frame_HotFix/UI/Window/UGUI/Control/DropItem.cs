@@ -9,7 +9,6 @@ public class DropItem : WindowRecycleableUGUI
 	public DropItem(IWindowObjectOwner parent) : base(parent) { }
 	protected override void assignWindowInternal()
 	{
-		base.assignWindowInternal();
 		newObject(out mHover, "Hover", false);
 		newObject(out mLabel, "Label");
 	}

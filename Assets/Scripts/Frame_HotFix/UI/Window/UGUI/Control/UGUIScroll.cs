@@ -37,8 +37,10 @@ public class UGUIScroll : WindowObjectUGUI, ICommonUI
 		mAttenuateFactor = 3.0f;
 		mScrollToTargetMaxTime = 0.2f;
 	}
+	protected override void assignWindowInternal(){}
 	public override void init()
 	{
+		base.init();
 		mRoot.setOnTouchDown(onMouseDown);
 		mRoot.setOnScreenTouchUp(onScreenMouseUp);
 		mRoot.setOnTouchMove(onMouseMove);
@@ -269,13 +271,13 @@ public class UGUIScroll : WindowObjectUGUI, ICommonUI
 		}
 		mOnScrollItem?.Invoke(mItemList[index], index);
 	}
-	public void setDragDirection(DRAG_DIRECTION direction) { mDragDirection = direction; }
-	public void setLoop(bool loop) { mLoop = loop; }
-	public float getCurOffsetValue() { return mCurOffset; }
-	public void setDragSensitive(float sensitive) { mDragSensitive = sensitive; }
-	public void setFocusSpeedThreshhold(float threshold) { mFocusSpeedThreshold = threshold; }
-	public void setAttenuateFactor(float factor) { mAttenuateFactor = factor; }
-	public void setOnScrollItem(ScrollItemCallback callback) { mOnScrollItem = callback; }
+	public void setDragDirection(DRAG_DIRECTION direction)		{ mDragDirection = direction; }
+	public void setLoop(bool loop)								{ mLoop = loop; }
+	public float getCurOffsetValue()							{ return mCurOffset; }
+	public void setDragSensitive(float sensitive)				{ mDragSensitive = sensitive; }
+	public void setFocusSpeedThreshold(float threshold)			{ mFocusSpeedThreshold = threshold; }
+	public void setAttenuateFactor(float factor)				{ mAttenuateFactor = factor; }
+	public void setOnScrollItem(ScrollItemCallback callback)	{ mOnScrollItem = callback; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void updateItem(float controlValue)
 	{

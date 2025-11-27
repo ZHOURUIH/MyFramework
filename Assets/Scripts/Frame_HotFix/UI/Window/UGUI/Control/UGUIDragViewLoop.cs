@@ -28,7 +28,6 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 	}
 	protected override void assignWindowInternal()
 	{
-		base.assignWindowInternal();
 		mViewport = mRoot;
 		newObject(out mContent, mViewport, "Content");
 	}

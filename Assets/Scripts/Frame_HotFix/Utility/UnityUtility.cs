@@ -78,7 +78,17 @@ public class UnityUtility
 			mShowMessageBox = false;
 		}
 		// 此处不能使用MyStringBuilder拼接的字符串,因为可能会造成无限递归而堆栈溢出
-		UDebug.LogError(getTimeNoBuilder(TIME_DISPLAY.HMSM) + ": error: " + info + "\nstack: " + new StackTrace().ToString());
+		info = getTimeNoBuilder(TIME_DISPLAY.HMSM) + ": error: " + info + "\nstack: " + new StackTrace().ToString();
+		if (isIOS() && !isEditor())
+		{
+			iOSDllImportFrameBase.iOSLog(info);
+			// 这里需要手动触发bugly的上报,因为没有调用unity的LogError,无法自动捕获到错误
+			BuglyForwarder.reportErrorToBugly(info, "", LogType.Error);
+		}
+		else
+		{
+			UDebug.LogError(info);
+		}
 	}
 	public static void logNoLock(string info)
 	{
@@ -121,7 +131,11 @@ public class UnityUtility
 		// isPlaying是unity的接口,只能在主线程使用
 		if (isMainThread() && isPlaying())
 		{
-			UDebug.Log(getNowTime(TIME_DISPLAY.HMSM) + ": " + info, obj);
+			info = getNowTime(TIME_DISPLAY.HMSM) + ": " + info;
+		}
+		if (isIOS() && !isEditor())
+		{
+			iOSDllImportFrameBase.iOSLog(info);
 		}
 		else
 		{
@@ -140,7 +154,11 @@ public class UnityUtility
 		}
 		if (isMainThread() && isPlaying())
 		{
-			UDebug.Log(getTimeNoLock(TIME_DISPLAY.HMSM) + ": " + info, obj);
+			info = getTimeNoLock(TIME_DISPLAY.HMSM) + ": " + info;
+		}
+		if (isIOS() && !isEditor())
+		{
+			iOSDllImportFrameBase.iOSLog(info);
 		}
 		else
 		{
@@ -151,11 +169,15 @@ public class UnityUtility
 	{
 		if (isMainThread() && isPlaying())
 		{
-			UDebug.LogWarning(info);
+			info = getNowTime(TIME_DISPLAY.HMSM) + ": " + info;
+		}
+		if (isIOS() && !isEditor())
+		{
+			iOSDllImportFrameBase.iOSLog(info);
 		}
 		else
 		{
-			UDebug.LogWarning(getNowTime(TIME_DISPLAY.HMSM) + ": " + info);
+			UDebug.LogWarning(info);
 		}
 	}
 	public static void setScreenSize(Vector2 size, bool fullScreen)

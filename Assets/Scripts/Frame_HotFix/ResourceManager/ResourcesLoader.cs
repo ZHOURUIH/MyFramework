@@ -60,7 +60,7 @@ public class ResourcesLoader
 			{
 				continue;
 			}
-			if (isEditor() || isDevelopment())
+			if (isDevOrEditor())
 			{
 				log("unload path: " + item0);
 			}

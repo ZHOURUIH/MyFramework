@@ -154,7 +154,7 @@ public class HybridCLRSystem
 			LoadImageErrorCode err = RuntimeApi.LoadMetadataForAOTAssembly(downloadFilesResource.get(aotFile + ".bytes"), HomologousImageMode.SuperSet);
 			if (err != LoadImageErrorCode.OK)
 			{
-				Debug.Log("LoadMetadataForAOTAssembly失败:" + aotFile + ", " + err);
+				logBase("LoadMetadataForAOTAssembly失败:" + aotFile + ", " + err);
 				errorCallback?.Invoke();
 				return false;
 			}
@@ -259,7 +259,7 @@ public class HybridCLRSystem
 			// 执行热更的启动函数
 			Action callback = () =>
 			{
-				Debug.Log("热更初始化完毕");
+				logBase("热更初始化完毕");
 				// 热更初始化完毕后将非热更层加载的所有资源都清除,这样避免中间的黑屏
 				GameEntry.getInstance().getFrameworkAOT().destroy();
 				GameEntry.getInstance().setFrameworkAOT(null);

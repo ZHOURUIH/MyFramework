@@ -9,12 +9,12 @@ public class UGUICheckbox : WindowObjectUGUI, ICommonUI
 	public UGUICheckbox(IWindowObjectOwner parent) : base(parent) { }
 	protected override void assignWindowInternal()
 	{
-		base.assignWindowInternal();
 		newObject(out mMark, "Mark");
 		newObject(out mLabel, "Label", false);
 	}
 	public override void init()
 	{
+		base.init();
 		if (mMark == null)
 		{
 			logError("UGUICheckbox需要有一个名为Mark的节点");

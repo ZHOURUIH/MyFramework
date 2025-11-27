@@ -12,6 +12,7 @@ public class MyTweenerFloat : MyTweener
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void initComponents()
 	{
+		base.initComponents();
 		addInitComponent(out mComponentFloat, false);
 	}
 }

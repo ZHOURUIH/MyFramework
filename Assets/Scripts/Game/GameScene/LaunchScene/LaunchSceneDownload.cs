@@ -64,6 +64,7 @@ public class LaunchSceneDownload : SceneProcedure
 	}
 	public override void init()
 	{
+		base.init();
 		// 未启用热更时可以不进行下载,webgl上全部都是远程异步加载的,也不用下载
 		if (isEditor() /*|| !isEnableHotFix()*/ || isWebGL())
 		{
@@ -76,6 +77,7 @@ public class LaunchSceneDownload : SceneProcedure
 	}
 	public override void exit()
 	{
+		base.exit();
 		//mUIDownload?.close();
 	}
 	public override void willDestroy()

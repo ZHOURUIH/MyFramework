@@ -10,6 +10,7 @@ public partial class GlobalKeyProcess : FrameSystem
 {
 	public override void update(float elapsedTime)
 	{
+		base.update(elapsedTime);
 		if (isEditor() || isWindows())
 		{
 			// F1切换日志等级

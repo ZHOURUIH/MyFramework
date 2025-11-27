@@ -52,6 +52,7 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:1.5.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     compileOnly files('libs/classes.jar')
+	implementation 'com.tencent.bugly:crashreport:4.1.9.3'
     // 以下依赖都是用于谷歌登录,谷歌支付,facebook
     //implementation 'com.android.billingclient:billing:7.1.1'
     //implementation 'androidx.annotation:annotation:1.7.0'
@@ -65,4 +66,23 @@ dependencies {
     //implementation 'com.android.installreferrer:installreferrer:2.2'
     //implementation 'com.google.code.gson:gson:2.10.1'
     //implementation 'com.facebook.android:facebook-android-sdk:17.0.2'
+}
+
+def moduleName = project.name
+
+task copyBuildOutputs(type: Copy) {
+    from layout.buildDirectory.dir("outputs/aar")
+    into layout.projectDirectory.dir("../../Assets/Plugins/Android")
+    include '**/*.aar'
+
+    doFirst 
+	{
+        delete fileTree(dir: layout.projectDirectory.dir("../../Assets/Plugins/Android"),
+                		include: ["${moduleName}-debug.aar", "${moduleName}-release.aar"])
+    }
+}
+
+afterEvaluate {
+    assembleDebug.finalizedBy(copyBuildOutputs)
+    assembleRelease.finalizedBy(copyBuildOutputs)
 }

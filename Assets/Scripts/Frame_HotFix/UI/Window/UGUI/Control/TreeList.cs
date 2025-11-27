@@ -13,7 +13,6 @@ public class UGUITreeList : WindowObjectUGUI, ICommonUI
 	public UGUITreeList(IWindowObjectOwner parent) : base(parent) { }
 	protected override void assignWindowInternal()
 	{
-		base.assignWindowInternal();
 		newObject(out mViewport, "Viewport");
 		newObject(out mContent, mViewport, "Content");
 	}

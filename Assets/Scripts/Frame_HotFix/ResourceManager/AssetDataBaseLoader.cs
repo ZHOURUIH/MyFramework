@@ -61,7 +61,7 @@ public class AssetDataBaseLoader
 			{
 				continue;
 			}
-			if (isEditor() || isDevelopment())
+			if (isDevOrEditor())
 			{
 				log("unload path: " + item0);
 			}

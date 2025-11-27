@@ -12,20 +12,20 @@ using static FrameBaseUtility;
 // 布局脚本基类,用于执行布局相关的逻辑
 public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, IWindowObjectOwner
 {
-	protected HashSet<myUGUIScrollRect> mScrollViewRegisteList = new();	// 用于检测ScrollView合法性的列表
-	protected HashSet<IInputField> mInputFieldRegisteList = new();      // 用于检测InputField合法性的列表
-	protected HashSet<WindowStructPoolBase> mPoolList;					// 布局中使用的窗口对象池列表,收集后方便统一销毁
-	protected HashSet<WindowStructPoolBase> mPoolRootList;              // mPoolList中由LayoutScript直接持有的对象池
-	protected HashSet<WindowObjectBase> mWindowObjectList;				// 布局中使用的非对象池中的窗口对象,收集后方便统一销毁
-	protected HashSet<WindowObjectBase> mWindowObjectRootList;          // mWindowObjectList中的root节点列表,也就是排除了嵌套在子界面中的对象
-	protected HashSet<IDragViewLoop> mDragViewLoopList;					// 存储界面中的滚动列表,用于调用列表的update
-	protected HashSet<IUGUIObject> mLocalizationObjectList;				// 注册的需要本地化的对象,因为每次修改文本显示都会往列表里加,所以使用HashSet
-	protected GameLayout mLayout;										// 所属布局
-	protected myUGUIObject mRoot;										// 布局中的根节点
-	protected bool mRegisterChecked;								    // 是否已经检测过了合法性
-	protected bool mNeedUpdate = true;									// 布局脚本是否需要指定update,为了提高效率,可以不执行当前脚本的update,虽然update可能是空的,但是不调用会效率更高
-	protected bool mEscHide;                                            // 按Esc键时是否关闭此界面
-	protected bool mUnuseAllWhenHide = true;							// 是否在隐藏时将引用的对象池中的对象全部回收
+	protected HashSet<myUGUIScrollRect> mScrollViewRegisteList;		// 用于检测ScrollView合法性的列表
+	protected HashSet<IInputField> mInputFieldRegisteList;			// 用于检测InputField合法性的列表
+	protected HashSet<WindowStructPoolBase> mPoolList;				// 布局中使用的窗口对象池列表,收集后方便统一销毁
+	protected HashSet<WindowStructPoolBase> mPoolRootList;          // mPoolList中由LayoutScript直接持有的对象池
+	protected HashSet<WindowObjectBase> mWindowObjectList;			// 布局中使用的非对象池中的窗口对象,收集后方便统一销毁
+	protected HashSet<WindowObjectBase> mWindowObjectRootList;      // mWindowObjectList中的root节点列表,也就是排除了嵌套在子界面中的对象
+	protected HashSet<IDragViewLoop> mDragViewLoopList;				// 存储界面中的滚动列表,用于调用列表的update
+	protected HashSet<IUGUIObject> mLocalizationObjectList;			// 注册的需要本地化的对象,因为每次修改文本显示都会往列表里加,所以使用HashSet
+	protected GameLayout mLayout;									// 所属布局
+	protected myUGUIObject mRoot;									// 布局中的根节点
+	protected bool mRegisterChecked;								// 是否已经检测过了合法性
+	protected bool mNeedUpdate = true;								// 布局脚本是否需要指定update,为了提高效率,可以不执行当前脚本的update,虽然update可能是空的,但是不调用会效率更高
+	protected bool mEscHide;                                        // 按Esc键时是否关闭此界面
+	protected bool mUnuseAllWhenHide = true;						// 是否在隐藏时将引用的对象池中的对象全部回收
 	public override void destroy()
 	{
 		base.destroy();
@@ -53,13 +53,20 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	public override void resetProperty()
 	{
 		base.resetProperty();
-		mScrollViewRegisteList.Clear();
-		mInputFieldRegisteList.Clear();
+		mScrollViewRegisteList?.Clear();
+		mInputFieldRegisteList?.Clear();
+		mPoolList?.Clear();
+		mPoolRootList?.Clear();
+		mWindowObjectList?.Clear();
+		mWindowObjectRootList?.Clear();
+		mDragViewLoopList?.Clear();
+		mLocalizationObjectList?.Clear();
 		mLayout = null;
 		mRoot = null;
 		mRegisterChecked = false;
 		mNeedUpdate = true;
 		mEscHide = false;
+		mUnuseAllWhenHide = true;
 	}
 	public virtual void setLayout(GameLayout layout) { mLayout = layout; }
 	public virtual bool onESCDown()
@@ -81,6 +88,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	}
 	public void registeScrollRect(myUGUIScrollRect scrollRect, myUGUIObject viewport, myUGUIObject content, float verticalPivot = 1.0f, float horizontalPivot = 0.5f)
 	{
+		mScrollViewRegisteList ??= new();
 		mScrollViewRegisteList.addIf(scrollRect, isEditor());
 		scrollRect.initScrollRect(viewport, content, verticalPivot, horizontalPivot);
 		// 所有的可滑动列表都是不能穿透射线的
@@ -89,6 +97,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	}
 	public void registeInputField(IInputField inputField)
 	{
+		mInputFieldRegisteList ??= new();
 		mInputFieldRegisteList.addIf(inputField, isEditor());
 		mInputSystem.registeInputField(inputField);
 		// 所有的输入框都是不能穿透射线的
@@ -191,7 +200,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 			mRoot.getObject().GetComponentsInChildren(scrollViewList);
 			foreach (ScrollRect item in scrollViewList)
 			{
-				if (!mScrollViewRegisteList.Contains(mLayout.getUIObject(item.gameObject) as myUGUIScrollRect))
+				if (mScrollViewRegisteList == null || !mScrollViewRegisteList.Contains(mLayout.getUIObject(item.gameObject) as myUGUIScrollRect))
 				{
 					logError("滑动列表未注册:" + item.gameObject.name + ", layout:" + mLayout.getName());
 				}
@@ -201,7 +210,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 			mRoot.getObject().GetComponentsInChildren(inputFieldList);
 			foreach (InputField item in inputFieldList)
 			{
-				if (!mInputFieldRegisteList.Contains(mLayout.getUIObject(item.gameObject) as IInputField))
+				if (mInputFieldRegisteList == null || !mInputFieldRegisteList.Contains(mLayout.getUIObject(item.gameObject) as IInputField))
 				{
 					logError("输入框未注册:" + item.gameObject.name + ", layout:" + mLayout.getName());
 				}

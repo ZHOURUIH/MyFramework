@@ -1,7 +1,6 @@
-﻿
-// 游戏常量定义
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
+// 游戏常量定义
 public class GameDefine
 {
 	// 路径定义

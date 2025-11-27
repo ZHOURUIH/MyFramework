@@ -423,7 +423,7 @@ public class AssetBundleLoader
 	// 加载资源包的协程
 	protected IEnumerator loadAssetBundleCoroutine(AssetBundleInfo bundleInfo)
 	{
-		if (isEditor() || isDevelopment())
+		if (isDevOrEditor())
 		{
 			log(bundleInfo.getBundleFileName() + " start load bundle");
 		}
@@ -464,7 +464,7 @@ public class AssetBundleLoader
 				}
 			}
 		}
-		if (isEditor() || isDevelopment())
+		if (isDevOrEditor())
 		{
 			if (assetBundle != null)
 			{

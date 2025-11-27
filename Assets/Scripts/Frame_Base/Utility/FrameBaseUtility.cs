@@ -137,6 +137,10 @@ public class FrameBaseUtility
 		return false;
 #endif
 	}
+	public static bool isDevOrEditor()
+	{
+		return isEditor() || isDevelopment();
+	}
 	public static bool isMobile()
 	{
 		return isAndroid() || isIOS() || isWeiXin();
@@ -264,15 +268,39 @@ public class FrameBaseUtility
 			// 运行一次只显示一次提示框,避免在循环中报错时一直弹窗
 			mShowMessageBox = false;
 		}
-		UDebug.LogError("error: " + info + "\nstack: " + new StackTrace().ToString());
+		info = "error: " + info + "\nstack: " + new StackTrace().ToString();
+		if (isIOS() && !isEditor())
+		{
+			iOSDllImportFrameBase.iOSLog(info);
+			// 这里需要手动触发bugly的上报,因为没有调用unity的LogError,无法自动捕获到错误
+			BuglyForwarder.reportErrorToBugly(info, "", LogType.Error);
+		}
+		else
+		{
+			UDebug.LogError(info);
+		}
 	}
 	public static void logBase(string info)
 	{
-		UDebug.Log(info);
+		if (isIOS() && !isEditor())
+		{
+			iOSDllImportFrameBase.iOSLog(info);
+		}
+		else
+		{
+			UDebug.Log(info);
+		}
 	}
 	public static void logWarningBase(string info)
 	{
-		UDebug.LogWarning(info);
+		if (isIOS() && !isEditor())
+		{
+			iOSDllImportFrameBase.iOSLog(info);
+		}
+		else
+		{
+			UDebug.LogWarning(info);
+		}
 	}
 	public static void setScreenSizeBase(Vector2Int size, bool fullScreen)
 	{

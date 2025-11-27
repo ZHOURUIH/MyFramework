@@ -11,7 +11,7 @@ public struct ProfilerScope : IDisposable
 	private bool mBeginSample;
 	public ProfilerScope(string name)
 	{
-		if (isEditor() || isDevelopment())
+		if (isDevOrEditor())
 		{
 			mBeginSample = true;
 			Profiler.BeginSample(name);
@@ -24,7 +24,7 @@ public struct ProfilerScope : IDisposable
 	// id固定填0即可,用于避免直接调用默认构造
 	public ProfilerScope(int id, [CallerMemberName] string callerName = null, [CallerLineNumber] int line = 0, [CallerFilePath] string file = null)
 	{
-		if (isEditor() || isDevelopment())
+		if (isDevOrEditor())
 		{
 			mBeginSample = true;
 			Profiler.BeginSample(callerName + "," + getFileNameNoSuffixNoDir(file) + ":" + IToS(line));

@@ -26,7 +26,6 @@ public class UGUISlider : WindowObjectUGUI, ISlider, ICommonUI
 	}
 	protected override void assignWindowInternal()
 	{
-		base.assignWindowInternal();
 		newObject(out mForeground, "Foreground");
 		newObject(out mThumb, mForeground, "Thumb", false);
 	}

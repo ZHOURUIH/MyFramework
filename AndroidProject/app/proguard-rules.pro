@@ -30,3 +30,6 @@
 -keep class com.test.test1.MainClass {
     *;
 }
+
+-dontwarn com.tencent.bugly.**
+-keep public class com.tencent.bugly.**{*;}

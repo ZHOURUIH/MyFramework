@@ -22,6 +22,7 @@ public class GameEntry : MonoBehaviour
 		Physics.simulationMode = SimulationMode.Script;
 		Physics.autoSyncTransforms = true;
 		AppDomain.CurrentDomain.UnhandledException += unhandledException;
+		BuglyForwarder.init();
 		setMainThreadID(Thread.CurrentThread.ManagedThreadId);
 		dumpSystem();
 

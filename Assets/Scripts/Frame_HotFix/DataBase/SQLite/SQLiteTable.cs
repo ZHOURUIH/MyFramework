@@ -35,6 +35,7 @@ public class SQLiteTable : ClassObject
 		mTableName = null;
 		mDataClassType = null;
 		mState = LOAD_STATE.NONE;
+		mResourceAvailable = false;
 	}
 	// 返回值是解析以后生成的文件名
 	public void loadAsync(Action callback)

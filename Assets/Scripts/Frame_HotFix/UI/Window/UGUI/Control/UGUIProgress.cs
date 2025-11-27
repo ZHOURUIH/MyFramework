@@ -18,7 +18,6 @@ public class UGUIProgress : WindowObjectUGUI, ISlider, ICommonUI
 	}
 	protected override void assignWindowInternal()
 	{
-		base.assignWindowInternal();
 		newObject(out mProgressBar, "ProgressBar");
 		newObject(out mThumb, "Thumb", false);
 	}

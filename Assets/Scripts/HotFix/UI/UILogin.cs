@@ -18,6 +18,7 @@ public class UILogin : LayoutScript
 	}
 	public override void init()
 	{
+		base.init();
 		mLogin.registeCollider(onLoginClick);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------

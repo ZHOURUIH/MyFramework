@@ -20,7 +20,6 @@ public class UIGaming : LayoutScript
 		newObject(out mSpeed, background, "Speed");
 		// auto generate assignWindow end
 	}
-	public override void init(){}
 	public override void onGameState()
 	{
 		base.onGameState();

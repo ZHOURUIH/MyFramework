@@ -55,11 +55,12 @@ public abstract class NetConnectWebSocketWebGL : NetConnect
 		mManualDisconnect = false;
 		mNetState = NET_STATE.NONE;
 	}
-	public void addHeader(string name, string value) { mHeader.addOrSet(name, value); }
-	public bool isConnected() { return mNetState == NET_STATE.CONNECTED; }
-	public bool isConnecting() { return mNetState == NET_STATE.CONNECTING; }
-	public void setNetStateCallback(NetStateCallback callback) { mNetStateCallback = callback; }
-	public NetStateCallback getNetStateCallback() { return mNetStateCallback; }
+	public void addHeader(string name, string value)			{ mHeader.addOrSet(name, value); }
+	public void setNetStateCallback(NetStateCallback callback)	{ mNetStateCallback = callback; }
+	public bool isConnected()									{ return mNetState == NET_STATE.CONNECTED; }
+	public bool isConnecting()									{ return mNetState == NET_STATE.CONNECTING; }
+	public bool isDisconnected()								{ return mNetState != NET_STATE.CONNECTED && mNetState != NET_STATE.CONNECTING; }
+	public NetStateCallback getNetStateCallback()				{ return mNetStateCallback; }
 	public async void startConnect(string url, Action<bool> callback)
 	{
 		if (isConnected() || isConnecting())
@@ -68,7 +69,7 @@ public abstract class NetConnectWebSocketWebGL : NetConnect
 			return;
 		}
 		mURL = url;
-		if (isEditor() || isDevelopment())
+		if (isDevOrEditor())
 		{
 			log("开始连接服务器:" + mURL);
 		}
@@ -115,7 +116,7 @@ public abstract class NetConnectWebSocketWebGL : NetConnect
 				{
 					logError("移除数据失败");
 				}
-				if (isEditor() || isDevelopment())
+				if (isDevOrEditor())
 				{
 					log("已接收 : " + IToS(packetType) + ", 字节数:" + IToS(index), LOG_LEVEL.LOW);
 				}

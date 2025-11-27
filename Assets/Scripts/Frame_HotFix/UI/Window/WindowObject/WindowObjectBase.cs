@@ -2,7 +2,7 @@
 using static UnityUtility;
 using static FrameBaseHotFix;
 
-public class WindowObjectBase : ILocalizationCollection, IWindowObjectOwner
+public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectOwner
 {
 	protected WindowObjectBase mParent;                     // 因为会有一些WindowObject中嵌套WindowObject,所以需要存储一个父节点
 	protected List<WindowObjectBase> mChildList;            // 当前WindowObject的所有子节点
@@ -172,5 +172,5 @@ public class WindowObjectBase : ILocalizationCollection, IWindowObjectOwner
 	}
 	// 由于如果让应用层子类都去重写多个assignWindow就会显得很繁琐,而且会有重复代码
 	// 所以应用层子类只需要重写assignWindowInternal,在这里写逻辑即可,然后会在assignWindow中调用assignWindowInternal
-	protected virtual void assignWindowInternal() { }
+	protected abstract void assignWindowInternal();
 }

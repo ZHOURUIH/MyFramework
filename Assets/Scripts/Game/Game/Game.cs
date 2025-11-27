@@ -14,7 +14,7 @@ public class Game : GameFramework
 
 		base.init();
 		// 编辑器中或者非热更版就强制从StreamingAssets中读取资源
-		if (!isHotFixEnable() || isEditor())
+		if (!isEnableHotFix() || isEditor())
 		{
 			mAssetVersionSystem.setAssetReadPath(ASSET_READ_PATH.STREAMING_ASSETS_ONLY);
 		}

@@ -7,10 +7,10 @@ public class UIDemo : GameLayout
 	protected Text mLabel;
 	public override void assignWindow()
 	{
+		base.assignWindow();
 		getUIComponent(out mBackground, "Background");
 		getUIComponent(out mLabel, "Label");
 	}
-	public override void init(){}
 	public void setText(string text)
 	{
 		mLabel.text = text;

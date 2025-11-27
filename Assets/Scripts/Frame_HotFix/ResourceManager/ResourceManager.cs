@@ -482,7 +482,7 @@ public class ResourceManager : FrameSystem
 					break;
 				}
 			}
-			if (isEditor() || isDevelopment())
+			if (isDevOrEditor())
 			{
 				log("当前计时:" + timer);
 				log("下载中,www.downloadedBytes:" + www.downloadedBytes + ", www.downloadProgress:" + www.downloadProgress);

@@ -8,6 +8,7 @@ public class LaunchSceneVersion : SceneProcedure
 	protected bool mStreamingAndPersistDone;
 	public override void init()
 	{
+		base.init();
 		CmdLayoutManagerLoad.executeAsync<UIDemo>(0, () =>
 		{
 			if (isEditor() || !isEnableHotFix() || isWebGL())

@@ -41,6 +41,7 @@ public class NetManager : FrameSystem
 	}
 	public override void destroy()
 	{
+		base.destroy();
 		mServerConnect.destroy();
 	}
 	public void sendPacket(NetPacketBit packet)

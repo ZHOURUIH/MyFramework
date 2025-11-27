@@ -34,7 +34,7 @@ public class ObsSystem
 	// fileName是URL下的相对路径
 	public static void getFileMD5(string fileName, StringCallback callback)
 	{
-		getFileInfoInternal(fileName, (GameFileInfo info) => { callback?.Invoke(info.mMD5); });
+		getFileInfoInternal(fileName, (GameFileInfo info) => { callback?.Invoke(info?.mMD5); });
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected static void getFileInfoInternal(string path, Action<GameFileInfo> callback)

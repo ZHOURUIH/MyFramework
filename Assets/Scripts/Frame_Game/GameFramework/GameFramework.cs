@@ -40,7 +40,10 @@ public class GameFramework : IFramework
 				{
 					DateTime start = DateTime.Now;
 					frame.init();
-					logBase(frame.getName() + "初始化消耗时间:" + (int)(DateTime.Now - start).TotalMilliseconds);
+					if (isDevOrEditor())
+					{
+						logBase(frame.getName() + "初始化消耗时间:" + (int)(DateTime.Now - start).TotalMilliseconds);
+					}
 				}
 				catch (Exception e)
 				{
@@ -68,11 +71,7 @@ public class GameFramework : IFramework
 			{
 				logBase("正式版");
 			}
-			// 编辑器下和测试版打包都不接入sdk
-			if (!isTestClient())
-			{
-				initSDK();
-			}
+			initSDK();
 		}
 	}
 	public void update(float elapsedTime)
@@ -125,7 +124,7 @@ public class GameFramework : IFramework
 		mFrameComponentList = null;
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected virtual void initSDK() { }
+	protected virtual void initSDK(){}
 	protected void initFrameSystem()
 	{
 		registeFrameSystem<GameSceneManager>((com) =>		{ mGameSceneManager = com; });
@@ -136,7 +135,10 @@ public class GameFramework : IFramework
 	}
 	protected T registeFrameSystem<T>(Action<T> callback) where T : FrameSystem, new()
 	{
-		logBase("注册系统:" + typeof(T) + ", owner:" + GetType());
+		if (isDevOrEditor())
+		{
+			logBase("注册系统:" + typeof(T) + ", owner:" + GetType());
+		}
 		T com = new();
 		string name = typeof(T).ToString();
 		mFrameComponentList.Add(com);
