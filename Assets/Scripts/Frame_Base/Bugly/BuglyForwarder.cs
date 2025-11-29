@@ -10,10 +10,23 @@ public class BuglyForwarder
         {
 			return;
 		}
-		Application.logMessageReceived += reportErrorToBugly;
-		Application.logMessageReceivedThreaded += reportErrorToBugly;
+		Application.logMessageReceived += reportError;
+		Application.logMessageReceivedThreaded += reportError;
     }
-    public static void reportErrorToBugly(string condition, string stackTrace, LogType type)
+	public static void setVersion(AndroidJavaObject mainActivity, string version)
+	{
+		// 初始化 Bugly 前设置版本
+		if (isAndroid())
+		{
+			AndroidJavaClass crashReport = new("com.tencent.bugly.crashreport.CrashReport");
+			crashReport.CallStatic("putUserData", mainActivity, "unity_version", version);
+		}
+		else if (isIOS())
+		{
+			iOSDllImportFrameBase.setUserData("unity_version", version);
+		}
+	}
+    public static void reportError(string condition, string stackTrace, LogType type)
     {
         if (type == LogType.Exception || type == LogType.Error)
         {

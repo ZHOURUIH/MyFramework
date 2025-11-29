@@ -45,6 +45,11 @@ public class CmdWindowFill
 			return;
 		}
 		obj.getOrAddComponent(out COMWindowFill com);
+		if (com == null || !com.isActive())
+		{
+			obj.setFillPercent(targetValue);
+			return;
+		}
 		com.setStart(targetValue);
 		com.setTarget(targetValue);
 		com.play(0, false, 0.0f, 0.0f);

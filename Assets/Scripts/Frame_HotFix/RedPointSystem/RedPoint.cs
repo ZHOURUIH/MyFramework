@@ -66,7 +66,7 @@ public class RedPoint : ClassObject
 	}
 	public void removePointUI(myUGUIObject point)
 	{
-		if (!mPointUIMap.Remove(point))
+		if (point == null || !mPointUIMap.Remove(point))
 		{
 			logWarning("移除绑定红点UI失败, hash:" + point.GetHashCode());
 		}

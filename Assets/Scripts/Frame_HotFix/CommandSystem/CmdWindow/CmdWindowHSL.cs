@@ -46,6 +46,15 @@ public class CmdWindowHSL
 			return;
 		}
 		obj.getOrAddComponent(out COMWindowHSL com);
+		if (com == null || !com.isActive())
+		{
+			if (obj is IShaderWindow shaderWindow &&
+				shaderWindow.getWindowShader() is WindowShaderHSLOffset hslOffset)
+			{
+				hslOffset.setHSLOffset(startHSL);
+			}
+			return;
+		}
 		com.setStart(startHSL);
 		com.setTarget(startHSL);
 		com.play(0, false, 0.0f, 0.0f);

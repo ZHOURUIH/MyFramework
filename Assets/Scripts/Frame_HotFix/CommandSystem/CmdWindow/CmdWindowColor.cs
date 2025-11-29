@@ -46,6 +46,11 @@ public class CmdWindowColor
 			return;
 		}
 		obj.getOrAddComponent(out COMWindowColor com);
+		if (com == null || !com.isActive())
+		{
+			obj.setColor(startColor);
+			return;
+		}
 		com.setStart(startColor);
 		com.setTarget(startColor);
 		com.play(0, false, 0.0f, 0.0f);

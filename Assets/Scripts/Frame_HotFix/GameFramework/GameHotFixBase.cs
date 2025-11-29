@@ -14,10 +14,10 @@ using static FrameBaseUtility;
 [ObfuzIgnore]
 public abstract class GameHotFixBase
 {
-	protected static GameHotFixBase mInstance;                      // 在子类中创建
-	protected List<FrameSystem> mFrameComponentInit = new();        // 存储框架组件,用于初始化
-	protected Action mFinishCallback;                               // 存储的启动热更完成的回调
-	protected bool mCanCallback = true;                             // 是否允许在初始化以后自动调用start传递的callback参数,如果不自动调用,就需要手动调用
+	protected static GameHotFixBase mInstance;                  // 在子类中创建
+	protected List<FrameSystem> mFrameComponentInit = new();    // 存储框架组件,用于初始化,由于这里向GameFrameworkHotFix注册后,已经过了GameFrameworkHotFix集中调用init的时机,所以需要单独进行初始化操作
+	protected Action mFinishCallback;                           // 存储的启动热更完成的回调
+	protected bool mCanCallback = true;                         // 是否允许在初始化以后自动调用start传递的callback参数,如果不自动调用,就需要手动调用
 	public void start(Action callback)
 	{
 		mFinishCallback = callback;

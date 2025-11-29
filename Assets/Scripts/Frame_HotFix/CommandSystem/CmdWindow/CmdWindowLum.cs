@@ -45,6 +45,15 @@ public class CmdWindowLum
 			return;
 		}
 		obj.getOrAddComponent(out COMWindowLum com);
+		if (com == null || !com.isActive())
+		{
+			if (obj is IShaderWindow shaderWindow &&
+				shaderWindow.getWindowShader() is WindowShaderLumOffset lumOffset)
+			{
+				lumOffset.setLumOffset(targetLum);
+			}
+			return;
+		}
 		com.setStart(targetLum);
 		com.setTarget(targetLum);
 		com.play(0, false, 0.0f, 0.0f);

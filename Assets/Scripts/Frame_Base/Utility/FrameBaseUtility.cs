@@ -273,7 +273,7 @@ public class FrameBaseUtility
 		{
 			iOSDllImportFrameBase.iOSLog(info);
 			// 这里需要手动触发bugly的上报,因为没有调用unity的LogError,无法自动捕获到错误
-			BuglyForwarder.reportErrorToBugly(info, "", LogType.Error);
+			BuglyForwarder.reportError(info, "", LogType.Error);
 		}
 		else
 		{

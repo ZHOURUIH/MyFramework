@@ -45,6 +45,11 @@ public class CmdWindowSlider
 			return;
 		}
 		obj.getOrAddComponent(out COMWindowSlider com);
+		if (com == null || !com.isActive())
+		{
+			(obj as ISlider)?.setValue(targetValue);
+			return;
+		}
 		com.setStart(targetValue);
 		com.setTarget(targetValue);
 		com.play(0, false, 0.0f, 0.0f);

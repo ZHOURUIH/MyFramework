@@ -7,6 +7,7 @@ extern "C"
 #endif
 
     void reportException(const char* name, const char* reason, const char* stack);
+	void setUserData(const char* name, const char* value);
 
 #ifdef __cplusplus
 }

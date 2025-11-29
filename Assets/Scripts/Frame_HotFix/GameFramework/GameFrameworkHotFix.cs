@@ -313,6 +313,8 @@ public class GameFrameworkHotFix : IFramework
 			DateTime startTime = DateTime.Now;
 			initFrameSystem();
 			recoverCrossParam();
+			// 上面同步完参数再设置版本号,里面会同步版本号
+			BuglyForwarder.setVersion(AndroidPluginManager.getMainActivity(), mAssetVersionSystem.getPersistentAssetsVersion());
 			log("start消耗时间:" + (int)(DateTime.Now - startTime).TotalMilliseconds);
 			// 根据设置的顺序对列表进行排序
 			sortList();
