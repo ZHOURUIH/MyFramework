@@ -22,7 +22,7 @@ extern "C"
 	
 	void setUserData(const char* name, const char* value)
 	{
-		if (name == nullptr || value == nullptr)
+		if (name == nil || value == nil)
 		{
 			return;
 		}
