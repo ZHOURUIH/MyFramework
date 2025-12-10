@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36705.20 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CheckCppResetProperty", "CheckCppResetProperty.csproj", "{C48B2DEB-D78B-469B-A7BB-53EFEBA7A8ED}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C48B2DEB-D78B-469B-A7BB-53EFEBA7A8ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C48B2DEB-D78B-469B-A7BB-53EFEBA7A8ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C48B2DEB-D78B-469B-A7BB-53EFEBA7A8ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C48B2DEB-D78B-469B-A7BB-53EFEBA7A8ED}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {743DE57D-4C53-4DA8-8F9C-8D15F4DF1CD9}
+	EndGlobalSection
+EndGlobal
