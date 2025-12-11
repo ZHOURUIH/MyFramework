@@ -19,7 +19,7 @@ class Program
 	static void Main()
 	{
 		string exeDir = AppDomain.CurrentDomain.BaseDirectory + "../";
-		var files = Directory.GetFiles("E:\\Github\\Project_MicroLegend\\Official\\MicroLegend_Server_Official", "*.*", SearchOption.AllDirectories);
+		var files = Directory.GetFiles(exeDir, "*.*", SearchOption.AllDirectories);
 		Dictionary<string, string> allFileContent = new();
 		foreach (var file in files)
 		{
