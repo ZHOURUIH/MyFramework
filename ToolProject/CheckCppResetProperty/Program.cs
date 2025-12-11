@@ -433,6 +433,12 @@ class Program
 			{
 				continue;
 			}
+			// 如果结尾有注释,则移除注释
+			if (trimmed.Contains("//"))
+			{
+				trimmed = trimmed.Substring(0, trimmed.IndexOf("//"));
+				trimmed = trimmed.TrimEnd();
+			}
 			// 必须是字段声明，必须以 ; 结尾
 			if (!trimmed.EndsWith(";"))
 			{
