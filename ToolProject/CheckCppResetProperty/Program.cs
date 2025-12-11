@@ -19,7 +19,7 @@ class Program
 	static void Main()
 	{
 		string exeDir = AppDomain.CurrentDomain.BaseDirectory + "../";
-		var files = Directory.GetFiles(exeDir, "*.*", SearchOption.AllDirectories);
+		var files = Directory.GetFiles("E:\\Github\\Project_MicroLegend\\Official\\MicroLegend_Server_Official", "*.*", SearchOption.AllDirectories);
 		Dictionary<string, string> allFileContent = new();
 		foreach (var file in files)
 		{
@@ -853,11 +853,11 @@ class Program
 				}
 			}
 			// 2. 调用方法判断： field.xxx(...)
-			if (t.StartsWith(field + ".") && t.Contains("(") && t.Contains(")"))
+			if (t.Contains(field + ".") && t.Contains("(") && t.Contains(")"))
 			{
 				return true;
 			}
-			if (t.StartsWith(field + "->") && t.Contains("(") && t.Contains(")"))
+			if (t.Contains(field + "->") && t.Contains("(") && t.Contains(")"))
 			{
 				return true;
 			}
@@ -866,6 +866,10 @@ class Program
 	}
 	static void CheckFieldsReset(string className, List<string> fields, string resetBody)
 	{
+		if (className == "CharacterSkill")
+		{
+			int a = 0;
+		}
 		foreach (string field in fields)
 		{
 			if (!IsFieldReset(field, resetBody))
