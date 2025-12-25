@@ -10,16 +10,12 @@ using static FrameBaseUtility;
 // 当前程序作为客户端时使用,表示一个与WebSocket服务器的连接,按字节传输,用于webgl平台
 public class NetConnectWebSocketWebGLByte : NetConnectWebSocketWebGL
 {
-	protected EncryptPacket mEncryptPacket;             // 加密函数
-	protected DecryptPacket mDecryptPacket;             // 解密函数
 	protected SerializerWrite mWriter = new();			// 用于序列化
 	protected int mLastReceiveSequenceNumber;           // 上一次接收到的序列号
 	protected int mSendSequenceNumber;                  // 当前序列号
 	public override void resetProperty()
 	{
 		base.resetProperty();
-		mEncryptPacket = null;
-		mDecryptPacket = null;
 		mWriter.clear();
 		mLastReceiveSequenceNumber = 0;
 		mSendSequenceNumber = 0;
@@ -29,11 +25,6 @@ public class NetConnectWebSocketWebGLByte : NetConnectWebSocketWebGL
 		base.clearSocket();
 		mLastReceiveSequenceNumber = 0;
 		mSendSequenceNumber = 0;
-	}
-	public void setEncrypt(EncryptPacket encrypt, DecryptPacket decrypt)
-	{
-		mEncryptPacket = encrypt;
-		mDecryptPacket = decrypt;
 	}
 	public override void sendNetPacket(NetPacket packet)
 	{

@@ -18,8 +18,8 @@ public class BuglyForwarder
 		// 初始化 Bugly 前设置版本
 		if (isAndroid())
 		{
-			AndroidJavaClass crashReport = new("com.tencent.bugly.crashreport.CrashReport");
-			crashReport.CallStatic("putUserData", mainActivity, "unity_version", version);
+			using AndroidJavaClass crashReport = new("com.tencent.bugly.crashreport.CrashReport");
+			crashReport.CallStatic("setAppVersion", mainActivity, version);
 		}
 		else if (isIOS())
 		{
@@ -43,7 +43,7 @@ public class BuglyForwarder
 			}
 			if (isAndroid())
 			{
-				AndroidJavaClass crashReport = new("com.tencent.bugly.crashreport.CrashReport");
+				using AndroidJavaClass crashReport = new("com.tencent.bugly.crashreport.CrashReport");
 				crashReport.CallStatic("postException", 4, name, condition, stackTrace, null);
 			}
 			else if (isIOS())

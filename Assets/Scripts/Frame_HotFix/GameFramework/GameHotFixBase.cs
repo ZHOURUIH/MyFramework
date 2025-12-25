@@ -62,7 +62,7 @@ public abstract class GameHotFixBase
 			{
 				DateTime start = DateTime.Now;
 				frame.init();
-				if (isDevOrEditor())
+				if (isDevOrEditor() && (int)(DateTime.Now - start).TotalMilliseconds > 1)
 				{
 					log(frame.getName() + "初始化消耗时间:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒");
 				}
@@ -78,7 +78,7 @@ public abstract class GameHotFixBase
 			{
 				DateTime start = DateTime.Now;
 				frame.lateInit();
-				if (isDevOrEditor())
+				if (isDevOrEditor() && (int)(DateTime.Now - start).TotalMilliseconds > 1)
 				{
 					log(frame.getName() + " late初始化消耗时间:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒");
 				}

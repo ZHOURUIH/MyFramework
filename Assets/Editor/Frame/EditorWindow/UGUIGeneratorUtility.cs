@@ -271,7 +271,7 @@ public class UGUIGeneratorUtility
 		if (mSubUIParentList.Count == 0)
 		{
 			mSubUIParentList.Add(typeof(WindowObjectUGUI).ToString());
-			mSubUIParentList.Add(typeof(WindowRecycleableUGUI).ToString());
+			mSubUIParentList.Add(typeof(WindowRecyclableUGUI).ToString());
 			mSubUIParentList.Add("DragViewItem");
 		}
 		return mSubUIParentList;

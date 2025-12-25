@@ -13,6 +13,7 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 	protected bool mDestroied;                              // 是否已经销毁过了,用于检测重复销毁的
 	protected bool mInited;                                 // 是否已经初始化过了,用于检测重复初始化
 	protected bool mCalledOnHide;                           // 是否已经调用过了onHide
+	protected bool mCalledOnShow;                           // 是否已经调用过了onShow
 	protected bool mNeedUpdate;                             // 是否需要调用此对象的update,默认不调用update
 	protected bool mUnuseAllWhenHide = true;				// 是否在隐藏时将引用的对象池中的对象全部回收
 	public WindowObjectBase(IWindowObjectOwner parent)
@@ -48,6 +49,7 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 	public virtual void reset() 
 	{
 		mCalledOnHide = false;
+		mCalledOnShow = false;
 		foreach (WindowObjectBase item in mChildList.safe())
 		{
 			item.reset();
@@ -98,6 +100,22 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 			}
 		}
 	}
+	public virtual void onShow()
+	{
+		if (mCalledOnShow)
+		{
+			//logError("已经调用过onShow,type:" + GetType() + ", hash:" + GetHashCode());
+			//return;
+		}
+		mCalledOnShow = true;
+		foreach (WindowObjectBase item in mChildList.safe())
+		{
+			if (item.isActive())
+			{
+				item.onShow();
+			}
+		}
+	}
 	public virtual void destroy()
 	{
 		if (mDestroied)
@@ -119,19 +137,34 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 		mLocalizationObjectList.Add(obj);
 	}
 	public virtual bool isActive() { return false; }
+	public void resetCallOnHideFlag() 
+	{
+		mCalledOnHide = false;
+		// 需要标记所有子节点也允许再调用onHide
+		foreach (WindowObjectBase item in mChildList.safe())
+		{
+			item.resetCallOnHideFlag();
+		}
+	}
+	public void resetCallOnShowFlag()
+	{
+		mCalledOnShow = false;
+		// 需要标记所有子节点也允许再调用onShow
+		foreach (WindowObjectBase item in mChildList.safe())
+		{
+			item.resetCallOnShowFlag();
+		}
+	}
 	public virtual void setActive(bool active) 
 	{
 		if (active)
 		{
-			mCalledOnHide = false;
-			// 需要标记所有子节点也允许再调用onHide
-			foreach (WindowObjectBase item in mChildList.safe())
-			{
-				item.mCalledOnHide = false;
-			}
+			resetCallOnHideFlag();
+			onShow();
 		}
-		else if (isActive())
+		else
 		{
+			resetCallOnShowFlag();
 			onHide();
 		}
 	}

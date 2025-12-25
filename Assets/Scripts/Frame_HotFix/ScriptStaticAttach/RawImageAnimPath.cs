@@ -7,12 +7,14 @@ using static FileUtility;
 
 // 用于记录Image组件上的图片所在的路径,因为在运行时是没办法获得Image上图片的路径,从而也就无法直到所在的图集
 // 所以使用一个组件来在编辑模式下就记录路径
+[ExecuteInEditMode]
 public class RawImageAnimPath : MonoBehaviour
 {
 	public string mTexturePath;		// 序列帧所在的目录,相对于GameResources,不带文件名,以/结尾
 	public string mTextureName;		// 序列帧图片名前缀,不带_
 	public int mImageCount;			// 图片序列帧的图片数量,图片的名字中的下标应该从0开始
 	public bool mRefresh = true;    // 是否刷新,当作刷新按钮使用
+	public bool mAutoRefresh = true;// 是否自动刷新,可能会影响编辑时的性能
 	public void Awake()
 	{
 		enabled = !Application.isPlaying;
@@ -24,6 +26,13 @@ public class RawImageAnimPath : MonoBehaviour
 		{
 			refreshPath();
 			mRefresh = false;
+		}
+	}
+	public void Update()
+	{
+		if (mAutoRefresh)
+		{
+			refreshPath();
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------

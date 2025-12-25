@@ -1,6 +1,6 @@
 ﻿
 // 自定义的下拉列表的项
-public class DropItem : WindowRecycleableUGUI
+public class DropItem : WindowRecyclableUGUI
 {
 	protected UGUIDropList mParentDropList;		// 自定义的下拉列表
 	protected myUGUIObject mHover;				// 悬停窗口

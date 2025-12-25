@@ -4,7 +4,7 @@ using static FrameUtility;
 using static FrameBaseUtility;
 
 // 可通过Key索引的复杂窗口对象池
-public class WindowStructPoolMap<Key, T> : WindowStructPoolBase where T : WindowObjectBase, IRecycleable
+public class WindowStructPoolMap<Key, T> : WindowStructPoolBase where T : WindowObjectBase, IRecyclable
 {
 	protected Dictionary<Key, T> mUsedItemList = new(); // 正在使用的列表
 	protected Stack<T> mUnusedItemList = new();         // 未使用列表

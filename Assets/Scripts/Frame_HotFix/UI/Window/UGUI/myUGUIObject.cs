@@ -301,6 +301,10 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		}
 		return windowSize;
 	}
+	public override void setAlpha(float alpha)
+	{
+		logError("设置UI的透明度需要调用public virtual void setAlpha(float alpha, bool fadeChild)");
+	}
 	public virtual void setAlpha(float alpha, bool fadeChild)
 	{
 		if (fadeChild)

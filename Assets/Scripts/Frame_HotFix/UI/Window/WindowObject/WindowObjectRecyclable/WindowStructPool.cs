@@ -6,7 +6,7 @@ using static MathUtility;
 using static FrameBaseUtility;
 
 // 负责窗口对象池,UsedList是有序的
-public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBase, IRecycleable
+public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBase, IRecyclable
 {
 	protected HashSet<T> mUnusedItemList = new();	// 未使用列表
 	protected List<T> mUsedItemList = new();		// 正在使用的列表

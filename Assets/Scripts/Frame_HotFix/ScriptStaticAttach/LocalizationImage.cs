@@ -36,18 +36,19 @@ public class LocalizationImage : MonoBehaviour
 	}
 	private void OnValidate()
 	{
-		if (!Application.isPlaying)
+		if (Application.isPlaying)
         {
-			if (mImage == null)
-			{
-				TryGetComponent(out mImage);
-			}
-			if (mImage == null)
-			{
-                return;
-            }
-			updateVariable();
+			return;
 		}
+		if (mImage == null)
+		{
+			TryGetComponent(out mImage);
+		}
+		if (mImage == null)
+		{
+            return;
+        }
+		updateVariable();
 	}
 	private void OnDestroy()
     {

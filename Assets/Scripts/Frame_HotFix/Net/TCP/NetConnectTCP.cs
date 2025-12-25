@@ -22,7 +22,7 @@ public abstract class NetConnectTCP : NetConnect
 	protected ThreadLock mConnectStateLock = new();							// mNetState的锁
 	protected ThreadLock mOutputBufferLock = new();							// mOutputBuffer的锁
 	protected ThreadLock mSocketLock = new();								// mSocket的锁
-	protected ThreadLock mInputBufferLock = new();							// mInputBuffer的锁
+	protected ThreadLock mInputBufferLock = new();                          // mInputBuffer的锁
 	protected IPAddress mIPAddress;											// 服务器地址
 	protected DateTime mPingStartTime;                                      // ping开始的时间
 	protected MyThread mReceiveThread = new("SocketReceiveTCP");			// 接收线程
@@ -30,16 +30,12 @@ public abstract class NetConnectTCP : NetConnect
 	protected MyTimer mPingTimer = new();									// ping计时器
 	protected Action mPingCallback;											// 外部设置的用于发送ping包的函数
 	protected Socket mSocket;												// 套接字实例
-	protected byte[] mRecvBuff;												// 从Socket接收时使用的缓冲区
+	protected byte[] mRecvBuff = new byte[TCP_RECEIVE_BUFFER];				// 从Socket接收时使用的缓冲区
 	protected int mPing;													// 网络延迟,计算方式是从发出一个ping包到接收到一个回复包的间隔时间
 	protected int mPort;													// 服务器端口
 	protected bool mManualDisconnect;										// 是否正在主动断开连接
 	protected bool mManualSendReceive;										// 是否手动去调用doSend和doReceive
 	protected NET_STATE mNetState;											// 网络连接状态
-	public NetConnectTCP()
-	{
-		mRecvBuff = new byte[TCP_RECEIVE_BUFFER];
-	}
 	public virtual void init(IPAddress ip, int port)
 	{
 		mIPAddress = ip;
@@ -60,6 +56,7 @@ public abstract class NetConnectTCP : NetConnect
 		mReceiveBuffer.destroy();
 		mOutputBuffer.destroy();
 		mReceivePacketHistory.Clear();
+		mNetStateCallback = null;
 		mInputBuffer.clear();
 		mTotalBuffer.clear();
 		// mConnectStateLock.unlock();
@@ -79,7 +76,6 @@ public abstract class NetConnectTCP : NetConnect
 		mPingTimer.stop();
 		mPing = 0;
 		mPingCallback = null;
-		mNetStateCallback = null;
 	}
 	public bool isConnected()									{ return mNetState == NET_STATE.CONNECTED; }
 	public bool isConnecting()									{ return mNetState == NET_STATE.CONNECTING; }
@@ -439,7 +435,8 @@ public abstract class NetConnectTCP : NetConnect
 	}
 	protected void socketException(SocketException e)
 	{
-		// 本地网络异常
+		// 本地网络异常,基本全部都认为是网络问题,这样可以进行重连,而不是只提示服务器关闭
+		// 如果服务器真的关了,那也只是会重连失败
 		NET_STATE state = NET_STATE.NET_CLOSE;
 		if (e.SocketErrorCode == SocketError.NetworkUnreachable)
 		{
@@ -447,16 +444,17 @@ public abstract class NetConnectTCP : NetConnect
 		}
 		else if (e.SocketErrorCode == SocketError.ConnectionRefused)
 		{
-			state = NET_STATE.SERVER_CLOSE;
+			state = NET_STATE.NET_CLOSE;
 		}
 		else if (e.SocketErrorCode == SocketError.ConnectionAborted)
 		{
-			state = NET_STATE.SERVER_ABORT;
+			state = NET_STATE.NET_CLOSE;
 		}
 		// 服务器关闭了连接,而客户端再向服务器发消息时,服务器就会返回ConnectionReset
+		// 网络切换时也会返回ConnectionReset
 		else if (e.SocketErrorCode == SocketError.ConnectionReset)
 		{
-			state = NET_STATE.SERVER_ABORT;
+			state = NET_STATE.NET_CLOSE;
 		}
 		notifyNetState(state, e.SocketErrorCode);
 	}

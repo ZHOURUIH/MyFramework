@@ -162,9 +162,9 @@ public abstract class PlatformBase
 #if USE_OBFUSCATOR
 		// 对dll进行混淆,dll顺序很重要,被依赖的需要在前面
 		log("开始混淆dll");
-		// 重命名dll,因为混淆时需要dll文件
-		renameFile(F_ASSET_BUNDLE_PATH + HOTFIX_BYTES_FILE, F_ASSET_BUNDLE_PATH + HOTFIX_FILE);
-		renameFile(F_ASSET_BUNDLE_PATH + HOTFIX_FRAME_BYTES_FILE, F_ASSET_BUNDLE_PATH + HOTFIX_FRAME_FILE);
+		// 重命名dll,因为混淆时需要dll文件,在obfuscate会进行还原
+		renameFile(mAssetBundleFullPath + HOTFIX_BYTES_FILE, mAssetBundleFullPath + HOTFIX_FILE);
+		renameFile(mAssetBundleFullPath + HOTFIX_FRAME_BYTES_FILE, mAssetBundleFullPath + HOTFIX_FRAME_FILE);
 		obfuscate(mBuildVersion, mTestClient);
 		log("完成混淆dll");
 #endif
@@ -178,6 +178,13 @@ public abstract class PlatformBase
 			log("完成加密生成的dll");
 		}
 #endif
+
+		// 检查本地必需的dll.bytes文件是否正确
+		if (!checkAllDllExist())
+		{
+			logError("有必需的dll.bytes文件不存在,请检查并重试");
+			return false;
+		}
 		return true;
 	}
 	public virtual bool writeVersion()
@@ -196,6 +203,29 @@ public abstract class PlatformBase
 		writeTxtFile(path + FILE_LIST, content);
 		// 再生成此文件的MD5文件,用于客户端校验文件内容是否改变
 		writeTxtFile(path + FILE_LIST_MD5, generateFileMD5(stringToBytes(content), -1));
+	}
+	// 检查所有的热更dll,以及AOT的dll是否都存在
+	public bool checkAllDllExist()
+	{
+		List<string> dllList = new()
+		{
+			mAssetBundleFullPath + HOTFIX_BYTES_FILE,
+			mAssetBundleFullPath + HOTFIX_FRAME_BYTES_FILE
+		};
+		foreach (string aotFile in AOTGenericReferences.PatchedAOTAssemblyList)
+		{
+			dllList.Add(mAssetBundleFullPath + aotFile + DATA_SUFFIX);
+		}
+		bool allExist = true;
+		foreach (string file in dllList)
+		{
+			if (!isFileExist(file))
+			{
+				logError("文件不存在:" + file);
+				allExist = false;
+			}
+		}
+		return allExist;
 	}
 	public abstract string getDefaultPlatformDefine();
 	public virtual void generateFolderPreName() { mFolderPreName = ""; }

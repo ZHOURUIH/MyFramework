@@ -92,7 +92,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		// 这样在重复使用当前物体时在校验图集路径时不会出错,但是如果在当前物体使用过程中销毁了原始的图片,则可能会报错
 		mSpriteRenderer.sprite = mOriginSprite;
 		setMaterial(mOriginMaterial);
-		setAlpha(1.0f);
+		setAlpha(1.0f, false);
 		if (mLayout.isInResources())
 		{
 			mAtlasManager.unloadAtlasInResourcecs(ref mOriginAtlasPtr);
@@ -107,7 +107,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 	// 是否剔除渲染
 	public void cull(bool isCull)
 	{
-		setAlpha(isCull ? 0.0f : 1.0f);
+		setAlpha(isCull ? 0.0f : 1.0f, false);
 	}
 	public override bool isCulled() { return isFloatZero(getAlpha()); }
 	public override bool canUpdate() { return !isCulled() && base.canUpdate(); }

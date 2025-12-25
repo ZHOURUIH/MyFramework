@@ -14,7 +14,10 @@ public class ScaleAnchor3D : MonoBehaviour
 	public ASPECT_BASE mAspectBase = ASPECT_BASE.AUTO;
 	public void Awake()
 	{
-		enabled = !Application.isPlaying;
+		if (Application.isPlaying)
+		{
+			enabled = false;
+		}
 	}
 	public void updateRect(bool force = false)
 	{

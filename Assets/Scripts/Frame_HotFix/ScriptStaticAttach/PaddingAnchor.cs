@@ -37,7 +37,10 @@ public class PaddingAnchor : MonoBehaviour
 	}
 	public void Awake()
 	{
-		enabled = !Application.isPlaying;
+		if (Application.isPlaying)
+		{
+			enabled = false;
+		}
 	}
 	public void setAnchorModeInEditor(ANCHOR_MODE mode)
 	{

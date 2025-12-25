@@ -21,7 +21,10 @@ public class ScaleAnchor : MonoBehaviour
 	public ASPECT_BASE mAspectBase = ASPECT_BASE.AUTO;      // 如果要保持宽高比时的缩放基准,也就是选择哪个作为缩放值
 	public void Awake()
 	{
-		enabled = !Application.isPlaying;
+		if (Application.isPlaying)
+		{
+			enabled = false;
+		}
 	}
 	public void updateRect(bool force = false)
 	{

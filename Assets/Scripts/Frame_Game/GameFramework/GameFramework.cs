@@ -40,7 +40,7 @@ public class GameFramework : IFramework
 				{
 					DateTime start = DateTime.Now;
 					frame.init();
-					if (isDevOrEditor())
+					if (isDevOrEditor() && (int)(DateTime.Now - start).TotalMilliseconds > 1)
 					{
 						logBase(frame.getName() + "初始化消耗时间:" + (int)(DateTime.Now - start).TotalMilliseconds);
 					}
@@ -137,7 +137,8 @@ public class GameFramework : IFramework
 	{
 		if (isDevOrEditor())
 		{
-			logBase("注册系统:" + typeof(T) + ", owner:" + GetType());
+			// 暂时不再打印注册日志了
+			//logBase("注册系统:" + typeof(T) + ", owner:" + GetType());
 		}
 		T com = new();
 		string name = typeof(T).ToString();

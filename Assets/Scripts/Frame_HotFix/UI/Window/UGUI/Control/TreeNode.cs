@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-public abstract class UGUITreeNode : WindowRecycleableUGUI
+public abstract class UGUITreeNode : WindowRecyclableUGUI
 {
 	protected List<UGUITreeNode> mChildNodeList = new();
 	protected UGUITreeNode mParentNode;

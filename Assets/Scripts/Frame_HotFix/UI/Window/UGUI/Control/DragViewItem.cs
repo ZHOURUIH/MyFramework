@@ -1,5 +1,5 @@
 ﻿
-public abstract class DragViewItem<DataType> : WindowRecycleableUGUI where DataType : ClassObject
+public abstract class DragViewItem<DataType> : WindowRecyclableUGUI where DataType : ClassObject
 {
 	protected int mIndex;
 	public DragViewItem(IWindowObjectOwner parent) : base(parent) { }

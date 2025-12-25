@@ -15,7 +15,7 @@ public class LocalizationText : MonoBehaviour
 	protected float mFontSizeScale;								// 由于自适应而造成的字体缩放
 	public int mChineseOriginFontSize;							// 非运行时的中文字体大小
 	public List<FontSizeInfo> mLanguageOriginFontSize = new();	// 非运行时的多语言字体大小
-	public string mLocalzation;
+	public string mLocalization;
 	public Text mText;
 	private void Awake()
 	{
@@ -43,54 +43,55 @@ public class LocalizationText : MonoBehaviour
 		{
 			mFontSizeScale = divide(mText.fontSize, mChineseOriginFontSize);
 		}
-		mLocalzation = mText.text;
+		mLocalization = mText.text;
         mLocalizationManager?.registeAction(onLanguageChanged);
 		onLanguageChanged();
 	}
 	private void OnValidate()
 	{
-		if (!Application.isPlaying)
+		if (Application.isPlaying)
         {
-            if (mText == null)
-            {
-				TryGetComponent(out mText);
-			}
-            if (mText == null)
-            {
-                return;
-            }
-			mLocalzation = mText.text;
-			mChineseOriginFontSize = mText.fontSize;
-			// 加上默认字体
-			// 中文简体,同时也要保证中文的字体大小是实时更新的
-			int chineseIndex = mLanguageOriginFontSize.FindIndex((item) => { return item.mLanguage == LANGUAGE_CHINESE; });
-			if (chineseIndex < 0)
-			{
-				mLanguageOriginFontSize.Add(new(LANGUAGE_CHINESE, mChineseOriginFontSize));
-			}
-			else
-			{
-				FontSizeInfo info = mLanguageOriginFontSize[chineseIndex];
-				info.mFontSize = mChineseOriginFontSize;
-				mLanguageOriginFontSize[chineseIndex] = info;
-			}
-			// 中文繁体
-			int chineseTradiIndex = mLanguageOriginFontSize.FindIndex((item) => { return item.mLanguage == LANGUAGE_CHINESE_TRADITIONAL; });
-			if (chineseTradiIndex < 0)
-			{
-				mLanguageOriginFontSize.Add(new(LANGUAGE_CHINESE_TRADITIONAL, mChineseOriginFontSize));
-			}
-			else
-			{
-				FontSizeInfo info = mLanguageOriginFontSize[chineseTradiIndex];
-				info.mFontSize = mChineseOriginFontSize;
-				mLanguageOriginFontSize[chineseTradiIndex] = info;
-			}
-			// 英文
-			if (mLanguageOriginFontSize.FindIndex((item) => { return item.mLanguage == LANGUAGE_ENGLISH; }) < 0)
-			{
-				mLanguageOriginFontSize.Add(new(LANGUAGE_ENGLISH, mChineseOriginFontSize));
-			}
+			return;
+		}
+        if (mText == null)
+        {
+			TryGetComponent(out mText);
+		}
+        if (mText == null)
+        {
+            return;
+        }
+		mLocalization = mText.text;
+		mChineseOriginFontSize = mText.fontSize;
+		// 加上默认字体
+		// 中文简体,同时也要保证中文的字体大小是实时更新的
+		int chineseIndex = mLanguageOriginFontSize.FindIndex((item) => { return item.mLanguage == LANGUAGE_CHINESE; });
+		if (chineseIndex < 0)
+		{
+			mLanguageOriginFontSize.Add(new(LANGUAGE_CHINESE, mChineseOriginFontSize));
+		}
+		else
+		{
+			FontSizeInfo info = mLanguageOriginFontSize[chineseIndex];
+			info.mFontSize = mChineseOriginFontSize;
+			mLanguageOriginFontSize[chineseIndex] = info;
+		}
+		// 中文繁体
+		int chineseTradiIndex = mLanguageOriginFontSize.FindIndex((item) => { return item.mLanguage == LANGUAGE_CHINESE_TRADITIONAL; });
+		if (chineseTradiIndex < 0)
+		{
+			mLanguageOriginFontSize.Add(new(LANGUAGE_CHINESE_TRADITIONAL, mChineseOriginFontSize));
+		}
+		else
+		{
+			FontSizeInfo info = mLanguageOriginFontSize[chineseTradiIndex];
+			info.mFontSize = mChineseOriginFontSize;
+			mLanguageOriginFontSize[chineseTradiIndex] = info;
+		}
+		// 英文
+		if (mLanguageOriginFontSize.FindIndex((item) => { return item.mLanguage == LANGUAGE_ENGLISH; }) < 0)
+		{
+			mLanguageOriginFontSize.Add(new(LANGUAGE_ENGLISH, mChineseOriginFontSize));
 		}
 	}
 	private void OnDestroy()
@@ -99,15 +100,16 @@ public class LocalizationText : MonoBehaviour
     }
     private void onLanguageChanged()
     {
-        if (mText != null && mLocalizationManager != null)
+        if (mText == null || mLocalizationManager == null)
         {
-            mText.text = mLocalizationManager.getLocalize(mLocalzation);
-			foreach (FontSizeInfo item in mLanguageOriginFontSize)
+			return;
+		}
+        mText.text = mLocalizationManager.getLocalize(mLocalization);
+		foreach (FontSizeInfo item in mLanguageOriginFontSize)
+		{
+			if (item.mLanguage == mLocalizationManager.getCurrentLanguage())
 			{
-				if (item.mLanguage == mLocalizationManager.getCurrentLanguage())
-				{
-					mText.fontSize = (int)(checkInt(item.mFontSize * mFontSizeScale));
-				}
+				mText.fontSize = (int)(checkInt(item.mFontSize * mFontSizeScale));
 			}
 		}
     }

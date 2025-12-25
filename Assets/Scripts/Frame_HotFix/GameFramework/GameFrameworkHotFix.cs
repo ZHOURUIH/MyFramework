@@ -240,7 +240,8 @@ public class GameFrameworkHotFix : IFramework
 		Type type = typeof(T);
 		if (isDevOrEditor())
 		{
-			log("注册系统:" + type.ToString() + ", owner:" + GetType());
+			// 暂时不再打印注册日志了
+			//log("注册系统:" + type.ToString() + ", owner:" + GetType());
 		}
 		T com = new();
 		string name = type.Assembly.FullName.rangeToFirst(',') + "_" + type.ToString();
@@ -324,7 +325,7 @@ public class GameFrameworkHotFix : IFramework
 				{
 					DateTime start = DateTime.Now;
 					frame.init();
-					if (isDevOrEditor())
+					if (isDevOrEditor() && (int)(DateTime.Now - start).TotalMilliseconds > 1)
 					{
 						log(frame.getName() + "初始化消耗时间:" + (int)(DateTime.Now - start).TotalMilliseconds);
 					}

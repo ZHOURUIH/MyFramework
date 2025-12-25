@@ -13,27 +13,21 @@ using static FrameBaseUtility;
 // 当前程序作为客户端时使用,表示一个与UDP服务器的连接
 public abstract class NetConnectUDP : NetConnect
 {
-	protected DoubleBuffer<PacketReceiveInfo> mReceiveBuffer = new();// 在主线程中执行的消息列表
-	protected DoubleBuffer<PacketSendInfo> mOutputBuffer = new();	// 使用双缓冲提高发送消息的效率
-	protected Queue<string> mReceivePacketHistory = new();          // 接收过的包的缓冲列表
-	protected StreamBuffer mInputBuffer = new(TCP_INPUT_BUFFER);	// 接收消息的缓冲区
-	protected ThreadLock mOutputBufferLock = new();                 // mOutputBuffer的锁
-	protected ThreadLock mInputBufferLock = new();                  // mInputBuffer的锁
-	protected ThreadLock mSocketLock = new();                       // mSocket的锁
-	protected IPEndPoint mSendEndPoint;							    // 发送的目标地址
-	protected EndPoint mRecvEndPoint;								// 接收时的地址
-	protected MyThread mReceiveThread;					            // 接收线程
-	protected MyThread mSendThread;									// 发送线程
-	protected MyTimer mHeartBeatTimer = new();						// 心跳计时器
-	protected Socket mSocket;										// 套接字实例
-	protected Action mHeartBeatAction;								// 外部设置的用于发送心跳包的函数
-	protected byte[] mRecvBuff;										// 从Socket接收时使用的缓冲区
-	public NetConnectUDP()
-	{
-		mReceiveThread = new("SocketReceiveUDP");
-		mSendThread = new("SocketSendUDP");
-		mRecvBuff = new byte[TCP_RECEIVE_BUFFER];
-	}
+	protected DoubleBuffer<PacketReceiveInfo> mReceiveBuffer = new();	// 在主线程中执行的消息列表
+	protected DoubleBuffer<PacketSendInfo> mOutputBuffer = new();		// 使用双缓冲提高发送消息的效率
+	protected Queue<string> mReceivePacketHistory = new();				// 接收过的包的缓冲列表
+	protected StreamBuffer mInputBuffer = new(TCP_INPUT_BUFFER);		// 接收消息的缓冲区
+	protected ThreadLock mOutputBufferLock = new();						// mOutputBuffer的锁
+	protected ThreadLock mInputBufferLock = new();						// mInputBuffer的锁
+	protected ThreadLock mSocketLock = new();							// mSocket的锁
+	protected IPEndPoint mSendEndPoint;									// 发送的目标地址
+	protected EndPoint mRecvEndPoint;									// 接收时的地址
+	protected MyThread mReceiveThread = new("SocketReceiveUDP");		// 接收线程
+	protected MyThread mSendThread = new("SocketSendUDP");				// 发送线程
+	protected MyTimer mHeartBeatTimer = new();							// 心跳计时器
+	protected Socket mSocket;											// 套接字实例
+	protected Action mHeartBeatAction;									// 外部设置的用于发送心跳包的函数
+	protected byte[] mRecvBuff = new byte[TCP_RECEIVE_BUFFER];			// 从Socket接收时使用的缓冲区
 	public virtual void init(IPAddress targetIP, int targetPort)
 	{
 		mSendThread.setBackground(false);

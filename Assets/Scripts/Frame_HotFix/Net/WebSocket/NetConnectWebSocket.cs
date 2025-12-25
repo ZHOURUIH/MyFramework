@@ -14,25 +14,20 @@ using static FrameBaseUtility;
 // 当前程序作为客户端时使用,表示一个与WebSocket服务器的连接,用于非webgl平台
 public abstract class NetConnectWebSocket : NetConnect
 {
-	protected Queue<PacketReceiveInfo> mReceiveBuffer = new();      // 在主线程中执行的消息列表
-	protected Queue<PacketSendInfo> mOutputBuffer = new();          // 待发送列表
-	protected StreamBuffer mInputBuffer = new(TCP_INPUT_BUFFER);    // 接收消息的缓冲区
-	protected Dictionary<string, string> mHeader = new();           // 建立连接时需要传的header
-	protected NetStateCallback mNetStateCallback;                   // 网络状态改变的回调
-	protected ClientWebSocket mWebSocket;                           // 套接字实例
-	protected DateTime mPingStartTime;                              // ping开始的时间
-	protected MyTimer mPingTimer = new();                           // ping计时器
-	protected Action mPingCallback;                                 // 外部设置的用于发送ping包的函数
-	protected string mURL;                                          // WebSocket地址
-	protected byte[] mRecvBuff;                                     // 从Socket接收时使用的缓冲区
-	protected bool mManualDisconnect;                               // 是否正在主动断开连接
-	protected NET_STATE mNetState;                                  // 网络连接状态
-	protected WebSocketMessageType mMessageType;					// 数据类型,文本还是二进制
-	public NetConnectWebSocket()
-	{
-		mRecvBuff = new byte[WEB_SOCKET_RECEIVE_BUFFER];
-		mMessageType = WebSocketMessageType.Text;
-	}
+	protected Queue<PacketReceiveInfo> mReceiveBuffer = new();					// 在主线程中执行的消息列表
+	protected Queue<PacketSendInfo> mOutputBuffer = new();						// 待发送列表
+	protected StreamBuffer mInputBuffer = new(TCP_INPUT_BUFFER);				// 接收消息的缓冲区
+	protected Dictionary<string, string> mHeader = new();						// 建立连接时需要传的header
+	protected NetStateCallback mNetStateCallback;								// 网络状态改变的回调
+	protected ClientWebSocket mWebSocket;										// 套接字实例
+	protected DateTime mPingStartTime;											// ping开始的时间
+	protected MyTimer mPingTimer = new();										// ping计时器
+	protected Action mPingCallback;												// 外部设置的用于发送ping包的函数
+	protected string mURL;														// WebSocket地址
+	protected byte[] mRecvBuff = new byte[WEB_SOCKET_RECEIVE_BUFFER];           // 从Socket接收时使用的缓冲区
+	protected bool mManualDisconnect;											// 是否正在主动断开连接
+	protected NET_STATE mNetState;												// 网络连接状态
+	protected WebSocketMessageType mMessageType = WebSocketMessageType.Text;	// 数据类型,文本还是二进制
 	public virtual void init(float pingTime)
 	{
 		// 每隔一定时间发出一个ping包

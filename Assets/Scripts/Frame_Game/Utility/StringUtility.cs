@@ -6,7 +6,7 @@ using System.Text;
 public class StringUtility
 {
 	private static char[] mHexLowerChar = new char[] { 'a', 'b', 'c', 'd', 'e', 'f' };   // 十六进制中的小写字母
-	private static string[] mFloatConvertPercision = new string[] { "f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7" };   // 浮点数转换时精度
+	private static string[] mFloatConvertPrecision = new string[] { "f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7" };   // 浮点数转换时精度
 	public static string toPercent(float value, int precision = 1) { return FToS(value * 100, precision); }
 	// precision表示小数点后保留几位小数,removeTailZero表示是否去除末尾的0
 	public static string FToS(float value, int precision = 4)
@@ -15,7 +15,7 @@ public class StringUtility
 		{
 			return ((int)value).ToString();
 		}
-		return value.ToString(mFloatConvertPercision[precision]);
+		return value.ToString(mFloatConvertPrecision[precision]);
 	}
 	// 得到文件路径
 	public static string getFilePath(string fileName, bool keepEndSlash = false)
@@ -120,7 +120,7 @@ public class StringUtility
 		}
 		return str.Split(keyword, removeEmpty ? StringSplitOptions.RemoveEmptyEntries : StringSplitOptions.None);
 	}
-	public static string stringsToString(IList<string> values, char seperate = ',')
+	public static string stringsToString(IList<string> values, char saperate = ',')
 	{
 		if (values.isEmpty())
 		{
@@ -133,7 +133,7 @@ public class StringUtility
 			builder.Append(values[i]);
 			if (i != count - 1)
 			{
-				builder.Append(seperate);
+				builder.Append(saperate);
 			}
 		}
 		return builder.ToString();

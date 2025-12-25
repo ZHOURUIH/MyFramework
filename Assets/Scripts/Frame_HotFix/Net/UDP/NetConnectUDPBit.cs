@@ -9,24 +9,15 @@ using static FrameDefine;
 // Frame层默认的UDP连接封装类,按bit传输,应用层可根据实际需求仿照此类封装自己的UDP连接类
 public class NetConnectUDPBit : NetConnectUDP
 {
-	protected EncryptPacket mEncryptPacket;				// 加密函数
-	protected DecryptPacket mDecryptPacket;				// 解密函数
 	protected SerializerBitWrite mBitWriter = new();	// 用于序列化
 	protected long mToken;								// 用于服务器识别客户端的唯一凭证,一般是当前角色的ID
 	public override void resetProperty()
 	{
 		base.resetProperty();
-		mEncryptPacket = null;
-		mDecryptPacket = null;
 		mBitWriter.clear();
 		mToken = 0;
 	}
 	public void setToken(long token) { mToken = token; }
-	public void setEncrypt(EncryptPacket encrypt, DecryptPacket decrypt)
-	{
-		mEncryptPacket = encrypt;
-		mDecryptPacket = decrypt;
-	}
 	public override void sendNetPacket(NetPacket packet)
 	{
 		if (!isMainThread())

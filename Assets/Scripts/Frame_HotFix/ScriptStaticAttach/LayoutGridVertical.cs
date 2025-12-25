@@ -9,7 +9,10 @@ public class LayoutGridVertical : MonoBehaviour
 	public bool mRefresh;
 	public void Awake()
 	{
-		enabled = false;
+		if (Application.isPlaying)
+		{
+			enabled = false;
+		}
 	}
 	public void OnValidate()
 	{

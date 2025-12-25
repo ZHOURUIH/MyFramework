@@ -1,5 +1,5 @@
 ﻿
-public interface IRecycleable
+public interface IRecyclable
 {
 	// 在回收时调用
 	public void recycle();

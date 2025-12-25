@@ -9,16 +9,12 @@ using static FrameDefine;
 // Frame层默认的TCP连接封装类,按bit传输,应用层可根据实际需求仿照此类封装自己的TCP连接类
 public class NetConnectTCPBit : NetConnectTCP
 {
-	protected EncryptPacket mEncryptPacket;				// 加密函数
-	protected DecryptPacket mDecryptPacket;				// 解密函数
 	protected SerializerBitWrite mBitWriter = new();	// 用于序列化
 	protected int mLastReceiveSequenceNumber;			// 上一次接收到的序列号
 	protected int mSendSequenceNumber;					// 当前序列号
 	public override void resetProperty()
 	{
 		base.resetProperty();
-		mEncryptPacket = null;
-		mDecryptPacket = null;
 		mBitWriter.clear();
 		mLastReceiveSequenceNumber = 0;
 		mSendSequenceNumber = 0;
@@ -28,11 +24,6 @@ public class NetConnectTCPBit : NetConnectTCP
 		base.clearSocket();
 		mLastReceiveSequenceNumber = 0;
 		mSendSequenceNumber = 0;
-	}
-	public void setEncrypt(EncryptPacket encrypt, DecryptPacket decrypt)
-	{
-		mEncryptPacket = encrypt;
-		mDecryptPacket = decrypt;
 	}
 	public override void sendNetPacket(NetPacket packet)
 	{

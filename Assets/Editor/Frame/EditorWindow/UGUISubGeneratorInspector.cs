@@ -207,7 +207,6 @@ public class UGUISubGeneratorInspector : GameInspector
 			// assignWindowInternal
 			line(ref fileContent, "\tprotected override void assignWindowInternal()");
 			line(ref fileContent, "\t{");
-			line(ref fileContent, "\t\tbase.assignWindowInternal();");
 			line(ref fileContent, "\t\t// auto generate assignWindowInternal start");
 			foreach (string str in generatedAssignLines)
 			{
