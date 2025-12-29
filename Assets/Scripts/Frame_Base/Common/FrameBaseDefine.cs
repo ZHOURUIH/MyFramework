@@ -81,7 +81,7 @@ public class FrameBaseDefine
 	public const string LANGUAGE_CHINESE = "Chinese";                                   // 中文简体语言的名字
 	public const string LANGUAGE_ENGLISH = "English";                                   // 英文语言的名字
 	// 以下是可扩展的参数,可以修改为自己项目需要的参数
-	// UI的制作标准,所有UI都是按1280*960标准分辨率制作的
-	public static int STANDARD_WIDTH = 1280;
-	public static int STANDARD_HEIGHT = 960;
+	// UI的制作标准,所有UI都是按1920*1080标准分辨率制作的
+	public static int STANDARD_WIDTH = 1920;
+	public static int STANDARD_HEIGHT = 1080;
 }

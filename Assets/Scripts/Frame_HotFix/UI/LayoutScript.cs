@@ -280,7 +280,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	{
 		parent ??= mRoot;
 		GameObject obj = UnityUtility.cloneObject(oriObj.getObject(), name);
-		target = newUIObject<T>(parent, mLayout, obj);
+		target = newUIObject<T>(parent, mLayout, obj, true);
 		target.setActive(active);
 		target.cloneFrom(oriObj);
 	}
@@ -294,7 +294,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		// UGUI需要添加RectTransform
 		getOrAddComponent<RectTransform>(go);
 		go.layer = parent.getObject().layer;
-		T obj = newUIObject<T>(parent, mLayout, go);
+		T obj = newUIObject<T>(parent, mLayout, go, true);
 		obj.setActive(active);
 		go.transform.localScale = Vector3.one;
 		go.transform.localEulerAngles = Vector3.zero;
@@ -306,7 +306,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		GameObject go = createGameObject(name);
 		parent ??= mRoot;
 		go.layer = parent.getObject().layer;
-		T obj = newUIObject<T>(parent, mLayout, go);
+		T obj = newUIObject<T>(parent, mLayout, go, true);
 		obj.setActive(active);
 		go.transform.localScale = Vector3.one;
 		go.transform.localEulerAngles = Vector3.zero;
@@ -393,17 +393,19 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 			}
 			return obj;
 		}
-		obj = newUIObject<T>(parent, mLayout, gameObject);
+		obj = newUIObject<T>(parent, mLayout, gameObject, false);
 		return obj;
 	}
 	public T newObject<T>(out T obj, myUGUIObject parent, GameObject go) where T : myUGUIObject, new()
 	{
-		obj = newUIObject<T>(parent, mLayout, go);
+		obj = newUIObject<T>(parent, mLayout, go, false);
 		return obj;
 	}
-	public static T newUIObject<T>(myUGUIObject parent, GameLayout layout, GameObject go) where T : myUGUIObject, new()
+	// isNewObject表示是否为动态new出来的节点,如果是动态new出来的,则在发现缺少组件时会自动添加而不是报错提示
+	public static T newUIObject<T>(myUGUIObject parent, GameLayout layout, GameObject go, bool isNewObject) where T : myUGUIObject, new()
 	{
 		T obj = new();
+		obj.setIsNewObject(isNewObject);
 		obj.setLayout(layout);
 		obj.setObject(go);
 		obj.setParent(parent, false);

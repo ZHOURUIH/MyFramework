@@ -105,4 +105,5 @@ public class myUGUIImageButton : myUGUIImage
 			setSpriteName(mSelected ? mSelectedSprite : mNormalSprite);
 		}
 	}
+	public bool isSelected() { return mSelected; }
 }

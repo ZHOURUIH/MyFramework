@@ -10,7 +10,7 @@ public partial class GBH
 	public static BattleSystem mBattleSystem;
 	// 需要添加auto generate LayoutScript start和auto generate LayoutScript end才会自动生成代码
 	// auto generate LayoutScript start
-	public static UIGaming mUIGaming;
+	public static UIGame mUIGame;
 	public static UILogin mUILogin;
 	// auto generate LayoutScript end
 }

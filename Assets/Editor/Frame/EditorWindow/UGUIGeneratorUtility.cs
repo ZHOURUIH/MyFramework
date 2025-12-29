@@ -183,6 +183,10 @@ public class UGUIGeneratorUtility
 				generator.mMemberList.Remove(data);
 			}
 		}
+		if (button("添加节点", 200, 25))
+		{
+			generator.addNewItem();
+		}
 	}
 	protected static void drawTemplateParamUGUIDragViewLoop(MemberData data)
 	{
@@ -416,7 +420,7 @@ public class UGUIGeneratorUtility
 		}
 		return null;
 	}
-	public static void generateNewObject(List<string> generatedLines, List<MemberData> list, List<MemberData> fixedList, List<string> createdObject, MemberData curData, GameObject root)
+	public static void generateNewObject(List<string> generatedLines, List<MemberData> list, List<MemberData> fixedList, List<string> createdVariableName, MemberData curData, GameObject root)
 	{
 		string curObjName = curData.getMemberName();
 		GameObject parent = curData.getParentObject();
@@ -429,73 +433,75 @@ public class UGUIGeneratorUtility
 		if (parent == root)
 		{
 			int curDataIndex = fixedList.IndexOf(curData);
+			string varName;
 			// 创建的是成员变量
 			if (curDataIndex >= 0)
 			{
-				generateAssignWindowLine("\t\t", generatedLines, curObjName, null, false, curData);
+				varName = generateAssignWindowLine("\t\t", generatedLines, curObjName, null, false, curData);
 			}
 			// 创建的是临时变量,临时变量不考虑数组类型
 			else
 			{
-				generateAssignWindowLineTemp("\t\t", generatedLines, curObjName, null, false);
+				varName = generateAssignWindowLineTemp("\t\t", generatedLines, curObjName, null, false);
 			}
-			createdObject.add(curObjName);
+			createdVariableName.add(varName);
 			// 从列表中移除,避免再次被遍历到,如果是临时构造的数据,自己就会移除失败,也就无需关心
 			list.Remove(curData);
 			return;
 		}
 
 		// 如果父节点已经创建了,则可以创建
-		if (createdObject.Contains(parent.name))
+		string parentName;
+		bool parentIsSubUI = false;
+		// 父节点是成员变量
+		MemberData parentData = fixedList.Find((data) => { return data.mObject != null && data.mObject.name == parent.name && data.mArrayType == ARRAY_TYPE.NONE; });
+		if (parentData != null)
 		{
-			int curDataIndex = fixedList.IndexOf(curData);
-			string parentName;
-			bool parentIsSubUI = false;
-			// 父节点是成员变量
-			MemberData parentData = fixedList.Find((data) => { return data.mObject != null && data.mObject.name == parent.name; });
-			if (parentData != null)
-			{
-				parentName = "m" + parent.name;
-				parentIsSubUI = parentData.mWindowType != WINDOW_TYPE.NORMAL_WINDOW;
-			}
-			// 父节点是临时变量
-			else
-			{
-				parentName = parent.name.substr(0, 1).ToLower() + parent.name.removeStartCount(1);
-			}
+			parentName = "m" + parent.name;
+			parentIsSubUI = parentData.mWindowType != WINDOW_TYPE.NORMAL_WINDOW;
+		}
+		// 父节点是临时变量
+		else
+		{
+			parentName = parent.name.substr(0, 1).ToLower() + parent.name.removeStartCount(1);
+		}
+		if (createdVariableName.Contains(parentName))
+		{
 			// 创建的是成员变量
-			if (curDataIndex >= 0)
+			string varName;
+			if (fixedList.IndexOf(curData) >= 0)
 			{
-				generateAssignWindowLine("\t\t", generatedLines, curObjName, parentName, parentIsSubUI, curData);
+				varName = generateAssignWindowLine("\t\t", generatedLines, curObjName, parentName, parentIsSubUI, curData);
 			}
 			// 创建的是临时变量,临时变量不考虑数组类型
 			else
 			{
-				generateAssignWindowLineTemp("\t\t", generatedLines, curObjName, parentName, parentIsSubUI);
+				varName = generateAssignWindowLineTemp("\t\t", generatedLines, curObjName, parentName, parentIsSubUI);
 			}
-			createdObject.add(curObjName);
+			createdVariableName.add(varName);
 			list.Remove(curData);
-			return;
-		}
-
-		// 父节点还没有创建,则需要判断父节点是否在成员列表中,如果不在,就需要创建临时的变量
-		int parentIndex = list.FindIndex((data) => { return data.mObject != null && data.mObject.name == parent.name; });
-		if (parentIndex >= 0)
-		{
-			// 递归创建父节点
-			generateNewObject(generatedLines, list, fixedList, createdObject, list[parentIndex], root);
-			// 创建自己
-			generateNewObject(generatedLines, list, fixedList, createdObject, curData, root);
 		}
 		else
 		{
-			// 父节点只是一个临时节点,则需要先创建父节点
-			MemberData parentData = new();
-			parentData.mObject = parent;
-			parentData.mType = typeof(myUGUIObject).ToString();
-			generateNewObject(generatedLines, list, fixedList, createdObject, parentData, root);
-			// 创建自己
-			generateNewObject(generatedLines, list, fixedList, createdObject, curData, root);
+			// 父节点还没有创建,则需要判断父节点是否在成员列表中,如果不在,就需要创建临时的变量
+			int parentIndex = list.FindIndex((data) => { return data.mObject != null && data.mObject.name == parent.name && data.mArrayType == ARRAY_TYPE.NONE; });
+			if (parentIndex >= 0)
+			{
+				// 递归创建父节点
+				generateNewObject(generatedLines, list, fixedList, createdVariableName, list[parentIndex], root);
+				// 创建自己
+				generateNewObject(generatedLines, list, fixedList, createdVariableName, curData, root);
+			}
+			else
+			{
+				// 父节点只是一个临时节点,则需要先创建父节点
+				MemberData newParentData = new();
+				newParentData.mObject = parent;
+				newParentData.mType = typeof(myUGUIObject).ToString();
+				generateNewObject(generatedLines, list, fixedList, createdVariableName, newParentData, root);
+				// 创建自己
+				generateNewObject(generatedLines, list, fixedList, createdVariableName, curData, root);
+			}
 		}
 	}
 	// 会将创建的临时变量的名字返回出去
@@ -512,13 +518,14 @@ public class UGUIGeneratorUtility
 		lines.Add(prefix + "newObject(out " + typeof(myUGUIObject).ToString() + " " + varName + ", " + parentParam + "\"" + curName + "\", false);");
 		return varName;
 	}
-	public static void generateAssignWindowLine(string prefix, List<string> lines, string curName, string parentName, bool parentIsSubUI, MemberData data)
+	public static string generateAssignWindowLine(string prefix, List<string> lines, string curObjectName, string parentName, bool parentIsSubUI, MemberData data)
 	{
-		string newName = data.mArrayType == ARRAY_TYPE.STATIC_ARRAY ? curName.removeEndNumber() : curName;
+		string newName = data.mArrayType == ARRAY_TYPE.STATIC_ARRAY ? curObjectName.removeEndNumber() : curObjectName;
 		if (parentIsSubUI && parentName != null)
 		{
 			parentName += ".getRoot()";
 		}
+		string createVarName = "";
 		if (data.mArrayType != ARRAY_TYPE.NONE)
 		{
 			// 动态列表只支持控件或者子页面类型的
@@ -526,7 +533,7 @@ public class UGUIGeneratorUtility
 			{
 				if (data.mWindowType == WINDOW_TYPE.COMMON_SUB_UI || data.mWindowType == WINDOW_TYPE.SUB_PANEL)
 				{
-					string varName = generateAssignWindowLineTemp(prefix, lines, curName, parentName, false);
+					string varName = generateAssignWindowLineTemp(prefix, lines, curObjectName, parentName, false);
 					lines.Add(prefix + "for (int i = 0; i < m" + newName + ".Length; ++i)");
 					lines.Add(prefix + "{");
 					string parentParam = parentName ?? "mRoot";
@@ -556,22 +563,23 @@ public class UGUIGeneratorUtility
 		}
 		else
 		{
+			createVarName = "m" + curObjectName;
 			if (data.mWindowType == WINDOW_TYPE.NORMAL_WINDOW)
 			{
 				string showErrorParam = data.mHideError ? ", false" : "";
 				string parentParam = parentName != null ? parentName + ", " : "";
-				lines.Add(prefix + "newObject(out m" + curName + ", " + parentParam + "\"" + curName + "\"" + showErrorParam + ");");
+				lines.Add(prefix + "newObject(out " + createVarName + ", " + parentParam + "\"" + curObjectName + "\"" + showErrorParam + ");");
 			}
 			else if (data.mWindowType == WINDOW_TYPE.SUB_PANEL || data.mWindowType == WINDOW_TYPE.COMMON_SUB_UI)
 			{
 				string parentParam = parentName ?? "mRoot";
-				lines.Add(prefix + "m" + curName + ".assignWindow(" + parentParam + ", \"" + curName + "\");");
+				lines.Add(prefix + createVarName + ".assignWindow(" + parentParam + ", \"" + curObjectName + "\");");
 			}
 			else if (data.mWindowType == WINDOW_TYPE.SCROLL_LIST)
 			{
 				string parentParam = parentName ?? "mRoot";
-				lines.Add(prefix + "m" + curName + ".assignWindow(" + parentParam + ", \"" + data.mViewportObject.name + "\");");
-				lines.Add(prefix + "m" + curName + ".assignTemplate(\"" + data.mPoolTemplate.name + "\");");
+				lines.Add(prefix + createVarName + ".assignWindow(" + parentParam + ", \"" + data.mViewportObject.name + "\");");
+				lines.Add(prefix + createVarName + ".assignTemplate(\"" + data.mPoolTemplate.name + "\");");
 			}
 			else if (data.mWindowType == WINDOW_TYPE.POOL)
 			{
@@ -579,18 +587,19 @@ public class UGUIGeneratorUtility
 				string parentParam = parentName != null ? parentName + ", " : "mRoot, ";
 				if (data.mType == "WindowStructPoolMap")
 				{
-					lines.Add(prefix + "m" + curName + ".assignTemplate" + templateTypeStr + "(" + parentParam + "\"" + data.mPoolTemplate.name + "\");");
+					lines.Add(prefix + createVarName + ".assignTemplate" + templateTypeStr + "(" + parentParam + "\"" + data.mPoolTemplate.name + "\");");
 				}
 				else if (data.mType == "WindowPool")
 				{
-					lines.Add(prefix + "m" + curName + ".assignTemplate" + templateTypeStr + "(" + parentParam + "\"" + data.mPoolTemplate.name + "\");");
+					lines.Add(prefix + createVarName + ".assignTemplate" + templateTypeStr + "(" + parentParam + "\"" + data.mPoolTemplate.name + "\");");
 				}
 				else
 				{
-					lines.Add(prefix + "m" + curName + ".assignTemplate" + templateTypeStr + "(" + parentParam + "\"" + data.mPoolTemplate.name + "\");");
+					lines.Add(prefix + createVarName + ".assignTemplate" + templateTypeStr + "(" + parentParam + "\"" + data.mPoolTemplate.name + "\");");
 				}
 			}
 		}
+		return createVarName;
 	}
 	public static bool findCustomCode(string fullPath, ref List<string> codeList, out int lineStart,
 								Func<string, bool> startLineMatch, Func<string, bool> endLineMatch, bool showError = true)
@@ -712,6 +721,7 @@ public class UGUIGeneratorUtility
 			mTempAvailableTypeList.Add(typeof(myUGUIImagePro).ToString());
 			mTempAvailableTypeList.Add(typeof(myUGUIImageAnim).ToString());
 			mTempAvailableTypeList.Add(typeof(myUGUIImageAnimPro).ToString());
+			mTempAvailableTypeList.Add(typeof(myUGUIImageButton).ToString());
 			mTempAvailableTypeList.Add(typeof(myUGUINumber).ToString());
 		}
 		if (go.TryGetComponent<RawImage>(out _))

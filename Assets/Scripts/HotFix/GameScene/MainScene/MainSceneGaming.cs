@@ -10,7 +10,7 @@ public class MainSceneGaming : SceneProcedure
 	protected override void onInit(SceneProcedure lastProcedure)
 	{
 		mPlayer = mCharacterManager.createCharacter<CharacterGame>("test");
-		LOAD<UIGaming>();
+		LOAD<UIGame>();
 	}
 	protected override void onUpdate(float elapsedTime)
 	{
@@ -31,7 +31,7 @@ public class MainSceneGaming : SceneProcedure
 	}
 	protected override void onExit(SceneProcedure nextProcedure)
 	{
-		HIDE<UIGaming>();
+		HIDE<UIGame>();
 		mCharacterManager?.destroyCharacter(mPlayer);
 	}
 }

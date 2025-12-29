@@ -599,6 +599,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	public void setClickSound(int sound)								{ getCOMInteractive().setClickSound(sound); }
 	public void setLayout(GameLayout layout)							{ mLayout = layout; }
 	public void setReceiveLayoutHide(bool receive)						{ mReceiveLayoutHide = receive; }
+	public void setIsNewObject(bool isNew)								{ mIsNewObject = isNew; }
 	public override void setObject(GameObject go)
 	{
 		setName(go.name);

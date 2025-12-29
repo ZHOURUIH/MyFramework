@@ -27,7 +27,7 @@ public class LayoutManager : FrameSystem
 	public LayoutManager()
 	{
 		// 在构造中获取UI根节点,确保其他组件能在任意时刻正常访问
-		mUGUIRoot = LayoutScript.newUIObject<myUGUICanvas>(null, null, getRootGameObject(UGUI_ROOT, true));
+		mUGUIRoot = LayoutScript.newUIObject<myUGUICanvas>(null, null, getRootGameObject(UGUI_ROOT, true), false);
 	}
 	public Canvas getUGUIRootComponent() { return mUGUIRoot.getCanvas(); }
 	public myUGUICanvas getUIRoot() { return mUGUIRoot; }

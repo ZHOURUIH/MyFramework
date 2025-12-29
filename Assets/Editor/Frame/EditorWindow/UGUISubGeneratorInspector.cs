@@ -157,6 +157,21 @@ public class UGUISubGeneratorInspector : GameInspector
 		{
 			fileFullPath = F_SCRIPTS_HOTFIX_UI_PATH + "InnerClass/" + subUIName + ".cs";
 			string fileContent = "";
+			bool needStringUtility = false;
+			foreach (string item in generatedAssignLines)
+			{
+				if (item.Contains(" IToS("))
+				{
+					needStringUtility = true;
+					break;
+				}
+			}
+
+			if (needStringUtility)
+			{
+				line(ref fileContent, "using static StringUtility;");
+			}
+			line(ref fileContent, "");
 			// 对象池节点的代码会特殊判断
 			if (generator.mParentType == "DragViewItem")
 			{
@@ -167,7 +182,9 @@ public class UGUISubGeneratorInspector : GameInspector
 				line(ref fileContent, "\tpublic class Data : ClassObject");
 				line(ref fileContent, "\t{");
 				line(ref fileContent, "\t\tpublic override void resetProperty()");
-				line(ref fileContent, "\t\t{}");
+				line(ref fileContent, "\t\t{");
+				line(ref fileContent, "\t\t\tbase.resetProperty();");
+				line(ref fileContent, "\t\t}");
 				line(ref fileContent, "\t}");
 			}
 			else
@@ -219,6 +236,12 @@ public class UGUISubGeneratorInspector : GameInspector
 			line(ref fileContent, "\tpublic override void init()");
 			line(ref fileContent, "\t{");
 			line(ref fileContent, "\t\tbase.init();");
+			line(ref fileContent, "\t}");
+
+			// 显示时的函数
+			line(ref fileContent, "\tpublic override void onShow()");
+			line(ref fileContent, "\t{");
+			line(ref fileContent, "\t\tbase.onShow();");
 			line(ref fileContent, "\t}");
 
 			// 对象池节点对象需要SetData
@@ -296,13 +319,31 @@ public class UGUISubGeneratorInspector : GameInspector
 				{
 					if (codeList[i].Contains("public " + subUIName + "(IWindowObjectOwner "))
 					{
-						int lineStart = i + 1;
-						codeList.Insert(++lineStart, "\t\t// auto generate constructor start");
-						foreach (string str in constructorLines)
+						// 如果大括号是在同一行,则处理一下大括号
+						if (codeList[i].Contains("{") && codeList[i].Contains("}"))
 						{
-							codeList.Insert(++lineStart, str);
+							codeList[i] = codeList[i].rangeToFirst('{').removeEndEmpty();
+
+							int lineStart = i;
+							codeList.Insert(++lineStart, "\t{");
+							codeList.Insert(++lineStart, "\t\t// auto generate constructor start");
+							foreach (string str in constructorLines)
+							{
+								codeList.Insert(++lineStart, str);
+							}
+							codeList.Insert(++lineStart, "\t\t// auto generate constructor end");
+							codeList.Insert(++lineStart, "\t}");
 						}
-						codeList.Insert(++lineStart, "\t\t// auto generate constructor end");
+						else
+						{
+							int lineStart = i + 1;
+							codeList.Insert(++lineStart, "\t\t// auto generate constructor start");
+							foreach (string str in constructorLines)
+							{
+								codeList.Insert(++lineStart, str);
+							}
+							codeList.Insert(++lineStart, "\t\t// auto generate constructor end");
+						}
 						break;
 					}
 				}

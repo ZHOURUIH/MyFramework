@@ -36,17 +36,17 @@ public class COMCharacterController : GameComponent
 		if(isKeyCurrentDown(KeyCode.Q))
 		{
 			mPlayerData.mSpeed += 2.0f;
-			mUIGaming.setSpeed(mPlayerData.mSpeed);
+			mUIGame.setSpeed(mPlayerData.mSpeed);
 		}
 		if (isKeyCurrentDown(KeyCode.E))
 		{
 			mPlayerData.mSpeed = clampMin(mPlayerData.mSpeed - 2.0f, 0.0f);
-			mUIGaming.setSpeed(mPlayerData.mSpeed);
+			mUIGame.setSpeed(mPlayerData.mSpeed);
 		}
 		if (!isVectorZero(moveDir))
 		{
 			mPlayer.setPosition(mPlayer.getPosition() + normalize(moveDir) * mPlayerData.mSpeed);
-			mUIGaming.setAvatarPosition(mPlayer.getPosition());
+			mUIGame.setAvatarPosition(mPlayer.getPosition());
 		}
 	}
 }

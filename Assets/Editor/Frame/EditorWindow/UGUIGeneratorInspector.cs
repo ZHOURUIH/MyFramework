@@ -227,6 +227,19 @@ public class UGUIGeneratorInspector : GameInspector
 		{
 			fileFullPath = F_SCRIPTS_HOTFIX_UI_PATH + layoutName + ".cs";
 			string fileContent = "";
+			bool needStringUtility = false;
+			foreach (string item in generatedAssignLines)
+			{
+				if (item.Contains(" IToS("))
+				{
+					needStringUtility = true;
+					break;
+				}
+			}
+			if (needStringUtility)
+			{
+				line(ref fileContent, "using static StringUtility;");
+			}
 			line(ref fileContent, "using Obfuz;");
 			line(ref fileContent, "");
 			line(ref fileContent, "// auto generate member start");

@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 7fd3552571453c64391145b6b7f1cef5
+guid: daaadf6c0dbb85447b514e5458c4524c
 TrueTypeFontImporter:
   externalObjects: {}
   serializedVersion: 4
@@ -8,10 +8,6 @@ TrueTypeFontImporter:
   characterSpacing: 0
   characterPadding: 1
   includeFontData: 1
-  fontName: SimSun
-  fontNames:
-  - SimSun
-  fallbackFontReferences: []
   customCharacters: 1
   fontRenderingMode: 2
   ascentCalculationMode: 1
