@@ -1,11 +1,14 @@
 运行游戏
 1.克隆项目
 2.用unity打开,如果编辑器有报错,则解决报错.
-3.打开HotFix.sln,进行编译.编译会自动将编译出的dll拷贝到StreamingAssets对应目录下.
+3.可能需要手动安装Obfuz和HybridCLR,具体安装方式可以查看官网
+https://www.obfuz.com/docs/manual/installation
+https://www.hybridclr.cn/docs/basic/install
 4.在unity中按F5开始运行游戏.F5,F6,F7分别对应运行,暂停,单步运行三个按钮.F5会自动打开start.unity场景并且开始运行游戏.
   提示:一般我习惯按F5以后自动跳转到Game视图,如果你也希望如此,可以在Game视图中选择Play Focused
 
 表格操作
+SQLite
 目前暂时使用的是SQLite进行表格配置,后续有时间可以改为其他的,看策划的意思.
 推荐可以尝试csv格式的Excel表格,并且使用vscode+csv插件进行编辑,既能够满足编辑需求,又能够使用版本控制工具对比和合并
 1.游戏中是不会使用SQLite原始表格文件,需要进行一次转换,转换为二进制的才能读取.
@@ -21,10 +24,11 @@
 1.运行CodeGenerator.exe生成对应的代码(如果表格结构没有改变,也没有新增删除表格,则不需要进行此操作)
 2.运行SQLiteToBinaryTable.exe转换表格文件
 
+CSV
+其他正在做的项目已经改成csv了,而且也写了一个专用的CSVEditor,后续会放出
+
 添加界面
-1.复制一份现有的HotFix/UI/Script下的一个UI脚本文件.改个名字,比如UITest,将其中的类名也改为UITest
-2.在LayoutRegisterILR.cs中的registerAll函数中添加一行registeLayout<UILogin>((script) => { mUILogin = script; });
-3.在GameBaseILR.cs中添加一行public static UITest mUITest;
+1.复制一个UI的Prefab,比如改名为UITest.prefab,打开这个prefab,在UITest节点上添加UGUIGenerator组件,点击添加节点,将界面上需要操作的节点拖到面板上,选择好节点类型,然后点击生成代码.
 
 对象池的使用
 列表类型的对象池
@@ -37,7 +41,7 @@
 	UN_LIST(out obj);
 类对象的对象池
   临时使用的对象可以用
-  using var b = new ClassScope<SerializerRead>(out var reader);
+  using var a = new ClassScope<SerializerRead>(out var reader);
   持久使用的对象使用FrameUtilityILR.CLASS,也是需要手动进行回收.
   此类对象需要继承自ClassObject,并且需要重写resetProperty函数,将此类的成员变量重置到刚构造结束的状态(这一点非常重要!!!!菜单可以检查出有没有漏掉成员变量)
 Prefab的对象池
@@ -49,16 +53,25 @@ GameObject的对象池
   
 字符串
 字符串的操作都在StringUtility有提供函数,包括拼接,转换数字,拆分,查找,文件名相关操作
+对于大量字符串拼接,可以使用MyStringBuilder
+比如using var a = new MyStringBuilderScope(out var builder);
+
 文件
 FileUtility文件相关的操作,读,写,查找,计算MD5等
+
 数学计算
 MathUtility,封装了大部分的Mathf方法,也有一些自己写的关于2D或者3D图形的算法
+
 引擎相关工具函数
 UnityUtility
+
 Http相关工具函数
 HttpUtility,常用的get,post,delete等
+
 时间
 TimeUtility
+
 二进制
 BinaryUtility
+
 也有很多工具函数是直接以扩展函数的方式实现的,比如ListExtension,DictionaryExtention,HashSetExtension,StringExtension
