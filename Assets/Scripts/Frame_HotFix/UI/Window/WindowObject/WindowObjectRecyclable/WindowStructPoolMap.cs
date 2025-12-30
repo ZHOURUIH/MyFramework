@@ -55,6 +55,7 @@ public class WindowStructPoolMap<Key, T> : WindowStructPoolBase where T : Window
 			item = createInstance<T>(mObjectType, mScript);
 			item.assignWindow(parent, mTemplate, isEditor() ? mPreName + makeID() : mPreName);
 			item.init();
+			item.postInit();
 		}
 		item.setAssignID(++mAssignIDSeed);
 		item.reset();
@@ -95,4 +96,5 @@ public class WindowStructPoolMap<Key, T> : WindowStructPoolBase where T : Window
 		mUnusedItemList.Push(item);
 		return true;
 	}
+	public override int getInUseCount() { return mUsedItemList.count(); }
 }

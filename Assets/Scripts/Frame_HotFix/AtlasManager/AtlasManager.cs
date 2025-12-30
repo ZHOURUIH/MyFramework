@@ -93,12 +93,12 @@ public class AtlasManager : FrameSystem
 		}
 		UN_CLASS_LIST(atlasPtr);
 	}
-	public void unloadAtlasInResourcecs(ref UGUIAtlasPtr atlasPtr)
+	public void unloadAtlasInResources(ref UGUIAtlasPtr atlasPtr)
 	{
 		mResourcesAtlasManager.unloadAtlas(atlasPtr);
 		UN_CLASS(ref atlasPtr);
 	}
-	public void unloadAtlasInResourcecs(List<UGUIAtlasPtr> atlasPtr)
+	public void unloadAtlasInResources(List<UGUIAtlasPtr> atlasPtr)
 	{
 		foreach (UGUIAtlasPtr item in atlasPtr)
 		{

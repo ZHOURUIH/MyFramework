@@ -43,6 +43,20 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 		foreach (WindowObjectBase item in mChildList.safe())
 		{
 			item.init();
+			item.postInit();
+		}
+	}
+	// init调用后才会调用,一般不需要子类去重写
+	public void postInit()
+	{
+		// 如果初始化以后,item中的对象池是有创建节点的,则需要设置为不能自动清空对象池,不然会出问题
+		foreach (WindowStructPoolBase pool in mPoolList.safe())
+		{
+			if (pool.getInUseCount() > 0)
+			{
+				mUnuseAllWhenHide = true;
+				break;
+			}
 		}
 	}
 	// 每次被分配使用时调用,如果是对象池中的物体,则由对象池调用,非对象池物体需要在使用的地方自己调用

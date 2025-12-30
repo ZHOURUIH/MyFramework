@@ -58,7 +58,7 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 		mImage.sprite = mOriginSprite;
 		if (mLayout.isInResources())
 		{
-			mAtlasManager.unloadAtlasInResourcecs(ref mOriginAtlasPtr);
+			mAtlasManager.unloadAtlasInResources(ref mOriginAtlasPtr);
 		}
 		else
 		{

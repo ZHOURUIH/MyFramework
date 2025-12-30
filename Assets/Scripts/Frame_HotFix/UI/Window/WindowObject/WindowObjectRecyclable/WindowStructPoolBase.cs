@@ -61,6 +61,7 @@ public class WindowStructPoolBase
 	public myUGUIObject getTemplate() { return mTemplate; }
 	public void setItemPreName(string preName) { mPreName = preName; }
 	public virtual void unuseAll() { }
+	public virtual int getInUseCount() { return 0; }
 	public bool isRootPool() { return mOwnerObject == null; }
 	public void refreshUIDepth(bool ignoreInactive = true)
 	{

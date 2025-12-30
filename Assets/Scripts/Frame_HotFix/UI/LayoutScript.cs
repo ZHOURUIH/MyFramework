@@ -166,6 +166,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		foreach (WindowObjectBase item in mWindowObjectRootList.safe())
 		{
 			item.init();
+			item.postInit();
 		}
 	}
 	public void updateAllDragView()
@@ -221,6 +222,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		foreach (WindowObjectBase item in mWindowObjectRootList.safe())
 		{
 			item.reset();
+			item.onShow();
 		}
 	}
 	public virtual void onDrawGizmos() { }

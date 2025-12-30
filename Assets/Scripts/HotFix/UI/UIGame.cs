@@ -8,12 +8,10 @@ public class UIGame : LayoutScript
 {
 	protected myUGUIObject mAvatar;
 	protected myUGUIText mSpeed;
-	protected ScrollViewPanel mScrollViewPanel;
 	// auto generate member end
 	public UIGame()
 	{
 		// auto generate constructor start
-		mScrollViewPanel = new(this);
 		// auto generate constructor end
 	}
 	public override void assignWindow()
@@ -22,7 +20,6 @@ public class UIGame : LayoutScript
 		newObject(out myUGUIObject background, "Background", false);
 		newObject(out mAvatar, background, "Avatar");
 		newObject(out mSpeed, background, "Speed");
-		mScrollViewPanel.assignWindow(background, "ScrollViewPanel");
 		// auto generate assignWindow end
 	}
 	public override void init()

@@ -52,7 +52,10 @@ public class ScrollViewPanel : WindowObjectUGUI
 // auto generate classname end
 {
 	// auto generate member start
-	protected myUGUIDragView mMyContent;
+	protected UGUIDropList mDropList;
+	protected UGUITreeList mFilterTree;
+	protected myUGUIObject[] mNode = new myUGUIObject[3];
+	protected myUGUIDragView mContent;
 	protected UGUICheckbox mCheckBox;
 	protected myUGUIImageSimple mSimpleImageButton;
 	protected myUGUIImageButton mImageButton;
@@ -62,9 +65,6 @@ public class ScrollViewPanel : WindowObjectUGUI
 	protected myUGUIObject mEmptyButton;
 	protected UGUISlider mSlider;
 	protected UGUIProgress mProgress;
-	protected UGUIDropList mDropList;
-	protected UGUITreeList mFilterTree;
-	protected myUGUIObject[] mNode = new myUGUIObject[3];
 	protected myUGUIImage mImage;
 	protected myUGUIImageAnim mImageAnim;
 	protected myUGUIRawImage mRawImage;
@@ -77,51 +77,50 @@ public class ScrollViewPanel : WindowObjectUGUI
 	public ScrollViewPanel(IWindowObjectOwner parent) : base(parent)
 	{
 		// auto generate constructor start
+		mDropList = new(this);
+		mFilterTree = new(this);
 		mCheckBox = new(this);
 		mSlider = new(this);
 		mProgress = new(this);
-		mDropList = new(this);
-		mFilterTree = new(this);
 		mDragItemList = new(this);
 		// auto generate constructor end
 		for (int i = 0; i < 3; ++i)
 		{
 			mFilterNodePoolList.Add(new(this));
 		}
-		// 因为树节点是在初始化时只创建一次,所以隐藏时不能自动回收掉
-		mUnuseAllWhenHide = false;
 	}
 	protected override void assignWindowInternal()
 	{
 		// auto generate assignWindowInternal start
+		mDropList.assignWindow(mRoot, "DropList");
+		mFilterTree.assignWindow(mRoot, "FilterTree");
 		newObject(out myUGUIObject viewport, "Viewport", false);
-		newObject(out mMyContent, viewport, "MyContent");
-		mCheckBox.assignWindow(mMyContent, "CheckBox");
-		newObject(out mSimpleImageButton, mMyContent, "SimpleImageButton");
-		newObject(out mImageButton, mMyContent, "ImageButton");
-		newObject(out mImageNumber, mMyContent, "ImageNumber");
-		newObject(out mNumber, mMyContent, "Number");
-		newObject(out mTextButton, mMyContent, "TextButton");
-		newObject(out mEmptyButton, mMyContent, "EmptyButton");
-		mSlider.assignWindow(mMyContent, "Slider");
-		mProgress.assignWindow(mMyContent, "Progress");
-		mDropList.assignWindow(mMyContent, "DropList");
-		mFilterTree.assignWindow(mMyContent, "FilterTree");
+		newObject(out mContent, viewport, "Content");
 		for (int i = 0; i < mNode.Length; ++i)
 		{
+			// 这一行是手动改的,目前还没有很好处理部分重名的情况.自动生成代码时会以为这里的父节点是上一行的mContent,而造成错误
 			newObject(out mNode[i], mFilterTree.getContent(), "Node" + IToS(i));
 		}
-		newObject(out mImage, mMyContent, "Image");
-		newObject(out mImageAnim, mMyContent, "ImageAnim");
-		newObject(out mRawImage, mMyContent, "RawImage");
-		newObject(out mRawImageAnim, mMyContent, "RawImageAnim");
-		newObject(out myUGUIObject layoutGridVertical, mMyContent, "LayoutGridVertical", false);
+		mCheckBox.assignWindow(mContent, "CheckBox");
+		newObject(out mSimpleImageButton, mContent, "SimpleImageButton");
+		newObject(out mImageButton, mContent, "ImageButton");
+		newObject(out mImageNumber, mContent, "ImageNumber");
+		newObject(out mNumber, mContent, "Number");
+		newObject(out mTextButton, mContent, "TextButton");
+		newObject(out mEmptyButton, mContent, "EmptyButton");
+		mSlider.assignWindow(mContent, "Slider");
+		mProgress.assignWindow(mContent, "Progress");
+		newObject(out mImage, mContent, "Image");
+		newObject(out mImageAnim, mContent, "ImageAnim");
+		newObject(out mRawImage, mContent, "RawImage");
+		newObject(out mRawImageAnim, mContent, "RawImageAnim");
+		newObject(out myUGUIObject layoutGridVertical, mContent, "LayoutGridVertical", false);
 		for (int i = 0; i < mElement.Length; ++i)
 		{
 			newObject(out mElement[i], layoutGridVertical, "Element" + IToS(i));
 		}
-		newObject(out myUGUIObject dragViewLoop, mMyContent, "DragViewLoop", false);
-		mDragItemList.assignWindow(dragViewLoop, "DragViewport");
+		newObject(out myUGUIObject dragViewLoop, "DragViewLoop", false);
+		mDragItemList.assignWindow(dragViewLoop, "Viewport");
 		mDragItemList.assignTemplate("DragItem");
 		// auto generate assignWindowInternal end
 		for (int i = 0; i < mFilterNodePoolList.Count; ++i)
@@ -132,7 +131,7 @@ public class ScrollViewPanel : WindowObjectUGUI
 	public override void init()
 	{
 		base.init();
-		mMyContent.initDragView();
+		mContent.initDragView();
 		mSlider.initSlider(() => { log("slider变化:" + FToS(mSlider.getValue())); });
 		mDragItemList.initDragView();
 		mCheckBox.setCheckCallback((UGUICheckbox checkbox) => { log("checkbox变化:" + checkbox.isChecked()); });
@@ -196,19 +195,23 @@ public class ScrollViewPanel : WindowObjectUGUI
 
 		mImage.setSpriteName("SelectedItem");
 		mRawImage.setTextureName("Texture/1/1_1.png");
+		mImageAnim.setNeedUpdate(true);
 	}
 	public override void onShow()
 	{
 		base.onShow();
 		mTimer = 0.0f;
+		mImageAnim.setLoop(LOOP_MODE.LOOP);
+		mRawImageAnim.setLoop(LOOP_MODE.LOOP);
 		mImageAnim.play();
 		mRawImageAnim.play();
 		var list = mDragItemList.startSetDataList();
-		for (int i = 0; i < 5;++i)
+		for (int i = 0; i < 15;++i)
 		{
 			list.addClass().mText = IToS(i);
 		}
 		mDragItemList.setDataList(list);
+		mSlider.setValue(0.5f);
 	}
 	public void update(float elapsedTime)
 	{

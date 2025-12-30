@@ -3,13 +3,13 @@
 --- !u!159 &1
 EditorSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 12
+  serializedVersion: 15
   m_SerializationMode: 2
   m_LineEndingsForNewScripts: 2
   m_DefaultBehaviorMode: 0
   m_PrefabRegularEnvironment: {fileID: 0}
   m_PrefabUIEnvironment: {fileID: 0}
-  m_SpritePackerMode: 0
+  m_SpritePackerMode: 5
   m_SpritePackerCacheSize: 10
   m_SpritePackerPaddingPower: 1
   m_Bc7TextureCompressor: 0
@@ -24,8 +24,8 @@ EditorSettings:
   m_EnableEditorAsyncCPUTextureLoading: 0
   m_AsyncShaderCompilation: 1
   m_PrefabModeAllowAutoSave: 1
-  m_EnterPlayModeOptionsEnabled: 0
-  m_EnterPlayModeOptions: 3
+  m_EnterPlayModeOptionsEnabled: 1
+  m_EnterPlayModeOptions: 0
   m_GameObjectNamingDigits: 1
   m_GameObjectNamingScheme: 0
   m_AssetNamingUsesSpace: 1
@@ -33,6 +33,7 @@ EditorSettings:
   m_UseLegacyProbeSampleCount: 1
   m_SerializeInlineMappingsOnOneLine: 0
   m_DisableCookiesInLightmapper: 1
+  m_ShadowmaskStitching: 0
   m_AssetPipelineMode: 1
   m_RefreshImportMode: 0
   m_CacheServerMode: 0
@@ -45,3 +46,5 @@ EditorSettings:
   m_CacheServerValidationMode: 2
   m_CacheServerDownloadBatchSize: 128
   m_EnableEnlightenBakedGI: 0
+  m_ReferencedClipsExactNaming: 0
+  m_ForceAssetUnloadAndGCOnSceneLoad: 1

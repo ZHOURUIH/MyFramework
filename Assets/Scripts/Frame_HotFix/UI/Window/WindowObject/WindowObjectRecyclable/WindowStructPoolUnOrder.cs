@@ -71,6 +71,7 @@ public class WindowStructPoolUnOrder<T> : WindowStructPoolBase where T : WindowO
 			item = createInstance<T>(mObjectType, mScript);
 			item.assignWindow(parent, mTemplate, isEditor() ? mPreName + makeID() : mPreName);
 			item.init();
+			item.postInit();
 		}
 		item.setAssignID(++mAssignIDSeed);
 		item.reset();
@@ -121,4 +122,5 @@ public class WindowStructPoolUnOrder<T> : WindowStructPoolBase where T : WindowO
 		mUnusedItemList.Enqueue(item);
 		return true;
 	}
+	public override int getInUseCount() { return mUsedItemList.count(); }
 }

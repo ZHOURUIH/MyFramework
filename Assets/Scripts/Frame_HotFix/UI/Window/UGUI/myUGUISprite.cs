@@ -95,7 +95,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		setAlpha(1.0f, false);
 		if (mLayout.isInResources())
 		{
-			mAtlasManager.unloadAtlasInResourcecs(ref mOriginAtlasPtr);
+			mAtlasManager.unloadAtlasInResources(ref mOriginAtlasPtr);
 		}
 		else
 		{

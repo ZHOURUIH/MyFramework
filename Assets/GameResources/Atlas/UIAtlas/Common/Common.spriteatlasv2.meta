@@ -19,12 +19,12 @@ SpriteAtlasImporter:
     padding: 4
     blockOffset: 1
     allowAlphaSplitting: 0
-    enableRotation: 0
-    enableTightPacking: 0
+    enableRotation: 1
+    enableTightPacking: 1
     enableAlphaDilation: 0
   secondaryTextureSettings: {}
   variantMultiplier: 1
   bindAsDefault: 1
   userData: 
-  assetBundleName: atlas/uiatlas/common.unity3d
+  assetBundleName: 
   assetBundleVariant: 

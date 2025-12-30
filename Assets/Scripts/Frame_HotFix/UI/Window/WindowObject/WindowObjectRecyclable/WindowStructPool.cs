@@ -98,6 +98,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 			item = createInstance<T>(mObjectType, mScript);
 			item.assignWindow(parent, mTemplate, isEditor() ? mPreName + makeID() : mPreName);
 			item.init();
+			item.postInit();
 		}
 		item.setAssignID(++mAssignIDSeed);
 		item.reset();
@@ -177,4 +178,5 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		}
 		mUsedItemList.RemoveRange(startIndex, count);
 	}
+	public override int getInUseCount() { return mUsedItemList.count(); }
 }

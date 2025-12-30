@@ -15,7 +15,7 @@ public class UGUISlider : WindowObjectUGUI, ISlider, ICommonUI
 	protected Vector3 mOriginForegroundPosition;	// 进度窗口初始的位置
 	protected Vector2 mOriginForegroundSize;		// 进度窗口初始的大小
 	protected float mSliderValue;					// 当前的滑动值
-	protected bool mDraging;                        // 是否正在拖拽滑动
+	protected bool mDragging;                       // 是否正在拖拽滑动
 	protected bool mEnableDrag;						// 是否需要启用手指滑动进度条
 	protected DRAG_DIRECTION mDirection;			// 滑动方向
 	protected SLIDER_MODE mMode;                    // 滑动条显示的实现方式
@@ -38,14 +38,7 @@ public class UGUISlider : WindowObjectUGUI, ISlider, ICommonUI
 	{
 		mEnableDrag = enableDrag;
 		mDirection = direction;
-		if (mForeground.getImage().type == Image.Type.Filled)
-		{
-			mMode = SLIDER_MODE.FILL;
-		}
-		else
-		{
-			mMode = SLIDER_MODE.SIZING;
-		}
+		mMode = mForeground.getImage().type == Image.Type.Filled ? SLIDER_MODE.FILL : SLIDER_MODE.SIZING;
 		mSliderCallback = sliderCallback;
 		mOriginForegroundSize = mForeground.getWindowSize();
 		mOriginForegroundPosition = mForeground.getPosition();
@@ -56,6 +49,7 @@ public class UGUISlider : WindowObjectUGUI, ISlider, ICommonUI
 			mRoot.setOnScreenTouchUp(onScreenMouseUp);
 			mRoot.setOnTouchMove(onMouseMove);
 		}
+		setValue(1.0f);
 	}
 	public void setEnable(bool enable) { mRoot.setHandleInput(enable); }
 	public void setDirection(DRAG_DIRECTION direction) { mDirection = direction; }
@@ -101,7 +95,7 @@ public class UGUISlider : WindowObjectUGUI, ISlider, ICommonUI
 		return Vector3.zero;
 	}
 	public float getValue() { return mSliderValue; }
-	public bool isDraging() { return mDraging; }
+	public bool isDraging() { return mDragging; }
 	public void setEnableDrag(bool enable) { mEnableDrag = enable; }
 	public bool isEnableDrag() { return mEnableDrag; }
 	public void setSliderMode(SLIDER_MODE mode) { mMode = mode; }
@@ -172,21 +166,21 @@ public class UGUISlider : WindowObjectUGUI, ISlider, ICommonUI
 		// 计算当前值
 		updateSlider(screenPosToSliderValue(touchPos));
 		mSliderCallback?.Invoke();
-		mDraging = true;
+		mDragging = true;
 	}
 	protected void onScreenMouseUp(Vector3 touchPos, int touchID)
 	{
 		// 调用结束回调
-		if (!mDraging)
+		if (!mDragging)
 		{
 			return;
 		}
-		mDraging = false;
+		mDragging = false;
 		mSliderEndCallback?.Invoke();
 	}
 	protected void onMouseMove(Vector3 touchPos, Vector3 moveDelta, float moveTime, int touchID)
 	{
-		if (!mDraging)
+		if (!mDragging)
 		{
 			return;
 		}
