@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 using static MathUtility;
 
 // 2D的点
@@ -10,6 +11,11 @@ public struct Point : IEquatable<Point>
 	{
 		x = xx;
 		y = yy;
+	}
+	public Point(Vector2Int vec)
+	{
+		x = vec.x;
+		y = vec.y;
 	}
 	public int toIndex(int width)
 	{

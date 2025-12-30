@@ -151,6 +151,7 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 		mLocalizationObjectList.Add(obj);
 	}
 	public virtual bool isActive() { return false; }
+	public virtual bool isActiveSelf() { return false; }
 	public void resetCallOnHideFlag() 
 	{
 		mCalledOnHide = false;
@@ -182,6 +183,7 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 			onHide();
 		}
 	}
+	public void close() { setActive(false); }
 	public virtual void setParent(myUGUIObject parent, bool refreshDepth = true) { }
 	public virtual void setAsLastSibling(bool refreshDepth = true) { }
 	public virtual void setAsFirstSibling(bool refreshDepth = true) { }

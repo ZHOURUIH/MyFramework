@@ -115,17 +115,17 @@ public class PrefabPoolManager : FrameSystem
 	public float getTimerInterval() { return mTimerInterval; }
 	public void setTimerInterval(float interval) { mTimerInterval = interval; }
 	public void addDontUnloadPrefab(string name) { mDontUnloadPrefab.Add(name); }
-	// 异步预加载prefab,加载prefab文件,并实例化对象
+	// 异步预加载prefab,加载prefab文件,并实例化对象,fileWithPath是GameResource下的相对路径
 	public CustomAsyncOperation initObjectToPoolAsync(string fileWithPath, int objectTag, int count, bool moveToHide, Action callback)
 	{
 		return getPrefabPool(fileWithPath).initToPoolAsync(objectTag, count, moveToHide, callback);
 	}
-	// 同步预加载prefab,加载prefab文件,并实例化对象
+	// 同步预加载prefab,加载prefab文件,并实例化对象,fileWithPath是GameResource下的相对路径
 	public void initObjectToPool(string fileWithPath, int objectTag, int count, bool moveToHide)
 	{
 		getPrefabPool(fileWithPath).initToPool(objectTag, count, moveToHide);
 	}
-	// 异步加载物体列表,当列表中的所有物体加载完成时才会调用回调
+	// 异步加载物体列表,当列表中的所有物体加载完成时才会调用回调,fileWithPath是GameResource下的相对路径
 	public void createObjectGroupAsync(List<string> fileWithPath, CreateObjectGroupCallback callback, int objectTag, bool moveToHide)
 	{
 		DIC_PERSIST<string, GameObject>(out var list);
@@ -180,12 +180,12 @@ public class PrefabPoolManager : FrameSystem
 			callback?.Invoke(objInfo.getObject());
 		});
 	}
-	// 异步创建物体,实际上只是异步加载,实例化还是同步的
+	// 异步创建物体,实际上只是异步加载,实例化还是同步的,fileWithPath是GameResource下的相对路径
 	public CustomAsyncOperation createObjectAsync(string fileWithPath, int objectTag, bool moveToHide, bool active, GameObjectCallback callback)
 	{
 		return createObjectAsyncSafe(null, fileWithPath, objectTag, moveToHide, active, callback, null);
 	}
-	// 同步创建物体
+	// 同步创建物体,fileWithPath是GameResource下的相对路径
 	public GameObject createObject(string fileWithPath, int objectTag, bool moveToHide, bool active, GameObject parent = null)
 	{
 		using var a = new ProfilerScope(0);

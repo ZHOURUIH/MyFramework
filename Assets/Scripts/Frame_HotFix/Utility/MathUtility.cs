@@ -3,28 +3,36 @@ using System.Collections.Generic;
 using UnityEngine;
 using static StringUtility;
 using static UnityUtility;
-using static FrameUtility;
 
 // 数学相关工具函数,所有与数学计算相关的函数都在这里
 public class MathUtility
 {
-	private static List<AStarNode> mTempOpenList = new();	// 避免GC
-	private static Point[] mTempDirect4 = new Point[4];						// 避免GC
-	private static Point[] mTempDirect6 = new Point[6];						// 避免GC
-	private static Point[] mTempDirect8 = new Point[8];						// 避免GC
-	private static AStarNode[] mTempNodeList;                               // 避免GC
-	private static ThreadLock mGreaterPow2Lock = new();
-	private static int[] mGreaterPow2;										// 预先生成的每个数字所对应的第一个比它大的2的n次方的数
-	private static float[] mSinList;										// PI/(2^n)的sin值,其中n是下标
-	private static float[] mCosList;										// PI/(2^n)的cos值,其中n是下标
-	private const int MAX_FFT_COUNT = 1024 * 8;								// 计算频域时数据的最大数量
-	private static Complex[] mComplexList = new Complex[MAX_FFT_COUNT];     // 避免GC
-	public const float TWO_PI_DEGREE = Mathf.PI * Mathf.Rad2Deg * 2.0f;     // 360.0f
-	public const float TWO_PI_RADIAN = Mathf.PI * 2.0f;                     // 6.28f
-	public const float HALF_PI_DEGREE = Mathf.PI * Mathf.Rad2Deg * 0.5f;    // 90.0f
-	public const float HALF_PI_RADIAN = Mathf.PI * 0.5f;                    // 1.57f
-	public const float PI_DEGREE = Mathf.PI * Mathf.Rad2Deg;                // 180.0f
-	public const float PI_RADIAN = Mathf.PI;                                // 3.14f
+	private static AStarMinHeap mTempOpenList;										// 避免GC
+	private static readonly int[] mDeltaX8 = { -1, 0, 1, -1, 1, -1, 0, 1 };			// 8方向寻路的偏移量X
+	private static readonly int[] mDeltaY8 = { -1, -1, -1, 0, 0, 1, 1, 1 };			// 8方向寻路的偏移量Y
+	private static readonly int[] mDeltaX4 = { 0, -1, 1, 0 };						// 4方向寻路的偏移量X
+	private static readonly int[] mDeltaY4 = { -1, 0, 0, 1 };						// 4方向寻路的偏移量Y
+	private static readonly int[] mDeltaXOddRForEven6 = { -1, 0, 1, 0, -1, -1 };	// 6边形寻路的偏移量X,偶数行的,odd-r模式的
+	private static readonly int[] mDeltaYOddRForEven6 = { -1, -1, 0, 1, 1, 0 };		// 6边形寻路的偏移量Y,偶数行的,odd-r模式的
+	private static readonly int[] mDeltaXOddRForOdd6 = { 0, 1, 1, 1, 0, -1 };		// 6边形寻路的偏移量X,奇数行的,odd-r模式的
+	private static readonly int[] mDeltaYOddRForOdd6 = { -1, -1, 0, 1, 1, 0 };		// 6边形寻路的偏移量Y,奇数行的,odd-r模式的
+	private static readonly int[] mDeltaXEvenRForEven6 = { 0, 1, 1, 1, 0, -1 };		// 6边形寻路的偏移量X,偶数行的,even-r模式的
+	private static readonly int[] mDeltaYEvenRForEven6 = { -1, -1, 0, 1, 1, 0 };    // 6边形寻路的偏移量Y,偶数行的,even-r模式的
+	private static readonly int[] mDeltaXEvenRForOdd6 = { -1, -1, 0, 1, 1, 0 };     // 6边形寻路的偏移量X,奇数行的,even-r模式的
+	private static readonly int[] mDeltaYEvenRForOdd6 = { -1, -1, 0, 1, 1, 0 };     // 6边形寻路的偏移量Y,奇数行的,even-r模式的
+	private static AStarNode[] mTempNodeList;										// 避免GC
+	private static ThreadLock mGreaterPow2Lock = new();								// mGreaterPow2的线程锁
+	private static int[] mGreaterPow2;												// 预先生成的每个数字所对应的第一个比它大的2的n次方的数
+	private static float[] mSinList;												// PI/(2^n)的sin值,其中n是下标
+	private static float[] mCosList;												// PI/(2^n)的cos值,其中n是下标
+	private const int MAX_FFT_COUNT = 1024 * 8;										// 计算频域时数据的最大数量
+	private static Complex[] mComplexList = new Complex[MAX_FFT_COUNT];				// 避免GC
+	public const float TWO_PI_DEGREE = Mathf.PI * Mathf.Rad2Deg * 2.0f;				// 360.0f
+	public const float TWO_PI_RADIAN = Mathf.PI * 2.0f;								// 6.28f
+	public const float HALF_PI_DEGREE = Mathf.PI * Mathf.Rad2Deg * 0.5f;			// 90.0f
+	public const float HALF_PI_RADIAN = Mathf.PI * 0.5f;							// 1.57f
+	public const float PI_DEGREE = Mathf.PI * Mathf.Rad2Deg;						// 180.0f
+	public const float PI_RADIAN = Mathf.PI;										// 3.14f
 	public static long[] POWER_INT_10 = new long[11]{ 1L, 10L, 100L, 1000L, 10000L, 100000L, 1000000L, 10000000L, 100000000L, 1000000000L, 10000000000L };
 	public static float[] INVERSE_POWER_INT_10 = new float[7] { 1.0f, 0.1f, 0.01f, 0.001f, 0.0001f, 0.00001f, 0.000001f };
 	public static double[] INVERSE_POWER_LLONG_10 = new double[11] { 1.0, 0.1, 0.01, 0.001, 0.0001, 0.00001, 0.000001, 0.0000001, 0.0000001, 0.0000001, 0.0000001 };
@@ -2006,13 +2014,6 @@ public class MathUtility
 			   isFloatZero(vec0.y - vec1.y, precision) && 
 			   isFloatZero(vec0.z - vec1.z, precision); 
 	}
-	public static bool isQuatertionEqual(Quaternion q0, Quaternion q1, float precision = 0.0001f) 
-	{ 
-		return isFloatZero(q0.x - q1.x, precision) && 
-			   isFloatZero(q0.y - q1.y, precision) && 
-			   isFloatZero(q0.z - q1.z, precision) && 
-			   isFloatZero(q0.w - q1.w, precision); 
-	}
 	public static bool isVectorZero(Vector2 vec, float precision = 0.0001f) 
 	{
 		return isFloatZero(vec.x, precision) && 
@@ -2741,7 +2742,7 @@ public class MathUtility
 	{
 		return value < min ? min : value;
 	}
-	public static long clampMin(long value, int min = 0)
+	public static long clampMin(long value, long min = 0)
 	{
 		return value < min ? min : value;
 	}
@@ -2842,6 +2843,10 @@ public class MathUtility
 		return !isFloatZero(value1) ? value0 / value1 : defaultValue;
 	}
 	public static int divideInt(int value0, int value1, int defaultValue = 0)
+	{
+		return value1 != 0 ? value0 / value1 : defaultValue;
+	}
+	public static long divideLong(long value0, long value1, long defaultValue = 0)
 	{
 		return value1 != 0 ? value0 / value1 : defaultValue;
 	}
@@ -3009,8 +3014,16 @@ public class MathUtility
 		}
 	}
 	// 查找移动指定距离后当前位于哪段线段上
-	public static int findPointIndex(List<KeyPoint> distanceListFromStart, float curDistance, int startIndex, int endIndex)
+	public static int findPointIndex(List<KeyPoint> distanceListFromStart, float curDistance, int startIndex = -1, int endIndex = -1)
 	{
+		if (startIndex == -1)
+		{
+			startIndex = 0;
+		}
+		if (endIndex == -1)
+		{
+			endIndex = distanceListFromStart.Count - 1;
+		}
 		if (curDistance < distanceListFromStart[startIndex].mDistanceFromStart)
 		{
 			return startIndex - 1;
@@ -3596,69 +3609,38 @@ public class MathUtility
 		return divide(0.0333f, interval);
 	}
 	// 由于使用了静态成员变量,所以不能在多线程中调用该函数
-	public static bool AStar4(List<bool> map, int begin, int end, int width, List<int> foundPath)
+	public static bool AStar4(List<bool> map, int beginIndex, int endIndex, int width, List<int> foundPath)
 	{
-		return AStar4(map, Point.fromIndex(begin, width), Point.fromIndex(end, width), width, foundPath);
-	}
-	public static bool AStar4(List<bool> map, Point begin, Point end, int width, List<int> foundPath)
-	{
-		foundPath?.Clear();
-		if (!checkAStar(map, begin, end, width))
+		if (!preAStar(map, beginIndex, endIndex, width, foundPath))
 		{
 			return false;
 		}
-		int beginIndex = begin.toIndex(width);
-		int endIndex = end.toIndex(width);
-		int maxCount = map.Count;
-		int height = divideInt(maxCount, width);
-		if (mTempNodeList.count() < maxCount)
-		{
-			mTempNodeList = new AStarNode[maxCount];
-		}
-		int count0 = mTempNodeList.Length;
-		for (int i = 0; i < count0; ++i)
-		{
-			mTempNodeList[i].init(i);
-		}
-		mTempOpenList.Clear();
+		Point end = Point.fromIndex(endIndex, width);
+		int height = divideInt(map.Count, width);
 		AStarNode parentNode = new(0, 0, 0, beginIndex, -1, 0);
-		mTempOpenList.Add(parentNode);
+		mTempOpenList.add(parentNode);
 		while (true)
 		{
 			// 找出F值最低的格子
-			int minFPosInOpenList = 0;
-			// 具有最小F值的下标
-			int minFIndex = mTempOpenList[minFPosInOpenList].mIndex;
-			int len = mTempOpenList.Count;
-			for (int i = 1; i < len; ++i)
+			parentNode = mTempOpenList.popMinF();
+			if (mTempNodeList[endIndex].mState == NODE_STATE.OPEN && parentNode.mF >= mTempNodeList[endIndex].mF)
 			{
-				AStarNode temp = mTempOpenList[i];
-				if (temp.mF < mTempNodeList[minFIndex].mF)
-				{
-					minFIndex = temp.mIndex;
-					minFPosInOpenList = i;
-				}
+				break;
 			}
-			mTempOpenList.RemoveAt(minFPosInOpenList);
+			int minFIndex = parentNode.mIndex;
 			// 添加进关闭列表里
 			mTempNodeList[minFIndex].mState = NODE_STATE.CLOSE;
 			parentNode = mTempNodeList[minFIndex];
 			// 父节点的坐标
 			int parentNodeX = parentNode.mIndex % width;
 			int parentNodeY = divideInt(parentNode.mIndex, width);
-			mTempDirect4[0] = new(parentNodeX, parentNodeY - 1);
-			mTempDirect4[1] = new(parentNodeX - 1, parentNodeY);
-			mTempDirect4[2] = new(parentNodeX + 1, parentNodeY);
-			mTempDirect4[3] = new(parentNodeX, parentNodeY + 1);
-			int dirCount = mTempDirect4.Length;
 			// 将父节点周围可以通过的格子放进开启列表里
-			for (int i = 0; i < dirCount; ++i)
+			for (int i = 0; i < mDeltaX4.Length; ++i)
 			{
-				Point point = mTempDirect4[i];
-				int curIndex = point.toIndex(width);
-				if (point.x >= 0 && point.x < width &&
-					point.y >= 0 && point.y < height &&
-					map[curIndex])
+				int nx = parentNodeX + mDeltaX4[i];
+				int ny = parentNodeY + mDeltaY4[i];
+				int curIndex = ny * width + nx;
+				if (nx >= 0 && nx < width && ny >= 0 && ny < height && map[curIndex])
 				{
 					AStarNode curNode = mTempNodeList[curIndex];
 					if (curNode.mState == NODE_STATE.CLOSE)
@@ -3674,22 +3656,12 @@ public class MathUtility
 						// 如果新的G值更小一些
 						if (G1 < curNode.mG)
 						{
-							int pos = -1;
-							int tempCount = mTempOpenList.Count;
-							for (int j = 0; j < tempCount; ++j)
-							{
-								if (mTempOpenList[j].mIndex == curNode.mIndex)
-								{
-									pos = j;
-									break;
-								}
-							}
 							// 将当前点的父节点设为F值最小的节点,重新计算当前节点的数值
 							curNode.mParent = parentNode.mIndex;
 							curNode.mG = G1;
 							curNode.mF = curNode.mG + curNode.mH;
 							// 修改开启列表里的节点
-							mTempOpenList[pos] = curNode;
+							mTempOpenList.updateNode(curNode);
 						}
 					}
 					// 如果不在开启列表里,则加入开启列表
@@ -3698,10 +3670,13 @@ public class MathUtility
 						// 计算G值, H值，F值，并设置这些节点的父节点
 						curNode.mParent = parentNode.mIndex;
 						curNode.mG = G1;
-						curNode.mH = (abs(point.x - end.x) + abs(point.y - end.y)) * 10;
+						if (curNode.mH == 0)
+						{
+							curNode.mH = (abs(nx - end.x) + abs(ny - end.y)) * 10;
+						}
 						curNode.mF = curNode.mG + curNode.mH;
 						curNode.mState = NODE_STATE.OPEN;
-						mTempOpenList.Add(curNode);
+						mTempOpenList.add(curNode);
 					}
 					mTempNodeList[curIndex] = curNode;
 				}
@@ -3720,73 +3695,38 @@ public class MathUtility
 		postAStar(mTempNodeList, endIndex, foundPath);
 		return true;
 	}
-	public static bool AStar8(List<bool> map, int begin, int end, int width, List<int> foundPath)
+	public static bool AStar8(List<bool> map, int beginIndex, int endIndex, int width, List<int> foundPath)
 	{
-		return AStar8(map, Point.fromIndex(begin, width), Point.fromIndex(end, width), width, foundPath);
-	}
-	public static bool AStar8(List<bool> map, Point begin, Point end, int width, List<int> foundPath)
-	{
-		foundPath?.Clear();
-		if (!checkAStar(map, begin, end, width))
+		if (!preAStar(map, beginIndex, endIndex, width, foundPath))
 		{
 			return false;
 		}
-		int beginIndex = begin.toIndex(width);
-		int endIndex = end.toIndex(width);
-		int maxCount = map.Count;
-		int height = divideInt(maxCount, width);
-		if (mTempNodeList.count() < maxCount)
-		{
-			mTempNodeList = new AStarNode[maxCount];
-		}
-		int count0 = mTempNodeList.Length;
-		for (int i = 0; i < count0; ++i)
-		{
-			mTempNodeList[i].init(i);
-		}
-		mTempOpenList.Clear();
+		Point end = Point.fromIndex(endIndex, width);
+		int height = divideInt(map.Count, width);
 		AStarNode parentNode = new(0, 0, 0, beginIndex, -1, 0);
-		mTempOpenList.Add(parentNode);
+		mTempOpenList.add(parentNode);
 		while (true)
 		{
 			// 找出F值最低的格子
-			int minFPosInOpenList = 0;
-			// 具有最小F值的下标
-			int minFIndex = mTempOpenList[minFPosInOpenList].mIndex;
-			int len = mTempOpenList.Count;
-			for (int i = 1; i < len; ++i)
+			parentNode = mTempOpenList.popMinF();
+			if (mTempNodeList[endIndex].mState == NODE_STATE.OPEN && parentNode.mF >= mTempNodeList[endIndex].mF)
 			{
-				AStarNode temp = mTempOpenList[i];
-				if (temp.mF < mTempNodeList[minFIndex].mF)
-				{
-					minFIndex = temp.mIndex;
-					minFPosInOpenList = i;
-				}
+				break;
 			}
-			mTempOpenList.RemoveAt(minFPosInOpenList);
+			int minFIndex = parentNode.mIndex;
 			// 添加进关闭列表里
 			mTempNodeList[minFIndex].mState = NODE_STATE.CLOSE;
 			parentNode = mTempNodeList[minFIndex];
 			// 父节点的坐标
 			int parentNodeX = parentNode.mIndex % width;
 			int parentNodeY = divideInt(parentNode.mIndex, width);
-			mTempDirect8[0] = new(parentNodeX - 1, parentNodeY - 1);
-			mTempDirect8[1] = new(parentNodeX, parentNodeY - 1);
-			mTempDirect8[2] = new(parentNodeX + 1, parentNodeY - 1);
-			mTempDirect8[3] = new(parentNodeX - 1, parentNodeY);
-			mTempDirect8[4] = new(parentNodeX + 1, parentNodeY);
-			mTempDirect8[5] = new(parentNodeX - 1, parentNodeY + 1);
-			mTempDirect8[6] = new(parentNodeX, parentNodeY + 1);
-			mTempDirect8[7] = new(parentNodeX + 1, parentNodeY + 1);
-			int dirCount = mTempDirect8.Length;
 			// 将父节点周围可以通过的格子放进开启列表里
-			for (int i = 0; i < dirCount; ++i)
+			for (int i = 0; i < mDeltaX8.Length; ++i)
 			{
-				Point point = mTempDirect8[i];
-				int curIndex = point.toIndex(width);
-				if (point.x >= 0 && point.x < width &&
-					point.y >= 0 && point.y < height &&
-					map[curIndex])
+				int nx = parentNodeX + mDeltaX8[i];
+				int ny = parentNodeY + mDeltaY8[i];
+				int curIndex = ny * width + nx;
+				if (nx >= 0 && nx < width && ny >= 0 && ny < height && map[curIndex])
 				{
 					AStarNode curNode = mTempNodeList[curIndex];
 					if (curNode.mState == NODE_STATE.CLOSE)
@@ -3794,7 +3734,7 @@ public class MathUtility
 						continue;
 					}
 					// 计算格子的G1值,即从当前父格到这个格子的G值再加上父格子自己的G值
-					int G1 = parentNode.mG + ((point.x == parentNodeX || point.y == parentNodeY) ? parentNode.mG + 10 : parentNode.mG + 14);
+					int G1 = parentNode.mG + ((nx == parentNodeX || ny == parentNodeY) ? 10 : 14);
 					// 如果它已经在开启列表里面了
 					if (curNode.mState == NODE_STATE.OPEN)
 					{
@@ -3802,22 +3742,12 @@ public class MathUtility
 						// 如果新的G值更小一些
 						if (G1 < curNode.mG)
 						{
-							int pos = -1;
-							int tempCount = mTempOpenList.Count;
-							for (int j = 0; j < tempCount; ++j)
-							{
-								if (mTempOpenList[j].mIndex == curNode.mIndex)
-								{
-									pos = j;
-									break;
-								}
-							}
 							// 将当前点的父节点设为F值最小的节点,重新计算当前节点的数值
 							curNode.mParent = parentNode.mIndex;
 							curNode.mG = G1;
 							curNode.mF = curNode.mG + curNode.mH;
 							// 修改开启列表里的节点
-							mTempOpenList[pos] = curNode;
+							mTempOpenList.updateNode(curNode);
 						}
 					}
 					// 如果不在开启列表里,则加入开启列表
@@ -3826,10 +3756,12 @@ public class MathUtility
 						// 计算G值, H值，F值，并设置这些节点的父节点
 						curNode.mParent = parentNode.mIndex;
 						curNode.mG = G1;
-						curNode.mH = (abs(point.x - end.x) + abs(point.y - end.y)) * 10;
+						int dx = abs(nx - end.x);
+						int dy = abs(ny - end.y);
+						curNode.mH = 14 * getMin(dx, dy) + 10 * (getMax(dx, dy) - getMin(dx, dy));
 						curNode.mF = curNode.mG + curNode.mH;
 						curNode.mState = NODE_STATE.OPEN;
-						mTempOpenList.Add(curNode);
+						mTempOpenList.add(curNode);
 					}
 					mTempNodeList[curIndex] = curNode;
 				}
@@ -3848,50 +3780,26 @@ public class MathUtility
 		postAStar(mTempNodeList, endIndex, foundPath);
 		return true;
 	}
-	public static bool AStar6(List<bool> map, int begin, int end, int width, List<int> foundPath)
+	// 依赖于不同行相同x坐标的格子之间偶数行的格子始终比奇数行的要靠左一些
+	public static bool AStar6OddR(List<bool> map, int beginIndex, int endIndex, int width, List<int> foundPath)
 	{
-		return AStar6(map, Point.fromIndex(begin, width), Point.fromIndex(end, width), width, foundPath);
-	}
-	public static bool AStar6(List<bool> map, Point begin, Point end, int width, List<int> foundPath)
-	{
-		foundPath?.Clear();
-		if (!checkAStar(map, begin, end, width))
+		if (!preAStar(map, beginIndex, endIndex, width, foundPath))
 		{
 			return false;
 		}
-		int beginIndex = begin.toIndex(width);
-		int endIndex = end.toIndex(width);
-		int maxCount = map.Count;
-		int height = divideInt(maxCount, width);
-		if (mTempNodeList.count() < maxCount)
-		{
-			mTempNodeList = new AStarNode[maxCount];
-		}
-		int count0 = mTempNodeList.Length;
-		for (int i = 0; i < count0; ++i)
-		{
-			mTempNodeList[i].init(i);
-		}
-		mTempOpenList.Clear();
+		Point end = Point.fromIndex(endIndex, width);
+		int height = divideInt(map.Count, width);
 		AStarNode parentNode = new(0, 0, 0, beginIndex, -1, 0);
-		mTempOpenList.Add(parentNode);
+		mTempOpenList.add(parentNode);
 		while (true)
 		{
 			// 找出F值最低的格子
-			int minFPosInOpenList = 0;
-			// 具有最小F值的下标
-			int minFIndex = mTempOpenList[minFPosInOpenList].mIndex;
-			int len = mTempOpenList.Count;
-			for (int i = 1; i < len; ++i)
+			parentNode = mTempOpenList.popMinF();
+			if (mTempNodeList[endIndex].mState == NODE_STATE.OPEN && parentNode.mF >= mTempNodeList[endIndex].mF)
 			{
-				AStarNode temp = mTempOpenList[i];
-				if (temp.mF < mTempNodeList[minFIndex].mF)
-				{
-					minFIndex = temp.mIndex;
-					minFPosInOpenList = i;
-				}
+				break;
 			}
-			mTempOpenList.RemoveAt(minFPosInOpenList);
+			int minFIndex = parentNode.mIndex;
 			// 添加进关闭列表里
 			mTempNodeList[minFIndex].mState = NODE_STATE.CLOSE;
 			parentNode = mTempNodeList[minFIndex];
@@ -3899,34 +3807,16 @@ public class MathUtility
 			int parentNodeX = parentNode.mIndex % width;
 			int parentNodeY = divideInt(parentNode.mIndex, width);
 			// 这里依赖于不同行相同x坐标的格子之间偶数行的格子始终比奇数行的要靠左一些
-			// 偶数行
-			if ((parentNodeY & 1) == 0)
-			{
-				mTempDirect6[0] = new(parentNodeX - 1, parentNodeY - 1);
-				mTempDirect6[1] = new(parentNodeX, parentNodeY - 1);
-				mTempDirect6[2] = new(parentNodeX + 1, parentNodeY);
-				mTempDirect6[3] = new(parentNodeX, parentNodeY + 1);
-				mTempDirect6[4] = new(parentNodeX - 1, parentNodeY + 1);
-				mTempDirect6[5] = new(parentNodeX - 1, parentNodeY);
-			}
-			// 奇数行
-			else
-			{
-				mTempDirect6[0] = new(parentNodeX, parentNodeY - 1);
-				mTempDirect6[1] = new(parentNodeX + 1, parentNodeY - 1);
-				mTempDirect6[2] = new(parentNodeX + 1, parentNodeY);
-				mTempDirect6[3] = new(parentNodeX + 1, parentNodeY + 1);
-				mTempDirect6[4] = new(parentNodeX, parentNodeY + 1);
-				mTempDirect6[5] = new(parentNodeX - 1, parentNodeY);
-			}
-			int dirCount = mTempDirect6.Length;
+			int[] offsetX = (parentNodeY & 1) == 0 ? mDeltaXOddRForEven6 : mDeltaXOddRForOdd6;
+			int[] offsetY = (parentNodeY & 1) == 0 ? mDeltaYOddRForEven6 : mDeltaYOddRForOdd6;
 			// 将父节点周围可以通过的格子放进开启列表里
-			for (int i = 0; i < dirCount; ++i)
+			for (int i = 0; i < offsetX.Length; ++i)
 			{
-				Point point = mTempDirect6[i];
-				int curIndex = point.toIndex(width);
-				if (point.x >= 0 && point.x < width &&
-					point.y >= 0 && point.y < height &&
+				int pointX = parentNodeX + offsetX[i];
+				int pointY = parentNodeY + offsetY[i];
+				int curIndex = pointY * width + pointX;
+				if (pointX >= 0 && pointX < width &&
+					pointY >= 0 && pointY < height &&
 					map[curIndex])
 				{
 					AStarNode curNode = mTempNodeList[curIndex];
@@ -3944,70 +3834,120 @@ public class MathUtility
 						// 如果新的G值更小一些
 						if (G1 < curNode.mG)
 						{
-							int pos = -1;
-							int tempCount = mTempOpenList.Count;
-							for (int j = 0; j < tempCount; ++j)
-							{
-								if (mTempOpenList[j].mIndex == curNode.mIndex)
-								{
-									pos = j;
-									break;
-								}
-							}
 							// 将当前点的父节点设为F值最小的节点,重新计算当前节点的数值
 							curNode.mParent = parentNode.mIndex;
 							curNode.mG = G1;
 							curNode.mF = curNode.mG + curNode.mH;
 							// 修改开启列表里的节点
-							mTempOpenList[pos] = curNode;
+							mTempOpenList.updateNode(curNode);
 						}
 					}
 					// 如果不在开启列表里,则加入开启列表
 					else
 					{
-						// 偶数行和奇数行到终点的预估距离还是有点差别
-						int disX = abs(point.x - end.x);
-						int disY = abs(point.y - end.y);
-						float disFX;
-						// 同是奇数行或者同是偶数行
-						if ((point.y & 1) == (end.y & 1))
+						if (curNode.mH == 0)
 						{
-							disFX = disX;
-						}
-						else
-						{
-							// 当前点是偶数行,目标点是奇数行
-							if ((point.y & 1) == 0)
-							{
-								// 奇偶行将下标转换为浮点数,会发现X轴的下标实际上相差0.5
-								disFX = disX + 0.5f;
-							}
-							// 当前点是奇数行,目标点是偶数行
-							else
-							{
-								// 奇偶行将下标转换为浮点数,会发现X轴的下标实际上相差0.5
-								disFX = disX - 0.5f;
-							}
-						}
-						// 斜着走一格,相当于横向走0.5格和纵向走1格
-						// 所以当横向距离大于纵向距离的2倍时,需要先斜着走到同一行,然后再走剩下的横向距离
-						// 斜着走的距离就是纵向的距离
-						if (disFX > disY * 0.5f)
-						{
-							// 等效于disFY + disFX - disFY * 0.5f
-							curNode.mH = (int)(disFX + disY * 0.5f) * 10;
-						}
-						// 当横向距离小于等于纵向距离的2倍时,只需要走到同一行即可
-						else
-						{
-							curNode.mH = disY * 10;
+							curNode.mH = hexDistanceOddR(pointX, pointY, end.x, end.y) * 10;
 						}
 						// 计算G值, H值，F值，并设置这些节点的父节点
 						curNode.mParent = parentNode.mIndex;
 						curNode.mG = G1;
 						curNode.mF = curNode.mG + curNode.mH;
 						curNode.mState = NODE_STATE.OPEN;
-						mTempOpenList.Add(curNode);
+						mTempOpenList.add(curNode);
+					}
+					mTempNodeList[curIndex] = curNode;
+				}
+			}
+			// 开启列表已空，表示没有路可以走
+			if (mTempOpenList.Count == 0)
+			{
+				return false;
+			}
+			// 终点被添加进开启列表里，找到路了
+			if (mTempNodeList[endIndex].mState == NODE_STATE.OPEN)
+			{
+				break;
+			}
+		}
+		postAStar(mTempNodeList, endIndex, foundPath);
+		return true;
+	}
+	// 依赖于不同行相同x坐标的格子之间偶数行的格子始终比奇数行的要靠右一些
+	public static bool AStar6EvenR(List<bool> map, int beginIndex, int endIndex, int width, List<int> foundPath)
+	{
+		if (!preAStar(map, beginIndex, endIndex, width, foundPath))
+		{
+			return false;
+		}
+		Point end = Point.fromIndex(endIndex, width);
+		int height = divideInt(map.Count, width);
+		AStarNode parentNode = new(0, 0, 0, beginIndex, -1, 0);
+		mTempOpenList.add(parentNode);
+		while (true)
+		{
+			// 找出F值最低的格子
+			parentNode = mTempOpenList.popMinF();
+			if (mTempNodeList[endIndex].mState == NODE_STATE.OPEN && parentNode.mF >= mTempNodeList[endIndex].mF)
+			{
+				break;
+			}
+			int minFIndex = parentNode.mIndex;
+			// 添加进关闭列表里
+			mTempNodeList[minFIndex].mState = NODE_STATE.CLOSE;
+			parentNode = mTempNodeList[minFIndex];
+			// 父节点的坐标
+			int parentNodeX = parentNode.mIndex % width;
+			int parentNodeY = divideInt(parentNode.mIndex, width);
+			// 这里依赖于不同行相同x坐标的格子之间偶数行的格子始终比奇数行的要靠右一些
+			int[] offsetX = (parentNodeY & 1) == 0 ? mDeltaXEvenRForEven6 : mDeltaXEvenRForOdd6;
+			int[] offsetY = (parentNodeY & 1) == 0 ? mDeltaYEvenRForEven6 : mDeltaYEvenRForOdd6;
+			// 将父节点周围可以通过的格子放进开启列表里
+			for (int i = 0; i < offsetX.Length; ++i)
+			{
+				int pointX = parentNodeX + offsetX[i];
+				int pointY = parentNodeY + offsetY[i];
+				int curIndex = pointY * width + pointX;
+				if (pointX >= 0 && pointX < width &&
+					pointY >= 0 && pointY < height &&
+					map[curIndex])
+				{
+					AStarNode curNode = mTempNodeList[curIndex];
+					if (curNode.mState == NODE_STATE.CLOSE)
+					{
+						continue;
+					}
+					// 计算格子的G1值,即从当前父格到这个格子的G值再加上父格子自己的G值
+					// 六边形到周围相邻六边形的距离都是一样的
+					int G1 = parentNode.mG + 10;
+					// 如果它已经在开启列表里面了
+					if (curNode.mState == NODE_STATE.OPEN)
+					{
+						// 检查G值来判定，如果通过这一格到达那里，路径是否更好
+						// 如果新的G值更小一些
+						if (G1 < curNode.mG)
+						{
+							// 将当前点的父节点设为F值最小的节点,重新计算当前节点的数值
+							curNode.mParent = parentNode.mIndex;
+							curNode.mG = G1;
+							curNode.mF = curNode.mG + curNode.mH;
+							// 修改开启列表里的节点
+							mTempOpenList.updateNode(curNode);
+						}
+					}
+					// 如果不在开启列表里,则加入开启列表
+					else
+					{
+						if (curNode.mH == 0)
+						{
+							curNode.mH = hexDistanceEvenR(pointX, pointY, end.x, end.y) * 10;
+						}
+						// 计算G值, H值，F值，并设置这些节点的父节点
+						curNode.mParent = parentNode.mIndex;
+						curNode.mG = G1;
+						curNode.mF = curNode.mG + curNode.mH;
+						curNode.mState = NODE_STATE.OPEN;
+						mTempOpenList.add(curNode);
 					}
 					mTempNodeList[curIndex] = curNode;
 				}
@@ -4471,10 +4411,8 @@ public class MathUtility
 			return v1;
 		}
 	}
-	protected static bool checkAStar(List<bool> map, Point begin, Point end, int width)
+	protected static bool checkAStar(List<bool> map, int beginIndex, int endIndex, int width)
 	{
-		int beginIndex = begin.toIndex(width);
-		int endIndex = end.toIndex(width);
 		// 起点与终点在同一点,不需要寻路
 		if (beginIndex == endIndex)
 		{
@@ -4482,12 +4420,12 @@ public class MathUtility
 		}
 		if (beginIndex < 0 || beginIndex >= map.Count)
 		{
-			logError("起点下标错误,x:" + begin.x + ", y:" + begin.y + ", width:" + width + ", map length:" + map.Count);
+			logError("起点下标错误:" + beginIndex + ", width:" + width + ", map length:" + map.Count);
 			return false;
 		}
 		if (endIndex < 0 || endIndex >= map.Count)
 		{
-			logError("目标点下标错误,x:" + end.x + ", y:" + end.y + ", width:" + width + ", map length:" + map.Count);
+			logError("目标点下标错误:" + endIndex + ", width:" + width + ", map length:" + map.Count);
 			return false;
 		}
 		// 起点或者终点不可行走,也不能找到路径
@@ -4495,6 +4433,30 @@ public class MathUtility
 		{
 			return false;
 		}
+		return true;
+	}
+	protected static bool preAStar(List<bool> map, int beginIndex, int endIndex, int width, List<int> foundPath)
+	{
+		foundPath?.Clear();
+		if (!checkAStar(map, beginIndex, endIndex, width))
+		{
+			return false;
+		}
+
+		int maxCount = map.Count;
+		if (mTempNodeList.count() < maxCount)
+		{
+			mTempNodeList = new AStarNode[maxCount];
+		}
+		for (int i = 0; i < mTempNodeList.Length; ++i)
+		{
+			mTempNodeList[i].init(i);
+		}
+		if (mTempOpenList == null || mTempOpenList.Capacity < maxCount)
+		{
+			mTempOpenList = new AStarMinHeap(maxCount);
+		}
+		mTempOpenList.clear();
 		return true;
 	}
 	protected static void postAStar(AStarNode[] nodeList, int endIndex, List<int> foundPath)
@@ -4511,12 +4473,96 @@ public class MathUtility
 			road = nodeList[road.mParent];
 		}
 		int count = foundPath.Count;
-		int halfCount = count >> 1;
-		for (int i = 0; i < halfCount; ++i)
+		for (int i = 0; i < count >> 1; ++i)
 		{
-			int temp = foundPath[i];
-			foundPath[i] = foundPath[count - i - 1];
-			foundPath[count - i - 1] = temp;
+			(foundPath[count - i - 1], foundPath[i]) = (foundPath[i], foundPath[count - i - 1]);
 		}
+	}
+	// 计算两个六边形格子之间的最短距离
+	// 使用 odd-r（行偏移）坐标系，将 offset 坐标转换为 cube 坐标后计算距离
+	// 返回值单位：格子数（不是世界距离）
+	protected static int hexDistanceOddR(int x1, int y1, int x2, int y2)
+	{
+		// 偶数行和奇数行到终点的预估距离还是有点差别
+		//int disX = abs(pointX - end.x);
+		//int disY = abs(pointY - end.y);
+		//float disFX;
+		//// 同是奇数行或者同是偶数行
+		//if ((pointY & 1) == (end.y & 1))
+		//{
+		//	disFX = disX;
+		//}
+		//else
+		//{
+		//	// 当前点是偶数行,目标点是奇数行
+		//	if ((pointY & 1) == 0)
+		//	{
+		//		// 奇偶行将下标转换为浮点数,会发现X轴的下标实际上相差0.5
+		//		disFX = disX + 0.5f;
+		//	}
+		//	// 当前点是奇数行,目标点是偶数行
+		//	else
+		//	{
+		//		// 奇偶行将下标转换为浮点数,会发现X轴的下标实际上相差0.5
+		//		disFX = disX - 0.5f;
+		//	}
+		//}
+		//// 斜着走一格,相当于横向走0.5格和纵向走1格
+		//// 所以当横向距离大于纵向距离的2倍时,需要先斜着走到同一行,然后再走剩下的横向距离
+		//// 斜着走的距离就是纵向的距离
+		//if (disFX > disY * 0.5f)
+		//{
+		//	// 等效于disFY + disFX - disFY * 0.5f
+		//	curNode.mH = (int)(disFX + disY * 0.5f) * 10;
+		//}
+		//// 当横向距离小于等于纵向距离的2倍时,只需要走到同一行即可
+		//else
+		//{
+		//	curNode.mH = disY * 10;
+		//}
+
+		// 将第一个点从 offset 坐标转换为 cube 坐标
+		// odd-r 布局下：
+		//   奇数行向右偏移 0.5 个格子
+		//   偶数行不偏移
+		// floor(y / 2) 等价写法：(y - (y & 1)) >> 1
+		int ax = x1 - ((y1 - (y1 & 1)) >> 1);
+		int az = y1;
+		// cube 坐标满足：x + y + z = 0
+		int ay = -ax - az;
+
+		// 将第二个点从 offset 坐标转换为 cube 坐标
+		int bx = x2 - ((y2 - (y2 & 1)) >> 1);
+		int bz = y2;
+		int by = -bx - bz;
+
+		// cube 坐标系下的六边形距离公式：
+		// distance = (|dx| + |dy| + |dz|) / 2
+		// 这里使用 >> 1 代替除以 2，保证全整数运算
+		return (abs(ax - bx) + abs(ay - by) + abs(az - bz)) >> 1;
+	}
+	// 计算两个六边形格子之间的最短距离
+	// 使用 even-r（行偏移）坐标系，将 offset 坐标转换为 cube 坐标后计算距离
+	// 返回值单位：格子数（不是世界距离）
+	protected static int hexDistanceEvenR(int x1, int y1, int x2, int y2)
+	{
+		// even-r 布局下：
+		//   偶数行向右偏移 0.5 个格子
+		//   奇数行不偏移
+		// ceil(y / 2) 的整数等价写法：(y + (y & 1)) >> 1
+		int ax = x1 - ((y1 + (y1 & 1)) >> 1);
+		int az = y1;
+		// cube 坐标满足：x + y + z = 0
+		int ay = -ax - az;
+
+		// 将第二个点从 offset 坐标转换为 cube 坐标
+		int bx = x2 - ((y2 + (y2 & 1)) >> 1);
+		int bz = y2;
+		int by = -bx - bz;
+
+		// cube 坐标系下的六边形距离公式：
+		// distance = (|dx| + |dy| + |dz|) / 2
+		// 这里使用 >> 1 代替除以 2，保证全整数运算
+		return (abs(ax - bx) + abs(ay - by) + abs(az - bz)) >> 1;
 	}
 }

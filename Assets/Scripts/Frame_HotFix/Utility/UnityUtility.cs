@@ -478,6 +478,19 @@ public class UnityUtility
 		screenPosition.z = 0.0f;
 		return screenPosition;
 	}
+	// screenCenterAsZero为false表示输入的坐标是以屏幕左下角为原点的坐标
+	// screenCenterAsZero为true表示输入的坐标是以屏幕中心为原点的坐标
+	public static Vector3 screenToWorld(Vector3 screenPos, Camera camera, bool screenCenterAsZero = true)
+	{
+		if (screenCenterAsZero)
+		{
+			screenPos += getHalfScreenSize().toVec3();
+			screenPos.z = 0.0f;
+		}
+		Vector3 worldPosition = camera.ScreenToWorldPoint(screenPos);
+		worldPosition.z = 0.0f;
+		return worldPosition;
+	}
 	public static Vector3 worldToScreen(Vector3 worldPos, bool screenCenterAsZero = true)
 	{
 		return worldToScreen(worldPos, getMainCamera().getCamera(), screenCenterAsZero);

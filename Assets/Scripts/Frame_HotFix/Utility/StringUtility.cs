@@ -1184,19 +1184,20 @@ public class StringUtility
 	{
 		return str == "true" || str == "True" || str == "TRUE";
 	}
-	public static string intToChineseString(int value)
+	// 函数名中的int仅表示整数的意思,并非特指int类型
+	public static string intToChineseString(long value)
 	{
 		using var a = new MyStringBuilderScope(out var builder);
 		// 大于1亿
 		if (value >= 100000000)
 		{
-			builder.append(IToS(value / 100000000), "亿");
+			builder.append(LToS(value / 100000000), "亿");
 			value %= 100000000;
 		}
 		// 大于1万
 		if (value >= 10000)
 		{
-			builder.append(IToS(value / 10000), "万");
+			builder.append(LToS(value / 10000), "万");
 			value %= 10000;
 		}
 		if (value > 0)

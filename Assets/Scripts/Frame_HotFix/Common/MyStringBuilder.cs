@@ -132,6 +132,14 @@ public class MyStringBuilder : ClassObject
 		mBuilder.Append(value.ToString());
 		return this;
 	}
+	public MyStringBuilder colorStringComma(string color, long value)
+	{
+		return append("<color=#", color, ">", LToSComma(value), "</color>");
+	}
+	public MyStringBuilder colorString(string color, long value)
+	{
+		return append("<color=#", color, ">", LToS(value), "</color>");
+	}
 	public MyStringBuilder colorStringComma(string color, int value)
 	{
 		return append("<color=#", color, ">", IToSComma(value), "</color>");
