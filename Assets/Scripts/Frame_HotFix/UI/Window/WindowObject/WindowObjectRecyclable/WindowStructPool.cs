@@ -24,6 +24,11 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 	public override void init()
 	{
 		base.init();
+		if (mTemplate == null)
+		{
+			logError("mTemplate为空,无法进行初始化,请确保在初始化前就设置好当前对象池的mTemplate,界面:" + mScript.GetType());
+			return;
+		}
 		init(mTemplate.getParent(), typeof(T), true);
 	}
 	public List<T> getUsedList() { return mUsedItemList; }

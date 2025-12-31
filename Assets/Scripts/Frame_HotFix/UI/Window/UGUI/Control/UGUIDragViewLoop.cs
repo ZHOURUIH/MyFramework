@@ -230,4 +230,5 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 	{
 		mContent.setRightToParentRight();
 	}
+	public myUGUIDragView getContent() { return mContent; }
 }

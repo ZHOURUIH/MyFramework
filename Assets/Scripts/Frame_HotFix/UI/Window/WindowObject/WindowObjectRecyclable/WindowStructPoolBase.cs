@@ -62,7 +62,7 @@ public class WindowStructPoolBase
 	public virtual int getInUseCount() { return 0; }
 	public bool isRootPool() { return mOwnerObject == null; }
 	public virtual void unuseAll() { }
-	public void setInUseParent(myUGUIObject parent) { mItemParent = parent; }
+	public void setItemParent(myUGUIObject parent) { mItemParent = parent; }
 	public void setActive(bool active) { mItemParent.setActive(active); }
 	public void setItemPreName(string preName) { mPreName = preName; }
 	public void setObjectType(Type type) { mObjectType = type; }
