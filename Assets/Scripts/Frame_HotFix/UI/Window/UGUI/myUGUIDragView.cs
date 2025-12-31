@@ -13,9 +13,19 @@ public class myUGUIDragView : myUGUIObject
 	{
 		mNeedUpdate = true;
 	}
-	public void initDragView()
+	public override void init()
 	{
-		initDragView(DRAG_DIRECTION.VERTICAL, toRadian(45.0f), false, true, true);
+		base.init();
+		// 这里直接获取父节点作为viewport
+		mLayout.getScript().bindPassOnlyParent(mParent);
+		registeCollider(true);
+		setDepthOverAllChild(true);
+		setDragDirection(DRAG_DIRECTION.VERTICAL);
+		setDragAngleThreshold(toRadian(45.0f));
+		setClampInner(false);
+		setAllowDragOnlyOverParentSize(true);
+		setClampInRange(true);
+		mInited = true;
 	}
 	public void initDragView(DRAG_DIRECTION direction)
 	{
@@ -33,16 +43,11 @@ public class myUGUIDragView : myUGUIObject
 	// clampInRange为true表示拖拽时始终限制在正常范围内
 	public void initDragView(DRAG_DIRECTION direction, float angleThresholdRadian, bool clampInner, bool allowDragOnlyOverParentSize, bool clampInRange)
 	{
-		// 这里直接获取父节点作为viewport
-		mLayout.getScript().bindPassOnlyParent(mParent);
-		registeCollider(true);
-		setDepthOverAllChild(true);
 		setDragDirection(direction);
 		setDragAngleThreshold(angleThresholdRadian);
 		setClampInner(clampInner);
 		setAllowDragOnlyOverParentSize(allowDragOnlyOverParentSize);
 		setClampInRange(clampInRange);
-		mInited = true;
 	}
 	public override bool isReceiveScreenTouch() { return true; }
 	public myUGUIObject getViewport() { return mParent; }

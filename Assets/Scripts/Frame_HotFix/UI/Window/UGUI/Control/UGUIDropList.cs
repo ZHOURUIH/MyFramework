@@ -40,7 +40,6 @@ public class UGUIDropList : WindowObjectUGUI, ICommonUI
 		mItemPool.init(true);
 		mLabel.registeCollider(onClick);
 		mMask.registeCollider(onMaskClick);
-		mContent.initDragView();
 		mOptions.setActive(false);
 		mMask.setActive(false);
 		// 确认选项的父节点拥有Canvas组件,可以渲染在所有节点之上

@@ -52,9 +52,10 @@ public class ScrollViewPanel : WindowObjectUGUI
 // auto generate classname end
 {
 	// auto generate member start
-	protected UGUIDropList mDropList;
 	protected UGUITreeList mFilterTree;
 	protected myUGUIObject[] mNode = new myUGUIObject[3];
+	protected UGUIDropList mDropList;
+	protected myUGUIDragView mNormalContent;
 	protected myUGUIDragView mContent;
 	protected UGUICheckbox mCheckBox;
 	protected myUGUIImageSimple mSimpleImageButton;
@@ -70,6 +71,7 @@ public class ScrollViewPanel : WindowObjectUGUI
 	protected myUGUIRawImage mRawImage;
 	protected myUGUIRawImageAnim mRawImageAnim;
 	protected myUGUIObject[] mElement = new myUGUIObject[5];
+	protected WindowStructPool<NormalItem> mNormalItemPool;
 	protected UGUIDragViewLoop<DragItem, DragItem.Data> mDragItemList;
 	// auto generate member end
 	protected List<WindowStructPool<FilterTreeNode>> mFilterNodePoolList = new();
@@ -77,11 +79,12 @@ public class ScrollViewPanel : WindowObjectUGUI
 	public ScrollViewPanel(IWindowObjectOwner parent) : base(parent)
 	{
 		// auto generate constructor start
-		mDropList = new(this);
 		mFilterTree = new(this);
+		mDropList = new(this);
 		mCheckBox = new(this);
 		mSlider = new(this);
 		mProgress = new(this);
+		mNormalItemPool = new(this);
 		mDragItemList = new(this);
 		// auto generate constructor end
 		for (int i = 0; i < 3; ++i)
@@ -92,15 +95,17 @@ public class ScrollViewPanel : WindowObjectUGUI
 	protected override void assignWindowInternal()
 	{
 		// auto generate assignWindowInternal start
-		mDropList.assignWindow(mRoot, "DropList");
 		mFilterTree.assignWindow(mRoot, "FilterTree");
-		newObject(out myUGUIObject viewport, "Viewport", false);
-		newObject(out mContent, viewport, "Content");
+		newObject(out myUGUIObject myViewport, "MyViewport", false);
+		newObject(out mContent, myViewport, "Content");
 		for (int i = 0; i < mNode.Length; ++i)
 		{
-			// 这一行是手动改的,目前还没有很好处理部分重名的情况.自动生成代码时会以为这里的父节点是上一行的mContent,而造成错误
 			newObject(out mNode[i], mFilterTree.getContent(), "Node" + IToS(i));
 		}
+		mDropList.assignWindow(mRoot, "DropList");
+		newObject(out myUGUIObject normalList, "NormalList", false);
+		newObject(out myUGUIObject normalViewport, normalList, "NormalViewport", false);
+		newObject(out mNormalContent, normalViewport, "NormalContent");
 		mCheckBox.assignWindow(mContent, "CheckBox");
 		newObject(out mSimpleImageButton, mContent, "SimpleImageButton");
 		newObject(out mImageButton, mContent, "ImageButton");
@@ -119,6 +124,7 @@ public class ScrollViewPanel : WindowObjectUGUI
 		{
 			newObject(out mElement[i], layoutGridVertical, "Element" + IToS(i));
 		}
+		mNormalItemPool.assignTemplate(mNormalContent, "NormalItem");
 		newObject(out myUGUIObject dragViewLoop, "DragViewLoop", false);
 		mDragItemList.assignWindow(dragViewLoop, "Viewport");
 		mDragItemList.assignTemplate("DragItem");
@@ -131,7 +137,7 @@ public class ScrollViewPanel : WindowObjectUGUI
 	public override void init()
 	{
 		base.init();
-		mContent.initDragView();
+		mNormalItemPool.init(true);
 		mSlider.initSlider(() => { log("slider变化:" + FToS(mSlider.getValue())); });
 		mDragItemList.initDragView();
 		mCheckBox.setCheckCallback((UGUICheckbox checkbox) => { log("checkbox变化:" + checkbox.isChecked()); });
@@ -212,6 +218,7 @@ public class ScrollViewPanel : WindowObjectUGUI
 		}
 		mDragItemList.setDataList(list);
 		mSlider.setValue(0.5f);
+		refreshNormalList();
 	}
 	public void update(float elapsedTime)
 	{
@@ -225,6 +232,15 @@ public class ScrollViewPanel : WindowObjectUGUI
 		mProgress.setValue(mTimer / 20.0f);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------------------------
+	protected void refreshNormalList()
+	{
+		mNormalItemPool.unuseAll();
+		for (int i = 0; i < 10; ++i)
+		{
+			mNormalItemPool.newItem().setData("Normal" + IToS(i));
+		}
+		mNormalItemPool.autoGridVertical();
+	}
 	protected FilterTreeNode createFilterNode(string text, OBJECT_ITEM objectType, ushort equipType, PLAYER_JOB job, FilterTreeNode parent = null)
 	{
 		FilterTreeNode node = mFilterNodePoolList[parent?.getChildDepth() ?? 0].newItem();
