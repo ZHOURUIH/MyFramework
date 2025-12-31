@@ -1,11 +1,11 @@
 ﻿
 // 自定义的下拉列表的项
-public class DropItem : WindowRecyclableUGUI
+public class DropItem : WindowRecyclableUGUI, IDropItem
 {
-	protected UGUIDropList mParentDropList;		// 自定义的下拉列表
-	protected myUGUIObject mHover;				// 悬停窗口
-	protected myUGUITextAuto mLabel;			// 名字窗口
-	protected int mCustomValue;					// 附带的自定义数据,一般都是枚举之类的
+	protected UGUIDropListBase mParentDropList;		// 自定义的下拉列表
+	protected myUGUIObject mHover;					// 悬停窗口
+	protected myUGUITextAuto mLabel;				// 名字窗口
+	protected int mCustomValue;						// 附带的自定义数据,一般都是枚举之类的
 	public DropItem(IWindowObjectOwner parent) : base(parent) { }
 	protected override void assignWindowInternal()
 	{
@@ -26,11 +26,11 @@ public class DropItem : WindowRecyclableUGUI
 		base.reset();
 		mHover?.setActive(false);
 	}
-	public string getText()						{ return mLabel.getText(); }
-	public int getCustomValue()					{ return mCustomValue; }
-	public void setText(string text)			{ mLabel.setText(text); }
-	public void setCustomValue(int value)		{ mCustomValue = value; }
-	public void setParent(UGUIDropList parent)	{ mParentDropList = parent; }
+	public string getText()							{ return mLabel.getText(); }
+	public int getCustomValue()						{ return mCustomValue; }
+	public void setText(string text)				{ mLabel.setText(text); }
+	public void setCustomValue(int value)			{ mCustomValue = value; }
+	public void setParent(UGUIDropListBase parent)	{ mParentDropList = parent; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onClick()
 	{
