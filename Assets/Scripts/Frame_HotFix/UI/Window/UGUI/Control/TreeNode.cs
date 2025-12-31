@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 public abstract class UGUITreeNode : WindowRecyclableUGUI
 {
 	protected List<UGUITreeNode> mChildNodeList = new();
 	protected UGUITreeNode mParentNode;
 	protected UGUITreeList mTree;
+	protected Action mNodeClickCallback;
 	protected bool mExpand;
 	protected bool mSelect;
 	protected int mDepth;
@@ -13,6 +15,17 @@ public abstract class UGUITreeNode : WindowRecyclableUGUI
 	{
 		base.init();
 		mRoot.registeCollider(onNodeClick);
+	}
+	public override void reset()
+	{
+		base.reset();
+		mChildNodeList.Clear();
+		mParentNode = null;
+		mTree = null;
+		mNodeClickCallback = null;
+		mExpand = false;
+		mSelect = false;
+		mDepth = 0;
 	}
 	public void setTree(UGUITreeList tree) { mTree = tree; }
 	public void addChild(UGUITreeNode node) { mChildNodeList.Add(node); }
@@ -23,6 +36,7 @@ public abstract class UGUITreeNode : WindowRecyclableUGUI
 	}
 	public virtual void setSelect(bool select) { mSelect = select; }
 	public virtual void setExpand(bool expand) { mExpand = expand; }
+	public void setNodeClickCallback(Action callback) { mNodeClickCallback = callback; }
 	public UGUITreeList getTree() { return mTree; }
 	public bool isExpand() { return mExpand; }
 	public bool isSelect() { return mSelect; }
@@ -47,5 +61,6 @@ public abstract class UGUITreeNode : WindowRecyclableUGUI
 		}
 		mTree.resizeTreeAreaSize();
 		treeContent.setWindowTopInParent(contentTop);
+		mNodeClickCallback?.Invoke();
 	}
 }

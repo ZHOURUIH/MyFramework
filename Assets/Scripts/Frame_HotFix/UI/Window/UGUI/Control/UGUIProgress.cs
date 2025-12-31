@@ -12,10 +12,7 @@ public class UGUIProgress : WindowObjectUGUI, ISlider, ICommonUI
 	protected Vector2 mOriginProgressSize;			// 进度窗口初始的大小
 	protected float mProgressValue;					// 当前的进度值
 	protected SLIDER_MODE mMode;                    // 进度条显示的实现方式
-	public UGUIProgress(IWindowObjectOwner parent) : base(parent)
-	{
-		mMode = SLIDER_MODE.FILL;
-	}
+	public UGUIProgress(IWindowObjectOwner parent) : base(parent){}
 	protected override void assignWindowInternal()
 	{
 		newObject(out mProgressBar, "ProgressBar");
@@ -24,14 +21,7 @@ public class UGUIProgress : WindowObjectUGUI, ISlider, ICommonUI
 	public override void init()
 	{
 		base.init();
-		if (mProgressBar.getImage().type == Image.Type.Filled)
-		{
-			mMode = SLIDER_MODE.FILL;
-		}
-		else
-		{
-			mMode = SLIDER_MODE.SIZING;
-		}
+		mMode = mProgressBar.getImage().type == Image.Type.Filled ? SLIDER_MODE.FILL : SLIDER_MODE.SIZING;
 		mOriginProgressSize = mProgressBar.getWindowSize();
 		mOriginProgressPosition = mProgressBar.getPosition();
 	}
@@ -39,7 +29,7 @@ public class UGUIProgress : WindowObjectUGUI, ISlider, ICommonUI
 	{
 		if (isVectorZero(mOriginProgressSize))
 		{
-			logError("ProgressBar的size为0,是否忘记调用了UGUIProgress的initProgress?");
+			logError("ProgressBar的size为0,是否忘记调用了UGUIProgress的init?");
 			return;
 		}
 		mProgressValue = value;

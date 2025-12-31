@@ -40,6 +40,12 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 		}
 		mInited = true;
 		mDestroied = false;
+		// 调用当前节点中所有对象池的初始化
+		foreach (WindowStructPoolBase pool in mPoolList.safe())
+		{
+			pool.init();
+		}
+		// 调用所有子节点的初始化
 		foreach (WindowObjectBase item in mChildList.safe())
 		{
 			item.init();

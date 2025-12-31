@@ -74,7 +74,7 @@ public class ScrollViewPanel : WindowObjectUGUI
 	protected WindowStructPool<NormalItem> mNormalItemPool;
 	protected UGUIDragViewLoop<DragItem, DragItem.Data> mDragItemList;
 	// auto generate member end
-	protected List<WindowStructPool<FilterTreeNode>> mFilterNodePoolList = new();
+	protected List<WindowStructPool<CustomFilterTreeNode>> mFilterNodePoolList = new();
 	protected float mTimer;
 	public ScrollViewPanel(IWindowObjectOwner parent) : base(parent)
 	{
@@ -137,9 +137,7 @@ public class ScrollViewPanel : WindowObjectUGUI
 	public override void init()
 	{
 		base.init();
-		mNormalItemPool.init(true);
-		mSlider.initSlider(() => { log("slider变化:" + FToS(mSlider.getValue())); });
-		mDragItemList.initDragView();
+		mSlider.setSliderCallback(() => { log("slider变化:" + FToS(mSlider.getValue())); });
 		mCheckBox.setCheckCallback((UGUICheckbox checkbox) => { log("checkbox变化:" + checkbox.isChecked()); });
 		mSimpleImageButton.registeCollider(() => { log("mSimpleImageButton被点击"); });
 		mImageButton.registeCollider(() => { log("mImageButton被点击"); mImageButton.setSelected(!mImageButton.isSelected()); });
@@ -156,14 +154,9 @@ public class ScrollViewPanel : WindowObjectUGUI
 		options.Add("选项四");
 		mDropList.setOptions(options);
 
-		for (int i = 0; i < mFilterNodePoolList.Count; ++i)
-		{
-			mFilterNodePoolList[i].init(true);
-		}
-
 		// 构建出物品类型过滤的树形列表
 		createFilterNode("全部", OBJECT_ITEM.NONE, 0, PLAYER_JOB.NONE);
-		FilterTreeNode nodeWeapon = createFilterNode("武器", OBJECT_ITEM.EQUIP, 1 << (byte)EQUIP_TYPE.WEAPON, PLAYER_JOB.NONE);
+		CustomFilterTreeNode nodeWeapon = createFilterNode("武器", OBJECT_ITEM.EQUIP, 1 << (byte)EQUIP_TYPE.WEAPON, PLAYER_JOB.NONE);
 		createFilterNode("战士", OBJECT_ITEM.EQUIP, 1 << (byte)EQUIP_TYPE.WEAPON, PLAYER_JOB.FIGHTER, nodeWeapon);
 		createFilterNode("法师", OBJECT_ITEM.EQUIP, 1 << (byte)EQUIP_TYPE.WEAPON, PLAYER_JOB.MAGE, nodeWeapon);
 		createFilterNode("道士", OBJECT_ITEM.EQUIP, 1 << (byte)EQUIP_TYPE.WEAPON, PLAYER_JOB.TAOIST, nodeWeapon);
@@ -171,7 +164,7 @@ public class ScrollViewPanel : WindowObjectUGUI
 							  1 << (byte)EQUIP_TYPE.HELMET |
 							  1 << (byte)EQUIP_TYPE.BELT |
 							  1 << (byte)EQUIP_TYPE.SHOE;
-		FilterTreeNode nodeCloth = createFilterNode("服装", OBJECT_ITEM.EQUIP, allClothMask, PLAYER_JOB.NONE);
+		CustomFilterTreeNode nodeCloth = createFilterNode("服装", OBJECT_ITEM.EQUIP, allClothMask, PLAYER_JOB.NONE);
 		createFilterNode("衣服", OBJECT_ITEM.EQUIP, 1 << (byte)EQUIP_TYPE.CLOTH, PLAYER_JOB.NONE, nodeCloth);
 		createFilterNode("头盔", OBJECT_ITEM.EQUIP, 1 << (byte)EQUIP_TYPE.HELMET, PLAYER_JOB.NONE, nodeCloth);
 		createFilterNode("腰带", OBJECT_ITEM.EQUIP, 1 << (byte)EQUIP_TYPE.BELT, PLAYER_JOB.NONE, nodeCloth);
@@ -181,7 +174,7 @@ public class ScrollViewPanel : WindowObjectUGUI
 							   1 << (byte)EQUIP_TYPE.NECKLACE |
 							   1 << (byte)EQUIP_TYPE.MEDAL |
 							   1 << (byte)EQUIP_TYPE.DIAMOND;
-		FilterTreeNode nodeJewelry = createFilterNode("首饰", OBJECT_ITEM.EQUIP, allJewelyMask, PLAYER_JOB.NONE);
+		CustomFilterTreeNode nodeJewelry = createFilterNode("首饰", OBJECT_ITEM.EQUIP, allJewelyMask, PLAYER_JOB.NONE);
 		createFilterNode("戒指", OBJECT_ITEM.EQUIP, 1 << (byte)EQUIP_TYPE.RING, PLAYER_JOB.NONE, nodeJewelry);
 		createFilterNode("手镯", OBJECT_ITEM.EQUIP, 1 << (byte)EQUIP_TYPE.BRACELET, PLAYER_JOB.NONE, nodeJewelry);
 		createFilterNode("项链", OBJECT_ITEM.EQUIP, 1 << (byte)EQUIP_TYPE.NECKLACE, PLAYER_JOB.NONE, nodeJewelry);
@@ -191,13 +184,14 @@ public class ScrollViewPanel : WindowObjectUGUI
 		createFilterNode("消耗品", OBJECT_ITEM.CONSUMABLE, 0, PLAYER_JOB.NONE);
 		createFilterNode("卡片", OBJECT_ITEM.CARD, 0, PLAYER_JOB.NONE);
 		createFilterNode("宝箱", OBJECT_ITEM.BOX, 0, PLAYER_JOB.NONE);
-		FilterTreeNode nodeSkillbook = createFilterNode("技能书", OBJECT_ITEM.SKILL_BOOK, 0, PLAYER_JOB.NONE);
+		CustomFilterTreeNode nodeSkillbook = createFilterNode("技能书", OBJECT_ITEM.SKILL_BOOK, 0, PLAYER_JOB.NONE);
 		createFilterNode("战士", OBJECT_ITEM.SKILL_BOOK, 0, PLAYER_JOB.FIGHTER, nodeSkillbook);
 		createFilterNode("法师", OBJECT_ITEM.SKILL_BOOK, 0, PLAYER_JOB.MAGE, nodeSkillbook);
 		createFilterNode("道士", OBJECT_ITEM.SKILL_BOOK, 0, PLAYER_JOB.TAOIST, nodeSkillbook);
 		// 节点创建完毕后要重新刷新树形列表区域的大小
 		mFilterTree.collapseAll(true);
 		mScript.getLayout().refreshUIDepth(mFilterTree.getContent(), true);
+		mFilterTree.setNodeClickCallback(onTreeItemClick);
 
 		mImage.setSpriteName("SelectedItem");
 		mRawImage.setTextureName("Texture/1/1_1.png");
@@ -232,6 +226,16 @@ public class ScrollViewPanel : WindowObjectUGUI
 		mProgress.setValue(mTimer / 20.0f);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------------------------
+	protected void onTreeItemClick()
+	{
+		if (mFilterTree.getSelectedNode() is CustomFilterTreeNode node)
+		{
+			CustomFilterTreeNodeParam filterParam = node.getPram();
+			log("mObjectType:" + filterParam.mObjectType);
+			log("mEquipType:" + filterParam.mEquipType);
+			log("mJob:" + filterParam.mJob);
+		}
+	}
 	protected void refreshNormalList()
 	{
 		mNormalItemPool.unuseAll();
@@ -241,9 +245,9 @@ public class ScrollViewPanel : WindowObjectUGUI
 		}
 		mNormalItemPool.autoGridVertical();
 	}
-	protected FilterTreeNode createFilterNode(string text, OBJECT_ITEM objectType, ushort equipType, PLAYER_JOB job, FilterTreeNode parent = null)
+	protected CustomFilterTreeNode createFilterNode(string text, OBJECT_ITEM objectType, ushort equipType, PLAYER_JOB job, CustomFilterTreeNode parent = null)
 	{
-		FilterTreeNode node = mFilterNodePoolList[parent?.getChildDepth() ?? 0].newItem();
+		CustomFilterTreeNode node = mFilterNodePoolList[parent?.getChildDepth() ?? 0].newItem();
 		node.setText(text);
 		node.setParam(objectType, equipType, job);
 		mFilterTree.addNode(parent, node);

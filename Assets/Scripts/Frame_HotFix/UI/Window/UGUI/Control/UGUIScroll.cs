@@ -4,7 +4,7 @@ using static MathUtility;
 using static FrameBaseHotFix;
 
 // 自定义的滑动列表,基于容器(相当于状态的预设),物体(用于显示的物体),物体的各个状态在每个容器之间插值计算
-// 需要在初始化时主动调用initScroll,也需要主动调用update
+// 需要主动调用update
 // 一般制作Container时需要多两个结束的Container放在两端,使Item在超出Container时不至于突然消失
 public class UGUIScroll : WindowObjectUGUI, ICommonUI
 {

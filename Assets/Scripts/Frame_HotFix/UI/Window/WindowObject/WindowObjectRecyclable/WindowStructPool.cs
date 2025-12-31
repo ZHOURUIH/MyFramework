@@ -21,18 +21,10 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		}
 		mUnusedItemList.Clear();
 	}
-	// 这个init需要在界面中手动调用,因为参数跟默认的init不一样
-	public void init(bool newItemToLast)
+	public override void init()
 	{
-		init(mTemplate.getParent(), typeof(T), newItemToLast);
-	}
-	public void init(myUGUIObject parent, bool newItemToLast)
-	{
-		init(parent, typeof(T), newItemToLast);
-	}
-	public void init(Type type, bool newItemToLast)
-	{
-		init(mTemplate.getParent(), type, newItemToLast);
+		base.init();
+		init(mTemplate.getParent(), typeof(T), true);
 	}
 	public List<T> getUsedList() { return mUsedItemList; }
 	public bool isUsed(T item) { return mUsedItemList.Contains(item); }

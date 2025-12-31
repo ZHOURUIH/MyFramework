@@ -35,14 +35,9 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 	{
 		mDisplayItemPool.assignTemplate(mContent, templateName);
 	}
-	public void initDragView(DRAG_DIRECTION direction = DRAG_DIRECTION.VERTICAL)
+	public override void init()
 	{
-		initDragView(direction, Vector2.zero, true);
-	}
-	// interval是适配前的间隔,默认根据Content的适配方式进行计算
-	// refreshDepthIgnoreInactive刷新节点深度时,是否忽略没有激活的节点,默认是忽略的
-	public void initDragView(DRAG_DIRECTION direction, Vector2 interval, bool refreshDepthIgnoreInactive)
-	{
+		base.init();
 		if (mContent == null || mViewport == null)
 		{
 			logError("是否忘了调用UGUIDragViewLoop的assignWindow?");
@@ -53,9 +48,8 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 			logError("是否忘了调用UGUIDragViewLoop的initTemplate?");
 			return;
 		}
-		mContent.initDragView(direction);
-		mDisplayItemPool.init(true);
-		mInterval = mContent.tryGetUnityComponent<ScaleAnchor>().getRealScale() * interval;
+		mContent.setDragDirection(DRAG_DIRECTION.VERTICAL);
+		mInterval = mContent.tryGetUnityComponent<ScaleAnchor>().getRealScale() * Vector2.zero;
 		mItemSize = mDisplayItemPool.getTemplate().getWindowSize();
 		if (mItemSize.x < 1 || mItemSize.y < 1)
 		{
@@ -71,7 +65,7 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 		{
 			mDisplayItemPool.newItem();
 		}
-		mScript.getLayout().refreshUIDepth(mContent, refreshDepthIgnoreInactive);
+		mScript.getLayout().refreshUIDepth(mContent, true);
 	}
 	// 仅更新数据列表,要求新设置的数据列表要与之前的长度一致,这样才不需要重新计算Content的大小和所有节点的位置
 	public void updateDataList(List<DataType> dataList)

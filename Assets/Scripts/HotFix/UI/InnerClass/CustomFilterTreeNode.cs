@@ -1,17 +1,17 @@
 ﻿
-public class FilterTreeNodeParam
+public class CustomFilterTreeNodeParam
 {
 	public OBJECT_ITEM mObjectType;
 	public ushort mEquipType;
 	public PLAYER_JOB mJob;
 }
 
-public class FilterTreeNode : UGUITreeNode
+public class CustomFilterTreeNode : UGUITreeNode
 {
 	protected myUGUITextTMP mText;
 	protected myUGUIObject mSelectMark;
-	protected FilterTreeNodeParam mParam = new();
-	public FilterTreeNode(IWindowObjectOwner parent) : base(parent) { }
+	protected CustomFilterTreeNodeParam mParam = new();
+	public CustomFilterTreeNode(IWindowObjectOwner parent) : base(parent) { }
 	protected override void assignWindowInternal()
 	{
 		newObject(out mText, "Text");
@@ -32,7 +32,7 @@ public class FilterTreeNode : UGUITreeNode
 		mParam.mObjectType = objectType;
 		mParam.mJob = job;
 	}
-	public FilterTreeNodeParam getPram() { return mParam; }
+	public CustomFilterTreeNodeParam getPram() { return mParam; }
 	public override void setSelect(bool select)
 	{
 		base.setSelect(select);

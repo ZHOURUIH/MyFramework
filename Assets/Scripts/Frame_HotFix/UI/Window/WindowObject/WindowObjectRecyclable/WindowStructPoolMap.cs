@@ -19,17 +19,10 @@ public class WindowStructPoolMap<Key, T> : WindowStructPoolBase where T : Window
 		}
 		mUnusedItemList.Clear();
 	}
-	public void init(myUGUIObject parent)
+	public override void init()
 	{
-		init(parent, typeof(T), true);
-	}
-	public void init(bool newItemToLast)
-	{
-		init(mTemplate.getParent(), typeof(T), newItemToLast);
-	}
-	public void init1(myUGUIObject parent, bool newItemToLast)
-	{
-		init(parent, typeof(T), newItemToLast);
+		base.init();
+		init(mTemplate.getParent(), typeof(T), true);
 	}
 	public bool hasKey(Key key) { return mUsedItemList.ContainsKey(key); }
 	public T getItem(Key key) { return mUsedItemList.get(key); }

@@ -27,14 +27,6 @@ public class myUGUIDragView : myUGUIObject
 		setClampInRange(true);
 		mInited = true;
 	}
-	public void initDragView(DRAG_DIRECTION direction)
-	{
-		initDragView(direction, toRadian(45.0f), false, true, true);
-	}
-	public void initDragView(DRAG_DIRECTION direction, float angleThresholdRadian)
-	{
-		initDragView(direction, angleThresholdRadian, false, true, true);
-	}
 	// angleThresholdRadian表示拖拽方向与允许拖拽方向的夹角绝对值最大值,弧度制
 	// clampInner为true表示DragView只能在父节点的区域内滑动,父节点区域小于DragView区域时不能滑动
 	// clampInner为false表示DragView只能在父节点的区域外滑动,父节点区域大于DragView区域时不能滑动
@@ -66,7 +58,7 @@ public class myUGUIDragView : myUGUIObject
 		mDragViewComponent.onTouchDown(mousePos, touchID);
 		if (!mInited)
 		{
-			logError("COMWindowDragView组件未初始化,是否忘记调用了myUGUIDragView的initDragView?");
+			logError("myUGUIDragView未初始化,是否忘记调用了myUGUIDragView的init?");
 		}
 	}
 	// 鼠标在屏幕上抬起

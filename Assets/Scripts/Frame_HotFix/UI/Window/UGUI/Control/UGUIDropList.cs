@@ -37,7 +37,6 @@ public class UGUIDropList : WindowObjectUGUI, ICommonUI
 	public override void init()
 	{
 		base.init();
-		mItemPool.init(true);
 		mLabel.registeCollider(onClick);
 		mMask.registeCollider(onMaskClick);
 		mOptions.setActive(false);

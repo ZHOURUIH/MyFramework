@@ -4,7 +4,7 @@ using UnityEngine.UI;
 using static UnityUtility;
 using static MathUtility;
 
-// 自定义的滑动条
+// 自定义的滑动条,一般用于点击滑块进行拖动进度之类的功能
 public class UGUISlider : WindowObjectUGUI, ISlider, ICommonUI
 {
 	protected Action mSliderStartCallback;			// 开始拖拽滑动的回调
@@ -19,27 +19,18 @@ public class UGUISlider : WindowObjectUGUI, ISlider, ICommonUI
 	protected bool mEnableDrag;						// 是否需要启用手指滑动进度条
 	protected DRAG_DIRECTION mDirection;			// 滑动方向
 	protected SLIDER_MODE mMode;                    // 滑动条显示的实现方式
-	public UGUISlider(IWindowObjectOwner parent) : base(parent)
-	{
-		mDirection = DRAG_DIRECTION.HORIZONTAL;
-		mMode = SLIDER_MODE.FILL;
-	}
+	public UGUISlider(IWindowObjectOwner parent) : base(parent){}
 	protected override void assignWindowInternal()
 	{
 		newObject(out mForeground, "Foreground");
 		newObject(out mThumb, mForeground, "Thumb", false);
 	}
-	// 需要手动调用initSlider,因为跟默认的init参数不一样
-	public void initSlider(Action sliderCallback)
+	public override void init()
 	{
-		initSlider(true, DRAG_DIRECTION.HORIZONTAL, sliderCallback);
-	}
-	public void initSlider(bool enableDrag, DRAG_DIRECTION direction, Action sliderCallback)
-	{
-		mEnableDrag = enableDrag;
-		mDirection = direction;
+		base.init();
+		mEnableDrag = true;
+		mDirection = DRAG_DIRECTION.HORIZONTAL;
 		mMode = mForeground.getImage().type == Image.Type.Filled ? SLIDER_MODE.FILL : SLIDER_MODE.SIZING;
-		mSliderCallback = sliderCallback;
 		mOriginForegroundSize = mForeground.getWindowSize();
 		mOriginForegroundPosition = mForeground.getPosition();
 		if (mEnableDrag)
@@ -95,18 +86,18 @@ public class UGUISlider : WindowObjectUGUI, ISlider, ICommonUI
 		return Vector3.zero;
 	}
 	public float getValue() { return mSliderValue; }
-	public bool isDraging() { return mDragging; }
-	public void setEnableDrag(bool enable) { mEnableDrag = enable; }
+	public bool isDragging() { return mDragging; }
 	public bool isEnableDrag() { return mEnableDrag; }
-	public void setSliderMode(SLIDER_MODE mode) { mMode = mode; }
 	public SLIDER_MODE getSliderMode() { return mMode; }
+	public void setEnableDrag(bool enable) { mEnableDrag = enable; }
+	public void setSliderMode(SLIDER_MODE mode) { mMode = mode; }
 	public void showForeground(bool show) { mForeground.getImage().enabled = show; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void updateSlider(float value)
 	{
 		if (isVectorZero(mOriginForegroundSize))
 		{
-			logError("foreground的size为0,是否忘记调用了UGUISlider的initSlider?");
+			logError("foreground的size为0,是否忘记调用了UGUISlider的init?");
 			return;
 		}
 		mSliderValue = value;

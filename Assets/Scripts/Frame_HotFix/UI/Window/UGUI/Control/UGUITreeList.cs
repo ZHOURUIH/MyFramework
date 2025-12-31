@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using static MathUtility;
 using static WidgetUtility;
@@ -130,4 +131,11 @@ public class UGUITreeList : WindowObjectUGUI, ICommonUI
 	}
 	public List<UGUITreeNode> getAllNodeList() { return mAllNodeList; }
 	public myUGUIObject getContent() { return mContent; }
+	public void setNodeClickCallback(Action callback)
+	{
+		foreach (UGUITreeNode item in mAllNodeList)
+		{
+			item.setNodeClickCallback(callback);
+		}
+	}
 }

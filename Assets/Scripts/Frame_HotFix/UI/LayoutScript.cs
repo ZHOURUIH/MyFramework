@@ -163,6 +163,12 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	public abstract void assignWindow();
 	public virtual void init() 
 	{
+		// 调用所有对象池的初始化
+		foreach (WindowStructPoolBase item in mPoolRootList.safe())
+		{
+			item.init();
+		}
+		// 调用所有根对象的初始化
 		foreach (WindowObjectBase item in mWindowObjectRootList.safe())
 		{
 			item.init();

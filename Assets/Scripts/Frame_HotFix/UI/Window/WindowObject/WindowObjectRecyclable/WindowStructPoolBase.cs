@@ -30,6 +30,7 @@ public class WindowStructPoolBase
 		mNewItemMoveToLast = true;
 	}
 	public virtual void destroy() {}
+	public virtual void init(){}
 	public void init(myUGUIObject parent, Type objectType, bool newItemToLast = true)
 	{
 		mItemParent = parent;
@@ -56,13 +57,16 @@ public class WindowStructPoolBase
 	{
 		mTemplate = template;
 	}
-	public myUGUIObject getInUseParent() { return mItemParent; }
-	public void setActive(bool active) { mItemParent.setActive(active); }
+	public myUGUIObject getItemParent() { return mItemParent; }
 	public myUGUIObject getTemplate() { return mTemplate; }
-	public void setItemPreName(string preName) { mPreName = preName; }
-	public virtual void unuseAll() { }
 	public virtual int getInUseCount() { return 0; }
 	public bool isRootPool() { return mOwnerObject == null; }
+	public virtual void unuseAll() { }
+	public void setInUseParent(myUGUIObject parent) { mItemParent = parent; }
+	public void setActive(bool active) { mItemParent.setActive(active); }
+	public void setItemPreName(string preName) { mPreName = preName; }
+	public void setObjectType(Type type) { mObjectType = type; }
+	public void setNewItemMoveToLast(bool moveToLast) { mNewItemMoveToLast = moveToLast; }
 	public void refreshUIDepth(bool ignoreInactive = true)
 	{
 		mScript.getLayout().refreshUIDepth(mItemParent, ignoreInactive);

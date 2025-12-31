@@ -19,13 +19,10 @@ public class WindowStructPoolUnOrder<T> : WindowStructPoolBase where T : WindowO
 		}
 		mUnusedItemList.Clear();
 	}
-	public void init(bool newItemToLast)
+	public override void init()
 	{
-		init(mTemplate.getParent(), typeof(T), newItemToLast);
-	}
-	public void init(myUGUIObject parent, bool newItemToLast)
-	{
-		init(parent, typeof(T), newItemToLast);
+		base.init();
+		init(mTemplate.getParent(), typeof(T), true);
 	}
 	public HashSet<T> getUsedList() { return mUsedItemList; }
 	public void checkCapacity(int capacity)
