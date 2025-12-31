@@ -216,7 +216,13 @@ public class InputSystem : FrameSystem
 			touchPoint.lateUpdate();
 		}
 	}
-	public void registeInputField(IInputField inputField) { mInputFieldList.Add(inputField); }
+	public void registeInputField(IInputField inputField)
+	{
+		if (!mInputFieldList.Add(inputField))
+		{
+			logError("不能重复注册InputField");
+		}
+	}
 	public void unregisteInputField(IInputField inputField) { mInputFieldList.Remove(inputField); }
 	public void setMask(FOCUS_MASK mask) { mFocusMask = (int)mask; }
 	public bool hasMask(FOCUS_MASK mask) { return mask == FOCUS_MASK.NONE || mFocusMask == 0 || (mFocusMask & (int)mask) != 0; }

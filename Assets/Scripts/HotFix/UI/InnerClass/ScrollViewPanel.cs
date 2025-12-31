@@ -71,6 +71,7 @@ public class ScrollViewPanel : WindowObjectUGUI
 	protected myUGUIRawImage mRawImage;
 	protected myUGUIRawImageAnim mRawImageAnim;
 	protected myUGUIObject[] mElement = new myUGUIObject[5];
+	protected myUGUIInputFieldTMP mInputField;
 	protected WindowStructPool<NormalItem> mNormalItemPool;
 	protected UGUIDragViewLoop<DragItem, DragItem.Data> mDragItemList;
 	// auto generate member end
@@ -124,6 +125,7 @@ public class ScrollViewPanel : WindowObjectUGUI
 		{
 			newObject(out mElement[i], layoutGridVertical, "Element" + IToS(i));
 		}
+		newObject(out mInputField, "InputField");
 		mNormalItemPool.assignTemplate(mNormalContent, "NormalItem");
 		newObject(out myUGUIObject dragViewLoop, "DragViewLoop", false);
 		mDragItemList.assignWindow(dragViewLoop, "Viewport");
@@ -137,6 +139,7 @@ public class ScrollViewPanel : WindowObjectUGUI
 	public override void init()
 	{
 		base.init();
+		mScript.registeInputField(mInputField);
 		mSlider.setSliderCallback(() => { log("slider变化:" + FToS(mSlider.getValue())); });
 		mCheckBox.setCheckCallback((UGUICheckbox checkbox) => { log("checkbox变化:" + checkbox.isChecked()); });
 		mSimpleImageButton.registeCollider(() => { log("mSimpleImageButton被点击"); });

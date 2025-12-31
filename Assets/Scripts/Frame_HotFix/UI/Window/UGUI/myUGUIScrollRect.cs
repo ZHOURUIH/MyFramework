@@ -15,6 +15,7 @@ public class myUGUIScrollRect : myUGUIObject
 	protected myUGUIObject mContent;    // Viewport下的Content节点
 	protected Image mScrollRectImage;	// mScrollRect节点上的Image组件
 	protected Image mViewportImage;     // mViewport节点上的Image组件
+	protected bool mScrollRectInited;	// 是否已经初始化过了
 	public myUGUIScrollRect()
 	{
 		mNeedUpdate = true;
@@ -36,6 +37,12 @@ public class myUGUIScrollRect : myUGUIObject
 	}
 	public void initScrollRect(myUGUIObject viewport, myUGUIObject content, float verticalPivot = 1.0f, float horizontalPivot = 0.5f)
 	{
+		if (mScrollRectInited)
+		{
+			logError("重复调用了initScrollRect");
+			return;
+		}
+		mScrollRectInited = true;
 		mScrollRect.content = content.getRectTransform();
 		mScrollRect.viewport = viewport.getRectTransform();
 		mContent = content;
