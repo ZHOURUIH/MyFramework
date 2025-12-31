@@ -821,7 +821,7 @@ PlayerSettings:
   webWasm2023: 0
   webEnableSubmoduleStrippingCompatibility: 0
   scriptingDefineSymbols:
-    Android: USE_HYBRID_CLR;USE_SQLITE;USE_TMP;USE_OBFUSCATOR;USE_URP
+    Android: USE_HYBRID_CLR;USE_OBFUSCATOR;PROJECT_2D;USE_URP;USE_TMP;USE_SQLITE;ENABLE_HOTFIX;TEST
     Standalone: USE_ILRUNTIME
   additionalCompilerArguments: {}
   platformArchitecture: {}

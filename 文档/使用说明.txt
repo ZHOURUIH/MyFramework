@@ -30,34 +30,47 @@ CSV
 添加界面
 1.复制一个UI的Prefab,比如改名为UITest.prefab,打开这个prefab,在UITest节点上添加UGUIGenerator组件,点击添加节点,将界面上需要操作的节点拖到面板上,选择好节点类型,然后点击生成代码.
 
-对象池的使用
-列表类型的对象池
-	离开作用域后会自动回收
-	using var a = new ListScope<TestA>(out var obj);
-	using var a = new DicScope<TestA>(out var obj);
-	using var a = new HashSetScope<TestA>(out var obj);
-	持久的列表对象池可以使用,需要自己手动使用UN_LIST进行回收
-	LIST(out List<int> obj);
-	UN_LIST(out obj);
-类对象的对象池
-  临时使用的对象可以用
-  using var a = new ClassScope<SerializerRead>(out var reader);
-  持久使用的对象使用FrameUtilityILR.CLASS,也是需要手动进行回收.
-  此类对象需要继承自ClassObject,并且需要重写resetProperty函数,将此类的成员变量重置到刚构造结束的状态(这一点非常重要!!!!菜单可以检查出有没有漏掉成员变量)
-Prefab的对象池
-  PrefabPoolManager.createObject或者createObjectAsync,需要使用PrefabPoolManager.destroyObject进行回收,而且不允许在外部对其进行销毁.
-特效的对象池
-  EffectManager.createEffect,实际上也是调用的PrefabPoolManager的方法,只不过针对特效有一些封装,比如播放临时特效
-GameObject的对象池
-  GameObjectPool.newObject,需要使用GameObjectPool.destroyObject进行回收
+代码示例:
+
+1.对象池的使用
+	列表类型的对象池
+		离开作用域后会自动回收
+		using var a = new ListScope<TestA>(out var obj);
+		using var a = new DicScope<TestA>(out var obj);
+		using var a = new HashSetScope<TestA>(out var obj);
+		持久的列表对象池可以使用,需要自己手动使用UN_LIST进行回收
+		LIST(out List<int> obj);
+		UN_LIST(out obj);
+	类对象的对象池
+	  临时使用的对象可以用
+	  using var a = new ClassScope<SerializerRead>(out var reader);
+	  持久使用的对象使用FrameUtilityILR.CLASS,也是需要手动进行回收.
+	  此类对象需要继承自ClassObject,并且需要重写resetProperty函数,将此类的成员变量重置到刚构造结束的状态(这一点非常重要!!!!菜单可以检查出有没有漏掉成员变量)
+	Prefab的对象池
+	  PrefabPoolManager.createObject或者createObjectAsync,需要使用PrefabPoolManager.destroyObject进行回收,而且不允许在外部对其进行销毁.
+	特效的对象池
+	  EffectManager.createEffect,实际上也是调用的PrefabPoolManager的方法,只不过针对特效有一些封装,比如播放临时特效
+	GameObject的对象池
+	  GameObjectPool.newObject,需要使用GameObjectPool.destroyObject进行回收
   
-字符串
-字符串的操作都在StringUtility有提供函数,包括拼接,转换数字,拆分,查找,文件名相关操作
-对于大量字符串拼接,可以使用MyStringBuilder
-比如using var a = new MyStringBuilderScope(out var builder);
+2.字符串
+	字符串的操作都在StringUtility有提供函数,包括拼接,转换数字,拆分,查找,文件名相关操作
+	对于大量字符串拼接,可以使用MyStringBuilder
+	比如using var a = new MyStringBuilderScope(out var builder);
+	builder.append("123");
+	builder.append(123);
+	builder.colorString("FF0000", 123);
+	builder.toString();
+	对于字符串的转换,可以使用IToS,FToS等方法
+	比如 string levelText = "Lv." + IToS(level);
 
 文件
-FileUtility文件相关的操作,读,写,查找,计算MD5等
+	FileUtility文件相关的操作,读,写,查找,计算MD5等
+	比如
+	string content = openTxtFileSync("123.txt", true);
+	openTxtFileAsync("123.txt", true, (string content)=>{});
+	List<string> files = findFiles("aaa/");
+	writeFile("123.txt", content);
 
 数学计算
 MathUtility,封装了大部分的Mathf方法,也有一些自己写的关于2D或者3D图形的算法
@@ -75,3 +88,54 @@ TimeUtility
 BinaryUtility
 
 也有很多工具函数是直接以扩展函数的方式实现的,比如ListExtension,DictionaryExtention,HashSetExtension,StringExtension
+
+UI中的一些写法
+注册点击事件:
+myUGUIObject test;
+test.registerCollider(()=>{});
+这里定义了一个UI节点对象,然后调用了registerCollider,这个函数中做了三件事情,
+1:自动添加一个BoxCollider.
+2.向GlobalTouchSystem注册了这个对象.
+3.给对象设置一个点击事件的回调.
+
+注册长按事件:
+test.registerCollider();
+test.addLongPress(()=>{}, 0.5f);
+这里表示长按0.5秒以后触发这个回调
+registerCollider()空的参数是表示仅添加Collider,并注册对象,没有设置任何事件回调
+
+修改图片
+myUGUIImage testImage;
+testImage.setSpriteName("123");
+这一句的意思是,从testImage身上的Image组件中Sprite的图集中去找到名字为123的Sprite,给设置到Image中.
+所以这里的前提条件是
+1:prefab中Image组件上需要有一个Sprite,并且这个Sprite是属于一个图集的,无论是SpriteAtlas,还是MultiSprite.
+2:Image所在的GameObject上需要有一个ImageAtlasPath组件,因为需要从这个组件中获取到图集文件的路径,不然不知道初始的图集在哪儿.
+如果在添加ImageAtlasPath组件时,没有自动找到图集的路径,那可能是Image上没有设置Sprite,或者Sprite没有所属的SpriteAtlas或者MultiSprite.
+如果并不涉及到修改图片,只是访问Image组件的一些其他属性,则定义为myUGUIImageSimple会好一些,这样避免去重新加载一次Atlas
+
+设置文本
+myUGUITextTMP testText;
+testText.setText("123");
+testText.setText(123);
+这两个方法都可以设置文本,传递int时,内部会自动调用IToS转换为字符串
+
+滑动窗口
+myUGUIDragView testDragView;
+一般在prefab中的结构为
+--Viewport
+	--Content
+		--Template
+在UGUIGenerator面板上会将Content拖拽上去,且选择myUGUIDragView类型
+
+UI中的对象池
+一般会将滑动窗口和对象池结合来使用,来实现一些列表的功能,比如当前行会的成员列表
+prefab中的结构一般为
+--Viewport
+	--Content
+		--MemberItem
+myUGUIDragView testDragView;
+protected WindowStructPool<MemberItem> mMakeItemDisplayPool;
+mMakeItemDisplayPool.unuseAll();
+mMakeItemDisplayPool.newItem();
+mMakeItemDisplayPool.autoGridVertical();
