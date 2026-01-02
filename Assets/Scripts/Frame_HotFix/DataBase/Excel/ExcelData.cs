@@ -3,8 +3,8 @@
 public class ExcelData
 {
 	public int mID;		// 每一条数据的唯一ID
-	public virtual void read(SerializerRead reader)
+	public virtual bool read(SerializerRead reader)
 	{
-		reader.read(out mID);
+		return reader.read(out mID);
 	}
 }

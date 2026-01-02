@@ -75,6 +75,10 @@ public class myUGUIText : myUGUIObject, IUGUIText
 	{
 		setText(IToS(value));
 	}
+	public void setText(long value)
+	{
+		setText(LToS(value));
+	}
 	public void applyPreferredWidth(float height = 0.0f)
 	{
 		if (height <= 0.0f)

@@ -79,7 +79,11 @@ public class ExcelTable
 		while (reader.getIndex() < reader.getDataSize())
 		{
 			var data = createInstance<ExcelData>(mDataType);
-			data.read(reader);
+			if (!data.read(reader))
+			{
+				logError("表格解析失败,表格:" + mTableName + ", ID:" + data.mID);
+				break;
+			}
 			if (!mDataMap.TryAdd(data.mID, data))
 			{
 				logError("表格中存在重复ID,表格:" + mTableName + ", ID:" + data.mID);
@@ -229,13 +233,23 @@ public class ExcelTable
 			// 如果已有同id的数据，那就重新读一遍来替换；否则需要创建并添加。
 			if (mDataMap.TryGetValue(id, out ExcelData data))
 			{
-				data.read(reader);
+				if (!data.read(reader))
+				{
+					break;
+				}
 			}
 			else
 			{
 				data = createInstance<ExcelData>(mDataType);
-				data.read(reader);
-				mDataMap.Add(data.mID, data);
+				if (!data.read(reader))
+				{
+					logError("表格解析失败,表格:" + mTableName + ", ID:" + data.mID);
+					break;
+				}
+				if (!mDataMap.TryAdd(data.mID, data))
+				{
+					logError("表格中存在重复ID,表格:" + mTableName + ", ID:" + data.mID);
+				}
 			}
 		}
 		// 最后删除减少的行
