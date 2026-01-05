@@ -93,6 +93,7 @@ public class myUGUIImageNumber : myUGUIObject
 	public void setInterval(int interval)					{ mImageNumber.setInterval(interval); }
 	public void setDockingPosition(DOCKING_POSITION dock)	{ mImageNumber.setDockingPosition(dock); }
 	public void setNumber(int num, int limitLen = 0)		{ mImageNumber.setNumber(IToS(num, limitLen)); }
+	public void setNumber(long num, int limitLen = 0)		{ mImageNumber.setNumber(LToS(num, limitLen)); }
 	public void clearNumber()								{ mImageNumber.clearNumber(); }
 	public int getContentWidth()							{ return mImageNumber.getContentWidth(); }
 	public string getNumber()								{ return mImageNumber.getNumber(); }

@@ -57,9 +57,9 @@ public class ImageNumber : Image
 		mDockingPosition = docking;
 		setDirty();
 	}
-	public void setNumber(string numer) 
+	public void setNumber(string number) 
 	{
-		mNumber = numer;
+		mNumber = number;
 		// 检查是否包含无法显示的数字
 		if (isEditor() && !mNumber.isEmpty())
 		{

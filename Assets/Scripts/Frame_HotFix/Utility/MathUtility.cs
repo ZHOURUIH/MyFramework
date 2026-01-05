@@ -657,6 +657,11 @@ public class MathUtility
 		{
 			max += oddsList[i];
 		}
+		if (max <= 0)
+		{
+			return;
+		}
+
 		selectIndexes.Clear();
 		if (selectCount >= allCount)
 		{
@@ -671,7 +676,7 @@ public class MathUtility
 		selectIndexes.Capacity = selectCount;
 		for (int i = 0; i < selectCount; ++i)
 		{
-			int random = randomInt(0, max);
+			int random = randomInt(1, max);
 			int curValue = 0;
 			int count = oddsList.Count;
 			for (int j = 0; j < count; ++j)
@@ -700,6 +705,11 @@ public class MathUtility
 		{
 			max += oddsList[i];
 		}
+		if (max <= 0)
+		{
+			return -1;
+		}
+
 		selectIndexes.Clear();
 		if (selectCount >= allCount)
 		{
@@ -713,7 +723,7 @@ public class MathUtility
 		int curCount = 0;
 		for (int i = 0; i < selectCount; ++i)
 		{
-			int random = randomInt(0, max);
+			int random = randomInt(1, max);
 			int curValue = 0;
 			int count = oddsList.Count;
 			for (int j = 0; j < count; ++j)
