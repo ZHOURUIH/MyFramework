@@ -60,7 +60,7 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 		{
 			if (pool.getInUseCount() > 0)
 			{
-				mUnuseAllWhenHide = true;
+				mUnuseAllWhenHide = false;
 				break;
 			}
 		}

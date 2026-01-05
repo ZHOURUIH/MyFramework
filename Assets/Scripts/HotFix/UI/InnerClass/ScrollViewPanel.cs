@@ -59,6 +59,7 @@ public class ScrollViewPanel : WindowObjectUGUI
 	protected myUGUIDragView mContent;
 	protected UGUICheckbox mCheckBox;
 	protected myUGUIImageSimple mSimpleImageButton;
+	protected myUGUITextTMP mTestText;
 	protected myUGUIImageButton mImageButton;
 	protected myUGUIImageNumber mImageNumber;
 	protected myUGUINumber mNumber;
@@ -72,8 +73,8 @@ public class ScrollViewPanel : WindowObjectUGUI
 	protected myUGUIRawImageAnim mRawImageAnim;
 	protected myUGUIObject[] mElement = new myUGUIObject[5];
 	protected myUGUIInputFieldTMP mInputField;
-	protected WindowStructPool<NormalItem> mNormalItemPool;
 	protected UGUIDragViewLoop<DragItem, DragItem.Data> mDragItemList;
+	protected WindowStructPool<NormalItem> mNormalItemPool;
 	// auto generate member end
 	protected List<WindowStructPool<CustomFilterTreeNode>> mFilterNodePoolList = new();
 	protected float mTimer;
@@ -85,8 +86,8 @@ public class ScrollViewPanel : WindowObjectUGUI
 		mCheckBox = new(this);
 		mSlider = new(this);
 		mProgress = new(this);
-		mNormalItemPool = new(this);
 		mDragItemList = new(this);
+		mNormalItemPool = new(this);
 		// auto generate constructor end
 		for (int i = 0; i < 3; ++i)
 		{
@@ -95,6 +96,8 @@ public class ScrollViewPanel : WindowObjectUGUI
 	}
 	protected override void assignWindowInternal()
 	{
+		// newObject(out mNode[i], mFilterTree.getContent(), "Node" + IToS(i));这一句是手动改的
+		// 因为对重名的支持不太好,这里在自动生成代码时会误将mContent作为父节点,实际上是mFilterTree.getContent()
 		// auto generate assignWindowInternal start
 		mFilterTree.assignWindow(mRoot, "FilterTree");
 		newObject(out myUGUIObject myViewport, "MyViewport", false);
@@ -109,6 +112,7 @@ public class ScrollViewPanel : WindowObjectUGUI
 		newObject(out mNormalContent, normalViewport, "NormalContent");
 		mCheckBox.assignWindow(mContent, "CheckBox");
 		newObject(out mSimpleImageButton, mContent, "SimpleImageButton");
+		newObject(out mTestText, mContent, "TestText");
 		newObject(out mImageButton, mContent, "ImageButton");
 		newObject(out mImageNumber, mContent, "ImageNumber");
 		newObject(out mNumber, mContent, "Number");
@@ -126,10 +130,10 @@ public class ScrollViewPanel : WindowObjectUGUI
 			newObject(out mElement[i], layoutGridVertical, "Element" + IToS(i));
 		}
 		newObject(out mInputField, "InputField");
-		mNormalItemPool.assignTemplate(mNormalContent, "NormalItem");
 		newObject(out myUGUIObject dragViewLoop, "DragViewLoop", false);
 		mDragItemList.assignWindow(dragViewLoop, "Viewport");
 		mDragItemList.assignTemplate("DragItem");
+		mNormalItemPool.assignTemplate(mNormalContent, "NormalItem");
 		// auto generate assignWindowInternal end
 		for (int i = 0; i < mFilterNodePoolList.Count; ++i)
 		{
@@ -199,6 +203,13 @@ public class ScrollViewPanel : WindowObjectUGUI
 		mImage.setSpriteName("SelectedItem");
 		mRawImage.setTextureName("Texture/1/1_1.png");
 		mImageAnim.setNeedUpdate(true);
+
+		using var b = new MyStringBuilderScope(out var builder);
+		builder.append("123");
+		builder.append(456);
+		builder.colorString("FF0000", 123);
+		builder.colorStringComma("00FF00", 111222333);
+		mTestText.setText(builder.ToString());
 	}
 	public override void onShow()
 	{

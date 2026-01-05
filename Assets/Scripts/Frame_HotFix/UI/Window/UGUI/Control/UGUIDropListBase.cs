@@ -10,7 +10,6 @@ using static UnityUtility;
 // 自定义的下拉列表
 public abstract class UGUIDropListBase : WindowObjectUGUI, ICommonUI
 {
-	protected WindowStructPoolBase mThisItemPool;
 	protected Action mSelectCallback;				// 选项切换时的回调
 	protected myUGUIObject mMask;                   // 点击遮罩,用于点击空白处关闭下拉列表
 	protected myUGUITextAuto mLabel;                // 显示当前选项的文本

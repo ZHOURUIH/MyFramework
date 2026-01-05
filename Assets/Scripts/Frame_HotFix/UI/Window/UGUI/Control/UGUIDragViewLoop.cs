@@ -10,6 +10,7 @@ using static UnityUtility;
 public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, ICommonUI where T : DragViewItem<DataType> where DataType : ClassObject
 {
 	protected WindowStructPool<T> mDisplayItemPool;			// 只用作显示的节点列表
+	protected Dictionary<int, T> mDisplayItemMap = new();	// 用于通过数据下标查找对应的显示节点
 	protected List<DataType> mDataList = new();				// 所有节点的数据列表
 	protected List<Vector3> mAllItemPos = new();            // 所有节点的位置
 	protected myUGUIObject mViewport;						// 视口节点,也就是根节点
@@ -24,7 +25,6 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 	public UGUIDragViewLoop(IWindowObjectOwner parent) : base(parent)
 	{
 		mDisplayItemPool = new(this);
-		mUnuseAllWhenHide = false;
 	}
 	protected override void assignWindowInternal()
 	{
@@ -65,7 +65,9 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 		{
 			mDisplayItemPool.newItem();
 		}
+		// 这里的创建然后销毁纯粹就是为了刷新节点深度,因为节点数量固定,所以后续就算再次复用也无需再刷新深度
 		mScript.getLayout().refreshUIDepth(mContent, true);
+		mDisplayItemPool.unuseAll();
 	}
 	// 仅更新数据列表,要求新设置的数据列表要与之前的长度一致,这样才不需要重新计算Content的大小和所有节点的位置
 	public void updateDataList(List<DataType> dataList)
@@ -176,23 +178,42 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 		// 根据当前Content的位置,计算出当前显示的节点
 		float viewportTopToContentTop = mContent.getWindowSize().y * (1 - mContent.getPivot().y) + mContent.getPosition().y - mViewport.getWindowSize().y * (1 - mViewport.getPivot().y);
 		int topRowIndex = floor(viewportTopToContentTop / (mItemSize.y + mInterval.y));
+		int bottomRowIndex = ceil((viewportTopToContentTop + mViewport.getWindowSize().y) / (mItemSize.y + mInterval.y));
 		int startItemIndex = clampMin(topRowIndex * mColCount);
+		int endItemIndex = clampMin(bottomRowIndex * mColCount);
 		if (mLastStartItemIndex != startItemIndex || forceRefresh)
 		{
+			// 先移除超出区域的节点
 			var displayItemList = mDisplayItemPool.getUsedList();
+			for (int i = displayItemList.Count - 1; i >= 0; --i)
+			{
+				T item = displayItemList[i];
+				if (item.getIndex() < startItemIndex || item.getIndex() >= endItemIndex)
+				{
+					mDisplayItemMap.Remove(item.getIndex());
+					item.clearData();
+					mDisplayItemPool.unuseItem(item);
+				}
+			}
+
+			// 新增需要显示的节点
+			for (int i = startItemIndex; i < endItemIndex; ++i)
+			{
+				if (mDisplayItemMap.get(i) == null)
+				{
+					T item = mDisplayItemPool.newItem();
+					item.setIndex(i);
+					item.setData(mDataList[i]);
+					item.setPosition(mAllItemPos[i]);
+					mDisplayItemMap.addOrSet(i, item);
+				}
+			}
+
+			// 刷新节点名字
 			for (int i = 0; i < displayItemList.Count; ++i)
 			{
 				T item = displayItemList[i];
-				int dataIndex = i + startItemIndex;
-				item.setActive(dataIndex < mDataList.Count);
-				item.setIndex(dataIndex);
-				item.clearData();
-				if (item.isActive())
-				{
-					item.getRoot().setName("Item" + IToS(dataIndex));
-					item.setData(mDataList[dataIndex]);
-					item.setPosition(mAllItemPos[dataIndex]);
-				}
+				item.getRoot().setName("Item" + IToS(item.getIndex()));
 			}
 		}
 		mLastRefreshedContentPos = mContent.getPosition();
