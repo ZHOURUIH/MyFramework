@@ -2460,6 +2460,11 @@ public class MathUtility
 	public static float lerpSimple(float start, float end, float t) { return start + (end - start) * t; }
 	public static Vector3 lerpSimple(Vector3 start, Vector3 end, float t) { return start + (end - start) * t; }
 	public static Color lerpSimple(Color start, Color end, float t) { return start + (end - start) * t; }
+	public static int lerp(int start, int end, float t)
+	{
+		saturate(ref t);
+		return start + (int)((end - start) * t);
+	}
 	public static float lerp(float start, float end, float t, float minRange = 0.0f)
 	{
 		saturate(ref t);
