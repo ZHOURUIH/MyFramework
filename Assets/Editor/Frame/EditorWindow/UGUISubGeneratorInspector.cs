@@ -121,7 +121,7 @@ public class UGUISubGeneratorInspector : GameInspector
 		}
 
 		// assignWindowInternal中的代码
-		List<string> tempCreatedList = new();
+		List<GameObject> tempCreatedList = new();
 		List<string> generatedAssignLines = new();
 		List<MemberData> tempDataList = new(generator.mMemberList);
 		while (tempDataList.Count > 0)

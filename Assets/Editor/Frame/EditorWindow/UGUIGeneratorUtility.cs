@@ -420,7 +420,7 @@ public class UGUIGeneratorUtility
 		}
 		return null;
 	}
-	public static void generateNewObject(List<string> generatedLines, List<MemberData> list, List<MemberData> fixedList, List<string> createdVariableName, MemberData curData, GameObject root)
+	public static void generateNewObject(List<string> generatedLines, List<MemberData> list, List<MemberData> fixedList, List<GameObject> createdVariableObject, MemberData curData, GameObject root)
 	{
 		string curObjName = curData.getMemberName();
 		GameObject parent = curData.getParentObject();
@@ -433,18 +433,17 @@ public class UGUIGeneratorUtility
 		if (parent == root)
 		{
 			int curDataIndex = fixedList.IndexOf(curData);
-			string varName;
 			// 创建的是成员变量
 			if (curDataIndex >= 0)
 			{
-				varName = generateAssignWindowLine("\t\t", generatedLines, curObjName, null, false, curData);
+				generateAssignWindowLine("\t\t", generatedLines, curObjName, null, false, curData);
 			}
 			// 创建的是临时变量,临时变量不考虑数组类型
 			else
 			{
-				varName = generateAssignWindowLineTemp("\t\t", generatedLines, curObjName, null, false);
+				generateAssignWindowLineTemp("\t\t", generatedLines, curObjName, null, false);
 			}
-			createdVariableName.add(varName);
+			createdVariableObject.add(curData.mObject);
 			// 从列表中移除,避免再次被遍历到,如果是临时构造的数据,自己就会移除失败,也就无需关心
 			list.Remove(curData);
 			return;
@@ -454,7 +453,7 @@ public class UGUIGeneratorUtility
 		string parentName;
 		bool parentIsSubUI = false;
 		// 父节点是成员变量
-		MemberData parentData = fixedList.Find((data) => { return data.mObject != null && data.mObject.name == parent.name && data.mArrayType == ARRAY_TYPE.NONE; });
+		MemberData parentData = fixedList.Find((data) => { return data.mObject != null && data.mObject == parent && data.mArrayType == ARRAY_TYPE.NONE; });
 		if (parentData != null)
 		{
 			parentName = "m" + parent.name;
@@ -465,20 +464,19 @@ public class UGUIGeneratorUtility
 		{
 			parentName = parent.name.substr(0, 1).ToLower() + parent.name.removeStartCount(1);
 		}
-		if (createdVariableName.Contains(parentName))
+		if (createdVariableObject.Contains(parent))
 		{
 			// 创建的是成员变量
-			string varName;
 			if (fixedList.IndexOf(curData) >= 0)
 			{
-				varName = generateAssignWindowLine("\t\t", generatedLines, curObjName, parentName, parentIsSubUI, curData);
+				generateAssignWindowLine("\t\t", generatedLines, curObjName, parentName, parentIsSubUI, curData);
 			}
 			// 创建的是临时变量,临时变量不考虑数组类型
 			else
 			{
-				varName = generateAssignWindowLineTemp("\t\t", generatedLines, curObjName, parentName, parentIsSubUI);
+				generateAssignWindowLineTemp("\t\t", generatedLines, curObjName, parentName, parentIsSubUI);
 			}
-			createdVariableName.add(varName);
+			createdVariableObject.add(curData.mObject);
 			list.Remove(curData);
 		}
 		else
@@ -488,9 +486,9 @@ public class UGUIGeneratorUtility
 			if (parentIndex >= 0)
 			{
 				// 递归创建父节点
-				generateNewObject(generatedLines, list, fixedList, createdVariableName, list[parentIndex], root);
+				generateNewObject(generatedLines, list, fixedList, createdVariableObject, list[parentIndex], root);
 				// 创建自己
-				generateNewObject(generatedLines, list, fixedList, createdVariableName, curData, root);
+				generateNewObject(generatedLines, list, fixedList, createdVariableObject, curData, root);
 			}
 			else
 			{
@@ -498,9 +496,9 @@ public class UGUIGeneratorUtility
 				MemberData newParentData = new();
 				newParentData.mObject = parent;
 				newParentData.mType = typeof(myUGUIObject).ToString();
-				generateNewObject(generatedLines, list, fixedList, createdVariableName, newParentData, root);
+				generateNewObject(generatedLines, list, fixedList, createdVariableObject, newParentData, root);
 				// 创建自己
-				generateNewObject(generatedLines, list, fixedList, createdVariableName, curData, root);
+				generateNewObject(generatedLines, list, fixedList, createdVariableObject, curData, root);
 			}
 		}
 	}
@@ -518,14 +516,13 @@ public class UGUIGeneratorUtility
 		lines.Add(prefix + "newObject(out " + typeof(myUGUIObject).ToString() + " " + varName + ", " + parentParam + "\"" + curName + "\", false);");
 		return varName;
 	}
-	public static string generateAssignWindowLine(string prefix, List<string> lines, string curObjectName, string parentName, bool parentIsSubUI, MemberData data)
+	public static void generateAssignWindowLine(string prefix, List<string> lines, string curObjectName, string parentName, bool parentIsSubUI, MemberData data)
 	{
 		string newName = data.mArrayType == ARRAY_TYPE.STATIC_ARRAY ? curObjectName.removeEndNumber() : curObjectName;
 		if (parentIsSubUI && parentName != null)
 		{
 			parentName += ".getRoot()";
 		}
-		string createVarName = "";
 		if (data.mArrayType != ARRAY_TYPE.NONE)
 		{
 			// 动态列表只支持控件或者子页面类型的
@@ -563,7 +560,7 @@ public class UGUIGeneratorUtility
 		}
 		else
 		{
-			createVarName = "m" + curObjectName;
+			string createVarName = "m" + curObjectName;
 			if (data.mWindowType == WINDOW_TYPE.NORMAL_WINDOW)
 			{
 				string showErrorParam = data.mHideError ? ", false" : "";
@@ -599,7 +596,6 @@ public class UGUIGeneratorUtility
 				}
 			}
 		}
-		return createVarName;
 	}
 	public static bool findCustomCode(string fullPath, ref List<string> codeList, out int lineStart,
 								Func<string, bool> startLineMatch, Func<string, bool> endLineMatch, bool showError = true)

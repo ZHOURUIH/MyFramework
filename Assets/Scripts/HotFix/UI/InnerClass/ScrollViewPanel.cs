@@ -96,15 +96,15 @@ public class ScrollViewPanel : WindowObjectUGUI
 	}
 	protected override void assignWindowInternal()
 	{
-		// newObject(out mNode[i], mFilterTree.getContent(), "Node" + IToS(i));这一句是手动改的
-		// 因为对重名的支持不太好,这里在自动生成代码时会误将mContent作为父节点,实际上是mFilterTree.getContent()
 		// auto generate assignWindowInternal start
 		mFilterTree.assignWindow(mRoot, "FilterTree");
 		newObject(out myUGUIObject myViewport, "MyViewport", false);
 		newObject(out mContent, myViewport, "Content");
+		newObject(out myUGUIObject viewport, mFilterTree.getRoot(), "Viewport", false);
+		newObject(out myUGUIObject content, viewport, "Content", false);
 		for (int i = 0; i < mNode.Length; ++i)
 		{
-			newObject(out mNode[i], mFilterTree.getContent(), "Node" + IToS(i));
+			newObject(out mNode[i], content, "Node" + IToS(i));
 		}
 		mDropList.assignWindow(mRoot, "DropList");
 		newObject(out myUGUIObject normalList, "NormalList", false);
