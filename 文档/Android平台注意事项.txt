@@ -2,8 +2,8 @@
 0.首先肯定要装好安卓打包的环境.在unity方面,需要安装AndroidSupport.然后安装AndroidStudio.安装jdk11,或者jdk1.8也行,看需求.安装sdk,可以多装几个版本.安装ndk,AndroidStudio可以安装sdk和ndk,jdk需要自己下载
 1.首先你要确定一个你自己的包名,一般是com.公司名.项目名,多个项目可以共用一个包名,不要跟unity中设置的包名一致
 2.根据包名修改AssetLoader.java,MainActivity.java的路径,需要与包名一致.
-3.修改AssetLoader.java,MainActivity.java中第一行的包名,也是与包名一致.
+3.修改AssetLoader.java,MainActivity.java中第一行的包名,以及其他所有需要填写包名的地方,也是与包名一致.
 4.在AndroidStudio中编译Android项目.如果有编译报错,则需要先解决编译错误.
-5.将编译出来的aar放到Plugins/Android目录中即可
+5.将编译出来的aar放到Plugins/Android目录中即可,这一步已经自动化了,编译后会自动拷贝到指定目录
 6.将GameDefine.cs中的ANDROID_PLUGIN_BUNDLE_NAME字符串定义修改为自己的包名
 7.然后现在就可以正常打包apk了.
