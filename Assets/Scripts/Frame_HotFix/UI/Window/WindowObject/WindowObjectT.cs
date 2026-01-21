@@ -109,7 +109,7 @@ public abstract class WindowObjectT<T> : WindowObjectBase where T : myUGUIObject
 	{
 		if (mRoot == null)
 		{
-			logError("mRoot为空,请确保在assignWindow中已经给mRoot赋值了");
+			logError("mRoot为空,请确保在assignWindow中已经给mRoot赋值了, type:" + GetType());
 		}
 	}
 	protected T0 newObject<T0>(out T0 obj, string name) where T0 : myUGUIObject, new()

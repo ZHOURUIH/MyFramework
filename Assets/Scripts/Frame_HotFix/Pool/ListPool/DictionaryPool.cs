@@ -56,6 +56,10 @@ public class DictionaryPool : FrameSystem
 	// onlyOnce表示是否仅当作临时列表使用
 	public ICollection newList(Type keyType, Type valueType, Type listType, string stackTrace, bool onlyOnce = true)
 	{
+		if (mHasDestroy)
+		{
+			return null;
+		}
 		if (isEditor() && !isMainThread())
 		{
 			Debug.LogError("只能在主线程中使用DictionaryPool,子线程中请使用DictionaryPoolThread代替");
@@ -97,7 +101,7 @@ public class DictionaryPool : FrameSystem
 	}
 	public void destroyList<K, V>(ref Dictionary<K, V> list, Type keyType, Type valueType)
 	{
-		if (list == null)
+		if (mHasDestroy || list == null)
 		{
 			return;
 		}

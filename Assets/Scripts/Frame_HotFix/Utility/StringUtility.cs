@@ -162,6 +162,15 @@ public class StringUtility
 		}
 		return builder.ToString();
 	}
+	public static Color SToColor(string str)
+	{
+		if (str[0] != '#')
+		{
+			str = "#" + str;
+		}
+		ColorUtility.TryParseHtmlString(str, out Color color);
+		return color;
+	}
 	public static int getFirstNumberPos(string str)
 	{
 		int strLen = str.Length;
@@ -549,14 +558,14 @@ public class StringUtility
 		int dotPos = builder.LastIndexOf('/');
 		if (dotPos != -1)
 		{
-			builder = builder.Remove(0, dotPos + 1);
+			builder = builder[(dotPos + 1)..];
 		}
 		return builder;
 	}
 	// 获得文件的后缀名,带.号
 	public static string getFileSuffix(string file)
 	{
-		int dotPos = file.IndexOf('.', file.LastIndexOf('/'));
+		int dotPos = file.IndexOf('.', clampMin(file.LastIndexOf('/')));
 		if (dotPos != -1)
 		{
 			return file.removeStartCount(dotPos);
@@ -2052,7 +2061,6 @@ public class StringUtility
 			}
 		}
 	}
-#if USE_TMP
 	// 将文本拆分为多行来显示,originString应该是不带富文本标签的字符串,否则会影响字符长度的计算
 	// 默认每一行至少可以容纳30个字符,所以都是从30开始截取字符串,为了提高效率
 	public static void generateMultiLine(myUGUITextTMP textWindow, string originString, List<string> lineList, int minStringLength = 30)
@@ -2086,7 +2094,6 @@ public class StringUtility
 			}
 		}
 	}
-#endif
 	// 将富文本还原为原始的字符串,暂时只考虑颜色,charColorList的输出长度与返回字符串的长度一致,其中每个元素表示相同下标的字符的颜色
 	public static string getStringNoRichText(string originContent, List<string> charColorList)
 	{

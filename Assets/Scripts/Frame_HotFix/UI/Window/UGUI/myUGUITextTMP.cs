@@ -1,5 +1,4 @@
-﻿#if USE_TMP
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 using System;
 using System.Collections.Generic;
@@ -157,4 +156,3 @@ public class myUGUITextTMP : myUGUIObject, IUGUIText
 		collection.addLocalizationObject(this);
 	}
 }
-#endif

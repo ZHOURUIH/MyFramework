@@ -62,6 +62,7 @@ public class GameLayout
 		}
 		mAnchorApplied = true;
 		mScript.init();
+		mScript.postInit();
 		// init后再次设置布局的渲染顺序,这样可以在此处刷新所有窗口的深度,因为是否刷新跟是否注册了碰撞体有关
 		// 所以在assignWindow和init中不需要在创建窗口对象时刷新深度,这样会造成很大的性能浪费
 		setRenderOrder(mRenderOrder);

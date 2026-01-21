@@ -3,9 +3,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-#if USE_TMP
 using TMPro;
-#endif
 #if USE_AVPRO_VIDEO
 using RenderHeads.Media.AVProVideo;
 #endif
@@ -277,6 +275,8 @@ public class UGUIGeneratorUtility
 			mSubUIParentList.Add(typeof(WindowObjectUGUI).ToString());
 			mSubUIParentList.Add(typeof(WindowRecyclableUGUI).ToString());
 			mSubUIParentList.Add("DragViewItem");
+			mSubUIParentList.AddRange(getTypesInFrameHotFixDll<ICommonWindowObject>());
+			mSubUIParentList.AddRange(getTypesInHotFixDll<ICommonWindowObject>());
 		}
 		return mSubUIParentList;
 	}
@@ -588,7 +588,7 @@ public class UGUIGeneratorUtility
 				}
 				else if (data.mType == "WindowPool")
 				{
-					lines.Add(prefix + createVarName + ".assignTemplate" + templateTypeStr + "(" + parentParam + "\"" + data.mPoolTemplate.name + "\");");
+					lines.Add(prefix + createVarName + ".assignTemplate(" + parentParam + "\"" + data.mPoolTemplate.name + "\");");
 				}
 				else
 				{
@@ -702,12 +702,10 @@ public class UGUIGeneratorUtility
 		{
 			mTempAvailableTypeList.Add(typeof(myUGUIInputField).ToString());
 		}
-#if USE_TMP
 		if (go.TryGetComponent<TMP_InputField>(out _))
 		{
 			mTempAvailableTypeList.Add(typeof(myUGUIInputFieldTMP).ToString());
 		}
-#endif
 
 		mTempAvailableTypeList.Add(typeof(myUGUIObject).ToString());
 		if (go.TryGetComponent<Image>(out _))
@@ -728,17 +726,13 @@ public class UGUIGeneratorUtility
 		if (go.TryGetComponent<Text>(out _))
 		{
 			mTempAvailableTypeList.Add(typeof(myUGUIText).ToString());
-#if USE_TMP
 			mTempAvailableTypeList.Add(typeof(myUGUITextAuto).ToString());
-#endif
 		}
-#if USE_TMP
 		if (go.TryGetComponent<TextMeshProUGUI>(out _))
 		{
 			mTempAvailableTypeList.Add(typeof(myUGUITextTMP).ToString());
 			mTempAvailableTypeList.Add(typeof(myUGUITextAuto).ToString());
 		}
-#endif
 		if (go.TryGetComponent<MeshRenderer>(out _))
 		{
 			mTempAvailableTypeList.Add(typeof(myUGUILineMesh).ToString());
@@ -823,7 +817,7 @@ public class UGUIGeneratorUtility
 		foreach (Type type in Assembly.LoadFrom(dllFullPath).GetTypes())
 		{
 			// 跳过无法加载的类型、接口和抽象类
-			if (type == null || type.IsInterface || type.IsAbstract)
+			if (type == null || type.IsInterface)
 			{
 				continue;
 			}

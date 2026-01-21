@@ -255,7 +255,7 @@ public class MenuCheckResources
 		// 对选中的所有对象遍历生成角色控制器
 		foreach (GameObject item in objects)
 		{
-			var renderers = item.GetComponentsInChildren<Renderer>();
+			var renderers = item.GetComponentsInChildren<Renderer>(true);
 			if (renderers == null)
 			{
 				continue;
@@ -764,14 +764,14 @@ public class MenuCheckResources
 		}
 		foreach (var item in objectList)
 		{
-			foreach (Image image in item.Value.GetComponentsInChildren<Image>())
+			foreach (Image image in item.Value.GetComponentsInChildren<Image>(true))
 			{
 				if (image.sprite == null)
 				{
 					Debug.LogError("布局 " + item.Value.name + "的Image组件没有设置Sprite,obj:" + image.name, item.Value);
 				}
 			}
-			foreach (SpriteRenderer spriteRenderer in item.Value.GetComponentsInChildren<SpriteRenderer>())
+			foreach (SpriteRenderer spriteRenderer in item.Value.GetComponentsInChildren<SpriteRenderer>(true))
 			{
 				if (spriteRenderer.sprite == null)
 				{

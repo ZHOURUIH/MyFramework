@@ -10,7 +10,7 @@ using static FrameBaseUtility;
 // 从prefab实例化的物体对象池
 public class PrefabPoolManager : FrameSystem
 {
-	protected Dictionary<GameObject, ObjectInfo> mInstanceList = new();     // 根据实例化的物体查找的列表
+	protected Dictionary<GameObject, GameObjectInfo> mInstanceList = new(); // 根据实例化的物体查找的列表
 	protected SafeDictionary<string, PrefabPool> mPrefabPoolList = new();	// 已实例化对象的实例池列表
 	protected HashSet<string> mDontUnloadPrefab = new();                    // 即使已经没有实例化对象了,也不会卸载的prefab
 	protected float mTimerInterval = 3.0f;									// 扫描间隔,默认3秒
@@ -39,11 +39,11 @@ public class PrefabPoolManager : FrameSystem
 				mPrefabPoolList.remove(item.Key);
 				// 需要将实例化列表中的属于此对象池的所有对象也一起销毁
 				PrefabPool pool = item.Value;
-				foreach (ObjectInfo obj in pool.getInuseList())
+				foreach (GameObjectInfo obj in pool.getInuseList())
 				{
 					mInstanceList.Remove(obj.getObject());
 				}
-				foreach (ObjectInfo obj in pool.getUnuseList())
+				foreach (GameObjectInfo obj in pool.getUnuseList())
 				{
 					mInstanceList.Remove(obj.getObject());
 				}
@@ -89,7 +89,7 @@ public class PrefabPoolManager : FrameSystem
 				{
 					continue;
 				}
-				foreach (ObjectInfo obj in pool.getUnuseList())
+				foreach (GameObjectInfo obj in pool.getUnuseList())
 				{
 					if (obj?.getObject() == null)
 					{
@@ -103,7 +103,7 @@ public class PrefabPoolManager : FrameSystem
 		}
 		if (isEditor())
 		{
-			foreach (ObjectInfo item in mInstanceList.Values)
+			foreach (GameObjectInfo item in mInstanceList.Values)
 			{
 				if (item.getObject() == null)
 				{
@@ -154,7 +154,7 @@ public class PrefabPoolManager : FrameSystem
 		}
 		using var a = new ProfilerScope(0);
 		long assignID = relatedObj?.getAssignID() ?? 0;
-		return getPrefabPool(fileWithPath).getOneUnusedAsync(objectTag, (ObjectInfo objInfo, bool poolDestroy) =>
+		return getPrefabPool(fileWithPath).getOneUnusedAsync(objectTag, (GameObjectInfo objInfo, bool poolDestroy) =>
 		{
 			using var a = new ProfilerScope(0);
 			if (objInfo == null)
@@ -190,7 +190,7 @@ public class PrefabPoolManager : FrameSystem
 	{
 		using var a = new ProfilerScope(0);
 		PrefabPool pool = getPrefabPool(fileWithPath);
-		ObjectInfo objInfo = pool.getOneUnused(objectTag);
+		GameObjectInfo objInfo = pool.getOneUnused(objectTag);
 		if (objInfo == null)
 		{
 			logError("prefab加载失败:" + fileWithPath + ",请确认文件存在,且带后缀名,且不能使用反斜杠\\," + (fileWithPath.Contains(' ') || fileWithPath.Contains('　') ? "注意此文件名中带有空格" : ""));
@@ -202,15 +202,15 @@ public class PrefabPoolManager : FrameSystem
 	// 销毁指定tag的所有物体,会从内存中真正销毁,不会放回到池中
 	public void destroyAllWithTag(int objectTag)
 	{
-		using var a = new ListScope<ObjectInfo>(out var tempList);
-		foreach (ObjectInfo item in mInstanceList.Values)
+		using var a = new ListScope<GameObjectInfo>(out var tempList);
+		foreach (GameObjectInfo item in mInstanceList.Values)
 		{
 			if (item.getTag() == objectTag)
 			{
 				tempList.Add(item);
 			}
 		}
-		foreach (ObjectInfo item in tempList)
+		foreach (GameObjectInfo item in tempList)
 		{
 			destroyObject(item.getObject(), true);
 		}
@@ -222,11 +222,11 @@ public class PrefabPoolManager : FrameSystem
 	// 销毁一个物体,destroyReally为true表示真正从内存中销毁,false表示仅仅只是放回到池中
 	public void destroyObject(ref GameObject obj, bool destroyReally)
 	{
-		if (obj == null)
+		if (mHasDestroy || obj == null)
 		{
 			return;
 		}
-		if (!mInstanceList.Remove(obj, out ObjectInfo info))
+		if (!mInstanceList.Remove(obj, out GameObjectInfo info))
 		{
 			logError("can not find gameObject in ObjectPool! obj:" + obj.name + ", HashCode:" + obj.GetHashCode());
 			return;
@@ -246,7 +246,7 @@ public class PrefabPoolManager : FrameSystem
 		obj = null;
 	}
 	public bool isExistInPool(GameObject go) { return go != null && mInstanceList.ContainsKey(go); }
-	public Dictionary<GameObject, ObjectInfo> getInstanceList() { return mInstanceList; }
+	public Dictionary<GameObject, GameObjectInfo> getInstanceList() { return mInstanceList; }
 	public SafeDictionary<string, PrefabPool> getPrefabPoolList() { return mPrefabPoolList; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void destroyPool(PrefabPool pool)
@@ -257,7 +257,7 @@ public class PrefabPoolManager : FrameSystem
 			UN_CLASS(ref pool);
 		}
 	}
-	protected void postCreateObject(PrefabPool pool, ObjectInfo objInfo, bool moveToHide, GameObject parent, bool active)
+	protected void postCreateObject(PrefabPool pool, GameObjectInfo objInfo, bool moveToHide, GameObject parent, bool active)
 	{
 		objInfo.setPool(pool);
 		objInfo.setMoveToHide(moveToHide);

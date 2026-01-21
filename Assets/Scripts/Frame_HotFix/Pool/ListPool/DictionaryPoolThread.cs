@@ -43,6 +43,10 @@ public class DictionaryPoolThread : FrameSystem
 	// onlyOnce表示是否仅当作临时列表使用
 	public ICollection newList(Type keyType, Type valueType, Type listType)
 	{
+		if (mHasDestroy)
+		{
+			return null;
+		}
 		ICollection list = null;
 		// 锁定期间不能调用任何其他非库函数,否则可能会发生死锁
 		using (new ThreadLockScope(mListLock))
@@ -86,7 +90,7 @@ public class DictionaryPoolThread : FrameSystem
 	}
 	public void destroyList<K, V>(ref Dictionary<K, V> list, Type keyType, Type valueType)
 	{
-		if (list == null)
+		if (mHasDestroy || list == null)
 		{
 			return;
 		}

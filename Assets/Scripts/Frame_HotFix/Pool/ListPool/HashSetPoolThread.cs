@@ -42,6 +42,10 @@ public class HashSetPoolThread : FrameSystem
 	// onlyOnce表示是否仅当作临时列表使用
 	public IEnumerable newList(Type elementType, Type listType)
 	{
+		if (mHasDestroy)
+		{
+			return null;
+		}
 		IEnumerable list = null;
 		// 锁定期间不能调用任何其他非库函数,否则可能会发生死锁
 		using (new ThreadLockScope(mListLock))
@@ -83,7 +87,7 @@ public class HashSetPoolThread : FrameSystem
 	}
 	public void destroyList<T>(ref HashSet<T> list, Type elementType)
 	{
-		if (list == null)
+		if (mHasDestroy || list == null)
 		{
 			return;
 		}

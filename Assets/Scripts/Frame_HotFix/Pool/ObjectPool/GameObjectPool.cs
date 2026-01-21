@@ -28,6 +28,10 @@ public class GameObjectPool : FrameSystem
 	public GameObject newObject(string name){ return newObject(name, mObject); }
 	public GameObject newObject(string name, GameObject parent)
 	{
+		if (mHasDestroy)
+		{
+			return null;
+		}
 		bool isNew = false;
 		GameObject go;
 		// 先从未使用的列表中查找是否有可用的对象
@@ -61,7 +65,7 @@ public class GameObjectPool : FrameSystem
 	// 销毁一个GameObject,但是调用方需要确保此GameObject上已经没有任何的除Transform以外的组件,否则可能会出现复用时错误
 	public void destroyObject(GameObject go, bool moveToHide)
 	{
-		if (go == null)
+		if (mHasDestroy || go == null)
 		{
 			return;
 		}

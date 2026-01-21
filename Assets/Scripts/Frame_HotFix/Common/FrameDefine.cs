@@ -43,6 +43,7 @@ public class FrameDefine
 	public const string P_RESOURCES_UI_PREFAB_PATH = P_RESOURCES_UI_PATH + UI_PREFAB + "/";
 	public const string P_ATLAS_PATH = P_GAME_RESOURCES_PATH + ATLAS + "/";
 	public const string P_UI_PATH = P_GAME_RESOURCES_PATH + UI + "/";
+	public const string P_FONT_PATH = P_GAME_RESOURCES_PATH + FONT + "/";
 	public const string P_UI_PREFAB_PATH = P_UI_PATH + UI_PREFAB + "/";
 	public const string P_TEXTURE_PATH = P_GAME_RESOURCES_PATH + TEXTURE + "/";
 	public const string P_EXCEL_PATH = P_GAME_RESOURCES_PATH + EXCEL + "/";

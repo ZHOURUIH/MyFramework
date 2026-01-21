@@ -42,6 +42,10 @@ public class ListPoolThread : FrameSystem
 	// onlyOnce表示是否仅当作临时列表使用
 	public IList newList(Type elementType, Type listType)
 	{
+		if (mHasDestroy)
+		{
+			return null;
+		}
 		IList list = null;
 		// 锁定期间不能调用任何其他非库函数,否则可能会发生死锁
 		using (new ThreadLockScope(mListLock))
@@ -83,7 +87,7 @@ public class ListPoolThread : FrameSystem
 	}
 	public void destroyList(ref IList list, Type type)
 	{
-		if (list == null)
+		if (mHasDestroy || list == null)
 		{
 			return;
 		}

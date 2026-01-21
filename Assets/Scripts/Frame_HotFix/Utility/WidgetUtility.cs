@@ -1,6 +1,4 @@
-﻿#if USE_TMP
-using TMPro;
-#endif
+﻿using TMPro;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -323,12 +321,10 @@ public class WidgetUtility
 		{
 			text.fontSize = clampMin(floor(divide(text.fontSize, lastHeight) * size.y), minFontSize);
 		}
-#if USE_TMP
 		else if (rectTransform.TryGetComponent(out TextMeshProUGUI tmproText))
 		{
 			tmproText.fontSize = clampMin(floor(divide(tmproText.fontSize, lastHeight) * size.y), minFontSize);
 		}
-#endif
 	}
 	// 限制一个窗口的位置,使其父节点不能超出此窗口的范围,通常用于viewport内的更大的子窗口拖拽时限制位置
 	public static void clampNoOverParentRectInverse(myUGUIObject window, myUGUIObject parent)

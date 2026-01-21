@@ -12,7 +12,7 @@ using static FrameBaseUtility;
 // UGUI窗口的基类
 public class myUGUIObject : Transformable, IMouseEventCollect
 {
-	protected static Comparison<Transform> mCompareDescend = compareZDecending;				// 避免GC的回调
+	private static Comparison<Transform> mCompareDescend = compareZDecending;				// 避免GC的回调
 	private static Comparison<myUGUIObject> mCompareSiblingIndex = compareSiblingIndex;		// 用于避免GC的委托
 	private static bool mAllowDestroyWindow = false;				// 是否允许销毁窗口,仅此类内部使用
 	protected ComponentInteractive mCOMWindowInteractive;			// 鼠标键盘响应逻辑的组件
@@ -33,7 +33,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	{
 		mID = makeID();
 		mNeedUpdate = false;    // 出于效率考虑,窗口默认不启用更新,只有部分窗口和使用组件进行变化时才自动启用更新
-		mDestroy = false;       // 由于一般myUGUIObject不会使用对象池来管理,所以构造时就设置当前对象为有效
+		mHasDestroy = false;       // 由于一般myUGUIObject不会使用对象池来管理,所以构造时就设置当前对象为有效
 	}
 	public virtual void init()
 	{
@@ -382,7 +382,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		}
 		base.destroy();
 		// 同样的,由于一般myUGUIObject不会使用对象池来管理,所以销毁时需要手动去标记为已销毁的状态
-		mDestroy = true;
+		mHasDestroy = true;
 	}
 	public override void setActive(bool active)
 	{
@@ -489,7 +489,6 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 			mLayout.refreshUIDepth(mParent, true);
 		}
 	}
-	public int getSibling() { return mTransform.GetSiblingIndex(); }
 	public bool setSibling(int index, bool refreshUIDepth = true)
 	{
 		if (mTransform.GetSiblingIndex() == index)
@@ -506,32 +505,31 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	}
 	// 当自适应更新完以后调用
 	public virtual void notifyAnchorApply() { }
+	public int getSibling()							{ return mTransform.GetSiblingIndex(); }
 	// 获取描述,UI则返回所处布局名
-	public string getDescription() { return mLayout?.getName(); }
-	// get
-	//------------------------------------------------------------------------------------------------------------------------------
-	public int getID() { return mID; }
-	public GameLayout getLayout() { return mLayout; }
-	public List<myUGUIObject> getChildList() { return mChildList; }
-	public virtual bool isReceiveScreenTouch() { return mCOMWindowInteractive?.getOnScreenTouchUp() != null; }
-	public myUGUIObject getParent() { return mParent; }
-	public override float getAlpha() { return 1.0f; }
-	public virtual Color getColor() { return Color.white; }
-	public UIDepth getDepth() { return getCOMInteractive().getDepth(); }
-	public virtual bool isHandleInput() { return mCOMWindowCollider != null && mCOMWindowCollider.isHandleInput(); }
-	public virtual bool isPassRay() { return mCOMWindowInteractive == null || mCOMWindowInteractive.isPassRay(); }
-	public virtual bool isPassDragEvent() { return !isDraggable() || (mCOMWindowInteractive != null && mCOMWindowInteractive.isPassDragEvent()); }
-	public virtual bool isDraggable() { return getActiveComponent<COMWindowDrag>() != null; }
-	public bool isMouseHovered() { return mCOMWindowInteractive != null && mCOMWindowInteractive.isMouseHovered(); }
-	public int getClickSound() { return mCOMWindowInteractive?.getClickSound() ?? 0; }
-	public bool isDepthOverAllChild() { return mCOMWindowInteractive != null && mCOMWindowInteractive.isDepthOverAllChild(); }
-	public float getLongPressLengthThreshold() { return mCOMWindowInteractive?.getLongPressLengthThreshold() ?? -1.0f; }
-	public bool isReceiveLayoutHide() { return mReceiveLayoutHide; }
-	public bool isColliderForClick() { return mCOMWindowInteractive != null && mCOMWindowInteractive.isColliderForClick(); }
-	public bool isAllowGenerateDepth() { return mCOMWindowInteractive == null || mCOMWindowInteractive.isAllowGenerateDepth(); }
+	public string getDescription()					{ return mLayout?.getName(); }
+	public int getID()								{ return mID; }
+	public GameLayout getLayout()					{ return mLayout; }
+	public List<myUGUIObject> getChildList()		{ return mChildList; }
+	public virtual bool isReceiveScreenTouch()		{ return mCOMWindowInteractive?.getOnScreenTouchUp() != null; }
+	public myUGUIObject getParent()					{ return mParent; }
+	public override float getAlpha()				{ return 1.0f; }
+	public virtual Color getColor()					{ return Color.white; }
+	public UIDepth getDepth()						{ return getCOMInteractive().getDepth(); }
+	public virtual bool isHandleInput()				{ return mCOMWindowCollider != null && mCOMWindowCollider.isHandleInput(); }
+	public virtual bool isPassRay()					{ return mCOMWindowInteractive == null || mCOMWindowInteractive.isPassRay(); }
+	public virtual bool isPassDragEvent()			{ return !isDraggable() || (mCOMWindowInteractive != null && mCOMWindowInteractive.isPassDragEvent()); }
+	public virtual bool isDraggable()				{ return getActiveComponent<COMWindowDrag>() != null; }
+	public bool isMouseHovered()					{ return mCOMWindowInteractive != null && mCOMWindowInteractive.isMouseHovered(); }
+	public int getClickSound()						{ return mCOMWindowInteractive?.getClickSound() ?? 0; }
+	public bool isDepthOverAllChild()				{ return mCOMWindowInteractive != null && mCOMWindowInteractive.isDepthOverAllChild(); }
+	public float getLongPressLengthThreshold()		{ return mCOMWindowInteractive?.getLongPressLengthThreshold() ?? -1.0f; }
+	public bool isReceiveLayoutHide()				{ return mReceiveLayoutHide; }
+	public bool isColliderForClick()				{ return mCOMWindowInteractive != null && mCOMWindowInteractive.isColliderForClick(); }
+	public bool isAllowGenerateDepth()				{ return mCOMWindowInteractive == null || mCOMWindowInteractive.isAllowGenerateDepth(); }
 	// 是否可以计算深度,与mAllowGenerateDepth类似,都是计算深度的其中一个条件,只不过这个可以由子类重写
-	public virtual bool canGenerateDepth() { return true; }
-	public virtual bool isCulled() { return false; }
+	public virtual bool canGenerateDepth()			{ return true; }
+	public virtual bool isCulled()					{ return false; }
 	public override bool raycastSelf(ref Ray ray, out RaycastHit hit, float maxDistance)
 	{
 		if (mCOMWindowCollider == null)
@@ -564,13 +562,11 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		}
 		return lastChild.getLastChild();
 	}
-	// set
-	//------------------------------------------------------------------------------------------------------------------------------
-	public void setDepthOverAllChild(bool depthOver) { getCOMInteractive().setDepthOverAllChild(depthOver); }
-	public void setDestroyImmediately(bool immediately) { mDestroyImmediately = immediately; }
-	public void setAllowGenerateDepth(bool allowGenerate) { getCOMInteractive().setAllowGenerateDepth(allowGenerate); }
+	public void setDepthOverAllChild(bool depthOver)					{ getCOMInteractive().setDepthOverAllChild(depthOver); }
+	public void setDestroyImmediately(bool immediately)					{ mDestroyImmediately = immediately; }
+	public void setAllowGenerateDepth(bool allowGenerate)				{ getCOMInteractive().setAllowGenerateDepth(allowGenerate); }
 	public virtual void setColor(Color color) { }
-	public virtual void setFillPercent(float percent) { logError("can not set window fill percent with myUGUIObject"); }
+	public virtual void setFillPercent(float percent)					{ logError("can not set window fill percent with myUGUIObject"); }
 	public void setPassRay(bool passRay)								{ getCOMInteractive().setPassRay(passRay); }
 	public void setPassDragEvent(bool pass)								{ getCOMInteractive().setPassDragEvent(pass); }
 	public void setDepth(UIDepth parentDepth, int orderInParent)		{ getCOMInteractive().setDepth(parentDepth, orderInParent); }
@@ -592,7 +588,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	public void setOnTouchLeave(Vector3IntCallback callback)			{ getCOMInteractive().setOnTouchLeave(callback); }
 	public void setOnTouchDown(Vector3IntCallback callback)				{ getCOMInteractive().setOnTouchDown(callback); }
 	public void setOnTouchUp(Vector3IntCallback callback)				{ getCOMInteractive().setOnTouchUp(callback); }
-	public void setOnTouchMove(TouchMoveCallback callback)					{ getCOMInteractive().setOnTouchMove(callback); }
+	public void setOnTouchMove(TouchMoveCallback callback)				{ getCOMInteractive().setOnTouchMove(callback); }
 	public void setOnTouchStay(Vector3IntCallback callback)				{ getCOMInteractive().setOnTouchStay(callback); }
 	public void setOnScreenTouchUp(Vector3IntCallback callback)			{ getCOMInteractive().setOnScreenTouchUp(callback); }
 	public void setColliderForClick(bool forClick)						{ getCOMInteractive().setColliderForClick(forClick); }
@@ -637,8 +633,6 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	}
 	public void removeLongPress(Action callback)							{ mCOMWindowInteractive?.removeLongPress(callback); }
 	public void clearLongPress()											{ mCOMWindowInteractive?.clearLongPress(); }
-	// callback
-	//------------------------------------------------------------------------------------------------------------------------------
 	public virtual void onTouchEnter(Vector3 touchPos, int touchID)			{ mCOMWindowInteractive?.onTouchEnter(touchPos, touchID); }
 	public virtual void onTouchLeave(Vector3 touchPos, int touchID)			{ mCOMWindowInteractive?.onTouchLeave(touchPos, touchID); }
 	// 鼠标左键在窗口内按下

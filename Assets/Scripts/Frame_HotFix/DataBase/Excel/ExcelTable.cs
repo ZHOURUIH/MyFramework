@@ -153,6 +153,50 @@ public class ExcelTable
 			logError("列表长度不一致, ID:" + id + ", 表格:" + mTableName + ", 第一个长度:" + list0.Count + ", 第二个长度:" + list1.Count);
 		}
 	}
+	public void checkStringValue(string curValue, string supposeValue, int id)
+	{
+		if (supposeValue.isEmpty() && !curValue.isEmpty() ||
+			!supposeValue.isEmpty() && curValue.isEmpty() ||
+			(!supposeValue.isEmpty() && !curValue.isEmpty() && curValue != supposeValue))
+		{
+			logError("文本填写错误, ID:" + id + ", 表格:" + mTableName + ", 当前填写的文本:" + curValue + ", 正确的文本:" + supposeValue);
+		}
+	}
+	public void checkStringValue(List<string> curValue, List<string> supposeValue, int id)
+	{
+		if (curValue.count() != supposeValue.count())
+		{
+			logError("文本数量填写错误, ID:" + id + ", 表格:" + mTableName + ", 当前填写的文本数量:" + curValue.count() + ", 正确的文本数量:" + supposeValue.count());
+		}
+		for (int i = 0;	i < curValue.count(); ++i)
+		{
+			if (curValue[i] != supposeValue[i])
+			{
+				logError("第" + i + "个文本填写错误, ID:" + id + ", 表格:" + mTableName + ", 当前填写的文本:" + curValue[i] + ", 正确的文本:" + supposeValue[i]);
+			}
+		}
+	}
+	public void checkStringValue(string curValue, string supposeValue, ushort id)
+	{
+		if (curValue != supposeValue)
+		{
+			logError("文本填写错误, ID:" + id + ", 表格:" + mTableName + ", 当前填写的文本:" + curValue + ", 正确的文本:" + supposeValue);
+		}
+	}
+	public void checkStringValue(List<string> curValue, List<string> supposeValue, ushort id)
+	{
+		if (curValue.count() != supposeValue.count())
+		{
+			logError("文本数量填写错误, ID:" + id + ", 表格:" + mTableName + ", 当前填写的文本数量:" + curValue.count() + ", 正确的文本数量:" + supposeValue.count());
+		}
+		for (int i = 0; i < curValue.count(); ++i)
+		{
+			if (curValue[i] != supposeValue[i])
+			{
+				logError("第" + i + "个文本填写错误, ID:" + id + ", 表格:" + mTableName + ", 当前填写的文本:" + curValue[i] + ", 正确的文本:" + supposeValue[i]);
+			}
+		}
+	}
 	public static void checkPath(string path, bool checkSpace = true)
 	{
 		if (!mCheckPathResultMap.TryAdd(path, true))

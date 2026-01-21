@@ -56,6 +56,10 @@ public class ListPool : FrameSystem
 	// onlyOnce表示是否仅当作临时列表使用
 	public IList newList(Type elementType, Type listType, string stackTrace, bool onlyOnce = true)
 	{
+		if (mHasDestroy)
+		{
+			return null;
+		}
 		if (isEditor() && !isMainThread())
 		{
 			Debug.LogError("只能在主线程使用ListPool,子线程请使用ListPoolThread代替");
@@ -94,7 +98,7 @@ public class ListPool : FrameSystem
 	}
 	public void destroyList<T>(ref List<T> list, Type elementType)
 	{
-		if (list == null)
+		if (mHasDestroy || list == null)
 		{
 			return;
 		}

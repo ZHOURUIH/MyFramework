@@ -5,17 +5,17 @@ using static MathUtility;
 using static WidgetUtility;
 using static FrameUtility;
 
-// 滑动区域窗口
+// UGUI的滑动区域窗口
 // 如果希望Item既可以响应点击,ScrollRect又能够正常滑动,则需要Item是有button组件进行点击,这是UGUI的做法
 // 如果使用GlobalTouchSystem则两者没有任何冲突,滑动和点击互不影响
 public class myUGUIScrollRect : myUGUIObject
 {
-	protected ScrollRect mScrollRect;	// UGUI的ScrollRect组件
-	protected myUGUIObject mViewport;	// ScrollRect下的Viewport节点
-	protected myUGUIObject mContent;    // Viewport下的Content节点
-	protected Image mScrollRectImage;	// mScrollRect节点上的Image组件
-	protected Image mViewportImage;     // mViewport节点上的Image组件
-	protected bool mScrollRectInited;	// 是否已经初始化过了
+	protected ScrollRect mScrollRect;		// UGUI的ScrollRect组件
+	protected myUGUIObject mViewport;		// ScrollRect下的Viewport节点
+	protected myUGUIObject mContent;		// Viewport下的Content节点
+	protected Image mScrollRectImage;		// mScrollRect节点上的Image组件
+	protected Image mViewportImage;			// mViewport节点上的Image组件
+	protected bool mScrollRectInited;		// 是否已经初始化过了
 	public myUGUIScrollRect()
 	{
 		mNeedUpdate = true;
@@ -72,7 +72,7 @@ public class myUGUIScrollRect : myUGUIObject
 		base.update(elapsedTime);
 		if (mViewport == null || mContent == null)
 		{
-			logError("未找到viewport或content,请确保已经在布局的init中调用了initScrillRect函数进行ScrollRect的初始化");
+			logError("未找到viewport或content,请确保已经在布局的init中调用了initScrollRect函数进行ScrollRect的初始化");
 		}
 		// 始终确保ScrollRect和Viewport的宽高都是偶数,否则可能会引起在mContent调整位置时总是重新被ScrollRect再校正回来导致Content不停抖动
 		makeSizeEven(this);
@@ -96,12 +96,12 @@ public class myUGUIScrollRect : myUGUIObject
 	// 1.0表示将content的轴心设置到最上边,使其顶部对齐viewport顶部
 	// 0.5表示将content的轴心设置到中间,使其中间对齐viewport中间
 	// 0.0表示将content的轴心设置到最下边,使其底部对齐viewport底部
-	public void setContentPivotVertical(float pivot) { mContent.setPivot(new(mContent.getPivot().x, pivot)); }
+	public void setContentPivotVertical(float pivot) { mContent.setPivot(replaceY(mContent.getPivot(), pivot)); }
 	// 设置content水平方向的轴心
 	// 1.0表示将content的轴心设置到最右边,使其右边界对齐viewport右边界
 	// 0.5表示将content的轴心设置到中间,使其中间对齐viewport中间
 	// 0.0表示将content的轴心设置到最左边,使其左边界对齐viewport左边界
-	public void setContentPivotHorizontal(float pivot) { mContent.setPivot(new(pivot, mContent.getPivot().y)); }
+	public void setContentPivotHorizontal(float pivot) { mContent.setPivot(replaceX(mContent.getPivot(), pivot)); }
 	public Vector2 getNormalizedPosition() { return mScrollRect.normalizedPosition; }
 	// 设置Content的相对位置，x，y分别为横向和纵向，值的范围是0-1
 	// 0表示Content的左边或下边与父节点的左边或下边对齐，1表示Content的右边或上边与父节点的右边或上边对齐

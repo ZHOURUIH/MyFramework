@@ -1,6 +1,4 @@
-#if USE_TMP
 using TMPro;
-#endif
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor;
@@ -37,12 +35,10 @@ public class MenuGameObject
 		{
 			item.fontSize = (int)(item.fontSize * getMin(scale.x, scale.y));
 		}
-#if USE_TMP
 		foreach (TextMeshProUGUI item in go.transform.GetComponentsInChildren<TextMeshProUGUI>(true))
 		{
 			item.fontSize = (int)(item.fontSize * getMin(scale.x, scale.y));
 		}
-#endif
 		go.transform.localScale = Vector3.one;
 		EditorUtility.SetDirty(go);
 	}
@@ -121,7 +117,6 @@ public class MenuGameObject
 		}
 		adjustRectTransformToContainsAllChildRect(selection);
 	}
-#if USE_TMP
 	[MenuItem("快捷操作/将Text替换成TMPro", false, 42)]
 	public static void textToTMPro()
 	{
@@ -174,9 +169,7 @@ public class MenuGameObject
 			}
 		}
 	}
-#endif
 	//------------------------------------------------------------------------------------------------------------------------------
-#if USE_TMP
 	protected static void doTextReplaceToTMPro(Text comText)
 	{
 		GameObject go = comText.gameObject;
@@ -383,5 +376,4 @@ public class MenuGameObject
 		UObject.DestroyImmediate(go.GetComponentInChildren<RectMask2D>().gameObject);
 		comText.textComponent.transform.SetParent(comText.transform);
 	}
-#endif
-		}
+}

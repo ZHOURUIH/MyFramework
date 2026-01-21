@@ -10,12 +10,12 @@ using static FrameUtility;
 // 单个prefab的实例化池
 public class PrefabPool : ClassObject
 {
-	protected HashSet<ObjectInfo> mInuseList = new();   // 正在使用的实例化列表,第一个key是文件名,第二个列表中的key是实例化出的物体,value是物品信息,为了提高运行时效率,仅在编辑器下使用
-	protected List<ObjectInfo> mUnuseList = new();		// 未使用的实例化列表,第一个key是文件名,第二个列表中的key是实例化出的物体,value是物品信息
-	protected GameObject mPrefab;						// 从资源管理器中加载的预设
-	protected string mFileName;                         // 此实例物体的预设文件名,相对于GameResources的路径,带后缀
-	protected int mAsyncLoadingCount;                        // 正在异步加载的数量
-	protected int mAsyncInstantiateCount;				// 正在异步实例化的数量
+	protected HashSet<GameObjectInfo> mInuseList = new();   // 正在使用的实例化列表,第一个key是文件名,第二个列表中的key是实例化出的物体,value是物品信息,为了提高运行时效率,仅在编辑器下使用
+	protected List<GameObjectInfo> mUnuseList = new();		// 未使用的实例化列表,第一个key是文件名,第二个列表中的key是实例化出的物体,value是物品信息
+	protected GameObject mPrefab;							// 从资源管理器中加载的预设
+	protected string mFileName;								// 此实例物体的预设文件名,相对于GameResources的路径,带后缀
+	protected int mAsyncLoadingCount;                       // 正在异步加载的数量
+	protected int mAsyncInstantiateCount;					// 正在异步实例化的数量
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -34,12 +34,12 @@ public class PrefabPool : ClassObject
 	}
 	public void destroyAllInstance()
 	{
-		foreach (ObjectInfo item in mInuseList)
+		foreach (GameObjectInfo item in mInuseList)
 		{
 			item.destroyObject();
 		}
 		mInuseList.Clear();
-		foreach (ObjectInfo item in mUnuseList)
+		foreach (GameObjectInfo item in mUnuseList)
 		{
 			item.destroyObject();
 		}
@@ -49,8 +49,8 @@ public class PrefabPool : ClassObject
 	public void setPrefab(GameObject prefab) { mPrefab = prefab; }
 	public GameObject getPrefab() { return mPrefab; }
 	public string getFileName() { return mFileName; }
-	public List<ObjectInfo> getUnuseList() { return mUnuseList; }
-	public HashSet<ObjectInfo> getInuseList() { return mInuseList; }
+	public List<GameObjectInfo> getUnuseList() { return mUnuseList; }
+	public HashSet<GameObjectInfo> getInuseList() { return mInuseList; }
 	public int getInuseCount() { return mInuseList.Count; }
 	public int getUnuseCount() { return mUnuseList.Count; }
 	public bool isEmpty() { return mInuseList.Count == 0 && mUnuseList.Count == 0 && mAsyncLoadingCount == 0 && mAsyncInstantiateCount == 0; }
@@ -102,11 +102,11 @@ public class PrefabPool : ClassObject
 		doInitToPool(tag, count, moveToHide);
 	}
 	// 从池中异步获取一个对象
-	public CustomAsyncOperation getOneUnusedAsync(int tag, Action<ObjectInfo, bool> callback)
+	public CustomAsyncOperation getOneUnusedAsync(int tag, Action<GameObjectInfo, bool> callback)
 	{
 		if (mPrefab != null)
 		{
-			getOneUnusedAsyncInternal(tag, (ObjectInfo info) => { callback?.Invoke(info, false); });
+			getOneUnusedAsyncInternal(tag, (GameObjectInfo info) => { callback?.Invoke(info, false); });
 			return new CustomAsyncOperation().setFinish();
 		}
 		// 预设未加载,异步加载预设
@@ -127,17 +127,17 @@ public class PrefabPool : ClassObject
 				return;
 			}
 			setPrefab(asset);
-			getOneUnusedAsyncInternal(tag, (ObjectInfo info)=> { callback?.Invoke(info, false); });
+			getOneUnusedAsyncInternal(tag, (GameObjectInfo info)=> { callback?.Invoke(info, false); });
 		});
 	}
 	// 从对象池中同步获取或者创建一个物体
-	public ObjectInfo getOneUnused(int tag)
+	public GameObjectInfo getOneUnused(int tag)
 	{
 		if (mPrefab == null)
 		{
 			mPrefab = mResourceManager.loadGameResource<GameObject>(mFileName);
 		}
-		ObjectInfo objInfo;
+		GameObjectInfo objInfo;
 		// 未使用列表中有就从未使用列表中获取
 		if (mUnuseList.Count > 0)
 		{
@@ -159,7 +159,7 @@ public class PrefabPool : ClassObject
 	}
 	// 销毁物体,destroyReally为true表示将对象直接从内存中销毁,false表示只是放到未使用列表中
 	// moveToHide为true则表示回收时不会改变GameObject的显示,只是将位置设置到很远的地方
-	public void destroyObject(ObjectInfo obj, bool destroyReally)
+	public void destroyObject(GameObjectInfo obj, bool destroyReally)
 	{
 		if (obj.getPool() != this)
 		{
@@ -215,7 +215,7 @@ public class PrefabPool : ClassObject
 		}
 		for (int i = 0; i < needCreate; ++i)
 		{
-			ObjectInfo objInfo = mUnuseList.addClass();
+			GameObjectInfo objInfo = mUnuseList.addClass();
 			objInfo.setTag(tag);
 			// 实例化,同步进行
 			objInfo.createObject(mPrefab, mFileName);
@@ -240,12 +240,12 @@ public class PrefabPool : ClassObject
 		}
 	}
 	// 从池中异步获取一个可用的对象
-	protected void getOneUnusedAsyncInternal(int tag, Action<ObjectInfo> callback)
+	protected void getOneUnusedAsyncInternal(int tag, Action<GameObjectInfo> callback)
 	{
 		// 未使用列表中有就从未使用列表中获取
 		if (mUnuseList.Count > 0)
 		{
-			ObjectInfo objInfo = mUnuseList.popBack();
+			GameObjectInfo objInfo = mUnuseList.popBack();
 			if (objInfo.getTag() != tag)
 			{
 				logError("不能为同一个物体设置不同的tag, file:" + objInfo.getFileWithPath());
@@ -258,7 +258,7 @@ public class PrefabPool : ClassObject
 		{
 			// 实例化
 			++mAsyncInstantiateCount;
-			CLASS<ObjectInfo>().createObjectAsync(mPrefab, mFileName, (ObjectInfo info) =>
+			CLASS<GameObjectInfo>().createObjectAsync(mPrefab, mFileName, (GameObjectInfo info) =>
 			{
 				--mAsyncInstantiateCount;
 				info.setTag(tag);

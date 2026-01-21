@@ -351,6 +351,12 @@ public class LayoutManager : FrameSystem
 			return mLayoutList.get(info.mType);
 		}
 		myUGUIObject layoutParent = info.mIsScene ? null : getUIRoot();
+		Canvas canvas = prefab.GetComponent<Canvas>();
+		// 只能在挂到UGUIRoot之前去判断,如果挂之后再获取就是获取的跟UGUIRoot一样的RenderMode
+		if (canvas.renderMode != RenderMode.WorldSpace)
+		{
+			logError("界面Canvas的RenderMode只能设置为WorldSpace,设置为其他模式可能会出现无法预知的错误,UI:" + info.mName);
+		}
 		GameObject layoutObj = instantiatePrefab(layoutParent?.getObject(), prefab, info.mName, true);
 		GameLayout layout = new();
 		layout.setPrefab(prefab);

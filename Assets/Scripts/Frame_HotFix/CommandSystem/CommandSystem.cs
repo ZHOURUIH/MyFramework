@@ -73,7 +73,7 @@ public class CommandSystem : FrameSystem
 	public bool interruptCommand(long assignID, bool showError = true)
 	{
 		// 如果命令系统已经销毁了,则不能再中断命令
-		if (mDestroy)
+		if (mHasDestroy)
 		{
 			return true;
 		}
@@ -133,7 +133,7 @@ public class CommandSystem : FrameSystem
 	public void pushCommand(Command cmd, CommandReceiver cmdReceiver)
 	{
 		// 如果命令系统已经销毁了,则不能再发送命令
-		if (mDestroy || cmd == null || cmdReceiver == null)
+		if (mHasDestroy || cmd == null || cmdReceiver == null)
 		{
 			return;
 		}
@@ -195,7 +195,7 @@ public class CommandSystem : FrameSystem
 	public void pushDelayCommand(Command cmd, CommandReceiver cmdReceiver, float delayExecute, DelayCmdWatcher watcher)
 	{
 		// 如果命令系统已经销毁了,则不能再发送命令
-		if (mDestroy || cmd == null || cmdReceiver == null)
+		if (mHasDestroy || cmd == null || cmdReceiver == null)
 		{
 			return;
 		}
@@ -258,7 +258,7 @@ public class CommandSystem : FrameSystem
 	}
 	public void notifyReceiverDestroied(CommandReceiver receiver)
 	{
-		if (mDestroy)
+		if (mHasDestroy)
 		{
 			return;
 		}

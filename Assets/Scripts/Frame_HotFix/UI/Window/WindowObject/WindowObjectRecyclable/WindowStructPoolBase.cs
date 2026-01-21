@@ -1,8 +1,9 @@
 ﻿using System;
 using UnityEngine;
+using static UnityUtility;
 
 // 窗口对象池基类
-public class WindowStructPoolBase
+public class WindowStructPoolBase : IWindowObjectOwner
 {
 	protected WindowObjectBase mOwnerObject;	// 如果是WindowObject中创建的对象池,则会存储此WindowObject
 	protected LayoutScript mScript;				// 所属的布局脚本
@@ -12,21 +13,24 @@ public class WindowStructPoolBase
 	protected Type mObjectType;					// 物体类型
 	protected static long mAssignIDSeed;		// 分配ID种子,用于设置唯一分配ID,只会递增,不会减少
 	protected bool mNewItemMoveToLast;			// 新创建的物体是否需要放到父节点的最后,也就是是否在意其渲染顺序
-	protected bool mInited;						// 是否已经初始化
+	protected bool mInited;                     // 是否已经初始化
 	public WindowStructPoolBase(IWindowObjectOwner parent)
 	{
 		if (parent is WindowObjectBase objBase)
 		{
 			mScript = objBase.getScript();
 			mOwnerObject = objBase;
+			mOwnerObject.addWindowPool(this);
 		}
 		else if (parent is LayoutScript script)
 		{
 			mScript = script;
-			mOwnerObject = null;
+			mScript.addWindowStructPool(this);
 		}
-		mOwnerObject?.addWindowPool(this);
-		mScript.addWindowStructPool(this);
+		else if (parent is WindowStructPoolBase)
+		{
+			logError("对象池的父节点不能是对象池");
+		}
 		mNewItemMoveToLast = true;
 	}
 	public virtual void destroy() {}
@@ -57,16 +61,18 @@ public class WindowStructPoolBase
 	{
 		mTemplate = template;
 	}
-	public myUGUIObject getItemParent() { return mItemParent; }
-	public myUGUIObject getTemplate() { return mTemplate; }
-	public virtual int getInUseCount() { return 0; }
-	public bool isRootPool() { return mOwnerObject == null; }
+	public myUGUIObject getItemParent()					{ return mItemParent; }
+	public myUGUIObject getTemplate()					{ return mTemplate; }
+	public virtual int getInUseCount()					{ return 0; }
+	public bool isRootPool()							{ return mOwnerObject == null; }
+	public WindowObjectBase getOwnerObject()			{ return mOwnerObject; }
+	public LayoutScript getLayoutScript()				{ return mScript; }
+	public void setItemParent(myUGUIObject parent)		{ mItemParent = parent; }
+	public void setActive(bool active)					{ mItemParent.setActive(active); }
+	public void setItemPreName(string preName)			{ mPreName = preName; }
+	public void setObjectType(Type type)				{ mObjectType = type; }
+	public void setNewItemMoveToLast(bool moveToLast)	{ mNewItemMoveToLast = moveToLast; }
 	public virtual void unuseAll() { }
-	public void setItemParent(myUGUIObject parent) { mItemParent = parent; }
-	public void setActive(bool active) { mItemParent.setActive(active); }
-	public void setItemPreName(string preName) { mPreName = preName; }
-	public void setObjectType(Type type) { mObjectType = type; }
-	public void setNewItemMoveToLast(bool moveToLast) { mNewItemMoveToLast = moveToLast; }
 	public void refreshUIDepth(bool ignoreInactive = true)
 	{
 		mScript.getLayout().refreshUIDepth(mItemParent, ignoreInactive);

@@ -6,9 +6,6 @@ using System.Collections;
 #if USE_SPINE
 using Spine.Unity;
 #endif
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -16,9 +13,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 #endif
-#if USE_TMP
 using TMPro;
-#endif
 using UObject = UnityEngine.Object;
 using UDebug = UnityEngine.Debug;
 using static FrameBaseUtility;

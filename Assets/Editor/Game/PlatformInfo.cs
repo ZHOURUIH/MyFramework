@@ -174,7 +174,7 @@ public abstract class PlatformInfo : PlatformBase
 	}
 	public override string getDefaultPlatformDefine() 
 	{
-		string platformDefine = "USE_HYBRID_CLR;USE_OBFUSCATOR;PROJECT_2D;USE_URP;USE_TMP";
+		string platformDefine = "USE_HYBRID_CLR;USE_OBFUSCATOR;PROJECT_2D;USE_URP";
 		if (!isWebGL())
 		{
 			platformDefine += ";USE_SQLITE";

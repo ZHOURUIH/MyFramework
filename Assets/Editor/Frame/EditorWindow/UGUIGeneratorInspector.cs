@@ -57,7 +57,7 @@ public class UGUIGeneratorInspector : GameInspector
 				GameObject prefabAsset = prefabStage.prefabContentsRoot;
 				PrefabUtility.SaveAsPrefabAsset(prefabAsset, prefabStage.assetPath);
 				EditorUtility.ClearDirty(prefabAsset);
-				PrefabStageUtility.GetCurrentPrefabStage().ClearDirtiness();
+				prefabStage.ClearDirtiness();
 				AssetDatabase.Refresh();
 
 				if (generator.checkMembers())
@@ -68,7 +68,12 @@ public class UGUIGeneratorInspector : GameInspector
 			}
 			if (button("打开代码", 300, 25))
 			{
-				AssetDatabase.OpenAsset(loadAsset(findScript(getClassNameFromGameObject(generator.gameObject))));
+				string goName = getClassNameFromGameObject(generator.gameObject);
+				if (goName.endWith("_Mobile"))
+				{
+					goName = goName.removeEndString("_Mobile");
+				}
+				AssetDatabase.OpenAsset(loadAsset(findScript(goName)));
 			}
 		}
 	}
@@ -77,44 +82,40 @@ public class UGUIGeneratorInspector : GameInspector
 	{
 		List<string> uiList = new();
 		List<string> insertList = new();
-		List<string> fileList = findFilesNonAlloc(F_UI_PREFAB_PATH, ".prefab");
+		List<string> fileList = findFilesNonAlloc(F_UI_PREFAB_PATH, ".prefab", false);
 		int fileCount = fileList.Count;
 		for (int i = 0; i < fileCount; ++i)
 		{
-			// 如果将移动端和PC端都放到同一个目录中,则需要排除一下移动端的(这里只是一种自定义的规则,不同项目可能不一样)
-			if (fileList[i].Contains("_Mobile"))
-			{
-				continue;
-			}
 			GameObject prefabObj = loadGameObject(fullPathToProjectPath(fileList[i]));
-			if (prefabObj == null)
+			if (prefabObj == null || !prefabObj.TryGetComponent<UGUIGenerator>(out var comGenerator))
 			{
 				continue;
 			}
-			if (!prefabObj.TryGetComponent<UGUIGenerator>(out var comGenerator))
+			// 如果将移动端和PC端都放到同一个目录中,则需要排除一下移动端的(这里只是一种自定义的规则,不同项目可能不一样)
+			string className = getFileNameNoSuffixNoDir(fileList[i]).removeEndString("_Mobile");
+			if (!uiList.addUnique(className))
 			{
 				continue;
 			}
-			string fileName = getFileNameNoSuffixNoDir(fileList[i]);
-			uiList.Add(fileName);
-			string lineString;
+
+			string lineString; 
 			if (comGenerator.mIsPersistent)
 			{
-				lineString = "\t\tregisteLayoutPersist<" + fileName + ">((script) =>";
+				lineString = "\t\tregisteLayoutPersist<" + className + ">((script) =>";
 			}
 			else
 			{
-				lineString = "\t\tregisteLayout<" + fileName + ">((script) =>";
+				lineString = "\t\tregisteLayout<" + className + ">((script) =>";
 			}
 			string endString;
 			string subPath = fileList[i].removeStartString(F_UI_PREFAB_PATH).removeEndString(getFileNameWithSuffix(fileList[i]));
 			if (subPath.isEmpty())
 			{
-				endString = "{ m" + fileName + " = script; });";
+				endString = "{ m" + className + " = script; });";
 			}
 			else
 			{
-				endString = "{ m" + fileName + " = script; }, \"" + subPath + "\");";
+				endString = "{ m" + className + " = script; }, \"" + subPath + "\");";
 			}
 			appendWithAlign(ref lineString, endString, 68);
 			insertList.Add(lineString);
@@ -156,14 +157,31 @@ public class UGUIGeneratorInspector : GameInspector
 	// 生成UI对应的脚本
 	protected static void generateLayoutScript(UGUIGenerator generator)
 	{
-		string layoutName = getClassNameFromGameObject(generator.gameObject);
+		string className = getClassNameFromGameObject(generator.gameObject);
+		if (className.endWith("_Mobile"))
+		{
+			className = className.removeEndString("_Mobile");
+		}
+
 		// 先找一下有没有已经存在的UI脚本
-		string fileFullPath = findScript(layoutName);
+		string prefabName = PrefabStageUtility.GetCurrentPrefabStage().assetPath;
+		string fileFullPath = findScript(className);
+		foreach (string line in openTxtFileLinesSync(fileFullPath).safe())
+		{
+			// 查找是否能获取到生成的源UI文件
+			if (line.startWith("// generate from:") && 
+				line.rangeFromFirstToEndExcept(':') != prefabName &&
+				!messageYesNo("发现代码文件不是由当前UI界面生成的,是否确认要生成?"))
+			{
+				return;
+			}
+		}
 
 		// 成员变量定义的代码
 		List<string> memberDefineList = new();
+		memberDefineList.add("// generate from:" + prefabName);
 		memberDefineList.add("[ObfuzIgnore(ObfuzScope.TypeName)]");
-		memberDefineList.add("public class " + layoutName + " : " + generator.mParentType);
+		memberDefineList.add("public class " + className + " : " + generator.mParentType);
 		memberDefineList.add("{");
 		foreach (MemberData data in generator.mMemberList)
 		{
@@ -225,7 +243,7 @@ public class UGUIGeneratorInspector : GameInspector
 
 		if (fileFullPath.isEmpty())
 		{
-			fileFullPath = F_SCRIPTS_HOTFIX_UI_PATH + layoutName + ".cs";
+			fileFullPath = F_SCRIPTS_HOTFIX_UI_PATH + className + ".cs";
 			string fileContent = "";
 			bool needStringUtility = false;
 			foreach (string item in generatedAssignLines)
@@ -248,7 +266,7 @@ public class UGUIGeneratorInspector : GameInspector
 				line(ref fileContent, str);
 			}
 			line(ref fileContent, "\t// auto generate member end");
-			line(ref fileContent, "\tpublic " + layoutName + "()");
+			line(ref fileContent, "\tpublic " + className + "()");
 			line(ref fileContent, "\t{");
 			line(ref fileContent, "\t\t// auto generate constructor start");
 			foreach (string str in constructorLines)
@@ -297,7 +315,7 @@ public class UGUIGeneratorInspector : GameInspector
 				// 找不到就在类的第一行插入
 				for (int i = 0; i < codeList.Count; ++i)
 				{
-					if (codeList[i].Contains(" class " + layoutName + " "))
+					if (codeList[i].Contains(" class " + className + " "))
 					{
 						int lineStart = i - 2;
 						codeList.Insert(++lineStart, "\t// auto generate member start");
@@ -311,7 +329,6 @@ public class UGUIGeneratorInspector : GameInspector
 				}
 			}
 
-			
 			// 构造函数
 			if (findCustomCode(fileFullPath, ref codeList, out int lineStart1,
 				(string line) => { return line.endWith("// auto generate constructor start"); },
@@ -328,7 +345,7 @@ public class UGUIGeneratorInspector : GameInspector
 				bool foundConstructor = false;
 				for (int i = 0; i < codeList.Count; ++i)
 				{
-					if (codeList[i].Contains("public " + layoutName + "()"))
+					if (codeList[i].Contains("public " + className + "()"))
 					{
 						foundConstructor = true;
 						int lineStart = i + 1;
@@ -350,7 +367,7 @@ public class UGUIGeneratorInspector : GameInspector
 						{
 							foundConstructor = true;
 							int lineStart = i;
-							codeList.Insert(++lineStart, "\tpublic " + layoutName + "()");
+							codeList.Insert(++lineStart, "\tpublic " + className + "()");
 							codeList.Insert(++lineStart, "\t{");
 							codeList.Insert(++lineStart, "\t\t// auto generate constructor start");
 							foreach (string str in constructorLines)

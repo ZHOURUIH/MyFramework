@@ -45,7 +45,7 @@ public class WindowStructPoolMap<Key, T> : WindowStructPoolBase where T : Window
 		}
 		else
 		{
-			item = createInstance<T>(mObjectType, mScript);
+			item = createInstance<T>(mObjectType, this);
 			item.assignWindow(parent, mTemplate, isEditor() ? mPreName + makeID() : mPreName);
 			item.init();
 			item.postInit();

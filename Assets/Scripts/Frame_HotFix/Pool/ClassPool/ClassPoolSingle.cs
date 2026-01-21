@@ -7,26 +7,13 @@ using static FrameBaseUtility;
 
 // 不支持带参构造的类,因为在再次利用时参数无法正确传递
 // 多线程的对象池无法判断临时对象有没有正常回收,因为子线程的帧与主线程不同步
-public class ClassPoolSingle : ClassObject
+public class ClassPoolSingle
 {
 	protected HashSet<ClassObject> mInusedList = new();     // 已使用的列表,为了提高运行时效率,仅在编辑器下使用
 	protected Queue<ClassObject> mUnusedList = new();		// 未使用的列表
 	protected ThreadLock mListLock = new();					// 列表的线程锁
-	protected Type mType;									// 对象类型
+	protected Type mType;                                   // 对象类型
 	protected static long mAssignIDSeed;					// 分配ID的种子
-	public override void resetProperty()
-	{
-		base.resetProperty();
-		mInusedList.Clear();
-		mUnusedList.Clear();
-		// mListLock.unlock();
-		mType = null;
-	}
-	public override void destroy()
-	{
-		base.destroy();
-		mListLock.destroy();
-	}
 	public void setType(Type type) { mType = type; }
 	public Type getType() { return mType; }
 	public void clearUnused()

@@ -6,7 +6,7 @@ using static FrameBaseUtility;
 
 // 已经从资源加载的物体的信息
 [Serializable]
-public class ObjectInfo : ClassObject
+public class GameObjectInfo : ClassObject
 {
 	protected PrefabPool mPool;			// 所属的对象池
 	protected GameObject mObject;		// 物体实例
@@ -41,7 +41,7 @@ public class ObjectInfo : ClassObject
 		mObject = instantiatePrefab(null, prefab, getFileNameWithSuffix(prefab.name), true);
 	}
 	// 异步创建物体
-	public void createObjectAsync(GameObject prefab, string fileWithPath, Action<ObjectInfo> callback)
+	public void createObjectAsync(GameObject prefab, string fileWithPath, Action<GameObjectInfo> callback)
 	{
 		if (prefab == null)
 		{

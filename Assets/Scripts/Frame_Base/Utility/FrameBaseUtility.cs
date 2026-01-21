@@ -325,7 +325,7 @@ public class FrameBaseUtility
 	}
 	public static GameObject getRootGameObject(string name, bool errorIfNull = false)
 	{
-		if (name == null || name.Length == 0)
+		if (string.IsNullOrEmpty(name))
 		{
 			return null;
 		}
@@ -338,7 +338,7 @@ public class FrameBaseUtility
 	}
 	public static GameObject getGameObject(string name, GameObject parent, bool errorIfNull = false, bool recursive = true)
 	{
-		if (name == null || name.Length == 0)
+		if (string.IsNullOrEmpty(name))
 		{
 			return null;
 		}
@@ -348,33 +348,28 @@ public class FrameBaseUtility
 			return null;
 		}
 		GameObject go = null;
-		do
+		Transform trans = parent.transform.Find(name);
+		if (trans != null)
 		{
-			Transform trans = parent.transform.Find(name);
-			if (trans != null)
+			go = trans.gameObject;
+		}
+		// 如果父节点的第一级子节点中找不到,就递归查找
+		else if (recursive)
+		{
+			int childCount = parent.transform.childCount;
+			for (int i = 0; i < childCount; ++i)
 			{
-				go = trans.gameObject;
-				break;
-			}
-			// 如果父节点的第一级子节点中找不到,就递归查找
-			if (recursive)
-			{
-				int childCount = parent.transform.childCount;
-				for (int i = 0; i < childCount; ++i)
+				go = getGameObject(name, parent.transform.GetChild(i).gameObject, false, recursive);
+				if (go != null)
 				{
-					GameObject thisParent = parent.transform.GetChild(i).gameObject;
-					go = getGameObject(name, thisParent, false, recursive);
-					if (go != null)
-					{
-						break;
-					}
+					break;
 				}
 			}
-		} while (false);
+		}
 
 		if (go == null && errorIfNull)
 		{
-			logErrorBase("找不到物体,请确认是否存在:" + name + ", parent:" + getGameObjectPathBase(parent));
+			logErrorBase("找不到物体,请确认是否存在:" + name + ", path:" + getGameObjectPathBase(parent) + "/" + name);
 		}
 		return go;
 	}
@@ -386,9 +381,9 @@ public class FrameBaseUtility
 		}
 		Transform transform = go.transform;
 		string path = go.name;
-		while (true)
+		while (transform != null)
 		{
-			Transform parentTrans = transform != null ? transform.parent : null;
+			Transform parentTrans = transform.parent;
 			if (parentTrans == null)
 			{
 				break;

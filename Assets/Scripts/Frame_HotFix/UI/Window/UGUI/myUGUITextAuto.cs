@@ -1,5 +1,4 @@
-﻿#if USE_TMP
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System;
@@ -320,4 +319,3 @@ public class myUGUITextAuto : myUGUIObject, IUGUIText
 		collection.addLocalizationObject(this);
 	}
 }
-#endif

@@ -1,6 +1,4 @@
-﻿#if USE_TMP
-using TMPro;
-#endif
+﻿using TMPro;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -139,9 +137,7 @@ public class FindTextWindow : GameEditorWindow
 			}
 			var list = textList.add(prefab, new());
 			list.AddRange(prefab.GetComponentsInChildren<Text>(true));
-#if USE_TMP
 			list.AddRange(prefab.GetComponentsInChildren<TextMeshProUGUI>(true));
-#endif
 		}
 		mAllCount = 0;
 		foreach (var item in textList)
@@ -162,12 +158,10 @@ public class FindTextWindow : GameEditorWindow
 		{
 			return textCom.text;
 		}
-#if USE_TMP
 		else if (graphic is TextMeshProUGUI tmpCom)
 		{
 			return tmpCom.text;
 		}
-#endif
 		return null;
 	}
 	protected void setText(MaskableGraphic graphic, string newStr)
@@ -176,11 +170,9 @@ public class FindTextWindow : GameEditorWindow
 		{
 			textCom.text = newStr;
 		}
-#if USE_TMP
 		else if (graphic is TextMeshProUGUI tmpCom)
 		{
 			tmpCom.text = newStr;
 		}
-#endif
 	}
 }

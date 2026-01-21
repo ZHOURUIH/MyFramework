@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
-using static UnityUtility;
 using static FrameBaseHotFix;
+using static FrameBaseUtility;
+using static UnityUtility;
 using static MathUtility;
 
-// 用于处理一些需要监听ESC键来关闭的布局
+// 用于处理一些需要监听ESC键来关闭的布局,仅在PC端使用
 public class COMLayoutManagerEscHide : GameComponent
 {
 	protected Comparison<GameLayout> mCompareLayoutRenderOrder;		// 比较布局渲染顺序的函数,避免GC
@@ -17,7 +18,10 @@ public class COMLayoutManagerEscHide : GameComponent
 	public override void init(ComponentOwner owner)
 	{
 		base.init(owner);
-		mInputSystem.listenKeyCurrentDown(KeyCode.Escape, onESCDown, this);
+		if (isStandalone())
+		{
+			mInputSystem.listenKeyCurrentDown(KeyCode.Escape, onESCDown, this);
+		}
 	}
 	public override void resetProperty()
 	{

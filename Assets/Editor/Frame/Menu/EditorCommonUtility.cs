@@ -2378,7 +2378,7 @@ public class EditorCommonUtility
 		{
 			return;
 		}
-		foreach (RectTransform item in uiPrefab.GetComponentsInChildren<RectTransform>())
+		foreach (RectTransform item in uiPrefab.GetComponentsInChildren<RectTransform>(true))
 		{
 			if (!item.TryGetComponent<ScaleAnchor>(out _))
 			{

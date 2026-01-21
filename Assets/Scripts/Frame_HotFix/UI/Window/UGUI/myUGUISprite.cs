@@ -207,7 +207,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		}
 		if (sprite != null && mAtlasPtr != null && !mAtlasPtr.hasSprite(sprite))
 		{
-			logWarning("设置不同图集的图片可能会引起问题,如果需要设置其他图集的图片,请使用setSpriteOnly, sprite:" + sprite.name + ", atlas:" + mAtlasPtr.getAtlasName() + ", token:" + mAtlasPtr.getToken() + ", hash:" + mAtlasPtr.GetHashCode() + ", window:" + getGameObjectPath(mObject));
+			logWarning("设置不同图集的图片可能会引起问题,如果需要设置其他图集的图片,请使用setSpriteOnly, sprite:" + sprite.name + ", atlas:" + mAtlasPtr.getAtlasSingleName() + ", token:" + mAtlasPtr.getToken() + ", hash:" + mAtlasPtr.GetHashCode() + ", window:" + getGameObjectPath(mObject));
 		}
 		setSpriteOnly(sprite);
 	}
@@ -236,10 +236,10 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 	public SpriteRenderer getSpriteRenderer()		{ return mSpriteRenderer; }
 	public Sprite getSprite()						{ return mSpriteRenderer.sprite; }
 	public int getOrderInLayer()					{ return mSpriteRenderer.sortingOrder; }
-	public int getRendererPrority()					{ return mSpriteRenderer.rendererPriority; }
+	public int getRendererPriority()				{ return mSpriteRenderer.rendererPriority; }
 	public string getOriginMaterialPath()			{ return mOriginMaterialPath; }
 	public void setOrderInLayer(int order)			{ mSpriteRenderer.sortingOrder = order; }
-	public void setRendererPrority(int priority)	{ mSpriteRenderer.rendererPriority = priority; }
+	public void setRendererPriority(int priority)	{ mSpriteRenderer.rendererPriority = priority; }
 	// materialPath是GameResources下的相对路径,带后缀
 	public void setMaterialName(string materialPath, bool newMaterial, bool loadAsync = false)
 	{
@@ -361,6 +361,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		}
 		mSpriteRenderer.color = new(color.x, color.y, color.z);
 	}
+	public bool isOriginAtlas(UGUIAtlasPtr atlas) { return mOriginAtlasPtr == atlas; }
 	public override Color getColor() { return mSpriteRenderer.color; }
 	public string getOriginSpriteName() { return mOriginSpriteName; }
 	public void setOriginSpriteName(string textureName) { mOriginSpriteName = textureName; }

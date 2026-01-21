@@ -15,7 +15,7 @@ public class PrefabPoolDebugInfo
 // 从资源加载的物体池的调试信息
 public class ObjectPoolDebug : MonoBehaviour
 {
-	public List<ObjectInfo> mInstanceListValues = new();   // 物体信息列表
+	public List<GameObjectInfo> mInstanceListValues = new();	// 物体信息列表
 	public List<PrefabPoolDebugInfo> mPrefabPoolInfo = new();	// 预设列表
 	private void Update()
 	{

@@ -158,7 +158,7 @@ public abstract class AtlasLoaderBase
 		}
 		return op;
 	}
-	// 卸载图集
+	// 卸载图集,atlasPtr会在上一层调用中被回收,所以无需在这里去UN_CLASS
 	public bool unloadAtlas(UGUIAtlasPtr atlasPtr)
 	{
 		if (atlasPtr == null || !atlasPtr.isValid() || atlasPtr.getToken() == 0)

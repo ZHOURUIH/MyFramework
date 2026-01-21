@@ -65,7 +65,7 @@ public class WindowStructPoolUnOrder<T> : WindowStructPoolBase where T : WindowO
 		}
 		else
 		{
-			item = createInstance<T>(mObjectType, mScript);
+			item = createInstance<T>(mObjectType, this);
 			item.assignWindow(parent, mTemplate, isEditor() ? mPreName + makeID() : mPreName);
 			item.init();
 			item.postInit();
@@ -89,6 +89,12 @@ public class WindowStructPoolUnOrder<T> : WindowStructPoolBase where T : WindowO
 			mUnusedItemList.Enqueue(item);
 		}
 		mUsedItemList.Clear();
+	}
+	public bool unuseItem(ref T item, bool showError = true)
+	{
+		bool result = unuseItem(item, showError);
+		item = null;
+		return result;
 	}
 	public bool unuseItem(T item, bool showError = true)
 	{

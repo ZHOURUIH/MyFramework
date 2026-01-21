@@ -37,7 +37,7 @@ public class MenuShortcutOperation
 		}
 	}
 	[MenuItem(mMenuName + "打开初始场景 _F9", false, 3)]
-	public static void jumpGameSceme()
+	public static void jumpGameScene()
 	{
 		if (!EditorApplication.isPlaying)
 		{
@@ -77,7 +77,7 @@ public class MenuShortcutOperation
 		// 对选中的所有对象遍历生成角色控制器
 		foreach (GameObject item in objects)
 		{
-			var renderers = item.GetComponentsInChildren<Renderer>();
+			var renderers = item.GetComponentsInChildren<Renderer>(true);
 			if (renderers == null)
 			{
 				continue;

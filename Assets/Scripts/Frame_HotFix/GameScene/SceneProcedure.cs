@@ -213,7 +213,7 @@ public class SceneProcedure : DelayCmdWatcher
 	protected virtual void onExitToChild(SceneProcedure nextProcedure) { }
 	// 退出当前流程进入其他任何流程时调用
 	protected virtual void onExitSelf() { }
-	protected virtual void onPrepareExit(SceneProcedure nextPreocedure) { }
+	protected virtual void onPrepareExit(SceneProcedure nextProcedure) { }
 	protected bool setParent(SceneProcedure parent)
 	{
 		if (mParentProcedure != null)

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using static UnityUtility;
 using static FrameUtility;
 using static MathUtility;
@@ -42,7 +41,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		}
 	}
 	// 将source从sourcePool中移动到当前池中,inUsed表示移动到当前池以后是处于正在使用的状态还是未使用状态
-	public void moveItem(WindowStructPool<T> sourcePool, T source, bool inUsed, bool moveParent = true)
+	public void moveItem(WindowStructPool<T> sourcePool, T source, bool inUsed)
 	{
 		// 从原来的池中移除
 		sourcePool.mUsedItemList.Remove(source);
@@ -56,12 +55,10 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		{
 			mUnusedItemList.Add(source);
 		}
-		if (moveParent)
-		{
-			source.setParent(mItemParent);
-		}
+		source.setParent(mItemParent);
 		// 检查分配ID种子,确保后面池中的已分配ID一定小于分配ID种子
 		mAssignIDSeed = getMax(source.getAssignID(), mAssignIDSeed);
+		source.reassignParent(this);
 	}
 	public void newItem(int count)
 	{
@@ -92,7 +89,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		}
 		else
 		{
-			item = createInstance<T>(mObjectType, mScript);
+			item = createInstance<T>(mObjectType, this);
 			item.assignWindow(parent, mTemplate, isEditor() ? mPreName + makeID() : mPreName);
 			item.init();
 			item.postInit();
@@ -120,6 +117,12 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 			mUnusedItemList.Add(item);
 		}
 		mUsedItemList.Clear();
+	}
+	public bool unuseItem(ref T item, bool showError = true)
+	{
+		bool result = unuseItem(item, showError);
+		item = null;
+		return result;
 	}
 	public bool unuseItem(T item, bool showError = true)
 	{

@@ -1,6 +1,4 @@
-#if USE_TMP
 using TMPro;
-#endif
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.U2D;
@@ -105,7 +103,6 @@ public class MenuAssets
 			Debug.Log("已创建图集：" + savePath + ",sprite数量:" + textureList.Count);
 		}
 	}
-#if USE_TMP
 	[MenuItem(mMenuName + "精简TMP字体大小,但是精简完以后无法再替换材质")]
 	public static void extractTexture()
 	{
@@ -127,7 +124,6 @@ public class MenuAssets
 		AssetDatabase.SaveAssets();
 		AssetDatabase.Refresh();
 	}
-#endif
 	[MenuItem(mMenuName + "删除所有空文件夹", false, 32)]
 	public static void deleteAllEmptyFolder()
 	{

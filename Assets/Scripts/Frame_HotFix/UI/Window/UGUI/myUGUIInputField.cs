@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Events;
 using static StringUtility;
 using static FrameUtility;
 using static FrameBaseUtility;
@@ -9,17 +8,10 @@ using static UnityUtility;
 // 对UGUI的InputField的封装
 public class myUGUIInputField : myUGUIImageSimple, IInputField
 {
-	protected UnityAction<string> mThisEditEnd;		// 避免GC的委托
-	protected UnityAction<string> mThisEditing;		// 避免GC的委托
 	protected StringCallback mEdittingCallback;		// 正在输入的回调
 	protected StringCallback mEditEndCallback;		// 输入结束的回调
 	protected InputField mInputField;				// UGUI的InputField组件
 	protected bool mEndNeedEnter;					// 是否需要按下回车键才会认为是输入结束,false则是只要输入框失去焦点就认为输入结束而调用mEditorEndCallback
-	public myUGUIInputField()
-	{
-		mThisEditEnd = onEditEnd;
-		mThisEditing = onEditting;
-	}
 	public override void init()
 	{
 		base.init();
@@ -35,6 +27,8 @@ public class myUGUIInputField : myUGUIImageSimple, IInputField
 			mTransform = mRectTransform;
 		}
 		mImage.raycastTarget = true;
+		mInputField.onEndEdit.AddListener(onEditEnd);
+		mInputField.onValueChanged.AddListener(onEditting);
 	}
 	public override void setAlpha(float alpha, bool fadeChild)
 	{
@@ -49,12 +43,10 @@ public class myUGUIInputField : myUGUIImageSimple, IInputField
 	{
 		mEditEndCallback = action;
 		mEndNeedEnter = needEnter;
-		mInputField.onEndEdit.AddListener(mThisEditEnd);
 	}
 	public void setOnEditting(StringCallback action)
 	{
 		mEdittingCallback = action;
-		mInputField.onValueChanged.AddListener(mThisEditing);
 	}
 	public void clear(bool removeFocus = true) 
 	{

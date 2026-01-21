@@ -9,7 +9,7 @@ using static MathUtility;
 public class ImageNumber : Image
 {
 	protected Dictionary<char, Sprite> mSpriteList = new(); // 图片列表,需要所有图片都是相同大小的
-	protected List<UIVertex> mVertextCache = new();			// 顶点数据列表缓存
+	protected List<UIVertex> mVertexCache = new();			// 顶点数据列表缓存
 	protected List<int> mIndices = new();					// 缓存的顶点索引数据
 	protected string mNumber;                               // 要显示的数字内容
 	protected int mNumberWidth;								// 单个数字显示的宽度
@@ -33,7 +33,7 @@ public class ImageNumber : Image
 				}
 			}
 		}
-		// 根据RectTracsform的大小自动计算显示的宽度和高度
+		// 根据RectTransform的大小自动计算显示的宽度和高度
 		if (rectTransform == null)
 		{
 			logError("找不到rectTransform");
@@ -96,7 +96,7 @@ public class ImageNumber : Image
 	}
 	protected void refreshPoints()
 	{
-		mVertextCache.Clear();
+		mVertexCache.Clear();
 		mIndices.Clear();
 		int numberLength = mNumber.length();
 		if (numberLength == 0)
@@ -105,8 +105,8 @@ public class ImageNumber : Image
 		}
 		Texture texture = mSpriteList.firstValue().texture;
 		// 计算顶点,纹理坐标,颜色
-		int verticeCount = numberLength << 2;
-		mVertextCache.Capacity = verticeCount;
+		int vertexCount = numberLength << 2;
+		mVertexCache.Capacity = vertexCount;
 		mIndices.Capacity = (numberLength << 1) * 3;
 		// mVertices
 		//0---------1
@@ -128,25 +128,25 @@ public class ImageNumber : Image
 		{
 			Rect spriteRect = mSpriteList.get(mNumber[i]).rect;
 			float posX0 = i * (mNumberWidth + mInterval) - halfTotalWidth;
-			mVertextCache.add(new()
+			mVertexCache.add(new()
 			{
 				color = color,
 				position = new(posX0, halfHeight, 0.0f),
 				uv0 = new(spriteRect.x * inverseTextureWidth, (spriteRect.y + spriteRect.height) * inverseTextureHeight)
 			});
-			mVertextCache.add(new()
+			mVertexCache.add(new()
 			{
 				color = color,
 				position = new(posX0 + mNumberWidth, halfHeight, 0.0f),
 				uv0 = new((spriteRect.x + spriteRect.width) * inverseTextureWidth, (spriteRect.y + spriteRect.height) * inverseTextureHeight)
 			});
-			mVertextCache.add(new()
+			mVertexCache.add(new()
 			{
 				color = color,
 				position = new(posX0, -halfHeight, 0.0f),
 				uv0 = new(spriteRect.x * inverseTextureWidth, spriteRect.y * inverseTextureHeight)
 			});
-			mVertextCache.add(new()
+			mVertexCache.add(new()
 			{
 				color = color,
 				position = new(posX0 + mNumberWidth, -halfHeight, 0.0f),
@@ -165,20 +165,20 @@ public class ImageNumber : Image
 		// 默认为居中停靠,所以只额外处理左停靠和右停靠
 		if (mDockingPosition == DOCKING_POSITION.LEFT)
 		{
-			for (int i = 0; i < verticeCount; ++i)
+			for (int i = 0; i < vertexCount; ++i)
 			{
-				UIVertex vert = mVertextCache[i];
+				UIVertex vert = mVertexCache[i];
 				vert.position.x += halfTotalWidth;
-				mVertextCache[i] = vert;
+				mVertexCache[i] = vert;
 			}
 		}
 		else if (mDockingPosition == DOCKING_POSITION.RIGHT)
 		{
-			for (int i = 0; i < verticeCount; ++i)
+			for (int i = 0; i < vertexCount; ++i)
 			{
-				UIVertex vert = mVertextCache[i];
+				UIVertex vert = mVertexCache[i];
 				vert.position.x -= halfTotalWidth;
-				mVertextCache[i] = vert;
+				mVertexCache[i] = vert;
 			}
 		}
 	}
@@ -197,7 +197,7 @@ public class ImageNumber : Image
 			{
 				refreshPoints();
 			}
-			toFill.AddUIVertexStream(mVertextCache, mIndices);
+			toFill.AddUIVertexStream(mVertexCache, mIndices);
 		}
 	}
 }

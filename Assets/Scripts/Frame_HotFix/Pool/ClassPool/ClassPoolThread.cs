@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using static FrameBaseUtility;
 
@@ -41,7 +41,7 @@ public class ClassPoolThread : FrameSystem
 	// 返回值表示是否是new出来的对象,false则为从回收列表中重复使用的对象
 	public ClassObject newClass(Type type)
 	{
-		if (type == null)
+		if (mHasDestroy || type == null)
 		{
 			return null;
 		}
@@ -59,10 +59,19 @@ public class ClassPoolThread : FrameSystem
 	}
 	public T newClass<T>() where T : ClassObject
 	{
+		if (mHasDestroy)
+		{
+			return null;
+		}
 		return newClass(typeof(T)) as T;
 	}
 	public T newClass<T>(out T obj) where T : ClassObject
 	{
+		if (mHasDestroy)
+		{
+			obj = null;
+			return null;
+		}
 		ClassObject classObj = newClass(typeof(T));
 		obj = classObj as T;
 		if (obj == null)
@@ -73,7 +82,7 @@ public class ClassPoolThread : FrameSystem
 	}
 	public void destroyClass<T>(ref T classObject) where T : ClassObject
 	{
-		if (classObject == null)
+		if (mHasDestroy || classObject == null)
 		{
 			return;
 		}
@@ -82,13 +91,14 @@ public class ClassPoolThread : FrameSystem
 			if (!mPoolList.TryGetValue(classObject.GetType(), out ClassPoolSingle singlePool))
 			{
 				Debug.LogError("找不到类对象的对象池");
+				return;
 			}
 			singlePool.destroyClass(ref classObject);
 		}
 	}
 	public void destroyClassList<T>(ICollection<T> classObjectList) where T : ClassObject
 	{
-		if (classObjectList.isEmpty())
+		if (mHasDestroy || classObjectList.isEmpty())
 		{
 			return;
 		}
@@ -100,6 +110,7 @@ public class ClassPoolThread : FrameSystem
 				if (!mPoolList.TryGetValue(obj.GetType(), out ClassPoolSingle singlePool))
 				{
 					Debug.LogError("找不到类对象的对象池");
+					return;
 				}
 				T temp = obj;
 				singlePool.destroyClass(ref temp);

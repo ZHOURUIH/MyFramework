@@ -12,17 +12,13 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 	protected List<BoolCallback> mPlayingCallback;		// 一个序列正在播放时的回调函数
 	protected List<Vector2> mTexturePosList;			// 每一帧的位置偏移列表
 	protected List<Texture> mTextureList = new();		// 序列帧列表
-	protected BoolBoolCallback mThisPlayEnd;			// 避免GC的委托
-	protected IntBoolCallback mThisPlaying;				// 避免GC的委托
 	protected AnimControl mControl = new();				// 序列帧播放控制器
 	protected string mTexturePreName = EMPTY;			// 序列帧图片的前缀名
 	protected string mTexturePath = EMPTY;				// 序列帧图片的路径
-	protected bool mUseTextureSize;						// 是否使用图片的大小改变当前窗口大小
+	protected bool mUseTextureSize;                     // 是否使用图片的大小改变当前窗口大小
 	public myUGUIRawImageAnim()
 	{
 		mNeedUpdate = true;
-		mThisPlayEnd = onPlayEnd;
-		mThisPlaying = onPlaying;
 	}
 	public override void init()
 	{
@@ -34,8 +30,8 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 		}
 		setTexturePath(animPath.mTexturePath, animPath.mTextureName, animPath.mImageCount);
 		mControl.setObject(this);
-		mControl.setPlayEndCallback(mThisPlayEnd);
-		mControl.setPlayingCallback(mThisPlaying);
+		mControl.setPlayEndCallback(onPlayEnd);
+		mControl.setPlayingCallback(onPlaying);
 	}
 	public override void destroy()
 	{
@@ -105,6 +101,7 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 	public void play()										{ mControl.play(); }
 	public void pause()										{ mControl.pause(); }
 	public void setCurFrameIndex(int index)					{ mControl.setCurFrameIndex(index); }
+	// 由于每次播放结束后都会将回调列表清空,所以需要在stop后和play前去添加回调
 	public void addPlayEndCallback(BoolCallback callback, bool clear = true)
 	{
 		if (clear && !mPlayEndCallback.isEmpty())

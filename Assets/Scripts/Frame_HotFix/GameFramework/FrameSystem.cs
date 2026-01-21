@@ -15,7 +15,7 @@ public class FrameSystem : ComponentOwner
 	public FrameSystem()
 	{
 		// 由于一般FrameSystem不会使用对象池来管理,所以构造时就设置当前对象为有效
-		mDestroy = false;
+		mHasDestroy = false;
 	}
 	public virtual void preInitAsync(Action callback) { callback?.Invoke(); }
 	public virtual void initAsync(Action callback) { callback?.Invoke(); }
@@ -35,7 +35,7 @@ public class FrameSystem : ComponentOwner
 	{
 		destroyUnityObject(mObject);
 		mObject = null;
-		mDestroy = true;
+		mHasDestroy = true;
 		base.destroy();
 	}
 	// 资源更新完毕时调用

@@ -56,6 +56,10 @@ public class HashSetPool : FrameSystem
 	// onlyOnce表示是否仅当作临时列表使用
 	public IEnumerable newList(Type elementType, Type listType, string stackTrace, bool onlyOnce = true)
 	{
+		if (mHasDestroy)
+		{
+			return null;
+		}
 		if (isEditor() && !isMainThread())
 		{
 			Debug.LogError("只能在主线程使用HashSetPool,子线程请使用HashSetPoolThread代替");
@@ -95,6 +99,10 @@ public class HashSetPool : FrameSystem
 	}
 	public void destroyList<T>(ref HashSet<T> list, Type elementType)
 	{
+		if (mHasDestroy)
+		{
+			return;
+		}
 		if (isEditor() && !isMainThread())
 		{
 			Debug.LogError("只能在主线程使用HashSetPool,子线程请使用HashSetPoolThread代替");

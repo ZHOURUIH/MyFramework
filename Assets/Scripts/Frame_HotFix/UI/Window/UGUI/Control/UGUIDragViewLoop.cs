@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static FrameBaseUtility;
 using static MathUtility;
 using static FrameUtility;
 using static StringUtility;
@@ -38,9 +39,14 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 	public override void init()
 	{
 		base.init();
-		if (mContent == null || mViewport == null)
+		if (mViewport == null)
 		{
 			logError("是否忘了调用UGUIDragViewLoop的assignWindow?");
+			return;
+		}
+		if (mContent == null)
+		{
+			logError("是否没有在Viewport下添加Content节点?");
 			return;
 		}
 		if (mDisplayItemPool.getTemplate() == null)
@@ -49,6 +55,11 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 			return;
 		}
 		mContent.setDragDirection(DRAG_DIRECTION.VERTICAL);
+		var scaleAnchor = mContent.tryGetUnityComponent<ScaleAnchor>();
+		if (scaleAnchor == null)
+		{
+			logError("没有找到适配组件,需要给Content节点加上ScaleAnchor组件,路径:" + getGameObjectPath(mContent.getObject()));
+		}
 		mInterval = mContent.tryGetUnityComponent<ScaleAnchor>().getRealScale() * Vector2.zero;
 		mItemSize = mDisplayItemPool.getTemplate().getWindowSize();
 		if (mItemSize.x < 1 || mItemSize.y < 1)
@@ -69,19 +80,23 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 		mScript.getLayout().refreshUIDepth(mContent, true);
 		mDisplayItemPool.unuseAll();
 	}
-	// 仅更新数据列表,要求新设置的数据列表要与之前的长度一致,这样才不需要重新计算Content的大小和所有节点的位置
-	public void updateDataList(List<DataType> dataList)
+	public override void reset()
 	{
-		if (mDataList.count() != dataList.count())
+		base.reset();
+		// 如果在重置时对象池中的节点被清空了,则用于查找的列表也要清空一下
+		if (mDisplayItemPool.getUsedList().Count == 0)
 		{
-			logError("使用updateDataList时需要保持新数据列表与旧数据列表长度一致,新数据长度:" + dataList.count() + ", 旧数据长度:" + mDataList.count());
-			return;
+			mDisplayItemMap.Clear();
 		}
-		// 先备份一下旧的数据列表,因为在设置数据之前会先调用清空,而清空里面可能会依赖于数据,所以旧数据需要延迟销毁
-		using var a = new ListScope<DataType>(out var tempList, mDataList);
-		mDataList.setRange(dataList);
-		updateDisplayItem();
-		UN_CLASS_LIST(tempList);
+	}
+	public override void onHide()
+	{
+		base.onHide();
+		// 如果在隐藏时对象池中的节点被清空了,则用于查找的列表也要清空一下
+		if (mDisplayItemPool.getUsedList().Count == 0)
+		{
+			mDisplayItemMap.Clear();
+		}
 	}
 	// 设置显示的数据,dataList的元素需要从对象池中创建,会在内部进行回收
 	// keepContentTopPos表示是否保持Content的顶部的位置不变,否则将会自动是Content顶部对齐Viewport顶部
@@ -89,62 +104,76 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 	{
 		// 先备份一下旧的数据列表,因为在设置数据之前会先调用清空,而清空里面可能会依赖于数据,所以旧数据需要延迟销毁
 		using var a = new ListScope<DataType>(out var tempList, mDataList);
-		mAllItemPos.Clear();
-		if (dataList.count() == 0)
+		// 数据的数量不一致才需要重新计算大小和位置
+		if (mDataList.Count != dataList.count())
 		{
-			mContent.setWindowHeight(0);
-		}
-		else
-		{
-			mDataList.setRange(dataList);
-			float contentWidth = mContent.getWindowSize().x;
-			Vector2 curLeftTop = Vector2.zero;
-			// 为了避免浮点计算的误差,使用计数的方式来获得行数,如果通过(最大高度 + 高度间隔) / (节点高度 + 高度间隔)的方式计算,可能会由于误差而算错
-			int rowCount = dataList.Count > 0 ? 1 : 0;
-			for (int i = 0; i < dataList.Count; ++i)
+			mAllItemPos.Clear();
+			if (dataList.count() == 0)
 			{
-				// 这一排已经放不下了, 放到下一排
-				if (curLeftTop.x + mItemSize.x > contentWidth)
-				{
-					curLeftTop = new(0, curLeftTop.y - mInterval.y - mItemSize.y);
-					++rowCount;
-				}
-				mAllItemPos.add(new(curLeftTop.x + mItemSize.x * 0.5f, curLeftTop.y - mItemSize.y * 0.5f));
-				curLeftTop.x += mItemSize.x + mInterval.x;
-			}
-			float maxHeight = mItemSize.y * rowCount + mInterval.y * (rowCount - 1);
-			// 计算完高度, 重新计算所有节点在Content下的位置
-			for (int i = 0; i < mAllItemPos.Count; ++i)
-			{
-				mAllItemPos[i] = new(mAllItemPos[i].x - mContent.getPivot().x * contentWidth, mAllItemPos[i].y + (1 - mContent.getPivot().y) * maxHeight);
-			}
-			// Content的顶部在Viewport中的位置
-			float contentTop = mContent.getPosition().y + mContent.getPivot().y * mContent.getWindowSize().y;
-			// 计算出Content节点的总高度
-			mContent.setWindowHeight(maxHeight);
-			// 只有当top不在Viewport内时才会调整,否则即使调整了,也会自动被拉回
-			if (keepContentTopPos && contentTop >= mViewport.getWindowSize().y * 0.5f)
-			{
-				mContent.setPosition(new(0.0f, contentTop - mContent.getPivot().y * mContent.getWindowSize().y));
+				mContent.setWindowHeight(0);
 			}
 			else
 			{
-				mContent.setTopCenterToParentTopCenter();
+				float contentWidth = mContent.getWindowSize().x;
+				Vector2 curLeftTop = Vector2.zero;
+				// 为了避免浮点计算的误差,使用计数的方式来获得行数,如果通过(最大高度 + 高度间隔) / (节点高度 + 高度间隔)的方式计算,可能会由于误差而算错
+				int rowCount = dataList.Count > 0 ? 1 : 0;
+				for (int i = 0; i < dataList.Count; ++i)
+				{
+					// 这一排已经放不下了, 放到下一排
+					if (curLeftTop.x + mItemSize.x > contentWidth)
+					{
+						curLeftTop = new(0, curLeftTop.y - mInterval.y - mItemSize.y);
+						++rowCount;
+					}
+					mAllItemPos.add(new(curLeftTop.x + mItemSize.x * 0.5f, curLeftTop.y - mItemSize.y * 0.5f));
+					curLeftTop.x += mItemSize.x + mInterval.x;
+				}
+				float maxHeight = mItemSize.y * rowCount + mInterval.y * (rowCount - 1);
+				// 计算完高度, 重新计算所有节点在Content下的位置
+				for (int i = 0; i < mAllItemPos.Count; ++i)
+				{
+					mAllItemPos[i] = new(mAllItemPos[i].x - mContent.getPivot().x * contentWidth, mAllItemPos[i].y + (1 - mContent.getPivot().y) * maxHeight);
+				}
+				// Content的顶部在Viewport中的位置
+				float contentTop = mContent.getPosition().y + mContent.getPivot().y * mContent.getWindowSize().y;
+				// 计算出Content节点的总高度
+				mContent.setWindowHeight(maxHeight);
+				// 只有当top不在Viewport内时才会调整,否则即使调整了,也会自动被拉回
+				if (keepContentTopPos && contentTop >= mViewport.getWindowSize().y * 0.5f)
+				{
+					mContent.setPosition(new(0.0f, contentTop - mContent.getPivot().y * mContent.getWindowSize().y));
+				}
+				else
+				{
+					mContent.setTopCenterToParentTopCenter();
+				}
 			}
 		}
+		mDataList.setRange(dataList);
 		updateDisplayItem();
 		UN_CLASS_LIST(tempList);
 	}
 	public List<DataType> getDataList() { return mDataList; }
-	// 每次调用setDateList或updateDataList时,可以先使用startSetDataList获取一个临时列表,然后填充列表,再调用setDataList将填充好的临时列表传进来
+	// 每次需要设置整个列表的数据时,可以先使用startSetDataList获取一个临时列表,然后填充列表,再调用endSetDataList应用填充好的数据列表
 	public List<DataType> startSetDataList() 
 	{
 		mTempDataList ??= new();
 		mTempDataList.Clear();
 		return mTempDataList; 
 	}
+	public void endSetDataList(bool keepContentTopPos = false)
+	{
+		setDataList(mTempDataList, keepContentTopPos);
+	}
+	// 重新设置指定下标的数据,data需要是重新从对象池中创建的
 	public void setData(int index, DataType data, bool forceRefresh = true)
 	{
+		if (isEditor() && mDataList.Contains(data))
+		{
+			logError("重新设置的data需要是新创建的对象");
+			return;
+		}
 		if (forceRefresh)
 		{
 			foreach (T item in mDisplayItemPool.getUsedList())
@@ -161,11 +190,20 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 		UN_CLASS(mDataList[index]);
 		mDataList[index] = data;
 	}
-	public void setDragEnable(bool enable)
+	// 更新指定下标的数据,并且刷新显示
+	public void updateData(int index)
 	{
-		mContent.getDragViewComponent()?.setActive(enable);
+		foreach (T item in mDisplayItemPool.getUsedList())
+		{
+			if (item.getIndex() == index)
+			{
+				item.clearData();
+				item.setData(mDataList[index]);
+				break;
+			}
+		}
 	}
-	public void setNeedUpdateItems(bool needUpdate) { mNeedUpdateItems = needUpdate; } 
+	// 根据指定条件替换数据,newData需要是重新从对象池中创建的
 	public void updateDisplayItem(Predicate<DataType> match, DataType newData, bool forceRefresh = true)
 	{
 		if (mDataList.findIndex(match, out int index))
@@ -173,6 +211,28 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 			setData(index, newData, forceRefresh);
 		}
 	}
+	// 更新指定下标的数据,并且刷新显示
+	public void updateDisplayItem(int index, Action<DataType> modifyCallback)
+	{
+		DataType data = mDataList.get(index);
+		if (data == null)
+		{
+			logError("修改的数据下标错误, index:" + index);
+			return;
+		}
+		modifyCallback?.Invoke(data);
+		updateData(index);
+	}
+	// 刷新节点显示,不改变数据,也不改变节点位置
+	public void updateDisplayItemOnly()
+	{
+		foreach (T item in mDisplayItemPool.getUsedList())
+		{
+			item.clearData();
+			item.setData(mDataList[item.getIndex()]);
+		}
+	}
+	// 刷新整个列表,重新计算位置
 	public void updateDisplayItem(bool forceRefresh = true)
 	{
 		// 根据当前Content的位置,计算出当前显示的节点
@@ -199,7 +259,7 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 			// 新增需要显示的节点
 			for (int i = startItemIndex; i < endItemIndex; ++i)
 			{
-				if (mDisplayItemMap.get(i) == null)
+				if (mDisplayItemMap.get(i) == null && i < mDataList.Count)
 				{
 					T item = mDisplayItemPool.newItem();
 					item.setIndex(i);
@@ -219,6 +279,7 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 		mLastRefreshedContentPos = mContent.getPosition();
 		mLastStartItemIndex = startItemIndex;
 	}
+	// 滑动列表的tick
 	public void updateDragView()
 	{
 		// 这一帧Content移动过位置,就需要刷新显示
@@ -235,21 +296,11 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, IC
 			}
 		}
 	}
-	public void setContentTopToListTop()
-	{
-		mContent.setTopToParentTop();
-	}
-	public void setContentBottomToListBottom()
-	{
-		mContent.setBottomToParentBottom();
-	}
-	public void setContentLeftToListLeft()
-	{
-		mContent.setLeftToParentLeft();
-	}
-	public void setContentRightToListRight()
-	{
-		mContent.setRightToParentRight();
-	}
+	public void setDragEnable(bool enable) { mContent.getDragViewComponent()?.setActive(enable); }
+	public void setNeedUpdateItems(bool needUpdate) { mNeedUpdateItems = needUpdate; }
+	public void setContentTopToListTop() { mContent.setTopToParentTop(); }
+	public void setContentBottomToListBottom() { mContent.setBottomToParentBottom(); }
+	public void setContentLeftToListLeft() { mContent.setLeftToParentLeft(); }
+	public void setContentRightToListRight() { mContent.setRightToParentRight(); }
 	public myUGUIDragView getContent() { return mContent; }
 }

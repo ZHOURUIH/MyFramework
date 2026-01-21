@@ -11,8 +11,6 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 	protected List<BoolCallback> mPlayingCallbackList;			// 一个序列正在播放时的回调函数
 	protected List<Vector2> mTexturePosList;                    // 每一帧的位置偏移列表
 	protected List<Sprite> mSpriteList = new();                 // 序列帧图片列表
-	protected BoolBoolCallback mPlayEndCallback;				// 播放完成时的回调
-	protected IntBoolCallback mPlayingCallback;					// 正在播放的回调
 	protected AnimControl mControl = new();                     // 序列帧控制器
 	protected string mTextureSetName;                           // 序列帧名字
 	protected bool mUseTextureSize;                             // 是否使用图片的大小改变当前窗口大小
@@ -20,8 +18,6 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 	public myUGUIImageAnim()
 	{
 		mNeedUpdate = true;
-		mPlayEndCallback = onPlayEnd;
-		mPlayingCallback = onPlaying;
 	}
 	public override void init()
 	{
@@ -32,8 +28,8 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 			setTextureSet(spriteName.rangeToLast('_'));
 		}
 		mControl.setObject(this);
-		mControl.setPlayEndCallback(mPlayEndCallback);
-		mControl.setPlayingCallback(mPlayingCallback);
+		mControl.setPlayEndCallback(onPlayEnd);
+		mControl.setPlayingCallback(onPlaying);
 	}
 	public override void update(float elapsedTime)
 	{
@@ -129,6 +125,7 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 	public void play()								{ mControl.play(); }
 	public void pause()								{ mControl.pause(); }
 	public void setCurFrameIndex(int index)			{ mControl.setCurFrameIndex(index); }
+	// 由于每次播放结束后都会将回调列表清空,所以需要在stop后和play前去添加回调
 	public void addPlayEndCallback(BoolCallback callback, bool clear = true)
 	{
 		if (clear && !mPlayEndCallbackList.isEmpty())

@@ -1,6 +1,4 @@
-﻿#if USE_TMP
-using TMPro;
-#endif
+﻿using TMPro;
 using System;
 using UnityEngine;
 using UnityEngine.UI;
@@ -152,11 +150,9 @@ public class WidgetUtility
 		{
 			text.fontSize = Mathf.Clamp((int)Mathf.Floor(text.fontSize / lastHeight * size.y), minFontSize, 200);
 		}
-#if USE_TMP
 		else if (rectTransform.TryGetComponent(out TextMeshProUGUI tmproText))
 		{
 			tmproText.fontSize = Mathf.Clamp((int)Mathf.Floor(tmproText.fontSize / lastHeight * size.y), minFontSize, 200);
 		}
-#endif
 	}
 }
