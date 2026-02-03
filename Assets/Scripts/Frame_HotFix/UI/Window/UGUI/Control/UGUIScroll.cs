@@ -6,7 +6,8 @@ using static FrameBaseHotFix;
 // 自定义的滑动列表,基于容器(相当于状态的预设),物体(用于显示的物体),物体的各个状态在每个容器之间插值计算
 // 需要主动调用update
 // 一般制作Container时需要多两个结束的Container放在两端,使Item在超出Container时不至于突然消失
-public class UGUIScroll : WindowObjectUGUI, ICommonUI
+[CommonControl]
+public class UGUIScroll : WindowObjectUGUI
 {
 	protected List<IScrollContainer> mContainerList = new();// 容器列表,用于获取位置缩放旋转等属性,每一容器的控制值就是其下标
 	protected List<IScrollItem> mItemList = new();          // 物体列表,用于显示,每一项的控制值就是其下标,所以在下面的代码中会频繁使用其下标来计算位置

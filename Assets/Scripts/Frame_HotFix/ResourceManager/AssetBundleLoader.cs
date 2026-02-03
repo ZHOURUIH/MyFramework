@@ -49,7 +49,7 @@ public class AssetBundleLoader
 				if (bytes != null && !isWebGL())
 				{
 					// 写入到本地,并且更新资源列表
-					writeFile(F_PERSISTENT_ASSETS_PATH + STREAMING_ASSET_FILE, bytes, bytes.Length);
+					writeFile(F_PERSISTENT_ASSETS_PATH + STREAMING_ASSET_FILE, bytes);
 					GameFileInfo fileInfo = new()
 					{
 						mFileName = STREAMING_ASSET_FILE,
@@ -403,7 +403,7 @@ public class AssetBundleLoader
 				if (bytes != null && !isWebGL())
 				{
 					// 写入到本地,并且更新资源列表
-					writeFile(F_PERSISTENT_ASSETS_PATH + bundleFileName, bytes, bytes.Length);
+					writeFile(F_PERSISTENT_ASSETS_PATH + bundleFileName, bytes);
 					GameFileInfo fileInfo = new()
 					{
 						mFileName = bundleFileName,

@@ -160,8 +160,7 @@ public class GlobalTouchSystem : FrameSystem
 			if (mouseCastSet == null)
 			{
 				mouseCastSet = new();
-				mouseCastSet.setCamera(camera);
-				mMouseCastWindowList.Add(mouseCastSet);
+				mMouseCastWindowList.add(mouseCastSet).setCamera(camera);
 			}
 			mouseCastSet.addWindow(uiObj);
 		}
@@ -179,8 +178,7 @@ public class GlobalTouchSystem : FrameSystem
 			if (mouseCastSet == null)
 			{
 				mouseCastSet = new();
-				mouseCastSet.setCamera(camera);
-				mMouseCastObjectList.Add(mouseCastSet);
+				mMouseCastObjectList.add(mouseCastSet).setCamera(camera);
 			}
 			mouseCastSet.addObject(obj);
 		}

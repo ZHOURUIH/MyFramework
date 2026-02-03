@@ -3,27 +3,14 @@ using static FrameBaseUtility;
 using static MathUtility;
 using static UnityUtility;
 
-public class WindowPool<T> where T : myUGUIObject, new()
+[CommonWindowPool]
+public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 {
 	protected List<T> mUnusedList = new();			// 未使用的窗口列表
 	protected List<T> mInusedList = new();          // 正在使用的窗口列表,因为需要保证物体的存储顺序,所以使用List
-	protected UGUIObjectCallback mDestroyCallback;	// 窗口销毁的回调,用于让外部定义窗口的销毁方式
-	protected LayoutScript mScript;					// 所属布局脚本
-	protected myUGUIObject mParent;					// 创建出的窗口的默认父节点
+	protected myUGUIObject mParent;                 // 创建出的窗口的默认父节点
 	protected T mTemplate;							// 窗口模板
-	protected bool mAutoRefreshDepth;				// 在添加窗口后是否刷新窗口的深度,只在需要移动到最后一个子节点时才会生效
-	protected bool mMoveToLast;                     // 新添加的窗口是否需要移动到父节点的最后一个子节点
-	public WindowPool(IWindowObjectOwner parent)
-	{
-		if (parent is WindowObjectBase objBase)
-		{
-			mScript = objBase.getScript();
-		}
-		else if (parent is LayoutScript script)
-		{
-			mScript = script;
-		}
-	}
+	public WindowPool(IWindowObjectOwner parent) : base(parent){}
 	public void assignTemplate(myUGUIObject parent, string name)
 	{
 		mScript.newObject(out mTemplate, parent, name);
@@ -32,15 +19,23 @@ public class WindowPool<T> where T : myUGUIObject, new()
 	{
 		mTemplate = template;
 	}
-	public void init(bool autoRefreshDepth, bool moveToLast = true)
+	public override void destroy()
 	{
+		base.destroy();
+	}
+	public override void init()
+	{
+		base.init();
 		mParent = mTemplate.getParent();
-		mAutoRefreshDepth = autoRefreshDepth;
-		mMoveToLast = moveToLast;
 		mTemplate.setActive(false);
 	}
 	public T newWindow(string name = null)
 	{
+		if (mParent == null)
+		{
+			logError("窗口池的父节点为空, 是否忘了调用init?");
+			return null;
+		}
 		return newWindow(mParent, name);
 	}
 	// 新创建的窗口会自动移动到父节点的最后一个子节点的位置
@@ -59,16 +54,15 @@ public class WindowPool<T> where T : myUGUIObject, new()
 		{
 			mScript.cloneObject(out window, parent, mTemplate, name, true);
 		}
-		mInusedList.Add(window);
 		window.setActive(true);
 		window.setName(name);
 		if (mMoveToLast)
 		{
 			window.setAsLastSibling(mAutoRefreshDepth);
 		}
-		return window;
+		return mInusedList.add(window);
 	}
-	public void unuseAll()
+	public override void unuseAll()
 	{
 		foreach (T item in mInusedList)
 		{
@@ -141,6 +135,6 @@ public class WindowPool<T> where T : myUGUIObject, new()
 			newWindow();
 		}
 	}
+	public override int getInUseCount() { return mInusedList.Count; }
 	public List<T> getWindowList() { return mInusedList; }
-	public void setDestroyCallback(UGUIObjectCallback callback) { mDestroyCallback = callback; }
 }

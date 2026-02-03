@@ -60,7 +60,7 @@ public abstract class NetConnectWebSocket : NetConnect
 	public bool isDisconnected()								{ return mNetState != NET_STATE.CONNECTED && mNetState != NET_STATE.CONNECTING; }
 	public NetStateCallback getNetStateCallback()				{ return mNetStateCallback; }
 	public WebSocketMessageType getMessageType()				{ return mMessageType; }
-	public async void startConnect(string url, Action<bool> callback)
+	public async void startConnect(string url, BoolCallback callback)
 	{
 		if (isConnected() || isConnecting())
 		{

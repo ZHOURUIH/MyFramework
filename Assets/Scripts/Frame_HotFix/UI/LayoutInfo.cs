@@ -32,11 +32,10 @@ public class LayoutInfo : ClassObject
 			return;
 		}
 		// 需要先拷贝一份,因为在回调过程中可能会修改当前对象
-		using var a = new ListScope<GameLayoutCallback>(out var tempList, mCallbackList);
-		mCallbackList.Clear();
-		foreach (GameLayoutCallback callback in tempList)
+		using var a = new ListScope<GameLayoutCallback>(out var tempList);
+		foreach (GameLayoutCallback item in mCallbackList.moveTo(tempList))
 		{
-			callback?.Invoke(layout);
+			item(layout);
 		}
 	}
 }

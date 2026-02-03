@@ -1081,12 +1081,12 @@ public class FrameUtility
 		{
 			return obj;
 		}
-		object retval = createInstance<object>(obj.GetType());
+		object retValue = createInstance<object>(obj.GetType());
 		foreach (FieldInfo field in obj.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
 		{
-			field.SetValue(retval, deepCopy(field.GetValue(obj)));
+			field.SetValue(retValue, deepCopy(field.GetValue(obj)));
 		}
-		return (T)retval;
+		return (T)retValue;
 	}
 	public static T intToEnum<T, IntT>(IntT value) where T : Enum
 	{
@@ -1646,15 +1646,14 @@ public class FrameUtility
 	public static bool launchExe(string dir, string args, int timeoutMilliseconds, bool hidden = false)
 	{
 		ProcessCreationFlags flags = hidden ? ProcessCreationFlags.CREATE_NO_WINDOW : ProcessCreationFlags.NONE;
-		STARTUPINFO startupinfo = new()
+		STARTUPINFO startupInfo = new()
 		{
 			cb = (uint)Marshal.SizeOf<STARTUPINFO>()
 		};
 		string path = getFilePath(dir);
-		PROCESS_INFORMATION processinfo = new();
-		bool result = Kernel32.CreateProcessW(null, dir + " " + args, IntPtr.Zero, IntPtr.Zero, false, flags,
-											  IntPtr.Zero, path, ref startupinfo, ref processinfo);
-		Kernel32.WaitForSingleObject(processinfo.hProcess, timeoutMilliseconds);
+		PROCESS_INFORMATION processInfo = new();
+		bool result = Kernel32.CreateProcessW(null, dir + " " + args, IntPtr.Zero, IntPtr.Zero, false, flags, IntPtr.Zero, path, ref startupInfo, ref processInfo);
+		Kernel32.WaitForSingleObject(processInfo.hProcess, timeoutMilliseconds);
 		return result;
 	}
 #endif

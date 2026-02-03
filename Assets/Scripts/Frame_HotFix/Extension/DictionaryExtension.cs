@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using static FrameBaseUtility;
 using static FrameUtility;
@@ -102,6 +103,16 @@ public static class DictionaryExtension
 			map.Add(item.Key, item.Value);
 		}
 	}
+	// 返回值表示是否get成功
+	public static bool getOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dic, TKey key, TValue value, out TValue existValue)
+	{
+		if (dic.TryGetValue(key, out existValue))
+		{
+			return true;
+		}
+		dic.Add(key, value);
+		return false;
+	}
 	public static void addOrIncreaseValue<TKey>(this IDictionary<TKey, int> dic, TKey key, int increase)
 	{
 		if (dic.TryGetValue(key, out int curValue))
@@ -197,6 +208,18 @@ public static class DictionaryExtension
 		}
 		return value;
 	}
+	public static Key tryGetValueKey<Key, T>(this IDictionary<Key, T> map, T value, Key defaultValue)
+	{
+		foreach (var item in map)
+		{
+			if ((item.Value == null && value == null) ||
+				(item.Value != null && value != null && item.Value.Equals(value)))
+			{
+				return item.Key;
+			}
+		}
+		return defaultValue;
+	}
 	public static void remove<Key, T>(this IDictionary<Key, T> map, Key key0, Key key1)
 	{
 		map.Remove(key0);
@@ -224,6 +247,54 @@ public static class DictionaryExtension
 		map.Remove(key4);
 	}
 	public static bool isEmpty<TKey, TValue>(this IDictionary<TKey, TValue> list) { return list == null || list.Count == 0; }
+	public static int count<TKey, TValue>(this IDictionary<TKey, TValue> list, Predicate<TKey> condition)
+	{
+		if (list.isEmpty() || condition == null)
+		{
+			return 0;
+		}
+		int curCount = 0;
+		foreach (TKey item in list.Keys)
+		{
+			if (condition.Invoke(item))
+			{
+				++curCount;
+			}
+		}
+		return curCount;
+	}
+	public static int count<TKey, TValue>(this IDictionary<TKey, TValue> list, Predicate<TValue> condition)
+	{
+		if (list.isEmpty() || condition == null)
+		{
+			return 0;
+		}
+		int curCount = 0;
+		foreach (TValue item in list.Values)
+		{
+			if (condition.Invoke(item))
+			{
+				++curCount;
+			}
+		}
+		return curCount;
+	}
+	public static int count<TKey, TValue>(this IDictionary<TKey, TValue> list, Predicate2<TKey, TValue> condition)
+	{
+		if (list.isEmpty() || condition == null)
+		{
+			return 0;
+		}
+		int curCount = 0;
+		foreach (var item in list)
+		{
+			if (condition.Invoke(item.Key, item.Value))
+			{
+				++curCount;
+			}
+		}
+		return curCount;
+	}
 	public static TValue firstValue<TKey, TValue>(this IDictionary<TKey, TValue> list) 
 	{
 		if (list.count() == 0)

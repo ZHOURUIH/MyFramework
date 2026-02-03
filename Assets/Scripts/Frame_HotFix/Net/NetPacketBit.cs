@@ -39,7 +39,6 @@ public abstract class NetPacketBit : NetPacket
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void addParam(SerializableBit param, bool isOptional)
 	{
-		param.mOptional = isOptional;
-		mParameters.Add(param);
+		mParameters.add(param).mOptional = isOptional;
 	}
 }

@@ -13,11 +13,6 @@ public enum BACKUP_TARGET : byte
 
 public class EditorDefine
 {
-	// 自动生成UI脚本时的UI基类列表
-	public static List<string> getLayoutScriptBaseClass()
-	{
-		return new GameEditorDefine().getLayoutScriptBaseClass_Extension();
-	}
 	// 不开启mipmaps的目录
 	public static List<string> getNoMipmapsPath()
 	{
@@ -166,7 +161,7 @@ public class EditorDefine
 		{
 			"/StringUtility.cs",
 			"/MathUtility.cs",
-			"Utility/Struct/",
+			"/Utility/Struct/",
 			"/GameFramework.cs",
 			"/Serialize/",
 			"/MyEmptyDictionary.cs",
@@ -223,12 +218,11 @@ public class EditorDefine
 	// 检查内置函数调用时需要忽略的文件
 	public static List<string> getIgnoreSystemFunctionCheck() 
 	{
-		List<string> list = new() { };
+		List<string> list = new();
 		list.AddRange(new GameEditorDefine().getIgnoreSystemFunctionCheck_Extension());
 		return list; 
 	}
-	//-----------------------------------------------------------------------------------------------------------------------------
-	protected virtual List<string> getLayoutScriptBaseClass_Extension() { return new(); }
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected virtual List<string> getNoMipmapsPath_Extension() { return new(); }
 	protected virtual List<string> getKeepFolder_Extension() { return new(); }
 	protected virtual List<string> getUnpackFolder_Extension() { return new(); }
@@ -243,7 +237,6 @@ public class EditorDefine
 		return new()
 		{ 
 			"/Description/",
-			"/BattleScene.cs",
 		};
 	}
 	protected virtual List<string> getIgnoreVariableCheck_Extension() { return new(); }

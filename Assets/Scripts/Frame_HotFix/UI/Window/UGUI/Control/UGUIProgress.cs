@@ -4,7 +4,8 @@ using static UnityUtility;
 using static MathUtility;
 
 // 自定义的进度条,跟滑动条的区别就是不能拖拽,实现更加简单,适用于加载进度条等等的功能
-public class UGUIProgress : WindowObjectUGUI, ISlider, ICommonUI
+[CommonControl]
+public class UGUIProgress : WindowObjectUGUI, ISlider
 {
 	protected myUGUIImageSimple mProgressBar;       // 进度条中显示进度的窗口
 	protected myUGUIObject mThumb;					// 显示当前进度的点

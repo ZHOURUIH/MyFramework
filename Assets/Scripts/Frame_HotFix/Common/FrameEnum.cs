@@ -436,3 +436,21 @@ public enum KEY_STATE : byte
 	KEEP_DOWN,      // 持续按下
 	KEEP_UP,        // 持续抬起,就是一直没按
 }
+
+// UI节点的类型
+public enum WINDOW_TYPE : byte
+{
+	NORMAL_WINDOW,          // 单独的窗口
+	COMMON_CONTROL,         // 通用的控件
+	SUB_UI,                 // 子页面
+	SCROLL_LIST,            // 滚动列表
+	POOL,                   // 对象池
+}
+
+// UI的数组类型
+public enum ARRAY_TYPE : byte
+{
+	NONE,                   // 不是数组
+	STATIC_ARRAY,           // 静态数组,就是直接获取界面上已经存在的节点存放到数组中
+	DYNAMIC_ARRAY,          // 动态数组,就是根据一个模板创建多个节点放到数组中,类似对象池,但是创建的是非对象池类型的节点,动态列表不支持单独的窗口类型
+}

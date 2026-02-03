@@ -100,8 +100,8 @@ public class AssetInfo : ClassObject
 	{
 		// 复制一份列表,避免回调中再次修改回调列表而报错
 		using var a = new ListScope2T<AssetLoadDoneCallback, string>(out var callbacks, out var paths);
-		callbacks.move(mCallback);
-		paths.move(mLoadPath);
+		mCallback.moveTo(callbacks);
+		mLoadPath.moveTo(paths);
 		int callbackCount = callbacks.Count;
 		for (int i = 0; i < callbackCount; ++i)
 		{

@@ -2761,7 +2761,7 @@ public class BinaryUtility
 		int targetBitIndex = curByte << 3;
 		for (int i = bitIndex; i < targetBitIndex; ++i)
 		{
-			setBitZero(ref buffer[i >> 3], (byte)(i & 7));
+			setBitZero(ref buffer[i >> 3], i & 7);
 		}
 		bitIndex = curByte << 3;
 	}
@@ -3737,14 +3737,14 @@ public class BinaryUtility
 		}
 		return true;
 	}
-	public static bool hasBit(byte value, byte pos) { return (value & (1 << pos)) != 0; }
-	public static bool hasBit(sbyte value, byte pos) { return (value & (1 << pos)) != 0; }
-	public static bool hasBit(short value, byte pos) { return (value & (1 << pos)) != 0; }
-	public static bool hasBit(ushort value, byte pos) { return (value & (1 << pos)) != 0; }
-	public static bool hasBit(int value, byte pos) { return (value & (1 << pos)) != 0; }
-	public static bool hasBit(uint value, byte pos) { return (value & (1 << pos)) != 0; }
-	public static bool hasBit(long value, byte pos) { return (value & ((long)1 << pos)) != 0; }
-	public static bool hasBit(ulong value, byte pos) { return (value & ((ulong)1 << pos)) != 0; }
+	public static bool hasBit(byte value, int pos) { return (value & (1 << pos)) != 0; }
+	public static bool hasBit(sbyte value, int pos) { return (value & (1 << pos)) != 0; }
+	public static bool hasBit(short value, int pos) { return (value & (1 << pos)) != 0; }
+	public static bool hasBit(ushort value, int pos) { return (value & (1 << pos)) != 0; }
+	public static bool hasBit(int value, int pos) { return (value & (1 << pos)) != 0; }
+	public static bool hasBit(uint value, int pos) { return (value & (1 << pos)) != 0; }
+	public static bool hasBit(long value, int pos) { return (value & ((long)1 << pos)) != 0; }
+	public static bool hasBit(ulong value, int pos) { return (value & ((ulong)1 << pos)) != 0; }
 	public static int getLowestBit(byte value) { return value & 1; }
 	public static int getLowestBit(short value) { return value & 1; }
 	public static int getLowestBit(int value) { return value & 1; }
@@ -3752,22 +3752,22 @@ public class BinaryUtility
 	public static int getHighestBit(short value) { return (value & ~0x7FFF) >> (8 * sizeof(short) - 1) & 1; }
 	public static int getHighestBit(int value) { return (value & ~0x7FFFFFFF) >> (8 * sizeof(int) - 1) & 1; }
 	// 设置位的函数不能传负数,因为负数的存储是使用补码,所以不能直接进行按位或,需要转换位正数再操作
-	public static void setBitOne(ref byte value, byte pos) { value |= (byte)(1 << pos); }
-	public static void setBitOne(ref sbyte value, byte pos) { value |= (sbyte)(1 << pos); }
-	public static void setBitOne(ref short value, byte pos) { value |= (short)(1 << pos); }
-	public static void setBitOne(ref ushort value, byte pos) { value |= (ushort)(1 << pos); }
-	public static void setBitOne(ref int value, byte pos) { value |= 1 << pos; }
-	public static void setBitOne(ref uint value, byte pos) { value |= (uint)(1 << pos); }
-	public static void setBitOne(ref long value, byte pos) { value |= (long)1 << pos; }
-	public static void setBitOne(ref ulong value, byte pos) { value |= (ulong)1 << pos; }
-	public static void setBitZero(ref byte value, byte pos) { value &= (byte)~(1 << pos); }
-	public static void setBitZero(ref sbyte value, byte pos) { value &= (sbyte)~(1 << pos); }
-	public static void setBitZero(ref short value, byte pos) { value &= (short)~(1 << pos); }
-	public static void setBitZero(ref ushort value, byte pos) { value &= (ushort)~(1 << pos); }
-	public static void setBitZero(ref int value, byte pos) { value &= ~(1 << pos); }
-	public static void setBitZero(ref uint value, byte pos) { value &= (uint)~(1 << pos); }
-	public static void setBitZero(ref long value, byte pos) { value &= ~((long)1 << pos); }
-	public static void setBitZero(ref ulong value, byte pos) { value &= ~((ulong)1 << pos); }
+	public static void setBitOne(ref byte value, int pos) { value |= (byte)(1 << pos); }
+	public static void setBitOne(ref sbyte value, int pos) { value |= (sbyte)(1 << pos); }
+	public static void setBitOne(ref short value, int pos) { value |= (short)(1 << pos); }
+	public static void setBitOne(ref ushort value, int pos) { value |= (ushort)(1 << pos); }
+	public static void setBitOne(ref int value, int pos) { value |= 1 << pos; }
+	public static void setBitOne(ref uint value, int pos) { value |= (uint)(1 << pos); }
+	public static void setBitOne(ref long value, int pos) { value |= (long)1 << pos; }
+	public static void setBitOne(ref ulong value, int pos) { value |= (ulong)1 << pos; }
+	public static void setBitZero(ref byte value, int pos) { value &= (byte)~(1 << pos); }
+	public static void setBitZero(ref sbyte value, int pos) { value &= (sbyte)~(1 << pos); }
+	public static void setBitZero(ref short value, int pos) { value &= (short)~(1 << pos); }
+	public static void setBitZero(ref ushort value, int pos) { value &= (ushort)~(1 << pos); }
+	public static void setBitZero(ref int value, int pos) { value &= ~(1 << pos); }
+	public static void setBitZero(ref uint value, int pos) { value &= (uint)~(1 << pos); }
+	public static void setBitZero(ref long value, int pos) { value &= ~((long)1 << pos); }
+	public static void setBitZero(ref ulong value, int pos) { value &= ~((ulong)1 << pos); }
 	public static void setLowestBit(ref byte value, int bit)
 	{
 		if (bit == 0)
@@ -3836,8 +3836,8 @@ public class BinaryUtility
 		}
 	}
 	public static int bitCountToByteCount(int bitCount) { return (bitCount & 7) != 0 ? (bitCount >> 3) + 1 : bitCount >> 3; }
-	public static bool getBufferBit(byte[] buffer, int bitIndex) { return hasBit(buffer[bitIndex >> 3], (byte)(bitIndex & 7)); }
-	public static void setBufferBitOne(byte[] buffer, int bitIndex) { setBitOne(ref buffer[bitIndex >> 3], (byte)(bitIndex & 7)); }
+	public static bool getBufferBit(byte[] buffer, int bitIndex) { return hasBit(buffer[bitIndex >> 3], bitIndex & 7); }
+	public static void setBufferBitOne(byte[] buffer, int bitIndex) { setBitOne(ref buffer[bitIndex >> 3], bitIndex & 7); }
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 直接写入一个无符号整数,不考虑任何情况
 	protected static void writeUnsignedValueBit(byte[] buffer, int bitCount, ref int bitIndex, ulong value)
@@ -4740,7 +4740,7 @@ public class BinaryUtility
 		// 从高到低遍历每一位,找到最高位1的下标
 		for (byte i = 0; i < 16; ++i)
 		{
-			if (hasBit(value, (byte)(15 - i)))
+			if (hasBit(value, 15 - i))
 			{
 				return (byte)(16 - i);
 			}

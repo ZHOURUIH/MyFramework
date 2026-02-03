@@ -16,6 +16,7 @@ using static FrameBaseDefine;
 
 public class MenuAssetBundle
 {
+	public static bool mIsPackingAssetBundle;
 	[MenuItem("AssetBundle/清除AssetBundle名称")]
 	public static void clearAllAssetBundleName()
 	{
@@ -57,7 +58,12 @@ public class MenuAssetBundle
 		// 设置所有图集不打入包体,虽然不太好理解这个,不过设置为false以后AssetBundle中就不会出现冗余的图片,否则AssetBundle将会变得异常大
 		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, SPRITE_ATLAS_SUFFIX))
 		{
-			loadAsset<SpriteAtlas>(file).SetIncludeInBuild(false);
+			var atlas = loadAsset<SpriteAtlas>(file);
+			if (atlas == null)
+			{
+				Debug.LogError("图集加载失败:" + file);
+			}
+			atlas.SetIncludeInBuild(false);
 		}
 		AssetDatabase.SaveAssets();
 		AssetDatabase.Refresh();
@@ -67,7 +73,12 @@ public class MenuAssetBundle
 	{
 		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, SPRITE_ATLAS_SUFFIX))
 		{
-			loadAsset<SpriteAtlas>(file).SetIncludeInBuild(true);
+			var atlas = loadAsset<SpriteAtlas>(file);
+			if (atlas == null)
+			{
+				Debug.LogError("图集加载失败:" + file);
+			}
+			atlas.SetIncludeInBuild(true);
 		}
 		AssetDatabase.SaveAssets();
 		AssetDatabase.Refresh();
@@ -75,64 +86,70 @@ public class MenuAssetBundle
 	public static bool packAssetBundle(BuildTarget target, string outputPath, bool showMessageBox)
 	{
 		Debug.Log("打包全部AssetBundle");
-
-		if (!preProcess())
+		mIsPackingAssetBundle = true;
+		bool result = false;
+		do
 		{
-			return false;
-		}
-		DateTime time0 = DateTime.Now;
-		// 清理输出目录
-		createOrClearOutPath(outputPath);
-		// 清理不打包的AssetBundle名
-		clearUnPackAssetBundleName(findFilesNonAlloc(F_GAME_RESOURCES_PATH), getUnpackFolder());
-		// 设置bunderName
-		// key为AssetBundle名,带Resources下相对路径,带后缀,Value是该AssetBundle中包含的所有Asset
-		Dictionary<string, BuildAssetBundleInfo> assetBundleMap = new();
-		foreach (string dir in getAllSubResDirs(P_GAME_RESOURCES_PATH))
-		{
-			if (!generateAssetBundleName(dir, assetBundleMap, showMessageBox))
+			if (!preProcess())
 			{
-				return false;
+				break;
 			}
-		}
-		EditorUtility.UnloadUnusedAssetsImmediate();
-		AssetDatabase.Refresh();
-		// 打包
-		// 使用LZ4压缩,并且不写入资源类型信息
-		var option = BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode;
+			DateTime time0 = DateTime.Now;
+			// 清理输出目录
+			createOrClearOutPath(outputPath);
+			// 清理不打包的AssetBundle名
+			clearUnPackAssetBundleName(findFilesNonAlloc(F_GAME_RESOURCES_PATH), getUnpackFolder());
+			// 设置bunderName
+			// key为AssetBundle名,带Resources下相对路径,带后缀,Value是该AssetBundle中包含的所有Asset
+			Dictionary<string, BuildAssetBundleInfo> assetBundleMap = new();
+			foreach (string dir in getAllSubResDirs(P_GAME_RESOURCES_PATH))
+			{
+				if (!generateAssetBundleName(dir, assetBundleMap, showMessageBox))
+				{
+					break;
+				}
+			}
+			EditorUtility.UnloadUnusedAssetsImmediate();
+			AssetDatabase.Refresh();
+			// 打包
+			// 使用LZ4压缩,并且不写入资源类型信息
+			var option = BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode;
 #if WEIXINMINIGAME
-		// 微信的AssetBundle需要添加hash
-		option |= BuildAssetBundleOptions.AppendHashToAssetBundleName;
+			// 微信的AssetBundle需要添加hash
+			option |= BuildAssetBundleOptions.AppendHashToAssetBundleName;
 #endif
-		BuildPipeline.BuildAssetBundles(outputPath, option, target);
-		AssetDatabase.Refresh();
-		// 检查资源是否有互相依赖的问题,然后构建依赖关系
-		if (!loadAndReadAssetBundleManifest(outputPath, assetBundleMap, null, showMessageBox, true))
-		{
-			return false;
-		}
+			BuildPipeline.BuildAssetBundles(outputPath, option, target);
+			AssetDatabase.Refresh();
+			// 检查资源是否有互相依赖的问题,然后构建依赖关系
+			if (!loadAndReadAssetBundleManifest(outputPath, assetBundleMap, null, showMessageBox, true))
+			{
+				break;
+			}
 
-		// 生成配置文件
-		SerializerWrite serializer = new();
-		serializer.write(assetBundleMap.Count);
-		foreach (BuildAssetBundleInfo bundleInfo in assetBundleMap.Values)
-		{
-			// AssetBundle名字
-			serializer.writeString(bundleInfo.mBundleName);
-			// AssetBundle所包含的所有Asset名字
-			serializer.writeList(bundleInfo.mAssetNames);
-			// AssetBundle依赖的所有AssetBundle
-			serializer.writeList(bundleInfo.mDependencies);
-		}
-		writeFile(outputPath + STREAMING_ASSET_FILE, serializer.getBuffer(), serializer.getDataSize());
-		// 删除所有的manifest文件
-		foreach (string file in findFilesNonAlloc(outputPath, new List<string>() { ".manifest", ".manifest.meta" }))
-		{
-			deleteFile(file);
-		}
-		postProcess();
-		showInfo("资源打包结束! 耗时 : " + (DateTime.Now - time0), showMessageBox, false);
-		return true;
+			// 生成配置文件
+			SerializerWrite serializer = new();
+			serializer.write(assetBundleMap.Count);
+			foreach (BuildAssetBundleInfo bundleInfo in assetBundleMap.Values)
+			{
+				// AssetBundle名字
+				serializer.writeString(bundleInfo.mBundleName);
+				// AssetBundle所包含的所有Asset名字
+				serializer.writeList(bundleInfo.mAssetNames);
+				// AssetBundle依赖的所有AssetBundle
+				serializer.writeList(bundleInfo.mDependencies);
+			}
+			writeFile(outputPath + STREAMING_ASSET_FILE, serializer.getBuffer(), serializer.getDataSize(), false);
+			// 删除所有的manifest文件
+			foreach (string file in findFilesNonAlloc(outputPath, new List<string>() { ".manifest", ".manifest.meta" }))
+			{
+				deleteFile(file);
+			}
+			postProcess();
+			showInfo("资源打包结束! 耗时 : " + (DateTime.Now - time0), showMessageBox, false);
+			result = true;
+		} while (false);
+		mIsPackingAssetBundle = false;
+		return result;
 	}
 	// pathToPack为以Asset开头的相对路径,表示只单独打包此目录或此文件
 	public static bool packAssetBundle(BuildTarget target, string outputPath, string pathToPack, bool showMessageBox)
@@ -175,15 +192,15 @@ public class MenuAssetBundle
 			// 还原备份的文件
 			if (streamingAssetsBytes != null)
 			{
-				writeFile(outputPath + STREAMING_ASSET_FILE, streamingAssetsBytes, streamingAssetsBytes.Length);
+				writeFile(outputPath + STREAMING_ASSET_FILE, streamingAssetsBytes);
 			}
 			if (streamingFileBytes != null)
 			{
-				writeFile(outputPath + folderName, streamingFileBytes, streamingFileBytes.Length);
+				writeFile(outputPath + folderName, streamingFileBytes);
 			}
 			if (manifestBytes != null)
 			{
-				writeFile(outputPath + folderName + ".manifest", manifestBytes, manifestBytes.Length);
+				writeFile(outputPath + folderName + ".manifest", manifestBytes);
 			}
 		}
 		// 删除所有的manifest文件

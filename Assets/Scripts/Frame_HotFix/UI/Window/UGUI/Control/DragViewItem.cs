@@ -1,4 +1,5 @@
 ﻿
+[CommonWindowObject]
 public abstract class DragViewItem<DataType> : WindowRecyclableUGUI where DataType : ClassObject
 {
 	protected int mIndex;

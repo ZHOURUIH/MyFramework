@@ -281,11 +281,9 @@ public abstract class PlatformBase
 		List<string> fileInfoList = new();
 		foreach (string newPath in findFilesNonAlloc(assetBundlePath))
 		{
-			if (matchSuffix(ignoreSuffix, newPath) || isIgnorePath(newPath, ignorePath))
-			{
-				continue;
-			}
-			if (ignoreFiles != null && ignoreFiles.Contains(newPath.removeStartString(assetBundlePath)))
+			if (matchSuffix(ignoreSuffix, newPath) || 
+				isIgnorePath(newPath, ignorePath) ||
+				ignoreFiles.contains(newPath.removeStartString(assetBundlePath)))
 			{
 				continue;
 			}

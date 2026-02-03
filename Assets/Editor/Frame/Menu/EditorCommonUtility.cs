@@ -3366,8 +3366,7 @@ public class EditorCommonUtility
 			output.SetPixels(sprite.texture.GetPixels((int)r.x, (int)r.y, (int)r.width, (int)r.height));
 			output.Apply();
 			output.name = sprite.name;
-			byte[] bytes = output.EncodeToPNG();
-			writeFile(outputPath + sprite.name + ".png", bytes, bytes.Length);
+			writeFile(outputPath + sprite.name + ".png", output.EncodeToPNG());
 		}
 		if (modified)
 		{

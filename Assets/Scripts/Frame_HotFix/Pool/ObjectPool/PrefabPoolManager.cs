@@ -205,10 +205,7 @@ public class PrefabPoolManager : FrameSystem
 		using var a = new ListScope<GameObjectInfo>(out var tempList);
 		foreach (GameObjectInfo item in mInstanceList.Values)
 		{
-			if (item.getTag() == objectTag)
-			{
-				tempList.Add(item);
-			}
+			tempList.addIf(item, item.getTag() == objectTag);
 		}
 		foreach (GameObjectInfo item in tempList)
 		{

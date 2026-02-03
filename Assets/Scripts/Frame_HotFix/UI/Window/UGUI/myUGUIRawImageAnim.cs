@@ -106,9 +106,9 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 	{
 		if (clear && !mPlayEndCallback.isEmpty())
 		{
-			using var a = new ListScope<BoolCallback>(out var tempList);
 			// 如果回调函数当前不为空,则是中断了更新
-			foreach (BoolCallback item in tempList.move(mPlayEndCallback))
+			using var a = new ListScope<BoolCallback>(out var tempList);
+			foreach (BoolCallback item in mPlayEndCallback.moveTo(tempList))
 			{
 				item(true);
 			}
@@ -162,7 +162,7 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 		if (callback)
 		{
 			using var a = new ListScope<BoolCallback>(out var tempList);
-			foreach (BoolCallback item in tempList.move(mPlayEndCallback))
+			foreach (BoolCallback item in mPlayEndCallback.moveTo(tempList))
 			{
 				item(isBreak);
 			}

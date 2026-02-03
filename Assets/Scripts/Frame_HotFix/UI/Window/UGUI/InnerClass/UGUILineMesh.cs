@@ -48,11 +48,8 @@ public class UGUILineMesh : ClassObject
 		mPointList.Clear();
 		foreach (Vector3 pos in list.safe())
 		{
-			if (mPointList.Count > 0 && isVectorEqual(pos, mPointList[^1]))
-			{
-				continue;
-			}
-			mPointList.Add(pos);
+			// 去除连续的重复的点
+			mPointList.addIf(pos, mPointList.Count <= 0 || !isVectorEqual(pos, mPointList[^1]));
 		}
 		onPointsChanged();
 	}
@@ -61,11 +58,7 @@ public class UGUILineMesh : ClassObject
 		mPointList.Clear();
 		foreach (Vector3 pos in list)
 		{
-			if (mPointList.Count > 0 && isVectorEqual(pos, mPointList[^1]))
-			{
-				continue;
-			}
-			mPointList.Add(pos);
+			mPointList.addIf(pos, mPointList.Count <= 0 || !isVectorEqual(pos, mPointList[^1]));
 		}
 		onPointsChanged();
 	}
@@ -74,11 +67,7 @@ public class UGUILineMesh : ClassObject
 		mPointList.Clear();
 		foreach (Vector3 pos in list.safe())
 		{
-			if (mPointList.Count > 0 && isVectorEqual(pos, mPointList[^1]))
-			{
-				continue;
-			}
-			mPointList.Add(pos);
+			mPointList.addIf(pos, mPointList.Count <= 0 || !isVectorEqual(pos, mPointList[^1]));
 		}
 		onPointsChanged();
 	}

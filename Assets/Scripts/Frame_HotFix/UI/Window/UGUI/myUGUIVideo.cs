@@ -209,7 +209,7 @@ public class myUGUIVideo : myUGUIRawImage
 	public void setVideoEndCallback(StringBoolCallback callback)
 	{
 		// 重新设置回调之前,先调用之前的回调
-		clearAndCallEvent(ref mVideoEndCallback, true);
+		call(ref mVideoEndCallback, mFileName, true);
 		mVideoEndCallback = callback;
 	}
 	public void closeVideo()
@@ -244,19 +244,13 @@ public class myUGUIVideo : myUGUIRawImage
 			mNextSeekTime = 0.0f;
 		}
 	}
-	protected void clearAndCallEvent(ref StringBoolCallback callback, bool isBreak)
-	{
-		StringBoolCallback temp = callback;
-		callback = null;
-		temp?.Invoke(mFileName, isBreak);
-	}
 	protected void onVideoEvent(MediaPlayer player, MediaPlayerEvent.EventType eventType, ErrorCode errorCode)
 	{
 		log("video event : " + eventType, LOG_LEVEL.HIGH);
 		if (eventType == MediaPlayerEvent.EventType.FinishedPlaying)
 		{
 			// 播放完后设置为停止状态
-			clearAndCallEvent(ref mVideoEndCallback, false);
+			call(ref mVideoEndCallback, mFileName, false);
 		}
 		else if (eventType == MediaPlayerEvent.EventType.ReadyToPlay)
 		{
@@ -304,7 +298,7 @@ public class myUGUIVideo : myUGUIRawImage
 			{
 				mRawImage.enabled = false;
 			}
-			clearAndCallEvent(ref mVideoEndCallback, true);
+			call(ref mVideoEndCallback, mFileName, true);
 		}
 	}
 }

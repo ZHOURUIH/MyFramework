@@ -134,7 +134,7 @@ public class UGUIGeneratorInspector : GameInspector
 					codeList.Insert(++lineStart0, str);
 				}
 			}
-			writeTxtFile(registerFileFullPath, stringsToString(codeList, "\r\n"));
+			writeTxtFile(registerFileFullPath, stringsToString(codeList, "\r\n"), true);
 		}
 
 		// GameBaseILR
@@ -151,7 +151,7 @@ public class UGUIGeneratorInspector : GameInspector
 					codeList.Insert(++lineStart0, "\tpublic static " + str + " m" + str + ";");
 				}
 			}
-			writeTxtFile(gameBaseFileFullPath, stringsToString(codeList, "\r\n"));
+			writeTxtFile(gameBaseFileFullPath, stringsToString(codeList, "\r\n"), true);
 		}
 	}
 	// 生成UI对应的脚本
@@ -293,7 +293,7 @@ public class UGUIGeneratorInspector : GameInspector
 			line(ref fileContent, "\t\tbase.onGameState();");
 			line(ref fileContent, "\t}");
 			line(ref fileContent, "}");
-			writeTxtFile(fileFullPath, fileContent);
+			writeTxtFile(fileFullPath, fileContent, true);
 			// 新生成文件后需要刷新一下资源
 			AssetDatabase.Refresh();
 		}
@@ -410,7 +410,7 @@ public class UGUIGeneratorInspector : GameInspector
 					}
 				}
 			}
-			writeTxtFile(fileFullPath, stringsToString(codeList, "\r\n"));
+			writeTxtFile(fileFullPath, stringsToString(codeList, "\r\n"), true);
 		}
 	}
 }

@@ -39,7 +39,6 @@ public class NetPacketByte : NetPacket
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void addParam(Serializable param, bool isOptional)
 	{
-		param.mOptional = isOptional;
-		mParameters.Add(param);
+		mParameters.add(param).mOptional = isOptional;
 	}
 }

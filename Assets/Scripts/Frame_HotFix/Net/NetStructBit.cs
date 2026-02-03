@@ -68,8 +68,7 @@ public class NetStructBit : SerializableBit
 	protected void addParam(SerializableBit param, bool isOptional)
 	{
 		mHasOptionalParams |= isOptional;
-		param.mOptional = isOptional;
-		mParams.Add(param);
+		mParams.add(param).mOptional = isOptional;
 	}
 	protected virtual bool readInternal(ulong fieldFlag, SerializerBitRead reader) { return true; }
 }

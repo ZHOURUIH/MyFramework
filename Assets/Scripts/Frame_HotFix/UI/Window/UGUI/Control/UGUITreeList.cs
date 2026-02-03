@@ -4,7 +4,8 @@ using UnityEngine;
 using static MathUtility;
 using static WidgetUtility;
 
-public class UGUITreeList : WindowObjectUGUI, ICommonUI
+[CommonControl]
+public class UGUITreeList : WindowObjectUGUI
 {
 	protected myUGUIObject mViewport;
 	protected myUGUIDragView mContent;

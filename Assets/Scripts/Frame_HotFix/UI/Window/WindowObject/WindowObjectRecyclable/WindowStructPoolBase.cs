@@ -20,7 +20,7 @@ public class WindowStructPoolBase : IWindowObjectOwner
 		{
 			mScript = objBase.getScript();
 			mOwnerObject = objBase;
-			mOwnerObject.addWindowPool(this);
+			mOwnerObject.addWindowStructPool(this);
 		}
 		else if (parent is LayoutScript script)
 		{

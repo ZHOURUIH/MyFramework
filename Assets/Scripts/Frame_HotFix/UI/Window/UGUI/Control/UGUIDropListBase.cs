@@ -8,7 +8,8 @@ using static FrameBaseHotFix;
 using static UnityUtility;
 
 // 自定义的下拉列表
-public abstract class UGUIDropListBase : WindowObjectUGUI, ICommonUI
+[CommonControl]
+public abstract class UGUIDropListBase : WindowObjectUGUI
 {
 	protected Action mSelectCallback;				// 选项切换时的回调
 	protected myUGUIObject mMask;                   // 点击遮罩,用于点击空白处关闭下拉列表

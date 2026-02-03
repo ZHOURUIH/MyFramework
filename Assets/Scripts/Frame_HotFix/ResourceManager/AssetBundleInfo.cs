@@ -13,19 +13,19 @@ using static FrameBaseUtility;
 // AssetBundle的信息,存储了AssetBundle中相关的所有数据
 public class AssetBundleInfo : ClassObject
 {
-	protected Dictionary<string, AssetBundleInfo> mChildren = new();	// 依赖自己的AssetBundle列表,即引用了自己的AssetBundle
-	protected Dictionary<string, AssetBundleInfo> mParents = new();		// 依赖的AssetBundle列表,即自己引用的AssetBundle,包含所有的直接和间接的依赖项
-	protected Dictionary<UObject, AssetInfo> mObjectToAsset = new();	// 通过Object查找AssetInfo的列表
-	protected Dictionary<string, AssetInfo> mAssetList = new();			// 资源包中的所有资源,初始化时就会填充此列表
-	protected List<AssetBundleCallback> mLoadCallback = new();			// 资源包加载完毕后的回调列表
-	protected List<AssetBundleBytesCallback> mDownloadCallback = new(); // 资源包下载完毕后的回调列表
-	protected HashSet<AssetInfo> mLoadAsyncList = new();                // AssetBundle还未加载完时请求的异步加载的资源列表
-	protected AssetBundle mAssetBundle;									// 资源包内存镜像
-	protected LOAD_STATE mLoadState = LOAD_STATE.NONE;					// 资源包加载状态
-	protected string mBundleFileName;									// 资源所在的AssetBundle名,相对于StreamingAsset,含后缀
-	protected string mBundleName;										// 资源所在的AssetBundle名,相对于StreamingAsset,不含后缀
-	protected float mWillUnloadTime = -1.0f;							// 引用计数变为0时的计时,小于0表示还有引用,不会被卸载,大于等于0表示计数为0,即将在一定时间后卸载
-	protected const float UNLOAD_DELAY_TIME = 5.0f;						// 没有引用时延迟5秒卸载
+	protected Dictionary<string, AssetBundleInfo> mChildren = new();		// 依赖自己的AssetBundle列表,即引用了自己的AssetBundle
+	protected Dictionary<string, AssetBundleInfo> mParents = new();			// 依赖的AssetBundle列表,即自己引用的AssetBundle,包含所有的直接和间接的依赖项
+	protected Dictionary<UObject, AssetInfo> mObjectToAsset = new();		// 通过Object查找AssetInfo的列表
+	protected Dictionary<string, AssetInfo> mAssetList = new();				// 资源包中的所有资源,初始化时就会填充此列表
+	protected List<AssetBundleCallback> mLoadCallbackList = new();			// 资源包加载完毕后的回调列表
+	protected List<AssetBundleBytesCallback> mDownloadCallbackList = new(); // 资源包下载完毕后的回调列表
+	protected HashSet<AssetInfo> mLoadAsyncList = new();					// AssetBundle还未加载完时请求的异步加载的资源列表
+	protected AssetBundle mAssetBundle;										// 资源包内存镜像
+	protected LOAD_STATE mLoadState = LOAD_STATE.NONE;						// 资源包加载状态
+	protected string mBundleFileName;										// 资源所在的AssetBundle名,相对于StreamingAsset,含后缀
+	protected string mBundleName;											// 资源所在的AssetBundle名,相对于StreamingAsset,不含后缀
+	protected float mWillUnloadTime = -1.0f;								// 引用计数变为0时的计时,小于0表示还有引用,不会被卸载,大于等于0表示计数为0,即将在一定时间后卸载
+	protected const float UNLOAD_DELAY_TIME = 5.0f;							// 没有引用时延迟5秒卸载
 	public AssetBundleInfo(string bundleName)
 	{
 		mBundleName = bundleName;
@@ -38,8 +38,8 @@ public class AssetBundleInfo : ClassObject
 		mParents.Clear();
 		mObjectToAsset.Clear();
 		mAssetList.Clear();
-		mLoadCallback.Clear();
-		mDownloadCallback.Clear();
+		mLoadCallbackList.Clear();
+		mDownloadCallbackList.Clear();
 		mLoadAsyncList.Clear();
 		mAssetBundle = null;
 		mLoadState = LOAD_STATE.NONE;
@@ -239,7 +239,7 @@ public class AssetBundleInfo : ClassObject
 			return;
 		}
 		// 还未加载完成时,则加入等待列表
-		mLoadCallback.addNotNull(callback);
+		mLoadCallbackList.addNotNull(callback);
 		// 如果还未开始加载,则加载资源包
 		if (mLoadState == LOAD_STATE.NONE)
 		{
@@ -374,23 +374,22 @@ public class AssetBundleInfo : ClassObject
 			unload();
 		}
 		mLoadAsyncList.Clear();
-
 		using var a = new ListScope<AssetBundleCallback>(out var callbacks);
-		foreach (AssetBundleCallback callback in callbacks.move(mLoadCallback))
+		foreach (AssetBundleCallback callback in mLoadCallbackList.moveTo(callbacks))
 		{
 			callback(this);
 		}
 	}
 	public void addDownloadCallback(AssetBundleBytesCallback callback)
 	{
-		mDownloadCallback.addNotNull(callback);
+		mDownloadCallbackList.addNotNull(callback);
 	}
 	public void notifyAssetBundleDownloaded(byte[] bytes)
 	{
 		using var a = new ListScope<AssetBundleBytesCallback>(out var callbacks);
-		foreach (AssetBundleBytesCallback call in callbacks.move(mDownloadCallback))
+		foreach (AssetBundleBytesCallback callback in mDownloadCallbackList.moveTo(callbacks))
 		{
-			call(this, bytes);
+			callback(this, bytes);
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------

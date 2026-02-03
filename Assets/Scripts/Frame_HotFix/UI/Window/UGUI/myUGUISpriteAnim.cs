@@ -22,7 +22,7 @@ public class myUGUISpriteAnim : myUGUISprite, IUIAnimation
 	{
 		base.init();
 		string spriteName = getSpriteName();
-		if (spriteName != null && spriteName.Contains('_'))
+		if (spriteName.contains('_'))
 		{
 			setTextureSet(spriteName.rangeToLast('_'));
 		}
@@ -124,7 +124,7 @@ public class myUGUISpriteAnim : myUGUISprite, IUIAnimation
 		{
 			using var a = new ListScope<BoolCallback>(out var tempList);
 			// 如果回调函数当前不为空,则是中断了更新
-			foreach (BoolCallback item in tempList.move(mPlayEndCallbackList))
+			foreach (BoolCallback item in mPlayEndCallbackList.moveTo(tempList))
 			{
 				item(true);
 			}
@@ -191,7 +191,7 @@ public class myUGUISpriteAnim : myUGUISprite, IUIAnimation
 		if (callback)
 		{
 			using var a = new ListScope<BoolCallback>(out var tempList);
-			foreach (BoolCallback item in tempList.move(mPlayEndCallbackList))
+			foreach (BoolCallback item in mPlayEndCallbackList.moveTo(tempList))
 			{
 				item(isBreak);
 			}

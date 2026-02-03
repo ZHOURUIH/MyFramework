@@ -1,7 +1,8 @@
 ﻿using System;
 using UnityEngine;
 
-public class LegendButton : WindowObjectUGUI, ICommonUI
+[CommonControl]
+public class LegendButton : WindowObjectUGUI
 {
 	protected myUGUITextTMP mText;
 	protected Vector3 mOriginTextPosition;

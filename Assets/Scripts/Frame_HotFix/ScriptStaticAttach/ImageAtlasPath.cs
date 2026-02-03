@@ -6,6 +6,7 @@ using static FrameBaseUtility;
 using static FrameBaseDefine;
 using static StringUtility;
 using static FileUtility;
+using static UnityUtility;
 using static FrameDefine;
 
 // 用于记录Image组件上的图片所在的路径,因为在运行时是没办法获得Image上图片的路径,从而也就无法直到所在的图集
@@ -59,47 +60,43 @@ public class ImageAtlasPath : MonoBehaviour
 			return "";
 		}
 		// 如果图集名字和图片名字一样,则说明是Single的Sprite
-		bool useTPAtlas = sprite.texture.name != sprite.name;
-		if (useTPAtlas)
+		if (sprite.texture.name != sprite.name)
 		{
 			return getAssetPath(sprite.texture);
 		}
+		// 先检查当前的图集是否正确
+		if (!mAtlasPath.isEmpty())
+		{
+			SpriteAtlas curAtlas = atlasListCache?.get(mAtlasPath);
+			if (curAtlas == null)
+			{
+				curAtlas = loadAssetAtPath<SpriteAtlas>(mAtlasPath);
+			}
+			if (curAtlas.isSpriteInAtlas(sprite))
+			{
+				return mAtlasPath;
+			}
+		}
+
+		if (atlasListCache.count() > 0)
+		{
+			foreach (var item in atlasListCache)
+			{
+				if (item.Value.isSpriteInAtlas(sprite))
+				{
+					return item.Key;
+				}
+			}
+		}
 		else
 		{
-			// 先检查当前的图集是否正确
-			if (!mAtlasPath.isEmpty())
+			List<string> files = new();
+			findFiles(F_ASSETS_PATH, files, SPRITE_ATLAS_SUFFIX);
+			foreach (string file in files)
 			{
-				SpriteAtlas curAtlas = atlasListCache?.get(mAtlasPath);
-				if (curAtlas == null)
+				if (loadAssetAtPath<SpriteAtlas>(fullPathToProjectPath(file)).isSpriteInAtlas(sprite))
 				{
-					curAtlas = loadAssetAtPath<SpriteAtlas>(mAtlasPath);
-				}
-				if (curAtlas.isSpriteInAtlas(sprite))
-				{
-					return mAtlasPath;
-				}
-			}
-
-			if (atlasListCache.count() > 0)
-			{
-				foreach (var item in atlasListCache)
-				{
-					if (item.Value.isSpriteInAtlas(sprite))
-					{
-						return item.Key;
-					}
-				}
-			}
-			else
-			{
-				List<string> files = new();
-				findFiles(F_ASSETS_PATH, files, SPRITE_ATLAS_SUFFIX);
-				foreach (string file in files)
-				{
-					if (loadAssetAtPath<SpriteAtlas>(fullPathToProjectPath(file)).isSpriteInAtlas(sprite))
-					{
-						return fullPathToProjectPath(file);
-					}
+					return fullPathToProjectPath(file);
 				}
 			}
 		}
@@ -110,7 +107,7 @@ public class ImageAtlasPath : MonoBehaviour
 		Sprite sprite = getSprite();
 		if (sprite != null && path.isEmpty())
 		{
-			Debug.LogError("找不到图片所属的图集:" + sprite.name);
+			Debug.LogError("找不到图片所属的图集:" + sprite.name + ", GameObject:" + getGameObjectPath(gameObject));
 		}
 		if (mAtlasPath != path && !path.isEmpty())
 		{

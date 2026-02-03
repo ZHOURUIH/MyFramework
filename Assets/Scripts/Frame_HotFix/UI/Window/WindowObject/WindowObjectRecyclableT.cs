@@ -18,6 +18,7 @@ public abstract class WindowObjectRecyclableT<T> : WindowObjectT<T>, IRecyclable
 }
 
 // 根节点是myUGUIObject类型
+[CommonWindowObject]
 public abstract class WindowRecyclableUGUI : WindowObjectRecyclableT<myUGUIObject>
 {
 	public WindowRecyclableUGUI(IWindowObjectOwner parent) : base(parent) { }

@@ -3,8 +3,15 @@ using static UnityUtility;
 using static FrameUtility;
 using static MathUtility;
 using static FrameBaseUtility;
+using System;
+
+public interface IPoolItem<T>
+{
+	void setData(T data);
+}
 
 // 负责窗口对象池,UsedList是有序的
+[CommonWindowPool]
 public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBase, IRecyclable
 {
 	protected HashSet<T> mUnusedItemList = new();	// 未使用列表
@@ -101,8 +108,15 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		{
 			item.setAsLastSibling(false);
 		}
-		mUsedItemList.Add(item);
-		return item;
+		return mUsedItemList.add(item);
+	}
+	public void newItemWithList<TData>(List<TData> dataList, Action<T, TData> callback)
+	{
+		unuseAll();
+		foreach (TData data in dataList)
+		{
+			callback(newItem(), data);
+		}
 	}
 	public override void unuseAll()
 	{

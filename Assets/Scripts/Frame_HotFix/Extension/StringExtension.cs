@@ -6,6 +6,7 @@ public static class StringExtension
 {
 	public static int length(this string list) { return list?.Length ?? 0; }
 	public static bool isEmpty(this string str) { return str == null || str.Length == 0; }
+	public static bool contains(this string str, char c) { return str != null && str.Contains(c); }
 	public static string range(this string str, int startIndex, int endIndexNotInclude)
 	{
 		if (str == null)

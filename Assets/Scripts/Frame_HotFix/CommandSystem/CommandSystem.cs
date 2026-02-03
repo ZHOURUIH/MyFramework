@@ -294,7 +294,7 @@ public class CommandSystem : FrameSystem
 		}
 		using (new ThreadLockScope(mBufferLock))
 		{
-			mCommandBufferProcess.move(mCommandBufferInput);
+			mCommandBufferInput.moveTo(mCommandBufferProcess);
 		}
 	}
 	protected void destroyCmd(Command cmd)

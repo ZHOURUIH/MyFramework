@@ -2,16 +2,17 @@
 using static UnityUtility;
 using static FrameBaseHotFix;
 
-public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectOwner
+public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectOwner, IEventListener
 {
 	protected List<WindowObjectBase> mChildList;            // 直接由当前WindowObject持有的子节点,不包含从对象池中创建的物体
 	protected List<IDragViewLoop> mDragViewLoopList;        // 当前WindowObject拥有的DragViewLoop列表,用于调用列表的update
 	protected List<WindowStructPoolBase> mPoolList;			// 此物体创建的对象池列表
+	protected List<WindowPoolBase> mWindowPoolList;			// 此物体创建的窗口对象池列表
 	protected HashSet<IUGUIObject> mLocalizationObjectList; // 需要本地化的文本对象
 	protected WindowStructPoolBase mParentPool;				// 如果一个对象是从对象池中创建的,则存储其所属的对象池节点
 	protected WindowObjectBase mParent;                     // 因为会有一些WindowObject中嵌套WindowObject,所以需要存储一个父节点
 	protected LayoutScript mScript;                         // 所属的布局脚本
-	protected bool mDestroied;                              // 是否已经销毁过了,用于检测重复销毁的
+	protected bool mHasDestroy;                             // 是否已经销毁过了,用于检测重复销毁的
 	protected bool mInited;                                 // 是否已经初始化过了,用于检测重复初始化
 	protected bool mCalledOnHide;                           // 是否已经调用过了onHide
 	protected bool mCalledOnShow;                           // 是否已经调用过了onShow
@@ -31,9 +32,14 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 			return;
 		}
 		mInited = true;
-		mDestroied = false;
+		mHasDestroy = false;
 		// 调用当前节点中所有对象池的初始化
 		foreach (WindowStructPoolBase pool in mPoolList.safe())
+		{
+			pool.init();
+		}
+		// 调用当前节点中所有窗口对象池的初始化
+		foreach (WindowPoolBase pool in mWindowPoolList.safe())
 		{
 			pool.init();
 		}
@@ -51,6 +57,14 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 		foreach (WindowStructPoolBase pool in mPoolList.safe())
 		{
 			if (pool.getInUseCount() > 0)
+			{
+				mUnuseAllWhenHide = false;
+				break;
+			}
+		}
+		foreach (WindowPoolBase item in mWindowPoolList.safe())
+		{
+			if (item.getInUseCount() > 0)
 			{
 				mUnuseAllWhenHide = false;
 				break;
@@ -102,7 +116,7 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 		mCalledOnHide = true;
 		foreach (WindowObjectBase item in mChildList.safe())
 		{
-			if (item.isActive())
+			if (item.isActiveSelf())
 			{
 				item.onHide();
 			}
@@ -113,7 +127,12 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 			{
 				item.unuseAll();
 			}
+			foreach (WindowPoolBase item in mWindowPoolList.safe())
+			{
+				item.unuseAll();
+			}
 		}
+		mEventSystem.unlistenEvent(this);
 	}
 	public virtual void onShow()
 	{
@@ -125,7 +144,7 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 		mCalledOnShow = true;
 		foreach (WindowObjectBase item in mChildList.safe())
 		{
-			if (item.isActive())
+			if (item.isActiveSelf())
 			{
 				item.onShow();
 			}
@@ -133,17 +152,23 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 	}
 	public virtual void destroy()
 	{
-		if (mDestroied)
+		if (mHasDestroy)
 		{
 			logWarning("WindowObject重复销毁对象:" + GetType() + ",hash:" + GetHashCode());
 		}
-		mDestroied = true;
+		mHasDestroy = true;
 
 		foreach (WindowStructPoolBase item in mPoolList.safe())
 		{
 			item.destroy();
 		}
 		mPoolList?.Clear();
+
+		foreach (WindowPoolBase item in mWindowPoolList.safe())
+		{
+			item.destroy();
+		}
+		mWindowPoolList?.Clear();
 
 		foreach (WindowObjectBase item in mChildList.safe())
 		{
@@ -198,10 +223,18 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 	public virtual void setParent(myUGUIObject parent, bool refreshDepth = true) { }
 	public virtual void setAsLastSibling(bool refreshDepth = true) { }
 	public virtual void setAsFirstSibling(bool refreshDepth = true) { }
-	public void addWindowPool(WindowStructPoolBase pool) 
+	public void addWindowStructPool(WindowStructPoolBase pool) 
 	{
 		mPoolList ??= new();
 		if (!mPoolList.addUnique(pool))
+		{
+			logError("重复加入对象池");
+		}
+	}
+	public void addWindowPool(WindowPoolBase pool)
+	{
+		mWindowPoolList ??= new();
+		if (!mWindowPoolList.addUnique(pool))
 		{
 			logError("重复加入对象池");
 		}

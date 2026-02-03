@@ -107,7 +107,7 @@ public class PaddingAnchor : MonoBehaviour
 		// 如果窗口带缩放,则可能适配不正确
 		if (!isVectorZero(transform.localScale - Vector3.one))
 		{
-			logWarning("transform's scale is not 1, may not adapt correctely, " + transform.name + ", scale:" + V3ToS(transform.localScale, 6));
+			logWarning("transform's scale is not 1, may not adapt correctly, " + transform.name + ", scale:" + V3ToS(transform.localScale, 6));
 		}
 		mDirty = false;
 		TryGetComponent<RectTransform>(out var rectTransform);

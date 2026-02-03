@@ -5,6 +5,13 @@ using static FrameUtility;
 
 public static class ListExtension
 {
+	public static void setAllValue<T>(this List<T> list, T value)
+	{
+		for (int i = 0; i < list.Count; ++i)
+		{
+			list[i] = value;
+		}
+	}
 	public static bool removeIf<T>(this List<T> list, T value, bool condition)
 	{
 		if (!condition)
@@ -35,9 +42,9 @@ public static class ListExtension
 		{
 			return;
 		}
-		if (list.Capacity < count)
+		if (list.Capacity < list.Count + count)
 		{
-			list.Capacity = count;
+			list.Capacity = list.Count + count;
 		}
 		for (int i = 0; i < count; ++i)
 		{
@@ -50,9 +57,9 @@ public static class ListExtension
 		{
 			return;
 		}
-		if (list.Capacity < count)
+		if (list.Capacity < list.Count + count)
 		{
-			list.Capacity = count;
+			list.Capacity = list.Count + count;
 		}
 		for (int i = 0; i < count; ++i)
 		{
@@ -100,6 +107,19 @@ public static class ListExtension
 	}
 	public static bool addUnique<T>(this List<T> list, T value)
 	{
+		if (!list.Contains(value))
+		{
+			list.Add(value);
+			return true;
+		}
+		return false;
+	}
+	public static bool addUniqueNot<T>(this List<T> list, T value, T notValue)
+	{
+		if (value.Equals(notValue))
+		{
+			return false;
+		}
 		if (!list.Contains(value))
 		{
 			list.Add(value);
@@ -233,12 +253,12 @@ public static class ListExtension
 		list.Add(value3);
 		list.Add(value4);
 	}
-	// 将sourceList中的所有元素添加到list中,并清空sourceList
-	public static List<T> move<T>(this List<T> list, IList<T> sourceList)
+	// 将sourceList中的所有元素添加到targetList中,并清空sourceList,返回targetList
+	public static List<T> moveTo<T>(this List<T> sourceList, List<T> targetList)
 	{
-		list.AddRange(sourceList);
+		targetList.AddRange(sourceList);
 		sourceList.Clear();
-		return list;
+		return targetList;
 	}
 	public static T popBack<T>(this List<T> list)
 	{
@@ -320,8 +340,25 @@ public static class ListExtension
 	{
 		(list[index0], list[index1]) = (list[index1], list[index0]);
 	}
+	public static int count<T>(this ICollection<T> list, Predicate<T> condition)
+	{
+		if (list.isEmpty() || condition == null)
+		{
+			return 0;
+		}
+		int curCount = 0;
+		foreach (T item in list)
+		{
+			if (condition.Invoke(item))
+			{
+				++curCount;
+			}
+		}
+		return curCount;
+	}
 	public static int count<T>(this ICollection<T> list)							{ return list?.Count ?? 0; }
 	public static bool isEmptySpan<T>(this Span<T> list)							{ return list == null || list.Length == 0; }
 	public static bool isEmpty<T>(this ICollection<T> list)							{ return list == null || list.Count == 0; }
+	public static bool contains<T>(this ICollection<T> list, T value)				{ return list != null && list.Contains(value); }
 	public static IEnumerable<T> safe<T>(this IEnumerable<T> original)				{ return original ?? Empty<T>(); }
 }

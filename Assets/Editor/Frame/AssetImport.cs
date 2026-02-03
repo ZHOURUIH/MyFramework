@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEngine.U2D;
+using UnityEditor.U2D;
 using static FrameDefine;
 using static EditorDefine;
 using static FileUtility;
@@ -12,6 +14,10 @@ public class AssetsImport : AssetPostprocessor
 	//所有的资源的导入，删除，移动，都会调用此方法，注意，这个方法是static的
 	public static void OnPostprocessAllAssets(string[] importedAsset, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
 	{
+		if (MenuAssetBundle.mIsPackingAssetBundle || BuildPipeline.isBuildingPlayer)
+		{
+			return;
+		}
 		// 检查是否有文件名带中文的空格
 		foreach (string fullPath in findFilesNonAlloc(F_GAME_RESOURCES_PATH))
 		{
@@ -32,10 +38,32 @@ public class AssetsImport : AssetPostprocessor
 				Debug.LogError("场景文件所在目录中有文件夹与场景重名,会导致打包失败,场景:" + sceneFullPath, loadAsset(fullPathToProjectPath(sceneFullPath)));
 			}
 		}
+
+		foreach (string fullPath in findFilesNonAlloc(F_GAME_RESOURCES_PATH, ".spriteatlasv2"))
+		{
+			var atlas = loadAsset<SpriteAtlas>(fullPath);
+			if (atlas == null)
+			{
+				continue;
+			}
+			SpriteAtlasPackingSettings settings = atlas.GetPackingSettings();
+			if (settings.enableRotation)
+			{
+				Debug.LogError("SpriteAtlas不应该启用enableRotation:" + fullPathToProjectPath(fullPath), atlas);
+			}
+			if (settings.enableTightPacking)
+			{
+				Debug.LogError("SpriteAtlas不应该启用enableTightPacking:" + fullPathToProjectPath(fullPath), atlas);
+			}
+		}
 	}
 	// 图片的导入
 	public void OnPostprocessTexture(Texture2D texture)
 	{
+		if (MenuAssetBundle.mIsPackingAssetBundle || BuildPipeline.isBuildingPlayer)
+		{
+			return;
+		}
 		var textureImporter = assetImporter as TextureImporter;
 		// 是否启用mipmaps
 #if !PROJECT_2D
@@ -56,6 +84,10 @@ public class AssetsImport : AssetPostprocessor
 	// 导入音频,由编辑器自动在导入音频资源时调用
 	public void OnPostprocessAudio(AudioClip clip)
 	{
+		if (MenuAssetBundle.mIsPackingAssetBundle || BuildPipeline.isBuildingPlayer)
+		{
+			return;
+		}
 #if !UNITY_WEBGL
 		var audioImporter = assetImporter as AudioImporter;
 		AudioImporterSampleSettings settings = new();
@@ -93,6 +125,10 @@ public class AssetsImport : AssetPostprocessor
 	// 导入模型前调用
 	public void OnPreprocessModel()
 	{
+		if (MenuAssetBundle.mIsPackingAssetBundle || BuildPipeline.isBuildingPlayer)
+		{
+			return;
+		}
 		var modelImporter = assetImporter as ModelImporter;
 		modelImporter.materialImportMode = ModelImporterMaterialImportMode.None;
 		modelImporter.sortHierarchyByName = true;

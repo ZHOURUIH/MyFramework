@@ -3,12 +3,6 @@
 public class GameEditorDefine : EditorDefine
 {
 	public const string GAME_NAME = "MicroLegend";
-	protected override List<string> getLayoutScriptBaseClass_Extension()
-	{
-		return new()
-		{
-		};
-	}
 	protected override List<string> getNoMipmapsPath_Extension()
 	{
 		return new()

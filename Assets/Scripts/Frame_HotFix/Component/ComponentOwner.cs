@@ -77,16 +77,9 @@ public abstract class ComponentOwner : CommandReceiver
 			}
 			GameComponent com = a.mReadList[i];
 			using var b = new ProfilerScope(com.GetType().Name);
-			if (com.isValid() && com.isActive() && (mDisableTypeList == null || !mDisableTypeList.Contains(com.getType())))
+			if (com.isValid() && com.isActive() && !mDisableTypeList.contains(com.getType()))
 			{
-				if (!com.isIgnoreTimeScale())
-				{
-					com.update(elapsedTime);
-				}
-				else
-				{
-					com.update(Time.unscaledDeltaTime);
-				}
+				com.update(com.isIgnoreTimeScale() ? Time.unscaledDeltaTime : elapsedTime);
 			}
 		}
 	}
@@ -100,16 +93,9 @@ public abstract class ComponentOwner : CommandReceiver
 		using var a = new SafeListReader<GameComponent>(mComponentList);
 		foreach (GameComponent com in a.mReadList)
 		{
-			if (com != null && com.isActive() && (mDisableTypeList == null || !mDisableTypeList.Contains(com.getType())))
+			if (com != null && com.isActive() && !mDisableTypeList.contains(com.getType()))
 			{
-				if (!com.isIgnoreTimeScale())
-				{
-					com.lateUpdate(elapsedTime);
-				}
-				else
-				{
-					com.lateUpdate(Time.unscaledDeltaTime);
-				}
+				com.lateUpdate(com.isIgnoreTimeScale() ? Time.unscaledDeltaTime : elapsedTime);
 			}
 		}
 	}
@@ -123,16 +109,9 @@ public abstract class ComponentOwner : CommandReceiver
 		using var a = new SafeListReader<GameComponent>(mComponentList);
 		foreach (GameComponent com in a.mReadList)
 		{
-			if (com != null && com.isActive() && (mDisableTypeList == null || !mDisableTypeList.Contains(com.getType())))
+			if (com != null && com.isActive() && !mDisableTypeList.contains(com.getType()))
 			{
-				if (!com.isIgnoreTimeScale())
-				{
-					com.fixedUpdate(elapsedTime);
-				}
-				else
-				{
-					com.fixedUpdate(Time.unscaledDeltaTime);
-				}
+				com.fixedUpdate(com.isIgnoreTimeScale() ? Time.unscaledDeltaTime : elapsedTime);
 			}
 		}
 	}
@@ -187,7 +166,7 @@ public abstract class ComponentOwner : CommandReceiver
 	}
 	public GameComponent addInitComponent(Type type, bool active)
 	{
-		if (mDontAutoCreateType != null && mDontAutoCreateType.Contains(type))
+		if (mDontAutoCreateType.contains(type))
 		{
 			return null;
 		}
@@ -195,7 +174,7 @@ public abstract class ComponentOwner : CommandReceiver
 	}
 	public T addInitComponent<T>(bool active) where T : GameComponent, new()
 	{
-		if (mDontAutoCreateType != null && mDontAutoCreateType.Contains(typeof(T)))
+		if (mDontAutoCreateType.contains(typeof(T)))
 		{
 			return null;
 		}
@@ -203,7 +182,7 @@ public abstract class ComponentOwner : CommandReceiver
 	}
 	public void addInitComponent<T>(out T component, bool active) where T : GameComponent, new()
 	{
-		if (mDontAutoCreateType != null && mDontAutoCreateType.Contains(typeof(T)))
+		if (mDontAutoCreateType.contains(typeof(T)))
 		{
 			component = null;
 			return;

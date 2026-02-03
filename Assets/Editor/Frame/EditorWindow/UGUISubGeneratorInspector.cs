@@ -247,7 +247,7 @@ public class UGUISubGeneratorInspector : GameInspector
 				line(ref fileContent, "\t}");
 			}
 			line(ref fileContent, "}");
-			writeTxtFile(fileFullPath, fileContent);
+			writeTxtFile(fileFullPath, fileContent, true);
 			// 新生成文件后需要刷新一下资源
 			AssetDatabase.Refresh();
 		}
@@ -398,7 +398,7 @@ public class UGUISubGeneratorInspector : GameInspector
 					}
 				}
 			}
-			writeTxtFile(fileFullPath, stringsToString(codeList, "\r\n"));
+			writeTxtFile(fileFullPath, stringsToString(codeList, "\r\n"), true);
 		}
 	}
 }

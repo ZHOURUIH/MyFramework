@@ -132,7 +132,6 @@ public class EditorFileUtility
 		{
 			return;
 		}
-		byte[] bytes = encryptAES(fileBytes, key, vi);
-		writeFile(fileFullPath, bytes, bytes.Length);
+		writeFile(fileFullPath, encryptAES(fileBytes, key, vi));
 	}
 }

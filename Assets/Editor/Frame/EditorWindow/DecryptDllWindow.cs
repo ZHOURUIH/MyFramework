@@ -31,8 +31,7 @@ public class DecryptDllWindow : GameEditorWindow
 			logError("文件打开错误");
 			return;
 		}
-		byte[] bytes = decryptAES(fileBytes, getAESKeyBytes(), getAESIVBytes());
-		writeFile(fileName + ".decrypt", bytes, bytes.Length);
+		writeFile(fileName + ".decrypt", decryptAES(fileBytes, getAESKeyBytes(), getAESIVBytes()));
 		log("完成解密");
 	}
 }

@@ -476,15 +476,8 @@ public class MathUtility
 			// 找到第一个运算符
 			if (!isNumeric(str[i]) && str[i] != '.')
 			{
-				if (i != 0)
-				{
-					numbers.Add(SToF(str.range(beginPos, i)));
-				}
 				// 如果在表达式的开始就发现了运算符,则表示第一个数是负数,那就处理为0减去这个数的绝对值
-				else
-				{
-					numbers.Add(0);
-				}
+				numbers.Add(i != 0 ? SToF(str.range(beginPos, i)) : 0);
 				factors.Add(str[i]);
 				beginPos = i + 1;
 			}
@@ -777,9 +770,7 @@ public class MathUtility
 			// 选中的下标跟第一个交换,再次随机
 			if (index != i)
 			{
-				int temp = helpList[index];
-				helpList[index] = helpList[i];
-				helpList[i] = temp;
+				(helpList[i], helpList[index]) = (helpList[index], helpList[i]);
 			}
 		}
 	}

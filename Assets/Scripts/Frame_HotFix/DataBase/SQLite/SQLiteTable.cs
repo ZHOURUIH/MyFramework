@@ -342,7 +342,7 @@ public class SQLiteTable : ClassObject
 			// 编辑器下每次都写入更新
 			if (isEditor() || !isFileExist(newPath))
 			{
-				writeFile(newPath, fileBuffer, fileSize);
+				writeFile(newPath, fileBuffer);
 			}
 
 			// 创建连接

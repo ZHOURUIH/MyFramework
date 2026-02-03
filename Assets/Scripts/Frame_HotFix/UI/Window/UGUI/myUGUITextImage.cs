@@ -31,8 +31,8 @@ public class myUGUITextImage : myUGUIObject
 
 		// 初始化图片模板信息相关
 		mImagePool = new(mLayout.getScript());
+		mImagePool.init();
 		mImagePool.assignTemplate(mImage);
-		mImagePool.init(false);
 		mTextImage.setCreateImage(()=> { return mImagePool.newWindow(); });
 		mTextImage.setDestroyImage((myUGUIImage image)=> { mImagePool.unuseWindow(image); });
 	}

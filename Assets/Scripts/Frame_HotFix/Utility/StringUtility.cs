@@ -27,7 +27,8 @@ public class StringUtility
 	private static Dictionary<string, Vector3Int> mStringToVector3Cache;				// 字符串转换为3维向量的缓存
 	private static int STRING_TO_VECTOR2INT_MAX_CACHE = 10240;                          // mStringToVector2Cache最大数量
 	private static Dictionary<string, string> mInvalidParamChars;                       // invalid characters that cannot be found in a valid method-verb or http header
-	private static List<char> mChineseSymbol;											// 中文的标点
+	private static List<char> mChineseSymbol;                                           // 中文的标点
+	private static string[] mChineseNumber = { "零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十" };
 	public const string EMPTY = "";                                                     // 表示空字符串
 	// 只能使用{index}拼接
 	public static string format(string format, string args)
@@ -1192,6 +1193,28 @@ public class StringUtility
 	public static bool stringToBool(string str)
 	{
 		return str == "true" || str == "True" || str == "TRUE";
+	}
+	// 只能获取小于等于99的中文数字
+	public static string getChineseNumber(int num)
+	{
+		if (num <= 10)
+		{
+			return mChineseNumber[num];
+		}
+		if (num < 100)
+		{
+			int first = num / 10;
+			int second = num % 10;
+			if (second == 0)
+			{
+				return mChineseNumber[first] + mChineseNumber[10];
+			}
+			else
+			{
+				return getChineseNumber(first * 10) + getChineseNumber(second);
+			}
+		}
+		return "";
 	}
 	// 函数名中的int仅表示整数的意思,并非特指int类型
 	public static string intToChineseString(long value)

@@ -11,6 +11,7 @@ public abstract class WindowObjectFixedT<T> : WindowObjectT<T> where T : myUGUIO
 }
 
 // 根节点是myUGUIObject类型
+[CommonWindowObject]
 public abstract class WindowObjectUGUI : WindowObjectFixedT<myUGUIObject>
 {
 	public WindowObjectUGUI(IWindowObjectOwner parent) : base(parent) { }

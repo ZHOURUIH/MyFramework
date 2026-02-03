@@ -56,30 +56,64 @@ public class UGUIGeneratorUtility
 					GameObject newObj = objectField(item.mObject, 160);
 					if (newObj != item.mObject)
 					{
-						if (newObj == generator.gameObject)
+						do
 						{
-							log("不能添加根节点");
-							newObj = null;
-						}
-						if (generator.mMemberList.Exists((obj) => { return obj.mObject == newObj && newObj != null; }))
-						{
-							log("节点" + newObj.name + "已经在列表中了,不能重复添加");
-							item.mObject = null;
-						}
-						else
-						{
-							item.mObject = newObj;
-							// 如果是以0结尾的,就自动设置为静态数组类型的,且自动查找数组长度
-							if (item.mObject != null)
+							if (newObj == generator.gameObject)
 							{
-								string name = item.mObject.name;
-								if (getLastNotNumberPos(name) == name.Length - 2 && name.endWith("0"))
-								{
-									item.mArrayType = ARRAY_TYPE.STATIC_ARRAY;
-									item.autoSetArrayLength();
-								}
+								log("不能添加根节点");
+								newObj = null;
+								break;
 							}
-						}
+							if (generator.mMemberList.Exists((obj) => { return obj.mObject == newObj && newObj != null; }))
+							{
+								log("节点" + newObj.name + "已经在列表中了,不能重复添加");
+								item.mObject = null;
+								break;
+							}
+							item.mObject = newObj;
+							if (item.mObject == null)
+							{
+								break;
+							}
+							// 如果是以0结尾的,就自动设置为静态数组类型的,且自动查找数组长度
+							string name = item.mObject.name;
+							if (getLastNotNumberPos(name) == name.Length - 2 && name.endWith("0"))
+							{
+								item.mArrayType = ARRAY_TYPE.STATIC_ARRAY;
+								item.autoSetArrayLength();
+							}
+							if (item.mObject.TryGetComponent<UGUISubGenerator>(out _))
+							{
+								item.setWindowType(WINDOW_TYPE.SUB_UI);
+								item.mType = getClassNameFromGameObject(item.mObject);
+							}
+							// 简单判断一下有可能设置的类型,比如如果名字带Checkbox,则可能是UGUICheckbox
+							if (name.Contains("Checkbox"))
+							{
+								item.setWindowType(WINDOW_TYPE.COMMON_CONTROL);
+								item.mType = typeof(UGUICheckbox).ToString();
+							}
+							else if (name.Contains("Tab"))
+							{
+								item.setWindowType(WINDOW_TYPE.COMMON_CONTROL);
+								item.mType = typeof(TabItem).ToString();
+							}
+							else if (name.Contains("Progress"))
+							{
+								item.setWindowType(WINDOW_TYPE.COMMON_CONTROL);
+								item.mType = typeof(UGUIProgress).ToString();
+							}
+							else if (name.Contains("Button"))
+							{
+								item.setWindowType(WINDOW_TYPE.COMMON_CONTROL);
+								item.mType = typeof(LegendButton).ToString();
+							}
+							else if (name.Contains("Slider"))
+							{
+								item.setWindowType(WINDOW_TYPE.COMMON_CONTROL);
+								item.mType = typeof(UGUISlider).ToString();
+							}
+						} while (false);
 					}
 				}
 				else
@@ -100,24 +134,20 @@ public class UGUIGeneratorUtility
 				List<string> typeList = null;
 				switch (item.mWindowType)
 				{
-					case WINDOW_TYPE.NORMAL_WINDOW:
-						{
-							typeList = generateAvailableTypeList(item.mObject);
-						}
-						break;
-					case WINDOW_TYPE.COMMON_SUB_UI: typeList = getCommonSubUITypeList(); break;
-					case WINDOW_TYPE.SUB_PANEL: break;
-					case WINDOW_TYPE.SCROLL_LIST: typeList = getSubUIWithGenericTypeList(); break;
-					case WINDOW_TYPE.POOL: typeList = getPoolTypeList(); break;
+					case WINDOW_TYPE.NORMAL_WINDOW:		typeList = generateAvailableTypeList(item.mObject);break;
+					case WINDOW_TYPE.COMMON_CONTROL:	typeList = getCommonSubUITypeList(); break;
+					case WINDOW_TYPE.SUB_UI: break;
+					case WINDOW_TYPE.SCROLL_LIST:		typeList = getSubUIWithGenericTypeList(); break;
+					case WINDOW_TYPE.POOL:				typeList = getPoolTypeList(); break;
 				}
-				if (typeList == null && item.mWindowType != WINDOW_TYPE.SUB_PANEL)
+				if (typeList == null && item.mWindowType != WINDOW_TYPE.SUB_UI)
 				{
 					Debug.LogError("未知的WindowType:" + item.mWindowType);
 					return;
 				}
 
 				// 子页面特殊判断,类型名要跟节点名字匹配
-				if (item.mWindowType == WINDOW_TYPE.SUB_PANEL)
+				if (item.mWindowType == WINDOW_TYPE.SUB_UI)
 				{
 					item.mType = getClassNameFromGameObject(item.mObject);
 					labelWidth(item.mType, 148, ClassTypeCaches.hasClass(item.mType) ? Color.green : Color.red);
@@ -272,11 +302,8 @@ public class UGUIGeneratorUtility
 		}
 		if (mSubUIParentList.Count == 0)
 		{
-			mSubUIParentList.Add(typeof(WindowObjectUGUI).ToString());
-			mSubUIParentList.Add(typeof(WindowRecyclableUGUI).ToString());
-			mSubUIParentList.Add("DragViewItem");
-			mSubUIParentList.AddRange(getTypesInFrameHotFixDll<ICommonWindowObject>());
-			mSubUIParentList.AddRange(getTypesInHotFixDll<ICommonWindowObject>());
+			mSubUIParentList.AddRange(getTypesWithAttributeInFrameHotFixDll<CommonWindowObjectAttribute>());
+			mSubUIParentList.AddRange(getTypesWithAttributeInHotFixDll<CommonWindowObjectAttribute>());
 		}
 		return mSubUIParentList;
 	}
@@ -288,8 +315,8 @@ public class UGUIGeneratorUtility
 		}
 		if (mUIParentList.Count == 0)
 		{
-			mUIParentList.Add(typeof(LayoutScript).ToString());
-			mUIParentList.AddRange(EditorDefine.getLayoutScriptBaseClass());
+			mUIParentList.AddRange(getTypesWithAttributeInFrameHotFixDll<LayoutScriptBaseAttribute>());
+			mUIParentList.AddRange(getTypesWithAttributeInHotFixDll<LayoutScriptBaseAttribute>());
 		}
 		return mUIParentList;
 	}
@@ -313,10 +340,8 @@ public class UGUIGeneratorUtility
 		}
 		if (mPoolTypeList.Count == 0)
 		{
-			mPoolTypeList.Add("WindowStructPool");
-			mPoolTypeList.Add("WindowStructPoolMap");
-			mPoolTypeList.Add("WindowStructPoolUnOrder");
-			mPoolTypeList.Add("WindowPool");
+			mPoolTypeList.AddRange(getTypesWithAttributeInFrameHotFixDll<CommonWindowPoolAttribute>());
+			mPoolTypeList.AddRange(getTypesWithAttributeInHotFixDll<CommonWindowPoolAttribute>());
 		}
 		return mPoolTypeList;
 	}
@@ -328,8 +353,8 @@ public class UGUIGeneratorUtility
 		}
 		if (mCommonSubUITypeList.Count == 0)
 		{
-			mCommonSubUITypeList.AddRange(getTypesInFrameHotFixDll<ICommonUI>());
-			mCommonSubUITypeList.AddRange(getTypesInHotFixDll<ICommonUI>());
+			mCommonSubUITypeList.AddRange(getTypesWithAttributeInFrameHotFixDll<CommonControlAttribute>());
+			mCommonSubUITypeList.AddRange(getTypesWithAttributeInHotFixDll<CommonControlAttribute>());
 		}
 		return mCommonSubUITypeList;
 	}
@@ -528,7 +553,7 @@ public class UGUIGeneratorUtility
 			// 动态列表只支持控件或者子页面类型的
 			if (data.mArrayType == ARRAY_TYPE.DYNAMIC_ARRAY)
 			{
-				if (data.mWindowType == WINDOW_TYPE.COMMON_SUB_UI || data.mWindowType == WINDOW_TYPE.SUB_PANEL)
+				if (data.mWindowType == WINDOW_TYPE.COMMON_CONTROL || data.mWindowType == WINDOW_TYPE.SUB_UI)
 				{
 					string varName = generateAssignWindowLineTemp(prefix, lines, curObjectName, parentName, false);
 					lines.Add(prefix + "for (int i = 0; i < m" + newName + ".Length; ++i)");
@@ -567,7 +592,7 @@ public class UGUIGeneratorUtility
 				string parentParam = parentName != null ? parentName + ", " : "";
 				lines.Add(prefix + "newObject(out " + createVarName + ", " + parentParam + "\"" + curObjectName + "\"" + showErrorParam + ");");
 			}
-			else if (data.mWindowType == WINDOW_TYPE.SUB_PANEL || data.mWindowType == WINDOW_TYPE.COMMON_SUB_UI)
+			else if (data.mWindowType == WINDOW_TYPE.SUB_UI || data.mWindowType == WINDOW_TYPE.COMMON_CONTROL)
 			{
 				string parentParam = parentName ?? "mRoot";
 				lines.Add(prefix + createVarName + ".assignWindow(" + parentParam + ", \"" + curObjectName + "\");");
@@ -783,34 +808,18 @@ public class UGUIGeneratorUtility
 		return mNormalWindowList;
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected static bool hasTypeInHotFixDll(string targetType)
+	// 从 DLL 文件中筛选实现指定接口的非抽象类
+	protected static List<string> getTypesWithAttributeInHotFixDll<T>() where T : Attribute
 	{
-		foreach (Type type in Assembly.LoadFrom(F_PROJECT_PATH + "Library/ScriptAssemblies/HotFix.dll").GetTypes())
-		{
-			// 跳过无法加载的类型、接口和抽象类
-			if (type == null || type.IsInterface || type.IsAbstract)
-			{
-				continue;
-			}
-			if (type.ToString() == targetType)
-			{
-				return true;
-			}
-		}
-		return false;
+		return getTypesWithAttributeInDll(F_PROJECT_PATH + "Library/ScriptAssemblies/HotFix.dll", typeof(T));
 	}
 	// 从 DLL 文件中筛选实现指定接口的非抽象类
-	protected static List<string> getTypesInHotFixDll<T>()
+	protected static List<string> getTypesWithAttributeInFrameHotFixDll<T>() where T : Attribute
 	{
-		return getTypesInDll(F_PROJECT_PATH + "Library/ScriptAssemblies/HotFix.dll", typeof(T));
-	}
-	// 从 DLL 文件中筛选实现指定接口的非抽象类
-	protected static List<string> getTypesInFrameHotFixDll<T>()
-	{
-		return getTypesInDll(F_PROJECT_PATH + "Library/ScriptAssemblies/Frame_HotFix.dll", typeof(T));
+		return getTypesWithAttributeInDll(F_PROJECT_PATH + "Library/ScriptAssemblies/Frame_HotFix.dll", typeof(T));
 	}
 	// 从 DLL 文件中筛选实现指定接口的非抽象类,keepGenericMark是否保留模板参数类型显示,默认不保留,只获取类名本身
-	protected static List<string> getTypesInDll(string dllFullPath, Type targetType, bool keepGenericMark = false)
+	protected static List<string> getTypesWithAttributeInDll(string dllFullPath, Type attribute, bool keepGenericMark = false)
 	{
 		// 获取所有类型（捕获加载异常）
 		List<string> typeList = new();
@@ -821,69 +830,15 @@ public class UGUIGeneratorUtility
 			{
 				continue;
 			}
-			// 检查是否实现了目标接口
-			if (isImplementsType(type, targetType))
+			foreach (CustomAttributeData item in type.CustomAttributes)
 			{
-				if (keepGenericMark)
+				if (item.AttributeType == attribute)
 				{
-					typeList.Add(type.ToString());
-				}
-				else
-				{
-					typeList.Add(type.ToString().rangeToFirst('`'));
+					typeList.Add(keepGenericMark ? type.ToString() : type.ToString().rangeToFirst('`'));
+					break;
 				}
 			}
 		}
 		return typeList;
-	}
-	// 判断类型是否直接或间接实现目标接口
-	protected static bool isImplementsType(Type type, Type targetType)
-	{
-		if (targetType == null)
-		{
-			return false;
-		}
-		// 接口类型判断
-		if (targetType.IsInterface)
-		{
-			foreach (Type iface in type.GetInterfaces())
-			{
-				if (IsMatchingGenericType(iface, targetType))
-				{
-					return true;
-				}
-			}
-			return false;
-		}
-		// 基类判断
-		else
-		{
-			// 遍历继承链
-			Type currentType = type;
-			while (currentType != null && currentType != typeof(object))
-			{
-				if (IsMatchingGenericType(currentType, targetType))
-				{
-					return true;
-				}
-				currentType = currentType.BaseType;
-			}
-			return false;
-		}
-	}
-	// 匹配泛型类型定义（支持开放/封闭泛型）
-	protected static bool IsMatchingGenericType(Type typeToCheck, Type targetType)
-	{
-		// 泛型定义匹配（例如：IEnumerable<>）
-		if (targetType.IsGenericTypeDefinition)
-		{
-			return typeToCheck.IsGenericType &&
-				   typeToCheck.GetGenericTypeDefinition() == targetType;
-		}
-		// 具体类型匹配（包括封闭泛型如 IEnumerable<int>）
-		else
-		{
-			return typeToCheck == targetType;
-		}
 	}
 }

@@ -18,6 +18,7 @@ public class FileUtility
 	private static List<string> mTempPatternList = new();   // 用于避免GC
 	private static List<string> mTempFileList = new();      // 用于避免GC
 	private static List<string> mTempFileList1 = new();     // 用于避免GC
+	private static byte[] BOM = new byte[] { 0xEF, 0xBB, 0xBF };	// UTF8的BOM头
 	public static void validPath(ref string path)
 	{
 		// 不以/结尾,则加上/
@@ -81,7 +82,7 @@ public class FileUtility
 		{
 			if (errorIfNull)
 			{
-				logError("file not eixst:" + fileName);
+				logError("file not exist:" + fileName);
 			}
 			callback?.Invoke(null);
 			return;
@@ -97,14 +98,30 @@ public class FileUtility
 	{
 		openFileAsync(fileName, errorIfNull, (byte[] bytes) =>
 		{
-			callback?.Invoke(bytesToString(bytes));
+			int offset = 0;
+			if (bytes.Length >= BOM.Length &&
+				bytes[0] == BOM[0] &&
+				bytes[1] == BOM[1] &&
+				bytes[2] == BOM[2])
+			{
+				offset = BOM.Length;
+			}
+			callback?.Invoke(bytesToString(bytes, offset, bytes.Length - offset));
 		});
 	}
 	public static void openTxtFileLinesAsync(string fileName, bool errorIfNull, StringArrayCallback callback)
 	{
 		openFileAsync(fileName, errorIfNull, (byte[] bytes) =>
 		{
-			callback?.Invoke(splitLine(bytesToString(bytes)));
+			int offset = 0;
+			if (bytes.Length >= BOM.Length &&
+				bytes[0] == BOM[0] &&
+				bytes[1] == BOM[1] &&
+				bytes[2] == BOM[2])
+			{
+				offset = BOM.Length;
+			}
+			callback?.Invoke(splitLine(bytesToString(bytes, offset, bytes.Length - offset)));
 		});
 	}
 	// 打开一个二进制文件,fileName为绝对路径,返回值为文件长度
@@ -170,7 +187,16 @@ public class FileUtility
 		{
 			return EMPTY;
 		}
-		return bytesToString(fileContent, 0, fileContent.Length);
+		// 如果有BOM头,则需要去掉
+		int offset = 0;
+		if (fileContent.Length >= BOM.Length &&
+			fileContent[0] == BOM[0] &&
+			fileContent[1] == BOM[1] &&
+			fileContent[2] == BOM[2])
+		{
+			offset = BOM.Length;
+		}
+		return bytesToString(fileContent, offset, fileContent.Length - offset);
 	}
 	// 打开一个文本文件,fileName为绝对路径,并且自动将文件拆分为多行,移除末尾的换行符(\r或者\n),存储在fileLines中,包含空行,返回值是行数
 	public static int openTxtFileLinesSync(string fileName, out string[] fileLines, bool errorIfNull = true, bool keepEmptyLine = true)
@@ -190,12 +216,16 @@ public class FileUtility
 		openTxtFileLinesSync(fileName, out string[] lines, errorIfNull, keepEmptyLine);
 		return lines;
 	}
-	public static void writeFile(string fileName, byte[] buffer, bool appendData = false)
+	public static void writeFile(string fileName, byte[] buffer)
 	{
-		writeFile(fileName, buffer, buffer.Length, appendData);
+		writeFile(fileName, buffer, buffer.Length, false);
+	}
+	public static void writeAppendFile(string fileName, byte[] buffer)
+	{
+		writeAppendFile(fileName, buffer, buffer.Length);
 	}
 	// 写一个文本文件,fileName为绝对路径,content是写入的字符串
-	public static void writeFile(string fileName, byte[] buffer, int size, bool appendData = false)
+	public static void writeFile(string fileName, byte[] buffer, int size, bool addBOM)
 	{
 		if (fileName == null)
 		{
@@ -205,7 +235,33 @@ public class FileUtility
 		createDir(getFilePath(fileName));
 		if (isEditor() || !isAndroid())
 		{
-			using FileStream file = new(fileName, appendData ? FileMode.Append : FileMode.Create, FileAccess.Write);
+			using FileStream file = new(fileName, FileMode.Create, FileAccess.Write);
+			if (!buffer.isEmpty() && size > 0)
+			{
+				if (addBOM)
+				{
+					file.Write(BOM, 0, BOM.Length);
+				}
+				file.Write(buffer, 0, size);
+			}
+			file.Flush();
+		}
+		else
+		{
+			AndroidAssetLoader.writeFile(fileName, buffer, size, false);
+		}
+	}
+	public static void writeAppendFile(string fileName, byte[] buffer, int size)
+	{
+		if (fileName == null)
+		{
+			return;
+		}
+		// 检测路径是否存在,如果不存在就创建一个
+		createDir(getFilePath(fileName));
+		if (isEditor() || !isAndroid())
+		{
+			using FileStream file = new(fileName, FileMode.Append, FileAccess.Write);
 			if (!buffer.isEmpty() && size > 0)
 			{
 				file.Write(buffer, 0, size);
@@ -214,49 +270,25 @@ public class FileUtility
 		}
 		else
 		{
-			AndroidAssetLoader.writeFile(fileName, buffer, size, appendData);
+			AndroidAssetLoader.writeFile(fileName, buffer, size, true);
 		}
 	}
 	// 写一个文本文件,fileName为绝对路径,content是写入的字符串
-	public static void writeTxtFile(string fileName, string content, bool appendData = false)
+	public static void writeTxtFile(string fileName, string content, bool addBOM = false)
 	{
-		if (isEditor())
+		if (isEditor() || isIOS() || isWindows() || isWebGL())
 		{
 			byte[] bytes = stringToBytes(content);
 			if (bytes != null)
 			{
-				writeFile(fileName, bytes, bytes.Length, appendData);
-			}
-		}
-		else if (isIOS())
-		{
-			byte[] bytes = stringToBytes(content);
-			if (bytes != null)
-			{
-				writeFile(fileName, bytes, bytes.Length, appendData);
-			}
-		}
-		else if (isWindows())
-		{
-			byte[] bytes = stringToBytes(content);
-			if (bytes != null)
-			{
-				writeFile(fileName, bytes, bytes.Length, appendData);
+				writeFile(fileName, bytes, bytes.Length, addBOM);
 			}
 		}
 		else if (isAndroid())
 		{
 			// 检测路径是否存在,如果不存在就创建一个
 			createDir(getFilePath(fileName));
-			AndroidAssetLoader.writeTxtFile(fileName, content, appendData);
-		}
-		else if (isWebGL())
-		{
-			byte[] bytes = stringToBytes(content);
-			if (bytes != null)
-			{
-				writeFile(fileName, bytes, bytes.Length, appendData);
-			}
+			AndroidAssetLoader.writeTxtFile(fileName, content, false);
 		}
 	}
 	// 重命名文件,参数为绝对路径
@@ -370,7 +402,7 @@ public class FileUtility
 			{
 				// 如果目标文件所在的目录不存在,则先创建目录
 				createDir(getFilePath(dest));
-				writeFile(dest, bytes, bytes.Length);
+				writeFile(dest, bytes, bytes.Length, false);
 			}
 			doneCallback?.Invoke();
 		});
@@ -589,7 +621,7 @@ public class FileUtility
 	{
 		if (!isEditor() && isAndroid())
 		{
-			logError("can not find resouces files on android!");
+			logError("can not find resources files on android!");
 			return;
 		}
 		mTempPatternList.Clear();
@@ -601,7 +633,7 @@ public class FileUtility
 	{
 		if (!isEditor() && isAndroid())
 		{
-			logError("can not find resouces files on android!");
+			logError("can not find resources files on android!");
 			return;
 		}
 		validPath(ref path);
@@ -761,22 +793,15 @@ public class FileUtility
 					return;
 				}
 				DirectoryInfo folder = new(path);
-				int patternCount = patterns.count();
 				foreach (FileInfo info in folder.GetFiles())
 				{
 					string fileName = info.Name;
-					// 如果需要过滤后缀名,则判断后缀
-					if (patternCount > 0)
-					{
-						foreach (string pattern in patterns)
-						{
-							fileList.addIf(path + fileName, fileName.endWith(pattern, false));
-						}
-					}
 					// 不需要过滤,则直接放入列表
-					else
+					fileList.addIf(path + fileName, patterns.isEmpty());
+					// 如果需要过滤后缀名,则判断后缀
+					foreach (string pattern in patterns.safe())
 					{
-						fileList.Add(path + fileName);
+						fileList.addIf(path + fileName, fileName.endWith(pattern, false));
 					}
 				}
 				// 查找所有子目录
@@ -817,8 +842,7 @@ public class FileUtility
 			{
 				foreach (string dir in Directory.GetDirectories(path))
 				{
-					if (!excludeList.isEmpty() &&
-						excludeList.Contains(getFileNameThread(dir)))
+					if (excludeList.contains(getFileNameThread(dir)))
 					{
 						continue;
 					}
@@ -1031,8 +1055,7 @@ public class FileUtility
 		{
 			// 如果已经不在远端文件列表中,则是已删除的文件
 			// 在本地,但是与远端文件不一致,也需要删除,因为动态下载的文件不会在启动时下载,所以为了避免加载到旧的文件,需要删除本地的旧文件,虽然在资源版本系统中已经判断了是否一致了
-			if (!remoteInfoList.TryGetValue(item.Key, out GameFileInfo remoteInfo) ||
-				remoteInfo.mMD5 != item.Value.mMD5)
+			if (!remoteInfoList.TryGetValue(item.Key, out GameFileInfo remoteInfo) || remoteInfo.mMD5 != item.Value.mMD5)
 			{
 				deleteList.Add(item.Key);
 			}

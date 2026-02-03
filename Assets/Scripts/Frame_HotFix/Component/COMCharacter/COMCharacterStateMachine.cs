@@ -229,8 +229,7 @@ public class COMCharacterStateMachine : GameComponent
 		using var a = new ListScope<CharacterState>(out var tempList);
 		foreach (var item in mStateTypeList.getMainList())
 		{
-			List<Type> groupList = mStateManager.getGroupList(item.Key);
-			if (groupList != null && groupList.Contains(group))
+			if (mStateManager.getGroupList(item.Key).contains(group))
 			{
 				tempList.AddRange(item.Value.getMainList());
 			}

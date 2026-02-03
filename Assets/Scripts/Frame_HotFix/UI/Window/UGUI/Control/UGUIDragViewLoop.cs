@@ -8,7 +8,8 @@ using static StringUtility;
 using static UnityUtility;
 
 // 自定义的循环滚动列表,暂时只支持从上往下纵向排列的滚动列表
-public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop, ICommonUI where T : DragViewItem<DataType> where DataType : ClassObject
+[CommonControl]
+public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop where T : DragViewItem<DataType> where DataType : ClassObject
 {
 	protected WindowStructPool<T> mDisplayItemPool;			// 只用作显示的节点列表
 	protected Dictionary<int, T> mDisplayItemMap = new();	// 用于通过数据下标查找对应的显示节点

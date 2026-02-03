@@ -4,18 +4,20 @@ using System.Runtime.CompilerServices;
 #endif
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using static UnityUtility;
 using static FrameBaseHotFix;
 using static StringUtility;
 using static FrameBaseUtility;
-using TMPro;
 
 // 布局脚本基类,用于执行布局相关的逻辑
+[LayoutScriptBase]
 public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, IWindowObjectOwner
 {
 	protected HashSet<myUGUIScrollRect> mScrollViewRegisteList;		// 用于检测ScrollView合法性的列表
 	protected HashSet<IInputField> mInputFieldRegisteList;			// 用于检测InputField合法性的列表
 	protected HashSet<WindowStructPoolBase> mPoolRootList;          // 由LayoutScript直接持有的对象池
+	protected HashSet<WindowPoolBase> mWindowPoolRootList;          // 由LayoutScript直接持有的窗口对象池
 	protected HashSet<WindowObjectBase> mWindowObjectList;			// 布局中使用的非对象池中的窗口对象,收集后方便统一销毁
 	protected HashSet<WindowObjectBase> mWindowObjectRootList;      // mWindowObjectList中的root节点列表,也就是排除了嵌套在子界面中的对象
 	protected HashSet<IDragViewLoop> mDragViewLoopList;				// 存储界面中的滚动列表,用于调用列表的update
@@ -39,6 +41,12 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		}
 		mPoolRootList?.Clear();
 
+		foreach (WindowPoolBase item in mWindowPoolRootList.safe())
+		{
+			item.destroy();
+		}
+		mWindowPoolRootList?.Clear();
+
 		foreach (WindowObjectBase item in mWindowObjectRootList.safe())
 		{
 			item.destroy();
@@ -57,6 +65,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		mScrollViewRegisteList?.Clear();
 		mInputFieldRegisteList?.Clear();
 		mPoolRootList?.Clear();
+		mWindowPoolRootList?.Clear();
 		mWindowObjectList?.Clear();
 		mWindowObjectRootList?.Clear();
 		mDragViewLoopList?.Clear();
@@ -141,6 +150,17 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 			}
 		}
 	}
+	public void addWindowPool(WindowPoolBase pool)
+	{
+		if (pool.isRootPool())
+		{
+			mWindowPoolRootList ??= new();
+			if (!mWindowPoolRootList.Add(pool))
+			{
+				logError("不能重复注册窗口对象池");
+			}
+		}
+	}
 	public void addWindowObject(WindowObjectBase windowObj)
 	{
 		mWindowObjectList ??= new();
@@ -167,6 +187,11 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		{
 			item.init();
 		}
+		// 调用所有窗口对象池的初始化
+		foreach (WindowPoolBase item in mWindowPoolRootList.safe())
+		{
+			item.init();
+		}
 		// 调用所有根对象的初始化
 		foreach (WindowObjectBase item in mWindowObjectRootList.safe())
 		{
@@ -178,6 +203,14 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	{
 		// 如果初始化以后,item中的对象池是有创建节点的,则需要设置为不能自动清空对象池,不然会出问题
 		foreach (WindowStructPoolBase pool in mPoolRootList.safe())
+		{
+			if (pool.getInUseCount() > 0)
+			{
+				mUnuseAllWhenHide = false;
+				break;
+			}
+		}
+		foreach (WindowPoolBase pool in mWindowPoolRootList.safe())
 		{
 			if (pool.getInUseCount() > 0)
 			{
@@ -218,7 +251,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 			mRoot.getObject().GetComponentsInChildren(scrollViewList);
 			foreach (ScrollRect item in scrollViewList)
 			{
-				if (mScrollViewRegisteList == null || !mScrollViewRegisteList.Contains(mLayout.getUIObject(item.gameObject) as myUGUIScrollRect))
+				if (!mScrollViewRegisteList.contains(mLayout.getUIObject(item.gameObject) as myUGUIScrollRect))
 				{
 					logError("滑动列表未注册:" + item.gameObject.name + ", layout:" + mLayout.getName());
 				}
@@ -229,7 +262,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 			mRoot.getObject().GetComponentsInChildren(inputFieldList);
 			foreach (InputField item in inputFieldList)
 			{
-				if (mInputFieldRegisteList == null || !mInputFieldRegisteList.Contains(mLayout.getUIObject(item.gameObject) as IInputField))
+				if (!mInputFieldRegisteList.contains(mLayout.getUIObject(item.gameObject) as IInputField))
 				{
 					logError("输入框未注册:" + item.gameObject.name + ", layout:" + mLayout.getName());
 				}
@@ -240,7 +273,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 			mRoot.getObject().GetComponentsInChildren(tmpInputFieldList);
 			foreach (TMP_InputField item in tmpInputFieldList)
 			{
-				if (mInputFieldRegisteList == null || !mInputFieldRegisteList.Contains(mLayout.getUIObject(item.gameObject) as IInputField))
+				if (!mInputFieldRegisteList.contains(mLayout.getUIObject(item.gameObject) as IInputField))
 				{
 					logError("输入框未注册:" + item.gameObject.name + ", layout:" + mLayout.getName());
 				}
@@ -274,6 +307,10 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		{
 			// 隐藏界面时调用所有对象池的回收,将创建的所有对象都回收掉
 			foreach (WindowStructPoolBase item in mPoolRootList.safe())
+			{
+				item.unuseAll();
+			}
+			foreach (WindowPoolBase item in mWindowPoolRootList.safe())
 			{
 				item.unuseAll();
 			}

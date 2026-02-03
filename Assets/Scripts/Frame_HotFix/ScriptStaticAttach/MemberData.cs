@@ -3,22 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using static FrameBaseUtility;
 
-public enum WINDOW_TYPE : byte
-{
-	NORMAL_WINDOW,			// 单独的窗口
-	COMMON_SUB_UI,			// 通用的控件
-	SUB_PANEL,				// 子页面
-	SCROLL_LIST,			// 滚动列表
-	POOL,					// 对象池
-}
-
-public enum ARRAY_TYPE : byte
-{
-	NONE,					// 不是数组
-	STATIC_ARRAY,			// 静态数组,就是直接获取界面上已经存在的节点存放到数组中
-	DYNAMIC_ARRAY,			// 动态数组,就是根据一个模板创建多个节点放到数组中,类似对象池,但是创建的是非对象池类型的节点,动态列表不支持单独的窗口类型
-}
-
 [Serializable]
 public class MemberData
 {
@@ -53,8 +37,8 @@ public class MemberData
 	{
 		Transform parent = null;
 		if (mWindowType == WINDOW_TYPE.NORMAL_WINDOW ||
-			mWindowType == WINDOW_TYPE.COMMON_SUB_UI ||
-			mWindowType == WINDOW_TYPE.SUB_PANEL)
+			mWindowType == WINDOW_TYPE.COMMON_CONTROL ||
+			mWindowType == WINDOW_TYPE.SUB_UI)
 		{
 			parent = mObject != null ? mObject.transform.parent : null;
 		}
@@ -74,15 +58,15 @@ public class MemberData
 		{
 			return mObject != null ? mObject.name : "";
 		}
-		else if (mWindowType == WINDOW_TYPE.COMMON_SUB_UI)
+		if (mWindowType == WINDOW_TYPE.COMMON_CONTROL)
 		{
 			return mObject != null ? mObject.name : "";
 		}
-		else if (mWindowType == WINDOW_TYPE.SUB_PANEL)
+		if (mWindowType == WINDOW_TYPE.SUB_UI)
 		{
 			return mObject != null ? mObject.name : "";
 		}
-		else if (mWindowType == WINDOW_TYPE.SCROLL_LIST)
+		if (mWindowType == WINDOW_TYPE.SCROLL_LIST)
 		{
 			if (mUseCustomName)
 			{
@@ -112,19 +96,19 @@ public class MemberData
 		{
 			return mType;
 		}
-		else if (mWindowType == WINDOW_TYPE.COMMON_SUB_UI)
+		if (mWindowType == WINDOW_TYPE.COMMON_CONTROL)
 		{
 			return mType;
 		}
-		else if (mWindowType == WINDOW_TYPE.SUB_PANEL)
+		if (mWindowType == WINDOW_TYPE.SUB_UI)
 		{
 			return mType;
 		}
-		else if (mWindowType == WINDOW_TYPE.SCROLL_LIST)
+		if (mWindowType == WINDOW_TYPE.SCROLL_LIST)
 		{
 			return mType + "<" + mParam0 + ", " + mParam0 + ".Data>";
 		}
-		else if (mWindowType == WINDOW_TYPE.POOL)
+		if (mWindowType == WINDOW_TYPE.POOL)
 		{
 			if (mType == "WindowStructPoolMap")
 			{
