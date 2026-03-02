@@ -10,7 +10,7 @@ public class AndroidPluginManager : FrameSystem
 	protected static AndroidJavaObject mApplication;		// 固定的Application的Java实例
 	protected static AndroidJavaObject mApplicationContext;	// 固定的ApplicationContext的Java实例
 	protected static string mAndroidPackageName;
-	public static void initAnroidPlugin(string packageName)
+	public static void initAndroidPlugin(string packageName)
 	{
 		mAndroidPackageName = packageName;
 		if (!isEditor() && isAndroid())

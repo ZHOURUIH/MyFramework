@@ -449,15 +449,15 @@ public class HttpUtility
 		}
 		int count = paramList.Count;
 		using var a = new MyStringBuilderScope(out var parameters);
-		parameters.append("?");
+		parameters.add("?");
 		// 从集合中取出所有参数，设置表单参数（AddField())
 		int index = 0;
 		foreach (var item in paramList)
 		{
-			parameters.append(item.Key, "=", item.Value);
+			parameters.add(item.Key, "=", item.Value);
 			if (index++ != count - 1)
 			{
-				parameters.append('&');
+				parameters.add('&');
 			}
 		}
 		return parameters.ToString();

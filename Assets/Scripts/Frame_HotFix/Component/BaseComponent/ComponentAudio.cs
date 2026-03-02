@@ -99,13 +99,14 @@ public class ComponentAudio : GameComponent
 		}
 		return mAudioSource.spatialBlend; 
 	}
-	public override void setActive(bool active)
+	public override bool setActive(bool active)
 	{
 		base.setActive(active);
 		if (mAudioSource != null)
 		{
 			mAudioSource.enabled = active;
 		}
+		return active;
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected virtual void assignAudioSource() { }

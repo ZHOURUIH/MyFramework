@@ -2029,6 +2029,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4be6038f6da4c82439e4ab4cb00df702, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Frame_HotFix::UGUISubGenerator
+  mComment: "\u5217\u8868\u9879"
   mMemberList:
   - mObject: {fileID: 1238147819716279905}
     mType: myUGUIObject
@@ -2542,6 +2543,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4be6038f6da4c82439e4ab4cb00df702, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mComment: "\u6ED1\u52A8\u533A\u57DF"
   mMemberList:
   - mObject: {fileID: 2374985055151923818}
     mType: UGUITreeList
@@ -3025,7 +3027,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Frame_HotFix::LayoutGridVertical
   mInterval: 10
-  mChangeRootSize: 1
   mRefresh: 0
 --- !u!1 &3368903902034862322
 GameObject:
@@ -3643,6 +3644,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4be6038f6da4c82439e4ab4cb00df702, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Frame_HotFix::UGUISubGenerator
+  mComment: "\u5217\u8868\u9879"
   mMemberList:
   - mObject: {fileID: 649107687028492566}
     mType: myUGUIObject
@@ -4882,7 +4884,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Frame_HotFix::LayoutGridVertical
   mInterval: 0
-  mChangeRootSize: 1
   mRefresh: 0
 --- !u!114 &1700448290352139866
 MonoBehaviour:
@@ -8085,6 +8086,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1324c7b97d0cd4d4286eaa7aef336d1d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mComment: "\u767B\u5F55\u754C\u9762"
   mMemberList:
   - mObject: {fileID: 3649696244049861466}
     mType: myUGUIObject

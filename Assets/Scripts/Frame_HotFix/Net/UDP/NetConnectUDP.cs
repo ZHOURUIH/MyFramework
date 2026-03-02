@@ -263,10 +263,10 @@ public abstract class NetConnectUDP : NetConnect
 	protected void debugHistoryPacket()
 	{
 		using var a = new ClassThreadScope<MyStringBuilder>(out var info);
-		info.append("最后接收的消息:\n");
+		info.add("最后接收的消息:\n");
 		foreach (string item in mReceivePacketHistory)
 		{
-			info.append(item, "\n");
+			info.add(item, "\n");
 		}
 		logError(info.ToString());
 	}

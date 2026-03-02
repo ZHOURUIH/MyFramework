@@ -22,6 +22,7 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop whe
 	protected Vector2 mInterval;                            // 适配后的排列间隔
 	protected int mColCount;                                // 节点的排列列数
 	protected int mLastStartItemIndex;						// 用于判断是否刷新
+	protected int mLastEndItemIndex;						// 用于判断是否刷新
 	protected bool mNeedUpdateItems;                        // 是否需要调用所有节点的update
 	protected static List<DataType> mTempDataList;			// 用于外部临时构造一个数据列表的
 	public UGUIDragViewLoop(IWindowObjectOwner parent) : base(parent)
@@ -150,6 +151,8 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop whe
 					mContent.setTopCenterToParentTopCenter();
 				}
 			}
+			mDisplayItemPool.unuseAll();
+			mDisplayItemMap.Clear();
 		}
 		mDataList.setRange(dataList);
 		updateDisplayItem();
@@ -242,7 +245,7 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop whe
 		int bottomRowIndex = ceil((viewportTopToContentTop + mViewport.getWindowSize().y) / (mItemSize.y + mInterval.y));
 		int startItemIndex = clampMin(topRowIndex * mColCount);
 		int endItemIndex = clampMin(bottomRowIndex * mColCount);
-		if (mLastStartItemIndex != startItemIndex || forceRefresh)
+		if (mLastStartItemIndex != startItemIndex || mLastEndItemIndex != endItemIndex || forceRefresh)
 		{
 			// 先移除超出区域的节点
 			var displayItemList = mDisplayItemPool.getUsedList();
@@ -279,6 +282,7 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop whe
 		}
 		mLastRefreshedContentPos = mContent.getPosition();
 		mLastStartItemIndex = startItemIndex;
+		mLastEndItemIndex = endItemIndex;
 	}
 	// 滑动列表的tick
 	public void updateDragView()

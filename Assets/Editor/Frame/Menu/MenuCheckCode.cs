@@ -49,8 +49,7 @@ public class MenuCheckCode
 	public static void checkCodeEmptyLine()
 	{
 		Debug.Log("开始检查代码空行...");
-		List<string> fileList = new();
-		findFiles(F_SCRIPTS_PATH, fileList, ".cs");
+		List<string> fileList = findFilesNonAlloc(F_SCRIPTS_PATH, ".cs");
 		int fileCount = fileList.Count;
 		for (int i = 0; i < fileCount; ++i)
 		{
@@ -69,8 +68,7 @@ public class MenuCheckCode
 	public static void checkCodeSpace()
 	{
 		Debug.Log("开始检查代码空格...");
-		List<string> fileList = new();
-		findFiles(F_SCRIPTS_PATH, fileList, ".cs");
+		List<string> fileList = findFilesNonAlloc(F_SCRIPTS_PATH, ".cs");
 		int fileCount = fileList.Count;
 		for (int i = 0; i < fileCount; ++i)
 		{
@@ -145,9 +143,8 @@ public class MenuCheckCode
 	public static void checkSingleCodeLineLength()
 	{
 		Debug.Log("开始逐行测代码长度");
-		// 所有代码文件的列表
-		List<string> scriptFileList = new();
-		findFiles(F_SCRIPTS_PATH, scriptFileList, ".cs");
+		// 寻找指定文件格式的格式
+		List<string> scriptFileList = findFilesNonAlloc(F_SCRIPTS_PATH, ".cs");
 		int fileCount = scriptFileList.Count;
 		for (int i = 0; i < fileCount; i++)
 		{
@@ -166,10 +163,8 @@ public class MenuCheckCode
 	public static void checkPropertyName()
 	{
 		Debug.Log("开始检查命名规范");
-		// 所有代码文件的列表
-		List<string> scriptFileList = new();
 		// 寻找指定文件格式的格式
-		findFiles(F_SCRIPTS_PATH, scriptFileList, ".cs");
+		List<string> scriptFileList = findFilesNonAlloc(F_SCRIPTS_PATH, ".cs");
 		// 开始进行检查操作
 		int fileCount = scriptFileList.Count;
 		for (int i = 0; i < fileCount; i++)
@@ -189,10 +184,8 @@ public class MenuCheckCode
 	public static void checkFunctionOrder()
 	{
 		Debug.Log("开始检查函数排版");
-		// 所有代码文件的列表
-		List<string> scriptFileList = new();
 		// 寻找指定文件格式的格式
-		findFiles(F_SCRIPTS_PATH, scriptFileList, ".cs");
+		List<string> scriptFileList = findFilesNonAlloc(F_SCRIPTS_PATH, ".cs");
 		// 开始进行检查操作
 		int fileCount = scriptFileList.Count;
 		for (int i = 0; i < fileCount; i++)
@@ -212,9 +205,8 @@ public class MenuCheckCode
 	public static void checkComment()
 	{
 		Debug.Log("开始检查注释");
-		// 所有代码文件的列表
-		List<string> scriptFileList = new();
-		findFiles(F_SCRIPTS_PATH, scriptFileList, ".cs");
+		// 寻找指定文件格式的格式
+		List<string> scriptFileList = findFilesNonAlloc(F_SCRIPTS_PATH, ".cs");
 		int fileCount = scriptFileList.Count;
 		for (int i = 0; i < fileCount; i++)
 		{
@@ -233,10 +225,8 @@ public class MenuCheckCode
 	public static void checkCommentStandard()
 	{
 		Debug.Log("开始检查注释后是否添加空格");
-		// 所有代码文件的列表
-		List<string> scriptFileList = new();
 		// 寻找指定文件格式的格式
-		findFiles(F_SCRIPTS_PATH, scriptFileList, ".cs");
+		List<string> scriptFileList = findFilesNonAlloc(F_SCRIPTS_PATH, ".cs");
 		// 开始进行检查操作
 		int fileCount = scriptFileList.Count;
 		for (int i = 0; i < fileCount; i++)
@@ -256,9 +246,7 @@ public class MenuCheckCode
 	public static void checkSystemFunction()
 	{
 		Debug.Log("开始检查内置函数调用");
-		List<string> scriptFileList = new();
-		findFiles(F_SCRIPTS_PATH, scriptFileList, ".cs");
-
+		List<string> scriptFileList = findFilesNonAlloc(F_SCRIPTS_PATH, ".cs");
 		int fileCount = scriptFileList.Count;
 		for (int i = 0; i < fileCount; i++)
 		{
@@ -278,13 +266,8 @@ public class MenuCheckCode
 	public static void checkCommandName()
 	{
 		Debug.Log("开始检查检查命令的命名规范");
-		// 所有代码文件的列表
-		List<string> scriptFileList = new();
 		// 寻找指定文件格式的格式
-		findFiles(F_SCRIPTS_PATH, scriptFileList, ".cs");
-		// 加载程序集
-		var assembly = getAssembly("Assembly-CSharp");
-		var hotFixAssembly = loadHotFixAssembly();
+		List<string> scriptFileList = findFilesNonAlloc(F_SCRIPTS_PATH, ".cs");
 
 		// 开始进行检查操作
 		int fileCount = scriptFileList.Count;
@@ -296,7 +279,7 @@ public class MenuCheckCode
 			{
 				continue;
 			}
-			doCheckCommandName(filePath, openTxtFileLines(filePath), assembly, hotFixAssembly);
+			doCheckCommandName(filePath, openTxtFileLines(filePath));
 		}
 		clearProgressBar();
 		Debug.Log("结束检测");
@@ -305,10 +288,8 @@ public class MenuCheckCode
 	public static void checkCodeSeparateLineWidth()
 	{
 		Debug.Log("开始检查分隔行的宽度");
-		// 所有代码文件的列表
-		List<string> scriptFileList = new();
 		// 寻找指定文件格式的格式
-		findFiles(F_SCRIPTS_PATH, scriptFileList, ".cs");
+		List<string> scriptFileList = findFilesNonAlloc(F_SCRIPTS_PATH, ".cs");
 		// 开始进行检查操作
 		int fileCount = scriptFileList.Count;
 		for (int i = 0; i < fileCount; i++)

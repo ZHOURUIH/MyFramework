@@ -94,11 +94,11 @@ public class ComponentDrag : GameComponent
 	{
 		touchUp(true);
 	}
-	public override void setActive(bool active)
+	public override bool setActive(bool active)
 	{
-		if(active == isActive())
+		if (active == isActive())
 		{
-			return;
+			return active;
 		}
 		base.setActive(active);
 		touchUp(true);
@@ -114,6 +114,7 @@ public class ComponentDrag : GameComponent
 				checkStartDrag();
 			}
 		}
+		return active;
 	}
 	public override void notifyOwnerActive(bool active)
 	{

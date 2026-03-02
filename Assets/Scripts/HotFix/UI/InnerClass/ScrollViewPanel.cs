@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using static UnityUtility;
 using static StringUtility;
 
@@ -48,6 +48,8 @@ public enum EQUIP_TYPE : byte
 }
 
 // auto generate classname start
+// generate from:Assets/GameResources/UI/UIPrefab/UILogin.prefab
+// 滑动区域
 public class ScrollViewPanel : WindowObjectUGUI
 // auto generate classname end
 {
@@ -155,10 +157,7 @@ public class ScrollViewPanel : WindowObjectUGUI
 		mEmptyButton.registeCollider(() => { log("mEmptyButton被点击"); });
 
 		using var a = new ListScope<string>(out var options);
-		options.Add("选项一");
-		options.Add("选项二");
-		options.Add("选项三");
-		options.Add("选项四");
+		options.add("选项一", "选项二", "选项三", "选项四", "选项五");
 		mDropList.setOptions(options);
 
 		// 构建出物品类型过滤的树形列表
@@ -205,8 +204,8 @@ public class ScrollViewPanel : WindowObjectUGUI
 		mImageAnim.setNeedUpdate(true);
 
 		using var b = new MyStringBuilderScope(out var builder);
-		builder.append("123");
-		builder.append(456);
+		builder.add("123");
+		builder.add(456);
 		builder.colorString("FF0000", 123);
 		builder.colorStringComma("00FF00", 111222333);
 		mTestText.setText(builder.ToString());

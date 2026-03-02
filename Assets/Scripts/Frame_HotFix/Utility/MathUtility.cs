@@ -3617,6 +3617,11 @@ public class MathUtility
 	// 由于使用了静态成员变量,所以不能在多线程中调用该函数
 	public static bool AStar4(List<bool> map, int beginIndex, int endIndex, int width, List<int> foundPath)
 	{
+		if (beginIndex == endIndex)
+		{
+			foundPath.add(endIndex);
+			return true;
+		}
 		if (!preAStar(map, beginIndex, endIndex, width, foundPath))
 		{
 			return false;
@@ -3703,6 +3708,11 @@ public class MathUtility
 	}
 	public static bool AStar8(List<bool> map, int beginIndex, int endIndex, int width, List<int> foundPath)
 	{
+		if (beginIndex == endIndex)
+		{
+			foundPath.add(endIndex);
+			return true;
+		}
 		if (!preAStar(map, beginIndex, endIndex, width, foundPath))
 		{
 			return false;
@@ -3789,6 +3799,11 @@ public class MathUtility
 	// 依赖于不同行相同x坐标的格子之间偶数行的格子始终比奇数行的要靠左一些
 	public static bool AStar6OddR(List<bool> map, int beginIndex, int endIndex, int width, List<int> foundPath)
 	{
+		if (beginIndex == endIndex)
+		{
+			foundPath.add(endIndex);
+			return true;
+		}
 		if (!preAStar(map, beginIndex, endIndex, width, foundPath))
 		{
 			return false;
@@ -3882,6 +3897,11 @@ public class MathUtility
 	// 依赖于不同行相同x坐标的格子之间偶数行的格子始终比奇数行的要靠右一些
 	public static bool AStar6EvenR(List<bool> map, int beginIndex, int endIndex, int width, List<int> foundPath)
 	{
+		if (beginIndex == endIndex)
+		{
+			foundPath.add(endIndex);
+			return true;
+		}
 		if (!preAStar(map, beginIndex, endIndex, width, foundPath))
 		{
 			return false;

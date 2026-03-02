@@ -47,18 +47,18 @@ public class Transformable : ComponentOwner, ITransformable
 			mTransform = null;
 		}
 	}
-	public override void setActive(bool active)
+	public override bool setActive(bool active)
 	{
 		if (mObject != null)
 		{
 			if (active == mObject.activeSelf)
 			{
-				return;
+				return active;
 			}
 			using var a = new ProfilerScope("active object");
 			mObject.SetActive(active);
 		}
-		base.setActive(active);
+		return base.setActive(active);
 	}
 	public void resetActive()
 	{

@@ -12,13 +12,14 @@ public class ComponentLerp : GameComponent, IComponentBreakable
 		doneCallback(ref mLerpDoneCallBack, this);
 		base.destroy();
 	}
-	public override void setActive(bool active)
+	public override bool setActive(bool active)
 	{
 		base.setActive(active);
 		if (!active)
 		{
 			stop();
 		}
+		return active;
 	}
 	public override void resetProperty()
 	{

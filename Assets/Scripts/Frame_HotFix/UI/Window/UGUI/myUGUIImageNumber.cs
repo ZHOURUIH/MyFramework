@@ -39,6 +39,10 @@ public class myUGUIImageNumber : myUGUIObject
 				logError("找不到图集,请添加ImageAtlasPath组件, window:" + mName + ", layout:" + mLayout.getName());
 			}
 			string atlasPath = imageAtlasPath.mAtlasPath;
+			if (atlasPath.isEmpty())
+			{
+				logError("ImageAtlasPath中记录的路径为空,GameObject:" + getGameObjectPath(mObject));
+			}
 			// unity_builtin_extra是unity内置的资源,不需要再次加载
 			if (!atlasPath.endWith("/unity_builtin_extra"))
 			{

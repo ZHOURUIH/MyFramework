@@ -58,13 +58,14 @@ public class ComponentRotateSpeed : GameComponent, IComponentModifyRotation, ICo
 			setActive(false);
 		}
 	}
-	public override void setActive(bool active)
+	public override bool setActive(bool active)
 	{
 		base.setActive(active);
 		if (!active)
 		{
 			stop();
 		}
+		return active;
 	}
 	public virtual void stop() { mPlayState = PLAY_STATE.STOP; }
 	public void pause(bool pause) { mPlayState = pause ? PLAY_STATE.PAUSE : PLAY_STATE.PLAY; }

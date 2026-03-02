@@ -34,7 +34,7 @@ public class StringUtility
 	public static string format(string format, string args)
 	{
 		using var a = new MyStringBuilderScope(out var builder);
-		builder.append(format);
+		builder.add(format);
 		string indexStr = "{0}";
 		if (format.findFirstSubstr(indexStr) >= 0)
 		{
@@ -46,7 +46,7 @@ public class StringUtility
 	public static string format(string format, string args0, string args1)
 	{
 		using var a = new MyStringBuilderScope(out var builder);
-		builder.append(format);
+		builder.add(format);
 		string indexStr0 = "{0}";
 		if (format.findFirstSubstr(indexStr0) >= 0)
 		{
@@ -63,7 +63,7 @@ public class StringUtility
 	public static string format(string format, string args0, string args1, string args2)
 	{
 		using var a = new MyStringBuilderScope(out var builder);
-		builder.append(format);
+		builder.add(format);
 		string indexStr0 = "{0}";
 		if (format.findFirstSubstr(indexStr0) >= 0)
 		{
@@ -89,12 +89,12 @@ public class StringUtility
 		}
 
 		using var a = new MyStringBuilderScope2(out var builder, out var helpBuilder);
-		builder.append(format);
+		builder.add(format);
 		int index = 0;
 		while (index < args.Length)
 		{
 			helpBuilder.clear();
-			helpBuilder.append("{", IToS(index), "}");
+			helpBuilder.add("{", IToS(index), "}");
 			string indexStr = helpBuilder.ToString();
 			if (format.findFirstSubstr(indexStr) >= 0)
 			{
@@ -112,12 +112,12 @@ public class StringUtility
 		}
 
 		using var a = new MyStringBuilderScope2(out var builder, out var helpBuilder);
-		builder.append(format);
+		builder.add(format);
 		int index = 0;
 		while (index < args.Count)
 		{
 			helpBuilder.clear();
-			helpBuilder.append("{", IToS(index), "}");
+			helpBuilder.add("{", IToS(index), "}");
 			string indexStr = helpBuilder.ToString();
 			if (format.findFirstSubstr(indexStr) >= 0)
 			{
@@ -130,12 +130,12 @@ public class StringUtility
 	public static string format(string format, IList<int> args)
 	{
 		using var a = new MyStringBuilderScope2(out var builder, out var helpBuilder);
-		builder.append(format);
+		builder.add(format);
 		int index = 0;
 		while (index < args.Count)
 		{
 			helpBuilder.clear();
-			helpBuilder.append("{", IToS(index), "}");
+			helpBuilder.add("{", IToS(index), "}");
 			string indexStr = helpBuilder.ToString();
 			if (format.findFirstSubstr(indexStr) >= 0)
 			{
@@ -148,12 +148,12 @@ public class StringUtility
 	public static string format(string format, IList<float> args)
 	{
 		using var a = new MyStringBuilderScope2(out var builder, out var helpBuilder);
-		builder.append(format);
+		builder.add(format);
 		int index = 0;
 		while (index < args.Count)
 		{
 			helpBuilder.clear();
-			helpBuilder.append("{", IToS(index), "}");
+			helpBuilder.add("{", IToS(index), "}");
 			string indexStr = helpBuilder.ToString();
 			if (format.findFirstSubstr(indexStr) >= 0)
 			{
@@ -483,7 +483,7 @@ public class StringUtility
 	public static string getFolderName(string str)
 	{
 		using var a = new MyStringBuilderScope(out var builder);
-		builder.append(str);
+		builder.add(str);
 		builder.rightToLeft();
 
 		// 如果有文件名,则先去除文件名
@@ -514,7 +514,7 @@ public class StringUtility
 		if (isMainThread())
 		{
 			using var a = new MyStringBuilderScope(out var builder);
-			builder.append(fileName);
+			builder.add(fileName);
 			builder.rightToLeft();
 			// 从倒数第二个开始,因为即使最后一个是/也需要忽略
 			int lastPos = builder.lastIndexOf('/', builder.Length - 2);
@@ -528,7 +528,7 @@ public class StringUtility
 		else
 		{
 			using var a = new ClassThreadScope<MyStringBuilder>(out var builder);
-			builder.append(fileName);
+			builder.add(fileName);
 			builder.rightToLeft();
 			// 从倒数第二个开始,因为即使最后一个是/也需要忽略
 			int lastPos = builder.lastIndexOf('/', builder.Length - 2);
@@ -544,7 +544,7 @@ public class StringUtility
 	public static string getFileNameWithSuffix(string str)
 	{
 		using var a = new MyStringBuilderScope(out var builder);
-		builder.append(str);
+		builder.add(str);
 		builder.rightToLeft();
 		int dotPos = builder.lastIndexOf('/');
 		if (dotPos != -1)
@@ -581,7 +581,7 @@ public class StringUtility
 			return null;
 		}
 		using var a = new MyStringBuilderScope(out var builder);
-		builder.append(str);
+		builder.add(str);
 		builder.rightToLeft();
 		// 移除后缀
 		int dotPos = builder.lastIndexOf('.');
@@ -599,7 +599,7 @@ public class StringUtility
 			return null;
 		}
 		using var a = new MyStringBuilderScope(out var builder);
-		builder.append(str);
+		builder.add(str);
 		builder.rightToLeft();
 		int namePos = builder.lastIndexOf('/');
 		if (namePos != -1)
@@ -787,10 +787,10 @@ public class StringUtility
 		int count = values.Count;
 		for (int i = 0; i < count; ++i)
 		{
-			builder.append(FToS(values[i], 2));
+			builder.add(FToS(values[i], 2));
 			if (i != count - 1)
 			{
-				builder.append(seperate);
+				builder.add(seperate);
 			}
 		}
 		return builder.ToString();
@@ -1017,10 +1017,10 @@ public class StringUtility
 		int count = values.Count;
 		for (int i = 0; i < count; ++i)
 		{
-			builder.append(LToS(values[i]));
+			builder.add(LToS(values[i]));
 			if (i != count - 1)
 			{
-				builder.append(seperate);
+				builder.add(seperate);
 			}
 		}
 		return builder.ToString();
@@ -1035,10 +1035,10 @@ public class StringUtility
 		int count = values.Count;
 		for (int i = 0; i < count; ++i)
 		{
-			builder.append(IToS(values[i]));
+			builder.add(IToS(values[i]));
 			if (i != count - 1)
 			{
-				builder.append(seperate);
+				builder.add(seperate);
 			}
 		}
 		return builder.ToString();
@@ -1053,10 +1053,10 @@ public class StringUtility
 		int count = values.Count;
 		for (int i = 0; i < count; ++i)
 		{
-			builder.append(values[i]);
+			builder.add(values[i]);
 			if (i != count - 1)
 			{
-				builder.append(seperate);
+				builder.add(seperate);
 			}
 		}
 		return builder.ToString();
@@ -1071,10 +1071,10 @@ public class StringUtility
 		int count = values.Count;
 		for (int i = 0; i < count; ++i)
 		{
-			builder.append(values[i]);
+			builder.add(values[i]);
 			if (i != count - 1)
 			{
-				builder.append(seperate);
+				builder.add(seperate);
 			}
 		}
 		return builder.ToString();
@@ -1169,7 +1169,7 @@ public class StringUtility
 		}
 		insertStart += 3 * (commaCount - 1);
 		using var a = new MyStringBuilderScope(out var builder);
-		builder.append(str);
+		builder.add(str);
 		// 从后往前插入
 		for (int i = 0; i < commaCount; ++i)
 		{
@@ -1223,18 +1223,18 @@ public class StringUtility
 		// 大于1亿
 		if (value >= 100000000)
 		{
-			builder.append(LToS(value / 100000000), "亿");
+			builder.add(LToS(value / 100000000), "亿");
 			value %= 100000000;
 		}
 		// 大于1万
 		if (value >= 10000)
 		{
-			builder.append(LToS(value / 10000), "万");
+			builder.add(LToS(value / 10000), "万");
 			value %= 10000;
 		}
 		if (value > 0)
 		{
-			builder.append(value);
+			builder.add(value);
 		}
 		return builder.ToString();
 	}
@@ -1444,7 +1444,7 @@ public class StringUtility
 					builder.byteToHEXString(byteList[i + offset], upperOrLower);
 					if (i != byteCount - 1)
 					{
-						builder.append(' ');
+						builder.add(' ');
 					}
 				}
 				else
@@ -1489,19 +1489,19 @@ public class StringUtility
 			int low = value & 15;
 			if (high < 10)
 			{
-				builder.append((char)('0' + high));
+				builder.add((char)('0' + high));
 			}
 			else
 			{
-				builder.append(hexChar[high - 10]);
+				builder.add(hexChar[high - 10]);
 			}
 			if (low < 10)
 			{
-				builder.append((char)('0' + low));
+				builder.add((char)('0' + low));
 			}
 			else
 			{
-				builder.append(hexChar[low - 10]);
+				builder.add(hexChar[low - 10]);
 			}
 			return builder.ToString();
 		}
@@ -1801,6 +1801,13 @@ public class StringUtility
 		}
 		return false;
 	}
+	public static void line(ref string str, List<string> lines, bool returnLine = true)
+	{
+		foreach (string item in lines)
+		{
+			line(ref str, item, returnLine);
+		}
+	}
 	public static void line(ref string str, string line, bool returnLine = true)
 	{
 		if (returnLine)
@@ -1838,7 +1845,7 @@ public class StringUtility
 		using var b = new MyStringBuilderScope(out var headerMacro);
 		foreach (string item in macroList)
 		{
-			headerMacro.append("_", item.ToUpper());
+			headerMacro.add("_", item.ToUpper());
 		}
 		if (!preUnderLine)
 		{
@@ -1853,7 +1860,7 @@ public class StringUtility
 			initInvalidChars();
 		}
 		using var a = new MyStringBuilderScope(out var builder);
-		builder.append(str);
+		builder.add(str);
 		foreach (var item in mInvalidParamChars)
 		{
 			builder.replaceAll(item.Key, item.Value);
@@ -2041,7 +2048,7 @@ public class StringUtility
 			{
 				if (item.Value == null)
 				{
-					builder.append(item.Key);
+					builder.add(item.Key);
 				}
 				else
 				{
@@ -2160,12 +2167,12 @@ public class StringUtility
 		if (isMainThread())
 		{
 			using var a = new MyStringBuilderScope(out var builder);
-			return builder.append(str0, str1, str2, str3, str4).ToString();
+			return builder.add(str0, str1, str2, str3, str4).ToString();
 		}
 		else
 		{
 			using var a = new ClassThreadScope<MyStringBuilder>(out var builder);
-			return builder.append(str0, str1, str2, str3, str4).ToString();
+			return builder.add(str0, str1, str2, str3, str4).ToString();
 		}
 	}
 	public static string strcat(string str0, string str1, string str2, string str3, string str4, string str5)
@@ -2173,12 +2180,12 @@ public class StringUtility
 		if (isMainThread())
 		{
 			using var a = new MyStringBuilderScope(out var builder);
-			return builder.append(str0, str1, str2, str3, str4, str5).ToString();
+			return builder.add(str0, str1, str2, str3, str4, str5).ToString();
 		}
 		else
 		{
 			using var a = new ClassThreadScope<MyStringBuilder>(out var builder);
-			return builder.append(str0, str1, str2, str3, str4, str5).ToString();
+			return builder.add(str0, str1, str2, str3, str4, str5).ToString();
 		}
 	}
 	public static string strcat(string str0, string str1, string str2, string str3, string str4, string str5, string str6)
@@ -2186,12 +2193,12 @@ public class StringUtility
 		if (isMainThread())
 		{
 			using var a = new MyStringBuilderScope(out var builder);
-			return builder.append(str0, str1, str2, str3, str4, str5, str6).ToString();
+			return builder.add(str0, str1, str2, str3, str4, str5, str6).ToString();
 		}
 		else
 		{
 			using var a = new ClassThreadScope<MyStringBuilder>(out var builder);
-			return builder.append(str0, str1, str2, str3, str4, str5, str6).ToString();
+			return builder.add(str0, str1, str2, str3, str4, str5, str6).ToString();
 		}
 	}
 	public static string strcat(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7)
@@ -2199,12 +2206,12 @@ public class StringUtility
 		if (isMainThread())
 		{
 			using var a = new MyStringBuilderScope(out var builder);
-			return builder.append(str0, str1, str2, str3, str4, str5, str6, str7).ToString();
+			return builder.add(str0, str1, str2, str3, str4, str5, str6, str7).ToString();
 		}
 		else
 		{
 			using var a = new ClassThreadScope<MyStringBuilder>(out var builder);
-			return builder.append(str0, str1, str2, str3, str4, str5, str6, str7).ToString();
+			return builder.add(str0, str1, str2, str3, str4, str5, str6, str7).ToString();
 		}
 	}
 	public static string strcat(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7, string str8)
@@ -2212,12 +2219,12 @@ public class StringUtility
 		if (isMainThread())
 		{
 			using var a = new MyStringBuilderScope(out var builder);
-			return builder.append(str0, str1, str2, str3, str4, str5, str6, str7, str8).ToString();
+			return builder.add(str0, str1, str2, str3, str4, str5, str6, str7, str8).ToString();
 		}
 		else
 		{
 			using var a = new ClassThreadScope<MyStringBuilder>(out var builder);
-			return builder.append(str0, str1, str2, str3, str4, str5, str6, str7, str8).ToString();
+			return builder.add(str0, str1, str2, str3, str4, str5, str6, str7, str8).ToString();
 		}
 	}
 	public static string strcat(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7, string str8, string str9)
@@ -2225,12 +2232,12 @@ public class StringUtility
 		if (isMainThread())
 		{
 			using var a = new MyStringBuilderScope(out var builder);
-			return builder.append(str0, str1, str2, str3, str4, str5, str6, str7, str8, str9).ToString();
+			return builder.add(str0, str1, str2, str3, str4, str5, str6, str7, str8, str9).ToString();
 		}
 		else
 		{
 			using var a = new ClassThreadScope<MyStringBuilder>(out var builder);
-			return builder.append(str0, str1, str2, str3, str4, str5, str6, str7, str8, str9).ToString();
+			return builder.add(str0, str1, str2, str3, str4, str5, str6, str7, str8, str9).ToString();
 		}
 	}
 	public static string strcat(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7, string str8, string str9, string str10)
@@ -2238,12 +2245,12 @@ public class StringUtility
 		if (isMainThread())
 		{
 			using var a = new MyStringBuilderScope(out var builder);
-			return builder.append(str0, str1, str2, str3, str4, str5, str6, str7, str8, str9, str10).ToString();
+			return builder.add(str0, str1, str2, str3, str4, str5, str6, str7, str8, str9, str10).ToString();
 		}
 		else
 		{
 			using var a = new ClassThreadScope<MyStringBuilder>(out var builder);
-			return builder.append(str0, str1, str2, str3, str4, str5, str6, str7, str8, str9, str10).ToString();
+			return builder.add(str0, str1, str2, str3, str4, str5, str6, str7, str8, str9, str10).ToString();
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------

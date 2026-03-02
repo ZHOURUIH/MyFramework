@@ -26,10 +26,7 @@ public class CharacterState : ClassObject
 	public override void destroy()
 	{
 		base.destroy();
-		foreach (var item in mWillRemoveCallbackList.safe().Values)
-		{
-			UN_LIST(item);
-		}
+		mWillRemoveCallbackList.forValue(item => UN_LIST(item));
 		mWillRemoveCallbackList?.Clear();
 	}
 	public virtual void setCharacter(Character character) { mCharacter = character; }
@@ -110,10 +107,7 @@ public class CharacterState : ClassObject
 	{
 		foreach (var item in mWillRemoveCallbackList.safe().Values)
 		{
-			foreach (CharacterStateCallback callback in item)
-			{
-				callback(this);
-			}
+			item.For(callback => callback(this));
 			UN_LIST(item);
 		}
 		mWillRemoveCallbackList?.Clear();

@@ -20,7 +20,7 @@ public class ClassTypeCaches
 	protected static void refreshTypeCache()
 	{
 		classNames.Clear();
-		// 使用TypeCache获取所有MonoBehaviour子类
+		// 使用TypeCache获取所有WindowObjectBase子类
 		foreach (Type type in TypeCache.GetTypesDerivedFrom<WindowObjectBase>())
 		{
 			if (!type.FullName.isEmpty())

@@ -6,7 +6,8 @@ public class UGUICheckbox : WindowObjectUGUI
 {
 	protected myUGUIObject mMark;				// 勾选图片节点
 	protected myUGUITextAuto mLabel;			// 文字节点
-	protected CheckCallback mCheckCallback;		// 勾选状态改变的回调
+	protected CheckCallback mCheckCallback;     // 勾选状态改变的回调
+	protected bool mInteractable = true;		// 是否响应点击
 	public UGUICheckbox(IWindowObjectOwner parent) : base(parent) { }
 	protected override void assignWindowInternal()
 	{
@@ -27,9 +28,15 @@ public class UGUICheckbox : WindowObjectUGUI
 	public void setCheckCallback(CheckCallback callback) { mCheckCallback = callback; }
 	public void setChecked(bool check) { mMark.setActive(check); }
 	public bool isChecked() { return mMark.isActiveInHierarchy(); }
+	public void setInteractable(bool interactable) { mInteractable = interactable; }
+	public bool isInteractable() { return mInteractable; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onCheckClick()
 	{
+		if (!mInteractable)
+		{
+			return;
+		}
 		mMark.setActive(!mMark.isActiveInHierarchy());
 		mCheckCallback?.Invoke(this);
 	}

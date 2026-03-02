@@ -217,10 +217,7 @@ public class CheckResourcesWindow : GameEditorWindow
 
 						// 过滤一下重复的文件夹
 						Dictionary<string, string> refFolderList = new();
-						foreach (string refFile in refList)
-						{
-							refFolderList.TryAdd(getFolderName(refFile), getFilePath(refFile));
-						}
+						refList.For(refFile => refFolderList.TryAdd(getFolderName(refFile), getFilePath(refFile)));
 
 						string allRefFolder = EMPTY;
 						string allRefFolderTip = EMPTY;
@@ -359,7 +356,7 @@ public class CheckResourcesWindow : GameEditorWindow
 	{
 		DateTime start = DateTime.Now;
 		Dictionary<string, UObject> refrenceList = new();
-		searchFileRefrence(path, false, refrenceList, allFileText, false);
+		searchFileReference(path, false, refrenceList, allFileText, false);
 		refList.add(path.rightToLeft(), new(refrenceList.Keys));
 		Debug.Log("查找" + path + "的引用,引用数量:" + refrenceList.Count+ "耗时:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒");
 	}

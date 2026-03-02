@@ -113,17 +113,17 @@ public class GameEffect : MovableObject
 		}
 		return effectValid;
 	}
-	public override void setActive(bool active)
+	public override bool setActive(bool active)
 	{
 		if (active == mObject.activeSelf)
 		{
-			return;
+			return active;
 		}
 		if (!active)
 		{
 			stop();
 		}
-		base.setActive(active);
+		return base.setActive(active);
 	}
 	public override void setIgnoreTimeScale(bool ignore, bool componentOnly = false)
 	{

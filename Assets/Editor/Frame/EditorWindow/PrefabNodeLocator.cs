@@ -54,7 +54,9 @@ public static class PrefabNodeLocator
 	private static void ExpandParentsRecursive(Transform target)
 	{
 		if (target.parent == null)
+		{
 			return;
+		}
 		ExpandParentsRecursive(target.parent);
 		SetExpanded(target.parent.gameObject, true);
 	}

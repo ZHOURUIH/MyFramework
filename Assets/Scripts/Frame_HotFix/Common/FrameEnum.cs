@@ -215,8 +215,10 @@ public enum TIME_DISPLAY : byte
 {
 	HMSM,					// 以Hour:Minute:Second:Millisecond形式显示,并且不补0
 	HMS_2,                  // 以Hour:Minute:Second形式显示,并且每个数都显示为2位数
+	HM_2,					// 以Hour:Minute形式显示,并且每个数都显示为2位数
 	MS_2,					// 以Minute:Second形式显示,并且每个数都显示为2位数
 	HM_ZH,					// 以Hour小时Minute分的形式显示
+	MS_ZH,					// 以Minute分Second秒的形式显示
 	DHMS_ZH,                // 以Day天Hour小时Minute分Second秒的形式显示,获取当前时间时将不会显示天数
 	DHM_ZH,					// 以Day天Hour小时Minute分的形式显示,获取当前时间时将不会显示天数
 	YMD_ZH,                 // 以Year年Month月Day天的形式显示,只适用于DateTime

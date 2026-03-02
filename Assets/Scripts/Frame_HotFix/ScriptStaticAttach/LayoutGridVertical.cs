@@ -5,7 +5,6 @@ using static WidgetUtility;
 public class LayoutGridVertical : MonoBehaviour
 {
 	public float mInterval;
-	public bool mChangeRootSize;
 	public bool mRefresh;
 	public void Awake()
 	{
@@ -24,6 +23,6 @@ public class LayoutGridVertical : MonoBehaviour
 	}
 	public void doAutoGrid()
 	{
-		autoGridVertical(transform as RectTransform, mInterval, mChangeRootSize);
+		autoGridVertical(transform as RectTransform, mInterval);
 	}
 }

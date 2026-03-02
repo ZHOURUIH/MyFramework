@@ -5,6 +5,7 @@ using static UnityUtility;
 // 添加abstract的作用是不允许直接挂这个脚本到GameObject上,需要挂子类
 public abstract class UGUIGeneratorBase : MonoBehaviour
 {
+	public string mComment;							// 注释信息
 	public List<MemberData> mMemberList = new();    // 需要访问的节点列表
 	public void addNewItem()
 	{

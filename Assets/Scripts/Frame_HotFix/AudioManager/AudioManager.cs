@@ -329,7 +329,7 @@ public class AudioManager : FrameSystem
 	}
 	protected AudioHelper getOneUnusedHelper(float audioTime)
 	{
-		AudioHelper helper = null;
+		AudioHelper helper;
 		if (mUnusedList.Count > 0)
 		{
 			helper = mUnusedList.Dequeue();

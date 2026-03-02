@@ -62,154 +62,154 @@ public class MyStringBuilder : ClassObject
 		mBuilder.Append('\n');
 		return this;
 	}
-	public MyStringBuilder append(char value)
+	public MyStringBuilder add(char value)
 	{
 		mBuilder.Append(value);
 		return this;
 	}
-	public MyStringBuilder append(byte value)
+	public MyStringBuilder add(byte value)
 	{
 		mBuilder.Append(IToS(value));
 		return this;
 	}
-	public MyStringBuilder append(bool value)
+	public MyStringBuilder add(bool value)
 	{
 		mBuilder.Append(boolToString(value));
 		return this;
 	}
-	public MyStringBuilder append(short value)
+	public MyStringBuilder add(short value)
 	{
 		mBuilder.Append(IToS(value));
 		return this;
 	}
-	public MyStringBuilder append(ushort value)
+	public MyStringBuilder add(ushort value)
 	{
 		mBuilder.Append(IToS(value));
 		return this;
 	}
-	public MyStringBuilder append(int value)
+	public MyStringBuilder add(int value)
 	{
 		mBuilder.Append(IToS(value));
 		return this;
 	}
-	public MyStringBuilder append(uint value)
+	public MyStringBuilder add(uint value)
 	{
 		mBuilder.Append(IToS(value));
 		return this;
 	}
-	public MyStringBuilder append(float value, int precision = 4)
+	public MyStringBuilder add(float value, int precision = 4)
 	{
 		mBuilder.Append(FToS(value, precision));
 		return this;
 	}
-	public MyStringBuilder append(double value)
+	public MyStringBuilder add(double value)
 	{
 		mBuilder.Append(value);
 		return this;
 	}
-	public MyStringBuilder append(long value)
+	public MyStringBuilder add(long value)
 	{
 		mBuilder.Append(LToS(value));
 		return this;
 	}
-	public MyStringBuilder append(ulong value)
+	public MyStringBuilder add(ulong value)
 	{
 		mBuilder.Append(ULToS(value));
 		return this;
 	}
-	public MyStringBuilder append(Vector2 value, int precision = 4)
+	public MyStringBuilder add(Vector2 value, int precision = 4)
 	{
 		mBuilder.Append(StringUtility.V2ToS(value, precision));
 		return this;
 	}
-	public MyStringBuilder append(Vector3 value, int precision = 4)
+	public MyStringBuilder add(Vector3 value, int precision = 4)
 	{
 		mBuilder.Append(StringUtility.V3ToS(value, precision));
 		return this;
 	}
-	public MyStringBuilder append(Color32 value)
+	public MyStringBuilder add(Color32 value)
 	{
 		mBuilder.Append(value.ToString());
 		return this;
 	}
 	public MyStringBuilder colorStringComma(string color, long value)
 	{
-		return append("<color=#", color, ">", LToSComma(value), "</color>");
+		return add("<color=#", color, ">", LToSComma(value), "</color>");
 	}
-	public MyStringBuilder colorString(string color, long value)
+	public MyStringBuilder color(string color, long value)
 	{
-		return append("<color=#", color, ">", LToS(value), "</color>");
+		return add("<color=#", color, ">", LToS(value), "</color>");
 	}
 	public MyStringBuilder colorStringComma(string color, int value)
 	{
-		return append("<color=#", color, ">", IToSComma(value), "</color>");
+		return add("<color=#", color, ">", IToSComma(value), "</color>");
 	}
 	public MyStringBuilder colorString(string color, int value)
 	{
-		return append("<color=#", color, ">", IToS(value), "</color>");
+		return add("<color=#", color, ">", IToS(value), "</color>");
 	}
 	public MyStringBuilder colorString(string color, int value0, string str0, int value1)
 	{
-		return append("<color=#", color, ">", IToS(value0), str0, IToS(value1), "</color>");
+		return add("<color=#", color, ">", IToS(value0), str0, IToS(value1), "</color>");
 	}
 	public MyStringBuilder colorString(string color, string str0)
 	{
-		return append("<color=#", color, ">", str0, "</color>");
+		return add("<color=#", color, ">", str0, "</color>");
 	}
 	public MyStringBuilder colorString(string color, string str0, string str1)
 	{
-		return append("<color=#", color, ">", str0, str1, "</color>");
+		return add("<color=#", color, ">", str0, str1, "</color>");
 	}
 	public MyStringBuilder colorString(string color, string str0, string str1, string str2)
 	{
-		return append("<color=#", color, ">", str0, str1, str2, "</color>");
+		return add("<color=#", color, ">", str0, str1, str2, "</color>");
 	}
 	public MyStringBuilder colorString(string color, string str0, string str1, string str2, string str3)
 	{
-		return append("<color=#", color, ">", str0, str1, str2, str3, "</color>");
+		return add("<color=#", color, ">", str0, str1, str2, str3, "</color>");
 	}
 	public MyStringBuilder colorString(string color, string str0, string str1, string str2, string str3, string str4)
 	{
-		return append("<color=#", color, ">", str0, str1, str2, str3, str4, "</color>");
+		return add("<color=#", color, ">", str0, str1, str2, str3, str4, "</color>");
 	}
-	public MyStringBuilder appendLine(string value0)
+	public MyStringBuilder addLine(string value0)
 	{
-		return append(value0, "\r\n");
+		return add(value0, "\r\n");
 	}
-	public MyStringBuilder appendLine(string value0, string value1)
+	public MyStringBuilder addLine(string value0, string value1)
 	{
-		return append(value0, value1, "\r\n");
+		return add(value0, value1, "\r\n");
 	}
-	public MyStringBuilder appendLine(string value0, string value1, string value2)
+	public MyStringBuilder addLine(string value0, string value1, string value2)
 	{
-		return append(value0, value1, value2, "\r\n");
+		return add(value0, value1, value2, "\r\n");
 	}
-	public MyStringBuilder appendLine(string value0, string value1, string value2, string value3)
+	public MyStringBuilder addLine(string value0, string value1, string value2, string value3)
 	{
-		return append(value0, value1, value2, value3, "\r\n");
+		return add(value0, value1, value2, value3, "\r\n");
 	}
-	public MyStringBuilder appendLine(string value0, string value1, string value2, string value3, string value4)
+	public MyStringBuilder addLine(string value0, string value1, string value2, string value3, string value4)
 	{
-		return append(value0, value1, value2, value3, value4, "\r\n");
+		return add(value0, value1, value2, value3, value4, "\r\n");
 	}
-	public MyStringBuilder appendLine(string value0, string value1, string value2, string value3, string value4, string value5)
+	public MyStringBuilder addLine(string value0, string value1, string value2, string value3, string value4, string value5)
 	{
-		return append(value0, value1, value2, value3, value4, value5, "\r\n");
+		return add(value0, value1, value2, value3, value4, value5, "\r\n");
 	}
-	public MyStringBuilder append(string value)
+	public MyStringBuilder add(string value)
 	{
 		mBuilder.Append(value);
 		return this;
 	}
-	public MyStringBuilder appendRepeat(string value, int repearCount)
+	public MyStringBuilder addRepeat(string value, int repeatCount)
 	{
-		for (int i = 0; i < repearCount; ++i)
+		for (int i = 0; i < repeatCount; ++i)
 		{
 			mBuilder.Append(value);
 		}
 		return this;
 	}
-	public MyStringBuilder append(string str0, string str1)
+	public MyStringBuilder add(string str0, string str1)
 	{
 		if (str0 != null && str1 != null)
 		{
@@ -218,124 +218,124 @@ public class MyStringBuilder : ClassObject
 		mBuilder.Append(str0).Append(str1);
 		return this;
 	}
-	public MyStringBuilder append(string str0, int value)
+	public MyStringBuilder add(string str0, int value)
 	{
-		return append(str0, IToS(value));
+		return add(str0, IToS(value));
 	}
-	public MyStringBuilder append(string str0, int value, string str1)
+	public MyStringBuilder add(string str0, int value, string str1)
 	{
-		return append(str0, IToS(value), str1);
+		return add(str0, IToS(value), str1);
 	}
-	public MyStringBuilder append(string str0, float value, int precision = 4)
+	public MyStringBuilder add(string str0, float value, int precision = 4)
 	{
-		return append(str0, FToS(value, precision));
+		return add(str0, FToS(value, precision));
 	}
-	public MyStringBuilder append(string str0, float value, int precision, string str1)
+	public MyStringBuilder add(string str0, float value, int precision, string str1)
 	{
-		return append(str0, FToS(value, precision), str1);
+		return add(str0, FToS(value, precision), str1);
 	}
-	public MyStringBuilder append(string str0, float value, string str1)
+	public MyStringBuilder add(string str0, float value, string str1)
 	{
-		return append(str0, FToS(value), str1);
+		return add(str0, FToS(value), str1);
 	}
-	public MyStringBuilder append(string str0, bool value)
+	public MyStringBuilder add(string str0, bool value)
 	{
-		return append(str0, boolToString(value));
+		return add(str0, boolToString(value));
 	}
-	public MyStringBuilder append(string str0, long value)
+	public MyStringBuilder add(string str0, long value)
 	{
-		return append(str0, LToS(value));
+		return add(str0, LToS(value));
 	}
-	public MyStringBuilder append(string str0, long value, string str1)
+	public MyStringBuilder add(string str0, long value, string str1)
 	{
-		return append(str0, LToS(value), str1);
+		return add(str0, LToS(value), str1);
 	}
-	public MyStringBuilder append(string str0, ulong value)
+	public MyStringBuilder add(string str0, ulong value)
 	{
-		return append(str0, ULToS(value));
+		return add(str0, ULToS(value));
 	}
-	public MyStringBuilder append(string str0, ulong value, string str1)
+	public MyStringBuilder add(string str0, ulong value, string str1)
 	{
-		return append(str0, ULToS(value), str1);
+		return add(str0, ULToS(value), str1);
 	}
-	public MyStringBuilder append(string str0, Vector2 value, int precision = 4)
+	public MyStringBuilder add(string str0, Vector2 value, int precision = 4)
 	{
-		return append(str0, StringUtility.V2ToS(value, precision));
+		return add(str0, StringUtility.V2ToS(value, precision));
 	}
-	public MyStringBuilder append(string str0, Vector3 value, int precision = 4)
+	public MyStringBuilder add(string str0, Vector3 value, int precision = 4)
 	{
-		return append(str0, StringUtility.V3ToS(value, precision));
+		return add(str0, StringUtility.V3ToS(value, precision));
 	}
-	public MyStringBuilder append(string str0, Color32 value)
+	public MyStringBuilder add(string str0, Color32 value)
 	{
-		return append(str0, value.ToString());
+		return add(str0, value.ToString());
 	}
-	public MyStringBuilder append(string str0, Type value)
+	public MyStringBuilder add(string str0, Type value)
 	{
 		if (value != null)
 		{
-			return append(str0, value.ToString());
+			return add(str0, value.ToString());
 		}
 		else
 		{
-			return append(str0);
+			return add(str0);
 		}
 	}
-	public MyStringBuilder append(string str0, string str1, string str2)
+	public MyStringBuilder add(string str0, string str1, string str2)
 	{
 		checkCapacity(str0.Length + str1.Length + str2.Length + 1);
 		mBuilder.Append(str0).Append(str1).Append(str2);
 		return this;
 	}
-	public MyStringBuilder append(string str0, string str1, string str2, string str3)
+	public MyStringBuilder add(string str0, string str1, string str2, string str3)
 	{
 		checkCapacity(str0.Length + str1.Length + str2.Length + str3.Length + 1);
 		mBuilder.Append(str0).Append(str1).Append(str2).Append(str3);
 		return this;
 	}
-	public MyStringBuilder append(string str0, string str1, string str2, string str3, string str4)
+	public MyStringBuilder add(string str0, string str1, string str2, string str3, string str4)
 	{
 		checkCapacity(str0.Length + str1.Length + str2.Length + str3.Length + str4.Length + 1);
 		mBuilder.Append(str0).Append(str1).Append(str2).Append(str3).Append(str4);
 		return this;
 	}
-	public MyStringBuilder append(string str0, string str1, string str2, string str3, string str4, string str5)
+	public MyStringBuilder add(string str0, string str1, string str2, string str3, string str4, string str5)
 	{
 		checkCapacity(str0.Length + str1.Length + str2.Length + str3.Length + str4.Length + str5.Length + 1);
 		mBuilder.Append(str0).Append(str1).Append(str2).Append(str3).Append(str4).Append(str5);
 		return this;
 	}
-	public MyStringBuilder append(string str0, string str1, string str2, string str3, string str4, string str5, string str6)
+	public MyStringBuilder add(string str0, string str1, string str2, string str3, string str4, string str5, string str6)
 	{
 		checkCapacity(str0.Length + str1.Length + str2.Length + str3.Length + str4.Length + str5.Length + str6.Length + 1);
 		mBuilder.Append(str0).Append(str1).Append(str2).Append(str3).Append(str4).Append(str5).Append(str6);
 		return this;
 	}
-	public MyStringBuilder append(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7)
+	public MyStringBuilder add(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7)
 	{
 		checkCapacity(str0.Length + str1.Length + str2.Length + str3.Length + str4.Length + str5.Length + str6.Length + str7.Length + 1);
 		mBuilder.Append(str0).Append(str1).Append(str2).Append(str3).Append(str4).Append(str5).Append(str6).Append(str7);
 		return this;
 	}
-	public MyStringBuilder append(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7, string str8)
+	public MyStringBuilder add(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7, string str8)
 	{
 		checkCapacity(str0.Length + str1.Length + str2.Length + str3.Length + str4.Length + str5.Length + str6.Length + str7.Length + str8.Length + 1);
 		mBuilder.Append(str0).Append(str1).Append(str2).Append(str3).Append(str4).Append(str5).Append(str6).Append(str7).Append(str8);
 		return this;
 	}
-	public MyStringBuilder append(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7, string str8, string str9)
+	public MyStringBuilder add(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7, string str8, string str9)
 	{
 		checkCapacity(str0.Length + str1.Length + str2.Length + str3.Length + str4.Length + str5.Length + str6.Length + str7.Length + str8.Length + str9.Length + 1);
 		mBuilder.Append(str0).Append(str1).Append(str2).Append(str3).Append(str4).Append(str5).Append(str6).Append(str7).Append(str8).Append(str9);
 		return this;
 	}
-	public MyStringBuilder append(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7, string str8, string str9, string str10)
+	public MyStringBuilder add(string str0, string str1, string str2, string str3, string str4, string str5, string str6, string str7, string str8, string str9, string str10)
 	{
 		checkCapacity(str0.Length + str1.Length + str2.Length + str3.Length + str4.Length + str5.Length + str6.Length + str7.Length + str8.Length + str9.Length + str10.Length + 1);
 		mBuilder.Append(str0).Append(str1).Append(str2).Append(str3).Append(str4).Append(str5).Append(str6).Append(str7).Append(str8).Append(str9).Append(str10);
 		return this;
 	}
-	public MyStringBuilder append(string value, int startIndex, int count)
+	public MyStringBuilder add(string value, int startIndex, int count)
 	{
 		mBuilder.Append(value, startIndex, count);
 		return this;
@@ -519,18 +519,18 @@ public class MyStringBuilder : ClassObject
 		// 如果不是最外层的数组,则需要加上数组的名字
 		if (!name.isEmpty())
 		{
-			appendRepeat("\t", preTableCount);
-			append("\"", name, "\"", ":");
+			addRepeat("\t", preTableCount);
+			add("\"", name, "\"", ":");
 			if (returnLine)
 			{
-				append("\r\n");
+				add("\r\n");
 			}
 		}
-		appendRepeat("\t", preTableCount);
-		append("[");
+		addRepeat("\t", preTableCount);
+		add("[");
 		if (returnLine)
 		{
-			append("\r\n");
+			add("\r\n");
 		}
 	}
 	public void jsonEndArray(int preTableCount = 0, bool returnLine = false)
@@ -539,11 +539,11 @@ public class MyStringBuilder : ClassObject
 		{
 			remove(mBuilder.Length - 1);
 		}
-		appendRepeat("\t", preTableCount);
-		append("],");
+		addRepeat("\t", preTableCount);
+		add("],");
 		if (returnLine)
 		{
-			append("\r\n");
+			add("\r\n");
 		}
 	}
 	public void jsonStartStruct(string name = null, int preTableCount = 0, bool returnLine = false)
@@ -551,19 +551,19 @@ public class MyStringBuilder : ClassObject
 		// 如果不是最外层的数组,则需要加上数组的名字
 		if (!name.isEmpty())
 		{
-			appendRepeat("\t", preTableCount);
-			append("\"", name, "\"", ":");
+			addRepeat("\t", preTableCount);
+			add("\"", name, "\"", ":");
 			if (returnLine)
 			{
-				append("\r\n");
+				add("\r\n");
 			}
 		}
 		// 如果不是最外层且非数组元素的结构体,则需要加上结构体的名字
-		appendRepeat("\t", preTableCount);
-		append("{");
+		addRepeat("\t", preTableCount);
+		add("{");
 		if (returnLine)
 		{
-			append("\r\n");
+			add("\r\n");
 		}
 	}
 	public void jsonEndStruct(bool keepComma= true, int preTableCount = 0, bool returnLine = false)
@@ -572,38 +572,38 @@ public class MyStringBuilder : ClassObject
 		{
 			remove(mBuilder.Length - 1);
 		}
-		appendRepeat("\t", preTableCount);
-		append("}");
+		addRepeat("\t", preTableCount);
+		add("}");
 		if (keepComma)
 		{
-			append(",");
+			add(",");
 		}
 		if (returnLine)
 		{
-			append("\r\n");
+			add("\r\n");
 		}
 	}
 	public void jsonAddPair(string name, string value, int preTableCount = 0, bool returnLine = false)
 	{
-		appendRepeat("\t", preTableCount);
+		addRepeat("\t", preTableCount);
 		// 如果是数组中的元素则不需要名字
 		if (!name.isEmpty())
 		{
-			append("\"", name, "\": ");
+			add("\"", name, "\": ");
 		}
-		append("\"", value, "\",");
+		add("\"", value, "\",");
 		if (returnLine)
 		{
-			append("\r\n");
+			add("\r\n");
 		}
 	}
 	public void jsonAddObject(string name, string value, int preTableCount = 0, bool returnLine = false)
 	{
-		appendRepeat("\t", preTableCount);
-		append("\"", name, "\": ", value, ",");
+		addRepeat("\t", preTableCount);
+		add("\"", name, "\": ", value, ",");
 		if (returnLine)
 		{
-			append("\r\n");
+			add("\r\n");
 		}
 	}
 	public void rightToLeft()
@@ -616,15 +616,15 @@ public class MyStringBuilder : ClassObject
 	}
 	public void V2IToS(Vector2Int value, int limitLength = 0)
 	{
-		append(IToS(value.x, limitLength), ",", IToS(value.y, limitLength));
+		add(IToS(value.x, limitLength), ",", IToS(value.y, limitLength));
 	}
 	public void V2ToS(Vector2 value, int precision = 4)
 	{
-		append(FToS(value.x, precision), ",", FToS(value.y, precision));
+		add(FToS(value.x, precision), ",", FToS(value.y, precision));
 	}
 	public void V3ToS(Vector3 value, int precision = 4)
 	{
-		append(FToS(value.x, precision), ",", FToS(value.y, precision), ",", FToS(value.z, precision));
+		add(FToS(value.x, precision), ",", FToS(value.y, precision), ",", FToS(value.z, precision));
 	}
 	public void byteToHEXString(byte value, bool upperOrLower = true)
 	{
@@ -635,19 +635,19 @@ public class MyStringBuilder : ClassObject
 		int low = value & 15;
 		if (high < 10)
 		{
-			append((char)('0' + high));
+			add((char)('0' + high));
 		}
 		else
 		{
-			append(hexChar[high - 10]);
+			add(hexChar[high - 10]);
 		}
 		if (low < 10)
 		{
-			append((char)('0' + low));
+			add((char)('0' + low));
 		}
 		else
 		{
-			append(hexChar[low - 10]);
+			add(hexChar[low - 10]);
 		}
 	}
 	public MyStringBuilder setColor(string color)
@@ -657,86 +657,86 @@ public class MyStringBuilder : ClassObject
 			return this;
 		}
 		insertFront("<color=#", color, ">");
-		append("</color>");
+		add("</color>");
 		return this;
 	}
 	public void addSprite(string spriteName, float width = 1.0f)
 	{
-		append("<quad width=").append(width).append(" sprite=").append(spriteName).append("/>");
+		add("<quad width=").add(width).add(" sprite=").add(spriteName).add("/>");
 	}
 	public void line(string line, bool returnLine = true)
 	{
 		if (returnLine)
 		{
-			append(line, "\r\n");
+			add(line, "\r\n");
 		}
 		else
 		{
-			append(line);
+			add(line);
 		}
 	}
-	public void appendValueString(string str)
+	public void addValueString(string str)
 	{
-		append("\"", str, "\",");
+		add("\"", str, "\",");
 	}
-	public void appendValueVector2(Vector2 value)
+	public void addValueVector2(Vector2 value)
 	{
 		V2ToS(value);
-		append(',');
+		add(',');
 	}
-	public void appendValueVector2Int(Vector2Int value)
+	public void addValueVector2Int(Vector2Int value)
 	{
 		V2IToS(value);
-		append(',');
+		add(',');
 	}
-	public void appendValueVector3(Vector3 value)
+	public void addValueVector3(Vector3 value)
 	{
 		V3ToS(value);
-		append(',');
+		add(',');
 	}
-	public void appendValueInt(int value)
+	public void addValueInt(int value)
 	{
-		append(IToS(value), ",");
+		add(IToS(value), ",");
 	}
-	public void appendValueUInt(uint value)
+	public void addValueUInt(uint value)
 	{
-		append(IToS(value), ",");
+		add(IToS(value), ",");
 	}
-	public void appendValueFloat(float value)
+	public void addValueFloat(float value)
 	{
-		append(FToS(value), ",");
+		add(FToS(value), ",");
 	}
-	public void appendValueFloats(List<float> floatArray)
+	public void addValueFloats(List<float> floatArray)
 	{
-		appendValueString(FsToS(floatArray));
+		addValueString(FsToS(floatArray));
 	}
-	public void appendValueInts(List<int> intArray)
+	public void addValueInts(List<int> intArray)
 	{
-		appendValueString(IsToS(intArray));
+		addValueString(IsToS(intArray));
 	}
-	public void appendConditionString(string col, string str, string operate)
+	public void addConditionString(string col, string str, string operate)
 	{
-		append(col, "=\"", str, "\"", operate);
+		add(col, "=\"", str, "\"", operate);
 	}
-	public void appendConditionInt(string col, int value, string operate)
+	public void addConditionInt(string col, int value, string operate)
 	{
-		append(col, " = ", IToS(value), operate);
+		add(col, " = ", IToS(value), operate);
 	}
-	public void appendUpdateString(string col, string str)
+	public void addUpdateString(string col, string str)
 	{
-		append(col, " = \"", str, "\",");
+		add(col, " = \"", str, "\",");
 	}
-	public void appendUpdateInt(string col, int value)
+	public void addUpdateInt(string col, int value)
 	{
-		append(col, " = ", IToS(value), ",");
+		add(col, " = ", IToS(value), ",");
 	}
-	public void appendUpdateInts(string col, List<int> intArray)
+	public void addUpdateInts(string col, List<int> intArray)
 	{
-		appendUpdateString(col, IsToS(intArray));
+		addUpdateString(col, IsToS(intArray));
 	}
-	public void appendUpdateFloats(string col, List<float> floatArray)
+	public void addUpdateFloats(string col, List<float> floatArray)
 	{
-		appendUpdateString(col, FsToS(floatArray));
+		addUpdateString(col, FsToS(floatArray));
 	}
 	public override string ToString()
 	{

@@ -19,15 +19,23 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 	{
 		mTemplate = template;
 	}
-	public override void destroy()
-	{
-		base.destroy();
-	}
 	public override void init()
 	{
 		base.init();
 		mParent = mTemplate.getParent();
 		mTemplate.setActive(false);
+	}
+	public void newWindow(int count)
+	{
+		if (mParent == null)
+		{
+			logError("窗口池的父节点为空, 是否忘了调用init?");
+			return;
+		}
+		for (int i = 0; i < count; ++i)
+		{
+			newWindow(mParent, null);
+		}
 	}
 	public T newWindow(string name = null)
 	{
@@ -137,4 +145,29 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 	}
 	public override int getInUseCount() { return mInusedList.Count; }
 	public List<T> getWindowList() { return mInusedList; }
+	public void autoGridHorizontal()
+	{
+		WidgetUtility.autoGridHorizontal(mParent, true, true, 0.0f, true, 0.0f, 0.0f, 0.0f, true);
+	}
+	public void autoGridHorizontal(float interval)
+	{
+		WidgetUtility.autoGridHorizontal(mParent, true, true, interval, true, 0.0f, 0.0f, 0.0f, true);
+	}
+	public void autoGridHorizontal(bool keepLeftSide)
+	{
+		WidgetUtility.autoGridHorizontal(mParent, true, true, 0.0f, true, 0.0f, 0.0f, 0.0f, keepLeftSide);
+	}
+	public void autoGridHorizontal(float interval, bool keepLeftSide)
+	{
+		WidgetUtility.autoGridHorizontal(mParent, true, true, interval, true, 0.0f, 0.0f, 0.0f, keepLeftSide);
+	}
+	public void autoGridHorizontal(bool autoRefreshUIDepth, bool refreshIgnoreInactive)
+	{
+		WidgetUtility.autoGridHorizontal(mParent, autoRefreshUIDepth, refreshIgnoreInactive, 0.0f, true, 0.0f, 0.0f, 0.0f, true);
+	}
+	// 自动排列一个节点下的所有子节点的位置,从左往右紧密排列,并且不改变子节点的大小,keepLeftSide为true表示改变大小后保持父节点的左边界位置不变,false表示保持右边界位置不变
+	public void autoGridHorizontal(bool autoRefreshUIDepth, bool refreshIgnoreInactive, float interval, bool changeRootPosSize = true, float minWidth = 0.0f, float extraLeftWidth = 0.0f, float extraRightWidth = 0.0f, bool keepLeftSide = true)
+	{
+		WidgetUtility.autoGridHorizontal(mParent, autoRefreshUIDepth, refreshIgnoreInactive, interval, changeRootPosSize, minWidth, extraLeftWidth, extraRightWidth, keepLeftSide);
+	}
 }

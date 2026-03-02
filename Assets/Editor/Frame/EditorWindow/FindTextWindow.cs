@@ -117,16 +117,7 @@ public class FindTextWindow : GameEditorWindow
 		foreach (string file in findFilesNonAlloc(F_PROJECT_PATH + mSearchPath, ".prefab"))
 		{
 			string newFile = file.Replace('\\', '/');
-			bool isIgnore = false;
-			foreach (string exclude in excludeList)
-			{
-				if (newFile.StartsWith(F_PROJECT_PATH + exclude))
-				{
-					isIgnore = true;
-					break;
-				}
-			}
-			if (isIgnore)
+			if (excludeList.contains(exclude => newFile.StartsWith(F_PROJECT_PATH + exclude)))
 			{
 				continue;
 			}

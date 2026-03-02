@@ -49,10 +49,7 @@ public class EditorGameKeyframe : GameEditorBase
 		{
 			return;
 		}
-		foreach (CurveInfo item in deleteKeyList)
-		{
-			keyframe.destroyKeyframe(item);
-		}
+		deleteKeyList.For(item => keyframe.destroyKeyframe(item));
 		EditorUtility.SetDirty(target);
 	}
 }

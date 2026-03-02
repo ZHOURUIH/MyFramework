@@ -104,6 +104,10 @@ public class MenuGameObject
 	[MenuItem(mMenuName + "调整节点位置和大小使其完全包含所有子节点的范围 %E", false, 31)]
 	public static void adjustParentRect()
 	{
+		if (Selection.activeGameObject == null)
+		{
+			return;
+		}
 		var selection = Selection.activeGameObject.transform as RectTransform;
 		if (selection == null)
 		{

@@ -16,7 +16,11 @@ public class HierarchyIconDrawer
 	}
 	protected static void drawHierarchyIcon(int instanceID, Rect rect)
 	{
+#if UNITY_6000_3_OR_NEWER
+		var go = EditorUtility.EntityIdToObject(instanceID) as GameObject;
+#else
 		var go = EditorUtility.InstanceIDToObject(instanceID) as GameObject;
+#endif
 		if (go == null || !needDrawIcon(go))
 		{
 			return;

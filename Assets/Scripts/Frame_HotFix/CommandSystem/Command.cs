@@ -39,23 +39,23 @@ public class Command : ClassObject
 	public virtual void execute() { }
 	public virtual void onInterrupted() { }
 	// 调试信息，由CommandSystem调用
-	public virtual void debugInfo(MyStringBuilder builder) { builder.append(GetType().ToString(), ":"); }
-	public LOG_LEVEL getCmdLogLevel() { return mCmdLogLevel; }
-	public bool isDelayCommand() { return mDelayCommand; }
-	public CommandReceiver getReceiver() { return mReceiver; }
-	public EXECUTE_STATE getState() { return mCmdState; }
-	public float getDelayTime() { return mDelayTime; }
-	public bool isIgnoreTimeScale() { return mIgnoreTimeScale; }
-	public int getID() { return mCmdID; }
-	public bool isThreadCommand() { return mThreadCommand; }
-	public void setCmdLogLevel(LOG_LEVEL level) { mCmdLogLevel = level; }
-	public void setDelayCommand(bool delay) { mDelayCommand = delay; }
-	public void setReceiver(CommandReceiver receiver) { mReceiver = receiver; }
-	public void setState(EXECUTE_STATE state) { mCmdState = state; }
-	public void setDelayTime(float time) { mDelayTime = time; }
-	public void setIgnoreTimeScale(bool ignore) { mIgnoreTimeScale = ignore; }
-	public void setResultListen(BOOL result) { mResult = result; }
-	public void setThreadCommand(bool threadCmd) { mThreadCommand = threadCmd; }
+	public virtual void debugInfo(MyStringBuilder builder) { builder.add(GetType().ToString(), ":"); }
+	public LOG_LEVEL getCmdLogLevel()					{ return mCmdLogLevel; }
+	public bool isDelayCommand()						{ return mDelayCommand; }
+	public CommandReceiver getReceiver()				{ return mReceiver; }
+	public EXECUTE_STATE getState()						{ return mCmdState; }
+	public float getDelayTime()							{ return mDelayTime; }
+	public bool isIgnoreTimeScale()						{ return mIgnoreTimeScale; }
+	public int getID()									{ return mCmdID; }
+	public bool isThreadCommand()						{ return mThreadCommand; }
+	public void setCmdLogLevel(LOG_LEVEL level)			{ mCmdLogLevel = level; }
+	public void setDelayCommand(bool delay)				{ mDelayCommand = delay; }
+	public void setReceiver(CommandReceiver receiver)	{ mReceiver = receiver; }
+	public void setState(EXECUTE_STATE state)			{ mCmdState = state; }
+	public void setDelayTime(float time)				{ mDelayTime = time; }
+	public void setIgnoreTimeScale(bool ignore)			{ mIgnoreTimeScale = ignore; }
+	public void setResultListen(BOOL result)			{ mResult = result; }
+	public void setThreadCommand(bool threadCmd)		{ mThreadCommand = threadCmd; }
 	public void addEndCommandCallback(CommandCallback cmdCallback)
 	{
 		mEndCallback.addNotNull(cmdCallback);
@@ -66,18 +66,12 @@ public class Command : ClassObject
 	}
 	public void invokeEndCallBack()
 	{
-		foreach (CommandCallback callback in mEndCallback)
-		{
-			callback(this);
-		}
+		mEndCallback.For(callback => callback(this));
 		mEndCallback.Clear();
 	}
 	public void invokeStartCallBack()
 	{
-		foreach (CommandCallback callback in mStartCallback)
-		{
-			callback(this);
-		}
+		mStartCallback.For(callback => callback(this));
 		mStartCallback.Clear();
 	}
 }

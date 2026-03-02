@@ -29,13 +29,14 @@ public abstract class GameComponent : ClassObject
 		mDefaultActive = false;
 		mActive = true;
 	}
-	public virtual void setActive(bool active) 
+	public virtual bool setActive(bool active) 
 	{
 		mActive = active;
 		if (mActive)
 		{
 			mComponentOwner.notifyComponentStart(this);
 		}
+		return mActive;
 	}
 	public void setDefaultActive(bool active) { mDefaultActive = active; }
 	public virtual void setIgnoreTimeScale(bool ignore) { mIgnoreTimeScale = ignore; }

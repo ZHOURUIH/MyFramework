@@ -62,14 +62,14 @@ public class AtlasManager : FrameSystem
 		return mResourcesAtlasManager.getAtlas(atlasName, errorInNull, loadIfNull);
 	}
 	// 异步加载位于GameResources中的图集,atlasName是GameResources下的相对路径,带后缀
-	public CustomAsyncOperation getAtlasAsync(string atlasName, UGUIAtlasPtrCallback callback, bool errorInNull = true, bool loadIfNull = true)
+	public CustomAsyncOperation getAtlasAsyncSafe(ClassObject owner, string atlasName, UGUIAtlasPtrCallback callback, bool errorInNull = true, bool loadIfNull = true)
 	{
-		return mAssetBundleAtlasManager.getAtlasAsync(atlasName, callback, errorInNull, loadIfNull);
+		return mAssetBundleAtlasManager.getAtlasAsyncSafe(owner, atlasName, callback, errorInNull, loadIfNull);
 	}
 	// 异步加载位于Resources中的图集
-	public CustomAsyncOperation getAtlasInResourcesAsync(string atlasName, UGUIAtlasPtrCallback callback, bool errorInNull = true, bool loadIfNull = true)
+	public CustomAsyncOperation getAtlasInResourcesAsyncSafe(ClassObject owner, string atlasName, UGUIAtlasPtrCallback callback, bool errorInNull = true, bool loadIfNull = true)
 	{
-		return mResourcesAtlasManager.getAtlasAsync(atlasName, callback, errorInNull, loadIfNull);
+		return mResourcesAtlasManager.getAtlasAsyncSafe(owner, atlasName, callback, errorInNull, loadIfNull);
 	}
 	// 卸载图集
 	public void unloadAtlas(ref UGUIAtlasPtr atlasPtr)
@@ -77,34 +77,25 @@ public class AtlasManager : FrameSystem
 		mAssetBundleAtlasManager.unloadAtlas(atlasPtr);
 		UN_CLASS(ref atlasPtr);
 	}
-	public void unloadAtlas(List<UGUIAtlasPtr> atlasPtr)
+	public void unloadAtlas(List<UGUIAtlasPtr> atlasPtrList)
 	{
-		foreach (UGUIAtlasPtr item in atlasPtr)
-		{
-			mAssetBundleAtlasManager.unloadAtlas(item);
-		}
-		UN_CLASS_LIST(atlasPtr);
+		atlasPtrList.For(item => mAssetBundleAtlasManager.unloadAtlas(item));
+		UN_CLASS_LIST(atlasPtrList);
 	}
-	public void unloadAtlas<Key>(Dictionary<Key, UGUIAtlasPtr> atlasPtr)
+	public void unloadAtlas<Key>(Dictionary<Key, UGUIAtlasPtr> atlasPtrList)
 	{
-		foreach (UGUIAtlasPtr item in atlasPtr.Values)
-		{
-			mAssetBundleAtlasManager.unloadAtlas(item);
-		}
-		UN_CLASS_LIST(atlasPtr);
+		atlasPtrList.forValue(item => mAssetBundleAtlasManager.unloadAtlas(item));
+		UN_CLASS_LIST(atlasPtrList);
 	}
 	public void unloadAtlasInResources(ref UGUIAtlasPtr atlasPtr)
 	{
 		mResourcesAtlasManager.unloadAtlas(atlasPtr);
 		UN_CLASS(ref atlasPtr);
 	}
-	public void unloadAtlasInResources(List<UGUIAtlasPtr> atlasPtr)
+	public void unloadAtlasInResources(List<UGUIAtlasPtr> atlasPtrList)
 	{
-		foreach (UGUIAtlasPtr item in atlasPtr)
-		{
-			mResourcesAtlasManager.unloadAtlas(item);
-		}
-		UN_CLASS_LIST(atlasPtr);
+		atlasPtrList.For(item => mResourcesAtlasManager.unloadAtlas(item));
+		UN_CLASS_LIST(atlasPtrList);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onAtlasRequested(string name, Action<SpriteAtlas> action)

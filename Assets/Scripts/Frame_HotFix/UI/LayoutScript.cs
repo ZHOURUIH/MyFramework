@@ -196,7 +196,6 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		foreach (WindowObjectBase item in mWindowObjectRootList.safe())
 		{
 			item.init();
-			item.postInit();
 		}
 	}
 	public void postInit()
@@ -217,6 +216,11 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 				mUnuseAllWhenHide = false;
 				break;
 			}
+		}
+		// 调用所有根对象的初始化
+		foreach (WindowObjectBase item in mWindowObjectRootList.safe())
+		{
+			item.postInit();
 		}
 	}
 	public void updateAllDragView()
@@ -550,7 +554,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		myUGUIObject.destroyWindow(obj, true);
 		// 窗口销毁时不会通知布局刷新深度,因为移除对于深度不会产生影响
 	}
-	public void close()
+	public virtual void close()
 	{
 		CmdLayoutManagerVisible.execute(GetType(), false, false);
 	}

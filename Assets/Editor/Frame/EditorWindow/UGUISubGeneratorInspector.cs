@@ -23,6 +23,10 @@ public class UGUISubGeneratorInspector : GameInspector
 		}
 		using (new EditorModifyScope(this))
 		{
+			if (!generator.mOnlyForMarkType)
+			{
+				textField(ref generator.mComment, "注释:", 400);
+			}
 			// 基类类型
 			using (new GUILayout.HorizontalScope(GUILayout.Width(200)))
 			{
@@ -157,17 +161,7 @@ public class UGUISubGeneratorInspector : GameInspector
 		{
 			fileFullPath = F_SCRIPTS_HOTFIX_UI_PATH + "InnerClass/" + subUIName + ".cs";
 			string fileContent = "";
-			bool needStringUtility = false;
-			foreach (string item in generatedAssignLines)
-			{
-				if (item.Contains(" IToS("))
-				{
-					needStringUtility = true;
-					break;
-				}
-			}
-
-			if (needStringUtility)
+			if (generatedAssignLines.contains(item => item.Contains(" IToS(")))
 			{
 				line(ref fileContent, "using static StringUtility;");
 			}
@@ -177,6 +171,7 @@ public class UGUISubGeneratorInspector : GameInspector
 			{
 				line(ref fileContent, "// auto generate classname start");
 				line(ref fileContent, "// generate from:" + prefabPath);
+				line(ref fileContent, "// " + generator.mComment);
 				line(ref fileContent, "public class " + subUIName + " : " + generator.mParentType + "<" + subUIName + ".Data>");
 				line(ref fileContent, "// auto generate classname end");
 				line(ref fileContent, "{");
@@ -192,6 +187,7 @@ public class UGUISubGeneratorInspector : GameInspector
 			{
 				line(ref fileContent, "// auto generate classname start");
 				line(ref fileContent, "// generate from:" + prefabPath);
+				line(ref fileContent, "// " + generator.mComment);
 				line(ref fileContent, "public class " + subUIName + " : " + generator.mParentType);
 				line(ref fileContent, "// auto generate classname end");
 				line(ref fileContent, "{");
@@ -199,20 +195,14 @@ public class UGUISubGeneratorInspector : GameInspector
 
 			// 成员变量定义
 			line(ref fileContent, "\t// auto generate member start");
-			foreach (string str in memberDefineList)
-			{
-				line(ref fileContent, str);
-			}
+			line(ref fileContent, memberDefineList);
 			line(ref fileContent, "\t// auto generate member end");
 
 			// 构造函数
 			line(ref fileContent, "\tpublic " + subUIName + "(IWindowObjectOwner parent) : base(parent)");
 			line(ref fileContent, "\t{");
 			line(ref fileContent, "\t\t// auto generate constructor start");
-			foreach (string str in constructorLines)
-			{
-				line(ref fileContent, str);
-			}
+			line(ref fileContent, constructorLines);
 			line(ref fileContent, "\t\t// auto generate constructor end");
 			line(ref fileContent, "\t}");
 
@@ -220,10 +210,7 @@ public class UGUISubGeneratorInspector : GameInspector
 			line(ref fileContent, "\tprotected override void assignWindowInternal()");
 			line(ref fileContent, "\t{");
 			line(ref fileContent, "\t\t// auto generate assignWindowInternal start");
-			foreach (string str in generatedAssignLines)
-			{
-				line(ref fileContent, str);
-			}
+			line(ref fileContent, generatedAssignLines);
 			line(ref fileContent, "\t\t// auto generate assignWindowInternal end");
 			line(ref fileContent, "\t}");
 
@@ -270,6 +257,7 @@ public class UGUISubGeneratorInspector : GameInspector
 				(string line) => { return line.endWith("// auto generate classname end"); }, false))
 			{
 				codeList.Insert(++lineStart0, "// generate from:" + prefabPath);
+				codeList.Insert(++lineStart0, "// " + generator.mComment);
 				if (generator.mParentType == "DragViewItem")
 				{
 					codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType + "<" + subUIName + ".Data>");
@@ -282,25 +270,22 @@ public class UGUISubGeneratorInspector : GameInspector
 			else
 			{
 				// 找到第一个public class
-				for (int i = 0; i < codeList.Count; ++i)
+				if (codeList.findIndex(item=>item.Contains("public class "), out int index))
 				{
-					if (codeList[i].Contains("public class "))
+					codeList.RemoveAt(index);
+					lineStart0 = index - 1;
+					codeList.Insert(++lineStart0, "// auto generate classname start");
+					codeList.Insert(++lineStart0, "// generate from:" + prefabPath);
+					codeList.Insert(++lineStart0, "// " + generator.mComment);
+					if (generator.mParentType == "DragViewItem")
 					{
-						codeList.RemoveAt(i);
-						lineStart0 = i - 1;
-						codeList.Insert(++lineStart0, "// auto generate classname start");
-						codeList.Insert(++lineStart0, "// generate from:" + prefabPath);
-						if (generator.mParentType == "DragViewItem")
-						{
-							codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType + "<" + subUIName + ".Data>");
-						}
-						else
-						{
-							codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType);
-						}
-						codeList.Insert(++lineStart0, "// auto generate classname end");
-						break;
+						codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType + "<" + subUIName + ".Data>");
 					}
+					else
+					{
+						codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType);
+					}
+					codeList.Insert(++lineStart0, "// auto generate classname end");
 				}
 			}
 
@@ -309,27 +294,17 @@ public class UGUISubGeneratorInspector : GameInspector
 				(string line) => { return line.endWith("// auto generate member start"); },
 				(string line) => { return line.endWith("// auto generate member end"); }, false))
 			{
-				foreach (string str in memberDefineList)
-				{
-					codeList.Insert(++lineStart1, str);
-				}
+				memberDefineList.For(str => codeList.Insert(++lineStart1, str));
 			}
 			else
 			{
 				// 找不到就在类的第一行插入
-				for (int i = 0; i < codeList.Count; ++i)
+				if (codeList.findIndex(item=>item.Contains(" class " + subUIName + " "), out int index))
 				{
-					if (codeList[i].Contains(" class " + subUIName + " "))
-					{
-						int lineStart = i + 2;
-						codeList.Insert(++lineStart, "\t// auto generate member start");
-						foreach (string str in memberDefineList)
-						{
-							codeList.Insert(++lineStart, str);
-						}
-						codeList.Insert(++lineStart, "\t// auto generate member end");
-						break;
-					}
+					int lineStart = index + 2;
+					codeList.Insert(++lineStart, "\t// auto generate member start");
+					memberDefineList.For(str => codeList.Insert(++lineStart, str));
+					codeList.Insert(++lineStart, "\t// auto generate member end");
 				}
 			}
 
@@ -338,35 +313,25 @@ public class UGUISubGeneratorInspector : GameInspector
 				(string line) => { return line.endWith("// auto generate constructor start"); },
 				(string line) => { return line.endWith("// auto generate constructor end"); }, false))
 			{
-				foreach (string str in constructorLines)
-				{
-					codeList.Insert(++lineStart2, str);
-				}
+				constructorLines.For(str => codeList.Insert(++lineStart2, str));
 			}
 			// 找不到就在构造的第一行插入,子UI肯定是包含构造函数的
 			else
 			{
-				for (int i = 0; i < codeList.Count; ++i)
+				if (codeList.findIndex(item=>item.Contains("public " + subUIName + "(IWindowObjectOwner "), out int index))
 				{
-					if (codeList[i].Contains("public " + subUIName + "(IWindowObjectOwner "))
+					// 如果大括号是在同一行,则处理一下大括号
+					if (codeList[index].Contains("{") && codeList[index].Contains("}"))
 					{
-						// 如果大括号是在同一行,则处理一下大括号
-						if (codeList[i].Contains("{") && codeList[i].Contains("}"))
-						{
-							codeList[i] = codeList[i].rangeToFirst('{').removeEndEmpty();
-							int lineStartTemp = i;
-							codeList.Insert(++lineStartTemp, "\t{");
-							codeList.Insert(++lineStartTemp, "\t}");
-						}
-						int lineStart = i + 1;
-						codeList.Insert(++lineStart, "\t\t// auto generate constructor start");
-						foreach (string str in constructorLines)
-						{
-							codeList.Insert(++lineStart, str);
-						}
-						codeList.Insert(++lineStart, "\t\t// auto generate constructor end");
-						break;
+						codeList[index] = codeList[index].rangeToFirst('{').removeEndEmpty();
+						int lineStartTemp = index;
+						codeList.Insert(++lineStartTemp, "\t{");
+						codeList.Insert(++lineStartTemp, "\t}");
 					}
+					int lineStart = index + 1;
+					codeList.Insert(++lineStart, "\t\t// auto generate constructor start");
+					constructorLines.For(str => codeList.Insert(++lineStart, str));
+					codeList.Insert(++lineStart, "\t\t// auto generate constructor end");
 				}
 			}
 
@@ -375,27 +340,17 @@ public class UGUISubGeneratorInspector : GameInspector
 				(string line) => { return line.endWith("// auto generate assignWindowInternal start"); },
 				(string line) => { return line.endWith("// auto generate assignWindowInternal end"); }, false))
 			{
-				foreach (string str in generatedAssignLines)
-				{
-					codeList.Insert(++lineStart3, str);
-				}
+				generatedAssignLines.For(str => codeList.Insert(++lineStart3, str));
 			}
 			// 找不到就在assignWindowInternal的第一行插入
 			else
 			{
-				for (int i = 0; i < codeList.Count; ++i)
+				if (codeList.findIndex(item=>item.Contains("protected override void assignWindowInternal()"), out int index))
 				{
-					if (codeList[i].Contains("protected override void assignWindowInternal()"))
-					{
-						int lineStart = i + 1;
-						codeList.Insert(++lineStart, "\t\t// auto generate assignWindowInternal start");
-						foreach (string str in generatedAssignLines)
-						{
-							codeList.Insert(++lineStart, str);
-						}
-						codeList.Insert(++lineStart, "\t\t// auto generate assignWindowInternal end");
-						break;
-					}
+					int lineStart = index + 1;
+					codeList.Insert(++lineStart, "\t\t// auto generate assignWindowInternal start");
+					generatedAssignLines.For(str => codeList.Insert(++lineStart, str));
+					codeList.Insert(++lineStart, "\t\t// auto generate assignWindowInternal end");
 				}
 			}
 			writeTxtFile(fileFullPath, stringsToString(codeList, "\r\n"), true);

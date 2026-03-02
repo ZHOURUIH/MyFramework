@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using static UnityUtility;
 using static FrameUtility;
 using static MathUtility;
 using static FrameBaseUtility;
-using System;
 
 public interface IPoolItem<T>
 {
@@ -39,6 +39,10 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 	}
 	public List<T> getUsedList() { return mUsedItemList; }
 	public bool isUsed(T item) { return mUsedItemList.Contains(item); }
+	public void For(Action<T> action)
+	{
+		mUsedItemList.For(action);
+	}
 	public void checkCapacity(int capacity)
 	{
 		int needCount = capacity - mUsedItemList.Count;
@@ -110,13 +114,67 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		}
 		return mUsedItemList.add(item);
 	}
-	public void newItemWithList<TData>(List<TData> dataList, Action<T, TData> callback)
+	public void newItemList<TData>(IEnumerable<TData> dataList, Action<T, TData> callback)
+	{
+		unuseAll();
+		foreach (TData data in dataList.safe())
+		{
+			callback(newItem(), data);
+		}
+	}
+	public void newItemListVertical<TData>(IEnumerable<TData> dataList, Action<T, TData> callback)
+	{
+		unuseAll();
+		foreach (TData data in dataList.safe())
+		{
+			callback(newItem(), data);
+		}
+		autoGridVertical();
+	}
+	public void newItemListVerticalForDrag<TData>(IEnumerable<TData> dataList, Action<T, TData> callback)
+	{
+		unuseAll();
+		foreach (TData data in dataList.safe())
+		{
+			callback(newItem(), data);
+		}
+		autoGridVerticalForDragView();
+	}
+	public void newItemListHorizontal<TData>(IEnumerable<TData> dataList, Action<T, TData> callback)
+	{
+		unuseAll();
+		foreach (TData data in dataList.safe())
+		{
+			callback(newItem(), data);
+		}
+		autoGridHorizontal();
+	}
+	public void newItemListHorizontalForDrag<TData>(IEnumerable<TData> dataList, Action<T, TData> callback)
 	{
 		unuseAll();
 		foreach (TData data in dataList)
 		{
 			callback(newItem(), data);
 		}
+		autoGridHorizontalForDragView();
+	}
+	public void newItemListAutoGrid<TData>(IEnumerable<TData> dataList, Action<T, TData> callback)
+	{
+		unuseAll();
+		foreach (TData data in dataList.safe())
+		{
+			callback(newItem(), data);
+		}
+		autoGrid();
+	}
+	public void newItemListAutoGridForDrag<TData>(IEnumerable<TData> dataList, Action<T, TData> callback)
+	{
+		unuseAll();
+		foreach (TData data in dataList.safe())
+		{
+			callback(newItem(), data);
+		}
+		autoGridForDragView();
 	}
 	public override void unuseAll()
 	{

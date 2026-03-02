@@ -32,8 +32,8 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	public myUGUIObject()
 	{
 		mID = makeID();
-		mNeedUpdate = false;    // 出于效率考虑,窗口默认不启用更新,只有部分窗口和使用组件进行变化时才自动启用更新
-		mHasDestroy = false;       // 由于一般myUGUIObject不会使用对象池来管理,所以构造时就设置当前对象为有效
+		mNeedUpdate = false;		// 出于效率考虑,窗口默认不启用更新,只有部分窗口和使用组件进行变化时才自动启用更新
+		mHasDestroy = false;		// 由于一般myUGUIObject不会使用对象池来管理,所以构造时就设置当前对象为有效
 	}
 	public virtual void init()
 	{
@@ -384,14 +384,15 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		// 同样的,由于一般myUGUIObject不会使用对象池来管理,所以销毁时需要手动去标记为已销毁的状态
 		mHasDestroy = true;
 	}
-	public override void setActive(bool active)
+	public override bool setActive(bool active)
 	{
 		if (active == isActive())
 		{
-			return;
+			return active;
 		}
 		base.setActive(active);
 		mGlobalTouchSystem?.notifyWindowActiveChanged();
+		return active;
 	}
 	public static void collectChild<T>(myUGUIObject window, List<T> list) where T : myUGUIObject
 	{

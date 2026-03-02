@@ -225,12 +225,20 @@ public class SQLiteTable : ClassObject
 	}
 	protected SQLiteData queryInternal(int id, bool errorIfNull = true)
 	{
+		if (id <= 0)
+		{
+			if (errorIfNull)
+			{
+				logError("表格中找不到指定数据: ID:" + id + ", Type:" + mDataClassType);
+			}
+			return null;
+		}
 		if (mDataMap.TryGetValue(id, out SQLiteData data))
 		{
 			return data;
 		}
 		using var a = new MyStringBuilderScope(out var condition);
-		condition.appendConditionInt(SQLiteData.ID, id, EMPTY);
+		condition.addConditionInt(SQLiteData.ID, id, EMPTY);
 		parseReader(doQuery(condition.ToString()), out data);
 		mDataMap.Add(id, data);
 		if (data == null && errorIfNull)

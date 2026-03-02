@@ -30,26 +30,30 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		// 获取初始的精灵所在图集
 		if (mOriginSprite != null)
 		{
-			if (!mObject.TryGetComponent<ImageAtlasPath>(out var comImageAtlasPath))
+			if (!mObject.TryGetComponent<ImageAtlasPath>(out var imageAtlasPath))
 			{
 				logError("需要切换图片的SpriteRenderer组件上找不到ImageAtlasPath组件, GameObject:" + getGameObjectPath(mObject));
 				return;
 			}
-			string atlasPath;
+			string atlasPath = imageAtlasPath.mAtlasPath;
+			if (atlasPath.isEmpty())
+			{
+				logError("ImageAtlasPath中记录的路径为空,GameObject:" + getGameObjectPath(mObject));
+			}
 			if (mLayout.isInResources())
 			{
-				atlasPath = comImageAtlasPath.mAtlasPath.removeStartString(P_RESOURCES_PATH);
+				atlasPath = atlasPath.removeStartString(P_RESOURCES_PATH);
 				mOriginAtlasPtr = mAtlasManager.getAtlasInResources(atlasPath, false);
 			}
 			else
 			{
-				atlasPath = comImageAtlasPath.mAtlasPath.removeStartString(P_GAME_RESOURCES_PATH);
+				atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
 				mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
 			}
 			if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
 			{
 				logError("无法加载初始化的图集:" + atlasPath + ",GameObject:" + getGameObjectPath(mObject) +
-					",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (comImageAtlasPath != null ? comImageAtlasPath.mAtlasPath : EMPTY));
+					",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
 			}
 			mAtlasPtr = mOriginAtlasPtr;
 		}

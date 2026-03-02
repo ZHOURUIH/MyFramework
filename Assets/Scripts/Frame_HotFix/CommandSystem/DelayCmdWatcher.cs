@@ -38,10 +38,7 @@ public class DelayCmdWatcher : ClassObject
 	}
 	public void interruptAllCommand()
 	{
-		foreach (long item in mDelayCmdList.safe())
-		{
-			mCommandSystem?.interruptCommand(item, false);
-		}
+		mDelayCmdList.For(item => mCommandSystem?.interruptCommand(item, false));
 		mDelayCmdList?.Clear();
 	}
 	//------------------------------------------------------------------------------------------------------------------------------

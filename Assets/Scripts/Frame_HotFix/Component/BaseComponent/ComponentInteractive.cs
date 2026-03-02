@@ -187,13 +187,9 @@ public class ComponentInteractive : GameComponent
 	}
 	public void removeLongPress(Action callback)
 	{
-		foreach (LongPressData data in mLongPressList)
+		if (mLongPressList.find(data => data.mOnLongPress == callback, out LongPressData data))
 		{
-			if (data.mOnLongPress == callback)
-			{
-				UN_CLASS(data);
-				break;
-			}
+			UN_CLASS(data);
 		}
 	}
 	public void clearLongPress()

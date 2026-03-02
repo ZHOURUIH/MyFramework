@@ -186,6 +186,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1324c7b97d0cd4d4286eaa7aef336d1d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mComment: "\u6E38\u620F\u754C\u9762"
   mMemberList:
   - mObject: {fileID: 3579753064797783254}
     mType: myUGUIObject

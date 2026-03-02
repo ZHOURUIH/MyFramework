@@ -46,7 +46,7 @@ public abstract class WindowObjectT<T> : WindowObjectBase where T : myUGUIObject
 	public bool isValid() { return mRoot != null; }
 	public override bool isActive() { return mRoot?.isActiveInHierarchy() ?? false; }
 	public override bool isActiveSelf() { return mRoot?.isActive() ?? false; }
-	public override void setActive(bool active) 
+	public override bool setActive(bool active) 
 	{
 		bool curActive = isActiveSelf();
 		if (curActive && mChangePositionAsInvisible && isVectorEqual(mRoot.getPosition(), FAR_POSITION))
@@ -55,9 +55,8 @@ public abstract class WindowObjectT<T> : WindowObjectBase where T : myUGUIObject
 		}
 		if (active == curActive)
 		{
-			return;
+			return active;
 		}
-		base.setActive(active);
 		if (mChangePositionAsInvisible)
 		{
 			if (!active)
@@ -69,6 +68,7 @@ public abstract class WindowObjectT<T> : WindowObjectBase where T : myUGUIObject
 		{
 			mRoot.setActive(active);
 		}
+		return base.setActive(active);
 	}
 	public virtual void setPosition(Vector3 pos) { mRoot.setPosition(pos); }
 	public T getRoot() { return mRoot; }

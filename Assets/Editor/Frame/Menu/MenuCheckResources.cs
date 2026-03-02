@@ -18,7 +18,7 @@ using static EditorFileUtility;
 public class MenuCheckResources
 {
 	[MenuItem("检查资源/查找文件引用  %Q", false, 2)]
-	public static void searchRefrence()
+	public static void searchReference()
 	{
 		// 查找该文件的所有引用
 		bool checkAll = false;
@@ -36,7 +36,7 @@ public class MenuCheckResources
 		// 选择的是文件,则只查找文件的引用
 		if (isFileExist(path))
 		{
-			doSearchRefrence(path, getAllResourceFileText());
+			doSearchReference(path, getAllResourceFileText());
 		}
 		// 选择的是目录,则查找目录中所有文件的引用
 		else if (isDirExist(path))
@@ -56,7 +56,7 @@ public class MenuCheckResources
 				for (int i = 0; i < count; ++i)
 				{
 					displayProgressBar("查找所有资源引用", "进度: ", i + 1, count);
-					doSearchRefrence(validFiles[i], allFileText);
+					doSearchReference(validFiles[i], allFileText);
 				}
 				clearProgressBar();
 				Debug.Log("完成查找资源引用");
@@ -110,7 +110,7 @@ public class MenuCheckResources
 		}
 	}
 	[MenuItem("检查资源/查找TPAtlas图集引用", false, 4)]
-	public static void checkTPAtlasRefrence()
+	public static void checkTPAtlasReference()
 	{
 		bool checkAll = false;
 		string path = AssetDatabase.GetAssetPath(Selection.activeObject);
@@ -129,7 +129,7 @@ public class MenuCheckResources
 		{
 			if (path.endWith("png", false))
 			{
-				doCheckTPAtlasRefrence(path, getAllFileText(F_UI_PREFAB_PATH));
+				doCheckTPAtlasReference(path, getAllFileText(F_UI_PREFAB_PATH));
 			}
 		}
 		else if (isDirExist(path))
@@ -149,7 +149,7 @@ public class MenuCheckResources
 				{
 					string filePath = validFiles[i];
 					displayProgressBar("检查图集引用", "进度: ", i + 1, count);
-					doCheckTPAtlasRefrence(filePath, allFileText);
+					doCheckTPAtlasReference(filePath, allFileText);
 				}
 				clearProgressBar();
 			}
@@ -283,7 +283,7 @@ public class MenuCheckResources
 		}
 	}
 	[MenuItem("检查资源/检查材质引用丢失", false, 101)]
-	public static void checkMaterialMissingRefrence()
+	public static void checkMaterialMissingReference()
 	{
 		Debug.Log("开始检查是否有材质引用丢失");
 		// 所有Material的GUID集合
@@ -291,7 +291,7 @@ public class MenuCheckResources
 		// 所有引用Material的.prefab与.unity文件的集合
 		// 丢失脚本引用的资源字典(key = "引用了丢失材质的资源路径",value = 该资源丢失的材质的guid列表)
 		Dictionary<string, List<string>> missingRefAssetsList = new();
-		foreach (var item in getMaterialRefrenceFileText(F_ASSETS_PATH))
+		foreach (var item in getMaterialReferenceFileText(F_ASSETS_PATH))
 		{
 			FileGUIDLines fileInfo = item.Value;
 			foreach (string guidsStr in fileInfo.mContainGUIDLines)
@@ -357,7 +357,7 @@ public class MenuCheckResources
 		Debug.Log("完成检查材质贴图是否存在");
 	}
 	[MenuItem("检查资源/检查材质是否引用了shader未使用的贴图", false, 103)]
-	public static void checkMaterialTextureRefrence()
+	public static void checkMaterialTextureReference()
 	{
 		// 查找该文件的所有引用
 		bool checkAll = false;
@@ -405,7 +405,7 @@ public class MenuCheckResources
 	}
 	// 检查热更与非热更资源是否存在相互引用(如有资源互相引用则为不合法)
 	[MenuItem("检查资源/检查热更与非热更资源是否相互引用", false, 105)]
-	public static void checkRsourcesRefEachOther()
+	public static void checkResourcesRefEachOther()
 	{
 		Debug.Log("开始检查热更与非热更资源相互引用");
 		// 所有热更资源的GUID
@@ -414,9 +414,9 @@ public class MenuCheckResources
 		var allResourcesAssetGUID = getAllGUIDAndSpriteIDBySuffixInFilePath(P_RESOURCES_PATH, ".meta", "所有非热更资源");
 
 		// 所有热更资源中所有带引用的文件的集合
-		var refGameResourcesFilesDic = getAllRefrenceFileText(P_GAME_RESOURCES_PATH);
+		var refGameResourcesFilesDic = getAllReferenceFileText(P_GAME_RESOURCES_PATH);
 		// 所有非热更资源中所有带引用的文件的集合
-		var refResourcesFilesDic = getAllRefrenceFileText(P_RESOURCES_PATH);
+		var refResourcesFilesDic = getAllReferenceFileText(P_RESOURCES_PATH);
 		// 错误引用资源的字典
 		Dictionary<string, Dictionary<string, string>> errorRefAssetDic = new();
 
@@ -547,7 +547,7 @@ public class MenuCheckResources
 		Debug.Log("完成检查预设变换");
 	}
 	[MenuItem("检查资源/检查所有Prefab文件MeshCollider的模型Read-Write", false, 112)]
-	public static void findMeshColliderFBXReadAndWirte()
+	public static void findMeshColliderFBXReadAndWrite()
 	{
 		if (!EditorUtility.DisplayDialog("提示", "是否开始检查所有预设的MeshCollider的模型是否开启Read-Write? ", "确认", "取消"))
 		{
@@ -564,14 +564,14 @@ public class MenuCheckResources
 			string filePath = fullPathToProjectPath(fileList[i]);
 			GameObject targetPrefab = loadGameObject(filePath);
 			if (!targetPrefab.TryGetComponent<MeshCollider>(out var collider) ||
-				!targetPrefab.TryGetComponent<MeshFilter>(out var meshFiliter))
+				!targetPrefab.TryGetComponent<MeshFilter>(out var meshFilter))
 			{
 				continue;
 			}
-			Mesh mesh = meshFiliter.sharedMesh;
+			Mesh mesh = meshFilter.sharedMesh;
 			if (mesh == null)
 			{
-				Debug.LogError(meshFiliter.gameObject.name + "的Mesh丢失", targetPrefab);
+				Debug.LogError(meshFilter.gameObject.name + "的Mesh丢失", targetPrefab);
 				continue;
 			}
 			if (!saveErrorObj.Add(collider.sharedMesh))
@@ -591,7 +591,7 @@ public class MenuCheckResources
 		Debug.Log("------结束检查预设的模型是否开启Read-Write,耗时: " + (DateTime.Now - startTime));
 	}
 	[MenuItem("检查资源/检查所有场景的MeshCollider模型Read-Write", false, 113)]
-	public static void findAllSceneMeshColliderFBXReadAndWirte()
+	public static void findAllSceneMeshColliderFBXReadAndWrite()
 	{
 		if (!EditorUtility.DisplayDialog("提示", "是否开始检查所有场景的MeshCollider模型是否开启Read-Write? ", "确认", "取消"))
 		{
@@ -613,13 +613,13 @@ public class MenuCheckResources
 			foreach (GameObject go in UObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None))
 			{
 				if (!go.TryGetComponent<MeshCollider>(out var collider) ||
-					!go.TryGetComponent<MeshFilter>(out var meshFiliter))
+					!go.TryGetComponent<MeshFilter>(out var meshFilter))
 				{
 					continue;
 				}
-				if (meshFiliter.sharedMesh == null)
+				if (meshFilter.sharedMesh == null)
 				{
-					Debug.LogError(meshFiliter.gameObject.name + "的Mesh丢失");
+					Debug.LogError(meshFilter.gameObject.name + "的Mesh丢失");
 					continue;
 				}
 				if (collider.sharedMesh == null)
@@ -646,7 +646,7 @@ public class MenuCheckResources
 		Debug.Log("------结束检查所有场景的模型是否开启Read-Write,耗时: " + (DateTime.Now - startTime));
 	}
 	[MenuItem("检查资源/【当前场景】检查场景MeshCollider模型Read-Write", false, 114)]
-	public static void findSceneMeshColliderFBXReadAndWirte()
+	public static void findSceneMeshColliderFBXReadAndWrite()
 	{
 		if (!EditorUtility.DisplayDialog("提示", "是否开始检查当前场景的MeshCollider模型是否开启Read-Write? ", "确认", "取消"))
 		{
@@ -662,13 +662,13 @@ public class MenuCheckResources
 		{
 			displayProgressBar("MeshCollider的Mesh的Read-Write是否启用", "进度: ", i + 1, objectCount);
 			if (!sceneObjects[i].TryGetComponent<MeshCollider>(out var collider) ||
-				!sceneObjects[i].TryGetComponent<MeshFilter>(out var meshFiliter))
+				!sceneObjects[i].TryGetComponent<MeshFilter>(out var meshFilter))
 			{
 				continue;
 			}
-			if (meshFiliter.sharedMesh == null)
+			if (meshFilter.sharedMesh == null)
 			{
-				Debug.LogError(meshFiliter.gameObject.name + "的Mesh丢失");
+				Debug.LogError(meshFilter.gameObject.name + "的Mesh丢失");
 				continue;
 			}
 			if (collider.sharedMesh == null)
@@ -716,7 +716,7 @@ public class MenuCheckResources
 		// UGUI路径常量
 		const string uiPath = "Packages/com.unity.ugui";
 		// 所有引用了脚本的.prefab与.unity文件
-		foreach (FileGUIDLines fileInfo in getScriptRefrenceFileText(F_ASSETS_PATH).Values)
+		foreach (FileGUIDLines fileInfo in getScriptReferenceFileText(F_ASSETS_PATH).Values)
 		{
 			foreach (string guid in fileInfo.mContainGUIDLines)
 			{

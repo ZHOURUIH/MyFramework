@@ -1,4 +1,6 @@
-// auto generate classname start
+﻿// auto generate classname start
+// generate from:Assets/GameResources/UI/UIPrefab/UILogin.prefab
+// 列表项
 public class DragItem : DragViewItem<DragItem.Data>
 // auto generate classname end
 {

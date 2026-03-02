@@ -17,6 +17,10 @@ public class FrameSystem : ComponentOwner
 		// 由于一般FrameSystem不会使用对象池来管理,所以构造时就设置当前对象为有效
 		mHasDestroy = false;
 	}
+	// 组件的初始化顺序:
+	// 首先是FrameHotFix层中的所有系统组件:所有组件的preInitAsync->所有组件的initAsync->所有组件的init->所有组件的lateInit
+	// 加载所有表格,不过只是加载文件,后续实际需要访问数据时才会解析
+	// HotFix层的所有系统组件:所有组件的init->所有组件的lateInit,因为一般HotFix层不会涉及到在初始化时立即去异步加载资源,所以没有异步的初始化
 	public virtual void preInitAsync(Action callback) { callback?.Invoke(); }
 	public virtual void initAsync(Action callback) { callback?.Invoke(); }
 	public virtual void init()

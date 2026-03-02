@@ -68,10 +68,7 @@ public class MenuAnchor
 		{
 			return;
 		}
-		foreach (GameObject go in Selection.gameObjects)
-		{
-			addPaddingAnchor(go);
-		}
+		Selection.gameObjects.For(go => addPaddingAnchor(go));
 	}
 	[MenuItem(mAutoAnchorMenuName + mPaddingAnchorMenuName + "RemoveAnchor")]
 	public static void removePaddingAnchor()
@@ -80,10 +77,7 @@ public class MenuAnchor
 		{
 			return;
 		}
-		foreach (GameObject go in Selection.gameObjects)
-		{
-			removePaddingAnchor(go);
-		}
+		Selection.gameObjects.For(go => removePaddingAnchor(go));
 	}
 	[MenuItem(mAutoAnchorMenuName + mScaleAnchorMenuName + "AddAnchorKeepAspect &1")]
 	public static void addScaleAnchorKeepAspect()
@@ -92,10 +86,7 @@ public class MenuAnchor
 		{
 			return;
 		}
-		foreach (GameObject go in Selection.gameObjects)
-		{
-			addScaleAnchor(go, true);
-		}
+		Selection.gameObjects.For(go => addScaleAnchor(go, true));
 	}
 	[MenuItem(mAutoAnchorMenuName + mScaleAnchorMenuName + "AddAnchor")]
 	public static void addScaleAnchor()
@@ -104,10 +95,7 @@ public class MenuAnchor
 		{
 			return;
 		}
-		foreach (GameObject go in Selection.gameObjects)
-		{
-			addScaleAnchor(go, false);
-		}
+		Selection.gameObjects.For(go => addScaleAnchor(go, false));
 	}
 	[MenuItem(mAutoAnchorMenuName + mScaleAnchorMenuName + "RemoveAnchor &2")]
 	public static void removeScaleAnchor()
@@ -116,10 +104,7 @@ public class MenuAnchor
 		{
 			return;
 		}
-		foreach (GameObject go in Selection.gameObjects)
-		{
-			removeScaleAnchor(go);
-		}
+		Selection.gameObjects.For(go => removeScaleAnchor(go));
 	}
 	//-------------------------------------------------------------------------------------------------------------------
 	protected static void addPaddingAnchor(GameObject obj)

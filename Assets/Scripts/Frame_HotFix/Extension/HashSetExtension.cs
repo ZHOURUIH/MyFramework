@@ -4,6 +4,18 @@ using static FrameUtility;
 
 public static class HashSetExtension
 {
+	public static T addOrRemove<T>(this HashSet<T> list, T value, bool add)
+	{
+		if (add)
+		{
+			list.Add(value);
+		}
+		else
+		{
+			list.Remove(value);
+		}
+		return value;
+	}
 	public static T add<T>(this HashSet<T> list, T value)
 	{
 		list.Add(value);

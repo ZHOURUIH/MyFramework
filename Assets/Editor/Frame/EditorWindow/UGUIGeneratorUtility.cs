@@ -150,7 +150,19 @@ public class UGUIGeneratorUtility
 				if (item.mWindowType == WINDOW_TYPE.SUB_UI)
 				{
 					item.mType = getClassNameFromGameObject(item.mObject);
-					labelWidth(item.mType, 148, ClassTypeCaches.hasClass(item.mType) ? Color.green : Color.red);
+					toggle(ref item.mUseCustomName, "自定义变量名");
+					if (item.mUseCustomName)
+					{
+						if (item.mCustomName.isEmpty())
+						{
+							item.mCustomName = item.mType;
+						}
+						textField(ref item.mCustomName, 120);
+					}
+					else
+					{
+						labelWidth(item.mType, 148, ClassTypeCaches.hasClass(item.mType) ? Color.green : Color.red);
+					}
 				}
 				else
 				{
@@ -204,13 +216,7 @@ public class UGUIGeneratorUtility
 				drawTemplateParamWindowPool(item);
 			}
 		}
-		if (tempNeedRemoveData.count() > 0)
-		{
-			foreach (MemberData data in tempNeedRemoveData)
-			{
-				generator.mMemberList.Remove(data);
-			}
-		}
+		generator.mMemberList.remove(tempNeedRemoveData);
 		if (button("添加节点", 200, 25))
 		{
 			generator.addNewItem();
@@ -436,14 +442,7 @@ public class UGUIGeneratorUtility
 	{
 		List<string> fileList = new();
 		findFiles(F_SCRIPTS_PATH, fileList, ".cs");
-		foreach (string file in fileList)
-		{
-			if (getFileNameNoSuffixNoDir(file) == fileNameNoDirNoSuffix)
-			{
-				return file;
-			}
-		}
-		return null;
+		return fileList.find(file => getFileNameNoSuffixNoDir(file) == fileNameNoDirNoSuffix);
 	}
 	public static void generateNewObject(List<string> generatedLines, List<MemberData> list, List<MemberData> fixedList, List<GameObject> createdVariableObject, MemberData curData, GameObject root)
 	{

@@ -140,7 +140,7 @@ public class myUGUIScrollRect : myUGUIObject
 			}
 			else if(adjustType == CONTENT_ADJUST.FIXED_WIDTH_OR_HEIGHT)
 			{
-				autoGridFixedRootWidth(mContent, itemSize);
+				autoGrid(mContent, itemSize);
 			}
 			// 当Content的大小小于Viewport时,Content顶部对齐Viewport顶部(实际是根据content的pivot计算)
 			if (mViewport.getWindowSize().y >= mContent.getWindowSize().y)

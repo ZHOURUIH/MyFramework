@@ -77,7 +77,52 @@ public static class StringExtension
 		}
 		return str[startIndex..(endIndex + 1)];
 	}
-	// 截取第一个key字符之前的字符串,不包含key
+	// 截取从第一个key0到第一个key1之间的字符串,不包含key0和key1
+	public static string rangeBetweenKeyToKey(this string str, string key0, string key1)
+	{
+		if (str == null)
+		{
+			return str;
+		}
+		int startIndex = str.IndexOf(key0) + key0.Length;
+		int endIndex = str.IndexOf(key1, startIndex);
+		if (endIndex >= 0)
+		{
+			return str[startIndex..endIndex];
+		}
+		return str[startIndex..];
+	}
+	// 截取从第一个key0到第一个key1之间的字符串,不包含key0和key1
+	public static string rangeBetweenKeyToKey(this string str, string key0, char key1)
+	{
+		if (str == null)
+		{
+			return str;
+		}
+		int startIndex = str.IndexOf(key0) + key0.Length;
+		int endIndex = str.IndexOf(key1, startIndex);
+		if (endIndex >= 0)
+		{
+			return str[startIndex..endIndex];
+		}
+		return str[startIndex..];
+	}
+
+	// 截取从第一个key0到第一个key1之间的字符串,不包含key0和key1
+	public static string rangeBetweenKeyToKey(this string str, char key0, string key1)
+	{
+		if (str == null)
+		{
+			return str;
+		}
+		int startIndex = str.IndexOf(key0) + 1;
+		int endIndex = str.IndexOf(key1, startIndex);
+		if (endIndex >= 0)
+		{
+			return str[startIndex..endIndex];
+		}
+		return str[startIndex..];
+	}// 截取第一个key字符之前的字符串,不包含key
 	public static string rangeToFirst(this string str, char key)
 	{
 		if (str == null)
@@ -262,14 +307,14 @@ public static class StringExtension
 		return str[removeCount..];
 	}
 	// 如果str以pattern开头,则移除pattern的部分
-	public static string removeStartString(this string str, string pattern, bool caseSensive = true)
+	public static string removeStartString(this string str, string pattern, bool caseSensitive = true)
 	{
 		if (str == null || pattern == null || str.Length < pattern.Length)
 		{
 			return str;
 		}
 		bool needRemove;
-		if (caseSensive)
+		if (caseSensitive)
 		{
 			needRemove = str.StartsWith(pattern);
 		}
@@ -297,14 +342,14 @@ public static class StringExtension
 		return str;
 	}
 	// 如果str以pattern结尾,则移除pattern的部分
-	public static string removeEndString(this string str, string pattern, bool caseSensive = true)
+	public static string removeEndString(this string str, string pattern, bool caseSensitive = true)
 	{
 		if (str == null || pattern == null || str.Length < pattern.Length)
 		{
 			return str;
 		}
 		bool needRemove;
-		if (caseSensive)
+		if (caseSensitive)
 		{
 			needRemove = str.EndsWith(pattern);
 		}
@@ -432,7 +477,7 @@ public static class StringExtension
 	public static string removeAll(this string str, params string[] key)
 	{
 		using var a = new MyStringBuilderScope(out var builder);
-		builder.append(str);
+		builder.add(str);
 		int keyCount = key.Length;
 		for (int i = 0; i < keyCount; ++i)
 		{
@@ -443,7 +488,7 @@ public static class StringExtension
 	public static string removeAll(this string str, params char[] key)
 	{
 		using var a = new MyStringBuilderScope(out var builder);
-		builder.append(str);
+		builder.add(str);
 		for (int i = builder.Length - 1; i >= 0; --i)
 		{
 			// 判断是否是需要移除的字符
@@ -457,7 +502,7 @@ public static class StringExtension
 	public static string removeAll(this string str, char key)
 	{
 		using var a = new MyStringBuilderScope(out var builder);
-		builder.append(str);
+		builder.add(str);
 		for (int i = builder.Length - 1; i >= 0; --i)
 		{
 			// 判断是否是需要移除的字符
@@ -474,7 +519,7 @@ public static class StringExtension
 		if (isMainThread())
 		{
 			using var a = new MyStringBuilderScope(out var builder);
-			builder.append(str);
+			builder.add(str);
 			builder.replace(begin, end, reStr);
 			return builder.ToString();
 		}
@@ -493,7 +538,7 @@ public static class StringExtension
 		if (isMainThread())
 		{
 			using var a = new MyStringBuilderScope(out var builder);
-			builder.append(str);
+			builder.add(str);
 			builder.replace(key, newWords);
 			return builder.ToString();
 		}
@@ -513,7 +558,7 @@ public static class StringExtension
 		if (isMainThread())
 		{
 			using var a = new MyStringBuilderScope(out var builder);
-			builder.append(str);
+			builder.add(str);
 			builder.replaceAll(key, newWords);
 			return builder.ToString();
 		}
@@ -536,7 +581,7 @@ public static class StringExtension
 	public static string replaceAll(string str, char key, char newWords)
 	{
 		using var a = new MyStringBuilderScope(out var builder);
-		builder.append(str);
+		builder.add(str);
 		builder.replaceAll(key, newWords);
 		return builder.ToString();
 	}
@@ -795,7 +840,7 @@ public static class StringExtension
 		{
 			if (isNumeric(c))
 			{
-				builder.append(c);
+				builder.add(c);
 			}
 		}
 		return builder.ToString();

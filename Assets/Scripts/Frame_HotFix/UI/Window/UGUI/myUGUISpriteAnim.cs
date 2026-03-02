@@ -147,6 +147,11 @@ public class myUGUISpriteAnim : myUGUISprite, IUIAnimation
 			mPlayingCallbackList.Add(callback);
 		}
 	}
+	public void clearCallback()
+	{
+		mPlayEndCallbackList?.Clear();
+		mPlayingCallbackList?.Clear();
+	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onPlaying(int frame, bool isPlaying)
 	{

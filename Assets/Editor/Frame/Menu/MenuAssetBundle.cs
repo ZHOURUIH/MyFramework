@@ -227,10 +227,7 @@ public class MenuAssetBundle
 		foreach (var item in allDepList)
 		{
 			string chain = EMPTY;
-			foreach (string item0 in item.Value)
-			{
-				chain += item0 + "->";
-			}
+			item.Value.For(item0 => chain += item0 + "->");
 			Debug.Log(colorString("00FF00FF", item.Key) + ",依赖链:" + chain.removeEndString("->"));
 		}
 		Debug.Log("查找" + assetBundleName + "的所有递归依赖项完成");
@@ -252,9 +249,9 @@ public class MenuAssetBundle
 		}
 	}
 	// 所有所有AssetBundle的直接依赖项
-	protected static bool loadAndReadAssetBundleManifest(string manifesePath, Dictionary<string, BuildAssetBundleInfo> assetBundleMap, Dictionary<string, HashSet<string>> dependencyList, bool showErrorMessageBox, bool checkDep)
+	protected static bool loadAndReadAssetBundleManifest(string manifestPath, Dictionary<string, BuildAssetBundleInfo> assetBundleMap, Dictionary<string, HashSet<string>> dependencyList, bool showErrorMessageBox, bool checkDep)
 	{
-		AssetBundle assetBundle = AssetBundle.LoadFromFile(manifesePath + getFolderName(manifesePath));
+		AssetBundle assetBundle = AssetBundle.LoadFromFile(manifestPath + getFolderName(manifestPath));
 		if (assetBundle == null)
 		{
 			showInfo("加载AssetBundleManifest失败", showErrorMessageBox, true);
@@ -409,29 +406,12 @@ public class MenuAssetBundle
 	protected static bool isUnpackPath(string path, List<string> unpackList)
 	{
 		string pathUnderResources = (path.removeStartString(P_GAME_RESOURCES_PATH, false) + "/").rightToLeft();
-		foreach (string name in unpackList)
-		{
-			// 如果该文件夹是不打包的文件夹,则直接返回
-			if (pathUnderResources.startWith(name, false))
-			{
-				return true;
-			}
-		}
-		return false;
+		return unpackList.contains(name => pathUnderResources.startWith(name, false));
 	}
 	// 判断一个路径是否是不需要打包的路径
 	protected static bool isForceSinglePath(string path, List<string> singlePathList)
 	{
-		string pathUnderResources = (path.removeStartString(P_GAME_RESOURCES_PATH, false) + "/").rightToLeft();
-		foreach (string name in singlePathList)
-		{
-			// 如果该文件夹是不打包的文件夹,则直接返回
-			if (pathUnderResources == name)
-			{
-				return true;
-			}
-		}
-		return false;
+		return singlePathList.contains((path.removeStartString(P_GAME_RESOURCES_PATH, false) + "/").rightToLeft());
 	}
 	// 刷新指定文件的所属AssetBundle名字
 	protected static string refreshFileAssetBundleName(Dictionary<string, BuildAssetBundleInfo> assetBundleMap, string file, bool forceSingle = false)
@@ -550,14 +530,7 @@ public class MenuAssetBundle
 	}
 	protected static bool isKeepFolderOrMeta(string name)
 	{
-		foreach (string folder in getKeepFolder())
-		{
-			if (folder == name || folder + ".meta" == name)
-			{
-				return true;
-			}
-		}
-		return false;
+		return getKeepFolder().contains(folder => folder == name || folder + ".meta" == name);
 	}
 	// 清理之前设置的bundleName
 	protected static void clearAssetBundleName()

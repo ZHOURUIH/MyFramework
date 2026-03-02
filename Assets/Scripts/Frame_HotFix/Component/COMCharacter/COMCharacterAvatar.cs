@@ -184,13 +184,13 @@ public class COMCharacterAvatar : GameComponent
 			mAnimator.updateMode = ignore ? AnimatorUpdateMode.UnscaledTime : AnimatorUpdateMode.Normal;
 		}
 	}
-	public override void setActive(bool active)
+	public override bool setActive(bool active)
 	{
 		if (mObject != null && mObject.activeSelf != active)
 		{
 			mObject.SetActive(active);
 		}
-		base.setActive(active);
+		return base.setActive(active);
 	}
 	public virtual void destroyModel()
 	{

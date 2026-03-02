@@ -43,11 +43,11 @@ public abstract class ComponentOwner : CommandReceiver
 	{
 		mDestroyCallbackList?.Remove(callback);
 	}
-	public virtual void setActive(bool active)
+	public virtual bool setActive(bool active)
 	{
 		if (mDestroying)
 		{
-			return;
+			return false;
 		}
 		if (mAllComponentTypeList != null)
 		{
@@ -57,6 +57,7 @@ public abstract class ComponentOwner : CommandReceiver
 				item?.notifyOwnerActive(active);
 			}
 		}
+		return active;
 	}
 	// 更新正常更新的组件
 	public virtual void update(float elapsedTime)

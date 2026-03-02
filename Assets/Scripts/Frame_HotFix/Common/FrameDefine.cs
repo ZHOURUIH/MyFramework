@@ -122,6 +122,11 @@ public class FrameDefine
 	// 层
 	public const string LAYER_UI_BLUR = "UIBlur";
 	public static int LAYER_INT_UI_BLUR = LayerMask.NameToLayer(LAYER_UI_BLUR);
+	// 颜色
+	public const string COLOR_RED_STR = "FF0000";
+	public const string COLOR_GREEN_STR = "00FF00";
+	public const string COLOR_YELLOW_STR = "FFFF00";
+	public const string COLOR_WHITE_STR = "FFFFFF";
 
 	// Tag
 	public const string TAG_NO_CLICK = "NoClick";

@@ -7,6 +7,39 @@ using static UnityUtility;
 
 public static class DictionaryExtension
 {
+	public static void For<TKey, TValue>(this IDictionary<TKey, TValue> list, Action<KeyValuePair<TKey, TValue>> action)
+	{
+		if (list.isEmpty())
+		{
+			return;
+		}
+		foreach (var item in list)
+		{
+			action(item);
+		}
+	}
+	public static void forKey<TKey, TValue>(this IDictionary<TKey, TValue> list, Action<TKey> action)
+	{
+		if (list.isEmpty())
+		{
+			return;
+		}
+		foreach (TKey item in list.Keys)
+		{
+			action(item);
+		}
+	}
+	public static void forValue<TKey, TValue>(this IDictionary<TKey, TValue> list, Action<TValue> action)
+	{
+		if (list.isEmpty())
+		{
+			return;
+		}
+		foreach (TValue item in list.Values)
+		{
+			action(item);
+		}
+	}
 	public static IDictionary<TKey, TValue> safe<TKey, TValue>(this IDictionary<TKey, TValue> dic)
 	{
 		return dic ?? new MyEmptyDictionary<TKey, TValue>();
@@ -48,6 +81,14 @@ public static class DictionaryExtension
 		}
 		map.TryGetValue(key, out Value value);
 		return value;
+	}
+	public static bool addIf<Key, Value>(this IDictionary<Key, Value> map, Key key, Value value, bool condition)
+	{
+		if (condition)
+		{
+			map.Add(key, value);
+		}
+		return condition;
 	}
 	public static Value add<Key, Value>(this IDictionary<Key, Value> map, Key key, Value value)
 	{
@@ -92,7 +133,7 @@ public static class DictionaryExtension
 			map.Add(item.Key, item.Value);
 		}
 	}
-	public static void addRange<Key, Value>(this IDictionary<Key, Value> map, IDictionary<Key, Value> other)
+	public static void addRange<Key, Value>(this Dictionary<Key, Value> map, IDictionary<Key, Value> other)
 	{
 		if (other == null)
 		{
@@ -100,8 +141,41 @@ public static class DictionaryExtension
 		}
 		foreach (var item in other)
 		{
-			map.Add(item.Key, item.Value);
+			map.TryAdd(item.Key, item.Value);
 		}
+	}
+	public static bool getKeyOfValue<TKey, TValue>(this IDictionary<TKey, TValue> dic, TValue value, out TKey key)
+	{
+		if (dic.isEmpty())
+		{
+			key = default;
+			return false;
+		}
+		foreach (var item in dic)
+		{
+			if (item.Value.Equals(value))
+			{
+				key = item.Key;
+				return true;
+			}
+		}
+		key = default;
+		return false;
+	}
+	public static TKey getKeyOfValue<TKey, TValue>(this IDictionary<TKey, TValue> dic, TValue value)
+	{
+		if (dic.isEmpty())
+		{
+			return default;
+		}
+		foreach (var item in dic)
+		{
+			if (item.Value.Equals(value))
+			{
+				return item.Key;
+			}
+		}
+		return default;
 	}
 	// 返回值表示是否get成功
 	public static bool getOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dic, TKey key, TValue value, out TValue existValue)
@@ -310,5 +384,101 @@ public static class DictionaryExtension
 			return default;
 		}
 		return list.First().Key; 
+	}
+	public static bool findKey<TKey, TValue>(this IDictionary<TKey, TValue> list, Predicate<TKey> action, out TKey key)
+	{
+		if (list.count() == 0)
+		{
+			key = default;
+			return false;
+		}
+		foreach (TKey item in list.Keys)
+		{
+			if (action(item))
+			{
+				key = item;
+				return true;
+			}
+		}
+		key = default;
+		return false;
+	}
+	public static TKey findKey<TKey, TValue>(this IDictionary<TKey, TValue> list, Predicate<TKey> action)
+	{
+		if (list.count() == 0)
+		{
+			return default;
+		}
+		foreach (TKey item in list.Keys)
+		{
+			if (action(item))
+			{
+				return item;
+			}
+		}
+		return default;
+	}
+	public static bool findValue<TKey, TValue>(this IDictionary<TKey, TValue> list, Predicate<TValue> action, out TValue value)
+	{
+		if (list.count() == 0)
+		{
+			value = default;
+			return false;
+		}
+		foreach (TValue item in list.Values)
+		{
+			if (action(item))
+			{
+				value = item;
+				return true;
+			}
+		}
+		value = default;
+		return false;
+	}
+	public static TValue findValue<TKey, TValue>(this IDictionary<TKey, TValue> list, Predicate<TValue> action)
+	{
+		if (list.count() == 0)
+		{
+			return default;
+		}
+		foreach (TValue item in list.Values)
+		{
+			if (action(item))
+			{
+				return item;
+			}
+		}
+		return default;
+	}
+	public static bool hasKey<TKey, TValue>(this IDictionary<TKey, TValue> list, Predicate<TKey> action)
+	{
+		if (list.count() == 0)
+		{
+			return false;
+		}
+		foreach (TKey item in list.Keys)
+		{
+			if (action(item))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	public static bool hasValue<TKey, TValue>(this IDictionary<TKey, TValue> list, Predicate<TValue> action)
+	{
+		if (list.count() == 0)
+		{
+			return false;
+		}
+		foreach (TValue item in list.Values)
+		{
+			if (action(item))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 }

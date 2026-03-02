@@ -10,10 +10,10 @@ public abstract class WindowObjectRecyclableT<T> : WindowObjectT<T>, IRecyclable
 	public virtual void recycle() { mAssignID = -1; }
 	public void setAssignID(long assignID) { mAssignID = assignID; }
 	public long getAssignID() { return mAssignID; }
-	public override void setActive(bool active)
+	public override bool setActive(bool active)
 	{
 		checkRoot();
-		base.setActive(active);
+		return base.setActive(active);
 	}
 }
 

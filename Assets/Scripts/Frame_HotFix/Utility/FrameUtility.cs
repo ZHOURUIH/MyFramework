@@ -141,7 +141,7 @@ public class FrameUtility
 	}
 	public static void changeProcedureDelay<T>(float delayTime = 0.001f) where T : SceneProcedure
 	{
-		delayCall(()=>{ getCurScene().changeProcedure<T>(); }, delayTime);
+		delayCall(delayTime , ()=>{ getCurScene().changeProcedure<T>(); });
 	}
 	public static void prepareChangeProcedure<T>(float prepareTime = 0.001f) where T : SceneProcedure
 	{
@@ -162,7 +162,7 @@ public class FrameUtility
 	}
 	public static void changeProcedureDelay(Type procedure, float delayTime = 0.001f)
 	{
-		delayCall(() => { getCurScene().changeProcedure(procedure); }, delayTime);
+		delayCall(delayTime , () => { getCurScene().changeProcedure(procedure); });
 	}
 	public static void prepareChangeProcedure(Type procedure, float prepareTime = 0.001f)
 	{
@@ -616,7 +616,11 @@ public class FrameUtility
 	// 而delayCallSafe只有在guard销毁以后才能终止延迟执行
 	// 在主线程中发起延迟调用函数,函数将在主线程中调用,如果watcher在开始执行命令时被销毁了,则命令不会被执行
 	// LayoutScript不能作为watcher,因为不是从对象池中创建的
-	public static long delayCall(Action function, float delayTime = 0.0f, DelayCmdWatcher watcher = null)
+	public static long delayCall(Action function)
+	{
+		return delayCall(0.0f, function, null);
+	}
+	public static long delayCall(float delayTime, Action function, DelayCmdWatcher watcher = null)
 	{
 		if (function == null || mGlobalCmdReceiver == null)
 		{
@@ -1641,6 +1645,12 @@ public class FrameUtility
 		{
 			logError(typeof(T) + "枚举不包含值:" + value);
 		}
+	}
+	// 获取数量显示的颜色,比如数量不足时显示红色,数量足够时显示白色或者绿色
+	public static string getCountColor(bool enough, string enoughColor = null)
+	{
+		enoughColor ??= COLOR_WHITE_STR;
+		return enough ? enoughColor : COLOR_RED_STR;
 	}
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR
 	public static bool launchExe(string dir, string args, int timeoutMilliseconds, bool hidden = false)

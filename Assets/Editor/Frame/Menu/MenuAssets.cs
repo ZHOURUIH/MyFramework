@@ -53,21 +53,16 @@ public class MenuAssets
 				Debug.LogError("选择的不是文件夹");
 				return;
 			}
-			List<string> textureList = new();
-			findFiles(projectPathToFullPath(path), textureList, ".png", false);
+			List<string> textureList = findFilesNonAlloc(projectPathToFullPath(path), ".png", false);
 			if (textureList.Count == 0)
 			{
 				Debug.Log("选择的文件夹中没有图片资源");
 				return;
 			}
-			foreach (string file in textureList)
+			if (textureList.contains(file=> loadFirstSubAsset<Sprite>(file) == null))
 			{
-				var sprite = loadFirstSubAsset<Sprite>(file);
-				if (sprite == null)
-				{
-					Debug.LogError("图片导入方式不是Sprite, 无法生成图集");
-					return;
-				}
+				Debug.LogError("图片导入方式不是Sprite, 无法生成图集");
+				return;
 			}
 			SpriteAtlas atlas = new();
 			atlas.SetIncludeInBuild(true);
@@ -127,7 +122,8 @@ public class MenuAssets
 	[MenuItem(mMenuName + "删除所有空文件夹", false, 32)]
 	public static void deleteAllEmptyFolder()
 	{
-		foreach (UObject obj in Selection.GetFiltered(typeof(UObject), SelectionMode.Assets))
+		UObject obj = Selection.GetFiltered(typeof(UObject), SelectionMode.Assets).first();
+		if (obj != null)
 		{
 			string path = AssetDatabase.GetAssetPath(obj);
 			if (Directory.Exists(path))
@@ -138,11 +134,10 @@ public class MenuAssets
 			{
 				Debug.LogError("选中的不是文件夹");
 			}
-			break;
 		}
 		AssetDatabase.Refresh();
 	}
-	[MenuItem(mMenuName + "修正引用了Boader的sprite但是没有使用Slice的组件", false, 133)]
+	[MenuItem(mMenuName + "修正引用了Border的sprite但是没有使用Slice的组件", false, 133)]
 	public static void fixNeedUseSliceImage()
 	{
 		// 无法通过Selection.gameObjects来判断,只能使用Selection.transforms来判断
@@ -313,18 +308,12 @@ public class MenuAssets
 		// 选中的是文件或者文件夹
 		if (Selection.transforms.count() == 0)
 		{
-			List<string> prefabFiles = new();
 			foreach (UObject obj in Selection.GetFiltered(typeof(UObject), SelectionMode.Assets))
 			{
 				string path = AssetDatabase.GetAssetPath(obj);
 				if (Directory.Exists(path))
 				{
-					prefabFiles.Clear();
-					findFiles(projectPathToFullPath(path), prefabFiles, ".prefab");
-					foreach (string file in prefabFiles)
-					{
-						doPrefab(fullPathToProjectPath(file));
-					}
+					findFilesNonAlloc(projectPathToFullPath(path), ".prefab").For(file => doPrefab(fullPathToProjectPath(file)));
 				}
 				else if (isFileExist(path))
 				{
@@ -332,6 +321,11 @@ public class MenuAssets
 				}
 			}
 		}
+	}
+	[MenuItem(mMenuName + "查找文件引用  %Q", false, 134)]
+	public static void searchReference()
+	{
+		MenuCheckResources.searchReference();
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected static void doPrefab(string prefabPath)
@@ -345,8 +339,7 @@ public class MenuAssets
 		if (current.GetComponent<RectTransform>() == null)
 		{
 			Transform oldTransform = current.transform;
-			Vector3 pos = oldTransform.localPosition;
-			Quaternion rot = oldTransform.localRotation;
+			oldTransform.GetLocalPositionAndRotation(out Vector3 pos, out Quaternion rot);
 			Vector3 scale = oldTransform.localScale;
 
 			var rt = current.AddComponent<RectTransform>();
@@ -408,16 +401,16 @@ public class MenuAssets
 			{
 				continue;
 			}
-			bool hasBoader = img.sprite.border.x > 0 ||
+			bool hasBorder = img.sprite.border.x > 0 ||
 							 img.sprite.border.y > 0 ||
 							 img.sprite.border.z > 0 ||
 							 img.sprite.border.w > 0;
 			// 检查条件：有边框但未使用Slice模式
-			if (hasBoader && img.type != Image.Type.Sliced)
+			if (hasBorder && img.type != Image.Type.Sliced)
 			{
 				img.type = Image.Type.Sliced;
 				modified = true;
-				Debug.Log("已修复引用的图片有boader但是没有使用slice模式,GameObjcet:" + img.gameObject.name, prefab);
+				Debug.Log("已修复引用的图片有border但是没有使用slice模式,GameObject:" + img.gameObject.name, prefab);
 			}
 		}
 		return modified;
@@ -430,7 +423,7 @@ public class MenuAssets
 			if (img.refresh(true, atlasListCache))
 			{
 				modified = true;
-				Debug.Log("已修复ImageAtlasPath,GameObjcet:" + img.gameObject.name, prefab);
+				Debug.Log("已修复ImageAtlasPath,GameObject:" + img.gameObject.name, prefab);
 			}
 		}
 		return modified;

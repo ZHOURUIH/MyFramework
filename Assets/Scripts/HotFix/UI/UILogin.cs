@@ -3,6 +3,8 @@ using static FrameUtility;
 using static GBH;
 
 	// auto generate member start
+// generate from:Assets/GameResources/UI/UIPrefab/UILogin.prefab
+// 登录界面
 [ObfuzIgnore(ObfuzScope.TypeName)]
 public class UILogin : LayoutScript
 {

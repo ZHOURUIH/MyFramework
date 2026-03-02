@@ -77,17 +77,16 @@ public class EditorCommonUtility
 		prefab.transform.localScale = Vector3.one;
 	}
 	// 将一个节点下的所有一级子节点生成为prefab文件,path是以Assets开头的目录
-	public static void childsToPrefab(string path, GameObject go)
+	public static void childrenToPrefab(string path, GameObject go)
 	{
 		Transform transform = go.transform;
-		int childCount = transform.childCount;
-		for (int i = 0; i < childCount; ++i)
+		for (int i = 0; i < transform.childCount; ++i)
 		{
 			gameObjectToPrefab(path, transform.GetChild(i).gameObject);
 		}
 	}
 	// 查找文件在其他地方的引用情况,查找fileName在allFileText中指定后缀的文件中的引用情况
-	public static int searchFiles(string pattern, string guid, string fileName, bool loadFile, Dictionary<string, UObject> refrenceList, Dictionary<string, List<FileGUIDLines>> allFileText, bool checkUnuseOnly)
+	public static int searchFiles(string pattern, string guid, string fileName, bool loadFile, Dictionary<string, UObject> referenceList, Dictionary<string, List<FileGUIDLines>> allFileText, bool checkUnuseOnly)
 	{
 		int[] guidNextIndex = null;
 		fileName = fileName.rightToLeft();
@@ -137,12 +136,12 @@ public class EditorCommonUtility
 					{
 						continue;
 					}
-					if (fileName != curFile && !refrenceList.ContainsKey(curFile))
+					if (fileName != curFile && !referenceList.ContainsKey(curFile))
 					{
-						refrenceList.Add(curFile, loadFile ? loadAsset(curFile) : null);
+						referenceList.Add(curFile, loadFile ? loadAsset(curFile) : null);
 						if (checkUnuseOnly)
 						{
-							return refrenceList.Count;
+							return referenceList.Count;
 						}
 					}
 					break;
@@ -152,57 +151,45 @@ public class EditorCommonUtility
 			// 在非文本文件中查找是否有引用
 			if (pattern.endWith(".asset"))
 			{
+				List<UObject> assetList = new();
 				foreach (FileGUIDLines fileGUIDLines in item.Value)
 				{
 					// 地形数据
-					List<UObject> assetList = new();
 					var terrainData = fileGUIDLines.mObject as TerrainData;
-					if (terrainData != null)
+					if (terrainData == null)
 					{
-						// holesTexture
-						assetList.addNotNull(terrainData.holesTexture);
-						// alphamapTextures
-						foreach (Texture2D tex in terrainData.alphamapTextures)
-						{
-							assetList.addNotNull(tex);
-						}
-						// terrainLayers
-						foreach (TerrainLayer layer in terrainData.terrainLayers)
-						{
-							assetList.Add(layer);
-							assetList.addNotNull(layer.diffuseTexture);
-							assetList.addNotNull(layer.normalMapTexture);
-							assetList.addNotNull(layer.maskMapTexture);
-						}
-						// detailPrototypes
-						foreach (DetailPrototype detail in terrainData.detailPrototypes)
-						{
-							assetList.addNotNull(detail.prototypeTexture);
-						}
-						// treePrototypes
-						foreach (TreePrototype tree in terrainData.treePrototypes)
-						{
-							assetList.addNotNull(tree.prefab);
-						}
+						continue;
+					}
+					assetList.Clear();
+					// holesTexture
+					assetList.addNotNull(terrainData.holesTexture);
+					// alphamapTextures
+					assetList.addRangeNotNull(terrainData.alphamapTextures);
+					// terrainLayers
+					foreach (TerrainLayer layer in terrainData.terrainLayers)
+					{
+						assetList.Add(layer);
+						assetList.addNotNull(layer.diffuseTexture);
+						assetList.addNotNull(layer.normalMapTexture);
+						assetList.addNotNull(layer.maskMapTexture);
+					}
+					// detailPrototypes
+					terrainData.detailPrototypes.For(detail => assetList.addNotNull(detail.prototypeTexture));
+					// treePrototypes
+					terrainData.treePrototypes.For(tree => assetList.addNotNull(tree.prefab));
 
-						foreach (UObject asset in assetList)
+					if (assetList.find(asset => guid == AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset))))
+					{
+						referenceList.Add(fileGUIDLines.mProjectFileName, fileGUIDLines.mObject);
+						if (checkUnuseOnly)
 						{
-							string curGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
-							if (guid == curGuid)
-							{
-								refrenceList.Add(fileGUIDLines.mProjectFileName, fileGUIDLines.mObject);
-								if (checkUnuseOnly)
-								{
-									return refrenceList.Count;
-								}
-								break;
-							}
+							return referenceList.Count;
 						}
 					}
 				}
 			}
 		}
-		return refrenceList.Count;
+		return referenceList.Count;
 	}
 	// 检查shader是否有指定的属性
 	public static bool checkTextureInShader(string texturePropertyName, string shaderContent)
@@ -331,9 +318,7 @@ public class EditorCommonUtility
 			string line = item.removeAll(' ');
 			if (line.StartsWith("m_Shader:"))
 			{
-				string key = "guid:";
-				int startIndex = line.IndexOf(key) + key.Length;
-				shaderGUID = line.rangeToFirst(startIndex, ',');
+				shaderGUID = line.rangeBetweenKeyToKey("guid:", ',');
 				break;
 			}
 		}
@@ -377,12 +362,9 @@ public class EditorCommonUtility
 				// 找到属性名
 				string preKey = "-";
 				string endStr = ":";
-				if (line.StartsWith(preKey))
+				if (line.StartsWith(preKey) && hasGUID(line))
 				{
-					if (hasGUID(line))
-					{
-						texturePropertyList.Add(line.range(preKey.Length, line.Length - endStr.Length));
-					}
+					texturePropertyList.Add(line.range(preKey.Length, line.Length - endStr.Length));
 				}
 				// 贴图属性查找结束
 				if (line == "m_Floats:" || line == "m_Colors:")
@@ -392,20 +374,13 @@ public class EditorCommonUtility
 			}
 		}
 		// 检查贴图是否在shader中用到了
-		bool materialValid = true;
-		foreach (string item in texturePropertyList)
-		{
-			// 找到一个shader中没有的贴图属性
-			if (!checkTextureInShader(item, shaderContent))
-			{
-				Debug.LogError("材质中使用了无效的贴图属性:" + path, loadAsset(path));
-				materialValid = false;
-				break;
-			}
-		}
-		if (materialValid)
+		if (!texturePropertyList.contains(item => !checkTextureInShader(item, shaderContent)))
 		{
 			Debug.Log("材质贴图属性正常:" + path);
+		}
+		else
+		{
+			Debug.LogError("材质中使用了无效的贴图属性:" + path, loadAsset(path));
 		}
 	}
 	public static Dictionary<string, string> getSpriteGUIDs(string path)
@@ -436,17 +411,17 @@ public class EditorCommonUtility
 		}
 		return spriteGUIDs;
 	}
-	public static void searchSpriteRefrence(string path, Dictionary<string, SpriteReferenceInfo> refrenceList, Dictionary<string, List<FileGUIDLines>> allFileText)
+	public static void searchSpriteReference(string path, Dictionary<string, SpriteReferenceInfo> referenceList, Dictionary<string, List<FileGUIDLines>> allFileText)
 	{
-		refrenceList.Clear();
+		referenceList.Clear();
 		string atlasGUID = AssetDatabase.AssetPathToGUID(path);
 		var spriteGUID = getSpriteGUIDs(path);
 		foreach (var item in spriteGUID)
 		{
-			searchSprite(atlasGUID, item.Key, item.Value, refrenceList, allFileText);
+			searchSprite(atlasGUID, item.Key, item.Value, referenceList, allFileText);
 		}
 	}
-	public static void searchSprite(string atlasGUID, string spriteGUID, string spriteName, Dictionary<string, SpriteReferenceInfo> refrenceList, Dictionary<string, List<FileGUIDLines>> allFileText)
+	public static void searchSprite(string atlasGUID, string spriteGUID, string spriteName, Dictionary<string, SpriteReferenceInfo> referenceList, Dictionary<string, List<FileGUIDLines>> allFileText)
 	{
 		string key = "m_Sprite: {fileID: " + spriteGUID + ", guid: " + atlasGUID;
 		int[] keyNextIndex = null;
@@ -465,22 +440,22 @@ public class EditorCommonUtility
 					{
 						continue;
 					}
-					if (!refrenceList.ContainsKey(suffix))
+					if (!referenceList.ContainsKey(suffix))
 					{
 						SpriteReferenceInfo info = new();
 						info.mSpriteName = spriteName;
 						info.mFileName = suffix;
 						info.mObject = loadAsset(suffix);
-						refrenceList.Add(suffix, info);
+						referenceList.Add(suffix, info);
 					}
 					break;
 				}
 			}
 		}
 	}
-	public static void searchFileRefrence(string path, bool loadFile, Dictionary<string, UObject> refrenceList, Dictionary<string, List<FileGUIDLines>> allFileText, bool checkUnuseOnly)
+	public static void searchFileReference(string path, bool loadFile, Dictionary<string, UObject> referenceList, Dictionary<string, List<FileGUIDLines>> allFileText, bool checkUnuseOnly)
 	{
-		refrenceList.Clear();
+		referenceList.Clear();
 		HashSet<string> guidList = new() { AssetDatabase.AssetPathToGUID(path) };
 		bool isTexture = isTextureSuffix(getFileSuffix(path));
 		// 如果是图片文件,则需要查找其中包含的sprite
@@ -511,7 +486,7 @@ public class EditorCommonUtility
 			// 只有贴图和shader才会从材质中查找引用
 			if (isTexture || isShader)
 			{
-				if (searchFiles("*.mat", item, path, loadFile, refrenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
+				if (searchFiles("*.mat", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
 				{
 					return;
 				}
@@ -519,26 +494,26 @@ public class EditorCommonUtility
 			// subshader需要在shadergraph和shadersubgraph中查找
 			if (isSubShader)
 			{
-				if (searchFiles("*.shadergraph", item, path, loadFile, refrenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
+				if (searchFiles("*.shadergraph", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
 				{
 					return;
 				}
-				if (searchFiles("*.shadersubgraph", item, path, loadFile, refrenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
+				if (searchFiles("*.shadersubgraph", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
 				{
 					return;
 				}
 			}
 			if (isTexture)
 			{
-				if (searchFiles("*.terrainlayer", item, path, loadFile, refrenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
+				if (searchFiles("*.terrainlayer", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
 				{
 					return;
 				}
-				if (searchFiles("*.shadergraph", item, path, loadFile, refrenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
+				if (searchFiles("*.shadergraph", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
 				{
 					return;
 				}
-				if (searchFiles("*.shadersubgraph", item, path, loadFile, refrenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
+				if (searchFiles("*.shadersubgraph", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
 				{
 					return;
 				}
@@ -546,44 +521,44 @@ public class EditorCommonUtility
 			// 只有动画文件才会在状态机中查找
 			if (isAnimClip || isAnimator || isModel)
 			{
-				if (searchFiles("*.controller", item, path, loadFile, refrenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
+				if (searchFiles("*.controller", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
 				{
 					return;
 				}
-				if (searchFiles("*.overrideController", item, path, loadFile, refrenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
+				if (searchFiles("*.overrideController", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
 				{
 					return;
 				}
 			}
-			if (searchFiles("*.asset", item, path, loadFile, refrenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
+			if (searchFiles("*.asset", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
 			{
 				return;
 			}
-			if (searchFiles("*.prefab", item, path, loadFile, refrenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
+			if (searchFiles("*.prefab", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
 			{
 				return;
 			}
-			if (searchFiles("*.unity", item, path, loadFile, refrenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
+			if (searchFiles("*.unity", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
 			{
 				return;
 			}
-			if (searchFiles("*.meta", item, path, loadFile, refrenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
+			if (searchFiles("*.meta", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
 			{
 				return;
 			}
 		}
 	}
 	// 查找资源引用了哪些文件
-	public static void searchFileRefrenceOther(string path, bool loadFile, Dictionary<string, UObject> refrenceList, Dictionary<string, string> allMetaList)
+	public static void searchFileReferenceOther(string path, bool loadFile, Dictionary<string, UObject> referenceList, Dictionary<string, string> allMetaList)
 	{
-		refrenceList.Clear();
+		referenceList.Clear();
 		FileGUIDLines guids = getGUIDsInFile(path);
 		foreach (string guid in (guids?.mContainGUIDLines).safe())
 		{
 			if (allMetaList.TryGetValue(guid, out string otherPath))
 			{
 				otherPath = otherPath.removeEndString(".meta");
-				refrenceList.Add(otherPath, loadFile ? loadAsset(otherPath) : null);
+				referenceList.Add(otherPath, loadFile ? loadAsset(otherPath) : null);
 			}
 		}
 	}
@@ -648,13 +623,9 @@ public class EditorCommonUtility
 		Dictionary<string, string> allFileMeta = new();
 		foreach (string item in findFilesNonAlloc(path, ".meta"))
 		{
-			foreach (string lineItem in splitLine(File.ReadAllText(item)))
+			if (splitLine(File.ReadAllText(item)).find(lineItem=> lineItem.StartsWith(key), out string lineItem))
 			{
-				if (lineItem.StartsWith(key))
-				{
-					allFileMeta.add(lineItem.removeStartCount(key.Length), item);
-					break;
-				}
+				allFileMeta.add(lineItem.removeStartCount(key.Length), item);
 			}
 		}
 		return allFileMeta;
@@ -665,14 +636,7 @@ public class EditorCommonUtility
 	}
 	public static bool isTextureSuffix(string suffixWithDot)
 	{
-		foreach (string suffix in getTextureSuffixList())
-		{
-			if (suffixWithDot.endWith(suffix, false))
-			{
-				return true;
-			}
-		}
-		return false;
+		return getTextureSuffixList().contains(suffix => suffixWithDot.endWith(suffix, false));
 	}
 	public static Dictionary<string, List<FileGUIDLines>> getAllFileText(string path, string[] patterns = null)
 	{
@@ -724,14 +688,9 @@ public class EditorCommonUtility
 		for (int i = 0; i < fileCount; ++i)
 		{
 			displayProgressBar("正在查找所有" + tipText + "资源", "进度:", i + 1, fileCount);
-			string file = files[i];
-			foreach (string line in openTxtFileLines(file))
+			if (openTxtFileLines(files[i]).find(line => line.Contains("guid: "), out string line))
 			{
-				if (line.Contains("guid: "))
-				{
-					allGUIDDic.Add(line.removeStartString("guid: "), file);
-					break;
-				}
+				allGUIDDic.Add(line.removeStartString("guid: "), files[i]);
 			}
 		}
 		clearProgressBar();
@@ -773,7 +732,7 @@ public class EditorCommonUtility
 		return allGUIDDic;
 	}
 	// 获得文件中引用到了cs脚本的所在行
-	public static Dictionary<string, FileGUIDLines> getScriptRefrenceFileText(string path)
+	public static Dictionary<string, FileGUIDLines> getScriptReferenceFileText(string path)
 	{
 		// key是后缀名,value是该后缀名的文件信息列表
 		Dictionary<string, FileGUIDLines> allFileText = new();
@@ -826,7 +785,7 @@ public class EditorCommonUtility
 		return splitStr;
 	}
 	// 获得文件中引用到了Material的所在行
-	public static Dictionary<string, FileGUIDLines> getMaterialRefrenceFileText(string path)
+	public static Dictionary<string, FileGUIDLines> getMaterialReferenceFileText(string path)
 	{
 		// key是文件名,value是文件信息列表
 		Dictionary<string, FileGUIDLines> allFileText = new();
@@ -855,7 +814,7 @@ public class EditorCommonUtility
 		return allFileText;
 	}
 	// 获得文件中具有引用的所在行
-	public static Dictionary<string, FileGUIDLines> getAllRefrenceFileText(string path)
+	public static Dictionary<string, FileGUIDLines> getAllReferenceFileText(string path)
 	{
 		// key是后缀名,value是该后缀名的文件信息列表
 		Dictionary<string, FileGUIDLines> allFileText = new();
@@ -884,17 +843,17 @@ public class EditorCommonUtility
 	}
 	public static Dictionary<string, string> checkAtlasNotExistSprite(string path)
 	{
-		Dictionary<string, string> notExistsprites = new();
+		Dictionary<string, string> notExistSprites = new();
 		string atlasContent = openTxtFile(projectPathToFullPath(path + ".meta"), true);
 		int startIndex = atlasContent.IndexOf("externalObjects: {}");
 		foreach (var item in getSpriteGUIDs(path))
 		{
 			if (atlasContent.IndexOf(item.Value, startIndex) == -1)
 			{
-				notExistsprites.add(item);
+				notExistSprites.add(item);
 			}
 		}
-		return notExistsprites;
+		return notExistSprites;
 	}
 #if USE_GOOGLE_PLAY_ASSET_DELIVERY
 	public static BuildResult buildGoogleAAB(string apkPath, BuildOptions buildOptions, AssetPackConfig packConfig = null)
@@ -972,11 +931,11 @@ public class EditorCommonUtility
 		}
 
 		go.TryGetComponent<MeshCollider>(out var collider);
-		go.TryGetComponent<MeshFilter>(out var meshFiliter);
-		bool modified = collider != null && meshFiliter != null;
+		go.TryGetComponent<MeshFilter>(out var meshFilter);
+		bool modified = collider != null && meshFilter != null;
 		if (modified)
 		{
-			collider.sharedMesh = meshFiliter.sharedMesh;
+			collider.sharedMesh = meshFilter.sharedMesh;
 			collider.convex = false;
 		}
 		// 修复所有子节点
@@ -1032,15 +991,7 @@ public class EditorCommonUtility
 		{
 			filePath = fullPathToProjectPath(filePath);
 		}
-		UObject[] assets = AssetDatabase.LoadAllAssetsAtPath(filePath);
-		foreach (UObject asset in assets)
-		{
-			if (asset is T obj)
-			{
-				return obj;
-			}
-		}	
-		return null;
+		return AssetDatabase.LoadAllAssetsAtPath(filePath).find(asset => asset is T) as T;
 	}
 	public static GameObject loadGameObject(string filePath)
 	{
@@ -1061,21 +1012,15 @@ public class EditorCommonUtility
 		return isPow2(tex.width) && isPow2(tex.height);
 	}
 	// 是否忽略该文件
-	public static bool isIgnoreFile(string filePath, IEnumerable<string> ignoreArr = null)
+	public static bool isIgnoreFile(string filePath, IList<string> ignoreArr = null)
 	{
-		foreach (string str in getIgnoreScriptCheck())
+		if (getIgnoreScriptCheck().contains(str=> filePath.Contains(str)))
 		{
-			if (filePath.Contains(str))
-			{
-				return true;
-			}
+			return true;
 		}
-		foreach (string element in ignoreArr.safe())
+		if (ignoreArr != null && ignoreArr.contains(item=> filePath.Contains(item)))
 		{
-			if (filePath.Contains(element))
-			{
-				return true;
-			}
+			return true;
 		}
 		return false;
 	}
@@ -1128,23 +1073,11 @@ public class EditorCommonUtility
 		codeLine = removeComment(codeLine);
 		codeLine = removeQuotedStrings(codeLine);
 
-		// 移除;
-		int semiIndex = codeLine.IndexOf(';');
-		if (semiIndex >= 0)
-		{
-			codeLine = codeLine.Remove(semiIndex);
-		}
-
-		// 移除=以及后面所有的字符
-		int euqalIndex = codeLine.IndexOf('=');
-		if (euqalIndex >= 0)
-		{
-			codeLine = codeLine.Remove(euqalIndex);
-		}
-
+		// 移除; 移除=以及后面所有的字符
+		codeLine = codeLine.rangeToFirst(';');
+		codeLine = codeLine.rangeToFirst('=');
 		// 从后往前把所有的空格和制表符移除
 		codeLine = codeLine.removeEndEmpty();
-
 		// 移除模板参数
 		codeLine = codeLine.removeFirstBetweenPairChars('<', '>', out _, out _);
 
@@ -1333,7 +1266,7 @@ public class EditorCommonUtility
 		return null;
 	}
 	// 检测命令命名规范
-	public static void doCheckCommandName(string filePath, string[] lines, Assembly csharpAssembly, Assembly hotfixAssembly)
+	public static void doCheckCommandName(string filePath, string[] lines)
 	{
 		if (lines.isEmpty())
 		{
@@ -1525,12 +1458,12 @@ public class EditorCommonUtility
 	public static void doCheckFunctionName(string filePath, int index, string codeLine, string className)
 	{
 		// 返回值为空说明这一行不是函数声明行
-		if (!findFunctionName(codeLine, out bool isContructor, out string functionName))
+		if (!findFunctionName(codeLine, out bool isConstructor, out string functionName))
 		{
 			return;
 		}
 		// 忽略构造函数
-		if (isContructor)
+		if (isConstructor)
 		{
 			return;
 		}
@@ -2275,57 +2208,57 @@ public class EditorCommonUtility
 			log("图集:" + path + "中的图片:" + item.Value + "不存在", Color.red, loadAsset(path));
 		}
 	}
-	public static void doCheckTPAtlasRefrence(string path, Dictionary<string, List<FileGUIDLines>> allFileText)
+	public static void doCheckTPAtlasReference(string path, Dictionary<string, List<FileGUIDLines>> allFileText)
 	{
-		Dictionary<string, SpriteReferenceInfo> refrenceList = new();
-		searchSpriteRefrence(path, refrenceList, allFileText);
-		foreach (var item in refrenceList)
+		Dictionary<string, SpriteReferenceInfo> referenceList = new();
+		searchSpriteReference(path, referenceList, allFileText);
+		foreach (var item in referenceList)
 		{
 			log("图集:" + path + "被布局:" + item.Key + "所引用, sprite:" + item.Value.mSpriteName, item.Value.mObject);
 		}
-		Debug.Log("图集" + path + "被" + refrenceList.Count + "个布局引用");
+		Debug.Log("图集" + path + "被" + referenceList.Count + "个布局引用");
 	}
 	public static void doCheckUnusedFile(string path, Dictionary<string, List<FileGUIDLines>> allFileText)
 	{
-		Dictionary<string, UObject> refrenceMaterialList = new();
-		searchFileRefrence(path, false, refrenceMaterialList, allFileText, true);
-		if (refrenceMaterialList.Count == 0)
+		Dictionary<string, UObject> referenceMaterialList = new();
+		searchFileReference(path, false, referenceMaterialList, allFileText, true);
+		if (referenceMaterialList.Count == 0)
 		{
 			Debug.Log("资源未引用:" + path, loadAsset(path));
 		}
 	}
-	public static void doSearchRefrence(string path, Dictionary<string, List<FileGUIDLines>> allFileText)
+	public static void doSearchReference(string path, Dictionary<string, List<FileGUIDLines>> allFileText)
 	{
-		Dictionary<string, UObject> refrenceList = new();
+		Dictionary<string, UObject> referenceList = new();
 		string fileName = getFileNameWithSuffix(path);
 		DateTime start = DateTime.Now;
 		Debug.Log("<<<<<<<开始查找" + fileName + "的引用.......");
-		searchFileRefrence(path, false, refrenceList, allFileText, false);
-		foreach (string item in refrenceList.Keys)
+		searchFileReference(path, false, referenceList, allFileText, false);
+		foreach (string item in referenceList.Keys)
 		{
 			log(item, Color.green, loadAsset(item));
 		}
-		Debug.Log(">>>>>>>完成查找" + fileName + "的引用, 共有" + refrenceList.Count + "处引用, 耗时:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒", loadAsset(path));
+		Debug.Log(">>>>>>>完成查找" + fileName + "的引用, 共有" + referenceList.Count + "处引用, 耗时:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒", loadAsset(path));
 	}
 	public static void doSearchResourceRefOther(string path, Dictionary<string, string> allMetaList)
 	{
-		Dictionary<string, UObject> refrenceList = new();
+		Dictionary<string, UObject> referenceList = new();
 		string fileName = getFileNameWithSuffix(path);
 		DateTime start = DateTime.Now;
 		Debug.Log("<<<<<<<开始查找" + fileName + "引用的文件.......");
-		searchFileRefrenceOther(path, false, refrenceList, allMetaList);
-		foreach (string item in refrenceList.Keys)
+		searchFileReferenceOther(path, false, referenceList, allMetaList);
+		foreach (string item in referenceList.Keys)
 		{
 			log(item, Color.green, loadAsset(item));
 		}
-		Debug.Log(">>>>>>>完成查找" + fileName + "引用的文件, 共引用" + refrenceList.Count + "个文件, 耗时:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒", loadAsset(path));
+		Debug.Log(">>>>>>>完成查找" + fileName + "引用的文件, 共引用" + referenceList.Count + "个文件, 耗时:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒", loadAsset(path));
 	}
 	public static void doCheckSingleUsedFile(string path, Dictionary<string, List<FileGUIDLines>> allFileText, bool needMoveFile)
 	{
-		Dictionary<string, UObject> refrenceList = new();
-		searchFileRefrence(path, false, refrenceList, allFileText, false);
+		Dictionary<string, UObject> referenceList = new();
+		searchFileReference(path, false, referenceList, allFileText, false);
 		string refFilePath = null;
-		foreach (string item in refrenceList.Keys)
+		foreach (string item in referenceList.Keys)
 		{
 			if (refFilePath == null)
 			{
@@ -2339,7 +2272,7 @@ public class EditorCommonUtility
 		if (refFilePath.rightToLeft() != getFilePath(path.rightToLeft()))
 		{
 			Debug.LogError(path + " 只被 " + refFilePath + "中的文件引用,但是没有在同一个目录", loadAsset(path));
-			Debug.LogError("所在目录:" + refFilePath, loadAsset(refrenceList.firstKey()));
+			Debug.LogError("所在目录:" + refFilePath, loadAsset(referenceList.firstKey()));
 			if (needMoveFile)
 			{
 				moveFile(projectPathToFullPath(path), projectPathToFullPath(refFilePath + "/") + getFileNameWithSuffix(path));
@@ -2417,11 +2350,11 @@ public class EditorCommonUtility
 			roundTransformToInt(transform.GetChild(i));
 		}
 	}
-	public static void doCheckResetProperty(Assembly assemly, string path)
+	public static void doCheckResetProperty(Assembly assembly, string path)
 	{
 		// 遍历目录,存储所有文件名和对应文本内容
 		Dictionary<string, ClassInfo> classInfoList = new();
-		getCSharpFile(assemly.GetName().Name, path, classInfoList);
+		getCSharpFile(assembly.GetName().Name, path, classInfoList);
 		// 不需要检测的基类
 		List<Type> ignoreBaseClass = new()
 		{
@@ -2443,7 +2376,7 @@ public class EditorCommonUtility
 		};
 		ignoreBaseClass.AddRange(getIgnoreResetPropertyClass());
 		// 获取到类型
-		foreach (Type type in assemly.GetTypes())
+		foreach (Type type in assembly.GetTypes())
 		{
 			// 是否继承自需要忽略的基类
 			bool isIgnoreClass = false;
@@ -2476,7 +2409,7 @@ public class EditorCommonUtility
 				continue;
 			}
 			// `表示是模板类
-			string className = assemly.GetName().Name + ":" + type.Name.rangeToFirst('`');
+			string className = assembly.GetName().Name + ":" + type.Name.rangeToFirst('`');
 			if (!classInfoList.TryGetValue(className, out ClassInfo info))
 			{
 				Debug.LogError("class:" + className + " 程序集中有此类,但是代码文件中找不到此类");
@@ -2574,11 +2507,11 @@ public class EditorCommonUtility
 			letters.Add((char)('0' + i));
 		}
 		letters.Add('_');
-		char[] seperates = generateOtherASCII(letters.ToArray());
+		char[] separates = generateOtherASCII(letters.ToArray());
 		for (int i = 0; i < resetFunctionLines.Count; ++i)
 		{
 			// 文本用分隔符拆分,判断其中是否有变量名,一行最多只允许出现一个成员变量
-			string[] strList = split(resetFunctionLines[i], seperates);
+			string[] strList = split(resetFunctionLines[i], separates);
 			for (int j = 0; j < notResetMemberList.Count; ++j)
 			{
 				// 如果检测到已经重置了,则将其从待重置列表中移除
@@ -2908,8 +2841,7 @@ public class EditorCommonUtility
 		for (int j = index + 1; j < endIndex; ++j)
 		{
 			// 成员变量
-			string normalVarlable = findMemberVariableName(lines[j]);
-			if (!normalVarlable.isEmpty() && !lines[j].Contains("myUGUI") && !lines[j].Contains("//"))
+			if (!findMemberVariableName(lines[j]).isEmpty() && !lines[j].Contains("myUGUI") && !lines[j].Contains("//"))
 			{
 				Debug.LogError("需要在成员变量的后面增加注释!!!" + addFileLine(filePath, j + 1));
 			}
@@ -2969,7 +2901,7 @@ public class EditorCommonUtility
 			}
 		}
 	}
-	public static void doCheckFunctionCall(string lineString, string filePath, int index, Type classType, params string[] ignoreFuncionList)
+	public static void doCheckFunctionCall(string lineString, string filePath, int index, Type classType, params string[] ignoreFunctionList)
 	{
 		// 移除注释
 		string codeLine = removeComment(lineString);
@@ -3021,7 +2953,7 @@ public class EditorCommonUtility
 			}
 
 			// 如果在忽略函数名集合中，就移除掉再继续找
-			if (arrayContains(ignoreFuncionList, functionString))
+			if (arrayContains(ignoreFunctionList, functionString))
 			{
 				codeLine = codeLine.removeStartCount((resultIndex + functionString.Length));
 				continue;
@@ -3114,8 +3046,7 @@ public class EditorCommonUtility
 		{
 			// 判断双斜杠之前有多少个双引号,奇数个则表示双斜杠在字符串内
 			string preString = codeLine.Remove(index);
-			int quotCount = getCharCount(preString, '"');
-			if ((quotCount & 1) == 0)
+			if ((getCharCount(preString, '"') & 1) == 0)
 			{
 				return preString;
 			}
@@ -3161,7 +3092,7 @@ public class EditorCommonUtility
 			int index = code.findFirstSubstr(" guid: ", 0, true);
 			if (index < 0)
 			{
-				Debug.LogError("UI节点图片为空，filePath:" + filePath + ", 节点名:" + findGameObejctNameInPrefab(lines, i), loadAsset(filePath));
+				Debug.LogError("UI节点图片为空，filePath:" + filePath + ", 节点名:" + findGameObjectNameInPrefab(lines, i), loadAsset(filePath));
 				continue;
 			}
 			code = code.removeStartCount(index);
@@ -3171,7 +3102,7 @@ public class EditorCommonUtility
 				!assetPath.Contains(P_RESOURCES_ATLAS_PATH) &&
 				!assetPath.Contains(P_RESOURCES_TEXTURE_PATH))
 			{
-				Debug.LogError("UI节点图片引用了内置资源，filePath:" + filePath + ", 节点名:" + findGameObejctNameInPrefab(lines, i), loadAsset(filePath));
+				Debug.LogError("UI节点图片引用了内置资源，filePath:" + filePath + ", 节点名:" + findGameObjectNameInPrefab(lines, i), loadAsset(filePath));
 			}
 		}
 	}
@@ -3190,7 +3121,7 @@ public class EditorCommonUtility
 			int index = code.findFirstSubstr(" guid: ", 0, true);
 			if (index < 0)
 			{
-				Debug.LogError("UI节点字体为空，filePath:" + filePath + ", 节点名称:" + findGameObejctNameInPrefab(lines, i), loadAsset(filePath));
+				Debug.LogError("UI节点字体为空，filePath:" + filePath + ", 节点名称:" + findGameObjectNameInPrefab(lines, i), loadAsset(filePath));
 			}
 			else
 			{
@@ -3199,7 +3130,7 @@ public class EditorCommonUtility
 		}
 	}
 	// 在prefab文件中寻找指定行所属的节点名
-	public static string findGameObejctNameInPrefab(string[] lines, int lineIndex)
+	public static string findGameObjectNameInPrefab(string[] lines, int lineIndex)
 	{
 		// 一直往上找,直到找到一个GameObject:
 		for (int i = lineIndex; i >= 0; --i)

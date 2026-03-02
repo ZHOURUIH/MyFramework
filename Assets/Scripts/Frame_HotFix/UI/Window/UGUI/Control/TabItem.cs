@@ -9,6 +9,7 @@ public class TabItem : WindowObjectUGUI
 	protected myUGUIObject mSelectedText;
 	protected LegendButton mButton;
 	protected Action mCallback;
+	protected bool mInteractable = true;
 	public TabItem(IWindowObjectOwner parent) : base(parent)
 	{
 		mButton = new(this);
@@ -35,10 +36,16 @@ public class TabItem : WindowObjectUGUI
 		mSelected.setActive(selected);
 		mSelectedText?.setActive(selected);
 	}
+	public void setInteractable(bool interactable) { mInteractable = interactable; }
 	public bool isSelected() { return mSelected.isActive(); }
+	public bool isInteractable() { return mInteractable; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onClick()
 	{
+		if (!mInteractable)
+		{
+			return;
+		}
 		mCallback?.Invoke();
 	}
 }

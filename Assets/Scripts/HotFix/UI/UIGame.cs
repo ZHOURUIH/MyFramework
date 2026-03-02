@@ -1,8 +1,10 @@
-using Obfuz;
+﻿using Obfuz;
 using UnityEngine;
 using static StringUtility;
 
 // auto generate member start
+// generate from:Assets/GameResources/UI/UIPrefab/UIGame.prefab
+// 游戏界面
 [ObfuzIgnore(ObfuzScope.TypeName)]
 public class UIGame : LayoutScript
 {

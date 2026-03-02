@@ -89,19 +89,19 @@ public class GameInspector : Editor
 		return (GameObject)EditorGUILayout.ObjectField(go, typeof(GameObject), true, GUILayout.Width(width));
 	}
 	// 返回值表示是否修改过
-	public static bool textField(ref string text, string labelText, int totalWidth = 100, int prelabelWidth = 50)
+	public static bool textField(ref string text, string labelText, int totalWidth = 100, int preLabelWidth = 50)
 	{
 		using (new GUILayout.HorizontalScope())
 		{
-			labelWidth(labelText, prelabelWidth);
-			return textField(ref text, totalWidth - prelabelWidth);
+			labelWidth(labelText, preLabelWidth);
+			return textField(ref text, totalWidth - preLabelWidth);
 		}
 	}
 	// 返回值表示是否修改过
 	public static bool textField(ref string text, int width = 50)
 	{
 		string lastText = text;
-		text = GUILayout.TextField(text, GUILayout.Width(width));
+		text = EditorGUILayout.TextField(text, GUILayout.Width(width));
 		return lastText != text;
 	}
 	public static bool button(string text, int width = 50, int height = 20)

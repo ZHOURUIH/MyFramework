@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using static UnityUtility;
 using static FrameUtility;
 using static FrameBaseUtility;
@@ -24,6 +25,10 @@ public class WindowStructPoolMap<Key, T> : WindowStructPoolBase where T : Window
 	{
 		base.init();
 		init(mTemplate.getParent(), typeof(T), true);
+	}
+	public void For(Action<KeyValuePair<Key, T>> action)
+	{
+		mUsedItemList.For(action);
 	}
 	public bool hasKey(Key key) { return mUsedItemList.ContainsKey(key); }
 	public T getItem(Key key) { return mUsedItemList.get(key); }

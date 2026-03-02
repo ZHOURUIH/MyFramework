@@ -24,15 +24,16 @@ public class COMWindowDrag : ComponentDrag
 		mDragHoverWindowList.Clear();
 		mWindow = null;
 	}
-	public override void setActive(bool active)
+	public override bool setActive(bool active)
 	{
 		if (active == isActive())
 		{
-			return;
+			return active;
 		}
 		base.setActive(active);
 		// 无论激活还是禁用,都需要将当前悬停的窗口清空
 		mDragHoverWindowList.Clear();
+		return active;
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyScreenPosition(Vector3 screenPos)

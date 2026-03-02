@@ -375,7 +375,7 @@ public class COMWindowDragView : GameComponent
 	{
 		mMinMaxPosDirty = true;
 	}
-	public override void setActive(bool active)
+	public override bool setActive(bool active)
 	{
 		base.setActive(active);
 		// 启用或禁用组件时,需要将实时计算用的参数重置
@@ -385,6 +385,7 @@ public class COMWindowDragView : GameComponent
 		mDragging.set(false);
 		mStartDragWindowPosition = Vector3.zero;
 		mStartDragMousePosition = Vector3.zero;
+		return active;
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void getLocalMinMaxPixelPos(out Vector3 min, out Vector3 max)

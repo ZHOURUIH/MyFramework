@@ -8,7 +8,6 @@ using static FrameBaseHotFix;
 using static UnityUtility;
 
 // 自定义的下拉列表
-[CommonControl]
 public abstract class UGUIDropListBase : WindowObjectUGUI
 {
 	protected Action mSelectCallback;				// 选项切换时的回调

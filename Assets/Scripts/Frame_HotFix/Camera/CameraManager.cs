@@ -231,9 +231,6 @@ public class CameraManager : FrameSystem
 		{
 			return;
 		}
-		foreach (GameCamera item in mCameraList)
-		{
-			item.enableUnityComponent<AudioListener>(camera == item);
-		}
+		mCameraList.For(item => item.enableUnityComponent<AudioListener>(camera == item));
 	}
 }

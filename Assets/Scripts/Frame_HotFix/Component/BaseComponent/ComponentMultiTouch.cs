@@ -30,16 +30,17 @@ public class ComponentMultiTouch : GameComponent
 		mMoveFingerDistanceThreshold = 30.0f;
 		mMoveThreshold = 10.0f;
 	}
-	public override void setActive(bool active)
+	public override bool setActive(bool active)
 	{
 		if (active == isActive())
 		{
-			return;
+			return active;
 		}
 		base.setActive(active);
 		// 无论激活还是禁用,都需要将当前状态还原
 		mGesture = MULTI_TOUCH_GESTURE.NONE;
 		mTouchList.Clear();
+		return active;
 	}
 	public override void update(float elapsedTime)
 	{

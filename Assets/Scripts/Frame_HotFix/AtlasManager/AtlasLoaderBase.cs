@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.U2D;
-using System.Linq;
 using System.Collections.Generic;
 using static UnityUtility;
 using static FrameUtility;
@@ -13,14 +12,11 @@ public abstract class AtlasLoaderBase
 {
 	protected Dictionary<string, List<AtlasLoadParam>> mLoadRequestList = new();	// 图集异步加载请求列表
 	protected Dictionary<string, List<AtlasLoadParam>> mLoadingList = new();		// 正在异步加载的图集列表
-	protected SafeDictionary<string, AtlasBase> mAtlasList = new();					// 位于Resources中的图集,key是图集的路径,相对于Resources
+	protected SafeDictionary<string, AtlasBase> mAtlasList = new();					// key是图集的路径,相对于GameResources
 	protected const int MAX_LOADING_COUNT = 20;							            // 同时加载的最大数量
 	public void destroyAll()
 	{
-		foreach (AtlasBase item in mAtlasList.getMainList().Values)
-		{
-			baseUnloadAtlas(item, false);
-		}
+		mAtlasList.getMainList().forValue(item => baseUnloadAtlas(item, false));
 		mAtlasList.clear();
 		mLoadingList.Clear();
 	}
@@ -48,7 +44,7 @@ public abstract class AtlasLoaderBase
 			{
 				break;
 			}
-			var first = mLoadRequestList.First();
+			var first = mLoadRequestList.first();
 			var requestList = first.Value;
 			if (requestList.Count == 0)
 			{
@@ -133,8 +129,8 @@ public abstract class AtlasLoaderBase
 		}
 		return null;
 	}
-	// 异步加载位于Resources中的图集
-	public CustomAsyncOperation getAtlasAsync(string atlasName, UGUIAtlasPtrCallback callback, bool errorInNull, bool loadIfNull)
+	// 异步加载位于GameResources中的图集
+	public CustomAsyncOperation getAtlasAsyncSafe(ClassObject owner, string atlasName, UGUIAtlasPtrCallback callback, bool errorInNull, bool loadIfNull)
 	{
 		CustomAsyncOperation op = new();
 		if (mAtlasList.tryGetValue(atlasName, out AtlasBase atlas))
@@ -146,11 +142,15 @@ public abstract class AtlasLoaderBase
 		}
 		if (loadIfNull)
 		{
+			long assignID = owner?.getAssignID() ?? 0;
 			AtlasLoadParam param = mLoadRequestList.getOrAddListPersist(atlasName).addClass();
 			param.mName = atlasName;
 			param.mCallback = (UGUIAtlasPtr atlas) =>
 			{
-				callback?.Invoke(atlas);
+				if (assignID == (owner?.getAssignID() ?? 0))
+				{
+					callback?.Invoke(atlas);
+				}
 				op.setFinish();
 			};
 			param.mInResources = true;
@@ -235,12 +235,9 @@ public abstract class AtlasLoaderBase
 					atlas.addSprite(sprite);
 				}
 				// 找到Texture2D
-				else
+				else if (item is Texture2D tex2D)
 				{
-					if (item is Texture2D tex2D)
-					{
-						atlas.setAtlas(tex2D);
-					}
+					atlas.setAtlas(tex2D);
 				}
 			}
 			if (!atlas.isValid())

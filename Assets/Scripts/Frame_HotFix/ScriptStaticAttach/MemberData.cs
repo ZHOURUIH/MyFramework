@@ -54,16 +54,17 @@ public class MemberData
 	}
 	public string getMemberName()
 	{
-		if (mWindowType == WINDOW_TYPE.NORMAL_WINDOW)
-		{
-			return mObject != null ? mObject.name : "";
-		}
-		if (mWindowType == WINDOW_TYPE.COMMON_CONTROL)
+		if (mWindowType == WINDOW_TYPE.NORMAL_WINDOW ||
+			mWindowType == WINDOW_TYPE.COMMON_CONTROL)
 		{
 			return mObject != null ? mObject.name : "";
 		}
 		if (mWindowType == WINDOW_TYPE.SUB_UI)
 		{
+			if (mUseCustomName)
+			{
+				return mCustomName;
+			}
 			return mObject != null ? mObject.name : "";
 		}
 		if (mWindowType == WINDOW_TYPE.SCROLL_LIST)
@@ -92,15 +93,9 @@ public class MemberData
 	}
 	public string getTypeName()
 	{
-		if (mWindowType == WINDOW_TYPE.NORMAL_WINDOW)
-		{
-			return mType;
-		}
-		if (mWindowType == WINDOW_TYPE.COMMON_CONTROL)
-		{
-			return mType;
-		}
-		if (mWindowType == WINDOW_TYPE.SUB_UI)
+		if (mWindowType == WINDOW_TYPE.NORMAL_WINDOW ||
+			mWindowType == WINDOW_TYPE.COMMON_CONTROL ||
+			mWindowType == WINDOW_TYPE.SUB_UI)
 		{
 			return mType;
 		}

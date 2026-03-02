@@ -20,14 +20,14 @@ public class ClassPoolThreadDebug : MonoBehaviour
 			foreach (var item in mClassPoolThread.getPoolList())
 			{
 				using var a = new MyStringBuilderScope(out var builder);
-				builder.append(item.Key.ToString());
+				builder.add(item.Key.ToString());
 				if (item.Value.getInusedList().Count > 0)
 				{
-					builder.append(", 已使用:", IToS(item.Value.getInusedList().Count));
+					builder.add(", 已使用:", IToS(item.Value.getInusedList().Count));
 				}
 				if (item.Value.getUnusedList().Count > 0)
 				{
-					builder.append(", 未使用:", IToS(item.Value.getUnusedList().Count));
+					builder.add(", 未使用:", IToS(item.Value.getUnusedList().Count));
 				}
 				TypeList.Add(builder.ToString());
 			}

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using static UnityUtility;
 using static FrameUtility;
 using static FrameBaseUtility;
@@ -24,6 +25,10 @@ public class WindowStructPoolUnOrder<T> : WindowStructPoolBase where T : WindowO
 	{
 		base.init();
 		init(mTemplate.getParent(), typeof(T), true);
+	}
+	public void For(Action<T> action)
+	{
+		mUsedItemList.For(action);
 	}
 	public HashSet<T> getUsedList() { return mUsedItemList; }
 	public void checkCapacity(int capacity)

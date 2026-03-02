@@ -41,8 +41,8 @@ public class CmdNetConnectTCPState : Command
 	public override void debugInfo(MyStringBuilder builder)
 	{
 		base.debugInfo(builder);
-		builder.append("mErrorCode:", mErrorCode.ToString(), ", ").
-				append("mNetState:", mNetState.ToString(), ", ").
-				append("mLastNetState:", mLastNetState.ToString());
+		builder.add("mErrorCode:", mErrorCode.ToString(), ", ").
+				add("mNetState:", mNetState.ToString(), ", ").
+				add("mLastNetState:", mLastNetState.ToString());
 	}
 }

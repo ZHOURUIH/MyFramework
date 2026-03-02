@@ -67,16 +67,7 @@ public class AssetsImport : AssetPostprocessor
 		var textureImporter = assetImporter as TextureImporter;
 		// 是否启用mipmaps
 #if !PROJECT_2D
-		bool needMipmaps = true;
-		foreach (string path in getNoMipmapsPath())
-		{
-			if (textureImporter.assetPath.StartsWith(path))
-			{
-				needMipmaps = false;
-				break;
-			}
-		}
-		textureImporter.mipmapEnabled = needMipmaps;
+		textureImporter.mipmapEnabled = !getNoMipmapsPath().contains(path => textureImporter.assetPath.StartsWith(path));
 #else
 		textureImporter.mipmapEnabled = false;
 #endif

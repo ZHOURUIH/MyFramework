@@ -8,14 +8,6 @@ public class TimeUtility
 {
 	private static DateTime mTime19700101 = new(1970, 1, 1);	// 时间的起始
 	private static long mThisTimeMS;							// 这一帧的时间戳,每一帧设置一次,方便与elapsedTime搭配使用
-	// 获取从1970年1月1日到现在所经过的毫秒数
-	public static long timeGetTime() { return (long)(DateTime.Now - mTime19700101).TotalMilliseconds; }
-	// 获取从1970年1月1日到现在所经过的秒数
-	public static long getTimeSecond() { return (long)(DateTime.Now - mTime19700101).TotalSeconds; }
-	// 获取从1970年1月1日到当前UTC时间(世界标准时间)所经过的毫秒数
-	public static long timeGetTimeUTC() { return (long)(DateTime.UtcNow - mTime19700101).TotalMilliseconds; }
-	// 获取从1970年1月1日到当前UTC时间(世界标准时间)所经过的秒数
-	public static long getTimeSecondUTC() { return (long)(DateTime.UtcNow - mTime19700101).TotalSeconds; }
 	// GameFramework每一帧设置一次
 	public static void setThisTimeMS(long time) { mThisTimeMS = time; }
 	// 获取这一帧的时间戳,时间戳在这一帧内都不变,比getNowTimeStampMS效率高一些
@@ -97,11 +89,11 @@ public class TimeUtility
 		using var a = new MyStringBuilderScope(out var timeStr);
 		if (hour > 0)
 		{
-			timeStr.append(IToS(hour), "小时");
+			timeStr.add(IToS(hour), "小时");
 		}
 		if (minute > 0)
 		{
-			timeStr.append(IToS(minute), "分钟");
+			timeStr.add(IToS(minute), "分钟");
 		}
 		return timeStr.ToString();
 	}
@@ -177,6 +169,10 @@ public class TimeUtility
 		{
 			return strcat(IToS(hour, 2), ":", IToS(min, 2), ":", IToS(second, 2));
 		}
+		else if (display == TIME_DISPLAY.HM_2)
+		{
+			return IToS(hour, 2) + ":" + IToS(min, 2);
+		}
 		else if (display == TIME_DISPLAY.MS_2)
 		{
 			return IToS(min + hour * 60, 2) + ":" + IToS(second, 2);
@@ -237,6 +233,17 @@ public class TimeUtility
 			}
 			return IToS(totalMin) + "分";
 		}
+		else if (display == TIME_DISPLAY.MS_ZH)
+		{
+			int totalMin = timeSecond / 60;
+			int curSecond = timeSecond % 60;
+			// 小于1天,并且大于等于1小时
+			if (totalMin > 0)
+			{
+				return IToS(totalMin) + "分" + IToS(curSecond) + "秒";
+			}
+			return IToS(curSecond) + "秒";
+		}
 		return EMPTY;
 	}
 	// 只能在主线程中调用的获取当前时间字符串
@@ -249,6 +256,10 @@ public class TimeUtility
 		else if (display == TIME_DISPLAY.HMS_2)
 		{
 			return strcat(IToS(time.Hour, 2), ":", IToS(time.Minute, 2), ":", IToS(time.Second, 2));
+		}
+		else if (display == TIME_DISPLAY.HM_2)
+		{
+			return IToS(time.Hour, 2) + ":" + IToS(time.Minute, 2);
 		}
 		else if (display == TIME_DISPLAY.MS_2)
 		{
@@ -265,6 +276,10 @@ public class TimeUtility
 		else if (display == TIME_DISPLAY.HM_ZH)
 		{
 			return IToS(time.Hour) + "时" + IToS(time.Minute) + "分";
+		}
+		else if (display == TIME_DISPLAY.MS_ZH)
+		{
+			return IToS(time.Minute) + "分" + IToS(time.Second) + "秒";
 		}
 		else if (display == TIME_DISPLAY.YMD_ZH)
 		{
@@ -286,6 +301,10 @@ public class TimeUtility
 		{
 			return IToS(time.Hour, 2) + ":" + IToS(time.Minute, 2) + ":" + IToS(time.Second, 2);
 		}
+		else if (display == TIME_DISPLAY.HM_2)
+		{
+			return IToS(time.Hour, 2) + ":" + IToS(time.Minute, 2);
+		}
 		else if (display == TIME_DISPLAY.MS_2)
 		{
 			return IToS(time.Minute, 2) + ":" + IToS(time.Second, 2);
@@ -301,6 +320,10 @@ public class TimeUtility
 		else if (display == TIME_DISPLAY.HM_ZH)
 		{
 			return IToS(time.Hour) + "时" + IToS(time.Minute) + "分";
+		}
+		else if (display == TIME_DISPLAY.MS_ZH)
+		{
+			return IToS(time.Minute) + "分" + IToS(time.Second) + "秒";
 		}
 		else if (display == TIME_DISPLAY.YMD_ZH)
 		{
@@ -318,23 +341,29 @@ public class TimeUtility
 		StringBuilder builder = new(256);
 		if (display == TIME_DISPLAY.HMSM)
 		{
-			builder.Append(IToS(time.Hour)).
-					Append(":").Append(IToS(time.Minute)).
-					Append(":").Append(IToS(time.Second)).
-					Append(":").Append(IToS(time.Millisecond));
+			builder.Append(IToS(time.Hour)).Append(":").
+					Append(IToS(time.Minute)).Append(":").
+					Append(IToS(time.Second)).Append(":").
+					Append(IToS(time.Millisecond));
 			return builder.ToString();
 		}
 		else if (display == TIME_DISPLAY.HMS_2)
 		{
-			builder.Append(IToS(time.Hour, 2)).
-					Append(":").Append(IToS(time.Minute, 2)).
-					Append(":").Append(IToS(time.Second, 2));
+			builder.Append(IToS(time.Hour, 2)).Append(":").
+					Append(IToS(time.Minute, 2)).Append(":").
+					Append(IToS(time.Second, 2));
+			return builder.ToString();
+		}
+		else if (display == TIME_DISPLAY.HM_2)
+		{
+			builder.Append(IToS(time.Hour, 2)).Append(":").
+					Append(IToS(time.Minute, 2));
 			return builder.ToString();
 		}
 		else if (display == TIME_DISPLAY.MS_2)
 		{
-			builder.Append(":").Append(IToS(time.Minute, 2)).
-					Append(":").Append(IToS(time.Second, 2));
+			builder.Append(IToS(time.Minute, 2)).Append(":").
+					Append(IToS(time.Second, 2));
 			return builder.ToString();
 		}
 		else if (display == TIME_DISPLAY.DHMS_ZH)
@@ -356,6 +385,12 @@ public class TimeUtility
 		{
 			builder.Append(IToS(time.Hour)).Append("时").
 					Append(IToS(time.Minute)).Append("分");
+			return builder.ToString();
+		}
+		else if (display == TIME_DISPLAY.MS_ZH)
+		{
+			builder.Append(IToS(time.Minute)).Append("分").
+					Append(IToS(time.Second)).Append("秒");
 			return builder.ToString();
 		}
 		else if (display == TIME_DISPLAY.YMD_ZH)

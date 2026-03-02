@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Rendering;
 using Obfuz;
 using System;
 using System.Collections.Generic;
@@ -268,21 +269,34 @@ public class GameFrameworkHotFix : IFramework
 		mOnMemoryModifiedCheck?.Invoke(flag, param0, param1, param2, param3);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected void preInitAsync(Action callback)
-	{
-		int initedCount = 0;
-		foreach (FrameSystem item in mFrameComponentInit)
-		{
-			item.preInitAsync(() =>
-			{
-				if (++initedCount == mFrameComponentInit.count())
-				{
-					callback?.Invoke();
-				}
-			});
-		}
-	}
 	protected void init(Action callback)
+	{
+		// 先执行所有的preInitAsync
+		preInitAsync(() =>
+		{
+			// 再执行所有的initAsync,因为部分initAsync会依赖于preInitAsync
+			int initedCount = 0;
+			foreach (FrameSystem item in mFrameComponentInit)
+			{
+				item.initAsync(() =>
+				{
+					if (++initedCount == mFrameComponentInit.count())
+					{
+						resourceAvailable();
+						try
+						{
+							callback?.Invoke();
+						}
+						catch(Exception e)
+						{
+							logException(e);
+						}
+					}
+				});
+			}
+		});
+	}
+	protected void preInitAsync(Action callback)
 	{
 		using var a = new ProfilerScope(0);
 		// 通过代码添加接受java日志的节点
@@ -290,6 +304,7 @@ public class GameFrameworkHotFix : IFramework
 		mGameFrameworkHotFix = this;
 		mIsDestroy = false;
 		mStartTime = DateTime.Now;
+		DebugManager.instance.enableRuntimeUI = false;
 		setFrameRate(GameEntry.getInstance().mFramworkParam.mDefaultFrameRate);
 
 		if (!isEditor() && isDevelopment())
@@ -304,7 +319,7 @@ public class GameFrameworkHotFix : IFramework
 		registeFrameSystem<AndroidPluginManager>(null);
 		registeFrameSystem<AndroidAssetLoader>(null);
 		registeFrameSystem<AndroidMainClass>(null);
-		AndroidPluginManager.initAnroidPlugin(mOnPackageName?.Invoke());
+		AndroidPluginManager.initAndroidPlugin(mOnPackageName?.Invoke());
 		AndroidAssetLoader.initJava(AndroidPluginManager.getPackageName() + ".AssetLoader");
 		AndroidMainClass.initJava(AndroidPluginManager.getPackageName() + ".MainClass");
 		log("start game hotfix!");
@@ -354,30 +369,17 @@ public class GameFrameworkHotFix : IFramework
 		}
 		mCurTime = DateTime.Now;
 
-		// 先执行所有的preInitAsync
-		preInitAsync(() =>
+		int initedCount = 0;
+		foreach (FrameSystem item in mFrameComponentInit)
 		{
-			// 再执行所有的initAsync,因为部分initAsync会依赖于preInitAsync
-			int initedCount = 0;
-			foreach (FrameSystem item in mFrameComponentInit)
+			item.preInitAsync(() =>
 			{
-				item.initAsync(() =>
+				if (++initedCount == mFrameComponentInit.count())
 				{
-					if (++initedCount == mFrameComponentInit.count())
-					{
-						resourceAvailable();
-						try
-						{
-							callback?.Invoke();
-						}
-						catch(Exception e)
-						{
-							logException(e);
-						}
-					}
-				});
-			}
-		});
+					callback?.Invoke();
+				}
+			});
+		}
 	}
 	protected void initFrameSystem()
 	{
@@ -413,7 +415,7 @@ public class GameFrameworkHotFix : IFramework
 		registeFrameSystem<ByteArrayPoolThread>((com) =>	{ mByteArrayPoolThread = com; }, -1, -1, 3111);
 		registeFrameSystem<MovableObjectManager>((com) =>	{ mMovableObjectManager = com; });
 		registeFrameSystem<EffectManager>((com) =>			{ mEffectManager = com; });
-		registeFrameSystem<AtlasManager>((com) =>		{ mAtlasManager = com; });
+		registeFrameSystem<AtlasManager>((com) =>			{ mAtlasManager = com; });
 		registeFrameSystem<NetPacketFactory>((com) =>		{ mNetPacketFactory = com; });
 		registeFrameSystem<PathKeyframeManager>((com) =>	{ mPathKeyframeManager = com; });
 		registeFrameSystem<EventSystem>((com) =>			{ mEventSystem = com; });

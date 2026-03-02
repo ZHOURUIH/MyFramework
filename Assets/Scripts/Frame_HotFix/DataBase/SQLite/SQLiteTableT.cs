@@ -1,7 +1,5 @@
 ﻿#if USE_SQLITE
-using System;
 using System.Collections.Generic;
-using static UnityUtility;
 
 // 表示一个SQLite表格
 public class SQLiteTableT<T> : SQLiteTable where T : SQLiteData

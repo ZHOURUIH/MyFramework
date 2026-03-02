@@ -47,7 +47,6 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 		foreach (WindowObjectBase item in mChildList.safe())
 		{
 			item.init();
-			item.postInit();
 		}
 	}
 	// init调用后才会调用,一般不需要子类去重写
@@ -69,6 +68,10 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 				mUnuseAllWhenHide = false;
 				break;
 			}
+		}
+		foreach (WindowObjectBase item in mChildList.safe())
+		{
+			item.postInit();
 		}
 	}
 	// 每次被分配使用时调用,如果是对象池中的物体,则由对象池调用,非对象池物体需要在使用的地方自己调用
@@ -206,7 +209,7 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 			item.resetCallOnShowFlag();
 		}
 	}
-	public virtual void setActive(bool active) 
+	public virtual bool setActive(bool active) 
 	{
 		if (active)
 		{
@@ -218,6 +221,7 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 			resetCallOnShowFlag();
 			onHide();
 		}
+		return active;
 	}
 	public void close() { setActive(false); }
 	public virtual void setParent(myUGUIObject parent, bool refreshDepth = true) { }
