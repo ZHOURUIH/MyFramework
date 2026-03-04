@@ -108,6 +108,20 @@ public static class ListExtension
 			list.Add(value);
 		}
 	}
+	public static void addRangeKeys<TKey, TValue>(this List<TKey> list, Dictionary<TKey, TValue> dic)
+	{
+		foreach (var item in dic)
+		{
+			list.add(item.Key);
+		}
+	}
+	public static void addRangeValues<TKey, TValue>(this List<TValue> list, Dictionary<TKey, TValue> dic)
+	{
+		foreach (var item in dic)
+		{
+			list.add(item.Value);
+		}
+	}
 	public static bool addNotNull<T>(this List<T> list, T value) where T : class
 	{
 		if (value != null)
@@ -355,6 +369,32 @@ public static class ListExtension
 		for (int i = 0; i < count; ++i)
 		{
 			list.Add(other[i]);
+		}
+		return list;
+	}
+	public static List<TKey> setRangeKeys<TKey, TValue>(this List<TKey> list, Dictionary<TKey, TValue> dic)
+	{
+		list.Clear();
+		if (dic.isEmpty())
+		{
+			return list;
+		}
+		foreach (var item in dic)
+		{
+			list.add(item.Key);
+		}
+		return list;
+	}
+	public static List<TValue> setRangeValues<TKey, TValue>(this List<TValue> list, Dictionary<TKey, TValue> dic)
+	{
+		list.Clear();
+		if (dic.isEmpty())
+		{
+			return list;
+		}
+		foreach (var item in dic)
+		{
+			list.add(item.Value);
 		}
 		return list;
 	}
@@ -768,8 +808,8 @@ public static class ListExtension
 	public static bool isEmptySpan<T>(this Span<T> list)							{ return list == null || list.Length == 0; }
 	public static bool isEmpty<T>(this ICollection<T> list)							{ return list == null || list.Count == 0; }
 	public static bool contains<T>(this ICollection<T> list, T value)				{ return list != null && list.Contains(value); }
-	public static bool contains<T>(this IList<T> list, Predicate<T> match)			{ return list != null && list.find(match, out _); }
-	public static bool contains<T>(this Span<T> list, Predicate<T> match)			{ return list != null && list.find(match, out _); }
+	public static bool contains<T>(this IList<T> list, Predicate<T> match)			{ return list != null && list.find(match) != null; }
+	public static bool contains<T>(this Span<T> list, Predicate<T> match)			{ return list != null && list.find(match) != null; }
 	public static IEnumerable<T> safe<T>(this IEnumerable<T> original)				{ return original ?? Empty<T>(); }
 	public static T first<T>(this IEnumerable<T> list)
 	{

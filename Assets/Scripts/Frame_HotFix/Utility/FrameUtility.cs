@@ -350,7 +350,7 @@ public class FrameUtility
 	{
 		return SET_PERSIST(out HashSet<T> list);
 	}
-	public static HashSet<T> SET_PERSIST<T>(out HashSet<T> list, IEnumerable<T> initList = null)
+	public static HashSet<T> SET_PERSIST<T>(out HashSet<T> list, IList<T> initList = null)
 	{
 		if (GameEntry.getInstance() == null || mListPool == null)
 		{
@@ -509,9 +509,9 @@ public class FrameUtility
 		mClassPool?.destroyClassList(objList);
 		objList?.Clear();
 	}
-	public static void UN_CLASS_LIST<T0, T1>(IDictionary<T0, T1> objList) where T1 : ClassObject
+	public static void UN_CLASS_LIST<T0, T1>(Dictionary<T0, T1> objList) where T1 : ClassObject
 	{
-		mClassPool?.destroyClassList(objList.Values);
+		mClassPool?.destroyClassList(objList);
 		objList?.Clear();
 	}
 	public static void UN_CLASS_LIST<T>(Queue<T> objList) where T : ClassObject

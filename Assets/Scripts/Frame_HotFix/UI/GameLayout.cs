@@ -168,10 +168,7 @@ public class GameLayout
 		{
 			colliders.Clear();
 		}
-		foreach (myUGUIObject obj in mObjectList.getMainList().Values)
-		{
-			colliders.addNotNull(obj.getCollider());
-		}
+		mObjectList.getMainList().forValue(obj => colliders.addNotNull(obj.getCollider()));
 	}
 	public void setVisible(bool visible)
 	{
@@ -192,11 +189,11 @@ public class GameLayout
 		{
 			// 通知所有会接收布局隐藏的窗口
 			using var a = new SafeDictionaryReader<int, myUGUIObject>(mObjectList);
-			foreach (myUGUIObject item in a.mReadList.Values)
+			foreach (var item in a.mReadList)
 			{
-				if (item.isReceiveLayoutHide())
+				if (item.Value.isReceiveLayoutHide())
 				{
-					item.onLayoutHide();
+					item.Value.onLayoutHide();
 				}
 			}
 			mScript.onHide();
@@ -216,11 +213,11 @@ public class GameLayout
 		mRoot.setActive(visible);
 		// 通知所有会接收布局隐藏的窗口
 		using var a = new SafeDictionaryReader<int, myUGUIObject>(mObjectList);
-		foreach (myUGUIObject item in a.mReadList.Values)
+		foreach (var item in a.mReadList)
 		{
-			if (item.isReceiveLayoutHide())
+			if (item.Value.isReceiveLayoutHide())
 			{
-				item.onLayoutHide();
+				item.Value.onLayoutHide();
 			}
 		}
 	}

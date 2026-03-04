@@ -53,8 +53,8 @@ public class ResourcesLoader
 	// 卸载指定路径中的所有资源
 	public void unloadPath(string path)
 	{
-		using var a = new ListScope<string>(out var tempList, mLoadedPath.Keys);
-		foreach (string item0 in tempList)
+		using var a = new ListScope<string>(out var tempList);
+		foreach (string item0 in tempList.setRangeKeys(mLoadedPath))
 		{
 			if (!item0.startWith(path))
 			{
@@ -64,8 +64,9 @@ public class ResourcesLoader
 			{
 				log("unload path: " + item0);
 			}
-			foreach (ResourceLoadInfo info in mLoadedPath.get(item0).Values)
+			foreach (var item in mLoadedPath.get(item0))
 			{
+				ResourceLoadInfo info = item.Value;
 				if (info.getObject() != null)
 				{
 					mLoadedObjects.Remove(info.getObject());

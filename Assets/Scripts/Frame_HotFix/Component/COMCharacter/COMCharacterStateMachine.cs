@@ -34,9 +34,9 @@ public class COMCharacterStateMachine : GameComponent
 	{
 		// 先退出所有状态
 		using var a = new SafeDictionaryReader<Type, SafeList<CharacterState>>(mStateTypeList);
-		foreach (var item in a.mReadList.Values)
+		foreach (var item in a.mReadList)
 		{
-			using var b = new SafeListReader<CharacterState>(item);
+			using var b = new SafeListReader<CharacterState>(item.Value);
 			foreach (CharacterState state in b.mReadList)
 			{
 				leaveStateInternal(state, true, true);

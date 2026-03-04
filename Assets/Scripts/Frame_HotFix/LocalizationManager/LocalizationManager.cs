@@ -33,8 +33,9 @@ public class LocalizationManager : FrameSystem
 		mReloadLanguageCallback?.Invoke(language, mLocalizationLanguage, mLocalizationLanguageID);
 		mCurrentLanguage = language;
 		mLanguageCallback?.Invoke();
-		foreach (TextObjectLocalization item in mTextList.Values)
+		foreach (var item0 in mTextList)
 		{
+			TextObjectLocalization item = item0.Value;
 			// 有回调就只是调用回调
 			if (item.mCallback != null)
 			{
@@ -53,9 +54,9 @@ public class LocalizationManager : FrameSystem
 				}
 			}
 		}
-		foreach (ImageObjectLocalization item in mImageList.Values)
+		foreach (var item in mImageList)
 		{
-			item.mObject.setSpriteName(item.mImageNameWithoutSuffix + mCurrentLanguage);
+			item.Value.mObject.setSpriteName(item.Value.mImageNameWithoutSuffix + mCurrentLanguage);
 		}
 	}
 	public string getLocalize(string text) 

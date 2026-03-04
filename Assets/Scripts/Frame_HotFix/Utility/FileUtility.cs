@@ -954,8 +954,9 @@ public class FileUtility
 	{
 		// 新增文件和已修改文件都认为是已修改文件
 		// 遍历本地文件列表
-		foreach (GameFileInfo localInfo in localInfoList.Values)
+		foreach (var item in localInfoList)
 		{
+			GameFileInfo localInfo = item.Value;
 			// 如果不在远端文件列表中,则是新增的文件,在远端文件中,但是大小或MD5不同,则是已修改的文件
 			if (!remoteList.TryGetValue(localInfo.mFileName, out GameFileInfo info) ||
 				info.mFileSize != localInfo.mFileSize ||

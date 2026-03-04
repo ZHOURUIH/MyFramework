@@ -19,31 +19,28 @@ public class SceneSystem : FrameSystem
 	public override void destroy()
 	{
 		base.destroy();
-		foreach (string item in mSceneList.Keys)
-		{
-			unloadSceneOnly(item);
-		}
+		mSceneList.forKey(item => unloadSceneOnly(item));
 		mSceneList.Clear();
 	}
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		foreach (SceneInstance item in mSceneList.Values)
+		foreach (var item in mSceneList)
 		{
-			if (item.getActive())
+			if (item.Value.getActive())
 			{
-				item.update(elapsedTime);
+				item.Value.update(elapsedTime);
 			}
 		}
 	}
 	public override void lateUpdate(float elapsedTime)
 	{
 		base.lateUpdate(elapsedTime);
-		foreach (SceneInstance item in mSceneList.Values)
+		foreach (var item in mSceneList)
 		{
-			if (item.getActive())
+			if (item.Value.getActive())
 			{
-				item.lateUpdate(elapsedTime);
+				item.Value.lateUpdate(elapsedTime);
 			}
 		}
 	}
@@ -162,8 +159,8 @@ public class SceneSystem : FrameSystem
 	// 卸载除了dontUnloadSceneName以外的其他场景,初始默认场景除外
 	public void unloadOtherScene(string dontUnloadSceneName, bool unloadPath = true)
 	{
-		using var a = new ListScope<string>(out var tempList, mSceneList.Keys);
-		foreach (string sceneName in tempList)
+		using var a = new ListScope<string>(out var tempList);
+		foreach (string sceneName in tempList.setRangeKeys(mSceneList))
 		{
 			if (sceneName != dontUnloadSceneName)
 			{

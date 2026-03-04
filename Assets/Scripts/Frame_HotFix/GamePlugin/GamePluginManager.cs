@@ -18,24 +18,24 @@ public class GamePluginManager : FrameSystem
 		{
 			loadAllPlugin();
 		}
-		foreach (IGamePlugin item in mPluginList.Values)
+		foreach (var item in mPluginList)
 		{
-			item.init();
+			item.Value.init();
 		}
 	}
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		foreach (IGamePlugin item in mPluginList.Values)
+		foreach (var item in mPluginList)
 		{
-			item.update(elapsedTime);
+			item.Value.update(elapsedTime);
 		}
 	}
 	public override void destroy()
 	{
-		foreach (IGamePlugin item in mPluginList.Values)
+		foreach (var item in mPluginList)
 		{
-			item.destroy();
+			item.Value.destroy();
 		}
 		mPluginList.Clear();
 		base.destroy();

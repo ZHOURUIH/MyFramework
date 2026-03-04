@@ -31,10 +31,7 @@ public class DllImportSystem : FrameSystem
 	}
 	public override void destroy()
 	{
-		foreach (Dll library in mDllLibraryList.Values)
-		{
-			library.destroy();
-		}
+		mDllLibraryList.forValue(library => library.destroy());
 		mDllLibraryList.Clear();
 		base.destroy();
 	}

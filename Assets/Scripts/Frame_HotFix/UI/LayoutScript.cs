@@ -35,22 +35,11 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		// 避免遗漏本地化的注销,此处再次确认注销一次
 		clearLocalization();
 
-		foreach (WindowStructPoolBase item in mPoolRootList.safe())
-		{
-			item.destroy();
-		}
+		mPoolRootList.For(item => item.destroy());
 		mPoolRootList?.Clear();
-
-		foreach (WindowPoolBase item in mWindowPoolRootList.safe())
-		{
-			item.destroy();
-		}
+		mWindowPoolRootList.For(item => item.destroy());
 		mWindowPoolRootList?.Clear();
-
-		foreach (WindowObjectBase item in mWindowObjectRootList.safe())
-		{
-			item.destroy();
-		}
+		mWindowObjectRootList.For(item => item.destroy());
 		mWindowObjectRootList?.Clear();
 		mWindowObjectList?.Clear();
 
@@ -183,45 +172,22 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	public virtual void init() 
 	{
 		// 调用所有对象池的初始化
-		foreach (WindowStructPoolBase item in mPoolRootList.safe())
-		{
-			item.init();
-		}
+		mPoolRootList.For(item => item.init());
 		// 调用所有窗口对象池的初始化
-		foreach (WindowPoolBase item in mWindowPoolRootList.safe())
-		{
-			item.init();
-		}
+		mWindowPoolRootList.For(item => item.init());
 		// 调用所有根对象的初始化
-		foreach (WindowObjectBase item in mWindowObjectRootList.safe())
-		{
-			item.init();
-		}
+		mWindowObjectRootList.For(item => item.init());
 	}
 	public void postInit()
 	{
 		// 如果初始化以后,item中的对象池是有创建节点的,则需要设置为不能自动清空对象池,不然会出问题
-		foreach (WindowStructPoolBase pool in mPoolRootList.safe())
+		if (mPoolRootList.contains(pool=> pool.getInUseCount() > 0) ||
+			mWindowPoolRootList.contains(pool => pool.getInUseCount() > 0))
 		{
-			if (pool.getInUseCount() > 0)
-			{
-				mUnuseAllWhenHide = false;
-				break;
-			}
-		}
-		foreach (WindowPoolBase pool in mWindowPoolRootList.safe())
-		{
-			if (pool.getInUseCount() > 0)
-			{
-				mUnuseAllWhenHide = false;
-				break;
-			}
+			mUnuseAllWhenHide = false;
 		}
 		// 调用所有根对象的初始化
-		foreach (WindowObjectBase item in mWindowObjectRootList.safe())
-		{
-			item.postInit();
-		}
+		mWindowObjectRootList.For(item => item.postInit());
 	}
 	public void updateAllDragView()
 	{
@@ -310,14 +276,8 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		if (mUnuseAllWhenHide)
 		{
 			// 隐藏界面时调用所有对象池的回收,将创建的所有对象都回收掉
-			foreach (WindowStructPoolBase item in mPoolRootList.safe())
-			{
-				item.unuseAll();
-			}
-			foreach (WindowPoolBase item in mWindowPoolRootList.safe())
-			{
-				item.unuseAll();
-			}
+			mPoolRootList.For(item => item.unuseAll());
+			mWindowPoolRootList.For(item => item.unuseAll());
 		}
 		mInputSystem?.unlistenKey(this);
 	}
@@ -561,10 +521,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void clearLocalization()
 	{
-		foreach (IUGUIObject item in mLocalizationObjectList.safe())
-		{
-			mLocalizationManager.unregisteLocalization(item);
-		}
+		mLocalizationManager.unregisteLocalization(mLocalizationObjectList);
 		mLocalizationObjectList?.Clear();
 	}
 }

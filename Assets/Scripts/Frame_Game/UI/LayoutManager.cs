@@ -25,23 +25,23 @@ public class LayoutManager : FrameSystem
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		foreach (GameLayout item in mLayoutList.Values)
+		foreach (var item in mLayoutList)
 		{
 			try
 			{
-				item.updateLayout(elapsedTime);
+				item.Value.updateLayout(elapsedTime);
 			}
 			catch (Exception e)
 			{
-				logExceptionBase(e,"界面:" + item.getName());
+				logExceptionBase(e,"界面:" + item.Value.getName());
 			}
 		}
 	}
 	public override void willDestroy()
 	{
-		foreach (GameLayout item in mLayoutList.Values)
+		foreach (var item in mLayoutList)
 		{
-			item.destroy();
+			item.Value.destroy();
 		}
 		mLayoutList.Clear();
 		mLayoutAsyncList.Clear();
@@ -103,10 +103,10 @@ public class LayoutManager : FrameSystem
 	// 卸载所有非常驻的布局
 	public void unloadAllLayout()
 	{
-		foreach (GameLayout pair in mLayoutList.Values)
+		foreach (var pair in mLayoutList)
 		{
-			pair.setVisible(false);
-			pair.destroy();
+			pair.Value.setVisible(false);
+			pair.Value.destroy();
 		}
 		mLayoutList.Clear();
 	}

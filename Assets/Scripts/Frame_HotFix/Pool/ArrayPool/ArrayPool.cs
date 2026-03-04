@@ -32,11 +32,11 @@ public class ArrayPool : FrameSystem
 		base.update(elapsedTime);
 		if (isEditor())
 		{
-			foreach (var item in mInusedList.Values)
+			foreach (var item in mInusedList)
 			{
-				foreach (var itemList in item.Values)
+				foreach (var itemList in item.Value)
 				{
-					foreach (Array itemArray in itemList)
+					foreach (Array itemArray in itemList.Value)
 					{
 						string stack = mObjectStack.get(itemArray);
 						if (stack.isEmpty())
@@ -56,10 +56,7 @@ public class ArrayPool : FrameSystem
 	}
 	public void clearUnused()
 	{
-		foreach (var item in mUnusedList.Values)
-		{
-			item.Clear();
-		}
+		mUnusedList.forValue(item => item.Clear());
 	}
 	public Dictionary<Type, Dictionary<int, HashSet<Array>>> getPersistentInusedList() { return mPersistentInuseList; }
 	public Dictionary<Type, Dictionary<int, HashSet<Array>>> getInusedList() { return mInusedList; }

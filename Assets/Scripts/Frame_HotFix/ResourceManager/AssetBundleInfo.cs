@@ -78,16 +78,10 @@ public class AssetBundleInfo : ClassObject
 			mAssetBundle = null;
 		}
 		mObjectToAsset.Clear();
-		foreach (AssetInfo item in mAssetList.Values)
-		{
-			item.clear();
-		}
+		mAssetList.forValue(item => item.clear());
 		mLoadState = LOAD_STATE.NONE;
 		// 通知依赖项,自己被卸载了
-		foreach (AssetBundleInfo item in mParents.Values)
-		{
-			item.notifyChildUnload();
-		}
+		mParents.forValue(item => item.notifyChildUnload());
 	}
 	// 卸载包中单个资源
 	public bool unloadAsset(UObject obj)
@@ -156,8 +150,8 @@ public class AssetBundleInfo : ClassObject
 	// 查找所有依赖项
 	public void findAllDependence()
 	{
-		using var a = new ListScope<string>(out var tempList, mParents.Keys);
-		foreach (string depName in tempList)
+		using var a = new ListScope<string>(out var tempList);
+		foreach (string depName in tempList.setRangeKeys(mParents))
 		{
 			AssetBundleInfo info = mResourceManager.getAssetBundleLoader().getAssetBundleInfo(depName);
 			// 找到自己的父节点
@@ -169,9 +163,9 @@ public class AssetBundleInfo : ClassObject
 	// 所有依赖项是否都已经加载完成
 	public bool isAllParentLoaded()
 	{
-		foreach (AssetBundleInfo item in mParents.Values)
+		foreach (var item in mParents)
 		{
-			if (item.mLoadState != LOAD_STATE.LOADED)
+			if (item.Value.mLoadState != LOAD_STATE.LOADED)
 			{
 				return false;
 			}
@@ -196,9 +190,9 @@ public class AssetBundleInfo : ClassObject
 			return;
 		}
 		// 先确保所有依赖项已经加载
-		foreach (AssetBundleInfo item in mParents.Values)
+		foreach (var item in mParents)
 		{
-			item.loadAssetBundle();
+			item.Value.loadAssetBundle();
 		}
 		mAssetBundle = AssetBundle.LoadFromFile(availableReadPath(mBundleFileName));
 		if (mAssetBundle == null)
@@ -211,18 +205,15 @@ public class AssetBundleInfo : ClassObject
 	// 异步加载所有依赖项,确认依赖项即将加载或者已加载
 	public void loadParentAsync()
 	{
-		foreach (AssetBundleInfo item in mParents.Values)
+		foreach (var item in mParents)
 		{
-			item.loadAssetBundleAsync(null);
+			item.Value.loadAssetBundleAsync(null);
 		}
 	}
 	public void checkAssetBundleDependenceLoaded()
 	{
 		// 先确保所有依赖项已经加载
-		foreach (AssetBundleInfo item in mParents.Values)
-		{
-			item.checkAssetBundleDependenceLoaded();
-		}
+		mParents.forValue(item => item.checkAssetBundleDependenceLoaded());
 		if (mLoadState == LOAD_STATE.NONE)
 		{
 			loadAssetBundle();
@@ -291,8 +282,9 @@ public class AssetBundleInfo : ClassObject
 	// 同步加载所有子集
 	public void loadAllSubAssets()
 	{
-		foreach (AssetInfo assetInfo in mAssetList.Values)
+		foreach (var item in mAssetList)
 		{
+			AssetInfo assetInfo = item.Value;
 			// 确认是否正常加载完成,如果当前资源包已经卸载,则无法完成加载资源
 			if (mLoadState != LOAD_STATE.NONE)
 			{
@@ -403,18 +395,18 @@ public class AssetBundleInfo : ClassObject
 			return false;
 		}
 		// 如果资源包的资源已经没有在使用中,则卸载当前资源包
-		foreach (AssetInfo item in mAssetList.Values)
+		foreach (var item in mAssetList)
 		{
-			if (item.getLoadState() != LOAD_STATE.NONE)
+			if (item.Value.getLoadState() != LOAD_STATE.NONE)
 			{
 				return false;
 			}
 		}
 		// 如果已经没有资源被引用了,则卸载AssetBundle
 		// 当前已经没有正在使用的AssetBundle引用了自己时才可以卸载
-		foreach (AssetBundleInfo item in mChildren.Values)
+		foreach (var item in mChildren)
 		{
-			if (item.getLoadState() != LOAD_STATE.NONE)
+			if (item.Value.getLoadState() != LOAD_STATE.NONE)
 			{
 				return false;
 			}

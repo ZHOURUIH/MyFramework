@@ -83,9 +83,9 @@ public class AssetBundleLoader
 		}
 
 		// 更新检查所有资源包是否需要卸载
-		foreach (AssetBundleInfo bundle in mAssetBundleInfoList.Values)
+		foreach (var bundle in mAssetBundleInfoList)
 		{
-			bundle.update(elapsedTime);
+			bundle.Value.update(elapsedTime);
 		}
 	}
 	public void destroy()
@@ -106,9 +106,9 @@ public class AssetBundleLoader
 		}
 		mCoroutineList.Clear();
 		mAssetToAssetBundleInfo.Clear();
-		foreach (AssetBundleInfo item in mAssetBundleInfoList.Values)
+		foreach (var item in mAssetBundleInfoList)
 		{
-			item.unload();
+			item.Value.unload();
 		}
 	}
 	// 这里的泛型T是为了外部能传任意的类型的引用进来,而不是只能传ref UObject
@@ -146,9 +146,9 @@ public class AssetBundleLoader
 		{
 			return;
 		}
-		foreach (AssetInfo item in info.getAssetList().Values)
+		foreach (var item in info.getAssetList())
 		{
-			mAssetToAssetBundleInfo.Remove(item.getAsset());
+			mAssetToAssetBundleInfo.Remove(item.Value.getAsset());
 		}
 		info.unload();
 	}
@@ -182,9 +182,9 @@ public class AssetBundleLoader
 			{
 				continue;
 			}
-			foreach (string asset in item.Value.getAssetList().Keys)
+			foreach (var asset in item.Value.getAssetList())
 			{
-				list.Add(removeSuffix(asset));
+				list.Add(removeSuffix(asset.Key));
 			}
 		}
 	}
@@ -272,9 +272,9 @@ public class AssetBundleLoader
 				{
 					return;
 				}
-				foreach (AssetInfo item in bundleInfo.getAssetList().Values)
+				foreach (var item in bundleInfo.getAssetList())
 				{
-					assetList.addIf(item.getAsset(), item.isLoaded());
+					assetList.addIf(item.Value.getAsset(), item.Value.isLoaded());
 				}
 				return;
 			}
@@ -556,10 +556,7 @@ public class AssetBundleLoader
 			}
 		}
 		// 配置清单解析完毕后,为每个AssetBundleInfo查找对应的依赖项
-		foreach (AssetBundleInfo info in mAssetBundleInfoList.Values)
-		{
-			info.findAllDependence();
-		}
+		mAssetBundleInfoList.forValue(item => item.findAllDependence());
 		mInited = true;
 		log("AssetBundle初始化完成, AssetBundle count : " + mAssetBundleInfoList.Count);
 	}

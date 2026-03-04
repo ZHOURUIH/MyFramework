@@ -9,9 +9,9 @@ public class TweenerManager : FrameSystem
 	{
 		base.update(elapsedTime);
 		using var a = new SafeDictionaryReader<long, MyTweener>(mTweenerList);
-		foreach (MyTweener item in a.mReadList.Values)
+		foreach (var item in a.mReadList)
 		{
-			item.update(item.isIgnoreTimeScale() ? Time.unscaledDeltaTime : elapsedTime);
+			item.Value.update(item.Value.isIgnoreTimeScale() ? Time.unscaledDeltaTime : elapsedTime);
 		}
 	}
 	public MyTweenerFloat createTweenerFloat()

@@ -36,10 +36,7 @@ public class ByteArrayPoolThread : FrameSystem
 	{
 		using (new ThreadLockScope(mListLock))
 		{
-			foreach (var item in mUnusedList.Values)
-			{
-				item.Clear();
-			}
+			mUnusedList.forValue(item => item.Clear());
 		}
 	}
 	public Dictionary<int, HashSet<byte[]>> getInusedList() { return mInusedList; }

@@ -83,8 +83,9 @@ public class PrefabPoolManager : FrameSystem
 		if (tickTimerLoop(ref mDestroyTimer, elapsedTime, mTimerInterval))
 		{
 			using var a = new SafeDictionaryReader<string, PrefabPool>(mPrefabPoolList);
-			foreach (PrefabPool pool in a.mReadList.Values)
+			foreach (var item in a.mReadList)
 			{
+				PrefabPool pool = item.Value;
 				if (!pool.isEmptyInUse())
 				{
 					continue;
@@ -103,11 +104,11 @@ public class PrefabPoolManager : FrameSystem
 		}
 		if (isEditor())
 		{
-			foreach (GameObjectInfo item in mInstanceList.Values)
+			foreach (var item in mInstanceList)
 			{
-				if (item.getObject() == null)
+				if (item.Value.getObject() == null)
 				{
-					logError("Object can not be destroy outside of PrefabPoolManager! filePath:" + item.getFileWithPath());
+					logError("Object can not be destroy outside of PrefabPoolManager! filePath:" + item.Value.getFileWithPath());
 				}
 			}
 		}
@@ -203,9 +204,9 @@ public class PrefabPoolManager : FrameSystem
 	public void destroyAllWithTag(int objectTag)
 	{
 		using var a = new ListScope<GameObjectInfo>(out var tempList);
-		foreach (GameObjectInfo item in mInstanceList.Values)
+		foreach (var item in mInstanceList)
 		{
-			tempList.addIf(item, item.getTag() == objectTag);
+			tempList.addIf(item.Value, item.Value.getTag() == objectTag);
 		}
 		foreach (GameObjectInfo item in tempList)
 		{

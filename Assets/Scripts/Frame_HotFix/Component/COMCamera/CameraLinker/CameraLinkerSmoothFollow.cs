@@ -48,14 +48,10 @@ public class CameraLinkerSmoothFollow : CameraLinkerThirdPerson
 		{
 			mFollowPositionSpeed = lerp(mFollowPositionSpeed, mNormalSpeed, mSpeedRecover * elapsedTime);
 		}
-		Vector3 relative;
+		Vector3 relative = mRelativePosition;
 		if (mUseTargetYaw)
 		{
 			relative = rotateVector3(mRelativePosition, toRadian(mLinkObject.getRotation().y));
-		}
-		else
-		{
-			relative = mRelativePosition;
 		}
 		Vector3 targetPos = mLinkObject.getWorldPosition();
 		Vector3 nextPos = targetPos + relative;
@@ -64,9 +60,9 @@ public class CameraLinkerSmoothFollow : CameraLinkerThirdPerson
 		{
 			Ray ray = new();
 			// 从摄像机目标点检测
-			foreach (var layerList in mCheckDirectionList.Values)
+			foreach (var item in mCheckDirectionList)
 			{
-				foreach (CheckLayer layer in layerList)
+				foreach (CheckLayer layer in item.Value)
 				{
 					ray.origin = nextPos - layer.mDirectionVector;
 					ray.direction = layer.mDirectionVector;

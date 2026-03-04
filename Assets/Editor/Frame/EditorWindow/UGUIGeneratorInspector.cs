@@ -102,23 +102,23 @@ public class UGUIGeneratorInspector : GameInspector
 			string lineString; 
 			if (comGenerator.mIsPersistent)
 			{
-				lineString = "\t\tregisteLayoutPersist<" + className + ">((script) =>";
+				lineString = "\t\tregisteLayoutPersist<" + className + ">(script =>";
 			}
 			else
 			{
-				lineString = "\t\tregisteLayout<" + className + ">((script) =>";
+				lineString = "\t\tregisteLayout<" + className + ">(script =>";
 			}
 			string endString;
 			string subPath = fileList[i].removeStartString(F_UI_PREFAB_PATH).removeEndString(getFileNameWithSuffix(fileList[i]));
 			if (subPath.isEmpty())
 			{
-				endString = "{ m" + className + " = script; });";
+				endString = "m" + className + " = script);";
 			}
 			else
 			{
-				endString = "{ m" + className + " = script; }, \"" + subPath + "\");";
+				endString = "m" + className + " = script, \"" + subPath + "\");";
 			}
-			appendWithAlign(ref lineString, endString, 68);
+			appendWithAlign(ref lineString, endString, 64);
 			insertList.Add(lineString);
 		}
 		// LayoutRegisterHotFix

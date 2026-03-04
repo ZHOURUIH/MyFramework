@@ -31,8 +31,9 @@ public class CharacterManager : FrameSystem
 	{
 		base.update(elapsedTime);
 		using var a = new SafeDictionaryReader<long, Character>(mCharacterUpdateList);
-		foreach (Character character in a.mReadList.Values)
+		foreach (var item in a.mReadList)
 		{
+			Character character = item.Value;
 			if (character == null || !character.isActiveInHierarchy())
 			{
 				continue;
@@ -44,8 +45,9 @@ public class CharacterManager : FrameSystem
 	{
 		base.lateUpdate(elapsedTime);
 		using var a = new SafeDictionaryReader<long, Character>(mCharacterUpdateList);
-		foreach (Character character in a.mReadList.Values)
+		foreach (var item in a.mReadList)
 		{
+			Character character = item.Value;
 			if (character != null && character.isActiveInHierarchy())
 			{
 				if (!character.isIgnoreTimeScale())
@@ -62,8 +64,9 @@ public class CharacterManager : FrameSystem
 	public override void fixedUpdate(float elapsedTime)
 	{
 		base.fixedUpdate(elapsedTime);
-		foreach (Character character in mFixedUpdateList.Values)
+		foreach (var item in mFixedUpdateList)
 		{
+			Character character = item.Value;
 			if (character != null && character.isActiveInHierarchy())
 			{
 				character.fixedUpdate(elapsedTime);
@@ -158,10 +161,11 @@ public class CharacterManager : FrameSystem
 		}
 		UN_CLASS_LIST(characterList);
 	}
-	public void destroyCharacterList<T0, T1>(IDictionary<T0, T1> characterList) where T1 : Character
+	public void destroyCharacterList<T0, T1>(Dictionary<T0, T1> characterList) where T1 : Character
 	{
-		foreach (T1 character in (characterList?.Values).safe())
+		foreach (var item in characterList.safe())
 		{
+			T1 character = item.Value;
 			long guid = character.getGUID();
 			// 从角色分类列表中移除
 			mCharacterTypeList.get(character.getType())?.Remove(guid);

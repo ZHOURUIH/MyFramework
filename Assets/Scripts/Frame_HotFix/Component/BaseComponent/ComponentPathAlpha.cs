@@ -32,7 +32,7 @@ public abstract class ComponentPathAlpha : ComponentKeyFrame
 		mMaxLength = 0.0f;
 		if (!mValueKeyFrame.isEmpty())
 		{
-			mTimeList.setRange(mValueKeyFrame.Keys);
+			mTimeList.setRangeKeys(mValueKeyFrame);
 			mMaxLength = mTimeList[^1];
 		}
 		base.play(KEY_CURVE.ZERO_ONE, loop, mMaxLength, timeOffset);

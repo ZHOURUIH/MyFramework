@@ -22,10 +22,7 @@ public class SQLiteManager : FrameSystem
 	protected Dictionary<Type, SQLiteTable> mTableList = new();				// 根据表格类型查找表格
 	public override void resourceAvailable()
 	{
-		foreach (SQLiteTable item in mTableList.Values)
-		{
-			item.setResourceAvailable(true);
-		}
+		mTableList.forValue(item => item.setResourceAvailable(true));
 	}
 	public void loadAllAsync(Action callback)
 	{
@@ -45,9 +42,9 @@ public class SQLiteManager : FrameSystem
 			// 然后再加载每个表格
 			int tableCount = mTableList.Count;
 			int finishCount = 0;
-			foreach (SQLiteTable item in mTableList.Values)
+			foreach (var item in mTableList)
 			{
-				item.loadAsync(() =>
+				item.Value.loadAsync(() =>
 				{
 					if (++finishCount == tableCount)
 					{
@@ -60,10 +57,7 @@ public class SQLiteManager : FrameSystem
 	}
 	public void checkAll()
 	{
-		foreach (SQLiteTable item in mTableList.Values)
-		{
-			item.checkAllData();
-		}
+		mTableList.forValue(item => item.checkAllData());
 	}
 	public SQLiteTable registeTable(Type type, Type dataType, string tableName)
 	{
@@ -83,10 +77,7 @@ public class SQLiteManager : FrameSystem
 		{
 			deleteUselessTempFile();
 		}
-		foreach (SQLiteTable item in mTableList.Values)
-		{
-			item.destroy();
-		}
+		mTableList.forValue(item => item.destroy());
 		SqliteConnection.ClearAllPools();
 		GC.Collect();
 		GC.WaitForPendingFinalizers();
@@ -100,17 +91,8 @@ public class SQLiteManager : FrameSystem
 	{
 		foreach (string file in findFilesNonAlloc(SQLiteTable.getDecryptFilePath()))
 		{
-			bool needDelete = true;
 			string fileName = getFileNameWithSuffix(file);
-			foreach (SQLiteTable item in mTableList.Values)
-			{
-				if (item.getDecryptFileName() == fileName)
-				{
-					needDelete = false;
-					break;
-				}
-			}
-			if (needDelete)
+			if (!mTableList.containsValue(item => item.getDecryptFileName() == fileName))
 			{
 				deleteFile(file);
 			}

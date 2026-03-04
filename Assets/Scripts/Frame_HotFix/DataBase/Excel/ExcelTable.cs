@@ -263,7 +263,7 @@ public class ExcelTable
 		decodeFile(fileBuffer);
 
 		using var a = new HashSetScope<int>(out var idsToRemove);
-		idsToRemove.addRange(mDataMap.Keys);
+		idsToRemove.addRangeKeys(mDataMap);
 		// 解析数据
 		using var b = new ClassScope<SerializerRead>(out var reader);
 		reader.init(fileBuffer);
@@ -297,11 +297,7 @@ public class ExcelTable
 			}
 		}
 		// 最后删除减少的行
-		foreach (int k in idsToRemove)
-		{
-			mDataMap.Remove(k);
-		}
-
+		idsToRemove.For(k => mDataMap.Remove(k));
 		log("热重载表格数据：" + mTableName);
 	}
 	// 为了避免歧义,getData,getDataMap设置为不允许外部访问

@@ -24,9 +24,9 @@ public static class DictionaryExtension
 		{
 			return;
 		}
-		foreach (TKey item in list.Keys)
+		foreach (var item in list)
 		{
-			action(item);
+			action(item.Key);
 		}
 	}
 	public static void forValue<TKey, TValue>(this IDictionary<TKey, TValue> list, Action<TValue> action)
@@ -35,9 +35,9 @@ public static class DictionaryExtension
 		{
 			return;
 		}
-		foreach (TValue item in list.Values)
+		foreach (var item in list)
 		{
-			action(item);
+			action(item.Value);
 		}
 	}
 	public static IDictionary<TKey, TValue> safe<TKey, TValue>(this IDictionary<TKey, TValue> dic)
@@ -48,7 +48,7 @@ public static class DictionaryExtension
 	{
 		dic[key] = value;
 	}
-	public static void set<TKey, TValue>(this IDictionary<TKey, TValue> dic, TKey key, TValue value)
+	public static void set<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key, TValue value)
 	{
 		if (isEditor() && !dic.ContainsKey(key))
 		{
@@ -57,7 +57,7 @@ public static class DictionaryExtension
 		dic[key] = value;
 	}
 	// 添加或者更新值,并且返回旧的值,只有当值有改变时才会返回被替换的值
-	public static TValue replace<TKey, TValue>(this IDictionary<TKey, TValue> dic, TKey key, TValue value) where TValue : class
+	public static TValue replace<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key, TValue value) where TValue : class
 	{
 		dic.TryGetValue(key, out TValue curValue);
 		if (curValue != value)
@@ -68,12 +68,12 @@ public static class DictionaryExtension
 		return null;
 	}
 	// 等效于CollectionExtensions.GetValueOrDefault
-	public static Value get<Key, Value>(this IDictionary<Key, Value> map, Key key, Value defaultValue)
+	public static Value get<Key, Value>(this Dictionary<Key, Value> map, Key key, Value defaultValue)
 	{
 		return map != null && map.TryGetValue(key, out Value value) ? value : defaultValue;
 	}
 	// 等效于CollectionExtensions.GetValueOrDefault
-	public static Value get<Key, Value>(this IDictionary<Key, Value> map, Key key)
+	public static Value get<Key, Value>(this Dictionary<Key, Value> map, Key key)
 	{
 		if (map == null)
 		{
@@ -82,7 +82,7 @@ public static class DictionaryExtension
 		map.TryGetValue(key, out Value value);
 		return value;
 	}
-	public static bool addIf<Key, Value>(this IDictionary<Key, Value> map, Key key, Value value, bool condition)
+	public static bool addIf<Key, Value>(this Dictionary<Key, Value> map, Key key, Value value, bool condition)
 	{
 		if (condition)
 		{
@@ -90,20 +90,20 @@ public static class DictionaryExtension
 		}
 		return condition;
 	}
-	public static Value add<Key, Value>(this IDictionary<Key, Value> map, Key key, Value value)
+	public static Value add<Key, Value>(this Dictionary<Key, Value> map, Key key, Value value)
 	{
 		map.Add(key, value);
 		return value;
 	}
-	public static void add<Key, Value>(this IDictionary<Key, Value> map, KeyValuePair<Key, Value> pair)
+	public static void add<Key, Value>(this Dictionary<Key, Value> map, KeyValuePair<Key, Value> pair)
 	{
 		map.Add(pair.Key, pair.Value);
 	}
-	public static Value addClass<Key, Value>(this IDictionary<Key, Value> map, Key key) where Value : ClassObject, new() 
+	public static Value addClass<Key, Value>(this Dictionary<Key, Value> map, Key key) where Value : ClassObject, new() 
 	{
 		return map.add(key, CLASS<Value>());
 	}
-	public static Value addNotNullKey<Key, Value>(this IDictionary<Key, Value> map, Key key, Value value)
+	public static Value addNotNullKey<Key, Value>(this Dictionary<Key, Value> map, Key key, Value value)
 	{
 		if (key == null)
 		{
@@ -112,7 +112,7 @@ public static class DictionaryExtension
 		map.Add(key, value);
 		return value;
 	}
-	public static Value addNotNullValue<Key, Value>(this IDictionary<Key, Value> map, Key key, Value value)
+	public static Value addNotNullValue<Key, Value>(this Dictionary<Key, Value> map, Key key, Value value)
 	{
 		if (value == null)
 		{
@@ -121,30 +121,32 @@ public static class DictionaryExtension
 		map.Add(key, value);
 		return value;
 	}
-	public static void setRange<Key, Value>(this IDictionary<Key, Value> map, IDictionary<Key, Value> other)
+	public static Dictionary<Key, Value> setRange<Key, Value>(this Dictionary<Key, Value> map, Dictionary<Key, Value> other)
 	{
 		map.Clear();
-		if (other == null)
+		if (other.isEmpty())
 		{
-			return;
+			return map;
 		}
 		foreach (var item in other)
 		{
 			map.Add(item.Key, item.Value);
 		}
+		return map;
 	}
-	public static void addRange<Key, Value>(this Dictionary<Key, Value> map, IDictionary<Key, Value> other)
+	public static Dictionary<Key, Value> addRange<Key, Value>(this Dictionary<Key, Value> map, Dictionary<Key, Value> other)
 	{
-		if (other == null)
+		if (other.isEmpty())
 		{
-			return;
+			return map;
 		}
 		foreach (var item in other)
 		{
 			map.TryAdd(item.Key, item.Value);
 		}
+		return map;
 	}
-	public static bool getKeyOfValue<TKey, TValue>(this IDictionary<TKey, TValue> dic, TValue value, out TKey key)
+	public static bool getKeyOfValue<TKey, TValue>(this Dictionary<TKey, TValue> dic, TValue value, out TKey key)
 	{
 		if (dic.isEmpty())
 		{
@@ -162,7 +164,7 @@ public static class DictionaryExtension
 		key = default;
 		return false;
 	}
-	public static TKey getKeyOfValue<TKey, TValue>(this IDictionary<TKey, TValue> dic, TValue value)
+	public static TKey getKeyOfValue<TKey, TValue>(this Dictionary<TKey, TValue> dic, TValue value)
 	{
 		if (dic.isEmpty())
 		{
@@ -178,7 +180,7 @@ public static class DictionaryExtension
 		return default;
 	}
 	// 返回值表示是否get成功
-	public static bool getOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dic, TKey key, TValue value, out TValue existValue)
+	public static bool getOrAdd<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key, TValue value, out TValue existValue)
 	{
 		if (dic.TryGetValue(key, out existValue))
 		{
@@ -187,7 +189,7 @@ public static class DictionaryExtension
 		dic.Add(key, value);
 		return false;
 	}
-	public static void addOrIncreaseValue<TKey>(this IDictionary<TKey, int> dic, TKey key, int increase)
+	public static void addOrIncreaseValue<TKey>(this Dictionary<TKey, int> dic, TKey key, int increase)
 	{
 		if (dic.TryGetValue(key, out int curValue))
 		{
@@ -198,7 +200,7 @@ public static class DictionaryExtension
 			dic.Add(key, increase);
 		}
 	}
-	public static void addOrIncreaseValue<TKey>(this IDictionary<TKey, float> dic, TKey key, float increase)
+	public static void addOrIncreaseValue<TKey>(this Dictionary<TKey, float> dic, TKey key, float increase)
 	{
 		if (dic.TryGetValue(key, out float curValue))
 		{
@@ -209,15 +211,17 @@ public static class DictionaryExtension
 			dic.Add(key, increase);
 		}
 	}
-	public static void setAllValue<Key, Value>(this IDictionary<Key, Value> map, Value value)
+	public static Dictionary<Key, Value> setAllValue<Key, Value>(this Dictionary<Key, Value> map, Value value)
 	{
-		using var a = new ListScope<Key>(out var temp, map.Keys);
+		using var a = new ListScope<Key>(out var temp);
+		temp.setRangeKeys(map);
 		foreach (Key item in temp)
 		{
 			map[item] = value;
 		}
+		return map;
 	}
-	public static Dictionary<T0, T1> getOrAddListPersist<Key, T0, T1>(this IDictionary<Key, Dictionary<T0, T1>> map, Key key)
+	public static Dictionary<T0, T1> getOrAddListPersist<Key, T0, T1>(this Dictionary<Key, Dictionary<T0, T1>> map, Key key)
 	{
 		if (!map.TryGetValue(key, out var value))
 		{
@@ -291,6 +295,36 @@ public static class DictionaryExtension
 		}
 		return defaultValue;
 	}
+	public static bool removeIf<Key, T>(this IDictionary<Key, T> map, Key key0, bool condition)
+	{
+		if (condition)
+		{
+			map.Remove(key0);
+		}
+		return condition;
+	}
+	public static void remove<Key, T>(this IDictionary<Key, T> map, ICollection<Key> keys)
+	{
+		if (keys.isEmpty())
+		{
+			return;
+		}
+		foreach (Key key in keys)
+		{
+			map.Remove(key);
+		}
+	}
+	public static void removeKeys<Key, T, T0>(this IDictionary<Key, T> map, Dictionary<Key, T0> other)
+	{
+		if (other.isEmpty())
+		{
+			return;
+		}
+		foreach (var item in other)
+		{
+			map.Remove(item.Key);
+		}
+	}
 	public static void remove<Key, T>(this IDictionary<Key, T> map, Key key0, Key key1)
 	{
 		map.Remove(key0);
@@ -325,9 +359,9 @@ public static class DictionaryExtension
 			return 0;
 		}
 		int curCount = 0;
-		foreach (TKey item in list.Keys)
+		foreach (var item in list)
 		{
-			if (condition.Invoke(item))
+			if (condition.Invoke(item.Key))
 			{
 				++curCount;
 			}
@@ -341,9 +375,9 @@ public static class DictionaryExtension
 			return 0;
 		}
 		int curCount = 0;
-		foreach (TValue item in list.Values)
+		foreach (var item in list)
 		{
-			if (condition.Invoke(item))
+			if (condition.Invoke(item.Value))
 			{
 				++curCount;
 			}
@@ -382,6 +416,39 @@ public static class DictionaryExtension
 		}
 		return list.First().Key; 
 	}
+	public static bool findKey<TKey, TValue>(this IDictionary<TKey, TValue> list, Predicate<KeyValuePair<TKey, TValue>> action, out TKey key)
+	{
+		if (list.count() == 0)
+		{
+			key = default;
+			return false;
+		}
+		foreach (var item in list)
+		{
+			if (action(item))
+			{
+				key = item.Key;
+				return true;
+			}
+		}
+		key = default;
+		return false;
+	}
+	public static TKey findKey<TKey, TValue>(this IDictionary<TKey, TValue> list, Predicate<KeyValuePair<TKey, TValue>> action)
+	{
+		if (list.count() == 0)
+		{
+			return default;
+		}
+		foreach (var item in list)
+		{
+			if (action(item))
+			{
+				return item.Key;
+			}
+		}
+		return default;
+	}
 	public static bool findKey<TKey, TValue>(this IDictionary<TKey, TValue> list, Predicate<TKey> action, out TKey key)
 	{
 		if (list.count() == 0)
@@ -389,11 +456,11 @@ public static class DictionaryExtension
 			key = default;
 			return false;
 		}
-		foreach (TKey item in list.Keys)
+		foreach (var item in list)
 		{
-			if (action(item))
+			if (action(item.Key))
 			{
-				key = item;
+				key = item.Key;
 				return true;
 			}
 		}
@@ -406,11 +473,11 @@ public static class DictionaryExtension
 		{
 			return default;
 		}
-		foreach (TKey item in list.Keys)
+		foreach (var item in list)
 		{
-			if (action(item))
+			if (action(item.Key))
 			{
-				return item;
+				return item.Key;
 			}
 		}
 		return default;
@@ -422,11 +489,11 @@ public static class DictionaryExtension
 			value = default;
 			return false;
 		}
-		foreach (TValue item in list.Values)
+		foreach (var item in list)
 		{
-			if (action(item))
+			if (action(item.Value))
 			{
-				value = item;
+				value = item.Value;
 				return true;
 			}
 		}
@@ -439,11 +506,44 @@ public static class DictionaryExtension
 		{
 			return default;
 		}
-		foreach (TValue item in list.Values)
+		foreach (var item in list)
+		{
+			if (action(item.Value))
+			{
+				return item.Value;
+			}
+		}
+		return default;
+	}
+	public static bool findValue<TKey, TValue>(this IDictionary<TKey, TValue> list, Predicate<KeyValuePair<TKey, TValue>> action, out TValue value)
+	{
+		if (list.count() == 0)
+		{
+			value = default;
+			return false;
+		}
+		foreach (var item in list)
 		{
 			if (action(item))
 			{
-				return item;
+				value = item.Value;
+				return true;
+			}
+		}
+		value = default;
+		return false;
+	}
+	public static TValue findValue<TKey, TValue>(this IDictionary<TKey, TValue> list, Predicate<KeyValuePair<TKey, TValue>> action)
+	{
+		if (list.count() == 0)
+		{
+			return default;
+		}
+		foreach (var item in list)
+		{
+			if (action(item))
+			{
+				return item.Value;
 			}
 		}
 		return default;
@@ -454,9 +554,9 @@ public static class DictionaryExtension
 		{
 			return false;
 		}
-		foreach (TKey item in list.Keys)
+		foreach (var item in list)
 		{
-			if (action(item))
+			if (action(item.Key))
 			{
 				return true;
 			}
@@ -469,7 +569,22 @@ public static class DictionaryExtension
 		{
 			return false;
 		}
-		foreach (TValue item in list.Values)
+		foreach (var item in list)
+		{
+			if (action(item.Value))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	public static bool contains<TKey, TValue>(this IDictionary<TKey, TValue> list, Predicate<KeyValuePair<TKey, TValue>> action)
+	{
+		if (list.count() == 0)
+		{
+			return false;
+		}
+		foreach (var item in list)
 		{
 			if (action(item))
 			{

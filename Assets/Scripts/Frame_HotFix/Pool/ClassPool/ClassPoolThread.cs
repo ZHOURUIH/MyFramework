@@ -31,10 +31,7 @@ public class ClassPoolThread : FrameSystem
 	{
 		using (new ThreadLockScope(mListLock))
 		{
-			foreach (ClassPoolSingle item in mPoolList.Values)
-			{
-				item.clearUnused();
-			}
+			mPoolList.forValue(item => item.clearUnused());
 		}
 	}
 	public Dictionary<Type, ClassPoolSingle> getPoolList() { return mPoolList; }

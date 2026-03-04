@@ -105,9 +105,9 @@ public class SafeDictionary<Key, Value> : ClassObject
 	{
 		if (mForeaching)
 		{
-			foreach (Key item in mMainList.Keys)
+			foreach (var item in mMainList)
 			{
-				mModifyList.Add(new(item));
+				mModifyList.Add(new(item.Key));
 			}
 		}
 		else

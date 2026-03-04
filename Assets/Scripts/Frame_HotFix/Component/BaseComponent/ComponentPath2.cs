@@ -55,10 +55,10 @@ public abstract class ComponentPath2 : ComponentKeyFrame
 		mMaxLength = 0.0f;
 		if (!mValueKeyFrame0.isEmpty())
 		{
-			mValueList0.setRange(mValueKeyFrame0.Values);
-			mTimeList0.setRange(mValueKeyFrame0.Keys);
-			mValueList1.setRange(mValueKeyFrame1.Values);
-			mTimeList1.setRange(mValueKeyFrame1.Keys);
+			mValueList0.setRangeValues(mValueKeyFrame0);
+			mTimeList0.setRangeKeys(mValueKeyFrame0);
+			mValueList1.setRangeValues(mValueKeyFrame1);
+			mTimeList1.setRangeKeys(mValueKeyFrame1);
 			mMaxLength = mTimeList0[^1];
 			if (!isFloatEqual(mTimeList0[^1], mTimeList1[^1]))
 			{

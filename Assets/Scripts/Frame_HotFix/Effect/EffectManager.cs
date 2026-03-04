@@ -356,9 +356,9 @@ public class EffectManager : FrameSystem
 			}
 		}
 		using var b = new ListScope<GameEffect>(out var tempList);
-		foreach (var item in mUnusedEffectList.Values)
+		foreach (var item in mUnusedEffectList)
 		{
-			foreach (GameEffect effect in item)
+			foreach (GameEffect effect in item.Value)
 			{
 				if (!effect.checkValid())
 				{

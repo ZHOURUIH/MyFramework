@@ -24,10 +24,7 @@ public class ExcelTableT<T> : ExcelTable where T : ExcelData
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void initDataList()
 	{
-		foreach (ExcelData item in getDataMap().Values)
-		{
-			mDataList.Add(item as T);
-		}
+		getDataMap().forValue(item => mDataList.Add(item as T));
 		mDataAvailable = true;
 	}
 }

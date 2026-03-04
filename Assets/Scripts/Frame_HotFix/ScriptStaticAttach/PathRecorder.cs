@@ -20,10 +20,10 @@ public class PathRecorder : MonoBehaviour
 	public GameObject mRecorderTarget;								// 记录轨迹的目标物体
 	public string mFilePath;										// 保存的文件路径
 	public string mFileName;										// 保存的文件名
-	public bool mRecordeTranslate = true;							// 是否记录平移
-	public bool mRecordeRotate = true;								// 是否记录旋转
-	public bool mRecordeScale = true;								// 是否记录缩放
-	public bool mRecordeAlpha = true;								// 是否记录透明度
+	public bool mRecordTranslate = true;							// 是否记录平移
+	public bool mRecordRotate = true;								// 是否记录旋转
+	public bool mRecordScale = true;								// 是否记录缩放
+	public bool mRecordAlpha = true;								// 是否记录透明度
 	public bool mStartRecorder;										// 是否开始录制,当作开始按钮使用
 	public void Start()
 	{
@@ -66,7 +66,7 @@ public class PathRecorder : MonoBehaviour
 				Debug.LogError("文件名非法");
 				return;
 			}
-			if (mRecordeAlpha &&
+			if (mRecordAlpha &&
 				!mRecorderTarget.TryGetComponent<Graphic>(out _) &&
 				!mRecorderTarget.TryGetComponent<Renderer>(out _))
 			{
@@ -84,19 +84,10 @@ public class PathRecorder : MonoBehaviour
 		mRotatePath.Clear();
 		mScalePath.Clear();
 		mStartTime = Time.realtimeSinceStartup;
-		if (mRecordeTranslate)
-		{
-			mTranslatePath.Add(0.0f, mRecorderTarget.transform.position);
-		}
-		if (mRecordeRotate)
-		{
-			mRotatePath.Add(0.0f, mRecorderTarget.transform.eulerAngles);
-		}
-		if (mRecordeScale)
-		{
-			mScalePath.Add(0.0f, mRecorderTarget.transform.lossyScale);
-		}
-		if (mRecordeAlpha)
+		mTranslatePath.addIf(0.0f, mRecorderTarget.transform.position, mRecordTranslate);
+		mRotatePath.addIf(0.0f, mRecorderTarget.transform.eulerAngles, mRecordRotate);
+		mScalePath.addIf(0.0f, mRecorderTarget.transform.lossyScale, mRecordScale);
+		if (mRecordAlpha)
 		{
 			if (mRecorderTarget.TryGetComponent<Graphic>(out var graphic))
 			{
@@ -115,19 +106,10 @@ public class PathRecorder : MonoBehaviour
 			return;
 		}
 		float curTime = Time.realtimeSinceStartup - mStartTime;
-		if (mRecordeTranslate)
-		{
-			mTranslatePath.Add(curTime, mRecorderTarget.transform.position);
-		}
-		if (mRecordeRotate)
-		{
-			mRotatePath.Add(curTime, mRecorderTarget.transform.eulerAngles);
-		}
-		if (mRecordeScale)
-		{
-			mScalePath.Add(curTime, mRecorderTarget.transform.lossyScale);
-		}
-		if (mRecordeAlpha)
+		mTranslatePath.addIf(curTime, mRecorderTarget.transform.position, mRecordTranslate);
+		mRotatePath.addIf(curTime, mRecorderTarget.transform.eulerAngles, mRecordRotate);
+		mScalePath.addIf(curTime, mRecorderTarget.transform.lossyScale, mRecordScale);
+		if (mRecordAlpha)
 		{
 			if (mRecorderTarget.TryGetComponent<Graphic>(out var graphic))
 			{
@@ -144,7 +126,7 @@ public class PathRecorder : MonoBehaviour
 		string pathWithName = mFilePath + mFileName;
 		// 压缩数据,去除连续相同的值,然后写入文件
 		// 位移
-		if (mRecordeTranslate)
+		if (mRecordTranslate)
 		{
 			compress(mTranslatePath);
 			string content = "";
@@ -155,7 +137,7 @@ public class PathRecorder : MonoBehaviour
 			writeTxtFile(pathWithName + ".translate", content);
 		}
 		// 旋转
-		if (mRecordeRotate)
+		if (mRecordRotate)
 		{
 			compress(mRotatePath);
 			string content = "";
@@ -166,7 +148,7 @@ public class PathRecorder : MonoBehaviour
 			writeTxtFile(pathWithName + ".rotate", content);
 		}
 		// 缩放
-		if (mRecordeScale)
+		if (mRecordScale)
 		{
 			compress(mScalePath);
 			string content = "";
@@ -176,7 +158,7 @@ public class PathRecorder : MonoBehaviour
 			}
 			writeTxtFile(pathWithName + ".scale", content);
 		}
-		if (mRecordeAlpha)
+		if (mRecordAlpha)
 		{
 			compress(mAlphaPath);
 			string content = "";
@@ -193,7 +175,8 @@ public class PathRecorder : MonoBehaviour
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected static void compress(Dictionary<float, Vector3> path)
 	{
-		List<float> keys = new(path.Keys);
+		List<float> keys = new();
+		keys.setRangeKeys(path);
 		Vector3 lastValue = path.get(keys[0]);
 		int keyCount = keys.Count;
 		for (int i = 0; i < keyCount; ++i)

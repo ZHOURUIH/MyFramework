@@ -38,12 +38,12 @@ public class AudioManager : FrameSystem
 		mMusicHelper = null;
 
 		// 销毁所有音效信息
-		foreach (AudioInfo item in mAudioList.Values)
+		foreach (var item in mAudioList)
 		{
 			// 只销毁通过链接加载的音频
-			if (!item.mIsLocal)
+			if (!item.Value.mIsLocal)
 			{
-				destroyUnityObject(item.mClip);
+				destroyUnityObject(item.Value.mClip);
 			}
 		}
 		UN_CLASS_LIST(mAudioList);
@@ -114,22 +114,22 @@ public class AudioManager : FrameSystem
 	// 同步加载所有已经注册的音效
 	public void loadAll()
 	{
-		foreach (AudioInfo item in mAudioList.Values)
+		foreach (var item in mAudioList)
 		{
-			if (item.mClip == null && item.mState == LOAD_STATE.NONE)
+			if (item.Value.mClip == null && item.Value.mState == LOAD_STATE.NONE)
 			{
-				loadAudio(item);
+				loadAudio(item.Value);
 			}
 		}
 	}
 	// 异步加载所有已经注册的音效
 	public void loadAllAsync()
 	{
-		foreach (AudioInfo item in mAudioList.Values)
+		foreach (var item in mAudioList)
 		{
-			if (item.mClip == null && item.mState == LOAD_STATE.NONE)
+			if (item.Value.mClip == null && item.Value.mState == LOAD_STATE.NONE)
 			{
-				loadAudioAsync(item, null);
+				loadAudioAsync(item.Value, null);
 			}
 		}
 	}

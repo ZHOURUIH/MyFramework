@@ -26,16 +26,10 @@ public class KeyMappingSystem : FrameSystem
 	// 可以重复调用,将会保留最后一次的设置
 	public bool setKeyMapping(int mappingID, KeyCode key, string actionName = null)
 	{
-		if (key != KeyCode.None)
+		// 需要检测是否与当前按键映射冲突
+		if (key != KeyCode.None && mKeyMapping.containsValue(item => item.mKey == key && item.mMappingID != mappingID))
 		{
-			// 需要检测是否与当前按键映射冲突
-			foreach (KeyMapping item in mKeyMapping.Values)
-			{
-				if (item.mKey == key && item.mMappingID != mappingID)
-				{
-					return false;
-				}
-			}
+			return false;
 		}
 
 		// 更新或者添加

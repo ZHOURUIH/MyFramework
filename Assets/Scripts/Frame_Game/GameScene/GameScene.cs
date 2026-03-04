@@ -45,9 +45,9 @@ public abstract class GameScene
 	}
 	public virtual void willDestroy()
 	{
-		foreach (SceneProcedure item in mSceneProcedureList.Values)
+		foreach (var item in mSceneProcedureList)
 		{
-			item.willDestroy();
+			item.Value.willDestroy();
 		}
 	}
 	public abstract void assignStartExitProcedure();

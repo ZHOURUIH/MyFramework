@@ -105,10 +105,10 @@ public class CharacterState : ClassObject
 	}
 	public void callWillRemoveCallback()
 	{
-		foreach (var item in mWillRemoveCallbackList.safe().Values)
+		foreach (var item in mWillRemoveCallbackList.safe())
 		{
-			item.For(callback => callback(this));
-			UN_LIST(item);
+			item.Value.For(callback => callback(this));
+			UN_LIST(item.Value);
 		}
 		mWillRemoveCallbackList?.Clear();
 	}

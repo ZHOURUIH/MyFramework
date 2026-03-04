@@ -95,13 +95,13 @@ public class InputSystem : FrameSystem
 		if (Input.touchCount == 0)
 		{
 			using var a = new SafeDictionaryReader<int, TouchPoint>(mTouchPointList);
-			foreach (TouchPoint item in a.mReadList.Values)
+			foreach (var item in a.mReadList)
 			{
 				// 此处只更新鼠标的位置,因为touchCount为0时,mTouchPointList种也可能存在这一帧抬起的还未来得及移除的触摸屏的触点
 				// webgl上也可能在鼠标按下时读取不到触点数量,所以触点数量为0而且又检测到了鼠标按下而添加信息到mTouchPointList,也使用鼠标位置来更新触点
-				if (item.isMouse() || isWebGL())
+				if (item.Value.isMouse() || isWebGL())
 				{
-					item.update(Input.mousePosition);
+					item.Value.update(Input.mousePosition);
 				}
 			}
 		}
@@ -271,11 +271,11 @@ public class InputSystem : FrameSystem
 	public bool getTouchDown(out TouchPoint touchPoint)
 	{
 		touchPoint = null;
-		foreach (TouchPoint item in mTouchPointList.getMainList().Values)
+		foreach (var item in mTouchPointList.getMainList())
 		{
-			if (item.isCurrentDown())
+			if (item.Value.isCurrentDown())
 			{
-				touchPoint = item;
+				touchPoint = item.Value;
 				return true;
 			}
 		}
@@ -284,11 +284,11 @@ public class InputSystem : FrameSystem
 	// 是否有任意触点在这一帧完成一次点击操作,如果有,则返回第一个在这一帧完成点击的触点
 	public TouchPoint getTouchClick()
 	{
-		foreach (TouchPoint item in mTouchPointList.getMainList().Values)
+		foreach (var item in mTouchPointList.getMainList())
 		{
-			if (item.isClick())
+			if (item.Value.isClick())
 			{
-				return item;
+				return item.Value;
 			}
 		}
 		return null;
@@ -296,11 +296,11 @@ public class InputSystem : FrameSystem
 	// 是否有任意触点在这一帧完成一次双击操作,如果有,则返回第一个在这一帧完成双击的触点
 	public TouchPoint isTouchDoubleClick()
 	{
-		foreach (TouchPoint item in mTouchPointList.getMainList().Values)
+		foreach (var item in mTouchPointList.getMainList())
 		{
-			if (item.isDoubleClick())
+			if (item.Value.isDoubleClick())
 			{
-				return item;
+				return item.Value;
 			}
 		}
 		return null;
@@ -353,9 +353,9 @@ public class InputSystem : FrameSystem
 	public int getTouchPointDownCount()
 	{
 		int count = 0;
-		foreach (TouchPoint item in mTouchPointList.getMainList().Values)
+		foreach (var item in mTouchPointList.getMainList())
 		{
-			if (item.isDown())
+			if (item.Value.isDown())
 			{
 				++count;
 			}

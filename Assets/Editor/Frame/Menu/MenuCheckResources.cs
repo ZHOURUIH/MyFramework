@@ -287,7 +287,8 @@ public class MenuCheckResources
 	{
 		Debug.Log("开始检查是否有材质引用丢失");
 		// 所有Material的GUID集合
-		List<string> materialGUIDsList = new(getAllGUIDBySuffixInFilePath(F_ASSETS_PATH, ".mat.meta", "材质").Keys);
+		List<string> materialGUIDsList = new();
+		materialGUIDsList.setRangeKeys(getAllGUIDBySuffixInFilePath(F_ASSETS_PATH, ".mat.meta", "材质"));
 		// 所有引用Material的.prefab与.unity文件的集合
 		// 丢失脚本引用的资源字典(key = "引用了丢失材质的资源路径",value = 该资源丢失的材质的guid列表)
 		Dictionary<string, List<string>> missingRefAssetsList = new();
@@ -499,10 +500,7 @@ public class MenuCheckResources
 		List<string> resourcesFilesList = new();
 		foreach (string file in tempFileList)
 		{
-			if (!file.Contains("/Unused/") && !file.endWith(".meta"))
-			{
-				resourcesFilesList.Add(file);
-			}
+			resourcesFilesList.addIf(file, !file.Contains("/Unused/") && !file.endWith(".meta"));
 		}
 
 		// 重复的资源的路径字典(key: MD5字符串, value: 相同资源的列表)
@@ -516,8 +514,9 @@ public class MenuCheckResources
 		}
 
 		// 输出结果
-		foreach (var element in hasSameAssetsDic.Values)
+		foreach (var item in hasSameAssetsDic)
 		{
+			var element = item.Value;
 			if (element.Count > 1)
 			{
 				Debug.LogError("出现重复的资源,路径为:\n" + stringsToString(element, '\n'), loadAsset(element[0]));
@@ -716,8 +715,9 @@ public class MenuCheckResources
 		// UGUI路径常量
 		const string uiPath = "Packages/com.unity.ugui";
 		// 所有引用了脚本的.prefab与.unity文件
-		foreach (FileGUIDLines fileInfo in getScriptReferenceFileText(F_ASSETS_PATH).Values)
+		foreach (var item in getScriptReferenceFileText(F_ASSETS_PATH))
 		{
+			FileGUIDLines fileInfo = item.Value;
 			foreach (string guid in fileInfo.mContainGUIDLines)
 			{
 				// 与存着所有的脚本GUID的列表进行比对,剔除UGUI脚本的GUID

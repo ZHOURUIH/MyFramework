@@ -12,10 +12,7 @@ public class ExcelManager : FrameSystem
 	// 资源可访问后开始加载所有的表格文件
 	public override void resourceAvailable()
 	{
-		foreach (ExcelTable item in mTableList.Values)
-		{
-			item.setResourceAvailable(true);
-		}
+		mTableList.forValue(item => item.setResourceAvailable(true));
 	}
 	public void loadAllAsync(Action callback)
 	{
@@ -32,9 +29,9 @@ public class ExcelManager : FrameSystem
 			// 然后再加载每个表格
 			int tableCount = mTableList.Count;
 			int finishCount = 0;
-			foreach (ExcelTable item in mTableList.Values)
+			foreach (var item in mTableList)
 			{
-				item.openFileAsync(() =>
+				item.Value.openFileAsync(() =>
 				{
 					if (++finishCount == tableCount)
 					{
@@ -49,11 +46,11 @@ public class ExcelManager : FrameSystem
 	{
 		int finishCount = 0;
 		int tableCount = mTableList.Count;
-		foreach (ExcelTable item in mTableList.Values)
+		foreach (var item in mTableList)
 		{
-			item.openFileAsync(() =>
+			item.Value.openFileAsync(() =>
 			{
-				item.reload();
+				item.Value.reload();
 				if (++finishCount == tableCount)
 				{
 					callback?.Invoke();
@@ -71,9 +68,6 @@ public class ExcelManager : FrameSystem
 	}
 	public void checkAll()
 	{
-		foreach (ExcelTable item in mTableList.Values)
-		{
-			item.checkAllData();
-		}
+		mTableList.forValue(item => item.checkAllData());
 	}
 }

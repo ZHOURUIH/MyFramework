@@ -96,9 +96,9 @@ public class GlobalTouchSystem : FrameSystem
 		}
 
 		// 更新触点逻辑
-		foreach (TouchInfo item in mTouchInfoList.Values)
+		foreach (var item in mTouchInfoList)
 		{
-			item.update(elapsedTime);
+			item.Value.update(elapsedTime);
 		}
 
 		// 检查摄像机是否被销毁
@@ -216,9 +216,9 @@ public class GlobalTouchSystem : FrameSystem
 			return;
 		}
 
-		foreach (TouchInfo item in mTouchInfoList.Values)
+		foreach (var item in mTouchInfoList)
 		{
-			item.removeObject(obj);
+			item.Value.removeObject(obj);
 		}
 
 		if (obj is myUGUIObject window)

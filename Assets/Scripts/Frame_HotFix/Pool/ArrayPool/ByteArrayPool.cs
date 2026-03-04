@@ -33,9 +33,9 @@ public class ByteArrayPool : FrameSystem
 		base.update(elapsedTime);
 		if (isEditor())
 		{
-			foreach (var itemList in mInusedList.Values)
+			foreach (var itemList in mInusedList)
 			{
-				foreach (byte[] itemArray in itemList)
+				foreach (byte[] itemArray in itemList.Value)
 				{
 					string stack = mObjectStack.get(itemArray);
 					if (stack.isEmpty())
@@ -54,10 +54,7 @@ public class ByteArrayPool : FrameSystem
 	}
 	public void clearUnused()
 	{
-		foreach (var item in mUnusedList.Values)
-		{
-			item.Clear();
-		}
+		mUnusedList.forValue(item => item.Clear());
 	}
 	public Dictionary<int, HashSet<byte[]>> getPersistentInusedList() { return mPersistentInuseList; }
 	public Dictionary<int, HashSet<byte[]>> getInusedList() { return mInusedList; }

@@ -18,9 +18,10 @@ public class CmdLayoutManagerBackBlur
 		{
 			maxOrder = getMax(layout.getRenderOrder(), maxOrder);
 		}
-		foreach (GameLayout layout in mLayoutManager.getLayoutList().getMainList().Values)
+		foreach (var item in mLayoutManager.getLayoutList().getMainList())
 		{
-			if(!layout.isVisible())
+			GameLayout layout = item.Value;
+			if (!layout.isVisible())
 			{
 				continue;
 			}

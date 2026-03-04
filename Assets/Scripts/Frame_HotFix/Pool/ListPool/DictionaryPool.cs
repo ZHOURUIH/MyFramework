@@ -30,9 +30,9 @@ public class DictionaryPool : FrameSystem
 		base.update(elapsedTime);
 		if (isEditor())
 		{
-			foreach (var item in mInusedList.Values)
+			foreach (var item in mInusedList)
 			{
-				foreach (ICollection itemList in item)
+				foreach (ICollection itemList in item.Value)
 				{
 					string stack = mObjectStack.get(itemList);
 					if (stack.isEmpty())

@@ -40,8 +40,8 @@ public abstract class ComponentPath : ComponentKeyFrame
 		mMaxLength = 0.0f;
 		if (!mValueKeyFrame.isEmpty())
 		{
-			mValueList.setRange(mValueKeyFrame.Values);
-			mTimeList.setRange(mValueKeyFrame.Keys);
+			mValueList.setRangeValues(mValueKeyFrame);
+			mTimeList.setRangeKeys(mValueKeyFrame);
 			mMaxLength = mTimeList[^1];
 		}
 		mLastKeyIndex = 0;

@@ -34,45 +34,22 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 		mInited = true;
 		mHasDestroy = false;
 		// 调用当前节点中所有对象池的初始化
-		foreach (WindowStructPoolBase pool in mPoolList.safe())
-		{
-			pool.init();
-		}
+		mPoolList.For(item => item.init());
 		// 调用当前节点中所有窗口对象池的初始化
-		foreach (WindowPoolBase pool in mWindowPoolList.safe())
-		{
-			pool.init();
-		}
+		mWindowPoolList.For(item => item.init());
 		// 调用所有子节点的初始化
-		foreach (WindowObjectBase item in mChildList.safe())
-		{
-			item.init();
-		}
+		mChildList.For(item => item.init());
 	}
 	// init调用后才会调用,一般不需要子类去重写
 	public void postInit()
 	{
 		// 如果初始化以后,item中的对象池是有创建节点的,则需要设置为不能自动清空对象池,不然会出问题
-		foreach (WindowStructPoolBase pool in mPoolList.safe())
+		if (mPoolList.contains(pool=> pool.getInUseCount() > 0) ||
+			mWindowPoolList.contains(pool => pool.getInUseCount() > 0))
 		{
-			if (pool.getInUseCount() > 0)
-			{
-				mUnuseAllWhenHide = false;
-				break;
-			}
+			mUnuseAllWhenHide = false;
 		}
-		foreach (WindowPoolBase item in mWindowPoolList.safe())
-		{
-			if (item.getInUseCount() > 0)
-			{
-				mUnuseAllWhenHide = false;
-				break;
-			}
-		}
-		foreach (WindowObjectBase item in mChildList.safe())
-		{
-			item.postInit();
-		}
+		mChildList.For(item => item.postInit());
 	}
 	// 每次被分配使用时调用,如果是对象池中的物体,则由对象池调用,非对象池物体需要在使用的地方自己调用
 	public virtual void reset() 
@@ -81,10 +58,7 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 		mCalledOnShow = false;
 		if (mNeedResetAllChild)
 		{
-			foreach (WindowObjectBase item in mChildList.safe())
-			{
-				item.reset();
-			}
+			mChildList.For(item => item.reset());
 		}
 	}
 	public void updateDragViewLoop()
@@ -126,14 +100,8 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 		}
 		if (mUnuseAllWhenHide)
 		{
-			foreach (WindowStructPoolBase item in mPoolList.safe())
-			{
-				item.unuseAll();
-			}
-			foreach (WindowPoolBase item in mWindowPoolList.safe())
-			{
-				item.unuseAll();
-			}
+			mPoolList.For(item => item.unuseAll());
+			mWindowPoolList.For(item => item.unuseAll());
 		}
 		mEventSystem.unlistenEvent(this);
 	}
@@ -161,22 +129,13 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 		}
 		mHasDestroy = true;
 
-		foreach (WindowStructPoolBase item in mPoolList.safe())
-		{
-			item.destroy();
-		}
+		mPoolList.For(item => item.destroy());
 		mPoolList?.Clear();
 
-		foreach (WindowPoolBase item in mWindowPoolList.safe())
-		{
-			item.destroy();
-		}
+		mWindowPoolList.For(item => item.destroy());
 		mWindowPoolList?.Clear();
 
-		foreach (WindowObjectBase item in mChildList.safe())
-		{
-			item.destroy();
-		}
+		mChildList.For(item => item.destroy());
 		mChildList?.Clear();
 
 		mLocalizationManager?.unregisteLocalization(mLocalizationObjectList);
@@ -195,19 +154,13 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 	{
 		mCalledOnHide = false;
 		// 需要标记所有子节点也允许再调用onHide
-		foreach (WindowObjectBase item in mChildList.safe())
-		{
-			item.resetCallOnHideFlag();
-		}
+		mChildList.For(item => item.resetCallOnHideFlag());
 	}
 	public void resetCallOnShowFlag()
 	{
 		mCalledOnShow = false;
 		// 需要标记所有子节点也允许再调用onShow
-		foreach (WindowObjectBase item in mChildList.safe())
-		{
-			item.resetCallOnShowFlag();
-		}
+		mChildList.For(item => item.resetCallOnShowFlag());
 	}
 	public virtual bool setActive(bool active) 
 	{

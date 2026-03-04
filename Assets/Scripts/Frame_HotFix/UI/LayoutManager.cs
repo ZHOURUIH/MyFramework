@@ -62,40 +62,38 @@ public class LayoutManager : FrameSystem
 	{
 		base.update(elapsedTime);
 		using var a = new SafeDictionaryReader<Type, GameLayout>(mLayoutList);
-		foreach (GameLayout item in a.mReadList.Values)
+		foreach (var item in a.mReadList)
 		{
+			GameLayout layout = item.Value;
 			try
 			{
-				using var b = new ProfilerScope(item.getName());
-				item.update(elapsedTime);
+				using var b = new ProfilerScope(layout.getName());
+				layout.update(elapsedTime);
 			}
 			catch (Exception e)
 			{
-				logException(e,"界面:" + item.getName());
+				logException(e,"界面:" + layout.getName());
 			}
 		}
 	}
 	public override void onDrawGizmos()
 	{
 		using var a = new SafeDictionaryReader<Type, GameLayout>(mLayoutList);
-		foreach (GameLayout item in a.mReadList.Values)
-		{
-			item.onDrawGizmos();
-		}
+		a.mReadList.forValue(item => item.onDrawGizmos());
 	}
 	public override void lateUpdate(float elapsedTime)
 	{
 		base.lateUpdate(elapsedTime);
 		using var a = new SafeDictionaryReader<Type, GameLayout>(mLayoutList);
-		foreach (GameLayout item in a.mReadList.Values)
+		foreach (var item in a.mReadList)
 		{
 			try
 			{
-				item.lateUpdate(elapsedTime);
+				item.Value.lateUpdate(elapsedTime);
 			}
 			catch(Exception e)
 			{
-				logException(e, "layout:" + item.getName());
+				logException(e, "layout:" + item.Value.getName());
 			}
 		}
 	}
@@ -103,10 +101,7 @@ public class LayoutManager : FrameSystem
 	{
 		mInputSystem?.unlistenKey(this);
 		using var a = new SafeDictionaryReader<Type, GameLayout>(mLayoutList);
-		foreach (GameLayout item in a.mReadList.Values)
-		{
-			item.destroy();
-		}
+		a.mReadList.forValue(layout => layout.destroy());
 		mLayoutList.clear();
 		mLayoutTypeToPath.Clear();
 		mLayoutPathToType.Clear();
@@ -233,10 +228,7 @@ public class LayoutManager : FrameSystem
 	public void getAllLayoutBoxCollider(List<Collider> colliders)
 	{
 		colliders.Clear();
-		foreach (GameLayout item in mLayoutList.getMainList().Values)
-		{
-			item.getAllCollider(colliders, true);
-		}
+		mLayoutList.getMainList().forValue(layout => layout.getAllCollider(colliders, true));
 	}
 	public void registeLayout(Type classType, string name, bool inResource, LAYOUT_LIFE_CYCLE lifeCycle, LayoutScriptCallback callback)
 	{
@@ -261,8 +253,9 @@ public class LayoutManager : FrameSystem
 	public int getTopLayoutOrder(GameLayout exceptLayout, bool alwaysTop)
 	{
 		int maxOrder = 0;
-		foreach (GameLayout layout in mLayoutList.getMainList().Values)
+		foreach (var item in mLayoutList.getMainList())
 		{
+			GameLayout layout = item.Value;
 			if (exceptLayout == layout)
 			{
 				continue;
@@ -286,11 +279,11 @@ public class LayoutManager : FrameSystem
 	public void unloadAllPartLayout()
 	{
 		using var a = new SafeDictionaryReader<Type, GameLayout>(mLayoutList);
-		foreach (Type type in a.mReadList.Keys)
+		foreach (var type in a.mReadList)
 		{
-			if (mLayoutRegisteList.get(type).mLifeCycle == LAYOUT_LIFE_CYCLE.PART_USE)
+			if (mLayoutRegisteList.get(type.Key).mLifeCycle == LAYOUT_LIFE_CYCLE.PART_USE)
 			{
-				destroyLayout(type);
+				destroyLayout(type.Key);
 			}
 		}
 	}
@@ -329,11 +322,11 @@ public class LayoutManager : FrameSystem
 		{
 			return;
 		}
-		foreach (Type item in mLayoutRegisteList.Keys)
+		foreach (var item in mLayoutRegisteList)
 		{
-			if (!mLayoutList.containsKey(item))
+			if (!mLayoutList.containsKey(item.Key))
 			{
-				LOAD(item);
+				LOAD(item.Key);
 			}
 		}
 	}
@@ -346,9 +339,9 @@ public class LayoutManager : FrameSystem
 	protected GameLayout newLayout(LayoutInfo info, GameObject prefab)
 	{
 		// 因为可能会有同时发起多个异步加载请求,所以如果已经创建了就直接返回出去,不再重复创建
-		if (mLayoutList.containsKey(info.mType))
+		if (mLayoutList.tryGetValue(info.mType, out GameLayout layout))
 		{
-			return mLayoutList.get(info.mType);
+			return layout;
 		}
 		myUGUIObject layoutParent = info.mIsScene ? null : getUIRoot();
 		Canvas canvas = prefab.GetComponent<Canvas>();
@@ -358,7 +351,7 @@ public class LayoutManager : FrameSystem
 			logError("界面Canvas的RenderMode只能设置为WorldSpace,设置为其他模式可能会出现无法预知的错误,UI:" + info.mName);
 		}
 		GameObject layoutObj = instantiatePrefab(layoutParent?.getObject(), prefab, info.mName, true);
-		GameLayout layout = new();
+		layout = new();
 		layout.setPrefab(prefab);
 		layout.setType(info.mType);
 		layout.setName(info.mName);

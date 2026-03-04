@@ -129,8 +129,9 @@ public class MenuAssetBundle
 			// 生成配置文件
 			SerializerWrite serializer = new();
 			serializer.write(assetBundleMap.Count);
-			foreach (BuildAssetBundleInfo bundleInfo in assetBundleMap.Values)
+			foreach (var item in assetBundleMap)
 			{
+				BuildAssetBundleInfo bundleInfo = item.Value;
 				// AssetBundle名字
 				serializer.writeString(bundleInfo.mBundleName);
 				// AssetBundle所包含的所有Asset名字

@@ -418,9 +418,9 @@ public class AssetVersionSystem : FrameSystem
 		StringBuilder fileString = new();
 		fileString.Append(mPersistentAssetsFileList.Count);
 		fileString.Append("\n");
-		foreach (GameFileInfo item in mPersistentAssetsFileList.Values)
+		foreach (var item in mPersistentAssetsFileList)
 		{
-			item.toString(fileString);
+			item.Value.toString(fileString);
 			fileString.Append("\n");
 		}
 		return fileString.ToString();

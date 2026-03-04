@@ -52,9 +52,9 @@ public abstract class ComponentOwner : CommandReceiver
 		if (mAllComponentTypeList != null)
 		{
 			using var a = new SafeDictionaryReader<Type, GameComponent>(mAllComponentTypeList);
-			foreach (GameComponent item in a.mReadList.Values)
+			foreach (var item in a.mReadList)
 			{
-				item?.notifyOwnerActive(active);
+				item.Value?.notifyOwnerActive(active);
 			}
 		}
 		return active;
@@ -77,7 +77,7 @@ public abstract class ComponentOwner : CommandReceiver
 				return;
 			}
 			GameComponent com = a.mReadList[i];
-			using var b = new ProfilerScope(0);
+			using var b = new ProfilerScope(com.GetType().Name);
 			if (com.isValid() && com.isActive() && !mDisableTypeList.contains(com.getType()))
 			{
 				com.update(com.isIgnoreTimeScale() ? Time.unscaledDeltaTime : elapsedTime);
@@ -346,8 +346,9 @@ public abstract class ComponentOwner : CommandReceiver
 		}
 		// 中断所有可中断的组件
 		using var a = new SafeDictionaryReader<Type, GameComponent>(mAllComponentTypeList);
-		foreach (GameComponent com in a.mReadList.Values)
+		foreach (var item in a.mReadList)
 		{
+			GameComponent com = item.Value;
 			if (com.isActive() &&
 				com is T &&
 				com is IComponentBreakable comBreakable &&

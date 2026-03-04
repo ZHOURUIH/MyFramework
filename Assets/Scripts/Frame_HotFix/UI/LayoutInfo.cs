@@ -33,9 +33,6 @@ public class LayoutInfo : ClassObject
 		}
 		// 需要先拷贝一份,因为在回调过程中可能会修改当前对象
 		using var a = new ListScope<GameLayoutCallback>(out var tempList);
-		foreach (GameLayoutCallback item in mCallbackList.moveTo(tempList))
-		{
-			item(layout);
-		}
+		mCallbackList.moveTo(tempList).For(item => item(layout));
 	}
 }

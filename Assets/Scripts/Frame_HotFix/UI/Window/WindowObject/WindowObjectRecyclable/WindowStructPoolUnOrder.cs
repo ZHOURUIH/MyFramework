@@ -15,10 +15,7 @@ public class WindowStructPoolUnOrder<T> : WindowStructPoolBase where T : WindowO
 	{
 		base.destroy();
 		unuseAll();
-		foreach (T item in mUnusedItemList)
-		{
-			item.destroy();
-		}
+		mUnusedItemList.For(item => item.destroy());
 		mUnusedItemList.Clear();
 	}
 	public override void init()

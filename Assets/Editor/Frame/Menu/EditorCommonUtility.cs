@@ -1683,8 +1683,9 @@ public class EditorCommonUtility
 												Dictionary<string, FileGUIDLines> fileDic,
 												Dictionary<string, string> guidList)
 	{
-		foreach (FileGUIDLines projectFile in fileDic.Values)
+		foreach (var item in fileDic)
 		{
+			FileGUIDLines projectFile = item.Value;
 			foreach (string guid in projectFile.mContainGUIDLines)
 			{
 				if (guidList.TryGetValue(guid, out string fileName))
@@ -2234,10 +2235,7 @@ public class EditorCommonUtility
 		DateTime start = DateTime.Now;
 		Debug.Log("<<<<<<<开始查找" + fileName + "的引用.......");
 		searchFileReference(path, false, referenceList, allFileText, false);
-		foreach (string item in referenceList.Keys)
-		{
-			log(item, Color.green, loadAsset(item));
-		}
+		referenceList.forKey(item => log(item, Color.green, loadAsset(item)));
 		Debug.Log(">>>>>>>完成查找" + fileName + "的引用, 共有" + referenceList.Count + "处引用, 耗时:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒", loadAsset(path));
 	}
 	public static void doSearchResourceRefOther(string path, Dictionary<string, string> allMetaList)
@@ -2247,10 +2245,7 @@ public class EditorCommonUtility
 		DateTime start = DateTime.Now;
 		Debug.Log("<<<<<<<开始查找" + fileName + "引用的文件.......");
 		searchFileReferenceOther(path, false, referenceList, allMetaList);
-		foreach (string item in referenceList.Keys)
-		{
-			log(item, Color.green, loadAsset(item));
-		}
+		referenceList.forKey(item => log(item, Color.green, loadAsset(item)));
 		Debug.Log(">>>>>>>完成查找" + fileName + "引用的文件, 共引用" + referenceList.Count + "个文件, 耗时:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒", loadAsset(path));
 	}
 	public static void doCheckSingleUsedFile(string path, Dictionary<string, List<FileGUIDLines>> allFileText, bool needMoveFile)
@@ -2258,13 +2253,13 @@ public class EditorCommonUtility
 		Dictionary<string, UObject> referenceList = new();
 		searchFileReference(path, false, referenceList, allFileText, false);
 		string refFilePath = null;
-		foreach (string item in referenceList.Keys)
+		foreach (var item in referenceList)
 		{
 			if (refFilePath == null)
 			{
-				refFilePath = getFilePath(item);
+				refFilePath = getFilePath(item.Key);
 			}
-			else if (refFilePath != getFilePath(item))
+			else if (refFilePath != getFilePath(item.Key))
 			{
 				return;
 			}

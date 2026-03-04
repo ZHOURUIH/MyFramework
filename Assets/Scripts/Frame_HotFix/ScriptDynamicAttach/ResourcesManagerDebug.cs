@@ -23,9 +23,9 @@ public class ResourcesManagerDebug : MonoBehaviour
 			}
 			mLoadedAssetBundleListKeys.Add(item.Key);
 			AssetBundleDebug bundleDebug = new(item.Value.getBundleName());
-			bundleDebug.mAssetList.setRange(item.Value.getAssetList().Values);
-			bundleDebug.mParentBundles.setRange(item.Value.getParents().Keys);
-			bundleDebug.mChildBundles.setRange(item.Value.getChildren().Keys);
+			bundleDebug.mAssetList.setRangeValues(item.Value.getAssetList());
+			bundleDebug.mParentBundles.setRangeKeys(item.Value.getParents());
+			bundleDebug.mChildBundles.setRangeKeys(item.Value.getChildren());
 			mLoadedAssetBundleListValues.Add(bundleDebug);
 		}
 	}

@@ -32,11 +32,11 @@ public class KeyFrameManager : FrameSystem
 			// 删除所有ID大于100的,也就是通过加载资源获得的曲线
 			int deleteCount = 0;
 			Span<int> deleteKeys = stackalloc int[mCurveList.Count];
-			foreach (int item in mCurveList.Keys)
+			foreach (var item in mCurveList)
 			{
-				if (item > KEY_CURVE.MAX_BUILDIN_CURVE)
+				if (item.Key > KEY_CURVE.MAX_BUILDIN_CURVE)
 				{
-					deleteKeys[deleteCount++] = item;
+					deleteKeys[deleteCount++] = item.Key;
 				}
 			}
 			for (int i = 0; i < deleteCount; ++i)

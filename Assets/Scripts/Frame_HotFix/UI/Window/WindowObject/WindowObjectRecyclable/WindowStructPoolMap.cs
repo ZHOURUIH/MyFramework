@@ -15,10 +15,7 @@ public class WindowStructPoolMap<Key, T> : WindowStructPoolBase where T : Window
 	{
 		base.destroy();
 		unuseAll();
-		foreach (T item in mUnusedItemList)
-		{
-			item.destroy();
-		}
+		mUnusedItemList.For(item => item.destroy());
 		mUnusedItemList.Clear();
 	}
 	public override void init()
@@ -67,11 +64,12 @@ public class WindowStructPoolMap<Key, T> : WindowStructPoolBase where T : Window
 	}
 	public override void unuseAll()
 	{
-		foreach (T item in mUsedItemList.Values)
+		foreach (var item in mUsedItemList)
 		{
-			item.recycle();
-			item.setActive(false);
-			mUnusedItemList.Push(item);
+			T value = item.Value;
+			value.recycle();
+			value.setActive(false);
+			mUnusedItemList.Push(value);
 		}
 		mUsedItemList.Clear();
 	}

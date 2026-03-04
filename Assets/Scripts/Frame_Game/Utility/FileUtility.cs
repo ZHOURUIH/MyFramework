@@ -541,8 +541,9 @@ public class FileUtility
 		// 新增文件和已修改文件都认为是已修改文件
 		// 如果不在本地文件列表中,则是新增的文件,在本地文件中,但是大小或MD5不同,则是已修改的文件
 		// 遍历远端文件列表
-		foreach (GameFileInfo remoteInfo in remoteInfoList.Values)
+		foreach (var item in remoteInfoList)
 		{
+			GameFileInfo remoteInfo = item.Value;
 			// 动态下载目录中的文件不需要下载
 			bool isIgnoreFile = false;
 			if (ignorePathList != null)

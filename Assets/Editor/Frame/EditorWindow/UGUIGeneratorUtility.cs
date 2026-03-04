@@ -477,7 +477,7 @@ public class UGUIGeneratorUtility
 		string parentName;
 		bool parentIsSubUI = false;
 		// 父节点是成员变量
-		MemberData parentData = fixedList.Find((data) => { return data.mObject != null && data.mObject == parent && data.mArrayType == ARRAY_TYPE.NONE; });
+		MemberData parentData = fixedList.Find(data => data.mObject != null && data.mObject == parent && data.mArrayType == ARRAY_TYPE.NONE);
 		if (parentData != null)
 		{
 			parentName = "m" + parent.name;

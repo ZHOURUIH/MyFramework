@@ -570,14 +570,7 @@ public abstract class PlatformBase
 	}
 	protected bool isDynamicDownloadAsset(string fullPath)
 	{
-		foreach (string notPackFile in getDynamicDownloadList())
-		{
-			if (fullPath.StartsWith(mAssetBundleFullPath + notPackFile.ToLower()))
-			{
-				return true;
-			}
-		}
-		return false;
+		return getDynamicDownloadList().contains(notPackFile => fullPath.startWith(mAssetBundleFullPath + notPackFile.ToLower()));
 	}
 	// 将本地文件夹的所有文件上传到linux服务器的指定目录中,返回值表示是否上传成功并且检测通过,remoteDeletePath是相对路径,removeCopyFullPath是绝对路径
 	protected bool uploadFileToLinuxServer(string localPath, string remoteDeletePath, string removeCopyFullPath, string userNameAndIP, string password)

@@ -32,9 +32,9 @@ public class ClassPool : FrameSystem
 		base.update(elapsedTime);
 		if (isEditor())
 		{
-			foreach (var item in mInusedList.Values)
+			foreach (var item in mInusedList)
 			{
-				foreach (ClassObject itemList in item)
+				foreach (ClassObject itemList in item.Value)
 				{
 					string stack = mObjectStack.get(itemList);
 					if (stack.isEmpty())
@@ -53,10 +53,7 @@ public class ClassPool : FrameSystem
 	}
 	public void clearUnused() 
 	{
-		foreach (var item in mUnusedList.Values)
-		{
-			item.Clear();
-		}
+		mUnusedList.forValue(item => item.Clear());
 	}
 	public Dictionary<Type, HashSet<ClassObject>> getPersistentInusedList() { return mPersistentInuseList; }
 	public Dictionary<Type, HashSet<ClassObject>> getInusedList() { return mInusedList; }
@@ -201,6 +198,52 @@ public class ClassPool : FrameSystem
 		}
 		foreach (T classObject in classObjectList)
 		{
+			if (classObject == null)
+			{
+				continue;
+			}
+			classObject.setPendingDestroy(true);
+			classObject.destroy();
+			Type type = classObject.GetType();
+			var objList = mUnusedList.getOrAddNew(type);
+			if (isEditor())
+			{
+				mObjectStack.Remove(classObject);
+				if (objList.Contains(classObject))
+				{
+					Debug.LogError("ClassObject is in Unused list! can not add again! Type: " + type + ", hash:" + classObject.GetHashCode());
+					continue;
+				}
+				removeInuse(classObject, type);
+			}
+			classObject.resetProperty();
+			// 加入未使用列表
+			objList.Enqueue(classObject);
+		}
+	}
+	public void destroyClassList<TKey, T>(Dictionary<TKey, T> classObjectList) where T : ClassObject
+	{
+		if (mHasDestroy)
+		{
+			return;
+		}
+		if (isEditor() && !isMainThread())
+		{
+			Debug.LogError("只能在主线程中使用ClassPool,子线程中请使用ClassPoolThread代替");
+			return;
+		}
+		if (classObjectList == null)
+		{
+			return;
+		}
+		int count = classObjectList.Count;
+		if (count == 0)
+		{
+			return;
+		}
+		foreach (var item in classObjectList)
+		{
+			T classObject = item.Value;
 			if (classObject == null)
 			{
 				continue;

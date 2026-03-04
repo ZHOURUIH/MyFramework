@@ -190,10 +190,11 @@ public class EventSystem : FrameSystem
 		{
 			return;
 		}
-		foreach (var item in eventTypeList.Values)
+		foreach (var item in eventTypeList)
 		{
+			var list = item.Value;
 			// 从监听者查找列表中移除
-			using var a = new SafeDeepListReader<GameEventRegisteInfo>(item);
+			using var a = new SafeDeepListReader<GameEventRegisteInfo>(list);
 			foreach (GameEventRegisteInfo eventInfo in a.mReadList)
 			{
 				if (!mListenerList.TryGetValue(eventInfo.mListener, out var listenList))
@@ -207,8 +208,8 @@ public class EventSystem : FrameSystem
 					mListenerList.Remove(eventInfo.mListener);
 				}
 			}
-			UN_CLASS_LIST(item.getMainList());
-			item.clear();
+			UN_CLASS_LIST(list.getMainList());
+			list.clear();
 		}
 		mNeedCheckEmptyEvent = true;
 	}
