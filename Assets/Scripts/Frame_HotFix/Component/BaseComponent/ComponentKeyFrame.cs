@@ -16,7 +16,6 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 	protected int mKeyframeID;                  // 关键帧曲线ID
 	protected bool mLoop;                       // 是否循环
 	protected bool mUpdateInFixedTick;          // 是否在FixedUpdate中更新
-	//------------------------------------------------------------------------------------------------------------------------------
 	// 用于实时计算的参数
 	protected float mCurrentTime;               // 从上一次从头开始播放到现在的时长
 	protected float mPlayedTime;                // 本次震动已经播放的时长,从上一次开始播放到现在的累计时长
@@ -173,25 +172,22 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 		setDoingCallback(null);
 		setDoneCallback(null);
 	}
-	//------------------------------------------------------------------------------------------------------------------------------
 	// 获得成员变量
-	public bool isLoop() { return mLoop; }
-	public float getOnceLength() { return mOnceLength; }
-	public float getOffset() { return mOffset; }
-	public PLAY_STATE getState() { return mPlayState; }
-	public float getCurrentTime() { return mCurrentTime; }
-	public MyCurve getKeyFrame() { return mKeyFrame; }
-	public int getKeyframeID() { return mKeyframeID; }
-	public float getCurValue() { return mCurValue; }
-	//------------------------------------------------------------------------------------------------------------------------------
+	public bool isLoop()								{ return mLoop; }
+	public float getOnceLength()						{ return mOnceLength; }
+	public float getOffset()							{ return mOffset; }
+	public PLAY_STATE getState()						{ return mPlayState; }
+	public float getCurrentTime()						{ return mCurrentTime; }
+	public MyCurve getKeyFrame()						{ return mKeyFrame; }
+	public int getKeyframeID()							{ return mKeyframeID; }
+	public float getCurValue()							{ return mCurValue; }
 	// 设置成员变量
-	public void setLoop(bool loop) { mLoop = loop; }
-	public void setOnceLength(float length) { mOnceLength = length; }
-	public void setOffset(float offset) { mOffset = offset; }
-	public void setCurrentTime(float time) { mCurrentTime = time; }
-	public void setKeyframeID(int keyframe) { mKeyframeID = keyframe; }
-	public void setUpdateInFixedTick(bool inFixedTick) { mUpdateInFixedTick = inFixedTick; }
-	//------------------------------------------------------------------------------------------------------------------------------
+	public void setLoop(bool loop)						{ mLoop = loop; }
+	public void setOnceLength(float length)				{ mOnceLength = length; }
+	public void setOffset(float offset)					{ mOffset = offset; }
+	public void setCurrentTime(float time)				{ mCurrentTime = time; }
+	public void setKeyframeID(int keyframe)				{ mKeyframeID = keyframe; }
+	public void setUpdateInFixedTick(bool inFixedTick)	{ mUpdateInFixedTick = inFixedTick; }
 	protected void clearCallback()
 	{
 		mDoingCallback = null;

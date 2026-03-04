@@ -62,7 +62,7 @@ public class StreamBuffer : ClassObject
 		{
 			return false;
 		}
-		memmove(ref mBuffer, start, start + count, mDataLength - start - count);
+		memmove(mBuffer, start, start + count, mDataLength - start - count);
 		mDataLength -= count;
 		memset(mBuffer, (byte)0, mDataLength, count);
 		return true;

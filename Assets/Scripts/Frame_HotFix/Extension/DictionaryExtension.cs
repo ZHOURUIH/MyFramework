@@ -221,8 +221,7 @@ public static class DictionaryExtension
 	{
 		if (!map.TryGetValue(key, out var value))
 		{
-			DIC_PERSIST(out value);
-			map.Add(key, value);
+			map.Add(key, DIC_PERSIST(out value));
 		}
 		return value;
 	}
@@ -268,8 +267,7 @@ public static class DictionaryExtension
 	{
 		if (!map.TryGetValue(key, out var value))
 		{
-			LIST_PERSIST(out value);
-			map.Add(key, value);
+			map.Add(key, LIST_PERSIST(out value));
 		}
 		return value;
 	}
@@ -277,8 +275,7 @@ public static class DictionaryExtension
 	{
 		if (!map.TryGetValue(key, out var value))
 		{
-			SET_PERSIST(out value);
-			map.Add(key, value);
+			map.Add(key, SET_PERSIST(out value));
 		}
 		return value;
 	}
@@ -451,7 +448,7 @@ public static class DictionaryExtension
 		}
 		return default;
 	}
-	public static bool hasKey<TKey, TValue>(this IDictionary<TKey, TValue> list, Predicate<TKey> action)
+	public static bool containsKey<TKey, TValue>(this IDictionary<TKey, TValue> list, Predicate<TKey> action)
 	{
 		if (list.count() == 0)
 		{
@@ -466,7 +463,7 @@ public static class DictionaryExtension
 		}
 		return false;
 	}
-	public static bool hasValue<TKey, TValue>(this IDictionary<TKey, TValue> list, Predicate<TValue> action)
+	public static bool containsValue<TKey, TValue>(this IDictionary<TKey, TValue> list, Predicate<TValue> action)
 	{
 		if (list.count() == 0)
 		{

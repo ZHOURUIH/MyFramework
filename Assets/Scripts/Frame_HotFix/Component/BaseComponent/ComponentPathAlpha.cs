@@ -29,14 +29,11 @@ public abstract class ComponentPathAlpha : ComponentKeyFrame
 	public virtual void play(bool loop, float timeOffset)
 	{
 		// 获取单次播放长度
+		mMaxLength = 0.0f;
 		if (!mValueKeyFrame.isEmpty())
 		{
 			mTimeList.setRange(mValueKeyFrame.Keys);
 			mMaxLength = mTimeList[^1];
-		}
-		else
-		{
-			mMaxLength = 0.0f;
 		}
 		base.play(KEY_CURVE.ZERO_ONE, loop, mMaxLength, timeOffset);
 	}
@@ -46,18 +43,15 @@ public abstract class ComponentPathAlpha : ComponentKeyFrame
 		// 根据当前的距离找出位于哪两个点之间
 		saturate(ref value);
 		float curTime = value * mMaxLength;
-		int index = findPointIndex(mTimeList, curTime, 0, mTimeList.Count - 1);
-		float startValue = mValueKeyFrame.get(mTimeList[index]);
+		int index = findPointIndex(mTimeList, curTime);
+		float time = mTimeList[index];
+		float startValue = mValueKeyFrame.get(time);
 		if (index < mTimeList.Count - 1)
 		{
-			float endValue = mValueKeyFrame.get(mTimeList[index + 1]);
-			float timePercentInSection = inverseLerp(mTimeList[index], mTimeList[index + 1], curTime);
-			setValue(lerp(startValue, endValue, timePercentInSection) * mValueOffset);
+			float nextTime = mTimeList[index + 1];
+			startValue = lerp(startValue, mValueKeyFrame.get(nextTime), inverseLerp(time, nextTime, curTime)) * mValueOffset;
 		}
-		else
-		{
-			setValue(startValue * mValueOffset);
-		}
+		setValue(startValue * mValueOffset);
 	}
 	protected abstract void setValue(float value);
 }

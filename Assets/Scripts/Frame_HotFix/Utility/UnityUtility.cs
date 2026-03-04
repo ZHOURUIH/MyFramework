@@ -841,7 +841,7 @@ public class UnityUtility
 		{
 			return 0;
 		}
-		memset(results, null);
+		results.setAllValue(null);
 		if (collider is BoxCollider box)
 		{
 			return overlapAllBox(box, results, layer);
@@ -866,7 +866,7 @@ public class UnityUtility
 		{
 			return 0;
 		}
-		memset(results, null);
+		results.setAllValue(null);
 		int hitCount = 0;
 		if (collider is BoxCollider2D box2D)
 		{

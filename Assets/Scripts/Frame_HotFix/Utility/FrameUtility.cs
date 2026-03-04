@@ -319,12 +319,12 @@ public class FrameUtility
 		LIST_PERSIST(out List<T> list, initList);
 		return list;
 	}
-	public static void LIST_PERSIST<T>(out List<T> list, IEnumerable<T> initList = null)
+	public static List<T> LIST_PERSIST<T>(out List<T> list, IEnumerable<T> initList = null)
 	{
 		if (GameEntry.getInstance() == null || mListPool == null)
 		{
 			list = new();
-			return;
+			return list;
 		}
 		string stackTrace = EMPTY;
 		if (GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace)
@@ -332,10 +332,7 @@ public class FrameUtility
 			stackTrace = getStackTrace();
 		}
 		list = mListPool.newList(typeof(T), typeof(List<T>), stackTrace, false) as List<T>;
-		if (initList != null)
-		{
-			list.AddRange(initList);
-		}
+		return list.addRange(initList);
 	}
 	public static void UN_LIST<T>(List<T> list)
 	{
@@ -351,15 +348,14 @@ public class FrameUtility
 	}
 	public static HashSet<T> SET_PERSIST<T>()
 	{
-		SET_PERSIST(out HashSet<T> list);
-		return list;
+		return SET_PERSIST(out HashSet<T> list);
 	}
-	public static void SET_PERSIST<T>(out HashSet<T> list, IEnumerable<T> initList = null)
+	public static HashSet<T> SET_PERSIST<T>(out HashSet<T> list, IEnumerable<T> initList = null)
 	{
 		if (GameEntry.getInstance() == null || mListPool == null)
 		{
 			list = new();
-			return;
+			return list;
 		}
 		string stackTrace = EMPTY;
 		if (GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace)
@@ -367,10 +363,7 @@ public class FrameUtility
 			stackTrace = getStackTrace();
 		}
 		list = mHashSetPool.newList(typeof(T), typeof(HashSet<T>), stackTrace, false) as HashSet<T>;
-		if (initList != null)
-		{
-			list.addRange(initList);
-		}
+		return list.addRange(initList);
 	}
 	public static void UN_SET<T>(HashSet<T> list)
 	{
@@ -386,15 +379,14 @@ public class FrameUtility
 	}
 	public static Dictionary<K, V> DIC_PERSIST<K, V>()
 	{
-		DIC_PERSIST(out Dictionary<K, V> list);
-		return list;
+		return DIC_PERSIST(out Dictionary<K, V> list);
 	}
-	public static void DIC_PERSIST<K, V>(out Dictionary<K, V> list)
+	public static Dictionary<K, V> DIC_PERSIST<K, V>(out Dictionary<K, V> list)
 	{
 		if (GameEntry.getInstance() == null || mListPool == null)
 		{
 			list = new();
-			return;
+			return list;
 		}
 		string stackTrace = EMPTY;
 		if (GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace)
@@ -402,6 +394,7 @@ public class FrameUtility
 			stackTrace = getStackTrace();
 		}
 		list = mDictionaryPool.newList(typeof(K), typeof(V), typeof(Dictionary<K, V>), stackTrace, false) as Dictionary<K, V>;
+		return list;
 	}
 	public static void UN_DIC<K, V>(Dictionary<K, V> list)
 	{
@@ -488,14 +481,15 @@ public class FrameUtility
 		}
 		return mClassPoolThread?.newClass(typeof(T)) as T;
 	}
-	public static void CLASS_THREAD<T>(out T value) where T : ClassObject, new()
+	public static T CLASS_THREAD<T>(out T value) where T : ClassObject, new()
 	{
 		if (mClassPoolThread == null)
 		{
 			value = new();
-			return;
+			return value;
 		}
 		value = mClassPoolThread?.newClass(typeof(T)) as T;
+		return value;
 	}
 	public static void UN_CLASS<T>(ref T obj) where T : ClassObject
 	{

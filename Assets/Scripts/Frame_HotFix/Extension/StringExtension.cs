@@ -1,4 +1,5 @@
-﻿using static StringUtility;
+﻿using System;
+using static StringUtility;
 using static FrameUtility;
 using static FrameBaseUtility;
 
@@ -7,6 +8,21 @@ public static class StringExtension
 	public static int length(this string list) { return list?.Length ?? 0; }
 	public static bool isEmpty(this string str) { return str == null || str.Length == 0; }
 	public static bool contains(this string str, char c) { return str != null && str.Contains(c); }
+	public static bool contains(this string str, Predicate<char> action) 
+	{
+		if (str.isEmpty() || action == null)
+		{
+			return false;
+		}
+		foreach (char c in str)
+		{
+			if (action(c))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 	public static string range(this string str, int startIndex, int endIndexNotInclude)
 	{
 		if (str == null)

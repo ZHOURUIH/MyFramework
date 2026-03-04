@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using static FrameBaseHotFix;
 
 // 布局调试信息
 public class LayoutDebug : MonoBehaviour

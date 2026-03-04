@@ -13,9 +13,6 @@ public class EffectManagerDebug : MonoBehaviour
 			return;
 		}
 		EffectList.Clear();
-		foreach (GameEffect item in mEffectManager.getEffectList().getMainList())
-		{
-			EffectList.Add(item.getObject());
-		}
+		mEffectManager.getEffectList().getMainList().For(item => EffectList.Add(item.getObject()));
 	}
 }

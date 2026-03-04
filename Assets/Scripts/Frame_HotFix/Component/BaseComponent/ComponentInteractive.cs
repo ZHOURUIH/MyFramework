@@ -7,7 +7,7 @@ using static FrameUtility;
 using static FrameDefine;
 using static AT;
 
-// Window的鼠标相关事件的逻辑
+// 触点输入相关事件的逻辑
 public class ComponentInteractive : GameComponent
 {
 	protected List<LongPressData> mLongPressList = new();       // 长按事件列表,可同时设置不同时长的长按回调事件
@@ -27,7 +27,7 @@ public class ComponentInteractive : GameComponent
 	protected Vector3IntCallback mOnScreenTouchDown;            // 屏幕上触点按下的回调,无论触点在哪儿,由GlobalTouchSystem驱动
 	protected Vector3IntCallback mOnTouchEnter;                 // 触点进入时的回调,由GlobalTouchSystem驱动
 	protected Vector3IntCallback mOnTouchLeave;                 // 触点离开时的回调,由GlobalTouchSystem驱动
-	protected TouchMoveCallback mOnTouchMove;                         // 触点移动的回调,由GlobalTouchSystem驱动
+	protected TouchMoveCallback mOnTouchMove;                   // 触点移动的回调,由GlobalTouchSystem驱动
 	protected Vector3IntCallback mOnTouchStay;                  // 触点静止在当前窗口内的回调,由GlobalTouchSystem驱动
 	protected Vector3IntCallback mOnTouchDown;                  // 触点按下的回调,由GlobalTouchSystem驱动
 	protected Vector3IntCallback mOnTouchUp;                    // 触点抬起的回调,由GlobalTouchSystem驱动
@@ -172,12 +172,9 @@ public class ComponentInteractive : GameComponent
 	public void addLongPress(Action callback, float pressTime, FloatCallback pressingCallback = null)
 	{
 		// 先判断是否已经有此长按回调了
-		foreach (LongPressData item in mLongPressList)
+		if (mLongPressList.contains(item => item.mOnLongPress == callback))
 		{
-			if (item.mOnLongPress == callback)
-			{
-				return;
-			}
+			return;
 		}
 		CLASS(out LongPressData data);
 		data.mOnLongPress = callback;
@@ -219,10 +216,7 @@ public class ComponentInteractive : GameComponent
 		mPressing = false;
 		mPressedTime = -1.0f;
 		mOnTouchLeave?.Invoke(touchPos, touchID);
-		foreach (LongPressData data in mLongPressList)
-		{
-			data.mOnLongPressing?.Invoke(0.0f);
-		}
+		mLongPressList.For(data => data.mOnLongPressing?.Invoke(0.0f));
 	}
 	// 鼠标左键在窗口内按下
 	public void onTouchDown(Vector3 touchPos, int touchID)
@@ -276,10 +270,7 @@ public class ComponentInteractive : GameComponent
 			mLastClickTime = DateTime.Now;
 		}
 		mOnTouchUp?.Invoke(touchPos, touchID);
-		foreach (LongPressData data in mLongPressList)
-		{
-			data.mOnLongPressing?.Invoke(0.0f);
-		}
+		mLongPressList.For(data => data.mOnLongPressing?.Invoke(0.0f));
 
 		// 如果是触屏的触点,则触点在当前窗口内抬起时,认为已经取消悬停
 		TouchPoint touch = mInputSystem.getTouchPoint(touchID);
@@ -325,14 +316,14 @@ public class ComponentInteractive : GameComponent
 	}
 	public void onMultiTouchStart(Vector3 touch0, Vector3 touch1) 
 	{
-		// 暂时没有实现
+		// ComponentMultiTouch组件中已经包含了多指操作逻辑
 	}
 	public void onMultiTouchMove(Vector3 touch0, Vector3 lastTouch0, Vector3 touch1, Vector3 lastTouch1) 
 	{
-		// 暂时没有实现
+		// ComponentMultiTouch组件中已经包含了多指操作逻辑
 	}
 	public void onMultiTouchEnd() 
 	{
-		// 暂时没有实现
+		// ComponentMultiTouch组件中已经包含了多指操作逻辑
 	}
 }

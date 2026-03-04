@@ -62,9 +62,9 @@ public class COMCharacterAvatar : GameComponent
 		mAnimator = null;
 		mAnimatorControllerPath = null;
 		mModelPath = null;
-		memset(mAnimationSpeed, 1.0f);
-		memset(mAnimationParam, 0);
-		memset(mLayerParamDirty, false);
+		mAnimationSpeed.setAllValue(1.0f);
+		mAnimationParam.setAllValue(0);
+		mLayerParamDirty.setAllValue(false);
 		mDefaultLayer = 0;
 		mModelTag = 0;
 		mDestroyReally = false;

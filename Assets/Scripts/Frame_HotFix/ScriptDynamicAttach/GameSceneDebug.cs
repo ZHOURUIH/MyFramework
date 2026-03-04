@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using static FrameBaseHotFix;
 
 // 逻辑场景调试信息
 public class GameSceneDebug : MonoBehaviour

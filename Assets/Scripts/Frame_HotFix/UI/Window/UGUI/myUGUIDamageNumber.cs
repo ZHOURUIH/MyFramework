@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using static UnityUtility;
 using static StringUtility;
 using static FrameDefine;
@@ -7,9 +8,9 @@ using static FrameBaseHotFix;
 
 // 可显示数字的窗口,只支持整数,且每个数字图片的大小必须一样,不能显示小数,负数
 // 因为使用了自定义的组件,所以性能上比myUGUINumber更高,只是相比之下myUGUINumber更加灵活一点
-public class myUGUIImageNumber : myUGUIObject
+public class myUGUIDamageNumber : myUGUIObject
 {
-	protected ImageNumber mImageNumber;						// 渲染组件
+	protected DamageNumberRenderer mRenderer;			// 渲染组件
 	protected UGUIAtlasPtr mOriginAtlasPtr = new();			// 初始的图片图集,用于卸载,当前类只关心初始图集的卸载,后续再次设置的图集不关心是否需要卸载,需要外部设置的地方自己关心
 	protected UGUIAtlasPtr mAtlasPtr = new();				// 当前正在使用的图片图集
 	protected Sprite mOriginSprite;                         // 备份加载物体时原始的精灵图片
@@ -18,19 +19,19 @@ public class myUGUIImageNumber : myUGUIObject
 	{
 		base.init();
 		// 获取image组件,如果没有则添加,这样是为了使用代码新创建一个image窗口时能够正常使用image组件
-		if (!mObject.TryGetComponent(out mImageNumber))
+		if (!mObject.TryGetComponent(out mRenderer))
 		{
 			if (!mIsNewObject)
 			{
-				logError("需要添加一个ImageNumber组件,name:" + getName() + ", layout:" + getLayout().getName());
+				logError("需要添加一个DamageNumberCanvasRenderer组件,name:" + getName() + ", layout:" + getLayout().getName());
 			}
-			mImageNumber = mObject.AddComponent<ImageNumber>();
+			mRenderer = mObject.AddComponent<DamageNumberRenderer>();
 			// 添加UGUI组件后需要重新获取RectTransform
 			mObject.TryGetComponent(out mRectTransform);
 			mTransform = mRectTransform;
 		}
 
-		mOriginSprite = mImageNumber.sprite;
+		mOriginSprite = mRenderer.mImage;
 		// 获取初始的精灵所在图集
 		if (mOriginSprite != null)
 		{
@@ -63,7 +64,7 @@ public class myUGUIImageNumber : myUGUIObject
 				}
 			}
 			mAtlasPtr = mOriginAtlasPtr;
-			mNumberStyle = mImageNumber.sprite.name.rangeToLast('_');
+			mNumberStyle = mRenderer.mImage.name.rangeToLast('_');
 			refreshSpriteList();
 		}
 	}
@@ -71,17 +72,17 @@ public class myUGUIImageNumber : myUGUIObject
 	{
 		base.notifyAnchorApply();
 		// 此处默认数字窗口都是以ASPECT_BASE.AB_AUTO的方式等比放大
-		mImageNumber.setInterval((int)(mImageNumber.getInterval() * getScreenScale(ASPECT_BASE.AUTO).x));
+		mRenderer.setInterval(mRenderer.getInterval() * getScreenScale(ASPECT_BASE.AUTO).x);
 	}
 	public override void cloneFrom(myUGUIObject obj)
 	{
 		base.cloneFrom(obj);
-		var source = obj as myUGUIImageNumber;
-		mImageNumber.setInterval(source.mImageNumber.getInterval());
+		var source = obj as myUGUIDamageNumber;
+		mRenderer.setInterval(source.mRenderer.getInterval());
 		mNumberStyle = source.mNumberStyle;
-		mImageNumber.setNumber(source.getNumber());
-		mImageNumber.setSpriteList(source.mImageNumber.getSpriteList());
-		mImageNumber.setDocking(source.getDocking());
+		mRenderer.cloneDamageList(source.mRenderer.getDamageItems());
+		mRenderer.setSpriteList(source.mRenderer.getSpriteList());
+		mRenderer.setDocking(source.getDocking());
 	}
 	public void setAtlas(UGUIAtlasPtr atlas)
 	{
@@ -93,25 +94,27 @@ public class myUGUIImageNumber : myUGUIObject
 		mNumberStyle = style;
 		refreshSpriteList();
 	}
-	public void setInterval(int interval)					{ mImageNumber.setInterval(interval); }
-	public void setDocking(DOCKING_POSITION dock)			{ mImageNumber.setDocking(dock); }
-	public void setNumber(int num, int limitLen = 0)		{ mImageNumber.setNumber(IToS(num, limitLen)); }
-	public void setNumber(long num, int limitLen = 0)		{ mImageNumber.setNumber(LToS(num, limitLen)); }
-	public void clearNumber()								{ mImageNumber.clearNumber(); }
-	public int getContentWidth()							{ return mImageNumber.getContentWidth(); }
-	public string getNumber()								{ return mImageNumber.getNumber(); }
-	public int getInterval()								{ return mImageNumber.getInterval(); }
-	public string getNumberStyle()							{ return mNumberStyle; }
-	public DOCKING_POSITION getDocking()					{ return mImageNumber.getDocking(); }
+	public void addDamage(Vector3 pos, Vector3 scale, long num, Dictionary<float, Vector3> positionKeyFrames, Dictionary<float, Vector3> scaleKeyFrames) 
+	{
+		mRenderer.addDamage(pos, scale, num, 1.0f, positionKeyFrames, scaleKeyFrames); 
+	}
+	public void setInterval(int interval)						{ mRenderer.setInterval(interval); }
+	public void setDocking(DOCKING_POSITION dock)				{ mRenderer.setDocking(dock); }
+	public void clearNumber()									{ mRenderer.clearNumber(); }
+	public float getInterval()									{ return mRenderer.getInterval(); }
+	public string getNumberStyle()								{ return mNumberStyle; }
+	public DOCKING_POSITION getDocking()						{ return mRenderer.getDocking(); }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void refreshSpriteList()
 	{
-		using var a = new DicScope<char, Sprite>(out var spriteList);
+		using var a = new ListScope<DamageNumberSpriteData>(out var spriteList);
 		for (int i = 0; i < 10; ++i)
 		{
-			spriteList.add((char)('0' + i), mAtlasPtr.getSprite(mNumberStyle + "_" + IToS(i)));
+			DamageNumberSpriteData data = new();
+			data.init(mAtlasPtr.getSprite(mNumberStyle + "_" + IToS(i)));
+			spriteList.add(data);
 		}
-		mImageNumber.sprite = spriteList.firstValue();
-		mImageNumber.setSpriteList(spriteList);
+		mRenderer.mImage = spriteList.first().mSprite;
+		mRenderer.setSpriteList(spriteList);
 	}
 }

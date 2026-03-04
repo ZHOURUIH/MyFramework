@@ -6,7 +6,8 @@ using static MathUtility;
 // 沿指定点变化的组件基类,变化速度恒定
 public abstract class ComponentCurve : ComponentKeyFrame
 {
-	protected List<KeyPoint> mKeyPointList = new();   // 移动开始时的位置
+	protected List<KeyPoint> mKeyPointList = new();		// 移动开始时的位置
+	protected int mLastKeyIndex;						// 缓存的上一次查找的结果
 	public void setKeyList(List<Vector3> posList)
 	{
 		if (posList.isEmpty())
@@ -26,11 +27,13 @@ public abstract class ComponentCurve : ComponentKeyFrame
 		}
 		// 计算整个曲线的长度
 		generateDistanceList(posList, mKeyPointList);
+		mLastKeyIndex = 0;
 	}
 	public override void resetProperty()
 	{
 		base.resetProperty();
 		mKeyPointList.Clear();
+		mLastKeyIndex = 0;
 	}
 	public List<KeyPoint> getKeyPointList() { return mKeyPointList; }
 	//------------------------------------------------------------------------------------------------------------------------------
@@ -40,12 +43,12 @@ public abstract class ComponentCurve : ComponentKeyFrame
 		// 根据当前的距离找出位于哪两个点之间
 		saturate(ref value);
 		float curDistance = value * mKeyPointList[^1].mDistanceFromStart;
-		int index = findPointIndex(mKeyPointList, curDistance);
-		KeyPoint curPoint = mKeyPointList[index];
+		mLastKeyIndex = findPointIndex(mKeyPointList, curDistance, mLastKeyIndex);
+		KeyPoint curPoint = mKeyPointList[mLastKeyIndex];
 		Vector3 pos;
-		if (index < mKeyPointList.Count - 1)
+		if (mLastKeyIndex < mKeyPointList.Count - 1)
 		{
-			KeyPoint nextPoint = mKeyPointList[index + 1];
+			KeyPoint nextPoint = mKeyPointList[mLastKeyIndex + 1];
 			float percent = divide(curDistance - curPoint.mDistanceFromStart, nextPoint.mDistanceFromLast);
 			pos = lerp(curPoint.mPosition, nextPoint.mPosition, percent);
 		}

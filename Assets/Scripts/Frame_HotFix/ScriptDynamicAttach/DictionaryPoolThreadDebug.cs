@@ -20,18 +20,12 @@ public class DictionaryPoolThreadDebug : MonoBehaviour
 		{
 			foreach (var item in mDictionaryPoolThread.getInusedList())
 			{
-				if (item.Value.Count > 0)
-				{
-					InuseList.Add(item.Key + ":" + IToS(item.Value.Count));
-				}
+				InuseList.addIf(item.Key + ":" + IToS(item.Value.Count), item.Value.Count > 0);
 			}
 
 			foreach (var item in mDictionaryPoolThread.getUnusedList())
 			{
-				if (item.Value.Count > 0)
-				{
-					UnuseList.Add(item.Key + ":" + IToS(item.Value.Count));
-				}
+				UnuseList.addIf(item.Key + ":" + IToS(item.Value.Count), item.Value.Count > 0);
 			}
 		}
 	}

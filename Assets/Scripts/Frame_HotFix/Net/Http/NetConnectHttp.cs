@@ -112,8 +112,7 @@ public class NetConnectHttp : NetConnect
 							logWarning("收到的消息为空:" + pair.mPacketType + ",将重试请求,已重试:" + (RETRY_COUNT - sendInfo.mRemainRetryCount) + ", 剩余:" + sendInfo.mRemainRetryCount);
 							--sendInfo.mRemainRetryCount;
 							// 添加到写缓冲中
-							CLASS_THREAD(out HttpSendInfo info);
-							info.cloneFrom(sendInfo);
+							CLASS_THREAD(out HttpSendInfo info).cloneFrom(sendInfo);
 							mOutputBuffer.add(info);
 							// 重试时不需要从mNotResponsePacket中移除
 						}

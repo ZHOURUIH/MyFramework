@@ -33,13 +33,10 @@ public class CameraDebug : MonoBehaviour
 				LinkedObjectName = linker.getLinkObject().getName();
 			}
 			Relative = linker.getRelativePosition();
+			CurRelative = Vector3.zero;
 			if (LinkedObject != null)
 			{
 				CurRelative = mGameCamera.getWorldPosition() - LinkedObject.transform.position;
-			}
-			else
-			{
-				CurRelative = Vector3.zero;
 			}
 		}
 		else
@@ -57,10 +54,7 @@ public class CameraDebug : MonoBehaviour
 			using var a = new SafeDictionaryReader<Type, GameComponent>(allComponent);
 			foreach (var item in a.mReadList)
 			{
-				if (item.Value.isActive())
-				{
-					ActiveComponent.Add(item.Key.ToString());
-				}
+				ActiveComponent.addIf(item.Key.ToString(), item.Value.isActive());
 			}
 		}
 	}

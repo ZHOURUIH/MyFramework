@@ -3254,6 +3254,22 @@ public class BinaryUtility
 			dest[destOffset + i] = src[srcOffset + i];
 		}
 	}
+	public static void memcpy<T>(T[] dest, ICollection<T> src)
+	{
+		memcpy(dest, src, 0);
+	}
+	public static void memcpy<T>(T[] dest, ICollection<T> src, int destOffset)
+	{
+		int index = destOffset;
+		foreach (T item in src)
+		{
+			dest[index++] = item;
+		}
+	}
+	public static void memcpy<T>(T[] dest, Span<T> src)
+	{
+		memcpy(dest, src, 0, 0, src.Length);
+	}
 	public static void memcpy<T>(T[] dest, Span<T> src, int destOffset, int srcOffset, int count)
 	{
 		for (int i = 0; i < count; ++i)
@@ -3267,6 +3283,10 @@ public class BinaryUtility
 		{
 			dest[destOffset + i] = src[i];
 		}
+	}
+	public static void memcpy<T>(Span<T> dest, T[] src)
+	{
+		memcpy(dest, src, 0, 0, src.Length);
 	}
 	public static void memcpy<T>(Span<T> dest, T[] src, int destOffset, int srcOffset, int count)
 	{
@@ -3286,7 +3306,7 @@ public class BinaryUtility
 	{
 		Buffer.BlockCopy(src, srcByteOffset, dest, destByteOffset, byteCount);
 	}
-	public static void memmove<T>(ref T[] data, int dest, int src, int count)
+	public static void memmove<T>(T[] data, int dest, int src, int count)
 	{
 		if (count <= 0)
 		{

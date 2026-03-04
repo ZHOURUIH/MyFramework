@@ -28,8 +28,8 @@ public class RecorderParser : ClassObject
 		base.resetProperty();
 		mRecorder.resetProperty();
 		mRecorder.setRecordCallback(onRecorderData);
-		memset(mFrequencyData, (short)0);
-		memset(mAllPCMData, (short)0);
+		mFrequencyData.setAllValue((short)0);
+		mAllPCMData.setAllValue((short)0);
 		mAllPCMCount = 0;
 		mCurDB = -96;
 	}
@@ -65,7 +65,7 @@ public class RecorderParser : ClassObject
 		// 将已有的数据移到缓冲区头部,然后将新的数据加入尾部
 		if (mAllPCMCount > 0)
 		{
-			memmove(ref mAllPCMData, 0, dataSize, RECODER_DATA_BLOCK - dataSize);
+			memmove(mAllPCMData, 0, dataSize, RECODER_DATA_BLOCK - dataSize);
 			memcpy(mAllPCMData, data, RECODER_DATA_BLOCK - dataSize, 0, dataSize * sizeof(short));
 		}
 		else

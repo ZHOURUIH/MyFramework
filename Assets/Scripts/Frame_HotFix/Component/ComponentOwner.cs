@@ -77,7 +77,7 @@ public abstract class ComponentOwner : CommandReceiver
 				return;
 			}
 			GameComponent com = a.mReadList[i];
-			using var b = new ProfilerScope(com.GetType().Name);
+			using var b = new ProfilerScope(0);
 			if (com.isValid() && com.isActive() && !mDisableTypeList.contains(com.getType()))
 			{
 				com.update(com.isIgnoreTimeScale() ? Time.unscaledDeltaTime : elapsedTime);

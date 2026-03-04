@@ -62,7 +62,7 @@ public class CameraLinker : GameComponent
 		mCameraCollision = CAMERA_COLLISION.NONE;
 		mUpdateMoment = LINKER_UPDATE.LATE_UPDATE; 
 		mIgnoreLayer = -1;
-		memset(mTempResults, null);
+		mTempResults.setAllValue(null);
 	}
 	public override void update(float elapsedTime)
 	{

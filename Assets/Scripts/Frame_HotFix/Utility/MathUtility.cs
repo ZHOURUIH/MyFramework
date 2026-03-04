@@ -1118,22 +1118,22 @@ public class MathUtility
 		otherPoint = point + line.mEnd - line.mStart;
 	}
 	// 第index0个点和第index1个点的连线是否位于多边形内部,并且不与任何边相交,要求点列表是以逆时针来排列的
-	public static bool canConnectPoint(List<Vector2> vertice, int index0, int index1)
+	public static bool canConnectPoint(List<Vector2> vertices, int index0, int index1)
 	{
-		int verticeCount = vertice.Count;
-		if (verticeCount < 4)
+		int verticesCount = vertices.Count;
+		if (verticesCount < 4)
 		{
 			return true;
 		}
-		Vector2 lastPoint = vertice[(index0 - 1 + vertice.Count) % vertice.Count];
-		Vector2 nextPoint = vertice[(index0 + 1) % vertice.Count];
-		Vector2 curPoint = vertice[index0];
+		Vector2 lastPoint = vertices[(index0 - 1 + vertices.Count) % vertices.Count];
+		Vector2 nextPoint = vertices[(index0 + 1) % vertices.Count];
+		Vector2 curPoint = vertices[index0];
 		// 当前点的相邻两个点的从下一个点的连线到上一个点的连线的角度
 		Vector2 lastDir = lastPoint - curPoint;
 		Vector2 nextDir = nextPoint - curPoint;
 		float angle0 = getAngleVector2ToVector2(lastDir, nextDir);
 		adjustRadian360(ref angle0);
-		float angle1 = getAngleVector2ToVector2(vertice[index1] - curPoint, nextDir);
+		float angle1 = getAngleVector2ToVector2(vertices[index1] - curPoint, nextDir);
 		adjustRadian360(ref angle1);
 		// 法线向上时,点是按逆时针来排列,夹角小于邻边角时才有效
 		bool validAngle = angle1 <= angle0;
@@ -1143,14 +1143,14 @@ public class MathUtility
 			return false;
 		}
 		// 判断是否与其他边相交
-		for (int i = 0; i < verticeCount; ++i)
+		for (int i = 0; i < verticesCount; ++i)
 		{
 			// 先判断是否有端点重合,端点重合时认为不相交
-			if (i == index0 || i == index1 || (i + 1) % verticeCount == index0 || (i + 1) % verticeCount == index1)
+			if (i == index0 || i == index1 || (i + 1) % verticesCount == index0 || (i + 1) % verticesCount == index1)
 			{
 				continue;
 			}
-			if (intersectLineSection(vertice[i], vertice[(i + 1) % verticeCount], vertice[index0], vertice[index1], out _))
+			if (intersectLineSection(vertices[i], vertices[(i + 1) % verticesCount], vertices[index0], vertices[index1], out _))
 			{
 				return false;
 			}
@@ -3019,20 +3019,20 @@ public class MathUtility
 			keyPointList.Add(new(keyPosList[i], distanceFromStart, distanceFromLast));
 		}
 	}
-	// 查找移动指定距离后当前位于哪段线段上
-	public static int findPointIndex(List<KeyPoint> distanceListFromStart, float curDistance, int startIndex = -1, int endIndex = -1)
+	public static int findPointIndex(List<KeyPoint> distanceListFromStart, float curDistance)
 	{
-		if (startIndex == -1)
-		{
-			startIndex = 0;
-		}
-		if (endIndex == -1)
-		{
-			endIndex = distanceListFromStart.Count - 1;
-		}
+		return findPointIndex(distanceListFromStart, curDistance, 0, distanceListFromStart.Count - 1);
+	}
+	public static int findPointIndex(List<KeyPoint> distanceListFromStart, float curDistance, int startIndex)
+	{
+		return findPointIndex(distanceListFromStart, curDistance, startIndex, distanceListFromStart.Count - 1);
+	}
+	// 查找移动指定距离后当前位于哪段线段上
+	public static int findPointIndex(List<KeyPoint> distanceListFromStart, float curDistance, int startIndex, int endIndex)
+	{
 		if (curDistance < distanceListFromStart[startIndex].mDistanceFromStart)
 		{
-			return startIndex - 1;
+			return clampMin(startIndex - 1);
 		}
 		if (curDistance >= distanceListFromStart[endIndex].mDistanceFromStart)
 		{
@@ -3060,12 +3060,20 @@ public class MathUtility
 			return middleIndex;
 		}
 	}
+	public static int findPointIndex(List<float> distanceListFromStart, float curDistance)
+	{
+		return findPointIndex(distanceListFromStart, curDistance, 0, distanceListFromStart.Count - 1);
+	}
+	public static int findPointIndex(List<float> distanceListFromStart, float curDistance, int startIndex)
+	{
+		return findPointIndex(distanceListFromStart, curDistance, startIndex, distanceListFromStart.Count - 1);
+	}
 	// 查找移动指定距离后当前位于哪段线段上
 	public static int findPointIndex(List<float> distanceListFromStart, float curDistance, int startIndex, int endIndex)
 	{
 		if (curDistance < distanceListFromStart[startIndex])
 		{
-			return startIndex - 1;
+			return clampMin(startIndex - 1);
 		}
 		if (curDistance >= distanceListFromStart[endIndex])
 		{
@@ -4068,7 +4076,7 @@ public class MathUtility
 				else
 				{
 					int startNext = nextIndex(tempVertices.Count, startIndex);
-					if (!isConvexVertice(tempVertices, startNext, startIndex, curIndex, order))
+					if (!isConvexVertices(tempVertices, startNext, startIndex, curIndex, order))
 					{
 						curIndex = prevIndex(tempVertices.Count, curIndex);
 						cutOffPolygon(tempVertices, polygonList.addClass().mPoints, ref startIndex, ref curIndex);
@@ -4079,9 +4087,19 @@ public class MathUtility
 			curIndex = nextIndex(tempVertices.Count, curIndex);
 		}
 	}
+	public static void splitNumber(long number, List<byte> numbers)
+	{
+		do
+		{
+			numbers.add((byte)(number % 10));
+			number /= 10;
+		}
+		while (number > 0);
+		numbers.inverse();
+	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 一个多边形中的三个点的夹角是否大于180
-	protected static bool isConvexVertice(List<Vector2> points, int index0, int index1, int index2, bool isClockwise)
+	protected static bool isConvexVertices(List<Vector2> points, int index0, int index1, int index2, bool isClockwise)
 	{
 		if (index0 == index2)
 		{
@@ -4178,13 +4196,13 @@ public class MathUtility
 			end = 0;
 		}
 	}
-	protected static int prevIndex(int verticeCount, int index)
+	protected static int prevIndex(int verticesCount, int index)
 	{
-		return (index - 1 + verticeCount) % verticeCount;
+		return (index - 1 + verticesCount) % verticesCount;
 	}
-	protected static int nextIndex(int verticeCount, int index)
+	protected static int nextIndex(int verticesCount, int index)
 	{
-		return (index + 1) % verticeCount;
+		return (index + 1) % verticesCount;
 	}
 	// 可以通过comparison自己决定升序还是降序,所以不再需要额外的参数
 	protected static void quickSort<T>(List<T> arr, int low, int high, Comparison<T> comparison)

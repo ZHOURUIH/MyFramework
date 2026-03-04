@@ -14,8 +14,12 @@ public static class ListExtension
 		}
 		return list[randomInt(0, list.Count - 1)];
 	}
-	public static void setAllValue<T>(this List<T> list, T value)
+	public static void setAllValue<T>(this IList<T> list, T value)
 	{
+		if (list.isEmpty())
+		{
+			return;
+		}
 		for (int i = 0; i < list.Count; ++i)
 		{
 			list[i] = value;
@@ -68,6 +72,11 @@ public static class ListExtension
 			}
 		}
 		return false;
+	}
+	public static T swapToEndAndRemove<T>(this List<T> list, int index)
+	{
+		list.swap(index, list.Count - 1);
+		return list.removeAt(list.Count - 1);
 	}
 	public static void addCount<T>(this List<T> list, int count)
 	{
@@ -290,6 +299,31 @@ public static class ListExtension
 		list.AddRange(other);
 		return list;
 	}
+	public static IList<T> setRange<T>(this T[] list, IEnumerable<T> other)
+	{
+		if (other == null || other.Count() == 0)
+		{
+			return list;
+		}
+		int index = 0;
+		foreach (T item in other)
+		{
+			list[index++] = item;
+		}
+		return list;
+	}
+	public static T[] setRange<T>(this T[] list, Span<T> other)
+	{
+		if (other == null || other.Length == 0)
+		{
+			return list;
+		}
+		for (int i = 0; i < other.Length; ++i)
+		{
+			list[i] = other[i];
+		}
+		return list;
+	}
 	public static List<Base> setRangeDerived<Base, T>(this List<Base> list, IEnumerable<T> other) where Base : class where T : Base
 	{
 		list.Clear();
@@ -341,30 +375,30 @@ public static class ListExtension
 		list[index] = value;
 		return true;
 	}
-	public static T add<T>(this IList<T> list, T value)
+	public static T add<T>(this List<T> list, T value)
 	{
 		list.Add(value);
 		return value;
 	}
-	public static void add<T>(this IList<T> list, T value0, T value1)
+	public static void add<T>(this List<T> list, T value0, T value1)
 	{
 		list.Add(value0);
 		list.Add(value1);
 	}
-	public static void add<T>(this IList<T> list, T value0, T value1, T value2)
+	public static void add<T>(this List<T> list, T value0, T value1, T value2)
 	{
 		list.Add(value0);
 		list.Add(value1);
 		list.Add(value2);
 	}
-	public static void add<T>(this IList<T> list, T value0, T value1, T value2, T value3)
+	public static void add<T>(this List<T> list, T value0, T value1, T value2, T value3)
 	{
 		list.Add(value0);
 		list.Add(value1);
 		list.Add(value2);
 		list.Add(value3);
 	}
-	public static void add<T>(this IList<T> list, T value0, T value1, T value2, T value3, T value4)
+	public static void add<T>(this List<T> list, T value0, T value1, T value2, T value3, T value4)
 	{
 		list.Add(value0);
 		list.Add(value1);
@@ -730,8 +764,8 @@ public static class ListExtension
 	public static bool isEmptySpan<T>(this Span<T> list)							{ return list == null || list.Length == 0; }
 	public static bool isEmpty<T>(this ICollection<T> list)							{ return list == null || list.Count == 0; }
 	public static bool contains<T>(this ICollection<T> list, T value)				{ return list != null && list.Contains(value); }
-	public static bool contains<T>(this IList<T> list, Predicate<T> match)			{ return list != null && list.find(match) != null; }
-	public static bool contains<T>(this Span<T> list, Predicate<T> match)			{ return list != null && list.find(match) != null; }
+	public static bool contains<T>(this IList<T> list, Predicate<T> match)			{ return list != null && list.find(match, out _); }
+	public static bool contains<T>(this Span<T> list, Predicate<T> match)			{ return list != null && list.find(match, out _); }
 	public static IEnumerable<T> safe<T>(this IEnumerable<T> original)				{ return original ?? Empty<T>(); }
 	public static T first<T>(this IEnumerable<T> list)
 	{
@@ -740,5 +774,17 @@ public static class ListExtension
 			return item;
 		}
 		return default;
+	}
+	public static void inverse<T>(this IList<T> list)
+	{
+		if (list.count() <= 1)
+		{
+			return;
+		}
+		int count = list.Count;
+		for (int i = 0; i < count >> 1; ++i)
+		{
+			(list[i], list[count - 1 - i]) = (list[count - 1 - i], list[i]);
+		}
 	}
 }

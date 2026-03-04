@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using static StringUtility;
 
-// 用于将错误日志打印到真机屏幕上
+// 用于将错误日志打印到真机屏幕上,已废弃
 public class ConsoleToScreen : MonoBehaviour
 {
     protected string mLogStr = "";					// 最终显示的文字

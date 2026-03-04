@@ -454,6 +454,14 @@ public static class FT
 	{
 		CmdTransformableMovePath.execute(obj, valueKeyFrame, doingCallback, doneCallback, valueOffset, timeOffset, speed, keyframe, loop);
 	}
+	public static void MOVE_SCALE_PATH_EX(this ITransformable obj, Dictionary<float, Vector3> moveKeyFrame, Dictionary<float, Vector3> scaleKeyFrame, Vector3 moveOffset, Vector3 scaleOffset, KeyFrameCallback doneCallback)
+	{
+		obj.MOVE_SCALE_PATH_EX(KEY_CURVE.ZERO_ONE, moveKeyFrame, scaleKeyFrame, moveOffset, scaleOffset, 1.0f, false, 0.0f, null, doneCallback);
+	}
+	public static void MOVE_SCALE_PATH_EX(this ITransformable obj, int keyframe, Dictionary<float, Vector3> moveKeyFrame, Dictionary<float, Vector3> scaleKeyFrame, Vector3 moveOffset, Vector3 scaleOffset, float speed, bool loop, float timeOffset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
+	{
+		CmdTransformableMoveScalePath.execute(obj, moveKeyFrame, scaleKeyFrame, doingCallback, doneCallback, moveOffset, scaleOffset, timeOffset, speed, keyframe, loop);
+	}
 	#endregion
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 插值位置

@@ -15,7 +15,7 @@ public class ImageNumber : Image
 	protected int mNumberWidth;								// 单个数字显示的宽度
 	protected int mNumberHeight;                            // 单个数字显示的高度
 	protected int mInterval;                                // 数字显示间隔
-	protected DOCKING_POSITION mDockingPosition = DOCKING_POSITION.CENTER;            // 数字停靠方式
+	protected DOCKING_POSITION mDockingPosition = DOCKING_POSITION.CENTER;      // 数字停靠方式
 	protected bool mDirty;									// 是否需要刷新渲染数据
 	public void setSpriteList(Dictionary<char, Sprite> spriteList)
 	{
@@ -23,15 +23,9 @@ public class ImageNumber : Image
 		Sprite firstSprite = mSpriteList.firstValue();
 		int width = (int)firstSprite.rect.width;
 		int height = (int)firstSprite.rect.height;
-		if (isEditor())
+		if (isEditor() && mSpriteList.containsValue(sprite => (int)sprite.rect.width != width || (int)sprite.rect.height != height))
 		{
-			foreach (Sprite sprite in mSpriteList.Values)
-			{
-				if ((int)sprite.rect.width != width || (int)sprite.rect.height != height)
-				{
-					logError("设置的数字图片大小不一致!spriteName:" + sprite.name);
-				}
-			}
+			logError("设置的数字图片大小不一致!spriteName:" + sprite.name);
 		}
 		// 根据RectTransform的大小自动计算显示的宽度和高度
 		if (rectTransform == null)
@@ -52,7 +46,7 @@ public class ImageNumber : Image
 		mInterval = interval;
 		setDirty();
 	}
-	public void setDockingPosition(DOCKING_POSITION docking)
+	public void setDocking(DOCKING_POSITION docking)
 	{
 		mDockingPosition = docking;
 		setDirty();
@@ -61,16 +55,10 @@ public class ImageNumber : Image
 	{
 		mNumber = number;
 		// 检查是否包含无法显示的数字
-		if (isEditor() && !mNumber.isEmpty())
+		if (isEditor() && !mNumber.isEmpty() && mNumber.contains(c => !mSpriteList.ContainsKey(c)))
 		{
-			foreach (char c in mNumber)
-			{
-				if (!mSpriteList.ContainsKey(c))
-				{
-					logError("设置的数字内容无法显示:" + mNumber);
-					return;
-				}
-			}
+			logError("设置的数字内容无法显示:" + mNumber);
+			return;
 		}
 		setDirty();
 	}
@@ -85,7 +73,7 @@ public class ImageNumber : Image
 		return mNumberWidth * count + mInterval * (count - 1);
 	}
 	public int getInterval() { return mInterval; }
-	public DOCKING_POSITION getDockingPosition() { return mDockingPosition; }
+	public DOCKING_POSITION getDocking() { return mDockingPosition; }
 	public string getNumber() { return mNumber; }
 	public Dictionary<char, Sprite> getSpriteList() { return mSpriteList; }
 	//------------------------------------------------------------------------------------------------------------------------------

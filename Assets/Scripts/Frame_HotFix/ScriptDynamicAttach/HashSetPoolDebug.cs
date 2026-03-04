@@ -18,31 +18,19 @@ public class HashSetPoolDebug : MonoBehaviour
 		PersistentInuseList.Clear();
 		foreach (var item in mHashSetPool.getPersistentInusedList())
 		{
-			if (item.Value.Count == 0)
-			{
-				continue;
-			}
-			PersistentInuseList.Add(item.Key + ", 数量:" + IToS(item.Value.Count));
+			PersistentInuseList.addIf(item.Key + ", 数量:" + IToS(item.Value.Count), item.Value.Count != 0);
 		}
 
 		InuseList.Clear();
 		foreach(var item in mHashSetPool.getInusedList())
 		{
-			if (item.Value.Count == 0)
-			{
-				continue;
-			}
-			InuseList.Add(item.Key + ", 数量:" + IToS(item.Value.Count));
+			InuseList.addIf(item.Key + ", 数量:" + IToS(item.Value.Count), item.Value.Count != 0);
 		}
 
 		UnuseList.Clear();
 		foreach (var item in mHashSetPool.getUnusedList())
 		{
-			if (item.Value.Count == 0)
-			{
-				continue;
-			}
-			UnuseList.Add(item.Key + ", 数量:" + IToS(item.Value.Count));
+			UnuseList.addIf(item.Key + ", 数量:" + IToS(item.Value.Count), item.Value.Count != 0);
 		}
 	}
 }

@@ -20,20 +20,12 @@ public class HashSetPoolThreadDebug : MonoBehaviour
 		{
 			foreach (var item in mHashSetPoolThread.getInusedList())
 			{
-				if (item.Value.Count == 0)
-				{
-					continue;
-				}
-				InuseList.Add(item.Key + ", 数量:" + IToS(item.Value.Count));
+				InuseList.addIf(item.Key + ", 数量:" + IToS(item.Value.Count), item.Value.Count != 0);
 			}
 
 			foreach (var item in mHashSetPoolThread.getUnusedList())
 			{
-				if (item.Value.Count == 0)
-				{
-					continue;
-				}
-				UnuseList.Add(item.Key + ", 数量:" + IToS(item.Value.Count));
+				UnuseList.addIf(item.Key + ", 数量:" + IToS(item.Value.Count), item.Value.Count != 0);
 			}
 		}
 	}

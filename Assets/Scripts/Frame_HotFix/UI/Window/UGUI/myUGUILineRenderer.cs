@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System;
 using static MathUtility;
-using static BinaryUtility;
 
 // 使用LineRenderer的方式进行画线的窗口,用于在界面中画线
 public class myUGUILineRenderer : myUGUIObject
@@ -34,15 +33,13 @@ public class myUGUILineRenderer : myUGUIObject
 		Span<Vector3> curveList = stackalloc Vector3[bezierDetail];
 		getBezierPoints(pointList, curveList, mLineRenderer.loop, bezierDetail);
 		Vector3[] pointArray = new Vector3[curveList.Length];
-		memcpy(pointArray, curveList, 0, 0, curveList.Length);
-		setPointList(pointArray);
+		setPointList(pointArray.setRange(curveList));
 	}
 	public void setPointListSmooth(Vector3[] pointList, int bezierDetail = 10)
 	{
 		Span<Vector3> curveList = stackalloc Vector3[pointList.Length * bezierDetail];
 		getCurvePoints(pointList, curveList, mLineRenderer.loop, bezierDetail);
 		Vector3[] pointArray = new Vector3[curveList.Length];
-		memcpy(pointArray, curveList, 0, 0, curveList.Length);
-		setPointList(pointArray);
+		setPointList(pointArray.setRange(curveList));
 	}
 }
