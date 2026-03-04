@@ -1,20 +1,21 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using static UnityUtility;
+using static FrameUtility;
 using static StringUtility;
+using static MathUtility;
 using static FrameDefine;
 using static FrameBaseDefine;
 using static FrameBaseHotFix;
 
-// 可显示数字的窗口,只支持整数,且每个数字图片的大小必须一样,不能显示小数,负数
-// 因为使用了自定义的组件,所以性能上比myUGUINumber更高,只是相比之下myUGUINumber更加灵活一点
+// 专用于显示伤害数字的窗口,使用一个窗口即可同时绘制几千个伤害数字
 public class myUGUIDamageNumber : myUGUIObject
 {
 	protected DamageNumberRenderer mRenderer;			// 渲染组件
-	protected UGUIAtlasPtr mOriginAtlasPtr = new();			// 初始的图片图集,用于卸载,当前类只关心初始图集的卸载,后续再次设置的图集不关心是否需要卸载,需要外部设置的地方自己关心
-	protected UGUIAtlasPtr mAtlasPtr = new();				// 当前正在使用的图片图集
-	protected Sprite mOriginSprite;                         // 备份加载物体时原始的精灵图片
-	protected string mNumberStyle;							// 数字图集名
+	protected UGUIAtlasPtr mOriginAtlasPtr = new();		// 初始的图片图集,用于卸载,当前类只关心初始图集的卸载,后续再次设置的图集不关心是否需要卸载,需要外部设置的地方自己关心
+	protected UGUIAtlasPtr mAtlasPtr = new();			// 当前正在使用的图片图集
+	protected Sprite mOriginSprite;                     // 备份加载物体时原始的精灵图片
+	protected string mNumberStyle;						// 数字图集名
 	public override void init()
 	{
 		base.init();
@@ -81,7 +82,7 @@ public class myUGUIDamageNumber : myUGUIObject
 		mRenderer.setInterval(source.mRenderer.getInterval());
 		mNumberStyle = source.mNumberStyle;
 		mRenderer.cloneDamageList(source.mRenderer.getDamageItems());
-		mRenderer.setSpriteList(source.mRenderer.getSpriteList());
+		mRenderer.setNumberSpriteList(source.mRenderer.getSpriteList());
 		mRenderer.setDocking(source.getDocking());
 	}
 	public void setAtlas(UGUIAtlasPtr atlas)
@@ -94,9 +95,79 @@ public class myUGUIDamageNumber : myUGUIObject
 		mNumberStyle = style;
 		refreshSpriteList();
 	}
-	public void addDamage(Vector3 pos, Vector3 scale, long num, Dictionary<float, Vector3> positionKeyFrames, Dictionary<float, Vector3> scaleKeyFrames) 
+	public float getNumberTotalWidth(long num)
 	{
-		mRenderer.addDamage(pos, scale, num, 1.0f, positionKeyFrames, scaleKeyFrames); 
+		using var a = new ListScope<byte>(out var list);
+		splitNumber(num, list);
+		return list.count() * (mRenderer.getNumberWidth() + mRenderer.getInterval()) - mRenderer.getInterval();
+	}
+	// pos是屏幕上的坐标,数字和标记一起显示,extraFlags中的对象需要从对象池中创建
+	public void addDamageNumber(Vector3 pos, float scale, long num, bool showNumber, List<DamageNumberFlag> extraFlags, float speed, 
+						  Dictionary<float, Vector3> positionKeyFrames, Dictionary<float, Vector3> scaleKeyFrames) 
+	{
+		CLASS(out DamageNumberData data);
+		if (showNumber)
+		{
+			splitNumber(num, data.mNumbers);
+		}
+		extraFlags.moveTo(data.mExtraFlags);
+		data.setPositionKeyframes(positionKeyFrames);
+		data.setScaleKeyframes(scaleKeyFrames);
+		data.mPositionOffset = pos;
+		data.mScaleOffset = new(scale, scale, scale);
+		data.mCurTime = 0.0f;
+		data.mSpeed = speed;
+		data.mTotalWidth = data.mNumbers.count() * (mRenderer.getNumberWidth() + mRenderer.getInterval()) - mRenderer.getInterval();
+		data.init();
+		mRenderer.addDamageNumber(data); 
+	}
+	// 包含数字和一个标记,extraFlag需要从对象池中创建
+	public void addDamageNumber(Vector3 pos, float scale, long num, DamageNumberFlag extraFlag, float speed,
+						  Dictionary<float, Vector3> positionKeyFrames, Dictionary<float, Vector3> scaleKeyFrames)
+	{
+		CLASS(out DamageNumberData data);
+		splitNumber(num, data.mNumbers);
+		data.mExtraFlags.add(extraFlag);
+		data.setPositionKeyframes(positionKeyFrames);
+		data.setScaleKeyframes(scaleKeyFrames);
+		data.mPositionOffset = pos;
+		data.mScaleOffset = new(scale, scale, scale);
+		data.mCurTime = 0.0f;
+		data.mSpeed = speed;
+		data.mTotalWidth = data.mNumbers.count() * (mRenderer.getNumberWidth() + mRenderer.getInterval()) - mRenderer.getInterval();
+		data.init();
+		mRenderer.addDamageNumber(data);
+	}
+	// 不含标记的纯数字
+	public void addDamageNumber(Vector3 pos, float scale, long num, float speed, Dictionary<float, Vector3> positionKeyFrames, Dictionary<float, Vector3> scaleKeyFrames)
+	{
+		CLASS(out DamageNumberData data);
+		splitNumber(num, data.mNumbers);
+		data.setPositionKeyframes(positionKeyFrames);
+		data.setScaleKeyframes(scaleKeyFrames);
+		data.mPositionOffset = pos;
+		data.mScaleOffset = new(scale, scale, scale);
+		data.mCurTime = 0.0f;
+		data.mSpeed = speed;
+		data.mTotalWidth = data.mNumbers.count() * (mRenderer.getNumberWidth() + mRenderer.getInterval()) - mRenderer.getInterval();
+		data.init();
+		mRenderer.addDamageNumber(data);
+	}
+	// 只包含一个标记,不含数字,extraFlag需要从对象池中创建
+	public void addDamageNumber(Vector3 pos, float scale, DamageNumberFlag extraFlag, float speed,
+						  Dictionary<float, Vector3> positionKeyFrames, Dictionary<float, Vector3> scaleKeyFrames)
+	{
+		CLASS(out DamageNumberData data);
+		data.mExtraFlags.add(extraFlag);
+		data.setPositionKeyframes(positionKeyFrames);
+		data.setScaleKeyframes(scaleKeyFrames);
+		data.mPositionOffset = pos;
+		data.mScaleOffset = new(scale, scale, scale);
+		data.mCurTime = 0.0f;
+		data.mSpeed = speed;
+		data.mTotalWidth = data.mNumbers.count() * (mRenderer.getNumberWidth() + mRenderer.getInterval()) - mRenderer.getInterval();
+		data.init();
+		mRenderer.addDamageNumber(data);
 	}
 	public void setInterval(int interval)						{ mRenderer.setInterval(interval); }
 	public void setDocking(DOCKING_POSITION dock)				{ mRenderer.setDocking(dock); }
@@ -104,6 +175,8 @@ public class myUGUIDamageNumber : myUGUIObject
 	public float getInterval()									{ return mRenderer.getInterval(); }
 	public string getNumberStyle()								{ return mNumberStyle; }
 	public DOCKING_POSITION getDocking()						{ return mRenderer.getDocking(); }
+	public Sprite getSprite(string name)						{ return mAtlasPtr.getSprite(name); }
+	public Sprite getSpriteWithNumberStyle(string name)			{ return mAtlasPtr.getSprite(mNumberStyle + "_" + name); }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void refreshSpriteList()
 	{
@@ -112,9 +185,10 @@ public class myUGUIDamageNumber : myUGUIObject
 		{
 			DamageNumberSpriteData data = new();
 			data.init(mAtlasPtr.getSprite(mNumberStyle + "_" + IToS(i)));
+			data.mSearchKey = (char)('0' + i);
 			spriteList.add(data);
 		}
 		mRenderer.mImage = spriteList.first().mSprite;
-		mRenderer.setSpriteList(spriteList);
+		mRenderer.setNumberSpriteList(spriteList);
 	}
 }

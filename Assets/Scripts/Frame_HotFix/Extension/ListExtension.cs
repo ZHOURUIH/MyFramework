@@ -409,13 +409,17 @@ public static class ListExtension
 	// 将sourceList中的所有元素添加到targetList中,并清空sourceList,返回targetList
 	public static List<T> moveTo<T>(this List<T> sourceList, List<T> targetList)
 	{
+		if (sourceList.isEmpty())
+		{
+			return targetList;
+		}
 		targetList.AddRange(sourceList);
 		sourceList.Clear();
 		return targetList;
 	}
 	public static T popBack<T>(this List<T> list)
 	{
-		if (list == null || list.Count == 0)
+		if (list.isEmpty())
 		{
 			return default;
 		}
