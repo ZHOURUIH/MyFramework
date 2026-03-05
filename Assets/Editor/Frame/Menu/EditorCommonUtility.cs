@@ -848,10 +848,7 @@ public class EditorCommonUtility
 		int startIndex = atlasContent.IndexOf("externalObjects: {}");
 		foreach (var item in getSpriteGUIDs(path))
 		{
-			if (atlasContent.IndexOf(item.Value, startIndex) == -1)
-			{
-				notExistSprites.add(item);
-			}
+			notExistSprites.addIf(item, atlasContent.IndexOf(item.Value, startIndex) == -1);
 		}
 		return notExistSprites;
 	}

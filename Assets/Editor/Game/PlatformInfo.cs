@@ -20,6 +20,7 @@ public enum GAME_CHANNEL : byte
 	TAP_TAP,			// TapTap平台,仅做示例
 }
 
+// 这个类负责实现上传资源,生成一些名字,宏定义,创建当前平台实例等功能
 public abstract class PlatformInfo : PlatformBase
 {
 

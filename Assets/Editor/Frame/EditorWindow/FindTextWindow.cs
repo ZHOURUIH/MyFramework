@@ -43,10 +43,6 @@ public class FindTextWindow : GameEditorWindow
 				int index = 0;
 				foreach (var prefabPair in mTextSortList)
 				{
-					if (prefabPair.Value.Count == 0)
-					{
-						continue;
-					}
 					foreach (MaskableGraphic text in prefabPair.Value)
 					{
 						if (index / mPageSize == mPageIndex)

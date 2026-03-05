@@ -117,6 +117,18 @@ public class GameReleaseWindow : GameEditorWindow
 		using (new GUILayout.VerticalScope())
 		{
 			space(30);
+			if (isAndroid())
+			{
+#if USE_GOOGLE_PLAY_ASSET_DELIVERY
+				toggle(ref mPlatform.mGooglePlay, "GooglePlay", "生成GooglePlay的aab文件");
+#else
+				mPlatform.mGooglePlay = false;
+#endif
+			}
+			else
+			{
+				mPlatform.mGooglePlay = false;
+			}
 			if (mPlatform.mTestClient && !isWebGL())
 			{
 				if (toggle(ref mPlatform.mEnableHotFix, "启用热更"))

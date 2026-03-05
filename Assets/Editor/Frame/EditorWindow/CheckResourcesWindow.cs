@@ -150,27 +150,25 @@ public class CheckResourcesWindow : GameEditorWindow
 					foreach (var item in mFileReferenceList)
 					{
 						List<string> refList = item.Value.mRefInGameRes;
-						if (refList.Count > 1)
+						if (refList.Count <= 1)
 						{
-							bool usedInSingleFolder = true;
-							string refFilePath = null;
-							foreach (string refFile in refList)
+							continue;
+						}
+						bool usedInSingleFolder = true;
+						string refFilePath = null;
+						foreach (string refFile in refList)
+						{
+							if (refFilePath == null)
 							{
-								if (refFilePath == null)
-								{
-									refFilePath = getFilePath(refFile);
-								}
-								else if (refFilePath != getFilePath(refFile))
-								{
-									usedInSingleFolder = false;
-									break;
-								}
+								refFilePath = getFilePath(refFile);
 							}
-							if (!usedInSingleFolder)
+							else if (refFilePath != getFilePath(refFile))
 							{
-								tempFileRefList.add(item);
+								usedInSingleFolder = false;
+								break;
 							}
 						}
+						tempFileRefList.addIf(item, !usedInSingleFolder);
 					}
 				}
 				else
@@ -355,9 +353,9 @@ public class CheckResourcesWindow : GameEditorWindow
 	protected void doCheck(string path, Dictionary<string, List<string>> refList, Dictionary<string, List<FileGUIDLines>> allFileText)
 	{
 		DateTime start = DateTime.Now;
-		Dictionary<string, UObject> refrenceList = new();
-		searchFileReference(path, false, refrenceList, allFileText, false);
-		refList.add(path.rightToLeft(), new(refrenceList.Keys));
-		Debug.Log("查找" + path + "的引用,引用数量:" + refrenceList.Count+ "耗时:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒");
+		Dictionary<string, UObject> referenceList = new();
+		searchFileReference(path, false, referenceList, allFileText, false);
+		refList.add(path.rightToLeft(), new(referenceList.Keys));
+		Debug.Log("查找" + path + "的引用,引用数量:" + referenceList.Count+ "耗时:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒");
 	}
 }

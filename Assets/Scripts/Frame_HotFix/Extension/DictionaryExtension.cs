@@ -90,6 +90,14 @@ public static class DictionaryExtension
 		}
 		return condition;
 	}
+	public static bool addIf<Key, Value>(this Dictionary<Key, Value> map, KeyValuePair<Key, Value> item, bool condition)
+	{
+		if (condition)
+		{
+			map.Add(item.Key, item.Value);
+		}
+		return condition;
+	}
 	public static Value add<Key, Value>(this Dictionary<Key, Value> map, Key key, Value value)
 	{
 		map.Add(key, value);

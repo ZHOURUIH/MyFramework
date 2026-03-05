@@ -57,9 +57,9 @@ public class DamageNumberRenderer : MonoBehaviour
 		DamageNumberSpriteData firstSprite = mNumberSpriteList.first();
 		int width = firstSprite.mWidth;
 		int height = firstSprite.mHeight;
-		if (isEditor() && mNumberSpriteList.contains(sprite => sprite.mWidth != width || sprite.mHeight != height))
+		if (isEditor() && mNumberSpriteList.find(sprite => sprite.mWidth != width || sprite.mHeight != height, out var sprite))
 		{
-			logError("设置的数字图片大小不一致!spriteName:" + mImage.name);
+			logError("设置的数字图片大小不一致!spriteName:" + mImage.name + ", sprite.width:" + sprite.mWidth + ", sprite.height:" + sprite.mHeight);
 		}
 		// 根据RectTransform的大小自动计算显示的宽度和高度
 		if (transform as RectTransform == null)

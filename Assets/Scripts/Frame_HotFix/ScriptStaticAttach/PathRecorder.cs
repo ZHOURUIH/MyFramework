@@ -177,7 +177,7 @@ public class PathRecorder : MonoBehaviour
 	{
 		List<float> keys = new();
 		keys.setRangeKeys(path);
-		Vector3 lastValue = path.get(keys[0]);
+		Vector3 lastValue = path.firstValue();
 		int keyCount = keys.Count;
 		for (int i = 0; i < keyCount; ++i)
 		{
@@ -199,8 +199,9 @@ public class PathRecorder : MonoBehaviour
 	}
 	protected static void compress(Dictionary<float, float> path)
 	{
-		List<float> keys = new(path.Keys);
-		float lastValue = path.get(keys[0]);
+		List<float> keys = new();
+		keys.setRangeKeys(path);
+		float lastValue = path.firstValue();
 		int keyCount = keys.Count;
 		for (int i = 0; i < keyCount; ++i)
 		{

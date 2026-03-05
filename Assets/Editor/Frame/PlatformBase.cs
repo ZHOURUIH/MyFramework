@@ -401,7 +401,7 @@ public abstract class PlatformBase
 	// 由应用层提供自己的密钥,不提供则不会进行加密,Key和IV长度必须为16个字节
 	protected virtual byte[] getAESKey() { return null; }
 	protected virtual byte[] getAESIV() { return null; }
-	protected BuildOptions generateBuildOption(bool isTest)
+	protected static BuildOptions generateBuildOption(bool isTest)
 	{
 		BuildOptions options = BuildOptions.None;
 		options |= BuildOptions.CompressWithLz4HC;
