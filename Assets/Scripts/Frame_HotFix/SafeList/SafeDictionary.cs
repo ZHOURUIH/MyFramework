@@ -91,6 +91,13 @@ public class SafeDictionary<Key, Value> : ClassObject
 		mModifyList.Add(new(key, value));
 		return true;
 	}
+	public void addIf(Key key, Value value, bool condition)
+	{
+		if (condition)
+		{
+			add(key, value);
+		}
+	}
 	public bool remove(Key key)
 	{
 		if (!mMainList.Remove(key))

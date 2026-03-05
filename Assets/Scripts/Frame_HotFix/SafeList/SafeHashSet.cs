@@ -86,6 +86,14 @@ public class SafeHashSet<T> : ClassObject
 		mModifyList.Add(new(value, true));
 		return true;
 	}
+	public bool addIf(T value, bool condition)
+	{
+		if (condition)
+		{
+			add(value);
+		}
+		return condition;
+	}
 	public bool remove(T value)
 	{
 		if (!mMainList.Remove(value))
@@ -94,6 +102,18 @@ public class SafeHashSet<T> : ClassObject
 		}
 		mModifyList.Add(new(value, false));
 		return true;
+	}
+	public bool addOrRemove(T value, bool isAdd)
+	{
+		if (isAdd)
+		{
+			add(value);
+		}
+		else
+		{
+			remove(value);
+		}
+		return isAdd;
 	}
 	// 清空所有数据
 	public void clear()

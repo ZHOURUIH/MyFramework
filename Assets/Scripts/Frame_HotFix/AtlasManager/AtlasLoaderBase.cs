@@ -74,10 +74,7 @@ public abstract class AtlasLoaderBase
 					if (!mAtlasList.tryGetValue(loadPath, out AtlasBase atlas))
 					{
 						atlas = atlasLoaded(assets, asset, loadPath);
-						if (atlas != null)
-						{
-							mAtlasList.add(loadPath, atlas);
-						}
+						mAtlasList.addIf(loadPath, atlas, atlas != null);
 					}
 					foreach (AtlasLoadParam param in paramList)
 					{

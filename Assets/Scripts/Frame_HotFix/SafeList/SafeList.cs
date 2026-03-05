@@ -108,7 +108,7 @@ public class SafeList<T> : ClassObject
 		}
 		add(value);
 	}
-	public void addRange(IList<T> list)
+	public void addRange(IEnumerable<T> list)
 	{
 		foreach (T item in list)
 		{

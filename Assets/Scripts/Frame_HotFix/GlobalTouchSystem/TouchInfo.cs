@@ -64,10 +64,7 @@ public class TouchInfo : ClassObject
 	public void touchPress()
 	{
 		mGlobalTouchSystem.getAllHoverObject(mHoverList, mTouch.getCurPosition());
-		foreach (IMouseEventCollect item in mHoverList)
-		{
-			mPressList.add(item);
-		}
+		mPressList.addRange(mHoverList);
 	}
 	public void clearPressList() { mPressList.clear(); }
 	public SafeList<IMouseEventCollect> getPressList() { return mPressList; }

@@ -360,10 +360,7 @@ public class EffectManager : FrameSystem
 		{
 			foreach (GameEffect effect in item.Value)
 			{
-				if (!effect.checkValid())
-				{
-					tempList.add(effect);
-				}
+				tempList.addIf(effect, !effect.checkValid());
 			}
 		}
 		foreach (GameEffect effect in tempList)

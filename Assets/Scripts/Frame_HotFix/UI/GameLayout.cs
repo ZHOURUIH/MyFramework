@@ -223,14 +223,7 @@ public class GameLayout
 	}
 	public void notifyUIObjectNeedUpdate(myUGUIObject uiObj, bool needUpdate)
 	{
-		if (needUpdate)
-		{
-			mNeedUpdateList.add(uiObj);
-		}
-		else
-		{
-			mNeedUpdateList.remove(uiObj);
-		}
+		mNeedUpdateList.addOrRemove(uiObj, needUpdate);
 	}
 	public void registerUIObject(myUGUIObject uiObj)
 	{
@@ -240,10 +233,7 @@ public class GameLayout
 			logError("两个UI窗口的GameObject实例ID一致,UI窗口对象相同:" + (uiObj != obj) + ",GameObject是否相同：" + (obj.getObject() == uiObj.getObject()) + ", obj name:" + obj.getName() + ", uiObj name:" + uiObj.getName());
 		}
 		mGameObjectSearchList.Add(uiObj.getObject().GetInstanceID(), uiObj);
-		if (mDefaultUpdateWindow || uiObj.isNeedUpdate())
-		{
-			mNeedUpdateList.add(uiObj);
-		}
+		mNeedUpdateList.addIf(uiObj, mDefaultUpdateWindow || uiObj.isNeedUpdate());
 	}
 	public void unregisterUIObject(myUGUIObject uiObj)
 	{

@@ -264,10 +264,7 @@ public abstract class NetConnectUDP : NetConnect
 	{
 		using var a = new ClassThreadScope<MyStringBuilder>(out var info);
 		info.add("最后接收的消息:\n");
-		foreach (string item in mReceivePacketHistory)
-		{
-			info.add(item, "\n");
-		}
+		mReceivePacketHistory.For(item => info.add(item, "\n"));
 		logError(info.ToString());
 	}
 }

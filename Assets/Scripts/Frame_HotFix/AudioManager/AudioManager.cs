@@ -355,17 +355,14 @@ public class AudioManager : FrameSystem
 					minItem = item;
 				}
 			}
-			if (minItem != null)
-			{
-				unusedHelper(minItem);
-			}
+			unusedHelper(minItem);
 		}
 		mHelperList.add(helper);
 		return helper;
 	}
 	protected void unusedHelper(AudioHelper helper)
 	{
-		if (!mHelperList.remove(helper))
+		if (helper == null || !mHelperList.remove(helper))
 		{
 			return;
 		}
