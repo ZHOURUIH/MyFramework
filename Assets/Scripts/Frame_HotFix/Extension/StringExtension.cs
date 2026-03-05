@@ -854,10 +854,7 @@ public static class StringExtension
 		using var a = new MyStringBuilderScope(out var builder);
 		foreach (char c in str)
 		{
-			if (isNumeric(c))
-			{
-				builder.add(c);
-			}
+			builder.addIf(c, isNumeric(c));
 		}
 		return builder.ToString();
 	}

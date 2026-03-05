@@ -62,6 +62,14 @@ public class MyStringBuilder : ClassObject
 		mBuilder.Append('\n');
 		return this;
 	}
+	public MyStringBuilder addIf(char value, bool condition)
+	{
+		if (condition)
+		{
+			mBuilder.Append(value);
+		}
+		return this;
+	}
 	public MyStringBuilder add(char value)
 	{
 		mBuilder.Append(value);
@@ -196,6 +204,14 @@ public class MyStringBuilder : ClassObject
 	{
 		return add(value0, value1, value2, value3, value4, value5, "\r\n");
 	}
+	public MyStringBuilder addIf(string value, bool condition)
+	{
+		if (condition)
+		{
+			mBuilder.Append(value);
+		}
+		return this;
+	}
 	public MyStringBuilder add(string value)
 	{
 		mBuilder.Append(value);
@@ -206,6 +222,22 @@ public class MyStringBuilder : ClassObject
 		for (int i = 0; i < repeatCount; ++i)
 		{
 			mBuilder.Append(value);
+		}
+		return this;
+	}
+	public MyStringBuilder addIf(string str0, string str1, bool condition)
+	{
+		if (condition)
+		{
+			add(str0, str1);
+		}
+		return this;
+	}
+	public MyStringBuilder addIf(string str0, string str1, string str2, bool condition)
+	{
+		if (condition)
+		{
+			add(str0, str1, str2);
 		}
 		return this;
 	}
@@ -521,17 +553,11 @@ public class MyStringBuilder : ClassObject
 		{
 			addRepeat("\t", preTableCount);
 			add("\"", name, "\"", ":");
-			if (returnLine)
-			{
-				add("\r\n");
-			}
+			addIf("\r\n", returnLine);
 		}
 		addRepeat("\t", preTableCount);
-		add("[");
-		if (returnLine)
-		{
-			add("\r\n");
-		}
+		add('[');
+		addIf("\r\n", returnLine);
 	}
 	public void jsonEndArray(int preTableCount = 0, bool returnLine = false)
 	{
@@ -541,10 +567,7 @@ public class MyStringBuilder : ClassObject
 		}
 		addRepeat("\t", preTableCount);
 		add("],");
-		if (returnLine)
-		{
-			add("\r\n");
-		}
+		addIf("\r\n", returnLine);
 	}
 	public void jsonStartStruct(string name = null, int preTableCount = 0, bool returnLine = false)
 	{
@@ -553,18 +576,12 @@ public class MyStringBuilder : ClassObject
 		{
 			addRepeat("\t", preTableCount);
 			add("\"", name, "\"", ":");
-			if (returnLine)
-			{
-				add("\r\n");
-			}
+			addIf("\r\n", returnLine);
 		}
 		// 如果不是最外层且非数组元素的结构体,则需要加上结构体的名字
 		addRepeat("\t", preTableCount);
-		add("{");
-		if (returnLine)
-		{
-			add("\r\n");
-		}
+		add('}');
+		addIf("\r\n", returnLine);
 	}
 	public void jsonEndStruct(bool keepComma= true, int preTableCount = 0, bool returnLine = false)
 	{
@@ -573,38 +590,23 @@ public class MyStringBuilder : ClassObject
 			remove(mBuilder.Length - 1);
 		}
 		addRepeat("\t", preTableCount);
-		add("}");
-		if (keepComma)
-		{
-			add(",");
-		}
-		if (returnLine)
-		{
-			add("\r\n");
-		}
+		add('}');
+		addIf(',', keepComma);
+		addIf("\r\n", returnLine);
 	}
 	public void jsonAddPair(string name, string value, int preTableCount = 0, bool returnLine = false)
 	{
 		addRepeat("\t", preTableCount);
 		// 如果是数组中的元素则不需要名字
-		if (!name.isEmpty())
-		{
-			add("\"", name, "\": ");
-		}
+		addIf("\"", name, "\": ", !name.isEmpty());
 		add("\"", value, "\",");
-		if (returnLine)
-		{
-			add("\r\n");
-		}
+		addIf("\r\n", returnLine);
 	}
 	public void jsonAddObject(string name, string value, int preTableCount = 0, bool returnLine = false)
 	{
 		addRepeat("\t", preTableCount);
 		add("\"", name, "\": ", value, ",");
-		if (returnLine)
-		{
-			add("\r\n");
-		}
+		addIf("\r\n", returnLine);
 	}
 	public void rightToLeft()
 	{

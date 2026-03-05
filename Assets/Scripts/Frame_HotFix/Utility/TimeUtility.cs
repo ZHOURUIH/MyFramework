@@ -87,14 +87,8 @@ public class TimeUtility
 	{
 		minuteToHourMinute(totalMinute, out int hour, out int minute);
 		using var a = new MyStringBuilderScope(out var timeStr);
-		if (hour > 0)
-		{
-			timeStr.add(IToS(hour), "小时");
-		}
-		if (minute > 0)
-		{
-			timeStr.add(IToS(minute), "分钟");
-		}
+		timeStr.addIf(IToS(hour), "小时", hour > 0);
+		timeStr.addIf(IToS(minute), "分钟", minute > 0);
 		return timeStr.ToString();
 	}
 	// 一般用于倒计时显示的字符串,只获取数字,自己拼接需要显示的字符串,适用于需要切换多语言的文本

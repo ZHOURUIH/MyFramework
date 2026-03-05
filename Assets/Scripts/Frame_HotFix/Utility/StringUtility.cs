@@ -238,20 +238,20 @@ public class StringUtility
 		checkUIntString(str);
 		return !str.isEmpty() ? uint.Parse(str) : 0;
 	}
-	public static Vector2 SToV2(string value, char seperate = ',')
+	public static Vector2 SToV2(string value, char separate = ',')
 	{
 		if (value.isEmpty() || value == "0,0")
 		{
 			return Vector2.zero;
 		}
-		string[] splitList = split(value, seperate);
+		string[] splitList = split(value, separate);
 		if (splitList.count() < 2)
 		{
 			return Vector2.zero;
 		}
 		return new(SToF(splitList[0]), SToF(splitList[1]));
 	}
-	public static Vector2Int SToV2I(string value, char seperate = ',')
+	public static Vector2Int SToV2I(string value, char separate = ',')
 	{
 		if (value.isEmpty() || value == "0,0")
 		{
@@ -262,7 +262,7 @@ public class StringUtility
 		{
 			return result;
 		}
-		string[] splitList = split(value, seperate);
+		string[] splitList = split(value, separate);
 		if (splitList.count() < 2)
 		{
 			return Vector2Int.zero;
@@ -274,20 +274,20 @@ public class StringUtility
 		}
 		return result;
 	}
-	public static Vector3 SToV3(string value, char seperate = ',')
+	public static Vector3 SToV3(string value, char separate = ',')
 	{
 		if (value.isEmpty() || value == "0,0,0")
 		{
 			return Vector3.zero;
 		}
-		string[] splitList = split(value, seperate);
+		string[] splitList = split(value, separate);
 		if (splitList.count() < 3)
 		{
 			return Vector3.zero;
 		}
 		return new(SToF(splitList[0]), SToF(splitList[1]), SToF(splitList[2]));
 	}
-	public static Vector3Int SToV3I(string value, char seperate = ',')
+	public static Vector3Int SToV3I(string value, char separate = ',')
 	{
 		if (value.isEmpty() || value == "0,0,0")
 		{
@@ -298,7 +298,7 @@ public class StringUtility
 		{
 			return result;
 		}
-		string[] splitList = split(value, seperate);
+		string[] splitList = split(value, separate);
 		if (splitList.count() < 3)
 		{
 			return Vector3Int.zero;
@@ -310,26 +310,26 @@ public class StringUtility
 		}
 		return result;
 	}
-	public static Vector4 SToV4(string value, char seperate = ',')
+	public static Vector4 SToV4(string value, char separate = ',')
 	{
 		if (value.isEmpty() || value == "0,0,0,0")
 		{
 			return Vector4.zero;
 		}
-		string[] splitList = split(value, seperate);
+		string[] splitList = split(value, separate);
 		if (splitList.count() < 4)
 		{
 			return Vector4.zero;
 		}
 		return new(SToF(splitList[0]), SToF(splitList[1]), SToF(splitList[2]), SToF(splitList[3]));
 	}
-	public static Vector4Int SToV4I(string value, char seperate = ',')
+	public static Vector4Int SToV4I(string value, char separate = ',')
 	{
 		if (value.isEmpty() || value == "0,0,0,0")
 		{
 			return Vector4Int.zero;
 		}
-		string[] splitList = split(value, seperate);
+		string[] splitList = split(value, separate);
 		if (splitList.count() < 4)
 		{
 			return Vector4Int.zero;
@@ -734,24 +734,24 @@ public class StringUtility
 		return str.Split(keyword, removeEmpty ? StringSplitOptions.RemoveEmptyEntries : StringSplitOptions.None);
 	}
 	// 在使用返回值期间禁止再调用stringToFloatsNonAlloc
-	public static List<float> SToFsNonAlloc(string str, char seperate = ',')
+	public static List<float> SToFsNonAlloc(string str, char separate = ',')
 	{
-		SToFs(str, mTempFloatList, seperate);
+		SToFs(str, mTempFloatList, separate);
 		return mTempFloatList;
 	}
-	public static List<float> SToFs(string str, char seperate = ',')
+	public static List<float> SToFs(string str, char separate = ',')
 	{
 		List<float> values = new();
-		SToFs(str, values, seperate);
+		SToFs(str, values, separate);
 		return values;
 	}
-	public static void SToFs(string str, ref float[] values, char seperate = ',')
+	public static void SToFs(string str, ref float[] values, char separate = ',')
 	{
 		if (str.isEmpty())
 		{
 			return;
 		}
-		string[] rangeList = split(str, seperate);
+		string[] rangeList = split(str, separate);
 		int len = rangeList.Length;
 		if (values != null && len != values.Length)
 		{
@@ -764,7 +764,7 @@ public class StringUtility
 			values[i] = SToF(rangeList[i]);
 		}
 	}
-	public static void SToFs(string str, IList<float> values, char seperate = ',')
+	public static void SToFs(string str, IList<float> values, char separate = ',')
 	{
 		if (values == null)
 		{
@@ -776,32 +776,29 @@ public class StringUtility
 		{
 			return;
 		}
-		foreach (string item in split(str, seperate))
+		foreach (string item in split(str, separate))
 		{
 			values.Add(SToF(item));
 		}
 	}
-	public static string FsToS(IList<float> values, char seperate = ',')
+	public static string FsToS(IList<float> values, char separate = ',')
 	{
 		using var a = new MyStringBuilderScope(out var builder);
 		int count = values.Count;
 		for (int i = 0; i < count; ++i)
 		{
 			builder.add(FToS(values[i], 2));
-			if (i != count - 1)
-			{
-				builder.add(seperate);
-			}
+			builder.addIf(separate, i != count - 1);
 		}
 		return builder.ToString();
 	}
-	public static List<long> SToLs(string str, char seperate = ',')
+	public static List<long> SToLs(string str, char separate = ',')
 	{
 		List<long> values = new();
-		SToLs(str, values, seperate);
+		SToLs(str, values, separate);
 		return values;
 	}
-	public static void SToLs(string str, IList<long> values, char seperate = ',')
+	public static void SToLs(string str, IList<long> values, char separate = ',')
 	{
 		if (values == null)
 		{
@@ -813,18 +810,18 @@ public class StringUtility
 		{
 			return;
 		}
-		foreach (string item in split(str, seperate).safe())
+		foreach (string item in split(str, separate).safe())
 		{
 			values.Add(SToL(item));
 		}
 	}
-	public static void SToLs(string str, ref long[] values, char seperate = ',')
+	public static void SToLs(string str, ref long[] values, char separate = ',')
 	{
 		if (str.isEmpty())
 		{
 			return;
 		}
-		string[] rangeList = split(str, seperate);
+		string[] rangeList = split(str, separate);
 		int len = rangeList.Length;
 		if (values != null && len != values.Length)
 		{
@@ -838,18 +835,18 @@ public class StringUtility
 		}
 	}
 	// 在使用返回值期间禁止再调用stringToLongsNonAlloc
-	public static List<long> SToLsNonAlloc(string str, char seperate = ',')
+	public static List<long> SToLsNonAlloc(string str, char separate = ',')
 	{
-		SToLs(str, mTempLongList, seperate);
+		SToLs(str, mTempLongList, separate);
 		return mTempLongList;
 	}
-	public static List<int> SToIs(string str, char seperate = ',')
+	public static List<int> SToIs(string str, char separate = ',')
 	{
 		List<int> values = new();
-		SToIs(str, values, seperate);
+		SToIs(str, values, separate);
 		return values;
 	}
-	public static void SToIs(string str, IList<int> values, char seperate = ',')
+	public static void SToIs(string str, IList<int> values, char separate = ',')
 	{
 		if (values == null)
 		{
@@ -861,18 +858,18 @@ public class StringUtility
 		{
 			return;
 		}
-		foreach (string item in split(str, seperate).safe())
+		foreach (string item in split(str, separate).safe())
 		{
 			values.Add(SToI(item));
 		}
 	}
-	public static void SToIs(string str, ref int[] values, char seperate = ',')
+	public static void SToIs(string str, ref int[] values, char separate = ',')
 	{
 		if (str.isEmpty())
 		{
 			return;
 		}
-		string[] rangeList = split(str, seperate);
+		string[] rangeList = split(str, separate);
 		int len = rangeList.Length;
 		if (values != null && len != values.Length)
 		{
@@ -886,12 +883,12 @@ public class StringUtility
 		}
 	}
 	// 在使用返回值期间禁止再调用stringToIntsNonAlloc
-	public static List<int> SToIsNonAlloc(string str, char seperate = ',')
+	public static List<int> SToIsNonAlloc(string str, char separate = ',')
 	{
-		SToIs(str, mTempIntList, seperate);
+		SToIs(str, mTempIntList, separate);
 		return mTempIntList;
 	}
-	public static void SToUIs(string str, IList<uint> values, char seperate = ',')
+	public static void SToUIs(string str, IList<uint> values, char separate = ',')
 	{
 		if (values == null)
 		{
@@ -903,12 +900,12 @@ public class StringUtility
 		{
 			return;
 		}
-		foreach (string item in split(str, seperate).safe())
+		foreach (string item in split(str, separate).safe())
 		{
 			values.Add((uint)SToI(item));
 		}
 	}
-	public static void SToUSs(string str, IList<ushort> values, char seperate = ',')
+	public static void SToUSs(string str, IList<ushort> values, char separate = ',')
 	{
 		if (values == null)
 		{
@@ -920,12 +917,12 @@ public class StringUtility
 		{
 			return;
 		}
-		foreach (string item in split(str, seperate).safe())
+		foreach (string item in split(str, separate).safe())
 		{
 			values.Add((ushort)SToI(item));
 		}
 	}
-	public static void SToSs(string str, IList<short> values, char seperate = ',')
+	public static void SToSs(string str, IList<short> values, char separate = ',')
 	{
 		if (values == null)
 		{
@@ -937,12 +934,12 @@ public class StringUtility
 		{
 			return;
 		}
-		foreach (string item in split(str, seperate).safe())
+		foreach (string item in split(str, separate).safe())
 		{
 			values.Add((short)SToI(item));
 		}
 	}
-	public static void SToBools(string str, IList<bool> values, char seperate = ',')
+	public static void SToBools(string str, IList<bool> values, char separate = ',')
 	{
 		if (values == null)
 		{
@@ -954,26 +951,26 @@ public class StringUtility
 		{
 			return;
 		}
-		foreach (string item in split(str, seperate).safe())
+		foreach (string item in split(str, separate).safe())
 		{
 			values.Add(SToI(item) > 0);
 		}
 	}
 	// 在使用返回值期间不允许再使用此函数
-	public static List<byte> SToBsNonAlloc(string str, char seperate = ',')
+	public static List<byte> SToBsNonAlloc(string str, char separate = ',')
 	{
 		mTempByteList0.Clear();
 		if (str.isEmpty())
 		{
 			return mTempByteList0;
 		}
-		foreach (string item in split(str, seperate).safe())
+		foreach (string item in split(str, separate).safe())
 		{
 			mTempByteList0.Add((byte)SToI(item));
 		}
 		return mTempByteList0;
 	}
-	public static void SToBs(string str, IList<byte> values, char seperate = ',')
+	public static void SToBs(string str, IList<byte> values, char separate = ',')
 	{
 		if (values == null)
 		{
@@ -985,12 +982,12 @@ public class StringUtility
 		{
 			return;
 		}
-		foreach (string item in split(str, seperate).safe())
+		foreach (string item in split(str, separate).safe())
 		{
 			values.Add((byte)SToI(item));
 		}
 	}
-	public static void SToSBs(string str, IList<sbyte> values, char seperate = ',')
+	public static void SToSBs(string str, IList<sbyte> values, char separate = ',')
 	{
 		if (values == null)
 		{
@@ -1002,12 +999,12 @@ public class StringUtility
 		{
 			return;
 		}
-		foreach (string item in split(str, seperate).safe())
+		foreach (string item in split(str, separate).safe())
 		{
 			values.Add((sbyte)SToI(item));
 		}
 	}
-	public static string LsToS(IList<long> values, char seperate = ',')
+	public static string LsToS(IList<long> values, char separate = ',')
 	{
 		if (values.isEmpty())
 		{
@@ -1018,14 +1015,11 @@ public class StringUtility
 		for (int i = 0; i < count; ++i)
 		{
 			builder.add(LToS(values[i]));
-			if (i != count - 1)
-			{
-				builder.add(seperate);
-			}
+			builder.addIf(separate, i != count - 1);
 		}
 		return builder.ToString();
 	}
-	public static string IsToS(IList<int> values, char seperate = ',')
+	public static string IsToS(IList<int> values, char separate = ',')
 	{
 		if (values.isEmpty())
 		{
@@ -1036,14 +1030,11 @@ public class StringUtility
 		for (int i = 0; i < count; ++i)
 		{
 			builder.add(IToS(values[i]));
-			if (i != count - 1)
-			{
-				builder.add(seperate);
-			}
+			builder.addIf(separate, i != count - 1);
 		}
 		return builder.ToString();
 	}
-	public static string stringsToString(IList<string> values, string seperate)
+	public static string stringsToString(IList<string> values, string separate)
 	{
 		if (values.isEmpty())
 		{
@@ -1054,14 +1045,11 @@ public class StringUtility
 		for (int i = 0; i < count; ++i)
 		{
 			builder.add(values[i]);
-			if (i != count - 1)
-			{
-				builder.add(seperate);
-			}
+			builder.addIf(separate, i != count - 1);
 		}
 		return builder.ToString();
 	}
-	public static string stringsToString(IList<string> values, char seperate = ',')
+	public static string stringsToString(IList<string> values, char separate = ',')
 	{
 		if (values.isEmpty())
 		{
@@ -1072,23 +1060,20 @@ public class StringUtility
 		for (int i = 0; i < count; ++i)
 		{
 			builder.add(values[i]);
-			if (i != count - 1)
-			{
-				builder.add(seperate);
-			}
+			builder.addIf(separate, i != count - 1);
 		}
 		return builder.ToString();
 	}
-	public static List<string> stringToStrings(string str, char seperate = ',')
+	public static List<string> stringToStrings(string str, char separate = ',')
 	{
 		List<string> strList = new();
 		if (!str.isEmpty())
 		{
-			strList.addRange(split(str, seperate).safe());
+			strList.addRange(split(str, separate).safe());
 		}
 		return strList;
 	}
-	public static void stringToStrings(string str, IList<string> values, char seperate = ',')
+	public static void stringToStrings(string str, IList<string> values, char separate = ',')
 	{
 		if (values == null)
 		{
@@ -1100,7 +1085,7 @@ public class StringUtility
 		{
 			return;
 		}
-		foreach (string item in split(str, seperate).safe())
+		foreach (string item in split(str, separate).safe())
 		{
 			values.Add(item);
 		}
@@ -1442,10 +1427,7 @@ public class StringUtility
 				if (addSpace)
 				{
 					builder.byteToHEXString(byteList[i + offset], upperOrLower);
-					if (i != byteCount - 1)
-					{
-						builder.add(' ');
-					}
+					builder.addIf(' ', i != byteCount - 1);
 				}
 				else
 				{

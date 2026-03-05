@@ -19,16 +19,11 @@ public class ClassPoolThreadDebug : MonoBehaviour
 			TypeList.Clear();
 			foreach (var item in mClassPoolThread.getPoolList())
 			{
+				var list = item.Value;
 				using var a = new MyStringBuilderScope(out var builder);
 				builder.add(item.Key.ToString());
-				if (item.Value.getInusedList().Count > 0)
-				{
-					builder.add(", 已使用:", IToS(item.Value.getInusedList().Count));
-				}
-				if (item.Value.getUnusedList().Count > 0)
-				{
-					builder.add(", 未使用:", IToS(item.Value.getUnusedList().Count));
-				}
+				builder.addIf(", 已使用:", IToS(list.getInusedList().Count), list.getInusedList().Count > 0);
+				builder.addIf(", 未使用:", IToS(list.getUnusedList().Count), list.getUnusedList().Count > 0);
 				TypeList.Add(builder.ToString());
 			}
 		}
