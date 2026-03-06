@@ -57,7 +57,7 @@ public abstract class ComponentPath : ComponentKeyFrame
 		Vector3 startValue = mValueList[mLastKeyIndex];
 		if (mLastKeyIndex < mTimeList.Count - 1)
 		{
-			startValue = lerp(startValue, mValueKeyFrame[mLastKeyIndex + 1], inverseLerp(mTimeList[mLastKeyIndex], mTimeList[mLastKeyIndex + 1], curTime));
+			startValue = lerp(startValue, mValueList[mLastKeyIndex + 1], inverseLerp(mTimeList[mLastKeyIndex], mTimeList[mLastKeyIndex + 1], curTime));
 		}
 		setValue(mOffsetBlendAdd ? startValue + mValueOffset : multiVector3(startValue, mValueOffset));
 	}

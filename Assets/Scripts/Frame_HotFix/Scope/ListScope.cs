@@ -19,10 +19,7 @@ public struct ListScope<T> : IDisposable
 		string stackTrace = GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
 		list = mListPool.newList(typeof(T), typeof(List<T>), stackTrace, true) as List<T>;
 		mList = list;
-		if (initList != null)
-		{
-			mList.AddRange(initList);
-		}
+		mList.addRange(initList);
 	}
 	public void Dispose()
 	{

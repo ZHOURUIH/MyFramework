@@ -108,14 +108,14 @@ public static class ListExtension
 			list.Add(value);
 		}
 	}
-	public static void addRangeKeys<TKey, TValue>(this List<TKey> list, Dictionary<TKey, TValue> dic)
+	public static void addRangeKeys<TKey, TValue>(this List<TKey> list, IDictionary<TKey, TValue> dic)
 	{
 		foreach (var item in dic)
 		{
 			list.add(item.Key);
 		}
 	}
-	public static void addRangeValues<TKey, TValue>(this List<TValue> list, Dictionary<TKey, TValue> dic)
+	public static void addRangeValues<TKey, TValue>(this List<TValue> list, IDictionary<TKey, TValue> dic)
 	{
 		foreach (var item in dic)
 		{

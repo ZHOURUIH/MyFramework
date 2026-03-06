@@ -144,7 +144,7 @@ public class MyStringBuilder : ClassObject
 	{
 		return add("<color=#", color, ">", LToSComma(value), "</color>");
 	}
-	public MyStringBuilder color(string color, long value)
+	public MyStringBuilder colorString(string color, long value)
 	{
 		return add("<color=#", color, ">", LToS(value), "</color>");
 	}
@@ -159,6 +159,14 @@ public class MyStringBuilder : ClassObject
 	public MyStringBuilder colorString(string color, int value0, string str0, int value1)
 	{
 		return add("<color=#", color, ">", IToS(value0), str0, IToS(value1), "</color>");
+	}
+	public MyStringBuilder colorStringIf(string color, string str0, bool condition)
+	{
+		if (condition)
+		{
+			colorString(color, str0);
+		}
+		return this;
 	}
 	public MyStringBuilder colorString(string color, string str0)
 	{
@@ -238,6 +246,22 @@ public class MyStringBuilder : ClassObject
 		if (condition)
 		{
 			add(str0, str1, str2);
+		}
+		return this;
+	}
+	public MyStringBuilder addIf(string str0, string str1, string str2, string str3, bool condition)
+	{
+		if (condition)
+		{
+			add(str0, str1, str2, str3);
+		}
+		return this;
+	}
+	public MyStringBuilder addIf(string str0, string str1, string str2, string str3, string str4, bool condition)
+	{
+		if (condition)
+		{
+			add(str0, str1, str2, str3, str4);
 		}
 		return this;
 	}

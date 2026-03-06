@@ -322,7 +322,7 @@ public class MenuAssets
 			}
 		}
 	}
-	[MenuItem(mMenuName + "查找文件引用  %Q", false, 134)]
+	[MenuItem(mMenuName + "查找文件引用", false, 134)]
 	public static void searchReference()
 	{
 		MenuCheckResources.searchReference();

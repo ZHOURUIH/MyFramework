@@ -88,6 +88,15 @@ public class RedPointSystem : FrameSystem
 			pointList.Clear();
 		}
 	}
+	// 移除列表中的红点,以及其所有的子节点
+	public void destroyRedPoint<TKey, TValue>(Dictionary<TKey, TValue> pointList) where TValue : RedPoint
+	{
+		foreach (var point in pointList.safe())
+		{
+			destroyRedPointInternal(point.Value);
+		}
+		pointList?.Clear();
+	}
 	// 刷新所有节点的状态
 	public void refresh()
 	{
