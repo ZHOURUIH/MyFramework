@@ -168,6 +168,22 @@ public class MyStringBuilder : ClassObject
 		}
 		return this;
 	}
+	public MyStringBuilder colorStringIf(string color, string str0, string str1, bool condition)
+	{
+		if (condition)
+		{
+			colorString(color, str0, str1);
+		}
+		return this;
+	}
+	public MyStringBuilder colorStringIf(string color, string str0, string str1, string str2, bool condition)
+	{
+		if (condition)
+		{
+			colorString(color, str0, str1, str2);
+		}
+		return this;
+	}
 	public MyStringBuilder colorString(string color, string str0)
 	{
 		return add("<color=#", color, ">", str0, "</color>");

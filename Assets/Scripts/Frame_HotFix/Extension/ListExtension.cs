@@ -110,6 +110,10 @@ public static class ListExtension
 	}
 	public static void addRangeKeys<TKey, TValue>(this List<TKey> list, IDictionary<TKey, TValue> dic)
 	{
+		if (dic.isEmpty())
+		{
+			return;
+		}
 		foreach (var item in dic)
 		{
 			list.add(item.Key);
@@ -117,6 +121,10 @@ public static class ListExtension
 	}
 	public static void addRangeValues<TKey, TValue>(this List<TValue> list, IDictionary<TKey, TValue> dic)
 	{
+		if (dic.isEmpty())
+		{
+			return;
+		}
 		foreach (var item in dic)
 		{
 			list.add(item.Value);
