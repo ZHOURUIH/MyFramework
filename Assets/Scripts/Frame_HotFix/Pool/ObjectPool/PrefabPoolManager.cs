@@ -39,14 +39,8 @@ public class PrefabPoolManager : FrameSystem
 				mPrefabPoolList.remove(item.Key);
 				// 需要将实例化列表中的属于此对象池的所有对象也一起销毁
 				PrefabPool pool = item.Value;
-				foreach (GameObjectInfo obj in pool.getInuseList())
-				{
-					mInstanceList.Remove(obj.getObject());
-				}
-				foreach (GameObjectInfo obj in pool.getUnuseList())
-				{
-					mInstanceList.Remove(obj.getObject());
-				}
+				pool.getInuseList().For(obj => mInstanceList.Remove(obj.getObject()));
+				pool.getUnuseList().For(obj => mInstanceList.Remove(obj.getObject()));
 				UN_CLASS(ref pool);
 			}
 		});
@@ -190,7 +184,12 @@ public class PrefabPoolManager : FrameSystem
 		GameObjectInfo objInfo = pool.getOneUnused(objectTag);
 		if (objInfo == null)
 		{
-			logError("prefab加载失败:" + fileWithPath + ",请确认文件存在,且带后缀名,且不能使用反斜杠\\," + (fileWithPath.Contains(' ') || fileWithPath.Contains('　') ? "注意此文件名中带有空格" : ""));
+			string info = "prefab加载失败:" + fileWithPath + ",请确认文件存在,且带后缀名,且不能使用反斜杠\\";
+			if (fileWithPath.Contains(' ') || fileWithPath.Contains('　'))
+			{
+				info += ",注意此文件名中带有空格";
+			}
+			logError(info);
 			return null;
 		}
 		postCreateObject(pool, objInfo, moveToHide, parent, active);
@@ -200,14 +199,8 @@ public class PrefabPoolManager : FrameSystem
 	public void destroyAllWithTag(int objectTag)
 	{
 		using var a = new ListScope<GameObjectInfo>(out var tempList);
-		foreach (var item in mInstanceList)
-		{
-			tempList.addIf(item.Value, item.Value.getTag() == objectTag);
-		}
-		foreach (GameObjectInfo item in tempList)
-		{
-			destroyObject(item.getObject(), true);
-		}
+		mInstanceList.For(item => tempList.addIf(item.Value, item.Value.getTag() == objectTag));
+		tempList.For(item => destroyObject(item.getObject(), true));
 	}
 	public void destroyObject(GameObject obj, bool destroyReally)
 	{

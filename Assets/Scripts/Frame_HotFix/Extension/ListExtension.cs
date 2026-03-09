@@ -570,7 +570,7 @@ public static class ListExtension
 		value = default;
 		return false;
 	}
-	public static bool findIndex<T>(this IList<T> list, T value, out int index)
+	public static bool find<T>(this IList<T> list, T value, out int index)
 	{
 		if (list.isEmpty())
 		{
@@ -588,7 +588,7 @@ public static class ListExtension
 		index = -1;
 		return false;
 	}
-	public static int findIndex<T>(this IList<T> list, T value)
+	public static int find<T>(this IList<T> list, T value)
 	{
 		if (list.isEmpty())
 		{
@@ -621,7 +621,7 @@ public static class ListExtension
 		index = -1;
 		return false;
 	}
-	public static bool findIndex<T>(this IList<T> list, Predicate<T> match, out int index, out T item)
+	public static bool find<T>(this IList<T> list, Predicate<T> match, out int index, out T item)
 	{
 		if (list.isEmpty() || match == null)
 		{
@@ -642,7 +642,7 @@ public static class ListExtension
 		item = default;
 		return false;
 	}
-	public static bool findIndex<T>(this IList<T> list, int startIndex, Predicate<T> match, out int index)
+	public static bool find<T>(this IList<T> list, int startIndex, Predicate<T> match, out int index)
 	{
 		if (list.isEmpty() || match == null)
 		{
@@ -660,7 +660,7 @@ public static class ListExtension
 		index = -1;
 		return false;
 	}
-	public static bool findIndex<T>(this IList<T> list, int startIndex, int count, Predicate<T> match, out int index)
+	public static bool find<T>(this IList<T> list, int startIndex, int count, Predicate<T> match, out int index)
 	{
 		if (list.isEmpty() || match == null)
 		{

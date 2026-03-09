@@ -9,12 +9,12 @@ public class EffectManagerDebug : MonoBehaviour
 	public int mEffectCount;
 	public void Update()
 	{
-		//if (GameEntry.getInstance() == null || !GameEntry.getInstance().mFramworkParam.mEnableScriptDebug)
-		//{
-		//	return;
-		//}
+		if (GameEntry.getInstance() == null || !GameEntry.getInstance().mFramworkParam.mEnableScriptDebug)
+		{
+			return;
+		}
 		mEffectCount = mEffectManager.getEffectList().count();
-		//EffectList.Clear();
-		//mEffectManager.getEffectList().getMainList().For(item => EffectList.Add(item.getObject()));
+		EffectList.Clear();
+		mEffectManager.getEffectList().getMainList().For(item => EffectList.Add(item.getObject()));
 	}
 }

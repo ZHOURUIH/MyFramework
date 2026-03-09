@@ -302,7 +302,14 @@ public class UnityUtility
 			obj.SetActive(active);
 		}
 		findShaders(obj);
-		callback?.Invoke(obj);
+		try
+		{
+			callback?.Invoke(obj);
+		}
+		catch (Exception e)
+		{
+			logException(e);
+		}
 	}
 #endif
 	public static void findMaterialShader(Material material)

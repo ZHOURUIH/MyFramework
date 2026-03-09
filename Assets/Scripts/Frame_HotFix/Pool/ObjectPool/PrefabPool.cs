@@ -228,12 +228,9 @@ public class PrefabPool : ClassObject
 				{
 					go.transform.localPosition = FAR_POSITION;
 				}
-				else
+				else if (go.activeSelf)
 				{
-					if (go.activeSelf)
-					{
-						go.SetActive(false);
-					}
+					go.SetActive(false);
 				}
 			}
 			objInfo.setUsing(false);
