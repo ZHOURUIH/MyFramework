@@ -19,8 +19,8 @@ public class GameFrameworkHotFix : IFramework
 	protected List<FrameSystem> mFrameComponentInit = new(128);						// 存储框架组件,用于初始化
 	protected List<FrameSystem> mFrameComponentUpdate = new(128);					// 存储框架组件,用于更新
 	protected List<FrameSystem> mFrameComponentDestroy = new(128);					// 存储框架组件,用于销毁
-	protected ThreadTimeLock mTimeLock = new(15);									// 用于主线程锁帧,与Application.targetFrameRate功能类似
 	protected DateTime mStartTime;													// 启动游戏时的时间
+	protected DateTime mFrameStartTime;												// 当前帧的开始时间
 	protected DateTime mCurTime;													// 记录当前时间
 	protected Action mOnApplicationQuitCallBack;									// 程序退出的回调
 	protected BoolCallback mOnApplicationFocusCallBack;								// 程序切换到前台或者切换到后台的回调
@@ -41,20 +41,20 @@ public class GameFrameworkHotFix : IFramework
 		framework.init(callback);
 	}
 	public DateTime getStartTime() { return mStartTime; }
-	public DateTime getFrameStartTime() { return mTimeLock.getFrameStartTime(); }
+	public DateTime getFrameStartTime() { return mFrameStartTime; }
 	public long getFrameIndex() { return mFrameIndex; }
 	public void update(float elapsedTime)
 	{
 		++mFrameIndex;
 		++mCurFrameCount;
-		DateTime now = DateTime.Now;
-		if ((now - mCurTime).TotalMilliseconds >= 1000.0f)
+		mFrameStartTime = DateTime.Now;
+		if ((mFrameStartTime - mCurTime).TotalMilliseconds >= 1000.0f)
 		{
 			mFPS = mCurFrameCount;
 			mCurFrameCount = 0;
-			mCurTime = now;
+			mCurTime = mFrameStartTime;
 		}
-		mThisFrameTime = clampMax((float)(mTimeLock.update() * 0.001) * Time.timeScale, 0.3f);
+		mThisFrameTime = clampMax(Time.deltaTime, 0.3f);
 		elapsedTime = mThisFrameTime;
 		setThisTimeMS(getNowTimeStampMS());
 		if (mFrameComponentUpdate == null)
@@ -304,6 +304,7 @@ public class GameFrameworkHotFix : IFramework
 		mGameFrameworkHotFix = this;
 		mIsDestroy = false;
 		mStartTime = DateTime.Now;
+		mFrameStartTime = DateTime.Now;
 		DebugManager.instance.enableRuntimeUI = false;
 		setFrameRate(GameEntry.getInstance().mFramworkParam.mDefaultFrameRate);
 

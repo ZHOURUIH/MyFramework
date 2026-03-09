@@ -1,0 +1,223 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5918abae16245ac4484bb8a45f3fceb4, type: 3}
+  m_Name: BulletDatas
+  m_EditorClassIdentifier: 
+  Effects:
+  - EffectName: FireShoot
+    Speed: 30
+    ChargeParticles: {fileID: 0}
+    ChargeParticleTime: 0
+    ChargeClip: {fileID: 0}
+    StartParticles: {fileID: 7917120168021017062, guid: 8bc41e1472c45464980c8feeed5f1649, type: 3}
+    BulletParticles: {fileID: 3804598909023672672, guid: 56a31e3fb12a7da4cb69ab4dfcc420ac, type: 3}
+    HitParticles: {fileID: 3039980818029749698, guid: 7d3425a96b729534e9e11b2591f8fd20, type: 3}
+    startClip: {fileID: 8300000, guid: 56edd3f676dc35c4993679f9bc006491, type: 3}
+    bulletClip: {fileID: 0}
+    hitClip: {fileID: 8300000, guid: 7417ed9c6bfdccd4da4ad6e34e05e5a9, type: 3}
+    isTargeting: 0
+    RotSpeed: 0
+  - EffectName: IceBullet
+    Speed: 40
+    ChargeParticles: {fileID: 0}
+    ChargeParticleTime: 0
+    ChargeClip: {fileID: 0}
+    StartParticles: {fileID: 7917120168021017062, guid: 6fbdf26e67b789145bf3bb29d1e42142, type: 3}
+    BulletParticles: {fileID: 7300938123587259680, guid: 8ee144fa352342747b2c2588f0d5df2d, type: 3}
+    HitParticles: {fileID: 7917120168021017062, guid: 4b780a14d074f2f4cb9b853b6644dce1, type: 3}
+    startClip: {fileID: 8300000, guid: d40047749c7d67446a69e9d5ce6997ce, type: 3}
+    bulletClip: {fileID: 0}
+    hitClip: {fileID: 8300000, guid: 9ade5371184d39e4b95551102345c288, type: 3}
+    isTargeting: 0
+    RotSpeed: 0
+  - EffectName: PurpleExplosion
+    Speed: 60
+    ChargeParticles: {fileID: 5504786518182502506, guid: cc3e1ab646dc07d4ca9f86d73aa75138, type: 3}
+    ChargeParticleTime: 1
+    ChargeClip: {fileID: 8300000, guid: 4f3c6c5ed57a56b4299faabeba16e542, type: 3}
+    StartParticles: {fileID: 7917120168021017062, guid: def388def05052c43aeee379e0d94723, type: 3}
+    BulletParticles: {fileID: 7300938123587259680, guid: 174b164cad6fbdb4eb2769a452399510, type: 3}
+    HitParticles: {fileID: 5750003618440004882, guid: a73108d561dbdf34ba462e73e97ed541, type: 3}
+    startClip: {fileID: 8300000, guid: e6b457f88185be14794923f1975103ea, type: 3}
+    bulletClip: {fileID: 0}
+    hitClip: {fileID: 8300000, guid: 22608db9192c60d46ae12af65791eb35, type: 3}
+    isTargeting: 0
+    RotSpeed: 0
+  - EffectName: EnergyExplosion
+    Speed: 60
+    ChargeParticles: {fileID: 5504786518182502506, guid: e23741b3f14f27e46a31d8d542a2033e, type: 3}
+    ChargeParticleTime: 1
+    ChargeClip: {fileID: 8300000, guid: 4f3c6c5ed57a56b4299faabeba16e542, type: 3}
+    StartParticles: {fileID: 7917120168021017062, guid: 2ec0f779be4a3cb469d85da7fe4da447, type: 3}
+    BulletParticles: {fileID: 7300938123587259680, guid: 2e19f1a46fda1c5428b94948caf1ca15, type: 3}
+    HitParticles: {fileID: 5750003618440004882, guid: 6863ce4e345ba8947ad4e877ee1d1fc4, type: 3}
+    startClip: {fileID: 8300000, guid: e6b457f88185be14794923f1975103ea, type: 3}
+    bulletClip: {fileID: 0}
+    hitClip: {fileID: 8300000, guid: 9c6970a9a8749bf4e84b0c8f07f8ab03, type: 3}
+    isTargeting: 0
+    RotSpeed: 0
+  - EffectName: ArrowBullet
+    Speed: 60
+    ChargeParticles: {fileID: 0}
+    ChargeParticleTime: 0
+    ChargeClip: {fileID: 0}
+    StartParticles: {fileID: 7917120168021017062, guid: 5d754b1d818037d4da92b879c18838cc, type: 3}
+    BulletParticles: {fileID: 7300938123587259680, guid: 403bb8b29ab6fbb46b1f4b7333a9cfec, type: 3}
+    HitParticles: {fileID: 7917120168021017062, guid: 104d74e12646dae47a090f8bc732aeb4, type: 3}
+    startClip: {fileID: 8300000, guid: e6b457f88185be14794923f1975103ea, type: 3}
+    bulletClip: {fileID: 0}
+    hitClip: {fileID: 8300000, guid: 40ab159bb55dac54b9dbf3fe58ccd5ab, type: 3}
+    isTargeting: 0
+    RotSpeed: 0
+  - EffectName: Shuriken
+    Speed: 40
+    ChargeParticles: {fileID: 0}
+    ChargeParticleTime: 0
+    ChargeClip: {fileID: 0}
+    StartParticles: {fileID: 7917120168021017062, guid: 1025fed74407d9041aa2589b48cb0cbc, type: 3}
+    BulletParticles: {fileID: 7300938123587259680, guid: c2a38c85909baec4192ccdee08f5146a, type: 3}
+    HitParticles: {fileID: 7917120168021017062, guid: 7dfae92997aa92b4dbd86bc30255275a, type: 3}
+    startClip: {fileID: 8300000, guid: 3a98e64773c52a148ac95669f3fd9a42, type: 3}
+    bulletClip: {fileID: 0}
+    hitClip: {fileID: 8300000, guid: 40ab159bb55dac54b9dbf3fe58ccd5ab, type: 3}
+    isTargeting: 0
+    RotSpeed: 0
+  - EffectName: StarBullet
+    Speed: 20
+    ChargeParticles: {fileID: 0}
+    ChargeParticleTime: 0
+    ChargeClip: {fileID: 0}
+    StartParticles: {fileID: 7917120168021017062, guid: 3d0d5f2504f9bbe4eab9db2a4e6ede9a, type: 3}
+    BulletParticles: {fileID: 3804598909023672672, guid: d7d54c3edceec9740bee0aeabfc5b891, type: 3}
+    HitParticles: {fileID: 5750003618440004882, guid: 8e349ff89db19504c8a5d84017e41554, type: 3}
+    startClip: {fileID: 8300000, guid: 192182b6d12f465439134d0df6c89856, type: 3}
+    bulletClip: {fileID: 0}
+    hitClip: {fileID: 8300000, guid: fdba8c919b676704cb0347a0f6f3329d, type: 3}
+    isTargeting: 0
+    RotSpeed: 0
+  - EffectName: EverGreenShoot
+    Speed: 20
+    ChargeParticles: {fileID: 0}
+    ChargeParticleTime: 0
+    ChargeClip: {fileID: 0}
+    StartParticles: {fileID: 7917120168021017062, guid: 85859c19852f64d43b1f296d4a7fca03, type: 3}
+    BulletParticles: {fileID: 3804598909023672672, guid: 6b78af83ad3cba343bd32c927fb29a9b, type: 3}
+    HitParticles: {fileID: 3039980818029749698, guid: 083c17ed86759cc4487ffa6ca1c4eb1a, type: 3}
+    startClip: {fileID: 8300000, guid: 0ae181b344d021c44aa7e529a7bf0ee8, type: 3}
+    bulletClip: {fileID: 0}
+    hitClip: {fileID: 8300000, guid: 6d13ccb0e952f0247879677db72b70d9, type: 3}
+    isTargeting: 0
+    RotSpeed: 0
+  - EffectName: SmallEnergyBullet
+    Speed: 100
+    ChargeParticles: {fileID: 0}
+    ChargeParticleTime: 0
+    ChargeClip: {fileID: 0}
+    StartParticles: {fileID: 7917120168021017062, guid: 4b3c47f667684e5418d849f7f3f4d9c4, type: 3}
+    BulletParticles: {fileID: 7300938123587259680, guid: 83f8c9cbe221fca4eaae68c50efd83d3, type: 3}
+    HitParticles: {fileID: 7917120168021017062, guid: 519bfaf22a8bc4341862dfa0f6f89c3c, type: 3}
+    startClip: {fileID: 8300000, guid: 192182b6d12f465439134d0df6c89856, type: 3}
+    bulletClip: {fileID: 0}
+    hitClip: {fileID: 8300000, guid: d40047749c7d67446a69e9d5ce6997ce, type: 3}
+    isTargeting: 0
+    RotSpeed: 0
+  - EffectName: SmallFireBullet
+    Speed: 60
+    ChargeParticles: {fileID: 0}
+    ChargeParticleTime: 0
+    ChargeClip: {fileID: 0}
+    StartParticles: {fileID: 7917120168021017062, guid: d0587f5385f12eb419ec33e7406d7b55, type: 3}
+    BulletParticles: {fileID: 7300938123587259680, guid: e1dffc863f951234c8886eb1bb39e9dd, type: 3}
+    HitParticles: {fileID: 7917120168021017062, guid: 419d6ca370932a142a195479044cb169, type: 3}
+    startClip: {fileID: 8300000, guid: 5ca0e48c80611f94b9b936351571d8e9, type: 3}
+    bulletClip: {fileID: 0}
+    hitClip: {fileID: 8300000, guid: 3ef9ce86cdc60bf4e846a1a742b3dbe4, type: 3}
+    isTargeting: 0
+    RotSpeed: 0
+  - EffectName: SmallLightBullet
+    Speed: 60
+    ChargeParticles: {fileID: 0}
+    ChargeParticleTime: 0
+    ChargeClip: {fileID: 0}
+    StartParticles: {fileID: 7917120168021017062, guid: 50b8a9a226143674b9718ad143c2a7a6, type: 3}
+    BulletParticles: {fileID: 7300938123587259680, guid: a5e8f365e98f6b94c9ee19b1acba5d58, type: 3}
+    HitParticles: {fileID: 7917120168021017062, guid: b64d71c4378388f43837ae5702cd0e0d, type: 3}
+    startClip: {fileID: 8300000, guid: f7dc1f024e704884597561c72551c3a8, type: 3}
+    bulletClip: {fileID: 0}
+    hitClip: {fileID: 8300000, guid: 2396e5e27cbb220448f26e2fe998fab7, type: 3}
+    isTargeting: 0
+    RotSpeed: 0
+  - EffectName: YellowSwordBeam
+    Speed: 30
+    ChargeParticles: {fileID: 0}
+    ChargeParticleTime: 0
+    ChargeClip: {fileID: 0}
+    StartParticles: {fileID: 7917120168021017062, guid: 9278b1723f69bc74eae658808bb1df09, type: 3}
+    BulletParticles: {fileID: 4967207345222034769, guid: bcad0c1906532a4428cb5ade52088086, type: 3}
+    HitParticles: {fileID: 7917120168021017062, guid: ab5b12de25fdd46419063ddb789569d3, type: 3}
+    startClip: {fileID: 8300000, guid: 6d13ccb0e952f0247879677db72b70d9, type: 3}
+    bulletClip: {fileID: 0}
+    hitClip: {fileID: 8300000, guid: 40ab159bb55dac54b9dbf3fe58ccd5ab, type: 3}
+    isTargeting: 0
+    RotSpeed: 0
+  - EffectName: RedSwordBeam
+    Speed: 30
+    ChargeParticles: {fileID: 0}
+    ChargeParticleTime: 0
+    ChargeClip: {fileID: 0}
+    StartParticles: {fileID: 7917120168021017062, guid: 0dd31a12099174341bb2a42478549833, type: 3}
+    BulletParticles: {fileID: 4967207345222034769, guid: c9f8eca5686977b4bab9e58aa683ae05, type: 3}
+    HitParticles: {fileID: 2174033871734341890, guid: eb3ceaed3b7ac47468ecb85273d69306, type: 3}
+    startClip: {fileID: 8300000, guid: f5ca75920ddd5d344bd3a8634b246a0e, type: 3}
+    bulletClip: {fileID: 0}
+    hitClip: {fileID: 8300000, guid: 40ab159bb55dac54b9dbf3fe58ccd5ab, type: 3}
+    isTargeting: 0
+    RotSpeed: 0
+  - EffectName: PurpleStar
+    Speed: 20
+    ChargeParticles: {fileID: 0}
+    ChargeParticleTime: 0
+    ChargeClip: {fileID: 0}
+    StartParticles: {fileID: 7917120168021017062, guid: def388def05052c43aeee379e0d94723, type: 3}
+    BulletParticles: {fileID: 3804598909023672672, guid: 56837d44d5b5ce943878872c76db2b53, type: 3}
+    HitParticles: {fileID: 5750003618440004882, guid: 8f2f58d7a42129d4183953d600976851, type: 3}
+    startClip: {fileID: 8300000, guid: 60473c48151759442905c1e553d26f90, type: 3}
+    bulletClip: {fileID: 0}
+    hitClip: {fileID: 8300000, guid: f5ca75920ddd5d344bd3a8634b246a0e, type: 3}
+    isTargeting: 0
+    RotSpeed: 0
+  - EffectName: GreenArrow
+    Speed: 30
+    ChargeParticles: {fileID: 0}
+    ChargeParticleTime: 0
+    ChargeClip: {fileID: 0}
+    StartParticles: {fileID: 7917120168021017062, guid: 9b50124b9c21e814892aee9419ee1c29, type: 3}
+    BulletParticles: {fileID: 8279534137011481278, guid: 6593b77f7aab353499675157480d8efa, type: 3}
+    HitParticles: {fileID: 7917120168021017062, guid: 079de72b89b92fc45920409aa3f61598, type: 3}
+    startClip: {fileID: 8300000, guid: 1894e90ba48f3de47a3547a01043f9a3, type: 3}
+    bulletClip: {fileID: 0}
+    hitClip: {fileID: 8300000, guid: a48e7fdfa660aea4ebbaa50870d8572f, type: 3}
+    isTargeting: 0
+    RotSpeed: 0
+  - EffectName: WindShoot
+    Speed: 30
+    ChargeParticles: {fileID: 0}
+    ChargeParticleTime: 0
+    ChargeClip: {fileID: 0}
+    StartParticles: {fileID: 5273140884426867086, guid: 0cccd2730f8ddd54482f3d332c77a092, type: 3}
+    BulletParticles: {fileID: 3804598909023672672, guid: 4bcd982074500ac49a758e0db1c4a4f8, type: 3}
+    HitParticles: {fileID: 5273140884426867086, guid: 56194691821dbea49af3609eba679ad1, type: 3}
+    startClip: {fileID: 8300000, guid: d40047749c7d67446a69e9d5ce6997ce, type: 3}
+    bulletClip: {fileID: 0}
+    hitClip: {fileID: 8300000, guid: f5ca75920ddd5d344bd3a8634b246a0e, type: 3}
+    isTargeting: 0
+    RotSpeed: 0

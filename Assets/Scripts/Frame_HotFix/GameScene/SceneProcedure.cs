@@ -224,17 +224,17 @@ public class SceneProcedure : DelayCmdWatcher
 		return true;
 	}
 	// 专为exit流程而封装的一些通用卸载逻辑
-	protected void genericExit(int tag = 0)
+	protected void genericExit(int needUnloadResourceTag = 0)
 	{
 		// 一般在场景的Exit流程中,卸载该场景的所有布局,确保没有资源遗留
 		mLayoutManager.unloadAllPartLayout();
 		// 0通常属于无效tag,直接卸载tag为0的资源可能会有很多意料之外的问题
-		if (tag > 0)
+		if (needUnloadResourceTag > 0)
 		{
 			// 先销毁所有指定tag的特效
-			mEffectManager.destroyAllEffectWithTag(tag);
+			mEffectManager.destroyAllEffectWithTag(needUnloadResourceTag);
 			// 销毁所有指定tag的资源
-			mPrefabPoolManager.destroyAllWithTag(tag);
+			mPrefabPoolManager.destroyAllWithTag(needUnloadResourceTag);
 			// 如果上一步中有销毁特效,则需要清除无效的特效对象
 			mEffectManager.clearInvalidEffect();
 		}

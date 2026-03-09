@@ -424,6 +424,24 @@ public static class DictionaryExtension
 		}
 		return list.First().Key; 
 	}
+	public static bool find<TKey, TValue>(this IDictionary<TKey, TValue> list, Predicate<KeyValuePair<TKey, TValue>> action, out KeyValuePair<TKey, TValue> value)
+	{
+		if (list.count() == 0)
+		{
+			value = default;
+			return false;
+		}
+		foreach (var item in list)
+		{
+			if (action(item))
+			{
+				value = item;
+				return true;
+			}
+		}
+		value = default;
+		return false;
+	}
 	public static bool findKey<TKey, TValue>(this IDictionary<TKey, TValue> list, Predicate<KeyValuePair<TKey, TValue>> action, out TKey key)
 	{
 		if (list.count() == 0)

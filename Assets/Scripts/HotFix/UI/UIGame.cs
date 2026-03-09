@@ -20,10 +20,16 @@ public class UIGame : LayoutScript
 	protected Dictionary<float, Vector3> mScaleKeyframes;
 	protected string mCriticalSpriteName;
 	protected string mMissSpriteName;
+	protected List<string> mPrefabList = new();
 	public UIGame()
 	{
 		// auto generate constructor start
 		// auto generate constructor end
+		mPrefabList.add("Effect/Prefabs/CyanBlueBullet/CyanBlueMuzzle.prefab");
+		mPrefabList.add("Effect/Prefabs/EnergyExplosion/EnergyExplosionCharge.prefab");
+		mPrefabList.add("Effect/Prefabs/EnergyExplosion/EnergyExplosionHit.prefab");
+		mPrefabList.add("Effect/Prefabs/EnergyExplosion/EnergyExplosionMuzzle.prefab");
+		mPrefabList.add("Effect/Prefabs/Fireball/FireballMuzzle.prefab");
 	}
 	public override void assignWindow()
 	{
@@ -42,6 +48,8 @@ public class UIGame : LayoutScript
 		mScaleKeyframes = getScale("pg01");
 		mCriticalSpriteName = mDamageNumber.getNumberStyle() + "_Critical";
 		mMissSpriteName = "miss";
+		// 需要去掉这句话才能看到伤害数字的显示
+		mAvatar.getParent().setActive(false);
 	}
 	public override void onGameState()
 	{
@@ -50,6 +58,12 @@ public class UIGame : LayoutScript
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
+		// 测试特效播放
+		for (int i = 0; i < 20; ++i)
+		{
+			mEffectManager.playEffectAsyncAtPositionQuick(mPrefabList.random(), new(randomFloat(-100, 100), randomFloat(-100, 100)), 0);
+		}
+		// 测试伤害数字显示
 		for (int i = 0; i < 10; ++i)
 		{
 			showNumber(new Vector3(randomFloat(400, -400), randomFloat(400, -400)), randomInt(10, 10000));

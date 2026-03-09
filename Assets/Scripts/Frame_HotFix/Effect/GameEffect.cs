@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using static FrameBaseHotFix;
+using static UnityUtility;
 using static MathUtility;
 using static FrameUtility;
 
@@ -19,6 +20,7 @@ public class GameEffect : MovableObject
 	protected bool mMoveToHide;                                 // 是否通过移动到远处来隐藏
 	protected bool mIsDead;                                     // 特效是否已经死亡
 	protected bool mIsTemp;                                     // 是否为临时特效,临时特效会将特效对象存放到池中,不会重置对象的属性,提高效率
+	protected bool mIsQuick;									// 是否为快速播放的特效,不保证效果与prefab中的效果完全一致,因为会忽略很多参数
 	protected PLAY_STATE mPlayState = PLAY_STATE.STOP;          // 特效整体的播放状态
 	public override void setObject(GameObject obj)
 	{
@@ -38,10 +40,7 @@ public class GameEffect : MovableObject
 				main.cullingMode = ParticleSystemCullingMode.Pause;
 			}
 			// 关掉自动销毁
-			foreach (TrailRenderer trail in mTrailRenderers)
-			{
-				trail.autodestruct = false;
-			}
+			mTrailRenderers.For(trail => trail.autodestruct = false);
 		}
 	}
 	public override void destroy()
@@ -85,6 +84,7 @@ public class GameEffect : MovableObject
 	public bool isTemp()						{ return mIsTemp; }
 	public bool isMoveToHide()					{ return mMoveToHide; }
 	public bool isValidEffect()					{ return mObject != null; }
+	public bool isQuick()						{ return mIsQuick; }
 	public string getFilePath()					{ return mFilePath; }
 	public int getTag()							{ return mTag; }
 	public PLAY_STATE getPlayState()			{ return mPlayState; }
@@ -96,6 +96,37 @@ public class GameEffect : MovableObject
 	public void setDead(bool dead)				{ mIsDead = dead; }
 	public void setMoveToHide(bool moveToHide)	{ mMoveToHide = moveToHide; }
 	public void setEffectDestroyCallback(GameEffectCallback effect) { mEffectDestroyCallback = effect; }
+	// forceIgnoreLoop为true表示确认当前特效是循环特效,但是仍然需要设置为快速播放的特效,也就是明确知道不会有单独停止某个指定粒子的操作,要么全部同时播放,要么全部停止
+	public void setQuick(bool forceIgnoreLoop = false)
+	{
+		if (mIsQuick)
+		{
+			return;
+		}
+		mIsQuick = true;
+		if (!mTrailRenderers.isEmpty())
+		{
+			logError("拖尾效果不适用于设置为快速播放的特效,因为特效节点本身是不会改变位置的" + mFilePath);
+			return;
+		}
+		foreach (ParticleSystem item in mParticleSystems)
+		{
+			ParticleSystem.MainModule main = item.main;
+			if (main.loop && !forceIgnoreLoop)
+			{
+				logWarning("循环粒子不适用于设置为快速播放的特效,因为没办法停止指定的粒子:" + mFilePath);
+			}
+			main.maxParticles = 10000;
+			main.simulationSpace = ParticleSystemSimulationSpace.World;
+			ParticleSystem.EmissionModule emission = item.emission;
+			emission.enabled = false;
+			ParticleSystem.VelocityOverLifetimeModule velocityOverLifetime = item.velocityOverLifetime;
+			if (velocityOverLifetime.enabled)
+			{
+				logWarning("部分带特殊参数的粒子不适用于设置为快速播放的特效,效果会与prefab中的不一致:" + mFilePath);
+			}
+		}
+	}
 	public bool checkValid()
 	{
 		// 虽然此处mObject != null已经足够判断特效是否还存在
@@ -146,6 +177,24 @@ public class GameEffect : MovableObject
 			return;
 		}
 		base.setIgnoreTimeScale(ignore, componentOnly);
+	}
+	// 快速播放,使用一个粒子系统调用Emit来达到同时播放多个相同粒子系统的效果,且可以合批,效率非常高
+	public void playQuick(Vector3 pos)
+	{
+		if (!mIsQuick)
+		{
+			logError("当前特效没有设置为快速播放的特效,不能进行快速播放");
+			return;
+		}
+		setPosition(pos);
+		foreach (ParticleSystem item in mParticleSystems)
+		{
+			ParticleSystem.EmissionModule emission = item.emission;
+			for (int j = 0; j < emission.burstCount; ++j)
+			{
+				item.Emit(emission.GetBurst(j).maxCount);
+			}
+		}
 	}
 	public void play()
 	{
@@ -213,10 +262,7 @@ public class GameEffect : MovableObject
 	}
 	public void clearTrail()
 	{
-		foreach (TrailRenderer trail in mTrailRenderers)
-		{
-			trail.Clear();
-		}
+		mTrailRenderers.For(trail => trail.Clear());
 	}
 	public override void resetProperty()
 	{
@@ -233,6 +279,7 @@ public class GameEffect : MovableObject
 		mMoveToHide = false;
 		mIsDead = false;
 		mIsTemp = false;
+		mIsQuick = false;
 		mPlayState = PLAY_STATE.STOP;
 	}
 }

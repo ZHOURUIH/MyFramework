@@ -52,20 +52,11 @@ public class PrefabPoolManager : FrameSystem
 		});
 		mResourceManager.addUnloadObjectCallback((UObject obj) =>
 		{
-			if (obj is not GameObject)
-			{
-				return;
-			}
 			// 找到对应的PrefabPool将其销毁
-			foreach (var item in mPrefabPoolList.getMainList())
+			if (obj is GameObject && mPrefabPoolList.getMainList().find(item => item.Value.getPrefab() == obj, out var item))
 			{
-				PrefabPool pool = item.Value;
-				if (pool.getPrefab() == obj)
-				{
-					UN_CLASS(ref pool);
-					mPrefabPoolList.remove(item.Key);
-					break;
-				}
+				UN_CLASS(item.Value);
+				mPrefabPoolList.remove(item.Key);
 			}
 		});
 	}
@@ -162,7 +153,12 @@ public class PrefabPoolManager : FrameSystem
 			{
 				if (!poolDestroy)
 				{
-					logError("prefab加载失败:" + fileWithPath + ",请确认文件存在,且带后缀名,且不能使用反斜杠\\," + (fileWithPath.Contains(' ') || fileWithPath.Contains('　') ? "注意此文件名中带有空格" : ""));
+					string info = "prefab加载失败:" + fileWithPath + ",请确认文件存在,且带后缀名,且不能使用反斜杠\\";
+					if (fileWithPath.Contains(' ') || fileWithPath.Contains('　'))
+					{
+						info += ",注意此文件名中带有空格";
+					}
+					logError(info);
 				}
 				// 资源加载失败而失败
 				failCallback?.Invoke(true);

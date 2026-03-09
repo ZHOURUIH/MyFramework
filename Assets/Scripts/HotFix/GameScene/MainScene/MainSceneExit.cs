@@ -1,5 +1,4 @@
-﻿using static FrameBaseHotFix;
-
+﻿
 public class MainSceneExit : SceneProcedure
 {
 	protected override void onInit(SceneProcedure lastProcedure) { }
