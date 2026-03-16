@@ -293,15 +293,36 @@ public class FrameUtility
 	// 列表对象池
 	public static List<T> LIST<T>()
 	{
-		LIST(out List<T> list, null);
+		LIST(out List<T> list);
 		return list;
 	}
-	public static List<T> LIST<T>(IList<T> initList)
+	public static List<T> LIST<T>(List<T> initList)
 	{
 		LIST(out List<T> list, initList);
 		return list;
 	}
-	public static void LIST<T>(out List<T> list, IList<T> initList = null)
+	public static List<T> LIST<T>(T[] initList)
+	{
+		LIST(out List<T> list, initList);
+		return list;
+	}
+	public static void LIST<T>(out List<T> list, List<T> initList)
+	{
+		LIST(out list);
+		if (initList != null)
+		{
+			list.AddRange(initList);
+		}
+	}
+	public static void LIST<T>(out List<T> list, T[] initList)
+	{
+		LIST(out list);
+		if (initList != null)
+		{
+			list.AddRange(initList);
+		}
+	}
+	public static void LIST<T>(out List<T> list)
 	{
 		if (GameEntry.getInstance() == null || mListPool == null)
 		{
@@ -314,10 +335,6 @@ public class FrameUtility
 			stackTrace = getStackTrace();
 		}
 		list = mListPool.newList(typeof(T), typeof(List<T>), stackTrace, true) as List<T>;
-		if (initList != null)
-		{
-			list.AddRange(initList);
-		}
 	}
 	public static List<T> LIST_PERSIST<T>()
 	{
