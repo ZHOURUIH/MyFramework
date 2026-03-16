@@ -11,8 +11,8 @@ using static FrameBaseUtility;
 public class NetConnectWebSocketWebGLBit : NetConnectWebSocketWebGL
 {
 	protected SerializerBitWrite mWriter = new();		// 用于序列化
-	protected int mLastReceiveSequenceNumber;           // 上一次接收到的序列号
-	protected int mSendSequenceNumber;                  // 当前序列号
+	protected uint mLastReceiveSequenceNumber;           // 上一次接收到的序列号
+	protected uint mSendSequenceNumber;                  // 当前序列号
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -90,7 +90,7 @@ public class NetConnectWebSocketWebGLBit : NetConnectWebSocketWebGL
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 解析包体数据
-	protected override NetPacket parsePacket(ushort packetType, byte[] buffer, int size, int sequence, ulong fieldFlag)
+	protected override NetPacket parsePacket(ushort packetType, byte[] buffer, int size, uint sequence, ulong fieldFlag)
 	{
 		// 创建对应的消息包,并设置数据,然后放入列表中等待解析
 		var packetReply = mNetPacketFactory.createSocketPacket(packetType) as NetPacketByte;
@@ -118,7 +118,7 @@ public class NetConnectWebSocketWebGLBit : NetConnectWebSocketWebGL
 		return packetReply;
 	}
 	protected override PARSE_RESULT preParsePacket(byte[] buffer, int size, out int index, out byte[] outPacket, out ushort packetType,
-													out int packetSize, out int sequence, out ulong fieldFlag)
+													out int packetSize, out uint sequence, out ulong fieldFlag)
 	{
 		index = 0;
 		outPacket = null;
@@ -165,7 +165,7 @@ public class NetConnectWebSocketWebGLBit : NetConnectWebSocketWebGL
 		}
 
 		// 确认此消息的数据接收完全以后再验证序列号
-		if (sequence != mLastReceiveSequenceNumber + 1 && mLastReceiveSequenceNumber != 0x7FFFFFFF)
+		if (sequence != mLastReceiveSequenceNumber + 1 && mLastReceiveSequenceNumber != 0xFFFFFFFF)
 		{
 			// 不通知服务器接收到非法消息,因为可能会有误报
 			// return PARSE_RESULT.ERROR;

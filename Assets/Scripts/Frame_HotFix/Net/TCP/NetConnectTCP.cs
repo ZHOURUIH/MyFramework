@@ -67,7 +67,7 @@ public abstract class NetConnectTCP : NetConnect
 		mReceiveThread.stop();
 		mSendThread.stop();
 		mSocket = null;
-		memset(mRecvBuff, (byte)0);
+		mRecvBuff.setAllDefault();
 		mPort = 0;
 		mManualDisconnect = false;
 		mManualSendReceive = false;
@@ -326,7 +326,7 @@ public abstract class NetConnectTCP : NetConnect
 				using (new ThreadLockScope(mInputBufferLock))
 				{
 					PARSE_RESULT result = preParsePacket(mInputBuffer.getData(), mInputBuffer.getDataLength(), out int bitIndex, out byte[] packetData,
-													out ushort packetType, out int packetSize, out int sequence, out ulong fieldFlag);
+													out ushort packetType, out int packetSize, out uint sequence, out ulong fieldFlag);
 					if (result != PARSE_RESULT.SUCCESS)
 					{
 						if (result == PARSE_RESULT.ERROR)
@@ -366,7 +366,7 @@ public abstract class NetConnectTCP : NetConnect
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected abstract NetPacket parsePacket(ushort packetType, byte[] buffer, int size, int sequence, ulong fieldFlag);
+	protected abstract NetPacket parsePacket(ushort packetType, byte[] buffer, int size, uint sequence, ulong fieldFlag);
 	// 发送Socket消息
 	protected void sendThread(ref bool run)
 	{
@@ -422,12 +422,15 @@ public abstract class NetConnectTCP : NetConnect
 		mTotalBuffer.clear();
 	}
 	protected abstract PARSE_RESULT preParsePacket(byte[] buffer, int size, out int bitIndex, out byte[] outPacketData, 
-													out ushort packetType, out int packetSize, out int sequence, out ulong fieldFlag);
+													out ushort packetType, out int packetSize, out uint sequence, out ulong fieldFlag);
 	protected void debugHistoryPacket()
 	{
 		using var a = new ClassThreadScope<MyStringBuilder>(out var info);
 		info.add("最后接收的消息:\n");
-		mReceivePacketHistory.For(item => info.add(item, "\n"));
+		foreach (string item in mReceivePacketHistory)
+		{
+			info.add(item, "\n");
+		}
 		logError(info.ToString());
 	}
 	protected void socketException(SocketException e)

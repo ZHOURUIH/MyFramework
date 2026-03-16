@@ -31,7 +31,7 @@ public class WavRecorder : ClassObject
 		mRecordCallback = null;
 		mClip = null;
 		mDeviceList = null;
-		memset(mReceivedData, (short)0);
+		mReceivedData.setAllDefault();
 		// mSampleRate不重置
 		// mSampleRate = 0;
 		mMaxRecordTime = 500;

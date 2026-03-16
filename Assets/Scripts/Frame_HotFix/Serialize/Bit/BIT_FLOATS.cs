@@ -1,8 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 // 自定义的对float[]的封装,可用于序列化
-public class BIT_FLOATS : SerializableBit, IEnumerable<float>
+public class BIT_FLOATS : SerializableBit
 {
 	public List<float> mValue = new();			// 值
 	public float this[int index]
@@ -36,6 +35,5 @@ public class BIT_FLOATS : SerializableBit, IEnumerable<float>
 	{
 		return value.mValue;
 	}
-	public IEnumerator<float> GetEnumerator() { return mValue.GetEnumerator(); }
-	IEnumerator IEnumerable.GetEnumerator() { return mValue.GetEnumerator(); }
+	public List<float>.Enumerator GetEnumerator() { return mValue.GetEnumerator(); }
 }

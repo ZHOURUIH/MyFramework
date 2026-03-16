@@ -1,8 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 // 自定义的对short[]的封装,可用于序列化
-public class BIT_SHORTS : SerializableBit, IEnumerable<short>
+public class BIT_SHORTS : SerializableBit
 {
 	public List<short> mValue = new();  // 值
 	public short this[int index]
@@ -36,6 +35,5 @@ public class BIT_SHORTS : SerializableBit, IEnumerable<short>
 	{
 		return value.mValue;
 	}
-	public IEnumerator<short> GetEnumerator() { return mValue.GetEnumerator(); }
-	IEnumerator IEnumerable.GetEnumerator() { return mValue.GetEnumerator(); }
+	public List<short>.Enumerator GetEnumerator() { return mValue.GetEnumerator(); }
 }

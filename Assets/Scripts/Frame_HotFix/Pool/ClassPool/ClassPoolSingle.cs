@@ -102,7 +102,7 @@ public class ClassPoolSingle
 			mUnusedList.Enqueue(temp);
 		}
 	}
-	public void destroyClassList<T>(ICollection<T> classObjectList) where T : ClassObject
+	public void destroyClassList<T>(List<T> classObjectList) where T : ClassObject
 	{
 		if (classObjectList.isEmpty())
 		{

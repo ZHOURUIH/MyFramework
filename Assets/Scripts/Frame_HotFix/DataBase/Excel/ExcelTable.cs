@@ -146,7 +146,7 @@ public class ExcelTable
 	{
 		checkData(ids, refDataID, table.mTableName);
 	}
-	public void checkListPair(IList list0, IList list1, int id)
+	public void checkListPair<T0, T1>(List<T0> list0, List<T1> list1, int id)
 	{
 		if (list0.Count != list1.Count)
 		{

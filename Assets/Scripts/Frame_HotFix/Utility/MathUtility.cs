@@ -881,7 +881,7 @@ public class MathUtility
 	// 根据几率随机选择一个下标,oddsList中的元素是权重,几率就是权重除以所有权重的和
 	public static int randomHit(Span<float> oddsList, int count)
 	{
-		if (oddsList.isEmptySpan() || count == 0)
+		if (oddsList.isEmpty() || count == 0)
 		{
 			return 0;
 		}
@@ -1537,7 +1537,7 @@ public class MathUtility
 		return true;
 	}
 	// 二维平面上一个点是否在一个多边形内,多边形的顺时针点列表,并且只能是凸多边形
-	public static bool isPointInPolygon(IList<Vector2> pointList, Vector2 point)
+	public static bool isPointInPolygon(List<Vector2> pointList, Vector2 point)
 	{
 		int count = pointList.Count;
 		for (int i = 0; i < count; ++i)
@@ -3350,7 +3350,7 @@ public class MathUtility
 			resultList[i] = getBezier(points, loop, divide(i, bezierDetail - 1));
 		}
 	}
-	public static List<Vector3> getBezierPoints(IList<Vector3> points, bool loop, int bezierDetail = 20)
+	public static List<Vector3> getBezierPoints(List<Vector3> points, bool loop, int bezierDetail = 20)
 	{
 		if (points.Count == 1)
 		{

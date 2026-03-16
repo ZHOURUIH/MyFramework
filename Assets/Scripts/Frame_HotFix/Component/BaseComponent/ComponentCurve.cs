@@ -20,7 +20,7 @@ public abstract class ComponentCurve : ComponentKeyFrame
 	}
 	public void setKeyList(Span<Vector3> posList)
 	{
-		if (posList.isEmptySpan())
+		if (posList.isEmpty())
 		{
 			setActive(false);
 			return;

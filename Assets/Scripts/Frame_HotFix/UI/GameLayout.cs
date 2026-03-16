@@ -86,18 +86,15 @@ public class GameLayout
 			elapsedTime = Time.unscaledDeltaTime;
 		}
 
+		// 更新所有的UI物体
+		if (mNeedUpdateList.count() > 0)
 		{
-			using var a = new ProfilerScope("UpdateLayout");
-			// 更新所有的UI物体
-			if (mNeedUpdateList.count() > 0)
+			using var c = new SafeHashSetReader<myUGUIObject>(mNeedUpdateList);
+			foreach (myUGUIObject uiObj in c.mReadList)
 			{
-				using var c = new SafeHashSetReader<myUGUIObject>(mNeedUpdateList);
-				foreach (myUGUIObject uiObj in c.mReadList)
+				if (uiObj.canUpdate())
 				{
-					if (uiObj.canUpdate())
-					{
-						uiObj.update(uiObj.isIgnoreTimeScale() ? Time.unscaledDeltaTime : elapsedTime);
-					}
+					uiObj.update(uiObj.isIgnoreTimeScale() ? Time.unscaledDeltaTime : elapsedTime);
 				}
 			}
 		}
@@ -302,7 +299,7 @@ public class GameLayout
 			window.isColliderForClick() && 
 			!mGlobalTouchSystem.isColliderRegisted(window))
 		{
-			logError("窗口拥有碰撞体,但是由于未注册碰撞体,所以无法为窗口计算深度,Layout:" + getName() + ", Window:" + getTransformPath(transform));
+			logError("窗口拥有碰撞体,但是由于未注册碰撞体,所以无法为窗口计算深度,Layout:" + getName() + ", Window:" + getGameObjectPath(transform.gameObject));
 		}
 		// 先设置当前窗口的深度
 		// 只有当拥有子节点或者已经注册碰撞体时,或者拥有Canvas组件,才会计算窗口的深度

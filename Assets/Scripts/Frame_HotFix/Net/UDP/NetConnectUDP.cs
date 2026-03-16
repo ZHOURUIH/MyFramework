@@ -57,7 +57,7 @@ public abstract class NetConnectUDP : NetConnect
 		mHeartBeatTimer.stop();
 		mSocket = null;
 		mHeartBeatAction = null;
-		memset(mRecvBuff, (byte)0);
+		mRecvBuff.setAllDefault();
 	}
 	public virtual void update(float elapsedTime)
 	{
@@ -264,7 +264,10 @@ public abstract class NetConnectUDP : NetConnect
 	{
 		using var a = new ClassThreadScope<MyStringBuilder>(out var info);
 		info.add("最后接收的消息:\n");
-		mReceivePacketHistory.For(item => info.add(item, "\n"));
+		foreach (string item in mReceivePacketHistory)
+		{
+			info.add(item, "\n");
+		}
 		logError(info.ToString());
 	}
 }

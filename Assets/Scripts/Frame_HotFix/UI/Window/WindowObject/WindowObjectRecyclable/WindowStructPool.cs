@@ -111,7 +111,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		}
 		return mUsedItemList.add(item);
 	}
-	public void newItemList<TData>(IEnumerable<TData> dataList, Action<T, TData> callback)
+	public void newItemList<TData>(List<TData> dataList, Action<T, TData> callback)
 	{
 		unuseAll();
 		foreach (TData data in dataList.safe())
@@ -119,7 +119,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 			callback(newItem(), data);
 		}
 	}
-	public void newItemListVertical<TData>(IEnumerable<TData> dataList, Action<T, TData> callback)
+	public void newItemListVertical<TData>(List<TData> dataList, Action<T, TData> callback)
 	{
 		unuseAll();
 		foreach (TData data in dataList.safe())
@@ -128,7 +128,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		}
 		autoGridVertical();
 	}
-	public void newItemListVerticalForDrag<TData>(IEnumerable<TData> dataList, Action<T, TData> callback)
+	public void newItemListVerticalForDrag<TData>(List<TData> dataList, Action<T, TData> callback)
 	{
 		unuseAll();
 		foreach (TData data in dataList.safe())
@@ -137,7 +137,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		}
 		autoGridVerticalForDragView();
 	}
-	public void newItemListHorizontal<TData>(IEnumerable<TData> dataList, Action<T, TData> callback)
+	public void newItemListHorizontal<TData>(List<TData> dataList, Action<T, TData> callback)
 	{
 		unuseAll();
 		foreach (TData data in dataList.safe())
@@ -146,7 +146,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		}
 		autoGridHorizontal();
 	}
-	public void newItemListHorizontalForDrag<TData>(IEnumerable<TData> dataList, Action<T, TData> callback)
+	public void newItemListHorizontalForDrag<TData>(List<TData> dataList, Action<T, TData> callback)
 	{
 		unuseAll();
 		foreach (TData data in dataList)
@@ -155,7 +155,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		}
 		autoGridHorizontalForDragView();
 	}
-	public void newItemListAutoGrid<TData>(IEnumerable<TData> dataList, Action<T, TData> callback)
+	public void newItemListAutoGrid<TData>(List<TData> dataList, Action<T, TData> callback)
 	{
 		unuseAll();
 		foreach (TData data in dataList.safe())
@@ -164,7 +164,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		}
 		autoGrid();
 	}
-	public void newItemListAutoGridForDrag<TData>(IEnumerable<TData> dataList, Action<T, TData> callback)
+	public void newItemListAutoGridForDrag<TData>(List<TData> dataList, Action<T, TData> callback)
 	{
 		unuseAll();
 		foreach (TData data in dataList.safe())

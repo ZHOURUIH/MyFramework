@@ -108,7 +108,7 @@ public class SafeList<T> : ClassObject
 		}
 		add(value);
 	}
-	public void addRange(IEnumerable<T> list)
+	public void addRange(List<T> list)
 	{
 		foreach (T item in list)
 		{
@@ -116,7 +116,20 @@ public class SafeList<T> : ClassObject
 			mModifyList.Add(new(item, true, -1));
 		}
 	}
-	public void setRange(IList<T> list)
+	public void addRange(HashSet<T> list)
+	{
+		foreach (T item in list)
+		{
+			mMainList.Add(item);
+			mModifyList.Add(new(item, true, -1));
+		}
+	}
+	public void setRange(List<T> list)
+	{
+		clear();
+		addRange(list);
+	}
+	public void setRange(HashSet<T> list)
 	{
 		clear();
 		addRange(list);

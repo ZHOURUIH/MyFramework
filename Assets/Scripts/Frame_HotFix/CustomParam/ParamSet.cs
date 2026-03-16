@@ -53,7 +53,7 @@ public class ParamSet
 		mSetParamCallbackList ??= new();
 		mSetParamCallbackList.Add(callback);
 	}
-	public void initFromParam(IList<string> paramList)
+	public void initFromParam(List<string> paramList)
 	{
 		int index = 0;
 		foreach (string param in paramList)

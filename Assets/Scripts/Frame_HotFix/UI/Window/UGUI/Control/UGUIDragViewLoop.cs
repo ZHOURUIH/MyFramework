@@ -210,7 +210,7 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop whe
 	// 根据指定条件替换数据,newData需要是重新从对象池中创建的
 	public void updateDisplayItem(Predicate<DataType> match, DataType newData, bool forceRefresh = true)
 	{
-		if (mDataList.findIndex(match, out int index))
+		if (mDataList.find(match, out int index))
 		{
 			setData(index, newData, forceRefresh);
 		}

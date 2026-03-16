@@ -7,7 +7,7 @@ using static FileUtility;
 
 // 用于记录Image组件上的图片所在的路径,因为在运行时是没办法获得Image上图片的路径,从而也就无法直到所在的图集
 // 所以使用一个组件来在编辑模式下就记录路径
-[ExecuteInEditMode]
+[ExecuteAlways]
 public class RawImageAnimPath : MonoBehaviour
 {
 	public string mTexturePath;		// 序列帧所在的目录,相对于GameResources,不带文件名,以/结尾
@@ -49,7 +49,7 @@ public class RawImageAnimPath : MonoBehaviour
 		}
 		string imagePathName = getAssetPath(rawImage.mainTexture);
 		mTextureName = getFileNameNoSuffixNoDir(imagePathName).rangeToLast('_');
-		// 去除Assets/GameResoureces前缀
+		// 去除Assets/GameResources前缀
 		mTexturePath = getFilePath(imagePathName, true).removeStartString(P_GAME_RESOURCES_PATH);
 		// 获取图片数量
 		string suffix = getFileSuffix(imagePathName);

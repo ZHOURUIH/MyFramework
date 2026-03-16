@@ -8,7 +8,7 @@ using static StringUtility;
 public struct HashSetScope<T> : IDisposable
 {
 	private HashSet<T> mList;		// 分配的对象
-	public HashSetScope(out HashSet<T> list, IList<T> initList = null)
+	public HashSetScope(out HashSet<T> list, List<T> initList = null)
 	{
 		if (GameEntry.getInstance() == null || mHashSetPool == null)
 		{

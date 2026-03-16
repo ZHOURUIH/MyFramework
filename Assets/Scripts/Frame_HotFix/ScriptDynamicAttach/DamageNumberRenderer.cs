@@ -46,7 +46,12 @@ public class DamageNumberRenderer : MonoBehaviour
 			mIndices[i * 6 + 5] = i * 4 + 2;
 		}
 	}
-	public void setNumberSpriteList(IList<DamageNumberSpriteData> spriteList)
+	public void setNumberSpriteList(DamageNumberSpriteData[] spriteList)
+	{
+		using var a = new ListScope<DamageNumberSpriteData>(out var list, spriteList);
+		setNumberSpriteList(list);
+	}
+	public void setNumberSpriteList(List<DamageNumberSpriteData> spriteList)
 	{
 		if (spriteList.Count > mNumberSpriteList.Length)
 		{
@@ -57,7 +62,7 @@ public class DamageNumberRenderer : MonoBehaviour
 		DamageNumberSpriteData firstSprite = mNumberSpriteList.first();
 		int width = firstSprite.mWidth;
 		int height = firstSprite.mHeight;
-		if (isEditor() && mNumberSpriteList.find(sprite => sprite.mWidth != width || sprite.mHeight != height, out var sprite))
+		if (isEditor() && mNumberSpriteList.find(sprite => sprite.mWidth != width || sprite.mHeight != height, out DamageNumberSpriteData sprite))
 		{
 			logError("设置的数字图片大小不一致!spriteName:" + mImage.name + ", sprite.width:" + sprite.mWidth + ", sprite.height:" + sprite.mHeight);
 		}

@@ -1047,18 +1047,6 @@ public class UnityUtility
 		// 还原旋转
 		return rotateVector3(localPosition, Quaternion.Inverse(generateWorldRotation(parent)));
 	}
-	public static string getTransformPath(Transform transform)
-	{
-		if (transform == null)
-		{
-			return EMPTY;
-		}
-		if (transform.parent == null)
-		{
-			return transform.name;
-		}
-		return getTransformPath(transform.parent) + "/" + transform.name;
-	}
 	public static float getAnimationLength(Animator animator, string name)
 	{
 		if (animator == null || animator.runtimeAnimatorController == null)

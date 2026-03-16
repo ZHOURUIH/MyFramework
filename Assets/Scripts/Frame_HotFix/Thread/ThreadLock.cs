@@ -9,7 +9,7 @@ public class ThreadLock
 	protected string mFileName;         // 加锁的文件名
 	protected int mLockThreadID;        // 当前获得锁的线程ID
 	protected int mLine;                // 加锁的行号
-	protected bool mTraceStack;         // 是否追踪加锁的堆栈,默认不追踪
+	protected bool mTraceStack;         // 是否追踪加锁的堆栈,默认仅在编辑器下追踪,会有较大的GC
 	protected bool mEnable = true;		// 是否启用线程锁
 	public ThreadLock()
 	{
@@ -43,6 +43,7 @@ public class ThreadLock
 		mLockThreadID = Thread.CurrentThread.ManagedThreadId;
 		if (mTraceStack)
 		{
+			// 这两行会有比较严重的GCAlloc,需要谨慎使用
 			mFileName = getCurSourceFileName(2);
 			mLine = getLineNum(2);
 		}

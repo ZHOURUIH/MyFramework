@@ -749,7 +749,7 @@ public class FileUtility
 		return mTempFileList1;
 	}
 	// 查找指定目录下的所有文件,path为绝对路径
-	public static List<string> findFilesNonAlloc(string path, IList<string> patterns = null, bool recursive = true)
+	public static List<string> findFilesNonAlloc(string path, List<string> patterns = null, bool recursive = true)
 	{
 		mTempFileList1.Clear();
 		findFilesInternal(path, mTempFileList1, patterns, recursive);
@@ -777,7 +777,7 @@ public class FileUtility
 		findFilesInternal(path, fileList, null, recursive);
 	}
 	// 查找指定目录下的所有文件,path为绝对路径
-	public static void findFilesInternal(string path, List<string> fileList, IList<string> patterns, bool recursive)
+	public static void findFilesInternal(string path, List<string> fileList, List<string> patterns, bool recursive)
 	{
 		try
 		{

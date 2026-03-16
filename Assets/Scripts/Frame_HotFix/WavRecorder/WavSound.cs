@@ -38,7 +38,7 @@ public class WavSound : ClassObject
 	{
 		base.resetProperty();
 		mWaveSerializer = null;
-		memset(mDataMark, (byte)0);
+		mDataMark.setAllDefault();
 		mFileName = null;
 		mRiffMark = 0;
 		mFileSize = 0;

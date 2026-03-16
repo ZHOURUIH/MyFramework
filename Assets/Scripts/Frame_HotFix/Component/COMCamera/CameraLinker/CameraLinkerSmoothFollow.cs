@@ -35,7 +35,7 @@ public class CameraLinkerSmoothFollow : CameraLinkerThirdPerson
 	public void removeCheckLayer(int layer, CHECK_DIRECTION direction)
 	{
 		var layerList = mCheckDirectionList.get(direction);
-		if (layerList != null && layerList.findIndex(item => item.mLayerIndex == layer, out int index))
+		if (layerList != null && layerList.find(item => item.mLayerIndex == layer, out int index))
 		{
 			mCheckLayer.Remove(layerList[index]);
 			layerList.RemoveAt(index);

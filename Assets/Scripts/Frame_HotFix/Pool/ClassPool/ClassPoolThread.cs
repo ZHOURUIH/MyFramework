@@ -93,7 +93,7 @@ public class ClassPoolThread : FrameSystem
 			singlePool.destroyClass(ref classObject);
 		}
 	}
-	public void destroyClassList<T>(ICollection<T> classObjectList) where T : ClassObject
+	public void destroyClassList<T>(List<T> classObjectList) where T : ClassObject
 	{
 		if (mHasDestroy || classObjectList.isEmpty())
 		{

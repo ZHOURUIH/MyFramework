@@ -29,11 +29,11 @@ public class myUGUILineMesh : myUGUIObject
 	{
 		mUGUILine.setPointList(pointList);
 	}
-	public void setPointListBezier(IList<Vector3> pointList, int bezierDetail = 10)
+	public void setPointListBezier(List<Vector3> pointList, int bezierDetail = 10)
 	{
 		setPointList(getBezierPoints(pointList, false, bezierDetail));
 	}
-	public void setPointListSmooth(IList<Vector3> pointList, int bezierDetail = 10)
+	public void setPointListSmooth(List<Vector3> pointList, int bezierDetail = 10)
 	{
 		Span<Vector3> curveList = stackalloc Vector3[pointList.Count * bezierDetail];
 		getCurvePoints(pointList, curveList, false, bezierDetail);

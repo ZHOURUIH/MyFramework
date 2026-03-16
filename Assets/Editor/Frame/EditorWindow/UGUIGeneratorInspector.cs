@@ -288,7 +288,7 @@ public class UGUIGeneratorInspector : GameInspector
 			else
 			{
 				// 找不到就在类的第一行插入
-				if (codeList.findIndex(item=>item.Contains(" class " + className + " "), out int index))
+				if (codeList.find(item=>item.Contains(" class " + className + " "), out int index))
 				{
 					int lineStart = index - 2;
 					codeList.Insert(++lineStart, "\t// auto generate member start");
@@ -307,7 +307,7 @@ public class UGUIGeneratorInspector : GameInspector
 			// 找不到就在构造的第一行插入
 			else
 			{
-				bool foundConstructor = codeList.findIndex(item=>item.Contains("public " + className + "()"), out int index);
+				bool foundConstructor = codeList.find(item=>item.Contains("public " + className + "()"), out int index);
 				if (foundConstructor)
 				{
 					int lineStart = index + 1;
@@ -318,7 +318,7 @@ public class UGUIGeneratorInspector : GameInspector
 				// 如果连构造函数都没找到,就在自动生成的成员变量后面加
 				if (!foundConstructor)
 				{
-					foundConstructor = codeList.findIndex(item => item.Contains("auto generate member end"), out int lineStart);
+					foundConstructor = codeList.find(item => item.Contains("auto generate member end"), out int lineStart);
 					if (foundConstructor)
 					{
 						codeList.Insert(++lineStart, "\tpublic " + className + "()");
@@ -341,7 +341,7 @@ public class UGUIGeneratorInspector : GameInspector
 			// 找不到就在assignWindow的第一行插入
 			else
 			{
-				if (codeList.findIndex(item => item.Contains("public override void assignWindow()"), out int index))
+				if (codeList.find(item => item.Contains("public override void assignWindow()"), out int index))
 				{
 					int lineStart = index + 1;
 					codeList.Insert(++lineStart, "\t\t// auto generate assignWindow start");

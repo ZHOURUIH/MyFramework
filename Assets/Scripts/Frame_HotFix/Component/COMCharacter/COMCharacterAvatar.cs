@@ -2,7 +2,6 @@
 using UnityEngine;
 using static UnityUtility;
 using static FrameBaseHotFix;
-using static BinaryUtility;
 using static MathUtility;
 using static FrameDefine;
 
@@ -212,8 +211,8 @@ public class COMCharacterAvatar : GameComponent
 		mModelPath = null;
 		mRigidBody = null;
 		// 动作也要清空一下
-		memset(mAnimationSpeed, 1.0f);
-		memset(mAnimationParam, 0);
+		mAnimationSpeed.setAllValue(1.0f);
+		mAnimationParam.setAllDefault();
 	}
 	public void syncTransform()
 	{

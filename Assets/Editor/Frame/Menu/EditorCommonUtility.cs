@@ -1009,7 +1009,7 @@ public class EditorCommonUtility
 		return isPow2(tex.width) && isPow2(tex.height);
 	}
 	// 是否忽略该文件
-	public static bool isIgnoreFile(string filePath, IList<string> ignoreArr = null)
+	public static bool isIgnoreFile(string filePath, List<string> ignoreArr = null)
 	{
 		if (getIgnoreScriptCheck().contains(str=> filePath.Contains(str)))
 		{

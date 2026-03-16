@@ -143,7 +143,7 @@ public class CharacterManager : FrameSystem
 		}
 		UN_CLASS(ref character);
 	}
-	public void destroyCharacterList<T>(IList<T> characterList) where T : Character
+	public void destroyCharacterList<T>(List<T> characterList) where T : Character
 	{
 		foreach (T character in characterList.safe())
 		{

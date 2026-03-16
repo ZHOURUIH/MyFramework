@@ -17,7 +17,7 @@ public class SerializerBitWrite : ClassObject
 		// mBuffer = null;
 		if (mBuffer != null)
 		{
-			memset(mBuffer, (byte)0);
+			mBuffer.setAllDefault();
 		}
 		mBitIndex = 0;
 	}
@@ -182,7 +182,7 @@ public class SerializerBitWrite : ClassObject
 			return;
 		}
 		writeCheck(dataSize + 1);
-		wrtiteBufferBit(mBuffer, mBuffer.Length, ref mBitIndex, buffer, dataSize);
+		writeBufferBit(mBuffer, mBuffer.Length, ref mBitIndex, buffer, dataSize);
 	}
 	// 将最后一个字节未填充数据的位填充为0,并将位下标移动到字节末尾
 	public void fillZeroToByteEnd()
@@ -331,7 +331,7 @@ public class SerializerBitWrite : ClassObject
 		mBitIndex = 0; 
 		if (mBuffer != null)
 		{
-			memset(mBuffer, (byte)0);
+			mBuffer.setAllDefault();
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
@@ -344,7 +344,7 @@ public class SerializerBitWrite : ClassObject
 			// 至少分配32个字节,避免初期频繁扩容
 			clampMin(ref writeLen, 32);
 			mBuffer = new byte[writeLen];
-			memset(mBuffer, (byte)0);
+			mBuffer.setAllDefault();
 			return;
 		}
 

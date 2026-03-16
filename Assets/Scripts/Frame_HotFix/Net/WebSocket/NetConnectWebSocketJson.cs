@@ -60,7 +60,7 @@ public class NetConnectWebSocketJson : NetConnectWebSocket
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 解析包体数据
-	protected override NetPacket parsePacket(ushort packetType, byte[] buffer, int size, int sequence, ulong fieldFlag)
+	protected override NetPacket parsePacket(ushort packetType, byte[] buffer, int size, uint sequence, ulong fieldFlag)
 	{
 		var body = JsonConvert.DeserializeObject<WebSocketPacketBodyJson>(bytesToString(buffer, 0, size));
 		Type type = mPacketTypeStringList.get(body.message_type);
@@ -80,7 +80,7 @@ public class NetConnectWebSocketJson : NetConnectWebSocket
 		}
 		return packetReply;
 	}
-	protected override PARSE_RESULT preParsePacket(byte[] buffer, int size, out int index, out byte[] outPacketData, out ushort packetType, out int packetSize, out int sequence, out ulong fieldFlag)
+	protected override PARSE_RESULT preParsePacket(byte[] buffer, int size, out int index, out byte[] outPacketData, out ushort packetType, out int packetSize, out uint sequence, out ulong fieldFlag)
 	{
 		index = size;
 		ARRAY_BYTE_PERSIST(out outPacketData, getGreaterPow2(size));

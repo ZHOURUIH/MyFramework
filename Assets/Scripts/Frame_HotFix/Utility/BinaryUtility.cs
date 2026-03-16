@@ -19,7 +19,7 @@ public class BinaryUtility
 	protected static byte[] SIGNED_LENGTH_MAX_BIT = new byte[9] { 0, 3, 4, 0, 5, 0, 0, 0, 6 };
 	// 比如1个byte的取值范围是8~255,255占8个bit,可以使用4个bit存储这个8,所以长度位就是用4个bit来表示,所以下标1的值是4
 	// 其作用于mBitCountTable类似,只不过不需要计算
-	protected static byte[] UNSIGNED_LENGTH_MAX_BIT = new byte[9] { 0, 4, 5, 0, 6, 0, 0, 0, 7 };
+	protected static byte[] UNSIGNED_LENGTH_MAX_BIT = new byte[9] { 0, 3, 4, 0, 5, 0, 0, 0, 6 };
 	// 0到65535的每个数中的最高位1的下标,也就是需要用几个bit来表示,1可以用1个bit表示,5可以使用3个bit表示,8可以使用5个bit表示
 	protected static byte[] mBitCountTable;
 	protected static ThreadLock mBitCountTableLock = new();
@@ -428,7 +428,7 @@ public class BinaryUtility
 	public static long readSignedIntegerBit(byte[] buffer, int bufferSize, ref int bitIndex, out bool success, int typeSize)
 	{
 		success = false;
-		if (!readSignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, out byte bitCount))
+		if (!readSignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, out byte bitCount))
 		{
 			return 0;
 		}
@@ -472,7 +472,7 @@ public class BinaryUtility
 	public static ulong readUnsignedIntegerBit(byte[] buffer, int bufferSize, ref int bitIndex, out bool success, int typeSize)
 	{
 		success = false;
-		if (!readUnsignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, out byte bitCount))
+		if (!readUnsignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, out byte bitCount))
 		{
 			return 0;
 		}
@@ -482,7 +482,11 @@ public class BinaryUtility
 			return 0;
 		}
 		// 因为写入时最高位固定为1,不会进行写入,所以读取需要少读一位,然后读完再加上这一位
-		--bitCount;
+		// 但是如果写入位的数量到达最大位数时,就不能再去掉最高位了,否则会混淆
+		if (bitCount < (1 << typeSize) - 1)
+		{
+			--bitCount;
+		}
 		if (bitCountToByteCount(bitIndex + bitCount) > bufferSize)
 		{
 			return 0;
@@ -493,7 +497,10 @@ public class BinaryUtility
 		if (bitCount > 0)
 		{
 			value = readUnsignedValueBit(buffer, ref bitIndex, bitCount);
-			setBitOne(ref value, bitCount);
+			if (bitCount < (1 << typeSize) - 1)
+			{
+				setBitOne(ref value, bitCount);
+			}
 		}
 		else
 		{
@@ -502,7 +509,7 @@ public class BinaryUtility
 		success = true;
 		return value;
 	}
-	public static bool readBitList(byte[] buffer, int bufferSize, ref int bitIndex, ref Span<sbyte> list)
+	public static bool readListBit(byte[] buffer, int bufferSize, ref int bitIndex, ref Span<sbyte> list)
 	{
 		int count = list.Length;
 		bool lengthBitType = getBufferBit(buffer, bitIndex++);
@@ -510,7 +517,7 @@ public class BinaryUtility
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
-			if (!readSignedListBitLength(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
+			if (!readSignedListLengthBit(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
 			{
 				return false;
 			}
@@ -537,10 +544,10 @@ public class BinaryUtility
 		}
 		return true;
 	}
-	public static bool readBitList(byte[] buffer, int bufferSize, ref int bitIndex, List<sbyte> list)
+	public static bool readListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<sbyte> list)
 	{
 		list.Clear();
-		readBit(buffer, bufferSize, ref bitIndex, out int count);
+		readBit(buffer, bufferSize, ref bitIndex, out ushort count);
 		if (count == 0)
 		{
 			return true;
@@ -555,7 +562,7 @@ public class BinaryUtility
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
-			if (!readSignedListBitLength(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
+			if (!readSignedListLengthBit(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
 			{
 				return false;
 			}
@@ -586,7 +593,7 @@ public class BinaryUtility
 		}
 		return true;
 	}
-	public static bool readBitList(byte[] buffer, int bufferSize, ref int bitIndex, ref Span<byte> list)
+	public static bool readListBit(byte[] buffer, int bufferSize, ref int bitIndex, ref Span<byte> list)
 	{
 		int count = list.Length;
 		bool lengthBitType = getBufferBit(buffer, bitIndex++);
@@ -594,7 +601,7 @@ public class BinaryUtility
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
-			if (!readUnsignedListBitLength(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
+			if (!readUnsignedListLengthBit(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
 			{
 				return false;
 			}
@@ -621,10 +628,10 @@ public class BinaryUtility
 		}
 		return true;
 	}
-	public static bool readBitList(byte[] buffer, int bufferSize, ref int bitIndex, List<byte> list)
+	public static bool readListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<byte> list)
 	{
 		list.Clear();
-		readBit(buffer, bufferSize, ref bitIndex, out int count);
+		readBit(buffer, bufferSize, ref bitIndex, out ushort count);
 		if (count == 0)
 		{
 			return true;
@@ -639,7 +646,7 @@ public class BinaryUtility
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
-			if (!readUnsignedListBitLength(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
+			if (!readUnsignedListLengthBit(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
 			{
 				return false;
 			}
@@ -670,7 +677,7 @@ public class BinaryUtility
 		}
 		return true;
 	}
-	public static bool readBitList(byte[] buffer, int bufferSize, ref int bitIndex, ref Span<short> list)
+	public static bool readListBit(byte[] buffer, int bufferSize, ref int bitIndex, ref Span<short> list)
 	{
 		int count = list.Length;
 		bool lengthBitType = getBufferBit(buffer, bitIndex++);
@@ -678,7 +685,7 @@ public class BinaryUtility
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
-			if (!readSignedListBitLength(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
+			if (!readSignedListLengthBit(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
 			{
 				return false;
 			}
@@ -705,10 +712,10 @@ public class BinaryUtility
 		}
 		return true;
 	}
-	public static bool readBitList(byte[] buffer, int bufferSize, ref int bitIndex, List<short> list)
+	public static bool readListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<short> list)
 	{
 		list.Clear();
-		readBit(buffer, bufferSize, ref bitIndex, out int count);
+		readBit(buffer, bufferSize, ref bitIndex, out ushort count);
 		if (count == 0)
 		{
 			return true;
@@ -723,7 +730,7 @@ public class BinaryUtility
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
-			if (!readSignedListBitLength(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
+			if (!readSignedListLengthBit(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
 			{
 				return false;
 			}
@@ -754,7 +761,7 @@ public class BinaryUtility
 		}
 		return true;
 	}
-	public static bool readBitList(byte[] buffer, int bufferSize, ref int bitIndex, ref Span<ushort> list)
+	public static bool readListBit(byte[] buffer, int bufferSize, ref int bitIndex, ref Span<ushort> list)
 	{
 		int count = list.Length;
 		bool lengthBitType = getBufferBit(buffer, bitIndex++);
@@ -762,7 +769,7 @@ public class BinaryUtility
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
-			if (!readUnsignedListBitLength(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
+			if (!readUnsignedListLengthBit(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
 			{
 				return false;
 			}
@@ -789,10 +796,10 @@ public class BinaryUtility
 		}
 		return true;
 	}
-	public static bool readBitList(byte[] buffer, int bufferSize, ref int bitIndex, List<ushort> list)
+	public static bool readListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<ushort> list)
 	{
 		list.Clear();
-		readBit(buffer, bufferSize, ref bitIndex, out int count);
+		readBit(buffer, bufferSize, ref bitIndex, out ushort count);
 		if (count == 0)
 		{
 			return true;
@@ -807,7 +814,7 @@ public class BinaryUtility
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
-			if (!readUnsignedListBitLength(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
+			if (!readUnsignedListLengthBit(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
 			{
 				return false;
 			}
@@ -838,7 +845,7 @@ public class BinaryUtility
 		}
 		return true;
 	}
-	public static bool readBitList(byte[] buffer, int bufferSize, ref int bitIndex, ref Span<int> list)
+	public static bool readListBit(byte[] buffer, int bufferSize, ref int bitIndex, ref Span<int> list)
 	{
 		int count = list.Length;
 		bool lengthBitType = getBufferBit(buffer, bitIndex++);
@@ -846,7 +853,7 @@ public class BinaryUtility
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
-			if (!readSignedListBitLength(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
+			if (!readSignedListLengthBit(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
 			{
 				return false;
 			}
@@ -873,10 +880,10 @@ public class BinaryUtility
 		}
 		return true;
 	}
-	public static bool readBitList(byte[] buffer, int bufferSize, ref int bitIndex, List<int> list)
+	public static bool readListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<int> list)
 	{
 		list.Clear();
-		readBit(buffer, bufferSize, ref bitIndex, out int count);
+		readBit(buffer, bufferSize, ref bitIndex, out ushort count);
 		if (count == 0)
 		{
 			return true;
@@ -891,7 +898,7 @@ public class BinaryUtility
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
-			if (!readSignedListBitLength(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
+			if (!readSignedListLengthBit(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
 			{
 				return false;
 			}
@@ -922,7 +929,7 @@ public class BinaryUtility
 		}
 		return true;
 	}
-	public static bool readBitList(byte[] buffer, int bufferSize, ref int bitIndex, ref Span<uint> list)
+	public static bool readListBit(byte[] buffer, int bufferSize, ref int bitIndex, ref Span<uint> list)
 	{
 		int count = list.Length;
 		bool lengthBitType = getBufferBit(buffer, bitIndex++);
@@ -930,7 +937,7 @@ public class BinaryUtility
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
-			if (!readUnsignedListBitLength(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
+			if (!readUnsignedListLengthBit(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
 			{
 				return false;
 			}
@@ -957,10 +964,10 @@ public class BinaryUtility
 		}
 		return true;
 	}
-	public static bool readBitList(byte[] buffer, int bufferSize, ref int bitIndex, List<uint> list)
+	public static bool readListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<uint> list)
 	{
 		list.Clear();
-		readBit(buffer, bufferSize, ref bitIndex, out int count);
+		readBit(buffer, bufferSize, ref bitIndex, out ushort count);
 		if (count == 0)
 		{
 			return true;
@@ -975,7 +982,7 @@ public class BinaryUtility
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
-			if (!readUnsignedListBitLength(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
+			if (!readUnsignedListLengthBit(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
 			{
 				return false;
 			}
@@ -1006,7 +1013,7 @@ public class BinaryUtility
 		}
 		return true;
 	}
-	public static bool readBitList(byte[] buffer, int bufferSize, ref int bitIndex, ref Span<long> list)
+	public static bool readListBit(byte[] buffer, int bufferSize, ref int bitIndex, ref Span<long> list)
 	{
 		int count = list.Length;
 		bool lengthBitType = getBufferBit(buffer, bitIndex++);
@@ -1014,7 +1021,7 @@ public class BinaryUtility
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
-			if (!readSignedListBitLength(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
+			if (!readSignedListLengthBit(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
 			{
 				return false;
 			}
@@ -1041,10 +1048,10 @@ public class BinaryUtility
 		}
 		return true;
 	}
-	public static bool readBitList(byte[] buffer, int bufferSize, ref int bitIndex, List<long> list)
+	public static bool readListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<long> list)
 	{
 		list.Clear();
-		readBit(buffer, bufferSize, ref bitIndex, out int count);
+		readBit(buffer, bufferSize, ref bitIndex, out ushort count);
 		if (count == 0)
 		{
 			return true;
@@ -1059,7 +1066,7 @@ public class BinaryUtility
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
-			if (!readSignedListBitLength(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
+			if (!readSignedListLengthBit(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
 			{
 				return false;
 			}
@@ -1090,7 +1097,7 @@ public class BinaryUtility
 		}
 		return true;
 	}
-	public static bool readBitList(byte[] buffer, int bufferSize, ref int bitIndex, ref Span<ulong> list)
+	public static bool readListBit(byte[] buffer, int bufferSize, ref int bitIndex, ref Span<ulong> list)
 	{
 		int count = list.Length;
 		bool lengthBitType = getBufferBit(buffer, bitIndex++);
@@ -1098,7 +1105,7 @@ public class BinaryUtility
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
-			if (!readUnsignedListBitLength(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
+			if (!readUnsignedListLengthBit(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
 			{
 				return false;
 			}
@@ -1125,10 +1132,10 @@ public class BinaryUtility
 		}
 		return true;
 	}
-	public static bool readBitList(byte[] buffer, int bufferSize, ref int bitIndex, List<ulong> list)
+	public static bool readListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<ulong> list)
 	{
 		list.Clear();
-		readBit(buffer, bufferSize, ref bitIndex, out int count);
+		readBit(buffer, bufferSize, ref bitIndex, out ushort count);
 		if (count == 0)
 		{
 			return true;
@@ -1143,7 +1150,7 @@ public class BinaryUtility
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
-			if (!readUnsignedListBitLength(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
+			if (!readUnsignedListLengthBit(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
 			{
 				return false;
 			}
@@ -1174,7 +1181,7 @@ public class BinaryUtility
 		}
 		return true;
 	}
-	public static bool readBitList(byte[] buffer, int bufferSize, ref int bitIndex, ref Span<float> list, int precision = 3)
+	public static bool readListBit(byte[] buffer, int bufferSize, ref int bitIndex, ref Span<float> list, int precision = 3)
 	{
 		int count = list.Length;
 		bool lengthBitType = getBufferBit(buffer, bitIndex++);
@@ -1184,7 +1191,7 @@ public class BinaryUtility
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
-			if (!readSignedListBitLength(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
+			if (!readSignedListLengthBit(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
 			{
 				return false;
 			}
@@ -1210,10 +1217,10 @@ public class BinaryUtility
 		}
 		return true;
 	}
-	public static bool readBitList(byte[] buffer, int bufferSize, ref int bitIndex, List<float> list, int precision = 3)
+	public static bool readListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<float> list, int precision = 3)
 	{
 		list.Clear();
-		readBit(buffer, bufferSize, ref bitIndex, out int count);
+		readBit(buffer, bufferSize, ref bitIndex, out ushort count);
 		if (count == 0)
 		{
 			return true;
@@ -1230,7 +1237,7 @@ public class BinaryUtility
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
-			if (!readSignedListBitLength(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
+			if (!readSignedListLengthBit(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
 			{
 				return false;
 			}
@@ -1260,7 +1267,7 @@ public class BinaryUtility
 		}
 		return true;
 	}
-	public static bool readBitList(byte[] buffer, int bufferSize, ref int bitIndex, ref Span<double> list, int precision = 4)
+	public static bool readListBit(byte[] buffer, int bufferSize, ref int bitIndex, ref Span<double> list, int precision = 4)
 	{
 		int count = list.Length;
 		bool lengthBitType = getBufferBit(buffer, bitIndex++);
@@ -1270,7 +1277,7 @@ public class BinaryUtility
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
-			if (!readSignedListBitLength(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
+			if (!readSignedListLengthBit(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
 			{
 				return false;
 			}
@@ -1296,10 +1303,10 @@ public class BinaryUtility
 		}
 		return true;
 	}
-	public static bool readBitList(byte[] buffer, int bufferSize, ref int bitIndex, List<double> list, int precision = 4)
+	public static bool readListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<double> list, int precision = 4)
 	{
 		list.Clear();
-		readBit(buffer, bufferSize, ref bitIndex, out int count);
+		readBit(buffer, bufferSize, ref bitIndex, out ushort count);
 		if (count == 0)
 		{
 			return true;
@@ -1316,7 +1323,7 @@ public class BinaryUtility
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
-			if (!readSignedListBitLength(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
+			if (!readSignedListLengthBit(buffer, bufferSize, ref bitIndex, typeSize, count, out byte bitCount))
 			{
 				return false;
 			}
@@ -1680,7 +1687,7 @@ public class BinaryUtility
 	}
 	public static bool writeBit(byte[] buffer, int bufferSize, ref int bitIndex, sbyte value)
 	{
-		return writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, sizeof(sbyte), generateBitCount(abs(value)), value);
+		return writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, sizeof(sbyte), generateBitCount((ushort)abs(value)), value);
 	}
 	public static bool writeBit(byte[] buffer, int bufferSize, ref int bitIndex, ushort value)
 	{
@@ -1688,7 +1695,7 @@ public class BinaryUtility
 	}
 	public static bool writeBit(byte[] buffer, int bufferSize, ref int bitIndex, short value)
 	{
-		return writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, sizeof(short), generateBitCount(abs(value)), value);
+		return writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, sizeof(short), generateBitCount((ushort)abs(value)), value);
 	}
 	public static bool writeBit(byte[] buffer, int bufferSize, ref int bitIndex, uint value)
 	{
@@ -1696,7 +1703,7 @@ public class BinaryUtility
 	}
 	public static bool writeBit(byte[] buffer, int bufferSize, ref int bitIndex, int value)
 	{
-		return writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, sizeof(int), generateBitCount(abs(value)), value);
+		return writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, sizeof(int), generateBitCount((uint)abs(value)), value);
 	}
 	public static bool writeBit(byte[] buffer, int bufferSize, ref int bitIndex, ulong value)
 	{
@@ -1704,7 +1711,7 @@ public class BinaryUtility
 	}
 	public static bool writeBit(byte[] buffer, int bufferSize, ref int bitIndex, long value)
 	{
-		return writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, sizeof(long), generateBitCount(abs(value)), value);
+		return writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, sizeof(long), generateBitCount((ulong)abs(value)), value);
 	}
 	// 因为long是最大的带符号整型类型,所以可以使用long传递任何带符号整数类型的值
 	public static bool writeSignedIntegerBit(byte[] buffer, int bufferSize, ref int bitIndex, int typeSize, byte bitCount, long value)
@@ -1713,7 +1720,7 @@ public class BinaryUtility
 		{
 			return false;
 		}
-		if (!writeSignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, bitCount))
+		if (!writeSignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, bitCount))
 		{
 			return false;
 		}
@@ -1723,14 +1730,14 @@ public class BinaryUtility
 		}
 		return writeSignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, value, bitCount, true);
 	}
-	// 因为long是最大的无符号整型类型,所以可以使用long传递任何无符号整数类型的值
+	// 因为ulong是最大的无符号整型类型,所以可以使用ulong传递任何无符号整数类型的值
 	public static bool writeUnsignedIntegerBit(byte[] buffer, int bufferSize, ref int bitIndex, int typeSize, byte bitCount, ulong value)
 	{
 		if ((value != 0 && bitCount == 0) || bitCount > typeSize << 3)
 		{
 			return false;
 		}
-		if (!writeUnsignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, bitCount))
+		if (!writeUnsignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, ref bitCount))
 		{
 			return false;
 		}
@@ -1738,18 +1745,18 @@ public class BinaryUtility
 		{
 			return true;
 		}
-		return writeUnsignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, value, bitCount, true);
+		return writeUnsignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, value, bitCount, typeSize, true);
 	}
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, Span<byte> list)
 	{
-		int count = list.Length;
+		ushort count = (ushort)list.Length;
 		int typeSize = sizeof(byte);
 		if (isUnityCountShorter(list, out byte maxBitCount))
 		{
 			// 写入1表示使用统一的长度位
 			setBufferBitOne(buffer, bitIndex++);
 			// 写入长度位
-			if (!writeUnsignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
+			if (!writeUnsignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, ref maxBitCount))
 			{
 				return false;
 			}
@@ -1763,7 +1770,7 @@ public class BinaryUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeUnsignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, list[i], maxBitCount, false);
+				result = result && writeUnsignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, list[i], maxBitCount, typeSize, false);
 			}
 			return result;
 		}
@@ -1782,7 +1789,7 @@ public class BinaryUtility
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<byte> list)
 	{
 		// 写入长度
-		int count = list.Count;
+		ushort count = (ushort)list.Count;
 		if (!writeBit(buffer, bufferSize, ref bitIndex, count))
 		{
 			return false;
@@ -1798,7 +1805,7 @@ public class BinaryUtility
 			// 写入1表示使用统一的长度位
 			setBufferBitOne(buffer, bitIndex++);
 			// 写入长度位
-			if (!writeUnsignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
+			if (!writeUnsignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, ref maxBitCount))
 			{
 				return false;
 			}
@@ -1812,7 +1819,7 @@ public class BinaryUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeUnsignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, list[i], maxBitCount, false);
+				result = result && writeUnsignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, list[i], maxBitCount, typeSize, false);
 			}
 			return result;
 		}
@@ -1830,14 +1837,14 @@ public class BinaryUtility
 	}
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, Span<sbyte> list)
 	{
-		int count = list.Length;
+		ushort count = (ushort)list.Length;
 		int typeSize = sizeof(sbyte);
 		if (isUnityCountShorter(list, out byte maxBitCount))
 		{
 			// 写入1表示使用统一的长度位
 			setBufferBitOne(buffer, bitIndex++);
 			// 写入长度位
-			if (!writeSignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
+			if (!writeSignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
 			{
 				return false;
 			}
@@ -1862,7 +1869,7 @@ public class BinaryUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount(list[i]), list[i]);
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ushort)abs(list[i])), list[i]);
 			}
 			return result;
 		}
@@ -1870,7 +1877,7 @@ public class BinaryUtility
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<sbyte> list)
 	{
 		// 写入长度
-		int count = list.Count;
+		ushort count = (ushort)list.Count;
 		if (!writeBit(buffer, bufferSize, ref bitIndex, count))
 		{
 			return false;
@@ -1886,7 +1893,7 @@ public class BinaryUtility
 			// 写入1表示使用统一的长度位
 			setBufferBitOne(buffer, bitIndex++);
 			// 写入长度位
-			if (!writeSignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
+			if (!writeSignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
 			{
 				return false;
 			}
@@ -1911,21 +1918,21 @@ public class BinaryUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount(list[i]), list[i]);
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ushort)abs(list[i])), list[i]);
 			}
 			return result;
 		}
 	}
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, Span<short> list)
 	{
-		int count = list.Length;
+		ushort count = (ushort)list.Length;
 		int typeSize = sizeof(short);
 		if (isUnityCountShorter(list, out byte maxBitCount))
 		{
 			// 写入1表示使用统一的长度位
 			setBufferBitOne(buffer, bitIndex++);
 			// 写入长度位
-			if (!writeSignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
+			if (!writeSignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
 			{
 				return false;
 			}
@@ -1950,7 +1957,7 @@ public class BinaryUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount(list[i]), list[i]);
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ushort)abs(list[i])), list[i]);
 			}
 			return result;
 		}
@@ -1958,7 +1965,7 @@ public class BinaryUtility
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<short> list)
 	{
 		// 写入长度
-		int count = list.Count;
+		ushort count = (ushort)list.Count;
 		if (!writeBit(buffer, bufferSize, ref bitIndex, count))
 		{
 			return false;
@@ -1974,7 +1981,7 @@ public class BinaryUtility
 			// 写入1表示使用统一的长度位
 			setBufferBitOne(buffer, bitIndex++);
 			// 写入长度位
-			if (!writeSignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
+			if (!writeSignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
 			{
 				return false;
 			}
@@ -1999,21 +2006,21 @@ public class BinaryUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount(list[i]), list[i]);
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ushort)abs(list[i])), list[i]);
 			}
 			return result;
 		}	
 	}
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, Span<ushort> list)
 	{
-		int count = list.Length;
+		ushort count = (ushort)list.Length;
 		int typeSize = sizeof(ushort);
 		if (isUnityCountShorter(list, out byte maxBitCount))
 		{
 			// 写入1表示使用统一的长度位
 			setBufferBitOne(buffer, bitIndex++);
 			// 写入长度位
-			if (!writeUnsignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
+			if (!writeUnsignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, ref maxBitCount))
 			{
 				return false;
 			}
@@ -2027,7 +2034,7 @@ public class BinaryUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeUnsignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, list[i], maxBitCount, false);
+				result = result && writeUnsignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, list[i], maxBitCount, typeSize, false);
 			}
 			return result;
 		}
@@ -2046,7 +2053,7 @@ public class BinaryUtility
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<ushort> list)
 	{
 		// 写入长度
-		int count = list.Count;
+		ushort count = (ushort)list.Count;
 		if (!writeBit(buffer, bufferSize, ref bitIndex, count))
 		{
 			return false;
@@ -2062,7 +2069,7 @@ public class BinaryUtility
 			// 写入1表示使用统一的长度位
 			setBufferBitOne(buffer, bitIndex++);
 			// 写入长度位
-			if (!writeUnsignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
+			if (!writeUnsignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, ref maxBitCount))
 			{
 				return false;
 			}
@@ -2076,7 +2083,7 @@ public class BinaryUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeUnsignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, list[i], maxBitCount, false);
+				result = result && writeUnsignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, list[i], maxBitCount, typeSize, false);
 			}
 			return result;
 		}
@@ -2094,14 +2101,14 @@ public class BinaryUtility
 	}
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, Span<int> list)
 	{
-		int count = list.Length;
+		ushort count = (ushort)list.Length;
 		int typeSize = sizeof(int);
 		if (isUnityCountShorter(list, out byte maxBitCount))
 		{
 			// 写入1表示使用统一的长度位
 			setBufferBitOne(buffer, bitIndex++);
 			// 找出其中最大的值,计算出最大值的位数量,所有的值都使用这个位数量来存储
-			if (!writeSignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
+			if (!writeSignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
 			{
 				return false;
 			}
@@ -2126,7 +2133,7 @@ public class BinaryUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount(list[i]), list[i]);
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((uint)abs(list[i])), list[i]);
 			}
 			return result;
 		}
@@ -2134,7 +2141,7 @@ public class BinaryUtility
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<int> list)
 	{
 		// 写入长度
-		int count = list.Count;
+		ushort count = (ushort)list.Count;
 		if (!writeBit(buffer, bufferSize, ref bitIndex, count))
 		{
 			return false;
@@ -2150,7 +2157,7 @@ public class BinaryUtility
 			// 写入1表示使用统一的长度位
 			setBufferBitOne(buffer, bitIndex++);
 			// 找出其中最大的值,计算出最大值的位数量,所有的值都使用这个位数量来存储
-			if (!writeSignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
+			if (!writeSignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
 			{
 				return false;
 			}
@@ -2175,21 +2182,21 @@ public class BinaryUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount(list[i]), list[i]);
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((uint)abs(list[i])), list[i]);
 			}
 			return result;
 		}
 	}
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, Span<uint> list)
 	{
-		int count = list.Length;
+		ushort count = (ushort)list.Length;
 		int typeSize = sizeof(uint);
 		if (isUnityCountShorter(list, out byte maxBitCount))
 		{
 			// 写入1表示使用统一的长度位
 			setBufferBitOne(buffer, bitIndex++);
 			// 写入长度位
-			if (!writeUnsignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
+			if (!writeUnsignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, ref maxBitCount))
 			{
 				return false;
 			}
@@ -2203,7 +2210,7 @@ public class BinaryUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeUnsignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, list[i], maxBitCount, false);
+				result = result && writeUnsignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, list[i], maxBitCount, typeSize, false);
 			}
 			return result;
 		}
@@ -2222,7 +2229,7 @@ public class BinaryUtility
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<uint> list)
 	{
 		// 写入长度
-		int count = list.Count;
+		ushort count = (ushort)list.Count;
 		if (!writeBit(buffer, bufferSize, ref bitIndex, count))
 		{
 			return false;
@@ -2238,7 +2245,7 @@ public class BinaryUtility
 			// 写入1表示使用统一的长度位
 			setBufferBitOne(buffer, bitIndex++);
 			// 写入长度位
-			if (!writeUnsignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
+			if (!writeUnsignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, ref maxBitCount))
 			{
 				return false;
 			}
@@ -2252,7 +2259,7 @@ public class BinaryUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeUnsignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, list[i], maxBitCount, false);
+				result = result && writeUnsignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, list[i], maxBitCount, typeSize, false);
 			}
 			return result;
 		}
@@ -2270,14 +2277,14 @@ public class BinaryUtility
 	}
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, Span<long> list)
 	{
-		int count = list.Length;
+		ushort count = (ushort)list.Length;
 		int typeSize = sizeof(long);
 		if (isUnityCountShorter(list, out byte maxBitCount))
 		{
 			// 写入1表示使用统一的长度位
 			setBufferBitOne(buffer, bitIndex++);
 			// 写入长度位
-			if (!writeSignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
+			if (!writeSignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
 			{
 				return false;
 			}
@@ -2302,7 +2309,7 @@ public class BinaryUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount(list[i]), list[i]);
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ulong)abs(list[i])), list[i]);
 			}
 			return result;
 		}
@@ -2310,7 +2317,7 @@ public class BinaryUtility
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<long> list)
 	{
 		// 写入长度
-		int count = list.Count;
+		ushort count = (ushort)list.Count;
 		if (!writeBit(buffer, bufferSize, ref bitIndex, count))
 		{
 			return false;
@@ -2326,7 +2333,7 @@ public class BinaryUtility
 			// 写入1表示使用统一的长度位
 			setBufferBitOne(buffer, bitIndex++);
 			// 写入长度位
-			if (!writeSignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
+			if (!writeSignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
 			{
 				return false;
 			}
@@ -2351,21 +2358,21 @@ public class BinaryUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount(list[i]), list[i]);
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ulong)abs(list[i])), list[i]);
 			}
 			return result;
 		}
 	}
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, Span<ulong> list)
 	{
-		int count = list.Length;
+		ushort count = (ushort)list.Length;
 		int typeSize = sizeof(ulong);
 		if (isUnityCountShorter(list, out byte maxBitCount))
 		{
 			// 写入1表示使用统一的长度位
 			setBufferBitOne(buffer, bitIndex++);
 			// 写入长度位
-			if (!writeUnsignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
+			if (!writeUnsignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, ref maxBitCount))
 			{
 				return false;
 			}
@@ -2379,7 +2386,7 @@ public class BinaryUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeUnsignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, list[i], maxBitCount, false);
+				result = result && writeUnsignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, list[i], maxBitCount, typeSize, false);
 			}
 			return result;
 		}
@@ -2398,7 +2405,7 @@ public class BinaryUtility
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<ulong> list)
 	{
 		// 写入长度
-		int count = list.Count;
+		ushort count = (ushort)list.Count;
 		if (!writeBit(buffer, bufferSize, ref bitIndex, count))
 		{
 			return false;
@@ -2414,7 +2421,7 @@ public class BinaryUtility
 			// 写入1表示使用统一的长度位
 			setBufferBitOne(buffer, bitIndex++);
 			// 写入长度位
-			if (!writeUnsignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
+			if (!writeUnsignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, ref maxBitCount))
 			{
 				return false;
 			}
@@ -2428,7 +2435,7 @@ public class BinaryUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeUnsignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, list[i], maxBitCount, false);
+				result = result && writeUnsignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, list[i], maxBitCount, typeSize, false);
 			}
 			return result;
 		}
@@ -2447,42 +2454,16 @@ public class BinaryUtility
 	// 浮点数会扩大一定倍数转换为整数来写入
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, Span<float> list, int precision = 3)
 	{
-		int count = list.Length;
+		ushort count = (ushort)list.Length;
 		int typeSize = sizeof(float);
-		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
 		int powValue = pow10(precision);
-		byte maxBitCount = generateBitCount(round(findMaxAbs(list) * powValue));
-		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
-		int bitCountUnity = (maxBitCount + 1 * sign(maxBitCount)) * count + SIGNED_LENGTH_MAX_BIT[typeSize];
-		// 如果每个值都使用自己的实际位数来表示写入位个数所占用的总位数
-		// 先加上每个元素的长度位的位数量
-		int bitCountSingle = SIGNED_LENGTH_MAX_BIT[typeSize] * count;
-		// 写入独立长度所占空间小于统一个数时才会继续计算值所占的空间,如果长度部分已经大于了,则不需要再继续计算了
-		if (bitCountSingle < bitCountUnity)
-		{
-			for (int i = 0; i < count; ++i)
-			{
-				int thisAbsValue = abs(round(list[i] * powValue));
-				// 值为0时不会写入符号位和数据,不为0时才会写入
-				if (thisAbsValue > 0)
-				{
-					// 每个元素绝对值所占用的位数,最高位固定是1,所以减去1位,然后还要加上一个符号位
-					bitCountSingle += generateBitCount(thisAbsValue) - 1 + 1;
-					if (bitCountSingle >= bitCountUnity)
-					{
-						break;
-					}
-				}
-			}
-		}
-
 		// 使用统一的长度位占空间更小
-		if (bitCountSingle >= bitCountUnity)
+		if (isUnityCountShorter(list, out byte maxBitCount, precision))
 		{
 			// 写入1表示使用统一的长度位
 			setBufferBitOne(buffer, bitIndex++);
 			// 写入长度位
-			if (!writeSignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
+			if (!writeSignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
 			{
 				return false;
 			}
@@ -2508,7 +2489,7 @@ public class BinaryUtility
 			for (int i = 0; i < count; ++i)
 			{
 				int value = round(list[i] * powValue);
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount(value), value);
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((uint)abs(value)), value);
 			}
 			return result;
 		}
@@ -2517,7 +2498,7 @@ public class BinaryUtility
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<float> list, int precision = 3)
 	{
 		// 写入长度
-		int count = list.Count;
+		ushort count = (ushort)list.Count;
 		if (!writeBit(buffer, bufferSize, ref bitIndex, count))
 		{
 			return false;
@@ -2528,40 +2509,14 @@ public class BinaryUtility
 		}
 
 		int typeSize = sizeof(float);
-		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
 		int powValue = pow10(precision);
-		byte maxBitCount = generateBitCount(round(findMaxAbs(list) * powValue));
-		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
-		int bitCountUnity = (maxBitCount + 1 * sign(maxBitCount)) * count + SIGNED_LENGTH_MAX_BIT[typeSize];
-		// 如果每个值都使用自己的实际位数来表示写入位个数所占用的总位数
-		// 先加上每个元素的长度位的位数量
-		int bitCountSingle = SIGNED_LENGTH_MAX_BIT[typeSize] * count;
-		// 写入独立长度所占空间小于统一个数时才会继续计算值所占的空间,如果长度部分已经大于了,则不需要再继续计算了
-		if (bitCountSingle < bitCountUnity)
-		{
-			for (int i = 0; i < count; ++i)
-			{
-				int thisAbsValue = abs(round(list[i] * powValue));
-				// 值为0时不会写入符号位和数据,不为0时才会写入
-				if (thisAbsValue > 0)
-				{
-					// 每个元素绝对值所占用的位数,最高位固定是1,所以减去1位,然后还要加上一个符号位
-					bitCountSingle += generateBitCount(thisAbsValue) - 1 + 1;
-					if (bitCountSingle >= bitCountUnity)
-					{
-						break;
-					}
-				}
-			}
-		}
-
 		// 使用统一的长度位占空间更小
-		if (bitCountSingle >= bitCountUnity)
+		if (isUnityCountShorter(list, out byte maxBitCount, precision))
 		{
 			// 写入1表示使用统一的长度位
 			setBufferBitOne(buffer, bitIndex++);
 			// 写入长度位
-			if (!writeSignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
+			if (!writeSignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
 			{
 				return false;
 			}
@@ -2587,7 +2542,7 @@ public class BinaryUtility
 			for (int i = 0; i < count; ++i)
 			{
 				int value = round(list[i] * powValue);
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount(value), value);
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((uint)abs(value)), value);
 			}
 			return result;
 		}
@@ -2596,42 +2551,16 @@ public class BinaryUtility
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, Span<double> list, int precision = 4)
 	{
 		// 写入长度
-		int count = list.Length;
+		ushort count = (ushort)list.Length;
 		int typeSize = sizeof(double);
-		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
 		long powValue = pow10Long(precision);
-		byte maxBitCount = generateBitCount(round(findMaxAbs(list) * powValue));
-		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
-		int bitCountUnity = (maxBitCount + 1 * sign(maxBitCount)) * count + SIGNED_LENGTH_MAX_BIT[typeSize];
-		// 如果每个值都使用自己的实际位数来表示写入位个数所占用的总位数
-		// 先加上每个元素的长度位的位数量
-		int bitCountSingle = SIGNED_LENGTH_MAX_BIT[typeSize] * count;
-		// 写入独立长度所占空间小于统一个数时才会继续计算值所占的空间,如果长度部分已经大于了,则不需要再继续计算了
-		if (bitCountSingle < bitCountUnity)
-		{
-			for (int i = 0; i < count; ++i)
-			{
-				long thisAbsValue = abs(round(list[i] * powValue));
-				// 值为0时不会写入符号位和数据,不为0时才会写入
-				if (thisAbsValue > 0)
-				{
-					// 每个元素绝对值所占用的位数,最高位固定是1,所以减去1位,然后还要加上一个符号位
-					bitCountSingle += generateBitCount(thisAbsValue) - 1 + 1;
-					if (bitCountSingle >= bitCountUnity)
-					{
-						break;
-					}
-				}
-			}
-		}
-
 		// 使用统一的长度位占空间更小
-		if (bitCountSingle >= bitCountUnity)
+		if (isUnityCountShorter(list, out byte maxBitCount, precision))
 		{
 			// 写入1表示使用统一的长度位
 			setBufferBitOne(buffer, bitIndex++);
 			// 写入长度位
-			if (!writeSignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
+			if (!writeSignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
 			{
 				return false;
 			}
@@ -2657,7 +2586,7 @@ public class BinaryUtility
 			for (int i = 0; i < count; ++i)
 			{
 				long value = round(list[i] * powValue);
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount(value), value);
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ulong)abs(value)), value);
 			}
 			return result;
 		}
@@ -2665,8 +2594,8 @@ public class BinaryUtility
 	// 浮点数会扩大一定倍数转换为整数来写入
 	public static bool writeListBit(byte[] buffer, int bufferSize, ref int bitIndex, List<double> list, int precision = 4)
 	{
-		// 写入长度
-		int count = list.Count;
+		// 写入长度,为了尽量节省空间,这里只支持65535的最大列表长度
+		ushort count = (ushort)list.Count;
 		if (!writeBit(buffer, bufferSize, ref bitIndex, count))
 		{
 			return false;
@@ -2677,40 +2606,14 @@ public class BinaryUtility
 		}
 
 		int typeSize = sizeof(double);
-		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
 		long powValue = pow10Long(precision);
-		byte maxBitCount = generateBitCount(round(findMaxAbs(list) * powValue));
-		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
-		int bitCountUnity = (maxBitCount + 1 * sign(maxBitCount)) * count + SIGNED_LENGTH_MAX_BIT[typeSize];
-		// 如果每个值都使用自己的实际位数来表示写入位个数所占用的总位数
-		// 先加上每个元素的长度位的位数量
-		int bitCountSingle = SIGNED_LENGTH_MAX_BIT[typeSize] * count;
-		// 写入独立长度所占空间小于统一个数时才会继续计算值所占的空间,如果长度部分已经大于了,则不需要再继续计算了
-		if (bitCountSingle < bitCountUnity)
-		{
-			for (int i = 0; i < count; ++i)
-			{
-				long thisAbsValue = abs(round(list[i] * powValue));
-				// 值为0时不会写入符号位和数据,不为0时才会写入
-				if (thisAbsValue > 0)
-				{
-					// 每个元素绝对值所占用的位数,最高位固定是1,所以减去1位,然后还要加上一个符号位
-					bitCountSingle += generateBitCount(thisAbsValue) - 1 + 1;
-					if (bitCountSingle >= bitCountUnity)
-					{
-						break;
-					}
-				}
-			}
-		}
-
 		// 使用统一的长度位占空间更小
-		if (bitCountSingle >= bitCountUnity)
+		if (isUnityCountShorter(list, out byte maxBitCount, precision))
 		{
 			// 写入1表示使用统一的长度位
 			setBufferBitOne(buffer, bitIndex++);
 			// 写入长度位
-			if (!writeSignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
+			if (!writeSignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, maxBitCount))
 			{
 				return false;
 			}
@@ -2736,12 +2639,12 @@ public class BinaryUtility
 			for (int i = 0; i < count; ++i)
 			{
 				long value = round(list[i] * powValue);
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount(value), value);
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ulong)abs(value)), value);
 			}
 			return result;
 		}
 	}
-	public static bool wrtiteBufferBit(byte[] buffer, int bufferSize, ref int bitIndex, byte[] srcBuffer, int writeCount)
+	public static bool writeBufferBit(byte[] buffer, int bufferSize, ref int bitIndex, byte[] srcBuffer, int writeCount)
 	{
 		if (writeCount == 0 || srcBuffer == null)
 		{
@@ -3904,7 +3807,7 @@ public class BinaryUtility
 		return tempValue;
 	}
 	// 读取一个有符号的整数的长度位
-	protected static bool readSignedBitLength(byte[] buffer, int bufferSize, ref int bitIndex, int typeSize, out byte bitCount)
+	protected static bool readSignedLengthBit(byte[] buffer, int bufferSize, ref int bitIndex, int typeSize, out byte bitCount)
 	{
 		bitCount = 0;
 		// 读取长度位
@@ -3917,7 +3820,7 @@ public class BinaryUtility
 		return true;
 	}
 	// 读取一个无符号的整数的长度位
-	protected static bool readUnsignedBitLength(byte[] buffer, int bufferSize, ref int bitIndex, int typeSize, out byte bitCount)
+	protected static bool readUnsignedLengthBit(byte[] buffer, int bufferSize, ref int bitIndex, int typeSize, out byte bitCount)
 	{
 		bitCount = 0;
 		// 读取长度位
@@ -3926,20 +3829,27 @@ public class BinaryUtility
 		{
 			return false;
 		}
+
 		bitCount = (byte)readUnsignedValueBit(buffer, ref bitIndex, TYPE_LENGTH_MAX_BIT);
+		// 因为长度位的存储会忽略一个bit,所以当长度位的bit数达到此类型的最大时,会加1
+		// 比如byte类型为8bit,长度位存储只用了3bit,只能表示0到7,所以当读取到的长度位值为7时,就需要读8bit的数据位,不然就会丢失数据
+		if (bitCount == (1 << TYPE_LENGTH_MAX_BIT) - 1)
+		{
+			++bitCount;
+		}
 		return true;
 	}
 	// 读取有符号列在使用统一长度位的情况下的长度位
-	protected static bool readSignedListBitLength(byte[] buffer, int bufferSize, ref int bitIndex, int typeSize, int count, out byte bitCount)
+	protected static bool readSignedListLengthBit(byte[] buffer, int bufferSize, ref int bitIndex, int typeSize, int count, out byte bitCount)
 	{
-		readSignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, out bitCount);
+		readSignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, out bitCount);
 		// 每个元素会多一个符号位,所以+1,但是如果bitCount是0,则连符号位都不会有
 		return bitCountToByteCount(bitIndex + (bitCount + 1 * sign(bitCount)) * count) <= bufferSize;
 	}
 	// 读取无符号列在使用统一长度位的情况下的长度位
-	protected static bool readUnsignedListBitLength(byte[] buffer, int bufferSize, ref int bitIndex, int typeSize, int count, out byte bitCount)
+	protected static bool readUnsignedListLengthBit(byte[] buffer, int bufferSize, ref int bitIndex, int typeSize, int count, out byte bitCount)
 	{
-		readUnsignedBitLength(buffer, bufferSize, ref bitIndex, typeSize, out bitCount);
+		readUnsignedLengthBit(buffer, bufferSize, ref bitIndex, typeSize, out bitCount);
 		return bitCountToByteCount(bitIndex + bitCount * count) <= bufferSize;
 	}
 	// 可以按位写入带符号的整数,并且不写入长度位,因为long是最大的带符号整数,所以可以表示所有的带符号整数
@@ -3985,17 +3895,24 @@ public class BinaryUtility
 		return true;
 	}
 	// 可以按位写入无符号的整数,并且不写入长度位,因为ulong是最大的无符号整数,所以可以表示所有的无符号整数
-	protected static bool writeUnsignedIntegerBitNoLengthBit(byte[] buffer, int bufferSize, ref int bitIndex, ulong value, byte bitCount, bool dropHighestOne)
+	protected static bool writeUnsignedIntegerBitNoLengthBit(byte[] buffer, int bufferSize, ref int bitIndex, ulong value, byte bitCount, int typeSize, bool dropHighestOne)
 	{
 		if (bitCount == 0)
 		{
 			return true;
 		}
-		if (dropHighestOne)
+		// 如果写入位的数量到达最大位数时,就不能再去掉最高位了,否则会混淆
+		if (bitCount < (1 << typeSize) - 1 && dropHighestOne)
 		{
 			if (bitCountToByteCount(bitIndex + bitCount - 1) > bufferSize)
 			{
 				return false;
+			}
+			// 将最高位的1去掉,不需要写入
+			setBitZero(ref value, --bitCount);
+			if (bitCount == 0)
+			{
+				return true;
 			}
 		}
 		else
@@ -4005,21 +3922,11 @@ public class BinaryUtility
 				return false;
 			}
 		}
-		
-		if (dropHighestOne)
-		{
-			// 将最高位的1去掉,不需要写入
-			setBitZero(ref value, --bitCount);
-			if (bitCount == 0)
-			{
-				return true;
-			}
-		}
 		// 写入值的所有位
 		writeUnsignedValueBit(buffer, bitCount, ref bitIndex, value);
 		return true;
 	}
-	protected static bool writeSignedBitLength(byte[] buffer, int bufferSize, ref int bitIndex, int typeSize, byte bitCount)
+	protected static bool writeSignedLengthBit(byte[] buffer, int bufferSize, ref int bitIndex, int typeSize, byte bitCount)
 	{
 		byte typeLengthMaxBit = SIGNED_LENGTH_MAX_BIT[typeSize];
 		if (bitCountToByteCount(bitIndex + typeLengthMaxBit) > bufferSize)
@@ -4029,27 +3936,50 @@ public class BinaryUtility
 		writeUnsignedValueBit(buffer, typeLengthMaxBit, ref bitIndex, bitCount);
 		return true;
 	}
-	protected static bool writeUnsignedBitLength(byte[] buffer, int bufferSize, ref int bitIndex, int typeSize, byte bitCount)
+	protected static bool writeUnsignedLengthBit(byte[] buffer, int bufferSize, ref int bitIndex, int typeSize, ref byte bitCount)
 	{
 		byte typeLengthMaxBit = UNSIGNED_LENGTH_MAX_BIT[typeSize];
 		if (bitCountToByteCount(bitIndex + typeLengthMaxBit) > bufferSize)
 		{
 			return false;
 		}
-		writeUnsignedValueBit(buffer, typeLengthMaxBit, ref bitIndex, bitCount);
+		// 因为长度位的存储会忽略一个bit,所以当长度位的bit数达到此类型的最大时,会加1
+		// 比如byte类型为8bit,长度位存储只用了3bit,只能表示0到7,所以当需要写入的长度位值为8时,就只写7进去,但是实际写入数据时仍然是写入8bit
+		// 但是如果写入的长度位值为7,则长度位写入7,数据位仍然是写入8bit
+		byte writeBitCount = bitCount;
+		if (bitCount == 1 << typeLengthMaxBit)
+		{
+			writeBitCount = (byte)(bitCount - 1);
+		}
+		else if (bitCount == (1 << typeLengthMaxBit) - 1)
+		{
+			writeBitCount = bitCount;
+			++bitCount;
+		}
+		writeUnsignedValueBit(buffer, typeLengthMaxBit, ref bitIndex, writeBitCount);
 		return true;
 	}
 	protected static bool isUnityCountShorter(Span<byte> values, out byte maxBitCount)
 	{
 		int count = values.Length;
-		int typeSize = sizeof(byte);
 		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
-		maxBitCount = generateBitCount(findMax(values));
-		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
-		int bitCountUnity = maxBitCount * count + UNSIGNED_LENGTH_MAX_BIT[typeSize];
+		maxBitCount = generateBitCount((ushort)findMax(values));
+
+		byte typeLengthMaxBit = UNSIGNED_LENGTH_MAX_BIT[sizeof(byte)];
+		int bitCountUnity;
+		// 这里的判断与writeUnsignedLengthBit中的逻辑有关,writeUnsignedLengthBit会计算出写入到长度位的值,以及实际需要写入的数据位的位数
+		if (maxBitCount == (1 << typeLengthMaxBit) - 1)
+		{
+			bitCountUnity = (maxBitCount + 1) * count + typeLengthMaxBit;
+		}
+		else
+		{
+			bitCountUnity = maxBitCount * count + typeLengthMaxBit;
+		}
+
 		// 如果每个值都使用自己的实际位数来表示写入位个数所占用的总位数
 		// 先加上每个元素的长度位的位数量
-		int bitCountSingle = UNSIGNED_LENGTH_MAX_BIT[typeSize] * count;
+		int bitCountSingle = typeLengthMaxBit * count;
 		// 写入独立长度所占空间小于统一个数时才会继续计算值所占的空间,如果长度部分已经大于了,则不需要再继续计算了
 		if (bitCountSingle < bitCountUnity)
 		{
@@ -4059,7 +3989,13 @@ public class BinaryUtility
 				byte thisValue = values[i];
 				if (thisValue > 0)
 				{
-					bitCountSingle += generateBitCount(thisValue) - 1;
+					byte thisBitCount = generateBitCount(thisValue);
+					// 这里的判断也与writeUnsignedLengthBit中的逻辑有关
+					if (thisBitCount == (1 << typeLengthMaxBit) - 1)
+					{
+						++thisBitCount;
+					}
+					bitCountSingle += thisBitCount - 1;
 					if (bitCountSingle > bitCountUnity)
 					{
 						break;
@@ -4072,14 +4008,24 @@ public class BinaryUtility
 	protected static bool isUnityCountShorter(List<byte> values, out byte maxBitCount)
 	{
 		int count = values.Count;
-		int typeSize = sizeof(byte);
 		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
 		maxBitCount = generateBitCount(findMax(values));
-		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
-		int bitCountUnity = maxBitCount * count + UNSIGNED_LENGTH_MAX_BIT[typeSize];
+
+		byte typeLengthMaxBit = UNSIGNED_LENGTH_MAX_BIT[sizeof(byte)];
+		int bitCountUnity;
+		// 这里的判断与writeUnsignedLengthBit中的逻辑有关,writeUnsignedLengthBit会计算出写入到长度位的值,以及实际需要写入的数据位的位数
+		if (maxBitCount == (1 << typeLengthMaxBit) - 1)
+		{
+			bitCountUnity = (maxBitCount + 1) * count + typeLengthMaxBit;
+		}
+		else
+		{
+			bitCountUnity = maxBitCount * count + typeLengthMaxBit;
+		}
+
 		// 如果每个值都使用自己的实际位数来表示写入位个数所占用的总位数
 		// 先加上每个元素的长度位的位数量
-		int bitCountSingle = UNSIGNED_LENGTH_MAX_BIT[typeSize] * count;
+		int bitCountSingle = typeLengthMaxBit * count;
 		// 写入独立长度所占空间小于统一个数时才会继续计算值所占的空间,如果长度部分已经大于了,则不需要再继续计算了
 		if (bitCountSingle < bitCountUnity)
 		{
@@ -4089,7 +4035,13 @@ public class BinaryUtility
 				byte thisValue = values[i];
 				if (thisValue > 0)
 				{
-					bitCountSingle += generateBitCount(thisValue) - 1;
+					byte thisBitCount = generateBitCount(thisValue);
+					// 这里的判断也与writeUnsignedLengthBit中的逻辑有关
+					if (thisBitCount == (1 << typeLengthMaxBit) - 1)
+					{
+						++thisBitCount;
+					}
+					bitCountSingle += thisBitCount - 1;
 					if (bitCountSingle > bitCountUnity)
 					{
 						break;
@@ -4104,7 +4056,7 @@ public class BinaryUtility
 		int count = values.Length;
 		int typeSize = sizeof(sbyte);
 		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
-		maxBitCount = generateBitCount(findMaxAbs(values));
+		maxBitCount = generateBitCount((ushort)findMaxAbs(values));
 		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
 		int bitCountUnity;
 		if (maxBitCount > 0)
@@ -4127,7 +4079,7 @@ public class BinaryUtility
 				sbyte thisValue = abs(values[i]);
 				if (thisValue > 0)
 				{
-					bitCountSingle += generateBitCount(thisValue) - 1 + 1;
+					bitCountSingle += generateBitCount((ushort)thisValue) - 1 + 1;
 					if (bitCountSingle > bitCountUnity)
 					{
 						break;
@@ -4142,7 +4094,7 @@ public class BinaryUtility
 		int count = values.Count;
 		int typeSize = sizeof(sbyte);
 		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
-		maxBitCount = generateBitCount(findMaxAbs(values));
+		maxBitCount = generateBitCount((ushort)findMaxAbs(values));
 		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
 		int bitCountUnity;
 		if (maxBitCount > 0)
@@ -4165,7 +4117,7 @@ public class BinaryUtility
 				sbyte thisValue = abs(values[i]);
 				if (thisValue > 0)
 				{
-					bitCountSingle += generateBitCount(thisValue) - 1 + 1;
+					bitCountSingle += generateBitCount((ushort)thisValue) - 1 + 1;
 					if (bitCountSingle > bitCountUnity)
 					{
 						break;
@@ -4178,14 +4130,24 @@ public class BinaryUtility
 	protected static bool isUnityCountShorter(Span<ushort> values, out byte maxBitCount)
 	{
 		int count = values.Length;
-		int typeSize = sizeof(ushort);
 		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
 		maxBitCount = generateBitCount(findMax(values));
-		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
-		int bitCountUnity = maxBitCount * count + UNSIGNED_LENGTH_MAX_BIT[typeSize];
+
+		byte typeLengthMaxBit = UNSIGNED_LENGTH_MAX_BIT[sizeof(ushort)];
+		int bitCountUnity;
+		// 这里的判断与writeUnsignedLengthBit中的逻辑有关,writeUnsignedLengthBit会计算出写入到长度位的值,以及实际需要写入的数据位的位数
+		if (maxBitCount == (1 << typeLengthMaxBit) - 1)
+		{
+			bitCountUnity = (maxBitCount + 1) * count + typeLengthMaxBit;
+		}
+		else
+		{
+			bitCountUnity = maxBitCount * count + typeLengthMaxBit;
+		}
+
 		// 如果每个值都使用自己的实际位数来表示写入位个数所占用的总位数
 		// 先加上每个元素的长度位的位数量
-		int bitCountSingle = UNSIGNED_LENGTH_MAX_BIT[typeSize] * count;
+		int bitCountSingle = typeLengthMaxBit * count;
 		// 写入独立长度所占空间小于统一个数时才会继续计算值所占的空间,如果长度部分已经大于了,则不需要再继续计算了
 		if (bitCountSingle < bitCountUnity)
 		{
@@ -4195,7 +4157,13 @@ public class BinaryUtility
 				ushort thisValue = values[i];
 				if (thisValue > 0)
 				{
-					bitCountSingle += generateBitCount(thisValue) - 1;
+					byte thisBitCount = generateBitCount(thisValue);
+					// 这里的判断也与writeUnsignedLengthBit中的逻辑有关
+					if (thisBitCount == (1 << typeLengthMaxBit) - 1)
+					{
+						++thisBitCount;
+					}
+					bitCountSingle += thisBitCount - 1;
 					if (bitCountSingle > bitCountUnity)
 					{
 						break;
@@ -4208,14 +4176,24 @@ public class BinaryUtility
 	protected static bool isUnityCountShorter(List<ushort> values, out byte maxBitCount)
 	{
 		int count = values.Count;
-		int typeSize = sizeof(ushort);
 		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
 		maxBitCount = generateBitCount(findMax(values));
-		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
-		int bitCountUnity = maxBitCount * count + UNSIGNED_LENGTH_MAX_BIT[typeSize];
+
+		byte typeLengthMaxBit = UNSIGNED_LENGTH_MAX_BIT[sizeof(ushort)];
+		int bitCountUnity;
+		// 这里的判断与writeUnsignedLengthBit中的逻辑有关,writeUnsignedLengthBit会计算出写入到长度位的值,以及实际需要写入的数据位的位数
+		if (maxBitCount == (1 << typeLengthMaxBit) - 1)
+		{
+			bitCountUnity = (maxBitCount + 1) * count + typeLengthMaxBit;
+		}
+		else
+		{
+			bitCountUnity = maxBitCount * count + typeLengthMaxBit;
+		}
+
 		// 如果每个值都使用自己的实际位数来表示写入位个数所占用的总位数
 		// 先加上每个元素的长度位的位数量
-		int bitCountSingle = UNSIGNED_LENGTH_MAX_BIT[typeSize] * count;
+		int bitCountSingle = typeLengthMaxBit * count;
 		// 写入独立长度所占空间小于统一个数时才会继续计算值所占的空间,如果长度部分已经大于了,则不需要再继续计算了
 		if (bitCountSingle < bitCountUnity)
 		{
@@ -4225,7 +4203,13 @@ public class BinaryUtility
 				ushort thisValue = values[i];
 				if (thisValue > 0)
 				{
-					bitCountSingle += generateBitCount(thisValue) - 1;
+					byte thisBitCount = generateBitCount(thisValue);
+					// 这里的判断也与writeUnsignedLengthBit中的逻辑有关
+					if (thisBitCount == (1 << typeLengthMaxBit) - 1)
+					{
+						++thisBitCount;
+					}
+					bitCountSingle += thisBitCount - 1;
 					if (bitCountSingle > bitCountUnity)
 					{
 						break;
@@ -4240,7 +4224,7 @@ public class BinaryUtility
 		int count = values.Length;
 		int typeSize = sizeof(short);
 		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
-		maxBitCount = generateBitCount(findMaxAbs(values));
+		maxBitCount = generateBitCount((ushort)findMaxAbs(values));
 		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
 		int bitCountUnity;
 		if (maxBitCount > 0)
@@ -4263,7 +4247,7 @@ public class BinaryUtility
 				short thisValue = abs(values[i]);
 				if (thisValue > 0)
 				{
-					bitCountSingle += generateBitCount(thisValue) - 1 + 1;
+					bitCountSingle += generateBitCount((ushort)thisValue) - 1 + 1;
 					if (bitCountSingle > bitCountUnity)
 					{
 						break;
@@ -4278,7 +4262,7 @@ public class BinaryUtility
 		int count = values.Count;
 		int typeSize = sizeof(short);
 		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
-		maxBitCount = generateBitCount(findMaxAbs(values));
+		maxBitCount = generateBitCount((ushort)findMaxAbs(values));
 		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
 		int bitCountUnity;
 		if (maxBitCount > 0)
@@ -4301,7 +4285,7 @@ public class BinaryUtility
 				short thisValue = abs(values[i]);
 				if (thisValue > 0)
 				{
-					bitCountSingle += generateBitCount(thisValue) - 1 + 1;
+					bitCountSingle += generateBitCount((ushort)thisValue) - 1 + 1;
 					if (bitCountSingle > bitCountUnity)
 					{
 						break;
@@ -4316,7 +4300,7 @@ public class BinaryUtility
 		int count = values.Length;
 		int typeSize = sizeof(int);
 		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
-		maxBitCount = generateBitCount(findMaxAbs(values));
+		maxBitCount = generateBitCount((uint)findMaxAbs(values));
 		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
 		int bitCountUnity;
 		if (maxBitCount > 0)
@@ -4339,7 +4323,7 @@ public class BinaryUtility
 				int thisValue = abs(values[i]);
 				if (thisValue > 0)
 				{
-					bitCountSingle += generateBitCount(thisValue) - 1 + 1;
+					bitCountSingle += generateBitCount((uint)thisValue) - 1 + 1;
 					if (bitCountSingle > bitCountUnity)
 					{
 						break;
@@ -4354,7 +4338,7 @@ public class BinaryUtility
 		int count = values.Count;
 		int typeSize = sizeof(int);
 		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
-		maxBitCount = generateBitCount(findMaxAbs(values));
+		maxBitCount = generateBitCount((uint)findMaxAbs(values));
 		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
 		int bitCountUnity;
 		if (maxBitCount > 0)
@@ -4377,7 +4361,7 @@ public class BinaryUtility
 				int thisValue = abs(values[i]);
 				if (thisValue > 0)
 				{
-					bitCountSingle += generateBitCount(thisValue) - 1 + 1;
+					bitCountSingle += generateBitCount((uint)thisValue) - 1 + 1;
 					if (bitCountSingle > bitCountUnity)
 					{
 						break;
@@ -4390,14 +4374,24 @@ public class BinaryUtility
 	protected static bool isUnityCountShorter(Span<uint> values, out byte maxBitCount)
 	{
 		int count = values.Length;
-		int typeSize = sizeof(uint);
 		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
 		maxBitCount = generateBitCount(findMax(values));
-		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
-		int bitCountUnity = maxBitCount * count + UNSIGNED_LENGTH_MAX_BIT[typeSize];
+
+		byte typeLengthMaxBit = UNSIGNED_LENGTH_MAX_BIT[sizeof(uint)];
+		int bitCountUnity;
+		// 这里的判断与writeUnsignedLengthBit中的逻辑有关,writeUnsignedLengthBit会计算出写入到长度位的值,以及实际需要写入的数据位的位数
+		if (maxBitCount == (1 << typeLengthMaxBit) - 1)
+		{
+			bitCountUnity = (maxBitCount + 1) * count + typeLengthMaxBit;
+		}
+		else
+		{
+			bitCountUnity = maxBitCount * count + typeLengthMaxBit;
+		}
+
 		// 如果每个值都使用自己的实际位数来表示写入位个数所占用的总位数
 		// 先加上每个元素的长度位的位数量
-		int bitCountSingle = UNSIGNED_LENGTH_MAX_BIT[typeSize] * count;
+		int bitCountSingle = typeLengthMaxBit * count;
 		// 写入独立长度所占空间小于统一个数时才会继续计算值所占的空间,如果长度部分已经大于了,则不需要再继续计算了
 		if (bitCountSingle < bitCountUnity)
 		{
@@ -4407,7 +4401,13 @@ public class BinaryUtility
 				uint thisValue = values[i];
 				if (thisValue > 0)
 				{
-					bitCountSingle += generateBitCount(thisValue) - 1;
+					byte thisBitCount = generateBitCount(thisValue);
+					// 这里的判断也与writeUnsignedLengthBit中的逻辑有关
+					if (thisBitCount == (1 << typeLengthMaxBit) - 1)
+					{
+						++thisBitCount;
+					}
+					bitCountSingle += thisBitCount - 1;
 					if (bitCountSingle > bitCountUnity)
 					{
 						break;
@@ -4420,14 +4420,24 @@ public class BinaryUtility
 	protected static bool isUnityCountShorter(List<uint> values, out byte maxBitCount)
 	{
 		int count = values.Count;
-		int typeSize = sizeof(uint);
 		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
 		maxBitCount = generateBitCount(findMax(values));
-		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
-		int bitCountUnity = maxBitCount * count + UNSIGNED_LENGTH_MAX_BIT[typeSize];
+
+		byte typeLengthMaxBit = UNSIGNED_LENGTH_MAX_BIT[sizeof(uint)];
+		int bitCountUnity;
+		// 这里的判断与writeUnsignedLengthBit中的逻辑有关,writeUnsignedLengthBit会计算出写入到长度位的值,以及实际需要写入的数据位的位数
+		if (maxBitCount == (1 << typeLengthMaxBit) - 1)
+		{
+			bitCountUnity = (maxBitCount + 1) * count + typeLengthMaxBit;
+		}
+		else
+		{
+			bitCountUnity = maxBitCount * count + typeLengthMaxBit;
+		}
+
 		// 如果每个值都使用自己的实际位数来表示写入位个数所占用的总位数
 		// 先加上每个元素的长度位的位数量
-		int bitCountSingle = UNSIGNED_LENGTH_MAX_BIT[typeSize] * count;
+		int bitCountSingle = typeLengthMaxBit * count;
 		// 写入独立长度所占空间小于统一个数时才会继续计算值所占的空间,如果长度部分已经大于了,则不需要再继续计算了
 		if (bitCountSingle < bitCountUnity)
 		{
@@ -4437,7 +4447,13 @@ public class BinaryUtility
 				uint thisValue = values[i];
 				if (thisValue > 0)
 				{
-					bitCountSingle += generateBitCount(thisValue) - 1;
+					byte thisBitCount = generateBitCount(thisValue);
+					// 这里的判断也与writeUnsignedLengthBit中的逻辑有关
+					if (thisBitCount == (1 << typeLengthMaxBit) - 1)
+					{
+						++thisBitCount;
+					}
+					bitCountSingle += thisBitCount - 1;
 					if (bitCountSingle > bitCountUnity)
 					{
 						break;
@@ -4452,7 +4468,7 @@ public class BinaryUtility
 		int count = values.Length;
 		int typeSize = sizeof(long);
 		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
-		maxBitCount = generateBitCount(findMaxAbs(values));
+		maxBitCount = generateBitCount((ulong)findMaxAbs(values));
 		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
 		int bitCountUnity;
 		if (maxBitCount > 0)
@@ -4475,7 +4491,7 @@ public class BinaryUtility
 				long thisValue = abs(values[i]);
 				if (thisValue > 0)
 				{
-					bitCountSingle += generateBitCount(thisValue) - 1 + 1;
+					bitCountSingle += generateBitCount((ulong)thisValue) - 1 + 1;
 					if (bitCountSingle > bitCountUnity)
 					{
 						break;
@@ -4490,7 +4506,7 @@ public class BinaryUtility
 		int count = values.Count;
 		int typeSize = sizeof(long);
 		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
-		maxBitCount = generateBitCount(findMaxAbs(values));
+		maxBitCount = generateBitCount((ulong)findMaxAbs(values));
 		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
 		int bitCountUnity;
 		if (maxBitCount > 0)
@@ -4513,7 +4529,7 @@ public class BinaryUtility
 				long thisValue = abs(values[i]);
 				if (thisValue > 0)
 				{
-					bitCountSingle += generateBitCount(thisValue) - 1 + 1;
+					bitCountSingle += generateBitCount((ulong)thisValue) - 1 + 1;
 					if (bitCountSingle > bitCountUnity)
 					{
 						break;
@@ -4526,14 +4542,24 @@ public class BinaryUtility
 	protected static bool isUnityCountShorter(Span<ulong> values, out byte maxBitCount)
 	{
 		int count = values.Length;
-		int typeSize = sizeof(ulong);
 		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
 		maxBitCount = generateBitCount(findMax(values));
-		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
-		int bitCountUnity = maxBitCount * count + UNSIGNED_LENGTH_MAX_BIT[typeSize];
+
+		byte typeLengthMaxBit = UNSIGNED_LENGTH_MAX_BIT[sizeof(ulong)];
+		int bitCountUnity;
+		// 这里的判断与writeUnsignedLengthBit中的逻辑有关,writeUnsignedLengthBit会计算出写入到长度位的值,以及实际需要写入的数据位的位数
+		if (maxBitCount == (1 << typeLengthMaxBit) - 1)
+		{
+			bitCountUnity = (maxBitCount + 1) * count + typeLengthMaxBit;
+		}
+		else
+		{
+			bitCountUnity = maxBitCount * count + typeLengthMaxBit;
+		}
+
 		// 如果每个值都使用自己的实际位数来表示写入位个数所占用的总位数
 		// 先加上每个元素的长度位的位数量
-		int bitCountSingle = UNSIGNED_LENGTH_MAX_BIT[typeSize] * count;
+		int bitCountSingle = typeLengthMaxBit * count;
 		// 写入独立长度所占空间小于统一个数时才会继续计算值所占的空间,如果长度部分已经大于了,则不需要再继续计算了
 		if (bitCountSingle < bitCountUnity)
 		{
@@ -4543,7 +4569,13 @@ public class BinaryUtility
 				ulong thisValue = values[i];
 				if (thisValue > 0)
 				{
-					bitCountSingle += generateBitCount(thisValue) - 1;
+					byte thisBitCount = generateBitCount(thisValue);
+					// 这里的判断也与writeUnsignedLengthBit中的逻辑有关
+					if (thisBitCount == (1 << typeLengthMaxBit) - 1)
+					{
+						++thisBitCount;
+					}
+					bitCountSingle += thisBitCount - 1;
 					if (bitCountSingle > bitCountUnity)
 					{
 						break;
@@ -4556,14 +4588,24 @@ public class BinaryUtility
 	protected static bool isUnityCountShorter(List<ulong> values, out byte maxBitCount)
 	{
 		int count = values.Count;
-		int typeSize = sizeof(ulong);
 		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
 		maxBitCount = generateBitCount(findMax(values));
-		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
-		int bitCountUnity = maxBitCount * count + UNSIGNED_LENGTH_MAX_BIT[typeSize];
+
+		byte typeLengthMaxBit = UNSIGNED_LENGTH_MAX_BIT[sizeof(ulong)];
+		int bitCountUnity;
+		// 这里的判断与writeUnsignedLengthBit中的逻辑有关,writeUnsignedLengthBit会计算出写入到长度位的值,以及实际需要写入的数据位的位数
+		if (maxBitCount == (1 << typeLengthMaxBit) - 1)
+		{
+			bitCountUnity = (maxBitCount + 1) * count + typeLengthMaxBit;
+		}
+		else
+		{
+			bitCountUnity = maxBitCount * count + typeLengthMaxBit;
+		}
+
 		// 如果每个值都使用自己的实际位数来表示写入位个数所占用的总位数
 		// 先加上每个元素的长度位的位数量
-		int bitCountSingle = UNSIGNED_LENGTH_MAX_BIT[typeSize] * count;
+		int bitCountSingle = typeLengthMaxBit * count;
 		// 写入独立长度所占空间小于统一个数时才会继续计算值所占的空间,如果长度部分已经大于了,则不需要再继续计算了
 		if (bitCountSingle < bitCountUnity)
 		{
@@ -4573,7 +4615,13 @@ public class BinaryUtility
 				ulong thisValue = values[i];
 				if (thisValue > 0)
 				{
-					bitCountSingle += generateBitCount(thisValue) - 1;
+					byte thisBitCount = generateBitCount(thisValue);
+					// 这里的判断也与writeUnsignedLengthBit中的逻辑有关
+					if (thisBitCount == (1 << typeLengthMaxBit) - 1)
+					{
+						++thisBitCount;
+					}
+					bitCountSingle += thisBitCount - 1;
 					if (bitCountSingle > bitCountUnity)
 					{
 						break;
@@ -4583,37 +4631,161 @@ public class BinaryUtility
 		}
 		return bitCountSingle >= bitCountUnity;
 	}
-	protected static byte generateBitCount(char value)
+	protected static bool isUnityCountShorter(Span<float> values, out byte maxBitCount, int precision)
 	{
-		if (mBitCountTable == null)
+		int count = values.Length;
+		int typeSize = sizeof(float);
+		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
+		int powValue = pow10(precision);
+		maxBitCount = generateBitCount((uint)round(findMaxAbs(values) * powValue));
+		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
+		int bitCountUnity;
+		if (maxBitCount > 0)
 		{
-			initBitCountTable();
+			bitCountUnity = (maxBitCount + 1) * count + SIGNED_LENGTH_MAX_BIT[typeSize];
 		}
-		if (value < 0)
+		else
 		{
-			return 0;
+			bitCountUnity = SIGNED_LENGTH_MAX_BIT[typeSize];
 		}
-		return mBitCountTable[value];
+		// 如果每个值都使用自己的实际位数来表示写入位个数所占用的总位数
+		// 先加上每个元素的长度位的位数量
+		int bitCountSingle = SIGNED_LENGTH_MAX_BIT[typeSize] * count;
+		// 写入独立长度所占空间小于统一个数时才会继续计算值所占的空间,如果长度部分已经大于了,则不需要再继续计算了
+		if (bitCountSingle < bitCountUnity)
+		{
+			// 每个元素绝对值所占用的位数,最高位固定是1,所以减去1位,然后还要加上一个符号位
+			for (int i = 0; i < count; ++i)
+			{
+				int thisAbsValue = abs(round(values[i] * powValue));
+				if (thisAbsValue > 0)
+				{
+					bitCountSingle += generateBitCount((uint)thisAbsValue) - 1 + 1;
+					if (bitCountSingle > bitCountUnity)
+					{
+						break;
+					}
+				}
+			}
+		}
+		return bitCountSingle >= bitCountUnity;
 	}
-	protected static byte generateBitCount(byte value)
+	protected static bool isUnityCountShorter(List<float> values, out byte maxBitCount, int precision)
 	{
-		if (mBitCountTable == null)
+		int count = values.Count;
+		int typeSize = sizeof(float);
+		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
+		int powValue = pow10(precision);
+		maxBitCount = generateBitCount((uint)round(findMaxAbs(values) * powValue));
+		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
+		int bitCountUnity;
+		if (maxBitCount > 0)
 		{
-			initBitCountTable();
+			bitCountUnity = (maxBitCount + 1) * count + SIGNED_LENGTH_MAX_BIT[typeSize];
 		}
-		return mBitCountTable[value];
+		else
+		{
+			bitCountUnity = SIGNED_LENGTH_MAX_BIT[typeSize];
+		}
+		// 如果每个值都使用自己的实际位数来表示写入位个数所占用的总位数
+		// 先加上每个元素的长度位的位数量
+		int bitCountSingle = SIGNED_LENGTH_MAX_BIT[typeSize] * count;
+		// 写入独立长度所占空间小于统一个数时才会继续计算值所占的空间,如果长度部分已经大于了,则不需要再继续计算了
+		if (bitCountSingle < bitCountUnity)
+		{
+			// 每个元素绝对值所占用的位数,最高位固定是1,所以减去1位,然后还要加上一个符号位
+			for (int i = 0; i < count; ++i)
+			{
+				int thisAbsValue = abs(round(values[i] * powValue));
+				if (thisAbsValue > 0)
+				{
+					bitCountSingle += generateBitCount((uint)thisAbsValue) - 1 + 1;
+					if (bitCountSingle > bitCountUnity)
+					{
+						break;
+					}
+				}
+			}
+		}
+		return bitCountSingle >= bitCountUnity;
 	}
-	protected static byte generateBitCount(short value)
+	protected static bool isUnityCountShorter(Span<double> values, out byte maxBitCount, int precision)
 	{
-		if (mBitCountTable == null)
+		int count = values.Length;
+		int typeSize = sizeof(double);
+		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
+		long powValue = pow10(precision);
+		maxBitCount = generateBitCount((ulong)round(findMaxAbs(values) * powValue));
+		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
+		int bitCountUnity;
+		if (maxBitCount > 0)
 		{
-			initBitCountTable();
+			bitCountUnity = (maxBitCount + 1) * count + SIGNED_LENGTH_MAX_BIT[typeSize];
 		}
-		if (value < 0)
+		else
 		{
-			return 0;
+			bitCountUnity = SIGNED_LENGTH_MAX_BIT[typeSize];
 		}
-		return mBitCountTable[value];
+		// 如果每个值都使用自己的实际位数来表示写入位个数所占用的总位数
+		// 先加上每个元素的长度位的位数量
+		int bitCountSingle = SIGNED_LENGTH_MAX_BIT[typeSize] * count;
+		// 写入独立长度所占空间小于统一个数时才会继续计算值所占的空间,如果长度部分已经大于了,则不需要再继续计算了
+		if (bitCountSingle < bitCountUnity)
+		{
+			// 每个元素绝对值所占用的位数,最高位固定是1,所以减去1位,然后还要加上一个符号位
+			for (int i = 0; i < count; ++i)
+			{
+				long thisAbsValue = abs(round(values[i] * powValue));
+				if (thisAbsValue > 0)
+				{
+					bitCountSingle += generateBitCount((ulong)thisAbsValue) - 1 + 1;
+					if (bitCountSingle > bitCountUnity)
+					{
+						break;
+					}
+				}
+			}
+		}
+		return bitCountSingle >= bitCountUnity;
+	}
+	protected static bool isUnityCountShorter(List<double> values, out byte maxBitCount, int precision)
+	{
+		int count = values.Count;
+		int typeSize = sizeof(double);
+		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
+		long powValue = pow10(precision);
+		maxBitCount = generateBitCount((ulong)round(findMaxAbs(values) * powValue));
+		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
+		int bitCountUnity;
+		if (maxBitCount > 0)
+		{
+			bitCountUnity = (maxBitCount + 1) * count + SIGNED_LENGTH_MAX_BIT[typeSize];
+		}
+		else
+		{
+			bitCountUnity = SIGNED_LENGTH_MAX_BIT[typeSize];
+		}
+		// 如果每个值都使用自己的实际位数来表示写入位个数所占用的总位数
+		// 先加上每个元素的长度位的位数量
+		int bitCountSingle = SIGNED_LENGTH_MAX_BIT[typeSize] * count;
+		// 写入独立长度所占空间小于统一个数时才会继续计算值所占的空间,如果长度部分已经大于了,则不需要再继续计算了
+		if (bitCountSingle < bitCountUnity)
+		{
+			// 每个元素绝对值所占用的位数,最高位固定是1,所以减去1位,然后还要加上一个符号位
+			for (int i = 0; i < count; ++i)
+			{
+				long thisAbsValue = abs(round(values[i] * powValue));
+				if (thisAbsValue > 0)
+				{
+					bitCountSingle += generateBitCount((ulong)thisAbsValue) - 1 + 1;
+					if (bitCountSingle > bitCountUnity)
+					{
+						break;
+					}
+				}
+			}
+		}
+		return bitCountSingle >= bitCountUnity;
 	}
 	protected static byte generateBitCount(ushort value)
 	{
@@ -4622,26 +4794,6 @@ public class BinaryUtility
 			initBitCountTable();
 		}
 		return mBitCountTable[value];
-	}
-	protected static byte generateBitCount(int value)
-	{
-		if (mBitCountTable == null)
-		{
-			initBitCountTable();
-		}
-		if (value < 0)
-		{
-			return 0;
-		}
-		ushort part1 = (ushort)((value & 0xFFFF0000) >> 16);
-		if (part1 > 0)
-		{
-			return (byte)(mBitCountTable[part1] + 16);
-		}
-		else
-		{
-			return mBitCountTable[value & 0x0000FFFF];
-		}
 	}
 	protected static byte generateBitCount(uint value)
 	{
@@ -4657,37 +4809,6 @@ public class BinaryUtility
 		else
 		{
 			return mBitCountTable[value & 0x0000FFFF];
-		}
-	}
-	protected static byte generateBitCount(long value)
-	{
-		if (mBitCountTable == null)
-		{
-			initBitCountTable();
-		}
-		if (value < 0)
-		{
-			return 0;
-		}
-		ulong ulongValue = (ulong)value;
-		if ((ulongValue & 0xFFFFFFFF00000000) > 0)
-		{
-			ushort part3 = (ushort)((ulongValue & 0xFFFF000000000000) >> 48);
-			if (part3 > 0)
-			{
-				return (byte)(mBitCountTable[part3] + 16 * 3);
-			}
-			ushort part2 = (ushort)((ulongValue & 0x0000FFFF00000000) >> 32);
-			return (byte)(mBitCountTable[part2] + 16 * 2);
-		}
-		else
-		{
-			ushort part1 = (ushort)((ulongValue & 0x00000000FFFF0000) >> 16);
-			if (part1 > 0)
-			{
-				return (byte)(mBitCountTable[part1] + 16 * 1);
-			}
-			return mBitCountTable[ulongValue & 0x000000000000FFFF];
 		}
 	}
 	protected static byte generateBitCount(ulong value)

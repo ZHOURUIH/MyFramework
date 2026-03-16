@@ -152,7 +152,7 @@ public class AndroidAssetLoader : FrameSystem
 		checkPersistenDataPath(path);
 		return mAssetLoader.CallStatic<int>("getFileSize", path);
 	}
-	public static void findFiles(string path, List<string> fileList, IList<string> patterns, bool recursive)
+	public static void findFiles(string path, List<string> fileList, List<string> patterns, bool recursive)
 	{
 		if (mAssetLoader == null)
 		{

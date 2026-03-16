@@ -291,12 +291,17 @@ public class FrameUtility
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 列表对象池
-	public static List<T> LIST<T>(IEnumerable<T> initList = null)
+	public static List<T> LIST<T>()
+	{
+		LIST(out List<T> list, null);
+		return list;
+	}
+	public static List<T> LIST<T>(IList<T> initList)
 	{
 		LIST(out List<T> list, initList);
 		return list;
 	}
-	public static void LIST<T>(out List<T> list, IEnumerable<T> initList = null)
+	public static void LIST<T>(out List<T> list, IList<T> initList = null)
 	{
 		if (GameEntry.getInstance() == null || mListPool == null)
 		{
@@ -314,12 +319,12 @@ public class FrameUtility
 			list.AddRange(initList);
 		}
 	}
-	public static List<T> LIST_PERSIST<T>(IEnumerable<T> initList = null)
+	public static List<T> LIST_PERSIST<T>()
 	{
-		LIST_PERSIST(out List<T> list, initList);
+		LIST_PERSIST(out List<T> list, (T[])null);
 		return list;
 	}
-	public static List<T> LIST_PERSIST<T>(out List<T> list, IEnumerable<T> initList = null)
+	public static List<T> LIST_PERSIST<T>(out List<T> list)
 	{
 		if (GameEntry.getInstance() == null || mListPool == null)
 		{
@@ -332,6 +337,16 @@ public class FrameUtility
 			stackTrace = getStackTrace();
 		}
 		list = mListPool.newList(typeof(T), typeof(List<T>), stackTrace, false) as List<T>;
+		return list;
+	}
+	public static List<T> LIST_PERSIST<T>(out List<T> list, T[] initList)
+	{
+		LIST_PERSIST(out list);
+		return list.addRange(initList);
+	}
+	public static List<T> LIST_PERSIST<T>(out List<T> list, List<T> initList)
+	{
+		LIST_PERSIST(out list);
 		return list.addRange(initList);
 	}
 	public static void UN_LIST<T>(List<T> list)
@@ -350,7 +365,7 @@ public class FrameUtility
 	{
 		return SET_PERSIST(out HashSet<T> list);
 	}
-	public static HashSet<T> SET_PERSIST<T>(out HashSet<T> list, IList<T> initList = null)
+	public static HashSet<T> SET_PERSIST<T>(out HashSet<T> list, List<T> initList = null)
 	{
 		if (GameEntry.getInstance() == null || mListPool == null)
 		{
@@ -499,7 +514,7 @@ public class FrameUtility
 	{
 		mClassPool?.destroyClass(ref obj);
 	}
-	public static void UN_CLASS_LIST<T>(IList<T> objList) where T : ClassObject
+	public static void UN_CLASS_LIST<T>(List<T> objList) where T : ClassObject
 	{
 		mClassPool?.destroyClassList(objList);
 		objList?.Clear();
@@ -522,7 +537,7 @@ public class FrameUtility
 	{
 		mClassPoolThread?.destroyClass(ref obj);
 	}
-	public static void UN_CLASS_LIST_THREAD<T>(IList<T> objList) where T : ClassObject
+	public static void UN_CLASS_LIST_THREAD<T>(List<T> objList) where T : ClassObject
 	{
 		mClassPoolThread?.destroyClassList(objList);
 		objList.Clear();
@@ -1583,47 +1598,6 @@ public class FrameUtility
 			}
 		}
 		return false;
-	}
-	// 比较两个列表是否完全一致
-	public static bool compareList<T>(List<T> list0, List<T> list1)
-	{
-		if (list0 == null && list1 == null)
-		{
-			return true;
-		}
-		if (list0 == null || list1 == null)
-		{
-			return false;
-		}
-		int count = list0.Count;
-		if (count != list1.Count)
-		{
-			return false;
-		}
-		for (int i = 0; i < count; ++i)
-		{
-			if (!EqualityComparer<T>.Default.Equals(list0[i], list1[i]))
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-	// 反转列表顺序
-	public static void inverseList<T>(IList<T> list)
-	{
-		if (list.isEmpty())
-		{
-			return;
-		}
-		int count = list.Count;
-		int halfCount = list.Count >> 1;
-		for (int i = 0; i < halfCount; ++i)
-		{
-			T temp = list[i];
-			list[i] = list[count - 1 - i];
-			list[count - 1 - i] = temp;
-		}
 	}
 	public static IPAddress hostNameToIPAddress(string hostName)
 	{

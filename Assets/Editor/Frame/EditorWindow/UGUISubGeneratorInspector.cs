@@ -270,7 +270,7 @@ public class UGUISubGeneratorInspector : GameInspector
 			else
 			{
 				// 找到第一个public class
-				if (codeList.findIndex(item=>item.Contains("public class "), out int index))
+				if (codeList.find(item=>item.Contains("public class "), out int index))
 				{
 					codeList.RemoveAt(index);
 					lineStart0 = index - 1;
@@ -299,7 +299,7 @@ public class UGUISubGeneratorInspector : GameInspector
 			else
 			{
 				// 找不到就在类的第一行插入
-				if (codeList.findIndex(item=>item.Contains(" class " + subUIName + " "), out int index))
+				if (codeList.find(item=>item.Contains(" class " + subUIName + " "), out int index))
 				{
 					int lineStart = index + 2;
 					codeList.Insert(++lineStart, "\t// auto generate member start");
@@ -318,7 +318,7 @@ public class UGUISubGeneratorInspector : GameInspector
 			// 找不到就在构造的第一行插入,子UI肯定是包含构造函数的
 			else
 			{
-				if (codeList.findIndex(item=>item.Contains("public " + subUIName + "(IWindowObjectOwner "), out int index))
+				if (codeList.find(item=>item.Contains("public " + subUIName + "(IWindowObjectOwner "), out int index))
 				{
 					// 如果大括号是在同一行,则处理一下大括号
 					if (codeList[index].Contains("{") && codeList[index].Contains("}"))
@@ -345,7 +345,7 @@ public class UGUISubGeneratorInspector : GameInspector
 			// 找不到就在assignWindowInternal的第一行插入
 			else
 			{
-				if (codeList.findIndex(item=>item.Contains("protected override void assignWindowInternal()"), out int index))
+				if (codeList.find(item=>item.Contains("protected override void assignWindowInternal()"), out int index))
 				{
 					int lineStart = index + 1;
 					codeList.Insert(++lineStart, "\t\t// auto generate assignWindowInternal start");

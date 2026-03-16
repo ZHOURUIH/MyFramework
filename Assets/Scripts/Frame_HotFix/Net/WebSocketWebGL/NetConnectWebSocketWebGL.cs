@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using NativeWebSocket;
 using static UnityUtility;
-using static BinaryUtility;
 using static FrameUtility;
 using static StringUtility;
 using static FrameBaseHotFix;
@@ -47,7 +46,7 @@ public abstract class NetConnectWebSocketWebGL : NetConnect
 		mPingTimer.stop();
 		mPingCallback = null;
 		mURL = null;
-		memset(mRecvBuff, (byte)0);
+		mRecvBuff.setAllDefault();
 		mManualDisconnect = false;
 		mNetState = NET_STATE.NONE;
 	}
@@ -97,7 +96,7 @@ public abstract class NetConnectWebSocketWebGL : NetConnect
 			while (true)
 			{
 				PARSE_RESULT result0 = preParsePacket(mInputBuffer.getData(), mInputBuffer.getDataLength(), out int index, out byte[] packetData,
-										out ushort packetType, out int packetSize, out int sequence, out ulong fieldFlag);
+										out ushort packetType, out int packetSize, out uint sequence, out ulong fieldFlag);
 				if (result0 != PARSE_RESULT.SUCCESS)
 				{
 					if (result0 == PARSE_RESULT.ERROR)
@@ -227,9 +226,9 @@ public abstract class NetConnectWebSocketWebGL : NetConnect
 		mInputBuffer.clear();
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected abstract NetPacket parsePacket(ushort packetType, byte[] buffer, int size, int sequence, ulong fieldFlag);
+	protected abstract NetPacket parsePacket(ushort packetType, byte[] buffer, int size, uint sequence, ulong fieldFlag);
 	protected abstract PARSE_RESULT preParsePacket(byte[] buffer, int size, out int index, out byte[] outPacketData,
-													out ushort packetType, out int packetSize, out int sequence, out ulong fieldFlag);
+													out ushort packetType, out int packetSize, out uint sequence, out ulong fieldFlag);
 	protected async void doSend(PacketSendInfo info)
 	{
 		try

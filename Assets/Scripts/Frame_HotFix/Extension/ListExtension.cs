@@ -4,6 +4,16 @@ using static System.Linq.Enumerable;
 using static FrameUtility;
 using static MathUtility;
 
+public class EmptyList<T>
+{
+	public static List<T> mList;
+	public static List<T> getEmptyList()
+	{
+		mList ??= new();
+		return mList;
+	}
+}
+
 public static class ListExtension
 {
 	public static T random<T>(this List<T> list)
@@ -14,7 +24,18 @@ public static class ListExtension
 		}
 		return list[randomInt(0, list.Count - 1)];
 	}
-	public static void setAllValue<T>(this IList<T> list, T value)
+	public static void setAllDefault<T>(this List<T> list)
+	{
+		if (list.isEmpty())
+		{
+			return;
+		}
+		for (int i = 0; i < list.Count; ++i)
+		{
+			list[i] = default;
+		}
+	}
+	public static void setAllValue<T>(this List<T> list, T value)
 	{
 		if (list.isEmpty())
 		{
@@ -49,7 +70,7 @@ public static class ListExtension
 		list.RemoveAt(index);
 		return value;
 	}
-	public static void remove<T>(this List<T> list, IList<T> removeValues)
+	public static void remove<T>(this List<T> list, List<T> removeValues)
 	{
 		if (removeValues.isEmpty())
 		{
@@ -108,7 +129,7 @@ public static class ListExtension
 			list.Add(value);
 		}
 	}
-	public static void addRangeKeys<TKey, TValue>(this List<TKey> list, IDictionary<TKey, TValue> dic)
+	public static void addRangeKeys<TKey, TValue>(this List<TKey> list, Dictionary<TKey, TValue> dic)
 	{
 		if (dic.isEmpty())
 		{
@@ -119,7 +140,7 @@ public static class ListExtension
 			list.add(item.Key);
 		}
 	}
-	public static void addRangeValues<TKey, TValue>(this List<TValue> list, IDictionary<TKey, TValue> dic)
+	public static void addRangeValues<TKey, TValue>(this List<TValue> list, Dictionary<TKey, TValue> dic)
 	{
 		if (dic.isEmpty())
 		{
@@ -139,14 +160,18 @@ public static class ListExtension
 		}
 		return false;
 	}
-	public static void addRangeNotNull<T>(this List<T> list, IList<T> values) where T : class
+	public static void addRangeNotNull<T>(this List<T> list, List<T> values) where T : class
 	{
-		foreach (T value in values)
+		for (int i = 0; i < values.Count; ++i)
 		{
-			if (value != null)
-			{
-				list.Add(value);
-			}
+			list.addNotNull(values[i]);
+		}
+	}
+	public static void addRangeNotNull<T>(this List<T> list, T[] values) where T : class
+	{
+		for (int i = 0; i < values.Length; ++i)
+		{
+			list.addNotNull(values[i]);
 		}
 	}
 	public static bool addIf<T>(this List<T> list, T value, bool condition)
@@ -229,7 +254,7 @@ public static class ListExtension
 		}
 		return false;
 	}
-	public static List<T> addRange<T>(this List<T> list, IList<T> other, int count)
+	public static List<T> addRange<T>(this List<T> list, List<T> other, int count)
 	{
 		clampMax(ref count, other.count());
 		for (int i = 0; i < count; ++i)
@@ -238,7 +263,7 @@ public static class ListExtension
 		}
 		return list;
 	}
-	public static List<T> addRange<T>(this List<T> list, IList<T> other, int startIndex, int count)
+	public static List<T> addRange<T>(this List<T> list, List<T> other, int startIndex, int count)
 	{
 		clampMax(ref count, other.count()- startIndex);
 		for (int i = 0; i < count; ++i)
@@ -247,31 +272,108 @@ public static class ListExtension
 		}
 		return list;
 	}
-	public static List<T> addRange<T>(this List<T> list, IEnumerable<T> other)
+	public static List<T> addRange<T>(this List<T> list, List<T> other)
 	{
-		if (list == null || other == null || other.Count() == 0)
+		if (list == null || other == null || other.Count == 0)
 		{
 			return list;
 		}
-		list.Capacity = list.Count + other.Count();
 		list.AddRange(other);
 		return list;
 	}
-	public static List<T> addRange<T>(this List<T> list, IEnumerable<T> other0, IEnumerable<T> other1)
+	public static List<T> addRange<T>(this List<T> list, List<T> other0, List<T> other1)
 	{
+		int totalCount = list.Count + other0.count() + other1.count();
+		if (list.Capacity < totalCount)
+		{
+			list.Capacity = totalCount;
+		}
 		addRange(list, other0);
 		addRange(list, other1);
 		return list;
 	}
-	public static List<T> addRange<T>(this List<T> list, IEnumerable<T> other0, IEnumerable<T> other1, IEnumerable<T> other2)
+	public static List<T> addRange<T>(this List<T> list, List<T> other0, List<T> other1, List<T> other2)
 	{
+		int totalCount = list.Count + other0.count() + other1.count() + other2.count();
+		if (list.Capacity < totalCount)
+		{
+			list.Capacity = totalCount;
+		}
 		addRange(list, other0);
 		addRange(list, other1);
 		addRange(list, other2);
 		return list;
 	}
-	public static List<T> addRange<T>(this List<T> list, IEnumerable<T> other0, IEnumerable<T> other1, IEnumerable<T> other2, IEnumerable<T> other3)
+	public static List<T> addRange<T>(this List<T> list, List<T> other0, List<T> other1, List<T> other2, List<T> other3)
 	{
+		int totalCount = list.Count + other0.count() + other1.count() + other2.count() + other3.count();
+		if (list.Capacity < totalCount)
+		{
+			list.Capacity = totalCount;
+		}
+		addRange(list, other0);
+		addRange(list, other1);
+		addRange(list, other2);
+		addRange(list, other3);
+		return list;
+	}
+	public static List<T> addRange<T>(this List<T> list, T[] other, int count)
+	{
+		clampMax(ref count, other.count());
+		for (int i = 0; i < count; ++i)
+		{
+			list.add(other[i]);
+		}
+		return list;
+	}
+	public static List<T> addRange<T>(this List<T> list, T[] other, int startIndex, int count)
+	{
+		clampMax(ref count, other.count() - startIndex);
+		for (int i = 0; i < count; ++i)
+		{
+			list.add(other[i + startIndex]);
+		}
+		return list;
+	}
+	public static List<T> addRange<T>(this List<T> list, T[] other)
+	{
+		if (list == null || other == null || other.Length == 0)
+		{
+			return list;
+		}
+		list.AddRange(other);
+		return list;
+	}
+	public static List<T> addRange<T>(this List<T> list, T[] other0, T[] other1)
+	{
+		int totalCount = list.Count + other0.count() + other1.count();
+		if (list.Capacity < totalCount)
+		{
+			list.Capacity = totalCount;
+		}
+		addRange(list, other0);
+		addRange(list, other1);
+		return list;
+	}
+	public static List<T> addRange<T>(this List<T> list, T[] other0, T[] other1, T[] other2)
+	{
+		int totalCount = list.Count + other0.count() + other1.count() + other2.count();
+		if (list.Capacity < totalCount)
+		{
+			list.Capacity = totalCount;
+		}
+		addRange(list, other0);
+		addRange(list, other1);
+		addRange(list, other2);
+		return list;
+	}
+	public static List<T> addRange<T>(this List<T> list, T[] other0, T[] other1, T[] other2, T[] other3)
+	{
+		int totalCount = list.Count + other0.count() + other1.count() + other2.count() + other3.count();
+		if (list.Capacity < totalCount)
+		{
+			list.Capacity = totalCount;
+		}
 		addRange(list, other0);
 		addRange(list, other1);
 		addRange(list, other2);
@@ -279,21 +381,34 @@ public static class ListExtension
 		return list;
 	}
 	// T0 必须是 T1 的基类或者实现 T1 的接口
-	public static List<Base> addRangeDerived<Base, T>(this List<Base> list, IEnumerable<T> other) where Base : class where T : Base
+	public static List<Base> addRangeDerived<Base, T>(this List<Base> list, List<T> other) where Base : class where T : Base
 	{
-		if (other == null || other.Count() == 0)
+		if (other.isEmpty())
 		{
 			return list;
 		}
-		list.Capacity = list.Count + other.Count();
+		list.Capacity = list.Count + other.Count;
 		foreach (T item in other)
 		{
 			list.Add(item);
 		}
 		return list;
 	}
-	// 由于params T[]类型匹配IEnumerable<T>和Span<T>是有二义性,所以改为不同的函数名
-	public static List<T> addRangeSpan<T>(this List<T> list, Span<T> other)
+	// T0 必须是 T1 的基类或者实现 T1 的接口
+	public static List<Base> addRangeDerived<Base, T>(this List<Base> list, T[] other) where Base : class where T : Base
+	{
+		if (other.isEmpty())
+		{
+			return list;
+		}
+		list.Capacity = list.Count + other.Length;
+		foreach (T item in other)
+		{
+			list.Add(item);
+		}
+		return list;
+	}
+	public static List<T> addRange<T>(this List<T> list, Span<T> other)
 	{
 		list.Capacity = list.Count + other.Length;
 		foreach (T item in other)
@@ -302,7 +417,7 @@ public static class ListExtension
 		}
 		return list;
 	}
-	public static List<T> addRangeSpan<T>(this List<T> list, Span<T> other, int count)
+	public static List<T> addRange<T>(this List<T> list, Span<T> other, int count)
 	{
 		list.Capacity = list.Count + count;
 		for (int i = 0; i < count; ++i)
@@ -311,56 +426,55 @@ public static class ListExtension
 		}
 		return list;
 	}
-	public static List<T> setRange<T>(this List<T> list, IEnumerable<T> other)
+	public static List<T> setRange<T, T0>(this List<T> list, List<T0> other) where T0 : T
 	{
 		list.Clear();
-		if (other == null || other.Count() == 0)
+		if (other == null || other.Count == 0)
 		{
 			return list;
 		}
-		list.AddRange(other);
-		return list;
-	}
-	public static IList<T> setRange<T>(this T[] list, IEnumerable<T> other)
-	{
-		if (other == null || other.Count() == 0)
+		if (list.Capacity < list.Count + other.Count)
 		{
-			return list;
+			list.Capacity = list.Count + other.Count;
 		}
-		int index = 0;
 		foreach (T item in other)
 		{
-			list[index++] = item;
+			list.add(item);
 		}
 		return list;
 	}
-	public static T[] setRange<T>(this T[] list, Span<T> other)
+	public static List<T> setRange<T, T0>(this List<T> list, T0[] other) where T0 : T
 	{
+		list.Clear();
 		if (other == null || other.Length == 0)
 		{
 			return list;
 		}
-		for (int i = 0; i < other.Length; ++i)
+		if (list.Capacity < list.Count + other.Length)
 		{
-			list[i] = other[i];
+			list.Capacity = list.Count + other.Length;
+		}
+		foreach (T item in other)
+		{
+			list.add(item);
 		}
 		return list;
 	}
-	public static List<Base> setRangeDerived<Base, T>(this List<Base> list, IEnumerable<T> other) where Base : class where T : Base
+	public static List<Base> setRangeDerived<Base, T>(this List<Base> list, List<T> other) where Base : class where T : Base
 	{
 		list.Clear();
-		if (other == null || other.Count() == 0)
+		if (other == null || other.Count == 0)
 		{
 			return list;
 		}
-		list.Capacity = other.Count();
+		list.Capacity = other.Count;
 		foreach (T item in other)
 		{
 			list.Add(item);
 		}
 		return list;
 	}
-	public static List<T> setRangeSpan<T>(this List<T> list, Span<T> other)
+	public static List<T> setRange<T>(this List<T> list, Span<T> other)
 	{
 		list.Clear();
 		list.Capacity = other.Length;
@@ -370,7 +484,7 @@ public static class ListExtension
 		}
 		return list;
 	}
-	public static List<T> setRangeSpan<T>(this List<T> list, Span<T> other, int count)
+	public static List<T> setRange<T>(this List<T> list, Span<T> other, int count)
 	{
 		list.Clear();
 		list.Capacity = other.Length;
@@ -406,7 +520,7 @@ public static class ListExtension
 		}
 		return list;
 	}
-	public static T get<T>(this IList<T> list, int index)
+	public static T get<T>(this List<T> list, int index)
 	{
 		if (list.isEmpty() || index < 0 || index >= list.Count)
 		{
@@ -414,7 +528,7 @@ public static class ListExtension
 		}
 		return list[index];
 	}
-	public static bool set<T>(this IList<T> list, int index, T value)
+	public static bool set<T>(this List<T> list, int index, T value)
 	{
 		if (index < 0 || index >= list.Count)
 		{
@@ -481,7 +595,7 @@ public static class ListExtension
 		}
 		return list[^1];
 	}
-	public static bool isSubList<T>(this List<T> list, IList<T> subList)
+	public static bool isSubList<T>(this List<T> list, List<T> subList)
 	{
 		if (list.isEmpty() || subList.isEmpty())
 		{
@@ -512,7 +626,7 @@ public static class ListExtension
 		}
 		return false;
 	}
-	public static void For<T>(this IEnumerable<T> list, Action<T> action)
+	public static void For<T>(this List<T> list, Action<T> action)
 	{
 		if (list == null)
 		{
@@ -523,21 +637,14 @@ public static class ListExtension
 			action(item);
 		}
 	}
-	public static void ForI<T>(this IList<T> list, Action<int> action)
+	public static void ForI<T>(this List<T> list, Action<int> action)
 	{
 		for (int i = 0; i < list.count(); ++i)
 		{
 			action(i);
 		}
 	}
-	public static void ForI<T>(this Span<T> list, Action<int> action)
-	{
-		for (int i = 0; i < list.Length; ++i)
-		{
-			action(i);
-		}
-	}
-	public static T find<T>(this IList<T> list, Predicate<T> match)
+	public static T find<T>(this List<T> list, Predicate<T> match)
 	{
 		if (list.isEmpty() || match == null)
 		{
@@ -552,7 +659,7 @@ public static class ListExtension
 		}
 		return default;
 	}
-	public static bool find<T>(this IList<T> list, Predicate<T> match, out T value)
+	public static bool find<T>(this List<T> list, Predicate<T> match, out T value)
 	{
 		if (list.isEmpty() || match == null)
 		{
@@ -570,7 +677,7 @@ public static class ListExtension
 		value = default;
 		return false;
 	}
-	public static bool find<T>(this IList<T> list, T value, out int index)
+	public static bool find<T>(this List<T> list, T value, out int index)
 	{
 		if (list.isEmpty())
 		{
@@ -588,7 +695,7 @@ public static class ListExtension
 		index = -1;
 		return false;
 	}
-	public static int find<T>(this IList<T> list, T value)
+	public static int find<T>(this List<T> list, T value)
 	{
 		if (list.isEmpty())
 		{
@@ -603,7 +710,7 @@ public static class ListExtension
 		}
 		return -1;
 	}
-	public static bool findIndex<T>(this IList<T> list, Predicate<T> match, out int index)
+	public static bool find<T>(this List<T> list, Predicate<T> match, out int index)
 	{
 		if (list.isEmpty() || match == null)
 		{
@@ -621,7 +728,7 @@ public static class ListExtension
 		index = -1;
 		return false;
 	}
-	public static bool find<T>(this IList<T> list, Predicate<T> match, out int index, out T item)
+	public static bool find<T>(this List<T> list, Predicate<T> match, out int index, out T item)
 	{
 		if (list.isEmpty() || match == null)
 		{
@@ -642,7 +749,7 @@ public static class ListExtension
 		item = default;
 		return false;
 	}
-	public static bool find<T>(this IList<T> list, int startIndex, Predicate<T> match, out int index)
+	public static bool find<T>(this List<T> list, int startIndex, Predicate<T> match, out int index)
 	{
 		if (list.isEmpty() || match == null)
 		{
@@ -660,7 +767,7 @@ public static class ListExtension
 		index = -1;
 		return false;
 	}
-	public static bool find<T>(this IList<T> list, int startIndex, int count, Predicate<T> match, out int index)
+	public static bool find<T>(this List<T> list, int startIndex, int count, Predicate<T> match, out int index)
 	{
 		if (list.isEmpty() || match == null)
 		{
@@ -679,116 +786,7 @@ public static class ListExtension
 		index = -1;
 		return false;
 	}
-	public static T find<T>(this Span<T> list, Predicate<T> match)
-	{
-		if (match == null)
-		{
-			return default;
-		}
-		foreach (T item in list)
-		{
-			if (match(item))
-			{
-				return item;
-			}
-		}
-		return default;
-	}
-	public static bool find<T>(this Span<T> list, Predicate<T> match, out T value)
-	{
-		if (match == null)
-		{
-			value = default;
-			return false;
-		}
-		foreach (T item in list)
-		{
-			if (match(item))
-			{
-				value = item;
-				return true;
-			}
-		}
-		value = default;
-		return false;
-	}
-	public static bool findIndex<T>(this Span<T> list, Predicate<T> match, out int index)
-	{
-		if (match == null)
-		{
-			index = -1;
-			return false;
-		}
-		for (int i = 0; i < list.Length; ++i)
-		{
-			if (match(list[i]))
-			{
-				index = i;
-				return true;
-			}
-		}
-		index = -1;
-		return false;
-	}
-	public static bool findIndex<T>(this Span<T> list, Predicate<T> match, out int index, out T item)
-	{
-		if (match == null)
-		{
-			index = -1;
-			item = default;
-			return false;
-		}
-		for (int i = 0; i < list.Length; ++i)
-		{
-			if (match(list[i]))
-			{
-				index = i;
-				item = list[i];
-				return true;
-			}
-		}
-		index = -1;
-		item = default;
-		return false;
-	}
-	public static bool findIndex<T>(this Span<T> list, int startIndex, Predicate<T> match, out int index)
-	{
-		if (match == null)
-		{
-			index = -1;
-			return false;
-		}
-		for (int i = startIndex; i < list.Length; ++i)
-		{
-			if (match(list[i]))
-			{
-				index = i;
-				return true;
-			}
-		}
-		index = -1;
-		return false;
-	}
-	public static bool findIndex<T>(this Span<T> list, int startIndex, int count, Predicate<T> match, out int index)
-	{
-		if (match == null)
-		{
-			index = -1;
-			return false;
-		}
-		count = getMin(count, list.Length);
-		for (int i = 0; i < count; ++i)
-		{
-			if (match(list[i + startIndex]))
-			{
-				index = i + startIndex;
-				return true;
-			}
-		}
-		index = -1;
-		return false;
-	}
-	public static void swap<T>(this IList<T> list, int index0, int index1)
+	public static void swap<T>(this List<T> list, int index0, int index1)
 	{
 		if (list.isEmpty())
 		{
@@ -796,7 +794,32 @@ public static class ListExtension
 		}
 		(list[index0], list[index1]) = (list[index1], list[index0]);
 	}
-	public static int count<T>(this ICollection<T> list, Predicate<T> condition)
+	// 比较两个列表是否完全一致
+	public static bool isSame<T>(this List<T> list0, List<T> list1)
+	{
+		if (list0 == null && list1 == null)
+		{
+			return true;
+		}
+		if (list0 == null || list1 == null)
+		{
+			return false;
+		}
+		int count = list0.Count;
+		if (count != list1.Count)
+		{
+			return false;
+		}
+		for (int i = 0; i < count; ++i)
+		{
+			if (!EqualityComparer<T>.Default.Equals(list0[i], list1[i]))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+	public static int count<T>(this List<T> list, Predicate<T> condition)
 	{
 		if (list.isEmpty() || condition == null)
 		{
@@ -812,14 +835,12 @@ public static class ListExtension
 		}
 		return curCount;
 	}
-	public static int count<T>(this ICollection<T> list)							{ return list?.Count ?? 0; }
-	public static bool isEmptySpan<T>(this Span<T> list)							{ return list == null || list.Length == 0; }
-	public static bool isEmpty<T>(this ICollection<T> list)							{ return list == null || list.Count == 0; }
-	public static bool contains<T>(this ICollection<T> list, T value)				{ return list != null && list.Contains(value); }
-	public static bool contains<T>(this IList<T> list, Predicate<T> match)			{ return list != null && list.find(match) != null; }
-	public static bool contains<T>(this Span<T> list, Predicate<T> match)			{ return list != null && list.find(match) != null; }
-	public static IEnumerable<T> safe<T>(this IEnumerable<T> original)				{ return original ?? Empty<T>(); }
-	public static T first<T>(this IEnumerable<T> list)
+	public static int count<T>(this List<T> list)									{ return list?.Count ?? 0; }
+	public static bool isEmpty<T>(this List<T> list)								{ return list == null || list.Count == 0; }
+	public static bool contains<T>(this List<T> list, T value)						{ return list != null && list.Contains(value); }
+	public static bool contains<T>(this List<T> list, Predicate<T> match)			{ return list != null && list.find(match) != null; }
+	public static List<T> safe<T>(this List<T> original)							{ return original ?? EmptyList<T>.getEmptyList(); }
+	public static T first<T>(this List<T> list)
 	{
 		foreach (T item in list)
 		{
@@ -827,7 +848,7 @@ public static class ListExtension
 		}
 		return default;
 	}
-	public static void inverse<T>(this IList<T> list)
+	public static void inverse<T>(this List<T> list)
 	{
 		if (list.count() <= 1)
 		{

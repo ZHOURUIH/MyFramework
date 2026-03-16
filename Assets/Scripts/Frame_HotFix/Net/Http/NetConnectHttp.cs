@@ -85,7 +85,10 @@ public class NetConnectHttp : NetConnect
 					// 创建对应的消息包,并设置数据,然后放入列表中等待解析
 					var packet = mNetPacketFactory.createSocketPacket(pair.mPacketType) as NetPacketHttp;
 					packet.setConnect(this);
-					log("[ " + packet.GetType().Name + " ] " + pair.mData, LOG_LEVEL.LOW);
+					if (getLogLevel() <= LOG_LEVEL.LOW)
+					{
+						log("[ " + packet.GetType().Name + " ] " + pair.mData);
+					}
 					try
 					{
 						if (!pair.mData.isEmpty())
@@ -188,7 +191,10 @@ public class NetConnectHttp : NetConnect
 		info.mTimeout = packet.timeout();
 		info.mRemainRetryCount = RETRY_COUNT;	
 		mOutputBuffer.add(info);
-		log("[ " + packet.GetType().Name + " ] " + info.mMessage, LOG_LEVEL.LOW);
+		if (getLogLevel() <= LOG_LEVEL.LOW)
+		{
+			log("[ " + packet.GetType().Name + " ] " + info.mMessage);
+		}
 
 		// 发送消息需要备份一下
 		mNotResponsePacket.addClass(packet.GetType()).cloneFrom(info);

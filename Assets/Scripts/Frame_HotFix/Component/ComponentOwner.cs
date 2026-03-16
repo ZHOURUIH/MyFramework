@@ -12,6 +12,7 @@ public abstract class ComponentOwner : CommandReceiver
 	protected SafeList<GameComponent> mComponentList;						// 组件列表,保存着组件之间的更新顺序
 	protected HashSet<Type> mDontAutoCreateType;                            // 不需要自动添加的组件类型
 	protected HashSet<Type> mDisableTypeList;                               // 不需要更新的组件类型,为了不需要关心组件的添加或者销毁,只是想禁用部分组件的更新
+	protected string mTypeName;												// 一般用于给Profiler传参用
 	protected bool mIgnoreTimeScale;                                        // 是否忽略时间缩放
 	protected bool mDestroying;												// 是否正在销毁中,避免销毁时执行无用的操作
 	public override void destroy()
@@ -33,6 +34,11 @@ public abstract class ComponentOwner : CommandReceiver
 		}
 		mDestroyCallbackList?.Clear();
 		base.destroy();
+	}
+	public string GetTypeName()
+	{
+		mTypeName ??= GetType().Name;
+		return mTypeName;
 	}
 	public void addDestroyCallback(ClassObjectCallback callback)
 	{
@@ -66,10 +72,8 @@ public abstract class ComponentOwner : CommandReceiver
 		{
 			return;
 		}
-
 		using var a = new SafeListReader<GameComponent>(mComponentList);
-		int rootComponentCount = a.mReadList.Count;
-		for (int i = 0; i < rootComponentCount; ++i)
+		for (int i = 0; i < a.mReadList.Count; ++i)
 		{
 			// 数量为0,表示在更新组件的过程中当前对象被销毁
 			if (a.mReadList.Count == 0 || isDestroy())
@@ -77,9 +81,9 @@ public abstract class ComponentOwner : CommandReceiver
 				return;
 			}
 			GameComponent com = a.mReadList[i];
-			using var b = new ProfilerScope(com.GetType().Name);
 			if (com.isValid() && com.isActive() && !mDisableTypeList.contains(com.getType()))
 			{
+				using var b = new ProfilerScope(com.GetTypeName());
 				com.update(com.isIgnoreTimeScale() ? Time.unscaledDeltaTime : elapsedTime);
 			}
 		}
@@ -325,6 +329,7 @@ public abstract class ComponentOwner : CommandReceiver
 		mComponentList?.clear();
 		mDontAutoCreateType?.Clear();
 		mDisableTypeList?.Clear();
+		//mTypeName = null;
 		mIgnoreTimeScale = false;
 		mDestroying = false;
 	}

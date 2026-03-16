@@ -8,7 +8,32 @@ using static StringUtility;
 public struct ListScope<T> : IDisposable
 {
 	private List<T> mList;       // 分配的对象
-	public ListScope(out List<T> list, IEnumerable<T> initList = null)
+	public ListScope(out List<T> list)
+	{
+		if (GameEntry.getInstance() == null || mListPool == null)
+		{
+			list = new();
+			mList = null;
+			return;
+		}
+		string stackTrace = GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
+		list = mListPool.newList(typeof(T), typeof(List<T>), stackTrace, true) as List<T>;
+		mList = list;
+	}
+	public ListScope(out List<T> list, List<T> initList)
+	{
+		if (GameEntry.getInstance() == null || mListPool == null)
+		{
+			list = new();
+			mList = null;
+			return;
+		}
+		string stackTrace = GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
+		list = mListPool.newList(typeof(T), typeof(List<T>), stackTrace, true) as List<T>;
+		mList = list;
+		mList.addRange(initList);
+	}
+	public ListScope(out List<T> list, T[] initList)
 	{
 		if (GameEntry.getInstance() == null || mListPool == null)
 		{

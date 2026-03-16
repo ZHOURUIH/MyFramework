@@ -2,8 +2,29 @@
 using System.Collections.Generic;
 using static FrameUtility;
 
+public class EmptyHashSet<T>
+{
+	public static HashSet<T> mList;
+	public static HashSet<T> getEmptyList()
+	{
+		mList ??= new();
+		return mList;
+	}
+}
+
 public static class HashSetExtension
 {
+	public static void For<T>(this HashSet<T> list, Action<T> action)
+	{
+		if (list.isEmpty())
+		{
+			return;
+		}
+		foreach (T item in list)
+		{
+			action(item);
+		}
+	}
 	public static T addOrRemove<T>(this HashSet<T> list, T value, bool add)
 	{
 		if (add)
@@ -93,7 +114,7 @@ public static class HashSetExtension
 		}
 		return list;
 	}
-	public static HashSet<T> addRange<T>(this HashSet<T> list, IList<T> other)
+	public static HashSet<T> addRange<T>(this HashSet<T> list, List<T> other)
 	{
 		if (other.isEmpty())
 		{
@@ -127,7 +148,7 @@ public static class HashSetExtension
 		return list.add(CLASS<T>());
 	}
 	// Base 必须是 T 的基类或者实现 T 的接口
-	public static HashSet<Base> addRangeDerived<Base, T>(this HashSet<Base> list, IList<T> other) where Base : class where T : Base
+	public static HashSet<Base> addRangeDerived<Base, T>(this HashSet<Base> list, List<T> other) where Base : class where T : Base
 	{
 		if (other.isEmpty())
 		{
@@ -167,6 +188,21 @@ public static class HashSetExtension
 		list.Remove(elem);
 		return elem;
 	}
+	public static bool contains<T>(this HashSet<T> list, T other)
+	{
+		if (list.isEmpty())
+		{
+			return false;
+		}
+		foreach (T item in list)
+		{
+			if (item.Equals(other))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 	public static bool contains<T>(this HashSet<T> list, Predicate<T> action)
 	{
 		if (list.isEmpty())
@@ -182,4 +218,7 @@ public static class HashSetExtension
 		}
 		return false;
 	}
+	public static bool isEmpty<T>(this HashSet<T> list) { return list == null || list.Count == 0; }
+	public static HashSet<T> safe<T>(this HashSet<T> original) { return original ?? EmptyHashSet<T>.getEmptyList(); }
+	public static int count<T>(this HashSet<T> list) { return list?.Count ?? 0; }
 }

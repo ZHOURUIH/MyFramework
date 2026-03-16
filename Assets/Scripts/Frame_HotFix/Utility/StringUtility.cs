@@ -104,7 +104,30 @@ public class StringUtility
 		}
 		return builder.ToString();
 	}
-	public static string format(string format, IList<string> args)
+	public static string format(string format, string[] args)
+	{
+		if (args.count() == 0)
+		{
+			return format;
+		}
+
+		using var a = new MyStringBuilderScope2(out var builder, out var helpBuilder);
+		builder.add(format);
+		int index = 0;
+		while (index < args.Length)
+		{
+			helpBuilder.clear();
+			helpBuilder.add("{", IToS(index), "}");
+			string indexStr = helpBuilder.ToString();
+			if (format.findFirstSubstr(indexStr) >= 0)
+			{
+				builder.replaceAll(indexStr, args[index]);
+			}
+			++index;
+		}
+		return builder.ToString();
+	}
+	public static string format(string format, List<string> args)
 	{
 		if (args.count() == 0)
 		{
@@ -127,7 +150,7 @@ public class StringUtility
 		}
 		return builder.ToString();
 	}
-	public static string format(string format, IList<int> args)
+	public static string format(string format, List<int> args)
 	{
 		using var a = new MyStringBuilderScope2(out var builder, out var helpBuilder);
 		builder.add(format);
@@ -145,7 +168,7 @@ public class StringUtility
 		}
 		return builder.ToString();
 	}
-	public static string format(string format, IList<float> args)
+	public static string format(string format, List<float> args)
 	{
 		using var a = new MyStringBuilderScope2(out var builder, out var helpBuilder);
 		builder.add(format);
@@ -764,7 +787,7 @@ public class StringUtility
 			values[i] = SToF(rangeList[i]);
 		}
 	}
-	public static void SToFs(string str, IList<float> values, char separate = ',')
+	public static void SToFs(string str, List<float> values, char separate = ',')
 	{
 		if (values == null)
 		{
@@ -781,7 +804,7 @@ public class StringUtility
 			values.Add(SToF(item));
 		}
 	}
-	public static string FsToS(IList<float> values, char separate = ',')
+	public static string FsToS(List<float> values, char separate = ',')
 	{
 		using var a = new MyStringBuilderScope(out var builder);
 		int count = values.Count;
@@ -798,7 +821,7 @@ public class StringUtility
 		SToLs(str, values, separate);
 		return values;
 	}
-	public static void SToLs(string str, IList<long> values, char separate = ',')
+	public static void SToLs(string str, List<long> values, char separate = ',')
 	{
 		if (values == null)
 		{
@@ -846,7 +869,7 @@ public class StringUtility
 		SToIs(str, values, separate);
 		return values;
 	}
-	public static void SToIs(string str, IList<int> values, char separate = ',')
+	public static void SToIs(string str, List<int> values, char separate = ',')
 	{
 		if (values == null)
 		{
@@ -888,7 +911,7 @@ public class StringUtility
 		SToIs(str, mTempIntList, separate);
 		return mTempIntList;
 	}
-	public static void SToUIs(string str, IList<uint> values, char separate = ',')
+	public static void SToUIs(string str, List<uint> values, char separate = ',')
 	{
 		if (values == null)
 		{
@@ -905,7 +928,7 @@ public class StringUtility
 			values.Add((uint)SToI(item));
 		}
 	}
-	public static void SToUSs(string str, IList<ushort> values, char separate = ',')
+	public static void SToUSs(string str, List<ushort> values, char separate = ',')
 	{
 		if (values == null)
 		{
@@ -922,7 +945,7 @@ public class StringUtility
 			values.Add((ushort)SToI(item));
 		}
 	}
-	public static void SToSs(string str, IList<short> values, char separate = ',')
+	public static void SToSs(string str, List<short> values, char separate = ',')
 	{
 		if (values == null)
 		{
@@ -939,7 +962,7 @@ public class StringUtility
 			values.Add((short)SToI(item));
 		}
 	}
-	public static void SToBools(string str, IList<bool> values, char separate = ',')
+	public static void SToBools(string str, List<bool> values, char separate = ',')
 	{
 		if (values == null)
 		{
@@ -970,7 +993,7 @@ public class StringUtility
 		}
 		return mTempByteList0;
 	}
-	public static void SToBs(string str, IList<byte> values, char separate = ',')
+	public static void SToBs(string str, List<byte> values, char separate = ',')
 	{
 		if (values == null)
 		{
@@ -987,7 +1010,7 @@ public class StringUtility
 			values.Add((byte)SToI(item));
 		}
 	}
-	public static void SToSBs(string str, IList<sbyte> values, char separate = ',')
+	public static void SToSBs(string str, List<sbyte> values, char separate = ',')
 	{
 		if (values == null)
 		{
@@ -1004,7 +1027,7 @@ public class StringUtility
 			values.Add((sbyte)SToI(item));
 		}
 	}
-	public static string LsToS(IList<long> values, char separate = ',')
+	public static string LsToS(List<long> values, char separate = ',')
 	{
 		if (values.isEmpty())
 		{
@@ -1019,7 +1042,7 @@ public class StringUtility
 		}
 		return builder.ToString();
 	}
-	public static string IsToS(IList<int> values, char separate = ',')
+	public static string IsToS(List<int> values, char separate = ',')
 	{
 		if (values.isEmpty())
 		{
@@ -1034,7 +1057,7 @@ public class StringUtility
 		}
 		return builder.ToString();
 	}
-	public static string stringsToString(IList<string> values, string separate)
+	public static string stringsToString(List<string> values, string separate)
 	{
 		if (values.isEmpty())
 		{
@@ -1049,7 +1072,22 @@ public class StringUtility
 		}
 		return builder.ToString();
 	}
-	public static string stringsToString(IList<string> values, char separate = ',')
+	public static string stringsToString(string[] values, string separate)
+	{
+		if (values.isEmpty())
+		{
+			return EMPTY;
+		}
+		using var a = new MyStringBuilderScope(out var builder);
+		int count = values.Length;
+		for (int i = 0; i < count; ++i)
+		{
+			builder.add(values[i]);
+			builder.addIf(separate, i != count - 1);
+		}
+		return builder.ToString();
+	}
+	public static string stringsToString(List<string> values, char separate = ',')
 	{
 		if (values.isEmpty())
 		{
@@ -1057,6 +1095,21 @@ public class StringUtility
 		}
 		using var a = new MyStringBuilderScope(out var builder);
 		int count = values.Count;
+		for (int i = 0; i < count; ++i)
+		{
+			builder.add(values[i]);
+			builder.addIf(separate, i != count - 1);
+		}
+		return builder.ToString();
+	}
+	public static string stringsToString(string[] values, char separate = ',')
+	{
+		if (values.isEmpty())
+		{
+			return EMPTY;
+		}
+		using var a = new MyStringBuilderScope(out var builder);
+		int count = values.Length;
 		for (int i = 0; i < count; ++i)
 		{
 			builder.add(values[i]);
@@ -1073,7 +1126,7 @@ public class StringUtility
 		}
 		return strList;
 	}
-	public static void stringToStrings(string str, IList<string> values, char separate = ',')
+	public static void stringToStrings(string str, List<string> values, char separate = ',')
 	{
 		if (values == null)
 		{

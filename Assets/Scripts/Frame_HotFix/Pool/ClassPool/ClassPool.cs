@@ -176,7 +176,52 @@ public class ClassPool : FrameSystem
 		objList.Enqueue(temp);
 		temp.resetProperty();
 	}
-	public void destroyClassList<T>(ICollection<T> classObjectList) where T : ClassObject
+	public void destroyClassList<T>(List<T> classObjectList) where T : ClassObject
+	{
+		if (mHasDestroy)
+		{
+			return;
+		}
+		if (isEditor() && !isMainThread())
+		{
+			Debug.LogError("只能在主线程中使用ClassPool,子线程中请使用ClassPoolThread代替");
+			return;
+		}
+		if (classObjectList == null)
+		{
+			return;
+		}
+		int count = classObjectList.Count;
+		if (count == 0)
+		{
+			return;
+		}
+		foreach (T classObject in classObjectList)
+		{
+			if (classObject == null)
+			{
+				continue;
+			}
+			classObject.setPendingDestroy(true);
+			classObject.destroy();
+			Type type = classObject.GetType();
+			var objList = mUnusedList.getOrAddNew(type);
+			if (isEditor())
+			{
+				mObjectStack.Remove(classObject);
+				if (objList.Contains(classObject))
+				{
+					Debug.LogError("ClassObject is in Unused list! can not add again! Type: " + type + ", hash:" + classObject.GetHashCode());
+					continue;
+				}
+				removeInuse(classObject, type);
+			}
+			classObject.resetProperty();
+			// 加入未使用列表
+			objList.Enqueue(classObject);
+		}
+	}
+	public void destroyClassList<T>(HashSet<T> classObjectList) where T : ClassObject
 	{
 		if (mHasDestroy)
 		{

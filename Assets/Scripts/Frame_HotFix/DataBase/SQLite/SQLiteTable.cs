@@ -198,7 +198,7 @@ public class SQLiteTable : ClassObject
 			}
 		}
 	}
-	public void checkListPair(IList list0, IList list1, int dataID)
+	public void checkListPair<T0, T1>(List<T0> list0, List<T1> list1, int dataID)
 	{
 		if (list0.Count != list1.Count)
 		{
@@ -295,7 +295,7 @@ public class SQLiteTable : ClassObject
 		}
 		reader?.Close();
 	}
-	protected void parseReader(Type type, SqliteDataReader reader, IList dataList)
+	protected void parseReader<T>(Type type, SqliteDataReader reader, List<T> dataList) where T : SQLiteData
 	{
 		if (type != mDataClassType)
 		{
@@ -312,7 +312,7 @@ public class SQLiteTable : ClassObject
 			var data = createInstance<SQLiteData>(type);
 			data.mTable = this;
 			data.parse(reader);
-			dataList.Add(data);
+			dataList.Add(data as T);
 		}
 		reader.Close();
 	}

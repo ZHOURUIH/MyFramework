@@ -27,7 +27,7 @@ public class SerializerRead : ClassObject
 		mBufferSize = 0;
 		mIndex = 0;
 		mNeedCheck = true;
-		memset(mFloatHelpBuffer, (byte)0);
+		mFloatHelpBuffer.setAllDefault();
 	}
 	public void init(byte[] buffer, int bufferSize = -1, int index = 0)
 	{

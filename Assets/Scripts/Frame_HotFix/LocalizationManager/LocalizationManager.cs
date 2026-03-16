@@ -97,7 +97,7 @@ public class LocalizationManager : FrameSystem
 		}
 		return tip;
 	}
-	public string getLocalize(string str, IList<string> param)
+	public string getLocalize(string str, List<string> param)
 	{
 		string tip = getLocalize(str);
 		if (!param.isEmpty())
@@ -111,7 +111,7 @@ public class LocalizationManager : FrameSystem
 		}
 		return tip;
 	}
-	public string getLocalize(int id, IList<string> param)
+	public string getLocalize(int id, List<string> param)
 	{
 		string tip = getLocalize(id);
 		if (!param.isEmpty())
@@ -126,9 +126,9 @@ public class LocalizationManager : FrameSystem
 		return tip;
 	}
 	// 注册语言切换时的回调
-	public void registeAction(Action langchange) { mLanguageCallback += langchange; }
+	public void registeAction(Action language) { mLanguageCallback += language; }
 	// 注销语言切换时的回调
-	public void unregisteAction(Action langchange) { mLanguageCallback -= langchange; }
+	public void unregisteAction(Action language) { mLanguageCallback -= language; }
 	public void registeLocalization(IUGUIImage obj, string chineseSpriteName)
 	{
 		if (isEditor() && obj.tryGetUnityComponent<LocalizationImage>() != null)
@@ -244,11 +244,11 @@ public class LocalizationManager : FrameSystem
 		localization.mCallback = null;
 		localization.mObject = obj;
 		localization.mText = text;
-		localization.mParam.setRangeSpan(param);
+		localization.mParam.setRange(param);
 		localization.mObject.setText(getLocalize(localization.mText, localization.mParam));
 	}
 	// 注册需要切换多语言的文本对象,可重复注册
-	public void registeLocalization(IUGUIText obj, string text, IList<string> param)
+	public void registeLocalization(IUGUIText obj, string text, List<string> param)
 	{
 		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
 		{
@@ -326,7 +326,7 @@ public class LocalizationManager : FrameSystem
 		invokeLocalizationCallback(localization);
 	}
 	// 注册需要切换多语言的文本对象,可重复注册
-	public void registeLocalization(IUGUIText obj, string mainText, IList<string> paramList, LocalizationCallback callback)
+	public void registeLocalization(IUGUIText obj, string mainText, List<string> paramList, LocalizationCallback callback)
 	{
 		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
 		{
@@ -340,7 +340,7 @@ public class LocalizationManager : FrameSystem
 		localization.mCallback = callback;
 		invokeLocalizationCallback(localization);
 	}
-	public void unregisteLocalization(ICollection<IUGUIObject> objList)
+	public void unregisteLocalization(HashSet<IUGUIObject> objList)
 	{
 		foreach (IUGUIObject obj in objList.safe())
 		{

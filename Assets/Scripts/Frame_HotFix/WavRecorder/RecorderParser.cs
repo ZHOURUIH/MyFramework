@@ -28,8 +28,8 @@ public class RecorderParser : ClassObject
 		base.resetProperty();
 		mRecorder.resetProperty();
 		mRecorder.setRecordCallback(onRecorderData);
-		mFrequencyData.setAllValue((short)0);
-		mAllPCMData.setAllValue((short)0);
+		mFrequencyData.setAllDefault();
+		mAllPCMData.setAllDefault();
 		mAllPCMCount = 0;
 		mCurDB = -96;
 	}
@@ -70,7 +70,7 @@ public class RecorderParser : ClassObject
 		}
 		else
 		{
-			memset(mAllPCMData, (short)0, RECODER_DATA_BLOCK);
+			mAllPCMData.setAllDefault();
 			memcpy(mAllPCMData, data, 0, 0, dataSize * sizeof(short));
 			mAllPCMCount = dataSize;
 		}
