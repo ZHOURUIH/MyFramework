@@ -765,6 +765,14 @@ public class UGUIGeneratorUtility
 		{
 			mTempAvailableTypeList.Add(typeof(myUGUILineRenderer).ToString());
 		}
+		if (go.TryGetComponent<DamageNumberRenderer>(out _))
+		{
+			mTempAvailableTypeList.Add(typeof(myUGUIDamageNumber).ToString());
+		}
+		if (go.TryGetComponent<TileImageRenderer>(out _))
+		{
+			mTempAvailableTypeList.Add(typeof(myUGUITileImage).ToString());
+		}
 		mTempAvailableTypeList.Add(typeof(myUGUIDragView).ToString());
 		return mTempAvailableTypeList;
 	}
@@ -800,6 +808,8 @@ public class UGUIGeneratorUtility
 			mNormalWindowList.Add(typeof(myUGUILineMesh).ToString());
 			mNormalWindowList.Add(typeof(myUGUILineRenderer).ToString());
 			mNormalWindowList.Add(typeof(myUGUITextImage).ToString());
+			mNormalWindowList.Add(typeof(myUGUIDamageNumber).ToString());
+			mNormalWindowList.Add(typeof(myUGUITileImage).ToString());
 #if USE_AVPRO_VIDEO
 			mNormalWindowList.Add(typeof(myUGUIVideo).ToString());
 #endif

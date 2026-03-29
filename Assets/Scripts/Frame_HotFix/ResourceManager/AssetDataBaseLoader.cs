@@ -13,8 +13,8 @@ using static FrameBaseUtility;
 // 从AssetDataBase中加载资源
 public class AssetDataBaseLoader
 {
-	protected Dictionary<string, Dictionary<string, ResourceLoadInfo>> mLoadedPath = new();     // 所有已加载的文件夹
-	protected Dictionary<UObject, ResourceLoadInfo> mLoadedObjects = new();                     // 所有的已加载的资源
+	protected Dictionary<string, Dictionary<string, AssetDataBaseLoadInfo>> mLoadedPath = new();     // 所有已加载的文件夹
+	protected Dictionary<UObject, AssetDataBaseLoadInfo> mLoadedObjects = new();                     // 所有的已加载的资源
 	public void destroy() { }
 	public void getFileList(string path, List<string> list)
 	{
@@ -26,15 +26,14 @@ public class AssetDataBaseLoader
 			list.addIf(removeSuffix(item), !item.EndsWith(".meta"));
 		}
 	}
-	// 这里的泛型T是为了外部能传任意的类型的引用进来,而不是只能传ref UObject
-	public bool unloadResource<T>(ref T obj, bool showError) where T : UObject
+	public bool unloadAsset(UObject obj, bool showError)
 	{
 		if (obj == null)
 		{
 			return false;
 		}
 		// 资源已经加载完
-		if (!mLoadedObjects.Remove(obj, out ResourceLoadInfo info))
+		if (!mLoadedObjects.Remove(obj, out AssetDataBaseLoadInfo info))
 		{
 			if (showError)
 			{
@@ -48,7 +47,6 @@ public class AssetDataBaseLoader
 		}
 		mLoadedPath.get(info.getPath()).Remove(info.getResourceName());
 		UN_CLASS(ref info);
-		obj = null;
 		return true;
 	}
 	// 卸载指定路径中的所有资源
@@ -67,7 +65,7 @@ public class AssetDataBaseLoader
 			}
 			foreach (var item in mLoadedPath.get(item0))
 			{
-				ResourceLoadInfo info = item.Value;
+				AssetDataBaseLoadInfo info = item.Value;
 				if (info.getObject() != null)
 				{
 					mLoadedObjects.Remove(info.getObject());
@@ -82,11 +80,11 @@ public class AssetDataBaseLoader
 			mLoadedPath.Remove(item0);
 		}
 	}
-	public bool isResourceLoaded(string name)
+	public bool isAssetLoaded(string name)
 	{
 		return mLoadedPath.TryGetValue(getFilePath(name), out var resList) && resList.ContainsKey(name);
 	}
-	public UObject getResource(string name)
+	public UObject getAsset(string name)
 	{
 		return mLoadedPath.get(getFilePath(name))?.get(name)?.getObject();
 	}
@@ -98,7 +96,7 @@ public class AssetDataBaseLoader
 		// 如果文件夹还未加载,则添加文件夹
 		var resList = mLoadedPath.getOrAddNew(path);
 		// 资源未加载,则使用Resources.Load加载资源
-		if (!resList.TryGetValue(name, out ResourceLoadInfo info))
+		if (!resList.TryGetValue(name, out AssetDataBaseLoadInfo info))
 		{
 			if (!load<T>(path, name))
 			{
@@ -133,7 +131,7 @@ public class AssetDataBaseLoader
 		// 如果文件夹还未加载,则添加文件夹
 		var resList = mLoadedPath.getOrAddNew(path);
 		// 资源未加载,则使用Resources.Load加载资源
-		if (!resList.TryGetValue(name, out ResourceLoadInfo info))
+		if (!resList.TryGetValue(name, out AssetDataBaseLoadInfo info))
 		{
 			if (!load<T>(path, name))
 			{
@@ -162,14 +160,14 @@ public class AssetDataBaseLoader
 		return null;
 	}
 	// 异步加载资源,name为GameResources下的相对路径,带后缀
-	public CustomAsyncOperation loadResourcesAsync<T>(string name, AssetLoadDoneCallback doneCallback) where T : UObject
+	public CustomAsyncOperation loadResourcesAsync<T>(string name, AssetLoadCallback doneCallback) where T : UObject
 	{
 		CustomAsyncOperation op = new();
 		string path = getFilePath(name);
 		// 如果文件夹还未加载,则添加文件夹
 		var resList = mLoadedPath.getOrAddNew(path);
 		// 已经加载,则返回true
-		if (resList.TryGetValue(name, out ResourceLoadInfo info))
+		if (resList.TryGetValue(name, out AssetDataBaseLoadInfo info))
 		{
 			// 资源正在下载或加载,将回调添加到回调列表中,等待加载完毕
 			if (info.getState() == LOAD_STATE.DOWNLOADING || info.getState() == LOAD_STATE.LOADING)
@@ -211,7 +209,7 @@ public class AssetDataBaseLoader
 		{
 			return true;
 		}
-		ResourceLoadInfo info = resList.addClass(name);
+		AssetDataBaseLoadInfo info = resList.addClass(name);
 		info.setPath(path);
 		info.setResourceName(name);
 		info.setState(LOAD_STATE.LOADING);
@@ -241,7 +239,7 @@ public class AssetDataBaseLoader
 		mLoadedObjects.Add(info.getObject(), info);
 		return true;
 	}
-	protected IEnumerator loadResourceCoroutine<T>(ResourceLoadInfo info) where T : UObject
+	protected IEnumerator loadResourceCoroutine<T>(AssetDataBaseLoadInfo info) where T : UObject
 	{
 		if (isEditor())
 		{

@@ -50,7 +50,7 @@ public class NetConnectTCPBit : NetConnectTCP
 		// 包类型的高2位表示了当前包体是用几个字节存储的
 		ushort packetType = netPacket.getPacketType();
 		mBitWriter.clear();
-		netPacket.write(mBitWriter, out ulong fieldFlag);
+		netPacket.write(mBitWriter, netPacket.hasSign(), out ulong fieldFlag);
 		int realPacketSize = mBitWriter.getByteCount();
 		byte[] packetBodyData = mBitWriter.getBuffer();
 		if (realPacketSize < 0)
@@ -72,6 +72,7 @@ public class NetConnectTCPBit : NetConnectTCP
 		writer.write(generateCRC16(realPacketSize));
 		writer.write(packetType);
 		writer.write(mSendSequenceNumber);
+		writer.write(netPacket.hasSign());
 		// 写入一位用于获取是否需要使用标记位
 		writer.write(fieldFlag != FULL_FIELD_FLAG);
 		if (fieldFlag != FULL_FIELD_FLAG)
@@ -93,11 +94,10 @@ public class NetConnectTCPBit : NetConnectTCP
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 解析包体数据
-	protected override NetPacket parsePacket(ushort packetType, byte[] buffer, int size, uint sequence, ulong fieldFlag)
+	protected override NetPacket parsePacket(ushort packetType, byte[] buffer, int size, uint sequence, ulong fieldFlag, bool hasSign)
 	{
 		// 创建对应的消息包,并设置数据,然后放入列表中等待解析
-		var packetReply = mNetPacketFactory.createSocketPacket(packetType) as NetPacketBit;
-		if (packetReply == null)
+		if (mNetPacketFactory.createSocketPacket(packetType) is not NetPacketBit packetReply)
 		{
 			return null;
 		}
@@ -111,7 +111,7 @@ public class NetConnectTCPBit : NetConnectTCP
 		mDecryptPacket?.Invoke(buffer, 0, size, (byte)(packetType + size + (sequence ^ 123 ^ packetType)));
 		using var a = new ClassScope<SerializerBitRead>(out var reader);
 		reader.init(buffer, size);
-		if (!packetReply.read(reader, fieldFlag))
+		if (!packetReply.read(reader, hasSign, fieldFlag))
 		{
 			logError("解析失败:" + packetReply.getPacketType());
 		}
@@ -125,7 +125,7 @@ public class NetConnectTCPBit : NetConnectTCP
 		return packetReply;
 	}
 	protected override PARSE_RESULT preParsePacket(byte[] buffer, int size, out int bitIndex, out byte[] outPacket, out ushort packetType, 
-													out int packetSize, out uint sequence, out ulong fieldFlag)
+													out int packetSize, out uint sequence, out ulong fieldFlag, out bool hasSign)
 	{
 		bitIndex = 0;
 		outPacket = null;
@@ -133,6 +133,7 @@ public class NetConnectTCPBit : NetConnectTCP
 		packetSize = 0;
 		sequence = 0;
 		fieldFlag = FULL_FIELD_FLAG;
+		hasSign = false;
 		// 可能还没有接收完全,等待下次接收
 		if (size == 0)
 		{
@@ -150,7 +151,7 @@ public class NetConnectTCPBit : NetConnectTCP
 		{
 			return PARSE_RESULT.NOT_ENOUGH;
 		}
-		if (generateCRC16((int)packetSize) != packetSizeCRC)
+		if (generateCRC16(packetSize) != packetSizeCRC)
 		{
 			logError("packetSize crc校验失败,size:" + packetSize);
 			return PARSE_RESULT.ERROR;
@@ -160,6 +161,10 @@ public class NetConnectTCPBit : NetConnectTCP
 			return PARSE_RESULT.NOT_ENOUGH;
 		}
 		if (!reader.read(out sequence))
+		{
+			return PARSE_RESULT.NOT_ENOUGH;
+		}
+		if (!reader.read(out hasSign))
 		{
 			return PARSE_RESULT.NOT_ENOUGH;
 		}

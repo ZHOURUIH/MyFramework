@@ -143,7 +143,7 @@ public class myUGUIScrollRect : myUGUIObject
 				autoGrid(mContent, itemSize);
 			}
 			// 当Content的大小小于Viewport时,Content顶部对齐Viewport顶部(实际是根据content的pivot计算)
-			if (mViewport.getWindowSize().y >= mContent.getWindowSize().y)
+			if (mViewport.getSize().y >= mContent.getSize().y)
 			{
 				alignContentY(mContent.getPivot().y);
 			}
@@ -163,7 +163,7 @@ public class myUGUIScrollRect : myUGUIObject
 			{
 				autoGridFixedRootHeight(mContent, itemSize);
 			}
-			if (mViewport.getWindowSize().x >= mContent.getWindowSize().x)
+			if (mViewport.getSize().x >= mContent.getSize().x)
 			{
 				alignContentLeft();
 			}
@@ -176,10 +176,10 @@ public class myUGUIScrollRect : myUGUIObject
 	// 设置Content的顶部在Viewport中的坐标,一般在Content高度变化时,会保持顶部的位置不变,向下拉伸Content长度
 	public void setContentTopPos(float top)
 	{
-		mContent.setPositionY(top - mContent.getWindowSize().y * 0.5f);
+		mContent.setPositionY(top - mContent.getSize().y * 0.5f);
 		mScrollRect.velocity = new(mScrollRect.velocity.x, 0.0f);
 	}
-	public float getContentTopPos() { return mContent.getPosition().y + mContent.getWindowSize().y * 0.5f; }
+	public float getContentTopPos() { return mContent.getPosition().y + mContent.getSize().y * 0.5f; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void alignContentY(float y)
 	{

@@ -13,6 +13,7 @@ using System.IO.Compression;
 #if USE_SEVEN_ZIP
 using SevenZip;
 #endif
+using static SerializeByteUtility;
 using static UnityUtility;
 using static StringUtility;
 using static MathUtility;
@@ -82,14 +83,14 @@ public class FrameUtility
 	// 将UI的宽高调整为偶数
 	public static void makeSizeEven(myUGUIObject obj)
 	{
-		Vector2 scrollRectSize = obj.getWindowSize();
+		Vector2 scrollRectSize = obj.getSize();
 		int intScrollSizeX = ceil(scrollRectSize.x);
 		int intScrollSizeY = ceil(scrollRectSize.y);
 		float newScrollSizeX = intScrollSizeX + (intScrollSizeX & 1);
 		float newScrollSizeY = intScrollSizeY + (intScrollSizeY & 1);
 		if (!isFloatEqual(newScrollSizeX, scrollRectSize.x) || !isFloatEqual(newScrollSizeY, scrollRectSize.y))
 		{
-			obj.setWindowSize(new(newScrollSizeX, newScrollSizeY));
+			obj.setSize(new(newScrollSizeX, newScrollSizeY));
 		}
 	}
 	public static T PACKET<T>() where T : NetPacket
@@ -131,7 +132,7 @@ public class FrameUtility
 	{
 		writeTxtFile(path + FILE_LIST, content);
 		// 再生成此文件的MD5文件,用于客户端校验文件内容是否改变
-		writeTxtFile(path + FILE_LIST_MD5, generateFileMD5(stringToBytes(content), -1));
+		writeTxtFile(path + FILE_LIST_MD5, generateFileMD5(content.toBytes(), -1));
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 跳转流程或场景的工具函数
@@ -851,7 +852,7 @@ public class FrameUtility
 		}
 	}
 	// 在主线程中发起延迟调用函数,函数将在主线程中调用
-	public static long delayCallSafe(Action function, ClassObject guard, float delayTime = 0.0f)
+	public static long delayCallSafe(Action function, IRecyclable guard, float delayTime = 0.0f)
 	{
 		if (function == null || mGlobalCmdReceiver == null || guard == null)
 		{
@@ -882,7 +883,7 @@ public class FrameUtility
 			return cmd.getAssignID();
 		}
 	}
-	public static long delayCallSafe<T0>(Action<T0> function, T0 param0, ClassObject guard, float delayTime = 0.0f)
+	public static long delayCallSafe<T0>(Action<T0> function, T0 param0, IRecyclable guard, float delayTime = 0.0f)
 	{
 		if (function == null || mGlobalCmdReceiver == null || guard == null)
 		{
@@ -915,7 +916,7 @@ public class FrameUtility
 			return cmd.getAssignID();
 		}
 	}
-	public static long delayCallSafe<T0, T1>(Action<T0, T1> function, T0 param0, T1 param1, ClassObject guard, float delayTime = 0.0f)
+	public static long delayCallSafe<T0, T1>(Action<T0, T1> function, T0 param0, T1 param1, IRecyclable guard, float delayTime = 0.0f)
 	{
 		if (function == null || mGlobalCmdReceiver == null || guard == null)
 		{
@@ -950,7 +951,7 @@ public class FrameUtility
 			return cmd.getAssignID();
 		}
 	}
-	public static long delayCallSafe<T0, T1, T2>(Action<T0, T1, T2> function, T0 param0, T1 param1, T2 param2, ClassObject guard, float delayTime = 0.0f)
+	public static long delayCallSafe<T0, T1, T2>(Action<T0, T1, T2> function, T0 param0, T1 param1, T2 param2, IRecyclable guard, float delayTime = 0.0f)
 	{
 		if (function == null || mGlobalCmdReceiver == null || guard == null)
 		{
@@ -987,7 +988,7 @@ public class FrameUtility
 			return cmd.getAssignID();
 		}
 	}
-	public static long delayCallSafe<T0, T1, T2, T3>(Action<T0, T1, T2, T3> function, T0 param0, T1 param1, T2 param2, T3 param3, ClassObject guard, float delayTime = 0.0f)
+	public static long delayCallSafe<T0, T1, T2, T3>(Action<T0, T1, T2, T3> function, T0 param0, T1 param1, T2 param2, T3 param3, IRecyclable guard, float delayTime = 0.0f)
 	{
 		if (function == null || mGlobalCmdReceiver == null || guard == null)
 		{
@@ -1026,7 +1027,7 @@ public class FrameUtility
 			return cmd.getAssignID();
 		}
 	}
-	public static long delayCallSafe<T0, T1, T2, T3, T4>(Action<T0, T1, T2, T3, T4> function, T0 param0, T1 param1, T2 param2, T3 param3, T4 param4, ClassObject guard, float delayTime = 0.0f)
+	public static long delayCallSafe<T0, T1, T2, T3, T4>(Action<T0, T1, T2, T3, T4> function, T0 param0, T1 param1, T2 param2, T3 param3, T4 param4, IRecyclable guard, float delayTime = 0.0f)
 	{
 		if (function == null || mGlobalCmdReceiver == null || guard == null)
 		{
@@ -1452,7 +1453,7 @@ public class FrameUtility
 		{
 			return;
 		}
-		foreach (string line in splitLine(content))
+		foreach (string line in content.splitLine())
 		{
 			var info = GameFileInfo.createInfo(line);
 			list.addNotNullKey(info?.mFileName, info);

@@ -11,27 +11,28 @@ using static FrameDefine;
 // 每个动作都有对应的Param参数,用于跳转动画
 public class COMCharacterAvatar : GameComponent
 {
-	protected Dictionary<string, float> mAnimationLengthList = new();	// 缓存动作时长的列表
-	protected CharacterCallback mCharacterLoadedCallback;				// 角色模型加载完毕的回调
-	protected CharacterController mController;							// 模型角色控制器组件,仅用于方便获取
-	protected GameObject mObject;										// 模型节点
-	protected Transform mModelTransform;								// 模型变换组件
-	protected Character mCharacter;										// 模型所属角色
-	protected Rigidbody mRigidBody;										// 模型刚体组件,仅用于方便获取
-	protected Animator mAnimator;										// 模型动画状态机组件,仅用于方便获取
-	protected string mAnimatorControllerPath;							// 角色动作状态机文件路径,用于在加载模型时使用其他路径的状态机
-	protected string mModelPath;										// 模型文件的相对路径,相对于GameResources
-	protected float[] mAnimationSpeed;									// 当前动作的播放速度,数组的每一个元素对应每一个动画层
-	protected int[] mAnimationParam;									// 当前的播放动作的参数,对应了一个动作,数组的每一个元素对应每一个动画层
-	protected bool[] mLayerParamDirty;									// 动画层参数是否有修改未应用
-	protected int mDefaultLayer;										// 初始的层
-	protected int mModelTag;											// 模型标签,用于资源池
-	protected bool mDestroyReally;										// 在销毁时是否真正销毁模型,如果不是真正销毁,则是缓存到资源池中
-	protected AVATAR_RELATIONSHIP mRelationship;						// 模型节点与角色节点的关系
-	protected TRANSFORM_SYNC_TIME mTransformSyncTime;					// 同步变换的时机
-	protected TRANSFORM_SYNC mPositionSync;								// 位置同步方式,仅在mRelationship为AVATAR_ALONE时生效
-	protected TRANSFORM_SYNC mRotationSync;								// 旋转同步方式,仅在mRelationship为AVATAR_ALONE时生效
-	protected TRANSFORM_SYNC mScaleSync;								// 缩放同步方式,仅在mRelationship为AVATAR_ALONE时生效
+	protected Dictionary<string, float> mAnimationLengthList = new();		// 缓存动作时长的列表
+	protected ResourceRef<RuntimeAnimatorController> mAnimatorControllerRef;// 动态加载的动画控制器的引用
+	protected CharacterCallback mCharacterLoadedCallback;					// 角色模型加载完毕的回调
+	protected CharacterController mController;								// 模型角色控制器组件,仅用于方便获取
+	protected GameObject mObject;											// 模型节点
+	protected Transform mModelTransform;									// 模型变换组件
+	protected Character mCharacter;											// 模型所属角色
+	protected Rigidbody mRigidBody;											// 模型刚体组件,仅用于方便获取
+	protected Animator mAnimator;											// 模型动画状态机组件,仅用于方便获取
+	protected string mAnimatorControllerPath;								// 角色动作状态机文件路径,用于在加载模型时使用其他路径的状态机
+	protected string mModelPath;											// 模型文件的相对路径,相对于GameResources
+	protected float[] mAnimationSpeed;										// 当前动作的播放速度,数组的每一个元素对应每一个动画层
+	protected int[] mAnimationParam;										// 当前的播放动作的参数,对应了一个动作,数组的每一个元素对应每一个动画层
+	protected bool[] mLayerParamDirty;										// 动画层参数是否有修改未应用
+	protected int mDefaultLayer;											// 初始的层
+	protected int mModelTag;												// 模型标签,用于资源池
+	protected bool mDestroyReally;											// 在销毁时是否真正销毁模型,如果不是真正销毁,则是缓存到资源池中
+	protected AVATAR_RELATIONSHIP mRelationship;							// 模型节点与角色节点的关系
+	protected TRANSFORM_SYNC_TIME mTransformSyncTime;						// 同步变换的时机
+	protected TRANSFORM_SYNC mPositionSync;									// 位置同步方式,仅在mRelationship为AVATAR_ALONE时生效
+	protected TRANSFORM_SYNC mRotationSync;									// 旋转同步方式,仅在mRelationship为AVATAR_ALONE时生效
+	protected TRANSFORM_SYNC mScaleSync;									// 缩放同步方式,仅在mRelationship为AVATAR_ALONE时生效
 	public COMCharacterAvatar()
 	{
 		mAnimationSpeed = new float[ANIMATION_LAYER_COUNT] { 1.0f, 1.0f};
@@ -52,6 +53,7 @@ public class COMCharacterAvatar : GameComponent
 	{
 		base.resetProperty();
 		mAnimationLengthList.Clear();
+		mAnimatorControllerRef = null;
 		mCharacterLoadedCallback = null;
 		mController = null;
 		mObject = null;
@@ -213,6 +215,7 @@ public class COMCharacterAvatar : GameComponent
 		// 动作也要清空一下
 		mAnimationSpeed.setAllValue(1.0f);
 		mAnimationParam.setAllDefault();
+		mResourceManager.unload(ref mAnimatorControllerRef);
 	}
 	public void syncTransform()
 	{
@@ -360,7 +363,11 @@ public class COMCharacterAvatar : GameComponent
 		setModel(go);
 		if (mAnimator != null && !mAnimatorControllerPath.isEmpty())
 		{
-			mAnimator.runtimeAnimatorController = mResourceManager.loadGameResource<RuntimeAnimatorController>(mAnimatorControllerPath);
+			mResourceManager.loadGameResourceAsyncSafe<RuntimeAnimatorController>(this, mAnimatorControllerPath, (res) => 
+			{
+				mAnimatorControllerRef = res;
+				mAnimator.runtimeAnimatorController = mAnimatorControllerRef.getResource();
+			});
 		}
 		// 回调顺序是先通知组件的子类,再通知所属角色,最后执行异步加载的回调
 		postModelLoaded();

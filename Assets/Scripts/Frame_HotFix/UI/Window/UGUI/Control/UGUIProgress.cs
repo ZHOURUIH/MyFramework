@@ -23,7 +23,7 @@ public class UGUIProgress : WindowObjectUGUI, ISlider
 	{
 		base.init();
 		mMode = mProgressBar.getImage().type == Image.Type.Filled ? SLIDER_MODE.FILL : SLIDER_MODE.SIZING;
-		mOriginProgressSize = mProgressBar.getWindowSize();
+		mOriginProgressSize = mProgressBar.getSize();
 		mOriginProgressPosition = mProgressBar.getPosition();
 	}
 	public void setValue(float value) 
@@ -43,7 +43,7 @@ public class UGUIProgress : WindowObjectUGUI, ISlider
 		{
 			float newWidth = mProgressValue * mOriginProgressSize.x;
 			mProgressBar.setPositionX(mOriginProgressPosition.x - mOriginProgressSize.x * 0.5f + newWidth * 0.5f);
-			mProgressBar.setWindowSize(new(newWidth, mOriginProgressSize.y));
+			mProgressBar.setSize(new(newWidth, mOriginProgressSize.y));
 		}
 		mThumb?.setPositionX((mProgressValue - 0.5f) * mOriginProgressSize.x);
 	}

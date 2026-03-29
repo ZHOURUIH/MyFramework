@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using static System.Linq.Enumerable;
 using static FrameUtility;
 using static MathUtility;
 
@@ -257,6 +256,10 @@ public static class ListExtension
 	public static List<T> addRange<T>(this List<T> list, List<T> other, int count)
 	{
 		clampMax(ref count, other.count());
+		if (list.Capacity < list.Count + count)
+		{
+			list.Capacity = list.Count + count;
+		}
 		for (int i = 0; i < count; ++i)
 		{
 			list.add(other[i]);
@@ -266,6 +269,10 @@ public static class ListExtension
 	public static List<T> addRange<T>(this List<T> list, List<T> other, int startIndex, int count)
 	{
 		clampMax(ref count, other.count()- startIndex);
+		if (list.Capacity < list.Count + count)
+		{
+			list.Capacity = list.Count + count;
+		}
 		for (int i = 0; i < count; ++i)
 		{
 			list.add(other[i + startIndex]);
@@ -329,6 +336,10 @@ public static class ListExtension
 	public static List<T> addRange<T>(this List<T> list, T[] other, int startIndex, int count)
 	{
 		clampMax(ref count, other.count() - startIndex);
+		if (list.Capacity < list.Count + count)
+		{
+			list.Capacity = list.Count + count;
+		}
 		for (int i = 0; i < count; ++i)
 		{
 			list.add(other[i + startIndex]);
@@ -387,7 +398,10 @@ public static class ListExtension
 		{
 			return list;
 		}
-		list.Capacity = list.Count + other.Count;
+		if (list.Capacity < list.Count + other.Count)
+		{
+			list.Capacity = list.Count + other.Count;
+		}
 		foreach (T item in other)
 		{
 			list.Add(item);
@@ -401,7 +415,10 @@ public static class ListExtension
 		{
 			return list;
 		}
-		list.Capacity = list.Count + other.Length;
+		if (list.Capacity < list.Count + other.Length)
+		{
+			list.Capacity = list.Count + other.Length;
+		}
 		foreach (T item in other)
 		{
 			list.Add(item);
@@ -410,7 +427,10 @@ public static class ListExtension
 	}
 	public static List<T> addRange<T>(this List<T> list, Span<T> other)
 	{
-		list.Capacity = list.Count + other.Length;
+		if (list.Capacity < list.Count + other.Length)
+		{
+			list.Capacity = list.Count + other.Length;
+		}
 		foreach (T item in other)
 		{
 			list.Add(item);
@@ -419,14 +439,37 @@ public static class ListExtension
 	}
 	public static List<T> addRange<T>(this List<T> list, Span<T> other, int count)
 	{
-		list.Capacity = list.Count + count;
+		if (list.Capacity < list.Count + count)
+		{
+			list.Capacity = list.Count + count;
+		}
 		for (int i = 0; i < count; ++i)
 		{
 			list.Add(other[i]);
 		}
 		return list;
 	}
-	public static List<T> setRange<T, T0>(this List<T> list, List<T0> other) where T0 : T
+	public static List<T> setRange<T>(this List<T> list, List<T> other)
+	{
+		list.Clear();
+		if (other == null || other.Count == 0)
+		{
+			return list;
+		}
+		list.AddRange(other);
+		return list;
+	}
+	public static List<T> setRange<T>(this List<T> list, T[] other)
+	{
+		list.Clear();
+		if (other == null || other.Length == 0)
+		{
+			return list;
+		}
+		list.AddRange(other);
+		return list;
+	}
+	public static List<Base> setRangeDerived<Base, T>(this List<Base> list, List<T> other) where T : Base
 	{
 		list.Clear();
 		if (other == null || other.Count == 0)
@@ -443,7 +486,7 @@ public static class ListExtension
 		}
 		return list;
 	}
-	public static List<T> setRange<T, T0>(this List<T> list, T0[] other) where T0 : T
+	public static List<Base> setRangeDerived<Base, T>(this List<Base> list, T[] other) where T : Base
 	{
 		list.Clear();
 		if (other == null || other.Length == 0)
@@ -454,30 +497,19 @@ public static class ListExtension
 		{
 			list.Capacity = list.Count + other.Length;
 		}
-		foreach (T item in other)
+		foreach (Base item in other)
 		{
 			list.add(item);
-		}
-		return list;
-	}
-	public static List<Base> setRangeDerived<Base, T>(this List<Base> list, List<T> other) where Base : class where T : Base
-	{
-		list.Clear();
-		if (other == null || other.Count == 0)
-		{
-			return list;
-		}
-		list.Capacity = other.Count;
-		foreach (T item in other)
-		{
-			list.Add(item);
 		}
 		return list;
 	}
 	public static List<T> setRange<T>(this List<T> list, Span<T> other)
 	{
 		list.Clear();
-		list.Capacity = other.Length;
+		if (list.Capacity < other.Length)
+		{
+			list.Capacity = other.Length;
+		}
 		foreach (T item in other)
 		{
 			list.Add(item);
@@ -487,7 +519,10 @@ public static class ListExtension
 	public static List<T> setRange<T>(this List<T> list, Span<T> other, int count)
 	{
 		list.Clear();
-		list.Capacity = other.Length;
+		if (list.Capacity < other.Length)
+		{
+			list.Capacity = other.Length;
+		}
 		for (int i = 0; i < count; ++i)
 		{
 			list.Add(other[i]);
@@ -845,6 +880,17 @@ public static class ListExtension
 		foreach (T item in list)
 		{
 			return item;
+		}
+		return default;
+	}
+	public static T first<T>(this List<T> list, Predicate<T> action)
+	{
+		foreach (T item in list)
+		{
+			if (action(item))
+			{
+				return item;
+			}
 		}
 		return default;
 	}

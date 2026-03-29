@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using static StringUtility;
-using static BinaryUtility;
 
 // 表单中的字段参数
 public class FormItemParam : FormItem
@@ -21,7 +20,7 @@ public class FormItemParam : FormItem
 	public override void write(MemoryStream postStream, string boundary)
 	{
 		string formTemplate = "--" + boundary + "\r\nContent-Disposition: form-data; name=\"{0}\"\r\n\r\n{1}\r\n";
-		byte[] formdataBytes = stringToBytes(format(formTemplate, mKey, mValue));
-		postStream.Write(formdataBytes, 0, formdataBytes.Length);
+		byte[] formDataBytes = format(formTemplate, mKey, mValue).toBytes();
+		postStream.Write(formDataBytes, 0, formDataBytes.Length);
 	}
 }

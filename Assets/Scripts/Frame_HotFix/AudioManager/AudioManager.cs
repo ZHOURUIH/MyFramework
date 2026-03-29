@@ -5,6 +5,7 @@ using static UnityUtility;
 using static FrameBaseHotFix;
 using static MathUtility;
 using static FrameBaseUtility;
+using static ResourceUtility;
 
 // 音频管理器
 public class AudioManager : FrameSystem
@@ -43,7 +44,7 @@ public class AudioManager : FrameSystem
 			// 只销毁通过链接加载的音频
 			if (!item.Value.mIsLocal)
 			{
-				destroyUnityObject(item.Value.mClip);
+				destroyUnityObject(item.Value.getClip());
 			}
 		}
 		UN_CLASS_LIST(mAudioList);
@@ -81,14 +82,8 @@ public class AudioManager : FrameSystem
 	public void setMaxAudioCount(int maxCount) { mMaxAudioCount = maxCount; }
 	public void createStreamingAudio(string url, AudioInfoCallback callback, bool load = true)
 	{
-		if (!mAudioList.getOrAddClass(url, out AudioInfo info))
-		{
-			info.mAudioName = url;
-			info.mClip = null;
-			info.mState = LOAD_STATE.NONE;
-			info.mIsLocal = false;
-		}
-		if (load && info.mClip == null)
+		mAudioList.getOrAddClass(url, out AudioInfo info);
+		if (load && info.getClip() == null)
 		{
 			loadAudioAsync(info, callback);
 		}
@@ -100,12 +95,18 @@ public class AudioManager : FrameSystem
 		{
 			return false;
 		}
-		bool ret = mResourceManager.unload(ref info.mClip);
-		if (ret)
+		// 只销毁通过链接加载的音频
+		if (info.mIsLocal)
 		{
-			info.mState = LOAD_STATE.NONE;
+			mResourceManager.unload(ref info.mClip);
 		}
-		return ret;
+		else
+		{
+			destroyUnityObject(info.mRawClip);
+			info.mRawClip = null;
+		}
+		info.mState = LOAD_STATE.NONE;
+		return true;
 	}
 	public bool unload(int sound)
 	{
@@ -116,7 +117,7 @@ public class AudioManager : FrameSystem
 	{
 		foreach (var item in mAudioList)
 		{
-			if (item.Value.mClip == null && item.Value.mState == LOAD_STATE.NONE)
+			if (item.Value.getClip() == null && item.Value.mState == LOAD_STATE.NONE)
 			{
 				loadAudio(item.Value);
 			}
@@ -127,7 +128,7 @@ public class AudioManager : FrameSystem
 	{
 		foreach (var item in mAudioList)
 		{
-			if (item.Value.mClip == null && item.Value.mState == LOAD_STATE.NONE)
+			if (item.Value.getClip() == null && item.Value.mState == LOAD_STATE.NONE)
 			{
 				loadAudioAsync(item.Value, null);
 			}
@@ -162,11 +163,11 @@ public class AudioManager : FrameSystem
 	// name是GameResources下相对路径,带后缀
 	public float getAudioLength(string name)
 	{
-		if (name.isEmpty() || !mAudioList.TryGetValue(name, out AudioInfo info) || info?.mClip == null)
+		if (name.isEmpty() || !mAudioList.TryGetValue(name, out AudioInfo info) || info?.getClip() == null)
 		{
 			return 0.0f;
 		}
-		return info.mClip.length;
+		return info.getClip().length;
 	}
 	public float getAudioLength(int sound) { return getAudioLength(mAudioManager.getAudioName(sound)); }
 	// volume范围0-1,load表示如果音效未加载,则异步加载音效,name是GameResources下相对路径,带后缀
@@ -177,7 +178,7 @@ public class AudioManager : FrameSystem
 			return;
 		}
 		// 如果音效为空,则尝试加载
-		if (info.mClip == null)
+		if (info.getClip() == null)
 		{
 			if (load && info.mState == LOAD_STATE.NONE)
 			{
@@ -189,26 +190,28 @@ public class AudioManager : FrameSystem
 						return;
 					}
 					source.enabled = true;
-					source.clip = outInfo.mClip;
+					source.clip = outInfo.getClip();
 					source.loop = loop;
 					source.volume = volume;
 					source.Play();
 					callback?.Invoke(outInfo);
 				});
 			}
-			return;
 		}
-		if (source == null)
+		else
 		{
-			callback?.Invoke(null);
-			return;
+			if (source == null)
+			{
+				callback?.Invoke(null);
+				return;
+			}
+			source.enabled = true;
+			source.clip = info.getClip();
+			source.loop = loop;
+			source.volume = volume;
+			source.Play();
+			callback?.Invoke(info);
 		}
-		source.enabled = true;
-		source.clip = info.mClip;
-		source.loop = loop;
-		source.volume = volume;
-		source.Play();
-		callback?.Invoke(info);
 	}
 	// volume范围0-1,load表示如果音效未加载,则同步加载音效,name是GameResources下相对路径,带后缀
 	public void playClip(AudioSource source, string name, bool loop, float volume, bool load = true)
@@ -222,12 +225,12 @@ public class AudioManager : FrameSystem
 			return;
 		}
 		// 如果音效为空,则尝试加载
-		if (info.mClip == null && load && info.mState == LOAD_STATE.NONE)
+		if (info.getClip() == null && load && info.mState == LOAD_STATE.NONE)
 		{
 			loadAudio(info);
 		}
 		source.enabled = true;
-		source.clip = info.mClip;
+		source.clip = info.getClip();
 		source.loop = loop;
 		source.volume = volume;
 		source.Play();
@@ -258,8 +261,6 @@ public class AudioManager : FrameSystem
 		}
 		AudioInfo newInfo = mAudioList.addClass(fileNameNoSuffix);
 		newInfo.mAudioName = fileNameNoSuffix;
-		newInfo.mClip = null;
-		newInfo.mState = LOAD_STATE.NONE;
 		newInfo.mIsLocal = isLocal;
 	}
 	// 注册可以使用枚举访问的音效,fileName是GameResources下的相对路径,带后缀名
@@ -274,7 +275,7 @@ public class AudioManager : FrameSystem
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void loadAudio(AudioInfo info)
 	{
-		if (info == null || info.mClip != null || info.mState != LOAD_STATE.NONE)
+		if (info == null || info.getClip() != null || info.mState != LOAD_STATE.NONE)
 		{
 			return;
 		}
@@ -290,7 +291,7 @@ public class AudioManager : FrameSystem
 	}
 	protected void loadAudioAsync(AudioInfo info, AudioInfoCallback callback)
 	{
-		if (info == null || info.mClip != null || info.mState != LOAD_STATE.NONE)
+		if (info == null || info.getClip() != null || info.mState != LOAD_STATE.NONE)
 		{
 			callback?.Invoke(null);
 			return;
@@ -298,27 +299,43 @@ public class AudioManager : FrameSystem
 		info.mState = LOAD_STATE.LOADING;
 		if (info.mIsLocal)
 		{
-			mResourceManager.loadGameResourceAsync(info.mAudioName, (AudioClip assets, string fileName) =>
+			mResourceManager.loadGameResourceAsync(info.mAudioName, (ResourceRef<AudioClip> asset, string fileName) =>
 			{
-				audioLoaded(assets, fileName);
+				audioLoaded(asset, fileName);
 				callback?.Invoke(info);
 			});
 		}
 		else
 		{
-			ResourceManager.loadAssetsFromUrl(info.mAudioName, (AudioClip assets, string fileName) =>
+			loadAssetsFromUrl(info.mAudioName, (AudioClip asset, string fileName) =>
 			{
-				audioLoaded(assets, fileName);
+				audioLoaded(asset, fileName);
 				callback?.Invoke(info);
 			});
 		}
 	}
-	protected void audioLoaded(AudioClip assets, string fileName)
+	protected void audioLoaded(ResourceRef<AudioClip> asset, string fileName)
 	{
 		AudioInfo info = mAudioList.get(fileName);
-		if (assets != null)
+		if (asset != null)
 		{
-			info.mClip = assets;
+			info.mClip = asset;
+			info.mRawClip = null;
+			info.mState = LOAD_STATE.LOADED;
+		}
+		else
+		{
+			info.mState = LOAD_STATE.NONE;
+		}
+		++mLoadedCount;
+	}
+	protected void audioLoaded(AudioClip asset, string fileName)
+	{
+		AudioInfo info = mAudioList.get(fileName);
+		if (asset != null)
+		{
+			info.mClip = null;
+			info.mRawClip = asset;
 			info.mState = LOAD_STATE.LOADED;
 		}
 		else

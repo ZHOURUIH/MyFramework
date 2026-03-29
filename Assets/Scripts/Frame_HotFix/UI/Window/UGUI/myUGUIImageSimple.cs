@@ -75,7 +75,7 @@ public class myUGUIImageSimple : myUGUIObject
 		mImage.sprite = sprite;
 		if (useSpriteSize)
 		{
-			setWindowSize(getSpriteSize() * sizeScale);
+			setSize(getSpriteSize() * sizeScale);
 		}
 	}
 	public Vector2 getSpriteSize()
@@ -88,7 +88,7 @@ public class myUGUIImageSimple : myUGUIObject
 		{
 			return mImage.sprite.rect.size;
 		}
-		return getWindowSize();
+		return getSize();
 	}
 	public Image getImage() { return mImage; }
 	public Sprite getSprite() { return mImage.sprite; }

@@ -37,10 +37,6 @@ public class FrameDefine
 	public const string P_SCRIPTS_PATH = P_ASSETS_PATH + SCRIPTS + "/";
 	public const string P_GAME_RESOURCES_PATH = P_ASSETS_PATH + GAME_RESOURCES + "/";
 	public const string P_RESOURCES_SCENE_PATH = P_RESOURCES_PATH + SCENE + "/";
-	public const string P_RESOURCES_ATLAS_PATH = P_RESOURCES_PATH + ATLAS + "/";
-	public const string P_RESOURCES_TEXTURE_PATH = P_RESOURCES_PATH + TEXTURE + "/";
-	public const string P_RESOURCES_UI_PATH = P_RESOURCES_PATH + UI + "/";
-	public const string P_RESOURCES_UI_PREFAB_PATH = P_RESOURCES_UI_PATH + UI_PREFAB + "/";
 	public const string P_ATLAS_PATH = P_GAME_RESOURCES_PATH + ATLAS + "/";
 	public const string P_UI_PATH = P_GAME_RESOURCES_PATH + UI + "/";
 	public const string P_FONT_PATH = P_GAME_RESOURCES_PATH + FONT + "/";
@@ -52,7 +48,7 @@ public class FrameDefine
 	public const string P_UNUSED_PATH = P_GAME_RESOURCES_PATH + UNUSED + "/";
 
 	// 相对路径,相对于StreamingAssets,以SA_开头,表示StreamingAssets
-	// 由于Android下的StreamingAssets路径不完全以Assets路径开头,与其他平台不一致,所以不定义相对于Asstes的路径
+	// 由于Android下的StreamingAssets路径不完全以Assets路径开头,与其他平台不一致,所以不定义相对于Assets的路径
 	public const string SA_VIDEO_PATH = VIDEO + "/";
 
 	// 相对路径,相对于Resources,R_开头,表示Resources

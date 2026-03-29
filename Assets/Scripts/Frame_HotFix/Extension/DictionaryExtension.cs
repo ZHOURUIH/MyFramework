@@ -653,4 +653,15 @@ public static class DictionaryExtension
 		}
 		return default;
 	}
+	public static KeyValuePair<TKey, TValue> first<TKey, TValue>(this Dictionary<TKey, TValue> list, Predicate<TKey> action)
+	{
+		foreach (var item in list)
+		{
+			if (action(item.Key))
+			{
+				return item;
+			}
+		}
+		return default;
+	}
 }

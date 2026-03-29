@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Collections.Generic;
 using UnityEngine;
+using static SerializeByteUtility;
 using static BinaryUtility;
 using static MathUtility;
 
@@ -156,13 +157,13 @@ public class SerializerWrite : ClassObject
 		byte[] strBytes = null;
 		if (str != null)
 		{
-			strBytes = stringToBytes(str, encoding);
+			strBytes = str.toBytes(encoding);
 			strLen = strBytes.Length;
 		}
 		writeCheck(strLen + sizeof(int));
 		// 先写入字符串长度
 		write(strLen);
-		if(strLen > 0)
+		if (strLen > 0)
 		{
 			writeBuffer(strBytes, strLen);
 		}

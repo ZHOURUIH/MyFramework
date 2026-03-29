@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using static SerializeByteUtility;
 using static BinaryUtility;
 using static UnityUtility;
 using static StringUtility;
@@ -751,7 +752,7 @@ public class SerializerRead : ClassObject
 		{
 			return false;
 		}
-		value = bytesToString(mBuffer, mIndex, readLen, encoding);
+		value = mBuffer.bytesToString(mIndex, readLen, encoding);
 		mIndex += readLen;
 		return true;
 	}

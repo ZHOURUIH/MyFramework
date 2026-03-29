@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
+using UObject = UnityEngine.Object;
 
 // 对TexturePacket生成的MultiSprite图集的封装,主要是实现对Sprite的缓存
 public class TPAtlas : AtlasBase
 {
 	public Texture2D mTexture;					// 图集对象,尽量不要直接访问公有变量
-	protected string mTextureName;				// 由于直接访问.name每次都会有GC,所以使用一个变量存储
+	protected string mTextureName;              // 由于直接访问.name每次都会有GC,所以使用一个变量存储
+	public TPAtlas(ResourceRef<UObject> asset) : base(asset) { }
 	public override bool isValid()				{ return mTexture != null; }
 	public override string getName()			{ return mTextureName; }
 	public Texture2D getAtlas()					{ return mTexture; }

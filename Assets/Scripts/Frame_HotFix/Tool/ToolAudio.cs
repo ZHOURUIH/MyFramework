@@ -251,7 +251,7 @@ public class AT
 		{
 			CmdMovableObjectPlayAudio.executeAsync(helper, soundName, volume, loop, (AudioInfo info)=>
 			{
-				helper.mRemainTime = loop ? -1.0f : info.mClip.length;
+				helper.mRemainTime = loop ? -1.0f : info.getClip().length;
 				callback?.Invoke(info);
 			});
 		}

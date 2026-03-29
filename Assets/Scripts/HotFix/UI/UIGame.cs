@@ -15,6 +15,7 @@ public class UIGame : LayoutScript
 	protected myUGUIObject mAvatar;
 	protected myUGUIText mSpeed;
 	protected myUGUIDamageNumber mDamageNumber;
+	protected myUGUITileImage mTile;
 	// auto generate member end
 	protected Dictionary<float, Vector3> mPositionKeyframes;
 	protected Dictionary<float, Vector3> mScaleKeyframes;
@@ -38,6 +39,7 @@ public class UIGame : LayoutScript
 		newObject(out mAvatar, background, "Avatar");
 		newObject(out mSpeed, background, "Speed");
 		newObject(out mDamageNumber, background, "DamageNumber");
+		newObject(out mTile, background, "Tile");
 		// auto generate assignWindow end
 	}
 	public override void init()
@@ -54,6 +56,15 @@ public class UIGame : LayoutScript
 	public override void onGameState()
 	{
 		base.onGameState();
+		mAtlasManager.getAtlasAsyncSafe(this, "Atlas/NumberStyle/CommonNumber.png", (AtlasRef atlas)=>
+		{
+			Dictionary<object, TileData> list = new();
+			list.add("1", CLASS(out TileData _)).init(atlas.getSprite("Number_Magic_0"), new(10, 10, 0), new(50, 100));
+			list.add("2", CLASS(out TileData _)).init(atlas.getSprite("Number_Magic_1"), new(40, 10, 0), new(50, 100));
+			list.add("3", CLASS(out TileData _)).init(atlas.getSprite("Number_Magic_2"), new(70, 10, 0), new(50, 100));
+			list.add("4", CLASS(out TileData _)).init(atlas.getSprite("Number_Magic_3"), new(100, 10, 0), new(50, 100));
+			mTile.setTileMap(list);
+		});
 	}
 	public override void update(float elapsedTime)
 	{

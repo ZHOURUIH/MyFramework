@@ -147,37 +147,37 @@ public class WindowStructPoolBase : IWindowObjectOwner
 	}
 	public void autoGridForDragView()
 	{
-		WidgetUtility.autoGrid(mItemParent, mTemplate.getWindowSize(), Vector2.zero, true, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
+		WidgetUtility.autoGrid(mItemParent, mTemplate.getSize(), Vector2.zero, true, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
 		// 根据排列后的子节点,计算出父节点的高度
 		WidgetUtility.setWindowBestHeight(mItemParent, true, true);
 		mItemParent.setTopCenterToParentTopCenter();
 	}
 	public void autoGrid()
 	{
-		WidgetUtility.autoGrid(mItemParent, mTemplate.getWindowSize(), Vector2.zero, true, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
+		WidgetUtility.autoGrid(mItemParent, mTemplate.getSize(), Vector2.zero, true, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
 	}
 	public void autoGrid(bool autoRefreshUIDepth)
 	{
-		WidgetUtility.autoGrid(mItemParent, mTemplate.getWindowSize(), Vector2.zero, autoRefreshUIDepth, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
+		WidgetUtility.autoGrid(mItemParent, mTemplate.getSize(), Vector2.zero, autoRefreshUIDepth, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
 	}
 	public void autoGrid(Vector2 interval)
 	{
-		WidgetUtility.autoGrid(mItemParent, mTemplate.getWindowSize(), interval, true, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
+		WidgetUtility.autoGrid(mItemParent, mTemplate.getSize(), interval, true, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
 	}
 	public void autoGrid(HORIZONTAL_DIRECTION horizontal)
 	{
-		WidgetUtility.autoGrid(mItemParent, mTemplate.getWindowSize(), Vector2.zero, true, true, true, horizontal, VERTICAL_DIRECTION.TOP);
+		WidgetUtility.autoGrid(mItemParent, mTemplate.getSize(), Vector2.zero, true, true, true, horizontal, VERTICAL_DIRECTION.TOP);
 	}
 	public void autoGrid(VERTICAL_DIRECTION vertical)
 	{
-		WidgetUtility.autoGrid(mItemParent, mTemplate.getWindowSize(), Vector2.zero, true, true, true, HORIZONTAL_DIRECTION.LEFT, vertical);
+		WidgetUtility.autoGrid(mItemParent, mTemplate.getSize(), Vector2.zero, true, true, true, HORIZONTAL_DIRECTION.LEFT, vertical);
 	}
 	public void autoGrid(Vector2 interval, HORIZONTAL_DIRECTION horizontal)
 	{
-		WidgetUtility.autoGrid(mItemParent, mTemplate.getWindowSize(), interval, true, true, true, horizontal, VERTICAL_DIRECTION.TOP);
+		WidgetUtility.autoGrid(mItemParent, mTemplate.getSize(), interval, true, true, true, horizontal, VERTICAL_DIRECTION.TOP);
 	}
 	public void autoGrid(Vector2 interval, VERTICAL_DIRECTION vertical)
 	{
-		WidgetUtility.autoGrid(mItemParent, mTemplate.getWindowSize(), interval, true, true, true, HORIZONTAL_DIRECTION.LEFT, vertical);
+		WidgetUtility.autoGrid(mItemParent, mTemplate.getSize(), interval, true, true, true, HORIZONTAL_DIRECTION.LEFT, vertical);
 	}
 }

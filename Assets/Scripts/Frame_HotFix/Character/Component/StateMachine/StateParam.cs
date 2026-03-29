@@ -3,14 +3,14 @@
 public class StateParam : ClassObject
 {
 	protected ParamSet mParamSet;					// buff参数注册的函数列表,用于解析表格的buff参数
-	public float mBuffTime;							// 只用作参数存储,不会在buff中引用
+	public float mBuffTime = -1.0f;					// 只用作参数存储,不会在buff中引用
 	public Character mTarget;						// 附加的目标角色
 	public Character mSource;						// 附加的源角色,也就是谁给附加的buff
 	public override void resetProperty()
 	{
 		base.resetProperty();
 		mParamSet?.resetProperty();
-		mBuffTime = 0.0f;
+		mBuffTime = -1.0f;
 		mTarget = null;
 		mSource = null;
 	}

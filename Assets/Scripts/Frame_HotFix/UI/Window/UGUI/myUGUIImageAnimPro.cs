@@ -44,7 +44,7 @@ public class myUGUIImageAnimPro : myUGUIImagePro, IUIAnimation
 		}
 		mControl.update(elapsedTime);
 	}
-	public override void setAtlas(UGUIAtlasPtr atlas, bool clearSprite = false, bool force = false)
+	public override void setAtlas(AtlasRef atlas, bool clearSprite = false, bool force = false)
 	{
 		if (!force && atlas?.getAtlas() == getAtlas()?.getAtlas())
 		{
@@ -169,7 +169,7 @@ public class myUGUIImageAnimPro : myUGUIImagePro, IUIAnimation
 			myUGUIObject parent = getParent();
 			if (parent != null)
 			{
-				setPositionY((getWindowSize().y - parent.getWindowSize().y) * 0.5f);
+				setPositionY((getSize().y - parent.getSize().y) * 0.5f);
 			}
 		}
 		foreach (BoolCallback item in mPlayingCallbackList.safe())

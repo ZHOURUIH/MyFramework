@@ -77,7 +77,7 @@ public class UGUIScroll : WindowObjectUGUI
 	public void setItemList<T>(List<T> itemList, int defaultIndex = 0) where T : class, IScrollItem
 	{
 		// 每一项的控制值就是其下标,所以在
-		mItemList.setRange(itemList);
+		mItemList.setRangeDerived(itemList);
 		if (mItemList.Count == 0)
 		{
 			mMaxControlValue = 0.0f;

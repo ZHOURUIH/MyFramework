@@ -7,8 +7,8 @@ using System.Text;
 using System.Xml;
 using System.Net;
 using static FileUtility;
+using static ResourceUtility;
 using static StringUtility;
-using static BinaryUtility;
 using static TimeUtility;
 using static HttpUtility;
 
@@ -44,7 +44,7 @@ public class ObsSystem
 		{
 			return EMPTY;
 		}
-		return bytesToString(downloadFile(mURL + remotePath)) ?? EMPTY;
+		return downloadFile(mURL + remotePath).bytesToString();
 	}
 	// 异步下载文件,remotePath是上传到服务器后存储的相对路径,带后缀
 	public static void downloadBytes(string remotePath, BytesIntCallback callback)
@@ -54,7 +54,7 @@ public class ObsSystem
 			callback?.Invoke(null, 0);
 			return;
 		}
-		ResourceManager.loadAssetsFromUrl(mURL + remotePath, (byte[] bytes) => { callback?.Invoke(bytes, bytes.count()); });
+		loadAssetsFromUrl(mURL + remotePath, (byte[] bytes) => { callback?.Invoke(bytes, bytes.count()); });
 	}
 	// 异步下载文件,字符串格式,remotePath是上传到服务器后存储的相对路径,带后缀
 	public static IEnumerator downloadTxtWaiting(string remotePath, StringIntCallback callback)
@@ -64,9 +64,9 @@ public class ObsSystem
 			callback?.Invoke(null, 0);
 			return null;
 		}
-		return ResourceManager.loadAssetsFromUrlWaiting(mURL + remotePath, (byte[] bytes) =>
+		return loadAssetsFromUrlWaiting(mURL + remotePath, (byte[] bytes) =>
 		{
-			callback?.Invoke(bytesToString(bytes) ?? EMPTY, bytes.count());
+			callback?.Invoke(bytes.bytesToString(), bytes.count());
 		});
 	}
 	// 异步下载文件,byte[],remotePath是上传到服务器后存储的相对路径,带后缀
@@ -77,7 +77,7 @@ public class ObsSystem
 			callback?.Invoke(null, 0);
 			return null;
 		}
-		return ResourceManager.loadAssetsFromUrlWaiting(mURL + remotePath, (byte[] bytes) =>
+		return loadAssetsFromUrlWaiting(mURL + remotePath, (byte[] bytes) =>
 		{
 			callback?.Invoke(bytes, bytes.count());
 		});
@@ -90,9 +90,9 @@ public class ObsSystem
 			callback?.Invoke(null, 0);
 			return;
 		}
-		ResourceManager.loadAssetsFromUrl(mURL + remotePath, (byte[] bytes) =>
+		loadAssetsFromUrl(mURL + remotePath, (byte[] bytes) =>
 		{
-			callback?.Invoke(bytesToString(bytes) ?? EMPTY, bytes.count());
+			callback?.Invoke(bytes.bytesToString(), bytes.count());
 		});
 	}
 	// fullPath是要上传文件的本地绝对路径,savePath是上传到服务器后存储的相对路径,带后缀
@@ -199,7 +199,7 @@ public class ObsSystem
 		string contentMD5Base64 = null;
 		if (!contentMD5_16.isEmpty())
 		{
-			contentMD5Base64 = Convert.ToBase64String(stringToBytes(contentMD5_16));
+			contentMD5Base64 = Convert.ToBase64String(contentMD5_16.toBytes());
 		}
 		string stringToSign = verb + "\n" + contentMD5Base64 + "\n" + contentType + "\n" + date.ToString("r") + "\n" + canonicalizedResource;
 		byte[] bytes = hmacSha1(secureKey, stringToSign);
@@ -211,7 +211,7 @@ public class ObsSystem
 		string contentMD5Base64 = null;
 		if (!contentMD5_16.isEmpty())
 		{
-			contentMD5Base64 = Convert.ToBase64String(stringToBytes(contentMD5_16));
+			contentMD5Base64 = Convert.ToBase64String(contentMD5_16.toBytes());
 		}
 		expires = LToS(dateTimeToTimeStamp(DateTime.Now.AddMinutes(10)));
 		string stringToSign = verb + "\n" + contentMD5Base64 + "\n" + contentType + "\n" + expires + "\n" + canonicalizedResource;
@@ -229,7 +229,7 @@ public class ObsSystem
 		policy.AppendLine("{\"key\":\"" + savePath + "\"}");
 		policy.AppendLine("]");
 		policy.Append("}");
-		policyBase64 = Convert.ToBase64String(stringToBytes(policy.ToString()));
+		policyBase64 = Convert.ToBase64String(policy.ToString().toBytes());
 		byte[] bytes = hmacSha1(secureKey, policyBase64);
 		return bytes != null ? Convert.ToBase64String(bytes) : EMPTY;
 	}
@@ -300,6 +300,6 @@ public class ObsSystem
 		{
 			return null;
 		}
-		return new HMACSHA1(stringToBytes(key)).ComputeHash(stringToBytes(toSign));
+		return new HMACSHA1(key.toBytes()).ComputeHash(toSign.toBytes());
 	}
 }

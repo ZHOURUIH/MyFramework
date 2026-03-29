@@ -7,7 +7,7 @@ public class NetStructBit : SerializableBit
 {
 	public List<SerializableBit> mParams = new();	// 结构体中成员变量参数列表
 	public bool mHasOptionalParams;					// 是否含有可选参数的成员变量
-	public sealed override bool read(SerializerBitRead reader)
+	public sealed override bool read(SerializerBitRead reader, bool needReadSign)
 	{
 		// 先读取字段有效性标记
 		ulong fieldFlag = FULL_FIELD_FLAG;
@@ -19,9 +19,9 @@ public class NetStructBit : SerializableBit
 				reader.read(out fieldFlag);
 			}
 		}
-		return readInternal(fieldFlag, reader);
+		return readInternal(fieldFlag, reader, needReadSign);
 	}
-	public override void write(SerializerBitWrite writer)
+	public override void write(SerializerBitWrite writer, bool needWriteSign)
 	{
 		// 如果没有可选字段,则不使用位标记
 		// 如果有可选字段,但是所有字段都需要同步,则也不使用位标记
@@ -64,11 +64,12 @@ public class NetStructBit : SerializableBit
 		// 构造中赋值的,不需要重置
 		// mHasOptionalParams = false;
 	}
+	public virtual bool hasSign() { return false; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void addParam(SerializableBit param, bool isOptional)
 	{
 		mHasOptionalParams |= isOptional;
 		mParams.add(param).mOptional = isOptional;
 	}
-	protected virtual bool readInternal(ulong fieldFlag, SerializerBitRead reader) { return true; }
+	protected virtual bool readInternal(ulong fieldFlag, SerializerBitRead reader, bool needReadSign) { return true; }
 }

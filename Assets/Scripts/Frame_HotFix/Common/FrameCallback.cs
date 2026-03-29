@@ -47,7 +47,8 @@ public delegate void LerpCallback(ComponentLerp com, bool breakLerp);
 public delegate void CommandCallback(Command cmd);
 public delegate void AssetBundleCallback(AssetBundleInfo assetBundle);
 public delegate void AssetBundleBytesCallback(AssetBundleInfo assetBundle, byte[] bytes);
-public delegate void AssetLoadDoneCallback(UObject asset, UObject[] assets, byte[] bytes, string loadPath);
+public delegate void AssetLoadCallback(UObject asset, UObject[] assets, byte[] bytes, string loadPath);
+public delegate void AssetRefLoadCallback<T>(ResourceRef<T> asset, UObject[] assets, byte[] bytes, string loadPath) where T : UObject;
 public delegate void DownloadCallback(ulong downloadedBytes, int downloadDelta, double deltaTimeMillis, float percent);
 public delegate void GameLayoutCallback(GameLayout layout);
 #if USE_AVPRO_VIDEO
@@ -68,7 +69,7 @@ public delegate void SceneScriptCallback(SceneInstance instance);
 public delegate void CharacterCallback(Character character);
 public delegate void GameObjectCallback(GameObject go);
 public delegate void CreateObjectGroupCallback(Dictionary<string, GameObject> go);
-public delegate void UGUIAtlasPtrCallback(UGUIAtlasPtr atlas);
+public delegate void UGUIAtlasPtrCallback(AtlasRef atlas);
 public delegate void StateLeaveCallback(CharacterState state, bool isBreak, bool willDestroy, string param);
 public delegate void GameEventCallback(GameEvent param);
 public delegate void GameEffectCallback(GameEffect effect);

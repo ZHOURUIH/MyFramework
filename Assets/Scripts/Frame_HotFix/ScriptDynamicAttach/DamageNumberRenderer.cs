@@ -19,7 +19,7 @@ public class DamageNumberRenderer : MonoBehaviour
 	public int mVertCount;						// 用于查看调试信息
 	public int mDamageNumberCount;              // 用于查看调试信息
 
-	protected DamageNumberSpriteData[] mNumberSpriteList = new DamageNumberSpriteData[10];	// 图片列表,需要所有图片都是相同大小的,下标就是对应的数字
+	protected SpriteData[] mNumberSpriteList = new SpriteData[10];	// 图片列表,需要所有图片都是相同大小的,下标就是对应的数字
 	protected List<DamageNumberData> mDamageItems = new(1024);
 	protected int mNumberHeight;
 	protected int mNumberWidth;
@@ -27,7 +27,7 @@ public class DamageNumberRenderer : MonoBehaviour
 	protected DOCKING_POSITION mDocking = DOCKING_POSITION.CENTER;
 	protected Mesh mMesh;
 	protected const int mMaxNumberCount = 10000;		// 最多只支持同时显示1万个数字,因为单个模型的索引数量限制在65535
-	protected DamageNumberVertex[] mVertices = new DamageNumberVertex[mMaxNumberCount * 4];
+	protected SpriteVertex[] mVertices = new SpriteVertex[mMaxNumberCount * 4];
 	protected int[] mIndices = new int[mMaxNumberCount * 6];
 	void Awake()
 	{
@@ -46,12 +46,12 @@ public class DamageNumberRenderer : MonoBehaviour
 			mIndices[i * 6 + 5] = i * 4 + 2;
 		}
 	}
-	public void setNumberSpriteList(DamageNumberSpriteData[] spriteList)
+	public void setNumberSpriteList(SpriteData[] spriteList)
 	{
-		using var a = new ListScope<DamageNumberSpriteData>(out var list, spriteList);
+		using var a = new ListScope<SpriteData>(out var list, spriteList);
 		setNumberSpriteList(list);
 	}
-	public void setNumberSpriteList(List<DamageNumberSpriteData> spriteList)
+	public void setNumberSpriteList(List<SpriteData> spriteList)
 	{
 		if (spriteList.Count > mNumberSpriteList.Length)
 		{
@@ -59,10 +59,10 @@ public class DamageNumberRenderer : MonoBehaviour
 			return;
 		}
 		mNumberSpriteList.setRange(spriteList);
-		DamageNumberSpriteData firstSprite = mNumberSpriteList.first();
+		SpriteData firstSprite = mNumberSpriteList.first();
 		int width = firstSprite.mWidth;
 		int height = firstSprite.mHeight;
-		if (isEditor() && mNumberSpriteList.find(sprite => sprite.mWidth != width || sprite.mHeight != height, out DamageNumberSpriteData sprite))
+		if (isEditor() && mNumberSpriteList.find(sprite => sprite.mWidth != width || sprite.mHeight != height, out SpriteData sprite))
 		{
 			logError("设置的数字图片大小不一致!spriteName:" + mImage.name + ", sprite.width:" + sprite.mWidth + ", sprite.height:" + sprite.mHeight);
 		}
@@ -75,7 +75,7 @@ public class DamageNumberRenderer : MonoBehaviour
 		mNumberWidth = (int)(divide(width, height) * mNumberHeight);
 		mCanvasRenderer.SetTexture(firstSprite.mTexture);
 	}
-	public DamageNumberSpriteData[] getSpriteList() { return mNumberSpriteList; }
+	public SpriteData[] getSpriteList() { return mNumberSpriteList; }
 	public void addDamageNumber(DamageNumberData damage)
 	{
 		mDamageItems.add(damage);
@@ -152,10 +152,10 @@ public class DamageNumberRenderer : MonoBehaviour
 					float bottomY = posY + flag.mOffsetY * scaleY - height * 0.5f;
 
 					int tempVert = mVertCount + (i << 2);
-					ref DamageNumberVertex v0 = ref mVertices[tempVert + 0];
-					ref DamageNumberVertex v1 = ref mVertices[tempVert + 1];
-					ref DamageNumberVertex v2 = ref mVertices[tempVert + 2];
-					ref DamageNumberVertex v3 = ref mVertices[tempVert + 3];
+					ref SpriteVertex v0 = ref mVertices[tempVert + 0];
+					ref SpriteVertex v1 = ref mVertices[tempVert + 1];
+					ref SpriteVertex v2 = ref mVertices[tempVert + 2];
+					ref SpriteVertex v3 = ref mVertices[tempVert + 3];
 
 					v0.mPositionX = leftX;
 					v0.mPositionY = bottomY + height;
@@ -183,15 +183,15 @@ public class DamageNumberRenderer : MonoBehaviour
 				float itemBottomPosY = posY - numberHeight * 0.5f;
 				for (int i = 0; i < count; ++i)
 				{
-					ref DamageNumberSpriteData spriteData = ref mNumberSpriteList[item.mNumbers[i]];
+					ref SpriteData spriteData = ref mNumberSpriteList[item.mNumbers[i]];
 					Vector2[] uvs = spriteData.mUVs;
 					int tempVert = mVertCount + (i << 2);
 					float tempStartX = startX + i * step0;
 
-					ref DamageNumberVertex v0 = ref mVertices[tempVert + 0];
-					ref DamageNumberVertex v1 = ref mVertices[tempVert + 1];
-					ref DamageNumberVertex v2 = ref mVertices[tempVert + 2];
-					ref DamageNumberVertex v3 = ref mVertices[tempVert + 3];
+					ref SpriteVertex v0 = ref mVertices[tempVert + 0];
+					ref SpriteVertex v1 = ref mVertices[tempVert + 1];
+					ref SpriteVertex v2 = ref mVertices[tempVert + 2];
+					ref SpriteVertex v3 = ref mVertices[tempVert + 3];
 
 					v0.mPositionX = tempStartX;
 					v0.mPositionY = itemBottomPosY + numberHeight;

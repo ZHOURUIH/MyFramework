@@ -16,41 +16,53 @@ public class SCCharacterFullGameData : NetPacketBit
 		addParam(mMaxHP, true);
 		addParam(mName, true);
 	}
-	public override bool read(SerializerBitRead reader, ulong fieldFlag)
+	public override bool read(SerializerBitRead reader, bool needReadSign, ulong fieldFlag)
 	{
 		bool success = true;
 		if (hasBit(fieldFlag, 0))
 		{
-			success = success && mHP.read(reader);
+			success = success && mHP.read(reader, needReadSign);
 		}
 		if (hasBit(fieldFlag, 1))
 		{
-			success = success && mMaxHP.read(reader);
+			success = success && mMaxHP.read(reader, needReadSign);
 		}
 		if (hasBit(fieldFlag, 2))
 		{
-			success = success && mName.read(reader);
+			success = success && mName.read(reader, needReadSign);
 		}
 		return success;
 	}
-	public override void write(SerializerBitWrite writer, out ulong fieldFlag)
+	public override void write(SerializerBitWrite writer, bool needWriteSign, out ulong fieldFlag)
 	{
-		base.write(writer, out fieldFlag);
+		base.write(writer, needWriteSign, out fieldFlag);
 		if (mHP.mValid)
 		{
 			setBitOne(ref fieldFlag, 0);
-			mHP.write(writer);
+			mHP.write(writer, needWriteSign);
 		}
 		if (mMaxHP.mValid)
 		{
 			setBitOne(ref fieldFlag, 1);
-			mMaxHP.write(writer);
+			mMaxHP.write(writer, needWriteSign);
 		}
 		if (mName.mValid)
 		{
 			setBitOne(ref fieldFlag, 2);
-			mName.write(writer);
+			mName.write(writer, needWriteSign);
 		}
+	}
+	protected override bool generateHasSignInternal()
+	{
+		if (mHP.mValid && mHP < 0)
+		{
+			return true;
+		}
+		if (mMaxHP.mValid && mMaxHP < 0)
+		{
+			return true;
+		}
+		return false;
 	}
 	// auto generate end
 	public override void execute()

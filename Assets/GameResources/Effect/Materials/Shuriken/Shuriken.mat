@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 9
+  version: 10
 --- !u!114 &-617364888707608337
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -34,12 +34,14 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Shuriken
-  m_Shader: {fileID: -6465566751694194690, guid: b85d6def27a1d1041b93e3045d7d6c0f, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: b85d6def27a1d1041b93e3045d7d6c0f,
+    type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _DEPTHFADE
-  m_InvalidKeywords: []
+  m_InvalidKeywords:
+  - _EMISSION
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -135,7 +137,7 @@ Material:
     - _BUILTIN_Blend: 0
     - _BUILTIN_CullMode: 2
     - _BUILTIN_DstBlend: 0
-    - _BUILTIN_QueueControl: -1
+    - _BUILTIN_QueueControl: 1
     - _BUILTIN_QueueOffset: 0
     - _BUILTIN_SrcBlend: 1
     - _BUILTIN_Surface: 0
@@ -212,3 +214,4 @@ Material:
     - _Tiling: {r: 1, g: 1, b: 0, a: 0}
     - _WarpScroll: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1

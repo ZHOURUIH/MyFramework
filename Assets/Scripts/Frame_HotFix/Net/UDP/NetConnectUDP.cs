@@ -6,7 +6,7 @@ using static StringUtility;
 using static UnityUtility;
 using static FrameBaseHotFix;
 using static FrameUtility;
-using static BinaryUtility;
+using static SerializeBitUtility;
 using static FrameDefine;
 using static FrameBaseUtility;
 
@@ -71,7 +71,7 @@ public abstract class NetConnectUDP : NetConnect
 		{
 			foreach (PacketReceiveInfo info in a.mReadList.safe())
 			{
-				NetPacket packet = parsePacket(info.mType, info.mPacketData, info.mPacketSize, info.mFieldFlag);
+				NetPacket packet = parsePacket(info.mType, info.mPacketData, info.mPacketSize, info.mFieldFlag, info.mHasSign);
 				UN_ARRAY_BYTE_THREAD(info.mPacketData);
 				if (packet == null)
 				{
@@ -156,7 +156,7 @@ public abstract class NetConnectUDP : NetConnect
 	}
 	public void setHeartBeatAction(Action callback) { mHeartBeatAction = callback; }
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected abstract NetPacket parsePacket(ushort packetType, byte[] buffer, int size, ulong fieldFlag);
+	protected abstract NetPacket parsePacket(ushort packetType, byte[] buffer, int size, ulong fieldFlag, bool hasSign);
 	// 发送Socket消息
 	protected void sendThread(ref bool run)
 	{
@@ -223,7 +223,7 @@ public abstract class NetConnectUDP : NetConnect
 				{
 					int bitIndex = 0;
 					PARSE_RESULT result = preParsePacket(mInputBuffer.getData(), mInputBuffer.getDataLength(), ref bitIndex, out byte[] packetData,
-														out ushort packetType, out int packetSize, out ulong fieldFlag);
+														out ushort packetType, out int packetSize, out ulong fieldFlag, out bool hasSign);
 					if (result != PARSE_RESULT.SUCCESS)
 					{
 						if (result == PARSE_RESULT.ERROR)
@@ -233,7 +233,7 @@ public abstract class NetConnectUDP : NetConnect
 						}
 						break;
 					}
-					mReceiveBuffer.add(new(packetData, fieldFlag, packetSize, 0, packetType));
+					mReceiveBuffer.add(new(packetData, fieldFlag, packetSize, 0, packetType, hasSign));
 
 					if (!mInputBuffer.removeData(0, bitCountToByteCount(bitIndex)))
 					{
@@ -259,7 +259,7 @@ public abstract class NetConnectUDP : NetConnect
 		catch (ObjectDisposedException) { }
 		catch (SocketException) { }
 	}
-	protected abstract PARSE_RESULT preParsePacket(byte[] buffer, int size, ref int bitIndex, out byte[] outPacketData, out ushort packetType, out int packetSize, out ulong fieldFlag);
+	protected abstract PARSE_RESULT preParsePacket(byte[] buffer, int size, ref int bitIndex, out byte[] outPacketData, out ushort packetType, out int packetSize, out ulong fieldFlag, out bool hasSign);
 	protected void debugHistoryPacket()
 	{
 		using var a = new ClassThreadScope<MyStringBuilder>(out var info);

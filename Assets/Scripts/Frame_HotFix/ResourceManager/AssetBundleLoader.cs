@@ -8,10 +8,10 @@ using static FrameUtility;
 using static FileUtility;
 using static FrameBaseHotFix;
 using static StringUtility;
-using static BinaryUtility;
 using static FrameDefine;
 using static FrameBaseDefine;
 using static FrameBaseUtility;
+using static ResourceUtility;
 
 // 从AssetBundle中加载资源
 public class AssetBundleLoader
@@ -43,7 +43,7 @@ public class AssetBundleLoader
 		string filePath = availableReadPath(STREAMING_ASSET_FILE);
 		if (filePath.isEmpty())
 		{
-			yield return ResourceManager.loadAssetsFromUrlWaiting(mDownloadURL + STREAMING_ASSET_FILE, (byte[] bytes) =>
+			yield return loadAssetsFromUrlWaiting(mDownloadURL + STREAMING_ASSET_FILE, (byte[] bytes) =>
 			{
 				// webgl没法写到本地
 				if (bytes != null && !isWebGL())
@@ -111,8 +111,7 @@ public class AssetBundleLoader
 			item.Value.unload();
 		}
 	}
-	// 这里的泛型T是为了外部能传任意的类型的引用进来,而不是只能传ref UObject
-	public bool unloadAsset<T>(ref T asset, bool showError) where T : UObject
+	public bool unloadAsset(UObject asset, bool showError)
 	{
 		if (asset == null)
 		{
@@ -131,7 +130,6 @@ public class AssetBundleLoader
 		{
 			return false;
 		}
-		asset = null;
 		return true;
 	}
 	public bool isInited() { return mInited; }
@@ -306,7 +304,7 @@ public class AssetBundleLoader
 		return mAssetToBundleInfo.get(fileNameLower)?.getAssetBundle().loadAsset<T>(fileNameLower);
 	}
 	// 异步加载资源,文件名称带后缀,GameResources下的相对路径
-	public CustomAsyncOperation loadAssetAsync<T>(string fileName, bool errorIfNull, AssetLoadDoneCallback doneCallback) where T : UObject
+	public CustomAsyncOperation loadAssetAsync<T>(string fileName, bool errorIfNull, AssetLoadCallback doneCallback) where T : UObject
 	{
 		if (!mInited)
 		{
@@ -397,7 +395,7 @@ public class AssetBundleLoader
 		{
 			bundleInfo.setLoadState(LOAD_STATE.DOWNLOADING);
 			string bundleFileName = bundleInfo.getBundleFileName();
-			yield return ResourceManager.loadAssetsFromUrlWaiting(mDownloadURL + bundleFileName, (byte[] bytes) =>
+			yield return loadAssetsFromUrlWaiting(mDownloadURL + bundleFileName, (byte[] bytes) =>
 			{
 				// webgl没法写到本地
 				if (bytes != null && !isWebGL())
@@ -452,7 +450,7 @@ public class AssetBundleLoader
 			bundleInfo.setLoadState(LOAD_STATE.LOADING);
 			if (isWebGL())
 			{
-				yield return ResourceManager.loadAssetsFromUrlWaiting(fullPath, (AssetBundle asset) => { assetBundle = asset; });
+				yield return loadAssetsFromUrlWaiting(fullPath, (AssetBundle asset) => { assetBundle = asset; });
 			}
 			else
 			{
@@ -533,7 +531,7 @@ public class AssetBundleLoader
 		{
 			// AssetBundle名字
 			serializer.readString(tempStringBuffer, tempStringBuffer.Length);
-			string bundleName = removeSuffix(bytesToString(tempStringBuffer));
+			string bundleName = removeSuffix(tempStringBuffer.bytesToString());
 			if (!mAssetBundleInfoList.TryGetValue(bundleName, out AssetBundleInfo bundleInfo))
 			{
 				bundleInfo = mAssetBundleInfoList.add(bundleName, new(bundleName));
@@ -543,7 +541,7 @@ public class AssetBundleLoader
 			for (int k = 0; k < assetCount; ++k)
 			{
 				serializer.readString(tempStringBuffer, tempStringBuffer.Length);
-				string assetName = bytesToString(tempStringBuffer);
+				string assetName = tempStringBuffer.bytesToString();
 				bundleInfo.addAssetName(assetName);
 				mAssetToBundleInfo.Add(assetName, bundleInfo.getAssetInfo(assetName));
 			}
@@ -552,7 +550,7 @@ public class AssetBundleLoader
 			for (int j = 0; j < depCount; ++j)
 			{
 				serializer.readString(tempStringBuffer, tempStringBuffer.Length);
-				bundleInfo.addParent(removeSuffix(bytesToString(tempStringBuffer)));
+				bundleInfo.addParent(removeSuffix(tempStringBuffer.bytesToString()));
 			}
 		}
 		// 配置清单解析完毕后,为每个AssetBundleInfo查找对应的依赖项

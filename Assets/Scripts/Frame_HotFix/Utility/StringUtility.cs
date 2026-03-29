@@ -267,7 +267,7 @@ public class StringUtility
 		{
 			return Vector2.zero;
 		}
-		string[] splitList = split(value, separate);
+		string[] splitList = value.split(separate);
 		if (splitList.count() < 2)
 		{
 			return Vector2.zero;
@@ -285,7 +285,7 @@ public class StringUtility
 		{
 			return result;
 		}
-		string[] splitList = split(value, separate);
+		string[] splitList = value.split(separate);
 		if (splitList.count() < 2)
 		{
 			return Vector2Int.zero;
@@ -303,7 +303,7 @@ public class StringUtility
 		{
 			return Vector3.zero;
 		}
-		string[] splitList = split(value, separate);
+		string[] splitList = value.split(separate);
 		if (splitList.count() < 3)
 		{
 			return Vector3.zero;
@@ -321,7 +321,7 @@ public class StringUtility
 		{
 			return result;
 		}
-		string[] splitList = split(value, separate);
+		string[] splitList = value.split(separate);
 		if (splitList.count() < 3)
 		{
 			return Vector3Int.zero;
@@ -339,7 +339,7 @@ public class StringUtility
 		{
 			return Vector4.zero;
 		}
-		string[] splitList = split(value, separate);
+		string[] splitList = value.split(separate);
 		if (splitList.count() < 4)
 		{
 			return Vector4.zero;
@@ -352,7 +352,7 @@ public class StringUtility
 		{
 			return Vector4Int.zero;
 		}
-		string[] splitList = split(value, separate);
+		string[] splitList = value.split(separate);
 		if (splitList.count() < 4)
 		{
 			return Vector4Int.zero;
@@ -442,7 +442,7 @@ public class StringUtility
 
 		for (int i = 0; i < tempStrList.Count; ++i)
 		{
-			string[] param = split(tempStrList[i], ':');
+			string[] param = tempStrList[i].split(':');
 			if (param.count() != 2)
 			{
 				continue;
@@ -683,54 +683,13 @@ public class StringUtility
 		}
 		return ascii;
 	}
-	public static void splitLine(string str, out string[] lines, bool removeEmpty = true)
-	{
-		if (str.isEmpty())
-		{
-			lines = null;
-			return;
-		}
-		if (str.Contains("\r\n"))
-		{
-			lines = split(str, removeEmpty, "\r\n");
-		}
-		else if (str.Contains("\n"))
-		{
-			lines = split(str, removeEmpty, '\n');
-		}
-		else if (str.Contains("\r"))
-		{
-			lines = split(str, removeEmpty, '\r');
-		}
-		else
-		{
-			lines = new string[1] { str };
-		}
-	}
-	public static string[] splitLine(string str, bool removeEmpty = true)
-	{
-		splitLine(str, out string[] lines, removeEmpty);
-		return lines;
-	}
-	public static string[] split(string str, params string[] keyword)
-	{
-		return split(str, true, keyword);
-	}
-	public static string[] split(string str, bool removeEmpty, params string[] keyword)
-	{
-		if (str.isEmpty())
-		{
-			return null;
-		}
-		return str.Split(keyword, removeEmpty ? StringSplitOptions.RemoveEmptyEntries : StringSplitOptions.None);
-	}
 	// 在使用返回值期间禁止再调用strintToStrings
 	public static List<string> strintToStrings(string str, bool removeEmpty, params string[] keyword)
 	{
 		mTempStringList.Clear();
 		if (!str.isEmpty())
 		{
-			mTempStringList.AddRange(split(str, removeEmpty, keyword));
+			mTempStringList.AddRange(str.split(removeEmpty, keyword));
 		}
 		return mTempStringList;
 	}
@@ -740,21 +699,9 @@ public class StringUtility
 		mTempStringList.Clear();
 		if (!str.isEmpty())
 		{
-			mTempStringList.AddRange(split(str, removeEmpty, keyword));
+			mTempStringList.AddRange(str.split(removeEmpty, keyword));
 		}
 		return mTempStringList;
-	}
-	public static string[] split(string str, params char[] keyword)
-	{
-		return split(str, true, keyword);
-	}
-	public static string[] split(string str, bool removeEmpty, params char[] keyword)
-	{
-		if (str.isEmpty())
-		{
-			return null;
-		}
-		return str.Split(keyword, removeEmpty ? StringSplitOptions.RemoveEmptyEntries : StringSplitOptions.None);
 	}
 	// 在使用返回值期间禁止再调用stringToFloatsNonAlloc
 	public static List<float> SToFsNonAlloc(string str, char separate = ',')
@@ -774,7 +721,7 @@ public class StringUtility
 		{
 			return;
 		}
-		string[] rangeList = split(str, separate);
+		string[] rangeList = str.split(separate);
 		int len = rangeList.Length;
 		if (values != null && len != values.Length)
 		{
@@ -799,7 +746,7 @@ public class StringUtility
 		{
 			return;
 		}
-		foreach (string item in split(str, separate))
+		foreach (string item in str.split(separate))
 		{
 			values.Add(SToF(item));
 		}
@@ -833,7 +780,7 @@ public class StringUtility
 		{
 			return;
 		}
-		foreach (string item in split(str, separate).safe())
+		foreach (string item in str.split(separate).safe())
 		{
 			values.Add(SToL(item));
 		}
@@ -844,7 +791,7 @@ public class StringUtility
 		{
 			return;
 		}
-		string[] rangeList = split(str, separate);
+		string[] rangeList = str.split(separate);
 		int len = rangeList.Length;
 		if (values != null && len != values.Length)
 		{
@@ -881,7 +828,7 @@ public class StringUtility
 		{
 			return;
 		}
-		foreach (string item in split(str, separate).safe())
+		foreach (string item in str.split(separate).safe())
 		{
 			values.Add(SToI(item));
 		}
@@ -892,7 +839,7 @@ public class StringUtility
 		{
 			return;
 		}
-		string[] rangeList = split(str, separate);
+		string[] rangeList = str.split(separate);
 		int len = rangeList.Length;
 		if (values != null && len != values.Length)
 		{
@@ -923,7 +870,7 @@ public class StringUtility
 		{
 			return;
 		}
-		foreach (string item in split(str, separate).safe())
+		foreach (string item in str.split(separate).safe())
 		{
 			values.Add((uint)SToI(item));
 		}
@@ -940,7 +887,7 @@ public class StringUtility
 		{
 			return;
 		}
-		foreach (string item in split(str, separate).safe())
+		foreach (string item in str.split(separate).safe())
 		{
 			values.Add((ushort)SToI(item));
 		}
@@ -957,7 +904,7 @@ public class StringUtility
 		{
 			return;
 		}
-		foreach (string item in split(str, separate).safe())
+		foreach (string item in str.split(separate).safe())
 		{
 			values.Add((short)SToI(item));
 		}
@@ -974,7 +921,7 @@ public class StringUtility
 		{
 			return;
 		}
-		foreach (string item in split(str, separate).safe())
+		foreach (string item in str.split(separate).safe())
 		{
 			values.Add(SToI(item) > 0);
 		}
@@ -987,7 +934,7 @@ public class StringUtility
 		{
 			return mTempByteList0;
 		}
-		foreach (string item in split(str, separate).safe())
+		foreach (string item in str.split(separate).safe())
 		{
 			mTempByteList0.Add((byte)SToI(item));
 		}
@@ -1005,7 +952,7 @@ public class StringUtility
 		{
 			return;
 		}
-		foreach (string item in split(str, separate).safe())
+		foreach (string item in str.split(separate).safe())
 		{
 			values.Add((byte)SToI(item));
 		}
@@ -1022,7 +969,7 @@ public class StringUtility
 		{
 			return;
 		}
-		foreach (string item in split(str, separate).safe())
+		foreach (string item in str.split(separate).safe())
 		{
 			values.Add((sbyte)SToI(item));
 		}
@@ -1122,7 +1069,7 @@ public class StringUtility
 		List<string> strList = new();
 		if (!str.isEmpty())
 		{
-			strList.addRange(split(str, separate).safe());
+			strList.addRange(str.split(separate).safe());
 		}
 		return strList;
 	}
@@ -1138,7 +1085,7 @@ public class StringUtility
 		{
 			return;
 		}
-		foreach (string item in split(str, separate).safe())
+		foreach (string item in str.split(separate).safe())
 		{
 			values.Add(item);
 		}
@@ -1404,7 +1351,7 @@ public class StringUtility
 	}
 	public static int getBytesLength(string str)
 	{
-		byte[] bytes = BinaryUtility.stringToBytes(str);
+		byte[] bytes = str.toBytes();
 		for (int i = 0; i < bytes.Length; ++i)
 		{
 			if (bytes[i] == 0)
@@ -1595,7 +1542,7 @@ public class StringUtility
 	{
 		byte highBit = 0;
 		byte lowBit = 0;
-		byte[] strBytes = BinaryUtility.stringToBytes(str);
+		byte[] strBytes = str.toBytes();
 		byte highBitChar = strBytes[start];
 		byte lowBitChar = strBytes[start + 1];
 		if (highBitChar >= 'A' && highBitChar <= 'F')
@@ -2102,7 +2049,7 @@ public class StringUtility
 			lineList.Add(originString);
 			return;
 		}
-		int maxContentDisplayWidth = (int)textWindow.getWindowSize().x;
+		int maxContentDisplayWidth = (int)textWindow.getSize().x;
 		int charIndex = minStringLength;
 		int startIndex = 0;
 		while (true)
@@ -2135,7 +2082,7 @@ public class StringUtility
 			lineList.Add(originString);
 			return;
 		}
-		int maxContentDisplayWidth = (int)textWindow.getWindowSize().x;
+		int maxContentDisplayWidth = (int)textWindow.getSize().x;
 		int charIndex = minStringLength;
 		int startIndex = 0;
 		while (true)

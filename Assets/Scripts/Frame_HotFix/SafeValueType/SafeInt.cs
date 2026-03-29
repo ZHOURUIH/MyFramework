@@ -123,12 +123,12 @@ public struct SafeInt : IEquatable<SafeInt>
 		woghjwe = randomInt(mValue2, mValue3);
 		// 两个值的和必须能被437整除
 		gikoweg = (gikoweg + woghjwe) / mValue5 * mValue5 - woghjwe;
-		// 经过调整以后gikoweg会变小,所以如果超过最大值需要减少到范围内
-		if (gikoweg < mValue0)
+		// 经过调整以后gikoweg可能越界,循环修正直到在范围内
+		while (gikoweg < mValue0)
 		{
 			gikoweg += mValue5;
 		}
-		else if (gikoweg > mValue1)
+		while (gikoweg > mValue1)
 		{
 			gikoweg -= mValue5;
 		}

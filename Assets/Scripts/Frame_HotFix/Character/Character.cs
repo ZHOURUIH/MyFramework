@@ -75,13 +75,13 @@ public class Character : MovableObject
 	public T getFirstState<T>() where T : CharacterState	{ return getStateMachine()?.getFirstState(typeof(T)) as T; }
 	public CharacterState getState(long instanceID)			{ return getStateMachine()?.getState(instanceID); }
 	public SafeDictionary<Type, SafeList<CharacterState>> getStateList() { return getStateMachine()?.getStateList(); }
-	public CharacterState addState(Type type, StateParam param = null, float stateTime = -1.0f, long id = 0)
+	public CharacterState addState(Type type, StateParam param = null, long id = 0)
 	{
-		return mStateMachine?.addState(type, param, stateTime, id); 
+		return mStateMachine?.addState(type, param, id); 
 	}
-	public T addState<T>(StateParam param = null, float stateTime = -1.0f, long id = 0) where T : CharacterState 
+	public T addState<T>(StateParam param = null, long id = 0) where T : CharacterState 
 	{
-		return getStateMachine()?.addState<T>(param, stateTime, id) as T; 
+		return getStateMachine()?.addState<T>(param, id);
 	}
 	public bool hasState(Type state)						{ return mStateMachine != null && mStateMachine.hasState(state); }
 	public bool hasState<T>() where T : CharacterState		{ return mStateMachine != null && mStateMachine.hasState(typeof(T)); }

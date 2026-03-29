@@ -1,12 +1,10 @@
 ﻿using System;
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using static UnityUtility;
 using static FrameBaseHotFix;
 using static FileUtility;
 using static FrameUtility;
-using static BinaryUtility;
 using static StringUtility;
 using static FrameDefine;
 using static FrameBaseUtility;
@@ -15,7 +13,7 @@ using static FrameBaseUtility;
 public class ExcelTable
 {
 	private Dictionary<int, ExcelData> mDataMap = new();    // 按数据ID进行索引的数据列表
-	protected TextAsset mTableFileData;						// 未解析的表格文件数据
+	protected ResourceRef<TextAsset> mTableFileData;		// 未解析的表格文件数据
 	protected byte[] mTableFileBytes;						// 为了支持非运行时也能够加载表格,所以可以传一个byte[],mTableFileBytes和mTableFileData只需要有一个有效就行
 	protected Type mDataType;								// 数据类型
 	protected string mTableName;							// 表格名字
@@ -40,7 +38,7 @@ public class ExcelTable
 			return;
 		}
 		string fileName = R_EXCEL_PATH + mTableName + ".bytes";
-		mResourceManager.loadGameResourceAsync(fileName, (TextAsset asset) =>
+		mResourceManager.loadGameResourceAsync<TextAsset>(fileName, (asset) =>
 		{
 			if (asset == null)
 			{
@@ -59,7 +57,7 @@ public class ExcelTable
 		{
 			clearCache();
 			clear();
-			parseFileReload(mTableFileBytes ?? mTableFileData.bytes);
+			parseFileReload(mTableFileBytes ?? mTableFileData?.getResource().bytes);
 			mResourceManager?.unload(ref mTableFileData);
 		}
 	}
@@ -225,7 +223,7 @@ public class ExcelTable
 	// 解密
 	protected void decodeFile(byte[] fileBuffer)
 	{
-		string key = generateFileMD5(stringToBytes("ASLD" + mTableName)).ToUpper() + "23y35y983";
+		string key = generateFileMD5(("ASLD" + mTableName).toBytes()).ToUpper() + "23y35y983";
 		int keyIndex = 0;
 		int fileLength = fileBuffer.Length;
 		for (int i = 0; i < fileLength; ++i)
@@ -241,7 +239,7 @@ public class ExcelTable
 	{
 		{
 			using var a = new ProfilerScope("excel read:" + mTableName);
-			parseFile(mTableFileBytes ?? mTableFileData.bytes);
+			parseFile(mTableFileBytes ?? mTableFileData?.getResource().bytes);
 		}
 		// 解析以后就可以卸载文件数据
 		mResourceManager?.unload(ref mTableFileData);

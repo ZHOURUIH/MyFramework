@@ -132,7 +132,7 @@ public class PrefabPoolManager : FrameSystem
 	// 异步创建物体,实际上只是异步加载,实例化还是同步的
 	// fileWithPath是GameResource下的相对路径
 	// failCallback的参数表示是否为资源加载失败而失败
-	public CustomAsyncOperation createObjectAsyncSafe(ClassObject relatedObj, string fileWithPath, int objectTag, bool moveToHide, bool active, GameObjectCallback callback, BoolCallback failCallback = null)
+	public CustomAsyncOperation createObjectAsyncSafe(IRecyclable relatedObj, string fileWithPath, int objectTag, bool moveToHide, bool active, GameObjectCallback callback, BoolCallback failCallback = null)
 	{
 		if (fileWithPath.isEmpty())
 		{

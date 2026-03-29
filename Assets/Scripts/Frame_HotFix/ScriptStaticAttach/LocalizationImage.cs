@@ -9,7 +9,7 @@ using static FrameDefine;
 [RequireComponent(typeof(Image))]
 public class LocalizationImage : MonoBehaviour
 {
-	protected UGUIAtlasPtr mAtlasPtr;
+	protected AtlasRef mAtlasPtr;
     public string mImageNameWithoutSuffix;
 	public Image mImage;
     private void Start()

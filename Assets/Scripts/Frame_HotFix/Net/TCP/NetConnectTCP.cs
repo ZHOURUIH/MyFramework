@@ -4,7 +4,7 @@ using System.Net.Sockets;
 using System.Collections.Generic;
 using static StringUtility;
 using static UnityUtility;
-using static BinaryUtility;
+using static SerializeBitUtility;
 using static FrameUtility;
 using static FrameBaseHotFix;
 using static FrameDefine;
@@ -162,7 +162,7 @@ public abstract class NetConnectTCP : NetConnect
 		{
 			foreach (PacketReceiveInfo info in a.mReadList.safe())
 			{
-				NetPacket packet = parsePacket(info.mType, info.mPacketData, info.mPacketSize, info.mSequence, info.mFieldFlag);
+				NetPacket packet = parsePacket(info.mType, info.mPacketData, info.mPacketSize, info.mSequence, info.mFieldFlag, info.mHasSign);
 				UN_ARRAY_BYTE_THREAD(info.mPacketData);
 				if (packet == null)
 				{
@@ -326,7 +326,7 @@ public abstract class NetConnectTCP : NetConnect
 				using (new ThreadLockScope(mInputBufferLock))
 				{
 					PARSE_RESULT result = preParsePacket(mInputBuffer.getData(), mInputBuffer.getDataLength(), out int bitIndex, out byte[] packetData,
-													out ushort packetType, out int packetSize, out uint sequence, out ulong fieldFlag);
+													out ushort packetType, out int packetSize, out uint sequence, out ulong fieldFlag, out bool hasSign);
 					if (result != PARSE_RESULT.SUCCESS)
 					{
 						if (result == PARSE_RESULT.ERROR)
@@ -336,7 +336,7 @@ public abstract class NetConnectTCP : NetConnect
 						}
 						break;
 					}
-					mReceiveBuffer.add(new(packetData, fieldFlag, packetSize, sequence, packetType));
+					mReceiveBuffer.add(new(packetData, fieldFlag, packetSize, sequence, packetType, hasSign));
 
 					if (!mInputBuffer.removeData(0, bitCountToByteCount(bitIndex)))
 					{
@@ -366,7 +366,7 @@ public abstract class NetConnectTCP : NetConnect
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected abstract NetPacket parsePacket(ushort packetType, byte[] buffer, int size, uint sequence, ulong fieldFlag);
+	protected abstract NetPacket parsePacket(ushort packetType, byte[] buffer, int size, uint sequence, ulong fieldFlag, bool hasSign);
 	// 发送Socket消息
 	protected void sendThread(ref bool run)
 	{
@@ -422,7 +422,7 @@ public abstract class NetConnectTCP : NetConnect
 		mTotalBuffer.clear();
 	}
 	protected abstract PARSE_RESULT preParsePacket(byte[] buffer, int size, out int bitIndex, out byte[] outPacketData, 
-													out ushort packetType, out int packetSize, out uint sequence, out ulong fieldFlag);
+													out ushort packetType, out int packetSize, out uint sequence, out ulong fieldFlag, out bool hasSign);
 	protected void debugHistoryPacket()
 	{
 		using var a = new ClassThreadScope<MyStringBuilder>(out var info);

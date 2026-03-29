@@ -1,5 +1,6 @@
 ﻿#if UNITY_STANDALONE_WIN || UNITY_EDITOR
 using System;
+using static SerializeByteUtility;
 using static BinaryUtility;
 using static FrameUtility;
 using static FileUtility;
@@ -90,7 +91,7 @@ public class WavSound : ClassObject
 				serializer.read(out int dataSize);
 				mDataBuffer = new byte[dataSize];
 				serializer.readBuffer(mDataBuffer, mDataBuffer.Length, mDataBuffer.Length);
-			} while (bytesToString(mDataMark) != "data");
+			} while (mDataMark.bytesToString() != "data");
 			refreshFileSize();
 			int mixDataCount = getMixPCMDataCount();
 			mMixPCMData = new short[mixDataCount];

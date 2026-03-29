@@ -206,7 +206,7 @@ public abstract class NetConnectWebSocket : NetConnect
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected abstract NetPacket parsePacket(ushort packetType, byte[] buffer, int size, uint sequence, ulong fieldFlag);
 	protected abstract PARSE_RESULT preParsePacket(byte[] buffer, int size, out int index, out byte[] outPacketData,
-													out ushort packetType, out int packetSize, out uint sequence, out ulong fieldFlag);
+													out ushort packetType, out int packetSize, out uint sequence, out ulong fieldFlag, out bool hasSign);
 	// 发送Socket消息
 	protected void sendThread()
 	{
@@ -266,7 +266,7 @@ public abstract class NetConnectWebSocket : NetConnect
 				while (true)
 				{
 					PARSE_RESULT result0 = preParsePacket(mInputBuffer.getData(), mInputBuffer.getDataLength(), out int index, out byte[] packetData,
-											out ushort packetType, out int packetSize, out uint sequence, out ulong fieldFlag);
+											out ushort packetType, out int packetSize, out uint sequence, out ulong fieldFlag, out bool hasSign);
 					if (result0 != PARSE_RESULT.SUCCESS)
 					{
 						if (result0 == PARSE_RESULT.ERROR)
@@ -275,7 +275,7 @@ public abstract class NetConnectWebSocket : NetConnect
 						}
 						break;
 					}
-					mReceiveBuffer.Enqueue(new(packetData, fieldFlag, packetSize, sequence, packetType));
+					mReceiveBuffer.Enqueue(new(packetData, fieldFlag, packetSize, sequence, packetType, hasSign));
 					if (!mInputBuffer.removeData(0, index))
 					{
 						logError("移除数据失败");

@@ -1,7 +1,7 @@
 ﻿using System;
 
 // 可使用对象池进行创建和销毁的对象
-public class ClassObject : IEquatable<ClassObject>, IEventListener, IResetProperty
+public class ClassObject : IEquatable<ClassObject>, IEventListener, IResetProperty, IRecyclable
 {
 	protected static long mObjectInstanceIDSeed;	// 对象实例ID的种子
 	protected long mObjectInstanceID;               // 对象实例ID

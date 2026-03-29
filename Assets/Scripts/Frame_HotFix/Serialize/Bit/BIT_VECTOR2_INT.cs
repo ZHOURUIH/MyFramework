@@ -12,13 +12,13 @@ public class BIT_VECTOR2_INT : SerializableBit
 	}
 	public void set(Vector2Int value) { mValue.x = value.x; mValue.y = value.y; }
 	public Vector2Int get() { return new(mValue.x, mValue.y); }
-	public override bool read(SerializerBitRead reader)
+	public override bool read(SerializerBitRead reader, bool needReadSign)
 	{
-		return reader.read(out mValue);
+		return reader.read(out mValue, needReadSign);
 	}
-	public override void write(SerializerBitWrite writer)
+	public override void write(SerializerBitWrite writer, bool needWriteSign)
 	{
-		writer.write(mValue);
+		writer.write(mValue, needWriteSign);
 	}
 	public static implicit operator Vector2Int(BIT_VECTOR2_INT value)
 	{

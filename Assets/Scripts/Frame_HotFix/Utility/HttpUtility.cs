@@ -8,9 +8,9 @@ using System.Security.Cryptography.X509Certificates;
 using System.Net.Security;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
+using static SerializeByteUtility;
 using static UnityUtility;
 using static FrameUtility;
-using static BinaryUtility;
 using static StringUtility;
 using static FrameBaseHotFix;
 using static FrameBaseUtility;
@@ -134,7 +134,7 @@ public class HttpUtility
 	// 异步post请求,webgl可用
 	public static void httpPostAsyncWebGL(string url, string param, UnityHttpCallback callback)
 	{
-		GameEntry.startCoroutine(unityPost(url, stringToBytes(param), "application/json", null, callback));
+		GameEntry.startCoroutine(unityPost(url, param.toBytes(), "application/json", null, callback));
 	}
 	// 同步post请求
 	public static string httpPost(string url, out WebExceptionStatus status, out HttpStatusCode code, byte[] data, int dataLength = -1)
@@ -144,17 +144,17 @@ public class HttpUtility
 	// 同步post请求
 	public static string httpPost(string url, out WebExceptionStatus status, out HttpStatusCode code, string param)
 	{
-		return httpPost(url, out status, out code, stringToBytes(param), -1, "application/x-www-form-urlencoded", null);
+		return httpPost(url, out status, out code, param.toBytes(), -1, "application/x-www-form-urlencoded", null);
 	}
 	// 同步post请求
 	public static string httpPost(string url, out WebExceptionStatus status, out HttpStatusCode code, string param, string contentType)
 	{
-		return httpPost(url, out status, out code, stringToBytes(param), -1, contentType, null);
+		return httpPost(url, out status, out code, param.toBytes(), -1, contentType, null);
 	}
 	// 同步post请求
 	public static string httpPost(string url, out WebExceptionStatus status, out HttpStatusCode code, string param, string contentType, Dictionary<string, string> header)
 	{
-		return httpPost(url, out status, out code, stringToBytes(param), -1, contentType, header);
+		return httpPost(url, out status, out code, param.toBytes(), -1, contentType, header);
 	}
 	// 同步post请求
 	public static string httpPost(string url, out WebExceptionStatus status, out HttpStatusCode code, Dictionary<string, string> header)
@@ -169,17 +169,17 @@ public class HttpUtility
 	// 异步post请求
 	public static void httpPostAsync(string url, string param, HttpCallback callback = null)
 	{
-		httpPostAsync(url, stringToBytes(param), -1, "application/x-www-form-urlencoded", null, callback);
+		httpPostAsync(url, param.toBytes(), -1, "application/x-www-form-urlencoded", null, callback);
 	}
 	// 异步post请求
 	public static void httpPostAsync(string url, string param, string contentType, HttpCallback callback = null)
 	{
-		httpPostAsync(url, stringToBytes(param), -1, contentType, null, callback);
+		httpPostAsync(url, param.toBytes(), -1, contentType, null, callback);
 	}
 	// 异步post请求
 	public static void httpPostAsync(string url, string param, string contentType, Dictionary<string, string> header, HttpCallback callback = null)
 	{
-		httpPostAsync(url, stringToBytes(param), -1, contentType, header, callback);
+		httpPostAsync(url, param.toBytes(), -1, contentType, header, callback);
 	}
 	// 异步post请求
 	public static void httpPostAsync(string url, Dictionary<string, string> header, HttpCallback callback)
@@ -286,7 +286,7 @@ public class HttpUtility
 			item.write(stream, boundary);
 		}
 		// 结尾
-		byte[] footer = stringToBytes("\r\n--" + boundary + "--\r\n");
+		byte[] footer = ("\r\n--" + boundary + "--\r\n").toBytes();
 		stream.Write(footer, 0, footer.Length);
 		contentType = "multipart/form-data; boundary=" + boundary;
 	}

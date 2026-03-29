@@ -4,6 +4,7 @@ using UnityEngine;
 [CommonControl]
 public class LegendButton : WindowObjectUGUI
 {
+	protected myUGUIObject mGray;
 	protected myUGUITextTMP mText;
 	protected Vector3 mOriginTextPosition;
 	protected Color mOriginTextColor;
@@ -11,6 +12,7 @@ public class LegendButton : WindowObjectUGUI
 	public LegendButton(IWindowObjectOwner parent) : base(parent) { }
 	protected override void assignWindowInternal()
 	{
+		newObject(out mGray, "Gray", false);
 		newObject(out mText, "Text", false);
 	}
 	public override void init()
@@ -48,10 +50,20 @@ public class LegendButton : WindowObjectUGUI
 	{
 		mRoot?.unregisteCollider();
 	}
+	public void setPressCallback(BoolCallback callback)
+	{
+		if (mRoot == null)
+		{
+			return;
+		}
+		mRoot.registeCollider();
+		mRoot.setPressCallback(callback);
+	}
 	public void setText(string str) { mText?.setText(str); }
 	public void setText(int value) { mText?.setText(value); }
 	public myUGUITextTMP getTextObject() { return mText; }
 	public void setHandleInput(bool handle) { mRoot?.setHandleInput(handle); }
+	public void setGray(bool gray) { mGray?.setActive(gray); }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onButtonPress(Vector3 touchPos, bool press)
 	{
@@ -73,5 +85,6 @@ public class LegendButton : WindowObjectUGUI
 			mText.setPosition(mOriginTextPosition);
 			mText.setColor(mOriginTextColor);
 		}
+		mRoot.getPressCallback()?.Invoke(false);
 	}
 }

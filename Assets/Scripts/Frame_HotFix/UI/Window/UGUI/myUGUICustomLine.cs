@@ -22,7 +22,7 @@ public class myUGUICustomLine : myUGUIObject
 			mTransform = mRectTransform;
 		}
 	}
-	public void setWidth(float width)
+	public void setLineWidth(float width)
 	{
 		mLine.setWidth(width);
 	}

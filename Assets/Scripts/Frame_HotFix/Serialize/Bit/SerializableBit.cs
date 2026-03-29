@@ -8,8 +8,8 @@ public abstract class SerializableBit : ClassObject
 	{
 		mValid = true;
 	}
-	public abstract bool read(SerializerBitRead reader);
-	public abstract void write(SerializerBitWrite writer);
+	public abstract bool read(SerializerBitRead reader, bool needReadSign);
+	public abstract void write(SerializerBitWrite writer, bool needWriteSign);
 	public override void resetProperty()
 	{
 		base.resetProperty();

@@ -17,7 +17,7 @@ public class GameLayout
 	protected myUGUICanvas mRoot;					// 布局根节点
 	protected LayoutScript mScript;					// 布局脚本
 	protected myUGUIObject mParent;					// 布局父节点,可能是UGUIRoot,也可能为空
-	protected GameObject mPrefab;					// 布局预设,布局从该预设实例化
+	protected ResourceRef<GameObject> mPrefab;		// 布局预设,布局从该预设实例化
 	protected Type mType;							// 布局的脚本类型
 	protected string mName;							// 布局名称
 	protected int mDefaultLayer;					// 布局加载时所处的层
@@ -28,7 +28,6 @@ public class GameLayout
 	protected bool mCheckBoxAnchor = true;			// 是否检查布局中所有带碰撞盒的窗口是否自适应分辨率
 	protected bool mAnchorApplied;					// 是否已经完成了自适应的调整
 	protected bool mScriptInited;					// 脚本是否已经初始化
-	protected bool mInResources;					// 是否是从Resources中加载的资源,大部分布局都不是从Resources中加载的
 	protected bool mBlurBack;						// 布局显示时是否需要使布局背后(比当前布局层级低)的所有布局模糊显示
 	protected LAYOUT_ORDER mRenderOrderType;		// 布局渲染顺序的计算方式
 	public void init()
@@ -131,17 +130,7 @@ public class GameLayout
 		}
 		myUGUIObject.destroyWindow(mRoot, true);
 		mRoot = null;
-		if (mPrefab != null)
-		{
-			if (mInResources)
-			{
-				mResourceManager.unloadInResources(ref mPrefab);
-			}
-			else
-			{
-				mResourceManager.unload(ref mPrefab);
-			}
-		}
+		mResourceManager.unload(ref mPrefab);
 	}
 	public void setRenderOrder(int renderOrder)
 	{
@@ -259,21 +248,18 @@ public class GameLayout
 	public bool isVisible()									{ return mRoot != null && mRoot.isActiveInHierarchy(); }
 	public bool isCheckBoxAnchor()							{ return mCheckBoxAnchor; }
 	public bool isIgnoreTimeScale()							{ return mIgnoreTimeScale; }
-	public bool canUIObjectUpdate(myUGUIObject uiObj)			{ return mNeedUpdateList.contains(uiObj); }
+	public bool canUIObjectUpdate(myUGUIObject uiObj)		{ return mNeedUpdateList.contains(uiObj); }
 	public bool isScriptControlHide()						{ return mScriptControlHide; }
 	public bool isBlurBack()								{ return mBlurBack; }
 	public bool isAnchorApplied()							{ return mAnchorApplied; }
-	public bool isInResources()								{ return mInResources; }
-	public string getPrefabName()							{ return mPrefab.name; }
 	// set
-	public void setPrefab(GameObject prefab)				{ mPrefab = prefab; }
+	public void setPrefab(ResourceRef<GameObject> prefab)	{ mPrefab = prefab; }
 	public void setOrderType(LAYOUT_ORDER orderType)		{ mRenderOrderType = orderType; }
 	// 设置是否会立即隐藏,应该由布局脚本调用
 	public void setScriptControlHide(bool control)			{ mScriptControlHide = control; }
 	public void setCheckBoxAnchor(bool check)				{ mCheckBoxAnchor = check; }
 	public void setIgnoreTimeScale(bool ignore)				{ mIgnoreTimeScale = ignore; }
 	public void setDefaultUpdateWindow(bool defaultUpdate)	{ mDefaultUpdateWindow = defaultUpdate; }
-	public void setInResources(bool inResources)			{ mInResources = inResources; }
 	public void setLayer(int layer)							{ setGameObjectLayer(mRoot.getObject(), layer); }
 	public void setBlurBack(bool blurBack)					{ mBlurBack = blurBack; }
 	public void setParent(myUGUIObject parent)				{ mParent = parent; }

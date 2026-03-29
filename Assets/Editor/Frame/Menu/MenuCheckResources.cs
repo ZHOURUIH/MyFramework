@@ -297,7 +297,7 @@ public class MenuCheckResources
 			FileGUIDLines fileInfo = item.Value;
 			foreach (string guidsStr in fileInfo.mContainGUIDLines)
 			{
-				foreach (string guid in split(guidsStr, '-'))
+				foreach (string guid in guidsStr.split('-'))
 				{
 					// 与存着所有的材质球GUID的列表进行比对
 					if (!materialGUIDsList.Contains(guid))

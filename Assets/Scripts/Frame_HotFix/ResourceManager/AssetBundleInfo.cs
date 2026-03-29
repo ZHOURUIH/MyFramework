@@ -59,7 +59,7 @@ public class AssetBundleInfo : ClassObject
 	// 卸载整个资源包
 	public void unload()
 	{
-		if (mResourceManager.getAssetBundleLoader().isDontUnloadAssetBundle(mBundleFileName))
+		if (mResourceManager.isDontUnloadAssetBundle(mBundleFileName))
 		{
 			return;
 		}
@@ -97,7 +97,7 @@ public class AssetBundleInfo : ClassObject
 			// UObject.DestroyImmediate(obj, true);
 		}
 		// 其他独立资源可以使用此方式卸载,使用Resources.UnloadAsset及时卸载资源
-		// 可以减少Resourecs.UnloadUnusedAssets的耗时
+		// 可以减少Resources.UnloadUnusedAssets的耗时
 		else
 		{
 			Resources.UnloadAsset(obj);
@@ -153,7 +153,7 @@ public class AssetBundleInfo : ClassObject
 		using var a = new ListScope<string>(out var tempList);
 		foreach (string depName in tempList.setRangeKeys(mParents))
 		{
-			AssetBundleInfo info = mResourceManager.getAssetBundleLoader().getAssetBundleInfo(depName);
+			AssetBundleInfo info = mResourceManager.getAssetBundleInfo(depName);
 			// 找到自己的父节点
 			mParents.set(depName, info);
 			// 并且通知父节点添加自己为子节点
@@ -238,7 +238,7 @@ public class AssetBundleInfo : ClassObject
 			loadParentAsync();
 			mLoadState = LOAD_STATE.WAIT_FOR_LOAD;
 			// 通知AssetBundleLoader请求异步加载AssetBundle,只在真正开始异步加载时才标记为正在加载状态,此处只是加入等待列表
-			mResourceManager.getAssetBundleLoader().requestLoadAssetBundle(this);
+			mResourceManager.requestLoadAssetBundle(this);
 		}
 	}
 	// 同步加载资源
@@ -255,7 +255,7 @@ public class AssetBundleInfo : ClassObject
 		if (asset != null)
 		{
 			mObjectToAsset.TryAdd(asset, info);
-			mResourceManager.getAssetBundleLoader().notifyAssetLoaded(asset, this);
+			mResourceManager.notifyAssetLoaded(asset, this);
 		}
 		return asset;
 	}
@@ -275,7 +275,7 @@ public class AssetBundleInfo : ClassObject
 		if (asset != null)
 		{
 			mObjectToAsset.TryAdd(asset, info);
-			mResourceManager.getAssetBundleLoader().notifyAssetLoaded(asset, this);
+			mResourceManager.notifyAssetLoaded(asset, this);
 		}
 		return objs;
 	}
@@ -293,14 +293,14 @@ public class AssetBundleInfo : ClassObject
 				if (asset != null)
 				{
 					mObjectToAsset.TryAdd(asset, assetInfo);
-					mResourceManager.getAssetBundleLoader().notifyAssetLoaded(asset, this);
+					mResourceManager.notifyAssetLoaded(asset, this);
 				}
 			}
 			assetInfo.callbackAll();
 		}
 	}
 	// 异步加载资源
-	public CustomAsyncOperation loadAssetAsync(string fileNameWithSuffix, AssetLoadDoneCallback callback, string loadPath)
+	public CustomAsyncOperation loadAssetAsync(string fileNameWithSuffix, AssetLoadCallback callback, string loadPath)
 	{
 		mWillUnloadTime = -1.0f;
 		CustomAsyncOperation op = new();
@@ -341,7 +341,7 @@ public class AssetBundleInfo : ClassObject
 			if (asset != null)
 			{
 				mObjectToAsset.TryAdd(asset, assetInfo);
-				mResourceManager.getAssetBundleLoader().notifyAssetLoaded(asset, this);
+				mResourceManager.notifyAssetLoaded(asset, this);
 			}
 		}
 		assetInfo.callbackAll();

@@ -29,12 +29,17 @@ public class DelayCmdWatcher : ClassObject
 		mDelayCmdList.Add(cmd.getAssignID());
 		cmd.addStartCommandCallback(mCmdCallback);
 	}
-	public void interruptCommand(long assignID, bool showError = true)
+	public void interruptCommand(ref long assignID, bool showError = true)
 	{
+		if (assignID == 0)
+		{
+			return;
+		}
 		if (mDelayCmdList != null && mDelayCmdList.Remove(assignID))
 		{
 			mCommandSystem?.interruptCommand(assignID, showError);
 		}
+		assignID = 0;
 	}
 	public void interruptAllCommand()
 	{

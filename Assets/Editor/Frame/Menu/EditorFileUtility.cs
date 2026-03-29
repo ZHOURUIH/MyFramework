@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using static StringUtility;
 using static FrameDefine;
-using static BinaryUtility;
 using static UnityUtility;
 using static FileUtility;
 
@@ -67,12 +66,7 @@ public class EditorFileUtility
 	// 打开一个文本文件,fileName为绝对路径
 	public static string openTxtFile(string fileName, bool errorIfNull)
 	{
-		byte[] fileContent = openFile(fileName, errorIfNull);
-		if (fileContent == null)
-		{
-			return EMPTY;
-		}
-		return bytesToString(fileContent, 0, fileContent.Length);
+		return openFile(fileName, errorIfNull).bytesToString();
 	}
 	// 打开一个文本文件,fileName为绝对路径,并且自动将文件拆分为多行,移除末尾的换行符(\r或者\n),存储在fileLines中,包含空行,返回值是行数
 	public static int openTxtFileLines(string fileName, out string[] fileLines, bool errorIfNull = true, bool keepEmptyLine = true)
@@ -83,7 +77,7 @@ public class EditorFileUtility
 			fileLines = null;
 			return 0;
 		}
-		splitLine(fileContent, out fileLines, !keepEmptyLine);
+		fileContent.splitLine(out fileLines, !keepEmptyLine);
 		return fileLines.count();
 	}
 	// 打开一个文本文件,fileName为绝对路径,并且自动将文件拆分为多行,移除末尾的换行符(\r或者\n),存储在fileLines中,包含空行,返回值是行数

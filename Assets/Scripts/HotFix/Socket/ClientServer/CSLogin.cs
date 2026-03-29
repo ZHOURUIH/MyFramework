@@ -13,18 +13,22 @@ public class CSLogin : NetPacketBit
 		addParam(mPassword, false);
 	}
 	public static CSLogin get() { return PACKET<CSLogin>(); }
-	public override bool read(SerializerBitRead reader, ulong fieldFlag)
+	public override bool read(SerializerBitRead reader, bool needReadSign, ulong fieldFlag)
 	{
 		bool success = true;
-		success = success && mAccount.read(reader);
-		success = success && mPassword.read(reader);
+		success = success && mAccount.read(reader, needReadSign);
+		success = success && mPassword.read(reader, needReadSign);
 		return success;
 	}
-	public override void write(SerializerBitWrite writer, out ulong fieldFlag)
+	public override void write(SerializerBitWrite writer, bool needWriteSign, out ulong fieldFlag)
 	{
-		base.write(writer, out fieldFlag);
-		mAccount.write(writer);
-		mPassword.write(writer);
+		base.write(writer, needWriteSign, out fieldFlag);
+		mAccount.write(writer, needWriteSign);
+		mPassword.write(writer, needWriteSign);
+	}
+	protected override bool generateHasSignInternal()
+	{
+		return false;
 	}
 	// auto generate end
 	public static void send()

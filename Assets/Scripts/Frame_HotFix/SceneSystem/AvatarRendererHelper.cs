@@ -110,8 +110,8 @@ public class AvatarRenderer : FrameSystem
 			logError("材质不是MergeTextureMat,无法创建渲染纹理");
 			return avatarPos;
 		}
-		mat.SetTexture("_map2", postCamera.createRenderTarget(ui.getWindowSize()));
-		mat.SetTexture("_map1", noPostCamera.createRenderTarget(ui.getWindowSize()));
+		mat.SetTexture("_map2", postCamera.createRenderTarget(ui.getSize()));
+		mat.SetTexture("_map1", noPostCamera.createRenderTarget(ui.getSize()));
 		return avatarPos;
 	}
 	public void destroyRenderTarget(myUGUIRawImage ui)

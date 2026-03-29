@@ -70,115 +70,75 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	// 将当前窗口的顶部对齐父节点的顶部,只改Y坐标
 	public void setTopToParentTop()
 	{
-		if (mParent is not myUGUIObject uiObj)
-		{
-			logError("父节点的类型不是myUGUIObject,无法获取其窗口大小");
-			return;
-		}
-		setWindowTopInParent(uiObj.getWindowTopInSelf());
+		setTopInParent(mParent.getTopInSelf());
 	}
 	// 将当前窗口的顶部中心对齐父节点的顶部中心,X和Y坐标都改
 	public void setTopCenterToParentTopCenter()
 	{
-		if (mParent is not myUGUIObject uiObj)
-		{
-			logError("父节点的类型不是myUGUIObject,无法获取其窗口大小");
-			return;
-		}
-		setWindowTopInParent(uiObj.getWindowTopInSelf());
-		setWindowInParentCenterX();
+		setTopInParent(mParent.getTopInSelf());
+		setInParentCenterX();
 	}
 	// 将当前窗口的底部对齐父节点的底部,只改变Y坐标
 	public void setBottomToParentBottom()
 	{
-		if (mParent is not myUGUIObject uiObj)
-		{
-			logError("父节点的类型不是myUGUIObject,无法获取其窗口大小");
-			return;
-		}
-		setWindowBottomInParent(uiObj.getWindowBottomInSelf());
+		setBottomInParent(mParent.getBottomInSelf());
 	}
 	// 将当前窗口的底部中心对齐父节点的底部中心,X和Y坐标都改
 	public void setBottomCenterToParentBottomCenter()
 	{
-		if (mParent is not myUGUIObject uiObj)
-		{
-			logError("父节点的类型不是myUGUIObject,无法获取其窗口大小");
-			return;
-		}
-		setWindowBottomInParent(uiObj.getWindowBottomInSelf());
-		setWindowInParentCenterX();
+		setBottomInParent(mParent.getBottomInSelf());
+		setInParentCenterX();
 	}
 	// 将当前窗口的左边界对齐父节点的左边界.只改X坐标
 	public void setLeftToParentLeft()
 	{
-		if (mParent is not myUGUIObject uiObj)
-		{
-			logError("父节点的类型不是myUGUIObject,无法获取其窗口大小");
-			return;
-		}
-		setWindowLeftInParent(uiObj.getWindowLeftInSelf());
+		setLeftInParent(mParent.getLeftInSelf());
 	}
 	// 将当前窗口的左边界中心对齐父节点的左边界中心,X和Y坐标都改
 	public void setLeftCenterToParentLeftCenter()
 	{
-		if (mParent is not myUGUIObject uiObj)
-		{
-			logError("父节点的类型不是myUGUIObject,无法获取其窗口大小");
-			return;
-		}
-		setWindowLeftInParent(uiObj.getWindowLeftInSelf());
-		setWindowInParentCenterY();
+		setLeftInParent(mParent.getLeftInSelf());
+		setInParentCenterY();
 	}
 	// 将当前窗口的右边界对齐父节点的右边界,只改X坐标
 	public void setRightToParentRight()
 	{
-		if (mParent is not myUGUIObject uiObj)
-		{
-			logError("父节点的类型不是myUGUIObject,无法获取其窗口大小");
-			return;
-		}
-		setWindowRightInParent(uiObj.getWindowRightInSelf());
+		setRightInParent(mParent.getRightInSelf());
 	}
 	// 将当前窗口的右边界中心对齐父节点的右边界中心,X和Y坐标都改
 	public void setRightCenterToParentRightCenter()
 	{
-		if (mParent is not myUGUIObject uiObj)
-		{
-			logError("父节点的类型不是myUGUIObject,无法获取其窗口大小");
-			return;
-		}
-		setWindowRightInParent(uiObj.getWindowRightInSelf());
-		setWindowInParentCenterY();
+		setRightInParent(mParent.getRightInSelf());
+		setInParentCenterY();
 	}
 	// 设置窗口在父节点中横向居中
-	public void setWindowInParentCenterX() { setPositionX(0.0f); }
+	public void setInParentCenterX() { setPositionX(0.0f); }
 	// 设置窗口在父节点中纵向居中
-	public void setWindowInParentCenterY() { setPositionY(0.0f); }
+	public void setInParentCenterY() { setPositionY(0.0f); }
 	// 设置窗口左边界在父节点中的X坐标
-	public void setWindowLeftInParent(float leftInParent) { setPositionX(leftInParent - getWindowLeftInSelf()); }
+	public void setLeftInParent(float leftInParent) { setPositionX(leftInParent - getLeftInSelf()); }
 	// 设置窗口右边界在父节点中的X坐标
-	public void setWindowRightInParent(float rightInParent) { setPositionX(rightInParent - getWindowRightInSelf()); }
+	public void setRightInParent(float rightInParent) { setPositionX(rightInParent - getRightInSelf()); }
 	// 设置窗口顶部在父节点中的Y坐标
-	public void setWindowTopInParent(float topInParent) { setPositionY(topInParent - getWindowTopInSelf()); }
+	public void setTopInParent(float topInParent) { setPositionY(topInParent - getTopInSelf()); }
 	// 设置窗口底部在父节点中的Y坐标
-	public void setWindowBottomInParent(float bottomInParent) { setPositionY(bottomInParent - getWindowBottomInSelf()); }
+	public void setBottomInParent(float bottomInParent) { setPositionY(bottomInParent - getBottomInSelf()); }
 	// 获得窗口左边界在父窗口中的X坐标
-	public float getWindowLeftInParent() { return getPosition().x + getWindowLeftInSelf(); }
+	public float getLeftInParent() { return getPosition().x + getLeftInSelf(); }
 	// 获得窗口右边界在父窗口中的X坐标
-	public float getWindowRightInParent() { return getPosition().x + getWindowRightInSelf(); }
+	public float getRightInParent() { return getPosition().x + getRightInSelf(); }
 	// 获得窗口顶部在父窗口中的Y坐标
-	public float getWindowTopInParent() { return getPosition().y + getWindowTopInSelf(); }
+	public float getTopInParent() { return getPosition().y + getTopInSelf(); }
 	// 获得窗口底部在父窗口中的Y坐标
-	public float getWindowBottomInParent() { return getPosition().y + getWindowBottomInSelf(); }
+	public float getBottomInParent() { return getPosition().y + getBottomInSelf(); }
 	// 获得窗口顶部在窗口中的相对于窗口pivot的Y坐标
-	public float getWindowTopInSelf() { return getWindowSize().y * (1.0f - getPivot().y); }
+	public float getTopInSelf() { return getSize().y * (1.0f - getPivot().y); }
 	// 获得窗口底部在窗口中的相对于窗口pivot的Y坐标
-	public float getWindowBottomInSelf() { return -getWindowSize().y * getPivot().y; }
+	public float getBottomInSelf() { return -getSize().y * getPivot().y; }
 	// 获得窗口左边界在窗口中的相对于窗口pivot的X坐标
-	public float getWindowLeftInSelf() { return -getWindowSize().x * getPivot().x; }
+	public float getLeftInSelf() { return -getSize().x * getPivot().x; }
 	// 获得窗口右边界在窗口中的相对于窗口pivot的X坐标
-	public float getWindowRightInSelf() { return getWindowSize().x * (1.0f - getPivot().x); }
+	public float getRightInSelf() { return getSize().x * (1.0f - getPivot().x); }
 	// 获取不考虑中心点偏移的坐标,也就是固定获取窗口中心的坐标
 	// 由于pivot的影响,Transform.localPosition获得的坐标并不一定等于窗口中心的坐标
 	public Vector3 getPositionNoPivot() { return WidgetUtility.getPositionNoPivot(mRectTransform); }
@@ -190,7 +150,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 			logError("只有同一父节点下的节点才能对齐");
 			return;
 		}
-		setPositionX(other.getPosition().x - other.getWindowSize().x * 0.5f - getWindowSize().x * 0.5f - interval);
+		setPositionX(other.getPosition().x - other.getSize().x * 0.5f - getSize().x * 0.5f - interval);
 	}
 	// 使当前窗口左边界对齐另外一个窗口的右边界,只修改x轴,仅限同一父节点下
 	public void setLeftToOtherRight(myUGUIObject other, float interval = 0.0f)
@@ -200,7 +160,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 			logError("只有同一父节点下的节点才能对齐");
 			return;
 		}
-		setPositionX(other.getPosition().x + other.getWindowSize().x * 0.5f + getWindowSize().x * 0.5f + interval);
+		setPositionX(other.getPosition().x + other.getSize().x * 0.5f + getSize().x * 0.5f + interval);
 	}
 	// 使当前窗口下边界对齐另外一个窗口的上边界,只修改y轴,仅限同一父节点下
 	public void setBottomToOtherTop(myUGUIObject other, float interval = 0.0f)
@@ -210,7 +170,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 			logError("只有同一父节点下的节点才能对齐");
 			return;
 		}
-		setPositionY(other.getPosition().y + other.getWindowSize().y * 0.5f + getWindowSize().y * 0.5f + interval);
+		setPositionY(other.getPosition().y + other.getSize().y * 0.5f + getSize().y * 0.5f + interval);
 	}
 	// 使当前窗口上边界对齐另外一个窗口的下边界,只修改y轴,仅限同一父节点下
 	public void setTopToOtherBottom(myUGUIObject other, float interval = 0.0f)
@@ -220,7 +180,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 			logError("只有同一父节点下的节点才能对齐");
 			return;
 		}
-		setPositionY(other.getPosition().y - other.getWindowSize().y * 0.5f - getWindowSize().y * 0.5f - interval);
+		setPositionY(other.getPosition().y - other.getSize().y * 0.5f - getSize().y * 0.5f - interval);
 	}
 	// 使当前窗口左边界对齐另外一个窗口的左边界,只修改x轴,仅限同一父节点下
 	public void setLeftToOtherLeft(myUGUIObject other, float interval = 0.0f)
@@ -230,7 +190,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 			logError("只有同一父节点下的节点才能对齐");
 			return;
 		}
-		setPositionX(other.getPosition().x - other.getWindowSize().x * 0.5f + getWindowSize().x * 0.5f + interval);
+		setPositionX(other.getPosition().x - other.getSize().x * 0.5f + getSize().x * 0.5f + interval);
 	}
 	// 使当前窗口左边界对齐另外一个窗口的右边界,只修改x轴,仅限同一父节点下
 	public void setRightToOtherRight(myUGUIObject other, float interval = 0.0f)
@@ -240,7 +200,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 			logError("只有同一父节点下的节点才能对齐");
 			return;
 		}
-		setPositionX(other.getPosition().x + other.getWindowSize().x * 0.5f - getWindowSize().x * 0.5f - interval);
+		setPositionX(other.getPosition().x + other.getSize().x * 0.5f - getSize().x * 0.5f - interval);
 	}
 	// 使当前窗口下边界对齐另外一个窗口的上边界,只修改y轴,仅限同一父节点下
 	public void setTopToOtherTop(myUGUIObject other, float interval = 0.0f)
@@ -250,7 +210,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 			logError("只有同一父节点下的节点才能对齐");
 			return;
 		}
-		setPositionY(other.getPosition().y + other.getWindowSize().y * 0.5f - getWindowSize().y * 0.5f - interval);
+		setPositionY(other.getPosition().y + other.getSize().y * 0.5f - getSize().y * 0.5f - interval);
 	}
 	// 使当前窗口上边界对齐另外一个窗口的下边界,只修改y轴,仅限同一父节点下
 	public void setBottomToOtherBottom(myUGUIObject other, float interval = 0.0f)
@@ -260,30 +220,30 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 			logError("只有同一父节点下的节点才能对齐");
 			return;
 		}
-		setPositionY(other.getPosition().y - other.getWindowSize().y * 0.5f + getWindowSize().y * 0.5f + interval);
+		setPositionY(other.getPosition().y - other.getSize().y * 0.5f + getSize().y * 0.5f + interval);
 	}
 	public Vector2 getPivot() { return mRectTransform.pivot; }
 	public void setPivot(Vector2 pivot) { mRectTransform.pivot = pivot; }
 	public RectTransform getRectTransform() { return mRectTransform; }
-	public void setWindowWidth(float width)
+	public void setWidth(float width)
 	{
 		if (isFloatEqual(mRectTransform.rect.size.x, width))
 		{
 			return;
 		}
-		// 还是需要调用setWindowSize,需要触发一些虚函数的调用
-		setWindowSize(replaceX(getWindowSize(), width));
+		// 还是需要调用setSize,需要触发一些虚函数的调用
+		setSize(replaceX(getSize(), width));
 	}
-	public void setWindowHeight(float height)
+	public void setHeight(float height)
 	{
 		if (isFloatEqual(mRectTransform.rect.size.y, height))
 		{
 			return;
 		}
-		// 还是需要调用setWindowSize,需要触发一些虚函数的调用
-		setWindowSize(replaceY(getWindowSize(), height));
+		// 还是需要调用setSize,需要触发一些虚函数的调用
+		setSize(replaceY(getSize(), height));
 	}
-	public virtual void setWindowSize(Vector2 size)
+	public virtual void setSize(Vector2 size)
 	{
 		if (isVectorEqual(mRectTransform.rect.size, size))
 		{
@@ -292,7 +252,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		setRectSize(mRectTransform, size);
 		ensureColliderSize();
 	}
-	public virtual Vector2 getWindowSize(bool transformed = false)
+	public virtual Vector2 getSize(bool transformed = false)
 	{
 		Vector2 windowSize = mRectTransform.rect.size;
 		if (transformed)
@@ -563,6 +523,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		}
 		return lastChild.getLastChild();
 	}
+	public BoolCallback getPressCallback()								{ return getCOMInteractive().getPressCallback(); }
 	public void setDepthOverAllChild(bool depthOver)					{ getCOMInteractive().setDepthOverAllChild(depthOver); }
 	public void setDestroyImmediately(bool immediately)					{ mDestroyImmediately = immediately; }
 	public void setAllowGenerateDepth(bool allowGenerate)				{ getCOMInteractive().setAllowGenerateDepth(allowGenerate); }

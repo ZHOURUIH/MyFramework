@@ -1,8 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 // 自定义的对byte[]的封装,可用于序列化
-public class BYTES : Serializable, IEnumerable<byte>
+public class BYTES : Serializable
 {
 	public List<byte> mValue = new();		// 值
 	public byte this[int index]
@@ -36,6 +35,5 @@ public class BYTES : Serializable, IEnumerable<byte>
 	{
 		return value.mValue;
 	}
-	public IEnumerator<byte> GetEnumerator() { return mValue.GetEnumerator(); }
-	IEnumerator IEnumerable.GetEnumerator() { return mValue.GetEnumerator(); }
+	public List<byte>.Enumerator GetEnumerator() { return mValue.GetEnumerator(); }
 }

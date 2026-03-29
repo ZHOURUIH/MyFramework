@@ -83,33 +83,33 @@ public class myUGUIText : myUGUIObject, IUGUIText
 	{
 		if (height <= 0.0f)
 		{
-			height = getWindowSize().y;
+			height = getSize().y;
 		}
 		else
 		{
 			// 如果要改变文本区域的宽度,则需要先修改一次窗口大小,使之根据指定的宽度重新计算preferredHeight
-			setWindowSize(new(getWindowSize().x, height));
+			setSize(new(getSize().x, height));
 		}
-		setWindowSize(new(mText.preferredWidth, height));
+		setSize(new(mText.preferredWidth, height));
 	}
 	public void applyPreferredHeight(float width = 0.0f)
 	{
 		if (width <= 0.0f)
 		{
-			width = getWindowSize().x;
+			width = getSize().x;
 		}
 		else
 		{
 			// 如果要改变文本区域的宽度,则需要先修改一次窗口大小,使之根据指定的宽度重新计算preferredHeight
-			setWindowSize(new(width, getWindowSize().y));
+			setSize(new(width, getSize().y));
 		}
-		setWindowSize(new(width, mText.preferredHeight));
+		setSize(new(width, mText.preferredHeight));
 	}
 	public void applyPreferredHeightKeepTop()
 	{
-		float oldHeight = getWindowSize().y;
-		setWindowSize(new(getWindowSize().x, mText.preferredHeight));
-		setPositionY(getPosition().y + (oldHeight - getWindowSize().y) * 0.5f);
+		float oldHeight = getSize().y;
+		setSize(new(getSize().x, mText.preferredHeight));
+		setPositionY(getPosition().y + (oldHeight - getSize().y) * 0.5f);
 	}
 	public float getPreferredWidth() { return mText.preferredWidth; }
 	public float getPreferredHeight() { return mText.preferredHeight; }

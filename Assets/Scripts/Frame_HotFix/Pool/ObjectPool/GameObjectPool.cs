@@ -7,7 +7,7 @@ using static FrameBaseUtility;
 // GameObject的池,用于缓存在代码中动态创建的GameObject
 public class GameObjectPool : FrameSystem
 {
-	protected HashSet<GameObject> mInusedList = new();  // 已使用的列表,为了提高运行时效率,仅在编辑器下使用
+	protected HashSet<GameObject> mInuseList = new();	// 已使用的列表,为了提高运行时效率,仅在编辑器下使用
 	protected Queue<GameObject> mUnusedList = new();	// 未使用的列表
 	protected int mCreatedCount;						// 累计创建的对象数量
 	public GameObjectPool()
@@ -22,7 +22,7 @@ public class GameObjectPool : FrameSystem
 		}
 		mUnusedList.Clear();
 	}
-	public HashSet<GameObject> getInusedList() { return mInusedList; }
+	public HashSet<GameObject> getInuseList() { return mInuseList; }
 	public Queue<GameObject> getUnusedList() { return mUnusedList; }
 	public GameObject newObject() { return newObject(null, mObject); }
 	public GameObject newObject(string name){ return newObject(name, mObject); }
@@ -90,14 +90,14 @@ public class GameObjectPool : FrameSystem
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void addInuse(GameObject go)
 	{
-		if (!mInusedList.Add(go))
+		if (!mInuseList.Add(go))
 		{
 			logError("加入已使用列表失败, Name: " + go.name);
 		}
 	}
 	protected void removeInuse(GameObject go)
 	{
-		if (!mInusedList.Remove(go))
+		if (!mInuseList.Remove(go))
 		{
 			logError("已使用列表找不到指定对象, Name: " + go.name);
 		}

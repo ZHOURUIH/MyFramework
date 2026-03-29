@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Text;
 using static StringUtility;
+using static BinaryUtility;
 using static FrameUtility;
 using static FrameBaseUtility;
 
@@ -872,5 +874,96 @@ public static class StringExtension
 			}
 		}
 		return str;
+	}
+	public static byte[] toBytes(this string str, Encoding encoding = null)
+	{
+		if (str == null)
+		{
+			return null;
+		}
+		// 默认为UTF8
+		encoding ??= Encoding.UTF8;
+		return encoding.GetBytes(str);
+	}
+	public static string convertStringFormat(this string str, Encoding source, Encoding target)
+	{
+		return str.toBytes(source).bytesToString(target);
+	}
+	public static string UTF8ToUnicode(this string str)
+	{
+		return convertStringFormat(str, Encoding.UTF8, Encoding.Unicode);
+	}
+	public static string UTF8ToGB2312(this string str)
+	{
+		return convertStringFormat(str, Encoding.UTF8, getGB2312());
+	}
+	public static string UnicodeToUTF8(this string str)
+	{
+		return convertStringFormat(str, Encoding.Unicode, Encoding.UTF8);
+	}
+	public static string UnicodeToGB2312(this string str)
+	{
+		return convertStringFormat(str, Encoding.Unicode, getGB2312());
+	}
+	public static string GB2312ToUTF8(this string str)
+	{
+		return convertStringFormat(str, getGB2312(), Encoding.UTF8);
+	}
+	public static string GB2312ToUnicode(this string str)
+	{
+		return convertStringFormat(str, getGB2312(), Encoding.Unicode);
+	}
+	public static void splitLine(this string str, out string[] lines, bool removeEmpty = true)
+	{
+		if (str.isEmpty())
+		{
+			lines = null;
+			return;
+		}
+		if (str.Contains("\r\n"))
+		{
+			lines = str.split(removeEmpty, "\r\n");
+		}
+		else if (str.Contains("\n"))
+		{
+			lines = str.split(removeEmpty, '\n');
+		}
+		else if (str.Contains("\r"))
+		{
+			lines = str.split(removeEmpty, '\r');
+		}
+		else
+		{
+			lines = new string[1] { str };
+		}
+	}
+	public static string[] splitLine(this string str, bool removeEmpty = true)
+	{
+		splitLine(str, out string[] lines, removeEmpty);
+		return lines;
+	}
+	public static string[] split(this string str, params string[] keyword)
+	{
+		return split(str, true, keyword);
+	}
+	public static string[] split(this string str, bool removeEmpty, params string[] keyword)
+	{
+		if (str.isEmpty())
+		{
+			return null;
+		}
+		return str.Split(keyword, removeEmpty ? StringSplitOptions.RemoveEmptyEntries : StringSplitOptions.None);
+	}
+	public static string[] split(this string str, params char[] keyword)
+	{
+		return str.split(true, keyword);
+	}
+	public static string[] split(this string str, bool removeEmpty, params char[] keyword)
+	{
+		if (str.isEmpty())
+		{
+			return null;
+		}
+		return str.Split(keyword, removeEmpty ? StringSplitOptions.RemoveEmptyEntries : StringSplitOptions.None);
 	}
 }

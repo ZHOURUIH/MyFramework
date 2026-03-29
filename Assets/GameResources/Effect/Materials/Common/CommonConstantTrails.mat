@@ -21,13 +21,16 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: CommonConstantTrails
-  m_Shader: {fileID: -6465566751694194690, guid: b85d6def27a1d1041b93e3045d7d6c0f, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: b85d6def27a1d1041b93e3045d7d6c0f,
+    type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - _BUILTIN_SURFACE_TYPE_TRANSPARENT
   - _SURFACE_TYPE_TRANSPARENT
-  m_InvalidKeywords: []
-  m_LightmapFlags: 0
+  m_InvalidKeywords:
+  - _EMISSION
+  m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
@@ -123,9 +126,9 @@ Material:
     - _BUILTIN_Blend: 0
     - _BUILTIN_CullMode: 0
     - _BUILTIN_DstBlend: 10
-    - _BUILTIN_QueueControl: -1
+    - _BUILTIN_QueueControl: 0
     - _BUILTIN_QueueOffset: 0
-    - _BUILTIN_SrcBlend: 1
+    - _BUILTIN_SrcBlend: 5
     - _BUILTIN_Surface: 1
     - _BUILTIN_ZTest: 4
     - _BUILTIN_ZWrite: 0
@@ -139,6 +142,7 @@ Material:
     - _DepthFadeMax: 1
     - _DetailNormalMapScale: 1
     - _DstBlend: 10
+    - _DstBlendAlpha: 0
     - _EDGEFADE: 0
     - _EdgeFadeMax: 0.6
     - _EdgeFadeMin: 1
@@ -166,6 +170,7 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 5
+    - _SrcBlendAlpha: 1
     - _Surface: 1
     - _USEMASK: 0
     - _USEMASK2: 0
@@ -192,6 +197,7 @@ Material:
     - _Tiling: {r: 1, g: 1, b: 0, a: 0}
     - _WarpScroll: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &2850509429458341461
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -204,4 +210,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 9
+  version: 10

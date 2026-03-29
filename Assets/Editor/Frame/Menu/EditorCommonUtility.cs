@@ -194,7 +194,7 @@ public class EditorCommonUtility
 	// 检查shader是否有指定的属性
 	public static bool checkTextureInShader(string texturePropertyName, string shaderContent)
 	{
-		splitLine(shaderContent, out string[] lines);
+		shaderContent.splitLine(out string[] lines);
 		int propertyLine = -1;
 		int propertyStartLine = -1;
 		int propertyEndLine = -1;
@@ -311,7 +311,7 @@ public class EditorCommonUtility
 	public static void checkMaterialTexturePropertyValid(string path, Dictionary<string, string> allFileMeta)
 	{
 		string shaderGUID = null;
-		string[] materialLines = split(openTxtFile(projectPathToFullPath(path), true), "\r\n");
+		string[] materialLines = openTxtFile(projectPathToFullPath(path), true).split("\r\n");
 		// 找到shader的guid
 		foreach (string item in materialLines)
 		{
@@ -402,7 +402,7 @@ public class EditorCommonUtility
 			{
 				continue;
 			}
-			string[] elem = split(line, ':');
+			string[] elem = line.split(':');
 			if (elem.Length != 2)
 			{
 				break;
@@ -623,7 +623,7 @@ public class EditorCommonUtility
 		Dictionary<string, string> allFileMeta = new();
 		foreach (string item in findFilesNonAlloc(path, ".meta"))
 		{
-			if (splitLine(File.ReadAllText(item)).find(lineItem=> lineItem.StartsWith(key), out string lineItem))
+			if (File.ReadAllText(item).splitLine().find(lineItem=> lineItem.StartsWith(key), out string lineItem))
 			{
 				allFileMeta.add(lineItem.removeStartCount(key.Length), item);
 			}
@@ -663,7 +663,7 @@ public class EditorCommonUtility
 			return null;
 		}
 		HashSet<string> list = new();
-		foreach (string lineItem in splitLine(File.ReadAllText(path)))
+		foreach (string lineItem in File.ReadAllText(path).splitLine())
 		{
 			// 只将guid放到列表中,认为一行只有一个GUID,如果存在多个,则认为这一行不包含GUID,可能是其他的数据
 			list.addNotEmpty(getGUIDString(lineItem));
@@ -1045,7 +1045,7 @@ public class EditorCommonUtility
 	{
 		codeLine = removeComment(codeLine);
 		codeLine = removeQuotedStrings(codeLine);
-		string[] codeList = split(codeLine, ' ', '\t', ':');
+		string[] codeList = codeLine.split(' ', '\t', ':');
 		if (codeList == null)
 		{
 			return null;
@@ -1079,7 +1079,7 @@ public class EditorCommonUtility
 		codeLine = codeLine.removeFirstBetweenPairChars('<', '>', out _, out _);
 
 		// 先根据空格分割字符串
-		string[] elements = split(codeLine, ' ', '\t');
+		string[] elements = codeLine.split(' ', '\t');
 		if (elements.count() < 2)
 		{
 			return null;
@@ -1485,7 +1485,7 @@ public class EditorCommonUtility
 	// 检查普通变量
 	public static void doCheckNormalVariable(string filePath, int index, string codeLine, string nextLine)
 	{
-		string[] codeList = split(codeLine, ' ');
+		string[] codeList = codeLine.split(' ');
 		if (arrayContains(codeList, "static") || arrayContains(codeList, "const"))
 		{
 			return;
@@ -1956,7 +1956,7 @@ public class EditorCommonUtility
 				{
 					continue;
 				}
-				string variableStr = split(line, ' ')[^1];
+				string variableStr = line.split(' ')[^1];
 				variableStr = variableStr.removeStartString("m");
 				variableStr = variableStr.removeEndString(";");
 				linesDic.Add(variableStr, i + 1);
@@ -2073,7 +2073,7 @@ public class EditorCommonUtility
 		line = line.removeFirstBetweenPairChars('<', '>', out _, out _);
 
 		// 先根据空格分割字符串
-		string[] elements = split(line, ' ', '\t');
+		string[] elements = line.split(' ', '\t');
 		if (elements.count() < 2)
 		{
 			return false;
@@ -2355,7 +2355,6 @@ public class EditorCommonUtility
 			typeof(LayoutScript),
 			typeof(WindowShader),
 			typeof(WindowObjectBase),
-			typeof(OBJECT),
 			typeof(ExcelData),
 #if USE_SQLITE
 			typeof(SQLiteData),
@@ -2503,7 +2502,7 @@ public class EditorCommonUtility
 		for (int i = 0; i < resetFunctionLines.Count; ++i)
 		{
 			// 文本用分隔符拆分,判断其中是否有变量名,一行最多只允许出现一个成员变量
-			string[] strList = split(resetFunctionLines[i], separates);
+			string[] strList = resetFunctionLines[i].split(separates);
 			for (int j = 0; j < notResetMemberList.Count; ++j)
 			{
 				// 如果检测到已经重置了,则将其从待重置列表中移除
@@ -2695,7 +2694,7 @@ public class EditorCommonUtility
 				continue;
 			}
 
-			string[] elements = split(line, true, ' ', '\t');
+			string[] elements = line.split(true, ' ', '\t');
 			string firstString = elements[0];
 			if (firstString == "public")
 			{
@@ -3090,9 +3089,7 @@ public class EditorCommonUtility
 			code = code.removeStartCount(index);
 			string assetPath = AssetDatabase.GUIDToAssetPath(code.rangeToFirst(','));
 			// Resources下还有内置的资源，所有需要指定文件夹
-			if (!assetPath.Contains(P_GAME_RESOURCES_PATH) &&
-				!assetPath.Contains(P_RESOURCES_ATLAS_PATH) &&
-				!assetPath.Contains(P_RESOURCES_TEXTURE_PATH))
+			if (!assetPath.Contains(P_GAME_RESOURCES_PATH))
 			{
 				Debug.LogError("UI节点图片引用了内置资源，filePath:" + filePath + ", 节点名:" + findGameObjectNameInPrefab(lines, i), loadAsset(filePath));
 			}
@@ -3406,7 +3403,7 @@ public class EditorCommonUtility
 		// 打开代码文件的指定行
 		string filePath = null;
 		int fileLine = 0;
-		foreach (string infoLine in splitLine(stack_trace))
+		foreach (string infoLine in stack_trace.splitLine())
 		{
 			if (infoLine.startWith("File:"))
 			{

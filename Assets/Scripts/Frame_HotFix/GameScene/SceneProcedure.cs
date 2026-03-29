@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
-using System;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 using static FrameUtility;
 using static FrameBaseHotFix;
 
@@ -27,7 +28,7 @@ public class SceneProcedure : DelayCmdWatcher
 	public override void destroy() { base.destroy(); }
 	public void setGameScene(GameScene gameScene) { mGameScene = gameScene; }
 	// 进入的目标流程已经准备完成(资源加载完毕等等)时的回调
-	public virtual void onNextProcedurePrepared(SceneProcedure nextPreocedure) { }
+	public virtual void onNextProcedurePrepared(SceneProcedure nextProcedure) { }
 	// 由GameScene调用
 	// 进入流程
 	public void init(SceneProcedure lastProcedure)
@@ -96,6 +97,7 @@ public class SceneProcedure : DelayCmdWatcher
 		// 退出完毕后就修改标记
 		mPrepareTimer.stop();
 		mPrepareNext = null;
+		Resources.UnloadUnusedAssets();
 	}
 	public void prepareExit(SceneProcedure next, float time)
 	{

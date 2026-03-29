@@ -7,12 +7,14 @@ public struct PacketReceiveInfo
 	public int mPacketSize;		// 消息大小
 	public uint mSequence;		// 序列号
 	public ushort mType;		// 消息ID
-	public PacketReceiveInfo(byte[] data, ulong fieldFlag, int packetSize, uint sequence, ushort type)
+	public bool mHasSign;		// 是否有负数,有负数时就会需要写入符号位
+	public PacketReceiveInfo(byte[] data, ulong fieldFlag, int packetSize, uint sequence, ushort type, bool hasSign)
 	{
 		mPacketData = data;
 		mFieldFlag = fieldFlag;
 		mPacketSize = packetSize;
 		mSequence = sequence;
 		mType = type;
+		mHasSign = hasSign;
 	}
 }

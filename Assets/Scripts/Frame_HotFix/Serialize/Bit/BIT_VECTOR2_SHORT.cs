@@ -10,13 +10,13 @@ public class BIT_VECTOR2_SHORT : SerializableBit
 		mValue.y = 0;
 	}
 	public void set(Vector2Short value) { mValue = value; }
-	public override bool read(SerializerBitRead reader)
+	public override bool read(SerializerBitRead reader, bool needReadSign)
 	{
-		return reader.read(out mValue);
+		return reader.read(out mValue, needReadSign);
 	}
-	public override void write(SerializerBitWrite writer)
+	public override void write(SerializerBitWrite writer, bool needWriteSign)
 	{
-		writer.write(mValue);
+		writer.write(mValue, needWriteSign);
 	}
 	public static implicit operator Vector2Short(BIT_VECTOR2_SHORT value)
 	{

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using static UnityUtility;
 using static StringUtility;
 using static FrameBaseHotFix;
-using static BinaryUtility;
 using static FrameDefine;
 
 // 用于管理变换的关键帧文件,主要是用于给Path类的组件提供参数
@@ -78,12 +77,10 @@ public class PathKeyframeManager : FrameSystem
 	protected void readPathFile(string filePath, Dictionary<float, Vector3> path)
 	{
 		var file = mResourceManager.loadGameResource<TextAsset>(filePath);
-		string fileString = bytesToString(file.bytes);
-		splitLine(fileString, out string[] lines);
-		int lineCount = lines.Length;
-		for (int i = 0; i < lineCount; ++i)
+		file.getResource().bytes.bytesToString().splitLine(out string[] lines);
+		for (int i = 0; i < lines.Length; ++i)
 		{
-			string[] elems = split(lines[i], ':');
+			string[] elems = lines[i].split(':');
 			if (elems.Length != 2)
 			{
 				logError(filePath + "第" + i + "行错误:" + lines[i]);
@@ -96,12 +93,10 @@ public class PathKeyframeManager : FrameSystem
 	protected void readPathFile(string filePath, Dictionary<float, float> path)
 	{
 		var file = mResourceManager.loadGameResource<TextAsset>(filePath);
-		string fileString = bytesToString(file.bytes);
-		splitLine(fileString, out string[] lines);
-		int lineCount = lines.Length;
-		for (int i = 0; i < lineCount; ++i)
+		file.getResource().bytes.bytesToString().splitLine(out string[] lines);
+		for (int i = 0; i < lines.Length; ++i)
 		{
-			string[] elems = split(lines[i], ':');
+			string[] elems = lines[i].split(':');
 			if (elems.Length != 2)
 			{
 				logError(filePath + "第" + i + "行错误:" + lines[i]);

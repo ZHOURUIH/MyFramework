@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using static System.Linq.Enumerable;
+using System.Text;
+using static BinaryUtility;
 
 public class EmptyArray<T>
 {
@@ -191,9 +192,32 @@ public static class ArrayExtension
 		}
 		return list[index];
 	}
+	public static void set<T>(this T[] list, int index, T value)
+	{
+		if (list.isEmpty() || index < 0 || index >= list.Length)
+		{
+			return;
+		}
+		list[index] = value;
+	}
 	public static int count<T>(this T[] list)										{ return list?.Length ?? 0; }
 	public static bool isEmpty<T>(this T[] list)									{ return list == null || list.Length == 0; }
-	public static bool contains<T>(this T[] list, T value)							{ return list != null && list.Contains(value); }
+	public static bool contains<T>(this T[] list, T value)							
+	{
+		if (list.isEmpty())
+		{
+			return false;
+		}
+		int length = list.Length;
+		for (int i = 0; i < length; ++i)
+		{
+			if (list[i].Equals(value))
+			{
+				return true;
+			}
+		}
+		return false; 
+	}
 	public static bool contains<T>(this T[] list, Predicate<T> match)				{ return list != null && list.find(match) != null; }
 	public static T[] safe<T>(this T[] original)									{ return original ?? EmptyArray<T>.getEmptyList(); }
 	public static T first<T>(this T[] list)
@@ -215,5 +239,33 @@ public static class ArrayExtension
 		{
 			(list[i], list[count - 1 - i]) = (list[count - 1 - i], list[i]);
 		}
+	}
+	public static string bytesToString(this byte[] bytes, Encoding encoding = null)
+	{
+		if (bytes.isEmpty())
+		{
+			return string.Empty;
+		}
+		// 默认为UTF8
+		encoding ??= Encoding.UTF8;
+		return removeLastZero(encoding.GetString(bytes));
+	}
+	public static string bytesToString(this byte[] bytes, int count)
+	{
+		return bytes.bytesToString(0, count, null);
+	}
+	public static string bytesToString(this byte[] bytes, int startIndex, int count, Encoding encoding = null)
+	{
+		if (bytes == null || count < 0)
+		{
+			return null;
+		}
+		if (bytes.Length == 0 || count == 0 || startIndex + count > bytes.Length)
+		{
+			return string.Empty;
+		}
+		// 默认为UTF8
+		encoding ??= Encoding.UTF8;
+		return removeLastZero(encoding.GetString(bytes, startIndex, count));
 	}
 }

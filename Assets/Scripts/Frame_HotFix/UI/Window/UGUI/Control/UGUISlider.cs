@@ -32,7 +32,7 @@ public class UGUISlider : WindowObjectUGUI, ISlider
 		mEnableDrag = true;
 		mDirection = DRAG_DIRECTION.HORIZONTAL;
 		mMode = mForeground.getImage().type == Image.Type.Filled ? SLIDER_MODE.FILL : SLIDER_MODE.SIZING;
-		mOriginForegroundSize = mForeground.getWindowSize();
+		mOriginForegroundSize = mForeground.getSize();
 		mOriginForegroundPosition = mForeground.getPosition();
 		if (mEnableDrag)
 		{
@@ -54,12 +54,12 @@ public class UGUISlider : WindowObjectUGUI, ISlider
 	{
 		if (mDirection == DRAG_DIRECTION.VERTICAL)
 		{
-			float maxY = content.getWindowSize().y * 0.5f - viewport.getWindowSize().y * 0.5f;
+			float maxY = content.getSize().y * 0.5f - viewport.getSize().y * 0.5f;
 			setValue(inverseLerp(maxY, -maxY, content.getPosition().y));
 		}
 		else if (mDirection == DRAG_DIRECTION.HORIZONTAL)
 		{
-			float maxX = content.getWindowSize().x * 0.5f - viewport.getWindowSize().x * 0.5f;
+			float maxX = content.getSize().x * 0.5f - viewport.getSize().x * 0.5f;
 			setValue(inverseLerp(-maxX, maxX, content.getPosition().x));
 		}
 	}
@@ -68,7 +68,7 @@ public class UGUISlider : WindowObjectUGUI, ISlider
 	{
 		if (mDirection == DRAG_DIRECTION.VERTICAL)
 		{
-			float maxY = content.getWindowSize().y * 0.5f - viewport.getWindowSize().y * 0.5f;
+			float maxY = content.getSize().y * 0.5f - viewport.getSize().y * 0.5f;
 			if (maxY < 0.0f)
 			{
 				return replaceY(content.getPosition(), -maxY);
@@ -77,7 +77,7 @@ public class UGUISlider : WindowObjectUGUI, ISlider
 		}
 		else if (mDirection == DRAG_DIRECTION.HORIZONTAL)
 		{
-			float maxX = content.getWindowSize().x * 0.5f - viewport.getWindowSize().x * 0.5f;
+			float maxX = content.getSize().x * 0.5f - viewport.getSize().x * 0.5f;
 			if (maxX < 0)
 			{
 				return replaceY(content.getPosition(), maxX);
@@ -113,13 +113,13 @@ public class UGUISlider : WindowObjectUGUI, ISlider
 			{
 				float newWidth = mSliderValue * mOriginForegroundSize.x;
 				mForeground.setPositionX(mOriginForegroundPosition.x - mOriginForegroundSize.x * 0.5f + newWidth * 0.5f);
-				mForeground.setWindowSize(new(newWidth, mOriginForegroundSize.y));
+				mForeground.setSize(new(newWidth, mOriginForegroundSize.y));
 			}
 			else if (mDirection == DRAG_DIRECTION.VERTICAL)
 			{
 				float newHeight = mSliderValue * mOriginForegroundSize.y;
 				mForeground.setPositionY(mOriginForegroundPosition.y - mOriginForegroundSize.y * 0.5f + newHeight * 0.5f);
-				mForeground.setWindowSize(new(mOriginForegroundSize.x, newHeight));
+				mForeground.setSize(new(mOriginForegroundSize.x, newHeight));
 			}
 		}
 		mThumb.setPosition(sliderValueToThumbPos(mSliderValue));
@@ -135,7 +135,7 @@ public class UGUISlider : WindowObjectUGUI, ISlider
 			}
 			else if (mMode == SLIDER_MODE.SIZING)
 			{
-				pos = new(mForeground.getWindowRightInSelf(), 0.0f);
+				pos = new(mForeground.getRightInSelf(), 0.0f);
 			}
 		}
 		else if (mDirection == DRAG_DIRECTION.VERTICAL)
@@ -146,7 +146,7 @@ public class UGUISlider : WindowObjectUGUI, ISlider
 			}
 			else if (mMode == SLIDER_MODE.SIZING)
 			{
-				pos = new(0.0f, mForeground.getWindowTopInSelf());
+				pos = new(0.0f, mForeground.getTopInSelf());
 			}
 		}
 		return pos;

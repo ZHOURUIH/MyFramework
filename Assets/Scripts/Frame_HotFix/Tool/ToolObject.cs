@@ -186,6 +186,35 @@ public static class OT
 		mTweenerManager?.destroyTweener(tweener);
 		tweener = null;
 	}
+	public static MyTweenerFloat TWEEN_FLOAT(int keyframe, float onceLength, FloatCallback doingCallback)
+	{
+		return TWEEN_FLOAT_EX(keyframe, 0.0f, 1.0f, onceLength, false, 0.0f, (com, isBreak) =>
+		{
+			doingCallback?.Invoke((com as COMMyTweenerFloat).getFloatValue());
+		}, null);
+	}
+	public static MyTweenerFloat TWEEN_FLOAT(float onceLength, FloatCallback doingCallback)
+	{
+		return TWEEN_FLOAT_EX(KEY_CURVE.ZERO_ONE, 0.0f, 1.0f, onceLength, false, 0.0f, (com, isBreak)=>
+		{
+			doingCallback?.Invoke((com as COMMyTweenerFloat).getFloatValue());
+		}, null);
+	}
+	public static MyTweenerFloat TWEEN_FLOAT(float start, float target, float onceLength, FloatCallback doingCallback)
+	{
+		return TWEEN_FLOAT_EX(KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, (com, isBreak) =>
+		{
+			doingCallback?.Invoke((com as COMMyTweenerFloat).getFloatValue());
+		}, null);
+	}
+	public static MyTweenerFloat TWEEN_FLOAT(float onceLength, KeyFrameCallback doingCallback)
+	{
+		return TWEEN_FLOAT_EX(KEY_CURVE.ZERO_ONE, 0.0f, 1.0f, onceLength, false, 0.0f, doingCallback, null);
+	}
+	public static MyTweenerFloat TWEEN_FLOAT(float start, float target, float onceLength, KeyFrameCallback doingCallback)
+	{
+		return TWEEN_FLOAT_EX(KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, null);
+	}
 	public static MyTweenerFloat TWEEN_FLOAT(float start, float target, float onceLength, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
 		return TWEEN_FLOAT_EX(KEY_CURVE.ZERO_ONE, start, target, onceLength, false, 0.0f, doingCallback, doneCallback);

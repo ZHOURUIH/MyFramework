@@ -10,14 +10,14 @@ using static FrameDefine;
 public class NetConnectUDPBit : NetConnectUDP
 {
 	protected SerializerBitWrite mBitWriter = new();	// 用于序列化
-	protected long mToken;								// 用于服务器识别客户端的唯一凭证,一般是当前角色的ID
+	protected ulong mToken;								// 用于服务器识别客户端的唯一凭证,一般是当前角色的ID
 	public override void resetProperty()
 	{
 		base.resetProperty();
 		mBitWriter.clear();
 		mToken = 0;
 	}
-	public void setToken(long token) { mToken = token; }
+	public void setToken(long token) { mToken = (ulong)token; }
 	public override void sendNetPacket(NetPacket packet)
 	{
 		if (!isMainThread())
@@ -39,7 +39,7 @@ public class NetConnectUDPBit : NetConnectUDP
 		}
 
 		mBitWriter.clear();
-		netPacket.write(mBitWriter, out ulong fieldFlag);
+		netPacket.write(mBitWriter, netPacket.hasSign(), out ulong fieldFlag);
 		int realPacketSize = mBitWriter.getByteCount();
 		byte[] packetBodyData = mBitWriter.getBuffer();
 		// 序列化完以后立即销毁消息包
@@ -58,10 +58,11 @@ public class NetConnectUDPBit : NetConnectUDP
 		}
 
 		using var a = new ClassScope<SerializerBitWrite>(out var writer);
-		writer.write(realPacketSize);
+		writer.write((uint)realPacketSize);
 		writer.write(generateCRC16(realPacketSize));
 		writer.write(netPacket.getPacketType());
 		writer.write(mToken);
+		writer.write(netPacket.hasSign());
 		// 写入一位用于获取是否需要使用标记位
 		writer.write(fieldFlag != FULL_FIELD_FLAG);
 		if (fieldFlag != FULL_FIELD_FLAG)
@@ -77,12 +78,13 @@ public class NetConnectUDPBit : NetConnectUDP
 		mOutputBuffer.add(new(packetData, curByteCount, true, 0));
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected override PARSE_RESULT preParsePacket(byte[] buffer, int size, ref int bitIndex, out byte[] outPacket, out ushort packetType, out int packetSize, out ulong fieldFlag)
+	protected override PARSE_RESULT preParsePacket(byte[] buffer, int size, ref int bitIndex, out byte[] outPacket, out ushort packetType, out int packetSize, out ulong fieldFlag, out bool hasSign)
 	{
 		outPacket = null;
 		packetType = 0;
 		packetSize = 0;
 		fieldFlag = FULL_FIELD_FLAG;
+		hasSign = false;
 		// 可能还没有接收完全,等待下次接收
 		if (size == 0)
 		{
@@ -90,10 +92,11 @@ public class NetConnectUDPBit : NetConnectUDP
 		}
 		using var a = new ClassThreadScope<SerializerBitRead>(out var reader);
 		reader.init(buffer, size, bitIndex);
-		if (!reader.read(out packetSize))
+		if (!reader.read(out uint tempPacketSize))
 		{
 			return PARSE_RESULT.NOT_ENOUGH;
 		}
+		packetSize = (int)tempPacketSize;
 		if (!reader.read(out ushort packetSizeCRC))
 		{
 			return PARSE_RESULT.NOT_ENOUGH;
@@ -103,6 +106,10 @@ public class NetConnectUDPBit : NetConnectUDP
 			return PARSE_RESULT.ERROR;
 		}
 		if (!reader.read(out packetType))
+		{
+			return PARSE_RESULT.NOT_ENOUGH;
+		}
+		if (!reader.read(out hasSign))
 		{
 			return PARSE_RESULT.NOT_ENOUGH;
 		}
@@ -141,7 +148,7 @@ public class NetConnectUDPBit : NetConnectUDP
 		return PARSE_RESULT.SUCCESS;
 	}
 	// 解析包体数据
-	protected override NetPacket parsePacket(ushort packetType, byte[] buffer, int size, ulong fieldFlag)
+	protected override NetPacket parsePacket(ushort packetType, byte[] buffer, int size, ulong fieldFlag, bool hasSign)
 	{
 		// 创建对应的消息包,并设置数据,然后放入列表中等待解析
 		var packetReply = mNetPacketFactory.createSocketPacket(packetType) as NetPacketBit;
@@ -159,7 +166,7 @@ public class NetConnectUDPBit : NetConnectUDP
 		mDecryptPacket?.Invoke(buffer, 0, size, 0);
 		using var a = new ClassScope<SerializerBitRead>(out var reader);
 		reader.init(buffer, size);
-		if (!packetReply.read(reader, fieldFlag))
+		if (!packetReply.read(reader, hasSign, fieldFlag))
 		{
 			logError("解析失败:" + packetReply.getPacketType());
 		}

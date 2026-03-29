@@ -10,11 +10,11 @@ public class BIT_VECTOR2_USHORT : SerializableBit
 		mValue.y = 0;
 	}
 	public void set(Vector2UShort value) { mValue = value; }
-	public override bool read(SerializerBitRead reader)
+	public override bool read(SerializerBitRead reader, bool needReadSign)
 	{
 		return reader.read(out mValue);
 	}
-	public override void write(SerializerBitWrite writer)
+	public override void write(SerializerBitWrite writer, bool needWriteSign)
 	{
 		writer.write(mValue);
 	}

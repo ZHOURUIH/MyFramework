@@ -1,7 +1,6 @@
 ﻿using System.Threading;
 using static UnityUtility;
 using static FrameUtility;
-using static FrameBaseUtility;
 
 public class ThreadLock
 {
@@ -13,10 +12,6 @@ public class ThreadLock
 	protected bool mEnable = true;		// 是否启用线程锁
 	public ThreadLock()
 	{
-		if (isEditor())
-		{
-			mTraceStack = true;
-		}
 		ThreadLockManager.registerLock(this);
 	}
 	public void destroy()

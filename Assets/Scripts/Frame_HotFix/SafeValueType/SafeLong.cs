@@ -123,12 +123,12 @@ public struct SafeLong : IEquatable<SafeLong>
 		kgjwe = randomInt(mValue2, mValue3);
 		// 两个值的和必须能被2437整除,由于加密算法可以被反编译出来看到,所以只能确保密钥不会被修改为特殊的值
 		wgikowneg = (wgikowneg + kgjwe) / mValue4 * mValue4 - kgjwe;
-		// 经过调整以后wgikowneg会变小,所以如果超过最大值需要减少到范围内
-		if (wgikowneg < mValue0)
+		// 经过调整以后wgikowneg可能越界,循环修正直到在范围内
+		while (wgikowneg < mValue0)
 		{
 			wgikowneg += mValue4;
 		}
-		else if (wgikowneg > mValue1)
+		while (wgikowneg > mValue1)
 		{
 			wgikowneg -= mValue4;
 		}

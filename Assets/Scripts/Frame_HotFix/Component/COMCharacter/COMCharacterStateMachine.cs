@@ -88,37 +88,63 @@ public class COMCharacterStateMachine : GameComponent
 			state.fixedUpdate(elapsedTime);
 		}
 	}
-	public T addStateIfNotExist<T>(StateParam param = null, float stateTime = -1.0f, long id = 0) where T : CharacterState
+	public T addStateIfNotExist<T>() where T : CharacterState
 	{
 		Type type = typeof(T);
 		if (hasState(type))
 		{
 			return null;
 		}
-		return addState(type, param, stateTime, id) as T;
+		return addState(type, null, 0) as T;
 	}
-	public CharacterState addStateIfNotExist(Type type, StateParam param = null, float stateTime = -1.0f, long id = 0)
+	public T addStateIfNotExist<T>(StateParam param) where T : CharacterState
+	{
+		Type type = typeof(T);
+		if (hasState(type))
+		{
+			return null;
+		}
+		return addState(type, param, 0) as T;
+	}
+	public CharacterState addStateIfNotExist(Type type, StateParam param, long id)
 	{
 		if (hasState(type))
 		{
 			return null;
 		}
-		return addState(type, param, stateTime, id);
+		return addState(type, param, id);
 	}
-	public T addState<T>(StateParam param = null, float stateTime = -1.0f, long id = 0) where T : CharacterState
+	public T addState<T>() where T : CharacterState
 	{
-		return addState(typeof(T), param, stateTime, id) as T;
+		return addState(typeof(T), null, 0) as T;
 	}
-	public CharacterState addState(Type type, StateParam param = null, float stateTime = -1.0f, long id = 0)
+	public CharacterState addState(Type type)
+	{
+		return addState(type, null, 0);
+	}
+	public T addState<T>(StateParam param) where T : CharacterState
+	{
+		return addState(typeof(T), param, 0) as T;
+	}
+	public T addState<T>(StateParam param, long id) where T : CharacterState
+	{
+		return addState(typeof(T), param, id) as T;
+	}
+	public CharacterState addState(Type type, StateParam param, long id)
 	{
 		if (id > 0 && mStateMap.ContainsKey(id))
 		{
-			logWarning("不能重复添加状态,type:" + type + ", stateTime:" + stateTime + ", id:" + id + ", character:" + mComponentOwner.getName());
+			logWarning("不能重复添加状态,type:" + type + ", id:" + id + ", character:" + mComponentOwner.getName());
 			return null;
 		}
 		CharacterState state = createState(type, param, id);
 		state.setCharacter(mCharacter);
 
+		float stateTime = -1.0f;
+		if (param != null)
+		{
+			stateTime = param.mBuffTime;
+		}
 		if (stateTime >= 0.0f)
 		{
 			state.setStateMaxTime(stateTime);

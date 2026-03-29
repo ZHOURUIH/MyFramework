@@ -1,8 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 // 自定义的对long[]的封装,可用于序列化
-public class LONGS : Serializable, IEnumerable<long>
+public class LONGS : Serializable
 {
 	public List<long> mValue = new();    // 值
 	public long this[int index]
@@ -36,6 +35,5 @@ public class LONGS : Serializable, IEnumerable<long>
 	{
 		return value.mValue;
 	}
-	public IEnumerator<long> GetEnumerator() { return mValue.GetEnumerator(); }
-	IEnumerator IEnumerable.GetEnumerator() { return mValue.GetEnumerator(); }
+	public List<long>.Enumerator GetEnumerator() { return mValue.GetEnumerator(); }
 }

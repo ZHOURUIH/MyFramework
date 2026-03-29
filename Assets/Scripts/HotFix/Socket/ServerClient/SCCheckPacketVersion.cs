@@ -9,16 +9,16 @@ public class SCCheckPacketVersion : NetPacketBit
 	{
 		addParam(mResult, false);
 	}
-	public override bool read(SerializerBitRead reader, ulong fieldFlag)
+	public override bool read(SerializerBitRead reader, bool needReadSign, ulong fieldFlag)
 	{
 		bool success = true;
-		success = success && mResult.read(reader);
+		success = success && mResult.read(reader, needReadSign);
 		return success;
 	}
-	public override void write(SerializerBitWrite writer, out ulong fieldFlag)
+	public override void write(SerializerBitWrite writer, bool needWriteSign, out ulong fieldFlag)
 	{
-		base.write(writer, out fieldFlag);
-		mResult.write(writer);
+		base.write(writer, needWriteSign, out fieldFlag);
+		mResult.write(writer, needWriteSign);
 	}
 	// auto generate end
 	public override void execute()

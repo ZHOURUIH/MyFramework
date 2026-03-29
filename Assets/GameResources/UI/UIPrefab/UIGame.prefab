@@ -1,5 +1,65 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &708550273966014187
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4656570445143222110}
+  - component: {fileID: 6132600509723654981}
+  - component: {fileID: 5251290969742371269}
+  m_Layer: 5
+  m_Name: Tile
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &4656570445143222110
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 708550273966014187}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6661235614817238412}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 300, y: 50}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &6132600509723654981
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 708550273966014187}
+  m_CullTransparentMesh: 1
+--- !u!114 &5251290969742371269
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 708550273966014187}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82fbe63498ac288478b73e50b0ef2724, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Frame_HotFix::TileImageRenderer
+  mMaterial: {fileID: 0}
+  mVertCount: 0
+  mTileCount: 0
 --- !u!1 &3189306440809833982
 GameObject:
   m_ObjectHideFlags: 0
@@ -75,6 +135,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Frame_HotFix::DamageNumberCanvasRenderer
   mImage: {fileID: 21300024, guid: c57552e4a7b31ea47858470d3d4e2a2a, type: 3}
   mMaterial: {fileID: 0}
+  mCanvasRenderer: {fileID: 0}
+  mVertCount: 0
+  mDamageNumberCount: 0
 --- !u!1 &3579753064797783254
 GameObject:
   m_ObjectHideFlags: 0
@@ -290,7 +353,20 @@ MonoBehaviour:
     mHideError: 0
     mUseCustomName: 0
   - mObject: {fileID: 3189306440809833982}
-    mType: myUGUIObject
+    mType: myUGUIDamageNumber
+    mArrayType: 0
+    mArrayLength: 0
+    mWindowType: 0
+    mViewportObject: {fileID: 0}
+    mPoolTemplate: {fileID: 0}
+    mTemplateWindowType: 
+    mParam0: 
+    mParam1: 
+    mCustomName: 
+    mHideError: 0
+    mUseCustomName: 0
+  - mObject: {fileID: 708550273966014187}
+    mType: myUGUITileImage
     mArrayType: 0
     mArrayLength: 0
     mWindowType: 0
@@ -557,6 +633,7 @@ RectTransform:
   - {fileID: 2707044517278463401}
   - {fileID: 3707387673141905923}
   - {fileID: 3355894537349763121}
+  - {fileID: 4656570445143222110}
   m_Father: {fileID: 4239029306956595298}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}

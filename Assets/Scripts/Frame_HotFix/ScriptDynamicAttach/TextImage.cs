@@ -45,7 +45,7 @@ public class TextImage : Text
 			image.setSpriteName(match.Groups[2].Value);
 			float scale = float.Parse(match.Groups[1].Value);
 			Vector2 spriteSize = image.getSpriteSize();
-			image.setWindowSize(new(fontSize * scale, fontSize * scale * divide(spriteSize.y, spriteSize.x)));
+			image.setSize(new(fontSize * scale, fontSize * scale * divide(spriteSize.y, spriteSize.x)));
 			mImageList.Add(image);
 		}
 	}

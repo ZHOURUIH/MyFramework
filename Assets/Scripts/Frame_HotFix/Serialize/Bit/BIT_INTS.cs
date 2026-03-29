@@ -15,13 +15,13 @@ public class BIT_INTS : SerializableBit
 		base.resetProperty();
 		mValue.Clear(); 
 	}
-	public override bool read(SerializerBitRead reader)
+	public override bool read(SerializerBitRead reader, bool needReadSign)
 	{
-		return reader.readList(mValue);
+		return reader.readList(mValue, needReadSign);
 	}
-	public override void write(SerializerBitWrite writer)
+	public override void write(SerializerBitWrite writer, bool needWriteSign)
 	{
-		writer.writeList(mValue);
+		writer.writeList(mValue, needWriteSign);
 	}
 	public void add(int value)
 	{

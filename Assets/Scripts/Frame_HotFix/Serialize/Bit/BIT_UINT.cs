@@ -9,11 +9,11 @@ public class BIT_UINT : SerializableBit
 		mValue = 0; 
 	}
 	public void set(uint value) { mValue = value; }
-	public override bool read(SerializerBitRead reader)
+	public override bool read(SerializerBitRead reader, bool needReadSign)
 	{
 		return reader.read(out mValue);
 	}
-	public override void write(SerializerBitWrite writer)
+	public override void write(SerializerBitWrite writer, bool needWriteSign)
 	{
 		writer.write(mValue);
 	}

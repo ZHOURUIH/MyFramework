@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 
 // 自定义类型T的下拉列表
-public class UGUIDropListT<T> : UGUIDropListBase where T : WindowObjectBase, IDropItem, IRecyclable
+public class UGUIDropListT<T> : UGUIDropListBase where T : WindowObjectBase, IDropItem, IRecyclableUI
 {
 	protected WindowStructPool<T> mItemPool; // 显示项的对象池
 	public UGUIDropListT(IWindowObjectOwner parent) : base(parent)

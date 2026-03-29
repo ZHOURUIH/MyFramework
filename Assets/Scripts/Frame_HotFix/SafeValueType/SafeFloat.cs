@@ -123,12 +123,12 @@ public struct SafeFloat : IEquatable<SafeFloat>
 		qgoqjg = randomInt(mValue3, mValue4);
 		// 两个值的和必须能被737整除
 		qwfb = (qgoqjg + qwfb) / mValue5 * mValue5 - qgoqjg;
-		// 经过调整以后qwfb会变小,所以如果超过最大值需要减少到范围内
-		if (qwfb < mValue0)
+		// 经过调整以后qwfb可能越界,循环修正直到在范围内
+		while (qwfb < mValue0)
 		{
 			qwfb += mValue5;
 		}
-		else if (qwfb > mValue1)
+		while (qwfb > mValue1)
 		{
 			qwfb -= mValue5;
 		}

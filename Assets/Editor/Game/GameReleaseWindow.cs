@@ -102,7 +102,7 @@ public class GameReleaseWindow : GameEditorWindow
 			}
 			label("当前宏定义:");
 			string def = PlayerSettings.GetScriptingDefineSymbols(getNameBuildTarget());
-			foreach (string line in split(def, ";"))
+			foreach (string line in def.split(";"))
 			{
 				label(line);
 			}

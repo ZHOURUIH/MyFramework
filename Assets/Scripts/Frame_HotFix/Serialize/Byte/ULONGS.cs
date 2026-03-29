@@ -1,8 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 // 自定义的对ulong[]的封装,可用于序列化
-public class ULONGS : Serializable, IEnumerable<ulong>
+public class ULONGS : Serializable
 {
 	public List<ulong> mValue = new();  // 值
 	public ulong this[int index]
@@ -36,6 +35,5 @@ public class ULONGS : Serializable, IEnumerable<ulong>
 	{
 		return value.mValue;
 	}
-	public IEnumerator<ulong> GetEnumerator() { return mValue.GetEnumerator(); }
-	IEnumerator IEnumerable.GetEnumerator() { return mValue.GetEnumerator(); }
+	public List<ulong>.Enumerator GetEnumerator() { return mValue.GetEnumerator(); }
 }

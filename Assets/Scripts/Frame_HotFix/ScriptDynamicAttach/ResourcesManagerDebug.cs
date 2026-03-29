@@ -15,7 +15,7 @@ public class ResourcesManagerDebug : MonoBehaviour
 		}
 		mLoadedAssetBundleListKeys.Clear();
 		mLoadedAssetBundleListValues.Clear();
-		foreach(var item in mResourceManager.getAssetBundleLoader().getAssetBundleInfoList())
+		foreach(var item in mResourceManager.getAssetBundleInfoList())
 		{
 			if (item.Value.getLoadState() != LOAD_STATE.LOADED)
 			{

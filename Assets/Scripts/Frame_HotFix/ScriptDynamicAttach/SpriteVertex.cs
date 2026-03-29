@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public struct DamageNumberVertex
+public struct SpriteVertex
 {
 	public float mPositionX;
 	public float mPositionY;

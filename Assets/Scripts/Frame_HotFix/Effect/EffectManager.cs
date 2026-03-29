@@ -165,38 +165,38 @@ public class EffectManager : FrameSystem
 	}
 	// 如果特效加载完成之前relatedObject被销毁了,则不会播放特效,并且会将特效挂在attachedParent节点下,并且会在attachedParent销毁时确认销毁所有挂接到此物体上的特效
 	// 异步从prefab中加载一个特效
-	public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, ClassObject relatedObject, bool moveToHide, GameEffectCallback callback, int tag, bool active)
+	public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, IRecyclable relatedObject, bool moveToHide, GameEffectCallback callback, int tag, bool active)
 	{
 		return createEffectAsyncSafe(nameWithPath, relatedObject, null, null, moveToHide, callback, Vector3.zero, tag, active, -1.0f, null);
 	}
 	// 如果特效加载完成之前relatedObject被销毁了,则不会播放特效,并且会将特效挂在attachedParent节点下,并且会在attachedParent销毁时确认销毁所有挂接到此物体上的特效
 	// 异步从prefab中加载一个特效
-	public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, ClassObject relatedObject, bool moveToHide, GameEffectCallback callback, Vector3 pos, int tag, bool active)
+	public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, IRecyclable relatedObject, bool moveToHide, GameEffectCallback callback, Vector3 pos, int tag, bool active)
 	{
 		return createEffectAsyncSafe(nameWithPath, relatedObject, null, null, moveToHide, callback, pos, tag, active, -1.0f, null);
 	}
 	// 如果特效加载完成之前relatedObject被销毁了,则不会播放特效,并且会将特效挂在attachedParent节点下,并且会在attachedParent销毁时确认销毁所有挂接到此物体上的特效
 	// 异步从prefab中加载一个特效
-	public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, ClassObject relatedObject, bool moveToHide, int tag, GameEffectCallback callback)
+	public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, IRecyclable relatedObject, bool moveToHide, int tag, GameEffectCallback callback)
 	{
 		return createEffectAsyncSafe(nameWithPath, relatedObject, null, null, moveToHide, callback, Vector3.zero, tag, true, -1.0f, null);
 	}
 	// 如果特效加载完成之前relatedObject被销毁了,则不会播放特效,并且会将特效挂在attachedParent节点下,并且会在attachedParent销毁时确认销毁所有挂接到此物体上的特效
 	// 异步从prefab中加载一个特效
-	public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, ClassObject relatedObject, Transformable attachedParent, bool moveToHide, GameEffectCallback callback, int tag, bool active = true)
+	public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, IRecyclable relatedObject, Transformable attachedParent, bool moveToHide, GameEffectCallback callback, int tag, bool active = true)
 	{
 		return createEffectAsyncSafe(nameWithPath, relatedObject, attachedParent, attachedParent?.getObject(), moveToHide, callback, Vector3.zero, tag, active, -1.0f, null);
 	}
 	// 如果特效加载完成之前relatedObject被销毁了,则不会播放特效,并且会将特效挂在attachedParent节点下,并且会在attachedParent销毁时确认销毁所有挂接到此物体上的特效
 	// 异步从prefab中加载一个特效
-	public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, ClassObject relatedObject, Transformable attachedParent, bool moveToHide, GameEffectCallback callback, Vector3 pos, int tag, bool active = true, float lifeTime = -1.0f, BoolCallback failCallback = null)
+	public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, IRecyclable relatedObject, Transformable attachedParent, bool moveToHide, GameEffectCallback callback, Vector3 pos, int tag, bool active = true, float lifeTime = -1.0f, BoolCallback failCallback = null)
 	{
 		return createEffectAsyncSafe(nameWithPath, relatedObject, attachedParent, attachedParent?.getObject(), moveToHide, callback, pos, tag, active, lifeTime, failCallback);
 	}
 	// 如果特效加载完成之前relatedObject被销毁了,则不会播放特效,并且会将特效挂在parent节点下,并且会在attachedParent销毁时确认销毁所有挂接到此物体上的特效
 	// 异步从prefab中加载一个特效
 	// 当前管理器中所有的异步加载最终都是调的这个函数
-	public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, ClassObject relatedObject, Transformable attachedParent, GameObject parent, bool moveToHide, GameEffectCallback callback, Vector3 pos, int tag, bool active = true, float lifeTime = -1.0f, BoolCallback failCallback = null, bool isTemp = false)
+	public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, IRecyclable relatedObject, Transformable attachedParent, GameObject parent, bool moveToHide, GameEffectCallback callback, Vector3 pos, int tag, bool active = true, float lifeTime = -1.0f, BoolCallback failCallback = null, bool isTemp = false)
 	{
 		var op = mPrefabPoolManager.createObjectAsyncSafe(relatedObject, nameWithPath, tag, moveToHide, active, (GameObject go) =>
 		{
@@ -210,21 +210,21 @@ public class EffectManager : FrameSystem
 	// 带Temp后缀的函数是会从当前类中缓存的特效对象来获取,而不是从通用对象池中获取一个已经被重置过的对象
 	// 如果特效加载完成之前relatedObject被销毁了,则不会播放特效,并且会将特效挂在attachedParent节点下,并且会在attachedParent销毁时确认销毁所有挂接到此物体上的特效
 	// 异步从prefab中加载一个特效
-	public CustomAsyncOperation createEffectAsyncSafeTemp(string nameWithPath, ClassObject relatedObject, Transformable attachedParent, bool moveToHide, GameEffectCallback callback, Vector3 pos, int tag, bool active = true, float lifeTime = -1.0f, BoolCallback failCallback = null)
+	public CustomAsyncOperation createEffectAsyncSafeTemp(string nameWithPath, IRecyclable relatedObject, Transformable attachedParent, bool moveToHide, GameEffectCallback callback, Vector3 pos, int tag, bool active = true, float lifeTime = -1.0f, BoolCallback failCallback = null)
 	{
 		return createEffectAsyncSafeTemp(nameWithPath, relatedObject, attachedParent, attachedParent?.getObject(), moveToHide, callback, pos, tag, active, lifeTime, failCallback);
 	}
 	// 带Temp后缀的函数是会从当前类中缓存的特效对象来获取,而不是从通用对象池中获取一个已经被重置过的对象
 	// 如果特效加载完成之前relatedObject被销毁了,则不会播放特效,并且会将特效挂在attachedParent节点下,并且会在attachedParent销毁时确认销毁所有挂接到此物体上的特效
 	// 异步从prefab中加载一个特效
-	public CustomAsyncOperation createEffectAsyncSafeTemp(string nameWithPath, ClassObject relatedObject, bool moveToHide, int tag, GameEffectCallback callback)
+	public CustomAsyncOperation createEffectAsyncSafeTemp(string nameWithPath, IRecyclable relatedObject, bool moveToHide, int tag, GameEffectCallback callback)
 	{
 		return createEffectAsyncSafeTemp(nameWithPath, relatedObject, null, null, moveToHide, callback, Vector3.zero, tag, true, -1.0f, null);
 	}
 	// 带Temp后缀的函数是会从当前类中缓存的特效对象来获取,而不是从通用对象池中获取一个已经被重置过的对象
 	// 如果特效加载完成之前relatedObject被销毁了,则不会播放特效,并且会将特效挂在parent节点下,并且会在attachedParent销毁时确认销毁所有挂接到此物体上的特效
 	// 异步从prefab中加载一个特效
-	public CustomAsyncOperation createEffectAsyncSafeTemp(string nameWithPath, ClassObject relatedObject, Transformable attachedParent, GameObject parent, bool moveToHide, GameEffectCallback callback, Vector3 pos, int tag, bool active = true, float lifeTime = -1.0f, BoolCallback failCallback = null)
+	public CustomAsyncOperation createEffectAsyncSafeTemp(string nameWithPath, IRecyclable relatedObject, Transformable attachedParent, GameObject parent, bool moveToHide, GameEffectCallback callback, Vector3 pos, int tag, bool active = true, float lifeTime = -1.0f, BoolCallback failCallback = null)
 	{
 		// 先从未使用列表中获取一个特效
 		GameEffect effect = getEffectFromUnused(parent, nameWithPath, pos, moveToHide, active, lifeTime);

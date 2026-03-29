@@ -96,7 +96,7 @@ public abstract class NetConnectWebSocketWebGL : NetConnect
 			while (true)
 			{
 				PARSE_RESULT result0 = preParsePacket(mInputBuffer.getData(), mInputBuffer.getDataLength(), out int index, out byte[] packetData,
-										out ushort packetType, out int packetSize, out uint sequence, out ulong fieldFlag);
+										out ushort packetType, out int packetSize, out uint sequence, out ulong fieldFlag, out bool hasSign);
 				if (result0 != PARSE_RESULT.SUCCESS)
 				{
 					if (result0 == PARSE_RESULT.ERROR)
@@ -105,7 +105,7 @@ public abstract class NetConnectWebSocketWebGL : NetConnect
 					}
 					break;
 				}
-				mReceiveBuffer.Enqueue(new(packetData, fieldFlag, packetSize, sequence, packetType));
+				mReceiveBuffer.Enqueue(new(packetData, fieldFlag, packetSize, sequence, packetType, hasSign));
 
 				if (!mInputBuffer.removeData(0, index))
 				{
@@ -228,7 +228,7 @@ public abstract class NetConnectWebSocketWebGL : NetConnect
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected abstract NetPacket parsePacket(ushort packetType, byte[] buffer, int size, uint sequence, ulong fieldFlag);
 	protected abstract PARSE_RESULT preParsePacket(byte[] buffer, int size, out int index, out byte[] outPacketData,
-													out ushort packetType, out int packetSize, out uint sequence, out ulong fieldFlag);
+													out ushort packetType, out int packetSize, out uint sequence, out ulong fieldFlag, out bool hasSign);
 	protected async void doSend(PacketSendInfo info)
 	{
 		try

@@ -158,15 +158,7 @@ public class LayoutManager : FrameSystem
 			logError("没有找到界面的注册信息:" + info.mType);
 		}
 		info.mName = getFileNameNoSuffixNoDir(path);
-		string pathUnderResource = R_UI_PREFAB_PATH + path + ".prefab";
-		if (mLayoutRegisteList.get(info.mType).mInResource)
-		{
-			return newLayout(info, mResourceManager.loadInResource<GameObject>(pathUnderResource));
-		}
-		else
-		{
-			return newLayout(info, mResourceManager.loadGameResource<GameObject>(pathUnderResource));
-		}
+		return newLayout(info, mResourceManager.loadGameResource<GameObject>(path));
 	}
 	public void createLayoutAsync(LayoutInfo info, GameLayoutCallback callback)
 	{
@@ -180,26 +172,14 @@ public class LayoutManager : FrameSystem
 		{
 			logError("没有找到界面的注册信息:" + info.mType);
 		}
-		string pathUnderResource = R_UI_PREFAB_PATH + path + ".prefab";
 		info.addCallback(callback);
 		info.mName = getFileNameNoSuffixNoDir(path);
 		mLoadingLayoutList.Add(info.mName);
-		if (mLayoutRegisteList.get(info.mType).mInResource)
+		mResourceManager.loadGameResourceAsync<GameObject>(path, (asset) => 
 		{
-			mResourceManager.loadInResourceAsync(pathUnderResource, (GameObject asset)=> 
-			{
-				mLoadingLayoutList.Remove(info.mName);
-				info.callAll(newLayout(info, asset)); 
-			});
-		}
-		else
-		{
-			mResourceManager.loadGameResourceAsync(pathUnderResource, (GameObject asset) => 
-			{
-				mLoadingLayoutList.Remove(info.mName);
-				info.callAll(newLayout(info, asset)); 
-			});
-		}
+			mLoadingLayoutList.Remove(info.mName);
+			info.callAll(newLayout(info, asset)); 
+		});
 	}
 	public void destroyLayout(Type type)
 	{
@@ -229,23 +209,6 @@ public class LayoutManager : FrameSystem
 	{
 		colliders.Clear();
 		mLayoutList.getMainList().forValue(layout => layout.getAllCollider(colliders, true));
-	}
-	public void registeLayout(Type classType, string name, bool inResource, LAYOUT_LIFE_CYCLE lifeCycle, LayoutScriptCallback callback)
-	{
-		// 编辑器下检查文件是否存在
-		if (isEditor() && !isFileExist(inResource ? (P_RESOURCES_UI_PREFAB_PATH + name + ".prefab") : (P_UI_PREFAB_PATH + name + ".prefab")))
-		{
-			logError("界面文件不存在:" + (inResource ? (P_RESOURCES_UI_PREFAB_PATH + name + ".prefab") : (P_UI_PREFAB_PATH + name + ".prefab")));
-			return;
-		}
-		LayoutRegisteInfo info = new();
-		info.mScriptType = classType;
-		info.mInResource = inResource;
-		info.mLifeCycle = lifeCycle;
-		info.mCallback = callback;
-		mLayoutTypeToPath.Add(classType, name);
-		mLayoutPathToType.Add(name, classType);
-		mLayoutRegisteList.Add(classType, info);
 	}
 	// 获取已注册的布局数量,而不是已加载的布局数量
 	public int getLayoutCount() { return mLayoutTypeToPath.Count; }
@@ -291,30 +254,39 @@ public class LayoutManager : FrameSystem
 	{
 		mLayoutRegisteList.get(layout.getType()).mCallback?.Invoke(layout.getScript());
 	}
+	// path是GameResources下的相对路径,带后缀
+	public void registeLayout(Type classType, string path, LAYOUT_LIFE_CYCLE lifeCycle, LayoutScriptCallback callback)
+	{
+		// 编辑器下检查文件是否存在
+		if (isEditor() && !isFileExist(P_GAME_RESOURCES_PATH + path))
+		{
+			logError("界面文件不存在:" + path);
+			return;
+		}
+		LayoutRegisteInfo info = new();
+		info.mScriptType = classType;
+		info.mLifeCycle = lifeCycle;
+		info.mCallback = callback;
+		mLayoutTypeToPath.Add(classType, path);
+		mLayoutPathToType.Add(path, classType);
+		mLayoutRegisteList.Add(classType, info);
+	}
 	// 方便调用的布局注册函数
-	public static void registeLayoutResPart<T>(Action<T> callback = null) where T : LayoutScript
+	public static void registeLayout<T>(LAYOUT_LIFE_CYCLE lifeCycle, LayoutScriptCallback callback = null) where T : LayoutScript
 	{
-		registeLayout<T>(true, LAYOUT_LIFE_CYCLE.PART_USE, (script) => { callback?.Invoke(script as T); });
-	}
-	public static void registeLayoutResAlways<T>(Action<T> callback = null) where T : LayoutScript
-	{
-		registeLayout<T>(true, LAYOUT_LIFE_CYCLE.PERSIST, (script) => { callback?.Invoke(script as T); });
-	}
-	public static void registeLayout<T>(bool inResource, LAYOUT_LIFE_CYCLE lifeCycle, LayoutScriptCallback callback = null) where T : LayoutScript
-	{
-		mLayoutManager.registeLayout(typeof(T), typeof(T).ToString(), inResource, lifeCycle, callback);
+		mLayoutManager.registeLayout(typeof(T), R_UI_PREFAB_PATH + typeof(T).ToString() + ".prefab", lifeCycle, callback);
 	}
 	public static void registeLayout<T>(Action<T> callback) where T : LayoutScript
 	{
-		registeLayout(typeof(T).ToString(), false, LAYOUT_LIFE_CYCLE.PART_USE, callback);
+		registeLayout(typeof(T).ToString(), LAYOUT_LIFE_CYCLE.PART_USE, callback);
 	}
 	public static void registeLayoutPersist<T>(Action<T> callback) where T : LayoutScript
 	{
-		registeLayout(typeof(T).ToString(), false, LAYOUT_LIFE_CYCLE.PERSIST, callback);
+		registeLayout(typeof(T).ToString(), LAYOUT_LIFE_CYCLE.PERSIST, callback);
 	}
-	public static void registeLayout<T>(string name, bool inResource, LAYOUT_LIFE_CYCLE lifeCycle, Action<T> callback) where T : LayoutScript
+	public static void registeLayout<T>(string name, LAYOUT_LIFE_CYCLE lifeCycle, Action<T> callback) where T : LayoutScript
 	{
-		mLayoutManager.registeLayout(typeof(T), name, inResource, lifeCycle, (script) => { callback?.Invoke(script as T); });
+		mLayoutManager.registeLayout(typeof(T), R_UI_PREFAB_PATH + name + ".prefab", lifeCycle, (script) => { callback?.Invoke(script as T); });
 	}
 	public void testAllLayout()
 	{
@@ -336,7 +308,7 @@ public class LayoutManager : FrameSystem
 		base.initComponents();
 		addInitComponent(out mCOMEscHide, true);
 	}
-	protected GameLayout newLayout(LayoutInfo info, GameObject prefab)
+	protected GameLayout newLayout(LayoutInfo info, ResourceRef<GameObject> prefab)
 	{
 		// 因为可能会有同时发起多个异步加载请求,所以如果已经创建了就直接返回出去,不再重复创建
 		if (mLayoutList.tryGetValue(info.mType, out GameLayout layout))
@@ -344,13 +316,13 @@ public class LayoutManager : FrameSystem
 			return layout;
 		}
 		myUGUIObject layoutParent = info.mIsScene ? null : getUIRoot();
-		Canvas canvas = prefab.GetComponent<Canvas>();
+		Canvas canvas = prefab.getResource().GetComponent<Canvas>();
 		// 只能在挂到UGUIRoot之前去判断,如果挂之后再获取就是获取的跟UGUIRoot一样的RenderMode
 		if (canvas.renderMode != RenderMode.WorldSpace)
 		{
 			logError("界面Canvas的RenderMode只能设置为WorldSpace,设置为其他模式可能会出现无法预知的错误,UI:" + info.mName);
 		}
-		GameObject layoutObj = instantiatePrefab(layoutParent?.getObject(), prefab, info.mName, true);
+		GameObject layoutObj = instantiatePrefab(layoutParent?.getObject(), prefab.getResource(), info.mName, true);
 		layout = new();
 		layout.setPrefab(prefab);
 		layout.setType(info.mType);
@@ -358,7 +330,6 @@ public class LayoutManager : FrameSystem
 		layout.setParent(layoutParent);
 		layout.setOrderType(info.mOrderType);
 		layout.setRenderOrder(generateRenderOrder(layout, info.mRenderOrder, info.mOrderType));
-		layout.setInResources(mLayoutRegisteList.get(info.mType).mInResource);
 		layout.init();
 		if (layout.getRoot().getObject() != layoutObj)
 		{

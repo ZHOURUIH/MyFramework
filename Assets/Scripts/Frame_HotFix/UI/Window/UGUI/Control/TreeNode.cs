@@ -50,7 +50,7 @@ public abstract class UGUITreeNode : WindowRecyclableUGUI
 		mTree.selectNode(this);
 		// 计算之前的顶部坐标,以便确保在收起或者展开以后,列表的上边界的坐标不变
 		myUGUIObject treeContent = mTree.getContent();
-		float contentTop = treeContent.getWindowTopInParent();
+		float contentTop = treeContent.getTopInParent();
 		if (mExpand)
 		{
 			mTree.collapse(this);
@@ -60,7 +60,7 @@ public abstract class UGUITreeNode : WindowRecyclableUGUI
 			mTree.expand(this);
 		}
 		mTree.resizeTreeAreaSize();
-		treeContent.setWindowTopInParent(contentTop);
+		treeContent.setTopInParent(contentTop);
 		mNodeClickCallback?.Invoke();
 	}
 }

@@ -8,7 +8,7 @@ using static FrameDefine;
 [Serializable]
 public class AssetInfo : ClassObject
 {
-	protected List<AssetLoadDoneCallback> mCallback = new();    // 异步加载回调列表
+	protected List<AssetLoadCallback> mCallback = new();    // 异步加载回调列表
 	protected List<string> mLoadPath = new();                   // 加载资源时使用的路径
 	protected UObject[] mSubAssets;								// 资源数组,数组第一个元素为主资源,后面的是子资源
 	protected AssetBundleInfo mParentAssetBundle;				// 资源所属的AssetBundle
@@ -60,7 +60,7 @@ public class AssetInfo : ClassObject
 		else
 		{
 			mLoadState = LOAD_STATE.WAIT_FOR_LOAD;
-			mResourceManager.getAssetBundleLoader().requestLoadAsset(mParentAssetBundle, mAssetName);
+			mResourceManager.requestLoadAsset(mParentAssetBundle, mAssetName);
 		}
 	}
 	// 资源已经加载完毕
@@ -87,7 +87,7 @@ public class AssetInfo : ClassObject
 			mLoadState = LOAD_STATE.NONE;
 		}
 	}
-	public void addCallback(AssetLoadDoneCallback callback, string loadPath)
+	public void addCallback(AssetLoadCallback callback, string loadPath)
 	{
 		if (callback == null)
 		{
@@ -99,7 +99,7 @@ public class AssetInfo : ClassObject
 	public void callbackAll()
 	{
 		// 复制一份列表,避免回调中再次修改回调列表而报错
-		using var a = new ListScope2T<AssetLoadDoneCallback, string>(out var callbacks, out var paths);
+		using var a = new ListScope2T<AssetLoadCallback, string>(out var callbacks, out var paths);
 		mCallback.moveTo(callbacks);
 		mLoadPath.moveTo(paths);
 		int callbackCount = callbacks.Count;

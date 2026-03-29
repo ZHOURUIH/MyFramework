@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using static BinaryUtility;
+using static SerializeBitUtility;
 using static StringUtility;
 using static MathUtility;
 using static FrameUtility;
@@ -32,9 +33,9 @@ public class SerializerBitRead : ClassObject
 		value = intToEnum<T, byte>(temp);
 		return success;
 	}
-	public bool readEnumSByte<T>(out T value) where T : Enum
+	public bool readEnumSByte<T>(out T value, bool needReadSign) where T : Enum
 	{
-		bool success = readBit(mBuffer, mBufferSize, ref mBitIndex, out sbyte temp);
+		bool success = readBit(mBuffer, mBufferSize, ref mBitIndex, out sbyte temp, needReadSign);
 		value = intToEnum<T, sbyte>(temp);
 		return success;
 	}
@@ -44,9 +45,9 @@ public class SerializerBitRead : ClassObject
 		value = intToEnum<T, ushort>(temp);
 		return success;
 	}
-	public bool readEnumShort<T>(out T value) where T : Enum
+	public bool readEnumShort<T>(out T value, bool needReadSign) where T : Enum
 	{
-		bool success = readBit(mBuffer, mBufferSize, ref mBitIndex, out short temp);
+		bool success = readBit(mBuffer, mBufferSize, ref mBitIndex, out short temp, needReadSign);
 		value = intToEnum<T, short>(temp);
 		return success;
 	}
@@ -56,9 +57,9 @@ public class SerializerBitRead : ClassObject
 		value = intToEnum<T, uint>(temp);
 		return success;
 	}
-	public bool readEnumInt<T>(out T value) where T : Enum
+	public bool readEnumInt<T>(out T value, bool needReadSign) where T : Enum
 	{
-		bool success = readBit(mBuffer, mBufferSize, ref mBitIndex, out int temp);
+		bool success = readBit(mBuffer, mBufferSize, ref mBitIndex, out int temp, needReadSign);
 		value = intToEnum<T, int>(temp);
 		return success;
 	}
@@ -68,9 +69,9 @@ public class SerializerBitRead : ClassObject
 		value = intToEnum<T, ulong>(temp);
 		return success;
 	}
-	public bool readEnumLong<T>(out T value) where T : Enum
+	public bool readEnumLong<T>(out T value, bool needReadSign) where T : Enum
 	{
-		bool success = readBit(mBuffer, mBufferSize, ref mBitIndex, out long temp);
+		bool success = readBit(mBuffer, mBufferSize, ref mBitIndex, out long temp, needReadSign);
 		value = intToEnum<T, long>(temp);
 		return success;
 	}
@@ -85,10 +86,10 @@ public class SerializerBitRead : ClassObject
 		}
 		return success;
 	}
-	public bool readEnumSByteList<T>(List<T> list) where T : Enum
+	public bool readEnumSByteList<T>(List<T> list, bool needReadSign) where T : Enum
 	{
 		using var a = new ListScope<sbyte>(out var temp);
-		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, temp);
+		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, temp, needReadSign);
 		list.Capacity = temp.Capacity;
 		foreach (sbyte item in temp)
 		{
@@ -107,10 +108,10 @@ public class SerializerBitRead : ClassObject
 		}
 		return success;
 	}
-	public bool readEnumShortList<T>(List<T> list) where T : Enum
+	public bool readEnumShortList<T>(List<T> list, bool needReadSign) where T : Enum
 	{
 		using var a = new ListScope<short>(out var temp);
-		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, temp);
+		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, temp, needReadSign);
 		list.Capacity = temp.Capacity;
 		foreach (short item in temp)
 		{
@@ -129,10 +130,10 @@ public class SerializerBitRead : ClassObject
 		}
 		return success;
 	}
-	public bool readEnumIntList<T>(List<T> list) where T : Enum
+	public bool readEnumIntList<T>(List<T> list, bool needReadSign) where T : Enum
 	{
 		using var a = new ListScope<int>(out var temp);
-		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, temp);
+		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, temp, needReadSign);
 		list.Capacity = temp.Capacity;
 		foreach (int item in temp)
 		{
@@ -151,10 +152,10 @@ public class SerializerBitRead : ClassObject
 		}
 		return success;
 	}
-	public bool readEnumLongList<T>(List<T> list) where T : Enum
+	public bool readEnumLongList<T>(List<T> list, bool needReadSign) where T : Enum
 	{
 		using var a = new ListScope<long>(out var temp);
-		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, temp);
+		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, temp, needReadSign);
 		list.Capacity = temp.Capacity;
 		foreach (long item in temp)
 		{
@@ -201,75 +202,75 @@ public class SerializerBitRead : ClassObject
 	{
 		return readListBit(mBuffer, mBufferSize, ref mBitIndex, ref values);
 	}
-	public bool read(out sbyte value)
+	public bool read(out sbyte value, bool needReadSign)
 	{
-		return readBit(mBuffer, mBufferSize, ref mBitIndex, out value);
+		return readBit(mBuffer, mBufferSize, ref mBitIndex, out value, needReadSign);
 	}
-	public bool read(out sbyte value0, out sbyte value1)
+	public bool read(out sbyte value0, out sbyte value1, bool needReadSign)
 	{
 		Span<sbyte> list = stackalloc sbyte[2];
-		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list);
+		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
 		value0 = list[0];
 		value1 = list[1];
 		return result;
 	}
-	public bool read(out sbyte value0, out sbyte value1, out sbyte value2)
+	public bool read(out sbyte value0, out sbyte value1, out sbyte value2, bool needReadSign)
 	{
 		Span<sbyte> list = stackalloc sbyte[3];
-		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list);
+		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
 		value0 = list[0];
 		value1 = list[1];
 		value2 = list[2];
 		return result;
 	}
-	public bool read(out sbyte value0, out sbyte value1, out sbyte value2, out sbyte value3)
+	public bool read(out sbyte value0, out sbyte value1, out sbyte value2, out sbyte value3, bool needReadSign)
 	{
 		Span<sbyte> list = stackalloc sbyte[4];
-		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list);
+		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
 		value0 = list[0];
 		value1 = list[1];
 		value2 = list[2];
 		value3 = list[3];
 		return result;
 	}
-	public bool read(ref Span<sbyte> values)
+	public bool read(ref Span<sbyte> values, bool needReadSign)
 	{
-		return readListBit(mBuffer, mBufferSize, ref mBitIndex, ref values);
+		return readListBit(mBuffer, mBufferSize, ref mBitIndex, ref values, needReadSign);
 	}
-	public bool read(out short value)
+	public bool read(out short value, bool needReadSign)
 	{
-		return readBit(mBuffer, mBufferSize, ref mBitIndex, out value);
+		return readBit(mBuffer, mBufferSize, ref mBitIndex, out value, needReadSign);
 	}
-	public bool read(out short value0, out short value1)
+	public bool read(out short value0, out short value1, bool needReadSign)
 	{
 		Span<short> list = stackalloc short[2];
-		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list);
+		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
 		value0 = list[0];
 		value1 = list[1];
 		return result;
 	}
-	public bool read(out short value0, out short value1, out short value2)
+	public bool read(out short value0, out short value1, out short value2, bool needReadSign)
 	{
 		Span<short> list = stackalloc short[3];
-		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list);
+		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
 		value0 = list[0];
 		value1 = list[1];
 		value2 = list[2];
 		return result;
 	}
-	public bool read(out short value0, out short value1, out short value2, out short value3)
+	public bool read(out short value0, out short value1, out short value2, out short value3, bool needReadSign)
 	{
 		Span<short> list = stackalloc short[4];
-		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list);
+		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
 		value0 = list[0];
 		value1 = list[1];
 		value2 = list[2];
 		value3 = list[3];
 		return result;
 	}
-	public bool read(ref Span<short> values)
+	public bool read(ref Span<short> values, bool needReadSign)
 	{
-		return readListBit(mBuffer, mBufferSize, ref mBitIndex, ref values);
+		return readListBit(mBuffer, mBufferSize, ref mBitIndex, ref values, needReadSign);
 	}
 	public bool read(out ushort value)
 	{
@@ -306,40 +307,40 @@ public class SerializerBitRead : ClassObject
 	{
 		return readListBit(mBuffer, mBufferSize, ref mBitIndex, ref values);
 	}
-	public bool read(out int value)
+	public bool read(out int value, bool needReadSign)
 	{
-		return readBit(mBuffer, mBufferSize, ref mBitIndex, out value);
+		return readBit(mBuffer, mBufferSize, ref mBitIndex, out value, needReadSign);
 	}
-	public bool read(out int value0, out int value1)
+	public bool read(out int value0, out int value1, bool needReadSign)
 	{
 		Span<int> list = stackalloc int[2];
-		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list);
+		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
 		value0 = list[0];
 		value1 = list[1];
 		return result;
 	}
-	public bool read(out int value0, out int value1, out int value2)
+	public bool read(out int value0, out int value1, out int value2, bool needReadSign)
 	{
 		Span<int> list = stackalloc int[3];
-		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list);
+		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
 		value0 = list[0];
 		value1 = list[1];
 		value2 = list[2];
 		return result;
 	}
-	public bool read(out int value0, out int value1, out int value2, out int value3)
+	public bool read(out int value0, out int value1, out int value2, out int value3, bool needReadSign)
 	{
 		Span<int> list = stackalloc int[4];
-		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list);
+		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
 		value0 = list[0];
 		value1 = list[1];
 		value2 = list[2];
 		value3 = list[3];
 		return result;
 	}
-	public bool read(ref Span<int> values)
+	public bool read(ref Span<int> values, bool needReadSign)
 	{
-		return readListBit(mBuffer, mBufferSize, ref mBitIndex, ref values);
+		return readListBit(mBuffer, mBufferSize, ref mBitIndex, ref values, needReadSign);
 	}
 	public bool read(out uint value)
 	{
@@ -376,40 +377,40 @@ public class SerializerBitRead : ClassObject
 	{
 		return readListBit(mBuffer, mBufferSize, ref mBitIndex, ref values);
 	}
-	public bool read(out long value)
+	public bool read(out long value, bool needReadSign)
 	{
-		return readBit(mBuffer, mBufferSize, ref mBitIndex, out value);
+		return readBit(mBuffer, mBufferSize, ref mBitIndex, out value, needReadSign);
 	}
-	public bool read(out long value0, out long value1)
+	public bool read(out long value0, out long value1, bool needReadSign)
 	{
 		Span<long> list = stackalloc long[2];
-		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list);
+		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
 		value0 = list[0];
 		value1 = list[1];
 		return result;
 	}
-	public bool read(out long value0, out long value1, out long value2)
+	public bool read(out long value0, out long value1, out long value2, bool needReadSign)
 	{
 		Span<long> list = stackalloc long[3];
-		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list);
+		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
 		value0 = list[0];
 		value1 = list[1];
 		value2 = list[2];
 		return result;
 	}
-	public bool read(out long value0, out long value1, out long value2, out long value3)
+	public bool read(out long value0, out long value1, out long value2, out long value3, bool needReadSign)
 	{
 		Span<long> list = stackalloc long[4];
-		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list);
+		bool result = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
 		value0 = list[0];
 		value1 = list[1];
 		value2 = list[2];
 		value3 = list[3];
 		return result;
 	}
-	public bool read(ref Span<long> values)
+	public bool read(ref Span<long> values, bool needReadSign)
 	{
-		return readListBit(mBuffer, mBufferSize, ref mBitIndex, ref values);
+		return readListBit(mBuffer, mBufferSize, ref mBitIndex, ref values, needReadSign);
 	}
 	public bool read(out ulong value)
 	{
@@ -446,35 +447,35 @@ public class SerializerBitRead : ClassObject
 	{
 		return readListBit(mBuffer, mBufferSize, ref mBitIndex, ref values);
 	}
-	public bool read(out float value, int precision = 3)
+	public bool read(out float value, bool needReadSign, int precision = 3)
 	{
-		bool success = readBit(mBuffer, mBufferSize, ref mBitIndex, out int intValue);
+		bool success = readBit(mBuffer, mBufferSize, ref mBitIndex, out int intValue, needReadSign);
 		value = divide(intValue, pow10(precision));
 		return success;
 	}
-	public bool read(out float value0, out float value1, int precision = 3)
+	public bool read(out float value0, out float value1, bool needReadSign, int precision = 3)
 	{
 		Span<int> list = stackalloc int[2];
-		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list);
+		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
 		float inversePow = inversePow10(precision);
 		value0 = list[0] * inversePow;
 		value1 = list[1] * inversePow;
 		return success;
 	}
-	public bool read(out float value0, out float value1, out float value2, int precision = 3)
+	public bool read(out float value0, out float value1, out float value2, bool needReadSign, int precision = 3)
 	{
 		Span<int> list = stackalloc int[3];
-		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list);
+		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
 		float inversePow = inversePow10(precision);
 		value0 = list[0] * inversePow;
 		value1 = list[1] * inversePow;
 		value2 = list[2] * inversePow;
 		return success;
 	}
-	public bool read(out float value0, out float value1, out float value2, out float value3, int precision = 3)
+	public bool read(out float value0, out float value1, out float value2, out float value3, bool needReadSign, int precision = 3)
 	{
 		Span<int> list = stackalloc int[4];
-		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list);
+		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
 		float inversePow = inversePow10(precision);
 		value0 = list[0] * inversePow;
 		value1 = list[1] * inversePow;
@@ -482,11 +483,11 @@ public class SerializerBitRead : ClassObject
 		value3 = list[3] * inversePow;
 		return success;
 	}
-	public bool read(ref Span<float> values, int precision = 3)
+	public bool read(ref Span<float> values, bool needReadSign, int precision = 3)
 	{
 		int count = values.Length;
 		Span<int> list = stackalloc int[values.Length];
-		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list);
+		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
 		float inversePow = inversePow10(precision);
 		for (int i = 0; i < count; ++i)
 		{
@@ -494,35 +495,35 @@ public class SerializerBitRead : ClassObject
 		}
 		return success;
 	}
-	public bool read(out double value, int precision = 4)
+	public bool read(out double value, bool needReadSign, int precision = 4)
 	{
-		bool success = readBit(mBuffer, mBufferSize, ref mBitIndex, out long intValue);
+		bool success = readBit(mBuffer, mBufferSize, ref mBitIndex, out long intValue, needReadSign);
 		value = intValue * inversePow10Long(precision);
 		return success;
 	}
-	public bool read(out double value0, out double value1, int precision = 4)
+	public bool read(out double value0, out double value1, bool needReadSign, int precision = 4)
 	{
 		Span<long> list = stackalloc long[2];
-		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list);
+		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
 		double inversePow = inversePow10Long(precision);
 		value0 = list[0] * inversePow;
 		value1 = list[1] * inversePow;
 		return success;
 	}
-	public bool read(out double value0, out double value1, out double value2, int precision = 3)
+	public bool read(out double value0, out double value1, out double value2, bool needReadSign, int precision = 3)
 	{
 		Span<long> list = stackalloc long[3];
-		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list);
+		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
 		double inversePow = inversePow10Long(precision);
 		value0 = list[0] * inversePow;
 		value1 = list[1] * inversePow;
 		value2 = list[2] * inversePow;
 		return success;
 	}
-	public bool read(out double value0, out double value1, out double value2, out double value3, int precision = 3)
+	public bool read(out double value0, out double value1, out double value2, out double value3, bool needReadSign, int precision = 3)
 	{
 		Span<long> list = stackalloc long[4];
-		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list);
+		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
 		double inversePow = inversePow10Long(precision);
 		value0 = list[0] * inversePow;
 		value1 = list[1] * inversePow;
@@ -530,11 +531,11 @@ public class SerializerBitRead : ClassObject
 		value3 = list[3] * inversePow;
 		return success;
 	}
-	public bool read(ref Span<double> values, int precision = 4)
+	public bool read(ref Span<double> values, bool needReadSign, int precision = 4)
 	{
 		int count = values.Length;
 		Span<long> list = stackalloc long[count];
-		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list);
+		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
 		double inversePow = inversePow10Long(precision);
 		for (int i = 0; i < count; ++i)
 		{
@@ -542,25 +543,25 @@ public class SerializerBitRead : ClassObject
 		}
 		return success;
 	}
-	public bool read(out Vector2 value, int precision = 3)
+	public bool read(out Vector2 value, bool needReadSign, int precision = 3)
 	{
-		return read(out value.x, out value.y, precision);
+		return read(out value.x, out value.y, needReadSign, precision);
 	}
-	public bool read(out Vector2Int value)
+	public bool read(out Vector2Int value, bool needReadSign)
 	{
-		bool result = read(out int value0, out int value1);
+		bool result = read(out int value0, out int value1, needReadSign);
 		value = new Vector2Int(value0, value1);
 		return result;
 	}
-	public bool read(out Vector2IntMy value)
+	public bool read(out Vector2IntMy value, bool needReadSign)
 	{
-		bool result = read(out int value0, out int value1);
+		bool result = read(out int value0, out int value1, needReadSign);
 		value = new Vector2IntMy(value0, value1);
 		return result;
 	}
-	public bool read(out Vector2Short value)
+	public bool read(out Vector2Short value, bool needReadSign)
 	{
-		return read(out value.x, out value.y);
+		return read(out value.x, out value.y, needReadSign);
 	}
 	public bool read(out Vector2UShort value)
 	{
@@ -570,34 +571,34 @@ public class SerializerBitRead : ClassObject
 	{
 		return read(out value.x, out value.y);
 	}
-	public bool read(out Vector3 value, int precision = 3)
+	public bool read(out Vector3 value, bool needReadSign, int precision = 3)
 	{
-		return read(out value.x, out value.y, out value.z, precision);
+		return read(out value.x, out value.y, out value.z, needReadSign, precision);
 	}
-	public bool read(out Vector3Int value)
+	public bool read(out Vector3Int value, bool needReadSign)
 	{
-		bool result = read(out int value0, out int value1, out int value2);
+		bool result = read(out int value0, out int value1, out int value2, needReadSign);
 		value = new Vector3Int(value0, value1, value2);
 		return result;
 	}
-	public bool read(out Vector4 value, int precision = 3)
+	public bool read(out Vector4 value, bool needReadSign, int precision = 3)
 	{
-		return read(out value.x, out value.y, out value.z, out value.w, precision);
+		return read(out value.x, out value.y, out value.z, out value.w, needReadSign, precision);
 	}
-	public bool readCustomList<T>(List<T> list) where T : SerializableBit, new()
+	public bool readCustomList<T>(List<T> list, bool needReadSign) where T : SerializableBit, new()
 	{
 		// 先读入列表长度
-		if (!read(out int elementCount))
+		if (!read(out uint elementCount))
 		{
 			return false;
 		}
 		bool success = true;
 		list.Clear();
-		list.Capacity = elementCount;
+		list.Capacity = (int)elementCount;
 		for (int i = 0; i < elementCount; ++i)
 		{
 			CLASS(out T value);
-			success = value.read(this) && success;
+			success = value.read(this, needReadSign) && success;
 			list.Add(value);
 		}
 		return success;
@@ -606,46 +607,46 @@ public class SerializerBitRead : ClassObject
 	{
 		return readListBit(mBuffer, mBufferSize, ref mBitIndex, list);
 	}
-	public bool readList(List<sbyte> list)
+	public bool readList(List<sbyte> list, bool needReadSign)
 	{
-		return readListBit(mBuffer, mBufferSize, ref mBitIndex, list);
+		return readListBit(mBuffer, mBufferSize, ref mBitIndex, list, needReadSign);
 	}
-	public bool readList(List<short> list)
+	public bool readList(List<short> list, bool needReadSign)
 	{
-		return readListBit(mBuffer, mBufferSize, ref mBitIndex, list);
+		return readListBit(mBuffer, mBufferSize, ref mBitIndex, list, needReadSign);
 	}
 	public bool readList(List<ushort> list)
 	{
 		return readListBit(mBuffer, mBufferSize, ref mBitIndex, list);
 	}
-	public bool readList(List<int> list)
+	public bool readList(List<int> list, bool needReadSign)
 	{
-		return readListBit(mBuffer, mBufferSize, ref mBitIndex, list);
+		return readListBit(mBuffer, mBufferSize, ref mBitIndex, list, needReadSign);
 	}
 	public bool readList(List<uint> list)
 	{
 		return readListBit(mBuffer, mBufferSize, ref mBitIndex, list);
 	}
-	public bool readList(List<long> list)
+	public bool readList(List<long> list, bool needReadSign)
 	{
-		return readListBit(mBuffer, mBufferSize, ref mBitIndex, list);
+		return readListBit(mBuffer, mBufferSize, ref mBitIndex, list, needReadSign);
 	}
 	public bool readList(List<ulong> list)
 	{
 		return readListBit(mBuffer, mBufferSize, ref mBitIndex, list);
 	}
-	public bool readList(List<float> list, int precision = 3)
+	public bool readList(List<float> list, bool needReadSign, int precision = 3)
 	{
-		return readListBit(mBuffer, mBufferSize, ref mBitIndex, list, precision);
+		return readListBit(mBuffer, mBufferSize, ref mBitIndex, list, needReadSign, precision);
 	}
-	public bool readList(List<double> list, int precision = 4)
+	public bool readList(List<double> list, bool needReadSign, int precision = 4)
 	{
-		return readListBit(mBuffer, mBufferSize, ref mBitIndex, list, precision);
+		return readListBit(mBuffer, mBufferSize, ref mBitIndex, list, needReadSign, precision);
 	}
-	public bool readList(List<Vector2> list, int precision = 3)
+	public bool readList(List<Vector2> list, bool needReadSign, int precision = 3)
 	{
 		// 先读入列表长度
-		if (!read(out int elementCount))
+		if (!read(out uint elementCount))
 		{
 			return false;
 		}
@@ -654,11 +655,11 @@ public class SerializerBitRead : ClassObject
 			return true;
 		}
 		list.Clear();
-		list.Capacity = elementCount;
+		list.Capacity = (int)elementCount;
 		bool success = true;
 		for (int i = 0; i < elementCount; ++i)
 		{
-			success = read(out Vector2 value, precision) && success;
+			success = read(out Vector2 value, needReadSign, precision) && success;
 			list.Add(value);
 		}
 		return success;
@@ -666,7 +667,7 @@ public class SerializerBitRead : ClassObject
 	public bool readList(List<Vector2UShort> list)
 	{
 		// 先读入列表长度
-		if (!read(out int elementCount))
+		if (!read(out uint elementCount))
 		{
 			return false;
 		}
@@ -675,7 +676,7 @@ public class SerializerBitRead : ClassObject
 			return true;
 		}
 		list.Clear();
-		list.Capacity = elementCount;
+		list.Capacity = (int)elementCount;
 		bool success = true;
 		for (int i = 0; i < elementCount; ++i)
 		{
@@ -684,10 +685,10 @@ public class SerializerBitRead : ClassObject
 		}
 		return success;
 	}
-	public bool readList(List<Vector2Int> list)
+	public bool readList(List<Vector2Int> list, bool needReadSign)
 	{
 		// 先读入列表长度
-		if (!read(out int elementCount))
+		if (!read(out uint elementCount))
 		{
 			return false;
 		}
@@ -696,19 +697,19 @@ public class SerializerBitRead : ClassObject
 			return true;
 		}
 		list.Clear();
-		list.Capacity = elementCount;
+		list.Capacity = (int)elementCount;
 		bool success = true;
 		for (int i = 0; i < elementCount; ++i)
 		{
-			success = read(out Vector2Int value) && success;
+			success = read(out Vector2Int value, needReadSign) && success;
 			list.Add(value);
 		}
 		return success;
 	}
-	public bool readList(List<Vector3> list, int precision = 3)
+	public bool readList(List<Vector3> list, bool needReadSign, int precision = 3)
 	{
 		// 先读入列表长度
-		if (!read(out int elementCount))
+		if (!read(out uint elementCount))
 		{
 			return false;
 		}
@@ -717,19 +718,19 @@ public class SerializerBitRead : ClassObject
 			return true;
 		}
 		list.Clear();
-		list.Capacity = elementCount;
+		list.Capacity = (int)elementCount;
 		bool success = true;
 		for (int i = 0; i < elementCount; ++i)
 		{
-			success = read(out Vector3 value, precision) && success;
+			success = read(out Vector3 value, needReadSign, precision) && success;
 			list.Add(value);
 		}
 		return success;
 	}
-	public bool readList(List<Vector4> list, int precision = 3)
+	public bool readList(List<Vector4> list, bool needReadSign, int precision = 3)
 	{
 		// 先读入列表长度
-		if (!read(out int elementCount))
+		if (!read(out uint elementCount))
 		{
 			return false;
 		}
@@ -738,11 +739,11 @@ public class SerializerBitRead : ClassObject
 			return true;
 		}
 		list.Clear();
-		list.Capacity = elementCount;
+		list.Capacity = (int)elementCount;
 		bool success = true;
 		for (int i = 0; i < elementCount; ++i)
 		{
-			success = read(out Vector4 value, precision) && success;
+			success = read(out Vector4 value, needReadSign, precision) && success;
 			list.Add(value);
 		}
 		return success;
@@ -750,7 +751,7 @@ public class SerializerBitRead : ClassObject
 	public bool readList(List<string> list)
 	{
 		// 先读入列表长度
-		if (!read(out int elementCount))
+		if (!read(out uint elementCount))
 		{
 			return false;
 		}
@@ -759,7 +760,7 @@ public class SerializerBitRead : ClassObject
 			return true;
 		}
 		list.Clear();
-		list.Capacity = elementCount;
+		list.Capacity = (int)elementCount;
 		for (int i = 0; i < elementCount; ++i)
 		{
 			if (!readString(out string value))
@@ -774,7 +775,7 @@ public class SerializerBitRead : ClassObject
 	public bool readString(byte[] str, int strBufferSize)
 	{
 		// 先读入字符串长度
-		if (!read(out int readLen))
+		if (!read(out uint readLen))
 		{
 			return false;
 		}
@@ -783,7 +784,7 @@ public class SerializerBitRead : ClassObject
 		{
 			return true;
 		}
-		bool result = readBuffer(str, readLen);
+		bool result = readBuffer(str, (int)readLen);
 		str[getMin(readLen, strBufferSize) - 1] = 0;
 		return result;
 	}
@@ -805,7 +806,7 @@ public class SerializerBitRead : ClassObject
 	{
 		value = null;
 		// 先读入字符串长度
-		if (!read(out int readLen))
+		if (!read(out uint readLen))
 		{
 			return false;
 		}
@@ -817,8 +818,8 @@ public class SerializerBitRead : ClassObject
 		}
 
 		int byteIndex = getReadByteCount();
-		mBitIndex = (byteIndex + readLen) << 3;
-		value = bytesToString(mBuffer, byteIndex, readLen, encoding);
+		mBitIndex = (byteIndex + (int)readLen) << 3;
+		value = mBuffer.bytesToString(byteIndex, (int)readLen, encoding);
 		return true;
 	}
 	public byte[] getBuffer() { return mBuffer; }

@@ -17,7 +17,7 @@ public class ImageAtlasPath : MonoBehaviour
 {
 	[HideInInspector]
 	public Sprite mSprite;				// 记录设置的Sprite,用于对比当前GameObject上的Sprite有没有被修改
-	public string mAtlasPath;			// 记录的图集路径
+	public string mAtlasPath;			// 记录的图集路径,以Assets开头的路径
 	public bool Refresh;				// 刷新标记,用于在面板上手动刷新,因为如果使用SpriteAtlas时自动刷新太耗时,使编辑器变得异常卡顿,所以需要手动刷新
 	public void Awake()
 	{

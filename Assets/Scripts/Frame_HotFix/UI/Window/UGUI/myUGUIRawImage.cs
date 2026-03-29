@@ -14,7 +14,9 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 	protected RawImage mRawImage;                       // UGUI的RawImage组件
 	protected CanvasGroup mCanvasGroup;					// 用于是否显示
 	protected Material mOriginMaterial;					// 初始的材质,用于重置时恢复材质
-	protected Texture mOriginTexture;                   // 初始的图片
+	protected Texture mOriginTexture;					// 初始的图片,只用于恢复参数,不用作卸载
+	protected ResourceRef<Texture> mCurTexture;         // 当前引用的图片,用于卸载
+	protected ResourceRef<Material> mCurMaterial;		// 当前引用的材质,用于卸载
 	protected string mOriginMaterialPath;				// 初始材质的文件路径
 	protected bool mIsNewMaterial;						// 当前的材质是否是新创建的材质对象
 	public override void init()
@@ -60,13 +62,12 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 	public override void destroy()
 	{
 		// 卸载创建出的材质
-		if (mIsNewMaterial)
+		if (mIsNewMaterial && !isEditor())
 		{
-			if (!isEditor())
-			{
-				destroyUnityObject(mRawImage.material);
-			}
+			destroyUnityObject(mRawImage.material);
 		}
+		mResourceManager.unload(ref mCurMaterial);
+		mResourceManager.unload(ref mCurTexture);
 		mRawImage.material = mOriginMaterial;
 		mRawImage.texture = mOriginTexture;
 		if (mCanvasGroup != null)
@@ -108,16 +109,19 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		color.a = alpha;
 		mRawImage.color = color;
 	}
-	public virtual void setTexture(Texture tex, bool useTextureSize = false)
+	// 设置一个图片,并且当前对象拥有图片资源的所有权
+	public void setTexture(ResourceRef<Texture> tex, bool useTextureSize = false)
 	{
 		if (mRawImage == null)
 		{
 			return;
 		}
-		mRawImage.texture = tex;
+		mResourceManager.unload(ref mCurTexture);
+		mCurTexture = tex;
+		mRawImage.texture = mCurTexture.getResource();
 		if (useTextureSize && tex != null)
 		{
-			setWindowSize(getTextureSize());
+			setSize(getTextureSize());
 		}
 	}
 	public Texture getTexture()
@@ -159,7 +163,7 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		// 异步加载
 		else
 		{
-			mResourceManager.loadGameResourceAsync(name, (Texture tex) => { setTexture(tex, useTextureSize); });
+			mResourceManager.loadGameResourceAsync<Texture>(name, (tex) => { setTexture(tex, useTextureSize); });
 		}
 	}
 	public Material getMaterial() 
@@ -188,37 +192,38 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		// 异步加载
 		if (loadAsync)
 		{
-			mResourceManager.loadGameResourceAsync(materialPath, (Material mat) =>
+			mResourceManager.loadGameResourceAsync<Material>(materialPath, (mat) =>
 			{
+				mCurMaterial = mat;
 				if (mRawImage == null)
 				{
 					return;
 				}
 				if (mIsNewMaterial)
 				{
-					Material newMat = new(mat);
+					Material newMat = new(mCurMaterial.getResource());
 					newMat.name = getFileNameNoSuffixNoDir(materialPath) + "_" + IToS(mID);
 					mRawImage.material = newMat;
 				}
 				else
 				{
-					mRawImage.material = mat;
+					mRawImage.material = mCurMaterial.getResource();
 				}
 			});
 		}
 		// 同步加载
 		else
 		{
-			var loadedMaterial = mResourceManager.loadGameResource<Material>(materialPath);
+			mCurMaterial = mResourceManager.loadGameResource<Material>(materialPath);
 			if (mIsNewMaterial)
 			{
-				Material mat = new(loadedMaterial);
+				Material mat = new(mCurMaterial.getResource());
 				mat.name = getFileNameNoSuffixNoDir(materialPath) + "_" + IToS(mID);
 				mRawImage.material = mat;
 			}
 			else
 			{
-				mRawImage.material = loadedMaterial;
+				mRawImage.material = mCurMaterial.getResource();
 			}
 		}
 	}

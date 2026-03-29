@@ -77,10 +77,10 @@ public class myUGUIDragView : myUGUIObject
 		base.onTouchStay(mousePos, touchID);
 		mDragViewComponent.onTouchStay(touchID);
 	}
-	public override void setWindowSize(Vector2 size)
+	public override void setSize(Vector2 size)
 	{
-		base.setWindowSize(size);
-		mCOMWindowCollider?.setColliderSize(getWindowSize(true));
+		base.setSize(size);
+		mCOMWindowCollider?.setColliderSize(getSize(true));
 		mDragViewComponent.onWindowSizeChange();
 	}
 	public void setAlignTopOrLeft(bool alignTopOrLeft) { mDragViewComponent.setAlignTopOrLeft(alignTopOrLeft); }

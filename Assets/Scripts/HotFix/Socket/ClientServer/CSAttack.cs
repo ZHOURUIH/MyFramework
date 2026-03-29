@@ -15,20 +15,39 @@ public class CSAttack : NetPacketBit
 		addParam(mTimeStamp, false);
 	}
 	public static CSAttack get() { return PACKET<CSAttack>(); }
-	public override bool read(SerializerBitRead reader, ulong fieldFlag)
+	public override bool read(SerializerBitRead reader, bool needReadSign, ulong fieldFlag)
 	{
 		bool success = true;
-		success = success && mTargetGUID.read(reader);
-		success = success && mSkillID.read(reader);
-		success = success && mTimeStamp.read(reader);
+		success = success && mTargetGUID.read(reader, needReadSign);
+		success = success && mSkillID.read(reader, needReadSign);
+		success = success && mTimeStamp.read(reader, needReadSign);
 		return success;
 	}
-	public override void write(SerializerBitWrite writer, out ulong fieldFlag)
+	public override void write(SerializerBitWrite writer, bool needWriteSign, out ulong fieldFlag)
 	{
-		base.write(writer, out fieldFlag);
-		mTargetGUID.write(writer);
-		mSkillID.write(writer);
-		mTimeStamp.write(writer);
+		base.write(writer, needWriteSign, out fieldFlag);
+		mTargetGUID.write(writer, needWriteSign);
+		mSkillID.write(writer, needWriteSign);
+		mTimeStamp.write(writer, needWriteSign);
+	}
+	protected override bool generateHasSignInternal()
+	{
+		foreach (long item in mTargetGUID)
+		{
+			if (item < 0)
+			{
+				return true;
+			}
+		}
+		if (mSkillID < 0)
+		{
+			return true;
+		}
+		if (mTimeStamp < 0)
+		{
+			return true;
+		}
+		return false;
 	}
 	// auto generate end
 	public static void send()

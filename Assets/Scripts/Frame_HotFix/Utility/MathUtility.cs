@@ -2074,6 +2074,17 @@ public class MathUtility
 		vec.y *= scale;
 		vec.z *= scale;
 	}
+	public static Vector2 setLength(Vector2 vec, float length)
+	{
+		float scale = divide(1.0f, getLength(vec)) * length;
+		return new(vec.x * scale, vec.y * scale);
+	}
+	public static void setLength(ref Vector2 vec, float length)
+	{
+		float scale = divide(1.0f, getLength(vec)) * length;
+		vec.x *= scale;
+		vec.y *= scale;
+	}
 	// 将矩阵的缩放设置为1,并且不改变位移和旋转
 	public static Matrix4x4 identityMatrix4(Matrix4x4 rot)
 	{

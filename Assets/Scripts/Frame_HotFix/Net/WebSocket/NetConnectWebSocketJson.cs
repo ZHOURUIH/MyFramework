@@ -49,7 +49,7 @@ public class NetConnectWebSocketJson : NetConnectWebSocket
 			return;
 		}
 		WebSocketPacketBodyJson body = new(msgType, netPacket.writeContent(), (int)getNowUTCTimeStamp());
-		byte[] bytes = stringToBytes(JsonConvert.SerializeObject(body));
+		byte[] bytes = JsonConvert.SerializeObject(body).toBytes();
 		mOutputBuffer.Enqueue(new PacketSendInfo(bytes, bytes.count(), false, 0));
 		mNetPacketFactory.destroyPacket(netPacket);
 	}
@@ -62,7 +62,7 @@ public class NetConnectWebSocketJson : NetConnectWebSocket
 	// 解析包体数据
 	protected override NetPacket parsePacket(ushort packetType, byte[] buffer, int size, uint sequence, ulong fieldFlag)
 	{
-		var body = JsonConvert.DeserializeObject<WebSocketPacketBodyJson>(bytesToString(buffer, 0, size));
+		var body = JsonConvert.DeserializeObject<WebSocketPacketBodyJson>(buffer.bytesToString(size));
 		Type type = mPacketTypeStringList.get(body.message_type);
 		if (type == null)
 		{
@@ -80,7 +80,7 @@ public class NetConnectWebSocketJson : NetConnectWebSocket
 		}
 		return packetReply;
 	}
-	protected override PARSE_RESULT preParsePacket(byte[] buffer, int size, out int index, out byte[] outPacketData, out ushort packetType, out int packetSize, out uint sequence, out ulong fieldFlag)
+	protected override PARSE_RESULT preParsePacket(byte[] buffer, int size, out int index, out byte[] outPacketData, out ushort packetType, out int packetSize, out uint sequence, out ulong fieldFlag, out bool hasSign)
 	{
 		index = size;
 		ARRAY_BYTE_PERSIST(out outPacketData, getGreaterPow2(size));
@@ -89,6 +89,7 @@ public class NetConnectWebSocketJson : NetConnectWebSocket
 		packetSize = size;
 		sequence = 0;
 		fieldFlag = 0;
+		hasSign = false;
 		return PARSE_RESULT.SUCCESS;
 	}
 }

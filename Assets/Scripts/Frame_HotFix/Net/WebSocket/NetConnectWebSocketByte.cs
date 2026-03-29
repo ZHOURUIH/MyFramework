@@ -72,6 +72,7 @@ public class NetConnectWebSocketByte : NetConnectWebSocket
 		writer.write(realPacketSize);
 		writer.write(packetType);
 		writer.write(mSendSequenceNumber);
+		writer.write(netPacket.hasSign());
 		// 写入一位用于获取是否需要使用标记位
 		writer.write(fieldFlag != FULL_FIELD_FLAG);
 		if (fieldFlag != FULL_FIELD_FLAG)
@@ -118,7 +119,7 @@ public class NetConnectWebSocketByte : NetConnectWebSocket
 		return packetReply;
 	}
 	protected override PARSE_RESULT preParsePacket(byte[] buffer, int size, out int index, out byte[] outPacket, out ushort packetType,
-													out int packetSize, out uint sequence, out ulong fieldFlag)
+													out int packetSize, out uint sequence, out ulong fieldFlag, out bool hasSign)
 	{
 		index = size;
 		outPacket = null;
@@ -126,6 +127,7 @@ public class NetConnectWebSocketByte : NetConnectWebSocket
 		packetSize = 0;
 		sequence = 0;
 		fieldFlag = FULL_FIELD_FLAG;
+		hasSign = false;
 		// 可能还没有接收完全,等待下次接收
 		if (size == 0)
 		{
@@ -143,6 +145,10 @@ public class NetConnectWebSocketByte : NetConnectWebSocket
 			return PARSE_RESULT.NOT_ENOUGH;
 		}
 		if (!reader.read(out sequence))
+		{
+			return PARSE_RESULT.NOT_ENOUGH;
+		}
+		if (!reader.read(out hasSign))
 		{
 			return PARSE_RESULT.NOT_ENOUGH;
 		}

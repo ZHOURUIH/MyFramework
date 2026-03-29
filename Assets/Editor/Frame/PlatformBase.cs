@@ -22,7 +22,6 @@ using static MathUtility;
 using static FrameDefine;
 using static EditorFileUtility;
 using static FrameUtility;
-using static BinaryUtility;
 using static UnityUtility;
 using static EditorCommonUtility;
 using static FrameBaseDefine;
@@ -202,7 +201,7 @@ public abstract class PlatformBase
 	{
 		writeTxtFile(path + FILE_LIST, content);
 		// 再生成此文件的MD5文件,用于客户端校验文件内容是否改变
-		writeTxtFile(path + FILE_LIST_MD5, generateFileMD5(stringToBytes(content), -1));
+		writeTxtFile(path + FILE_LIST_MD5, generateFileMD5(content.toBytes(), -1));
 	}
 	// 检查所有的热更dll,以及AOT的dll是否都存在
 	public bool checkAllDllExist()
@@ -385,7 +384,7 @@ public abstract class PlatformBase
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void updateEditVersionNumber()
 	{
-		mVersionNumber = split(mRemoteVersion, ".");
+		mVersionNumber = mRemoteVersion.split('.');
 		// 需要确保版本号只有3个部分
 		if (mVersionNumber.count() != 3)
 		{
@@ -614,7 +613,7 @@ public abstract class PlatformBase
 		string curDirectory = "";
 		foreach (string line in output)
 		{
-			string[] keys = split(line, ' ');
+			string[] keys = line.split(' ');
 			if (keys.Length >= 9)
 			{
 				if (keys[0][0] == '-')

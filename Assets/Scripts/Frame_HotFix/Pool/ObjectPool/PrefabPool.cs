@@ -12,7 +12,7 @@ public class PrefabPool : ClassObject
 {
 	protected HashSet<GameObjectInfo> mInuseList = new();   // 正在使用的实例化列表,第一个key是文件名,第二个列表中的key是实例化出的物体,value是物品信息,为了提高运行时效率,仅在编辑器下使用
 	protected List<GameObjectInfo> mUnuseList = new();		// 未使用的实例化列表,第一个key是文件名,第二个列表中的key是实例化出的物体,value是物品信息
-	protected GameObject mPrefab;							// 从资源管理器中加载的预设
+	protected ResourceRef<GameObject> mPrefab;				// 从资源管理器中加载的预设
 	protected string mFileName;								// 此实例物体的预设文件名,相对于GameResources的路径,带后缀
 	protected int mAsyncLoadingCount;                       // 正在异步加载的数量
 	protected int mAsyncInstantiateCount;					// 正在异步实例化的数量
@@ -30,31 +30,25 @@ public class PrefabPool : ClassObject
 	{
 		base.destroy();
 		destroyAllInstance();
-		mResourceManager?.unload(ref mPrefab);
+		mResourceManager.unload(ref mPrefab);
 	}
 	public void destroyAllInstance()
 	{
-		foreach (GameObjectInfo item in mInuseList)
-		{
-			item.destroyObject();
-		}
+		mInuseList.For(item => item.destroyObject());
 		mInuseList.Clear();
-		foreach (GameObjectInfo item in mUnuseList)
-		{
-			item.destroyObject();
-		}
+		mUnuseList.For(item => item.destroyObject());
 		mUnuseList.Clear();
 	}
-	public void setFileName(string fileName) { mFileName = fileName; }
-	public void setPrefab(GameObject prefab) { mPrefab = prefab; }
-	public GameObject getPrefab() { return mPrefab; }
-	public string getFileName() { return mFileName; }
-	public List<GameObjectInfo> getUnuseList() { return mUnuseList; }
-	public HashSet<GameObjectInfo> getInuseList() { return mInuseList; }
-	public int getInuseCount() { return mInuseList.Count; }
-	public int getUnuseCount() { return mUnuseList.Count; }
-	public bool isEmpty() { return mInuseList.Count == 0 && mUnuseList.Count == 0 && mAsyncLoadingCount == 0 && mAsyncInstantiateCount == 0; }
-	public bool isEmptyInUse() { return mInuseList.Count == 0 && mAsyncLoadingCount == 0 && mAsyncInstantiateCount == 0; }
+	public void setFileName(string fileName)				{ mFileName = fileName; }
+	public void setPrefab(ResourceRef<GameObject> prefab)	{ mPrefab = prefab; }
+	public GameObject getPrefab()							{ return mPrefab.getResource(); }
+	public string getFileName()								{ return mFileName; }
+	public List<GameObjectInfo> getUnuseList()				{ return mUnuseList; }
+	public HashSet<GameObjectInfo> getInuseList()			{ return mInuseList; }
+	public int getInuseCount()								{ return mInuseList.Count; }
+	public int getUnuseCount()								{ return mUnuseList.Count; }
+	public bool isEmpty()									{ return mInuseList.Count == 0 && mUnuseList.Count == 0 && mAsyncLoadingCount == 0 && mAsyncInstantiateCount == 0; }
+	public bool isEmptyInUse()								{ return mInuseList.Count == 0 && mAsyncLoadingCount == 0 && mAsyncInstantiateCount == 0; }
 	// 向池中异步初始化一定数量的对象
 	public CustomAsyncOperation initToPoolAsync(int tag, int count, bool moveToHide, Action callback)
 	{
@@ -67,7 +61,7 @@ public class PrefabPool : ClassObject
 		// 预设未加载,异步加载预设
 		++mAsyncLoadingCount;
 		long assignID = getAssignID();
-		return mResourceManager.loadGameResourceAsync(mFileName, (GameObject asset) =>
+		return mResourceManager.loadGameResourceAsync<GameObject>(mFileName, (asset) =>
 		{
 			--mAsyncLoadingCount;
 			if (asset == null)
@@ -112,7 +106,7 @@ public class PrefabPool : ClassObject
 		// 预设未加载,异步加载预设
 		++mAsyncLoadingCount;
 		long assignID = getAssignID();
-		return mResourceManager.loadGameResourceAsync(mFileName, (GameObject asset) =>
+		return mResourceManager.loadGameResourceAsync<GameObject>(mFileName, (asset) =>
 		{
 			--mAsyncLoadingCount;
 			if (asset == null)
@@ -122,8 +116,8 @@ public class PrefabPool : ClassObject
 			}
 			if (assignID != getAssignID())
 			{
-				callback?.Invoke(null, true);
 				mResourceManager.unload(ref asset);
+				callback?.Invoke(null, true);
 				return;
 			}
 			setPrefab(asset);
@@ -133,10 +127,7 @@ public class PrefabPool : ClassObject
 	// 从对象池中同步获取或者创建一个物体
 	public GameObjectInfo getOneUnused(int tag)
 	{
-		if (mPrefab == null)
-		{
-			mPrefab = mResourceManager.loadGameResource<GameObject>(mFileName);
-		}
+		mPrefab ??= mResourceManager.loadGameResource<GameObject>(mFileName);
 		GameObjectInfo objInfo;
 		// 未使用列表中有就从未使用列表中获取
 		if (mUnuseList.Count > 0)
@@ -151,7 +142,7 @@ public class PrefabPool : ClassObject
 		else
 		{
 			// 实例化
-			CLASS(out objInfo).createObject(mPrefab, mFileName);
+			CLASS(out objInfo).createObject(mPrefab.getResource(), mFileName);
 			objInfo.setTag(tag);
 		}
 		objInfo.setUsing(true);
@@ -218,7 +209,7 @@ public class PrefabPool : ClassObject
 			GameObjectInfo objInfo = mUnuseList.addClass();
 			objInfo.setTag(tag);
 			// 实例化,同步进行
-			objInfo.createObject(mPrefab, mFileName);
+			objInfo.createObject(mPrefab.getResource(), mFileName);
 			GameObject go = objInfo.getObject();
 			if (go != null)
 			{
@@ -255,7 +246,7 @@ public class PrefabPool : ClassObject
 		{
 			// 实例化
 			++mAsyncInstantiateCount;
-			CLASS<GameObjectInfo>().createObjectAsync(mPrefab, mFileName, (GameObjectInfo info) =>
+			CLASS<GameObjectInfo>().createObjectAsync(mPrefab.getResource(), mFileName, (GameObjectInfo info) =>
 			{
 				--mAsyncInstantiateCount;
 				info.setTag(tag);

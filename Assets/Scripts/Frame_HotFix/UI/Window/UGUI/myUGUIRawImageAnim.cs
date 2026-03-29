@@ -8,14 +8,14 @@ using static MathUtility;
 // RawImage的序列帧
 public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 {
-	protected List<BoolCallback> mPlayEndCallback;		// 一个序列播放完时的回调函数,只在非循环播放状态下有效
-	protected List<BoolCallback> mPlayingCallback;		// 一个序列正在播放时的回调函数
-	protected List<Vector2> mTexturePosList;			// 每一帧的位置偏移列表
-	protected List<Texture> mTextureList = new();		// 序列帧列表
-	protected AnimControl mControl = new();				// 序列帧播放控制器
-	protected string mTexturePreName = EMPTY;			// 序列帧图片的前缀名
-	protected string mTexturePath = EMPTY;				// 序列帧图片的路径
-	protected bool mUseTextureSize;                     // 是否使用图片的大小改变当前窗口大小
+	protected List<BoolCallback> mPlayEndCallback;				// 一个序列播放完时的回调函数,只在非循环播放状态下有效
+	protected List<BoolCallback> mPlayingCallback;				// 一个序列正在播放时的回调函数
+	protected List<Vector2> mTexturePosList;					// 每一帧的位置偏移列表
+	protected List<ResourceRef<Texture>> mTextureList = new();	// 序列帧列表
+	protected AnimControl mControl = new();						// 序列帧播放控制器
+	protected string mTexturePreName = EMPTY;					// 序列帧图片的前缀名
+	protected string mTexturePath = EMPTY;						// 序列帧图片的路径
+	protected bool mUseTextureSize;								// 是否使用图片的大小改变当前窗口大小
 	public myUGUIRawImageAnim()
 	{
 		mNeedUpdate = true;
@@ -36,9 +36,9 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 	public override void destroy()
 	{
 		base.destroy();
-		foreach (Texture tex in mTextureList)
+		foreach (ResourceRef<Texture> tex in mTextureList)
 		{
-			Texture temp = tex;
+			var temp = tex;
 			mResourceManager.unload(ref temp);
 		}
 		mTextureList.Clear();
@@ -46,13 +46,13 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		if (mTextureList.Count == 0)
+		if (mTextureList.isEmpty())
 		{
 			setTexture(null, false);
 		}
 		mControl.update(elapsedTime);
 	}
-	// texturePath是GameResource下的相对路径,以/结尾,不支持读取Resources中的资源
+	// texturePath是GameResource下的相对路径,以/结尾
 	// texturePreName是图片序列的前缀名,不带_
 	public void setTexturePath(string texturePath, string texturePreName, int textureCount)
 	{
@@ -69,7 +69,7 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 			mTextureList.Add(mResourceManager.loadGameResource<Texture>(preName + IToS(i) + ".png"));
 		}
 		mControl.setFrameCount(getTextureFrameCount());
-		if (mTextureList.Count == 0)
+		if (mTextureList.isEmpty())
 		{
 			logError("无效的图片序列帧! mTexturePath: " + mTexturePath + ", mTexturePreName: " + mTexturePreName);
 		}
@@ -138,7 +138,7 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 		{
 			return;
 		}
-		setTexture(mTextureList[mControl.getCurFrameIndex()], mUseTextureSize);
+		setTexture(mTextureList[mControl.getCurFrameIndex()].newRef(), mUseTextureSize);
 		if (!mTexturePosList.isEmpty())
 		{
 			setPosition(mTexturePosList[round(divide(frame, mTextureList.Count * mTexturePosList.Count))]);

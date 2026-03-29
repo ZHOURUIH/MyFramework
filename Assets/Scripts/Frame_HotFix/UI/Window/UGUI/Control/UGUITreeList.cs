@@ -30,7 +30,7 @@ public class UGUITreeList : WindowObjectUGUI
 		{
 			resizeTreeAreaSize();
 		}
-		float viewportHalfHeight = mViewport.getWindowSize().y * 0.5f;
+		float viewportHalfHeight = mViewport.getSize().y * 0.5f;
 		foreach (UGUITreeNode item in mAllNodeList)
 		{
 			myUGUIObject itemRoot = item.getRoot();

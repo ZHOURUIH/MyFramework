@@ -112,8 +112,8 @@ public class MenuAssetBundle
 			EditorUtility.UnloadUnusedAssetsImmediate();
 			AssetDatabase.Refresh();
 			// 打包
-			// 使用LZ4压缩,并且不写入资源类型信息
-			var option = BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode;
+			// 使用LZMA压缩,并且不写入资源类型信息
+			var option = BuildAssetBundleOptions.StrictMode;
 #if WEIXINMINIGAME
 			// 微信的AssetBundle需要添加hash
 			option |= BuildAssetBundleOptions.AppendHashToAssetBundleName;
@@ -181,8 +181,8 @@ public class MenuAssetBundle
 				deleteFile(manifestName);
 				deleteFile(manifestName + ".meta");
 			}
-			// 使用LZ4压缩,并且不写入资源类型信息
-			var option = BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode;
+			// 使用LZMA压缩,并且不写入资源类型信息
+			var option = BuildAssetBundleOptions.StrictMode;
 #if WEIXINMINIGAME
 			// 微信的AssetBundle需要添加hash
 			option |= BuildAssetBundleOptions.AppendHashToAssetBundleName;

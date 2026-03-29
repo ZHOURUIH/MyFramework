@@ -25,6 +25,18 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 		mParent = mTemplate.getParent();
 		mTemplate.setActive(false);
 	}
+	public void newWindowListHorizontal(int count)
+	{
+		unuseAll();
+		newWindow(count);
+		autoGridHorizontal();
+	}
+	public void newWindowListVertical(int count)
+	{
+		unuseAll();
+		newWindow(count);
+		autoGridVertical();
+	}
 	public void newWindow(int count)
 	{
 		if (mParent == null)
@@ -169,5 +181,29 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 	public void autoGridHorizontal(bool autoRefreshUIDepth, bool refreshIgnoreInactive, float interval, bool changeRootPosSize = true, float minWidth = 0.0f, float extraLeftWidth = 0.0f, float extraRightWidth = 0.0f, bool keepLeftSide = true)
 	{
 		WidgetUtility.autoGridHorizontal(mParent, autoRefreshUIDepth, refreshIgnoreInactive, interval, changeRootPosSize, minWidth, extraLeftWidth, extraRightWidth, keepLeftSide);
+	}
+	public void autoGridVertical()
+	{
+		WidgetUtility.autoGridVertical(mParent, true, true, 0.0f, 0.0f, 0.0f, 0.0f, true);
+	}
+	public void autoGridVertical(bool keepTopSide)
+	{
+		WidgetUtility.autoGridVertical(mParent, true, true, 0.0f, 0.0f, 0.0f, 0.0f, keepTopSide);
+	}
+	public void autoGridVertical(float interval)
+	{
+		WidgetUtility.autoGridVertical(mParent, true, true, interval, 0.0f, 0.0f, 0.0f, true);
+	}
+	public void autoGridVertical(float interval, bool keepTopSide)
+	{
+		WidgetUtility.autoGridVertical(mParent, true, true, interval, 0.0f, 0.0f, 0.0f, keepTopSide);
+	}
+	public void autoGridVertical(bool autoRefreshUIDepth, bool refreshIgnoreInactive)
+	{
+		WidgetUtility.autoGridVertical(mParent, autoRefreshUIDepth, refreshIgnoreInactive, 0.0f, 0.0f, 0.0f, 0.0f, true);
+	}
+	public void autoGridVertical(bool autoRefreshUIDepth, bool refreshIgnoreInactive, float interval, float minHeight = 0.0f, float extraTopHeight = 0.0f, float extraBottomHeight = 0.0f, bool keepTopSide = true)
+	{
+		WidgetUtility.autoGridVertical(mParent, autoRefreshUIDepth, refreshIgnoreInactive, interval, 0.0f, 0.0f, 0.0f, true);
 	}
 }

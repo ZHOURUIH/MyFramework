@@ -11,9 +11,8 @@ using static FrameBaseUtility;
 // 用于管理SpriteAtlas和MultiSprite封装以后的对象
 public class AtlasManager : FrameSystem
 {
-	protected AtlasLoaderAssetBundle mAssetBundleAtlasManager = new();	// 从AssetBundle中加载
-	protected AtlasLoaderResources mResourcesAtlasManager = new();		// 从Resources中加载
-	protected Dictionary<string, SpriteAtlas> mAtlasList;				// 已加载的SpriteAtlas列表
+	protected AtlasLoader mAtlasLoader = new();							// 从AssetBundle中加载,因为之前考虑也兼容从Resources中加载,但是由于热更层只会从GameResources中加载,所以就去除了兼容Resources
+	protected Dictionary<string, ResourceRef<SpriteAtlas>> mAtlasList;	// 已加载的SpriteAtlas列表
 	protected Dictionary<string, string> mAtlasPathList;				// 根据图集名字查找SpriteAtlas文件的路径
 	public AtlasManager()
 	{
@@ -39,62 +38,39 @@ public class AtlasManager : FrameSystem
 	}
 	public void destroyAll()
 	{
-		mAssetBundleAtlasManager.destroyAll();
-		mResourcesAtlasManager.destroyAll();
+		mAtlasLoader.destroyAll();
 	}
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		mAssetBundleAtlasManager.update();
-		mResourcesAtlasManager.update();
+		mAtlasLoader.update(elapsedTime);
 	}
-	public void addDontUnloadAtlas(string fileName) { mAssetBundleAtlasManager.addDontUnloadAtlas(fileName); }
-	public SafeDictionary<string, AtlasBase> getAtlasList() { return mAssetBundleAtlasManager.getAtlasList(); }
-	public SafeDictionary<string, AtlasBase> getAtlasListInResources() { return mResourcesAtlasManager.getAtlasList(); }
+	public void addDontUnloadAtlas(string fileName) { mAtlasLoader.addDontUnloadAtlas(fileName); }
+	public SafeDictionary<string, AtlasBase> getAtlasList() { return mAtlasLoader.getAtlasList(); }
 	// 获取位于GameResources目录中的图集,如果不存在则可以选择是否同步加载
-	public UGUIAtlasPtr getAtlas(string atlasName, bool errorInNull = true, bool loadIfNull = true)
+	public AtlasRef getAtlas(string atlasName, bool errorInNull = true, bool loadIfNull = true)
 	{
-		return mAssetBundleAtlasManager.getAtlas(atlasName, errorInNull, loadIfNull);
-	}
-	// 获取位于Resources目录中的图集,如果不存在则可以选择是否同步加载
-	public UGUIAtlasPtr getAtlasInResources(string atlasName, bool errorInNull = true, bool loadIfNull = true)
-	{
-		return mResourcesAtlasManager.getAtlas(atlasName, errorInNull, loadIfNull);
+		return mAtlasLoader.getAtlas(atlasName, errorInNull, loadIfNull);
 	}
 	// 异步加载位于GameResources中的图集,atlasName是GameResources下的相对路径,带后缀
-	public CustomAsyncOperation getAtlasAsyncSafe(ClassObject owner, string atlasName, UGUIAtlasPtrCallback callback, bool errorInNull = true, bool loadIfNull = true)
+	public CustomAsyncOperation getAtlasAsyncSafe(IRecyclable owner, string atlasName, UGUIAtlasPtrCallback callback, bool errorInNull = true, bool loadIfNull = true)
 	{
-		return mAssetBundleAtlasManager.getAtlasAsyncSafe(owner, atlasName, callback, errorInNull, loadIfNull);
-	}
-	// 异步加载位于Resources中的图集
-	public CustomAsyncOperation getAtlasInResourcesAsyncSafe(ClassObject owner, string atlasName, UGUIAtlasPtrCallback callback, bool errorInNull = true, bool loadIfNull = true)
-	{
-		return mResourcesAtlasManager.getAtlasAsyncSafe(owner, atlasName, callback, errorInNull, loadIfNull);
+		return mAtlasLoader.getAtlasAsyncSafe(owner, atlasName, callback, errorInNull, loadIfNull);
 	}
 	// 卸载图集
-	public void unloadAtlas(ref UGUIAtlasPtr atlasPtr)
+	public void unloadAtlas(ref AtlasRef atlasPtr)
 	{
-		mAssetBundleAtlasManager.unloadAtlas(atlasPtr);
+		mAtlasLoader.unloadAtlas(atlasPtr);
 		UN_CLASS(ref atlasPtr);
 	}
-	public void unloadAtlas(List<UGUIAtlasPtr> atlasPtrList)
+	public void unloadAtlas(List<AtlasRef> atlasPtrList)
 	{
-		atlasPtrList.For(item => mAssetBundleAtlasManager.unloadAtlas(item));
+		atlasPtrList.For(item => mAtlasLoader.unloadAtlas(item));
 		UN_CLASS_LIST(atlasPtrList);
 	}
-	public void unloadAtlas<Key>(Dictionary<Key, UGUIAtlasPtr> atlasPtrList)
+	public void unloadAtlas<Key>(Dictionary<Key, AtlasRef> atlasPtrList)
 	{
-		atlasPtrList.forValue(item => mAssetBundleAtlasManager.unloadAtlas(item));
-		UN_CLASS_LIST(atlasPtrList);
-	}
-	public void unloadAtlasInResources(ref UGUIAtlasPtr atlasPtr)
-	{
-		mResourcesAtlasManager.unloadAtlas(atlasPtr);
-		UN_CLASS(ref atlasPtr);
-	}
-	public void unloadAtlasInResources(List<UGUIAtlasPtr> atlasPtrList)
-	{
-		atlasPtrList.For(item => mResourcesAtlasManager.unloadAtlas(item));
+		atlasPtrList.forValue(item => mAtlasLoader.unloadAtlas(item));
 		UN_CLASS_LIST(atlasPtrList);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
@@ -104,14 +80,15 @@ public class AtlasManager : FrameSystem
 		{
 			mAtlasPathList = new();
 			var text = mResourceManager.loadGameResource<TextAsset>(R_MISC_PATH + ATLAS_PATH_CONFIG);
-			foreach(string line in splitLine(text.text))
+			foreach(string line in text.getResource().text.splitLine())
 			{
 				mAtlasPathList.Add(getFileNameNoSuffixNoDir(line), line);
 			}
+			mResourceManager.unload(ref text);
 		}
 
 		mAtlasList ??= new();
-		SpriteAtlas atlas = mAtlasList.get(name);
+		ResourceRef<SpriteAtlas> atlas = mAtlasList.get(name);
 		if (atlas == null)
 		{
 			string path = mAtlasPathList.get(name);
@@ -124,6 +101,6 @@ public class AtlasManager : FrameSystem
 			atlas = mResourceManager.loadGameResource<SpriteAtlas>(path);
 			mAtlasList.Add(name, atlas);
 		}
-		action(atlas);
+		action(atlas.getResource());
 	}
 }

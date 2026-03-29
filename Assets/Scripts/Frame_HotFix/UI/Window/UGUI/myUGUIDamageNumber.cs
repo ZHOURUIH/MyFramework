@@ -5,17 +5,16 @@ using static FrameUtility;
 using static StringUtility;
 using static MathUtility;
 using static FrameDefine;
-using static FrameBaseDefine;
 using static FrameBaseHotFix;
 
 // 专用于显示伤害数字的窗口,使用一个窗口即可同时绘制几千个伤害数字
 public class myUGUIDamageNumber : myUGUIObject
 {
-	protected DamageNumberRenderer mRenderer;			// 渲染组件
-	protected UGUIAtlasPtr mOriginAtlasPtr = new();		// 初始的图片图集,用于卸载,当前类只关心初始图集的卸载,后续再次设置的图集不关心是否需要卸载,需要外部设置的地方自己关心
-	protected UGUIAtlasPtr mAtlasPtr = new();			// 当前正在使用的图片图集
-	protected Sprite mOriginSprite;                     // 备份加载物体时原始的精灵图片
-	protected string mNumberStyle;						// 数字图集名
+	protected DamageNumberRenderer mRenderer;		// 渲染组件
+	protected AtlasRef mOriginAtlasPtr = new();		// 初始的图片图集,用于卸载,当前类只关心初始图集的卸载,后续再次设置的图集不关心是否需要卸载,需要外部设置的地方自己关心
+	protected AtlasRef mAtlasPtr = new();			// 当前正在使用的图片图集
+	protected Sprite mOriginSprite;                 // 备份加载物体时原始的精灵图片
+	protected string mNumberStyle;					// 数字图集名
 	public override void init()
 	{
 		base.init();
@@ -24,7 +23,7 @@ public class myUGUIDamageNumber : myUGUIObject
 		{
 			if (!mIsNewObject)
 			{
-				logError("需要添加一个DamageNumberCanvasRenderer组件,name:" + getName() + ", layout:" + getLayout().getName());
+				logError("需要添加一个DamageNumberRenderer组件,name:" + getName() + ", layout:" + getLayout().getName());
 			}
 			mRenderer = mObject.AddComponent<DamageNumberRenderer>();
 			// 添加UGUI组件后需要重新获取RectTransform
@@ -48,16 +47,8 @@ public class myUGUIDamageNumber : myUGUIObject
 			// unity_builtin_extra是unity内置的资源,不需要再次加载
 			if (!atlasPath.endWith("/unity_builtin_extra"))
 			{
-				if (mLayout.isInResources())
-				{
-					atlasPath = atlasPath.removeStartString(P_RESOURCES_PATH);
-					mOriginAtlasPtr = mAtlasManager.getAtlasInResources(atlasPath, false);
-				}
-				else
-				{
-					atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
-					mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
-				}
+				atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
+				mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
 				if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
 				{
 					logWarning("无法加载初始化的图集:" + atlasPath + ", window:" + mName + ", layout:" + mLayout.getName() +
@@ -68,6 +59,16 @@ public class myUGUIDamageNumber : myUGUIObject
 			mNumberStyle = mRenderer.mImage.name.rangeToLast('_');
 			refreshSpriteList();
 		}
+	}
+	public override void destroy()
+	{
+		// 为了尽量确保ImageAtlasPath中记录的图集路径与图集完全一致,在销毁窗口时还原初始的图片
+		// 这样在重复使用当前物体时在校验图集路径时不会出错,但是如果在当前物体使用过程中销毁了原始的图片,则可能会报错
+		mRenderer.mImage = mOriginSprite;
+		setAlpha(1.0f, false);
+		mAtlasManager.unloadAtlas(ref mOriginAtlasPtr);
+		mAtlasPtr = null;
+		base.destroy();
 	}
 	public override void notifyAnchorApply()
 	{
@@ -85,7 +86,7 @@ public class myUGUIDamageNumber : myUGUIObject
 		mRenderer.setNumberSpriteList(source.mRenderer.getSpriteList());
 		mRenderer.setDocking(source.getDocking());
 	}
-	public void setAtlas(UGUIAtlasPtr atlas)
+	public void setAtlas(AtlasRef atlas)
 	{
 		mAtlasPtr = atlas;
 		refreshSpriteList();
@@ -180,12 +181,11 @@ public class myUGUIDamageNumber : myUGUIObject
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void refreshSpriteList()
 	{
-		using var a = new ListScope<DamageNumberSpriteData>(out var spriteList);
+		using var a = new ListScope<SpriteData>(out var spriteList);
 		for (int i = 0; i < 10; ++i)
 		{
-			DamageNumberSpriteData data = new();
+			SpriteData data = new();
 			data.init(mAtlasPtr.getSprite(mNumberStyle + "_" + IToS(i)));
-			data.mSearchKey = (char)('0' + i);
 			spriteList.add(data);
 		}
 		mRenderer.mImage = spriteList.first().mSprite;

@@ -1,8 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 // 自定义的对ushort[]的封装,可用于序列化
-public class USHORTS : Serializable, IEnumerable<ushort>
+public class USHORTS : Serializable
 {
 	public List<ushort> mValue = new();    // 值
 	public ushort this[int index]
@@ -36,6 +35,5 @@ public class USHORTS : Serializable, IEnumerable<ushort>
 	{
 		return value.mValue;
 	}
-	public IEnumerator<ushort> GetEnumerator() { return mValue.GetEnumerator(); }
-	IEnumerator IEnumerable.GetEnumerator() { return mValue.GetEnumerator(); }
+	public List<ushort>.Enumerator GetEnumerator() { return mValue.GetEnumerator(); }
 }

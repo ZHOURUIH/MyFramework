@@ -249,7 +249,7 @@ public class NetConnectHttp : NetConnect
 				if (item.mMethod == HTTP_METHOD.POST)
 				{
 #if UNITY_WEBGL
-					httpPostAsyncWebGL(fullURL, stringToBytes(item.mMessage), mContentType, mHttpHeader, (string result, UnityWebRequest.Result status, long code) =>
+					httpPostAsyncWebGL(fullURL, item.mMessage.stringToBytes(), mContentType, mHttpHeader, (string result, UnityWebRequest.Result status, long code) =>
 					{
 						parsePacket(callback, type, result, status, code);
 					});

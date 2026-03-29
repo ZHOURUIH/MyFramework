@@ -21,9 +21,6 @@ public class EditorDefine
 			P_ATLAS_PATH,
 			P_TEXTURE_PATH,
 			P_UI_PATH,
-			P_RESOURCES_ATLAS_PATH,
-			P_RESOURCES_TEXTURE_PATH,
-			P_RESOURCES_UI_PATH,
 			P_UNUSED_PATH,
 		};
 		list.AddRange(new GameEditorDefine().getNoMipmapsPath_Extension());

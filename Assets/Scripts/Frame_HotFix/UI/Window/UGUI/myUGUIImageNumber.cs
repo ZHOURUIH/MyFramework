@@ -2,35 +2,34 @@
 using static UnityUtility;
 using static StringUtility;
 using static FrameDefine;
-using static FrameBaseDefine;
 using static FrameBaseHotFix;
 
 // 可显示数字的窗口,只支持整数,且每个数字图片的大小必须一样,不能显示小数,负数
 // 因为使用了自定义的组件,所以性能上比myUGUINumber更高,只是相比之下myUGUINumber更加灵活一点
 public class myUGUIImageNumber : myUGUIObject
 {
-	protected ImageNumber mImageNumber;						// 渲染组件
-	protected UGUIAtlasPtr mOriginAtlasPtr = new();			// 初始的图片图集,用于卸载,当前类只关心初始图集的卸载,后续再次设置的图集不关心是否需要卸载,需要外部设置的地方自己关心
-	protected UGUIAtlasPtr mAtlasPtr = new();				// 当前正在使用的图片图集
-	protected Sprite mOriginSprite;                         // 备份加载物体时原始的精灵图片
-	protected string mNumberStyle;							// 数字图集名
+	protected ImageNumber mRenderer;					// 渲染组件
+	protected AtlasRef mOriginAtlasPtr = new();			// 初始的图片图集,用于卸载,当前类只关心初始图集的卸载,后续再次设置的图集不关心是否需要卸载,需要外部设置的地方自己关心
+	protected AtlasRef mAtlasPtr = new();				// 当前正在使用的图片图集
+	protected Sprite mOriginSprite;                     // 备份加载物体时原始的精灵图片
+	protected string mNumberStyle;						// 数字图集名
 	public override void init()
 	{
 		base.init();
 		// 获取image组件,如果没有则添加,这样是为了使用代码新创建一个image窗口时能够正常使用image组件
-		if (!mObject.TryGetComponent(out mImageNumber))
+		if (!mObject.TryGetComponent(out mRenderer))
 		{
 			if (!mIsNewObject)
 			{
 				logError("需要添加一个ImageNumber组件,name:" + getName() + ", layout:" + getLayout().getName());
 			}
-			mImageNumber = mObject.AddComponent<ImageNumber>();
+			mRenderer = mObject.AddComponent<ImageNumber>();
 			// 添加UGUI组件后需要重新获取RectTransform
 			mObject.TryGetComponent(out mRectTransform);
 			mTransform = mRectTransform;
 		}
 
-		mOriginSprite = mImageNumber.sprite;
+		mOriginSprite = mRenderer.sprite;
 		// 获取初始的精灵所在图集
 		if (mOriginSprite != null)
 		{
@@ -46,16 +45,8 @@ public class myUGUIImageNumber : myUGUIObject
 			// unity_builtin_extra是unity内置的资源,不需要再次加载
 			if (!atlasPath.endWith("/unity_builtin_extra"))
 			{
-				if (mLayout.isInResources())
-				{
-					atlasPath = atlasPath.removeStartString(P_RESOURCES_PATH);
-					mOriginAtlasPtr = mAtlasManager.getAtlasInResources(atlasPath, false);
-				}
-				else
-				{
-					atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
-					mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
-				}
+				atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
+				mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
 				if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
 				{
 					logWarning("无法加载初始化的图集:" + atlasPath + ", window:" + mName + ", layout:" + mLayout.getName() +
@@ -63,27 +54,37 @@ public class myUGUIImageNumber : myUGUIObject
 				}
 			}
 			mAtlasPtr = mOriginAtlasPtr;
-			mNumberStyle = mImageNumber.sprite.name.rangeToLast('_');
+			mNumberStyle = mRenderer.sprite.name.rangeToLast('_');
 			refreshSpriteList();
 		}
+	}
+	public override void destroy()
+	{
+		// 为了尽量确保ImageAtlasPath中记录的图集路径与图集完全一致,在销毁窗口时还原初始的图片
+		// 这样在重复使用当前物体时在校验图集路径时不会出错,但是如果在当前物体使用过程中销毁了原始的图片,则可能会报错
+		mRenderer.sprite = mOriginSprite;
+		setAlpha(1.0f, false);
+		mAtlasManager.unloadAtlas(ref mOriginAtlasPtr);
+		mAtlasPtr = null;
+		base.destroy();
 	}
 	public override void notifyAnchorApply()
 	{
 		base.notifyAnchorApply();
 		// 此处默认数字窗口都是以ASPECT_BASE.AB_AUTO的方式等比放大
-		mImageNumber.setInterval((int)(mImageNumber.getInterval() * getScreenScale(ASPECT_BASE.AUTO).x));
+		mRenderer.setInterval((int)(mRenderer.getInterval() * getScreenScale(ASPECT_BASE.AUTO).x));
 	}
 	public override void cloneFrom(myUGUIObject obj)
 	{
 		base.cloneFrom(obj);
 		var source = obj as myUGUIImageNumber;
-		mImageNumber.setInterval(source.mImageNumber.getInterval());
+		mRenderer.setInterval(source.mRenderer.getInterval());
 		mNumberStyle = source.mNumberStyle;
-		mImageNumber.setNumber(source.getNumber());
-		mImageNumber.setSpriteList(source.mImageNumber.getSpriteList());
-		mImageNumber.setDocking(source.getDocking());
+		mRenderer.setNumber(source.getNumber());
+		mRenderer.setSpriteList(source.mRenderer.getSpriteList());
+		mRenderer.setDocking(source.getDocking());
 	}
-	public void setAtlas(UGUIAtlasPtr atlas)
+	public void setAtlas(AtlasRef atlas)
 	{
 		mAtlasPtr = atlas;
 		refreshSpriteList();
@@ -93,16 +94,16 @@ public class myUGUIImageNumber : myUGUIObject
 		mNumberStyle = style;
 		refreshSpriteList();
 	}
-	public void setInterval(int interval)					{ mImageNumber.setInterval(interval); }
-	public void setDocking(DOCKING_POSITION dock)			{ mImageNumber.setDocking(dock); }
-	public void setNumber(int num, int limitLen = 0)		{ mImageNumber.setNumber(IToS(num, limitLen)); }
-	public void setNumber(long num, int limitLen = 0)		{ mImageNumber.setNumber(LToS(num, limitLen)); }
-	public void clearNumber()								{ mImageNumber.clearNumber(); }
-	public int getContentWidth()							{ return mImageNumber.getContentWidth(); }
-	public string getNumber()								{ return mImageNumber.getNumber(); }
-	public int getInterval()								{ return mImageNumber.getInterval(); }
+	public void setInterval(int interval)					{ mRenderer.setInterval(interval); }
+	public void setDocking(DOCKING_POSITION dock)			{ mRenderer.setDocking(dock); }
+	public void setNumber(int num, int limitLen = 0)		{ mRenderer.setNumber(IToS(num, limitLen)); }
+	public void setNumber(long num, int limitLen = 0)		{ mRenderer.setNumber(LToS(num, limitLen)); }
+	public void clearNumber()								{ mRenderer.clearNumber(); }
+	public int getContentWidth()							{ return mRenderer.getContentWidth(); }
+	public string getNumber()								{ return mRenderer.getNumber(); }
+	public int getInterval()								{ return mRenderer.getInterval(); }
 	public string getNumberStyle()							{ return mNumberStyle; }
-	public DOCKING_POSITION getDocking()					{ return mImageNumber.getDocking(); }
+	public DOCKING_POSITION getDocking()					{ return mRenderer.getDocking(); }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void refreshSpriteList()
 	{
@@ -111,7 +112,7 @@ public class myUGUIImageNumber : myUGUIObject
 		{
 			spriteList.add((char)('0' + i), mAtlasPtr.getSprite(mNumberStyle + "_" + IToS(i)));
 		}
-		mImageNumber.sprite = spriteList.firstValue();
-		mImageNumber.setSpriteList(spriteList);
+		mRenderer.sprite = spriteList.firstValue();
+		mRenderer.setSpriteList(spriteList);
 	}
 }

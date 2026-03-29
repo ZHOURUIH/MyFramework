@@ -6,7 +6,7 @@ using static FrameBaseUtility;
 
 // 负责窗口对象池,效率稍微高一些,但是功能会比普通的WindowStructPool少一点,UsedList是无序的
 [CommonWindowPool]
-public class WindowStructPoolUnOrder<T> : WindowStructPoolBase where T : WindowObjectBase, IRecyclable
+public class WindowStructPoolUnOrder<T> : WindowStructPoolBase where T : WindowObjectBase, IRecyclableUI
 {
 	protected HashSet<T> mUsedItemList = new();		// 正在使用的列表
 	protected Queue<T> mUnusedItemList = new();		// 未使用列表

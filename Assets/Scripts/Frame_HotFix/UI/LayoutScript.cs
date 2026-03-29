@@ -461,9 +461,9 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		}
 		return go;
 	}
-	public static CustomAsyncOperation instantiateAsync(myUGUIObject parent, string prefabPath, string name, int tag, GameObjectCallback callback)
+	public static CustomAsyncOperation instantiateAsync(IRecyclable safeObj, myUGUIObject parent, string prefabPath, string name, int tag, GameObjectCallback callback)
 	{
-		return mPrefabPoolManager.createObjectAsync(prefabPath, tag, false, false, (GameObject go) =>
+		return mPrefabPoolManager.createObjectAsyncSafe(safeObj, prefabPath, tag, false, false, (GameObject go) =>
 		{
 			if (go != null)
 			{

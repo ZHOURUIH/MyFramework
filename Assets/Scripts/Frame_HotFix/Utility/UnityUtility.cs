@@ -276,7 +276,7 @@ public class UnityUtility
 	}
 	// 一般不会直接调用该函数,要创建物体时需要使用ObjectPool来创建和回收
 	// parent为实例化后挂接的父节点
-	// prefabName为预设名,带Resources下相对路径
+	// prefabName为预设名,带GameResources下相对路径
 	// name为实例化后的名字
 	// 其他三个是实例化后本地的变换
 	public static GameObject instantiatePrefab(GameObject parent, GameObject prefab, string name, bool active)
@@ -516,7 +516,7 @@ public class UnityUtility
 
 		Vector2 parentWorldPosition = divideVector3(window.getWorldPosition(), mLayoutManager.getUIRoot().getScale());
 		Vector2 windowPos = divideVector2(screenPos - parentWorldPosition, window.getWorldScale());
-		Vector2 halfWindowSize = window.getWindowSize() * 0.5f;
+		Vector2 halfWindowSize = window.getSize() * 0.5f;
 		return inRange(windowPos, -halfWindowSize, halfWindowSize);
 	}
 	// screenCenterAsZero为true表示返回的坐标是以window的中心为原点,false表示以window的左下角为原点
@@ -534,7 +534,7 @@ public class UnityUtility
 			windowPos = divideVector2(screenPos - parentWorldPosition, window.getWorldScale());
 			if (!windowCenterAsZero)
 			{
-				windowPos += window.getWindowSize() * 0.5f;
+				windowPos += window.getSize() * 0.5f;
 			}
 		}
 		else
@@ -1118,7 +1118,7 @@ public class UnityUtility
 	public static Vector2Int getScreenSize() { return mScreenSize; }
 	public static Vector2Int getHalfScreenSize() { return mHalfScreenSize; }
 	public static float getScreenAspect() { return mScreenAspect; }
-	public static Vector2 getRootSize() { return getUGUIRoot().getWindowSize(); }
+	public static Vector2 getRootSize() { return getUGUIRoot().getSize(); }
 	// 获取屏幕独立的缩放值
 	public static Vector2 getScreenScale() { return FrameBaseUtility.getScreenScale(mScreenSize); }
 	// 根据一定规则,获取屏幕的缩放

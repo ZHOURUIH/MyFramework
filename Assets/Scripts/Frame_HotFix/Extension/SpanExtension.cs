@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Text;
 using static MathUtility;
+using static BinaryUtility;
 
 public static class SpanExtension
 {
@@ -121,4 +123,18 @@ public static class SpanExtension
 	}
 	public static bool isEmpty<T>(this Span<T> list)								{ return list == null || list.Length == 0; }
 	public static bool contains<T>(this Span<T> list, Predicate<T> match)			{ return list != null && list.find(match) != null; }
+	public static string bytesToString(this Span<byte> bytes, Encoding encoding = null)
+	{
+		if (bytes == null)
+		{
+			return null;
+		}
+		if (bytes.Length == 0)
+		{
+			return string.Empty;
+		}
+		// 默认为UTF8
+		encoding ??= Encoding.UTF8;
+		return removeLastZero(encoding.GetString(bytes));
+	}
 }

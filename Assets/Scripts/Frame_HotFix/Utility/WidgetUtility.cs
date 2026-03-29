@@ -26,7 +26,7 @@ public class WidgetUtility
 	public static bool isWindowInScreen(myUGUIObject window, GameCamera camera)
 	{
 		Vector3 pos = worldToScreen(window.getWorldPosition(), camera.getCamera());
-		return overlapBox2(pos, window.getWindowSize(), Vector3.zero, getScreenSize());
+		return overlapBox2(pos, window.getSize(), Vector3.zero, getScreenSize());
 	}
 	public static void setPositionNoPivot(RectTransform rect, Vector3 pos, bool applyWindowScale = true)
 	{
@@ -329,10 +329,10 @@ public class WidgetUtility
 	// 限制一个窗口的位置,使其父节点不能超出此窗口的范围,通常用于viewport内的更大的子窗口拖拽时限制位置
 	public static void clampNoOverParentRectInverse(myUGUIObject window, myUGUIObject parent)
 	{
-		Vector2 mapSize = window.getWindowSize();
+		Vector2 mapSize = window.getSize();
 		Vector3 pos = window.getPosition();
-		clamp(ref pos.x, parent.getWindowRightInSelf() - mapSize.x * 0.5f, parent.getWindowLeftInSelf() + mapSize.x * 0.5f);
-		clamp(ref pos.y, parent.getWindowTopInSelf() - mapSize.y * 0.5f, parent.getWindowBottomInSelf() + mapSize.y * 0.5f);
+		clamp(ref pos.x, parent.getRightInSelf() - mapSize.x * 0.5f, parent.getLeftInSelf() + mapSize.x * 0.5f);
+		clamp(ref pos.y, parent.getTopInSelf() - mapSize.y * 0.5f, parent.getBottomInSelf() + mapSize.y * 0.5f);
 		window.setPosition(pos);
 	}
 	// 获得指定屏幕坐标下的可交互UI,比如勾选了RaycastTarget的Image或Text等,Button,InputField等
@@ -426,7 +426,7 @@ public class WidgetUtility
 		}
 
 		// 计算父节点大小
-		Vector2 rootSize = root.getWindowSize();
+		Vector2 rootSize = root.getSize();
 		Vector3 beforeRealPosition = root.getPositionNoPivot();
 		Vector3 beforeRootLeftTop = new(beforeRealPosition.x - rootSize.x * 0.5f, beforeRealPosition.y + rootSize.y * 0.5f);
 		Vector3 beforeRootLeftBottom = new(beforeRealPosition.x - rootSize.x * 0.5f, beforeRealPosition.y - rootSize.y * 0.5f);
@@ -444,7 +444,7 @@ public class WidgetUtility
 		// 确保宽高都是偶数,这样才能使边和坐标都是整数
 		rootSize.x += (int)rootSize.x & 1;
 		rootSize.y += (int)rootSize.y & 1;
-		root.setWindowSize(rootSize);
+		root.setSize(rootSize);
 
 		// 计算排列子节点所需的竖直和水平方向的坐标变化符号以及起始坐标,并且调整父节点的坐标
 		Vector2 startPos = Vector2.zero;
@@ -453,7 +453,7 @@ public class WidgetUtility
 		Vector3 curRealPosition = root.getPositionNoPivot();
 		if (startCorner == CORNER.LEFT_TOP)
 		{
-			startPos = new Vector2(gridSize.x * 0.5f, -gridSize.y * 0.5f) + new Vector2(root.getWindowLeftInSelf(), root.getWindowTopInSelf());
+			startPos = new Vector2(gridSize.x * 0.5f, -gridSize.y * 0.5f) + new Vector2(root.getLeftInSelf(), root.getTopInSelf());
 			horizontalSign = 1;
 			verticalSign = -1;
 			// 保持左上角的坐标与改变大小之前的左上角坐标一致
@@ -465,7 +465,7 @@ public class WidgetUtility
 		}
 		else if (startCorner == CORNER.LEFT_BOTTOM)
 		{
-			startPos = new Vector2(gridSize.x * 0.5f, gridSize.y * 0.5f) + new Vector2(root.getWindowLeftInSelf(), root.getWindowBottomInSelf());
+			startPos = new Vector2(gridSize.x * 0.5f, gridSize.y * 0.5f) + new Vector2(root.getLeftInSelf(), root.getBottomInSelf());
 			horizontalSign = 1;
 			verticalSign = 1;
 			// 保持左下角的坐标与改变大小之前的左下角坐标一致
@@ -477,7 +477,7 @@ public class WidgetUtility
 		}
 		else if (startCorner == CORNER.RIGHT_TOP)
 		{
-			startPos = new Vector2(-gridSize.x * 0.5f, -gridSize.y * 0.5f) + new Vector2(root.getWindowRightInSelf(), root.getWindowTopInSelf());
+			startPos = new Vector2(-gridSize.x * 0.5f, -gridSize.y * 0.5f) + new Vector2(root.getRightInSelf(), root.getTopInSelf());
 			horizontalSign = -1;
 			verticalSign = -1;
 			// 保持右上角的坐标与改变大小之前的右上角坐标一致
@@ -489,7 +489,7 @@ public class WidgetUtility
 		}
 		else if (startCorner == CORNER.RIGHT_BOTTOM)
 		{
-			startPos = new Vector2(-gridSize.x * 0.5f, gridSize.y * 0.5f) + new Vector2(root.getWindowRightInSelf(), root.getWindowBottomInSelf());
+			startPos = new Vector2(-gridSize.x * 0.5f, gridSize.y * 0.5f) + new Vector2(root.getRightInSelf(), root.getBottomInSelf());
 			horizontalSign = -1;
 			verticalSign = 1;
 			// 保持右下角的坐标与改变大小之前的右下角坐标一致
@@ -650,7 +650,7 @@ public class WidgetUtility
 		}
 
 		// 设置父节点新的位置和大小,重新设置所有子节点的世界坐标
-		root.setWindowHeight(root.getWindowSize().y + appendHeight);
+		root.setHeight(root.getSize().y + appendHeight);
 		root.setPositionY(root.getPosition().y + appendHeight * 0.5f);
 		foreach (var item in childWorldPositionList)
 		{
@@ -674,7 +674,7 @@ public class WidgetUtility
 		}
 
 		// 设置父节点新的位置和大小,重新设置所有子节点的世界坐标
-		root.setWindowHeight(root.getWindowSize().y + appendHeight);
+		root.setHeight(root.getSize().y + appendHeight);
 		root.setPositionY(root.getPosition().y - appendHeight * 0.5f);
 		foreach (var item in childWorldPositionList)
 		{
@@ -687,12 +687,12 @@ public class WidgetUtility
 	// 所以可以选择是否保持子节点世界坐标不变
 	public static void setWindowHeightKeepTop(myUGUIObject root, float height, bool keepChildWorldPosition = true)
 	{
-		if ((int)root.getWindowSize().y == (int)height)
+		if ((int)root.getSize().y == (int)height)
 		{
 			return;
 		}
-		int beforeRootHeight = (int)root.getWindowSize().y;
-		root.setWindowHeight(height);
+		int beforeRootHeight = (int)root.getSize().y;
+		root.setHeight(height);
 		if (keepChildWorldPosition)
 		{
 			using var a = new DicScope<Transform, Vector3>(out var childWorldPositionList);
@@ -740,8 +740,8 @@ public class WidgetUtility
 
 		// 设置父节点的大小,位置,已经根据之前子节点到父节点顶部的距离,还原子节点的位置
 		float newHeight = maxY - minY;
-		float beforeRootHeight = root.getWindowSize().y;
-		root.setWindowHeight(newHeight);
+		float beforeRootHeight = root.getSize().y;
+		root.setHeight(newHeight);
 		if (keepTopSide)
 		{
 			root.setPositionY(round(root.getPosition().y + (beforeRootHeight - newHeight) * 0.5f));
@@ -776,13 +776,13 @@ public class WidgetUtility
 		}
 		autoGridVertical(root?.getRectTransform(), interval, minHeight, extraTopHeight, extraBottomHeight, keepTopSide);
 		// 需要重新再调用一下setWindowSize,以便触发虚函数的逻辑
-		root.setWindowSize(root.getWindowSize());
+		root.setSize(root.getSize());
 		if (root?.getRectTransform() != null && autoRefreshUIDepth)
 		{
 			root.getLayout().refreshUIDepth(root, refreshIgnoreInactive);
 		}
 	}
-	// 自动排列一个节点下的所有子节点的位置,从上往下紧密排列,并且不改变子节点的大小
+	// 自动排列一个节点下的所有子节点的位置,从上往下紧密排列,并且不改变子节点的大小,会改变root的大小
 	public static void autoGridVertical(RectTransform root, float interval, float minHeight = 0.0f, float extraTopHeight = 0.0f, float extraBottomHeight = 0.0f, bool keepTopSide = true)
 	{
 		if (root == null)
@@ -873,7 +873,7 @@ public class WidgetUtility
 		}
 		autoGridHorizontal(root?.getRectTransform(), interval, changeRootPosSize, minWidth, extraLeftWidth, extraRightWidth, keepLeftSide);
 		// 需要重新再调用一下setWindowSize,以便触发虚函数的逻辑
-		root.setWindowSize(root.getWindowSize());
+		root.setSize(root.getSize());
 		if (root?.getRectTransform() != null && autoRefreshUIDepth)
 		{
 			root.getLayout().refreshUIDepth(root, refreshIgnoreInactive);
@@ -948,7 +948,7 @@ public class WidgetUtility
 	{
 		autoGridHorizontalCenter(root?.getRectTransform(), interval);
 		// 需要重新再调用一下setWindowSize,以便触发虚函数的逻辑
-		root.setWindowSize(root.getWindowSize());
+		root.setSize(root.getSize());
 		if (root?.getRectTransform() != null && autoRefreshUIDepth)
 		{
 			root.getLayout().refreshUIDepth(root, refreshIgnoreInactive);
@@ -1004,14 +1004,14 @@ public class WidgetUtility
 	{
 		autoGridHorizontal(target);
 		// 如果宽度超过了可显示区域,则需要左对齐
-		if (target.getWindowSize().x >= parent.getWindowSize().x)
+		if (target.getSize().x >= parent.getSize().x)
 		{
 			target.setLeftToParentLeft();
 		}
 		// 没有超过,则需要居中显示
 		else
 		{
-			target.setWindowSize(replaceX(target.getWindowSize(), parent.getWindowSize().x));
+			target.setSize(replaceX(target.getSize(), parent.getSize().x));
 			target.setPositionX(0.0f);
 		}
 	}
@@ -1048,7 +1048,7 @@ public class WidgetUtility
 
 		// 设置父节点新的位置和大小,重新设置所有子节点的世界坐标
 		obj.setWorldPosition(new(ceil((right + left) * 0.5f), ceil((top + bottom) * 0.5f)));
-		obj.setWindowSize(new(ceil(right - left), ceil(top - bottom)));
+		obj.setSize(new(ceil(right - left), ceil(top - bottom)));
 		foreach (var item in childWorldPositionList)
 		{
 			obj.getLayout().getUIObject(item.Key.gameObject)?.setWorldPosition(item.Value);

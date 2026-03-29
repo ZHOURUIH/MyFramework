@@ -8,7 +8,7 @@ public class CmdGlobalDelayCallParam4<T0, T1, T2, T3> : Command
 	public T1 mParam1;							// 函数的参数1
 	public T2 mParam2;							// 函数的参数2
 	public T3 mParam3;                          // 函数的参数3
-	protected ClassObject mGuard;				// 用于校验是否可以执行延迟函数
+	protected IRecyclable mGuard;				// 用于校验是否可以执行延迟函数
 	protected long mGuardAssignID;				// 用于校验是否可以执行延迟函数
 	public override void resetProperty()
 	{
@@ -21,7 +21,7 @@ public class CmdGlobalDelayCallParam4<T0, T1, T2, T3> : Command
 		mGuard = null;
 		mGuardAssignID = 0;
 	}
-	public void setGuard(ClassObject guard)
+	public void setGuard(IRecyclable guard)
 	{
 		mGuard = guard;
 		mGuardAssignID = mGuard.getAssignID();

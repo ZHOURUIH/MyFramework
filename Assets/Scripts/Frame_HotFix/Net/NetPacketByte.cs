@@ -36,6 +36,7 @@ public class NetPacketByte : NetPacket
 			item.mValid = valid;
 		}
 	}
+	public bool hasSign() { return true; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void addParam(Serializable param, bool isOptional)
 	{

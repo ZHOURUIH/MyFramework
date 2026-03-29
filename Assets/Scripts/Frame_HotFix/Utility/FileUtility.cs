@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 using UnityEngine.Networking;
 using static UnityUtility;
 using static StringUtility;
-using static BinaryUtility;
+using static SerializeByteUtility;
 using static FrameDefine;
 using static FrameBaseHotFix;
 using static FrameBaseUtility;
@@ -106,7 +106,7 @@ public class FileUtility
 			{
 				offset = BOM.Length;
 			}
-			callback?.Invoke(bytesToString(bytes, offset, bytes.Length - offset));
+			callback?.Invoke(bytes.bytesToString(offset, bytes.Length - offset));
 		});
 	}
 	public static void openTxtFileLinesAsync(string fileName, bool errorIfNull, StringArrayCallback callback)
@@ -121,7 +121,7 @@ public class FileUtility
 			{
 				offset = BOM.Length;
 			}
-			callback?.Invoke(splitLine(bytesToString(bytes, offset, bytes.Length - offset)));
+			callback?.Invoke(bytes.bytesToString(offset, bytes.Length - offset).splitLine());
 		});
 	}
 	// 打开一个二进制文件,fileName为绝对路径,返回值为文件长度
@@ -196,7 +196,7 @@ public class FileUtility
 		{
 			offset = BOM.Length;
 		}
-		return bytesToString(fileContent, offset, fileContent.Length - offset);
+		return fileContent.bytesToString(offset, fileContent.Length - offset);
 	}
 	// 打开一个文本文件,fileName为绝对路径,并且自动将文件拆分为多行,移除末尾的换行符(\r或者\n),存储在fileLines中,包含空行,返回值是行数
 	public static int openTxtFileLinesSync(string fileName, out string[] fileLines, bool errorIfNull = true, bool keepEmptyLine = true)
@@ -207,7 +207,7 @@ public class FileUtility
 			fileLines = null;
 			return 0;
 		}
-		splitLine(fileContent, out fileLines, !keepEmptyLine);
+		fileContent.splitLine(out fileLines, !keepEmptyLine);
 		return fileLines.count();
 	}
 	// 打开一个文本文件,fileName为绝对路径,并且自动将文件拆分为多行,移除末尾的换行符(\r或者\n),存储在fileLines中,包含空行,返回值是行数
@@ -278,7 +278,7 @@ public class FileUtility
 	{
 		if (isEditor() || isIOS() || isWindows() || isWebGL())
 		{
-			byte[] bytes = stringToBytes(content);
+			byte[] bytes = content.toBytes();
 			if (bytes != null)
 			{
 				writeFile(fileName, bytes, bytes.Length, addBOM);

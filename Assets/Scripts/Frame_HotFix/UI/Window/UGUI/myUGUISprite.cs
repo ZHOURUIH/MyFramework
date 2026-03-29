@@ -4,21 +4,21 @@ using static FrameBaseHotFix;
 using static StringUtility;
 using static MathUtility;
 using static FrameDefine;
-using static FrameBaseDefine;
 using static FrameBaseUtility;
 
 // 对SpriteRenderer的封装
 public class myUGUISprite : myUGUIObject, IShaderWindow
 {
-	protected SpriteRenderer mSpriteRenderer;   // 图片组件
-	protected WindowShader mWindowShader;       // 图片所使用的shader类,用于动态设置shader参数
-	protected UGUIAtlasPtr mOriginAtlasPtr;     // 图片图集,用于卸载,当前类只关心初始图集的卸载,后续再次设置的图集不关心是否需要卸载,需要外部设置的地方自己关心
-	protected UGUIAtlasPtr mAtlasPtr;           // 图片图集
-	protected Material mOriginMaterial;         // 初始的材质,用于重置时恢复材质
-	protected Sprite mOriginSprite;             // 备份加载物体时原始的精灵图片
-	protected string mOriginMaterialPath;       // 原始材质的文件路径
-	protected string mOriginSpriteName;         // 初始图片的名字,用于外部根据初始名字设置其他效果的图片
-	protected bool mIsNewMaterial;              // 当前的材质是否是新建的材质对象
+	protected SpriteRenderer mSpriteRenderer;		// 图片组件
+	protected WindowShader mWindowShader;			// 图片所使用的shader类,用于动态设置shader参数
+	protected AtlasRef mOriginAtlasPtr;				// 图片图集,用于卸载,当前类只关心初始图集的卸载,后续再次设置的图集不关心是否需要卸载,需要外部设置的地方自己关心
+	protected AtlasRef mAtlasPtr;					// 图片图集
+	protected Material mOriginMaterial;				// 初始的材质,用于重置时恢复材质
+	protected ResourceRef<Material> mCurMaterial;   // 当前引用的材质,用于卸载
+	protected Sprite mOriginSprite;					// 备份加载物体时原始的精灵图片
+	protected string mOriginMaterialPath;			// 原始材质的文件路径
+	protected string mOriginSpriteName;				// 初始图片的名字,用于外部根据初始名字设置其他效果的图片
+	protected bool mIsNewMaterial;					// 当前的材质是否是新建的材质对象
 	public override void init()
 	{
 		base.init();
@@ -40,16 +40,8 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 			{
 				logError("ImageAtlasPath中记录的路径为空,GameObject:" + getGameObjectPath(mObject));
 			}
-			if (mLayout.isInResources())
-			{
-				atlasPath = atlasPath.removeStartString(P_RESOURCES_PATH);
-				mOriginAtlasPtr = mAtlasManager.getAtlasInResources(atlasPath, false);
-			}
-			else
-			{
-				atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
-				mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
-			}
+			atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
+			mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
 			if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
 			{
 				logError("无法加载初始化的图集:" + atlasPath + ",GameObject:" + getGameObjectPath(mObject) +
@@ -85,27 +77,18 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 	public override void destroy()
 	{
 		// 卸载创建出的材质
-		if (mIsNewMaterial)
+		if (mIsNewMaterial && !isEditor())
 		{
-			if (!isEditor())
-			{
-				destroyUnityObject(mSpriteRenderer.sharedMaterial);
-			}
+			destroyUnityObject(mSpriteRenderer.sharedMaterial);
 		}
 		// 为了尽量确保ImageAtlasPath中记录的图集路径与图集完全一致,在销毁窗口时还原初始的图片
 		// 这样在重复使用当前物体时在校验图集路径时不会出错,但是如果在当前物体使用过程中销毁了原始的图片,则可能会报错
 		mSpriteRenderer.sprite = mOriginSprite;
 		setMaterial(mOriginMaterial);
 		setAlpha(1.0f, false);
-		if (mLayout.isInResources())
-		{
-			mAtlasManager.unloadAtlasInResources(ref mOriginAtlasPtr);
-		}
-		else
-		{
-			mAtlasManager.unloadAtlas(ref mOriginAtlasPtr);
-		}
 		mAtlasPtr = null;
+		mAtlasManager.unloadAtlas(ref mOriginAtlasPtr);
+		mResourceManager.unload(ref mCurMaterial);
 		base.destroy();
 	}
 	// 是否剔除渲染
@@ -164,7 +147,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		}
 		return mSpriteRenderer.sharedMaterial.renderQueue;
 	}
-	public override Vector2 getWindowSize(bool transformed = false)
+	public override Vector2 getSize(bool transformed = false)
 	{
 		if (mSpriteRenderer == null || mSpriteRenderer.sprite == null)
 		{
@@ -179,8 +162,8 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 			return getSpriteSize();
 		}
 	}
-	public UGUIAtlasPtr getAtlas() { return mAtlasPtr; }
-	public virtual void setAtlas(UGUIAtlasPtr atlas, bool clearSprite = false, bool force = false)
+	public AtlasRef getAtlas() { return mAtlasPtr; }
+	public virtual void setAtlas(AtlasRef atlas, bool clearSprite = false, bool force = false)
 	{
 		if (mSpriteRenderer == null)
 		{
@@ -255,8 +238,9 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		// 异步加载
 		if (loadAsync)
 		{
-			mResourceManager.loadGameResourceAsync(materialPath, (Material mat) =>
+			mResourceManager.loadGameResourceAsync<Material>(materialPath, (mat) =>
 			{
+				mCurMaterial = mat;
 				if (mSpriteRenderer == null)
 				{
 					return;
@@ -266,29 +250,29 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 					// 当需要复制一个新的材质时,刚加载出来的材质实际上就不会再用到了
 					// 只有当下次还加载相同的材质时才会直接返回已加载的材质
 					// 如果要卸载最开始加载出来的材质,只能通过卸载整个文件夹的资源来卸载
-					Material newMat = new(mat);
+					Material newMat = new(mCurMaterial.getResource());
 					newMat.name = getFileNameNoSuffixNoDir(materialPath) + "_" + IToS(mID);
 					setMaterial(newMat);
 				}
 				else
 				{
-					setMaterial(mat);
+					setMaterial(mCurMaterial.getResource());
 				}
 			});
 		}
 		// 同步加载
 		else
 		{
-			var loadedMaterial = mResourceManager.loadGameResource<Material>(materialPath);
+			mCurMaterial = mResourceManager.loadGameResource<Material>(materialPath);
 			if (mIsNewMaterial)
 			{
-				Material mat = new(loadedMaterial);
+				Material mat = new(mCurMaterial.getResource());
 				mat.name = getFileNameNoSuffixNoDir(materialPath) + "_" + IToS(mID);
 				setMaterial(mat);
 			}
 			else
 			{
-				setMaterial(loadedMaterial);
+				setMaterial(mCurMaterial.getResource());
 			}
 		}
 	}
@@ -365,7 +349,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		}
 		mSpriteRenderer.color = new(color.x, color.y, color.z);
 	}
-	public bool isOriginAtlas(UGUIAtlasPtr atlas) { return mOriginAtlasPtr == atlas; }
+	public bool isOriginAtlas(AtlasRef atlas) { return mOriginAtlasPtr == atlas; }
 	public override Color getColor() { return mSpriteRenderer.color; }
 	public string getOriginSpriteName() { return mOriginSpriteName; }
 	public void setOriginSpriteName(string textureName) { mOriginSpriteName = textureName; }

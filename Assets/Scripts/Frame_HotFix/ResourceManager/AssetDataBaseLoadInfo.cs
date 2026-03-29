@@ -2,16 +2,16 @@
 using UObject = UnityEngine.Object;
 
 // 资源加载的信息,表示一个非AssetBundle的资源
-public class ResourceLoadInfo : ClassObject
+public class AssetDataBaseLoadInfo : ClassObject
 {
-	public List<AssetLoadDoneCallback> mCallback = new();   // 回调列表
+	public List<AssetLoadCallback> mCallback = new();   // 回调列表
 	public List<string> mLoadPath = new();                  // 用于回调传参的加载路径列表,实际上里面都是mResourceName
 	protected UObject[] mSubObjects;                        // 子物体列表,比如图集中的所有Sprite
 	protected UObject mObject;								// 资源物体
 	protected string mPath;									// 加载路径,也就是mResourceName中的路径,不带文件名
 	protected string mResourceName;							// GameResources下的相对路径,带后缀
-	protected LOAD_STATE mState = LOAD_STATE.NONE;        // 加载状态
-	public void addCallback(AssetLoadDoneCallback callback, string loadPath)
+	protected LOAD_STATE mState = LOAD_STATE.NONE;			// 加载状态
+	public void addCallback(AssetLoadCallback callback, string loadPath)
 	{
 		if (callback == null)
 		{
@@ -23,7 +23,7 @@ public class ResourceLoadInfo : ClassObject
 	public void callbackAll()
 	{
 		// 需要复制一份列表,避免回调期间又开始加载资源而造成逻辑错误
-		using var a = new ListScope2T<AssetLoadDoneCallback, string>(out var tempCallbackList, out var tempLoadPath);
+		using var a = new ListScope2T<AssetLoadCallback, string>(out var tempCallbackList, out var tempLoadPath);
 		mCallback.moveTo(tempCallbackList);
 		mLoadPath.moveTo(tempLoadPath);
 		UObject tempObj = mObject;

@@ -9,11 +9,11 @@ public class BIT_BOOL : SerializableBit
 		mValue = false; 
 	}
 	public void set(bool value) { mValue = value; }
-	public override bool read(SerializerBitRead reader)
+	public override bool read(SerializerBitRead reader, bool needReadSign)
 	{
 		return reader.read(out mValue);
 	}
-	public override void write(SerializerBitWrite writer)
+	public override void write(SerializerBitWrite writer, bool needWriteSign)
 	{
 		writer.write(mValue);
 	}

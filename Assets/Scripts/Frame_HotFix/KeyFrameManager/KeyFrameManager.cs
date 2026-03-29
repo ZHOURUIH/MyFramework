@@ -22,7 +22,7 @@ public class KeyFrameManager : FrameSystem
 		mLoaded = false;
 
 		// 在编辑器中编辑的曲线
-		mResourceManager.loadGameResourceAsync(KEY_FRAME_FILE, (GameObject asset) =>
+		mResourceManager.loadGameResourceAsync<GameObject>(KEY_FRAME_FILE, (asset) =>
 		{
 			if (asset == null)
 			{
@@ -44,7 +44,7 @@ public class KeyFrameManager : FrameSystem
 				mCurveList.Remove(deleteKeys[i]);
 			}
 
-			GameObject keyFrameObject = instantiatePrefab(mObject, asset, getFileNameWithSuffix(asset.name), true);
+			GameObject keyFrameObject = instantiatePrefab(mObject, asset.getResource(), getFileNameWithSuffix(asset.getResource().name), true);
 			// 查找关键帧曲线,加入列表中
 			if (!keyFrameObject.TryGetComponent<GameKeyframe>(out var gameKeyframe))
 			{

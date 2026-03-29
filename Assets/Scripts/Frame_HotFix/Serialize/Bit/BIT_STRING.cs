@@ -9,11 +9,11 @@ public class BIT_STRING : SerializableBit
 		mValue = string.Empty;
 	}
 	public void set(string value) { mValue = value; }
-	public override bool read(SerializerBitRead reader)
+	public override bool read(SerializerBitRead reader, bool needReadSign)
 	{
 		return reader.readString(out mValue);
 	}
-	public override void write(SerializerBitWrite writer)
+	public override void write(SerializerBitWrite writer, bool needWriteSign)
 	{
 		writer.writeString(mValue);
 	}

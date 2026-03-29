@@ -136,6 +136,7 @@ public class ComponentInteractive : GameComponent
 	public bool isDepthOverAllChild()									{ return mDepthOverAllChild; }
 	public bool isAllowGenerateDepth()									{ return mAllowGenerateDepth; }
 	public int getClickSound()											{ return mClickSound; }
+	public BoolCallback getPressCallback()								{ return mPressCallback; }
 	public void setDepth(UIDepth parentDepth, int orderInParent)
 	{
 		mDepth ??= new();
@@ -164,7 +165,7 @@ public class ComponentInteractive : GameComponent
 	public void setOnTouchLeave(Vector3IntCallback callback)			{ mOnTouchLeave = callback; }
 	public void setOnTouchDown(Vector3IntCallback callback)				{ mOnTouchDown = callback; }
 	public void setOnTouchUp(Vector3IntCallback callback)				{ mOnTouchUp = callback; }
-	public void setOnTouchMove(TouchMoveCallback callback)					{ mOnTouchMove = callback; }
+	public void setOnTouchMove(TouchMoveCallback callback)				{ mOnTouchMove = callback; }
 	public void setOnTouchStay(Vector3IntCallback callback)				{ mOnTouchStay = callback; }
 	public void setOnScreenTouchUp(Vector3IntCallback callback)			{ mOnScreenTouchUp = callback; }
 	public void setOnScreenTouchDown(Vector3IntCallback callback)		{ mOnScreenTouchDown = callback; }

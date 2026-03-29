@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using static StringUtility;
-using static BinaryUtility;
 
 // 表单中的文件内容
 public class FormItemFile : FormItem
@@ -24,8 +23,8 @@ public class FormItemFile : FormItem
 	public override void write(MemoryStream postStream, string boundary)
 	{
 		string formTemplate = "--" + boundary + "\r\nContent-Disposition: form-data; name=\"file\"; filename=\"{0}\"\r\nContent-Type: binary/octet-stream\r\n\r\n";
-		byte[] formdataBytes = stringToBytes(format(formTemplate, mFileName));
-		postStream.Write(formdataBytes, 0, formdataBytes.Length);
+		byte[] formDataBytes = format(formTemplate, mFileName).toBytes();
+		postStream.Write(formDataBytes, 0, formDataBytes.Length);
 		// 写入文件内容
 		postStream.Write(mFileContent, 0, mFileLength);
 	}

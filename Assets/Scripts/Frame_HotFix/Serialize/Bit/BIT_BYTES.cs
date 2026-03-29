@@ -15,11 +15,11 @@ public class BIT_BYTES : SerializableBit
 		base.resetProperty();
 		mValue.Clear(); 
 	}
-	public override bool read(SerializerBitRead reader)
+	public override bool read(SerializerBitRead reader, bool needReadSign)
 	{
 		return reader.readList(mValue);
 	}
-	public override void write(SerializerBitWrite writer)
+	public override void write(SerializerBitWrite writer, bool needWriteSign)
 	{
 		writer.writeList(mValue);
 	}

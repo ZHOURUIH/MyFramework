@@ -51,9 +51,9 @@ public class FrameSystem : ComponentOwner
 	public GameObject getObject() { return mObject; }
 	public virtual void onDrawGizmos() { }
 	// a小于b返回-1, a等于b返回0, a大于b返回1,升序排序
-	static public int compareInit(FrameSystem a, FrameSystem b) { return sign(a.mInitOrder - b.mInitOrder); }
+	public static int compareInit(FrameSystem a, FrameSystem b) { return sign(a.mInitOrder - b.mInitOrder); }
 	// a小于b返回-1, a等于b返回0, a大于b返回1,升序排序
-	static public int compareUpdate(FrameSystem a, FrameSystem b) { return sign(a.mUpdateOrder - b.mUpdateOrder); }
+	public static int compareUpdate(FrameSystem a, FrameSystem b) { return sign(a.mUpdateOrder - b.mUpdateOrder); }
 	// a小于b返回-1, a等于b返回0, a大于b返回1,升序排序
-	static public int compareDestroy(FrameSystem a, FrameSystem b) { return sign(a.mDestroyOrder - b.mDestroyOrder); }
+	public static int compareDestroy(FrameSystem a, FrameSystem b) { return sign(a.mDestroyOrder - b.mDestroyOrder); }
 }

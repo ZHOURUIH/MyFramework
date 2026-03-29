@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using static StringUtility;
 
 // 用于将错误日志打印到真机屏幕上,已废弃
 public class ConsoleToScreen : MonoBehaviour
@@ -19,7 +18,7 @@ public class ConsoleToScreen : MonoBehaviour
 		}
 
 		List<string> lines = new();
-		foreach (string line in splitLine(logString))
+		foreach (string line in logString.splitLine())
         {
             if (line.Length <= MAX_LINE_LENGTH)
             {
