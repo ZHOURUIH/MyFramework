@@ -15,6 +15,6 @@ public class EffectManagerDebug : MonoBehaviour
 		}
 		mEffectCount = mEffectManager.getEffectList().count();
 		EffectList.Clear();
-		mEffectManager.getEffectList().getMainList().For(item => EffectList.Add(item.getObject()));
+		mEffectManager.getEffectList().For(item => EffectList.Add(item.getObject()));
 	}
 }

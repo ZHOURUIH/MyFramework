@@ -208,7 +208,7 @@ public class LayoutManager : FrameSystem
 	public void getAllLayoutBoxCollider(List<Collider> colliders)
 	{
 		colliders.Clear();
-		mLayoutList.getMainList().forValue(layout => layout.getAllCollider(colliders, true));
+		mLayoutList.forValue(layout => layout.getAllCollider(colliders, true));
 	}
 	// 获取已注册的布局数量,而不是已加载的布局数量
 	public int getLayoutCount() { return mLayoutTypeToPath.Count; }
@@ -216,7 +216,7 @@ public class LayoutManager : FrameSystem
 	public int getTopLayoutOrder(GameLayout exceptLayout, bool alwaysTop)
 	{
 		int maxOrder = 0;
-		foreach (var item in mLayoutList.getMainList())
+		foreach (var item in mLayoutList)
 		{
 			GameLayout layout = item.Value;
 			if (exceptLayout == layout)

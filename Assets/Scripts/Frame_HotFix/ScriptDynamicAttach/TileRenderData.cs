@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class TileData : ClassObject
+public class TileRenderData : ClassObject
 {
 	public SpriteData mSpriteData;		// 显示的图片信息
 	public Vector3 mPosition;			// 图片中心的位置
@@ -18,7 +18,7 @@ public class TileData : ClassObject
 		mPosition = Vector3.zero;
 		mSize = Vector2.zero;
 	}
-	public void cloneTo(TileData other)
+	public void cloneTo(TileRenderData other)
 	{
 		other.mSpriteData = mSpriteData;
 		other.mPosition = mPosition;

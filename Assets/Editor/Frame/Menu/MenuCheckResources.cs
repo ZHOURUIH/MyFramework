@@ -36,15 +36,16 @@ public class MenuCheckResources
 		// 选择的是文件,则只查找文件的引用
 		if (isFileExist(path))
 		{
-			doSearchReference(path, getAllResourceFileText());
+			doSearchReference(path, getAllResourceGuidInverseRefList());
 		}
 		// 选择的是目录,则查找目录中所有文件的引用
 		else if (isDirExist(path))
 		{
 			if (checkAll || EditorUtility.DisplayDialog("查找所有资源引用", "确认查找文件夹中所有文件的引用? " + path, "确认", "取消"))
 			{
+				DateTime start = DateTime.Now;
 				Debug.Log("开始查找资源引用:" + path + "...");
-				var allFileText = getAllResourceFileText();
+				var allFileText = getAllResourceGuidInverseRefList();
 				// 不查找meta文件的引用
 				List<string> validFiles = new();
 				foreach (string item in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
@@ -59,7 +60,7 @@ public class MenuCheckResources
 					doSearchReference(validFiles[i], allFileText);
 				}
 				clearProgressBar();
-				Debug.Log("完成查找资源引用");
+				Debug.Log("完成查找资源引用, 耗时:" + (DateTime.Now - start).TotalMilliseconds + "毫秒");
 			}
 		}
 	}
@@ -129,7 +130,7 @@ public class MenuCheckResources
 		{
 			if (path.endWith("png", false))
 			{
-				doCheckTPAtlasReference(path, getAllFileText(F_UI_PREFAB_PATH));
+				doCheckTPAtlasReference(path, getAllGuidInverseRefList(F_UI_PREFAB_PATH));
 			}
 		}
 		else if (isDirExist(path))
@@ -142,7 +143,7 @@ public class MenuCheckResources
 				{
 					validFiles.addIf(item, item.endWith("png", false));
 				}
-				var allFileText = getAllFileText(F_UI_PREFAB_PATH);
+				var allFileText = getAllGuidInverseRefList(F_UI_PREFAB_PATH);
 				// 开始查找所有文件的引用
 				int count = validFiles.Count;
 				for (int i = 0; i < count; ++i)
@@ -217,13 +218,13 @@ public class MenuCheckResources
 		Debug.Log("开始查找未引用的资源:" + path + "...");
 		if (isFileExist(path))
 		{
-			doCheckUnusedFile(path, getAllResourceFileText());
+			doCheckUnusedFile(path, getAllResourceGuidInverseRefList());
 		}
 		else if (isDirExist(path))
 		{
 			if (checkAll || EditorUtility.DisplayDialog("查找未引用的资源", "确认查找文件夹中所有未使用资源? " + path, "确认", "取消"))
 			{
-				var allFileText = getAllResourceFileText();
+				var allFileText = getAllResourceGuidInverseRefList();
 				List<string> validFiles = new();
 				foreach (string item in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
 				{
@@ -295,7 +296,7 @@ public class MenuCheckResources
 		foreach (var item in getMaterialReferenceFileText(F_ASSETS_PATH))
 		{
 			FileGUIDLines fileInfo = item.Value;
-			foreach (string guidsStr in fileInfo.mContainGUIDLines)
+			foreach (string guidsStr in fileInfo.mGUIDs)
 			{
 				foreach (string guid in guidsStr.split('-'))
 				{
@@ -718,7 +719,7 @@ public class MenuCheckResources
 		foreach (var item in getScriptReferenceFileText(F_ASSETS_PATH))
 		{
 			FileGUIDLines fileInfo = item.Value;
-			foreach (string guid in fileInfo.mContainGUIDLines)
+			foreach (string guid in fileInfo.mGUIDs)
 			{
 				// 与存着所有的脚本GUID的列表进行比对,剔除UGUI脚本的GUID
 				if (scripGUIDList.Contains(guid) || AssetDatabase.GUIDToAssetPath(guid).Contains(uiPath))
@@ -973,14 +974,14 @@ public class MenuCheckResources
 		// 选择的是文件,则只查找文件的引用
 		if (isFileExist(path))
 		{
-			doCheckSingleUsedFile(path, getAllResourceFileText(), false);
+			doCheckSingleUsedFile(path, getAllResourceGuidInverseRefList(), false);
 		}
 		// 选择的是目录,则查找目录中所有文件的引用
 		else if (isDirExist(path))
 		{
 			if (checkAll || EditorUtility.DisplayDialog("检查所有被单一引用的文件", "确认查找文件夹中所有文件? " + path, "确认", "取消"))
 			{
-				var allFileText = getAllResourceFileText();
+				var allFileText = getAllResourceGuidInverseRefList();
 				// 不查找meta文件的引用
 				List<string> validFiles = new();
 				foreach (string item in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))

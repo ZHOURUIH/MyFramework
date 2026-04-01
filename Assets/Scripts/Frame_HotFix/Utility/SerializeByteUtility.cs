@@ -598,8 +598,9 @@ public class SerializeByteUtility
 			return false;
 		}
 		// 为了获得最快速度,不使用for循环
-		buffer[index++] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
-		buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+		buffer[index + 0] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+		buffer[index + 1] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+		index += 2;
 		return true;
 	}
 	public static bool writeShortBigEndian(byte[] buffer, int bufferSize, ref int index, short value)
@@ -609,8 +610,9 @@ public class SerializeByteUtility
 			return false;
 		}
 		// 为了获得最快速度,不使用for循环
-		buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
-		buffer[index++] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+		buffer[index + 0] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+		buffer[index + 1] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+		index += 2;
 		return true;
 	}
 	public static bool writeUShort(byte[] buffer, int bufferSize, ref int index, ushort value)
@@ -620,8 +622,9 @@ public class SerializeByteUtility
 			return false;
 		}
 		// 为了获得最快速度,不使用for循环
-		buffer[index++] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
-		buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+		buffer[index + 0] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+		buffer[index + 1] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+		index += 2;
 		return true;
 	}
 	public static bool writeUShortBigEndian(byte[] buffer, int bufferSize, ref int index, ushort value)
@@ -631,8 +634,9 @@ public class SerializeByteUtility
 			return false;
 		}
 		// 为了获得最快速度,不使用for循环
-		buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
-		buffer[index++] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+		buffer[index + 0] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+		buffer[index + 1] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+		index += 2;
 		return true;
 	}
 	public static bool writeInt(byte[] buffer, int bufferSize, ref int index, int value)
@@ -642,10 +646,11 @@ public class SerializeByteUtility
 			return false;
 		}
 		// 为了获得最快速度,不使用for循环
-		buffer[index++] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
-		buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
-		buffer[index++] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
-		buffer[index++] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
+		buffer[index + 0] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+		buffer[index + 1] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+		buffer[index + 2] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
+		buffer[index + 3] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
+		index += 4;
 		return true;
 	}
 	public static bool writeIntBigEndian(byte[] buffer, int bufferSize, ref int index, int value)
@@ -655,10 +660,11 @@ public class SerializeByteUtility
 			return false;
 		}
 		// 为了获得最快速度,不使用for循环
-		buffer[index++] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
-		buffer[index++] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
-		buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
-		buffer[index++] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+		buffer[index + 0] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
+		buffer[index + 1] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
+		buffer[index + 2] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+		buffer[index + 3] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+		index += 4;
 		return true;
 	}
 	public static bool writeUInt(byte[] buffer, int bufferSize, ref int index, uint value)
@@ -668,10 +674,11 @@ public class SerializeByteUtility
 			return false;
 		}
 		// 为了获得最快速度,不使用for循环
-		buffer[index++] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
-		buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
-		buffer[index++] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
-		buffer[index++] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
+		buffer[index + 0] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+		buffer[index + 1] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+		buffer[index + 2] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
+		buffer[index + 3] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
+		index += 4;
 		return true;
 	}
 	public static bool writeUIntBigEndian(byte[] buffer, int bufferSize, ref int index, uint value)
@@ -681,10 +688,11 @@ public class SerializeByteUtility
 			return false;
 		}
 		// 为了获得最快速度,不使用for循环
-		buffer[index++] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
-		buffer[index++] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
-		buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
-		buffer[index++] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+		buffer[index + 0] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
+		buffer[index + 1] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
+		buffer[index + 2] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
+		buffer[index + 3] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+		index += 4;
 		return true;
 	}
 	public static bool writeLong(byte[] buffer, int bufferSize, ref int index, long value)
@@ -694,14 +702,15 @@ public class SerializeByteUtility
 			return false;
 		}
 		// 为了获得最快速度,不使用for循环
-		buffer[index++] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
-		buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
-		buffer[index++] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
-		buffer[index++] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
-		buffer[index++] = (byte)(((0xFF << (8 * 4)) & value) >> (8 * 4));
-		buffer[index++] = (byte)(((0xFF << (8 * 5)) & value) >> (8 * 5));
-		buffer[index++] = (byte)(((0xFF << (8 * 6)) & value) >> (8 * 6));
-		buffer[index++] = (byte)(((0xFF << (8 * 7)) & value) >> (8 * 7));
+		buffer[index + 0] = (byte)((value >> (8 * 0)) & 0xFF);
+		buffer[index + 1] = (byte)((value >> (8 * 1)) & 0xFF);
+		buffer[index + 2] = (byte)((value >> (8 * 2)) & 0xFF);
+		buffer[index + 3] = (byte)((value >> (8 * 3)) & 0xFF);
+		buffer[index + 4] = (byte)((value >> (8 * 4)) & 0xFF);
+		buffer[index + 5] = (byte)((value >> (8 * 5)) & 0xFF);
+		buffer[index + 6] = (byte)((value >> (8 * 6)) & 0xFF);
+		buffer[index + 7] = (byte)((value >> (8 * 7)) & 0xFF);
+		index += 8;
 		return true;
 	}
 	public static bool writeLongBigEndian(byte[] buffer, int bufferSize, ref int index, long value)
@@ -711,14 +720,15 @@ public class SerializeByteUtility
 			return false;
 		}
 		// 为了获得最快速度,不使用for循环
-		buffer[index++] = (byte)(((0xFF << (8 * 7)) & value) >> (8 * 7));
-		buffer[index++] = (byte)(((0xFF << (8 * 6)) & value) >> (8 * 6));
-		buffer[index++] = (byte)(((0xFF << (8 * 5)) & value) >> (8 * 5));
-		buffer[index++] = (byte)(((0xFF << (8 * 4)) & value) >> (8 * 4));
-		buffer[index++] = (byte)(((0xFF << (8 * 3)) & value) >> (8 * 3));
-		buffer[index++] = (byte)(((0xFF << (8 * 2)) & value) >> (8 * 2));
-		buffer[index++] = (byte)(((0xFF << (8 * 1)) & value) >> (8 * 1));
-		buffer[index++] = (byte)(((0xFF << (8 * 0)) & value) >> (8 * 0));
+		buffer[index + 0] = (byte)((value >> (8 * 7)) & 0xFF);
+		buffer[index + 1] = (byte)((value >> (8 * 6)) & 0xFF);
+		buffer[index + 2] = (byte)((value >> (8 * 5)) & 0xFF);
+		buffer[index + 3] = (byte)((value >> (8 * 4)) & 0xFF);
+		buffer[index + 4] = (byte)((value >> (8 * 3)) & 0xFF);
+		buffer[index + 5] = (byte)((value >> (8 * 2)) & 0xFF);
+		buffer[index + 6] = (byte)((value >> (8 * 1)) & 0xFF);
+		buffer[index + 7] = (byte)((value >> (8 * 0)) & 0xFF);
+		index += 8;
 		return true;
 	}
 	public static bool writeULong(byte[] buffer, int bufferSize, ref int index, ulong value)
@@ -728,14 +738,15 @@ public class SerializeByteUtility
 			return false;
 		}
 		// 为了获得最快速度,不使用for循环
-		buffer[index++] = (byte)((((ulong)0xFF << (8 * 0)) & value) >> (8 * 0));
-		buffer[index++] = (byte)((((ulong)0xFF << (8 * 1)) & value) >> (8 * 1));
-		buffer[index++] = (byte)((((ulong)0xFF << (8 * 2)) & value) >> (8 * 2));
-		buffer[index++] = (byte)((((ulong)0xFF << (8 * 3)) & value) >> (8 * 3));
-		buffer[index++] = (byte)((((ulong)0xFF << (8 * 4)) & value) >> (8 * 4));
-		buffer[index++] = (byte)((((ulong)0xFF << (8 * 5)) & value) >> (8 * 5));
-		buffer[index++] = (byte)((((ulong)0xFF << (8 * 6)) & value) >> (8 * 6));
-		buffer[index++] = (byte)((((ulong)0xFF << (8 * 7)) & value) >> (8 * 7));
+		buffer[index + 0] = (byte)((value >> (8 * 0)) & 0xFF);
+		buffer[index + 1] = (byte)((value >> (8 * 1)) & 0xFF);
+		buffer[index + 2] = (byte)((value >> (8 * 2)) & 0xFF);
+		buffer[index + 3] = (byte)((value >> (8 * 3)) & 0xFF);
+		buffer[index + 4] = (byte)((value >> (8 * 4)) & 0xFF);
+		buffer[index + 5] = (byte)((value >> (8 * 5)) & 0xFF);
+		buffer[index + 6] = (byte)((value >> (8 * 6)) & 0xFF);
+		buffer[index + 7] = (byte)((value >> (8 * 7)) & 0xFF);
+		index += 8;
 		return true;
 	}
 	public static bool writeULongBigEndian(byte[] buffer, int bufferSize, ref int index, ulong value)
@@ -745,14 +756,15 @@ public class SerializeByteUtility
 			return false;
 		}
 		// 为了获得最快速度,不使用for循环
-		buffer[index++] = (byte)((((ulong)0xFF << (8 * 7)) & value) >> (8 * 7));
-		buffer[index++] = (byte)((((ulong)0xFF << (8 * 6)) & value) >> (8 * 6));
-		buffer[index++] = (byte)((((ulong)0xFF << (8 * 5)) & value) >> (8 * 5));
-		buffer[index++] = (byte)((((ulong)0xFF << (8 * 4)) & value) >> (8 * 4));
-		buffer[index++] = (byte)((((ulong)0xFF << (8 * 3)) & value) >> (8 * 3));
-		buffer[index++] = (byte)((((ulong)0xFF << (8 * 2)) & value) >> (8 * 2));
-		buffer[index++] = (byte)((((ulong)0xFF << (8 * 1)) & value) >> (8 * 1));
-		buffer[index++] = (byte)((((ulong)0xFF << (8 * 0)) & value) >> (8 * 0));
+		buffer[index + 0] = (byte)((value >> (8 * 7)) & 0xFF);
+		buffer[index + 1] = (byte)((value >> (8 * 6)) & 0xFF);
+		buffer[index + 2] = (byte)((value >> (8 * 5)) & 0xFF);
+		buffer[index + 3] = (byte)((value >> (8 * 4)) & 0xFF);
+		buffer[index + 4] = (byte)((value >> (8 * 3)) & 0xFF);
+		buffer[index + 5] = (byte)((value >> (8 * 2)) & 0xFF);
+		buffer[index + 6] = (byte)((value >> (8 * 1)) & 0xFF);
+		buffer[index + 7] = (byte)((value >> (8 * 0)) & 0xFF);
+		index += 8;
 		return true;
 	}
 	public static bool writeFloat(byte[] buffer, int bufferSize, ref int index, float value)
@@ -763,10 +775,11 @@ public class SerializeByteUtility
 		}
 		byte[] valueByte = toBytes(value);
 		// 为了获得最快速度,不使用for循环
-		buffer[index++] = valueByte[0];
-		buffer[index++] = valueByte[1];
-		buffer[index++] = valueByte[2];
-		buffer[index++] = valueByte[3];
+		buffer[index + 0] = valueByte[0];
+		buffer[index + 1] = valueByte[1];
+		buffer[index + 2] = valueByte[2];
+		buffer[index + 3] = valueByte[3];
+		index += 4;
 		return true;
 	}
 	public static bool writeFloatBigEndian(byte[] buffer, int bufferSize, ref int index, float value)
@@ -777,10 +790,11 @@ public class SerializeByteUtility
 		}
 		byte[] valueByte = toBytes(value);
 		// 为了获得最快速度,不使用for循环
-		buffer[index++] = valueByte[3];
-		buffer[index++] = valueByte[2];
-		buffer[index++] = valueByte[1];
-		buffer[index++] = valueByte[0];
+		buffer[index + 0] = valueByte[3];
+		buffer[index + 1] = valueByte[2];
+		buffer[index + 2] = valueByte[1];
+		buffer[index + 3] = valueByte[0];
+		index += 4;
 		return true;
 	}
 	public static bool writeDouble(byte[] buffer, int bufferSize, ref int index, double value)
@@ -791,14 +805,15 @@ public class SerializeByteUtility
 		}
 		byte[] valueByte = toBytes(value);
 		// 为了获得最快速度,不使用for循环
-		buffer[index++] = valueByte[0];
-		buffer[index++] = valueByte[1];
-		buffer[index++] = valueByte[2];
-		buffer[index++] = valueByte[3];
-		buffer[index++] = valueByte[4];
-		buffer[index++] = valueByte[5];
-		buffer[index++] = valueByte[6];
-		buffer[index++] = valueByte[7];
+		buffer[index + 0] = valueByte[0];
+		buffer[index + 1] = valueByte[1];
+		buffer[index + 2] = valueByte[2];
+		buffer[index + 3] = valueByte[3];
+		buffer[index + 4] = valueByte[4];
+		buffer[index + 5] = valueByte[5];
+		buffer[index + 6] = valueByte[6];
+		buffer[index + 7] = valueByte[7];
+		index += 8;
 		return true;
 	}
 	public static bool writeDoubleBigEndian(byte[] buffer, int bufferSize, ref int index, double value)
@@ -809,14 +824,15 @@ public class SerializeByteUtility
 		}
 		byte[] valueByte = toBytes(value);
 		// 为了获得最快速度,不使用for循环
-		buffer[index++] = valueByte[7];
-		buffer[index++] = valueByte[6];
-		buffer[index++] = valueByte[5];
-		buffer[index++] = valueByte[4];
-		buffer[index++] = valueByte[3];
-		buffer[index++] = valueByte[2];
-		buffer[index++] = valueByte[1];
-		buffer[index++] = valueByte[0];
+		buffer[index + 0] = valueByte[7];
+		buffer[index + 1] = valueByte[6];
+		buffer[index + 2] = valueByte[5];
+		buffer[index + 3] = valueByte[4];
+		buffer[index + 4] = valueByte[3];
+		buffer[index + 5] = valueByte[2];
+		buffer[index + 6] = valueByte[1];
+		buffer[index + 7] = valueByte[0];
+		index += 8;
 		return true;
 	}
 	public static bool writeVector2(byte[] buffer, int bufferSize, ref int index, Vector2 value)

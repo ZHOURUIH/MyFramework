@@ -922,7 +922,7 @@ public class SerializeBitUtility
 		bool lengthBitType = getBufferBit(buffer, bitIndex++);
 		// 这里本来应该是sizeof(long),因为double最终会转换为long存储,只不过sizeof(long)跟sizeof(double)一样
 		int typeSize = sizeof(double);
-		double powValue = divide(1.0f, pow10(precision));
+		double powValue = divide(1.0, pow10(precision));
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
@@ -968,7 +968,7 @@ public class SerializeBitUtility
 		bool lengthBitType = getBufferBit(buffer, bitIndex++);
 		// 这里本来应该是sizeof(long),因为double最终会转换为long存储,只不过sizeof(long)跟sizeof(double)一样
 		int typeSize = sizeof(double);
-		double powValue = divide(1.0f, pow10(precision));
+		double powValue = divide(1.0, pow10(precision));
 		// 使用统一的长度位
 		if (lengthBitType)
 		{

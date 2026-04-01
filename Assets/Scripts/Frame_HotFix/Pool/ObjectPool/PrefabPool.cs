@@ -41,7 +41,7 @@ public class PrefabPool : ClassObject
 	}
 	public void setFileName(string fileName)				{ mFileName = fileName; }
 	public void setPrefab(ResourceRef<GameObject> prefab)	{ mPrefab = prefab; }
-	public GameObject getPrefab()							{ return mPrefab.getResource(); }
+	public GameObject getPrefab()							{ return mPrefab != null ? mPrefab.getResource() : null; }
 	public string getFileName()								{ return mFileName; }
 	public List<GameObjectInfo> getUnuseList()				{ return mUnuseList; }
 	public HashSet<GameObjectInfo> getInuseList()			{ return mInuseList; }

@@ -364,7 +364,7 @@ public class AudioManager : FrameSystem
 			// 移除剩余时间最短的
 			AudioHelper minItem = null;
 			float minTime = 9999.0f;
-			foreach (AudioHelper item in mHelperList.getMainList())
+			foreach (AudioHelper item in mHelperList)
 			{
 				if (item.mRemainTime < minTime)
 				{
@@ -388,7 +388,7 @@ public class AudioManager : FrameSystem
 	}
 	protected void unusedAllHelper()
 	{
-		foreach (AudioHelper item in mHelperList.getMainList())
+		foreach (AudioHelper item in mHelperList)
 		{
 			item.setAudioEnable(false);
 			mUnusedList.Enqueue(item);

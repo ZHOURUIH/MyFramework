@@ -6,70 +6,77 @@ using static StringUtility;
 using static UnityUtility;
 
 // 纯Sprite显示,不支持更多的操作,暂时只支持TPAtlas,如果使用SpriteAtlas,纹理坐标会计算错误
-[RequireComponent(typeof(CanvasRenderer))]
+// 由于是手动生成Mesh,所以不太适合在同一个Canvas中与其他节点进行排序显示,一般都是渲染在Canvas内的最底层或者最上层
+[RequireComponent(typeof(MeshFilter))]
+[RequireComponent(typeof(MeshRenderer))]
 public class TileImageRenderer : MonoBehaviour
 {
-	public Material mMaterial;							// 如果不设置材质,则使用默认的UI材质
-	public int mVertCount;								// 用于查看调试信息
-	public int mTileCount;                              // 用于查看调试信息
-
-	protected CanvasRenderer mCanvasRenderer;			// CanvasRenderer
-	protected List<TileData> mTileItems;                // 直接引用的外部列表
-	protected Dictionary<object, TileData> mTileMap;    // 直接引用的外部列表,mTileItems和mTileMap只能用一个,哪个方便就用哪个
-	protected Texture mTexture;							// 显示的图片信息
-	protected Mesh mMesh;								// 生成的模型
-	protected const int mMaxTileCount = 10000;			// 最多只支持同时显示1万个Sprite,因为单个模型的索引数量限制在65535
+	public int mVertCount;									// 用于在面板上查看调试信息
+	public int mTileCount;									// 用于在面板上查看调试信息
+	protected Dictionary<object, TileRenderData> mTileMap;	// 直接引用的外部列表,mTileItems和mTileMap只能用一个,哪个方便就用哪个
+	protected MeshFilter mMeshFilter;
+	protected MeshRenderer mMeshRenderer;
+	protected List<TileRenderData> mTileItems;              // 直接引用的外部列表
+	protected MaterialPropertyBlock mPropBlock;
+	protected Texture mLastTexture;
+	protected int mLastIndexTileCount;
+	protected Mesh mMesh;									// 生成的模型
+	protected const int mMaxTileCount = 10000;				// 最多只支持同时显示1万个Sprite,因为单个模型的索引数量限制在65535
 	protected SpriteVertex[] mVertices = new SpriteVertex[mMaxTileCount * 4];
 	protected int[] mIndices = new int[mMaxTileCount * 6];
+	protected bool mDirty;
 	void Awake()
 	{
-		mCanvasRenderer = GetComponent<CanvasRenderer>();
-		mMesh = new Mesh();
-		mMesh.MarkDynamic();
-		mCanvasRenderer.SetMaterial(mMaterial != null ? mMaterial : Canvas.GetDefaultCanvasMaterial(), null);
-		// 由于索引都是相对固定的,所以可以预先计算好
-		for (int i = 0; i < mIndices.Length / 6; ++i)
-		{
-			mIndices[i * 6 + 0] = i * 4 + 0;
-			mIndices[i * 6 + 1] = i * 4 + 1;
-			mIndices[i * 6 + 2] = i * 4 + 2;
-			mIndices[i * 6 + 3] = i * 4 + 1;
-			mIndices[i * 6 + 4] = i * 4 + 3;
-			mIndices[i * 6 + 5] = i * 4 + 2;
-		}
-		mCanvasRenderer.SetTexture(Texture2D.whiteTexture);
+		ensureInit();
 	}
-	public void setTileList(List<TileData> tileItems) 
+	void OnDisable()
+	{
+		if (mMesh != null)
+		{
+			mMesh.Clear();
+		}
+		mLastTexture = null;
+	}
+	private void OnEnable()
+	{
+		mDirty = true;
+		mLastIndexTileCount = 0;
+		mLastTexture = null;
+	}
+	public void setSortingLayerName(string name) 
+	{
+		ensureInit();
+		mMeshRenderer.sortingLayerName = name; 
+	}
+	public void setSortingOrder(int order) 
+	{
+		ensureInit();
+		mMeshRenderer.sortingOrder = order; 
+	}
+	public void setTileList(List<TileRenderData> tileItems) 
 	{
 		mTileItems = tileItems;
-		if (!tileItems.isEmpty())
-		{
-			setTexture(tileItems.get(0).mSpriteData.mTexture);
-		}
+		mDirty = true;
 	}
-	public void setTileMap(Dictionary<object, TileData> tileItems) 
+	public void setTileMap(Dictionary<object, TileRenderData> tileItems) 
 	{
 		mTileMap = tileItems;
-		if (!tileItems.isEmpty())
-		{
-			setTexture(tileItems.firstValue().mSpriteData.mTexture);
-		}
+		mDirty = true;
 	}
 	public void clearTile()
 	{
 		UN_CLASS_LIST(mTileItems);
 		UN_CLASS_LIST(mTileMap);
+		mDirty = true;
 	}
-	public List<TileData> getTiles() { return mTileItems; }
-	public Dictionary<object, TileData> getTileMap() { return mTileMap; }
-	public void setTexture(Texture tex) 
+	public int getTileCount() { return mTileMap != null ? mTileMap.Count : mTileItems.count(); }
+	void Update()
 	{
-		mTexture = tex;
-		mCanvasRenderer.SetTexture(mTexture);
-	}
-	public Texture getTexture() { return mTexture; }
-	void LateUpdate()
-	{
+		if (!mDirty)
+		{
+			return;
+		}
+		mDirty = false;
 		{
 			using var a = new ProfilerScope(0);
 			mVertCount = 0;
@@ -82,7 +89,15 @@ public class TileImageRenderer : MonoBehaviour
 					logWarning("已经超出了顶点上限,最多只允许" + IToS(mVertices.Length) + "个顶点");
 					return;
 				}
-				foreach (TileData item in mTileItems)
+				// 这里的属性名字固定的,一般也就使用默认的材质即可
+				Texture tex = mTileItems.get(0).mSpriteData.mTexture;
+				if (mLastTexture != tex)
+				{
+					mLastTexture = tex;
+					mPropBlock.SetTexture("_MainTex", tex);
+					mMeshRenderer.SetPropertyBlock(mPropBlock);
+				}
+				foreach (TileRenderData item in mTileItems)
 				{
 					float sizeX = item.mSize.x;
 					float sizeY = item.mSize.y;
@@ -123,9 +138,16 @@ public class TileImageRenderer : MonoBehaviour
 					logWarning("已经超出了顶点上限,最多只允许" + IToS(mVertices.Length) + "个顶点");
 					return;
 				}
+				Texture tex = mTileMap.firstValue().mSpriteData.mTexture;
+				if (mLastTexture != tex)
+				{
+					mLastTexture = tex;
+					mPropBlock.SetTexture("_MainTex", tex);
+					mMeshRenderer.SetPropertyBlock(mPropBlock);
+				}
 				foreach (var pair in mTileMap)
 				{
-					TileData item = pair.Value;
+					TileRenderData item = pair.Value;
 					float sizeX = item.mSize.x;
 					float sizeY = item.mSize.y;
 					float posX = item.mPosition.x;
@@ -159,16 +181,51 @@ public class TileImageRenderer : MonoBehaviour
 			}
 		}
 
-		if (mMesh.vertexCount != mVertCount)
+		if (mMesh.vertexCount < mVertCount)
 		{
 			mMesh.Clear();
 			mMesh.SetVertexBufferParams(mVertCount,
 				new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 2),
 				new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2));
 		}
-		mMesh.SetIndices(mIndices, 0, mVertCount / 4 * 6, MeshTopology.Triangles, 0, false);
+		if (mLastIndexTileCount != mTileCount)
+		{
+			mLastIndexTileCount = mTileCount;
+			mMesh.SetIndices(mIndices, 0, mVertCount / 4 * 6, MeshTopology.Triangles, 0, false);
+		}
 		mMesh.SetVertexBufferData(mVertices, 0, 0, mVertCount, 0,
 			MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontValidateIndices | MeshUpdateFlags.DontNotifyMeshUsers);
-		mCanvasRenderer.SetMesh(mMesh);
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	// 由于创建节点时可能会有与没有启用active而没有调用Awake,所以只能在任何可能需要的地方去尝试初始化
+	protected void ensureInit()
+	{
+		if (mMeshFilter != null)
+		{
+			return;
+		}
+		mMeshFilter = GetComponent<MeshFilter>();
+		mMeshRenderer = GetComponent<MeshRenderer>();
+		mPropBlock = new();
+		mMesh = new Mesh();
+		mMesh.MarkDynamic();
+		// 超大包围盒，防止被裁剪
+		mMesh.bounds = new Bounds(Vector3.zero, new Vector3(100000, 100000, 1000));
+		mMeshFilter.sharedMesh = mMesh;
+		if (mMeshRenderer.sharedMaterial == null)
+		{
+			mMeshRenderer.sharedMaterial = new(Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default"));
+		}
+		setSortingLayerName("Default");
+		setSortingOrder(0);
+		for (int i = 0; i < mIndices.Length / 6; ++i)
+		{
+			mIndices[i * 6 + 0] = i * 4 + 0;
+			mIndices[i * 6 + 1] = i * 4 + 1;
+			mIndices[i * 6 + 2] = i * 4 + 2;
+			mIndices[i * 6 + 3] = i * 4 + 1;
+			mIndices[i * 6 + 4] = i * 4 + 3;
+			mIndices[i * 6 + 5] = i * 4 + 2;
+		}
 	}
 }

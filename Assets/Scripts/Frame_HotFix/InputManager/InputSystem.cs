@@ -271,7 +271,7 @@ public class InputSystem : FrameSystem
 	public bool getTouchDown(out TouchPoint touchPoint)
 	{
 		touchPoint = null;
-		foreach (var item in mTouchPointList.getMainList())
+		foreach (var item in mTouchPointList)
 		{
 			if (item.Value.isCurrentDown())
 			{
@@ -284,7 +284,7 @@ public class InputSystem : FrameSystem
 	// 是否有任意触点在这一帧完成一次点击操作,如果有,则返回第一个在这一帧完成点击的触点
 	public TouchPoint getTouchClick()
 	{
-		foreach (var item in mTouchPointList.getMainList())
+		foreach (var item in mTouchPointList)
 		{
 			if (item.Value.isClick())
 			{
@@ -296,7 +296,7 @@ public class InputSystem : FrameSystem
 	// 是否有任意触点在这一帧完成一次双击操作,如果有,则返回第一个在这一帧完成双击的触点
 	public TouchPoint isTouchDoubleClick()
 	{
-		foreach (var item in mTouchPointList.getMainList())
+		foreach (var item in mTouchPointList)
 		{
 			if (item.Value.isDoubleClick())
 			{
@@ -353,7 +353,7 @@ public class InputSystem : FrameSystem
 	public int getTouchPointDownCount()
 	{
 		int count = 0;
-		foreach (var item in mTouchPointList.getMainList())
+		foreach (var item in mTouchPointList)
 		{
 			if (item.Value.isDown())
 			{
@@ -521,7 +521,7 @@ public class InputSystem : FrameSystem
 	public void setActiveInput(bool value)
 	{
 		mActiveInput = value;
-		foreach (var each in mTouchPointList.getMainList().safe())
+		foreach (var each in mTouchPointList)
 		{
 			each.Value.resetState();
 		}

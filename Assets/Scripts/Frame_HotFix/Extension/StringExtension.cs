@@ -950,7 +950,7 @@ public static class StringExtension
 	{
 		if (str.isEmpty())
 		{
-			return null;
+			return Array.Empty<string>();
 		}
 		return str.Split(keyword, removeEmpty ? StringSplitOptions.RemoveEmptyEntries : StringSplitOptions.None);
 	}
@@ -962,7 +962,7 @@ public static class StringExtension
 	{
 		if (str.isEmpty())
 		{
-			return null;
+			return Array.Empty<string>();
 		}
 		return str.Split(keyword, removeEmpty ? StringSplitOptions.RemoveEmptyEntries : StringSplitOptions.None);
 	}

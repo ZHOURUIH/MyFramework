@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using static UnityUtility;
 
 // 序列化的单元测试
 public struct SerializeTest
 {
-	public static void test()
+	public static void Run()
 	{
 		SerializerBitWrite writer = new();
 		writer.write(true);
@@ -80,6 +81,10 @@ public struct SerializeTest
 		reader.readList(list50, false);
 		reader.readList(list6, false);
 		reader.readList(list7, true);
+		if (list7[^1] != -3)
+		{
+			logError("序列化失败");
+		}
 
 		long mTargetGUID = 0;
 		long mSkillFireTimeStamp = 1718813086792;
@@ -104,5 +109,9 @@ public struct SerializeTest
 		reader0.read(out mTargetIsMonster);
 		reader0.read(out mAttackSpeed, out mAttackStateTime, true);
 		reader0.read(out mSkillID, out mDamageToken, false);
+		if (mDamageToken != 1)
+		{
+			logError("序列化失败");
+		}
 	}
 }

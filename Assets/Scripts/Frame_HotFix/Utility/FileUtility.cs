@@ -638,7 +638,7 @@ public class FileUtility
 		}
 		validPath(ref path);
 		path = path.ensurePrefix(F_GAME_RESOURCES_PATH);
-		findFilesInternal(path, fileList, patterns, recursive);
+		findFilesInternal(path, fileList, patterns, null, recursive);
 		if (!keepAbsolutePath)
 		{
 			int removeLength = F_GAME_RESOURCES_PATH.Length;
@@ -693,7 +693,7 @@ public class FileUtility
 		else
 		{
 			path = path.ensurePrefix(F_STREAMING_ASSETS_PATH);
-			findFilesInternal(path, fileList, patterns, recursive);
+			findFilesInternal(path, fileList, patterns, null, recursive);
 			if (!keepAbsolutePath)
 			{
 				int removeLength = F_STREAMING_ASSETS_PATH.Length;
@@ -745,19 +745,19 @@ public class FileUtility
 		mTempPatternList.Clear();
 		mTempPatternList.addNotEmpty(pattern);
 		mTempFileList1.Clear();
-		findFilesInternal(path, mTempFileList1, mTempPatternList, recursive);
+		findFilesInternal(path, mTempFileList1, mTempPatternList, null, recursive);
 		return mTempFileList1;
 	}
 	// 查找指定目录下的所有文件,path为绝对路径
 	public static List<string> findFilesNonAlloc(string path, List<string> patterns = null, bool recursive = true)
 	{
 		mTempFileList1.Clear();
-		findFilesInternal(path, mTempFileList1, patterns, recursive);
+		findFilesInternal(path, mTempFileList1, patterns, null, recursive);
 		return mTempFileList1;
 	}
 	public static void findFiles(string path, List<string> fileList, List<string> patterns)
 	{
-		findFilesInternal(path, fileList, patterns, true);
+		findFilesInternal(path, fileList, patterns, null, true);
 	}
 	public static void findFiles(string path, List<string> fileList, string pattern, bool recursive = true)
 	{
@@ -765,19 +765,25 @@ public class FileUtility
 		{
 			mTempPatternList.Clear();
 			mTempPatternList.addNotEmpty(pattern);
-			findFilesInternal(path, fileList, mTempPatternList, recursive);
+			findFilesInternal(path, fileList, mTempPatternList, null, recursive);
 		}
 		else
 		{
-			findFilesInternal(path, fileList, new List<string>() { pattern }, true);
+			findFilesInternal(path, fileList, new List<string>() { pattern }, null, true);
 		}
 	}
 	public static void findFiles(string path, List<string> fileList, bool recursive = true)
 	{
-		findFilesInternal(path, fileList, null, recursive);
+		findFilesInternal(path, fileList, null, null, recursive);
+	}
+	public static List<string> findFilesExcludeNonAlloc(string path, List<string> excludePatterns, bool recursive = true)
+	{
+		mTempFileList1.Clear();
+		findFilesInternal(path, mTempFileList1, null, excludePatterns, recursive);
+		return mTempFileList1;
 	}
 	// 查找指定目录下的所有文件,path为绝对路径
-	public static void findFilesInternal(string path, List<string> fileList, List<string> patterns, bool recursive)
+	public static void findFilesInternal(string path, List<string> fileList, List<string> patterns, List<string> excludePatterns, bool recursive)
 	{
 		try
 		{
@@ -796,12 +802,28 @@ public class FileUtility
 				foreach (FileInfo info in folder.GetFiles())
 				{
 					string fileName = info.Name;
+					bool isExclude = false;
+					foreach (string pattern in excludePatterns.safe())
+					{
+						if (fileName.endWith(pattern, false))
+						{
+							isExclude = true;
+							break;
+						}
+					}
+					if (isExclude)
+					{
+						continue;
+					}
 					// 不需要过滤,则直接放入列表
 					fileList.addIf(path + fileName, patterns.isEmpty());
 					// 如果需要过滤后缀名,则判断后缀
 					foreach (string pattern in patterns.safe())
 					{
-						fileList.addIf(path + fileName, fileName.endWith(pattern, false));
+						if (fileList.addIf(path + fileName, fileName.endWith(pattern, false)))
+						{
+							break;
+						}
 					}
 				}
 				// 查找所有子目录
@@ -809,7 +831,7 @@ public class FileUtility
 				{
 					foreach (string dir in Directory.GetDirectories(path))
 					{
-						findFilesInternal(dir, fileList, patterns, recursive);
+						findFilesInternal(dir, fileList, patterns, excludePatterns, recursive);
 					}
 				}
 			}

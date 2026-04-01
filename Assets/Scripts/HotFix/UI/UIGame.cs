@@ -58,11 +58,11 @@ public class UIGame : LayoutScript
 		base.onGameState();
 		mAtlasManager.getAtlasAsyncSafe(this, "Atlas/NumberStyle/CommonNumber.png", (AtlasRef atlas)=>
 		{
-			Dictionary<object, TileData> list = new();
-			list.add("1", CLASS(out TileData _)).init(atlas.getSprite("Number_Magic_0"), new(10, 10, 0), new(50, 100));
-			list.add("2", CLASS(out TileData _)).init(atlas.getSprite("Number_Magic_1"), new(40, 10, 0), new(50, 100));
-			list.add("3", CLASS(out TileData _)).init(atlas.getSprite("Number_Magic_2"), new(70, 10, 0), new(50, 100));
-			list.add("4", CLASS(out TileData _)).init(atlas.getSprite("Number_Magic_3"), new(100, 10, 0), new(50, 100));
+			Dictionary<object, TileRenderData> list = new();
+			list.add("1", CLASS(out TileRenderData _)).init(atlas.getSprite("Number_Magic_0"), new(10, 10, 0), new(50, 100));
+			list.add("2", CLASS(out TileRenderData _)).init(atlas.getSprite("Number_Magic_1"), new(40, 10, 0), new(50, 100));
+			list.add("3", CLASS(out TileRenderData _)).init(atlas.getSprite("Number_Magic_2"), new(70, 10, 0), new(50, 100));
+			list.add("4", CLASS(out TileRenderData _)).init(atlas.getSprite("Number_Magic_3"), new(100, 10, 0), new(50, 100));
 			mTile.setTileMap(list);
 		});
 	}

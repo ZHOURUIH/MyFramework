@@ -197,8 +197,7 @@ public class StringUtility
 	}
 	public static int getFirstNumberPos(string str)
 	{
-		int strLen = str.Length;
-		for (int i = 0; i < strLen; ++i)
+		for (int i = 0; i < str.Length; ++i)
 		{
 			if (str[i] <= '9' && str[i] >= '0')
 			{
@@ -386,21 +385,28 @@ public class StringUtility
 		{
 			return;
 		}
-		int curIndex = 0;
-		while (true)
+		if (json.Contains('{'))
 		{
-			int startIndex = json.IndexOf('{', curIndex);
-			if (startIndex < 0)
+			int curIndex = 0;
+			while (true)
 			{
-				break;
+				int startIndex = json.IndexOf('{', curIndex);
+				if (startIndex < 0)
+				{
+					break;
+				}
+				int endIndex = json.IndexOf('}', startIndex);
+				if (endIndex < 0)
+				{
+					break;
+				}
+				elementList.Add(json.range(startIndex + 1, endIndex));
+				curIndex = endIndex + 1;
 			}
-			int endIndex = json.IndexOf('}', startIndex);
-			if (endIndex < 0)
-			{
-				break;
-			}
-			elementList.Add(json.range(startIndex + 1, endIndex));
-			curIndex = endIndex + 1;
+		}
+		else
+		{
+			elementList.addRange(json.range(1, json.Length - 1).split(','));
 		}
 	}
 	// 解析一个json的结构体,需要所有参数都是字符串类型的
@@ -1363,10 +1369,9 @@ public class StringUtility
 	}
 	public static bool checkString(string str, string valid)
 	{
-		if (isEditor())
+		if (isEditor() && !str.isEmpty())
 		{
-			int oldStrLen = str.Length;
-			for (int i = 0; i < oldStrLen; ++i)
+			for (int i = 0; i < str.Length; ++i)
 			{
 				if (valid.IndexOf(str[i]) < 0)
 				{
@@ -1575,6 +1580,7 @@ public class StringUtility
 	public static int hexStringToBytes(string str, out byte[] bytes)
 	{
 		bytes = null;
+		str = str.removeAll(' ');
 		checkString(str, mHexString);
 		if (str.isEmpty() || (str.Length & 1) != 0)
 		{

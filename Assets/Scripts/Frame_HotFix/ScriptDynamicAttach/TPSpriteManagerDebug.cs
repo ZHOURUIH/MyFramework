@@ -13,7 +13,7 @@ public class TPSpriteManagerDebug : MonoBehaviour
 			return;
 		}
 		mAtlasList.Clear();
-		foreach (var item in mAtlasManager.getAtlasList().getMainList())
+		foreach (var item in mAtlasManager.getAtlasList())
 		{
 			UGUIAtlasDebug info = new();
 			info.mAtlasName = item.Key;

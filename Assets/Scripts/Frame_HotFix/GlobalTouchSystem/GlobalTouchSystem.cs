@@ -536,7 +536,7 @@ public class GlobalTouchSystem : FrameSystem
 			{
 				checkActiveOnlyOrder();
 				using var a = new ListScope<myUGUIObject>(out var list);
-				foreach (IMouseEventCollect obj in mActiveOnlyUIObject.getMainList())
+				foreach (IMouseEventCollect obj in mActiveOnlyUIObject)
 				{
 					if (obj is myUGUIObject uiObj && item.getWindowOrderList().Contains(uiObj))
 					{
@@ -587,7 +587,7 @@ public class GlobalTouchSystem : FrameSystem
 				else if (mActiveOnlyMovableObject.count() > 0)
 				{
 					using var a = new ListScope<IMouseEventCollect>(out var list);
-					foreach (IMouseEventCollect obj in mActiveOnlyMovableObject.getMainList())
+					foreach (IMouseEventCollect obj in mActiveOnlyMovableObject)
 					{
 						if (obj is MovableObject movable && item.mObjectOrderList.Contains(movable))
 						{

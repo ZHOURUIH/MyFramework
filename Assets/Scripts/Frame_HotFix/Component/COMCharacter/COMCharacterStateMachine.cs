@@ -181,9 +181,9 @@ public class COMCharacterStateMachine : GameComponent
 
 		// 移除状态组互斥的状态
 		List<CharacterState> tempList = null;
-		foreach (var itemList in mStateTypeList.getMainList())
+		foreach (var itemList in mStateTypeList)
 		{
-			foreach (CharacterState item in itemList.Value.getMainList())
+			foreach (CharacterState item in itemList.Value)
 			{
 				if (item != state && item.isActive() && !mStateManager.allowKeepStateByGroup(type, item.GetType()))
 				{
@@ -253,7 +253,7 @@ public class COMCharacterStateMachine : GameComponent
 	public void removeStateInGroup(Type group, bool isBreak, string param)
 	{
 		using var a = new ListScope<CharacterState>(out var tempList);
-		foreach (var item in mStateTypeList.getMainList())
+		foreach (var item in mStateTypeList)
 		{
 			if (mStateManager.getGroupList(item.Key).contains(group))
 			{
@@ -340,9 +340,9 @@ public class COMCharacterStateMachine : GameComponent
 			return false;
 		}
 		// 检查是否有跟要添加的状态互斥且不能移除的状态
-		foreach (var itemList in mStateTypeList.getMainList())
+		foreach (var itemList in mStateTypeList)
 		{
-			foreach (CharacterState item in itemList.Value.getMainList())
+			foreach (CharacterState item in itemList.Value)
 			{
 				if (item != state && item.isActive() && !mStateManager.allowAddStateByGroup(stateType, item.GetType()))
 				{

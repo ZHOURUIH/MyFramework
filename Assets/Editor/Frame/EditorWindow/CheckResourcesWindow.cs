@@ -56,7 +56,7 @@ public class CheckResourcesWindow : GameEditorWindow
 						{
 							mFileReferenceList.Clear();
 							Dictionary<string, List<string>> tempList = new();
-							doCheck(path, tempList, getAllResourceFileText());
+							doCheck(path, tempList, getAllResourceGuidInverseRefList());
 							// 这里的GameMenu,collectUsedFile需要在Game层自己实现,
 							HashSet<string> outerRefList = GameMenu.collectUsedFile();
 							foreach (var item in tempList)
@@ -76,7 +76,7 @@ public class CheckResourcesWindow : GameEditorWindow
 					{
 						if (EditorUtility.DisplayDialog("查找资源引用", "确认查找文件夹中所有文件的引用? " + path, "确认", "取消"))
 						{
-							var allFileText = getAllResourceFileText();
+							var allFileText = getAllResourceGuidInverseRefList();
 							// 不查找meta文件的引用
 							List<string> validFiles = new();
 							foreach (string item in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))

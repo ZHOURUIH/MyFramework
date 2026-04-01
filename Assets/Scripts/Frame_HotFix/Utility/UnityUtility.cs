@@ -569,6 +569,18 @@ public class UnityUtility
 	{
 		return atCameraBack(position, getMainCamera());
 	}
+	public static void setRenderType(Camera camera, CameraRenderType renderType)
+	{
+		if (!camera.gameObject.TryGetComponent<UniversalAdditionalCameraData>(out var cameraData))
+		{
+			cameraData = camera.gameObject.AddComponent<UniversalAdditionalCameraData>();
+		}
+		if (renderType == CameraRenderType.Overlay)
+		{
+			cameraData.cameraStack?.Clear();
+		}
+		cameraData.renderType = renderType;
+	}
 	public static void setGameObjectLayer(GameObject obj, int layer)
 	{
 		if (obj == null)

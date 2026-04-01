@@ -254,7 +254,7 @@ public class EffectManager : FrameSystem
 	// 异步从prefab中加载一个特效
 	public CustomAsyncOperation createEffectAsyncQuick(Transformable attachedParent, GameObject parent, string nameWithPath, int tag, GameEffectCallback callback)
 	{
-		foreach (var item in mEffectList.getMainList())
+		foreach (var item in mEffectList)
 		{
 			if (item.getFilePath() == nameWithPath)
 			{

@@ -8,6 +8,7 @@ using System.Linq;
 using Google.Android.AppBundle.Editor;
 #endif
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -33,9 +34,20 @@ public class SpriteReferenceInfo
 
 public class FileGUIDLines
 {
-	public HashSet<string> mContainGUIDLines;
+	public List<string> mGUIDs;			// 此文件中存储的guid列表
 	public string mProjectFileName;     // 相对于项目的相对路径,也就是以Assets开头
-	public UObject mObject;             // 有些文件不是文本格式的,所以加载成资源对象进行访问
+	public void init(List<string> guidLines, string projectFileName)
+	{
+		mGUIDs = guidLines;
+		if (projectFileName[^1] == 'a')
+		{
+			mProjectFileName = projectFileName.removeEndString(".meta");
+		}
+		else
+		{
+			mProjectFileName = projectFileName;
+		}
+	}
 }
 
 public class PrefabNodeItem
@@ -52,6 +64,7 @@ public class EditorCommonUtility
 	protected const int GUID_LENGTH = 32;
 	public const string KEY_FUNCTION = "resetProperty";
 	protected const string CODE_LOCATE_KEYWORD = "代码检测";
+	protected static Dictionary<string, UObject> mLoadedAssetCache = new();
 	public static bool messageYesNo(string info)
 	{
 		return EditorUtility.DisplayDialog("提示", info, "确认", "取消");
@@ -85,112 +98,6 @@ public class EditorCommonUtility
 			gameObjectToPrefab(path, transform.GetChild(i).gameObject);
 		}
 	}
-	// 查找文件在其他地方的引用情况,查找fileName在allFileText中指定后缀的文件中的引用情况
-	public static int searchFiles(string pattern, string guid, string fileName, bool loadFile, Dictionary<string, UObject> referenceList, Dictionary<string, List<FileGUIDLines>> allFileText, bool checkUnuseOnly)
-	{
-		int[] guidNextIndex = null;
-		fileName = fileName.rightToLeft();
-		string metaSuffix = ".meta";
-		if (pattern == "*.*")
-		{
-			pattern = EMPTY;
-		}
-		else if (pattern[0] == '*')
-		{
-			pattern = pattern.Remove(0, 1);
-		}
-		foreach (var item in allFileText)
-		{
-			if (item.Value.Count == 0)
-			{
-				continue;
-			}
-			// 一些文件的meta中肯定不会引用任何文件
-			if (pattern == metaSuffix)
-			{
-				if (item.Key.endWith("bytes.meta") ||
-					item.Key.endWith("tpsheet.meta") ||
-					item.Key.endWith("mp3.meta") ||
-					item.Key.endWith("wave.meta") ||
-					item.Key.endWith("prefab.meta"))
-				{
-					continue;
-				}
-			}
-			if (!item.Key.endWith(pattern, false))
-			{
-				continue;
-			}
-			foreach (FileGUIDLines fileGUIDLines in item.Value)
-			{
-				string curFile = fileGUIDLines.mProjectFileName;
-				// 简单过滤一下meta文件的判断,因为meta文件的文件名最后一个字符肯定是a
-				if (curFile[^1] == 'a')
-				{
-					curFile = curFile.removeEndString(metaSuffix);
-				}
-				foreach (string line in fileGUIDLines.mContainGUIDLines)
-				{
-					// 查找是否包含GUID
-					if (KMPSearch(line, guid, ref guidNextIndex) < 0)
-					{
-						continue;
-					}
-					if (fileName != curFile && !referenceList.ContainsKey(curFile))
-					{
-						referenceList.Add(curFile, loadFile ? loadAsset(curFile) : null);
-						if (checkUnuseOnly)
-						{
-							return referenceList.Count;
-						}
-					}
-					break;
-				}
-			}
-
-			// 在非文本文件中查找是否有引用
-			if (pattern.endWith(".asset"))
-			{
-				List<UObject> assetList = new();
-				foreach (FileGUIDLines fileGUIDLines in item.Value)
-				{
-					// 地形数据
-					var terrainData = fileGUIDLines.mObject as TerrainData;
-					if (terrainData == null)
-					{
-						continue;
-					}
-					assetList.Clear();
-					// holesTexture
-					assetList.addNotNull(terrainData.holesTexture);
-					// alphamapTextures
-					assetList.addRangeNotNull(terrainData.alphamapTextures);
-					// terrainLayers
-					foreach (TerrainLayer layer in terrainData.terrainLayers)
-					{
-						assetList.Add(layer);
-						assetList.addNotNull(layer.diffuseTexture);
-						assetList.addNotNull(layer.normalMapTexture);
-						assetList.addNotNull(layer.maskMapTexture);
-					}
-					// detailPrototypes
-					terrainData.detailPrototypes.For(detail => assetList.addNotNull(detail.prototypeTexture));
-					// treePrototypes
-					terrainData.treePrototypes.For(tree => assetList.addNotNull(tree.prefab));
-
-					if (assetList.find(asset => guid == AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset))))
-					{
-						referenceList.Add(fileGUIDLines.mProjectFileName, fileGUIDLines.mObject);
-						if (checkUnuseOnly)
-						{
-							return referenceList.Count;
-						}
-					}
-				}
-			}
-		}
-		return referenceList.Count;
-	}
 	// 检查shader是否有指定的属性
 	public static bool checkTextureInShader(string texturePropertyName, string shaderContent)
 	{
@@ -199,7 +106,6 @@ public class EditorCommonUtility
 		int propertyStartLine = -1;
 		int propertyEndLine = -1;
 		string texturePropertyKey = texturePropertyName + "(";
-		int[] texturePropertyNextIndex = null;
 		for (int i = 0; i < lines.Length; ++i)
 		{
 			lines[i] = lines[i].removeAllEmpty();
@@ -226,7 +132,7 @@ public class EditorCommonUtility
 		}
 		for (int i = propertyStartLine; i <= propertyEndLine; ++i)
 		{
-			if (KMPSearch(lines[i], texturePropertyKey, ref texturePropertyNextIndex) >= 0)
+			if (lines[i].Contains(texturePropertyKey))
 			{
 				return true;
 			}
@@ -243,9 +149,7 @@ public class EditorCommonUtility
 		}
 		bool startTexture = false;
 		string textureStr = "m_Texture";
-		generateNextIndex(textureStr, out int[] textureNextIndex);
 		string guidKey = "guid:";
-		int[] guidNextIndex = null;
 		string shaderContent = EMPTY;
 		for (int i = 0; i < materialLines.Length; ++i)
 		{
@@ -285,12 +189,12 @@ public class EditorCommonUtility
 					continue;
 				}
 				string textureLine = materialLines[i + 1];
-				if (KMPSearch(textureLine, textureStr, ref textureNextIndex) < 0)
+				if (!textureLine.Contains(textureStr))
 				{
 					Debug.LogError("material texture property error, " + path, loadAsset(path));
 					return;
 				}
-				if (KMPSearch(textureLine, guidKey, ref guidNextIndex) >= 0)
+				if (textureLine.Contains(guidKey))
 				{
 					int startIndex = textureLine.IndexOf(guidKey) + guidKey.Length;
 					string textureGUID = textureLine.rangeToFirst(startIndex, ',');
@@ -424,7 +328,6 @@ public class EditorCommonUtility
 	public static void searchSprite(string atlasGUID, string spriteGUID, string spriteName, Dictionary<string, SpriteReferenceInfo> referenceList, Dictionary<string, List<FileGUIDLines>> allFileText)
 	{
 		string key = "m_Sprite: {fileID: " + spriteGUID + ", guid: " + atlasGUID;
-		int[] keyNextIndex = null;
 		foreach (var item in allFileText)
 		{
 			string suffix = item.Key;
@@ -434,9 +337,9 @@ public class EditorCommonUtility
 			}
 			foreach (FileGUIDLines fileGUIDLines in item.Value)
 			{
-				foreach (string line in fileGUIDLines.mContainGUIDLines)
+				foreach (string line in fileGUIDLines.mGUIDs)
 				{
-					if (KMPSearch(line, key, ref keyNextIndex) < 0)
+					if (!line.Contains(key))
 					{
 						continue;
 					}
@@ -453,19 +356,18 @@ public class EditorCommonUtility
 			}
 		}
 	}
-	public static void searchFileReference(string path, bool loadFile, Dictionary<string, UObject> referenceList, Dictionary<string, List<FileGUIDLines>> allFileText, bool checkUnuseOnly)
+	public static void searchFileReference(string path, bool loadFile, Dictionary<string, UObject> referenceList, Dictionary<string, List<FileGUIDLines>> inverseGuidList, bool checkUnuseOnly)
 	{
+		path = path.rightToLeft();
 		referenceList.Clear();
 		HashSet<string> guidList = new() { AssetDatabase.AssetPathToGUID(path) };
-		bool isTexture = isTextureSuffix(getFileSuffix(path));
 		// 如果是图片文件,则需要查找其中包含的sprite
-		if (isTexture)
+		if (isTextureSuffix(getFileSuffix(path)))
 		{
 			string keyStr = "spriteID: ";
-			int[] keyNextIndex = null;
 			foreach (string item in openTxtFileLines(projectPathToFullPath(path + ".meta"), false))
 			{
-				if (KMPSearch(item, keyStr, ref keyNextIndex) < 0)
+				if (!item.Contains(keyStr))
 				{
 					continue;
 				}
@@ -476,75 +378,22 @@ public class EditorCommonUtility
 				}
 			}
 		}
-		bool isShader = path.endWith(".shader", false) || path.endWith(".shadergraph", false);
-		bool isSubShader = path.endWith(".shadersubgraph", false);
-		bool isAnimClip = path.endWith(".anim", false);
-		bool isAnimator = path.endWith(".controller", false) || path.endWith(".overrideController", false);
-		bool isModel = path.endWith(".fbx", false);
 		foreach (string item in guidList)
 		{
-			// 只有贴图和shader才会从材质中查找引用
-			if (isTexture || isShader)
+			if (checkUnuseOnly)
 			{
-				if (searchFiles("*.mat", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
+				FileGUIDLines refItem = inverseGuidList.get(item).get(0);
+				if (refItem != null)
 				{
-					return;
+					referenceList.Add(refItem.mProjectFileName, loadFile ? loadAsset(refItem.mProjectFileName) : null);
 				}
 			}
-			// subshader需要在shadergraph和shadersubgraph中查找
-			if (isSubShader)
+			else
 			{
-				if (searchFiles("*.shadergraph", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
+				foreach (FileGUIDLines refItem in inverseGuidList.get(item).safe())
 				{
-					return;
+					referenceList.Add(refItem.mProjectFileName, loadFile ? loadAsset(refItem.mProjectFileName) : null);
 				}
-				if (searchFiles("*.shadersubgraph", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
-				{
-					return;
-				}
-			}
-			if (isTexture)
-			{
-				if (searchFiles("*.terrainlayer", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
-				{
-					return;
-				}
-				if (searchFiles("*.shadergraph", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
-				{
-					return;
-				}
-				if (searchFiles("*.shadersubgraph", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
-				{
-					return;
-				}
-			}
-			// 只有动画文件才会在状态机中查找
-			if (isAnimClip || isAnimator || isModel)
-			{
-				if (searchFiles("*.controller", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
-				{
-					return;
-				}
-				if (searchFiles("*.overrideController", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
-				{
-					return;
-				}
-			}
-			if (searchFiles("*.asset", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
-			{
-				return;
-			}
-			if (searchFiles("*.prefab", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
-			{
-				return;
-			}
-			if (searchFiles("*.unity", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
-			{
-				return;
-			}
-			if (searchFiles("*.meta", item, path, loadFile, referenceList, allFileText, checkUnuseOnly) > 0 && checkUnuseOnly)
-			{
-				return;
 			}
 		}
 	}
@@ -552,8 +401,7 @@ public class EditorCommonUtility
 	public static void searchFileReferenceOther(string path, bool loadFile, Dictionary<string, UObject> referenceList, Dictionary<string, string> allMetaList)
 	{
 		referenceList.Clear();
-		FileGUIDLines guids = getGUIDsInFile(path);
-		foreach (string guid in (guids?.mContainGUIDLines).safe())
+		foreach (string guid in (getGUIDsInFile(path)?.mGUIDs).safe())
 		{
 			if (allMetaList.TryGetValue(guid, out string otherPath))
 			{
@@ -562,9 +410,9 @@ public class EditorCommonUtility
 			}
 		}
 	}
-	public static Dictionary<string, List<FileGUIDLines>> getAllResourceFileText(string[] patterns = null)
+	public static Dictionary<string, List<FileGUIDLines>> getAllResourceGuidInverseRefList()
 	{
-		return getAllFileText(F_GAME_RESOURCES_PATH, patterns);
+		return getAllGuidInverseRefList(F_GAME_RESOURCES_PATH);
 	}
 	public static Dictionary<string, string> getAllResourceMeta()
 	{
@@ -621,11 +469,14 @@ public class EditorCommonUtility
 	{
 		string key = "guid: ";
 		Dictionary<string, string> allFileMeta = new();
-		foreach (string item in findFilesNonAlloc(path, ".meta"))
+		foreach (string file in findFilesNonAlloc(path, ".meta"))
 		{
-			if (File.ReadAllText(item).splitLine().find(lineItem=> lineItem.StartsWith(key), out string lineItem))
+			foreach (string lineItem in File.ReadLines(file))
 			{
-				allFileMeta.add(lineItem.removeStartCount(key.Length), item);
+				if (lineItem.StartsWith(key))
+				{
+					allFileMeta.add(lineItem.removeStartCount(key.Length), file);
+				}
 			}
 		}
 		return allFileMeta;
@@ -634,49 +485,102 @@ public class EditorCommonUtility
 	{
 		return new(){ ".png", ".tga", ".jpg", ".jpeg", ".cubemap", ".exr", ".psd", ".tif" };
 	}
+	public static List<string> getAudioSuffixList()
+	{
+		return new() { ".mp3", ".wav", ".ogg" };
+	}
 	public static bool isTextureSuffix(string suffixWithDot)
 	{
 		return getTextureSuffixList().contains(suffix => suffixWithDot.endWith(suffix, false));
 	}
-	public static Dictionary<string, List<FileGUIDLines>> getAllFileText(string path, string[] patterns = null)
+	public static Dictionary<string, List<FileGUIDLines>> getAllGuidInverseRefList(string path)
 	{
-		List<string> supportPatterns = new() { ".prefab", ".shadergraph", ".shadersubgraph", ".unity", ".mat", ".asset", ".meta", ".controller", ".lighting", ".overrideController", ".terrainlayer" };
-		supportPatterns.AddRange(patterns.safe());
-		// key是后缀名,value是该后缀名的文件信息列表
-		Dictionary<string, List<FileGUIDLines>> allFileText = new();
-		foreach (string item in findFilesNonAlloc(path, supportPatterns))
+		DateTime start = DateTime.Now;
+		// key是guid,value是该guid被引用的文件信息列表
+		Dictionary<string, List<FileGUIDLines>> inverseGuidList = new();
+		List<string> excludePatterns = new() 
+		{
+			".png", ".tpsheet", ".tpsheet.meta", ".prefab.meta", ".bytes", ".bytes.meta", ".txt", ".txt.meta", ".ttf", ".ttc", ".shader"
+		};
+		excludePatterns.addRange(getTextureSuffixList());
+		foreach (var pattern in getTextureSuffixList())
+		{
+			excludePatterns.add(pattern + ".meta");
+		}
+		excludePatterns.addRange(getAudioSuffixList());
+		foreach (var pattern in getAudioSuffixList())
+		{
+			excludePatterns.add(pattern + ".meta");
+		}
+		foreach (string item in findFilesExcludeNonAlloc(path, excludePatterns))
 		{
 			if (isDirExist(item.removeEndString(".meta")))
 			{
 				continue;
 			}
-			allFileText.getOrAddNew(getFileSuffix(item).ToLower()).addNotNull(getGUIDsInFile(item));
+			FileGUIDLines guidLines = getGUIDsInFile(item);
+			foreach (var guid in (guidLines?.mGUIDs).safe())
+			{
+				inverseGuidList.getOrAddNew(guid).add(guidLines);
+			}
 		}
-		return allFileText;
+		Debug.Log("getAllFileText耗时:" + (DateTime.Now - start).TotalMilliseconds + "毫秒");
+		return inverseGuidList;
 	}
 	public static FileGUIDLines getGUIDsInFile(string path)
 	{
-		string suffixNoMeta = getFileSuffix(path).removeEndString(".meta");
 		// 图片的meta中不会有任何文件的引用
-		if (isTextureSuffix(suffixNoMeta))
+		if (isTextureSuffix(getFileSuffix(path).removeEndString(".meta")))
 		{
 			return null;
 		}
-		HashSet<string> list = new();
-		foreach (string lineItem in File.ReadAllText(path).splitLine())
+		List<string> list = null;
+		foreach (string lineItem in File.ReadLines(path))
 		{
 			// 只将guid放到列表中,认为一行只有一个GUID,如果存在多个,则认为这一行不包含GUID,可能是其他的数据
-			list.addNotEmpty(getGUIDString(lineItem));
+			string guid = getGUIDString(lineItem);
+			if (!guid.isEmpty())
+			{
+				list ??= new();
+				list.addUnique(guid);
+			}
 		}
-		FileGUIDLines fileGUIDLines = new();
 		string fileName = fullPathToProjectPath(path.rightToLeft());
-		fileGUIDLines.mProjectFileName = fileName;
-		fileGUIDLines.mContainGUIDLines = list;
 		if (path.endWith(".asset"))
 		{
 			// TerrainData不是文本格式的,所以只能加载为对象来访问
-			fileGUIDLines.mObject = loadAsset(fileName) as TerrainData;
+			var terrainData = loadAsset(fileName) as TerrainData;
+			if (terrainData != null)
+			{
+				List<UObject> assetList = new();
+				// holesTexture
+				assetList.addNotNull(terrainData.holesTexture);
+				// alphamapTextures
+				assetList.addRangeNotNull(terrainData.alphamapTextures);
+				// terrainLayers
+				foreach (TerrainLayer layer in terrainData.terrainLayers)
+				{
+					assetList.Add(layer);
+					assetList.addNotNull(layer.diffuseTexture);
+					assetList.addNotNull(layer.normalMapTexture);
+					assetList.addNotNull(layer.maskMapTexture);
+				}
+				// detailPrototypes
+				terrainData.detailPrototypes.For(detail => assetList.addNotNull(detail.prototypeTexture));
+				// treePrototypes
+				terrainData.treePrototypes.For(tree => assetList.addNotNull(tree.prefab));
+				foreach (UObject item in assetList)
+				{
+					list.add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(item)));
+				}
+			}
 		}
+		if (list.isEmpty())
+		{
+			return null;
+		}
+		FileGUIDLines fileGUIDLines = new();
+		fileGUIDLines.init(list, fileName);
 		return fileGUIDLines;
 	}
 	// 根据后缀获取指定文件路径下的指定资源的所有GUID(filePath:查找路径, assetType : 后缀类型名, tipText : 查找类型提示,默认为空)
@@ -743,20 +647,20 @@ public class EditorCommonUtility
 		{
 			++curFileIndex;
 			EditorUtility.DisplayProgressBar("查找所有脚本文件的引用", "进度:" + curFileIndex + "/" + filesCounts, (float)curFileIndex / filesCounts);
-			FileGUIDLines fileGUIDLines = new();
-			HashSet<string> list = new();
+			List<string> list = new();
 			foreach (string lineItem in openTxtFileLines(item))
 			{
 				if (hasGUID(lineItem) && lineItem.Contains("m_Script:"))
 				{
 					int startIndex = lineItem.findFirstSubstr("guid: ", 0, true);
 					int endIndex = lineItem.findFirstSubstr(", ", startIndex);
-					list.Add(lineItem.range(startIndex, endIndex));
+					list.addUnique(lineItem.range(startIndex, endIndex));
 				}
 			}
-			fileGUIDLines.mProjectFileName = fullPathToProjectPath(item.rightToLeft());
-			fileGUIDLines.mContainGUIDLines = list;
-			allFileText.Add(item, fileGUIDLines);
+			if (!list.isEmpty())
+			{
+				allFileText.add(item, new()).init(list, fullPathToProjectPath(item.rightToLeft()));
+			}
 		}
 		clearProgressBar();
 		return allFileText;
@@ -796,19 +700,19 @@ public class EditorCommonUtility
 		{
 			++curFileIndex;
 			EditorUtility.DisplayProgressBar("查找所有材质的引用", "进度:" + curFileIndex + "/" + filesCounts, (float)curFileIndex / filesCounts);
-			FileGUIDLines fileGUIDLines = new();
 			openTxtFileLines(item, out string[] lines);
-			HashSet<string> list = new();
+			List<string> list = new();
 			for (int i = 0; i < lines.Length; ++i)
 			{
 				if (lines[i].Contains("m_Materials:") && !getGUIDSplitStr(lines, i).isEmpty())
 				{
-					list.Add(getGUIDSplitStr(lines, i));
+					list.addUnique(getGUIDSplitStr(lines, i));
 				}
 			}
-			fileGUIDLines.mProjectFileName = fullPathToProjectPath(item.rightToLeft());
-			fileGUIDLines.mContainGUIDLines = list;
-			allFileText.Add(item, fileGUIDLines);
+			if (!list.isEmpty())
+			{
+				allFileText.add(item, new()).init(list, fullPathToProjectPath(item.rightToLeft()));
+			}
 		}
 		clearProgressBar();
 		return allFileText;
@@ -825,18 +729,18 @@ public class EditorCommonUtility
 		{
 			++curFileIndex;
 			EditorUtility.DisplayProgressBar("查找所有的引用", "进度:" + curFileIndex + "/" + filesCounts, (float)curFileIndex / filesCounts);
-			HashSet<string> list = new();
+			List<string> list = new();
 			foreach (string lineItem in openTxtFileLines(item))
 			{
 				if (hasGUID(lineItem) && lineItem.Contains("guid: "))
 				{
-					list.Add(lineItem.rangeToFirst(lineItem.findFirstSubstr("guid: ", 0, true), ','));
+					list.addUnique(lineItem.rangeToFirst(lineItem.findFirstSubstr("guid: ", 0, true), ','));
 				}
 			}
-			FileGUIDLines fileGUIDLines = new();
-			fileGUIDLines.mProjectFileName = item.rightToLeft();
-			fileGUIDLines.mContainGUIDLines = list;
-			allFileText.Add(item, fileGUIDLines);
+			if (!list.isEmpty())
+			{
+				allFileText.add(item, new()).init(list, item.rightToLeft());
+			}
 		}
 		clearProgressBar();
 		return allFileText;
@@ -953,16 +857,7 @@ public class EditorCommonUtility
 	}
 	public static UObject loadAsset(string filePath)
 	{
-		if (filePath.isEmpty())
-		{
-			return null;
-		}
-		// 如果是绝对路径,需要转换为项目下的相对路径
-		if (filePath.StartsWith(F_ASSETS_PATH))
-		{
-			filePath = fullPathToProjectPath(filePath);
-		}
-		return AssetDatabase.LoadAssetAtPath<UObject>(filePath);
+		return loadAsset<UObject>(filePath);
 	}
 	public static T loadAsset<T>(string filePath) where T : UObject
 	{
@@ -975,7 +870,12 @@ public class EditorCommonUtility
 		{
 			filePath = fullPathToProjectPath(filePath);
 		}
-		return AssetDatabase.LoadAssetAtPath<T>(filePath);
+		if (mLoadedAssetCache.TryGetValue(filePath, out UObject asset))
+		{
+			return asset as T;
+		}
+		asset = AssetDatabase.LoadAssetAtPath<T>(filePath);
+		return mLoadedAssetCache.add(filePath, asset) as T;
 	}
 	public static T loadFirstSubAsset<T>(string filePath) where T : UObject
 	{
@@ -992,16 +892,7 @@ public class EditorCommonUtility
 	}
 	public static GameObject loadGameObject(string filePath)
 	{
-		if (filePath.isEmpty())
-		{
-			return null;
-		}
-		// 如果是绝对路径,需要转换为项目下的相对路径
-		if (filePath.StartsWith(F_ASSETS_PATH))
-		{
-			filePath = fullPathToProjectPath(filePath);
-		}
-		return AssetDatabase.LoadAssetAtPath<GameObject>(filePath);
+		return loadAsset<GameObject>(filePath);
 	}
 	// 图片尺寸是否为2的n次方
 	public static bool isSizePow2(Texture2D tex)
@@ -1683,7 +1574,7 @@ public class EditorCommonUtility
 		foreach (var item in fileDic)
 		{
 			FileGUIDLines projectFile = item.Value;
-			foreach (string guid in projectFile.mContainGUIDLines)
+			foreach (string guid in projectFile.mGUIDs)
 			{
 				if (guidList.TryGetValue(guid, out string fileName))
 				{
@@ -3295,6 +3186,53 @@ public class EditorCommonUtility
 			importer.SaveAndReimport();
 		}
 		return true;
+	}
+	public static void imageToSpriteRenderer(GameObject go)
+	{
+		Image image = go.GetComponent<Image>();
+		Sprite sprite = image.sprite;
+		Material mat = image.material;
+		Image.Type imageType = image.type;
+		UObject.DestroyImmediate(image);
+		var spriteRenderer = go.AddComponent<SpriteRenderer>();
+		spriteRenderer.material = mat;
+		spriteRenderer.sprite = sprite;
+		if (imageType == Image.Type.Simple)
+		{
+			spriteRenderer.drawMode = SpriteDrawMode.Simple;
+		}
+		else if (imageType == Image.Type.Sliced)
+		{
+			spriteRenderer.drawMode = SpriteDrawMode.Sliced;
+		}
+		else if (imageType == Image.Type.Tiled)
+		{
+			spriteRenderer.drawMode = SpriteDrawMode.Tiled;
+		}
+	}
+	public static void spriteRendererToImage(GameObject go)
+	{
+		SpriteRenderer spriteRenderer = go.GetComponent<SpriteRenderer>();
+		Sprite sprite = spriteRenderer.sprite;
+		Material mat = spriteRenderer.sharedMaterial;
+		SpriteDrawMode imageType = spriteRenderer.drawMode;
+		UObject.DestroyImmediate(spriteRenderer);
+		var image = go.AddComponent<Image>();
+		image.material = mat;
+		image.sprite = sprite;
+		image.raycastTarget = false;
+		if (imageType == SpriteDrawMode.Simple)
+		{
+			image.type = Image.Type.Simple;
+		}
+		else if (imageType == SpriteDrawMode.Sliced)
+		{
+			image.type = Image.Type.Sliced;
+		}
+		else if (imageType == SpriteDrawMode.Tiled)
+		{
+			image.type = Image.Type.Tiled;
+		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 获取字体的引用信息 filePath 文件路径 assetType类型 tipText提示信息

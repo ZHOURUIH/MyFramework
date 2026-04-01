@@ -20,7 +20,7 @@ public class AtlasLoader
 	protected float CHECK_INTERVAL = 2.0f;											// 检查的间隔时间
 	public void destroyAll()
 	{
-		mAtlasList.getMainList().forValue(item => item.unload());
+		mAtlasList.forValue(item => item.unload());
 		mAtlasList.clear();
 		mLoadingList.Clear();
 	}

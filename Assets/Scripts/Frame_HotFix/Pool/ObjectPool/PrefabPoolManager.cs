@@ -47,7 +47,7 @@ public class PrefabPoolManager : FrameSystem
 		mResourceManager.addUnloadObjectCallback((UObject obj) =>
 		{
 			// 找到对应的PrefabPool将其销毁
-			if (obj is GameObject && mPrefabPoolList.getMainList().find(item => item.Value.getPrefab() == obj, out var item))
+			if (obj is GameObject && mPrefabPoolList.getMainList().find((key, value) => value.getPrefab() == obj, out var item))
 			{
 				UN_CLASS(item.Value);
 				mPrefabPoolList.remove(item.Key);

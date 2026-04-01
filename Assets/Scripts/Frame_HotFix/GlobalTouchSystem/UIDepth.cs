@@ -43,7 +43,7 @@ public class UIDepth
 	{
 		if (orderInParent < 0 || orderInParent > ushort.MaxValue)
 		{
-			logError("节点在父节点中的顺序值无效,有效范围是1~" + ushort.MaxValue);
+			logError("节点在父节点中的顺序值无效,有效范围是1~" + ushort.MaxValue + ",当前:" + orderInParent);
 			return;
 		}
 		if (parentDepth == null)

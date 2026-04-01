@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using dnlib.DotNet;
 using static FrameBaseUtility;
 using static FrameUtility;
 using static UnityUtility;
@@ -76,6 +77,17 @@ public static class DictionaryExtension
 			return curValue;
 		}
 		return null;
+	}
+	// 添加或者更新值,并且返回旧的值,只有当值有改变时才会返回被替换的值,返回值表示是否替换成功
+	public static bool replace<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key, TValue value, out TValue oldValue) where TValue : class
+	{
+		dic.TryGetValue(key, out oldValue);
+		if (oldValue != value)
+		{
+			dic[key] = value;
+			return true;
+		}
+		return false;
 	}
 	// 等效于CollectionExtensions.GetValueOrDefault
 	public static Value get<Key, Value>(this Dictionary<Key, Value> map, Key key, Value defaultValue)
@@ -207,6 +219,16 @@ public static class DictionaryExtension
 		dic.Add(key, value);
 		return false;
 	}
+	public static TValue getOrAdd<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key, TValue value)
+	{
+		if (dic.TryGetValue(key, out TValue existValue))
+		{
+			return existValue;
+		}
+		existValue = value;
+		dic.Add(key, value);
+		return existValue;
+	}
 	public static void addOrIncreaseValue<TKey>(this Dictionary<TKey, int> dic, TKey key, int increase)
 	{
 		if (dic.TryGetValue(key, out int curValue))
@@ -321,6 +343,87 @@ public static class DictionaryExtension
 		}
 		return condition;
 	}
+	public static int remove<Key, T>(this Dictionary<Key, T> map, Predicate2<Key, T> condition)
+	{
+		if (condition == null)
+		{
+			return 0;
+		}
+		List<Key> list = null;
+		foreach (var item in map)
+		{
+			if (condition(item.Key, item.Value))
+			{
+				list ??= LIST<Key>();
+				list.add(item.Key);
+			}
+		}
+		int removeCount = 0;
+		if (list != null)
+		{
+			removeCount = list.Count;
+			foreach (Key item in list)
+			{
+				map.Remove(item);
+			}
+			UN_LIST(list);
+		}
+		return removeCount;
+	}
+	public static int remove<Key, T>(this Dictionary<Key, T> map, Predicate<Key> condition)
+	{
+		if (condition == null)
+		{
+			return 0;
+		}
+		List<Key> list = null;
+		foreach (var item in map)
+		{
+			if (condition(item.Key))
+			{
+				list ??= LIST<Key>();
+				list.add(item.Key);
+			}
+		}
+		int removeCount = 0;
+		if (list != null)
+		{
+			removeCount = list.Count;
+			foreach (Key item in list)
+			{
+				map.Remove(item);
+			}
+			UN_LIST(list);
+		}
+		return removeCount;
+	}
+	public static int remove<Key, T>(this Dictionary<Key, T> map, Predicate<T> condition)
+	{
+		if (condition == null)
+		{
+			return 0;
+		}
+		List<Key> list = null;
+		foreach (var item in map)
+		{
+			if (condition(item.Value))
+			{
+				list ??= LIST<Key>();
+				list.add(item.Key);
+			}
+		}
+		int removeCount = 0;
+		if (list != null)
+		{
+			removeCount = list.Count;
+			foreach (Key item in list)
+			{
+				map.Remove(item);
+			}
+			UN_LIST(list);
+		}
+		return removeCount;
+	}
 	public static void remove<Key, T>(this Dictionary<Key, T> map, List<Key> keys)
 	{
 		if (keys.isEmpty())
@@ -434,7 +537,7 @@ public static class DictionaryExtension
 		}
 		return list.First().Key; 
 	}
-	public static bool find<TKey, TValue>(this Dictionary<TKey, TValue> list, Predicate<KeyValuePair<TKey, TValue>> action, out KeyValuePair<TKey, TValue> value)
+	public static bool find<TKey, TValue>(this Dictionary<TKey, TValue> list, Predicate2<TKey, TValue> action, out KeyValuePair<TKey, TValue> value)
 	{
 		if (list.count() == 0)
 		{
@@ -443,7 +546,7 @@ public static class DictionaryExtension
 		}
 		foreach (var item in list)
 		{
-			if (action(item))
+			if (action(item.Key, item.Value))
 			{
 				value = item;
 				return true;
@@ -452,7 +555,7 @@ public static class DictionaryExtension
 		value = default;
 		return false;
 	}
-	public static bool findKey<TKey, TValue>(this Dictionary<TKey, TValue> list, Predicate<KeyValuePair<TKey, TValue>> action, out TKey key)
+	public static bool findKey<TKey, TValue>(this Dictionary<TKey, TValue> list, Predicate2<TKey, TValue> action, out TKey key)
 	{
 		if (list.count() == 0)
 		{
@@ -461,7 +564,7 @@ public static class DictionaryExtension
 		}
 		foreach (var item in list)
 		{
-			if (action(item))
+			if (action(item.Key, item.Value))
 			{
 				key = item.Key;
 				return true;
@@ -470,7 +573,7 @@ public static class DictionaryExtension
 		key = default;
 		return false;
 	}
-	public static TKey findKey<TKey, TValue>(this Dictionary<TKey, TValue> list, Predicate<KeyValuePair<TKey, TValue>> action)
+	public static TKey findKey<TKey, TValue>(this Dictionary<TKey, TValue> list, Predicate2<TKey, TValue> action)
 	{
 		if (list.count() == 0)
 		{
@@ -478,7 +581,7 @@ public static class DictionaryExtension
 		}
 		foreach (var item in list)
 		{
-			if (action(item))
+			if (action(item.Key, item.Value))
 			{
 				return item.Key;
 			}
@@ -503,6 +606,24 @@ public static class DictionaryExtension
 		key = default;
 		return false;
 	}
+	public static bool findKey<TKey, TValue>(this Dictionary<TKey, TValue> list, Predicate<TValue> action, out TKey key)
+	{
+		if (list.count() == 0)
+		{
+			key = default;
+			return false;
+		}
+		foreach (var item in list)
+		{
+			if (action(item.Value))
+			{
+				key = item.Key;
+				return true;
+			}
+		}
+		key = default;
+		return false;
+	}
 	public static TKey findKey<TKey, TValue>(this Dictionary<TKey, TValue> list, Predicate<TKey> action)
 	{
 		if (list.count() == 0)
@@ -517,6 +638,39 @@ public static class DictionaryExtension
 			}
 		}
 		return default;
+	}
+	public static TKey findKey<TKey, TValue>(this Dictionary<TKey, TValue> list, Predicate<TValue> action)
+	{
+		if (list.count() == 0)
+		{
+			return default;
+		}
+		foreach (var item in list)
+		{
+			if (action(item.Value))
+			{
+				return item.Key;
+			}
+		}
+		return default;
+	}
+	public static bool findValue<TKey, TValue>(this Dictionary<TKey, TValue> list, Predicate<TKey> action, out TValue value)
+	{
+		if (list.count() == 0)
+		{
+			value = default;
+			return false;
+		}
+		foreach (var item in list)
+		{
+			if (action(item.Key))
+			{
+				value = item.Value;
+				return true;
+			}
+		}
+		value = default;
+		return false;
 	}
 	public static bool findValue<TKey, TValue>(this Dictionary<TKey, TValue> list, Predicate<TValue> action, out TValue value)
 	{
@@ -551,7 +705,22 @@ public static class DictionaryExtension
 		}
 		return default;
 	}
-	public static bool findValue<TKey, TValue>(this Dictionary<TKey, TValue> list, Predicate<KeyValuePair<TKey, TValue>> action, out TValue value)
+	public static TValue findValue<TKey, TValue>(this Dictionary<TKey, TValue> list, Predicate<TKey> action)
+	{
+		if (list.count() == 0)
+		{
+			return default;
+		}
+		foreach (var item in list)
+		{
+			if (action(item.Key))
+			{
+				return item.Value;
+			}
+		}
+		return default;
+	}
+	public static bool findValue<TKey, TValue>(this Dictionary<TKey, TValue> list, Predicate2<TKey, TValue> action, out TValue value)
 	{
 		if (list.count() == 0)
 		{
@@ -560,7 +729,7 @@ public static class DictionaryExtension
 		}
 		foreach (var item in list)
 		{
-			if (action(item))
+			if (action(item.Key, item.Value))
 			{
 				value = item.Value;
 				return true;
@@ -569,7 +738,7 @@ public static class DictionaryExtension
 		value = default;
 		return false;
 	}
-	public static TValue findValue<TKey, TValue>(this Dictionary<TKey, TValue> list, Predicate<KeyValuePair<TKey, TValue>> action)
+	public static TValue findValue<TKey, TValue>(this Dictionary<TKey, TValue> list, Predicate2<TKey, TValue> action)
 	{
 		if (list.count() == 0)
 		{
@@ -577,7 +746,7 @@ public static class DictionaryExtension
 		}
 		foreach (var item in list)
 		{
-			if (action(item))
+			if (action(item.Key, item.Value))
 			{
 				return item.Value;
 			}
@@ -629,7 +798,7 @@ public static class DictionaryExtension
 		}
 		return false;
 	}
-	public static bool contains<TKey, TValue>(this Dictionary<TKey, TValue> list, Predicate<KeyValuePair<TKey, TValue>> action)
+	public static bool contains<TKey, TValue>(this Dictionary<TKey, TValue> list, Predicate2<TKey, TValue> action)
 	{
 		if (list.count() == 0)
 		{
@@ -637,7 +806,7 @@ public static class DictionaryExtension
 		}
 		foreach (var item in list)
 		{
-			if (action(item))
+			if (action(item.Key, item.Value))
 			{
 				return true;
 			}

@@ -25,19 +25,19 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 		mParent = mTemplate.getParent();
 		mTemplate.setActive(false);
 	}
-	public void newWindowListHorizontal(int count)
+	public void newItemListHorizontal(int count)
 	{
 		unuseAll();
-		newWindow(count);
+		newItem(count);
 		autoGridHorizontal();
 	}
-	public void newWindowListVertical(int count)
+	public void newItemListVertical(int count)
 	{
 		unuseAll();
-		newWindow(count);
+		newItem(count);
 		autoGridVertical();
 	}
-	public void newWindow(int count)
+	public void newItem(int count)
 	{
 		if (mParent == null)
 		{
@@ -46,20 +46,20 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 		}
 		for (int i = 0; i < count; ++i)
 		{
-			newWindow(mParent, null);
+			newItem(mParent, null);
 		}
 	}
-	public T newWindow(string name = null)
+	public T newItem(string name = null)
 	{
 		if (mParent == null)
 		{
 			logError("窗口池的父节点为空, 是否忘了调用init?");
 			return null;
 		}
-		return newWindow(mParent, name);
+		return newItem(mParent, name);
 	}
 	// 新创建的窗口会自动移动到父节点的最后一个子节点的位置
-	public T newWindow(myUGUIObject parent, string name = null)
+	public T newItem(myUGUIObject parent, string name = null)
 	{
 		name ??= mTemplate.getName();
 		T window = null;
@@ -98,7 +98,15 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 		}
 		mInusedList.Clear();
 	}
-	public bool unuseWindow(T window)
+	public bool tryUnuseItem(T window)
+	{
+		if (!mInusedList.contains(window))
+		{
+			return false;
+		}
+		return unuseItem(window);
+	}
+	public bool unuseItem(T window)
 	{
 		if (window == null)
 		{
@@ -152,7 +160,7 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 		int needCount = capacity - mInusedList.Count;
 		for (int i = 0; i < needCount; ++i)
 		{
-			newWindow();
+			newItem();
 		}
 	}
 	public override int getInUseCount() { return mInusedList.Count; }

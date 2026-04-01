@@ -76,6 +76,8 @@ public class CameraManager : FrameSystem
 	}
 	// 使用一个摄像机节点,创建一个GameCamera对象,如果是用于渲染到纹理的摄像机,则不能添加UI摄像机到显示栈中
 	// overlayCameraDepth是Overlay类型的摄像机,也就是UI摄像机的排序深度,越大渲染在越上面
+	// addUICameraStack表示如果当前创建的摄像机是Base类型,则是否需要将所有Overlay的Camera都添加到CameraStack中
+	// 如果创建的是Overlay摄像机,则是否将其加入到MainCamera的CameraStack中
 	public GameCamera createCamera(GameObject obj, int overlayCameraDepth = 0, bool active = true, bool addUICameraStack = true)
 	{
 		CLASS(out GameCamera camera);
@@ -86,28 +88,37 @@ public class CameraManager : FrameSystem
 		mCameraList.Add(camera);
 		activeCamera(camera, active);
 #if USE_URP
+		UniversalAdditionalCameraData baseCameraData = null;
 		var cameraData = camera.getOrAddUnityComponent<UniversalAdditionalCameraData>();
 		if (cameraData.renderType == CameraRenderType.Base)
 		{
-			if (addUICameraStack)
-			{
-				foreach (GameCamera overlayCamera in mOverlayCameraList)
-				{
-					// 注意,此处不能添加其他场景的overlay摄像机,否则不会生效
-					if (isEditor() && overlayCamera.getObject().scene.name != camera.getObject().scene.name)
-					{
-						logWarning("不能添加其他场景的overlay摄像机");
-						continue;
-					}
-					cameraData.cameraStack.addUnique(overlayCamera.getCamera());
-				}
-			}
+			baseCameraData = cameraData;
 		}
 		else if (cameraData.renderType == CameraRenderType.Overlay)
 		{
+			if (mMainCamera != null)
+			{
+				baseCameraData = mMainCamera.getOrAddUnityComponent<UniversalAdditionalCameraData>();
+			}
+			// 由于无法确定是否只有一个Base摄像机,所以不会在这里自动
 			camera.setOverlayDepth(overlayCameraDepth);
 			mOverlayCameraList.Add(camera);
 			mOverlayCameraList.Sort((a, b) => { return sign(a.getOverlayDepth() - b.getOverlayDepth()); });
+		}
+		if (addUICameraStack && baseCameraData != null && baseCameraData.cameraStack != null)
+		{
+			baseCameraData.cameraStack.Clear();
+			// 其实这里设计不是很好,因为不一定每一个Base摄像机都要添加全部的Overlay摄像机,这里的逻辑只能算是一个默认操作
+			foreach (GameCamera overlayCamera in mOverlayCameraList)
+			{
+				// 注意,此处不能添加其他场景的overlay摄像机,否则不会生效
+				if (isEditor() && overlayCamera.getObject().scene.name != camera.getObject().scene.name)
+				{
+					logWarning("不能添加其他场景的overlay摄像机");
+					continue;
+				}
+				baseCameraData.cameraStack.addUnique(overlayCamera.getCamera());
+			}
 		}
 #endif
 		return camera;

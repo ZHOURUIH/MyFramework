@@ -561,7 +561,7 @@ public class MathUtility
 				factors.RemoveAt(0);
 			}
 		}
-		if (numbers.Count != 1)
+		if (numbers.Count == 1)
 		{
 			return numbers[0];
 		}

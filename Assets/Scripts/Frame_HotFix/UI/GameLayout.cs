@@ -154,7 +154,7 @@ public class GameLayout
 		{
 			colliders.Clear();
 		}
-		mObjectList.getMainList().forValue(obj => colliders.addNotNull(obj.getCollider()));
+		mObjectList.forValue(obj => colliders.addNotNull(obj.getCollider()));
 	}
 	public void setVisible(bool visible)
 	{

@@ -114,39 +114,6 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 			mWindowShader.applyShader(mSpriteRenderer.sharedMaterial);
 		}
 	}
-	// 谨慎使用设置RendererQueue,尤其是操作material而非sharedMaterial
-	// 操作material会复制出一个材质实例,从而导致drawcall增加
-	public void setRenderQueue(int renderQueue, bool shareMaterial = false) 
-	{
-		if (mSpriteRenderer == null)
-		{
-			return;
-		}
-		if (shareMaterial)
-		{
-			if (mSpriteRenderer.sharedMaterial == null)
-			{
-				return;
-			}
-			mSpriteRenderer.sharedMaterial.renderQueue = renderQueue;
-		}
-		else
-		{
-			if (mSpriteRenderer.material == null)
-			{
-				return;
-			}
-			mSpriteRenderer.material.renderQueue = renderQueue;
-		}
-	}
-	public int getRenderQueue()
-	{
-		if (mSpriteRenderer == null || mSpriteRenderer.sharedMaterial == null)
-		{
-			return 0;
-		}
-		return mSpriteRenderer.sharedMaterial.renderQueue;
-	}
 	public override Vector2 getSize(bool transformed = false)
 	{
 		if (mSpriteRenderer == null || mSpriteRenderer.sprite == null)
@@ -194,9 +161,11 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		}
 		if (sprite != null && mAtlasPtr != null && !mAtlasPtr.hasSprite(sprite))
 		{
-			logWarning("设置不同图集的图片可能会引起问题,如果需要设置其他图集的图片,请使用setSpriteOnly, sprite:" + sprite.name + ", atlas:" + mAtlasPtr.getAtlasSingleName() + ", token:" + mAtlasPtr.getToken() + ", hash:" + mAtlasPtr.GetHashCode() + ", window:" + getGameObjectPath(mObject));
+			logWarning("设置不同图集的图片可能会引起问题,如果需要设置其他图集的图片,请使用setSpriteOnly, sprite:" + sprite.name + 
+					   ", atlas:" + mAtlasPtr.getAtlasSingleName() + ", token:" + mAtlasPtr.getToken() + ", hash:" + mAtlasPtr.GetHashCode() + 
+					   ", window:" + getGameObjectPath(mObject));
 		}
-		setSpriteOnly(sprite);
+		mSpriteRenderer.sprite = sprite;
 	}
 	// 只设置图片,不关心所在图集,一般不会用到此函数,只有当确认要设置的图片与当前图片不在同一图集时才会使用
 	// 并且需要自己保证设置不同图集的图片以后不会有什么问题
@@ -208,7 +177,8 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		}
 		if (sprite != null && !isFloatEqual(sprite.pixelsPerUnit, 1.0f) && getScale().x <= 1.0f)
 		{
-			logWarning("sprite的pixelsPerUnit为1,且Transform缩放为1, 会使最终渲染结果缩小100倍,如果需要显示正常,请调整pixelsPerUnit或者Transform缩放, sprite:" + sprite.name + ", transform:" + getGameObjectPath(mObject));
+			logWarning("sprite的pixelsPerUnit为1,且Transform缩放为1, 会使最终渲染结果缩小100倍,如果需要显示正常,请调整pixelsPerUnit或者Transform缩放, sprite:" + 
+					   sprite.name + ", transform:" + getGameObjectPath(mObject));
 		}
 		mSpriteRenderer.sprite = sprite;
 	}

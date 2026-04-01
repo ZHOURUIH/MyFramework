@@ -27,7 +27,7 @@ public class ObjectPoolDebug : MonoBehaviour
 		mInstanceListValues.setRangeValues(mPrefabPoolManager.getInstanceList());
 
 		mPrefabPoolInfo.Clear();
-		foreach (var item in mPrefabPoolManager.getPrefabPoolList().getMainList())
+		foreach (var item in mPrefabPoolManager.getPrefabPoolList())
 		{
 			PrefabPool pool = item.Value;
 			PrefabPoolDebugInfo info = new();

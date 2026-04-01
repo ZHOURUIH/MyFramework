@@ -33,8 +33,8 @@ public class myUGUITextImage : myUGUIObject
 		mImagePool = new(mLayout.getScript());
 		mImagePool.init();
 		mImagePool.assignTemplate(mImage);
-		mTextImage.setCreateImage(()=> { return mImagePool.newWindow(); });
-		mTextImage.setDestroyImage((myUGUIImage image)=> { mImagePool.unuseWindow(image); });
+		mTextImage.setCreateImage(()=> { return mImagePool.newItem(); });
+		mTextImage.setDestroyImage((myUGUIImage image)=> { mImagePool.unuseItem(image); });
 	}
 	public TextImage getTextImage() { return mTextImage; }
 }

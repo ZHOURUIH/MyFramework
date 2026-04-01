@@ -93,6 +93,23 @@ public static class ListExtension
 		}
 		return false;
 	}
+	public static int removeAll<T>(this List<T> list, Predicate<T> condition)
+	{
+		if (list.isEmpty())
+		{
+			return 0;
+		}
+		int count = 0;
+		for (int i = 0; i < list.Count; ++i)
+		{
+			if (condition(list[i]))
+			{
+				list.RemoveAt(i);
+				++count;
+			}
+		}
+		return count;
+	}
 	public static T swapToEndAndRemove<T>(this List<T> list, int index)
 	{
 		list.swap(index, list.Count - 1);
@@ -873,7 +890,7 @@ public static class ListExtension
 	public static int count<T>(this List<T> list)									{ return list?.Count ?? 0; }
 	public static bool isEmpty<T>(this List<T> list)								{ return list == null || list.Count == 0; }
 	public static bool contains<T>(this List<T> list, T value)						{ return list != null && list.Contains(value); }
-	public static bool contains<T>(this List<T> list, Predicate<T> match)			{ return list != null && list.find(match) != null; }
+	public static bool contains<T>(this List<T> list, Predicate<T> match)			{ return list != null && list.find(match, index : out _); }
 	public static List<T> safe<T>(this List<T> original)							{ return original ?? EmptyList<T>.getEmptyList(); }
 	public static T first<T>(this List<T> list)
 	{

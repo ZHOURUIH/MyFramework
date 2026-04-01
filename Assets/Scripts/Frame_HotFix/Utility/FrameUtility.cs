@@ -571,6 +571,28 @@ public class FrameUtility
 		}
 		array = mArrayPool.newArray<T>(count, false);
 	}
+	public static void ARRAY<T>(out T[] array, int count)
+	{
+		if (mArrayPool == null)
+		{
+			array = new T[count];
+			return;
+		}
+		array = mArrayPool.newArray<T>(count, true);
+	}
+	public static T[] ARRAY<T>(int count)
+	{
+		T[] array;
+		if (mArrayPool == null)
+		{
+			array = new T[count];
+		}
+		else
+		{
+			array = mArrayPool.newArray<T>(count, true);
+		}
+		return array;
+	}
 	public static void UN_ARRAY<T>(T[] array, bool destroyReally = false)
 	{
 		UN_ARRAY(ref array, destroyReally);
@@ -591,6 +613,30 @@ public class FrameUtility
 			return;
 		}
 		array = mByteArrayPool.newArray(count, false);
+	}
+	public static void ARRAY_BYTE(out byte[] array, int count)
+	{
+		if (mByteArrayPool == null)
+		{
+			array = new byte[count];
+		}
+		else
+		{
+			array = mByteArrayPool.newArray(count, true);
+		}
+	}
+	public static byte[] ARRAY_BYTE(int count)
+	{
+		byte[] array = null;
+		if (mByteArrayPool == null)
+		{
+			array = new byte[count];
+		}
+		else
+		{
+			array = mByteArrayPool.newArray(count, true);
+		}
+		return array;
 	}
 	public static void UN_ARRAY_BYTE(ref byte[] array, bool destroyReally = false)
 	{
