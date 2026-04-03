@@ -8,22 +8,13 @@ public static class ClassObjectTest
 {
     public static void Run()
     {
-        try
-        {
-            testDefaultState();
-            testPendingDestroy();
-            testSetDestroy();
-            testResetProperty();
-            testInstanceIDUnique();
-            testAssignID();
-            testEquals();
-            Console.WriteLine("ClassObjectTest: All tests passed");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"ClassObjectTest: Test failed - {ex.Message}");
-            throw;
-        }
+        testDefaultState();
+        testPendingDestroy();
+        testSetDestroy();
+        testResetProperty();
+        testInstanceIDUnique();
+        testAssignID();
+        testEquals();
     }
 
     // ─── 默认状态 ────────────────────────────────────────────────────────

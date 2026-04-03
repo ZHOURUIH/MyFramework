@@ -1,6 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 using UnityEditor.SceneManagement;
+using static UnityUtility;
 
 public static class PrefabNodeLocator
 {
@@ -66,6 +67,6 @@ public static class PrefabNodeLocator
 		var sceneHierarchyWindowType = typeof(EditorWindow).Assembly.GetType("UnityEditor.SceneHierarchyWindow");
 		var window = EditorWindow.GetWindow(sceneHierarchyWindowType);
 		var setExpandedMethod = sceneHierarchyWindowType.GetMethod("SetExpanded");
-		setExpandedMethod?.Invoke(window, new object[] { go.GetInstanceID(), expand });
+		setExpandedMethod?.Invoke(window, new object[] { getGameObjectID(go), expand });
 	}
 }

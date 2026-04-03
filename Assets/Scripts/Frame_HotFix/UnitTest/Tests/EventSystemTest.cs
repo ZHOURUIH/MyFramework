@@ -23,18 +23,9 @@ public static class EventSystemTest
 
     public static void Run()
     {
-        try
-        {
-            testListenAndPush_NoParam();
-            testListenAndPush_WithParam();
-            testUnlisten_StopsReceiving();
-            Console.WriteLine("EventSystemTest: All tests passed");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"EventSystemTest: Test failed - {ex.Message}");
-            throw;
-        }
+        testListenAndPush_NoParam();
+        testListenAndPush_WithParam();
+        testUnlisten_StopsReceiving();
     }
 
     // ─── 无参事件 ─────────────────────────────────────────────────────────

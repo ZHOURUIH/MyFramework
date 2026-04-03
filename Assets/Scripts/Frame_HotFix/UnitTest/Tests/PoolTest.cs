@@ -1,6 +1,5 @@
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
-using System.Collections.Generic;
 using static FrameUtility;
 
 // ClassPool / ListPool / ByteArrayPool 集成测试
@@ -9,19 +8,10 @@ public static class PoolTest
 {
     public static void Run()
     {
-        try
-        {
-            testClassPool_NewAndDestroy();
-            testClassPool_Reuse();
-            testListPool_NewAndDestroy();
-            testByteArrayPool_AllocAndFree();
-            Console.WriteLine("PoolTest: All tests passed");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"PoolTest: Test failed - {ex.Message}");
-            throw;
-        }
+        testClassPool_NewAndDestroy();
+        testClassPool_Reuse();
+        testListPool_NewAndDestroy();
+        testByteArrayPool_AllocAndFree();
     }
 
     // ─── ClassPool ────────────────────────────────────────────────────────

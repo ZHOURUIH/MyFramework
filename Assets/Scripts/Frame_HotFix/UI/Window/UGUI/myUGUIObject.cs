@@ -15,10 +15,12 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	private static Comparison<Transform> mCompareDescend = compareZDecending;				// 避免GC的回调
 	private static Comparison<myUGUIObject> mCompareSiblingIndex = compareSiblingIndex;		// 用于避免GC的委托
 	private static bool mAllowDestroyWindow = false;				// 是否允许销毁窗口,仅此类内部使用
+	protected COMWindowUGUIInteractive mCOMWindowUGUIInteractive;	// UGUI的鼠标键盘响应逻辑的组件
 	protected ComponentInteractive mCOMWindowInteractive;			// 鼠标键盘响应逻辑的组件
 	protected COMWindowCollider mCOMWindowCollider;					// 碰撞逻辑组件
 	protected HashSet<myUGUIObject> mChildSet;						// 子节点列表,用于查询是否有子节点
 	protected List<myUGUIObject> mChildList;						// 子节点列表,与GameObject的子节点顺序保持一致(已排序情况下),用于获取最后一个子节点
+	protected RectTransform mRectTransform;                         // UGUI的Transform
 	protected GameLayout mLayout;									// 所属布局
 	protected myUGUIObject mParent;									// 父节点窗口
 	protected Vector3 mLastWorldScale;								// 上一次设置的世界缩放值
@@ -26,9 +28,8 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	protected bool mDestroyImmediately;								// 销毁窗口时是否立即销毁
 	protected bool mReceiveLayoutHide;								// 布局隐藏时是否会通知此窗口,默认不通知
 	protected bool mChildOrderSorted;								// 子节点在列表中的顺序是否已经按照面板上的顺序排序了
-	protected bool mIsNewObject;									// 是否是从空的GameObject创建的,一般都是会确认已经存在了对应组件,而不是要动态添加组件
-	protected COMWindowUGUIInteractive mCOMWindowUGUIInteractive;	// UGUI的鼠标键盘响应逻辑的组件
-	protected RectTransform mRectTransform;                         // UGUI的Transform
+	protected bool mIsNewObject;                                    // 是否是从空的GameObject创建的,一般都是会确认已经存在了对应组件,而不是要动态添加组件
+	protected static int mDefaultClickSound;						// 默认的点击音效,如果没有为某个对象设置点击音效,则使用这个默认的点击音效
 	public myUGUIObject()
 	{
 		mID = makeID();
@@ -66,6 +67,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	{
 		// 布局隐藏时需要将触点清除
 		mCOMWindowUGUIInteractive?.clearMousePointer();
+		getComponent<COMWindowInteractiveFade>()?.resetUIState();
 	}
 	// 将当前窗口的顶部对齐父节点的顶部,只改Y坐标
 	public void setTopToParentTop()
@@ -225,6 +227,8 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	public Vector2 getPivot() { return mRectTransform.pivot; }
 	public void setPivot(Vector2 pivot) { mRectTransform.pivot = pivot; }
 	public RectTransform getRectTransform() { return mRectTransform; }
+	public static void setDefaultClickSound(int sound) { mDefaultClickSound = sound; }
+	public static int getDefaultClickSound() { return mDefaultClickSound; }
 	public void setWidth(float width)
 	{
 		if (isFloatEqual(mRectTransform.rect.size.x, width))
@@ -299,36 +303,43 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 			tempList[i].SetSiblingIndex(i);
 		}
 	}
+	// 用于兼容UGUI的事件监测,用得比较少
 	public void setUGUIClick(Action<PointerEventData, GameObject> callback) 
 	{
 		getCOMUGUIInteractive().setUGUIClick(callback);
 	}
+	// 用于兼容UGUI的事件监测,用得比较少
 	public void setUGUIMouseDown(Action<PointerEventData, GameObject> callback) 
 	{
 		getCOMUGUIInteractive().setUGUIMouseDown(callback);
 		// 因为点击事件会使用触点,为了确保触点的正确状态,所以需要在布局隐藏时清除触点
 		mReceiveLayoutHide = true;
 	}
+	// 用于兼容UGUI的事件监测,用得比较少
 	public void setUGUIMouseUp(Action<PointerEventData, GameObject> callback) 
 	{
 		getCOMUGUIInteractive().setUGUIMouseUp(callback);
 		// 因为点击事件会使用触点,为了确保触点的正确状态,所以需要在布局隐藏时清除触点
 		mReceiveLayoutHide = true;
 	}
+	// 用于兼容UGUI的事件监测,用得比较少
 	public void setUGUIMouseEnter(Action<PointerEventData, GameObject> callback) 
 	{
 		getCOMUGUIInteractive().setUGUIMouseEnter(callback);
 	}
+	// 用于兼容UGUI的事件监测,用得比较少
 	public void setUGUIMouseExit(Action<PointerEventData, GameObject> callback) 
 	{
 		getCOMUGUIInteractive().setUGUIMouseExit(callback);
 	}
+	// 用于兼容UGUI的事件监测,用得比较少
 	public void setUGUIMouseMove(Action<Vector2, Vector3> callback) 
 	{
 		getCOMUGUIInteractive().setUGUIMouseMove(callback);
 		// 如果设置了要监听鼠标移动,则需要激活当前窗口
 		mNeedUpdate = true;
 	}
+	// 用于兼容UGUI的事件监测,用得比较少
 	public void setUGUIMouseStay(Action<Vector3> callback)
 	{
 		getCOMUGUIInteractive().setUGUIMouseStay(callback);

@@ -3,6 +3,7 @@ using System;
 using static MathUtility;
 
 // 使用LineRenderer的方式进行画线的窗口,用于在界面中画线
+// 不过基本已经被myUGUICustomLine代替了
 public class myUGUILineRenderer : myUGUIObject
 {
 	public LineRenderer mLineRenderer;		// Unity的LineRenderer组件

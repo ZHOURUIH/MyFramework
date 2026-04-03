@@ -12,8 +12,8 @@ using static FrameBaseDefine;
 public class myUGUIVideo : myUGUIRawImage
 {
 	protected VideoErrorCallback mErrorCallback;		// 错误回调
-	protected StringBoolCallback mVideoReadyCallback;		// 视频准备完毕的回调
-	protected StringBoolCallback mVideoEndCallback;			// 视频播放结束的回调
+	protected StringBoolCallback mVideoReadyCallback;	// 视频准备完毕的回调
+	protected StringBoolCallback mVideoEndCallback;		// 视频播放结束的回调
 	protected MediaPlayer mMediaPlayer;					// 视频播放组件
 	protected PLAY_STATE mNextState;					// 缓存的视频播放状态
 	protected string mFileName;							// 视频文件名

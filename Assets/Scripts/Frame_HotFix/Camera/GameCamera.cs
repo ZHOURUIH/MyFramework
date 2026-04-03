@@ -112,10 +112,12 @@ public class GameCamera : MovableObject
 		getOrAddUnityComponent<UniversalAdditionalCameraData>().renderPostProcessing = post;
 #endif
 	}
+#if USE_URP
 	public void setRenderType(CameraRenderType renderType)
 	{
 		UnityUtility.setRenderType(mCamera, renderType);
 	}
+#endif
 	public void setRenderTarget(RenderTexture renderTarget)
 	{
 #if USE_URP
@@ -156,6 +158,7 @@ public class GameCamera : MovableObject
 	}
 	public void addCameraStack(Camera otherCamera, int index = -1)
 	{
+#if USE_URP
 		var cameraData = getOrAddUnityComponent<UniversalAdditionalCameraData>();
 		if (cameraData.renderType != CameraRenderType.Base)
 		{
@@ -179,6 +182,7 @@ public class GameCamera : MovableObject
 		}
 		cameraData.cameraStack.Insert(index, otherCamera);
 		cameraData.renderType = CameraRenderType.Overlay;
+#endif
 	}
 	public RenderTexture getRenderTarget() { return mCamera.targetTexture; }
 	//------------------------------------------------------------------------------------------------------------------------------

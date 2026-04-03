@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -188,27 +188,27 @@ public class SceneSystem : FrameSystem
 				break;
 			}
 		}
-		// 首先获得场景
-		scene.setScene(SceneManager.GetSceneByName(scene.getName()));
-		// 获得了场景根节点才能使场景显示或隐藏,为了尽量避免此处查找节点错误,所以不能使用容易重名的名字
-		scene.setRoot(getRootGameObject(scene.getName() + "_Root", true));
-		// 加载完毕后就立即初始化
-		scene.init();
-		if (scene.isActiveLoaded())
-		{
-			showScene(scene.getName(), false, scene.isMainScene());
-		}
-		else
-		{
-			hideScene(scene.getName());
-		}
-		scene.setState(LOAD_STATE.LOADED);
 		try
 		{
+			// 首先获得场景
+			scene.setScene(SceneManager.GetSceneByName(scene.getName()));
+			// 获得了场景根节点才能使场景显示或隐藏,为了尽量避免此处查找节点错误,所以不能使用容易重名的名字
+			scene.setRoot(getRootGameObject(scene.getName() + "_Root", true));
+			// 加载完毕后就立即初始化
+			scene.init();
+			if (scene.isActiveLoaded())
+			{
+				showScene(scene.getName(), false, scene.isMainScene());
+			}
+			else
+			{
+				hideScene(scene.getName());
+			}
+			scene.setState(LOAD_STATE.LOADED);
 			scene.callLoading(1.0f);
 			scene.callLoaded();
 		}
-		catch (Exception e)
+		catch(Exception e)
 		{
 			logException(e);
 		}

@@ -8,7 +8,6 @@ public class LegendButton : WindowObjectUGUI
 	protected myUGUITextTMP mText;
 	protected Vector3 mOriginTextPosition;
 	protected Color mOriginTextColor;
-	protected static int mDefaultClickSound;
 	public LegendButton(IWindowObjectOwner parent) : base(parent) { }
 	protected override void assignWindowInternal()
 	{
@@ -37,14 +36,13 @@ public class LegendButton : WindowObjectUGUI
 		mText?.setPosition(mOriginTextPosition);
 		mText?.setColor(mOriginTextColor);
 	}
-	public static void setDefaultClickSound(int sound) { mDefaultClickSound = sound; }
 	public void registeCollider(Action clickCallback, int clickSound = 0)
 	{
-		mRoot?.registeCollider(clickCallback, clickSound != 0 ? clickSound : mDefaultClickSound);
+		mRoot?.registeCollider(clickCallback, clickSound != 0 ? clickSound : myUGUIObject.getDefaultClickSound());
 	}
 	public void registeCollider(Vector3Callback clickCallback, int clickSound = 0)
 	{
-		mRoot?.registeCollider(clickCallback, clickSound != 0 ? clickSound : mDefaultClickSound);
+		mRoot?.registeCollider(clickCallback, clickSound != 0 ? clickSound : myUGUIObject.getDefaultClickSound());
 	}
 	public void unregisteCollider()
 	{

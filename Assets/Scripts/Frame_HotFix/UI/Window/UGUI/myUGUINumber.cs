@@ -6,6 +6,7 @@ using static MathUtility;
 
 // 可显示数字的窗口,支持带+-符号,小数点
 // 性能不如myUGUIImageNumber,如果有性能需求,首选myUGUIImageNumber
+// 优势就是比较灵活,可以设置数字之间的间隔,数字的停靠方式,数字的显示方向等,适合对数字显示有特殊需求的场景
 public class myUGUINumber : myUGUIImage
 {
 	protected List<myUGUIImageSimple> mNumberList = new();	// 数字窗口列表

@@ -9,21 +9,12 @@ public static class CommandTest
 {
     public static void Run()
     {
-        try
-        {
-            testCmdCreate();
-            testCmdIDUnique();
-            testCmdInitialState();
-            testCmdStartCallback();
-            testCmdEndCallback();
-            testCmdResetProperty();
-            Console.WriteLine("CommandTest: All tests passed");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"CommandTest: Test failed - {ex.Message}");
-            throw;
-        }
+        testCmdCreate();
+        testCmdIDUnique();
+        testCmdInitialState();
+        testCmdStartCallback();
+        testCmdEndCallback();
+        testCmdResetProperty();
     }
 
     // ─── CMD<T> 创建 ─────────────────────────────────────────────────────

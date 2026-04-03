@@ -12,8 +12,8 @@ using static FrameBaseUtility;
 public class GameLayout
 {
 	protected Dictionary<int, myUGUIObject> mGameObjectSearchList = new();	// 用于根据GameObject查找UI,key是GameObject的InstanceID
-	protected SafeHashSet<myUGUIObject> mNeedUpdateList = new();				// mObjectList中需要更新的窗口列表
-	protected SafeDictionary<int, myUGUIObject> mObjectList = new();			// 布局中UI物体列表,用于保存所有已获取的UI
+	protected SafeHashSet<myUGUIObject> mNeedUpdateList = new();			// mObjectList中需要更新的窗口列表
+	protected SafeDictionary<int, myUGUIObject> mObjectList = new();		// 布局中UI物体列表,用于保存所有已获取的UI
 	protected myUGUICanvas mRoot;					// 布局根节点
 	protected LayoutScript mScript;					// 布局脚本
 	protected myUGUIObject mParent;					// 布局父节点,可能是UGUIRoot,也可能为空
@@ -162,8 +162,6 @@ public class GameLayout
 		{
 			return;
 		}
-		// 设置布局显示或者隐藏时需要先通知脚本开始显示或隐藏
-		mScript.notifyStartShowOrHide();
 		// 显示布局时立即显示
 		if (visible)
 		{
@@ -214,18 +212,18 @@ public class GameLayout
 	public void registerUIObject(myUGUIObject uiObj)
 	{
 		mObjectList.add(uiObj.getID(), uiObj);
-		if (mGameObjectSearchList.TryGetValue(uiObj.getObject().GetInstanceID(), out myUGUIObject obj))
+		if (mGameObjectSearchList.TryGetValue(uiObj.getGameObjectInstanceID(), out myUGUIObject obj))
 		{
 			logError("两个UI窗口的GameObject实例ID一致,UI窗口对象相同:" + (uiObj != obj) + ",GameObject是否相同：" + (obj.getObject() == uiObj.getObject()) + ", obj name:" + obj.getName() + ", uiObj name:" + uiObj.getName());
 		}
-		mGameObjectSearchList.Add(uiObj.getObject().GetInstanceID(), uiObj);
+		mGameObjectSearchList.Add(uiObj.getGameObjectInstanceID(), uiObj);
 		mNeedUpdateList.addIf(uiObj, mDefaultUpdateWindow || uiObj.isNeedUpdate());
 	}
 	public void unregisterUIObject(myUGUIObject uiObj)
 	{
 		mObjectList.remove(uiObj.getID());
 		mNeedUpdateList.remove(uiObj);
-		mGameObjectSearchList.Remove(uiObj.getObject().GetInstanceID());
+		mGameObjectSearchList.Remove(uiObj.getGameObjectInstanceID());
 	}
 	// 有节点删除或者增加,或者节点在当前父节点中的位置有改变,parent表示有变动的节点的父节点
 	public void refreshUIDepth(myUGUIObject parent, bool ignoreInactive)
@@ -237,7 +235,8 @@ public class GameLayout
 		setUIDepth(parent, 0, false, ignoreInactive);
 	}
 	// get
-	public myUGUIObject getUIObject(GameObject go)			{ return mGameObjectSearchList.get(go.GetInstanceID()); }
+	public myUGUIObject getUIObject(GameObject go)			{ return mGameObjectSearchList.get(getGameObjectID(go)); }
+	public Dictionary<int, myUGUIObject> getUIObjectList()	{ return mGameObjectSearchList; }
 	public myUGUICanvas getRoot()							{ return mRoot; }
 	public LayoutScript getScript()							{ return mScript; }
 	public LAYOUT_ORDER getRenderOrderType()				{ return mRenderOrderType; }

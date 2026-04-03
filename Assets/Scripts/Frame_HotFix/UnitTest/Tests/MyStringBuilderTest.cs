@@ -10,31 +10,22 @@ public static class MyStringBuilderTest
 {
     public static void Run()
     {
-        try
-        {
-            testClearAndLength();
-            testAddTypes();
-            testAddStrings();
-            testAddIf();
-            testAddRepeat();
-            testInsert();
-            testRemove();
-            testReplace();
-            testReplaceAll();
-            testEndWith();
-            testLastIndexOf();
-            testIndexOf();
-            testColorString();
-            testAddLine();
-            testChaining();
-            testEdgeCases();
-            Console.WriteLine("MyStringBuilderTest: All tests passed");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"MyStringBuilderTest: Test failed - {ex.Message}");
-            throw;
-        }
+        testClearAndLength();
+        testAddTypes();
+        testAddStrings();
+        testAddIf();
+        testAddRepeat();
+        testInsert();
+        testRemove();
+        testReplace();
+        testReplaceAll();
+        testEndWith();
+        testLastIndexOf();
+        testIndexOf();
+        testColorString();
+        testAddLine();
+        testChaining();
+        testEdgeCases();
     }
 
     // 获取一个 CLASS 池化的 MyStringBuilder

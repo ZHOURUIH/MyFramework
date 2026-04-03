@@ -11,33 +11,24 @@ public static class DictionaryExtensionTest
 {
     public static void Run()
     {
-        try
-        {
-            testIsEmptyAndCount();
-            testGetValue();
-            testAddAndAddOrSet();
-            testAddIf();
-            testReplace();
-            testSetRangeAndAddRange();
-            testGetKeyOfValue();
-            testGetOrAdd();
-            testGetOrAddNew();
-            testAddOrIncreaseValue();
-            testRemove();
-            testRemoveIf();
-            testFind();
-            testContains();
-            testFirst();
-            testForKeyAndForValue();
-            testSafe();
-            testEmptyDictionary();
-            Console.WriteLine("DictionaryExtensionTest: All tests passed");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"DictionaryExtensionTest: Test failed - {ex.Message}");
-            throw;
-        }
+        testIsEmptyAndCount();
+        testGetValue();
+        testAddAndAddOrSet();
+        testAddIf();
+        testReplace();
+        testSetRangeAndAddRange();
+        testGetKeyOfValue();
+        testGetOrAdd();
+        testGetOrAddNew();
+        testAddOrIncreaseValue();
+        testRemove();
+        testRemoveIf();
+        testFind();
+        testContains();
+        testFirst();
+        testForKeyAndForValue();
+        testSafe();
+        testEmptyDictionary();
     }
 
     // ─── isEmpty / count ─────────────────────────────────────────────────

@@ -105,7 +105,7 @@ public class CameraManager : FrameSystem
 			mOverlayCameraList.Add(camera);
 			mOverlayCameraList.Sort((a, b) => { return sign(a.getOverlayDepth() - b.getOverlayDepth()); });
 		}
-		if (addUICameraStack && baseCameraData != null && baseCameraData.cameraStack != null)
+		if (addUICameraStack && baseCameraData != null)
 		{
 			baseCameraData.cameraStack.Clear();
 			// 其实这里设计不是很好,因为不一定每一个Base摄像机都要添加全部的Overlay摄像机,这里的逻辑只能算是一个默认操作

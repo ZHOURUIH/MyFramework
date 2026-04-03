@@ -85,6 +85,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	{
 		mLayout.notifyUIObjectNeedUpdate(uiObj, needUpdate);
 	}
+	// 由于基本都是使用了自定义的滑动列表,所以基本不再使用UGUI自带的ScrollRect了
 	public void registeScrollRect(myUGUIScrollRect scrollRect, myUGUIObject viewport, myUGUIObject content, float verticalPivot = 1.0f, float horizontalPivot = 0.5f)
 	{
 		mScrollViewRegisteList ??= new();
@@ -106,7 +107,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	{
 		mInputSystem.unregisteInputField(inputField);
 	}
-	// parent的区域中才能允许parent的子节点接收射线检测
+	// parent的区域中才能允许parent的子节点接收射线检测,一般用于滑动列表
 	public void bindPassOnlyParent(myUGUIObject parent)
 	{
 		// 设置当前窗口需要调整深度在所有子节点之上,并计算深度调整值
@@ -116,7 +117,8 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		parent.registeCollider();
 		mGlobalTouchSystem.bindPassOnlyParent(parent);
 	}
-	// parent的区域中只有passOnlyArea的区域可以穿透
+	// parent的区域中只有passOnlyArea的区域可以穿透,两个节点不需要有任何关系
+	// 暂时没有发现需要使用passOnlyArea的情况,先保留这个接口,如果后续没有使用再删除
 	public void bindPassOnlyArea(myUGUIObject parent, myUGUIObject passOnlyArea)
 	{
 		parent.registeCollider();
@@ -188,6 +190,15 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		}
 		// 调用所有根对象的初始化
 		mWindowObjectRootList.For(item => item.postInit());
+
+		// 自动注册所有的InputField
+		foreach (var item in mLayout.getUIObjectList())
+		{
+			if (item.Value is IInputField inputField)
+			{
+				registeInputField(inputField);
+			}
+		}
 	}
 	public void updateAllDragView()
 	{
@@ -213,6 +224,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	// 一般是重置布局状态,再根据当前游戏状态设置布局显示前的状态,执行一些显示时的动效
 	public virtual void onGameState() 
 	{
+		interruptAllCommand();
 		if (isEditor() && !mRegisterChecked)
 		{
 			mRegisterChecked = true;
@@ -263,6 +275,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	public virtual void onDrawGizmos() { }
 	public virtual void onHide()
 	{
+		interruptAllCommand();
 		clearLocalization();
 		mEventSystem?.unlistenEvent(this);
 		// 隐藏界面时调用所有非对象池中对象的onHide,用于通知自身被隐藏了
@@ -280,11 +293,6 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 			mWindowPoolRootList.For(item => item.unuseAll());
 		}
 		mInputSystem?.unlistenKey(this);
-	}
-	// 通知脚本开始显示或隐藏,中断全部命令
-	public void notifyStartShowOrHide()
-	{
-		interruptAllCommand();
 	}
 	public bool hasObject(string name)
 	{

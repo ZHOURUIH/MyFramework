@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using static UnityUtility;
 
+// 对UGUI的Button组件的封装,提供一些常用的接口,比如设置点击事件等
 // 因为button组件一般都是跟Image组件一起的,所以继承myUGUIImage
 public class myUGUIButton : myUGUIImageSimple
 {

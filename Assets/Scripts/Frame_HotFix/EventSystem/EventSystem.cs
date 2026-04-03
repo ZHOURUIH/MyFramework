@@ -127,6 +127,13 @@ public class EventSystem : FrameSystem
 		// 加入全局事件监听列表中
 		mGlobalListenerEventList.getOrAddClass(info.mEventType).add(info);
 	}
+	public void listenEvent<T>(Action callback, IEventListener listener)
+	{
+		GameEventRegisteInfo info = createEventAddToListenList(typeof(T), 0, callback, listener);
+
+		// 加入全局事件监听列表中
+		mGlobalListenerEventList.getOrAddClass(info.mEventType).add(info);
+	}
 	public void listenEvent<T>(Action<T> callback, IEventListener listener) where T : GameEvent
 	{
 		GameEventRegisteInfo info = createEventAddToListenList(0, callback, listener);
@@ -137,6 +144,14 @@ public class EventSystem : FrameSystem
 	public void listenEvent<T>(long characterID, Action<T> callback, IEventListener listener) where T : GameEvent
 	{
 		GameEventRegisteInfo info = createEventAddToListenList(characterID, callback, listener);
+
+		// 加入指定角色事件监听列表中
+		var characterEventList = mCharacterEventList.getOrAddListPersist(characterID);
+		characterEventList.getOrAddClass(info.mEventType).add(info);
+	}
+	public void listenEvent<T>(long characterID, Action callback, IEventListener listener) where T : GameEvent
+	{
+		GameEventRegisteInfo info = createEventAddToListenList(typeof(T), characterID, callback, listener);
 
 		// 加入指定角色事件监听列表中
 		var characterEventList = mCharacterEventList.getOrAddListPersist(characterID);

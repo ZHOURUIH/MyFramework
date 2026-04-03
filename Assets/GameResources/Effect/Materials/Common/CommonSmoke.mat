@@ -171,7 +171,7 @@ Material:
     - _DistortionStrength: 1
     - _DistortionStrengthScaled: 0
     - _DstBlend: 10
-    - _DstBlendAlpha: 0
+    - _DstBlendAlpha: 10
     - _EDGEFADE: 0
     - _EdgeFadeMax: 0.6
     - _EdgeFadeMin: 1

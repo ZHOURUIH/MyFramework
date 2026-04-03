@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using static UnityUtility;
 
-// 对UGUICanvas的封装
+// 对UGUI Canvas的封装
 public class myUGUICanvas : myUGUIObject
 {
 	protected Canvas mCanvas;		// UGUI的Canvas组件

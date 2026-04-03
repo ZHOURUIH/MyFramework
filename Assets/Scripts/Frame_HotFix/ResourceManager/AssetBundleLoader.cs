@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -16,15 +16,15 @@ using static ResourceUtility;
 // 从AssetBundle中加载资源
 public class AssetBundleLoader
 {
-	protected Dictionary<UObject, AssetBundleInfo> mAssetToAssetBundleInfo = new();	// 根据加载的Asset查找所属AssetBundle的列表
-	protected Dictionary<string, AssetBundleInfo> mAssetBundleInfoList = new();		// 根据名字查找AssetBundle的列表,此名字不含后缀
-	protected Dictionary<string, AssetInfo> mAssetToBundleInfo = new();				// 根据资源文件名查找Asset信息的列表,初始化时就会填充此列表
-	protected HashSet<Coroutine> mCoroutineList = new();							// 当前的协程列表
-	protected HashSet<string> mDontUnloadAssetBundle = new();						// 即使没有引用也不会调用卸载的AssetBundle
+	protected Dictionary<UObject, AssetBundleInfo> mAssetToAssetBundleInfo = new(); // 根据加载的Asset查找所属AssetBundle的列表
+	protected Dictionary<string, AssetBundleInfo> mAssetBundleInfoList = new();     // 根据名字查找AssetBundle的列表,此名字不含后缀
+	protected Dictionary<string, AssetInfo> mAssetToBundleInfo = new();             // 根据资源文件名查找Asset信息的列表,初始化时就会填充此列表
+	protected HashSet<Coroutine> mCoroutineList = new();                            // 当前的协程列表
+	protected HashSet<string> mDontUnloadAssetBundle = new();                       // 即使没有引用也不会调用卸载的AssetBundle
 	protected WaitForEndOfFrame mWaitForEndOfFrame = new();                         // 用于避免GC
-	protected string mDownloadURL;													// 资源包下载的地址
-	protected bool mAutoLoad = true;												// 当资源可用时是否自动初始化AssetBundle
-	protected bool mInited;															// AssetBundleLoader是否已经初始化
+	protected string mDownloadURL;                                                  // 资源包下载的地址
+	protected bool mAutoLoad = true;                                                // 当资源可用时是否自动初始化AssetBundle
+	protected bool mInited;                                                         // AssetBundleLoader是否已经初始化
 	public void initAssets(Action callback)
 	{
 		if (!mAutoLoad)
@@ -60,7 +60,7 @@ public class AssetBundleLoader
 					// 更新本地的文件列表
 					writeFileList(F_PERSISTENT_ASSETS_PATH, mAssetVersionSystem.generatePersistentAssetFileList());
 				}
-				
+
 				initAssetConfig(bytes, mDownloadURL + STREAMING_ASSET_FILE);
 				callback?.Invoke();
 			}, null);
@@ -383,7 +383,7 @@ public class AssetBundleLoader
 		if (bundleInfo.getLoadState() == LOAD_STATE.DOWNLOADING)
 		{
 			CustomAsyncOperation op = new();
-			bundleInfo.addDownloadCallback((AssetBundleInfo info, byte[] bytes)=>
+			bundleInfo.addDownloadCallback((AssetBundleInfo info, byte[] bytes) =>
 			{
 				op.setFinish();
 				callback?.Invoke(bytes);
@@ -425,7 +425,7 @@ public class AssetBundleLoader
 		{
 			log(bundleInfo.getBundleFileName() + " start load bundle");
 		}
-		while(!bundleInfo.isAllParentLoaded())
+		while (!bundleInfo.isAllParentLoaded())
 		{
 			yield return null;
 		}
@@ -436,7 +436,7 @@ public class AssetBundleLoader
 		if (fullPath == null)
 		{
 			byte[] assetBundleBytes = null;
-			yield return downloadAssetBundleCoroutine(bundleInfo, (byte[] bytes)=> { assetBundleBytes = bytes; });
+			yield return downloadAssetBundleCoroutine(bundleInfo, (byte[] bytes) => { assetBundleBytes = bytes; });
 			bundleInfo.setLoadState(LOAD_STATE.LOADING);
 			AssetBundleCreateRequest request = AssetBundle.LoadFromMemoryAsync(assetBundleBytes);
 			if (request != null)

@@ -1,6 +1,5 @@
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
-using System.Collections.Generic;
 using static FrameUtility;
 
 // Safe 集合类型测试
@@ -11,21 +10,12 @@ public static class SafeCollectionTest
 {
     public static void Run()
     {
-        try
-        {
-            testSafeListBasic();
-            testSafeListForeachModify();
-            testSafeListClear();
-            testSafeDictionaryBasic();
-            testSafeDictionaryForeachModify();
-            testSafeHashSetBasic();
-            Console.WriteLine("SafeCollectionTest: All tests passed");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"SafeCollectionTest: Test failed - {ex.Message}");
-            throw;
-        }
+        testSafeListBasic();
+        testSafeListForeachModify();
+        testSafeListClear();
+        testSafeDictionaryBasic();
+        testSafeDictionaryForeachModify();
+        testSafeHashSetBasic();
     }
 
     // ─── SafeList: 基础操作 ──────────────────────────────────────────────────

@@ -71,7 +71,7 @@ public class WindowStructPoolBase : IWindowObjectOwner
 	public void setActive(bool active)					{ mItemParent.setActive(active); }
 	public void setItemPreName(string preName)			{ mPreName = preName; }
 	public void setObjectType(Type type)				{ mObjectType = type; }
-	public void setNewItemMoveToLast(bool moveToLast)	{ mNewItemMoveToLast = moveToLast; }
+	public void setMoveToLast(bool moveToLast)	{ mNewItemMoveToLast = moveToLast; }
 	public virtual void unuseAll() { }
 	public void refreshUIDepth(bool ignoreInactive = true)
 	{

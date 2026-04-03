@@ -62,9 +62,9 @@ public class ObsSystem
 		if (mURL.isEmpty() || remotePath == null)
 		{
 			callback?.Invoke(null, 0);
-			return null;
+			yield break;
 		}
-		return loadAssetsFromUrlWaiting(mURL + remotePath, (byte[] bytes) =>
+		yield return loadAssetsFromUrlWaiting(mURL + remotePath, (byte[] bytes) =>
 		{
 			callback?.Invoke(bytes.bytesToString(), bytes.count());
 		});
@@ -75,9 +75,9 @@ public class ObsSystem
 		if (mURL.isEmpty() || remotePath == null)
 		{
 			callback?.Invoke(null, 0);
-			return null;
+			yield break;
 		}
-		return loadAssetsFromUrlWaiting(mURL + remotePath, (byte[] bytes) =>
+		yield return loadAssetsFromUrlWaiting(mURL + remotePath, (byte[] bytes) =>
 		{
 			callback?.Invoke(bytes, bytes.count());
 		});

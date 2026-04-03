@@ -266,10 +266,7 @@ public class GlobalTouchSystem : FrameSystem
 			using var a = new SafeDictionaryReader<IMouseEventCollect, IMouseEventCollect>(mPassOnlyArea);
 			foreach (var item in a.mReadList)
 			{
-				if (item.Value == obj)
-				{
-					mPassOnlyArea.remove(item.Key);
-				}
+				mPassOnlyArea.removeIf(item.Key, item.Value == obj);
 			}
 		}
 	}

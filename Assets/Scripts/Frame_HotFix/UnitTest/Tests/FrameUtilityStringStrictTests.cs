@@ -1,27 +1,17 @@
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using static FrameUtility;
-using static StringUtility;
 
 // FrameUtility 中与数值/字符串格式化相关的纯函数（不依赖场景）
 public static class FrameUtilityStringStrictTests
 {
     public static void Run()
     {
-        try
-        {
-            testFixedAndPercent();
-            testToPercentFloat();
-            testToPercentString();
-            testToProbabilityFloat();
-            testToProbabilityString();
-            Console.WriteLine("FrameUtilityStringStrictTests: All tests passed");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"FrameUtilityStringStrictTests: Test failed - {ex.Message}");
-            throw;
-        }
+        testFixedAndPercent();
+        testToPercentFloat();
+        testToPercentString();
+        testToProbabilityFloat();
+        testToProbabilityString();
     }
 
     private static void testFixedAndPercent()

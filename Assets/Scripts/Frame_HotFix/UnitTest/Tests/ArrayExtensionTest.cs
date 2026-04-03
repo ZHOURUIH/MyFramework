@@ -11,28 +11,19 @@ public static class ArrayExtensionTest
 {
     public static void Run()
     {
-        try
-        {
-            testIsEmptyAndCount();
-            testGetAndSet();
-            testContains();
-            testFind();
-            testFirst();
-            testInverse();
-            testSetAllDefaultAndValue();
-            testSetRange();
-            testForAndForI();
-            testCountWithCondition();
-            testBytesToString();
-            testSafe();
-            testEmptyArray();
-            Console.WriteLine("ArrayExtensionTest: All tests passed");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"ArrayExtensionTest: Test failed - {ex.Message}");
-            throw;
-        }
+        testIsEmptyAndCount();
+        testGetAndSet();
+        testContains();
+        testFind();
+        testFirst();
+        testInverse();
+        testSetAllDefaultAndValue();
+        testSetRange();
+        testForAndForI();
+        testCountWithCondition();
+        testBytesToString();
+        testSafe();
+        testEmptyArray();
     }
 
     // ─── isEmpty / count ─────────────────────────────────────────────────

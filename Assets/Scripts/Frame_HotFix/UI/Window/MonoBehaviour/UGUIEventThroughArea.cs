@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 using static UnityUtility;
 using UEventSystem = UnityEngine.EventSystems.EventSystem;
 
-// 允许部分区域穿透UGUI的鼠标事件
+// 允许部分区域穿透UGUI的鼠标事件,目前应该没有用到
 public class UGUIEventThroughArea : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler
 {
 	public Rect mPassOnlyRect;      // 可穿透事件的区域

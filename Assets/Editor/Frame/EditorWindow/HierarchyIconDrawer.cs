@@ -12,9 +12,17 @@ public class HierarchyIconDrawer
 		// 使用Unity内置图标资源
 		greenIcon = EditorGUIUtility.IconContent("sv_icon_dot3_pix16_gizmo").image as Texture2D;
 		redIcon = EditorGUIUtility.IconContent("sv_icon_dot6_pix16_gizmo").image as Texture2D;
+#if UNITY_6000_6_OR_NEWER
+		EditorApplication.hierarchyWindowItemByEntityIdOnGUI += drawHierarchyIcon;
+#else
 		EditorApplication.hierarchyWindowItemOnGUI += drawHierarchyIcon;
+#endif
 	}
+#if UNITY_6000_6_OR_NEWER
+	protected static void drawHierarchyIcon(EntityId instanceID, Rect rect)
+#else
 	protected static void drawHierarchyIcon(int instanceID, Rect rect)
+#endif
 	{
 #if UNITY_6000_3_OR_NEWER
 		var go = EditorUtility.EntityIdToObject(instanceID) as GameObject;

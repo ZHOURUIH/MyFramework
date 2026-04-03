@@ -11,37 +11,28 @@ public static class ListExtensionTest
 {
     public static void Run()
     {
-        try
-        {
-            testIsEmptyAndCount();
-            testGetAndSet();
-            testAdd();
-            testAddUnique();
-            testAddIf();
-            testAddNot();
-            testAddNotEmpty();
-            testAddCount();
-            testRemoveAt();
-            testRemoveIf();
-            testPopBackAndGetLast();
-            testFirst();
-            testFind();
-            testContains();
-            testSwap();
-            testSwapToEndAndRemove();
-            testInverse();
-            testIsSame();
-            testIsSubList();
-            testSetAllDefaultAndValue();
-            testSetRange();
-            testAddRange();
-            Console.WriteLine("ListExtensionTest: All tests passed");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"ListExtensionTest: Test failed - {ex.Message}");
-            throw;
-        }
+        testIsEmptyAndCount();
+        testGetAndSet();
+        testAdd();
+        testAddUnique();
+        testAddIf();
+        testAddNot();
+        testAddNotEmpty();
+        testAddCount();
+        testRemoveAt();
+        testRemoveIf();
+        testPopBackAndGetLast();
+        testFirst();
+        testFind();
+        testContains();
+        testSwap();
+        testSwapToEndAndRemove();
+        testInverse();
+        testIsSame();
+        testIsSubList();
+        testSetAllDefaultAndValue();
+        testSetRange();
+        testAddRange();
     }
 
     // ─── isEmpty / count ─────────────────────────────────────────────────

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.UI;
 using static UnityUtility;
 using static MathUtility;
@@ -182,5 +183,17 @@ public class myUGUIImageSimple : myUGUIObject
 			return;
 		}
 		mImage.raycastTarget = enable; 
+	}
+	public void registeColliderImage(Action clickCallback)
+	{
+		registeCollider(clickCallback, mDefaultClickSound);
+		getOrAddComponent<COMWindowInteractiveFade>();
+		mReceiveLayoutHide = true;
+	}
+	public void registeColliderImage(Action clickCallback, int clickSound)
+	{
+		registeCollider(clickCallback, clickSound);
+		getOrAddComponent<COMWindowInteractiveFade>();
+		mReceiveLayoutHide = true;
 	}
 }

@@ -1,5 +1,4 @@
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-using System;
 using System.Collections.Generic;
 using static StringUtility;
 using static TestAssert;
@@ -16,39 +15,30 @@ public static class StringUtilityTest
 {
     public static void Run()
     {
-        try
-        {
-            testIToS();
-            testLToS();
-            testSToI();
-            testSToL();
-            testFToS();
-            testSToF();
-            testSplit();
-            testGetFileNameWithSuffix();
-            testRemoveSuffix();
-            testGetFileSuffix();
-            testIsNumeric();
-            testIsLetterCase();
-            testIsChinese();
-            testBoolToString();
-            testStringToBool();
-            testGetFirstNumberPos();
-            testSToIsAndIsToS();
-            testSToFsAndFsToS();
-            testDecodeJsonArray();
-            testBytesToHEXString();
-            testFileSizeString();
-            testKMPSearch();
-            testColorString();
-            testIntToChineseString();
-            Console.WriteLine("StringUtilityTest: All tests passed");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"StringUtilityTest: Test failed - {ex.Message}");
-            throw;
-        }
+        testIToS();
+        testLToS();
+        testSToI();
+        testSToL();
+        testFToS();
+        testSToF();
+        testSplit();
+        testGetFileNameWithSuffix();
+        testRemoveSuffix();
+        testGetFileSuffix();
+        testIsNumeric();
+        testIsLetterCase();
+        testIsChinese();
+        testBoolToString();
+        testStringToBool();
+        testGetFirstNumberPos();
+        testSToIsAndIsToS();
+        testSToFsAndFsToS();
+        testDecodeJsonArray();
+        testBytesToHEXString();
+        testFileSizeString();
+        testKMPSearch();
+        testColorString();
+        testIntToChineseString();
     }
 
     // ─── IToS ────────────────────────────────────────────────────────────────

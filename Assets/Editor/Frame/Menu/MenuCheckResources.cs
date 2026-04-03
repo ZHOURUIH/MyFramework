@@ -610,7 +610,11 @@ public class MenuCheckResources
 			Debug.Log("进入场景 ==>> " + currentScene);
 			displayProgressBar("MeshCollider的Read-Write是否启用", "进度: ", i + 1, sceneCount);
 			EditorSceneManager.OpenScene(currentScene, OpenSceneMode.Single);
+#if UNITY_6000_4_OR_NEWER
+			foreach (GameObject go in UObject.FindObjectsByType<GameObject>())
+#else
 			foreach (GameObject go in UObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None))
+#endif
 			{
 				if (!go.TryGetComponent<MeshCollider>(out var collider) ||
 					!go.TryGetComponent<MeshFilter>(out var meshFilter))
@@ -656,7 +660,11 @@ public class MenuCheckResources
 		Debug.Log("------开始检查Scene的Mesh是否开启Read-Write------");
 		DateTime startTime = DateTime.Now;
 		HashSet<Mesh> saveErrorObj = new();
+#if UNITY_6000_4_OR_NEWER
+		GameObject[] sceneObjects = UObject.FindObjectsByType<GameObject>();
+#else
 		GameObject[] sceneObjects = UObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+#endif
 		int objectCount = sceneObjects.Length;
 		for (int i = 0; i < objectCount; ++i)
 		{
@@ -695,7 +703,11 @@ public class MenuCheckResources
 	public static void findSceneLayerNull()
 	{
 		Debug.Log("------开始检查当前Scene是否含有Layer空对象------");
+#if UNITY_6000_4_OR_NEWER
+		foreach (GameObject item in UObject.FindObjectsByType<GameObject>())
+#else
 		foreach (GameObject item in UObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None))
+#endif
 		{
 			string layerName = LayerMask.LayerToName(item.layer);
 			if (layerName == EMPTY)

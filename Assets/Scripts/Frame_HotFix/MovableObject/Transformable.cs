@@ -3,32 +3,29 @@ using System;
 using System.Collections.Generic;
 using static FrameBaseUtility;
 using static MathUtility;
+using static UnityUtility;
 
 // 可变换的物体,2D和3D物体都是可变换,也就是都会包含一个Transform
 public class Transformable : ComponentOwner, ITransformable
 {
 	protected Transform mTransform;             // 变换组件
 	protected GameObject mObject;               // 物体节点
-	protected bool mNeedUpdate;                 // 是否启用更新,与Active共同控制是否执行更新
-	protected Action mPositionModifyCallback;
-	protected Action mRotationModifyCallback;
-	protected Action mScaleModifyCallback;
-	protected bool mPositionDirty = true;
+	protected Action mPositionModifyCallback;	// 使用注册回调的方式来代替虚函数重写
+	protected Action mRotationModifyCallback;   // 使用注册回调的方式来代替虚函数重写
+	protected Action mScaleModifyCallback;      // 使用注册回调的方式来代替虚函数重写
+	protected bool mPositionDirty = true;		// 位置是否有更改
+	protected bool mNeedUpdate = true;          // 是否启用更新,与Active共同控制是否执行更新
 	protected Vector3 mPosition;                // 单独存储位置,可以在大多数时候避免访问Transform
-	public Transformable()
-	{
-		mNeedUpdate = true;
-	}
 	public override void resetProperty()
 	{
 		base.resetProperty();
 		mTransform = null;
 		mObject = null;
-		mNeedUpdate = true;
 		mPositionModifyCallback = null;
 		mRotationModifyCallback = null;
 		mScaleModifyCallback = null;
 		mPositionDirty = true;
+		mNeedUpdate = true;
 		mPosition = Vector3.zero;
 	}
 	public virtual void setObject(GameObject obj)
@@ -105,6 +102,10 @@ public class Transformable : ComponentOwner, ITransformable
 		return collider.Raycast(ray, out hit, maxDistance);
 	}
 	public GameObject getObject() { return mObject; }
+	public int getGameObjectInstanceID()
+	{
+		return getGameObjectID(mObject);
+	}
 	public bool isUnityComponentEnabled<T>() where T : Behaviour
 	{
 		T com = tryGetUnityComponent<T>();

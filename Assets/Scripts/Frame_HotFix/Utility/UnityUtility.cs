@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -569,6 +569,7 @@ public class UnityUtility
 	{
 		return atCameraBack(position, getMainCamera());
 	}
+#if USE_URP
 	public static void setRenderType(Camera camera, CameraRenderType renderType)
 	{
 		if (!camera.gameObject.TryGetComponent<UniversalAdditionalCameraData>(out var cameraData))
@@ -581,6 +582,7 @@ public class UnityUtility
 		}
 		cameraData.renderType = renderType;
 	}
+#endif
 	public static void setGameObjectLayer(GameObject obj, int layer)
 	{
 		if (obj == null)
@@ -1279,6 +1281,18 @@ public class UnityUtility
 	{
 		return (int)textComponent.GetPreferredValues(str, float.PositiveInfinity, 0).x;
 	}
+	public static int getGameObjectID(UObject go)
+	{
+		if (go == null)
+		{
+			return 0;
+		}
+#if UNITY_6000_4_OR_NEWER
+		return (int)EntityId.ToULong(go.GetEntityId());
+#else
+		return go.GetInstanceID();
+#endif
+	}
 #if USE_SPINE
 	public static void playSpineAnimation(SkeletonAnimation comSkeleton, string anim, bool loop, bool force = false)
 	{
@@ -1537,6 +1551,13 @@ public class UnityUtility
 		{
 			go.name = name;
 		}
-		callback?.Invoke(go);
+		try
+		{
+			callback?.Invoke(go);
+		}
+		catch (Exception e)
+		{
+			logException(e, "实例化游戏对象异常");
+		}
 	}
 }

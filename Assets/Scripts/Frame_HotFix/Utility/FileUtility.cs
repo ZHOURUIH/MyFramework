@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -18,7 +18,7 @@ public class FileUtility
 	private static List<string> mTempPatternList = new();   // 用于避免GC
 	private static List<string> mTempFileList = new();      // 用于避免GC
 	private static List<string> mTempFileList1 = new();     // 用于避免GC
-	private static byte[] BOM = new byte[] { 0xEF, 0xBB, 0xBF };	// UTF8的BOM头
+	private static byte[] BOM = new byte[] { 0xEF, 0xBB, 0xBF };    // UTF8的BOM头
 	public static void validPath(ref string path)
 	{
 		// 不以/结尾,则加上/
@@ -84,7 +84,14 @@ public class FileUtility
 			{
 				logError("file not exist:" + fileName);
 			}
-			callback?.Invoke(null);
+			try
+			{
+				callback?.Invoke(null);
+			}
+			catch(Exception e)
+			{
+				logException(e);
+			}
 			return;
 		}
 		GameEntry.startCoroutine(openFileAsyncInternal(fileName, errorIfNull, callback));
@@ -307,7 +314,7 @@ public class FileUtility
 		{
 			Directory.Move(fileName, newName);
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			logException(e, "fileName:" + fileName + ", newName:" + newName);
 		}

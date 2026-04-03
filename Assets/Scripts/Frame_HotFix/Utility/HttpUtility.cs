@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -475,7 +475,14 @@ public class HttpUtility
 		request.downloadHandler = new DownloadHandlerBuffer();
 		// 发送请求并等待完成
 		yield return request.SendWebRequest();
-		callback?.Invoke(request.downloadHandler.text, request.result, request.responseCode);
+		try
+		{
+			callback?.Invoke(request.downloadHandler.text, request.result, request.responseCode);
+		}
+		catch (Exception e)
+		{
+			logException(e, "HTTP POST请求异常: " + url);
+		}
 	}
 	protected static IEnumerator unityPrepareGet(string url, string contentType, Dictionary<string, string> header, Dictionary<string, string> paramList, UnityHttpCallback callback, int timeoutSecond)
 	{
@@ -492,7 +499,14 @@ public class HttpUtility
 		}
 		// 发送请求并等待完成
 		yield return request.SendWebRequest();
-		callback?.Invoke(request.downloadHandler.text, request.result, request.responseCode);
+		try
+		{
+			callback?.Invoke(request.downloadHandler.text, request.result, request.responseCode);
+		}
+		catch (Exception e)
+		{
+			logException(e, "HTTP GET请求异常: " + url);
+		}
 	}
 	protected static bool myRemoteCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
 	{

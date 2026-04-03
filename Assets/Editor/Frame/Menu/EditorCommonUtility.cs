@@ -3322,7 +3322,11 @@ public class EditorCommonUtility
 		return report.summary.result;
 	}
 	[OnOpenAsset(1)]
+#if UNITY_6000_6_OR_NEWER
+	protected static bool OnOpenAsset(EntityId instanceID, int line)
+#else
 	protected static bool OnOpenAsset(int instanceID, int line)
+#endif
 	{
 		// 自定义函数，用来获取log中的stacktrace
 		string stack_trace = findStackTrace();
@@ -3361,7 +3365,11 @@ public class EditorCommonUtility
 		if (filePath.StartsWith(P_ASSETS_PATH))
 		{
 			UObject codeObject = loadAsset(filePath);
-			if ((codeObject == null || codeObject.GetInstanceID() == instanceID) && fileLine == line)
+#if UNITY_6000_6_OR_NEWER
+			if ((codeObject == null || getGameObjectID(codeObject) == (int)EntityId.ToULong(instanceID)) && fileLine == line)
+#else
+			if ((codeObject == null || getGameObjectID(codeObject) == instanceID) && fileLine == line)
+#endif
 			{
 				return false;
 			}

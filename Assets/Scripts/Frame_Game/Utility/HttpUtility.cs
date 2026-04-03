@@ -1,6 +1,8 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Networking;
 
 // 封装的Http的相关操作,因为其中全是静态工具函数,所以名字为Utility,但是由于需要管理一些线程,所以与普通的工具函数类不同
@@ -30,7 +32,14 @@ public class HttpUtility
 		}
 		// 发送请求并等待完成
 		yield return request.SendWebRequest();
-		callback?.Invoke(request.downloadHandler.text, request.result, request.responseCode);
+		try
+		{
+			callback?.Invoke(request.downloadHandler.text, request.result, request.responseCode);
+		}
+		catch (Exception e)
+		{
+			Debug.LogError("HTTP GET请求异常: " + e.Message);
+		}
 	}
 	protected static string generateGetParams(Dictionary<string, string> paramList)
 	{
@@ -40,13 +49,13 @@ public class HttpUtility
 		}
 		int count = paramList.Count;
 		StringBuilder parameters = new();
-		parameters.Append("?");
+		parameters.Append('?');
 		// 从集合中取出所有参数，设置表单参数（AddField())
 		int index = 0;
 		foreach (var item in paramList)
 		{
 			parameters.Append(item.Key);
-			parameters.Append("=");
+			parameters.Append('=');
 			parameters.Append(item.Value);
 			if (index++ != count - 1)
 			{

@@ -133,6 +133,14 @@ public class SafeDictionary<Key, Value> : ClassObject
 			add(key, value);
 		}
 	}
+	public bool removeIf(Key key, bool condition)
+	{
+		if (condition)
+		{
+			return remove(key);
+		}
+		return false;
+	}
 	public bool remove(Key key)
 	{
 		if (!mMainList.Remove(key))

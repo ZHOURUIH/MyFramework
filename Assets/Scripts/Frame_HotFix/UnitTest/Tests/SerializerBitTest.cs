@@ -8,22 +8,13 @@ public static class SerializerBitTest
 {
     public static void Run()
     {
-        try
-        {
-            testWriteReadInt();
-            testWriteReadBool();
-            testWriteReadFloat();
-            testWriteReadLong();
-            testWriteReadString();
-            testWriteReadMixed();
-            testReadList();
-            Console.WriteLine("SerializerBitTest: All tests passed");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"SerializerBitTest: Test failed - {ex.Message}");
-            throw;
-        }
+        testWriteReadInt();
+        testWriteReadBool();
+        testWriteReadFloat();
+        testWriteReadLong();
+        testWriteReadString();
+        testWriteReadMixed();
+        testReadList();
     }
 
     private static void testWriteReadInt()

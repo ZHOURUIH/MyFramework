@@ -78,7 +78,6 @@ public class FrameHotFixTest
 		{
 			var result = runOne(test.Key, test.Value);
 			results.Add(result);
-
 			if (result.passed)
 			{
 				pass++;
