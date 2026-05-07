@@ -23,7 +23,7 @@ public class AnimationLayer : ClassObject
 			// 如果设置了默认的动作状态,则跳转到该状态
 			if (mDefaultState != null)
 			{
-				mCharacter.getStateMachine().addState(mDefaultState);
+				mCharacter.addState(mDefaultState);
 			}
 			// 没有动作状态则直接设置为空的动作
 			else

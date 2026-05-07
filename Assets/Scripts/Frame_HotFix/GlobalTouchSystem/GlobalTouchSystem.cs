@@ -122,7 +122,7 @@ public class GlobalTouchSystem : FrameSystem
 	}
 	public bool isColliderRegisted(IMouseEventCollect obj) { return mAllObjectSet.Contains(obj); }
 	// 注册碰撞器,只有注册了的碰撞器才会进行检测,showError是否显示重复注册的报错
-	public void registeCollider(IMouseEventCollect obj, GameCamera camera = null, bool showError = true)
+	public void registeCollider(IMouseEventCollect obj, GameCamera camera = null)
 	{
 		// 允许自动添加碰撞盒
 		if (obj.getCollider(true) == null)
@@ -132,10 +132,6 @@ public class GlobalTouchSystem : FrameSystem
 		}
 		if (mAllObjectSet.Contains(obj))
 		{
-			if (showError)
-			{
-				logError("不能重复注册碰撞体: " + obj.getName() + ", " + obj.getDescription());
-			}
 			return;
 		}
 
@@ -166,6 +162,10 @@ public class GlobalTouchSystem : FrameSystem
 		}
 		else if (obj is MovableObject)
 		{
+			if (camera == null)
+			{
+				logError("need a camera!");
+			}
 			MouseCastObjectSet mouseCastSet = null;
 			foreach (MouseCastObjectSet item in mMouseCastObjectList)
 			{

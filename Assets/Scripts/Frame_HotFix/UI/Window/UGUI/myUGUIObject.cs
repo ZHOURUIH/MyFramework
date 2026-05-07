@@ -12,22 +12,21 @@ using static FrameBaseUtility;
 // UGUI窗口的基类
 public class myUGUIObject : Transformable, IMouseEventCollect
 {
-	private static Comparison<Transform> mCompareDescend = compareZDecending;				// 避免GC的回调
-	private static Comparison<myUGUIObject> mCompareSiblingIndex = compareSiblingIndex;		// 用于避免GC的委托
+	private static Comparison<Transform> mCompareDescend = compareZDecending;			// 避免GC的回调
+	private static Comparison<myUGUIObject> mCompareSiblingIndex = compareSiblingIndex; // 避免GC的回调
 	private static bool mAllowDestroyWindow = false;				// 是否允许销毁窗口,仅此类内部使用
 	protected COMWindowUGUIInteractive mCOMWindowUGUIInteractive;	// UGUI的鼠标键盘响应逻辑的组件
 	protected ComponentInteractive mCOMWindowInteractive;			// 鼠标键盘响应逻辑的组件
 	protected COMWindowCollider mCOMWindowCollider;					// 碰撞逻辑组件
-	protected HashSet<myUGUIObject> mChildSet;						// 子节点列表,用于查询是否有子节点
-	protected List<myUGUIObject> mChildList;						// 子节点列表,与GameObject的子节点顺序保持一致(已排序情况下),用于获取最后一个子节点
+	protected List<myUGUIObject> mChildList;						// 子节点列表
 	protected RectTransform mRectTransform;                         // UGUI的Transform
 	protected GameLayout mLayout;									// 所属布局
+	protected Canvas mCanvas;										// 缓存的Canvas组件,避免重复去获取
 	protected myUGUIObject mParent;									// 父节点窗口
-	protected Vector3 mLastWorldScale;								// 上一次设置的世界缩放值
 	protected int mID;												// 每个窗口的唯一ID
 	protected bool mDestroyImmediately;								// 销毁窗口时是否立即销毁
-	protected bool mReceiveLayoutHide;								// 布局隐藏时是否会通知此窗口,默认不通知
-	protected bool mChildOrderSorted;								// 子节点在列表中的顺序是否已经按照面板上的顺序排序了
+	protected bool mReceiveLayoutHide;                              // 布局隐藏时是否会通知此窗口,默认不通知
+	protected bool mChildOrderSorted;								// 子节点的顺序是否已经排序过了
 	protected bool mIsNewObject;                                    // 是否是从空的GameObject创建的,一般都是会确认已经存在了对应组件,而不是要动态添加组件
 	protected static int mDefaultClickSound;						// 默认的点击音效,如果没有为某个对象设置点击音效,则使用这个默认的点击音效
 	public myUGUIObject()
@@ -62,6 +61,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 			}
 		}
 		mCOMWindowCollider?.setColliderSize(mRectTransform);
+		tryGetUnityComponent(out mCanvas);
 	}
 	public void onLayoutHide() 
 	{
@@ -114,36 +114,36 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		setInParentCenterY();
 	}
 	// 设置窗口在父节点中横向居中
-	public void setInParentCenterX() { setPositionX(0.0f); }
+	public void setInParentCenterX()					{ setPositionX(0.0f); }
 	// 设置窗口在父节点中纵向居中
-	public void setInParentCenterY() { setPositionY(0.0f); }
+	public void setInParentCenterY()					{ setPositionY(0.0f); }
 	// 设置窗口左边界在父节点中的X坐标
-	public void setLeftInParent(float leftInParent) { setPositionX(leftInParent - getLeftInSelf()); }
+	public void setLeftInParent(float leftInParent)		{ setPositionX(leftInParent - getLeftInSelf()); }
 	// 设置窗口右边界在父节点中的X坐标
-	public void setRightInParent(float rightInParent) { setPositionX(rightInParent - getRightInSelf()); }
+	public void setRightInParent(float rightInParent)	{ setPositionX(rightInParent - getRightInSelf()); }
 	// 设置窗口顶部在父节点中的Y坐标
-	public void setTopInParent(float topInParent) { setPositionY(topInParent - getTopInSelf()); }
+	public void setTopInParent(float topInParent)		{ setPositionY(topInParent - getTopInSelf()); }
 	// 设置窗口底部在父节点中的Y坐标
 	public void setBottomInParent(float bottomInParent) { setPositionY(bottomInParent - getBottomInSelf()); }
 	// 获得窗口左边界在父窗口中的X坐标
-	public float getLeftInParent() { return getPosition().x + getLeftInSelf(); }
+	public float getLeftInParent()						{ return getPosition().x + getLeftInSelf(); }
 	// 获得窗口右边界在父窗口中的X坐标
-	public float getRightInParent() { return getPosition().x + getRightInSelf(); }
+	public float getRightInParent()						{ return getPosition().x + getRightInSelf(); }
 	// 获得窗口顶部在父窗口中的Y坐标
-	public float getTopInParent() { return getPosition().y + getTopInSelf(); }
+	public float getTopInParent()						{ return getPosition().y + getTopInSelf(); }
 	// 获得窗口底部在父窗口中的Y坐标
-	public float getBottomInParent() { return getPosition().y + getBottomInSelf(); }
+	public float getBottomInParent()					{ return getPosition().y + getBottomInSelf(); }
 	// 获得窗口顶部在窗口中的相对于窗口pivot的Y坐标
-	public float getTopInSelf() { return getSize().y * (1.0f - getPivot().y); }
+	public float getTopInSelf()							{ return getSize().y * (1.0f - getPivot().y); }
 	// 获得窗口底部在窗口中的相对于窗口pivot的Y坐标
-	public float getBottomInSelf() { return -getSize().y * getPivot().y; }
+	public float getBottomInSelf()						{ return -getSize().y * getPivot().y; }
 	// 获得窗口左边界在窗口中的相对于窗口pivot的X坐标
-	public float getLeftInSelf() { return -getSize().x * getPivot().x; }
+	public float getLeftInSelf()						{ return -getSize().x * getPivot().x; }
 	// 获得窗口右边界在窗口中的相对于窗口pivot的X坐标
-	public float getRightInSelf() { return getSize().x * (1.0f - getPivot().x); }
+	public float getRightInSelf()						{ return getSize().x * (1.0f - getPivot().x); }
 	// 获取不考虑中心点偏移的坐标,也就是固定获取窗口中心的坐标
 	// 由于pivot的影响,Transform.localPosition获得的坐标并不一定等于窗口中心的坐标
-	public Vector3 getPositionNoPivot() { return WidgetUtility.getPositionNoPivot(mRectTransform); }
+	public Vector3 getPositionNoPivot()					{ return WidgetUtility.getPositionNoPivot(mRectTransform); }
 	// 使当前窗口右边界对齐另外一个窗口的左边界,只修改x轴,仅限同一父节点下
 	public void setRightToOtherLeft(myUGUIObject other, float interval = 0.0f)
 	{
@@ -224,11 +224,12 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		}
 		setPositionY(other.getPosition().y - other.getSize().y * 0.5f + getSize().y * 0.5f + interval);
 	}
-	public Vector2 getPivot() { return mRectTransform.pivot; }
-	public void setPivot(Vector2 pivot) { mRectTransform.pivot = pivot; }
-	public RectTransform getRectTransform() { return mRectTransform; }
-	public static void setDefaultClickSound(int sound) { mDefaultClickSound = sound; }
-	public static int getDefaultClickSound() { return mDefaultClickSound; }
+	public Vector2 getPivot()							{ return mRectTransform.pivot; }
+	public void setPivot(Vector2 pivot)					{ mRectTransform.pivot = pivot; }
+	public RectTransform getRectTransform()				{ return mRectTransform; }
+	public List<myUGUIObject> getChildList()			{ return mChildList; }
+	public static void setDefaultClickSound(int sound)	{ mDefaultClickSound = sound; }
+	public static int getDefaultClickSound()			{ return mDefaultClickSound; }
 	public void setWidth(float width)
 	{
 		if (isFloatEqual(mRectTransform.rect.size.x, width))
@@ -360,14 +361,6 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		mGlobalTouchSystem?.notifyWindowActiveChanged();
 		return active;
 	}
-	public static void collectChild<T>(myUGUIObject window, List<T> list) where T : myUGUIObject
-	{
-		list.addNotNull(window as T);
-		foreach (myUGUIObject item in window.mChildList.safe())
-		{
-			collectChild(item, list);
-		}
-	}
 	public static void destroyWindow(myUGUIObject window, bool destroyReally)
 	{
 		if (window == null)
@@ -395,7 +388,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 			mInputSystem?.unregisteInputField(inputField);
 		}
 		window.mLayout?.unregisterUIObject(window);
-		GameObject go = window.getObject();
+		GameObject go = window.getGameObject();
 		mAllowDestroyWindow = true;
 		window.destroy();
 		mAllowDestroyWindow = false;
@@ -407,23 +400,12 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	}
 	public void removeChild(myUGUIObject child)
 	{
-		if (mChildSet != null && mChildSet.Remove(child))
-		{
-			mChildList?.Remove(child);
-		}
+		mChildList?.Remove(child);
 	}
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-
 		ensureColliderSize();
-
-		// 检测世界缩放值是否有变化
-		if (!isVectorEqual(mLastWorldScale, getWorldScale()))
-		{
-			onWorldScaleChanged(mLastWorldScale);
-			mLastWorldScale = getWorldScale();
-		}
 	}
 	public override Collider getCollider(bool addIfNotExist = false)
 	{
@@ -440,8 +422,12 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	}
 	public void setAsLastSibling(bool refreshUIDepth = true)
 	{
-		mTransform.SetAsLastSibling();
+		if (mTransform.GetSiblingIndex() == mTransform.parent.childCount - 1)
+		{
+			return;
+		}
 		mChildOrderSorted = false;
+		mTransform.SetAsLastSibling();
 		if (refreshUIDepth)
 		{
 			mLayout.refreshUIDepth(mParent, true);
@@ -449,8 +435,12 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	}
 	public void setAsFirstSibling(bool refreshUIDepth = true)
 	{
-		mTransform.SetAsFirstSibling();
+		if (mTransform.GetSiblingIndex() == 0)
+		{
+			return;
+		}
 		mChildOrderSorted = false;
+		mTransform.SetAsFirstSibling();
 		if (refreshUIDepth)
 		{
 			mLayout.refreshUIDepth(mParent, true);
@@ -462,8 +452,8 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		{
 			return false;
 		}
-		mTransform.SetSiblingIndex(index);
 		mChildOrderSorted = false;
+		mTransform.SetSiblingIndex(index);
 		if (refreshUIDepth)
 		{
 			mLayout.refreshUIDepth(mParent, true);
@@ -477,7 +467,6 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	public string getDescription()					{ return mLayout?.getName(); }
 	public int getID()								{ return mID; }
 	public GameLayout getLayout()					{ return mLayout; }
-	public List<myUGUIObject> getChildList()		{ return mChildList; }
 	public virtual bool isReceiveScreenTouch()		{ return mCOMWindowInteractive?.getOnScreenTouchUp() != null; }
 	public myUGUIObject getParent()					{ return mParent; }
 	public override float getAlpha()				{ return 1.0f; }
@@ -510,24 +499,6 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	{
 		logError("can not get window fill percent with myUGUIObject");
 		return 1.0f;
-	}
-	// 递归返回最后一个子节点,如果没有子节点,则返回空
-	public myUGUIObject getLastChild()
-	{
-		if (mChildList.isEmpty())
-		{
-			return null;
-		}
-		if (mChildList.Count > 1 && !mChildOrderSorted)
-		{
-			logError("子节点没有被排序,无法获得正确的最后一个子节点");
-		}
-		myUGUIObject lastChild = mChildList[^1];
-		if (lastChild.mChildList.Count == 0)
-		{
-			return lastChild;
-		}
-		return lastChild.getLastChild();
 	}
 	public BoolCallback getPressCallback()								{ return getCOMInteractive().getPressCallback(); }
 	public void setDepthOverAllChild(bool depthOver)					{ getCOMInteractive().setDepthOverAllChild(depthOver); }
@@ -564,6 +535,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	public void setLayout(GameLayout layout)							{ mLayout = layout; }
 	public void setReceiveLayoutHide(bool receive)						{ mReceiveLayoutHide = receive; }
 	public void setIsNewObject(bool isNew)								{ mIsNewObject = isNew; }
+	public Canvas getCanvas()											{ return mCanvas; }
 	public override void setObject(GameObject go)
 	{
 		setName(go.name);
@@ -630,7 +602,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	}
 	public void sortChild()
 	{
-		if (mChildList.count() <= 1)
+		if (mChildOrderSorted || mChildList.count() <= 1)
 		{
 			return;
 		}
@@ -640,15 +612,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	// registeEvent,这些函数只是用于简化注册碰撞体的操作
 	public void registeCollider(Action clickCallback, Action preClick, bool passRay = false)
 	{
-		mGlobalTouchSystem.registeCollider(this, null, true);
-		setClickCallback(clickCallback);
-		setPreClickCallback(preClick);
-		setPassRay(passRay);
-		setNeedUpdate(true);
-	}
-	public void registeColliderNoError(Action clickCallback, Action preClick, bool passRay = false)
-	{
-		mGlobalTouchSystem.registeCollider(this, null, false);
+		mGlobalTouchSystem.registeCollider(this, null);
 		setClickCallback(clickCallback);
 		setPreClickCallback(preClick);
 		setPassRay(passRay);
@@ -657,15 +621,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	// 用于接收GlobalTouchSystem处理的输入事件
 	public void registeCollider(Action clickCallback, BoolCallback hoverCallback, BoolCallback pressCallback, bool passRay)
 	{
-		mGlobalTouchSystem.registeCollider(this, null, true);
-		setObjectCallback(clickCallback, hoverCallback, pressCallback);
-		setPassRay(passRay);
-		// 由碰撞体的窗口都需要启用更新,以便可以保证窗口大小与碰撞体大小一致
-		setNeedUpdate(true);
-	}
-	public void registeColliderNoError(Action clickCallback, BoolCallback hoverCallback, BoolCallback pressCallback, bool passRay)
-	{
-		mGlobalTouchSystem.registeCollider(this, null, false);
+		mGlobalTouchSystem.registeCollider(this, null);
 		setObjectCallback(clickCallback, hoverCallback, pressCallback);
 		setPassRay(passRay);
 		// 由碰撞体的窗口都需要启用更新,以便可以保证窗口大小与碰撞体大小一致
@@ -673,71 +629,35 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	}
 	public void registeCollider(Action clickCallback, BoolCallback hoverCallback, BoolCallback pressCallback, GameCamera camera)
 	{
-		mGlobalTouchSystem.registeCollider(this, camera, true);
-		setObjectCallback(clickCallback, hoverCallback, pressCallback);
-		setPassRay(false);
-		setNeedUpdate(true);
-	}
-	public void registeColliderNoError(Action clickCallback, BoolCallback hoverCallback, BoolCallback pressCallback, GameCamera camera)
-	{
-		mGlobalTouchSystem.registeCollider(this, camera, false);
+		mGlobalTouchSystem.registeCollider(this, camera);
 		setObjectCallback(clickCallback, hoverCallback, pressCallback);
 		setPassRay(false);
 		setNeedUpdate(true);
 	}
 	public void registeCollider(Action clickCallback, BoolCallback hoverCallback, BoolCallback pressCallback)
 	{
-		mGlobalTouchSystem.registeCollider(this, null, true);
-		setObjectCallback(clickCallback, hoverCallback, pressCallback);
-		setPassRay(false);
-		setNeedUpdate(true);
-	}
-	public void registeColliderNoError(Action clickCallback, BoolCallback hoverCallback, BoolCallback pressCallback)
-	{
-		mGlobalTouchSystem.registeCollider(this, null, false);
+		mGlobalTouchSystem.registeCollider(this, null);
 		setObjectCallback(clickCallback, hoverCallback, pressCallback);
 		setPassRay(false);
 		setNeedUpdate(true);
 	}
 	public void registeCollider(Action clickCallback, bool passRay)
 	{
-		mGlobalTouchSystem.registeCollider(this, null, true);
-		setClickCallback(clickCallback);
-		setPassRay(passRay);
-		setNeedUpdate(true);
-	}
-	public void registeColliderNoError(Action clickCallback, bool passRay)
-	{
-		mGlobalTouchSystem.registeCollider(this, null, false);
+		mGlobalTouchSystem.registeCollider(this, null);
 		setClickCallback(clickCallback);
 		setPassRay(passRay);
 		setNeedUpdate(true);
 	}
 	public void registeCollider(Vector3Callback clickCallback, bool passRay)
 	{
-		mGlobalTouchSystem.registeCollider(this, null, true);
-		setClickDetailCallback(clickCallback);
-		setPassRay(passRay);
-		setNeedUpdate(true);
-	}
-	public void registeColliderNoError(Vector3Callback clickCallback, bool passRay)
-	{
-		mGlobalTouchSystem.registeCollider(this, null, false);
+		mGlobalTouchSystem.registeCollider(this, null);
 		setClickDetailCallback(clickCallback);
 		setPassRay(passRay);
 		setNeedUpdate(true);
 	}
 	public void registeCollider(Action clickCallback, int clickSound)
 	{
-		mGlobalTouchSystem.registeCollider(this, null, true);
-		setClickCallback(clickCallback);
-		setPassRay(false);
-		setNeedUpdate(true);
-		setClickSound(clickSound);
-	}
-	public void registeColliderNoError(Action clickCallback, int clickSound)
-	{
-		mGlobalTouchSystem.registeCollider(this, null, false);
+		mGlobalTouchSystem.registeCollider(this, null);
 		setClickCallback(clickCallback);
 		setPassRay(false);
 		setNeedUpdate(true);
@@ -745,15 +665,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	}
 	public void registeCollider(Action clickCallback, bool passRay, int clickSound)
 	{
-		mGlobalTouchSystem.registeCollider(this, null, true);
-		setClickCallback(clickCallback);
-		setPassRay(passRay);
-		setNeedUpdate(true);
-		setClickSound(clickSound);
-	}
-	public void registeColliderNoError(Action clickCallback, bool passRay, int clickSound)
-	{
-		mGlobalTouchSystem.registeCollider(this, null, false);
+		mGlobalTouchSystem.registeCollider(this, null);
 		setClickCallback(clickCallback);
 		setPassRay(passRay);
 		setNeedUpdate(true);
@@ -761,15 +673,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	}
 	public void registeCollider(Vector3Callback clickCallback, int clickSound)
 	{
-		mGlobalTouchSystem.registeCollider(this, null, true);
-		setClickDetailCallback(clickCallback);
-		setPassRay(false);
-		setNeedUpdate(true);
-		setClickSound(clickSound);
-	}
-	public void registeColliderNoError(Vector3Callback clickCallback, int clickSound)
-	{
-		mGlobalTouchSystem.registeCollider(this, null, false);
+		mGlobalTouchSystem.registeCollider(this, null);
 		setClickDetailCallback(clickCallback);
 		setPassRay(false);
 		setNeedUpdate(true);
@@ -777,42 +681,21 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	}
 	public void registeCollider(Action clickCallback)
 	{
-		mGlobalTouchSystem.registeCollider(this, null, true);
-		setClickCallback(clickCallback);
-		setPassRay(false);
-		setNeedUpdate(true);
-	}
-	public void registeColliderNoError(Action clickCallback)
-	{
-		mGlobalTouchSystem.registeCollider(this, null, false);
+		mGlobalTouchSystem.registeCollider(this, null);
 		setClickCallback(clickCallback);
 		setPassRay(false);
 		setNeedUpdate(true);
 	}
 	public void registeCollider(Action clickCallback, GameCamera camera)
 	{
-		mGlobalTouchSystem.registeCollider(this, camera, true);
-		setClickCallback(clickCallback);
-		setPassRay(false);
-		setNeedUpdate(true);
-	}
-	public void registeColliderNoError(Action clickCallback, GameCamera camera)
-	{
-		mGlobalTouchSystem.registeCollider(this, camera, false);
+		mGlobalTouchSystem.registeCollider(this, camera);
 		setClickCallback(clickCallback);
 		setPassRay(false);
 		setNeedUpdate(true);
 	}
 	public void registeCollider(Vector3Callback clickCallback)
 	{
-		mGlobalTouchSystem.registeCollider(this, null, true);
-		setClickDetailCallback(clickCallback);
-		setPassRay(false);
-		setNeedUpdate(true);
-	}
-	public void registeColliderNoError(Vector3Callback clickCallback)
-	{
-		mGlobalTouchSystem.registeCollider(this, null, false);
+		mGlobalTouchSystem.registeCollider(this, null);
 		setClickDetailCallback(clickCallback);
 		setPassRay(false);
 		setNeedUpdate(true);
@@ -820,38 +703,19 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	public void registeCollider(Vector3Callback clickCallback, GameCamera camera)
 	{
 		setClickDetailCallback(clickCallback);
-		mGlobalTouchSystem.registeCollider(this, camera, true);
-		setPassRay(false);
-		setNeedUpdate(true);
-	}
-	public void registeColliderNoError(Vector3Callback clickCallback, GameCamera camera)
-	{
-		setClickDetailCallback(clickCallback);
-		mGlobalTouchSystem.registeCollider(this, camera, false);
+		mGlobalTouchSystem.registeCollider(this, camera);
 		setPassRay(false);
 		setNeedUpdate(true);
 	}
 	public void registeCollider(bool passRay)
 	{
-		mGlobalTouchSystem.registeCollider(this, null, true);
-		setPassRay(passRay);
-		setNeedUpdate(true);
-	}
-	public void registeColliderNoError(bool passRay)
-	{
-		mGlobalTouchSystem.registeCollider(this, null, false);
+		mGlobalTouchSystem.registeCollider(this, null);
 		setPassRay(passRay);
 		setNeedUpdate(true);
 	}
 	public void registeCollider()
 	{
-		mGlobalTouchSystem.registeCollider(this, null, true);
-		setPassRay(false);
-		setNeedUpdate(true);
-	}
-	public void registeColliderNoError()
-	{
-		mGlobalTouchSystem.registeCollider(this, null, false);
+		mGlobalTouchSystem.registeCollider(this, null);
 		setPassRay(false);
 		setNeedUpdate(true);
 	}
@@ -861,25 +725,26 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected static int compareZDecending(Transform a, Transform b) { return (int)sign(b.localPosition.z - a.localPosition.z); }
-	protected virtual void ensureColliderSize()
+	protected void ensureColliderSize()
 	{
 		// 确保RectTransform和BoxCollider一样大
-		mCOMWindowCollider?.setColliderSize(mRectTransform);
+		mCOMWindowCollider?.setColliderSize(generateColliderSize());
+	}
+	protected virtual Vector2 generateColliderSize()
+	{
+		return mRectTransform != null ? mRectTransform.rect.size : Vector2.zero;
 	}
 	protected COMWindowUGUIInteractive getCOMUGUIInteractive()
 	{
 		return mCOMWindowUGUIInteractive ??= addComponent<COMWindowUGUIInteractive>(true);
 	}
-	protected virtual void onWorldScaleChanged(Vector2 lastWorldScale) { }
 	protected void addChild(myUGUIObject child, bool refreshDepth)
 	{
-		mChildSet ??= new();
-		if (!mChildSet.Add(child))
+		mChildList ??= new();
+		if (!mChildList.addUnique(child))
 		{
 			return;
 		}
-		mChildList ??= new();
-		mChildList.Add(child);
 		mChildOrderSorted = false;
 		if (refreshDepth)
 		{

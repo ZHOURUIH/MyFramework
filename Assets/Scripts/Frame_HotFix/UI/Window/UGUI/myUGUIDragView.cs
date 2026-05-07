@@ -33,7 +33,7 @@ public class myUGUIDragView : myUGUIObject
 	// 一般情况下作为滑动列表时可填false
 	// allowDragOnlyOverParentSize表示是否只有大小超过父节点时才能拖拽,当前节点没有超过父节点时不允许拖拽
 	// clampInRange为true表示拖拽时始终限制在正常范围内
-	public void initDragView(DRAG_DIRECTION direction, float angleThresholdRadian, bool clampInner, bool allowDragOnlyOverParentSize, bool clampInRange)
+	public void setDragView(DRAG_DIRECTION direction, float angleThresholdRadian, bool clampInner, bool allowDragOnlyOverParentSize, bool clampInRange)
 	{
 		setDragDirection(direction);
 		setDragAngleThreshold(angleThresholdRadian);

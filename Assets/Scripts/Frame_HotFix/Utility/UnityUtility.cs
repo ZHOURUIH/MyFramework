@@ -775,28 +775,28 @@ public class UnityUtility
 		Transform transform = collider.transform;
 		Vector3 colliderWorldPos = localToWorld(transform, collider.center);
 		int hitCount = Physics.OverlapBoxNonAlloc(colliderWorldPos, collider.size * 0.5f, results, transform.localRotation, layer);
-		return removeClassElement(results, hitCount, collider);
+		return results.removeValue(hitCount, collider);
 	}
 	public static int overlapAllBox(BoxCollider2D collider, Collider2D[] results, int layer = -1)
 	{
 		Transform transform = collider.transform;
 		Vector2 colliderWorldPos = localToWorld(transform, collider.offset);
 		int hitCount = Physics2D.OverlapBoxNonAlloc(colliderWorldPos, collider.size, transform.localEulerAngles.z, results, layer);
-		return removeClassElement(results, hitCount, collider);
+		return results.removeValue(hitCount, collider);
 	}
 	public static int overlapAllSphere(SphereCollider collider, Collider[] results, int layer = -1)
 	{
 		Transform transform = collider.transform;
 		Vector3 colliderWorldPos = localToWorld(transform, collider.center);
 		int hitCount = Physics.OverlapSphereNonAlloc(colliderWorldPos, collider.radius, results, layer);
-		return removeClassElement(results, hitCount, collider);
+		return results.removeValue(hitCount, collider);
 	}
 	public static int overlapAllSphere(CircleCollider2D collider, Collider2D[] results, int layer = -1)
 	{
 		Transform transform = collider.transform;
 		Vector2 colliderWorldPos = localToWorld(transform, collider.offset);
 		int hitCount = Physics2D.OverlapCircleNonAlloc(colliderWorldPos, collider.radius, results, layer);
-		return removeClassElement(results, hitCount, collider);
+		return results.removeValue(hitCount, collider);
 	}
 	public static int overlapAllCapsule(CapsuleCollider collider, Collider[] results, int layer = -1)
 	{
@@ -806,7 +806,7 @@ public class UnityUtility
 		point0 = localToWorld(transform, point0);
 		point1 = localToWorld(transform, point1);
 		int hitCount = Physics.OverlapCapsuleNonAlloc(point0, point1, collider.radius, results, layer);
-		return removeClassElement(results, hitCount, collider);
+		return results.removeValue(hitCount, collider);
 	}
 	public static int overlapAllCapsule(CharacterController collider, Collider[] results, int layer = -1)
 	{
@@ -816,14 +816,14 @@ public class UnityUtility
 		point0 = localToWorld(transform, point0);
 		point1 = localToWorld(transform, point1);
 		int hitCount = Physics.OverlapCapsuleNonAlloc(point0, point1, collider.radius, results, layer);
-		return removeClassElement(results, hitCount, collider);
+		return results.removeValue(hitCount, collider);
 	}
 	public static int overlapAllCapsule(CapsuleCollider2D collider, Collider2D[] results, int layer = -1)
 	{
 		Transform transform = collider.transform;
 		float eulerZ = transform.localEulerAngles.z;
 		int hitCount = Physics2D.OverlapCapsuleNonAlloc(transform.position, collider.size, collider.direction, eulerZ, results, layer);
-		return removeClassElement(results, hitCount, collider);
+		return results.removeValue(hitCount, collider);
 	}
 	public static bool overlapBoxIgnoreY(BoxCollider box0, BoxCollider box1, GameObject parent, int precision = 4)
 	{

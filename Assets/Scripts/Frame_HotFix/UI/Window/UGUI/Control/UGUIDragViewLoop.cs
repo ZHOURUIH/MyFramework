@@ -60,7 +60,7 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop whe
 		var scaleAnchor = mContent.tryGetUnityComponent<ScaleAnchor>();
 		if (scaleAnchor == null)
 		{
-			logError("没有找到适配组件,需要给Content节点加上ScaleAnchor组件,路径:" + getGameObjectPath(mContent.getObject()));
+			logError("没有找到适配组件,需要给Content节点加上ScaleAnchor组件,路径:" + getGameObjectPath(mContent.getGameObject()));
 		}
 		mInterval = mContent.tryGetUnityComponent<ScaleAnchor>().getRealScale() * Vector2.zero;
 		mItemSize = mDisplayItemPool.getTemplate().getSize();

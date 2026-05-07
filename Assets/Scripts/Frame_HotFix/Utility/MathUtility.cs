@@ -4015,9 +4015,9 @@ public class MathUtility
 	{
 		quickSort(arr, 0, arr.Count - 1, comparison);
 	}
-	public static void quickSort<T>(List<T> arr, bool ascend = true) where T : IComparable<T>
+	public static void quickSort<T>(List<T> arr) where T : IComparable<T>
 	{
-		quickSort(arr, 0, arr.Count - 1, ascend);
+		quickSort(arr, 0, arr.Count - 1);
 	}
 	public static bool overlapBox3(Vector3 pos0, Vector3 size0, Vector3 pos1, Vector3 size1)
 	{
@@ -4215,7 +4215,6 @@ public class MathUtility
 	{
 		return (index + 1) % verticesCount;
 	}
-	// 可以通过comparison自己决定升序还是降序,所以不再需要额外的参数
 	protected static void quickSort<T>(List<T> arr, int low, int high, Comparison<T> comparison)
 	{
 		if (high <= low)
@@ -4236,14 +4235,14 @@ public class MathUtility
 				break;
 			}
 			// 交换i,j对应的值
-			swapIndex(arr, i, j);
+			(arr[i], arr[j]) = (arr[j], arr[i]);
 		}
 		// 中枢值与j对应值交换
-		swapIndex(arr, low, j);
+		(arr[low], arr[j]) = (arr[j], arr[low]);
 		quickSort(arr, low, j - 1, comparison);
 		quickSort(arr, j + 1, high, comparison);
 	}
-	protected static void quickSort<T>(List<T> arr, int low, int high, bool ascend = true) where T : IComparable<T>
+	protected static void quickSort<T>(List<T> arr, int low, int high) where T : IComparable<T>
 	{
 		if (high <= low)
 		{
@@ -4254,33 +4253,21 @@ public class MathUtility
 		T key = arr[low];
 		while (true)
 		{
-			// 升序
-			if(ascend)
-			{
-				// 从左向右找到一个比key大的值,如果小于key,则一直继续查找
-				while (arr[++i].CompareTo(key) < 0 && i != high) { }
-				// 从右向左找到一个比key小的值,如果大于key,则一直继续查找
-				while (arr[--j].CompareTo(key) > 0 && j != low) { }
-			}
-			// 降序
-			else
-			{
-				// 从左向右找到一个比key小的值,如果大于key,则一直继续查找
-				while (arr[++i].CompareTo(key) > 0 && i != high) { }
-				// 从右向左找到一个比key大的值,如果小于key,则一直继续查找
-				while (arr[--j].CompareTo(key) < 0 && j != low) { }
-			}
+			// 从左向右找到一个比key大的值,如果小于key,则一直继续查找
+			while (arr[++i].CompareTo(key) < 0 && i != high) { }
+			// 从右向左找到一个比key小的值,如果大于key,则一直继续查找
+			while (arr[--j].CompareTo(key) > 0 && j != low) { }
 			if (i >= j)
 			{
 				break;
 			}
 			// 交换i,j对应的值
-			swapIndex(arr, i, j);
+			(arr[j], arr[i]) = (arr[i], arr[j]);
 		}
 		// 中枢值与j对应值交换
-		swapIndex(arr, low, j);
-		quickSort(arr, low, j - 1, ascend);
-		quickSort(arr, j + 1, high, ascend);
+		(arr[low], arr[j]) = (arr[j], arr[low]);
+		quickSort(arr, low, j - 1);
+		quickSort(arr, j + 1, high);
 	}
 	protected static void swapIndex<T>(List<T> list, int index0, int index1)
 	{

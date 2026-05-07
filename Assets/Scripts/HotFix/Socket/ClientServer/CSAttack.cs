@@ -39,11 +39,11 @@ public class CSAttack : NetPacketBit
 				return true;
 			}
 		}
-		if (mSkillID < 0)
+		if (mSkillID.mValue < 0)
 		{
 			return true;
 		}
-		if (mTimeStamp < 0)
+		if (mTimeStamp.mValue < 0)
 		{
 			return true;
 		}

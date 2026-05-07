@@ -378,21 +378,31 @@ public class EditorCommonUtility
 				}
 			}
 		}
-		foreach (string item in guidList)
+		
+		if (checkUnuseOnly)
 		{
-			if (checkUnuseOnly)
-			{
-				FileGUIDLines refItem = inverseGuidList.get(item).get(0);
-				if (refItem != null)
-				{
-					referenceList.Add(refItem.mProjectFileName, loadFile ? loadAsset(refItem.mProjectFileName) : null);
-				}
-			}
-			else
+			foreach (string item in guidList)
 			{
 				foreach (FileGUIDLines refItem in inverseGuidList.get(item).safe())
 				{
-					referenceList.Add(refItem.mProjectFileName, loadFile ? loadAsset(refItem.mProjectFileName) : null);
+					if (refItem.mProjectFileName != path)
+					{
+						referenceList.Add(refItem.mProjectFileName, loadFile ? loadAsset(refItem.mProjectFileName) : null);
+						break;
+					}
+				}
+			}
+		}
+		else
+		{
+			foreach (string item in guidList)
+			{
+				foreach (FileGUIDLines refItem in inverseGuidList.get(item).safe())
+				{
+					if (refItem.mProjectFileName != path)
+					{
+						referenceList.Add(refItem.mProjectFileName, loadFile ? loadAsset(refItem.mProjectFileName) : null);
+					}
 				}
 			}
 		}
@@ -1377,7 +1387,7 @@ public class EditorCommonUtility
 	public static void doCheckNormalVariable(string filePath, int index, string codeLine, string nextLine)
 	{
 		string[] codeList = codeLine.split(' ');
-		if (arrayContains(codeList, "static") || arrayContains(codeList, "const"))
+		if (codeList.contains("static") || codeList.contains("const"))
 		{
 			return;
 		}
@@ -2397,7 +2407,7 @@ public class EditorCommonUtility
 			for (int j = 0; j < notResetMemberList.Count; ++j)
 			{
 				// 如果检测到已经重置了,则将其从待重置列表中移除
-				if (arrayContains(strList, notResetMemberList[j]))
+				if (strList.contains(notResetMemberList[j]))
 				{
 					notResetMemberList.RemoveAt(j);
 					break;
@@ -2835,7 +2845,7 @@ public class EditorCommonUtility
 			}
 
 			// 如果在忽略函数名集合中，就移除掉再继续找
-			if (arrayContains(ignoreFunctionList, functionString))
+			if (ignoreFunctionList.contains(functionString))
 			{
 				codeLine = codeLine.removeStartCount((resultIndex + functionString.Length));
 				continue;

@@ -15,11 +15,11 @@ public class SerializerRead : ClassObject
 	protected int mBufferSize;			// 缓冲区大小
 	protected int mIndex;				// 当前读下标
 	protected bool mNeedCheck;			// 是否需要检查有没有足够的数据可以读,有需要提高效率时可以减少不必要的检查
-	protected byte[] mFloatHelpBuffer;	// 辅助对象
+	protected byte[] mHelpBuffer;		// 辅助对象
 	public SerializerRead()
 	{
 		mNeedCheck = true;
-		mFloatHelpBuffer = new byte[4];
+		mHelpBuffer = new byte[8];
 	}
 	public override void resetProperty()
 	{
@@ -28,7 +28,7 @@ public class SerializerRead : ClassObject
 		mBufferSize = 0;
 		mIndex = 0;
 		mNeedCheck = true;
-		mFloatHelpBuffer.setAllDefault();
+		mHelpBuffer.setAllDefault();
 	}
 	public void init(byte[] buffer, int bufferSize = -1, int index = 0)
 	{
@@ -260,9 +260,19 @@ public class SerializerRead : ClassObject
 		value = readShort(mBuffer, mBufferSize, ref mIndex, out bool success);
 		return success;
 	}
+	public bool readBigEndian(out short value)
+	{
+		value = readShortBigEndian(mBuffer, mBufferSize, ref mIndex, out bool success);
+		return success;
+	}
 	public bool read(out ushort value)
 	{
 		value = readUShort(mBuffer, mBufferSize, ref mIndex, out bool success);
+		return success;
+	}
+	public bool readBigEndian(out ushort value)
+	{
+		value = readUShortBigEndian(mBuffer, mBufferSize, ref mIndex, out bool success);
 		return success;
 	}
 	public bool read(out int value)
@@ -270,9 +280,19 @@ public class SerializerRead : ClassObject
 		value = readInt(mBuffer, mBufferSize, ref mIndex, out bool success);
 		return success;
 	}
+	public bool readBigEndian(out int value)
+	{
+		value = readIntBigEndian(mBuffer, mBufferSize, ref mIndex, out bool success);
+		return success;
+	}
 	public bool read(out uint value)
 	{
 		value = readUInt(mBuffer, mBufferSize, ref mIndex, out bool success);
+		return success;
+	}
+	public bool readBigEndian(out uint value)
+	{
+		value = readUIntBigEndian(mBuffer, mBufferSize, ref mIndex, out bool success);
 		return success;
 	}
 	public bool read(out long value)
@@ -280,19 +300,39 @@ public class SerializerRead : ClassObject
 		value = readLong(mBuffer, mBufferSize, ref mIndex, out bool success);
 		return success;
 	}
+	public bool readBigEndian(out long value)
+	{
+		value = readLongBigEndian(mBuffer, mBufferSize, ref mIndex, out bool success);
+		return success;
+	}
 	public bool read(out ulong value)
 	{
 		value = readULong(mBuffer, mBufferSize, ref mIndex, out bool success);
 		return success;
 	}
+	public bool readBigEndian(out ulong value)
+	{
+		value = readULongBigEndian(mBuffer, mBufferSize, ref mIndex, out bool success);
+		return success;
+	}
 	public bool read(out float value)
 	{
-		value = readFloat(mBuffer, mBufferSize, ref mIndex, out bool success, mFloatHelpBuffer);
+		value = readFloat(mBuffer, mBufferSize, ref mIndex, out bool success, mHelpBuffer);
+		return success;
+	}
+	public bool readBigEndian(out float value)
+	{
+		value = readFloatBigEndian(mBuffer, mBufferSize, ref mIndex, out bool success, mHelpBuffer);
 		return success;
 	}
 	public bool read(out double value)
 	{
-		value = readDouble(mBuffer, mBufferSize, ref mIndex, out bool success, mFloatHelpBuffer);
+		value = readDouble(mBuffer, mBufferSize, ref mIndex, out bool success, mHelpBuffer);
+		return success;
+	}
+	public bool readBigEndian(out double value)
+	{
+		value = readDoubleBigEndian(mBuffer, mBufferSize, ref mIndex, out bool success, mHelpBuffer);
 		return success;
 	}
 	public bool read(out Vector2 value)
@@ -301,10 +341,23 @@ public class SerializerRead : ClassObject
 		bool success1 = read(out value.y);
 		return success0 && success1;
 	}
+	public bool readBigEndian(out Vector2 value)
+	{
+		bool success0 = readBigEndian(out value.x);
+		bool success1 = readBigEndian(out value.y);
+		return success0 && success1;
+	}
 	public bool read(out Vector2Int value)
 	{
 		bool success0 = read(out int value0);
 		bool success1 = read(out int value1);
+		value = new(value0, value1);
+		return success0 && success1;
+	}
+	public bool readBigEndian(out Vector2Int value)
+	{
+		bool success0 = readBigEndian(out int value0);
+		bool success1 = readBigEndian(out int value1);
 		value = new(value0, value1);
 		return success0 && success1;
 	}
@@ -315,10 +368,23 @@ public class SerializerRead : ClassObject
 		value = new(value0, value1);
 		return success0 && success1;
 	}
+	public bool readBigEndian(out Vector2UInt value)
+	{
+		bool success0 = readBigEndian(out uint value0);
+		bool success1 = readBigEndian(out uint value1);
+		value = new(value0, value1);
+		return success0 && success1;
+	}
 	public bool read(out Vector2Short value)
 	{
 		bool success0 = read(out value.x);
 		bool success1 = read(out value.y);
+		return success0 && success1;
+	}
+	public bool readBigEndian(out Vector2Short value)
+	{
+		bool success0 = readBigEndian(out value.x);
+		bool success1 = readBigEndian(out value.y);
 		return success0 && success1;
 	}
 	public bool read(out Vector2UShort value)
@@ -327,11 +393,24 @@ public class SerializerRead : ClassObject
 		bool success1 = read(out value.y);
 		return success0 && success1;
 	}
+	public bool readBigEndian(out Vector2UShort value)
+	{
+		bool success0 = readBigEndian(out value.x);
+		bool success1 = readBigEndian(out value.y);
+		return success0 && success1;
+	}
 	public bool read(out Vector3 value)
 	{
 		bool success0 = read(out value.x);
 		bool success1 = read(out value.y);
 		bool success2 = read(out value.z);
+		return success0 && success1 && success2;
+	}
+	public bool readBigEndian(out Vector3 value)
+	{
+		bool success0 = readBigEndian(out value.x);
+		bool success1 = readBigEndian(out value.y);
+		bool success2 = readBigEndian(out value.z);
 		return success0 && success1 && success2;
 	}
 	public bool read(out Vector3Int value)
@@ -342,12 +421,28 @@ public class SerializerRead : ClassObject
 		value = new(value0, value1, value2);
 		return success0 && success1 && success2;
 	}
+	public bool readBigEndian(out Vector3Int value)
+	{
+		bool success0 = readBigEndian(out int value0);
+		bool success1 = readBigEndian(out int value1);
+		bool success2 = readBigEndian(out int value2);
+		value = new(value0, value1, value2);
+		return success0 && success1 && success2;
+	}
 	public bool read(out Vector4 value)
 	{
 		bool success0 = read(out value.x);
 		bool success1 = read(out value.y);
 		bool success2 = read(out value.z);
 		bool success3 = read(out value.w);
+		return success0 && success1 && success2 && success3;
+	}
+	public bool readBigEndian(out Vector4 value)
+	{
+		bool success0 = readBigEndian(out value.x);
+		bool success1 = readBigEndian(out value.y);
+		bool success2 = readBigEndian(out value.z);
+		bool success3 = readBigEndian(out value.w);
 		return success0 && success1 && success2 && success3;
 	}
 	public bool readBuffer(byte[] buffer, int readLen, int bufferSize = -1)

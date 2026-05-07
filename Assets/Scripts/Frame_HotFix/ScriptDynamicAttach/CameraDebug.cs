@@ -29,7 +29,7 @@ public class CameraDebug : MonoBehaviour
 			CurLinkerName = linker.GetType().ToString();
 			if(linker.getLinkObject() != null)
 			{
-				LinkedObject = linker.getLinkObject().getObject();
+				LinkedObject = linker.getLinkObject().getGameObject();
 				LinkedObjectName = linker.getLinkObject().getName();
 			}
 			Relative = linker.getRelativePosition();

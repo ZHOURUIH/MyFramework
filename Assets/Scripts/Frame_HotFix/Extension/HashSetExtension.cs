@@ -44,7 +44,7 @@ public static class HashSetExtension
 	}
 	public static bool addNot<T>(this HashSet<T> list, T value, T notValue)
 	{
-		if (value.Equals(notValue))
+		if (equal(value, notValue))
 		{
 			return false;
 		}
@@ -115,6 +115,18 @@ public static class HashSetExtension
 		return list;
 	}
 	public static HashSet<T> addRange<T>(this HashSet<T> list, List<T> other)
+	{
+		if (other.isEmpty())
+		{
+			return list;
+		}
+		foreach (T item in other)
+		{
+			list.Add(item);
+		}
+		return list;
+	}
+	public static HashSet<T> addRange<T>(this HashSet<T> list, HashSet<T> other)
 	{
 		if (other.isEmpty())
 		{
@@ -204,7 +216,7 @@ public static class HashSetExtension
 		}
 		foreach (T item in list)
 		{
-			if (item.Equals(other))
+			if (equal(item, other))
 			{
 				return true;
 			}

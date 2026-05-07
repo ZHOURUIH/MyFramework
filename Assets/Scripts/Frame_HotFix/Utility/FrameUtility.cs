@@ -1128,6 +1128,10 @@ public class FrameUtility
 		intToBytes(value, out byte byte0, out byte byte1, out byte byte2, out byte byte3);
 		return (ushort)(crc16(0x1F, byte0, byte1, byte2, byte3) ^ 0x123F);
 	}
+	public static bool equal<T>(T value0, T value1)
+	{
+		return EqualityComparer<T>.Default.Equals(value0, value1);
+	}
 	public static string getLocalIP()
 	{
 		foreach (IPAddress item in Dns.GetHostAddresses(Dns.GetHostName()))
@@ -1606,62 +1610,6 @@ public class FrameUtility
 	public static void notifyIDUsed(int id)
 	{
 		mIDMaker = getMax(mIDMaker, id);
-	}
-	// 移除数组中的第index个元素,validElementCount是数组中有效的元素个数
-	public static void removeElement<T>(T[] array, int validElementCount, int index)
-	{
-		if (index < 0 || index >= validElementCount)
-		{
-			return;
-		}
-		int moveCount = validElementCount - index - 1;
-		for (int i = 0; i < moveCount; ++i)
-		{
-			array[index + i] = array[index + i + 1];
-		}
-	}
-	// 移除数组中的所有value,T为引用类型
-	public static int removeClassElement<T>(T[] array, int validElementCount, T value) where T : class
-	{
-		for (int i = 0; i < validElementCount; ++i)
-		{
-			if (array[i] == value)
-			{
-				removeElement(array, validElementCount--, i--);
-			}
-		}
-		return validElementCount;
-	}
-	// 移除数组中的所有value,T为继承自IEquatable的值类型
-	public static int removeValueElement<T>(T[] array, int validElementCount, T value) where T : IEquatable<T>
-	{
-		for (int i = 0; i < validElementCount; ++i)
-		{
-			if (array[i].Equals(value))
-			{
-				removeElement(array, validElementCount--, i--);
-			}
-		}
-		return validElementCount;
-	}
-	public static bool arrayContains<T>(T[] array, T value, int arrayLen = -1)
-	{
-		if (array.isEmpty())
-		{
-			return false;
-		}
-		if (arrayLen == -1)
-		{
-			arrayLen = array.Length;
-		}
-		for (int i = 0; i < arrayLen; ++i)
-		{
-			if (EqualityComparer<T>.Default.Equals(array[i], value))
-			{
-				return true;
-			}
-		}
-		return false;
 	}
 	public static IPAddress hostNameToIPAddress(string hostName)
 	{

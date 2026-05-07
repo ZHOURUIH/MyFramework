@@ -79,6 +79,15 @@ public class AssetsImport : AssetPostprocessor
 			setPlatformUncompressed(textureImporter, "iPhone");
 			setPlatformUncompressed(textureImporter, "Standalone");
 		}
+		else
+		{
+			if (textureImporter.textureType == TextureImporterType.Sprite && textureImporter.spriteImportMode == SpriteImportMode.Multiple)
+			{
+				setPlatformMultiSpriteImport(textureImporter, "Android");
+				setPlatformMultiSpriteImport(textureImporter, "iPhone");
+				setPlatformMultiSpriteImport(textureImporter, "Standalone");
+			}
+		}
 	}
 	void setPlatformUncompressed(TextureImporter importer, string platform)
 	{
@@ -86,6 +95,13 @@ public class AssetsImport : AssetPostprocessor
 		settings.overridden = true;
 		settings.format = TextureImporterFormat.RGBA32;
 		settings.textureCompression = TextureImporterCompression.Uncompressed;
+		importer.SetPlatformTextureSettings(settings);
+	}
+	void setPlatformMultiSpriteImport(TextureImporter importer, string platform)
+	{
+		TextureImporterPlatformSettings settings = importer.GetPlatformTextureSettings(platform);
+		settings.overridden = true;
+		settings.maxTextureSize = 4096;
 		importer.SetPlatformTextureSettings(settings);
 	}
 	// 导入音频,由编辑器自动在导入音频资源时调用

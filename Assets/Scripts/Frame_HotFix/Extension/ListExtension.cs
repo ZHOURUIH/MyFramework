@@ -209,7 +209,7 @@ public static class ListExtension
 	}
 	public static bool addNot<T>(this List<T> list, T value, T notValue)
 	{
-		if (value.Equals(notValue))
+		if (equal(value, notValue))
 		{
 			return false;
 		}
@@ -259,7 +259,7 @@ public static class ListExtension
 	}
 	public static bool addUniqueNot<T>(this List<T> list, T value, T notValue)
 	{
-		if (value.Equals(notValue))
+		if (equal(value, notValue))
 		{
 			return false;
 		}
@@ -666,7 +666,7 @@ public static class ListExtension
 			int j = 0;
 			for (; j < subList.Count; ++j)
 			{
-				if (!list[i + j].Equals(subList[j]))
+				if (!equal(list[i + j], subList[j]))
 				{
 					break;
 				}
@@ -738,7 +738,7 @@ public static class ListExtension
 		}
 		for (int i = 0; i < list.Count; ++i)
 		{
-			if (list[i].Equals(value))
+			if (equal(list[i], value))
 			{
 				index = i;
 				return true;
@@ -755,7 +755,7 @@ public static class ListExtension
 		}
 		for (int i = 0; i < list.Count; ++i)
 		{
-			if (list[i].Equals(value))
+			if (equal(list[i], value))
 			{
 				return i;
 			}
@@ -864,7 +864,7 @@ public static class ListExtension
 		}
 		for (int i = 0; i < count; ++i)
 		{
-			if (!EqualityComparer<T>.Default.Equals(list0[i], list1[i]))
+			if (!equal(list0[i], list1[i]))
 			{
 				return false;
 			}

@@ -12,6 +12,7 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 	protected float mPlayLength;                // 小于0表示无限播放, 大于0表示播放length时长
 	protected float mStopValue;                 // 当组件停止时,需要应用的关键帧值
 	protected float mOnceLength;                // 关键帧长度默认为1秒
+	protected float mInverseOnceLength;         // 关键帧长度的倒数,为了优化计算而存在
 	protected float mOffset;                    // 起始的时间偏移
 	protected int mKeyframeID;                  // 关键帧曲线ID
 	protected bool mLoop;                       // 是否循环
@@ -36,6 +37,7 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 		mPlayLength = 0.0f;
 		mStopValue = 0.0f;
 		mOnceLength = 1.0f;
+		mInverseOnceLength = 0.0f;
 		mOffset = 0.0f;
 		mKeyframeID = 0;
 		mLoop = true;
@@ -110,6 +112,7 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 			logError("offset must be less than onceLength!");
 		}
 		mOnceLength = onceLength;
+		mInverseOnceLength = divide(1.0f, mOnceLength);
 		mPlayState = PLAY_STATE.PLAY;
 		mLoop = loop;
 		mOffset = offset;
@@ -183,7 +186,11 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 	public float getCurValue()							{ return mCurValue; }
 	// 设置成员变量
 	public void setLoop(bool loop)						{ mLoop = loop; }
-	public void setOnceLength(float length)				{ mOnceLength = length; }
+	public void setOnceLength(float length)				
+	{
+		mOnceLength = length;
+		mInverseOnceLength = divide(1.0f, mOnceLength);
+	}
 	public void setOffset(float offset)					{ mOffset = offset; }
 	public void setCurrentTime(float time)				{ mCurrentTime = time; }
 	public void setKeyframeID(int keyframe)				{ mKeyframeID = keyframe; }
@@ -251,7 +258,7 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 				mCurrentTime = 0.0f;
 			}
 		}
-		mCurValue = mKeyFrame.evaluate(divide(mCurrentTime, mOnceLength));
+		mCurValue = mKeyFrame.evaluate(mCurrentTime * mInverseOnceLength);
 		applyTrembling(mCurValue);
 		afterApplyTrembling(done);
 	}

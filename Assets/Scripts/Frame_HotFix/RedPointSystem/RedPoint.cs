@@ -7,7 +7,7 @@ using static FrameBaseHotFix;
 public class RedPoint : ClassObject
 {
 	protected Dictionary<myUGUIObject, string> mPointUIMap = new();	// 关联的红点UI,一个红点数据可以有多个红点UI表现,为了方便调试,Value存储的是节点的路径
-	protected List<Type> mEventTypeList = new();		// 会触发此红点改变的事件类型,在子类中设置
+	protected List<int> mEventTypeList = new();			// 会触发此红点改变的事件类型,在子类中设置,比如需要监听EventKill事件,则使用TypeID<EventKill>.ID来获取类型的ID
 	protected List<RedPoint> mChildren = new();			// 子节点列表
 	protected RedPoint mParent;							// 父节点
 	protected bool mEnable;                             // 是否显示红点
@@ -15,7 +15,7 @@ public class RedPoint : ClassObject
 	public virtual void init() 
 	{
 		initEventType();
-		foreach (Type type in mEventTypeList.safe())
+		foreach (int type in mEventTypeList.safe())
 		{
 			mEventSystem.listenEvent(type, onEventTrigger, this);
 		}
@@ -55,7 +55,7 @@ public class RedPoint : ClassObject
 			logError("添加的红点UI不能为空");
 			return;
 		}
-		if (!mPointUIMap.TryAdd(point, getGameObjectPath(point.getObject())))
+		if (!mPointUIMap.TryAdd(point, getGameObjectPath(point.getGameObject())))
 		{
 			if (showError)
 			{
@@ -109,7 +109,7 @@ public class RedPoint : ClassObject
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void addEvent<T>() where T : GameEvent 
 	{
-		mEventTypeList.Add(typeof(T));
+		mEventTypeList.Add(TypeID<T>.ID);
 	}
 	// 子类在这个虚函数中去调用addEvent来添加需要关心的事件类型
 	protected virtual void initEventType() { }

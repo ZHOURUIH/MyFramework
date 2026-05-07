@@ -58,27 +58,27 @@ public static class FrameUtilityCoreTest
 	private static void testArrayHelpers()
 	{
 		int[] values = { 1, 2, 3, 4 };
-		removeElement(values, values.Length, 1);
+		values.removeIndex(values.Length, 1);
 		assertEqual(3, values[1], "removeElement should shift left");
 		assertEqual(4, values[2], "removeElement should keep trailing order");
 
 		string[] classValues = { "a", "b", "c", "b" };
-		int classCount = removeClassElement(classValues, classValues.Length, "b");
+		int classCount = classValues.removeValue(classValues.Length, "b");
 		assertEqual(2, classCount, "removeClassElement should remove all matches");
 		assertEqual("a", classValues[0], "removeClassElement first item");
 		assertEqual("c", classValues[1], "removeClassElement second item");
 
 		int[] valueValues = { 1, 2, 3, 2, 4 };
-		int valueCount = removeValueElement(valueValues, valueValues.Length, 2);
+		int valueCount = valueValues.removeValue(valueValues.Length, 2);
 		assertEqual(3, valueCount, "removeValueElement should remove all matches");
 		assertEqual(1, valueValues[0], "removeValueElement first item");
 		assertEqual(3, valueValues[1], "removeValueElement second item");
 		assertEqual(4, valueValues[2], "removeValueElement third item");
 
-		assertTrue(arrayContains(values, 3), "arrayContains should find existing item");
-		assertFalse(arrayContains(values, 99), "arrayContains should reject missing item");
-		assertTrue(arrayContains(values, 3, 2), "arrayContains should honor explicit length");
-		assertFalse(arrayContains(values, 4, 2), "arrayContains should not scan past length");
+		assertTrue(values.contains(3), "arrayContains should find existing item");
+		assertFalse(values.contains(99), "arrayContains should reject missing item");
+		assertTrue(values.contains(1), "arrayContains should honor explicit length");
+		assertFalse(values.contains(2), "arrayContains should not scan past length");
 	}
 
 	private static void testIdHelpers()

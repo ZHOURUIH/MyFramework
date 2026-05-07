@@ -591,6 +591,15 @@ public class SerializeByteUtility
 		buffer[index++] = value;
 		return true;
 	}
+	public static bool writeByte(byte[] buffer, int bufferSize, ref int index, sbyte value)
+	{
+		if (bufferSize < index + sizeof(sbyte))
+		{
+			return false;
+		}
+		buffer[index++] = (byte)value;
+		return true;
+	}
 	public static bool writeShort(byte[] buffer, int bufferSize, ref int index, short value)
 	{
 		if (bufferSize < index + sizeof(short))

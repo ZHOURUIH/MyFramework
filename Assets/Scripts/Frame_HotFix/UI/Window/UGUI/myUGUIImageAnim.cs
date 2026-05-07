@@ -2,7 +2,6 @@
 using UnityEngine;
 using static UnityUtility;
 using static StringUtility;
-using static MathUtility;
 
 // Image的序列帧
 public class myUGUIImageAnim : myUGUIImage, IUIAnimation
@@ -34,10 +33,6 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		if (isCulled())
-		{
-			return;
-		}
 		if (mSpriteList.Count == 0)
 		{
 			setSpriteName(null);
@@ -103,7 +98,6 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 	public float getInterval()						{ return mControl.getInterval(); }
 	public float getSpeed()							{ return mControl.getSpeed(); }
 	public int getStartIndex()						{ return mControl.getStartIndex(); }
-	public float getPlayedTime()					{ return mControl.getPlayedTime(); }
 	public float getLength()						{ return mControl.getLength(); }
 	public PLAY_STATE getPlayState()				{ return mControl.getPlayState(); }
 	public bool getPlayDirection()					{ return mControl.getPlayDirection(); }
@@ -163,17 +157,18 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onPlaying(int frame, bool isPlaying)
 	{
-		if (mControl.getCurFrameIndex() >= mSpriteList.Count)
+		int spriteCount = mSpriteList.Count;
+		if (frame >= spriteCount)
 		{
 			return;
 		}
-		setSprite(mSpriteList[mControl.getCurFrameIndex()], mUseTextureSize);
+		setSprite(mSpriteList[frame], mUseTextureSize);
 		// 使用位置列表进行校正
 		if (mEffectAlign == EFFECT_ALIGN.POSITION_LIST)
 		{
-			if (!mTexturePosList.isEmpty())
+			if (mTexturePosList.count() == spriteCount)
 			{
-				setPosition(mTexturePosList[round(divide(frame, mSpriteList.Count * mTexturePosList.Count))]);
+				setPosition(mTexturePosList[frame]);
 			}
 		}
 		// 对齐父节点的底部

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using static UnityUtility;
 using static FrameUtility;
 using static FrameBaseUtility;
+using static FrameBaseHotFix;
 
 // MovableObject的管理器,只用于管理MovableObject,其他的派生类则由其他的管理器管理
 // 因为MovableObject的派生类比较多,一般都会派生出其他的子类用作不同的用途
@@ -20,7 +21,7 @@ public class MovableObjectManager : FrameSystem
 		base.update(elapsedTime);
 		foreach (MovableObject item in mMovableObjectOrderList)
 		{
-			item.update(item.isIgnoreTimeScale() ? Time.unscaledDeltaTime : elapsedTime);
+			item.update(item.isIgnoreTimeScale() ? mGameFrameworkHotFix.getUnscaledTime() : elapsedTime);
 		}
 	}
 	public MovableObject createMovableObject(string name)

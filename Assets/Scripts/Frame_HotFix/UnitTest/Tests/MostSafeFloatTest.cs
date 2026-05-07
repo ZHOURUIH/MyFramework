@@ -1,3 +1,4 @@
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using static TestAssert;
 
 // MostSafeFloat 安全浮点测试
@@ -86,3 +87,4 @@ public static class MostSafeFloatTest
 
 	private static float abs(float v) => v < 0 ? -v : v;
 }
+#endif

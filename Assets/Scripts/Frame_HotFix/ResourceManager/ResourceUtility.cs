@@ -124,7 +124,7 @@ public class ResourceUtility
 			}
 			else
 			{
-				timer += Time.unscaledDeltaTime;
+				timer += mGameFrameworkHotFix.getUnscaledTime();
 				if (timer >= mResourceManager.getDownloadTimeout())
 				{
 					log("下载超时");
@@ -232,7 +232,7 @@ public class ResourceUtility
 			}
 			else
 			{
-				timer += Time.unscaledDeltaTime;
+				timer += mGameFrameworkHotFix.getUnscaledTime();
 				if (timer >= mResourceManager.getDownloadTimeout())
 				{
 					log("下载超时");

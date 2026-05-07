@@ -230,7 +230,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 			mRegisterChecked = true;
 			// 检查是否注册了所有的ScrollRect
 			using var a = new ListScope<ScrollRect>(out var scrollViewList);
-			mRoot.getObject().GetComponentsInChildren(scrollViewList);
+			mRoot.getGameObject().GetComponentsInChildren(scrollViewList);
 			foreach (ScrollRect item in scrollViewList)
 			{
 				if (!mScrollViewRegisteList.contains(mLayout.getUIObject(item.gameObject) as myUGUIScrollRect))
@@ -241,7 +241,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 
 			// 所有的原生UGUI输入框
 			using var b = new ListScope<InputField>(out var inputFieldList);
-			mRoot.getObject().GetComponentsInChildren(inputFieldList);
+			mRoot.getGameObject().GetComponentsInChildren(inputFieldList);
 			foreach (InputField item in inputFieldList)
 			{
 				if (!mInputFieldRegisteList.contains(mLayout.getUIObject(item.gameObject) as IInputField))
@@ -252,7 +252,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 
 			// 所有的TextMeshPro输入框
 			using var c = new ListScope<TMP_InputField>(out var tmpInputFieldList);
-			mRoot.getObject().GetComponentsInChildren(tmpInputFieldList);
+			mRoot.getGameObject().GetComponentsInChildren(tmpInputFieldList);
 			foreach (TMP_InputField item in tmpInputFieldList)
 			{
 				if (!mInputFieldRegisteList.contains(mLayout.getUIObject(item.gameObject) as IInputField))
@@ -301,7 +301,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	public bool hasObject(myUGUIObject parent, string name)
 	{
 		parent ??= mRoot;
-		return getGameObject(name, parent.getObject()) != null;
+		return getGameObject(name, parent.getGameObject()) != null;
 	}
 	public T cloneObject<T>(myUGUIObject parent, myUGUIObject oriObj, string name) where T : myUGUIObject, new()
 	{
@@ -322,7 +322,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	public void cloneObject<T>(out T target, myUGUIObject parent, myUGUIObject oriObj, string name, bool active) where T : myUGUIObject, new()
 	{
 		parent ??= mRoot;
-		GameObject obj = UnityUtility.cloneObject(oriObj.getObject(), name);
+		GameObject obj = UnityUtility.cloneObject(oriObj.getGameObject(), name);
 		target = newUIObject<T>(parent, mLayout, obj, true);
 		target.setActive(active);
 		target.cloneFrom(oriObj);
@@ -336,7 +336,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		parent ??= mRoot;
 		// UGUI需要添加RectTransform
 		getOrAddComponent<RectTransform>(go);
-		go.layer = parent.getObject().layer;
+		go.layer = parent.getGameObject().layer;
 		T obj = newUIObject<T>(parent, mLayout, go, true);
 		obj.setActive(active);
 		go.transform.localScale = Vector3.one;
@@ -348,7 +348,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	{
 		GameObject go = createGameObject(name);
 		parent ??= mRoot;
-		go.layer = parent.getObject().layer;
+		go.layer = parent.getGameObject().layer;
 		T obj = newUIObject<T>(parent, mLayout, go, true);
 		obj.setActive(active);
 		go.transform.localScale = Vector3.one;
@@ -407,7 +407,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	public T newObject<T>(out T obj, myUGUIObject parent, string name, bool showError) where T : myUGUIObject, new()
 	{
 		obj = null;
-		GameObject parentObj = parent?.getObject();
+		GameObject parentObj = parent?.getGameObject();
 		GameObject gameObject;
 		if (parentObj == null)
 		{
@@ -462,7 +462,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	}
 	public static GameObject instantiate(myUGUIObject parent, string prefabPath, string name, int tag = 0)
 	{
-		GameObject go = mPrefabPoolManager.createObject(prefabPath, tag, false, false, parent.getObject());
+		GameObject go = mPrefabPoolManager.createObject(prefabPath, tag, false, false, parent.getGameObject());
 		if (go != null)
 		{
 			go.name = name;
@@ -477,7 +477,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 			{
 				go.name = name;
 			}
-			setNormalProperty(go, parent.getObject());
+			setNormalProperty(go, parent.getGameObject());
 			callback?.Invoke(go);
 		});
 	}
@@ -496,7 +496,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		{
 			return;
 		}
-		GameObject go = window.getObject();
+		GameObject go = window.getGameObject();
 		myUGUIObject.destroyWindow(window, false);
 		mPrefabPoolManager.destroyObject(ref go, destroyReally);
 		// 窗口销毁时不会通知布局刷新深度,因为移除对于深度不会产生影响

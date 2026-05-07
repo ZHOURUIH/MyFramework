@@ -6,7 +6,6 @@ public class AnimControl : ClassObject
 	protected BoolBoolCallback mPlayEndCallback;			// 一个序列播放完时的回调函数,只在非循环播放状态下有效
 	protected IntBoolCallback mPlayingCallback;				// 一个序列正在播放时的回调函数
 	protected myUGUIObject mControlObject;					// 控制的窗口
-	protected float mPlayedTime;							// 已经播放的时长,不包含循环次数
 	protected float mInterval = 0.033f;						// 隔多少秒切换图片
 	protected float mCurTime;								// 当前播放计时
 	protected int mCurTextureIndex;							// 当前播放的下标
@@ -17,14 +16,13 @@ public class AnimControl : ClassObject
 	protected bool mAutoResetIndex = true;					// 是否在播放完毕后自动重置当前帧下标,也表示是否在非循环播放完毕后自动隐藏
 	protected bool mPlayDirection = true;					// 播放方向,true为正向播放(从mStartIndex到mEndIndex),false为返向播放(从mEndIndex到mStartIndex)
 	protected PLAY_STATE mPlayState = PLAY_STATE.STOP;		// 当前播放状态
-	protected LOOP_MODE mLoopMode = LOOP_MODE.ONCE;			// 循环方式
+	protected LOOP_MODE mLoopMode = LOOP_MODE.LOOP;			// 循环方式
 	public override void resetProperty()
 	{
 		base.resetProperty();
 		mPlayEndCallback = null;
 		mPlayingCallback = null;
 		mControlObject = null;
-		mPlayedTime = 0.0f;
 		mInterval = 0.033f;
 		mCurTime = 0.0f;
 		mCurTextureIndex = 0;
@@ -35,7 +33,7 @@ public class AnimControl : ClassObject
 		mAutoResetIndex = true;
 		mPlayDirection = true;
 		mPlayState = PLAY_STATE.STOP;
-		mLoopMode = LOOP_MODE.ONCE;
+		mLoopMode = LOOP_MODE.LOOP;
 	}
 	public void update(float elapsedTime)
 	{
@@ -44,25 +42,26 @@ public class AnimControl : ClassObject
 			return;
 		}
 		int lastIndex = mCurTextureIndex;
-		if (mTextureCount != 0)
+		if (mTextureCount > 0 && mInterval > 0.0f)
 		{
 			mCurTime += elapsedTime;
-			if (mInterval > 0.0f && mCurTime > mInterval)
+			if (mCurTime > mInterval)
 			{
 				// 一帧时间内可能会跳过多帧序列帧
 				int elapsedFrames = (int)divide(mCurTime, mInterval);
 				mCurTime -= elapsedFrames * mInterval;
+				int realEndIndex = getRealEndIndex();
 				if (mPlayDirection)
 				{
-					if (mCurTextureIndex + elapsedFrames <= getRealEndIndex())
+					if (mCurTextureIndex + elapsedFrames <= realEndIndex)
 					{
 						mCurTextureIndex += elapsedFrames;
 					}
 					else
 					{
+						// 非循环播放时播放完成后,停止播放
 						if (mLoopMode == LOOP_MODE.ONCE)
 						{
-							// 非循环播放时播放完成后,停止播放
 							stop(mAutoResetIndex, true, false);
 						}
 						// 普通循环,则将下标重置到起始下标
@@ -73,7 +72,7 @@ public class AnimControl : ClassObject
 						// 来回循环,则将下标重置到终止下标,并且开始反向播放
 						else if (mLoopMode == LOOP_MODE.PING_PONG)
 						{
-							mCurTextureIndex = getRealEndIndex();
+							mCurTextureIndex = realEndIndex;
 							mPlayDirection = !mPlayDirection;
 						}
 					}
@@ -94,7 +93,7 @@ public class AnimControl : ClassObject
 						// 普通循环,则将下标重置到终止下标
 						else if (mLoopMode == LOOP_MODE.LOOP)
 						{
-							mCurTextureIndex = getRealEndIndex();
+							mCurTextureIndex = realEndIndex;
 						}
 						// 来回循环,则将下标重置到起始下标,并且开始正向播放
 						else if (mLoopMode == LOOP_MODE.PING_PONG)
@@ -104,14 +103,6 @@ public class AnimControl : ClassObject
 						}
 					}
 				}
-			}
-			if (mPlayDirection)
-			{
-				mPlayedTime = mCurTime + mCurTextureIndex * mInterval;
-			}
-			else
-			{
-				mPlayedTime = (mTextureCount - mCurTextureIndex) * mInterval - mCurTime;
 			}
 		}
 		else
@@ -132,10 +123,9 @@ public class AnimControl : ClassObject
 	public int getEndIndex()						{ return mEndIndex; }
 	public int getTextureFrameCount()				{ return mTextureCount; }
 	public bool isAutoResetIndex()					{ return mAutoResetIndex; }
-	public float getPlayedTime()					{ return mPlayedTime; }
 	public float getLength()						{ return mTextureCount * mInterval; }
 	// 获得实际的终止下标,如果是自动获得,则返回最后一张的下标
-	public int getRealEndIndex()					{ return mEndIndex >= 0 ? mEndIndex : getMax(getTextureFrameCount() - 1, 0); }
+	public int getRealEndIndex()					{ return mEndIndex >= 0 ? mEndIndex : getMax(mTextureCount - 1, 0); }
 	public int getCurFrameIndex()					{ return mCurTextureIndex; }
 	public void pause()								{ mPlayState = PLAY_STATE.PAUSE; }
 	public void setPlayEndCallback(BoolBoolCallback callback) { mPlayEndCallback = callback; }

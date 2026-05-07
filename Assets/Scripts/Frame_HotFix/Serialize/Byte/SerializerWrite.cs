@@ -31,6 +31,11 @@ public class SerializerWrite : ClassObject
 		writeCheck(sizeof(byte));
 		writeByte(mBuffer, mBuffer.Length, ref mIndex, value);
 	}
+	public void write(sbyte value)
+	{
+		writeCheck(sizeof(sbyte));
+		writeByte(mBuffer, mBuffer.Length, ref mIndex, value);
+	}
 	public void write(short value)
 	{
 		writeCheck(sizeof(short));

@@ -162,6 +162,10 @@ public class SerializerBitWrite : ClassObject
 	{
 		write(stackalloc uint[2] { value.x, value.y });
 	}
+	public void write(Vector3Int value, bool needWriteSign)
+	{
+		write(stackalloc int[3] { value.x, value.y, value.z }, needWriteSign);
+	}
 	public void write(Vector3 value, bool needWriteSign, int precision = 3)
 	{
 		int powValue = pow10(precision);

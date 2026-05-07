@@ -4,7 +4,6 @@ using UnityEngine;
 using static UnityUtility;
 using static WidgetUtility;
 using static FrameBaseHotFix;
-using static FrameDefine;
 using static FrameBaseDefine;
 using static FrameBaseUtility;
 
@@ -12,7 +11,7 @@ using static FrameBaseUtility;
 public class GameLayout
 {
 	protected Dictionary<int, myUGUIObject> mGameObjectSearchList = new();	// 用于根据GameObject查找UI,key是GameObject的InstanceID
-	protected SafeHashSet<myUGUIObject> mNeedUpdateList = new();			// mObjectList中需要更新的窗口列表
+	protected SafeList<myUGUIObject> mNeedUpdateList = new();				// mObjectList中需要更新的窗口列表
 	protected SafeDictionary<int, myUGUIObject> mObjectList = new();		// 布局中UI物体列表,用于保存所有已获取的UI
 	protected myUGUICanvas mRoot;					// 布局根节点
 	protected LayoutScript mScript;					// 布局脚本
@@ -51,13 +50,13 @@ public class GameLayout
 		setRectSize(rectTransform, new(STANDARD_WIDTH, STANDARD_HEIGHT));
 
 		mRoot.setDestroyImmediately(true);
-		mDefaultLayer = mRoot.getObject().layer;
+		mDefaultLayer = mRoot.getGameObject().layer;
 		mScript.setRoot(mRoot);
 		mScript.assignWindow();
 		// 布局实例化完成,初始化之前,需要调用自适应组件的更新
 		if (mLayoutManager.isUseAnchor())
 		{
-			applyAnchor(mRoot.getObject(), true, this);
+			applyAnchor(mRoot.getGameObject(), true, this);
 		}
 		mAnchorApplied = true;
 		mScript.init();
@@ -82,18 +81,19 @@ public class GameLayout
 
 		if (mIgnoreTimeScale)
 		{
-			elapsedTime = Time.unscaledDeltaTime;
+			elapsedTime = mGameFrameworkHotFix.getUnscaledTime();
 		}
 
 		// 更新所有的UI物体
 		if (mNeedUpdateList.count() > 0)
 		{
-			using var c = new SafeHashSetReader<myUGUIObject>(mNeedUpdateList);
+			using var a = new ProfilerScope("UpdateLayout");
+			using var c = new SafeListReader<myUGUIObject>(mNeedUpdateList);
 			foreach (myUGUIObject uiObj in c.mReadList)
 			{
 				if (uiObj.canUpdate())
 				{
-					uiObj.update(uiObj.isIgnoreTimeScale() ? Time.unscaledDeltaTime : elapsedTime);
+					uiObj.update(uiObj.isIgnoreTimeScale() ? mGameFrameworkHotFix.getUnscaledTime() : elapsedTime);
 				}
 			}
 		}
@@ -214,7 +214,7 @@ public class GameLayout
 		mObjectList.add(uiObj.getID(), uiObj);
 		if (mGameObjectSearchList.TryGetValue(uiObj.getGameObjectInstanceID(), out myUGUIObject obj))
 		{
-			logError("两个UI窗口的GameObject实例ID一致,UI窗口对象相同:" + (uiObj != obj) + ",GameObject是否相同：" + (obj.getObject() == uiObj.getObject()) + ", obj name:" + obj.getName() + ", uiObj name:" + uiObj.getName());
+			logError("两个UI窗口的GameObject实例ID一致,UI窗口对象相同:" + (uiObj != obj) + ",GameObject是否相同：" + (obj.getGameObject() == uiObj.getGameObject()) + ", obj name:" + obj.getName() + ", uiObj name:" + uiObj.getName());
 		}
 		mGameObjectSearchList.Add(uiObj.getGameObjectInstanceID(), uiObj);
 		mNeedUpdateList.addIf(uiObj, mDefaultUpdateWindow || uiObj.isNeedUpdate());
@@ -259,7 +259,7 @@ public class GameLayout
 	public void setCheckBoxAnchor(bool check)				{ mCheckBoxAnchor = check; }
 	public void setIgnoreTimeScale(bool ignore)				{ mIgnoreTimeScale = ignore; }
 	public void setDefaultUpdateWindow(bool defaultUpdate)	{ mDefaultUpdateWindow = defaultUpdate; }
-	public void setLayer(int layer)							{ setGameObjectLayer(mRoot.getObject(), layer); }
+	public void setLayer(int layer)							{ setGameObjectLayer(mRoot.getGameObject(), layer); }
 	public void setBlurBack(bool blurBack)					{ mBlurBack = blurBack; }
 	public void setParent(myUGUIObject parent)				{ mParent = parent; }
 	public void setType(Type type)							{ mType = type; }
@@ -268,35 +268,33 @@ public class GameLayout
 	// ignoreInactive表示是否忽略未启用的节点,当includeSelf为true时orderInParent才会生效
 	protected void setUIDepth(myUGUIObject window, int orderInParent, bool includeSelf = true, bool ignoreInactive = false)
 	{
-		if (ignoreInactive && !window.isActiveInHierarchy())
+		if ((ignoreInactive && !window.isActive()) || !window.isAllowGenerateDepth())
 		{
 			return;
 		}
-
-		Transform transform = window.getTransform();
 		// 编辑器下检查是否希望计算窗口深度,但是由于未注册碰撞体而无法计算,由于确实存在一些有碰撞体,但是不需要参与射线检测的窗口,比如各种template
 		// 而一般情况下template都是未启用的状态,所以此处只检查启用的窗口
 		// 此处无法完全确定窗口上的碰撞体的真实用途,所以需要由窗口自己指出其用途,此处也只检测用于鼠标点击的窗口碰撞体
 		if (isEditor() &&
-			includeSelf && 
-			window.isActiveInHierarchy() && 
-			window.getCollider() != null && 
-			window.isColliderForClick() && 
+			includeSelf &&
+			window.isActiveInHierarchy() &&
+			window.getCollider() != null &&
+			window.isColliderForClick() &&
 			!mGlobalTouchSystem.isColliderRegisted(window))
 		{
-			logError("窗口拥有碰撞体,但是由于未注册碰撞体,所以无法为窗口计算深度,Layout:" + getName() + ", Window:" + getGameObjectPath(transform.gameObject));
+			logError("窗口拥有碰撞体,但是由于未注册碰撞体,所以无法为窗口计算深度,Layout:" + getName() + ", Window:" + getGameObjectPath(window.getGameObject()));
 		}
 		// 先设置当前窗口的深度
 		// 只有当拥有子节点或者已经注册碰撞体时,或者拥有Canvas组件,才会计算窗口的深度
-		Canvas canvas = window.tryGetUnityComponent<Canvas>();
-		if (includeSelf && (transform.childCount > 0 || mGlobalTouchSystem.isColliderRegisted(window) || canvas != null))
+		if (includeSelf)
 		{
 			// 当有Canvas组件时,前面所有父节点的深度都会被忽略,从头开始计算深度
+			Canvas canvas = window.getCanvas();
 			if (canvas != null)
 			{
 				window.setDepth(null, canvas.sortingOrder);
 			}
-			else
+			else if (window.getChildCount() > 0 || mGlobalTouchSystem.isColliderRegisted(window))
 			{
 				if (window.getParent() == null)
 				{
@@ -307,29 +305,17 @@ public class GameLayout
 		}
 
 		// 再设置子窗口的深度,子节点在父节点中的下标从1开始,如果从0开始,则会与默认值的0混淆
-		// 根据面板上的顺序获取子节点,不再依赖myUGUIObject中存储的mChildList,因为mChildList的顺序不一定与面板上的顺序一致
+		// 需要排序保证子节点的顺序正确
 		int childOrder = 0;
-		int childCount = transform.childCount;
-		for (int i = 0; i < childCount; ++i)
+		window.sortChild();
+		var childList = window.getChildList();
+		if (childList == null)
 		{
-			// 在查找之前就简单判断一下,避免无效的查找
-			GameObject go = transform.GetChild(i).gameObject;
-			if (ignoreInactive && !go.activeSelf)
-			{
-				continue;
-			}
-			// Tag也可以辅助用来判断是否需要计算深度
-			if (go.CompareTag(TAG_NO_CLICK))
-			{
-				continue;
-			}
-			myUGUIObject child = getUIObject(go);
-			// 判断是否允许为此窗口计算深度
-			if (child == null || !child.isAllowGenerateDepth())
-			{
-				continue;
-			}
-			setUIDepth(child, ++childOrder, true, ignoreInactive);
+			return;
+		}
+		for (int i = 0; i < childList.Count; ++i)
+		{
+			setUIDepth(childList[i], ++childOrder, true, ignoreInactive);
 		}
 	}
 }

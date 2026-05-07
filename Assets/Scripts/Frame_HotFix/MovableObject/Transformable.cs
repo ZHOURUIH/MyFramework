@@ -1,32 +1,54 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
-using static FrameBaseUtility;
 using static MathUtility;
 using static UnityUtility;
 
 // 可变换的物体,2D和3D物体都是可变换,也就是都会包含一个Transform
 public class Transformable : ComponentOwner, ITransformable
 {
-	protected Transform mTransform;             // 变换组件
-	protected GameObject mObject;               // 物体节点
-	protected Action mPositionModifyCallback;	// 使用注册回调的方式来代替虚函数重写
-	protected Action mRotationModifyCallback;   // 使用注册回调的方式来代替虚函数重写
-	protected Action mScaleModifyCallback;      // 使用注册回调的方式来代替虚函数重写
-	protected bool mPositionDirty = true;		// 位置是否有更改
-	protected bool mNeedUpdate = true;          // 是否启用更新,与Active共同控制是否执行更新
-	protected Vector3 mPosition;                // 单独存储位置,可以在大多数时候避免访问Transform
+	protected Transform mTransform;						// 变换组件
+	protected GameObject mObject;						// 物体节点
+	protected List<Action> mPositionModifyCallback;		// 使用注册回调的方式来代替虚函数重写
+	protected List<Action> mRotationModifyCallback;		// 使用注册回调的方式来代替虚函数重写
+	protected List<Action> mScaleModifyCallback;		// 使用注册回调的方式来代替虚函数重写
+	protected List<Action> mWorldScaleModifyCallback;   // 使用注册回调的方式来代替虚函数重写
+	protected Vector3 mLastWorldScale;                  // 上一次设置的世界缩放值
+	protected bool mPositionDirty = true;				// 位置是否有更改
+	protected bool mNeedUpdate = true;					// 是否启用更新,与Active共同控制是否执行更新
+	protected bool mActive;								// 缓存的GameObject.activeSelf状态,用于避免频繁访问activeSelf属性
+	protected Vector3 mPosition;						// 单独存储位置,可以在大多数时候避免访问Transform
 	public override void resetProperty()
 	{
 		base.resetProperty();
 		mTransform = null;
 		mObject = null;
-		mPositionModifyCallback = null;
-		mRotationModifyCallback = null;
-		mScaleModifyCallback = null;
+		mPositionModifyCallback?.Clear();
+		mRotationModifyCallback?.Clear();
+		mScaleModifyCallback?.Clear();
+		mWorldScaleModifyCallback?.Clear();
+		mLastWorldScale = Vector3.zero;
 		mPositionDirty = true;
 		mNeedUpdate = true;
+		mActive = false;
 		mPosition = Vector3.zero;
+	}
+	public override void update(float elapsedTime)
+	{
+		base.update(elapsedTime);
+		// 检测世界缩放值是否有变化
+		if (!mWorldScaleModifyCallback.isEmpty())
+		{
+			Vector3 worldScale = getWorldScale();
+			if (!isVectorEqual(mLastWorldScale, worldScale))
+			{
+				foreach (Action item in mWorldScaleModifyCallback)
+				{
+					item?.Invoke();
+				}
+				mLastWorldScale = worldScale;
+			}
+		}
 	}
 	public virtual void setObject(GameObject obj)
 	{
@@ -38,23 +60,27 @@ public class Transformable : ComponentOwner, ITransformable
 			{
 				mObject.name = mName;
 			}
+			mActive = mObject.activeSelf;
+			mLastWorldScale = getWorldScale();
 		}
 		else
 		{
 			mTransform = null;
+			mActive = false;
 		}
 	}
 	public override bool setActive(bool active)
 	{
+		if (active == mActive)
+		{
+			return active;
+		}
 		if (mObject != null)
 		{
-			if (active == mObject.activeSelf)
-			{
-				return active;
-			}
 			using var a = new ProfilerScope("active object");
 			mObject.SetActive(active);
 		}
+		mActive = active;
 		return base.setActive(active);
 	}
 	public void resetActive()
@@ -62,6 +88,7 @@ public class Transformable : ComponentOwner, ITransformable
 		// 重新禁用再启用,可以重置状态
 		mObject.SetActive(false);
 		mObject.SetActive(true);
+		mActive = true;
 	}
 	public void enableAllColliders(bool enable)
 	{
@@ -101,11 +128,8 @@ public class Transformable : ComponentOwner, ITransformable
 		}
 		return collider.Raycast(ray, out hit, maxDistance);
 	}
-	public GameObject getObject() { return mObject; }
-	public int getGameObjectInstanceID()
-	{
-		return getGameObjectID(mObject);
-	}
+	public GameObject getGameObject() { return mObject; }
+	public int getGameObjectInstanceID() { return getGameObjectID(mObject); }
 	public bool isUnityComponentEnabled<T>() where T : Behaviour
 	{
 		T com = tryGetUnityComponent<T>();
@@ -181,7 +205,7 @@ public class Transformable : ComponentOwner, ITransformable
 	// 从指定的子节点中查找指定组件
 	public T getUnityComponentInChild<T>(string childName) where T : Component
 	{
-		GameObject go = getGameObject(childName, mObject);
+		GameObject go = FrameBaseUtility.getGameObject(childName, mObject);
 		if (go == null)
 		{
 			return null;
@@ -204,18 +228,36 @@ public class Transformable : ComponentOwner, ITransformable
 	public Vector3 getRight(bool ignoreY = false) { return ignoreY ? normalize(resetY(mTransform.right)) : mTransform.right; }
 	public Vector3 getBack(bool ignoreY = false) { return ignoreY ? normalize(resetY(-mTransform.forward)) : -mTransform.forward; }
 	public Vector3 getForward(bool ignoreY = false) { return ignoreY ? normalize(resetY(mTransform.forward)) : mTransform.forward; }
-	public virtual bool isActive() { return mObject != null && mObject.activeSelf; }
+	public virtual bool isActive() { return mActive; }
 	public virtual bool isActiveInHierarchy() { return mObject != null && mObject.activeInHierarchy; }
 	public string getLayerName() { return LayerMask.LayerToName(mObject.layer); }
 	public int getLayer() { return mObject.layer; }
 	public virtual bool isNeedUpdate() { return mNeedUpdate; }
 	public virtual void setNeedUpdate(bool enable) { mNeedUpdate = enable; }
-	public void addPositionModifyCallback(Action callback) { mPositionModifyCallback += callback; }
-	public void removePositionModifyCallback(Action callback) { mPositionModifyCallback -= callback; }
-	public void addRotationModifyCallback(Action callback) { mRotationModifyCallback += callback; }
-	public void removeRotationModifyCallback(Action callback) { mRotationModifyCallback -= callback; }
-	public void addScaleModifyCallback(Action callback) { mScaleModifyCallback += callback; }
-	public void removeScaleModifyCallback(Action callback) { mScaleModifyCallback -= callback; }
+	public void addPositionModifyCallback(Action callback) 
+	{
+		mPositionModifyCallback ??= new();
+		mPositionModifyCallback.add(callback); 
+	}
+	public void removePositionModifyCallback(Action callback) { mPositionModifyCallback.Remove(callback); }
+	public void addRotationModifyCallback(Action callback) 
+	{
+		mRotationModifyCallback ??= new();
+		mRotationModifyCallback.add(callback); 
+	}
+	public void removeRotationModifyCallback(Action callback) { mRotationModifyCallback.Remove(callback); }
+	public void addScaleModifyCallback(Action callback) 
+	{
+		mScaleModifyCallback ??= new();
+		mScaleModifyCallback.add(callback); 
+	}
+	public void removeWorldScaleModifyCallback(Action callback) { mWorldScaleModifyCallback.Remove(callback); }
+	public void addWorldScaleModifyCallback(Action callback) 
+	{
+		mWorldScaleModifyCallback ??= new();
+		mWorldScaleModifyCallback.add(callback); 
+	}
+	public void removeScaleModifyCallback(Action callback) { mScaleModifyCallback.Remove(callback); }
 	public Vector3 getPosition()
 	{
 		if (mPositionDirty)
@@ -262,7 +304,10 @@ public class Transformable : ComponentOwner, ITransformable
 		}
 		mPositionDirty = true;
 		mTransform.localPosition = pos;
-		mPositionModifyCallback?.Invoke();
+		foreach (Action item in mPositionModifyCallback.safe())
+		{
+			item?.Invoke();
+		}
 	}
 	public void setScale(float scale)
 	{
@@ -275,7 +320,10 @@ public class Transformable : ComponentOwner, ITransformable
 			return;
 		}
 		mTransform.localScale = scale;
-		mScaleModifyCallback?.Invoke();
+		foreach (Action item in mScaleModifyCallback.safe())
+		{
+			item?.Invoke();
+		}
 	}
 	// 角度制的欧拉角,分别是绕xyz轴的旋转角度
 	public void setRotation(Vector3 rot)
@@ -285,7 +333,10 @@ public class Transformable : ComponentOwner, ITransformable
 			return;
 		}
 		mTransform.localEulerAngles = rot;
-		mRotationModifyCallback?.Invoke();
+		foreach (Action item in mRotationModifyCallback.safe())
+		{
+			item?.Invoke();
+		}
 	}
 	// 角度制的欧拉角,分别是绕xyz轴的旋转角度
 	public void setRotation(Quaternion rot)
@@ -295,7 +346,10 @@ public class Transformable : ComponentOwner, ITransformable
 			return;
 		}
 		mTransform.localRotation = rot;
-		mRotationModifyCallback?.Invoke();
+		foreach (Action item in mRotationModifyCallback.safe())
+		{
+			item?.Invoke();
+		}
 	}
 	public void setWorldPosition(Vector3 pos)
 	{
@@ -305,7 +359,10 @@ public class Transformable : ComponentOwner, ITransformable
 		}
 		mPositionDirty = true;
 		mTransform.position = pos;
-		mPositionModifyCallback?.Invoke();
+		foreach (Action item in mPositionModifyCallback.safe())
+		{
+			item?.Invoke();
+		}
 	}
 	public void setWorldRotation(Vector3 rot)
 	{
@@ -314,7 +371,10 @@ public class Transformable : ComponentOwner, ITransformable
 			return;
 		}
 		mTransform.eulerAngles = rot;
-		mRotationModifyCallback?.Invoke();
+		foreach (Action item in mRotationModifyCallback.safe())
+		{
+			item?.Invoke();
+		}
 	}
 	public void setWorldRotation(Quaternion rot)
 	{
@@ -323,7 +383,10 @@ public class Transformable : ComponentOwner, ITransformable
 			return;
 		}
 		mTransform.rotation = rot;
-		mRotationModifyCallback?.Invoke();
+		foreach (Action item in mRotationModifyCallback.safe())
+		{
+			item?.Invoke();
+		}
 	}
 	public void setWorldScale(Vector3 scale)
 	{
@@ -339,7 +402,14 @@ public class Transformable : ComponentOwner, ITransformable
 		{
 			mTransform.localScale = scale;
 		}
-		mScaleModifyCallback?.Invoke();
+		foreach (Action item in mScaleModifyCallback.safe())
+		{
+			item?.Invoke();
+		}
+		foreach (Action item in mWorldScaleModifyCallback.safe())
+		{
+			item?.Invoke();
+		}
 	}
 	public Vector3 localToWorld(Vector3 point) { return UnityUtility.localToWorld(mTransform, point); }
 	public Vector3 worldToLocal(Vector3 point) { return UnityUtility.worldToLocal(mTransform, point); }
@@ -497,5 +567,5 @@ public class Transformable : ComponentOwner, ITransformable
 		}
 		return renderer.material.color.a;
 	}
-	public virtual bool canUpdate() { return mNeedUpdate && mObject.activeInHierarchy; }
+	public bool canUpdate() { return mNeedUpdate && mActive; }
 }

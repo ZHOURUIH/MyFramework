@@ -26,7 +26,7 @@ public class COMWindowCollider : GameComponent
 			mBoxCollider.isTrigger = true;
 			string layoutName = layout.getName();
 			string windowName = window.getName();
-			GameObject go = window.getObject();
+			GameObject go = window.getGameObject();
 			// BoxCollider的中心必须为0,因为UIWidget会自动调整BoxCollider的大小和位置,而且调整后位置为0,所以在制作时BoxCollider的位置必须为0
 			if (!isFloatZero(mBoxCollider.center.sqrMagnitude))
 			{
@@ -70,15 +70,10 @@ public class COMWindowCollider : GameComponent
 	}
 	public void setColliderSize(RectTransform transform)
 	{
-		if (mBoxCollider == null || transform == null)
+		if (transform == null)
 		{
 			return;
 		}
-		Vector2 size = transform.rect.size;
-		if (!isFloatEqual(size.x, mBoxCollider.size.x) || !isFloatEqual(size.y, mBoxCollider.size.y))
-		{
-			mBoxCollider.size = size;
-			mBoxCollider.center = multiVector2(size, new Vector2(0.5f, 0.5f) - transform.pivot);
-		}
+		setColliderSize(transform.rect.size);
 	}
 }

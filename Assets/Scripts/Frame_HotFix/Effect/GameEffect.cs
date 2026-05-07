@@ -64,7 +64,7 @@ public class GameEffect : MovableObject
 		// 播放后忽略了时间缩放,则只有在停止时才能修改忽略时间缩放,中间修改是无效的
 		if (mIgnoreTimeScale && mPlayState == PLAY_STATE.PLAY)
 		{
-			float remainTime = Time.unscaledDeltaTime - Time.deltaTime;
+			float remainTime = mGameFrameworkHotFix.getUnscaledTime() - Time.deltaTime;
 			foreach (ParticleSystem item in mParticleSystems)
 			{
 				// 只模拟没有在预设中设置为忽略时间缩放的粒子系统,已经设置忽略时间缩放的会由粒子系统自己更新
@@ -136,7 +136,7 @@ public class GameEffect : MovableObject
 		{
 			return mObject != null;
 		}
-		bool effectValid = mPrefabPoolManager.isExistInPool(getObject());
+		bool effectValid = mPrefabPoolManager.isExistInPool(getGameObject());
 		// 如果特效物体不是空的,可能是销毁物体时引擎不是立即销毁的,需要手动设置为空
 		if (!effectValid && mObject != null)
 		{

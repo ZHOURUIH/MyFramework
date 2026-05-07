@@ -46,7 +46,6 @@ public class myUGUIText : myUGUIObject, IUGUIText
 		mCanvasGroup.alpha = isCull ? 0.0f : 1.0f;
 	}
 	public override bool isCulled() { return mCanvasGroup != null && isFloatZero(mCanvasGroup.alpha); }
-	public override bool canUpdate() { return base.canUpdate() && !isCulled(); }
 	public override bool canGenerateDepth() { return !isCulled(); }
 	public void setText(string text)
 	{

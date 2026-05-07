@@ -12,6 +12,7 @@ using static StringUtility;
 using static MathUtility;
 using static EditorCommonUtility;
 using static FrameDefine;
+using static EditorDefine;
 using static FrameBaseDefine;
 using static EditorFileUtility;
 
@@ -185,7 +186,8 @@ public class MenuCheckResources
 				foreach (string item in Directory.GetFiles(path, "*.prefab", SearchOption.AllDirectories))
 				{
 					string file = item.rightToLeft();
-					validFiles.addIf(file, !file.endWith(".meta", false));
+					string fileName = getFileNameWithSuffix(file);
+					validFiles.addIf(file, !file.endWith(".meta", false) && !getIgnoreScaleAnchorCheck().contains(fileName));
 				}
 				// 开始查找所有文件的引用
 				int count = validFiles.Count;

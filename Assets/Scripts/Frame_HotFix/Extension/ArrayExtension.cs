@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using static BinaryUtility;
+using static FrameUtility;
 
 public class EmptyArray<T>
 {
@@ -93,7 +94,7 @@ public static class ArrayExtension
 		}
 		for (int i = 0; i < list.Length; ++i)
 		{
-			if (list[i].Equals(value))
+			if (equal(list[i], value))
 			{
 				index = i;
 				return true;
@@ -110,7 +111,7 @@ public static class ArrayExtension
 		}
 		for (int i = 0; i < list.Length; ++i)
 		{
-			if (list[i].Equals(value))
+			if (equal(list[i], value))
 			{
 				return i;
 			}
@@ -211,7 +212,7 @@ public static class ArrayExtension
 		int length = list.Length;
 		for (int i = 0; i < length; ++i)
 		{
-			if (list[i].Equals(value))
+			if (equal(list[i], value))
 			{
 				return true;
 			}
@@ -267,5 +268,30 @@ public static class ArrayExtension
 		// 默认为UTF8
 		encoding ??= Encoding.UTF8;
 		return removeLastZero(encoding.GetString(bytes, startIndex, count));
+	}
+	// 移除数组中的第index个元素,validElementCount是数组中有效的元素个数
+	public static void removeIndex<T>(this T[] array, int validElementCount, int index)
+	{
+		if (index < 0 || index >= validElementCount)
+		{
+			return;
+		}
+		int moveCount = validElementCount - index - 1;
+		for (int i = 0; i < moveCount; ++i)
+		{
+			array[index + i] = array[index + i + 1];
+		}
+	}
+	// 移除数组中的所有value
+	public static int removeValue<T>(this T[] array, int validElementCount, T value)
+	{
+		for (int i = 0; i < validElementCount; ++i)
+		{
+			if (equal(array[i], value))
+			{
+				removeIndex(array, validElementCount--, i--);
+			}
+		}
+		return validElementCount;
 	}
 }

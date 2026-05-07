@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
 using static UnityUtility;
 using static FrameUtility;
+using static FrameBaseHotFix;
 
 // 组件拥有者,只有继承了组件拥有者的类才能够添加组件
 public abstract class ComponentOwner : CommandReceiver
@@ -10,8 +10,8 @@ public abstract class ComponentOwner : CommandReceiver
 	protected List<ClassObjectCallback> mDestroyCallbackList;				// 监听对象销毁的列表
 	protected SafeDictionary<Type, GameComponent> mAllComponentTypeList;	// 组件类型列表,first是组件的类型名
 	protected SafeList<GameComponent> mComponentList;						// 组件列表,保存着组件之间的更新顺序
-	protected HashSet<Type> mDontAutoCreateType;                            // 不需要自动添加的组件类型
-	protected HashSet<Type> mDisableTypeList;                               // 不需要更新的组件类型,为了不需要关心组件的添加或者销毁,只是想禁用部分组件的更新
+	protected List<Type> mDontAutoCreateType;								// 不需要自动添加的组件类型
+	protected List<Type> mDisableTypeList;									// 不需要更新的组件类型,为了不需要关心组件的添加或者销毁,只是想禁用部分组件的更新
 	protected string mTypeName;												// 一般用于给Profiler传参用
 	protected bool mIgnoreTimeScale;                                        // 是否忽略时间缩放
 	protected bool mDestroying;												// 是否正在销毁中,避免销毁时执行无用的操作
@@ -83,8 +83,8 @@ public abstract class ComponentOwner : CommandReceiver
 			GameComponent com = a.mReadList[i];
 			if (com.isValid() && com.isActive() && !mDisableTypeList.contains(com.getType()))
 			{
-				using var b = new ProfilerScope(com.GetTypeName());
-				com.update(com.isIgnoreTimeScale() ? Time.unscaledDeltaTime : elapsedTime);
+				using var b = new ProfilerScope(com.getTypeName());
+				com.update(com.isIgnoreTimeScale() ? mGameFrameworkHotFix.getUnscaledTime() : elapsedTime);
 			}
 		}
 	}
@@ -100,7 +100,7 @@ public abstract class ComponentOwner : CommandReceiver
 		{
 			if (com != null && com.isActive() && !mDisableTypeList.contains(com.getType()))
 			{
-				com.lateUpdate(com.isIgnoreTimeScale() ? Time.unscaledDeltaTime : elapsedTime);
+				com.lateUpdate(com.isIgnoreTimeScale() ? mGameFrameworkHotFix.getUnscaledTime() : elapsedTime);
 			}
 		}
 	}
@@ -116,7 +116,7 @@ public abstract class ComponentOwner : CommandReceiver
 		{
 			if (com != null && com.isActive() && !mDisableTypeList.contains(com.getType()))
 			{
-				com.fixedUpdate(com.isIgnoreTimeScale() ? Time.unscaledDeltaTime : elapsedTime);
+				com.fixedUpdate(com.isIgnoreTimeScale() ? mGameFrameworkHotFix.getUnscaledTime() : elapsedTime);
 			}
 		}
 	}

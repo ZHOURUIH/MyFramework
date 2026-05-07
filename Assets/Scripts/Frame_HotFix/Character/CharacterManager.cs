@@ -1,10 +1,10 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System;
 using static UnityUtility;
 using static FrameUtility;
 using static StringUtility;
 using static MathUtility;
+using static FrameBaseHotFix;
 
 // 角色管理器
 public class CharacterManager : FrameSystem
@@ -38,7 +38,7 @@ public class CharacterManager : FrameSystem
 			{
 				continue;
 			}
-			character.update(!character.isIgnoreTimeScale() ? elapsedTime : Time.unscaledDeltaTime);
+			character.update(!character.isIgnoreTimeScale() ? elapsedTime : mGameFrameworkHotFix.getUnscaledTime());
 		}
 	}
 	public override void lateUpdate(float elapsedTime)
@@ -50,14 +50,7 @@ public class CharacterManager : FrameSystem
 			Character character = item.Value;
 			if (character != null && character.isActiveInHierarchy())
 			{
-				if (!character.isIgnoreTimeScale())
-				{
-					character.lateUpdate(elapsedTime);
-				}
-				else
-				{
-					character.lateUpdate(Time.unscaledDeltaTime);
-				}
+				character.lateUpdate(!character.isIgnoreTimeScale() ? elapsedTime : mGameFrameworkHotFix.getUnscaledTime());
 			}
 		}
 	}

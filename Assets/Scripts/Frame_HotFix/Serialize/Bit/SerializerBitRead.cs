@@ -510,7 +510,7 @@ public class SerializerBitRead : ClassObject
 		value1 = list[1] * inversePow;
 		return success;
 	}
-	public bool read(out double value0, out double value1, out double value2, bool needReadSign, int precision = 3)
+	public bool read(out double value0, out double value1, out double value2, bool needReadSign, int precision = 4)
 	{
 		Span<long> list = stackalloc long[3];
 		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
@@ -520,7 +520,7 @@ public class SerializerBitRead : ClassObject
 		value2 = list[2] * inversePow;
 		return success;
 	}
-	public bool read(out double value0, out double value1, out double value2, out double value3, bool needReadSign, int precision = 3)
+	public bool read(out double value0, out double value1, out double value2, out double value3, bool needReadSign, int precision = 4)
 	{
 		Span<long> list = stackalloc long[4];
 		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);

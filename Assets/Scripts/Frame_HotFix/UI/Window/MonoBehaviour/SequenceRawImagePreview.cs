@@ -8,14 +8,17 @@ using static MathUtility;
 using static FileUtility;
 
 [ExecuteAlways]
+[RequireComponent(typeof(RawImageAnimPath))]
+[RequireComponent(typeof(RawImage))]
 public class SequenceRawImagePreview : MonoBehaviour
 {
 #if UNITY_EDITOR
 	[Range(0, 1)]
 	public float mSlider;
-	public RawImage mRawImage;
+	protected RawImage mRawImage;
 	protected RawImageAnimPath mAnimPath;
-	public List<Texture> mTextureList = new();
+	protected List<Texture> mTextureList = new();
+	protected bool mRefresh;
 	public void Awake()
 	{
 		enabled = !Application.isPlaying;
@@ -23,6 +26,24 @@ public class SequenceRawImagePreview : MonoBehaviour
 		mAnimPath = mRawImage.GetComponent<RawImageAnimPath>();
 	}
 	public void OnEnable()
+	{
+		refresh();
+	}
+	public void Update()
+	{
+		// 刷新当前图片
+		int frameCount = mTextureList.Count;
+		if (frameCount > 0)
+		{
+			mRawImage.texture = mTextureList[clamp(ceil(mSlider * frameCount) - 1, 0, frameCount - 1)];
+		}
+		if (mRefresh)
+		{
+			mRefresh = false;
+			refresh();
+		}
+	}
+	protected void refresh()
 	{
 		mTextureList.Clear();
 		if (mAnimPath == null)
@@ -45,15 +66,6 @@ public class SequenceRawImagePreview : MonoBehaviour
 					break;
 				}
 			}
-		}
-	}
-	public void Update()
-	{
-		// 刷新当前图片
-		int frameCount = mTextureList.Count;
-		if (frameCount > 0)
-		{
-			mRawImage.texture = mTextureList[clamp(ceil(mSlider * frameCount) - 1, 0, frameCount - 1)];
 		}
 	}
 #endif

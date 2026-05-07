@@ -1,3 +1,4 @@
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System.Collections.Generic;
 using static BinaryUtility;
 using static UnityUtility;
@@ -436,3 +437,4 @@ public class TestSCPackItemPacket : NetPacketBit
 		return false;
 	}
 }
+#endif

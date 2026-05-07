@@ -31,7 +31,7 @@ public abstract class GameComponent : ClassObject
 		mActive = true;
 		// mTypeName = null;
 	}
-	public string GetTypeName()
+	public string getTypeName()
 	{
 		mTypeName ??= GetType().Name;
 		return mTypeName;

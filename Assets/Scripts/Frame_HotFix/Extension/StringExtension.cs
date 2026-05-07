@@ -2,7 +2,7 @@
 using System.Text;
 using static StringUtility;
 using static BinaryUtility;
-using static FrameUtility;
+using static MathUtility;
 using static FrameBaseUtility;
 
 public static class StringExtension
@@ -304,6 +304,7 @@ public static class StringExtension
 		{
 			return str;
 		}
+		clampMax(ref startLength, str.Length);
 		return str[0..startLength];
 	}
 	// 移除最后一定长度的字符串
@@ -510,7 +511,7 @@ public static class StringExtension
 		for (int i = builder.Length - 1; i >= 0; --i)
 		{
 			// 判断是否是需要移除的字符
-			if (arrayContains(key, builder[i]))
+			if (key.contains(builder[i]))
 			{
 				builder.remove(i, 1);
 			}
@@ -920,21 +921,10 @@ public static class StringExtension
 			lines = null;
 			return;
 		}
-		if (str.Contains("\r\n"))
+		lines = str.split(removeEmpty, '\n');
+		for (int i = 0; i < lines.Length; ++i)
 		{
-			lines = str.split(removeEmpty, "\r\n");
-		}
-		else if (str.Contains("\n"))
-		{
-			lines = str.split(removeEmpty, '\n');
-		}
-		else if (str.Contains("\r"))
-		{
-			lines = str.split(removeEmpty, '\r');
-		}
-		else
-		{
-			lines = new string[1] { str };
+			lines[i] = removeAll(lines[i], '\r');
 		}
 	}
 	public static string[] splitLine(this string str, bool removeEmpty = true)

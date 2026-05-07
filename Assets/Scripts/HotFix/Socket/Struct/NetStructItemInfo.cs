@@ -24,6 +24,18 @@ public class NetStructItemInfo : NetStructBit
 		base.write(writer, needWriteSign);
 		writer.write(stackalloc int[2]{ mItemID, mItemCount }, needWriteSign);
 	}
+	public override bool hasSign()
+	{
+		if (mItemID.mValue < 0)
+		{
+			return true;
+		}
+		if (mItemCount.mValue < 0)
+		{
+			return true;
+		}
+		return false;
+	}
 	public override void resetProperty()
 	{
 		base.resetProperty();

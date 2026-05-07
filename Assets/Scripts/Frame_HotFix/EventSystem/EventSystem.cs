@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using static FrameUtility;
+using static UnityUtility;
 
 // 事件管理器,用于分发所有的事件
 public class EventSystem : FrameSystem
 {
-	protected Dictionary<long, Dictionary<Type, SafeDeepList<GameEventRegisteInfo>>> mCharacterEventList = new();	// 指定角色的事件监听列表
+	protected Dictionary<long, Dictionary<int, SafeList0<GameEventRegisteInfo>>> mCharacterEventList = new();		// 指定角色的事件监听列表
 	protected Dictionary<IEventListener, List<GameEventRegisteInfo>> mListenerList = new();							// 每个监听者所监听的所有事件信息列表
-	protected Dictionary<Type, SafeDeepList<GameEventRegisteInfo>> mGlobalListenerEventList = new();				// 全局事件监听列表
+	protected Dictionary<int, SafeList0<GameEventRegisteInfo>> mGlobalListenerEventList = new();					// 全局事件监听列表
 	protected bool mNeedCheckEmptyEvent;																			// 是否需要检测有没有空的角色事件监听列表
+	protected int mDispatchDepth;
+	protected const int MAX_DEPTH = 20;
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
@@ -17,28 +20,28 @@ public class EventSystem : FrameSystem
 			return;
 		}
 		// 检查所有的列表是否有空的,将空的列表移除,避免列表的长度一直增大
-		using var a = new ListScope<Type>(out var removeEvent);
+		using var a = new ListScope<int>(out var removeEvent);
 		List<long> removeCharacterEvent = null;
 		foreach (var itemCharacter in mCharacterEventList)
 		{
 			var characterListenerList = itemCharacter.Value;
-			if (characterListenerList.Count == 0)
+			if (characterListenerList.isEmpty())
 			{
 				continue;
 			}
 			removeEvent.Clear();
 			foreach (var itemEvent in characterListenerList)
 			{
-				removeEvent.addIf(itemEvent.Key, itemEvent.Value.count() == 0);
+				removeEvent.addIf(itemEvent.Key, itemEvent.Value.isEmpty());
 			}
-			if (removeEvent.Count > 0)
+			if (!removeEvent.isEmpty())
 			{
-				foreach (Type item in removeEvent)
+				foreach (int item in removeEvent)
 				{
 					characterListenerList.Remove(item, out var removedList);
 					UN_CLASS(ref removedList);
 				}
-				if (characterListenerList.Count == 0)
+				if (characterListenerList.isEmpty())
 				{
 					LIST(out removeCharacterEvent);
 					removeCharacterEvent.Add(itemCharacter.Key);
@@ -71,19 +74,25 @@ public class EventSystem : FrameSystem
 		{
 			return;
 		}
+		if (mDispatchDepth > MAX_DEPTH)
+		{
+			logError("事件递归栈深度超过上限");
+			return;
+		}
+		++mDispatchDepth;
 		do
 		{
 			if (!mCharacterEventList.TryGetValue(characterID, out var eventTypeList))
 			{
 				break;
 			}
-			if (eventTypeList.Count == 0)
+			if (eventTypeList.isEmpty())
 			{
 				UN_DIC(ref eventTypeList);
 				mCharacterEventList.Remove(characterID);
 				break;
 			}
-			Type eventType = param.GetType();
+			int eventType = TypeID<T>.ID;
 			if (!eventTypeList.TryGetValue(eventType, out var eventList))
 			{
 				break;
@@ -94,14 +103,15 @@ public class EventSystem : FrameSystem
 				eventTypeList.Remove(eventType);
 				break;
 			}
-			// 这里需要拷贝一份出来,否则在callback中可能还会调用pushEvent造成错误
-			// 虽然可以使用DeepSafeList,但是DeppSafeList性能较差
-			using var a = new SafeDeepListReader<GameEventRegisteInfo>(eventList);
-			foreach (GameEventRegisteInfo item in a.mReadList)
+			// 由于在遍历过程中有可能会再次修改或者遍历此列表,所以这里的遍历次数是固定的,因为遍历中删除时不会真正移除元素,新增元素也只会添加到末尾
+			// 所以就不能写成for (int i = 0; i < eventList.count(); ++i)
+			int count = eventList.count();
+			for (int i = 0; i < count; ++i)
 			{
-				item.call(param);
+				eventList.get(i)?.call(param);
 			}
 		} while (false);
+		--mDispatchDepth;
 	}
 	public void pushEvent<T>() where T : GameEvent, new()
 	{
@@ -110,36 +120,45 @@ public class EventSystem : FrameSystem
 	}
 	public void pushEvent<T>(T param) where T : GameEvent
 	{
-		// 发送到全局事件监听
-		if (mGlobalListenerEventList.TryGetValue(param.GetType(), out var infoList))
+		if (mDispatchDepth > MAX_DEPTH)
 		{
-			using var a = new SafeDeepListReader<GameEventRegisteInfo>(infoList);
-			foreach (GameEventRegisteInfo item in a.mReadList)
+			logError("事件递归栈深度超过上限");
+			return;
+		}
+		++mDispatchDepth;
+		// 发送到全局事件监听
+		if (mGlobalListenerEventList.TryGetValue(TypeID<T>.ID, out var infoList))
+		{
+			// 由于在遍历过程中有可能会再次修改或者遍历此列表,所以这里的遍历次数是固定的,因为遍历中删除时不会真正移除元素,新增元素也只会添加到末尾
+			// 所以就不能写成for (int i = 0; i < infoList.count(); ++i)
+			int count = infoList.count();
+			for (int i = 0; i < count; ++i)
 			{
-				item.call(param);
+				infoList.get(i)?.call(param);
 			}
 		}
+		--mDispatchDepth;
 	}
-	public void listenEvent(Type eventType, Action callback, IEventListener listener)
+	public void listenEvent(int eventTypeID, Action callback, IEventListener listener)
 	{
-		GameEventRegisteInfo info = createEventAddToListenList(eventType, 0, callback, listener);
+		GameEventRegisteInfo info = createEventAddToListenList(eventTypeID, 0, callback, listener);
 
 		// 加入全局事件监听列表中
-		mGlobalListenerEventList.getOrAddClass(info.mEventType).add(info);
+		mGlobalListenerEventList.getOrAddClass(info.mEventTypeID).add(info);
 	}
 	public void listenEvent<T>(Action callback, IEventListener listener)
 	{
-		GameEventRegisteInfo info = createEventAddToListenList(typeof(T), 0, callback, listener);
+		GameEventRegisteInfo info = createEventAddToListenList(TypeID<T>.ID, 0, callback, listener);
 
 		// 加入全局事件监听列表中
-		mGlobalListenerEventList.getOrAddClass(info.mEventType).add(info);
+		mGlobalListenerEventList.getOrAddClass(info.mEventTypeID).add(info);
 	}
 	public void listenEvent<T>(Action<T> callback, IEventListener listener) where T : GameEvent
 	{
 		GameEventRegisteInfo info = createEventAddToListenList(0, callback, listener);
 
 		// 加入全局事件监听列表中
-		mGlobalListenerEventList.getOrAddClass(info.mEventType).add(info);
+		mGlobalListenerEventList.getOrAddClass(info.mEventTypeID).add(info);
 	}
 	public void listenEvent<T>(long characterID, Action<T> callback, IEventListener listener) where T : GameEvent
 	{
@@ -147,15 +166,15 @@ public class EventSystem : FrameSystem
 
 		// 加入指定角色事件监听列表中
 		var characterEventList = mCharacterEventList.getOrAddListPersist(characterID);
-		characterEventList.getOrAddClass(info.mEventType).add(info);
+		characterEventList.getOrAddClass(info.mEventTypeID).add(info);
 	}
 	public void listenEvent<T>(long characterID, Action callback, IEventListener listener) where T : GameEvent
 	{
-		GameEventRegisteInfo info = createEventAddToListenList(typeof(T), characterID, callback, listener);
+		GameEventRegisteInfo info = createEventAddToListenList(TypeID<T>.ID, characterID, callback, listener);
 
 		// 加入指定角色事件监听列表中
 		var characterEventList = mCharacterEventList.getOrAddListPersist(characterID);
-		characterEventList.getOrAddClass(info.mEventType).add(info);
+		characterEventList.getOrAddClass(info.mEventTypeID).add(info);
 	}
 	public void unlistenEvent(IEventListener listener)
 	{
@@ -180,11 +199,11 @@ public class EventSystem : FrameSystem
 		{
 			return;
 		}
-		Type eventType = typeof(T);
+		int eventType = TypeID<T>.ID;
 		for (int i = 0; i < infoList.Count; ++i)
 		{
 			GameEventRegisteInfo info = infoList[i];
-			if (info.mEventType != eventType)
+			if (info.mEventTypeID != eventType)
 			{
 				continue;
 			}
@@ -209,9 +228,12 @@ public class EventSystem : FrameSystem
 		{
 			var list = item.Value;
 			// 从监听者查找列表中移除
-			using var a = new SafeDeepListReader<GameEventRegisteInfo>(list);
-			foreach (GameEventRegisteInfo eventInfo in a.mReadList)
+			// 由于在遍历过程中有可能会再次修改或者遍历此列表,所以这里的遍历次数是固定的,因为遍历中删除时不会真正移除元素,新增元素也只会添加到末尾
+			// 所以就不能写成for (int i = 0; i < list.count(); ++i)
+			int count = list.count();
+			for (int i = 0; i < count; ++i)
 			{
+				GameEventRegisteInfo eventInfo = list.get(i);
 				if (!mListenerList.TryGetValue(eventInfo.mListener, out var listenList))
 				{
 					continue;
@@ -232,16 +254,16 @@ public class EventSystem : FrameSystem
 	protected GameEventRegisteInfo createEventAddToListenList<T>(long characterID, Action<T> callback, IEventListener listener) where T : GameEvent
 	{
 		CLASS(out GameEventRegisteInfoT<T> info);
-		info.mEventType = typeof(T);
+		info.mEventTypeID = TypeID<T>.ID;
 		info.mCharacterID = characterID;
 		info.mCallback = callback;
 		info.mListener = listener;
 		return mListenerList.getOrAddListPersist(listener).add(info);
 	}
-	protected GameEventRegisteInfo createEventAddToListenList(Type eventType, long characterID, Action callback, IEventListener listener)
+	protected GameEventRegisteInfo createEventAddToListenList(int eventTypeID, long characterID, Action callback, IEventListener listener)
 	{
 		CLASS(out GameEventRegisteInfo info);
-		info.mEventType = eventType;
+		info.mEventTypeID = eventTypeID;
 		info.mCharacterID = characterID;
 		info.mBaseCallback = callback;
 		info.mListener = listener;
@@ -251,7 +273,7 @@ public class EventSystem : FrameSystem
 	{
 		if (info.mCharacterID == 0 || 
 			!mCharacterEventList.TryGetValue(info.mCharacterID, out var characterEventList) ||
-			!characterEventList.TryGetValue(info.mEventType, out var eventList))
+			!characterEventList.TryGetValue(info.mEventTypeID, out var eventList))
 		{
 			return;
 		}
@@ -260,7 +282,7 @@ public class EventSystem : FrameSystem
 		{
 			if (!eventList.isForeaching())
 			{
-				characterEventList.Remove(info.mEventType, out var removedList0);
+				characterEventList.Remove(info.mEventTypeID, out var removedList0);
 				UN_CLASS(ref removedList0);
 				if (characterEventList.Count == 0)
 				{
@@ -276,12 +298,12 @@ public class EventSystem : FrameSystem
 	}
 	protected void removeFromGlobalListenList(GameEventRegisteInfo info)
 	{
-		if (!mGlobalListenerEventList.TryGetValue(info.mEventType, out var eventList))
+		if (!mGlobalListenerEventList.TryGetValue(info.mEventTypeID, out var eventList))
 		{
 			return;
 		}
 		eventList.remove(info);
-		if (eventList.count() == 0 && mGlobalListenerEventList.Remove(info.mEventType, out var removedList))
+		if (eventList.count() == 0 && mGlobalListenerEventList.Remove(info.mEventTypeID, out var removedList))
 		{
 			UN_CLASS(ref removedList);
 		}

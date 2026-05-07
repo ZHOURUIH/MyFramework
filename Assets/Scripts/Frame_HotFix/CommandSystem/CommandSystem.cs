@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System;
 using static UnityUtility;
 using static StringUtility;
@@ -33,14 +32,7 @@ public class CommandSystem : FrameSystem
 		for (int i = 0; i < count; ++i)
 		{
 			Command cmd = mCommandBufferProcess[i];
-			if (!cmd.isIgnoreTimeScale())
-			{
-				cmd.setDelayTime(cmd.getDelayTime() - elapsedTime);
-			}
-			else
-			{
-				cmd.setDelayTime(cmd.getDelayTime() - Time.unscaledDeltaTime);
-			}
+			cmd.setDelayTime(cmd.getDelayTime() - (!cmd.isIgnoreTimeScale() ? elapsedTime : mGameFrameworkHotFix.getUnscaledTime()));
 			if (cmd.getDelayTime() <= 0.0f)
 			{
 				// 命令的延迟执行时间到了,则执行命令

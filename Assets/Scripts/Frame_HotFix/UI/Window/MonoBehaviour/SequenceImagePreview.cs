@@ -2,6 +2,8 @@
 using UnityEngine.UI;
 
 [ExecuteAlways]
+[RequireComponent(typeof(Image))]
+[RequireComponent(typeof(ImageAtlasPath))]
 public class SequenceImagePreview : SequenceImagePreviewBase
 {
 #if UNITY_EDITOR

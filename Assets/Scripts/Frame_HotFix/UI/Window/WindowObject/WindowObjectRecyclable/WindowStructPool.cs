@@ -55,14 +55,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		sourcePool.mUsedItemList.Remove(source);
 		sourcePool.mUnusedItemList.Remove(source);
 		// 加入新的池中
-		if (inUsed)
-		{
-			mUsedItemList.Add(source);
-		}
-		else
-		{
-			mUnusedItemList.Add(source);
-		}
+		(inUsed ? mUsedItemList : mUnusedItemList).Add(source);
 		source.setParent(mItemParent);
 		// 检查分配ID种子,确保后面池中的已分配ID一定小于分配ID种子
 		mAssignIDSeed = getMax(source.getAssignID(), mAssignIDSeed);
@@ -71,6 +64,14 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 	public T newItem(out T item)
 	{
 		return item = newItem(mItemParent);
+	}
+	public T newItemIf(bool condition)
+	{
+		if (condition)
+		{
+			return newItem(mItemParent);
+		}
+		return null;
 	}
 	// 因为添加窗口可能会影响所有窗口的深度值,所以如果有需求,需要在完成添加窗口以后手动调用对象池的refreshUIDepth()来刷新深度
 	// 如果是调用了自动排列函数,则会在排列函数中自动调用刷新深度,无需再手动调用

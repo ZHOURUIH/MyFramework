@@ -24,13 +24,13 @@ public static class SpringTest
         var s = new Spring();
         s.setNormaLength(5.0f);
         s.setMass(2.0f);
-        s.setSpringk(3.0f);
+        s.setSpringK(3.0f);
         s.setForce(1.0f);
         s.setCurLength(6.0f);
 
         s.resetProperty();
 
-        assert(isFloatEqual(s.getNomalLength(), 0.0f), "resetProperty normalLength=0");
+        assert(isFloatEqual(s.getNormalLength(), 0.0f), "resetProperty normalLength=0");
         assert(isFloatEqual(s.getLength(),      0.0f), "resetProperty curLength=0");
         assert(isFloatEqual(s.getSpeed(),       0.0f), "resetProperty speed=0");
         // 检查 mObjectMass mSpringK mMinLength 是否回到默认值（通过弹力间接验证）
@@ -45,11 +45,11 @@ public static class SpringTest
         s.setNormaLength(3.0f);
         s.setCurLength(5.0f);
         s.setMass(2.0f);
-        s.setSpringk(4.0f);
+        s.setSpringK(4.0f);
         s.setSpeed(1.5f);
         s.setForce(0.5f);
 
-        assert(isFloatEqual(s.getNomalLength(), 3.0f), "getNormalLength=3");
+        assert(isFloatEqual(s.getNormalLength(), 3.0f), "getNormalLength=3");
         assert(isFloatEqual(s.getLength(),      5.0f), "getLength=5");
         assert(isFloatEqual(s.getSpeed(),       1.5f), "getSpeed=1.5");
     }
@@ -61,14 +61,14 @@ public static class SpringTest
         // normalLength=2, curLength=5, k=1 → force=(5-2)*1=3（压缩弹簧方向为正）
         s.setNormaLength(2.0f);
         s.setCurLength(5.0f);
-        s.setSpringk(1.0f);
+        s.setSpringK(1.0f);
         assert(isFloatEqual(s.calculateElasticForce(), 3.0f, 0.001f),
             "elasticForce 拉伸=(5-2)*1=3");
 
         // normalLength=5, curLength=3, k=2 → force=(3-5)*2=-4（负值→压缩）
         s.setNormaLength(5.0f);
         s.setCurLength(3.0f);
-        s.setSpringk(2.0f);
+        s.setSpringK(2.0f);
         assert(isFloatEqual(s.calculateElasticForce(), -4.0f, 0.001f),
             "elasticForce 压缩=(3-5)*2=-4");
 
@@ -89,7 +89,7 @@ public static class SpringTest
         var s = new Spring();
         s.setNormaLength(1.0f);
         s.setCurLength(3.0f);
-        s.setSpringk(1.0f);
+        s.setSpringK(1.0f);
         s.setMass(1.0f);
         s.setForce(0.0f);
 
@@ -108,7 +108,7 @@ public static class SpringTest
         var s = new Spring();
         s.setNormaLength(3.0f);
         s.setCurLength(1.0f);  // 大于 minLength(0.5)
-        s.setSpringk(1.0f);
+        s.setSpringK(1.0f);
         s.setMass(1.0f);
         s.setForce(0.0f);
 
@@ -127,7 +127,7 @@ public static class SpringTest
         var s = new Spring();
         s.setNormaLength(10.0f);
         s.setCurLength(0.6f);   // 刚好略大于默认 minLength=0.5
-        s.setSpringk(1.0f);
+        s.setSpringK(1.0f);
         s.setMass(1.0f);
         s.setForce(-100.0f);    // 强压缩力
         s.setSpeed(-50.0f);
@@ -148,7 +148,7 @@ public static class SpringTest
         var s = new Spring();
         s.setNormaLength(5.0f);
         s.setCurLength(5.0f);
-        s.setSpringk(1.0f);
+        s.setSpringK(1.0f);
         s.setMass(1.0f);
         s.setForce(0.0f);
         s.setSpeed(0.0f);

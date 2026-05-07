@@ -49,14 +49,7 @@ public class SafeDictionary<Key, Value> : ClassObject
 			{
 				foreach (var modify in mModifyList)
 				{
-					if (modify.mAdd)
-					{
-						mUpdateList.Add(modify.mKey, modify.mValue);
-					}
-					else
-					{
-						mUpdateList.Remove(modify.mKey);
-					}
+					mUpdateList.addOrRemove(modify.mKey, modify.mValue, modify.mAdd);
 				}
 			}
 			// 主列表元素较少,则直接同步主列表到更新列表
@@ -78,6 +71,7 @@ public class SafeDictionary<Key, Value> : ClassObject
 	// 如果确保在遍历过程中不会对列表进行修改,则可以使用MainList
 	// 如果可能会对列表进行修改,则应该使用startForeach
 	public Dictionary<Key, Value> getMainList()			{ return mMainList; }
+	public bool isEmpty()								{ return mMainList.isEmpty(); }
 	public void For(Action<KeyValuePair<Key, Value>> action)
 	{
 		if (mMainList.isEmpty())

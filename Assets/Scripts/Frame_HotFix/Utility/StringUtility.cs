@@ -677,7 +677,7 @@ public class StringUtility
 		char[] ascii = new char[0xFF - exclude.Length];
 		for (int i = 1; i < 0xFF + 1; ++i)
 		{
-			if (arrayContains(exclude, (char)i))
+			if (exclude.contains((char)i))
 			{
 				continue;
 			}
@@ -689,8 +689,8 @@ public class StringUtility
 		}
 		return ascii;
 	}
-	// 在使用返回值期间禁止再调用strintToStrings
-	public static List<string> strintToStrings(string str, bool removeEmpty, params string[] keyword)
+	// 在使用返回值期间禁止再调用stringToStrings
+	public static List<string> stringToStrings(string str, bool removeEmpty, params string[] keyword)
 	{
 		mTempStringList.Clear();
 		if (!str.isEmpty())
@@ -699,8 +699,8 @@ public class StringUtility
 		}
 		return mTempStringList;
 	}
-	// 在使用返回值期间禁止再调用strintToStrings
-	public static List<string> strintToStrings(string str, bool removeEmpty, params char[] keyword)
+	// 在使用返回值期间禁止再调用stringToStrings
+	public static List<string> stringToStrings(string str, bool removeEmpty, params char[] keyword)
 	{
 		mTempStringList.Clear();
 		if (!str.isEmpty())

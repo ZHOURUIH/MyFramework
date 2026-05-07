@@ -124,8 +124,6 @@ public class FrameDefine
 	public const string COLOR_YELLOW_STR = "FFFF00";
 	public const string COLOR_WHITE_STR = "FFFFFF";
 
-	// Tag
-	public const string TAG_NO_CLICK = "NoClick";
 	// Animator状态机参数名hash,数字后缀表示动画层,暂时只列出了2层动画参数
 	public const int ANIMATION_LAYER_COUNT = 2;
 	public static int[] ANIMATOR_STATE = new int[ANIMATION_LAYER_COUNT] { Animator.StringToHash("State0"), Animator.StringToHash("State1") };

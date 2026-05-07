@@ -55,7 +55,7 @@ public class SafeList<T> : ClassObject
 					}
 					else
 					{
-						if (isEditor() && !value.mValue.Equals(mUpdateList[value.mRemoveIndex]))
+						if (isEditor() && !equal(value.mValue, mUpdateList[value.mRemoveIndex]))
 						{
 							logError("同步列表数据错误");
 						}
@@ -78,6 +78,26 @@ public class SafeList<T> : ClassObject
 	}
 	public void endForeach()		{ mForeaching = false; }
 	public bool isForeaching()		{ return mForeaching; }
+	public bool addOrRemove(T value, bool isAdd)
+	{
+		if (isAdd)
+		{
+			add(value);
+		}
+		else
+		{
+			remove(value);
+		}
+		return isAdd;
+	}
+	public bool addIf(T value, bool condition)
+	{
+		if (condition)
+		{
+			add(value);
+		}
+		return condition;
+	}
 	public void For(Action<T> action)
 	{
 		foreach (T item in mMainList)

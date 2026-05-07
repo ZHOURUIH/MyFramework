@@ -29,7 +29,7 @@ public class Spring : ClassObject
 		mPreAcce = 0.0f;
 		mForce = 0.0f;
 	}
-	public void update(float fElaspedTime)
+	public void update(float elapsedTime)
 	{
 		// 计算拉力
 		float elasticForce = calculateElasticForce() * -1.0f;
@@ -43,10 +43,10 @@ public class Spring : ClassObject
 		else
 		{
 			// 速度
-			mObjectSpeed += acceleration * fElaspedTime;
+			mObjectSpeed += acceleration * elapsedTime;
 		}
 		// 长度
-		mCurLength += mObjectSpeed * fElaspedTime;
+		mCurLength += mObjectSpeed * elapsedTime;
 		if (mCurLength <= mMinLength)
 		{
 			mCurLength = mMinLength;
@@ -57,7 +57,7 @@ public class Spring : ClassObject
 	}
 	public void setNormaLength(float length)	{ mNormalLength = length; }
 	public void setMass(float mass)				{ mObjectMass = mass; }
-	public void setSpringk(float k)				{ mSpringK = k; }
+	public void setSpringK(float k)				{ mSpringK = k; }
 	public void setSpeed(float speed)			{ mObjectSpeed = speed; }
 	public void setForce(float force)			{ mForce = force; }
 	public void setCurLength(float length)		{ mCurLength = length; }
@@ -65,5 +65,5 @@ public class Spring : ClassObject
 	public float calculateElasticForce()		{ return (mCurLength - mNormalLength) * mSpringK; }
 	public float getSpeed()						{ return mObjectSpeed; }
 	public float getLength()					{ return mCurLength; }
-	public float getNomalLength()				{ return mNormalLength; }
+	public float getNormalLength()				{ return mNormalLength; }
 };

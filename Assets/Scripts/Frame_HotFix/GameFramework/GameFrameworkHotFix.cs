@@ -24,7 +24,8 @@ public class GameFrameworkHotFix : IFramework
 	protected DateTime mCurTime;													// 记录当前时间
 	protected Action mOnApplicationQuitCallBack;									// 程序退出的回调
 	protected BoolCallback mOnApplicationFocusCallBack;								// 程序切换到前台或者切换到后台的回调
-	protected float mThisFrameTime;													// 当前这一帧的消耗时间
+	protected float mThisFrameTime;                                                 // 当前这一帧的消耗时间,包含timeScale
+	protected float mThisFrameUnscaledTime;                                         // 当前这一帧的消耗时间,不包含timeScale
 	protected long mFrameIndex;														// 当前帧下标
 	protected int mCurFrameCount;													// 当前已执行的帧数量
 	protected int mFrameRate;														// 当前设置的最大帧率
@@ -43,6 +44,7 @@ public class GameFrameworkHotFix : IFramework
 	public DateTime getStartTime() { return mStartTime; }
 	public DateTime getFrameStartTime() { return mFrameStartTime; }
 	public long getFrameIndex() { return mFrameIndex; }
+	public float getUnscaledTime() { return mThisFrameUnscaledTime; }
 	public void update(float elapsedTime)
 	{
 		++mFrameIndex;
@@ -57,6 +59,7 @@ public class GameFrameworkHotFix : IFramework
 		mThisFrameTime = clampMax(Time.deltaTime, 0.3f);
 		elapsedTime = mThisFrameTime;
 		setThisTimeMS(getNowTimeStampMS());
+		mThisFrameUnscaledTime = Time.unscaledDeltaTime;
 		if (mFrameComponentUpdate == null)
 		{
 			return;

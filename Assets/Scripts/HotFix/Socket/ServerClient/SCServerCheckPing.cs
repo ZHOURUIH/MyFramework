@@ -21,7 +21,7 @@ public class SCServerCheckPing : NetPacketBit
 	}
 	protected override bool generateHasSignInternal()
 	{
-		if (mIndex < 0)
+		if (mIndex.mValue < 0)
 		{
 			return true;
 		}

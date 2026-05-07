@@ -36,7 +36,7 @@ public class EffectManager : FrameSystem
 		{
 			if (effect.isActiveInHierarchy())
 			{
-				effect.update(!effect.isIgnoreTimeScale() ? elapsedTime : Time.unscaledDeltaTime);
+				effect.update(!effect.isIgnoreTimeScale() ? elapsedTime : mGameFrameworkHotFix.getUnscaledTime());
 			}
 			// 销毁已死亡的特效
 			if (effect.isDead())
@@ -60,7 +60,7 @@ public class EffectManager : FrameSystem
 		{
 			if (effect.isActiveInHierarchy())
 			{
-				effect.lateUpdate(!effect.isIgnoreTimeScale() ? elapsedTime : Time.unscaledDeltaTime);
+				effect.lateUpdate(!effect.isIgnoreTimeScale() ? elapsedTime : mGameFrameworkHotFix.getUnscaledTime());
 			}
 		}
 	}
@@ -113,25 +113,25 @@ public class EffectManager : FrameSystem
 	// 异步从prefab中加载一个特效
 	public CustomAsyncOperation createEffectAsync(Transformable attachedParent, string nameWithPath, int tag, float lifeTime, bool moveToHide)
 	{
-		return createEffectAsync(attachedParent, attachedParent?.getObject(), nameWithPath, tag, moveToHide, null, true, lifeTime);
+		return createEffectAsync(attachedParent, attachedParent?.getGameObject(), nameWithPath, tag, moveToHide, null, true, lifeTime);
 	}
 	// 在attachedParent销毁时确认销毁所有挂接到此物体上的特效
 	// 异步从prefab中加载一个特效
 	public CustomAsyncOperation createEffectAsync(Transformable attachedParent, string nameWithPath, int tag, bool active, float lifeTime, bool moveToHide)
 	{
-		return createEffectAsync(attachedParent, attachedParent?.getObject(), nameWithPath, tag, moveToHide, null, active, lifeTime);
+		return createEffectAsync(attachedParent, attachedParent?.getGameObject(), nameWithPath, tag, moveToHide, null, active, lifeTime);
 	}
 	// 在attachedParent销毁时确认销毁所有挂接到此物体上的特效
 	// 异步从prefab中加载一个特效
 	public CustomAsyncOperation createEffectAsync(Transformable attachedParent, string nameWithPath, int tag, bool moveToHide, GameEffectCallback callback)
 	{
-		return createEffectAsync(attachedParent, attachedParent?.getObject(), nameWithPath, tag, moveToHide, callback, false, -1.0f);
+		return createEffectAsync(attachedParent, attachedParent?.getGameObject(), nameWithPath, tag, moveToHide, callback, false, -1.0f);
 	}
 	// 在attachedParent销毁时确认销毁所有挂接到此物体上的特效
 	// 异步从prefab中加载一个特效
 	public CustomAsyncOperation createEffectAsync(Transformable attachedParent, string nameWithPath, int tag, bool moveToHide, GameEffectCallback callback, bool active)
 	{
-		return createEffectAsync(attachedParent, attachedParent?.getObject(), nameWithPath, tag, moveToHide, callback, active, -1.0f);
+		return createEffectAsync(attachedParent, attachedParent?.getGameObject(), nameWithPath, tag, moveToHide, callback, active, -1.0f);
 	}
 	// 在attachedParent销毁时确认销毁所有挂接到此物体上的特效
 	// 异步从prefab中加载一个特效
@@ -185,13 +185,13 @@ public class EffectManager : FrameSystem
 	// 异步从prefab中加载一个特效
 	public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, IRecyclable relatedObject, Transformable attachedParent, bool moveToHide, GameEffectCallback callback, int tag, bool active = true)
 	{
-		return createEffectAsyncSafe(nameWithPath, relatedObject, attachedParent, attachedParent?.getObject(), moveToHide, callback, Vector3.zero, tag, active, -1.0f, null);
+		return createEffectAsyncSafe(nameWithPath, relatedObject, attachedParent, attachedParent?.getGameObject(), moveToHide, callback, Vector3.zero, tag, active, -1.0f, null);
 	}
 	// 如果特效加载完成之前relatedObject被销毁了,则不会播放特效,并且会将特效挂在attachedParent节点下,并且会在attachedParent销毁时确认销毁所有挂接到此物体上的特效
 	// 异步从prefab中加载一个特效
 	public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, IRecyclable relatedObject, Transformable attachedParent, bool moveToHide, GameEffectCallback callback, Vector3 pos, int tag, bool active = true, float lifeTime = -1.0f, BoolCallback failCallback = null)
 	{
-		return createEffectAsyncSafe(nameWithPath, relatedObject, attachedParent, attachedParent?.getObject(), moveToHide, callback, pos, tag, active, lifeTime, failCallback);
+		return createEffectAsyncSafe(nameWithPath, relatedObject, attachedParent, attachedParent?.getGameObject(), moveToHide, callback, pos, tag, active, lifeTime, failCallback);
 	}
 	// 如果特效加载完成之前relatedObject被销毁了,则不会播放特效,并且会将特效挂在parent节点下,并且会在attachedParent销毁时确认销毁所有挂接到此物体上的特效
 	// 异步从prefab中加载一个特效
@@ -212,7 +212,7 @@ public class EffectManager : FrameSystem
 	// 异步从prefab中加载一个特效
 	public CustomAsyncOperation createEffectAsyncSafeTemp(string nameWithPath, IRecyclable relatedObject, Transformable attachedParent, bool moveToHide, GameEffectCallback callback, Vector3 pos, int tag, bool active = true, float lifeTime = -1.0f, BoolCallback failCallback = null)
 	{
-		return createEffectAsyncSafeTemp(nameWithPath, relatedObject, attachedParent, attachedParent?.getObject(), moveToHide, callback, pos, tag, active, lifeTime, failCallback);
+		return createEffectAsyncSafeTemp(nameWithPath, relatedObject, attachedParent, attachedParent?.getGameObject(), moveToHide, callback, pos, tag, active, lifeTime, failCallback);
 	}
 	// 带Temp后缀的函数是会从当前类中缓存的特效对象来获取,而不是从通用对象池中获取一个已经被重置过的对象
 	// 如果特效加载完成之前relatedObject被销毁了,则不会播放特效,并且会将特效挂在attachedParent节点下,并且会在attachedParent销毁时确认销毁所有挂接到此物体上的特效
@@ -322,7 +322,7 @@ public class EffectManager : FrameSystem
 		string effectName = effect.getFilePath();
 		mInusedEffectList.getOrAddNew(effectName).Remove(effect);
 		// 当GameObject为空时,可能是在销毁无效的特效,所以只能彻底清除
-		if (destroyReally || effect.getObject() == null)
+		if (destroyReally || effect.getGameObject() == null)
 		{
 			effect.setTemp(false);
 			// 也要从mUnusedEffectList中移除
@@ -352,7 +352,7 @@ public class EffectManager : FrameSystem
 		// 回收到未使用列表中
 		mUnusedEffectList.getOrAddNew(effectName).Add(effect);
 		// 该特效支持移动到远处来隐藏,并且父节点是Prefab对象池的节点时,才能进行移动隐藏
-		if (effect.isMoveToHide() && effect.getObject().transform.parent == mPrefabPoolManager.getObject().transform)
+		if (effect.isMoveToHide() && effect.getGameObject().transform.parent == mPrefabPoolManager.getObject().transform)
 		{
 			effect.stopAndMove(FAR_POSITION);
 		}
@@ -475,7 +475,7 @@ public class EffectManager : FrameSystem
 		}
 		using var a = new ProfilerScope(0);
 		GameEffect effect = effectList.popBack();
-		if (effect.getObject() == null)
+		if (effect.getGameObject() == null)
 		{
 			logError("GameObject is null:" + effect.getFilePath());
 		}

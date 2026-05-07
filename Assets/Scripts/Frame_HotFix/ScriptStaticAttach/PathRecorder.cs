@@ -187,11 +187,7 @@ public class PathRecorder : MonoBehaviour
 				continue;
 			}
 			Vector3 curValue = path.get(keys[i]);
-			if (isVectorEqual(curValue, lastValue))
-			{
-				path.Remove(keys[i]);
-			}
-			else
+			if (!path.removeIf(keys[i], isVectorEqual(curValue, lastValue)))
 			{
 				lastValue = curValue;
 			}
@@ -211,11 +207,7 @@ public class PathRecorder : MonoBehaviour
 				continue;
 			}
 			float curValue = path.get(keys[i]);
-			if (isFloatEqual(curValue, lastValue))
-			{
-				path.Remove(keys[i]);
-			}
-			else
+			if (!path.removeIf(keys[i], isFloatEqual(curValue, lastValue)))
 			{
 				lastValue = curValue;
 			}

@@ -6,7 +6,7 @@ using static FrameBaseHotFix;
 public class CharacterState : ClassObject
 {
 	protected Dictionary<IEventListener, List<CharacterStateCallback>> mWillRemoveCallbackList;  // 即将销毁此状态时的回调列表,不一定所有状态都需要这个,需要时才创建
-	protected StateLeaveCallback mOnLeave;			// 外部可设置的当前状态退出时的回调
+	protected StateLeaveCallback mOnLeave;		// 外部可设置的当前状态退出时的回调
 	private StateParam mParam;					// 此参数只能在enter中使用,执行完enter后就会回收销毁,为了避免类型转换问题,设置为私有的
 	protected Character mCharacter;				// 状态所属角色
 	protected long mID;                         // 状态唯一ID

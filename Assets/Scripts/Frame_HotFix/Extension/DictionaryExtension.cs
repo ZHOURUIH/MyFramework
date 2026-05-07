@@ -150,6 +150,17 @@ public static class DictionaryExtension
 		map.Add(key, value);
 		return value;
 	}
+	public static void addOrRemove<Key, Value>(this Dictionary<Key, Value> map, Key key, Value value, bool isAdd)
+	{
+		if (isAdd)
+		{
+			map.Add(key, value);
+		}
+		else
+		{
+			map.Remove(key);
+		}
+	}
 	public static Dictionary<Key, Value> setRange<Key, Value>(this Dictionary<Key, Value> map, Dictionary<Key, Value> other)
 	{
 		map.Clear();
@@ -184,7 +195,7 @@ public static class DictionaryExtension
 		}
 		foreach (var item in dic)
 		{
-			if (item.Value.Equals(value))
+			if (EqualityComparer<TValue>.Default.Equals(item.Value, value))
 			{
 				key = item.Key;
 				return true;
@@ -201,7 +212,7 @@ public static class DictionaryExtension
 		}
 		foreach (var item in dic)
 		{
-			if (item.Value.Equals(value))
+			if (EqualityComparer<TValue>.Default.Equals(item.Value, value))
 			{
 				return item.Key;
 			}
@@ -327,7 +338,7 @@ public static class DictionaryExtension
 		foreach (var item in map)
 		{
 			if ((item.Value == null && value == null) ||
-				(item.Value != null && value != null && item.Value.Equals(value)))
+				(item.Value != null && value != null && equal(item.Value, value)))
 			{
 				return item.Key;
 			}
@@ -790,7 +801,7 @@ public static class DictionaryExtension
 		}
 		foreach (var item in list)
 		{
-			if (value.Equals(item.Value))
+			if (EqualityComparer<TValue>.Default.Equals(item.Value, value))
 			{
 				return true;
 			}

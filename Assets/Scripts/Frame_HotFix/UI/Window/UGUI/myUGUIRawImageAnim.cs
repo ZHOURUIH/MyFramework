@@ -134,14 +134,15 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onPlaying(int frame, bool isPlaying)
 	{
-		if (mControl.getCurFrameIndex() >= mTextureList.Count)
+		int textureCount = mTextureList.Count;
+		if (frame >= textureCount)
 		{
 			return;
 		}
-		setTexture(mTextureList[mControl.getCurFrameIndex()].copyRef(), mUseTextureSize);
-		if (!mTexturePosList.isEmpty())
+		setTexture(mTextureList[frame].copyRef(), mUseTextureSize);
+		if (mTexturePosList.count() == textureCount)
 		{
-			setPosition(mTexturePosList[round(divide(frame, mTextureList.Count * mTexturePosList.Count))]);
+			setPosition(mTexturePosList[frame]);
 		}
 		foreach (BoolCallback item in mPlayingCallback.safe())
 		{

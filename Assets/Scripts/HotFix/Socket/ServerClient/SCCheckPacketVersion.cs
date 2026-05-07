@@ -20,6 +20,10 @@ public class SCCheckPacketVersion : NetPacketBit
 		base.write(writer, needWriteSign, out fieldFlag);
 		mResult.write(writer, needWriteSign);
 	}
+	protected override bool generateHasSignInternal()
+	{
+		return false;
+	}
 	// auto generate end
 	public override void execute()
 	{

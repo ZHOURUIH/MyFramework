@@ -68,4 +68,3 @@ public static class BulkMathGreaterPow2TableTests
 	private static bool isPow2Strict(int v) { return v > 0 && (v & (v - 1)) == 0; }
 }
 #endif
-

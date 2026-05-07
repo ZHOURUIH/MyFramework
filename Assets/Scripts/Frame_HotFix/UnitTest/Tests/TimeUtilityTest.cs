@@ -1,3 +1,4 @@
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using static UnityUtility;
 using static TimeUtility;
@@ -269,3 +270,4 @@ public static class TimeUtilityTest
 		assertEqual(getThisTimeMS(), 0L, "setThisTimeMS 0");
 	}
 }
+#endif

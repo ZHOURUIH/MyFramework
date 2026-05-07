@@ -25,7 +25,7 @@ public class CmdLayoutManagerBackBlur
 			{
 				continue;
 			}
-			GameObject rootObj = layout.getRoot().getObject();
+			GameObject rootObj = layout.getRoot().getGameObject();
 			if (layout.getRenderOrder() < maxOrder)
 			{
 				setGameObjectLayer(rootObj, LAYER_INT_UI_BLUR);

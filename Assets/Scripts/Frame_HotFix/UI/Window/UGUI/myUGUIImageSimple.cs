@@ -47,7 +47,6 @@ public class myUGUIImageSimple : myUGUIObject
 		mCanvasGroupValid = true;
 	}
 	public override bool isCulled() { return mCanvasGroupValid && isFloatZero(mCanvasGroup.alpha); }
-	public override bool canUpdate() { return !isCulled() && base.canUpdate(); }
 	public override bool canGenerateDepth() { return !isCulled(); }
 	public void setRenderQueue(int renderQueue)
 	{

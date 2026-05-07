@@ -2,10 +2,9 @@
 using UnityEngine.UI;
 using static UnityUtility;
 
-// 对UGUI Canvas的封装
+// 对UGUI Canvas的封装,实际上基类已经记录了一个Canvas变量
 public class myUGUICanvas : myUGUIObject
 {
-	protected Canvas mCanvas;		// UGUI的Canvas组件
 	public override void init()
 	{
 		base.init();
@@ -26,5 +25,4 @@ public class myUGUICanvas : myUGUIObject
 	}
 	public void setSortingOrder(int order) { mCanvas.sortingOrder = order; }
 	public void setSortingLayer(string layerName) { mCanvas.sortingLayerName = layerName; }
-	public Canvas getCanvas() { return mCanvas; }
 }

@@ -45,21 +45,14 @@ public class SafeHashSet<T> : ClassObject
 			{
 				foreach (var value in mModifyList)
 				{
-					if (value.mAdd)
-					{
-						mUpdateList.Add(value.mValue);
-					}
-					else
-					{
-						mUpdateList.Remove(value.mValue);
-					}
+					mUpdateList.addOrRemove(value.mValue, value.mAdd);
 				}
 			}
 			// 主列表元素较少,则直接同步主列表到更新列表
 			else
 			{
 				mUpdateList.Clear();
-				mUpdateList.UnionWith(mMainList);
+				mUpdateList.addRange(mMainList);
 			}
 		}
 		if (mUpdateList.Count != mMainList.Count)

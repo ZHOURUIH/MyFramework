@@ -54,11 +54,11 @@ public class SCCharacterFullGameData : NetPacketBit
 	}
 	protected override bool generateHasSignInternal()
 	{
-		if (mHP.mValid && mHP < 0)
+		if (mHP.mValid && mHP.mValue < 0)
 		{
 			return true;
 		}
-		if (mMaxHP.mValid && mMaxHP < 0)
+		if (mMaxHP.mValid && mMaxHP.mValue < 0)
 		{
 			return true;
 		}

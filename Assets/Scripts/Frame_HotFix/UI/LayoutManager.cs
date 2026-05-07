@@ -31,7 +31,7 @@ public class LayoutManager : FrameSystem
 	}
 	public Canvas getUGUIRootComponent() { return mUGUIRoot.getCanvas(); }
 	public myUGUICanvas getUIRoot() { return mUGUIRoot; }
-	public GameObject getRootObject() { return mUGUIRoot?.getObject(); }
+	public GameObject getRootObject() { return mUGUIRoot?.getGameObject(); }
 	public void notifyLayoutRenderOrder()
 	{
 		mCOMEscHide.notifyLayoutRenderOrder();
@@ -53,7 +53,7 @@ public class LayoutManager : FrameSystem
 			mBackBlurLayoutList.removeIf(layout, layout.isBlurBack());
 			CmdLayoutManagerBackBlur.execute(mBackBlurLayoutList, mBackBlurLayoutList.Count > 0);
 			// 布局在隐藏时都需要确认设置层为UI层
-			setGameObjectLayer(layout.getRoot()?.getObject(), layout.getDefaultLayer());
+			setGameObjectLayer(layout.getRoot()?.getGameObject(), layout.getDefaultLayer());
 		}
 	}
 	public void setUseAnchor(bool useAnchor) { mUseAnchor = useAnchor; }
@@ -322,7 +322,7 @@ public class LayoutManager : FrameSystem
 		{
 			logError("界面Canvas的RenderMode只能设置为WorldSpace,设置为其他模式可能会出现无法预知的错误,UI:" + info.mName);
 		}
-		GameObject layoutObj = instantiatePrefab(layoutParent?.getObject(), prefab.getResource(), info.mName, true);
+		GameObject layoutObj = instantiatePrefab(layoutParent?.getGameObject(), prefab.getResource(), info.mName, true);
 		layout = new();
 		layout.setPrefab(prefab);
 		layout.setType(info.mType);
@@ -331,7 +331,7 @@ public class LayoutManager : FrameSystem
 		layout.setOrderType(info.mOrderType);
 		layout.setRenderOrder(generateRenderOrder(layout, info.mRenderOrder, info.mOrderType));
 		layout.init();
-		if (layout.getRoot().getObject() != layoutObj)
+		if (layout.getRoot().getGameObject() != layoutObj)
 		{
 			logError("布局的根节点不是实例化出来的节点,请确保运行前UI根节点下没有与布局同名的节点, layout:" + layout.getRoot().getName());
 		}

@@ -1,4 +1,5 @@
-﻿using System;
+﻿// auto generate start
+using System;
 using static FrameBaseHotFix;
 
 public class PacketRegister
@@ -26,3 +27,4 @@ public class PacketRegister
 		mNetPacketTypeManager.registeUDPPacketName(type, packetName);
 	}
 }
+// auto generate end

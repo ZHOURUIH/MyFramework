@@ -36,7 +36,7 @@ public class CameraManager : FrameSystem
 		base.update(elapsedTime);
 		foreach (GameCamera camera in mCameraList)
 		{
-			camera.update(camera.isIgnoreTimeScale() ? Time.unscaledDeltaTime : elapsedTime);
+			camera.update(camera.isIgnoreTimeScale() ? mGameFrameworkHotFix.getUnscaledTime() : elapsedTime);
 		}
 		// 编辑器中检查是否主摄像机被隐藏,任何情况下,主摄像机都不能被隐藏,这样会无法刷新屏幕
 #if USE_URP && UNITY_EDITOR
@@ -112,7 +112,7 @@ public class CameraManager : FrameSystem
 			foreach (GameCamera overlayCamera in mOverlayCameraList)
 			{
 				// 注意,此处不能添加其他场景的overlay摄像机,否则不会生效
-				if (isEditor() && overlayCamera.getObject().scene.name != camera.getObject().scene.name)
+				if (isEditor() && overlayCamera.getGameObject().scene.name != camera.getGameObject().scene.name)
 				{
 					logWarning("不能添加其他场景的overlay摄像机");
 					continue;

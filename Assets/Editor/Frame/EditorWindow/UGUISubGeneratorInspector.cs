@@ -120,16 +120,6 @@ public class UGUISubGeneratorInspector : GameInspector
 			}
 		}
 
-		// assignWindowInternal中的代码
-		List<GameObject> tempCreatedList = new();
-		List<string> generatedAssignLines = new();
-		List<MemberData> tempDataList = new(generator.mMemberList);
-		while (tempDataList.Count > 0)
-		{
-			MemberData data = tempDataList.get(0);
-			generateNewObject(generatedAssignLines, tempDataList, generator.mMemberList, tempCreatedList, data, generator.gameObject);
-		}
-
 		// 构造函数的代码
 		List<string> constructorLines = new();
 		foreach (MemberData data in generator.mMemberList)
@@ -150,6 +140,46 @@ public class UGUISubGeneratorInspector : GameInspector
 			else
 			{
 				constructorLines.add("\t\tm" + memberName + " = new(this);");
+			}
+		}
+
+		// assignWindowInternal中的代码
+		List<GameObject> tempCreatedList = new();
+		List<string> generatedAssignLines = new();
+		List<MemberData> tempDataList = new(generator.mMemberList);
+		while (tempDataList.Count > 0)
+		{
+			MemberData data = tempDataList.get(0);
+			generateNewObject(generatedAssignLines, tempDataList, generator.mMemberList, tempCreatedList, data, generator.gameObject);
+		}
+
+		// init中的代码
+		List<string> generatedInitLines = new();
+		List<string> generatedClickCallbackLists = new();
+		foreach (MemberData data in generator.mMemberList)
+		{
+			if (data.mRegisterCollider)
+			{
+				if (data.mHasClickEvent)
+				{
+					if (data.getTypeName() == typeof(myUGUIImageSimple).ToString() || 
+						data.getTypeName() == typeof(myUGUIImageAnim).ToString() ||
+						data.getTypeName() == typeof(myUGUIImage).ToString())
+					{
+						generatedInitLines.add("\t\tm" + data.getMemberName() + ".registeColliderImage(" + "on" + data.getMemberName() + "Click);");
+					}
+					else
+					{
+						generatedInitLines.add("\t\tm" + data.getMemberName() + ".registeCollider(" + "on" + data.getMemberName() + "Click);");
+					}
+					generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click()");
+					generatedClickCallbackLists.add("\t{");
+					generatedClickCallbackLists.add("\t}");
+				}
+				else
+				{
+					generatedInitLines.add("\t\tm" + data.getMemberName() + ".registeCollider();");
+				}
 			}
 		}
 
@@ -218,6 +248,9 @@ public class UGUISubGeneratorInspector : GameInspector
 			line(ref fileContent, "\tpublic override void init()");
 			line(ref fileContent, "\t{");
 			line(ref fileContent, "\t\tbase.init();");
+			line(ref fileContent, "\t\t// auto generate init start");
+			line(ref fileContent, generatedInitLines);
+			line(ref fileContent, "\t\t// auto generate init end");
 			line(ref fileContent, "\t}");
 
 			// 显示时的函数
@@ -232,6 +265,11 @@ public class UGUISubGeneratorInspector : GameInspector
 				line(ref fileContent, "\tpublic override void setData(Data data)");
 				line(ref fileContent, "\t{");
 				line(ref fileContent, "\t}");
+			}
+			if (!generatedClickCallbackLists.isEmpty())
+			{
+				line(ref fileContent, "\t//--------------------------------------------------------------------------------------------------------------------------------------------");
+				line(ref fileContent, generatedClickCallbackLists);
 			}
 			line(ref fileContent, "}");
 			writeTxtFile(fileFullPath, fileContent, true);
@@ -351,6 +389,25 @@ public class UGUISubGeneratorInspector : GameInspector
 					codeList.Insert(++lineStart, "\t\t// auto generate assignWindowInternal start");
 					generatedAssignLines.For(str => codeList.Insert(++lineStart, str));
 					codeList.Insert(++lineStart, "\t\t// auto generate assignWindowInternal end");
+				}
+			}
+
+			// init
+			if (findCustomCode(fileFullPath, ref codeList, out int lineStart4,
+				(string line) => { return line.endWith("// auto generate init start"); },
+				(string line) => { return line.endWith("// auto generate init end"); }, false))
+			{
+				generatedInitLines.For(str => codeList.Insert(++lineStart4, str));
+			}
+			// 找不到就在init的第一行插入
+			else
+			{
+				if (codeList.find(item => item.Contains("base.init()"), out int index))
+				{
+					int lineStart = index;
+					codeList.Insert(++lineStart, "\t\t// auto generate init start");
+					generatedInitLines.For(str => codeList.Insert(++lineStart, str));
+					codeList.Insert(++lineStart, "\t\t// auto generate init end");
 				}
 			}
 			writeTxtFile(fileFullPath, stringsToString(codeList, "\r\n"), true);

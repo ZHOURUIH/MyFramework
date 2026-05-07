@@ -1,4 +1,5 @@
-﻿using System;
+﻿// auto generate start
+using System;
 
 public class PACKET_TYPE
 {
@@ -15,3 +16,4 @@ public class PACKET_TYPE
 	public static ushort SC_GET_ITEM_TIP = 20004;
 	public static ushort SC_ATTACK = 20005;
 }
+// auto generate end

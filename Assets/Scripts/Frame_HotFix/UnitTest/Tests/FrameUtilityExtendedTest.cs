@@ -24,8 +24,8 @@ public static class FrameUtilityExtendedTest
         assertEqual(4, findMax(new List<int> { 1, 4, 2 }), "find max");
         assertEqual(7, findMaxAbs(new List<int> { -3, 7, -5 }), "find max abs");
         int[] values = { 1, 2, 3, 4 };
-        assertTrue(arrayContains(values, 3), "array contains");
-        assertEqual(3, removeValueElement(values, 4, 2), "remove value element");
+        assertTrue(values.contains(3), "array contains");
+        assertEqual(3, values.removeValue(4, 2), "remove value element");
     }
 
     private static void testTimersAndColors()

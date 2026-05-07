@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using static UnityUtility;
 using static FrameUtility;
@@ -67,7 +66,7 @@ public class COMCharacterStateMachine : GameComponent
 				state.setJustEnter(false);
 				continue;
 			}
-			state.update(state.isIgnoreTimeScale() ? Time.unscaledDeltaTime : elapsedTime);
+			state.update(state.isIgnoreTimeScale() ? mGameFrameworkHotFix.getUnscaledTime() : elapsedTime);
 		}
 	}
 	public override void fixedUpdate(float elapsedTime)

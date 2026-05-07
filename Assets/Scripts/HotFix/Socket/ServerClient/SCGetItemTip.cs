@@ -19,6 +19,17 @@ public class SCGetItemTip : NetPacketBit
 		base.write(writer, needWriteSign, out fieldFlag);
 		mIDCountList.write(writer, needWriteSign);
 	}
+	protected override bool generateHasSignInternal()
+	{
+		foreach (NetStructItemInfo item in mIDCountList)
+		{
+			if (item.hasSign())
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 	// auto generate end
 	public override void execute()
 	{}

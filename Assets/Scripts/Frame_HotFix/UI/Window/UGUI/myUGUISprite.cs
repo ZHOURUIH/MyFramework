@@ -97,7 +97,6 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		setAlpha(isCull ? 0.0f : 1.0f);
 	}
 	public override bool isCulled() { return isFloatZero(getAlpha()); }
-	public override bool canUpdate() { return !isCulled() && base.canUpdate(); }
 	public override bool canGenerateDepth() { return !isCulled(); }
 	public void setWindowShader(WindowShader shader)
 	{
@@ -120,13 +119,14 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		{
 			return Vector2.zero;
 		}
+		Vector2 size = mSpriteRenderer.sprite.rect.size;
 		if (transformed)
 		{
-			return getSpriteSize() * getScale();
+			return size * getScale();
 		}
 		else
 		{
-			return getSpriteSize();
+			return size;
 		}
 	}
 	public AtlasRef getAtlas() { return mAtlasPtr; }
@@ -195,8 +195,20 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 	public int getOrderInLayer()					{ return mSpriteRenderer.sortingOrder; }
 	public int getRendererPriority()				{ return mSpriteRenderer.rendererPriority; }
 	public string getOriginMaterialPath()			{ return mOriginMaterialPath; }
-	public void setOrderInLayer(int order)			{ mSpriteRenderer.sortingOrder = order; }
-	public void setRendererPriority(int priority)	{ mSpriteRenderer.rendererPriority = priority; }
+	public void setOrderInLayer(int order)			
+	{
+		if (mSpriteRenderer.sortingOrder != order)
+		{
+			mSpriteRenderer.sortingOrder = order;
+		}
+	}
+	public void setRendererPriority(int priority)	
+	{
+		if (mSpriteRenderer.rendererPriority != priority)
+		{
+			mSpriteRenderer.rendererPriority = priority;
+		}
+	}
 	// materialPath是GameResources下的相对路径,带后缀
 	public void setMaterialName(string materialPath, bool newMaterial, bool loadAsync = false)
 	{
@@ -334,13 +346,12 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		mOriginSpriteName = mOriginSpriteName.rangeToLastInclude(key);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected override void ensureColliderSize()
+	protected override Vector2 generateColliderSize()
 	{
-		// 确保RectTransform和BoxCollider一样大
 		if (mSpriteRenderer == null || mSpriteRenderer.sprite == null)
 		{
-			return;
+			return Vector2.zero;
 		}
-		mCOMWindowCollider?.setColliderSize(mSpriteRenderer.sprite.rect.size);
+		return mSpriteRenderer.sprite.rect.size;
 	}
 }

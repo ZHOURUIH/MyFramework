@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 using static FrameBaseUtility;
 using static MathUtility;
 using static UnityUtility;
@@ -48,6 +49,14 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 		{
 			newItem(mParent, null);
 		}
+	}
+	public T newItemIf(bool condition)
+	{
+		if (condition)
+		{
+			return newItem();
+		}
+		return null;
 	}
 	public T newItem(string name = null)
 	{
@@ -190,6 +199,18 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 	{
 		WidgetUtility.autoGridHorizontal(mParent, autoRefreshUIDepth, refreshIgnoreInactive, interval, changeRootPosSize, minWidth, extraLeftWidth, extraRightWidth, keepLeftSide);
 	}
+	// 将自动排列的方法直接写到对象池中,方便使用
+	// 一般对于排列是有两个地方有需求,1:滑动列表,2:不可滑动,但是有多个相似节点需要动态创建后排列好
+	// 一般滑动列表都会需要在排列好后将边对齐父节点,而对于不可滑动的列表,需求会根据实际情况有不同
+	public void autoGridHorizontalForDragView()
+	{
+		WidgetUtility.autoGridHorizontal(mParent, true, true, 0.0f, true, 0.0f, 0.0f, 0.0f, true);
+		mParent.setLeftCenterToParentLeftCenter();
+	}
+	public void autoGridHorizontalCenter()
+	{
+		WidgetUtility.autoGridHorizontalCenter(mParent, true, true, 0.0f);
+	}
 	public void autoGridVertical()
 	{
 		WidgetUtility.autoGridVertical(mParent, true, true, 0.0f, 0.0f, 0.0f, 0.0f, true);
@@ -213,5 +234,50 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 	public void autoGridVertical(bool autoRefreshUIDepth, bool refreshIgnoreInactive, float interval, float minHeight = 0.0f, float extraTopHeight = 0.0f, float extraBottomHeight = 0.0f, bool keepTopSide = true)
 	{
 		WidgetUtility.autoGridVertical(mParent, autoRefreshUIDepth, refreshIgnoreInactive, interval, 0.0f, 0.0f, 0.0f, true);
+	}
+	public void autoGridVerticalForDragView()
+	{
+		WidgetUtility.autoGridVertical(mParent, true, true, 0.0f, 0.0f, 0.0f, 0.0f, true);
+		mParent.setTopCenterToParentTopCenter();
+	}
+	public void autoGridVerticalForDragView(float interval)
+	{
+		WidgetUtility.autoGridVertical(mParent, true, true, interval, 0.0f, 0.0f, 0.0f, true);
+		mParent.setTopCenterToParentTopCenter();
+	}
+	public void autoGridForDragView()
+	{
+		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), Vector2.zero, true, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
+		// 根据排列后的子节点,计算出父节点的高度
+		WidgetUtility.setWindowBestHeight(mParent, true, true);
+		mParent.setTopCenterToParentTopCenter();
+	}
+	public void autoGrid()
+	{
+		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), Vector2.zero, true, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
+	}
+	public void autoGrid(bool autoRefreshUIDepth)
+	{
+		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), Vector2.zero, autoRefreshUIDepth, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
+	}
+	public void autoGrid(Vector2 interval)
+	{
+		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), interval, true, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
+	}
+	public void autoGrid(HORIZONTAL_DIRECTION horizontal)
+	{
+		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), Vector2.zero, true, true, true, horizontal, VERTICAL_DIRECTION.TOP);
+	}
+	public void autoGrid(VERTICAL_DIRECTION vertical)
+	{
+		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), Vector2.zero, true, true, true, HORIZONTAL_DIRECTION.LEFT, vertical);
+	}
+	public void autoGrid(Vector2 interval, HORIZONTAL_DIRECTION horizontal)
+	{
+		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), interval, true, true, true, horizontal, VERTICAL_DIRECTION.TOP);
+	}
+	public void autoGrid(Vector2 interval, VERTICAL_DIRECTION vertical)
+	{
+		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), interval, true, true, true, HORIZONTAL_DIRECTION.LEFT, vertical);
 	}
 }

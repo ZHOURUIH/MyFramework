@@ -32,7 +32,9 @@ public class MemberData
 	public string mParam1;              // 参数名1,也是一个类型名
 	public string mCustomName;			// 使用自定义变量名时输入的名字
 	public bool mHideError;             // 是否会隐藏运行时的创建错误,比如重复创建,或者找不到GameObject等错误
-	public bool mUseCustomName;			// 是否使用自定义名字,而不是自动获取节点名作为变量名
+	public bool mUseCustomName;         // 是否使用自定义名字,而不是自动获取节点名作为变量名
+	public bool mRegisterCollider;      // 是否需要注册碰撞事件,如果是true,会在生成的代码中调用registeCollider方法注册碰撞事件
+	public bool mHasClickEvent;			// 是否只注册碰撞事件,不注册点击事件
 	public GameObject getParentObject()
 	{
 		Transform parent = null;
@@ -51,6 +53,19 @@ public class MemberData
 			parent = mPoolTemplate.transform.parent;
 		}
 		return parent != null ? parent.gameObject : null;
+	}
+	public void setType<T>()
+	{
+		setType(typeof(T).ToString());
+	}
+	public void setType(string type)
+	{
+		mType = type;
+		if (type == typeof(LegendButton).ToString())
+		{
+			mRegisterCollider = true;
+			mHasClickEvent = true;
+		}
 	}
 	public string getGameObjectName() 
 	{

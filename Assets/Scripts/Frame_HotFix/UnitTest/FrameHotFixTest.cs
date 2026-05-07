@@ -3,110 +3,108 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using static UnityUtility;
 
-// 运行时集成测试入口
-// 在 GameHotFix.onPostInit() 里调用
-// 只在 Editor 或 Development Build 下生效
+// 自动生成 - 76 个测试类
 public class FrameHotFixTest
 {
 	private static readonly Dictionary<string, Action> sTests = new();
 	public static void runAll()
 	{
-		// Frame_HotFix 测试已移动到 Frame_HotFix/UnitTest 目录
-		// 通过 FrameHotFixTestRunner.RunAllTests() 统一运行
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-		Register("MostSafeFloatTest", MostSafeFloatTest.Run);
-		Register("SafeValueTypeTest", SafeValueTypeTest.Run);
-		Register("NetPacketBitTest", NetPacketBitTest.Run);
-		Register("MathUtilityTest", MathUtilityTest.Run);
-		Register("BinaryUtilityTest", BinaryUtilityTest.Run);
-		Register("StructTest", StructTest.Run);
-		Register("MyTimerTest", MyTimerTest.Run);
-		Register("StreamBufferTest", StreamBufferTest.Run);
-		Register("SpringTest", SpringTest.Run);
-		Register("SerializeByteUtilityTest", SerializeByteUtilityTest.Run);
-		Register("TimeUtilityTest", TimeUtilityTest.Run);
-		Register("BulkMathGreaterPow2TableTests", BulkMathGreaterPow2TableTests.Run);
-		Register("BulkMathDivideIntTableTests", BulkMathDivideIntTableTests.Run);
-		Register("BulkMathGridIndexTableTests", BulkMathGridIndexTableTests.Run);
-		Register("BulkMathClampIntTableTests", BulkMathClampIntTableTests.Run);
-		Register("BulkMathPowerAndUnitTableTests", BulkMathPowerAndUnitTableTests.Run);
-		Register("SerializeBitUtilityRoundtripTests", SerializeBitUtilityRoundtripTests.Run);
-		Register("FrameUtilityCoreTest", FrameUtilityCoreTest.Run);
-		Register("StringUtilityCoverageTest", StringUtilityCoverageTest.Run);
-		Register("FileUtilitySmokeTest", FileUtilitySmokeTest.Run);
-		Register("MyStringBuilderCoverageTest", MyStringBuilderCoverageTest.Run);
-		Register("SerializeBitUtilityEdgeCasesTest", SerializeBitUtilityEdgeCasesTest.Run);
-		Register("MathUtilityAdvancedCoverageTest", MathUtilityAdvancedCoverageTest.Run);
-		Register("TimeUtilityAdvancedCoverageTest", TimeUtilityAdvancedCoverageTest.Run);
-		Register("SerializeByteUtilityAdvancedCoverageTest", SerializeByteUtilityAdvancedCoverageTest.Run);
-		Register("BinaryUtilityAdvancedCoverageTest", BinaryUtilityAdvancedCoverageTest.Run);
-		Register("FrameUtilityPureCoverageTest", FrameUtilityPureCoverageTest.Run);
-		Register("MathUtilityExtendedTest", MathUtilityExtendedTest.Run);
-		Register("BinaryUtilityExtendedTest", BinaryUtilityExtendedTest.Run);
-		Register("StringUtilityExtendedTest", StringUtilityExtendedTest.Run);
-		Register("FrameUtilityExtendedTest", FrameUtilityExtendedTest.Run);
-		Register("TimeUtilityCoverageTest", TimeUtilityCoverageTest.Run);
-		Register("SerializeByteUtilityCoverageTest", SerializeByteUtilityCoverageTest.Run);
-		Register("SerializeBitUtilityCoverageTest", SerializeBitUtilityCoverageTest.Run);
-		Register("FileUtilityCoverageTest", FileUtilityCoverageTest.Run);
-		Register("MyStringBuilderExtendedTest", MyStringBuilderExtendedTest.Run);
-		Register("FrameUtilityStringStrictTests", FrameUtilityStringStrictTests.Run);
 		Register("ArrayExtensionTest", ArrayExtensionTest.Run);
+		Register("BinaryTimeFileComprehensiveTest", BinaryTimeFileComprehensiveTest.Run);
+		Register("BinaryTimeFileUtilityEdgeTest", BinaryTimeFileUtilityEdgeTest.Run);
+		Register("BinaryUtilityAdvancedCoverageTest", BinaryUtilityAdvancedCoverageTest.Run);
+		Register("BinaryUtilityExtendedTest", BinaryUtilityExtendedTest.Run);
+		Register("BinaryUtilityRemainingTest", BinaryUtilityRemainingTest.Run);
+		Register("BinaryUtilityTest", BinaryUtilityTest.Run);
+		Register("BitTypeFullTest", BitTypeFullTest.Run);
+		Register("BulkMathClampIntTableTests", BulkMathClampIntTableTests.Run);
+		Register("BulkMathDivideIntTableTests", BulkMathDivideIntTableTests.Run);
+		Register("BulkMathGreaterPow2TableTests", BulkMathGreaterPow2TableTests.Run);
+		Register("BulkMathGridIndexTableTests", BulkMathGridIndexTableTests.Run);
+		Register("BulkMathPowerAndUnitTableTests", BulkMathPowerAndUnitTableTests.Run);
+		Register("ByteTypeFullTest", ByteTypeFullTest.Run);
+		Register("CharacterDecisionStateTest", CharacterDecisionStateTest.Run);
 		Register("ClassObjectTest", ClassObjectTest.Run);
+		Register("CommandEventSystemTest2", CommandEventSystemTest2.Run);
+		Register("CommandEventThreadTest", CommandEventThreadTest.Run);
 		Register("CommandTest", CommandTest.Run);
+		Register("DataClassesConsistencyTest", DataClassesConsistencyTest.Run);
 		Register("DictionaryExtensionTest", DictionaryExtensionTest.Run);
+		Register("DoubleBufferTest", DoubleBufferTest.Run);
 		Register("EventSystemTest", EventSystemTest.Run);
+		Register("FileUtilityCoverageTest", FileUtilityCoverageTest.Run);
+		Register("FileUtilitySmokeTest", FileUtilitySmokeTest.Run);
+		Register("FrameBaseUtilityTest", FrameBaseUtilityTest.Run);
+		Register("FrameUtilityCoreTest", FrameUtilityCoreTest.Run);
+		Register("FrameUtilityExpandedTest", FrameUtilityExpandedTest.Run);
+		Register("FrameUtilityExtendedTest", FrameUtilityExtendedTest.Run);
+		Register("FrameUtilityPureCoverageTest", FrameUtilityPureCoverageTest.Run);
+		Register("FrameUtilityRemainingTest", FrameUtilityRemainingTest.Run);
+		Register("FrameUtilityStringStrictTests", FrameUtilityStringStrictTests.Run);
+		Register("HotFixBusinessTest", HotFixBusinessTest.Run);
+		Register("HotFixExtensionDeepTest", HotFixExtensionDeepTest.Run);
 		Register("ListExtensionTest", ListExtensionTest.Run);
+		Register("MathUtilityAdvancedCoverageTest", MathUtilityAdvancedCoverageTest.Run);
+		Register("MathUtilityExtendedTest", MathUtilityExtendedTest.Run);
+		Register("MathUtilityTest", MathUtilityTest.Run);
+		Register("MostSafeFloatTest", MostSafeFloatTest.Run);
+		Register("MyStringBuilderCoverageTest", MyStringBuilderCoverageTest.Run);
+		Register("MyStringBuilderExtendedTest", MyStringBuilderExtendedTest.Run);
+		Register("MyStringBuilderExtendedTest2", MyStringBuilderExtendedTest2.Run);
 		Register("MyStringBuilderTest", MyStringBuilderTest.Run);
+		Register("MyTimerTest", MyTimerTest.Run);
+		Register("NetPacketBitTest", NetPacketBitTest.Run);
 		Register("PoolTest", PoolTest.Run);
 		Register("SafeCollectionTest", SafeCollectionTest.Run);
-		Register("SerializerBitTest", SerializerBitTest.Run);
+		Register("SafeDictionaryHashSetDetailedTest", SafeDictionaryHashSetDetailedTest.Run);
+		Register("SafeListDetailedTest", SafeListDetailedTest.Run);
+		Register("SafeTypeStandaloneTest", SafeTypeStandaloneTest.Run);
+		Register("SafeValueTypeTest", SafeValueTypeTest.Run);
+		Register("SerializeBitUtilityCoverageTest", SerializeBitUtilityCoverageTest.Run);
+		Register("SerializeBitUtilityEdgeCasesTest", SerializeBitUtilityEdgeCasesTest.Run);
+		Register("SerializeBitUtilityRoundtripTests", SerializeBitUtilityRoundtripTests.Run);
+		Register("SerializeByteUtilityAdvancedCoverageTest", SerializeByteUtilityAdvancedCoverageTest.Run);
+		Register("SerializeByteUtilityCoverageTest", SerializeByteUtilityCoverageTest.Run);
+		Register("SerializeByteUtilityTest", SerializeByteUtilityTest.Run);
 		Register("SerializeTest", SerializeTest.Run);
+		Register("SerializerBitCoverageTestDummy", SerializerBitCoverageTest.Run);
+		Register("SerializerBitIndividualTest", SerializerBitIndividualTest.Run);
+		Register("SerializerBitTest", SerializerBitTest.Run);
+		Register("SerializerByteIndividualTest", SerializerByteIndividualTest.Run);
+		Register("SerializerByteTestDummy", SerializerByteTest.Run);
+		Register("SerializerDeepTypeTest", SerializerDeepTypeTest.Run);
+		Register("SpringTest", SpringTest.Run);
+		Register("StreamBufferTest", StreamBufferTest.Run);
+		Register("StringUtilityCoverageTest", StringUtilityCoverageTest.Run);
+		Register("StringUtilityExtendedTest", StringUtilityExtendedTest.Run);
 		Register("StringUtilityTest", StringUtilityTest.Run);
+		Register("StructTest", StructTest.Run);
+		Register("TimeUtilityAdvancedCoverageTest", TimeUtilityAdvancedCoverageTest.Run);
+		Register("TimeUtilityCoverageTest", TimeUtilityCoverageTest.Run);
+		Register("TimeUtilityPureTest", TimeUtilityPureTest.Run);
+		Register("TimeUtilityTest", TimeUtilityTest.Run);
+		Register("UndoWaitingAsyncTest", UndoWaitingAsyncTest.Run);
+		Register("UtilComprehensiveEdgeTest", UtilComprehensiveEdgeTest.Run);
 #endif
 		doRunAll(sTests);
-	}
+}
 	public static void Register(string name, Action run)
 	{
 		sTests.Add(name, run);
-	}
+}
 	public static void doRunAll(Dictionary<string, Action> list)
 	{
-		int pass = 0;
-		int fail = 0;
-		List<TestResult> results = new();
+		int pass = 0; int fail = 0;
+		List<TestResult> results = new List<TestResult>();
 		foreach (var test in list)
 		{
 			var result = runOne(test.Key, test.Value);
 			results.Add(result);
-			if (result.passed)
-			{
-				pass++;
-			}
-			else
-			{
-				fail++;
-			}
+			if (result.passed) pass++; else fail++;
 		}
-		if (fail > 0)
-		{
-			logError($"[TestRunner] {fail} 个测试失败，请查看上方日志！");
-		}
+		if (fail > 0) logError("[TestRunner] "+fail+" tests failed");
 	}
 	public static TestResult runOne(string name, Action run)
-	{
-		var sw = Stopwatch.StartNew();
-		try
-		{
-			run();
-			sw.Stop();
-			return new TestResult(name, true, "", (float)sw.Elapsed.TotalMilliseconds);
-		}
-		catch (Exception ex)
-		{
-			sw.Stop();
-			logException(ex);
-			return new TestResult(name, false, "", (float)sw.Elapsed.TotalMilliseconds);
-		}
-	}
+	{var sw = Stopwatch.StartNew();try{run();sw.Stop();return new TestResult(name,true,"",(float)sw.Elapsed.TotalMilliseconds);}catch(Exception ex){sw.Stop();logException(ex);return new TestResult(name,false,"",(float)sw.Elapsed.TotalMilliseconds);}}
 }

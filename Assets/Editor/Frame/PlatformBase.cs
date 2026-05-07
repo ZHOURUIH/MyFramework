@@ -99,7 +99,7 @@ public abstract class PlatformBase
 				// 删除指定
 				if (relativePath != FILE_LIST &&
 					relativePath != FILE_LIST_MD5 &&
-					!arrayContains(containOnlyFileList, relativePath))
+					!containOnlyFileList.contains(relativePath))
 				{
 					deleteFile(dest + relativePath);
 					newList.Remove(file);
@@ -409,6 +409,7 @@ public abstract class PlatformBase
 			options |= BuildOptions.Development;
 			// 不再开启自动连接Profiler,因为这会使打出来的程序无法在其他电脑调试
 			options |= BuildOptions.ConnectWithProfiler;
+			// 深度分析会导致卡顿严重,不再开启
 			options |= BuildOptions.EnableDeepProfilingSupport;
 		}
 		return options;
