@@ -2,7 +2,6 @@
 using UnityEngine;
 using static UnityUtility;
 using static StringUtility;
-using static MathUtility;
 
 // Sprite的序列帧
 public class myUGUISpriteAnim : myUGUISprite, IUIAnimation

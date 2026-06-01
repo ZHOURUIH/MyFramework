@@ -68,6 +68,6 @@ public class ScaleAnchor : MonoBehaviour
 	// 获取实际的可直接用于计算的宽高缩放值,会考虑保持宽高比以及缩放基准
 	public Vector2 getRealScale()
 	{
-		return adjustScreenScale(mScreenScale, mKeepAspect ? mAspectBase : ASPECT_BASE.NONE);
+		return generateScreenScaleByAspectBase(mScreenScale, mKeepAspect ? mAspectBase : ASPECT_BASE.NONE);
 	}
 }

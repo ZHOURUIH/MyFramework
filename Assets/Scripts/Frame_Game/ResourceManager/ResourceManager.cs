@@ -57,7 +57,7 @@ public class ResourceManager : FrameSystem
 	}
 	public static void loadAssetsFromUrl(string url, BytesCallback callback, DownloadCallback downloadingCallback = null)
 	{
-		GameEntry.startCoroutine(loadAssetsUrl(url, (UObject _, UObject[] _, byte[] bytes, string _) =>
+		GameEntryBase.startCoroutine(loadAssetsUrl(url, (UObject _, UObject[] _, byte[] bytes, string _) =>
 		{
 			callback?.Invoke(bytes);
 		}, downloadingCallback));
@@ -77,8 +77,8 @@ public class ResourceManager : FrameSystem
 			int downloadDelta = 0;
 			if (www.downloadedBytes > lastDownloaded)
 			{
-				lastDownloaded = www.downloadedBytes;
 				downloadDelta = (int)(www.downloadedBytes - lastDownloaded);
+				lastDownloaded = www.downloadedBytes;
 				timer = 0.0f;
 			}
 			else

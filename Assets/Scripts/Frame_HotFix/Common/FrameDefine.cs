@@ -102,6 +102,7 @@ public class FrameDefine
 	public const string KEY_FRAME_FILE = R_KEY_FRAME_PATH + "Keyframe.prefab";
 	public const string STREAMING_ASSET_FILE = "StreamingAssets.bytes";
 	public const string ATLAS_PATH_CONFIG = "AtlasPathConfig.txt";
+	public const string SPRITE_PATH_CONFIG = "SpritePathConfig.txt";
 	// 后缀名
 	public const string SPRITE_ATLAS_SUFFIX = ".spriteatlasv2";
 	public const string ASSET_BUNDLE_SUFFIX = ".unity3d";

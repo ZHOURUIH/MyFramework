@@ -7,9 +7,9 @@ public abstract class UGUIGeneratorBase : MonoBehaviour
 {
 	public string mComment;							// 注释信息
 	public List<MemberData> mMemberList = new();    // 需要访问的节点列表
-	public void addNewItem()
+	public MemberData addNewItem()
 	{
-		mMemberList.Add(new());
+		return mMemberList.add(new());
 	}
 	public void addNewPool()
 	{

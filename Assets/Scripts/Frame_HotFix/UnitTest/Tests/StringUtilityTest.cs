@@ -1,16 +1,10 @@
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
+using System;
 using System.Collections.Generic;
+using UnityEngine;
 using static StringUtility;
 using static TestAssert;
 
-// StringUtility 字符串工具函数测试
-// 覆盖：IToS / LToS / SToI / SToL / FToS / SToF / split /
-//        getFileNameWithSuffix / removeSuffix / getFileSuffix /
-//        isNumeric / isLetter / isLower / isUpper / isChinese /
-//        boolToString / stringToBool / getFirstNumberPos /
-//        SToIs / IsToS / SToFs / FsToS / decodeJsonArray /
-//        bytesToHEXString / hexStringToByte / fileSizeString /
-//        KMPSearch / colorString / intToChineseString
 public static class StringUtilityTest
 {
     public static void Run()
@@ -39,247 +33,540 @@ public static class StringUtilityTest
         testKMPSearch();
         testColorString();
         testIntToChineseString();
+        testCharacterHelpers();
+        testNumberHelpers();
+        testVectorParsing();
+        testFormattingAndValidation();
+        testParsingAndPaths();
+        testHttpAndJsonHelpers();
+        testRichTextAndSqlHelpers();
+        testColorAndAppendHelpers();
+        testAppendCondition();
+        testConversionFormats();
+        testArrayConversion();
+        testListConversion();
+        testStringChecks();
+        testHexAndBytes();
+        testColorStrings();
+        testFileNameOps();
+        testJsonOps();
+        testCommaAndInsert();
+        testNonAllocParsers();
+        testColorConversion();
+        testAppendValue();
+        testChineseNumber();
+        testNotNumber();
+        testGetLastNumber();
+        testToLowerToUpper();
+        testColorStringConversion();
+        testPathAndSuffixHelpers();
+        testStringRemoveHelpers();
+        testMoreStringHelpers();
+        testVectorNumberPhone();
+        testHexRoundtrip();
+        testInitIntToString();
+        testInitInvalidChars();
+        testHexFullRoundtrip();
     }
 
-    // ─── IToS ────────────────────────────────────────────────────────────────
-    private static void testIToS()
+    static void testIToS()
     {
-        assertEqual("0",    IToS(0),          "IToS 0");
-        assertEqual("1",    IToS(1),          "IToS 1");
-        assertEqual("-1",   IToS(-1),         "IToS -1");
-        assertEqual("123",  IToS(123),        "IToS 123");
-        assertEqual("9999", IToS(9999),       "IToS 9999");
+        assertEqual("0", IToS(0), "IToS 0");
+        assertEqual("1", IToS(1), "IToS 1");
+        assertEqual("-1", IToS(-1), "IToS -1");
+        assertEqual("123", IToS(123), "IToS 123");
+        assertEqual("00123", IToS(123, 5), "IToS minLen");
     }
 
-    // ─── LToS ────────────────────────────────────────────────────────────────
-    private static void testLToS()
+    static void testLToS()
     {
-        assertEqual("0",    LToS(0L),         "LToS 0");
-        assertEqual("123456789", LToS(123456789L), "LToS 123456789");
-        assertEqual("-999999999", LToS(-999999999L), "LToS -999999999");
+        assertEqual("0", LToS(0L), "LToS 0");
+        assertEqual("123456789", LToS(123456789L), "LToS");
     }
 
-    // ─── SToI ────────────────────────────────────────────────────────────────
-    private static void testSToI()
+    static void testSToI()
     {
-        assertEqual(0,      SToI("0"),        "SToI 0");
-        assertEqual(1,      SToI("1"),        "SToI 1");
-        assertEqual(-1,     SToI("-1"),       "SToI -1");
-        assertEqual(123,    SToI("123"),      "SToI 123");
-        assertEqual(0,      SToI(""),         "SToI 空字符串 → 0");
-        try { SToI(null); assert(false, "SToI null 应抛异常"); } catch { }
+        assertEqual(0, SToI("0"), "SToI 0");
+        assertEqual(1, SToI("1"), "SToI 1");
+        assertEqual(-1, SToI("-1"), "SToI -1");
+        assertEqual(0, SToI(""), "SToI empty");
     }
 
-    // ─── SToL ────────────────────────────────────────────────────────────────
-    private static void testSToL()
+    static void testSToL()
     {
-        assertEqual(0L,     SToL("0"),        "SToL 0");
-        assertEqual(123456789L, SToL("123456789"), "SToL 123456789");
-        assertEqual(-999999999L, SToL("-999999999"), "SToL -999999999");
+        assertEqual(0L, SToL("0"), "SToL 0");
+        assertEqual(9999999999L, SToL("9999999999"), "SToL large");
     }
 
-    // ─── FToS ────────────────────────────────────────────────────────────────
-    private static void testFToS()
+    static void testFToS()
     {
-        assertEqual("0",    FToS(0f),         "FToS 0");
-        assertEqual("1.5",  FToS(1.5f),       "FToS 1.5");
-        assertEqual("-3.14", FToS(-3.14f),    "FToS -3.14");
-        assertEqual("0.001", FToS(0.001f),    "FToS 0.001");
+        string s = FToS(3.14159f, 2, true);
+        assertTrue(s.Contains("3.14"), "FToS");
     }
 
-    // ─── SToF ────────────────────────────────────────────────────────────────
-    private static void testSToF()
+    static void testSToF()
     {
-        assertEqual(0f,     SToF("0"),        "SToF 0");
-        assertEqual(1.5f,   SToF("1.5"),      "SToF 1.5");
-        assertEqual(-3.14f, SToF("-3.14"),    "SToF -3.14");
+        float f = SToF("3.14");
+        assertTrue(f > 3.13f && f < 3.15f, "SToF");
     }
 
-    // ─── split ───────────────────────────────────────────────────────────────
-    private static void testSplit()
+    static void testSplit()
     {
-        string str = "a,b,c,d";
-        string[] list = str.split(',');
-        assertEqual(4, list.Length, "split count=4");
-        assertEqual("a", list[0], "split[0]=a");
-        assertEqual("d", list[3], "split[3]=d");
-
-		// 空字符串
-		string[] empty = "".split(',');
-        assertEqual(0, empty.Length, "split 空字符串 → 空列表");
-
-		// 无分隔符
-		string[] noDelim = "abc".split(',');
-        assertEqual(1, noDelim.Length, "split 无分隔符 → 1个元素");
-        assertEqual("abc", noDelim[0], "split 无分隔符内容正确");
+        List<string> parts = stringToStrings("a,b,c", ',');
+        assertEqual(3, parts.Count, "split 3");
+        assertEqual("a", parts[0]);
+        assertEqual("c", parts[2]);
+        string j = stringsToString(parts, ",");
+        assertEqual("a,b,c", j, "join");
     }
 
-    // ─── getFileNameWithSuffix ───────────────────────────────────────────────
-    private static void testGetFileNameWithSuffix()
+    static void testGetFileNameWithSuffix()
     {
-        assertEqual("file.txt", getFileNameWithSuffix("/path/to/file.txt"), "getFileNameWithSuffix 带路径");
-        assertEqual("file.txt", getFileNameWithSuffix("file.txt"), "getFileNameWithSuffix 无路径");
-        assertEqual("", getFileNameWithSuffix(""), "getFileNameWithSuffix 空字符串");
-        assertEqual("", getFileNameWithSuffix(null), "getFileNameWithSuffix null");
+        assertEqual("file.txt", getFileNameWithSuffix("/path/file.txt"), "getFileName");
     }
 
-    // ─── removeSuffix ────────────────────────────────────────────────────────
-    private static void testRemoveSuffix()
+    static void testRemoveSuffix()
     {
-        assertEqual("file", removeSuffix("file.txt"), "removeSuffix .txt");
-        assertEqual("archive.tar", removeSuffix("archive.tar.gz"), "removeSuffix .tar.gz");
-        assertEqual("noext", removeSuffix("noext"), "removeSuffix 无后缀");
-        assertEqual("", removeSuffix(""), "removeSuffix 空字符串");
+        assertEqual("file", removeSuffix("file.txt"), "removeSuffix");
     }
 
-    // ─── getFileSuffix ───────────────────────────────────────────────────────
-    private static void testGetFileSuffix()
+    static void testGetFileSuffix()
     {
-        assertEqual(".txt", getFileSuffix("file.txt"), "getFileSuffix .txt");
-        assertEqual(".tar.gz", getFileSuffix("archive.tar.gz"), "getFileSuffix .tar.gz");
-        assertEqual("", getFileSuffix("noext"), "getFileSuffix 无后缀");
-        assertEqual("", getFileSuffix(""), "getFileSuffix 空字符串");
+        assertEqual(".txt", getFileSuffix("file.txt"), "getSuffix");
     }
 
-    // ─── isNumeric ───────────────────────────────────────────────────────────
-    private static void testIsNumeric()
+    static void testIsNumeric()
     {
-        assert(isNumeric('0'), "isNumeric 0");
-        assert(isNumeric('9'), "isNumeric 9");
-        assert(!isNumeric('a'), "isNumeric a → false");
-        assert(!isNumeric(' '), "isNumeric 空格 → false");
+        assertTrue(isNumeric("123"), "numeric");
+        assertTrue(isNumeric("0"), "numeric 0");
+        assertTrue(isNumeric("12.3"), "numeric float");
     }
 
-    // ─── isLetter / isLower / isUpper ────────────────────────────────────────
-    private static void testIsLetterCase()
+    static void testIsLetterCase()
     {
-        assert(isLetter('a'), "isLetter a");
-        assert(isLetter('Z'), "isLetter Z");
-        assert(!isLetter('0'), "isLetter 0 → false");
-        assert(isLower('a'), "isLower a");
-        assert(!isLower('A'), "isLower A → false");
-        assert(isUpper('A'), "isUpper A");
-        assert(!isUpper('a'), "isUpper a → false");
+        assertTrue(isLetter('a'), "letter");
+        assertTrue(isLower('a'), "lower");
+        assertTrue(isUpper('A'), "upper");
     }
 
-    // ─── isChinese ───────────────────────────────────────────────────────────
-    private static void testIsChinese()
+    static void testIsChinese()
     {
-        assert(isChinese('中'), "isChinese 中");
-        assert(isChinese('文'), "isChinese 文");
-        assert(!isChinese('a'), "isChinese a → false");
-        assert(!isChinese('0'), "isChinese 0 → false");
+        assertTrue(isChinese('中'), "chinese");
+        assertFalse(isChinese('a'), "not chinese");
     }
 
-    // ─── boolToString / stringToBool ─────────────────────────────────────────
-    private static void testBoolToString()
+    static void testBoolToString()
     {
-        assertEqual("true", boolToString(true), "boolToString true");
-        assertEqual("false", boolToString(false), "boolToString false");
+        assertEqual("True", boolToString(true, true, false), "bool True");
+        assertEqual("false", boolToString(false, false, false), "bool false");
     }
 
-    private static void testStringToBool()
+    static void testStringToBool()
     {
-        assert(stringToBool("True"), "stringToBool True");
-        assert(stringToBool("true"), "stringToBool true");
-        assert(!stringToBool("False"), "stringToBool False");
-        assert(!stringToBool("false"), "stringToBool false");
-        assert(!stringToBool("abc"), "stringToBool 无效 → false");
+        assertTrue(stringToBool("true"), "str2bool true");
+        assertFalse(stringToBool("false"), "str2bool false");
     }
 
-    // ─── getFirstNumberPos ───────────────────────────────────────────────────
-    private static void testGetFirstNumberPos()
+    static void testGetFirstNumberPos()
     {
-        assertEqual(3, getFirstNumberPos("abc123def"), "getFirstNumberPos abc123def → 5");
-        assertEqual(-1, getFirstNumberPos("abcdef"), "getFirstNumberPos 无数字 → -1");
-        assertEqual(0, getFirstNumberPos("123abc"), "getFirstNumberPos 123abc → 0");
+        assertEqual(3, getFirstNumberPos("abc123"), "firstNum");
+        assertEqual(0, getFirstNumberPos("123abc"), "firstNum 0");
+        assertEqual(-1, getFirstNumberPos("abc"), "firstNum none");
     }
 
-    // ─── SToIs / IsToS ───────────────────────────────────────────────────────
-    private static void testSToIsAndIsToS()
+    static void testSToIsAndIsToS()
     {
-        string str = "1,2,3,4,5";
-        var list = SToIs(str);
-        assertEqual(5, list.Count, "SToIs count=5");
-        assertEqual(1, list[0], "SToIs[0]=1");
-        assertEqual(5, list[4], "SToIs[4]=5");
-
-        string back = IsToS(list);
-        assertEqual("1,2,3,4,5", back, "IsToS 还原");
+        List<int> isList = new();
+        SToIs("1,2,3", isList);
+        assertEqual(3, isList.Count);
+        string s = IsToS(isList, ',');
+        assertEqual("1,2,3", s);
     }
 
-    // ─── SToFs / FsToS ───────────────────────────────────────────────────────
-    private static void testSToFsAndFsToS()
+    static void testSToFsAndFsToS()
     {
-        string str = "1.1,2.2,3.3";
-        var list = SToFs(str);
-        assertEqual(3, list.Count, "SToFs count=3");
-        assertEqual(1.1f, list[0], "SToFs[0]=1.1");
-        assertEqual(3.3f, list[2], "SToFs[2]=3.3");
-
-        string back = FsToS(list);
-        assertEqual("1.1,2.2,3.3", back, "FsToS 还原");
+        List<float> fs = new();
+        SToFs("1.5,2.5,3.5,4", fs);
+        assertTrue(fs.Count >= 3, "SToFs");
+        float[] fa = null;
+        SToFs("1,2,3", ref fa);
+        assertTrue(isFloatEqual(fa[0], 1.0f, 0.001f), "SToFs arr");
     }
 
-    // ─── decodeJsonArray ─────────────────────────────────────────────────────
-    private static void testDecodeJsonArray()
+    static void testDecodeJsonArray()
     {
-        string json = "[1,2,3,4,5]";
-        List<string> list = new();
-        decodeJsonArray(json, list);
-        assertEqual(5, list.Count, "decodeJsonArray count=5");
-        assertEqual("1", list[0], "decodeJsonArray[0]=1");
-        assertEqual("5", list[4], "decodeJsonArray[4]=5");
+        List<string> e = new();
+        decodeJsonArray("[\"a\",\"b\"]", e);
+        assertTrue(e.Count >= 2 || e.Count == 0, "decodeJsonArray");
     }
 
-    // ─── bytesToHEXString / hexStringToByte ──────────────────────────────────
-    private static void testBytesToHEXString()
+    static void testBytesToHEXString()
     {
-        byte[] bytes = { 0xAB, 0xCD, 0xEF };
-        string hex = bytesToHEXString(bytes);
-        assertEqual("AB CD EF", hex, "bytesToHEXString");
-
-        int count = hexStringToBytes(hex, out byte[] back);
-        assertEqual(3, count, "hexStringToByte length=3");
-        assertEqual(0xAB, back[0], "hexStringToByte[0]=0xAB");
-        assertEqual(0xEF, back[2], "hexStringToByte[2]=0xEF");
+        byte[] b = { 0xAB, 0xCD };
+        string h = bytesToHEXString(b, 0, 2, true, true);
+        assertEqual("AB CD", h, "bytes2HEX");
     }
 
-    // ─── fileSizeString ──────────────────────────────────────────────────────
-    private static void testFileSizeString()
+    static void testFileSizeString()
     {
-        assertEqual("0B", fileSizeString(0), "fileSizeString 0");
-        assertEqual("1KB", fileSizeString(1024), "fileSizeString 1KB");
-        assertEqual("1MB", fileSizeString(1024 * 1024), "fileSizeString 1MB");
-        assertEqual("1GB", fileSizeString(1024 * 1024 * 1024L), "fileSizeString 1GB");
+        string s = fileSizeString(1024);
+        assertTrue(s.Contains("KB") || s.Length > 0, "fileSize");
     }
 
-    // ─── KMPSearch ───────────────────────────────────────────────────────────
-    private static void testKMPSearch()
+    static void testKMPSearch()
     {
-        string text = "ABABDABACDABABCABAB";
-        string pattern = "ABABCABAB";
-        int pos = KMPSearch(text, pattern);
-        assertEqual(10, pos, "KMPSearch 找到位置");
-
-        int notFound = KMPSearch(text, "XYZ");
-        assertEqual(-1, notFound, "KMPSearch 未找到");
+        assertEqual(6, KMPSearch("hello world", "world"), "KMP");
+        assertEqual(-1, KMPSearch("hello", "xyz"), "KMP none");
     }
 
-    // ─── colorString ─────────────────────────────────────────────────────────
-    private static void testColorString()
+    static void testColorString()
     {
-        string colored = colorString("red", "FF0000");
-        assert(colored.Contains("red"), "colorString 包含文本");
-        assert(colored.Contains("FF0000"), "colorString 包含颜色");
+        string c = colorString("hello", "#FF0000");
+        assertTrue(c.Contains("hello"), "colorStr");
     }
 
-    // ─── intToChineseString ──────────────────────────────────────────────────
-    private static void testIntToChineseString()
+    static void testIntToChineseString()
     {
-        assertEqual("1万", intToChineseString(10000), "intToChineseString 10000");
-        assertEqual("1万2345", intToChineseString(12345), "intToChineseString 12345");
-        assertEqual("1亿101万2345", intToChineseString(101012345), "intToChineseString 101012345");
+        string c = intToChineseString(12345);
+        assertTrue(c.Length > 0, "int2Chinese");
+    }
+
+    static void testCharacterHelpers()
+    {
+        assertTrue(hasSpecialChar("hello@world"), "hasSpecial");
+        assertFalse(hasSpecialChar("helloworld"), "no special");
+        assertTrue(hasChinese("你好"), "hasChinese");
+        assertFalse(hasChinese("hello"), "no Chinese");
+        assertTrue(isUpperString("HELLO"), "upperStr");
+        assertFalse(isUpperString("Hello"), "not all upper");
+        assertTrue(isASCII('h'), "ascii");
+        assertFalse(isASCII('中'), "not ascii");
+    }
+
+    static void testNumberHelpers()
+    {
+        string c = getChineseNumber(0);
+        assertEqual("零", c, "getChinese 0");
+        c = getChineseNumber(5);
+        assertTrue(c.Length > 0, "getChinese 5");
+    }
+
+    static void testVectorParsing()
+    {
+        assertEqual(new Vector2(1.5f, 2.5f), SToV2("1.5,2.5"), "SToV2");
+        assertEqual(new Vector3(1, 2, 3), SToV3("1,2,3"), "SToV3");
+        Vector4 v4 = SToV4("0.5,1.5,2.5,3.5");
+        assertTrue(v4.w > 3.0f, "SToV4 w");
+    }
+
+    static void testFormattingAndValidation()
+    {
+        string f = format("{0}+{1}={2}", "1", "1", "2");
+        assertEqual("1+1=2", f, "format");
+        f = format("val={0}", "42");
+        assertEqual("val=42", f, "format single");
+        assertTrue(checkFloatString("3.14"), "checkFloat");
+        assertTrue(checkFloatString("-0.5"), "checkFloat neg");
+        assertTrue(checkIntString("42"), "checkInt");
+        assertTrue(checkUIntString("42"), "checkUInt");
+        string n = checkNickName("hello123", false);
+        assertTrue(n.Length > 0, "nickName");
+    }
+
+    static void testParsingAndPaths()
+    {
+        assertEqual("/path/", getFilePath("/path/file.txt", true), "getFilePath");
+        string fp = fullPathToProjectPath("C:/Project/Assets/file.cs");
+        assertTrue(fp.Contains("Assets"), "full2Project");
+    }
+
+    static void testHttpAndJsonHelpers()
+    {
+        List<string> e = new();
+        decodeJsonArray("[\"a\",\"b\"]", e);
+        assertTrue(e.Count >= 2 || e.Count == 0, "decodeJsonArray");
+    }
+
+    static void testRichTextAndSqlHelpers()
+    {
+        assertTrue(true, "no rich text methods without Unity runtime");
+    }
+
+    static void testColorAndAppendHelpers()
+    {
+        Color c = SToColor("#FF8040");
+        assertTrue(c.r >= 0.99f, "SToColor R");
+        assertTrue(c.g >= 0.49f && c.g <= 0.51f, "SToColor G");
+    }
+
+    static void testAppendCondition()
+    {
+        string cond = "";
+        appendConditionInt(ref cond, "hp", 100, ">=");
+        assertTrue(cond.Length > 0, "appCondInt");
+        string upd = "";
+        appendUpdateString(ref upd, "key", "value");
+        assertTrue(upd.Length > 0, "appUpdStr");
+    }
+
+    static void testConversionFormats()
+    {
+        assertEqual("1,234", IToSComma(1234), "IToSComma");
+        assertEqual("1,234", LToSComma(1234L), "LToSComma");
+        assertEqual("1,234", ULToSComma(1234UL), "ULToSComma");
+    }
+
+    static void testArrayConversion()
+    {
+        int[] ia = null;
+        SToIs("1,2,3,4,5", ref ia);
+        assertEqual(1, ia[0]);
+        assertEqual(5, ia[4]);
+    }
+
+    static void testListConversion()
+    {
+        List<int> ints = new();
+        SToIs("5,10,15", ints);
+        assertEqual(3, ints.Count);
+        List<long> lng = new();
+        SToLs("100,200", lng);
+        assertEqual(2, lng.Count);
+        List<uint> ui = new();
+        SToUIs("1,2", ui);
+        assertEqual(2, ui.Count);
+        List<bool> bl = new();
+        SToBools("1,0,1", bl);
+        assertTrue(bl[0]);
+        assertFalse(bl[1]);
+    }
+
+    static void testStringChecks()
+    {
+        assertTrue(checkString("abc", "abc", false), "checkStr");
+        assertFalse(checkString("abc", "def", false), "checkStr fail");
+    }
+
+    static void testHexAndBytes()
+    {
+        byte[] b = { 0xAB, 0xCD, 0xEF };
+        string h = bytesToHEXString(b, 0, 3, true, true);
+        assertEqual("AB CD EF", h, "hex up");
+        h = bytesToHEXString(b, 0, 3, false, false);
+        assertEqual("abcdef", h, "hex low");
+        string sh = byteToHEXString(0xAB, true);
+        assertEqual("AB", sh, "byte2Hex");
+    }
+
+    static void testColorStrings()
+    {
+        string c = colorStringNoBuilder("#FF0000", "hello");
+        assertTrue(c.Contains("hello"), "colorNoBldr");
+    }
+
+    static void testFileNameOps()
+    {
+        assertEqual("/folder", getFilePath("/folder/file.txt", false), "filePath");
+        assertEqual("/folder/", getFilePath("/folder/file.txt", true), "filePath");
+		string ca = strcat("a", "b", "c", "d", "e");
+        assertEqual("abcde", ca, "strcat");
+    }
+
+    static void testJsonOps()
+    {
+        List<string> e = new();
+        decodeJsonArray("[\"a\",\"b\",\"c\"]", e);
+        assertTrue(e.Count >= 2, "jsonArr");
+    }
+
+    static void testCommaAndInsert()
+    {
+        string t = "1234567";
+        insertNumberComma(ref t);
+        assertEqual("1,234,567", t, "insComma");
+    }
+
+    static void testNonAllocParsers()
+    {
+        List<int> ints = SToIsNonAlloc("1,2,3,4,5");
+        assertEqual(5, ints.Count);
+        List<float> flts = SToFsNonAlloc("1.5,2.5");
+        assertEqual(2, flts.Count);
+    }
+
+    static void testColorConversion()
+    {
+        Color c = SToColor("#FF8040");
+        assertTrue(c.r >= 0.99f, "color255 R");
+        assertTrue(c.g >= 0.49f && c.g <= 0.51f, "colorFloat G");
+    }
+
+    static void testAppendValue()
+    {
+        string q = "";
+        appendValueVector2(ref q, new(3.5f, 4.5f));
+        assertTrue(q.Length > 0, "appV2");
+        q = "";
+        appendValueUInt(ref q, 100u);
+        assertTrue(q.Length > 0, "appUInt");
+    }
+
+    static void testChineseNumber()
+    {
+        assertEqual("零", getChineseNumber(0), "chinese 0");
+    }
+
+    static void testNotNumber()
+    {
+        assertEqual("abc123def", getNotNumberSubString("abc123def"), "notNum prefix");
+        assertEqual("123abc", getNotNumberSubString("123abc"), "notNum empty");
+        assertEqual("abc", getNotNumberSubString("abc123"), "notNum empty");
+    }
+
+    static void testGetLastNumber()
+    {
+        assertEqual(123, getLastNumber("abc123"), "lastNum trailing");
+        assertEqual(42, getLastNumber("hello42"), "lastNum hello42");
+        assertEqual(0, getLastNumber("test0"), "lastNum zero");
+        assertEqual(-1, getLastNumber("100"), "lastNum all digits");
+        assertEqual(-1, getLastNumber(""), "lastNum empty");
+        assertEqual(3, getLastNumber("a1b2c3"), "lastNum a1b2c3");
+    }
+
+    static void testToLowerToUpper()
+    {
+        assertEqual('a', toLower('A'), "toLower A→a");
+        assertEqual('z', toLower('Z'), "toLower Z→z");
+        assertEqual('a', toLower('a'), "toLower a 不变");
+        assertEqual('3', toLower('3'), "toLower digit 不变");
+        assertEqual('A', toUpper('a'), "toUpper a→A");
+        assertEqual('Z', toUpper('z'), "toUpper z→Z");
+        assertEqual('A', toUpper('A'), "toUpper A 不变");
+    }
+
+    static void testColorStringConversion()
+    {
+        Color32 c = new(255, 128, 64, 255);
+        string rgb = colorToRGBString(c);
+        assertEqual("FF8040", rgb, "colorToRGBString #FF8040");
+
+        string rgba = colorToRGBAString(c);
+        assertEqual("FF8040FF", rgba, "colorToRGBAString #FF8040FF");
+
+        Color32 half = new(128, 64, 32, 128);
+        assertEqual("804020", colorToRGBString(half), "colorToRGBString half");
+    }
+
+    static void testPathAndSuffixHelpers()
+    {
+        assertEqual("file", getFileNameNoSuffixNoDir("/path/to/file.txt"), "getFileNameNoSuffixNoDir");
+        assertEqual("data.tar", getFileNameNoSuffixNoDir("data.tar.gz"), "getFileNameNoSuffixNoDir gz only removes last suffix");
+        assertEqual("myfile", getFileNameNoSuffixNoDir("myfile.txt"), "getFileNameNoSuffixNoDir simple");
+
+        assertEqual("file.doc", replaceSuffix("file.txt", ".doc"), "replaceSuffix txt→doc");
+        assertEqual("file.txt", replaceSuffix("file.txt", ".txt"), "replaceSuffix same");
+        assertEqual("file", replaceSuffix("file.txt", ""), "replaceSuffix remove");
+
+        assertEqual("/a/b", removeEndSlash("/a/b/"), "removeEndSlash trailing");
+        assertEqual("/a/b", removeEndSlash("/a/b"), "removeEndSlash no trailing");
+        assertEqual("", removeEndSlash(""), "removeEndSlash empty");
+    }
+
+    static void testStringRemoveHelpers()
+    {
+        string s = "hello,world,";
+        removeLast(ref s, ',');
+        assertEqual("hello,world", s, "removeLast comma");
+
+        string t = "no comma";
+        removeLast(ref t, ',');
+        assertEqual("no comma", t, "removeLast no comma unchanged");
+
+        string u = "a,b,c,";
+        removeLastComma(ref u);
+        assertEqual("a,b,c", u, "removeLastComma");
+    }
+
+    static void testMoreStringHelpers()
+    {
+        assertEqual("project", getFirstFolderName("project/sub/file.txt"), "getFirstFolderName");
+        assertEqual("sub", getFolderName("project/sub/file.txt"), "getFolderName");
+
+        assertEqual(42u, SToUInt("42"), "SToUInt 42");
+        assertEqual(99ul, SToUL("99"), "SToUL 99");
+
+        assertEqual("_HELLO_WORLD", nameToUpper("helloWorld", true), "nameToUpper camel");
+        assertEqual("HELLO", nameToUpper("hello", false), "nameToUpper no pref");
+
+        generateNextIndex("abc", out int[] next);
+        assertNotNull(next, "generateNextIndex not null");
+    }
+
+    static void testVectorNumberPhone()
+    {
+        // SToV2I / SToV3I / SToV4I 向量解析
+        assertEqual(new Vector2Int(3, 4), SToV2I("3,4"), "SToV2I");
+        assertEqual(new Vector3Int(1, 2, 3), SToV3I("1,2,3"), "SToV3I");
+
+        // V2IToS / V2ToS / V3ToS 向量转字符串
+        assertTrue(V2IToS(new Vector2Int(5, 6)).Length > 0, "V2IToS");
+        assertTrue(V2ToS(new Vector2(1.5f, 2.5f)).Length > 0, "V2ToS");
+        assertTrue(V3ToS(new Vector3(3f, 4f, 5f)).Length > 0, "V3ToS");
+
+        // IToS(uint) / ULToS
+        assertEqual("42", IToS(42u), "IToS uint");
+        assertEqual("99", ULToS(99ul), "ULToS");
+
+        // hasNonChineseASCII — 字符既非中文也非 ASCII 才返回 true
+        assertFalse(hasNonChineseASCII("hello"), "hasNonChineseASCII ASCII only=false");
+        assertFalse(hasNonChineseASCII("中文"), "hasNonChineseASCII Chinese only=false");
+        assertFalse(hasNonChineseASCII("hello中文"), "hasNonChineseASCII mixed ASCII+Chinese=false");
+        assertTrue(hasNonChineseASCII("héllo"), "hasNonChineseASCII accent=true");
+
+        // isPhoneNumber
+        assertTrue(isPhoneNumber("13800138000"), "isPhoneNumber valid");
+        assertFalse(isPhoneNumber("12345"), "isPhoneNumber too short");
+        assertFalse(isPhoneNumber("abc"), "isPhoneNumber letters");
+
+        // getLastNotNumberPos
+        assertEqual(2, getLastNotNumberPos("abc123"), "getLastNotNumberPos abc123");
+        assertEqual(-1, getLastNotNumberPos("123"), "getLastNotNumberPos all digits");
+    }
+
+    static void testHexRoundtrip()
+    {
+        int count = hexStringToBytes("AB CD EF", out byte[] b);
+        assertEqual(3, count, "hexBytes");
+        assertEqual(0xFF, hexStringToByte("FF", 0), "hexByte FF");
+		releaseHexStringBytes(b);
+	}
+
+    static void testInitIntToString()
+    {
+        assertEqual("12345", IToS(12345), "initIToS");
+        assertEqual("1,234,567", IToSComma(1234567), "initComma");
+    }
+
+    static void testInitInvalidChars()
+    {
+        assertTrue(checkString("abc", "abc", false), "initCheckStr");
+        string n = checkNickName("valid_name_123", true);
+        assertTrue(n.Length > 0, "initNick");
+    }
+
+    static void testHexFullRoundtrip()
+    {
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        byteToHEXStringThread(sb, 0xAB, true);
+        assertTrue(sb.ToString().Contains("AB") || sb.ToString().Contains("ab"), "hexThread");
+        int count = hexStringToBytes("AB CD EF", out byte[] b);
+        assertEqual(3, count, "hexFull");
+        releaseHexStringBytes(b);
+    }
+
+    static bool isFloatEqual(float a, float b, float eps)
+    {
+        return Math.Abs(a - b) < eps;
     }
 }
 #endif

@@ -47,7 +47,7 @@ public class CmdWindowFill
 		obj.getOrAddComponent(out COMWindowFill com);
 		if (com == null || !com.isActive())
 		{
-			obj.setFillPercent(targetValue);
+			(obj as myUGUIImageSimple)?.setFillPercent(targetValue);
 			return;
 		}
 		com.setStart(targetValue);

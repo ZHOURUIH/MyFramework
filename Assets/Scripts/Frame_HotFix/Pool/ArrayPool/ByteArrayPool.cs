@@ -91,7 +91,7 @@ public class ByteArrayPool : FrameSystem
 		if (isEditor())
 		{
 			addInuse(array, onlyOnce);
-			mObjectStack.Add(array, GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY);
+			mObjectStack.Add(array, GameEntryBase.getInstance().mFrameworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY);
 			if (isNew && mCreatedCount % 1000 == 0)
 			{
 				logNoLock("byte[" + size + "]" + "数量已经达到了" + mCreatedCount + "个");

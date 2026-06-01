@@ -134,7 +134,6 @@ public static class SpanExtension
 			return string.Empty;
 		}
 		// 默认为UTF8
-		encoding ??= Encoding.UTF8;
-		return removeLastZero(encoding.GetString(bytes));
+		return removeLastZero((encoding ?? Encoding.UTF8).GetString(bytes));
 	}
 }

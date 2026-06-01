@@ -29,6 +29,7 @@ public class KeyMappingSystem : FrameSystem
 		// 需要检测是否与当前按键映射冲突
 		if (key != KeyCode.None && mKeyMapping.containsValue(item => item.mKey == key && item.mMappingID != mappingID))
 		{
+			logError("有冲突的按键:" + key);
 			return false;
 		}
 

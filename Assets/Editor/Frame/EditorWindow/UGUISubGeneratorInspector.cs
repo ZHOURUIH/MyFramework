@@ -6,6 +6,7 @@ using static UnityUtility;
 using static StringUtility;
 using static FileUtility;
 using static FrameDefine;
+using static FrameUtility;
 using static EditorCommonUtility;
 using static UGUIGeneratorUtility;
 
@@ -21,6 +22,19 @@ public class UGUISubGeneratorInspector : GameInspector
 		{
 			return;
 		}
+		using (new GUILayout.HorizontalScope())
+		{
+			if (button("锁定Inspector", 200, 25))
+			{
+				setAllInspectorsLocked(true);
+			}
+			if (button("解锁Inspector", 200, 25))
+			{
+				setAllInspectorsLocked(false);
+			}
+		}
+		space(10);
+
 		using (new EditorModifyScope(this))
 		{
 			if (!generator.mOnlyForMarkType)
@@ -36,9 +50,21 @@ public class UGUISubGeneratorInspector : GameInspector
 					List<string> parentList = getSubUIParentList();
 					if (generator.mParentType.isEmpty() || !parentList.Contains(generator.mParentType))
 					{
-						generator.mParentType = parentList.get(0) ?? typeof(LayoutScript).ToString();
+						generator.mParentType = parentList.get(0) ?? typeof(WindowObjectUGUI).ToString();
 					}
 					displayDropDown("", "", parentList, ref generator.mParentType, 250);
+					if (generator.mParentType == typeof(WindowObjectRecyclableT<>).ToString().rangeToFirst('`'))
+					{
+						if (generator.mParentGenericType.isEmpty())
+						{
+							generator.mParentGenericType = typeof(myUGUIObject).ToString();
+						}
+						displayDropDown("", "", generateAvailableTypeList(generator.gameObject), ref generator.mParentGenericType);
+					}
+					else
+					{
+						generator.mParentGenericType = null;
+					}
 				}
 				toggle(ref generator.mAutoType, "自动设置类名");
 				if (generator.mAutoType)
@@ -56,7 +82,8 @@ public class UGUISubGeneratorInspector : GameInspector
 				drawMemberInspector(generator);
 			}
 		}
-		EditorGUILayout.Space(10);
+		space(10);
+
 		using (new GUILayout.VerticalScope())
 		{
 			if (!generator.mOnlyForMarkType)
@@ -155,6 +182,7 @@ public class UGUISubGeneratorInspector : GameInspector
 
 		// init中的代码
 		List<string> generatedInitLines = new();
+		List<string> clickCallbackCheckLists = new();
 		List<string> generatedClickCallbackLists = new();
 		foreach (MemberData data in generator.mMemberList)
 		{
@@ -162,18 +190,30 @@ public class UGUISubGeneratorInspector : GameInspector
 			{
 				if (data.mHasClickEvent)
 				{
-					if (data.getTypeName() == typeof(myUGUIImageSimple).ToString() || 
+					if (data.getTypeName() == typeof(myUGUIImageSimple).ToString() ||
 						data.getTypeName() == typeof(myUGUIImageAnim).ToString() ||
 						data.getTypeName() == typeof(myUGUIImage).ToString())
 					{
 						generatedInitLines.add("\t\tm" + data.getMemberName() + ".registeColliderImage(" + "on" + data.getMemberName() + "Click);");
+						clickCallbackCheckLists.add(generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click()"));
+					}
+					else if (data.getTypeName() == typeof(TabItem).ToString())
+					{
+						generatedInitLines.add("\t\tm" + data.getMemberName() + ".setCallback(" + "on" + data.getMemberName() + "Click);");
+						clickCallbackCheckLists.add(generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click()"));
+					}
+					else if (data.getTypeName() == typeof(UGUICheckbox).ToString())
+					{
+						generatedInitLines.add("\t\tm" + data.getMemberName() + ".setCheckCallback(" + "on" + data.getMemberName() + "Click);");
+						clickCallbackCheckLists.add(generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click(UGUICheckbox checkbox)"));
 					}
 					else
 					{
 						generatedInitLines.add("\t\tm" + data.getMemberName() + ".registeCollider(" + "on" + data.getMemberName() + "Click);");
+						clickCallbackCheckLists.add(generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click()"));
 					}
-					generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click()");
 					generatedClickCallbackLists.add("\t{");
+					generatedClickCallbackLists.add("\t\t;");
 					generatedClickCallbackLists.add("\t}");
 				}
 				else
@@ -218,7 +258,14 @@ public class UGUISubGeneratorInspector : GameInspector
 				line(ref fileContent, "// auto generate classname start");
 				line(ref fileContent, "// generate from:" + prefabPath);
 				line(ref fileContent, "// " + generator.mComment);
-				line(ref fileContent, "public class " + subUIName + " : " + generator.mParentType);
+				if (generator.mParentGenericType.isEmpty())
+				{
+					line(ref fileContent, "public class " + subUIName + " : " + generator.mParentType);
+				}
+				else
+				{
+					line(ref fileContent, "public class " + subUIName + " : " + generator.mParentType + "<" + generator.mParentGenericType + ">");
+				}
 				line(ref fileContent, "// auto generate classname end");
 				line(ref fileContent, "{");
 			}
@@ -302,7 +349,14 @@ public class UGUISubGeneratorInspector : GameInspector
 				}
 				else
 				{
-					codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType);
+					if (generator.mParentGenericType.isEmpty())
+					{
+						codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType);
+					}
+					else
+					{
+						codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType + "<" + generator.mParentGenericType + ">");
+					}
 				}
 			}
 			else
@@ -321,7 +375,14 @@ public class UGUISubGeneratorInspector : GameInspector
 					}
 					else
 					{
-						codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType);
+						if (generator.mParentGenericType.isEmpty())
+						{
+							codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType);
+						}
+						else
+						{
+							codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType + "<" + generator.mParentGenericType + ">");
+						}
 					}
 					codeList.Insert(++lineStart0, "// auto generate classname end");
 				}
@@ -408,6 +469,22 @@ public class UGUISubGeneratorInspector : GameInspector
 					codeList.Insert(++lineStart, "\t\t// auto generate init start");
 					generatedInitLines.For(str => codeList.Insert(++lineStart, str));
 					codeList.Insert(++lineStart, "\t\t// auto generate init end");
+				}
+			}
+
+			// 查找是否有缺失的点击事件回调函数
+			int insertIndex = codeList.FindLastIndex(line => line.endWith("}"));
+			if (insertIndex >= 0)
+			{
+				foreach (string line in clickCallbackCheckLists)
+				{
+					if (!codeList.contains(item => item.Contains(line)))
+					{
+						codeList.Insert(insertIndex++, line);
+						codeList.Insert(insertIndex++, "\t{");
+						codeList.Insert(insertIndex++, "\t\t;");
+						codeList.Insert(insertIndex++, "\t}");
+					}
 				}
 			}
 			writeTxtFile(fileFullPath, stringsToString(codeList, "\r\n"), true);

@@ -59,7 +59,7 @@ public class ImageAtlasPath : MonoBehaviour
 		{
 			return "";
 		}
-		// 如果图集名字和图片名字一样,则说明是Single的Sprite
+		// 如果图集名字和图片名字不一样,则说明是Multi的Sprite
 		if (sprite.texture.name != sprite.name)
 		{
 			return getAssetPath(sprite.texture);

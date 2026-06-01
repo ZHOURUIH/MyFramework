@@ -1,16 +1,9 @@
 ﻿using System;
-using System.Reflection;
-using static FrameUtility;
 using static GameDefine;
 using static GBH;
 
-public class GameHotFix : GameHotFixBase
+public class GameHotFix : GameHotFixBase<GameHotFix>
 {
-	public static GameHotFixBase createHotFixInstance() 
-	{
-		mInstance = createInstance<GameHotFixBase>(MethodBase.GetCurrentMethod().DeclaringType);
-		return mInstance;
-	}
 	//----------------------------------------------------------------------------------------------------------------------------------
 	protected override void registerAll()
 	{

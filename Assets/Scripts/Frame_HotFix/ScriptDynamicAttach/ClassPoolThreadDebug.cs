@@ -9,7 +9,7 @@ public class ClassPoolThreadDebug : MonoBehaviour
 	public List<string> TypeList = new();	// 类型信息列表
 	public void Update()
 	{
-		if (GameEntry.getInstance() == null || !GameEntry.getInstance().mFramworkParam.mEnableScriptDebug)
+		if (GameEntryBase.getInstance() == null || !GameEntryBase.getInstance().mFrameworkParam.mEnableScriptDebug)
 		{
 			return;
 		}

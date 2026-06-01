@@ -38,7 +38,7 @@ public class GameFrameworkHotFix : IFramework
 	public static void startHotFix(Action callback)
 	{
 		GameFrameworkHotFix framework = new();
-		GameEntry.getInstance().setFrameworkHotFix(framework);
+		GameEntryBase.getInstance().setFrameworkHotFix(framework);
 		framework.init(callback);
 	}
 	public DateTime getStartTime() { return mStartTime; }
@@ -179,7 +179,7 @@ public class GameFrameworkHotFix : IFramework
 	}
 	public void resetFrameRate()
 	{
-		setFrameRate(GameEntry.getInstance().mFramworkParam.mDefaultFrameRate);
+		setFrameRate(GameEntryBase.getInstance().mFrameworkParam.mDefaultFrameRate);
 	}
 	public bool isResourceAvailable() { return mResourceAvailable; }
 	public bool isDestroy() { return mIsDestroy; }
@@ -242,11 +242,6 @@ public class GameFrameworkHotFix : IFramework
 	public T registeFrameSystem<T>(Action<T> callback, int initOrder = -1, int updateOrder = -1, int destroyOrder = -1) where T : FrameSystem, new()
 	{
 		Type type = typeof(T);
-		if (isDevOrEditor())
-		{
-			// 暂时不再打印注册日志了
-			//log("注册系统:" + type.ToString() + ", owner:" + GetType());
-		}
 		T com = new();
 		string name = type.Assembly.FullName.rangeToFirst(',') + "_" + type.ToString();
 		com.setName(name);
@@ -309,13 +304,7 @@ public class GameFrameworkHotFix : IFramework
 		mStartTime = DateTime.Now;
 		mFrameStartTime = DateTime.Now;
 		DebugManager.instance.enableRuntimeUI = false;
-		setFrameRate(GameEntry.getInstance().mFramworkParam.mDefaultFrameRate);
-
-		if (!isEditor() && isDevelopment())
-		{
-			// 跟引擎自带的dev的调试控制台功能重合了,所以不再使用
-			//getOrAddComponent<ConsoleToScreen>(GameEntry.getInstanceObject());
-		}
+		setFrameRate(GameEntryBase.getInstance().mFrameworkParam.mDefaultFrameRate);
 
 		// 设置默认的日志等级
 		setLogLevel(LOG_LEVEL.FORCE);

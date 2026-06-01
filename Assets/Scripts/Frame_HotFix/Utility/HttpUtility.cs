@@ -129,12 +129,12 @@ public class HttpUtility
 	// 异步post请求,webgl可用
 	public static void httpPostAsyncWebGL(string url, byte[] data, string contentType, Dictionary<string, string> header, UnityHttpCallback callback)
 	{
-		GameEntry.startCoroutine(unityPost(url, data, contentType, header, callback));
+		GameEntryBase.startCoroutine(unityPost(url, data, contentType, header, callback));
 	}
 	// 异步post请求,webgl可用
 	public static void httpPostAsyncWebGL(string url, string param, UnityHttpCallback callback)
 	{
-		GameEntry.startCoroutine(unityPost(url, param.toBytes(), "application/json", null, callback));
+		GameEntryBase.startCoroutine(unityPost(url, param.toBytes(), "application/json", null, callback));
 	}
 	// 同步post请求
 	public static string httpPost(string url, out WebExceptionStatus status, out HttpStatusCode code, byte[] data, int dataLength = -1)
@@ -238,22 +238,22 @@ public class HttpUtility
 	// 异步get请求,webgl可用
 	public static void httpGetAsyncWebGL(string url, Dictionary<string, string> paramList, Dictionary<string, string> header, string contentType, UnityHttpCallback callback, int timeoutSecond)
 	{
-		GameEntry.startCoroutine(unityPrepareGet(url, contentType, header, paramList, callback, timeoutSecond));
+		GameEntryBase.startCoroutine(unityPrepareGet(url, contentType, header, paramList, callback, timeoutSecond));
 	}
 	// 异步get请求,webgl可用,带header
 	public static void httpGetAsyncWebGLWithHeader(string url, Dictionary<string, string> header, UnityHttpCallback callback)
 	{
-		GameEntry.startCoroutine(unityPrepareGet(url, "application/x-www-form-urlencoded", null, header, callback, 10));
+		GameEntryBase.startCoroutine(unityPrepareGet(url, "application/x-www-form-urlencoded", null, header, callback, 10));
 	}
 	// 异步get请求,webgl可用,带参数
 	public static void httpGetAsyncWebGLWithParam(string url, Dictionary<string, string> paramList, UnityHttpCallback callback)
 	{
-		GameEntry.startCoroutine(unityPrepareGet(url, "application/x-www-form-urlencoded", null, paramList, callback, 10));
+		GameEntryBase.startCoroutine(unityPrepareGet(url, "application/x-www-form-urlencoded", null, paramList, callback, 10));
 	}
 	// 异步get请求,webgl可用,不带header,不带参数
 	public static void httpGetAsyncWebGL(string url, UnityHttpCallback callback)
 	{
-		GameEntry.startCoroutine(unityPrepareGet(url, "application/x-www-form-urlencoded", null, null, callback, 10));
+		GameEntryBase.startCoroutine(unityPrepareGet(url, "application/x-www-form-urlencoded", null, null, callback, 10));
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected static HttpWebRequest prepareDelete(string url, Dictionary<string, string> paramList, Dictionary<string, string> header, string contentType)

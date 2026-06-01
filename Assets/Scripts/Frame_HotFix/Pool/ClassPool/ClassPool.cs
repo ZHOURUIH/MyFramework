@@ -101,7 +101,7 @@ public class ClassPool : FrameSystem
 			{
 				Debug.LogError("对象已经在已使用列表中了,不能再添加,是否为持久使用:" + onlyOnce + ", 新创建创建对象:" + boolToString(isNew) + ", type:" + type);
 			}
-			mObjectStack.Add(obj, GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY);
+			mObjectStack.Add(obj, GameEntryBase.getInstance().mFrameworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY);
 
 			if (isNew)
 			{

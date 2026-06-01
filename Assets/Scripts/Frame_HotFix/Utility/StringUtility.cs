@@ -218,10 +218,12 @@ public class StringUtility
 		}
 		return -1;
 	}
+	// 获取字符串除了末尾数字以外的字符串,比如abc123返回abc
 	public static string getNotNumberSubString(string str)
 	{
 		return str.startString(getLastNotNumberPos(str) + 1);
 	}
+	// 获取字符串最后的数字,比如abc123返回123
 	public static int getLastNumber(string str)
 	{
 		int lastPos = getLastNotNumberPos(str);
@@ -1367,17 +1369,21 @@ public class StringUtility
 		}
 		return bytes.Length;
 	}
-	public static bool checkString(string str, string valid)
+	public static bool checkString(string str, string valid, bool showError = true)
 	{
-		if (isEditor() && !str.isEmpty())
+		if (!isEditor() || str.isEmpty())
 		{
-			for (int i = 0; i < str.Length; ++i)
+			return true;
+		}
+		for (int i = 0; i < str.Length; ++i)
+		{
+			if (valid.IndexOf(str[i]) < 0)
 			{
-				if (valid.IndexOf(str[i]) < 0)
+				if (showError)
 				{
 					logError("不合法的字符串:" + str);
-					return false;
 				}
+				return false;
 			}
 		}
 		return true;
@@ -1474,22 +1480,8 @@ public class StringUtility
 			// 等效于int low = value % 16;
 			int high = value >> 4;
 			int low = value & 15;
-			if (high < 10)
-			{
-				builder.add((char)('0' + high));
-			}
-			else
-			{
-				builder.add(hexChar[high - 10]);
-			}
-			if (low < 10)
-			{
-				builder.add((char)('0' + low));
-			}
-			else
-			{
-				builder.add(hexChar[low - 10]);
-			}
+			builder.add(high < 10 ? (char)('0' + high) : hexChar[high - 10]);
+			builder.add(low < 10 ? (char)('0' + low) : hexChar[low - 10]);
 			return builder.ToString();
 		}
 		else
@@ -1500,22 +1492,8 @@ public class StringUtility
 			// 等效于int low = value % 16;
 			int high = value >> 4;
 			int low = value & 15;
-			if (high < 10)
-			{
-				builder.Append((char)('0' + high));
-			}
-			else
-			{
-				builder.Append(hexChar[high - 10]);
-			}
-			if (low < 10)
-			{
-				builder.Append((char)('0' + low));
-			}
-			else
-			{
-				builder.Append(hexChar[low - 10]);
-			}
+			builder.Append(high < 10 ? (char)('0' + high) : hexChar[high - 10]);
+			builder.Append(low < 10 ? (char)('0' + low) : hexChar[low - 10]);
 			return builder.ToString();
 		}
 	}
@@ -1526,22 +1504,8 @@ public class StringUtility
 		// 等效于int low = value % 16;
 		int high = value >> 4;
 		int low = value & 15;
-		if (high < 10)
-		{
-			builder.Append((char)('0' + high));
-		}
-		else
-		{
-			builder.Append(hexChar[high - 10]);
-		}
-		if (low < 10)
-		{
-			builder.Append((char)('0' + low));
-		}
-		else
-		{
-			builder.Append(hexChar[low - 10]);
-		}
+		builder.Append(high < 10 ? (char)('0' + high) : hexChar[high - 10]);
+		builder.Append(low < 10 ? (char)('0' + low) : hexChar[low - 10]);
 	}
 	public static byte hexStringToByte(string str, int start = 0)
 	{

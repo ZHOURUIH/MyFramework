@@ -4,12 +4,18 @@ using UnityEngine.UI;
 using static UnityUtility;
 using static MathUtility;
 
-// 对UGUI的Image的封装,简化版,只有Image组件
+// 对UGUI的Image的封装,简化版,只有Image组件,不能在运行时切换图片
 public class myUGUIImageSimple : myUGUIObject
 {
-	protected CanvasGroup mCanvasGroup;                     // 用于是否显示
-	protected Image mImage;									// 图片组件
-	protected bool mCanvasGroupValid;                       // 当前CanvasGroup是否有效,在测试中发现判断mCanvasGroup是否为空的写法会比较耗时,所以替换为bool判断
+	protected CanvasGroup mCanvasGroup;         // 用于是否显示
+	protected Image mImage;                     // 图片组件
+	protected string mSpriteName;				// 当前图片的名字,避免GC
+	protected string mMaterialName;             // 当前材质的名字,避免GC
+	protected string mShaderName;               // 当前shader的名字,避免GC
+	protected bool mSpriteNameDirty;			// 图片名字是否需要更新
+	protected bool mMaterialNameDirty;			// 材质名字是否需要更新
+	protected bool mShaderNameDirty;			// shader名字是否需要更新
+	protected bool mCanvasGroupValid;           // 当前CanvasGroup是否有效,在测试中发现判断mCanvasGroup是否为空的写法会比较耗时,所以替换为bool判断
 	public override void init()
 	{
 		base.init();
@@ -25,6 +31,9 @@ public class myUGUIImageSimple : myUGUIObject
 			mObject.TryGetComponent(out mRectTransform);
 			mTransform = mRectTransform;
 		}
+		mSpriteName = mImage.sprite != null ? mImage.sprite.name : null;
+		mMaterialName = mImage.material != null ? mImage.material.name : null;
+		mShaderName = mImage.material != null && mImage.material.shader != null ? mImage.material.shader.name : null;
 	}
 	public override void destroy()
 	{
@@ -73,6 +82,7 @@ public class myUGUIImageSimple : myUGUIObject
 			return;
 		}
 		mImage.sprite = sprite;
+		mSpriteNameDirty = true;
 		if (useSpriteSize)
 		{
 			setSize(getSpriteSize() * sizeScale);
@@ -92,30 +102,33 @@ public class myUGUIImageSimple : myUGUIObject
 	}
 	public Image getImage() { return mImage; }
 	public Sprite getSprite() { return mImage.sprite; }
-	public void setMaterial(Material material) { mImage.material = material; }
-	public void setShader(Shader shader, bool force)
+	public void setMaterial(Material material) 
 	{
-		if(mImage == null || mImage.material == null)
+		mImage.material = material;
+		mMaterialNameDirty = true;
+	}
+	public void setShader(Shader shader)
+	{
+		if(mImage == null || mImage.material == null || mImage.material.shader == shader)
 		{
 			return;
 		}
-		if (force)
-		{
-			mImage.material.shader = null;
-			mImage.material.shader = shader;
-		}
+		mImage.material.shader = null;
+		mImage.material.shader = shader;
+		mShaderNameDirty = true;
 	}
 	public string getSpriteName()
 	{
-		if(mImage == null || mImage.sprite == null)
+		if (mSpriteNameDirty)
 		{
-			return null;
+			mSpriteNameDirty = false;
+			mSpriteName = mImage.sprite != null ? mImage.sprite.name : null;
 		}
-		return mImage.sprite.name;
+		return mSpriteName;
 	}
 	public Material getMaterial()
 	{
-		if(mImage == null)
+		if (mImage == null)
 		{
 			return null;
 		}
@@ -123,19 +136,21 @@ public class myUGUIImageSimple : myUGUIObject
 	}
 	public string getMaterialName()
 	{
-		if(mImage == null || mImage.material == null)
+		if (mMaterialNameDirty)
 		{
-			return null;
+			mMaterialNameDirty = false;
+			mMaterialName = mImage.material != null ? mImage.material.name : null;
 		}
-		return mImage.material.name;
+		return mMaterialName;
 	}
 	public string getShaderName()
 	{
-		if(mImage.material == null || mImage.material.shader == null)
+		if (mShaderNameDirty)
 		{
-			return null;
+			mShaderNameDirty = false;
+			mShaderName = mImage.material != null && mImage.material.shader != null ? mImage.material.shader.name : null;
 		}
-		return mImage.material.shader.name;
+		return mShaderName;
 	}
 	public override void setAlpha(float alpha)
 	{
@@ -149,7 +164,7 @@ public class myUGUIImageSimple : myUGUIObject
 		mImage.color = color;
 	}
 	public override float getAlpha() { return mImage.color.a; }
-	public override void setFillPercent(float percent) 
+	public void setFillPercent(float percent) 
 	{
 		if (mImage == null)
 		{
@@ -157,7 +172,7 @@ public class myUGUIImageSimple : myUGUIObject
 		}
 		mImage.fillAmount = percent; 
 	}
-	public override float getFillPercent() { return mImage.fillAmount; }
+	public float getFillPercent() { return mImage.fillAmount; }
 	public override void setColor(Color color) 
 	{
 		if (mImage == null)
@@ -168,11 +183,7 @@ public class myUGUIImageSimple : myUGUIObject
 	}
 	public void setColor(Vector3 color) 
 	{
-		if (mImage == null)
-		{
-			return;
-		}
-		mImage.color = new(color.x, color.y, color.z); 
+		setColor(new(color.x, color.y, color.z)); 
 	}
 	public override Color getColor() { return mImage.color; }
 	public void setUGUIRaycastTarget(bool enable) 

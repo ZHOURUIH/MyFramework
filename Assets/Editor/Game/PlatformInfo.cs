@@ -113,12 +113,13 @@ public abstract class PlatformInfo : PlatformBase
 		}
 		List<string> ignoreSuffix = new() { ".unity3d.manifest", ".meta" };
 		Dictionary<string, GameFileInfo> localFileInfoList = new();
-		string generatedContent = generateFileInfoList(uploadLocalPath, false, mIgnoreFile, null, ignoreSuffix);
+		string generatedContent = generateFileList(uploadLocalPath);
 		parseFileList(generatedContent, localFileInfoList);
 		// 如果扫描出来不一样就更新本地文件列表
 		if (generatedContent != content)
 		{
-			writeFileList(uploadLocalPath, generatedContent);
+			logError("扫描的本地文件信息与FileList中记录的信息不一致,请检查并重试");
+			return false;
 		}
 
 		log("本地共" + localFileInfoList.Count + "个文件");

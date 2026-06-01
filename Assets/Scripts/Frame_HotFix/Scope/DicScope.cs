@@ -10,13 +10,13 @@ public struct DicScope<K, V> : IDisposable
 	private Dictionary<K, V> mList;	// 分配的对象
 	public DicScope(out Dictionary<K, V> list)
 	{
-		if (GameEntry.getInstance() == null || mDictionaryPool == null)
+		if (GameEntryBase.getInstance() == null || mDictionaryPool == null)
 		{
 			list = new();
 			mList = null;
 			return;
 		}
-		string stackTrace = GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
+		string stackTrace = GameEntryBase.getInstance().mFrameworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
 		list = mDictionaryPool.newList(typeof(K), typeof(V), typeof(Dictionary<K, V>), stackTrace, true) as Dictionary<K, V>;
 		mList = list;
 	}

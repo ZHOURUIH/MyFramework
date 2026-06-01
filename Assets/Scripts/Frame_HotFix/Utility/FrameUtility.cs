@@ -58,7 +58,7 @@ public class FrameUtility
 	// 百分比一般用于属性增幅之类的
 	public static string toPercent(string value, int precision = 1) { return FToS(SToF(value) * 100, precision) + "%"; }
 	public static string toPercent(float value, int precision = 1) { return FToS(value * 100, precision) + "%"; }
-	// 几率类的一般是万分比的格式填写的
+	// 几率类的一般是万分比的格式填写的,10000表示100%
 	public static string toProbability(string value) { return FToS(SToF(value) * 0.01f) + "%"; }
 	public static string toProbability(float value) { return FToS(value * 0.01f) + "%"; }
 	public static string fixedAndPercent(int value, float percent)
@@ -95,11 +95,11 @@ public class FrameUtility
 	}
 	public static T PACKET<T>() where T : NetPacket
 	{
-		return mNetPacketFactory.createSocketPacket(typeof(T)) as T;
+		return mNetPacketFactory?.createSocketPacket(typeof(T)) as T;
 	}
 	public static T PACKET<T>(out T packet) where T : NetPacket
 	{
-		return packet = mNetPacketFactory.createSocketPacket(typeof(T)) as T;
+		return packet = mNetPacketFactory?.createSocketPacket(typeof(T)) as T;
 	}
 	// 获得一个合适的文件写入路径,fileName是StreamingAssets下的相对路径,带后缀
 	public static string availableWritePath(string fileName)
@@ -325,13 +325,13 @@ public class FrameUtility
 	}
 	public static void LIST<T>(out List<T> list)
 	{
-		if (GameEntry.getInstance() == null || mListPool == null)
+		if (GameEntryBase.getInstance() == null || mListPool == null)
 		{
 			list = new();
 			return;
 		}
 		string stackTrace = EMPTY;
-		if (GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace)
+		if (GameEntryBase.getInstance().mFrameworkParam.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
@@ -344,13 +344,13 @@ public class FrameUtility
 	}
 	public static List<T> LIST_PERSIST<T>(out List<T> list)
 	{
-		if (GameEntry.getInstance() == null || mListPool == null)
+		if (GameEntryBase.getInstance() == null || mListPool == null)
 		{
 			list = new();
 			return list;
 		}
 		string stackTrace = EMPTY;
-		if (GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace)
+		if (GameEntryBase.getInstance().mFrameworkParam.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
@@ -385,13 +385,13 @@ public class FrameUtility
 	}
 	public static HashSet<T> SET_PERSIST<T>(out HashSet<T> list, List<T> initList = null)
 	{
-		if (GameEntry.getInstance() == null || mListPool == null)
+		if (GameEntryBase.getInstance() == null || mListPool == null)
 		{
 			list = new();
 			return list;
 		}
 		string stackTrace = EMPTY;
-		if (GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace)
+		if (GameEntryBase.getInstance().mFrameworkParam.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
@@ -416,13 +416,13 @@ public class FrameUtility
 	}
 	public static Dictionary<K, V> DIC_PERSIST<K, V>(out Dictionary<K, V> list)
 	{
-		if (GameEntry.getInstance() == null || mListPool == null)
+		if (GameEntryBase.getInstance() == null || mListPool == null)
 		{
 			list = new();
 			return list;
 		}
 		string stackTrace = EMPTY;
-		if (GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace)
+		if (GameEntryBase.getInstance().mFrameworkParam.mEnablePoolStackTrace)
 		{
 			stackTrace = getStackTrace();
 		}
@@ -1598,6 +1598,18 @@ public class FrameUtility
 			fullTrace.AppendLine(IToS(frame.GetFileLineNumber()));
 		}
 		return fullTrace.ToString();
+	}
+	public static string getClassNameFromGameObject(GameObject go)
+	{
+		if (go == null)
+		{
+			return "";
+		}
+		if (go.TryGetComponent(out UGUISubGenerator com))
+		{
+			return com.mAutoType ? go.name.removeEndNumber() : com.mCustomClassName;
+		}
+		return go.name.removeEndNumber();
 	}
 	public static int makeID()
 	{

@@ -99,10 +99,7 @@ public class ExcelTable
 	{
 		foreach (T value in valueList)
 		{
-			if (!isEnumValid(value))
-			{
-				logError("enum value error,name:" + varName + " in " + mTableName + ", ID:" + IToS(dataID) + ", Table:" + getTableName());
-			}
+			checkEnum(value, varName, dataID);
 		}
 	}
 	public void checkData(int id, int refDataID, string tableName)
@@ -120,10 +117,7 @@ public class ExcelTable
 	{
 		foreach (int id in ids)
 		{
-			if (getData(id, false) == null)
-			{
-				logError(mTableName + "中ID不存在:" + id + ", 引用此数据的表格:" + tableName + ", ID:" + refDataID);
-			}
+			checkData(id, refDataID, tableName);
 		}
 	}
 	public void checkData(List<int> ids, int refDataID, ExcelTable table)
@@ -134,10 +128,7 @@ public class ExcelTable
 	{
 		foreach (int id in ids)
 		{
-			if (getData(id, false) == null)
-			{
-				logError(mTableName + "中ID不存在:" + id + ", 引用此数据的表格:" + tableName + ", ID:" + refDataID);
-			}
+			checkData(id, refDataID, tableName);
 		}
 	}
 	public void checkData(List<ushort> ids, int refDataID, ExcelTable table)

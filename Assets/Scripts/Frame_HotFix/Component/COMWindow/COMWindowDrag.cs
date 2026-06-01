@@ -55,7 +55,7 @@ public class COMWindowDrag : ComponentDrag
 		Collider collider = (mComponentOwner as myUGUIObject).getCollider();
 		if (collider == null)
 		{
-			logError("not find collider, can not drag!");
+			logError("not find collider, can not drag! name:" + mComponentOwner.getName());
 			return false;
 		}
 		return collider.Raycast(getUIRay(touchPosition), out _, 10000.0f);

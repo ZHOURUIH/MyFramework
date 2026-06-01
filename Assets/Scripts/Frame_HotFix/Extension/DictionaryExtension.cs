@@ -456,6 +456,13 @@ public static class DictionaryExtension
 			map.Remove(item.Key);
 		}
 	}
+	public static void removeFirstValue<Key, T>(this Dictionary<Key, T> map, T value)
+	{
+		if (findKey(map, value, out Key key))
+		{
+			map.Remove(key);
+		}
+	}
 	public static void remove<Key, T>(this Dictionary<Key, T> map, Key key0, Key key1)
 	{
 		map.Remove(key0);
@@ -563,6 +570,19 @@ public static class DictionaryExtension
 			}
 		}
 		value = default;
+		return false;
+	}
+	public static bool findKey<TKey, TValue>(this Dictionary<TKey, TValue> list, TValue value, out TKey key)
+	{
+		foreach (var item in list)
+		{
+			if (equal(item.Value, value))
+			{
+				key = item.Key;
+				return true;
+			}
+		}
+		key = default;
 		return false;
 	}
 	public static bool findKey<TKey, TValue>(this Dictionary<TKey, TValue> list, Predicate2<TKey, TValue> action, out TKey key)

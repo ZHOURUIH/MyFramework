@@ -597,7 +597,7 @@ public static class StringExtension
 			return str;
 		}
 	}
-	public static string replaceAll(string str, char key, char newWords)
+	public static string replaceAll(this string str, char key, char newWords)
 	{
 		using var a = new MyStringBuilderScope(out var builder);
 		builder.add(str);
@@ -883,8 +883,7 @@ public static class StringExtension
 			return null;
 		}
 		// 默认为UTF8
-		encoding ??= Encoding.UTF8;
-		return encoding.GetBytes(str);
+		return (encoding ?? Encoding.UTF8).GetBytes(str);
 	}
 	public static string convertStringFormat(this string str, Encoding source, Encoding target)
 	{

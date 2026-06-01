@@ -30,7 +30,7 @@ public class MenuAssets
 				return;
 			}
 			string assetPath = AssetDatabase.GetAssetPath(obj);
-			string outputPath = projectPathToFullPath(getFilePath(assetPath, true) + getFolderName(assetPath));
+			string outputPath = projectPathToFullPath(getFilePath(assetPath, true) + tex.name);
 			if (multiSpriteToSpritePNG(tex, outputPath))
 			{
 				Debug.Log("已输出图片到" + outputPath);
@@ -41,62 +41,6 @@ public class MenuAssets
 			}
 		}
 		AssetDatabase.Refresh();
-	}
-	[MenuItem(mMenuName + "根据文件夹创建图集文件")]
-	public static void createSpriteAtlasByFolder()
-	{
-		foreach (UObject obj in Selection.GetFiltered(typeof(UObject), SelectionMode.Assets))
-		{
-			string path = AssetDatabase.GetAssetPath(obj);
-			if (!isDirExist(path))
-			{
-				Debug.LogError("选择的不是文件夹");
-				return;
-			}
-			List<string> textureList = findFilesNonAlloc(projectPathToFullPath(path), ".png", false);
-			if (textureList.Count == 0)
-			{
-				Debug.Log("选择的文件夹中没有图片资源");
-				return;
-			}
-			if (textureList.contains(file=> loadFirstSubAsset<Sprite>(file) == null))
-			{
-				Debug.LogError("图片导入方式不是Sprite, 无法生成图集");
-				return;
-			}
-			SpriteAtlas atlas = new();
-			atlas.SetIncludeInBuild(true);
-			atlas.SetIsVariant(false);
-			// 打包设置
-			SpriteAtlasPackingSettings packing = new()
-			{
-				enableRotation = false,
-				enableTightPacking = false,
-				padding = 4
-			};
-			atlas.SetPackingSettings(packing);
-			// 纹理设置
-			SpriteAtlasTextureSettings texture = new()
-			{
-				readable = false,
-				generateMipMaps = false,
-				filterMode = FilterMode.Bilinear,
-				anisoLevel = 1
-			};
-			atlas.SetTextureSettings(texture);
-			atlas.Add(new[] { obj });
-
-			// 保存文件
-			string savePath = path + "/" + getFolderName(path) + SPRITE_ATLAS_SUFFIX;
-			if (isFileExist(savePath))
-			{
-				AssetDatabase.DeleteAsset(savePath);
-			}
-			AssetDatabase.CreateAsset(atlas, savePath);
-			AssetDatabase.SaveAssets();
-			AssetDatabase.Refresh();
-			Debug.Log("已创建图集：" + savePath + ",sprite数量:" + textureList.Count);
-		}
 	}
 	[MenuItem(mMenuName + "精简TMP字体大小,但是精简完以后无法再替换材质")]
 	public static void extractTexture()
@@ -140,6 +84,7 @@ public class MenuAssets
 	[MenuItem(mMenuName + "修正引用了Border的sprite但是没有使用Slice的组件", false, 133)]
 	public static void fixNeedUseSliceImage()
 	{
+		Debug.Log("开始修正引用了Border的sprite但是没有使用Slice的组件...");
 		// 无法通过Selection.gameObjects来判断,只能使用Selection.transforms来判断
 		// 选中的是文件或者文件夹
 		if (Selection.transforms.count() == 0)
@@ -149,9 +94,7 @@ public class MenuAssets
 				string path = AssetDatabase.GetAssetPath(obj);
 				if (Directory.Exists(path))
 				{
-					List<string> files = new();
-					findFiles(projectPathToFullPath(path), files, ".prefab");
-					foreach (string file in files)
+					foreach (string file in findFilesNonAlloc(projectPathToFullPath(path), ".prefab"))
 					{
 						GameObject prefab = loadAsset<GameObject>(file);
 						if (doFixSingleNeedUseSliceImage(prefab))
@@ -171,9 +114,35 @@ public class MenuAssets
 			}
 		}
 	}
+	[MenuItem(mMenuName + "检查引用了ImageType为Slice的组件引用了没有Border的节点", false, 133)]
+	public static void checkSliceImageUseNoBorderSprite()
+	{
+		Debug.Log("开始检查引用了ImageType为Slice的组件引用了没有Border的节点...");
+		// 无法通过Selection.gameObjects来判断,只能使用Selection.transforms来判断
+		// 选中的是文件或者文件夹
+		if (Selection.transforms.count() == 0)
+		{
+			foreach (UObject obj in Selection.GetFiltered(typeof(UObject), SelectionMode.Assets))
+			{
+				string path = AssetDatabase.GetAssetPath(obj);
+				if (Directory.Exists(path))
+				{
+					foreach (string file in findFilesNonAlloc(projectPathToFullPath(path), ".prefab"))
+					{
+						doCheckSliceImageButNoBorder(loadAsset<GameObject>(file));
+					}
+				}
+				else if (isFileExist(path))
+				{
+					doCheckSliceImageButNoBorder(loadAsset<GameObject>(path));
+				}
+			}
+		}
+	}
 	[MenuItem(mMenuName + "修正ImageAtlasPath记录的图集路径", false, 133)]
 	public static void fixImageAtlasPath()
 	{
+		Debug.Log("开始修正...");
 		// 无法通过Selection.gameObjects来判断,只能使用Selection.transforms来判断
 		// 选中的是文件或者文件夹
 		if (Selection.transforms.count() == 0)
@@ -414,6 +383,27 @@ public class MenuAssets
 			}
 		}
 		return modified;
+	}
+	// 检查引用了Border的sprite但是没有使用Slice的组件,但不修改Prefab,仅修改内存中的对象,适用于当前选中的是场景中的对象
+	protected static void doCheckSliceImageButNoBorder(GameObject prefab)
+	{
+		foreach (var img in prefab.GetComponentsInChildren<Image>(true))
+		{
+			// 跳过未分配Sprite的节点
+			if (img.sprite == null)
+			{
+				continue;
+			}
+			bool hasBorder = img.sprite.border.x > 0 ||
+							 img.sprite.border.y > 0 ||
+							 img.sprite.border.z > 0 ||
+							 img.sprite.border.w > 0;
+			// 检查条件：有边框但未使用Slice模式
+			if (!hasBorder && img.type == Image.Type.Sliced)
+			{
+				Debug.LogError("ImageType为slice,但是引用的图片没有border,GameObject:" + img.gameObject.name + ", prefab:" + prefab.name + ", 图片:" + img.sprite.name, img.sprite.texture);
+			}
+		}
 	}
 	protected static bool doFixImageAtlasPath(GameObject prefab, Dictionary<string, SpriteAtlas> atlasListCache)
 	{

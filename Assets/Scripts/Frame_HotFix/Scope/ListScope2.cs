@@ -12,7 +12,7 @@ public struct ListScope2<T> : IDisposable
 	private List<T> mList1;      // 分配的对象
 	public ListScope2(out List<T> list0, out List<T> list1)
 	{
-		if (GameEntry.getInstance() == null || mListPool == null)
+		if (GameEntryBase.getInstance() == null || mListPool == null)
 		{
 			list0 = new();
 			list1 = new();
@@ -20,7 +20,7 @@ public struct ListScope2<T> : IDisposable
 			mList1 = null;
 			return;
 		}
-		string stackTrace = GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
+		string stackTrace = GameEntryBase.getInstance().mFrameworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
 		list0 = mListPool.newList(typeof(T), typeof(List<T>), stackTrace, true) as List<T>;
 		list1 = mListPool.newList(typeof(T), typeof(List<T>), stackTrace, true) as List<T>;
 		mList0 = list0;

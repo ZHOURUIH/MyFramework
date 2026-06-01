@@ -14,10 +14,8 @@ public class Transformable : ComponentOwner, ITransformable
 	protected List<Action> mScaleModifyCallback;		// 使用注册回调的方式来代替虚函数重写
 	protected List<Action> mWorldScaleModifyCallback;   // 使用注册回调的方式来代替虚函数重写
 	protected Vector3 mLastWorldScale;                  // 上一次设置的世界缩放值
-	protected bool mPositionDirty = true;				// 位置是否有更改
 	protected bool mNeedUpdate = true;					// 是否启用更新,与Active共同控制是否执行更新
 	protected bool mActive;								// 缓存的GameObject.activeSelf状态,用于避免频繁访问activeSelf属性
-	protected Vector3 mPosition;						// 单独存储位置,可以在大多数时候避免访问Transform
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -28,10 +26,8 @@ public class Transformable : ComponentOwner, ITransformable
 		mScaleModifyCallback?.Clear();
 		mWorldScaleModifyCallback?.Clear();
 		mLastWorldScale = Vector3.zero;
-		mPositionDirty = true;
 		mNeedUpdate = true;
 		mActive = false;
-		mPosition = Vector3.zero;
 	}
 	public override void update(float elapsedTime)
 	{
@@ -129,6 +125,7 @@ public class Transformable : ComponentOwner, ITransformable
 		return collider.Raycast(ray, out hit, maxDistance);
 	}
 	public GameObject getGameObject() { return mObject; }
+	public string getGameObjectPath() { return UnityUtility.getGameObjectPath(mObject); }
 	public int getGameObjectInstanceID() { return getGameObjectID(mObject); }
 	public bool isUnityComponentEnabled<T>() where T : Behaviour
 	{
@@ -258,15 +255,7 @@ public class Transformable : ComponentOwner, ITransformable
 		mWorldScaleModifyCallback.add(callback); 
 	}
 	public void removeScaleModifyCallback(Action callback) { mScaleModifyCallback.Remove(callback); }
-	public Vector3 getPosition()
-	{
-		if (mPositionDirty)
-		{
-			mPositionDirty = false;
-			mPosition = mTransform.localPosition;
-		}
-		return mPosition;
-	}
+	public Vector3 getPosition() { return mTransform.localPosition; }
 	public Vector3 getRotation()
 	{
 		Vector3 vector3 = mTransform.localEulerAngles;
@@ -294,15 +283,10 @@ public class Transformable : ComponentOwner, ITransformable
 	public Quaternion getWorldQuaternionRotation() { return mTransform != null ? mTransform.rotation : Quaternion.identity; }
 	public void setPosition(Vector3 pos)
 	{
-		if (mTransform == null)
+		if (mTransform == null || isVectorEqual(mTransform.localPosition, pos))
 		{
 			return;
 		}
-		if (isVectorEqual(mTransform.localPosition, pos))
-		{
-			return;
-		}
-		mPositionDirty = true;
 		mTransform.localPosition = pos;
 		foreach (Action item in mPositionModifyCallback.safe())
 		{
@@ -357,7 +341,6 @@ public class Transformable : ComponentOwner, ITransformable
 		{
 			return;
 		}
-		mPositionDirty = true;
 		mTransform.position = pos;
 		foreach (Action item in mPositionModifyCallback.safe())
 		{
@@ -500,7 +483,6 @@ public class Transformable : ComponentOwner, ITransformable
 		{
 			return;
 		}
-		mPositionDirty = true;
 		mTransform.localPosition = Vector3.zero;
 		mTransform.localEulerAngles = Vector3.zero;
 		mTransform.localScale = Vector3.one;
@@ -523,7 +505,6 @@ public class Transformable : ComponentOwner, ITransformable
 		if (parentTrans != mTransform.parent)
 		{
 			mTransform.SetParent(parentTrans);
-			mPositionDirty = true;
 			if (resetTrans)
 			{
 				resetTransform();
@@ -536,7 +517,6 @@ public class Transformable : ComponentOwner, ITransformable
 		this.MOVE(objTrans.localPosition);
 		this.ROTATE(objTrans.localEulerAngles);
 		this.SCALE(objTrans.localScale);
-		mPositionDirty = true;
 	}
 	public virtual bool isChildOf(IMouseEventCollect parent)
 	{

@@ -21,9 +21,9 @@ public class TimeUtility
 	public static string getDateTimeToUTC(long utcTimeStamp, TIME_DISPLAY display) { return getTimeString(timeStampToDateTimeUTC(utcTimeStamp), display); }
 	// timeStamp是UTC时间戳,会转换为本地时间来显示
 	public static string getLocalTime(long utcTimeStamp, TIME_DISPLAY display) { return getTimeString(timeStampToDateTime(utcTimeStamp), display); }
-	// 将时间转化成时间戳,dateTime是本地时间
+	// 将时间转化成时间戳,这里不区分是否为utc时间
 	public static long dateTimeToTimeStamp(DateTime dateTime) { return (long)(dateTime - mTime19700101).TotalSeconds; }
-	// 将时间转化成时间戳,dateTime是本地时间
+	// 将时间转化成时间戳,这里不区分是否为utc时间
 	public static long dateTimeToTimeStampMS(DateTime dateTime) { return (long)(dateTime - mTime19700101).TotalMilliseconds; }
 	// 将时间戳转化成时间,转换后是本地时间
 	public static DateTime timeStampToDateTime(long utcTimeStamp) { return mTime19700101.AddSeconds(utcTimeStamp).ToLocalTime(); }
@@ -39,10 +39,10 @@ public class TimeUtility
 	public static long getNowUTCTimeStamp() { return dateTimeToTimeStamp(DateTime.UtcNow); }
 	// 获得当前的UTC时间戳,以毫秒为单位
 	public static long getNowUTCTimeStampMS() { return dateTimeToTimeStampMS(DateTime.UtcNow); }
-	// 判断两个时间戳是否在同一天,time为localtime
+	// 判断两个时间戳是否在同一天,time为utctime
 	public static bool isSameDay(long utcTimeStamp0, long utcTimeStamp1)
 	{
-		return isSameDay(timeStampToDateTime(utcTimeStamp0), timeStampToDateTime(utcTimeStamp1));
+		return isSameDay(timeStampToDateTimeUTC(utcTimeStamp0), timeStampToDateTimeUTC(utcTimeStamp1));
 	}
 	// 判断两个时间是否在同一天
 	public static bool isSameDay(DateTime date0, DateTime date1)
@@ -52,7 +52,7 @@ public class TimeUtility
 			   date0.Day == date1.Day;
 	}
 	// 判断指定时间是否在今天,time为localtime
-	public static bool isTodayTime(long utcTimeStamp) { return isSameDay(timeStampToDateTime(utcTimeStamp), DateTime.Now); }
+	public static bool isTodayTime(long utcTimeStamp) { return isSameDay(timeStampToDateTimeUTC(utcTimeStamp), DateTime.Now); }
 	// 判断指定时间是否在今天
 	public static bool isTodayTime(DateTime date) { return isSameDay(date, DateTime.Now); }
 	// 获取今天的时间,如果hour为0,就是今天的凌晨0点

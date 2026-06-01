@@ -266,7 +266,7 @@ public class UnityUtility
 	}
 	public static void cloneObjectAsync(GameObject oriObj, string name, GameObjectCallback callback)
 	{
-		GameEntry.startCoroutine(instantiateCoroutine(oriObj, name, callback));
+		GameEntryBase.startCoroutine(instantiateCoroutine(oriObj, name, callback));
 	}
 	public static GameObject createGameObject(string name, GameObject parent = null)
 	{
@@ -1135,47 +1135,39 @@ public class UnityUtility
 	public static Vector2 getRootSize() { return getUGUIRoot().getSize(); }
 	// 获取屏幕独立的缩放值
 	public static Vector2 getScreenScale() { return FrameBaseUtility.getScreenScale(mScreenSize); }
+	// 获取常用情况下的自动缩放比例
+	public static float getScreenScaleAuto() { return generateScreenScaleByAspectBase(getScreenScale(), ASPECT_BASE.AUTO).x; }
 	// 根据一定规则,获取屏幕的缩放
-	public static Vector2 getScreenScale(ASPECT_BASE aspectBase) { return adjustScreenScale(getScreenScale(), aspectBase); }
-	public static Vector3 adjustScreenScale(Vector2 screenScale, ASPECT_BASE aspectBase = ASPECT_BASE.AUTO)
+	public static Vector2 getScreenScale(ASPECT_BASE aspectBase) { return generateScreenScaleByAspectBase(getScreenScale(), aspectBase); }
+	public static Vector2 generateScreenScaleByAspectBase(Vector2 screenScale, ASPECT_BASE aspectBase = ASPECT_BASE.AUTO)
 	{
-		Vector3 newScale = screenScale;
-		if (aspectBase != ASPECT_BASE.NONE)
+		Vector2 newScale = screenScale;
+		if (aspectBase == ASPECT_BASE.USE_HEIGHT_SCALE)
 		{
-			if (aspectBase == ASPECT_BASE.USE_HEIGHT_SCALE)
-			{
-				newScale.x = screenScale.y;
-				newScale.y = screenScale.y;
-			}
-			else if (aspectBase == ASPECT_BASE.USE_WIDTH_SCALE)
-			{
-				newScale.x = screenScale.x;
-				newScale.y = screenScale.x;
-			}
-			else if (aspectBase == ASPECT_BASE.AUTO)
-			{
-				newScale.x = getMin(screenScale.x, screenScale.y);
-				newScale.y = getMin(screenScale.x, screenScale.y);
-			}
-			else if (aspectBase == ASPECT_BASE.INVERSE_AUTO)
-			{
-				newScale.x = getMax(screenScale.x, screenScale.y);
-				newScale.y = getMax(screenScale.x, screenScale.y);
-			}
+			newScale.x = screenScale.y;
+			newScale.y = newScale.x;
 		}
-		// Z轴按照Y轴的缩放值来缩放
-		newScale.z = newScale.y;
+		else if (aspectBase == ASPECT_BASE.USE_WIDTH_SCALE)
+		{
+			newScale.x = screenScale.x;
+			newScale.y = newScale.x;
+		}
+		else if (aspectBase == ASPECT_BASE.AUTO)
+		{
+			newScale.x = getMin(screenScale.x, screenScale.y);
+			newScale.y = newScale.x;
+		}
+		else if (aspectBase == ASPECT_BASE.INVERSE_AUTO)
+		{
+			newScale.x = getMax(screenScale.x, screenScale.y);
+			newScale.y = newScale.x;
+		}
 		return newScale;
 	}
-	// 根据屏幕适配的x方向的缩放,来调整originValue的值
-	public static float applyScreenScaleX(float originValue, ASPECT_BASE aspectBase = ASPECT_BASE.AUTO)
+	// 根据屏幕适配的缩放,来调整originValue的值
+	public static float adjustByScreenScaleAuto(float originValue)
 	{
-		return originValue * getScreenScale(aspectBase).x;
-	}
-	// 根据屏幕适配的y方向的缩放,来调整originValue的值
-	public static float applyScreenScaleY(float originValue, ASPECT_BASE aspectBase = ASPECT_BASE.AUTO)
-	{
-		return originValue * getScreenScale(aspectBase).y;
+		return originValue * getScreenScaleAuto();
 	}
 	public static Material findMaterial(Renderer render)
 	{

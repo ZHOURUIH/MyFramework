@@ -40,7 +40,7 @@ public class myUGUIImageNumber : myUGUIObject
 			string atlasPath = imageAtlasPath.mAtlasPath;
 			if (atlasPath.isEmpty())
 			{
-				logError("ImageAtlasPath中记录的路径为空,GameObject:" + getGameObjectPath(mObject));
+				logError("ImageAtlasPath中记录的路径为空,GameObject:" + getGameObjectPath());
 			}
 			// unity_builtin_extra是unity内置的资源,不需要再次加载
 			if (!atlasPath.endWith("/unity_builtin_extra"))
@@ -71,8 +71,8 @@ public class myUGUIImageNumber : myUGUIObject
 	public override void notifyAnchorApply()
 	{
 		base.notifyAnchorApply();
-		// 此处默认数字窗口都是以ASPECT_BASE.AB_AUTO的方式等比放大
-		mRenderer.setInterval((int)(mRenderer.getInterval() * getScreenScale(ASPECT_BASE.AUTO).x));
+		// 此处默认数字窗口都是以ASPECT_BASE.AUTO的方式等比放大
+		mRenderer.setInterval((int)adjustByScreenScaleAuto(mRenderer.getInterval()));
 	}
 	public override void cloneFrom(myUGUIObject obj)
 	{

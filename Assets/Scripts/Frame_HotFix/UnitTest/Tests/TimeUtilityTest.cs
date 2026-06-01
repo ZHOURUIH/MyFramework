@@ -32,6 +32,13 @@ public static class TimeUtilityTest
 		testGetMonthEnd();
 		testGetYearEnd();
 		testThisTimeMS();
+		testNowTimeStamps();
+		testMinuteToHourMinute();
+		testTodayBoundaries();
+        testParameterlessEnds();
+        testTimeString4Out();
+        testMoreTimeHelpers();
+        testTimestampOverloads();
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
@@ -268,6 +275,117 @@ public static class TimeUtilityTest
 
 		setThisTimeMS(0L);
 		assertEqual(getThisTimeMS(), 0L, "setThisTimeMS 0");
+	}
+
+	private static void testNowTimeStamps()
+	{
+		long now = getNowTimeStamp();
+		assert(now > 0, "getNowTimeStamp > 0");
+
+		long nowMs = getNowTimeStampMS();
+		assert(nowMs > 0, "getNowTimeStampMS > 0");
+
+		long utc = getNowUTCTimeStamp();
+		assert(utc > 0, "getNowUTCTimeStamp > 0");
+
+		long utcMs = getNowUTCTimeStampMS();
+		assert(utcMs > 0, "getNowUTCTimeStampMS > 0");
+	}
+
+    private static void testMinuteToHourMinute()
+    {
+        assertEqual("1小时", minuteToHourMinuteString(60), "60min=1小时");
+        assertEqual("2小时30分钟", minuteToHourMinuteString(150), "150min=2小时30分钟");
+        assertEqual("", minuteToHourMinuteString(0), "0min=空");
+        assertEqual("45分钟", minuteToHourMinuteString(45), "45min=45分钟");
+    }
+
+	private static void testTodayBoundaries()
+	{
+		// 当天开始的时间戳应该 ≤ 当前时间戳
+		long todayBegin = getTodayBeginTimeStamp();
+		assert(todayBegin > 0, "getTodayBeginTimeStamp > 0");
+
+		// getTimeToTodayEnd / getSecondsToTodayEnd
+		TimeSpan remain = getTimeToTodayEnd();
+		assert(remain.TotalSeconds >= 0, "getTimeToTodayEnd >= 0");
+
+		int secRemain = getSecondsToTodayEnd();
+		assert(secRemain >= 0, "getSecondsToTodayEnd >= 0");
+	}
+
+	private static void testParameterlessEnds()
+	{
+		// 无参数版本应返回未来时间
+		DateTime dayEnd = getDayEnd();
+		assert(dayEnd > DateTime.Now, "getDayEnd() > now");
+
+		DateTime weekEnd = getWeekEnd();
+		assert(weekEnd > DateTime.Now, "getWeekEnd() > now");
+
+		DateTime monthEnd = getMonthEnd();
+		assert(monthEnd > DateTime.Now, "getMonthEnd() > now");
+
+		DateTime yearEnd = getYearEnd();
+		assert(yearEnd > DateTime.Now, "getYearEnd() > now");
+	}
+
+	private static void testTimeString4Out()
+	{
+		// 90061 秒 = 1天1小时1分 （不返回秒）
+		string fmt = getTimeString(90061, out int days, out int hours, out int minutes);
+		assertEqual(days,    1, "4out days=1");
+		assertEqual(hours,   1, "4out hours=1");
+		assertEqual(minutes, 1, "4out minutes=1");
+		assert(fmt.Length > 0, "4out fmt not empty");
+
+		// 0秒
+		string fmt0 = getTimeString(0, out int d0, out int h0, out int m0);
+		assertEqual(d0, 0, "4out 0s days=0");
+		assertEqual(h0, 0, "4out 0s hours=0");
+		assertEqual(m0, 0, "4out 0s minutes=0");
+	}
+
+	private static void testMoreTimeHelpers()
+	{
+		// getNowTime / getTimeNoLock / getTimeNoBuilder — 返回非空字符串
+		string now = getNowTime(TIME_DISPLAY.HMS_2);
+		assert(now.Length > 0, "getNowTime HMS_2 not empty");
+
+		string locked = getTimeNoLock(TIME_DISPLAY.HMS_2);
+		assert(locked.Length > 0, "getTimeNoLock not empty");
+
+		string noBuilder = getTimeNoBuilder(TIME_DISPLAY.HMS_2);
+		assert(noBuilder.Length > 0, "getTimeNoBuilder not empty");
+
+		// getDateTimeToUTC / getLocalTime — 时间戳转字符串
+		string utc = getDateTimeToUTC(0L, TIME_DISPLAY.YMD_ZH);
+		assert(utc.Contains("1970"), "getDateTimeToUTC epoch 1970");
+
+		string local = getLocalTime(0L, TIME_DISPLAY.YMD_ZH);
+		assert(local.Length > 0, "getLocalTime not empty");
+	}
+
+	private static void testTimestampOverloads()
+	{
+		// isSameDay(long, long) — 相同/不同时间戳
+		long ts1 = dateTimeToTimeStamp(new DateTime(2024, 3, 15, 10, 0, 0, DateTimeKind.Utc));
+		long ts2 = dateTimeToTimeStamp(new DateTime(2024, 3, 15, 23, 0, 0, DateTimeKind.Utc));
+		long ts3 = dateTimeToTimeStamp(new DateTime(2024, 3, 16, 0, 0, 0, DateTimeKind.Utc));
+		assert(isSameDay(ts1, ts2), "isSameDay ts same day");
+		assert(!isSameDay(ts1, ts3), "isSameDay ts diff day");
+
+		// getTodayTime — 构建今天的时间
+		DateTime todayTime = getTodayTime(14, 30, 0);
+		assertEqual(14, todayTime.Hour, "getTodayTime hour");
+		assertEqual(30, todayTime.Minute, "getTodayTime minute");
+		assertEqual(0, todayTime.Second, "getTodayTime second");
+		assertEqual(DateTime.Now.Year, todayTime.Year, "getTodayTime year");
+
+		// getDayEnd(long) / getWeekEnd(long) / getMonthEnd(long) / getYearEnd(long)
+		long ts = dateTimeToTimeStamp(DateTime.Now);
+		DateTime dayEnd = getDayEnd(ts);
+		assert(dayEnd > DateTime.Now, "getDayEnd(ts) > now");
 	}
 }
 #endif

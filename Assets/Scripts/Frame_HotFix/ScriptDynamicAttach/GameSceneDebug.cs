@@ -8,7 +8,7 @@ public class GameSceneDebug : MonoBehaviour
 	public void setGameScene(GameScene scene) { mGameScene = scene; }
 	public void Update()
 	{
-		if (GameEntry.getInstance() == null || !GameEntry.getInstance().mFramworkParam.mEnableScriptDebug)
+		if (GameEntryBase.getInstance() == null || !GameEntryBase.getInstance().mFrameworkParam.mEnableScriptDebug)
 		{
 			return;
 		}

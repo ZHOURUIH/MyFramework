@@ -11,7 +11,7 @@ public class HttpUtility
 	// 异步get请求,webgl可用
 	public static void httpGetAsyncWebGL(string url, Dictionary<string, string> paramList, UnityHttpCallback callback)
 	{
-		GameEntry.startCoroutine(unityPrepareGet(url, "application/x-www-form-urlencoded", null, paramList, callback, 10));
+		GameEntryBase.startCoroutine(unityPrepareGet(url, "application/x-www-form-urlencoded", null, paramList, callback, 10));
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected static IEnumerator unityPrepareGet(string url, string contentType, Dictionary<string, string> header, Dictionary<string, string> paramList, UnityHttpCallback callback, int timeoutSecond)

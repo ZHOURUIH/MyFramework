@@ -27,7 +27,7 @@ public class FrameSystem : ComponentOwner
 	{
 		if (mCreateObject)
 		{
-			mObject = createGameObject(GetType().ToString(), GameEntry.getInstanceObject());
+			mObject = createGameObject(GetType().ToString(), GameEntryBase.getInstanceObject());
 		}
 		initComponents();
 	}

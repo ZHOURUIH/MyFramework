@@ -308,9 +308,7 @@ public class BinaryUtility
 	}
 	public static bool getBufferBit(byte[] buffer, int bitIndex) { return hasBit(buffer[bitIndex >> 3], bitIndex & 7); }
 	public static void setBufferBitOne(byte[] buffer, int bitIndex) { setBitOne(ref buffer[bitIndex >> 3], bitIndex & 7); }
-	//------------------------------------------------------------------------------------------------------------------------------
-	// 直接写入一个无符号整数,不考虑任何情况
-	protected static void initCRC16()
+	public static void initCRC16()
 	{
 		using (new ThreadLockScope(mCRC16TableLock))
 		{

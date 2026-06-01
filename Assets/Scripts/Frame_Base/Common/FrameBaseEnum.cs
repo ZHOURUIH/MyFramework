@@ -11,7 +11,7 @@ public enum WINDOW_MODE : byte
 	FULL_SCREEN_CUSTOM_RESOLUTION,  // 全屏并且使用下面设置的分辨率
 }
 
-// 缩放比例的计算方式
+// 等比缩放比例的计算方式
 public enum ASPECT_BASE : byte
 {
 	[EnumLabel("根据屏幕宽度进行缩放")]

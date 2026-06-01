@@ -71,7 +71,7 @@ public class WindowStructPoolBase : IWindowObjectOwner
 	public void setActive(bool active)					{ mItemParent.setActive(active); }
 	public void setItemPreName(string preName)			{ mPreName = preName; }
 	public void setObjectType(Type type)				{ mObjectType = type; }
-	public void setMoveToLast(bool moveToLast)	{ mNewItemMoveToLast = moveToLast; }
+	public void setMoveToLast(bool moveToLast)			{ mNewItemMoveToLast = moveToLast; }
 	public virtual void unuseAll() { }
 	public void refreshUIDepth(bool ignoreInactive = true)
 	{
@@ -80,7 +80,7 @@ public class WindowStructPoolBase : IWindowObjectOwner
 	// 将自动排列的方法直接写到对象池中,方便使用
 	// 一般对于排列是有两个地方有需求,1:滑动列表,2:不可滑动,但是有多个相似节点需要动态创建后排列好
 	// 一般滑动列表都会需要在排列好后将边对齐父节点,而对于不可滑动的列表,需求会根据实际情况有不同
-	public void autoGridHorizontalForDragView()
+	public void autoGridHorizontalForDrag()
 	{
 		WidgetUtility.autoGridHorizontal(mItemParent, true, true, 0.0f, true, 0.0f, 0.0f, 0.0f, true);
 		mItemParent.setLeftCenterToParentLeftCenter();
@@ -89,39 +89,39 @@ public class WindowStructPoolBase : IWindowObjectOwner
 	{
 		WidgetUtility.autoGridHorizontal(mItemParent, true, true, 0.0f, true, 0.0f, 0.0f, 0.0f, true);
 	}
-	public void autoGridHorizontal(float interval)
+	public void autoGridHorizontal(float intervalNoScreenScale)
 	{
-		WidgetUtility.autoGridHorizontal(mItemParent, true, true, interval, true, 0.0f, 0.0f, 0.0f, true);
+		WidgetUtility.autoGridHorizontal(mItemParent, true, true, intervalNoScreenScale, true, 0.0f, 0.0f, 0.0f, true);
 	}
 	public void autoGridHorizontal(bool keepLeftSide)
 	{
 		WidgetUtility.autoGridHorizontal(mItemParent, true, true, 0.0f, true, 0.0f, 0.0f, 0.0f, keepLeftSide);
 	}
-	public void autoGridHorizontal(float interval, bool keepLeftSide)
+	public void autoGridHorizontal(float intervalNoScreenScale, bool keepLeftSide)
 	{
-		WidgetUtility.autoGridHorizontal(mItemParent, true, true, interval, true, 0.0f, 0.0f, 0.0f, keepLeftSide);
+		WidgetUtility.autoGridHorizontal(mItemParent, true, true, intervalNoScreenScale, true, 0.0f, 0.0f, 0.0f, keepLeftSide);
 	}
 	public void autoGridHorizontal(bool autoRefreshUIDepth, bool refreshIgnoreInactive)
 	{
 		WidgetUtility.autoGridHorizontal(mItemParent, autoRefreshUIDepth, refreshIgnoreInactive, 0.0f, true, 0.0f, 0.0f, 0.0f, true);
 	}
 	// 自动排列一个节点下的所有子节点的位置,从左往右紧密排列,并且不改变子节点的大小,keepLeftSide为true表示改变大小后保持父节点的左边界位置不变,false表示保持右边界位置不变
-	public void autoGridHorizontal(bool autoRefreshUIDepth, bool refreshIgnoreInactive, float interval, bool changeRootPosSize = true, float minWidth = 0.0f, float extraLeftWidth = 0.0f, float extraRightWidth = 0.0f, bool keepLeftSide = true)
+	public void autoGridHorizontal(bool autoRefreshUIDepth, bool refreshIgnoreInactive, float intervalNoScreenScale, bool changeRootPosSize = true, float minWidth = 0.0f, float extraLeftWidth = 0.0f, float extraRightWidth = 0.0f, bool keepLeftSide = true)
 	{
-		WidgetUtility.autoGridHorizontal(mItemParent, autoRefreshUIDepth, refreshIgnoreInactive, interval, changeRootPosSize, minWidth, extraLeftWidth, extraRightWidth, keepLeftSide);
+		WidgetUtility.autoGridHorizontal(mItemParent, autoRefreshUIDepth, refreshIgnoreInactive, intervalNoScreenScale, changeRootPosSize, minWidth, extraLeftWidth, extraRightWidth, keepLeftSide);
 	}
 	public void autoGridHorizontalCenter()
 	{
 		WidgetUtility.autoGridHorizontalCenter(mItemParent, true, true, 0.0f);
 	}
-	public void autoGridVerticalForDragView()
+	public void autoGridVerticalForDrag()
 	{
 		WidgetUtility.autoGridVertical(mItemParent, true, true, 0.0f, 0.0f, 0.0f, 0.0f, true);
 		mItemParent.setTopCenterToParentTopCenter();
 	}
-	public void autoGridVerticalForDragView(float interval)
+	public void autoGridVerticalForDrag(float intervalNoScreenScale)
 	{
-		WidgetUtility.autoGridVertical(mItemParent, true, true, interval, 0.0f, 0.0f, 0.0f, true);
+		WidgetUtility.autoGridVertical(mItemParent, true, true, intervalNoScreenScale, 0.0f, 0.0f, 0.0f, true);
 		mItemParent.setTopCenterToParentTopCenter();
 	}
 	public void autoGridVertical()
@@ -132,20 +132,20 @@ public class WindowStructPoolBase : IWindowObjectOwner
 	{
 		WidgetUtility.autoGridVertical(mItemParent, true, true, 0.0f, 0.0f, 0.0f, 0.0f, keepTopSide);
 	}
-	public void autoGridVertical(float interval)
+	public void autoGridVertical(float intervalNoScreenScale)
 	{
-		WidgetUtility.autoGridVertical(mItemParent, true, true, interval, 0.0f, 0.0f, 0.0f, true);
+		WidgetUtility.autoGridVertical(mItemParent, true, true, intervalNoScreenScale, 0.0f, 0.0f, 0.0f, true);
 	}
 	public void autoGridVertical(bool autoRefreshUIDepth, bool refreshIgnoreInactive)
 	{
 		WidgetUtility.autoGridVertical(mItemParent, autoRefreshUIDepth, refreshIgnoreInactive, 0.0f, 0.0f, 0.0f, 0.0f, true);
 	}
 	// 自动排列一个节点下的所有子节点的位置,从上往下紧密排列,并且不改变子节点的大小
-	public void autoGridVertical(bool autoRefreshUIDepth, bool refreshIgnoreInactive, float interval, float minHeight = 0.0f)
+	public void autoGridVertical(bool autoRefreshUIDepth, bool refreshIgnoreInactive, float intervalNoScreenScale, float minHeight = 0.0f)
 	{
-		WidgetUtility.autoGridVertical(mItemParent, autoRefreshUIDepth, refreshIgnoreInactive, interval, minHeight, 0.0f, 0.0f, true);
+		WidgetUtility.autoGridVertical(mItemParent, autoRefreshUIDepth, refreshIgnoreInactive, intervalNoScreenScale, minHeight, 0.0f, 0.0f, true);
 	}
-	public void autoGridForDragView()
+	public void autoGridForDrag()
 	{
 		WidgetUtility.autoGrid(mItemParent, mTemplate.getSize(), Vector2.zero, true, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
 		// 根据排列后的子节点,计算出父节点的高度
@@ -160,9 +160,9 @@ public class WindowStructPoolBase : IWindowObjectOwner
 	{
 		WidgetUtility.autoGrid(mItemParent, mTemplate.getSize(), Vector2.zero, autoRefreshUIDepth, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
 	}
-	public void autoGrid(Vector2 interval)
+	public void autoGrid(Vector2 intervalNoScreenScale)
 	{
-		WidgetUtility.autoGrid(mItemParent, mTemplate.getSize(), interval, true, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
+		WidgetUtility.autoGrid(mItemParent, mTemplate.getSize(), intervalNoScreenScale, true, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
 	}
 	public void autoGrid(HORIZONTAL_DIRECTION horizontal)
 	{
@@ -172,12 +172,12 @@ public class WindowStructPoolBase : IWindowObjectOwner
 	{
 		WidgetUtility.autoGrid(mItemParent, mTemplate.getSize(), Vector2.zero, true, true, true, HORIZONTAL_DIRECTION.LEFT, vertical);
 	}
-	public void autoGrid(Vector2 interval, HORIZONTAL_DIRECTION horizontal)
+	public void autoGrid(Vector2 intervalNoScreenScale, HORIZONTAL_DIRECTION horizontal)
 	{
-		WidgetUtility.autoGrid(mItemParent, mTemplate.getSize(), interval, true, true, true, horizontal, VERTICAL_DIRECTION.TOP);
+		WidgetUtility.autoGrid(mItemParent, mTemplate.getSize(), intervalNoScreenScale, true, true, true, horizontal, VERTICAL_DIRECTION.TOP);
 	}
-	public void autoGrid(Vector2 interval, VERTICAL_DIRECTION vertical)
+	public void autoGrid(Vector2 intervalNoScreenScale, VERTICAL_DIRECTION vertical)
 	{
-		WidgetUtility.autoGrid(mItemParent, mTemplate.getSize(), interval, true, true, true, HORIZONTAL_DIRECTION.LEFT, vertical);
+		WidgetUtility.autoGrid(mItemParent, mTemplate.getSize(), intervalNoScreenScale, true, true, true, HORIZONTAL_DIRECTION.LEFT, vertical);
 	}
 }

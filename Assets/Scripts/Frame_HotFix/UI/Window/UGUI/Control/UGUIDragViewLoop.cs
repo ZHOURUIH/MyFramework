@@ -72,12 +72,7 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop whe
 		Vector2 viewportSize = mViewport.getSize();
 		mColCount = floor((viewportSize.x + mInterval.x) / (mItemSize.x + mInterval.x));
 		// 这里+2比较重要,需要算出在任意情况下一定能够显示完整个viewport所需要的数量,最极限的就是中间已经铺了若干个完整的节点,上下留了一些空间,所以需要+2
-		int maxDisplayRowCount = floor((viewportSize.y + mInterval.y) / (mItemSize.y + mInterval.y)) + 2;
-		int maxDisplayItemCount = mColCount * maxDisplayRowCount;
-		for (int i = 0; i < maxDisplayItemCount; ++i)
-		{
-			mDisplayItemPool.newItem();
-		}
+		mDisplayItemPool.newItem(mColCount * (floor((viewportSize.y + mInterval.y) / (mItemSize.y + mInterval.y)) + 2));
 		// 这里的创建然后销毁纯粹就是为了刷新节点深度,因为节点数量固定,所以后续就算再次复用也无需再刷新深度
 		mScript.getLayout().refreshUIDepth(mContent, true);
 		mDisplayItemPool.unuseAll();

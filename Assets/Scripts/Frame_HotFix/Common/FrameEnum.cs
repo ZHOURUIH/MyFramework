@@ -445,7 +445,7 @@ public enum WINDOW_TYPE : byte
 	NORMAL_WINDOW,          // 单独的窗口
 	COMMON_CONTROL,         // 通用的控件
 	SUB_UI,                 // 子页面
-	SCROLL_LIST,            // 滚动列表
+	SCROLL_LIST,            // 无限滚动列表
 	POOL,                   // 对象池
 }
 

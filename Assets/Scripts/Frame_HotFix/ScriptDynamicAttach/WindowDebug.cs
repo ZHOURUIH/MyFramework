@@ -14,7 +14,7 @@ public class WindowDebug : MonoBehaviour
 	public void setWindow(myUGUIObject window) { mWindow = window; }
 	public void Update()
 	{
-		if (GameEntry.getInstance() == null || (!GameEntry.getInstance().mFramworkParam.mEnableScriptDebug && !ForceRefresh) || mWindow == null)
+		if (GameEntryBase.getInstance() == null || (!GameEntryBase.getInstance().mFrameworkParam.mEnableScriptDebug && !ForceRefresh) || mWindow == null)
 		{
 			return;
 		}

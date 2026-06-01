@@ -675,22 +675,8 @@ public class MyStringBuilder : ClassObject
 		// 等效于int low = value % 16;
 		int high = value >> 4;
 		int low = value & 15;
-		if (high < 10)
-		{
-			add((char)('0' + high));
-		}
-		else
-		{
-			add(hexChar[high - 10]);
-		}
-		if (low < 10)
-		{
-			add((char)('0' + low));
-		}
-		else
-		{
-			add(hexChar[low - 10]);
-		}
+		add(high < 10 ? (char)('0' + high) : hexChar[high - 10]);
+		add(low < 10 ? (char)('0' + low) : hexChar[low - 10]);
 	}
 	public MyStringBuilder setColor(string color)
 	{

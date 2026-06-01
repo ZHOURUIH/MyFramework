@@ -235,21 +235,21 @@ public class HybridCLRSystem
 			logErrorBase("在热更程序集中找不到GameHotFix类");
 			return;
 		}
-		if (type.BaseType.Name != "GameHotFixBase")
+		if (type.BaseType?.Name != "GameHotFixBase`1")
 		{
 			logErrorBase("GameHotFix类需要继承自GameHotFixBase");
 			return;
 		}
 		Action preStartCallback = () =>
 		{
-			// 创建热更对象示例的函数签名为public void createHotFixInstance()
-			MethodInfo methodCreate = type.GetMethod("createHotFixInstance");
+			// 由于createHotFixInstance是在基类中的,而查找静态函数是不会自动去基类中查找的,所以这里需要手动去基类中查找
+			MethodInfo methodCreate = type.BaseType.GetMethod("createHotFixInstance");
 			if (methodCreate == null)
 			{
 				logErrorBase("在GameHotFix类中找不到静态函数createHotFixInstance");
 				return;
 			}
-			// 查找start函数
+			// 查找start函数,会自动从基类中查找
 			MethodInfo methodStart = type.GetMethod("start");
 			if (methodStart == null)
 			{
@@ -261,8 +261,8 @@ public class HybridCLRSystem
 			{
 				logBase("热更初始化完毕");
 				// 热更初始化完毕后将非热更层加载的所有资源都清除,这样避免中间的黑屏
-				GameEntry.getInstance().getFrameworkAOT().destroy();
-				GameEntry.getInstance().setFrameworkAOT(null);
+				GameEntryBase.getInstance().getFrameworkAOT().destroy();
+				GameEntryBase.getInstance().setFrameworkAOT(null);
 			};
 			// 使用createHotFixInstance创建一个HotFix的实例,然后调用此实例的start函数
 			methodStart.Invoke(methodCreate.Invoke(null, null), new object[1] { callback });

@@ -296,7 +296,7 @@ public abstract class NetConnectTCP : NetConnect
 		{
 			// 在Receive之前先判断SocketBuffer中有没有数据可以读,因为如果不判断直接调用的话,可能会出现即使SocketBuffer中有数据,
 			// Receive仍然获取不到的问题,具体原因未知,且出现几率也比较小,但是仍然可能会出现.所以先判断再Receive就不会出现这个问题
-			while (mSocket.Available == 0)
+			if (mSocket.Available == 0)
 			{
 				return;
 			}
@@ -395,10 +395,10 @@ public abstract class NetConnectTCP : NetConnect
 		try
 		{
 			byte[] allBytes = mTotalBuffer.getData();
-			int allSendedCount = 0;
-			while (allSendedCount < allLength)
+			int allSendCount = 0;
+			while (allSendCount < allLength)
 			{
-				int thisSendCount = mSocket.Send(allBytes, allSendedCount, allLength - allSendedCount, SocketFlags.None);
+				int thisSendCount = mSocket.Send(allBytes, allSendCount, allLength - allSendCount, SocketFlags.None);
 				if (thisSendCount == 0)
 				{
 					// 服务器关闭了连接
@@ -411,7 +411,7 @@ public abstract class NetConnectTCP : NetConnect
 					notifyNetState(NET_STATE.SERVER_CLOSE, SocketError.NotConnected);
 					break;
 				}
-				allSendedCount += thisSendCount;
+				allSendCount += thisSendCount;
 			}
 		}
 		catch (ObjectDisposedException) { }

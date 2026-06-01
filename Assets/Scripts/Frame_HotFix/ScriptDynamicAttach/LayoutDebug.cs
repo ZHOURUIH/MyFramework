@@ -15,7 +15,7 @@ public class LayoutDebug : MonoBehaviour
 	public void setLayout(GameLayout layout) { mLayout = layout; }
 	public void Update()
 	{
-		if (GameEntry.getInstance() == null || !GameEntry.getInstance().mFramworkParam.mEnableScriptDebug)
+		if (GameEntryBase.getInstance() == null || !GameEntryBase.getInstance().mFrameworkParam.mEnableScriptDebug)
 		{
 			return;
 		}

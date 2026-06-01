@@ -8,6 +8,7 @@ using static StringUtility;
 using static FrameDefine;
 using static EditorCommonUtility;
 using static UGUIGeneratorUtility;
+using static FrameUtility;
 
 [CustomEditor(typeof(UGUIGenerator))]
 public class UGUIGeneratorInspector : GameInspector
@@ -23,6 +24,20 @@ public class UGUIGeneratorInspector : GameInspector
 		{
 			return;
 		}
+
+		using (new GUILayout.HorizontalScope())
+		{
+			if (button("锁定Inspector", 200, 25))
+			{
+				setAllInspectorsLocked(true);
+			}
+			if (button("解锁Inspector", 200, 25))
+			{
+				setAllInspectorsLocked(false);
+			}
+		}
+		space(10);
+
 		using (new EditorModifyScope(this))
 		{
 			textField(ref generator.mComment, "注释:", 400);
@@ -40,7 +55,8 @@ public class UGUIGeneratorInspector : GameInspector
 			}
 			drawMemberInspector(generator);
 		}
-		EditorGUILayout.Space(10);
+		space(10);
+
 		using (new GUILayout.VerticalScope())
 		{
 			if (button("生成代码", 300, 25))
@@ -240,6 +256,7 @@ public class UGUIGeneratorInspector : GameInspector
 		// init中的代码
 		List<string> generatedInitLines = new();
 		List<string> generatedClickCallbackLists = new();
+		List<string> clickCallbackCheckLists = new();
 		foreach (MemberData data in generator.mMemberList)
 		{
 			if (data.mRegisterCollider)
@@ -251,13 +268,25 @@ public class UGUIGeneratorInspector : GameInspector
 						data.getTypeName() == typeof(myUGUIImage).ToString())
 					{
 						generatedInitLines.add("\t\tm" + data.getMemberName() + ".registeColliderImage(" + "on" + data.getMemberName() + "Click);");
+						clickCallbackCheckLists.add(generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click()"));
+					}
+					else if (data.getTypeName() == typeof(TabItem).ToString())
+					{
+						generatedInitLines.add("\t\tm" + data.getMemberName() + ".setCallback(" + "on" + data.getMemberName() + "Click);");
+						clickCallbackCheckLists.add(generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click()"));
+					}
+					else if (data.getTypeName() == typeof(UGUICheckbox).ToString())
+					{
+						generatedInitLines.add("\t\tm" + data.getMemberName() + ".setCheckCallback(" + "on" + data.getMemberName() + "Click);");
+						clickCallbackCheckLists.add(generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click(UGUICheckbox checkbox)"));
 					}
 					else
 					{
 						generatedInitLines.add("\t\tm" + data.getMemberName() + ".registeCollider(" + "on" + data.getMemberName() + "Click);");
+						clickCallbackCheckLists.add(generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click()"));
 					}
-					generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click()");
 					generatedClickCallbackLists.add("\t{");
+					generatedClickCallbackLists.add("\t\t;");
 					generatedClickCallbackLists.add("\t}");
 				}
 				else
@@ -395,7 +424,7 @@ public class UGUIGeneratorInspector : GameInspector
 			{
 				generatedInitLines.For(str => codeList.Insert(++lineStart3, str));
 			}
-			// 找不到就在assignWindow的第一行插入
+			// 找不到就在init的第一行插入
 			else
 			{
 				if (codeList.find(item => item.Contains("base.init()"), out int index))
@@ -404,6 +433,22 @@ public class UGUIGeneratorInspector : GameInspector
 					codeList.Insert(++lineStart, "\t\t// auto generate init start");
 					generatedInitLines.For(str => codeList.Insert(++lineStart, str));
 					codeList.Insert(++lineStart, "\t\t// auto generate init end");
+				}
+			}
+
+			// 查找是否有缺失的点击事件回调函数
+			int insertIndex = codeList.FindLastIndex(line => line.endWith("}"));
+			if (insertIndex >= 0)
+			{
+				foreach (string line in clickCallbackCheckLists)
+				{
+					if (!codeList.contains(item => item.Contains(line)))
+					{
+						codeList.Insert(insertIndex++, line);
+						codeList.Insert(insertIndex++, "\t{");
+						codeList.Insert(insertIndex++, "\t\t;");
+						codeList.Insert(insertIndex++, "\t}");
+					}
 				}
 			}
 			writeTxtFile(fileFullPath, stringsToString(codeList, "\r\n"), true);

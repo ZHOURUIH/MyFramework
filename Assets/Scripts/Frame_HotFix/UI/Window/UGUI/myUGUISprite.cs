@@ -17,7 +17,13 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 	protected ResourceRef<Material> mCurMaterial;   // 当前引用的材质,用于卸载
 	protected Sprite mOriginSprite;					// 备份加载物体时原始的精灵图片
 	protected string mOriginMaterialPath;			// 原始材质的文件路径
-	protected string mOriginSpriteName;				// 初始图片的名字,用于外部根据初始名字设置其他效果的图片
+	protected string mOriginSpriteName;             // 初始图片的名字,用于外部根据初始名字设置其他效果的图片
+	protected string mSpriteName;                   // 当前图片的名字,避免GC
+	protected string mMaterialName;                 // 当前材质的名字,避免GC
+	protected string mShaderName;                   // 当前shader的名字,避免GC
+	protected bool mSpriteNameDirty;                // 图片名字是否需要更新
+	protected bool mMaterialNameDirty;              // 材质名字是否需要更新
+	protected bool mShaderNameDirty;				// shader名字是否需要更新
 	protected bool mIsNewMaterial;					// 当前的材质是否是新建的材质对象
 	public override void init()
 	{
@@ -26,25 +32,28 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		mSpriteRenderer = getOrAddUnityComponent<SpriteRenderer>();
 		mOriginSprite = mSpriteRenderer.sprite;
 		mOriginMaterial = mSpriteRenderer.sharedMaterial;
-		mOriginSpriteName = getSpriteName();
+		mSpriteName = mOriginSprite != null ? mOriginSprite.name : null;
+		mOriginSpriteName = mSpriteName;
+		mMaterialName = mOriginMaterial != null ? mOriginMaterial.name : null;
+		mShaderName = mOriginMaterial != null && mOriginMaterial.shader != null ? mOriginMaterial.shader.name : null;
 		// 获取初始的精灵所在图集
 		if (mOriginSprite != null)
 		{
 			if (!mObject.TryGetComponent<ImageAtlasPath>(out var imageAtlasPath))
 			{
-				logError("需要切换图片的SpriteRenderer组件上找不到ImageAtlasPath组件, GameObject:" + getGameObjectPath(mObject));
+				logError("需要切换图片的SpriteRenderer组件上找不到ImageAtlasPath组件, GameObject:" + getGameObjectPath());
 				return;
 			}
 			string atlasPath = imageAtlasPath.mAtlasPath;
 			if (atlasPath.isEmpty())
 			{
-				logError("ImageAtlasPath中记录的路径为空,GameObject:" + getGameObjectPath(mObject));
+				logError("ImageAtlasPath中记录的路径为空,GameObject:" + getGameObjectPath());
 			}
 			atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
 			mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
 			if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
 			{
-				logError("无法加载初始化的图集:" + atlasPath + ",GameObject:" + getGameObjectPath(mObject) +
+				logError("无法加载初始化的图集:" + atlasPath + ",GameObject:" + getGameObjectPath() +
 					",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
 			}
 			mAtlasPtr = mOriginAtlasPtr;
@@ -163,9 +172,10 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		{
 			logWarning("设置不同图集的图片可能会引起问题,如果需要设置其他图集的图片,请使用setSpriteOnly, sprite:" + sprite.name + 
 					   ", atlas:" + mAtlasPtr.getAtlasSingleName() + ", token:" + mAtlasPtr.getToken() + ", hash:" + mAtlasPtr.GetHashCode() + 
-					   ", window:" + getGameObjectPath(mObject));
+					   ", window:" + getGameObjectPath() + ", window hash:" + GetHashCode());
 		}
 		mSpriteRenderer.sprite = sprite;
+		mSpriteNameDirty = true;
 	}
 	// 只设置图片,不关心所在图集,一般不会用到此函数,只有当确认要设置的图片与当前图片不在同一图集时才会使用
 	// 并且需要自己保证设置不同图集的图片以后不会有什么问题
@@ -178,9 +188,10 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		if (sprite != null && !isFloatEqual(sprite.pixelsPerUnit, 1.0f) && getScale().x <= 1.0f)
 		{
 			logWarning("sprite的pixelsPerUnit为1,且Transform缩放为1, 会使最终渲染结果缩小100倍,如果需要显示正常,请调整pixelsPerUnit或者Transform缩放, sprite:" + 
-					   sprite.name + ", transform:" + getGameObjectPath(mObject));
+					   sprite.name + ", transform:" + getGameObjectPath());
 		}
 		mSpriteRenderer.sprite = sprite;
+		mSpriteNameDirty = true;
 	}
 	public Vector2 getSpriteSize()
 	{
@@ -258,26 +269,29 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 			}
 		}
 	}
-	public void setMaterial(Material mat)  { mSpriteRenderer.material = mat; }
-	public void setShader(Shader shader, bool force)
+	public void setMaterial(Material mat) 
 	{
-		if (mSpriteRenderer == null || mSpriteRenderer.sharedMaterial == null)
+		mSpriteRenderer.material = mat;
+		mMaterialNameDirty = true;
+	}
+	public void setShader(Shader shader)
+	{
+		if (mSpriteRenderer == null || mSpriteRenderer.sharedMaterial == null || mSpriteRenderer.sharedMaterial.shader == shader)
 		{
 			return;
 		}
-		if (force)
-		{
-			mSpriteRenderer.sharedMaterial.shader = null;
-			mSpriteRenderer.sharedMaterial.shader = shader;
-		}
+		mSpriteRenderer.sharedMaterial.shader = null;
+		mSpriteRenderer.sharedMaterial.shader = shader;
+		mShaderNameDirty = true;
 	}
 	public string getSpriteName()
 	{
-		if (mSpriteRenderer == null || mSpriteRenderer.sprite == null)
+		if (mSpriteNameDirty)
 		{
-			return null;
+			mSpriteNameDirty = false;
+			mSpriteName = mSpriteRenderer.sprite != null ? mSpriteRenderer.sprite.name : null;
 		}
-		return mSpriteRenderer.sprite.name;
+		return mSpriteName; 
 	}
 	public Material getMaterial()
 	{
@@ -287,21 +301,24 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		}
 		return mSpriteRenderer.sharedMaterial;
 	}
-	public string getMaterialName()
+	public string getMaterialName() 
 	{
-		if (mSpriteRenderer == null || mSpriteRenderer.sharedMaterial == null)
+		if (mMaterialNameDirty)
 		{
-			return null;
+			mMaterialNameDirty = false;
+			mMaterialName = mSpriteRenderer.material != null ? mSpriteRenderer.material.name : null;
 		}
-		return mSpriteRenderer.sharedMaterial.name;
+		return mMaterialName; 
 	}
-	public string getShaderName()
+	public string getShaderName() 
 	{
-		if (mSpriteRenderer.sharedMaterial == null || mSpriteRenderer.sharedMaterial.shader == null)
+		if (mShaderNameDirty)
 		{
-			return null;
+			mShaderNameDirty = false;
+			Material mat = getMaterial();
+			mShaderName = mat != null && mat.shader != null ? mat.shader.name : null;
 		}
-		return mSpriteRenderer.sharedMaterial.shader.name;
+		return mShaderName; 
 	}
 	public override void setAlpha(float alpha)
 	{
@@ -331,6 +348,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		}
 		mSpriteRenderer.color = new(color.x, color.y, color.z);
 	}
+	public AtlasRef getOriginAtlas() { return mOriginAtlasPtr; }
 	public bool isOriginAtlas(AtlasRef atlas) { return mOriginAtlasPtr == atlas; }
 	public override Color getColor() { return mSpriteRenderer.color; }
 	public string getOriginSpriteName() { return mOriginSpriteName; }

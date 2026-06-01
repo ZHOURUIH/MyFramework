@@ -27,7 +27,7 @@ public class ResourceRef<T> : ClassObject where T : UObject
 	public bool isValid() { return mResource != null; }
 	public T getResource() { return mResource; }
 	public long getToken() { return mToken; }
-	// 只能由ResourceManager调用
+	// 在UN_CLASS时自动被调用
 	public override void destroy()
 	{
 		base.destroy();

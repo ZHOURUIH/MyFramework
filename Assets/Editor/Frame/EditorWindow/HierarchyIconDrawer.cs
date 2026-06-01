@@ -1,6 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
-using static UGUIGeneratorUtility;
+using static FrameUtility;
 
 [InitializeOnLoad]
 public class HierarchyIconDrawer

@@ -8,7 +8,7 @@ public class CharacterManagerDebug : MonoBehaviour
 	public List<string> CharacterList = new();	// 角色名字列表
 	public void Update()
 	{
-		if (GameEntry.getInstance() == null || !GameEntry.getInstance().mFramworkParam.mEnableScriptDebug)
+		if (GameEntryBase.getInstance() == null || !GameEntryBase.getInstance().mFrameworkParam.mEnableScriptDebug)
 		{
 			return;
 		}

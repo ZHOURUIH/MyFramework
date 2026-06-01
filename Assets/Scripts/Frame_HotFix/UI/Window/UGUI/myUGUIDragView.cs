@@ -55,11 +55,11 @@ public class myUGUIDragView : myUGUIObject
 	public override void onTouchDown(Vector3 mousePos, int touchID)
 	{
 		base.onTouchDown(mousePos, touchID);
-		mDragViewComponent.onTouchDown(mousePos, touchID);
 		if (!mInited)
 		{
 			logError("myUGUIDragView未初始化,是否忘记调用了myUGUIDragView的init?");
 		}
+		mDragViewComponent.onTouchDown(mousePos, touchID);
 	}
 	// 鼠标在屏幕上抬起
 	public override void onScreenTouchUp(Vector3 mousePos, int touchID)

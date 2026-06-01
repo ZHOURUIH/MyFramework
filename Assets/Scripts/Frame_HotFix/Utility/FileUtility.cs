@@ -94,12 +94,12 @@ public class FileUtility
 			}
 			return;
 		}
-		GameEntry.startCoroutine(openFileAsyncInternal(fileName, errorIfNull, callback));
+		GameEntryBase.startCoroutine(openFileAsyncInternal(fileName, errorIfNull, callback));
 	}
 	// fileNameList为绝对路径
 	public static void openFileListAsync(List<string> fileNameList, bool errorIfNull, StringBytesCallback callback)
 	{
-		GameEntry.startCoroutine(openFileListAsyncInternal(fileNameList, errorIfNull, callback));
+		GameEntryBase.startCoroutine(openFileListAsyncInternal(fileNameList, errorIfNull, callback));
 	}
 	public static void openTxtFileAsync(string fileName, bool errorIfNull, StringCallback callback)
 	{
@@ -373,23 +373,23 @@ public class FileUtility
 		return isEmpty;
 	}
 	// 移动文件,参数为绝对路径
-	public static void moveFile(string source, string dest, bool overwrite = true)
+	public static bool moveFile(string source, string dest, bool overwrite = true)
 	{
 		if (!isFileExist(source))
 		{
-			return;
+			return false;
 		}
 		if (!isEditor() && isAndroid())
 		{
 			logError("can not move file on android!");
-			return;
+			return false;
 		}
 		if (isFileExist(dest))
 		{
 			// 先删除目标文件,因为File.Move不支持覆盖文件,目标文件存在时,File.Move会失败
 			if (!overwrite)
 			{
-				return;
+				return false;
 			}
 			deleteFile(dest);
 		}
@@ -399,6 +399,7 @@ public class FileUtility
 			createDir(getFilePath(dest));
 		}
 		File.Move(source, dest);
+		return true;
 	}
 	// 拷贝文件,参数为绝对路径
 	public static void copyFileAsync(string source, string dest, Action doneCallback)
@@ -944,7 +945,7 @@ public class FileUtility
 			}
 			else
 			{
-				GameEntry.startCoroutine(generateMD5ListAsyncInternal(fileNameList, callback));
+				GameEntryBase.startCoroutine(generateMD5ListAsyncInternal(fileNameList, callback));
 			}
 		}
 	}

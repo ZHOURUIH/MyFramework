@@ -11,7 +11,7 @@ public struct HashSetScope2<T> : IDisposable
 	private HashSet<T> mList1;      // 分配的对象
 	public HashSetScope2(out HashSet<T> list0, out HashSet<T> list1)
 	{
-		if (GameEntry.getInstance() == null || mHashSetPool == null)
+		if (GameEntryBase.getInstance() == null || mHashSetPool == null)
 		{
 			list0 = new();
 			list1 = new();
@@ -19,7 +19,7 @@ public struct HashSetScope2<T> : IDisposable
 			mList1 = null;
 			return;
 		}
-		string stackTrace = GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
+		string stackTrace = GameEntryBase.getInstance().mFrameworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
 		list0 = mHashSetPool.newList(typeof(T), typeof(HashSet<T>), stackTrace, true) as HashSet<T>;
 		list1 = mHashSetPool.newList(typeof(T), typeof(HashSet<T>), stackTrace, true) as HashSet<T>;
 		mList0 = list0;

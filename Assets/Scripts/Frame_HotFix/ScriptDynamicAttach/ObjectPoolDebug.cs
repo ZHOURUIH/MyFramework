@@ -19,7 +19,7 @@ public class ObjectPoolDebug : MonoBehaviour
 	public List<PrefabPoolDebugInfo> mPrefabPoolInfo = new();	// 预设列表
 	private void Update()
 	{
-		if (GameEntry.getInstance() == null || !GameEntry.getInstance().mFramworkParam.mEnableScriptDebug || mPrefabPoolManager == null)
+		if (GameEntryBase.getInstance() == null || !GameEntryBase.getInstance().mFrameworkParam.mEnableScriptDebug || mPrefabPoolManager == null)
 		{
 			return;
 		}

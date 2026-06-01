@@ -14,10 +14,14 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 	protected RawImage mRawImage;                       // UGUI的RawImage组件
 	protected CanvasGroup mCanvasGroup;					// 用于是否显示
 	protected Material mOriginMaterial;					// 初始的材质,用于重置时恢复材质
-	protected Texture mOriginTexture;					// 初始的图片,只用于恢复参数,不用作卸载
+	protected Texture mOriginTexture;                   // 初始的图片,只用于恢复参数,不用作卸载,此图片的卸载是在prefab卸载后,没有任何地方对其有引用,在Resources.UnloadUnusedAssets中被卸载
 	protected ResourceRef<Texture> mCurTexture;         // 当前引用的图片,用于卸载
 	protected ResourceRef<Material> mCurMaterial;		// 当前引用的材质,用于卸载
-	protected string mOriginMaterialPath;				// 初始材质的文件路径
+	protected string mOriginMaterialPath;               // 初始材质的文件路径
+	protected string mTextureName;                      // 当前图片的名字,避免GC
+	protected string mMaterialName;                     // 当前材质的名字,避免GC
+	protected bool mTextureNameDirty;                   // 图片名字是否需要更新
+	protected bool mMaterialNameDirty;                  // 材质名字是否需要更新
 	protected bool mIsNewMaterial;						// 当前的材质是否是新创建的材质对象
 	public override void init()
 	{
@@ -35,6 +39,8 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		}
 		mOriginMaterial = mRawImage.material;
 		mOriginTexture = mRawImage.texture;
+		mTextureName = mRawImage.texture != null ? mRawImage.texture.name : null;
+		mMaterialName = mRawImage.material != null ? mRawImage.material.name : null;
 		string materialName = getMaterialName().removeAll(" (Instance)");
 		// 不再将默认材质替换为自定义的默认材质,只判断其他材质
 		if (!materialName.isEmpty() && 
@@ -119,6 +125,7 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		mResourceManager.unload(ref mCurTexture);
 		mCurTexture = tex;
 		mRawImage.texture = mCurTexture.getResource();
+		mTextureNameDirty = true;
 		if (useTextureSize && tex != null)
 		{
 			setSize(getTextureSize());
@@ -140,15 +147,16 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		}
 		return new(mRawImage.texture.width, mRawImage.texture.height);
 	}
-	public string getTextureName()
+	public string getTextureName() 
 	{
-		if (mRawImage == null || mRawImage.texture == null)
+		if (mTextureNameDirty)
 		{
-			return null;
+			mTextureNameDirty = false;
+			mTextureName = mRawImage.texture != null ? mRawImage.texture.name : null;
 		}
-		return mRawImage.texture.name;
+		return mTextureName; 
 	}
-	public void setTextureName(string name, bool useTextureSize = false, bool loadAsync = false)
+	public void setTextureName(string name, bool useTextureSize = false)
 	{
 		if (name.isEmpty())
 		{
@@ -156,15 +164,17 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 			return;
 		}
 		// 同步加载
-		if (!loadAsync)
+		setTexture(mResourceManager.loadGameResource<Texture>(name), useTextureSize);
+	}
+	public void setTextureNameAsync(string name, bool useTextureSize = false)
+	{
+		if (name.isEmpty())
 		{
-			setTexture(mResourceManager.loadGameResource<Texture>(name), useTextureSize);
+			setTexture(null, useTextureSize);
+			return;
 		}
 		// 异步加载
-		else
-		{
-			mResourceManager.loadGameResourceAsync<Texture>(name, (tex) => { setTexture(tex, useTextureSize); });
-		}
+		mResourceManager.loadGameResourceAsync<Texture>(name, (tex) => { setTexture(tex, useTextureSize); });
 	}
 	public Material getMaterial() 
 	{
@@ -174,13 +184,19 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		}
 		return mRawImage.material;
 	}
-	public string getMaterialName()
+	public void setMaterial(Material mat)
 	{
-		if (mRawImage == null || mRawImage.material == null)
+		mRawImage.material = mat;
+		mMaterialNameDirty = true;
+	}
+	public string getMaterialName() 
+	{
+		if (mMaterialNameDirty)
 		{
-			return null;
+			mMaterialNameDirty = false;
+			mMaterialName = mRawImage.material != null ? mRawImage.material.name : null;
 		}
-		return mRawImage.material.name;
+		return mMaterialName; 
 	}
 	public void setMaterialName(string materialPath, bool newMaterial, bool loadAsync = false)
 	{
@@ -199,32 +215,26 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 				{
 					return;
 				}
+				Material newMat = mCurMaterial.getResource();
 				if (mIsNewMaterial)
 				{
-					Material newMat = new(mCurMaterial.getResource());
+					newMat = new(mCurMaterial.getResource());
 					newMat.name = getFileNameNoSuffixNoDir(materialPath) + "_" + IToS(mID);
-					mRawImage.material = newMat;
 				}
-				else
-				{
-					mRawImage.material = mCurMaterial.getResource();
-				}
+				setMaterial(newMat);
 			});
 		}
 		// 同步加载
 		else
 		{
 			mCurMaterial = mResourceManager.loadGameResource<Material>(materialPath);
+			Material mat = mCurMaterial.getResource();
 			if (mIsNewMaterial)
 			{
-				Material mat = new(mCurMaterial.getResource());
+				mat = new(mCurMaterial.getResource());
 				mat.name = getFileNameNoSuffixNoDir(materialPath) + "_" + IToS(mID);
-				mRawImage.material = mat;
 			}
-			else
-			{
-				mRawImage.material = mCurMaterial.getResource();
-			}
+			setMaterial(mat);
 		}
 	}
 }

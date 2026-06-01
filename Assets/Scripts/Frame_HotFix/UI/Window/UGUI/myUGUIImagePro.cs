@@ -48,7 +48,7 @@ public class myUGUIImagePro : myUGUIImage, IShaderWindow
 			destroyUnityObject(mImage.material);
 		}
 		mResourceManager.unload(ref mCurMaterial);
-		mImage.material = mOriginMaterial;
+		setMaterial(mOriginMaterial);
 		base.destroy();
 	}
 	public void setWindowShader(WindowShader shader)
@@ -94,11 +94,11 @@ public class myUGUIImagePro : myUGUIImage, IShaderWindow
 					// 如果要卸载最开始加载出来的材质,只能通过卸载整个文件夹的资源来卸载
 					Material newMat = new(mCurMaterial.getResource());
 					newMat.name = materialPath + "_" + IToS(mID);
-					mImage.material = newMat;
+					setMaterial(newMat);
 				}
 				else
 				{
-					mImage.material = mCurMaterial.getResource();
+					setMaterial(mCurMaterial.getResource());
 				}
 			});
 		}
@@ -110,11 +110,11 @@ public class myUGUIImagePro : myUGUIImage, IShaderWindow
 			{
 				Material mat = new(mCurMaterial.getResource());
 				mat.name = materialPath + "_" + IToS(mID);
-				mImage.material = mat;
+				setMaterial(mat);
 			}
 			else
 			{
-				mImage.material = mCurMaterial.getResource();
+				setMaterial(mCurMaterial.getResource());
 			}
 		}
 	}

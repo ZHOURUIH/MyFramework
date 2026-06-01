@@ -16,12 +16,12 @@ public class ResourceUtility
 	// 根据一个URL加载资源,一般都是一个网络资源
 	public static void loadAssetsFromUrl<T>(string url, AssetLoadCallback callback, DownloadCallback downloadingCallback = null) where T : UObject
 	{
-		GameEntry.startCoroutine(loadAssetsUrl(url, typeof(T), callback, downloadingCallback));
+		GameEntryBase.startCoroutine(loadAssetsUrl(url, typeof(T), callback, downloadingCallback));
 	}
 	// 根据一个URL加载资源,一般都是一个网络资源
 	public static void loadAssetsFromUrl<T>(string url, BytesCallback callback, DownloadCallback downloadingCallback = null) where T : UObject
 	{
-		GameEntry.startCoroutine(loadAssetsUrl(url, typeof(T), (UObject _, UObject[] _, byte[] bytes, string _) =>
+		GameEntryBase.startCoroutine(loadAssetsUrl(url, typeof(T), (UObject _, UObject[] _, byte[] bytes, string _) =>
 		{
 			callback?.Invoke(bytes);
 		}, downloadingCallback));
@@ -29,7 +29,7 @@ public class ResourceUtility
 	// 根据一个URL加载资源,一般都是一个网络资源
 	public static void loadAssetsFromUrl<T>(string url, Action<T> callback, DownloadCallback downloadingCallback = null) where T : UObject
 	{
-		GameEntry.startCoroutine(loadAssetsUrl(url, typeof(T), (UObject obj, UObject[] _, byte[] _, string _) =>
+		GameEntryBase.startCoroutine(loadAssetsUrl(url, typeof(T), (UObject obj, UObject[] _, byte[] _, string _) =>
 		{
 			callback?.Invoke(obj as T);
 		}, downloadingCallback));
@@ -37,7 +37,7 @@ public class ResourceUtility
 	// 根据一个URL加载资源,一般都是一个网络资源
 	public static void loadAssetsFromUrl<T>(string url, Action<T, string> callback, DownloadCallback downloadingCallback = null) where T : UObject
 	{
-		GameEntry.startCoroutine(loadAssetsUrl(url, typeof(T), (UObject obj, UObject[] _, byte[] _, string loadPath) =>
+		GameEntryBase.startCoroutine(loadAssetsUrl(url, typeof(T), (UObject obj, UObject[] _, byte[] _, string loadPath) =>
 		{
 			callback?.Invoke(obj as T, loadPath);
 		}, downloadingCallback));
@@ -45,12 +45,12 @@ public class ResourceUtility
 	// 根据一个URL加载资源,一般都是一个网络资源
 	public static void loadAssetsFromUrl(string url, AssetLoadCallback callback, DownloadCallback downloadingCallback = null)
 	{
-		GameEntry.startCoroutine(loadAssetsUrl(url, null, callback, downloadingCallback));
+		GameEntryBase.startCoroutine(loadAssetsUrl(url, null, callback, downloadingCallback));
 	}
 	// 根据一个URL加载资源,一般都是一个网络资源
 	public static void loadAssetsFromUrl(string url, BytesCallback callback, DownloadCallback downloadingCallback = null)
 	{
-		GameEntry.startCoroutine(loadAssetsUrl(url, null, (UObject _, UObject[] _, byte[] bytes, string _) =>
+		GameEntryBase.startCoroutine(loadAssetsUrl(url, null, (UObject _, UObject[] _, byte[] bytes, string _) =>
 		{
 			callback?.Invoke(bytes);
 		}, downloadingCallback));
@@ -58,7 +58,7 @@ public class ResourceUtility
 	// 根据一个URL加载资源,一般都是一个网络资源
 	public static void loadAssetsFromUrl(string url, BytesStringCallback callback, DownloadCallback downloadingCallback = null)
 	{
-		GameEntry.startCoroutine(loadAssetsUrl(url, null, (UObject _, UObject[] _, byte[] bytes, string loadPath) =>
+		GameEntryBase.startCoroutine(loadAssetsUrl(url, null, (UObject _, UObject[] _, byte[] bytes, string loadPath) =>
 		{
 			callback?.Invoke(bytes, loadPath);
 		}, downloadingCallback));
@@ -226,8 +226,8 @@ public class ResourceUtility
 			int downloadDelta = 0;
 			if (www.downloadedBytes > lastDownloaded)
 			{
-				lastDownloaded = www.downloadedBytes;
 				downloadDelta = (int)(www.downloadedBytes - lastDownloaded);
+				lastDownloaded = www.downloadedBytes;
 				timer = 0.0f;
 			}
 			else

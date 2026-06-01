@@ -43,7 +43,7 @@ public class EventSystem : FrameSystem
 				}
 				if (characterListenerList.isEmpty())
 				{
-					LIST(out removeCharacterEvent);
+					removeCharacterEvent ??= LIST<long>();
 					removeCharacterEvent.Add(itemCharacter.Key);
 				}
 			}
@@ -108,7 +108,14 @@ public class EventSystem : FrameSystem
 			int count = eventList.count();
 			for (int i = 0; i < count; ++i)
 			{
-				eventList.get(i)?.call(param);
+				try 
+				{
+					eventList.get(i)?.call(param); 
+				}
+				catch (Exception e) 
+				{
+					logException(e); 
+				}
 			}
 		} while (false);
 		--mDispatchDepth;
@@ -134,7 +141,14 @@ public class EventSystem : FrameSystem
 			int count = infoList.count();
 			for (int i = 0; i < count; ++i)
 			{
-				infoList.get(i)?.call(param);
+				try 
+				{
+					infoList.get(i)?.call(param); 
+				}
+				catch (Exception e) 
+				{
+					logException(e); 
+				}
 			}
 		}
 		--mDispatchDepth;

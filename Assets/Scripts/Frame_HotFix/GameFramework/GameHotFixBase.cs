@@ -11,10 +11,12 @@ using static UnityUtility;
 using static FrameUtility;
 using static FrameBaseUtility;
 
+// HotFix中顶层管理器的基类,负责热更的启动和框架组件的初始化,以及一些热更相关的全局操作
+// T需要是子类自己,这样在父类中就可以创建子类的实例
 [ObfuzIgnore]
-public abstract class GameHotFixBase
+public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 {
-	protected static GameHotFixBase mInstance;                  // 在子类中创建
+	protected static GameHotFixBase<T> mInstance;               // 在子类中创建
 	protected List<FrameSystem> mFrameComponentInit = new();    // 存储框架组件,用于初始化,由于这里向GameFrameworkHotFix注册后,已经过了GameFrameworkHotFix集中调用init的时机,所以需要单独进行初始化操作
 	protected Action mFinishCallback;                           // 存储的启动热更完成的回调
 	protected bool mCanCallback = true;                         // 是否允许在初始化以后自动调用start传递的callback参数,如果不自动调用,就需要手动调用
@@ -103,7 +105,7 @@ public abstract class GameHotFixBase
 	protected virtual void onPreInit() { }
 	protected virtual void onPostInit() { }
 	protected abstract Type getStartGameSceneType();
-	protected void registeFrameSystem<T>(Action<T> callback) where T : FrameSystem, new()
+	protected void registeFrameSystem<T0>(Action<T0> callback) where T0 : FrameSystem, new()
 	{
 		mFrameComponentInit.Add(mGameFrameworkHotFix.registeFrameSystem(callback));
 	}
@@ -128,7 +130,7 @@ public abstract class GameHotFixBase
 		{
 			filePath = "file://" + F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE;
 		}
-		GameEntry.startCoroutine(openFileAsync(filePath, (byte[] bytes) =>
+		GameEntryBase.startCoroutine(openFileAsync(filePath, (byte[] bytes) =>
 		{
 			EncryptionService<DefaultDynamicEncryptionScope>.Encryptor = new GeneratedEncryptionVirtualMachine(bytes);
 			try
@@ -161,9 +163,9 @@ public abstract class GameHotFixBase
 		}
 	}
 	// 需要在子类中添加如下函数,来创建热更对象的实例
-	//public static GameHotFixBase createHotFixInstance()
-	//{
-	//	mInstance = createInstance<GameHotFixBase>(MethodBase.GetCurrentMethod().DeclaringType);
-	//	return mInstance;
-	//}
+	public static GameHotFixBase<T> createHotFixInstance()
+	{
+		mInstance = createInstance<GameHotFixBase<T>>(typeof(T));
+		return mInstance;
+	}
 }

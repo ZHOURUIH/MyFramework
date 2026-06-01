@@ -23,7 +23,7 @@ public class myUGUIDropdown : myUGUIObject
 	}
 	public Dropdown getDropdown() { return mDropdown; }
 	public void clearOptions() { mDropdown.ClearOptions(); }
-	public void addOptions(List<string> opstions) { mDropdown.AddOptions(opstions); }
+	public void addOptions(List<string> options) { mDropdown.AddOptions(options); }
 	public void setSelect(int value) { mDropdown.value = value; }
 	public int getSelect() { return mDropdown.value; }
 	public string getText() { return mDropdown.options[mDropdown.value].text; }

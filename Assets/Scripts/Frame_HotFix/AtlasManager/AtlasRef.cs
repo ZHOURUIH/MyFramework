@@ -4,11 +4,12 @@ using static UnityUtility;
 
 // 开放给外部以持有UGUIAtlas或者TPAtlas,可以进行引用计数
 // 因为每一个持有的地方都需要记录一个独立的Token,用于检测释放的合法性
-// 所以需要使用UGUIAtlasPtr来封装UGUIAtlas或者TPAtlas给外部使用
+// 所以需要使用AtlasRef来封装UGUIAtlas或者TPAtlas给外部使用
 public class AtlasRef : ClassObject
 {
 	private AtlasBase mAtlas;				// 引用的图集
-	private long mToken;					// 引用凭证,一般不允许外部直接访问
+	private long mToken;                    // 引用凭证,一般不允许外部直接访问
+	private static long mTokenSeed;         // 用于生成一个引用凭证
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -24,7 +25,8 @@ public class AtlasRef : ClassObject
 			logError("atlas is null");
 			return;
 		}
-		mToken = mAtlas.addReference();
+		mToken = generateToken();
+		mAtlas.addReference(mToken);
 	}
 	public bool isValid()								{ return mAtlas != null && mAtlas.isValid(); }
 	public Sprite getSprite(string name)				{ return mAtlas?.getSprite(name); }
@@ -47,4 +49,6 @@ public class AtlasRef : ClassObject
 		}
 		mAtlas.removeReference(ref mToken);
 	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected static long generateToken() { return ++mTokenSeed; }
 }

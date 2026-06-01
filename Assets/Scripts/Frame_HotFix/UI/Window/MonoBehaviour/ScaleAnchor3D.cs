@@ -37,7 +37,7 @@ public class ScaleAnchor3D : MonoBehaviour
 		}
 		mDirty = false;
 		// 只有在刷新时才能确定父节点,所以父节点需要实时获取
-		float scale = adjustScreenScale(mScreenScale, mAspectBase).x;
+		float scale = generateScreenScaleByAspectBase(mScreenScale, mAspectBase).x;
 		transform.localScale = mOriginScale * scale;
 		transform.localPosition = mOriginPos * scale;
 	}

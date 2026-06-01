@@ -190,8 +190,10 @@ public abstract class GameScene : ComponentOwner
 		return mLastProcedureList[^1].GetType();
 	}
 	public SceneProcedure getProcedure(Type type) { return mSceneProcedureList.get(type); }
+	public SceneProcedure getProcedure<T>() { return mSceneProcedureList.get(typeof(T)); }
 	public Type getCurProcedureType() { return mCurProcedure.GetType(); }
 	public SceneProcedure getCurProcedure() { return mCurProcedure; }
+	public int getProcedureCount() { return mSceneProcedureList.count(); }
 	// 获取当前场景的当前流程或父流程中指定类型的流程
 	public SceneProcedure getCurOrParentProcedure(Type type) { return mCurProcedure.getThisOrParent(type); }
 	public T getCurOrParentProcedure<T>() where T : SceneProcedure { return mCurProcedure.getThisOrParent(typeof(T)) as T; }

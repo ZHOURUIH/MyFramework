@@ -495,17 +495,11 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		}
 		return mCOMWindowCollider.raycast(ref ray, out hit, maxDistance);
 	}
-	public virtual float getFillPercent()
-	{
-		logError("can not get window fill percent with myUGUIObject");
-		return 1.0f;
-	}
 	public BoolCallback getPressCallback()								{ return getCOMInteractive().getPressCallback(); }
 	public void setDepthOverAllChild(bool depthOver)					{ getCOMInteractive().setDepthOverAllChild(depthOver); }
 	public void setDestroyImmediately(bool immediately)					{ mDestroyImmediately = immediately; }
 	public void setAllowGenerateDepth(bool allowGenerate)				{ getCOMInteractive().setAllowGenerateDepth(allowGenerate); }
 	public virtual void setColor(Color color) { }
-	public virtual void setFillPercent(float percent)					{ logError("can not set window fill percent with myUGUIObject"); }
 	public void setPassRay(bool passRay)								{ getCOMInteractive().setPassRay(passRay); }
 	public void setPassDragEvent(bool pass)								{ getCOMInteractive().setPassDragEvent(pass); }
 	public void setDepth(UIDepth parentDepth, int orderInParent)		{ getCOMInteractive().setDepth(parentDepth, orderInParent); }

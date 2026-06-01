@@ -26,7 +26,7 @@ public class ResourceManager : FrameSystem
 	public override void init()
 	{
 		base.init();
-		mLoadSource = isEditor() ? GameEntry.getInstance().mFramworkParam.mLoadSource : LOAD_SOURCE.ASSET_BUNDLE;
+		mLoadSource = isEditor() ? GameEntryBase.getInstance().mFrameworkParam.mLoadSource : LOAD_SOURCE.ASSET_BUNDLE;
 		if (isEditor())
 		{
 			mObject.AddComponent<ResourcesManagerDebug>();
@@ -237,11 +237,11 @@ public class ResourceManager : FrameSystem
 		{
 			res = mAssetBundleLoader.loadSubAsset<T>(name, out main);
 		}
-		CLASS(out mainAsset).setResource(main);
 		if (res == null && errorIfNull)
 		{
 			logError("can not find resource : " + name + ",请确认文件存在,且带后缀名,且不能使用反斜杠\\," + (name.Contains(' ') || name.Contains('　') ? "注意此文件名中带有空格" : ""));
 		}
+		CLASS(out mainAsset).setResource(main);
 		return res;
 	}
 	// 异步加载资源,name是GameResources下的相对路径,带后缀名,errorIfNull表示当找不到资源时是否报错提示
@@ -328,6 +328,7 @@ public class ResourceManager : FrameSystem
 			mAssetBundleLoader.downloadAsset(name, callback);
 		}
 	}
+	// 只能由ResourceRef调用
 	public long addReference(UObject res)
 	{
 		long token = ++mTokenSeed;
@@ -337,6 +338,7 @@ public class ResourceManager : FrameSystem
 		}
 		return token;
 	}
+	// 只能由ResourceRef调用
 	public void removeReference(UObject res, ref long token)
 	{
 		if (!mReferenceTokenList.TryGetValue(res, out var list) || !list.Remove(token))

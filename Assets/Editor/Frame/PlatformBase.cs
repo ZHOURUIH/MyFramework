@@ -194,14 +194,11 @@ public abstract class PlatformBase
 	}
 	public bool writeFileList(string path)
 	{
-		writeFileList(path, generateFileInfoList(path, false, mIgnoreFile, null, new() { ".unity3d.manifest", ".meta" }));
-		return true;
-	}
-	public static void writeFileList(string path, string content)
-	{
+		string content = generateFileList(path, mIgnoreFile);
 		writeTxtFile(path + FILE_LIST, content);
 		// 再生成此文件的MD5文件,用于客户端校验文件内容是否改变
 		writeTxtFile(path + FILE_LIST_MD5, generateFileMD5(content.toBytes(), -1));
+		return true;
 	}
 	// 检查所有的热更dll,以及AOT的dll是否都存在
 	public bool checkAllDllExist()
@@ -228,16 +225,15 @@ public abstract class PlatformBase
 	}
 	public abstract string getDefaultPlatformDefine();
 	public virtual void generateFolderPreName() { mFolderPreName = ""; }
-	public static string generateFileInfoList(string assetBundlePath, bool upperOrLower, List<string> ignoreFiles = null, List<string> ignorePath = null, List<string> ignoreSuffix = null)
+	public static string generateFileList(string assetBundlePath, List<string> ignoreFiles = null)
 	{
 		string fileContent = EMPTY;
-		List<string> fileInfoList = findFileList(assetBundlePath, ignoreFiles, ignorePath, ignoreSuffix);
-		// 计算文件信息
+		List<string> fileInfoList = findFileList(assetBundlePath, ignoreFiles, null, new() { ".unity3d.manifest", ".meta" });
 		// 将所有文件信息写入文件
 		fileContent += IToS(fileInfoList.Count) + "\n";
 		foreach (string item in fileInfoList)
 		{
-			fileContent += item.removeStartString(assetBundlePath) + "\t" + IToS(getFileSize(item)) + "\t" + generateFileMD5(item, upperOrLower) + "\n";
+			fileContent += item.removeStartString(assetBundlePath) + "\t" + IToS(getFileSize(item)) + "\t" + generateFileMD5(item, false) + "\n";
 		}
 		return fileContent;
 	}
@@ -415,6 +411,7 @@ public abstract class PlatformBase
 		return options;
 	}
 	protected abstract List<string> getDynamicDownloadList();
+	// 根据自己项目的情况在这个函数中去配置打包时需要的宏定义,比如是否启用热更,是否为测试客户端等,因为这些宏定义会影响代码编译,所以需要在打包前就配置好
 	protected abstract void configureScriptingDefine();
 	protected virtual bool preBuild()
 	{

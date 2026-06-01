@@ -8,6 +8,7 @@ using static FrameBaseDefine;
 using static FrameBaseUtility;
 
 // 用于表示一个布局
+// 对于布局prefab原本就引用的资源,可以不用关心在代码中的引用
 public class GameLayout
 {
 	protected Dictionary<int, myUGUIObject> mGameObjectSearchList = new();	// 用于根据GameObject查找UI,key是GameObject的InstanceID
@@ -16,7 +17,7 @@ public class GameLayout
 	protected myUGUICanvas mRoot;					// 布局根节点
 	protected LayoutScript mScript;					// 布局脚本
 	protected myUGUIObject mParent;					// 布局父节点,可能是UGUIRoot,也可能为空
-	protected ResourceRef<GameObject> mPrefab;		// 布局预设,布局从该预设实例化
+	protected ResourceRef<GameObject> mPrefab;      // 布局预设,布局从该预设实例化
 	protected Type mType;							// 布局的脚本类型
 	protected string mName;							// 布局名称
 	protected int mDefaultLayer;					// 布局加载时所处的层
@@ -32,12 +33,12 @@ public class GameLayout
 	public void init()
 	{
 		mScript = mLayoutManager.createScript(this);
-		mLayoutManager.notifyLayoutChanged(this);
 		if (mScript == null)
 		{
 			logError("can not create layout script!, type:" + mType);
 			return;
 		}
+		mLayoutManager.notifyLayoutChanged(this);
 
 		// 初始化布局脚本
 		mScript.newObject(out mRoot, mParent, mName);

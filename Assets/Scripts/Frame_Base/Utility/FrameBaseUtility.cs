@@ -45,6 +45,14 @@ public class FrameBaseUtility
 		return null;
 #endif
 	}
+	public static string assetPathToGUID(string assetPath)
+	{
+#if UNITY_EDITOR
+		return AssetDatabase.AssetPathToGUID(assetPath);
+#else
+		return null;
+#endif
+	}
 	public static string getAssetPath(UObject obj)
 	{
 #if UNITY_EDITOR

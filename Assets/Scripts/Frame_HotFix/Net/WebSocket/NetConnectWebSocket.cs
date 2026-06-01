@@ -24,7 +24,8 @@ public abstract class NetConnectWebSocket : NetConnect
 	protected Action mPingCallback;												// 外部设置的用于发送ping包的函数
 	protected string mURL;														// WebSocket地址
 	protected byte[] mRecvBuff = new byte[WEB_SOCKET_RECEIVE_BUFFER];           // 从Socket接收时使用的缓冲区
-	protected bool mManualDisconnect;											// 是否正在主动断开连接
+	protected bool mManualDisconnect;                                           // 是否正在主动断开连接
+	protected bool mSending;													// 是否正在发送一条消息
 	protected NET_STATE mNetState;												// 网络连接状态
 	protected WebSocketMessageType mMessageType = WebSocketMessageType.Text;	// 数据类型,文本还是二进制
 	public virtual void init(float pingTime)
@@ -48,6 +49,7 @@ public abstract class NetConnectWebSocket : NetConnect
 		mURL = null;
 		mRecvBuff.setAllDefault();
 		mManualDisconnect = false;
+		mSending = false;
 		mNetState = NET_STATE.NONE;
 		mMessageType = WebSocketMessageType.Text;
 	}
@@ -111,7 +113,6 @@ public abstract class NetConnectWebSocket : NetConnect
 	public void disconnect()
 	{
 		mManualDisconnect = true;
-		clearSocket();
 		mPingTimer.stop(false);
 		try
 		{
@@ -210,20 +211,20 @@ public abstract class NetConnectWebSocket : NetConnect
 	// 发送Socket消息
 	protected void sendThread()
 	{
-		if (mWebSocket == null || mWebSocket.State != WebSocketState.Open)
+		if (mSending || 
+			mWebSocket == null || 
+			mWebSocket.State != WebSocketState.Open ||
+			mOutputBuffer.Count == 0)
 		{
 			return;
 		}
-		// 获取输出数据的读缓冲区
-		while (mOutputBuffer.Count > 0)
+		PacketSendInfo item = mOutputBuffer.Dequeue();
+		if (item.mData == null || item.mDataSize == 0)
 		{
-			PacketSendInfo item = mOutputBuffer.Dequeue();
-			if (item.mData == null || item.mDataSize == 0)
-			{
-				continue;
-			}
-			doSend(item);
+			return;
 		}
+		mSending = true;
+		doSend(item);
 	}
 	protected async void doSend(PacketSendInfo info)
 	{
@@ -242,6 +243,7 @@ public abstract class NetConnectWebSocket : NetConnect
 			{
 				UN_ARRAY_BYTE(ref info.mData);
 			}
+			mSending = false;
 		}
 	}
 	// 接收Socket消息

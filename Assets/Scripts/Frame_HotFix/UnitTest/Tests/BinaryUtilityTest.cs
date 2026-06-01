@@ -1,4 +1,5 @@
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
+using System;
 using static TestAssert;
 using static BinaryUtility;
 
@@ -23,6 +24,13 @@ public static class BinaryUtilityTest
         testGetLowestHighestBit();
         testRemoveLastZero();
         testMemsetExtra();
+        testHasBitExtra();
+        testSetBitOneExtra();
+        testSetBitZeroExtra();
+        testExtendedBitSetters();
+        testBufferBits();
+        testCrc16Extra();
+        testMemcpyExtra();
     }
 
     // ─── bitCount1 ───────────────────────────────────────────────────────────
@@ -256,6 +264,211 @@ public static class BinaryUtilityTest
         assertEqual((byte)0x22, twice[1], "memset 二次覆盖 [1]改变");
         assertEqual((byte)0x22, twice[2], "memset 二次覆盖 [2]改变");
         assertEqual((byte)0x11, twice[3], "memset 二次覆盖 [3]不变");
+    }
+
+    // ─── hasBit 补充类型 ───────────────────────────────────────────────────────
+    private static void testHasBitExtra()
+    {
+        sbyte sb = 0b0000_1010;
+        assert(hasBit(sb, 1), "hasBit sbyte bit1");
+        assert(!hasBit(sb, 0), "hasBit sbyte bit0=0");
+
+        short s = unchecked((short)0x8000);  // bit15=1
+        assert(hasBit(s, 15), "hasBit short bit15");
+        assert(!hasBit(s, 14), "hasBit short bit14=0");
+
+        ushort us = 0x8000;
+        assert(hasBit(us, 15), "hasBit ushort bit15");
+        assert(!hasBit(us, 0), "hasBit ushort bit0=0");
+
+        uint ui = 0x8000_0000u;
+        assert(hasBit(ui, 31), "hasBit uint bit31");
+        assert(!hasBit(ui, 30), "hasBit uint bit30=0");
+
+        ulong ul = (ulong)1 << 63;
+        assert(hasBit(ul, 63), "hasBit ulong bit63");
+        assert(!hasBit(ul, 62), "hasBit ulong bit62=0");
+    }
+
+    // ─── setBitOne 补充类型 ────────────────────────────────────────────────────
+    private static void testSetBitOneExtra()
+    {
+        sbyte sb = 0;
+        setBitOne(ref sb, 2);
+        assert(hasBit(sb, 2), "setBitOne sbyte bit2");
+        setBitOne(ref sb, 2);
+        assert(hasBit(sb, 2), "setBitOne sbyte 幂等");
+
+        short s = 0;
+        setBitOne(ref s, 14);
+        assert(hasBit(s, 14), "setBitOne short bit14");
+
+        ushort us = 0;
+        setBitOne(ref us, 12);
+        assert(hasBit(us, 12), "setBitOne ushort bit12");
+
+        uint ui = 0;
+        setBitOne(ref ui, 30);
+        assert(hasBit(ui, 30), "setBitOne uint bit30");
+
+        ulong ul = 0;
+        setBitOne(ref ul, 63);
+        assert(hasBit(ul, 63), "setBitOne ulong bit63");
+    }
+
+    // ─── setBitZero 补充类型 ──────────────────────────────────────────────────
+    private static void testSetBitZeroExtra()
+    {
+        sbyte sb = -1;
+        setBitZero(ref sb, 3);
+        assert(!hasBit(sb, 3), "setBitZero sbyte bit3");
+
+        short s = -1;
+        setBitZero(ref s, 13);
+        assert(!hasBit(s, 13), "setBitZero short bit13");
+
+        ushort us = 0xFFFF;
+        setBitZero(ref us, 10);
+        assert(!hasBit(us, 10), "setBitZero ushort bit10");
+
+        uint ui = 0xFFFFFFFFu;
+        setBitZero(ref ui, 28);
+        assert(!hasBit(ui, 28), "setBitZero uint bit28");
+
+        long l = -1;
+        setBitZero(ref l, 33);
+        assert(!hasBit(l, 33), "setBitZero long bit33");
+
+        ulong ul = 0xFFFFFFFF_FFFFFFFFul;
+        setBitZero(ref ul, 60);
+        assert(!hasBit(ul, 60), "setBitZero ulong bit60");
+    }
+
+    // ─── getLowestBit / getHighestBit 补充 + setLowestBit/setHighestBit ───────
+    private static void testExtendedBitSetters()
+    {
+        // getLowestBit — 补充类型
+        assertEqual(1, getLowestBit((short)0xFF), "getLowestBit short 0xFF=1");
+        assertEqual(0, getLowestBit((short)0xFE), "getLowestBit short 0xFE=0");
+        assertEqual(1, getLowestBit(0xFF), "getLowestBit int 0xFF=1");
+        assertEqual(0, getLowestBit(0xFE), "getLowestBit int 0xFE=0");
+
+        // getHighestBit — 补充类型
+        assertEqual(0, getHighestBit((short)0x7FFF), "getHighestBit short 0x7FFF=0");
+        assertEqual(1, getHighestBit(unchecked((int)0x80000000)), "getHighestBit int 0x80000000=1");
+        assertEqual(0, getHighestBit(0x7FFFFFFF), "getHighestBit int 0x7FFFFFFF=0");
+
+        // setLowestBit
+        byte b0 = 0;
+        setLowestBit(ref b0, 1);
+        assertEqual((byte)1, b0, "setLowestBit byte 0→1");
+        setLowestBit(ref b0, 0);
+        assertEqual((byte)0, b0, "setLowestBit byte 1→0");
+
+        short s0 = 0;
+        setLowestBit(ref s0, 1);
+        assertEqual((short)1, s0, "setLowestBit short 0→1");
+
+        int i0 = 0;
+        setLowestBit(ref i0, 1);
+        assertEqual(1, i0, "setLowestBit int 0→1");
+
+        // setHighestBit
+        byte bH = 0;
+        setHighestBit(ref bH, 1);
+        assertEqual((byte)0x80, bH, "setHighestBit byte 0→0x80");
+        setHighestBit(ref bH, 0);
+        assertEqual((byte)0, bH, "setHighestBit byte 0x80→0");
+
+        short sH = 0;
+        setHighestBit(ref sH, 1);
+        assertEqual((short)unchecked((short)0x8000), sH, "setHighestBit short 0→0x8000");
+
+        int iH = 0;
+        setHighestBit(ref iH, 1);
+        assertEqual(unchecked((int)0x80000000), iH, "setHighestBit int 0→0x80000000");
+    }
+
+    // ─── getBufferBit / setBufferBitOne ──────────────────────────────────────
+    private static void testBufferBits()
+    {
+        byte[] buf = new byte[4]; // 32 bits
+        // 初始全0
+        for (int i = 0; i < 32; ++i)
+        {
+            assert(!getBufferBit(buf, i), $"getBufferBit 初始全0 [{i}]");
+        }
+
+        setBufferBitOne(buf, 0);
+        assert(getBufferBit(buf, 0), "getBufferBit bit0=1");
+        assert(!getBufferBit(buf, 1), "getBufferBit bit1=0 不受影响");
+
+        setBufferBitOne(buf, 17);
+        assert(getBufferBit(buf, 17), "getBufferBit bit17=1");
+
+        // 多个位同时置1
+        setBufferBitOne(buf, 31);
+        assert(getBufferBit(buf, 31), "getBufferBit bit31=1");
+        assert(getBufferBit(buf, 0), "getBufferBit bit0 仍为1");
+    }
+
+    // ─── crc16 多字节重载补充 ─────────────────────────────────────────────────
+    private static void testCrc16Extra()
+    {
+        // initCRC16 确保表已初始化
+        initCRC16();
+
+        // 2字节重载
+        ushort c2 = crc16(0, 0x01, 0x02);
+        ushort c2b = crc16(crc16(0, 0x01), 0x02);
+        assertEqual(c2, c2b, "crc16 2字节与逐字节一致");
+
+        // 4字节重载
+        ushort c4 = crc16(0, 0x01, 0x02, 0x03, 0x04);
+        ushort c4b = crc16(crc16(crc16(crc16(0, 0x01), 0x02), 0x03), 0x04);
+        assertEqual(c4, c4b, "crc16 4字节与逐字节一致");
+
+        // 8字节重载
+        ushort c8 = crc16(0, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08);
+        ushort c8b = crc16(crc16(crc16(crc16(crc16(crc16(crc16(crc16(0, 0x01), 0x02), 0x03), 0x04), 0x05), 0x06), 0x07), 0x08);
+        assertEqual(c8, c8b, "crc16 8字节与逐字节一致");
+    }
+
+    // ─── memcpy 泛型重载补充 ───────────────────────────────────────────────────
+    private static void testMemcpyExtra()
+    {
+        int[] src = new int[] { 10, 20, 30, 40, 50 };
+        int[] dest = new int[5];
+
+        // memcpy<T>(T[], Span<T>, destOffset, srcOffset, count)
+        memcpy(dest, new Span<int>(src), 0, 0, 5);
+        for (int i = 0; i < 5; ++i)
+        {
+            assertEqual(src[i], dest[i], $"memcpy T[]←Span [{i}]");
+        }
+
+        // memcpy<T>(Span<T>, T[], destOffset, srcOffset, count)
+        int[] dest2 = new int[5];
+        memcpy(new Span<int>(dest2), src, 0, 0, 5);
+        assertEqual(src[0], dest2[0], "memcpy Span←T[] [0]");
+
+        // memcpy<T>(T[], Span<T>, destOffset, count) — 从头复制count个
+        int[] dest3 = new int[3];
+        memcpy(dest3, new Span<int>(new int[] { 100, 200, 300 }), 0, 3);
+        assertEqual(100, dest3[0], "memcpy T[]←Span 短版[0]");
+        assertEqual(300, dest3[2], "memcpy T[]←Span 短版[2]");
+
+        // memcpy<T>(Span<T>, T[], destOffset, count)
+        int[] dest4 = new int[3];
+        memcpy(new Span<int>(dest4), new int[] { 7, 8, 9 }, 0, 3);
+        assertEqual(9, dest4[2], "memcpy Span←T[] 短版[2]");
+
+        // memcpy<T>(T[], T[], byteOffset, byteOffset, byteCount)
+        int[] src5 = new int[] { 1, 2, 3, 4, 5 };
+        int[] dest5 = new int[5];
+        memcpy(dest5, src5, 0, 0, 5 * sizeof(int));
+        assertEqual(1, dest5[0], "memcpy 字节偏移版[0]");
+        assertEqual(5, dest5[4], "memcpy 字节偏移版[4]");
     }
 }
 #endif

@@ -83,16 +83,16 @@ public class ObsSystem
 		});
 	}
 	// 异步下载文件,remotePath是上传到服务器后存储的相对路径,带后缀
-	public static void downloadTxt(string remotePath, StringIntCallback callback)
+	public static void downloadTxt(string remotePath, StringCallback callback)
 	{
 		if (mURL.isEmpty() || remotePath == null)
 		{
-			callback?.Invoke(null, 0);
+			callback?.Invoke(null);
 			return;
 		}
 		loadAssetsFromUrl(mURL + remotePath, (byte[] bytes) =>
 		{
-			callback?.Invoke(bytes.bytesToString(), bytes.count());
+			callback?.Invoke(bytes.bytesToString());
 		});
 	}
 	// fullPath是要上传文件的本地绝对路径,savePath是上传到服务器后存储的相对路径,带后缀

@@ -248,8 +248,7 @@ public static class ArrayExtension
 			return string.Empty;
 		}
 		// 默认为UTF8
-		encoding ??= Encoding.UTF8;
-		return removeLastZero(encoding.GetString(bytes));
+		return removeLastZero((encoding ?? Encoding.UTF8).GetString(bytes));
 	}
 	public static string bytesToString(this byte[] bytes, int count)
 	{
@@ -266,8 +265,7 @@ public static class ArrayExtension
 			return string.Empty;
 		}
 		// 默认为UTF8
-		encoding ??= Encoding.UTF8;
-		return removeLastZero(encoding.GetString(bytes, startIndex, count));
+		return removeLastZero((encoding ?? Encoding.UTF8).GetString(bytes, startIndex, count));
 	}
 	// 移除数组中的第index个元素,validElementCount是数组中有效的元素个数
 	public static void removeIndex<T>(this T[] array, int validElementCount, int index)

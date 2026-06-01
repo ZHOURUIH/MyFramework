@@ -1,8 +1,11 @@
 ﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.U2D;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using System;
+using System.Collections.Generic;
 using static MathUtility;
 using static WidgetUtility;
 using static FrameBaseUtility;
@@ -15,7 +18,7 @@ using UObject = UnityEngine.Object;
 
 public class MenuShortcutOperation
 {
-	public const string mMenuName = "快捷操作/";
+	public const string mMenuName = "工具/";
 	[MenuItem(mMenuName + "启动游戏 _F5", false, 0)]
 	public static void startGame()
 	{
@@ -248,6 +251,56 @@ public class MenuShortcutOperation
 				EditorUtility.SetDirty(go);
 			}
 		}
+	}
+	[MenuItem(mMenuName + "生成图集索引(暂时用不上)")]
+	public static void BuildAtlasSearchMap()
+	{
+		DateTime start = DateTime.Now;
+		// Key是Sprite的文件名,不带路径不带后缀
+		// Value中第一个是所属图集的路径,是GameResources下的相对路径,可以是SpriteAtlas,也可以是MultiSprite
+		// Value中第二个是Sprite的路径,是GameResources下的相对路径,用于方便查询Sprite的路径
+		Dictionary<string, string> atlasMap = new();
+		// SpriteAtlas
+		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, ".spriteatlasv2"))
+		{
+			string assetPath = fullPathToProjectPath(file);
+			var atlas = loadAssetAtPath<SpriteAtlas>(assetPath);
+			if (atlas == null)
+			{
+				logErrorBase("sprite is null,atlas:" + file);
+				continue;
+			}
+
+			Sprite[] sprites = new Sprite[atlas.spriteCount];
+			atlas.GetSprites(sprites);
+			foreach (Sprite sprite in sprites)
+			{
+				if (sprite == null)
+				{
+					logErrorBase("sprite is null,atlas:" + file);
+				}
+				atlasMap.addOrSet(sprite.name.removeEndString("(Clone)"), assetPath.removeStartString(P_GAME_RESOURCES_PATH));
+			}
+		}
+		// MultiSprite
+		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, ".png"))
+		{
+			string assetPath = fullPathToProjectPath(file);
+			foreach (UObject obj in AssetDatabase.LoadAllAssetRepresentationsAtPath(assetPath))
+			{
+				if (obj is Sprite sprite && sprite.name != sprite.texture.name)
+				{
+					atlasMap.addOrSet(sprite.name, assetPath.removeStartString(P_GAME_RESOURCES_PATH));
+				}
+			}
+		}
+		string fileContent = "";
+		foreach (var item in atlasMap)
+		{
+			fileContent += item.Key + "," + item.Value + "\n";
+		}
+		writeTxtFile(F_GAME_RESOURCES_PATH + R_MISC_PATH + "SpritePathConfig.txt", fileContent);
+		logBase("耗时:" + (DateTime.Now - start));
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected static void doTextReplaceToTMPro(Text comText)

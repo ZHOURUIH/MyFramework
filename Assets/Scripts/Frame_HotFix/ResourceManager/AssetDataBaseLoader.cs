@@ -197,7 +197,7 @@ public class AssetDataBaseLoader
 				op.setFinish();
 				doneCallback?.Invoke(asset, assets, bytes, loadPath);
 			}, name);
-			GameEntry.startCoroutine(loadResourceCoroutine<T>(info));
+			GameEntryBase.startCoroutine(loadResourceCoroutine<T>(info));
 		}
 		return op;
 	}

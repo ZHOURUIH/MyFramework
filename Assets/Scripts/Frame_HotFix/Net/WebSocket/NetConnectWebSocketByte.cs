@@ -121,7 +121,7 @@ public class NetConnectWebSocketByte : NetConnectWebSocket
 	protected override PARSE_RESULT preParsePacket(byte[] buffer, int size, out int index, out byte[] outPacket, out ushort packetType,
 													out int packetSize, out uint sequence, out ulong fieldFlag, out bool hasSign)
 	{
-		index = size;
+		index = 0;
 		outPacket = null;
 		packetType = 0;
 		packetSize = 0;

@@ -10,7 +10,7 @@ public class DictionaryPoolThreadDebug : MonoBehaviour
 	public List<string> UnuseList = new();  // 未使用列表
 	public void Update()
 	{
-		if (GameEntry.getInstance() == null || !GameEntry.getInstance().mFramworkParam.mEnableScriptDebug)
+		if (GameEntryBase.getInstance() == null || !GameEntryBase.getInstance().mFrameworkParam.mEnableScriptDebug)
 		{
 			return;
 		}

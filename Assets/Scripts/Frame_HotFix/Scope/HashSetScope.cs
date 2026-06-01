@@ -10,13 +10,26 @@ public struct HashSetScope<T> : IDisposable
 	private HashSet<T> mList;		// 分配的对象
 	public HashSetScope(out HashSet<T> list, List<T> initList = null)
 	{
-		if (GameEntry.getInstance() == null || mHashSetPool == null)
+		if (GameEntryBase.getInstance() == null || mHashSetPool == null)
 		{
 			list = new();
 			mList = null;
 			return;
 		}
-		string stackTrace = GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
+		string stackTrace = GameEntryBase.getInstance().mFrameworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
+		list = mHashSetPool.newList(typeof(T), typeof(HashSet<T>), stackTrace, true) as HashSet<T>;
+		mList = list;
+		mList.addRange(initList);
+	}
+	public HashSetScope(out HashSet<T> list, HashSet<T> initList)
+	{
+		if (GameEntryBase.getInstance() == null || mHashSetPool == null)
+		{
+			list = new();
+			mList = null;
+			return;
+		}
+		string stackTrace = GameEntryBase.getInstance().mFrameworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY;
 		list = mHashSetPool.newList(typeof(T), typeof(HashSet<T>), stackTrace, true) as HashSet<T>;
 		mList = list;
 		mList.addRange(initList);

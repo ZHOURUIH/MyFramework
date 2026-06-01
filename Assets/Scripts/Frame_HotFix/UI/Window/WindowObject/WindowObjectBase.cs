@@ -109,8 +109,8 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 	{
 		if (mCalledOnShow)
 		{
-			//logError("已经调用过onShow,type:" + GetType() + ", hash:" + GetHashCode());
-			//return;
+			logError("已经调用过onShow,type:" + GetType() + ", hash:" + GetHashCode());
+			return;
 		}
 		mCalledOnShow = true;
 		foreach (WindowObjectBase item in mChildList.safe())

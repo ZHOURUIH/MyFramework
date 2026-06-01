@@ -42,11 +42,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 	}
 	public void checkCapacity(int capacity)
 	{
-		int needCount = capacity - mUsedItemList.Count;
-		for (int i = 0; i < needCount; ++i)
-		{
-			newItem();
-		}
+		newItem(capacity - mUsedItemList.Count);
 	}
 	// 将source从sourcePool中移动到当前池中,inUsed表示移动到当前池以后是处于正在使用的状态还是未使用状态
 	public void moveItem(WindowStructPool<T> sourcePool, T source, bool inUsed)
@@ -112,6 +108,10 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 			logError("还未执行初始化,不能newItem");
 			return;
 		}
+		if (count <= 0)
+		{
+			return;
+		}
 		parent ??= mItemParent;
 		int countInPool = mUnusedItemList.Count;
 		int fetchFromPool = getMin(count, countInPool);
@@ -152,7 +152,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 	public void newItemList<TData>(List<TData> dataList, Action<T, TData> callback)
 	{
 		unuseAll();
-		newItem(dataList.Count);
+		newItem(dataList.count());
 		int index = 0;
 		foreach (TData data in dataList.safe())
 		{
@@ -162,7 +162,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 	public void newItemListVertical<TData>(List<TData> dataList, Action<T, TData> callback)
 	{
 		unuseAll();
-		newItem(dataList.Count);
+		newItem(dataList.count());
 		int index = 0;
 		foreach (TData data in dataList.safe())
 		{
@@ -173,18 +173,18 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 	public void newItemListVerticalForDrag<TData>(List<TData> dataList, Action<T, TData> callback)
 	{
 		unuseAll();
-		newItem(dataList.Count);
+		newItem(dataList.count());
 		int index = 0;
 		foreach (TData data in dataList.safe())
 		{
 			callback(mUsedItemList[index++], data);
 		}
-		autoGridVerticalForDragView();
+		autoGridVerticalForDrag();
 	}
 	public void newItemListHorizontal<TData>(List<TData> dataList, Action<T, TData> callback)
 	{
 		unuseAll();
-		newItem(dataList.Count);
+		newItem(dataList.count());
 		int index = 0;
 		foreach (TData data in dataList.safe())
 		{
@@ -195,18 +195,18 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 	public void newItemListHorizontalForDrag<TData>(List<TData> dataList, Action<T, TData> callback)
 	{
 		unuseAll();
-		newItem(dataList.Count);
+		newItem(dataList.count());
 		int index = 0;
 		foreach (TData data in dataList.safe())
 		{
 			callback(mUsedItemList[index++], data);
 		}
-		autoGridHorizontalForDragView();
+		autoGridHorizontalForDrag();
 	}
 	public void newItemListAutoGrid<TData>(List<TData> dataList, Action<T, TData> callback)
 	{
 		unuseAll();
-		newItem(dataList.Count);
+		newItem(dataList.count());
 		int index = 0;
 		foreach (TData data in dataList.safe())
 		{
@@ -217,13 +217,13 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 	public void newItemListAutoGridForDrag<TData>(List<TData> dataList, Action<T, TData> callback)
 	{
 		unuseAll();
-		newItem(dataList.Count);
+		newItem(dataList.count());
 		int index = 0;
 		foreach (TData data in dataList.safe())
 		{
 			callback(mUsedItemList[index++], data);
 		}
-		autoGridForDragView();
+		autoGridForDrag();
 	}
 	public void newItemListAutoGridForDrag(int itemCount, Action<T, int> callback)
 	{
@@ -234,7 +234,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		{
 			callback(mUsedItemList[index++], i);
 		}
-		autoGridForDragView();
+		autoGridForDrag();
 	}
 	public override void unuseAll()
 	{
@@ -300,6 +300,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		else
 		{
 			clampMax(ref count, usedCount - startIndex);
+			clampMin(ref count);
 		}
 		for (int i = 0; i < count; ++i)
 		{

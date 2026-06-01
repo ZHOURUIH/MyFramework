@@ -9,7 +9,7 @@ public class ResourcesManagerDebug : MonoBehaviour
 	public List<AssetBundleDebug> mLoadedAssetBundleListValues = new();	// 已加载的AssetBundle列表Value
 	public void Update()
 	{
-		if (GameEntry.getInstance() == null || !GameEntry.getInstance().mFramworkParam.mEnableScriptDebug)
+		if (GameEntryBase.getInstance() == null || !GameEntryBase.getInstance().mFrameworkParam.mEnableScriptDebug)
 		{
 			return;
 		}

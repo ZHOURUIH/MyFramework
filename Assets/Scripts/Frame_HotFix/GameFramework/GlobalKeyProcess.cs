@@ -62,8 +62,8 @@ public partial class GlobalKeyProcess : FrameSystem
 			// F3启用或禁用用作调试的脚本的更新
 			if (isKeyCurrentDown(KeyCode.F3))
 			{
-				GameEntry.getInstance().mFramworkParam.mEnableScriptDebug = !GameEntry.getInstance().mFramworkParam.mEnableScriptDebug;
-				if (GameEntry.getInstance().mFramworkParam.mEnableScriptDebug)
+				GameEntryBase.getInstance().mFrameworkParam.mEnableScriptDebug = !GameEntryBase.getInstance().mFrameworkParam.mEnableScriptDebug;
+				if (GameEntryBase.getInstance().mFrameworkParam.mEnableScriptDebug)
 				{
 					log("已开启调试脚本", Color.green);
 				}
@@ -75,8 +75,8 @@ public partial class GlobalKeyProcess : FrameSystem
 			// F4启用或禁用
 			if (isKeyCurrentDown(KeyCode.F4))
 			{
-				GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace = !GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace;
-				if (GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace)
+				GameEntryBase.getInstance().mFrameworkParam.mEnablePoolStackTrace = !GameEntryBase.getInstance().mFrameworkParam.mEnablePoolStackTrace;
+				if (GameEntryBase.getInstance().mFrameworkParam.mEnablePoolStackTrace)
 				{
 					log("已开启对象池分配堆栈追踪", Color.green);
 				}

@@ -56,7 +56,7 @@ public class StringUtility
 		int namePos = str.LastIndexOf('/');
 		if (namePos != -1)
 		{
-			str = str.Remove(0, namePos + 1);
+			str = str[(namePos + 1)..];
 		}
 		// 移除后缀
 		int dotPos = str.LastIndexOf('.');
@@ -120,7 +120,7 @@ public class StringUtility
 		}
 		return str.Split(keyword, removeEmpty ? StringSplitOptions.RemoveEmptyEntries : StringSplitOptions.None);
 	}
-	public static string stringsToString(IList<string> values, char saperate = ',')
+	public static string stringsToString(IList<string> values, char saparate = ',')
 	{
 		if (values.isEmpty())
 		{
@@ -133,7 +133,7 @@ public class StringUtility
 			builder.Append(values[i]);
 			if (i != count - 1)
 			{
-				builder.Append(saperate);
+				builder.Append(saparate);
 			}
 		}
 		return builder.ToString();
@@ -145,7 +145,7 @@ public class StringUtility
 		int dotPos = str.LastIndexOf('/');
 		if (dotPos != -1)
 		{
-			str = str.Remove(0, dotPos + 1);
+			str = str[(dotPos + 1)..];
 		}
 		return str;
 	}
@@ -156,21 +156,7 @@ public class StringUtility
 		// 等效于int low = value % 16;
 		int high = value >> 4;
 		int low = value & 15;
-		if (high < 10)
-		{
-			builder.Append((char)('0' + high));
-		}
-		else
-		{
-			builder.Append(mHexLowerChar[high - 10]);
-		}
-		if (low < 10)
-		{
-			builder.Append((char)('0' + low));
-		}
-		else
-		{
-			builder.Append(mHexLowerChar[low - 10]);
-		}
+		builder.Append(high < 10 ? (char)('0' + high) : mHexLowerChar[high - 10]);
+		builder.Append(low < 10 ? (char)('0' + low) : mHexLowerChar[low - 10]);
 	}
 }

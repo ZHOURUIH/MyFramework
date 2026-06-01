@@ -140,7 +140,7 @@ public class SceneSystem : FrameSystem
 			// scenePath + sceneName表示场景文件AssetBundle的路径,包含文件名
 			mResourceManager.preloadAssetBundleAsync(getScenePath(sceneName) + sceneName, (AssetBundleInfo bundle) =>
 			{
-				GameEntry.startCoroutine(loadSceneCoroutine(scene, op));
+				GameEntryBase.startCoroutine(loadSceneCoroutine(scene, op));
 			});
 		}
 		return op;

@@ -95,7 +95,7 @@ public class ArrayPool : FrameSystem
 		if (isEditor())
 		{
 			addInuse(array, onlyOnce);
-			mObjectStack.Add(array, GameEntry.getInstance().mFramworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY);
+			mObjectStack.Add(array, GameEntryBase.getInstance().mFrameworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY);
 			if (isNew && mCreatedCount % 1000 == 0)
 			{
 				logNoLock(typeof(T).ToString() + "[" + size + "]" + "数量已经达到了" + mCreatedCount + "个");

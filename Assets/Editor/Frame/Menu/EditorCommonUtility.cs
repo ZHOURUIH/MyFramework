@@ -58,9 +58,6 @@ public class PrefabNodeItem
 
 public class EditorCommonUtility
 {
-	protected static char[] mHexUpperChar;
-	protected static char[] mHexLowerChar;
-	protected static string mHexString = "ABCDEFabcdef0123456789";
 	protected const int GUID_LENGTH = 32;
 	public const string KEY_FUNCTION = "resetProperty";
 	protected const string CODE_LOCATE_KEYWORD = "代码检测";
@@ -801,7 +798,7 @@ public class EditorCommonUtility
 		return result;
 	}
 #endif
-	// apkPath是apk的绝对路径
+	// apkPath是apk的绝对路径,带后缀.apk
 	public static BuildResult buildAndroid(string apkPath, BuildOptions buildOptions)
 	{
 		createDir(getFilePath(apkPath));
@@ -814,20 +811,20 @@ public class EditorCommonUtility
 		createDir(outputPath);
 		return buildGame(outputPath, BuildTarget.WebGL, BuildTargetGroup.WebGL, buildOptions);
 	}
-	// outputPath是exe的绝对路径
+	// outputPath是exe的绝对路径,带后缀.exe
 	public static BuildResult buildWindows(string outputPath, BuildOptions buildOptions)
 	{
 		deleteFolder(getFilePath(outputPath));
 		createDir(getFilePath(outputPath));
 		return buildGame(outputPath, BuildTarget.StandaloneWindows, BuildTargetGroup.Standalone, buildOptions);
 	}
-	// outputPath是xcodeproj所在的目录
+	// outputPath是xcodeproj所在的目录,不带文件名
 	public static BuildResult buildIOS(string outputPath, BuildOptions buildOptions)
 	{
 		deleteFolder(outputPath);
 		return buildGame(outputPath, BuildTarget.iOS, BuildTargetGroup.iOS, buildOptions);
 	}
-	// outputPath是app文件输出的绝对路径
+	// outputPath是app文件输出的绝对路径,带后缀.app
 	public static BuildResult buildMacOS(string outputPath, BuildOptions buildOptions)
 	{
 		deleteFolder(getFilePath(outputPath));
@@ -3182,8 +3179,8 @@ public class EditorCommonUtility
 			{
 				continue;
 			}
-			Texture2D output = new((int)sprite.rect.width, (int)sprite.rect.height);
 			Rect r = sprite.textureRect;
+			Texture2D output = new((int)r.width, (int)r.height);
 			output.SetPixels(sprite.texture.GetPixels((int)r.x, (int)r.y, (int)r.width, (int)r.height));
 			output.Apply();
 			output.name = sprite.name;

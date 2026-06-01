@@ -29,8 +29,7 @@ public class FileUtility
 			return null;
 		}
 		// 默认为UTF8
-		encoding ??= Encoding.UTF8;
-		return encoding.GetBytes(str);
+		return (encoding ?? Encoding.UTF8).GetBytes(str);
 	}
 	public static string bytesToString(byte[] bytes, Encoding encoding = null)
 	{
@@ -43,8 +42,7 @@ public class FileUtility
 			return "";
 		}
 		// 默认为UTF8
-		encoding ??= Encoding.UTF8;
-		return removeLastZero(encoding.GetString(bytes));
+		return removeLastZero((encoding ?? Encoding.UTF8).GetString(bytes));
 	}
 	// 字节数组转换为字符串时,末尾可能会带有数字0,此时在字符串比较时会出现错误,所以需要移除字符串末尾的0
 	public static string removeLastZero(string str)
@@ -80,12 +78,12 @@ public class FileUtility
 			callback?.Invoke(null);
 			return;
 		}
-		GameEntry.startCoroutine(openFileAsyncInternal(fileName, errorIfNull, callback));
+		GameEntryBase.startCoroutine(openFileAsyncInternal(fileName, errorIfNull, callback));
 	}
 	// fileNameList为绝对路径
 	public static void openFileListAsync(List<string> fileNameList, bool errorIfNull, StringBytesCallback callback)
 	{
-		GameEntry.startCoroutine(openFileListAsyncInternal(fileNameList, errorIfNull, callback));
+		GameEntryBase.startCoroutine(openFileListAsyncInternal(fileNameList, errorIfNull, callback));
 	}
 	// fileNameList为绝对路径
 	public static IEnumerator openFileListAsyncInternal(List<string> fileNameList, bool errorIfNull, StringBytesCallback callback)
@@ -383,7 +381,7 @@ public class FileUtility
 			}
 			else
 			{
-				GameEntry.startCoroutine(generateMD5ListAsyncInternal(fileNameList, callback));
+				GameEntryBase.startCoroutine(generateMD5ListAsyncInternal(fileNameList, callback));
 			}
 		}
 	}

@@ -95,6 +95,7 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 	{
 		foreach (T item in mInusedList)
 		{
+			mUnusedList.Add(item);
 			if (mDestroyCallback != null)
 			{
 				mDestroyCallback(item);
@@ -103,7 +104,6 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 			{
 				item.setActive(false);
 			}
-			mUnusedList.Add(item);
 		}
 		mInusedList.Clear();
 	}
@@ -160,11 +160,20 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 		}
 		for (int i = 0; i < count; ++i)
 		{
-			mUnusedList.add(mInusedList[startIndex + i]).setActive(false);
+			var window = mInusedList[startIndex + i];
+			mUnusedList.Add(window);
+			if (mDestroyCallback != null)
+			{
+				mDestroyCallback(window);
+			}
+			else
+			{
+				window.setActive(false);
+			}
 		}
 		mInusedList.RemoveRange(startIndex, count);
 	}
-	public void checkCapacity(int capacity)
+	public void ensureCapacity(int capacity)
 	{
 		int needCount = capacity - mInusedList.Count;
 		for (int i = 0; i < needCount; ++i)
@@ -178,26 +187,26 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 	{
 		WidgetUtility.autoGridHorizontal(mParent, true, true, 0.0f, true, 0.0f, 0.0f, 0.0f, true);
 	}
-	public void autoGridHorizontal(float interval)
+	public void autoGridHorizontal(float intervalNoScreenScale)
 	{
-		WidgetUtility.autoGridHorizontal(mParent, true, true, interval, true, 0.0f, 0.0f, 0.0f, true);
+		WidgetUtility.autoGridHorizontal(mParent, true, true, intervalNoScreenScale, true, 0.0f, 0.0f, 0.0f, true);
 	}
 	public void autoGridHorizontal(bool keepLeftSide)
 	{
 		WidgetUtility.autoGridHorizontal(mParent, true, true, 0.0f, true, 0.0f, 0.0f, 0.0f, keepLeftSide);
 	}
-	public void autoGridHorizontal(float interval, bool keepLeftSide)
+	public void autoGridHorizontal(float intervalNoScreenScale, bool keepLeftSide)
 	{
-		WidgetUtility.autoGridHorizontal(mParent, true, true, interval, true, 0.0f, 0.0f, 0.0f, keepLeftSide);
+		WidgetUtility.autoGridHorizontal(mParent, true, true, intervalNoScreenScale, true, 0.0f, 0.0f, 0.0f, keepLeftSide);
 	}
 	public void autoGridHorizontal(bool autoRefreshUIDepth, bool refreshIgnoreInactive)
 	{
 		WidgetUtility.autoGridHorizontal(mParent, autoRefreshUIDepth, refreshIgnoreInactive, 0.0f, true, 0.0f, 0.0f, 0.0f, true);
 	}
 	// 自动排列一个节点下的所有子节点的位置,从左往右紧密排列,并且不改变子节点的大小,keepLeftSide为true表示改变大小后保持父节点的左边界位置不变,false表示保持右边界位置不变
-	public void autoGridHorizontal(bool autoRefreshUIDepth, bool refreshIgnoreInactive, float interval, bool changeRootPosSize = true, float minWidth = 0.0f, float extraLeftWidth = 0.0f, float extraRightWidth = 0.0f, bool keepLeftSide = true)
+	public void autoGridHorizontal(bool autoRefreshUIDepth, bool refreshIgnoreInactive, float intervalNoScreenScale, bool changeRootPosSize = true, float minWidth = 0.0f, float extraLeftWidth = 0.0f, float extraRightWidth = 0.0f, bool keepLeftSide = true)
 	{
-		WidgetUtility.autoGridHorizontal(mParent, autoRefreshUIDepth, refreshIgnoreInactive, interval, changeRootPosSize, minWidth, extraLeftWidth, extraRightWidth, keepLeftSide);
+		WidgetUtility.autoGridHorizontal(mParent, autoRefreshUIDepth, refreshIgnoreInactive, intervalNoScreenScale, changeRootPosSize, minWidth, extraLeftWidth, extraRightWidth, keepLeftSide);
 	}
 	// 将自动排列的方法直接写到对象池中,方便使用
 	// 一般对于排列是有两个地方有需求,1:滑动列表,2:不可滑动,但是有多个相似节点需要动态创建后排列好
@@ -219,30 +228,30 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 	{
 		WidgetUtility.autoGridVertical(mParent, true, true, 0.0f, 0.0f, 0.0f, 0.0f, keepTopSide);
 	}
-	public void autoGridVertical(float interval)
+	public void autoGridVertical(float intervalNoScreenScale)
 	{
-		WidgetUtility.autoGridVertical(mParent, true, true, interval, 0.0f, 0.0f, 0.0f, true);
+		WidgetUtility.autoGridVertical(mParent, true, true, intervalNoScreenScale, 0.0f, 0.0f, 0.0f, true);
 	}
-	public void autoGridVertical(float interval, bool keepTopSide)
+	public void autoGridVertical(float intervalNoScreenScale, bool keepTopSide)
 	{
-		WidgetUtility.autoGridVertical(mParent, true, true, interval, 0.0f, 0.0f, 0.0f, keepTopSide);
+		WidgetUtility.autoGridVertical(mParent, true, true, intervalNoScreenScale, 0.0f, 0.0f, 0.0f, keepTopSide);
 	}
 	public void autoGridVertical(bool autoRefreshUIDepth, bool refreshIgnoreInactive)
 	{
 		WidgetUtility.autoGridVertical(mParent, autoRefreshUIDepth, refreshIgnoreInactive, 0.0f, 0.0f, 0.0f, 0.0f, true);
 	}
-	public void autoGridVertical(bool autoRefreshUIDepth, bool refreshIgnoreInactive, float interval, float minHeight = 0.0f, float extraTopHeight = 0.0f, float extraBottomHeight = 0.0f, bool keepTopSide = true)
+	public void autoGridVertical(bool autoRefreshUIDepth, bool refreshIgnoreInactive, float intervalNoScreenScale, float minHeight = 0.0f, float extraTopHeight = 0.0f, float extraBottomHeight = 0.0f, bool keepTopSide = true)
 	{
-		WidgetUtility.autoGridVertical(mParent, autoRefreshUIDepth, refreshIgnoreInactive, interval, 0.0f, 0.0f, 0.0f, true);
+		WidgetUtility.autoGridVertical(mParent, autoRefreshUIDepth, refreshIgnoreInactive, intervalNoScreenScale, 0.0f, 0.0f, 0.0f, true);
 	}
 	public void autoGridVerticalForDragView()
 	{
 		WidgetUtility.autoGridVertical(mParent, true, true, 0.0f, 0.0f, 0.0f, 0.0f, true);
 		mParent.setTopCenterToParentTopCenter();
 	}
-	public void autoGridVerticalForDragView(float interval)
+	public void autoGridVerticalForDragView(float intervalNoScreenScale)
 	{
-		WidgetUtility.autoGridVertical(mParent, true, true, interval, 0.0f, 0.0f, 0.0f, true);
+		WidgetUtility.autoGridVertical(mParent, true, true, intervalNoScreenScale, 0.0f, 0.0f, 0.0f, true);
 		mParent.setTopCenterToParentTopCenter();
 	}
 	public void autoGridForDragView()
@@ -260,9 +269,9 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 	{
 		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), Vector2.zero, autoRefreshUIDepth, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
 	}
-	public void autoGrid(Vector2 interval)
+	public void autoGrid(Vector2 intervalNoScreenScale)
 	{
-		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), interval, true, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
+		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), intervalNoScreenScale, true, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
 	}
 	public void autoGrid(HORIZONTAL_DIRECTION horizontal)
 	{
@@ -272,12 +281,12 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 	{
 		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), Vector2.zero, true, true, true, HORIZONTAL_DIRECTION.LEFT, vertical);
 	}
-	public void autoGrid(Vector2 interval, HORIZONTAL_DIRECTION horizontal)
+	public void autoGrid(Vector2 intervalNoScreenScale, HORIZONTAL_DIRECTION horizontal)
 	{
-		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), interval, true, true, true, horizontal, VERTICAL_DIRECTION.TOP);
+		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), intervalNoScreenScale, true, true, true, horizontal, VERTICAL_DIRECTION.TOP);
 	}
-	public void autoGrid(Vector2 interval, VERTICAL_DIRECTION vertical)
+	public void autoGrid(Vector2 intervalNoScreenScale, VERTICAL_DIRECTION vertical)
 	{
-		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), interval, true, true, true, HORIZONTAL_DIRECTION.LEFT, vertical);
+		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), intervalNoScreenScale, true, true, true, HORIZONTAL_DIRECTION.LEFT, vertical);
 	}
 }

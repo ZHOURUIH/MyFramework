@@ -9,8 +9,8 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 {
 	protected AtlasRef mOriginAtlasPtr;			// 图片图集,用于卸载,当前类只关心初始图集的卸载,后续再次设置的图集不关心是否需要卸载,需要外部设置的地方自己关心
 	protected AtlasRef mAtlasPtr;				// 当前正在使用的图集
-	protected Sprite mOriginSprite;					// 备份加载物体时原始的精灵图片
-	protected string mOriginSpriteName;				// 初始图片的名字,用于外部根据初始名字设置其他效果的图片
+	protected Sprite mOriginSprite;             // 备份加载物体时原始的精灵图片,此图片的卸载是在prefab卸载后,没有任何地方对其有引用,在Resources.UnloadUnusedAssets中被卸载
+	protected string mOriginSpriteName;			// 初始图片的名字,用于外部根据初始名字设置其他效果的图片
 	public override void init()
 	{
 		base.init();
@@ -20,12 +20,12 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 		{
 			if (!mObject.TryGetComponent<ImageAtlasPath>(out var imageAtlasPath))
 			{
-				logError("找不到图集,请添加ImageAtlasPath组件, GameObject:" + getGameObjectPath(mObject));
+				logError("找不到图集,请添加ImageAtlasPath组件, GameObject:" + getGameObjectPath());
 			}
 			string atlasPath = imageAtlasPath.mAtlasPath;
 			if (atlasPath.isEmpty())
 			{
-				logError("ImageAtlasPath中记录的路径为空,GameObject:" + getGameObjectPath(mObject));
+				logError("ImageAtlasPath中记录的路径为空,GameObject:" + getGameObjectPath());
 			}
 			// unity_builtin_extra是unity内置的资源,不需要再次加载
 			if (!atlasPath.endWith("/unity_builtin_extra"))
@@ -34,13 +34,13 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 				mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
 				if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
 				{
-					logWarning("无法加载初始化的图集:" + atlasPath + ", GameObject:" + getGameObjectPath(mObject) +
+					logWarning("无法加载初始化的图集:" + atlasPath + ", GameObject:" + getGameObjectPath() +
 						",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
 				}
 			}
 			else
 			{
-				logError("需要切换图片的节点上不要使用引擎内置的图片, GameObject:" + getGameObjectPath(mObject));
+				logError("需要切换图片的节点上不要使用引擎内置的图片, GameObject:" + getGameObjectPath());
 			}
 			mAtlasPtr = mOriginAtlasPtr;
 		}
@@ -94,7 +94,7 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 		}
 		setSpriteOnly(sprite, useSpriteSize, sizeScale);
 	}
-	// 设置可自动本地化的文本内容,collection是myUGUIText对象所属的布局对象或者布局结构体对象,如LayoutScript或WindowObjectUGUI
+	// 设置可自动本地化的文本内容,collection是myUGUIImage对象所属的布局对象或者布局结构体对象,如LayoutScript或WindowObjectBase
 	public void setLocalizationImage(string chineseSpriteName, ILocalizationCollection collection)
 	{
 		mLocalizationManager.registeLocalization(this, chineseSpriteName);

@@ -7,7 +7,7 @@ using UnityEngine.UI;
 using static UnityUtility;
 using static MathUtility;
 
-// RectTransform和UI相关的工具函数类
+// RectTransform和UI相关的工具函数类,下面所有的intervalNoScreenScale都会再次经过当前屏幕缩放计算出最终的值
 public class WidgetUtility
 {
 	// 父节点在父节点坐标系下的各条边
@@ -113,83 +113,91 @@ public class WidgetUtility
 	// 获得窗口右边界在窗口中的相对于窗口pivot的X坐标
 	public static float getWindowRightInSelf(RectTransform rect) { return rect.rect.size.x * (1.0f - rect.pivot.x); }
 	// 使当前窗口右边界对齐另外一个窗口的左边界,只修改x轴,仅限同一父节点下
-	public static void setRightToOtherLeft(RectTransform rect, RectTransform other, float interval = 0.0f)
+	public static void setRightToOtherLeft(RectTransform rect, RectTransform other, float intervalNoScreenScale = 0.0f)
 	{
 		if (rect.parent != other.parent)
 		{
 			logError("只有同一父节点下的节点才能对齐");
 			return;
 		}
+		float interval = adjustByScreenScaleAuto(intervalNoScreenScale);
 		setPositionX(rect, other.localPosition.x - other.rect.size.x * 0.5f - rect.rect.size.x * 0.5f - interval);
 	}
 	// 使当前窗口左边界对齐另外一个窗口的右边界,只修改x轴,仅限同一父节点下
-	public static void setLeftToOtherRight(RectTransform rect, RectTransform other, float interval = 0.0f)
+	public static void setLeftToOtherRight(RectTransform rect, RectTransform other, float intervalNoScreenScale = 0.0f)
 	{
 		if (rect.parent != other.parent)
 		{
 			logError("只有同一父节点下的节点才能对齐");
 			return;
 		}
+		float interval = adjustByScreenScaleAuto(intervalNoScreenScale);
 		setPositionX(rect, other.localPosition.x + other.rect.size.x * 0.5f + rect.rect.size.x * 0.5f + interval);
 	}
 	// 使当前窗口下边界对齐另外一个窗口的上边界,只修改y轴,仅限同一父节点下
-	public static void setBottomToOtherTop(RectTransform rect, RectTransform other, float interval = 0.0f)
+	public static void setBottomToOtherTop(RectTransform rect, RectTransform other, float intervalNoScreenScale = 0.0f)
 	{
 		if (rect.parent != other.parent)
 		{
 			logError("只有同一父节点下的节点才能对齐");
 			return;
 		}
+		float interval = adjustByScreenScaleAuto(intervalNoScreenScale);
 		setPositionY(rect, other.localPosition.y + other.rect.size.y * 0.5f + rect.rect.size.y * 0.5f + interval);
 	}
 	// 使当前窗口上边界对齐另外一个窗口的下边界,只修改y轴,仅限同一父节点下
-	public static void setTopToOtherBottom(RectTransform rect, RectTransform other, float interval = 0.0f)
+	public static void setTopToOtherBottom(RectTransform rect, RectTransform other, float intervalNoScreenScale = 0.0f)
 	{
 		if (rect.parent != other.parent)
 		{
 			logError("只有同一父节点下的节点才能对齐");
 			return;
 		}
+		float interval = adjustByScreenScaleAuto(intervalNoScreenScale);
 		setPositionY(rect, other.localPosition.y - other.rect.size.y * 0.5f - rect.rect.size.y * 0.5f - interval);
 	}
 	// 使当前窗口左边界对齐另外一个窗口的左边界,只修改x轴,仅限同一父节点下
-	public static void setLeftToOtherLeft(RectTransform rect, RectTransform other, float interval = 0.0f)
+	public static void setLeftToOtherLeft(RectTransform rect, RectTransform other, float intervalNoScreenScale = 0.0f)
 	{
 		if (rect.parent != other.parent)
 		{
 			logError("只有同一父节点下的节点才能对齐");
 			return;
 		}
+		float interval = adjustByScreenScaleAuto(intervalNoScreenScale);
 		setPositionX(rect, other.localPosition.x - other.rect.size.x * 0.5f + rect.rect.size.x * 0.5f + interval);
 	}
 	// 使当前窗口左边界对齐另外一个窗口的右边界,只修改x轴,仅限同一父节点下
-	public static void setRightToOtherRight(RectTransform rect, RectTransform other, float interval = 0.0f)
+	public static void setRightToOtherRight(RectTransform rect, RectTransform other, float intervalNoScreenScale = 0.0f)
 	{
 		if (rect.parent != other.parent)
 		{
 			logError("只有同一父节点下的节点才能对齐");
 			return;
 		}
+		float interval = adjustByScreenScaleAuto(intervalNoScreenScale);
 		setPositionX(rect, other.localPosition.x + other.rect.size.x * 0.5f - rect.rect.size.x * 0.5f - interval);
 	}
 	// 使当前窗口下边界对齐另外一个窗口的上边界,只修改y轴,仅限同一父节点下
-	public static void setTopToOtherTop(RectTransform rect, RectTransform other, float interval = 0.0f)
+	public static void setTopToOtherTop(RectTransform rect, RectTransform other, float intervalNoScreenScale = 0.0f)
 	{
 		if (rect.parent != other.parent)
 		{
 			logError("只有同一父节点下的节点才能对齐");
 			return;
 		}
+		float interval = adjustByScreenScaleAuto(intervalNoScreenScale);
 		setPositionY(rect, other.localPosition.y + other.rect.size.y * 0.5f - rect.rect.size.y * 0.5f - interval);
 	}
 	// 使当前窗口上边界对齐另外一个窗口的下边界,只修改y轴,仅限同一父节点下
-	public static void setBottomToOtherBottom(RectTransform rect, RectTransform other, float interval = 0.0f)
+	public static void setBottomToOtherBottom(RectTransform rect, RectTransform other, float intervalNoScreenScale = 0.0f)
 	{
 		if (rect.parent != other.parent)
 		{
 			logError("只有同一父节点下的节点才能对齐");
 			return;
 		}
+		float interval = adjustByScreenScaleAuto(intervalNoScreenScale);
 		setPositionY(rect, other.localPosition.y - other.rect.size.y * 0.5f + rect.rect.size.y * 0.5f + interval);
 	}
 	public static Vector3 getPositionNoPivot(RectTransform rect, bool applyWindowScale = true)
@@ -235,11 +243,11 @@ public class WidgetUtility
 		{
 			if (rect.parent == null)
 			{
-				logError("父节点为空,无法计算适配,当前节点:" + rect.name);
+				logError("父节点为空,无法计算适配,path:" + getGameObjectPath(rect.gameObject));
 			}
 			else
 			{
-				logError("父节点不是RectTransform,无法计算适配,当前节点:" + rect.name + ",父节点:" + rect.parent.name);
+				logError("父节点不是RectTransform,无法计算适配,path:" + getGameObjectPath(rect.gameObject));
 			}
 			return Vector3.zero;
 		}
@@ -409,13 +417,16 @@ public class WidgetUtility
 	}
 	// 保持父节点的高度,从指定角开始纵向排列子节点,并且会改变子节点的大小,gridSize是子节点的大小,startCorner是开始排列的位置
 	// 与autoGrid不同,autoGrid是先横向排列,使用频率较高,所以名字简化了,纵向排列的使用频率较低,所以单独写出来完整名字
-	public static void autoGridFixedRootHeight(myUGUIObject root, Vector2 gridSize, Vector2 interval, bool autoRefreshUIDepth = true, CORNER startCorner = CORNER.LEFT_TOP)
+	public static void autoGridFixedRootHeight(myUGUIObject root, Vector2 gridSize, Vector2 intervalNoScreenScale, bool autoRefreshUIDepth = true, CORNER startCorner = CORNER.LEFT_TOP)
 	{
 		RectTransform transform = root.getRectTransform();
 		if (transform == null)
 		{
 			return;
 		}
+		Vector2 interval = new();
+		interval.x = adjustByScreenScaleAuto(intervalNoScreenScale.x);
+		interval.y = adjustByScreenScaleAuto(intervalNoScreenScale.y);
 		// 先找出所有激活的子节点
 		using var a = new ListScope<RectTransform>(out var childList);
 		int childCount = transform.childCount;
@@ -530,9 +541,9 @@ public class WidgetUtility
 	{
 		autoGrid(root, gridSize, Vector2.zero, autoRefreshUIDepth, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
 	}
-	public static void autoGrid(myUGUIObject root, Vector2 gridSize, Vector2 interval)
+	public static void autoGrid(myUGUIObject root, Vector2 gridSize, Vector2 intervalNoScreenScale)
 	{
-		autoGrid(root, gridSize, interval, true, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
+		autoGrid(root, gridSize, intervalNoScreenScale, true, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
 	}
 	public static void autoGrid(myUGUIObject root, Vector2 gridSize, HORIZONTAL_DIRECTION horizontal)
 	{
@@ -542,34 +553,37 @@ public class WidgetUtility
 	{
 		autoGrid(root, gridSize, Vector2.zero, true, true, true, HORIZONTAL_DIRECTION.LEFT, vertical);
 	}
-	public static void autoGrid(myUGUIObject root, Vector2 gridSize, Vector2 interval, HORIZONTAL_DIRECTION horizontal)
+	public static void autoGrid(myUGUIObject root, Vector2 gridSize, Vector2 intervalNoScreenScale, HORIZONTAL_DIRECTION horizontal)
 	{
-		autoGrid(root, gridSize, interval, true, true, true, horizontal, VERTICAL_DIRECTION.TOP);
+		autoGrid(root, gridSize, intervalNoScreenScale, true, true, true, horizontal, VERTICAL_DIRECTION.TOP);
 	}
-	public static void autoGrid(myUGUIObject root, Vector2 gridSize, Vector2 interval, VERTICAL_DIRECTION vertical)
+	public static void autoGrid(myUGUIObject root, Vector2 gridSize, Vector2 intervalNoScreenScale, VERTICAL_DIRECTION vertical)
 	{
-		autoGrid(root, gridSize, interval, true, true, true, HORIZONTAL_DIRECTION.LEFT, vertical);
+		autoGrid(root, gridSize, intervalNoScreenScale, true, true, true, HORIZONTAL_DIRECTION.LEFT, vertical);
 	}
 	// 从左上角开始横向排列子节点,并且会改变子节点的大小,gridSize是子节点的大小,horizontal是水平方向的停靠方式,vertical是竖直方向上的停靠方式
-	public static void autoGrid(myUGUIObject root, Vector2 gridSize, Vector2 interval, bool autoRefreshUIDepth, bool refreshIgnoreInactive, bool keepTopSide, HORIZONTAL_DIRECTION horizontal = HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION vertical = VERTICAL_DIRECTION.TOP)
+	public static void autoGrid(myUGUIObject root, Vector2 gridSize, Vector2 intervalNoScreenScale, bool autoRefreshUIDepth, bool refreshIgnoreInactive, bool keepTopSide, HORIZONTAL_DIRECTION horizontal = HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION vertical = VERTICAL_DIRECTION.TOP)
 	{
 		if (root == null)
 		{
 			return;
 		}
-		autoGrid(root?.getRectTransform(), gridSize, interval, horizontal, vertical);
+		autoGrid(root?.getRectTransform(), gridSize, intervalNoScreenScale, horizontal, vertical);
 		if (root?.getRectTransform() != null && autoRefreshUIDepth)
 		{
 			root.getLayout().refreshUIDepth(root, refreshIgnoreInactive);
 		}
 	}
 	// 保持父节点的大小和位置,从左上角开始横向排列子节点,并且会改变子节点的大小,gridSize是子节点的大小,horizontal是水平方向的停靠方式,vertical是整体竖直方向上的停靠方式
-	public static void autoGrid(RectTransform root, Vector2 gridSize, Vector2 interval, HORIZONTAL_DIRECTION horizontal = HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION vertical = VERTICAL_DIRECTION.TOP)
+	public static void autoGrid(RectTransform root, Vector2 gridSize, Vector2 intervalNoScreenScale, HORIZONTAL_DIRECTION horizontal = HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION vertical = VERTICAL_DIRECTION.TOP)
 	{
 		if (root == null)
 		{
 			return;
 		}
+		Vector2 interval = new();
+		interval.x = adjustByScreenScaleAuto(intervalNoScreenScale.x);
+		interval.y = adjustByScreenScaleAuto(intervalNoScreenScale.y);
 		// 先找出所有激活的子节点
 		using var a = new ListScope<RectTransform>(out var childList);
 		int childCount = root.childCount;
@@ -721,7 +735,7 @@ public class WidgetUtility
 	// 根据所有子节点所占用的范围,自动计算父节点的高度,使其在y方向上正好包含所有子节点,并且保持父节点上边界位置不变,不考虑子节点的锚点
 	public static void setWindowBestHeight(myUGUIObject root, bool ignoreInactive = true, bool keepTopSide = true)
 	{
-		using var a = new DicScope<Transform, Vector3>(out var childPositionList);
+		using var a = new DicScope<RectTransform, Vector3>(out var childPositionList);
 		float minY = 99999.0f;
 		float maxY = -99999.0f;
 		RectTransform transform = root.getRectTransform();
@@ -748,7 +762,7 @@ public class WidgetUtility
 		}
 		foreach (var item in childPositionList)
 		{
-			item.Key.localPosition = replaceY(item.Key.localPosition, newHeight * 0.5f + item.Key.localPosition.y - maxY);
+			setPositionY(item.Key, newHeight * 0.5f + item.Key.localPosition.y - maxY);
 		}
 	}
 	public static void autoGridVertical(myUGUIObject root)
@@ -759,36 +773,38 @@ public class WidgetUtility
 	{
 		autoGridVertical(root, true, true, 0.0f, 0.0f, 0.0f, 0.0f, keepTopSide);
 	}
-	public static void autoGridVertical(myUGUIObject root, float interval)
+	public static void autoGridVertical(myUGUIObject root, float intervalNoScreenScale)
 	{
-		autoGridVertical(root, true, true, interval, 0.0f, 0.0f, 0.0f, true);
+		autoGridVertical(root, true, true, intervalNoScreenScale, 0.0f, 0.0f, 0.0f, true);
 	}
 	public static void autoGridVertical(myUGUIObject root, bool autoRefreshUIDepth, bool refreshIgnoreInactive)
 	{
 		autoGridVertical(root, autoRefreshUIDepth, refreshIgnoreInactive, 0.0f, 0.0f, 0.0f, 0.0f, true);
 	}
 	// 自动排列一个节点下的所有子节点的位置,从上往下紧密排列,并且不改变子节点的大小
-	public static void autoGridVertical(myUGUIObject root, bool autoRefreshUIDepth, bool refreshIgnoreInactive, float interval, float minHeight = 0.0f, float extraTopHeight = 0.0f, float extraBottomHeight = 0.0f, bool keepTopSide = true)
+	public static void autoGridVertical(myUGUIObject root, bool autoRefreshUIDepth, bool refreshIgnoreInactive, float intervalNoScreenScale, float minHeight = 0.0f, float extraTopHeight = 0.0f, float extraBottomHeight = 0.0f, bool keepTopSide = true)
 	{
 		if (root == null)
 		{
 			return;
 		}
-		autoGridVertical(root?.getRectTransform(), interval, minHeight, extraTopHeight, extraBottomHeight, keepTopSide);
-		// 需要重新再调用一下setWindowSize,以便触发虚函数的逻辑
+		autoGridVertical(root.getRectTransform(), intervalNoScreenScale, minHeight, extraTopHeight, extraBottomHeight, keepTopSide);
+		// 需要重新再调用一下setSize,以便触发虚函数的逻辑
 		root.setSize(root.getSize());
-		if (root?.getRectTransform() != null && autoRefreshUIDepth)
+		if (root.getRectTransform() != null && autoRefreshUIDepth)
 		{
 			root.getLayout().refreshUIDepth(root, refreshIgnoreInactive);
 		}
 	}
 	// 自动排列一个节点下的所有子节点的位置,从上往下紧密排列,并且不改变子节点的大小,会改变root的大小
-	public static void autoGridVertical(RectTransform root, float interval, float minHeight = 0.0f, float extraTopHeight = 0.0f, float extraBottomHeight = 0.0f, bool keepTopSide = true)
+	// intervalNoScreenScale会自动根据屏幕缩放来计算实际的值
+	public static void autoGridVertical(RectTransform root, float intervalNoScreenScale, float minHeight = 0.0f, float extraTopHeight = 0.0f, float extraBottomHeight = 0.0f, bool keepTopSide = true)
 	{
 		if (root == null)
 		{
 			return;
 		}
+		float interval = adjustByScreenScaleAuto(intervalNoScreenScale);
 		// 先找出所有激活的子节点
 		using var a = new ListScope<RectTransform>(out var childList);
 		int childCount = root.childCount;
@@ -835,7 +851,7 @@ public class WidgetUtility
 		{
 			RectTransform childRect = childList[i];
 			float curHeight = childRect.rect.height;
-			childRect.localPosition = replaceY(childRect.localPosition, round(currentTop - curHeight * 0.5f));
+			setPositionY(childRect, round(currentTop - curHeight * 0.5f));
 			currentTop -= curHeight;
 			// 最后一个子节点后不再添加间隔
 			if (i != childList.Count - 1 && curHeight > 0.0f)
@@ -848,44 +864,45 @@ public class WidgetUtility
 	{
 		autoGridHorizontal(root, true, true, 0.0f, true, 0.0f, 0.0f, 0.0f, true);
 	}
-	public static void autoGridHorizontal(myUGUIObject root, float interval)
+	public static void autoGridHorizontal(myUGUIObject root, float intervalNoScreenScale)
 	{
-		autoGridHorizontal(root, true, true, interval, true, 0.0f, 0.0f, 0.0f, true);
+		autoGridHorizontal(root, true, true, intervalNoScreenScale, true, 0.0f, 0.0f, 0.0f, true);
 	}
 	public static void autoGridHorizontal(myUGUIObject root, bool keepLeftSide)
 	{
 		autoGridHorizontal(root, true, true, 0.0f, true, 0.0f, 0.0f, 0.0f, keepLeftSide);
 	}
-	public static void autoGridHorizontal(myUGUIObject root, float interval, bool keepLeftSide)
+	public static void autoGridHorizontal(myUGUIObject root, float intervalNoScreenScale, bool keepLeftSide)
 	{
-		autoGridHorizontal(root, true, true, interval, true, 0.0f, 0.0f, 0.0f, keepLeftSide);
+		autoGridHorizontal(root, true, true, intervalNoScreenScale, true, 0.0f, 0.0f, 0.0f, keepLeftSide);
 	}
 	public static void autoGridHorizontal(myUGUIObject root, bool autoRefreshUIDepth, bool refreshIgnoreInactive)
 	{
 		autoGridHorizontal(root, autoRefreshUIDepth, refreshIgnoreInactive, 0.0f, true, 0.0f, 0.0f, 0.0f, true);
 	}
 	// 自动排列一个节点下的所有子节点的位置,从左往右紧密排列,并且不改变子节点的大小,keepLeftSide为true表示改变大小后保持父节点的左边界位置不变,false表示保持右边界位置不变
-	public static void autoGridHorizontal(myUGUIObject root, bool autoRefreshUIDepth, bool refreshIgnoreInactive, float interval, bool changeRootPosSize = true, float minWidth = 0.0f, float extraLeftWidth = 0.0f, float extraRightWidth = 0.0f, bool keepLeftSide = true)
+	public static void autoGridHorizontal(myUGUIObject root, bool autoRefreshUIDepth, bool refreshIgnoreInactive, float intervalNoScreenScale, bool changeRootPosSize = true, float minWidth = 0.0f, float extraLeftWidth = 0.0f, float extraRightWidth = 0.0f, bool keepLeftSide = true)
 	{
 		if (root == null)
 		{
 			return;
 		}
-		autoGridHorizontal(root?.getRectTransform(), interval, changeRootPosSize, minWidth, extraLeftWidth, extraRightWidth, keepLeftSide);
-		// 需要重新再调用一下setWindowSize,以便触发虚函数的逻辑
+		autoGridHorizontal(root.getRectTransform(), intervalNoScreenScale, changeRootPosSize, minWidth, extraLeftWidth, extraRightWidth, keepLeftSide);
+		// 需要重新再调用一下setSize,以便触发虚函数的逻辑
 		root.setSize(root.getSize());
-		if (root?.getRectTransform() != null && autoRefreshUIDepth)
+		if (root.getRectTransform() != null && autoRefreshUIDepth)
 		{
 			root.getLayout().refreshUIDepth(root, refreshIgnoreInactive);
 		}
 	}
 	// 自动排列一个节点下的所有子节点的位置,从左往右紧密排列,并且不改变子节点的大小,keepLeftSide为true表示改变大小后保持父节点的左边界位置不变,false表示保持右边界位置不变
-	public static void autoGridHorizontal(RectTransform root, float interval, bool changeRootPosSize = true, float minWidth = 0.0f, float extraLeftWidth = 0.0f, float extraRightWidth = 0.0f, bool keepLeftSide = true)
+	public static void autoGridHorizontal(RectTransform root, float intervalNoScreenScale, bool changeRootPosSize = true, float minWidth = 0.0f, float extraLeftWidth = 0.0f, float extraRightWidth = 0.0f, bool keepLeftSide = true)
 	{
 		if (root == null)
 		{
 			return;
 		}
+		float interval = adjustByScreenScaleAuto(intervalNoScreenScale);
 		// 先找出所有激活的子节点
 		using var a = new ListScope<RectTransform>(out var childList);
 		int childCount = root.childCount;
@@ -935,7 +952,7 @@ public class WidgetUtility
 		{
 			RectTransform childRect = childList[i];
 			float curWidth = childRect.rect.width;
-			childRect.localPosition = round(new Vector3(currentLeft + curWidth * 0.5f, childRect.localPosition.y));
+			setPositionX(childRect, currentLeft + curWidth * 0.5f);
 			currentLeft += curWidth;
 			// 最后一个子节点后不再添加间隔
 			if (i != childList.Count - 1 && curWidth > 0.0f)
@@ -944,10 +961,10 @@ public class WidgetUtility
 			}
 		}
 	}
-	public static void autoGridHorizontalCenter(myUGUIObject root, bool autoRefreshUIDepth, bool refreshIgnoreInactive, float interval)
+	public static void autoGridHorizontalCenter(myUGUIObject root, bool autoRefreshUIDepth, bool refreshIgnoreInactive, float intervalNoScreenScale)
 	{
-		autoGridHorizontalCenter(root?.getRectTransform(), interval);
-		// 需要重新再调用一下setWindowSize,以便触发虚函数的逻辑
+		autoGridHorizontalCenter(root?.getRectTransform(), intervalNoScreenScale);
+		// 需要重新再调用一下setSize,以便触发虚函数的逻辑
 		root.setSize(root.getSize());
 		if (root?.getRectTransform() != null && autoRefreshUIDepth)
 		{
@@ -955,12 +972,13 @@ public class WidgetUtility
 		}
 	}
 	// 自动排列一个节点下的所有子节点的位置,使所有子节点居中排列
-	public static void autoGridHorizontalCenter(RectTransform root, float interval)
+	public static void autoGridHorizontalCenter(RectTransform root, float intervalNoScreenScale)
 	{
 		if (root == null)
 		{
 			return;
 		}
+		float interval = adjustByScreenScaleAuto(intervalNoScreenScale);
 		// 先找出所有激活的子节点
 		using var a = new ListScope<RectTransform>(out var childList);
 		int childCount = root.childCount;
@@ -991,7 +1009,7 @@ public class WidgetUtility
 		{
 			RectTransform childRect = childList[i];
 			float curWidth = childRect.rect.width;
-			childRect.localPosition = round(new Vector3(currentLeft + curWidth * 0.5f, childRect.localPosition.y));
+			setPositionX(childRect, currentLeft + curWidth * 0.5f);
 			currentLeft += curWidth;
 			// 最后一个子节点后不再添加间隔
 			if (i != childList.Count - 1 && curWidth > 0.0f)
@@ -1000,6 +1018,7 @@ public class WidgetUtility
 			}
 		}
 	}
+	// 自动横向排列target下的所有节点,并且如果排列后的宽度超过了parent的宽度,则左对齐,没有超过则居中
 	public static void alignParentCenterOrLeft(myUGUIObject parent, myUGUIObject target)
 	{
 		autoGridHorizontal(target);
@@ -1015,7 +1034,7 @@ public class WidgetUtility
 			target.setPositionX(0.0f);
 		}
 	}
-	// 跳转transform的范围,使其包含所有子节点,并且保持子节点世界坐标不变
+	// 调整transform的范围,使其包含所有子节点,并且保持子节点世界坐标不变
 	public static void adjustRectTransformToContainsAllChildRect(myUGUIObject obj, bool includeInactive = false)
 	{
 		// 获得父节点的四个边界

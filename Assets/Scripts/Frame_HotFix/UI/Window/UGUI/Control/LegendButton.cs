@@ -24,17 +24,21 @@ public class LegendButton : WindowObjectUGUI
 		mRoot.setHoverDetailCallback(onButtonHover);
 		mRoot.setPressDetailCallback(onButtonPress);
 		mRoot.setOnScreenTouchUp(onScreenTouchUp);
-		if (mText != null)
-		{
-			mOriginTextPosition = mText.getPosition();
-			mOriginTextColor = mText.getColor();
-		}
+		initOriginProperty();
 	}
 	public override void reset()
 	{
 		base.reset();
 		mText?.setPosition(mOriginTextPosition);
 		mText?.setColor(mOriginTextColor);
+	}
+	public void initOriginProperty()
+	{
+		if (mText != null)
+		{
+			mOriginTextPosition = mText.getPosition();
+			mOriginTextColor = mText.getColor();
+		}
 	}
 	public void registeCollider(Action clickCallback, int clickSound = 0)
 	{

@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEditor;
 using TMPro;
 #if USE_AVPRO_VIDEO
 using RenderHeads.Media.AVProVideo;
@@ -13,6 +14,8 @@ using static StringUtility;
 using static MathUtility;
 using static FrameDefine;
 using static GameInspector;
+using static FrameUtility;
+using static FrameBaseDefine;
 
 public class UGUIGeneratorUtility
 {
@@ -35,7 +38,7 @@ public class UGUIGeneratorUtility
 			{
 				generator.addNewPool();
 			}
-			if (button("添加滚动列表", 200, 25))
+			if (button("添加无限滚动列表", 200, 25))
 			{
 				generator.addScrollList();
 			}
@@ -50,26 +53,32 @@ public class UGUIGeneratorUtility
 			}
 
 			// 有模板参数的类型
-			if (item.mType == "UGUIDragViewLoop")
+			if (item.mWindowType == WINDOW_TYPE.POOL)
 			{
-				drawTemplateParamUGUIDragViewLoop(item);
+				if (item.mType == "WindowStructPool")
+				{
+					drawTemplateParamWindowStructPool(item);
+				}
+				else if (item.mType == "WindowStructPoolMap")
+				{
+					drawTemplateParamWindowStructPoolMap(item);
+				}
+				else if (item.mType == "WindowStructPoolUnOrder")
+				{
+					// WindowStructPoolUnOrder跟WindowStructPool一样的参数结构
+					drawTemplateParamWindowStructPool(item);
+				}
+				else if (item.mType == "WindowPool")
+				{
+					drawTemplateParamWindowPool(item);
+				}
 			}
-			else if (item.mType == "WindowStructPool")
+			else if (item.mWindowType == WINDOW_TYPE.SCROLL_LIST)
 			{
-				drawTemplateParamWindowStructPool(item);
-			}
-			else if (item.mType == "WindowStructPoolMap")
-			{
-				drawTemplateParamWindowStructPoolMap(item);
-			}
-			else if (item.mType == "WindowStructPoolUnOrder")
-			{
-				// WindowStructPoolUnOrder跟WindowStructPool一样的参数结构
-				drawTemplateParamWindowStructPool(item);
-			}
-			else if (item.mType == "WindowPool")
-			{
-				drawTemplateParamWindowPool(item);
+				if (item.mType == "UGUIDragViewLoop")
+				{
+					drawTemplateParamUGUIDragViewLoop(item);
+				}
 			}
 		}
 		generator.mMemberList.remove(tempNeedRemoveData);
@@ -96,69 +105,7 @@ public class UGUIGeneratorUtility
 		}
 		else
 		{
-			GameObject newObj = objectField(item.mObject, 160);
-			do
-			{
-				if (newObj == item.mObject)
-				{
-					break;
-				}
-				if (newObj == generator.gameObject)
-				{
-					log("不能添加根节点");
-					newObj = null;
-					break;
-				}
-				if (generator.mMemberList.Exists((obj) => { return obj.mObject == newObj && newObj != null; }))
-				{
-					log("节点" + newObj.name + "已经在列表中了,不能重复添加");
-					item.mObject = null;
-					break;
-				}
-				item.mObject = newObj;
-				if (item.mObject == null)
-				{
-					break;
-				}
-				// 如果是以0结尾的,就自动设置为静态数组类型的,且自动查找数组长度
-				string name = item.mObject.name;
-				if (getLastNotNumberPos(name) == name.Length - 2 && name.endWith("0"))
-				{
-					item.mArrayType = ARRAY_TYPE.STATIC_ARRAY;
-					item.autoSetArrayLength();
-				}
-				if (item.mObject.TryGetComponent<UGUISubGenerator>(out _))
-				{
-					item.setWindowType(WINDOW_TYPE.SUB_UI);
-					item.setType(getClassNameFromGameObject(item.mObject));
-				}
-				// 简单判断一下有可能设置的类型,比如如果名字带Checkbox,则可能是UGUICheckbox
-				if (name.Contains("Checkbox"))
-				{
-					item.setWindowType(WINDOW_TYPE.COMMON_CONTROL);
-					item.setType<UGUICheckbox>();
-				}
-				else if (name.Contains("Tab"))
-				{
-					item.setWindowType(WINDOW_TYPE.COMMON_CONTROL);
-					item.setType<TabItem>();
-				}
-				else if (name.Contains("Progress"))
-				{
-					item.setWindowType(WINDOW_TYPE.COMMON_CONTROL);
-					item.setType<UGUIProgress>();
-				}
-				else if (name.Contains("Button"))
-				{
-					item.setWindowType(WINDOW_TYPE.COMMON_CONTROL);
-					item.setType<LegendButton>();
-				}
-				else if (name.Contains("Slider"))
-				{
-					item.setWindowType(WINDOW_TYPE.COMMON_CONTROL);
-					item.setType<UGUISlider>();
-				}
-			} while (false);
+			item.setObject(objectField(item.mObject, 160), generator);
 		}
 		int curWindowIndex = (int)item.mWindowType;
 		if (displayDropDown("", "", MemberData.mWindowTypeDropList, ref curWindowIndex, 70))
@@ -210,9 +157,11 @@ public class UGUIGeneratorUtility
 				item.setType(item.mType);
 			}
 		}
-
-		if (item.mWindowType == WINDOW_TYPE.NORMAL_WINDOW ||
-			(item.mWindowType == WINDOW_TYPE.COMMON_CONTROL && item.mType == typeof(LegendButton).ToString()))
+		bool hasRegisterTypes = item.mType == typeof(LegendButton).ToString() ||
+								item.mType == typeof(UGUICheckbox).ToString() ||
+								item.mType == typeof(TabItem).ToString();
+		if ((item.mWindowType == WINDOW_TYPE.NORMAL_WINDOW ||
+			(item.mWindowType == WINDOW_TYPE.COMMON_CONTROL && hasRegisterTypes)) && item.mArrayType == ARRAY_TYPE.NONE)
 		{
 			if (toggle(ref item.mRegisterCollider, "注册点击") && item.mRegisterCollider)
 			{
@@ -222,26 +171,29 @@ public class UGUIGeneratorUtility
 			{
 				toggle(ref item.mHasClickEvent, "点击事件");
 			}
+			else
+			{
+				item.mHasClickEvent = false;
+			}
 		}
 
 		int curArrayTypeIndex = (int)item.mArrayType;
 		if (displayDropDown("", "", MemberData.mArrayTypeDropList, ref curArrayTypeIndex, 70))
 		{
-			item.mArrayType = (ARRAY_TYPE)curArrayTypeIndex;
+			item.setArrayType((ARRAY_TYPE)curArrayTypeIndex);
 		}
 		if (item.mArrayType != ARRAY_TYPE.NONE)
 		{
-			if (item.mArrayType == ARRAY_TYPE.STATIC_ARRAY)
-			{
-				item.autoSetArrayLength();
-			}
 			string lenStr = item.mArrayLength.ToString();
 			if (textField(ref lenStr, 30))
 			{
 				int.TryParse(lenStr, out item.mArrayLength);
 			}
 		}
-		toggle(ref item.mHideError, "不显示错误");
+		if (item.mWindowType == WINDOW_TYPE.NORMAL_WINDOW)
+		{
+			toggle(ref item.mHideError, "不显示错误");
+		}
 	}
 	protected static void drawTemplateParamUGUIDragViewLoop(MemberData data)
 	{
@@ -308,18 +260,6 @@ public class UGUIGeneratorUtility
 			}
 			displayDropDown("", "", generateAvailableTypeList(data.mPoolTemplate), ref data.mParam0);
 		}
-	}
-	public static string getClassNameFromGameObject(GameObject go)
-	{
-		if (go == null)
-		{
-			return "";
-		}
-		if (go.TryGetComponent(out UGUISubGenerator com))
-		{
-			return com.mAutoType ? go.name.removeEndNumber() : com.mCustomClassName;
-		}
-		return go.name.removeEndNumber();
 	}
 	public static List<string> getSubUIParentList(bool refresh = false)
 	{
@@ -759,6 +699,10 @@ public class UGUIGeneratorUtility
 		{
 			mTempAvailableTypeList.Add(typeof(myUGUIInputFieldTMP).ToString());
 		}
+		if (go.TryGetComponent<TileImageRenderer>(out _))
+		{
+			mTempAvailableTypeList.Add(typeof(myUGUITileImage).ToString());
+		}
 
 		mTempAvailableTypeList.Add(typeof(myUGUIObject).ToString());
 		if (go.TryGetComponent<Image>(out _))
@@ -794,57 +738,88 @@ public class UGUIGeneratorUtility
 		{
 			mTempAvailableTypeList.Add(typeof(myUGUILineRenderer).ToString());
 		}
+		if (go.TryGetComponent<SpriteRenderer>(out _))
+		{
+			mTempAvailableTypeList.Add(typeof(myUGUISprite).ToString());
+			mTempAvailableTypeList.Add(typeof(myUGUISpriteAnim).ToString());
+		}
 		mTempAvailableTypeList.Add(typeof(myUGUIDragView).ToString());
 		return mTempAvailableTypeList;
 	}
-	public static List<string> getNormalWindowTypeList()
+	public static void setAllInspectorsLocked(bool locked)
 	{
-		if (mNormalWindowList.Count == 0)
+		Type inspectorType = typeof(Editor).Assembly.GetType("UnityEditor.InspectorWindow");
+		if (inspectorType == null)
 		{
-			mNormalWindowList.Add(typeof(myUGUIObject).ToString());
-			mNormalWindowList.Add(typeof(myUGUIText).ToString());
-			mNormalWindowList.Add(typeof(myUGUITextTMP).ToString());
-			mNormalWindowList.Add(typeof(myUGUITextAuto).ToString());
-			mNormalWindowList.Add(typeof(myUGUIImageSimple).ToString());
-			mNormalWindowList.Add(typeof(myUGUIImage).ToString());
-			mNormalWindowList.Add(typeof(myUGUIImagePro).ToString());
-			mNormalWindowList.Add(typeof(myUGUIImageAnim).ToString());
-			mNormalWindowList.Add(typeof(myUGUIImageAnimPro).ToString());
-			mNormalWindowList.Add(typeof(myUGUIInputField).ToString());
-			mNormalWindowList.Add(typeof(myUGUIInputFieldTMP).ToString());
-			mNormalWindowList.Add(typeof(myUGUIImageButton).ToString());
-			mNormalWindowList.Add(typeof(myUGUIImageNumber).ToString());
-			mNormalWindowList.Add(typeof(myUGUINumber).ToString());
-			mNormalWindowList.Add(typeof(myUGUIRawImage).ToString());
-			mNormalWindowList.Add(typeof(myUGUIRawImageAnim).ToString());
-			mNormalWindowList.Add(typeof(myUGUIScrollBar).ToString());
-			mNormalWindowList.Add(typeof(myUGUIScrollRect).ToString());
-			mNormalWindowList.Add(typeof(myUGUISlider).ToString());
-			mNormalWindowList.Add(typeof(myUGUIButton).ToString());
-			mNormalWindowList.Add(typeof(myUGUICanvas).ToString());
-			mNormalWindowList.Add(typeof(myUGUICustomLine).ToString());
-			mNormalWindowList.Add(typeof(myUGUIDragView).ToString());
-			mNormalWindowList.Add(typeof(myUGUIDropdown).ToString());
-			mNormalWindowList.Add(typeof(myUGUITextImage).ToString());
-			mNormalWindowList.Add(typeof(myUGUILineMesh).ToString());
-			mNormalWindowList.Add(typeof(myUGUILineRenderer).ToString());
-			mNormalWindowList.Add(typeof(myUGUITextImage).ToString());
-#if USE_AVPRO_VIDEO
-			mNormalWindowList.Add(typeof(myUGUIVideo).ToString());
-#endif
+			Debug.LogError("InspectorWindow type not found");
+			return;
 		}
-		return mNormalWindowList;
+
+		FieldInfo lockTrackerField = inspectorType.GetField("m_LockTracker", BindingFlags.Instance | BindingFlags.NonPublic);
+		if (lockTrackerField == null)
+		{
+			Debug.LogError("m_LockTracker not found");
+			return;
+		}
+
+		var inspectorWindow = EditorWindow.GetWindow(inspectorType);
+		if (inspectorWindow == null || !inspectorType.IsAssignableFrom(inspectorWindow.GetType()))
+		{
+			return;
+		}
+
+		try
+		{
+			object lockTracker = lockTrackerField.GetValue(inspectorWindow);
+			if (lockTracker == null)
+			{
+				return;
+			}
+
+			Type lockTrackerType = lockTracker.GetType();
+			PropertyInfo isLockedProperty = lockTrackerType.GetProperty("isLocked",
+					BindingFlags.Instance |
+					BindingFlags.Public |
+					BindingFlags.NonPublic);
+
+			MethodInfo flipLockedMethod = null;
+			while (lockTrackerType != null)
+			{
+				flipLockedMethod = lockTrackerType.GetMethod("FlipLocked", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+				if (flipLockedMethod != null)
+				{
+					break;
+				}
+				lockTrackerType = lockTrackerType.BaseType;
+			}
+
+			if (isLockedProperty == null || flipLockedMethod == null)
+			{
+				return;
+			}
+
+			// 只有状态不一致时才调用FlipLocked
+			if ((bool)isLockedProperty.GetValue(lockTracker) != locked)
+			{
+				flipLockedMethod.Invoke(lockTracker, null);
+				inspectorWindow.Repaint();
+			}
+		}
+		catch (Exception e)
+		{
+			Debug.LogException(e);
+		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 从 DLL 文件中筛选实现指定接口的非抽象类
 	protected static List<string> getTypesWithAttributeInHotFixDll<T>() where T : Attribute
 	{
-		return getTypesWithAttributeInDll(F_PROJECT_PATH + "Library/ScriptAssemblies/HotFix.dll", typeof(T));
+		return getTypesWithAttributeInDll(F_PROJECT_PATH + "Library/ScriptAssemblies/" + HOTFIX_FILE, typeof(T));
 	}
 	// 从 DLL 文件中筛选实现指定接口的非抽象类
 	protected static List<string> getTypesWithAttributeInFrameHotFixDll<T>() where T : Attribute
 	{
-		return getTypesWithAttributeInDll(F_PROJECT_PATH + "Library/ScriptAssemblies/Frame_HotFix.dll", typeof(T));
+		return getTypesWithAttributeInDll(F_PROJECT_PATH + "Library/ScriptAssemblies/" + HOTFIX_FRAME_FILE, typeof(T));
 	}
 	// 从 DLL 文件中筛选实现指定接口的非抽象类,keepGenericMark是否保留模板参数类型显示,默认不保留,只获取类名本身
 	protected static List<string> getTypesWithAttributeInDll(string dllFullPath, Type attribute, bool keepGenericMark = false)

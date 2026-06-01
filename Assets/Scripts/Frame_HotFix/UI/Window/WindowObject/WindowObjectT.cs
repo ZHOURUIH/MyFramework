@@ -23,6 +23,10 @@ public abstract class WindowObjectT<T> : WindowObjectBase where T : myUGUIObject
 	public void assignWindow(myUGUIObject parent, myUGUIObject template, string name)
 	{
 		mRootIsFromClone = true;
+		if (template.GetType() != typeof(T))
+		{
+			logError("模板节点与对象池根节点类型不一致,当前对象类型:" + GetType() + ", 模板节点:" + template.getGameObjectPath() + "\n模板类型:" + template.GetType() + ", 对象池根节点类型:" + typeof(T));
+		}
 		mScript.cloneObject(out mRoot, parent, template, name);
 		assignWindowInternal();
 	}

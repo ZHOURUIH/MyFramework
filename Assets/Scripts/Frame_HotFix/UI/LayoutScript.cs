@@ -269,7 +269,10 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 			{ 
 				item.reset();
 			}
-			item.onShow();
+			if (item.isActive())
+			{
+				item.onShow();
+			}
 		}
 	}
 	public virtual void onDrawGizmos() { }
@@ -426,13 +429,14 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		{
 			if (showError)
 			{
-				logError("已经创建了相同GameObject的UI对象:" + name);
+				logError("已经创建了相同GameObject的UI对象:" + name + ", layout:" + mLayout.getName());
 				return null;
 			}
 			obj = existUIObj as T;
 			if (obj == null)
 			{
-				logError("已经创建了相同GameObject的UI对象,但是两次创建的类型不一致,第一次创建的类型:" + existUIObj.GetType().ToString() + ", 第二次创建的类型:" + typeof(T).ToString() + ", name:" + name);
+				logError("已经创建了相同GameObject的UI对象,但是两次创建的类型不一致,第一次创建的类型:" + existUIObj.GetType().ToString() + 
+						", 第二次创建的类型:" + typeof(T).ToString() + ", name:" + name + ", layout:" + mLayout.getName());
 			}
 			return obj;
 		}

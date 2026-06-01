@@ -12,7 +12,7 @@ public class CharacterManager : FrameSystem
 	protected Dictionary<Type, Dictionary<long, Character>> mCharacterTypeList = new(); // 角色分类列表
 	protected SafeDictionary<long, Character> mCharacterUpdateList = new();				// 用于更新角色的列表
 	protected Dictionary<long, Character> mCharacterGUIDList = new();					// 角色ID索引表
-	protected Dictionary<long, Character> mFixedUpdateList = new();						// 需要在FixedUpdate中更新的列表,如果直接使用mCharacterGUIDList,会非常慢,而很多时候其实并不需要进行物理更新,所以单独使用一个列表存储
+	protected SafeDictionary<long, Character> mFixedUpdateList = new();					// 需要在FixedUpdate中更新的列表,如果直接使用mCharacterGUIDList,会非常慢,而很多时候其实并不需要进行物理更新,所以单独使用一个列表存储
 	protected Character mMyself;														// 玩家自己,方便获取
 	public CharacterManager()
 	{
@@ -57,7 +57,8 @@ public class CharacterManager : FrameSystem
 	public override void fixedUpdate(float elapsedTime)
 	{
 		base.fixedUpdate(elapsedTime);
-		foreach (var item in mFixedUpdateList)
+		using var a = new SafeDictionaryReader<long, Character>(mFixedUpdateList);
+		foreach (var item in a.mReadList)
 		{
 			Character character = item.Value;
 			if (character != null && character.isActiveInHierarchy())
@@ -110,7 +111,7 @@ public class CharacterManager : FrameSystem
 		UN_CLASS_LIST(mCharacterGUIDList);
 		mCharacterTypeList.Clear();
 		mCharacterUpdateList.clear();
-		mFixedUpdateList.Clear();
+		mFixedUpdateList.clear();
 		mMyself = null;
 	}
 	public void destroyCharacter(long id)
@@ -129,7 +130,7 @@ public class CharacterManager : FrameSystem
 		// 从ID索引表中移除
 		mCharacterUpdateList.remove(guid);
 		mCharacterGUIDList.Remove(guid);
-		mFixedUpdateList.Remove(guid);
+		mFixedUpdateList.remove(guid);
 		if (mMyself == character)
 		{
 			mMyself = null;
@@ -146,7 +147,7 @@ public class CharacterManager : FrameSystem
 			// 从ID索引表中移除
 			mCharacterUpdateList.remove(guid);
 			mCharacterGUIDList.Remove(guid);
-			mFixedUpdateList.Remove(guid);
+			mFixedUpdateList.remove(guid);
 			if (mMyself == character)
 			{
 				mMyself = null;
@@ -165,7 +166,7 @@ public class CharacterManager : FrameSystem
 			// 从ID索引表中移除
 			mCharacterUpdateList.remove(guid);
 			mCharacterGUIDList.Remove(guid);
-			mFixedUpdateList.Remove(guid);
+			mFixedUpdateList.remove(guid);
 			if (mMyself == character)
 			{
 				mMyself = null;
@@ -193,7 +194,7 @@ public class CharacterManager : FrameSystem
 			mCharacterUpdateList.add(guid, character);
 			if (character.isEnableFixedUpdate())
 			{
-				mFixedUpdateList.Add(guid, character);
+				mFixedUpdateList.add(guid, character);
 			}
 		}
 	}

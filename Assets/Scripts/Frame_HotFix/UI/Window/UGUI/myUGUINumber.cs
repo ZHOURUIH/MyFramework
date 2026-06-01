@@ -51,9 +51,8 @@ public class myUGUINumber : myUGUIImage
 	public override void notifyAnchorApply()
 	{
 		base.notifyAnchorApply();
-		// 此处默认数字窗口都是以ASPECT_BASE.AB_AUTO的方式等比放大
-		Vector2 screenScale = getScreenScale(ASPECT_BASE.AUTO);
-		mInterval = (int)(mInterval * (mDirection == NUMBER_DIRECTION.HORIZONTAL ? screenScale.x : screenScale.y));
+		// 此处默认数字窗口都是以ASPECT_BASE.AUTO的方式等比放大
+		mInterval = (int)adjustByScreenScaleAuto(mInterval);
 	}
 	public override void cloneFrom(myUGUIObject obj)
 	{
