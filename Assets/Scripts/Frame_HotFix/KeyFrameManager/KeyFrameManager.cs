@@ -15,7 +15,7 @@ public class KeyFrameManager : FrameSystem
 	public KeyFrameManager()
 	{
 		mCreateObject = true;
-		loadAllCaculatedCurve();
+		loadAllCalculatedCurve(mCurveList);
 	}
 	public override void initAsync(Action callback)
 	{
@@ -80,47 +80,47 @@ public class KeyFrameManager : FrameSystem
 		base.destroy();
 	}
 	public bool isLoadDone() { return mLoaded; }
-	//------------------------------------------------------------------------------------------------------------------------------
-	protected void createCurve<T>(int curveID) where T : MyCurve, new()
+	// 创建所有通过公式计算的曲线,因为其他地方也要用,所以写成静态公共的
+	public static void loadAllCalculatedCurve(Dictionary<int, MyCurve> curveList)
 	{
-		mCurveList.Add(curveID, new T());
+		createCurve<CurveZeroOne>(curveList, KEY_CURVE.ZERO_ONE);
+		createCurve<CurveZeroOneZero>(curveList, KEY_CURVE.ZERO_ONE_ZERO);
+		createCurve<CurveOneZero>(curveList, KEY_CURVE.ONE_ZERO);
+		createCurve<CurveOneZeroOne>(curveList, KEY_CURVE.ONE_ZERO_ONE);
+		createCurve<CurveBackIn>(curveList, KEY_CURVE.BACK_IN);
+		createCurve<CurveBackInOut>(curveList, KEY_CURVE.BACK_IN_OUT);
+		createCurve<CurveBackOut>(curveList, KEY_CURVE.BACK_OUT);
+		createCurve<CurveBounceIn>(curveList, KEY_CURVE.BOUNCE_IN);
+		createCurve<CurveBounceInOut>(curveList, KEY_CURVE.BOUNCE_IN_OUT);
+		createCurve<CurveBounceOut>(curveList, KEY_CURVE.BOUNCE_OUT);
+		createCurve<CurveCircleIn>(curveList, KEY_CURVE.CIRCLE_IN);
+		createCurve<CurveCircleInOut>(curveList, KEY_CURVE.CIRCLE_IN_OUT);
+		createCurve<CurveCircleOut>(curveList, KEY_CURVE.CIRCLE_OUT);
+		createCurve<CurveCubicIn>(curveList, KEY_CURVE.CUBIC_IN);
+		createCurve<CurveCubicInOut>(curveList, KEY_CURVE.CUBIC_IN_OUT);
+		createCurve<CurveCubicOut>(curveList, KEY_CURVE.CUBIC_OUT);
+		createCurve<CurveElasticIn>(curveList, KEY_CURVE.ELASTIC_IN);
+		createCurve<CurveElasticInOut>(curveList, KEY_CURVE.ELASTIC_IN_OUT);
+		createCurve<CurveElasticOut>(curveList, KEY_CURVE.ELASTIC_OUT);
+		createCurve<CurveExpoIn>(curveList, KEY_CURVE.EXPO_IN);
+		createCurve<CurveExpoInOut>(curveList, KEY_CURVE.EXPO_IN_OUT);
+		createCurve<CurveExpoOut>(curveList, KEY_CURVE.EXPO_OUT);
+		createCurve<CurveQuadIn>(curveList, KEY_CURVE.QUAD_IN);
+		createCurve<CurveQuadInOut>(curveList, KEY_CURVE.QUAD_IN_OUT);
+		createCurve<CurveQuadOut>(curveList, KEY_CURVE.QUAD_OUT);
+		createCurve<CurveQuartIn>(curveList, KEY_CURVE.QUART_IN);
+		createCurve<CurveQuartInOut>(curveList, KEY_CURVE.QUART_IN_OUT);
+		createCurve<CurveQuartOut>(curveList, KEY_CURVE.QUART_OUT);
+		createCurve<CurveQuintIn>(curveList, KEY_CURVE.QUINT_IN);
+		createCurve<CurveQuintInOut>(curveList, KEY_CURVE.QUINT_IN_OUT);
+		createCurve<CurveQuintOut>(curveList, KEY_CURVE.QUINT_OUT);
+		createCurve<CurveSineIn>(curveList, KEY_CURVE.SINE_IN);
+		createCurve<CurveSineInOut>(curveList, KEY_CURVE.SINE_IN_OUT);
+		createCurve<CurveSineOut>(curveList, KEY_CURVE.SINE_OUT);
 	}
-	// 创建所有通过公式计算的曲线
-	protected void loadAllCaculatedCurve()
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected static void createCurve<T>(Dictionary<int, MyCurve> curveList, int curveID) where T : MyCurve, new()
 	{
-		createCurve<CurveZeroOne>(KEY_CURVE.ZERO_ONE);
-		createCurve<CurveZeroOneZero>(KEY_CURVE.ZERO_ONE_ZERO);
-		createCurve<CurveOneZero>(KEY_CURVE.ONE_ZERO);
-		createCurve<CurveOneZeroOne>(KEY_CURVE.ONE_ZERO_ONE);
-		createCurve<CurveBackIn>(KEY_CURVE.BACK_IN);
-		createCurve<CurveBackInOut>(KEY_CURVE.BACK_IN_OUT);
-		createCurve<CurveBackOut>(KEY_CURVE.BACK_OUT);
-		createCurve<CurveBounceIn>(KEY_CURVE.BOUNCE_IN);
-		createCurve<CurveBounceInOut>(KEY_CURVE.BOUNCE_IN_OUT);
-		createCurve<CurveBounceOut>(KEY_CURVE.BOUNCE_OUT);
-		createCurve<CurveCircleIn>(KEY_CURVE.CIRCLE_IN);
-		createCurve<CurveCircleInOut>(KEY_CURVE.CIRCLE_IN_OUT);
-		createCurve<CurveCircleOut>(KEY_CURVE.CIRCLE_OUT);
-		createCurve<CurveCubicIn>(KEY_CURVE.CUBIC_IN);
-		createCurve<CurveCubicInOut>(KEY_CURVE.CUBIC_IN_OUT);
-		createCurve<CurveCubicOut>(KEY_CURVE.CUBIC_OUT);
-		createCurve<CurveElasticIn>(KEY_CURVE.ELASTIC_IN);
-		createCurve<CurveElasticInOut>(KEY_CURVE.ELASTIC_IN_OUT);
-		createCurve<CurveElasticOut>(KEY_CURVE.ELASTIC_OUT);
-		createCurve<CurveExpoIn>(KEY_CURVE.EXPO_IN);
-		createCurve<CurveExpoInOut>(KEY_CURVE.EXPO_IN_OUT);
-		createCurve<CurveExpoOut>(KEY_CURVE.EXPO_OUT);
-		createCurve<CurveQuadIn>(KEY_CURVE.QUAD_IN);
-		createCurve<CurveQuadInOut>(KEY_CURVE.QUAD_IN_OUT);
-		createCurve<CurveQuadOut>(KEY_CURVE.QUAD_OUT);
-		createCurve<CurveQuartIn>(KEY_CURVE.QUART_IN);
-		createCurve<CurveQuartInOut>(KEY_CURVE.QUART_IN_OUT);
-		createCurve<CurveQuartOut>(KEY_CURVE.QUART_OUT);
-		createCurve<CurveQuintIn>(KEY_CURVE.QUINT_IN);
-		createCurve<CurveQuintInOut>(KEY_CURVE.QUINT_IN_OUT);
-		createCurve<CurveQuintOut>(KEY_CURVE.QUINT_OUT);
-		createCurve<CurveSineIn>(KEY_CURVE.SINE_IN);
-		createCurve<CurveSineInOut>(KEY_CURVE.SINE_IN_OUT);
-		createCurve<CurveSineOut>(KEY_CURVE.SINE_OUT);
+		curveList.Add(curveID, new T());
 	}
 }

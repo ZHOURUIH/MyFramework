@@ -31,7 +31,7 @@ public static class UndoTest
 }
 
 // 测试专用的 Undo 具体子类
-public class TestUndo : Undo
+public class TestUndo : MyUndo
 {
 	public bool mUndoCalled;
 	public override void undo()

@@ -20,4 +20,5 @@ public interface ITransformable
 	public T getOrAddComponent<T>(out T com) where T : GameComponent;
 	public T getComponent<T>(out T com) where T : GameComponent;
 	public T getComponent<T>() where T : GameComponent;
+	public T tryGetUnityComponent<T>() where T : Component;
 }

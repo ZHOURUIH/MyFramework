@@ -29,6 +29,7 @@ public class UILogin : LayoutScript
 	{
 		base.init();
 		mLogin.registeCollider(onLoginClick);
+		delayCall(() => { mLogin.SEQUENCE(); });
 	}
 	public override void update(float elapsedTime)
 	{

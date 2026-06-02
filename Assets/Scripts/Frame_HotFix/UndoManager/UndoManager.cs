@@ -5,12 +5,12 @@ using static FrameUtility;
 // 撤销重做管理
 public class UndoManager : FrameSystem
 {
-	protected List<Undo> mUndoList = new();		// 撤销操作列表
-	protected List<Undo> mRedoList = new();		// 重做操作列表
-	protected Action mUndoRedoChangeCallback;	// 撤销或者重做有改变
-	protected int mMaxUndo = 10;				// 最多可存储的撤销操作数量
-	protected bool mUndoing;					// 当前是否正在执行撤销操作
-	protected bool mRedoing;                    // 当前是否正在执行撤销操作
+	protected List<MyUndo> mUndoList = new();		// 撤销操作列表
+	protected List<MyUndo> mRedoList = new();		// 重做操作列表
+	protected Action mUndoRedoChangeCallback;		// 撤销或者重做有改变
+	protected int mMaxUndo = 10;					// 最多可存储的撤销操作数量
+	protected bool mUndoing;						// 当前是否正在执行撤销操作
+	protected bool mRedoing;						// 当前是否正在执行撤销操作
 	public override void resetProperty()
 	{
 		base.resetProperty();
@@ -46,7 +46,7 @@ public class UndoManager : FrameSystem
 	public int getMaxUndoCount() { return mMaxUndo; }
 	public void addUndoRedoChangeCallback(Action callback) { mUndoRedoChangeCallback += callback; }
 	public void removeUndoRedoChangeCallback(Action callback) { mUndoRedoChangeCallback -= callback; }
-	public void addUndo(Undo undo)
+	public void addUndo(MyUndo undo)
 	{
 		bool lastCanUndo = canUndo();
 		bool lastCanRedo = canRedo();

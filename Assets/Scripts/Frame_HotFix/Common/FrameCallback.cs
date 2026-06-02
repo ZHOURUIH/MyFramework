@@ -37,6 +37,7 @@ public delegate void LogCallback(string time, string info, LOG_LEVEL level, bool
 public delegate void RecordCallback(short[] data, int dataCount);
 public delegate void ClassObjectCallback(ClassObject owner);
 public delegate void KeyFrameCallback(ComponentKeyFrame com, bool isBreak);
+public delegate void SequenceCallback(COMTransformableSequence com, bool isBreak);
 public delegate void LerpCallback(ComponentLerp com, bool breakLerp);
 public delegate void CommandCallback(Command cmd);
 public delegate void AssetBundleCallback(AssetBundleInfo assetBundle);

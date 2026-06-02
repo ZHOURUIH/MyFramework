@@ -2044,6 +2044,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 7669728626901592326}
     mType: myUGUITextTMP
     mArrayType: 0
@@ -2057,7 +2059,10 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   mParentType: DragViewItem
+  mParentGenericType: 
   mAutoType: 1
   mCustomClassName: DragItem
   mOnlyForMarkType: 0
@@ -2558,6 +2563,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 460672827560355795}
     mType: myUGUIObject
     mArrayType: 1
@@ -2571,6 +2578,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 4965287006331353265}
     mType: UGUIDropList
     mArrayType: 0
@@ -2584,6 +2593,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 320453201234780880}
     mType: myUGUIDragView
     mArrayType: 0
@@ -2597,6 +2608,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 2879057838369727788}
     mType: myUGUIDragView
     mArrayType: 0
@@ -2610,6 +2623,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 7702430025313348219}
     mType: UGUICheckbox
     mArrayType: 0
@@ -2623,6 +2638,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 9084875975308334524}
     mType: myUGUIImageSimple
     mArrayType: 0
@@ -2636,6 +2653,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 203258514502060008}
     mType: myUGUITextTMP
     mArrayType: 0
@@ -2649,6 +2668,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 4459727223262489712}
     mType: myUGUIImageButton
     mArrayType: 0
@@ -2662,6 +2683,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 8970435142775423685}
     mType: myUGUIImageNumber
     mArrayType: 0
@@ -2675,6 +2698,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 7804232503017291612}
     mType: myUGUINumber
     mArrayType: 0
@@ -2688,6 +2713,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 3368903902034862322}
     mType: myUGUIObject
     mArrayType: 0
@@ -2701,6 +2728,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 786230828455643053}
     mType: myUGUIObject
     mArrayType: 0
@@ -2714,6 +2743,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 3992715674486264833}
     mType: UGUISlider
     mArrayType: 0
@@ -2727,6 +2758,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 2287256450273963430}
     mType: UGUIProgress
     mArrayType: 0
@@ -2740,6 +2773,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 1355940451299337680}
     mType: myUGUIImage
     mArrayType: 0
@@ -2753,6 +2788,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 5623242016884908309}
     mType: myUGUIImageAnim
     mArrayType: 0
@@ -2766,6 +2803,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 903562834344356956}
     mType: myUGUIRawImage
     mArrayType: 0
@@ -2779,6 +2818,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 7960586815214180280}
     mType: myUGUIRawImageAnim
     mArrayType: 0
@@ -2792,6 +2833,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 4545501284522835323}
     mType: myUGUIObject
     mArrayType: 1
@@ -2805,6 +2848,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 5593432009459251846}
     mType: myUGUIInputFieldTMP
     mArrayType: 0
@@ -2818,6 +2863,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 0}
     mType: UGUIDragViewLoop
     mArrayType: 0
@@ -2831,6 +2878,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 0}
     mType: WindowStructPool
     mArrayType: 0
@@ -2844,7 +2893,10 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   mParentType: WindowObjectUGUI
+  mParentGenericType: 
   mAutoType: 1
   mCustomClassName: ScrollViewPanel
   mOnlyForMarkType: 0
@@ -3307,6 +3359,7 @@ GameObject:
   - component: {fileID: 308034210363615960}
   - component: {fileID: 3766961901852529070}
   - component: {fileID: 427036567725412946}
+  - component: {fileID: 3377957978861565911}
   m_Layer: 5
   m_Name: Login
   m_TagString: Untagged
@@ -3321,16 +3374,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3649696244049861466}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0.00000008742278, w: -1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.19999999, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8692139812225050110}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 354}
+  m_AnchoredPosition: {x: -394.35675, y: 266.91034}
   m_SizeDelta: {x: 311, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8185921615164721332
@@ -3367,9 +3420,9 @@ MonoBehaviour:
   - mRelative: 0
     mAbsolute: 0
   - mRelative: 1
-    mAbsolute: -136
+    mAbsolute: -223
   - mRelative: 1
-    mAbsolute: -805
+    mAbsolute: -1323
   - mRelative: 0
     mAbsolute: 0
   mAnchorPoint:
@@ -3433,6 +3486,48 @@ MonoBehaviour:
   mRemoveUGUIAnchor: 1
   mKeepAspect: 1
   mAspectBase: 2
+--- !u!114 &3377957978861565911
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3649696244049861466}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9fba1e396c3e6174cb48b1a0667c075c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Frame_HotFix::TweenSequenceAuthoring
+  mGroupList:
+  - mTrackList:
+    - mType: 0
+      mCurveID: 12
+      mDuration: 0.8
+      mStartDelay: 0.5
+      mStartValue: {x: -11.422616, y: 299, z: 0}
+      mTargetValue: {x: -21, y: 113, z: 0}
+    - mType: 0
+      mCurveID: 16
+      mDuration: 1
+      mStartDelay: 0.2
+      mStartValue: {x: -21, y: 113, z: 0}
+      mTargetValue: {x: -397, y: 268, z: 0}
+  - mTrackList:
+    - mType: 2
+      mCurveID: 7
+      mDuration: 1.94
+      mStartDelay: 0.5
+      mStartValue: {x: 1, y: 1, z: 1}
+      mTargetValue: {x: 0.2, y: 1, z: 1}
+  - mTrackList:
+    - mType: 1
+      mCurveID: 11
+      mDuration: 1.5
+      mStartDelay: 0.5
+      mStartValue: {x: 0, y: 0, z: 0}
+      mTargetValue: {x: 0, y: 0, z: 360}
+  mPreviewTime: 2.1084342
+  mLoop: 1
 --- !u!1 &3909243443963951823
 GameObject:
   m_ObjectHideFlags: 0
@@ -3659,6 +3754,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 8104933896214439610}
     mType: myUGUITextTMP
     mArrayType: 0
@@ -3672,7 +3769,10 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   mParentType: WindowRecyclableUGUI
+  mParentGenericType: 
   mAutoType: 1
   mCustomClassName: NormalItem
   mOnlyForMarkType: 0
@@ -8101,6 +8201,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   - mObject: {fileID: 2693278527570295040}
     mType: ScrollViewPanel
     mArrayType: 0
@@ -8114,6 +8216,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
+    mRegisterCollider: 0
+    mHasClickEvent: 0
   mParentType: LayoutScript
   mIsPersistent: 0
 --- !u!1 &8531481584470066538

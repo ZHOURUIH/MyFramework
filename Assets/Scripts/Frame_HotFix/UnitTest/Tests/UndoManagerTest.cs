@@ -5,7 +5,7 @@ using static TestAssert;
 
 public static class UndoManagerTest
 {
-    class TestUndo : Undo
+    class TestUndo : MyUndo
     {
         public Action mAction;
         public override void undo()
