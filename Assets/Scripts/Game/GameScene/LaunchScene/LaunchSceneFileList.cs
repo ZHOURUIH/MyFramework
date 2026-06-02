@@ -41,6 +41,7 @@ public class LaunchSceneFileList : SceneProcedure
 	protected void checkNeedRequestRemoteFileList(StringCallback callback)
 	{
 		// 这里需要自己构造一个远端路径
-		ObsSystem.downloadBytes(/*getRemoteFolder(mAssetVersionSystem.getRemoteVersion()) +*/ FILE_LIST, (byte[] content, int _) => { callback?.Invoke(bytesToString(content)); });
+		string fileListPath = /*getRemoteFolder(mAssetVersionSystem.getRemoteVersion()) +*/ FILE_LIST;
+		ObsSystem.downloadBytes(fileListPath, (byte[] content, int _) => { callback?.Invoke(bytesToString(content)); });
 	}
 }

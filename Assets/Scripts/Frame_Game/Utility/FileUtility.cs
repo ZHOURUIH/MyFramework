@@ -621,8 +621,6 @@ public class FileUtility
 	public static void writeFileList(string path, string content)
 	{
 		writeTxtFile(path + FILE_LIST, content);
-		// 再生成此文件的MD5文件,用于客户端校验文件内容是否改变
-		writeTxtFile(path + FILE_LIST_MD5, generateFileMD5(stringToBytes(content), -1));
 	}
 	// 获得一个合适的文件加载路径,fileName是StreamingAssets下的相对路径,带后缀
 	public static string availableReadPath(string fileName)

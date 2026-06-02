@@ -10,13 +10,12 @@ using static GameDefine;
 public class LaunchSceneDownload : SceneProcedure
 {
 	protected GameDownload mInstance;
-	protected int mRemainRetryCount = 3;		// 文件下载失败的剩余自动重试次数,没有剩余次数时将会提示玩家是否重试
 	public LaunchSceneDownload()
 	{
 		mInstance = new GameDownload();
 		// 设置动态下载的列表
 		mInstance.setDynamicDownloadList(DYNAMIC_DOWNLOAD_LIST);
-		mInstance.setShowTipCallback((DOWNLOAD_TIP tip) =>
+		mInstance.setTipCallback((DOWNLOAD_TIP tip) =>
 		{
 			if (tip == DOWNLOAD_TIP.NONE)
 			{
@@ -28,51 +27,33 @@ public class LaunchSceneDownload : SceneProcedure
 			}
 			else if (tip == DOWNLOAD_TIP.DOWNLOAD_FAILED)
 			{
-				if (mRemainRetryCount > 0)
-				{
-					--mRemainRetryCount;
-					retry(true);
-				}
-				else
-				{
-					// 这里可选弹窗让用户选择是否重试
-					//dialogYesNoResource("文件下载失败,是否重试?", retry);
-					retry(true);
-				}
+				// 这里可选弹窗让用户选择是否重试
+				//dialogYesNoResource("文件下载失败,是否重试?", retry);
 			}
 			else if (tip == DOWNLOAD_TIP.NOT_IN_REMOTE_FILE_LIST)
 			{
 				// 这里可选弹窗让用户选择是否重试
 				//dialogYesNoResource("已下载的文件不存在与远端文件列表,是否重试?", retry);
-				retry(true);
 			}
 			else if (tip == DOWNLOAD_TIP.VERIFY_FAILED)
 			{
-				if (mRemainRetryCount > 0)
-				{
-					--mRemainRetryCount;
-					retry(true);
-				}
-				else
-				{
-					// 这里可选弹窗让用户选择是否重试
-					//dialogYesNoResource("下载文件错误,是否重试?", retry);
-					retry(true);
-				}
+				// 这里可选弹窗让用户选择是否重试
+				//dialogYesNoResource("下载文件错误,是否重试?", retry);
 			}
 		});
 	}
 	public override void init()
 	{
 		base.init();
+		mInstance.setProgressCallback(onDownloadProgress);
 		// 未启用热更时可以不进行下载,webgl上全部都是远程异步加载的,也不用下载
 		if (isEditor() /*|| !isEnableHotFix()*/ || isWebGL())
 		{
-			mInstance.skipDownload(onDownloadProgress);
+			mInstance.skipDownload();
 		}
 		else
 		{
-			mInstance.startCheckVersion(onDownloadProgress);
+			mInstance.startCheckVersion();
 		}
 	}
 	public override void exit()
@@ -131,7 +112,7 @@ public class LaunchSceneDownload : SceneProcedure
 	{
 		if (yes)
 		{
-			mInstance.startCheckVersion(onDownloadProgress);
+			mInstance.startCheckVersion();
 		}
 		else
 		{
@@ -173,21 +154,19 @@ public class LaunchSceneDownload : SceneProcedure
 	}
 	protected void launch()
 	{
-		HybridCLRSystem.launchHotFix(getAESKeyBytes(), getAESIVBytes(),
-			// 下载或者加载程序集
-			(string fileName, BytesIntCallback callback) =>
+		// 下载或者加载程序集
+		HybridCLRSystem.launchHotFix(getAESKeyBytes(), getAESIVBytes(), (string fileName, BytesIntCallback callback) =>
+		{
+			// webgl下只能从远端下载资源
+			if (isWebGL())
 			{
-				// webgl下只能从远端下载资源
-				if (isWebGL())
-				{
-					// 这里需要根据版本号自己构造出一个远端下载路径
-					ObsSystem.downloadBytes(/*getRemoteFolder(mAssetVersionSystem.getRemoteVersion()) +*/ fileName, callback);
-				}
-				else
-				{
-					openFileAsync(availableReadPath(fileName), true, (byte[] bytes) => { callback?.Invoke(bytes, bytes.Length); });
-				}
-			},
-			onLaunchError);
+				// 这里需要根据版本号自己构造出一个远端下载路径
+				ObsSystem.downloadBytes(/*getRemoteFolder(mAssetVersionSystem.getRemoteVersion()) +*/ fileName, callback);
+			}
+			else
+			{
+				openFileAsync(availableReadPath(fileName), true, (byte[] bytes) => { callback?.Invoke(bytes, bytes.Length); });
+			}
+		}, onLaunchError);
 	}
 }

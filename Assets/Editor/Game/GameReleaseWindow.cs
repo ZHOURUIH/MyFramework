@@ -350,7 +350,7 @@ public class GameReleaseWindow : GameEditorWindow
 	{
 		Debug.Log("create platform:" + getBuildTarget());
 		mPlatform = PlatformInfo.create();
-		mPlatform.mIgnoreFile = new() { VERSION, FILE_LIST, FILE_LIST_MD5, mPlatform.mName, mPlatform.mName + ".manifest" };
+		mPlatform.mIgnoreFile = new() { VERSION, FILE_LIST, mPlatform.mName, mPlatform.mName + ".manifest" };
 		mPlatform.mGameChannel = GAME_CHANNEL.NONE;
 		mPlatform.mTestClient = true;
 		mPlatform.mEnableHotFix = !isWebGL();

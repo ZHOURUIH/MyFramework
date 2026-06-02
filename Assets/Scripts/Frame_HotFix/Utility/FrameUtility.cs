@@ -131,8 +131,6 @@ public class FrameUtility
 	public static void writeFileList(string path, string content)
 	{
 		writeTxtFile(path + FILE_LIST, content);
-		// 再生成此文件的MD5文件,用于客户端校验文件内容是否改变
-		writeTxtFile(path + FILE_LIST_MD5, generateFileMD5(content.toBytes(), -1));
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 跳转流程或场景的工具函数

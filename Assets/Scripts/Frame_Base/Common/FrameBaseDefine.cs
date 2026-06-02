@@ -74,7 +74,6 @@ public class FrameBaseDefine
 	public const string UGUI_ROOT = "UGUIRoot";
 	public const string VERSION = "Version";
 	public const string FILE_LIST = "FileList";
-	public const string FILE_LIST_MD5 = "FileList_MD5";
 	public const string DYNAMIC_SECRET_FILE = "DynamicSecretKey.bytes";
 	// 语言名
 	public const string LANGUAGE_CHINESE_TRADITIONAL = "ChineseTraditional";            // 中文繁体语言的名字

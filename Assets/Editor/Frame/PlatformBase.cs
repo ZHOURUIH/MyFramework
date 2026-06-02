@@ -97,9 +97,7 @@ public abstract class PlatformBase
 			{
 				string relativePath = file.removeStartString(mAssetBundleFullPath);
 				// 删除指定
-				if (relativePath != FILE_LIST &&
-					relativePath != FILE_LIST_MD5 &&
-					!containOnlyFileList.contains(relativePath))
+				if (relativePath != FILE_LIST && !containOnlyFileList.contains(relativePath))
 				{
 					deleteFile(dest + relativePath);
 					newList.Remove(file);
@@ -196,8 +194,6 @@ public abstract class PlatformBase
 	{
 		string content = generateFileList(path, mIgnoreFile);
 		writeTxtFile(path + FILE_LIST, content);
-		// 再生成此文件的MD5文件,用于客户端校验文件内容是否改变
-		writeTxtFile(path + FILE_LIST_MD5, generateFileMD5(content.toBytes(), -1));
 		return true;
 	}
 	// 检查所有的热更dll,以及AOT的dll是否都存在
@@ -405,7 +401,7 @@ public abstract class PlatformBase
 			options |= BuildOptions.Development;
 			// 不再开启自动连接Profiler,因为这会使打出来的程序无法在其他电脑调试
 			options |= BuildOptions.ConnectWithProfiler;
-			// 深度分析会导致卡顿严重,不再开启
+			// 深度分析会导致卡顿严重,谨慎开启
 			options |= BuildOptions.EnableDeepProfilingSupport;
 		}
 		return options;
@@ -617,9 +613,7 @@ public abstract class PlatformBase
 				if (keys[0][0] == '-')
 				{
 					var fileInfo = RemoteFileInfo.parse(keys);
-					if (fileInfo.mFileName == FILE_LIST ||
-						fileInfo.mFileName == FILE_LIST_MD5 ||
-						fileInfo.mFileName == VERSION)
+					if (fileInfo.mFileName == FILE_LIST || fileInfo.mFileName == VERSION)
 					{
 						continue;
 					}

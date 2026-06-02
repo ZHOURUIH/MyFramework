@@ -98,7 +98,7 @@ public abstract class PlatformInfo : PlatformBase
 		log("开始上传文件, path:" + uploadLocalPath);
 		progressBar(displayTitle, "正在获取远端文件列表", 0.0f);
 		var remoteFileList = ObsSystem.getFileList(remotePath);
-		remoteFileList.remove(VERSION, FILE_LIST, FILE_LIST_MD5);
+		remoteFileList.remove(VERSION, FILE_LIST);
 		log("远端共" + remoteFileList.Count + "个文件");
 		progressBar(displayTitle, "正在计算本地文件列表", 0.0f);
 		// 对比远端和本地的文件,删除远端无用的文件
@@ -134,7 +134,7 @@ public abstract class PlatformInfo : PlatformBase
 		List<string> modifyList = checkNeedUploadFile(remoteFileList, localFileInfoList);
 		// 要将资源列表文件上传上去
 		// 版本号文件不上传
-		modifyList.add(FILE_LIST, FILE_LIST_MD5);
+		modifyList.add(FILE_LIST);
 		modifyList.Remove(VERSION);
 		int remainRetry = 5;
 		doUpload(modifyList, uploadLocalPath, remotePath, displayTitle, (int failedCount) =>

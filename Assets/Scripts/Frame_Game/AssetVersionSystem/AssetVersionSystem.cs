@@ -10,21 +10,21 @@ using static StringUtility;
 // 用于管理资源的版本信息
 public class AssetVersionSystem : FrameSystem
 {
-	protected Dictionary<string, GameFileInfo> mStreamingAssetsFileList = new();
-	protected Dictionary<string, GameFileInfo> mPersistentAssetsFileList = new();
-	protected Dictionary<string, GameFileInfo> mRemoteAssetsFileList = new();
-	protected List<string> mTotalDownloadedFiles = new();           // 已经下载的文件列表,用于统计下载文件记录
-	protected long mTotalDownloadByteCount;                         // 已经消耗的总下载量,单位字节,用于统计下载字节数
-	protected Action mRemoteFileListFailCallback;
-	protected Action mSuccessCallback;
-	protected ASSET_READ_PATH mAssetReadPath;
-	protected string mRemoteVersion;
-	protected string mStreamingAssetsVersion;
-	protected string mPersistentDataVersion;
-	protected bool mPersistentDone;
-	protected bool mStreamingDone;
-	protected bool mRemoteDone;
-	protected bool mCheckFileListFailed;
+	protected Dictionary<string, GameFileInfo> mStreamingAssetsFileList = new();    // StreamingAssets中的文件列表,从StreamingAssets中获取
+	protected Dictionary<string, GameFileInfo> mPersistentAssetsFileList = new();   // PersistentPath中的文件列表,从PersistentPath中获取
+	protected Dictionary<string, GameFileInfo> mRemoteAssetsFileList = new();       // 远端服务器上的文件列表,从远端服务器获取
+	protected List<string> mTotalDownloadedFiles = new();	// 已经下载的文件列表,用于统计下载文件记录
+	protected long mTotalDownloadByteCount;					// 已经消耗的总下载量,单位字节,用于统计下载字节数
+	protected Action mRemoteFileListFailCallback;			// 获取远端文件列表失败的回调,当获取远端文件列表失败后会回调,一般是网络异常或者远端服务器异常导致无法获取到远端文件列表
+	protected Action mSuccessCallback;						// 获取文件列表成功的回调,当远端文件列表,StreamingAssets中的文件列表和PersistentPath中的文件列表都获取完成后会回调
+	protected ASSET_READ_PATH mAssetReadPath;				// 资源加载路径,默认是与远端一致,如果是编辑器或者不热更的版本或者WebGL则强制从StreamingAssets中读取
+	protected string mRemoteVersion;						// 远端版本号,从远端服务器获取
+	protected string mStreamingAssetsVersion;				// StreamingAssets中的版本号,从StreamingAssets中获取
+	protected string mPersistentDataVersion;				// PersistentPath中的版本号,从PersistentPath中获取
+	protected bool mPersistentDone;							// 是否完成获取PersistentPath中的文件列表
+	protected bool mStreamingDone;							// 是否完成获取StreamingAssets中的文件列表
+	protected bool mRemoteDone;								// 是否完成获取远端服务器中的文件列表
+	protected bool mCheckFileListFailed;					// 是否获取文件列表失败,如果失败了就不进入游戏了,因为没有正确的文件列表就无法正确加载资源
 	public override void init()
 	{
 		base.init();
@@ -112,16 +112,25 @@ public class AssetVersionSystem : FrameSystem
 	public void setRemoteVersion(string version)  { mRemoteVersion = checkValidVersion(version); }
 	public void setStreamingAssetsVersion(string version) { mStreamingAssetsVersion = checkValidVersion(version); }
 	public void setPersistentDataVersion(string version) { mPersistentDataVersion = checkValidVersion(version); }
-	public void loadStreamingAssetsVersionAndPersistentDataVersion(Action callback)
+	// 异步加载StreamingAssets和PersistentPath中的版本号,加载完成后会回调,如果有一方加载失败或者没有此文件,则对应的版本号为null
+	public void loadStreamingAndPersistentVersion(Action callback)
 	{
+		int finishCount = 0;
 		openTxtFileAsync(F_ASSET_BUNDLE_PATH + VERSION, !isEditor(), (string version) =>
 		{
 			setStreamingAssetsVersion(version);
-			openTxtFileAsync(F_PERSISTENT_ASSETS_PATH + VERSION, false, (string version) =>
+			if (++finishCount == 2)
 			{
-				setPersistentDataVersion(version);
 				callback?.Invoke();
-			});
+			}
+		});
+		openTxtFileAsync(F_PERSISTENT_ASSETS_PATH + VERSION, false, (string version) =>
+		{
+			setPersistentDataVersion(version);
+			if (++finishCount == 2)
+			{
+				callback?.Invoke();
+			}
 		});
 	}
 	public void setAssetReadPath(ASSET_READ_PATH read) { mAssetReadPath = read; }
@@ -164,7 +173,6 @@ public class AssetVersionSystem : FrameSystem
 		ignoreFile ??= new();
 		ignoreFile.addUnique(VERSION);
 		ignoreFile.addUnique(FILE_LIST);
-		ignoreFile.addUnique(FILE_LIST_MD5);
 		ignorePath ??= new();
 		ignorePath.addUnique("/temp/");
 		mSuccessCallback = successCallback;
@@ -376,7 +384,6 @@ public class AssetVersionSystem : FrameSystem
 		logBase("获取远端文件列表耗时:" + (int)(DateTime.Now - start0).TotalMilliseconds + "毫秒");
 		remoteFileList.Remove(VERSION);
 		remoteFileList.Remove(FILE_LIST);
-		remoteFileList.Remove(FILE_LIST_MD5);
 		setRemoteAssetsFile(remoteFileList);
 		logBase("远端资源文件数量:" + remoteFileList.Count);
 		mRemoteDone = true;

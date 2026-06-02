@@ -20,26 +20,12 @@ public class LaunchSceneVersion : SceneProcedure
 			// 正在检查版本号
 			//mUIDownload.setDownloadInfo("正在检查版本号...");
 			doGetRemoteVersion();
-			mAssetVersionSystem.loadStreamingAssetsVersionAndPersistentDataVersion(() =>
+			mAssetVersionSystem.loadStreamingAndPersistentVersion(() =>
 			{
 				mStreamingAndPersistDone = true;
+				checkEnterNext();
 			});
 		});
-
-	}
-	public override void update(float elapsedTime)
-	{
-		base.update(elapsedTime);
-		if (mRemoteDone && mStreamingAndPersistDone)
-		{
-			logBase("StreamingVersion:" + mAssetVersionSystem.getStreamingAssetsVersion() + 
-					", PersistVersion:" + mAssetVersionSystem.getPersistentDataVersion() + 
-					", RemoteVersion:" + mAssetVersionSystem.getRemoteVersion());
-			// 需要设置自己的远端下载路径
-			//mResourceManager.setDownloadURL(OBS_URL + getRemoteFolder(mAssetVersionSystem.getRemoteVersion()));
-			FrameCrossParam.mDownloadURL = mResourceManager.getDownloadURL();
-			mGameSceneManager.getCurScene().changeProcedure<LaunchSceneFileList>();
-		}
 	}
 	protected void doGetRemoteVersion()
 	{
@@ -63,6 +49,19 @@ public class LaunchSceneVersion : SceneProcedure
 			}
 			mAssetVersionSystem.setRemoteVersion(version);
 			mRemoteDone = true;
+			checkEnterNext();
 		});
+	}
+	protected void checkEnterNext()
+	{
+		if (mRemoteDone && mStreamingAndPersistDone)
+		{
+			logBase("StreamingVersion:" + mAssetVersionSystem.getStreamingAssetsVersion() +
+					", PersistVersion:" + mAssetVersionSystem.getPersistentDataVersion() +
+					", RemoteVersion:" + mAssetVersionSystem.getRemoteVersion());
+			// 需要设置自己的远端下载路径
+			//mResourceManager.setDownloadURL(OBS_URL + getRemoteFolder(mAssetVersionSystem.getRemoteVersion()));
+			mGameSceneManager.getCurScene().changeProcedure<LaunchSceneFileList>();
+		}
 	}
 }

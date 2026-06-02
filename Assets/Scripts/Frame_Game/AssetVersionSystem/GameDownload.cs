@@ -9,7 +9,7 @@ using static FrameBase;
 // 用于更新资源
 public class GameDownload
 {
-	protected List<string> mNeedDownloadFileList = new();
+	protected List<string> mNeedDownloadFileList = new();           // 需要下载的资源
 	protected List<string> mDynamicDownloadList = new();			// 只动态下载的资源,此目录中的资源不会在更新时下载,只是在需要加载时才会下载
 	protected GameDownloadCallback mProgressCallback;				// 下载进度的回调
 	protected GameDownloadTipCallback mTipCallback;					// 下载提示的回调
@@ -17,6 +17,7 @@ public class GameDownload
 	protected string mDownloadWritePath = F_PERSISTENT_ASSETS_PATH; // 默认下载到PersistentPath中
 	protected int mDownloadedCount;									// 已经下载的文件数量
 	protected int mDownloadSpeed;                                   // 下载速度
+	protected int mRemainRetryCount = 3;							// 文件下载失败的剩余自动重试次数,没有剩余次数时将会提示玩家是否重试
 	protected bool mAllFinish = true;								// 是否已经全部完成
 	protected bool mNeedWritePersistentFileList;					// 是否在完成时写入Persist的文件列表
 	public void willDestroy()
@@ -31,15 +32,14 @@ public class GameDownload
 		}
 	}
 	public void setDynamicDownloadList(List<string> list) { mDynamicDownloadList.setRange(list); }
-	public void setShowTipCallback(GameDownloadTipCallback callback) { mTipCallback = callback; }
-	public void skipDownload(GameDownloadCallback callback)
+	public void setTipCallback(GameDownloadTipCallback callback) { mTipCallback = callback; }
+	public void setProgressCallback(GameDownloadCallback callback) { mProgressCallback = callback; }
+	public void skipDownload()
 	{
-		mProgressCallback = callback;
 		allFinished();
 	}
-	public void startCheckVersion(GameDownloadCallback callback)
+	public void startCheckVersion()
 	{
-		mProgressCallback = callback;
 		logBase("下载目录:" + mDownloadWritePath);
 		logBase("资源下载地址:" + mResourceManager.getDownloadURL());
 		mAllFinish = false;
@@ -137,7 +137,15 @@ public class GameDownload
 			if (bytes == null)
 			{
 				logWarningBase("下载失败! " + fileName);
-				mTipCallback?.Invoke(DOWNLOAD_TIP.DOWNLOAD_FAILED);
+				if (mRemainRetryCount > 0)
+				{
+					--mRemainRetryCount;
+					startCheckVersion();
+				}
+				else
+				{
+					mTipCallback?.Invoke(DOWNLOAD_TIP.DOWNLOAD_FAILED);
+				}
 				return;
 			}
 			mAssetVersionSystem.addDownloadedInfo(bytes.Length, getFileNameWithSuffix(fileName));
@@ -165,7 +173,15 @@ public class GameDownload
 			{
 				logWarningBase("下载的文件信息与远端的信息不一致:下载的信息:" + localInfo.mFileName + ", " + localInfo.mFileSize + ", " + localInfo.mMD5 +
 						", 远端的信息:" + remoteInfo.mFileName + ", " + remoteInfo.mFileSize + ", " + remoteInfo.mMD5);
-				mTipCallback?.Invoke(DOWNLOAD_TIP.VERIFY_FAILED);
+				if (mRemainRetryCount > 0)
+				{
+					--mRemainRetryCount;
+					startCheckVersion();
+				}
+				else
+				{
+					mTipCallback?.Invoke(DOWNLOAD_TIP.VERIFY_FAILED);
+				}
 			}
 
 			// 所有文件已经下载完毕
