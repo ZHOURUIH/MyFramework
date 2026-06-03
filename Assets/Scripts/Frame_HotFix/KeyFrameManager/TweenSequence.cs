@@ -55,7 +55,7 @@ public class TweenSequence : MonoBehaviour
 					percent = (curTime - currentStartTime) / getMax(track.mDuration, 0.0001f);
 				}
 
-				Vector3 result = lerpSimple(track.mStartValue, track.mTargetValue, curve.evaluate(percent));
+				Vector3 result = lerpSimple(track.mStartValue, track.getTargetValue(), curve.evaluate(percent));
 				switch (track.mType)
 				{
 					case TWEEN_TYPE.MOVE: pos = result; break;

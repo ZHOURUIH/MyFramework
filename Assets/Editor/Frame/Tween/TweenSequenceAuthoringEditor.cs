@@ -96,11 +96,11 @@ public class TweenSequenceAuthoringEditor : GameEditorBase
 					}
 					if (track.mCurveID == 0)
 					{
-						track.mCurveID = ids[0];
+						track.setCurveID(ids[0]);
 					}
 					ids.find(track.mCurveID, out int curIndex);
 					int newIndex = EditorGUILayout.Popup("Curve", curIndex, EditorCurveFactory.getNames());
-					track.mCurveID = ids[newIndex];
+					track.setCurveID(ids[newIndex]);
 					EditorGUILayout.CurveField("Preview", EditorCurveFactory.getPreviewCurve(track.mCurveID), GUILayout.Height(20));
 
 					displayFloat("Duration", ref track.mDuration);
@@ -116,14 +116,23 @@ public class TweenSequenceAuthoringEditor : GameEditorBase
 								EditorUtility.SetDirty(mSequence);
 							}
 						}
-						using (new GUILayout.HorizontalScope())
+						displayEnum("Target Mode", ref track.mTargetMode);
+						if (track.mTargetMode == TARGET_MODE.VALUE)
 						{
-							displayVector3("Target", ref track.mTargetValue);
-							if (button("Set To Current"))
+							using (new GUILayout.HorizontalScope())
 							{
-								track.mTargetValue = mSequence.transform.localPosition;
-								EditorUtility.SetDirty(mSequence);
+								displayVector3("Target", ref track.mTargetValue);
+								if (button("Set To Current"))
+								{
+									track.mTargetValue = mSequence.transform.localPosition;
+									EditorUtility.SetDirty(mSequence);
+								}
 							}
+						}
+						else
+						{
+							objectField("Target Transform", ref track.mTargetTransform);
+							displayVector3("Target Offset", ref track.mTargetOffset);
 						}
 					}
 					else if (track.mType == TWEEN_TYPE.SCALE)

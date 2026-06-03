@@ -18,6 +18,14 @@ public class GameEditorBase : Editor
 		SerializedProperty property = findProperty(propertyName);
 		EditorGUILayout.PropertyField(property, new(displayName, toolTip), includeChildren);
 	}
+	public T objectField<T>(string label, UnityEngine.Object obj, params GUILayoutOption[] options) where T : UnityEngine.Object
+	{
+		return EditorGUILayout.ObjectField(label, obj, typeof(T), true, options) as T;
+	}
+	public void objectField<T>(string label, ref T obj, params GUILayoutOption[] options) where T : UnityEngine.Object
+	{
+		obj = EditorGUILayout.ObjectField(label, obj, typeof(T), true, options) as T;
+	}
 	public void space(float pixels)
 	{
 		GUILayout.Space(pixels);

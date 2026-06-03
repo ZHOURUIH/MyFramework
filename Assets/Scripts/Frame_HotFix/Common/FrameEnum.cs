@@ -456,3 +456,18 @@ public enum ARRAY_TYPE : byte
 	STATIC_ARRAY,           // 静态数组,就是直接获取界面上已经存在的节点存放到数组中
 	DYNAMIC_ARRAY,          // 动态数组,就是根据一个模板创建多个节点放到数组中,类似对象池,但是创建的是非对象池类型的节点,动态列表不支持单独的窗口类型
 }
+
+// 缓动的类型
+public enum TWEEN_TYPE : byte
+{
+	MOVE,					// 平移
+	ROTATE,					// 旋转
+	SCALE,					// 缩放
+}
+
+// 缓动的目标类型
+public enum TARGET_MODE : byte
+{
+	VALUE,					// 固定值
+	TRANSFORM,				// 指定节点
+}
