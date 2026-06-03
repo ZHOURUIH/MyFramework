@@ -152,14 +152,16 @@ public class GameEditorBase : Editor
 	{
 		return EditorGUILayout.IntPopup(displayName, 0, valueDisplay, values);
 	}
-	public void beginContents()
+	// 开始绘制列表中的一项
+	public void beginListContents()
 	{
-		EditorGUILayout.BeginHorizontal(GUILayout.MinHeight(10f));
+		EditorGUILayout.BeginHorizontal("box", GUILayout.MinHeight(10f));
 		GUILayout.Space(10f);
 		GUILayout.BeginVertical();
 		GUILayout.Space(2f);
 	}
-	public void endContents()
+	// 结束绘制列表中的一项
+	public void endListContents()
 	{
 		GUILayout.Space(3f);
 		GUILayout.EndVertical();

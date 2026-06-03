@@ -12,6 +12,7 @@ public class TweenSequenceAuthoringEditor : GameEditorBase
 	private double mStartTime;
 	public override void OnInspectorGUI()
 	{
+		EditorCurveFactory.reload();
 		mSequence = (TweenSequence)target;
 		DrawGroups();
 		space(10);
@@ -88,7 +89,7 @@ public class TweenSequenceAuthoringEditor : GameEditorBase
 
 					displayEnum("Type", ref track.mType);
 
-					int[] ids = EditorCurveInfo.getIDs();
+					int[] ids = EditorCurveFactory.getIDs();
 					if (ids.Length == 0)
 					{
 						return;
@@ -98,8 +99,9 @@ public class TweenSequenceAuthoringEditor : GameEditorBase
 						track.mCurveID = ids[0];
 					}
 					ids.find(track.mCurveID, out int curIndex);
-					int newIndex = EditorGUILayout.Popup("Curve", curIndex, EditorCurveInfo.getNames());
+					int newIndex = EditorGUILayout.Popup("Curve", curIndex, EditorCurveFactory.getNames());
 					track.mCurveID = ids[newIndex];
+					EditorGUILayout.CurveField("Preview", EditorCurveFactory.getPreviewCurve(track.mCurveID), GUILayout.Height(20));
 
 					displayFloat("Duration", ref track.mDuration);
 					displayFloat("StartDelay", ref track.mStartDelay);

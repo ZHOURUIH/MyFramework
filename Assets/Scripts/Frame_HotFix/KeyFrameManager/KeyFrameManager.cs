@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using static UnityUtility;
 using static FrameBaseHotFix;
-using static FrameBaseUtility;
-using static StringUtility;
 using static FrameDefine;
 
 // 关键帧曲线管理器
@@ -44,9 +42,8 @@ public class KeyFrameManager : FrameSystem
 				mCurveList.Remove(deleteKeys[i]);
 			}
 
-			GameObject keyFrameObject = instantiatePrefab(mObject, asset.getResource(), getFileNameWithSuffix(asset.getResource().name), true);
 			// 查找关键帧曲线,加入列表中
-			if (!keyFrameObject.TryGetComponent<GameKeyframe>(out var gameKeyframe))
+			if (!asset.getResource().TryGetComponent<GameKeyframe>(out var gameKeyframe))
 			{
 				logError("object in KeyFrame folder must has GameKeyframe Component!");
 				callback?.Invoke();
@@ -54,13 +51,12 @@ public class KeyFrameManager : FrameSystem
 			}
 			foreach (CurveInfo curveInfo in gameKeyframe.mCurveList)
 			{
-				if (curveInfo.mID < KEY_CURVE.MAX_BUILDIN_CURVE)
+				if (curveInfo.mID <= KEY_CURVE.MAX_BUILDIN_CURVE)
 				{
 					logError("加载的曲线ID不能低于" + KEY_CURVE.MAX_BUILDIN_CURVE);
 				}
 				mCurveList.Add(curveInfo.mID, new UnityCurve(curveInfo.mCurve));
 			}
-			destroyUnityObject(keyFrameObject);
 			mResourceManager.unload(ref asset);
 			mLoaded = true;
 			callback?.Invoke();

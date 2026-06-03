@@ -29,4 +29,5 @@ public class UnityCurve : MyCurve
 		}
 		return mCurve.length;
 	}
+	public AnimationCurve getAnimationCurve() { return mCurve; }
 }
