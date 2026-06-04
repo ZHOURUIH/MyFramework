@@ -3,10 +3,10 @@
 // 用于播放物体的缓动序列
 public class COMTransformableSequence : GameComponent
 {
-	protected SequenceCallback mDoneCallback;
-	protected TweenSequence mSequence;
+	protected SequenceCallback mDoneCallback;   // 序列播放完成的回调,参数1:当前组件,参数2:是否被打断
+	protected TweenSequence mSequence;          // 当前正在播放的缓动序列
 	protected float mCurrentTime;               // 从上一次从头开始播放到现在的时长
-	protected float mTotalLength;
+	protected float mTotalLength;               // 序列的总长度,即所有TweenGroup中最长的长度
 	protected PLAY_STATE mPlayState;            // 播放状态
 	public void setDoneCallback(SequenceCallback callback)
 	{
@@ -40,6 +40,7 @@ public class COMTransformableSequence : GameComponent
 	public void stop(bool isBreak)
 	{
 		setActive(false);
+		mSequence.stop();
 		mSequence = null;
 		mCurrentTime = 0.0f;
 		mPlayState = PLAY_STATE.STOP;
@@ -55,6 +56,9 @@ public class COMTransformableSequence : GameComponent
 			stop(true);
 			return;
 		}
+		// 播放之前先确认所有轨道都是在停止状态的
+		mSequence.stop(true);
+		mSequence.play();
 		mCurrentTime = 0.0f;
 		mPlayState = PLAY_STATE.PLAY;
 		mTotalLength = mSequence.getTotalLength();

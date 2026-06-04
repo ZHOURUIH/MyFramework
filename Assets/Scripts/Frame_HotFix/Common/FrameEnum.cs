@@ -469,5 +469,14 @@ public enum TWEEN_TYPE : byte
 public enum TARGET_MODE : byte
 {
 	VALUE,					// 固定值
-	TRANSFORM,				// 指定节点
+	TRANSFORM_REALTIME,     // 指定节点,并且在移动过程中实时获取节点的值进行调整,适用于目标对象会移动的情况
+	TRANSFORM_SNAPSHOT,     // 指定节点,但是只在开始移动时获取节点的值进行调整,适用于目标对象不会移动的情况
+	SELF,					// 指定节点,但是只在开始移动时获取节点的值进行调整,适用于目标对象不会移动的情况
+}
+
+// 缓动的起始值的类型
+public enum START_MODE : byte
+{
+	VALUE,					// 编辑器配置的固定值
+	SELF,					// 播放时取节点当前值
 }

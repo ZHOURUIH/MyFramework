@@ -3374,16 +3374,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3649696244049861466}
-  m_LocalRotation: {x: 0, y: 0, z: -0.00000008742278, w: -1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.19999999, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8692139812225050110}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -397, y: 268}
+  m_AnchoredPosition: {x: 100, y: 400.4091}
   m_SizeDelta: {x: 311, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8185921615164721332
@@ -3420,9 +3420,9 @@ MonoBehaviour:
   - mRelative: 0
     mAbsolute: 0
   - mRelative: 1
-    mAbsolute: -222
+    mAbsolute: -90
   - mRelative: 1
-    mAbsolute: -1326
+    mAbsolute: -705
   - mRelative: 0
     mAbsolute: 0
   mAnchorPoint:
@@ -3500,26 +3500,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: Frame_HotFix::TweenSequenceAuthoring
   mGroupList:
   - mTrackList:
-    - mTargetMode: 1
-      mTargetTransform: {fileID: 8792317004604017403}
+    - mTargetMode: 3
+      mStartMode: 1
+      mTargetTransform: {fileID: 2403621493551887484}
       mTargetOffset: {x: 0, y: 23.44, z: 0}
       mType: 0
-      mCurveID: 102
+      mCurveID: 2
       mDuration: 0.8
       mStartDelay: 0.5
-      mStartValue: {x: -11.422616, y: 299, z: 0}
+      mStartValue: {x: 0, y: 318, z: 0}
       mTargetValue: {x: -21, y: 113, z: 0}
-    - mTargetMode: 0
+      mEnable: 1
+    - mTargetMode: 3
+      mStartMode: 1
       mTargetTransform: {fileID: 0}
-      mTargetOffset: {x: 0, y: 0, z: 0}
+      mTargetOffset: {x: 50, y: 0, z: 0}
       mType: 0
       mCurveID: 16
       mDuration: 1
       mStartDelay: 0.2
       mStartValue: {x: -21, y: 113, z: 0}
       mTargetValue: {x: -397, y: 268, z: 0}
+      mEnable: 1
   - mTrackList:
     - mTargetMode: 0
+      mStartMode: 0
       mTargetTransform: {fileID: 0}
       mTargetOffset: {x: 0, y: 0, z: 0}
       mType: 2
@@ -3528,8 +3533,10 @@ MonoBehaviour:
       mStartDelay: 0.5
       mStartValue: {x: 1, y: 1, z: 1}
       mTargetValue: {x: 0.2, y: 1, z: 1}
+      mEnable: 0
   - mTrackList:
     - mTargetMode: 0
+      mStartMode: 0
       mTargetTransform: {fileID: 0}
       mTargetOffset: {x: 0, y: 0, z: 0}
       mType: 1
@@ -3538,8 +3545,8 @@ MonoBehaviour:
       mStartDelay: 0.5
       mStartValue: {x: 0, y: 0, z: 0}
       mTargetValue: {x: 0, y: 0, z: 360}
-  mPreviewTime: 2.3755355
-  mLoop: 1
+      mEnable: 0
+  mLoop: 0
 --- !u!1 &3909243443963951823
 GameObject:
   m_ObjectHideFlags: 0
