@@ -248,7 +248,7 @@ public class TweenSequenceAuthoringEditor : GameEditorBase
 		{
 			mSequence.stop(forceReset);
 		}
-		if (forceReset || mSequence.mResetWhenStop)
+		if (forceReset || (mSequence != null && mSequence.mResetWhenStop))
 		{
 			mPreviewTime = 0.0f;
 		}
