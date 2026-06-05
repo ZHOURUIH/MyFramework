@@ -173,8 +173,8 @@ public class ClassPool : FrameSystem
 			}
 			removeInuse(temp, type);
 		}
-		objList.Enqueue(temp);
 		temp.resetProperty();
+		objList.Enqueue(temp);
 	}
 	public void destroyClassList<T>(List<T> classObjectList) where T : ClassObject
 	{

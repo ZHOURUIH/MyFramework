@@ -16,7 +16,7 @@ public class AssetVersionSystem : FrameSystem
 	protected string mPersistentAssetsVersion;                                      // PersistentData中的版本号
 	protected string mRemoteAssetsVersion;											// 远端版本号
 	protected long mTotalDownloadByteCount;											// 已经消耗的总下载量,单位字节,用于统计下载字节数
-	protected static ASSET_READ_PATH mReadPathType;									// 资源路径的计算方式
+	protected ASSET_READ_PATH mReadPathType;										// 资源路径的计算方式
 	public AssetVersionSystem()
 	{
 		mReadPathType = ASSET_READ_PATH.SAME_TO_REMOTE;

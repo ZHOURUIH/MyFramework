@@ -93,7 +93,7 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 		mCalledOnHide = true;
 		foreach (WindowObjectBase item in mChildList.safe())
 		{
-			if (item.isActiveSelf())
+			if (item.isActiveSelf() && !item.mCalledOnHide)
 			{
 				item.onHide();
 			}
@@ -115,7 +115,7 @@ public abstract class WindowObjectBase : ILocalizationCollection, IWindowObjectO
 		mCalledOnShow = true;
 		foreach (WindowObjectBase item in mChildList.safe())
 		{
-			if (item.isActiveSelf())
+			if (item.isActiveSelf() && !item.mCalledOnShow)
 			{
 				item.onShow();
 			}

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 // 可使用对象池进行创建和销毁的对象
 public class ClassObject : IEquatable<ClassObject>, IEventListener, IResetProperty, IRecyclable
@@ -11,7 +12,7 @@ public class ClassObject : IEquatable<ClassObject>, IEventListener, IResetProper
 	public ClassObject()
 	{
 		mHasDestroy = true;
-		mObjectInstanceID = ++mObjectInstanceIDSeed;
+		mObjectInstanceID = Interlocked.Increment(ref mObjectInstanceIDSeed);
 	}
 	public virtual void resetProperty()
 	{

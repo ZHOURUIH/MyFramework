@@ -3,7 +3,7 @@
 public class ImageObjectLocalization : ClassObject
 {
     public IUGUIImage mObject;              // 图片对象
-    public string mImageNameWithoutSuffix;  // 不带语言后缀的图片名
+    public string mImageNameWithoutSuffix;  // 不带语言后缀的图片名,以_结尾
 	public override void resetProperty()
     {
         base.resetProperty();

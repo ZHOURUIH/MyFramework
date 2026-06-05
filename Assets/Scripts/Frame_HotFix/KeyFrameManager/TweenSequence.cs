@@ -130,7 +130,7 @@ public class TweenSequence : MonoBehaviour
 				// 当前Track正在播放
 				else
 				{
-					percent = clampMax((curTime - currentStartTime) / getMax(track.mDuration, 0.0001f), 1.0f);
+					percent = clampMax((curTime - currentStartTime) / clampMin(track.mDuration, 0.0001f), 1.0f);
 				}
 
 				Vector3 result = lerpSimple(track.getStartValue(), track.getTargetValue(), curve.evaluate(percent));

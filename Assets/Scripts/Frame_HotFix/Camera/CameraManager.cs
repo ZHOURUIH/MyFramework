@@ -191,6 +191,11 @@ public class CameraManager : FrameSystem
 			activeCamera(camera, false);
 		}
 		mCameraList.Remove(camera);
+		// 因为mDefaultCamera跟其他摄像机并非互斥的,所以需要单独判断
+		if (camera == mDefaultCamera)
+		{
+			mDefaultCamera = null;
+		}
 		if (camera == mMainCamera)
 		{
 			mMainCamera = null;
@@ -232,6 +237,7 @@ public class CameraManager : FrameSystem
 				if (camera.isActiveInHierarchy())
 				{
 					setCameraAudioListener(camera);
+					break;
 				}
 			}
 		}

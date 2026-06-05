@@ -13,19 +13,26 @@ public class LocalizationManager : FrameSystem
 	protected Dictionary<IUGUIImage, ImageObjectLocalization> mImageList = new();	// 注册的多语言显示物体
 	protected Dictionary<string, string> mLocalizationLanguage = new();				// 当前本地语言的列表,以中文为key,value是当前切换的语言
 	protected Dictionary<int, string> mLocalizationLanguageID = new();				// 当前本地语言的列表,以ID为key,value是当前切换的语言
-	protected string mCurrentLanguage;												// 当前选择的语言
+	protected string mCurrentLanguage;                                              // 当前选择的语言,LANGUAGE_CHINESE或者LANGUAGE_ENGLISH等
 	protected Dictionary<string, string> mLocaleMap = new();						// 语言的locale,key是Chinese,English等,Value是zh_CN,en-US等
 	protected Action mLanguageCallback;												// 语言发生改变时的回调
-	protected ReloadLanguageCallback mReloadLanguageCallback;                             // 需要外部设置的刷新语言列表的函数
-	protected StringIntCallback mCheckLanguageCallback;								// 需要外部设置的检测语言是否配置正确的函数
+	protected ReloadLanguageCallback mReloadLanguageCallback;                       // 需要外部设置的刷新语言列表的函数
+	protected StringIntCallback mCheckLanguageCallback;								// 需要外部设置的检测语言是否配置正确的函数,比如ID是否存在,中文是否已经在表格中配置了翻译,仅在编辑器下运行
 	public LocalizationManager()
 	{
 		mLocaleMap.add(LANGUAGE_CHINESE, "zh_CN");
-		mLocaleMap.add(LANGUAGE_CHINESE_TRADITIONAL, "zh_CN");
+		mLocaleMap.add(LANGUAGE_CHINESE_TRADITIONAL, "zh_TW");
 		mLocaleMap.add(LANGUAGE_ENGLISH, "en-US");
 	}
 	public void setReloadLanguageCallback(ReloadLanguageCallback callback) { mReloadLanguageCallback = callback; }
-	public void setCheckLanguageCallback(StringIntCallback callback) { mCheckLanguageCallback = callback; }
+	public void setCheckLanguageCallback(StringIntCallback callback) 
+	{
+		if (!isEditor())
+		{
+			return;
+		}
+		mCheckLanguageCallback = callback; 
+	}
 	public void setCurrentLanguage(string language)
 	{
 		mLocalizationLanguage.Clear();
@@ -66,8 +73,13 @@ public class LocalizationManager : FrameSystem
 	}
 	public string getLocalize(int id) 
 	{
-		mCheckLanguageCallback?.Invoke(null, 0);
-		return mLocalizationLanguageID.get(id);
+		mCheckLanguageCallback?.Invoke(null, id);
+		string text = mLocalizationLanguageID.get(id);
+		if (text.isEmpty())
+		{
+			text = "Localization:" + IToS(id);
+		}
+		return text;
 	}
 	public string getLocalize(string str, params string[] param)
 	{
@@ -139,7 +151,7 @@ public class LocalizationManager : FrameSystem
 		{
 			localization.mImageNameWithoutSuffix = null;
 		}
-		if (chineseSpriteName.endWith("_" + LANGUAGE_CHINESE))
+		if (!chineseSpriteName.endWith("_" + LANGUAGE_CHINESE))
 		{
 			logError("多语言图片名需要以_" + LANGUAGE_CHINESE + "结尾");
 		}
@@ -150,10 +162,7 @@ public class LocalizationManager : FrameSystem
 	// 注册需要切换多语言的文本对象,可重复注册
 	public void registeLocalization(IUGUIText obj, string text)
 	{
-		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
-		{
-			logError("动态访问的文本对象不需要挂接LocalizationText脚本:" + obj.getName());
-		}
+		checkObject(obj);
 		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mObject = obj;
 		localization.mText = text;
@@ -165,10 +174,7 @@ public class LocalizationManager : FrameSystem
 	// 注册需要切换多语言的文本对象,可重复注册
 	public void registeLocalization(IUGUIText obj, string text, string param)
 	{
-		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
-		{
-			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
-		}
+		checkObject(obj);
 		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mObject = obj;
 		localization.mText = text;
@@ -181,10 +187,7 @@ public class LocalizationManager : FrameSystem
 	// 注册需要切换多语言的文本对象,可重复注册
 	public void registeLocalization(IUGUIText obj, string text, string param0, string param1)
 	{
-		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
-		{
-			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
-		}
+		checkObject(obj);
 		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mID = 0;
 		localization.mCallback = null;
@@ -198,10 +201,7 @@ public class LocalizationManager : FrameSystem
 	// 注册需要切换多语言的文本对象,可重复注册
 	public void registeLocalization(IUGUIText obj, string text, string param0, string param1, string param2)
 	{
-		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
-		{
-			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
-		}
+		checkObject(obj);
 		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mID = 0;
 		localization.mCallback = null;
@@ -216,10 +216,7 @@ public class LocalizationManager : FrameSystem
 	// 注册需要切换多语言的文本对象,可重复注册
 	public void registeLocalization(IUGUIText obj, string text, string param0, string param1, string param2, string param3)
 	{
-		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
-		{
-			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
-		}
+		checkObject(obj);
 		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mID = 0;
 		localization.mCallback = null;
@@ -235,10 +232,7 @@ public class LocalizationManager : FrameSystem
 	// 注册需要切换多语言的文本对象,可重复注册
 	public void registeLocalization(IUGUIText obj, string text, Span<string> param)
 	{
-		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
-		{
-			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
-		}
+		checkObject(obj);
 		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mID = 0;
 		localization.mCallback = null;
@@ -250,10 +244,7 @@ public class LocalizationManager : FrameSystem
 	// 注册需要切换多语言的文本对象,可重复注册
 	public void registeLocalization(IUGUIText obj, string text, List<string> param)
 	{
-		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
-		{
-			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
-		}
+		checkObject(obj);
 		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mID = 0;
 		localization.mCallback = null;
@@ -265,10 +256,7 @@ public class LocalizationManager : FrameSystem
 	// 注册需要切换多语言的文本对象,可重复注册
 	public void registeLocalization(IUGUIText obj, int id)
 	{
-		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
-		{
-			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
-		}
+		checkObject(obj);
 		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mText = null;
 		localization.mParam.Clear();
@@ -280,10 +268,7 @@ public class LocalizationManager : FrameSystem
 	// 注册需要切换多语言的文本对象,可重复注册
 	public void registeLocalization(IUGUIText obj, string mainText, LocalizationCallback callback)
 	{
-		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
-		{
-			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
-		}
+		checkObject(obj);
 		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mID = 0;
 		localization.mParam.Clear();
@@ -295,10 +280,7 @@ public class LocalizationManager : FrameSystem
 	// 注册需要切换多语言的文本对象,可重复注册
 	public void registeLocalization(IUGUIText obj, string mainText, string param, LocalizationCallback callback)
 	{
-		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
-		{
-			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
-		}
+		checkObject(obj);
 		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mID = 0;
 		localization.mObject = obj;
@@ -311,10 +293,7 @@ public class LocalizationManager : FrameSystem
 	// 注册需要切换多语言的文本对象,可重复注册
 	public void registeLocalization(IUGUIText obj, string mainText, string param0, string param1, LocalizationCallback callback)
 	{
-		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
-		{
-			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
-		}
+		checkObject(obj);
 		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mID = 0;
 		localization.mObject = obj;
@@ -328,10 +307,7 @@ public class LocalizationManager : FrameSystem
 	// 注册需要切换多语言的文本对象,可重复注册
 	public void registeLocalization(IUGUIText obj, string mainText, List<string> paramList, LocalizationCallback callback)
 	{
-		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
-		{
-			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
-		}
+		checkObject(obj);
 		TextObjectLocalization localization = mTextList.getOrAddClass(obj);
 		localization.mID = 0;
 		localization.mObject = obj;
@@ -387,6 +363,13 @@ public class LocalizationManager : FrameSystem
 		else
 		{
 			item.mCallback(item.mObject, str, null);
+		}
+	}
+	protected void checkObject(IUGUIText obj)
+	{
+		if (isEditor() && obj.tryGetUnityComponent<LocalizationText>() != null)
+		{
+			logError("动态访问的文本对象不需要挂接LocalizationText脚本" + obj.getName());
 		}
 	}
 }

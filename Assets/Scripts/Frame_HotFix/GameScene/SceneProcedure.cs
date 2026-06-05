@@ -97,7 +97,6 @@ public class SceneProcedure : DelayCmdWatcher
 		// 退出完毕后就修改标记
 		mPrepareTimer.stop();
 		mPrepareNext = null;
-		Resources.UnloadUnusedAssets();
 	}
 	public void prepareExit(SceneProcedure next, float time)
 	{

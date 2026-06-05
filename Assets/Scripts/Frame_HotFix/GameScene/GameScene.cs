@@ -90,6 +90,7 @@ public abstract class GameScene : ComponentOwner
 		changeProcedure(mExitProcedure);
 		mCurProcedure?.exit(null, null);
 		mCurProcedure = null;
+		Resources.UnloadUnusedAssets();
 		GC.Collect();
 	}
 	public GameObject getObject() { return mObject; }

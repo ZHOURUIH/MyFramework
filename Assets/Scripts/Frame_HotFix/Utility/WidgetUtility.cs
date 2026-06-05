@@ -535,47 +535,45 @@ public class WidgetUtility
 	}
 	public static void autoGrid(myUGUIObject root, Vector2 gridSize)
 	{
-		autoGrid(root, gridSize, Vector2.zero, true, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
+		autoGrid(root, gridSize, Vector2.zero, true, true, true, HORIZONTAL_DIRECTION.LEFT);
 	}
 	public static void autoGrid(myUGUIObject root, Vector2 gridSize, bool autoRefreshUIDepth)
 	{
-		autoGrid(root, gridSize, Vector2.zero, autoRefreshUIDepth, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
+		autoGrid(root, gridSize, Vector2.zero, autoRefreshUIDepth, true, true, HORIZONTAL_DIRECTION.LEFT);
 	}
 	public static void autoGrid(myUGUIObject root, Vector2 gridSize, Vector2 intervalNoScreenScale)
 	{
-		autoGrid(root, gridSize, intervalNoScreenScale, true, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
+		autoGrid(root, gridSize, intervalNoScreenScale, true, true, true, HORIZONTAL_DIRECTION.LEFT);
 	}
 	public static void autoGrid(myUGUIObject root, Vector2 gridSize, HORIZONTAL_DIRECTION horizontal)
 	{
-		autoGrid(root, gridSize, Vector2.zero, true, true, true, horizontal, VERTICAL_DIRECTION.TOP);
-	}
-	public static void autoGrid(myUGUIObject root, Vector2 gridSize, VERTICAL_DIRECTION vertical)
-	{
-		autoGrid(root, gridSize, Vector2.zero, true, true, true, HORIZONTAL_DIRECTION.LEFT, vertical);
+		autoGrid(root, gridSize, Vector2.zero, true, true, true, horizontal);
 	}
 	public static void autoGrid(myUGUIObject root, Vector2 gridSize, Vector2 intervalNoScreenScale, HORIZONTAL_DIRECTION horizontal)
 	{
-		autoGrid(root, gridSize, intervalNoScreenScale, true, true, true, horizontal, VERTICAL_DIRECTION.TOP);
+		autoGrid(root, gridSize, intervalNoScreenScale, true, true, true, horizontal);
 	}
-	public static void autoGrid(myUGUIObject root, Vector2 gridSize, Vector2 intervalNoScreenScale, VERTICAL_DIRECTION vertical)
-	{
-		autoGrid(root, gridSize, intervalNoScreenScale, true, true, true, HORIZONTAL_DIRECTION.LEFT, vertical);
-	}
-	// 从左上角开始横向排列子节点,并且会改变子节点的大小,gridSize是子节点的大小,horizontal是水平方向的停靠方式,vertical是竖直方向上的停靠方式
-	public static void autoGrid(myUGUIObject root, Vector2 gridSize, Vector2 intervalNoScreenScale, bool autoRefreshUIDepth, bool refreshIgnoreInactive, bool keepTopSide, HORIZONTAL_DIRECTION horizontal = HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION vertical = VERTICAL_DIRECTION.TOP)
+	// 从左上角开始横向排列子节点,并且会改变子节点的大小
+	// 也会改变root的高度,keepTop表示改变高度以后是否仍然保持root的顶部位置不变
+	// gridSize是子节点的大小
+	// horizontal是水平方向的停靠方式
+	public static void autoGrid(myUGUIObject root, Vector2 gridSize, Vector2 intervalNoScreenScale, bool autoRefreshUIDepth, bool refreshIgnoreInactive, bool keepTopSide, HORIZONTAL_DIRECTION horizontal = HORIZONTAL_DIRECTION.LEFT)
 	{
 		if (root == null)
 		{
 			return;
 		}
-		autoGrid(root?.getRectTransform(), gridSize, intervalNoScreenScale, horizontal, vertical);
-		if (root?.getRectTransform() != null && autoRefreshUIDepth)
+		autoGrid(root.getRectTransform(), gridSize, intervalNoScreenScale, keepTopSide, horizontal);
+		if (root.getRectTransform() != null && autoRefreshUIDepth)
 		{
 			root.getLayout().refreshUIDepth(root, refreshIgnoreInactive);
 		}
 	}
-	// 保持父节点的大小和位置,从左上角开始横向排列子节点,并且会改变子节点的大小,gridSize是子节点的大小,horizontal是水平方向的停靠方式,vertical是整体竖直方向上的停靠方式
-	public static void autoGrid(RectTransform root, Vector2 gridSize, Vector2 intervalNoScreenScale, HORIZONTAL_DIRECTION horizontal = HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION vertical = VERTICAL_DIRECTION.TOP)
+	// 保持父节点的大小和位置,从左上角开始横向排列子节点,并且会改变子节点的大小
+	// 也会改变root的高度,keepTop表示改变高度以后是否仍然保持root的顶部位置不变
+	// gridSize是子节点的大小
+	// horizontal是水平方向的停靠方式
+	public static void autoGrid(RectTransform root, Vector2 gridSize, Vector2 intervalNoScreenScale, bool keepTopSide, HORIZONTAL_DIRECTION horizontal = HORIZONTAL_DIRECTION.LEFT)
 	{
 		if (root == null)
 		{
@@ -620,19 +618,14 @@ public class WidgetUtility
 			startPos.x = -rootSize.x * root.pivot.x + rootSize.x - contentSize.x;
 		}
 		startPos.x += gridSize.x * 0.5f;
-		if (vertical == VERTICAL_DIRECTION.TOP)
-		{
-			startPos.y = rootSize.y * (1.0f - root.pivot.y);
-		}
-		else if (vertical == VERTICAL_DIRECTION.CENTER)
-		{
-			startPos.y = rootSize.y * (1.0f - root.pivot.y) - rootSize.y * 0.5f + contentSize.y * 0.5f;
-		}
-		else if (vertical == VERTICAL_DIRECTION.BOTTOM)
-		{
-			startPos.y += rootSize.y * (1.0f - root.pivot.y) - rootSize.y + contentSize.y;
-		}
+		// 固定从上往下排列
+		startPos.y = contentSize.y * (1.0f - root.pivot.y);
 		startPos.y += -gridSize.y * 0.5f;
+		setRectHeight(root, contentSize.y);
+		if (keepTopSide)
+		{
+			setPositionY(root, round(root.localPosition.y + (rootSize.y - contentSize.y) * 0.5f));
+		}
 
 		// 计算子节点坐标,始终让子节点位于父节点的矩形范围内
 		// 并且会考虑父节点的pivot,但是不考虑子节点的pivot,所以如果子节点的pivot不在中心,可能会计算错误

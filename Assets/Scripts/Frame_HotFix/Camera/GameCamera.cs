@@ -27,6 +27,7 @@ public class GameCamera : MovableObject
 	public override void destroy()
 	{
 		base.destroy();
+		destroyRenderTexture();
 		destroyComponent<CameraDebug>(mObject);
 	}
 	public override void resetProperty()
@@ -133,6 +134,7 @@ public class GameCamera : MovableObject
 #endif
 		mCamera.targetTexture = renderTarget;
 	}
+	// 必须要调用destroyRenderTexture来销毁这个RenderTexture,否则会有内存泄漏
 	public RenderTexture createRenderTarget(Vector2 size)
 	{
 		if (mCamera.targetTexture != null)
@@ -181,7 +183,6 @@ public class GameCamera : MovableObject
 			index = cameraData.cameraStack.Count;
 		}
 		cameraData.cameraStack.Insert(index, otherCamera);
-		cameraData.renderType = CameraRenderType.Overlay;
 #endif
 	}
 	public RenderTexture getRenderTarget() { return mCamera.targetTexture; }

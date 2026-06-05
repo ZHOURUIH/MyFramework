@@ -10,7 +10,7 @@ using static FrameDefine;
 public class LocalizationImage : MonoBehaviour
 {
 	protected AtlasRef mAtlasPtr;
-    public string mImageNameWithoutSuffix;
+    public string mImageNameWithoutSuffix;		// 以_结尾
 	public Image mImage;
     private void Start()
     {
@@ -59,7 +59,7 @@ public class LocalizationImage : MonoBehaviour
     {
         if (mImage != null && mLocalizationManager != null)
         {
-			mImage.sprite = mAtlasPtr.getSprite(mImageNameWithoutSuffix + "_" + mLocalizationManager.getCurrentLanguage());
+			mImage.sprite = mAtlasPtr.getSprite(mImageNameWithoutSuffix + mLocalizationManager.getCurrentLanguage());
 		}
     }
 	protected void updateVariable()
@@ -73,6 +73,6 @@ public class LocalizationImage : MonoBehaviour
 		{
 			Debug.LogError("图片名需要以_" + LANGUAGE_CHINESE + "结尾,GameObject:" + name, gameObject);
 		}
-		mImageNameWithoutSuffix = mImageNameWithoutSuffix.removeEndString("_" + LANGUAGE_CHINESE);
+		mImageNameWithoutSuffix = mImageNameWithoutSuffix.removeEndString(LANGUAGE_CHINESE);
 	}
 }

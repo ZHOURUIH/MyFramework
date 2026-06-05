@@ -242,7 +242,7 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 	}
 	public void autoGridVertical(bool autoRefreshUIDepth, bool refreshIgnoreInactive, float intervalNoScreenScale, float minHeight = 0.0f, float extraTopHeight = 0.0f, float extraBottomHeight = 0.0f, bool keepTopSide = true)
 	{
-		WidgetUtility.autoGridVertical(mParent, autoRefreshUIDepth, refreshIgnoreInactive, intervalNoScreenScale, 0.0f, 0.0f, 0.0f, true);
+		WidgetUtility.autoGridVertical(mParent, autoRefreshUIDepth, refreshIgnoreInactive, intervalNoScreenScale, minHeight, extraTopHeight, extraBottomHeight, keepTopSide);
 	}
 	public void autoGridVerticalForDragView()
 	{
@@ -256,37 +256,29 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 	}
 	public void autoGridForDragView()
 	{
-		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), Vector2.zero, true, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
+		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), Vector2.zero, true, true, true, HORIZONTAL_DIRECTION.LEFT);
 		// 根据排列后的子节点,计算出父节点的高度
 		WidgetUtility.setWindowBestHeight(mParent, true, true);
 		mParent.setTopCenterToParentTopCenter();
 	}
 	public void autoGrid()
 	{
-		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), Vector2.zero, true, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
+		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), Vector2.zero, true, true, true, HORIZONTAL_DIRECTION.LEFT);
 	}
 	public void autoGrid(bool autoRefreshUIDepth)
 	{
-		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), Vector2.zero, autoRefreshUIDepth, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
+		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), Vector2.zero, autoRefreshUIDepth, true, true, HORIZONTAL_DIRECTION.LEFT);
 	}
 	public void autoGrid(Vector2 intervalNoScreenScale)
 	{
-		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), intervalNoScreenScale, true, true, true, HORIZONTAL_DIRECTION.LEFT, VERTICAL_DIRECTION.TOP);
+		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), intervalNoScreenScale, true, true, true, HORIZONTAL_DIRECTION.LEFT);
 	}
 	public void autoGrid(HORIZONTAL_DIRECTION horizontal)
 	{
-		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), Vector2.zero, true, true, true, horizontal, VERTICAL_DIRECTION.TOP);
-	}
-	public void autoGrid(VERTICAL_DIRECTION vertical)
-	{
-		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), Vector2.zero, true, true, true, HORIZONTAL_DIRECTION.LEFT, vertical);
+		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), Vector2.zero, true, true, true, horizontal);
 	}
 	public void autoGrid(Vector2 intervalNoScreenScale, HORIZONTAL_DIRECTION horizontal)
 	{
-		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), intervalNoScreenScale, true, true, true, horizontal, VERTICAL_DIRECTION.TOP);
-	}
-	public void autoGrid(Vector2 intervalNoScreenScale, VERTICAL_DIRECTION vertical)
-	{
-		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), intervalNoScreenScale, true, true, true, HORIZONTAL_DIRECTION.LEFT, vertical);
+		WidgetUtility.autoGrid(mParent, mTemplate.getSize(), intervalNoScreenScale, true, true, true, horizontal);
 	}
 }

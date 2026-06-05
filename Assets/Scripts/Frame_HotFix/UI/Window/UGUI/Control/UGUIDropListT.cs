@@ -20,6 +20,14 @@ public class UGUIDropListT<T> : UGUIDropListBase where T : WindowObjectBase, IDr
 	}
 	protected override IDropItem getSelectByIndex(int index) { return mItemPool.getUsedList().get(index); }
 	protected override int getIndexOfItem(IDropItem item) { return mItemPool.getUsedList().IndexOf(item as T); }
+	public override void showOptions(bool show)
+	{
+		base.showOptions(show);
+		if (show)
+		{
+			mItemPool.getUsedList().For(item => item.reset());
+		}
+	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void createAllItem(List<string> options, List<int> customValue)
 	{

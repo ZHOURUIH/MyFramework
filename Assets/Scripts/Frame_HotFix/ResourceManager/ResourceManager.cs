@@ -9,7 +9,8 @@ using static FrameUtility;
 // 资源管理器,管理所有资源的加载
 public class ResourceManager : FrameSystem
 {
-	protected Dictionary<UObject, HashSet<long>> mReferenceTokenList = new();	// 记录了每个资源的引用凭证ID
+	protected Dictionary<int, HashSet<long>> mReferenceTokenList = new();		// 记录了每个资源的引用凭证ID,由于UObject重载了==,所以一旦外部卸载了UObject,这里就会出现GetHashCode不变,但是引用资源为空的问题,所以使用GetInstanceID作为Key
+	protected Dictionary<int, UObject> mInstanceIDToUObject = new();			// 根据GetInstanceID查找UObject
 	protected AssetDataBaseLoader mAssetDataBaseLoader = new();					// 通过AssetDataBase加载资源的加载器,只会在编辑器下使用
 	protected AssetBundleLoader mAssetBundleLoader = new();						// 通过AssetBundle加载资源的加载器,打包后强制使用AssetBundle加载
 	protected List<UObjectCallback> mUnloadObjectCallback = new();				// 卸载某个单独资源的回调
@@ -58,7 +59,7 @@ public class ResourceManager : FrameSystem
 		}
 		if (tickTimerLoop(ref mCheckRefTimer, elapsedTime, CHECK_REF_INTERVAL))
 		{
-			List<UObject> willRemoveList = null;
+			List<int> willRemoveList = null;
 			foreach (var item in mReferenceTokenList)
 			{
 				if (item.Value.isEmpty())
@@ -72,10 +73,11 @@ public class ResourceManager : FrameSystem
 			}
 			if (willRemoveList != null)
 			{
-				foreach (UObject item in willRemoveList)
+				foreach (int id in willRemoveList)
 				{
+					mInstanceIDToUObject.Remove(id, out UObject item);
+					mReferenceTokenList.Remove(id);
 					unloadInternal(item);
-					mReferenceTokenList.Remove(item);
 				}
 				UN_LIST(ref willRemoveList);
 			}
@@ -219,6 +221,10 @@ public class ResourceManager : FrameSystem
 		{
 			logError("can not find resource : " + name + ",请确认文件存在,且带后缀名,且不能使用反斜杠\\," + (name.Contains(' ') || name.Contains('　') ? "注意此文件名中带有空格" : ""));
 		}
+		if (res == null)
+		{
+			return null;
+		}
 		CLASS(out ResourceRef<T> resRef).setResource(res);
 		return resRef;
 	}
@@ -241,6 +247,11 @@ public class ResourceManager : FrameSystem
 		{
 			logError("can not find resource : " + name + ",请确认文件存在,且带后缀名,且不能使用反斜杠\\," + (name.Contains(' ') || name.Contains('　') ? "注意此文件名中带有空格" : ""));
 		}
+		if (res == null)
+		{
+			mainAsset = null;
+			return null;
+		}
 		CLASS(out mainAsset).setResource(main);
 		return res;
 	}
@@ -254,8 +265,12 @@ public class ResourceManager : FrameSystem
 				unloadInternal(res);
 				return;
 			}
-			// 只需要对主资源添加引用封装,子资源都是跟随主资源的生命周期,不需要单独添加引用封装
-			CLASS(out ResourceRef<T> resRef).setResource(res as T);
+			ResourceRef<T> resRef = null;
+			if (res != null)
+			{
+				// 只需要对主资源添加引用封装,子资源都是跟随主资源的生命周期,不需要单独添加引用封装
+				CLASS(out resRef).setResource(res as T);
+			}
 			callback(resRef, subRes, bytes, loadPath);
 		}, errorIfNull);
 	}
@@ -269,7 +284,11 @@ public class ResourceManager : FrameSystem
 				unloadInternal(asset);
 				return;
 			}
-			CLASS(out ResourceRef<T> resRef).setResource(asset as T);
+			ResourceRef<T> resRef = null;
+			if (asset != null)
+			{
+				CLASS(out resRef).setResource(asset as T);
+			}
 			callback(resRef, loadPath);
 		}, errorIfNull);
 	}
@@ -285,7 +304,11 @@ public class ResourceManager : FrameSystem
 				unloadInternal(asset);
 				return;
 			}
-			CLASS(out ResourceRef<T> resRef).setResource(asset as T);
+			ResourceRef<T> resRef = null;
+			if (asset != null)
+			{
+				CLASS(out resRef).setResource(asset as T);
+			}
 			callback(resRef, loadPath);
 		}, errorIfNull);
 	}
@@ -299,7 +322,11 @@ public class ResourceManager : FrameSystem
 				unloadInternal(asset);
 				return;
 			}
-			CLASS(out ResourceRef<T> resRef).setResource(asset as T);
+			ResourceRef<T> resRef = null;
+			if (asset != null)
+			{
+				CLASS(out resRef).setResource(asset as T);
+			}
 			callback(resRef);
 		}, errorIfNull);
 	}
@@ -315,7 +342,11 @@ public class ResourceManager : FrameSystem
 				unloadInternal(asset);
 				return;
 			}
-			CLASS(out ResourceRef<T> resRef).setResource(asset as T);
+			ResourceRef<T> resRef = null;
+			if (asset != null)
+			{
+				CLASS(out resRef).setResource(asset as T);
+			}
 			callback(resRef);
 		}, errorIfNull);
 	}
@@ -332,7 +363,9 @@ public class ResourceManager : FrameSystem
 	public long addReference(UObject res)
 	{
 		long token = ++mTokenSeed;
-		if (!mReferenceTokenList.getOrAddNew(res).Add(token))
+		int instanceID = res.GetInstanceID();
+		mInstanceIDToUObject.TryAdd(instanceID, res);
+		if (!mReferenceTokenList.getOrAddNew(instanceID).Add(token))
 		{
 			logError("添加资源引用凭证失败:" + token);
 		}
@@ -341,7 +374,7 @@ public class ResourceManager : FrameSystem
 	// 只能由ResourceRef调用
 	public void removeReference(UObject res, ref long token)
 	{
-		if (!mReferenceTokenList.TryGetValue(res, out var list) || !list.Remove(token))
+		if (!mReferenceTokenList.TryGetValue(res.GetInstanceID(), out var list) || !list.Remove(token))
 		{
 			logError("移除资源引用凭证失败,可能是重复移除一个资源:" + token);
 		}

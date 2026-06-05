@@ -173,13 +173,15 @@ public class SafeList<T> : ClassObject
 		mModifyList.Add(new(value, false, index));
 		return true;
 	}
-	public void removeAt(int index)
+	public T removeAt(int index)
 	{
 		if (index < 0 || index >= mMainList.Count)
 		{
-			return;
+			return default;
 		}
-		mModifyList.Add(new(mMainList.removeAt(index), false, index));
+		T value = mMainList.removeAt(index);
+		mModifyList.Add(new(value, false, index));
+		return value;
 	}
 	// 清空所有数据
 	public void clear()

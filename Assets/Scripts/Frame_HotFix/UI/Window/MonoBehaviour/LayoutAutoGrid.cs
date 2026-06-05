@@ -6,8 +6,8 @@ public class LayoutAutoGrid : MonoBehaviour
 {
 	public float mIntervalX;
 	public float mIntervalY;
+	public bool mKeepTopSide;
 	public HORIZONTAL_DIRECTION mHorizontal = HORIZONTAL_DIRECTION.CENTER;
-	public VERTICAL_DIRECTION mVertical = VERTICAL_DIRECTION.TOP;
 	public bool mRefresh;
 	public void Awake()
 	{
@@ -32,6 +32,6 @@ public class LayoutAutoGrid : MonoBehaviour
 			Debug.LogError("第一个子节点需要是RectTransform");
 			return;
 		}
-		autoGrid(transform as RectTransform, child.rect.size, new(mIntervalX, mIntervalY), mHorizontal, mVertical);
+		autoGrid(transform as RectTransform, child.rect.size, new(mIntervalX, mIntervalY), mKeepTopSide, mHorizontal);
 	}
 }

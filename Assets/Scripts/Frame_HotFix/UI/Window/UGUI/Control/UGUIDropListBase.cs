@@ -90,7 +90,7 @@ public abstract class UGUIDropListBase : WindowObjectUGUI
 		setSelect(getIndexOfItem(item));
 		showOptions(false);
 	}
-	public void showOptions(bool show)
+	public virtual void showOptions(bool show)
 	{
 		mOptions.setActive(show);
 		mMask.setActive(show);

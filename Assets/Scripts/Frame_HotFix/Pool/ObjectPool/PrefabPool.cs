@@ -249,6 +249,11 @@ public class PrefabPool : ClassObject
 			CLASS<GameObjectInfo>().createObjectAsync(mPrefab.getResource(), mFileName, (GameObjectInfo info) =>
 			{
 				--mAsyncInstantiateCount;
+				if (info == null)
+				{
+					callback?.Invoke(null);
+					return;
+				}
 				info.setTag(tag);
 				info.setUsing(true);
 				callback?.Invoke(mInuseList.add(info));
