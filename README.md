@@ -311,13 +311,7 @@ Unity 2022.3 LTS-Unity以上均可
 
 ```text
 F5
-直接启动游戏
-```
-
-启动场景：
-
-```text
-Assets/Resources/Scene/start.unity
+无需做任何配置或者修改,直接按F5启动游戏
 ```
 
 ---
