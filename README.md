@@ -24,7 +24,7 @@
 
 | 渠道 | 地址 |
 |--------|--------|
-| QQ交流群 | 805116283 |
+| QQ交流群 | 805116283 (MyFramework官方交流群) |
 | GitHub Issues | https://github.com/ZHOURUIH/MyFramework/issues |
 | GitHub Discussions | （如果以后开启的话） |
 
