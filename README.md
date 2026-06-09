@@ -18,6 +18,27 @@
 
 ---
 
+# 💬 社区交流
+
+欢迎交流 Unity 游戏开发、框架设计、客户端开发、服务器开发等相关内容。
+
+| 渠道 | 地址 |
+|--------|--------|
+| QQ交流群 | 805116283 |
+| GitHub Issues | https://github.com/ZHOURUIH/MyFramework/issues |
+| GitHub Discussions | （如果以后开启的话） |
+
+群内主要讨论：
+
+- Unity开发
+- MyFramework使用
+- MyServerFramework使用
+- HybridCLR
+- 游戏架构设计
+- MMO开发
+- 网络同步
+- 配置表工具链
+
 # ✨ 项目特色
 
 ## 🚀 高性能
