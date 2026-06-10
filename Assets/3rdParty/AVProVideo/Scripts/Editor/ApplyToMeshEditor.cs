@@ -70,9 +70,13 @@ namespace RenderHeads.Media.AVProVideo.Editor
 				List<GUIContent> items = new List<GUIContent>(16);
 				foreach (MaterialProperty matProp in matProps)
 				{
-					if (matProp.propertyType == UnityEngine.Rendering.ShaderPropertyType.Texture)
-					{
-						if (matProp.name == _propTexturePropertyName.stringValue)
+#if UNITY_6000_0_OR_NEWER
+                    if (matProp.propertyType == UnityEngine.Rendering.ShaderPropertyType.Texture)
+#else
+					if (matProp.type == MaterialProperty.PropType.Texture)
+#endif
+                    {
+                        if (matProp.name == _propTexturePropertyName.stringValue)
 						{
 							texturePropertyIndex = items.Count;
 						}
