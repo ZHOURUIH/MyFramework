@@ -1,0 +1,22 @@
+repos:
+    -   repo: https://github.com/pre-commit/mirrors-clang-format
+        rev: 'v15.0.4'
+        hooks:
+        -   id: clang-format
+            # tif_fax3sm.c is a generated file
+            # tiffvers.h as well, and its formatting is sensitive for
+            # FindTIFF.cmake to detect the version number
+            # Furthermore, the .in files are formatting sensitive for
+            # cmake functions.
+            exclude: >
+              (?x)^(
+                libtiff/tif_fax3sm.c|
+                libtiff/tiffvers.h|
+                libtiff/tiffvers.h.in|
+                libtiff/tif_config.h|
+                libtiff/tif_config.h.in|
+                libtiff/tif_config.h.cmake.in|
+                libtiff/tiffconf.h|
+                libtiff/tiffconf.h.in|
+                libtiff/tiffconf.h.cmake.in
+              )

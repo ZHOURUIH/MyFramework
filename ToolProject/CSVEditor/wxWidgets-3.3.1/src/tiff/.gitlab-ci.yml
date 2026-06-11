@@ -1,0 +1,68 @@
+image: registry.gitlab.com/libtiff/libtiff-ci-ubuntu24.04:latest
+
+stages:
+  - build
+  - static-analysis
+  - pages
+
+
+autoconf-current:
+  stage: build
+  script:
+    - sh build/gitlab-ci autoconf
+  after_script:
+    - 'cat autoconf-build/test/test-suite.log'
+  artifacts:
+    name: distribution
+    paths:
+    - distribution
+
+autoconf-old:
+  stage: build
+  image: registry.gitlab.com/libtiff/libtiff-ci-ubuntu22.04:latest
+  script:
+    - sh build/gitlab-ci autoconf-minimal
+  after_script:
+    - 'cat autoconf-build/test/test-suite.log'
+
+cmake-makefiles-current:
+  stage: build
+  script:
+    - sh build/gitlab-ci cmake "Unix Makefiles" Release
+
+cmake-makefiles-current-static:
+  stage: build
+  script:
+    - sh build/gitlab-ci cmake "Unix Makefiles" Release static
+
+cmake-ninja-current:
+  stage: build
+  script:
+    - sh build/gitlab-ci cmake "Ninja" Debug
+
+cmake-makefiles-old:
+  stage: build
+  image: registry.gitlab.com/libtiff/libtiff-ci-ubuntu22.04:latest
+  script:
+    - sh build/gitlab-ci cmake "Unix Makefiles" Release
+
+coverity:
+  stage: static-analysis
+  image: registry.gitlab.com/libtiff/libtiff-ci-ubuntu24.04-coverity:latest
+  script:
+    - sh build/gitlab-ci coverity "Ninja" Debug
+  only:
+    refs:
+      - master
+
+pages:
+  stage: pages
+  script:
+    - sh build/gitlab-ci cmake "Ninja" Debug
+    - cp -r cmake-install/share/doc/tiff/manual/html public
+  artifacts:
+    name: $CI_PROJECT_NAME-$CI_JOB_NAME
+    paths:
+    - public
+  only:
+  - master

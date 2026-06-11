@@ -1,0 +1,109 @@
+# Operating system (build VM template)
+image:
+  - "Visual Studio 2022"
+  - "Visual Studio 2019"
+
+platform: x64
+
+configuration:
+    - Release
+    - Debug
+
+environment:
+  AV_PROJECTS: 'c:\projects'
+  AV_TIFF_DOWNLOAD: 'c:\projects\download'
+  AV_TIFF_SOURCE: 'c:\projects\libtiff'
+  AV_TIFF_BUILD: 'c:\projects\build'
+  AV_TIFF_INSTALL: 'c:\projects\install'
+
+  matrix:
+    - compiler: vc-cmake
+    - compiler: cygwin-cmake
+    - compiler: mingw-cmake
+
+matrix:
+  exclude:
+    - image: "Visual Studio 2019"
+      compiler: cygwin-cmake
+      configuration: Release
+    - image: "Visual Studio 2019"
+      compiler: cygwin-cmake
+      configuration: Debug
+    - image: "Visual Studio 2019"
+      compiler: mingw-cmake
+      configuration: Release
+    - image: "Visual Studio 2019"
+      compiler: mingw-cmake
+      configuration: Debug
+
+cache:
+  #- 'c:\projects\download -> appveyor.yml'
+
+# Clone directory
+clone_folder: 'c:\projects\libtiff'
+clone_depth: 5
+
+init:
+  - git config --global core.autocrlf input
+
+before_build:
+  - 'if %compiler%==vc-cmake if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2022" set "generator=Visual Studio 17 2022"'
+  - 'if %compiler%==vc-cmake if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019" set "generator=Visual Studio 16 2019"'
+  - 'if %compiler%==cygwin-cmake set "generator=Unix Makefiles"'
+  - 'if %compiler%==mingw-cmake set "generator=Ninja"'
+  - 'if %Configuration%==Release set "shared=ON"'
+  - 'if %Configuration%==Debug set "shared=OFF"'
+  - 'if %compiler%==vc-cmake if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2022" set "arch=x64"'
+  - 'if %compiler%==vc-cmake if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019" set "arch=Win32"'
+  - 'FOR /F "tokens=* USEBACKQ" %%F IN (`C:\cygwin64\bin\cygpath -u %AV_TIFF_SOURCE%`) DO SET AV_TIFF_CYG_SOURCE=%%F'
+  - 'FOR /F "tokens=* USEBACKQ" %%F IN (`C:\cygwin64\bin\cygpath -u %AV_TIFF_INSTALL%`) DO SET AV_TIFF_CYG_INSTALL=%%F'
+  - 'if %compiler%==cygwin-cmake C:\cygwin64\setup-x86_64 -q -R C:\cygwin64 -s http://cygwin.mirror.constant.com -l %AV_TIFF_DOWNLOAD%\cygwin -g -P cmake,libjpeg-devel,zlib-devel'
+  - 'if %compiler%==cygwin-cmake set "PATH=C:\cygwin64\bin;%PATH%"'
+  - 'if %compiler%==cygwin-cmake cygpath --version || echo cygpath not found'
+  - 'if %compiler%==cygwin-cmake cmake --version || echo CMake not found'
+  - set "AV_CMAKE_ARGS=-DBUILD_SHARED_LIBS:BOOL=%shared%"
+  - 'if %compiler%==cygwin-cmake set "AV_CMAKE_ARGS=%AV_CMAKE_ARGS% -Dfatal-warnings=ON"'
+  - 'if %compiler%==mingw-cmake set "AV_CMAKE_ARGS=%AV_CMAKE_ARGS% -Dfatal-warnings=ON"'
+  - set "AV_TIFF_CMAKE_SOURCE=%AV_TIFF_SOURCE%"
+  - set "AV_TIFF_CMAKE_INSTALL=%AV_TIFF_INSTALL%"
+  - 'if %compiler%==cygwin-cmake set "AV_TIFF_CMAKE_SOURCE=%AV_TIFF_CYG_SOURCE%'
+  - 'if %compiler%==cygwin-cmake set "AV_TIFF_CMAKE_INSTALL=%AV_TIFF_CYG_INSTALL%'
+  - 'if %compiler%==mingw-cmake C:\msys64\usr\bin\bash -lc "pacman -Syuu --noconfirm"'
+  - 'if %compiler%==mingw-cmake C:\msys64\usr\bin\bash -lc "pacman -Syuu --noconfirm"'
+  - 'if %compiler%==mingw-cmake C:\msys64\usr\bin\bash -lc "pacman -S --needed --noconfirm mingw-w64-ucrt-x86_64-{toolchain,cmake,ninja,zlib,libjpeg-turbo}"'
+  - 'if %compiler%==mingw-cmake set "PATH=C:\msys64\ucrt64\bin;C:\msys64\usr\bin;%PATH%"'
+  - mkdir %AV_TIFF_BUILD%
+  - cd %AV_TIFF_BUILD%
+  - set
+  - echo Running cmake -G "%generator%" -DCMAKE_INSTALL_PREFIX=%AV_TIFF_CMAKE_INSTALL% -DCMAKE_BUILD_TYPE=%configuration% %AV_TIFF_CMAKE_SOURCE%
+  # Disable doc building because of 'Could not import extension sphinxcontrib.applehelp (exception: No module named 'sphinxcontrib.applehelp')'
+  - 'if %compiler%==cygwin-cmake bash -c "cmake -G \"%generator%\" -DCMAKE_INSTALL_PREFIX:PATH=%AV_TIFF_CMAKE_INSTALL% -DCMAKE_BUILD_TYPE=%configuration% %AV_CMAKE_ARGS% %AV_TIFF_CMAKE_SOURCE% -Dtiff-docs=off"'
+  - 'if %compiler%==mingw-cmake cmake -G "%generator%" -DCMAKE_INSTALL_PREFIX:PATH=%AV_TIFF_CMAKE_INSTALL% -DCMAKE_BUILD_TYPE=%configuration% %AV_CMAKE_ARGS% %AV_TIFF_CMAKE_SOURCE%'
+  - 'if %compiler%==vc-cmake cmake -G "%generator%" -A %arch% -DCMAKE_INSTALL_PREFIX:PATH=%AV_TIFF_CMAKE_INSTALL% -DCMAKE_BUILD_TYPE=%configuration% %AV_CMAKE_ARGS% %AV_TIFF_CMAKE_SOURCE%'
+
+build_script:
+  - cd %AV_TIFF_BUILD%
+  - 'if %compiler%==cygwin-cmake bash -c "cmake --build . --config %configuration% --target install"'
+  - 'if %compiler%==mingw-cmake cmake --build . --config %configuration% --target install'
+  - 'if %compiler%==vc-cmake cmake --build . --config %configuration% --target install'
+
+# scripts to run after build
+after_build:
+  - cd %AV_TIFF_BUILD%
+  - '7z a %AV_TIFF_SOURCE%\libtiff-build.zip * -tzip'
+  - cd %AV_TIFF_INSTALL%
+  - '7z a %AV_TIFF_SOURCE%\libtiff.zip * -tzip'
+
+before_test:
+  - cd %AV_TIFF_BUILD%
+  - 'if %compiler%==cygwin-cmake bash -c "ctest -V -C %configuration%"'
+  - 'if %compiler%==mingw-cmake ctest -V -C %configuration%'
+  - 'if %compiler%==vc-cmake ctest -V -C %configuration%'
+
+# AppVeyor don't yet have a configurable retention policy, so this will
+# eventually use up all the storage allowance.
+#artifacts:
+#  - path: libtiff.zip
+#    name: libtiff.zip
+#  - path: libtiff-build.zip
+#    name: libtiff-build.zip

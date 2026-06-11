@@ -1,0 +1,322 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="EditorFrame">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Frame">
+      <UniqueIdentifier>{9686a8ea-4fd4-4c39-aed9-3565ccf3a113}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frame\STL">
+      <UniqueIdentifier>{d91488e7-8b4a-4730-9844-f58191a087f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frame\Math">
+      <UniqueIdentifier>{c5d68242-d7f1-4049-a374-8999a0ff38b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frame\Utility">
+      <UniqueIdentifier>{5530b6ad-e9d1-4065-b3f8-107fa3cc62a8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frame\md5">
+      <UniqueIdentifier>{f3760fbc-4493-4148-8c6a-8f4ed9445861}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Undo">
+      <UniqueIdentifier>{dac695ae-1c20-4335-96da-b4cc4b1d0195}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CSVEditor">
+      <UniqueIdentifier>{b5ffec8f-5910-4bc4-9ec7-d58921751d20}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="EditorFrame\EditorApp.cpp">
+      <Filter>EditorFrame</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorFrame\EditorFrame.cpp">
+      <Filter>EditorFrame</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorFrame\EditorUtility.cpp">
+      <Filter>EditorFrame</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorFrame\MainListWindow.cpp">
+      <Filter>EditorFrame</Filter>
+    </ClCompile>
+    <ClCompile Include="CSVEditor\CSVFile.cpp">
+      <Filter>CSVEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Math\Vector2.cpp">
+      <Filter>Frame\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Math\Vector2Int.cpp">
+      <Filter>Frame\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Math\Vector3.cpp">
+      <Filter>Frame\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Math\Color.cpp">
+      <Filter>Frame\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Math\Quaternion.cpp">
+      <Filter>Frame\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Utility\FileContent.cpp">
+      <Filter>Frame\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Utility\StringUtility.cpp">
+      <Filter>Frame\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Utility\SystemUtility.cpp">
+      <Filter>Frame\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Utility\BinaryUtility.cpp">
+      <Filter>Frame\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Utility\MathUtility.cpp">
+      <Filter>Frame\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\md5\md5.cpp">
+      <Filter>Frame\md5</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\Utility\FileUtility.cpp">
+      <Filter>Frame\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorFrame\EditorBase.cpp">
+      <Filter>EditorFrame</Filter>
+    </ClCompile>
+    <ClCompile Include="Undo\UndoManager.cpp">
+      <Filter>Undo</Filter>
+    </ClCompile>
+    <ClCompile Include="Undo\UndoSetCellData.cpp">
+      <Filter>Undo</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame\FrameDefine.cpp">
+      <Filter>Frame</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorFrame\MyMessageBox.cpp">
+      <Filter>EditorFrame</Filter>
+    </ClCompile>
+    <ClCompile Include="Undo\UndoDeleteColumn.cpp">
+      <Filter>Undo</Filter>
+    </ClCompile>
+    <ClCompile Include="Undo\UndoAddColumn.cpp">
+      <Filter>Undo</Filter>
+    </ClCompile>
+    <ClCompile Include="Undo\UndoDeleteRow.cpp">
+      <Filter>Undo</Filter>
+    </ClCompile>
+    <ClCompile Include="Undo\UndoAddRow.cpp">
+      <Filter>Undo</Filter>
+    </ClCompile>
+    <ClCompile Include="Undo\UndoSwapRow.cpp">
+      <Filter>Undo</Filter>
+    </ClCompile>
+    <ClCompile Include="Undo\UndoSwapColumn.cpp">
+      <Filter>Undo</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="EditorFrame\EditorApp.h">
+      <Filter>EditorFrame</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorFrame\EditorFrame.h">
+      <Filter>EditorFrame</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorFrame\wxHeader.h">
+      <Filter>EditorFrame</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorFrame\EditorUtility.h">
+      <Filter>EditorFrame</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorFrame\MainListWindow.h">
+      <Filter>EditorFrame</Filter>
+    </ClInclude>
+    <ClInclude Include="CSVEditor\CSVFile.h">
+      <Filter>CSVEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\FrameMacro.h">
+      <Filter>Frame</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\UsingSTD.h">
+      <Filter>Frame</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorFrame\AllHeader.h">
+      <Filter>EditorFrame</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\MapModify.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\MyString.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\Queue.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\SafeHashMap.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\SafeHashMapScope.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\SafeMap.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\SafeSet.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\SafeSetScope.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\SafeVector.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\SafeVectorScope.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\Set.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\Stack.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\ValueModify.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\Vector.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\Array.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\ArrayList.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\HashMap.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\STL\Map.h">
+      <Filter>Frame\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\FrameDefine.h">
+      <Filter>Frame</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\IsSubClassOf.h">
+      <Filter>Frame</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\IsPODType.h">
+      <Filter>Frame</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Math\Vector2.h">
+      <Filter>Frame\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Math\Vector2Int.h">
+      <Filter>Frame\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Math\Vector2Short.h">
+      <Filter>Frame\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Math\Vector2UInt.h">
+      <Filter>Frame\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Math\Vector2UShort.h">
+      <Filter>Frame\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Math\Vector3.h">
+      <Filter>Frame\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Math\Vector3Int.h">
+      <Filter>Frame\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Math\Vector4.h">
+      <Filter>Frame\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Math\Vector4Int.h">
+      <Filter>Frame\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Math\Color.h">
+      <Filter>Frame\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Math\Quaternion.h">
+      <Filter>Frame\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\FrameHeader.h">
+      <Filter>Frame</Filter>
+    </ClInclude>
+    <ClInclude Include="CSVEditor\GridData.h">
+      <Filter>CSVEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Utility\FileContent.h">
+      <Filter>Frame\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Utility\MathUtility.h">
+      <Filter>Frame\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Utility\StringUtility.h">
+      <Filter>Frame\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Utility\SystemUtility.h">
+      <Filter>Frame\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Utility\TypeUtility.h">
+      <Filter>Frame\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Utility\BinaryUtility.h">
+      <Filter>Frame\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\CharArrayScope.h">
+      <Filter>Frame</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\ArrayScope.h">
+      <Filter>Frame</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\md5\md5.h">
+      <Filter>Frame\md5</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame\Utility\FileUtility.h">
+      <Filter>Frame\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="CSVEditor\ColumnData.h">
+      <Filter>CSVEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorFrame\EditorEnum.h">
+      <Filter>EditorFrame</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorFrame\EditorDefine.h">
+      <Filter>EditorFrame</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorFrame\EditorBase.h">
+      <Filter>EditorFrame</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorFrame\EditorCallback.h">
+      <Filter>EditorFrame</Filter>
+    </ClInclude>
+    <ClInclude Include="Undo\UndoSetCellData.h">
+      <Filter>Undo</Filter>
+    </ClInclude>
+    <ClInclude Include="Undo\UndoManager.h">
+      <Filter>Undo</Filter>
+    </ClInclude>
+    <ClInclude Include="Undo\Undo.h">
+      <Filter>Undo</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorFrame\MyMessageBox.h">
+      <Filter>EditorFrame</Filter>
+    </ClInclude>
+    <ClInclude Include="Undo\UndoDeleteColumn.h">
+      <Filter>Undo</Filter>
+    </ClInclude>
+    <ClInclude Include="Undo\UndoAddColumn.h">
+      <Filter>Undo</Filter>
+    </ClInclude>
+    <ClInclude Include="Undo\UndoAddRow.h">
+      <Filter>Undo</Filter>
+    </ClInclude>
+    <ClInclude Include="Undo\UndoDeleteRow.h">
+      <Filter>Undo</Filter>
+    </ClInclude>
+    <ClInclude Include="Undo\UndoSwapRow.h">
+      <Filter>Undo</Filter>
+    </ClInclude>
+    <ClInclude Include="Undo\UndoSwapColumn.h">
+      <Filter>Undo</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

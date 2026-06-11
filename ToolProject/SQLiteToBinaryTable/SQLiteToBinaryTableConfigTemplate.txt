@@ -1,0 +1,3 @@
+DataBasePath=E:\Github\MicroLegend_Server\media\DataBase
+DestPath=E:\Github\MicroLegend\Assets\GameResources\Excel
+TypeDefPath=E:\Github\MicroLegend_Server\自动生成代码\SQLite.txt

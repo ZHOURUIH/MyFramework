@@ -1,0 +1,12 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:        src/msw/data.cpp
+// Purpose:     Various data
+// Author:      Julian Smart
+// Created:     01/02/97
+// Copyright:   (c) Julian Smart
+// Licence:     wxWindows licence
+/////////////////////////////////////////////////////////////////////////////
+
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
+

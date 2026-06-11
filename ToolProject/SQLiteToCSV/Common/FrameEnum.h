@@ -1,0 +1,23 @@
+﻿#ifndef _FRAME_ENUM_H_
+#define _FRAME_ENUM_H_
+
+
+// SQLite数据类型
+enum class SQLITE_DATATYPE : byte
+{
+	SQLITE_DATATYPE_INTEGER = SQLITE_INTEGER,
+	SQLITE_DATATYPE_FLOAT = SQLITE_FLOAT,
+	SQLITE_DATATYPE_TEXT = SQLITE_TEXT,
+	SQLITE_DATATYPE_BLOB = SQLITE_BLOB,
+	SQLITE_DATATYPE_NULL = SQLITE_NULL,
+};
+
+// 数据库查询结果的排序方式
+enum class MYSQL_ORDER : byte
+{
+	NONE,		// 不排序
+	ASC,		// 升序排序
+	DESC,		// 降序排序
+};
+
+#endif

@@ -1,0 +1,92 @@
+<?xml version="1.0" ?>
+<makefile>
+
+    <if cond="FORMAT=='autoconf'">
+        <set var="LIB_SCINTILLA">
+            <if cond="USE_STC=='1'">
+              wxscintilla$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
+            </if>
+        </set>
+    </if>
+    <if cond="FORMAT!='autoconf'">
+        <set var="LIB_SCINTILLA">
+            wxscintilla$(WXDEBUGFLAG)$(HOST_SUFFIX)
+        </set>
+    </if>
+
+    <!-- automatically update generated files when building the library -->
+    <if cond="BUILDING_LIB=='1'">
+        <fragment format='autoconf'>
+@COND_PYTHON@@COND_USE_STC_1@$(srcdir)/include/wx/stc/stc.h: \
+@COND_PYTHON@@COND_USE_STC_1@$(srcdir)/src/stc/scintilla/include/Scintilla.iface \
+@COND_PYTHON@@COND_USE_STC_1@$(srcdir)/src/stc/lexilla/include/LexicalStyles.iface \
+@COND_PYTHON@@COND_USE_STC_1@$(srcdir)/src/stc/stc.cpp.in \
+@COND_PYTHON@@COND_USE_STC_1@$(srcdir)/src/stc/stc.h.in \
+@COND_PYTHON@@COND_USE_STC_1@$(srcdir)/src/stc/gen_iface.py
+@COND_PYTHON@@COND_USE_STC_1@	cd $(srcdir)/src/stc &amp;&amp; ./gen_iface.py
+@COND_PYTHON@@COND_USE_STC_1@monolib_stc.o monodll_stc.o stcdll_stc.o stclib_stc.o: \
+@COND_PYTHON@@COND_USE_STC_1@    $(srcdir)/include/wx/stc/stc.h
+        </fragment>
+    </if>
+
+    <template id="wxscintilla_cppflags">
+        <include>$(TOP_SRCDIR)src/stc/scintilla/include</include>
+        <include>$(TOP_SRCDIR)src/stc/scintilla/src</include>
+        <define>__WX__</define>
+    </template>
+
+    <set var="wxscintilla_usingdll">
+        <if cond="SHARED=='1' and MONOLITHIC=='0'">WXUSINGDLL</if>
+    </set>
+
+    <lib id="wxscintilla" template_append="3rdparty_lib,wxscintilla_cppflags,msvc_setup_h"
+         cond="USE_STC=='1' and BUILDING_LIB=='1'">
+        <if cond="FORMAT!='autoconf'">
+            <include>$(SETUPHDIR)</include>
+            <include>$(TOP_SRCDIR)include</include>
+        </if>
+        <define>$(wxscintilla_usingdll)</define>
+        <define>__WX$(TOOLKIT)__</define>
+        <define>$(WXUNIV_DEFINE)</define>
+        <define>$(DEBUG_DEFINE)</define>
+        <dirname>$(LIBDIRNAME)</dirname>
+        <sources>
+            src/stc/scintilla/src/AutoComplete.cxx
+            src/stc/scintilla/src/CallTip.cxx
+            src/stc/scintilla/src/CaseConvert.cxx
+            src/stc/scintilla/src/CaseFolder.cxx
+            src/stc/scintilla/src/CellBuffer.cxx
+            src/stc/scintilla/src/CharClassify.cxx
+            src/stc/scintilla/src/CharacterCategory.cxx
+            src/stc/scintilla/src/CharacterSet.cxx
+            src/stc/scintilla/src/ContractionState.cxx
+            src/stc/scintilla/src/DBCS.cxx
+            src/stc/scintilla/src/Decoration.cxx
+            src/stc/scintilla/src/Document.cxx
+            src/stc/scintilla/src/EditModel.cxx
+            src/stc/scintilla/src/EditView.cxx
+            src/stc/scintilla/src/Editor.cxx
+            src/stc/scintilla/src/Indicator.cxx
+            src/stc/scintilla/src/KeyMap.cxx
+            src/stc/scintilla/src/LineMarker.cxx
+            src/stc/scintilla/src/MarginView.cxx
+            src/stc/scintilla/src/PerLine.cxx
+            src/stc/scintilla/src/PositionCache.cxx
+            src/stc/scintilla/src/RESearch.cxx
+            src/stc/scintilla/src/RunStyles.cxx
+            src/stc/scintilla/src/ScintillaBase.cxx
+            src/stc/scintilla/src/Selection.cxx
+            src/stc/scintilla/src/Style.cxx
+            src/stc/scintilla/src/UniConversion.cxx
+            src/stc/scintilla/src/UniqueString.cxx
+            src/stc/scintilla/src/ViewStyle.cxx
+            src/stc/scintilla/src/XPM.cxx
+        </sources>
+    </lib>
+
+    <!-- used to conditionally link against wxscintilla only if it's enabled -->
+    <set var="wxscintilla_library_link">
+        <if cond="USE_STC=='1' and BUILDING_LIB=='1'">wxscintilla</if>
+    </set>
+
+</makefile>

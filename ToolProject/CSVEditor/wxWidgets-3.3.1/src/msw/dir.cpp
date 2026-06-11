@@ -1,0 +1,432 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:        src/msw/dir.cpp
+// Purpose:     wxDir implementation for Win32
+// Author:      Vadim Zeitlin
+// Created:     08.12.99
+// Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
+// Licence:     wxWindows licence
+/////////////////////////////////////////////////////////////////////////////
+
+// ============================================================================
+// declarations
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+// headers
+// ----------------------------------------------------------------------------
+
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
+
+
+#ifndef WX_PRECOMP
+    #include "wx/intl.h"
+    #include "wx/log.h"
+#endif // PCH
+
+#include "wx/dir.h"
+
+#include "wx/msw/private.h"
+#include <shlwapi.h>
+
+#ifdef __VISUALC__
+    #pragma comment(lib, "shlwapi")
+#endif
+
+// ----------------------------------------------------------------------------
+// define the types and functions used for file searching
+// ----------------------------------------------------------------------------
+
+namespace
+{
+
+typedef WIN32_FIND_DATA FIND_STRUCT;
+typedef HANDLE FIND_DATA;
+typedef DWORD FIND_ATTR;
+
+inline FIND_DATA InitFindData()
+{
+    return INVALID_HANDLE_VALUE;
+}
+
+inline bool IsFindDataOk(FIND_DATA fd)
+{
+        return fd != INVALID_HANDLE_VALUE;
+}
+
+inline void FreeFindData(FIND_DATA fd)
+{
+    if ( !::FindClose(fd) )
+    {
+        wxLogLastError(wxT("FindClose"));
+    }
+}
+
+// Helper function checking that the contents of the given FIND_STRUCT really
+// match our filter. We need to do it ourselves as native Windows functions
+// apply the filter to both the long and the short names of the file, so
+// something like "*.bar" matches "foo.bar.baz" too and not only "foo.bar", so
+// we have to double check that we have a real match.
+inline bool
+CheckFoundMatch(const FIND_STRUCT* finddata, const wxString& filter)
+{
+    // If there is no filter, the found file must be the one we really are
+    // looking for.
+    if ( filter.empty() )
+        return true;
+
+    return ::PathMatchSpec(finddata->cFileName, filter.t_str()) == TRUE;
+}
+
+inline bool
+FindNext(FIND_DATA fd, const wxString& filter, FIND_STRUCT *finddata)
+{
+    for ( ;; )
+    {
+        if ( !::FindNextFile(fd, finddata) )
+            return false;
+
+        // If we did find something, check that it really matches.
+        if ( CheckFoundMatch(finddata, filter) )
+            return true;
+    }
+}
+
+inline FIND_DATA
+FindFirst(const wxString& spec,
+          const wxString& filter,
+          FIND_STRUCT *finddata)
+{
+    FIND_DATA fd = ::FindFirstFile(spec.t_str(), finddata);
+
+    // As in FindNext() above, we need to check that the file name we found
+    // really matches our filter and look for the next match if it doesn't.
+    if ( IsFindDataOk(fd) && !CheckFoundMatch(finddata, filter) )
+    {
+        if ( !FindNext(fd, filter, finddata) )
+        {
+            // As we return the invalid handle from here to indicate that we
+            // didn't find anything, close the one we initially received
+            // ourselves.
+            FreeFindData(fd);
+
+            return INVALID_HANDLE_VALUE;
+        }
+    }
+
+    return fd;
+}
+
+inline bool IsDir(FIND_ATTR attr)
+{
+    return (attr & FILE_ATTRIBUTE_DIRECTORY) != 0;
+}
+
+inline bool IsHidden(FIND_ATTR attr)
+{
+    return (attr & (FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM)) != 0;
+}
+
+} // anonymous namespace
+
+// ----------------------------------------------------------------------------
+// constants
+// ----------------------------------------------------------------------------
+
+#ifndef MAX_PATH
+    #define MAX_PATH 260        // from VC++ headers
+#endif
+
+// ----------------------------------------------------------------------------
+// macros
+// ----------------------------------------------------------------------------
+
+#define M_DIR       ((wxDirData *)m_data)
+
+// ----------------------------------------------------------------------------
+// private classes
+// ----------------------------------------------------------------------------
+
+// this class stores everything we need to enumerate the files
+class wxDirData
+{
+public:
+    wxDirData(const wxString& dirname);
+    ~wxDirData();
+
+    void SetFileSpec(const wxString& filespec) { m_filespec = filespec; }
+    void SetFlags(int flags) { m_flags = flags; }
+
+    void Close();
+    void Rewind();
+    bool Read(wxString *filename);
+
+    const wxString& GetName() const { return m_dirname; }
+
+private:
+    FIND_DATA m_finddata;
+
+    wxString m_dirname;
+    wxString m_filespec;
+
+    int      m_flags;
+
+    wxDECLARE_NO_COPY_CLASS(wxDirData);
+};
+
+// ============================================================================
+// implementation
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+// wxDirData
+// ----------------------------------------------------------------------------
+
+wxDirData::wxDirData(const wxString& dirname)
+    : m_finddata(InitFindData())
+    , m_dirname(dirname)
+{
+}
+
+wxDirData::~wxDirData()
+{
+    Close();
+}
+
+void wxDirData::Close()
+{
+    if ( IsFindDataOk(m_finddata) )
+    {
+        FreeFindData(m_finddata);
+
+        m_finddata = InitFindData();
+    }
+}
+
+void wxDirData::Rewind()
+{
+    Close();
+}
+
+bool wxDirData::Read(wxString *filename)
+{
+    bool first = false;
+
+    WIN32_FIND_DATA finddata;
+
+    if ( !IsFindDataOk(m_finddata) )
+    {
+        // open first
+        wxString filespec = m_dirname;
+        if ( !wxEndsWithPathSeparator(filespec) )
+        {
+            filespec += wxT('\\');
+        }
+        if ( m_filespec.empty() )
+            filespec += wxT("*.*");
+        else
+            filespec += m_filespec;
+
+        m_finddata = FindFirst(filespec, m_filespec, &finddata);
+
+        first = true;
+    }
+
+    if ( !IsFindDataOk(m_finddata) )
+    {
+        DWORD err = ::GetLastError();
+
+        if ( err != ERROR_FILE_NOT_FOUND && err != ERROR_NO_MORE_FILES )
+        {
+            wxLogSysError(err, _("Cannot enumerate files in directory '%s'"),
+                          m_dirname.c_str());
+        }
+        //else: not an error, just no (such) files
+
+        return false;
+    }
+
+    for ( ;; )
+    {
+        if ( first )
+        {
+            first = false;
+        }
+        else
+        {
+            if ( !FindNext(m_finddata, m_filespec, &finddata) )
+            {
+                DWORD err = ::GetLastError();
+
+                if ( err != ERROR_NO_MORE_FILES )
+                {
+                    wxLogLastError(wxT("FindNext"));
+                }
+                //else: not an error, just no more (such) files
+
+                return false;
+            }
+        }
+
+        const wxChar* const name = finddata.cFileName;
+        const FIND_ATTR attr = finddata.dwFileAttributes;
+
+        // don't return "." and ".." unless asked for
+        if ( name[0] == wxT('.') &&
+             ((name[1] == wxT('.') && name[2] == wxT('\0')) ||
+              (name[1] == wxT('\0'))) )
+        {
+            if ( !(m_flags & wxDIR_DOTDOT) )
+                continue;
+        }
+
+        // check the type now
+        if ( !(m_flags & wxDIR_FILES) && !IsDir(attr) )
+        {
+            // it's a file, but we don't want them
+            continue;
+        }
+        else if ( !(m_flags & wxDIR_DIRS) && IsDir(attr) )
+        {
+            // it's a dir, and we don't want it
+            continue;
+        }
+
+        // finally, check whether it's a hidden file
+        if ( !(m_flags & wxDIR_HIDDEN) )
+        {
+            if ( IsHidden(attr) )
+            {
+                // it's a hidden file, skip it
+                continue;
+            }
+        }
+
+        *filename = name;
+
+        break;
+    }
+
+    return true;
+}
+
+// ----------------------------------------------------------------------------
+// wxDir construction/destruction
+// ----------------------------------------------------------------------------
+
+wxDir::wxDir(const wxString& dirname)
+{
+    m_data = nullptr;
+
+    (void)Open(dirname);
+}
+
+bool wxDir::Open(const wxString& dirname)
+{
+    delete M_DIR;
+
+    // The Unix code does a similar test
+    if (wxDirExists(dirname))
+    {
+        m_data = new wxDirData(dirname);
+
+        return true;
+    }
+    else
+    {
+        m_data = nullptr;
+
+        return false;
+    }
+}
+
+bool wxDir::IsOpened() const
+{
+    return m_data != nullptr;
+}
+
+wxString wxDir::GetName() const
+{
+    wxString name;
+    if ( m_data )
+    {
+        name = M_DIR->GetName();
+        if ( !name.empty() )
+        {
+            // bring to canonical Windows form
+            name.Replace(wxT("/"), wxT("\\"));
+
+            if ( name.Last() == wxT('\\') )
+            {
+                // chop off the last (back)slash
+                name.Truncate(name.length() - 1);
+            }
+        }
+    }
+
+    return name;
+}
+
+void wxDir::Close()
+{
+    if ( m_data )
+    {
+        delete m_data;
+        m_data = nullptr;
+    }
+}
+
+// ----------------------------------------------------------------------------
+// wxDir enumerating
+// ----------------------------------------------------------------------------
+
+bool wxDir::GetFirst(wxString *filename,
+                     const wxString& filespec,
+                     int flags) const
+{
+    wxCHECK_MSG( IsOpened(), false, wxT("must wxDir::Open() first") );
+
+    M_DIR->Rewind();
+
+    M_DIR->SetFileSpec(filespec);
+    M_DIR->SetFlags(flags);
+
+    return GetNext(filename);
+}
+
+bool wxDir::GetNext(wxString *filename) const
+{
+    wxCHECK_MSG( IsOpened(), false, wxT("must wxDir::Open() first") );
+
+    wxCHECK_MSG( filename, false, wxT("bad pointer in wxDir::GetNext()") );
+
+    return M_DIR->Read(filename);
+}
+
+// ----------------------------------------------------------------------------
+// wxGetDirectoryTimes: used by wxFileName::GetTimes()
+// ----------------------------------------------------------------------------
+
+extern bool
+wxGetDirectoryTimes(const wxString& dirname,
+                    FILETIME *ftAccess, FILETIME *ftCreate, FILETIME *ftMod)
+{
+    // FindFirst() is going to fail
+    wxASSERT_MSG( !dirname.empty() && dirname.Last() != wxT('\\'),
+                  wxT("incorrect directory name format in wxGetDirectoryTimes") );
+
+    FIND_STRUCT fs;
+    FIND_DATA fd = FindFirst(dirname, wxEmptyString, &fs);
+    if ( !IsFindDataOk(fd) )
+    {
+        return false;
+    }
+
+    *ftAccess = fs.ftLastAccessTime;
+    *ftCreate = fs.ftCreationTime;
+    *ftMod = fs.ftLastWriteTime;
+
+    FindClose(fd);
+
+    return true;
+}

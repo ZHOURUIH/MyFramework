@@ -1,0 +1,95 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:        wx/generic/collpaneg.h
+// Purpose:     wxGenericCollapsiblePane
+// Author:      Francesco Montorsi
+// Created:     8/10/2006
+// Copyright:   (c) Francesco Montorsi
+// Licence:     wxWindows Licence
+/////////////////////////////////////////////////////////////////////////////
+
+#ifndef _WX_COLLAPSABLE_PANE_H_GENERIC_
+#define _WX_COLLAPSABLE_PANE_H_GENERIC_
+
+// forward declared
+class WXDLLIMPEXP_FWD_CORE wxCollapsibleHeaderCtrl;
+
+#include "wx/containr.h"
+
+// ----------------------------------------------------------------------------
+// wxGenericCollapsiblePane
+// ----------------------------------------------------------------------------
+
+class WXDLLIMPEXP_CORE wxGenericCollapsiblePane :
+    public wxNavigationEnabled<wxCollapsiblePaneBase>
+{
+public:
+    wxGenericCollapsiblePane() { Init(); }
+
+    wxGenericCollapsiblePane(wxWindow *parent,
+                        wxWindowID winid,
+                        const wxString& label,
+                        const wxPoint& pos = wxDefaultPosition,
+                        const wxSize& size = wxDefaultSize,
+                        long style = wxCP_DEFAULT_STYLE,
+                        const wxValidator& val = wxDefaultValidator,
+                        const wxString& name = wxASCII_STR(wxCollapsiblePaneNameStr))
+    {
+        Init();
+
+        Create(parent, winid, label, pos, size, style, val, name);
+    }
+
+    virtual ~wxGenericCollapsiblePane();
+
+    bool Create(wxWindow *parent,
+                wxWindowID winid,
+                const wxString& label,
+                const wxPoint& pos = wxDefaultPosition,
+                const wxSize& size = wxDefaultSize,
+                long style = wxCP_DEFAULT_STYLE,
+                const wxValidator& val = wxDefaultValidator,
+                const wxString& name = wxASCII_STR(wxCollapsiblePaneNameStr));
+
+    // public wxCollapsiblePane API
+    virtual void Collapse(bool collapse = true) override;
+    virtual void SetLabel(const wxString &label) override;
+
+    virtual bool IsCollapsed() const override
+        { return m_pPane==nullptr || !m_pPane->IsShown(); }
+    virtual wxWindow *GetPane() const override
+        { return m_pPane; }
+    virtual wxString GetLabel() const override;
+
+    virtual bool Layout() override;
+
+
+    // for the generic collapsible pane only:
+    wxControl* GetControlWidget() const
+        { return (wxControl*)m_pButton; }
+
+    // implementation only, don't use
+    void OnStateChange(const wxSize& sizeNew);
+
+protected:
+    // overridden methods
+    virtual wxSize DoGetBestClientSize() const override;
+
+    int GetBorder() const;
+
+    // child controls
+    wxCollapsibleHeaderCtrl *m_pButton;
+    wxWindow *m_pPane;
+    wxSizer *m_sz;
+
+private:
+    void Init();
+
+    // event handlers
+    void OnButton(wxCommandEvent &ev);
+    void OnSize(wxSizeEvent &ev);
+
+    wxDECLARE_DYNAMIC_CLASS(wxGenericCollapsiblePane);
+    wxDECLARE_EVENT_TABLE();
+};
+
+#endif // _WX_COLLAPSABLE_PANE_H_GENERIC_
