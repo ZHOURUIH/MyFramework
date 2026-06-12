@@ -611,6 +611,12 @@ https://github.com/ZHOURUIH/MyServerFramework
 
 ---
 
+<div align="center">
+  <img src="文档/微信群二维码.jpeg" alt="微信群二维码" width="260" />
+  <br />
+  <sub>扫码加入微信群，欢迎交流框架使用、工具链、热更新、游戏开发等内容</sub>
+</div>
+
 ## License
 
 MIT
