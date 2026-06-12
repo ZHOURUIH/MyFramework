@@ -10,7 +10,7 @@ public class MainSceneGaming : SceneProcedure
 	protected override void onInit(SceneProcedure lastProcedure)
 	{
 		mPlayer = mCharacterManager.createCharacter<CharacterGame>("test");
-		LOAD<UIGame>();
+        LOAD_ASYNC<UIGame>();
 	}
 	protected override void onUpdate(float elapsedTime)
 	{
