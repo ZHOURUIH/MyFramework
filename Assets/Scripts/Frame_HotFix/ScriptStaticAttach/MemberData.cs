@@ -244,7 +244,7 @@ public class MemberData
 		else if (name.Contains("Tab"))
 		{
 			setWindowType(WINDOW_TYPE.COMMON_CONTROL);
-			setType<TabItem>();
+			setType<UGUITab>();
 		}
 		else if (name.Contains("Progress"))
 		{
@@ -277,7 +277,7 @@ public class MemberData
 		{
 			// 只有非数组的LegendButton,TabItem,UGUICheckbox类型的成员才适合自动注册事件,因为其他类型的成员情况太复杂了,不适合自动注册事件
 			if ((mType == typeof(LegendButton).ToString() || 
-				mType == typeof(TabItem).ToString() || 
+				mType == typeof(UGUITab).ToString() || 
 				mType == typeof(UGUICheckbox).ToString())
 				&& mArrayType == ARRAY_TYPE.NONE)
 			{

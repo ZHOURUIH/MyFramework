@@ -1,7 +1,7 @@
 ﻿using System;
 
 [CommonControl]
-public class TabItem : WindowObjectUGUI
+public class UGUITab : WindowObjectUGUI
 {
 	protected myUGUIObject mNormal;
 	protected myUGUIObject mSelected;
@@ -10,7 +10,7 @@ public class TabItem : WindowObjectUGUI
 	protected LegendButton mButton;
 	protected Action mCallback;
 	protected bool mInteractable = true;
-	public TabItem(IWindowObjectOwner parent) : base(parent)
+	public UGUITab(IWindowObjectOwner parent) : base(parent)
 	{
 		mButton = new(this);
 	}
