@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using static TestAssert;
 
@@ -83,4 +82,3 @@ public class SerializableBitTest
 		assertEqual("ClassObject", baseType.Name, "SerializableBit should inherit from ClassObject");
 	}
 }
-#endif

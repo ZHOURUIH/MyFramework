@@ -1,12 +1,8 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-using System;
+using UnityEngine;
 using System.Collections.Generic;
 using static TestAssert;
 using static FrameDefine;
 using static FrameBaseHotFix;
-using static FileUtility;
-using static UnityUtility;
-using UnityEngine;
 
 // LayoutManager 布局管理器单元测试
 // 每个测试函数验证一个独立场景
@@ -354,4 +350,3 @@ public static class LayoutManagerTest
 		assertTrue(mLayoutManager.getLayoutCount() >= 0);
 	}
 }
-#endif

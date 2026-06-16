@@ -85,7 +85,7 @@ public class UGUIGeneratorInspector : GameInspector
 			}
 			if (button("打开代码", 300, 25))
 			{
-				string goName = getClassNameFromGameObject(generator.gameObject);
+				string goName = generator.gameObject.name;
 				if (goName.endWith("_Mobile"))
 				{
 					goName = goName.removeEndString("_Mobile");
@@ -168,7 +168,7 @@ public class UGUIGeneratorInspector : GameInspector
 	// 生成UI对应的脚本
 	protected static void generateLayoutScript(UGUIGenerator generator)
 	{
-		string className = getClassNameFromGameObject(generator.gameObject);
+		string className = generator.gameObject.name;
 		if (className.endWith("_Mobile"))
 		{
 			className = className.removeEndString("_Mobile");
@@ -270,7 +270,7 @@ public class UGUIGeneratorInspector : GameInspector
 						generatedInitLines.add("\t\tm" + data.getMemberName() + ".registeColliderImage(" + "on" + data.getMemberName() + "Click);");
 						clickCallbackCheckLists.add(generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click()"));
 					}
-					else if (data.getTypeName() == typeof(TabItem).ToString())
+					else if (data.getTypeName() == typeof(UGUITab).ToString())
 					{
 						generatedInitLines.add("\t\tm" + data.getMemberName() + ".setCallback(" + "on" + data.getMemberName() + "Click);");
 						clickCallbackCheckLists.add(generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click()"));

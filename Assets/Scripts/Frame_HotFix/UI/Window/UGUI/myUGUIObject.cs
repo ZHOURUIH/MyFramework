@@ -21,7 +21,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	protected List<myUGUIObject> mChildList;						// 子节点列表
 	protected RectTransform mRectTransform;                         // UGUI的Transform
 	protected GameLayout mLayout;									// 所属布局
-	protected Canvas mCanvas;										// 缓存的Canvas组件,避免重复去获取
+	protected Canvas mCanvas;										// 缓存的Canvas组件,避免重复去获取,因为有些节点即使有Canvas也不会去创建myUGUICanvas类型,所以还是放到基类中
 	protected myUGUIObject mParent;									// 父节点窗口
 	protected int mID;												// 每个窗口的唯一ID
 	protected bool mDestroyImmediately;								// 销毁窗口时是否立即销毁

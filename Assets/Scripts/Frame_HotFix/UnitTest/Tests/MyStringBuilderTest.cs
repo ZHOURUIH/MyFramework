@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using static FrameUtility;
 
@@ -231,8 +230,7 @@ public static class MyStringBuilderTest
 
     private static void AssertEqual<T>(T expected, T actual, string message = "")
     {
-        bool eq = (expected == null && actual == null)
-               || (expected != null && expected.Equals(actual));
+        bool eq = (expected == null && actual == null) || (expected != null && expected.Equals(actual));
         if (!eq)
         {
             throw new Exception(
@@ -242,4 +240,3 @@ public static class MyStringBuilderTest
         }
     }
 }
-#endif

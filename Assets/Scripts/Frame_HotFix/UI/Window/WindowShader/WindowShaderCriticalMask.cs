@@ -13,7 +13,15 @@ public class WindowShaderCriticalMask : WindowShader
 		mCriticalValueID = Shader.PropertyToID("_CriticalValue");
 		mInverseVerticalID = Shader.PropertyToID("_InverseVertical");
 	}
-	public void setCriticalValue(float critical) { mCriticalValue = critical; }
+    public override void resetProperty()
+    {
+        base.resetProperty();
+		mCriticalValue = 1.0f;
+		mInverseVertical = false;
+        //mCriticalValueID = 0;
+        //mInverseVerticalID = 0;
+    }
+    public void setCriticalValue(float critical) { mCriticalValue = critical; }
 	public void setInverseVertical(bool inverse) { mInverseVertical = inverse; }
 	public override void applyShader(Material mat)
 	{

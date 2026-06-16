@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System.Collections.Generic;
 using static TestAssert;
 
@@ -231,4 +230,3 @@ public class SafeList0Test
 		assertEqual(2, list.count());
 	}
 }
-#endif

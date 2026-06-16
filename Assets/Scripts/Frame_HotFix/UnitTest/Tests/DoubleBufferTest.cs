@@ -1,6 +1,4 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
-using System.Collections.Generic;
 
 // DoubleBuffer<T> 测试：add/get/endGet/clear/setWriteListLimit
 public static class DoubleBufferTest
@@ -28,7 +26,10 @@ public static class DoubleBufferTest
 	private static void testAddMultiple()
 	{
 		var b = new DoubleBuffer<int>();
-		for (int i = 0; i < 10; i++) { b.add(i); }
+		for (int i = 0; i < 10; i++) 
+		{
+			b.add(i); 
+		}
 		var list = b.get();
 		AssertEqual(10, list.Count);
 		AssertEqual(0, list[0]);
@@ -39,12 +40,15 @@ public static class DoubleBufferTest
 	private static void testRoundtrip()
 	{
 		var b = new DoubleBuffer<int>();
-		b.add(1); b.add(2); b.add(3);
+		b.add(1);
+		b.add(2);
+		b.add(3);
 		var l1 = b.get();
 		AssertEqual(3, l1.Count);
 		b.endGet();
 
-		b.add(4); b.add(5);
+		b.add(4); 
+		b.add(5);
 		var l2 = b.get();
 		AssertEqual(2, l2.Count);
 		AssertEqual(4, l2[0]);
@@ -70,7 +74,9 @@ public static class DoubleBufferTest
 	private static void testClear()
 	{
 		var b = new DoubleBuffer<int>();
-		b.add(1); b.add(2); b.add(3);
+		b.add(1);
+		b.add(2); 
+		b.add(3);
 		b.clear();
 		var list = b.get();
 		AssertEqual(0, list.Count);
@@ -81,16 +87,29 @@ public static class DoubleBufferTest
 	{
 		var b = new DoubleBuffer<int>();
 		b.setWriteListLimit(3);
-		b.add(1); b.add(2); b.add(3); b.add(4); b.add(5);
+		b.add(1);
+		b.add(2); 
+		b.add(3); 
+		b.add(4); 
+		b.add(5);
 		var list = b.get();
 		AssertEqual(3, list.Count);
 		AssertEqual(1, list[0]);
 		AssertEqual(3, list[2]);
 		b.endGet();
 	}
-
-	private static void Assert(bool c) { if (!c) throw new Exception("Assert failed"); }
-	private static void AssertEqual(int e, int a) { if (e != a) throw new Exception($"Expected [{e}] got [{a}]"); }
-	private static void AssertNotNull(object o) { if (o == null) throw new Exception("Should not be null"); }
+	private static void AssertEqual(int e, int a) 
+	{
+		if (e != a)
+		{
+			throw new Exception($"Expected [{e}] got [{a}]");
+		}
+	}
+    private static void AssertNotNull(object o) 
+	{
+		if (o == null)
+		{
+			throw new Exception("Should not be null");
+		}
+	}
 }
-#endif

@@ -1,8 +1,5 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Text;
-using static MathUtility;
-using static BinaryUtility;
 using static TestAssert;
 
 public class SpanExtensionTest
@@ -290,4 +287,3 @@ public class SpanExtensionTest
 		assertEqual("Test", result);
 	}
 }
-#endif

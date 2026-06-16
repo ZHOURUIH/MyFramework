@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -741,7 +740,10 @@ public static class MathUtilityTest
     static void testAStar4Simple()
     {
         List<bool> m = new(9);
-        for (int i = 0; i < 9; i++) m.Add(true);
+        for (int i = 0; i < 9; i++)
+        {
+            m.Add(true);
+        }
         List<int> p = new();
         assertTrue(AStar4(m, 0, 8, 3, p), "AStar4");
         assertEqual(0, p[0]);
@@ -751,7 +753,10 @@ public static class MathUtilityTest
     static void testAStar4NoPath()
     {
         List<bool> m = new(12);
-        for (int i = 0; i < 12; i++) m.Add(true);
+        for (int i = 0; i < 12; i++)
+        { 
+            m.Add(true);
+        }
         m[3] = false;
         m[4] = false;
         m[5] = false;
@@ -763,14 +768,20 @@ public static class MathUtilityTest
     static void testAStar4SameStartEnd()
     {
         List<bool> m = new(9);
-        for (int i = 0; i < 9; i++) m.Add(true);
+        for (int i = 0; i < 9; i++)
+        {
+            m.Add(true);
+        }
         assertTrue(AStar4(m, 4, 4, 3, new()), "AStar4 same");
     }
 
     static void testAStar8Simple()
     {
         List<bool> m = new(9);
-        for (int i = 0; i < 9; i++) m.Add(true);
+        for (int i = 0; i < 9; i++)
+        {
+            m.Add(true);
+        }
         List<int> p = new();
         assertTrue(AStar8(m, 0, 8, 3, p), "AStar8");
         assertEqual(0, p[0]);
@@ -779,7 +790,10 @@ public static class MathUtilityTest
     static void testAStar8OpenMap()
     {
         List<bool> m = new(25);
-        for (int i = 0; i < 25; i++) m.Add(true);
+        for (int i = 0; i < 25; i++)
+        {
+            m.Add(true);
+        }
         List<int> p = new();
         assertTrue(AStar8(m, 0, 24, 5, p), "AStar8 5x5");
     }
@@ -921,7 +935,10 @@ public static class MathUtilityTest
     static void testAStar6OddR()
     {
         List<bool> m = new(16);
-        for (int i = 0; i < 16; i++) m.Add(true);
+        for (int i = 0; i < 16; i++)
+        {
+            m.Add(true);
+        }
         List<int> p = new();
         assertTrue(AStar6OddR(m, 0, 15, 4, p), "AStar6OddR");
         assertEqual(0, p[0]);
@@ -934,7 +951,10 @@ public static class MathUtilityTest
     static void testAStar6EvenR()
     {
         List<bool> m = new(16);
-        for (int i = 0; i < 16; i++) m.Add(true);
+        for (int i = 0; i < 16; i++)
+        {
+            m.Add(true);
+        }
         List<int> p = new();
         assertTrue(AStar6EvenR(m, 0, 15, 4, p), "AStar6EvenR");
         assertEqual(0, p[0]);
@@ -950,4 +970,3 @@ public static class MathUtilityTest
         return Math.Abs(v) < eps;
     }
 }
-#endif

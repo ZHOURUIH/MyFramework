@@ -8,7 +8,8 @@ public class FrameHotFixTest
     private static readonly Dictionary<string, Action> sTests = new();
     public static void runAll()
     {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        sTests.Clear();
+
         Register("ArrayExtensionTest", ArrayExtensionTest.Run);
         Register("ArrayScopeTest", ArrayScopeTest.Run);
         Register("BinaryUtilityTest", BinaryUtilityTest.Run);
@@ -107,20 +108,46 @@ public class FrameHotFixTest
         Register("LayoutScriptTest", LayoutScriptTest.Run);
         Register("SceneProcedureTest", SceneProcedureTest.Run);
         Register("GameSceneTest", GameSceneTest.Run);
-#endif
+        Register("ScopeFallbackTest", ScopeFallbackTest.Run);
+        Register("AsyncOperationAndTaskGroupTest", AsyncOperationAndTaskGroupTest.Run);
+        Register("InputDataAndTouchPointTest", InputDataAndTouchPointTest.Run);
+        Register("PacketAndPurchaseInfoTest", PacketAndPurchaseInfoTest.Run);
+        Register("ResourceInfoBasicTest", ResourceInfoBasicTest.Run);
+        Register("UIDepthTest", UIDepthTest.Run);
+        Register("LayoutAndLongPressDataTest", LayoutAndLongPressDataTest.Run);
+        Register("WaitingTest", WaitingTest.Run);
+        Register("MiscDataResetTest", MiscDataResetTest.Run);
+        Register("MyCurveTest", MyCurveTest.Run);
+        Register("ThreadLockScopeTest", ThreadLockScopeTest.Run);
+        Register("ThreadTimeLockTest", ThreadTimeLockTest.Run);
+        Register("StructAndFormItemTest", StructAndFormItemTest.Run);
+        Register("ParamCopyableTest", ParamCopyableTest.Run);
+        Register("StateGroupMutexTest", StateGroupMutexTest.Run);
+        Register("NetPacketJsonHttpTest", NetPacketJsonHttpTest.Run);
+        Register("DoubleBufferReaderTest", DoubleBufferReaderTest.Run);
+        Register("PurchaseAndCurveInfoTest", PurchaseAndCurveInfoTest.Run);
+
         doRunAll(sTests);
     }
-    public static void Register(string name, Action run) { sTests.Add(name, run); }
+    public static void Register(string name, Action run)
+    {
+        if (sTests.ContainsKey(name))
+        {
+            logError("[TestRunner] duplicate test: " + name);
+            return;
+        }
+        sTests.Add(name, run);
+    }
     public static void doRunAll(Dictionary<string, Action> list)
     {
-        int pass = 0; 
+        int pass = 0;
         int fail = 0;
         List<TestResult> results = new();
         foreach (var test in list)
         {
             var result = runOne(test.Key, test.Value);
             results.Add(result);
-            if (result.passed)
+            if (result.mPassed)
             {
                 pass++;
             }
@@ -129,7 +156,16 @@ public class FrameHotFixTest
                 fail++;
             }
         }
-        if (fail > 0) logError("[TestRunner] "+fail+" tests failed");
+
+        string info = "[TestRunner] total:" + list.Count + ", pass:" + pass + ", fail:" + fail;
+        if (fail > 0)
+        {
+            logError(info);
+        }
+        else
+        {
+            log(info);
+        }
     }
     public static TestResult runOne(string name, Action run)
     {
@@ -140,11 +176,11 @@ public class FrameHotFixTest
             sw.Stop();
             return new TestResult(name, true, "", (float)sw.Elapsed.TotalMilliseconds);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             sw.Stop();
-            logException(ex);
-            return new TestResult(name, false, "", (float)sw.Elapsed.TotalMilliseconds);
+            logException(ex, "[TestRunner] failed: " + name);
+            return new TestResult(name, false, ex.Message, (float)sw.Elapsed.TotalMilliseconds);
         }
     }
 }

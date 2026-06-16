@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 
@@ -378,4 +377,3 @@ public static class ListExtensionTest
         }
     }
 }
-#endif

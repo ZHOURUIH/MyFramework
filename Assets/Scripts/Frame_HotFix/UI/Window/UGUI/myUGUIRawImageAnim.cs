@@ -3,7 +3,6 @@ using UnityEngine;
 using static UnityUtility;
 using static FrameBaseHotFix;
 using static StringUtility;
-using static MathUtility;
 
 // RawImage的序列帧
 public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation

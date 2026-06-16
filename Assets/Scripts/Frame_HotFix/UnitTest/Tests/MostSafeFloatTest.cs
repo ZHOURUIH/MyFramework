@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using static TestAssert;
 
 // MostSafeFloat 安全浮点测试
@@ -82,9 +81,6 @@ public static class MostSafeFloatTest
 		assert(abs(a.get() - b.get()) < EPSILON,  "Equals via get: 相同值误差<epsilon");
 		assert(abs(a.get() - c.get()) > EPSILON,  "Equals via get: 不同值误差>epsilon");
 	}
-
 	// ─── 工具 ────────────────────────────────────────────────────────────
-
 	private static float abs(float v) => v < 0 ? -v : v;
 }
-#endif

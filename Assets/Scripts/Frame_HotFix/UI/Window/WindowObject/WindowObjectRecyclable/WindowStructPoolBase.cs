@@ -126,19 +126,31 @@ public class WindowStructPoolBase : IWindowObjectOwner
 	}
 	public void autoGridVertical()
 	{
-		WidgetUtility.autoGridVertical(mItemParent, true, true, 0.0f, 0.0f, 0.0f, 0.0f, true);
+		WidgetUtility.autoGridVertical(mItemParent, true, true, 0.0f, 0.0f, 0.0f, 0.0f, true, true);
 	}
-	public void autoGridVertical(bool keepTopSide)
+    public void autoGridVerticalInverse()
+    {
+        WidgetUtility.autoGridVertical(mItemParent, true, true, 0.0f, 0.0f, 0.0f, 0.0f, true, false);
+    }
+    public void autoGridVertical(bool keepTopSide)
 	{
-		WidgetUtility.autoGridVertical(mItemParent, true, true, 0.0f, 0.0f, 0.0f, 0.0f, keepTopSide);
+		WidgetUtility.autoGridVertical(mItemParent, true, true, 0.0f, 0.0f, 0.0f, 0.0f, keepTopSide, true);
 	}
-	public void autoGridVertical(float intervalNoScreenScale)
+    public void autoGridVerticalInverse(bool keepTopSide)
+    {
+        WidgetUtility.autoGridVertical(mItemParent, true, true, 0.0f, 0.0f, 0.0f, 0.0f, keepTopSide, false);
+    }
+    public void autoGridVertical(float intervalNoScreenScale)
 	{
-		WidgetUtility.autoGridVertical(mItemParent, true, true, intervalNoScreenScale, 0.0f, 0.0f, 0.0f, true);
+		WidgetUtility.autoGridVertical(mItemParent, true, true, intervalNoScreenScale, 0.0f, 0.0f, 0.0f, true, true);
 	}
-	public void autoGridVertical(bool autoRefreshUIDepth, bool refreshIgnoreInactive)
+    public void autoGridVerticalInverse(float intervalNoScreenScale)
+    {
+        WidgetUtility.autoGridVertical(mItemParent, true, true, intervalNoScreenScale, 0.0f, 0.0f, 0.0f, true, false);
+    }
+    public void autoGridVertical(bool autoRefreshUIDepth, bool refreshIgnoreInactive)
 	{
-		WidgetUtility.autoGridVertical(mItemParent, autoRefreshUIDepth, refreshIgnoreInactive, 0.0f, 0.0f, 0.0f, 0.0f, true);
+		WidgetUtility.autoGridVertical(mItemParent, autoRefreshUIDepth, refreshIgnoreInactive, 0.0f, 0.0f, 0.0f, 0.0f, true, true);
 	}
 	// 自动排列一个节点下的所有子节点的位置,从上往下紧密排列,并且不改变子节点的大小
 	public void autoGridVertical(bool autoRefreshUIDepth, bool refreshIgnoreInactive, float intervalNoScreenScale, float minHeight = 0.0f)

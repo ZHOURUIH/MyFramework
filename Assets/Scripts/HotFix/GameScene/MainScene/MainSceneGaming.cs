@@ -34,4 +34,9 @@ public class MainSceneGaming : SceneProcedure
 		HIDE<UIGame>();
 		mCharacterManager?.destroyCharacter(mPlayer);
 	}
+    public override void resetProperty()
+    {
+        base.resetProperty();
+        mPlayer = null;
+    }
 }

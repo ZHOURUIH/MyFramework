@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 [ExecuteAlways]
-public class SequenceSpritePreview : SequenceImagePreviewBase
+public class SequenceSpriteRendererPreview : SequenceSpritePreviewBase
 {
 #if UNITY_EDITOR
 	protected SpriteRenderer mRenderer;

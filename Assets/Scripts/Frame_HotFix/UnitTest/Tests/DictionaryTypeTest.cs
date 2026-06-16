@@ -1,5 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-using System;
 using static TestAssert;
 
 public class DictionaryTypeTest
@@ -41,4 +39,3 @@ public class DictionaryTypeTest
 		assertEqual(dt1.GetHashCode(), dt2.GetHashCode());
 	}
 }
-#endif

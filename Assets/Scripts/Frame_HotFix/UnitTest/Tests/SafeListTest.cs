@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 
@@ -109,7 +108,10 @@ public static class SafeListTest
 		list.add(2);
 		list.add(3);
 		int sum = 0;
-		foreach (int v in list) { sum += v; }
+		foreach (int v in list)
+		{ 
+			sum += v; 
+		}
 		AssertEqual(6, sum);
 	}
 
@@ -173,8 +175,25 @@ public static class SafeListTest
 		Assert(!list.contains(1));
 	}
 
-	private static void Assert(bool c) { if (!c) throw new Exception("Assert failed"); }
-	private static void AssertEqual(int e, int a) { if (e != a) throw new Exception($"Expected [{e}] got [{a}]"); }
-	private static void AssertNotNull(object o) { if (o == null) throw new Exception("Should not be null"); }
+	private static void Assert(bool c) 
+	{
+		if (!c)
+		{
+			throw new Exception("Assert failed");
+		}
+	}
+	private static void AssertEqual(int e, int a) 
+	{
+		if (e != a)
+		{
+			throw new Exception($"Expected [{e}] got [{a}]");
+		}
+	}
+	private static void AssertNotNull(object o)
+	{
+		if (o == null) 
+		{
+			throw new Exception("Should not be null"); 
+		}
+	}
 }
-#endif

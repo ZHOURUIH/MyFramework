@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using static TestAssert;
 
 public static class SafeDictionaryTest
@@ -39,8 +38,14 @@ public static class SafeDictionaryTest
         int s = 0;
         d.forKey((k) =>
         {
-            if (k == "a") s += 1;
-            if (k == "b") s += 2;
+            if (k == "a")
+            {
+                s += 1;
+            }
+            if (k == "b")
+            {
+                s += 2;
+            }
         });
         assertEqual(3, s);
     }
@@ -74,4 +79,3 @@ public static class SafeDictionaryTest
         assertTrue(d.containsKey("b"));
     }
 }
-#endif

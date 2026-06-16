@@ -14,7 +14,16 @@ public class WindowShaderHSLOffset : WindowShader
 		mHSLTexID = Shader.PropertyToID("_HSLTex");
 		mHasHSLTexID = Shader.PropertyToID("_HasHSLTex");
 	}
-	public void setHSLOffset(Vector3 offset) { mHSLOffsetValue = offset; }
+    public override void resetProperty()
+    {
+        base.resetProperty();
+        mHSLOffsetValue = Vector3.zero;
+		mHSLTexture = null;
+        //mHSLOffsetID = 0;
+        //mHSLTexID = 0;
+        //mHasHSLTexID = 0;
+    }
+    public void setHSLOffset(Vector3 offset) { mHSLOffsetValue = offset; }
 	public Vector3 getHSLOffset() { return mHSLOffsetValue; }
 	public void setHSLTexture(Texture hslTexture) { mHSLTexture = hslTexture; }
 	public Texture getHSLTexture() { return mHSLTexture; }

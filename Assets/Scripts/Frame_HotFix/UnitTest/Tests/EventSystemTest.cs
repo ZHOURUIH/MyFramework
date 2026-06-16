@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using static FrameUtility;
 using static FrameBaseHotFix;
@@ -103,4 +102,3 @@ public static class EventSystemTest
         }
     }
 }
-#endif

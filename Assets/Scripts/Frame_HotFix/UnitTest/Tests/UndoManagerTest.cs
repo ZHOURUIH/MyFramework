@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using static FrameUtility;
 using static TestAssert;
@@ -8,6 +7,11 @@ public static class UndoManagerTest
     class TestUndo : MyUndo
     {
         public Action mAction;
+        public override void resetProperty()
+        {
+            base.resetProperty();
+            mAction = null;
+        }
         public override void undo()
         {
             mAction?.Invoke();
@@ -125,4 +129,3 @@ public static class UndoManagerTest
         undo.clearAll();
     }
 }
-#endif

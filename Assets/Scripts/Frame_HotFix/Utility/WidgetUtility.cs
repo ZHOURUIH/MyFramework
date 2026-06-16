@@ -775,13 +775,13 @@ public class WidgetUtility
 		autoGridVertical(root, autoRefreshUIDepth, refreshIgnoreInactive, 0.0f, 0.0f, 0.0f, 0.0f, true);
 	}
 	// 自动排列一个节点下的所有子节点的位置,从上往下紧密排列,并且不改变子节点的大小
-	public static void autoGridVertical(myUGUIObject root, bool autoRefreshUIDepth, bool refreshIgnoreInactive, float intervalNoScreenScale, float minHeight = 0.0f, float extraTopHeight = 0.0f, float extraBottomHeight = 0.0f, bool keepTopSide = true)
+	public static void autoGridVertical(myUGUIObject root, bool autoRefreshUIDepth, bool refreshIgnoreInactive, float intervalNoScreenScale, float minHeight = 0.0f, float extraTopHeight = 0.0f, float extraBottomHeight = 0.0f, bool keepTopSide = true, bool fromTopToBottom = true)
 	{
 		if (root == null)
 		{
 			return;
 		}
-		autoGridVertical(root.getRectTransform(), intervalNoScreenScale, minHeight, extraTopHeight, extraBottomHeight, keepTopSide);
+		autoGridVertical(root.getRectTransform(), intervalNoScreenScale, minHeight, extraTopHeight, extraBottomHeight, keepTopSide, fromTopToBottom);
 		// 需要重新再调用一下setSize,以便触发虚函数的逻辑
 		root.setSize(root.getSize());
 		if (root.getRectTransform() != null && autoRefreshUIDepth)
@@ -789,9 +789,10 @@ public class WidgetUtility
 			root.getLayout().refreshUIDepth(root, refreshIgnoreInactive);
 		}
 	}
-	// 自动排列一个节点下的所有子节点的位置,从上往下紧密排列,并且不改变子节点的大小,会改变root的大小
-	// intervalNoScreenScale会自动根据屏幕缩放来计算实际的值
-	public static void autoGridVertical(RectTransform root, float intervalNoScreenScale, float minHeight = 0.0f, float extraTopHeight = 0.0f, float extraBottomHeight = 0.0f, bool keepTopSide = true)
+    // 自动排列一个节点下的所有子节点的位置,从上往下紧密排列,并且不改变子节点的大小,会改变root的大小
+    // intervalNoScreenScale会自动根据屏幕缩放来计算实际的值
+    // fromTopToBottom为true表示从上往下排列,false表示从下往上排列
+    public static void autoGridVertical(RectTransform root, float intervalNoScreenScale, float minHeight = 0.0f, float extraTopHeight = 0.0f, float extraBottomHeight = 0.0f, bool keepTopSide = true, bool fromTopToBottom = true)
 	{
 		if (root == null)
 		{
@@ -830,7 +831,14 @@ public class WidgetUtility
 		{
 			if (keepTopSide)
 			{
-				setPositionY(root, round(root.localPosition.y + (beforeRootHeight - rootHeight) * 0.5f));
+				if (fromTopToBottom)
+				{
+                    setPositionY(root, round(root.localPosition.y + (beforeRootHeight - rootHeight) * 0.5f));
+                }
+				else
+				{
+                    setPositionY(root, round(root.localPosition.y - (beforeRootHeight - rootHeight) * 0.5f));
+                }
 			}
 			else
 			{
@@ -839,19 +847,38 @@ public class WidgetUtility
 		}
 
 		// 计算子节点坐标
-		float currentTop = getWindowTopInSelf(root) - extraTopHeight;
-		for (int i = 0; i < childList.Count; ++i)
+		if (fromTopToBottom)
 		{
-			RectTransform childRect = childList[i];
-			float curHeight = childRect.rect.height;
-			setPositionY(childRect, round(currentTop - curHeight * 0.5f));
-			currentTop -= curHeight;
-			// 最后一个子节点后不再添加间隔
-			if (i != childList.Count - 1 && curHeight > 0.0f)
-			{
-				currentTop -= interval;
-			}
-		}
+            float currentTop = getWindowTopInSelf(root) - extraTopHeight;
+            for (int i = 0; i < childList.Count; ++i)
+            {
+                RectTransform childRect = childList[i];
+                float curHeight = childRect.rect.height;
+                setPositionY(childRect, round(currentTop - curHeight * 0.5f));
+                currentTop -= curHeight;
+                // 最后一个子节点后不再添加间隔
+                if (i != childList.Count - 1 && curHeight > 0.0f)
+                {
+                    currentTop -= interval;
+                }
+            }
+        }
+		else
+		{
+            float currentBottom = getWindowBottomInSelf(root) + extraBottomHeight;
+            for (int i = 0; i < childList.Count; ++i)
+            {
+                RectTransform childRect = childList[i];
+                float curHeight = childRect.rect.height;
+                setPositionY(childRect, round(currentBottom + curHeight * 0.5f));
+                currentBottom += curHeight;
+                // 最后一个子节点后不再添加间隔
+                if (i != childList.Count - 1 && curHeight > 0.0f)
+                {
+                    currentBottom += interval;
+                }
+            }
+        }
 	}
 	public static void autoGridHorizontal(myUGUIObject root)
 	{

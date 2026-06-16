@@ -1,5 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-using static UnityUtility;
 using static SerializeByteUtility;
 using static TestAssert;
 using static MathUtility;
@@ -423,4 +421,3 @@ public static class SerializeByteUtilityTest
 		assert(!overflow, "exactFit: 多写1字节应失败");
 	}
 }
-#endif

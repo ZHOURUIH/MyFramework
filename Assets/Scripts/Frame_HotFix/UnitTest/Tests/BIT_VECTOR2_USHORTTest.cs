@@ -1,9 +1,6 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using static TestAssert;
-using static BIT_VECTOR2_USHORT;
 
 public class BIT_VECTOR2_USHORTTest
 {
@@ -240,4 +237,3 @@ public class BIT_VECTOR2_USHORTTest
 		assertEqual(ushort.MaxValue, instance.mValue.y);
 	}
 }
-#endif

@@ -1,6 +1,4 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using static TestAssert;
-using static MathUtility;
 
 public static class CurveTest
 {
@@ -44,11 +42,15 @@ public static class CurveTest
                         || name == "CurveExpoInOut"
                         || name == "CurveZeroOneZero" || name == "CurveOneZero"
                         || name == "CurveOneZeroOne";
-            if (!skipZero) assertEqual(0.0f, c.evaluate(0.0f), name + " evaluate(0)=0");
-            if (!skipOne)  assertEqual(1.0f, c.evaluate(1.0f), name + " evaluate(1)=1");
+            if (!skipZero)
+            {
+                assertEqual(0.0f, c.evaluate(0.0f), name + " evaluate(0)=0");
+            }
+            if (!skipOne)
+            {
+                assertEqual(1.0f, c.evaluate(1.0f), name + " evaluate(1)=1");
+            }
             assertTrue(c.getLength() > 0, name + " length>0");
         }
     }
-
 }
-#endif

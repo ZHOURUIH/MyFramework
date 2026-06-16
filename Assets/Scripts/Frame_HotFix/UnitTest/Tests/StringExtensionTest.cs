@@ -1,5 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-using System.Collections.Generic;
 using static TestAssert;
 
 // StringExtension 所有扩展方法测试（46 个方法）
@@ -111,4 +109,3 @@ public static class StringExtensionTest
 		assertEqual("file.txt", "file.txt".ensureSuffix(".txt"), "ensureSuffix already");
 	}
 }
-#endif

@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using static TestAssert;
 
 // SafeFloat 安全浮点测试
@@ -116,4 +115,3 @@ public static class SafeFloatTest
 		assert(!isFloatEqual(a.get(), c.get()), "Equals via get: 不同值不应相等");
 	}
 }
-#endif

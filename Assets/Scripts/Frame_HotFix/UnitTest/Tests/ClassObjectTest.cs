@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 
 // ClassObject 生命周期测试
@@ -120,8 +119,7 @@ public static class ClassObjectTest
 
     private static void AssertEqual<T>(T expected, T actual, string message = "")
     {
-        bool eq = (expected == null && actual == null)
-               || (expected != null && expected.Equals(actual));
+        bool eq = (expected == null && actual == null) || (expected != null && expected.Equals(actual));
         if (!eq)
         {
             throw new Exception(
@@ -142,4 +140,3 @@ public class TestClassObj : ClassObject
         mCustomData = 0;
     }
 }
-#endif

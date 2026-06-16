@@ -8,6 +8,15 @@ public class COMTransformableSequence : GameComponent
 	protected float mCurrentTime;               // 从上一次从头开始播放到现在的时长
 	protected float mTotalLength;               // 序列的总长度,即所有TweenGroup中最长的长度
 	protected PLAY_STATE mPlayState;            // 播放状态
+    public override void resetProperty()
+    {
+        base.resetProperty();
+		mDoneCallback = null;
+		mSequence = null;
+		mCurrentTime = 0.0f;
+        mTotalLength = 0.0f;
+		mPlayState = PLAY_STATE.NONE;
+    }
 	public void setDoneCallback(SequenceCallback callback)
 	{
 		mDoneCallback = callback;

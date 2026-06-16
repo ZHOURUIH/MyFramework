@@ -1,8 +1,6 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using static TestAssert;
-using static BIT_FLOAT;
 
 public class BIT_FLOATTest
 {
@@ -420,4 +418,3 @@ public class BIT_FLOATTest
 			"Expected " + expected.ToString() + ", got " + actual.ToString() + ", tolerance " + tolerance.ToString());
 	}
 }
-#endif

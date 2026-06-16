@@ -2,16 +2,15 @@
 // 运行时集成测试结果
 public class TestResult
 {
-	public string testName;
-	public bool passed;
-	public string message;
-	public float elapsedMs;
-
+	public string mTestName;
+	public bool mPassed;
+	public string mMessage;
+	public float mElapsedMs;
 	public TestResult(string name, bool passed, string message, float ms)
 	{
-		this.testName = name;
-		this.passed = passed;
-		this.message = message;
-		this.elapsedMs = ms;
+		mTestName = name;
+		mPassed = passed;
+		mMessage = message;
+		mElapsedMs = ms;
 	}
 }

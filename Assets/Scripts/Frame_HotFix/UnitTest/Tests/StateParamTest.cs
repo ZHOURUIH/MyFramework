@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using static TestAssert;
 
 // StateParam 单元测试
@@ -33,4 +32,3 @@ public static class StateParamTest
 		assertEqual(-1.0f, p.mBuffTime, "resetProperty 后 mBuffTime 应恢复为 -1.0f");
 	}
 }
-#endif

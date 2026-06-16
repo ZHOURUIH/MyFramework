@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -569,4 +568,3 @@ public static class StringUtilityTest
         return Math.Abs(a - b) < eps;
     }
 }
-#endif

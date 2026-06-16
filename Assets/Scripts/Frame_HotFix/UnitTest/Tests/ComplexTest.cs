@@ -1,5 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-using System;
 using static TestAssert;
 
 public class ComplexTest
@@ -51,4 +49,3 @@ public class ComplexTest
 		assertTrue(result.Equals(new Complex(3.0f, 4.0f)));
 	}
 }
-#endif

@@ -15,7 +15,7 @@ public class TweenSequenceAuthoringEditor : GameEditorBase
 		EditorCurveFactory.reload();
 		mSequence = (TweenSequence)target;
 		DrawGroups();
-		space(10);
+		space();
 		using (new GUILayout.HorizontalScope())
 		{
 			if (button("Add Group"))
@@ -31,7 +31,7 @@ public class TweenSequenceAuthoringEditor : GameEditorBase
 				EditorUtility.SetDirty(mSequence);
 			}
 		}
-		space(10);
+		space();
 		DrawPreview();
 		if (GUI.changed)
 		{

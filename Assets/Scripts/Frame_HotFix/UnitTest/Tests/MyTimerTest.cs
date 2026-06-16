@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using static TestAssert;
 using static MathUtility;
 
@@ -248,4 +247,3 @@ public static class MyTimerTest
         assert(isFloatEqual(t.getTimePercent(), 1.0f, 0.001f), "getTimePercent curTime=interval=1.0");
     }
 }
-#endif

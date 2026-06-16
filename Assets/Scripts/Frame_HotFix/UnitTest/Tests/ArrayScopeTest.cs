@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using static TestAssert;
 
 // ArrayScope 单元测试
@@ -11,7 +10,6 @@ public static class ArrayScopeTest
 	}
 
 	// ─── 创建作用域 ──────────────────────────────────────────────────────
-
 	private static void testCreateScope()
 	{
 		using (new ArrayScope<int>(out var arr, 8))
@@ -21,4 +19,3 @@ public static class ArrayScopeTest
 		}
 	}
 }
-#endif

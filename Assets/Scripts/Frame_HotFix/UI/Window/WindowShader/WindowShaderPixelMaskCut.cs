@@ -20,7 +20,19 @@ public class WindowShaderPixelMaskCut : WindowShader
 		mPosXID = Shader.PropertyToID("_PosX");
 		mPosYID = Shader.PropertyToID("_PosY");
 	}
-	public void setMaskTexture(Texture mask) { mMask = mask; }
+    public override void resetProperty()
+    {
+        base.resetProperty();
+		mMask = null;
+        mMaskSize = Vector2.zero;
+        mMaskPos = Vector2.zero;
+        //mMaskTexID = 0;
+        //mSizeXID = 0;
+        //mSizeYID = 0;
+        //mPosXID = 0;
+        //mPosYID = 0;
+    }
+    public void setMaskTexture(Texture mask) { mMask = mask; }
 	public void setMaskSize(Vector2 size) { mMaskSize = size; }
 	public void setMaskPos(Vector2 pos) { mMaskPos = pos; }
 	public override void applyShader(Material mat)

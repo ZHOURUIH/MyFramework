@@ -2881,7 +2881,7 @@ MonoBehaviour:
     mRegisterCollider: 0
     mHasClickEvent: 0
   - mObject: {fileID: 0}
-    mType: WindowStructPool
+    mType: WindowPool
     mArrayType: 0
     mArrayLength: 0
     mWindowType: 4
@@ -8221,8 +8221,8 @@ MonoBehaviour:
     mCustomName: 
     mHideError: 0
     mUseCustomName: 0
-    mRegisterCollider: 0
-    mHasClickEvent: 0
+    mRegisterCollider: 1
+    mHasClickEvent: 1
   - mObject: {fileID: 2693278527570295040}
     mType: ScrollViewPanel
     mArrayType: 0

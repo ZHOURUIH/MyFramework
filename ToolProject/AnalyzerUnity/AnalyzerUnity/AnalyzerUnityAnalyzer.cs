@@ -8,10 +8,11 @@ using static AnalyzerResetProperty;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class AnalyzerUnityAnalyzer : DiagnosticAnalyzer
 {
-	public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(CallBaseRule, ResetPropertyRule);
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(CallBaseRule, ResetPropertyRule, MissingResetPropertyRule);
 	public override void Initialize(AnalysisContext analysisContext)
 	{
 		analysisContext.EnableConcurrentExecution();
+		// 检测是否有调基类函数
 		analysisContext.RegisterSyntaxNodeAction((context) => { analyzeCallBaseVirtual(context, "init"); }, SyntaxKind.MethodDeclaration);
 		analysisContext.RegisterSyntaxNodeAction((context) => { analyzeCallBaseVirtual(context, "lateInit"); }, SyntaxKind.MethodDeclaration);
 		analysisContext.RegisterSyntaxNodeAction((context) => { analyzeCallBaseVirtual(context, "update"); }, SyntaxKind.MethodDeclaration);
@@ -31,7 +32,9 @@ public class AnalyzerUnityAnalyzer : DiagnosticAnalyzer
 		analysisContext.RegisterSyntaxNodeAction((context) => { analyzeCallBaseVirtual(context, "leave"); }, SyntaxKind.MethodDeclaration);
 		analysisContext.RegisterSyntaxNodeAction((context) => { analyzeCallBaseVirtual(context, "setActive"); }, SyntaxKind.MethodDeclaration);
 		analysisContext.RegisterSyntaxNodeAction((context) => { analyzeCallBaseVirtual(context, "initComponents"); }, SyntaxKind.MethodDeclaration);
-
-		analysisContext.RegisterSyntaxNodeAction(analyzeResetAllFields, SyntaxKind.MethodDeclaration);
-	}
+        // 检测resetProperty中是否完全重置成员变量
+        analysisContext.RegisterSyntaxNodeAction(analyzeResetAllFields, SyntaxKind.MethodDeclaration);
+        // 检测 ClassObject 子类有没有缺失 resetProperty
+        analysisContext.RegisterSyntaxNodeAction(analyzeMissingResetProperty, SyntaxKind.ClassDeclaration);
+    }
 }

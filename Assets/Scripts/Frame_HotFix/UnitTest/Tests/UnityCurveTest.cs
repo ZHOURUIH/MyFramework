@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using UnityEngine;
 using static TestAssert;
 
@@ -22,4 +21,3 @@ public static class UnityCurveTest
 		assertEqual(1f, curve.evaluate(1f), "evaluate(1) 应返回 1");
 	}
 }
-#endif

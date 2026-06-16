@@ -1,8 +1,6 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using static TestAssert;
-using static BIT_STRING;
 
 public class BIT_STRINGTest
 {
@@ -397,4 +395,3 @@ public class BIT_STRINGTest
 		assertEqual(-1, instance.mValue.IndexOf("xyz"));
 	}
 }
-#endif

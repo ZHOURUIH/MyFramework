@@ -1,8 +1,6 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using static TestAssert;
-using static BIT_ULONG;
 
 public class BIT_ULONGTest
 {
@@ -324,4 +322,3 @@ public class BIT_ULONGTest
 		assertEqual((ulong)instance, (ulong)newInstance);
 	}
 }
-#endif

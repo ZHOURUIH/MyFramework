@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using static TestAssert;
 
 // MyCurve 曲线基类测试（通过 CurveOneZero 公式验证）
@@ -44,4 +43,3 @@ public static class MyCurveTest
 		}
 	}
 }
-#endif

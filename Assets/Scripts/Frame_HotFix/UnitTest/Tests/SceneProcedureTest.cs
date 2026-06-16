@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using static TestAssert;
@@ -25,6 +24,11 @@ public class TrackA : SceneProcedure
 	public string tag = "A";
 	public TrackA() { mDelayCmdList = new HashSet<long>(); }
 	public static List<string> CallLog = new();
+    public override void resetProperty()
+    {
+        base.resetProperty();
+		tag = "A";
+    }
 	public static void Reset() { CallLog.Clear(); }
 	protected override void onInit(SceneProcedure last) { CallLog.Add($"{tag}.onInit({(last is TrackA ta ? ta.tag : "null")})"); }
 	protected override void onInitFromChild(SceneProcedure last) { CallLog.Add($"{tag}.onInitFromChild({(last is TrackA ta ? ta.tag : "?")})"); }
@@ -48,7 +52,10 @@ public class TrackScene : GameScene
 		if (parentType != null)
 		{
 			var p = getProcedure(parentType);
-			if (p is TrackA pa) pa.addChildProcedure(proc);
+			if (p is TrackA pa)
+			{
+				pa.addChildProcedure(proc);
+			}
 		}
 		mSceneProcedureList.Add(proc.GetType(), proc);
 	}
@@ -867,9 +874,12 @@ public static class SceneProcedureTest
 	private static void testInitMultipleTimes()
 	{
 		var p = new TestSceneProcedure();
-		p.init(null); assertTrue(p.isInited());
-		p.init(null); assertTrue(p.isInited());
-		p.init(null); assertTrue(p.isInited());
+		p.init(null); 
+		assertTrue(p.isInited());
+		p.init(null); 
+		assertTrue(p.isInited());
+		p.init(null); 
+		assertTrue(p.isInited());
 	}
 	private static void testInitWithParent()
 	{
@@ -1068,7 +1078,11 @@ public static class SceneProcedureTest
 	//  验证 changeProcedure 是否正确按 退出→进入 顺序调用各回调
 	// ================================================================
 	// ----- 辅助 -----
-	static TrackScene NewScene() { TrackA.Reset(); return new TrackScene(); }
+	static TrackScene NewScene() 
+	{
+		TrackA.Reset(); 
+		return new TrackScene(); 
+	}
 	static TrackA AddProc(TrackScene s, Type t, Type parent = null)
 	{
 		var p = Activator.CreateInstance(t) as TrackA;
@@ -1256,7 +1270,11 @@ public static class SceneProcedureTest
 	// 联合测试用的 GameScene 子类（像 LoginScene 一样注册 Track 流程）
 	public class TrackGameScene : GameScene
 	{
-		public override void assignStartExitProcedure() { mStartProcedure = typeof(TrackA); mExitProcedure = typeof(TrackC); }
+		public override void assignStartExitProcedure() 
+		{
+			mStartProcedure = typeof(TrackA); 
+			mExitProcedure = typeof(TrackC); 
+		}
 		public override void createSceneProcedure()
 		{
 			addProcedure(typeof(TrackA));
@@ -1426,4 +1444,3 @@ public static class SceneProcedureTest
 		});
 	}
 }
-#endif

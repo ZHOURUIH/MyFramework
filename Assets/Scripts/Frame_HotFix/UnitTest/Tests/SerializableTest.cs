@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using static TestAssert;
 
 // Serializable 单元测试
@@ -37,4 +36,3 @@ public class TestSerializable : Serializable
 	public override bool read(SerializerRead reader) { return true; }
 	public override void write(SerializerWrite writer) { }
 }
-#endif

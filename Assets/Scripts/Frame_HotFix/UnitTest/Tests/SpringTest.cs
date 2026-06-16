@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using static TestAssert;
 using static MathUtility;
 
@@ -162,4 +161,3 @@ public static class SpringTest
             "自然长度无外力 update后长度不变");
     }
 }
-#endif

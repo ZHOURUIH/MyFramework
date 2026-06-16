@@ -10,7 +10,13 @@ public class WindowShaderBlurMaskVertical : WindowShader
 		mSampleInterval = 1.5f;
 		mSampleIntervalID = Shader.PropertyToID("_SampleInterval");
 	}
-	public void setSampleInterval(float sampleInterval) { mSampleInterval = sampleInterval; }
+    public override void resetProperty()
+    {
+        base.resetProperty();
+		mSampleInterval = 1.5f;
+		//mSampleIntervalID = 0;
+    }
+    public void setSampleInterval(float sampleInterval) { mSampleInterval = sampleInterval; }
 	public override void applyShader(Material mat)
 	{
 		base.applyShader(mat);

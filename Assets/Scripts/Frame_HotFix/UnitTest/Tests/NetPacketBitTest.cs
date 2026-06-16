@@ -1,7 +1,4 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-using System.Collections.Generic;
 using static BinaryUtility;
-using static UnityUtility;
 using static TestAssert;
 
 // NetPacketBit 序列化参数测试
@@ -102,7 +99,10 @@ public static class NetPacketBitTest
 
 		// 精度为默认 3 位小数，1e-3 容差
 		float diff = outParam.mValue - 3.14f;
-		if (diff < 0) diff = -diff;
+		if (diff < 0)
+		{
+			diff = -diff;
+		}
 		assert(diff < 1e-3f, $"BIT_FLOAT write/read: 期望约 3.14，实际 {outParam.mValue}");
 	}
 
@@ -128,7 +128,10 @@ public static class NetPacketBitTest
 		assertEqual(777,   readPacket.mIntField.mValue,  "混合包: int 字段往返应相等");
 		assert(readPacket.mBoolField.mValue,              "混合包: bool 字段往返应为 true");
 		float diff = readPacket.mFloatField.mValue - (-1.5f);
-		if (diff < 0) diff = -diff;
+		if (diff < 0)
+		{
+			diff = -diff;
+		}
 		assert(diff < 1e-3f, $"混合包: float 字段往返误差应 < 1e-3，实际 {readPacket.mFloatField.mValue}");
 	}
 
@@ -341,6 +344,13 @@ public class TestBitPacket : NetPacketBit
 		addParam(mFloatField, false);
 	}
 
+    public override void resetProperty()
+    {
+        base.resetProperty();
+		mIntField.resetProperty();
+        mBoolField.resetProperty();
+        mFloatField.resetProperty();
+    }
 	public override void write(SerializerBitWrite writer, bool needWriteSign, out ulong fieldFlag)
 	{
 		base.write(writer, needWriteSign, out fieldFlag);
@@ -383,7 +393,14 @@ public class TestSCPackItemPacket : NetPacketBit
 		addParam(mPackSize,           true);  // 可选
 		addParam(mPropertyChangeOnly, false); // 非可选，始终写入
 	}
-
+    public override void resetProperty()
+    {
+        base.resetProperty();
+		mQuickItemIDList.resetProperty();
+        mItemIDList.resetProperty();
+        mPackSize.resetProperty();
+        mPropertyChangeOnly.resetProperty();
+    }
 	public override void write(SerializerBitWrite writer, bool needWriteSign, out ulong fieldFlag)
 	{
 		base.write(writer, needWriteSign, out fieldFlag);
@@ -428,13 +445,18 @@ public class TestSCPackItemPacket : NetPacketBit
 	{
 		foreach (long id in mQuickItemIDList)
 		{
-			if (id < 0) return true;
+			if (id < 0)
+			{
+				return true;
+			}
 		}
 		foreach (long id in mItemIDList)
 		{
-			if (id < 0) return true;
+			if (id < 0)
+			{
+				return true;
+			}
 		}
 		return false;
 	}
 }
-#endif

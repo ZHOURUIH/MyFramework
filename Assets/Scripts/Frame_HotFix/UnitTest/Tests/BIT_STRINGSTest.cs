@@ -1,8 +1,6 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using static TestAssert;
-using static BIT_STRINGS;
 
 public class BIT_STRINGSTest
 {
@@ -368,4 +366,3 @@ public class BIT_STRINGSTest
 		assertEqual(10000, instance[0].Length);
 	}
 }
-#endif

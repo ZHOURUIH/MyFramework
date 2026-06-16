@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using static TestAssert;
 
 // SafeLong 安全长整型测试
@@ -91,4 +90,3 @@ public static class SafeLongTest
 		assertEqual(54321L, c.get(), "Equals via get c: 期望 54321");
 	}
 }
-#endif

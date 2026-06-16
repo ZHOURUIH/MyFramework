@@ -1,7 +1,4 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-using System;
 using System.Collections.Generic;
-using System.Threading;
 using static TestAssert;
 
 public static class ClassPoolSingleTest
@@ -98,4 +95,3 @@ public class TestClass : ClassObject
         mValue = 0;
     }
 }
-#endif

@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System.Collections.Generic;
 using static TestAssert;
 
@@ -212,4 +211,3 @@ public class SafeHashSetTest
 		assertEqual(2, set.count());
 	}
 }
-#endif

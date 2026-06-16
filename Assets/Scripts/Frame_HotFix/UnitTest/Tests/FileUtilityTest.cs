@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.IO;
 using static FileUtility;
@@ -113,8 +112,10 @@ public static class FileUtilityTest
         }
         finally
         {
-            if (isDirExist(root)) deleteFolder(root);
+            if (isDirExist(root))
+            {
+                deleteFolder(root);
+            }
         }
     }
 }
-#endif

@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -37,22 +36,38 @@ public class SerializerBitWriteTest
 	{
 		foreach (var m in t.GetMethods())
 		{
-			if (m.Name != name) continue;
+			if (m.Name != name)
+			{
+				continue;
+			}
 			var ps = m.GetParameters();
-			if (ps.Length != paramTypes.Length) continue;
+			if (ps.Length != paramTypes.Length)
+			{
+				continue;
+			}
 			bool match = true;
 			for (int i = 0; i < ps.Length; i++)
 			{
-				if (ps[i].ParameterType != paramTypes[i]) { match = false; break; }
+				if (ps[i].ParameterType != paramTypes[i])
+				{
+					match = false;
+					break; 
+				}
 			}
-			if (match) return m;
+			if (match)
+			{
+				return m;
+			}
 		}
 		return null;
 	}
 	private static MethodInfo tryFindWriteMethod(Type t, Type[] paramTypesWithoutOptional)
 	{
 		var method = findMethod(t, "write", paramTypesWithoutOptional);
-		if (method != null) return method;
+		if (method != null)
+		{
+			return method;
+		}
 		// 尝试加上 needReadSign bool 参数
 		var withBool = new Type[paramTypesWithoutOptional.Length + 1];
 		Array.Copy(paramTypesWithoutOptional, withBool, paramTypesWithoutOptional.Length);
@@ -278,4 +293,3 @@ public class SerializerBitWriteTest
 		}
 	}
 }
-#endif

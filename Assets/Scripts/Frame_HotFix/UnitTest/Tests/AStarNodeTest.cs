@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using static TestAssert;
 
@@ -13,7 +12,7 @@ public class AStarNodeTest
 	// 测试构造函数
 	private static void testConstructor()
 	{
-		AStarNode node = new AStarNode(10, 20, 30, 5, 3, 0);
+		AStarNode node = new(10, 20, 30, 5, 3, 0);
 		assertEqual(10, node.mG);
 		assertEqual(20, node.mH);
 		assertEqual(30, node.mF);
@@ -25,7 +24,7 @@ public class AStarNodeTest
 	// 测试 init 方法
 	private static void testInit()
 	{
-		AStarNode node = new AStarNode(10, 20, 30, 5, 3, 0);
+		AStarNode node = new(10, 20, 30, 5, 3, 0);
 		node.init(7);
 		assertEqual(0, node.mG);
 		assertEqual(0, node.mH);
@@ -35,4 +34,3 @@ public class AStarNodeTest
 		assertEqual(0, (int)node.mState);
 	}
 }
-#endif

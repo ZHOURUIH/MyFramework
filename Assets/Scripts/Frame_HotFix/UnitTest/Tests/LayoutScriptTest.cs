@@ -1,7 +1,4 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-using System;
 using static TestAssert;
-using static FrameDefine;
 using static FrameBaseHotFix;
 
 // LayoutScript 测试用的具体子类
@@ -252,7 +249,10 @@ public static class LayoutScriptTest
 	{
 		// mEscHide=true → onESCDown 调用 close() → CmdLayoutManagerVisible.execute
 		// TestLayoutScript 未注册 → getLayout 返回 null → execute 安全退出
-		if (mLayoutManager == null) return;
+		if (mLayoutManager == null)
+		{
+			return;
+		}
 		var script = new TestLayoutScript();
 		script.setEscHideForTest(true);
 		assertTrue(script.onESCDown());
@@ -266,7 +266,10 @@ public static class LayoutScriptTest
 	{
 		// close() → CmdLayoutManagerVisible.execute(GetType(), false, false)
 		// 未注册的布局类型 → 方法安全返回 null
-		if (mLayoutManager == null) return;
+		if (mLayoutManager == null)
+		{
+			return;
+		}
 		var script = new TestLayoutScript();
 		script.close();
 	}
@@ -285,7 +288,10 @@ public static class LayoutScriptTest
 	{
 		// mLayout 为 null 时调用 → null.notifyUIObjectNeedUpdate() 抛异常
 		var script = new TestLayoutScript();
-		try { script.notifyUIObjectNeedUpdate(null, true); }
+		try 
+		{
+			script.notifyUIObjectNeedUpdate(null, true); 
+		}
 		catch { /* 预期异常 */ }
 	}
 	private static void testNotifyUIObjectNeedUpdateTooggle()
@@ -324,7 +330,10 @@ public static class LayoutScriptTest
 	private static void testClearLocalization()
 	{
 		// 需要 mLocalizationManager 非 null（游戏初始化后可用）
-		if (mLocalizationManager == null) return;
+		if (mLocalizationManager == null)
+		{
+			return;
+		}
 		var script = new TestLayoutScript();
 		script.clearLocalizationForTest();
 		// 重复调用
@@ -386,4 +395,3 @@ public static class LayoutScriptTest
 		assertTrue(script.isNeedUpdate());
 	}
 }
-#endif

@@ -27,7 +27,22 @@ public class WindowShaderMotionBlurCriticalMask : WindowShaderCriticalMask
 		mCenterXID = Shader.PropertyToID("_CenterX");
 		mCenterYID = Shader.PropertyToID("_CenterY");
 	}
-	public void setMinRange(float minRange) { mMinRange = minRange; }
+    public override void resetProperty()
+    {
+        base.resetProperty();
+        mSampleCenter = Vector2.zero;
+        mMinRange = 300.0f;
+        mIncreaseSample = 0.2f;
+        mMaxSample = 30;
+        mSampleInterval = 3;
+        //mMinRangeID = 0;
+        //mMaxSampleID = 0;
+        //mIncreaseSampleID = 0;
+        //mSampleIntervalID = 0;
+        //mCenterXID = 0;
+        //mCenterYID = 0;
+    }
+    public void setMinRange(float minRange) { mMinRange = minRange; }
 	public void setMaxSample(int maxSample) { mMaxSample = maxSample; }
 	public void setIncreaseSample(float increaseValue) { mIncreaseSample = increaseValue; }
 	public void setSampleInterval(int interval) { mSampleInterval = interval; }

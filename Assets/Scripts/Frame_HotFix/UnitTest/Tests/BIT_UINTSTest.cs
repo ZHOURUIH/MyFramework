@@ -1,8 +1,6 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using static TestAssert;
-using static BIT_UINTS;
 
 public class BIT_UINTSTest
 {
@@ -347,4 +345,3 @@ public class BIT_UINTSTest
 		assertEqual(uint.MaxValue, instance[0]);
 	}
 }
-#endif

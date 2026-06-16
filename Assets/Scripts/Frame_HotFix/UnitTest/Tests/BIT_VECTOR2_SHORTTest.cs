@@ -1,9 +1,6 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using static TestAssert;
-using static BIT_VECTOR2_SHORT;
 
 public class BIT_VECTOR2_SHORTTest
 {
@@ -251,4 +248,3 @@ public class BIT_VECTOR2_SHORTTest
 		assertEqual((short)-200, v.y);
 	}
 }
-#endif

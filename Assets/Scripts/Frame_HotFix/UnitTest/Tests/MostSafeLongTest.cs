@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using static TestAssert;
 
 public static class MostSafeLongTest
@@ -48,4 +47,3 @@ public static class MostSafeLongTest
         assertEqual(30L, v.get(), "overwrite 10→20→30");
     }
 }
-#endif

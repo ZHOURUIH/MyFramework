@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using static FrameUtility;
 using static MathUtility;
@@ -247,32 +246,34 @@ public static class FrameUtilityTest
         string r = toProbability("50");
         assertTrue(r.Contains("%"));
     }
-
     enum CoreTestEnum { First = 1, Second = 2 }
-
-    static void assert(bool c, string m = "")
-    {
-        if (!c) throw new Exception(m);
-    }
-
     static void assertEqual<T>(T e, T a, string m = "")
     {
-        if (!e.Equals(a)) throw new Exception($"Expected [{e}] got [{a}] - {m}");
+        if (!e.Equals(a))
+        {
+            throw new Exception($"Expected [{e}] got [{a}] - {m}");
+        }
     }
-
     static void assertEqual(float e, float a, float eps, string m = "")
     {
-        if (Math.Abs(e - a) > eps) throw new Exception($"Expected [{e}] got [{a}] - {m}");
+        if (Math.Abs(e - a) > eps)
+        {
+            throw new Exception($"Expected [{e}] got [{a}] - {m}");
+        }
     }
-
     static void assertFalse(bool c, string m = "")
     {
-        if (c) throw new Exception($"Expected false - {m}");
+        if (c)
+        {
+            throw new Exception($"Expected false - {m}");
+        }
     }
 
     static void assertTrue(bool c, string m = "")
     {
-        if (!c) throw new Exception($"Expected true - {m}");
+        if (!c)
+        {
+            throw new Exception($"Expected true - {m}");
+        }
     }
 }
-#endif

@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using static TestAssert;
 
 // MostSafeInt 双倍安全整型测试
@@ -74,4 +73,3 @@ public static class MostSafeIntTest
 		assertEqual(200, c.get(), "Equals via get c: 期望 200");
 	}
 }
-#endif

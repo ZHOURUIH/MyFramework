@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using static TestAssert;
 
 // ListScope2 单元测试
@@ -21,4 +20,3 @@ public static class ListScope2Test
 		}
 	}
 }
-#endif

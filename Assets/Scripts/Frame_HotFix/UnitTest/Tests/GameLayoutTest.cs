@@ -1,8 +1,4 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-using System;
 using static TestAssert;
-using static FrameDefine;
-using UnityEngine;
 
 // GameLayout 布局实例单元测试
 // GameLayout 是纯 POCO 类（无基类），可直接 new GameLayout() 测试全部 getter/setter
@@ -339,4 +335,3 @@ public static class GameLayoutTest
 		assertEqual(0, layout.getDefaultLayer());
 	}
 }
-#endif

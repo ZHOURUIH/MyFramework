@@ -1,8 +1,6 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using static TestAssert;
-using static BIT_INT;
 
 public class BIT_INTTest
 {
@@ -376,4 +374,3 @@ public class BIT_INTTest
 		assertEqual(20, (int)arr[2]);
 	}
 }
-#endif

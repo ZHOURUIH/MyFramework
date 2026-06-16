@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using static TestAssert;
 using static BinaryUtility;
@@ -471,4 +470,3 @@ public static class BinaryUtilityTest
         assertEqual(5, dest5[4], "memcpy 字节偏移版[4]");
     }
 }
-#endif

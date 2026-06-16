@@ -1,5 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-using System;
 using static TestAssert;
 
 // StateGroup 单元测试
@@ -47,4 +45,3 @@ public static class StateGroupTest
 		assertEqual(0, group.mStateList.Count);
 	}
 }
-#endif

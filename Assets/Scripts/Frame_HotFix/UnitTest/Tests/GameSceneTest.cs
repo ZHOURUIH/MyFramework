@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using static TestAssert;
@@ -264,7 +263,10 @@ public static class GameSceneTest
 	private static TestGameScene sceneWith(params Type[] types)
 	{
 		var s = new TestGameScene();
-		foreach (var t in types) s.addProcedure(t);
+		foreach (var t in types)
+		{
+			s.addProcedure(t);
+		}
 		return s;
 	}
 	private static void testChangeProcedureSetsCurProcedure()
@@ -779,12 +781,18 @@ public static class GameSceneTest
 	private static void testChangeProcedureTwelveProcedures()
 	{
 		var scene = new TestGameScene();
-		scene.addProcedure<ProcA>(); scene.addProcedure<ProcB>();
-		scene.addProcedure<ProcC>(); scene.addProcedure<ProcD>();
-		scene.addProcedure<ProcE>(); scene.addProcedure<ProcF>();
-		scene.addProcedure<ProcG>(); scene.addProcedure<ProcH>();
-		scene.addProcedure<ProcI>(); scene.addProcedure<ProcJ>();
-		scene.addProcedure<ProcK>(); scene.addProcedure<ProcL>();
+		scene.addProcedure<ProcA>(); 
+		scene.addProcedure<ProcB>();
+		scene.addProcedure<ProcC>(); 
+		scene.addProcedure<ProcD>();
+		scene.addProcedure<ProcE>(); 
+		scene.addProcedure<ProcF>();
+		scene.addProcedure<ProcG>(); 
+		scene.addProcedure<ProcH>();
+		scene.addProcedure<ProcI>(); 
+		scene.addProcedure<ProcJ>();
+		scene.addProcedure<ProcK>(); 
+		scene.addProcedure<ProcL>();
 		scene.changeProcedure(typeof(ProcA));
 		scene.changeProcedure(typeof(ProcB));
 		scene.changeProcedure(typeof(ProcC));
@@ -817,7 +825,10 @@ public static class GameSceneTest
 	{
 		var scene = new TestGameScene();
 		// mStartProcedure 和 mTempStartProcedure 均为 null → changeProcedure(null) → TryGetValue(null) 抛异常
-		try { scene.enterStartProcedure(); }
+		try
+		{ 
+			scene.enterStartProcedure(); 
+		}
 		catch { /* 预期异常 */ }
 	}
 	// ================================================================
@@ -879,7 +890,10 @@ public static class GameSceneTest
 	private static void testGetCurProcedureTypeBeforeChange()
 	{
 		var scene = new TestGameScene();
-		try { var t = scene.getCurProcedureType(); }
+		try 
+		{
+			var t = scene.getCurProcedureType(); 
+		}
 		catch { /* mCurProcedure=null → NPE，预期行为 */ }
 	}
 	private static void testGetCurProcedureTypeMultipleChanges()
@@ -914,8 +928,10 @@ public static class GameSceneTest
 	{
 		var scene = new TestGameScene();
 		// 用 5 个不同类型测试 max count
-		scene.addProcedure<ProcA>(); scene.addProcedure<ProcB>();
-		scene.addProcedure<ProcC>(); scene.addProcedure<ProcD>();
+		scene.addProcedure<ProcA>();
+		scene.addProcedure<ProcB>();
+		scene.addProcedure<ProcC>();
+		scene.addProcedure<ProcD>();
 		scene.addProcedure<ProcE>();
 		scene.changeProcedure(typeof(ProcA));
 		scene.changeProcedure(typeof(ProcB));
@@ -928,10 +944,14 @@ public static class GameSceneTest
 	private static void testMaxLastProcedureCountBackAllTheWay()
 	{
 		var scene = new TestGameScene();
-		scene.addProcedure<ProcA>(); scene.addProcedure<ProcB>();
-		scene.addProcedure<ProcC>(); scene.addProcedure<ProcD>();
-		scene.addProcedure<ProcE>(); scene.addProcedure<ProcF>();
-		scene.addProcedure<ProcG>(); scene.addProcedure<ProcH>();
+		scene.addProcedure<ProcA>(); 
+		scene.addProcedure<ProcB>();
+		scene.addProcedure<ProcC>(); 
+		scene.addProcedure<ProcD>();
+		scene.addProcedure<ProcE>();
+		scene.addProcedure<ProcF>();
+		scene.addProcedure<ProcG>(); 
+		scene.addProcedure<ProcH>();
 		scene.addProcedure<ProcI>();
 		scene.changeProcedure(typeof(ProcA));
 		// 从 A 到 I 逐次跳转，产生历史记录
@@ -954,4 +974,3 @@ public static class GameSceneTest
 		assertNotNull(scene.getCurProcedure());
 	}
 }
-#endif

@@ -26,7 +26,7 @@ public class GameEditorBase : Editor
 	{
 		obj = EditorGUILayout.ObjectField(label, obj, typeof(T), true, options) as T;
 	}
-	public void space(float pixels)
+	public void space(float pixels = 10)
 	{
 		GUILayout.Space(pixels);
 	}
@@ -34,7 +34,11 @@ public class GameEditorBase : Editor
 	{
 		EditorGUILayout.LabelField(text);
 	}
-	public bool button(string name, int width = 100)
+    public void label(string text0, string text1)
+    {
+        EditorGUILayout.LabelField(text0, text1);
+    }
+    public bool button(string name, int width = 100)
 	{
 		return GUILayout.Button(name, GUILayout.Width(width));
 	}

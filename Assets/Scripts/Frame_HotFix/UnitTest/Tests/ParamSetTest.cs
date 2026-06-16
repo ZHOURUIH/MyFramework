@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using static TestAssert;
@@ -81,4 +80,3 @@ public class ParamSetTest
 		assertEqual(0, paramSet.getParamCount());
 	}
 }
-#endif

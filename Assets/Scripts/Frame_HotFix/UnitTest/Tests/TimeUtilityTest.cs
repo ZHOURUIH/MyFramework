@@ -1,6 +1,4 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
-using static UnityUtility;
 using static TimeUtility;
 using static TestAssert;
 
@@ -388,4 +386,3 @@ public static class TimeUtilityTest
 		assert(dayEnd > DateTime.Now, "getDayEnd(ts) > now");
 	}
 }
-#endif

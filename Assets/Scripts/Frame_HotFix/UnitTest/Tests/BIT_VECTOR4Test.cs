@@ -1,9 +1,7 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 using static TestAssert;
-using static BIT_VECTOR4;
 
 public class BIT_VECTOR4Test
 {
@@ -279,4 +277,3 @@ public class BIT_VECTOR4Test
 			"Expected " + expected.ToString() + ", got " + actual.ToString());
 	}
 }
-#endif

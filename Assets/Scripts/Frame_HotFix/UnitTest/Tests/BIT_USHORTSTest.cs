@@ -1,8 +1,6 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using static TestAssert;
-using static BIT_USHORTS;
 
 public class BIT_USHORTSTest
 {
@@ -329,4 +327,3 @@ public class BIT_USHORTSTest
 		assertEqual(ushort.MaxValue, instance[0]);
 	}
 }
-#endif

@@ -1,8 +1,6 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using static TestAssert;
-using static BIT_FLOATS;
 
 public class BIT_FLOATSTest
 {
@@ -369,4 +367,3 @@ public class BIT_FLOATSTest
 			"Expected " + expected.ToString() + ", got " + actual.ToString());
 	}
 }
-#endif

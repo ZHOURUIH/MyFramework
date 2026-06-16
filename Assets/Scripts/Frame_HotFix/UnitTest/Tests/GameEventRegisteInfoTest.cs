@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using static TestAssert;
 public static class GameEventRegisteInfoTest
 {
@@ -46,6 +45,10 @@ public static class GameEventRegisteInfoTest
     class TestGameEvent : GameEvent
     {
         public int mValue;
+        public override void resetProperty()
+        {
+            base.resetProperty();
+            mValue = 0;
+        }
     }
 }
-#endif

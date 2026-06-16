@@ -9,7 +9,13 @@ public class WindowShaderGrey : WindowShader
 	{
 		mGreyID = Shader.PropertyToID("_Grey");
 	}
-	public void setGrey(bool grey){ mIsGrey = grey;}
+    public override void resetProperty()
+    {
+        base.resetProperty();
+		mIsGrey = false;
+		//mGreyID = 0;
+    }
+    public void setGrey(bool grey){ mIsGrey = grey;}
 	public override void applyShader(Material mat)
 	{
 		base.applyShader(mat);

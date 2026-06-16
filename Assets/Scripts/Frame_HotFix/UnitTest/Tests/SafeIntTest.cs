@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using static TestAssert;
 
 // SafeInt 安全整型测试
@@ -95,4 +94,3 @@ public static class SafeIntTest
 		assertEqual(6, c.get(), "Equals via get c: 期望 6");
 	}
 }
-#endif

@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using static FrameUtility;
 using static FrameBaseHotFix;
@@ -155,7 +154,7 @@ public static class CommandTest
 
 public class TestCmd : Command
 {
-    public System.Action onExecute;
+    public Action onExecute;
     public override void execute()
     {
         onExecute?.Invoke();
@@ -178,4 +177,3 @@ public class TestCmdReceiver : CommandReceiver
         mHasDestroy = false;
     }
 }
-#endif

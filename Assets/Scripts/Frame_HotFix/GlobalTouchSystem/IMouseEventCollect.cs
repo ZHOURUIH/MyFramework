@@ -5,7 +5,6 @@ public interface IMouseEventCollect
 	string getName();
 	string getDescription();
 	bool isDestroy();
-	bool isActive();
 	bool isActiveInHierarchy();
 	bool isHandleInput();
 	void onTouchLeave(Vector3 touchPos, int touchID);
@@ -25,5 +24,4 @@ public interface IMouseEventCollect
 	bool isDraggable();
 	// 当前对象是否为parent的子节点
 	bool isChildOf(IMouseEventCollect parent);
-	int GetHashCode();
 }

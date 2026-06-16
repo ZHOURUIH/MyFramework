@@ -9,6 +9,12 @@ public class CharacterGame : Character
 		mData = new();
 	}
 	public CharacterGameData getData() { return mData; }
+    public override void resetProperty()
+    {
+        base.resetProperty();
+		mController = null;
+		mData.resetProperty();
+    }
 	//---------------------------------------------------------------------------------
 	protected override void initComponents()
 	{

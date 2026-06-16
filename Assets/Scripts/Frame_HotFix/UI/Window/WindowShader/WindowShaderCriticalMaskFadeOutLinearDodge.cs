@@ -9,7 +9,13 @@ public class WindowShaderCriticalMaskFadeOutLinearDodge : WindowShaderCriticalMa
 	{
 		mFadeOutCriticalValueID = Shader.PropertyToID("_FadeOutCriticalValue");
 	}
-	public void setFadeOutCriticalValue(float value) { mFadeOutCriticalValue = value; }
+    public override void resetProperty()
+    {
+        base.resetProperty();
+		mFadeOutCriticalValue = 0;
+		//mFadeOutCriticalValueID = 0;
+    }
+    public void setFadeOutCriticalValue(float value) { mFadeOutCriticalValue = value; }
 	public override void applyShader(Material mat)
 	{
 		base.applyShader(mat);

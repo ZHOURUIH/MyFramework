@@ -1,7 +1,4 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-using System;
 using System.Collections.Generic;
-using static FrameUtility;
 using static TestAssert;
 
 public class HashSetExtensionTest
@@ -504,4 +501,3 @@ public class HashSetExtensionTest
 		assertEqual(0, nullSet.count());
 	}
 }
-#endif

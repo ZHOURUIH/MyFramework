@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using static TestAssert;
 
 // Undo 抽象类单元测试
@@ -34,9 +33,13 @@ public static class UndoTest
 public class TestUndo : MyUndo
 {
 	public bool mUndoCalled;
+    public override void resetProperty()
+    {
+        base.resetProperty();
+		mUndoCalled = false;
+    }
 	public override void undo()
 	{
 		mUndoCalled = true;
 	}
 }
-#endif

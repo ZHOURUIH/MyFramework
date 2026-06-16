@@ -197,7 +197,7 @@ public class UGUISubGeneratorInspector : GameInspector
 						generatedInitLines.add("\t\tm" + data.getMemberName() + ".registeColliderImage(" + "on" + data.getMemberName() + "Click);");
 						clickCallbackCheckLists.add(generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click()"));
 					}
-					else if (data.getTypeName() == typeof(TabItem).ToString())
+					else if (data.getTypeName() == typeof(UGUITab).ToString())
 					{
 						generatedInitLines.add("\t\tm" + data.getMemberName() + ".setCallback(" + "on" + data.getMemberName() + "Click);");
 						clickCallbackCheckLists.add(generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click()"));

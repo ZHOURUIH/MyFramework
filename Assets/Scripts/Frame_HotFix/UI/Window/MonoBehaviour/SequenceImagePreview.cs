@@ -1,10 +1,13 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEditor;
+using UnityEngine;
 using UnityEngine.UI;
+using static TMPro.SpriteAssetUtilities.TexturePacker_JsonArray;
 
 [ExecuteAlways]
 [RequireComponent(typeof(Image))]
 [RequireComponent(typeof(ImageAtlasPath))]
-public class SequenceImagePreview : SequenceImagePreviewBase
+public class SequenceImagePreview : SequenceSpritePreviewBase
 {
 #if UNITY_EDITOR
 	protected Image mImage;
@@ -12,8 +15,8 @@ public class SequenceImagePreview : SequenceImagePreviewBase
 	{
 		base.Awake();
 		mImage = GetComponentInChildren<Image>();
-	}
-	protected override Component getSpriteComponent()
+    }
+    protected override Component getSpriteComponent()
 	{
 		return mImage;
 	}

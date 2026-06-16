@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using static TestAssert;
 
 // NetPacketByte 单元测试
@@ -48,4 +47,3 @@ public static class NetPacketByteTest
 		assertTrue(packet.hasSign(), "hasSign 应返回 true");
 	}
 }
-#endif

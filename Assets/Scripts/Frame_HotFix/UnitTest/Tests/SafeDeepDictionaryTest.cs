@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System.Collections.Generic;
 using static TestAssert;
 
@@ -263,4 +262,3 @@ public class SafeDeepDictionaryTest
 		assertEqual(777, val);
 	}
 }
-#endif

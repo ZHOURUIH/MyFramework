@@ -1,5 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-using System.Collections.Generic;
 using static TestAssert;
 
 public class SafeDeepListReaderTest
@@ -99,4 +97,3 @@ public class SafeDeepListReaderTest
 		reader.Dispose();
 	}
 }
-#endif

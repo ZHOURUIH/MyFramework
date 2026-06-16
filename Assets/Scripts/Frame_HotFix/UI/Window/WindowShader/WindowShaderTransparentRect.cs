@@ -21,7 +21,20 @@ public class WindowShaderTransparentRect : WindowShader
 		mCenterXID = Shader.PropertyToID("_CenterX");
 		mCenterYID = Shader.PropertyToID("_CenterY");
 	}
-	public void setMaxSize(Vector2 size) { mMaxSize = size; }
+    public override void resetProperty()
+    {
+        base.resetProperty();
+		//mMaxSizeXID = 0;
+		//mMaxSizeYID = 0;
+		//mSizeXID = 0;
+		//mSizeYID = 0;
+		//mCenterXID = 0;
+		//mCenterYID = 0;
+		mMaxSize = Vector2.zero;
+        mSize = Vector2.zero;
+        mCenter = Vector2.zero;
+    }
+    public void setMaxSize(Vector2 size) { mMaxSize = size; }
 	public void setRectSize(Vector2 size) { mSize = size; }
 	public void setRectCenter(Vector2 pos) { mCenter = pos; }
 	public override void applyShader(Material mat)

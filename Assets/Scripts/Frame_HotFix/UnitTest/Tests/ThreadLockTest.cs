@@ -1,6 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-using System;
-using System.Threading;
 using static TestAssert;
 
 // ThreadLock 线程锁测试
@@ -97,4 +94,3 @@ public static class ThreadLockTest
         lockObj.destroy();
     }
 }
-#endif

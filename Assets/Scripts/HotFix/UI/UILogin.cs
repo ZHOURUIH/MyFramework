@@ -2,7 +2,7 @@
 using static FrameUtility;
 using static GBH;
 
-	// auto generate member start
+// auto generate member start
 // generate from:Assets/GameResources/UI/UIPrefab/UILogin.prefab
 // 登录界面
 [ObfuzIgnore(ObfuzScope.TypeName)]
@@ -28,7 +28,9 @@ public class UILogin : LayoutScript
 	public override void init()
 	{
 		base.init();
+		// auto generate init start
 		mLogin.registeCollider(onLoginClick);
+		// auto generate init end
 		delayCall(() => { mLogin.SEQUENCE(); });
 	}
 	public override void update(float elapsedTime)

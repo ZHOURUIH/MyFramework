@@ -9,6 +9,12 @@ public class WindowShaderLumOffset : WindowShader
 	{
 		mLumOffsetID = Shader.PropertyToID("_LumOffset");
 	}
+    public override void resetProperty()
+    {
+        base.resetProperty();
+		mLumOffsetValue = 0.0f;
+		//mLumOffsetID = 0;
+    }
 	public void setLumOffset(float lumOffset){ mLumOffsetValue = lumOffset;}
 	public float getLumOffset() { return mLumOffsetValue; }
 	public override void applyShader(Material mat)

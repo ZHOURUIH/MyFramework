@@ -16,7 +16,16 @@ public class WindowShaderMaskCut : WindowShader
 		mSizeXID = Shader.PropertyToID("_SizeX");
 		mSizeYID = Shader.PropertyToID("_SizeY");
 	}
-	public void setMaskTexture(Texture mask) { mMask = mask; }
+    public override void resetProperty()
+    {
+        base.resetProperty();
+		mMask = null;
+		mMaskScale = Vector2.zero;
+        //mMaskTexID = 0;
+        //mSizeXID = 0;
+        //mSizeYID = 0;
+    }
+    public void setMaskTexture(Texture mask) { mMask = mask; }
 	public void setMaskScale(Vector2 scale) { mMaskScale = scale; }
 	public override void applyShader(Material mat)
 	{

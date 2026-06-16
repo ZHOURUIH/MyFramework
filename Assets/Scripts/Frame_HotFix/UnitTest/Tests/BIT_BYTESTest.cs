@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using static TestAssert;
@@ -204,7 +203,7 @@ public class BIT_BYTESTest
 	}
 	private static void testListOperationsIndexOf()
 	{
-		BIT_BYTES instance = new BIT_BYTES();
+		BIT_BYTES instance = new();
 		instance.add((byte)10);
 		instance.add((byte)20);
 		assertEqual(0, instance.mValue.IndexOf((byte)10));
@@ -212,35 +211,35 @@ public class BIT_BYTESTest
 	}
 	private static void testListOperationsInsert()
 	{
-		BIT_BYTES instance = new BIT_BYTES();
-		instance.add((byte)1);
-		instance.add((byte)3);
-		instance.mValue.Insert(1, (byte)2);
+		BIT_BYTES instance = new();
+		instance.add(1);
+		instance.add(3);
+		instance.mValue.Insert(1, 2);
 		assertEqual(3, instance.Count);
 		assertEqual((byte)2, instance[1]);
 	}
 	private static void testListOperationsRemoveAt()
 	{
-		BIT_BYTES instance = new BIT_BYTES();
-		instance.add((byte)1);
-		instance.add((byte)2);
-		instance.add((byte)3);
+		BIT_BYTES instance = new();
+		instance.add(1);
+		instance.add(2);
+		instance.add(3);
 		instance.mValue.RemoveAt(1);
 		assertEqual(2, instance.Count);
 	}
 	private static void testListOperationsCount()
 	{
-		BIT_BYTES instance = new BIT_BYTES();
+		BIT_BYTES instance = new();
 		assertEqual(0, instance.Count);
 		instance.add((byte)1);
 		assertEqual(1, instance.Count);
 	}
 	private static void testListInCollection()
 	{
-		List<BIT_BYTES> list = new List<BIT_BYTES>();
+		List<BIT_BYTES> list = new();
 		for (int i = 0; i < 3; i++)
 		{
-			BIT_BYTES item = new BIT_BYTES();
+			BIT_BYTES item = new();
 			item.add((byte)i);
 			list.Add(item);
 		}
@@ -248,33 +247,34 @@ public class BIT_BYTESTest
 	}
 	private static void testListEquality()
 	{
-		BIT_BYTES a = new BIT_BYTES();
-		BIT_BYTES b = new BIT_BYTES();
-		a.add((byte)42); b.add((byte)42);
+		BIT_BYTES a = new();
+		BIT_BYTES b = new();
+		a.add(42); 
+		b.add(42);
 		assertEqual(a.Count, b.Count);
 		assertEqual(a[0], b[0]);
 	}
 	private static void testListHashCode()
 	{
-		BIT_BYTES a = new BIT_BYTES();
-		a.add((byte)42);
+		BIT_BYTES a = new();
+		a.add(42);
 		int hash1 = a.GetHashCode();
 		int hash2 = a.GetHashCode();
 		assertEqual(hash1, hash2);
 	}
 	private static void testListToString()
 	{
-		BIT_BYTES instance = new BIT_BYTES();
-		instance.add((byte)42);
+		BIT_BYTES instance = new();
+		instance.add(42);
 		string str = instance.mValue.ToString();
 		assertTrue(str.Length > 0);
 	}
 	private static void testEnumerator()
 	{
-		BIT_BYTES instance = new BIT_BYTES();
-		instance.add((byte)1);
-		instance.add((byte)2);
-		instance.add((byte)3);
+		BIT_BYTES instance = new();
+		instance.add(1);
+		instance.add(2);
+		instance.add(3);
 		byte sum = 0;
 		foreach (byte val in instance)
 		{
@@ -284,25 +284,27 @@ public class BIT_BYTESTest
 	}
 	private static void testTwoInstancesIndependent()
 	{
-		BIT_BYTES a = new BIT_BYTES();
-		BIT_BYTES b = new BIT_BYTES();
-		a.add((byte)1); a.add((byte)2);
-		b.add((byte)3); b.add((byte)4);
+		BIT_BYTES a = new();
+		BIT_BYTES b = new();
+		a.add(1); 
+		a.add(2);
+		b.add(3); 
+		b.add(4);
 		assertEqual(2, a.Count);
 		assertEqual(2, b.Count);
 	}
 	private static void testSetAfterReset()
 	{
-		BIT_BYTES instance = new BIT_BYTES();
+		BIT_BYTES instance = new();
 		instance.resetProperty();
 		assertEqual(0, instance.Count);
-		instance.add((byte)123);
+		instance.add(123);
 		assertEqual(1, instance.Count);
 	}
 	private static void testMultipleResets()
 	{
-		BIT_BYTES instance = new BIT_BYTES();
-		instance.add((byte)99);
+		BIT_BYTES instance = new();
+		instance.add(99);
 		instance.resetProperty();
 		assertEqual(0, instance.Count);
 		instance.resetProperty();
@@ -310,7 +312,7 @@ public class BIT_BYTESTest
 	}
 	private static void testLargeList()
 	{
-		BIT_BYTES instance = new BIT_BYTES();
+		BIT_BYTES instance = new();
 		for (int i = 0; i < 100; i++)
 		{
 			instance.add((byte)(i % 256));
@@ -319,28 +321,27 @@ public class BIT_BYTESTest
 	}
 	private static void testEmptyList()
 	{
-		BIT_BYTES instance = new BIT_BYTES();
+		BIT_BYTES instance = new();
 		assertEqual(0, instance.Count);
 	}
 	private static void testSingleElementList()
 	{
-		BIT_BYTES instance = new BIT_BYTES();
-		instance.add((byte)42);
+		BIT_BYTES instance = new();
+		instance.add(42);
 		assertEqual(1, instance.Count);
 		assertEqual((byte)42, instance[0]);
 	}
 	private static void testDuplicateValues()
 	{
-		BIT_BYTES instance = new BIT_BYTES();
-		instance.add((byte)42);
-		instance.add((byte)42);
+		BIT_BYTES instance = new();
+		instance.add(42);
+		instance.add(42);
 		assertEqual(2, instance.Count);
 	}
 	private static void testMaxValue()
 	{
-		BIT_BYTES instance = new BIT_BYTES();
+		BIT_BYTES instance = new();
 		instance.add(byte.MaxValue);
 		assertEqual(byte.MaxValue, instance[0]);
 	}
 }
-#endif

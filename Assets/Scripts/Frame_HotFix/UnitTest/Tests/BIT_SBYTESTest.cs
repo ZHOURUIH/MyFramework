@@ -1,8 +1,6 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using static TestAssert;
-using static BIT_SBYTES;
 
 public class BIT_SBYTESTest
 {
@@ -334,4 +332,3 @@ public class BIT_SBYTESTest
 		assertEqual(sbyte.MinValue, instance[1]);
 	}
 }
-#endif

@@ -148,7 +148,11 @@ public class ScrollViewPanel : WindowObjectUGUI
 		mSlider.setSliderCallback(() => { log("slider变化:" + FToS(mSlider.getValue())); });
 		mCheckBox.setCheckCallback((UGUICheckbox checkbox) => { log("checkbox变化:" + checkbox.isChecked()); });
 		mSimpleImageButton.registeCollider(() => { log("mSimpleImageButton被点击"); });
-		mImageButton.registeCollider(() => { log("mImageButton被点击"); mImageButton.setSelected(!mImageButton.isSelected()); });
+		mImageButton.registeCollider(() => 
+		{
+			log("mImageButton被点击");
+			mImageButton.setSelected(!mImageButton.isSelected()); }
+		);
 		mImageButton.setSelectedSprite("Button1");
 		mImageNumber.setNumber(0);
 		mNumber.setNumber(0);

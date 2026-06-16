@@ -28,6 +28,7 @@ public class UGUIGeneratorUtility
 	protected static List<string> mTempAvailableTypeList = new();
 	public static void drawMemberInspector(UGUIGeneratorBase generator)
 	{
+		label("可以选中节点再按Ctrl+W将节点添加到下面");
 		using (new GUILayout.HorizontalScope())
 		{
 			if (button("添加节点", 200, 25))
@@ -159,7 +160,7 @@ public class UGUIGeneratorUtility
 		}
 		bool hasRegisterTypes = item.mType == typeof(LegendButton).ToString() ||
 								item.mType == typeof(UGUICheckbox).ToString() ||
-								item.mType == typeof(TabItem).ToString();
+								item.mType == typeof(UGUITab).ToString();
 		if ((item.mWindowType == WINDOW_TYPE.NORMAL_WINDOW ||
 			(item.mWindowType == WINDOW_TYPE.COMMON_CONTROL && hasRegisterTypes)) && item.mArrayType == ARRAY_TYPE.NONE)
 		{

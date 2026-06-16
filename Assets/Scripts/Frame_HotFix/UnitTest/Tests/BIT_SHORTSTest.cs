@@ -1,8 +1,6 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using static TestAssert;
-using static BIT_SHORTS;
 
 public class BIT_SHORTSTest
 {
@@ -359,4 +357,3 @@ public class BIT_SHORTSTest
 		assertEqual(short.MinValue, instance[1]);
 	}
 }
-#endif

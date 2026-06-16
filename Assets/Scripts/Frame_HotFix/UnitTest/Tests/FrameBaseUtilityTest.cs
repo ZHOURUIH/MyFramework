@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using static FrameBaseUtility;
 
@@ -64,8 +63,25 @@ public static class FrameBaseUtilityTest
 		AssertEqual("0.0.0", v);
 	}
 
-	private static void Assert(bool c) { if (!c) throw new Exception("Assert failed"); }
-	private static void AssertEqual(int e, int a) { if (e != a) throw new Exception($"Expected [{e}] got [{a}]"); }
-	private static void AssertEqual(string e, string a) { if (e != a) throw new Exception($"Expected [{e}] got [{a}]"); }
+	private static void Assert(bool c) 
+	{
+		if (!c)
+		{
+			throw new Exception("Assert failed");
+		}
+	}
+	private static void AssertEqual(int e, int a) 
+	{
+		if (e != a)
+		{
+			throw new Exception($"Expected [{e}] got [{a}]");
+		}
+	}
+	private static void AssertEqual(string e, string a) 
+	{
+		if (e != a)
+		{
+			throw new Exception($"Expected [{e}] got [{a}]");
+		}
+	}
 }
-#endif

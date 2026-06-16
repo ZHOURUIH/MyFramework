@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using UnityEngine;
 using static TestAssert;
 
@@ -16,4 +15,3 @@ public static class Vector2IntExtensionTest
         assertEqual(new Vector3(3, 4), v3);
     }
 }
-#endif
