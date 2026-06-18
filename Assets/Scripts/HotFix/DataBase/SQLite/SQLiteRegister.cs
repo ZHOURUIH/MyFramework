@@ -1,5 +1,4 @@
-﻿#if USE_SQLITE
-// auto generate start
+﻿// auto generate start
 using System;
 using static GBR;
 using static FrameBaseHotFix;
@@ -19,4 +18,3 @@ public class SQLiteRegister
 	}
 }
 // auto generate end
-#endif

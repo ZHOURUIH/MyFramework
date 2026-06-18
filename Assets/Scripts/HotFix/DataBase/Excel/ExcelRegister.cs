@@ -7,6 +7,8 @@ public class ExcelRegister
 {
 	public static void registeAll()
 	{
+		registeTable(out mExcelAchivement, typeof(EDAchivement), "Achivement");
+		registeTable(out mExcelTest, typeof(EDTest), "Test");
 
 		// 进入热更以后,所有资源都处于可用状态
 		mExcelManager.resourceAvailable();

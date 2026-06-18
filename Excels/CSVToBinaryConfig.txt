@@ -1,0 +1,6 @@
+// csv表格所在的路径
+CSVPath=E:\Github\Project_Framework\MyFramework\Excels
+// 生成的客户端使用的二进制文件的目录
+ClientDestPath=E:\Github\Project_Framework\MyFramework\Assets\GameResources\Excel
+// 生成的服务器使用的二进制文件的目录
+ServerDestPath=E:\Github\Project_Framework\MyServerFramework\media\Excel

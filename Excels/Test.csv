@@ -1,0 +1,17 @@
+测试例子的表格,,,,,,,,,,,,,
+Both,,,,,,,,,,,,,
+ID,TestString,TestInt,TestLong,TestVector2Int,TestVector2,TestEnum,TestList0,TestList1,TestFloat,TestStringList,TestLinkTable0,TestLinkTable1,TestPath
+int,string,int,llong,Vector2Int,Vector2,TEST_ENUM(byte),Vector<int>,Vector<int>,float,Vector<string>,int,Vector<int>,string
+Both,Both,Both,Both,Both,Both,Both,Both,Both,Both,Both,Both,Both,Both
+唯一ID,测试字符串,测试整数,测试长整数,测试整数二维向量,测试二维向量,测试枚举,测试整数列表,测试整数列表,测试浮点数,测试字符串列表,测试索引到其他表格,测试索引到其他表格,"测试文件路径,GameResources下的相对路径"
+,,,,,,,,,,,Achivement,Achivement,
+,,,,,,,TestList0,TestList0,,,,,
+,,,,,,,,,,,,,Path
+1,Test1,1,10000000000,"1,2","1.1,1.2",1,"1,2,3,4","5,6,7,8",1.1,"test,123,aaa",1,"1,2,3,4",Test/1.txt
+2,Test2,2,10000000001,"1,2","1.1,1.2",1,"1,2,3,4","5,6,7,8",1.2,"test,123,aaa",1,"1,2,3,4",Test/1.txt
+3,Test3,3,10000000002,"1,2","1.1,1.2",1,"1,2,3,4","5,6,7,8",1.3,"test,123,aaa",1,"1,2,3,4",Test/1.txt
+4,Test4,4,10000000003,"1,2","1.1,1.2",2,"1,2,3,4","5,6,7,8",1.4,"test,123,aaa",2,"1,2,3,4",Test/1.txt
+5,Test5,5,10000000004,"1,2","1.1,1.2",2,"1,2,3,4","5,6,7,8",1.5,"test,123,aaa",2,"1,2,3,4",Test/1.txt
+6,Test6,6,10000000005,"1,2","1.1,1.2",2,"1,2,3,4","5,6,7,8",1.6,"test,123,aaa",2,"1,2,3,4",Test/1.txt
+7,Test7,7,10000000006,"1,2","1.1,1.2",2,"1,2,3,4","5,6,7,8",1.7,"test,123,aaa",2,"1,2,3,4",Test/1.txt
+8,Test8,8,10000000007,"1,2","1.1,1.2",2,"1,2,3,4","5,6,7,8",1.8,"test,123,aaa",2,"1,2,3,4",Test/1.txt

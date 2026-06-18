@@ -9,7 +9,8 @@ public class GameHotFix : GameHotFixBase<GameHotFix>
 	{
 		LayoutRegisterHotFix.registeAll();
 		PacketRegister.registeAll();
-	}
+		ExcelRegister.registeAll();
+    }
 	protected override void initFrameSystem()
 	{
 		registeFrameSystem<NetManager>((com) =>		{ mNetManager = com; });

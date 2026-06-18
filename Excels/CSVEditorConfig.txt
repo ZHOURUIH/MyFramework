@@ -1,0 +1,4 @@
+// csv表格文件所在目录
+CSVPath=E:\Github\Project_Framework\MyFramework\Excels
+// 转换表格的脚本文件的路径
+CSVToBinaryExePath=E:\Github\Project_Framework\MyFramework\Excels/.转换表格文件.bat
