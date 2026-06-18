@@ -8,7 +8,6 @@ public:
 	SQLiteDataReader(sqlite3* sqlite, const char* queryStr);
 	virtual ~SQLiteDataReader();
 public:	
-	void startQuery(sqlite3* sqlite, const char* queryStr);
 	void setSQLite3STMT(sqlite3_stmt* stmt) { mStmt = stmt; }
 	// 读取一行数据,需要循环调用来读取多行数据
 	bool read() const { return mStmt != nullptr && sqlite3_step(mStmt) == SQLITE_ROW; }

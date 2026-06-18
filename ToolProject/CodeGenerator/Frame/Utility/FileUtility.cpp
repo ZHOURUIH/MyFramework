@@ -12,6 +12,20 @@ void FileUtility::validPath(string& path)
 	}
 }
 
+myVector<string> FileUtility::findFiles(const string& pathName, const string& patterns, bool recursive)
+{
+	myVector<string> files;
+	findFiles(pathName, files, &patterns, 1, recursive);
+	return files;
+}
+
+myVector<string> FileUtility::findFiles(const string& path, const string* patterns, uint patternCount, bool recursive)
+{
+	myVector<string> files;
+	findFiles(path, files, patterns, patternCount, recursive);
+	return files;
+}
+
 void FileUtility::findFiles(const string& pathName, myVector<string>& files, const string& patterns, bool recursive)
 {
 	findFiles(pathName, files, &patterns, 1, recursive);
@@ -360,7 +374,7 @@ bool FileUtility::deleteEmptyFolder(const string& path)
 }
 #endif
 
-void FileUtility::deleteFile(const string& fileName)
+void FileUtility::deleteFile1(const string& fileName)
 {
 	if (!isFileExist(fileName))
 	{
@@ -420,21 +434,21 @@ bool FileUtility::createFolder(const string& path)
 	return true;
 }
 
-bool FileUtility::writeFileIfChanged(const string& filePath, const string& text)
+bool FileUtility::writeFileIfChanged1(const string& filePath, const string& text)
 {
-	if (openTxtFile(filePath, false) != text)
+	if (openTxtFile1(filePath, false) != text)
 	{
-		return writeFile(filePath, text);
+		return writeFile1(filePath, text);
 	}
 	return true;
 }
 
-bool FileUtility::writeFile(string filePath, const string& text, bool append)
+bool FileUtility::writeFile1(string filePath, const string& text, bool append)
 {
-	return writeFile(filePath, text.c_str(), (uint)text.length(), append);
+	return writeFile1(filePath, text.c_str(), (uint)text.length(), append);
 }
 
-bool FileUtility::writeFile(string filePath, const char* buffer, uint length, bool append)
+bool FileUtility::writeFile1(string filePath, const char* buffer, uint length, bool append)
 {
 	// 检查参数
 	if (buffer == NULL)
@@ -455,10 +469,10 @@ bool FileUtility::writeFile(string filePath, const char* buffer, uint length, bo
 		ERROR("can not create folder, name : " + path);
 		return false;
 	}
-	return writeFileSimple(filePath, buffer, length, append);
+	return writeFileSimple1(filePath, buffer, length, append);
 }
 
-bool FileUtility::writeFileSimple(const string& fileName, const char* buffer, uint writeCount, bool append)
+bool FileUtility::writeFileSimple1(const string& fileName, const char* buffer, uint writeCount, bool append)
 {
 	const char* accesMode = append ? "ab+" : "wb+";
 #if RUN_PLATFORM == PLATFORM_WINDOWS
@@ -469,7 +483,8 @@ bool FileUtility::writeFileSimple(const string& fileName, const char* buffer, ui
 #endif
 	if (pFile == NULL)
 	{
-		ERROR("can not write file, name : " + fileName);
+		const int err = errno;
+		ERROR("can not write file: " + fileName + ", errno=" + to_string(err) + ", msg=" + strerror(err));
 		return false;
 	}
 	fwrite(buffer, sizeof(char), writeCount, pFile);
@@ -477,12 +492,12 @@ bool FileUtility::writeFileSimple(const string& fileName, const char* buffer, ui
 	return true;
 }
 
-bool FileUtility::writeFileSimple(const string& fileName, const string& text, bool append)
+bool FileUtility::writeFileSimple1(const string& fileName, const string& text, bool append)
 {
-	return writeFileSimple(fileName, text.c_str(), (uint)text.length(), append);
+	return writeFileSimple1(fileName, text.c_str(), (uint)text.length(), append);
 }
 
-void FileUtility::openFile(const string& filePath, FileContent& fileContent, bool addZero, bool* hasBOM)
+void FileUtility::openFile1(const string& filePath, FileContent& fileContent, bool addZero, bool* hasBOM)
 {
 	FILE* pFile = NULL;
 #if RUN_PLATFORM == PLATFORM_WINDOWS
@@ -522,10 +537,10 @@ void FileUtility::openFile(const string& filePath, FileContent& fileContent, boo
 	}
 }
 
-string FileUtility::openTxtFile(const string& filePath, bool utf8ToANSI, bool* hasBOM)
+string FileUtility::openTxtFile1(const string& filePath, bool utf8ToANSI, bool* hasBOM)
 {
 	FileContent file;
-	openFile(filePath, file, true, hasBOM);
+	openFile1(filePath, file, true, hasBOM);
 	if (file.mBuffer == nullptr)
 	{
 		return "";
@@ -540,10 +555,10 @@ string FileUtility::openTxtFile(const string& filePath, bool utf8ToANSI, bool* h
 	}
 }
 
-myVector<string> FileUtility::openTxtFileLines(const string& filePath, bool utf8ToANSI, bool* hasBOM)
+myVector<string> FileUtility::openTxtFileLines1(const string& filePath, bool utf8ToANSI, bool* hasBOM)
 {
 	myVector<string> fileLines;
-	split(openTxtFile(filePath, utf8ToANSI, hasBOM).c_str(), "\n", fileLines, false);
+	split(openTxtFile1(filePath, utf8ToANSI, hasBOM).c_str(), "\n", fileLines, false);
 	FOR_VECTOR(fileLines)
 	{
 		removeAll(fileLines[i], '\r');
@@ -551,9 +566,9 @@ myVector<string> FileUtility::openTxtFileLines(const string& filePath, bool utf8
 	return fileLines;
 }
 
-void FileUtility::openBinaryFile(const string& filePath, FileContent& fileContent, bool* hasBOM)
+void FileUtility::openBinaryFile1(const string& filePath, FileContent& fileContent, bool* hasBOM)
 {
-	return openFile(filePath, fileContent, false, hasBOM);
+	return openFile1(filePath, fileContent, false, hasBOM);
 }
 
 bool FileUtility::moveFile(const string& fileName, const string& newName, bool forceCover)
@@ -573,7 +588,7 @@ bool FileUtility::renameFile(const string& fileName, const string& newName, bool
 	{
 		if (forceCover)
 		{
-			deleteFile(newName);
+			deleteFile1(newName);
 		}
 		else
 		{

@@ -12,8 +12,48 @@ string CodeUtility::cppFramePath;
 string CodeUtility::cppGameStringDefineHeaderFile;
 string CodeUtility::VirtualClientSocketPath;
 string CodeUtility::SQLitePath;
+string CodeUtility::ExcelPath;
 string CodeUtility::START_FALG = "#start";
 bool CodeUtility::mGenerateVirtualClient = false;
+myMap<string, myVector<string>> CodeUtility::mCachedFileLines;
+
+myVector<string> CodeUtility::openFile(const string& file)
+{
+	auto* cache = mCachedFileLines.getPtr(file);
+	if (cache != nullptr)
+	{
+		return *cache;
+	}
+	auto lines = openTxtFileLines1(file);
+	mCachedFileLines.insert(file, lines);
+	return lines;
+}
+
+void CodeUtility::writeFile(const string& file, const myVector<string>& content)
+{
+	if (openFile(file) == content)
+	{
+		return;
+	}
+	mCachedFileLines.set(file, content);
+	FileUtility::writeFile1(file, ANSIToUTF8(codeListToString(content).c_str(), true));
+}
+
+void CodeUtility::writeFile(const string& file, const string& ansiContent)
+{
+	if (codeListToString(openFile(file)) == ansiContent)
+	{
+		return;
+	}
+	mCachedFileLines.set(file, splitLine(ansiContent.c_str(), false));
+	FileUtility::writeFile1(file, ANSIToUTF8(ansiContent.c_str(), true));
+}
+
+void CodeUtility::deleteFile(const string& file)
+{
+	mCachedFileLines.erase(file);
+	FileUtility::deleteFile1(file);
+}
 
 string CodeUtility::replaceVariable(const myMap<string, string>& variableDefine, const string& value)
 {
@@ -30,7 +70,7 @@ string CodeUtility::replaceVariable(const myMap<string, string>& variableDefine,
 
 bool CodeUtility::initPath()
 {
-	myVector<string> configLines = openTxtFileLines("./CodeGenerator_Config.txt");
+	myVector<string> configLines = openTxtFileLines1("./CodeGenerator_Config.txt");
 	if (configLines.size() == 0)
 	{
 		ERROR("未找到配置文件CodeGenerator_Config.txt");
@@ -114,9 +154,13 @@ bool CodeUtility::initPath()
 		{
 			SQLitePath = paramValue;
 		}
+		else if (paramName == "EXCEL_PATH")
+		{
+			ExcelPath = paramValue;
+		}
 		else if (paramName == "VIRTUAL_CLIENT")
 		{
-			mGenerateVirtualClient = stringToBool(paramValue);
+			mGenerateVirtualClient = SToBool(paramValue);
 		}
 	}
 
@@ -128,12 +172,14 @@ bool CodeUtility::initPath()
 	rightToLeft(ServerGameProjectPath);
 	rightToLeft(ServerFrameProjectPath);
 	rightToLeft(SQLitePath);
+	rightToLeft(ExcelPath);
 	rightToLeft(ClientProjectPath);
 	rightToLeft(ClientHotFixPath);
 	rightToLeft(VirtualClientProjectPath);
 	validPath(ServerGameProjectPath);
 	validPath(ServerFrameProjectPath);
 	validPath(SQLitePath);
+	validPath(ExcelPath);
 	validPath(ClientProjectPath);
 	validPath(ClientHotFixPath);
 	validPath(VirtualClientProjectPath);
@@ -145,9 +191,23 @@ bool CodeUtility::initPath()
 	}
 	if (!VirtualClientProjectPath.empty())
 	{
-		VirtualClientSocketPath = VirtualClientProjectPath + "Assets/Scripts/Game/Socket/";
+		VirtualClientSocketPath = VirtualClientProjectPath + "Assets/Scripts/HotFix/Socket/";
 	}
 	return true;
+}
+
+string CodeUtility::getElementTypeCpp(const string& type)
+{
+	int lastPos;
+	findSubstr(type, ">", &lastPos);
+	return type.substr(strlen("Vector<"), lastPos - strlen("Vector<"));
+}
+
+string CodeUtility::getElementTypeCS(const string& type)
+{
+	int lastPos;
+	findSubstr(type, ">", &lastPos);
+	return type.substr(strlen("List<"), lastPos - strlen("List<"));
 }
 
 MySQLMember CodeUtility::parseMySQLMemberLine(string line)
@@ -177,70 +237,6 @@ MySQLMember CodeUtility::parseMySQLMemberLine(string line)
 	}
 	memberInfo.mTypeName = memberStrList[0];
 	memberInfo.mMemberName = memberStrList[1];
-	return memberInfo;
-}
-
-SQLiteMember CodeUtility::parseSQLiteMemberLine(string line, bool ignoreClientServer)
-{
-	SQLiteMember memberInfo;
-	
-	// 字段注释
-	int pos = -1;
-	if (findString(line.c_str(), "//", &pos))
-	{
-		memberInfo.mComment = line.substr(pos + strlen("//"));
-		removeStartAll(memberInfo.mComment, ' ');
-		line = line.substr(0, pos);
-	}
-
-	// 该字段属于客户端还是服务器
-	int rectStartIndex = (int)line.find_first_of('[');
-	int rectEndIndex = (int)line.find_first_of(']', rectStartIndex);
-	if (rectStartIndex >= 0 && rectEndIndex >= 0)
-	{
-		string owner = line.substr(rectStartIndex, rectEndIndex - rectStartIndex + 1);
-		if (ignoreClientServer)
-		{
-			memberInfo.mOwner = SQLITE_OWNER::BOTH;
-		}
-		else
-		{
-			if (owner == "[Client]")
-			{
-				memberInfo.mOwner = SQLITE_OWNER::CLIENT_ONLY;
-			}
-			else if (owner == "[Server]")
-			{
-				memberInfo.mOwner = SQLITE_OWNER::SERVER_ONLY;
-			}
-			else if (owner == "[None]")
-			{
-				memberInfo.mOwner = SQLITE_OWNER::NONE;
-			}
-			else
-			{
-				memberInfo.mOwner = SQLITE_OWNER::BOTH;
-			}
-		}
-		line.erase(rectStartIndex, rectEndIndex - rectStartIndex + 1);
-	}
-	else
-	{
-		memberInfo.mOwner = SQLITE_OWNER::BOTH;
-	}
-	// 字段类型和字段名
-	myVector<string> memberStrList;
-	split(line.c_str(), " ", memberStrList);
-	memberInfo.mTypeName = memberStrList[0];
-	memberInfo.mMemberName = memberStrList[1];
-	// 枚举类型的实际基础数据类型
-	int leftPos = 0;
-	int rightPos = 0;
-	if (findSubstr(memberInfo.mTypeName, "(", &leftPos) && findSubstr(memberInfo.mTypeName, ")",&rightPos))
-	{
-		memberInfo.mEnumRealType = memberInfo.mTypeName.substr(leftPos + 1, rightPos - leftPos - 1);
-		memberInfo.mTypeName = memberInfo.mTypeName.erase(leftPos, rightPos - leftPos + 1);
-	}
 	return memberInfo;
 }
 
@@ -330,24 +326,9 @@ string CodeUtility::cSharpPushParamString(const PacketMember& memberInfo)
 
 string CodeUtility::cppTypeToCSharpType(const string& cppType)
 {
-	if (cppType == "char")
-	{
-		return "sbyte";
-	}
-	else if (cppType == "ullong" || cppType == "llong")
-	{
-		return "long";
-	}
-	else if (cppType == "Vector<char>")
-	{
-		return "List<sbyte>";
-	}
-	else if (cppType == "Vector<ullong>" || cppType == "Vector<llong>")
-	{
-		return "List<long>";
-	}
 	string csharpType = cppType;
-	// 为了避免误判断Vector2等以Vector开头的类型,需要加上<
+	replaceAll(csharpType, "char", "sbyte");
+	replaceAll(csharpType, "llong", "long");
 	replaceAll(csharpType, "Vector<", "List<");
 	return csharpType;
 }
@@ -510,29 +491,22 @@ void CodeUtility::parsePacketName(const string& line, PacketInfo& packetInfo)
 
 string CodeUtility::convertToCSharpType(const string& cppType)
 {
+	string newType = cppType;
 	// 因为模板文件是按照C++来写的,但是有些类型在C#中是没有的,所以要转换为C#中对应的类型
 	// Vector替换为List,char替换为sbyte,llong替换为long
 	if (startWith(cppType, "Vector<"))
 	{
-		string newType = cppType;
 		strReplaceAll(newType, "Vector<", "List<");
-		return newType;
 	}
-	if (cppType == "char")
-	{
-		return "sbyte";
-	}
-	if (cppType == "llong")
-	{
-		return "long";
-	}
-	return cppType;
+	strReplaceAll(newType, "char", "sbyte");
+	strReplaceAll(newType, "llong", "long");
+	return newType;
 }
 
 bool CodeUtility::findCustomCode(const string& fullPath, myVector<string>& codeList, int& lineStart, 
 								const LineMatchCallback& startLineMatch, const LineMatchCallback& endLineMatch, bool showError)
 {
-	codeList = openTxtFileLines(fullPath);
+	codeList = openFile(fullPath);
 	lineStart = -1;
 	int endCode = -1;
 	for (int i = 0; i < codeList.size(); ++i)
@@ -575,32 +549,86 @@ bool CodeUtility::findCustomCode(const string& fullPath, myVector<string>& codeL
 	return true;
 }
 
-myVector<string> CodeUtility::findTargetHeaderFile(const string& path, const LineMatchCallback& fileNameMatch, const LineMatchCallback& lineMatch, myMap<string, myVector<string>>* fileContentList)
+myVector<string> CodeUtility::findClass(const string& path, const LineMatchCallback& fileNameMatch, const LineMatchCallback& lineMatch)
 {
-	myVector<string> needDefineCmds;
-	myVector<string> cmdFiles;
-	findFiles(path, cmdFiles, ".h");
-	for (const string& fileName : cmdFiles)
+	return findClass(findFiles(path, ".h"), fileNameMatch, lineMatch);
+}
+
+myVector<string> CodeUtility::findClass(const myVector<string>& files, const LineMatchCallback& fileNameMatch, const LineMatchCallback& lineMatch)
+{
+	myVector<string> classList;
+	for (const string& fileName : files)
 	{
 		if (!fileNameMatch(getFileNameNoSuffix(fileName, true)))
 		{
 			continue;
 		}
-		myVector<string> lines = openTxtFileLines(fileName);
-		for (const string& line : lines)
+		for (const string& line : openFile(fileName))
 		{
 			if (lineMatch(line))
 			{
-				needDefineCmds.push_back(getFileNameNoSuffix(fileName, true));
-				if (fileContentList != nullptr)
+				string className = findClassName(line);
+				if (!className.empty())
 				{
-					fileContentList->insert(getFileNameNoSuffix(fileName, true), lines);
+					classList.push_back(className);
 				}
-				break;
 			}
 		}
 	}
-	return needDefineCmds;
+	return classList;
+}
+
+myVector<string> CodeUtility::findPoolClass(const myVector<string>& files)
+{
+	myVector<string> classList;
+	for (const string& fileName : files)
+	{
+		string cleanFileName = getFileNameNoSuffix(fileName, true);
+		// 排除不可能是对象池的类
+		if (startWith(cleanFileName, "CS") || 
+			startWith(cleanFileName, "SC") ||
+			startWith(cleanFileName, "NetStruct") ||
+			startWith(cleanFileName, "MD") ||
+			startWith(cleanFileName, "ED") ||
+			startWith(cleanFileName, "SD") ||
+			(startWith(cleanFileName, "Cmd") && isUpper(cleanFileName[3])) ||
+			endWith(cleanFileName, "Test"))
+		{
+			continue;
+		}
+		for (const string& line : openFile(fileName))
+		{
+			string poolName0 = getPoolName(line, "CLASS_POOL");
+			if (!poolName0.empty())
+			{
+				classList.push_back(poolName0 + "Pool");
+				continue;
+			}
+		}
+	}
+	return classList;
+}
+
+string CodeUtility::getPoolName(const string& line, const string& preKey)
+{
+	if (!startWith(line, preKey))
+	{
+		return "";
+	}
+	int index0 = -1;
+	if (!findSubstr(line, preKey + "(", &index0) || index0 != 0)
+	{
+		return "";
+	}
+	int index1 = -1;
+	if (findSubstr(line, ",", &index1, index0))
+	{
+		return line.substr(index0 + preKey.length() + 1, index1 - (index0 + preKey.length() + 1));
+	}
+	else
+	{
+		return line.substr(index0 + preKey.length() + 1, line.length() - (index0 + preKey.length() + 1) - 2);
+	}
 }
 
 string CodeUtility::codeListToString(const myVector<string>& codeList)
@@ -615,15 +643,26 @@ string CodeUtility::codeListToString(const myVector<string>& codeList)
 
 string CodeUtility::findClassName(const string& line)
 {
-	if (startWith(line, "class ") && !findString(line.c_str(), ";"))
+	if ((int)line.find_first_of('#') >= 0)
+	{
+		return "";
+	}
+	string newLine = line;
+	int index0 = -1;
+	if (findSubstr(line, "{", &index0))
+	{
+		newLine = line.substr(0, index0);
+		trimEnd(newLine);
+	}
+	if (startWith(newLine, "class ") && !findString(newLine.c_str(), ";"))
 	{
 		// 截取出:前面的字符串
-		int colonPos = (int)line.find(':');
+		int colonPos = (int)newLine.find(':');
 		// 有:,最靠近:的才是类名
 		if (colonPos != -1)
 		{
 			myVector<string> elements;
-			split(line.substr(0, colonPos).c_str(), " ", elements);
+			split(newLine.substr(0, colonPos).c_str(), " ", elements);
 			if (elements.size() == 0)
 			{
 				return "";
@@ -634,7 +673,7 @@ string CodeUtility::findClassName(const string& line)
 		else
 		{
 			myVector<string> elements;
-			split(line.c_str(), " ", elements);
+			split(newLine.c_str(), " ", elements);
 			if (elements.size() == 0)
 			{
 				return "";
@@ -672,16 +711,193 @@ void CodeUtility::generateStringDefine(const myVector<string>& defineList, int s
 	myVector<string> codeListHeader;
 	int lineStartHeader = -1;
 	if (!findCustomCode(stringDefineHeaderFile, codeListHeader, lineStartHeader,
-		[key](const string& codeLine) { return endWith(codeLine, key); },
-		[](const string& codeLine) { return codeLine.length() == 0 || findSubstr(codeLine, "}"); }))
+		[key](const string& codeLine) { return endWith(codeLine, "// auto generate start " + key); },
+		[key](const string& codeLine) { return endWith(codeLine, "// auto generate end " + key); }))
 	{
 		return;
 	}
 
 	for (const string& item : defineList)
 	{
-		const string line = "\tstatic constexpr ushort " + item + " = " + intToString(++startID) + ";";
+		const string line = "\tstatic constexpr ushort " + item + " = " + IToS(++startID) + ";";
 		codeListHeader.insert(++lineStartHeader, line);
 	}
-	writeFile(stringDefineHeaderFile, ANSIToUTF8(codeListToString(codeListHeader).c_str(), true));
+	writeFile(stringDefineHeaderFile, codeListHeader);
+}
+
+void CodeUtility::parseCSVLine(const string& fullContent, myVector<myVector<string>>& result)
+{
+	myVector<string> row;
+	string field;
+	bool inQuotes = false;
+	for (int i = 0; i < (int)fullContent.size(); ++i)
+	{
+		const char c = fullContent[i];
+		if (c == '"')
+		{
+			if (inQuotes && i + 1 < fullContent.size() && fullContent[i + 1] == '"')
+			{
+				// 转义的双引号 ""
+				field.push_back('"');
+				++i;
+			}
+			else
+			{
+				// 进入或退出引号
+				inQuotes = !inQuotes;
+			}
+		}
+		else if (c == ',' && !inQuotes)
+		{
+			// 逗号分隔列
+			row.push_back(field);
+			field.clear();
+		}
+		else if ((c == '\n' || c == '\r') && !inQuotes)
+		{
+			// 遇到换行，完成一行,即使空行也要放进去
+			//if (!field.empty() || !row.isEmpty())
+			{
+				row.push_back(field);
+				field.clear();
+				result.push_back(row);
+				row.clear();
+			}
+			// 处理 \r\n 的情况：如果当前是 \r 且下一个是 \n，就跳过 \n
+			if (c == '\r' && i + 1 < fullContent.size() && fullContent[i + 1] == '\n')
+			{
+				++i;
+			}
+		}
+		else
+		{
+			// 普通字符
+			field.push_back(c);
+		}
+	}
+
+	// 最后一行如果没加进去，要补上
+	if (!field.empty() || row.size() != 0)
+	{
+		row.push_back(field);
+		result.push_back(row);
+	}
+}
+
+OWNER CodeUtility::getOwner(const string& owner)
+{
+	if (owner == "None")
+	{
+		return OWNER::NONE;
+	}
+	else if (owner == "Server")
+	{
+		return OWNER::SERVER_ONLY;
+	}
+	else if (owner == "Client")
+	{
+		return OWNER::CLIENT_ONLY;
+	}
+	else if (owner == "Both")
+	{
+		return OWNER::BOTH;
+	}
+	return OWNER::NONE;
+}
+
+void CodeUtility::parseCSV(const string& file, CSVHeader& header, myVector<myVector<string>>& dataList)
+{
+	header.mTableName = getFileNameNoSuffix(file, true);
+	myVector<myVector<string>> result;
+	parseCSVLine(openTxtFile1(file), result);
+	if (result.size() < HEADER_DATA_ROW)
+	{
+		return;
+	}
+	FOR_I(HEADER_DATA_ROW)
+	{
+		const myVector<string>& line = result[i];
+		// 表名
+		if (i == ROW_TABLE_NAME)
+		{
+			header.mComment = line[0];
+		}
+		// 表所属
+		else if (i == ROW_TABLE_OWNER)
+		{
+			header.mOwner = getOwner(line[0]);
+		}
+		// 字段名
+		else if (i == ROW_COLUMN_NAME)
+		{
+			FOR_VECTOR_J(line)
+			{
+				ColumnData* colData = new ColumnData;
+				colData->mIndex = j;
+				colData->mName = line[j];
+				header.mColumnDataList.push_back(colData);
+				header.mColumnNameList.insert(colData->mName, colData);
+			}
+		}
+		// 字段类型
+		else if (i == ROW_COLUMN_TYPE)
+		{
+			FOR_VECTOR_J(line)
+			{
+				string type = line[j];
+				int leftPos = 0;
+				int rightPos = 0;
+				if (findSubstr(type, "(", &leftPos) && findSubstr(type, ")", &rightPos))
+				{
+					header.mColumnDataList[j]->mEnumRealType = type.substr(leftPos + 1, rightPos - leftPos - 1);
+					type = type.erase(leftPos, rightPos - leftPos + 1);
+				}
+				header.mColumnDataList[j]->mType = type;
+			}
+		}
+		// 字段所属
+		else if (i == ROW_COLUMN_OWNER)
+		{
+			FOR_VECTOR_J(line)
+			{
+				header.mColumnDataList[j]->mOwner = getOwner(line[j]);
+			}
+		}
+		// 字段注释
+		else if (i == ROW_COLUMN_COMMENT)
+		{
+			FOR_VECTOR_J(line)
+			{
+				header.mColumnDataList[j]->mComment = line[j];
+			}
+		}
+		// 链接表格
+		else if (i == ROW_COLUMN_LINK_TABLE)
+		{
+			FOR_VECTOR_J(line)
+			{
+				header.mColumnDataList[j]->mLinkTable = line[j];
+			}
+		}
+		// 链接表格
+		else if (i == ROW_COLUMN_LINK_LENGTH)
+		{
+			FOR_VECTOR_J(line)
+			{
+				header.mColumnDataList[j]->mLinkLength = line[j];
+			}
+		}
+		// 字段标签
+		else if (i == ROW_COLUMN_FLAG)
+		{
+			FOR_VECTOR_J(line)
+			{
+				header.mColumnDataList[j]->mFlag = line[j];
+			}
+		}
+	}
+	for (int i = HEADER_DATA_ROW; i < result.size(); ++i)
+	{
+		dataList.push_back(result[i]);
+	}
 }

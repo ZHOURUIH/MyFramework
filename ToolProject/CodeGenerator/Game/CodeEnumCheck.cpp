@@ -22,7 +22,7 @@ void CodeEnumCheck::collectEnum(const string& fileName, myMap<string, myVector<s
 {
 	string curEnumName;
 	myVector<string> enumValueList;
-	myVector<string> lines = openTxtFileLines(fileName);
+	myVector<string> lines = openFile(fileName);
 	FOR_VECTOR(lines)
 	{
 		const string& line = lines[i];
@@ -81,6 +81,7 @@ void CodeEnumCheck::collectEnum(const string& fileName, myMap<string, myVector<s
 void CodeEnumCheck::generateEnumCheck(const myMap<string, myVector<string>>& allEnumValueList, const string& className, const string& fullPath, const string& headerFile)
 {
 	string header;
+	line(header, "// auto generate start");
 	line(header, "#pragma once");
 	line(header, "");
 	line(header, "#include \"" + headerFile + "\"");
@@ -104,9 +105,23 @@ void CodeEnumCheck::generateEnumCheck(const myMap<string, myVector<string>>& all
 		line(header, "\t\treturn true;");
 		line(header, "\t}");
 		line(header, "");
+
+		line(header, "\tstatic bool checkEnum(const Vector<" + itemPair.first + ">& valueList)");
+		line(header, "\t{");
+		line(header, "\t\tfor (const " + itemPair.first + " value : valueList)");
+		line(header, "\t\t{");
+		line(header, "\t\t\tif (!checkEnum(value))");
+		line(header, "\t\t\t{");
+		line(header, "\t\t\t\treturn false;");
+		line(header, "\t\t\t}");
+		line(header, "\t\t}");
+		line(header, "\t\treturn true;");
+		line(header, "\t}");
+		line(header, "");
 	}
 	removeLast(header, '\r');
 	removeLast(header, '\n');
-	line(header, "};", false);
-	writeFile(fullPath, ANSIToUTF8(header.c_str(), true));
+	line(header, "};");
+	line(header, "// auto generate end", false);
+	writeFile(fullPath, header);
 }

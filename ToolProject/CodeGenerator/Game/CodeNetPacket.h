@@ -1,5 +1,4 @@
-#ifndef _CODE_NET_PACKET_H_
-#define _CODE_NET_PACKET_H_
+#pragma once
 
 #include "CodeUtility.h"
 
@@ -45,5 +44,3 @@ protected:
 	static void parsePacketConfig(myVector<PacketStruct>& structInfoList, myVector<PacketInfo>& packetInfoList);
 	static string generatePacketVersion(const myVector<PacketInfo>& packetList, const myVector<PacketStruct>& structInfoList);
 };
-
-#endif

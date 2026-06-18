@@ -21,7 +21,7 @@ long SystemUtility::getTimeMS()
 	struct timeval tv;
 	if(gettimeofday(&tv, NULL) != 0)
 	{
-		ERROR("time get error : " + intToString(errno));
+		ERROR("time get error : " + IToS(errno));
 	}
 	return tv.tv_sec * 1000 + (long)(tv.tv_usec * 0.001f);
 #endif

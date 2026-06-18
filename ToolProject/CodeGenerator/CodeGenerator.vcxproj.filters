@@ -108,9 +108,6 @@
     <ClCompile Include="Game\CodeSQLite.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="Game\CodeState.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
     <ClCompile Include="Frame\Utility\CodeUtility.cpp">
       <Filter>Frame\Utility</Filter>
     </ClCompile>
@@ -144,22 +141,19 @@
     <ClCompile Include="Frame\Dependency\sqlite3\sqlite3.c">
       <Filter>Frame\Dependency\sqlite3</Filter>
     </ClCompile>
-    <ClCompile Include="Game\SQLiteDescription.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
-    <ClCompile Include="Game\TDDescription.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
     <ClCompile Include="Game\CodeBaseCheck.cpp">
       <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="Frame\Dependency\md5\md5.cpp">
       <Filter>Frame\Dependency\md5</Filter>
     </ClCompile>
-    <ClCompile Include="Game\SQLiteGlobal.cpp">
+    <ClCompile Include="Game\TDCommon.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="Game\TDGlobal.cpp">
+    <ClCompile Include="Game\CodeExcel.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\CodeCondition.cpp">
       <Filter>Game</Filter>
     </ClCompile>
   </ItemGroup>
@@ -251,9 +245,6 @@
     <ClInclude Include="Game\CodeSQLite.h">
       <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="Game\CodeState.h">
-      <Filter>Game</Filter>
-    </ClInclude>
     <ClInclude Include="Frame\Utility\CodeUtility.h">
       <Filter>Frame\Utility</Filter>
     </ClInclude>
@@ -330,6 +321,18 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Game\TDGlobal.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\SQLiteCommon.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\TDCommon.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\CodeExcel.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\CodeCondition.h">
       <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>

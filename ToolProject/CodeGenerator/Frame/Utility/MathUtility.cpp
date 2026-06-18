@@ -227,15 +227,15 @@ bool MathUtility::replaceKeywordAndCalculate(string& str, const string& keyword,
 	while ((iPos = (int)str.find_first_of(keyword)) != -1)
 	{
 		replaced = true;
-		str = strReplace(str, iPos, iPos + (int)keyword.length(), intToString(replaceValue));
+		str = strReplace(str, iPos, iPos + (int)keyword.length(), IToS(replaceValue));
 	}
 	if (floatOrInt)
 	{
-		str = floatToString(calculateFloat(str));
+		str = FToS(calculateFloat(str));
 	}
 	else
 	{
-		str = intToString(calculateInt(str));
+		str = IToS(calculateInt(str));
 	}
 	return replaced;
 }
@@ -299,7 +299,7 @@ float MathUtility::calculateFloat(string str)
 				isMinus = true;
 			}
 			// 将括号中的计算结果替换原来的表达式,包括括号也一起替换
-			str = strReplace(str, curpos, curpos + (int)strInBracket.length() + 2, floatToString(ret));
+			str = strReplace(str, curpos, curpos + (int)strInBracket.length() + 2, FToS(ret));
 			if (isMinus)
 			{
 				// 如果括号中计算出来是负数,则将负号提取出来,将左边的第一个加减号改为相反的符号
@@ -352,7 +352,7 @@ float MathUtility::calculateFloat(string str)
 		// 遍历到了最后一个字符,则直接把最后一个数字放入列表,然后退出循环
 		if (i == strLen - 1)
 		{
-			numbers.push_back(stringToFloat(str.substr(beginpos, strLen - beginpos)));
+			numbers.push_back(SToF(str.substr(beginpos, strLen - beginpos)));
 			break;
 		}
 		// 找到第一个运算符
@@ -360,7 +360,7 @@ float MathUtility::calculateFloat(string str)
 		{
 			if (i != 0)
 			{
-				numbers.push_back(stringToFloat(str.substr(beginpos, i - beginpos)));
+				numbers.push_back(SToF(str.substr(beginpos, i - beginpos)));
 			}
 			// 如果在表达式的开始就发现了运算符,则表示第一个数是负数,那就处理为0减去这个数的绝对值
 			else
@@ -486,7 +486,7 @@ int MathUtility::calculateInt(string str)
 				isMinus = true;
 			}
 			// 将括号中的计算结果替换原来的表达式,包括括号也一起替换
-			str = strReplace(str, curpos, curpos + (int)strInBracket.length() + 2, intToString(ret));
+			str = strReplace(str, curpos, curpos + (int)strInBracket.length() + 2, IToS(ret));
 			if (isMinus)
 			{
 				// 如果括号中计算出来是负数,则将负号提取出来,将左边的第一个加减号改为相反的符号
@@ -539,7 +539,7 @@ int MathUtility::calculateInt(string str)
 		// 遍历到了最后一个字符,则直接把最后一个数字放入列表,然后退出循环
 		if (i == strLen - 1)
 		{
-			numbers.push_back(stringToInt(str.substr(beginPos, strLen - beginPos)));
+			numbers.push_back(SToI(str.substr(beginPos, strLen - beginPos)));
 			break;
 		}
 		// 找到第一个运算符
@@ -547,7 +547,7 @@ int MathUtility::calculateInt(string str)
 		{
 			if (i != 0)
 			{
-				numbers.push_back(stringToInt(str.substr(beginPos, i - beginPos)));
+				numbers.push_back(SToI(str.substr(beginPos, i - beginPos)));
 			}
 			// 如果在表达式的开始就发现了运算符,则表示第一个数是负数,那就处理为0减去这个数的绝对值
 			else

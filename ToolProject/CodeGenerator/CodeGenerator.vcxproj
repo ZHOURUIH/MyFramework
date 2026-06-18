@@ -169,18 +169,16 @@
     <ClCompile Include="Game\CodeBaseCheck.cpp" />
     <ClCompile Include="Game\CodeClassDeclareAndHeader.cpp" />
     <ClCompile Include="Game\CodeComponent.cpp" />
+    <ClCompile Include="Game\CodeCondition.cpp" />
     <ClCompile Include="Game\CodeEnumCheck.cpp" />
+    <ClCompile Include="Game\CodeExcel.cpp" />
     <ClCompile Include="Game\CodeFrameSystem.cpp" />
     <ClCompile Include="Game\CodeUnityBuild.cpp" />
     <ClCompile Include="Game\main.cpp" />
     <ClCompile Include="Game\CodeMySQL.cpp" />
     <ClCompile Include="Game\CodeNetPacket.cpp" />
     <ClCompile Include="Game\CodeSQLite.cpp" />
-    <ClCompile Include="Game\CodeState.cpp" />
-    <ClCompile Include="Game\SQLiteDescription.cpp" />
-    <ClCompile Include="Game\SQLiteGlobal.cpp" />
-    <ClCompile Include="Game\TDDescription.cpp" />
-    <ClCompile Include="Game\TDGlobal.cpp" />
+    <ClCompile Include="Game\TDCommon.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Frame\Common\FrameDefine.h" />
@@ -227,16 +225,19 @@
     <ClInclude Include="Game\CodeBaseCheck.h" />
     <ClInclude Include="Game\CodeClassDeclareAndHeader.h" />
     <ClInclude Include="Game\CodeComponent.h" />
+    <ClInclude Include="Game\CodeCondition.h" />
     <ClInclude Include="Game\CodeEnumCheck.h" />
+    <ClInclude Include="Game\CodeExcel.h" />
     <ClInclude Include="Game\CodeFrameSystem.h" />
     <ClInclude Include="Game\CodeUnityBuild.h" />
     <ClInclude Include="Game\GameDefine.h" />
     <ClInclude Include="Game\CodeMySQL.h" />
     <ClInclude Include="Game\CodeNetPacket.h" />
     <ClInclude Include="Game\CodeSQLite.h" />
-    <ClInclude Include="Game\CodeState.h" />
+    <ClInclude Include="Game\SQLiteCommon.h" />
     <ClInclude Include="Game\SQLiteDescription.h" />
     <ClInclude Include="Game\SQLiteGlobal.h" />
+    <ClInclude Include="Game\TDCommon.h" />
     <ClInclude Include="Game\TDDescription.h" />
     <ClInclude Include="Game\TDGlobal.h" />
   </ItemGroup>

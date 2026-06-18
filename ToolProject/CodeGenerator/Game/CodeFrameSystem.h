@@ -1,5 +1,4 @@
-#ifndef _CODE_FRAME_SYSTEM_H_
-#define _CODE_FRAME_SYSTEM_H_
+#pragma once
 
 #include "CodeUtility.h"
 
@@ -14,6 +13,11 @@ protected:
 	static void generateFrameSystemDeclare(const myVector<string>& frameSystemList, const string& gameBaseHeaderFile, const string& exportMacro);
 	static void generateFrameSystemDefine(const myVector<string>& frameSystemList, const string& gameBaseSourceFile);
 	static void generateFrameSystemGet(const myVector<string>& frameSystemList, const string& gameBaseSourceFile);
+	static bool isSystemFile(const string fileName);
+	static bool isFrameClass(const string& className, const string& line);
+	static bool isPoolFile(const string& fileName);
+	static bool isPoolClass(const string& line);
+	static bool isClassObjectPoolFile(const string& fileName);
+	static bool isFactoryFile(const string& fileName);
+	static bool isFactoryClass(const string& line);
 };
-
-#endif

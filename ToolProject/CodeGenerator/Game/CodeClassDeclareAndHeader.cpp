@@ -14,24 +14,22 @@ void CodeClassDeclareAndHeader::generateCppFrameClassAndHeader(const string& pat
 	const string headerFileName = "FrameHeader";
 	myVector<string> frameClassList;
 	myVector<string> frameHeaderList;
-	myVector<string> fileList;
-	findFiles(path, fileList, ".h");
-	FOR_VECTOR(fileList)
+	myVector<string> headerFiles = findFiles(path, ".h");
+	FOR_INVERSE_I(headerFiles.size())
 	{
-		const string& fileName = fileList[i];
-		// 忽略第三方库的文件
-		if (findSubstr(fileName, "Dependency/"))
+		if (findSubstr(headerFiles[i], "Dependency/"))
 		{
-			continue;
+			headerFiles.erase(i);
 		}
-		string fileNameNoSuffix = getFileNameNoSuffix(fileName, true);
-		if (fileNameNoSuffix != headerFileName)
+	}
+	for (const string& fileName : headerFiles)
+	{
+		if (getFileNameNoSuffix(fileName, true) != headerFileName)
 		{
 			frameHeaderList.push_back(getFileName(fileName));
 		}
-		myVector<string> fileLines = openTxtFileLines(fileName);
-		uint lineCount = fileLines.size();
-		FOR_J(lineCount)
+		myVector<string> fileLines = openFile(fileName);
+		FOR_J(fileLines.size())
 		{
 			if (findSubstr(j > 0 ? fileLines[j - 1] : EMPTY_STRING, "template"))
 			{
@@ -44,29 +42,31 @@ void CodeClassDeclareAndHeader::generateCppFrameClassAndHeader(const string& pat
 			}
 		}
 	}
+	frameClassList.addRange(findPoolClass(headerFiles));
 
 	// FrameClassDeclare.h
 	string str1;
+	line(str1, "// auto generate start");
 	line(str1, "#pragma once");
 	line(str1, "");
-	uint count0 = frameClassList.size();
-	FOR_I(count0)
+	FOR_I(frameClassList.size())
 	{
-		line(str1, "class " + frameClassList[i] + ";", i != count0 - 1);
+		line(str1, "class " + frameClassList[i] + ";");
 	}
-	writeFileIfChanged(targetFilePath + "FrameClassDeclare.h", ANSIToUTF8(str1.c_str(), true));
+	line(str1, "// auto generate end", false);
+	writeFile(targetFilePath + "FrameClassDeclare.h", str1);
 
 	// FrameHeader.h
 	string str0;
+	line(str0, "// auto generate start");
 	line(str0, "#pragma once");
 	line(str0, "");
-	uint count1 = frameHeaderList.size();
-	FOR_I(count1)
+	FOR_I(frameHeaderList.size())
 	{
-		line(str0, "#include \"" + frameHeaderList[i] + "\"", i != count1 - 1);
+		line(str0, "#include \"" + frameHeaderList[i] + "\"");
 	}
-
-	writeFileIfChanged(targetFilePath + headerFileName + ".h", ANSIToUTF8(str0.c_str(), true));
+	line(str0, "// auto generate end", false);
+	writeFile(targetFilePath + headerFileName + ".h", str0);
 }
 
 void CodeClassDeclareAndHeader::generateCppGameClassAndHeader(const string& path, const string& targetFilePath)
@@ -74,20 +74,15 @@ void CodeClassDeclareAndHeader::generateCppGameClassAndHeader(const string& path
 	const string headerFileName = "GameHeader";
 	myVector<string> gameClassList;
 	myVector<string> gameHeaderList;
-	myVector<string> fileList;
-	findFiles(path, fileList, ".h");
-	FOR_VECTOR(fileList)
+	myVector<string> headerFiles = findFiles(path, ".h");
+	for (const string& fileName : headerFiles)
 	{
-		const string& fileName = fileList[i];
-		const string fileNameNoSuffix = getFileNameNoSuffix(fileName, true);
-
-		if (fileNameNoSuffix != headerFileName)
+		if (getFileNameNoSuffix(fileName, true) != headerFileName)
 		{
 			gameHeaderList.push_back(getFileName(fileName));
 		}
-		myVector<string> fileLines = openTxtFileLines(fileName);
-		uint lineCount = fileLines.size();
-		FOR_J(lineCount)
+		myVector<string> fileLines = openFile(fileName);
+		FOR_J(fileLines.size())
 		{
 			if (findSubstr(j > 0 ? fileLines[j - 1] : EMPTY_STRING, "template"))
 			{
@@ -100,27 +95,31 @@ void CodeClassDeclareAndHeader::generateCppGameClassAndHeader(const string& path
 			}
 		}
 	}
+	gameClassList.addRange(findPoolClass(headerFiles));
 
 	// GameClassDeclare.h
 	string str1;
+	line(str1, "// auto generate start");
 	line(str1, "#pragma once");
 	line(str1, "");
 	uint count0 = gameClassList.size();
 	FOR_I(count0)
 	{
-		line(str1, "class " + gameClassList[i] + ";", i != count0 - 1);
+		line(str1, "class " + gameClassList[i] + ";");
 	}
-	writeFileIfChanged(targetFilePath + "GameClassDeclare.h", ANSIToUTF8(str1.c_str(), true));
+	line(str1, "// auto generate end", false);
+	writeFile(targetFilePath + "GameClassDeclare.h", str1);
 
 	// GameHeader.h
 	string str0;
+	line(str0, "// auto generate start");
 	line(str0, "#pragma once");
 	line(str0, "");
 	line(str0, "#include \"FrameHeader.h\"");
-	uint count1 = gameHeaderList.size();
-	FOR_I(count1)
+	FOR_I(gameHeaderList.size())
 	{
-		line(str0, "#include \"" + gameHeaderList[i] + "\"", i != count1 - 1);
+		line(str0, "#include \"" + gameHeaderList[i] + "\"");
 	}
-	writeFileIfChanged(targetFilePath + headerFileName + ".h", ANSIToUTF8(str0.c_str(), true));
+	line(str0, "// auto generate end", false);
+	writeFile(targetFilePath + headerFileName + ".h", str0);
 }

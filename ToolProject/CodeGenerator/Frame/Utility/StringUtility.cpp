@@ -97,6 +97,35 @@ void StringUtility::removeEnd(string& str, char key)
 	}
 }
 
+string StringUtility::removeEndString(const string& str, const string& endStr)
+{
+	const int strLen = (int)str.length();
+	const int endStrLen = (int)endStr.length();
+	for (int i = 0; i < endStrLen; ++i)
+	{
+		if (strLen - 1 - i < 0 || str[strLen - 1 - i] != endStr[endStrLen - 1 - i])
+		{
+			return str;
+		}
+	}
+	return str.substr(0, strLen - endStrLen);
+}
+
+// 移除结尾所有的空白字符
+void StringUtility::trimEnd(string& str)
+{
+	FOR_INVERSE_I(str.size())
+	{
+		if (str[i] != ' ' && str[i] != '\t' && str[i] != '\r' && str[i] != '\n')
+		{
+			str = str.substr(0, i + 1);
+			return;
+		}
+	}
+	// 走到这里说明全部都是空白的
+	str = "";
+}
+
 int StringUtility::findCharCount(const string& str, char key)
 {
 	int count = 0;
@@ -222,7 +251,7 @@ int StringUtility::getLastNumber(const string& str)
 	{
 		return 0;
 	}
-	return stringToInt(numStr);
+	return SToI(numStr);
 }
 
 string StringUtility::getNotNumberSubString(string str)
@@ -340,26 +369,26 @@ void StringUtility::split(const char* str, const char* key, myVector<string>& ve
 	int sourceLen = (int)strlen(str);
 	const int STRING_BUFFER = 1024;
 	char curString[STRING_BUFFER];
-	int devidePos = -1;
+	int dividePos = -1;
 	while (true)
 	{
-		bool ret = findString(str, key, &devidePos, startPos);
+		bool ret = findString(str, key, &dividePos, startPos);
 		// 无论是否查找到,都将前面一段字符串截取出来
 		if (ret)
 		{
-			if (devidePos - startPos >= STRING_BUFFER)
+			if (dividePos - startPos >= STRING_BUFFER)
 			{
-				ERROR("分隔字符串失败,缓冲区太小,当前缓冲区为" + intToString(STRING_BUFFER) + "字节, 字符串:" + str + ", key:" + key);
+				ERROR("分隔字符串失败,缓冲区太小,当前缓冲区为" + IToS(STRING_BUFFER) + "字节, 字符串:" + str + ", key:" + key);
 				return;
 			}
-			MEMCPY(curString, STRING_BUFFER, str + startPos, devidePos - startPos);
-			curString[devidePos - startPos] = '\0';
+			MEMCPY(curString, STRING_BUFFER, str + startPos, dividePos - startPos);
+			curString[dividePos - startPos] = '\0';
 		}
 		else
 		{
 			if (sourceLen - startPos >= STRING_BUFFER)
 			{
-				ERROR("分隔字符串失败,缓冲区太小,当前缓冲区为" + intToString(STRING_BUFFER) + "字节, 字符串:" + str + ", key:" + key);
+				ERROR("分隔字符串失败,缓冲区太小,当前缓冲区为" + IToS(STRING_BUFFER) + "字节, 字符串:" + str + ", key:" + key);
 				return;
 			}
 			MEMCPY(curString, STRING_BUFFER, str + startPos, sourceLen - startPos);
@@ -374,7 +403,7 @@ void StringUtility::split(const char* str, const char* key, myVector<string>& ve
 		{
 			break;
 		}
-		startPos = devidePos + keyLen;
+		startPos = dividePos + keyLen;
 	}
 }
 
@@ -385,27 +414,27 @@ uint StringUtility::split(const char* str, const char* key, string* stringBuffer
 	int sourceLen = (int)strlen(str);
 	const int STRING_BUFFER = 1024;
 	char curString[STRING_BUFFER];
-	int devidePos = -1;
+	int dividePos = -1;
 	uint curCount = 0;
 	while (true)
 	{
-		bool ret = findString(str, key, &devidePos, startPos);
+		bool ret = findString(str, key, &dividePos, startPos);
 		// 无论是否查找到,都将前面一段字符串截取出来
 		if (ret)
 		{
-			if (devidePos - startPos >= STRING_BUFFER)
+			if (dividePos - startPos >= STRING_BUFFER)
 			{
-				ERROR("分隔字符串失败,缓冲区太小,当前缓冲区为" + intToString(STRING_BUFFER) + "字节, 字符串:" + str + ", key:" + key);
+				ERROR("分隔字符串失败,缓冲区太小,当前缓冲区为" + IToS(STRING_BUFFER) + "字节, 字符串:" + str + ", key:" + key);
 				return 0;
 			}
-			MEMCPY(curString, STRING_BUFFER, str + startPos, devidePos - startPos);
-			curString[devidePos - startPos] = '\0';
+			MEMCPY(curString, STRING_BUFFER, str + startPos, dividePos - startPos);
+			curString[dividePos - startPos] = '\0';
 		}
 		else
 		{
 			if (sourceLen - startPos >= STRING_BUFFER)
 			{
-				ERROR("分隔字符串失败,缓冲区太小,当前缓冲区为" + intToString(STRING_BUFFER) + "字节, 字符串:" + str + ", key:" + key);
+				ERROR("分隔字符串失败,缓冲区太小,当前缓冲区为" + IToS(STRING_BUFFER) + "字节, 字符串:" + str + ", key:" + key);
 				return 0;
 			}
 			MEMCPY(curString, STRING_BUFFER, str + startPos, sourceLen - startPos);
@@ -416,7 +445,7 @@ uint StringUtility::split(const char* str, const char* key, string* stringBuffer
 		{
 			if (curCount >= bufferSize)
 			{
-				ERROR("string buffer is too small! bufferSize:" + intToString(bufferSize));
+				ERROR("string buffer is too small! bufferSize:" + IToS(bufferSize));
 			}
 			stringBuffer[curCount++] = curString;
 		}
@@ -424,9 +453,25 @@ uint StringUtility::split(const char* str, const char* key, string* stringBuffer
 		{
 			break;
 		}
-		startPos = devidePos + keyLen;
+		startPos = dividePos + keyLen;
 	}
 	return curCount;
+}
+
+myVector<string> StringUtility::splitLine(const char* str, const bool removeEmpty)
+{
+	myVector<string> vec;
+	splitLine(str, vec, removeEmpty);
+	return vec;
+}
+
+void StringUtility::splitLine(const char* str, myVector<string>& vec, const bool removeEmpty)
+{
+	split(str, "\n", vec, removeEmpty);
+	FOR_VECTOR(vec)
+	{
+		removeAll(vec[i], '\r');
+	}
 }
 
 string StringUtility::strReplace(const string& str, uint begin, uint end, const string& reStr)
@@ -466,10 +511,10 @@ void StringUtility::_itoa_s(int value, char* charArray, uint size)
 		value = -value;
 		sign = -1;
 	}
-	static array<ullong, 11> power{ 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000, 10000000000 };
+	static array<ullong, 11> power{ 1ULL, 10ULL, 100ULL, 1000ULL, 10000ULL, 100000ULL, 1000000ULL, 10000000ULL, 100000000ULL, 1000000000ULL, 10000000000ULL };
 	if ((ullong)value > power[power.size() - 1])
 	{
-		ERROR("int value is too large:" + ullongToString((ullong)value));
+		ERROR("int value is too large:" + ULLToS((ullong)value));
 		return;
 	}
 	uint index = 0;
@@ -522,27 +567,89 @@ void StringUtility::_i64toa_s(const ullong& value, char* charArray, uint size)
 		return;
 	}
 	static array<ullong, 20> power =
-	{ 
-		1ul,
-		10ul,
-		100ul,
-		1000ul,
-		10000ul,
-		100000ul,
-		1000000ul,
-		10000000ul,
-		100000000ul,
-		1000000000ul,
-		10000000000ul,
-		100000000000ul,
-		1000000000000ul,
-		10000000000000ul,
-		100000000000000ul,
-		1000000000000000ul,
-		10000000000000000ul,
-		100000000000000000ul,
-		1000000000000000000ul,
-		10000000000000000000ul
+	{
+		1ULL,
+		10ULL,
+		100ULL,
+		1000ULL,
+		10000ULL,
+		100000ULL,
+		1000000ULL,
+		10000000ULL,
+		100000000ULL,
+		1000000000ULL,
+		10000000000ULL,
+		100000000000ULL,
+		1000000000000ULL,
+		10000000000000ULL,
+		100000000000000ULL,
+		1000000000000000ULL,
+		10000000000000000ULL,
+		100000000000000000ULL,
+		1000000000000000000ULL,
+		10000000000000000000ULL
+	};
+	if (value > power[power.size() - 1])
+	{
+		ERROR("long long value is too large");
+		return;
+	}
+	uint index = 0;
+	while (true)
+	{
+		// 如果是正数,则数字个数不能超过size - 1
+		if (index >= size)
+		{
+			ERROR("buffer is too small!");
+			break;
+		}
+		// 将数字放入numberArray的尾部
+		if (value < power[index])
+		{
+			break;
+		}
+		charArray[size - 1 - index] = (int)(value % power[index + 1] / power[index]);
+		++index;
+	}
+	// 将数字从数组末尾移动到开头,并且将数字转换为数字字符
+	uint lengthToHead = size - index;
+	FOR_I(index)
+	{
+		charArray[i] = charArray[i + lengthToHead] + '0';
+	}
+	charArray[index] = '\0';
+}
+
+void StringUtility::_i64toa_s(const llong& value, char* charArray, uint size)
+{
+	if (value == 0)
+	{
+		charArray[0] = '0';
+		charArray[1] = '\0';
+		return;
+	}
+	static array<llong, 20> power =
+	{
+		1LL,
+		10LL,
+		100LL,
+		1000LL,
+		10000LL,
+		100000LL,
+		1000000LL,
+		10000000LL,
+		100000000LL,
+		1000000000LL,
+		10000000000LL,
+		100000000000LL,
+		1000000000000LL,
+		10000000000000LL,
+		100000000000000LL,
+		1000000000000000LL,
+		10000000000000000LL,
+		100000000000000000LL,
+		1000000000000000000LL,
+		10000000000000000000LL
 	};
 	if (value > power[power.size() - 1])
 	{
@@ -621,7 +728,7 @@ void StringUtility::strcpy_s(char* destBuffer, uint size, const char* source)
 	}
 }
 
-string StringUtility::intToString(int value, uint limitLen)
+string StringUtility::IToS(int value, uint limitLen)
 {
 	array<char, 16> temp;
 	_itoa_s(value, temp);
@@ -633,7 +740,7 @@ string StringUtility::intToString(int value, uint limitLen)
 	return temp._Elems;
 }
 
-void StringUtility::intToString(char* charArray, uint size, int value, uint limitLen)
+void StringUtility::IToS(char* charArray, uint size, int value, uint limitLen)
 {
 	if (limitLen == 0)
 	{
@@ -661,7 +768,7 @@ void StringUtility::intToString(char* charArray, uint size, int value, uint limi
 	}
 }
 
-string StringUtility::ullongToString(const ullong& value, uint limitLen)
+string StringUtility::ULLToS(const ullong& value, uint limitLen)
 {
 	array<char, 32> temp;
 	_i64toa_s(value, temp);
@@ -673,7 +780,7 @@ string StringUtility::ullongToString(const ullong& value, uint limitLen)
 	return temp._Elems;
 }
 
-void StringUtility::ullongToString(char* charArray, uint size, const ullong& value, uint limitLen)
+void StringUtility::ULLToS(char* charArray, uint size, const ullong& value, uint limitLen)
 {
 	if (limitLen == 0)
 	{
@@ -699,7 +806,45 @@ void StringUtility::ullongToString(char* charArray, uint size, const ullong& val
 	}
 }
 
-string StringUtility::ullongArrayToString(ullong* valueList, uint llongCount, uint limitLen, const char* seperate)
+string StringUtility::LLToS(const llong& value, uint limitLen)
+{
+	array<char, 32> temp;
+	_i64toa_s(value, temp);
+	uint len = (uint)strlen(temp._Elems);
+	if (limitLen > len)
+	{
+		return zeroString(limitLen - len) + temp._Elems;
+	}
+	return temp._Elems;
+}
+
+void StringUtility::LLToS(char* charArray, uint size, const llong& value, uint limitLen)
+{
+	if (limitLen == 0)
+	{
+		_i64toa_s(value, charArray, size);
+	}
+	else
+	{
+		array<char, 32> temp;
+		_i64toa_s(value, temp);
+		// 判断是否需要在前面补0
+		if (limitLen > 0)
+		{
+			uint len = (uint)strlen(temp._Elems);
+			if (limitLen > len)
+			{
+				array<char, 16> zeroArray;
+				zeroString(zeroArray, limitLen - len);
+				STRCAT2_N(charArray, size, zeroArray._Elems, temp._Elems);
+				return;
+			}
+		}
+		strcpy_s(charArray, size, temp._Elems);
+	}
+}
+
+string StringUtility::ULLsToS(ullong* valueList, uint llongCount, uint limitLen, const char* separate)
 {
 	// 根据列表长度选择适当的数组长度,每个llong默认数字长度为32个字符
 	int arrayLen = 32 * MathUtility::getGreaterPower2(llongCount);
@@ -708,10 +853,10 @@ string StringUtility::ullongArrayToString(ullong* valueList, uint llongCount, ui
 	array<char, 32> temp;
 	FOR_I(llongCount)
 	{
-		ullongToString(temp, valueList[i], limitLen);
+		ULLToS(temp, valueList[i], limitLen);
 		if (i != llongCount - 1)
 		{
-			STR_APPEND2_N(charArray, arrayLen, temp._Elems, seperate);
+			STR_APPEND2_N(charArray, arrayLen, temp._Elems, separate);
 		}
 		else
 		{
@@ -723,16 +868,16 @@ string StringUtility::ullongArrayToString(ullong* valueList, uint llongCount, ui
 	return str;
 }
 
-void StringUtility::ullongArrayToString(char* buffer, uint bufferSize, ullong* valueList, uint count, const char* seperate)
+void StringUtility::ULLsToS(char* buffer, uint bufferSize, ullong* valueList, uint count, const char* separate)
 {
 	buffer[0] = '\0';
 	array<char, 32> temp;
 	FOR_I(count)
 	{
-		ullongToString(temp, valueList[i]);
+		ULLToS(temp, valueList[i]);
 		if (i != count - 1)
 		{
-			STR_APPEND2_N(buffer, bufferSize, temp._Elems, seperate);
+			STR_APPEND2_N(buffer, bufferSize, temp._Elems, separate);
 		}
 		else
 		{
@@ -741,7 +886,49 @@ void StringUtility::ullongArrayToString(char* buffer, uint bufferSize, ullong* v
 	}
 }
 
-string StringUtility::uintArrayToString(uint* valueList, uint uintCount, uint limitLen, const char* seperate)
+string StringUtility::LLsToS(llong* valueList, uint llongCount, uint limitLen, const char* separate)
+{
+	// 根据列表长度选择适当的数组长度,每个llong默认数字长度为32个字符
+	int arrayLen = 32 * MathUtility::getGreaterPower2(llongCount);
+	char* charArray = ArrayPool::newArray<char>(arrayLen);
+	charArray[0] = 0;
+	array<char, 32> temp;
+	FOR_I(llongCount)
+	{
+		LLToS(temp, valueList[i], limitLen);
+		if (i != llongCount - 1)
+		{
+			STR_APPEND2_N(charArray, arrayLen, temp._Elems, separate);
+		}
+		else
+		{
+			STR_APPEND1_N(charArray, arrayLen, temp._Elems);
+		}
+	}
+	string str(charArray);
+	ArrayPool::deleteArray(charArray);
+	return str;
+}
+
+void StringUtility::LLsToS(char* buffer, uint bufferSize, llong* valueList, uint count, const char* separate)
+{
+	buffer[0] = '\0';
+	array<char, 32> temp;
+	FOR_I(count)
+	{
+		LLToS(temp, valueList[i]);
+		if (i != count - 1)
+		{
+			STR_APPEND2_N(buffer, bufferSize, temp._Elems, separate);
+		}
+		else
+		{
+			STR_APPEND1_N(buffer, bufferSize, temp._Elems);
+		}
+	}
+}
+
+string StringUtility::UIsToS(uint* valueList, uint uintCount, uint limitLen, const char* separate)
 {
 	// 根据列表长度选择适当的数组长度,每个uint默认数字长度为16个字符
 	int arrayLen = 16 * MathUtility::getGreaterPower2(uintCount);
@@ -750,10 +937,10 @@ string StringUtility::uintArrayToString(uint* valueList, uint uintCount, uint li
 	array<char, 16> temp;
 	FOR_I(uintCount)
 	{
-		intToString(temp, valueList[i], limitLen);
+		IToS(temp, valueList[i], limitLen);
 		if (i != uintCount - 1)
 		{
-			STR_APPEND2_N(charArray, arrayLen, temp._Elems, seperate);
+			STR_APPEND2_N(charArray, arrayLen, temp._Elems, separate);
 		}
 		else
 		{
@@ -765,16 +952,16 @@ string StringUtility::uintArrayToString(uint* valueList, uint uintCount, uint li
 	return str;
 }
 
-void StringUtility::uintArrayToString(char* buffer, uint bufferSize, uint* valueList, uint count, const char* seperate)
+void StringUtility::UIsToS(char* buffer, uint bufferSize, uint* valueList, uint count, const char* separate)
 {
 	buffer[0] = '\0';
 	array<char, 16> temp;
 	FOR_I(count)
 	{
-		intToString(temp, valueList[i]);
+		IToS(temp, valueList[i]);
 		if (i != count - 1)
 		{
-			STR_APPEND2_N(buffer, bufferSize, temp._Elems, seperate);
+			STR_APPEND2_N(buffer, bufferSize, temp._Elems, separate);
 		}
 		else
 		{
@@ -783,7 +970,7 @@ void StringUtility::uintArrayToString(char* buffer, uint bufferSize, uint* value
 	}
 }
 
-string StringUtility::byteArrayToString(byte* valueList, uint intCount, uint limitLen, const char* seperate)
+string StringUtility::BsToS(byte* valueList, uint intCount, uint limitLen, const char* separate)
 {
 	int arrayLen = 4 * MathUtility::getGreaterPower2(intCount);
 	char* charArray = ArrayPool::newArray<char>(arrayLen);
@@ -791,10 +978,10 @@ string StringUtility::byteArrayToString(byte* valueList, uint intCount, uint lim
 	array<char, 4> temp;
 	FOR_I(intCount)
 	{
-		intToString(temp, valueList[i], limitLen);
+		IToS(temp, valueList[i], limitLen);
 		if (i != intCount - 1)
 		{
-			STR_APPEND2_N(charArray, arrayLen, temp._Elems, seperate);
+			STR_APPEND2_N(charArray, arrayLen, temp._Elems, separate);
 		}
 		else
 		{
@@ -806,16 +993,16 @@ string StringUtility::byteArrayToString(byte* valueList, uint intCount, uint lim
 	return str;
 }
 
-void StringUtility::byteArrayToString(char* buffer, uint bufferSize, byte* valueList, uint count, const char* seperate)
+void StringUtility::BsToS(char* buffer, uint bufferSize, byte* valueList, uint count, const char* separate)
 {
 	buffer[0] = '\0';
 	array<char, 4> temp;
 	FOR_I(count)
 	{
-		intToString(temp, valueList[i]);
+		IToS(temp, valueList[i]);
 		if (i != count - 1)
 		{
-			STR_APPEND2_N(buffer, bufferSize, temp._Elems, seperate);
+			STR_APPEND2_N(buffer, bufferSize, temp._Elems, separate);
 		}
 		else
 		{
@@ -824,7 +1011,7 @@ void StringUtility::byteArrayToString(char* buffer, uint bufferSize, byte* value
 	}
 }
 
-string StringUtility::ushortArrayToString(ushort* valueList, uint intCount, uint limitLen, const char* seperate)
+string StringUtility::USsToS(ushort* valueList, uint intCount, uint limitLen, const char* separate)
 {
 	int arrayLen = 8 * MathUtility::getGreaterPower2(intCount);
 	char* charArray = ArrayPool::newArray<char>(arrayLen);
@@ -832,10 +1019,10 @@ string StringUtility::ushortArrayToString(ushort* valueList, uint intCount, uint
 	array<char, 8> temp;
 	FOR_I(intCount)
 	{
-		intToString(temp, valueList[i], limitLen);
+		IToS(temp, valueList[i], limitLen);
 		if (i != intCount - 1)
 		{
-			STR_APPEND2_N(charArray, arrayLen, temp._Elems, seperate);
+			STR_APPEND2_N(charArray, arrayLen, temp._Elems, separate);
 		}
 		else
 		{
@@ -847,16 +1034,16 @@ string StringUtility::ushortArrayToString(ushort* valueList, uint intCount, uint
 	return str;
 }
 
-void StringUtility::ushortArrayToString(char* buffer, uint bufferSize, ushort* valueList, uint count, const char* seperate)
+void StringUtility::USsToS(char* buffer, uint bufferSize, ushort* valueList, uint count, const char* separate)
 {
 	buffer[0] = '\0';
 	array<char, 8> temp;
 	FOR_I(count)
 	{
-		intToString(temp, valueList[i]);
+		IToS(temp, valueList[i]);
 		if (i != count - 1)
 		{
-			STR_APPEND2_N(buffer, bufferSize, temp._Elems, seperate);
+			STR_APPEND2_N(buffer, bufferSize, temp._Elems, separate);
 		}
 		else
 		{
@@ -865,7 +1052,7 @@ void StringUtility::ushortArrayToString(char* buffer, uint bufferSize, ushort* v
 	}
 }
 
-string StringUtility::intArrayToString(int* valueList, uint intCount, uint limitLen, const char* seperate)
+string StringUtility::IsToS(int* valueList, uint intCount, uint limitLen, const char* separate)
 {
 	// 根据列表长度选择适当的数组长度,每个int默认数字长度为16个字符
 	int arrayLen = 16 * MathUtility::getGreaterPower2(intCount);
@@ -874,10 +1061,10 @@ string StringUtility::intArrayToString(int* valueList, uint intCount, uint limit
 	array<char, 16> temp;
 	FOR_I(intCount)
 	{
-		intToString(temp, valueList[i], limitLen);
+		IToS(temp, valueList[i], limitLen);
 		if (i != intCount - 1)
 		{
-			STR_APPEND2_N(charArray, arrayLen, temp._Elems, seperate);
+			STR_APPEND2_N(charArray, arrayLen, temp._Elems, separate);
 		}
 		else
 		{
@@ -889,282 +1076,22 @@ string StringUtility::intArrayToString(int* valueList, uint intCount, uint limit
 	return str;
 }
 
-void StringUtility::intArrayToString(char* buffer, uint bufferSize, int* valueList, uint count, const char* seperate)
+void StringUtility::IsToS(char* buffer, uint bufferSize, int* valueList, uint count, const char* separate)
 {
 	buffer[0] = '\0';
 	array<char, 16> temp;
 	FOR_I(count)
 	{
-		intToString(temp, valueList[i]);
+		IToS(temp, valueList[i]);
 		if (i != count - 1)
 		{
-			STR_APPEND2_N(buffer, bufferSize, temp._Elems, seperate);
+			STR_APPEND2_N(buffer, bufferSize, temp._Elems, separate);
 		}
 		else
 		{
 			STR_APPEND1_N(buffer, bufferSize, temp._Elems);
 		}
 	}
-}
-
-void StringUtility::stringToByteArray(const string& str, myVector<byte>& valueList, const char* seperate)
-{
-	myVector<string> strList;
-	split(str.c_str(), seperate, strList);
-	FOR_VECTOR(strList)
-	{
-		valueList.push_back(stringToInt(strList[i]));
-	}
-}
-
-uint StringUtility::stringToByteArray(const char* str, byte* buffer, uint bufferSize, const char* seperate)
-{
-	uint curCount = 0;
-	uint startPos = 0;
-	uint keyLen = (uint)strlen(seperate);
-	uint sourceLen = (uint)strlen(str);
-	const int BUFFER_SIZE = 4;
-	array<char, BUFFER_SIZE> curString;
-	int devidePos = -1;
-	while (true)
-	{
-		bool ret = findString(str, seperate, &devidePos, startPos);
-		// 无论是否查找到,都将前面一段字符串截取出来
-		if (ret)
-		{
-			MEMCPY(curString._Elems, BUFFER_SIZE, str + startPos, devidePos - startPos);
-			curString[devidePos - startPos] = '\0';
-		}
-		else
-		{
-			MEMCPY(curString._Elems, BUFFER_SIZE, str + startPos, sourceLen - startPos);
-			curString[sourceLen - startPos] = '\0';
-		}
-		// 转换为整数放入列表
-		if (curString[0] != '\0')
-		{
-			buffer[curCount++] = stringToInt(curString._Elems);
-			if (curCount >= bufferSize)
-			{
-				ERROR("int buffer size is too small, bufferSize:" + intToString(bufferSize));
-				break;
-			}
-		}
-		if (!ret)
-		{
-			break;
-		}
-		startPos = devidePos + keyLen;
-	}
-	return curCount;
-}
-
-void StringUtility::stringToUShortArray(const string& str, myVector<ushort>& valueList, const char* seperate)
-{
-	myVector<string> strList;
-	split(str.c_str(), seperate, strList);
-	FOR_VECTOR(strList)
-	{
-		valueList.push_back(stringToInt(strList[i]));
-	}
-}
-
-uint StringUtility::stringToUShortArray(const char* str, ushort* buffer, uint bufferSize, const char* seperate)
-{
-	uint curCount = 0;
-	uint startPos = 0;
-	uint keyLen = (uint)strlen(seperate);
-	uint sourceLen = (uint)strlen(str);
-	const int BUFFER_SIZE = 8;
-	array<char, BUFFER_SIZE> curString;
-	int devidePos = -1;
-	while (true)
-	{
-		bool ret = findString(str, seperate, &devidePos, startPos);
-		// 无论是否查找到,都将前面一段字符串截取出来
-		if (ret)
-		{
-			MEMCPY(curString._Elems, BUFFER_SIZE, str + startPos, devidePos - startPos);
-			curString[devidePos - startPos] = '\0';
-		}
-		else
-		{
-			MEMCPY(curString._Elems, BUFFER_SIZE, str + startPos, sourceLen - startPos);
-			curString[sourceLen - startPos] = '\0';
-		}
-		// 转换为整数放入列表
-		if (curString[0] != '\0')
-		{
-			buffer[curCount++] = stringToInt(curString._Elems);
-			if (curCount >= bufferSize)
-			{
-				ERROR("int buffer size is too small, bufferSize:" + intToString(bufferSize));
-				break;
-			}
-		}
-		if (!ret)
-		{
-			break;
-		}
-		startPos = devidePos + keyLen;
-	}
-	return curCount;
-}
-
-void StringUtility::stringToIntArray(const string& str, myVector<int>& valueList, const char* seperate)
-{
-	myVector<string> strList;
-	split(str.c_str(), seperate, strList);
-	FOR_VECTOR(strList)
-	{
-		valueList.push_back(stringToInt(strList[i]));
-	}
-}
-
-uint StringUtility::stringToIntArray(const char* str, int* buffer, uint bufferSize, const char* seperate)
-{
-	uint curCount = 0;
-	uint startPos = 0;
-	uint keyLen = (uint)strlen(seperate);
-	uint sourceLen = (uint)strlen(str);
-	const int BUFFER_SIZE = 16;
-	array<char, BUFFER_SIZE> curString;
-	int devidePos = -1;
-	while (true)
-	{
-		bool ret = findString(str, seperate, &devidePos, startPos);
-		// 无论是否查找到,都将前面一段字符串截取出来
-		if (ret)
-		{
-			MEMCPY(curString._Elems, BUFFER_SIZE, str + startPos, devidePos - startPos);
-			curString[devidePos - startPos] = '\0';
-		}
-		else
-		{
-			MEMCPY(curString._Elems, BUFFER_SIZE, str + startPos, sourceLen - startPos);
-			curString[sourceLen - startPos] = '\0';
-		}
-		// 转换为整数放入列表
-		if (curString[0] != '\0')
-		{
-			buffer[curCount++] = stringToInt(curString._Elems);
-			if (curCount >= bufferSize)
-			{
-				ERROR("int buffer size is too small, bufferSize:" + intToString(bufferSize));
-				break;
-			}
-		}
-		if (!ret)
-		{
-			break;
-		}
-		startPos = devidePos + keyLen;
-	}
-	return curCount;
-}
-
-void StringUtility::stringToUIntArray(const string& str, myVector<uint>& valueList, const char* seperate)
-{
-	myVector<string> strList;
-	split(str.c_str(), seperate, strList);
-	FOR_VECTOR(strList)
-	{
-		valueList.push_back((uint)stringToInt(strList[i]));
-	}
-}
-
-uint StringUtility::stringToUIntArray(const char* str, uint* buffer, uint bufferSize, const char* seperate)
-{
-	uint curCount = 0;
-	uint startPos = 0;
-	uint keyLen = (uint)strlen(seperate);
-	uint sourceLen = (uint)strlen(str);
-	const int BUFFER_SIZE = 16;
-	array<char, BUFFER_SIZE> curString;
-	int devidePos = -1;
-	while (true)
-	{
-		bool ret = findString(str, seperate, &devidePos, startPos);
-		// 无论是否查找到,都将前面一段字符串截取出来
-		if (ret)
-		{
-			MEMCPY(curString._Elems, BUFFER_SIZE, str + startPos, devidePos - startPos);
-			curString[devidePos - startPos] = '\0';
-		}
-		else
-		{
-			MEMCPY(curString._Elems, BUFFER_SIZE, str + startPos, sourceLen - startPos);
-			curString[sourceLen - startPos] = '\0';
-		}
-		// 转换为长整数放入列表
-		if (curString[0] != '\0')
-		{
-			buffer[curCount++] = stringToInt(curString._Elems);
-			if (curCount >= bufferSize)
-			{
-				ERROR("uint buffer size is too small, bufferSize:" + intToString(bufferSize));
-				break;
-			}
-		}
-		if (!ret)
-		{
-			break;
-		}
-		startPos = devidePos + keyLen;
-	}
-	return curCount;
-}
-
-void StringUtility::stringToULLongArray(const string& str, myVector<ullong>& valueList, const char* seperate)
-{
-	myVector<string> strList;
-	split(str.c_str(), seperate, strList);
-	FOR_VECTOR(strList)
-	{
-		valueList.push_back(stringToULLong(strList[i]));
-	}
-}
-
-uint StringUtility::stringToULLongArray(const char* str, ullong* buffer, uint bufferSize, const char* seperate)
-{
-	uint curCount = 0;
-	uint startPos = 0;
-	uint keyLen = (uint)strlen(seperate);
-	uint sourceLen = (uint)strlen(str);
-	const int BUFFER_SIZE = 32;
-	array<char, BUFFER_SIZE> curString;
-	int devidePos = -1;
-	while (true)
-	{
-		bool ret = findString(str, seperate, &devidePos, startPos);
-		// 无论是否查找到,都将前面一段字符串截取出来
-		if (ret)
-		{
-			MEMCPY(curString._Elems, BUFFER_SIZE, str + startPos, devidePos - startPos);
-			curString[devidePos - startPos] = '\0';
-		}
-		else
-		{
-			MEMCPY(curString._Elems, BUFFER_SIZE, str + startPos, sourceLen - startPos);
-			curString[sourceLen - startPos] = '\0';
-		}
-		// 转换为长整数放入列表
-		if (curString[0] != '\0')
-		{
-			buffer[curCount++] = stringToULLong(curString._Elems);
-			if (curCount > bufferSize)
-			{
-				ERROR("ullong buffer size is too small, bufferSize:" + intToString(bufferSize));
-				break;
-			}
-		}
-		if (!ret)
-		{
-			break;
-		}
-		startPos = devidePos + keyLen;
-	}
-	return curCount;
 }
 
 string StringUtility::zeroString(uint count)
@@ -1198,7 +1125,7 @@ string StringUtility::floatToStringExtra(float f, uint precision, bool removeTai
 	string retString;
 	do
 	{
-		if (!IS_FLOAT_ZERO(f))
+		if (!MathUtility::isFloatZero(f))
 		{
 			float powerValue = MathUtility::powerFloat(10.0f, precision);
 			float totalValue = f * powerValue + MathUtility::sign(f) * 0.5f;
@@ -1218,7 +1145,7 @@ string StringUtility::floatToStringExtra(float f, uint precision, bool removeTai
 			else
 			{
 				array<char, 16> temp;
-				intToString(temp, abs((int)totalValue));
+				IToS(temp, abs((int)totalValue));
 				retString = temp._Elems;
 				int dotPosition = (int)strlen(retString.c_str()) - precision;
 				if (dotPosition <= 0)
@@ -1276,14 +1203,14 @@ string StringUtility::floatToStringExtra(float f, uint precision, bool removeTai
 	return retString;
 }
 
-string StringUtility::floatToString(float f)
+string StringUtility::FToS(float f)
 {
 	array<char, 16> temp;
-	floatToString(temp, f);
+	FToS(temp, f);
 	return temp._Elems;
 }
 
-void StringUtility::floatToString(char* charArray, uint size, float f) 
+void StringUtility::FToS(char* charArray, uint size, float f)
 {
 	SPRINTF(charArray, size, "%f", f);
 	// 先查找小数点和结束符的位置
@@ -1324,7 +1251,7 @@ void StringUtility::floatToString(char* charArray, uint size, float f)
 	}
 }
 
-string StringUtility::floatArrayToString(float* valueList, uint count, const char* seperate)
+string StringUtility::FsToS(float* valueList, uint count, const char* separate)
 {
 	// 根据列表长度选择适当的数组长度,每个float默认数字长度为16个字符
 	int arrayLen = 16 * MathUtility::getGreaterPower2(count);
@@ -1333,10 +1260,10 @@ string StringUtility::floatArrayToString(float* valueList, uint count, const cha
 	array<char, 16> temp;
 	FOR_I(count)
 	{
-		floatToString(temp, valueList[i]);
+		FToS(temp, valueList[i]);
 		if (i != count - 1)
 		{
-			STR_APPEND2_N(charArray, arrayLen, temp._Elems, seperate);
+			STR_APPEND2_N(charArray, arrayLen, temp._Elems, separate);
 		}
 		else
 		{
@@ -1348,16 +1275,16 @@ string StringUtility::floatArrayToString(float* valueList, uint count, const cha
 	return str;
 }
 
-void StringUtility::floatArrayToString(char* buffer, uint bufferSize, float* valueList, uint count, const char* seperate)
+void StringUtility::FsToS(char* buffer, uint bufferSize, float* valueList, uint count, const char* separate)
 {
 	buffer[0] = '\0';
 	array<char, 16> temp;
 	FOR_I(count)
 	{
-		floatToString(temp, valueList[i]);
+		FToS(temp, valueList[i]);
 		if (i != count - 1)
 		{
-			STR_APPEND2_N(buffer, bufferSize, temp._Elems, seperate);
+			STR_APPEND2_N(buffer, bufferSize, temp._Elems, separate);
 		}
 		else
 		{
@@ -1366,177 +1293,121 @@ void StringUtility::floatArrayToString(char* buffer, uint bufferSize, float* val
 	}
 }
 
-void StringUtility::stringToFloatArray(const string& str, myVector<float>& valueList, const char* seperate)
+string StringUtility::V2ToS(const Vector2& vec, const char* separate)
 {
-	myVector<string> strList;
-	split(str.c_str(), seperate, strList);
-	uint count = strList.size();
-	FOR_I(count)
-	{
-		if (strList[i].length() > 0)
-		{
-			valueList.push_back(stringToFloat(strList[i]));
-		}
-	}
+	return FToS(vec.x) + separate + FToS(vec.y);
 }
 
-uint StringUtility::stringToFloatArray(const char* str, float* buffer, uint bufferSize, const char* seperate)
-{
-	uint curCount = 0;
-	uint startPos = 0;
-	uint keyLen = (uint)strlen(seperate);
-	uint sourceLen = (uint)strlen(str);
-	const int BUFFER_SIZE = 32;
-	array<char, BUFFER_SIZE> curString;
-	int devidePos = -1;
-	while (true)
-	{
-		bool ret = findString(str, seperate, &devidePos, startPos);
-		// 无论是否查找到,都将前面一段字符串截取出来
-		if (ret)
-		{
-			MEMCPY(curString._Elems, BUFFER_SIZE, str + startPos, devidePos - startPos);
-			curString[devidePos - startPos] = '\0';
-		}
-		else
-		{
-			MEMCPY(curString._Elems, BUFFER_SIZE, str + startPos, sourceLen - startPos);
-			curString[sourceLen - startPos] = '\0';
-		}
-		// 转换为长整数放入列表
-		if (curString[0] != '\0')
-		{
-			buffer[curCount++] = stringToFloat(curString._Elems);
-			if (curCount > bufferSize)
-			{
-				ERROR("float buffer size is too small, bufferSize:" + intToString(bufferSize));
-				break;
-			}
-		}
-		if (!ret)
-		{
-			break;
-		}
-		startPos = devidePos + keyLen;
-	}
-	return curCount;
-}
-
-string StringUtility::vector2ToString(const Vector2& vec, const char* seperate)
-{
-	return floatToString(vec.x) + seperate + floatToString(vec.y);
-}
-
-void StringUtility::vector2ToString(char* buffer, uint bufferSize, const Vector2& vec, const char* seperate)
+void StringUtility::V2ToS(char* buffer, uint bufferSize, const Vector2& vec, const char* separate)
 {
 	buffer[0] = '\0';
 	FLOAT_TO_STRING(xStr, vec.x);
 	FLOAT_TO_STRING(yStr, vec.y);
-	STR_APPEND3_N(buffer, bufferSize, xStr, seperate, yStr);
+	STR_APPEND3_N(buffer, bufferSize, xStr, separate, yStr);
 }
 
-Vector2 StringUtility::stringToVector2(const string& str, const char* seperate)
+Vector2 StringUtility::SToV2(const string& str, const char* separate)
 {
 	Vector2 value;
 	array<string, 2> valueList;
-	if (split(str.c_str(), seperate, valueList) == valueList.size())
+	if (split(str.c_str(), separate, valueList) == valueList.size())
 	{
-		value.x = stringToFloat(valueList[0]);
-		value.y = stringToFloat(valueList[1]);
+		value.x = SToF(valueList[0]);
+		value.y = SToF(valueList[1]);
 	}
 	return value;
 }
 
-Vector2Int StringUtility::stringToVector2Int(const string& str, const char* seperate)
+Vector2Int StringUtility::SToV2I(const string& str, const char* separate)
 {
 	Vector2Int value;
 	array<string, 2> valueList;
-	if (split(str.c_str(), seperate, valueList) == valueList.size())
+	if (split(str.c_str(), separate, valueList) == valueList.size())
 	{
-		value.x = stringToInt(valueList[0]);
-		value.y = stringToInt(valueList[1]);
+		value.x = SToI(valueList[0]);
+		value.y = SToI(valueList[1]);
 	}
 	return value;
 }
 
-Vector2UShort StringUtility::stringToVector2UShort(const string& str, const char* seperate)
+Vector2UShort StringUtility::SToV2US(const string& str, const char* separate)
 {
 	Vector2UShort value;
 	array<string, 2> valueList;
-	if (split(str.c_str(), seperate, valueList) == valueList.size())
+	if (split(str.c_str(), separate, valueList) == valueList.size())
 	{
-		value.x = stringToInt(valueList[0]);
-		value.y = stringToInt(valueList[1]);
+		value.x = SToI(valueList[0]);
+		value.y = SToI(valueList[1]);
 	}
 	return value;
 }
 
-Vector2Short StringUtility::stringToVector2Short(const string& str, const char* seperate)
+Vector2Short StringUtility::SToV2S(const string& str, const char* separate)
 {
 	Vector2Short value;
 	array<string, 2> valueList;
-	if (split(str.c_str(), seperate, valueList) == valueList.size())
+	if (split(str.c_str(), separate, valueList) == valueList.size())
 	{
-		value.x = stringToInt(valueList[0]);
-		value.y = stringToInt(valueList[1]);
+		value.x = SToI(valueList[0]);
+		value.y = SToI(valueList[1]);
 	}
 	return value;
 }
 
-string StringUtility::vector3ToString(const Vector3& vec, const char* seperate)
+string StringUtility::V3ToS(const Vector3& vec, const char* separate)
 {
-	return floatToString(vec.x) + seperate + floatToString(vec.y) + seperate + floatToString(vec.z);
+	return FToS(vec.x) + separate + FToS(vec.y) + separate + FToS(vec.z);
 }
 
-void StringUtility::vector3ToString(char* buffer, uint bufferSize, const Vector3& vec, const char* seperate)
+void StringUtility::V3ToS(char* buffer, uint bufferSize, const Vector3& vec, const char* separate)
 {
 	buffer[0] = '\0';
 	FLOAT_TO_STRING(xStr, vec.x);
 	FLOAT_TO_STRING(yStr, vec.y);
 	FLOAT_TO_STRING(zStr, vec.z);
-	STR_APPEND5_N(buffer, bufferSize, xStr, seperate, yStr, seperate, zStr);
+	STR_APPEND5_N(buffer, bufferSize, xStr, separate, yStr, separate, zStr);
 }
 
-string StringUtility::vector2IntToString(const Vector2Int& value, const char* seperate)
+string StringUtility::V2IToS(const Vector2Int& value, const char* separate)
 {
-	return intToString(value.x) + seperate + intToString(value.y);
+	return IToS(value.x) + separate + IToS(value.y);
 }
 
-string StringUtility::vector2UShortToString(const Vector2UShort& value, const char* seperate)
+string StringUtility::V2USToS(const Vector2UShort& value, const char* separate)
 {
-	return intToString(value.x) + seperate + intToString(value.y);
+	return IToS(value.x) + separate + IToS(value.y);
 }
 
-void StringUtility::vector2IntToString(char* buffer, uint bufferSize, const Vector2Int& value, const char* seperate)
-{
-	buffer[0] = '\0';
-	INT_TO_STRING(xStr, value.x);
-	INT_TO_STRING(yStr, value.y);
-	STR_APPEND3_N(buffer, bufferSize, xStr, seperate, yStr);
-}
-
-void StringUtility::vector2UShortToString(char* buffer, uint bufferSize, const Vector2UShort& value, const char* seperate)
+void StringUtility::V2IToS(char* buffer, uint bufferSize, const Vector2Int& value, const char* separate)
 {
 	buffer[0] = '\0';
 	INT_TO_STRING(xStr, value.x);
 	INT_TO_STRING(yStr, value.y);
-	STR_APPEND3_N(buffer, bufferSize, xStr, seperate, yStr);
+	STR_APPEND3_N(buffer, bufferSize, xStr, separate, yStr);
 }
 
-Vector3 StringUtility::stringToVector3(const string& str, const char* seperate)
+void StringUtility::V2USToS(char* buffer, uint bufferSize, const Vector2UShort& value, const char* separate)
+{
+	buffer[0] = '\0';
+	INT_TO_STRING(xStr, value.x);
+	INT_TO_STRING(yStr, value.y);
+	STR_APPEND3_N(buffer, bufferSize, xStr, separate, yStr);
+}
+
+Vector3 StringUtility::SToV3(const string& str, const char* separate)
 {
 	Vector3 value;
 	array<string, 3> valueList;
-	if (split(str.c_str(), seperate, valueList) == valueList.size())
+	if (split(str.c_str(), separate, valueList) == valueList.size())
 	{
-		value.x = stringToFloat(valueList[0]);
-		value.y = stringToFloat(valueList[1]);
-		value.z = stringToFloat(valueList[2]);
+		value.x = SToF(valueList[0]);
+		value.y = SToF(valueList[1]);
+		value.z = SToF(valueList[2]);
 	}
 	return value;
 }
 
-string StringUtility::bytesToString(const char* buffer, uint length)
+string StringUtility::BsToS(const char* buffer, uint length)
 {
 	int size = MathUtility::getGreaterPower2(length + 1);
 	char* tempBuffer = ArrayPool::newArray<char>(size);
@@ -1594,7 +1465,7 @@ string StringUtility::removePreNumber(const string& str)
 	return str;
 }
 
-string StringUtility::stringArrayToString(string* strList, uint stringCount, const char* seperate)
+string StringUtility::SsToS(string* strList, uint stringCount, const char* separate)
 {
 	string str;
 	FOR_I(stringCount)
@@ -1602,7 +1473,7 @@ string StringUtility::stringArrayToString(string* strList, uint stringCount, con
 		str += strList[i];
 		if (i != stringCount - 1)
 		{
-			str += seperate;
+			str += separate;
 		}
 	}
 	return str;
@@ -2295,7 +2166,7 @@ void StringUtility::appendValueString(char* queryStr, uint size, const char* str
 void StringUtility::appendValueInt(char* queryStr, uint size, int value, bool addComma)
 {
 	array<char, 16> temp;
-	intToString(temp, value);
+	IToS(temp, value);
 	if (addComma)
 	{
 		STR_APPEND2_N(queryStr, size, temp._Elems, ",");
@@ -2309,7 +2180,7 @@ void StringUtility::appendValueInt(char* queryStr, uint size, int value, bool ad
 void StringUtility::appendValueFloat(char* queryStr, uint size, float value, bool addComma)
 {
 	array<char, 16> temp;
-	floatToString(temp, value);
+	FToS(temp, value);
 	if (addComma)
 	{
 		STR_APPEND2_N(queryStr, size, temp._Elems, ",");
@@ -2323,7 +2194,7 @@ void StringUtility::appendValueFloat(char* queryStr, uint size, float value, boo
 void StringUtility::appendValueLLong(char* queryStr, uint size, const ullong& value, bool addComma)
 {
 	array<char, 32> temp;
-	ullongToString(temp, value);
+	ULLToS(temp, value);
 	if (addComma)
 	{
 		STR_APPEND2_N(queryStr, size, temp._Elems, ",");
@@ -2338,7 +2209,7 @@ void StringUtility::appendValueByteArray(char* queryStr, uint size, byte* ushort
 {
 	int arrayLen = 16 * MathUtility::getGreaterPower2(count);
 	char* charArray = ArrayPool::newArray<char>(arrayLen);
-	byteArrayToString(charArray, arrayLen, ushortArray, count);
+	BsToS(charArray, arrayLen, ushortArray, count);
 	appendValueString(queryStr, size, charArray, false, addComma);
 	ArrayPool::deleteArray(charArray);
 }
@@ -2347,7 +2218,7 @@ void StringUtility::appendValueUShortArray(char* queryStr, uint size, ushort* us
 {
 	int arrayLen = 16 * MathUtility::getGreaterPower2(count);
 	char* charArray = ArrayPool::newArray<char>(arrayLen);
-	ushortArrayToString(charArray, arrayLen, ushortArray, count);
+	USsToS(charArray, arrayLen, ushortArray, count);
 	appendValueString(queryStr, size, charArray, false, addComma);
 	ArrayPool::deleteArray(charArray);
 }
@@ -2356,7 +2227,7 @@ void StringUtility::appendValueIntArray(char* queryStr, uint size, int* intArray
 {
 	int arrayLen = 16 * MathUtility::getGreaterPower2(count);
 	char* charArray = ArrayPool::newArray<char>(arrayLen);
-	intArrayToString(charArray, arrayLen, intArray, count);
+	IsToS(charArray, arrayLen, intArray, count);
 	appendValueString(queryStr, size, charArray, false, addComma);
 	ArrayPool::deleteArray(charArray);
 }
@@ -2365,7 +2236,7 @@ void StringUtility::appendValueFloatArray(char* queryStr, uint size, float* floa
 {
 	int arrayLen = 16 * MathUtility::getGreaterPower2(count);
 	char* charArray = ArrayPool::newArray<char>(arrayLen);
-	floatArrayToString(charArray, arrayLen, floatArray, count);
+	FsToS(charArray, arrayLen, floatArray, count);
 	appendValueString(queryStr, size, charArray, false, addComma);
 	ArrayPool::deleteArray(charArray);
 }
@@ -2374,7 +2245,7 @@ void StringUtility::appendValueULLongArray(char* queryStr, uint size, ullong* lo
 {
 	int arrayLen = 16 * MathUtility::getGreaterPower2(count);
 	char* charArray = ArrayPool::newArray<char>(arrayLen);
-	ullongArrayToString(charArray, arrayLen, longArray, count);
+	ULLsToS(charArray, arrayLen, longArray, count);
 	appendValueString(queryStr, size, charArray, false, addComma);
 	ArrayPool::deleteArray(charArray);
 }
@@ -2382,14 +2253,14 @@ void StringUtility::appendValueULLongArray(char* queryStr, uint size, ullong* lo
 void StringUtility::appendValueVector2Int(char* queryStr, uint size, const Vector2Int& value, bool addComma)
 {
 	array<char, 32> temp;
-	vector2IntToString(temp, value);
+	V2IToS(temp, value);
 	appendValueString(queryStr, size, temp._Elems, false, addComma);
 }
 
 void StringUtility::appendValueVector2UShort(char* queryStr, uint size, const Vector2UShort& value, bool addComma)
 {
 	array<char, 16> temp;
-	vector2UShortToString(temp, value);
+	V2USToS(temp, value);
 	appendValueString(queryStr, size, temp._Elems, false, addComma);
 }
 
@@ -2422,7 +2293,7 @@ void StringUtility::appendConditionString(char* condition, uint size, const char
 void StringUtility::appendConditionInt(char* condition, uint size, const char* col, int value, const char* operate)
 {
 	array<char, 16> temp;
-	intToString(temp, value);
+	IToS(temp, value);
 	if (operate == nullptr)
 	{
 		STR_APPEND3_N(condition, size, col, " = ", temp._Elems);
@@ -2436,7 +2307,7 @@ void StringUtility::appendConditionInt(char* condition, uint size, const char* c
 void StringUtility::appendConditionFloat(char* condition, uint size, const char* col, float value, const char* operate)
 {
 	array<char, 16> temp;
-	floatToString(temp, value);
+	FToS(temp, value);
 	if (operate == nullptr)
 	{
 		STR_APPEND3_N(condition, size, col, " = ", temp._Elems);
@@ -2450,7 +2321,7 @@ void StringUtility::appendConditionFloat(char* condition, uint size, const char*
 void StringUtility::appendConditionULLong(char* condition, uint size, const char* col, const ullong& value, const char* operate)
 {
 	array<char, 32> temp;
-	ullongToString(temp, value);
+	ULLToS(temp, value);
 	if (operate == nullptr)
 	{
 		STR_APPEND3_N(condition, size, col, " = ", temp._Elems);
@@ -2490,7 +2361,7 @@ void StringUtility::appendUpdateString(char* updateInfo, uint size, const char* 
 void StringUtility::appendUpdateInt(char* updateInfo, uint size, const char* col, int value, bool addComma)
 {
 	array<char, 16> temp;
-	intToString(temp, value);
+	IToS(temp, value);
 	if (addComma)
 	{
 		STR_APPEND4_N(updateInfo, size, col, " = ", temp._Elems, ",");
@@ -2504,7 +2375,7 @@ void StringUtility::appendUpdateInt(char* updateInfo, uint size, const char* col
 void StringUtility::appendUpdateFloat(char* updateInfo, uint size, const char* col, float value, bool addComma)
 {
 	array<char, 16> temp;
-	floatToString(temp, value);
+	FToS(temp, value);
 	if (addComma)
 	{
 		STR_APPEND4_N(updateInfo, size, col, " = ", temp._Elems, ",");
@@ -2518,7 +2389,7 @@ void StringUtility::appendUpdateFloat(char* updateInfo, uint size, const char* c
 void StringUtility::appendUpdateULLong(char* updateInfo, uint size, const char* col, const ullong& value, bool addComma)
 {
 	array<char, 32> temp;
-	ullongToString(temp, value);
+	ULLToS(temp, value);
 	if (addComma)
 	{
 		STR_APPEND4_N(updateInfo, size, col, " = ", temp._Elems, ",");
@@ -2533,7 +2404,7 @@ void StringUtility::appendUpdateByteArray(char* updateInfo, uint size, const cha
 {
 	int arrayLen = 4 * MathUtility::getGreaterPower2(count);
 	char* charArray = ArrayPool::newArray<char>(arrayLen);
-	byteArrayToString(charArray, arrayLen, ushortArray, count);
+	BsToS(charArray, arrayLen, ushortArray, count);
 	appendUpdateString(updateInfo, size, col, charArray, false, addComma);
 	ArrayPool::deleteArray(charArray);
 }
@@ -2542,7 +2413,7 @@ void StringUtility::appendUpdateUShortArray(char* updateInfo, uint size, const c
 {
 	int arrayLen = 16 * MathUtility::getGreaterPower2(count);
 	char* charArray = ArrayPool::newArray<char>(arrayLen);
-	ushortArrayToString(charArray, arrayLen, ushortArray, count);
+	USsToS(charArray, arrayLen, ushortArray, count);
 	appendUpdateString(updateInfo, size, col, charArray, false, addComma);
 	ArrayPool::deleteArray(charArray);
 }
@@ -2551,7 +2422,7 @@ void StringUtility::appendUpdateIntArray(char* updateInfo, uint size, const char
 {
 	int arrayLen = 16 * MathUtility::getGreaterPower2(count);
 	char* charArray = ArrayPool::newArray<char>(arrayLen);
-	intArrayToString(charArray, arrayLen, intArray, count);
+	IsToS(charArray, arrayLen, intArray, count);
 	appendUpdateString(updateInfo, size, col, charArray, false, addComma);
 	ArrayPool::deleteArray(charArray);
 }
@@ -2560,7 +2431,7 @@ void StringUtility::appendUpdateFloatArray(char* updateInfo, uint size, const ch
 {
 	int arrayLen = 16 * MathUtility::getGreaterPower2(count);
 	char* charArray = ArrayPool::newArray<char>(arrayLen);
-	floatArrayToString(charArray, arrayLen, floatArray, count);
+	FsToS(charArray, arrayLen, floatArray, count);
 	appendUpdateString(updateInfo, size, col, charArray, false, addComma);
 	ArrayPool::deleteArray(charArray);
 }
@@ -2569,7 +2440,7 @@ void StringUtility::appendUpdateULLongArray(char* updateInfo, uint size, const c
 {
 	int arrayLen = 16 * MathUtility::getGreaterPower2(count);
 	char* charArray = ArrayPool::newArray<char>(arrayLen);
-	ullongArrayToString(charArray, arrayLen, longArray, count);
+	ULLsToS(charArray, arrayLen, longArray, count);
 	appendUpdateString(updateInfo, size, col, charArray, false, addComma);
 	ArrayPool::deleteArray(charArray);
 }
@@ -2577,21 +2448,21 @@ void StringUtility::appendUpdateULLongArray(char* updateInfo, uint size, const c
 void StringUtility::appendUpdateVector2Int(char* updateInfo, uint size, const char* col, const Vector2Int& value, bool addComma)
 {
 	array<char, 32> temp;
-	vector2IntToString(temp, value);
+	V2IToS(temp, value);
 	appendUpdateString(updateInfo, size, col, temp._Elems, false, addComma);
 }
 
 void StringUtility::appendUpdateVector2UShort(char* updateInfo, uint size, const char* col, const Vector2UShort& value, bool addComma)
 {
 	array<char, 16> temp;
-	vector2UShortToString(temp, value);
+	V2USToS(temp, value);
 	appendUpdateString(updateInfo, size, col, temp._Elems, false, addComma);
 }
 
-void StringUtility::stringToFloats(const string& str, myVector<float>& valueList, const char* seperate)
+void StringUtility::SToFs(const string& str, myVector<float>& valueList, const char* separate)
 {
 	myVector<string> strList;
-	split(str.c_str(), seperate, strList);
+	split(str.c_str(), separate, strList);
 	const int count = strList.size();
 	valueList.clear();
 	valueList.reserve(count);
@@ -2600,15 +2471,47 @@ void StringUtility::stringToFloats(const string& str, myVector<float>& valueList
 		const string& curStr = strList[i];
 		if (curStr.length() > 0)
 		{
-			valueList.push_back(stringToFloat(curStr));
+			valueList.push_back(SToF(curStr));
 		}
 	}
 }
 
-void StringUtility::stringToBytes(const string& str, myVector<byte>& valueList, const char* seperate)
+int StringUtility::SToFs(const char* str, float* buffer, int bufferSize, const char* separate)
+{
+	int curCount = 0;
+	uint startPos = 0;
+	uint keyLen = (uint)strlen(separate);
+	uint sourceLen = (uint)strlen(str);
+	Array<32> curString{0};
+	int dividePos = -1;
+	bool ret = true;
+	while (ret)
+	{
+		ret = findString(str, separate, &dividePos, startPos);
+		// 无论是否查找到,都将前面一段字符串截取出来
+		dividePos = ret ? dividePos : sourceLen;
+		curString.copy(str + startPos, dividePos - startPos);
+		curString[dividePos - startPos] = '\0';
+		startPos = dividePos + keyLen;
+		// 转换为整数放入列表
+		if (curString[0] == '\0')
+		{
+			continue;
+		}
+		if (curCount >= bufferSize)
+		{
+			ERROR("int buffer size is too small, bufferSize:" + IToS(bufferSize));
+			break;
+		}
+		buffer[curCount++] = SToF(curString.str());
+	}
+	return curCount;
+}
+
+void StringUtility::SToBs(const string& str, myVector<byte>& valueList, const char* separate)
 {
 	myVector<string> strList;
-	split(str.c_str(), seperate, strList);
+	split(str.c_str(), separate, strList);
 	const int count = strList.size();
 	valueList.clear();
 	valueList.reserve(count);
@@ -2617,28 +2520,28 @@ void StringUtility::stringToBytes(const string& str, myVector<byte>& valueList, 
 		const string& curStr = strList[i];
 		if (curStr.length() > 0)
 		{
-			valueList.push_back(stringToInt(curStr));
+			valueList.push_back(SToI(curStr));
 		}
 	}
 }
 
-int StringUtility::stringToBytes(const char* str, byte* buffer, const int bufferSize, const char* seperate)
+int StringUtility::SToBs(const char* str, byte* buffer, const int bufferSize, const char* separate)
 {
 	int curCount = 0;
 	int startPos = 0;
 	const int sourceLen = strlength(str);
-	const int keyLen = strlength(seperate);
+	const int keyLen = strlength(separate);
 	Array<4> curString{ 0 };
-	int devidePos = -1;
+	int dividePos = -1;
 	bool ret = true;
 	while (ret)
 	{
-		ret = findString(str, seperate, &devidePos, startPos);
+		ret = findString(str, separate, &dividePos, startPos);
 		// 无论是否查找到,都将前面一段字符串截取出来
-		devidePos = ret ? devidePos : sourceLen;
-		curString.copy(str + startPos, devidePos - startPos);
-		curString[devidePos - startPos] = '\0';
-		startPos = devidePos + keyLen;
+		dividePos = ret ? dividePos : sourceLen;
+		curString.copy(str + startPos, dividePos - startPos);
+		curString[dividePos - startPos] = '\0';
+		startPos = dividePos + keyLen;
 		// 转换为整数放入列表
 		if (curString[0] == '\0')
 		{
@@ -2646,18 +2549,18 @@ int StringUtility::stringToBytes(const char* str, byte* buffer, const int buffer
 		}
 		if (curCount >= bufferSize)
 		{
-			ERROR("int buffer size is too small, bufferSize:" + intToString(bufferSize));
+			ERROR("int buffer size is too small, bufferSize:" + IToS(bufferSize));
 			break;
 		}
-		buffer[curCount++] = stringToInt(curString.str());
+		buffer[curCount++] = SToI(curString.str());
 	}
 	return curCount;
 }
 
-void StringUtility::stringToUShorts(const string& str, myVector<ushort>& valueList, const char* seperate)
+void StringUtility::SToUSs(const string& str, myVector<ushort>& valueList, const char* separate)
 {
 	myVector<string> strList;
-	split(str.c_str(), seperate, strList);
+	split(str.c_str(), separate, strList);
 	const int count = strList.size();
 	valueList.clear();
 	valueList.reserve(count);
@@ -2666,28 +2569,28 @@ void StringUtility::stringToUShorts(const string& str, myVector<ushort>& valueLi
 		const string& curStr = strList[i];
 		if (curStr.length() > 0)
 		{
-			valueList.push_back(stringToInt(curStr));
+			valueList.push_back(SToI(curStr));
 		}
 	}
 }
 
-int StringUtility::stringToUShorts(const char* str, ushort* buffer, const int bufferSize, const char* seperate)
+int StringUtility::SToUSs(const char* str, ushort* buffer, const int bufferSize, const char* separate)
 {
 	int curCount = 0;
 	int startPos = 0;
 	const int sourceLen = strlength(str);
-	const int keyLen = strlength(seperate);
+	const int keyLen = strlength(separate);
 	Array<8> curString{ 0 };
-	int devidePos = -1;
+	int dividePos = -1;
 	bool ret = true;
 	while (ret)
 	{
-		ret = findString(str, seperate, &devidePos, startPos);
+		ret = findString(str, separate, &dividePos, startPos);
 		// 无论是否查找到,都将前面一段字符串截取出来
-		devidePos = ret ? devidePos : sourceLen;
-		curString.copy(str + startPos, devidePos - startPos);
-		curString[devidePos - startPos] = '\0';
-		startPos = devidePos + keyLen;
+		dividePos = ret ? dividePos : sourceLen;
+		curString.copy(str + startPos, dividePos - startPos);
+		curString[dividePos - startPos] = '\0';
+		startPos = dividePos + keyLen;
 		// 转换为整数放入列表
 		if (curString[0] == '\0')
 		{
@@ -2695,18 +2598,18 @@ int StringUtility::stringToUShorts(const char* str, ushort* buffer, const int bu
 		}
 		if (curCount >= bufferSize)
 		{
-			ERROR("int buffer size is too small, bufferSize:" + intToString(bufferSize));
+			ERROR("int buffer size is too small, bufferSize:" + IToS(bufferSize));
 			break;
 		}
-		buffer[curCount++] = stringToInt(curString.str());
+		buffer[curCount++] = SToI(curString.str());
 	}
 	return curCount;
 }
 
-void StringUtility::stringToInts(const string& str, myVector<int>& valueList, const char* seperate)
+void StringUtility::SToIs(const string& str, myVector<int>& valueList, const char* separate)
 {
 	myVector<string> strList;
-	split(str.c_str(), seperate, strList);
+	split(str.c_str(), separate, strList);
 	const int count = strList.size();
 	valueList.clear();
 	valueList.reserve(strList.size());
@@ -2715,28 +2618,28 @@ void StringUtility::stringToInts(const string& str, myVector<int>& valueList, co
 		const string& curStr = strList[i];
 		if (curStr.length() > 0)
 		{
-			valueList.push_back(stringToInt(curStr));
+			valueList.push_back(SToI(curStr));
 		}
 	}
 }
 
-int StringUtility::stringToInts(const char* str, int* buffer, const int bufferSize, const char* seperate)
+int StringUtility::SToIs(const char* str, int* buffer, const int bufferSize, const char* separate)
 {
 	int curCount = 0;
 	int startPos = 0;
 	const int sourceLen = strlength(str);
-	const int keyLen = strlength(seperate);
+	const int keyLen = strlength(separate);
 	Array<16> curString{ 0 };
-	int devidePos = -1;
+	int dividePos = -1;
 	bool ret = true;
 	while (ret)
 	{
-		ret = findString(str, seperate, &devidePos, startPos);
+		ret = findString(str, separate, &dividePos, startPos);
 		// 无论是否查找到,都将前面一段字符串截取出来
-		devidePos = ret ? devidePos : sourceLen;
-		curString.copy(str + startPos, devidePos - startPos);
-		curString[devidePos - startPos] = '\0';
-		startPos = devidePos + keyLen;
+		dividePos = ret ? dividePos : sourceLen;
+		curString.copy(str + startPos, dividePos - startPos);
+		curString[dividePos - startPos] = '\0';
+		startPos = dividePos + keyLen;
 		// 转换为整数放入列表
 		if (curString[0] == '\0')
 		{
@@ -2744,18 +2647,18 @@ int StringUtility::stringToInts(const char* str, int* buffer, const int bufferSi
 		}
 		if (curCount >= bufferSize)
 		{
-			ERROR("int buffer size is too small, bufferSize:" + intToString(bufferSize));
+			ERROR("int buffer size is too small, bufferSize:" + IToS(bufferSize));
 			break;
 		}
-		buffer[curCount++] = stringToInt(curString.str());
+		buffer[curCount++] = SToI(curString.str());
 	}
 	return curCount;
 }
 
-void StringUtility::stringToUInts(const string& str, myVector<uint>& valueList, const char* seperate)
+void StringUtility::SToUIs(const string& str, myVector<uint>& valueList, const char* separate)
 {
 	myVector<string> strList;
-	split(str.c_str(), seperate, strList);
+	split(str.c_str(), separate, strList);
 	const int count = strList.size();
 	valueList.clear();
 	valueList.reserve(count);
@@ -2764,39 +2667,39 @@ void StringUtility::stringToUInts(const string& str, myVector<uint>& valueList, 
 		const string& curStr = strList[i];
 		if (curStr.length() > 0)
 		{
-			valueList.push_back((uint)stringToInt(curStr));
+			valueList.push_back((uint)SToI(curStr));
 		}
 	}
 }
 
-int StringUtility::stringToUInts(const char* str, uint* buffer, const int bufferSize, const char* seperate)
+int StringUtility::SToUIs(const char* str, uint* buffer, const int bufferSize, const char* separate)
 {
 	int curCount = 0;
 	int startPos = 0;
 	const int sourceLen = strlength(str);
-	const int keyLen = strlength(seperate);
+	const int keyLen = strlength(separate);
 	Array<16> curString{ 0 };
-	int devidePos = -1;
+	int dividePos = -1;
 	bool ret = true;
 	while (ret)
 	{
-		ret = findString(str, seperate, &devidePos, startPos);
+		ret = findString(str, separate, &dividePos, startPos);
 		// 无论是否查找到,都将前面一段字符串截取出来
-		devidePos = ret ? devidePos : sourceLen;
-		curString.copy(str + startPos, devidePos - startPos);
-		curString[devidePos - startPos] = '\0';
-		startPos = devidePos + keyLen;
-		// 转换为长整数放入列表
+		dividePos = ret ? dividePos : sourceLen;
+		curString.copy(str + startPos, dividePos - startPos);
+		curString[dividePos - startPos] = '\0';
+		startPos = dividePos + keyLen;
+		// 转换为整数放入列表
 		if (curString[0] == '\0')
 		{
 			continue;
 		}
 		if (curCount >= bufferSize)
 		{
-			ERROR("uint buffer size is too small, bufferSize:" + intToString(bufferSize));
+			ERROR("int buffer size is too small, bufferSize:" + IToS(bufferSize));
 			break;
 		}
-		buffer[curCount++] = stringToInt(curString.str());
+		buffer[curCount++] = SToI(curString.str());
 	}
 	return curCount;
 }
@@ -2861,10 +2764,10 @@ string StringUtility::zeroString(const int zeroCount)
 	return charArray.str();
 }
 
-void StringUtility::stringToULLongs(const char* str, myVector<ullong>& valueList, const char* seperate)
+void StringUtility::SToULLs(const char* str, myVector<ullong>& valueList, const char* separate)
 {
 	myVector<string> strList;
-	split(str, seperate, strList);
+	split(str, separate, strList);
 	const int count = strList.size();
 	valueList.clear();
 	valueList.reserve(count);
@@ -2873,28 +2776,28 @@ void StringUtility::stringToULLongs(const char* str, myVector<ullong>& valueList
 		const string& curStr = strList[i];
 		if (curStr.length() > 0)
 		{
-			valueList.push_back(stringToULLong(curStr));
+			valueList.push_back(SToULL(curStr));
 		}
 	}
 }
 
-int StringUtility::stringToULLongs(const char* str, ullong* buffer, const int bufferSize, const char* seperate)
+int StringUtility::SToULLs(const char* str, ullong* buffer, const int bufferSize, const char* separate)
 {
 	int curCount = 0;
 	int startPos = 0;
 	const int sourceLen = strlength(str);
-	const int keyLen = strlength(seperate);
+	const int keyLen = strlength(separate);
 	Array<32> curString{ 0 };
-	int devidePos = -1;
+	int dividePos = -1;
 	bool ret = true;
 	while (ret)
 	{
-		ret = findString(str, seperate, &devidePos, startPos);
+		ret = findString(str, separate, &dividePos, startPos);
 		// 无论是否查找到,都将前面一段字符串截取出来
-		devidePos = ret ? devidePos : sourceLen;
-		curString.copy(str + startPos, devidePos - startPos);
-		curString[devidePos - startPos] = '\0';
-		startPos = devidePos + keyLen;
+		dividePos = ret ? dividePos : sourceLen;
+		curString.copy(str + startPos, dividePos - startPos);
+		curString[dividePos - startPos] = '\0';
+		startPos = dividePos + keyLen;
 		// 转换为长整数放入列表
 		if (curString[0] == '\0')
 		{
@@ -2902,83 +2805,83 @@ int StringUtility::stringToULLongs(const char* str, ullong* buffer, const int bu
 		}
 		if (curCount >= bufferSize)
 		{
-			ERROR("ullong buffer size is too small, bufferSize:" + intToString(bufferSize));
+			ERROR("ullong buffer size is too small, bufferSize:" + IToS(bufferSize));
 			break;
 		}
-		buffer[curCount++] = stringToULLong(curString.str());
+		buffer[curCount++] = SToULL(curString.str());
 	}
 	return curCount;
 }
 
-void StringUtility::stringToLLongs(const char* str, myVector<llong>& valueList, const char* seperate)
+void StringUtility::SToLLs(const char* str, myVector<llong>& valueList, const char* separate)
 {
 	int startPos = 0;
 	const int sourceLen = strlength(str);
-	const int keyLen = strlength(seperate);
+	const int keyLen = strlength(separate);
 	Array<32> curString{ 0 };
-	int devidePos = -1;
+	int dividePos = -1;
 	valueList.clear();
 	bool ret = true;
 	while (ret)
 	{
-		ret = findString(str, seperate, &devidePos, startPos);
+		ret = findString(str, separate, &dividePos, startPos);
 		// 无论是否查找到,都将前面一段字符串截取出来
-		devidePos = ret ? devidePos : sourceLen;
-		curString.copy(str + startPos, devidePos - startPos);
-		curString[devidePos - startPos] = '\0';
-		startPos = devidePos + keyLen;
+		dividePos = ret ? dividePos : sourceLen;
+		curString.copy(str + startPos, dividePos - startPos);
+		curString[dividePos - startPos] = '\0';
+		startPos = dividePos + keyLen;
 		// 转换为长整数放入列表
 		if (curString[0] == '\0')
 		{
 			continue;
 		}
-		valueList.push_back(stringToLLong(curString.str()));
+		valueList.push_back(SToLL(curString.str()));
 	}
 }
 
-void StringUtility::stringToLLongs(const string& str, myVector<llong>& valueList, const char* seperate)
+void StringUtility::SToLLs(const string& str, myVector<llong>& valueList, const char* separate)
 {
 	int startPos = 0;
-	const int keyLen = strlength(seperate);
+	const int keyLen = strlength(separate);
 	const int sourceLen = (int)str.length();
 	Array<32> curString{ 0 };
-	int devidePos = -1;
+	int dividePos = -1;
 	valueList.clear();
 	bool ret = true;
 	while (ret)
 	{
-		ret = findString(str.c_str(), seperate, &devidePos, startPos);
+		ret = findString(str.c_str(), separate, &dividePos, startPos);
 		// 无论是否查找到,都将前面一段字符串截取出来
-		devidePos = ret ? devidePos : sourceLen;
-		curString.copy(str.c_str() + startPos, devidePos - startPos);
-		curString[devidePos - startPos] = '\0';
-		startPos = devidePos + keyLen;
+		dividePos = ret ? dividePos : sourceLen;
+		curString.copy(str.c_str() + startPos, dividePos - startPos);
+		curString[dividePos - startPos] = '\0';
+		startPos = dividePos + keyLen;
 		// 转换为长整数放入列表
 		if (curString[0] == '\0')
 		{
 			continue;
 		}
-		valueList.push_back(stringToLLong(curString.str()));
+		valueList.push_back(SToLL(curString.str()));
 	}
 }
 
-int StringUtility::stringToLLongs(const char* str, llong* buffer, const int bufferSize, const char* seperate)
+int StringUtility::SToLLs(const char* str, llong* buffer, const int bufferSize, const char* separate)
 {
 	int curCount = 0;
 	int startPos = 0;
 	const int sourceLen = strlength(str);
-	const int keyLen = strlength(seperate);
+	const int keyLen = strlength(separate);
 	Array<32> curString{ 0 };
-	int devidePos = -1;
+	int dividePos = -1;
 	bool ret = true;
 	while (ret)
 	{
-		ret = findString(str, seperate, &devidePos, startPos);
+		ret = findString(str, separate, &dividePos, startPos);
 		// 无论是否查找到,都将前面一段字符串截取出来
-		devidePos = ret ? devidePos : sourceLen;
-		curString.copy(str + startPos, devidePos - startPos);
-		curString[devidePos - startPos] = '\0';
-		startPos = devidePos + keyLen;
+		dividePos = ret ? dividePos : sourceLen;
+		curString.copy(str + startPos, dividePos - startPos);
+		curString[dividePos - startPos] = '\0';
+		startPos = dividePos + keyLen;
 		// 转换为长整数放入列表
 		if (curString[0] == '\0')
 		{
@@ -2986,10 +2889,10 @@ int StringUtility::stringToLLongs(const char* str, llong* buffer, const int buff
 		}
 		if (curCount >= bufferSize)
 		{
-			ERROR("llong buffer size is too small, bufferSize:" + intToString(bufferSize));
+			ERROR("llong buffer size is too small, bufferSize:" + IToS(bufferSize));
 			break;
 		}
-		buffer[curCount++] = stringToLLong(curString.str());
+		buffer[curCount++] = SToLL(curString.str());
 	}
 	return curCount;
 }

@@ -55,35 +55,35 @@ void SQLiteData::parse(SQLiteDataReader* reader)
 		}
 		else if (param->mTypeHashCode == BinaryUtility::mByteListType)
 		{
-			StringUtility::stringToBytes(reader->getString(index), *static_cast<myVector<byte>*>(param->mPointer));
+			StringUtility::SToBs(reader->getString(index), *static_cast<myVector<byte>*>(param->mPointer));
 		}
 		else if (param->mTypeHashCode == BinaryUtility::mUShortListType)
 		{
-			StringUtility::stringToUShorts(reader->getString(index), *static_cast<myVector<ushort>*>(param->mPointer));
+			StringUtility::SToUSs(reader->getString(index), *static_cast<myVector<ushort>*>(param->mPointer));
 		}
 		else if (param->mTypeHashCode == BinaryUtility::mIntListType)
 		{
-			StringUtility::stringToInts(reader->getString(index), *static_cast<myVector<int>*>(param->mPointer));
+			StringUtility::SToIs(reader->getString(index), *static_cast<myVector<int>*>(param->mPointer));
 		}
 		else if (param->mTypeHashCode == BinaryUtility::mUIntListType)
 		{
-			StringUtility::stringToUInts(reader->getString(index), *static_cast<myVector<uint>*>(param->mPointer));
+			StringUtility::SToUIs(reader->getString(index), *static_cast<myVector<uint>*>(param->mPointer));
 		}
 		else if (param->mTypeHashCode == BinaryUtility::mFloatListType)
 		{
-			StringUtility::stringToFloats(reader->getString(index), *static_cast<myVector<float>*>(param->mPointer));
+			StringUtility::SToFs(reader->getString(index), *static_cast<myVector<float>*>(param->mPointer));
 		}
 		else if (param->mTypeHashCode == BinaryUtility::mVector2IntType)
 		{
-			*static_cast<Vector2Int*>(param->mPointer) = StringUtility::stringToVector2Int(reader->getString(index));
+			*static_cast<Vector2Int*>(param->mPointer) = StringUtility::SToV2I(reader->getString(index));
 		}
 		else if (param->mTypeHashCode == BinaryUtility::mVector2ShortType)
 		{
-			*static_cast<Vector2Short*>(param->mPointer) = StringUtility::stringToVector2Short(reader->getString(index));
+			*static_cast<Vector2Short*>(param->mPointer) = StringUtility::SToV2S(reader->getString(index));
 		}
 		else if (param->mTypeHashCode == BinaryUtility::mVector2UShortType)
 		{
-			*static_cast<Vector2UShort*>(param->mPointer) = StringUtility::stringToVector2UShort(reader->getString(index));
+			*static_cast<Vector2UShort*>(param->mPointer) = StringUtility::SToV2US(reader->getString(index));
 		}
 		else if (param->mTypeHashCode == BinaryUtility::mStringType)
 		{

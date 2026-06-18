@@ -1,5 +1,4 @@
-#ifndef _CODE_UNITY_BUILD_H_
-#define _CODE_UNITY_BUILD_H_
+#pragma once
 
 #include "CodeUtility.h"
 
@@ -12,5 +11,3 @@ protected:
 	static void generateCppUnityBuild(const string& filePath, const string& unityBuildFileName);
 protected:
 };
-
-#endif

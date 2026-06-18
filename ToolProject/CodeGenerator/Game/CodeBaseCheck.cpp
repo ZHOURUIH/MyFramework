@@ -22,8 +22,7 @@ void CodeBaseCheck::doGenerate(const string& path)
 	{
 		return;
 	}
-	bool hasBOM = false;
-	auto lines = openTxtFileLines(path, true, &hasBOM);
+	auto lines = openFile(path);
 	for (int i = 0; i < lines.size(); ++i)
 	{
 		// 如果带逗号就跳过,基类中带逗号的无法添加BASE宏
@@ -51,5 +50,5 @@ void CodeBaseCheck::doGenerate(const string& path)
 			}
 		}
 	}
-	writeFileIfChanged(path, ANSIToUTF8(codeListToString(lines).c_str(), hasBOM));
+	writeFile(path, lines);
 }

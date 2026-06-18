@@ -9,50 +9,132 @@ void CodeFrameSystem::generate()
 	print("");
 }
 
+bool CodeFrameSystem::isSystemFile(const string fileName)
+{
+	return endWith(fileName, "System") || endWith(fileName, "Manager");
+}
+
+bool CodeFrameSystem::isFrameClass(const string& className, const string& line)
+{
+	if (className.empty())
+	{
+		return false;
+	}
+	return findSubstr(line, " : public FrameComponent") &&
+		className != "FactoryManager" &&
+		className != "ClassPool" &&
+		className != "ClassPoolThread" &&
+		className != "ClassTypePool" &&
+		className != "ClassTypePoolThread" &&
+		className != "ClassBaseTypePool" &&
+		className != "ClassBaseTypePoolThread" &&
+		className != "ClassKeyPool" &&
+		className != "ClassKeyPoolThread" &&
+		className != "ArrayPool" &&
+		className != "ClassPoolBase" &&
+		className != "ArrayPoolThread";
+}
+
+bool CodeFrameSystem::isPoolFile(const string& fileName)
+{
+	return endWith(fileName, "Pool") || endWith(fileName, "PoolThread");
+}
+
+bool CodeFrameSystem::isPoolClass(const string& line)
+{
+	return findSubstr(line, " : public ClassPool<") ||
+		findSubstr(line, " : public ClassPoolThread<") ||
+		findSubstr(line, " : public ClassTypePool<") ||
+		findSubstr(line, " : public ClassTypePoolThread<") ||
+		findSubstr(line, " : public ClassBaseTypePool<") ||
+		findSubstr(line, " : public ClassBaseTypePoolThread<") ||
+		findSubstr(line, " : public ClassKeyPool<") ||
+		findSubstr(line, " : public ClassKeyPoolThread<") ||
+		findSubstr(line, " : public PodPoolThread<") ||
+		findSubstr(line, " ArrayPool : public ") ||
+		findSubstr(line, " ArrayPoolThread : public ");
+}
+
+bool CodeFrameSystem::isClassObjectPoolFile(const string& fileName)
+{
+	string cleanFileName = getFileNameNoSuffix(fileName, true);
+	// 排除不可能是对象池的类
+	if (startWith(cleanFileName, "CS") ||
+		startWith(cleanFileName, "SC") ||
+		startWith(cleanFileName, "NetStruct") ||
+		startWith(cleanFileName, "MD") ||
+		startWith(cleanFileName, "ED") ||
+		startWith(cleanFileName, "SD") ||
+		(startWith(cleanFileName, "Cmd") && isUpper(cleanFileName[3])) ||
+		endWith(cleanFileName, "Test"))
+	{
+		return false;
+	}
+	return true;
+}
+
+bool CodeFrameSystem::isFactoryFile(const string& fileName)
+{
+	return endWith(fileName, "FactoryManager") && fileName != "FactoryManager";
+}
+
+bool CodeFrameSystem::isFactoryClass(const string& line)
+{
+	return findSubstr(line, " : public FactoryManager<");
+}
+
 void CodeFrameSystem::generateFrameSystem(const string& cppPath, const string& baseFilePathNoSuffix, const string& gameFilePath, const string& baseClassName, const string& exportMacro)
 {
-	myVector<string> frameSystemList = findTargetHeaderFile(cppPath,
-		[](const string& fileName) { return endWith(fileName, "System") || endWith(fileName, "Manager"); },
-		[](const string& line)
+	const myVector<string> headerFiles = findFiles(cppPath, ".h");
+	myVector<string> frameSystemList;
+	myVector<string> classPoolList;
+	myVector<string> classOjbectPoolList;
+	myVector<string> factoryList;
+	myVector<string> allLines;
+	for (const string& file : headerFiles)
+	{
+		// 需要排除掉第三方的库
+		if (findSubstr(file, "Dependency/"))
 		{
-			return findSubstr(line, " : public FrameComponent") && 
-				   findClassName(line) != "FactoryManager" && 
-				   findClassName(line) != "ClassPool" &&
-				   findClassName(line) != "ClassPoolThread" &&
-				   findClassName(line) != "ClassTypePool" &&
-				   findClassName(line) != "ClassTypePoolThread" &&
-				   findClassName(line) != "ClassBaseTypePool" &&
-				   findClassName(line) != "ClassBaseTypePoolThread" &&
-				   findClassName(line) != "ClassKeyPool" && 
-				   findClassName(line) != "ClassKeyPoolThread" &&
-				   findClassName(line) != "ArrayPool" &&
-				   findClassName(line) != "ArrayPoolThread";
-		});
-	myVector<string> classPoolList = findTargetHeaderFile(cppPath,
-		[](const string& fileName) { return endWith(fileName, "Pool") || endWith(fileName, "PoolThread"); },
-		[](const string& line)
+			continue;
+		}
+		allLines.addRange(openFile(file));
+	}
+	for (const string& line : allLines)
+	{
+		string className = findClassName(line);
+		if (!className.empty())
 		{
-			return findSubstr(line, " : public ClassPool<") ||
-				   findSubstr(line, " : public ClassPoolThread<") ||
-				   findSubstr(line, " : public ClassTypePool<") ||
-				   findSubstr(line, " : public ClassTypePoolThread<") ||
-				   findSubstr(line, " : public ClassBaseTypePool<") ||
-				   findSubstr(line, " : public ClassBaseTypePoolThread<") ||
-				   findSubstr(line, " : public ClassKeyPool<") ||
-				   findSubstr(line, " : public ClassKeyPoolThread<") ||
-				   findSubstr(line, " : public PodPoolThread<") ||
-				   findSubstr(line, " ArrayPool ") ||
-				   findSubstr(line, " ArrayPoolThread ");
-		});
-	myVector<string> factoryList = findTargetHeaderFile(cppPath,
-		[](const string& fileName) { return endWith(fileName, "FactoryManager"); },
-		[](const string& line) { return findSubstr(line, " : public FactoryManager<"); });
+			if (isPoolClass(line))
+			{
+				classPoolList.push_back(className);
+			}
+			if (isFrameClass(className, line))
+			{
+				frameSystemList.push_back(className);
+			}
+			if (isFactoryClass(line))
+			{
+				factoryList.push_back(className);
+			}
+		}
+		else
+		{
+			string poolName0 = getPoolName(line, "CLASS_POOL");
+			if (!poolName0.empty())
+			{
+				classOjbectPoolList.push_back(poolName0 + "Pool");
+			}
+		}
+	}
+
 	// 暂时只能特殊判断,把ServerFramework加上
 	if (baseClassName == "FrameBase")
 	{
 		frameSystemList.insert(0, "ServerFramework");
 	}
 	frameSystemList.addRange(classPoolList);
+	frameSystemList.addRange(classOjbectPoolList);
 	frameSystemList.addRange(factoryList);
 	generateFrameSystemRegister(frameSystemList, cppPath + gameFilePath);
 	generateFrameSystemDeclare(frameSystemList, cppPath + baseFilePathNoSuffix, exportMacro);
@@ -90,7 +172,7 @@ void CodeFrameSystem::generateFrameSystemRegister(const myVector<string>& frameS
 			codeList.insert(++lineStart, "#endif");
 		}
 	}
-	writeFileIfChanged(gameCppPath, ANSIToUTF8(codeListToString(codeList).c_str(), true));
+	writeFile(gameCppPath, codeList);
 }
 
 void CodeFrameSystem::generateFrameSystemClear(const myVector<string>& frameSystemList, const string& gameBaseSourceFile)
@@ -116,7 +198,7 @@ void CodeFrameSystem::generateFrameSystemClear(const myVector<string>& frameSyst
 			codeList.insert(++lineStart, "#endif");
 		}
 	}
-	writeFileIfChanged(gameBaseSourceFile, ANSIToUTF8(codeListToString(codeList).c_str(), true));
+	writeFile(gameBaseSourceFile, codeList);
 }
 
 void CodeFrameSystem::generateFrameSystemDeclare(const myVector<string>& frameSystemList, const string& gameBaseHeaderFile, const string& exportMacro)
@@ -142,7 +224,7 @@ void CodeFrameSystem::generateFrameSystemDeclare(const myVector<string>& frameSy
 			codeList.insert(++lineStart, "#endif");
 		}
 	}
-	writeFileIfChanged(gameBaseHeaderFile, ANSIToUTF8(codeListToString(codeList).c_str(), true));
+	writeFile(gameBaseHeaderFile, codeList);
 }
 
 void CodeFrameSystem::generateFrameSystemDefine(const myVector<string>& frameSystemList, const string& gameBaseSourceFile)
@@ -169,7 +251,7 @@ void CodeFrameSystem::generateFrameSystemDefine(const myVector<string>& frameSys
 			codeList.insert(++lineStart, "#endif");
 		}
 	}
-	writeFileIfChanged(gameBaseSourceFile, ANSIToUTF8(codeListToString(codeList).c_str(), true));
+	writeFile(gameBaseSourceFile, codeList);
 }
 
 void CodeFrameSystem::generateFrameSystemGet(const myVector<string>& frameSystemList, const string& gameBaseSourceFile)
@@ -203,5 +285,5 @@ void CodeFrameSystem::generateFrameSystemGet(const myVector<string>& frameSystem
 			codeList.insert(++lineStart, "#endif");
 		}
 	}
-	writeFileIfChanged(gameBaseSourceFile, ANSIToUTF8(codeListToString(codeList).c_str(), true));
+	writeFile(gameBaseSourceFile, codeList);
 }

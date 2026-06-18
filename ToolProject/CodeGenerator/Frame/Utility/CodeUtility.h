@@ -20,11 +20,17 @@ protected:
 	static string cppGameStringDefineHeaderFile;
 	static string VirtualClientSocketPath;
 	static string SQLitePath;
+	static string ExcelPath;
 	static string START_FALG;
 	static bool mGenerateVirtualClient;
+	static myMap<string, myVector<string>> mCachedFileLines;	// 缓存的所有已打开文件的内容,避免重复的IO
 public:
 	static bool initPath();
 	static bool isGenerateVirtualClient() { return mGenerateVirtualClient; }
+	static myVector<string> openFile(const string& file);
+	static void writeFile(const string& file, const myVector<string>& content);
+	static void writeFile(const string& file, const string& ansiContent);
+	static void deleteFile(const string& file);
 	static bool isPod(const string& type)
 	{
 		return type == "bool" ||
@@ -56,9 +62,9 @@ public:
 			   type == "llong" ||
 			   type == "ullong";
 	}
+	static string getElementTypeCpp(const string& type);
+	static string getElementTypeCS(const string& type);
 	static MySQLMember parseMySQLMemberLine(string line);
-	// ignoreClientServer表示是否忽略客户端服务器标签,true则表示会忽略,将全部字段定义都导出
-	static SQLiteMember parseSQLiteMemberLine(string line, bool ignoreClientServer);
 	static PacketMember parseMemberLine(const string& line);
 	static string packetNameToUpper(const string& packetName);
 	static string nameToUpper(const string& sqliteName, bool preUnderLine = true);
@@ -72,7 +78,10 @@ public:
 	static string convertToCSharpType(const string& cppType);
 	static bool findCustomCode(const string& fullPath, myVector<string>& codeList, int& lineStart, const LineMatchCallback& startLineMatch, const LineMatchCallback& endLineMatch, bool showError = true);
 	static string codeListToString(const myVector<string>& codeList);
-	static myVector<string> findTargetHeaderFile(const string& path, const LineMatchCallback& fileNameMatch, const LineMatchCallback& lineMatch, myMap<string, myVector<string>>* fileContentList = nullptr);
+	static myVector<string> findClass(const string& path, const LineMatchCallback& fileNameMatch, const LineMatchCallback& lineMatch);
+	static myVector<string> findClass(const myVector<string>& files, const LineMatchCallback& fileNameMatch, const LineMatchCallback& lineMatch);
+	static myVector<string> findPoolClass(const myVector<string>& files);
+	static string getPoolName(const string& line, const string& preKey);
 	static string findClassName(const string& line);
 	static string findClassBaseName(const string& line);
 	static void line(string& str, const string& line, bool returnLine = true) 
@@ -85,6 +94,9 @@ public:
 	}
 	static void generateStringDefine(const myVector<string>& defineList, int startID, const string& key, const string& stringDefineHeaderFile);
 	static string replaceVariable(const myMap<string, string>& variableDefine, const string& value);
+	static void parseCSVLine(const string& fullContent, myVector<myVector<string>>& result);
+	static OWNER getOwner(const string& owner);
+	static void parseCSV(const string& result, CSVHeader& header, myVector<myVector<string>>& dataList);
 };
 
 #endif

@@ -121,7 +121,7 @@ public:
 	template<typename T, typename K>
 	static void mapKeyToList(const myMap<K, T>& map, myVector<K>& keyList)
 	{
-		FOREACH_CONST(iter, map)
+		FOREACH(iter, map)
 		{
 			keyList.push_back(iter->first);
 		}
@@ -130,7 +130,7 @@ public:
 	static bool mapValueToList(const myMap<K, T>& map, K* keyList, int maxCount)
 	{
 		int index = 0;
-		FOREACH_CONST(iter, map)
+		FOREACH(iter, map)
 		{
 			if (index >= maxCount)
 			{
@@ -144,7 +144,7 @@ public:
 	template<typename T, typename K>
 	static void mapValueToList(const myMap<K, T>& map, myVector<T>& valueList)
 	{
-		FOREACH_CONST(iter, map)
+		FOREACH(iter, map)
 		{
 			valueList.push_back(iter->second);
 		}
@@ -153,7 +153,7 @@ public:
 	static bool mapValueToList(const myMap<K, T>& map, array<T, Length>& valueList, bool showError = true)
 	{
 		uint index = 0;
-		FOREACH_CONST(iter, map)
+		FOREACH(iter, map)
 		{
 			if (index >= Length)
 			{
@@ -172,7 +172,7 @@ public:
 	static bool mapValueToList(const myMap<K, T>& map, T* valueList, uint maxCount, bool showError = true)
 	{
 		uint index = 0;
-		FOREACH_CONST(iter, map)
+		FOREACH(iter, map)
 		{
 			if (index >= maxCount)
 			{

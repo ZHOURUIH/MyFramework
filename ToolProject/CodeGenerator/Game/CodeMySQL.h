@@ -1,5 +1,4 @@
-#ifndef _CODE_MYSQL_H_
-#define _CODE_MYSQL_H_
+#pragma once
 
 #include "CodeUtility.h"
 
@@ -17,5 +16,3 @@ protected:
 	static void generateMySQLInstanceClear(const myVector<MySQLInfo>& mysqlList, const string& gameBaseSourceFile);
 protected:
 };
-
-#endif

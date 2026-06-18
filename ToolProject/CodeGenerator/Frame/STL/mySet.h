@@ -64,7 +64,7 @@ public:
 	void clone(mySet<T>& target) const
 	{
 		target.mSet.clear();
-		FOREACH_CONST(iter, mSet)
+		FOREACH(iter, mSet)
 		{
 			target.mSet.insert(*iter);
 		}

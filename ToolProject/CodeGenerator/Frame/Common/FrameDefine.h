@@ -207,35 +207,35 @@ for(; iter != iter##End; ++iter)
 // 基础数据类型转字符串
 #define INT_TO_STRING(strBuffer, value)\
 char strBuffer[16];\
-intToString(strBuffer, 16, value);
+IToS(strBuffer, 16, value);
 
 #define INT_TO_STR(strBuffer, value)\
 array<char, 16> strBuffer;\
-intToString(strBuffer, value);
+IToS(strBuffer, value);
 
 #define FLOAT_TO_STRING(strBuffer, value)\
 char strBuffer[16];\
-floatToString(strBuffer, 16, value);
+FToS(strBuffer, 16, value);
 
 #define FLOAT_TO_STR(strBuffer, value)\
 array<char, 16> strBuffer;\
-floatToString(strBuffer, value);
+FToS(strBuffer, value);
 
 #define ULLONG_TO_STRING(strBuffer, value)\
 char strBuffer[32];\
-ullongToString(strBuffer, 32, value);
+ULLToS(strBuffer, 32, value);
 
 #define ULLONG_TO_STR(strBuffer, value)\
 array<char, 32> strBuffer;\
-ullongToString(strBuffer, value);
+ULLToS(strBuffer, value);
 
 #define INT_ARRAY_TO_STRING(strBuffer, valueArray, count)\
 char strBuffer[16 * count];\
-intArrayToString(strBuffer, 16 * count, valueArray, count);
+IsToS(strBuffer, 16 * count, valueArray, count);
 
 #define INT_ARRAY_TO_STR(strBuffer, valueArray, count)\
 array<char, 16 * count> strBuffer;\
-intArrayToString(strBuffer, valueArray, count);
+IsToS(strBuffer, valueArray, count);
 
 // 字符串拼接,将str0,str1等字符串拼接后放入charArray中,会覆盖charArray中的内容
 // charArray为array<char, int>类型
@@ -487,7 +487,7 @@ if (ptr != NULL)									\
 }													\
 else												\
 {													\
-	ERROR(string("can not alloc memory array! ") + "className : " + STR(className) + ", count : " + StringUtility::intToString(count));	\
+	ERROR(string("can not alloc memory array! ") + "className : " + STR(className) + ", count : " + StringUtility::IToS(count));	\
 }
 
 #define NORMAL_DELETE(ptr)			\
@@ -528,7 +528,7 @@ if(ptr != NULL)										\
 }													\
 else												\
 {													\
-	ERROR(string("can not alloc memory array! ") + "className : " + STR(className) + ", count : " + StringUtility::intToString(count));	\
+	ERROR(string("can not alloc memory array! ") + "className : " + STR(className) + ", count : " + StringUtility::IToS(count));	\
 }
 
 #define NORMAL_DELETE(ptr)	\

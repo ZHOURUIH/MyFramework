@@ -57,7 +57,7 @@ protected:
 		}
 		if (mIndex + readLen > mBufferSize)
 		{
-			ERROR("read buffer out of range! cur index : " + StringUtility::intToString(mIndex) + ", buffer size : " + StringUtility::intToString(mBufferSize) + ", read length : " + StringUtility::intToString(readLen));
+			ERROR("read buffer out of range! cur index : " + StringUtility::IToS(mIndex) + ", buffer size : " + StringUtility::IToS(mBufferSize) + ", read length : " + StringUtility::IToS(readLen));
 			return false;
 		}
 		return true;

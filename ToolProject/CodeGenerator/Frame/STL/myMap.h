@@ -35,6 +35,15 @@ public:
 		}
 		return defaultValue;
 	}
+	const Value* getPtr(const Key& k) const
+	{
+		auto iter = mMap.find(k);
+		if (iter != mMap.end())
+		{
+			return &iter->second;
+		}
+		return nullptr;
+	}
 	void set(const Key& k, const Value& value)
 	{
 		auto iter = mMap.find(k);
@@ -100,7 +109,7 @@ public:
 	}
 	bool merge(const myMap<Key, Value>& other)
 	{
-		FOREACH_CONST(iter, other)
+		FOREACH(iter, other)
 		{
 #if _DEBUG
 			bool ret = insert(iter->first, iter->second);
@@ -119,7 +128,7 @@ public:
 	void clone(myMap<Key, Value>& target) const
 	{
 		target.mMap.clear();
-		FOREACH_CONST(iter, mMap)
+		FOREACH(iter, mMap)
 		{
 			target.mMap.insert(make_pair(iter->first, iter->second));
 		}

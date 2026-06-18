@@ -88,7 +88,7 @@ void Serializer::writeToFile(const string& fullName)
 	{
 		return;
 	}
-	FileUtility::writeFile(fullName, mBuffer, mIndex);
+	FileUtility::writeFile1(fullName, mBuffer, mIndex);
 }
 
 void Serializer::resizeBuffer(uint maxSize)

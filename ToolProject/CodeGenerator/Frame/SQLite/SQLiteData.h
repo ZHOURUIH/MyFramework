@@ -14,7 +14,7 @@ public:
 	}
 	virtual ~SQLiteData();
 	virtual void checkAllColName(SQLiteTableBase* table) = 0;
-	void parse(SQLiteDataReader* reader);
+	virtual void parse(SQLiteDataReader* reader);
 	template<typename T>
 	void registeParam(T& param, const byte index)
 	{
@@ -28,7 +28,7 @@ public:
 	template<typename RealType, typename T>
 	void registeEnumListParam(T& param, const byte index)
 	{
-		mParameters.insert(index, new SQLiteTableParam<Vector<RealType>>(&param));
+		mParameters.insert(index, new SQLiteTableParam<myVector<RealType>>(&param));
 	}
 	virtual void clone(SQLiteData* target) { target->mID = mID; }
 public:

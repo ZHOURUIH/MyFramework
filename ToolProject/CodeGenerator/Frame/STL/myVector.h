@@ -28,6 +28,13 @@ public:
 	reverse_iterator rend() { return mVector.rend(); }
 	const_iterator cbegin() const { return mVector.cbegin(); }
 	const_iterator cend() const { return mVector.cend(); }
+	void addUnique(const T& elem)
+	{
+		if (!contains(elem))
+		{
+			push_back(elem);
+		}
+	}
 	void push_back(const T& elem, bool check = true)
 	{
 #if _DEBUG
@@ -137,8 +144,8 @@ public:
 	}
 	int find(const T& value, int startIndex = 0)
 	{
-		uint count = mVector.size();
-		for(uint i = startIndex; i < count; ++i)
+		int count = (int)mVector.size();
+		for (int i = startIndex; i < count; ++i)
 		{
 			if (mVector[i] == value)
 			{
@@ -151,8 +158,8 @@ public:
 	{
 		target.mVector.clear();
 		auto& temp = target.mVector;
-		uint curSize = mVector.size();
-		FOR_I(curSize)
+		int count = (int)mVector.size();
+		FOR_I(count)
 		{
 			temp.push_back(mVector[i]);
 		}
@@ -168,7 +175,7 @@ public:
 			checkLock();
 		}
 #endif
-		for (uint i = 0; i < mVector.size(); )
+		for (int i = 0; i < (int)mVector.size(); )
 		{
 			if (mVector[i] == value)
 			{
@@ -188,7 +195,7 @@ public:
 			checkLock();
 		}
 #endif
-		uint count = (uint)mVector.size();
+		int count = (int)mVector.size();
 		FOR_I(count)
 		{
 			if (mVector[i] == value)
@@ -201,6 +208,22 @@ public:
 	void shrink_to_fit()
 	{
 		mVector.shrink_to_fit();
+	}
+	bool operator==(const myVector<string>& other)
+	{
+		const int len = size();
+		if (len != other.size())
+		{
+			return false;
+		}
+		for(int i = 0; i < len; ++i)
+		{
+			if (mVector[i] != other[i])
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 public:
 	vector<T> mVector;

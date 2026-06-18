@@ -50,10 +50,12 @@ void CodeUnityBuild::generateCppUnityBuild(const string& filePath, const string&
 		fileList.push_back("main.cpp");
 	}
 	string str0;
+	line(str0, "// auto generate start");
 	uint count = fileList.size();
 	FOR_I(count)
 	{
-		line(str0, "#include \"" + fileList[i] + "\"", i != count - 1);
+		line(str0, "#include \"" + fileList[i] + "\"");
 	}
-	writeFileIfChanged(filePath + unityBuildFileName, ANSIToUTF8(str0.c_str(), true));
+	line(str0, "// auto generate end", false);
+	writeFile(filePath + unityBuildFileName, str0);
 }

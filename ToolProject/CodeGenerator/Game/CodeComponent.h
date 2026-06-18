@@ -1,5 +1,4 @@
-#ifndef _CODE_COMPONENT_H_
-#define _CODE_COMPONENT_H_
+#pragma once
 
 #include "CodeUtility.h"
 
@@ -12,5 +11,3 @@ protected:
 	static void generateGameComponentRegister(const myVector<string>& componentList, const string& filePath);
 protected:
 };
-
-#endif

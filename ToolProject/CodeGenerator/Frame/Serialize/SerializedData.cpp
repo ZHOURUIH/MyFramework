@@ -56,31 +56,31 @@ bool SerializedData::writeData(const string& dataString, int paramIndex)
 	uint paramType = dataParam.mDataType;
 	if (paramType == mCharType)
 	{
-		dataParam.mDataPtr[0] = stringToInt(dataString);
+		dataParam.mDataPtr[0] = SToI(dataString);
 	}
 	else if (paramType == mByteType)
 	{
-		*(byte*)(dataParam.mDataPtr) = stringToInt(dataString);
+		*(byte*)(dataParam.mDataPtr) = SToI(dataString);
 	}
 	else if (paramType == mIntType)
 	{
-		*(int*)(dataParam.mDataPtr) = stringToInt(dataString);
+		*(int*)(dataParam.mDataPtr) = SToI(dataString);
 	}
 	else if (paramType == mUIntType)
 	{
-		*(uint*)(dataParam.mDataPtr) = stringToInt(dataString);
+		*(uint*)(dataParam.mDataPtr) = SToI(dataString);
 	}
 	else if (paramType == mShortType)
 	{
-		*(short*)(dataParam.mDataPtr) = stringToInt(dataString);
+		*(short*)(dataParam.mDataPtr) = SToI(dataString);
 	}
 	else if (paramType == mUShortType)
 	{
-		*(ushort*)(dataParam.mDataPtr) = stringToInt(dataString);
+		*(ushort*)(dataParam.mDataPtr) = SToI(dataString);
 	}
 	else if (paramType == mFloatType)
 	{
-		*(float*)(dataParam.mDataPtr) = stringToFloat(dataString);
+		*(float*)(dataParam.mDataPtr) = SToF(dataString);
 	}
 	else if (paramType == mCharArrayType)
 	{
@@ -91,7 +91,7 @@ bool SerializedData::writeData(const string& dataString, int paramIndex)
 	else if (paramType == mByteArrayType)
 	{
 		myVector<int> valueList;
-		stringToIntArray(dataString, valueList, ";");
+		SToIs(dataString, valueList, ";");
 		FOR_VECTOR(valueList)
 		{
 			((byte*)(dataParam.mDataPtr))[i] = valueList[i];
@@ -100,7 +100,7 @@ bool SerializedData::writeData(const string& dataString, int paramIndex)
 	else if (paramType == mIntArrayType)
 	{
 		myVector<int> valueList;
-		stringToIntArray(dataString, valueList, ";");
+		SToIs(dataString, valueList, ";");
 		FOR_VECTOR(valueList)
 		{
 			((int*)(dataParam.mDataPtr))[i] = valueList[i];
@@ -109,7 +109,7 @@ bool SerializedData::writeData(const string& dataString, int paramIndex)
 	else if (paramType == mUIntArrayType)
 	{
 		myVector<int> valueList;
-		stringToIntArray(dataString, valueList, ";");
+		SToIs(dataString, valueList, ";");
 		FOR_VECTOR(valueList)
 		{
 			((uint*)(dataParam.mDataPtr))[i] = valueList[i];
@@ -118,7 +118,7 @@ bool SerializedData::writeData(const string& dataString, int paramIndex)
 	else if (paramType == mShortArrayType)
 	{
 		myVector<int> valueList;
-		stringToIntArray(dataString, valueList, ";");
+		SToIs(dataString, valueList, ";");
 		FOR_VECTOR(valueList)
 		{
 			((short*)(dataParam.mDataPtr))[i] = valueList[i];
@@ -127,7 +127,7 @@ bool SerializedData::writeData(const string& dataString, int paramIndex)
 	else if (paramType == mUShortArrayType)
 	{
 		myVector<int> valueList;
-		stringToIntArray(dataString, valueList, ";");
+		SToIs(dataString, valueList, ";");
 		FOR_VECTOR(valueList)
 		{
 			((ushort*)(dataParam.mDataPtr))[i] = valueList[i];
@@ -136,7 +136,7 @@ bool SerializedData::writeData(const string& dataString, int paramIndex)
 	else if (paramType == mFloatArrayType)
 	{
 		myVector<float> valueList;
-		stringToFloatArray(dataString, valueList, ";");
+		SToFs(dataString, valueList, ";");
 		FOR_VECTOR(valueList)
 		{
 			((float*)(dataParam.mDataPtr))[i] = valueList[i];
@@ -170,31 +170,31 @@ string SerializedData::getValueString(uint paramIndex)
 	uint dataType = dataParam.mDataType;
 	if (dataType == mCharType)
 	{
-		dataString = intToString(dataParam.mDataPtr[0]);
+		dataString = IToS(dataParam.mDataPtr[0]);
 	}
 	else if (dataType == mByteType)
 	{
-		dataString = intToString(*((byte*)dataParam.mDataPtr));
+		dataString = IToS(*((byte*)dataParam.mDataPtr));
 	}
 	else if (dataType == mIntType)
 	{
-		dataString = intToString(*((int*)dataParam.mDataPtr));
+		dataString = IToS(*((int*)dataParam.mDataPtr));
 	}
 	else if (dataType == mUIntType)
 	{
-		dataString = intToString(*((uint*)dataParam.mDataPtr));
+		dataString = IToS(*((uint*)dataParam.mDataPtr));
 	}
 	else if (dataType == mShortType)
 	{
-		dataString = intToString(*((short*)dataParam.mDataPtr));
+		dataString = IToS(*((short*)dataParam.mDataPtr));
 	}
 	else if (dataType == mUShortType)
 	{
-		dataString = intToString(*((ushort*)dataParam.mDataPtr));
+		dataString = IToS(*((ushort*)dataParam.mDataPtr));
 	}
 	else if (dataType == mFloatType)
 	{
-		dataString = floatToString(*((float*)dataParam.mDataPtr));
+		dataString = FToS(*((float*)dataParam.mDataPtr));
 	}
 	else if (dataType == mCharArrayType)
 	{
@@ -205,7 +205,7 @@ string SerializedData::getValueString(uint paramIndex)
 		const int count = (int)dataParam.mDataSize / sizeof(byte);
 		FOR_I(count)
 		{
-			dataString += intToString(*(byte*)(dataParam.mDataPtr + i * sizeof(byte)));
+			dataString += IToS(*(byte*)(dataParam.mDataPtr + i * sizeof(byte)));
 			if (i + 1 < count)
 			{
 				dataString += ";";
@@ -214,14 +214,14 @@ string SerializedData::getValueString(uint paramIndex)
 	}
 	else if (dataType == mIntArrayType)
 	{
-		dataString += intArrayToString((int*)dataParam.mDataPtr, dataParam.mDataSize / sizeof(int), 0, ";");
+		dataString += IsToS((int*)dataParam.mDataPtr, dataParam.mDataSize / sizeof(int), 0, ";");
 	}
 	else if (dataType == mUIntArrayType)
 	{
 		const int count = (int)dataParam.mDataSize / sizeof(uint);
 		FOR_I(count)
 		{
-			dataString += intToString(*(uint*)(dataParam.mDataPtr + i * sizeof(uint)));
+			dataString += IToS(*(uint*)(dataParam.mDataPtr + i * sizeof(uint)));
 			if (i + 1 < count)
 			{
 				dataString += ";";
@@ -233,7 +233,7 @@ string SerializedData::getValueString(uint paramIndex)
 		const int count = (int)dataParam.mDataSize / sizeof(short);
 		FOR_I(count)
 		{
-			dataString += intToString(*(short*)(dataParam.mDataPtr + i * sizeof(short)));
+			dataString += IToS(*(short*)(dataParam.mDataPtr + i * sizeof(short)));
 			if (i + 1 < count)
 			{
 				dataString += ";";
@@ -245,7 +245,7 @@ string SerializedData::getValueString(uint paramIndex)
 		const int count = (int)dataParam.mDataSize / sizeof(ushort);
 		FOR_I(count)
 		{
-			dataString += intToString(*(ushort*)(dataParam.mDataPtr + i * sizeof(ushort)));
+			dataString += IToS(*(ushort*)(dataParam.mDataPtr + i * sizeof(ushort)));
 			if (i + 1 < count)
 			{
 				dataString += ";";
@@ -254,7 +254,7 @@ string SerializedData::getValueString(uint paramIndex)
 	}
 	else if (dataType == mFloatArrayType)
 	{
-		dataString += floatArrayToString((float*)dataParam.mDataPtr, dataParam.mDataSize / sizeof(float), ";");
+		dataString += FsToS((float*)dataParam.mDataPtr, dataParam.mDataSize / sizeof(float), ";");
 	}
 	else
 	{
@@ -291,23 +291,23 @@ bool SerializedData::readStringList(const myVector<string>& dataList)
 		uint dataType = paramter.mDataType;
 		if (dataType == mCharType)
 		{
-			paramter.mDataPtr[0] = stringToInt(dataList[curIndex]);
+			paramter.mDataPtr[0] = SToI(dataList[curIndex]);
 		}
 		else if (dataType == mByteType)
 		{
-			*(byte*)(paramter.mDataPtr) = stringToInt(dataList[curIndex]);
+			*(byte*)(paramter.mDataPtr) = SToI(dataList[curIndex]);
 		}
 		else if (dataType == mIntType)
 		{
-			*(int*)(paramter.mDataPtr) = stringToInt(dataList[curIndex]);
+			*(int*)(paramter.mDataPtr) = SToI(dataList[curIndex]);
 		}
 		else if (dataType == mShortType)
 		{
-			*(short*)(paramter.mDataPtr) = (short)stringToInt(dataList[curIndex]);
+			*(short*)(paramter.mDataPtr) = (short)SToI(dataList[curIndex]);
 		}
 		else if (dataType == mFloatType)
 		{
-			*(float*)(paramter.mDataPtr) = stringToFloat(dataList[curIndex]);
+			*(float*)(paramter.mDataPtr) = SToF(dataList[curIndex]);
 		}
 		else if (dataType == mCharArrayType)
 		{
@@ -322,7 +322,7 @@ bool SerializedData::readStringList(const myVector<string>& dataList)
 			uint size = breakVec.size();
 			FOR_J(size)
 			{
-				((int*)(paramter.mDataPtr))[j] = stringToInt(breakVec[j]);
+				((int*)(paramter.mDataPtr))[j] = SToI(breakVec[j]);
 			}
 		}
 		else

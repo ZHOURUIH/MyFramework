@@ -29,7 +29,7 @@ public:
 			{
 				if (showError)
 				{
-					ERROR("can not find item id:" + StringUtility::intToString(id) + " in " + mTableName);
+					ERROR("can not find item id:" + StringUtility::IToS(id) + " in " + mTableName);
 				}
 				delete item;
 			}
@@ -63,7 +63,7 @@ public:
 	{
 		if (checkID > 0 && query(checkID, false) == nullptr)
 		{
-			ERROR("can not find item id:" + StringUtility::intToString(checkID) + " in " + mTableName + ", ref ID:" + StringUtility::intToString(dataID) + ", ref Table:" + refTableName);
+			ERROR("can not find item id:" + StringUtility::IToS(checkID) + " in " + mTableName + ", ref ID:" + StringUtility::IToS(dataID) + ", ref Table:" + refTableName);
 		}
 	}
 	template<typename T0>
@@ -73,7 +73,7 @@ public:
 		{
 			if (query(checkIDList[i], false) == nullptr)
 			{
-				ERROR("can not find item id:" + StringUtility::intToString(checkIDList[i]) + " in " + mTableName + ", ref ID:" + StringUtility::intToString(dataID) + ", ref Table:" + refTableName);
+				ERROR("can not find item id:" + StringUtility::IToS(checkIDList[i]) + " in " + mTableName + ", ref ID:" + StringUtility::IToS(dataID) + ", ref Table:" + refTableName);
 			}
 		}
 	}
@@ -82,7 +82,7 @@ public:
 	{
 		if (list0.size() != list1.size())
 		{
-			ERROR(string("list pair size not match, table:") + mTableName + ", ref ID:" + intToString(dataID));
+			ERROR(string("list pair size not match, table:") + mTableName + ", ref ID:" + IToS(dataID));
 		}
 	}
 	void checkDataAllColName() override

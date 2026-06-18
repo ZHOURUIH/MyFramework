@@ -10,7 +10,7 @@ void CodeMySQL::generate()
 	bool packetStart = false;
 	// 是否已经开始解析一个表格中的索引
 	bool indexStart = false;
-	myVector<string> lines = openTxtFileLines("MySQL.txt");
+	myVector<string> lines = openFile("MySQL.txt");
 	if (lines.size() == 0)
 	{
 		ERROR("未找到表格格式文件MySQL.txt");
@@ -118,6 +118,7 @@ void CodeMySQL::generateCppMySQLDataFile(const MySQLInfo& mysqlInfo, const strin
 	// 头文件
 	string header;
 	string className = "MD" + mysqlInfo.mMySQLClassName;
+	line(header, "// auto generate start");
 	line(header, "#pragma once");
 	line(header, "");
 	line(header, "#include \"MySQLData.h\"");
@@ -175,7 +176,7 @@ void CodeMySQL::generateCppMySQLDataFile(const MySQLInfo& mysqlInfo, const strin
 	line(header, "\tvoid parseResult(const HashMap<int, char*>& resultRow) override;");
 	line(header, "\tvoid paramList(string& params) const override;");
 	line(header, "\tvoid generateUpdate(string& params, ullong flag) const override;");
-	line(header, "\tvoid clone(MySQLData* target) const override;");
+	line(header, "\tvoid cloneTo(MySQLData* target) const override;");
 	line(header, "\tvoid cloneWithFlag(MySQLData* target, ullong flag) const override;");
 	line(header, "\tvoid resetProperty() override;");
 	line(header, "\tbool updateBool(bool value, int index) override;");
@@ -193,10 +194,13 @@ void CodeMySQL::generateCppMySQLDataFile(const MySQLInfo& mysqlInfo, const strin
 	line(header, "\tfloat getFloat(int index) override;");
 	line(header, "\tllong getLLong(int index) override;");
 	line(header, "\tconst string& getString(int index) override;");
-	line(header, "};", false);
+	line(header, "};");
+	line(header, "// auto generate end", false);
+	writeFile(filePath + className + ".h", header);
 
 	// 源文件
 	string source;
+	line(source, "// auto generate start");
 	line(source, "#include \"GameHeader.h\"");
 	line(source, "");
 	line(source, "const string " + className + "::Name_ID = \"ID\";");
@@ -218,50 +222,50 @@ void CodeMySQL::generateCppMySQLDataFile(const MySQLInfo& mysqlInfo, const strin
 	// parseResult函数
 	line(source, "void " + className + "::parseResult(const HashMap<int, char*>& resultRow)");
 	line(source, "{");
-	line(source, "\tparseLLong(mID, resultRow.tryGet((int)ID));");
+	line(source, "\tparseLLong(mID, resultRow.get((int)ID));");
 	for (const auto& item : mysqlInfo.mMemberList)
 	{
 		const string& typeName = item.mTypeName;
 		const string& memberName = item.mMemberName;
 		if (typeName == "int")
 		{
-			line(source, "\tparseInt(m" + memberName + ", resultRow.tryGet((int)" + memberName + "));");
+			line(source, "\tparseInt(m" + memberName + ", resultRow.get((int)" + memberName + "));");
 		}
 		else if (typeName == "uint")
 		{
-			line(source, "\tparseUInt(m" + memberName + ", resultRow.tryGet((int)" + memberName + "));");
+			line(source, "\tparseUInt(m" + memberName + ", resultRow.get((int)" + memberName + "));");
 		}
 		else if (typeName == "bool")
 		{
-			line(source, "\tparseBool(m" + memberName + ", resultRow.tryGet((int)" + memberName + "));");
+			line(source, "\tparseBool(m" + memberName + ", resultRow.get((int)" + memberName + "));");
 		}
 		else if (typeName == "byte")
 		{
-			line(source, "\tparseByte(m" + memberName + ", resultRow.tryGet((int)" + memberName + "));");
+			line(source, "\tparseByte(m" + memberName + ", resultRow.get((int)" + memberName + "));");
 		}
 		else if (typeName == "char")
 		{
-			line(source, "\tparseChar(m" + memberName + ", resultRow.tryGet((int)" + memberName + "));");
+			line(source, "\tparseChar(m" + memberName + ", resultRow.get((int)" + memberName + "));");
 		}
 		else if (typeName == "short")
 		{
-			line(source, "\tparseShort(m" + memberName + ", resultRow.tryGet((int)" + memberName + "));");
+			line(source, "\tparseShort(m" + memberName + ", resultRow.get((int)" + memberName + "));");
 		}
 		else if (typeName == "ushort")
 		{
-			line(source, "\tparseUShort(m" + memberName + ", resultRow.tryGet((int)" + memberName + "));");
+			line(source, "\tparseUShort(m" + memberName + ", resultRow.get((int)" + memberName + "));");
 		}
 		else if (typeName == "float")
 		{
-			line(source, "\tparseFloat(m" + memberName + ", resultRow.tryGet((int)" + memberName + "));");
+			line(source, "\tparseFloat(m" + memberName + ", resultRow.get((int)" + memberName + "));");
 		}
 		else if (typeName == "llong")
 		{
-			line(source, "\tparseLLong(m" + memberName + ", resultRow.tryGet((int)" + memberName + "));");
+			line(source, "\tparseLLong(m" + memberName + ", resultRow.get((int)" + memberName + "));");
 		}
 		else if (typeName == "string")
 		{
-			line(source, "\tparseString(m" + memberName + ", resultRow.tryGet((int)" + memberName + "));");
+			line(source, "\tparseString(m" + memberName + ", resultRow.get((int)" + memberName + "));");
 		}
 	}
 	line(source, "}");
@@ -395,10 +399,10 @@ void CodeMySQL::generateCppMySQLDataFile(const MySQLInfo& mysqlInfo, const strin
 	line(source, "}");
 	line(source, "");
 
-	// clone函数
-	line(source, "void " + className + "::clone(MySQLData* target) const");
+	// cloneTo函数
+	line(source, "void " + className + "::cloneTo(MySQLData* target) const");
 	line(source, "{");
-	line(source, "\tbase::clone(target);");
+	line(source, "\tbase::cloneTo(target);");
 	if (mysqlInfo.mMemberList.size() > 0)
 	{
 		line(source, "\tauto* targetData = static_cast<This*>(target);");
@@ -829,10 +833,9 @@ void CodeMySQL::generateCppMySQLDataFile(const MySQLInfo& mysqlInfo, const strin
 	}
 	line(source, "\t}");
 	line(source, "\treturn FrameDefine::EMPTY;");
-	line(source, "}", false);
-
-	writeFile(filePath + className + ".h", ANSIToUTF8(header.c_str(), true));
-	writeFile(filePath + className + ".cpp", ANSIToUTF8(source.c_str(), true));
+	line(source, "}");
+	line(source, "// auto generate end", false);
+	writeFile(filePath + className + ".cpp", source);
 }
 
 // 生成MySQLTable.h和MySQLTable.cpp文件
@@ -842,41 +845,96 @@ void CodeMySQL::generateCppMySQLTableFile(const MySQLInfo& mysqlInfo, const stri
 	string dataClassName = "MD" + mysqlInfo.mMySQLClassName;
 
 	// 头文件
-	string header;
-	line(header, "#pragma once");
-	line(header, "");
-	line(header, "#include \"MySQLTableT.h\"");
-	line(header, "#include \"" + dataClassName + ".h\"");
-	line(header, "");
-	line(header, "class " + tableClassName + " : public MySQLTableT<" + dataClassName + ">");
-	line(header, "{");
-	line(header, "\tBASE(" + tableClassName + ", MySQLTableT<" + dataClassName + ">);");
-	line(header, "public:");
-	line(header, "\texplicit " + tableClassName + "(const char* tableName) :base(tableName) {}");
+	myVector<string> headerAutoGenerate;
+	headerAutoGenerate.push_back("#pragma once");
+	headerAutoGenerate.push_back("");
+	headerAutoGenerate.push_back("#include \"MySQLTableT.h\"");
+	headerAutoGenerate.push_back("#include \"" + dataClassName + ".h\"");
+	headerAutoGenerate.push_back("");
+	headerAutoGenerate.push_back("class " + tableClassName + " : public MySQLTableT<" + dataClassName + ">");
+	headerAutoGenerate.push_back("{");
+	headerAutoGenerate.push_back("\tBASE(" + tableClassName + ", MySQLTableT<" + dataClassName + ">);");
+	headerAutoGenerate.push_back("public:");
+	headerAutoGenerate.push_back("\texplicit " + tableClassName + "(const char* tableName) :base(tableName) {}");
 	if (mysqlInfo.mIndexList.size() > 0)
 	{
-		line(header, "\tvoid lateInit() override;");
+		headerAutoGenerate.push_back("\tvoid lateInit() override;");
 	}
-	line(header, "};", false);
+
+	string headerFilePath = filePath + tableClassName + ".h";
+	if (isFileExist(headerFilePath))
+	{
+		myVector<string> codeList;
+		int lineStart = 0;
+		if (!findCustomCode(headerFilePath, codeList, lineStart,
+			[](const string& codeLine) { return endWith(codeLine, "// auto generate start"); },
+			[](const string& codeLine) { return endWith(codeLine, "// auto generate end"); }, false))
+		{
+			// 如果找不到就在第一行和倒数第二行插入,很可能是代码本身已经生成过了,只不过标签没了
+			codeList.insert(0, "// auto generate start");
+			codeList.insert(codeList.size() - 1, "// auto generate end");
+		}
+		else
+		{
+			for (const string& str : headerAutoGenerate)
+			{
+				codeList.insert(++lineStart, str);
+			}
+		}
+		writeFile(headerFilePath, codeList);
+	}
+	else
+	{
+		headerAutoGenerate.insert(0, "// auto generate start");
+		headerAutoGenerate.push_back("// auto generate end");
+		headerAutoGenerate.push_back("};");
+		writeFile(headerFilePath, headerAutoGenerate);
+	}
 
 	// 源文件
-	string source;
-	line(source, "#include \"GameHeader.h\"");
-	line(source, "");
+	myVector<string> sourceAutoGenerate;
+	sourceAutoGenerate.push_back("#include \"GameHeader.h\"");
+	sourceAutoGenerate.push_back("");
 	if (mysqlInfo.mIndexList.size() > 0)
 	{
-		line(source, "void " + tableClassName + "::lateInit()");
-		line(source, "{");
-		line(source, "\tbase::lateInit();");
+		sourceAutoGenerate.push_back("void " + tableClassName + "::lateInit()");
+		sourceAutoGenerate.push_back("{");
+		sourceAutoGenerate.push_back("\tbase::lateInit();");
 		for (const string& indexName : mysqlInfo.mIndexList)
 		{
-			line(source, "\texecuteNonQuery((string(\"ALTER TABLE \") + mTableName + \" ADD INDEX " + indexName + "(\" + " + dataClassName + "::Name_" + indexName + " + \")\").c_str(), false, true);");
+			sourceAutoGenerate.push_back("\texecuteNonQuery((string(\"ALTER TABLE \") + mTableName + \" ADD INDEX " + indexName + "(\" + " + dataClassName + "::Name_" + indexName + " + \")\").c_str(), false, true);");
 		}
-		line(source, "}", false);
+		sourceAutoGenerate.push_back("}");
 	}
 
-	writeFile(filePath + tableClassName + ".h", ANSIToUTF8(header.c_str(), true));
-	writeFile(filePath + tableClassName + ".cpp", ANSIToUTF8(source.c_str(), true));
+	const string sourceFilePath = filePath + tableClassName + ".cpp";
+	if (isFileExist(sourceFilePath))
+	{
+		myVector<string> codeList;
+		int lineStart = 0;
+		if (!findCustomCode(sourceFilePath, codeList, lineStart,
+			[](const string& codeLine) { return endWith(codeLine, "// auto generate start"); },
+			[](const string& codeLine) { return endWith(codeLine, "// auto generate end"); }, false))
+		{
+			// 如果找不到就在第一行和倒数第一行插入,很可能是代码本身已经生成过了,只不过标签没了
+			codeList.insert(0, "// auto generate start");
+			codeList.insert(codeList.size(), "// auto generate end");
+		}
+		else
+		{
+			for (const string& str : sourceAutoGenerate)
+			{
+				codeList.insert(++lineStart, str);
+			}
+		}
+		writeFile(sourceFilePath, codeList);
+	}
+	else
+	{
+		sourceAutoGenerate.insert(0, "// auto generate start");
+		sourceAutoGenerate.push_back("// auto generate end");
+		writeFile(sourceFilePath, sourceAutoGenerate);
+	}
 }
 
 // MySQLRegiste.h和MySQLRegiste.cpp文件
@@ -884,6 +942,7 @@ void CodeMySQL::generateCppMySQLRegisteFile(const myVector<MySQLInfo>& mysqlList
 {
 	// MySQLRegiste.h
 	string str0;
+	line(str0, "// auto generate start");
 	line(str0, "#pragma once");
 	line(str0, "");
 	line(str0, "#include \"GameBase.h\"");
@@ -892,10 +951,12 @@ void CodeMySQL::generateCppMySQLRegisteFile(const myVector<MySQLInfo>& mysqlList
 	line(str0, "{");
 	line(str0, "public:");
 	line(str0, "\tstatic void registeAll();");
-	line(str0, "};", false);
-	writeFile(filePath + "MySQLRegister.h", ANSIToUTF8(str0.c_str(), true));
+	line(str0, "};");
+	line(str0, "// auto generate end", false);
+	writeFile(filePath + "MySQLRegister.h", str0);
 
 	string str1;
+	line(str1, "// auto generate start");
 	line(str1, "#include \"GameHeader.h\"");
 	line(str1, "");
 	line(str1, "void MySQLRegister::registeAll()");
@@ -906,11 +967,12 @@ void CodeMySQL::generateCppMySQLRegisteFile(const myVector<MySQLInfo>& mysqlList
 		const string& mysqlClassName = mysqlList[i].mMySQLClassName;
 		line(str1, "\tmMySQL" + mysqlClassName + " = mMySQLManager->registeTable<MySQL" + mysqlClassName + ">(\"" + mysqlList[i].mMySQLTableName + "\");");
 	}
-	line(str1, "}", false);
-	writeFile(filePath + "MySQLRegister.cpp", ANSIToUTF8(str1.c_str(), true));
+	line(str1, "}");
+	line(str1, "// auto generate end", false);
+	writeFile(filePath + "MySQLRegister.cpp", str1);
 }
 
-void CodeMySQL::generateMySQLInstanceDeclare(const myVector<MySQLInfo>& mysqlList, const string& gameBaseHeaderFile, const string& exportMacro)
+void CodeMySQL::generateMySQLInstanceDeclare(const myVector<MySQLInfo>& mysqlList, const string& gameBaseHeaderFile, const string& exprtMacro)
 {
 	// 更新GameBase.h的特定部分
 	myVector<string> codeList;
@@ -923,9 +985,9 @@ void CodeMySQL::generateMySQLInstanceDeclare(const myVector<MySQLInfo>& mysqlLis
 	}
 	for (const MySQLInfo& info : mysqlList)
 	{
-		codeList.insert(++lineStart, "\t" + exportMacro + "extern MySQL" + info.mMySQLClassName + "* mMySQL" + info.mMySQLClassName + ";");
+		codeList.insert(++lineStart, "\t" + exprtMacro + "extern MySQL" + info.mMySQLClassName + "* mMySQL" + info.mMySQLClassName + ";");
 	}
-	writeFile(gameBaseHeaderFile, ANSIToUTF8(codeListToString(codeList).c_str(), true));
+	writeFile(gameBaseHeaderFile, codeList);
 }
 
 void CodeMySQL::generateMySQLInstanceDefine(const myVector<MySQLInfo>& mysqlList, const string& gameBaseSourceFile)
@@ -943,7 +1005,7 @@ void CodeMySQL::generateMySQLInstanceDefine(const myVector<MySQLInfo>& mysqlList
 	{
 		codeList.insert(++lineStart, "\tMySQL" + info.mMySQLClassName + "* mMySQL" + info.mMySQLClassName + ";");
 	}
-	writeFile(gameBaseSourceFile, ANSIToUTF8(codeListToString(codeList).c_str(), true));
+	writeFile(gameBaseSourceFile, codeList);
 }
 
 void CodeMySQL::generateMySQLInstanceClear(const myVector<MySQLInfo>& mysqlList, const string& gameBaseSourceFile)
@@ -962,5 +1024,5 @@ void CodeMySQL::generateMySQLInstanceClear(const myVector<MySQLInfo>& mysqlList,
 	{
 		codeList.insert(++lineStart, "\t\tmMySQL" + info.mMySQLClassName + " = nullptr;");
 	}
-	writeFile(gameBaseSourceFile, ANSIToUTF8(codeListToString(codeList).c_str(), true));
+	writeFile(gameBaseSourceFile, codeList);
 }
