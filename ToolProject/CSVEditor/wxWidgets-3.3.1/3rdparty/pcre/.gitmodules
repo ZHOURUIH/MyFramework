@@ -1,3 +1,0 @@
-[submodule "deps/sljit"]
-	path = deps/sljit
-	url = https://github.com/zherczeg/sljit.git
