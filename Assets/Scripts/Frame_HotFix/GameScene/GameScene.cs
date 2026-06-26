@@ -157,10 +157,7 @@ public abstract class GameScene : ComponentOwner
 		if (mCurProcedure != null && addToLastList)
 		{
 			mLastProcedureList.Add(mCurProcedure);
-			if (mLastProcedureList.Count > MAX_LAST_PROCEDURE_COUNT)
-			{
-				mLastProcedureList.RemoveAt(0);
-			}
+			mLastProcedureList.removeAtIf(0, mLastProcedureList.Count > MAX_LAST_PROCEDURE_COUNT);
 		}
 		if (mCurProcedure == null || mCurProcedure.GetType() != procedureType)
 		{

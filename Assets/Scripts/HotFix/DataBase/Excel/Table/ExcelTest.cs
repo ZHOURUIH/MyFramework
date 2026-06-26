@@ -19,5 +19,9 @@ public class ExcelTest : ExcelTableT<EDTest>
 			checkListPair(item.mTestList0, item.mTestList1, item.mID);
 		}
 	}
+	protected override void postParseFile()
+	{
+		EDTest.postLoadAll(this);
+	}
 	// auto generate end
 }

@@ -20,10 +20,7 @@ public class NetPacketTypeManager : FrameSystem
 			mClassType = classType,
 			mTypeID = type
 		};
-		if (type > 0)
-		{
-			mPacketTypeList.Add(type, info);
-		}
+		mPacketTypeList.addIf(type, info, type > 0);
 		mClassTypeList.Add(classType, info);
 	}
 	public ushort getPacketTypeID(Type type) { return mClassTypeList.get(type)?.mTypeID ?? 0; }

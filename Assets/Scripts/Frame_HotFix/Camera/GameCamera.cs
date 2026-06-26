@@ -62,7 +62,13 @@ public class GameCamera : MovableObject
 	public Camera getCamera() { return mCamera; }
 	public CameraLinker getCurLinker() { return mCurLinker; }
 	public float getNearClip() { return mCamera.nearClipPlane; }
-	public float getFOVX(bool radian = false)
+    // screenCenterAsZero为false表示输入的坐标是以屏幕左下角为原点的坐标
+    // screenCenterAsZero为true表示输入的坐标是以屏幕中心为原点的坐标
+    public Vector3 screenToWorld(Vector3 screenPos, bool screenCenterAsZero = true)
+	{
+		return UnityUtility.screenToWorld(screenPos, mCamera, screenCenterAsZero);
+	}
+    public float getFOVX(bool radian = false)
 	{
 		float radianFovX = atan(getAspect() * tan(getFOVY(true) * 0.5f)) * 2.0f;
 		return radian ? radianFovX : toDegree(radianFovX);

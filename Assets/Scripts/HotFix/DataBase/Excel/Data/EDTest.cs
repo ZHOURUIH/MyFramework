@@ -6,6 +6,12 @@ using UnityEngine;
 // 测试例子的表格
 public class EDTest : ExcelData
 {
+	public static int TEST_0_ID = 1;				// 测试字段
+	public static int TEST_1_ID = 2;				// 测试字段
+
+	public static EDTest TEST_0;					// 测试字段
+	public static EDTest TEST_1;					// 测试字段
+
 	public string mTestString;						// 测试字符串
 	public int mTestInt;							// 测试整数
 	public long mTestLong;							// 测试长整数
@@ -37,5 +43,16 @@ public class EDTest : ExcelData
 		result = result && reader.readString(out mTestPath);
 		return result;
 	}
+	public static void postLoadAll(ExcelTableT<EDTest> table)
+	{
+		TEST_0 = table.query(TEST_0_ID);
+		TEST_1 = table.query(TEST_1_ID);
+	}
+}
+
+public class EDTest_TEST_0
+{
+	public static int mTestParam0 = 1;
+	public static float mTestParam1 = 1.5f;
 }
 // auto generate end

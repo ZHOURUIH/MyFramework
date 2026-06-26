@@ -21,5 +21,6 @@ public class EDAchivement : ExcelData
 		result = result && reader.read(out mReward);
 		return result;
 	}
+	public static void postLoadAll(ExcelTableT<EDAchivement> table){}
 }
 // auto generate end

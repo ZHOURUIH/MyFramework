@@ -1,6 +1,8 @@
 ﻿using System;
 using UnityEngine;
 using static FrameBaseHotFix;
+using static MathUtility;
+using static UnityUtility;
 
 [Serializable]
 public class TweenTrack
@@ -49,11 +51,11 @@ public class TweenTrack
 		}
 		return mCurve;
 	}
-	public Vector3 getTargetValue()
+	public Vector3 getTargetValue(Transform transform)
 	{
 		switch (mTargetMode)
 		{
-			case TARGET_MODE.VALUE:					return mTargetValue;
+			case TARGET_MODE.VALUE:					return multiVector3(getParentAnchorScale(transform), mTargetValue);
 			case TARGET_MODE.TRANSFORM_REALTIME:	return generateTargetValue(mTargetTransform);
 			case TARGET_MODE.TRANSFORM_SNAPSHOT:	return mRuntimeTarget;
 			case TARGET_MODE.SELF:					return mRuntimeTarget;
@@ -69,7 +71,7 @@ public class TweenTrack
 		// 起点只能在开始播放时获取,终点可以实时获取
 		switch (mStartMode)
 		{
-			case START_MODE.VALUE: mRuntimeStart = mStartValue; break;
+			case START_MODE.VALUE:mRuntimeStart = multiVector3(getParentAnchorScale(transform), mStartValue);break;
 			case START_MODE.SELF: mRuntimeStart = getTransformValue(transform);break;
 		}
 		if (mTargetMode == TARGET_MODE.TRANSFORM_SNAPSHOT)
@@ -87,11 +89,12 @@ public class TweenTrack
 	// 生成目标值,如果是TRANSFORM模式,则根据目标对象的当前值和偏移计算出目标值
 	protected Vector3 generateTargetValue(Transform transform)
 	{
+		Vector3 scale = getParentAnchorScale(transform);
 		if (transform == null)
 		{
-			return mTargetOffset;
+			return multiVector3(scale, mTargetOffset);
 		}
-		return getTransformValue(transform) + mTargetOffset;
+		return getTransformValue(transform) + multiVector3(scale, mTargetOffset);
 	}
 	// 根据轨道类型获取Transform上的对应值
 	protected Vector3 getTransformValue(Transform transform)
@@ -104,4 +107,13 @@ public class TweenTrack
 		}
 		return Vector3.zero;
 	}
+    protected static Vector3 getParentAnchorScale(Transform transform)
+    {
+        Transform parent = transform.parent;
+        if (parent != null && parent.TryGetComponent(out ScaleAnchor anchor))
+        {
+            return getScreenScale(anchor.mAspectBase);
+        }
+        return Vector3.zero;
+    }
 }

@@ -87,7 +87,8 @@ public class ExcelTable
 				logError("表格中存在重复ID,表格:" + mTableName + ", ID:" + data.mID);
 			}
 		}
-	}
+		postParseFile();
+    }
 	public void checkEnum<T>(T value, string varName, int dataID) where T : Enum
 	{
 		if (!isEnumValid(value))
@@ -329,4 +330,5 @@ public class ExcelTable
 		return mDataMap;
 	}
 	protected virtual void checkAllDataDefault() { }
+    protected virtual void postParseFile() { }
 }

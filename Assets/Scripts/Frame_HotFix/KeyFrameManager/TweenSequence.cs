@@ -113,7 +113,7 @@ public class TweenSequence : MonoBehaviour
 					{
 						track.stop();
 						// 要处理好最后一帧,因为上一帧track没有结束,这一帧超过了track结束时间,就要保证track的最后一帧数据是正确的
-						Vector3 result0 = lerpSimple(track.getStartValue(), track.getTargetValue(), curve.evaluate(1.0f));
+						Vector3 result0 = lerpSimple(track.getStartValue(), track.getTargetValue(transform), curve.evaluate(1.0f));
 						switch (track.mType)
 						{
 							case TWEEN_TYPE.MOVE: pos = result0; break;
@@ -141,7 +141,7 @@ public class TweenSequence : MonoBehaviour
 					percent = clampMax((curTime - currentStartTime) / clampMin(track.mDuration, 0.0001f), 1.0f);
 				}
 
-				Vector3 result = lerpSimple(track.getStartValue(), track.getTargetValue(), curve.evaluate(percent));
+				Vector3 result = lerpSimple(track.getStartValue(), track.getTargetValue(transform), curve.evaluate(percent));
 				switch (track.mType)
 				{
 					case TWEEN_TYPE.MOVE: pos = result; break;
