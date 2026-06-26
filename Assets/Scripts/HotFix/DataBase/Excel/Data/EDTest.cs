@@ -52,7 +52,7 @@ public class EDTest : ExcelData
 
 public class EDTest_TEST_0
 {
-	public static int mTestParam0 = 1;
-	public static float mTestParam1 = 1.5f;
+	public static int mTestParam0 = 1;				// 用于生成测试的ID参数
+	public static float mTestParam1 = 1.5f;			// 用于生成测试的ID参数
 }
 // auto generate end

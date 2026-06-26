@@ -5,6 +5,7 @@ using System;
 public partial class GBR
 {
 	public static ExcelAchivement mExcelAchivement;
+	public static ExcelGlobal mExcelGlobal;
 	public static ExcelTest mExcelTest;
 }
 // auto generate end
