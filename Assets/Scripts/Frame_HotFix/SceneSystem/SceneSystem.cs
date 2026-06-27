@@ -44,9 +44,16 @@ public class SceneSystem : FrameSystem
 			}
 		}
 	}
-	// filePath是场景文件所在目录,不含场景名,最好该目录下包含所有只在这个场景使用的资源
-	public void registeScene(Type type, string name, string filePath, SceneScriptCallback callback)
+	// filePath是场景文件路径,GameResources下的相对路径,以.unity结尾
+	// 最好该目录下包含所有只在这个场景使用的资源
+	public void registeScene(Type type, string filePath, SceneScriptCallback callback)
 	{
+		if (!filePath.endWith(".unity"))
+		{
+			logError("场景文件路径需要以.unity结尾");
+			return;
+		}
+		string name = getFileNameNoSuffixNoDir(filePath);
 		// 路径需要以/结尾
 		validPath(ref filePath);
 		SceneRegisteInfo info = mSceneRegisteList.add(name, new());
@@ -111,7 +118,7 @@ public class SceneSystem : FrameSystem
 		}
 	}
 	// 目前只支持异步加载,因为SceneManager.LoadScene并不是真正地同步加载
-	// 该方法只能保证在这一帧结束后场景能加载完毕,但是函数返回后场景并没有加载完毕
+	// LoadScene只能保证在这一帧结束后场景能加载完毕,但是函数返回后场景并没有加载完毕
 	public CustomAsyncOperation loadSceneAsync(string sceneName, bool active, bool mainScene, Action loadedCallback, FloatCallback loadingCallback = null)
 	{
 		CustomAsyncOperation op = new();
@@ -138,7 +145,7 @@ public class SceneSystem : FrameSystem
 			scene.setLoadingCallback(loadingCallback);
 			scene.setLoadedCallback(loadedCallback);
 			// scenePath + sceneName表示场景文件AssetBundle的路径,包含文件名
-			mResourceManager.preloadAssetBundleAsync(getScenePath(sceneName) + sceneName, (AssetBundleInfo bundle) =>
+			mResourceManager.preloadAssetBundleAsync(getScenePath(sceneName), (AssetBundleInfo bundle) =>
 			{
 				GameEntryBase.startCoroutine(loadSceneCoroutine(scene, op));
 			});
@@ -153,7 +160,7 @@ public class SceneSystem : FrameSystem
 		mSceneList.Remove(name);
 		if (unloadPath)
 		{
-			mResourceManager?.unloadPath(mSceneRegisteList.get(name).mScenePath);
+			mResourceManager?.unloadPath(getFilePath(mSceneRegisteList.get(name).mScenePath));
 		}
 	}
 	// 卸载除了dontUnloadSceneName以外的其他场景,初始默认场景除外

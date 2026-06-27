@@ -203,7 +203,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		}
 		autoGridHorizontalForDrag();
 	}
-	public void newItemListAutoGrid<TData>(List<TData> dataList, Action<T, TData> callback)
+	public void newItemListAutoGrid<TData>(List<TData> dataList, Action<T, TData> callback, HORIZONTAL_DIRECTION horizontal = HORIZONTAL_DIRECTION.LEFT)
 	{
 		unuseAll();
 		newItem(dataList.count());
@@ -212,7 +212,7 @@ public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBa
 		{
 			callback(mUsedItemList[index++], data);
 		}
-		autoGrid();
+		autoGrid(horizontal);
 	}
 	public void newItemListAutoGridForDrag<TData>(List<TData> dataList, Action<T, TData> callback)
 	{

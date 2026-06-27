@@ -5,6 +5,7 @@ using static MathUtility;
 
 // 可拖拽滑动的窗口,类似于ScrollView
 // 一般父节点是一个viewport
+// 默认是纵向拖拽,如果需要横向拖拽的,需要手动设置拖拽方向才能生效
 public class myUGUIDragView : myUGUIObject
 {
 	protected COMWindowDragView mDragViewComponent;     // 拖拽滑动组件

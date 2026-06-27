@@ -215,7 +215,7 @@ public class COMCharacterAvatar : GameComponent
 		// 动作也要清空一下
 		mAnimationSpeed.setAllValue(1.0f);
 		mAnimationParam.setAllDefault();
-		mResourceManager.unload(ref mAnimatorControllerRef);
+		mResourceManager?.unload(ref mAnimatorControllerRef);
 	}
 	public void syncTransform()
 	{

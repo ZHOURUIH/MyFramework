@@ -547,5 +547,5 @@ public class Transformable : ComponentOwner, ITransformable
 		}
 		return renderer.material.color.a;
 	}
-	public bool canUpdate() { return mNeedUpdate && mActive; }
+	public bool canUpdate() { return mNeedUpdate && mActive && isActiveInHierarchy(); }
 }
