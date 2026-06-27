@@ -4,13 +4,14 @@ using UnityEngine;
 using static StringUtility;
 
 [CustomEditor(typeof(TweenSequence))]
-public class TweenSequenceAuthoringEditor : GameEditorBase
+[CanEditMultipleObjects]
+public class TweenSequenceAuthoringEditor : GameInspector
 {
 	private TweenSequence mSequence;
 	private bool mPlaying;
 	private float mPreviewTime;
 	private double mStartTime;
-	public override void OnInspectorGUI()
+	protected override void onGUI()
 	{
 		EditorCurveFactory.reload();
 		mSequence = (TweenSequence)target;

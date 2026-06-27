@@ -5,95 +5,92 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using static MathUtility;
 
-// 可以查看AssetBundle资源依赖关系的窗口
-public class AssetBundleDependencyWindow : EditorWindow
+public class AssetBundleDependencyWindow : GameEditorWindow
 {
     private class BundleInfo
     {
-        public string mBundleName;
-        public int mAssetCount;
-        public List<string> mDirectDependencies = new();
-        public List<string> mAllDependencies = new();
-        public List<string> mDirectReferencedBy = new();
-        public List<string> mAllReferencedBy = new();
-        public List<string> mAssets = new();
+        public string mBundleName;                                          // AssetBundle名称
+        public int mAssetCount;                                             // 该AB中显式设置的资源数量
+        public List<string> mDirectDependencies = new();                    // 该AB直接依赖的AB列表
+        public List<string> mAllDependencies = new();                       // 该AB递归依赖到的所有AB列表
+        public List<string> mDirectReferencedBy = new();                    // 直接引用该AB的AB列表
+        public List<string> mAllReferencedBy = new();                       // 递归引用该AB的所有AB列表
+        public List<string> mAssets = new();                                // 该AB中显式包含的资源路径列表
     }
 
     private class GraphNode
     {
-        public string mBundleName;
-        public Rect mRect;
+        public string mBundleName;                                          // 节点对应的AssetBundle名称
+        public Rect mRect;                                                  // 节点在图空间中的矩形区域
     }
 
-    private readonly Dictionary<string, BundleInfo> mBundleMap = new();
-    private readonly Dictionary<string, GraphNode> mNodeMap = new();
-    private readonly HashSet<string> mEdges = new();
-    private readonly HashSet<string> mSelectedBundleSet = new();
-    private Vector2 mPanOffset = new(80.0f, 140.0f);
-    private bool mDraggingCanvas;
-    private Vector2 mLastMousePos;
-    private string mSearchText = "";
-    private string mSelectedBundle = "";
-    private string mDraggingNodeName = "";
-    private bool mHideIndependentBundle;
-    private Vector2 mLastNodeMouseScreenPos;
-    private bool mSelectingNodes;
-    private bool mAppendSelectingNodes;
-    private Vector2 mSelectStartLocalPos;
-    private Vector2 mSelectEndLocalPos;
-    private float mZoom = 1.0f;
-    private GUIStyle mNodeStyle;
-    private GUIStyle mSelectedNodeStyle;
-    private GUIStyle mNodeNameStyle;
-    private GUIStyle mSmallLabelStyle;
-    private const int MAX_NODE_COUNT_PER_COLUMN = 20;
-    private const float SAME_FOLDER_COLUMN_SPACE = 300.0f;
-    private const float DIFFERENT_FOLDER_COLUMN_SPACE = 420.0f;
-    private const float TOOLBAR_HEIGHT = 112.0f;
-    private const float NODE_WIDTH = 280.0f;
-    private const float NODE_HEIGHT = 120.0f;
-    private const float HORIZONTAL_SPACE = 360.0f;
-    private const float VERTICAL_SPACE = 155.0f;
-    private const float MIN_ZOOM = 0.1f;
-    private const float MAX_ZOOM = 2.0f;
-    private const float DETAIL_HIDE_ZOOM = 0.55f;
-    private const float TITLE_ONLY_ZOOM = 0.35f;
-
-    [MenuItem("AssetBundle/AB依赖分析窗口")]
-    public static void Open()
-    {
-        var window = GetWindow<AssetBundleDependencyWindow>();
-        window.titleContent = new GUIContent("AB依赖分析");
-        window.minSize = new Vector2(1100.0f, 720.0f);
-        window.Show();
-    }
-    public static void OpenFromOtherWindow()
-    {
-        Open();
-    }
+    private readonly Dictionary<string, BundleInfo> mBundleMap = new();     // AB名称到AB信息的映射
+    private readonly Dictionary<string, GraphNode> mNodeMap = new();        // AB名称到图节点的映射
+    private readonly HashSet<string> mEdges = new();                        // 直接依赖边集合,格式为 from|to
+    private readonly HashSet<string> mCycleEdgeSet = new();                 // 处于依赖环中的边集合,格式为 from|to
+    private readonly HashSet<string> mSelectedBundleSet = new();            // 当前多选中的AB集合
+    private readonly List<List<string>> mDependencyCycleList = new();       // 检测到的依赖环列表
+    private Vector2 mPanOffset = new(80.0f, 140.0f);                        // 图视图平移偏移
+    private bool mDraggingCanvas;                                           // 是否正在拖动画布
+    private Vector2 mLastMousePos;                                          // 拖动画布时上一帧鼠标位置
+    private string mSearchText = "";                                        // 顶部AB搜索文本
+    private string mSelectedBundle = "";                                    // 当前主选中的AB名称
+    private string mDraggingNodeName = "";                                  // 当前正在拖拽的节点AB名称
+    private bool mHideIndependentBundle;                                    // 是否隐藏无依赖也无被依赖的独立AB
+    private Vector2 mLastNodeMouseScreenPos;                                // 拖拽节点时上一帧鼠标屏幕坐标
+    private bool mSelectingNodes;                                           // 是否正在框选节点
+    private bool mAppendSelectingNodes;                                     // 框选时是否追加到已有选择
+    private Vector2 mSelectStartLocalPos;                                   // 框选起点在图区域内的局部坐标
+    private Vector2 mSelectEndLocalPos;                                     // 框选终点在图区域内的局部坐标
+    private Vector2 mDependencyCycleScrollPos;                              // 顶部依赖环列表滚动位置
+    private Vector2 mSelectedBundleDependencyScrollPos;                     // 右侧选中AB依赖列表滚动位置
+    private Rect mSelectedBundleDependencyPanelScreenRect;                  // 右侧依赖面板的屏幕坐标区域,用于阻止点击穿透
+    private string mSelectedBundleDependencySearchText = "";                // 右侧依赖列表搜索文本
+    private float mZoom = 1.0f;                                             // 图视图缩放比例
+    private GUIStyle mNodeStyle;                                            // 普通节点窗口样式
+    private GUIStyle mSelectedNodeStyle;                                    // 选中节点窗口样式
+    private GUIStyle mNodeNameStyle;                                        // 节点名称文本样式
+    private GUIStyle mSmallLabelStyle;                                      // 节点详情小字文本样式
+    private const int MAX_NODE_COUNT_PER_COLUMN = 20;                       // 自动排版时每列最多节点数
+    private const int MAX_DEPENDENCY_CYCLE_COUNT = 300;                     // 最多记录和显示的依赖环数量
+    private const int MAX_DEPENDENCY_CYCLE_DEPTH = 128;                     // 依赖环DFS最大搜索深度
+    private const float SAME_FOLDER_COLUMN_SPACE = 300.0f;                  // 同一归类目录下节点列间距
+    private const float DIFFERENT_FOLDER_COLUMN_SPACE = 420.0f;             // 不同归类目录之间的列间距
+    private const float TOOLBAR_HEIGHT = 260.0f;                            // 顶部工具栏高度
+    private const float NODE_WIDTH = 280.0f;                                // 节点宽度
+    private const float NODE_HEIGHT = 120.0f;                               // 节点高度
+    private const float VERTICAL_SPACE = 155.0f;                            // 自动排版时节点纵向间距
+    private const float MIN_ZOOM = 0.1f;                                    // 最小缩放比例
+    private const float MAX_ZOOM = 2.0f;                                    // 最大缩放比例
+    private const float DETAIL_HIDE_ZOOM = 0.55f;                           // 低于该缩放时隐藏节点详情
+    private const float TITLE_ONLY_ZOOM = 0.35f;                            // 低于该缩放时节点标题使用单行/裁剪显示
+    private const float SELECTED_DEPENDENCY_PANEL_WIDTH = 390.0f;           // 右侧选中AB依赖面板目标宽度
+    private const float SELECTED_DEPENDENCY_PANEL_MARGIN = 8.0f;            // 右侧选中AB依赖面板外边距
+    private const float SELECTED_DEPENDENCY_PANEL_CONTENT_PADDING = 8.0f;   // 右侧选中AB依赖面板内容内边距
+    private const float SELECTED_DEPENDENCY_PANEL_OPAQUE_ALPHA = 0.88f;     // 选中AB后右侧依赖面板背景不透明度
     private void OnEnable()
     {
         InitStyles();
     }
+
     private void InitStyles()
     {
         mNodeStyle = new GUIStyle();
         mNodeStyle.padding = new RectOffset(0, 0, 0, 0);
-
         mSelectedNodeStyle = new GUIStyle();
         mSelectedNodeStyle.padding = new RectOffset(0, 0, 0, 0);
-
         mNodeNameStyle = new GUIStyle(EditorStyles.boldLabel);
         mNodeNameStyle.fontSize = 11;
         mNodeNameStyle.wordWrap = true;
         mNodeNameStyle.clipping = TextClipping.Clip;
         mNodeNameStyle.normal.textColor = new Color(0.92f, 0.92f, 0.92f);
-
         mSmallLabelStyle = new GUIStyle(EditorStyles.miniLabel);
         mSmallLabelStyle.wordWrap = true;
         mSmallLabelStyle.normal.textColor = new Color(0.82f, 0.82f, 0.82f);
     }
+
     private void OnGUI()
     {
         if (mNodeStyle == null)
@@ -101,17 +98,19 @@ public class AssetBundleDependencyWindow : EditorWindow
             InitStyles();
         }
 
-        Rect toolbarRect = new Rect(0.0f, 0.0f, position.width, TOOLBAR_HEIGHT);
+        Rect toolbarRect = new(0.0f, 0.0f, position.width, TOOLBAR_HEIGHT);
         DrawToolbar(toolbarRect);
 
-        Rect graphRect = new Rect(0.0f, TOOLBAR_HEIGHT, position.width, position.height - TOOLBAR_HEIGHT);
+        Rect graphRect = new(0.0f, TOOLBAR_HEIGHT, position.width, position.height - TOOLBAR_HEIGHT);
         DrawGraphArea(graphRect);
         HandleCanvasInput(graphRect);
     }
+
     private void DrawToolbar(Rect toolbarRect)
     {
         GUILayout.BeginArea(toolbarRect, EditorStyles.toolbar);
         EditorGUILayout.BeginVertical();
+
         EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("分析所有AB依赖", EditorStyles.toolbarButton, GUILayout.Width(130.0f)))
         {
@@ -135,6 +134,7 @@ public class AssetBundleDependencyWindow : EditorWindow
             mPanOffset = new Vector2(80.0f, 140.0f);
             Repaint();
         }
+
         GUILayout.Space(16.0f);
 
         EditorGUILayout.LabelField("搜索", GUILayout.Width(32.0f));
@@ -151,6 +151,7 @@ public class AssetBundleDependencyWindow : EditorWindow
         }
 
         GUILayout.Space(16.0f);
+
         bool newHideIndependentBundle = GUILayout.Toggle(mHideIndependentBundle, "隐藏独立AB", EditorStyles.toolbarButton, GUILayout.Width(90.0f));
         if (newHideIndependentBundle != mHideIndependentBundle)
         {
@@ -161,7 +162,6 @@ public class AssetBundleDependencyWindow : EditorWindow
 
         GUILayout.Space(16.0f);
         EditorGUILayout.LabelField("缩放:" + (mZoom * 100.0f).ToString("F0") + "%", GUILayout.Width(80.0f));
-
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.BeginHorizontal();
@@ -176,18 +176,52 @@ public class AssetBundleDependencyWindow : EditorWindow
             "    节点: " + mNodeMap.Count +
             "    依赖连线: " + mEdges.Count +
             "    当前选中: " + (string.IsNullOrEmpty(mSelectedBundle) ? "<None>" : mSelectedBundle) +
-            "    多选数量: " + mSelectedBundleSet.Count,
+            "    多选数量: " + mSelectedBundleSet.Count +
+            "    依赖环: " + mDependencyCycleList.Count,
             EditorStyles.miniLabel);
         EditorGUILayout.EndHorizontal();
+
+        DrawDependencyCycleWarning();
 
         EditorGUILayout.EndVertical();
         GUILayout.EndArea();
     }
+
+    private void DrawDependencyCycleWarning()
+    {
+        if (mBundleMap.Count == 0)
+        {
+            return;
+        }
+
+        if (mDependencyCycleList.Count == 0)
+        {
+            EditorGUILayout.HelpBox("未发现AB依赖环。", MessageType.Info);
+            return;
+        }
+
+        string text = "发现AB依赖环: " + mDependencyCycleList.Count + " 个。";
+        if (mDependencyCycleList.Count >= MAX_DEPENDENCY_CYCLE_COUNT)
+        {
+            text += " 当前最多显示前 " + MAX_DEPENDENCY_CYCLE_COUNT + " 个，请优先处理。";
+        }
+        EditorGUILayout.HelpBox(text, MessageType.Error);
+
+        mDependencyCycleScrollPos = EditorGUILayout.BeginScrollView(mDependencyCycleScrollPos, GUILayout.Height(96.0f));
+        for (int i = 0; i < mDependencyCycleList.Count; ++i)
+        {
+            EditorGUILayout.LabelField((i + 1) + ". " + GetCycleDisplayText(mDependencyCycleList[i]), EditorStyles.miniLabel);
+        }
+        EditorGUILayout.EndScrollView();
+    }
+
     private void AnalyzeAllAssetBundles()
     {
         mBundleMap.Clear();
         mNodeMap.Clear();
         mEdges.Clear();
+        mCycleEdgeSet.Clear();
+        mDependencyCycleList.Clear();
         mSelectedBundle = "";
         mSelectedBundleSet.Clear();
         mDraggingNodeName = "";
@@ -209,11 +243,11 @@ public class AssetBundleDependencyWindow : EditorWindow
             {
                 string bundleName = allBundleNames[i];
                 float progress = bundleCount > 0 ? (float)i / bundleCount : 1.0f;
-                // 不需要每个都刷新也可以,这里简单处理,如果数量特别多可以改成每隔几个刷新一次
-                EditorUtility.DisplayProgressBar("AB依赖分析", $"正在分析: {bundleName}\n {i + 1}/{bundleCount}", progress);
+                EditorUtility.DisplayProgressBar("AB依赖分析", "正在分析: " + bundleName + "\n " + (i + 1) + "/" + bundleCount, progress);
 
-                BundleInfo info = new();
+                BundleInfo info = new BundleInfo();
                 info.mBundleName = bundleName;
+
                 string[] assets = AssetDatabase.GetAssetPathsFromAssetBundle(bundleName);
                 if (assets != null)
                 {
@@ -232,16 +266,25 @@ public class AssetBundleDependencyWindow : EditorWindow
                 {
                     info.mAllDependencies.AddRange(allDeps);
                 }
+
                 mBundleMap[bundleName] = info;
             }
 
             EditorUtility.DisplayProgressBar("AB依赖分析", "正在计算反向依赖关系...", 0.92f);
             BuildReferencedBy();
-            EditorUtility.DisplayProgressBar("AB依赖分析", "正在生成依赖节点和连线...", 0.96f);
+
+            EditorUtility.DisplayProgressBar("AB依赖分析", "正在生成依赖节点和连线...", 0.95f);
             BuildAllNodesAndEdges();
+
+            EditorUtility.DisplayProgressBar("AB依赖分析", "正在检测依赖环...", 0.975f);
+            BuildDependencyCycleList();
+
             EditorUtility.DisplayProgressBar("AB依赖分析", "正在自动排版...", 0.98f);
             AutoLayout();
-            Debug.Log("[AB依赖分析] 分析完成, Bundle数量: " + mBundleMap.Count + ", 依赖连线: " + mEdges.Count);
+
+            Debug.Log("[AB依赖分析] 分析完成, Bundle数量: " + mBundleMap.Count +
+                ", 依赖连线: " + mEdges.Count +
+                ", 依赖环: " + mDependencyCycleList.Count);
             Repaint();
         }
         catch (Exception e)
@@ -254,6 +297,7 @@ public class AssetBundleDependencyWindow : EditorWindow
             EditorUtility.ClearProgressBar();
         }
     }
+
     private void BuildReferencedBy()
     {
         foreach (BundleInfo info in mBundleMap.Values)
@@ -290,6 +334,7 @@ public class AssetBundleDependencyWindow : EditorWindow
             info.mAssets.Sort();
         }
     }
+
     private void BuildAllNodesAndEdges()
     {
         mNodeMap.Clear();
@@ -308,11 +353,171 @@ public class AssetBundleDependencyWindow : EditorWindow
                 {
                     continue;
                 }
+
                 AddNode(dep);
                 AddEdge(info.mBundleName, dep);
             }
         }
     }
+
+    private void BuildDependencyCycleList()
+    {
+        mDependencyCycleList.Clear();
+        mCycleEdgeSet.Clear();
+
+        Dictionary<string, List<string>> graph = new();
+        foreach (string bundleName in mBundleMap.Keys)
+        {
+            graph[bundleName] = new();
+        }
+
+        foreach (BundleInfo info in mBundleMap.Values)
+        {
+            if (!graph.TryGetValue(info.mBundleName, out List<string> depList))
+            {
+                continue;
+            }
+            foreach (string dep in info.mDirectDependencies)
+            {
+                depList.addUniqueIf(dep, mBundleMap.ContainsKey(dep));
+            }
+        }
+
+        graph.forValue(depList => depList.Sort());
+
+        HashSet<string> cycleKeySet = new();
+        foreach (string start in graph.Keys.OrderBy(x => x))
+        {
+            if (mDependencyCycleList.Count >= MAX_DEPENDENCY_CYCLE_COUNT)
+            {
+                break;
+            }
+            List<string> path = new();
+            HashSet<string> pathSet = new();
+            FindDependencyCycleDFS(start, start, graph, path, pathSet, cycleKeySet);
+        }
+
+        mDependencyCycleList.Sort((a, b) =>
+        {
+            string aText = GetCycleDisplayText(a);
+            string bText = GetCycleDisplayText(b);
+            return string.CompareOrdinal(aText, bText);
+        });
+
+        foreach (List<string> cycle in mDependencyCycleList)
+        {
+            AddCycleEdges(cycle);
+        }
+    }
+
+    private void FindDependencyCycleDFS(string start, string current, Dictionary<string, List<string>> graph, List<string> path, HashSet<string> pathSet, HashSet<string> cycleKeySet)
+    {
+        if (mDependencyCycleList.Count >= MAX_DEPENDENCY_CYCLE_COUNT || path.Count >= MAX_DEPENDENCY_CYCLE_DEPTH)
+        {
+            return;
+        }
+        path.Add(current);
+        pathSet.Add(current);
+        graph.TryGetValue(current, out var depList);
+        foreach (string next in depList.safe())
+        {
+            if (mDependencyCycleList.Count >= MAX_DEPENDENCY_CYCLE_COUNT)
+            {
+                break;
+            }
+            if (next == start && path.Count > 1)
+            {
+                List<string> cycle = new(path) { start };
+                if (cycleKeySet.Add(GetCanonicalCycleKey(cycle)))
+                {
+                    mDependencyCycleList.Add(cycle);
+                }
+                continue;
+            }
+            if (pathSet.Contains(next))
+            {
+                continue;
+            }
+            FindDependencyCycleDFS(start, next, graph, path, pathSet, cycleKeySet);
+        }
+
+        pathSet.Remove(current);
+        path.RemoveAt(path.Count - 1);
+    }
+
+    private string GetCanonicalCycleKey(List<string> cycle)
+    {
+        if (cycle == null || cycle.Count <= 1)
+        {
+            return "";
+        }
+
+        List<string> nodes = new(cycle);
+        if (nodes.Count > 1 && nodes[0] == nodes[^1])
+        {
+            nodes.RemoveAt(nodes.Count - 1);
+        }
+        if (nodes.Count == 0)
+        {
+            return "";
+        }
+        int bestIndex = 0;
+        for (int i = 1; i < nodes.Count; ++i)
+        {
+            if (string.CompareOrdinal(nodes[i], nodes[bestIndex]) < 0)
+            {
+                bestIndex = i;
+            }
+        }
+
+        StringBuilder sb = new();
+        for (int i = 0; i < nodes.Count; ++i)
+        {
+            int index = (bestIndex + i) % nodes.Count;
+            if (i > 0)
+            {
+                sb.Append("->");
+            }
+            sb.Append(nodes[index]);
+        }
+        return sb.ToString();
+    }
+
+    private string GetCycleDisplayText(List<string> cycle)
+    {
+        if (cycle == null || cycle.Count == 0)
+        {
+            return "";
+        }
+        StringBuilder sb = new();
+        for (int i = 0; i < cycle.Count; ++i)
+        {
+            if (i > 0)
+            {
+                sb.Append(" -> ");
+            }
+            sb.Append(cycle[i]);
+        }
+        return sb.ToString();
+    }
+
+    private void AddCycleEdges(List<string> cycle)
+    {
+        if (cycle == null || cycle.Count < 2)
+        {
+            return;
+        }
+        for (int i = 0; i < cycle.Count - 1; ++i)
+        {
+            mCycleEdgeSet.Add(cycle[i] + "|" + cycle[i + 1]);
+        }
+    }
+
+    private bool IsCycleEdge(string from, string to)
+    {
+        return mCycleEdgeSet.Contains(from + "|" + to);
+    }
+
     private void AddNode(string bundleName)
     {
         if (mNodeMap.ContainsKey(bundleName))
@@ -320,15 +525,17 @@ public class AssetBundleDependencyWindow : EditorWindow
             return;
         }
 
-        GraphNode node = new GraphNode();
+        GraphNode node = new();
         node.mBundleName = bundleName;
         node.mRect = new Rect(0.0f, 0.0f, NODE_WIDTH, NODE_HEIGHT);
         mNodeMap.Add(bundleName, node);
     }
+
     private void AddEdge(string from, string to)
     {
         mEdges.Add(from + "|" + to);
     }
+
     private void AutoLayout()
     {
         if (mNodeMap.Count == 0)
@@ -336,7 +543,7 @@ public class AssetBundleDependencyWindow : EditorWindow
             return;
         }
 
-        Dictionary<string, string> bundleFolderMap = new();
+        Dictionary<string, string> bundleFolderMap = new Dictionary<string, string>();
         foreach (GraphNode node in mNodeMap.Values)
         {
             bundleFolderMap[node.mBundleName] = GetBundleFolder(node.mBundleName);
@@ -348,47 +555,39 @@ public class AssetBundleDependencyWindow : EditorWindow
         foreach (GraphNode node in mNodeMap.Values)
         {
             string folder = bundleFolderMap.ContainsKey(node.mBundleName) ? bundleFolderMap[node.mBundleName] : "<Unknown>";
-            if (!folderNodeMap.TryGetValue(folder, out var nodeList))
-            {
-                nodeList = new List<GraphNode>();
-                folderNodeMap.Add(folder, nodeList);
-            }
-            nodeList.Add(node);
+            folderNodeMap.getOrAddNew(folder).Add(node);
         }
 
-        List<KeyValuePair<string, List<GraphNode>>> folderList = folderNodeMap.OrderBy(x => x.Key).ToList();
+        var folderList = folderNodeMap.OrderBy(x => x.Key).ToList();
         float curX = 0.0f;
         for (int folderIndex = 0; folderIndex < folderList.Count; ++folderIndex)
         {
             var folderPair = folderList[folderIndex];
-            List<GraphNode> nodes = folderPair.Value
-                .OrderByDescending(x =>
+            List<GraphNode> nodes = folderPair.Value.OrderByDescending(x =>
+            {
+                if (mBundleMap.TryGetValue(x.mBundleName, out BundleInfo info))
                 {
-                    if (mBundleMap.TryGetValue(x.mBundleName, out BundleInfo info))
-                    {
-                        return info.mDirectDependencies.Count + info.mDirectReferencedBy.Count;
-                    }
-                    return 0;
-                })
-                .ThenBy(x => x.mBundleName)
-                .ToList();
+                    return info.mDirectDependencies.Count + info.mDirectReferencedBy.Count;
+                }
 
-            int columnCount = Mathf.CeilToInt((float)nodes.Count / MAX_NODE_COUNT_PER_COLUMN);
-            columnCount = Mathf.Max(1, columnCount);
+                return 0;
+            }).ThenBy(x => x.mBundleName).ToList();
+
+            int columnCount = getMax(1, ceil((float)nodes.Count / MAX_NODE_COUNT_PER_COLUMN));
             for (int nodeIndex = 0; nodeIndex < nodes.Count; ++nodeIndex)
             {
                 int columnIndex = nodeIndex / MAX_NODE_COUNT_PER_COLUMN;
                 int rowIndex = nodeIndex % MAX_NODE_COUNT_PER_COLUMN;
                 float x = curX + columnIndex * SAME_FOLDER_COLUMN_SPACE;
                 float y = rowIndex * VERTICAL_SPACE;
-                nodes[nodeIndex].mRect.position = new Vector2(x, y);
+                nodes[nodeIndex].mRect.position = new(x, y);
             }
-
             curX += (columnCount - 1) * SAME_FOLDER_COLUMN_SPACE + DIFFERENT_FOLDER_COLUMN_SPACE;
         }
 
         Repaint();
     }
+
     private void NormalizeBundleFolderMap(Dictionary<string, string> bundleFolderMap)
     {
         if (bundleFolderMap.Count == 0)
@@ -398,13 +597,10 @@ public class AssetBundleDependencyWindow : EditorWindow
 
         for (int i = 0; i < 5; ++i)
         {
-            Dictionary<string, int> folderCountMap = new Dictionary<string, int>();
+            Dictionary<string, int> folderCountMap = new();
             foreach (string folder in bundleFolderMap.Values)
             {
-                if (!folderCountMap.ContainsKey(folder))
-                {
-                    folderCountMap.Add(folder, 0);
-                }
+                folderCountMap.TryAdd(folder, 0);
                 ++folderCountMap[folder];
             }
 
@@ -440,18 +636,20 @@ public class AssetBundleDependencyWindow : EditorWindow
             }
         }
     }
+
     private string GetBundleFolder(string bundleName)
     {
         if (!mBundleMap.TryGetValue(bundleName, out BundleInfo info))
         {
             return "<Unknown>";
         }
+
         if (info.mAssets.Count == 0)
         {
             return "<Empty>";
         }
 
-        List<string> folderList = new List<string>();
+        List<string> folderList = new();
         foreach (string assetPath in info.mAssets)
         {
             string folder = GetAssetFolder(assetPath);
@@ -460,7 +658,6 @@ public class AssetBundleDependencyWindow : EditorWindow
                 folderList.Add(folder);
             }
         }
-
         if (folderList.Count == 0)
         {
             return "<Unknown>";
@@ -469,25 +666,24 @@ public class AssetBundleDependencyWindow : EditorWindow
         {
             return folderList[0];
         }
-
         return GetCommonFolder(folderList);
     }
+
     private string GetAssetFolder(string assetPath)
     {
         if (string.IsNullOrEmpty(assetPath))
         {
             return "";
         }
-
         string path = assetPath.Replace("\\", "/");
         int index = path.LastIndexOf('/');
         if (index < 0)
         {
             return "";
         }
-
-        return path.Substring(0, index);
+        return path[..index];
     }
+
     private string GetParentFolder(string folder)
     {
         if (string.IsNullOrEmpty(folder))
@@ -498,16 +694,15 @@ public class AssetBundleDependencyWindow : EditorWindow
         {
             return folder;
         }
-
         string path = folder.Replace("\\", "/");
         int index = path.LastIndexOf('/');
         if (index < 0)
         {
             return path;
         }
-
         return path[..index];
     }
+
     private string GetCommonFolder(List<string> folderList)
     {
         if (folderList == null || folderList.Count == 0)
@@ -517,10 +712,11 @@ public class AssetBundleDependencyWindow : EditorWindow
 
         string[] commonParts = folderList[0].Split('/');
         int commonLength = commonParts.Length;
+
         for (int i = 1; i < folderList.Count; ++i)
         {
             string[] parts = folderList[i].Split('/');
-            commonLength = Mathf.Min(commonLength, parts.Length);
+            commonLength = getMin(commonLength, parts.Length);
             for (int j = 0; j < commonLength; ++j)
             {
                 if (commonParts[j] != parts[j])
@@ -543,28 +739,34 @@ public class AssetBundleDependencyWindow : EditorWindow
             {
                 sb.Append("/");
             }
+
             sb.Append(commonParts[i]);
         }
+
         return sb.ToString();
     }
+
     private Vector2 GraphToScreen(Vector2 graphPos)
     {
         return graphPos * mZoom + mPanOffset;
     }
+
     private Vector2 ScreenToGraph(Vector2 screenPos)
     {
         return (screenPos - mPanOffset) / mZoom;
     }
+
     private Rect GraphToScreenRect(Rect graphRect)
     {
         return new Rect(GraphToScreen(graphRect.position), graphRect.size * mZoom);
     }
+
     private void DrawGraphArea(Rect graphRect)
     {
         GUI.Box(graphRect, GUIContent.none);
         GUI.BeginGroup(graphRect);
 
-        Rect localGraphRect = new(0.0f, 0.0f, graphRect.width, graphRect.height);
+        Rect localGraphRect = new Rect(0.0f, 0.0f, graphRect.width, graphRect.height);
         if (mBundleMap.Count == 0)
         {
             GUI.Label(new Rect(20.0f, 20.0f, localGraphRect.width - 40.0f, 40.0f), "尚未分析。点击上方“分析所有AB依赖”开始。");
@@ -577,6 +779,8 @@ public class AssetBundleDependencyWindow : EditorWindow
         DrawGrid(localGraphRect, 100.0f, new Color(0, 0, 0, 0.20f));
         DrawEdges();
         Handles.EndGUI();
+
+        UpdateSelectedBundleDependencyPanelScreenRect(localGraphRect);
 
         BeginWindows();
         List<GraphNode> nodes = mNodeMap.Values.ToList();
@@ -596,22 +800,199 @@ public class AssetBundleDependencyWindow : EditorWindow
 
         DrawSelectionRect();
         DrawZoomInfo(localGraphRect);
+        DrawSelectedBundleDependencyPanel(localGraphRect);
         GUI.EndGroup();
     }
+
+    private void DrawSelectedBundleDependencyPanel(Rect graphRect)
+    {
+        if (mBundleMap.Count == 0)
+        {
+            return;
+        }
+
+        Rect panelRect = GetSelectedBundleDependencyPanelRect(graphRect);
+
+        string bundleName = mSelectedBundle;
+        if (string.IsNullOrEmpty(bundleName) && mSelectedBundleSet.Count == 1)
+        {
+            bundleName = mSelectedBundleSet.First();
+        }
+
+        bool hasSelectedBundle = !string.IsNullOrEmpty(bundleName) && mBundleMap.ContainsKey(bundleName);
+        BeginSelectedBundleDependencyPanelArea(panelRect, hasSelectedBundle);
+
+        EditorGUILayout.LabelField("选中AB依赖详情", EditorStyles.boldLabel);
+
+        if (string.IsNullOrEmpty(bundleName))
+        {
+            EditorGUILayout.HelpBox("点击左侧任意 AssetBundle 节点后，这里会显示它的依赖项。", MessageType.Info);
+            GUILayout.EndArea();
+            return;
+        }
+
+        if (!mBundleMap.TryGetValue(bundleName, out BundleInfo info))
+        {
+            EditorGUILayout.HelpBox("找不到选中的 AssetBundle 信息:\n" + bundleName, MessageType.Warning);
+            GUILayout.EndArea();
+            return;
+        }
+
+        EditorGUILayout.LabelField("AssetBundle", EditorStyles.miniBoldLabel);
+        EditorGUILayout.SelectableLabel(bundleName, EditorStyles.textField, GUILayout.Height(20.0f));
+
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("资源: " + info.mAssetCount, GUILayout.Width(75.0f));
+        EditorGUILayout.LabelField("直接依赖: " + info.mDirectDependencies.Count, GUILayout.Width(95.0f));
+        EditorGUILayout.LabelField("所有依赖: " + info.mAllDependencies.Count, GUILayout.Width(95.0f));
+        EditorGUILayout.EndHorizontal();
+
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("搜索", GUILayout.Width(36.0f));
+        string newSearchText = EditorGUILayout.TextField(mSelectedBundleDependencySearchText);
+        if (newSearchText != mSelectedBundleDependencySearchText)
+        {
+            mSelectedBundleDependencySearchText = newSearchText;
+            Repaint();
+        }
+        if (GUILayout.Button("清空", GUILayout.Width(48.0f)))
+        {
+            mSelectedBundleDependencySearchText = "";
+            GUI.FocusControl(null);
+            Repaint();
+        }
+        EditorGUILayout.EndHorizontal();
+
+        mSelectedBundleDependencyScrollPos = EditorGUILayout.BeginScrollView(mSelectedBundleDependencyScrollPos);
+
+        DrawSelectedBundleStringList("直接依赖 Direct Dependencies", info.mDirectDependencies);
+        DrawSelectedBundleStringList("所有依赖 All Dependencies", info.mAllDependencies);
+        DrawSelectedBundleStringList("直接被依赖 Direct Referenced By", info.mDirectReferencedBy);
+        DrawSelectedBundleStringList("所有被依赖 All Referenced By", info.mAllReferencedBy);
+
+        EditorGUILayout.EndScrollView();
+        GUILayout.EndArea();
+    }
+
+    private void BeginSelectedBundleDependencyPanelArea(Rect panelRect, bool hasSelectedBundle)
+    {
+        if (!hasSelectedBundle)
+        {
+            GUILayout.BeginArea(panelRect, EditorStyles.helpBox);
+            return;
+        }
+
+        float colorValue = EditorGUIUtility.isProSkin ? 0.08f : 0.86f;
+        Color backgroundColor = new(colorValue, colorValue, colorValue, SELECTED_DEPENDENCY_PANEL_OPAQUE_ALPHA);
+        Color borderColor = EditorGUIUtility.isProSkin ? new Color(0.45f, 0.65f, 0.85f, 0.95f) : new Color(0.25f, 0.42f, 0.62f, 0.95f);
+
+        EditorGUI.DrawRect(panelRect, backgroundColor);
+        DrawRectBorder(panelRect, borderColor, 1.0f);
+
+        Rect contentRect = new(
+            panelRect.x + SELECTED_DEPENDENCY_PANEL_CONTENT_PADDING,
+            panelRect.y + SELECTED_DEPENDENCY_PANEL_CONTENT_PADDING,
+            panelRect.width - SELECTED_DEPENDENCY_PANEL_CONTENT_PADDING * 2.0f,
+            panelRect.height - SELECTED_DEPENDENCY_PANEL_CONTENT_PADDING * 2.0f);
+
+        GUILayout.BeginArea(contentRect);
+    }
+
+    private void UpdateSelectedBundleDependencyPanelScreenRect(Rect graphRect)
+    {
+        if (mBundleMap.Count == 0)
+        {
+            mSelectedBundleDependencyPanelScreenRect = new Rect();
+            return;
+        }
+
+        Rect panelRect = GetSelectedBundleDependencyPanelRect(graphRect);
+        Vector2 screenPosition = GUIUtility.GUIToScreenPoint(panelRect.position);
+        mSelectedBundleDependencyPanelScreenRect = new Rect(screenPosition, panelRect.size);
+    }
+
+    private bool IsMouseInSelectedBundleDependencyPanelScreen(Vector2 mouseScreenPosition)
+    {
+        if (mBundleMap.Count == 0)
+        {
+            return false;
+        }
+
+        return mSelectedBundleDependencyPanelScreenRect.Contains(mouseScreenPosition);
+    }
+
+    private Rect GetSelectedBundleDependencyPanelRect(Rect graphRect)
+    {
+        float width = Mathf.Min(SELECTED_DEPENDENCY_PANEL_WIDTH, Mathf.Max(260.0f, graphRect.width * 0.42f));
+        return new Rect(
+            graphRect.xMax - width - SELECTED_DEPENDENCY_PANEL_MARGIN,
+            graphRect.y + SELECTED_DEPENDENCY_PANEL_MARGIN,
+            width,
+            graphRect.height - SELECTED_DEPENDENCY_PANEL_MARGIN * 2.0f);
+    }
+
+    private bool IsMouseInSelectedBundleDependencyPanel(Rect graphRect, Vector2 mousePosition)
+    {
+        if (mBundleMap.Count == 0)
+        {
+            return false;
+        }
+
+        Vector2 localMousePosition = mousePosition - graphRect.position;
+        Rect localGraphRect = new(0.0f, 0.0f, graphRect.width, graphRect.height);
+        return GetSelectedBundleDependencyPanelRect(localGraphRect).Contains(localMousePosition);
+    }
+
+    private void DrawSelectedBundleStringList(string title, List<string> list)
+    {
+        List<string> filteredList = GetSelectedBundleFilteredList(list);
+
+        EditorGUILayout.Space(6.0f);
+        EditorGUILayout.LabelField(title + " (" + filteredList.Count + "/" + list.Count + ")", EditorStyles.boldLabel);
+
+        if (filteredList.Count == 0)
+        {
+            EditorGUILayout.LabelField("    <None>", EditorStyles.miniLabel);
+            return;
+        }
+
+        for (int i = 0; i < filteredList.Count; ++i)
+        {
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField((i + 1).ToString(), GUILayout.Width(28.0f));
+            EditorGUILayout.SelectableLabel(filteredList[i], EditorStyles.textField, GUILayout.Height(18.0f));
+            EditorGUILayout.EndHorizontal();
+        }
+    }
+
+    private List<string> GetSelectedBundleFilteredList(List<string> list)
+    {
+        if (string.IsNullOrEmpty(mSelectedBundleDependencySearchText))
+        {
+            return list;
+        }
+        List<string> result = new();
+        foreach (string item in list)
+        {
+            if (item != null && item.IndexOf(mSelectedBundleDependencySearchText, StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                result.Add(item);
+            }
+        }
+        return result;
+    }
+
     private void DrawSelectionRect()
     {
         if (!mSelectingNodes)
         {
             return;
         }
-
         Rect rect = GetSelectionRect();
-        Color fillColor = new(0.25f, 0.65f, 1.0f, 0.16f);
-        Color borderColor = new(0.25f, 0.75f, 1.0f, 0.9f);
-
-        EditorGUI.DrawRect(rect, fillColor);
-        DrawRectBorder(rect, borderColor, 1.0f);
+        EditorGUI.DrawRect(rect, new(0.25f, 0.65f, 1.0f, 0.16f));
+        DrawRectBorder(rect, new(0.25f, 0.75f, 1.0f, 0.9f), 1.0f);
     }
+
     private Rect GetSelectionRect()
     {
         float xMin = Mathf.Min(mSelectStartLocalPos.x, mSelectEndLocalPos.x);
@@ -620,10 +1001,12 @@ public class AssetBundleDependencyWindow : EditorWindow
         float yMax = Mathf.Max(mSelectStartLocalPos.y, mSelectEndLocalPos.y);
         return Rect.MinMaxRect(xMin, yMin, xMax, yMax);
     }
+
     private void DrawZoomInfo(Rect graphRect)
     {
         GUI.Label(new Rect(graphRect.x + 10.0f, graphRect.yMax - 24.0f, 200.0f, 20.0f), "Zoom: " + (mZoom * 100.0f).ToString("F0") + "%", EditorStyles.miniLabel);
     }
+
     private bool IsIndependentBundle(string bundleName)
     {
         if (!mBundleMap.TryGetValue(bundleName, out BundleInfo info))
@@ -633,6 +1016,7 @@ public class AssetBundleDependencyWindow : EditorWindow
 
         return info.mDirectDependencies.Count == 0 && info.mDirectReferencedBy.Count == 0;
     }
+
     private bool IsNodeVisible(string bundleName)
     {
         if (mHideIndependentBundle && IsIndependentBundle(bundleName))
@@ -642,6 +1026,7 @@ public class AssetBundleDependencyWindow : EditorWindow
 
         return IsNodeVisibleBySearch(bundleName);
     }
+
     private void ClearHiddenSelectedBundles()
     {
         if (!mHideIndependentBundle)
@@ -663,6 +1048,7 @@ public class AssetBundleDependencyWindow : EditorWindow
             mSelectedBundle = mSelectedBundleSet.Count > 0 ? mSelectedBundleSet.First() : "";
         }
     }
+
     private bool IsNodeVisibleBySearch(string bundleName)
     {
         if (string.IsNullOrEmpty(mSearchText))
@@ -671,10 +1057,12 @@ public class AssetBundleDependencyWindow : EditorWindow
         }
         return bundleName.IndexOf(mSearchText, StringComparison.OrdinalIgnoreCase) >= 0 || bundleName == mSelectedBundle;
     }
+
     private bool IsBundleSelected(string bundleName)
     {
         return mSelectedBundleSet.Contains(bundleName);
     }
+
     private void DrawNodeWindow(int id)
     {
         List<GraphNode> nodes = mNodeMap.Values.ToList();
@@ -684,7 +1072,7 @@ public class AssetBundleDependencyWindow : EditorWindow
         }
 
         GraphNode node = nodes[id];
-        Rect nodeRect = new Rect(0.0f, 0.0f, NODE_WIDTH * mZoom, NODE_HEIGHT * mZoom);
+        Rect nodeRect = new(0.0f, 0.0f, NODE_WIDTH * mZoom, NODE_HEIGHT * mZoom);
         DrawNodeBox(nodeRect, node.mBundleName);
 
         GUIStyle titleStyle = new(mNodeNameStyle);
@@ -712,6 +1100,11 @@ public class AssetBundleDependencyWindow : EditorWindow
         Event e = Event.current;
         if (e.type == EventType.MouseDown && e.button == 0)
         {
+            if (IsMouseInSelectedBundleDependencyPanelScreen(GUIUtility.GUIToScreenPoint(e.mousePosition)))
+            {
+                return;
+            }
+
             mSelectedBundle = node.mBundleName;
             if (e.control || e.command)
             {
@@ -736,11 +1129,12 @@ public class AssetBundleDependencyWindow : EditorWindow
             e.Use();
         }
     }
+
     private void DrawNodeBox(Rect nodeRect, string bundleName)
     {
         bool selected = IsBundleSelected(bundleName);
         Color backgroundColor = GetNodeBackgroundColor(bundleName);
-        Color borderColor = selected ? new Color(0.35f, 0.72f, 1.0f, 1.0f) : new Color(0.22f, 0.42f, 0.58f, 1.0f);
+        Color borderColor = selected ? new Color(0.35f, 0.72f, 1.0f, 1.0f) : GetNodeBorderColor(bundleName);
         Color titleColor = selected ? new Color(0.18f, 0.45f, 0.70f, 1.0f) : GetNodeTitleColor(bundleName);
 
         EditorGUI.DrawRect(nodeRect, backgroundColor);
@@ -756,9 +1150,18 @@ public class AssetBundleDependencyWindow : EditorWindow
 
         if (selected)
         {
-            Rect innerRect = new Rect(nodeRect.x + 2.0f * mZoom, nodeRect.y + 2.0f * mZoom, nodeRect.width - 4.0f * mZoom, nodeRect.height - 4.0f * mZoom);
+            Rect innerRect = new(nodeRect.x + 2.0f * mZoom, nodeRect.y + 2.0f * mZoom, nodeRect.width - 4.0f * mZoom, nodeRect.height - 4.0f * mZoom);
             DrawRectBorder(innerRect, new Color(0.35f, 0.72f, 1.0f, 0.75f), borderWidth);
         }
+    }
+
+    private Color GetNodeBorderColor(string bundleName)
+    {
+        if (mDependencyCycleList.contains(item => item.contains(bundleName)))
+        {
+            return new Color(1.0f, 0.12f, 0.12f, 1.0f);
+        }
+        return new Color(0.22f, 0.42f, 0.58f, 1.0f);
     }
     private void DrawRectBorder(Rect rect, Color color, float width)
     {
@@ -767,104 +1170,110 @@ public class AssetBundleDependencyWindow : EditorWindow
         EditorGUI.DrawRect(new Rect(rect.xMin, rect.yMin, width, rect.height), color);
         EditorGUI.DrawRect(new Rect(rect.xMax - width, rect.yMin, width, rect.height), color);
     }
+
     private void DrawEdges()
     {
-        List<string> edgeList = mEdges.ToList();
-
-        foreach (string edge in edgeList)
+        foreach (string edge in mEdges)
         {
             string[] parts = edge.Split('|');
             if (parts.Length != 2)
             {
                 continue;
             }
-
             string from = parts[0];
             string to = parts[1];
-            if (IsEdgeHighlighted(from, to))
+            if (IsEdgeHighlighted(from, to) || IsCycleEdge(from, to))
             {
                 continue;
             }
-
             DrawSingleEdge(from, to);
         }
 
-        foreach (string edge in edgeList)
+        foreach (string edge in mEdges)
         {
             string[] parts = edge.Split('|');
             if (parts.Length != 2)
             {
                 continue;
             }
+            string from = parts[0];
+            string to = parts[1];
+            if (!IsCycleEdge(from, to) || IsEdgeHighlighted(from, to))
+            {
+                continue;
+            }
+            DrawSingleEdge(from, to);
+        }
 
+        foreach (string edge in mEdges)
+        {
+            string[] parts = edge.Split('|');
+            if (parts.Length != 2)
+            {
+                continue;
+            }
             string from = parts[0];
             string to = parts[1];
             if (!IsEdgeHighlighted(from, to))
             {
                 continue;
             }
-
             DrawSingleEdge(from, to);
         }
     }
+
     private void DrawSingleEdge(string from, string to)
     {
-        if (!IsNodeVisible(from) || !IsNodeVisible(to))
+        if (!IsNodeVisible(from) || 
+            !IsNodeVisible(to) ||
+            !mNodeMap.TryGetValue(from, out GraphNode fromNode) || 
+            !mNodeMap.TryGetValue(to, out GraphNode toNode))
         {
             return;
         }
-        if (!mNodeMap.TryGetValue(from, out GraphNode fromNode) || !mNodeMap.TryGetValue(to, out GraphNode toNode))
-        {
-            return;
-        }
-
         Rect fromRect = GraphToScreenRect(fromNode.mRect);
         Rect toRect = GraphToScreenRect(toNode.mRect);
-
         float portOffset = GetEdgePortOffset(from, to);
         float fromY = fromRect.center.y + portOffset;
         float toY = toRect.center.y + portOffset;
 
-        Vector3 start = new Vector3(fromRect.xMax, fromY, 0.0f);
-        Vector3 end = new Vector3(toRect.xMin, toY, 0.0f);
-
+        Vector3 start = new(fromRect.xMax, fromY, 0.0f);
+        Vector3 end = new(toRect.xMin, toY, 0.0f);
         bool reverseDirection = toRect.center.x < fromRect.center.x;
         if (reverseDirection)
         {
-            start = new Vector3(fromRect.xMin, fromY, 0.0f);
-            end = new Vector3(toRect.xMax, toY, 0.0f);
+            start = new(fromRect.xMin, fromY, 0.0f);
+            end = new(toRect.xMax, toY, 0.0f);
         }
 
         float tangentLength = Mathf.Max(30.0f, 80.0f * mZoom);
         Vector3 startTan = start + Vector3.right * tangentLength;
         Vector3 endTan = end + Vector3.left * tangentLength;
-
         if (reverseDirection)
         {
             startTan = start + Vector3.left * tangentLength;
             endTan = end + Vector3.right * tangentLength;
         }
-
         Color color = GetEdgeColor(from, to);
         float lineWidth = GetEdgeWidth(from, to);
-        DrawBezierLine(start, end, startTan, endTan, color, Mathf.Clamp(lineWidth * mZoom, 0.8f, 2.6f));
+        DrawBezierLine(start, end, startTan, endTan, color, Mathf.Clamp(lineWidth * mZoom, 0.8f, 3.6f));
         DrawArrow(end, endTan, color);
     }
+
     private void DrawBezierLine(Vector3 start, Vector3 end, Vector3 startTan, Vector3 endTan, Color color, float width)
     {
         const int SEGMENT_COUNT = 32;
         Vector3[] points = new Vector3[SEGMENT_COUNT + 1];
-
         for (int i = 0; i <= SEGMENT_COUNT; ++i)
         {
             float t = (float)i / SEGMENT_COUNT;
             points[i] = EvaluateBezier(start, end, startTan, endTan, t);
         }
-
         Handles.color = color;
         Handles.DrawAAPolyLine(width, points);
         Handles.color = Color.white;
     }
+
     private Vector3 EvaluateBezier(Vector3 start, Vector3 end, Vector3 startTan, Vector3 endTan, float t)
     {
         float oneMinusT = 1.0f - t;
@@ -873,39 +1282,33 @@ public class AssetBundleDependencyWindow : EditorWindow
             3.0f * oneMinusT * t * t * endTan +
             t * t * t * end;
     }
+
     private bool IsEdgeHighlighted(string from, string to)
     {
-        if (!string.IsNullOrEmpty(mSelectedBundle))
+        if (!mSelectedBundle.isEmpty() && (from == mSelectedBundle || to == mSelectedBundle))
         {
-            if (from == mSelectedBundle || to == mSelectedBundle)
-            {
-                return true;
-            }
+            return true;
         }
-
         return mSelectedBundleSet.Contains(from) || mSelectedBundleSet.Contains(to);
     }
+
     private float GetEdgePortOffset(string from, string to)
     {
         float selectedOffset = 24.0f * mZoom;
         float reverseOffset = 16.0f * mZoom;
-
         if (!string.IsNullOrEmpty(mSelectedBundle))
         {
-            // 当前选中节点依赖的包：选中节点 -> 子依赖，走偏下端口
             if (from == mSelectedBundle)
             {
                 return selectedOffset;
             }
 
-            // 依赖当前选中节点的包：父依赖 -> 选中节点，走偏上端口
             if (to == mSelectedBundle)
             {
                 return -selectedOffset;
             }
         }
 
-        // 如果两个包之间存在双向依赖，则上下错开，避免完全重叠
         if (HasReverseEdge(from, to))
         {
             return string.CompareOrdinal(from, to) < 0 ? reverseOffset : -reverseOffset;
@@ -913,39 +1316,57 @@ public class AssetBundleDependencyWindow : EditorWindow
 
         return 0.0f;
     }
+
     private bool HasReverseEdge(string from, string to)
     {
         return mEdges.Contains(to + "|" + from);
     }
+
     private float GetEdgeWidth(string from, string to)
     {
+        if (IsCycleEdge(from, to))
+        {
+            return IsEdgeHighlighted(from, to) ? 5.0f : 3.4f;
+        }
+
         if (string.IsNullOrEmpty(mSelectedBundle) && mSelectedBundleSet.Count == 0)
         {
-            return 2.0f;
+            return HasReverseEdge(from, to) ? 3.0f : 2.0f;
         }
 
         if (!string.IsNullOrEmpty(mSelectedBundle))
         {
             if (from == mSelectedBundle || to == mSelectedBundle)
             {
-                return 4.0f;
+                return HasReverseEdge(from, to) ? 4.6f : 4.0f;
             }
         }
 
         if (mSelectedBundleSet.Contains(from) && mSelectedBundleSet.Contains(to))
         {
-            return 3.2f;
+            return HasReverseEdge(from, to) ? 3.8f : 3.2f;
         }
 
         if (mSelectedBundleSet.Contains(from) || mSelectedBundleSet.Contains(to))
         {
-            return 2.8f;
+            return HasReverseEdge(from, to) ? 3.2f : 2.8f;
         }
 
-        return 1.2f;
+        return HasReverseEdge(from, to) ? 1.8f : 1.2f;
     }
+
     private Color GetEdgeColor(string from, string to)
     {
+        if (IsCycleEdge(from, to))
+        {
+            return new Color(1.0f, 0.05f, 0.05f, 1.0f);
+        }
+
+        if (HasReverseEdge(from, to))
+        {
+            return new Color(1.0f, 0.18f, 0.12f, 1.0f);
+        }
+
         if (string.IsNullOrEmpty(mSelectedBundle) && mSelectedBundleSet.Count == 0)
         {
             return new Color(0.18f, 0.48f, 0.72f, 0.90f);
@@ -953,40 +1374,35 @@ public class AssetBundleDependencyWindow : EditorWindow
 
         if (!string.IsNullOrEmpty(mSelectedBundle))
         {
-            // 当前选中节点依赖的包：选中节点 -> 子依赖
             if (from == mSelectedBundle)
             {
                 return new Color(0.0f, 0.85f, 1.0f, 1.0f);
             }
 
-            // 依赖当前选中节点的包：父依赖 -> 选中节点
             if (to == mSelectedBundle)
             {
                 return new Color(1.0f, 0.42f, 0.05f, 1.0f);
             }
         }
 
-        // 多选节点之间的依赖线
         if (mSelectedBundleSet.Contains(from) && mSelectedBundleSet.Contains(to))
         {
             return new Color(0.75f, 0.38f, 1.0f, 1.0f);
         }
 
-        // 多选节点依赖出去的线
         if (mSelectedBundleSet.Contains(from))
         {
             return new Color(0.0f, 0.70f, 1.0f, 1.0f);
         }
 
-        // 依赖多选节点的线
         if (mSelectedBundleSet.Contains(to))
         {
             return new Color(1.0f, 0.62f, 0.10f, 1.0f);
         }
 
-        // 其他不相关依赖线：不要用太低 alpha，直接用暗色
         return new Color(0.10f, 0.24f, 0.34f, 0.75f);
     }
+
     private void DrawArrow(Vector3 end, Vector3 endTan, Color color)
     {
         Vector3 dir = (end - endTan).normalized;
@@ -1005,6 +1421,7 @@ public class AssetBundleDependencyWindow : EditorWindow
         Handles.DrawAAConvexPolygon(p1, p2, p3);
         Handles.color = Color.white;
     }
+
     private void DrawGrid(Rect rect, float gridSpacing, Color gridColor)
     {
         float scaledGridSpacing = gridSpacing * mZoom;
@@ -1015,24 +1432,27 @@ public class AssetBundleDependencyWindow : EditorWindow
 
         int widthDivs = Mathf.CeilToInt(rect.width / scaledGridSpacing);
         int heightDivs = Mathf.CeilToInt(rect.height / scaledGridSpacing);
+
         Handles.color = gridColor;
         Vector3 offset = new(mPanOffset.x % scaledGridSpacing, mPanOffset.y % scaledGridSpacing, 0.0f);
+
         for (int i = 0; i < widthDivs + 2; i++)
         {
             float x = rect.x + i * scaledGridSpacing + offset.x;
-            Handles.DrawLine(new Vector3(x, rect.y, 0.0f), new Vector3(x, rect.yMax, 0.0f));
+            Handles.DrawLine(new(x, rect.y, 0.0f), new(x, rect.yMax, 0.0f));
         }
+
         for (int j = 0; j < heightDivs + 2; j++)
         {
             float y = rect.y + j * scaledGridSpacing + offset.y;
-            Handles.DrawLine(new Vector3(rect.x, y, 0.0f), new Vector3(rect.xMax, y, 0.0f));
+            Handles.DrawLine(new(rect.x, y, 0.0f), new(rect.xMax, y, 0.0f));
         }
         Handles.color = Color.white;
     }
+
     private void HandleCanvasInput(Rect graphRect)
     {
         Event e = Event.current;
-
         if (!string.IsNullOrEmpty(mDraggingNodeName))
         {
             if (e.type == EventType.MouseDrag && e.button == 0)
@@ -1090,7 +1510,8 @@ public class AssetBundleDependencyWindow : EditorWindow
             }
         }
 
-        if (!graphRect.Contains(e.mousePosition))
+        if (!graphRect.Contains(e.mousePosition) ||
+            IsMouseInSelectedBundleDependencyPanel(graphRect, e.mousePosition))
         {
             return;
         }
@@ -1123,6 +1544,7 @@ public class AssetBundleDependencyWindow : EditorWindow
                 mSelectedBundleSet.Clear();
                 mSelectedBundle = "";
             }
+
             Repaint();
             e.Use();
             return;
@@ -1157,6 +1579,7 @@ public class AssetBundleDependencyWindow : EditorWindow
             e.Use();
         }
     }
+
     private void ApplySelectionRect()
     {
         Rect selectRect = GetSelectionRect();
@@ -1185,6 +1608,7 @@ public class AssetBundleDependencyWindow : EditorWindow
             mSelectedBundle = "";
         }
     }
+
     private void FitAllNodesToView()
     {
         if (mNodeMap.Count == 0)
@@ -1192,7 +1616,7 @@ public class AssetBundleDependencyWindow : EditorWindow
             return;
         }
 
-        Rect bounds = new Rect();
+        Rect bounds = new();
         bool first = true;
         foreach (GraphNode node in mNodeMap.Values)
         {
@@ -1200,7 +1624,6 @@ public class AssetBundleDependencyWindow : EditorWindow
             {
                 continue;
             }
-
             if (first)
             {
                 bounds = node.mRect;
@@ -1217,7 +1640,7 @@ public class AssetBundleDependencyWindow : EditorWindow
             return;
         }
 
-        Rect viewRect = new Rect(0.0f, 0.0f, position.width, position.height - TOOLBAR_HEIGHT);
+        Rect viewRect = new(0.0f, 0.0f, position.width, position.height - TOOLBAR_HEIGHT);
         float padding = 80.0f;
         float zoomX = (viewRect.width - padding) / bounds.width;
         float zoomY = (viewRect.height - padding) / bounds.height;
@@ -1225,6 +1648,7 @@ public class AssetBundleDependencyWindow : EditorWindow
         mPanOffset = viewRect.center - bounds.center * mZoom;
         Repaint();
     }
+
     private Rect Union(Rect a, Rect b)
     {
         float xMin = Mathf.Min(a.xMin, b.xMin);
@@ -1233,6 +1657,7 @@ public class AssetBundleDependencyWindow : EditorWindow
         float yMax = Mathf.Max(a.yMax, b.yMax);
         return Rect.MinMaxRect(xMin, yMin, xMax, yMax);
     }
+
     private void SelectFirstMatchedNode()
     {
         if (string.IsNullOrEmpty(mSearchText))
@@ -1247,8 +1672,7 @@ public class AssetBundleDependencyWindow : EditorWindow
                 mSelectedBundle = bundleName;
                 mSelectedBundleSet.Clear();
                 mSelectedBundleSet.Add(bundleName);
-                GraphNode node;
-                if (mNodeMap.TryGetValue(bundleName, out node))
+                if (mNodeMap.TryGetValue(bundleName, out GraphNode node))
                 {
                     Rect viewRect = new(0.0f, 0.0f, position.width, position.height - TOOLBAR_HEIGHT);
                     mPanOffset = viewRect.center - node.mRect.center * mZoom;
@@ -1258,6 +1682,7 @@ public class AssetBundleDependencyWindow : EditorWindow
             }
         }
     }
+
     private void ExportTxt()
     {
         if (mBundleMap.Count == 0)
@@ -1272,7 +1697,24 @@ public class AssetBundleDependencyWindow : EditorWindow
             return;
         }
 
-        StringBuilder sb = new();
+        StringBuilder sb = new StringBuilder();
+
+        sb.AppendLine("============================================================");
+        sb.AppendLine("[Dependency Cycles]");
+        sb.AppendLine("Count: " + mDependencyCycleList.Count);
+        if (mDependencyCycleList.Count == 0)
+        {
+            sb.AppendLine("    <None>");
+        }
+        else
+        {
+            foreach (List<string> cycle in mDependencyCycleList)
+            {
+                sb.AppendLine("    " + GetCycleDisplayText(cycle));
+            }
+        }
+        sb.AppendLine();
+
         foreach (BundleInfo info in mBundleMap.Values.OrderBy(x => x.mBundleName))
         {
             sb.AppendLine("============================================================");
@@ -1295,6 +1737,7 @@ public class AssetBundleDependencyWindow : EditorWindow
         Debug.Log("[AB依赖分析] TXT导出完成: " + path);
         EditorUtility.DisplayDialog("完成", "TXT导出完成:\n" + path, "OK");
     }
+
     private void AppendList(StringBuilder sb, string title, List<string> list)
     {
         sb.AppendLine(title + " " + list.Count);
@@ -1309,8 +1752,10 @@ public class AssetBundleDependencyWindow : EditorWindow
                 sb.AppendLine("    " + item);
             }
         }
+
         sb.AppendLine();
     }
+
     private Color GetNodeBackgroundColor(string bundleName)
     {
         string n = bundleName.ToLower();
@@ -1346,8 +1791,10 @@ public class AssetBundleDependencyWindow : EditorWindow
         {
             return new Color(0.32f, 0.18f, 0.27f, 1.0f);
         }
+
         return new Color(0.20f, 0.20f, 0.20f, 1.0f);
     }
+
     private Color GetNodeTitleColor(string bundleName)
     {
         string n = bundleName.ToLower();
@@ -1379,6 +1826,7 @@ public class AssetBundleDependencyWindow : EditorWindow
         {
             return new Color(0.27f, 0.13f, 0.22f, 1.0f);
         }
+
         return new Color(0.16f, 0.16f, 0.16f, 1.0f);
     }
 }

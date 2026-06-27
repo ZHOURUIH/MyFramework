@@ -7,10 +7,32 @@ public abstract class UGUIGeneratorBase : MonoBehaviour
 {
 	public string mComment;							// 注释信息
 	public List<MemberData> mMemberList = new();    // 需要访问的节点列表
-	public MemberData addNewItem()
+	public MemberData addEmptyMember()
 	{
 		return mMemberList.add(new());
 	}
+	public MemberData addMember(GameObject go)
+	{
+		if (gameObject == go)
+		{
+			logError("不能添加根节点");
+			return null;
+		}
+        foreach (MemberData item in mMemberList)
+        {
+            if (!item.isValid())
+            {
+                item.setObject(go, this);
+                return item;
+            }
+        }
+        MemberData member = addEmptyMember();
+        if (!member.setObject(go, this))
+        {
+            mMemberList.Remove(member);
+        }
+		return member;
+    }
 	public void addNewPool()
 	{
 		MemberData data = new();

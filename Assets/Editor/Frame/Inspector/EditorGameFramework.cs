@@ -1,10 +1,10 @@
 using UnityEditor;
 
 [CustomEditor(typeof(GameEntryBase), true)]
-public class EditorGameFramework : GameEditorBase
+public class EditorGameFramework : GameInspector
 {
 	protected GameEntryBase mGameEntry;
-	public override void OnInspectorGUI()
+	protected override void onGUI()
 	{
 		mGameEntry = target as GameEntryBase;
 

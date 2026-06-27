@@ -77,7 +77,7 @@ public abstract class PlatformBase
 	public bool showNeedUploadFile(string destFolderName, string[] containOnlyFileList = null)
 	{
 		List<string> ignoreFile = new() { mName, mName + ".manifest" };
-		List<string> ignoreSuffix = new() { ".unity3d.manifest", ".meta" };
+		List<string> ignoreSuffix = new() { ASSET_BUNDLE_SUFFIX + ".manifest", ".meta" };
 		var fileList = findFileList(mAssetBundleFullPath, ignoreFile, null, ignoreSuffix);
 		string dest = F_PROJECT_PATH + "../" + destFolderName + "/";
 		deleteFolder(dest);
@@ -224,7 +224,7 @@ public abstract class PlatformBase
 	public static string generateFileList(string assetBundlePath, List<string> ignoreFiles = null)
 	{
 		string fileContent = EMPTY;
-		List<string> fileInfoList = findFileList(assetBundlePath, ignoreFiles, null, new() { ".unity3d.manifest", ".meta" });
+		List<string> fileInfoList = findFileList(assetBundlePath, ignoreFiles, null, new() { ASSET_BUNDLE_SUFFIX + ".manifest", ".meta" });
 		// 将所有文件信息写入文件
 		fileContent += IToS(fileInfoList.Count) + "\n";
 		foreach (string item in fileInfoList)

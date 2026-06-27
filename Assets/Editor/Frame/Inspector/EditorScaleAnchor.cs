@@ -1,10 +1,11 @@
 using UnityEditor;
 
 [CustomEditor(typeof(ScaleAnchor), true)]
-public class EditorScaleAnchor : GameEditorBase
+[CanEditMultipleObjects]
+public class EditorScaleAnchor : GameInspector
 {
-	public override void OnInspectorGUI()
-	{
+    protected override void onGUI()
+    {
 		var anchor = target as ScaleAnchor;
 
 		bool modified = false;

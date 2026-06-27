@@ -25,19 +25,7 @@ public class UGUIGeneratorMenu
 				Debug.LogError("所有父节点中没有找到UGUIGenerator或者UGUISubGenerator组件");
 				return;
 			}
-			foreach (MemberData item in generator.mMemberList)
-			{
-				if (!item.isValid())
-				{
-					item.setObject(go, generator);
-					return;
-				}
-			}
-			MemberData member = generator.addNewItem();
-			if (!member.setObject(go, generator))
-			{
-				generator.mMemberList.Remove(member);
-			}
+			generator.addMember(go);
 		}
 	}
 }

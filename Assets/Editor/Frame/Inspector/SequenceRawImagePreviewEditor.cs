@@ -2,7 +2,8 @@ using UnityEditor;
 using UnityEngine;
 
 [CustomEditor(typeof(SequenceRawImagePreview))]
-public class SequenceRawImagePreviewEditor : GameEditorBase
+[CanEditMultipleObjects]
+public class SequenceRawImagePreviewEditor : GameInspector
 {
     private SerializedProperty mSlider;
     private SerializedProperty mLoop;
@@ -15,7 +16,7 @@ public class SequenceRawImagePreviewEditor : GameEditorBase
         mFPS = serializedObject.FindProperty("mFPS");
         mPreviewInEditor = serializedObject.FindProperty("mPreviewInEditor");
     }
-    public override void OnInspectorGUI()
+    protected override void onGUI()
     {
         serializedObject.Update();
 

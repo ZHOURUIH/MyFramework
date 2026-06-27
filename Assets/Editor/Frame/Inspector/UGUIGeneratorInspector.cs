@@ -11,6 +11,7 @@ using static UGUIGeneratorUtility;
 using static FrameUtility;
 
 [CustomEditor(typeof(UGUIGenerator))]
+[CanEditMultipleObjects]
 public class UGUIGeneratorInspector : GameInspector
 {
 	protected List<MemberData> mTempNeedRemoveData;
@@ -54,8 +55,9 @@ public class UGUIGeneratorInspector : GameInspector
 				displayDropDown("", "", parentList, ref generator.mParentType);
 			}
 			drawMemberInspector(generator);
-		}
-		space(10);
+            drawDragDrop(generator);
+        }
+        space(10);
 
 		using (new GUILayout.VerticalScope())
 		{
@@ -442,7 +444,8 @@ public class UGUIGeneratorInspector : GameInspector
 			{
 				foreach (string line in clickCallbackCheckLists)
 				{
-					if (!codeList.contains(item => item.Contains(line)))
+					string lineNoPreSpace = line.removeStartEmpty();
+					if (!codeList.contains(item => item.Contains(lineNoPreSpace)))
 					{
 						codeList.Insert(insertIndex++, line);
 						codeList.Insert(insertIndex++, "\t{");

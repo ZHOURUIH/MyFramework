@@ -61,19 +61,33 @@ public class GameEditorWindow : EditorWindow
 		return retValue != valueIndex;
 	}
 	// 返回值表示是否修改过
-	protected bool textField(ref string text, string labelText, int width = 50)
+	protected bool textField(ref string text, string labelText, int fieldWidth = 50)
 	{
 		using (new GUILayout.HorizontalScope())
 		{
 			label(labelText);
-			return textField(ref text, width);
+			return textField(ref text, fieldWidth);
 		}
-	}
-	// 返回值表示是否修改过
-	protected bool textField(ref string text, int width = 50)
+    }
+    protected bool textField(ref string text, params GUILayoutOption[] options)
+    {
+        string lastText = text;
+        text = GUILayout.TextField(text, options);
+        return lastText != text;
+    }
+    protected bool textField(ref string text, string labelText, int fieldWidth = 50, int widthOfLabel = 100)
+    {
+        using (new GUILayout.HorizontalScope())
+        {
+            labelWidth(labelText, widthOfLabel);
+            return textField(ref text, fieldWidth);
+        }
+    }
+    // 返回值表示是否修改过
+    protected bool textField(ref string text, int fieldWidth = 50)
 	{
 		string lastText = text;
-		text = GUILayout.TextField(text, GUILayout.Width(width));
+		text = GUILayout.TextField(text, GUILayout.Width(fieldWidth));
 		return lastText != text;
 	}
 	protected bool button(string text, int width = 50, int height = 20)
@@ -106,7 +120,11 @@ public class GameEditorWindow : EditorWindow
 	{
 		GUILayout.Label(text);
 	}
-	protected void label(string text, int fontSize)
+	protected void label(string text, GUIStyle style)
+    {
+        GUILayout.Label(text, style);
+    }
+    protected void label(string text, int fontSize)
 	{
 		GUIStyle style = new(GUI.skin.label);
 		style.fontSize = fontSize;

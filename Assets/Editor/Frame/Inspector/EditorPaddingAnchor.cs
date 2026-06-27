@@ -3,10 +3,11 @@ using UnityEngine;
 using static MathUtility;
 
 [CustomEditor(typeof(PaddingAnchor), true)]
-public class EditorPaddingAnchor : GameEditorBase
+[CanEditMultipleObjects]
+public class EditorPaddingAnchor : GameInspector
 {
-	public override void OnInspectorGUI()
-	{
+    protected override void onGUI()
+    {
 		serializedObject.Update();
 		var paddingAnchor = target as PaddingAnchor;
 

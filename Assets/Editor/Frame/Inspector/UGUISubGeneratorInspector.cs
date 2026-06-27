@@ -11,6 +11,7 @@ using static EditorCommonUtility;
 using static UGUIGeneratorUtility;
 
 [CustomEditor(typeof(UGUISubGenerator))]
+[CanEditMultipleObjects]
 public class UGUISubGeneratorInspector : GameInspector
 {
 	protected override void onGUI()
@@ -80,9 +81,10 @@ public class UGUISubGeneratorInspector : GameInspector
 			if (!generator.mOnlyForMarkType)
 			{
 				drawMemberInspector(generator);
-			}
+                drawDragDrop(generator);
+            }
 		}
-		space(10);
+        space(10);
 
 		using (new GUILayout.VerticalScope())
 		{
@@ -478,8 +480,9 @@ public class UGUISubGeneratorInspector : GameInspector
 			{
 				foreach (string line in clickCallbackCheckLists)
 				{
-					if (!codeList.contains(item => item.Contains(line)))
-					{
+                    string lineNoPreSpace = line.removeStartEmpty();
+                    if (!codeList.contains(item => item.Contains(lineNoPreSpace)))
+                    {
 						codeList.Insert(insertIndex++, line);
 						codeList.Insert(insertIndex++, "\t{");
 						codeList.Insert(insertIndex++, "\t\t;");

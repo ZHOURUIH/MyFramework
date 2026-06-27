@@ -45,9 +45,9 @@ public class MenuAssetBundle
 	public static void findDependencyMenu()
 	{
 		string selection = AssetDatabase.GetAssetPath(Selection.activeObject);
-		if (!selection.EndsWith(".unity3d"))
+		if (!selection.EndsWith(ASSET_BUNDLE_SUFFIX))
 		{
-			showInfo("需要选中一个.unity3d", true, true);
+			showInfo("需要选中一个" + ASSET_BUNDLE_SUFFIX, true, true);
 			return;
 		}
 		findAllDependencies(selection.removeStartString(P_ASSET_BUNDLE_ANDROID_PATH));
@@ -57,8 +57,25 @@ public class MenuAssetBundle
 	{
 		clearAssetBundleName();
 	}
-	//------------------------------------------------------------------------------------------------------------------------------
-	public static bool packAssetBundle(BuildTarget target, string outputPath, bool showMessageBox)
+    [MenuItem("AssetBundle/AB依赖分析窗口")]
+    public static void OpenAssetBundleDependencyWindow()
+    {
+        var window = EditorWindow.GetWindow<AssetBundleDependencyWindow>();
+        window.titleContent = new GUIContent("AB依赖分析");
+        window.minSize = new Vector2(1100.0f, 720.0f);
+        window.Show();
+    }
+    [MenuItem("AssetBundle/检测已构建AB重复资源")]
+    public static void OpenAssetBundleDuplicateAssetCheckWindow()
+    {
+        var window = EditorWindow.GetWindow<AssetBundleDuplicateAssetCheckWindow>();
+        window.titleContent = new GUIContent("已构建AB重复资源");
+        window.minSize = new Vector2(1080.0f, 700.0f);
+        window.Show();
+        window.setBundleRootFolder(F_ASSET_BUNDLE_PATH);
+    }
+    //------------------------------------------------------------------------------------------------------------------------------
+    public static bool packAssetBundle(BuildTarget target, string outputPath, bool showMessageBox)
 	{
 		Debug.Log("打包全部AssetBundle");
 		mIsPackingAssetBundle = true;

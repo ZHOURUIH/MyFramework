@@ -3,10 +3,10 @@ using UnityEditor;
 using System.Collections.Generic;
 
 [CustomEditor(typeof(GameKeyframe), true)]
-public class EditorGameKeyframe : GameEditorBase
+public class EditorGameKeyframe : GameInspector
 {
-	public override void OnInspectorGUI()
-	{
+    protected override void onGUI()
+    {
 		GUILayout.Space(6f);
 		EditorGUIUtility.labelWidth = 110.0f;
 		base.OnInspectorGUI();

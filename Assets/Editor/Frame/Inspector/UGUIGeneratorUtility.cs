@@ -16,6 +16,7 @@ using static FrameDefine;
 using static GameInspector;
 using static FrameUtility;
 using static FrameBaseDefine;
+using UObject = UnityEngine.Object;
 
 public class UGUIGeneratorUtility
 {
@@ -33,7 +34,7 @@ public class UGUIGeneratorUtility
 		{
 			if (button("添加节点", 200, 25))
 			{
-				generator.addNewItem();
+				generator.addEmptyMember();
 			}
 			if (button("添加对象池", 200, 25))
 			{
@@ -85,10 +86,53 @@ public class UGUIGeneratorUtility
 		generator.mMemberList.remove(tempNeedRemoveData);
 		if (button("添加节点", 200, 25))
 		{
-			generator.addNewItem();
+			generator.addEmptyMember();
 		}
 	}
-	protected static void drawMemberLine(UGUIGeneratorBase generator, MemberData item, ref List<MemberData> tempNeedRemoveData)
+    public static void drawDragDrop(UGUIGeneratorBase generator)
+    {
+        // 绘制一个可拖拽区域
+        Rect dropRect = GUILayoutUtility.GetRect(0.0f, 50.0f, GUILayout.ExpandWidth(true));
+        GUI.Box(dropRect, "拖拽Hierarchy中的节点到这里添加成员", EditorStyles.helpBox);
+        Event curEvent = Event.current;
+        // 鼠标不在指定区域内,不处理
+        if (!dropRect.Contains(curEvent.mousePosition))
+        {
+            return;
+        }
+
+        // 拖拽悬停在区域上
+        if (curEvent.type == EventType.DragUpdated)
+        {
+            bool hasGameObject = DragAndDrop.objectReferences.contains(obj=> obj is GameObject || obj is Component);
+            DragAndDrop.visualMode = hasGameObject ? DragAndDropVisualMode.Copy : DragAndDropVisualMode.Rejected;
+            curEvent.Use();
+        }
+        // 拖拽释放
+        else if (curEvent.type == EventType.DragPerform)
+        {
+            DragAndDrop.AcceptDrag();
+            foreach (UObject obj in DragAndDrop.objectReferences)
+            {
+                GameObject go = null;
+                if (obj is GameObject gameObject)
+                {
+                    go = gameObject;
+                }
+                else if (obj is Component component)
+                {
+                    go = component.gameObject;
+                }
+                if (go == null)
+                {
+                    continue;
+                }
+                generator.addMember(go);
+            }
+            curEvent.Use();
+        }
+    }
+    protected static void drawMemberLine(UGUIGeneratorBase generator, MemberData item, ref List<MemberData> tempNeedRemoveData)
 	{
 		if (button("X", 25))
 		{
@@ -650,61 +694,21 @@ public class UGUIGeneratorUtility
 		}
 		// 根据优先级放入类型列表,一般有这些组件就是要用特定的功能,所以会优先加进去
 		// 其他的组件可能不会在代码中进行访问,所以优先级较低
-		if (go.TryGetComponent<Canvas>(out _))
-		{
-			mTempAvailableTypeList.Add(typeof(myUGUICanvas).ToString());
-		}
-		if (go.TryGetComponent<Button>(out _))
-		{
-			mTempAvailableTypeList.Add(typeof(myUGUIButton).ToString());
-		}
-		if (go.TryGetComponent<CustomLine>(out _))
-		{
-			mTempAvailableTypeList.Add(typeof(myUGUICustomLine).ToString());
-		}
-		if (go.TryGetComponent<Dropdown>(out _))
-		{
-			mTempAvailableTypeList.Add(typeof(myUGUIDropdown).ToString());
-		}
-		if (go.TryGetComponent<ImageNumber>(out _))
-		{
-			mTempAvailableTypeList.Add(typeof(myUGUIImageNumber).ToString());
-		}
-		if (go.TryGetComponent<Scrollbar>(out _))
-		{
-			mTempAvailableTypeList.Add(typeof(myUGUIScrollBar).ToString());
-		}
-		if (go.TryGetComponent<ScrollRect>(out _))
-		{
-			mTempAvailableTypeList.Add(typeof(myUGUIScrollRect).ToString());
-		}
-		if (go.TryGetComponent<Slider>(out _))
-		{
-			mTempAvailableTypeList.Add(typeof(myUGUISlider).ToString());
-		}
-		if (go.TryGetComponent<TextImage>(out _))
-		{
-			mTempAvailableTypeList.Add(typeof(myUGUITextImage).ToString());
-		}
+		mTempAvailableTypeList.addIf(typeof(myUGUICanvas).ToString(), go.TryGetComponent<Canvas>(out _));
+		mTempAvailableTypeList.addIf(typeof(myUGUIButton).ToString(), go.TryGetComponent<Button>(out _));
+		mTempAvailableTypeList.addIf(typeof(myUGUICustomLine).ToString(), go.TryGetComponent<CustomLine>(out _));
+		mTempAvailableTypeList.addIf(typeof(myUGUIDropdown).ToString(), go.TryGetComponent<Dropdown>(out _));
+		mTempAvailableTypeList.addIf(typeof(myUGUIImageNumber).ToString(), go.TryGetComponent<ImageNumber>(out _));
+		mTempAvailableTypeList.addIf(typeof(myUGUIScrollBar).ToString(), go.TryGetComponent<Scrollbar>(out _));
+		mTempAvailableTypeList.addIf(typeof(myUGUIScrollRect).ToString(), go.TryGetComponent<ScrollRect>(out _));
+		mTempAvailableTypeList.addIf(typeof(myUGUISlider).ToString(), go.TryGetComponent<Slider>(out _));
+		mTempAvailableTypeList.addIf(typeof(myUGUITextImage).ToString(), go.TryGetComponent<TextImage>(out _));
 #if USE_AVPRO_VIDEO
-		if (go.TryGetComponent<MediaPlayer>(out _))
-		{
-			mTempAvailableTypeList.Add(typeof(myUGUIVideo).ToString());
-		}
+		mTempAvailableTypeList.addIf(typeof(myUGUIVideo).ToString(), go.TryGetComponent<MediaPlayer>(out _));
 #endif
-		if (go.TryGetComponent<InputField>(out _))
-		{
-			mTempAvailableTypeList.Add(typeof(myUGUIInputField).ToString());
-		}
-		if (go.TryGetComponent<TMP_InputField>(out _))
-		{
-			mTempAvailableTypeList.Add(typeof(myUGUIInputFieldTMP).ToString());
-		}
-		if (go.TryGetComponent<TileImageRenderer>(out _))
-		{
-			mTempAvailableTypeList.Add(typeof(myUGUITileImage).ToString());
-		}
-
+		mTempAvailableTypeList.addIf(typeof(myUGUIInputField).ToString(), go.TryGetComponent<InputField>(out _));
+		mTempAvailableTypeList.addIf(typeof(myUGUIInputFieldTMP).ToString(), go.TryGetComponent<TMP_InputField>(out _));
+		mTempAvailableTypeList.addIf(typeof(myUGUITileImage).ToString(), go.TryGetComponent<TileImageRenderer>(out _));
 		mTempAvailableTypeList.Add(typeof(myUGUIObject).ToString());
 		if (go.TryGetComponent<Image>(out _))
 		{
@@ -731,14 +735,8 @@ public class UGUIGeneratorUtility
 			mTempAvailableTypeList.Add(typeof(myUGUITextTMP).ToString());
 			mTempAvailableTypeList.Add(typeof(myUGUITextAuto).ToString());
 		}
-		if (go.TryGetComponent<MeshRenderer>(out _))
-		{
-			mTempAvailableTypeList.Add(typeof(myUGUILineMesh).ToString());
-		}
-		if (go.TryGetComponent<LineRenderer>(out _))
-		{
-			mTempAvailableTypeList.Add(typeof(myUGUILineRenderer).ToString());
-		}
+		mTempAvailableTypeList.addIf(typeof(myUGUILineMesh).ToString(), go.TryGetComponent<MeshRenderer>(out _));
+		mTempAvailableTypeList.addIf(typeof(myUGUILineRenderer).ToString(), go.TryGetComponent<LineRenderer>(out _));
 		if (go.TryGetComponent<SpriteRenderer>(out _))
 		{
 			mTempAvailableTypeList.Add(typeof(myUGUISprite).ToString());

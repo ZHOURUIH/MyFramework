@@ -2288,10 +2288,7 @@ public class EditorCommonUtility
 			for (int k = 0; k < memberInfo.Length; ++k)
 			{
 				// 成员变量 筛选出类型为字段
-				if (memberInfo[k].MemberType == MemberTypes.Field)
-				{
-					fieldMembers.Add(memberInfo[k]);
-				}
+				fieldMembers.addIf(memberInfo[k], memberInfo[k].MemberType == MemberTypes.Field);
 			}
 			if (fieldMembers.Count == 0)
 			{
@@ -2317,7 +2314,6 @@ public class EditorCommonUtility
 				Debug.LogError("class:" + className + " 没有包含: " + KEY_FUNCTION + "()" + addFileLine(info.mFilePath, info.mFunctionLine));
 				continue;
 			}
-
 			detectResetAll(className, fieldMembers, info);
 		}
 	}
@@ -2342,19 +2338,13 @@ public class EditorCommonUtility
 			{
 				continue;
 			}
-			if (line.IndexOf('{') >= 0)
+			if (line.IndexOf('{') >= 0 && index++ == 0)
 			{
-				if (index++ == 0)
-				{
-					startIndex = i;
-				}
+				startIndex = i;
 			}
-			if (line.IndexOf('}') >= 0)
+			if (line.IndexOf('}') >= 0 && --index == 0)
 			{
-				if (--index == 0)
-				{
-					endIndex = i;
-				}
+				endIndex = i;
 			}
 			if (startIndex >= 0 && endIndex >= 0)
 			{
