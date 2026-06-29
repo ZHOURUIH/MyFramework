@@ -1,22 +1,22 @@
 {
-    "name": "Editor",
+    "name": "Editor_Frame",
     "rootNamespace": "",
     "references": [
         "GUID:d75cedb49879a9d40ba0342631b237e9",
-        "GUID:f0885185a57f0c04ca49acdac92ab213",
         "GUID:4529033cfeeaea340aba4ae6a051ff8c",
-        "GUID:e08e9c83b7b650a40b80e9ab6278de8d",
         "GUID:2373f786d14518f44b0f475db77ba4de",
-        "GUID:66e09fc524ec6594b8d6ca1d91aa1a41",
+        "GUID:e08e9c83b7b650a40b80e9ab6278de8d",
         "GUID:6055be8ebefd69e48b49212b09b47b2f",
-        "GUID:16adf6b5d05298041a18900f455d9698"
+        "GUID:66e09fc524ec6594b8d6ca1d91aa1a41"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
-    "autoReferenced": true,
+    "autoReferenced": false,
     "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false

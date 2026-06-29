@@ -38,8 +38,8 @@ public class UnityUtility
 	protected static Vector2Int mScreenSize = new(Screen.width, Screen.height);					// 窗口宽高
 	protected static Vector2Int mHalfScreenSize = new(Screen.width >> 1, Screen.height >> 1);	// 窗口宽高的一半
 	protected static float mScreenAspect = mScreenSize.x / (float)mScreenSize.y;				// 屏幕宽高比
-	protected static Vector2 mScreenScale = new(mScreenSize.x * (1.0f / STANDARD_WIDTH), 
-												mScreenSize.y * (1.0f / STANDARD_HEIGHT));		// 当前分辨率相对于标准分辨率的缩放
+	protected static Vector2 mScreenScale = new(mScreenSize.x * (1.0f / FrameSettings.getUISize().x), 
+												mScreenSize.y * (1.0f / FrameSettings.getUISize().y));		// 当前分辨率相对于标准分辨率的缩放
 	public static void setLogLevel(LOG_LEVEL level)
 	{
 		mLogLevel = level;
@@ -181,7 +181,8 @@ public class UnityUtility
 		mScreenSize.y = (int)size.y;
 		mHalfScreenSize = new(mScreenSize.x >> 1, mScreenSize.y >> 1);
 		mScreenAspect = divide(mScreenSize.x, mScreenSize.y);   // 屏幕宽高比
-		mScreenScale = new(mScreenSize.x * (1.0f / STANDARD_WIDTH), mScreenSize.y * (1.0f / STANDARD_HEIGHT));   // 当前分辨率相对于标准分辨率的缩放
+		Vector2Int uiSize = FrameSettings.getUISize();
+        mScreenScale = new(mScreenSize.x * (1.0f / uiSize.x), mScreenSize.y * (1.0f / uiSize.y));   // 当前分辨率相对于标准分辨率的缩放
 		setScreenSizeBase(mScreenSize, fullScreen);
 		GameCamera camera = mCameraManager.getUICamera();
 		camera?.MOVE(new(0.0f, 0.0f, -divide(mScreenSize.y * 0.5f, tan(camera.getFOVY(true) * 0.5f))));
@@ -1114,18 +1115,19 @@ public class UnityUtility
 			applyAnchor(curTrans.GetChild(i).gameObject, force, layout);
 		}
 	}
-	public static Vector2 getGameViewSize()
+	public static Vector2Int getGameViewSize()
 	{
 		if (isEditor())
 		{
 			Type T = Type.GetType("UnityEditor.GameView,UnityEditor");
 			MethodInfo GetSizeOfMainGameView = T.GetMethod("GetSizeOfMainGameView", BindingFlags.NonPublic | BindingFlags.Static);
-			return (Vector2)GetSizeOfMainGameView.Invoke(null, null);
+            Vector2 value = (Vector2)GetSizeOfMainGameView.Invoke(null, null);
+            return new Vector2Int((int)value.x, (int)value.y);
 		}
 		else
 		{
 			logError("getGameViewSize can only call in editor!");
-			return Vector2.zero;
+			return Vector2Int.zero;
 		}
 	}
 	public static Vector2Int getHardwareScreenSize() { return mHardwareScreenSize; }

@@ -79,13 +79,6 @@ public class FrameBaseDefine
 	public const string LANGUAGE_CHINESE_TRADITIONAL = "ChineseTraditional";            // 中文繁体语言的名字
 	public const string LANGUAGE_CHINESE = "Chinese";                                   // 中文简体语言的名字
 	public const string LANGUAGE_ENGLISH = "English";                                   // 英文语言的名字
-	// 以下是可扩展的参数,可以修改为自己项目需要的参数
-	// UI的制作标准,所有UI都是按PC端1280*960,移动端1920*1080标准分辨率制作的
-#if UNITY_STANDALONE
-	public static int STANDARD_WIDTH = 1280;
-	public static int STANDARD_HEIGHT = 960;
-#else
-	public static int STANDARD_WIDTH = 1920;
-	public static int STANDARD_HEIGHT = 1080;
-#endif
+
+    public const string RUNTIME_SETTINGS_RES_PATH = "Settings/FrameSettings.asset";     // Resources 下的运行时设置路径
 }

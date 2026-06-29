@@ -4,7 +4,6 @@ using UnityEngine;
 using static UnityUtility;
 using static WidgetUtility;
 using static FrameBaseHotFix;
-using static FrameBaseDefine;
 using static FrameBaseUtility;
 
 // 用于表示一个布局
@@ -48,7 +47,7 @@ public class GameLayout
 		RectTransform rectTransform = mRoot.getRectTransform();
 		rectTransform.anchorMin = Vector2.one * 0.5f;
 		rectTransform.anchorMax = Vector2.one * 0.5f;
-		setRectSize(rectTransform, new(STANDARD_WIDTH, STANDARD_HEIGHT));
+		setRectSize(rectTransform, FrameSettings.getUISize());
 
 		mRoot.setDestroyImmediately(true);
 		mDefaultLayer = mRoot.getGameObject().layer;

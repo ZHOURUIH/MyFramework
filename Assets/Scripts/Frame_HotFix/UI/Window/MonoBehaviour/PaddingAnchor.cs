@@ -4,7 +4,6 @@ using static FrameBaseUtility;
 using static UnityUtility;
 using static WidgetUtility;
 using static MathUtility;
-using static FrameBaseDefine;
 using static StringUtility;
 
 // 该组件所在的物体不能有旋转,否则会计算错误
@@ -77,11 +76,11 @@ public class PaddingAnchor : MonoBehaviour
 	public void Reset()
 	{
 		// 挂载该脚本时候检查当前GameView的分辨率是否是标准分辨率
-		Vector2 screenSize = getGameViewSize();
-		if ((int)screenSize.x != STANDARD_WIDTH || (int)screenSize.y != STANDARD_HEIGHT)
+		Vector2Int screenSize = getGameViewSize();
+		Vector2Int uiSize = FrameSettings.getUISize();
+		if (screenSize != uiSize)
 		{
-			displayDialog("错误", "当前分辨率不是标准分辨率,适配结果可能不对,请将Game视图的分辨率修改为" +
-				STANDARD_WIDTH + "*" + STANDARD_HEIGHT, "确定");
+			displayDialog("错误", "当前分辨率不是标准分辨率,适配结果可能不对,请将Game视图的分辨率修改为" + uiSize.x + "*" + uiSize.y, "确定");
 			DestroyImmediate(this);
 		}
 	}

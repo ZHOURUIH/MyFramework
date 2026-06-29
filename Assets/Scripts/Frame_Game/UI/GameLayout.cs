@@ -4,7 +4,6 @@ using static UnityUtility;
 using static FrameBaseUtility;
 using static WidgetUtility;
 using static FrameBase;
-using static FrameBaseDefine;
 
 // 用于表示一个布局
 public class GameLayout
@@ -45,7 +44,7 @@ public class GameLayout
 		RectTransform rectTransform = mCanvas.GetComponent<RectTransform>();
 		rectTransform.anchorMin = Vector2.one * 0.5f;
 		rectTransform.anchorMax = Vector2.one * 0.5f;
-		setRectSize(rectTransform, new(STANDARD_WIDTH, STANDARD_HEIGHT));
+        setRectSize(rectTransform, FrameSettings.getUISize());
 
 		mTransform = mCanvas.gameObject.transform;
 		assignWindow();

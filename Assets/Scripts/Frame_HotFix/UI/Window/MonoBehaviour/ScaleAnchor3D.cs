@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using static FrameBaseUtility;
-using static FrameBaseDefine;
 using static UnityUtility;
 
 // 缩放自适应组件
@@ -48,11 +47,11 @@ public class ScaleAnchor3D : MonoBehaviour
 			return;
 		}
 		// 挂载该脚本时候检查当前GameView的分辨率是否是标准分辨率
-		Vector2 screenSize = getGameViewSize();
-		if ((int)screenSize.x != STANDARD_WIDTH || (int)screenSize.y != STANDARD_HEIGHT)
+		Vector2Int screenSize = getGameViewSize();
+		Vector2Int uiSize = FrameSettings.getUISize();
+		if (screenSize != uiSize)
 		{
-			displayDialog("错误", "当前分辨率不是标准分辨率,适配结果可能不对,请将Game视图的分辨率修改为" +
-							STANDARD_WIDTH + "*" + STANDARD_HEIGHT, "确定");
+			displayDialog("错误", "当前分辨率不是标准分辨率,适配结果可能不对,请将Game视图的分辨率修改为" + uiSize.x + "*" + uiSize.y, "确定");
 			DestroyImmediate(this);
 		}
 	}
