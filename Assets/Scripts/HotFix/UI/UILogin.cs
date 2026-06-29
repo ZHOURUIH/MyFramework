@@ -1,7 +1,7 @@
 ﻿using Obfuz;
 using static FrameUtility;
 using static UnityUtility;
-using static GBH;
+using static GBR;
 using static GBR;
 
 // auto generate member start

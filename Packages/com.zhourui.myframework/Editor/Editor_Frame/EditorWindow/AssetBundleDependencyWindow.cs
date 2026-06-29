@@ -74,7 +74,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
     {
         InitStyles();
     }
-
     private void InitStyles()
     {
         mNodeStyle = new GUIStyle();
@@ -90,8 +89,7 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         mSmallLabelStyle.wordWrap = true;
         mSmallLabelStyle.normal.textColor = new Color(0.82f, 0.82f, 0.82f);
     }
-
-    private void OnGUI()
+    protected override void onGUI()
     {
         if (mNodeStyle == null)
         {
@@ -1697,7 +1695,7 @@ public class AssetBundleDependencyWindow : GameEditorWindow
             return;
         }
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new();
 
         sb.AppendLine("============================================================");
         sb.AppendLine("[Dependency Cycles]");
@@ -1752,10 +1750,8 @@ public class AssetBundleDependencyWindow : GameEditorWindow
                 sb.AppendLine("    " + item);
             }
         }
-
         sb.AppendLine();
     }
-
     private Color GetNodeBackgroundColor(string bundleName)
     {
         string n = bundleName.ToLower();
@@ -1791,10 +1787,8 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         {
             return new Color(0.32f, 0.18f, 0.27f, 1.0f);
         }
-
         return new Color(0.20f, 0.20f, 0.20f, 1.0f);
     }
-
     private Color GetNodeTitleColor(string bundleName)
     {
         string n = bundleName.ToLower();
@@ -1826,7 +1820,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         {
             return new Color(0.27f, 0.13f, 0.22f, 1.0f);
         }
-
         return new Color(0.16f, 0.16f, 0.16f, 1.0f);
     }
 }

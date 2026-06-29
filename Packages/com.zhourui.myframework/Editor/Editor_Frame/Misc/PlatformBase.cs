@@ -10,7 +10,7 @@ using HybridCLR.Editor.HotUpdate;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-#if USE_OBFUSCATOR
+#if USE_OBFUZ
 using Obfuz;
 using Obfuz.Settings;
 using Obfuz.Utils;
@@ -156,7 +156,7 @@ public abstract class PlatformBase
 		}
 		checkAccessMissingMetadata();
 
-#if USE_OBFUSCATOR
+#if USE_OBFUZ
 		// 对dll进行混淆,dll顺序很重要,被依赖的需要在前面
 		log("开始混淆dll");
 		// 重命名dll,因为混淆时需要dll文件,在obfuscate会进行还原
@@ -166,8 +166,8 @@ public abstract class PlatformBase
 		log("完成混淆dll");
 #endif
 
-		// 对自己编译的热更dll进行加密,检查完以后再加密
-		if (getAESKey().count() == 16)
+        // 对自己编译的热更dll进行加密,检查完以后再加密
+        if (getAESKey().count() == 16)
 		{
 			log("开始加密生成的dll");
 			encryptFileAES(mAssetBundleFullPath + HOTFIX_BYTES_FILE, getAESKey(), getAESIV());
@@ -654,7 +654,7 @@ public abstract class PlatformBase
 			return false;
 		}
 	}
-#if USE_OBFUSCATOR
+#if USE_OBFUZ
 	protected static List<string> getSearchPath()
 	{
 		string editorExePath = EditorApplication.applicationPath;

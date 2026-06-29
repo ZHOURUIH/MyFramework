@@ -1,7 +1,7 @@
 ﻿using static FrameUtility;
 using static FrameBaseHotFix;
 using static UnityUtility;
-using static GBH;
+using static GBR;
 using static LT;
 
 public class MainSceneGaming : SceneProcedure

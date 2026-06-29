@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 408b766ae6c99314bb551d644a8eef99, type: 3}
+  m_Script: {fileID: 11500000, guid: cc103c122d8c09f47b5ef65b40278938, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Editor_Frame::FrameEditorSettings
   NoMipmapsPath: []
@@ -17,9 +17,7 @@ MonoBehaviour:
   - Version
   UnpackFolder: []
   ForceSingleFolder: []
-  IgnoreScriptCheck:
-  - Game/Bugly/
-  - DataBase/Excel/Table/
+  IgnoreScriptCheck: []
   IgnoreComment: []
   IgnoreConstructValue: []
   IgnoreLayoutScript: []
@@ -37,8 +35,6 @@ MonoBehaviour:
   - /UnityUtility.cs
   - /WidgetUtility.cs
   - /StringUtility.cs
-  - /PacketRegister.cs
-  - /StateRegister.cs
   IgnoreVariableCheck:
   - /EventTriggerListener.cs
   - /GaussianBlur.cs
@@ -94,6 +90,5 @@ MonoBehaviour:
   - Typeof
   - CompareTo
   - Dispose
-  IgnoreSystemFunctionCheck:
-  - GameUtilityHotFix.cs
+  IgnoreSystemFunctionCheck: []
   IgnoreScaleAnchorCheck: []

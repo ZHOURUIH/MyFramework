@@ -10,8 +10,21 @@ using static EditorDefine;
 public static class MenuSetting
 {
     public const string MENU_NAME = MENU_ROOT_NAME + "设置/";
-    [MenuItem(MENU_NAME + "生成运行时设置")]
-    public static void generateRuntimeSettings()
+    [MenuItem(MENU_NAME + "打开编辑器设置")]
+    public static void openFrameEditorSetting()
+    {
+        SettingsService.OpenProjectSettings(SETTING_NAME);
+    }
+    [MenuItem(MENU_NAME + "打开运行时设置")]
+    public static void openFrameRuntimeSetting()
+    {
+        if (!AssetDatabase.AssetPathExists(P_RESOURCES_PATH + RUNTIME_SETTINGS_RES_PATH))
+        {
+            createRuntimeSettinsFile();
+        }
+        pingAsset(P_RESOURCES_PATH + RUNTIME_SETTINGS_RES_PATH);
+    }
+    public static void createRuntimeSettinsFile()
     {
         string runtimeSettingsPath = P_RESOURCES_PATH + RUNTIME_SETTINGS_RES_PATH;
         createDir(getFilePath(runtimeSettingsPath));
@@ -26,15 +39,5 @@ public static class MenuSetting
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         Debug.Log("已生成运行时框架设置: " + runtimeSettingsPath);
-    }
-    [MenuItem(MENU_NAME + "打开编辑器设置")]
-    public static void openFrameEditorSetting()
-    {
-        SettingsService.OpenProjectSettings(SETTING_NAME);
-    }
-    [MenuItem(MENU_NAME + "打开运行时设置")]
-    public static void openFrameRuntimeSetting()
-    {
-        pingAsset(P_RESOURCES_PATH + RUNTIME_SETTINGS_RES_PATH);
     }
 }

@@ -1,5 +1,5 @@
 ﻿using static FrameUtility;
-using static GBH;
+using static GBR;
 
 public class MainSceneLoading : SceneProcedure
 {
