@@ -1,0 +1,24 @@
+{
+	"name": "com.zhourui.myframework",
+	"displayName": "MyFramework",
+	"version": "1.0.0",
+	"description": "A Unity game framework by ZHOURUIH.",
+	"keywords": [
+		"unity",
+		"framework",
+		"ui",
+		"resource",
+		"hotfix",
+		"game"
+	],
+	"author": {
+		"name": "ZHOURUIH",
+		"email": "785130190@qq.com",
+		"url": "https://github.com/ZHOURUIH/MyFramework"
+	},
+	"dependencies": {
+		"com.unity.ugui": "2.0.0",
+		"com.unity.textmeshpro": "3.0.6",
+		"com.unity.nuget.newtonsoft-json": "3.2.1"
+	}
+}

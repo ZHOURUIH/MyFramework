@@ -1,0 +1,99 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &1
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 408b766ae6c99314bb551d644a8eef99, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Editor_Frame::FrameEditorSettings
+  NoMipmapsPath: []
+  KeepFolder:
+  - Version
+  UnpackFolder: []
+  ForceSingleFolder: []
+  IgnoreScriptCheck:
+  - Game/Bugly/
+  - DataBase/Excel/Table/
+  IgnoreComment: []
+  IgnoreConstructValue: []
+  IgnoreLayoutScript: []
+  IgnoreCodeWidth:
+  - /MyStringBuilder.cs
+  - /ToolAudio.cs
+  - /ToolLayout.cs
+  - /ToolFrame.cs
+  - /ToolObject.cs
+  - /Kernel32.cs
+  - /ImageXBR4.cs
+  - /NetConnectTCPFrame.cs
+  - /BinaryUtility.cs
+  - /TimeUtility.cs
+  - /UnityUtility.cs
+  - /WidgetUtility.cs
+  - /StringUtility.cs
+  - /PacketRegister.cs
+  - /StateRegister.cs
+  IgnoreVariableCheck:
+  - /EventTriggerListener.cs
+  - /GaussianBlur.cs
+  - /SafeFloat.cs
+  - /SafeInt.cs
+  - /SafeLong.cs
+  - /MostSafeFloat.cs
+  - /MostSafeInt.cs
+  - /MostSafeLong.cs
+  IgnoreCheckClass: []
+  IgnoreFileCheckFunction:
+  - /StringUtility.cs
+  - /MathUtility.cs
+  - /Utility/Struct/
+  - /GameFramework.cs
+  - /Serialize/
+  - /MyEmptyDictionary.cs
+  - /PurchasingSystem.cs
+  - /UIGradient.cs
+  IgnoreCheckFunction:
+  - Reset
+  - Awake
+  - OnEnable
+  - Start
+  - FixedUpdate
+  - Update
+  - LateUpdate
+  - OnGUI
+  - OnDisable
+  - OnDestroy
+  - OnDrawGizmos
+  - DrawGizmos
+  - OnApplicationQuit
+  - OnValidate
+  - GetHashCode
+  - ToString
+  - Equals
+  - OnTriggerEnter
+  - OnTriggerStay
+  - OnTriggerExit
+  - OnCollisionEnter
+  - OnCollisionStay
+  - OnCollisionExit
+  - OnPointerDown
+  - OnPointerEnter
+  - OnPointerUp
+  - OnPointerClick
+  - OnStateEnter
+  - OnStateUpdate
+  - OnStateExit
+  - OnPopulateMesh
+  - SetVerticesDirty
+  - Typeof
+  - CompareTo
+  - Dispose
+  IgnoreSystemFunctionCheck:
+  - GameUtilityHotFix.cs
+  IgnoreScaleAnchorCheck: []

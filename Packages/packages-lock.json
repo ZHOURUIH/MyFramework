@@ -156,6 +156,14 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unity.textmeshpro": {
+      "version": "5.0.0",
+      "depth": 1,
+      "source": "builtin",
+      "dependencies": {
+        "com.unity.ugui": "2.0.0"
+      }
+    },
     "com.unity.ugui": {
       "version": "2.0.0",
       "depth": 0,
@@ -163,6 +171,16 @@
       "dependencies": {
         "com.unity.modules.ui": "1.0.0",
         "com.unity.modules.imgui": "1.0.0"
+      }
+    },
+    "com.zhourui.myframework": {
+      "version": "file:com.zhourui.myframework",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.ugui": "2.0.0",
+        "com.unity.textmeshpro": "3.0.6",
+        "com.unity.nuget.newtonsoft-json": "3.2.1"
       }
     },
     "com.unity.modules.adaptiveperformance": {

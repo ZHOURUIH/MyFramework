@@ -1,0 +1,19 @@
+{
+    "name": "EditorRes",
+    "rootNamespace": "",
+    "references": [
+        "Frame_Game",
+        "Frame_Base"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
