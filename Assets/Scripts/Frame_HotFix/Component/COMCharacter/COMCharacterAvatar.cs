@@ -338,13 +338,6 @@ public class COMCharacterAvatar : GameComponent
 		// 将模型节点作为角色节点
 		if (mRelationship == AVATAR_RELATIONSHIP.AVATAR_AS_CHARACTER)
 		{
-			// 设置角色节点之前,先确认当前的角色节点已经销毁
-			// 因为角色节点默认都是从GameObjectPool中创建的,所以此处的销毁方式也使用GameObjectPool
-			if (mCharacter.getGameObject() != null)
-			{
-				mGameObjectPool.destroyObject(mCharacter.getGameObject(), true);
-				mCharacter.setObject(null);
-			}
 			mCharacter.setObject(go);
 			setNormalProperty(go, mCharacterManager.getObject(), null, lastScale, lastRotation, lastPosition);
 		}

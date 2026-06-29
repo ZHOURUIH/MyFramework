@@ -66,7 +66,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 		{
 			parent = mGameObjectPool.getObject();
 		}
-		setObject(mGameObjectPool.newObject(name, parent));
+		setObject(mGameObjectPool.newObject(name ?? mName, parent));
 		mSelfCreatedObject = true;
 	}
 	// get
@@ -203,7 +203,7 @@ public class MovableObject : Transformable, IMouseEventCollect
 	}
 	protected void destroySelfCreateObject()
 	{
-		if (mObject != null &&  mSelfCreatedObject)
+		if (mObject != null && mSelfCreatedObject)
 		{
 			mSelfCreatedObject = false;
 			mGameObjectPool?.destroyObject(mObject, true);

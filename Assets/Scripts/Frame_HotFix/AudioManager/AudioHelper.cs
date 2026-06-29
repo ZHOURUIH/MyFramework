@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using static FrameBaseHotFix;
 using static FrameBaseUtility;
 
 // 音频播放的辅助物体
@@ -10,15 +9,12 @@ public class AudioHelper : MovableObject
 	public override void init()
 	{
 		base.init();
-		GameObject go = mGameObjectPool.newObject();
-		go.AddComponent<AudioSource>();
-		setObject(go);
+		mObject.AddComponent<AudioSource>();
 	}
 	public override void destroy()
 	{
 		mObject.TryGetComponent<AudioSource>(out var audioSource);
 		destroyUnityObject(audioSource);
-		mPrefabPoolManager?.destroyObject(ref mObject, false);
 		base.destroy();
 	}
 	public override void resetProperty()
