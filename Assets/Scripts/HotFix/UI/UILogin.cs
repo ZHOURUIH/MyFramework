@@ -2,7 +2,6 @@
 using static FrameUtility;
 using static UnityUtility;
 using static GBR;
-using static GBR;
 
 // auto generate member start
 // generate from:Assets/GameResources/UI/UIPrefab/UILogin.prefab

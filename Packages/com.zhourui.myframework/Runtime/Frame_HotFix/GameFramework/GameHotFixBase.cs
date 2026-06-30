@@ -1,5 +1,7 @@
-﻿using Obfuz;
+﻿#if USE_OBFUZ
+using Obfuz;
 using Obfuz.EncryptionVM;
+#endif
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,7 +15,9 @@ using static FrameBaseUtility;
 
 // HotFix中顶层管理器的基类,负责热更的启动和框架组件的初始化,以及一些热更相关的全局操作
 // T需要是子类自己,这样在父类中就可以创建子类的实例
+#if USE_OBFUZ
 [ObfuzIgnore]
+#endif
 public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 {
 	protected static GameHotFixBase<T> mInstance;               // 在子类中创建
@@ -109,10 +113,12 @@ public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 	{
 		mFrameComponentInit.Add(mGameFrameworkHotFix.registeFrameSystem(callback));
 	}
-	// [ObfuzIgnore]指示Obfuz不要混淆这个函数
-	// 初始化EncryptionService后被混淆的代码才能正常运行，
-	// 此函数通过反射进行调用,并且不能使用任何会被混淆的代码
-	[ObfuzIgnore]
+    // [ObfuzIgnore]指示Obfuz不要混淆这个函数
+    // 初始化EncryptionService后被混淆的代码才能正常运行，
+    // 此函数通过反射进行调用,并且不能使用任何会被混淆的代码
+#if USE_OBFUZ
+    [ObfuzIgnore]
+#endif
 	protected static void preStart(Action callback)
 	{
 		if (isEditor())
@@ -132,7 +138,9 @@ public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 		}
 		GameEntryBase.startCoroutine(openFileAsync(filePath, (byte[] bytes) =>
 		{
-			EncryptionService<DefaultDynamicEncryptionScope>.Encryptor = new GeneratedEncryptionVirtualMachine(bytes);
+#if USE_OBFUZ
+            EncryptionService<DefaultDynamicEncryptionScope>.Encryptor = new GeneratedEncryptionVirtualMachine(bytes);
+#endif
 			try
 			{
 				callback?.Invoke();
@@ -143,8 +151,10 @@ public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 			}
 		}));
 	}
-	// fileName为绝对路径
-	[ObfuzIgnore]
+    // fileName为绝对路径
+#if USE_OBFUZ
+    [ObfuzIgnore]
+#endif
 	protected static IEnumerator openFileAsync(string fileName, BytesCallback callback)
 	{
 		using var www = UnityWebRequest.Get(fileName);
