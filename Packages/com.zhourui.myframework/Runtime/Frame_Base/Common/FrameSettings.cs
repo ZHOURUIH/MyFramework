@@ -10,7 +10,7 @@ public class FrameSettings : ScriptableObject
     [Tooltip("移动端UI标准分辨率宽高,根据此设置来决定UI的适配")]
     public Vector2Int UISizeMobile = new(1920, 1080);
 
-    private static FrameSettings mFrameSettings;                                        // 当前运行时设置
+    private static FrameSettings mFrameSettings;                    // 当前运行时设置
     private static FrameSettings get()
     {
         if (mFrameSettings != null)
@@ -24,8 +24,8 @@ public class FrameSettings : ScriptableObject
             return mFrameSettings;
         }
 
-        Debug.LogError("未找到运行时框架设置:" + FrameBaseDefine.P_RESOURCES_PATH + RUNTIME_SETTINGS_RES_PATH);
-        mFrameSettings = new();
+        Debug.LogError("未找到运行时框架设置:" + P_RESOURCES_PATH + RUNTIME_SETTINGS_RES_PATH);
+        mFrameSettings = CreateInstance<FrameSettings>();
         return mFrameSettings;
     }
     public static Vector2Int getUISize()
