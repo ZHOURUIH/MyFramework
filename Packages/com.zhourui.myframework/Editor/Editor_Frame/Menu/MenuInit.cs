@@ -56,6 +56,7 @@ public class MenuInit
     // 初始化框架
     protected static void doInit(bool withHybridCLRObfuz)
     {
+        fixActiveInputHandling();
         if (!copyProjectTemplateFiles(out bool needCompile))
         {
             clearPendingAttachGameEntry();
@@ -99,6 +100,42 @@ public class MenuInit
 
         clearPendingAttachGameEntry();
         Debug.LogError("MyFramework初始化失败,请检查模板文件是否完整");
+    }
+    // 修正Unity输入系统设置。
+    // 框架和模板场景默认使用UnityEngine.Input和StandaloneInputModule,所以需要允许旧输入系统。
+    protected static void fixActiveInputHandling()
+    {
+        System.Reflection.PropertyInfo property = typeof(PlayerSettings).GetProperty(
+            "activeInputHandling",
+            System.Reflection.BindingFlags.Static |
+            System.Reflection.BindingFlags.Public |
+            System.Reflection.BindingFlags.NonPublic
+        );
+
+        if (property == null)
+        {
+            Debug.LogWarning("当前Unity版本未找到PlayerSettings.activeInputHandling,请手动设置 Project Settings/Player/Active Input Handling 为 Both");
+            return;
+        }
+
+        object currentValue = property.GetValue(null);
+        if (currentValue != null && currentValue.ToString() == "Both")
+        {
+            return;
+        }
+        object bothValue;
+        try
+        {
+            bothValue = Enum.Parse(property.PropertyType, "Both");
+        }
+        catch
+        {
+            Debug.LogWarning("当前Unity版本未找到Active Input Handling的Both选项,请手动设置 Project Settings/Player/Active Input Handling 为 Both");
+            return;
+        }
+
+        property.SetValue(null, bothValue);
+        Debug.Log("已将Active Input Handling设置为Both,以兼容MyFramework的旧输入接口和StandaloneInputModule");
     }
     // 拷贝ProjectTemplate~中的所有文件到工程根目录,保持原有相对路径
     protected static bool copyProjectTemplateFiles(out bool needCompile)
