@@ -18,7 +18,7 @@ public static class MenuSetting
     [MenuItem(MENU_NAME + "打开运行时设置")]
     public static void openFrameRuntimeSetting()
     {
-        if (!AssetDatabase.AssetPathExists(P_RESOURCES_PATH + RUNTIME_SETTINGS_RES_PATH))
+        if (!isFileExist(projectPathToFullPath(P_RESOURCES_PATH + RUNTIME_SETTINGS_RES_PATH)))
         {
             createRuntimeSettinsFile();
         }

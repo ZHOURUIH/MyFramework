@@ -11,8 +11,8 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 #if USE_URP
 using UnityEngine.Rendering.Universal;
-using UnityEngine.Rendering;
 #endif
+using UnityEngine.Rendering;
 using TMPro;
 using UObject = UnityEngine.Object;
 using UDebug = UnityEngine.Debug;
@@ -1320,9 +1320,9 @@ public class UnityUtility
 #if USE_URP
 	public static void setRenderScale(float scale)
 	{
-		// 获取当前活动的URP资产
+        // 获取当前活动的URP资产
 #if UNITY_6000_0_OR_NEWER
-		var urpAsset = (UniversalRenderPipelineAsset)GraphicsSettings.defaultRenderPipeline;
+        var urpAsset = (UniversalRenderPipelineAsset)GraphicsSettings.defaultRenderPipeline;
 #else
 		var urpAsset = (UniversalRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
 #endif
@@ -1340,13 +1340,13 @@ public class UnityUtility
 #endif
 		if (urpAsset == null)
 		{
-			return 0.0f;
+			return 1.0f;
 		}
 		return urpAsset.renderScale;
-	}
+    }
 #endif
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR
-	public static int getLastError()
+    public static int getLastError()
 	{
 		return Kernel32.GetLastError();
 	}
@@ -1535,12 +1535,17 @@ public class UnityUtility
 		UnityEngine.PlayerPrefs.DeleteKey(key);
 #endif
 	}
-	//------------------------------------------------------------------------------------------------------------------------------
-	protected static IEnumerator instantiateCoroutine(GameObject origin, string name, GameObjectCallback callback)
-	{
+    //------------------------------------------------------------------------------------------------------------------------------
+    protected static IEnumerator instantiateCoroutine(GameObject origin, string name, GameObjectCallback callback)
+    {
+#if UNITY_6000_0_OR_NEWER
 		var ret = UObject.InstantiateAsync(origin);
 		yield return ret;
 		GameObject go = ret.Result.get(0);
+#else
+        GameObject go = UObject.Instantiate(origin);
+        yield return null;
+#endif
 		if (go != null)
 		{
 			go.name = name;

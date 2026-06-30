@@ -307,7 +307,9 @@ public class GameFrameworkHotFix : IFramework
 		mIsDestroy = false;
 		mStartTime = DateTime.Now;
 		mFrameStartTime = DateTime.Now;
-		DebugManager.instance.enableRuntimeUI = false;
+#if USE_URP
+        DebugManager.instance.enableRuntimeUI = false;
+#endif
 		setFrameRate(GameEntryBase.getInstance().mFrameworkParam.mDefaultFrameRate);
 
 		// 设置默认的日志等级
