@@ -4,6 +4,7 @@
 /// SecretKey: Obfuz
 /// OpCodeCount: 256
 
+#if USE_OBFUZ
 namespace Obfuz.EncryptionVM
 {
     public class GeneratedEncryptionVirtualMachine : Obfuz.EncryptorBase
@@ -27,3 +28,4 @@ namespace Obfuz.EncryptionVM
         }
     }
 }
+#endif
