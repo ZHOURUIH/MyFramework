@@ -12,6 +12,8 @@ using HybridCLR.Editor.Settings;
 using Obfuz.Settings;
 #endif
 using static EditorDefine;
+using static EditorFileUtility;
+using static FileUtility;
 
 public class MenuInit
 {
@@ -99,7 +101,7 @@ public class MenuInit
             return false;
         }
 
-        foreach (string sourceFullPathOrigin in Directory.GetFiles(templateFullPath, "*", SearchOption.AllDirectories))
+        foreach (string sourceFullPathOrigin in findFilesNonAlloc(templateFullPath))
         {
             string sourceFullPath = sourceFullPathOrigin.Replace("\\", "/");
             if (sourceFullPath.endWith(".meta"))
@@ -108,20 +110,13 @@ public class MenuInit
             }
             string relativePath = sourceFullPath[templateFullPath.Length..];
             string targetFullPath = (projectRootPath + relativePath).Replace("\\", "/");
-            string targetAssetPath = relativePath.Replace("\\", "/");
             if (File.Exists(targetFullPath))
             {
-                Debug.Log("模板文件已存在,跳过: " + targetAssetPath);
+                Debug.Log("模板文件已存在,跳过: " + relativePath.Replace("\\", "/"));
                 continue;
             }
 
-            string targetFolder = Path.GetDirectoryName(targetFullPath);
-            if (!targetFolder.isEmpty())
-            {
-                Directory.CreateDirectory(targetFolder);
-            }
-            File.Copy(sourceFullPath, targetFullPath, false);
-            Debug.Log("复制模板文件: " + targetAssetPath);
+            copyFile(sourceFullPath, targetFullPath);
             if (isScriptCompileFile(targetFullPath))
             {
                 needCompile = true;
