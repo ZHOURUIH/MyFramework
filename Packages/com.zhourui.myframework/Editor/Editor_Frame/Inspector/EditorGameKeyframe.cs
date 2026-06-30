@@ -9,7 +9,6 @@ public class EditorGameKeyframe : GameInspector
     {
 		GUILayout.Space(6f);
 		EditorGUIUtility.labelWidth = 110.0f;
-		base.OnInspectorGUI();
 
 		if (GUILayout.Button("´´½¨"))
 		{
