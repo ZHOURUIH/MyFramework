@@ -49,8 +49,13 @@ public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 		});
 	}
 	public static void callback() { mInstance.mFinishCallback?.Invoke(); }
-	//----------------------------------------------------------------------------------------------------------------------------------
-	protected void onAllLoaded()
+    public static GameHotFixBase<T> createHotFixInstance()
+    {
+        mInstance = createInstance<GameHotFixBase<T>>(typeof(T));
+        return mInstance;
+    }
+    //----------------------------------------------------------------------------------------------------------------------------------
+    protected void onAllLoaded()
 	{
 		if (isEditor())
 		{
@@ -95,6 +100,7 @@ public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 			}
 		}
 		onPostInit();
+		mGameFrameworkHotFix.setAllInited(true);
 		log("启动游戏耗时:" + (int)(DateTime.Now - mGameFrameworkHotFix.getStartTime()).TotalMilliseconds + "毫秒");
 		if (mCanCallback)
 		{
@@ -171,11 +177,5 @@ public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 		{
 			Debug.LogException(e);
 		}
-	}
-	// 需要在子类中添加如下函数,来创建热更对象的实例
-	public static GameHotFixBase<T> createHotFixInstance()
-	{
-		mInstance = createInstance<GameHotFixBase<T>>(typeof(T));
-		return mInstance;
 	}
 }
