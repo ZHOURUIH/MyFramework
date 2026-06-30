@@ -18,7 +18,8 @@ public class FrameSettings : ScriptableObject
             return mFrameSettings;
         }
 
-        mFrameSettings = Resources.Load<FrameSettings>(RUNTIME_SETTINGS_RES_PATH);
+        string suffix = ".asset";
+        mFrameSettings = Resources.Load<FrameSettings>(RUNTIME_SETTINGS_RES_PATH[..suffix.Length]);
         if (mFrameSettings != null)
         {
             return mFrameSettings;
