@@ -204,10 +204,12 @@ public abstract class PlatformBase
 			mAssetBundleFullPath + HOTFIX_BYTES_FILE,
 			mAssetBundleFullPath + HOTFIX_FRAME_BYTES_FILE
 		};
-		foreach (string aotFile in AOTGenericReferences.PatchedAOTAssemblyList)
+#if USE_HYBRID_CLR
+        foreach (string aotFile in AOTGenericReferences.PatchedAOTAssemblyList)
 		{
 			dllList.Add(mAssetBundleFullPath + aotFile + DATA_SUFFIX);
 		}
+#endif
 		bool allExist = true;
 		foreach (string file in dllList)
 		{
