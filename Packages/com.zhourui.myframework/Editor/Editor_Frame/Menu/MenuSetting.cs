@@ -34,7 +34,6 @@ public static class MenuSetting
             asset = ScriptableObject.CreateInstance<FrameSettings>();
             AssetDatabase.CreateAsset(asset, runtimeSettingsPath);
         }
-        asset = new();
         EditorUtility.SetDirty(asset);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
