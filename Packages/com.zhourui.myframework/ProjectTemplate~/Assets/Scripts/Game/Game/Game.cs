@@ -1,6 +1,5 @@
 ﻿using static FrameBaseUtility;
 using static FrameBase;
-using static GameUtility;
 using static GameDefine;
 
 public class Game : GameFramework
