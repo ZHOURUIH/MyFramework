@@ -2,6 +2,7 @@
 using System.IO;
 using UnityEditor;
 using UnityEditor.Compilation;
+using UnityEditor.PackageManager;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -15,15 +16,26 @@ using static EditorDefine;
 using static EditorFileUtility;
 using static FileUtility;
 
+// 挂接GameEntry的结果
+public enum AttachGameEntryResult : byte
+{
+    Success,               // 挂接成功
+    MissingStartScene,     // 缺少启动场景
+    MissingGameEntryType,  // 缺少GameEntry类型
+    MissingGameEntryNode,  // 缺少GameEntry节点
+    Cancelled,             // 用户取消保存场景
+}
+
 public class MenuInit
 {
-    public const string MENU_NAME = MENU_ROOT_NAME + "初始化/";                                     // 初始化菜单根路径
-    private const string PACKAGE_NAME = "com.zhourui.myframework";                                  // 包名
-    private const string PROJECT_TEMPLATE_PATH = "Packages/" + PACKAGE_NAME + "/ProjectTemplate~/"; // 包内项目模板目录
-    private const string START_SCENE = "Assets/Resources/Scene/start.unity";                        // 启动场景路径
-    private const string GAME_ENTRY_NODE_NAME = "GameEntry";                                        // 启动节点名称
-    private const string GAME_ENTRY_TYPE_NAME = "GameEntry";                                        // 启动脚本类型名,如果有命名空间需要改成完整名
-    private const string SESSION_PENDING_ATTACH_GAMEENTRY = "MyFramework.PendingAttachGameEntry";   // 等待挂接GameEntry的Session标记
+    private const string MENU_NAME = MENU_ROOT_NAME + "初始化/";                                            // 初始化菜单根路径
+    private const string PACKAGE_NAME = "com.zhourui.myframework";                                          // 包名
+    private const string PROJECT_TEMPLATE_PATH = "Packages/" + PACKAGE_NAME + "/ProjectTemplate~/";         // 包内项目模板目录
+    private const string START_SCENE = "Assets/Resources/Scene/start.unity";                                // 启动场景路径
+    private const string GAME_ENTRY_NODE_NAME = "GameEntry";                                                // 启动节点名称
+    private const string GAME_ENTRY_TYPE_NAME = "GameEntry";                                                // 启动脚本类型名,如果有命名空间需要改成完整名
+    private const string SESSION_PENDING_ATTACH_GAMEENTRY = "MyFramework.PendingAttachGameEntry";           // 等待挂接GameEntry的Session标记
+    private const string SESSION_PENDING_PACKAGE_PATH = "MyFramework.PendingAttachGameEntry.PackagePath";   // 请求挂接时的包真实路径
     [MenuItem(MENU_NAME + "初始化框架", false, 0)]
     public static void initFramework()
     {
@@ -70,11 +82,10 @@ public class MenuInit
         AttachGameEntryResult attachResult = attachGameEntryToStartScene(true);
         if (attachResult == AttachGameEntryResult.Success)
         {
+            clearPendingAttachGameEntry();
             addStartSceneToBuildSettings();
-
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-
             Debug.Log("MyFramework初始化完成");
             return;
         }
@@ -108,6 +119,7 @@ public class MenuInit
             {
                 continue;
             }
+
             string relativePath = sourceFullPath[templateFullPath.Length..];
             string targetFullPath = (projectRootPath + relativePath).Replace("\\", "/");
             if (File.Exists(targetFullPath))
@@ -117,6 +129,7 @@ public class MenuInit
             }
 
             copyFile(sourceFullPath, targetFullPath);
+
             if (isScriptCompileFile(targetFullPath))
             {
                 needCompile = true;
@@ -128,6 +141,7 @@ public class MenuInit
     protected static void requestAttachGameEntryAfterCompile()
     {
         SessionState.SetBool(SESSION_PENDING_ATTACH_GAMEENTRY, true);
+        SessionState.SetString(SESSION_PENDING_PACKAGE_PATH, getCurrentPackagePath());
         AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
         CompilationPipeline.RequestScriptCompilation();
     }
@@ -135,6 +149,7 @@ public class MenuInit
     protected static void clearPendingAttachGameEntry()
     {
         SessionState.SetBool(SESSION_PENDING_ATTACH_GAMEENTRY, false);
+        SessionState.SetString(SESSION_PENDING_PACKAGE_PATH, string.Empty);
     }
     // 编译完成后继续挂接GameEntry
     protected static void continueAttachGameEntryIfNeed()
@@ -143,10 +158,25 @@ public class MenuInit
         {
             return;
         }
-
         if (EditorApplication.isCompiling || EditorApplication.isUpdating)
         {
             EditorApplication.delayCall += continueAttachGameEntryIfNeed;
+            return;
+        }
+        // 兼容旧版本残留的SessionState,旧版本没有记录PackagePath,直接清理
+        string pendingPackagePath = SessionState.GetString(SESSION_PENDING_PACKAGE_PATH, string.Empty);
+        if (pendingPackagePath.isEmpty())
+        {
+            clearPendingAttachGameEntry();
+            Debug.Log("检测到旧版本MyFramework残留挂接标记,已自动清理");
+            return;
+        }
+
+        // 插件移除后重新添加时,PackageCache真实路径可能变化,旧挂接请求不应该继续执行
+        if (pendingPackagePath != getCurrentPackagePath())
+        {
+            clearPendingAttachGameEntry();
+            Debug.Log("检测到MyFramework旧包残留挂接标记,已自动清理");
             return;
         }
 
@@ -170,18 +200,22 @@ public class MenuInit
         }
 
         clearPendingAttachGameEntry();
-
         if (attachResult == AttachGameEntryResult.MissingGameEntryType)
         {
-            Debug.LogError("GameEntry挂接失败,未找到GameEntry类型,请确认模板脚本已经复制并且编译成功");
+            Debug.LogWarning("自动挂接GameEntry已取消,当前工程中未找到GameEntry类型");
             return;
         }
         if (attachResult == AttachGameEntryResult.MissingGameEntryNode)
         {
-            Debug.LogError("GameEntry挂接失败,启动场景中未找到根节点: " + GAME_ENTRY_NODE_NAME);
+            Debug.LogWarning("自动挂接GameEntry已取消,启动场景中未找到根节点: " + GAME_ENTRY_NODE_NAME);
             return;
         }
-        Debug.LogError("GameEntry挂接失败");
+        if (attachResult == AttachGameEntryResult.Cancelled)
+        {
+            Debug.Log("自动挂接GameEntry已取消,用户取消了保存当前场景");
+            return;
+        }
+        Debug.LogWarning("自动挂接GameEntry已取消");
     }
     // 打开启动场景,并将用户工程中的GameEntry脚本挂到GameEntry根节点
     protected static AttachGameEntryResult attachGameEntryToStartScene(bool logError)
@@ -247,10 +281,13 @@ public class MenuInit
     // 判断启动场景是否存在,同时兼容刚复制但AssetDatabase还没完全导入的情况
     protected static bool hasStartScene()
     {
-        if (AssetDatabase.LoadAssetAtPath<SceneAsset>(START_SCENE) != null ||
-            !File.Exists(getProjectRootPath() + START_SCENE))
+        if (AssetDatabase.LoadAssetAtPath<SceneAsset>(START_SCENE) != null)
         {
             return true;
+        }
+        if (!File.Exists(getProjectRootPath() + START_SCENE))
+        {
+            return false;
         }
         AssetDatabase.ImportAsset(START_SCENE, ImportAssetOptions.ForceUpdate);
         return AssetDatabase.LoadAssetAtPath<SceneAsset>(START_SCENE) != null;
@@ -285,6 +322,7 @@ public class MenuInit
         {
             newScenes[i + 1] = oldScenes[i];
         }
+
         EditorBuildSettings.scenes = newScenes;
         Debug.Log("已添加启动场景到Build Settings: " + START_SCENE);
     }
@@ -311,7 +349,6 @@ public class MenuInit
                 return type;
             }
         }
-
         foreach (System.Reflection.Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
         {
             Type[] types;
@@ -323,6 +360,7 @@ public class MenuInit
             {
                 continue;
             }
+
             foreach (Type type in types)
             {
                 if (type.Name == typeName && typeof(MonoBehaviour).IsAssignableFrom(type))
@@ -342,19 +380,20 @@ public class MenuInit
                extension == ".asmref" ||
                extension == ".rsp";
     }
+    // 获取当前包的真实路径,用于识别旧SessionState是否属于当前安装的包
+    protected static string getCurrentPackagePath()
+    {
+        var packageInfo = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(MenuInit).Assembly);
+        if (packageInfo != null && !packageInfo.resolvedPath.isEmpty())
+        {
+            return packageInfo.resolvedPath.Replace("\\", "/");
+        }
+        return typeof(MenuInit).Assembly.FullName;
+    }
     // 获取Unity工程根目录
     protected static string getProjectRootPath()
     {
         string dataPath = Application.dataPath.Replace("\\", "/");
         return Directory.GetParent(dataPath)?.FullName.Replace("\\", "/") + "/";
-    }
-    // 挂接GameEntry的结果
-    protected enum AttachGameEntryResult
-    {
-        Success,               // 挂接成功
-        MissingStartScene,     // 缺少启动场景
-        MissingGameEntryType,  // 缺少GameEntry类型
-        MissingGameEntryNode,  // 缺少GameEntry节点
-        Cancelled,             // 用户取消保存场景
     }
 }
