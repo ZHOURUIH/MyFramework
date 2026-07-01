@@ -6,7 +6,7 @@ using static FrameBaseHotFix;
 using static FrameBaseUtility;
 
 // 只是汇集一些快捷键操作,不对外提供接口
-public partial class GlobalKeyProcess : FrameSystem
+public class GlobalKeyProcess : FrameSystem
 {
 	public override void update(float elapsedTime)
 	{
