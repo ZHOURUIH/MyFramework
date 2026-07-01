@@ -534,17 +534,23 @@ public class MenuInit
         return true;
     }
 #endif
-    // 判断Package是否已经安装
-    protected static bool isPackageInstalled(string packageName)
+    // 判断Package是否已经安装。
+    // 根据包名查找PackageInfo,兼容没有PackageInfo.FindForPackageName的Unity版本。
+    public static bool isPackageInstalled(string packageName)
     {
-        try
+        if (string.IsNullOrEmpty(packageName))
         {
-            return UnityEditor.PackageManager.PackageInfo.FindForPackageName(packageName) != null;
-        }
-        catch
-        {
+            Debug.LogError("Package name cannot be null or empty.");
             return false;
         }
+        foreach (var packageInfo in UnityEditor.PackageManager.PackageInfo.GetAllRegisteredPackages().safe())
+        {
+            if (packageInfo != null && packageInfo.name == packageName)
+            {
+                return true;
+            }
+        }
+        return false;
     }
     // 添加宏到常用平台
     protected static void addDefineSymbols(params string[] symbols)
