@@ -1274,9 +1274,9 @@ public class StringUtility
 		insertNumberComma(ref retString);
 		return retString;
 	}
-	public static string ULToSComma(ulong value)
+	public static string LToSComma(ulong value)
 	{
-		string retString = ULToS(value);
+		string retString = LToS(value);
 		insertNumberComma(ref retString);
 		return retString;
 	}
@@ -1310,7 +1310,7 @@ public class StringUtility
 		}
 		return retString;
 	}
-	public static string ULToS(ulong value, int minLength = 0)
+	public static string LToS(ulong value, int minLength = 0)
 	{
 		if (mIntToString == null)
 		{
@@ -1336,17 +1336,29 @@ public class StringUtility
 		}
 		return retString;
 	}
-	public static string V2IToS(Vector2Int value, int limitLength = 0)
+	public static string V2IToS(Vector2Int value, int minLength = 0)
 	{
-		return IToS(value.x, limitLength) + "," + IToS(value.y, limitLength);
+		return IToS(value.x, minLength) + "," + IToS(value.y, minLength);
 	}
 	public static string V2ToS(Vector2 value, int precision = 4)
 	{
 		return FToS(value.x, precision) + "," + FToS(value.y, precision);
 	}
-	public static string V3ToS(Vector3 value, int precision = 4)
+    public static string V3IToS(Vector3Int value, int minLength = 0)
+    {
+        return strcat(IToS(value.x, minLength), ",", IToS(value.y, minLength), ",", IToS(value.z, minLength));
+    }
+    public static string V3ToS(Vector3 value, int precision = 4)
+    {
+        return strcat(FToS(value.x, precision), ",", FToS(value.y, precision), ",", FToS(value.z, precision));
+    }
+    public static string V4IToS(Vector4Int value, int minLength = 4)
+    {
+        return strcat(IToS(value.x, minLength), ",", IToS(value.y, minLength), ",", IToS(value.z, minLength), IToS(value.w, minLength));
+    }
+    public static string V4ToS(Vector4 value, int precision = 4)
 	{
-		return strcat(FToS(value.x, precision), ",", FToS(value.y, precision), ",", FToS(value.z, precision));
+		return strcat(FToS(value.x, precision), ",", FToS(value.y, precision), ",", FToS(value.z, precision), ",", FToS(value.w, precision));
 	}
 	public static float SToF(string str)
 	{

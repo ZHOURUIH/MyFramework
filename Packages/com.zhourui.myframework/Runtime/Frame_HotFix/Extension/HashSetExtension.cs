@@ -103,18 +103,17 @@ public static class HashSetExtension
 	}
 	public static HashSet<T> setRange<T>(this HashSet<T> list, HashSet<T> other)
 	{
-		list.Clear();
-		if (other.isEmpty())
-		{
-			return list;
-		}
-		foreach (T item in other)
-		{
-			list.Add(item);
-		}
-		return list;
+        list.Clear();
+        list.addRange(other);
+        return list;
 	}
-	public static HashSet<T> addRange<T>(this HashSet<T> list, List<T> other)
+    public static HashSet<T> setRange<T>(this HashSet<T> list, List<T> other)
+    {
+        list.Clear();
+		list.addRange(other);
+        return list;
+    }
+    public static HashSet<T> addRange<T>(this HashSet<T> list, List<T> other)
 	{
 		if (other.isEmpty())
 		{

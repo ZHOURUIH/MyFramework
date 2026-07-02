@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using UnityEngine;
 using static StringUtility;
 using static BinaryUtility;
 using static MathUtility;
@@ -923,12 +924,12 @@ public static class StringExtension
 		lines = str.split(removeEmpty, '\n');
 		for (int i = 0; i < lines.Length; ++i)
 		{
-			lines[i] = removeAll(lines[i], '\r');
+			lines[i] = lines[i].removeAll('\r');
 		}
 	}
 	public static string[] splitLine(this string str, bool removeEmpty = true)
 	{
-		splitLine(str, out string[] lines, removeEmpty);
+		str.splitLine(out string[] lines, removeEmpty);
 		return lines;
 	}
 	public static string[] split(this string str, params string[] keyword)
@@ -955,4 +956,108 @@ public static class StringExtension
 		}
 		return str.Split(keyword, removeEmpty ? StringSplitOptions.RemoveEmptyEntries : StringSplitOptions.None);
 	}
+	public static int SToI(this string str)
+	{
+		return StringUtility.SToI(str);
+	}
+    public static uint SToUInt(this string str)
+    {
+        return StringUtility.SToUInt(str);
+    }
+    public static long SToL(this string str)
+    {
+        return StringUtility.SToL(str);
+    }
+    public static ulong SToUL(this string str)
+    {
+        return StringUtility.SToUL(str);
+    }
+    public static float SToF(this string str)
+    {
+        return StringUtility.SToF(str);
+    }
+    public static Vector2 SToV2(this string str)
+    {
+        return StringUtility.SToV2(str);
+    }
+    public static Vector2Int SToV2I(this string str)
+    {
+        return StringUtility.SToV2I(str);
+    }
+    public static Vector3 SToV3(this string str)
+    {
+        return StringUtility.SToV3(str);
+    }
+    public static Vector3Int SToV3I(this string str)
+    {
+        return StringUtility.SToV3I(str);
+    }
+    public static Vector4 SToV4(this string str)
+    {
+        return StringUtility.SToV4(str);
+    }
+    public static Vector4Int SToV4I(this string str)
+    {
+        return StringUtility.SToV4I(str);
+    }
+    public static string IToS(this int value, int minLength = 0)
+    {
+        return StringUtility.IToS(value, minLength);
+    }
+    public static string IToSComma(this int value)
+    {
+        return StringUtility.IToSComma(value);
+    }
+    public static string IToS(this uint value, int minLength = 0)
+    {
+        return StringUtility.IToS(value, minLength);
+    }
+    public static string IToSComma(this uint value)
+    {
+        return StringUtility.IToSComma(value);
+    }
+    public static string FToS(this float value, int precision = 4, bool removeTailZero = true)
+    {
+        return StringUtility.FToS(value, precision, removeTailZero);
+    }
+    public static string LToS(this long value, int minLength = 0)
+    {
+        return StringUtility.LToS(value, minLength);
+    }
+    public static string LToSComma(this long value)
+    {
+        return StringUtility.LToSComma(value);
+    }
+    public static string LToS(this ulong value, int minLength = 0)
+    {
+        return StringUtility.LToS(value, minLength);
+    }
+    public static string LToSComma(this ulong value)
+    {
+        return StringUtility.LToSComma(value);
+    }
+    public static string V2ToS(this Vector2 value, int precision = 4)
+    {
+        return StringUtility.V2ToS(value, precision);
+    }
+    public static string V2IToS(this Vector2Int value, int minLength = 0)
+    {
+        return StringUtility.V2IToS(value, minLength);
+    }
+    public static string V3ToS(this Vector3 value, int precision = 4)
+    {
+        return StringUtility.V3ToS(value, precision);
+    }
+    public static string V3IToS(this Vector3Int value, int minLength = 0)
+    {
+        return StringUtility.V3IToS(value, minLength);
+    }
+    public static string V4ToS(this Vector4 value, int precision = 4)
+    {
+        return StringUtility.V4ToS(value, precision);
+    }
+    public static string V4IToS(this Vector4Int value, int minLength = 0)
+    {
+        return StringUtility.V4IToS(value, minLength);
+    }
 }

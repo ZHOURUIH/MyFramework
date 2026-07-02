@@ -122,7 +122,7 @@ public class MyStringBuilder : ClassObject
 	}
 	public MyStringBuilder add(ulong value)
 	{
-		mBuilder.Append(ULToS(value));
+		mBuilder.Append(LToS(value));
 		return this;
 	}
 	public MyStringBuilder add(Vector2 value, int precision = 4)
@@ -324,11 +324,11 @@ public class MyStringBuilder : ClassObject
 	}
 	public MyStringBuilder add(string str0, ulong value)
 	{
-		return add(str0, ULToS(value));
+		return add(str0, LToS(value));
 	}
 	public MyStringBuilder add(string str0, ulong value, string str1)
 	{
-		return add(str0, ULToS(value), str1);
+		return add(str0, LToS(value), str1);
 	}
 	public MyStringBuilder add(string str0, Vector2 value, int precision = 4)
 	{

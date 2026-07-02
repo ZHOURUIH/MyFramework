@@ -312,7 +312,7 @@ public static class StringUtilityTest
     {
         assertEqual("1,234", IToSComma(1234), "IToSComma");
         assertEqual("1,234", LToSComma(1234L), "LToSComma");
-        assertEqual("1,234", ULToSComma(1234UL), "ULToSComma");
+        assertEqual("1,234", LToSComma(1234UL), "ULToSComma");
     }
 
     static void testArrayConversion()
@@ -514,7 +514,7 @@ public static class StringUtilityTest
 
         // IToS(uint) / ULToS
         assertEqual("42", IToS(42u), "IToS uint");
-        assertEqual("99", ULToS(99ul), "ULToS");
+        assertEqual("99", LToS(99ul), "ULToS");
 
         // hasNonChineseASCII — 字符既非中文也非 ASCII 才返回 true
         assertFalse(hasNonChineseASCII("hello"), "hasNonChineseASCII ASCII only=false");

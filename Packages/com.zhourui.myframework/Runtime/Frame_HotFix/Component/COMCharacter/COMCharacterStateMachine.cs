@@ -117,10 +117,6 @@ public class COMCharacterStateMachine : GameComponent
 	{
 		return addState(typeof(T), null, 0) as T;
 	}
-	public CharacterState addState(Type type)
-	{
-		return addState(type, null, 0);
-	}
 	public T addState<T>(StateParam param) where T : CharacterState
 	{
 		return addState(typeof(T), param, 0) as T;
@@ -129,7 +125,15 @@ public class COMCharacterStateMachine : GameComponent
 	{
 		return addState(typeof(T), param, id) as T;
 	}
-	public CharacterState addState(Type type, StateParam param, long id)
+    public CharacterState addState(Type type)
+    {
+        return addState(type, null, 0);
+    }
+    public CharacterState addState(Type type, StateParam param)
+	{
+		return addState(type, param, 0);
+	}
+    public CharacterState addState(Type type, StateParam param, long id)
 	{
 		if (id > 0 && mStateMap.ContainsKey(id))
 		{
