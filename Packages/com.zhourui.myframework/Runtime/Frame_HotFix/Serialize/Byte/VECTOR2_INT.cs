@@ -28,4 +28,5 @@ public class VECTOR2_INT : Serializable
 	}
 	public int x { get { return mValue.x; } }
 	public int y { get { return mValue.y; } }
+    public override string toString() { return mValue.V2IToS(); }
 }

@@ -25,4 +25,5 @@ public class BIT_VECTOR3 : SerializableBit
 	public float x { get { return mValue.x; } }
 	public float y { get { return mValue.y; } }
 	public float z { get { return mValue.z; } }
+    public override string toString() { return mValue.V3ToS(); }
 }

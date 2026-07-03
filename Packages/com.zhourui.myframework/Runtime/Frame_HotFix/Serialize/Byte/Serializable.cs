@@ -17,4 +17,5 @@ public abstract class Serializable : ClassObject
 		// 构造中赋值的,不需要重置
 		// mOptional = false;
 	}
+    public virtual string toString() { return null; }
 }

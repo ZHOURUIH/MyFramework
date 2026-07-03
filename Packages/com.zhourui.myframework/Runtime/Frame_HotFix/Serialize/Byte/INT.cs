@@ -21,4 +21,5 @@ public class INT : Serializable
 	{
 		return value.mValue;
 	}
+    public override string toString() { return mValue.IToS(); }
 }

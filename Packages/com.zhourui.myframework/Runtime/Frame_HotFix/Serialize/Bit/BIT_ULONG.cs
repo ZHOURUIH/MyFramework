@@ -21,4 +21,5 @@ public class BIT_ULONG : SerializableBit
 	{
 		return value.mValue;
 	}
+    public override string toString() { return mValue.LToS(); }
 }

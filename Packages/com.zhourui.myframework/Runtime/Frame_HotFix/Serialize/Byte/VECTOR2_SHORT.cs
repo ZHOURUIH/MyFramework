@@ -24,4 +24,5 @@ public class VECTOR2_SHORT : Serializable
 	}
 	public short x { get { return mValue.x; } }
 	public short y { get { return mValue.y; } }
+    public override string toString() { return mValue.toVec2Int().V2IToS(); }
 }

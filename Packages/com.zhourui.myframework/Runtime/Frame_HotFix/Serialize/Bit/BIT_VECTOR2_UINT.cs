@@ -29,4 +29,5 @@ public class BIT_VECTOR2_UINT : SerializableBit
 	}
 	public uint x { get { return mValue.x; } }
 	public uint y { get { return mValue.y; } }
+    public override string toString() { return mValue.toVec2Int().V2IToS(); }
 }

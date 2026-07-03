@@ -26,4 +26,5 @@ public class BIT_VECTOR4 : SerializableBit
 	public float y { get { return mValue.y; } }
 	public float z { get { return mValue.z; } }
 	public float w { get { return mValue.w; } }
+    public override string toString() { return mValue.V4ToS(); }
 }

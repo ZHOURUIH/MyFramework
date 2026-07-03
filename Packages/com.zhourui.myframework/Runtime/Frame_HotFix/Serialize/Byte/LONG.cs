@@ -21,4 +21,5 @@ public class LONG : Serializable
 	{
 		return value.mValue;
 	}
+    public override string toString() { return mValue.LToS(); }
 }

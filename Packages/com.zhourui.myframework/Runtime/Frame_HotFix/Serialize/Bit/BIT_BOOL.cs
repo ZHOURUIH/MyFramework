@@ -21,4 +21,5 @@ public class BIT_BOOL : SerializableBit
 	{
 		return value.mValue;
 	}
+    public override string toString() { return mValue.boolToString(); }
 }

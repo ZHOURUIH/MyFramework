@@ -21,4 +21,5 @@ public class BYTE : Serializable
 	{
 		return value.mValue;
 	}
+    public override string toString() { return mValue.IToS(); }
 }

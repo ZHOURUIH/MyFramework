@@ -21,4 +21,5 @@ public class BIT_SHORT : SerializableBit
 	{
 		return value.mValue;
 	}
+    public override string toString() { return mValue.IToS(); }
 }

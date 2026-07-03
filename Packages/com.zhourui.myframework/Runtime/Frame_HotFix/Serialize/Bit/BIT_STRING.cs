@@ -21,4 +21,5 @@ public class BIT_STRING : SerializableBit
 	{
 		return value.mValue;
 	}
+    public override string toString() { return mValue; }
 }

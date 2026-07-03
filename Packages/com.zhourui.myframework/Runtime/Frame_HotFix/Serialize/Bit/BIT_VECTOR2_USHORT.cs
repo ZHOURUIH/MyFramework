@@ -24,4 +24,5 @@ public class BIT_VECTOR2_USHORT : SerializableBit
 	}
 	public ushort x { get { return mValue.x; } }
 	public ushort y { get { return mValue.y; } }
+    public override string toString() { return mValue.toVec2Int().V2IToS(); }
 }
