@@ -1751,6 +1751,7 @@ public static class StringExtension
     // 几率类的一般是万分比的格式填写的,10000表示100%
     public static string toProbability(this string value) { return (value.SToF() * 0.01f).FToS() + "%"; }
     public static string toProbability(this float value) { return (value * 0.01f).FToS() + "%"; }
+    public static string toProbability(this int value) { return (value * 0.01f).FToS() + "%"; }
     public static string fixedAndPercent(this int value, float percent)
     {
         if (value > 0 && percent > 0.0f)
