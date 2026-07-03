@@ -6,54 +6,52 @@ using static MathUtility;
 using static FrameDefine;
 using static FrameBaseUtility;
 
-// 对SpriteRenderer的封装,在UI中使用
-public class myUGUISprite : myUGUIObject, IShaderWindow
+// 对SpriteRenderer的封装,在3D空间中使用的
+public class mySpriteRenderer
 {
+	protected GameObject mObject;					// 节点
 	protected SpriteRenderer mSpriteRenderer;		// 图片组件
-	protected WindowShader mWindowShader;			// 图片所使用的shader类,用于动态设置shader参数
 	protected AtlasRef mOriginAtlasPtr;				// 图片图集,用于卸载,当前类只关心初始图集的卸载,后续再次设置的图集不关心是否需要卸载,需要外部设置的地方自己关心
 	protected AtlasRef mAtlasPtr;					// 图片图集
 	protected Material mOriginMaterial;				// 初始的材质,用于重置时恢复材质
 	protected ResourceRef<Material> mCurMaterial;   // 当前引用的材质,用于卸载
 	protected Sprite mOriginSprite;					// 备份加载物体时原始的精灵图片
+	protected string mName;							// 节点名字的缓存
 	protected string mOriginMaterialPath;			// 原始材质的文件路径
 	protected string mOriginSpriteName;             // 初始图片的名字,用于外部根据初始名字设置其他效果的图片
 	protected string mSpriteName;                   // 当前图片的名字,避免GC
 	protected string mMaterialName;                 // 当前材质的名字,避免GC
-	protected string mShaderName;                   // 当前shader的名字,避免GC
 	protected bool mSpriteNameDirty;                // 图片名字是否需要更新
 	protected bool mMaterialNameDirty;              // 材质名字是否需要更新
-	protected bool mShaderNameDirty;				// shader名字是否需要更新
 	protected bool mIsNewMaterial;					// 当前的材质是否是新建的材质对象
-	public override void init()
+	public void init(SpriteRenderer renderer)
 	{
-		base.init();
-        // 获取SpriteRenderer组件,如果没有则添加,这样是为了使用代码新创建一个SpriteRenderer窗口时能够正常使用SpriteRenderer组件
-		mSpriteRenderer = getOrAddUnityComponent<SpriteRenderer>();
-		mOriginSprite = mSpriteRenderer.sprite;
+		mSpriteRenderer = renderer;
+		mObject = mSpriteRenderer.gameObject;
+        mName = mObject.name;
+        mOriginSprite = mSpriteRenderer.sprite;
 		mOriginMaterial = mSpriteRenderer.sharedMaterial;
 		mSpriteName = mOriginSprite != null ? mOriginSprite.name : null;
 		mOriginSpriteName = mSpriteName;
 		mMaterialName = mOriginMaterial != null ? mOriginMaterial.name : null;
-		mShaderName = mOriginMaterial != null && mOriginMaterial.shader != null ? mOriginMaterial.shader.name : null;
 		// 获取初始的精灵所在图集
 		if (mOriginSprite != null)
 		{
 			if (!mObject.TryGetComponent<ImageAtlasPath>(out var imageAtlasPath))
 			{
-				logError("需要切换图片的SpriteRenderer组件上找不到ImageAtlasPath组件, GameObject:" + getGameObjectPath());
+				logError("需要切换图片的SpriteRenderer组件上找不到ImageAtlasPath组件, GameObject:" + getGameObjectPath(mObject));
 				return;
 			}
 			string atlasPath = imageAtlasPath.mAtlasPath;
 			if (atlasPath.isEmpty())
 			{
-				logError("ImageAtlasPath中记录的路径为空,GameObject:" + getGameObjectPath());
+				logError("ImageAtlasPath中记录的路径为空,GameObject:" + getGameObjectPath(mObject));
 			}
 			atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
 			mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
 			if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
 			{
-				logError("无法加载初始化的图集:" + atlasPath + ",GameObject:" + getGameObjectPath() +
+				logError("无法加载初始化的图集:" + atlasPath + ",GameObject:" + getGameObjectPath(mObject) +
 					",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
 			}
 			mAtlasPtr = mOriginAtlasPtr;
@@ -70,20 +68,20 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 			}
 			if (mOriginMaterialPath.isEmpty())
 			{
-				logError("没有找到MaterialPath组件,name:" + getName());
+				logError("没有找到MaterialPath组件,name:" + mName);
 			}
 			mOriginMaterialPath = mOriginMaterialPath.removeStartString(P_GAME_RESOURCES_PATH);
 			if (!mOriginMaterialPath.endWith("/unity_builtin_extra"))
 			{
 				if (!mOriginMaterialPath.Contains('.'))
 				{
-					logError("材质文件需要带后缀:" + mOriginMaterialPath + ",GameObject:" + getName() + ",parent:" + getParent()?.getName());
+					logError("材质文件需要带后缀:" + mOriginMaterialPath + ",GameObject:" + mName);
 				}
 				setMaterialName(mOriginMaterialPath, !mShaderManager.isSingleShader(mOriginMaterial.shader.name));
 			}
 		}
 	}
-	public override void destroy()
+	public void destroy()
 	{
 		// 卸载创建出的材质
 		if (mIsNewMaterial && !isEditor())
@@ -98,48 +96,30 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		mAtlasPtr = null;
 		mAtlasManager.unloadAtlas(ref mOriginAtlasPtr);
 		mResourceManager.unload(ref mCurMaterial);
-		base.destroy();
 	}
 	// 是否剔除渲染
 	public void cull(bool isCull)
 	{
 		setAlpha(isCull ? 0.0f : 1.0f);
 	}
-	public override bool isCulled() { return isFloatZero(getAlpha()); }
-	public override bool canGenerateDepth() { return !isCulled(); }
-	public void setWindowShader(WindowShader shader)
-	{
-		mWindowShader = shader;
-		// 因为shader参数的需要在update中更新,所以需要启用窗口的更新
-		mNeedUpdate = true;
-	}
-	public WindowShader getWindowShader() { return mWindowShader; }
-	public override void update(float elapsedTime)
-	{
-		base.update(elapsedTime);
-		if (mWindowShader != null && !isCulled() && mSpriteRenderer.sharedMaterial != null)
-		{
-			mWindowShader.applyShader(mSpriteRenderer.sharedMaterial);
-		}
-	}
-	public override Vector2 getSize(bool transformed = false)
+	public Vector2 getSize(bool transformed = false)
 	{
 		if (mSpriteRenderer == null || mSpriteRenderer.sprite == null)
 		{
 			return Vector2.zero;
 		}
-        Vector2 size = Vector2.zero;
-        if (mSpriteRenderer.drawMode == SpriteDrawMode.Simple)
-        {
-            size = mSpriteRenderer.sprite.rect.size;
-        }
-        else if (mSpriteRenderer.drawMode == SpriteDrawMode.Sliced || mSpriteRenderer.drawMode == SpriteDrawMode.Tiled)
-        {
+		Vector2 size = Vector2.zero;
+		if (mSpriteRenderer.drawMode == SpriteDrawMode.Simple)
+		{
+			size = mSpriteRenderer.sprite.rect.size;
+		}
+		else if (mSpriteRenderer.drawMode == SpriteDrawMode.Sliced || mSpriteRenderer.drawMode == SpriteDrawMode.Tiled)
+		{
             size = mSpriteRenderer.size;
         }
-        if (transformed)
+		if (transformed)
 		{
-			return size * getScale();
+			return size * mObject.transform.localScale;
 		}
 		else
 		{
@@ -179,8 +159,8 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		if (sprite != null && mAtlasPtr != null && !mAtlasPtr.hasSprite(sprite))
 		{
 			logWarning("设置不同图集的图片可能会引起问题,如果需要设置其他图集的图片,请使用setSpriteOnly, sprite:" + sprite.name + 
-					   ", atlas:" + mAtlasPtr.getAtlasSingleName() + ", token:" + mAtlasPtr.getToken() + ", hash:" + mAtlasPtr.GetHashCode() + 
-					   ", window:" + getGameObjectPath() + ", window hash:" + GetHashCode());
+					   ", atlas:" + mAtlasPtr.getAtlasSingleName() + ", token:" + mAtlasPtr.getToken() + ", hash:" + mAtlasPtr.GetHashCode() +
+                       ", GameObject:" + getGameObjectPath(mObject) + ", GameObject hash:" + GetHashCode());
 		}
 		mSpriteRenderer.sprite = sprite;
 		mSpriteNameDirty = true;
@@ -193,10 +173,10 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		{
 			return;
 		}
-		if (sprite != null && !isFloatEqual(sprite.pixelsPerUnit, 1.0f) && getScale().x <= 1.0f)
+		if (sprite != null && !isFloatEqual(sprite.pixelsPerUnit, 1.0f) && mObject.transform.localScale.x <= 1.0f)
 		{
 			logWarning("sprite的pixelsPerUnit为1,且Transform缩放为1, 会使最终渲染结果缩小100倍,如果需要显示正常,请调整pixelsPerUnit或者Transform缩放, sprite:" + 
-					   sprite.name + ", transform:" + getGameObjectPath());
+					   sprite.name + ", GameObject:" + getGameObjectPath(mObject));
 		}
 		mSpriteRenderer.sprite = sprite;
 		mSpriteNameDirty = true;
@@ -252,7 +232,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 					// 只有当下次还加载相同的材质时才会直接返回已加载的材质
 					// 如果要卸载最开始加载出来的材质,只能通过卸载整个文件夹的资源来卸载
 					Material newMat = new(mCurMaterial.getResource());
-					newMat.name = getFileNameNoSuffixNoDir(materialPath) + "_" + mID.IToS();
+					newMat.name = getFileNameNoSuffixNoDir(materialPath);
 					setMaterial(newMat);
 				}
 				else
@@ -268,7 +248,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 			if (mIsNewMaterial)
 			{
 				Material mat = new(mCurMaterial.getResource());
-				mat.name = getFileNameNoSuffixNoDir(materialPath) + "_" + mID.IToS();
+				mat.name = getFileNameNoSuffixNoDir(materialPath);
 				setMaterial(mat);
 			}
 			else
@@ -281,16 +261,6 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 	{
 		mSpriteRenderer.material = mat;
 		mMaterialNameDirty = true;
-	}
-	public void setShader(Shader shader)
-	{
-		if (mSpriteRenderer == null || mSpriteRenderer.sharedMaterial == null || mSpriteRenderer.sharedMaterial.shader == shader)
-		{
-			return;
-		}
-		mSpriteRenderer.sharedMaterial.shader = null;
-		mSpriteRenderer.sharedMaterial.shader = shader;
-		mShaderNameDirty = true;
 	}
 	public string getSpriteName()
 	{
@@ -318,19 +288,8 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		}
 		return mMaterialName; 
 	}
-	public string getShaderName() 
+	public void setAlpha(float alpha)
 	{
-		if (mShaderNameDirty)
-		{
-			mShaderNameDirty = false;
-			Material mat = getMaterial();
-			mShaderName = mat != null && mat.shader != null ? mat.shader.name : null;
-		}
-		return mShaderName; 
-	}
-	public override void setAlpha(float alpha)
-	{
-		base.setAlpha(alpha);
 		if (mSpriteRenderer == null)
 		{
 			return;
@@ -339,8 +298,8 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		color.a = alpha;
 		mSpriteRenderer.color = color;
 	}
-	public override float getAlpha() { return mSpriteRenderer.color.a; }
-	public override void setColor(Color color)
+	public float getAlpha() { return mSpriteRenderer.color.a; }
+	public void setColor(Color color)
 	{
 		if (mSpriteRenderer == null)
 		{
@@ -358,7 +317,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 	}
 	public AtlasRef getOriginAtlas() { return mOriginAtlasPtr; }
 	public bool isOriginAtlas(AtlasRef atlas) { return mOriginAtlasPtr == atlas; }
-	public override Color getColor() { return mSpriteRenderer.color; }
+	public Color getColor() { return mSpriteRenderer.color; }
 	public string getOriginSpriteName() { return mOriginSpriteName; }
 	public void setOriginSpriteName(string textureName) { mOriginSpriteName = textureName; }
 	// 自动计算图片的原始名称,也就是不带后缀的名称,后缀默认以_分隔
@@ -370,14 +329,5 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 			return;
 		}
 		mOriginSpriteName = mOriginSpriteName.rangeToLastInclude(key);
-	}
-	//------------------------------------------------------------------------------------------------------------------------------
-	protected override Vector2 generateColliderSize()
-	{
-		if (mSpriteRenderer == null || mSpriteRenderer.sprite == null)
-		{
-			return Vector2.zero;
-		}
-		return mSpriteRenderer.sprite.rect.size;
 	}
 }
