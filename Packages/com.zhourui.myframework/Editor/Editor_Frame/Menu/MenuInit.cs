@@ -176,11 +176,6 @@ public class MenuInit
         foreach (string sourceFullPathOrigin in findFilesNonAlloc(templateFullPath))
         {
             string sourceFullPath = sourceFullPathOrigin.Replace("\\", "/");
-            if (sourceFullPath.endWith(".meta"))
-            {
-                continue;
-            }
-
             string relativePath = sourceFullPath[templateFullPath.Length..];
             string targetFullPath = (projectRootPath + relativePath).Replace("\\", "/");
             if (File.Exists(targetFullPath))
