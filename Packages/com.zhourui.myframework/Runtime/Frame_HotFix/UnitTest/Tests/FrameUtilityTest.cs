@@ -187,20 +187,20 @@ public static class FrameUtilityTest
 
     static void testPercentAndProbability()
     {
-        assertEqual("50%", toPercent(0.5f, 1), "50%");
-        assertEqual("100%", toPercent(1.0f, 0), "100%");
-        assertEqual("0%", toPercent(0.0f), "0%");
-        assertEqual("0.005%", toProbability(0.5f), "0.5%");
-        assertEqual("0.01%", toProbability(1.0f), "1%");
-        assertEqual("1%", toProbability(100.0f), "100%");
+        assertEqual("50%", 0.5f.toPercent(1), "50%");
+        assertEqual("100%", 1.0f.toPercent(0), "100%");
+        assertEqual("0%", 0.0f.toPercent(), "0%");
+        assertEqual("0.005%", 0.5f.toProbability(), "0.5%");
+        assertEqual("0.01%", 1.0f.toProbability(), "1%");
+        assertEqual("1%", 100.0f.toProbability(), "100%");
     }
 
     static void testFixedAndPercent()
     {
-        assertEqual("100+10%", fixedAndPercent(100, 0.1f));
-        assertEqual("200+50%", fixedAndPercent(200, 0.5f));
-        assertEqual("50", fixedAndPercent(50, 0.0f));
-        assertEqual("10%", fixedAndPercent(0, 0.1f));
+        assertEqual("100+10%", 100.fixedAndPercent(0.1f));
+        assertEqual("200+50%", 200.fixedAndPercent(0.5f));
+        assertEqual("50", 50.fixedAndPercent(0.0f));
+        assertEqual("10%", 0.fixedAndPercent(0.1f));
     }
 
     static void testSwap()
@@ -220,30 +220,30 @@ public static class FrameUtilityTest
 
     static void testFixedAndPercent2()
     {
-        assertEqual("100+10%", fixedAndPercent(100, 0.1f));
+        assertEqual("100+10%", 100.fixedAndPercent(0.1f));
     }
 
     static void testToPercentFloat()
     {
-        string r = toPercent(0.5f);
+        string r = 0.5f.toPercent();
         assertTrue(r.Contains("%"));
     }
 
     static void testToPercentString()
     {
-        string r = toPercent("0.5", 1);
+        string r = "0.5".toPercent(1);
         assertTrue(r.Contains("%"));
     }
 
     static void testToProbabilityFloat()
     {
-        string r = toProbability(5.0f);
+        string r = 5.0f.toProbability();
         assertTrue(r.Contains("%"));
     }
 
     static void testToProbabilityString()
     {
-        string r = toProbability("50");
+        string r = "50".toProbability();
         assertTrue(r.Contains("%"));
     }
     enum CoreTestEnum { First = 1, Second = 2 }

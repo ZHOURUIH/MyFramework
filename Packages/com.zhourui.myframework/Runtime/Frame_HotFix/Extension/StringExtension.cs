@@ -1745,6 +1745,28 @@ public static class StringExtension
         ColorUtility.TryParseHtmlString(str, out Color color);
         return color;
     }
+    // 百分比一般用于属性增幅之类的
+    public static string toPercent(this string value, int precision = 1) { return (value.SToF() * 100).FToS(precision) + "%"; }
+    public static string toPercent(this float value, int precision = 1) { return (value * 100).FToS(precision) + "%"; }
+    // 几率类的一般是万分比的格式填写的,10000表示100%
+    public static string toProbability(this string value) { return (value.SToF() * 0.01f).FToS() + "%"; }
+    public static string toProbability(this float value) { return (value * 0.01f).FToS() + "%"; }
+    public static string fixedAndPercent(this int value, float percent)
+    {
+        if (value > 0 && percent > 0.0f)
+        {
+            return value.IToS() + "+" + toPercent(percent);
+        }
+        if (value > 0)
+        {
+            return value.IToS();
+        }
+        if (percent > 0.0f)
+        {
+            return toPercent(percent);
+        }
+        return "";
+    }
     public static void initIntToString()
     {
         if (mIntToString != null || mStringToInt != null)

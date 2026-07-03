@@ -55,28 +55,6 @@ public class FrameUtility
 	public static GameScene getCurScene() { return mGameSceneManager.getCurScene(); }
 	public static bool atProcedure(Type type) { return getCurScene().atProcedure(type); }
 	public static bool atProcedure<T>() where T : SceneProcedure { return getCurScene().atProcedure(typeof(T)); }
-	// 百分比一般用于属性增幅之类的
-	public static string toPercent(string value, int precision = 1) { return (value.SToF() * 100).FToS(precision) + "%"; }
-	public static string toPercent(float value, int precision = 1) { return (value * 100).FToS(precision) + "%"; }
-	// 几率类的一般是万分比的格式填写的,10000表示100%
-	public static string toProbability(string value) { return (value.SToF() * 0.01f).FToS() + "%"; }
-	public static string toProbability(float value) { return (value * 0.01f).FToS() + "%"; }
-	public static string fixedAndPercent(int value, float percent)
-	{
-		if (value > 0 && percent > 0.0f)
-		{
-			return value.IToS() + "+" + toPercent(percent);
-		}
-		if (value > 0)
-		{
-			return value.IToS();
-		}
-		if (percent > 0.0f)
-		{
-			return toPercent(percent);
-		}
-		return "";
-	}
 	public static myUGUIObject getUGUIRoot() { return mLayoutManager?.getUIRoot(); }
 	public static Canvas getUGUIRootComponent() { return mLayoutManager?.getUIRoot()?.getCanvas(); }
 	public static Camera getUICamera() { return mCameraManager.getUICamera()?.getCamera(); }
