@@ -36,7 +36,7 @@ public class TileImageGraphic : Graphic
 			mTileCount = mTileItems.Count;
 			if (mTileItems.Count >= MAX_TILE)
 			{
-				logWarning("已经超出了地砖上限,最多只允许" + IToS(MAX_TILE) + "个地砖");
+				logWarning("已经超出了地砖上限,最多只允许" + MAX_TILE.IToS() + "个地砖");
 				return;
 			}
 			foreach (TileRenderData item in mTileItems)
@@ -60,7 +60,7 @@ public class TileImageGraphic : Graphic
 			mTileCount = mTileMap.Count;
 			if (mTileMap.Count >= MAX_TILE)
 			{
-				logWarning("已经超出了地砖上限,最多只允许" + IToS(MAX_TILE) + "个地砖");
+				logWarning("已经超出了地砖上限,最多只允许" + MAX_TILE.IToS() + "个地砖");
 				return;
 			}
 			foreach (var pair in mTileMap)

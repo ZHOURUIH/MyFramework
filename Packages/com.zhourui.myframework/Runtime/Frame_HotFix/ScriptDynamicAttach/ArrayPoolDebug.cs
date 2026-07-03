@@ -20,7 +20,7 @@ public class ArrayPoolDebug : MonoBehaviour
 		{
 			foreach (var array in itemTypeList.Value)
 			{
-				PersistentInuseList.addIf(strcat(itemTypeList.Key.ToString(), ": 长度:", IToS(array.Key), ", 个数:", IToS(array.Value.Count)), array.Value.Count != 0);
+				PersistentInuseList.addIf(strcat(itemTypeList.Key.ToString(), ": 长度:", array.Key.IToS(), ", 个数:", array.Value.Count.IToS()), array.Value.Count != 0);
 			}
 		}
 
@@ -29,7 +29,7 @@ public class ArrayPoolDebug : MonoBehaviour
 		{
 			foreach (var array in itemTypeList.Value)
 			{
-				InuseList.addIf(strcat(itemTypeList.Key.ToString(), ": 长度:", IToS(array.Key), ", 个数:", IToS(array.Value.Count)), array.Value.Count != 0);
+				InuseList.addIf(strcat(itemTypeList.Key.ToString(), ": 长度:", array.Key.IToS(), ", 个数:", array.Value.Count.IToS()), array.Value.Count != 0);
 			}
 		}
 
@@ -38,7 +38,7 @@ public class ArrayPoolDebug : MonoBehaviour
 		{
 			foreach (var array in itemTypeList.Value)
 			{
-				UnuseList.addIf(strcat(itemTypeList.Key.ToString(), ": 长度:", IToS(array.Key), ", 个数:", IToS(array.Value.Count)), array.Value.Count != 0);
+				UnuseList.addIf(strcat(itemTypeList.Key.ToString(), ": 长度:", array.Key.IToS(), ", 个数:", array.Value.Count.IToS()), array.Value.Count != 0);
 			}
 		}
 	}

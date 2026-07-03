@@ -86,7 +86,7 @@ public class PathKeyframeManager : FrameSystem
 				logError(filePath + "第" + i + "行错误:" + lines[i]);
 				return;	
 			}
-			path.Add(SToF(elems[0]), SToV3(elems[1]));
+			path.Add(elems[0].SToF(), elems[1].SToV3());
 		}
 		mResourceManager.unload(ref file);
 	}
@@ -102,7 +102,7 @@ public class PathKeyframeManager : FrameSystem
 				logError(filePath + "第" + i + "行错误:" + lines[i]);
 				continue;
 			}
-			path.Add(SToF(elems[0]), SToF(elems[1]));
+			path.Add(elems[0].SToF(), elems[1].SToF());
 		}
 		mResourceManager.unload(ref file);
 	}

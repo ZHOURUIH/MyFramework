@@ -75,7 +75,8 @@ public class myUGUISpriteAnim : myUGUISprite, IUIAnimation
 		if (mAtlasPtr != null && mAtlasPtr.isValid() && !mTextureSetName.isEmpty())
 		{
 			int index = 0;
-			while (mSpriteList.addNotNull(mAtlasPtr.getSprite(mTextureSetName + "_" + IToS(index++)))){}
+			while (mSpriteList.addNotNull(mAtlasPtr.getSprite(mTextureSetName + "_" + index++.IToS())))
+			{}
 			if (getTextureFrameCount() == 0)
 			{
 				logError("invalid sprite anim! atlas : " + mAtlasPtr.getFilePath() + ", anim set : " + textureSetName);

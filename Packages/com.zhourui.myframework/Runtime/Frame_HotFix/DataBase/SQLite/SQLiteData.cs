@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System;
 using static UnityUtility;
 using static StringUtility;
+using static SQLUtility;
 
 // SQLite数据基类
 public class SQLiteData : ClassObject
@@ -117,49 +118,49 @@ public class SQLiteData : ClassObject
 	protected void parseParam(SqliteDataReader reader, ref List<bool> value, int index)
 	{
 		string str = getParamString(reader, index);
-		SToBools(str, value);
+        str.SToBools(value);
 		mValues.Add(index, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref List<float> value, int index)
 	{
 		string str = getParamString(reader, index);
-		SToFs(str, value);
+        str.SToFs(value);
 		mValues.Add(index, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref List<int> value, int index)
 	{
 		string str = getParamString(reader, index);
-		SToIs(str, value);
+        str.SToIs(value);
 		mValues.Add(index, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref List<ushort> value, int index)
 	{
 		string str = getParamString(reader, index);
-		SToUSs(str, value);
+        str.SToUSs(value);
 		mValues.Add(index, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref List<uint> value, int index)
 	{
 		string str = getParamString(reader, index);
-		SToUIs(str, value);
+        str.SToUIs(value);
 		mValues.Add(index, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref List<byte> value, int index)
 	{
 		string str = getParamString(reader, index);
-		SToBs(str, value);
+        str.SToBs(value);
 		mValues.Add(index, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref List<sbyte> value, int index)
 	{
 		string str = getParamString(reader, index);
-		SToSBs(str, value);
+        str.SToSBs(value);
 		mValues.Add(index, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref List<string> value, int index)
 	{
 		string str = getParamString(reader, index);
-		stringToStrings(str, value);
+        str.stringToStrings(value);
 		mValues.Add(index, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref string value, int index)
@@ -215,19 +216,19 @@ public class SQLiteData : ClassObject
 	protected void parseParam(SqliteDataReader reader, ref Vector2 value, int index)
 	{
 		string str = getParamString(reader, index);
-		value = SToV2(str);
+		value = str.SToV2();
 		mValues.Add(index, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref Vector2Int value, int index)
 	{
 		string str = getParamString(reader, index);
-		value = SToV2I(str);
+		value = str.SToV2I();
 		mValues.Add(index, str);
 	}
 	protected void parseParam(SqliteDataReader reader, ref Vector3 value, int index)
 	{
 		string str = getParamString(reader, index);
-		value = SToV3(str);
+		value = str.SToV3();
 		mValues.Add(index, str);
 	}
 }

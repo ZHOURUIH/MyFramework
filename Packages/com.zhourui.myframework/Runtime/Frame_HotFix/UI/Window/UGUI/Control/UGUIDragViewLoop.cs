@@ -272,7 +272,7 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop whe
 			for (int i = 0; i < displayItemList.Count; ++i)
 			{
 				T item = displayItemList[i];
-				item.getRoot().setName("Item" + IToS(item.getIndex()));
+				item.getRoot().setName("Item" + item.getIndex().IToS());
 			}
 		}
 		mLastRefreshedContentPos = mContent.getPosition();

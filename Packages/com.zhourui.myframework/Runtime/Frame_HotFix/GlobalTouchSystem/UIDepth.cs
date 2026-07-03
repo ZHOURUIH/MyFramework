@@ -151,7 +151,7 @@ public class UIDepth
 			{
 				levelDepth = (int)((mWindowDepth2 & ((ulong)ushort.MaxValue << offsetBit)) >> offsetBit);
 			}
-			str.add(IToS(levelDepth), " ");
+			str.add(levelDepth.IToS(), " ");
 		}
 		return str.ToString();
 	}

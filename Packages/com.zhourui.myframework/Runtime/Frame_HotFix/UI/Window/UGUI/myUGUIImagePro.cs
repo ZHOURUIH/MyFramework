@@ -93,7 +93,7 @@ public class myUGUIImagePro : myUGUIImage, IShaderWindow
 					// 只有当下次还加载相同的材质时才会直接返回已加载的材质
 					// 如果要卸载最开始加载出来的材质,只能通过卸载整个文件夹的资源来卸载
 					Material newMat = new(mCurMaterial.getResource());
-					newMat.name = materialPath + "_" + IToS(mID);
+					newMat.name = materialPath + "_" + mID.IToS();
 					setMaterial(newMat);
 				}
 				else
@@ -109,7 +109,7 @@ public class myUGUIImagePro : myUGUIImage, IShaderWindow
 			if (mIsNewMaterial)
 			{
 				Material mat = new(mCurMaterial.getResource());
-				mat.name = materialPath + "_" + IToS(mID);
+				mat.name = materialPath + "_" + mID.IToS();
 				setMaterial(mat);
 			}
 			else

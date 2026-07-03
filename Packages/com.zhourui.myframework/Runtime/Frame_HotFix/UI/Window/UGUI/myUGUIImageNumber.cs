@@ -96,8 +96,8 @@ public class myUGUIImageNumber : myUGUIObject
 	}
 	public void setInterval(int interval)					{ mRenderer.setInterval(interval); }
 	public void setDocking(DOCKING_POSITION dock)			{ mRenderer.setDocking(dock); }
-	public void setNumber(int num, int limitLen = 0)		{ mRenderer.setNumber(IToS(num, limitLen)); }
-	public void setNumber(long num, int limitLen = 0)		{ mRenderer.setNumber(LToS(num, limitLen)); }
+	public void setNumber(int num, int limitLen = 0)		{ mRenderer.setNumber(num.IToS(limitLen)); }
+	public void setNumber(long num, int limitLen = 0)		{ mRenderer.setNumber(num.LToS(limitLen)); }
 	public void clearNumber()								{ mRenderer.clearNumber(); }
 	public int getContentWidth()							{ return mRenderer.getContentWidth(); }
 	public string getNumber()								{ return mRenderer.getNumber(); }
@@ -110,7 +110,7 @@ public class myUGUIImageNumber : myUGUIObject
 		using var a = new DicScope<char, Sprite>(out var spriteList);
 		for (int i = 0; i < 10; ++i)
 		{
-			spriteList.add((char)('0' + i), mAtlasPtr.getSprite(mNumberStyle + "_" + IToS(i)));
+			spriteList.add((char)('0' + i), mAtlasPtr.getSprite(mNumberStyle + "_" + i.IToS()));
 		}
 		mRenderer.sprite = spriteList.firstValue();
 		mRenderer.setSpriteList(spriteList);

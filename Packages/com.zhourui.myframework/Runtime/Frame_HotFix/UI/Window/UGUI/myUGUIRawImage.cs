@@ -219,7 +219,7 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 				if (mIsNewMaterial)
 				{
 					newMat = new(mCurMaterial.getResource());
-					newMat.name = getFileNameNoSuffixNoDir(materialPath) + "_" + IToS(mID);
+					newMat.name = getFileNameNoSuffixNoDir(materialPath) + "_" + mID.IToS();
 				}
 				setMaterial(newMat);
 			});
@@ -232,7 +232,7 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 			if (mIsNewMaterial)
 			{
 				mat = new(mCurMaterial.getResource());
-				mat.name = getFileNameNoSuffixNoDir(materialPath) + "_" + IToS(mID);
+				mat.name = getFileNameNoSuffixNoDir(materialPath) + "_" + mID.IToS();
 			}
 			setMaterial(mat);
 		}

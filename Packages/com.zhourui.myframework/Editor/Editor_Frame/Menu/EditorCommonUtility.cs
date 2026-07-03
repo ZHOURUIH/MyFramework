@@ -1559,12 +1559,12 @@ public class EditorCommonUtility
 			string assetPath = lineData.Key;
 			setCheckRefObjectsList(missingRefObjectsList, assetPath, lineData.Value);
 			UObject obj = loadAsset(assetPath);
-			Debug.LogError("有" + missingType + "的引用丢失" + obj.name + "\n" + stringsToString(missingRefObjectsList, '\n'), obj);
+			Debug.LogError("有" + missingType + "的引用丢失" + obj.name + "\n" + missingRefObjectsList.stringsToString('\n'), obj);
 			if (assetPath.endWith(".unity"))
 			{
 				for (int i = 0; i < missingRefObjectsList.Count; ++i)
 				{
-					Debug.LogError("有" + missingType + "的引用丢失,Scene:" + assetPath + "\n" + stringsToString(missingRefObjectsList, '\n'));
+					Debug.LogError("有" + missingType + "的引用丢失,Scene:" + assetPath + "\n" + missingRefObjectsList.stringsToString('\n'));
 				}
 			}
 		}
@@ -1611,12 +1611,10 @@ public class EditorCommonUtility
 			{
 				continue;
 			}
-			if (line.Contains("[ProtoMember("))
+			if (line.Contains("[ProtoMember(") && 
+				line.rangeToFirst(line.findFirstSubstr("[ProtoMember(", 0, true), ',').SToI() - 1 != realOrder++)
 			{
-				if (SToI(line.rangeToFirst(line.findFirstSubstr("[ProtoMember(", 0, true), ',')) - 1 != realOrder++)
-				{
-					Debug.LogError("Protobuf的消息字段顺序检测:有不符合规定的字段顺序." + addFileLine(file, i + 1));
-				}
+				Debug.LogError("Protobuf的消息字段顺序检测:有不符合规定的字段顺序." + addFileLine(file, i + 1));
 			}
 		}
 	}
@@ -2036,7 +2034,7 @@ public class EditorCommonUtility
 		}
 
 		// 然后将剩下的元素通过空格拼接在一起,还原出原始的字符串
-		string newLine = stringsToString(elementList, ' ');
+		string newLine = elementList.stringsToString(' ');
 		// 函数名肯定会包含括号
 		int leftBracketIndex = newLine.IndexOf('(');
 		if (leftBracketIndex < 0)
@@ -3368,7 +3366,7 @@ public class EditorCommonUtility
 			}
 			else if (infoLine.startWith("Line:"))
 			{
-				fileLine = SToI(infoLine.removeStartString("Line:"));
+				fileLine = infoLine.removeStartString("Line:").SToI();
 			}
 		}
 

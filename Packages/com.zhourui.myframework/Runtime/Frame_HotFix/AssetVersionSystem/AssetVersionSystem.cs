@@ -97,7 +97,7 @@ public class AssetVersionSystem : FrameSystem
 	public string generatePersistentAssetFileList()
 	{
 		StringBuilder fileString = new();
-		fileString.Append(IToS(mPersistentAssetsFileList.Count));
+		fileString.Append(mPersistentAssetsFileList.Count.IToS());
 		fileString.Append("\n");
 		foreach (var item in mPersistentAssetsFileList)
 		{

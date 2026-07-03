@@ -15,17 +15,6 @@ public class StringUtility
 	public static char[] mHexUpperChar = new char[] { 'A', 'B', 'C', 'D', 'E', 'F' };   // 十六进制中的大写字母
 	public static char[] mHexLowerChar = new char[] { 'a', 'b', 'c', 'd', 'e', 'f' };	// 十六进制中的小写字母
 	private static string mHexString = "ABCDEFabcdef0123456789";                        // 十六进制中的所有字符
-	private static List<byte> mTempByteList0 = new();									// 避免GC,给stringToBytesNonAlloc使用的
-	private static List<int> mTempIntList = new();										// 避免GC
-	private static List<long> mTempLongList = new();									// 避免GC
-	private static List<float> mTempFloatList = new();									// 避免GC
-	private static List<string> mTempStringList = new();								// 避免GC
-	private static Dictionary<string, int> mStringToInt;								// 用于快速查找字符串转换后的整数
-	private static string[] mIntToString;												// 用于快速获取整数转换后的字符串
-	private static string[] mFloatConvertPercision = new string[] { "f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7" };	// 浮点数转换时精度
-	private static Dictionary<string, Vector2Int> mStringToVector2Cache;				// 字符串转换为2维向量的缓存
-	private static Dictionary<string, Vector3Int> mStringToVector3Cache;				// 字符串转换为3维向量的缓存
-	private static int STRING_TO_VECTOR2INT_MAX_CACHE = 10240;                          // mStringToVector2Cache最大数量
 	private static Dictionary<string, string> mInvalidParamChars;                       // invalid characters that cannot be found in a valid method-verb or http header
 	private static List<char> mChineseSymbol;                                           // 中文的标点
 	private static string[] mChineseNumber = { "零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十" };
@@ -94,11 +83,11 @@ public class StringUtility
 		while (index < args.Length)
 		{
 			helpBuilder.clear();
-			helpBuilder.add("{", IToS(index), "}");
+			helpBuilder.add("{", index.IToS(), "}");
 			string indexStr = helpBuilder.ToString();
 			if (format.findFirstSubstr(indexStr) >= 0)
 			{
-				builder.replaceAll(indexStr, IToS(args[index]));
+				builder.replaceAll(indexStr, args[index].IToS());
 			}
 			++index;
 		}
@@ -117,7 +106,7 @@ public class StringUtility
 		while (index < args.Length)
 		{
 			helpBuilder.clear();
-			helpBuilder.add("{", IToS(index), "}");
+			helpBuilder.add("{", index.IToS(), "}");
 			string indexStr = helpBuilder.ToString();
 			if (format.findFirstSubstr(indexStr) >= 0)
 			{
@@ -140,7 +129,7 @@ public class StringUtility
 		while (index < args.Count)
 		{
 			helpBuilder.clear();
-			helpBuilder.add("{", IToS(index), "}");
+			helpBuilder.add("{", index.IToS(), "}");
 			string indexStr = helpBuilder.ToString();
 			if (format.findFirstSubstr(indexStr) >= 0)
 			{
@@ -158,11 +147,11 @@ public class StringUtility
 		while (index < args.Count)
 		{
 			helpBuilder.clear();
-			helpBuilder.add("{", IToS(index), "}");
+			helpBuilder.add("{", index.IToS(), "}");
 			string indexStr = helpBuilder.ToString();
 			if (format.findFirstSubstr(indexStr) >= 0)
 			{
-				builder.replaceAll(indexStr, IToS(args[index]));
+				builder.replaceAll(indexStr, args[index].IToS());
 			}
 			++index;
 		}
@@ -176,24 +165,15 @@ public class StringUtility
 		while (index < args.Count)
 		{
 			helpBuilder.clear();
-			helpBuilder.add("{", IToS(index), "}");
+			helpBuilder.add("{", index.IToS(), "}");
 			string indexStr = helpBuilder.ToString();
 			if (format.findFirstSubstr(indexStr) >= 0)
 			{
-				builder.replaceAll(indexStr, FToS(args[index]));
+				builder.replaceAll(indexStr, args[index].FToS());
 			}
 			++index;
 		}
 		return builder.ToString();
-	}
-	public static Color SToColor(string str)
-	{
-		if (str[0] != '#')
-		{
-			str = "#" + str;
-		}
-		ColorUtility.TryParseHtmlString(str, out Color color);
-		return color;
 	}
 	public static int getFirstNumberPos(string str)
 	{
@@ -232,133 +212,7 @@ public class StringUtility
 			return -1;
 		}
 		string numStr = str.removeStartCount(lastPos + 1);
-		return !numStr.isEmpty() ? SToI(numStr) : 0;
-	}
-	public static int SToI(string str)
-	{
-		checkIntString(str);
-		if (str.isEmpty() || str == "-")
-		{
-			return 0;
-		}
-		if (mStringToInt == null)
-		{
-			initIntToString();
-		}
-		return mStringToInt.TryGetValue(str, out int value) ? value : int.Parse(str);
-	}
-	public static long SToL(string str)
-	{
-		checkIntString(str);
-		return !str.isEmpty() ? long.Parse(str) : 0;
-	}
-	public static ulong SToUL(string str)
-	{
-		checkUIntString(str);
-		return !str.isEmpty() ? ulong.Parse(str) : 0;
-	}
-	public static uint SToUInt(string str)
-	{
-		checkUIntString(str);
-		return !str.isEmpty() ? uint.Parse(str) : 0;
-	}
-	public static Vector2 SToV2(string value, char separate = ',')
-	{
-		if (value.isEmpty() || value == "0,0")
-		{
-			return Vector2.zero;
-		}
-		string[] splitList = value.split(separate);
-		if (splitList.count() < 2)
-		{
-			return Vector2.zero;
-		}
-		return new(SToF(splitList[0]), SToF(splitList[1]));
-	}
-	public static Vector2Int SToV2I(string value, char separate = ',')
-	{
-		if (value.isEmpty() || value == "0,0")
-		{
-			return Vector2Int.zero;
-		}
-		mStringToVector2Cache ??= new(STRING_TO_VECTOR2INT_MAX_CACHE);
-		if (mStringToVector2Cache.TryGetValue(value, out Vector2Int result))
-		{
-			return result;
-		}
-		string[] splitList = value.split(separate);
-		if (splitList.count() < 2)
-		{
-			return Vector2Int.zero;
-		}
-		result = new(SToI(splitList[0]), SToI(splitList[1]));
-		if (mStringToVector2Cache.Count < STRING_TO_VECTOR2INT_MAX_CACHE)
-		{
-			mStringToVector2Cache.Add(value, result);
-		}
-		return result;
-	}
-	public static Vector3 SToV3(string value, char separate = ',')
-	{
-		if (value.isEmpty() || value == "0,0,0")
-		{
-			return Vector3.zero;
-		}
-		string[] splitList = value.split(separate);
-		if (splitList.count() < 3)
-		{
-			return Vector3.zero;
-		}
-		return new(SToF(splitList[0]), SToF(splitList[1]), SToF(splitList[2]));
-	}
-	public static Vector3Int SToV3I(string value, char separate = ',')
-	{
-		if (value.isEmpty() || value == "0,0,0")
-		{
-			return Vector3Int.zero;
-		}
-		mStringToVector3Cache ??= new(STRING_TO_VECTOR2INT_MAX_CACHE);
-		if (mStringToVector3Cache.TryGetValue(value, out Vector3Int result))
-		{
-			return result;
-		}
-		string[] splitList = value.split(separate);
-		if (splitList.count() < 3)
-		{
-			return Vector3Int.zero;
-		}
-		result = new(SToI(splitList[0]), SToI(splitList[1]), SToI(splitList[2]));
-		if (mStringToVector3Cache.Count < STRING_TO_VECTOR2INT_MAX_CACHE)
-		{
-			mStringToVector3Cache.Add(value, result);
-		}
-		return result;
-	}
-	public static Vector4 SToV4(string value, char separate = ',')
-	{
-		if (value.isEmpty() || value == "0,0,0,0")
-		{
-			return Vector4.zero;
-		}
-		string[] splitList = value.split(separate);
-		if (splitList.count() < 4)
-		{
-			return Vector4.zero;
-		}
-		return new(SToF(splitList[0]), SToF(splitList[1]), SToF(splitList[2]), SToF(splitList[3]));
-	}
-	public static Vector4Int SToV4I(string value, char separate = ',')
-	{
-		if (value.isEmpty() || value == "0,0,0,0")
-		{
-			return Vector4Int.zero;
-		}
-		string[] splitList = value.split(separate);
-		if (splitList.count() < 4)
-		{
-			return Vector4Int.zero;
-		}
-		return new(SToI(splitList[0]), SToI(splitList[1]), SToI(splitList[2]), SToI(splitList[3]));
+		return !numStr.isEmpty() ? numStr.SToI() : 0;
 	}
 	// 移除整个stream中的最后一个出现过的字符key
 	public static void removeLast(ref string stream, char key)
@@ -691,461 +545,7 @@ public class StringUtility
 		}
 		return ascii;
 	}
-	// 在使用返回值期间禁止再调用stringToStrings
-	public static List<string> stringToStrings(string str, bool removeEmpty, params string[] keyword)
-	{
-		mTempStringList.Clear();
-		if (!str.isEmpty())
-		{
-			mTempStringList.AddRange(str.split(removeEmpty, keyword));
-		}
-		return mTempStringList;
-	}
-	// 在使用返回值期间禁止再调用stringToStrings
-	public static List<string> stringToStrings(string str, bool removeEmpty, params char[] keyword)
-	{
-		mTempStringList.Clear();
-		if (!str.isEmpty())
-		{
-			mTempStringList.AddRange(str.split(removeEmpty, keyword));
-		}
-		return mTempStringList;
-	}
-	// 在使用返回值期间禁止再调用stringToFloatsNonAlloc
-	public static List<float> SToFsNonAlloc(string str, char separate = ',')
-	{
-		SToFs(str, mTempFloatList, separate);
-		return mTempFloatList;
-	}
-	public static List<float> SToFs(string str, char separate = ',')
-	{
-		List<float> values = new();
-		SToFs(str, values, separate);
-		return values;
-	}
-	public static void SToFs(string str, ref float[] values, char separate = ',')
-	{
-		if (str.isEmpty())
-		{
-			return;
-		}
-		string[] rangeList = str.split(separate);
-		int len = rangeList.Length;
-		if (values != null && len != values.Length)
-		{
-			logError("count is not equal " + str.Length);
-			return;
-		}
-		values ??= new float[len];
-		for (int i = 0; i < len; ++i)
-		{
-			values[i] = SToF(rangeList[i]);
-		}
-	}
-	public static void SToFs(string str, List<float> values, char separate = ',')
-	{
-		if (values == null)
-		{
-			logError("values can not be null");
-			return;
-		}
-		values.Clear();
-		if (str.isEmpty())
-		{
-			return;
-		}
-		foreach (string item in str.split(separate))
-		{
-			values.Add(SToF(item));
-		}
-	}
-	public static string FsToS(List<float> values, char separate = ',')
-	{
-		using var a = new MyStringBuilderScope(out var builder);
-		int count = values.Count;
-		for (int i = 0; i < count; ++i)
-		{
-			builder.add(FToS(values[i], 2));
-			builder.addIf(separate, i != count - 1);
-		}
-		return builder.ToString();
-	}
-	public static List<long> SToLs(string str, char separate = ',')
-	{
-		List<long> values = new();
-		SToLs(str, values, separate);
-		return values;
-	}
-	public static void SToLs(string str, List<long> values, char separate = ',')
-	{
-		if (values == null)
-		{
-			logError("values can not be null");
-			return;
-		}
-		values.Clear();
-		if (str.isEmpty())
-		{
-			return;
-		}
-		foreach (string item in str.split(separate).safe())
-		{
-			values.Add(SToL(item));
-		}
-	}
-	public static void SToLs(string str, ref long[] values, char separate = ',')
-	{
-		if (str.isEmpty())
-		{
-			return;
-		}
-		string[] rangeList = str.split(separate);
-		int len = rangeList.Length;
-		if (values != null && len != values.Length)
-		{
-			logError("value.Length is not equal " + len + ", str:" + str);
-			return;
-		}
-		values ??= new long[len];
-		for (int i = 0; i < len; ++i)
-		{
-			values[i] = SToL(rangeList[i]);
-		}
-	}
-	// 在使用返回值期间禁止再调用stringToLongsNonAlloc
-	public static List<long> SToLsNonAlloc(string str, char separate = ',')
-	{
-		SToLs(str, mTempLongList, separate);
-		return mTempLongList;
-	}
-	public static List<int> SToIs(string str, char separate = ',')
-	{
-		List<int> values = new();
-		SToIs(str, values, separate);
-		return values;
-	}
-	public static void SToIs(string str, List<int> values, char separate = ',')
-	{
-		if (values == null)
-		{
-			logError("values can not be null");
-			return;
-		}
-		values.Clear();
-		if (str.isEmpty())
-		{
-			return;
-		}
-		foreach (string item in str.split(separate).safe())
-		{
-			values.Add(SToI(item));
-		}
-	}
-	public static void SToIs(string str, ref int[] values, char separate = ',')
-	{
-		if (str.isEmpty())
-		{
-			return;
-		}
-		string[] rangeList = str.split(separate);
-		int len = rangeList.Length;
-		if (values != null && len != values.Length)
-		{
-			logError("value.Length is not equal " + len + ", str:" + str);
-			return;
-		}
-		values ??= new int[len];
-		for (int i = 0; i < len; ++i)
-		{
-			values[i] = SToI(rangeList[i]);
-		}
-	}
-	// 在使用返回值期间禁止再调用stringToIntsNonAlloc
-	public static List<int> SToIsNonAlloc(string str, char separate = ',')
-	{
-		SToIs(str, mTempIntList, separate);
-		return mTempIntList;
-	}
-	public static void SToUIs(string str, List<uint> values, char separate = ',')
-	{
-		if (values == null)
-		{
-			logError("values can not be null");
-			return;
-		}
-		values.Clear();
-		if (str.isEmpty())
-		{
-			return;
-		}
-		foreach (string item in str.split(separate).safe())
-		{
-			values.Add((uint)SToI(item));
-		}
-	}
-	public static void SToUSs(string str, List<ushort> values, char separate = ',')
-	{
-		if (values == null)
-		{
-			logError("values can not be null");
-			return;
-		}
-		values.Clear();
-		if (str.isEmpty())
-		{
-			return;
-		}
-		foreach (string item in str.split(separate).safe())
-		{
-			values.Add((ushort)SToI(item));
-		}
-	}
-	public static void SToSs(string str, List<short> values, char separate = ',')
-	{
-		if (values == null)
-		{
-			logError("values can not be null");
-			return;
-		}
-		values.Clear();
-		if (str.isEmpty())
-		{
-			return;
-		}
-		foreach (string item in str.split(separate).safe())
-		{
-			values.Add((short)SToI(item));
-		}
-	}
-	public static void SToBools(string str, List<bool> values, char separate = ',')
-	{
-		if (values == null)
-		{
-			logError("values can not be null");
-			return;
-		}
-		values.Clear();
-		if (str.isEmpty())
-		{
-			return;
-		}
-		foreach (string item in str.split(separate).safe())
-		{
-			values.Add(SToI(item) > 0);
-		}
-	}
-	// 在使用返回值期间不允许再使用此函数
-	public static List<byte> SToBsNonAlloc(string str, char separate = ',')
-	{
-		mTempByteList0.Clear();
-		if (str.isEmpty())
-		{
-			return mTempByteList0;
-		}
-		foreach (string item in str.split(separate).safe())
-		{
-			mTempByteList0.Add((byte)SToI(item));
-		}
-		return mTempByteList0;
-	}
-	public static void SToBs(string str, List<byte> values, char separate = ',')
-	{
-		if (values == null)
-		{
-			logError("values can not be null");
-			return;
-		}
-		values.Clear();
-		if (str.isEmpty())
-		{
-			return;
-		}
-		foreach (string item in str.split(separate).safe())
-		{
-			values.Add((byte)SToI(item));
-		}
-	}
-	public static void SToSBs(string str, List<sbyte> values, char separate = ',')
-	{
-		if (values == null)
-		{
-			logError("values can not be null");
-			return;
-		}
-		values.Clear();
-		if (str.isEmpty())
-		{
-			return;
-		}
-		foreach (string item in str.split(separate).safe())
-		{
-			values.Add((sbyte)SToI(item));
-		}
-	}
-	public static string LsToS(List<long> values, char separate = ',')
-	{
-		if (values.isEmpty())
-		{
-			return EMPTY;
-		}
-		using var a = new MyStringBuilderScope(out var builder);
-		int count = values.Count;
-		for (int i = 0; i < count; ++i)
-		{
-			builder.add(LToS(values[i]));
-			builder.addIf(separate, i != count - 1);
-		}
-		return builder.ToString();
-	}
-	public static string IsToS(List<int> values, char separate = ',')
-	{
-		if (values.isEmpty())
-		{
-			return EMPTY;
-		}
-		using var a = new MyStringBuilderScope(out var builder);
-		int count = values.Count;
-		for (int i = 0; i < count; ++i)
-		{
-			builder.add(IToS(values[i]));
-			builder.addIf(separate, i != count - 1);
-		}
-		return builder.ToString();
-	}
-	public static string stringsToString(List<string> values, string separate)
-	{
-		if (values.isEmpty())
-		{
-			return EMPTY;
-		}
-		using var a = new MyStringBuilderScope(out var builder);
-		int count = values.Count;
-		for (int i = 0; i < count; ++i)
-		{
-			builder.add(values[i]);
-			builder.addIf(separate, i != count - 1);
-		}
-		return builder.ToString();
-	}
-	public static string stringsToString(string[] values, string separate)
-	{
-		if (values.isEmpty())
-		{
-			return EMPTY;
-		}
-		using var a = new MyStringBuilderScope(out var builder);
-		int count = values.Length;
-		for (int i = 0; i < count; ++i)
-		{
-			builder.add(values[i]);
-			builder.addIf(separate, i != count - 1);
-		}
-		return builder.ToString();
-	}
-	public static string stringsToString(List<string> values, char separate = ',')
-	{
-		if (values.isEmpty())
-		{
-			return EMPTY;
-		}
-		using var a = new MyStringBuilderScope(out var builder);
-		int count = values.Count;
-		for (int i = 0; i < count; ++i)
-		{
-			builder.add(values[i]);
-			builder.addIf(separate, i != count - 1);
-		}
-		return builder.ToString();
-	}
-	public static string stringsToString(string[] values, char separate = ',')
-	{
-		if (values.isEmpty())
-		{
-			return EMPTY;
-		}
-		using var a = new MyStringBuilderScope(out var builder);
-		int count = values.Length;
-		for (int i = 0; i < count; ++i)
-		{
-			builder.add(values[i]);
-			builder.addIf(separate, i != count - 1);
-		}
-		return builder.ToString();
-	}
-	public static List<string> stringToStrings(string str, char separate = ',')
-	{
-		List<string> strList = new();
-		if (!str.isEmpty())
-		{
-			strList.addRange(str.split(separate).safe());
-		}
-		return strList;
-	}
-	public static void stringToStrings(string str, List<string> values, char separate = ',')
-	{
-		if (values == null)
-		{
-			logError("values can not be null");
-			return;
-		}
-		values.Clear();
-		if (str.isEmpty())
-		{
-			return;
-		}
-		foreach (string item in str.split(separate).safe())
-		{
-			values.Add(item);
-		}
-	}
 	// precision表示小数点后保留几位小数,removeTailZero表示是否去除末尾的0
-	public static string FToS(float value, int precision = 4, bool removeTailZero = true)
-	{
-		checkInt(ref value);
-		if (precision == 0)
-		{
-			return IToS((int)value);
-		}
-		if (removeTailZero)
-		{
-			// 是否非常接近数轴左边的整数
-			if (isFloatZero(value - (int)value))
-			{
-				return IToS((int)value);
-			}
-			// 是否非常接近数轴右边的整数
-			if (isFloatZero((int)value + 1 - value))
-			{
-				return IToS((int)value + 1);
-			}
-		}
-		string str = value.ToString(mFloatConvertPercision[precision]);
-		// 去除末尾的0
-		if (removeTailZero && str.IndexOf('.') != -1)
-		{
-			int removeCount = 0;
-			int curLen = str.Length;
-			// 从后面开始遍历
-			for (int i = 0; i < curLen; ++i)
-			{
-				char c = str[curLen - 1 - i];
-				// 遇到不是0的就退出循环
-				if (c != '0' && c != '.')
-				{
-					removeCount = i;
-					break;
-				}
-				// 遇到小数点就退出循环并且需要将小数点一起去除
-				else if (c == '.')
-				{
-					removeCount = i + 1;
-					break;
-				}
-			}
-			str = str.removeEndCount(removeCount);
-		}
-		return str;
-	}
 	// 给数字字符串以千为单位添加逗号
 	public static void insertNumberComma(ref string str)
 	{
@@ -1171,22 +571,12 @@ public class StringUtility
 		}
 		str = builder.ToString();
 	}
-	public static string boolToString(bool value, bool firstUpper = false, bool fullUpper = false)
+    public static string insertNumberComma(string str)
 	{
-		if (fullUpper)
-		{
-			return value ? "TRUE" : "FALSE";
-		}
-		if (firstUpper)
-		{
-			return value ? "True" : "False";
-		}
-		return value ? "true" : "false";
-	}
-	public static bool stringToBool(string str)
-	{
-		return str == "true" || str == "True" || str == "TRUE";
-	}
+		string temp = str;
+		insertNumberComma(ref temp);
+		return temp;
+    }
 	// 只能获取小于等于99的中文数字
 	public static string getChineseNumber(int num)
 	{
@@ -1216,13 +606,13 @@ public class StringUtility
 		// 大于1亿
 		if (value >= 100000000)
 		{
-			builder.add(LToS(value / 100000000), "亿");
+			builder.add((value / 100000000).LToS(), "亿");
 			value %= 100000000;
 		}
 		// 大于1万
 		if (value >= 10000)
 		{
-			builder.add(LToS(value / 10000), "万");
+			builder.add((value / 10000).LToS(), "万");
 			value %= 10000;
 		}
 		if (value > 0)
@@ -1230,144 +620,6 @@ public class StringUtility
 			builder.add(value);
 		}
 		return builder.ToString();
-	}
-	// minLength表示返回字符串的最少数字个数,等于0表示不限制个数,大于0表示如果转换后的数字数量不足minLength个,则在前面补0
-	public static string IToS(int value, int minLength = 0)
-	{
-		if (mIntToString == null)
-		{
-			initIntToString();
-		}
-		string retString;
-		// 先尝试查表获取
-		if (value >= 0 && value < mIntToString.Length)
-		{
-			retString = mIntToString[value];
-		}
-		else
-		{
-			retString = value.ToString();
-		}
-		int addLen = minLength - retString.Length;
-		if (addLen > 0)
-		{
-			for (int i = 0; i < addLen; ++i)
-			{
-				retString = "0" + retString;
-			}
-		}
-		return retString;
-	}
-	public static string IToS(uint value, int minLength = 0)
-	{
-		return IToS((int)value, minLength);
-	}
-	public static string IToSComma(int value)
-	{
-		string retString = IToS(value);
-		insertNumberComma(ref retString);
-		return retString;
-	}
-	public static string LToSComma(long value)
-	{
-		string retString = LToS(value);
-		insertNumberComma(ref retString);
-		return retString;
-	}
-	public static string LToSComma(ulong value)
-	{
-		string retString = LToS(value);
-		insertNumberComma(ref retString);
-		return retString;
-	}
-	public static string IToSComma(uint value)
-	{
-		return IToSComma((int)value);
-	}
-	public static string LToS(long value, int minLength = 0)
-	{
-		if (mIntToString == null)
-		{
-			initIntToString();
-		}
-		string retString;
-		// 先尝试查表获取
-		if (value >= 0 && value < mIntToString.Length)
-		{
-			retString = mIntToString[value];
-		}
-		else
-		{
-			retString = value.ToString();
-		}
-		int addLen = minLength - retString.Length;
-		if (addLen > 0)
-		{
-			for (int i = 0; i < addLen; ++i)
-			{
-				retString = "0" + retString;
-			}
-		}
-		return retString;
-	}
-	public static string LToS(ulong value, int minLength = 0)
-	{
-		if (mIntToString == null)
-		{
-			initIntToString();
-		}
-		string retString;
-		// 先尝试查表获取
-		if (value >= 0 && value < (ulong)mIntToString.Length)
-		{
-			retString = mIntToString[value];
-		}
-		else
-		{
-			retString = value.ToString();
-		}
-		int addLen = minLength - retString.Length;
-		if (addLen > 0)
-		{
-			for (int i = 0; i < addLen; ++i)
-			{
-				retString = "0" + retString;
-			}
-		}
-		return retString;
-	}
-	public static string V2IToS(Vector2Int value, int minLength = 0)
-	{
-		return IToS(value.x, minLength) + "," + IToS(value.y, minLength);
-	}
-	public static string V2ToS(Vector2 value, int precision = 4)
-	{
-		return FToS(value.x, precision) + "," + FToS(value.y, precision);
-	}
-    public static string V3IToS(Vector3Int value, int minLength = 0)
-    {
-        return strcat(IToS(value.x, minLength), ",", IToS(value.y, minLength), ",", IToS(value.z, minLength));
-    }
-    public static string V3ToS(Vector3 value, int precision = 4)
-    {
-        return strcat(FToS(value.x, precision), ",", FToS(value.y, precision), ",", FToS(value.z, precision));
-    }
-    public static string V4IToS(Vector4Int value, int minLength = 4)
-    {
-        return strcat(IToS(value.x, minLength), ",", IToS(value.y, minLength), ",", IToS(value.z, minLength), IToS(value.w, minLength));
-    }
-    public static string V4ToS(Vector4 value, int precision = 4)
-	{
-		return strcat(FToS(value.x, precision), ",", FToS(value.y, precision), ",", FToS(value.z, precision), ",", FToS(value.w, precision));
-	}
-	public static float SToF(string str)
-	{
-		checkFloatString(str);
-		if (str.isEmpty() || str == "-")
-		{
-			return 0.0f;
-		}
-		return float.Parse(str);
 	}
 	public static int getBytesLength(string str)
 	{
@@ -1579,24 +831,24 @@ public class StringUtility
 		// 不足1KB
 		if (size < 1024)
 		{
-			return IToS((int)size) + "B";
+			return size.LToS() + "B";
 		}
 		// 不足1MB
 		if (size < 1024 * 1024)
 		{
-			return FToS(size * (1.0f / 1024.0f), 1) + "KB";
+			return (size * (1.0f / 1024.0f)).FToS(1) + "KB";
 		}
 		// 不足1GB
 		if (size < 1024 * 1024 * 1024)
 		{
-			return FToS(size * (1.0f / (1024.0f * 1024.0f)), 1) + "MB";
+			return (size * (1.0f / (1024.0f * 1024.0f))).FToS(1) + "MB";
 		}
 		// 大于1GB
-		return FToS(size * (1.0f / (1024.0f * 1024.0f * 1024.0f)), 1) + "GB";
+		return (size * (1.0f / (1024.0f * 1024.0f * 1024.0f))).FToS(1) + "GB";
 	}
 	public static string addSprite(string originString, string spriteName, float width = 1.0f)
 	{
-		return strcat(originString, "<quad width=", FToS(width), " sprite=", spriteName, "/>");
+		return strcat(originString, "<quad width=", width.FToS(), " sprite=", spriteName, "/>");
 	}
 	public static void addSprite(ref string originString, string spriteName, float width = 1.0f)
 	{
@@ -1830,66 +1082,6 @@ public class StringUtility
 			builder.replaceAll(item.Key, item.Value);
 		}
 		return builder.ToString();
-	}
-	public static void appendValueString(ref string queryStr, string str)
-	{
-		queryStr += "\"" + str + "\",";
-	}
-	public static void appendValueVector2(ref string queryStr, Vector2 value)
-	{
-		queryStr += V2ToS(value) + ",";
-	}
-	public static void appendValueVector2Int(ref string queryStr, Vector2Int value)
-	{
-		queryStr += V2IToS(value) + ",";
-	}
-	public static void appendValueVector3(ref string queryStr, Vector3 value)
-	{
-		queryStr += V3ToS(value) + ",";
-	}
-	public static void appendValueInt(ref string queryStr, int value)
-	{
-		queryStr += IToS(value) + ",";
-	}
-	public static void appendValueUInt(ref string queryStr, uint value)
-	{
-		queryStr += IToS(value) + ",";
-	}
-	public static void appendValueFloat(ref string queryStr, float value)
-	{
-		queryStr += FToS(value) + ",";
-	}
-	public static void appendValueFloats(ref string queryStr, List<float> floatArray)
-	{
-		appendValueString(ref queryStr, FsToS(floatArray));
-	}
-	public static void appendValueInts(ref string queryStr, List<int> intArray)
-	{
-		appendValueString(ref queryStr, IsToS(intArray));
-	}
-	public static void appendConditionString(ref string condition, string col, string str, string operate)
-	{
-		condition += col + " = " + "\"" + str + "\"" + operate;
-	}
-	public static void appendConditionInt(ref string condition, string col, int value, string operate)
-	{
-		condition += col + " = " + IToS(value) + operate;
-	}
-	public static void appendUpdateString(ref string updateStr, string col, string str)
-	{
-		updateStr += col + " = " + "\"" + str + "\",";
-	}
-	public static void appendUpdateInt(ref string updateStr, string col, int value)
-	{
-		updateStr += col + " = " + IToS(value) + ",";
-	}
-	public static void appendUpdateInts(ref string updateStr, string col, List<int> intArray)
-	{
-		appendUpdateString(ref updateStr, col, IsToS(intArray));
-	}
-	public static void appendUpdateFloats(ref string updateStr, string col, List<float> floatArray)
-	{
-		appendUpdateString(ref updateStr, col, FsToS(floatArray));
 	}
 	public static int KMPSearch(string str, string pattern)
 	{
@@ -2218,17 +1410,6 @@ public class StringUtility
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected static void initIntToString()
-	{
-		mIntToString = new string[10240];
-		mStringToInt = new();
-		for (int i = 0; i < mIntToString.Length; ++i)
-		{
-			string iStr = i.ToString();
-			mStringToInt.Add(iStr, i);
-			mIntToString[i] = iStr;
-		}
-	}
 	protected static void initInvalidChars()
 	{
 		mInvalidParamChars = new()

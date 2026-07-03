@@ -57,7 +57,7 @@ public class RawImageAnimPath : MonoBehaviour
 		int index = 0;
 		while(true)
 		{
-			if (!isFileExist(preString + IToS(index) + suffix))
+			if (!isFileExist(preString + index.IToS() + suffix))
 			{
 				break;
 			}

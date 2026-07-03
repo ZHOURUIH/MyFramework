@@ -236,7 +236,7 @@ public class SequenceRawImagePreview : MonoBehaviour
 
         for (int i = 0; i < 1000; ++i)
         {
-            string fileName = F_GAME_RESOURCES_PATH + mAnimPath.mTexturePath + "/" + mAnimPath.mTextureName + "_" + IToS(i) + ".png";
+            string fileName = F_GAME_RESOURCES_PATH + mAnimPath.mTexturePath + "/" + mAnimPath.mTextureName + "_" + i.IToS() + ".png";
             if (!isFileExist(fileName))
             {
                 break;

@@ -1,8 +1,6 @@
 ﻿using System;
-using System.IO;
 using System.Runtime.CompilerServices;
 using Unity.Profiling;
-using static StringUtility;
 using static FrameBaseUtility;
 
 // 用于开始一段性能检测,不再使用时会自动释放,需要搭配using来使用
@@ -19,7 +17,7 @@ public struct ProfilerScope : IDisposable
 		var arr = new ProfilerMarker[30000];
 		for (int i = 0; i < arr.Length; ++i)
 		{
-			arr[i] = new ProfilerMarker(IToS(i));
+			arr[i] = new ProfilerMarker((i).IToS());
 		}
 		return arr;
 	}

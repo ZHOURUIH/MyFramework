@@ -88,7 +88,7 @@ public class UIGame : LayoutScript
 	}
 	public void setSpeed(float speed)
 	{
-		mSpeed.setText("速度:" + FToS(speed, 0));
+		mSpeed.setText("速度:" + speed.FToS(0));
 	}
 	// 显示伤害数字,position是数字的世界坐标
 	public void showNumber(Vector3 position, int number)

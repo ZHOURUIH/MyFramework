@@ -20,12 +20,12 @@ public class ListPoolThreadDebug : MonoBehaviour
 		{
 			foreach (var item in mListPoolThread.getInusedList())
 			{
-				InuseList.addIf(item.Key + ", 数量:" + IToS(item.Value.Count), item.Value.Count != 0);
+				InuseList.addIf(item.Key + ", 数量:" + item.Value.Count.IToS(), item.Value.Count != 0);
 			}
 
 			foreach (var item in mListPoolThread.getUnusedList())
 			{
-				UnuseList.addIf(item.Key + ", 数量:" + IToS(item.Value.Count), item.Value.Count != 0);
+				UnuseList.addIf(item.Key + ", 数量:" + item.Value.Count.IToS(), item.Value.Count != 0);
 			}
 		}
 	}

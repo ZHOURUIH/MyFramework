@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using static MathUtility;
-using static StringUtility;
 
 // 用于实现可以在面板上预览以及编辑所有的关键帧曲线
 public class GameKeyframe : MonoBehaviour
@@ -18,7 +17,7 @@ public class GameKeyframe : MonoBehaviour
 			++key;
 		}
 		AnimationCurve curve = new(new(0.0f, 0.0f, 0.0f, 1.0f), new(1.0f, 1.0f, 1.0f, 0.0f));
-		mCurveList.Add(new(key, "curve" + IToS(key), curve));
+		mCurveList.Add(new(key, "curve" + key.IToS(), curve));
 		mCurveList.Sort((x, y) => { return sign(x.mID - y.mID); });
 		return curve;
 	}

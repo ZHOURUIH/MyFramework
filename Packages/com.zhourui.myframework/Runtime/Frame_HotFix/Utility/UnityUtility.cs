@@ -214,7 +214,7 @@ public class UnityUtility
 	}
 	public static GameObject findOrCreateRootGameObject(string name)
 	{
-		GameObject obj = getRootGameObject(name, false);
+		GameObject obj = findRootGameObject(name, false);
 		if (obj == null)
 		{
 			obj = createGameObject(name);
@@ -223,7 +223,7 @@ public class UnityUtility
 	}
 	public static GameObject findOrCreateGameObject(string name, GameObject parent, bool recursive = true)
 	{
-		GameObject obj = getGameObject(name, parent, false, recursive);
+		GameObject obj = findGameObject(name, parent, false, recursive);
 		if (obj == null)
 		{
 			obj = createGameObject(name, parent);

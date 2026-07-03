@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using static FrameBaseHotFix;
-using static StringUtility;
 
 // 线程安全的字典池的调试信息
 public class DictionaryPoolThreadDebug : MonoBehaviour
@@ -20,12 +19,12 @@ public class DictionaryPoolThreadDebug : MonoBehaviour
 		{
 			foreach (var item in mDictionaryPoolThread.getInusedList())
 			{
-				InuseList.addIf(item.Key + ":" + IToS(item.Value.Count), item.Value.Count > 0);
+				InuseList.addIf(item.Key + ":" + item.Value.Count.IToS(), item.Value.Count > 0);
 			}
 
 			foreach (var item in mDictionaryPoolThread.getUnusedList())
 			{
-				UnuseList.addIf(item.Key + ":" + IToS(item.Value.Count), item.Value.Count > 0);
+				UnuseList.addIf(item.Key + ":" + item.Value.Count.IToS(), item.Value.Count > 0);
 			}
 		}
 	}

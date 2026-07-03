@@ -241,7 +241,7 @@ public abstract class NetConnectUDP : NetConnect
 					}
 					if (isDevOrEditor())
 					{
-						string info = "已接收 : " + IToS(packetType) + ", 字节数:" + IToS(bitCountToByteCount(bitIndex));
+						string info = "已接收 : " + packetType.IToS() + ", 字节数:" + bitCountToByteCount(bitIndex).IToS();
 						log(info, LOG_LEVEL.LOW);
 						mReceivePacketHistory.Enqueue(info);
 						if (mReceivePacketHistory.Count > 10)

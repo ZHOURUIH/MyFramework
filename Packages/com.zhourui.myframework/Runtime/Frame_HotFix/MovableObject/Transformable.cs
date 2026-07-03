@@ -202,7 +202,7 @@ public class Transformable : ComponentOwner, ITransformable
 	// 从指定的子节点中查找指定组件
 	public T getUnityComponentInChild<T>(string childName) where T : Component
 	{
-		GameObject go = FrameBaseUtility.getGameObject(childName, mObject);
+		GameObject go = FrameBaseUtility.findGameObject(childName, mObject);
 		if (go == null)
 		{
 			return null;

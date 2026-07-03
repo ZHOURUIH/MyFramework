@@ -304,7 +304,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	public bool hasObject(myUGUIObject parent, string name)
 	{
 		parent ??= mRoot;
-		return getGameObject(name, parent.getGameObject()) != null;
+		return findGameObject(name, parent.getGameObject()) != null;
 	}
 	public T cloneObject<T>(myUGUIObject parent, myUGUIObject oriObj, string name) where T : myUGUIObject, new()
 	{
@@ -414,11 +414,11 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 		GameObject gameObject;
 		if (parentObj == null)
 		{
-			gameObject = getRootGameObject(name, showError);
+			gameObject = findRootGameObject(name, showError);
 		}
 		else
 		{
-			gameObject = getGameObject(name, parentObj, showError, false);
+			gameObject = findGameObject(name, parentObj, showError, false);
 		}
 		if (gameObject == null)
 		{

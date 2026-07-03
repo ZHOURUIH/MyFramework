@@ -150,7 +150,7 @@ public class UGUIGeneratorInspector : GameInspector
 			{
 				insertList.For(str => codeList.Insert(++lineStart0, str));
 			}
-			writeTxtFile(registerFileFullPath, stringsToString(codeList, "\r\n"), true);
+			writeTxtFile(registerFileFullPath, codeList.stringsToString("\r\n"), true);
 		}
 
 		// GameBaseILR
@@ -164,7 +164,7 @@ public class UGUIGeneratorInspector : GameInspector
 			{
 				uiList.For(str => codeList.Insert(++lineStart0, "\tpublic static " + str + " m" + str + ";"));
 			}
-			writeTxtFile(gameBaseFileFullPath, stringsToString(codeList, "\r\n"), true);
+			writeTxtFile(gameBaseFileFullPath, codeList.stringsToString("\r\n"), true);
 		}
 	}
 	// 生成UI对应的脚本
@@ -454,7 +454,7 @@ public class UGUIGeneratorInspector : GameInspector
 					}
 				}
 			}
-			writeTxtFile(fileFullPath, stringsToString(codeList, "\r\n"), true);
+			writeTxtFile(fileFullPath, codeList.stringsToString("\r\n"), true);
 		}
 	}
 }

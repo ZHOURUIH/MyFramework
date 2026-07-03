@@ -93,7 +93,7 @@ public class ExcelTable
 	{
 		if (!isEnumValid(value))
 		{
-			logError("enum value error,name:" + varName + " in " + mTableName + ", ID:" + IToS(dataID) + ", Table:" + getTableName());
+			logError("enum value error,name:" + varName + " in " + mTableName + ", ID:" + dataID.IToS() + ", Table:" + getTableName());
 		}
 	}
 	public void checkEnum<T>(List<T> valueList, string varName, int dataID) where T : Enum

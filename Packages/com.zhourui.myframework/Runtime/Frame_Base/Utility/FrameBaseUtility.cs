@@ -315,13 +315,13 @@ public class FrameBaseUtility
 		Screen.SetResolution(size.x, size.y, fullScreen);
 
 		// UGUI
-		GameObject uguiRootObj = getRootGameObject(UGUI_ROOT);
+		GameObject uguiRootObj = findRootGameObject(UGUI_ROOT);
 		uguiRootObj.TryGetComponent<RectTransform>(out var uguiRectTransform);
 		uguiRectTransform.offsetMin = -size / 2;
 		uguiRectTransform.offsetMax = size / 2;
 		uguiRectTransform.anchorMax = Vector2.one * 0.5f;
 		uguiRectTransform.anchorMin = Vector2.one * 0.5f;
-		Camera camera = getGameObject("UICamera", uguiRootObj).GetComponent<Camera>();
+		Camera camera = findGameObject("UICamera", uguiRootObj).GetComponent<Camera>();
 		if (camera.orthographic)
 		{
 			camera.orthographicSize = size.y * 0.5f;
@@ -331,7 +331,7 @@ public class FrameBaseUtility
 			camera.transform.localPosition = new(0.0f, 0.0f, -size.y * 0.5f / Mathf.Tan(camera.fieldOfView * Mathf.Deg2Rad * 0.5f));
 		}
 	}
-	public static GameObject getRootGameObject(string name, bool errorIfNull = false)
+	public static GameObject findRootGameObject(string name, bool errorIfNull = false)
 	{
 		if (string.IsNullOrEmpty(name))
 		{
@@ -344,7 +344,7 @@ public class FrameBaseUtility
 		}
 		return go;
 	}
-	public static GameObject getGameObject(string name, GameObject parent, bool errorIfNull = false, bool recursive = true)
+	public static GameObject findGameObject(string name, GameObject parent, bool errorIfNull = false, bool recursive = true)
 	{
 		if (string.IsNullOrEmpty(name))
 		{
@@ -367,7 +367,7 @@ public class FrameBaseUtility
 			int childCount = parent.transform.childCount;
 			for (int i = 0; i < childCount; ++i)
 			{
-				go = getGameObject(name, parent.transform.GetChild(i).gameObject, false, recursive);
+				go = findGameObject(name, parent.transform.GetChild(i).gameObject, false, recursive);
 				if (go != null)
 				{
 					break;

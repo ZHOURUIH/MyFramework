@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using static FrameBaseHotFix;
-using static StringUtility;
 
 // 列表池的调试信息
 public class ListPoolDebug : MonoBehaviour
@@ -18,19 +17,19 @@ public class ListPoolDebug : MonoBehaviour
 		PersistentInuseList.Clear();
 		foreach (var item in mListPool.getPersistentInusedList())
 		{
-			PersistentInuseList.addIf(item.Key + ", 数量:" + IToS(item.Value.Count), item.Value.Count != 0);
+			PersistentInuseList.addIf(item.Key + ", 数量:" + item.Value.Count.IToS(), item.Value.Count != 0);
 		}
 
 		InuseList.Clear();
 		foreach(var item in mListPool.getInusedList())
 		{
-			InuseList.addIf(item.Key + ", 数量:" + IToS(item.Value.Count), item.Value.Count != 0);
+			InuseList.addIf(item.Key + ", 数量:" + item.Value.Count.IToS(), item.Value.Count != 0);
 		}
 
 		UnuseList.Clear();
 		foreach (var item in mListPool.getUnusedList())
 		{
-			UnuseList.addIf(item.Key + ", 数量:" + IToS(item.Value.Count), item.Value.Count != 0);
+			UnuseList.addIf(item.Key + ", 数量:" + item.Value.Count.IToS(), item.Value.Count != 0);
 		}
 	}
 }

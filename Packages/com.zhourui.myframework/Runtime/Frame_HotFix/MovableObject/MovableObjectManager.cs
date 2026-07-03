@@ -39,11 +39,11 @@ public class MovableObjectManager : FrameSystem
 	}
 	public MovableObject createMovableObject(GameObject parent, string name)
 	{
-		return createMovableObjectInternal(typeof(MovableObject), getGameObject(name, parent), name);
+		return createMovableObjectInternal(typeof(MovableObject), findGameObject(name, parent), name);
 	}
 	public T createMovableObject<T>(GameObject parent, string name) where T : MovableObject
 	{
-		return createMovableObjectInternal(typeof(T), getGameObject(name, parent), name) as T;
+		return createMovableObjectInternal(typeof(T), findGameObject(name, parent), name) as T;
 	}
 	public void destroyObject(MovableObject obj)
 	{

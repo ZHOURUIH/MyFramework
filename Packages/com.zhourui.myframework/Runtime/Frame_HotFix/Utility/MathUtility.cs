@@ -470,14 +470,14 @@ public class MathUtility
 			// 遍历到了最后一个字符,则直接把最后一个数字放入列表,然后退出循环
 			if (i == str.Length - 1)
 			{
-				numbers.Add(SToF(str.removeStartCount(beginPos)));
+				numbers.Add(str.removeStartCount(beginPos).SToF());
 				break;
 			}
 			// 找到第一个运算符
 			if (!isNumeric(str[i]) && str[i] != '.')
 			{
 				// 如果在表达式的开始就发现了运算符,则表示第一个数是负数,那就处理为0减去这个数的绝对值
-				numbers.Add(i != 0 ? SToF(str.range(beginPos, i)) : 0);
+				numbers.Add(i != 0 ? str.range(beginPos, i).SToF() : 0);
 				factors.Add(str[i]);
 				beginPos = i + 1;
 			}

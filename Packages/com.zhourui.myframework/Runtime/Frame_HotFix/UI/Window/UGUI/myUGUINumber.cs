@@ -40,7 +40,7 @@ public class myUGUINumber : myUGUIImage
 		mNumberStyle = mImage.sprite.name.rangeToLast('_');
 		for (int i = 0; i < 10; ++i)
 		{
-			mSpriteList[i] = getSpriteInAtlas(mNumberStyle + "_" + IToS(i));
+			mSpriteList[i] = getSpriteInAtlas(mNumberStyle + "_" + i.IToS());
 		}
 		mAddSprite = getSpriteInAtlas(mNumberStyle + "_add");
 		mMinusSprite = getSpriteInAtlas(mNumberStyle + "_minus");
@@ -147,13 +147,13 @@ public class myUGUINumber : myUGUIImage
 		mNumberList.Clear();
 		for (int i = 0; i < mMaxCount + 1; ++i)
 		{
-			mNumberList.Add(mLayout.getScript().createUGUIObject<myUGUIImageSimple>(this, mName + "_" + IToS(i), true));
+			mNumberList.Add(mLayout.getScript().createUGUIObject<myUGUIImageSimple>(this, mName + "_" + i.IToS(), true));
 		}
 		refreshNumber();
 	}
 	public void setNumber(int num, int limitLen = 0)
 	{
-		setNumber(IToS(num, limitLen));
+		setNumber(num.IToS(limitLen));
 	}
 	public void setNumber(string num)
 	{

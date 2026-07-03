@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using static FrameBaseHotFix;
-using static StringUtility;
 
 // 线程安全的HashSet对象池的调试信息
 public class HashSetPoolThreadDebug : MonoBehaviour
@@ -20,12 +19,12 @@ public class HashSetPoolThreadDebug : MonoBehaviour
 		{
 			foreach (var item in mHashSetPoolThread.getInusedList())
 			{
-				InuseList.addIf(item.Key + ", 数量:" + IToS(item.Value.Count), item.Value.Count != 0);
+				InuseList.addIf(item.Key + ", 数量:" + item.Value.Count.IToS(), item.Value.Count != 0);
 			}
 
 			foreach (var item in mHashSetPoolThread.getUnusedList())
 			{
-				UnuseList.addIf(item.Key + ", 数量:" + IToS(item.Value.Count), item.Value.Count != 0);
+				UnuseList.addIf(item.Key + ", 数量:" + item.Value.Count.IToS(), item.Value.Count != 0);
 			}
 		}
 	}

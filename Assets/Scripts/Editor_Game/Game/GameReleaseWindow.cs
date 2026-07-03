@@ -60,7 +60,7 @@ public class GameReleaseWindow : GameEditorWindow
 					}
 					if (modified)
 					{
-						mPlatform.mBuildVersion = stringsToString(mPlatform.mVersionNumber, '.');
+						mPlatform.mBuildVersion = mPlatform.mVersionNumber.stringsToString('.');
 					}
 				}
 			}
@@ -149,7 +149,7 @@ public class GameReleaseWindow : GameEditorWindow
 					// 需要大版本号与远端一致,小版本号大于远端小版本号
 					if (!mNeedCheckVersion || mPlatform.mRemoteVersion.isEmpty() || isMinVersionGreater || mAutoVersion)
 					{
-						string buildVersion = stringsToString(mPlatform.mVersionNumber, '.');
+						string buildVersion = mPlatform.mVersionNumber.stringsToString('.');
 						if (mAutoVersion)
 						{
 							buildVersion = mPlatform.generateSubVersion();
@@ -173,7 +173,7 @@ public class GameReleaseWindow : GameEditorWindow
 					// 需要大版本号与远端一致,小版本号大于远端小版本号
 					if (!mNeedCheckVersion || mPlatform.mRemoteVersion.isEmpty() || isMinVersionGreater || mAutoVersion)
 					{
-						string buildVersion = stringsToString(mPlatform.mVersionNumber, '.');
+						string buildVersion = mPlatform.mVersionNumber.stringsToString('.');
 						if (mAutoVersion)
 						{
 							buildVersion = mPlatform.generateSubVersion();
@@ -196,7 +196,7 @@ public class GameReleaseWindow : GameEditorWindow
 					// 需要大版本号与远端一致,小版本号大于远端小版本号
 					if (!mNeedCheckVersion || mPlatform.mRemoteVersion.isEmpty() || isMinVersionGreater || mAutoVersion)
 					{
-						string buildVersion = stringsToString(mPlatform.mVersionNumber, '.');
+						string buildVersion = mPlatform.mVersionNumber.stringsToString('.');
 						if (mAutoVersion)
 						{
 							buildVersion = mPlatform.generateSubVersion();
@@ -214,7 +214,7 @@ public class GameReleaseWindow : GameEditorWindow
 					}
 				}
 
-				long localBigVersion = SToL(mPlatform.mVersionNumber[0]) * 1000000000 + SToL(mPlatform.mVersionNumber[1]);
+				long localBigVersion = mPlatform.mVersionNumber[0].SToL() * 1000000000 + mPlatform.mVersionNumber[1].SToL();
 				long remoteBigVersion = PlatformBase.getVersionPart(mPlatform.mRemoteVersion, 0) * 1000000000 + PlatformBase.getVersionPart(mPlatform.mRemoteVersion, 1);
 				// 大版本更新打包
 				if (button("大版本更新,打包AB+打包程序+上传", "大版本更新打包,会执行打包AB,构建xcode工程或生成apk,并且上传StreamingAssets资源", 200, 30))
@@ -222,7 +222,7 @@ public class GameReleaseWindow : GameEditorWindow
 					// 需要大版本号大于远端
 					if (!mNeedCheckVersion || localBigVersion > remoteBigVersion || mAutoVersion)
 					{
-						string buildVersion = stringsToString(mPlatform.mVersionNumber, '.');
+						string buildVersion = mPlatform.mVersionNumber.stringsToString('.');
 						if (mAutoVersion)
 						{
 							buildVersion = mPlatform.generateMainVersion();
@@ -244,7 +244,7 @@ public class GameReleaseWindow : GameEditorWindow
 					// 需要大版本号大于远端
 					if (!mNeedCheckVersion || localBigVersion > remoteBigVersion || mAutoVersion)
 					{
-						string buildVersion = stringsToString(mPlatform.mVersionNumber, '.');
+						string buildVersion = mPlatform.mVersionNumber.stringsToString('.');
 						if (mAutoVersion)
 						{
 							buildVersion = mPlatform.generateMainVersion();
@@ -267,7 +267,7 @@ public class GameReleaseWindow : GameEditorWindow
 			{
 				if (button("打包AB+生成程序", "打包AB,生成可执行程序", 150, 30))
 				{
-					string buildVersion = stringsToString(mPlatform.mVersionNumber, '.');
+					string buildVersion = mPlatform.mVersionNumber.stringsToString('.');
 					if (mAutoVersion)
 					{
 						buildVersion = mPlatform.generateMainVersion();
@@ -282,7 +282,7 @@ public class GameReleaseWindow : GameEditorWindow
 				}
 				if (button("生成程序", "生成可执行程序", 120, 30))
 				{
-					string buildVersion = stringsToString(mPlatform.mVersionNumber, '.');
+					string buildVersion = mPlatform.mVersionNumber.stringsToString('.');
 					if (mAutoVersion)
 					{
 						buildVersion = mPlatform.generateMainVersion();
@@ -357,7 +357,7 @@ public class GameReleaseWindow : GameEditorWindow
 		mPlatform.generateFolderPreName();
 		mPlatform.updateRemoteVersion();
 		mPlatform.updateLocalVersion();
-		setBuildVersion(stringsToString(mPlatform.mVersionNumber, '.'));
+		setBuildVersion(mPlatform.mVersionNumber.stringsToString('.'));
 		mNeedCheckVersion = true;
 	}
 	protected bool setBuildVersion(string version)

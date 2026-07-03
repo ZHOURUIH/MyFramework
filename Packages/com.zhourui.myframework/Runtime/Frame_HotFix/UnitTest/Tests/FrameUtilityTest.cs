@@ -103,8 +103,8 @@ public static class FrameUtilityTest
 
     static void testBoolToString()
     {
-        assertEqual("true", boolToString(true));
-        assertEqual("false", boolToString(false));
+        assertEqual("true", true.boolToString());
+        assertEqual("false", false.boolToString());
     }
 
     static void testSign()

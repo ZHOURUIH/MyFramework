@@ -99,7 +99,7 @@ public class ClassPool : FrameSystem
 			var inuseList = onlyOnce ? mInusedList : mPersistentInuseList;
 			if (!inuseList.getOrAddNew(type).Add(obj))
 			{
-				Debug.LogError("对象已经在已使用列表中了,不能再添加,是否为持久使用:" + onlyOnce + ", 新创建创建对象:" + boolToString(isNew) + ", type:" + type);
+				Debug.LogError("对象已经在已使用列表中了,不能再添加,是否为持久使用:" + onlyOnce + ", 新创建创建对象:" + isNew.boolToString() + ", type:" + type);
 			}
 			mObjectStack.Add(obj, GameEntryBase.getInstance().mFrameworkParam.mEnablePoolStackTrace ? getStackTrace() : EMPTY);
 

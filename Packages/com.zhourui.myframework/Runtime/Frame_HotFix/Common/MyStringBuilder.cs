@@ -77,37 +77,37 @@ public class MyStringBuilder : ClassObject
 	}
 	public MyStringBuilder add(byte value)
 	{
-		mBuilder.Append(IToS(value));
+		mBuilder.Append(value.IToS());
 		return this;
 	}
 	public MyStringBuilder add(bool value)
 	{
-		mBuilder.Append(boolToString(value));
+		mBuilder.Append(value.boolToString());
 		return this;
 	}
 	public MyStringBuilder add(short value)
 	{
-		mBuilder.Append(IToS(value));
+		mBuilder.Append(value.IToS());
 		return this;
 	}
 	public MyStringBuilder add(ushort value)
 	{
-		mBuilder.Append(IToS(value));
+		mBuilder.Append(value.IToS());
 		return this;
 	}
 	public MyStringBuilder add(int value)
 	{
-		mBuilder.Append(IToS(value));
+		mBuilder.Append(value.IToS());
 		return this;
 	}
 	public MyStringBuilder add(uint value)
 	{
-		mBuilder.Append(IToS(value));
+		mBuilder.Append(value.IToS());
 		return this;
 	}
 	public MyStringBuilder add(float value, int precision = 4)
 	{
-		mBuilder.Append(FToS(value, precision));
+		mBuilder.Append(value.FToS(precision));
 		return this;
 	}
 	public MyStringBuilder add(double value)
@@ -117,22 +117,22 @@ public class MyStringBuilder : ClassObject
 	}
 	public MyStringBuilder add(long value)
 	{
-		mBuilder.Append(LToS(value));
+		mBuilder.Append(value.LToS());
 		return this;
 	}
 	public MyStringBuilder add(ulong value)
 	{
-		mBuilder.Append(LToS(value));
+		mBuilder.Append(value.LToS());
 		return this;
 	}
 	public MyStringBuilder add(Vector2 value, int precision = 4)
 	{
-		mBuilder.Append(StringUtility.V2ToS(value, precision));
+		mBuilder.Append(value.V2ToS(precision));
 		return this;
 	}
 	public MyStringBuilder add(Vector3 value, int precision = 4)
 	{
-		mBuilder.Append(StringUtility.V3ToS(value, precision));
+		mBuilder.Append(value.V3ToS(precision));
 		return this;
 	}
 	public MyStringBuilder add(Color32 value)
@@ -142,23 +142,23 @@ public class MyStringBuilder : ClassObject
 	}
 	public MyStringBuilder colorStringComma(string color, long value)
 	{
-		return add("<color=#", color, ">", LToSComma(value), "</color>");
+		return add("<color=#", color, ">", value.LToSComma(), "</color>");
 	}
 	public MyStringBuilder colorString(string color, long value)
 	{
-		return add("<color=#", color, ">", LToS(value), "</color>");
+		return add("<color=#", color, ">", value.LToS(), "</color>");
 	}
 	public MyStringBuilder colorStringComma(string color, int value)
 	{
-		return add("<color=#", color, ">", IToSComma(value), "</color>");
+		return add("<color=#", color, ">", value.IToSComma(), "</color>");
 	}
 	public MyStringBuilder colorString(string color, int value)
 	{
-		return add("<color=#", color, ">", IToS(value), "</color>");
+		return add("<color=#", color, ">", value.IToS(), "</color>");
 	}
 	public MyStringBuilder colorString(string color, int value0, string str0, int value1)
 	{
-		return add("<color=#", color, ">", IToS(value0), str0, IToS(value1), "</color>");
+		return add("<color=#", color, ">", value0.IToS(), str0, value1.IToS(), "</color>");
 	}
 	public MyStringBuilder colorStringIf(string color, string str0, bool condition)
 	{
@@ -292,51 +292,51 @@ public class MyStringBuilder : ClassObject
 	}
 	public MyStringBuilder add(string str0, int value)
 	{
-		return add(str0, IToS(value));
+		return add(str0, value.IToS());
 	}
 	public MyStringBuilder add(string str0, int value, string str1)
 	{
-		return add(str0, IToS(value), str1);
+		return add(str0, value.IToS(), str1);
 	}
 	public MyStringBuilder add(string str0, float value, int precision = 4)
 	{
-		return add(str0, FToS(value, precision));
+		return add(str0, value.FToS(precision));
 	}
 	public MyStringBuilder add(string str0, float value, int precision, string str1)
 	{
-		return add(str0, FToS(value, precision), str1);
+		return add(str0, value.FToS(precision), str1);
 	}
 	public MyStringBuilder add(string str0, float value, string str1)
 	{
-		return add(str0, FToS(value), str1);
+		return add(str0, value.FToS(), str1);
 	}
 	public MyStringBuilder add(string str0, bool value)
 	{
-		return add(str0, boolToString(value));
+		return add(str0, value.boolToString());
 	}
 	public MyStringBuilder add(string str0, long value)
 	{
-		return add(str0, LToS(value));
+		return add(str0, value.LToS());
 	}
 	public MyStringBuilder add(string str0, long value, string str1)
 	{
-		return add(str0, LToS(value), str1);
+		return add(str0, value.LToS(), str1);
 	}
 	public MyStringBuilder add(string str0, ulong value)
 	{
-		return add(str0, LToS(value));
+		return add(str0, value.LToS());
 	}
 	public MyStringBuilder add(string str0, ulong value, string str1)
 	{
-		return add(str0, LToS(value), str1);
+		return add(str0, value.LToS(), str1);
 	}
 	public MyStringBuilder add(string str0, Vector2 value, int precision = 4)
 	{
-		return add(str0, StringUtility.V2ToS(value, precision));
+		return add(str0, value.V2ToS(precision));
 	}
 	public MyStringBuilder add(string str0, Vector3 value, int precision = 4)
 	{
-		return add(str0, StringUtility.V3ToS(value, precision));
+		return add(str0, value.V3ToS(precision));
 	}
 	public MyStringBuilder add(string str0, Color32 value)
 	{
@@ -658,15 +658,15 @@ public class MyStringBuilder : ClassObject
 	}
 	public void V2IToS(Vector2Int value, int limitLength = 0)
 	{
-		add(IToS(value.x, limitLength), ",", IToS(value.y, limitLength));
+		add(value.x.IToS(limitLength), ",", value.y.IToS(limitLength));
 	}
 	public void V2ToS(Vector2 value, int precision = 4)
 	{
-		add(FToS(value.x, precision), ",", FToS(value.y, precision));
+		add(value.x.FToS(precision), ",", value.y.FToS(precision));
 	}
 	public void V3ToS(Vector3 value, int precision = 4)
 	{
-		add(FToS(value.x, precision), ",", FToS(value.y, precision), ",", FToS(value.z, precision));
+		add(value.x.FToS(precision), ",", value.y.FToS(precision), ",", value.z.FToS(precision));
 	}
 	public void byteToHEXString(byte value, bool upperOrLower = true)
 	{
@@ -724,23 +724,23 @@ public class MyStringBuilder : ClassObject
 	}
 	public void addValueInt(int value)
 	{
-		add(IToS(value), ",");
+		add(value.IToS(), ",");
 	}
 	public void addValueUInt(uint value)
 	{
-		add(IToS(value), ",");
+		add(value.IToS(), ",");
 	}
 	public void addValueFloat(float value)
 	{
-		add(FToS(value), ",");
+		add(value.FToS(), ",");
 	}
 	public void addValueFloats(List<float> floatArray)
 	{
-		addValueString(FsToS(floatArray));
+		addValueString(floatArray.FsToS());
 	}
 	public void addValueInts(List<int> intArray)
 	{
-		addValueString(IsToS(intArray));
+		addValueString(intArray.IsToS());
 	}
 	public void addConditionString(string col, string str, string operate)
 	{
@@ -748,7 +748,7 @@ public class MyStringBuilder : ClassObject
 	}
 	public void addConditionInt(string col, int value, string operate)
 	{
-		add(col, " = ", IToS(value), operate);
+		add(col, " = ", value.IToS(), operate);
 	}
 	public void addUpdateString(string col, string str)
 	{
@@ -756,15 +756,15 @@ public class MyStringBuilder : ClassObject
 	}
 	public void addUpdateInt(string col, int value)
 	{
-		add(col, " = ", IToS(value), ",");
+		add(col, " = ", value.IToS(), ",");
 	}
 	public void addUpdateInts(string col, List<int> intArray)
 	{
-		addUpdateString(col, IsToS(intArray));
+		addUpdateString(col, intArray.IsToS());
 	}
 	public void addUpdateFloats(string col, List<float> floatArray)
 	{
-		addUpdateString(col, FsToS(floatArray));
+		addUpdateString(col, floatArray.FsToS());
 	}
 	public override string ToString()
 	{

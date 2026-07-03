@@ -132,7 +132,7 @@ public class PathRecorder : MonoBehaviour
 			string content = "";
 			foreach (var item in mTranslatePath)
 			{
-				content += FToS(item.Key) + ":" + V3ToS(item.Value) + "\n";
+				content += item.Key.FToS() + ":" + item.Value.V3ToS() + "\n";
 			}
 			writeTxtFile(pathWithName + ".translate", content);
 		}
@@ -143,7 +143,7 @@ public class PathRecorder : MonoBehaviour
 			string content = "";
 			foreach (var item in mRotatePath)
 			{
-				content += FToS(item.Key) + ":" + V3ToS(item.Value) + "\n";
+				content += item.Key.FToS() + ":" + item.Value.V3ToS() + "\n";
 			}
 			writeTxtFile(pathWithName + ".rotate", content);
 		}
@@ -154,7 +154,7 @@ public class PathRecorder : MonoBehaviour
 			string content = "";
 			foreach (var item in mScalePath)
 			{
-				content += FToS(item.Key) + ":" + V3ToS(item.Value) + "\n";
+				content += item.Key.FToS() + ":" + item.Value.V3ToS() + "\n";
 			}
 			writeTxtFile(pathWithName + ".scale", content);
 		}
@@ -164,7 +164,7 @@ public class PathRecorder : MonoBehaviour
 			string content = "";
 			foreach (var item in mAlphaPath)
 			{
-				content += FToS(item.Key) + ":" + FToS(item.Value) + "\n";
+				content += item.Key.FToS() + ":" + item.Value.FToS() + "\n";
 			}
 			writeTxtFile(pathWithName + ".alpha", content);
 		}

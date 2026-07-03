@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using static FrameBaseHotFix;
-using static StringUtility;
 
 // ClassPool调试信息
 public class ClassPoolDebug : MonoBehaviour
@@ -18,19 +17,19 @@ public class ClassPoolDebug : MonoBehaviour
 		PersistentInuseList.Clear();
 		foreach (var itemTypeList in mClassPool.getPersistentInusedList())
 		{
-			PersistentInuseList.addIf(itemTypeList.Key + ": 个数:" + IToS(itemTypeList.Value.Count), itemTypeList.Value.Count != 0);
+			PersistentInuseList.addIf(itemTypeList.Key + ": 个数:" + itemTypeList.Value.Count.IToS(), itemTypeList.Value.Count != 0);
 		}
 
 		InuseList.Clear();
 		foreach (var itemTypeList in mClassPool.getInusedList())
 		{
-			InuseList.addIf(itemTypeList.Key + ": 个数:" + IToS(itemTypeList.Value.Count), itemTypeList.Value.Count != 0);
+			InuseList.addIf(itemTypeList.Key + ": 个数:" + itemTypeList.Value.Count.IToS(), itemTypeList.Value.Count != 0);
 		}
 
 		UnuseList.Clear();
 		foreach (var itemTypeList in mClassPool.getUnusedList())
 		{
-			UnuseList.addIf(itemTypeList.Key + ": 个数:" + IToS(itemTypeList.Value.Count), itemTypeList.Value.Count != 0);
+			UnuseList.addIf(itemTypeList.Key + ": 个数:" + itemTypeList.Value.Count.IToS(), itemTypeList.Value.Count != 0);
 		}
 	}
 }

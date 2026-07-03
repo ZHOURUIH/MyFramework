@@ -37,13 +37,13 @@ public class EDGlobal : ExcelData
 		{
 			paramMap.add(data.mParamName, data.mParamValue.removeAllEmpty());
 		}
-		TEST_GLOBAL_3 = SToV2I(paramMap["TEST_GLOBAL_3"]);
-		TEST_GLOBAL_4 = SToV2(paramMap["TEST_GLOBAL_4"]);
-		TEST_GLOBAL_5 = SToV3(paramMap["TEST_GLOBAL_5"]);
-		TEST_GLOBAL_6 = SToV3I(paramMap["TEST_GLOBAL_6"]);
-		TEST_GLOBAL_7 = SToIs(paramMap["TEST_GLOBAL_7"]);
-		TEST_GLOBAL_8 = SToFs(paramMap["TEST_GLOBAL_8"]);
-		TEST_GLOBAL_9 = SToLs(paramMap["TEST_GLOBAL_9"]);
+		TEST_GLOBAL_3 = paramMap["TEST_GLOBAL_3"].SToV2I();
+		TEST_GLOBAL_4 = paramMap["TEST_GLOBAL_4"].SToV2();
+		TEST_GLOBAL_5 = paramMap["TEST_GLOBAL_5"].SToV3();
+		TEST_GLOBAL_6 = paramMap["TEST_GLOBAL_6"].SToV3I();
+		TEST_GLOBAL_7 = paramMap["TEST_GLOBAL_7"].SToIs();
+		TEST_GLOBAL_8 = paramMap["TEST_GLOBAL_8"].SToFs();
+		TEST_GLOBAL_9 = paramMap["TEST_GLOBAL_9"].SToLs();
 	}
 }
 // auto generate end

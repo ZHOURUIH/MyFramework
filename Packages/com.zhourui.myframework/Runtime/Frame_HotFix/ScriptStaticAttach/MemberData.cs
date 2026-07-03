@@ -179,7 +179,7 @@ public class MemberData
 		string preName = mObject.name.removeEndString("0");
 		for (int j = 0; j < 1000; ++j)
 		{
-			if (getGameObject(preName + j, parent) == null)
+			if (findGameObject(preName + j, parent) == null)
 			{
 				mArrayLength = j;
 				break;

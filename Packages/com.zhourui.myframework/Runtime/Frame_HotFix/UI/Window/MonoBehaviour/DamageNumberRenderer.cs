@@ -55,7 +55,7 @@ public class DamageNumberRenderer : MonoBehaviour
 	{
 		if (spriteList.Count > mNumberSpriteList.Length)
 		{
-			logError("图片的数量错误,不能超过" + IToS(mNumberSpriteList.Length) + "个");
+			logError("图片的数量错误,不能超过" + mNumberSpriteList.Length.IToS() + "个");
 			return;
 		}
 		mNumberSpriteList.setRange(spriteList);
@@ -139,7 +139,7 @@ public class DamageNumberRenderer : MonoBehaviour
 				int count = item.mNumbers.count();
 				if (mVertCount + ((flagCount + count) << 2) >= mVertices.Length)
 				{
-					logWarning("已经超出了顶点上限,最多只允许" + IToS(mVertices.Length) + "个顶点");
+					logWarning("已经超出了顶点上限,最多只允许" + mVertices.Length.IToS() + "个顶点");
 					return;
 				}
 				for (int i = 0; i < flagCount; ++i)

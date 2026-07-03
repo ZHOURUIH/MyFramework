@@ -213,7 +213,7 @@ public class ObsSystem
 		{
 			contentMD5Base64 = Convert.ToBase64String(contentMD5_16.toBytes());
 		}
-		expires = LToS(dateTimeToTimeStamp(DateTime.Now.AddMinutes(10)));
+		expires = dateTimeToTimeStamp(DateTime.Now.AddMinutes(10)).LToS();
 		string stringToSign = verb + "\n" + contentMD5Base64 + "\n" + contentType + "\n" + expires + "\n" + canonicalizedResource;
 		byte[] bytes = hmacSha1(secureKey, stringToSign);
 		return bytes != null ? Convert.ToBase64String(bytes) : EMPTY;
@@ -272,7 +272,7 @@ public class ObsSystem
 					}
 					else if (name == "Size")
 					{
-						info.mFileSize = SToL(reader.Value);
+						info.mFileSize = reader.Value.SToL();
 						// 完成一个文件信息的解析
 						fileList.Add(info);
 						break;
@@ -282,7 +282,7 @@ public class ObsSystem
 			else if (reader.Name == "IsTruncated")
 			{
 				reader.Read();
-				fetchFinish = !stringToBool(reader.Value);
+				fetchFinish = !reader.Value.stringToBool();
 			}
 			else if (reader.Name == "NextMarker")
 			{

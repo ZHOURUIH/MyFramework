@@ -293,8 +293,13 @@ public class InputSystem : FrameSystem
 		}
 		return null;
 	}
-	// 是否有任意触点在这一帧完成一次双击操作,如果有,则返回第一个在这一帧完成双击的触点
-	public TouchPoint isTouchDoubleClick()
+    public bool getTouchClick(out TouchPoint touch)
+	{
+		touch = getTouchClick();
+		return touch != null;
+	}
+    // 是否有任意触点在这一帧完成一次双击操作,如果有,则返回第一个在这一帧完成双击的触点
+    public TouchPoint getTouchDoubleClick()
 	{
 		foreach (var item in mTouchPointList)
 		{
@@ -305,8 +310,13 @@ public class InputSystem : FrameSystem
 		}
 		return null;
 	}
-	// 指定触点是否处于持续按下状态
-	public bool isTouchKeepDown(int pointerID)
+    public bool getTouchDoubleClick(out TouchPoint touch)
+    {
+        touch = getTouchDoubleClick();
+        return touch != null;
+    }
+    // 指定触点是否处于持续按下状态
+    public bool isTouchKeepDown(int pointerID)
 	{
 		if (!mTouchPointList.tryGetValue(pointerID, out TouchPoint point))
 		{

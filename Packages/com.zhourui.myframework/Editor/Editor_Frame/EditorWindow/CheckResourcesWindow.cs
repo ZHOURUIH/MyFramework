@@ -211,7 +211,7 @@ public class CheckResourcesWindow : GameEditorWindow
 						}
 						List<string> refList = item.Value.mRefInGameRes;
 						// 引用次数
-						labelWidth(IToS(refList.Count), 100);
+						labelWidth(refList.Count.IToS(), 100);
 						// 是否被外部引用
 						labelWidth(item.Value.mOuterRefCount ? "是" : "/", 100);
 
@@ -320,7 +320,7 @@ public class CheckResourcesWindow : GameEditorWindow
 					mCurPage = clampMin(mCurPage - 1);
 				}
 				int pageCount = ceil(tempFileRefList.Count / (float)mPageSize);
-				label("第" + IToS(clampMax(mCurPage + 1, pageCount)) + "/" + IToS(pageCount) + "页");
+				label("第" + clampMax(mCurPage + 1, pageCount).IToS() + "/" + pageCount.IToS() + "页");
 				if (button("下一页"))
 				{
 					mCurPage = clampMax(mCurPage + 1, pageCount - 1);

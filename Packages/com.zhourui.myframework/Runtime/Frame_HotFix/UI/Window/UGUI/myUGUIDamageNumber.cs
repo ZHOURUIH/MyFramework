@@ -185,7 +185,7 @@ public class myUGUIDamageNumber : myUGUIObject
 		for (int i = 0; i < 10; ++i)
 		{
 			SpriteData data = new();
-			data.init(mAtlasPtr.getSprite(mNumberStyle + "_" + IToS(i)));
+			data.init(mAtlasPtr.getSprite(mNumberStyle + "_" + i.IToS()));
 			spriteList.add(data);
 		}
 		mRenderer.mImage = spriteList.first().mSprite;

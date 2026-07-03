@@ -438,11 +438,11 @@ public class MenuCheckResources
 			UObject go = loadAsset(item.Key);
 			if (go != null)
 			{
-				Debug.LogError("引用了错误的资源,热更资源与非热更资源不能互相引用:" + go.name + "\n节点名称:" + stringsToString(missingRefObjectsList, '\n'), go);
+				Debug.LogError("引用了错误的资源,热更资源与非热更资源不能互相引用:" + go.name + "\n节点名称:" + missingRefObjectsList.stringsToString('\n'), go);
 			}
 			else
 			{
-				Debug.LogError("引用了不存在的资源:" + item.Key + "\n节点名称:" + stringsToString(missingRefObjectsList, '\n'));
+				Debug.LogError("引用了不存在的资源:" + item.Key + "\n节点名称:" + missingRefObjectsList.stringsToString('\n'));
 			}
 		}
 		Debug.Log("结束检查热更与非热更资源相互引用");
@@ -523,7 +523,7 @@ public class MenuCheckResources
 			var element = item.Value;
 			if (element.Count > 1)
 			{
-				Debug.LogError("出现重复的资源,路径为:\n" + stringsToString(element, '\n'), loadAsset(element[0]));
+				Debug.LogError("出现重复的资源,路径为:\n" + element.stringsToString('\n'), loadAsset(element[0]));
 			}
 		}
 		clearProgressBar();

@@ -284,7 +284,7 @@ public abstract class NetConnectWebSocket : NetConnect
 					}
 					if (isDevOrEditor())
 					{
-						log("已接收 : " + IToS(packetType) + ", 字节数:" + IToS(index), LOG_LEVEL.LOW);
+						log("已接收 : " + packetType.IToS() + ", 字节数:" + index.IToS(), LOG_LEVEL.LOW);
 					}
 					if (mInputBuffer.getDataLength() == 0)
 					{

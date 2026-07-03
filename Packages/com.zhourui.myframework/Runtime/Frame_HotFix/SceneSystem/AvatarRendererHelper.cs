@@ -147,12 +147,12 @@ public class AvatarRenderer : FrameSystem
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void initCamera()
 	{
-		GameObject go0 = getRootGameObject("RTCamera");
+		GameObject go0 = findRootGameObject("RTCamera");
 		mCameraNoPostTemplate = mCameraManager.createCamera(go0, 0, true, false);
 		mCameraNoPostTemplate.setPostProcessing(false);
 		mCameraNoPostTemplate.setActive(false);
 
-		GameObject go1 = getRootGameObject("RTCameraPost");
+		GameObject go1 = findRootGameObject("RTCameraPost");
 		mCameraPostTemplate = mCameraManager.createCamera(go1, 0, true, false);
 		mCameraPostTemplate.setPostProcessing(true);
 		mCameraPostTemplate.setActive(false);

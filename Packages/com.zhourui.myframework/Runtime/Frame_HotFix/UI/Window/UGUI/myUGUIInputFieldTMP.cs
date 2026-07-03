@@ -40,8 +40,8 @@ public class myUGUIInputFieldTMP : myUGUIObject, IInputField
 	public void setOnEditing(StringCallback action) { mOnEditing = action; }
 	public void cleanUp() { setText(EMPTY); }
 	public void setText(string value) { mInputField.SetTextWithoutNotify(value); }
-	public void setText(int value) { setText(IToS(value)); }
-	public void setText(float value) { setText(FToS(value, 2)); }
+	public void setText(int value) { setText(value.IToS()); }
+	public void setText(float value) { setText(value.FToS(2)); }
 	public string getText() { return mInputField.text; }
 	public bool isFocused() { return mInputField.isFocused; }
 	public bool isVisible() { return isActive(); }

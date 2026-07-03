@@ -87,8 +87,8 @@ public class TimeUtility
 	{
 		minuteToHourMinute(totalMinute, out int hour, out int minute);
 		using var a = new MyStringBuilderScope(out var timeStr);
-		timeStr.addIf(IToS(hour), "小时", hour > 0);
-		timeStr.addIf(IToS(minute), "分钟", minute > 0);
+		timeStr.addIf(hour.IToS(), "小时", hour > 0);
+		timeStr.addIf(minute.IToS(), "分钟", minute > 0);
 		return timeStr.ToString();
 	}
 	// 一般用于倒计时显示的字符串,只获取数字,自己拼接需要显示的字符串,适用于需要切换多语言的文本
@@ -157,19 +157,19 @@ public class TimeUtility
 		int second = timeSecond - hour * 3600 - min * 60;
 		if (display == TIME_DISPLAY.HMSM)
 		{
-			return strcat(IToS(hour), ":", IToS(min), ":", IToS(second));
+			return strcat(hour.IToS(), ":", min.IToS(), ":", second.IToS());
 		}
 		else if (display == TIME_DISPLAY.HMS_2)
 		{
-			return strcat(IToS(hour, 2), ":", IToS(min, 2), ":", IToS(second, 2));
+			return strcat(hour.IToS(2), ":", min.IToS(2), ":", second.IToS(2));
 		}
 		else if (display == TIME_DISPLAY.HM_2)
 		{
-			return IToS(hour, 2) + ":" + IToS(min, 2);
+			return hour.IToS(2) + ":" + min.IToS(2);
 		}
 		else if (display == TIME_DISPLAY.MS_2)
 		{
-			return IToS(min + hour * 60, 2) + ":" + IToS(second, 2);
+			return (min + hour * 60).IToS(2) + ":" + second.IToS(2);
 		}
 		else if (display == TIME_DISPLAY.DHMS_ZH)
 		{
@@ -182,17 +182,17 @@ public class TimeUtility
 			// 大于等于1天
 			if (totalDay > 0)
 			{
-				return strcat(IToS(totalDay), "天", IToS(curHour), "时", IToS(curMin), "分", IToS(curSecond), "秒");
+				return strcat(totalDay.IToS(), "天", curHour.IToS(), "时", curMin.IToS(), "分", curSecond.IToS(), "秒");
 			}
 			// 小于1天,并且大于等于1小时
 			else if (totalHour > 0)
 			{
-				return strcat(IToS(totalHour), "时", IToS(curMin), "分", IToS(curSecond), "秒");
+				return strcat(totalHour.IToS(), "时", curMin.IToS(), "分", curSecond.IToS(), "秒");
 			}
 			// 小于1小时,并且大于等于1分钟
 			else if (totalMin > 0)
 			{
-				return IToS(totalMin) + "分" + IToS(curSecond) + "秒";
+				return totalMin.IToS() + "分" + curSecond.IToS() + "秒";
 			}
 			return timeSecond + "秒";
 		}
@@ -206,14 +206,14 @@ public class TimeUtility
 			// 大于等于1天
 			if (totalDay > 0)
 			{
-				return strcat(IToS(totalDay), "天", IToS(curHour), "时", IToS(curMin), "分");
+				return strcat(totalDay.IToS(), "天", curHour.IToS(), "时", curMin.IToS(), "分");
 			}
 			// 小于1天,并且大于等于1小时
 			else if (totalHour > 0)
 			{
-				return IToS(totalHour) + "时" + IToS(curMin) + "分";
+				return totalHour.IToS() + "时" + curMin.IToS() + "分";
 			}
-			return IToS(totalMin) + "分";
+			return totalMin.IToS() + "分";
 		}
 		else if (display == TIME_DISPLAY.HM_ZH)
 		{
@@ -223,9 +223,9 @@ public class TimeUtility
 			// 小于1天,并且大于等于1小时
 			if (totalHour > 0)
 			{
-				return IToS(totalHour) + "时" + IToS(curMin) + "分";
+				return totalHour.IToS() + "时" + curMin.IToS() + "分";
 			}
-			return IToS(totalMin) + "分";
+			return totalMin.IToS() + "分";
 		}
 		else if (display == TIME_DISPLAY.MS_ZH)
 		{
@@ -234,9 +234,9 @@ public class TimeUtility
 			// 小于1天,并且大于等于1小时
 			if (totalMin > 0)
 			{
-				return IToS(totalMin) + "分" + IToS(curSecond) + "秒";
+				return totalMin.IToS() + "分" + curSecond.IToS() + "秒";
 			}
-			return IToS(curSecond) + "秒";
+			return curSecond.IToS() + "秒";
 		}
 		return EMPTY;
 	}
@@ -245,43 +245,43 @@ public class TimeUtility
 	{
 		if (display == TIME_DISPLAY.HMSM)
 		{
-			return strcat(IToS(time.Hour), ":", IToS(time.Minute), ":", IToS(time.Second), ":", IToS(time.Millisecond));
+			return strcat(time.Hour.IToS(), ":", time.Minute.IToS(), ":", time.Second.IToS(), ":", time.Millisecond.IToS());
 		}
 		else if (display == TIME_DISPLAY.HMS_2)
 		{
-			return strcat(IToS(time.Hour, 2), ":", IToS(time.Minute, 2), ":", IToS(time.Second, 2));
+			return strcat(time.Hour.IToS(2), ":", time.Minute.IToS(2), ":", time.Second.IToS(2));
 		}
 		else if (display == TIME_DISPLAY.HM_2)
 		{
-			return IToS(time.Hour, 2) + ":" + IToS(time.Minute, 2);
+			return time.Hour.IToS(2) + ":" + time.Minute.IToS(2);
 		}
 		else if (display == TIME_DISPLAY.MS_2)
 		{
-			return IToS(time.Minute, 2) + ":" + IToS(time.Second, 2);
+			return time.Minute.IToS(2) + ":" + time.Second.IToS(2);
 		}
 		else if (display == TIME_DISPLAY.DHMS_ZH)
 		{
-			return strcat(IToS(time.Day), "日", IToS(time.Hour), "时", IToS(time.Minute), "分", IToS(time.Second), "秒");
+			return strcat(time.Day.IToS(), "日", time.Hour.IToS(), "时", time.Minute.IToS(), "分", time.Second.IToS(), "秒");
 		}
 		else if (display == TIME_DISPLAY.DHM_ZH)
 		{
-			return strcat(IToS(time.Day), "日", IToS(time.Hour), "时", IToS(time.Minute), "分");
+			return strcat(time.Day.IToS(), "日", time.Hour.IToS(), "时", time.Minute.IToS(), "分");
 		}
 		else if (display == TIME_DISPLAY.HM_ZH)
 		{
-			return IToS(time.Hour) + "时" + IToS(time.Minute) + "分";
+			return time.Hour.IToS() + "时" + time.Minute.IToS() + "分";
 		}
 		else if (display == TIME_DISPLAY.MS_ZH)
 		{
-			return IToS(time.Minute) + "分" + IToS(time.Second) + "秒";
+			return time.Minute.IToS() + "分" + time.Second.IToS() + "秒";
 		}
 		else if (display == TIME_DISPLAY.YMD_ZH)
 		{
-			return strcat(IToS(time.Year), "年", IToS(time.Month), "月", IToS(time.Day), "日");
+			return strcat(time.Year.IToS(), "年", time.Month.IToS(), "月", time.Day.IToS(), "日");
 		}
 		else if(display == TIME_DISPLAY.YMDHM_ZH)
 		{
-			return strcat(IToS(time.Year), "年", IToS(time.Month), "月", IToS(time.Day), "日", IToS(time.Hour), "时", IToS(time.Minute), "分");
+			return strcat(time.Year.IToS(), "年", time.Month.IToS(), "月", time.Day.IToS(), "日", time.Hour.IToS(), "时", time.Minute.IToS(), "分");
 		}
 		return EMPTY;
 	}
@@ -289,43 +289,43 @@ public class TimeUtility
 	{
 		if (display == TIME_DISPLAY.HMSM)
 		{
-			return IToS(time.Hour) + ":" + IToS(time.Minute) + ":" + IToS(time.Second) + ":" + IToS(time.Millisecond);
+			return time.Hour.IToS() + ":" + time.Minute.IToS() + ":" + time.Second.IToS() + ":" + time.Millisecond.IToS();
 		}
 		else if (display == TIME_DISPLAY.HMS_2)
 		{
-			return IToS(time.Hour, 2) + ":" + IToS(time.Minute, 2) + ":" + IToS(time.Second, 2);
+			return time.Hour.IToS(2) + ":" + time.Minute.IToS(2) + ":" + time.Second.IToS(2);
 		}
 		else if (display == TIME_DISPLAY.HM_2)
 		{
-			return IToS(time.Hour, 2) + ":" + IToS(time.Minute, 2);
+			return time.Hour.IToS(2) + ":" + time.Minute.IToS(2);
 		}
 		else if (display == TIME_DISPLAY.MS_2)
 		{
-			return IToS(time.Minute, 2) + ":" + IToS(time.Second, 2);
+			return time.Minute.IToS(2) + ":" + time.Second.IToS(2);
 		}
 		else if (display == TIME_DISPLAY.DHMS_ZH)
 		{
-			return IToS(time.Day) + "日" + IToS(time.Hour) + "时" + IToS(time.Minute) + "分" + IToS(time.Second) + "秒";
+			return time.Day.IToS() + "日" + time.Hour.IToS() + "时" + time.Minute.IToS() + "分" + time.Second.IToS() + "秒";
 		}
 		else if (display == TIME_DISPLAY.DHM_ZH)
 		{
-			return IToS(time.Day) + "日" + IToS(time.Hour) + "时" + IToS(time.Minute) + "分";
+			return time.Day.IToS() + "日" + time.Hour.IToS() + "时" + time.Minute.IToS() + "分";
 		}
 		else if (display == TIME_DISPLAY.HM_ZH)
 		{
-			return IToS(time.Hour) + "时" + IToS(time.Minute) + "分";
+			return time.Hour.IToS() + "时" + time.Minute.IToS() + "分";
 		}
 		else if (display == TIME_DISPLAY.MS_ZH)
 		{
-			return IToS(time.Minute) + "分" + IToS(time.Second) + "秒";
+			return time.Minute.IToS() + "分" + time.Second.IToS() + "秒";
 		}
 		else if (display == TIME_DISPLAY.YMD_ZH)
 		{
-			return IToS(time.Year) + "年" + IToS(time.Month) + "月" + IToS(time.Day) + "日";
+			return time.Year.IToS() + "年" + time.Month.IToS() + "月" + time.Day.IToS() + "日";
 		}
 		else if (display == TIME_DISPLAY.YMDHM_ZH)
 		{
-			return IToS(time.Year) + "年" + IToS(time.Month) + "月" + IToS(time.Day) + "日" + IToS(time.Hour) + "时" + IToS(time.Minute) + "分";
+			return time.Year.IToS() + "年" + time.Month.IToS() + "月" + time.Day.IToS() + "日" + time.Hour.IToS() + "时" + time.Minute.IToS() + "分";
 		}
 		return EMPTY;
 	}
@@ -335,72 +335,72 @@ public class TimeUtility
 		StringBuilder builder = new(256);
 		if (display == TIME_DISPLAY.HMSM)
 		{
-			builder.Append(IToS(time.Hour)).Append(":").
-					Append(IToS(time.Minute)).Append(":").
-					Append(IToS(time.Second)).Append(":").
-					Append(IToS(time.Millisecond));
+			builder.Append(time.Hour.IToS()).Append(":").
+					Append(time.Minute.IToS()).Append(":").
+					Append(time.Second.IToS()).Append(":").
+					Append(time.Millisecond.IToS());
 			return builder.ToString();
 		}
 		else if (display == TIME_DISPLAY.HMS_2)
 		{
-			builder.Append(IToS(time.Hour, 2)).Append(":").
-					Append(IToS(time.Minute, 2)).Append(":").
-					Append(IToS(time.Second, 2));
+			builder.Append(time.Hour.IToS(2)).Append(":").
+					Append(time.Minute.IToS(2)).Append(":").
+					Append(time.Second.IToS(2));
 			return builder.ToString();
 		}
 		else if (display == TIME_DISPLAY.HM_2)
 		{
-			builder.Append(IToS(time.Hour, 2)).Append(":").
-					Append(IToS(time.Minute, 2));
+			builder.Append(time.Hour.IToS(2)).Append(":").
+					Append(time.Minute.IToS(2));
 			return builder.ToString();
 		}
 		else if (display == TIME_DISPLAY.MS_2)
 		{
-			builder.Append(IToS(time.Minute, 2)).Append(":").
-					Append(IToS(time.Second, 2));
+			builder.Append(time.Minute.IToS(2)).Append(":").
+					Append(time.Second.IToS(2));
 			return builder.ToString();
 		}
 		else if (display == TIME_DISPLAY.DHMS_ZH)
 		{
-			builder.Append(IToS(time.Day)).Append("日").
-					Append(IToS(time.Hour)).Append("时").
-					Append(IToS(time.Minute)).Append("分").
-					Append(IToS(time.Second)).Append("秒");
+			builder.Append(time.Day.IToS()).Append("日").
+					Append(time.Hour.IToS()).Append("时").
+					Append(time.Minute.IToS()).Append("分").
+					Append(time.Second.IToS()).Append("秒");
 			return builder.ToString();
 		}
 		else if (display == TIME_DISPLAY.DHM_ZH)
 		{
-			builder.Append(IToS(time.Day)).Append("日").
-					Append(IToS(time.Hour)).Append("时").
-					Append(IToS(time.Minute)).Append("分");
+			builder.Append(time.Day.IToS()).Append("日").
+					Append(time.Hour.IToS()).Append("时").
+					Append(time.Minute.IToS()).Append("分");
 			return builder.ToString();
 		}
 		else if (display == TIME_DISPLAY.HM_ZH)
 		{
-			builder.Append(IToS(time.Hour)).Append("时").
-					Append(IToS(time.Minute)).Append("分");
+			builder.Append(time.Hour.IToS()).Append("时").
+					Append(time.Minute.IToS()).Append("分");
 			return builder.ToString();
 		}
 		else if (display == TIME_DISPLAY.MS_ZH)
 		{
-			builder.Append(IToS(time.Minute)).Append("分").
-					Append(IToS(time.Second)).Append("秒");
+			builder.Append(time.Minute.IToS()).Append("分").
+					Append(time.Second.IToS()).Append("秒");
 			return builder.ToString();
 		}
 		else if (display == TIME_DISPLAY.YMD_ZH)
 		{
-			builder.Append(IToS(time.Year)).Append("年").
-					Append(IToS(time.Month)).Append("月").
-					Append(IToS(time.Day)).Append("日");
+			builder.Append(time.Year.IToS()).Append("年").
+					Append(time.Month.IToS()).Append("月").
+					Append(time.Day.IToS()).Append("日");
 			return builder.ToString();
 		}
 		else if (display == TIME_DISPLAY.YMDHM_ZH)
 		{
-			builder.Append(IToS(time.Year)).Append("年").
-					Append(IToS(time.Month)).Append("月").
-					Append(IToS(time.Day)).Append("日").
-					Append(IToS(time.Hour)).Append("时").
-					Append(IToS(time.Minute)).Append("分");
+			builder.Append(time.Year.IToS()).Append("年").
+					Append(time.Month.IToS()).Append("月").
+					Append(time.Day.IToS()).Append("日").
+					Append(time.Hour.IToS()).Append("时").
+					Append(time.Minute.IToS()).Append("分");
 			return builder.ToString();
 		}
 		return EMPTY;

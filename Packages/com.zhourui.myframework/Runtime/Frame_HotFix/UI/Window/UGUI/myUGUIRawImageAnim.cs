@@ -65,7 +65,7 @@ public class myUGUIRawImageAnim : myUGUIRawImage, IUIAnimation
 		string preName = mTexturePath + mTexturePreName + "_";
 		for (int i = 0; i < textureCount; ++i)
 		{
-			mTextureList.Add(mResourceManager.loadGameResource<Texture>(preName + IToS(i) + ".png"));
+			mTextureList.Add(mResourceManager.loadGameResource<Texture>(preName + i.IToS() + ".png"));
 		}
 		mControl.setFrameCount(getTextureFrameCount());
 		if (mTextureList.isEmpty())

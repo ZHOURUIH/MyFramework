@@ -77,7 +77,7 @@ public class LocalizationManager : FrameSystem
 		string text = mLocalizationLanguageID.get(id);
 		if (text.isEmpty())
 		{
-			text = "Localization:" + IToS(id);
+			text = "Localization:" + id.IToS();
 		}
 		return text;
 	}

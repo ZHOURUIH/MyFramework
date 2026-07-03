@@ -106,7 +106,7 @@ public class ScrollViewPanel : WindowObjectUGUI
 		newObject(out myUGUIObject content, viewport, "Content", false);
 		for (int i = 0; i < mNode.Length; ++i)
 		{
-			newObject(out mNode[i], content, "Node" + IToS(i));
+			newObject(out mNode[i], content, "Node" + i.IToS());
 		}
 		mDropList.assignWindow(mRoot, "DropList");
 		newObject(out myUGUIObject normalList, "NormalList", false);
@@ -129,7 +129,7 @@ public class ScrollViewPanel : WindowObjectUGUI
 		newObject(out myUGUIObject layoutGridVertical, mContent, "LayoutGridVertical", false);
 		for (int i = 0; i < mElement.Length; ++i)
 		{
-			newObject(out mElement[i], layoutGridVertical, "Element" + IToS(i));
+			newObject(out mElement[i], layoutGridVertical, "Element" + i.IToS());
 		}
 		newObject(out mInputField, "InputField");
 		newObject(out myUGUIObject dragViewLoop, "DragViewLoop", false);
@@ -145,7 +145,7 @@ public class ScrollViewPanel : WindowObjectUGUI
 	public override void init()
 	{
 		base.init();
-		mSlider.setSliderCallback(() => { log("slider变化:" + FToS(mSlider.getValue())); });
+		mSlider.setSliderCallback(() => { log("slider变化:" + mSlider.getValue().FToS()); });
 		mCheckBox.setCheckCallback((UGUICheckbox checkbox) => { log("checkbox变化:" + checkbox.isChecked()); });
 		mSimpleImageButton.registeCollider(() => { log("mSimpleImageButton被点击"); });
 		mImageButton.registeCollider(() => 
@@ -224,7 +224,7 @@ public class ScrollViewPanel : WindowObjectUGUI
 		var list = mDragItemList.startSetDataList();
 		for (int i = 0; i < 15;++i)
 		{
-			list.addClass().mText = IToS(i);
+			list.addClass().mText = i.IToS();
 		}
 		mDragItemList.setDataList(list);
 		mSlider.setValue(0.5f);
@@ -257,7 +257,7 @@ public class ScrollViewPanel : WindowObjectUGUI
 		mNormalItemPool.unuseAll();
 		for (int i = 0; i < 10; ++i)
 		{
-			mNormalItemPool.newItem().setData("Normal" + IToS(i));
+			mNormalItemPool.newItem().setData("Normal" + i.IToS());
 		}
 		mNormalItemPool.autoGridVertical();
 	}

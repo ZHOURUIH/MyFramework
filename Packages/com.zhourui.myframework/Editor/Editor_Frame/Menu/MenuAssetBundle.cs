@@ -209,7 +209,7 @@ public class MenuAssetBundle
 				return false;
 			}
 		}
-		writeTxtFile(F_GAME_RESOURCES_PATH + R_MISC_PATH + ATLAS_PATH_CONFIG, stringsToString(pathList, "\r\n"));
+		writeTxtFile(F_GAME_RESOURCES_PATH + R_MISC_PATH + ATLAS_PATH_CONFIG, pathList.stringsToString("\r\n"));
 
 		// 设置所有图集不打入包体,虽然不太好理解这个,不过设置为false以后AssetBundle中就不会出现冗余的图片,否则AssetBundle将会变得异常大
 		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, SPRITE_ATLAS_SUFFIX))
@@ -251,7 +251,7 @@ public class MenuAssetBundle
 		// List<string>表示这个依赖项的依赖链
 		Dictionary<string, List<string>> allDepList = new();
 		findAllDependenciesRecursive(dependencyList, assetBundleName, allDepList);
-		Debug.Log("开始查找" + assetBundleName + "的所有递归依赖项,共" + IToS(allDepList.Count) + "个");
+		Debug.Log("开始查找" + assetBundleName + "的所有递归依赖项,共" + allDepList.Count.IToS() + "个");
 		foreach (var item in allDepList)
 		{
 			string chain = EMPTY;

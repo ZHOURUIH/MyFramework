@@ -229,7 +229,7 @@ public class TweenSequenceAuthoringEditor : GameInspector
 			}
 		}
 
-		label("time:" + FToS(mPreviewTime, 2) + "/" + mSequence.getTotalLength());
+		label("time:" + mPreviewTime.FToS(2) + "/" + mSequence.getTotalLength());
 		EditorGUILayout.Slider("Preview", mPreviewTime, 0.0f, mSequence.getTotalLength());
 	}
 	private void StartPlay()

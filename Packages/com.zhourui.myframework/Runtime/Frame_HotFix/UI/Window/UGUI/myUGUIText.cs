@@ -72,11 +72,11 @@ public class myUGUIText : myUGUIObject, IUGUIText
 	}
 	public void setText(int value)
 	{
-		setText(IToS(value));
+		setText(value.IToS());
 	}
 	public void setText(long value)
 	{
-		setText(LToS(value));
+		setText(value.LToS());
 	}
 	public void applyPreferredWidth(float height = 0.0f)
 	{

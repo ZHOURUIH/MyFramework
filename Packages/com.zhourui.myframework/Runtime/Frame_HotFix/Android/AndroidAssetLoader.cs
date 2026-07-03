@@ -55,8 +55,7 @@ public class AndroidAssetLoader : FrameSystem
 		{
 			return;
 		}
-		string pattern = stringsToString(patterns, ' ');
-		var fileListObject = mAssetLoader.Call<AndroidJavaObject>("startFindAssets", path, pattern, recursive);
+		var fileListObject = mAssetLoader.Call<AndroidJavaObject>("startFindAssets", path, patterns.stringsToString(' '), recursive);
 		javaListToList(fileListObject, fileList);
 	}
 	public static void findAssetsFolder(string path, List<string> fileList, bool recursive)
@@ -159,8 +158,7 @@ public class AndroidAssetLoader : FrameSystem
 			return;
 		}
 		checkPersistenDataPath(path);
-		string pattern = stringsToString(patterns, ' ');
-		var fileListObject = mAssetLoader.CallStatic<AndroidJavaObject>("startFindFiles", path, pattern, recursive);
+		var fileListObject = mAssetLoader.CallStatic<AndroidJavaObject>("startFindFiles", path, patterns.stringsToString(' '), recursive);
 		javaListToList(fileListObject, fileList);
 	}
 	public static void findFolders(string path, List<string> fileList, bool recursive)

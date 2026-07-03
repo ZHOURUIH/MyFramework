@@ -45,7 +45,7 @@ public class NetConnectWebSocketJson : NetConnectWebSocket
 		string msgType = mPacketTypeIDList.get(netPacket.GetType());
 		if (msgType.isEmpty())
 		{
-			logError("消息类型未注册:" + IToS(netPacket.getPacketType()));
+			logError("消息类型未注册:" + netPacket.getPacketType().IToS());
 			return;
 		}
 		WebSocketPacketBodyJson body = new(msgType, netPacket.writeContent(), (int)getNowUTCTimeStamp());

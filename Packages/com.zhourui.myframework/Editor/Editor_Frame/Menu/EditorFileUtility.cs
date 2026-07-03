@@ -91,7 +91,7 @@ public class EditorFileUtility
 	{
 		using var a = new ListScope<string>(out var fileLineList, openTxtFileLines(fileName));
 		process(fileLineList);
-		writeTxtFile(fileName, stringsToString(fileLineList, "\r\n"));
+		writeTxtFile(fileName, fileLineList.stringsToString("\r\n"));
 	}
 	public static void copyFile(string source, string target, bool overwrite = true)
 	{

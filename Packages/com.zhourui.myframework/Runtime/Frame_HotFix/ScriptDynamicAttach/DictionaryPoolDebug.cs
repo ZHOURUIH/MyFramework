@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using static FrameBaseHotFix;
-using static StringUtility;
 
 // 字典池的调试信息
 public class DictionaryPoolDebug : MonoBehaviour
@@ -18,19 +17,19 @@ public class DictionaryPoolDebug : MonoBehaviour
 		PersistentInuseList.Clear();
 		foreach (var item in mDictionaryPool.getPersistentInusedList())
 		{
-			PersistentInuseList.Add(item.Key + ":" + IToS(item.Value.Count));
+			PersistentInuseList.Add(item.Key + ":" + item.Value.Count.IToS());
 		}
 
 		InuseList.Clear();
 		foreach (var item in mDictionaryPool.getInusedList())
 		{
-			InuseList.addIf(item.Key + ":" + IToS(item.Value.Count), item.Value.Count > 0);
+			InuseList.addIf(item.Key + ":" + item.Value.Count.IToS(), item.Value.Count > 0);
 		}
 
 		UnuseList.Clear();
 		foreach (var item in mDictionaryPool.getUnusedList())
 		{
-			UnuseList.addIf(item.Key + ":" + IToS(item.Value.Count), item.Value.Count > 0);
+			UnuseList.addIf(item.Key + ":" + item.Value.Count.IToS(), item.Value.Count > 0);
 		}
 	}
 }

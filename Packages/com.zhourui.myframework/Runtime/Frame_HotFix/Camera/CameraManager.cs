@@ -126,7 +126,7 @@ public class CameraManager : FrameSystem
 	public GameCamera createCamera(string name, int overlayCameraDepth = 0, bool active = true, bool errorIfFailed = true, bool addUICameraStack = true)
 	{
 		// 摄像机节点是否是自己创建的
-		GameObject obj = getRootGameObject(name, errorIfFailed);
+		GameObject obj = findRootGameObject(name, errorIfFailed);
 		if (obj == null)
 		{
 			return null;
@@ -137,7 +137,7 @@ public class CameraManager : FrameSystem
 	public GameCamera createCamera(string name, GameObject parent, int overlayCameraDepth = 0, bool active = true, bool errorIfFailed = true, bool addUICameraStack = true)
 	{
 		// 摄像机节点是否是自己创建的
-		GameObject obj = getGameObject(name, parent, errorIfFailed, false);
+		GameObject obj = findGameObject(name, parent, errorIfFailed, false);
 		if (obj == null)
 		{
 			return null;

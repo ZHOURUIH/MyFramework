@@ -71,7 +71,7 @@ public class SCCharacterFullGameData : NetPacketBit
 		{
 			mMaxHP.set(-1);
 		}
-		log("登录成功,角色名:" + mName + ",HP:" + IToS(mHP) + ", MaxHP:" + IToS(mMaxHP));
+		log("登录成功,角色名:" + mName + ",HP:" + mHP.mValue.IToS() + ", MaxHP:" + mMaxHP.mValue.IToS());
 		changeProcedure<MainSceneGaming>();
 	}
 }

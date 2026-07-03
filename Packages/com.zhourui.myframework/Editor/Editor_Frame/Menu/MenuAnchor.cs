@@ -39,13 +39,13 @@ public class MenuAnchor
 			return;
 		}
 		// 设置摄像机的Z坐标为视图高的一半,设置画布根节点为屏幕大小
-		GameObject uguiRootObj = getRootGameObject(UGUI_ROOT);
+		GameObject uguiRootObj = findRootGameObject(UGUI_ROOT);
 		uguiRootObj.TryGetComponent<RectTransform>(out var transform);
 		transform.offsetMin = new(-gameViewSize.x * 0.5f, -gameViewSize.y * 0.5f);
 		transform.offsetMax = new(gameViewSize.x * 0.5f, gameViewSize.y * 0.5f);
 		transform.anchorMax = Vector2.zero;
 		transform.anchorMin = Vector2.zero;
-		GameObject camera = getGameObject(UI_CAMERA, uguiRootObj, true);
+		GameObject camera = findGameObject(UI_CAMERA, uguiRootObj, true);
 		camera.transform.localPosition = new(0.0f, 0.0f, -gameViewSize.y * 0.5f);
 		applyAnchor(go, true);
 	}
@@ -53,14 +53,14 @@ public class MenuAnchor
 	public static void endPreviewLayoutAnchor()
 	{
 		// 恢复摄像机设置
-		GameObject uguiRootObj = getRootGameObject(UGUI_ROOT);
+		GameObject uguiRootObj = findRootGameObject(UGUI_ROOT);
 		uguiRootObj.TryGetComponent<RectTransform>(out var transform);
 		Vector2Int uiSize = FrameSettings.getUISize();
         transform.offsetMin = new(-uiSize.x / 2, -uiSize.y / 2);
 		transform.offsetMax = new(uiSize.x / 2, uiSize.y / 2);
 		transform.anchorMax = Vector2.zero;
 		transform.anchorMin = Vector2.zero;
-		GameObject uguiCamera = getGameObject(UI_CAMERA, uguiRootObj, true);
+		GameObject uguiCamera = findGameObject(UI_CAMERA, uguiRootObj, true);
 		uguiCamera.transform.localPosition = new(0.0f, 0.0f, -uiSize.y / 2);
 	}
 	[MenuItem(mAutoAnchorMenuName + mPaddingAnchorMenuName + "AddAnchor")]

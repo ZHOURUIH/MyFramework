@@ -228,10 +228,10 @@ public abstract class PlatformBase
 		string fileContent = EMPTY;
 		List<string> fileInfoList = findFileList(assetBundlePath, ignoreFiles, null, new() { ASSET_BUNDLE_SUFFIX + ".manifest", ".meta" });
 		// 将所有文件信息写入文件
-		fileContent += IToS(fileInfoList.Count) + "\n";
+		fileContent += fileInfoList.Count.IToS() + "\n";
 		foreach (string item in fileInfoList)
 		{
-			fileContent += item.removeStartString(assetBundlePath) + "\t" + IToS(getFileSize(item)) + "\t" + generateFileMD5(item, false) + "\n";
+			fileContent += item.removeStartString(assetBundlePath) + "\t" + getFileSize(item).IToS() + "\t" + generateFileMD5(item, false) + "\n";
 		}
 		return fileContent;
 	}
@@ -334,16 +334,16 @@ public abstract class PlatformBase
 	public string generateMainVersion()
 	{
 		string number0 = mVersionNumber[0];
-		string number1 = IToS(SToI(mVersionNumber[1]) + 1);
+		string number1 = (mVersionNumber[1].SToI() + 1).IToS();
 		string number2 = "1";
-		return stringsToString(new List<string>() { number0, number1, number2 }, '.');
+		return new List<string>() { number0, number1, number2 }.stringsToString('.');
 	}
 	public string generateSubVersion()
 	{
 		string number0 = mVersionNumber[0];
 		string number1 = mVersionNumber[1];
-		string number2 = IToS(SToI(mVersionNumber[2]) + 1);
-		return stringsToString(new List<string>() { number0, number1, number2 }, '.');
+		string number2 = (mVersionNumber[2].SToI() + 1).IToS();
+		return new List<string>() { number0, number1, number2 }.stringsToString('.');
 	}
 	// 是否仅本地版本号的低位版本号大于远端的低位版本号
 	public bool isMinVersionGreater()
@@ -352,9 +352,9 @@ public abstract class PlatformBase
 		{
 			return false;
 		}
-		return getVersionPart(mRemoteVersion, 0) == SToL(mVersionNumber[0]) &&
-			   getVersionPart(mRemoteVersion, 1) == SToL(mVersionNumber[1]) &&
-			   getVersionPart(mRemoteVersion, 2) < SToL(mVersionNumber[2]);
+		return getVersionPart(mRemoteVersion, 0) == mVersionNumber[0].SToL() &&
+			   getVersionPart(mRemoteVersion, 1) == mVersionNumber[1].SToL() &&
+			   getVersionPart(mRemoteVersion, 2) < mVersionNumber[2].SToL();
 	}
 	public static long getVersionPart(string version, int index)
 	{
@@ -362,7 +362,7 @@ public abstract class PlatformBase
 		{
 			return 0;
 		}
-		List<long> numbers = SToLsNonAlloc(version, '.');
+		List<long> numbers = version.SToLsNonAlloc('.');
 		if (index < 0 || index >= numbers.Count)
 		{
 			logError("获取版本号数字错误");

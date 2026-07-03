@@ -25,11 +25,11 @@ public class GameLayout
 	}
 	public void getUIComponent<T>(out T com, string name) where T : Component
 	{
-		com = getGameObject(name, mCanvas.gameObject).GetComponent<T>();
+		com = findGameObject(name, mCanvas.gameObject).GetComponent<T>();
 	}
 	public static void getUIComponent<T>(out T com, Component parent, string name) where T : Component
 	{
-		com = getGameObject(name, parent.gameObject).GetComponent<T>();
+		com = findGameObject(name, parent.gameObject).GetComponent<T>();
 	}
 	public virtual void init() { }
 	public void initLayout()
@@ -37,7 +37,7 @@ public class GameLayout
 		mLayoutManager.notifyLayoutChanged(this, true);
 
 		// 初始化布局脚本
-		mCanvas = getGameObject(mType.ToString(), mLayoutManager.getUIRoot().gameObject).GetComponent<Canvas>();
+		mCanvas = findGameObject(mType.ToString(), mLayoutManager.getUIRoot().gameObject).GetComponent<Canvas>();
 		
 		// 去除自带的锚点
 		// 在unity2020中,不知道为什么实例化以后的RectTransform的大小会自动变为视图窗口大小,为了适配计算正确,这里需要重置一次

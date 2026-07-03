@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using static StringUtility;
+using static SQLUtility;
 using static TestAssert;
 
 public static class StringUtilityTest
@@ -70,52 +71,52 @@ public static class StringUtilityTest
 
     static void testIToS()
     {
-        assertEqual("0", IToS(0), "IToS 0");
-        assertEqual("1", IToS(1), "IToS 1");
-        assertEqual("-1", IToS(-1), "IToS -1");
-        assertEqual("123", IToS(123), "IToS 123");
-        assertEqual("00123", IToS(123, 5), "IToS minLen");
+        assertEqual("0", 0.IToS(), "IToS 0");
+        assertEqual("1", 1.IToS(), "IToS 1");
+        assertEqual("-1", (-1).IToS(), "IToS -1");
+        assertEqual("123", 123.IToS(), "IToS 123");
+        assertEqual("00123", 123.IToS(5), "IToS minLen");
     }
 
     static void testLToS()
     {
-        assertEqual("0", LToS(0L), "LToS 0");
-        assertEqual("123456789", LToS(123456789L), "LToS");
+        assertEqual("0", 0L.LToS(), "LToS 0");
+        assertEqual("123456789", 123456789L.LToS(), "LToS");
     }
 
     static void testSToI()
     {
-        assertEqual(0, SToI("0"), "SToI 0");
-        assertEqual(1, SToI("1"), "SToI 1");
-        assertEqual(-1, SToI("-1"), "SToI -1");
-        assertEqual(0, SToI(""), "SToI empty");
+        assertEqual(0, "0".SToI(), "SToI 0");
+        assertEqual(1, "1".SToI(), "SToI 1");
+        assertEqual(-1, "-1".SToI(), "SToI -1");
+        assertEqual(0, "".SToI(), "SToI empty");
     }
 
     static void testSToL()
     {
-        assertEqual(0L, SToL("0"), "SToL 0");
-        assertEqual(9999999999L, SToL("9999999999"), "SToL large");
+        assertEqual(0L, "0".SToL(), "SToL 0");
+        assertEqual(9999999999L, "9999999999".SToL(), "SToL large");
     }
 
     static void testFToS()
     {
-        string s = FToS(3.14159f, 2, true);
+        string s = 3.14159f.FToS(2, true);
         assertTrue(s.Contains("3.14"), "FToS");
     }
 
     static void testSToF()
     {
-        float f = SToF("3.14");
+        float f = "3.14".SToF();
         assertTrue(f > 3.13f && f < 3.15f, "SToF");
     }
 
     static void testSplit()
     {
-        List<string> parts = stringToStrings("a,b,c", ',');
+        List<string> parts = "a,b,c".stringToStrings();
         assertEqual(3, parts.Count, "split 3");
         assertEqual("a", parts[0]);
         assertEqual("c", parts[2]);
-        string j = stringsToString(parts, ",");
+        string j = parts.stringsToString(",");
         assertEqual("a,b,c", j, "join");
     }
 
@@ -156,14 +157,14 @@ public static class StringUtilityTest
 
     static void testBoolToString()
     {
-        assertEqual("True", boolToString(true, true, false), "bool True");
-        assertEqual("false", boolToString(false, false, false), "bool false");
+        assertEqual("True", true.boolToString(true, false), "bool True");
+        assertEqual("false", false.boolToString(false, false), "bool false");
     }
 
     static void testStringToBool()
     {
-        assertTrue(stringToBool("true"), "str2bool true");
-        assertFalse(stringToBool("false"), "str2bool false");
+        assertTrue("true".stringToBool(), "str2bool true");
+        assertFalse("false".stringToBool(), "str2bool false");
     }
 
     static void testGetFirstNumberPos()
@@ -176,19 +177,19 @@ public static class StringUtilityTest
     static void testSToIsAndIsToS()
     {
         List<int> isList = new();
-        SToIs("1,2,3", isList);
+        "1,2,3".SToIs(isList);
         assertEqual(3, isList.Count);
-        string s = IsToS(isList, ',');
+        string s = isList.IsToS(',');
         assertEqual("1,2,3", s);
     }
 
     static void testSToFsAndFsToS()
     {
         List<float> fs = new();
-        SToFs("1.5,2.5,3.5,4", fs);
+        "1.5,2.5,3.5,4".SToFs(fs);
         assertTrue(fs.Count >= 3, "SToFs");
         float[] fa = null;
-        SToFs("1,2,3", ref fa);
+        "1,2,3".SToFs(ref fa);
         assertTrue(isFloatEqual(fa[0], 1.0f, 0.001f), "SToFs arr");
     }
 
@@ -252,9 +253,9 @@ public static class StringUtilityTest
 
     static void testVectorParsing()
     {
-        assertEqual(new Vector2(1.5f, 2.5f), SToV2("1.5,2.5"), "SToV2");
-        assertEqual(new Vector3(1, 2, 3), SToV3("1,2,3"), "SToV3");
-        Vector4 v4 = SToV4("0.5,1.5,2.5,3.5");
+        assertEqual(new Vector2(1.5f, 2.5f), "1.5,2.5".SToV2(), "SToV2");
+        assertEqual(new Vector3(1, 2, 3), "1,2,3".SToV3(), "SToV3");
+        Vector4 v4 = "0.5,1.5,2.5,3.5".SToV4();
         assertTrue(v4.w > 3.0f, "SToV4 w");
     }
 
@@ -293,7 +294,7 @@ public static class StringUtilityTest
 
     static void testColorAndAppendHelpers()
     {
-        Color c = SToColor("#FF8040");
+        Color c = "#FF8040".SToColor();
         assertTrue(c.r >= 0.99f, "SToColor R");
         assertTrue(c.g >= 0.49f && c.g <= 0.51f, "SToColor G");
     }
@@ -310,15 +311,15 @@ public static class StringUtilityTest
 
     static void testConversionFormats()
     {
-        assertEqual("1,234", IToSComma(1234), "IToSComma");
-        assertEqual("1,234", LToSComma(1234L), "LToSComma");
-        assertEqual("1,234", LToSComma(1234UL), "ULToSComma");
+        assertEqual("1,234", 1234.IToSComma(), "IToSComma");
+        assertEqual("1,234", 1234L.LToSComma(), "LToSComma");
+        assertEqual("1,234", 1234UL.LToSComma(), "ULToSComma");
     }
 
     static void testArrayConversion()
     {
         int[] ia = null;
-        SToIs("1,2,3,4,5", ref ia);
+        "1,2,3,4,5".SToIs(ref ia);
         assertEqual(1, ia[0]);
         assertEqual(5, ia[4]);
     }
@@ -326,16 +327,16 @@ public static class StringUtilityTest
     static void testListConversion()
     {
         List<int> ints = new();
-        SToIs("5,10,15", ints);
+        "5,10,15".SToIs(ints);
         assertEqual(3, ints.Count);
         List<long> lng = new();
-        SToLs("100,200", lng);
+        "100,200".SToLs(lng);
         assertEqual(2, lng.Count);
         List<uint> ui = new();
-        SToUIs("1,2", ui);
+        "1,2".SToUIs(ui);
         assertEqual(2, ui.Count);
         List<bool> bl = new();
-        SToBools("1,0,1", bl);
+        "1,0,1".SToBools(bl);
         assertTrue(bl[0]);
         assertFalse(bl[1]);
     }
@@ -387,15 +388,15 @@ public static class StringUtilityTest
 
     static void testNonAllocParsers()
     {
-        List<int> ints = SToIsNonAlloc("1,2,3,4,5");
+        List<int> ints = "1,2,3,4,5".SToIsNonAlloc();
         assertEqual(5, ints.Count);
-        List<float> flts = SToFsNonAlloc("1.5,2.5");
+        List<float> flts = "1.5,2.5".SToFsNonAlloc();
         assertEqual(2, flts.Count);
     }
 
     static void testColorConversion()
     {
-        Color c = SToColor("#FF8040");
+        Color c = "#FF8040".SToColor();
         assertTrue(c.r >= 0.99f, "color255 R");
         assertTrue(c.g >= 0.49f && c.g <= 0.51f, "colorFloat G");
     }
@@ -491,8 +492,8 @@ public static class StringUtilityTest
         assertEqual("project", getFirstFolderName("project/sub/file.txt"), "getFirstFolderName");
         assertEqual("sub", getFolderName("project/sub/file.txt"), "getFolderName");
 
-        assertEqual(42u, SToUInt("42"), "SToUInt 42");
-        assertEqual(99ul, SToUL("99"), "SToUL 99");
+        assertEqual(42u, "42".SToUInt(), "SToUInt 42");
+        assertEqual(99ul, "99".SToUL(), "SToUL 99");
 
         assertEqual("_HELLO_WORLD", nameToUpper("helloWorld", true), "nameToUpper camel");
         assertEqual("HELLO", nameToUpper("hello", false), "nameToUpper no pref");
@@ -504,17 +505,17 @@ public static class StringUtilityTest
     static void testVectorNumberPhone()
     {
         // SToV2I / SToV3I / SToV4I 向量解析
-        assertEqual(new Vector2Int(3, 4), SToV2I("3,4"), "SToV2I");
-        assertEqual(new Vector3Int(1, 2, 3), SToV3I("1,2,3"), "SToV3I");
+        assertEqual(new Vector2Int(3, 4), "3,4".SToV2I(), "SToV2I");
+        assertEqual(new Vector3Int(1, 2, 3), "1,2,3".SToV3I(), "SToV3I");
 
         // V2IToS / V2ToS / V3ToS 向量转字符串
-        assertTrue(V2IToS(new Vector2Int(5, 6)).Length > 0, "V2IToS");
-        assertTrue(V2ToS(new Vector2(1.5f, 2.5f)).Length > 0, "V2ToS");
-        assertTrue(V3ToS(new Vector3(3f, 4f, 5f)).Length > 0, "V3ToS");
+        assertTrue(new Vector2Int(5, 6).V2IToS().Length > 0, "V2IToS");
+        assertTrue(new Vector2(1.5f, 2.5f).V2ToS().Length > 0, "V2ToS");
+        assertTrue(new Vector3(3f, 4f, 5f).V3ToS().Length > 0, "V3ToS");
 
         // IToS(uint) / ULToS
-        assertEqual("42", IToS(42u), "IToS uint");
-        assertEqual("99", LToS(99ul), "ULToS");
+        assertEqual("42", 42u.IToS(), "IToS uint");
+        assertEqual("99", 99ul.LToS(), "ULToS");
 
         // hasNonChineseASCII — 字符既非中文也非 ASCII 才返回 true
         assertFalse(hasNonChineseASCII("hello"), "hasNonChineseASCII ASCII only=false");
@@ -542,8 +543,8 @@ public static class StringUtilityTest
 
     static void testInitIntToString()
     {
-        assertEqual("12345", IToS(12345), "initIToS");
-        assertEqual("1,234,567", IToSComma(1234567), "initComma");
+        assertEqual("12345", (12345).IToS(), "initIToS");
+        assertEqual("1,234,567", 1234567.IToSComma(), "initComma");
     }
 
     static void testInitInvalidChars()

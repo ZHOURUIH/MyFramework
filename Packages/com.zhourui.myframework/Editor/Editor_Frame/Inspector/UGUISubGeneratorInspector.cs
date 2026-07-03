@@ -490,7 +490,7 @@ public class UGUISubGeneratorInspector : GameInspector
 					}
 				}
 			}
-			writeTxtFile(fileFullPath, stringsToString(codeList, "\r\n"), true);
+			writeTxtFile(fileFullPath, codeList.stringsToString("\r\n"), true);
 		}
 	}
 }

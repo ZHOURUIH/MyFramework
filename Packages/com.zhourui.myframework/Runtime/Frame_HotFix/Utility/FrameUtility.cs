@@ -56,20 +56,20 @@ public class FrameUtility
 	public static bool atProcedure(Type type) { return getCurScene().atProcedure(type); }
 	public static bool atProcedure<T>() where T : SceneProcedure { return getCurScene().atProcedure(typeof(T)); }
 	// 百分比一般用于属性增幅之类的
-	public static string toPercent(string value, int precision = 1) { return FToS(SToF(value) * 100, precision) + "%"; }
-	public static string toPercent(float value, int precision = 1) { return FToS(value * 100, precision) + "%"; }
+	public static string toPercent(string value, int precision = 1) { return (value.SToF() * 100).FToS(precision) + "%"; }
+	public static string toPercent(float value, int precision = 1) { return (value * 100).FToS(precision) + "%"; }
 	// 几率类的一般是万分比的格式填写的,10000表示100%
-	public static string toProbability(string value) { return FToS(SToF(value) * 0.01f) + "%"; }
-	public static string toProbability(float value) { return FToS(value * 0.01f) + "%"; }
+	public static string toProbability(string value) { return (value.SToF() * 0.01f).FToS() + "%"; }
+	public static string toProbability(float value) { return (value * 0.01f).FToS() + "%"; }
 	public static string fixedAndPercent(int value, float percent)
 	{
 		if (value > 0 && percent > 0.0f)
 		{
-			return IToS(value) + "+" + toPercent(percent);
+			return value.IToS() + "+" + toPercent(percent);
 		}
 		if (value > 0)
 		{
-			return IToS(value);
+			return value.IToS();
 		}
 		if (percent > 0.0f)
 		{
@@ -1593,7 +1593,7 @@ public class FrameUtility
 			fullTrace.Append("at ");
 			fullTrace.Append(frame.GetFileName());
 			fullTrace.Append(":");
-			fullTrace.AppendLine(IToS(frame.GetFileLineNumber()));
+			fullTrace.AppendLine(frame.GetFileLineNumber().IToS());
 		}
 		return fullTrace.ToString();
 	}
@@ -1717,7 +1717,7 @@ public class FrameUtility
 	}
 	public static void executeBat(string batFullPath, string[] args)
 	{
-		executeExeBatch(batFullPath, stringsToString(args, " "), getFilePath(batFullPath));
+		executeExeBatch(batFullPath, args.stringsToString(" "), getFilePath(batFullPath));
 	}
 	public static void executeBat(string batFullPath, string arg0, string arg1)
 	{
@@ -1736,11 +1736,11 @@ public class FrameUtility
 	{
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
-			executeExeBatch("cmd.exe", "/c " + stringsToString(cmdList, " & "), null, -1, showError, showInfo, infoCallback);
+			executeExeBatch("cmd.exe", "/c " + cmdList.stringsToString(" & "), null, -1, showError, showInfo, infoCallback);
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
-			executeExeBatch("/bin/bash", "-c \"" + stringsToString(cmdList, " ; ") + "\"", null, -1, showError, showInfo, infoCallback);
+			executeExeBatch("/bin/bash", "-c \"" + cmdList.stringsToString(" ; ") + "\"", null, -1, showError, showInfo, infoCallback);
 		}
 	}
 	// 在指定仓库中执行git命令
