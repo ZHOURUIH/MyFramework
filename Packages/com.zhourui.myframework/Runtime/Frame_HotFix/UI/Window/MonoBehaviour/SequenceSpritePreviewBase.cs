@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using static MathUtility;
+using static FrameBaseUtility;
 
 // 预览一个Image或者SpriteRenderer的序列帧,不带位置偏移,不要直接将这个组件添加到GameObject上,应该需要添加派生出的子类
 public abstract class SequenceSpritePreviewBase : MonoBehaviour
@@ -263,7 +264,7 @@ public abstract class SequenceSpritePreviewBase : MonoBehaviour
         {
             return;
         }
-        string path = AssetDatabase.GetAssetPath(curSprite.texture);
+        string path = getAssetPath(curSprite.texture);
         if (string.IsNullOrEmpty(path))
         {
             return;
@@ -272,7 +273,7 @@ public abstract class SequenceSpritePreviewBase : MonoBehaviour
         string spriteSetName = getSpriteSetName(curSprite.name);
         if (spriteSetName.isEmpty())
         {
-            mFrames = AssetDatabase.LoadAllAssetsAtPath(path)
+            mFrames = loadAllAssetsAtPath(path)
                 .OfType<Sprite>()
                 .OrderBy(getSpriteFrameIndex)
                 .ThenBy(s => s.name)
@@ -280,7 +281,7 @@ public abstract class SequenceSpritePreviewBase : MonoBehaviour
         }
         else
         {
-            mFrames = AssetDatabase.LoadAllAssetsAtPath(path)
+            mFrames = loadAllAssetsAtPath(path)
                 .OfType<Sprite>()
                 .Where(s => s.name.StartsWith(spriteSetName + "_"))
                 .OrderBy(getSpriteFrameIndex)

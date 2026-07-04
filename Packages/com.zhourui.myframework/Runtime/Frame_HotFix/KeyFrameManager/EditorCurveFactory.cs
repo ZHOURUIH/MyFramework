@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
-using UnityEditor;
 using UnityEngine;
 using static FrameDefine;
+using static FrameBaseUtility;
 
 // 仅在编辑器模式下用于获取指定ID的曲线
 public static class EditorCurveFactory
@@ -64,7 +64,7 @@ public static class EditorCurveFactory
 	private static void loadUnityCurves()
 	{
 		mUnityCurveList.Clear();
-		GameObject keyframeGo = AssetDatabase.LoadAssetAtPath<GameObject>(P_GAME_RESOURCES_PATH + KEY_FRAME_FILE);
+		GameObject keyframeGo = loadAssetAtPath<GameObject>(P_GAME_RESOURCES_PATH + KEY_FRAME_FILE);
 		if (keyframeGo == null)
 		{
 			return;

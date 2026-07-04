@@ -303,10 +303,6 @@ public class UGUIGeneratorInspector : GameInspector
 			fileFullPath = F_SCRIPTS_HOTFIX_UI_PATH + className + ".cs";
 			string fileContent = "";
 			line(ref fileContent, "using Obfuz;");
-			if (generatedAssignLines.contains(item => item.Contains(" IToS(")))
-			{
-				line(ref fileContent, "using static StringUtility;");
-			}
 			line(ref fileContent, "");
 			line(ref fileContent, "// auto generate member start");
 			line(ref fileContent, memberDefineList);

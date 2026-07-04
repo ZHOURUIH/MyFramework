@@ -233,10 +233,6 @@ public class UGUISubGeneratorInspector : GameInspector
 		{
 			fileFullPath = F_SCRIPTS_HOTFIX_UI_PATH + "InnerClass/" + subUIName + ".cs";
 			string fileContent = "";
-			if (generatedAssignLines.contains(item => item.Contains(" IToS(")))
-			{
-				line(ref fileContent, "using static StringUtility;");
-			}
 			line(ref fileContent, "");
 			// 对象池节点的代码会特殊判断
 			if (generator.mParentType == "DragViewItem")

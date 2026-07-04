@@ -572,7 +572,7 @@ public class UGUIGeneratorUtility
 					lines.Add(prefix + "for (int i = 0; i < m" + newMemberName + ".Length; ++i)");
 					lines.Add(prefix + "{");
 					string parentParam = parentName ?? "mRoot";
-					lines.Add(prefix + "\tm" + newMemberName + "[i].assignWindow(" + parentParam + ", " + varName + ", \"" + newGameObjectName + "\" + IToS(i));");
+					lines.Add(prefix + "\tm" + newMemberName + "[i].assignWindow(" + parentParam + ", " + varName + ", \"" + newGameObjectName + "\" + i.IToS());");
 					lines.Add(prefix + "}");
 					// 动态生成的数组都需要把模板节点隐藏起来
 					lines.Add(prefix + varName + ".setActive(false);");
@@ -586,12 +586,12 @@ public class UGUIGeneratorUtility
 				{
 					string showErrorParam = data.mHideError ? ", false" : "";
 					string parentParam = parentName != null ? parentName + ", " : "";
-					lines.Add(prefix + "\tnewObject(out m" + newMemberName + "[i], " + parentParam + "\"" + newGameObjectName + "\" + IToS(i)" + showErrorParam + ");");
+					lines.Add(prefix + "\tnewObject(out m" + newMemberName + "[i], " + parentParam + "\"" + newGameObjectName + "\" + i.IToS()" + showErrorParam + ");");
 				}
 				else
 				{
 					string parentParam = parentName ?? "mRoot";
-					lines.Add(prefix + "\tm" + newMemberName + "[i].assignWindow(" + parentParam + ", \"" + newGameObjectName + "\" + IToS(i));");
+					lines.Add(prefix + "\tm" + newMemberName + "[i].assignWindow(" + parentParam + ", \"" + newGameObjectName + "\" + i.IToS());");
 				}
 				lines.Add(prefix + "}");
 			}

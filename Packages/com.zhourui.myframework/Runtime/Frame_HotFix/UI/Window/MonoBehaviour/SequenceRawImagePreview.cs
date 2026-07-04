@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using UnityEditor;
 #endif
 using static FrameDefine;
+using static FrameBaseUtility;
 using static StringUtility;
 using static MathUtility;
 using static FileUtility;
@@ -241,7 +242,7 @@ public class SequenceRawImagePreview : MonoBehaviour
             {
                 break;
             }
-            Texture texture = AssetDatabase.LoadAssetAtPath<Texture>(fullPathToProjectPath(fileName));
+            Texture texture = loadAssetAtPath<Texture>(fullPathToProjectPath(fileName));
             if (texture == null)
             {
                 break;
