@@ -1,21 +1,23 @@
-﻿using TMPro;
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.U2D;
-using UnityEditor;
-using UnityEditor.SceneManagement;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using static MathUtility;
-using static WidgetUtility;
-using static FrameBaseUtility;
+using System.IO;
+using TMPro;
+using UnityEditor;
+using UnityEditor.Compilation;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.U2D;
+using UnityEngine.UI;
 using static EditorCommonUtility;
-using static FileUtility;
-using static FrameDefine;
-using static StringUtility;
-using static FrameBaseDefine;
-using UObject = UnityEngine.Object;
 using static EditorDefine;
+using static FileUtility;
+using static FrameBaseDefine;
+using static FrameBaseUtility;
+using static FrameDefine;
+using static MathUtility;
+using static StringUtility;
+using static WidgetUtility;
+using UObject = UnityEngine.Object;
 
 public class MenuShortcutOperation
 {
@@ -154,9 +156,49 @@ public class MenuShortcutOperation
 			AssetDatabase.Refresh();
 		}
 	}
-	// 此处仅做示例,请在应用层中重写此方法,传入正确的密钥获取方法
-	//[MenuItem(mMenuName + "dll解密", false, 41)]
-	public static void decryptDllFile()
+    [MenuItem("MyFramework/添加Frame_HotFix对TTWebGL依赖", false, 200)]
+    public static void addFrameHotFixTTWebGLReference()
+    {
+		string FRAME_HOTFIX_ASMDEF_FILE = "Frame_HotFix.asmdef";	// 需要修改的asmdef文件名
+		string TT_WEBGL_REFERENCE = "TTWebGL";                    // 需要添加的程序集依赖
+		string asmdefPath = findAsmdefPath(FRAME_HOTFIX_ASMDEF_FILE);
+        if (asmdefPath.isEmpty())
+        {
+            Debug.LogError("未找到文件: " + FRAME_HOTFIX_ASMDEF_FILE);
+            return;
+        }
+
+        string text = File.ReadAllText(asmdefPath);
+        if (text.Contains("\"" + TT_WEBGL_REFERENCE + "\""))
+        {
+            Debug.Log("依赖已存在: " + TT_WEBGL_REFERENCE);
+            return;
+        }
+
+        if (text.Contains("\"references\": []"))
+        {
+            text = text.Replace(
+                "\"references\": []",
+                "\"references\": [\n        \"" + TT_WEBGL_REFERENCE + "\"\n    ]"
+            );
+        }
+        else
+        {
+            text = text.Replace(
+                "\"references\": [",
+                "\"references\": [\n        \"" + TT_WEBGL_REFERENCE + "\","
+            );
+        }
+
+        File.WriteAllText(asmdefPath, text);
+        AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+        CompilationPipeline.RequestScriptCompilation();
+
+        Debug.Log("已添加依赖: Frame_HotFix -> " + TT_WEBGL_REFERENCE);
+    }
+    // 此处仅做示例,请在应用层中重写此方法,传入正确的密钥获取方法
+    //[MenuItem(mMenuName + "dll解密", false, 41)]
+    public static void decryptDllFile()
 	{
 		EditorWindow.GetWindow<DecryptDllWindow>(true, "解密dll", true).start(null, null);
 	}
@@ -305,7 +347,21 @@ public class MenuShortcutOperation
 		logBase("耗时:" + (DateTime.Now - start));
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected static void doTextReplaceToTMPro(Text comText)
+    // 查找指定asmdef文件路径。
+    protected static string findAsmdefPath(string fileName)
+    {
+        string[] guidList = AssetDatabase.FindAssets("t:AssemblyDefinitionAsset");
+        foreach (string guid in guidList)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid).Replace("\\", "/");
+            if (path.EndsWith("/" + fileName))
+            {
+                return path;
+            }
+        }
+        return string.Empty;
+    }
+    protected static void doTextReplaceToTMPro(Text comText)
 	{
 		GameObject go = comText.gameObject;
 		int fontSize = comText.fontSize;
