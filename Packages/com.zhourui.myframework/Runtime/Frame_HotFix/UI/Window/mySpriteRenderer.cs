@@ -7,7 +7,7 @@ using static FrameDefine;
 using static FrameBaseUtility;
 
 // 对SpriteRenderer的封装,在3D空间中使用的
-public class mySpriteRenderer
+public class mySpriteRenderer : ClassObject
 {
 	protected GameObject mObject;					// 节点
 	protected SpriteRenderer mSpriteRenderer;		// 图片组件
@@ -81,8 +81,28 @@ public class mySpriteRenderer
 			}
 		}
 	}
-	public void destroy()
+    public override void resetProperty()
+    {
+        base.resetProperty();
+		mObject = null;
+        mSpriteRenderer = null;
+        mOriginAtlasPtr = null;
+        mAtlasPtr = null;
+        mOriginMaterial = null;
+        mCurMaterial = null;
+        mOriginSprite = null;
+        mName = null;
+        mOriginMaterialPath = null;
+        mOriginSpriteName = null;
+        mSpriteName = null;
+        mMaterialName = null;
+		mSpriteNameDirty = false;
+        mMaterialNameDirty = false;
+        mIsNewMaterial = false;
+    }
+	public override void destroy()
 	{
+		base.destroy();
 		// 卸载创建出的材质
 		if (mIsNewMaterial && !isEditor())
 		{
