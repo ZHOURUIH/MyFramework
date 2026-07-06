@@ -664,7 +664,9 @@ public abstract class PlatformBase
 		List<string> searchPaths = new();
 		searchPaths.AddRange(ObfuscatorBuilder.BuildUnityAssemblySearchPaths());
 		searchPaths.Add(editorExePath + "/Data/Managed");
-		searchPaths.Add(F_PROJECT_PATH + SettingsUtil.GetHotUpdateDllsOutputDirByTarget(EditorUserBuildSettings.activeBuildTarget));
+#if USE_HYBRID_CLR
+        searchPaths.Add(F_PROJECT_PATH + SettingsUtil.GetHotUpdateDllsOutputDirByTarget(EditorUserBuildSettings.activeBuildTarget));
+#endif
 		searchPaths.Add(F_PROJECT_PATH + "Library/PackageCache/com.unity.burst@59eb6f11d242");
 		searchPaths.Add(F_PROJECT_PATH + "Library/PackageCache/com.unity.collections@d49facba0036/Unity.Collections.LowLevel.ILSupport");
 		// mac中的路径

@@ -69,7 +69,7 @@ public class ExcelTable
 		}
 
 		// 解密
-		decodeFile(fileBuffer);
+		decodeFile(fileBuffer, mTableName);
 
 		// 解析数据
 		using var a = new ClassScope<SerializerRead>(out var reader);
@@ -210,23 +210,23 @@ public class ExcelTable
 	// 清除数据和查询缓存
 	public virtual void clear(){}
 	public virtual void clearCache(){}
-	//------------------------------------------------------------------------------------------------------------------------------
-	protected virtual void onOpenFile() { }
-	// 解密
-	protected void decodeFile(byte[] fileBuffer)
-	{
-		string key = generateFileMD5(("ASLD" + mTableName).toBytes()).ToUpper() + "23y35y983";
-		int keyIndex = 0;
-		int fileLength = fileBuffer.Length;
-		for (int i = 0; i < fileLength; ++i)
-		{
-			fileBuffer[i] = (byte)((fileBuffer[i] ^ (byte)key[keyIndex]) + ((i << 1) & 0xFF));
-			if (++keyIndex >= key.Length)
-			{
-				keyIndex = 0;
-			}
-		}
-	}
+    // 解密,这里都是简单加密,表格文件复杂加密没多大意义,客户端的所有东西只要想逆向,所有文件都能够被还原
+    public static void decodeFile(byte[] fileBuffer, string tableName)
+    {
+        string key = generateFileMD5(("ASLD" + tableName).toBytes()).ToUpper() + "23y35y983";
+        int keyIndex = 0;
+        int fileLength = fileBuffer.Length;
+        for (int i = 0; i < fileLength; ++i)
+        {
+            fileBuffer[i] = (byte)((fileBuffer[i] ^ (byte)key[keyIndex]) + ((i << 1) & 0xFF));
+            if (++keyIndex >= key.Length)
+            {
+                keyIndex = 0;
+            }
+        }
+    }
+    //------------------------------------------------------------------------------------------------------------------------------
+    protected virtual void onOpenFile() { }
 	protected void readFile()
 	{
 		{
@@ -250,7 +250,7 @@ public class ExcelTable
 		}
 
 		// 解密
-		decodeFile(fileBuffer);
+		decodeFile(fileBuffer, mTableName);
 
 		using var a = new HashSetScope<int>(out var idsToRemove);
 		idsToRemove.addRangeKeys(mDataMap);
