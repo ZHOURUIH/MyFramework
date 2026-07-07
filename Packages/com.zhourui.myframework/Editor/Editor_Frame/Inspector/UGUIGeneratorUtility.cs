@@ -45,6 +45,13 @@ public class UGUIGeneratorUtility
 				generator.addScrollList();
 			}
 		}
+		if (generator is UGUISubGenerator subGenerator)
+		{
+            using (new GUILayout.HorizontalScope(GUILayout.Width(200)))
+            {
+                drawRootMemberLine(subGenerator);
+            }
+        }
 		List<MemberData> tempNeedRemoveData = null;
 		for (int i = 0; i < generator.mMemberList.Count; ++i)
 		{
@@ -134,7 +141,7 @@ public class UGUIGeneratorUtility
     }
     protected static void drawMemberLine(UGUIGeneratorBase generator, MemberData item, ref List<MemberData> tempNeedRemoveData)
 	{
-		if (button("X", 25))
+		if (button("X", 32))
 		{
 			tempNeedRemoveData ??= new();
 			tempNeedRemoveData.addUnique(item);
@@ -240,7 +247,24 @@ public class UGUIGeneratorUtility
 			toggle(ref item.mHideError, "不显示错误");
 		}
 	}
-	protected static void drawTemplateParamUGUIDragViewLoop(MemberData data)
+    protected static void drawRootMemberLine(UGUISubGenerator generator)
+    {
+		label("Root");
+        objectField(generator.gameObject, 160);
+        if (toggle(ref generator.mRootRegisterCollider, "注册点击") && generator.mRootRegisterCollider)
+        {
+            generator.mRootHasClickEvent = true;
+        }
+        if (generator.mRootRegisterCollider)
+        {
+            toggle(ref generator.mRootHasClickEvent, "点击事件");
+        }
+        else
+        {
+            generator.mRootHasClickEvent = false;
+        }
+    }
+    protected static void drawTemplateParamUGUIDragViewLoop(MemberData data)
 	{
 		using (new GUILayout.HorizontalScope(GUILayout.Width(200)))
 		{
@@ -572,7 +596,7 @@ public class UGUIGeneratorUtility
 					lines.Add(prefix + "for (int i = 0; i < m" + newMemberName + ".Length; ++i)");
 					lines.Add(prefix + "{");
 					string parentParam = parentName ?? "mRoot";
-					lines.Add(prefix + "\tm" + newMemberName + "[i].assignWindow(" + parentParam + ", " + varName + ", \"" + newGameObjectName + "\" + i.IToS());");
+					lines.Add(prefix + "\tm" + newMemberName + "[i].assignWindow(" + parentParam + ", " + varName + ", \"" + newGameObjectName + "\" + IToS(i));");
 					lines.Add(prefix + "}");
 					// 动态生成的数组都需要把模板节点隐藏起来
 					lines.Add(prefix + varName + ".setActive(false);");
@@ -586,12 +610,12 @@ public class UGUIGeneratorUtility
 				{
 					string showErrorParam = data.mHideError ? ", false" : "";
 					string parentParam = parentName != null ? parentName + ", " : "";
-					lines.Add(prefix + "\tnewObject(out m" + newMemberName + "[i], " + parentParam + "\"" + newGameObjectName + "\" + i.IToS()" + showErrorParam + ");");
+					lines.Add(prefix + "\tnewObject(out m" + newMemberName + "[i], " + parentParam + "\"" + newGameObjectName + "\" + IToS(i)" + showErrorParam + ");");
 				}
 				else
 				{
 					string parentParam = parentName ?? "mRoot";
-					lines.Add(prefix + "\tm" + newMemberName + "[i].assignWindow(" + parentParam + ", \"" + newGameObjectName + "\" + i.IToS());");
+					lines.Add(prefix + "\tm" + newMemberName + "[i].assignWindow(" + parentParam + ", \"" + newGameObjectName + "\" + IToS(i));");
 				}
 				lines.Add(prefix + "}");
 			}
