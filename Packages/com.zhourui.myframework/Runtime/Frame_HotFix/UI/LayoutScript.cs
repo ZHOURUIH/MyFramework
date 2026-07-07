@@ -1,7 +1,4 @@
 ﻿using System.Collections.Generic;
-#if USE_CSHARP_10
-using System.Runtime.CompilerServices;
-#endif
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -375,25 +372,6 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	{
 		return createUGUIObject<T>(null, name, active);
 	}
-	// 仅支持C#10
-#if USE_CSHARP_10
-	public T newObject<T>(out T obj, [CallerArgumentExpression("obj")] string name = "") where T : myUGUIObject, new()
-	{
-		return newObject(out obj, mRoot, name.rangeToEnd(1), true);
-	}
-	public T newObject<T>(out T obj, [CallerArgumentExpression("obj")] string name = "") where T : myUGUIObject, new()
-	{
-		return newObject(out obj, mRoot, name.rangeToEnd(1), true);
-	}
-	public T newObject<T>(out T obj, myUGUIObject parent, [CallerArgumentExpression("obj")] string name = "") where T : myUGUIObject, new()
-	{
-		return newObject(out obj, parent, name.rangeToEnd(1), true);
-	}
-	public T newObject<T>(out T obj, myUGUIObject parent, [CallerArgumentExpression("obj")] string name = "") where T : myUGUIObject, new()
-	{
-		return newObject(out obj, parent, name.rangeToEnd(1), true);
-	}
-#endif
 	public T newObject<T>(out T obj, string name) where T : myUGUIObject, new()
 	{
 		return newObject(out obj, mRoot, name, true);
