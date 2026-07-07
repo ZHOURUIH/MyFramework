@@ -51,7 +51,14 @@ public class UGUISubGeneratorInspector : GameInspector
 					List<string> parentList = getSubUIParentList();
 					if (generator.mParentType.isEmpty() || !parentList.Contains(generator.mParentType))
 					{
-						generator.mParentType = parentList.get(0) ?? typeof(WindowObjectUGUI).ToString();
+						if (parentList.contains(typeof(WindowRecyclableUGUI).ToString()))
+						{
+							generator.mParentType = typeof(WindowRecyclableUGUI).ToString();
+						}
+						else
+						{
+							generator.mParentType = parentList.get(0);
+						}
 					}
 					displayDropDown("", "", parentList, ref generator.mParentType, 250);
 					if (generator.mParentType == typeof(WindowObjectRecyclableT<>).ToString().rangeToFirst('`'))
@@ -186,307 +193,346 @@ public class UGUISubGeneratorInspector : GameInspector
 		List<string> generatedInitLines = new();
 		List<string> clickCallbackCheckLists = new();
 		List<string> generatedClickCallbackLists = new();
-		foreach (MemberData data in generator.mMemberList)
-		{
-			if (data.mRegisterCollider)
-			{
-				if (data.mHasClickEvent)
-				{
-					if (data.getTypeName() == typeof(myUGUIImageSimple).ToString() ||
-						data.getTypeName() == typeof(myUGUIImageAnim).ToString() ||
-						data.getTypeName() == typeof(myUGUIImage).ToString())
-					{
-						generatedInitLines.add("\t\tm" + data.getMemberName() + ".registeColliderImage(" + "on" + data.getMemberName() + "Click);");
-						clickCallbackCheckLists.add(generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click()"));
-					}
-					else if (data.getTypeName() == typeof(UGUITab).ToString())
-					{
-						generatedInitLines.add("\t\tm" + data.getMemberName() + ".setCallback(" + "on" + data.getMemberName() + "Click);");
-						clickCallbackCheckLists.add(generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click()"));
-					}
-					else if (data.getTypeName() == typeof(UGUICheckbox).ToString())
-					{
-						generatedInitLines.add("\t\tm" + data.getMemberName() + ".setCheckCallback(" + "on" + data.getMemberName() + "Click);");
-						clickCallbackCheckLists.add(generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click(UGUICheckbox checkbox)"));
-					}
-					else
-					{
-						generatedInitLines.add("\t\tm" + data.getMemberName() + ".registeCollider(" + "on" + data.getMemberName() + "Click);");
-						clickCallbackCheckLists.add(generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click()"));
-					}
-					generatedClickCallbackLists.add("\t{");
-					generatedClickCallbackLists.add("\t\t;");
-					generatedClickCallbackLists.add("\t}");
-				}
-				else
-				{
-					generatedInitLines.add("\t\tm" + data.getMemberName() + ".registeCollider();");
-				}
-			}
-		}
+		if (generator.mRootRegisterCollider)
+        {
+            if (generator.mRootHasClickEvent)
+            {
+                generatedInitLines.add("\t\tmRoot.registeCollider(" + "onRootClick);");
+                clickCallbackCheckLists.add(generatedClickCallbackLists.add("\tprotected void onRootClick()"));
+                generatedClickCallbackLists.add("\t{");
+                generatedClickCallbackLists.add("\t\t;");
+                generatedClickCallbackLists.add("\t}");
+            }
+            else
+            {
+                generatedInitLines.add("\t\tmRoot.registeCollider();");
+            }
+        }
+        foreach (MemberData data in generator.mMemberList)
+        {
+            if (data.mRegisterCollider)
+            {
+                if (data.mHasClickEvent)
+                {
+                    if (data.getTypeName() == typeof(myUGUIImageSimple).ToString() ||
+                        data.getTypeName() == typeof(myUGUIImageAnim).ToString() ||
+                        data.getTypeName() == typeof(myUGUIImage).ToString())
+                    {
+                        generatedInitLines.add("\t\tm" + data.getMemberName() + ".registeColliderImage(" + "on" + data.getMemberName() + "Click);");
+                        clickCallbackCheckLists.add(generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click()"));
+                    }
+                    else if (data.getTypeName() == typeof(UGUITab).ToString())
+                    {
+                        generatedInitLines.add("\t\tm" + data.getMemberName() + ".setCallback(" + "on" + data.getMemberName() + "Click);");
+                        clickCallbackCheckLists.add(generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click()"));
+                    }
+                    else if (data.getTypeName() == typeof(UGUICheckbox).ToString())
+                    {
+                        generatedInitLines.add("\t\tm" + data.getMemberName() + ".setCheckCallback(" + "on" + data.getMemberName() + "Click);");
+                        clickCallbackCheckLists.add(generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click(UGUICheckbox checkbox)"));
+                    }
+                    else
+                    {
+                        generatedInitLines.add("\t\tm" + data.getMemberName() + ".registeCollider(" + "on" + data.getMemberName() + "Click);");
+                        clickCallbackCheckLists.add(generatedClickCallbackLists.add("\tprotected void on" + data.getMemberName() + "Click()"));
+                    }
+                    generatedClickCallbackLists.add("\t{");
+                    generatedClickCallbackLists.add("\t\t;");
+                    generatedClickCallbackLists.add("\t}");
+                }
+                else
+                {
+                    generatedInitLines.add("\t\tm" + data.getMemberName() + ".registeCollider();");
+                }
+            }
+        }
 
-		string prefabPath = PrefabStageUtility.GetCurrentPrefabStage().assetPath;
-		string subUIName = getClassNameFromGameObject(generator.gameObject);
-		// 先找一下有没有已经存在的子UI脚本
-		string fileFullPath = findScript(subUIName);
-		if (fileFullPath.isEmpty())
-		{
-			fileFullPath = F_SCRIPTS_HOTFIX_UI_PATH + "InnerClass/" + subUIName + ".cs";
-			string fileContent = "";
-			line(ref fileContent, "");
-			// 对象池节点的代码会特殊判断
-			if (generator.mParentType == "DragViewItem")
-			{
-				line(ref fileContent, "// auto generate classname start");
-				line(ref fileContent, "// generate from:" + prefabPath);
-				line(ref fileContent, "// " + generator.mComment);
-				line(ref fileContent, "public class " + subUIName + " : " + generator.mParentType + "<" + subUIName + ".Data>");
-				line(ref fileContent, "// auto generate classname end");
-				line(ref fileContent, "{");
-				line(ref fileContent, "\tpublic class Data : ClassObject");
-				line(ref fileContent, "\t{");
-				line(ref fileContent, "\t\tpublic override void resetProperty()");
-				line(ref fileContent, "\t\t{");
-				line(ref fileContent, "\t\t\tbase.resetProperty();");
-				line(ref fileContent, "\t\t}");
-				line(ref fileContent, "\t}");
-			}
-			else
-			{
-				line(ref fileContent, "// auto generate classname start");
-				line(ref fileContent, "// generate from:" + prefabPath);
-				line(ref fileContent, "// " + generator.mComment);
-				if (generator.mParentGenericType.isEmpty())
-				{
-					line(ref fileContent, "public class " + subUIName + " : " + generator.mParentType);
-				}
-				else
-				{
-					line(ref fileContent, "public class " + subUIName + " : " + generator.mParentType + "<" + generator.mParentGenericType + ">");
-				}
-				line(ref fileContent, "// auto generate classname end");
-				line(ref fileContent, "{");
-			}
+        string prefabPath = PrefabStageUtility.GetCurrentPrefabStage().assetPath;
+        string subUIName = getClassNameFromGameObject(generator.gameObject);
+        // 先找一下有没有已经存在的子UI脚本
+        string fileFullPath = findScript(subUIName);
+        if (fileFullPath.isEmpty())
+        {
+            fileFullPath = F_SCRIPTS_HOTFIX_UI_PATH + "InnerClass/" + subUIName + ".cs";
+            string fileContent = "";
+            if (generatedAssignLines.contains(item => item.Contains(" IToS(")))
+            {
+                line(ref fileContent, "using static StringUtility;");
+            }
+            line(ref fileContent, "");
+            // 对象池节点的代码会特殊判断
+            if (generator.mParentType == "DragViewItem")
+            {
+                line(ref fileContent, "// auto generate classname start");
+                line(ref fileContent, "// generate from:" + prefabPath);
+                line(ref fileContent, "// " + generator.mComment);
+                line(ref fileContent, "public class " + subUIName + " : " + generator.mParentType + "<" + subUIName + ".Data>");
+                line(ref fileContent, "// auto generate classname end");
+                line(ref fileContent, "{");
+                line(ref fileContent, "\tpublic class Data : ClassObject");
+                line(ref fileContent, "\t{");
+                line(ref fileContent, "\t\tpublic override void resetProperty()");
+                line(ref fileContent, "\t\t{");
+                line(ref fileContent, "\t\t\tbase.resetProperty();");
+                line(ref fileContent, "\t\t}");
+                line(ref fileContent, "\t}");
+            }
+            else
+            {
+                line(ref fileContent, "// auto generate classname start");
+                line(ref fileContent, "// generate from:" + prefabPath);
+                line(ref fileContent, "// " + generator.mComment);
+                if (generator.mParentGenericType.isEmpty())
+                {
+                    line(ref fileContent, "public class " + subUIName + " : " + generator.mParentType);
+                }
+                else
+                {
+                    line(ref fileContent, "public class " + subUIName + " : " + generator.mParentType + "<" + generator.mParentGenericType + ">");
+                }
+                line(ref fileContent, "// auto generate classname end");
+                line(ref fileContent, "{");
+            }
 
-			// 成员变量定义
-			line(ref fileContent, "\t// auto generate member start");
-			line(ref fileContent, memberDefineList);
-			line(ref fileContent, "\t// auto generate member end");
+            // 成员变量定义
+            line(ref fileContent, "\t// auto generate member start");
+            line(ref fileContent, memberDefineList);
+            line(ref fileContent, "\t// auto generate member end");
 
-			// 构造函数
-			line(ref fileContent, "\tpublic " + subUIName + "(IWindowObjectOwner parent) : base(parent)");
-			line(ref fileContent, "\t{");
-			line(ref fileContent, "\t\t// auto generate constructor start");
-			line(ref fileContent, constructorLines);
-			line(ref fileContent, "\t\t// auto generate constructor end");
-			line(ref fileContent, "\t}");
+            // 构造函数
+            line(ref fileContent, "\tpublic " + subUIName + "(IWindowObjectOwner parent) : base(parent)");
+            line(ref fileContent, "\t{");
+            line(ref fileContent, "\t\t// auto generate constructor start");
+            line(ref fileContent, constructorLines);
+            line(ref fileContent, "\t\t// auto generate constructor end");
+            line(ref fileContent, "\t}");
 
-			// assignWindowInternal
-			line(ref fileContent, "\tprotected override void assignWindowInternal()");
-			line(ref fileContent, "\t{");
-			line(ref fileContent, "\t\t// auto generate assignWindowInternal start");
-			line(ref fileContent, generatedAssignLines);
-			line(ref fileContent, "\t\t// auto generate assignWindowInternal end");
-			line(ref fileContent, "\t}");
+            // assignWindowInternal
+            line(ref fileContent, "\tprotected override void assignWindowInternal()");
+            line(ref fileContent, "\t{");
+            line(ref fileContent, "\t\t// auto generate assignWindowInternal start");
+            line(ref fileContent, generatedAssignLines);
+            line(ref fileContent, "\t\t// auto generate assignWindowInternal end");
+            line(ref fileContent, "\t}");
 
-			// 初始化
-			line(ref fileContent, "\tpublic override void init()");
-			line(ref fileContent, "\t{");
-			line(ref fileContent, "\t\tbase.init();");
-			line(ref fileContent, "\t\t// auto generate init start");
-			line(ref fileContent, generatedInitLines);
-			line(ref fileContent, "\t\t// auto generate init end");
-			line(ref fileContent, "\t}");
+            // 初始化
+            line(ref fileContent, "\tpublic override void init()");
+            line(ref fileContent, "\t{");
+            line(ref fileContent, "\t\tbase.init();");
+            line(ref fileContent, "\t\t// auto generate init start");
+            line(ref fileContent, generatedInitLines);
+            line(ref fileContent, "\t\t// auto generate init end");
+            line(ref fileContent, "\t}");
 
-			// 显示时的函数
-			line(ref fileContent, "\tpublic override void onShow()");
-			line(ref fileContent, "\t{");
-			line(ref fileContent, "\t\tbase.onShow();");
-			line(ref fileContent, "\t}");
+            // 显示时的函数
+            line(ref fileContent, "\tpublic override void onShow()");
+            line(ref fileContent, "\t{");
+            line(ref fileContent, "\t\tbase.onShow();");
+            line(ref fileContent, "\t}");
 
-			// 对象池节点对象需要SetData
-			if (generator.mParentType == "DragViewItem")
-			{
-				line(ref fileContent, "\tpublic override void setData(Data data)");
-				line(ref fileContent, "\t{");
-				line(ref fileContent, "\t}");
-			}
-			if (!generatedClickCallbackLists.isEmpty())
-			{
-				line(ref fileContent, "\t//--------------------------------------------------------------------------------------------------------------------------------------------");
-				line(ref fileContent, generatedClickCallbackLists);
-			}
-			line(ref fileContent, "}");
-			writeTxtFile(fileFullPath, fileContent, true);
-			// 新生成文件后需要刷新一下资源
-			AssetDatabase.Refresh();
-		}
-		else
-		{
-			foreach (string line in openTxtFileLinesSync(fileFullPath).safe())
-			{
-				// 查找是否能获取到生成的源UI文件
-				if (line.startWith("// generate from:") &&
-					line.rangeFromFirstToEndExcept(':') != prefabPath &&
-					!messageYesNo("发现代码文件不是由当前UI界面生成的,是否确认要生成?"))
-				{
-					return;
-				}
-			}
+            // 对象池节点对象需要SetData
+            if (generator.mParentType == "DragViewItem")
+            {
+                line(ref fileContent, "\tpublic override void setData(Data data)");
+                line(ref fileContent, "\t{");
+                line(ref fileContent, "\t}");
+            }
+            if (!generatedClickCallbackLists.isEmpty())
+            {
+                line(ref fileContent, "\t//--------------------------------------------------------------------------------------------------------------------------------------------");
+                line(ref fileContent, generatedClickCallbackLists);
+            }
+            line(ref fileContent, "}");
+            writeTxtFile(fileFullPath, fileContent, true);
+            // 新生成文件后需要刷新一下资源
+            AssetDatabase.Refresh();
+        }
+        else
+        {
+            foreach (string line in openTxtFileLinesSync(fileFullPath).safe())
+            {
+                // 查找是否能获取到生成的源UI文件
+                if (line.startWith("// generate from:") &&
+                    line.rangeFromFirstToEndExcept(':') != prefabPath &&
+                    !messageYesNo("发现代码文件不是由当前UI界面生成的,是否确认要生成?"))
+                {
+                    return;
+                }
+            }
 
-			List<string> codeList = null;
-			if (findCustomCode(fileFullPath, ref codeList, out int lineStart0,
-				(string line) => { return line.endWith("// auto generate classname start"); },
-				(string line) => { return line.endWith("// auto generate classname end"); }, false))
-			{
-				codeList.Insert(++lineStart0, "// generate from:" + prefabPath);
-				codeList.Insert(++lineStart0, "// " + generator.mComment);
-				if (generator.mParentType == "DragViewItem")
-				{
-					codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType + "<" + subUIName + ".Data>");
-				}
-				else
-				{
-					if (generator.mParentGenericType.isEmpty())
-					{
-						codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType);
-					}
-					else
-					{
-						codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType + "<" + generator.mParentGenericType + ">");
-					}
-				}
-			}
-			else
-			{
-				// 找到第一个public class
-				if (codeList.find(item=>item.Contains("public class "), out int index))
-				{
-					codeList.RemoveAt(index);
-					lineStart0 = index - 1;
-					codeList.Insert(++lineStart0, "// auto generate classname start");
-					codeList.Insert(++lineStart0, "// generate from:" + prefabPath);
-					codeList.Insert(++lineStart0, "// " + generator.mComment);
-					if (generator.mParentType == "DragViewItem")
-					{
-						codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType + "<" + subUIName + ".Data>");
-					}
-					else
-					{
-						if (generator.mParentGenericType.isEmpty())
-						{
-							codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType);
-						}
-						else
-						{
-							codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType + "<" + generator.mParentGenericType + ">");
-						}
-					}
-					codeList.Insert(++lineStart0, "// auto generate classname end");
-				}
-			}
+            List<string> codeList = null;
+            if (findCustomCode(fileFullPath, ref codeList, out int lineStart0,
+                (string line) => { return line.endWith("// auto generate classname start"); },
+                (string line) => { return line.endWith("// auto generate classname end"); }, false))
+            {
+                codeList.Insert(++lineStart0, "// generate from:" + prefabPath);
+                codeList.Insert(++lineStart0, "// " + generator.mComment);
+                if (generator.mParentType == "DragViewItem")
+                {
+                    codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType + "<" + subUIName + ".Data>");
+                }
+                else
+                {
+                    if (generator.mParentGenericType.isEmpty())
+                    {
+                        codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType);
+                    }
+                    else
+                    {
+                        codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType + "<" + generator.mParentGenericType + ">");
+                    }
+                }
+            }
+            else
+            {
+                // 找到第一个public class
+                if (codeList.find(item => item.Contains("public class "), out int index))
+                {
+                    codeList.RemoveAt(index);
+                    lineStart0 = index - 1;
+                    codeList.Insert(++lineStart0, "// auto generate classname start");
+                    codeList.Insert(++lineStart0, "// generate from:" + prefabPath);
+                    codeList.Insert(++lineStart0, "// " + generator.mComment);
+                    if (generator.mParentType == "DragViewItem")
+                    {
+                        codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType + "<" + subUIName + ".Data>");
+                    }
+                    else
+                    {
+                        if (generator.mParentGenericType.isEmpty())
+                        {
+                            codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType);
+                        }
+                        else
+                        {
+                            codeList.Insert(++lineStart0, "public class " + subUIName + " : " + generator.mParentType + "<" + generator.mParentGenericType + ">");
+                        }
+                    }
+                    codeList.Insert(++lineStart0, "// auto generate classname end");
+                }
+                else
+                {
+                    Debug.LogError("没有找到类名定义行");
+                }
+            }
 
-			// 成员变量定义
-			if (findCustomCode(fileFullPath, ref codeList, out int lineStart1,
-				(string line) => { return line.endWith("// auto generate member start"); },
-				(string line) => { return line.endWith("// auto generate member end"); }, false))
-			{
-				memberDefineList.For(str => codeList.Insert(++lineStart1, str));
-			}
-			else
-			{
-				// 找不到就在类的第一行插入
-				if (codeList.find(item=>item.Contains(" class " + subUIName + " "), out int index))
-				{
-					int lineStart = index + 2;
-					codeList.Insert(++lineStart, "\t// auto generate member start");
-					memberDefineList.For(str => codeList.Insert(++lineStart, str));
-					codeList.Insert(++lineStart, "\t// auto generate member end");
-				}
-			}
+            // 成员变量定义
+            if (findCustomCode(fileFullPath, ref codeList, out int lineStart1,
+                (string line) => { return line.endWith("// auto generate member start"); },
+                (string line) => { return line.endWith("// auto generate member end"); }, false))
+            {
+                memberDefineList.For(str => codeList.Insert(++lineStart1, str));
+            }
+            else
+            {
+                // 找不到就在类的第一行插入
+                if (codeList.find(item => item.Contains(" class " + subUIName + " "), out int index))
+                {
+                    int lineStart = index + 2;
+                    codeList.Insert(++lineStart, "\t// auto generate member start");
+                    memberDefineList.For(str => codeList.Insert(++lineStart, str));
+                    codeList.Insert(++lineStart, "\t// auto generate member end");
+                }
+                else
+                {
+                    Debug.LogError("没有找到类名定义行,class " + subUIName);
+                }
+            }
 
-			// 构造函数,即使为空的,也要查找,可以去除旧的不用的行
-			if (findCustomCode(fileFullPath, ref codeList, out int lineStart2,
-				(string line) => { return line.endWith("// auto generate constructor start"); },
-				(string line) => { return line.endWith("// auto generate constructor end"); }, false))
-			{
-				constructorLines.For(str => codeList.Insert(++lineStart2, str));
-			}
-			// 找不到就在构造的第一行插入,子UI肯定是包含构造函数的
-			else
-			{
-				if (codeList.find(item=>item.Contains("public " + subUIName + "(IWindowObjectOwner "), out int index))
-				{
-					// 如果大括号是在同一行,则处理一下大括号
-					if (codeList[index].Contains("{") && codeList[index].Contains("}"))
-					{
-						codeList[index] = codeList[index].rangeToFirst('{').removeEndEmpty();
-						int lineStartTemp = index;
-						codeList.Insert(++lineStartTemp, "\t{");
-						codeList.Insert(++lineStartTemp, "\t}");
-					}
-					int lineStart = index + 1;
-					codeList.Insert(++lineStart, "\t\t// auto generate constructor start");
-					constructorLines.For(str => codeList.Insert(++lineStart, str));
-					codeList.Insert(++lineStart, "\t\t// auto generate constructor end");
-				}
-			}
+            // 构造函数,即使为空的,也要查找,可以去除旧的不用的行
+            if (findCustomCode(fileFullPath, ref codeList, out int lineStart2,
+                (string line) => { return line.endWith("// auto generate constructor start"); },
+                (string line) => { return line.endWith("// auto generate constructor end"); }, false))
+            {
+                constructorLines.For(str => codeList.Insert(++lineStart2, str));
+            }
+            // 找不到就在构造的第一行插入,子UI肯定是包含构造函数的
+            else
+            {
+                if (codeList.find(item => item.Contains("public " + subUIName + "(IWindowObjectOwner "), out int index))
+                {
+                    // 如果大括号是在同一行,则处理一下大括号
+                    if (codeList[index].Contains("{") && codeList[index].Contains("}"))
+                    {
+                        codeList[index] = codeList[index].rangeToFirst('{').removeEndEmpty();
+                        int lineStartTemp = index;
+                        codeList.Insert(++lineStartTemp, "\t{");
+                        codeList.Insert(++lineStartTemp, "\t}");
+                    }
+                    int lineStart = index + 1;
+                    codeList.Insert(++lineStart, "\t\t// auto generate constructor start");
+                    constructorLines.For(str => codeList.Insert(++lineStart, str));
+                    codeList.Insert(++lineStart, "\t\t// auto generate constructor end");
+                }
+                else
+                {
+                    Debug.LogError("没有找到构造函数定义行,可能是构造函数不规范");
+                }
+            }
 
-			// assignWindowInternal
-			if (findCustomCode(fileFullPath, ref codeList, out int lineStart3,
-				(string line) => { return line.endWith("// auto generate assignWindowInternal start"); },
-				(string line) => { return line.endWith("// auto generate assignWindowInternal end"); }, false))
-			{
-				generatedAssignLines.For(str => codeList.Insert(++lineStart3, str));
-			}
-			// 找不到就在assignWindowInternal的第一行插入
-			else
-			{
-				if (codeList.find(item=>item.Contains("protected override void assignWindowInternal()"), out int index))
-				{
-					int lineStart = index + 1;
-					codeList.Insert(++lineStart, "\t\t// auto generate assignWindowInternal start");
-					generatedAssignLines.For(str => codeList.Insert(++lineStart, str));
-					codeList.Insert(++lineStart, "\t\t// auto generate assignWindowInternal end");
-				}
-			}
+            // assignWindowInternal
+            if (findCustomCode(fileFullPath, ref codeList, out int lineStart3,
+                (string line) => { return line.endWith("// auto generate assignWindowInternal start"); },
+                (string line) => { return line.endWith("// auto generate assignWindowInternal end"); }, false))
+            {
+                generatedAssignLines.For(str => codeList.Insert(++lineStart3, str));
+            }
+            // 找不到就在assignWindowInternal的第一行插入
+            else
+            {
+                if (codeList.find(item => item.Contains("protected override void assignWindowInternal()"), out int index))
+                {
+                    int lineStart = index + 1;
+                    codeList.Insert(++lineStart, "\t\t// auto generate assignWindowInternal start");
+                    generatedAssignLines.For(str => codeList.Insert(++lineStart, str));
+                    codeList.Insert(++lineStart, "\t\t// auto generate assignWindowInternal end");
+                }
+                else
+                {
+                    Debug.LogError("没有找到assignWindowInternal");
+                }
+            }
 
-			// init
-			if (findCustomCode(fileFullPath, ref codeList, out int lineStart4,
-				(string line) => { return line.endWith("// auto generate init start"); },
-				(string line) => { return line.endWith("// auto generate init end"); }, false))
-			{
-				generatedInitLines.For(str => codeList.Insert(++lineStart4, str));
-			}
-			// 找不到就在init的第一行插入
-			else
-			{
-				if (codeList.find(item => item.Contains("base.init()"), out int index))
-				{
-					int lineStart = index;
-					codeList.Insert(++lineStart, "\t\t// auto generate init start");
-					generatedInitLines.For(str => codeList.Insert(++lineStart, str));
-					codeList.Insert(++lineStart, "\t\t// auto generate init end");
-				}
-			}
+            // init
+            if (findCustomCode(fileFullPath, ref codeList, out int lineStart4,
+                (string line) => { return line.endWith("// auto generate init start"); },
+                (string line) => { return line.endWith("// auto generate init end"); }, false))
+            {
+                generatedInitLines.For(str => codeList.Insert(++lineStart4, str));
+            }
+            // 找不到就在init的第一行插入
+            else
+            {
+                if (codeList.find(item => item.Contains("base.init()"), out int index))
+                {
+                    int lineStart = index;
+                    codeList.Insert(++lineStart, "\t\t// auto generate init start");
+                    generatedInitLines.For(str => codeList.Insert(++lineStart, str));
+                    codeList.Insert(++lineStart, "\t\t// auto generate init end");
+                }
+                else
+                {
+                    Debug.LogError("没有找到base.init()");
+                }
+            }
 
-			// 查找是否有缺失的点击事件回调函数
-			int insertIndex = codeList.FindLastIndex(line => line.endWith("}"));
-			if (insertIndex >= 0)
-			{
-				foreach (string line in clickCallbackCheckLists)
-				{
+            // 查找是否有缺失的点击事件回调函数
+            int insertIndex = codeList.FindLastIndex(line => line.endWith("}"));
+            if (insertIndex >= 0)
+            {
+                foreach (string line in clickCallbackCheckLists)
+                {
                     string lineNoPreSpace = line.removeStartEmpty();
                     if (!codeList.contains(item => item.Contains(lineNoPreSpace)))
                     {
-						codeList.Insert(insertIndex++, line);
-						codeList.Insert(insertIndex++, "\t{");
-						codeList.Insert(insertIndex++, "\t\t;");
-						codeList.Insert(insertIndex++, "\t}");
-					}
-				}
-			}
-			writeTxtFile(fileFullPath, codeList.stringsToString("\r\n"), true);
-		}
-	}
+                        codeList.Insert(insertIndex++, line);
+                        codeList.Insert(insertIndex++, "\t{");
+                        codeList.Insert(insertIndex++, "\t\t;");
+                        codeList.Insert(insertIndex++, "\t}");
+                    }
+                }
+            }
+            writeTxtFile(fileFullPath, codeList.stringsToString("\r\n"), true);
+        }
+    }
 }

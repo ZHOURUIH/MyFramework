@@ -303,6 +303,10 @@ public class UGUIGeneratorInspector : GameInspector
 			fileFullPath = F_SCRIPTS_HOTFIX_UI_PATH + className + ".cs";
 			string fileContent = "";
 			line(ref fileContent, "using Obfuz;");
+			if (generatedAssignLines.contains(item => item.Contains(" IToS(")))
+			{
+				line(ref fileContent, "using static StringUtility;");
+			}
 			line(ref fileContent, "");
 			line(ref fileContent, "// auto generate member start");
 			line(ref fileContent, memberDefineList);
@@ -360,6 +364,10 @@ public class UGUIGeneratorInspector : GameInspector
 					memberDefineList.For(str => codeList.Insert(++lineStart, str));
 					codeList.Insert(++lineStart, "\t// auto generate member end");
 				}
+				else
+				{
+					Debug.LogError("找不到类名所属行,class " + className + " 请确保类名定义行的空格规范且无换行");
+				}
 			}
 
 			// 构造函数
@@ -393,6 +401,10 @@ public class UGUIGeneratorInspector : GameInspector
 						codeList.Insert(++lineStart, "\t\t// auto generate constructor end");
 						codeList.Insert(++lineStart, "\t}");
 					}
+					else
+					{
+						Debug.LogError("没有找到构造函数,也找不到自动生成的成员变量");
+					}
 				}
 			}
 
@@ -413,6 +425,10 @@ public class UGUIGeneratorInspector : GameInspector
 					generatedAssignLines.For(str => codeList.Insert(++lineStart, str));
 					codeList.Insert(++lineStart, "\t\t// auto generate assignWindow end");
 				}
+				else
+				{
+					Debug.LogError("找不到assignWindow的定义行");
+				}
 			}
 
 			// init
@@ -432,6 +448,10 @@ public class UGUIGeneratorInspector : GameInspector
 					generatedInitLines.For(str => codeList.Insert(++lineStart, str));
 					codeList.Insert(++lineStart, "\t\t// auto generate init end");
 				}
+				else
+				{
+                    Debug.LogError("找不到init中调用base.init的行");
+                }
 			}
 
 			// 查找是否有缺失的点击事件回调函数
