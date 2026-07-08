@@ -155,10 +155,10 @@ public class COMCharacterAvatar : GameComponent
 		{
 			return null;
 		}
-		return mPrefabPoolManager.createObjectAsyncSafe(this, mModelPath, mModelTag, true, true, (GameObject go) =>
+		return mPrefabPoolManager.createObjectAsyncSafe(this, mModelPath, true, true, (GameObject go) =>
 		{
 			onModelLoaded(go);
-		});
+		}, mModelTag);
 	}
 	// 同步加载模型
 	public void loadModel(string modelPath, string animationControllerPath = null)
@@ -168,7 +168,7 @@ public class COMCharacterAvatar : GameComponent
 		mCharacterLoadedCallback = null;
 		if (!mModelPath.isEmpty())
 		{
-			onModelLoaded(mPrefabPoolManager.createObject(mModelPath, mModelTag, true, true));
+			onModelLoaded(mPrefabPoolManager.createObject(mModelPath, true, true, mModelTag));
 		}
 	}
 	public void setTransformSync(TRANSFORM_SYNC posSync, TRANSFORM_SYNC rotSync, TRANSFORM_SYNC scaleSync)

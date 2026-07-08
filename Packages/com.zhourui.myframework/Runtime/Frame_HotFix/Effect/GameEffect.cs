@@ -15,7 +15,7 @@ public class GameEffect : MovableObject
 	protected DateTime mUnuseTime;								// 回收时的时间戳
 	protected string mFilePath;                                 // 特效文件的路径,用于在某些时候获取路径
 	protected float mLifeTimer = -1.0f;                         // 特效生存时间计时器
-	protected int mTag;											// 在PrefabPool中的tag
+	protected int mTag;											// 在PrefabPool中的tag,也是用来根据tag来销毁一批特效的
 	protected bool mDefaultIgnoreTimeScale;                     // 创建时是否忽略时间缩放,用于在停止时恢复忽略时间缩放的设置
 	protected bool mExistedObject;                              // 为true表示特效节点是一个已存在的节点,false表示特效是实时加载的一个节点
 	protected bool mMoveToHide;                                 // 是否通过移动到远处来隐藏

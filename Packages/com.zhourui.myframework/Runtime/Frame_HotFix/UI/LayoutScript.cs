@@ -444,7 +444,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	}
 	public static GameObject instantiate(myUGUIObject parent, string prefabPath, string name, int tag = 0)
 	{
-		GameObject go = mPrefabPoolManager.createObject(prefabPath, tag, false, false, parent.getGameObject());
+		GameObject go = mPrefabPoolManager.createObject(prefabPath, false, false, tag, parent.getGameObject());
 		if (go != null)
 		{
 			go.name = name;
@@ -453,7 +453,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 	}
 	public static CustomAsyncOperation instantiateAsync(IRecyclable safeObj, myUGUIObject parent, string prefabPath, string name, int tag, GameObjectCallback callback)
 	{
-		return mPrefabPoolManager.createObjectAsyncSafe(safeObj, prefabPath, tag, false, false, (GameObject go) =>
+		return mPrefabPoolManager.createObjectAsyncSafe(safeObj, prefabPath, false, false, (GameObject go) =>
 		{
 			if (go != null)
 			{
@@ -461,7 +461,7 @@ public abstract class LayoutScript : DelayCmdWatcher, ILocalizationCollection, I
 			}
 			setNormalProperty(go, parent.getGameObject());
 			callback?.Invoke(go);
-		});
+		}, tag);
 	}
 	public static void instantiate(myUGUIObject parent, string prefabName, int tag)
 	{
