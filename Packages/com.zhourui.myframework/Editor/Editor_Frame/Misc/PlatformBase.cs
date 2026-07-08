@@ -585,7 +585,7 @@ public abstract class PlatformBase
 		return getDynamicDownloadList().contains(notPackFile => fullPath.startWith(mAssetBundleFullPath + notPackFile.ToLower()));
 	}
 	// 将本地文件夹的所有文件上传到linux服务器的指定目录中,返回值表示是否上传成功并且检测通过,remoteDeletePath是相对路径,removeCopyFullPath是绝对路径
-	protected bool uploadFileToLinuxServer(string localPath, string remoteDeletePath, string removeCopyFullPath, string userNameAndIP, string password)
+	protected static bool uploadFileToLinuxServer(string localPath, string remoteDeletePath, string removeCopyFullPath, string userNameAndIP, string password)
 	{
 		string deleteShell = "rm -r " + remoteDeletePath;
 		string fetchListShell = "ls -lR " + remoteDeletePath;
@@ -620,7 +620,7 @@ public abstract class PlatformBase
 		}
 		return false;
 	}
-	protected bool checkUploadedFile(List<string> output, string remoteDeletePath, string localPath)
+	protected static bool checkUploadedFile(List<string> output, string remoteDeletePath, string localPath)
 	{
 		Dictionary<string, GameFileInfo> fileInfoList = new();
 		string curDirectory = "";
