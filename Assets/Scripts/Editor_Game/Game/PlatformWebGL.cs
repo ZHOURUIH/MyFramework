@@ -1,5 +1,6 @@
 ﻿using UnityEditor.Build.Reporting;
 using static EditorCommonUtility;
+using static PlatformUtility;
 
 public class PlatformWebGL : PlatformInfo
 {

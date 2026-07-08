@@ -4,6 +4,7 @@ using static FrameBaseUtility;
 using static StringUtility;
 using static EditorCommonUtility;
 using static FrameBaseDefine;
+using static PlatformUtility;
 
 // 以下代码为示例代码,需要根据自己项目的需求进行调整
 public class GameReleaseWindow : GameEditorWindow
@@ -215,7 +216,7 @@ public class GameReleaseWindow : GameEditorWindow
 				}
 
 				long localBigVersion = mPlatform.mVersionNumber[0].SToL() * 1000000000 + mPlatform.mVersionNumber[1].SToL();
-				long remoteBigVersion = PlatformBase.getVersionPart(mPlatform.mRemoteVersion, 0) * 1000000000 + PlatformBase.getVersionPart(mPlatform.mRemoteVersion, 1);
+				long remoteBigVersion = getVersionPart(mPlatform.mRemoteVersion, 0) * 1000000000 + getVersionPart(mPlatform.mRemoteVersion, 1);
 				// 大版本更新打包
 				if (button("大版本更新,打包AB+打包程序+上传", "大版本更新打包,会执行打包AB,构建xcode工程或生成apk,并且上传StreamingAssets资源", 200, 30))
 				{

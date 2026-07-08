@@ -1,9 +1,6 @@
-﻿using System;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
-using System.Reflection;
 using System.Collections.Generic;
-using static StringUtility;
 using static FileUtility;
 using static EditorCommonUtility;
 using static FrameDefine;
@@ -17,10 +14,8 @@ public class MenuCheckCode
     [MenuItem(MENU_NAME + "一键检查代码规范", false, 200)]
 	public static void doAllScriptCheck()
 	{
-		checkResetProperty();
 		checkCodeEmptyLine();
 		checkProtobufMsgOrder();
-		checkDifferentNodeName();
 		checkSingleCodeLineLength();
 		checkPropertyName();
 		checkFunctionOrder();
@@ -29,22 +24,6 @@ public class MenuCheckCode
 		checkSystemFunction();
 		checkCommandName();
 		checkCodeSeparateLineWidth();
-	}
-	[MenuItem(MENU_NAME + "检查代码" + KEY_FUNCTION, false, 200)]
-	public static void checkResetProperty()
-	{
-		Debug.Log("开始检查代码" + KEY_FUNCTION);
-		// 获取Assembly集合
-		List<string> assemblyList = new() {"Frame_Base", "Frame_HotFix", "Frame_Game", "Game", "HotFix" };
-		foreach (Assembly assemly in AppDomain.CurrentDomain.GetAssemblies())
-		{
-			// 获取工程
-			if (assemblyList.Contains(assemly.GetName().Name))
-			{
-				doCheckResetProperty(assemly, F_SCRIPTS_PATH + assemly.GetName().Name);
-				Debug.Log(assemly.GetName().Name + "检查完毕");
-			}
-		}
 	}
 	[MenuItem(MENU_NAME + "检查代码空行", false, 201)]
 	public static void checkCodeEmptyLine()
@@ -102,43 +81,6 @@ public class MenuCheckCode
 		}
 		clearProgressBar();
 		Debug.Log("完成检查Protobuf的消息字段顺序");
-	}
-	[MenuItem(MENU_NAME + "检查UI变量名", false, 204)]
-	public static void checkDifferentNodeName()
-	{
-		Debug.Log("开始检查UI变量名与节点名不一致的代码...");
-		// 缓存所有预制体的Transform
-		Dictionary<string, Transform[]> prefabChildTransform = new();
-		foreach (string file in findFilesNonAlloc(F_UI_PREFAB_PATH, ".prefab"))
-		{
-			string filePath = fullPathToProjectPath(file);
-			var childTrans = loadGameObject(filePath).transform.GetComponentsInChildren<Transform>(true);
-			string prefabName = removeSuffix(getFileNameWithSuffix(filePath)).removeStartString("UI");
-			prefabChildTransform.TryAdd(prefabName, childTrans);
-		}
-
-		// 读取cs文件
-		List<string> fileListCS = new();
-		findFiles(F_SCRIPTS_HOTFIX_UI_PATH, fileListCS, ".cs");
-		int fileCount = fileListCS.Count;
-		for (int i = 0; i < fileCount; ++i)
-		{
-			string file = fileListCS[i];
-			string fileNameNoSuffix = removeSuffix(getFileNameWithSuffix(fullPathToProjectPath(file)));
-			if (!fileNameNoSuffix.startWith("UI") || isIgnoreFile(file, FrameEditorSettings.getInstance().IgnoreLayoutScript))
-			{
-				continue;
-			}
-			if (!prefabChildTransform.TryGetValue(fileNameNoSuffix, out Transform[] transforms))
-			{
-				Debug.LogError("脚本名为:" + fileNameNoSuffix + "的cs文件没找到相对应的预制体");
-				continue;
-			}
-			displayProgressBar("UI变量名匹配", "进度: ", i + 1, fileCount);
-			doCheckDifferentNodeName(file, fileNameNoSuffix, transforms, openTxtFileLines(file));
-		}
-		clearProgressBar();
-		Debug.Log("完成检查UI变量名与节点名不一致的代码");
 	}
 	[MenuItem(MENU_NAME + "检查单行代码长度", false, 205)]
 	public static void checkSingleCodeLineLength()
@@ -309,6 +251,6 @@ public class MenuCheckCode
 	[MenuItem(MENU_NAME + "检查热更引用了被裁剪的代码", false, 214)]
 	public static void checkAccessMissingMetadata()
 	{
-		PlatformBase.checkAccessMissingMetadata();
+		PlatformUtility.checkAccessMissingMetadata();
 	}
 }

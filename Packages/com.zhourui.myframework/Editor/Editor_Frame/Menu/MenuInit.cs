@@ -590,6 +590,7 @@ public class MenuInit
         }
 
         string[] oldAssemblies = settings.assemblySettings.assembliesToObfuscate;
+        // 这里的顺序很重要,被依赖的需要在前面
         string[] newAssemblies = addStringToArray(oldAssemblies, HOTFIX_FRAME, HOTFIX);
         if (newAssemblies != oldAssemblies)
         {
