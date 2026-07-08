@@ -606,17 +606,14 @@ public class MenuInit
     protected static string[] addStringToArray(string[] array, params string[] values)
     {
         List<string> list = new();
-        foreach (string item in array)
+        foreach (string item in array.safe())
         {
             list.addUniqueIf(item, !item.isEmpty());
         }
         bool changed = false;
         foreach (string item in values)
         {
-            if (list.addUniqueIf(item, !item.isEmpty()))
-            {
-                changed = true;
-            }
+            changed |= list.addUniqueIf(item, !item.isEmpty());
         }
         return changed ? list.ToArray() : array;
     }
