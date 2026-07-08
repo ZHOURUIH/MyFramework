@@ -25,6 +25,7 @@ using static FrameUtility;
 using static UnityUtility;
 using static EditorCommonUtility;
 using static FrameBaseDefine;
+using static FrameMacro;
 
 public abstract class PlatformBase
 {
@@ -221,7 +222,22 @@ public abstract class PlatformBase
 		}
 		return allExist;
 	}
-	public abstract string getDefaultPlatformDefine();
+	// 框架中只根据是否启用热更和是否为测试客户端来增加对应的宏
+	public string getDefaultPlatformDefine()
+	{
+        string platformDefine = getDefaultPlatformDefineInternal();
+        if (mEnableHotFix)
+        {
+            platformDefine += ";" + ENABLE_HOTFIX;
+        }
+        if (mTestClient)
+        {
+            platformDefine += ";" + TEST;
+        }
+        return platformDefine;
+	}
+	// 除了动态配置以外的宏,比如USE_HYBRID_CLR,USE_OBFUZ等基本固定的宏,一般都是使用FrameMacro中定义的值,由应用层自己决定
+	public abstract string getDefaultPlatformDefineInternal();
 	public virtual void generateFolderPreName() { mFolderPreName = ""; }
 	public static string generateFileList(string assetBundlePath, List<string> ignoreFiles = null)
 	{
@@ -408,6 +424,7 @@ public abstract class PlatformBase
 		}
 		return options;
 	}
+	// 获取需要动态下载的目录列表,GameResources下的相对路径,只要在这个目录中的资源,都不会在启动时的热更进行下载,而是在需要加载时才会从远端动态下载
 	protected abstract List<string> getDynamicDownloadList();
 	// 根据自己项目的情况在这个函数中去配置打包时需要的宏定义,比如是否启用热更,是否为测试客户端等,因为这些宏定义会影响代码编译,所以需要在打包前就配置好
 	protected abstract void configureScriptingDefine();
@@ -568,7 +585,7 @@ public abstract class PlatformBase
 		return getDynamicDownloadList().contains(notPackFile => fullPath.startWith(mAssetBundleFullPath + notPackFile.ToLower()));
 	}
 	// 将本地文件夹的所有文件上传到linux服务器的指定目录中,返回值表示是否上传成功并且检测通过,remoteDeletePath是相对路径,removeCopyFullPath是绝对路径
-	protected bool uploadFileToLinuxServer(string localPath, string remoteDeletePath, string removeCopyFullPath, string userNameAndIP, string password)
+	protected static bool uploadFileToLinuxServer(string localPath, string remoteDeletePath, string removeCopyFullPath, string userNameAndIP, string password)
 	{
 		string deleteShell = "rm -r " + remoteDeletePath;
 		string fetchListShell = "ls -lR " + remoteDeletePath;
@@ -603,7 +620,7 @@ public abstract class PlatformBase
 		}
 		return false;
 	}
-	protected bool checkUploadedFile(List<string> output, string remoteDeletePath, string localPath)
+	protected static bool checkUploadedFile(List<string> output, string remoteDeletePath, string localPath)
 	{
 		Dictionary<string, GameFileInfo> fileInfoList = new();
 		string curDirectory = "";
