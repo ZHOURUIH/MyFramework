@@ -5,6 +5,7 @@ using Google.Android.AppBundle.Editor;
 #endif
 using static EditorCommonUtility;
 using static UnityUtility;
+using static PlatformUtility;
 
 public class PlatformAndroid : PlatformInfo
 {

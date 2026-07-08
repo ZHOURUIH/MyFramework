@@ -381,6 +381,9 @@ public class MenuInit
     protected static void requestInitHybridCLRObfuz()
     {
         SessionState.SetInt(SESSION_HYBRIDCLR_OBFUZ_STATE, (int)HYBRIDCLR_OBFUZ_STATE.INSTALL_HYBRIDCLR);
+
+        fixHybridCLRApiCompatibilityLevel();
+
         EditorApplication.delayCall += continueHybridCLRObfuzIfNeed;
         Debug.Log("开始初始化HybridCLR和Obfuz");
     }
@@ -590,6 +593,7 @@ public class MenuInit
         }
 
         string[] oldAssemblies = settings.assemblySettings.assembliesToObfuscate;
+        // 这里的顺序很重要,被依赖的需要在前面
         string[] newAssemblies = addStringToArray(oldAssemblies, HOTFIX_FRAME, HOTFIX);
         if (newAssemblies != oldAssemblies)
         {
@@ -620,21 +624,54 @@ public class MenuInit
 #endif
     // 判断Package是否已经安装。
     // 根据包名查找PackageInfo,兼容没有PackageInfo.FindForPackageName的Unity版本。
-    public static bool isPackageInstalled(string packageName)
+    protected static bool isPackageInstalled(string packageName)
     {
-        if (string.IsNullOrEmpty(packageName))
+        if (packageName.isEmpty())
         {
             Debug.LogError("Package name cannot be null or empty.");
             return false;
         }
-        foreach (var packageInfo in UnityEditor.PackageManager.PackageInfo.GetAllRegisteredPackages().safe())
+        return UnityEditor.PackageManager.PackageInfo.GetAllRegisteredPackages().contains(info => info?.name == packageName);
+    }
+    // 修正HybridCLR需要的Api Compatibility Level。
+    // Unity 2021及以上使用.NET Framework,对应ApiCompatibilityLevel.NET_Unity_4_8。
+    protected static void fixHybridCLRApiCompatibilityLevel()
+    {
+        HashSet<BuildTargetGroup> groupSet = new()
         {
-            if (packageInfo != null && packageInfo.name == packageName)
+            EditorUserBuildSettings.selectedBuildTargetGroup,
+            BuildTargetGroup.Standalone,
+            BuildTargetGroup.Android,
+            BuildTargetGroup.iOS,
+            BuildTargetGroup.WebGL,
+        };
+        foreach (BuildTargetGroup group in groupSet)
+        {
+            if (group != BuildTargetGroup.Unknown)
             {
-                return true;
+                setHybridCLRApiCompatibilityLevel(group);
             }
         }
-        return false;
+    }
+    // 设置指定平台的Api Compatibility Level
+    protected static void setHybridCLRApiCompatibilityLevel(BuildTargetGroup group)
+    {
+        try
+        {
+            ApiCompatibilityLevel targetLevel = ApiCompatibilityLevel.NET_Unity_4_8;
+            NamedBuildTarget buildTarget = NamedBuildTarget.FromBuildTargetGroup(group);
+            ApiCompatibilityLevel oldLevel = PlayerSettings.GetApiCompatibilityLevel(buildTarget);
+            if (oldLevel == targetLevel)
+            {
+                return;
+            }
+            PlayerSettings.SetApiCompatibilityLevel(buildTarget, targetLevel);
+            Debug.Log("已将" + group + "的Api Compatibility Level设置为.Net Framework,以兼容HybridCLR");
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning("设置" + group + "的Api Compatibility Level失败:" + e.Message);
+        }
     }
     // 添加宏到常用平台
     protected static void addDefineSymbols(params string[] symbols)
@@ -653,20 +690,16 @@ public class MenuInit
             {
                 continue;
             }
-            var buildTarget = NamedBuildTarget.FromBuildTargetGroup(group);
-            string defineText = PlayerSettings.GetScriptingDefineSymbols(buildTarget);
-            HashSet<string> defineSet = new(defineText.Split(';', StringSplitOptions.RemoveEmptyEntries));
+            NamedBuildTarget buildTarget = NamedBuildTarget.FromBuildTargetGroup(group);
+            HashSet<string> defineSet = new(PlayerSettings.GetScriptingDefineSymbols(buildTarget).split(';'));
             bool changed = false;
             foreach (string symbol in symbols)
             {
-                if (defineSet.Add(symbol))
-                {
-                    changed = true;
-                }
+                changed |= defineSet.Add(symbol);
             }
             if (!changed)
             {
-                return;
+                continue;
             }
             PlayerSettings.SetScriptingDefineSymbols(buildTarget, string.Join(";", defineSet));
             Debug.Log("已添加宏到" + group + ": " + string.Join(",", symbols));
@@ -685,12 +718,9 @@ public class MenuInit
         }
         foreach (System.Reflection.Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
         {
-            foreach (Type type in assembly.GetTypes())
+            if (assembly.GetTypes().find(type => type.Name == typeName && typeof(MonoBehaviour).IsAssignableFrom(type), out Type type))
             {
-                if (type.Name == typeName && typeof(MonoBehaviour).IsAssignableFrom(type))
-                {
-                    return type;
-                }
+                return type;
             }
         }
         return null;
@@ -710,14 +740,14 @@ public class MenuInit
         var packageInfo = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(MenuInit).Assembly);
         if (packageInfo != null && !packageInfo.resolvedPath.isEmpty())
         {
-            return packageInfo.resolvedPath.Replace("\\", "/");
+            return packageInfo.resolvedPath.Replace('\\', '/');
         }
         return typeof(MenuInit).Assembly.FullName;
     }
     // 获取Unity工程根目录
     protected static string getProjectRootPath()
     {
-        string dataPath = Application.dataPath.Replace("\\", "/");
-        return Directory.GetParent(dataPath)?.FullName.Replace("\\", "/") + "/";
+        string dataPath = Application.dataPath.Replace('\\', '/');
+        return Directory.GetParent(dataPath)?.FullName.Replace('\\', '/') + "/";
     }
 }

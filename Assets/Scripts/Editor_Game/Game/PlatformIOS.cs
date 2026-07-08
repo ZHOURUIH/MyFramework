@@ -5,6 +5,7 @@ using static FileUtility;
 using static FrameUtility;
 using static EditorCommonUtility;
 using static EditorFileUtility;
+using static PlatformUtility;
 
 public class PlatformIOS : PlatformInfo
 {

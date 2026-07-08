@@ -13,6 +13,7 @@ using static FrameBaseUtility;
 using static GameUtility;
 using static GameDefine;
 using static FrameMacro;
+using static PlatformUtility;
 
 // 游戏上架渠道,用于给添加后缀名,以及注入宏,来执行不同的sdk逻辑
 public enum GAME_CHANNEL : byte

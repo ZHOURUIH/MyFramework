@@ -1,6 +1,7 @@
 ﻿using UnityEditor.Build.Reporting;
 using static EditorCommonUtility;
 using static GameEditorDefine;
+using static PlatformUtility;
 
 public class PlatformMacOS : PlatformInfo
 {

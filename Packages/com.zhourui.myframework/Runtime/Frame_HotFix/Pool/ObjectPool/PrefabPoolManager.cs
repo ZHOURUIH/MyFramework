@@ -102,17 +102,17 @@ public class PrefabPoolManager : FrameSystem
 	public void setTimerInterval(float interval) { mTimerInterval = interval; }
 	public void addDontUnloadPrefab(string name) { mDontUnloadPrefab.Add(name); }
 	// 异步预加载prefab,加载prefab文件,并实例化对象,fileWithPath是GameResource下的相对路径
-	public CustomAsyncOperation initObjectToPoolAsync(string fileWithPath, int objectTag, int count, bool moveToHide, Action callback)
+	public CustomAsyncOperation initObjectToPoolAsync(string fileWithPath, int count, bool moveToHide, Action callback, int objectTag = 0)
 	{
 		return getPrefabPool(fileWithPath).initToPoolAsync(objectTag, count, moveToHide, callback);
 	}
 	// 同步预加载prefab,加载prefab文件,并实例化对象,fileWithPath是GameResource下的相对路径
-	public void initObjectToPool(string fileWithPath, int objectTag, int count, bool moveToHide)
+	public void initObjectToPool(string fileWithPath, int count, bool moveToHide, int objectTag = 0)
 	{
 		getPrefabPool(fileWithPath).initToPool(objectTag, count, moveToHide);
 	}
 	// 异步加载物体列表,当列表中的所有物体加载完成时才会调用回调,fileWithPath是GameResource下的相对路径
-	public void createObjectGroupAsync(List<string> fileWithPath, CreateObjectGroupCallback callback, int objectTag, bool moveToHide)
+	public void createObjectGroupAsync(List<string> fileWithPath, CreateObjectGroupCallback callback, bool moveToHide, int objectTag = 0)
 	{
 		DIC_PERSIST<string, GameObject>(out var list);
 		AsyncTaskGroup group = mAsyncTaskGroupManager.createGroup(()=> 
@@ -126,13 +126,13 @@ public class PrefabPoolManager : FrameSystem
 		for(int i = 0; i < count; ++i)
 		{
 			string fileName = fileWithPath[i];
-			group.addTask(createObjectAsync(fileName, objectTag, moveToHide, false, (GameObject go) => { list.Add(fileName, go); }));
+			group.addTask(createObjectAsync(fileName, moveToHide, false, (GameObject go) => { list.Add(fileName, go); }, objectTag));
 		}
 	}
 	// 异步创建物体,实际上只是异步加载,实例化还是同步的
 	// fileWithPath是GameResource下的相对路径
 	// failCallback的参数表示是否为资源加载失败而失败
-	public CustomAsyncOperation createObjectAsyncSafe(IRecyclable relatedObj, string fileWithPath, int objectTag, bool moveToHide, bool active, GameObjectCallback callback, BoolCallback failCallback = null)
+	public CustomAsyncOperation createObjectAsyncSafe(IRecyclable relatedObj, string fileWithPath, bool moveToHide, bool active, GameObjectCallback callback, int objectTag = 0, BoolCallback failCallback = null)
 	{
 		if (fileWithPath.isEmpty())
 		{
@@ -172,12 +172,12 @@ public class PrefabPoolManager : FrameSystem
 		});
 	}
 	// 异步创建物体,实际上只是异步加载,实例化还是同步的,fileWithPath是GameResource下的相对路径
-	public CustomAsyncOperation createObjectAsync(string fileWithPath, int objectTag, bool moveToHide, bool active, GameObjectCallback callback)
+	public CustomAsyncOperation createObjectAsync(string fileWithPath, bool moveToHide, bool active, GameObjectCallback callback, int objectTag = 0)
 	{
-		return createObjectAsyncSafe(null, fileWithPath, objectTag, moveToHide, active, callback, null);
+		return createObjectAsyncSafe(null, fileWithPath, moveToHide, active, callback, objectTag, null);
 	}
 	// 同步创建物体,fileWithPath是GameResource下的相对路径
-	public GameObject createObject(string fileWithPath, int objectTag, bool moveToHide, bool active, GameObject parent = null)
+	public GameObject createObject(string fileWithPath, bool moveToHide, bool active, int objectTag = 0, GameObject parent = null)
 	{
 		using var a = new ProfilerScope(0);
 		PrefabPool pool = getPrefabPool(fileWithPath);
