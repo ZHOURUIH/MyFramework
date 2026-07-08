@@ -9,7 +9,9 @@ using System.Text;
 using System.Threading;
 using System.Runtime.InteropServices;
 using System.IO;
+#if !UNITY_WEBGL
 using System.IO.Compression;
+#endif
 #if USE_SEVEN_ZIP
 using SevenZip;
 #endif
@@ -1733,8 +1735,9 @@ public class FrameUtility
 		log("execute shell : " + args);
 		executeExeBatch("/bin/sh", args, null, -1, showError, showInfo, infoCallback);
 	}
-	// 压缩为zip文件,路径为绝对路径
-	public static void compressZipFile(string fileNameWithPath, string zipFileNameWithPath)
+#if !UNITY_WEBGL
+    // 压缩为zip文件,路径为绝对路径
+    public static void compressZipFile(string fileNameWithPath, string zipFileNameWithPath)
 	{
 		using ZipArchive zip = ZipFile.Open(zipFileNameWithPath, ZipArchiveMode.Create);
 		zip.CreateEntryFromFile(fileNameWithPath, getFileNameWithSuffix(fileNameWithPath), System.IO.Compression.CompressionLevel.Optimal);
@@ -1749,6 +1752,7 @@ public class FrameUtility
 			entry.ExtractToFile(extractPath + "/" + entry.FullName, true);
 		}
 	}
+#endif
 	// 目前7z只能在windows下使用
 #if USE_SEVEN_ZIP && UNITY_STANDALONE_WIN
 	// 压缩为7z文件,路径为绝对路径
