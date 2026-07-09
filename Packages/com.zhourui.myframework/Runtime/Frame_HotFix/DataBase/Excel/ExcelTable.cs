@@ -5,7 +5,6 @@ using static UnityUtility;
 using static FrameBaseHotFix;
 using static FileUtility;
 using static FrameUtility;
-using static StringUtility;
 using static FrameDefine;
 using static FrameBaseUtility;
 
@@ -50,17 +49,6 @@ public class ExcelTable
 		});
 	}
 	public void setTableFileBytes(byte[] bytes) { mTableFileBytes = bytes; }
-	public void reload()
-	{
-		//  如果已经有数据了，需要重新读一遍替换掉已有的
-		if (mDataMap.Count > 0)
-		{
-			clearCache();
-			clear();
-			parseFileReload(mTableFileBytes ?? mTableFileData?.getResource().bytes);
-			mResourceManager?.unload(ref mTableFileData);
-		}
-	}
 	public void parseFile(byte[] fileBuffer)
 	{
 		if (fileBuffer == null)
@@ -235,60 +223,6 @@ public class ExcelTable
 		}
 		// 解析以后就可以卸载文件数据
 		mResourceManager?.unload(ref mTableFileData);
-	}
-	// 热重载表格数据
-	protected void parseFileReload(byte[] fileBuffer)
-	{
-		if (!mResourceAvailable)
-		{
-			logError("表格资源当前不可使用,无法加载,type:" + mTableName);
-			return;
-		}
-		if (fileBuffer == null)
-		{
-			return;
-		}
-
-		// 解密
-		decodeFile(fileBuffer, mTableName);
-
-		using var a = new HashSetScope<int>(out var idsToRemove);
-		idsToRemove.addRangeKeys(mDataMap);
-		// 解析数据
-		using var b = new ClassScope<SerializerRead>(out var reader);
-		reader.init(fileBuffer);
-		while (reader.getIndex() < reader.getDataSize())
-		{
-			// 假定id是不会变的。先读一个id用于和已有数据对应
-			int index = reader.getIndex();
-			reader.read(out int id);
-			reader.setIndex(index);
-			idsToRemove.Remove(id);
-			// 如果已有同id的数据，那就重新读一遍来替换；否则需要创建并添加。
-			if (mDataMap.TryGetValue(id, out ExcelData data))
-			{
-				if (!data.read(reader))
-				{
-					break;
-				}
-			}
-			else
-			{
-				data = createInstance<ExcelData>(mDataType);
-				if (!data.read(reader))
-				{
-					logError("表格解析失败,表格:" + mTableName + ", ID:" + data.mID);
-					break;
-				}
-				if (!mDataMap.TryAdd(data.mID, data))
-				{
-					logError("表格中存在重复ID,表格:" + mTableName + ", ID:" + data.mID);
-				}
-			}
-		}
-		// 最后删除减少的行
-		idsToRemove.For(k => mDataMap.Remove(k));
-		log("热重载表格数据：" + mTableName);
 	}
 	// 为了避免歧义,getData,getDataMap设置为不允许外部访问
 	protected T getData<T>(int id, bool errorIfNull = true) where T : ExcelData

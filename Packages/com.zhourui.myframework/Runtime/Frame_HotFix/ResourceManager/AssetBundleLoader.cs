@@ -143,7 +143,8 @@ public class AssetBundleLoader
 	public AssetBundleInfo getAssetBundleInfo(string name) { return mAssetBundleInfoList.get(name); }
 	public void unloadAssetBundle(string bundleName)
 	{
-		if (!mAssetBundleInfoList.TryGetValue(bundleName.ToLower(), out AssetBundleInfo info))
+        bundleName = bundleName.removeEndString(ASSET_BUNDLE_SUFFIX);
+        if (!mAssetBundleInfoList.TryGetValue(bundleName.ToLower(), out AssetBundleInfo info))
 		{
 			return;
 		}
@@ -219,16 +220,17 @@ public class AssetBundleLoader
 		string fileNameLower = fileName.ToLower();
 		return mAssetToBundleInfo.get(fileNameLower)?.getAssetBundle().getAssetInfo(fileNameLower).getAsset() as T;
 	}
-	// 检查指定的已加载的AssetBundle的依赖项是否有未加载的情况,如果有未加载的则同步加载
-	public void checkAssetBundleDependenceLoaded(string bundleName)
+	// 检查指定的已加载的AssetBundle的依赖项是否有未加载的情况,如果有未加载的则同步加载,不含后缀
+    public void checkAssetBundleDependenceLoaded(string bundleName)
 	{
 		if (!mInited)
 		{
 			return;
 		}
+		bundleName = bundleName.removeEndString(ASSET_BUNDLE_SUFFIX);
 		mAssetBundleInfoList.get(bundleName.ToLower())?.checkAssetBundleDependenceLoaded();
 	}
-	// 异步加载资源包,如果资源包未下载,则会先开始下载
+	// 异步加载资源包,如果资源包未下载,则会先开始下载,不含后缀
 	public void loadAssetBundleAsync(string bundleName, AssetBundleCallback callback)
 	{
 		if (!mInited)
@@ -237,6 +239,7 @@ public class AssetBundleLoader
 			callback?.Invoke(null);
 			return;
 		}
+		bundleName = bundleName.removeEndString(ASSET_BUNDLE_SUFFIX);
 		if (!mAssetBundleInfoList.TryGetValue(bundleName.ToLower(), out AssetBundleInfo info))
 		{
 			logError("can not find AssetBundle : " + bundleName);
@@ -244,7 +247,7 @@ public class AssetBundleLoader
 		}
 		info.loadAssetBundleAsync(callback);
 	}
-	// 同步加载资源包
+	// 同步加载资源包,不含后缀
 	public void loadAssetBundle(string bundleName, List<UObject> assetList)
 	{
 		if (!mInited)
@@ -252,6 +255,7 @@ public class AssetBundleLoader
 			logError("AssetBundleLoader is not inited!");
 			return;
 		}
+		bundleName = bundleName.removeEndString(ASSET_BUNDLE_SUFFIX);
 		if (mAssetBundleInfoList.TryGetValue(bundleName.ToLower(), out AssetBundleInfo bundleInfo))
 		{
 			if (bundleInfo.getLoadState() == LOAD_STATE.DOWNLOADING ||

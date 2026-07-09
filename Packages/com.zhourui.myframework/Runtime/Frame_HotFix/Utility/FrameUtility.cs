@@ -1735,6 +1735,48 @@ public class FrameUtility
 		log("execute shell : " + args);
 		executeExeBatch("/bin/sh", args, null, -1, showError, showInfo, infoCallback);
 	}
+    // 获得一个文件的所属AssetBundle名,file是以Assets开头的相对路径,这个就是AssetBundle打包最核心的规则
+    public static string generateFileAssetBundleName(string file, bool forceSingle = false)
+    {
+        // .meta不能设置AssetBundle
+        // .DS_Store是mac的特殊文件,也不能设置AssetBundle
+        // .cginc是仅编辑器下使用的资源,不能打包AssetBundle
+        // tpsheet文件不打包
+        // LightingData.asset文件不能打包AB,这是一个特殊文件,只用于编辑器
+        if (file.endWith(".meta") ||
+            file.endWith(".DS_Store") ||
+            file.endWith(".cginc") ||
+            file.endWith(".hlsl") ||
+            file.endWith(".glslinc") ||
+            file.endWith(".tpsheet") ||
+            file.endWith("LightingData.asset") ||
+            (!file.endWith(".spriteatlasv2") && isSpriteInAtlas(file)))
+        {
+            return EMPTY;
+        }
+        string bundleName;
+        // unity(但是一般情况下unity场景文件不打包)单个文件打包,就是直接替换后缀名,或者强制为单独一个包的
+        if (file.endWith(".unity") || forceSingle)
+        {
+            bundleName = replaceSuffix(file.removeStartString(P_GAME_RESOURCES_PATH), ASSET_BUNDLE_SUFFIX);
+        }
+        // 其他文件的AssetBundle就是所属文件夹
+        else
+        {
+            bundleName = getFilePath(file).removeStartString(P_GAME_RESOURCES_PATH) + ASSET_BUNDLE_SUFFIX;
+        }
+        // AssetBundle名字必须是小写的,避免多平台可能存在的问题
+        return bundleName.ToLower();
+    }
+    public static bool isSpriteInAtlas(string assetPath)
+    {
+        if (assetPath.startWith(P_ASSETS_PATH))
+        {
+            assetPath = projectPathToFullPath(assetPath);
+        }
+        // 如果是属于一个SpriteAtlas的图片,则不进行压缩
+        return isFileExist(getFilePath(assetPath, true) + getFolderName(assetPath) + ".spriteatlasv2");
+    }
 #if !UNITY_WEBGL
     // 压缩为zip文件,路径为绝对路径
     public static void compressZipFile(string fileNameWithPath, string zipFileNameWithPath)
@@ -1753,7 +1795,7 @@ public class FrameUtility
 		}
 	}
 #endif
-	// 目前7z只能在windows下使用
+    // 目前7z只能在windows下使用
 #if USE_SEVEN_ZIP && UNITY_STANDALONE_WIN
 	// 压缩为7z文件,路径为绝对路径
 	public static void compress7ZFile(string fileNameWithPath, string zipFileNameWithPath)
@@ -1828,7 +1870,7 @@ public class FrameUtility
 		outFileBuffer = stream.ToArray();
 	}
 #endif
-	public static void recoverCrossParam()
+    public static void recoverCrossParam()
 	{
 		mResourceManager.setDownloadURL(FrameCrossParam.mDownloadURL);
 		mLocalizationManager.setCurrentLanguage(FrameCrossParam.mLocalizationName);

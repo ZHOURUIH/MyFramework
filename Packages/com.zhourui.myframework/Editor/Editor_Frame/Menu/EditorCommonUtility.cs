@@ -3227,15 +3227,6 @@ public class EditorCommonUtility
 			image.type = Image.Type.Tiled;
 		}
 	}
-	public static bool isSpriteInAtlas(string assetPath)
-	{
-		if (assetPath.startWith(P_ASSETS_PATH))
-		{
-			assetPath = projectPathToFullPath(assetPath);
-		}
-		// 如果是属于一个SpriteAtlas的图片,则不进行压缩
-		return isFileExist(getFilePath(assetPath, true) + getFolderName(assetPath) + ".spriteatlasv2");
-	}
     public static void pingAsset(string assetPath)
     {
         var asset = AssetDatabase.LoadAssetAtPath<UObject>(assetPath);

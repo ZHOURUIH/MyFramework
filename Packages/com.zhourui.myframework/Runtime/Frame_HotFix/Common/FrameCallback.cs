@@ -63,7 +63,7 @@ public delegate void SceneScriptCallback(SceneInstance instance);
 public delegate void CharacterCallback(Character character);
 public delegate void GameObjectCallback(GameObject go);
 public delegate void CreateObjectGroupCallback(Dictionary<string, GameObject> go);
-public delegate void UGUIAtlasPtrCallback(AtlasRef atlas);
+public delegate void AtlasPtrCallback(AtlasRef atlas);
 public delegate void StateLeaveCallback(CharacterState state, bool isBreak, bool willDestroy, string param);
 public delegate void GameEventCallback(GameEvent param);
 public delegate void GameEffectCallback(GameEffect effect);

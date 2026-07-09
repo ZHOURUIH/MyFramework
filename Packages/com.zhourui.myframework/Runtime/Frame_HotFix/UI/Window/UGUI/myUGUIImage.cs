@@ -31,13 +31,16 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 			if (!atlasPath.endWith("/unity_builtin_extra"))
 			{
 				atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
-				mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
-				if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
-				{
-					logWarning("无法加载初始化的图集:" + atlasPath + ", GameObject:" + getGameObjectPath() +
-						",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
-				}
-			}
+                mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas) =>
+                {
+                    mOriginAtlasPtr = atlas;
+                    if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
+                    {
+                        logWarning("无法加载初始化的图集:" + atlasPath + ", GameObject:" + getGameObjectPath() +
+                            ",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
+                    }
+                }, false);
+            }
 			else
 			{
 				logError("需要切换图片的节点上不要使用引擎内置的图片, GameObject:" + getGameObjectPath());

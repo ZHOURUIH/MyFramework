@@ -42,22 +42,6 @@ public class ExcelManager : FrameSystem
 			}
 		});
 	}
-	public void reloadAllAsync(Action callback)
-	{
-		int finishCount = 0;
-		int tableCount = mTableList.Count;
-		foreach (var item in mTableList)
-		{
-			item.Value.openFileAsync(() =>
-			{
-				item.Value.reload();
-				if (++finishCount == tableCount)
-				{
-					callback?.Invoke();
-				}
-			});
-		}
-	}
 	public Dictionary<Type, ExcelTable> getTableList() { return mTableList; }
 	public ExcelTable registe(string name, Type tableType, Type dataType)
 	{

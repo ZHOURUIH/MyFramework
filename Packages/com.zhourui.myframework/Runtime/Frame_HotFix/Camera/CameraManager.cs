@@ -107,17 +107,28 @@ public class CameraManager : FrameSystem
 		}
 		if (addUICameraStack && baseCameraData != null)
 		{
-			baseCameraData.cameraStack.Clear();
-			// 其实这里设计不是很好,因为不一定每一个Base摄像机都要添加全部的Overlay摄像机,这里的逻辑只能算是一个默认操作
-			foreach (GameCamera overlayCamera in mOverlayCameraList)
+            List<Camera> cameraStack = null;
+            try
+            {
+                cameraStack = baseCameraData.cameraStack;
+            }
+            catch (System.Exception e)
+            {
+                logException(e, "获取URP CameraStack失败, camera:" + camera.getName());
+            }
+			if (cameraStack != null)
 			{
-				// 注意,此处不能添加其他场景的overlay摄像机,否则不会生效
-				if (isEditor() && overlayCamera.getGameObject().scene.name != camera.getGameObject().scene.name)
+				// 其实这里设计不是很好,因为不一定每一个Base摄像机都要添加全部的Overlay摄像机,这里的逻辑只能算是一个默认操作
+				foreach (GameCamera overlayCamera in mOverlayCameraList)
 				{
-					logWarning("不能添加其他场景的overlay摄像机");
-					continue;
+					// 注意,此处不能添加其他场景的overlay摄像机,否则不会生效
+					if (isEditor() && overlayCamera.getGameObject().scene.name != camera.getGameObject().scene.name)
+					{
+						logWarning("不能添加其他场景的overlay摄像机");
+						continue;
+					}
+					baseCameraData.cameraStack.addUnique(overlayCamera.getCamera());
 				}
-				baseCameraData.cameraStack.addUnique(overlayCamera.getCamera());
 			}
 		}
 #endif
