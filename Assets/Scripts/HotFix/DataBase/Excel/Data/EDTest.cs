@@ -4,13 +4,16 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // 测试例子的表格
-public class EDTest : ExcelData
+public class EDTest : ExcelDataT<EDTest>
 {
 	public static int TEST_0_ID = 1;				// 测试字段
 	public static int TEST_1_ID = 2;				// 测试字段
 
-	public static EDTest TEST_0;					// 测试字段
-	public static EDTest TEST_1;					// 测试字段
+	public static EDTest _TEST_0;					// 测试字段
+	public static EDTest _TEST_1;					// 测试字段
+
+	public static EDTest TEST_0 { get { return _TEST_0 ??= mTable.query(TEST_0_ID); } }// 测试字段
+	public static EDTest TEST_1 { get { return _TEST_1 ??= mTable.query(TEST_1_ID); } }// 测试字段
 
 	public string mTestString;						// 测试字符串
 	public int mTestInt;							// 测试整数
@@ -42,11 +45,6 @@ public class EDTest : ExcelData
 		result = result && reader.readList(mTestLinkTable1);
 		result = result && reader.readString(out mTestPath);
 		return result;
-	}
-	public static void postLoadAll(ExcelTableT<EDTest> table)
-	{
-		TEST_0 = table.query(TEST_0_ID);
-		TEST_1 = table.query(TEST_1_ID);
 	}
 }
 
