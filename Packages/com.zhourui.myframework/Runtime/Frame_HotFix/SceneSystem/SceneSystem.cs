@@ -54,8 +54,6 @@ public class SceneSystem : FrameSystem
 			return;
 		}
 		string name = getFileNameNoSuffixNoDir(filePath);
-		// 路径需要以/结尾
-		validPath(ref filePath);
 		SceneRegisteInfo info = mSceneRegisteList.add(name, new());
 		info.mName = name;
 		info.mScenePath = filePath;
@@ -145,7 +143,8 @@ public class SceneSystem : FrameSystem
 			scene.setLoadingCallback(loadingCallback);
 			scene.setLoadedCallback(loadedCallback);
 			// scenePath + sceneName表示场景文件AssetBundle的路径,包含文件名
-			mResourceManager.preloadAssetBundleAsync(getScenePath(sceneName), (AssetBundleInfo bundle) =>
+			string path = getScenePath(sceneName);
+            mResourceManager.preloadAssetBundleAsync(generateFileAssetBundleName(path), (AssetBundleInfo bundle) =>
 			{
 				GameEntryBase.startCoroutine(loadSceneCoroutine(scene, op));
 			});

@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEngine.U2D;
 using UnityEditor.U2D;
 using static FrameDefine;
+using static FrameUtility;
 using static FileUtility;
 using static StringUtility;
 using static EditorCommonUtility;

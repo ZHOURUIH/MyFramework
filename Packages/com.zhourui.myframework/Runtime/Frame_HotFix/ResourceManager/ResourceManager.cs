@@ -181,7 +181,7 @@ public class ResourceManager : FrameSystem
 			mAssetBundleLoader.checkAssetBundleDependenceLoaded(bundleName);
 		}
 	}
-	// 同步预加载资源包,一般不需要调用,只有需要预加载时才会用到
+	// 同步预加载资源包,一般不需要调用,只有需要预加载时才会用到,不含后缀
 	public void preloadAssetBundle(string bundleName)
 	{
 		// 只有从AssetBundle加载时才能加载AssetBundle
@@ -190,7 +190,7 @@ public class ResourceManager : FrameSystem
 			mAssetBundleLoader.loadAssetBundle(bundleName, null);
 		}
 	}
-	// 异步预加载资源包,一般不需要调用,只有需要预加载时才会用到
+	// 异步预加载资源包,一般不需要调用,只有需要预加载时才会用到,不含后缀
 	public void preloadAssetBundleAsync(string bundleName, AssetBundleCallback callback)
 	{
 		if (mLoadSource == LOAD_SOURCE.ASSET_DATABASE)

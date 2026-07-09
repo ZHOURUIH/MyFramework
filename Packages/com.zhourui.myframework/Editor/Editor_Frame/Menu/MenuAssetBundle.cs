@@ -8,6 +8,7 @@ using UnityEditor.U2D;
 using static FrameBaseUtility;
 using static StringUtility;
 using static FileUtility;
+using static FrameUtility;
 using static FrameDefine;
 using static EditorFileUtility;
 using static EditorCommonUtility;
@@ -411,39 +412,6 @@ public class MenuAssetBundle
 			list[index++] = build;
 		}
 		EditorUtility.UnloadUnusedAssetsImmediate();
-	}
-	// 获得一个文件的所属AssetBundle名,file是以Assets开头的相对路径,这个就是AssetBundle打包最核心的规则
-	protected static string generateFileAssetBundleName(string file, bool forceSingle = false)
-	{
-		// .meta不能设置AssetBundle
-		// .DS_Store是mac的特殊文件,也不能设置AssetBundle
-		// .cginc是仅编辑器下使用的资源,不能打包AssetBundle
-		// tpsheet文件不打包
-		// LightingData.asset文件不能打包AB,这是一个特殊文件,只用于编辑器
-		if (file.endWith(".meta") ||
-			file.endWith(".DS_Store") ||
-			file.endWith(".cginc") ||
-			file.endWith(".hlsl") ||
-			file.endWith(".glslinc") ||
-			file.endWith(".tpsheet") ||
-			file.endWith("LightingData.asset") ||
-			(!file.endWith(".spriteatlasv2") && isSpriteInAtlas(file)))
-		{
-			return EMPTY;
-		}
-		string bundleName;
-		// unity(但是一般情况下unity场景文件不打包)单个文件打包,就是直接替换后缀名,或者强制为单独一个包的
-		if (file.endWith(".unity") || forceSingle)
-		{
-			bundleName = replaceSuffix(file.removeStartString(P_GAME_RESOURCES_PATH), ASSET_BUNDLE_SUFFIX);
-		}
-		// 其他文件的AssetBundle就是所属文件夹
-		else
-		{
-			bundleName = getFilePath(file).removeStartString(P_GAME_RESOURCES_PATH) + ASSET_BUNDLE_SUFFIX;
-		}
-		// AssetBundle名字必须是小写的,避免多平台可能存在的问题
-		return bundleName.ToLower();
 	}
 	// 刷新指定文件的所属AssetBundle名字
 	protected static string refreshFileAssetBundleName(Dictionary<string, BuildAssetBundleInfo> assetBundleMap, string file, bool forceSingle = false)

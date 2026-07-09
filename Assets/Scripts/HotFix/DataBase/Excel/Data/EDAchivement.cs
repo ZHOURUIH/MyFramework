@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // 成就表
-public class EDAchivement : ExcelData
+public class EDAchivement : ExcelDataT<EDAchivement>
 {
 	public string mTestString;						// 成就名字
 	public string mTestInt;							// 成就简单描述
@@ -21,6 +21,5 @@ public class EDAchivement : ExcelData
 		result = result && reader.read(out mReward);
 		return result;
 	}
-	public static void postLoadAll(ExcelTableT<EDAchivement> table){}
 }
 // auto generate end

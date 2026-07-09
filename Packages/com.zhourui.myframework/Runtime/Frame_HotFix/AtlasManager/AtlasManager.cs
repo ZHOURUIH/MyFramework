@@ -154,7 +154,7 @@ public class AtlasManager : FrameSystem
 		return null;
 	}
 	// 异步加载位于GameResources中的图集,atlasName是GameResources下的相对路径,带后缀
-	public CustomAsyncOperation getAtlasAsyncSafe(IRecyclable owner, string atlasName, UGUIAtlasPtrCallback callback, bool errorInNull = true, bool loadIfNull = true)
+	public CustomAsyncOperation getAtlasAsyncSafe(IRecyclable owner, string atlasName, AtlasPtrCallback callback, bool errorInNull = true, bool loadIfNull = true)
 	{
 		CustomAsyncOperation op = new();
 		if (mAtlasList.tryGetValue(atlasName, out AtlasBase atlas))
