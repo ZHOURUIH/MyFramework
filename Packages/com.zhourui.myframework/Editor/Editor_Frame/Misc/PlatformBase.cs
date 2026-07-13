@@ -8,7 +8,6 @@ using HybridCLR.Editor.Commands;
 #endif
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using static FileUtility;
 using static StringUtility;
 using static PlatformUtility;
@@ -64,7 +63,9 @@ public abstract class PlatformBase
 		{
 			mName = WEBGL;
 		}
-	}
+        mTarget = target;
+        mAssetBundleFullPath = getAssetBundlePath(true);
+    }
 	// containOnlyFileList如果不为空,则表示只拷贝列表中指定的文件
 	// 可用于单独更新某个文件,比如单独更新表格文件,使之既能够更新FileList,又能单独将要上传的文件放到独立的文件夹中
 	public bool showNeedUploadFile(string destFolderName, string[] containOnlyFileList = null)
