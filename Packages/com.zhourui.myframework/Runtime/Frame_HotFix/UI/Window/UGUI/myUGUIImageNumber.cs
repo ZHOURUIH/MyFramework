@@ -12,8 +12,9 @@ public class myUGUIImageNumber : myUGUIObject
 	protected AtlasRef mOriginAtlasPtr = new();			// 初始的图片图集,用于卸载,当前类只关心初始图集的卸载,后续再次设置的图集不关心是否需要卸载,需要外部设置的地方自己关心
 	protected AtlasRef mAtlasPtr = new();				// 当前正在使用的图片图集
 	protected Sprite mOriginSprite;                     // 备份加载物体时原始的精灵图片
-	protected string mNumberStyle;						// 数字图集名
-	public override void init()
+	protected string mNumberStyle;                      // 数字图集名
+	protected bool mInitDone;							// 异步初始化是否完成
+    public override void init()
 	{
 		base.init();
 		// 获取image组件,如果没有则添加,这样是为了使用代码新创建一个image窗口时能够正常使用image组件
@@ -46,16 +47,21 @@ public class myUGUIImageNumber : myUGUIObject
 			if (!atlasPath.endWith("/unity_builtin_extra"))
 			{
 				atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
-				mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
-				if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
-				{
-					logWarning("无法加载初始化的图集:" + atlasPath + ", window:" + mName + ", layout:" + mLayout.getName() +
-						",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
-				}
-			}
-			mAtlasPtr = mOriginAtlasPtr;
-			mNumberStyle = mRenderer.sprite.name.rangeToLast('_');
-			refreshSpriteList();
+                mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas) =>
+                {
+                    mOriginAtlasPtr = atlas;
+                    mAtlasPtr = mOriginAtlasPtr;
+                    mNumberStyle = mRenderer.sprite.name.rangeToLast('_');
+                    refreshSpriteList();
+                    if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
+                    {
+                        logWarning("无法加载初始化的图集:" + atlasPath + ", GameObject:" + getGameObjectPath() +
+                            ",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
+                    }
+                    mInitDone = true;
+                    onInitAsyncDone();
+                }, false);
+            }
 		}
 	}
 	public override void destroy()
@@ -115,4 +121,5 @@ public class myUGUIImageNumber : myUGUIObject
 		mRenderer.sprite = spriteList.firstValue();
 		mRenderer.setSpriteList(spriteList);
 	}
+    protected virtual void onInitAsyncDone() { }
 }

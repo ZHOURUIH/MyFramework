@@ -24,8 +24,9 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 	protected bool mSpriteNameDirty;                // 图片名字是否需要更新
 	protected bool mMaterialNameDirty;              // 材质名字是否需要更新
 	protected bool mShaderNameDirty;				// shader名字是否需要更新
-	protected bool mIsNewMaterial;					// 当前的材质是否是新建的材质对象
-	public override void init()
+	protected bool mIsNewMaterial;                  // 当前的材质是否是新建的材质对象
+    protected bool mInitDone;						// 异步初始化是否完成
+    public override void init()
 	{
 		base.init();
         // 获取SpriteRenderer组件,如果没有则添加,这样是为了使用代码新创建一个SpriteRenderer窗口时能够正常使用SpriteRenderer组件
@@ -50,13 +51,17 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 				logError("ImageAtlasPath中记录的路径为空,GameObject:" + getGameObjectPath());
 			}
 			atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
-			mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
-			if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
+			mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas)=>
 			{
-				logError("无法加载初始化的图集:" + atlasPath + ",GameObject:" + getGameObjectPath() +
-					",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
-			}
-			mAtlasPtr = mOriginAtlasPtr;
+				mOriginAtlasPtr = atlas;
+                if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
+                {
+                    logError("无法加载初始化的图集:" + atlasPath + ",GameObject:" + getGameObjectPath() +
+                        ",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
+                }
+                mAtlasPtr = mOriginAtlasPtr;
+				mInitDone = true;
+            }, false);
 		}
 		string materialName = getMaterialName().removeAll(" (Instance)");
 		// 不再将默认材质替换为自定义的默认材质,只判断其他材质
