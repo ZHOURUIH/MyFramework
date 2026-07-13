@@ -75,6 +75,14 @@ public class MenuAssetBundle
         window.Show();
         window.setBundleRootFolder(F_ASSET_BUNDLE_PATH);
     }
+    [MenuItem(MENU_NAME + "AB资源浏览器")]
+    public static void OpenAssetBundleStudioWindow()
+    {
+        var window = EditorWindow.GetWindow<AssetBundleStudioWindow>();
+        window.titleContent = new GUIContent("AB资源浏览器");
+        window.minSize = new Vector2(1080.0f, 700.0f);
+        window.Show();
+    }
     //------------------------------------------------------------------------------------------------------------------------------
     public static bool packAssetBundle(BuildTarget target, string outputPath, bool showMessageBox)
 	{
