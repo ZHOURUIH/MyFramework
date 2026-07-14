@@ -140,7 +140,8 @@ public class PrefabPoolManager : FrameSystem
 		}
 		using var a = new ProfilerScope(0);
 		long assignID = relatedObj?.getAssignID() ?? 0;
-		return getPrefabPool(fileWithPath).getOneUnusedAsync(objectTag, (GameObjectInfo objInfo, bool poolDestroy) =>
+		CustomAsyncOperation op = new();
+		getPrefabPool(fileWithPath).getOneUnusedAsync(objectTag, (GameObjectInfo objInfo, bool poolDestroy) =>
 		{
 			using var a = new ProfilerScope(0);
 			if (objInfo == null)
@@ -156,7 +157,8 @@ public class PrefabPoolManager : FrameSystem
 				}
 				// 资源加载失败而失败
 				failCallback?.Invoke(true);
-				return;
+				op.setFinish();
+                return;
 			}
 			PrefabPool pool = getPrefabPool(fileWithPath);
 			objInfo.setPool(pool);
@@ -165,11 +167,14 @@ public class PrefabPoolManager : FrameSystem
 				pool.destroyObject(objInfo, false);
 				// 因为关联对象被销毁而失败
 				failCallback?.Invoke(false);
-				return;
+                op.setFinish();
+                return;
 			}
 			postCreateObject(pool, objInfo, moveToHide, null, active);
 			callback?.Invoke(objInfo.getObject());
-		});
+            op.setFinish();
+        });
+        return op;
 	}
 	// 异步创建物体,实际上只是异步加载,实例化还是同步的,fileWithPath是GameResource下的相对路径
 	public CustomAsyncOperation createObjectAsync(string fileWithPath, bool moveToHide, bool active, GameObjectCallback callback, int objectTag = 0)

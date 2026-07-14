@@ -52,34 +52,39 @@ public class PrefabPool : ClassObject
 	// 向池中异步初始化一定数量的对象
 	public CustomAsyncOperation initToPoolAsync(int tag, int count, bool moveToHide, Action callback)
 	{
+		CustomAsyncOperation op = new();
 		if (mPrefab != null)
 		{
 			doInitToPool(tag, count, moveToHide);
 			callback?.Invoke();
-			return new CustomAsyncOperation().setFinish();
+			return op.setFinish();
 		}
 		// 预设未加载,异步加载预设
 		++mAsyncLoadingCount;
 		long assignID = getAssignID();
-		return mResourceManager.loadGameResourceAsync<GameObject>(mFileName, (asset) =>
+        mResourceManager.loadGameResourceAsync<GameObject>(mFileName, (asset) =>
 		{
 			--mAsyncLoadingCount;
 			if (asset == null)
 			{
 				callback?.Invoke();
-				return;
+				op.setFinish();
+                return;
 			}
 			if (assignID != getAssignID())
 			{
 				mResourceManager.unload(ref asset);
 				callback?.Invoke();
-				return;
+                op.setFinish();
+                return;
 			}
 			setPrefab(asset);
 			doInitToPool(tag, count, moveToHide);
 			callback?.Invoke();
-		});
-	}
+            op.setFinish();
+        });
+		return op;
+    }
 	// 向池中同步初始化一定数量的对象
 	public void initToPool(int tag, int count, bool moveToHide)
 	{
@@ -98,31 +103,39 @@ public class PrefabPool : ClassObject
 	// 从池中异步获取一个对象
 	public CustomAsyncOperation getOneUnusedAsync(int tag, Action<GameObjectInfo, bool> callback)
 	{
-		if (mPrefab != null)
+		CustomAsyncOperation op = new();
+        if (mPrefab != null)
 		{
 			getOneUnusedAsyncInternal(tag, (GameObjectInfo info) => { callback?.Invoke(info, false); });
-			return new CustomAsyncOperation().setFinish();
+			return op.setFinish();
 		}
 		// 预设未加载,异步加载预设
 		++mAsyncLoadingCount;
 		long assignID = getAssignID();
-		return mResourceManager.loadGameResourceAsync<GameObject>(mFileName, (asset) =>
+		mResourceManager.loadGameResourceAsync<GameObject>(mFileName, (asset) =>
 		{
 			--mAsyncLoadingCount;
 			if (asset == null)
 			{
 				callback?.Invoke(null, false);
-				return;
+				op.setFinish();
+                return;
 			}
 			if (assignID != getAssignID())
 			{
 				mResourceManager.unload(ref asset);
 				callback?.Invoke(null, true);
-				return;
+                op.setFinish();
+                return;
 			}
 			setPrefab(asset);
-			getOneUnusedAsyncInternal(tag, (GameObjectInfo info)=> { callback?.Invoke(info, false); });
+			getOneUnusedAsyncInternal(tag, (GameObjectInfo info)=> 
+			{
+				callback?.Invoke(info, false);
+                op.setFinish();
+            });
 		});
+		return op;
 	}
 	// 从对象池中同步获取或者创建一个物体
 	public GameObjectInfo getOneUnused(int tag)

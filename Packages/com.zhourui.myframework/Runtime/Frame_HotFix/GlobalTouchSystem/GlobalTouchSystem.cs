@@ -164,7 +164,7 @@ public class GlobalTouchSystem : FrameSystem
 		{
 			// 如果没有指定一个摄像机,则会使用当前主摄像机
 			camera ??= getMainCamera();
-            MouseCastObjectSet mouseCastSet = null;
+			MouseCastObjectSet mouseCastSet = null;
 			foreach (MouseCastObjectSet item in mMouseCastObjectList)
 			{
 				if (item.mCamera == camera)

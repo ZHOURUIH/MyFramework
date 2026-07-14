@@ -174,8 +174,8 @@ public class AssetDataBaseLoader
 			{
 				info.addCallback((UObject asset, UObject[] assets, byte[] bytes, string loadPath) =>
 				{
-					op.setFinish();
 					doneCallback?.Invoke(asset, assets, bytes, loadPath);
+					op.setFinish();
 				}, name);
 			}
 			// 资源已经加载完毕,直接调用回调
@@ -194,8 +194,8 @@ public class AssetDataBaseLoader
 			info.setState(LOAD_STATE.LOADING);
 			info.addCallback((UObject asset, UObject[] assets, byte[] bytes, string loadPath) =>
 			{
-				op.setFinish();
 				doneCallback?.Invoke(asset, assets, bytes, loadPath);
+				op.setFinish();
 			}, name);
 			GameEntryBase.startCoroutine(loadResourceCoroutine<T>(info));
 		}
