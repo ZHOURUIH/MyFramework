@@ -324,6 +324,10 @@ public class EffectManager : FrameSystem
 	}
 	public void destroyEffect(ref GameEffect effect, bool destroyReally = false, bool removeFromAttachList = true)
 	{
+		if (effect == null)
+		{
+			return;
+		}
 		if (effect.isInEffectPool())
 		{
 			destroyEffectInPool(ref effect, destroyReally, removeFromAttachList);
