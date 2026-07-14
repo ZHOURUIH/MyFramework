@@ -3,9 +3,11 @@ using static UnityUtility;
 using static StringUtility;
 using static FrameDefine;
 using static FrameBaseHotFix;
+using static FrameBaseUtility;
 
 // 可显示数字的窗口,只支持整数,且每个数字图片的大小必须一样,不能显示小数,负数
 // 因为使用了自定义的组件,所以性能上比myUGUINumber更高,只是相比之下myUGUINumber更加灵活一点
+// 性能和易用性夹在myUGUINumber和myUGUIDamageNumber之间,定位比较尴尬
 public class myUGUIImageNumber : myUGUIObject
 {
 	protected ImageNumber mRenderer;					// 渲染组件
@@ -47,9 +49,26 @@ public class myUGUIImageNumber : myUGUIObject
 			if (!atlasPath.endWith("/unity_builtin_extra"))
 			{
 				atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
-                mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas) =>
-                {
-                    mOriginAtlasPtr = atlas;
+				if (isWebGL())
+				{
+                    mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas) =>
+                    {
+                        mOriginAtlasPtr = atlas;
+                        mAtlasPtr = mOriginAtlasPtr;
+                        mNumberStyle = mRenderer.sprite.name.rangeToLast('_');
+                        refreshSpriteList();
+                        if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
+                        {
+                            logWarning("无法加载初始化的图集:" + atlasPath + ", GameObject:" + getGameObjectPath() +
+                                ",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
+                        }
+                        mInitDone = true;
+                        onInitAsyncDone();
+                    }, false);
+                }
+				else
+				{
+                    mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
                     mAtlasPtr = mOriginAtlasPtr;
                     mNumberStyle = mRenderer.sprite.name.rangeToLast('_');
                     refreshSpriteList();
@@ -60,7 +79,7 @@ public class myUGUIImageNumber : myUGUIObject
                     }
                     mInitDone = true;
                     onInitAsyncDone();
-                }, false);
+                }
             }
 		}
 	}

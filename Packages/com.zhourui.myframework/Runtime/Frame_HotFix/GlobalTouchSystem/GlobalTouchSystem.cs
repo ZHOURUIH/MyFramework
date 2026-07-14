@@ -162,11 +162,9 @@ public class GlobalTouchSystem : FrameSystem
 		}
 		else if (obj is MovableObject)
 		{
-			if (camera == null)
-			{
-				logError("need a camera!");
-			}
-			MouseCastObjectSet mouseCastSet = null;
+			// 如果没有指定一个摄像机,则会使用当前主摄像机
+			camera ??= getMainCamera();
+            MouseCastObjectSet mouseCastSet = null;
 			foreach (MouseCastObjectSet item in mMouseCastObjectList)
 			{
 				if (item.mCamera == camera)

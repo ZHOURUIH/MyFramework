@@ -51,17 +51,31 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 				logError("ImageAtlasPath中记录的路径为空,GameObject:" + getGameObjectPath());
 			}
 			atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
-			mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas)=>
+            if (isWebGL())
+            {
+                mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas) =>
+                {
+                    mOriginAtlasPtr = atlas;
+                    if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
+                    {
+                        logError("无法加载初始化的图集:" + atlasPath + ",GameObject:" + getGameObjectPath() +
+                            ",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
+                    }
+                    mAtlasPtr = mOriginAtlasPtr;
+                    mInitDone = true;
+                }, false);
+            }
+			else
 			{
-				mOriginAtlasPtr = atlas;
+                mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
                 if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
                 {
                     logError("无法加载初始化的图集:" + atlasPath + ",GameObject:" + getGameObjectPath() +
                         ",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
                 }
                 mAtlasPtr = mOriginAtlasPtr;
-				mInitDone = true;
-            }, false);
+                mInitDone = true;
+            }
 		}
 		string materialName = getMaterialName().removeAll(" (Instance)");
 		// 不再将默认材质替换为自定义的默认材质,只判断其他材质

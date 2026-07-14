@@ -3,6 +3,7 @@ using static UnityUtility;
 using static StringUtility;
 using static FrameBaseHotFix;
 using static FrameDefine;
+using static FrameBaseUtility;
 
 // 对UGUI的Image的封装,普通版本,提供替换图片的功能,UGUI的静态图片不支持递归变化透明度
 public class myUGUIImage : myUGUIImageSimple, IUGUIImage
@@ -32,18 +33,34 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 			if (!atlasPath.endWith("/unity_builtin_extra"))
 			{
 				atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
-                mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas) =>
-                {
-                    mOriginAtlasPtr = atlas;
+				// webgl中还不支持同步加载,但是异步又可能会出现很多执行时序问题.所以分开写,能同步则同步,不能才异步
+				if (isWebGL())
+				{
+                    mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas) =>
+                    {
+                        mOriginAtlasPtr = atlas;
+                        mAtlasPtr = mOriginAtlasPtr;
+                        if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
+                        {
+                            logWarning("无法加载初始化的图集:" + atlasPath + ", GameObject:" + getGameObjectPath() +
+                                ",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
+                        }
+                        mInitDone = true;
+                        onInitAsyncDone();
+                    }, false);
+                }
+				else
+				{
+                    mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
                     mAtlasPtr = mOriginAtlasPtr;
                     if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
                     {
                         logWarning("无法加载初始化的图集:" + atlasPath + ", GameObject:" + getGameObjectPath() +
                             ",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
                     }
-					mInitDone = true;
+                    mInitDone = true;
                     onInitAsyncDone();
-                }, false);
+                }
             }
 			else
 			{

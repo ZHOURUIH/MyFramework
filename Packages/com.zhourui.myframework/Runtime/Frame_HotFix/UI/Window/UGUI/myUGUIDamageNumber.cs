@@ -6,6 +6,7 @@ using static StringUtility;
 using static MathUtility;
 using static FrameDefine;
 using static FrameBaseHotFix;
+using static FrameBaseUtility;
 
 // 专用于显示伤害数字的窗口,使用一个窗口即可同时绘制几千个伤害数字
 public class myUGUIDamageNumber : myUGUIObject
@@ -49,9 +50,25 @@ public class myUGUIDamageNumber : myUGUIObject
 			if (!atlasPath.endWith("/unity_builtin_extra"))
 			{
 				atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
-				mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas)=>
+				if (isWebGL())
 				{
-					mOriginAtlasPtr = atlas;
+                    mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas) =>
+                    {
+                        mOriginAtlasPtr = atlas;
+                        if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
+                        {
+                            logWarning("无法加载初始化的图集:" + atlasPath + ", window:" + mName + ", layout:" + mLayout.getName() +
+                                ",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
+                        }
+                        mAtlasPtr = mOriginAtlasPtr;
+                        mNumberStyle = mRenderer.mImage.name.rangeToLast('_');
+                        refreshSpriteList();
+                        mInitDone = true;
+                    }, false);
+                }
+				else
+				{
+                    mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
                     if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
                     {
                         logWarning("无法加载初始化的图集:" + atlasPath + ", window:" + mName + ", layout:" + mLayout.getName() +
@@ -60,8 +77,8 @@ public class myUGUIDamageNumber : myUGUIObject
                     mAtlasPtr = mOriginAtlasPtr;
                     mNumberStyle = mRenderer.mImage.name.rangeToLast('_');
                     refreshSpriteList();
-					mInitDone = true;
-                }, false);
+                    mInitDone = true;
+                }
 			}
 		}
 	}
