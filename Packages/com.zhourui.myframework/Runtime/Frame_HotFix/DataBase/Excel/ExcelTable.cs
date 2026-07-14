@@ -219,7 +219,7 @@ public class ExcelTable
 	{
 		{
 			using var a = new ProfilerScope("excel read:" + mTableName);
-			parseFile(mTableFileBytes ?? mTableFileData?.getResource().bytes);
+			parseFile(mTableFileBytes ?? mTableFileData?.get().bytes);
 		}
 		// 解析以后就可以卸载文件数据
 		mResourceManager?.unload(ref mTableFileData);

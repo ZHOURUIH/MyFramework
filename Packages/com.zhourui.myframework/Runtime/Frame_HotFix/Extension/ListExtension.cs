@@ -270,7 +270,24 @@ public static class ListExtension
 		}
 		return false;
 	}
-	public static List<T> addRange<T>(this List<T> list, List<T> other, int count)
+    public static List<T> addRange<T>(this List<T> list, HashSet<T> other)
+    {
+		if (other.isEmpty())
+		{
+			return list;
+        }
+		int count = other.Count;
+        if (list.Capacity < list.Count + count)
+        {
+            list.Capacity = list.Count + count;
+        }
+        foreach (T item in other)
+        {
+            list.add(item);
+        }
+        return list;
+    }
+    public static List<T> addRange<T>(this List<T> list, List<T> other, int count)
 	{
 		clampMax(ref count, other.count());
 		if (list.Capacity < list.Count + count)

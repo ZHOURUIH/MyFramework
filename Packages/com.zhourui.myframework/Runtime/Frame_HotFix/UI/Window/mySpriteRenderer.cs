@@ -267,13 +267,13 @@ public class mySpriteRenderer : ClassObject
 					// 当需要复制一个新的材质时,刚加载出来的材质实际上就不会再用到了
 					// 只有当下次还加载相同的材质时才会直接返回已加载的材质
 					// 如果要卸载最开始加载出来的材质,只能通过卸载整个文件夹的资源来卸载
-					Material newMat = new(mCurMaterial.getResource());
+					Material newMat = new(mCurMaterial.get());
 					newMat.name = getFileNameNoSuffixNoDir(materialPath);
 					setMaterial(newMat);
 				}
 				else
 				{
-					setMaterial(mCurMaterial.getResource());
+					setMaterial(mCurMaterial.get());
 				}
 			});
 		}
@@ -283,13 +283,13 @@ public class mySpriteRenderer : ClassObject
 			mCurMaterial = mResourceManager.loadGameResource<Material>(materialPath);
 			if (mIsNewMaterial)
 			{
-				Material mat = new(mCurMaterial.getResource());
+				Material mat = new(mCurMaterial.get());
 				mat.name = getFileNameNoSuffixNoDir(materialPath);
 				setMaterial(mat);
 			}
 			else
 			{
-				setMaterial(mCurMaterial.getResource());
+				setMaterial(mCurMaterial.get());
 			}
 		}
 	}

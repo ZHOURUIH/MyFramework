@@ -221,7 +221,7 @@ public class ResourceManager : FrameSystem
 		{
 			return null;
 		}
-		CLASS(out ResourceRef<T> resRef).setResource(res);
+		CLASS(out ResourceRef<T> resRef).set(res);
 		return resRef;
 	}
 	// 同步加载资源的子资源,一般是图集才会有子资源,或者是fbx
@@ -248,7 +248,7 @@ public class ResourceManager : FrameSystem
 			mainAsset = null;
 			return null;
 		}
-		CLASS(out mainAsset).setResource(main);
+		CLASS(out mainAsset).set(main);
 		return res;
 	}
 	// 异步加载资源,name是GameResources下的相对路径,带后缀名,errorIfNull表示当找不到资源时是否报错提示
@@ -260,7 +260,7 @@ public class ResourceManager : FrameSystem
             if (res != null)
 			{
                 // 只需要对主资源添加引用封装,子资源都是跟随主资源的生命周期,不需要单独添加引用封装
-                resRef.setResource(res as T);
+                resRef.set(res as T);
 			}
 			if (callback == null)
 			{
@@ -280,7 +280,7 @@ public class ResourceManager : FrameSystem
 			CLASS(out ResourceRef<T> resRef);
 			if (asset != null)
 			{
-				resRef.setResource(asset as T);
+				resRef.set(asset as T);
 			}
             if (callback == null)
             {
@@ -302,7 +302,7 @@ public class ResourceManager : FrameSystem
 			CLASS(out ResourceRef<T> resRef);
             if (asset != null)
 			{
-				resRef.setResource(asset as T);
+				resRef.set(asset as T);
 			}
             if (callback == null || assignID != (relatedObj?.getAssignID() ?? 0))
             {
@@ -322,7 +322,7 @@ public class ResourceManager : FrameSystem
 			CLASS(out ResourceRef<T> resRef);
 			if (asset != null)
 			{
-				resRef.setResource(asset as T);
+				resRef.set(asset as T);
 			}
             if (callback == null)
             {
@@ -344,7 +344,7 @@ public class ResourceManager : FrameSystem
 			CLASS(out ResourceRef<T> resRef);
             if (asset != null)
 			{
-                resRef.setResource(asset as T);
+                resRef.set(asset as T);
 			}
             if (callback == null || assignID != (relatedObj?.getAssignID() ?? 0))
             {

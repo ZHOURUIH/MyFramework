@@ -77,7 +77,7 @@ public class PathKeyframeManager : FrameSystem
 	protected void readPathFile(string filePath, Dictionary<float, Vector3> path)
 	{
 		var file = mResourceManager.loadGameResource<TextAsset>(filePath);
-		file.getResource().bytes.bytesToString().splitLine(out string[] lines);
+		file.get().bytes.bytesToString().splitLine(out string[] lines);
 		for (int i = 0; i < lines.Length; ++i)
 		{
 			string[] elems = lines[i].split(':');
@@ -93,7 +93,7 @@ public class PathKeyframeManager : FrameSystem
 	protected void readPathFile(string filePath, Dictionary<float, float> path)
 	{
 		var file = mResourceManager.loadGameResource<TextAsset>(filePath);
-		file.getResource().bytes.bytesToString().splitLine(out string[] lines);
+		file.get().bytes.bytesToString().splitLine(out string[] lines);
 		for (int i = 0; i < lines.Length; ++i)
 		{
 			string[] elems = lines[i].split(':');

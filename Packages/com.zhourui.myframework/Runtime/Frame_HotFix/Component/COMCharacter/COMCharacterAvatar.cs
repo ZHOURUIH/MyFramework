@@ -359,7 +359,7 @@ public class COMCharacterAvatar : GameComponent
 			mResourceManager.loadGameResourceAsyncSafe<RuntimeAnimatorController>(this, mAnimatorControllerPath, (res) => 
 			{
 				mAnimatorControllerRef = res;
-				mAnimator.runtimeAnimatorController = mAnimatorControllerRef.getResource();
+				mAnimator.runtimeAnimatorController = mAnimatorControllerRef.get();
 			});
 		}
 		// 回调顺序是先通知组件的子类,再通知所属角色,最后执行异步加载的回调

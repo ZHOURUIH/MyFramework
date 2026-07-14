@@ -21,7 +21,7 @@ public class AudioInfo : ClassObject
 	{
 		if (mClip != null)
 		{
-			return mClip.getResource();
+			return mClip.get();
 		}
 		return mRawClip; 
 	}
