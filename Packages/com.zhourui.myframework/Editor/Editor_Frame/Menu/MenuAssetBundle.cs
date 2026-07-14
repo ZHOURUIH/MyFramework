@@ -75,6 +75,14 @@ public class MenuAssetBundle
         window.Show();
         window.setBundleRootFolder(F_ASSET_BUNDLE_PATH);
     }
+    [MenuItem(MENU_NAME + "AB资源浏览器")]
+    public static void OpenAssetBundleStudioWindow()
+    {
+        var window = EditorWindow.GetWindow<AssetBundleStudioWindow>();
+        window.titleContent = new GUIContent("AB资源浏览器");
+        window.minSize = new Vector2(1080.0f, 700.0f);
+        window.Show();
+    }
     //------------------------------------------------------------------------------------------------------------------------------
     public static bool packAssetBundle(BuildTarget target, string outputPath, bool showMessageBox)
 	{
@@ -129,7 +137,6 @@ public class MenuAssetBundle
 			{
 				deleteFile(file);
 			}
-			postProcess();
 			showInfo("资源打包结束! 耗时 : " + (DateTime.Now - time0), showMessageBox, false);
 			result = true;
 		} while (false);
@@ -211,34 +218,8 @@ public class MenuAssetBundle
 			}
 		}
 		writeTxtFile(F_GAME_RESOURCES_PATH + R_MISC_PATH + ATLAS_PATH_CONFIG, pathList.stringsToString("\r\n"));
-
-		// 设置所有图集不打入包体,虽然不太好理解这个,不过设置为false以后AssetBundle中就不会出现冗余的图片,否则AssetBundle将会变得异常大
-		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, SPRITE_ATLAS_SUFFIX))
-		{
-			var atlas = loadAsset<SpriteAtlas>(file);
-			if (atlas == null)
-			{
-				Debug.LogError("图集加载失败:" + file);
-			}
-			atlas.SetIncludeInBuild(false);
-		}
-		AssetDatabase.SaveAssets();
 		AssetDatabase.Refresh();
 		return true;
-	}
-	protected static void postProcess()
-	{
-		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, SPRITE_ATLAS_SUFFIX))
-		{
-			var atlas = loadAsset<SpriteAtlas>(file);
-			if (atlas == null)
-			{
-				Debug.LogError("图集加载失败:" + file);
-			}
-			atlas.SetIncludeInBuild(true);
-		}
-		AssetDatabase.SaveAssets();
-		AssetDatabase.Refresh();
 	}
 	protected static void findAllDependencies(string assetBundleName)
 	{

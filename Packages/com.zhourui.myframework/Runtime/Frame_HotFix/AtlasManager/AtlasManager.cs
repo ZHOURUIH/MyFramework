@@ -161,9 +161,8 @@ public class AtlasManager : FrameSystem
 		{
 			CLASS(out AtlasRef ptr).setAtlas(atlas);
 			callback?.Invoke(ptr);
-			op.setFinish();
-			return op;
-		}
+			return op.setFinish();
+        }
 		if (loadIfNull)
 		{
 			long assignID = owner?.getAssignID() ?? 0;

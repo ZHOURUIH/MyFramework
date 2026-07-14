@@ -242,10 +242,6 @@ public class EffectManager : FrameSystem
 	{
 		return createEffectAsyncSafe(nameWithPath, relatedObject, attachedParent, attachedParent?.getGameObject(), moveToHide, callback, tag, active, lifeTime, failCallback);
 	}
-    public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, IRecyclable relatedObject, Transformable attachedParent, bool moveToHide, GameEffectCallback callback, int tag = 0)
-    {
-        return createEffectAsyncSafe(nameWithPath, relatedObject, attachedParent, attachedParent?.getGameObject(), moveToHide, callback, tag, true, -1, null);
-    }
     public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, Transformable attachedParent, bool moveToHide, GameEffectCallback callback, int tag = 0)
     {
         return createEffectAsyncSafe(nameWithPath, attachedParent, attachedParent, attachedParent?.getGameObject(), moveToHide, callback, tag, true, -1, null);
@@ -471,6 +467,7 @@ public class EffectManager : FrameSystem
 		if (destroyReally || effect.getGameObject() == null)
 		{
 			mGameEffectPool.removeEffect(effect);
+			effect.setInEffectPool(false);
 			destroyEffectNoPool(ref effect);
 			return;
 		}

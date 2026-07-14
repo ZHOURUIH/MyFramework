@@ -65,11 +65,6 @@ public abstract class PlatformInfo : PlatformBase
 		{
 			Debug.LogError("不支持的平台");
 		}
-		if (info != null)
-		{
-			info.mTarget = target;
-			info.mAssetBundleFullPath = getAssetBundlePath(true);
-		}
 		return info;
 	}
 	public bool upload(bool autoUploadVersion, string uploadLocalPath = null)

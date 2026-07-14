@@ -392,8 +392,8 @@ public class AssetBundleLoader
 			CustomAsyncOperation op = new();
 			bundleInfo.addDownloadCallback((AssetBundleInfo info, byte[] bytes) =>
 			{
-				op.setFinish();
 				callback?.Invoke(bytes);
+				op.setFinish();
 			});
 			yield return op;
 		}

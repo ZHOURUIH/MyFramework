@@ -21,11 +21,6 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 	public override void init()
 	{
 		base.init();
-		string spriteName = getSpriteName();
-		if (spriteName.contains('_'))
-		{
-			setTextureSet(spriteName.rangeToLast('_'));
-		}
 		mControl.setObject(this);
 		mControl.setPlayEndCallback(onPlayEnd);
 		mControl.setPlayingCallback(onPlaying);
@@ -155,8 +150,17 @@ public class myUGUIImageAnim : myUGUIImage, IUIAnimation
 		mPlayEndCallbackList?.Clear();
 		mPlayingCallbackList?.Clear();
 	}
-	//------------------------------------------------------------------------------------------------------------------------------
-	protected void onPlaying(int frame, bool isPlaying)
+    //------------------------------------------------------------------------------------------------------------------------------
+    protected override void onInitAsyncDone()
+    {
+        base.onInitAsyncDone();
+        string spriteName = getSpriteName();
+        if (spriteName.contains('_'))
+        {
+            setTextureSet(spriteName.rangeToLast('_'));
+        }
+    }
+    protected void onPlaying(int frame, bool isPlaying)
 	{
 		int spriteCount = mSpriteList.Count;
 		if (frame >= spriteCount)

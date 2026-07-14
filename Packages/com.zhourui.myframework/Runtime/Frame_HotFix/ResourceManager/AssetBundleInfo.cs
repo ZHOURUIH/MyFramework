@@ -81,7 +81,7 @@ public class AssetBundleInfo : ClassObject
 		mAssetList.forValue(item => item.clear());
 		mLoadState = LOAD_STATE.NONE;
 		// 通知依赖项,自己被卸载了
-		mParents.forValue(item => item.notifyChildUnload());
+		mParents.forValue(item => item?.notifyChildUnload());
 	}
 	// 卸载包中单个资源
 	public bool unloadAsset(UObject obj)
@@ -165,7 +165,7 @@ public class AssetBundleInfo : ClassObject
 	{
 		foreach (var item in mParents)
 		{
-			if (item.Value.mLoadState != LOAD_STATE.LOADED)
+			if (item.Value != null && item.Value.mLoadState != LOAD_STATE.LOADED)
 			{
 				return false;
 			}
@@ -192,7 +192,7 @@ public class AssetBundleInfo : ClassObject
 		// 先确保所有依赖项已经加载
 		foreach (var item in mParents)
 		{
-			item.Value.loadAssetBundle();
+			item.Value?.loadAssetBundle();
 		}
 		mAssetBundle = AssetBundle.LoadFromFile(availableReadPath(mBundleFileName));
 		if (mAssetBundle == null)
@@ -207,13 +207,13 @@ public class AssetBundleInfo : ClassObject
 	{
 		foreach (var item in mParents)
 		{
-			item.Value.loadAssetBundleAsync(null);
+			item.Value?.loadAssetBundleAsync(null);
 		}
 	}
 	public void checkAssetBundleDependenceLoaded()
 	{
 		// 先确保所有依赖项已经加载
-		mParents.forValue(item => item.checkAssetBundleDependenceLoaded());
+		mParents.forValue(item => item?.checkAssetBundleDependenceLoaded());
 		if (mLoadState == LOAD_STATE.NONE)
 		{
 			loadAssetBundle();

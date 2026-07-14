@@ -106,10 +106,6 @@ public class ResourceManager : FrameSystem
 	public void notifyAssetLoaded(UObject asset, AssetBundleInfo bundle)	{ mAssetBundleLoader.notifyAssetLoaded(asset, bundle); }
 	public void unload<T>(ref ResourceRef<T> res) where T : UObject
 	{
-		if (res == null)
-		{
-			return;
-		}
 		UN_CLASS(ref res);
 	}
 	// 卸载指定目录中的所有资源,path为GameResources下的相对路径
@@ -260,18 +256,20 @@ public class ResourceManager : FrameSystem
 	{
 		return loadGameResourceAsyncInternal<T>(name, (UObject res, UObject[] subRes, byte[] bytes, string loadPath) => 
 		{
+			CLASS(out ResourceRef<T> resRef);
+            if (res != null)
+			{
+                // 只需要对主资源添加引用封装,子资源都是跟随主资源的生命周期,不需要单独添加引用封装
+                resRef.setResource(res as T);
+			}
 			if (callback == null)
 			{
 				unloadInternal(res);
-				return;
 			}
-			ResourceRef<T> resRef = null;
-			if (res != null)
+			else 
 			{
-				// 只需要对主资源添加引用封装,子资源都是跟随主资源的生命周期,不需要单独添加引用封装
-				CLASS(out resRef).setResource(res as T);
+				callback(resRef, subRes, bytes, loadPath);
 			}
-			callback(resRef, subRes, bytes, loadPath);
 		}, errorIfNull);
 	}
 	// 异步加载资源,name是GameResources下的相对路径,带后缀名,errorIfNull表示当找不到资源时是否报错提示
@@ -279,17 +277,19 @@ public class ResourceManager : FrameSystem
 	{
 		return loadGameResourceAsyncInternal<T>(name, (UObject asset, UObject[] _, byte[] _, string loadPath) =>
 		{
-			if (callback == null)
-			{
-				unloadInternal(asset);
-				return;
-			}
-			ResourceRef<T> resRef = null;
+			CLASS(out ResourceRef<T> resRef);
 			if (asset != null)
 			{
-				CLASS(out resRef).setResource(asset as T);
+				resRef.setResource(asset as T);
 			}
-			callback(resRef, loadPath);
+            if (callback == null)
+            {
+				UN_CLASS(ref resRef);
+            }
+			else
+			{
+                callback(resRef, loadPath);
+            }
 		}, errorIfNull);
 	}
 	// 异步加载资源,name是GameResources下的相对路径,带后缀名,errorIfNull表示当找不到资源时是否报错提示
@@ -299,17 +299,19 @@ public class ResourceManager : FrameSystem
 		long assignID = relatedObj?.getAssignID() ?? 0;
 		return loadGameResourceAsyncInternal<T>(name, (UObject asset, UObject[] _, byte[] _, string loadPath) =>
 		{
-			if (callback == null || assignID != (relatedObj?.getAssignID() ?? 0))
+			CLASS(out ResourceRef<T> resRef);
+            if (asset != null)
 			{
-				unloadInternal(asset);
-				return;
+				resRef.setResource(asset as T);
 			}
-			ResourceRef<T> resRef = null;
-			if (asset != null)
+            if (callback == null || assignID != (relatedObj?.getAssignID() ?? 0))
+            {
+                UN_CLASS(ref resRef);
+            }
+			else
 			{
-				CLASS(out resRef).setResource(asset as T);
-			}
-			callback(resRef, loadPath);
+                callback(resRef, loadPath);
+            }
 		}, errorIfNull);
 	}
 	// 异步加载资源,name是GameResources下的相对路径,带后缀名,errorIfNull表示当找不到资源时是否报错提示
@@ -317,17 +319,19 @@ public class ResourceManager : FrameSystem
 	{
 		return loadGameResourceAsyncInternal<T>(name, (UObject asset, UObject[] _, byte[] _, string _) =>
 		{
-			if (callback == null)
-			{
-				unloadInternal(asset);
-				return;
-			}
-			ResourceRef<T> resRef = null;
+			CLASS(out ResourceRef<T> resRef);
 			if (asset != null)
 			{
-				CLASS(out resRef).setResource(asset as T);
+				resRef.setResource(asset as T);
 			}
-			callback(resRef);
+            if (callback == null)
+            {
+				UN_CLASS(ref resRef);
+            }
+			else
+			{
+                callback(resRef);
+            }
 		}, errorIfNull);
 	}
 	// 异步加载资源,name是GameResources下的相对路径,带后缀名,errorIfNull表示当找不到资源时是否报错提示
@@ -337,17 +341,19 @@ public class ResourceManager : FrameSystem
 		long assignID = relatedObj?.getAssignID() ?? 0;
 		return loadGameResourceAsyncInternal<T>(name, (UObject asset, UObject[] _, byte[] _, string _) =>
 		{
-			if (callback == null || assignID != (relatedObj?.getAssignID() ?? 0))
+			CLASS(out ResourceRef<T> resRef);
+            if (asset != null)
 			{
-				unloadInternal(asset);
-				return;
+                resRef.setResource(asset as T);
 			}
-			ResourceRef<T> resRef = null;
-			if (asset != null)
+            if (callback == null || assignID != (relatedObj?.getAssignID() ?? 0))
+            {
+                UN_CLASS(ref resRef);
+            }
+			else
 			{
-				CLASS(out resRef).setResource(asset as T);
-			}
-			callback(resRef);
+                callback(resRef);
+            }
 		}, errorIfNull);
 	}
 	// 仅下载一个资源,下载后会写入本地文件,并且更新本地文件信息列表,fileName为带后缀,GameResources下的相对路径

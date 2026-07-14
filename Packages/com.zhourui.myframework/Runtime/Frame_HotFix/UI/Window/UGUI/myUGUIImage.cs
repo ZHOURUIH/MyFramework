@@ -3,6 +3,7 @@ using static UnityUtility;
 using static StringUtility;
 using static FrameBaseHotFix;
 using static FrameDefine;
+using static FrameBaseUtility;
 
 // 对UGUI的Image的封装,普通版本,提供替换图片的功能,UGUI的静态图片不支持递归变化透明度
 public class myUGUIImage : myUGUIImageSimple, IUGUIImage
@@ -10,7 +11,8 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 	protected AtlasRef mOriginAtlasPtr;			// 图片图集,用于卸载,当前类只关心初始图集的卸载,后续再次设置的图集不关心是否需要卸载,需要外部设置的地方自己关心
 	protected AtlasRef mAtlasPtr;				// 当前正在使用的图集
 	protected Sprite mOriginSprite;             // 备份加载物体时原始的精灵图片,此图片的卸载是在prefab卸载后,没有任何地方对其有引用,在Resources.UnloadUnusedAssets中被卸载
-	protected string mOriginSpriteName;			// 初始图片的名字,用于外部根据初始名字设置其他效果的图片
+	protected string mOriginSpriteName;         // 初始图片的名字,用于外部根据初始名字设置其他效果的图片
+	protected bool mInitDone;					// 异步初始化是否完成
 	public override void init()
 	{
 		base.init();
@@ -31,21 +33,39 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 			if (!atlasPath.endWith("/unity_builtin_extra"))
 			{
 				atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
-                mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas) =>
-                {
-                    mOriginAtlasPtr = atlas;
+				// webgl中还不支持同步加载,但是异步又可能会出现很多执行时序问题.所以分开写,能同步则同步,不能才异步
+				if (isWebGL())
+				{
+                    mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas) =>
+                    {
+                        mOriginAtlasPtr = atlas;
+                        mAtlasPtr = mOriginAtlasPtr;
+                        if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
+                        {
+                            logWarning("无法加载初始化的图集:" + atlasPath + ", GameObject:" + getGameObjectPath() +
+                                ",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
+                        }
+                        mInitDone = true;
+                        onInitAsyncDone();
+                    }, false);
+                }
+				else
+				{
+                    mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
+                    mAtlasPtr = mOriginAtlasPtr;
                     if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
                     {
                         logWarning("无法加载初始化的图集:" + atlasPath + ", GameObject:" + getGameObjectPath() +
                             ",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
                     }
-                }, false);
+                    mInitDone = true;
+                    onInitAsyncDone();
+                }
             }
 			else
 			{
 				logError("需要切换图片的节点上不要使用引擎内置的图片, GameObject:" + getGameObjectPath());
 			}
-			mAtlasPtr = mOriginAtlasPtr;
 		}
 		mOriginSpriteName = getSpriteName();
 	}
@@ -126,4 +146,5 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 		}
 		return null;
 	}
+    protected virtual void onInitAsyncDone() { }
 }
