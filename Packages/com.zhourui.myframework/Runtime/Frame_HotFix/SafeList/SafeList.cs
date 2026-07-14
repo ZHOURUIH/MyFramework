@@ -22,9 +22,9 @@ public class SafeList<T> : ClassObject
 		mLastFileName = null;
 		mForeaching = false;
 	}
-	// 获取用于更新的列表,会自动从主列表同步,遍历结束时需要调用endForeach
-	// 搭配SafeListScope使用,using var a = new SafeListScope<T>(safeList);然后遍历a.mReadList
-	public List<T> startForeach(string fileName = null)
+    // 获取用于更新的列表,会自动从主列表同步,遍历结束时需要调用endForeach
+    // 搭配SafeListReader使用,using var a = new SafeListReader<T>(safeList);然后遍历a.mReadList
+    public List<T> startForeach(string fileName = null)
 	{
 		if (mForeaching)
 		{
