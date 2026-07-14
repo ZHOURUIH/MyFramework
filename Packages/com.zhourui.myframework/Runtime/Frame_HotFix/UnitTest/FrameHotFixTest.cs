@@ -126,6 +126,7 @@ public class FrameHotFixTest
         Register("NetPacketJsonHttpTest", NetPacketJsonHttpTest.Run);
         Register("DoubleBufferReaderTest", DoubleBufferReaderTest.Run);
         Register("PurchaseAndCurveInfoTest", PurchaseAndCurveInfoTest.Run);
+        Register("ResourceManagerTest", ResourceManagerTest.Run);
 
         doRunAll(sTests);
     }

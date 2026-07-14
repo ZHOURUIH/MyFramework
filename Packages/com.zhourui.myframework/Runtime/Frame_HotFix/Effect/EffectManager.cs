@@ -467,6 +467,7 @@ public class EffectManager : FrameSystem
 		if (destroyReally || effect.getGameObject() == null)
 		{
 			mGameEffectPool.removeEffect(effect);
+			effect.setInEffectPool(false);
 			destroyEffectNoPool(ref effect);
 			return;
 		}
