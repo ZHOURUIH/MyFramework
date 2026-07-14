@@ -43,7 +43,7 @@ public class KeyFrameManager : FrameSystem
 			}
 
 			// 查找关键帧曲线,加入列表中
-			if (!asset.getResource().TryGetComponent<GameKeyframe>(out var gameKeyframe))
+			if (!asset.get().TryGetComponent<GameKeyframe>(out var gameKeyframe))
 			{
 				logError("object in KeyFrame folder must has GameKeyframe Component!");
 				callback?.Invoke();

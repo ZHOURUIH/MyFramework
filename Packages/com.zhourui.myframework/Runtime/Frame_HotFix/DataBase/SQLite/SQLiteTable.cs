@@ -54,7 +54,7 @@ public class SQLiteTable : ClassObject
 			mResourceManager.loadGameResourceAsync<TextAsset>(R_SQLITE_PATH + mTableName + ".bytes", (textAsset)=>
 			{
 				mState = LOAD_STATE.LOADED;
-				postLoad(textAsset.getResource().bytes);
+				postLoad(textAsset.get().bytes);
 				mResourceManager?.unload(ref textAsset);
 				callback?.Invoke();
 			});
@@ -81,7 +81,7 @@ public class SQLiteTable : ClassObject
 		{
 			ResourceRef<TextAsset> textAsset = mResourceManager.loadGameResource<TextAsset>(R_SQLITE_PATH + mTableName + ".bytes");
 			mState = LOAD_STATE.LOADED;
-			postLoad(textAsset.getResource().bytes);
+			postLoad(textAsset.get().bytes);
 			mResourceManager.unload(ref textAsset);
 		}
 		else

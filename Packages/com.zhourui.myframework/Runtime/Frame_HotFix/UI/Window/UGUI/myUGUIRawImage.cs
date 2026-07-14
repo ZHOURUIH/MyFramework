@@ -124,7 +124,7 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		}
 		mResourceManager.unload(ref mCurTexture);
 		mCurTexture = tex;
-		mRawImage.texture = mCurTexture.getResource();
+		mRawImage.texture = mCurTexture.get();
 		mTextureNameDirty = true;
 		if (useTextureSize && tex != null)
 		{
@@ -215,10 +215,10 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 				{
 					return;
 				}
-				Material newMat = mCurMaterial.getResource();
+				Material newMat = mCurMaterial.get();
 				if (mIsNewMaterial)
 				{
-					newMat = new(mCurMaterial.getResource());
+					newMat = new(mCurMaterial.get());
 					newMat.name = getFileNameNoSuffixNoDir(materialPath) + "_" + mID.IToS();
 				}
 				setMaterial(newMat);
@@ -228,10 +228,10 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		else
 		{
 			mCurMaterial = mResourceManager.loadGameResource<Material>(materialPath);
-			Material mat = mCurMaterial.getResource();
+			Material mat = mCurMaterial.get();
 			if (mIsNewMaterial)
 			{
-				mat = new(mCurMaterial.getResource());
+				mat = new(mCurMaterial.get());
 				mat.name = getFileNameNoSuffixNoDir(materialPath) + "_" + mID.IToS();
 			}
 			setMaterial(mat);

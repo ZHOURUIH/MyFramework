@@ -165,7 +165,7 @@ public static class ResourceManagerTest
 	private static ResourceRef<T> createResourceRef<T>(ResourceManager rm, T res) where T : UObject
 	{
 		var resRef = new ResourceRef<T>();
-		resRef.setResource(res);
+		resRef.set(res);
 		return resRef;
 	}
 	// 模拟 UN_CLASS 的完整回收流程:先调用 destroy 释放资源引用,再调用 resetProperty 清空对象状态
@@ -453,7 +453,7 @@ public static class ResourceManagerTest
 		try
 		{
 			var resRef = createResourceRef(rm, obj);
-			assertNotNull(resRef.getResource(), "setResource 后应能获取资源");
+			assertNotNull(resRef.get(), "setResource 后应能获取资源");
 			destroyResourceRef(resRef);
 		}
 		finally { UObject.DestroyImmediate(obj); }
@@ -480,7 +480,7 @@ public static class ResourceManagerTest
 		try
 		{
 			var resRef = createResourceRef(rm, obj);
-			assertEqual(obj, resRef.getResource(), "getResource 应返回设置的资源");
+			assertEqual(obj, resRef.get(), "getResource 应返回设置的资源");
 			destroyResourceRef(resRef);
 		}
 		finally { UObject.DestroyImmediate(obj); }
@@ -515,7 +515,7 @@ public static class ResourceManagerTest
 			var copy = resRef.copyRef();
 			assertNotNull(copy, "copyRef 应返回新的引用");
 			assertTrue(copy.isValid(), "copyRef 的引用应有效");
-			assertEqual(obj, copy.getResource(), "copyRef 应引用同一资源");
+			assertEqual(obj, copy.get(), "copyRef 应引用同一资源");
 			assertTrue(resRef.getToken() != copy.getToken(), "copyRef 的 token 应不同");
 
 			// 销毁原引用, 资源不应被卸载 (copy 仍持有)
@@ -544,7 +544,7 @@ public static class ResourceManagerTest
 			// 先移除引用再 resetProperty (因为 resetProperty 不移除引用)
 			rm.removeReference(obj, ref tokenBefore);
 			resRef.resetProperty();
-			assertNull(resRef.getResource(), "resetProperty 后 resource 应为 null");
+			assertNull(resRef.get(), "resetProperty 后 resource 应为 null");
 			assertEqual(0L, resRef.getToken(), "resetProperty 后 token 应为 0");
 			assertFalse(resRef.isValid(), "resetProperty 后应不 isValid");
 		}
@@ -554,7 +554,7 @@ public static class ResourceManagerTest
 	{
 		var resRef = new ResourceRef<ScriptableObject>();
 		resRef.resetProperty();
-		assertNull(resRef.getResource(), "空引用 resetProperty 后资源应为 null");
+		assertNull(resRef.get(), "空引用 resetProperty 后资源应为 null");
 		assertEqual(0L, resRef.getToken(), "空引用 resetProperty 后 token 应为 0");
 		assertFalse(resRef.isValid(), "空引用 resetProperty 后应无效");
 	}
@@ -607,8 +607,8 @@ public static class ResourceManagerTest
 			assertEqual(0, unloadCount, "部分释放后资源仍存活");
 
 			// ref2 仍可访问资源
-			assertNotNull(ref2.getResource(), "存活引用仍可获取资源");
-			assertEqual(obj, ref2.getResource(), "存活引用获取的资源应正确");
+			assertNotNull(ref2.get(), "存活引用仍可获取资源");
+			assertEqual(obj, ref2.get(), "存活引用获取的资源应正确");
 
 			destroyResourceRef(ref2);
 		}
@@ -727,7 +727,7 @@ public static class ResourceManagerTest
 
 			assertNotNull(holderRef, "第一个异步请求应获得资源引用");
 			assertTrue(holderRef.isValid(), "第一个异步请求获得的资源引用应有效");
-			assertEqual(obj, holderRef.getResource(), "第一个异步请求持有的资源应正确");
+			assertEqual(obj, holderRef.get(), "第一个异步请求持有的资源应正确");
 			assertEqual(0, unloadCount, "另一个请求回调为空时不能卸载已被持有的共享资源");
 			assertTrue(rm.isGameResourceLoaded<GameObject>(resourceName), "共享资源仍有引用时应保持加载状态");
 
@@ -808,7 +808,7 @@ public static class ResourceManagerTest
 			assertEqual(0, safeCallbackCount, "持有者销毁后 Safe 请求不应执行回调");
 			assertNotNull(holderRef, "另一个正常请求应获得资源引用");
 			assertTrue(holderRef.isValid(), "另一个正常请求持有的资源引用应有效");
-			assertEqual(obj, holderRef.getResource(), "另一个正常请求持有的资源应正确");
+			assertEqual(obj, holderRef.get(), "另一个正常请求持有的资源应正确");
 			assertEqual(0, unloadCount, "Safe 请求持有者销毁时不能卸载其他请求正在使用的共享资源");
 			assertTrue(rm.isGameResourceLoaded<GameObject>(resourceName), "共享资源仍有引用时应保持加载状态");
 
@@ -850,7 +850,7 @@ public static class ResourceManagerTest
 
 			assertNotNull(deliveredRef, "持有者存活时 Safe 请求应获得资源引用");
 			assertTrue(deliveredRef.isValid(), "Safe 请求交付的资源引用应有效");
-			assertEqual(obj, deliveredRef.getResource(), "Safe 请求交付的资源应正确");
+			assertEqual(obj, deliveredRef.get(), "Safe 请求交付的资源应正确");
 			assertEqual(0, unloadCount, "资源被回调持有时不应卸载");
 
 			destroyResourceRef(deliveredRef);
@@ -1343,7 +1343,7 @@ public static class ResourceManagerTest
 			// 重新引用 (模拟新的持有者获取已加载的资源)
 			var ref4 = ref2.copyRef();
 			assertTrue(ref4.isValid(), "新引用应有效");
-			assertEqual(obj, ref4.getResource(), "新引用应获取同一资源");
+			assertEqual(obj, ref4.get(), "新引用应获取同一资源");
 
 			// 释放 ref2, ref3
 			destroyResourceRef(ref2);

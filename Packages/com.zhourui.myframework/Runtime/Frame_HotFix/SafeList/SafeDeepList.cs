@@ -15,9 +15,9 @@ public class SafeDeepList<T> : ClassObject
 		mTempUnuseList.Clear();
 		mMainList.Clear();
 	}
-	// 获取用于更新的列表
-	// 搭配SafeDeepListScope使用,using var a = new SafeDeepListScope<T>(safeList);然后遍历a.mReadList
-	public List<T> startForeach() 
+    // 获取用于更新的列表
+    // 搭配SafeDeepListReader使用,using var a = new SafeDeepListReader<T>(safeList);然后遍历a.mReadList
+    public List<T> startForeach() 
 	{
 		// 由于需要考虑嵌套,所以只能创建一个新的列表,复制当前主列表的数据
 		List<T> tempList = mTempUnuseList.Count > 0 ? mTempUnuseList.Dequeue() : new();

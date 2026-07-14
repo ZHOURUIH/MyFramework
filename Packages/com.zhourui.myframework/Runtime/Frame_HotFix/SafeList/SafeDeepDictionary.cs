@@ -15,8 +15,9 @@ public class SafeDeepDictionary<Key, Value> : ClassObject
 		mTempUnuseList.Clear();
 		mMainList.Clear();
 	}
-	// 获取用于更新的列表
-	public Dictionary<Key, Value> startForeach() 
+    // 获取用于更新的列表
+    // 一般搭配SafeDeepDictionaryReader使用,比如using var a = new SafeDeepDictionaryReader<Key, Value>(list);然后使用a.mList进行遍历
+    public Dictionary<Key, Value> startForeach() 
 	{
 		// 由于需要考虑嵌套,所以只能创建一个新的列表,复制当前主列表的数据
 		Dictionary<Key, Value> tempList = mTempUnuseList.Count > 0 ? mTempUnuseList.Dequeue() : new();

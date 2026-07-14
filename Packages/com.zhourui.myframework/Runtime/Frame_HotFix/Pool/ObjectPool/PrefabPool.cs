@@ -41,7 +41,7 @@ public class PrefabPool : ClassObject
 	}
 	public void setFileName(string fileName)				{ mFileName = fileName; }
 	public void setPrefab(ResourceRef<GameObject> prefab)	{ mPrefab = prefab; }
-	public GameObject getPrefab()							{ return mPrefab != null ? mPrefab.getResource() : null; }
+	public GameObject getPrefab()							{ return mPrefab != null ? mPrefab.get() : null; }
 	public string getFileName()								{ return mFileName; }
 	public List<GameObjectInfo> getUnuseList()				{ return mUnuseList; }
 	public HashSet<GameObjectInfo> getInuseList()			{ return mInuseList; }
@@ -155,7 +155,7 @@ public class PrefabPool : ClassObject
 		else
 		{
 			// 实例化
-			CLASS(out objInfo).createObject(mPrefab.getResource(), mFileName);
+			CLASS(out objInfo).createObject(mPrefab.get(), mFileName);
 			objInfo.setTag(tag);
 		}
 		objInfo.setUsing(true);
@@ -222,7 +222,7 @@ public class PrefabPool : ClassObject
 			GameObjectInfo objInfo = mUnuseList.addClass();
 			objInfo.setTag(tag);
 			// 实例化,同步进行
-			objInfo.createObject(mPrefab.getResource(), mFileName);
+			objInfo.createObject(mPrefab.get(), mFileName);
 			GameObject go = objInfo.getObject();
 			if (go != null)
 			{
@@ -259,7 +259,7 @@ public class PrefabPool : ClassObject
 		{
 			// 实例化
 			++mAsyncInstantiateCount;
-			CLASS<GameObjectInfo>().createObjectAsync(mPrefab.getResource(), mFileName, (GameObjectInfo info) =>
+			CLASS<GameObjectInfo>().createObjectAsync(mPrefab.get(), mFileName, (GameObjectInfo info) =>
 			{
 				--mAsyncInstantiateCount;
 				if (info == null)

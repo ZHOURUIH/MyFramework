@@ -17,18 +17,19 @@ public class GameEffectPool
 	{
 		if (tickTimerLoop(ref mEffectTimer, elapsedTime, 1.0f))
 		{
-			DateTime time = DateTime.Now;
-			foreach (var item in mUnusedEffectList)
-			{
-				foreach (var effect in item.Value)
-				{
-					if ((time - effect.getUnuseTime()).TotalSeconds > mUnuseMaxTime)
-					{
-						mEffectManager.destroyEffect(effect, true);
-					}
-				}
-			}
-		}
+            DateTime time = DateTime.Now;
+            foreach (var item in mUnusedEffectList)
+            {
+                using var a = new SafeListReader<GameEffect>(item.Value);
+                foreach (GameEffect effect in a.mReadList)
+                {
+                    if ((time - effect.getUnuseTime()).TotalSeconds > mUnuseMaxTime)
+                    {
+                        mEffectManager.destroyEffect(effect, true);
+                    }
+                }
+            }
+        }
 	}
 	public void setUnuseMaxTime(int time) { mUnuseMaxTime = time; }
 	public void useEffect(GameEffect effect)

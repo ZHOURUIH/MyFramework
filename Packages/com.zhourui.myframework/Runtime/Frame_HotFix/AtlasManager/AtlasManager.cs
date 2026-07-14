@@ -236,7 +236,7 @@ public class AtlasManager : FrameSystem
 		{
 			mAtlasPathList = new();
 			var text = mResourceManager.loadGameResource<TextAsset>(R_MISC_PATH + ATLAS_PATH_CONFIG);
-			foreach(string line in text.getResource().text.splitLine())
+			foreach(string line in text.get().text.splitLine())
 			{
 				mAtlasPathList.Add(getFileNameNoSuffixNoDir(line), line);
 			}
@@ -256,7 +256,7 @@ public class AtlasManager : FrameSystem
 			atlas = mResourceManager.loadGameResource<SpriteAtlas>(path);
 			mSpriteAtlasList.Add(name, atlas);
 		}
-		action(atlas.getResource());
+		action(atlas.get());
 	}
 	// 图集资源已经加载完成,从assets中解析并创建图集信息
 	protected static AtlasBase atlasLoaded<T>(T[] assets, ResourceRef<UObject> mainAsset, string loadPath) where T : UObject
@@ -269,7 +269,7 @@ public class AtlasManager : FrameSystem
 		{
 			AtlasUGUI atlas = new(mainAsset);
 			atlas.setFilePath(loadPath);
-			var spriteAtlas = mainAsset.getResource() as SpriteAtlas;
+			var spriteAtlas = mainAsset.get() as SpriteAtlas;
 			if (spriteAtlas.spriteCount == 0)
 			{
 				if (isEditor())
