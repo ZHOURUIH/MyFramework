@@ -305,7 +305,6 @@ public static class MenuExcelBytesRestore
         {
             return ID;
         }
-
         if (fieldName.Length > 1 && fieldName[0] == 'm' && char.IsUpper(fieldName[1]))
         {
             return fieldName.Substring(1);
@@ -430,8 +429,7 @@ public static class MenuExcelBytesRestore
     private static List<string> collectScriptPathList(Type dataType)
     {
         List<string> scriptPathList = new();
-        string[] guids = AssetDatabase.FindAssets(dataType.Name + " t:MonoScript");
-        foreach (string guid in guids)
+        foreach (string guid in AssetDatabase.FindAssets(dataType.Name + " t:MonoScript"))
         {
             string assetPath = AssetDatabase.GUIDToAssetPath(guid);
             if (assetPath.isEmpty())
@@ -452,49 +450,39 @@ public static class MenuExcelBytesRestore
             return scriptPathList;
         }
 
-        string[] allGuids = AssetDatabase.FindAssets("t:MonoScript");
-        foreach (string guid in allGuids)
+        foreach (string guid in AssetDatabase.FindAssets("t:MonoScript"))
         {
             string assetPath = AssetDatabase.GUIDToAssetPath(guid);
             if (assetPath.isEmpty())
             {
                 continue;
             }
-
             string fullPath = assetPathToFullPath(assetPath);
             if (!File.Exists(fullPath))
             {
                 continue;
             }
-
             string content = File.ReadAllText(fullPath, Encoding.UTF8);
-            if (content.Contains("class " + dataType.Name))
-            {
-                scriptPathList.addUnique(assetPath);
-            }
+            scriptPathList.addUniqueIf(assetPath, content.Contains("class " + dataType.Name));
         }
         return scriptPathList;
     }
     private static void parseFieldComment(string content, Dictionary<string, string> fieldCommentMap)
     {
-        string[] lineList = content.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
         Regex fieldRegex = new(@"^\s*public\s+.+?\s+(m[A-Za-z0-9_]*)\s*(?:=\s*[^;]*)?;\s*//\s*(.*)$");
-
-        foreach (string line in lineList)
+        foreach (string line in content.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n'))
         {
             Match match = fieldRegex.Match(line);
             if (!match.Success)
             {
                 continue;
             }
-
             string fieldName = match.Groups[1].Value.Trim();
             string comment = match.Groups[2].Value.Trim();
             if (fieldName.isEmpty() || comment.isEmpty())
             {
                 continue;
             }
-
             fieldCommentMap[fieldName] = comment;
         }
     }
@@ -553,32 +541,35 @@ public static class MenuExcelBytesRestore
             {
                 valueList.Add(valueToString(item));
             }
-            return string.Join(LIST_SEPARATOR, valueList);
+            return valueList.stringsToString(LIST_SEPARATOR);
         }
-
         if (value is Vector2Int vector2Int)
         {
-            return vector2Int.x.ToString(CultureInfo.InvariantCulture) + "," + vector2Int.y.ToString(CultureInfo.InvariantCulture);
+            return vector2Int.V2IToS();
         }
         if (value is Vector3Int vector3Int)
         {
-            return vector3Int.x.ToString(CultureInfo.InvariantCulture) + "," + vector3Int.y.ToString(CultureInfo.InvariantCulture) + "," + vector3Int.z.ToString(CultureInfo.InvariantCulture);
+            return vector3Int.V3IToS();
         }
         if (value is Vector2 vector2)
         {
-            return vector2.x.ToString(CultureInfo.InvariantCulture) + "," + vector2.y.ToString(CultureInfo.InvariantCulture);
+            return vector2.V2ToS();
         }
         if (value is Vector3 vector3)
         {
-            return vector3.x.ToString(CultureInfo.InvariantCulture) + "," + vector3.y.ToString(CultureInfo.InvariantCulture) + "," + vector3.z.ToString(CultureInfo.InvariantCulture);
+            return vector3.V3ToS();
         }
         if (value is Vector4 vector4)
         {
-            return vector4.x.ToString(CultureInfo.InvariantCulture) + "," + vector4.y.ToString(CultureInfo.InvariantCulture) + "," + vector4.z.ToString(CultureInfo.InvariantCulture) + "," + vector4.w.ToString(CultureInfo.InvariantCulture);
+            return vector4.V4ToS();
         }
         if (value is Color color)
         {
-            return color.r.ToString(CultureInfo.InvariantCulture) + "," + color.g.ToString(CultureInfo.InvariantCulture) + "," + color.b.ToString(CultureInfo.InvariantCulture) + "," + color.a.ToString(CultureInfo.InvariantCulture);
+            return color.r.FToS() + "," + color.g.FToS() + "," + color.b.FToS() + "," + color.a.FToS();
+        }
+        if (value is bool boolValue)
+        {
+            return boolValue ? "1" : "0";
         }
         if (value is IFormattable formattable)
         {
