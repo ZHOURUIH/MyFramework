@@ -198,11 +198,11 @@ public class GameFrameworkHotFix : IFramework
 			return;
 		}
 		mOnDestroy?.Invoke();
-		foreach (FrameSystem frame in mFrameComponentInit)
+		foreach (FrameSystem frame in mFrameComponentDestroy)
 		{
 			frame?.willDestroy();
 		}
-		foreach (FrameSystem frame in mFrameComponentInit)
+		foreach (FrameSystem frame in mFrameComponentDestroy)
 		{
 			if (frame != null)
 			{

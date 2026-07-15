@@ -121,13 +121,13 @@ public class SceneSystem : FrameSystem
 	{
 		CustomAsyncOperation op = new();
 		// 如果场景已经加载,则直接返回
-        if (mSceneList.TryGetValue(sceneName, out SceneInstance scene0))
-        {
-            if (scene0.getState() != LOAD_STATE.LOADED)
-            {
-                logError("场景正在加载中,无法再次开始加载! name:" + sceneName);
-                return null;
-            }
+		if (mSceneList.TryGetValue(sceneName, out SceneInstance scene0))
+		{
+			if (scene0.getState() != LOAD_STATE.LOADED)
+			{
+				logError("场景正在加载中,无法再次开始加载! name:" + sceneName);
+				return null;
+			}
 			showScene(sceneName, false, mainScene);
 			if (loadingCallback != null || loadedCallback != null)
 			{

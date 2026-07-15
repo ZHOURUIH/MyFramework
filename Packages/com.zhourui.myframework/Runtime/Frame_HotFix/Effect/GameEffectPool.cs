@@ -34,19 +34,22 @@ public class GameEffectPool
 	public void setUnuseMaxTime(int time) { mUnuseMaxTime = time; }
 	public void useEffect(GameEffect effect)
 	{
-		mInusedEffectList.getOrAddNew(effect.getFilePath()).Add(effect);
+        mInusedEffectList.getOrAddNew(effect.getFilePath()).Add(effect);
 	}
 	public void unuseEffect(GameEffect effect)
 	{
+		if (!mUnusedEffectList.getOrAddNew(effect.getFilePath()).addUnique(effect))
+		{
+			return;
+		}
 		mInusedEffectList.get(effect.getFilePath())?.Remove(effect);
-		mUnusedEffectList.getOrAddNew(effect.getFilePath()).add(effect);
 		effect.setUnuseTime(DateTime.Now);
 	}
 	public void removeEffect(GameEffect effect)
 	{
 		mInusedEffectList.get(effect.getFilePath())?.Remove(effect);
 		mUnusedEffectList.get(effect.getFilePath())?.remove(effect);
-	}
+    }
 	public GameEffect getOneEffect(GameObject parent, string nameWithPath, Vector3 pos, bool moveToHide, bool active, float lifeTime)
 	{
 		// 先从未使用列表中获取一个特效
