@@ -35,27 +35,33 @@ public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 			mGameFrameworkHotFix.sortList();
 			mFrameComponentInit.Sort(FrameSystem.compareInit);
 
-			// 注册对象类型
-			registerAll();
+			// 注册表格类型,单独将注册表格写到一个函数中,是因为其他的注册系统很可能会访问表格
+			// 所以尽量先把表格加载完,再去注册其他的系统
+			registerAllTable();
 
 #if USE_SQLITE
-			mSQLiteManager.loadAllAsync(() => 
+            mSQLiteManager.loadAllAsync(() => 
 			{
 #endif
-				mExcelManager.loadAllAsync(() => { onAllLoaded(); });
+				mExcelManager.loadAllAsync(() => 
+				{
+                    // 表格加载完后才注册对象类型
+                    registerAll();
+                    onAllLoaded(); 
+				});
 #if USE_SQLITE
 			});
 #endif
 		});
 	}
 	public static void callback() { mInstance.mFinishCallback?.Invoke(); }
-    public static GameHotFixBase<T> createHotFixInstance()
-    {
-        mInstance = createInstance<GameHotFixBase<T>>(typeof(T));
-        return mInstance;
-    }
-    //----------------------------------------------------------------------------------------------------------------------------------
-    protected void onAllLoaded()
+	public static GameHotFixBase<T> createHotFixInstance()
+	{
+		mInstance = createInstance<GameHotFixBase<T>>(typeof(T));
+		return mInstance;
+	}
+	//----------------------------------------------------------------------------------------------------------------------------------
+	protected void onAllLoaded()
 	{
 		if (isEditor())
 		{
@@ -111,6 +117,7 @@ public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 	}
 	protected abstract string getAndroidPluginBundleName();
 	protected abstract void registerAll();
+	protected abstract void registerAllTable();
 	protected abstract void initFrameSystem();
 	protected virtual void onPreInit() { }
 	protected virtual void onPostInit() { }

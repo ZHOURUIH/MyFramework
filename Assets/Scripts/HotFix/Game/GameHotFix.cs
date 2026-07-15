@@ -6,11 +6,14 @@ using static GBR;
 public class GameHotFix : GameHotFixBase<GameHotFix>
 {
 	//----------------------------------------------------------------------------------------------------------------------------------
+	protected override void registerAllTable()
+	{
+        ExcelRegister.registeAll();
+    }
 	protected override void registerAll()
 	{
 		LayoutRegisterHotFix.registeAll();
 		PacketRegister.registeAll();
-		ExcelRegister.registeAll();
     }
 	protected override void initFrameSystem()
 	{

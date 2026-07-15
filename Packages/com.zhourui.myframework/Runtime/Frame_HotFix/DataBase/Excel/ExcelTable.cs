@@ -53,7 +53,8 @@ public class ExcelTable
 	{
 		if (fileBuffer == null)
 		{
-			return;
+			logError("文件内容为空,无法解析表格,table name:" + mTableName);
+            return;
 		}
 
 		// 解密
