@@ -233,7 +233,7 @@ public class EffectManager : FrameSystem
 	}
     public GameEffect createEffect(string nameWithPath, Transformable attachedParent, GameObject parent, bool active, bool moveToHide, int tag = 0)
 	{
-		return createEffect(nameWithPath, attachedParent, parent, active, moveToHide, Vector3.zero, -1, tag);
+		return createEffect(nameWithPath, attachedParent, parent, active, moveToHide, Vector3.zero, tag, -1);
 	}
     // 会从当前类中缓存的特效对象来获取,而不是从通用对象池中获取一个已经被重置过的对象
     // 如果特效加载完成之前relatedObject被销毁了,则不会播放特效,并且会将特效挂在attachedParent节点下,并且会在attachedParent销毁时确认销毁所有挂接到此物体上的特效
