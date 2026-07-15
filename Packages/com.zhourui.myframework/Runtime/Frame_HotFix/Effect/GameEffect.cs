@@ -116,7 +116,7 @@ public class GameEffect : MovableObject
 	}
 	public override bool setActive(bool active)
 	{
-		if (active == mObject.activeSelf)
+		if (mObject != null && active == mObject.activeSelf)
 		{
 			return active;
 		}

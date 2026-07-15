@@ -20,6 +20,7 @@ public static class StringExtension
     private static Dictionary<string, Vector2Int> mStringToVector2Cache;				// 字符串转换为2维向量的缓存
     private static Dictionary<string, Vector3Int> mStringToVector3Cache;                // 字符串转换为3维向量的缓存
     private static string[] mFloatConvertPercision = new string[] { "f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7" };    // 浮点数转换时精度
+	private static List<string> mZeroStringList = new();
     private static int STRING_TO_VECTOR2INT_MAX_CACHE = 10240;                          // mStringToVector2Cache最大数量
     public static int length(this string list) { return list?.Length ?? 0; }
 	public static bool isEmpty(this string str) { return str == null || str.Length == 0; }
@@ -1248,10 +1249,7 @@ public static class StringExtension
         int addLen = minLength - retString.Length;
         if (addLen > 0)
         {
-            for (int i = 0; i < addLen; ++i)
-            {
-                retString = "0" + retString;
-            }
+            retString = mZeroStringList[addLen] + retString;
         }
         return retString;
     }
@@ -1278,10 +1276,7 @@ public static class StringExtension
         int addLen = minLength - retString.Length;
         if (addLen > 0)
         {
-            for (int i = 0; i < addLen; ++i)
-            {
-                retString = "0" + retString;
-            }
+            retString = mZeroStringList[addLen] + retString;
         }
         return retString;
     }
@@ -1781,6 +1776,15 @@ public static class StringExtension
             string iStr = i.ToString();
             mStringToInt.Add(iStr, i);
             mIntToString[i] = iStr;
+        }
+		for (int i = 0; i < 100; ++i)
+		{
+			string zeroStr = "";
+			for (int j = 0; j < i; ++j)
+			{
+				zeroStr += "0";
+            }
+            mZeroStringList.add(zeroStr);
         }
     }
 }

@@ -543,7 +543,8 @@ public static class StringUtilityTest
 
     static void testInitIntToString()
     {
-        assertEqual("12345", (12345).IToS(), "initIToS");
+        assertEqual("0000012345", 12345.IToS(10), "initIToS");
+        assertEqual("12345", 12345.IToS(), "initIToS");
         assertEqual("1,234,567", 1234567.IToSComma(), "initComma");
     }
 
