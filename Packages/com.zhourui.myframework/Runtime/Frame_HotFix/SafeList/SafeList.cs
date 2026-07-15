@@ -121,12 +121,14 @@ public class SafeList<T> : ClassObject
 		mModifyList.Add(new(value, true, -1));
 		return value;
 	}
-	public void addUnique(T value)
+	public bool addUnique(T value)
 	{
 		if (!contains(value))
 		{
 			add(value);
+			return true;
 		}
+		return false;
 	}
 	public void addNotNull(T value)
 	{

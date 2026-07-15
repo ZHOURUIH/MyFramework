@@ -140,7 +140,7 @@ public class myUGUINumber : myUGUIImage
 		}
 		mMaxCount = maxCount;
 		// 设置的数字字符串不能超过最大数量
-		if (mNumber.Length > mMaxCount)
+		if (mNumber.length() > mMaxCount)
 		{
 			mNumber = mNumber.startString(mMaxCount);
 		}
@@ -160,7 +160,7 @@ public class myUGUINumber : myUGUIImage
 		mNumber = num;
 		checkUIntString(mNumber, mAllMark);
 		// 设置的数字字符串不能超过最大数量
-		if (mNumber.Length > mMaxCount)
+		if (mNumber.length() > mMaxCount)
 		{
 			mNumber = mNumber.startString(mMaxCount);
 		}

@@ -106,7 +106,7 @@ public class EffectManager : FrameSystem
 	}
 	// 在attachedParent销毁时确认销毁所有挂接到此物体上的特效
 	// 同步从prefab中加载一个特效
-	public GameEffect createEffectNoPool(string nameWithPath, Transformable attachedParent, GameObject parent, bool active, bool moveToHide, Vector3 pos, int tag = 0, float lifeTime = -1.0f, bool isTemp = false)
+	public GameEffect createEffectNoPool(string nameWithPath, Transformable attachedParent, GameObject parent, bool active, bool moveToHide, Vector3 pos, int tag = 0, float lifeTime = -1.0f, bool isInEffectPool = false)
 	{
 		if (nameWithPath.isEmpty())
 		{
@@ -114,7 +114,7 @@ public class EffectManager : FrameSystem
 		}
 		// 在parent下创建一个资源路径为nameWithPath的GameObject
 		GameObject go = mPrefabPoolManager.createObject(nameWithPath, moveToHide, true, tag, parent);
-		GameEffect effect = postCreateFromPrefabPool(go, nameWithPath, attachedParent, parent, tag, moveToHide, active, lifeTime, isTemp, false);
+		GameEffect effect = postCreateFromPrefabPool(go, nameWithPath, attachedParent, parent, tag, moveToHide, active, lifeTime, isInEffectPool, false);
         effect.setPosition(pos);
 		return effect;
     }
@@ -205,11 +205,11 @@ public class EffectManager : FrameSystem
 	// 如果特效加载完成之前relatedObject被销毁了,则不会播放特效,并且会将特效挂在parent节点下,并且会在attachedParent销毁时确认销毁所有挂接到此物体上的特效
 	// 异步从prefab中加载一个特效
 	// 当前管理器中所有的异步加载最终都是调的这个函数
-	public CustomAsyncOperation createEffectNoPoolAsyncSafe(string nameWithPath, IRecyclable relatedObject, Transformable attachedParent, GameObject parent, bool moveToHide, GameEffectCallback callback, int tag = 0, bool active = true, float lifeTime = -1.0f, BoolCallback failCallback = null, bool isTemp = false, bool isQuick = false)
+	public CustomAsyncOperation createEffectNoPoolAsyncSafe(string nameWithPath, IRecyclable relatedObject, Transformable attachedParent, GameObject parent, bool moveToHide, GameEffectCallback callback, int tag = 0, bool active = true, float lifeTime = -1.0f, BoolCallback failCallback = null, bool isInEffectPool = false, bool isQuick = false)
 	{
 		var op = mPrefabPoolManager.createObjectAsyncSafe(relatedObject, nameWithPath, moveToHide, active, (GameObject go) =>
 		{
-			GameEffect effect = postCreateFromPrefabPool(go, nameWithPath, attachedParent, parent, tag, moveToHide, active, lifeTime, isTemp, isQuick);
+			GameEffect effect = postCreateFromPrefabPool(go, nameWithPath, attachedParent, parent, tag, moveToHide, active, lifeTime, isInEffectPool, isQuick);
 			callback?.Invoke(effect);
 		}, tag, failCallback);
 		return op;
@@ -233,7 +233,7 @@ public class EffectManager : FrameSystem
 	}
     public GameEffect createEffect(string nameWithPath, Transformable attachedParent, GameObject parent, bool active, bool moveToHide, int tag = 0)
 	{
-		return createEffect(nameWithPath, attachedParent, parent, active, moveToHide, Vector3.zero, -1, tag);
+		return createEffect(nameWithPath, attachedParent, parent, active, moveToHide, Vector3.zero, tag, -1);
 	}
     // 会从当前类中缓存的特效对象来获取,而不是从通用对象池中获取一个已经被重置过的对象
     // 如果特效加载完成之前relatedObject被销毁了,则不会播放特效,并且会将特效挂在attachedParent节点下,并且会在attachedParent销毁时确认销毁所有挂接到此物体上的特效
@@ -394,7 +394,7 @@ public class EffectManager : FrameSystem
 		gameEffect.setMoveToHide(moveToHide);
 		return gameEffect;
 	}
-	protected GameEffect postCreateFromPrefabPool(GameObject go, string nameWithPath, Transformable attachedParent, GameObject parent, int tag, bool moveToHide, bool active, float lifeTime, bool isTemp, bool isQuick)
+	protected GameEffect postCreateFromPrefabPool(GameObject go, string nameWithPath, Transformable attachedParent, GameObject parent, int tag, bool moveToHide, bool active, float lifeTime, bool isInEffectPool, bool isQuick)
 	{
 		if (go == null)
 		{
@@ -416,11 +416,11 @@ public class EffectManager : FrameSystem
 		{
 			effect.play();
 		}
-		if (isTemp)
+		if (isInEffectPool)
 		{
 			mGameEffectPool.useEffect(effect);
 		}
-		effect.setInEffectPool(isTemp);
+		effect.setInEffectPool(isInEffectPool);
 		if (effect is QuickEffect quickEffect)
 		{
 			mQuickEffectList.add(nameWithPath, quickEffect);
@@ -465,7 +465,8 @@ public class EffectManager : FrameSystem
 		if (!effect.isInEffectPool())
 		{
 			logError("需要使用destroyEffect销毁非临时特效:" + effect.getFilePath());
-			return;
+			effect = null;
+            return;
 		}
 		// 当GameObject为空时,可能是在销毁无效的特效,所以只能彻底清除
 		if (destroyReally || effect.getGameObject() == null)
@@ -494,7 +495,8 @@ public class EffectManager : FrameSystem
 			effect.setActive(false);
 			effect.setParent(mPrefabPoolManager.getObject());
 		}
-	}
+		effect = null;
+    }
 	protected void destroyEffectInPool(GameEffect effect, bool destroyReally = false)
 	{
 		destroyEffectInPool(ref effect, destroyReally);
@@ -509,7 +511,8 @@ public class EffectManager : FrameSystem
 		if (effect.isInEffectPool())
 		{
 			logError("需要使用destroyEffectTemp销毁临时特效:" + effect.getFilePath());
-			return;
+			effect = null;
+            return;
 		}
 		// 从mEffectAttachList中移除
 		if (needRemoveFromAttachList)
