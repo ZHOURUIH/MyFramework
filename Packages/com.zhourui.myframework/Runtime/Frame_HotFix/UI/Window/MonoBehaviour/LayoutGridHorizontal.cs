@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
-using static WidgetUtility;
 
+// 横向排列所有子节点,不换行
 [RequireComponent(typeof(RectTransform))]
 public class LayoutGridHorizontal : MonoBehaviour
 {
@@ -24,6 +24,6 @@ public class LayoutGridHorizontal : MonoBehaviour
 	}
 	public void doAutoGrid()
 	{
-		autoGridHorizontal(transform as RectTransform, mInterval, mChangeRootSize);
+		(transform as RectTransform).autoGridHorizontal(mInterval, mChangeRootSize);
 	}
 }

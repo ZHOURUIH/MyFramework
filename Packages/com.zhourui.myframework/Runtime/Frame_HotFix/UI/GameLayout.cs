@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using static UnityUtility;
-using static WidgetUtility;
 using static FrameBaseHotFix;
 using static FrameBaseUtility;
 
@@ -47,7 +46,7 @@ public class GameLayout
 		RectTransform rectTransform = mRoot.getRectTransform();
 		rectTransform.anchorMin = Vector2.one * 0.5f;
 		rectTransform.anchorMax = Vector2.one * 0.5f;
-		setRectSize(rectTransform, FrameSettings.getUISize());
+		rectTransform.setRectSize(FrameSettings.getUISize());
 
 		mRoot.setDestroyImmediately(true);
 		mDefaultLayer = mRoot.getGameObject().layer;

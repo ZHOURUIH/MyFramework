@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using static UnityUtility;
-using static StringUtility;
 
 // Sprite的序列帧
 public class myUGUISpriteAnim : myUGUISprite, IUIAnimation
@@ -20,11 +19,6 @@ public class myUGUISpriteAnim : myUGUISprite, IUIAnimation
 	public override void init()
 	{
 		base.init();
-		string spriteName = getSpriteName();
-		if (spriteName.contains('_'))
-		{
-			setTextureSet(spriteName.rangeToLast('_'));
-		}
 		mControl.setObject(this);
 		mControl.setPlayEndCallback(onPlayEnd);
 		mControl.setPlayingCallback(onPlaying);
@@ -200,6 +194,15 @@ public class myUGUISpriteAnim : myUGUISprite, IUIAnimation
 		else
 		{
 			mPlayEndCallbackList.Clear();
+		}
+	}
+	protected override void onInitAsyncDone()
+	{
+		base.onInitAsyncDone();
+		string spriteName = getSpriteName();
+		if (spriteName.contains('_'))
+		{
+			setTextureSet(spriteName.rangeToLast('_'));
 		}
 	}
 }

@@ -3,7 +3,6 @@ using UnityEngine.Rendering;
 using System.Collections.Generic;
 using static FrameBaseUtility;
 using static FrameUtility;
-using static StringUtility;
 using static UnityUtility;
 using static MathUtility;
 
@@ -101,8 +100,12 @@ public class DamageNumberRenderer : MonoBehaviour
 	public void setDocking(DOCKING_POSITION docking) { mDocking = docking; }
 	public void setInterval(float interval) { mInterval = interval; }
 	public float getInterval() { return mInterval; }
-	void LateUpdate()
+	public void LateUpdate()
 	{
+		if (mNumberSpriteList.isEmpty())
+		{
+			return;
+		}
 		mDamageNumberCount = mDamageItems.Count;
 		{
 			using var a = new ProfilerScope(0);
@@ -225,6 +228,7 @@ public class DamageNumberRenderer : MonoBehaviour
 			MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontValidateIndices | MeshUpdateFlags.DontNotifyMeshUsers);
 		mCanvasRenderer.SetMesh(mMesh);
 	}
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected static void updateDamage(DamageNumberData data)
 	{
 		// 根据当前的时间找出位于哪两个点之间

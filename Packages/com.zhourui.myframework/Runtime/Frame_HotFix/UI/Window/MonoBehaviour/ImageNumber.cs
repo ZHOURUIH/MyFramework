@@ -55,7 +55,7 @@ public class ImageNumber : Image
 	{
 		mNumber = number;
 		// 检查是否包含无法显示的数字
-		if (isEditor() && !mNumber.isEmpty() && mNumber.contains(c => !mSpriteList.ContainsKey(c)))
+		if (isEditor() && !mSpriteList.isEmpty() && !mNumber.isEmpty() && mNumber.contains(c => !mSpriteList.ContainsKey(c)))
 		{
 			logError("设置的数字内容无法显示:" + mNumber);
 			return;

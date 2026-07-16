@@ -4,7 +4,7 @@ using static StringUtility;
 using static UnityUtility;
 
 // 对TextMeshPro的InputField的封装
-public class myUGUIInputFieldTMP : myUGUIObject, IInputField
+public class myUGUIInputFieldTMP : myUGUIImageSimple, IInputField
 {
 	protected TMP_InputField mInputField;			// TextMeshPro的InputField组件
 	protected StringCallback mOnEndEdit;			// 输入结束时的回调

@@ -2,7 +2,6 @@
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 using static FrameUtility;
-using static StringUtility;
 using static UnityUtility;
 
 // 纯Sprite显示,不支持更多的操作,暂时只支持TPAtlas,如果使用SpriteAtlas,纹理坐标会计算错误

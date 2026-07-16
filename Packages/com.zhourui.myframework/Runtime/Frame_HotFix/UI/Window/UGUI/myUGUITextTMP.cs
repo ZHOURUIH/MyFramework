@@ -2,7 +2,6 @@
 using TMPro;
 using System;
 using System.Collections.Generic;
-using static StringUtility;
 using static FrameBaseHotFix;
 using static UnityUtility;
 

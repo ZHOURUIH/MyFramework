@@ -26,10 +26,6 @@ public class myUGUITileImage : myUGUIObject
 		setAlpha(1.0f);
 		base.destroy();
 	}
-	public override void cloneFrom(myUGUIObject obj)
-	{
-		base.cloneFrom(obj);
-	}
 	public void setTileList(List<TileRenderData> list) { mRenderer.setTileList(list); }
 	public void setTileMap(Dictionary<object, TileRenderData> list) { mRenderer.setTileMap(list); }
 	public int getTileCount() { return mRenderer.getTileCount(); }

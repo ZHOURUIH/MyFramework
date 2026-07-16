@@ -16,7 +16,6 @@ using static FrameBaseUtility;
 using static FrameDefine;
 using static MathUtility;
 using static StringUtility;
-using static WidgetUtility;
 using UObject = UnityEngine.Object;
 
 public class MenuShortcutOperation
@@ -459,7 +458,7 @@ public class MenuShortcutOperation
 		comTMP.textComponent.gameObject.transform.SetParent(textArea.transform);
 		comTMP.textComponent.gameObject.transform.localPosition = Vector3.zero;
 		comTMP.textViewport = textArea.transform as RectTransform;
-		setRectSize(textArea.transform as RectTransform, (comTMP.transform as RectTransform).rect.size);
+		(textArea.transform as RectTransform).setRectSize((comTMP.transform as RectTransform).rect.size);
 	}
 	protected static void doTMProReplaceToText(TextMeshProUGUI comTextTMP)
 	{

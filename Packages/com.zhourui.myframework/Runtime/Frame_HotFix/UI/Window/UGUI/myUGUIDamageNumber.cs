@@ -15,6 +15,7 @@ public class myUGUIDamageNumber : myUGUIObject
 	protected AtlasRef mOriginAtlasPtr = new();		// 初始的图片图集,用于卸载,当前类只关心初始图集的卸载,后续再次设置的图集不关心是否需要卸载,需要外部设置的地方自己关心
 	protected AtlasRef mAtlasPtr = new();			// 当前正在使用的图片图集
 	protected Sprite mOriginSprite;                 // 备份加载物体时原始的精灵图片
+	protected string mOriginSpriteName;             // 原始的精灵图片名字
 	protected string mNumberStyle;                  // 数字图集名
 	protected bool mInitDone;						// 异步初始化是否完成
     public override void init()
@@ -37,6 +38,8 @@ public class myUGUIDamageNumber : myUGUIObject
 		// 获取初始的精灵所在图集
 		if (mOriginSprite != null)
 		{
+			mOriginSpriteName = mOriginSprite.name;
+			mNumberStyle = mOriginSpriteName.rangeToLast('_');
 			if (!mObject.TryGetComponent<ImageAtlasPath>(out var imageAtlasPath))
 			{
 				logError("找不到图集,请添加ImageAtlasPath组件, window:" + mName + ", layout:" + mLayout.getName());
@@ -50,35 +53,18 @@ public class myUGUIDamageNumber : myUGUIObject
 			if (!atlasPath.endWith("/unity_builtin_extra"))
 			{
 				atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
-				if (isWebGL())
-				{
-                    mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas) =>
-                    {
-                        mOriginAtlasPtr = atlas;
-                        if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
-                        {
-                            logWarning("无法加载初始化的图集:" + atlasPath + ", window:" + mName + ", layout:" + mLayout.getName() +
-                                ",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
-                        }
-                        mAtlasPtr = mOriginAtlasPtr;
-                        mNumberStyle = mRenderer.mImage.name.rangeToLast('_');
-                        refreshSpriteList();
-                        mInitDone = true;
-                    }, false);
-                }
-				else
-				{
-                    mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
+                mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas) =>
+                {
+                    mOriginAtlasPtr = atlas;
                     if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
                     {
                         logWarning("无法加载初始化的图集:" + atlasPath + ", window:" + mName + ", layout:" + mLayout.getName() +
                             ",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
                     }
                     mAtlasPtr = mOriginAtlasPtr;
-                    mNumberStyle = mRenderer.mImage.name.rangeToLast('_');
-                    refreshSpriteList();
                     mInitDone = true;
-                }
+                    refreshSpriteList();
+                }, false);
 			}
 		}
 	}
@@ -88,6 +74,10 @@ public class myUGUIDamageNumber : myUGUIObject
 		// 这样在重复使用当前物体时在校验图集路径时不会出错,但是如果在当前物体使用过程中销毁了原始的图片,则可能会报错
 		mRenderer.mImage = mOriginSprite;
 		setAlpha(1.0f);
+		if (!mInitDone)
+		{
+			logWarning("图集未初始化完成,无法卸载此图集,sprite:" + mOriginSpriteName);
+		}
 		mAtlasManager.unloadAtlas(ref mOriginAtlasPtr);
 		mAtlasPtr = null;
 		base.destroy();
@@ -110,12 +100,21 @@ public class myUGUIDamageNumber : myUGUIObject
 	}
 	public void setAtlas(AtlasRef atlas)
 	{
+		if (!mInitDone)
+		{
+			logError("图集未初始化完成,还不能去设置图集,atlas name:" + atlas?.getAtlasSingleName());
+			return;
+		}
 		mAtlasPtr = atlas;
 		refreshSpriteList();
 	}
 	public void setNumberStyle(string style)
 	{
 		mNumberStyle = style;
+		if (!mInitDone)
+		{
+			return;
+		}
 		refreshSpriteList();
 	}
 	public float getNumberTotalWidth(long num)
@@ -198,11 +197,32 @@ public class myUGUIDamageNumber : myUGUIObject
 	public float getInterval()									{ return mRenderer.getInterval(); }
 	public string getNumberStyle()								{ return mNumberStyle; }
 	public DOCKING_POSITION getDocking()						{ return mRenderer.getDocking(); }
-	public Sprite getSprite(string name)						{ return mAtlasPtr.getSprite(name); }
-	public Sprite getSpriteWithNumberStyle(string name)			{ return mAtlasPtr.getSprite(mNumberStyle + "_" + name); }
+	public Sprite getSprite(string name)
+	{
+		if (!mInitDone)
+		{
+			logWarning("图集未初始化完成,获取不到图片:" + name);
+			return null;
+		}
+		return mAtlasPtr?.getSprite(name); 
+	}
+	public Sprite getSpriteWithNumberStyle(string name)
+	{
+		if (!mInitDone)
+		{
+			logWarning("图集未初始化完成,获取不到图片:" + name);
+			return null;
+		}
+		return mAtlasPtr?.getSprite(mNumberStyle + "_" + name); 
+	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void refreshSpriteList()
 	{
+		if (!mInitDone)
+		{
+			logError("图集未初始化完成,还不能去访问图集,sprite:" + mOriginSpriteName);
+			return;
+		}
 		using var a = new ListScope<SpriteData>(out var spriteList);
 		for (int i = 0; i < 10; ++i)
 		{

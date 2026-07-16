@@ -3,7 +3,6 @@ using System.Threading;
 using System.Reflection;
 using System.IO;
 using System.Collections.Generic;
-using System.Linq;
 #if USE_GOOGLE_PLAY_ASSET_DELIVERY
 using Google.Android.AppBundle.Editor;
 #endif
@@ -17,8 +16,6 @@ using UObject = UnityEngine.Object;
 using static MathUtility;
 using static StringUtility;
 using static FileUtility;
-using static WidgetUtility;
-using static FrameUtility;
 using static FrameDefine;
 using static UnityUtility;
 using static EditorFileUtility;
@@ -2229,7 +2226,7 @@ public class EditorCommonUtility
 		transform.localPosition = round(transform.localPosition);
 		if (transform is RectTransform rectTrans)
 		{
-			setRectSize(rectTrans, round(rectTrans.rect.size));
+			rectTrans.setRectSize(round(rectTrans.rect.size));
 		}
 		int childCount = transform.childCount;
 		for (int i = 0; i < childCount; ++i)

@@ -21,6 +21,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 	protected string mSpriteName;                   // 当前图片的名字,避免GC
 	protected string mMaterialName;                 // 当前材质的名字,避免GC
 	protected string mShaderName;                   // 当前shader的名字,避免GC
+	protected string mWillSetSpriteName;            // 存储图集还未初始化完成时就要设置的图片名字,用于在初始化完成后设置正确的图片显示
 	protected bool mSpriteNameDirty;                // 图片名字是否需要更新
 	protected bool mMaterialNameDirty;              // 材质名字是否需要更新
 	protected bool mShaderNameDirty;				// shader名字是否需要更新
@@ -51,23 +52,9 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 				logError("ImageAtlasPath中记录的路径为空,GameObject:" + getGameObjectPath());
 			}
 			atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
-            if (isWebGL())
+            mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas) =>
             {
-                mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas) =>
-                {
-                    mOriginAtlasPtr = atlas;
-                    if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
-                    {
-                        logError("无法加载初始化的图集:" + atlasPath + ",GameObject:" + getGameObjectPath() +
-                            ",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
-                    }
-                    mAtlasPtr = mOriginAtlasPtr;
-                    mInitDone = true;
-                }, false);
-            }
-			else
-			{
-                mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
+                mOriginAtlasPtr = atlas;
                 if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
                 {
                     logError("无法加载初始化的图集:" + atlasPath + ",GameObject:" + getGameObjectPath() +
@@ -75,7 +62,12 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
                 }
                 mAtlasPtr = mOriginAtlasPtr;
                 mInitDone = true;
-            }
+				onInitAsyncDone();
+				if (!mWillSetSpriteName.isEmpty())
+				{
+					setSpriteName(mWillSetSpriteName);
+				}
+            }, false);
 		}
 		string materialName = getMaterialName().removeAll(" (Instance)");
 		// 不再将默认材质替换为自定义的默认材质,只判断其他材质
@@ -115,6 +107,10 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		setMaterial(mOriginMaterial);
 		setAlpha(1.0f);
 		mAtlasPtr = null;
+		if (!mInitDone)
+		{
+			logWarning("图集未初始化完成,无法卸载此图集,sprite:" + mOriginSpriteName);
+		}
 		mAtlasManager.unloadAtlas(ref mOriginAtlasPtr);
 		mResourceManager.unload(ref mCurMaterial);
 		base.destroy();
@@ -172,18 +168,33 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		{
 			return;
 		}
+		if (!mInitDone)
+		{
+			logError("图集未初始化完成,还不能去设置图集,atlas name:" + atlas?.getAtlasSingleName());
+			return;
+		}
 		mAtlasPtr = atlas;
 		setSprite(clearSprite ? null : mAtlasPtr?.getSprite(getSpriteName()));
 	}
 	public void setSpriteName(string spriteName)
 	{
-		if (mSpriteRenderer == null || mAtlasPtr == null || !mAtlasPtr.isValid())
+		if (mSpriteRenderer == null)
 		{
 			return;
 		}
 		if (spriteName.isEmpty())
 		{
 			mSpriteRenderer.sprite = null;
+			return;
+		}
+		// 还未初始化完成,就记录下要设置的参数,等到初始化完成再恢复参数设置
+		if (!mInitDone)
+		{
+			mWillSetSpriteName = spriteName;
+			return;
+		}
+		if (mAtlasPtr == null || !mAtlasPtr.isValid())
+		{
 			return;
 		}
 		setSprite(mAtlasPtr.getSprite(spriteName));
@@ -193,6 +204,11 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 	{
 		if (mSpriteRenderer == null || mSpriteRenderer.sprite == sprite)
 		{
+			return;
+		}
+		if (!mInitDone)
+		{
+			logError("图集还未初始化完成,还不能去设置Sprite对象");
 			return;
 		}
 		if (sprite != null && mAtlasPtr != null && !mAtlasPtr.hasSprite(sprite))
@@ -399,4 +415,5 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		}
 		return mSpriteRenderer.sprite.rect.size;
 	}
+	protected virtual void onInitAsyncDone() { }
 }

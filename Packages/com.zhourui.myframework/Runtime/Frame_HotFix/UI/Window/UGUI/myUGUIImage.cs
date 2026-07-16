@@ -3,7 +3,6 @@ using static UnityUtility;
 using static StringUtility;
 using static FrameBaseHotFix;
 using static FrameDefine;
-using static FrameBaseUtility;
 
 // 对UGUI的Image的封装,普通版本,提供替换图片的功能,UGUI的静态图片不支持递归变化透明度
 public class myUGUIImage : myUGUIImageSimple, IUGUIImage
@@ -12,6 +11,9 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 	protected AtlasRef mAtlasPtr;				// 当前正在使用的图集
 	protected Sprite mOriginSprite;             // 备份加载物体时原始的精灵图片,此图片的卸载是在prefab卸载后,没有任何地方对其有引用,在Resources.UnloadUnusedAssets中被卸载
 	protected string mOriginSpriteName;         // 初始图片的名字,用于外部根据初始名字设置其他效果的图片
+	protected string mWillSetSpriteName;		// 存储图集还未初始化完成时就要设置的图片名字,用于在初始化完成后设置正确的图片显示
+	protected bool mWillSetUseSpriteSize;		// 存储图集还未初始化完成时就要设置的参数,用于在初始化完成后设置正确的图片显示
+	protected float mWillSetSizeScale;			// 存储图集还未初始化完成时就要设置的参数,用于在初始化完成后设置正确的图片显示
 	protected bool mInitDone;					// 异步初始化是否完成
 	public override void init()
 	{
@@ -34,24 +36,9 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 			{
 				atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
 				// webgl中还不支持同步加载,但是异步又可能会出现很多执行时序问题.所以分开写,能同步则同步,不能才异步
-				if (isWebGL())
-				{
-                    mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas) =>
-                    {
-                        mOriginAtlasPtr = atlas;
-                        mAtlasPtr = mOriginAtlasPtr;
-                        if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
-                        {
-                            logWarning("无法加载初始化的图集:" + atlasPath + ", GameObject:" + getGameObjectPath() +
-                                ",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
-                        }
-                        mInitDone = true;
-                        onInitAsyncDone();
-                    }, false);
-                }
-				else
-				{
-                    mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
+                mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas) =>
+                {
+                    mOriginAtlasPtr = atlas;
                     mAtlasPtr = mOriginAtlasPtr;
                     if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
                     {
@@ -60,7 +47,11 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
                     }
                     mInitDone = true;
                     onInitAsyncDone();
-                }
+					if (!mWillSetSpriteName.isEmpty())
+					{
+						setSpriteNamePro(mWillSetSpriteName, mWillSetUseSpriteSize, mWillSetSizeScale);
+					}
+                }, false);
             }
 			else
 			{
@@ -74,6 +65,10 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 		// 为了尽量确保ImageAtlasPath中记录的图集路径与图集完全一致,在销毁窗口时还原初始的图片
 		// 这样在重复使用当前物体时在校验图集路径时不会出错,但是如果在当前物体使用过程中销毁了原始的图片,则可能会报错
 		mImage.sprite = mOriginSprite;
+		if (!mInitDone)
+		{
+			logWarning("图集未初始化完成,无法卸载此图集,sprite:" + mOriginSpriteName);
+		}
 		mAtlasManager.unloadAtlas(ref mOriginAtlasPtr);
 		base.destroy();
 	}
@@ -82,6 +77,11 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 	{
 		if (mImage == null)
 		{
+			return;
+		}
+		if (!mInitDone)
+		{
+			logError("图集未初始化完成,还不能去设置图集,atlas name:" + atlas?.getAtlasSingleName());
 			return;
 		}
 		mAtlasPtr = atlas;
@@ -102,6 +102,14 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 			mImage.sprite = null;
 			return;
 		}
+		// 还未初始化完成,就记录下要设置的参数,等到初始化完成再恢复参数设置
+		if (!mInitDone)
+		{
+			mWillSetSpriteName = spriteName;
+			mWillSetUseSpriteSize = useSpriteSize;
+			mWillSetSizeScale = sizeScale;
+			return;
+		}
 		setSprite(getSpriteInAtlas(spriteName), useSpriteSize, sizeScale);
 	}
 	// 设置图片,需要确保图片在当前图集内
@@ -109,6 +117,11 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 	{
 		if (mImage == null || mImage.sprite == sprite)
 		{
+			return;
+		}
+		if (!mInitDone)
+		{
+			logError("图集还未初始化完成,还不能去设置Sprite对象");
 			return;
 		}
 		if (sprite != null && !mAtlasPtr.hasSprite(sprite))
@@ -139,6 +152,11 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected Sprite getSpriteInAtlas(string spriteName)
 	{
+		if (!mInitDone)
+		{
+			logError("图集还未初始化完成,无法获取其中的图片");
+			return null;
+		}
 		Sprite sprite = mAtlasPtr?.getSprite(spriteName);
 		if (sprite != null)
 		{

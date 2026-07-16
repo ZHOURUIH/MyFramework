@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
+using static FrameBaseUtility;
 using static UnityUtility;
 using static FrameBaseHotFix;
 using static StringUtility;
 using static MathUtility;
 using static FrameDefine;
-using static FrameBaseUtility;
 
 // 对SpriteRenderer的封装,在3D空间中使用的
 public class mySpriteRenderer : ClassObject
@@ -21,9 +21,11 @@ public class mySpriteRenderer : ClassObject
 	protected string mOriginSpriteName;             // 初始图片的名字,用于外部根据初始名字设置其他效果的图片
 	protected string mSpriteName;                   // 当前图片的名字,避免GC
 	protected string mMaterialName;                 // 当前材质的名字,避免GC
+	protected string mWillSetSpriteName;			// 存储图集还未初始化完成时就要设置的图片名字,用于在初始化完成后设置正确的图片显示
 	protected bool mSpriteNameDirty;                // 图片名字是否需要更新
 	protected bool mMaterialNameDirty;              // 材质名字是否需要更新
-	protected bool mIsNewMaterial;					// 当前的材质是否是新建的材质对象
+	protected bool mIsNewMaterial;                  // 当前的材质是否是新建的材质对象
+	protected bool mInitDone;						// 图集是否已经初始化完毕
 	public void init(SpriteRenderer renderer)
 	{
 		mSpriteRenderer = renderer;
@@ -48,29 +50,21 @@ public class mySpriteRenderer : ClassObject
 				logError("ImageAtlasPath中记录的路径为空,GameObject:" + getGameObjectPath(mObject));
 			}
 			atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
-			if (isWebGL())
-			{
-                mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef ptr) =>
-                {
-                    mOriginAtlasPtr = ptr;
-                    if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
-                    {
-                        logError("无法加载初始化的图集:" + atlasPath + ",GameObject:" + getGameObjectPath(mObject) +
-                            ",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
-                    }
-                    mAtlasPtr = mOriginAtlasPtr;
-                }, false);
-            }
-			else
-			{
-                mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath, false);
+            mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef ptr) =>
+            {
+                mOriginAtlasPtr = ptr;
                 if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
                 {
                     logError("无法加载初始化的图集:" + atlasPath + ",GameObject:" + getGameObjectPath(mObject) +
                         ",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
                 }
                 mAtlasPtr = mOriginAtlasPtr;
-            }
+				mInitDone = true;
+				if (!mWillSetSpriteName.isEmpty())
+				{
+					setSpriteName(mWillSetSpriteName);
+				}
+			}, false);
 		}
 		string materialName = getMaterialName().removeAll(" (Instance)");
 		// 不再将默认材质替换为自定义的默认材质,只判断其他材质
@@ -93,7 +87,7 @@ public class mySpriteRenderer : ClassObject
 				{
 					logError("材质文件需要带后缀:" + mOriginMaterialPath + ",GameObject:" + mName);
 				}
-				setMaterialName(mOriginMaterialPath, !mShaderManager.isSingleShader(mOriginMaterial.shader.name));
+				setMaterialName(mOriginMaterialPath, !mShaderManager.isSingleShader(mOriginMaterial.shader.name), true);
 			}
 		}
 	}
@@ -112,10 +106,12 @@ public class mySpriteRenderer : ClassObject
         mOriginSpriteName = null;
         mSpriteName = null;
         mMaterialName = null;
+		mWillSetSpriteName = null;
 		mSpriteNameDirty = false;
         mMaterialNameDirty = false;
         mIsNewMaterial = false;
-    }
+		mInitDone = false;
+	}
 	public override void destroy()
 	{
 		base.destroy();
@@ -130,6 +126,10 @@ public class mySpriteRenderer : ClassObject
 		setMaterial(mOriginMaterial);
 		setAlpha(1.0f);
 		mAtlasPtr = null;
+		if (!mInitDone)
+		{
+			logWarning("图集还未初始化完毕,无法正常卸载图集,sprite:" + mOriginSpriteName);
+		}
 		mAtlasManager.unloadAtlas(ref mOriginAtlasPtr);
 		mResourceManager.unload(ref mCurMaterial);
 	}
@@ -169,6 +169,11 @@ public class mySpriteRenderer : ClassObject
 		{
 			return;
 		}
+		if (!mInitDone)
+		{
+			logError("图集未初始化完成,还不能去设置图集,atlas name:" + atlas?.getAtlasSingleName());
+			return;
+		}
 		mAtlasPtr = atlas;
 		setSprite(clearSprite ? null : mAtlasPtr?.getSprite(getSpriteName()));
 	}
@@ -183,6 +188,12 @@ public class mySpriteRenderer : ClassObject
 			mSpriteRenderer.sprite = null;
 			return;
 		}
+		// 还未初始化完成,就记录下要设置的参数,等到初始化完成再恢复参数设置
+		if (!mInitDone)
+		{
+			mWillSetSpriteName = spriteName;
+			return;
+		}
 		setSprite(mAtlasPtr.getSprite(spriteName));
 	}
 	// 设置图片,需要确保图片在当前图集内
@@ -190,6 +201,11 @@ public class mySpriteRenderer : ClassObject
 	{
 		if (mSpriteRenderer == null || mSpriteRenderer.sprite == sprite)
 		{
+			return;
+		}
+		if (!mInitDone)
+		{
+			logError("图集还未初始化完成,还不能去设置Sprite对象");
 			return;
 		}
 		if (sprite != null && mAtlasPtr != null && !mAtlasPtr.hasSprite(sprite))

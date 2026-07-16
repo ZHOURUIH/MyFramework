@@ -1,8 +1,5 @@
-﻿using System.Linq;
-using UnityEditor;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
-using static TMPro.SpriteAssetUtilities.TexturePacker_JsonArray;
 
 [ExecuteAlways]
 [RequireComponent(typeof(Image))]
