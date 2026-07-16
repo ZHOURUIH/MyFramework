@@ -4,7 +4,6 @@ using UnityEngine;
 using static FrameBaseUtility;
 using static MathUtility;
 using static FrameUtility;
-using static StringUtility;
 using static UnityUtility;
 
 // 自定义的循环滚动列表,暂时只支持从上往下纵向排列的滚动列表

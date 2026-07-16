@@ -4,7 +4,6 @@ using static FrameBaseUtility;
 using static UnityUtility;
 using static WidgetUtility;
 using static MathUtility;
-using static StringUtility;
 
 // 该组件所在的物体不能有旋转,否则会计算错误
 // 用于实现窗口的停靠或者四条边的单独控制
@@ -187,11 +186,11 @@ public class PaddingAnchor : MonoBehaviour
 		}
 		if (mAdjustFont)
 		{
-			setRectSizeWithFontSize(rectTransform, newSize, mMinFontSize);
+			rectTransform.setRectSizeWithFontSize(newSize, mMinFontSize);
 		}
 		else
 		{
-			setRectSize(rectTransform, newSize);
+			rectTransform.setRectSize(newSize);
 		}
 		transform.localPosition = round(pos);
 	}

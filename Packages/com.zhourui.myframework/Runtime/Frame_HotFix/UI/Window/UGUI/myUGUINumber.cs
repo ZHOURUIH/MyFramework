@@ -12,7 +12,7 @@ public class myUGUINumber : myUGUIImage
 	protected List<myUGUIImageSimple> mNumberList = new();	// 数字窗口列表
 	protected DOCKING_POSITION mDockingPosition;			// 数字停靠方式
 	protected NUMBER_DIRECTION mDirection;					// 数字显示方向
-	protected Sprite[] mSpriteList;							// 该列表只有10个数字的图片
+	protected List<Sprite> mSpriteList = new();				// 该列表只有10个数字的图片
 	protected Sprite mAddSprite;							// +号的图片
 	protected Sprite mMinusSprite;							// -号的图片
 	protected Sprite mDotSprite;							// .号的图片
@@ -26,7 +26,6 @@ public class myUGUINumber : myUGUIImage
 	protected int mMaxCount;								// 数字最大个数
 	public myUGUINumber()
 	{
-		mSpriteList = new Sprite[10];
 		mDockingPosition = DOCKING_POSITION.LEFT;
 		mDirection = NUMBER_DIRECTION.HORIZONTAL;
 	}
@@ -37,16 +36,21 @@ public class myUGUINumber : myUGUIImage
 		{
 			return;
 		}
-		mNumberStyle = mImage.sprite.name.rangeToLast('_');
+		mNumberStyle = mOriginSpriteName.rangeToLast('_');
+		setMaxCount(10);
+		mImage.enabled = false;
+	}
+	protected override void onInitAsyncDone()
+	{
+		base.onInitAsyncDone();
 		for (int i = 0; i < 10; ++i)
 		{
-			mSpriteList[i] = getSpriteInAtlas(mNumberStyle + "_" + i.IToS());
+			mSpriteList.add(getSpriteInAtlas(mNumberStyle + "_" + i.IToS()));
 		}
 		mAddSprite = getSpriteInAtlas(mNumberStyle + "_add");
 		mMinusSprite = getSpriteInAtlas(mNumberStyle + "_minus");
 		mDotSprite = getSpriteInAtlas(mNumberStyle + "_dot");
-		setMaxCount(10);
-		mImage.enabled = false;
+		refreshNumber();
 	}
 	public override void notifyAnchorApply()
 	{
@@ -64,11 +68,7 @@ public class myUGUINumber : myUGUIImage
 		mAddSprite = source.mAddSprite;
 		mMinusSprite = source.mMinusSprite;
 		mDotSprite = source.mDotSprite;
-		int count = mSpriteList.Length;
-		for(int i = 0; i < count; ++i)
-		{
-			mSpriteList[i] = source.mSpriteList[i];
-		}
+		mSpriteList.setRange(source.mSpriteList);
 		mDirection = source.mDirection;
 		mDockingPosition = source.mDockingPosition;
 		setMaxCount(source.mMaxCount);
@@ -174,6 +174,10 @@ public class myUGUINumber : myUGUIImage
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void refreshNumber()
 	{
+		if (mSpriteList.isEmpty())
+		{
+			return;
+		}
 		if (mNumber.isEmpty())
 		{
 			foreach (myUGUIImageSimple item in mNumberList)

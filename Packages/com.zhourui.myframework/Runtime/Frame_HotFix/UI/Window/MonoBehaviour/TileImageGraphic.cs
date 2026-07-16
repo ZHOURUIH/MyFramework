@@ -2,7 +2,6 @@
 using UnityEngine.UI;
 using System.Collections.Generic;
 using static UnityUtility;
-using static StringUtility;
 
 // 也是用于批量渲染同一个图集中的Sprite,提高渲染效率,但是由于是使用的Graphic,所以渲染效率会低于TileImageRenderer
 // 但是优点是方便参与Canvas内的渲染排序

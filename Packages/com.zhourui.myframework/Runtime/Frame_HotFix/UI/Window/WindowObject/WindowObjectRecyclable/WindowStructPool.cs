@@ -5,11 +5,6 @@ using static FrameUtility;
 using static MathUtility;
 using static FrameBaseUtility;
 
-public interface IPoolItem<T>
-{
-	void setData(T data);
-}
-
 // 负责窗口对象池,UsedList是有序的
 [CommonWindowPool]
 public class WindowStructPool<T> : WindowStructPoolBase where T : WindowObjectBase, IRecyclableUI

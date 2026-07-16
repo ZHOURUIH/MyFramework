@@ -4,7 +4,6 @@ using UnityEngine.UI;
 using UnityEditor;
 using static EditorCommonUtility;
 using static MathUtility;
-using static WidgetUtility;
 using static FrameBaseUtility;
 using UObject = UnityEngine.Object;
 
@@ -27,7 +26,7 @@ public class MenuGameObject
 			{
 				item.localPosition = round(multiVector3(item.localPosition, scale));
 			}
-			setRectSize(item, round(multiVector2(item.rect.size, scale)));
+			item.setRectSize(round(multiVector2(item.rect.size, scale)));
 		}
 		foreach (Text item in go.transform.GetComponentsInChildren<Text>(true))
 		{
@@ -57,7 +56,7 @@ public class MenuGameObject
 			return;
 		}
 		thisTrans.localPosition = Vector3.zero;
-		setRectSize(thisTrans, parent.rect.size);
+		thisTrans.setRectSize(parent.rect.size);
 		EditorUtility.SetDirty(go);
 	}
 	[MenuItem(mMenuName + "将Image替换为SpriteRenderer &Q", false, 36)]
@@ -117,7 +116,7 @@ public class MenuGameObject
 			Debug.LogError("选择的节点没有子节点");
 			return;
 		}
-		adjustRectTransformToContainsAllChildRect(selection);
+		selection.adjustRectTransformToContainsAllChildRect();
 	}
 	[MenuItem(mMenuName + "将SpriteRenderer替换为Image", false, 31)]
 	public static void toImage()

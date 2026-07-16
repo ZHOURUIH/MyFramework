@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
-using static WidgetUtility;
 
+// 排列子节点的组件,横向排列,满了就换行排下一排,确保所有子节点不会超过父节点的横向范围
 [RequireComponent(typeof(RectTransform))]
 public class LayoutAutoGrid : MonoBehaviour
 {
@@ -32,6 +32,6 @@ public class LayoutAutoGrid : MonoBehaviour
 			Debug.LogError("第一个子节点需要是RectTransform");
 			return;
 		}
-		autoGrid(transform as RectTransform, child.rect.size, new(mIntervalX, mIntervalY), mKeepTopSide, mHorizontal);
+		(transform as RectTransform).autoGrid(child.rect.size, new(mIntervalX, mIntervalY), mKeepTopSide, mHorizontal);
 	}
 }
