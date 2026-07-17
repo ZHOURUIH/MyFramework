@@ -2,6 +2,7 @@
     "name": "Frame_HotFix",
     "rootNamespace": "",
     "references": [
+        "TTWebGL",
         "Frame_Base",
         "Unity.RenderPipelines.Universal.Runtime",
         "Unity.TextMeshPro",

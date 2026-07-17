@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 980188024e4c0b240bdec03f01afd724
 ModelImporter:
-  serializedVersion: 24200
+  serializedVersion: 24300
   internalIDToNameTable:
   - first:
       1: 100000
@@ -27,6 +27,7 @@ ModelImporter:
     materialName: 0
     materialSearch: 1
     materialLocation: 1
+    searchTexturesGlobally: 1
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
@@ -124,5 +125,5 @@ ModelImporter:
   remapMaterialsIfMaterialImportModeIsNone: 1
   additionalBone: 0
   userData: 
-  assetBundleName: 
+  assetBundleName: effect/models.unity3d
   assetBundleVariant: 

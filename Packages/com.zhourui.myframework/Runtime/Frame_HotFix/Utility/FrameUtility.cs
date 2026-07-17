@@ -1744,6 +1744,7 @@ public class FrameUtility
         // tpsheet文件不打包
         // LightingData.asset文件不能打包AB,这是一个特殊文件,只用于编辑器
         if (file.endWith(".meta") ||
+            file.endWith(".cs") ||
             file.endWith(".DS_Store") ||
             file.endWith(".cginc") ||
             file.endWith(".hlsl") ||

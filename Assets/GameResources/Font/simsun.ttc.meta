@@ -8,6 +8,9 @@ TrueTypeFontImporter:
   characterSpacing: 0
   characterPadding: 1
   includeFontData: 1
+  fontNames:
+  - SimSun
+  fallbackFontReferences: []
   customCharacters: 1
   fontRenderingMode: 2
   ascentCalculationMode: 1

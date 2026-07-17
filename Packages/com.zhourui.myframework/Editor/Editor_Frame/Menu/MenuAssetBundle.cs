@@ -402,12 +402,18 @@ public class MenuAssetBundle
 		{
 			return EMPTY;
 		}
-		
+		// Unity禁止对脚本资源调用SetAssetBundleNameAndVariant,
+		// 即使只是使用null清除AssetBundle名也会报错
+		if (importer is MonoImporter)
+		{
+			return EMPTY;
+		}
+
 		string fileName = file.rightToLeft();
 		string bundleName = generateFileAssetBundleName(fileName, forceSingle);
 		if (bundleName.isEmpty())
 		{
-			importer.assetBundleName = EMPTY;
+			importer.SetAssetBundleNameAndVariant(null, null);
 			return EMPTY;
 		}
 		if (importer.assetBundleName != bundleName)
