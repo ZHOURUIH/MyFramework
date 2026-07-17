@@ -18,7 +18,7 @@ public class AtlasManager : FrameSystem
 	protected SafeDictionary<string, AtlasBase> mAtlasList = new();                 // key是图集的路径,相对于GameResources
 	protected HashSet<string> mDontUnloadAtlas = new();                             // 即使没有引用也不会卸载的图集
 	protected Dictionary<string, ResourceRef<SpriteAtlas>> mSpriteAtlasList = new();// 已加载的SpriteAtlas列表
-	protected Dictionary<string, string> mAtlasPathList;							// 根据图集名字查找SpriteAtlas文件的路径
+	protected Dictionary<string, string> mAtlasPathList = new();                    // 根据图集名字查找SpriteAtlas文件的路径
 	protected float mCheckTimer;                                                    // 检查的计时器
 	protected const int MAX_LOADING_COUNT = 20;                                     // 同时加载的最大数量
 	protected const float CHECK_INTERVAL = 2.0f;                                    // 检查的间隔时间
@@ -29,15 +29,23 @@ public class AtlasManager : FrameSystem
 			mCreateObject = true;
 		}
 	}
-	public override void init()
+	public override void initAsync(Action callback)
 	{
-		base.init();
 		// 注册一下SpriteAtlas的回调,否则在真机上没办法自动加载SpriteAtlas中的Sprite
 		SpriteAtlasManager.atlasRequested += onAtlasRequested;
 		if (isEditor())
 		{
 			mObject.AddComponent<TPSpriteManagerDebug>();
 		}
+		mResourceManager.loadGameResourceAsync<TextAsset>(R_MISC_PATH + ATLAS_PATH_CONFIG, text =>
+		{
+			foreach (string line in text.get().text.splitLine())
+			{
+				mAtlasPathList.Add(getFileNameNoSuffixNoDir(line), line);
+			}
+			mResourceManager.unload(ref text);
+			callback?.Invoke();
+		});
 	}
 	public override void destroy()
 	{
@@ -162,7 +170,7 @@ public class AtlasManager : FrameSystem
 			CLASS(out AtlasRef ptr).setAtlas(atlas);
 			callback?.Invoke(ptr);
 			return op.setFinish();
-        }
+		}
 		if (loadIfNull)
 		{
 			long assignID = owner?.getAssignID() ?? 0;
@@ -232,31 +240,24 @@ public class AtlasManager : FrameSystem
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onAtlasRequested(string name, Action<SpriteAtlas> action)
 	{
-		if (mAtlasPathList == null)
-		{
-			mAtlasPathList = new();
-			var text = mResourceManager.loadGameResource<TextAsset>(R_MISC_PATH + ATLAS_PATH_CONFIG);
-			foreach(string line in text.get().text.splitLine())
-			{
-				mAtlasPathList.Add(getFileNameNoSuffixNoDir(line), line);
-			}
-			mResourceManager.unload(ref text);
-		}
-
 		ResourceRef<SpriteAtlas> atlas = mSpriteAtlasList.get(name);
-		if (atlas == null)
+		if (atlas != null)
 		{
-			string path = mAtlasPathList.get(name);
-			if (path == null)
-			{
-				Debug.LogError("在AtlasPathConfig中找不到指定名字的图集:" + name);
-				action(null);
-				return;
-			}
-			atlas = mResourceManager.loadGameResource<SpriteAtlas>(path);
-			mSpriteAtlasList.Add(name, atlas);
+			action(atlas.get());
+			return;
 		}
-		action(atlas.get());
+		string path = mAtlasPathList.get(name);
+		if (path == null)
+		{
+			Debug.LogError("在AtlasPathConfig中找不到指定名字的图集:" + name);
+			action(null);
+			return;
+		}
+		mResourceManager.loadGameResourceAsync<SpriteAtlas>(path, atlas =>
+		{
+			mSpriteAtlasList.Add(name, atlas);
+			action(atlas.get());
+		});
 	}
 	// 图集资源已经加载完成,从assets中解析并创建图集信息
 	protected static AtlasBase atlasLoaded<T>(T[] assets, ResourceRef<UObject> mainAsset, string loadPath) where T : UObject
