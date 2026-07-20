@@ -289,10 +289,13 @@ public abstract class PlatformBase
 	// 由应用层提供自己的密钥,不提供则不会进行加密,Key和IV长度必须为16个字节
 	protected virtual byte[] getAESKey() { return null; }
 	protected virtual byte[] getAESIV() { return null; }
-	// 获取需要动态下载的目录列表,GameResources下的相对路径,只要在这个目录中的资源,都不会在启动时的热更进行下载,而是在需要加载时才会从远端动态下载
-	protected abstract List<string> getDynamicDownloadList();
 	// 根据自己项目的情况在这个函数中去配置打包时需要的宏定义,比如是否启用热更,是否为测试客户端等,因为这些宏定义会影响代码编译,所以需要在打包前就配置好
-	protected abstract void configureScriptingDefine();
+	protected void configureScriptingDefine()
+	{
+		string platformDefine = getDefaultPlatformDefine();
+		log("设置宏:" + platformDefine);
+		PlayerSettings.SetScriptingDefineSymbols(getNameBuildTarget(), platformDefine);
+	}
 	protected virtual bool preBuild()
 	{
 		// 即使不需要配置是否导出安卓工程,也要确认是打包apk还是导出工程
@@ -447,6 +450,6 @@ public abstract class PlatformBase
 	}
 	protected bool isDynamicDownloadAsset(string fullPath)
 	{
-		return getDynamicDownloadList().contains(notPackFile => fullPath.startWith(mAssetBundleFullPath + notPackFile.ToLower()));
+		return FrameSettings.getDynamicDownloadList().contains(notPackFile => fullPath.startWith(mAssetBundleFullPath + notPackFile.ToLower()));
 	}
 }

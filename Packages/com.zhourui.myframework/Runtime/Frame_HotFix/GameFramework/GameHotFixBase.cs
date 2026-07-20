@@ -27,7 +27,6 @@ public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 	public void start(Action callback)
 	{
 		mFinishCallback = callback;
-		GameFrameworkHotFix.mOnPackageName += getAndroidPluginBundleName;
 		GameFrameworkHotFix.startHotFix(() =>
 		{
 			// 创建系统组件
@@ -115,7 +114,6 @@ public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 		// 进入主场景
 		enterScene(getStartGameSceneType());
 	}
-	protected abstract string getAndroidPluginBundleName();
 	protected abstract void registerAll();
 	protected abstract void registerAllTable();
 	protected abstract void initFrameSystem();

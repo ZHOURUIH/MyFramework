@@ -478,7 +478,7 @@ public class EditorCommonUtility
 		{
 			foreach (string lineItem in File.ReadLines(file))
 			{
-				if (lineItem.StartsWith(key))
+				if (lineItem.startWith(key))
 				{
 					allFileMeta.add(lineItem.removeStartCount(key.Length), file);
 				}
