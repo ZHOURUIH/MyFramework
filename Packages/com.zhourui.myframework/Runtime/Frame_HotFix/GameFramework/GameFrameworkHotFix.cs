@@ -39,7 +39,6 @@ public class GameFrameworkHotFix : IFramework
 	protected bool mIsDestroy;														// 框架是否已经被销毁
 	public static Action mOnDestroy;
 	public static Action<int, long, long, long, long> mOnMemoryModifiedCheck;
-	public static Func<string> mOnPackageName;
 	public static void startHotFix(Action callback)
 	{
 		GameFrameworkHotFix framework = new();
@@ -321,7 +320,7 @@ public class GameFrameworkHotFix : IFramework
 		registeFrameSystem<AndroidPluginManager>(null);
 		registeFrameSystem<AndroidAssetLoader>(null);
 		registeFrameSystem<AndroidMainClass>(null);
-		AndroidPluginManager.initAndroidPlugin(mOnPackageName?.Invoke());
+		AndroidPluginManager.initAndroidPlugin(FrameSettings.getAndroidPluginBundleName());
 		AndroidAssetLoader.initJava(AndroidPluginManager.getPackageName() + ".AssetLoader");
 		AndroidMainClass.initJava(AndroidPluginManager.getPackageName() + ".MainClass");
 		log("start game hotfix!");

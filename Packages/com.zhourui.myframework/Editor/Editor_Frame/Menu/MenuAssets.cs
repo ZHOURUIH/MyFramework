@@ -206,7 +206,7 @@ public class MenuAssets
 			if (Directory.Exists(path))
 			{
 				List<string> files = new();
-				findFiles(projectPathToFullPath(path), files, getTextureSuffixList());
+				findFiles(projectPathToFullPath(path), files, mTextureSuffixList);
 				for (int i = 0; i < files.Count; ++i)
 				{
 					setPixelPerUnit(fullPathToProjectPath(files[i]), 1);
@@ -237,7 +237,7 @@ public class MenuAssets
 			string path = AssetDatabase.GetAssetPath(obj);
 			if (Directory.Exists(path))
 			{
-				findFiles(projectPathToFullPath(path), allFiles, getTextureSuffixList());
+				findFiles(projectPathToFullPath(path), allFiles, mTextureSuffixList);
 			}
 			else if (isFileExist(path))
 			{

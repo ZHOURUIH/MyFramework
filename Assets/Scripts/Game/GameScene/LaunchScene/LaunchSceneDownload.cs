@@ -14,7 +14,7 @@ public class LaunchSceneDownload : SceneProcedure
 	{
 		mInstance = new GameDownload();
 		// 设置动态下载的列表
-		mInstance.setDynamicDownloadList(DYNAMIC_DOWNLOAD_LIST);
+		mInstance.setDynamicDownloadList(FrameSettings.getDynamicDownloadList());
 		mInstance.setTipCallback((DOWNLOAD_TIP tip) =>
 		{
 			if (tip == DOWNLOAD_TIP.NONE)

@@ -1,6 +1,5 @@
 ﻿using System;
 using static FrameBaseUtility;
-using static GameDefine;
 using static GBR;
 
 public class GameHotFix : GameHotFixBase<GameHotFix>
@@ -28,6 +27,5 @@ public class GameHotFix : GameHotFixBase<GameHotFix>
 			HotFixTest.runAll();
 		}
 	}
-    protected override string getAndroidPluginBundleName() { return ANDROID_PLUGIN_BUNDLE_NAME; }
 	protected override Type getStartGameSceneType() { return typeof(MainScene); }
 }

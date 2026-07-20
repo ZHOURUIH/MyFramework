@@ -58,6 +58,8 @@ public class EditorCommonUtility
 	public const string KEY_FUNCTION = "resetProperty";
 	protected const string CODE_LOCATE_KEYWORD = "代码检测";
 	protected static Dictionary<string, UObject> mLoadedAssetCache = new();
+	public static List<string> mTextureSuffixList = new() { ".png", ".tga", ".jpg", ".jpeg", ".cubemap", ".exr", ".psd", ".tif" };
+	public static List<string> mAudioSuffixList = new() { ".mp3", ".wav", ".ogg" };
 	public static bool messageYesNo(string info)
 	{
 		return EditorUtility.DisplayDialog("提示", info, "确认", "取消");
@@ -476,7 +478,7 @@ public class EditorCommonUtility
 		{
 			foreach (string lineItem in File.ReadLines(file))
 			{
-				if (lineItem.StartsWith(key))
+				if (lineItem.startWith(key))
 				{
 					allFileMeta.add(lineItem.removeStartCount(key.Length), file);
 				}
@@ -484,17 +486,9 @@ public class EditorCommonUtility
 		}
 		return allFileMeta;
 	}
-	public static List<string> getTextureSuffixList()
-	{
-		return new(){ ".png", ".tga", ".jpg", ".jpeg", ".cubemap", ".exr", ".psd", ".tif" };
-	}
-	public static List<string> getAudioSuffixList()
-	{
-		return new() { ".mp3", ".wav", ".ogg" };
-	}
 	public static bool isTextureSuffix(string suffixWithDot)
 	{
-		return getTextureSuffixList().contains(suffix => suffixWithDot.endWith(suffix, false));
+		return mTextureSuffixList.contains(suffix => suffixWithDot.endWith(suffix, false));
 	}
 	public static Dictionary<string, List<FileGUIDLines>> getAllGuidInverseRefList(string path)
 	{
@@ -505,13 +499,13 @@ public class EditorCommonUtility
 		{
 			".png", ".tpsheet", ".tpsheet.meta", ".prefab.meta", ".bytes", ".bytes.meta", ".txt", ".txt.meta", ".ttf", ".ttc", ".shader"
 		};
-		excludePatterns.addRange(getTextureSuffixList());
-		foreach (var pattern in getTextureSuffixList())
+		excludePatterns.addRange(mTextureSuffixList);
+		foreach (string pattern in mTextureSuffixList)
 		{
 			excludePatterns.add(pattern + ".meta");
 		}
-		excludePatterns.addRange(getAudioSuffixList());
-		foreach (var pattern in getAudioSuffixList())
+		excludePatterns.addRange(mAudioSuffixList);
+		foreach (string pattern in mAudioSuffixList)
 		{
 			excludePatterns.add(pattern + ".meta");
 		}
@@ -522,7 +516,7 @@ public class EditorCommonUtility
 				continue;
 			}
 			FileGUIDLines guidLines = getGUIDsInFile(item);
-			foreach (var guid in (guidLines?.mGUIDs).safe())
+			foreach (string guid in (guidLines?.mGUIDs).safe())
 			{
 				inverseGuidList.getOrAddNew(guid).add(guidLines);
 			}

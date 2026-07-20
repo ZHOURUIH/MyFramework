@@ -173,7 +173,17 @@ public abstract class PlatformInfo : PlatformBase
 	}
 	public override string getDefaultPlatformDefineInternal() 
 	{
-		return USE_HYBRID_CLR + ";" + USE_OBFUZ + ";" + PROJECT_2D + ";" + USE_URP + ";" + USE_SQLITE;
+		string platformDefine = USE_HYBRID_CLR + ";" + USE_OBFUZ + ";" + PROJECT_2D + ";" + USE_URP + ";" + USE_SQLITE;
+		// 添加宏定义
+		// 安卓平台下根据要上架的不同平台添加对应的宏
+		if (isAndroid())
+		{
+			if (mGameChannel == GAME_CHANNEL.TAP_TAP)
+			{
+				platformDefine += ";TAP_TAP";
+			}
+		}
+		return platformDefine;
 	}
 	public override void generateFolderPreName()
 	{
@@ -246,22 +256,6 @@ public abstract class PlatformInfo : PlatformBase
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected override byte[] getAESKey() { return getAESKeyBytes(); }
 	protected override byte[] getAESIV() { return getAESIVBytes(); }
-	protected override List<string> getDynamicDownloadList() { return DYNAMIC_DOWNLOAD_LIST; }
-	protected override void configureScriptingDefine()
-	{
-		string platformDefine = getDefaultPlatformDefine();
-		// 添加宏定义
-		// 安卓平台下根据要上架的不同平台添加对应的宏
-		if (isAndroid())
-		{
-			if (mGameChannel == GAME_CHANNEL.TAP_TAP)
-			{
-				platformDefine += ";TAP_TAP";
-			}
-		}
-		log("设置宏:" + platformDefine);
-		PlayerSettings.SetScriptingDefineSymbols(getNameBuildTarget(), platformDefine);
-	}
 	protected static bool doDelete(List<string> deleteList, string remotePath, string displayTitle)
 	{
 		bool hasError = false;
