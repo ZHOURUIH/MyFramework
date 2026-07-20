@@ -137,11 +137,11 @@ public abstract class PlatformBase
 #endif
 
         // 对自己编译的热更dll进行加密,检查完以后再加密
-        if (getAESKey().count() == 16)
+        if (FrameSettings.getAESKey().count() == 16)
 		{
 			log("开始加密生成的dll");
-			encryptFileAES(mAssetBundleFullPath + HOTFIX_BYTES_FILE, getAESKey(), getAESIV());
-			encryptFileAES(mAssetBundleFullPath + HOTFIX_FRAME_BYTES_FILE, getAESKey(), getAESIV());
+			encryptFileAES(mAssetBundleFullPath + HOTFIX_BYTES_FILE, FrameSettings.getAESKey(), FrameSettings.getAESIV());
+			encryptFileAES(mAssetBundleFullPath + HOTFIX_FRAME_BYTES_FILE, FrameSettings.getAESKey(), FrameSettings.getAESIV());
 			log("完成加密生成的dll");
 		}
 #endif
@@ -286,9 +286,6 @@ public abstract class PlatformBase
 		}
 	}
 	protected abstract BuildResult buildInternal(out string outputFullPath);
-	// 由应用层提供自己的密钥,不提供则不会进行加密,Key和IV长度必须为16个字节
-	protected virtual byte[] getAESKey() { return null; }
-	protected virtual byte[] getAESIV() { return null; }
 	// 根据自己项目的情况在这个函数中去配置打包时需要的宏定义,比如是否启用热更,是否为测试客户端等,因为这些宏定义会影响代码编译,所以需要在打包前就配置好
 	protected void configureScriptingDefine()
 	{

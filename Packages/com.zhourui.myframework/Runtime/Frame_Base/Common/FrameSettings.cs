@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Security.Cryptography;
 using UnityEngine;
 using static FrameBaseDefine;
 using static FrameBaseUtility;
@@ -14,7 +17,13 @@ public class FrameSettings : ScriptableObject
 	public List<string> DynamicDownloadList = new();
 	[Tooltip("安卓插件的包名,也就是自己的安卓工程代码中定义的包名,用于在C#中访问java代码")]
 	public string AndroidPluginBundleName = "com.your.packagename";
+	[Tooltip("热更dll加密的Key,实际上会再处理一次计算出最终的Key,是一个16个byte的十六进制形式的字符串,比如FFAE4F表示3个byte:0xFF,0xAE,0x4F,所以这里字符串的长度必须等于16*2=32")]
+	public string HotFixDllAesKey = "1234567890ABCDEF1234567890ABCDEF";
+	[Tooltip("热更dll加密的IV,实际上会再处理一次计算出最终的IV,是一个16个byte的十六进制形式的字符串,比如FFAE4F表示3个byte:0xFF,0xAE,0x4F,所以这里字符串的长度必须等于16*2=32")]
+	public string HotFixDllAesIV = "FEDCBA0987654321FEDCBA0987654321";
 
+    private readonly byte[] AesKeyBytes;
+	private readonly byte[] AesIVBytes;
 	private static FrameSettings mFrameSettings;                    // 当前运行时设置
     private static FrameSettings get()
     {
@@ -46,5 +55,103 @@ public class FrameSettings : ScriptableObject
         }
     }
     public static List<string> getDynamicDownloadList() { return get().DynamicDownloadList; }
-    public static string getAndroidPluginBundleName() { return get().AndroidPluginBundleName; }
+    public static string getAndroidPluginBundleName()	{ return get().AndroidPluginBundleName; }
+	public static byte[] getAESKey()
+	{
+		FrameSettings instance = get();
+		if (instance.AesKeyBytes == null && !string.IsNullOrEmpty(instance.HotFixDllAesKey))
+		{
+			// 将密钥再加一次密
+			Buffer.BlockCopy(generateMD5(hexStringToBytes(instance.HotFixDllAesKey)), 0, instance.AesKeyBytes, 0, instance.AesKeyBytes.Length);
+		}
+		return instance.AesKeyBytes;
+	}
+	public static byte[] getAESIV()
+	{
+		FrameSettings instance = get();
+		if (instance.AesIVBytes == null && !string.IsNullOrEmpty(instance.HotFixDllAesIV))
+		{
+			// 将密钥再加一次密
+			Buffer.BlockCopy(generateMD5(hexStringToBytes(instance.HotFixDllAesIV)), 0, instance.AesIVBytes, 0, instance.AesIVBytes.Length);
+		}
+		return instance.AesIVBytes;
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	// 计算一个文件的MD5
+	public static byte[] generateMD5(byte[] fileContent)
+	{
+		if (fileContent == null || fileContent.Length == 0)
+		{
+			return null;
+		}
+		try
+		{
+			using MD5CryptoServiceProvider md5Obj = new();
+			return md5Obj.ComputeHash(fileContent, 0, fileContent.Length);
+		}
+		catch (Exception e)
+		{
+			logErrorBase(e.Message);
+		}
+		return null;
+	}
+	protected static byte[] hexStringToBytes(string str)
+	{
+        if (str.Length != 32)
+        {
+			logErrorBase("密钥长度错误:" + str);
+            return null;
+        }
+		foreach (char c in str)
+		{
+			if (!isByteHexChar(c))
+			{
+				logErrorBase("密钥不是十六进制字符串:" + str);
+				return null;
+			}
+		}
+        byte[] bytes = new byte[16];
+		for (int i = 0; i < str.Length / 2; ++i)
+		{
+			bytes[i] = hexStringToByte(str, i * 2);
+		}
+		return bytes;
+	}
+	public static byte hexStringToByte(string str, int start = 0)
+	{
+		byte highBit = 0;
+		byte lowBit = 0;
+		byte[] strBytes = Encoding.UTF8.GetBytes(str);
+		byte highBitChar = strBytes[start];
+		byte lowBitChar = strBytes[start + 1];
+		if (highBitChar >= 'A' && highBitChar <= 'F')
+		{
+			highBit = (byte)(10 + highBitChar - 'A');
+		}
+		else if (highBitChar >= 'a' && highBitChar <= 'f')
+		{
+			highBit = (byte)(10 + highBitChar - 'a');
+		}
+		else if (highBitChar >= '0' && highBitChar <= '9')
+		{
+			highBit = (byte)(highBitChar - '0');
+		}
+		if (lowBitChar >= 'A' && lowBitChar <= 'F')
+		{
+			lowBit = (byte)(10 + lowBitChar - 'A');
+		}
+		else if (lowBitChar >= 'a' && lowBitChar <= 'f')
+		{
+			lowBit = (byte)(10 + lowBitChar - 'a');
+		}
+		else if (lowBitChar >= '0' && lowBitChar <= '9')
+		{
+			lowBit = (byte)(lowBitChar - '0');
+		}
+		return (byte)(highBit << 4 | lowBit);
+	}
+	public static bool isByteHexChar(char c)
+	{
+		return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F');
+	}
 }

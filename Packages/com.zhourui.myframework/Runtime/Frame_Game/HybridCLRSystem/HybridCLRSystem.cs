@@ -15,7 +15,7 @@ using static FrameBase;
 public class HybridCLRSystem
 {
 	protected static bool mHotFixLaunched;
-	public static void launchHotFix(byte[] aesKey, byte[] aesIV, Action<string, BytesIntCallback> openOrDownloadDll, Action errorCallback = null)
+	public static void launchHotFix(Action<string, BytesIntCallback> openOrDownloadDll, Action errorCallback = null)
 	{
 		if (mHotFixLaunched)
 		{
@@ -35,7 +35,7 @@ public class HybridCLRSystem
 #if UNITY_EDITOR || !USE_HYBRID_CLR
 				launchEditor(errorCallback);
 #else
-				launchRuntime(aesKey, aesIV, openOrDownloadDll, errorCallback);
+				launchRuntime(openOrDownloadDll, errorCallback);
 #endif
 			}
 			catch (Exception e)
@@ -165,7 +165,7 @@ public class HybridCLRSystem
 #endif
 		return true;
 	}
-	protected static void launchRuntime(byte[] aesKey, byte[] aesIV, Action<string, BytesIntCallback> openOrDownloadDll, Action errorCallback)
+	protected static void launchRuntime(Action<string, BytesIntCallback> openOrDownloadDll, Action errorCallback)
 	{
 		loadMetaDataForAOT(openOrDownloadDll, ()=>
 		{
@@ -180,12 +180,12 @@ public class HybridCLRSystem
 				string fileDllName = item;
 				openOrDownloadDll(fileDllName, (byte[] bytes, int length) =>
 				{
-					onHotFixDllLoaded(downloadFiles, ref finishCount, fileDllName, bytes, aesKey, aesIV, errorCallback);
+					onHotFixDllLoaded(downloadFiles, ref finishCount, fileDllName, bytes, errorCallback);
 				});
 			}
 		}, errorCallback);
 	}
-	protected static void onHotFixDllLoaded(Dictionary<string, byte[]> downloadFiles, ref int finishCount, string fileDllName, byte[] bytes, byte[] aesKey, byte[] aesIV, Action errorCallback)
+	protected static void onHotFixDllLoaded(Dictionary<string, byte[]> downloadFiles, ref int finishCount, string fileDllName, byte[] bytes, Action errorCallback)
 	{
 		if (bytes == null)
 		{
@@ -203,8 +203,8 @@ public class HybridCLRSystem
 			return;
 		}
 		// 加载以后不再卸载
-		Assembly.Load(decryptAES(downloadFiles.get(HOTFIX_FRAME_BYTES_FILE), aesKey, aesIV));
-		launchInternal(Assembly.Load(decryptAES(downloadFiles.get(HOTFIX_BYTES_FILE), aesKey, aesIV)));
+		Assembly.Load(decryptAES(downloadFiles.get(HOTFIX_FRAME_BYTES_FILE), FrameSettings.getAESKey(), FrameSettings.getAESIV()));
+		launchInternal(Assembly.Load(decryptAES(downloadFiles.get(HOTFIX_BYTES_FILE), FrameSettings.getAESKey(), FrameSettings.getAESIV())));
 	}
 	protected static void launchEditor(Action errorCallback)
 	{

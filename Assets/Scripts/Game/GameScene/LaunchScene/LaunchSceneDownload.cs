@@ -111,7 +111,7 @@ public class LaunchSceneDownload : SceneProcedure
 	protected void launch()
 	{
 		// 下载或者加载程序集
-		HybridCLRSystem.launchHotFix(getAESKeyBytes(), getAESIVBytes(), (string fileName, BytesIntCallback callback) =>
+		HybridCLRSystem.launchHotFix((string fileName, BytesIntCallback callback) =>
 		{
 			// webgl下只能从远端下载资源
 			if (isWebGL())
