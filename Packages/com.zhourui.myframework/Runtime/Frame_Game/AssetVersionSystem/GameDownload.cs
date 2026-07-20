@@ -17,9 +17,14 @@ public class GameDownload
 	protected string mDownloadWritePath = F_PERSISTENT_ASSETS_PATH; // 默认下载到PersistentPath中
 	protected int mDownloadedCount;									// 已经下载的文件数量
 	protected int mDownloadSpeed;                                   // 下载速度
-	protected int mRemainRetryCount = 3;							// 文件下载失败的剩余自动重试次数,没有剩余次数时将会提示玩家是否重试
+	protected int mRemainRetryCount = 3;							// 文件下载失败的剩余自动重试次数,没有剩余次数时才会提示玩家是否重试
 	protected bool mAllFinish = true;								// 是否已经全部完成
 	protected bool mNeedWritePersistentFileList;					// 是否在完成时写入Persist的文件列表
+	public GameDownload()
+	{
+		// 设置动态下载的列表
+		mDynamicDownloadList.AddRange(FrameSettings.getDynamicDownloadList());
+	}
 	public void willDestroy()
 	{
 		// 如果在未更新完成就关闭了程序,则确保在关闭之前更新文件列表
@@ -31,9 +36,9 @@ public class GameDownload
 			mAllFinish = true;
 		}
 	}
-	public void setDynamicDownloadList(List<string> list) { mDynamicDownloadList.setRange(list); }
 	public void setTipCallback(GameDownloadTipCallback callback) { mTipCallback = callback; }
 	public void setProgressCallback(GameDownloadCallback callback) { mProgressCallback = callback; }
+	public void setAutoRetryCount(int count) { mRemainRetryCount = count; }
 	public void skipDownload()
 	{
 		allFinished();

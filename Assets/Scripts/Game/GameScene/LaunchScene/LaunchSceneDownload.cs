@@ -4,7 +4,6 @@ using static GameUtility;
 using static FrameBaseUtility;
 using static FrameBaseDefine;
 using static FrameBase;
-using static GameDefine;
 
 // 下载更新资源,部分代码可自己实现
 public class LaunchSceneDownload : SceneProcedure
@@ -13,8 +12,6 @@ public class LaunchSceneDownload : SceneProcedure
 	public LaunchSceneDownload()
 	{
 		mInstance = new GameDownload();
-		// 设置动态下载的列表
-		mInstance.setDynamicDownloadList(FrameSettings.getDynamicDownloadList());
 		mInstance.setTipCallback((DOWNLOAD_TIP tip) =>
 		{
 			if (tip == DOWNLOAD_TIP.NONE)
@@ -67,47 +64,6 @@ public class LaunchSceneDownload : SceneProcedure
 		mInstance.willDestroy();
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	// 在热更全部下载完成后,执行此函数,再启动热更.
-	// 这个函数的目的是确保最新的混淆密钥文件一定存在于PersistenPath中
-	// 因为在启动热更时GameHotFixBase会固定从PersistenPath中加载密钥文件
-	// 如果加载的密钥文件不是最新的,则无法启动游戏
-	protected void checkNeedCopySecret(Action callback)
-	{
-		// 如果StreamingAssets中的版本号大于PersistentData的版本号(所以这里的前提是版本号都是正确的,否则错误拷贝就会无法执行后面混淆后的代码),则需要将混淆密钥文件拷贝到PersistentData中
-		// 确保PersistentData中的密钥文件肯定是最新的
-		string streamVersion = mAssetVersionSystem.getStreamingAssetsVersion();
-		string persistVersion = mAssetVersionSystem.getPersistentDataVersion();
-		VERSION_COMPARE fullCompare = compareVersion3(streamVersion, persistVersion, out _, out _);
-		logBase("streamVersion:" + streamVersion + ", persistVersion:" + persistVersion + ", fullCompare:" + fullCompare);
-		logBase("isFileExist(F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE):" + isFileExist(F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE));
-		if (!isEditor() && (fullCompare == VERSION_COMPARE.LOCAL_LOWER || !isFileExist(F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE)))
-		{
-			copyFileAsync(F_ASSET_BUNDLE_PATH + DYNAMIC_SECRET_FILE, F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE, () =>
-			{
-				GameFileInfo streamingInfo = mAssetVersionSystem.getStreamingAssetsFile().get(DYNAMIC_SECRET_FILE);
-				if (streamingInfo != null)
-				{
-					var persistAssetsFiles = mAssetVersionSystem.getPersistentAssetsFile();
-					GameFileInfo persistInfo = persistAssetsFiles.get(DYNAMIC_SECRET_FILE);
-					if (persistInfo == null)
-					{
-						persistInfo = new();
-						persistAssetsFiles.add(DYNAMIC_SECRET_FILE, persistInfo);
-					}
-					persistInfo.mFileName = streamingInfo.mFileName;
-					persistInfo.mFileSize = streamingInfo.mFileSize;
-					persistInfo.mMD5 = streamingInfo.mMD5;
-					// 拷贝完以后更新FileList
-					writeFileList(F_PERSISTENT_ASSETS_PATH, mAssetVersionSystem.generatePersistentAssetFileList());
-				}
-				callback?.Invoke();
-			});
-		}
-		else
-		{
-			callback?.Invoke();
-		}
-	}
 	protected void retry(bool yes)
 	{
 		if (yes)
@@ -133,7 +89,7 @@ public class LaunchSceneDownload : SceneProcedure
 		else if (type == PROGRESS_TYPE.FINISH)
 		{
 			//mUIDownload.setDownloadInfo("更新完毕,即将进入游戏...");
-			checkNeedCopySecret(launch);
+			launch();
 		}
 	}
 	protected void onLaunchError()
