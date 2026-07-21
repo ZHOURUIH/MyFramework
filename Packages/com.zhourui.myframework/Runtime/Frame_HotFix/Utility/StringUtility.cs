@@ -6,6 +6,7 @@ using UnityEngine;
 using static MathUtility;
 using static UnityUtility;
 using static FrameUtility;
+using static FrameDefine;
 using static FrameBaseDefine;
 using static FrameBaseUtility;
 
@@ -323,7 +324,7 @@ public class StringUtility
 	}
 	public static string fullPathToProjectPath(string path)
 	{
-		if (path.isEmpty())
+		if (path.isEmpty() || !path.startWith(F_PROJECT_PATH))
 		{
 			return path;
 		}
@@ -331,7 +332,7 @@ public class StringUtility
 	}
 	public static void projectPathToFullPath(ref string path)
 	{
-		if (path.isEmpty())
+		if (path.isEmpty() || !path.startWith(ASSETS))
 		{
 			return;
 		}

@@ -28,10 +28,11 @@ public class SpriteReferenceInfo
 	public UObject mObject;
 }
 
-public class FileGUIDLines
+public class FileRefGUIDs
 {
 	public List<string> mGUIDs;			// 此文件中存储的guid列表
 	public string mProjectFileName;     // 相对于项目的相对路径,也就是以Assets开头
+	public string mProjectFileGUID;     // 此文件自己的guid
 	public void init(List<string> guidLines, string projectFileName)
 	{
 		mGUIDs = guidLines;
@@ -43,6 +44,7 @@ public class FileGUIDLines
 		{
 			mProjectFileName = projectFileName;
 		}
+		mProjectFileGUID = AssetDatabase.AssetPathToGUID(mProjectFileName);
 	}
 }
 
@@ -310,7 +312,7 @@ public class EditorCommonUtility
 		}
 		return spriteGUIDs;
 	}
-	public static void searchSpriteReference(string path, Dictionary<string, SpriteReferenceInfo> referenceList, Dictionary<string, List<FileGUIDLines>> allFileText)
+	public static void searchSpriteReference(string path, Dictionary<string, SpriteReferenceInfo> referenceList, Dictionary<string, List<FileRefGUIDs>> allFileText)
 	{
 		referenceList.Clear();
 		string atlasGUID = AssetDatabase.AssetPathToGUID(path);
@@ -320,7 +322,7 @@ public class EditorCommonUtility
 			searchSprite(atlasGUID, item.Key, item.Value, referenceList, allFileText);
 		}
 	}
-	public static void searchSprite(string atlasGUID, string spriteGUID, string spriteName, Dictionary<string, SpriteReferenceInfo> referenceList, Dictionary<string, List<FileGUIDLines>> allFileText)
+	public static void searchSprite(string atlasGUID, string spriteGUID, string spriteName, Dictionary<string, SpriteReferenceInfo> referenceList, Dictionary<string, List<FileRefGUIDs>> allFileText)
 	{
 		string key = "m_Sprite: {fileID: " + spriteGUID + ", guid: " + atlasGUID;
 		foreach (var item in allFileText)
@@ -330,7 +332,7 @@ public class EditorCommonUtility
 			{
 				continue;
 			}
-			foreach (FileGUIDLines fileGUIDLines in item.Value)
+			foreach (FileRefGUIDs fileGUIDLines in item.Value)
 			{
 				foreach (string line in fileGUIDLines.mGUIDs)
 				{
@@ -351,7 +353,7 @@ public class EditorCommonUtility
 			}
 		}
 	}
-	public static void searchFileReference(string path, bool loadFile, Dictionary<string, UObject> referenceList, Dictionary<string, List<FileGUIDLines>> inverseGuidList, bool checkUnuseOnly)
+	public static void searchFileReference(string path, bool loadFile, Dictionary<string, UObject> referenceList, Dictionary<string, List<FileRefGUIDs>> inverseGuidList, bool checkUnuseOnly)
 	{
 		path = path.rightToLeft();
 		referenceList.Clear();
@@ -378,7 +380,7 @@ public class EditorCommonUtility
 		{
 			foreach (string item in guidList)
 			{
-				foreach (FileGUIDLines refItem in inverseGuidList.get(item).safe())
+				foreach (FileRefGUIDs refItem in inverseGuidList.get(item).safe())
 				{
 					if (refItem.mProjectFileName != path)
 					{
@@ -392,7 +394,7 @@ public class EditorCommonUtility
 		{
 			foreach (string item in guidList)
 			{
-				foreach (FileGUIDLines refItem in inverseGuidList.get(item).safe())
+				foreach (FileRefGUIDs refItem in inverseGuidList.get(item).safe())
 				{
 					if (refItem.mProjectFileName != path)
 					{
@@ -414,14 +416,6 @@ public class EditorCommonUtility
 				referenceList.Add(otherPath, loadFile ? loadAsset(otherPath) : null);
 			}
 		}
-	}
-	public static Dictionary<string, List<FileGUIDLines>> getAllResourceGuidInverseRefList()
-	{
-		return getAllGuidInverseRefList(F_GAME_RESOURCES_PATH);
-	}
-	public static Dictionary<string, string> getAllResourceMeta()
-	{
-		return getAllResourceMeta(F_GAME_RESOURCES_PATH);
 	}
 	public static string getGUIDString(string line)
 	{
@@ -470,11 +464,37 @@ public class EditorCommonUtility
 		return false;
 	}
 	public static bool isGUIDChar(char value) { return isNumeric(value) || isLower(value); }
-	public static Dictionary<string, string> getAllResourceMeta(string path)
+	public static Dictionary<string, string> getAllMeta()
+	{
+		// 先查缓存
+		var cacheList = MetaSerializer.deserialize();
+		if (cacheList != null && cacheList.Count > 0)
+		{
+			// 即使读取缓存,也要更新一下文件的路径,因为可能文件内容没变,路径变了
+			Dictionary<string, string> newList = new();
+			foreach (var item in cacheList)
+			{
+				string fileName = AssetDatabase.GUIDToAssetPath(item.Key);
+				if (fileName.isEmpty())
+				{
+					Debug.LogError("路径错误,guid:" + item.Key);
+					continue;
+				}
+				newList.Add(item.Key, fileName);
+			}
+			return newList;
+		}
+		// key是guid,value是文件名
+		Dictionary<string, string> inverseGuidList = getAllMetaInternal();
+		// 全量查询以后需要更新缓存
+		MetaSerializer.serialize(inverseGuidList);
+		return inverseGuidList;
+	}
+	public static Dictionary<string, string> getAllMetaInternal()
 	{
 		string key = "guid: ";
 		Dictionary<string, string> allFileMeta = new();
-		foreach (string file in findFilesNonAlloc(path, ".meta"))
+		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, ".meta"))
 		{
 			foreach (string lineItem in File.ReadLines(file))
 			{
@@ -486,15 +506,37 @@ public class EditorCommonUtility
 		}
 		return allFileMeta;
 	}
-	public static bool isTextureSuffix(string suffixWithDot)
+	public static Dictionary<string, List<FileRefGUIDs>> getAllGuidInverseRefList()
 	{
-		return mTextureSuffixList.contains(suffix => suffixWithDot.endWith(suffix, false));
+		// 先查缓存
+		var cacheList = FileGUIDLinesSerializer.deserialize();
+		if (!cacheList.isEmpty())
+		{
+			// 即使读取缓存,也要更新一下文件的路径,因为可能文件内容没变,路径变了
+			foreach (var item in cacheList.Values)
+			{
+				foreach (FileRefGUIDs fileRef in item)
+				{
+					fileRef.mProjectFileName = AssetDatabase.GUIDToAssetPath(fileRef.mProjectFileGUID);
+					if (fileRef.mProjectFileName.isEmpty())
+					{
+						Debug.LogError("路径错误,guid:" + fileRef.mProjectFileGUID);
+					}
+				}
+			}
+			return cacheList;
+		}
+		// key是guid,value是该guid被引用的文件信息列表
+		Dictionary<string, List<FileRefGUIDs>> inverseGuidList = getAllGuidInverseRefListInternal();
+		// 全量查询以后需要更新缓存
+		FileGUIDLinesSerializer.serialize(inverseGuidList);
+		return inverseGuidList;
 	}
-	public static Dictionary<string, List<FileGUIDLines>> getAllGuidInverseRefList(string path)
+	public static Dictionary<string, List<FileRefGUIDs>> getAllGuidInverseRefListInternal()
 	{
 		DateTime start = DateTime.Now;
 		// key是guid,value是该guid被引用的文件信息列表
-		Dictionary<string, List<FileGUIDLines>> inverseGuidList = new();
+		Dictionary<string, List<FileRefGUIDs>> inverseGuidList = new();
 		List<string> excludePatterns = new() 
 		{
 			".png", ".tpsheet", ".tpsheet.meta", ".prefab.meta", ".bytes", ".bytes.meta", ".txt", ".txt.meta", ".ttf", ".ttc", ".shader"
@@ -509,13 +551,17 @@ public class EditorCommonUtility
 		{
 			excludePatterns.add(pattern + ".meta");
 		}
-		foreach (string item in findFilesExcludeNonAlloc(path, excludePatterns))
+		EditorUtility.DisplayProgressBar("查找文件中...", F_ASSETS_PATH, 0.0f);
+		var fileList = findFilesExcludeNonAlloc(F_GAME_RESOURCES_PATH, excludePatterns);
+		for (int i = 0; i < fileList.Count; ++i)
 		{
+			string item = fileList[i];
+			displayProgressBar("分析资源引用", "进度: ", i, fileList.Count);
 			if (isDirExist(item.removeEndString(".meta")))
 			{
 				continue;
 			}
-			FileGUIDLines guidLines = getGUIDsInFile(item);
+			FileRefGUIDs guidLines = getGUIDsInFile(item);
 			foreach (string guid in (guidLines?.mGUIDs).safe())
 			{
 				inverseGuidList.getOrAddNew(guid).add(guidLines);
@@ -524,7 +570,11 @@ public class EditorCommonUtility
 		Debug.Log("getAllFileText耗时:" + (DateTime.Now - start).TotalMilliseconds + "毫秒");
 		return inverseGuidList;
 	}
-	public static FileGUIDLines getGUIDsInFile(string path)
+	public static bool isTextureSuffix(string suffixWithDot)
+	{
+		return mTextureSuffixList.contains(suffix => suffixWithDot.endWith(suffix, false));
+	}
+	public static FileRefGUIDs getGUIDsInFile(string path)
 	{
 		// 图片的meta中不会有任何文件的引用
 		if (isTextureSuffix(getFileSuffix(path).removeEndString(".meta")))
@@ -576,8 +626,13 @@ public class EditorCommonUtility
 		{
 			return null;
 		}
-		FileGUIDLines fileGUIDLines = new();
+		FileRefGUIDs fileGUIDLines = new();
 		fileGUIDLines.init(list, fileName);
+		// 如果guid为空,则认为不是项目资源
+		if (fileGUIDLines.mProjectFileGUID.isEmpty())
+		{
+			return null;
+		}
 		return fileGUIDLines;
 	}
 	// 根据后缀获取指定文件路径下的指定资源的所有GUID(filePath:查找路径, assetType : 后缀类型名, tipText : 查找类型提示,默认为空)
@@ -633,10 +688,10 @@ public class EditorCommonUtility
 		return allGUIDDic;
 	}
 	// 获得文件中引用到了cs脚本的所在行
-	public static Dictionary<string, FileGUIDLines> getScriptReferenceFileText(string path)
+	public static Dictionary<string, FileRefGUIDs> getScriptReferenceFileText(string path)
 	{
 		// key是后缀名,value是该后缀名的文件信息列表
-		Dictionary<string, FileGUIDLines> allFileText = new();
+		Dictionary<string, FileRefGUIDs> allFileText = new();
 		List<string> files = findFilesNonAlloc(path, new List<string>() { ".prefab", ".unity" });
 		int filesCounts = files.Count;
 		int curFileIndex = 0;
@@ -686,10 +741,10 @@ public class EditorCommonUtility
 		return splitStr;
 	}
 	// 获得文件中引用到了Material的所在行
-	public static Dictionary<string, FileGUIDLines> getMaterialReferenceFileText(string path)
+	public static Dictionary<string, FileRefGUIDs> getMaterialReferenceFileText(string path)
 	{
 		// key是文件名,value是文件信息列表
-		Dictionary<string, FileGUIDLines> allFileText = new();
+		Dictionary<string, FileRefGUIDs> allFileText = new();
 		List<string> fileList = findFilesNonAlloc(path, new List<string> { ".prefab", ".unity" });
 		int filesCounts = fileList.Count;
 		int curFileIndex = 0;
@@ -715,10 +770,10 @@ public class EditorCommonUtility
 		return allFileText;
 	}
 	// 获得文件中具有引用的所在行
-	public static Dictionary<string, FileGUIDLines> getAllReferenceFileText(string path)
+	public static Dictionary<string, FileRefGUIDs> getAllReferenceFileText(string path)
 	{
 		// key是后缀名,value是该后缀名的文件信息列表
-		Dictionary<string, FileGUIDLines> allFileText = new();
+		Dictionary<string, FileRefGUIDs> allFileText = new();
 		List<string> files = findFilesNonAlloc(path, new List<string>() { ".prefab", ".unity", ".mat", ".controller" });
 		int filesCounts = files.Count;
 		int curFileIndex = 0;
@@ -1565,12 +1620,12 @@ public class EditorCommonUtility
 	// errorRefAssetDic的第一个Key是文件的路径,第二个Key是非法引用的GUID,Value是此非法GUID的文件名
 	// guidList的key是GUID,value是此GUID的文件名
 	public static void doCheckRefGUIDInFilePath(Dictionary<string, Dictionary<string, string>> errorRefAssetDic,
-												Dictionary<string, FileGUIDLines> fileDic,
+												Dictionary<string, FileRefGUIDs> fileDic,
 												Dictionary<string, string> guidList)
 	{
 		foreach (var item in fileDic)
 		{
-			FileGUIDLines projectFile = item.Value;
+			FileRefGUIDs projectFile = item.Value;
 			foreach (string guid in projectFile.mGUIDs)
 			{
 				if (guidList.TryGetValue(guid, out string fileName))
@@ -2092,7 +2147,7 @@ public class EditorCommonUtility
 			log("图集:" + path + "中的图片:" + item.Value + "不存在", Color.red, loadAsset(path));
 		}
 	}
-	public static void doCheckTPAtlasReference(string path, Dictionary<string, List<FileGUIDLines>> allFileText)
+	public static void doCheckTPAtlasReference(string path, Dictionary<string, List<FileRefGUIDs>> allFileText)
 	{
 		Dictionary<string, SpriteReferenceInfo> referenceList = new();
 		searchSpriteReference(path, referenceList, allFileText);
@@ -2102,7 +2157,7 @@ public class EditorCommonUtility
 		}
 		Debug.Log("图集" + path + "被" + referenceList.Count + "个布局引用");
 	}
-	public static void doCheckUnusedFile(string path, Dictionary<string, List<FileGUIDLines>> allFileText)
+	public static void doCheckUnusedFile(string path, Dictionary<string, List<FileRefGUIDs>> allFileText)
 	{
 		Dictionary<string, UObject> referenceMaterialList = new();
 		searchFileReference(path, false, referenceMaterialList, allFileText, true);
@@ -2111,14 +2166,14 @@ public class EditorCommonUtility
 			Debug.Log("资源未引用:" + path, loadAsset(path));
 		}
 	}
-	public static void doSearchReference(string path, Dictionary<string, List<FileGUIDLines>> allFileText)
+	public static void doSearchReference(string path, Dictionary<string, List<FileRefGUIDs>> allFileText)
 	{
 		Dictionary<string, UObject> referenceList = new();
 		string fileName = getFileNameWithSuffix(path);
 		DateTime start = DateTime.Now;
 		Debug.Log("<<<<<<<开始查找" + fileName + "的引用.......");
 		searchFileReference(path, false, referenceList, allFileText, false);
-		referenceList.forKey(item => log(item, Color.green, loadAsset(item)));
+		referenceList.forKey(item => log(item.fixedLength(110) + "引用了" + path, Color.green, loadAsset(item)));
 		Debug.Log(">>>>>>>完成查找" + fileName + "的引用, 共有" + referenceList.Count + "处引用, 耗时:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒", loadAsset(path));
 	}
 	public static void doSearchResourceRefOther(string path, Dictionary<string, string> allMetaList)
@@ -2131,7 +2186,7 @@ public class EditorCommonUtility
 		referenceList.forKey(item => log(item, Color.green, loadAsset(item)));
 		Debug.Log(">>>>>>>完成查找" + fileName + "引用的文件, 共引用" + referenceList.Count + "个文件, 耗时:" + (int)(DateTime.Now - start).TotalMilliseconds + "毫秒", loadAsset(path));
 	}
-	public static void doCheckSingleUsedFile(string path, Dictionary<string, List<FileGUIDLines>> allFileText, bool needMoveFile)
+	public static void doCheckSingleUsedFile(string path, Dictionary<string, List<FileRefGUIDs>> allFileText, bool needMoveFile)
 	{
 		Dictionary<string, UObject> referenceList = new();
 		searchFileReference(path, false, referenceList, allFileText, false);
