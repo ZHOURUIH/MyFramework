@@ -21,9 +21,14 @@ public class FrameSettings : ScriptableObject
 	public string HotFixDllAesKey = "1234567890ABCDEF1234567890ABCDEF";
 	[Tooltip("热更dll加密的IV,实际上会再处理一次计算出最终的IV,是一个16个byte的十六进制形式的字符串,比如FFAE4F表示3个byte:0xFF,0xAE,0x4F,所以这里字符串的长度必须等于16*2=32")]
 	public string HotFixDllAesIV = "FEDCBA0987654321FEDCBA0987654321";
+	[Tooltip("网络消息的加密密钥,长度必须为2的n次方,长度可以尽量长一些,相对更安全一点,也是一个16个byte的十六进制形式的字符串")]
+	public string NetPacketEncryptKey = "FEDCBA0987654321FEDCBA0987654321";
+	[Tooltip("辅助加密的整数key,长度固定为4个整数,可以指定任意的整数,只要跟服务器的值对上就行")]
+	public int[] NetPacketEncryptKeyHelper = new int[4];
 
-    private readonly byte[] AesKeyBytes;
-	private readonly byte[] AesIVBytes;
+	private byte[] AesKeyBytes;
+	private byte[] AesIVBytes;
+	private byte[] EncryptKeyBytes;
 	private static FrameSettings mFrameSettings;                    // 当前运行时设置
     private static FrameSettings get()
     {
@@ -62,6 +67,7 @@ public class FrameSettings : ScriptableObject
 		if (instance.AesKeyBytes == null && !string.IsNullOrEmpty(instance.HotFixDllAesKey))
 		{
 			// 将密钥再加一次密
+			instance.AesKeyBytes = new byte[16];
 			Buffer.BlockCopy(generateMD5(hexStringToBytes(instance.HotFixDllAesKey)), 0, instance.AesKeyBytes, 0, instance.AesKeyBytes.Length);
 		}
 		return instance.AesKeyBytes;
@@ -72,9 +78,29 @@ public class FrameSettings : ScriptableObject
 		if (instance.AesIVBytes == null && !string.IsNullOrEmpty(instance.HotFixDllAesIV))
 		{
 			// 将密钥再加一次密
+			instance.AesIVBytes = new byte[16];
 			Buffer.BlockCopy(generateMD5(hexStringToBytes(instance.HotFixDllAesIV)), 0, instance.AesIVBytes, 0, instance.AesIVBytes.Length);
 		}
 		return instance.AesIVBytes;
+	}
+	public static byte[] getEncryptKey()
+	{
+		FrameSettings instance = get();
+		if (instance.EncryptKeyBytes == null && !string.IsNullOrEmpty(instance.NetPacketEncryptKey))
+		{
+			instance.EncryptKeyBytes = new byte[instance.NetPacketEncryptKey.Length / 2];
+			Buffer.BlockCopy(hexStringToBytes(instance.NetPacketEncryptKey), 0, instance.EncryptKeyBytes, 0, instance.EncryptKeyBytes.Length);
+		}
+		return instance.EncryptKeyBytes;
+	}
+	public static int[] getEncryptKeyHelper() 
+	{
+		FrameSettings instance = get();
+		if (instance.NetPacketEncryptKeyHelper.Length != 4)
+		{
+			logErrorBase("NetPacketEncryptKeyHelper的长度必须为4!");
+		}
+		return instance.NetPacketEncryptKeyHelper; 
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 计算一个文件的MD5
