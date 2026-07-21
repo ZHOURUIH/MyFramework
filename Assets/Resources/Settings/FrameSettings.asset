@@ -14,3 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Frame_Base::FrameSettings
   UISizeStandalone: {x: 1920, y: 1080}
   UISizeMobile: {x: 1920, y: 1080}
+  DynamicDownloadList: []
+  AndroidPluginBundleName: com.your.packagename
+  HotFixDllAesKey: 1234567890ABCDEF1234567890ABCDEF
+  HotFixDllAesIV: FEDCBA0987654321FEDCBA0987654321
+  NetPacketEncryptKey: FEDCBA0987654321FEDCBA0987654321
+  NetPacketEncryptKeyHelper: 01000000020000000300000004000000

@@ -10,8 +10,6 @@ using static FrameUtility;
 using static EditorCommonUtility;
 using static FrameBaseDefine;
 using static FrameBaseUtility;
-using static GameUtility;
-using static GameDefine;
 using static FrameMacro;
 using static PlatformUtility;
 
@@ -254,8 +252,6 @@ public abstract class PlatformInfo : PlatformBase
 		return folder + version + "/";
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected override byte[] getAESKey() { return getAESKeyBytes(); }
-	protected override byte[] getAESIV() { return getAESIVBytes(); }
 	protected static bool doDelete(List<string> deleteList, string remotePath, string displayTitle)
 	{
 		bool hasError = false;

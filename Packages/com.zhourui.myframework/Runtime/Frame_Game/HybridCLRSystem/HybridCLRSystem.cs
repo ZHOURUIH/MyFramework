@@ -15,7 +15,7 @@ using static FrameBase;
 public class HybridCLRSystem
 {
 	protected static bool mHotFixLaunched;
-	public static void launchHotFix(byte[] aesKey, byte[] aesIV, Action<string, BytesIntCallback> openOrDownloadDll, Action errorCallback = null)
+	public static void launchHotFix(Action<string, BytesIntCallback> openOrDownloadDll, Action errorCallback = null)
 	{
 		if (mHotFixLaunched)
 		{
@@ -35,7 +35,7 @@ public class HybridCLRSystem
 #if UNITY_EDITOR || !USE_HYBRID_CLR
 				launchEditor(errorCallback);
 #else
-				launchRuntime(aesKey, aesIV, openOrDownloadDll, errorCallback);
+				launchRuntime(openOrDownloadDll, errorCallback);
 #endif
 			}
 			catch (Exception e)
@@ -52,6 +52,10 @@ public class HybridCLRSystem
 			callback?.Invoke();
 			return;
 		}
+		// 在热更全部下载完成后,执行此函数,再启动热更.
+		// 这个函数的目的是确保最新的混淆密钥文件一定存在于PersistenPath中
+		// 因为在启动热更时GameHotFixBase会固定从PersistenPath中加载密钥文件
+		// 如果加载的密钥文件不是最新的,则无法启动游戏
 		// 如果StreamingAssets中的版本号大于PersistentData的版本号(所以这里的前提是版本号都是正确的,否则错误拷贝就会无法执行后面混淆后的代码),则需要将混淆密钥文件拷贝到PersistentData中
 		// 确保PersistentData中的密钥文件肯定是最新的
 		string streamVersion = mAssetVersionSystem.getStreamingAssetsVersion();
@@ -161,7 +165,7 @@ public class HybridCLRSystem
 #endif
 		return true;
 	}
-	protected static void launchRuntime(byte[] aesKey, byte[] aesIV, Action<string, BytesIntCallback> openOrDownloadDll, Action errorCallback)
+	protected static void launchRuntime(Action<string, BytesIntCallback> openOrDownloadDll, Action errorCallback)
 	{
 		loadMetaDataForAOT(openOrDownloadDll, ()=>
 		{
@@ -176,12 +180,12 @@ public class HybridCLRSystem
 				string fileDllName = item;
 				openOrDownloadDll(fileDllName, (byte[] bytes, int length) =>
 				{
-					onHotFixDllLoaded(downloadFiles, ref finishCount, fileDllName, bytes, aesKey, aesIV, errorCallback);
+					onHotFixDllLoaded(downloadFiles, ref finishCount, fileDllName, bytes, errorCallback);
 				});
 			}
 		}, errorCallback);
 	}
-	protected static void onHotFixDllLoaded(Dictionary<string, byte[]> downloadFiles, ref int finishCount, string fileDllName, byte[] bytes, byte[] aesKey, byte[] aesIV, Action errorCallback)
+	protected static void onHotFixDllLoaded(Dictionary<string, byte[]> downloadFiles, ref int finishCount, string fileDllName, byte[] bytes, Action errorCallback)
 	{
 		if (bytes == null)
 		{
@@ -199,8 +203,8 @@ public class HybridCLRSystem
 			return;
 		}
 		// 加载以后不再卸载
-		Assembly.Load(decryptAES(downloadFiles.get(HOTFIX_FRAME_BYTES_FILE), aesKey, aesIV));
-		launchInternal(Assembly.Load(decryptAES(downloadFiles.get(HOTFIX_BYTES_FILE), aesKey, aesIV)));
+		Assembly.Load(decryptAES(downloadFiles.get(HOTFIX_FRAME_BYTES_FILE), FrameSettings.getAESKey(), FrameSettings.getAESIV()));
+		launchInternal(Assembly.Load(decryptAES(downloadFiles.get(HOTFIX_BYTES_FILE), FrameSettings.getAESKey(), FrameSettings.getAESIV())));
 	}
 	protected static void launchEditor(Action errorCallback)
 	{
