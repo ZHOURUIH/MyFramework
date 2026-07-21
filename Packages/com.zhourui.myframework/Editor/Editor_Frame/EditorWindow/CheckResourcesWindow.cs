@@ -58,7 +58,7 @@ public class CheckResourcesWindow : GameEditorWindow
 						{
 							mFileReferenceList.Clear();
 							Dictionary<string, List<string>> tempList = new();
-							doCheck(path, tempList, getAllResourceGuidInverseRefList());
+							doCheck(path, tempList, getAllGuidInverseRefList());
 							// 这里的GameMenu,collectUsedFile需要在Game层自己实现,
 							HashSet<string> outerRefList = mCollectUsedFileFunc?.Invoke() ?? new();
 							foreach (var item in tempList)
@@ -78,7 +78,7 @@ public class CheckResourcesWindow : GameEditorWindow
 					{
 						if (EditorUtility.DisplayDialog("查找资源引用", "确认查找文件夹中所有文件的引用? " + path, "确认", "取消"))
 						{
-							var allFileText = getAllResourceGuidInverseRefList();
+							var allFileText = getAllGuidInverseRefList();
 							// 不查找meta文件的引用
 							List<string> validFiles = new();
 							foreach (string item in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
@@ -121,8 +121,7 @@ public class CheckResourcesWindow : GameEditorWindow
 				textField(ref mInputGUID, 300);
 				if (button("根据GUID查找文件", 150))
 				{
-					var allMeta = getAllResourceMeta();
-					allMeta.TryGetValue(mInputGUID, out string filePath);
+					getAllMeta().TryGetValue(mInputGUID, out string filePath);
 					filePath = fullPathToProjectPath(filePath).removeEndString(".meta");
 					Debug.Log("查找到的文件:" + filePath + ", guid:" + mInputGUID, loadAsset(filePath));
 				}
@@ -352,7 +351,7 @@ public class CheckResourcesWindow : GameEditorWindow
 			}
 		}
 	}
-	protected void doCheck(string path, Dictionary<string, List<string>> refList, Dictionary<string, List<FileGUIDLines>> allFileText)
+	protected void doCheck(string path, Dictionary<string, List<string>> refList, Dictionary<string, List<FileRefGUIDs>> allFileText)
 	{
 		DateTime start = DateTime.Now;
 		Dictionary<string, UObject> referenceList = new();

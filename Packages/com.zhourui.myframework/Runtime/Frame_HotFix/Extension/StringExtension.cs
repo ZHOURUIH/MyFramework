@@ -1763,7 +1763,22 @@ public static class StringExtension
         }
         return "";
     }
-    public static void initIntToString()
+	// 使用制表符将字符串补到指定的显示长度
+	public static string fixedLength(this string str, int fixedLength)
+	{
+		if (str.Length >= fixedLength)
+		{
+			return str;
+		}
+		int needLength = fixedLength - str.Length;
+		int needTable = needLength / 4 + (needLength % 4 == 0 ? 0 : 1);
+		for (int i = 0; i < needTable; ++i)
+		{
+			str += "\t";
+		}
+		return str;
+	}
+	public static void initIntToString()
     {
         if (mIntToString != null || mStringToInt != null)
         {
