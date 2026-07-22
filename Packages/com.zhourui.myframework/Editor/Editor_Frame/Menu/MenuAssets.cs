@@ -29,7 +29,7 @@ public class MenuAssets
 				Debug.LogError("当前在Project中没有选中任何图集文件");
 				return;
 			}
-			string assetPath = AssetDatabase.GetAssetPath(obj);
+			string assetPath = getAssetPath(obj);
 			string outputPath = projectPathToFullPath(getFilePath(assetPath, true) + tex.name);
 			if (multiSpriteToSpritePNG(tex, outputPath))
 			{
@@ -42,10 +42,54 @@ public class MenuAssets
 		}
 		AssetDatabase.Refresh();
 	}
+	// 创建SpriteAtlasV2，并将指定文件夹添加到Objects for Packing
+	[MenuItem(mMenuName + "生成图集文件")]
+	public static void generateSpriteAtlasV2()
+	{
+		foreach (UObject obj in Selection.objects)
+		{
+			string assetPath = getAssetPath(obj);
+			if (!isDirExist(assetPath))
+			{
+				continue;
+			}
+			string folderName = getFileNameNoSuffixNoDir(assetPath);
+			string atlasPath = assetPath + "/" + folderName + ".spriteatlasv2";
+			SpriteAtlasAsset atlasAsset = SpriteAtlasAsset.Load(atlasPath);
+			if (atlasAsset == null)
+			{
+				DefaultAsset folder = loadAssetAtPath<DefaultAsset>(assetPath);
+				if (folder == null)
+				{
+					logErrorBase("无法加载文件夹:" + assetPath);
+					return;
+				}
+				atlasAsset = new SpriteAtlasAsset();
+				atlasAsset.Add(new UObject[] { folder });
+				SpriteAtlasAsset.Save(atlasAsset, atlasPath);
+				AssetDatabase.ImportAsset(atlasPath, ImportAssetOptions.ForceSynchronousImport);
+			}
+
+			var importer = AssetImporter.GetAtPath(atlasPath) as SpriteAtlasImporter;
+			if (importer == null)
+			{
+				logErrorBase("无法获取SpriteAtlasImporter:" + atlasPath);
+				return;
+			}
+
+			SpriteAtlasPackingSettings packingSettings = importer.packingSettings;
+			packingSettings.enableRotation = false;
+			packingSettings.enableTightPacking = false;
+			importer.packingSettings = packingSettings;
+			importer.SaveAndReimport();
+
+			logBase("已创建SpriteAtlasV2:" + atlasPath);
+		}
+	}
 	[MenuItem(mMenuName + "精简TMP字体大小,但是精简完以后无法再替换材质")]
 	public static void extractTexture()
 	{
-		string fontPath = AssetDatabase.GetAssetPath(Selection.activeObject).rightToLeft();
+		string fontPath = getAssetPath(Selection.activeObject).rightToLeft();
 		string texturePath = fontPath.Replace(".asset", ".png");
 		var targeFontAsset = Selection.activeObject as TMP_FontAsset;
 		Texture2D texture2D = new(targeFontAsset.atlasTexture.width, targeFontAsset.atlasTexture.height, TextureFormat.ASTC_6x6, false);
@@ -56,7 +100,7 @@ public class MenuAssets
 		fs.Flush();
 		fs.Close();
 		AssetDatabase.Refresh();
-		Texture2D atlas = AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath.Replace(Application.dataPath, "Assets"));
+		Texture2D atlas = loadAssetAtPath<Texture2D>(texturePath.Replace(Application.dataPath, "Assets"));
 		AssetDatabase.RemoveObjectFromAsset(targeFontAsset.atlasTexture);
 		targeFontAsset.atlasTextures[0] = atlas;
 		targeFontAsset.material.mainTexture = atlas;
@@ -69,7 +113,7 @@ public class MenuAssets
 		UObject obj = Selection.GetFiltered(typeof(UObject), SelectionMode.Assets).first();
 		if (obj != null)
 		{
-			string path = AssetDatabase.GetAssetPath(obj);
+			string path = getAssetPath(obj);
 			if (Directory.Exists(path))
 			{
 				deleteEmptyFolder(projectPathToFullPath(path));
@@ -91,7 +135,7 @@ public class MenuAssets
 		{
 			foreach (UObject obj in Selection.GetFiltered(typeof(UObject), SelectionMode.Assets))
 			{
-				string path = AssetDatabase.GetAssetPath(obj);
+				string path = getAssetPath(obj);
 				if (Directory.Exists(path))
 				{
 					foreach (string file in findFilesNonAlloc(projectPathToFullPath(path), ".prefab"))
@@ -124,7 +168,7 @@ public class MenuAssets
 		{
 			foreach (UObject obj in Selection.GetFiltered(typeof(UObject), SelectionMode.Assets))
 			{
-				string path = AssetDatabase.GetAssetPath(obj);
+				string path = getAssetPath(obj);
 				if (Directory.Exists(path))
 				{
 					foreach (string file in findFilesNonAlloc(projectPathToFullPath(path), ".prefab"))
@@ -165,7 +209,7 @@ public class MenuAssets
 			List<string> prefabFiles = new();
 			foreach (UObject obj in Selection.GetFiltered(typeof(UObject), SelectionMode.Assets))
 			{
-				string path = AssetDatabase.GetAssetPath(obj);
+				string path = getAssetPath(obj);
 				if (Directory.Exists(path))
 				{
 					prefabFiles.Clear();
@@ -202,7 +246,7 @@ public class MenuAssets
 		AssetDatabase.StartAssetEditing();
 		foreach (UObject obj in Selection.GetFiltered(typeof(UObject), SelectionMode.Assets))
 		{
-			string path = AssetDatabase.GetAssetPath(obj);
+			string path = getAssetPath(obj);
 			if (Directory.Exists(path))
 			{
 				List<string> files = new();
@@ -210,7 +254,7 @@ public class MenuAssets
 				for (int i = 0; i < files.Count; ++i)
 				{
 					setPixelPerUnit(fullPathToProjectPath(files[i]), 1);
-					EditorUtility.DisplayProgressBar("正在处理导入格式", "进度:" + (i + 1) + "/" + files.Count, (float)(i + 1) / files.Count);
+					displayProgressBar("正在处理导入格式", "进度:", i, files.Count);
 				}
 			}
 			else if (isFileExist(path))
@@ -218,7 +262,7 @@ public class MenuAssets
 				setPixelPerUnit(path, 1);
 			}
 		}
-		EditorUtility.ClearProgressBar();
+		clearProgressBar();
 		AssetDatabase.StopAssetEditing();
 		AssetDatabase.Refresh();
 	}
@@ -234,7 +278,7 @@ public class MenuAssets
 		List<string> allFiles = new();
 		foreach (UObject obj in Selection.GetFiltered(typeof(UObject), SelectionMode.Assets))
 		{
-			string path = AssetDatabase.GetAssetPath(obj);
+			string path = getAssetPath(obj);
 			if (Directory.Exists(path))
 			{
 				findFiles(projectPathToFullPath(path), allFiles, mTextureSuffixList);
@@ -263,9 +307,9 @@ public class MenuAssets
 					break;
 				}
 				setPixelPerUnit(fullPathToProjectPath(allFiles[curIndex]), 100);
-				EditorUtility.DisplayProgressBar("正在处理导入格式", "进度:" + (curIndex + 1) + "/" + allFiles.Count, (float)(curIndex + 1) / allFiles.Count);
+				displayProgressBar("正在处理导入格式", "进度:", curIndex, allFiles.Count);
 			}
-			EditorUtility.ClearProgressBar();
+			clearProgressBar();
 			AssetDatabase.StopAssetEditing();
 			AssetDatabase.Refresh();
 		}
@@ -279,7 +323,7 @@ public class MenuAssets
 		{
 			foreach (UObject obj in Selection.GetFiltered(typeof(UObject), SelectionMode.Assets))
 			{
-				string path = AssetDatabase.GetAssetPath(obj);
+				string path = getAssetPath(obj);
 				if (Directory.Exists(path))
 				{
 					findFilesNonAlloc(projectPathToFullPath(path), ".prefab").For(file => doPrefab(fullPathToProjectPath(file)));

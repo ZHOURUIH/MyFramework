@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 using static EditorDefine;
+using static EditorCommonUtility;
 
 // 二进制表格还原为CSV工具。
 public static class MenuExcelBytesRestore
@@ -42,7 +43,7 @@ public static class MenuExcelBytesRestore
             for (int i = 0; i < bytesPathList.Count; ++i)
             {
                 string bytesPath = bytesPathList[i];
-                EditorUtility.DisplayProgressBar("还原二进制表格为CSV", Path.GetFileName(bytesPath), (float)i / bytesPathList.Count);
+                displayProgressBar("还原二进制表格为CSV", Path.GetFileName(bytesPath), i, bytesPathList.Count);
 
                 string tableName = Path.GetFileNameWithoutExtension(bytesPath);
                 string typeName = "ED" + tableName;
@@ -311,7 +312,6 @@ public static class MenuExcelBytesRestore
         }
         return fieldName;
     }
-
     private static string typeToExcelType(Type type)
     {
         if (type == typeof(string))
@@ -403,15 +403,13 @@ public static class MenuExcelBytesRestore
     private static Dictionary<string, string> collectFieldCommentMap(Type dataType)
     {
         Dictionary<string, string> fieldCommentMap = new();
-        List<string> scriptPathList = collectScriptPathList(dataType);
-        foreach (string assetPath in scriptPathList)
+        foreach (string assetPath in collectScriptPathList(dataType))
         {
             string fullPath = assetPathToFullPath(assetPath);
             if (!File.Exists(fullPath))
             {
                 continue;
             }
-
             string content = File.ReadAllText(fullPath, Encoding.UTF8);
             if (!content.Contains("class " + dataType.Name))
             {
@@ -437,7 +435,7 @@ public static class MenuExcelBytesRestore
                 continue;
             }
 
-            MonoScript monoScript = AssetDatabase.LoadAssetAtPath<MonoScript>(assetPath);
+            var monoScript = AssetDatabase.LoadAssetAtPath<MonoScript>(assetPath);
             Type scriptType = monoScript != null ? monoScript.GetClass() : null;
             if (scriptType == dataType || scriptType?.Name == dataType.Name || Path.GetFileNameWithoutExtension(assetPath) == dataType.Name)
             {

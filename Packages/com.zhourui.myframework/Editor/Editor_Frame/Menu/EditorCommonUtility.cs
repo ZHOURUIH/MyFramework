@@ -661,7 +661,7 @@ public class EditorCommonUtility
 		const string spritesArrMark = "TextureImporter:";
 		for (int i = 0; i < fileCount; ++i)
 		{
-			EditorUtility.DisplayProgressBar("正在查找所有" + tipText + "资源", "进度:" + (i + 1) + "/" + fileCount, (float)(i + 1) / fileCount);
+			displayProgressBar("正在查找所有" + tipText + "资源", "进度:", i, fileCount);
 			string file = files[i];
 			openTxtFileLines(file, out string[] lines);
 			for (int j = 0; j < lines.Length - 1; ++j)
@@ -697,8 +697,7 @@ public class EditorCommonUtility
 		int curFileIndex = 0;
 		foreach (string item in files)
 		{
-			++curFileIndex;
-			EditorUtility.DisplayProgressBar("查找所有脚本文件的引用", "进度:" + curFileIndex + "/" + filesCounts, (float)curFileIndex / filesCounts);
+			displayProgressBar("查找所有脚本文件的引用", "进度:", curFileIndex++, filesCounts);
 			List<string> list = new();
 			foreach (string lineItem in openTxtFileLines(item))
 			{
@@ -721,7 +720,7 @@ public class EditorCommonUtility
 	public static string getGUIDSplitStr(string[] lines, int startIndex)
 	{
 		// 内置材质GUID
-		const string BUILD_IN_GUID = "0000000000000000f000000000000000";
+		const string BUILD_IN_GUID = "00000000000";
 		string splitStr = "";
 		for (int i = startIndex + 1; i < lines.Length - 1; ++i)
 		{
@@ -750,8 +749,7 @@ public class EditorCommonUtility
 		int curFileIndex = 0;
 		foreach (string item in fileList)
 		{
-			++curFileIndex;
-			EditorUtility.DisplayProgressBar("查找所有材质的引用", "进度:" + curFileIndex + "/" + filesCounts, (float)curFileIndex / filesCounts);
+			displayProgressBar("查找所有材质的引用", "进度:", curFileIndex++, filesCounts);
 			openTxtFileLines(item, out string[] lines);
 			List<string> list = new();
 			for (int i = 0; i < lines.Length; ++i)
@@ -779,8 +777,7 @@ public class EditorCommonUtility
 		int curFileIndex = 0;
 		foreach (string item in files)
 		{
-			++curFileIndex;
-			EditorUtility.DisplayProgressBar("查找所有的引用", "进度:" + curFileIndex + "/" + filesCounts, (float)curFileIndex / filesCounts);
+			displayProgressBar("查找所有的引用", "进度:", curFileIndex++, filesCounts);
 			List<string> list = new();
 			foreach (string lineItem in openTxtFileLines(item))
 			{
@@ -902,6 +899,10 @@ public class EditorCommonUtility
 	public static void displayProgressBar(string title, string info, int curCount, int totalCount)
 	{
 		EditorUtility.DisplayProgressBar(title, info + " " + (curCount + 1) + "/" + totalCount, (float)(curCount + 1) / totalCount);
+	}
+	public static void displayProgressBar(string title, string info, float progress = 0.0f)
+	{
+		EditorUtility.DisplayProgressBar(title, info, progress);
 	}
 	public static void clearProgressBar()
 	{
@@ -3295,7 +3296,7 @@ public class EditorCommonUtility
 		string currentID = EMPTY;
 		for (int i = 0; i < fileCount; ++i)
 		{
-			EditorUtility.DisplayProgressBar("正在查找所有" + tipText + "资源", "进度:" + (i + 1) + "/" + fileCount, (float)(i + 1) / fileCount);
+			displayProgressBar("正在查找所有" + tipText + "资源", "进度:", i, fileCount);
 			string file = files[i];
 			Dictionary<string, PrefabNodeItem> currentItem = new();
 			openTxtFileLines(file, out string[] lines);
