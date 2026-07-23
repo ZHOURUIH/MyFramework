@@ -9,10 +9,10 @@ using static FrameBaseUtility;
 // 运行时可读取的框架设置资源
 public class FrameSettings : ScriptableObject
 {
-    [Tooltip("桌面端UI标准分辨率宽高,根据此设置来决定UI的适配")]
-    public Vector2Int UISizeStandalone = new(1920, 1080);
-    [Tooltip("移动端UI标准分辨率宽高,根据此设置来决定UI的适配")]
-    public Vector2Int UISizeMobile = new(1920, 1080);
+	[Tooltip("桌面端UI标准分辨率宽高,根据此设置来决定UI的适配")]
+	public Vector2Int UISizeStandalone = new(1920, 1080);
+	[Tooltip("移动端UI标准分辨率宽高,根据此设置来决定UI的适配")]
+	public Vector2Int UISizeMobile = new(1920, 1080);
 	[Tooltip("允许动态下载的目录列表,GameResources下的相对路径,此列表中的文件不会打包到包体中,也不会在游戏启动时从服务器下载,而是在加载资源时才会进行下载")]
 	public List<string> DynamicDownloadList = new();
 	[Tooltip("安卓插件的包名,也就是自己的安卓工程代码中定义的包名,用于在C#中访问java代码")]
@@ -26,49 +26,52 @@ public class FrameSettings : ScriptableObject
 	[Tooltip("辅助加密的整数key,长度固定为4个整数,可以指定任意的整数,只要跟服务器的值对上就行")]
 	public int[] NetPacketEncryptKeyHelper = new int[4];
 
+	[NonSerialized]
 	private byte[] AesKeyBytes;
+	[NonSerialized]
 	private byte[] AesIVBytes;
+	[NonSerialized]
 	private byte[] EncryptKeyBytes;
 	private static FrameSettings mFrameSettings;                    // 当前运行时设置
-    private static FrameSettings get()
-    {
-        if (mFrameSettings != null)
-        {
-            return mFrameSettings;
-        }
+	private static FrameSettings get()
+	{
+		if (mFrameSettings != null)
+		{
+			return mFrameSettings;
+		}
 
-        string suffix = ".asset";
-        mFrameSettings = Resources.Load<FrameSettings>(RUNTIME_SETTINGS_RES_PATH[..^suffix.Length]);
-        if (mFrameSettings != null)
-        {
-            return mFrameSettings;
-        }
+		string suffix = ".asset";
+		mFrameSettings = Resources.Load<FrameSettings>(RUNTIME_SETTINGS_RES_PATH[..^suffix.Length]);
+		if (mFrameSettings != null)
+		{
+			return mFrameSettings;
+		}
 
-        Debug.LogError("未找到运行时框架设置:" + P_RESOURCES_PATH + RUNTIME_SETTINGS_RES_PATH);
-        mFrameSettings = CreateInstance<FrameSettings>();
-        return mFrameSettings;
-    }
-    public static Vector2Int getUISize()
-    {
-        if (isMobile())
-        {
-            return get().UISizeMobile;
-        }
-        else
-        {
-            return get().UISizeStandalone;
-        }
-    }
-    public static List<string> getDynamicDownloadList() { return get().DynamicDownloadList; }
-    public static string getAndroidPluginBundleName()	{ return get().AndroidPluginBundleName; }
+		Debug.LogError("未找到运行时框架设置:" + P_RESOURCES_PATH + RUNTIME_SETTINGS_RES_PATH);
+		mFrameSettings = CreateInstance<FrameSettings>();
+		return mFrameSettings;
+	}
+	public static Vector2Int getUISize()
+	{
+		if (isMobile())
+		{
+			return get().UISizeMobile;
+		}
+		else
+		{
+			return get().UISizeStandalone;
+		}
+	}
+	public static List<string> getDynamicDownloadList() { return get().DynamicDownloadList; }
+	public static string getAndroidPluginBundleName() { return get().AndroidPluginBundleName; }
 	public static byte[] getAESKey()
 	{
 		FrameSettings instance = get();
 		if (instance.AesKeyBytes == null && !string.IsNullOrEmpty(instance.HotFixDllAesKey))
 		{
-			// 将密钥再加一次密
+			// 将密钥再加一次密,这里MD5计算出来的是16个字节
 			instance.AesKeyBytes = new byte[16];
-			Buffer.BlockCopy(generateMD5(hexStringToBytes(instance.HotFixDllAesKey)), 0, instance.AesKeyBytes, 0, instance.AesKeyBytes.Length);
+			Buffer.BlockCopy(generateMD5(hexStringToBytes(instance.HotFixDllAesKey, 32)), 0, instance.AesKeyBytes, 0, instance.AesKeyBytes.Length);
 		}
 		return instance.AesKeyBytes;
 	}
@@ -77,9 +80,9 @@ public class FrameSettings : ScriptableObject
 		FrameSettings instance = get();
 		if (instance.AesIVBytes == null && !string.IsNullOrEmpty(instance.HotFixDllAesIV))
 		{
-			// 将密钥再加一次密
+			// 将密钥再加一次密,这里MD5计算出来的是16个字节
 			instance.AesIVBytes = new byte[16];
-			Buffer.BlockCopy(generateMD5(hexStringToBytes(instance.HotFixDllAesIV)), 0, instance.AesIVBytes, 0, instance.AesIVBytes.Length);
+			Buffer.BlockCopy(generateMD5(hexStringToBytes(instance.HotFixDllAesIV, 32)), 0, instance.AesIVBytes, 0, instance.AesIVBytes.Length);
 		}
 		return instance.AesIVBytes;
 	}
@@ -89,18 +92,23 @@ public class FrameSettings : ScriptableObject
 		if (instance.EncryptKeyBytes == null && !string.IsNullOrEmpty(instance.NetPacketEncryptKey))
 		{
 			instance.EncryptKeyBytes = new byte[instance.NetPacketEncryptKey.Length / 2];
-			Buffer.BlockCopy(hexStringToBytes(instance.NetPacketEncryptKey), 0, instance.EncryptKeyBytes, 0, instance.EncryptKeyBytes.Length);
+			byte[] temp = hexStringToBytes(instance.NetPacketEncryptKey);
+			if (temp == null || temp.Length != instance.EncryptKeyBytes.Length)
+			{
+				logErrorBase("网络密钥长度或格式错误");
+			}
+			Buffer.BlockCopy(temp, 0, instance.EncryptKeyBytes, 0, instance.EncryptKeyBytes.Length);
 		}
 		return instance.EncryptKeyBytes;
 	}
-	public static int[] getEncryptKeyHelper() 
+	public static int[] getEncryptKeyHelper()
 	{
 		FrameSettings instance = get();
 		if (instance.NetPacketEncryptKeyHelper.Length != 4)
 		{
 			logErrorBase("NetPacketEncryptKeyHelper的长度必须为4!");
 		}
-		return instance.NetPacketEncryptKeyHelper; 
+		return instance.NetPacketEncryptKeyHelper;
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 计算一个文件的MD5
@@ -121,13 +129,13 @@ public class FrameSettings : ScriptableObject
 		}
 		return null;
 	}
-	protected static byte[] hexStringToBytes(string str)
+	protected static byte[] hexStringToBytes(string str, int needLength = 0)
 	{
-        if (str.Length != 32)
-        {
+		if (needLength > 0 && str.Length != needLength)
+		{
 			logErrorBase("密钥长度错误:" + str);
-            return null;
-        }
+			return null;
+		}
 		foreach (char c in str)
 		{
 			if (!isByteHexChar(c))
@@ -136,7 +144,7 @@ public class FrameSettings : ScriptableObject
 				return null;
 			}
 		}
-        byte[] bytes = new byte[16];
+		byte[] bytes = new byte[str.Length / 2];
 		for (int i = 0; i < str.Length / 2; ++i)
 		{
 			bytes[i] = hexStringToByte(str, i * 2);
