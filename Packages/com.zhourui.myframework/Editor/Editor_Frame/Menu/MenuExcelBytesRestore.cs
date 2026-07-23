@@ -15,7 +15,6 @@ using static EditorCommonUtility;
 // 二进制表格还原为CSV工具。
 public static class MenuExcelBytesRestore
 {
-    private const string LIST_SEPARATOR = ",";                      // List字段在单元格中的分隔符。
     private const string EXPORT_BOTH = "Both";                      // 导出到客户端和服务器。
     private const string EXPORT_NONE = "None";                      // 不导出字段。
     private const string ID = "ID";                                 // 固定列：唯一ID。
@@ -539,7 +538,7 @@ public static class MenuExcelBytesRestore
             {
                 valueList.Add(valueToString(item));
             }
-            return valueList.stringsToString(LIST_SEPARATOR);
+            return valueList.stringsToString(',');
         }
         if (value is Vector2Int vector2Int)
         {

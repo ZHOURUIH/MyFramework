@@ -17,25 +17,6 @@ using static FrameDefine;
 using static StringUtility;
 using UObject = UnityEngine.Object;
 
-public class TpSheetSprite
-{
-	public string name;
-	public int x;
-	public int y;
-	public int width;
-	public int height;
-	public Vector2 pivot;
-	public Vector4 border;
-}
-
-public class TpSheetData
-{
-	public string textureFileName;
-	public int width;
-	public int height;
-	public readonly List<TpSheetSprite> sprites = new();
-}
-
 public class MenuAssets
 {
 	public const string mMenuName = "Assets/";

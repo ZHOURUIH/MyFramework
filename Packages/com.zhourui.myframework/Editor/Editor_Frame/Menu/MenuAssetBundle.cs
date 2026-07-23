@@ -2,15 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-using UnityEngine.U2D;
 using UnityEditor;
-using UnityEditor.U2D;
 using static FrameBaseUtility;
 using static StringUtility;
 using static FileUtility;
 using static FrameUtility;
 using static FrameDefine;
-using static EditorFileUtility;
 using static EditorCommonUtility;
 using static FrameBaseDefine;
 using static EditorDefine;
@@ -58,7 +55,7 @@ public class MenuAssetBundle
 	{
 		clearAssetBundleName();
 	}
-    [MenuItem(MENU_NAME + "AB依赖分析窗口")]
+    [MenuItem(MENU_NAME + "AssetBundle依赖分析窗口")]
     public static void OpenAssetBundleDependencyWindow()
     {
         var window = EditorWindow.GetWindow<AssetBundleDependencyWindow>();
@@ -66,7 +63,7 @@ public class MenuAssetBundle
         window.minSize = new Vector2(1100.0f, 720.0f);
         window.Show();
     }
-    [MenuItem(MENU_NAME + "检测已构建AB重复资源")]
+    [MenuItem(MENU_NAME + "检测已构建AssetBundle重复资源")]
     public static void OpenAssetBundleDuplicateAssetCheckWindow()
     {
         var window = EditorWindow.GetWindow<AssetBundleDuplicateAssetCheckWindow>();
@@ -75,7 +72,7 @@ public class MenuAssetBundle
         window.Show();
         window.setBundleRootFolder(F_ASSET_BUNDLE_PATH);
     }
-    [MenuItem(MENU_NAME + "AB资源浏览器")]
+    [MenuItem(MENU_NAME + "AssetBundle资源浏览器")]
     public static void OpenAssetBundleStudioWindow()
     {
         var window = EditorWindow.GetWindow<AssetBundleStudioWindow>();
@@ -142,66 +139,6 @@ public class MenuAssetBundle
 		} while (false);
 		mIsPackingAssetBundle = false;
 		return result;
-	}
-	// pathToPack为以Asset开头的相对路径,表示只单独打包此目录或此文件,已经废弃了
-	public static bool packSinglePathAssetBundle(BuildTarget target, string outputPath, string pathToPack, bool showMessageBox)
-	{
-		if (pathToPack.isEmpty())
-		{
-			Debug.Log("没有找到可打包AssetBundle的文件");
-			return false;
-		}
-		Debug.Log("单独打包:" + pathToPack);
-		AssetBundleBuild[] buildList = null;
-		findAssetBundleToBuild(pathToPack, ref buildList);
-		DateTime time0 = DateTime.Now;
-		if (buildList != null)
-		{
-			// 备份清单文件和生成的AssetBundle信息文件
-			string folderName = getFolderName(outputPath);
-			byte[] streamingAssetsBytes = openFile(outputPath + STREAMING_ASSET_FILE, false);
-			byte[] streamingFileBytes = openFile(outputPath + folderName, false);
-			byte[] manifestBytes = openFile(outputPath + folderName + ".manifest", false);
-			// 需要先删除AssetBundle和对应的manifest文件,否则无法生成新的AssetBundle
-			foreach (AssetBundleBuild item in buildList)
-			{
-				string bundleFileName = outputPath + item.assetBundleName;
-				string manifestName = bundleFileName + ".manifest";
-				deleteFile(bundleFileName);
-				deleteFile(bundleFileName + ".meta");
-				deleteFile(manifestName);
-				deleteFile(manifestName + ".meta");
-			}
-			// 使用LZMA压缩,并且不写入资源类型信息
-			var option = BuildAssetBundleOptions.StrictMode;
-#if WEIXINMINIGAME
-			// 微信的AssetBundle需要添加hash
-			option |= BuildAssetBundleOptions.AppendHashToAssetBundleName;
-#endif
-			BuildPipeline.BuildAssetBundles(outputPath, buildList, option, target);
-			AssetDatabase.Refresh();
-
-			// 还原备份的文件
-			if (streamingAssetsBytes != null)
-			{
-				writeFile(outputPath + STREAMING_ASSET_FILE, streamingAssetsBytes);
-			}
-			if (streamingFileBytes != null)
-			{
-				writeFile(outputPath + folderName, streamingFileBytes);
-			}
-			if (manifestBytes != null)
-			{
-				writeFile(outputPath + folderName + ".manifest", manifestBytes);
-			}
-		}
-		// 删除所有的manifest文件
-		foreach (string file in findFilesNonAlloc(outputPath, new List<string>() { ".manifest", ".manifest.meta" }))
-		{
-			deleteFile(file);
-		}
-		showInfo("资源打包结束! 耗时 : " + (DateTime.Now - time0), showMessageBox, false);
-		return true;
 	}
 	protected static bool preProcess()
 	{

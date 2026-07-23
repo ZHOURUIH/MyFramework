@@ -24,7 +24,8 @@ public static class MenuSetting
         }
         pingAsset(P_RESOURCES_PATH + RUNTIME_SETTINGS_RES_PATH);
     }
-    public static void createRuntimeSettinsFile()
+	//------------------------------------------------------------------------------------------------------------------------------
+	public static void createRuntimeSettinsFile()
     {
         string runtimeSettingsPath = P_RESOURCES_PATH + RUNTIME_SETTINGS_RES_PATH;
         createDir(getFilePath(runtimeSettingsPath));

@@ -21,13 +21,6 @@ using static UnityUtility;
 using static EditorFileUtility;
 using static FrameBaseDefine;
 
-public class SpriteReferenceInfo
-{
-	public string mSpriteName;
-	public string mFileName;
-	public UObject mObject;
-}
-
 public class FileRefGUIDs
 {
 	public List<string> mGUIDs;			// 此文件中存储的guid列表
