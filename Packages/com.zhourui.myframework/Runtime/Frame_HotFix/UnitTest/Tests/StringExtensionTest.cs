@@ -56,12 +56,12 @@ public static class StringExtensionTest
 	private static void testRemoveMethods()
 	{
 		// removeStartString
-		assertEqual("world", "helloworld".removeStartString("hello"), "removeStartString prefix");
-		assertEqual("helloworld", "helloworld".removeStartString("xyz"), "removeStartString no match");
+		assertEqual("world", "helloworld".removeStart("hello"), "removeStartString prefix");
+		assertEqual("helloworld", "helloworld".removeStart("xyz"), "removeStartString no match");
 
 		// removeEndString
-		assertEqual("hello", "helloworld".removeEndString("world"), "removeEndString suffix");
-		assertEqual("", "hello".removeEndString("hello"), "removeEndString whole");
+		assertEqual("hello", "helloworld".removeEnd("world"), "removeEndString suffix");
+		assertEqual("", "hello".removeEnd("hello"), "removeEndString whole");
 
 		// removeStartAll
 		assertEqual("c", "aaac".removeStartAll('a'), "removeStartAll");

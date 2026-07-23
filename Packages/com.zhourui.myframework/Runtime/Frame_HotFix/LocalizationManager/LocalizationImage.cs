@@ -28,7 +28,7 @@ public class LocalizationImage : MonoBehaviour
 			Debug.LogError("找不到图集,请添加ImageAtlasPath组件, window:" + gameObject.name);
 			return;
 		}
-		string atlasPath = imageAtlasPath.mAtlasPath.removeStartString(P_GAME_RESOURCES_PATH);
+		string atlasPath = imageAtlasPath.mAtlasPath.removeStart(P_GAME_RESOURCES_PATH);
 		mAtlasPtr = mAtlasManager?.getAtlas(atlasPath, false);
 		updateVariable();
 		mLocalizationManager?.registeAction(onLanguageChanged);
@@ -73,6 +73,6 @@ public class LocalizationImage : MonoBehaviour
 		{
 			Debug.LogError("图片名需要以_" + LANGUAGE_CHINESE + "结尾,GameObject:" + name, gameObject);
 		}
-		mImageNameWithoutSuffix = mImageNameWithoutSuffix.removeEndString(LANGUAGE_CHINESE);
+		mImageNameWithoutSuffix = mImageNameWithoutSuffix.removeEnd(LANGUAGE_CHINESE);
 	}
 }

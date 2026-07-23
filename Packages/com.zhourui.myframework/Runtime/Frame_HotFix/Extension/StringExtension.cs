@@ -341,7 +341,7 @@ public static class StringExtension
 		return str[removeCount..];
 	}
 	// 如果str以pattern开头,则移除pattern的部分
-	public static string removeStartString(this string str, string pattern, bool caseSensitive = true)
+	public static string removeStart(this string str, string pattern, bool caseSensitive = true)
 	{
 		if (str == null || pattern == null || str.Length < pattern.Length)
 		{
@@ -363,7 +363,7 @@ public static class StringExtension
 		return str;
 	}
 	// 如果str以pattern开头,则移除pattern的部分
-	public static string removeStartString(this string str, char pattern)
+	public static string removeStart(this string str, char pattern)
 	{
 		if (str == null || str.Length < 1)
 		{
@@ -376,7 +376,7 @@ public static class StringExtension
 		return str;
 	}
 	// 如果str以pattern结尾,则移除pattern的部分
-	public static string removeEndString(this string str, string pattern, bool caseSensitive = true)
+	public static string removeEnd(this string str, string pattern, bool caseSensitive = true)
 	{
 		if (str == null || pattern == null || str.Length < pattern.Length)
 		{
@@ -398,7 +398,7 @@ public static class StringExtension
 		return str;
 	}
 	// 如果str以pattern结尾,则移除pattern的部分
-	public static string removeEndString(this string str, char pattern)
+	public static string removeEnd(this string str, char pattern)
 	{
 		if (str == null || str.Length < 1)
 		{

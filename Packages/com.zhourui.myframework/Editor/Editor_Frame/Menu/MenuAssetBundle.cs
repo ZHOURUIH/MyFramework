@@ -48,7 +48,7 @@ public class MenuAssetBundle
 			showInfo("需要选中一个" + ASSET_BUNDLE_SUFFIX, true, true);
 			return;
 		}
-		findAllDependencies(selection.removeStartString(P_ASSET_BUNDLE_ANDROID_PATH));
+		findAllDependencies(selection.removeStart(P_ASSET_BUNDLE_ANDROID_PATH));
 	}
 	[MenuItem(MENU_NAME + "清除AssetBundle名称", false, 4)]
 	public static void clearAllAssetBundleName()
@@ -88,7 +88,7 @@ public class MenuAssetBundle
 		bool result = false;
 		do
 		{
-			if (!preProcess())
+			if (!generateAltasPathConfig())
 			{
 				break;
 			}
@@ -140,21 +140,21 @@ public class MenuAssetBundle
 		mIsPackingAssetBundle = false;
 		return result;
 	}
-	protected static bool preProcess()
+	public static bool generateAltasPathConfig()
 	{
 		// 收集所有图集,然后将信息写入到图集路径的配置文件中,这个文件会在AtlasManager中用到
 		List<string> pathList = new();
 		HashSet<string> fileNameList = new();
 		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, SPRITE_ATLAS_SUFFIX))
 		{
-			pathList.Add(file.removeStartString(F_GAME_RESOURCES_PATH));
+			pathList.Add(file.removeStart(F_GAME_RESOURCES_PATH));
 			if (!fileNameList.Add(getFileNameNoSuffixNoDir(file)))
 			{
 				Debug.LogError("存在重名的图集文件:" + getFileNameNoSuffixNoDir(file));
 				return false;
 			}
 		}
-		writeTxtFile(F_GAME_RESOURCES_PATH + R_MISC_PATH + ATLAS_PATH_CONFIG, pathList.stringsToString("\r\n"));
+		writeTxtFile(F_MISC_PATH + ATLAS_PATH_CONFIG, pathList.stringsToString("\r\n"));
 		AssetDatabase.Refresh();
 		return true;
 	}
@@ -175,7 +175,7 @@ public class MenuAssetBundle
 		{
 			string chain = EMPTY;
 			item.Value.For(item0 => chain += item0 + "->");
-			Debug.Log(colorString("00FF00FF", item.Key) + ",依赖链:" + chain.removeEndString("->"));
+			Debug.Log(colorString("00FF00FF", item.Key) + ",依赖链:" + chain.removeEnd("->"));
 		}
 		Debug.Log("查找" + assetBundleName + "的所有递归依赖项完成");
 	}
@@ -286,51 +286,6 @@ public class MenuAssetBundle
 			displayDialog(isError ? "错误" : "提示", str, "确认");
 		}
 	}
-	// 查找一个目录中所有需要打包的资源包
-	protected static void findAssetBundleToBuild(string path, ref AssetBundleBuild[] list)
-	{
-		Dictionary<string, List<string>> assetBundleList = new();
-		// path是文件
-		if (!getFileSuffix(path).isEmpty())
-		{
-			string bundleName = refreshFileAssetBundleName(null, path);
-			if (!bundleName.isEmpty())
-			{
-				assetBundleList.getOrAddNew(bundleName).Add(path);
-			}
-		}
-		// path是目录
-		else
-		{
-			foreach (string dir in getAllSubResDirs(path))
-			{
-				foreach (string file in Directory.GetFiles(dir))
-				{
-					string bundleName = refreshFileAssetBundleName(null, file);
-					if (!bundleName.isEmpty())
-					{
-						assetBundleList.getOrAddNew(bundleName).Add(file);
-					}
-				}
-			}
-		}
-		list = new AssetBundleBuild[assetBundleList.Count];
-		int index = 0;
-		foreach (var item in assetBundleList)
-		{
-			AssetBundleBuild build = new();
-			build.assetBundleName = item.Key;
-			int assetCount = item.Value.Count;
-			build.assetNames = new string[assetCount];
-			for (int i = 0; i < assetCount; ++i)
-			{
-				Debug.Log("部分打包的文件名:" + item.Value[i] + ", 所属AssetBundle:" + item.Key);
-				build.assetNames[i] = item.Value[i];
-			}
-			list[index++] = build;
-		}
-		EditorUtility.UnloadUnusedAssetsImmediate();
-	}
 	// 刷新指定文件的所属AssetBundle名字
 	protected static string refreshFileAssetBundleName(Dictionary<string, BuildAssetBundleInfo> assetBundleMap, string file, bool forceSingle = false)
 	{
@@ -366,20 +321,20 @@ public class MenuAssetBundle
 				assetBundleMap.Add(bundleName, bundleInfo);
 			}
 			// 去除Asset/GameResources/前缀,只保留GameResources下相对路径,并且需要是小写的
-			bundleInfo.mAssetNames.Add(fileName.removeStartString(P_GAME_RESOURCES_PATH).ToLower());
+			bundleInfo.mAssetNames.Add(fileName.removeStart(P_GAME_RESOURCES_PATH).ToLower());
 		}
 		return bundleName;
 	}
 	// 判断一个路径是否是不需要打包的路径
 	protected static bool isUnpackPath(string path, List<string> unpackList)
 	{
-		string pathUnderResources = (path.removeStartString(P_GAME_RESOURCES_PATH, false) + "/").rightToLeft();
+		string pathUnderResources = (path.removeStart(P_GAME_RESOURCES_PATH, false) + "/").rightToLeft();
 		return unpackList.contains(name => pathUnderResources.startWith(name, false));
 	}
 	// 判断一个路径是否是不需要打包的路径
 	protected static bool isForceSinglePath(string path, List<string> singlePathList)
 	{
-		return singlePathList.contains((path.removeStartString(P_GAME_RESOURCES_PATH, false) + "/").rightToLeft());
+		return singlePathList.contains((path.removeStart(P_GAME_RESOURCES_PATH, false) + "/").rightToLeft());
 	}
 	// fullPath是以Asset开头的路径
 	protected static bool refreshAssetBundleNames(string fullPath, Dictionary<string, BuildAssetBundleInfo> assetBundleMap, bool showErrorMessageBox)
@@ -404,7 +359,7 @@ public class MenuAssetBundle
 		}
 		return true;
 	}
-	public static Dictionary<string, BuildAssetBundleInfo> doRefreshAllAssetBundleName()
+	protected static Dictionary<string, BuildAssetBundleInfo> doRefreshAllAssetBundleName()
 	{
 		Dictionary<string, BuildAssetBundleInfo> assetBundleMap = new();
 		foreach (string dir in getAllSubResDirs(P_GAME_RESOURCES_PATH))
@@ -498,7 +453,7 @@ public class MenuAssetBundle
 				continue;
 			}
 			string projectFileName = fullPathToProjectPath(file);
-			string fileName = projectFileName.removeStartString(P_GAME_RESOURCES_PATH, false);
+			string fileName = projectFileName.removeStart(P_GAME_RESOURCES_PATH, false);
 			foreach (string unpack in unpackList)
 			{
 				if (!fileName.startWith(unpack, false))

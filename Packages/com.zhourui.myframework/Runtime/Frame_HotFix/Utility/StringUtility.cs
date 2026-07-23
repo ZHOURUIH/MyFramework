@@ -274,8 +274,8 @@ public class StringUtility
 		{
 			return;
 		}
-		json = json.removeStartString("{");
-		json = json.removeEndString("}");
+		json = json.removeStart("{");
+		json = json.removeEnd("}");
 		json = json.removeAll('\r', '\n', '\t');
 		using var a = new ListScope<string>(out var tempStrList);
 		bool inString = false;

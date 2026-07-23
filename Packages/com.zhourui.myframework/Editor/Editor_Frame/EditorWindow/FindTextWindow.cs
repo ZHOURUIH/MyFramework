@@ -117,7 +117,7 @@ public class FindTextWindow : GameEditorWindow
 			{
 				continue;
 			}
-			var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(newFile.removeStartString(F_PROJECT_PATH));
+			var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(newFile.removeStart(F_PROJECT_PATH));
 			if (prefab == null)
 			{
 				continue;

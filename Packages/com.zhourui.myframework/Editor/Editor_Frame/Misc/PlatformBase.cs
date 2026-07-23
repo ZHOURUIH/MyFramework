@@ -77,7 +77,7 @@ public abstract class PlatformBase
 		deleteFolder(dest);
 		foreach (string file in fileList)
 		{
-			copyFile(file, dest + file.removeStartString(mAssetBundleFullPath));
+			copyFile(file, dest + file.removeStart(mAssetBundleFullPath));
 		}
 
 		// 只有全部文件都拷贝到指定文件夹以后才能更新文件列表信息
@@ -89,7 +89,7 @@ public abstract class PlatformBase
 			List<string> newList = new(fileList);
 			foreach (string file in fileList)
 			{
-				string relativePath = file.removeStartString(mAssetBundleFullPath);
+				string relativePath = file.removeStart(mAssetBundleFullPath);
 				// 删除指定
 				if (relativePath != FILE_LIST && !containOnlyFileList.contains(relativePath))
 				{

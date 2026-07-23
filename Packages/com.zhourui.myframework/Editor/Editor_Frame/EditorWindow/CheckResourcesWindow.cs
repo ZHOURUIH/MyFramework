@@ -122,7 +122,7 @@ public class CheckResourcesWindow : GameEditorWindow
 				if (button("根据GUID查找文件", 150))
 				{
 					getAllMeta().TryGetValue(mInputGUID, out string filePath);
-					filePath = fullPathToProjectPath(filePath).removeEndString(".meta");
+					filePath = fullPathToProjectPath(filePath).removeEnd(".meta");
 					Debug.Log("查找到的文件:" + filePath + ", guid:" + mInputGUID, loadAsset(filePath));
 				}
 			}
@@ -239,7 +239,7 @@ public class CheckResourcesWindow : GameEditorWindow
 						string refTipString = EMPTY;
 						foreach (string refFile in refList)
 						{
-							refString += refFile.removeStartString(P_GAME_RESOURCES_PATH) + ",";
+							refString += refFile.removeStart(P_GAME_RESOURCES_PATH) + ",";
 							refTipString += refFile + "\n";
 						}
 						if (!refString.isEmpty())

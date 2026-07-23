@@ -295,6 +295,11 @@ public class MenuShortcutOperation
 			}
 		}
 	}
+	[MenuItem(mMenuName + "生成" + ATLAS_PATH_CONFIG)]
+	public static void BuildAtlasPathConfig()
+	{
+		MenuAssetBundle.generateAltasPathConfig();
+	}
 	[MenuItem(mMenuName + "生成图集索引(暂时用不上)")]
 	public static void BuildAtlasSearchMap()
 	{
@@ -322,7 +327,7 @@ public class MenuShortcutOperation
 				{
 					logErrorBase("sprite is null,atlas:" + file);
 				}
-				atlasMap.addOrSet(sprite.name.removeEndString("(Clone)"), assetPath.removeStartString(P_GAME_RESOURCES_PATH));
+				atlasMap.addOrSet(sprite.name.removeEnd("(Clone)"), assetPath.removeStart(P_GAME_RESOURCES_PATH));
 			}
 		}
 		// MultiSprite
@@ -333,7 +338,7 @@ public class MenuShortcutOperation
 			{
 				if (obj is Sprite sprite && sprite.name != sprite.texture.name)
 				{
-					atlasMap.addOrSet(sprite.name, assetPath.removeStartString(P_GAME_RESOURCES_PATH));
+					atlasMap.addOrSet(sprite.name, assetPath.removeStart(P_GAME_RESOURCES_PATH));
 				}
 			}
 		}
@@ -342,7 +347,7 @@ public class MenuShortcutOperation
 		{
 			fileContent += item.Key + "," + item.Value + "\n";
 		}
-		writeTxtFile(F_GAME_RESOURCES_PATH + R_MISC_PATH + "SpritePathConfig.txt", fileContent);
+		writeTxtFile(F_MISC_PATH + "SpritePathConfig.txt", fileContent);
 		logBase("耗时:" + (DateTime.Now - start));
 	}
 	//------------------------------------------------------------------------------------------------------------------------------

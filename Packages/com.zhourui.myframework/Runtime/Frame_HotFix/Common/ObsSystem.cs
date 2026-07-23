@@ -150,7 +150,7 @@ public class ObsSystem
 		getFileListInternal(path, fileList);
 		foreach (GameFileInfo info in fileList)
 		{
-			info.mFileName = info.mFileName.removeStartString(path);
+			info.mFileName = info.mFileName.removeStart(path);
 			fileMap.Add(info.mFileName, info);
 		}
 	}

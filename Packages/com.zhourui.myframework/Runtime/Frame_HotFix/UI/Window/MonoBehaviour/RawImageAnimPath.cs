@@ -50,7 +50,7 @@ public class RawImageAnimPath : MonoBehaviour
 		string imagePathName = getAssetPath(rawImage.mainTexture);
 		mTextureName = getFileNameNoSuffixNoDir(imagePathName).rangeToLast('_');
 		// 去除Assets/GameResources前缀
-		mTexturePath = getFilePath(imagePathName, true).removeStartString(P_GAME_RESOURCES_PATH);
+		mTexturePath = getFilePath(imagePathName, true).removeStart(P_GAME_RESOURCES_PATH);
 		// 获取图片数量
 		string suffix = getFileSuffix(imagePathName);
 		string preString = F_GAME_RESOURCES_PATH + mTexturePath + mTextureName + "_";

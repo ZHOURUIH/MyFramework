@@ -176,7 +176,7 @@ public class MemberData
 			return;
 		}
 		GameObject parent = mObject.transform.parent.gameObject;
-		string preName = mObject.name.removeEndString("0");
+		string preName = mObject.name.removeEnd("0");
 		for (int j = 0; j < 1000; ++j)
 		{
 			if (findGameObject(preName + j, parent) == null)

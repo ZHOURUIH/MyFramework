@@ -31,7 +31,7 @@ public class FileRefGUIDs
 		mGUIDs = guidLines;
 		if (projectFileName[^1] == 'a')
 		{
-			mProjectFileName = projectFileName.removeEndString(".meta");
+			mProjectFileName = projectFileName.removeEnd(".meta");
 		}
 		else
 		{
@@ -157,7 +157,7 @@ public class EditorCommonUtility
 					{
 						return;
 					}
-					shaderContent = openTxtFile(shaderFile.removeEndString(".meta"), true);
+					shaderContent = openTxtFile(shaderFile.removeEnd(".meta"), true);
 					if (shaderContent.isEmpty())
 					{
 						return;
@@ -231,7 +231,7 @@ public class EditorCommonUtility
 			Debug.LogWarning("can not find material shader:" + path, loadAsset(path));
 			return;
 		}
-		string shaderContent = openTxtFile(shaderFile.removeEndString(".meta"), true);
+		string shaderContent = openTxtFile(shaderFile.removeEnd(".meta"), true);
 		if (shaderContent.isEmpty())
 		{
 			return;
@@ -405,7 +405,7 @@ public class EditorCommonUtility
 		{
 			if (allMetaList.TryGetValue(guid, out string otherPath))
 			{
-				otherPath = otherPath.removeEndString(".meta");
+				otherPath = otherPath.removeEnd(".meta");
 				referenceList.Add(otherPath, loadFile ? loadAsset(otherPath) : null);
 			}
 		}
@@ -550,7 +550,7 @@ public class EditorCommonUtility
 		{
 			string item = fileList[i];
 			displayProgressBar("分析资源引用", "进度: ", i, fileList.Count);
-			if (isDirExist(item.removeEndString(".meta")))
+			if (isDirExist(item.removeEnd(".meta")))
 			{
 				continue;
 			}
@@ -570,7 +570,7 @@ public class EditorCommonUtility
 	public static FileRefGUIDs getGUIDsInFile(string path)
 	{
 		// 图片的meta中不会有任何文件的引用
-		if (isTextureSuffix(getFileSuffix(path).removeEndString(".meta")))
+		if (isTextureSuffix(getFileSuffix(path).removeEnd(".meta")))
 		{
 			return null;
 		}
@@ -639,7 +639,7 @@ public class EditorCommonUtility
 			displayProgressBar("正在查找所有" + tipText + "资源", "进度:", i + 1, fileCount);
 			if (openTxtFileLines(files[i]).find(line => line.Contains("guid: "), out string line))
 			{
-				allGUIDDic.Add(line.removeStartString("guid: "), files[i]);
+				allGUIDDic.Add(line.removeStart("guid: "), files[i]);
 			}
 		}
 		clearProgressBar();
@@ -662,7 +662,7 @@ public class EditorCommonUtility
 				string line = lines[j];
 				if (line.Contains("guid: "))
 				{
-					allGUIDDic.Add(line.removeStartString("guid: "), file);
+					allGUIDDic.Add(line.removeStart("guid: "), file);
 					// 如果.meat文件中guid的下一行为"TextureImporter:"说明这个.meta文件为图集类型的.meta文件
 					if (lines[j + 1].Contains(spritesArrMark))
 					{
@@ -1892,8 +1892,8 @@ public class EditorCommonUtility
 					continue;
 				}
 				string variableStr = line.split(' ')[^1];
-				variableStr = variableStr.removeStartString("m");
-				variableStr = variableStr.removeEndString(";");
+				variableStr = variableStr.removeStart("m");
+				variableStr = variableStr.removeEnd(";");
 				linesDic.Add(variableStr, i + 1);
 			}
 			else
@@ -3393,11 +3393,11 @@ public class EditorCommonUtility
 		{
 			if (infoLine.startWith("File:"))
 			{
-				filePath = infoLine.removeStartString("File:");
+				filePath = infoLine.removeStart("File:");
 			}
 			else if (infoLine.startWith("Line:"))
 			{
-				fileLine = infoLine.removeStartString("Line:").SToI();
+				fileLine = infoLine.removeStart("Line:").SToI();
 			}
 		}
 
