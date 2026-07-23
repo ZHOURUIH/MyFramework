@@ -109,7 +109,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		mAtlasPtr = null;
 		if (!mInitDone)
 		{
-			logWarning("图集未初始化完成,无法卸载此图集,sprite:" + mOriginSpriteName);
+			logWarning("图集未初始化完成,无法卸载此图集,sprite:" + mOriginSpriteName + ",name:" + mName);
 		}
 		mAtlasManager.unloadAtlas(ref mOriginAtlasPtr);
 		mResourceManager.unload(ref mCurMaterial);
@@ -170,7 +170,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		}
 		if (!mInitDone)
 		{
-			logError("图集未初始化完成,还不能去设置图集,atlas name:" + atlas?.getAtlasSingleName());
+			logError("图集未初始化完成,还不能去设置图集,atlas name:" + atlas?.getAtlasSingleName() + ",name:" + mName);
 			return;
 		}
 		mAtlasPtr = atlas;

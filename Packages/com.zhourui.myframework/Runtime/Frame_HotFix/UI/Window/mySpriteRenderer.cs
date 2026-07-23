@@ -171,7 +171,7 @@ public class mySpriteRenderer : ClassObject
 		}
 		if (!mInitDone)
 		{
-			logError("图集未初始化完成,还不能去设置图集,atlas name:" + atlas?.getAtlasSingleName());
+			logError("图集未初始化完成,还不能去设置图集,atlas name:" + atlas?.getAtlasSingleName() + ",name:" + mName);
 			return;
 		}
 		mAtlasPtr = atlas;
