@@ -143,7 +143,7 @@ public class AssetBundleLoader
 	public AssetBundleInfo getAssetBundleInfo(string name) { return mAssetBundleInfoList.get(name); }
 	public void unloadAssetBundle(string bundleName)
 	{
-        bundleName = bundleName.removeEndString(ASSET_BUNDLE_SUFFIX);
+        bundleName = bundleName.removeEnd(ASSET_BUNDLE_SUFFIX);
         if (!mAssetBundleInfoList.TryGetValue(bundleName.ToLower(), out AssetBundleInfo info))
 		{
 			return;
@@ -227,7 +227,7 @@ public class AssetBundleLoader
 		{
 			return;
 		}
-		bundleName = bundleName.removeEndString(ASSET_BUNDLE_SUFFIX);
+		bundleName = bundleName.removeEnd(ASSET_BUNDLE_SUFFIX);
 		mAssetBundleInfoList.get(bundleName.ToLower())?.checkAssetBundleDependenceLoaded();
 	}
 	// 异步加载资源包,如果资源包未下载,则会先开始下载,不含后缀
@@ -239,7 +239,7 @@ public class AssetBundleLoader
 			callback?.Invoke(null);
 			return;
 		}
-		bundleName = bundleName.removeEndString(ASSET_BUNDLE_SUFFIX);
+		bundleName = bundleName.removeEnd(ASSET_BUNDLE_SUFFIX);
 		if (!mAssetBundleInfoList.TryGetValue(bundleName.ToLower(), out AssetBundleInfo info))
 		{
 			logError("can not find AssetBundle : " + bundleName);
@@ -255,7 +255,7 @@ public class AssetBundleLoader
 			logError("AssetBundleLoader is not inited!");
 			return;
 		}
-		bundleName = bundleName.removeEndString(ASSET_BUNDLE_SUFFIX);
+		bundleName = bundleName.removeEnd(ASSET_BUNDLE_SUFFIX);
 		if (mAssetBundleInfoList.TryGetValue(bundleName.ToLower(), out AssetBundleInfo bundleInfo))
 		{
 			if (bundleInfo.getLoadState() == LOAD_STATE.DOWNLOADING ||

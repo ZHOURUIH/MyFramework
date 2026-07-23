@@ -34,7 +34,7 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 			// unity_builtin_extra是unity内置的资源,不需要再次加载
 			if (!atlasPath.endWith("/unity_builtin_extra"))
 			{
-				atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
+				atlasPath = atlasPath.removeStart(P_GAME_RESOURCES_PATH);
 				// webgl中还不支持同步加载,但是异步又可能会出现很多执行时序问题.所以分开写,能同步则同步,不能才异步
                 mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas) =>
                 {

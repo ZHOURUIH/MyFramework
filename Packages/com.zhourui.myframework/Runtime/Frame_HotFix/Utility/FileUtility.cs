@@ -686,7 +686,7 @@ public class FileUtility
 		if (!isEditor() && isAndroid())
 		{
 			// 转换为相对路径
-			path = path.removeStartString(F_STREAMING_ASSETS_PATH);
+			path = path.removeStart(F_STREAMING_ASSETS_PATH);
 			AndroidAssetLoader.findAssets(path, fileList, patterns, recursive);
 			// 查找后的路径本身就是相对路径,如果需要保留绝对路径,则需要将路径加上
 			if (keepAbsolutePath)
@@ -719,7 +719,7 @@ public class FileUtility
 		if (!isEditor() && isAndroid())
 		{
 			// 转换为相对路径
-			path = path.removeStartString(F_STREAMING_ASSETS_PATH);
+			path = path.removeStart(F_STREAMING_ASSETS_PATH);
 			AndroidAssetLoader.findAssetsFolder(path, folderList, recursive);
 			// 查找后的路径本身就是相对路径,如果需要保留绝对路径,则需要将路径加上
 			if (keepAbsolutePath)

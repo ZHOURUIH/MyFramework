@@ -52,7 +52,7 @@ public class myUGUIDamageNumber : myUGUIObject
 			// unity_builtin_extra是unity内置的资源,不需要再次加载
 			if (!atlasPath.endWith("/unity_builtin_extra"))
 			{
-				atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
+				atlasPath = atlasPath.removeStart(P_GAME_RESOURCES_PATH);
                 mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas) =>
                 {
                     mOriginAtlasPtr = atlas;

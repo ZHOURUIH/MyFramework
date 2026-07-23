@@ -8,6 +8,7 @@ using static UnityUtility;
 using static FrameBaseHotFix;
 using static FrameBaseUtility;
 using static FrameUtility;
+using static FileUtility;
 using UObject = UnityEngine.Object;
 
 // 用于管理SpriteAtlas和MultiSprite封装以后的对象
@@ -36,6 +37,10 @@ public class AtlasManager : FrameSystem
 		if (isEditor())
 		{
 			mObject.AddComponent<TPSpriteManagerDebug>();
+			if (!isFileExist(F_MISC_PATH + ATLAS_PATH_CONFIG))
+			{
+				logError("找不到文件" + F_MISC_PATH + ATLAS_PATH_CONFIG + ",可以执行菜单:快捷操作->生成" + ATLAS_PATH_CONFIG);
+			}
 		}
 		mResourceManager.loadGameResourceAsync<TextAsset>(R_MISC_PATH + ATLAS_PATH_CONFIG, text =>
 		{
@@ -294,7 +299,7 @@ public class AtlasManager : FrameSystem
 				{
 					continue;
 				}
-				string name = sprite.name.removeEndString("(Clone)");
+				string name = sprite.name.removeEnd("(Clone)");
 				sprite.name = name;
 				atlas.addSprite(sprite, name);
 			}

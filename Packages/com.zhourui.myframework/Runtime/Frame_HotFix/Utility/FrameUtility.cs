@@ -1750,8 +1750,7 @@ public class FrameUtility
             file.endWith(".hlsl") ||
             file.endWith(".glslinc") ||
             file.endWith(".tpsheet") ||
-            file.endWith("LightingData.asset") ||
-            (!file.endWith(".spriteatlasv2") && isSpriteInAtlas(file)))
+            file.endWith("LightingData.asset") )
         {
             return EMPTY;
         }
@@ -1759,12 +1758,12 @@ public class FrameUtility
         // unity(但是一般情况下unity场景文件不打包)单个文件打包,就是直接替换后缀名,或者强制为单独一个包的
         if (file.endWith(".unity") || forceSingle)
         {
-            bundleName = replaceSuffix(file.removeStartString(P_GAME_RESOURCES_PATH), ASSET_BUNDLE_SUFFIX);
+            bundleName = replaceSuffix(file.removeStart(P_GAME_RESOURCES_PATH), ASSET_BUNDLE_SUFFIX);
         }
         // 其他文件的AssetBundle就是所属文件夹
         else
         {
-            bundleName = getFilePath(file).removeStartString(P_GAME_RESOURCES_PATH) + ASSET_BUNDLE_SUFFIX;
+            bundleName = getFilePath(file).removeStart(P_GAME_RESOURCES_PATH) + ASSET_BUNDLE_SUFFIX;
         }
         // AssetBundle名字必须是小写的,避免多平台可能存在的问题
         return bundleName.ToLower();

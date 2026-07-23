@@ -6,11 +6,11 @@ using UnityEngine;
 // 测试例子的表格
 public class EDTest : ExcelDataT<EDTest>
 {
-	public static int TEST_0_ID = 1;				// 测试字段
-	public static int TEST_1_ID = 2;				// 测试字段
+	public const int TEST_0_ID = 1;					// 测试字段
+	public const int TEST_1_ID = 2;					// 测试字段
 
-	public static EDTest _TEST_0;					// 测试字段
-	public static EDTest _TEST_1;					// 测试字段
+	private static EDTest _TEST_0;					// 测试字段
+	private static EDTest _TEST_1;					// 测试字段
 
 	public static EDTest TEST_0 { get { return _TEST_0 ??= mTable.query(TEST_0_ID); } }// 测试字段
 	public static EDTest TEST_1 { get { return _TEST_1 ??= mTable.query(TEST_1_ID); } }// 测试字段

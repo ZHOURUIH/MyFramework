@@ -2,7 +2,7 @@
 using UnityEditor;
 using static UnityUtility;
 
-public class UGUIGeneratorMenu
+public class MenuUGUIGenerator
 {
 	[MenuItem("GameObject/将节点添加到成员变量 %W", false, 30)]
 	static void makeGameObjectAsMember()

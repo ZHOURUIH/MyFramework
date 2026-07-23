@@ -90,7 +90,7 @@ public class UGUIGeneratorInspector : GameInspector
 				string goName = generator.gameObject.name;
 				if (goName.endWith("_Mobile"))
 				{
-					goName = goName.removeEndString("_Mobile");
+					goName = goName.removeEnd("_Mobile");
 				}
 				AssetDatabase.OpenAsset(loadAsset(findScript(goName)));
 			}
@@ -111,7 +111,7 @@ public class UGUIGeneratorInspector : GameInspector
 				continue;
 			}
 			// 如果将移动端和PC端都放到同一个目录中,则需要排除一下移动端的(这里只是一种自定义的规则,不同项目可能不一样)
-			string className = getFileNameNoSuffixNoDir(fileList[i]).removeEndString("_Mobile");
+			string className = getFileNameNoSuffixNoDir(fileList[i]).removeEnd("_Mobile");
 			if (!uiList.addUnique(className))
 			{
 				continue;
@@ -127,7 +127,7 @@ public class UGUIGeneratorInspector : GameInspector
 				lineString = "\t\tregisteLayout<" + className + ">(script =>";
 			}
 			string endString;
-			string subPath = fileList[i].removeStartString(F_UI_PREFAB_PATH).removeEndString(getFileNameWithSuffix(fileList[i]));
+			string subPath = fileList[i].removeStart(F_UI_PREFAB_PATH).removeEnd(getFileNameWithSuffix(fileList[i]));
 			if (subPath.isEmpty())
 			{
 				endString = "m" + className + " = script);";
@@ -173,7 +173,7 @@ public class UGUIGeneratorInspector : GameInspector
 		string className = generator.gameObject.name;
 		if (className.endWith("_Mobile"))
 		{
-			className = className.removeEndString("_Mobile");
+			className = className.removeEnd("_Mobile");
 		}
 
 		// 先找一下有没有已经存在的UI脚本

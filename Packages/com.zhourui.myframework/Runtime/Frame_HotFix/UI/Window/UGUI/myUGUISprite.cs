@@ -51,7 +51,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 			{
 				logError("ImageAtlasPath中记录的路径为空,GameObject:" + getGameObjectPath());
 			}
-			atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
+			atlasPath = atlasPath.removeStart(P_GAME_RESOURCES_PATH);
             mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas) =>
             {
                 mOriginAtlasPtr = atlas;
@@ -83,7 +83,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 			{
 				logError("没有找到MaterialPath组件,name:" + getName());
 			}
-			mOriginMaterialPath = mOriginMaterialPath.removeStartString(P_GAME_RESOURCES_PATH);
+			mOriginMaterialPath = mOriginMaterialPath.removeStart(P_GAME_RESOURCES_PATH);
 			if (!mOriginMaterialPath.endWith("/unity_builtin_extra"))
 			{
 				if (!mOriginMaterialPath.Contains('.'))

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using static MathUtility;
+using static EditorCommonUtility;
 
 public class AssetBundleDependencyWindow : GameEditorWindow
 {
@@ -62,7 +63,7 @@ public class AssetBundleDependencyWindow : GameEditorWindow
     private const float NODE_WIDTH = 280.0f;                                // 节点宽度
     private const float NODE_HEIGHT = 120.0f;                               // 节点高度
     private const float VERTICAL_SPACE = 155.0f;                            // 自动排版时节点纵向间距
-    private const float MIN_ZOOM = 0.1f;                                    // 最小缩放比例
+    private const float MIN_ZOOM = 0.05f;                                   // 最小缩放比例
     private const float MAX_ZOOM = 2.0f;                                    // 最大缩放比例
     private const float DETAIL_HIDE_ZOOM = 0.55f;                           // 低于该缩放时隐藏节点详情
     private const float TITLE_ONLY_ZOOM = 0.35f;                            // 低于该缩放时节点标题使用单行/裁剪显示
@@ -173,7 +174,7 @@ public class AssetBundleDependencyWindow : GameEditorWindow
             "Bundle数量: " + mBundleMap.Count +
             "    节点: " + mNodeMap.Count +
             "    依赖连线: " + mEdges.Count +
-            "    当前选中: " + (string.IsNullOrEmpty(mSelectedBundle) ? "<None>" : mSelectedBundle) +
+            "    当前选中: " + (mSelectedBundle.isEmpty() ? "<None>" : mSelectedBundle) +
             "    多选数量: " + mSelectedBundleSet.Count +
             "    依赖环: " + mDependencyCycleList.Count,
             EditorStyles.miniLabel);
@@ -227,11 +228,11 @@ public class AssetBundleDependencyWindow : GameEditorWindow
 
         try
         {
-            EditorUtility.DisplayProgressBar("AB依赖分析", "正在获取所有 AssetBundleName...", 0.0f);
+            displayProgressBar("AB依赖分析", "正在获取所有 AssetBundleName...");
             string[] allBundleNames = AssetDatabase.GetAllAssetBundleNames();
-            if (allBundleNames == null || allBundleNames.Length == 0)
+            if (allBundleNames.isEmpty())
             {
-                EditorUtility.ClearProgressBar();
+                clearProgressBar();
                 EditorUtility.DisplayDialog("提示", "当前工程没有设置任何 AssetBundleName。", "OK");
                 return;
             }
@@ -240,44 +241,27 @@ public class AssetBundleDependencyWindow : GameEditorWindow
             for (int i = 0; i < bundleCount; ++i)
             {
                 string bundleName = allBundleNames[i];
-                float progress = bundleCount > 0 ? (float)i / bundleCount : 1.0f;
-                EditorUtility.DisplayProgressBar("AB依赖分析", "正在分析: " + bundleName + "\n " + (i + 1) + "/" + bundleCount, progress);
-
-                BundleInfo info = new BundleInfo();
+                displayProgressBar("AB依赖分析", "正在分析: " + bundleName, i, bundleCount);
+                BundleInfo info = new();
                 info.mBundleName = bundleName;
-
                 string[] assets = AssetDatabase.GetAssetPathsFromAssetBundle(bundleName);
-                if (assets != null)
-                {
-                    info.mAssets.AddRange(assets);
-                    info.mAssetCount = assets.Length;
-                }
-
-                string[] directDeps = AssetDatabase.GetAssetBundleDependencies(bundleName, false);
-                if (directDeps != null)
-                {
-                    info.mDirectDependencies.AddRange(directDeps);
-                }
-
-                string[] allDeps = AssetDatabase.GetAssetBundleDependencies(bundleName, true);
-                if (allDeps != null)
-                {
-                    info.mAllDependencies.AddRange(allDeps);
-                }
-
+                info.mAssets.addRange(assets);
+                info.mAssetCount = assets.count();
+                info.mDirectDependencies.addRange(AssetDatabase.GetAssetBundleDependencies(bundleName, false));
+                info.mAllDependencies.addRange(AssetDatabase.GetAssetBundleDependencies(bundleName, true));
                 mBundleMap[bundleName] = info;
             }
 
-            EditorUtility.DisplayProgressBar("AB依赖分析", "正在计算反向依赖关系...", 0.92f);
+            displayProgressBar("AB依赖分析", "正在计算反向依赖关系...", 0.92f);
             BuildReferencedBy();
 
-            EditorUtility.DisplayProgressBar("AB依赖分析", "正在生成依赖节点和连线...", 0.95f);
+            displayProgressBar("AB依赖分析", "正在生成依赖节点和连线...", 0.95f);
             BuildAllNodesAndEdges();
 
-            EditorUtility.DisplayProgressBar("AB依赖分析", "正在检测依赖环...", 0.975f);
+            displayProgressBar("AB依赖分析", "正在检测依赖环...", 0.975f);
             BuildDependencyCycleList();
 
-            EditorUtility.DisplayProgressBar("AB依赖分析", "正在自动排版...", 0.98f);
+            displayProgressBar("AB依赖分析", "正在自动排版...", 0.98f);
             AutoLayout();
 
             Debug.Log("[AB依赖分析] 分析完成, Bundle数量: " + mBundleMap.Count +
@@ -292,7 +276,7 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         }
         finally
         {
-            EditorUtility.ClearProgressBar();
+            clearProgressBar();
         }
     }
 
@@ -351,7 +335,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
                 {
                     continue;
                 }
-
                 AddNode(dep);
                 AddEdge(info.mBundleName, dep);
             }
@@ -395,19 +378,12 @@ public class AssetBundleDependencyWindow : GameEditorWindow
             FindDependencyCycleDFS(start, start, graph, path, pathSet, cycleKeySet);
         }
 
-        mDependencyCycleList.Sort((a, b) =>
-        {
-            string aText = GetCycleDisplayText(a);
-            string bText = GetCycleDisplayText(b);
-            return string.CompareOrdinal(aText, bText);
-        });
-
+        mDependencyCycleList.Sort((a, b) => { return string.CompareOrdinal(GetCycleDisplayText(a), GetCycleDisplayText(b)); });
         foreach (List<string> cycle in mDependencyCycleList)
         {
             AddCycleEdges(cycle);
         }
     }
-
     private void FindDependencyCycleDFS(string start, string current, Dictionary<string, List<string>> graph, List<string> path, HashSet<string> pathSet, HashSet<string> cycleKeySet)
     {
         if (mDependencyCycleList.Count >= MAX_DEPENDENCY_CYCLE_COUNT || path.Count >= MAX_DEPENDENCY_CYCLE_DEPTH)
@@ -445,7 +421,7 @@ public class AssetBundleDependencyWindow : GameEditorWindow
 
     private string GetCanonicalCycleKey(List<string> cycle)
     {
-        if (cycle == null || cycle.Count <= 1)
+        if (cycle.count() <= 1)
         {
             return "";
         }
@@ -468,40 +444,32 @@ public class AssetBundleDependencyWindow : GameEditorWindow
             }
         }
 
-        StringBuilder sb = new();
+        MyStringBuilder sb = new();
         for (int i = 0; i < nodes.Count; ++i)
         {
-            int index = (bestIndex + i) % nodes.Count;
-            if (i > 0)
-            {
-                sb.Append("->");
-            }
-            sb.Append(nodes[index]);
+            sb.addIf("->", i > 0);
+            sb.add(nodes[(bestIndex + i) % nodes.Count]);
         }
         return sb.ToString();
     }
 
     private string GetCycleDisplayText(List<string> cycle)
     {
-        if (cycle == null || cycle.Count == 0)
+        if (cycle.isEmpty())
         {
             return "";
         }
-        StringBuilder sb = new();
+		MyStringBuilder sb = new();
         for (int i = 0; i < cycle.Count; ++i)
         {
-            if (i > 0)
-            {
-                sb.Append(" -> ");
-            }
-            sb.Append(cycle[i]);
+            sb.addIf(" -> ", i > 0);
+            sb.add(cycle[i]);
         }
         return sb.ToString();
     }
-
     private void AddCycleEdges(List<string> cycle)
     {
-        if (cycle == null || cycle.Count < 2)
+        if (cycle.count() < 2)
         {
             return;
         }
@@ -510,12 +478,10 @@ public class AssetBundleDependencyWindow : GameEditorWindow
             mCycleEdgeSet.Add(cycle[i] + "|" + cycle[i + 1]);
         }
     }
-
     private bool IsCycleEdge(string from, string to)
     {
         return mCycleEdgeSet.Contains(from + "|" + to);
     }
-
     private void AddNode(string bundleName)
     {
         if (mNodeMap.ContainsKey(bundleName))
@@ -528,12 +494,10 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         node.mRect = new Rect(0.0f, 0.0f, NODE_WIDTH, NODE_HEIGHT);
         mNodeMap.Add(bundleName, node);
     }
-
     private void AddEdge(string from, string to)
     {
         mEdges.Add(from + "|" + to);
     }
-
     private void AutoLayout()
     {
         if (mNodeMap.Count == 0)
@@ -541,7 +505,7 @@ public class AssetBundleDependencyWindow : GameEditorWindow
             return;
         }
 
-        Dictionary<string, string> bundleFolderMap = new Dictionary<string, string>();
+        Dictionary<string, string> bundleFolderMap = new();
         foreach (GraphNode node in mNodeMap.Values)
         {
             bundleFolderMap[node.mBundleName] = GetBundleFolder(node.mBundleName);
@@ -552,8 +516,7 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         Dictionary<string, List<GraphNode>> folderNodeMap = new();
         foreach (GraphNode node in mNodeMap.Values)
         {
-            string folder = bundleFolderMap.ContainsKey(node.mBundleName) ? bundleFolderMap[node.mBundleName] : "<Unknown>";
-            folderNodeMap.getOrAddNew(folder).Add(node);
+            folderNodeMap.getOrAddNew(bundleFolderMap.get(node.mBundleName) ?? "<Unknown>").Add(node);
         }
 
         var folderList = folderNodeMap.OrderBy(x => x.Key).ToList();
@@ -567,7 +530,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
                 {
                     return info.mDirectDependencies.Count + info.mDirectReferencedBy.Count;
                 }
-
                 return 0;
             }).ThenBy(x => x.mBundleName).ToList();
 
@@ -582,7 +544,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
             }
             curX += (columnCount - 1) * SAME_FOLDER_COLUMN_SPACE + DIFFERENT_FOLDER_COLUMN_SPACE;
         }
-
         Repaint();
     }
 
@@ -610,18 +571,16 @@ public class AssetBundleDependencyWindow : GameEditorWindow
                     ++singleFolderCount;
                 }
             }
-
             if (singleFolderCount < folderCountMap.Count * 0.7f)
             {
                 break;
             }
 
-            List<string> bundleList = bundleFolderMap.Keys.ToList();
             bool changed = false;
-            foreach (string bundleName in bundleList)
+            foreach (string bundleName in bundleFolderMap.Keys.ToList())
             {
                 string parentFolder = GetParentFolder(bundleFolderMap[bundleName]);
-                if (!string.IsNullOrEmpty(parentFolder) && parentFolder != bundleFolderMap[bundleName])
+                if (!parentFolder.isEmpty() && parentFolder != bundleFolderMap[bundleName])
                 {
                     bundleFolderMap[bundleName] = parentFolder;
                     changed = true;
@@ -641,7 +600,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         {
             return "<Unknown>";
         }
-
         if (info.mAssets.Count == 0)
         {
             return "<Empty>";
@@ -651,10 +609,7 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         foreach (string assetPath in info.mAssets)
         {
             string folder = GetAssetFolder(assetPath);
-            if (!string.IsNullOrEmpty(folder) && !folderList.Contains(folder))
-            {
-                folderList.Add(folder);
-            }
+            folderList.addUniqueIf(folder, !folder.isEmpty());
         }
         if (folderList.Count == 0)
         {
@@ -669,7 +624,7 @@ public class AssetBundleDependencyWindow : GameEditorWindow
 
     private string GetAssetFolder(string assetPath)
     {
-        if (string.IsNullOrEmpty(assetPath))
+        if (assetPath.isEmpty())
         {
             return "";
         }
@@ -684,7 +639,7 @@ public class AssetBundleDependencyWindow : GameEditorWindow
 
     private string GetParentFolder(string folder)
     {
-        if (string.IsNullOrEmpty(folder))
+        if (folder.isEmpty( ))
         {
             return "";
         }
@@ -700,7 +655,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         }
         return path[..index];
     }
-
     private string GetCommonFolder(List<string> folderList)
     {
         if (folderList == null || folderList.Count == 0)
@@ -710,7 +664,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
 
         string[] commonParts = folderList[0].Split('/');
         int commonLength = commonParts.Length;
-
         for (int i = 1; i < folderList.Count; ++i)
         {
             string[] parts = folderList[i].Split('/');
@@ -730,41 +683,32 @@ public class AssetBundleDependencyWindow : GameEditorWindow
             return "<Root>";
         }
 
-        StringBuilder sb = new();
+        MyStringBuilder sb = new();
         for (int i = 0; i < commonLength; ++i)
         {
-            if (i > 0)
-            {
-                sb.Append("/");
-            }
-
-            sb.Append(commonParts[i]);
+            sb.addIf("/", i > 0);
+            sb.add(commonParts[i]);
         }
-
         return sb.ToString();
     }
-
     private Vector2 GraphToScreen(Vector2 graphPos)
     {
         return graphPos * mZoom + mPanOffset;
     }
-
     private Vector2 ScreenToGraph(Vector2 screenPos)
     {
         return (screenPos - mPanOffset) / mZoom;
     }
-
     private Rect GraphToScreenRect(Rect graphRect)
     {
         return new Rect(GraphToScreen(graphRect.position), graphRect.size * mZoom);
     }
-
     private void DrawGraphArea(Rect graphRect)
     {
         GUI.Box(graphRect, GUIContent.none);
         GUI.BeginGroup(graphRect);
 
-        Rect localGraphRect = new Rect(0.0f, 0.0f, graphRect.width, graphRect.height);
+        Rect localGraphRect = new(0.0f, 0.0f, graphRect.width, graphRect.height);
         if (mBundleMap.Count == 0)
         {
             GUI.Label(new Rect(20.0f, 20.0f, localGraphRect.width - 40.0f, 40.0f), "尚未分析。点击上方“分析所有AB依赖”开始。");
@@ -789,7 +733,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
             {
                 continue;
             }
-
             Rect drawRect = GraphToScreenRect(node.mRect);
             GUIStyle style = IsBundleSelected(node.mBundleName) ? mSelectedNodeStyle : mNodeStyle;
             GUI.Window(i, drawRect, DrawNodeWindow, "", style);
@@ -812,17 +755,17 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         Rect panelRect = GetSelectedBundleDependencyPanelRect(graphRect);
 
         string bundleName = mSelectedBundle;
-        if (string.IsNullOrEmpty(bundleName) && mSelectedBundleSet.Count == 1)
+        if (bundleName.isEmpty() && mSelectedBundleSet.Count == 1)
         {
             bundleName = mSelectedBundleSet.First();
         }
 
-        bool hasSelectedBundle = !string.IsNullOrEmpty(bundleName) && mBundleMap.ContainsKey(bundleName);
+        bool hasSelectedBundle = !bundleName.isEmpty() && mBundleMap.ContainsKey(bundleName);
         BeginSelectedBundleDependencyPanelArea(panelRect, hasSelectedBundle);
 
         EditorGUILayout.LabelField("选中AB依赖详情", EditorStyles.boldLabel);
 
-        if (string.IsNullOrEmpty(bundleName))
+        if (bundleName.isEmpty())
         {
             EditorGUILayout.HelpBox("点击左侧任意 AssetBundle 节点后，这里会显示它的依赖项。", MessageType.Info);
             GUILayout.EndArea();
@@ -871,7 +814,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         EditorGUILayout.EndScrollView();
         GUILayout.EndArea();
     }
-
     private void BeginSelectedBundleDependencyPanelArea(Rect panelRect, bool hasSelectedBundle)
     {
         if (!hasSelectedBundle)
@@ -895,7 +837,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
 
         GUILayout.BeginArea(contentRect);
     }
-
     private void UpdateSelectedBundleDependencyPanelScreenRect(Rect graphRect)
     {
         if (mBundleMap.Count == 0)
@@ -908,17 +849,14 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         Vector2 screenPosition = GUIUtility.GUIToScreenPoint(panelRect.position);
         mSelectedBundleDependencyPanelScreenRect = new Rect(screenPosition, panelRect.size);
     }
-
     private bool IsMouseInSelectedBundleDependencyPanelScreen(Vector2 mouseScreenPosition)
     {
         if (mBundleMap.Count == 0)
         {
             return false;
         }
-
         return mSelectedBundleDependencyPanelScreenRect.Contains(mouseScreenPosition);
     }
-
     private Rect GetSelectedBundleDependencyPanelRect(Rect graphRect)
     {
         float width = Mathf.Min(SELECTED_DEPENDENCY_PANEL_WIDTH, Mathf.Max(260.0f, graphRect.width * 0.42f));
@@ -928,19 +866,16 @@ public class AssetBundleDependencyWindow : GameEditorWindow
             width,
             graphRect.height - SELECTED_DEPENDENCY_PANEL_MARGIN * 2.0f);
     }
-
     private bool IsMouseInSelectedBundleDependencyPanel(Rect graphRect, Vector2 mousePosition)
     {
         if (mBundleMap.Count == 0)
         {
             return false;
         }
-
         Vector2 localMousePosition = mousePosition - graphRect.position;
         Rect localGraphRect = new(0.0f, 0.0f, graphRect.width, graphRect.height);
         return GetSelectedBundleDependencyPanelRect(localGraphRect).Contains(localMousePosition);
     }
-
     private void DrawSelectedBundleStringList(string title, List<string> list)
     {
         List<string> filteredList = GetSelectedBundleFilteredList(list);
@@ -962,10 +897,9 @@ public class AssetBundleDependencyWindow : GameEditorWindow
             EditorGUILayout.EndHorizontal();
         }
     }
-
     private List<string> GetSelectedBundleFilteredList(List<string> list)
     {
-        if (string.IsNullOrEmpty(mSelectedBundleDependencySearchText))
+        if (mSelectedBundleDependencySearchText.isEmpty())
         {
             return list;
         }
@@ -979,7 +913,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         }
         return result;
     }
-
     private void DrawSelectionRect()
     {
         if (!mSelectingNodes)
@@ -990,7 +923,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         EditorGUI.DrawRect(rect, new(0.25f, 0.65f, 1.0f, 0.16f));
         DrawRectBorder(rect, new(0.25f, 0.75f, 1.0f, 0.9f), 1.0f);
     }
-
     private Rect GetSelectionRect()
     {
         float xMin = Mathf.Min(mSelectStartLocalPos.x, mSelectEndLocalPos.x);
@@ -999,68 +931,49 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         float yMax = Mathf.Max(mSelectStartLocalPos.y, mSelectEndLocalPos.y);
         return Rect.MinMaxRect(xMin, yMin, xMax, yMax);
     }
-
     private void DrawZoomInfo(Rect graphRect)
     {
         GUI.Label(new Rect(graphRect.x + 10.0f, graphRect.yMax - 24.0f, 200.0f, 20.0f), "Zoom: " + (mZoom * 100.0f).ToString("F0") + "%", EditorStyles.miniLabel);
     }
-
     private bool IsIndependentBundle(string bundleName)
     {
-        if (!mBundleMap.TryGetValue(bundleName, out BundleInfo info))
-        {
-            return false;
-        }
-
-        return info.mDirectDependencies.Count == 0 && info.mDirectReferencedBy.Count == 0;
+        return mBundleMap.TryGetValue(bundleName, out BundleInfo info) && 
+                info.mDirectDependencies.isEmpty() && 
+                info.mDirectReferencedBy.isEmpty();
     }
-
     private bool IsNodeVisible(string bundleName)
     {
         if (mHideIndependentBundle && IsIndependentBundle(bundleName))
         {
             return false;
         }
-
         return IsNodeVisibleBySearch(bundleName);
     }
-
     private void ClearHiddenSelectedBundles()
     {
         if (!mHideIndependentBundle)
         {
             return;
         }
-
-        List<string> selectedList = mSelectedBundleSet.ToList();
-        foreach (string bundleName in selectedList)
+        foreach (string bundleName in mSelectedBundleSet.ToList())
         {
-            if (IsIndependentBundle(bundleName))
-            {
-                mSelectedBundleSet.Remove(bundleName);
-            }
+            mSelectedBundleSet.removeIf(bundleName, IsIndependentBundle(bundleName));
         }
-
-        if (!string.IsNullOrEmpty(mSelectedBundle) && IsIndependentBundle(mSelectedBundle))
+        if (!mSelectedBundle.isEmpty() && IsIndependentBundle(mSelectedBundle))
         {
-            mSelectedBundle = mSelectedBundleSet.Count > 0 ? mSelectedBundleSet.First() : "";
+            mSelectedBundle = mSelectedBundleSet.first() ?? "";
         }
     }
-
     private bool IsNodeVisibleBySearch(string bundleName)
     {
-        if (string.IsNullOrEmpty(mSearchText))
-        {
-            return true;
-        }
-        return bundleName.IndexOf(mSearchText, StringComparison.OrdinalIgnoreCase) >= 0 || bundleName == mSelectedBundle;
+        return mSearchText.isEmpty() || 
+               bundleName.IndexOf(mSearchText, StringComparison.OrdinalIgnoreCase) >= 0 || 
+               bundleName == mSelectedBundle;
     }
-
     private bool IsBundleSelected(string bundleName)
     {
         return mSelectedBundleSet.Contains(bundleName);
     }
-
     private void DrawNodeWindow(int id)
     {
         List<GraphNode> nodes = mNodeMap.Values.ToList();
@@ -1106,14 +1019,7 @@ public class AssetBundleDependencyWindow : GameEditorWindow
             mSelectedBundle = node.mBundleName;
             if (e.control || e.command)
             {
-                if (mSelectedBundleSet.Contains(node.mBundleName))
-                {
-                    mSelectedBundleSet.Remove(node.mBundleName);
-                }
-                else
-                {
-                    mSelectedBundleSet.Add(node.mBundleName);
-                }
+                mSelectedBundleSet.addOrRemove(node.mBundleName, !mSelectedBundleSet.Contains(node.mBundleName));
             }
             else if (!mSelectedBundleSet.Contains(node.mBundleName))
             {
@@ -1127,13 +1033,12 @@ public class AssetBundleDependencyWindow : GameEditorWindow
             e.Use();
         }
     }
-
     private void DrawNodeBox(Rect nodeRect, string bundleName)
     {
         bool selected = IsBundleSelected(bundleName);
         Color backgroundColor = GetNodeBackgroundColor(bundleName);
         Color borderColor = selected ? new Color(0.35f, 0.72f, 1.0f, 1.0f) : GetNodeBorderColor(bundleName);
-        Color titleColor = selected ? new Color(0.18f, 0.45f, 0.70f, 1.0f) : GetNodeTitleColor(bundleName);
+        Color titleColor = selected ? new Color(0.18f, 0.45f, 0.70f, 1.0f) : GetNodeTitleColor();
 
         EditorGUI.DrawRect(nodeRect, backgroundColor);
 
@@ -1145,14 +1050,12 @@ public class AssetBundleDependencyWindow : GameEditorWindow
 
         float borderWidth = Mathf.Clamp(2.0f * mZoom, 1.0f, 2.0f);
         DrawRectBorder(nodeRect, borderColor, borderWidth);
-
         if (selected)
         {
             Rect innerRect = new(nodeRect.x + 2.0f * mZoom, nodeRect.y + 2.0f * mZoom, nodeRect.width - 4.0f * mZoom, nodeRect.height - 4.0f * mZoom);
             DrawRectBorder(innerRect, new Color(0.35f, 0.72f, 1.0f, 0.75f), borderWidth);
         }
     }
-
     private Color GetNodeBorderColor(string bundleName)
     {
         if (mDependencyCycleList.contains(item => item.contains(bundleName)))
@@ -1168,7 +1071,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         EditorGUI.DrawRect(new Rect(rect.xMin, rect.yMin, width, rect.height), color);
         EditorGUI.DrawRect(new Rect(rect.xMax - width, rect.yMin, width, rect.height), color);
     }
-
     private void DrawEdges()
     {
         foreach (string edge in mEdges)
@@ -1219,7 +1121,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
             DrawSingleEdge(from, to);
         }
     }
-
     private void DrawSingleEdge(string from, string to)
     {
         if (!IsNodeVisible(from) || 
@@ -1257,7 +1158,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         DrawBezierLine(start, end, startTan, endTan, color, Mathf.Clamp(lineWidth * mZoom, 0.8f, 3.6f));
         DrawArrow(end, endTan, color);
     }
-
     private void DrawBezierLine(Vector3 start, Vector3 end, Vector3 startTan, Vector3 endTan, Color color, float width)
     {
         const int SEGMENT_COUNT = 32;
@@ -1271,7 +1171,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         Handles.DrawAAPolyLine(width, points);
         Handles.color = Color.white;
     }
-
     private Vector3 EvaluateBezier(Vector3 start, Vector3 end, Vector3 startTan, Vector3 endTan, float t)
     {
         float oneMinusT = 1.0f - t;
@@ -1280,7 +1179,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
             3.0f * oneMinusT * t * t * endTan +
             t * t * t * end;
     }
-
     private bool IsEdgeHighlighted(string from, string to)
     {
         if (!mSelectedBundle.isEmpty() && (from == mSelectedBundle || to == mSelectedBundle))
@@ -1289,18 +1187,16 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         }
         return mSelectedBundleSet.Contains(from) || mSelectedBundleSet.Contains(to);
     }
-
     private float GetEdgePortOffset(string from, string to)
     {
         float selectedOffset = 24.0f * mZoom;
         float reverseOffset = 16.0f * mZoom;
-        if (!string.IsNullOrEmpty(mSelectedBundle))
+        if (!mSelectedBundle.isEmpty())
         {
             if (from == mSelectedBundle)
             {
                 return selectedOffset;
             }
-
             if (to == mSelectedBundle)
             {
                 return -selectedOffset;
@@ -1311,96 +1207,78 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         {
             return string.CompareOrdinal(from, to) < 0 ? reverseOffset : -reverseOffset;
         }
-
         return 0.0f;
     }
-
     private bool HasReverseEdge(string from, string to)
     {
         return mEdges.Contains(to + "|" + from);
     }
-
     private float GetEdgeWidth(string from, string to)
     {
         if (IsCycleEdge(from, to))
         {
             return IsEdgeHighlighted(from, to) ? 5.0f : 3.4f;
         }
-
-        if (string.IsNullOrEmpty(mSelectedBundle) && mSelectedBundleSet.Count == 0)
+        if (mSelectedBundle.isEmpty() && mSelectedBundleSet.Count == 0)
         {
             return HasReverseEdge(from, to) ? 3.0f : 2.0f;
         }
-
-        if (!string.IsNullOrEmpty(mSelectedBundle))
+        if (!mSelectedBundle.isEmpty())
         {
             if (from == mSelectedBundle || to == mSelectedBundle)
             {
                 return HasReverseEdge(from, to) ? 4.6f : 4.0f;
             }
         }
-
         if (mSelectedBundleSet.Contains(from) && mSelectedBundleSet.Contains(to))
         {
             return HasReverseEdge(from, to) ? 3.8f : 3.2f;
         }
-
         if (mSelectedBundleSet.Contains(from) || mSelectedBundleSet.Contains(to))
         {
             return HasReverseEdge(from, to) ? 3.2f : 2.8f;
         }
-
         return HasReverseEdge(from, to) ? 1.8f : 1.2f;
     }
-
     private Color GetEdgeColor(string from, string to)
     {
         if (IsCycleEdge(from, to))
         {
             return new Color(1.0f, 0.05f, 0.05f, 1.0f);
         }
-
         if (HasReverseEdge(from, to))
         {
             return new Color(1.0f, 0.18f, 0.12f, 1.0f);
         }
-
-        if (string.IsNullOrEmpty(mSelectedBundle) && mSelectedBundleSet.Count == 0)
+        if (mSelectedBundle.isEmpty() && mSelectedBundleSet.Count == 0)
         {
             return new Color(0.18f, 0.48f, 0.72f, 0.90f);
         }
-
-        if (!string.IsNullOrEmpty(mSelectedBundle))
+        if (!mSelectedBundle.isEmpty())
         {
             if (from == mSelectedBundle)
             {
                 return new Color(0.0f, 0.85f, 1.0f, 1.0f);
             }
-
             if (to == mSelectedBundle)
             {
                 return new Color(1.0f, 0.42f, 0.05f, 1.0f);
             }
         }
-
         if (mSelectedBundleSet.Contains(from) && mSelectedBundleSet.Contains(to))
         {
             return new Color(0.75f, 0.38f, 1.0f, 1.0f);
         }
-
         if (mSelectedBundleSet.Contains(from))
         {
             return new Color(0.0f, 0.70f, 1.0f, 1.0f);
         }
-
         if (mSelectedBundleSet.Contains(to))
         {
             return new Color(1.0f, 0.62f, 0.10f, 1.0f);
         }
-
         return new Color(0.10f, 0.24f, 0.34f, 0.75f);
     }
-
     private void DrawArrow(Vector3 end, Vector3 endTan, Color color)
     {
         Vector3 dir = (end - endTan).normalized;
@@ -1419,7 +1297,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         Handles.DrawAAConvexPolygon(p1, p2, p3);
         Handles.color = Color.white;
     }
-
     private void DrawGrid(Rect rect, float gridSpacing, Color gridColor)
     {
         float scaledGridSpacing = gridSpacing * mZoom;
@@ -1439,7 +1316,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
             float x = rect.x + i * scaledGridSpacing + offset.x;
             Handles.DrawLine(new(x, rect.y, 0.0f), new(x, rect.yMax, 0.0f));
         }
-
         for (int j = 0; j < heightDivs + 2; j++)
         {
             float y = rect.y + j * scaledGridSpacing + offset.y;
@@ -1447,11 +1323,10 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         }
         Handles.color = Color.white;
     }
-
     private void HandleCanvasInput(Rect graphRect)
     {
         Event e = Event.current;
-        if (!string.IsNullOrEmpty(mDraggingNodeName))
+        if (!mDraggingNodeName.isEmpty())
         {
             if (e.type == EventType.MouseDrag && e.button == 0)
             {
@@ -1508,8 +1383,7 @@ public class AssetBundleDependencyWindow : GameEditorWindow
             }
         }
 
-        if (!graphRect.Contains(e.mousePosition) ||
-            IsMouseInSelectedBundleDependencyPanel(graphRect, e.mousePosition))
+        if (!graphRect.Contains(e.mousePosition) || IsMouseInSelectedBundleDependencyPanel(graphRect, e.mousePosition))
         {
             return;
         }
@@ -1577,7 +1451,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
             e.Use();
         }
     }
-
     private void ApplySelectionRect()
     {
         Rect selectRect = GetSelectionRect();
@@ -1606,7 +1479,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
             mSelectedBundle = "";
         }
     }
-
     private void FitAllNodesToView()
     {
         if (mNodeMap.Count == 0)
@@ -1658,7 +1530,7 @@ public class AssetBundleDependencyWindow : GameEditorWindow
 
     private void SelectFirstMatchedNode()
     {
-        if (string.IsNullOrEmpty(mSearchText))
+        if (mSearchText.isEmpty())
         {
             return;
         }
@@ -1690,7 +1562,7 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         }
 
         string path = EditorUtility.SaveFilePanel("导出AB依赖文本", Application.dataPath, "AssetBundleDependencies_Detail.txt", "txt");
-        if (string.IsNullOrEmpty(path))
+        if (path.isEmpty())
         {
             return;
         }
@@ -1735,7 +1607,6 @@ public class AssetBundleDependencyWindow : GameEditorWindow
         Debug.Log("[AB依赖分析] TXT导出完成: " + path);
         EditorUtility.DisplayDialog("完成", "TXT导出完成:\n" + path, "OK");
     }
-
     private void AppendList(StringBuilder sb, string title, List<string> list)
     {
         sb.AppendLine(title + " " + list.Count);
@@ -1754,72 +1625,14 @@ public class AssetBundleDependencyWindow : GameEditorWindow
     }
     private Color GetNodeBackgroundColor(string bundleName)
     {
-        string n = bundleName.ToLower();
         if (IsBundleSelected(bundleName))
         {
             return new Color(0.20f, 0.30f, 0.38f, 1.0f);
         }
-        if (n.StartsWith("res_prefabs_"))
-        {
-            return new Color(0.16f, 0.23f, 0.30f, 1.0f);
-        }
-        if (n.StartsWith("resatlassprites_"))
-        {
-            return new Color(0.15f, 0.26f, 0.19f, 1.0f);
-        }
-        if (n.StartsWith("assetbundle_activity_"))
-        {
-            return new Color(0.30f, 0.23f, 0.14f, 1.0f);
-        }
-        if (n.StartsWith("sharedarts_"))
-        {
-            return new Color(0.24f, 0.19f, 0.32f, 1.0f);
-        }
-        if (n.StartsWith("animation"))
-        {
-            return new Color(0.31f, 0.18f, 0.18f, 1.0f);
-        }
-        if (n.StartsWith("assetbundle_spineres_"))
-        {
-            return new Color(0.30f, 0.27f, 0.15f, 1.0f);
-        }
-        if (n.StartsWith("_scenes"))
-        {
-            return new Color(0.32f, 0.18f, 0.27f, 1.0f);
-        }
         return new Color(0.20f, 0.20f, 0.20f, 1.0f);
     }
-    private Color GetNodeTitleColor(string bundleName)
+    private Color GetNodeTitleColor()
     {
-        string n = bundleName.ToLower();
-        if (n.StartsWith("res_prefabs_"))
-        {
-            return new Color(0.12f, 0.20f, 0.28f, 1.0f);
-        }
-        if (n.StartsWith("resatlassprites_"))
-        {
-            return new Color(0.10f, 0.22f, 0.14f, 1.0f);
-        }
-        if (n.StartsWith("assetbundle_activity_"))
-        {
-            return new Color(0.25f, 0.18f, 0.10f, 1.0f);
-        }
-        if (n.StartsWith("sharedarts_"))
-        {
-            return new Color(0.20f, 0.15f, 0.28f, 1.0f);
-        }
-        if (n.StartsWith("animation"))
-        {
-            return new Color(0.26f, 0.13f, 0.13f, 1.0f);
-        }
-        if (n.StartsWith("assetbundle_spineres_"))
-        {
-            return new Color(0.25f, 0.22f, 0.10f, 1.0f);
-        }
-        if (n.StartsWith("_scenes"))
-        {
-            return new Color(0.27f, 0.13f, 0.22f, 1.0f);
-        }
         return new Color(0.16f, 0.16f, 0.16f, 1.0f);
     }
 }

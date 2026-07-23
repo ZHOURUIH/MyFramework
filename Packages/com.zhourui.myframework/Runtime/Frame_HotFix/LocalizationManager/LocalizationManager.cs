@@ -155,7 +155,7 @@ public class LocalizationManager : FrameSystem
 		{
 			logError("多语言图片名需要以_" + LANGUAGE_CHINESE + "结尾");
 		}
-		chineseSpriteName = chineseSpriteName.removeEndString(LANGUAGE_CHINESE);
+		chineseSpriteName = chineseSpriteName.removeEnd(LANGUAGE_CHINESE);
 		localization.mImageNameWithoutSuffix = chineseSpriteName;
 		localization.mObject.setSpriteName(localization.mImageNameWithoutSuffix + mCurrentLanguage);
 	}

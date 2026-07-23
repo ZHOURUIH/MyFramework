@@ -78,6 +78,7 @@ public class FrameDefine
 	public static string F_RESOURCES_PATH = F_ASSETS_PATH + RESOURCES + "/";
 	public static string F_GAME_PLUGIN_PATH = F_STREAMING_ASSETS_PATH + GAME_PLUGIN + "/";
 	public static string F_UI_PATH = F_GAME_RESOURCES_PATH + UI + "/";
+	public static string F_MISC_PATH = F_GAME_RESOURCES_PATH + MISC + "/";
 	public static string F_UI_PREFAB_PATH = F_UI_PATH + UI_PREFAB + "/";
 	public static string F_RESORUCES_UI_PATH = F_RESOURCES_PATH + UI + "/";
 	public static string F_RESORUCES_UI_PREFAB_PATH = F_UI_PATH + UI_PREFAB + "/";

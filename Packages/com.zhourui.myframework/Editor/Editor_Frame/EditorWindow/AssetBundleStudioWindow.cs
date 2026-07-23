@@ -184,7 +184,7 @@ public class AssetBundleStudioWindow : GameEditorWindow
         }
         if (text.Length > 12000)
         {
-            text = text.Substring(0, 12000) + "\n\n...... 文本过长,这里只显示前12000字符";
+            text = text[..12000] + "\n\n...... 文本过长,这里只显示前12000字符";
         }
         EditorGUILayout.TextArea(text, GUILayout.MinHeight(360.0f));
     }

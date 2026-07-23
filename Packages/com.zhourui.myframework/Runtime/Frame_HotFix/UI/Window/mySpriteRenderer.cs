@@ -49,7 +49,7 @@ public class mySpriteRenderer : ClassObject
 			{
 				logError("ImageAtlasPath中记录的路径为空,GameObject:" + getGameObjectPath(mObject));
 			}
-			atlasPath = atlasPath.removeStartString(P_GAME_RESOURCES_PATH);
+			atlasPath = atlasPath.removeStart(P_GAME_RESOURCES_PATH);
             mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef ptr) =>
             {
                 mOriginAtlasPtr = ptr;
@@ -80,7 +80,7 @@ public class mySpriteRenderer : ClassObject
 			{
 				logError("没有找到MaterialPath组件,name:" + mName);
 			}
-			mOriginMaterialPath = mOriginMaterialPath.removeStartString(P_GAME_RESOURCES_PATH);
+			mOriginMaterialPath = mOriginMaterialPath.removeStart(P_GAME_RESOURCES_PATH);
 			if (!mOriginMaterialPath.endWith("/unity_builtin_extra"))
 			{
 				if (!mOriginMaterialPath.Contains('.'))

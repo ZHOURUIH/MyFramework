@@ -57,7 +57,7 @@ public class PlatformUtility
         fileContent += fileInfoList.Count.IToS() + "\n";
         foreach (string item in fileInfoList)
         {
-            fileContent += item.removeStartString(assetBundlePath) + "\t" + getFileSize(item).IToS() + "\t" + generateFileMD5(item, false) + "\n";
+            fileContent += item.removeStart(assetBundlePath) + "\t" + getFileSize(item).IToS() + "\t" + generateFileMD5(item, false) + "\n";
         }
         return fileContent;
     }
@@ -102,7 +102,7 @@ public class PlatformUtility
         {
             if (matchSuffix(ignoreSuffix, newPath) ||
                 isIgnorePath(newPath, ignorePath) ||
-                ignoreFiles.contains(newPath.removeStartString(assetBundlePath)))
+                ignoreFiles.contains(newPath.removeStart(assetBundlePath)))
             {
                 continue;
             }
@@ -218,7 +218,7 @@ public class PlatformUtility
                 else
                 {
                     // 当前的目录,去除前缀,去除最后的:,如果路径不为空,就加上/,如果通过
-                    curDirectory = line.removeAll('\'').removeStartString(remoteDeletePath).removeEndString(":");
+                    curDirectory = line.removeAll('\'').removeStart(remoteDeletePath).removeEnd(":");
                     if (!curDirectory.isEmpty())
                     {
                         curDirectory += "/";
