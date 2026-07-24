@@ -5,7 +5,11 @@ using static TestAssert;
 
 public class Vector2IntMyTest
 {
-	public void Run()
+	public static void Run()
+	{
+		new Vector2IntMyTest().runAll();
+	}
+	private void runAll()
 	{
 		testConstructor();
 		testEquals();

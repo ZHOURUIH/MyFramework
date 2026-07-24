@@ -127,6 +127,16 @@ public class FrameHotFixTest
         Register("DoubleBufferReaderTest", DoubleBufferReaderTest.Run);
         Register("PurchaseAndCurveInfoTest", PurchaseAndCurveInfoTest.Run);
         Register("ResourceManagerTest", ResourceManagerTest.Run);
+        Register("Vector2IntMyTest", Vector2IntMyTest.Run);
+        Register("AStarMinHeapTest", AStarMinHeapTest.Run);
+        Register("PointTest", PointTest.Run);
+        Register("Vector2ShortTest", Vector2ShortTest.Run);
+        Register("Vector2UIntTest", Vector2UIntTest.Run);
+        Register("Vector2UShortTest", Vector2UShortTest.Run);
+        Register("Line2Test", Line2Test.Run);
+        Register("Line3Test", Line3Test.Run);
+        Register("Rect3Test", Rect3Test.Run);
+        Register("Circle3Test", Circle3Test.Run);
 
         doRunAll(sTests);
     }

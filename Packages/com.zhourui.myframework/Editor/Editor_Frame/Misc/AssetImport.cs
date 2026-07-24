@@ -49,11 +49,11 @@ public class AssetsImport : AssetPostprocessor
 			SpriteAtlasPackingSettings settings = atlas.GetPackingSettings();
 			if (settings.enableRotation)
 			{
-				Debug.LogError("SpriteAtlas不应该启用enableRotation:" + fullPathToProjectPath(fullPath), atlas);
+				Debug.LogError("SpriteAtlas不应该启用enableRotation:" + fullPathToProjectPath(fullPath) + ",如果已经确认正确,则可以忽略", atlas);
 			}
 			if (settings.enableTightPacking)
 			{
-				Debug.LogError("SpriteAtlas不应该启用enableTightPacking:" + fullPathToProjectPath(fullPath), atlas);
+				Debug.LogError("SpriteAtlas不应该启用enableTightPacking:" + fullPathToProjectPath(fullPath) + ",如果已经确认正确,则可以忽略", atlas);
 			}
 		}
 	}

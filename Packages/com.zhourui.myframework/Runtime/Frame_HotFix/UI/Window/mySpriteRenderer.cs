@@ -1,10 +1,11 @@
-﻿using UnityEngine;
-using static FrameBaseUtility;
-using static UnityUtility;
+﻿using System;
+using UnityEngine;
 using static FrameBaseHotFix;
-using static StringUtility;
-using static MathUtility;
+using static FrameBaseUtility;
 using static FrameDefine;
+using static MathUtility;
+using static StringUtility;
+using static UnityUtility;
 
 // 对SpriteRenderer的封装,在3D空间中使用的
 public class mySpriteRenderer : ClassObject
@@ -162,6 +163,15 @@ public class mySpriteRenderer : ClassObject
 			return size;
 		}
 	}
+	public void getAtlasAsync(Action<AtlasRef> callback)
+	{
+		if (mInitDone)
+		{
+			callback?.Invoke(mAtlasPtr);
+			return;
+		}
+		mWaitingManager.wait(() => { return mInitDone; }, () => { callback?.Invoke(mAtlasPtr); });
+	}
 	public AtlasRef getAtlas() { return mAtlasPtr; }
 	public virtual void setAtlas(AtlasRef atlas, bool clearSprite = false, bool force = false)
 	{
@@ -171,7 +181,7 @@ public class mySpriteRenderer : ClassObject
 		}
 		if (!mInitDone)
 		{
-			logError("图集未初始化完成,还不能去设置图集,atlas name:" + atlas?.getAtlasSingleName());
+			logError("图集未初始化完成,还不能去设置图集,atlas name:" + atlas?.getAtlasSingleName() + ",name:" + mName);
 			return;
 		}
 		mAtlasPtr = atlas;

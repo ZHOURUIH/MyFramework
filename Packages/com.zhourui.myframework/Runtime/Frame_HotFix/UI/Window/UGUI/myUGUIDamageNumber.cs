@@ -76,7 +76,7 @@ public class myUGUIDamageNumber : myUGUIObject
 		setAlpha(1.0f);
 		if (!mInitDone)
 		{
-			logWarning("图集未初始化完成,无法卸载此图集,sprite:" + mOriginSpriteName);
+			logWarning("图集未初始化完成,无法卸载此图集,sprite:" + mOriginSpriteName + ",name:" + mName);
 		}
 		mAtlasManager.unloadAtlas(ref mOriginAtlasPtr);
 		mAtlasPtr = null;
@@ -102,7 +102,7 @@ public class myUGUIDamageNumber : myUGUIObject
 	{
 		if (!mInitDone)
 		{
-			logError("图集未初始化完成,还不能去设置图集,atlas name:" + atlas?.getAtlasSingleName());
+			logError("图集未初始化完成,还不能去设置图集,atlas name:" + atlas?.getAtlasSingleName() + ",name:" + mName);
 			return;
 		}
 		mAtlasPtr = atlas;
@@ -201,7 +201,7 @@ public class myUGUIDamageNumber : myUGUIObject
 	{
 		if (!mInitDone)
 		{
-			logWarning("图集未初始化完成,获取不到图片:" + name);
+			logWarning("图集未初始化完成,获取不到图片:" + name + ",name:" + mName);
 			return null;
 		}
 		return mAtlasPtr?.getSprite(name); 
@@ -210,7 +210,7 @@ public class myUGUIDamageNumber : myUGUIObject
 	{
 		if (!mInitDone)
 		{
-			logWarning("图集未初始化完成,获取不到图片:" + name);
+			logWarning("图集未初始化完成,获取不到图片:" + name + ",name:" + mName);
 			return null;
 		}
 		return mAtlasPtr?.getSprite(mNumberStyle + "_" + name); 
@@ -220,7 +220,7 @@ public class myUGUIDamageNumber : myUGUIObject
 	{
 		if (!mInitDone)
 		{
-			logError("图集未初始化完成,还不能去访问图集,sprite:" + mOriginSpriteName);
+			logError("图集未初始化完成,还不能去访问图集,sprite:" + mOriginSpriteName + ",name:" + mName);
 			return;
 		}
 		using var a = new ListScope<SpriteData>(out var spriteList);

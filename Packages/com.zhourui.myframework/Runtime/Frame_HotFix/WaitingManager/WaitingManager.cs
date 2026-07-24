@@ -29,34 +29,42 @@ public class WaitingManager : FrameSystem
 			}
 		}
 	}
-	public Waiting createWaiting(CustomAsyncOperation op0, Action done)
+	// 当op0完成时,调用done回调
+	public Waiting wait(CustomAsyncOperation op0, Action done, bool autoDestroy = true)
 	{
-		Waiting wait = createWaiting(done);
-		wait.addAsyncOperation(op0);
-		return wait;
+		Waiting waitObj = createWait(done, autoDestroy);
+		waitObj.addAsyncOperation(op0);
+		waitObj.setAutoDestroy(autoDestroy);
+		return waitObj;
 	}
-	public Waiting createWaiting(CustomAsyncOperation op0, CustomAsyncOperation op1, Action done)
+	// 当op0,op1都完成时,调用done回调
+	public Waiting wait(CustomAsyncOperation op0, CustomAsyncOperation op1, Action done, bool autoDestroy = true)
 	{
-		Waiting wait = createWaiting(done);
-		wait.addAsyncOperation(op0);
-		wait.addAsyncOperation(op1);
-		return wait;
+		Waiting waitObj = createWait(done, autoDestroy);
+		waitObj.addAsyncOperation(op0);
+		waitObj.addAsyncOperation(op1);
+		waitObj.setAutoDestroy(autoDestroy);
+		return waitObj;
 	}
-	public Waiting createWaiting(CustomAsyncOperation op0, CustomAsyncOperation op1, CustomAsyncOperation op2, Action done)
+	// 当op0,op1,op2都完成时,调用done回调
+	public Waiting wait(CustomAsyncOperation op0, CustomAsyncOperation op1, CustomAsyncOperation op2, Action done, bool autoDestroy = true)
 	{
-		Waiting wait = createWaiting(done);
-		wait.addAsyncOperation(op0);
-		wait.addAsyncOperation(op1);
-		wait.addAsyncOperation(op2);
-		return wait;
+		Waiting waitObj = createWait(done, autoDestroy);
+		waitObj.addAsyncOperation(op0);
+		waitObj.addAsyncOperation(op1);
+		waitObj.addAsyncOperation(op2);
+		waitObj.setAutoDestroy(autoDestroy);
+		return waitObj;
 	}
-	public Waiting createWaiting(BoolFunction condition, Action done)
+	// 当condition返回true时,调用done回调
+	public Waiting wait(BoolFunction condition, Action done, bool autoDestroy = true)
 	{
-		Waiting wait = createWaiting(done);
-		wait.addCondition(condition);
-		return wait;
+		Waiting waitObj = createWait(done, autoDestroy);
+		waitObj.addCondition(condition);
+		waitObj.setAutoDestroy(autoDestroy);
+		return waitObj;
 	}
-	public Waiting createWaiting(Action done, bool autoDestroy = true)
+	public Waiting createWait(Action done, bool autoDestroy = true)
 	{
 		Waiting waiting = mList.addClass();
 		waiting.setDoneFunction(done);
@@ -65,9 +73,9 @@ public class WaitingManager : FrameSystem
 	}
 	public void cancel(ref Waiting waiting)
 	{
-		destroyWaiting(ref waiting);
+		destroyWait(ref waiting);
 	}
-	public void destroyWaiting(ref Waiting waiting)
+	public void destroyWait(ref Waiting waiting)
 	{
 		mList.remove(waiting);
 		UN_CLASS(ref waiting);

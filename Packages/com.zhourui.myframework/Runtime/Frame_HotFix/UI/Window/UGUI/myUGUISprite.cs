@@ -1,10 +1,11 @@
-﻿using UnityEngine;
-using static UnityUtility;
+﻿using System;
+using UnityEngine;
 using static FrameBaseHotFix;
-using static StringUtility;
-using static MathUtility;
-using static FrameDefine;
 using static FrameBaseUtility;
+using static FrameDefine;
+using static MathUtility;
+using static StringUtility;
+using static UnityUtility;
 
 // 对SpriteRenderer的封装,在UI中使用
 public class myUGUISprite : myUGUIObject, IShaderWindow
@@ -109,7 +110,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		mAtlasPtr = null;
 		if (!mInitDone)
 		{
-			logWarning("图集未初始化完成,无法卸载此图集,sprite:" + mOriginSpriteName);
+			logWarning("图集未初始化完成,无法卸载此图集,sprite:" + mOriginSpriteName + ",name:" + mName);
 		}
 		mAtlasManager.unloadAtlas(ref mOriginAtlasPtr);
 		mResourceManager.unload(ref mCurMaterial);
@@ -161,6 +162,15 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 			return size;
 		}
 	}
+	public void getAtlasAsync(Action<AtlasRef> callback)
+	{
+		if (mInitDone)
+		{
+			callback?.Invoke(mAtlasPtr);
+			return;
+		}
+		mWaitingManager.wait(() => { return mInitDone; }, () => { callback?.Invoke(mAtlasPtr); });
+	}
 	public AtlasRef getAtlas() { return mAtlasPtr; }
 	public virtual void setAtlas(AtlasRef atlas, bool clearSprite = false, bool force = false)
 	{
@@ -170,7 +180,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		}
 		if (!mInitDone)
 		{
-			logError("图集未初始化完成,还不能去设置图集,atlas name:" + atlas?.getAtlasSingleName());
+			logError("图集未初始化完成,还不能去设置图集,atlas name:" + atlas?.getAtlasSingleName() + ",name:" + mName);
 			return;
 		}
 		mAtlasPtr = atlas;

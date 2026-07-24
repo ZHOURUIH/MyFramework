@@ -45,7 +45,7 @@ public class MenuAssets
 		AssetDatabase.Refresh();
 	}
 	// 创建SpriteAtlasV2，并将指定文件夹添加到Objects for Packing
-	[MenuItem(mMenuName + "生成图集文件")]
+	[MenuItem(mMenuName + "生成图集SpriteAltasV2文件")]
 	public static void generateSpriteAtlasV2()
 	{
 		foreach (UObject obj in Selection.objects)
@@ -68,6 +68,7 @@ public class MenuAssets
 				}
 				atlasAsset = new SpriteAtlasAsset();
 				atlasAsset.Add(new UObject[] { folder });
+
 				SpriteAtlasAsset.Save(atlasAsset, atlasPath);
 				AssetDatabase.ImportAsset(atlasPath, ImportAssetOptions.ForceSynchronousImport);
 			}
@@ -87,6 +88,41 @@ public class MenuAssets
 
 			logBase("已创建SpriteAtlasV2:" + atlasPath);
 		}
+	}
+	// 响应Project窗口中的“生成MultiSprite图集”菜单，创建生成器并开始处理当前选中的文件夹。
+	// Unity要求带有MenuItem特性的方法必须为static。
+	[MenuItem(mMenuName + "生成图集MultiSprite文件")]
+	private static void generateAtlasMenu()
+	{
+		List<string> folderAssetPaths = new(Selection.objects.Length);
+		foreach (UObject selectedObject in Selection.objects)
+		{
+			string folderAssetPath = getAssetPath(selectedObject);
+			folderAssetPaths.addIf(folderAssetPath, AssetDatabase.IsValidFolder(folderAssetPath));
+		}
+		folderAssetPaths.Sort(StringComparer.Ordinal);
+		foreach (string folderAssetPath in folderAssetPaths)
+		{
+			MultiSpriteAtlasGenerator.generateMultiSprite(folderAssetPath);
+		}
+	}
+	// 验证菜单是否可用，仅在Project窗口中只选中了一个有效文件夹时允许执行。
+	// Unity要求带有MenuItem特性的验证方法也必须为static。
+	[MenuItem(mMenuName + "生成MultiSprite文件", true)]
+	private static bool validateGenerateAtlasMenu()
+	{
+		if (Selection.objects.Length == 0)
+		{
+			return false;
+		}
+		foreach (UObject selectedObject in Selection.objects)
+		{
+			if (!AssetDatabase.IsValidFolder(getAssetPath(selectedObject)))
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 	[MenuItem(mMenuName + "精简TMP字体大小,但是精简完以后无法再替换材质")]
 	public static void extractTexture()
