@@ -405,7 +405,7 @@ public class AssetBundleLoader
 			yield return loadAssetsFromUrlWaiting(mDownloadURL + bundleFileName, (byte[] bytes) =>
 			{
 				// webgl没法写到本地
-				if (bytes != null && !isWebGL())
+				if (bytes != null)
 				{
 					// 写入到本地,并且更新资源列表
 					writeFile(F_PERSISTENT_ASSETS_PATH + bundleFileName, bytes);

@@ -59,7 +59,17 @@ public class FrameBaseDefine
 	public static string F_ASSET_BUNDLE_PATH = F_ASSET_BUNDLE_WEBGL_PATH;
 #endif
 	// 绝对路径,以F_开头,表示Full
+#if UNITY_WEBGL
+#if BYTE_DANCE
+	public static string F_PERSISTENT_DATA_PATH = "ttfile://user/";
+#elif UNITY_WEIXINMINIGAME
+	public static string F_PERSISTENT_DATA_PATH = WXBase.env.USER_DATA_PATH + "/";
+#else
+#error need define BYTE_DANCE or UNITY_WEIXINMINIGAME macro
+#endif
+#else
 	public static string F_PERSISTENT_DATA_PATH = Application.persistentDataPath + "/";
+#endif
 	public static string F_PERSISTENT_ASSETS_PATH = F_PERSISTENT_DATA_PATH + "Assets/";
 	public static string F_ASSETS_PATH = Application.dataPath + "/";
 	public const string P_ASSETS_PATH = ASSETS + "/";

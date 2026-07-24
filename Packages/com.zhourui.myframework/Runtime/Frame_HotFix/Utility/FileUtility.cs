@@ -240,7 +240,7 @@ public class FileUtility
 		}
 		// 检测路径是否存在,如果不存在就创建一个
 		createDir(getFilePath(fileName));
-		if (isEditor() || !isAndroid())
+		if (isEditor())
 		{
 			using FileStream file = new(fileName, FileMode.Create, FileAccess.Write);
 			if (!buffer.isEmpty() && size > 0)
@@ -253,9 +253,45 @@ public class FileUtility
 			}
 			file.Flush();
 		}
-		else
+		else if (isAndroid())
 		{
 			AndroidAssetLoader.writeFile(fileName, buffer, size, false);
+		}
+		else if (isWebGL())
+		{
+			if (isWeiXin())
+			{
+#if UNITY_WEIXINMINIGAME
+				WXBase.GetFileSystemManager().WriteFileSync(filePath, byteArray);
+#endif
+			}
+			else if (isByteDance())
+			{
+#if BYTE_DAMCE
+				WriteBinSyncParam param = new();
+				param.fd = fileName;
+				param.data = buffer;
+				param.length = size;
+				TT.GetFileSystemManager().WriteSync(param);
+#endif
+			}
+			else
+			{
+				logError("不支持的平台");
+			}
+		}
+		else
+		{
+			using FileStream file = new(fileName, FileMode.Create, FileAccess.Write);
+			if (!buffer.isEmpty() && size > 0)
+			{
+				if (addBOM)
+				{
+					file.Write(BOM, 0, BOM.Length);
+				}
+				file.Write(buffer, 0, size);
+			}
+			file.Flush();
 		}
 	}
 	public static void writeAppendFile(string fileName, byte[] buffer, int size)

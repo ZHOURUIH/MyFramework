@@ -1,10 +1,11 @@
-﻿using UnityEngine;
-using static UnityUtility;
+﻿using System;
+using UnityEngine;
 using static FrameBaseHotFix;
-using static StringUtility;
-using static MathUtility;
-using static FrameDefine;
 using static FrameBaseUtility;
+using static FrameDefine;
+using static MathUtility;
+using static StringUtility;
+using static UnityUtility;
 
 // 对SpriteRenderer的封装,在UI中使用
 public class myUGUISprite : myUGUIObject, IShaderWindow
@@ -160,6 +161,15 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		{
 			return size;
 		}
+	}
+	public void getAtlasAsync(Action<AtlasRef> callback)
+	{
+		if (mInitDone)
+		{
+			callback?.Invoke(mAtlasPtr);
+			return;
+		}
+		mWaitingManager.wait(() => { return mInitDone; }, () => { callback?.Invoke(mAtlasPtr); });
 	}
 	public AtlasRef getAtlas() { return mAtlasPtr; }
 	public virtual void setAtlas(AtlasRef atlas, bool clearSprite = false, bool force = false)

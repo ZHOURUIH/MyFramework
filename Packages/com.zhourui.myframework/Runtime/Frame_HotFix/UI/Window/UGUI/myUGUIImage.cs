@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using static UnityUtility;
 using static StringUtility;
 using static FrameBaseHotFix;
@@ -71,6 +72,15 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 		}
 		mAtlasManager.unloadAtlas(ref mOriginAtlasPtr);
 		base.destroy();
+	}
+	public void getAtlasAsync(Action<AtlasRef> callback) 
+	{
+		if (mInitDone)
+		{
+			callback?.Invoke(mAtlasPtr);
+			return;
+		}
+		mWaitingManager.wait(() => { return mInitDone; }, ()=> { callback?.Invoke(mAtlasPtr); });
 	}
 	public AtlasRef getAtlas() { return mAtlasPtr; }
 	public virtual void setAtlas(AtlasRef atlas, bool clearSprite = false, bool force = false)

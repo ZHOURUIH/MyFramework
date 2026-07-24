@@ -113,6 +113,14 @@ public class FrameBaseUtility
 		return false;
 #endif
 	}
+	public static bool isByteDance()
+	{
+#if BYTE_DANCE
+		return true;
+#else
+		return false;
+#endif
+	}
 	public static bool isMacOS()
 	{
 #if UNITY_STANDALONE_OSX
