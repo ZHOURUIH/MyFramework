@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using static BinaryUtility;
@@ -292,4 +293,16 @@ public static class ArrayExtension
 		}
 		return validElementCount;
 	}
+	public static void sort<T>(this T[] array)
+	{
+		Array.Sort(array);
+	}
+	public static void sort<T>(this T[] array, IComparer comparer)
+	{
+		Array.Sort(array, comparer);
+	}
+	public static void sort<T>(this T[] array, Comparison<T> comparison)
+	{
+		Array.Sort(array, comparison);
+	} 
 }
