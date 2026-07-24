@@ -127,6 +127,7 @@ public class FrameHotFixTest
         Register("DoubleBufferReaderTest", DoubleBufferReaderTest.Run);
         Register("PurchaseAndCurveInfoTest", PurchaseAndCurveInfoTest.Run);
         Register("ResourceManagerTest", ResourceManagerTest.Run);
+        Register("Vector2IntMyTest", Vector2IntMyTest.Run);
 
         doRunAll(sTests);
     }
