@@ -135,14 +135,7 @@ public class myUGUIImageNumber : myUGUIObject
 	public void setDocking(DOCKING_POSITION dock)			{ mRenderer.setDocking(dock); }
 	public void setNumber(int num, int limitLen = 0)
 	{
-		if (!mInitDone)
-		{
-			mWillSetIntValue = num;
-			mWillSetIntValueValid = true;
-			mWillSetLimit = limitLen;
-			return;
-		}
-		mRenderer.setNumber(num.IToS(limitLen)); 
+		setNumber((long)num, limitLen);
 	}
 	public void setNumber(long num, int limitLen = 0)
 	{

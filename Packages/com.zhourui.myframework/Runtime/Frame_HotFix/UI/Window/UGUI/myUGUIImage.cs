@@ -20,6 +20,7 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 	{
 		base.init();
 		mOriginSprite = mImage.sprite;
+		mOriginSpriteName = getSpriteName();
 		// 获取初始的精灵所在图集
 		if (mOriginSprite != null)
 		{
@@ -59,7 +60,6 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 				logError("需要切换图片的节点上不要使用引擎内置的图片, GameObject:" + getGameObjectPath());
 			}
 		}
-		mOriginSpriteName = getSpriteName();
 	}
 	public override void destroy()
 	{
@@ -167,12 +167,7 @@ public class myUGUIImage : myUGUIImageSimple, IUGUIImage
 			logError("图集还未初始化完成,无法获取其中的图片");
 			return null;
 		}
-		Sprite sprite = mAtlasPtr?.getSprite(spriteName);
-		if (sprite != null)
-		{
-			return sprite;
-		}
-		return null;
+		return mAtlasPtr?.getSprite(spriteName);
 	}
     protected virtual void onInitAsyncDone() { }
 }

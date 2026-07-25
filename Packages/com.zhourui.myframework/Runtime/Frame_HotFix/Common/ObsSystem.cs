@@ -14,22 +14,27 @@ using static HttpUtility;
 
 // 用于执行华为云OBS文件存储服务器的访问逻辑,使用前需要确保以下4个参数已经设置正确
 // 如果只是下载,则只需要设置URL,上传或者删除则需要配置其余三个参数
-public class ObsSystem
+public class ObsSystem : IObjectStorageSystem
 {
-	protected static string mURL;
-	protected static string mBucketName;
-	protected static string mAccessKey;
-	protected static string mSecureKey;
-	public static void setURLAndKeys(string url, string bucketName, string accessKey, string secureKey)
+	protected string mURL;
+	protected string mBucketName;
+	protected string mAccessKey;
+	protected string mSecureKey;
+	private static ObsSystem mInstance;
+	public static ObsSystem get()
 	{
-		mURL = url;
+		return mInstance ??= new ObsSystem();
+	}
+	public void init(string url, string bucketName, string accessKey, string secureKey)
+	{
+		mURL = validPath(url);
 		mBucketName = bucketName;
 		mAccessKey = accessKey;
 		mSecureKey = secureKey;
 	}
-	public static string getURL() { return mURL; }
+	public string getURL() { return mURL; }
 	// 同步下载文件,remotePath是上传到服务器后存储的相对路径,带后缀
-	public static byte[] downloadBytes(string remotePath)
+	public byte[] downloadBytes(string remotePath)
 	{
 		if (mURL.isEmpty() || remotePath == null)
 		{
@@ -38,7 +43,7 @@ public class ObsSystem
 		return downloadFile(mURL + remotePath);
 	}
 	// 同步下载文件,remotePath是上传到服务器后存储的相对路径,带后缀
-	public static string downloadTxt(string remotePath)
+	public string downloadTxt(string remotePath)
 	{
 		if (mURL.isEmpty() || remotePath == null)
 		{
@@ -47,7 +52,7 @@ public class ObsSystem
 		return downloadFile(mURL + remotePath).bytesToString();
 	}
 	// 异步下载文件,remotePath是上传到服务器后存储的相对路径,带后缀
-	public static void downloadBytes(string remotePath, BytesIntCallback callback)
+	public void downloadBytes(string remotePath, BytesIntCallback callback)
 	{
 		if (mURL.isEmpty() || remotePath == null)
 		{
@@ -57,7 +62,7 @@ public class ObsSystem
 		loadAssetsFromUrl(mURL + remotePath, (byte[] bytes) => { callback?.Invoke(bytes, bytes.count()); });
 	}
 	// 异步下载文件,字符串格式,remotePath是上传到服务器后存储的相对路径,带后缀
-	public static IEnumerator downloadTxtWaiting(string remotePath, StringIntCallback callback)
+	public IEnumerator downloadTxtWaiting(string remotePath, StringIntCallback callback)
 	{
 		if (mURL.isEmpty() || remotePath == null)
 		{
@@ -70,7 +75,7 @@ public class ObsSystem
 		});
 	}
 	// 异步下载文件,byte[],remotePath是上传到服务器后存储的相对路径,带后缀
-	public static IEnumerator downloadBytesWaiting(string remotePath, BytesIntCallback callback)
+	public IEnumerator downloadBytesWaiting(string remotePath, BytesIntCallback callback)
 	{
 		if (mURL.isEmpty() || remotePath == null)
 		{
@@ -83,7 +88,7 @@ public class ObsSystem
 		});
 	}
 	// 异步下载文件,remotePath是上传到服务器后存储的相对路径,带后缀
-	public static void downloadTxt(string remotePath, StringCallback callback)
+	public void downloadTxt(string remotePath, StringCallback callback)
 	{
 		if (mURL.isEmpty() || remotePath == null)
 		{
@@ -96,7 +101,13 @@ public class ObsSystem
 		});
 	}
 	// fullPath是要上传文件的本地绝对路径,savePath是上传到服务器后存储的相对路径,带后缀
-	public static bool upload(string fullPath, byte[] fileBuffer, string savePath, out WebExceptionStatus status, out HttpStatusCode code, int timeout)
+	public HttpStatusCode upload(string fullPath, string savePath)
+	{
+		upload(fullPath, openFileSync(fullPath, true), savePath, out _, out HttpStatusCode code, 30000);
+		return code;
+	}
+	// fullPath是要上传文件的本地绝对路径,savePath是上传到服务器后存储的相对路径,带后缀
+	public bool upload(string fullPath, byte[] fileBuffer, string savePath, out WebExceptionStatus status, out HttpStatusCode code, int timeout)
 	{
 		status = WebExceptionStatus.Success;
 		code = HttpStatusCode.OK;
@@ -106,7 +117,7 @@ public class ObsSystem
 		}
 		return !savePath.isEmpty() && httpPostFile(mURL, out status, out code, generateUploadFormList(fullPath, fileBuffer, savePath), timeout) != null;
 	}
-	public static void uploadAsync(string fullPath, string savePath, HttpCallback callback)
+	public void uploadAsync(string fullPath, string savePath, HttpCallback callback)
 	{
 		if (mURL.isEmpty() || fullPath == null)
 		{
@@ -117,7 +128,7 @@ public class ObsSystem
 			httpPostFileAsync(mURL, generateUploadFormList(fullPath, fileBuffer, savePath), callback);
 		});
 	}
-	public static bool delete(string path)
+	public bool delete(string path)
 	{
 		if (mURL.isEmpty() || path == null)
 		{
@@ -133,13 +144,13 @@ public class ObsSystem
 		};
 		return httpDelete(mURL + path, out _, out _, paramList, null, contentType) != null;
 	}
-	public static Dictionary<string, GameFileInfo> getFileList(string path)
+	public Dictionary<string, GameFileInfo> getFileList(string path)
 	{
 		Dictionary<string, GameFileInfo> fileMap = new();
 		getFileList(path, fileMap);
 		return fileMap;
 	}
-	public static void getFileList(string path, Dictionary<string, GameFileInfo> fileMap)
+	public void getFileList(string path, Dictionary<string, GameFileInfo> fileMap)
 	{
 		if (mURL.isEmpty() || path == null)
 		{
@@ -155,7 +166,7 @@ public class ObsSystem
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	public static void getFileListInternal(string path, List<GameFileInfo> fileList)
+	public void getFileListInternal(string path, List<GameFileInfo> fileList)
 	{
 		using var b = new DicScope<string, string>(out var paramList);
 		string marker = null;
@@ -175,7 +186,7 @@ public class ObsSystem
 			}
 		} while (!parseFileList(str, fileList, out marker));
 	}
-	protected static List<FormItem> generateUploadFormList(string fullPath, byte[] fileBuffer, string savePath)
+	protected List<FormItem> generateUploadFormList(string fullPath, byte[] fileBuffer, string savePath)
 	{
 		if (fileBuffer == null)
 		{

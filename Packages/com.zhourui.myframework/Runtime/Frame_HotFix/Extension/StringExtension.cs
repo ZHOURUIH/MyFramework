@@ -10,18 +10,22 @@ using static StringUtility;
 
 public static class StringExtension
 {
-    private static List<byte> mTempByteList0 = new();                                   // 避免GC,给stringToBytesNonAlloc使用的
-    private static List<int> mTempIntList = new();                                      // 避免GC
-    private static List<long> mTempLongList = new();                                    // 避免GC
-    private static List<float> mTempFloatList = new();                                  // 避免GC
-    private static List<string> mTempStringList = new();								// 避免GC
-    private static Dictionary<string, int> mStringToInt;                                // 用于快速查找字符串转换后的整数
-    private static string[] mIntToString;												// 用于快速获取整数转换后的字符串
-    private static Dictionary<string, Vector2Int> mStringToVector2Cache;				// 字符串转换为2维向量的缓存
-    private static Dictionary<string, Vector3Int> mStringToVector3Cache;                // 字符串转换为3维向量的缓存
+    private static List<byte> mTempByteList0 = new();											// 避免GC,给stringToBytesNonAlloc使用的
+    private static List<int> mTempIntList = new();												// 避免GC
+    private static List<long> mTempLongList = new();											// 避免GC
+    private static List<float> mTempFloatList = new();											// 避免GC
+    private static List<string> mTempStringList = new();										// 避免GC
+    private static Dictionary<string, int> mStringToInt;										// 用于快速查找字符串转换后的整数
+    private static string[] mIntToString;														// 用于快速获取整数转换后的字符串
+    private static Dictionary<int, string> mIntToStringCache = new(STRING_MAX_CACHE);			// 整数转字符串的缓存
+    private static Dictionary<uint, string> mUIntToStringCache = new(STRING_MAX_CACHE);			// 整数转字符串的缓存
+    private static Dictionary<long, string> mLongToStringCache = new(STRING_MAX_CACHE);			// 整数转字符串的缓存
+    private static Dictionary<ulong, string> mULongToStringCache = new(STRING_MAX_CACHE);		// 整数转字符串的缓存
+    private static Dictionary<string, Vector2Int> mStringToVector2Cache = new(STRING_MAX_CACHE);// 字符串转换为2维向量的缓存
+    private static Dictionary<string, Vector3Int> mStringToVector3Cache = new(STRING_MAX_CACHE);// 字符串转换为3维向量的缓存
     private static string[] mFloatConvertPercision = new string[] { "f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7" };    // 浮点数转换时精度
 	private static List<string> mZeroStringList = new();
-    private static int STRING_TO_VECTOR2INT_MAX_CACHE = 10240;                          // mStringToVector2Cache最大数量
+    private static int STRING_MAX_CACHE = 10240;												// 各个缓存列表的最大长度
     public static int length(this string list) { return list?.Length ?? 0; }
 	public static bool isEmpty(this string str) { return str == null || str.Length == 0; }
 	public static bool contains(this string str, char c) { return str != null && str.Contains(c); }
@@ -1026,7 +1030,6 @@ public static class StringExtension
         {
             return Vector2Int.zero;
         }
-        mStringToVector2Cache ??= new(STRING_TO_VECTOR2INT_MAX_CACHE);
         if (mStringToVector2Cache.TryGetValue(str, out Vector2Int result))
         {
             return result;
@@ -1037,7 +1040,7 @@ public static class StringExtension
             return Vector2Int.zero;
         }
         result = new(splitList[0].SToI(), splitList[1].SToI());
-        if (mStringToVector2Cache.Count < STRING_TO_VECTOR2INT_MAX_CACHE)
+        if (mStringToVector2Cache.Count < STRING_MAX_CACHE)
         {
             mStringToVector2Cache.Add(str, result);
         }
@@ -1062,7 +1065,6 @@ public static class StringExtension
         {
             return Vector3Int.zero;
         }
-        mStringToVector3Cache ??= new(STRING_TO_VECTOR2INT_MAX_CACHE);
         if (mStringToVector3Cache.TryGetValue(str, out Vector3Int result))
         {
             return result;
@@ -1073,7 +1075,7 @@ public static class StringExtension
             return Vector3Int.zero;
         }
         result = new(splitList[0].SToI(), splitList[1].SToI(), splitList[2].SToI());
-        if (mStringToVector3Cache.Count < STRING_TO_VECTOR2INT_MAX_CACHE)
+        if (mStringToVector3Cache.Count < STRING_MAX_CACHE)
         {
             mStringToVector3Cache.Add(str, result);
         }
@@ -1134,10 +1136,16 @@ public static class StringExtension
         {
             retString = mIntToString[value];
         }
-        else
-        {
-            retString = value.ToString();
-        }
+		// 再尝试从缓存中获取,缓存也没有就直接转换
+		else if (!mIntToStringCache.TryGetValue(value, out retString))
+		{
+			retString = value.ToString();
+			// 加入缓存
+			if (mIntToStringCache.Count < STRING_MAX_CACHE)
+			{
+				mIntToStringCache.Add(value, retString);
+			}
+		}
         int addLen = minLength - retString.Length;
         if (addLen > 0)
         {
@@ -1160,11 +1168,17 @@ public static class StringExtension
         {
             retString = mIntToString[value];
         }
-        else
-        {
-            retString = value.ToString();
-        }
-        int addLen = minLength - retString.Length;
+		// 再尝试从缓存中获取,缓存也没有就直接转换
+		else if (!mUIntToStringCache.TryGetValue(value, out retString))
+		{
+			retString = value.ToString();
+			// 加入缓存
+			if (mUIntToStringCache.Count < STRING_MAX_CACHE)
+			{
+				mUIntToStringCache.Add(value, retString);
+			}
+		}
+		int addLen = minLength - retString.Length;
         if (addLen > 0)
         {
             for (int i = 0; i < addLen; ++i)
@@ -1242,11 +1256,17 @@ public static class StringExtension
         {
             retString = mIntToString[value];
         }
-        else
-        {
-            retString = value.ToString();
-        }
-        int addLen = minLength - retString.Length;
+		// 再尝试从缓存中获取,缓存也没有就直接转换
+		else if (!mLongToStringCache.TryGetValue(value, out retString))
+		{
+			retString = value.ToString();
+			// 加入缓存
+			if (mLongToStringCache.Count < STRING_MAX_CACHE)
+			{
+				mLongToStringCache.Add(value, retString);
+			}
+		}
+		int addLen = minLength - retString.Length;
         if (addLen > 0)
         {
             retString = mZeroStringList[addLen] + retString;
@@ -1269,11 +1289,17 @@ public static class StringExtension
         {
             retString = mIntToString[value];
         }
-        else
-        {
-            retString = value.ToString();
-        }
-        int addLen = minLength - retString.Length;
+		// 再尝试从缓存中获取,缓存也没有就直接转换
+		else if (!mULongToStringCache.TryGetValue(value, out retString))
+		{
+			retString = value.ToString();
+			// 加入缓存
+			if (mULongToStringCache.Count < STRING_MAX_CACHE)
+			{
+				mULongToStringCache.Add(value, retString);
+			}
+		}
+		int addLen = minLength - retString.Length;
         if (addLen > 0)
         {
             retString = mZeroStringList[addLen] + retString;

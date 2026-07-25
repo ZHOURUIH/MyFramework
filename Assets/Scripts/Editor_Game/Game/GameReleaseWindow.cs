@@ -29,7 +29,16 @@ public class GameReleaseWindow : GameEditorWindow
 
 		using var a = new GUILayout.ScrollViewScope(mScrollPos);
 		mScrollPos = a.scrollPosition;
-		label("当前平台:" + mPlatform.mName, 25);
+		string suffix = "";
+		if (isByteDance())
+		{
+			suffix = "抖音小游戏";
+		}
+		else if (isWeiXin())
+		{
+			suffix = "微信小游戏";
+		}
+		label("当前平台:" + mPlatform.mName + " " + suffix, 25);
 		space(30);
 
 		// 版本号
@@ -94,7 +103,7 @@ public class GameReleaseWindow : GameEditorWindow
 				AssetDatabase.Refresh();
 			}
 
-			label("远端路径:" + ObsSystem.getURL() + mPlatform.getRemoteFolderInEditor(""));
+			label("远端路径:" + mPlatform.mObjectStorageSystem.getURL() + mPlatform.getRemotePathInEditor(""));
 			label("输出路径:" + mPlatform.mOutputPath);
 			label("输出文件夹前缀: " + mPlatform.mFolderPreName);
 			if (button("ProjectSettings", 130))
@@ -162,7 +171,7 @@ public class GameReleaseWindow : GameEditorWindow
 							mPlatform.buildHotFix(false) &&
 							mPlatform.writeVersion() &&
 							mPlatform.writeFileList(mPlatform.mAssetBundleFullPath) &&
-							mPlatform.upload(mAutoUploadVersion);
+							mPlatform.uploadResources(mAutoUploadVersion);
 					}
 					else
 					{
@@ -185,7 +194,7 @@ public class GameReleaseWindow : GameEditorWindow
 							mPlatform.buildHotFix(false) &&
 							mPlatform.writeVersion() &&
 							mPlatform.writeFileList(mPlatform.mAssetBundleFullPath) &&
-							mPlatform.upload(mAutoUploadVersion);
+							mPlatform.uploadResources(mAutoUploadVersion);
 					}
 					else
 					{
@@ -233,7 +242,7 @@ public class GameReleaseWindow : GameEditorWindow
 							setBuildVersion(buildVersion) &&
 							MenuAssetBundle.packAssetBundle(mPlatform.mTarget, fullPathToProjectPath(mPlatform.mAssetBundleFullPath), false) &&
 							mPlatform.build(true, false) &&
-							mPlatform.upload(mAutoUploadVersion);
+							mPlatform.uploadResources(mAutoUploadVersion);
 					}
 					else
 					{
@@ -256,7 +265,7 @@ public class GameReleaseWindow : GameEditorWindow
 							mPlatform.build(true, false) &&
 							// 这里可以直接上传,当大版本更新不影响网络消息时,可以不用更新也能继续运行游戏
 							// 如果网络消息不兼容,则需要手动去更新大版本
-							mPlatform.upload(mAutoUploadVersion);
+							mPlatform.uploadResources(mAutoUploadVersion);
 					}
 					else
 					{
@@ -322,7 +331,7 @@ public class GameReleaseWindow : GameEditorWindow
 						messageYesNo("确认上传版本号为" + mPlatform.mLocalVersion + "的资源?"))
 					{
 						_ = mPlatform.writeFileList(mPlatform.mAssetBundleFullPath) &&
-							mPlatform.upload(mAutoUploadVersion);
+							mPlatform.uploadResources(mAutoUploadVersion);
 					}
 				}
 				else
@@ -330,7 +339,7 @@ public class GameReleaseWindow : GameEditorWindow
 					if (button("上传正式资源", 100, 35) && messageYesNo("确认上传版本号为" + mPlatform.mLocalVersion + "的资源?"))
 					{
 						_ = mPlatform.writeFileList(mPlatform.mAssetBundleFullPath) &&
-							mPlatform.upload(mAutoUploadVersion);
+							mPlatform.uploadResources(mAutoUploadVersion);
 					}
 				}
 			}

@@ -49,7 +49,7 @@ public class PlatformUtility
         }
 #endif
     }
-    public static string generateFileList(string assetBundlePath, List<string> ignoreFiles = null)
+    public static string generateFileList(string assetBundlePath, List<string> ignoreFiles)
     {
         string fileContent = EMPTY;
         List<string> fileInfoList = findFileList(assetBundlePath, ignoreFiles, null, new() { ASSET_BUNDLE_SUFFIX + ".manifest", ".meta" });
@@ -83,7 +83,7 @@ public class PlatformUtility
     {
         EditorUtility.DisplayDialog(title, info, button);
     }
-    public static void progressBar(string title, string info, float progress)
+    public static void progressBar(string title, string info, float progress = 0.0f)
     {
         EditorUtility.DisplayProgressBar(title, info, progress);
     }

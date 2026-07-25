@@ -32,17 +32,13 @@ public class myUGUINumber : myUGUIImage
 	public override void init()
 	{
 		base.init();
-		if (mImage == null)
-		{
-			return;
-		}
-		mNumberStyle = mOriginSpriteName.rangeToLast('_');
-		setMaxCount(10);
 		mImage.enabled = false;
 	}
 	protected override void onInitAsyncDone()
 	{
 		base.onInitAsyncDone();
+		mNumberStyle = mOriginSpriteName.rangeToLast('_');
+		setMaxCount(10);
 		for (int i = 0; i < 10; ++i)
 		{
 			mSpriteList.add(getSpriteInAtlas(mNumberStyle + "_" + i.IToS()));

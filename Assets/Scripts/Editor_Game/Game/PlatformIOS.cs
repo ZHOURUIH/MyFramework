@@ -22,9 +22,9 @@ public class PlatformIOS : PlatformInfo
 		// 删除打包目录中的文件
 		return buildIOS(outputFullPath, generateBuildOption(mTestClient));
 	}
-	protected override void afterBuild(string fullPath)
+	protected override void postBuild(string fullPath)
 	{
-		base.afterBuild(fullPath);
+		base.postBuild(fullPath);
 		displayProgressBar("上传ios", "正在生成并上传ios包", 0, 1);
 		validPath(ref fullPath);
 		// 将批处理文件拷贝到打包出的目录中
