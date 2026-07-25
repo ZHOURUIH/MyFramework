@@ -27,6 +27,11 @@ public class FileUtility
 			path += "/";
 		}
 	}
+	public static string validPath(string path)
+	{
+		validPath(ref path);
+		return path;
+	}
 	// fileNameList为绝对路径
 	public static IEnumerator openFileListAsyncInternal(List<string> fileNameList, bool errorIfNull, StringBytesCallback callback)
 	{
