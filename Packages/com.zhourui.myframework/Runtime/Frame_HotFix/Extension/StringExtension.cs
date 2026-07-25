@@ -1147,14 +1147,11 @@ public static class StringExtension
 			}
 		}
         int addLen = minLength - retString.Length;
-        if (addLen > 0)
-        {
-            for (int i = 0; i < addLen; ++i)
-            {
-                retString = "0" + retString;
-            }
-        }
-        return retString;
+		if (addLen > 0)
+		{
+			retString = mZeroStringList[addLen] + retString;
+		}
+		return retString;
     }
     public static string IToS(this uint value, int minLength = 0)
     {
@@ -1179,14 +1176,11 @@ public static class StringExtension
 			}
 		}
 		int addLen = minLength - retString.Length;
-        if (addLen > 0)
-        {
-            for (int i = 0; i < addLen; ++i)
-            {
-                retString = "0" + retString;
-            }
-        }
-        return retString;
+		if (addLen > 0)
+		{
+			retString = mZeroStringList[addLen] + retString;
+		}
+		return retString;
     }
     public static string IToSComma(this int value)
     {
