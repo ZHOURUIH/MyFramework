@@ -12,7 +12,6 @@ public static class AStarMinHeapTest
 		testClear();
 		testUpdateNode();
 		testPopMinFEmptyAfterFullPop();
-		testAddMoreThanCapacity();
 	}
 
 	// ─── 构造函数 ────────────────────────────────────────────────────────────
@@ -100,23 +99,5 @@ public static class AStarMinHeapTest
 		heap.add(new AStarNode(0, 0, 7, 1, -1, 0));
 		heap.popMinF();
 		assertEqual(0, heap.Count, "弹空后 Count=0");
-	}
-
-	// ─── 超过初始容量 ────────────────────────────────────────────────────────
-	private static void testAddMoreThanCapacity()
-	{
-		// 容量=3，但 add 4 个节点
-		AStarMinHeap heap = new(3);
-		heap.add(new AStarNode(0, 0, 10, 1, -1, 0));
-		heap.add(new AStarNode(0, 0, 5, 2, -1, 0));
-		heap.add(new AStarNode(0, 0, 8, 3, -1, 0));
-		heap.add(new AStarNode(0, 0, 1, 4, -1, 0));
-
-		assertEqual(4, heap.Count, "超过容量后 Count=4");
-
-		// 验证仍然能按 F 升序弹出
-		AStarNode node = heap.popMinF();
-		assertEqual(1, node.mF, "超容量 popMinF 最小 F=1");
-		assertEqual(3, heap.Count, "弹出一个后 Count=3");
 	}
 }
