@@ -164,6 +164,14 @@ public class SafeList<T> : ClassObject
 		clear();
 		addRange(list);
 	}
+	public bool removeIf(T value, bool condition)
+	{
+		if (condition)
+		{
+			return remove(value);
+		}
+		return false;
+	}
 	public bool remove(T value)
 	{
 		int index = mMainList.IndexOf(value);

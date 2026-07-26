@@ -1,40 +1,91 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 using static FrameBaseHotFix;
-using static UnityUtility;
-using static FrameUtility;
 using static FrameDefine;
+using static FrameUtility;
+using static UnityUtility;
+using UObject = UnityEngine.Object;
 
 // 特效池
 public class GameEffectPool
 {
 	protected Dictionary<string, SafeList<GameEffect>> mUnusedEffectList = new();       // key是特效路径,value是未使用的特效列表
 	protected Dictionary<string, List<GameEffect>> mInusedEffectList = new();           // key是特效路径,value是已使用的特效列表
-	protected float mEffectTimer;														// 检查特效回收时间的计时器
-	protected int mUnuseMaxTime = 60;													// 超过60秒未使用的特效将会被回收
+	protected float mEffectTimer;                                                       // 检查特效回收时间的计时器
+	protected int mUnuseMaxTime = 60;                                                   // 超过60秒未使用的特效将会被回收
+	public void init()
+	{
+		// 注册卸载整个路径和销毁指定物体时的回调,清理对应的对象,避免引用了悬空对象
+		mResourceManager.addUnloadPathCallback((string path) =>
+		{
+			foreach (var item0 in mUnusedEffectList)
+			{
+				var list = item0.Value;
+				using var a = new SafeListReader<GameEffect>(list);
+				foreach (var item in a.mReadList)
+				{
+					list.removeIf(item, item.getFilePath().startWith(path));
+				}
+			}
+			foreach (var item0 in mInusedEffectList)
+			{
+				var list = item0.Value;
+				for (int i = 0; i < list.Count; ++i)
+				{
+					if (list[i].getFilePath().startWith(path))
+					{
+						list.removeAt(i--);
+					}
+				}
+			}
+		});
+		mResourceManager.addUnloadObjectCallback((UObject obj) =>
+		{
+			foreach (var item0 in mUnusedEffectList)
+			{
+				var list = item0.Value;
+				using var a = new SafeListReader<GameEffect>(list);
+				foreach (var item in a.mReadList)
+				{
+					list.removeIf(item, item.getGameObject() == obj);
+				}
+			}
+			foreach (var item0 in mInusedEffectList)
+			{
+				var list = item0.Value;
+				for (int i = 0; i < list.Count; ++i)
+				{
+					if (list[i].getGameObject() == obj)
+					{
+						list.removeAt(i--);
+					}
+				}
+			}
+		});
+	}
 	public void update(float elapsedTime)
 	{
 		if (tickTimerLoop(ref mEffectTimer, elapsedTime, 1.0f))
 		{
-            DateTime time = DateTime.Now;
-            foreach (var item in mUnusedEffectList)
-            {
-                using var a = new SafeListReader<GameEffect>(item.Value);
-                foreach (GameEffect effect in a.mReadList)
-                {
-                    if ((time - effect.getUnuseTime()).TotalSeconds > mUnuseMaxTime)
-                    {
-                        mEffectManager.destroyEffect(effect, true);
-                    }
-                }
-            }
-        }
+			DateTime time = DateTime.Now;
+			foreach (var item in mUnusedEffectList)
+			{
+				using var a = new SafeListReader<GameEffect>(item.Value);
+				foreach (GameEffect effect in a.mReadList)
+				{
+					if ((time - effect.getUnuseTime()).TotalSeconds > mUnuseMaxTime)
+					{
+						mEffectManager.destroyEffect(effect, true);
+					}
+				}
+			}
+		}
 	}
 	public void setUnuseMaxTime(int time) { mUnuseMaxTime = time; }
 	public void useEffect(GameEffect effect)
 	{
-        mInusedEffectList.getOrAddNew(effect.getFilePath()).Add(effect);
+		mInusedEffectList.getOrAddNew(effect.getFilePath()).Add(effect);
 	}
 	public void unuseEffect(GameEffect effect)
 	{
@@ -49,7 +100,7 @@ public class GameEffectPool
 	{
 		mInusedEffectList.get(effect.getFilePath())?.Remove(effect);
 		mUnusedEffectList.get(effect.getFilePath())?.remove(effect);
-    }
+	}
 	public GameEffect getOneEffect(GameObject parent, string nameWithPath, Vector3 pos, bool moveToHide, bool active, float lifeTime)
 	{
 		// 先从未使用列表中获取一个特效
@@ -61,7 +112,7 @@ public class GameEffectPool
 		GameEffect effect = effectList.removeAt(effectList.count() - 1);
 		if (effect.getGameObject() == null)
 		{
-			logError("GameObject is null:" + effect.getFilePath());
+			logError("GameObject is null:" + effect.getFilePath() + ",hash:" + effect.GetHashCode());
 		}
 		effect.setLifeTime(lifeTime);
 		effect.setDead(false);

@@ -1,11 +1,12 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using static UnityUtility;
-using static FrameUtility;
+using UnityEngine;
 using static FrameBaseHotFix;
-using static FrameDefine;
 using static FrameBaseUtility;
+using static FrameDefine;
+using static FrameUtility;
+using static UnityUtility;
+using UObject = UnityEngine.Object;
 
 // 特效管理器,用于管理所有的3D特效
 // 特效有三种
@@ -15,12 +16,12 @@ using static FrameBaseUtility;
 public class EffectManager : FrameSystem
 {
 	protected Dictionary<Transformable, HashSet<GameEffect>> mEffectAttachList = new(); // 记录每个物体上都挂了哪些特效,防止特效由于父物体的销毁而意外被销毁
-	protected SafeDictionary<string, QuickEffect> mQuickEffectList = new();				// 用于快速播放的特效列表
+	protected SafeDictionary<string, QuickEffect> mQuickEffectList = new();             // 用于快速播放的特效列表
 	protected SafeList<GameEffect> mEffectList = new();                                 // 正在使用中的特效列表,不含快速播放的特效
 	protected GameEffectPool mGameEffectPool = new();                                   // 特效池,用于存储临时特效
 	protected ClassObjectCallback mObjectDestroyCallback;                               // 物体销毁时的回调,用于在物体销毁时确认销毁所有挂接到此物体上的特效
-	protected float mQuickEffectTimer;													// 检查QuickEffect的计时器
-	protected int mQuickEffectTime = 60;												// 超过60秒未播放的快速特效将会被回收
+	protected float mQuickEffectTimer;                                                  // 检查QuickEffect的计时器
+	protected int mQuickEffectTime = 60;                                                // 超过60秒未播放的快速特效将会被回收
 	public EffectManager()
 	{
 		mCreateObject = true;
@@ -33,6 +34,36 @@ public class EffectManager : FrameSystem
 		{
 			mObject.AddComponent<EffectManagerDebug>();
 		}
+		mGameEffectPool.init();
+		// 注册卸载整个路径和销毁指定物体时的回调,清理对应的对象,避免引用了悬空对象
+		mResourceManager.addUnloadPathCallback((string path) =>
+		{
+			// 找到此路径中所有的QuickEffect,将其销毁
+			using var a = new SafeDictionaryReader<string, QuickEffect>(mQuickEffectList);
+			foreach (var item in a.mReadList)
+			{
+				mQuickEffectList.removeIf(item.Key, item.Key.startWith(path));
+			}
+			using var b = new SafeListReader<GameEffect>(mEffectList);
+			foreach (var item in b.mReadList)
+			{
+				mEffectList.removeIf(item, item.getFilePath().startWith(path));
+			}
+		});
+		mResourceManager.addUnloadObjectCallback((UObject obj) =>
+		{
+			// 找到此路径中所有的QuickEffect,将其销毁
+			using var a = new SafeDictionaryReader<string, QuickEffect>(mQuickEffectList);
+			foreach (var item in a.mReadList)
+			{
+				mQuickEffectList.removeIf(item.Key, item.Value.getGameObject() == obj);
+			}
+			using var b = new SafeListReader<GameEffect>(mEffectList);
+			foreach (var item in b.mReadList)
+			{
+				mEffectList.removeIf(item, item.getGameObject() == obj);
+			}
+		});
 	}
 	public override void update(float elapsedTime)
 	{
@@ -115,9 +146,9 @@ public class EffectManager : FrameSystem
 		// 在parent下创建一个资源路径为nameWithPath的GameObject
 		GameObject go = mPrefabPoolManager.createObject(nameWithPath, moveToHide, true, tag, parent);
 		GameEffect effect = postCreateFromPrefabPool(go, nameWithPath, attachedParent, parent, tag, moveToHide, active, lifeTime, isInEffectPool, false);
-        effect.setPosition(pos);
+		effect.setPosition(pos);
 		return effect;
-    }
+	}
 	// 在attachedParent销毁时确认销毁所有挂接到此物体上的特效
 	// 异步从prefab中加载一个特效
 	public CustomAsyncOperation createEffectNoPoolAsync(Transformable attachedParent, string nameWithPath, float lifeTime, bool moveToHide, int tag = 0)
@@ -231,25 +262,25 @@ public class EffectManager : FrameSystem
 		}
 		return createEffectNoPool(nameWithPath, attachedParent, parent, active, moveToHide, pos, tag, lifeTime, true);
 	}
-    public GameEffect createEffect(string nameWithPath, Transformable attachedParent, GameObject parent, bool active, bool moveToHide, int tag = 0)
+	public GameEffect createEffect(string nameWithPath, Transformable attachedParent, GameObject parent, bool active, bool moveToHide, int tag = 0)
 	{
 		return createEffect(nameWithPath, attachedParent, parent, active, moveToHide, Vector3.zero, tag, -1);
 	}
-    // 会从当前类中缓存的特效对象来获取,而不是从通用对象池中获取一个已经被重置过的对象
-    // 如果特效加载完成之前relatedObject被销毁了,则不会播放特效,并且会将特效挂在attachedParent节点下,并且会在attachedParent销毁时确认销毁所有挂接到此物体上的特效
-    // 异步从prefab中加载一个特效
-    public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, IRecyclable relatedObject, Transformable attachedParent, bool moveToHide, GameEffectCallback callback, int tag = 0, bool active = true, float lifeTime = -1.0f, BoolCallback failCallback = null)
+	// 会从当前类中缓存的特效对象来获取,而不是从通用对象池中获取一个已经被重置过的对象
+	// 如果特效加载完成之前relatedObject被销毁了,则不会播放特效,并且会将特效挂在attachedParent节点下,并且会在attachedParent销毁时确认销毁所有挂接到此物体上的特效
+	// 异步从prefab中加载一个特效
+	public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, IRecyclable relatedObject, Transformable attachedParent, bool moveToHide, GameEffectCallback callback, int tag = 0, bool active = true, float lifeTime = -1.0f, BoolCallback failCallback = null)
 	{
 		return createEffectAsyncSafe(nameWithPath, relatedObject, attachedParent, attachedParent?.getGameObject(), moveToHide, callback, tag, active, lifeTime, failCallback);
 	}
-    public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, Transformable attachedParent, bool moveToHide, GameEffectCallback callback, int tag = 0)
-    {
-        return createEffectAsyncSafe(nameWithPath, attachedParent, attachedParent, attachedParent?.getGameObject(), moveToHide, callback, tag, true, -1, null);
-    }
-    // 会从当前类中缓存的特效对象来获取,而不是从通用对象池中获取一个已经被重置过的对象
-    // 如果特效加载完成之前relatedObject被销毁了,则不会播放特效,并且会将特效挂在attachedParent节点下,并且会在attachedParent销毁时确认销毁所有挂接到此物体上的特效
-    // 异步从prefab中加载一个特效
-    public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, IRecyclable relatedObject, bool moveToHide, GameEffectCallback callback, int tag = 0)
+	public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, Transformable attachedParent, bool moveToHide, GameEffectCallback callback, int tag = 0)
+	{
+		return createEffectAsyncSafe(nameWithPath, attachedParent, attachedParent, attachedParent?.getGameObject(), moveToHide, callback, tag, true, -1, null);
+	}
+	// 会从当前类中缓存的特效对象来获取,而不是从通用对象池中获取一个已经被重置过的对象
+	// 如果特效加载完成之前relatedObject被销毁了,则不会播放特效,并且会将特效挂在attachedParent节点下,并且会在attachedParent销毁时确认销毁所有挂接到此物体上的特效
+	// 异步从prefab中加载一个特效
+	public CustomAsyncOperation createEffectAsyncSafe(string nameWithPath, IRecyclable relatedObject, bool moveToHide, GameEffectCallback callback, int tag = 0)
 	{
 		return createEffectAsyncSafe(nameWithPath, relatedObject, null, null, moveToHide, callback, tag, true, -1.0f, null);
 	}
@@ -301,7 +332,7 @@ public class EffectManager : FrameSystem
 	// 在relatedObject的位置上播放一个特效,如果特效加载完成之前relatedObject被销毁了,则不会播放特效
 	public CustomAsyncOperation playEffectAsync(string nameWithPath, Transformable relatedObject, float lifeTime, bool moveToHide, int tag = 0)
 	{
-		return createEffectAsyncSafe(nameWithPath, relatedObject, null, moveToHide, (effect)=>
+		return createEffectAsyncSafe(nameWithPath, relatedObject, null, moveToHide, (effect) =>
 		{
 			effect.setPosition(relatedObject.getPosition());
 		}, tag, true, lifeTime);
@@ -466,7 +497,7 @@ public class EffectManager : FrameSystem
 		{
 			logError("需要使用destroyEffect销毁非临时特效:" + effect.getFilePath());
 			effect = null;
-            return;
+			return;
 		}
 		// 当GameObject为空时,可能是在销毁无效的特效,所以只能彻底清除
 		if (destroyReally || effect.getGameObject() == null)
@@ -496,7 +527,7 @@ public class EffectManager : FrameSystem
 			effect.setParent(mPrefabPoolManager.getObject());
 		}
 		effect = null;
-    }
+	}
 	protected void destroyEffectInPool(GameEffect effect, bool destroyReally = false)
 	{
 		destroyEffectInPool(ref effect, destroyReally);
@@ -512,7 +543,7 @@ public class EffectManager : FrameSystem
 		{
 			logError("需要使用destroyEffectTemp销毁临时特效:" + effect.getFilePath());
 			effect = null;
-            return;
+			return;
 		}
 		// 从mEffectAttachList中移除
 		if (needRemoveFromAttachList)
