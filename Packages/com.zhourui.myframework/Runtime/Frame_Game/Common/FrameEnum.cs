@@ -9,10 +9,9 @@ public enum PROGRESS_TYPE : byte
 }
 
 // 下载提示
-public enum DOWNLOAD_TIP : byte
+public enum DOWNLOAD_ERROR : byte
 {
 	NONE,                       // 无效值
-	CHECKING_UPDATE,            // 正在检查更新
 	DOWNLOAD_FAILED,            // 文件下载失败
 	NOT_IN_REMOTE_FILE_LIST,    // 已经下载的文件不存在于远端的文件列表中,一般不会有这个错误
 	VERIFY_FAILED,              // 文件校验失败

@@ -49,10 +49,10 @@ public class PlatformUtility
         }
 #endif
     }
-    public static string generateFileList(string assetBundlePath, List<string> ignoreFiles)
+    public static string generateFileList(string assetBundlePath, List<string> ignoreFiles, List<string> ignorePath)
     {
         string fileContent = EMPTY;
-        List<string> fileInfoList = findFileList(assetBundlePath, ignoreFiles, null, new() { ASSET_BUNDLE_SUFFIX + ".manifest", ".meta" });
+        List<string> fileInfoList = findFileList(assetBundlePath, ignoreFiles, ignorePath, new() { ASSET_BUNDLE_SUFFIX + ".manifest", ".meta" });
         // 将所有文件信息写入文件
         fileContent += fileInfoList.Count.IToS() + "\n";
         foreach (string item in fileInfoList)

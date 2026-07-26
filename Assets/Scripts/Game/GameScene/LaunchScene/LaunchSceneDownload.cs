@@ -12,27 +12,23 @@ public class LaunchSceneDownload : SceneProcedure
 	public LaunchSceneDownload()
 	{
 		mInstance = new GameDownload();
-		mInstance.setTipCallback((DOWNLOAD_TIP tip) =>
+		mInstance.setErrorCallback((DOWNLOAD_ERROR tip) =>
 		{
-			if (tip == DOWNLOAD_TIP.NONE)
+			if (tip == DOWNLOAD_ERROR.NONE)
 			{
 				//mUIDownload.setDownloadInfo("");
 			}
-			else if (tip == DOWNLOAD_TIP.CHECKING_UPDATE)
-			{
-				//mUIDownload.setDownloadInfo("正在检查更新...");
-			}
-			else if (tip == DOWNLOAD_TIP.DOWNLOAD_FAILED)
+			else if (tip == DOWNLOAD_ERROR.DOWNLOAD_FAILED)
 			{
 				// 这里可选弹窗让用户选择是否重试
 				//dialogYesNoResource("文件下载失败,是否重试?", retry);
 			}
-			else if (tip == DOWNLOAD_TIP.NOT_IN_REMOTE_FILE_LIST)
+			else if (tip == DOWNLOAD_ERROR.NOT_IN_REMOTE_FILE_LIST)
 			{
 				// 这里可选弹窗让用户选择是否重试
 				//dialogYesNoResource("已下载的文件不存在与远端文件列表,是否重试?", retry);
 			}
-			else if (tip == DOWNLOAD_TIP.VERIFY_FAILED)
+			else if (tip == DOWNLOAD_ERROR.VERIFY_FAILED)
 			{
 				// 这里可选弹窗让用户选择是否重试
 				//dialogYesNoResource("下载文件错误,是否重试?", retry);

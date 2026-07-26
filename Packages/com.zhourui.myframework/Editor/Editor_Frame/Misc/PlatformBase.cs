@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using UnityEngine;
+using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
@@ -165,7 +166,7 @@ public abstract class PlatformBase
 	}
 	public bool writeFileList(string path)
 	{
-		string content = generateFileList(path, mIgnoreFile);
+		string content = generateFileList(path, mIgnoreFile, FrameSettings.getDynamicDownloadList());
 		writeTxtFile(path + FILE_LIST, content);
 		return true;
 	}
@@ -272,12 +273,16 @@ public abstract class PlatformBase
 	public void updateRemoteVersion()
 	{
 		mRemoteVersion = mObjectStorageSystem.downloadTxt(getRemotePathInEditor("") + VERSION);
+		log("更新远端版本号:" + mRemoteVersion);
 		updateEditVersionNumber();
 	}
 	// 将本地的版本号上传到远端
 	public bool uploadVersion()
 	{
-		uploadSingleFile(mAssetBundleFullPath + VERSION, getRemotePathInEditor("") + VERSION);
+		string remotePath = getRemotePathInEditor("") + VERSION;
+		uploadSingleFile(mAssetBundleFullPath + VERSION, remotePath, true);
+		// 上传版本号以后立即刷新cdn
+		mObjectStorageSystem.refreshCDN(remotePath);
 		updateRemoteVersion();
 		return true;
 	}
@@ -350,6 +355,8 @@ public abstract class PlatformBase
 
 		// 需要先更新版本号文件
 		writeVersion();
+		// 在备份文件之前计算文件列表
+		writeFileList(mAssetBundleFullPath);
 		backupAssets();
 		return true;
 	}
@@ -438,15 +445,10 @@ public abstract class PlatformBase
 		}
 		deleteEmptyFolder(F_STREAMING_ASSETS_PATH);
 
-		// GooglePlay平台的包需要在InstallTime备份目录中去计算文件列表
+		// GooglePlay平台的包需要在InstallTime备份目录中去重新计算文件列表
 		if (mGooglePlay)
 		{
 			writeFileList(INSTALL_TIME_TEMP_PATH + mName + "/");
-		}
-		// 其他情况下需要在AssetBundle目录中生成
-		else
-		{
-			writeFileList(mAssetBundleFullPath);
 		}
 	}
 	protected virtual void recoverAssets()
@@ -500,9 +502,7 @@ public abstract class PlatformBase
 			clearProgress();
 			return false;
 		}
-		Dictionary<string, GameFileInfo> localFileInfoList = new();
-		string generatedContent = generateFileList(uploadLocalPath, mIgnoreFile);
-		parseFileList(generatedContent, localFileInfoList);
+		string generatedContent = generateFileList(uploadLocalPath, mIgnoreFile, FrameSettings.getDynamicDownloadList());
 		// 如果扫描出来不一样就更新本地文件列表
 		if (generatedContent != content)
 		{
@@ -510,6 +510,8 @@ public abstract class PlatformBase
 			clearProgress();
 			return false;
 		}
+		Dictionary<string, GameFileInfo> localFileInfoList = new();
+		parseFileList(generatedContent, localFileInfoList);
 		// 检查本地必需的dll.bytes文件是否正确
 		if (!checkAllDllExist())
 		{
@@ -600,7 +602,7 @@ public abstract class PlatformBase
 		int index = 0;
 		foreach (var item in uploadList)
 		{
-			if (mObjectStorageSystem.upload(item.Key, item.Value) != HttpStatusCode.OK)
+			if (!uploadSingleFile(item.Key, item.Value, false))
 			{
 				++failedCount;
 			}
@@ -613,19 +615,19 @@ public abstract class PlatformBase
 		clearProgress();
 		finishCallback?.Invoke(failedCount);
 	}
-	protected bool uploadSingleFile(string file, string remoteFullPath)
+	protected bool uploadSingleFile(string file, string remotePath, bool noCache)
 	{
-		log("上传文件:" + file + ", 远端路径:" + remoteFullPath);
+		log("上传文件:" + file + ", 远端路径:" + remotePath);
 		// 如果上传失败,则最多重试5次
 		HttpStatusCode code = 0;
 		try
 		{
-			code = mObjectStorageSystem.upload(file, remoteFullPath);
+			code = mObjectStorageSystem.upload(file, remotePath, noCache);
 		}
 		catch { }
 		if (code != HttpStatusCode.OK)
 		{
-			logError("上传失败:" + file + ", 远端路径:" + remoteFullPath + ", code:" + code);
+			logError("上传失败:" + file + ", 远端路径:" + remotePath + ", code:" + code);
 		}
 		return code == HttpStatusCode.OK;
 	}

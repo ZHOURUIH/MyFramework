@@ -155,6 +155,7 @@ public class AssetVersionSystem : FrameSystem
 		}
 		return mPersistentDataVersion;
 	}
+	// remoteFileListMD5是已经获取到的远端FileList的MD5,一般的对象存储都可以在不下载文件的情况下直接获取文件的MD5,这样就可以省掉每次下载FileList的耗时和流量消耗,只有对比后发现不一样,才会真的去下载
 	// remoteFileListCallback是获取到最新的远端文件列表
 	public void startCheckFileList(string remoteFileListMD5, List<string> ignorePath, List<string> ignoreFile, Action successCallback, Action failCallback, DownloadFileListCallback remoteFileListCallback)
 	{

@@ -36,7 +36,7 @@ public class GameDownload
 			mAllFinish = true;
 		}
 	}
-	public void setTipCallback(GameDownloadTipCallback callback) { mTipCallback = callback; }
+	public void setErrorCallback(GameDownloadTipCallback callback) { mTipCallback = callback; }
 	public void setProgressCallback(GameDownloadCallback callback) { mProgressCallback = callback; }
 	public void setAutoRetryCount(int count) { mRemainRetryCount = count; }
 	public void skipDownload()
@@ -49,7 +49,6 @@ public class GameDownload
 		logBase("资源下载地址:" + mResourceManager.getDownloadURL());
 		mAllFinish = false;
 
-		mTipCallback?.Invoke(DOWNLOAD_TIP.CHECKING_UPDATE);
 		mProgressCallback?.Invoke(0.0f, PROGRESS_TYPE.CHECKING_UPDATE, "", 0, 0);
 
 		// 检查是否需要更新安装包,移动端会判断是否需要重新下载整个安装包
@@ -66,7 +65,7 @@ public class GameDownload
 				logErrorBase("当前不是全量安装包,且本地版本号大于远端版本号,无法运行游戏");
 			}
 			mAssetVersionSystem.setAssetReadPath(ASSET_READ_PATH.STREAMING_ASSETS_ONLY);
-			mTipCallback?.Invoke(DOWNLOAD_TIP.NONE);
+			mTipCallback?.Invoke(DOWNLOAD_ERROR.NONE);
 			allFinished();
 			return;
 		}
@@ -74,7 +73,7 @@ public class GameDownload
 		if (bigCompare == VERSION_COMPARE.LOCAL_LOWER)
 		{
 			mAssetVersionSystem.setAssetReadPath(ASSET_READ_PATH.PERSISTENT_FIRST);
-			mTipCallback?.Invoke(DOWNLOAD_TIP.NONE);
+			mTipCallback?.Invoke(DOWNLOAD_ERROR.NONE);
 			allFinished();
 			return;
 		}
@@ -119,7 +118,7 @@ public class GameDownload
 		logBase("对比需要下载的文件列表耗时:" + (int)(DateTime.Now - start1).TotalMilliseconds + "毫秒");
 		mNeedDownloadFileList.Remove(VERSION);
 		logBase("需要下载" + mNeedDownloadFileList.Count + "个文件");
-		mTipCallback?.Invoke(DOWNLOAD_TIP.NONE);
+		mTipCallback?.Invoke(DOWNLOAD_ERROR.NONE);
 		if (mNeedDownloadFileList.Count == 0)
 		{
 			allFinished();
@@ -149,7 +148,7 @@ public class GameDownload
 				}
 				else
 				{
-					mTipCallback?.Invoke(DOWNLOAD_TIP.DOWNLOAD_FAILED);
+					mTipCallback?.Invoke(DOWNLOAD_ERROR.DOWNLOAD_FAILED);
 				}
 				return;
 			}
@@ -163,7 +162,7 @@ public class GameDownload
 			if (!mAssetVersionSystem.getRemoteAssetsFile().TryGetValue(fileName, out GameFileInfo remoteInfo))
 			{
 				logWarningBase("已下载的文件不存在与远端文件列表, 下载的文件:" + fileName);
-				mTipCallback?.Invoke(DOWNLOAD_TIP.NOT_IN_REMOTE_FILE_LIST);
+				mTipCallback?.Invoke(DOWNLOAD_ERROR.NOT_IN_REMOTE_FILE_LIST);
 				return;
 			}
 
@@ -185,7 +184,7 @@ public class GameDownload
 				}
 				else
 				{
-					mTipCallback?.Invoke(DOWNLOAD_TIP.VERIFY_FAILED);
+					mTipCallback?.Invoke(DOWNLOAD_ERROR.VERIFY_FAILED);
 				}
 			}
 

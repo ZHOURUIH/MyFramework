@@ -6,45 +6,42 @@ using UnityEngine.Networking;
 using static HttpUtility;
 using static FileUtility;
 
-// 用于执行华为云OBS文件存储服务器的访问逻辑,使用前需要确保以下5个参数已经设置正确
-// 如果只是下载,则只需要设置URL和RemoteFolder,上传或者删除则需要配置其余三个参数
+// 用于执行华为云OBS文件存储服务器的访问逻辑,只用于下载
 public class ObsSystem
 {
-	protected static string mURL;
-	protected static string mBucketName;
-	protected static string mAccessKey;
-	protected static string mSecureKey;
-	public static void setURLAndKeys(string url, string bucketName, string accessKey, string secureKey)
-	{
-		mURL = url;
-		mBucketName = bucketName;
-		mAccessKey = accessKey;
-		mSecureKey = secureKey;
-	}
-	// 异步下载文件,remotePath是上传到服务器后存储的相对路径,带后缀
+	// 异步下载文件,remotePath是上传到服务器后存储的路径,带URL,带后缀
 	public static void downloadBytes(string remotePath, BytesIntCallback callback)
 	{
-		ResourceManager.loadAssetsFromUrl(mURL + remotePath, (byte[] bytes) => { callback?.Invoke(bytes, bytes?.Length ?? 0); });
+		ResourceManager.loadAssetsFromUrl(remotePath, (byte[] bytes) => { callback?.Invoke(bytes, bytes?.Length ?? 0); });
 	}
-	// 异步下载文件,remotePath是上传到服务器后存储的相对路径,带后缀
+	// 异步下载文件,remotePath是上传到服务器后存储的路径,带URL,带后缀
 	public static void downloadTxt(string remotePath, StringCallback callback)
 	{
-		ResourceManager.loadAssetsFromUrl(mURL + remotePath, (byte[] bytes) => { callback?.Invoke(bytesToString(bytes) ?? ""); });
+		ResourceManager.loadAssetsFromUrl(remotePath, (byte[] bytes) => { callback?.Invoke(bytesToString(bytes) ?? ""); });
 	}
-	// fileName是URL下的相对路径
-	public static void getFileMD5(string fileName, StringCallback callback)
+	// fileName是url下的相对路径
+	public static void getFileMD5(string url, string fileName, StringCallback callback)
 	{
-		getFileInfoInternal(fileName, (GameFileInfo info) => { callback?.Invoke(info?.mMD5); });
+		getFileInfoInternal(url, fileName, (GameFileInfo info) => { callback?.Invoke(info?.mMD5); });
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
-	protected static void getFileInfoInternal(string path, Action<GameFileInfo> callback)
+	protected static void getFileInfoInternal(string url, string fileName, Action<GameFileInfo> callback)
 	{
-		Dictionary<string, string> paramList = new() { { "prefix", path } };
-		httpGetAsyncWebGL(mURL, paramList, (string result, UnityWebRequest.Result status, long code) =>
+		Dictionary<string, string> paramList = new() { { "prefix", fileName } };
+		httpGetAsyncWebGL(url, paramList, (string result, UnityWebRequest.Result status, long code) =>
 		{
 			List<GameFileInfo> fileList = new();
 			parseFileList(result, fileList, out _);
-			callback?.Invoke(fileList.Count > 0 ? fileList[0] : null);
+			GameFileInfo file = null;
+			foreach (GameFileInfo info in fileList)
+			{
+				if (info.mFileName == fileName)
+				{
+					file = info;
+					break;
+				}
+			}
+			callback?.Invoke(file);
 		});
 	}
 	// 返回值表示是否已经获取了全部的文件信息,如果没有获取全,nextMarker则会返回下一次获取所需的标记

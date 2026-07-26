@@ -21,10 +21,7 @@ public class ObsSystem : IObjectStorageSystem
 	protected string mAccessKey;
 	protected string mSecureKey;
 	private static ObsSystem mInstance;
-	public static ObsSystem get()
-	{
-		return mInstance ??= new ObsSystem();
-	}
+	public static ObsSystem get() { return mInstance ??= new ObsSystem(); }
 	public void init(string url, string bucketName, string accessKey, string secureKey)
 	{
 		mURL = validPath(url);
@@ -101,7 +98,8 @@ public class ObsSystem : IObjectStorageSystem
 		});
 	}
 	// fullPath是要上传文件的本地绝对路径,savePath是上传到服务器后存储的相对路径,带后缀
-	public HttpStatusCode upload(string fullPath, string savePath)
+	// noCache在这里无效
+	public HttpStatusCode upload(string fullPath, string savePath, bool noCache)
 	{
 		upload(fullPath, openFileSync(fullPath, true), savePath, out _, out HttpStatusCode code, 30000);
 		return code;
@@ -165,6 +163,7 @@ public class ObsSystem : IObjectStorageSystem
 			fileMap.Add(info.mFileName, info);
 		}
 	}
+	public bool refreshCDN(string remoteRelativePath) { return true; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	public void getFileListInternal(string path, List<GameFileInfo> fileList)
 	{

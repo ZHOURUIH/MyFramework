@@ -6,8 +6,9 @@ public interface IObjectStorageSystem
 {
 	void init(string url, string bucket, string accessKey, string secureKey);
 	string getURL();
-	Dictionary<string, GameFileInfo> getFileList(string path);
+	Dictionary<string, GameFileInfo> getFileList(string remotePath);
 	string downloadTxt(string remotePath);
-	bool delete(string remoteFullPath);
-	HttpStatusCode upload(string fullPath, string savePath);
+	bool delete(string remotePath);
+	HttpStatusCode upload(string localFullPath, string remotePath, bool noCache);
+	public bool refreshCDN(string remotePath);
 }
