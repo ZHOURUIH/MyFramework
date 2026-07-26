@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using static FrameBaseDefine;
@@ -11,108 +12,160 @@ using static FrameBaseDefine;
 public class ResLocalizationText : MonoBehaviour
 {
 	protected float mFontSizeScale;								// 由于自适应而造成的字体缩放
+	protected Text mText;										// UGUI的Text组件
+	protected TextMeshProUGUI mTextTMP;							// TextMeshPro的Text组件
 	public int mChineseOriginFontSize;							// 非运行时的中文字体大小
 	public List<FontSizeInfo> mLanguageOriginFontSize = new();	// 非运行时的多语言字体大小
-	public string mLocalzation;
-	public string mEnglish;
-	public string mChineseTraditional;
-	public Text mText;
-	public static string mCurLanguage;
+	public string mLocalzation;									// 中文简体的文本
+	public string mEnglish;                                     // 英文的文本
+	public string mChineseTraditional;                          // 中文繁体的文本
+	public static string mCurLanguage;							// 当前的语言类型
 	public void Start()
     {
-		if (mText == null)
+		initTextComponent();
+		if (!isTextComponentValid())
 		{
-			TryGetComponent(out mText);
-		}
-		if (mText == null)
-        {
-			Debug.LogError("找不到Text组件:" + gameObject.name);
 			return;
-        }
+		}
 		if (!Application.isPlaying)
 		{
-			mChineseOriginFontSize = mText.fontSize;
+			mChineseOriginFontSize = getFontSize();
 		}
 		else
 		{
 			if (mChineseOriginFontSize > 0)
 			{
-				mFontSizeScale = mText.fontSize / mChineseOriginFontSize;
+				mFontSizeScale = getFontSize() / mChineseOriginFontSize;
 			}
 			else
 			{
 				mFontSizeScale = 1.0f;
 			}
 		}
-		mLocalzation = mText.text;
+		mLocalzation = getText();
 
-		if (mText != null)
+		if (mCurLanguage == LANGUAGE_CHINESE)
 		{
-			if (mCurLanguage == LANGUAGE_CHINESE)
+			setText(mLocalzation);
+		}
+		else if (mCurLanguage == LANGUAGE_ENGLISH)
+		{
+			setText(mEnglish);
+		}
+		else if (mCurLanguage == LANGUAGE_CHINESE_TRADITIONAL)
+		{
+			setText(mChineseTraditional);
+		}
+		foreach (FontSizeInfo item in mLanguageOriginFontSize)
+		{
+			if (item.mLanguage == mCurLanguage)
 			{
-				mText.text = mLocalzation;
-			}
-			else if (mCurLanguage == LANGUAGE_ENGLISH)
-			{
-				mText.text = mEnglish;
-			}
-			else if (mCurLanguage == LANGUAGE_CHINESE_TRADITIONAL)
-			{
-				mText.text = mChineseTraditional;
-			}
-			foreach (FontSizeInfo item in mLanguageOriginFontSize)
-			{
-				if (item.mLanguage == mCurLanguage)
-				{
-					mText.fontSize = Mathf.RoundToInt(item.mFontSize * mFontSizeScale);
-				}
+				setFontSize(Mathf.RoundToInt(item.mFontSize * mFontSizeScale));
 			}
 		}
 	}
 	public void OnValidate()
 	{
-		if (!Application.isPlaying)
+		if (Application.isPlaying)
         {
-            if (mText == null)
-            {
-				TryGetComponent(out mText);
-			}
-            if (mText == null)
-            {
-                return;
-            }
-			mLocalzation = mText.text;
-			mChineseOriginFontSize = mText.fontSize;
-			// 加上默认字体
-			// 中文简体,同时也要保证中文的字体大小是实时更新的
-			int chineseIndex = mLanguageOriginFontSize.FindIndex((item) => { return item.mLanguage == LANGUAGE_CHINESE; });
-			if (chineseIndex < 0)
-			{
-				mLanguageOriginFontSize.Add(new(LANGUAGE_CHINESE, mChineseOriginFontSize));
-			}
-			else
-			{
-				FontSizeInfo info = mLanguageOriginFontSize[chineseIndex];
-				info.mFontSize = mChineseOriginFontSize;
-				mLanguageOriginFontSize[chineseIndex] = info;
-			}
-			// 中文繁体
-			int chineseTradiIndex = mLanguageOriginFontSize.FindIndex((item) => { return item.mLanguage == LANGUAGE_CHINESE_TRADITIONAL; });
-			if (chineseTradiIndex < 0)
-			{
-				mLanguageOriginFontSize.Add(new(LANGUAGE_CHINESE_TRADITIONAL, mChineseOriginFontSize));
-			}
-			else
-			{
-				FontSizeInfo info = mLanguageOriginFontSize[chineseTradiIndex];
-				info.mFontSize = mChineseOriginFontSize;
-				mLanguageOriginFontSize[chineseTradiIndex] = info;
-			}
-			// 英文
-			if (mLanguageOriginFontSize.FindIndex((item) => { return item.mLanguage == LANGUAGE_ENGLISH; }) < 0)
-			{
-				mLanguageOriginFontSize.Add(new(LANGUAGE_ENGLISH, mChineseOriginFontSize));
-			}
+			return;
+		}
+		initTextComponent();
+		if (!isTextComponentValid())
+        {
+            return;
+        }
+		mLocalzation = getText();
+		mChineseOriginFontSize = getFontSize();
+		// 加上默认字体
+		// 中文简体,同时也要保证中文的字体大小是实时更新的
+		int chineseIndex = mLanguageOriginFontSize.FindIndex((item) => { return item.mLanguage == LANGUAGE_CHINESE; });
+		if (chineseIndex < 0)
+		{
+			mLanguageOriginFontSize.Add(new(LANGUAGE_CHINESE, mChineseOriginFontSize));
+		}
+		else
+		{
+			FontSizeInfo info = mLanguageOriginFontSize[chineseIndex];
+			info.mFontSize = mChineseOriginFontSize;
+			mLanguageOriginFontSize[chineseIndex] = info;
+		}
+		// 中文繁体
+		int chineseTradiIndex = mLanguageOriginFontSize.FindIndex((item) => { return item.mLanguage == LANGUAGE_CHINESE_TRADITIONAL; });
+		if (chineseTradiIndex < 0)
+		{
+			mLanguageOriginFontSize.Add(new(LANGUAGE_CHINESE_TRADITIONAL, mChineseOriginFontSize));
+		}
+		else
+		{
+			FontSizeInfo info = mLanguageOriginFontSize[chineseTradiIndex];
+			info.mFontSize = mChineseOriginFontSize;
+			mLanguageOriginFontSize[chineseTradiIndex] = info;
+		}
+		// 英文
+		if (mLanguageOriginFontSize.FindIndex((item) => { return item.mLanguage == LANGUAGE_ENGLISH; }) < 0)
+		{
+			mLanguageOriginFontSize.Add(new(LANGUAGE_ENGLISH, mChineseOriginFontSize));
+		}
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	private bool isTextComponentValid() { return mText != null || mTextTMP != null; }
+	private void initTextComponent()
+	{
+		if (mText == null && TryGetComponent(out mText))
+		{
+			return;
+		}
+		if (mTextTMP == null && TryGetComponent(out mTextTMP))
+		{
+			return;
+		}
+	}
+	private int getFontSize()
+	{
+		if (mText != null)
+		{
+			return mText.fontSize;
+		}
+		if (mTextTMP != null)
+		{
+			return (int)mTextTMP.fontSize;
+		}
+		return 0;
+	}
+	private void setFontSize(int size)
+	{
+		if (mText != null)
+		{
+			mText.fontSize = size;
+			return;
+		}
+		if (mTextTMP != null)
+		{
+			mTextTMP.fontSize = size;
+		}
+	}
+	private string getText()
+	{
+		if (mText != null)
+		{
+			return mText.text;
+		}
+		if (mTextTMP != null)
+		{
+			return mTextTMP.text;
+		}
+		return null;
+	}
+	private void setText(string text)
+	{
+		if (mText != null)
+		{
+			mText.text = text;
+		}
+		if (mTextTMP != null)
+		{
+			mTextTMP.text = text;
 		}
 	}
 }

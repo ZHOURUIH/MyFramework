@@ -523,9 +523,9 @@ public abstract class PlatformBase
 		log("本地共" + localFileInfoList.Count + "个文件");
 		clearProgress();
 
-		// 对比需要删除的文件
+		// 对比远端需要删除的文件
 		progressBar(displayTitle, "正在删除远端文件");
-		bool hasError = doDelete(checkDeleteFile(remoteFileList, localFileInfoList), remotePath, displayTitle);
+		bool hasError = doDelete(checkDeleteFile(localFileInfoList, remoteFileList), remotePath, displayTitle);
 
 		// 对比需要上传的文件,计算出上传的文件列表
 		progressBar(displayTitle, "正在上传文件");
