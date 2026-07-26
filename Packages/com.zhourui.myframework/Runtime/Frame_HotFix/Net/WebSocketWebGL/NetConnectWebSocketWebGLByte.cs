@@ -8,6 +8,7 @@ using static FrameDefine;
 using static FrameBaseUtility;
 
 // 当前程序作为客户端时使用,表示一个与WebSocket服务器的连接,按字节传输,用于webgl平台
+// 使用SerializerWrite进行字节级序列化,维护收发序列号用于消息可靠性保证
 public class NetConnectWebSocketWebGLByte : NetConnectWebSocketWebGL
 {
 	protected SerializerWrite mWriter = new();			// 用于序列化

@@ -10,6 +10,7 @@ using static FrameBaseUtility;
 using static HttpUtility;
 
 // 表示一个与Http服务器连接
+// 使用UnityWebRequest发送HTTP请求,支持双缓冲输出、消息头自定义、请求去重和超时重试
 public class NetConnectHttp : NetConnect
 {
 	protected DoubleBuffer<ReceivedDataInfo> mReceiveBuffer = new();		// 在主线程中执行的消息列表

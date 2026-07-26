@@ -4,6 +4,7 @@ using static MathUtility;
 using static FrameBaseHotFix;
 
 // 全部都是对MovableObject的操作,部分Transformable的通用操作在ToolFrame中
+// 提供摄像机FOV、位置追踪、路径移动等对象级操作的快捷方法
 public static class OT
 {
 	//------------------------------------------------------------------------------------------------------------------------------

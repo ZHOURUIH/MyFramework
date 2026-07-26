@@ -3,6 +3,7 @@ using static BinaryUtility;
 using static FrameDefine;
 
 // 消息结构体类型的参数
+// 按bit传输的结构体参数,支持嵌套成员变量和可选字段标记,与SerializerBitRead/Write配合使用
 public class NetStructBit : SerializableBit
 {
 	public List<SerializableBit> mParams = new();	// 结构体中成员变量参数列表

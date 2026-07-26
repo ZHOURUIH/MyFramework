@@ -1,5 +1,6 @@
 ﻿
 // 表示一个与服务器的连接
+// 网络连接基类,提供加密/解密接口和服务器标识,各协议子类(TCP/UDP/WebSocket)继承此类实现具体连接逻辑
 public class NetConnect : CommandReceiver
 {
 	protected EncryptPacket mEncryptPacket;     // 加密函数

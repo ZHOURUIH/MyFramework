@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 
+// 鼠标事件收集接口,所有可交互的UI窗口和3D物体都需要实现此接口
+// 提供碰撞检测/深度/拖拽/射线穿透等功能的定义
 public interface IMouseEventCollect
 {
 	string getName();

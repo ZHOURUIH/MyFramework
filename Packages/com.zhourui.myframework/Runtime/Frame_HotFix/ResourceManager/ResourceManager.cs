@@ -7,6 +7,7 @@ using static FrameBaseUtility;
 using static FrameUtility;
 
 // 资源管理器,管理所有资源的加载
+// 支持AssetDataBase(编辑器)和AssetBundle(打包)两种加载源,提供引用计数管理、定时清理、异步安全加载等功能
 public class ResourceManager : FrameSystem
 {
 	protected Dictionary<int, HashSet<long>> mReferenceTokenList = new();		// 记录了每个资源的引用凭证ID,由于UObject重载了==,所以一旦外部卸载了UObject,这里就会出现GetHashCode不变,但是引用资源为空的问题,所以使用GetInstanceID作为Key

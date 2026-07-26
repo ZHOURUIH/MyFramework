@@ -11,6 +11,7 @@ using static FrameDefine;
 using static FrameBaseUtility;
 
 // 从AssetDataBase中加载资源
+// 仅在编辑器下使用,通过Unity AssetDatabase API加载资源,管理已加载资源的路径映射
 public class AssetDataBaseLoader
 {
 	protected Dictionary<string, Dictionary<string, AssetDataBaseLoadInfo>> mLoadedPath = new();     // 所有已加载的文件夹

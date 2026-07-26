@@ -5,6 +5,7 @@ using static FrameBaseHotFix;
 using static FrameBaseUtility;
 
 // 在主线程中使用的消息包工厂
+// 通过消息类型ID或Type创建NetPacket实例,支持对象池复用,禁止子线程调用
 public class NetPacketFactory : FrameSystem
 {
 	public void destroyPacket(NetPacket packet)

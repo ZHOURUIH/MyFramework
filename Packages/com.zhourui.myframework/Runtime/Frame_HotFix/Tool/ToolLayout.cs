@@ -6,6 +6,7 @@ using static FrameBaseHotFix;
 using static MathUtility;
 
 // 全部都是对于UI布局或窗口的操作,部分Transformable的通用操作在ToolFrame中
+// 提供布局加载/卸载、窗口显隐、层级调整等UI相关操作的快捷方法
 public static class LT
 {
 	//------------------------------------------------------------------------------------------------------------------------------

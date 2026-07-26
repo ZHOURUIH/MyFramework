@@ -11,6 +11,7 @@ using static FrameBaseUtility;
 using static FrameBaseHotFix;
 
 // 加载资源的一些静态函数,由于没有经过资源管理器,所以返回的资源没有封装对象,不过外部拿到资源以后可以自己放到资源引用对象中
+// 提供URL加载、Resources加载等便捷静态方法,适用于临时或非托管资源加载场景
 public class ResourceUtility
 {
 	// 根据一个URL加载资源,一般都是一个网络资源

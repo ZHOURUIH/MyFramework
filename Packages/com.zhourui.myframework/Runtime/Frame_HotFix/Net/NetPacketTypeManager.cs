@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 // 管理消息包类型注册的信息
+// 维护ushort类型ID到Type的双向映射,支持UDP包名查询,是NetPacketFactory创建消息实例的依据
 public class NetPacketTypeManager : FrameSystem
 {
 	protected Dictionary<ushort, PacketRegisterInfo> mPacketTypeList = new();		// 根据消息ID查找消息注册信息

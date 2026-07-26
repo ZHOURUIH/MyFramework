@@ -7,6 +7,7 @@ using static BinaryUtility;
 using static FrameDefine;
 
 // Frame层默认的UDP连接封装类,按bit传输,应用层可根据实际需求仿照此类封装自己的UDP连接类
+// 使用SerializerBitWrite进行位级序列化,维护Token用于服务器识别客户端身份
 public class NetConnectUDPBit : NetConnectUDP
 {
 	protected SerializerBitWrite mBitWriter = new();	// 用于序列化

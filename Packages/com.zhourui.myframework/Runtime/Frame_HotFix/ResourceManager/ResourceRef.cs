@@ -4,6 +4,7 @@ using static FrameUtility;
 using UObject = UnityEngine.Object;
 
 // 资源引用,用于标记资源的引用计数
+// 泛型封装,通过Token凭证管理资源的引用与释放,防止资源被误卸载
 public class ResourceRef<T> : ClassObject where T : UObject
 {
 	protected T mResource;                  // 引用的资源

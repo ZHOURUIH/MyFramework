@@ -2,6 +2,7 @@
 using static BinaryUtility;
 
 // 消息基类,按bit传输
+// 使用位级序列化,支持可选字段和符号位标记,适用于带宽敏感的协议场景
 public abstract class NetPacketBit : NetPacket
 {
 	protected List<SerializableBit> mParameters = new();    // 消息参数对象列表

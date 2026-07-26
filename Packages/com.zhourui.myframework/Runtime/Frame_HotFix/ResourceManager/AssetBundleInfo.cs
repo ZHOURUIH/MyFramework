@@ -11,6 +11,7 @@ using static FrameDefine;
 using static FrameBaseUtility;
 
 // AssetBundle的信息,存储了AssetBundle中相关的所有数据
+// 维护父子依赖关系(引用链)、资源列表和加载回调,AssetBundleLoader通过此类管理AB的加载与卸载
 public class AssetBundleInfo : ClassObject
 {
 	protected Dictionary<string, AssetBundleInfo> mChildren = new();		// 依赖自己的AssetBundle列表,即引用了自己的AssetBundle

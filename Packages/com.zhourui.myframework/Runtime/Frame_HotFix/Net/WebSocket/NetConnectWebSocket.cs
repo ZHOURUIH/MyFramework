@@ -11,6 +11,7 @@ using static FrameDefine;
 using static FrameBaseUtility;
 
 // 当前程序作为客户端时使用,表示一个与WebSocket服务器的连接,用于非webgl平台
+// 使用System.Net.WebSockets实现,提供消息队列收发、输入缓冲和网络状态回调
 public abstract class NetConnectWebSocket : NetConnect
 {
 	protected Queue<PacketReceiveInfo> mReceiveBuffer = new();					// 在主线程中执行的消息列表

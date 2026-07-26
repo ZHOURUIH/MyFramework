@@ -3,6 +3,7 @@ using static BinaryUtility;
 using static FrameDefine;
 
 // 消息结构体类型的参数
+// 按字节传输的结构体参数,支持嵌套成员变量和可选字段标记,与SerializerRead/Write配合使用
 public class NetStructByte : Serializable
 {
 	public List<Serializable> mParams = new();		// 结构体中成员变量参数列表

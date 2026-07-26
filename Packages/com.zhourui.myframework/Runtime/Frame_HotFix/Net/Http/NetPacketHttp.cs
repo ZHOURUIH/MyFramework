@@ -1,5 +1,6 @@
 ﻿
 // 表示一个与Http服务器交互的消息基类
+// 定义URL、请求方式和超时时间,子类通过重写write/read实现具体接口的请求和响应解析
 public class NetPacketHttp : NetPacket
 {
 	protected string mURL;				// 接口地址

@@ -5,6 +5,7 @@ using static FrameBaseHotFix;
 using static FrameDefine;
 
 // AssetBundle中的Asset的信息
+// 记录资源的名称、所属AB、子资源数组和异步加载回调,AssetBundleInfo通过此类管理单个资源的加载状态
 [Serializable]
 public class AssetInfo : ClassObject
 {

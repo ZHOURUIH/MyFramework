@@ -11,6 +11,7 @@ using static FrameDefine;
 using static FrameBaseUtility;
 
 // 当前程序作为客户端时使用,表示一个与TCP服务器的连接,WebGL无法使用
+// 提供双缓冲收发、消息缓冲区、序列号管理和网络状态回调,按bit或byte传输由子类决定
 public abstract class NetConnectTCP : NetConnect
 {
 	protected DoubleBuffer<PacketReceiveInfo> mReceiveBuffer = new();		// 在主线程中执行的消息列表

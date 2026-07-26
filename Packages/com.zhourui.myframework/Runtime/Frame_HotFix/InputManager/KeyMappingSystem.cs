@@ -4,6 +4,7 @@ using static UnityUtility;
 using static FrameBaseHotFix;
 
 // 按键映射系统,用于实现游戏中的快捷键以及快捷键设置功能
+// 维护KeyCode到功能ID的映射表,提供按键名查询、映射冲突检测、快捷键自定义修改等接口
 public class KeyMappingSystem : FrameSystem
 {
 	protected Dictionary<KeyCode, string> mKeyNameList = new();         // 快捷键名字列表

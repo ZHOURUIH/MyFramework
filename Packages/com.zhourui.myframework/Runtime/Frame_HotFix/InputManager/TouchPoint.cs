@@ -5,6 +5,7 @@ using static MathUtility;
 using static FrameDefine;
 
 // 触摸点信息
+// 记录单个触点的按下/抬起时间、位置变化、移动增量,支持单击/双击/拖拽状态判定
 public class TouchPoint : ClassObject
 {
 	protected DateTime mDownTime;		// 触点按下的时间

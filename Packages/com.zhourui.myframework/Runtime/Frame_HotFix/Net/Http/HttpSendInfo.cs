@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 // Http消息的发送信息
+// 包含URL、请求方式(GET/POST)、参数、回调、超时和重试次数,由NetConnectHttp消费并发送
 public class HttpSendInfo : ClassObject
 {
 	public Dictionary<string, string> mParamsForGet;// get请求时可能需要传的参数

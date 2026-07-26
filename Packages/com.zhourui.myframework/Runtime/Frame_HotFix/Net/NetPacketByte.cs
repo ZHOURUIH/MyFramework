@@ -2,6 +2,7 @@
 using static BinaryUtility;
 
 // 消息基类,按字节传输
+// 使用字节级序列化,适用于兼容性和调试便利性优先的协议场景
 public class NetPacketByte : NetPacket
 {
 	protected List<Serializable> mParameters = new();    // 消息参数对象列表

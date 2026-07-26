@@ -2,6 +2,7 @@
 using UObject = UnityEngine.Object;
 
 // 资源加载的信息,表示一个非AssetBundle的资源
+// 在编辑器模式下使用,记录资源的加载路径、状态、回调列表和子物体列表
 public class AssetDataBaseLoadInfo : ClassObject
 {
 	public List<AssetLoadCallback> mCallback = new();   // 回调列表

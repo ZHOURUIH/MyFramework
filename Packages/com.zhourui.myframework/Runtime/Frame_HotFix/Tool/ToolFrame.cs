@@ -5,6 +5,7 @@ using static UnityUtility;
 using static MathUtility;
 
 // 用于操作ITransformable,大部分的操作是用于代替Dotween的缓动操作,以及扩展的其他操作
+// 提供旋转/移动/缩放/透明度/颜色等Transformable属性的关键帧缓动方法,支持链式调用
 public static class FT
 {
 	//------------------------------------------------------------------------------------------------------------------------------

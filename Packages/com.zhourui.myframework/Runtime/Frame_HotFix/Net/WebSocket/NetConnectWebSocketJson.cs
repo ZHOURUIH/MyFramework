@@ -12,6 +12,7 @@ using static FrameUtility;
 using static MathUtility;
 
 // 使用json作为通信协议的WebSocket连接封装类
+// 维护消息类型与字符串的双向映射,以JSON字符串格式收发数据
 public class NetConnectWebSocketJson : NetConnectWebSocket
 {
 	protected Dictionary<Type, string> mPacketTypeIDList = new();

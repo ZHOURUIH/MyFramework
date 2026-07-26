@@ -2,6 +2,8 @@
 using System.Net;
 using UnityEngine.Networking;
 
+// HTTP接收到的数据信息
+// 包含响应数据、回调、消息类型及多种错误码(WebException/UnityWebRequest/HttpStatusCode),由NetConnectHttp在主线程中分发
 public struct ReceivedDataInfo
 {
 	public Action<NetPacketHttp> mCallback;		// 处理消息的回调

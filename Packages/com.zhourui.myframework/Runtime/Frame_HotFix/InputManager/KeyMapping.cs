@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 
 // 按键映射信息
+// 将游戏逻辑功能(如"移动""攻击")映射到具体的KeyCode,支持默认键位和自定义修改
 public class KeyMapping : ClassObject
 {
 	public int mMappingID;				// 映射对象ID,也就是KeyCode映射到的值,一般是一个枚举

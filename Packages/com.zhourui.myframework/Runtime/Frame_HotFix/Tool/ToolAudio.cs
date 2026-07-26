@@ -3,9 +3,9 @@ using static UnityUtility;
 using static FrameBaseHotFix;
 using static FrameBaseUtility;
 
-public class AT
-{
-	// 背景音乐和音效都可以通过音效辅助物体的方式播放,且不会有GameObject的隐藏问题
+// 音频操作工具类,提供背景音乐和音效的播放/音量/暂停/恢复等快捷方法
+// 背景音乐和音效都可以通过音效辅助物体的方式播放,且不会有GameObject的隐藏问题
+public static class AT
 	// 只是设置AudioSource组件上的音量,而且只能设置背景音乐的音量,一般不会动态地去修改音效地音量
 	// 设置的是绝对音量
 	public static void MUSIC_VOLUME(float target)

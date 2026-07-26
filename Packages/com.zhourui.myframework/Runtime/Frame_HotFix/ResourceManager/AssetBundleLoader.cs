@@ -14,6 +14,7 @@ using static FrameBaseUtility;
 using static ResourceUtility;
 
 // 从AssetBundle中加载资源
+// 管理所有AB的加载、依赖解析、资源对象到AB的映射,提供同步/异步加载和卸载接口
 public class AssetBundleLoader
 {
 	protected Dictionary<UObject, AssetBundleInfo> mAssetToAssetBundleInfo = new(); // 根据加载的Asset查找所属AssetBundle的列表

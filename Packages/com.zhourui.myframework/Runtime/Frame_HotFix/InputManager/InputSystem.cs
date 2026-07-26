@@ -6,6 +6,8 @@ using static FrameBaseUtility;
 using static FrameUtility;
 
 // 输入系统,用于封装Input
+// 管理触屏/鼠标触点状态及键盘按键监听,支持焦点掩码控制输入屏蔽
+// 提供单击/双击检测,每帧自动更新触点位置和按键状态
 public class InputSystem : FrameSystem
 {
 	protected Dictionary<IEventListener, Dictionary<Action, KeyListenInfo>> mListenerList = new();		// 以监听者为索引的快捷键监听列表

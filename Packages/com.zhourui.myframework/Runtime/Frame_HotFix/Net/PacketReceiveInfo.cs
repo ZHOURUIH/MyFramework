@@ -1,5 +1,6 @@
 ﻿
 // 消息包的信息,用于中转消息数据
+// 包含原始字节数据、字段有效性标记、序列号、消息类型和符号位标记,由网络线程填充后交给主线程处理
 public struct PacketReceiveInfo
 {
 	public byte[] mPacketData;	// 消息包内容

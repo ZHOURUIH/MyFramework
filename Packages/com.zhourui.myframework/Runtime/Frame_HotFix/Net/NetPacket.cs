@@ -1,6 +1,7 @@
 ﻿using static FrameUtility;
 
 // 与服务器交互的消息包基类
+// 维护消息包唯一ID、类型和来源连接,子类需重写execute()实现服务端下推消息的处理逻辑
 public class NetPacket : ClassObject
 {
 	protected NetConnect mConnect;		// 记录了是从哪个服务器发送过来的
