@@ -1,13 +1,13 @@
 ﻿#if USE_QI_NIU_YUN
+using Qiniu.CDN;
 using Qiniu.Http;
 using Qiniu.Storage;
 using Qiniu.Util;
-using Qiniu.CDN;
 using System.Collections.Generic;
 using System.Net;
+using static FileUtility;
 using static HttpUtility;
 using static UnityUtility;
-using static FileUtility;
 
 // 七牛云的封装,一般在编辑器模式下访问的,用于上传和下载
 public class QiNiuYunSystem : IObjectStorageSystem
@@ -18,7 +18,6 @@ public class QiNiuYunSystem : IObjectStorageSystem
 	public string mSecretKey;
 	private static QiNiuYunSystem mInstance;
 	public static QiNiuYunSystem get() { return mInstance ??= new QiNiuYunSystem(); }
-	public string getURL() { return mURL; }
 	public void init(string url, string bucket, string accessKey, string secureKey)
 	{
 		validPath(ref url);
@@ -68,13 +67,16 @@ public class QiNiuYunSystem : IObjectStorageSystem
 		Dictionary<string, GameFileInfo> fileList = new();
 		foreach (ListItem item in (result?.Result?.Items).safe())
 		{
+			if (item.Key == remotePath)
+			{
+				continue;
+			}
 			GameFileInfo info = new();
-			info.mFileName = item.Key;
+			info.mFileName = item.Key.removeStartString(remotePath);
 			info.mFileSize = item.Fsize;
 			info.mMD5 = item.Md5;
 			fileList.Add(info.mFileName, info);
 		}
-		fileList.Remove(remotePath);
 		return fileList;
 	}
 	public bool delete(string remotePath)
