@@ -90,7 +90,7 @@ public class GameDownload
 		// 删除文件,只能删除Persistent中的文件,但是列表中的元素还是需要都删除掉
 		// Persistent中需要删除列表记录,删除文件
 		DateTime start = DateTime.Now;
-		List<string> deleteFileList = checkDeleteFile(persistentFiles, remoteFiles);
+		List<string> deleteFileList = checkDeleteFile(remoteFiles, persistentFiles);
 		logBase("需要删除" + deleteFileList.Count + "个文件");
 		foreach (string fileToDelete in deleteFileList)
 		{
@@ -105,7 +105,7 @@ public class GameDownload
 		}
 
 		// StreamingAssets中无法删除文件,只能删除列表记录
-		foreach (string fileToDelete in checkDeleteFile(streamingFiles, remoteFiles))
+		foreach (string fileToDelete in checkDeleteFile(remoteFiles, streamingFiles))
 		{
 			streamingFiles.Remove(fileToDelete);
 		}

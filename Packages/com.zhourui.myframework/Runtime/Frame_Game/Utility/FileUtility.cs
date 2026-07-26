@@ -511,23 +511,22 @@ public class FileUtility
 			}
 		}
 	}
-	// 筛选出需要删除的文件
-	public static List<string> checkDeleteFile(Dictionary<string, GameFileInfo> localInfoList, Dictionary<string, GameFileInfo> remoteInfoList)
+	// 筛选出需要删除的文件,standardInfoList是对照基准列表,willModifyInfoList是需要被修改的列表,也就是筛选出willModifyInfoList中需要被删除的文件
+	public static List<string> checkDeleteFile(Dictionary<string, GameFileInfo> standardInfoList, Dictionary<string, GameFileInfo> willModifyInfoList)
 	{
 		List<string> deleteList = new();
-		checkDeleteFile(localInfoList, remoteInfoList, deleteList);
+		checkDeleteFile(standardInfoList, willModifyInfoList, deleteList);
 		return deleteList;
 	}
-	// 筛选出需要删除的文件
-	public static void checkDeleteFile(Dictionary<string, GameFileInfo> localInfoList, Dictionary<string, GameFileInfo> remoteInfoList, List<string> deleteList)
+	// 筛选出需要删除的文件,standardInfoList是对照基准列表,willModifyInfoList是需要被修改的列表,也就是筛选出willModifyInfoList中需要被删除的文件
+	public static void checkDeleteFile(Dictionary<string, GameFileInfo> standardInfoList, Dictionary<string, GameFileInfo> willModifyInfoList, List<string> deleteList)
 	{
 		// 遍历本地文件列表
-		foreach (var item in localInfoList)
+		foreach (var item in willModifyInfoList)
 		{
 			// 如果已经不在远端文件列表中,则是已删除的文件
 			// 在本地,但是与远端文件不一致,也需要删除,因为动态下载的文件不会在启动时下载,所以为了避免加载到旧的文件,需要删除本地的旧文件,虽然在资源版本系统中已经判断了是否一致了
-			if (!remoteInfoList.TryGetValue(item.Key, out GameFileInfo remoteInfo) ||
-				remoteInfo.mMD5 != item.Value.mMD5)
+			if (!standardInfoList.TryGetValue(item.Key, out GameFileInfo remoteInfo) || remoteInfo.mMD5 != item.Value.mMD5)
 			{
 				deleteList.Add(item.Key);
 			}
