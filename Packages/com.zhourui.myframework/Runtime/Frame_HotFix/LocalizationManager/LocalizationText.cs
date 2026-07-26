@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using static MathUtility;
@@ -9,14 +10,14 @@ using static FrameBaseDefine;
 // 用于挂到静态的文本上,也就是只是在界面显示,不会在代码中访问和操作的文本
 // 如果是会在代码中访问操作的文本对象则不需要挂此脚本
 // 物体被隐藏时也不会注销多语言监听,只有对象被销毁时才会注销
-[RequireComponent(typeof(Text))]
 public class LocalizationText : MonoBehaviour
 {
-	protected float mFontSizeScale;								// 由于自适应而造成的字体缩放
-	public int mChineseOriginFontSize;							// 非运行时的中文字体大小
-	public List<FontSizeInfo> mLanguageOriginFontSize = new();	// 非运行时的多语言字体大小
-	public string mLocalization;
-	public Text mText;
+	public int mChineseOriginFontSize;                          // 非运行时的中文字体大小
+	public List<FontSizeInfo> mLanguageOriginFontSize = new();  // 非运行时的多语言字体大小
+	protected float mFontSizeScale;                             // 由于自适应而造成的字体缩放
+	protected string mLocalization;								// 本地化的key
+	protected Text mText;                                       // UGUI的Text组件
+	protected TextMeshProUGUI mTextTMP;                         // TextMeshPro的组件
 	private void Awake()
 	{
 		if (gameObject.TryGetComponent<LocalizationRuntimeText>(out _))
@@ -26,24 +27,20 @@ public class LocalizationText : MonoBehaviour
 	}
 	private void Start()
     {
-		if (mText == null)
+		initTextComponent();
+		if (!isTextComponentValid())
 		{
-			TryGetComponent(out mText);
-		}
-		if (mText == null)
-        {
-			Debug.LogError("找不到Text组件:" + gameObject.name);
 			return;
-        }
+		}
 		if (!Application.isPlaying)
 		{
-			mChineseOriginFontSize = mText.fontSize;
+			mChineseOriginFontSize = getFontSize();
 		}
 		else
 		{
-			mFontSizeScale = divide(mText.fontSize, mChineseOriginFontSize);
+			mFontSizeScale = divide(getFontSize(), mChineseOriginFontSize);
 		}
-		mLocalization = mText.text;
+		mLocalization = getText();
         mLocalizationManager?.registeAction(onLanguageChanged);
 		onLanguageChanged();
 	}
@@ -53,16 +50,13 @@ public class LocalizationText : MonoBehaviour
         {
 			return;
 		}
-        if (mText == null)
-        {
-			TryGetComponent(out mText);
+		initTextComponent();
+		if (!isTextComponentValid())
+		{
+			return;
 		}
-        if (mText == null)
-        {
-            return;
-        }
-		mLocalization = mText.text;
-		mChineseOriginFontSize = mText.fontSize;
+		mLocalization = getText();
+		mChineseOriginFontSize = getFontSize();
 		// 加上默认字体
 		// 中文简体,同时也要保证中文的字体大小是实时更新的
 		int chineseIndex = mLanguageOriginFontSize.FindIndex((item) => { return item.mLanguage == LANGUAGE_CHINESE; });
@@ -98,19 +92,79 @@ public class LocalizationText : MonoBehaviour
     {
         mLocalizationManager?.unregisteAction(onLanguageChanged);
     }
-    private void onLanguageChanged()
+	//------------------------------------------------------------------------------------------------------------------------------
+	private void onLanguageChanged()
     {
-        if (mText == null || mLocalizationManager == null)
+        if (!isTextComponentValid () || mLocalizationManager == null)
         {
 			return;
 		}
-        mText.text = mLocalizationManager.getLocalize(mLocalization);
+        setText(mLocalizationManager.getLocalize(mLocalization));
 		foreach (FontSizeInfo item in mLanguageOriginFontSize)
 		{
 			if (item.mLanguage == mLocalizationManager.getCurrentLanguage())
 			{
-				mText.fontSize = (int)(checkInt(item.mFontSize * mFontSizeScale));
+				setFontSize((int)(checkInt(item.mFontSize * mFontSizeScale)));
 			}
 		}
     }
+	private bool isTextComponentValid() { return mText != null || mTextTMP != null; }
+	private void initTextComponent()
+	{
+		if (mText == null && TryGetComponent(out mText))
+		{
+			return;
+		}
+		if (mTextTMP == null && TryGetComponent(out mTextTMP))
+		{
+			return;
+		}
+	}
+	private int getFontSize()
+	{
+		if (mText != null)
+		{
+			return mText.fontSize;
+		}
+		if (mTextTMP != null)
+		{
+			return (int)mTextTMP.fontSize;
+		}
+		return 0;
+	}
+	private void setFontSize(int size)
+	{
+		if (mText != null)
+		{
+			mText.fontSize = size;
+			return;
+		}
+		if (mTextTMP != null)
+		{
+			mTextTMP.fontSize = size;
+		}
+	}
+	private string getText()
+	{
+		if (mText != null)
+		{
+			return mText.text;
+		}
+		if (mTextTMP != null)
+		{
+			return mTextTMP.text;
+		}
+		return null;
+	}
+	private void setText(string text)
+	{
+		if (mText != null)
+		{
+			mText.text = text;
+		}
+		if (mTextTMP != null)
+		{
+			mTextTMP.text = text;
+		}
+	}
 }

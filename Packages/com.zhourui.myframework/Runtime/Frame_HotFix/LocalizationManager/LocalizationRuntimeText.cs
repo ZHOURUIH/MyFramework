@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using static FrameBaseDefine;
@@ -7,13 +8,13 @@ using static MathUtility;
 
 // 热更代码使用
 // 如果是会在代码中访问操作的文本对象则需要挂此脚本,目的是为了方便资源检查,避免有太多无效检查或者有遗漏
-[RequireComponent(typeof(Text))]
 public class LocalizationRuntimeText : MonoBehaviour
 {
-	protected float mFontSizeScale;								// 由于自适应而造成的字体缩放
 	public int mChineseOriginFontSize;                          // 非运行时的中文字体大小
 	public List<FontSizeInfo> mLanguageOriginFontSize = new();  // 非运行时的多语言字体大小
-	public Text mText;
+	protected float mFontSizeScale;								// 由于自适应而造成的字体缩放
+	protected Text mText;										// UGUI的Text组件
+	protected TextMeshProUGUI mTextTMP;							// TextMeshPro的组件
 	private void Awake()
 	{
 		if (gameObject.TryGetComponent<LocalizationText>(out _))
@@ -23,22 +24,18 @@ public class LocalizationRuntimeText : MonoBehaviour
 	}
 	private void Start()
 	{
-		if (mText == null)
+		initTextComponent();
+		if (!isTextComponentValid())
 		{
-			TryGetComponent(out mText);
-		}
-		if (mText == null)
-		{
-			Debug.LogError("找不到Text组件:" + gameObject.name);
 			return;
 		}
 		if (!Application.isPlaying)
 		{
-			mChineseOriginFontSize = mText.fontSize;
+			mChineseOriginFontSize = getFontSize();
 		}
 		else
 		{
-			mFontSizeScale = divide(mText.fontSize, mChineseOriginFontSize);
+			mFontSizeScale = divide(getFontSize(), mChineseOriginFontSize);
 		}
 		mLocalizationManager?.registeAction(onLanguageChanged);
 		onLanguageChanged();
@@ -49,16 +46,12 @@ public class LocalizationRuntimeText : MonoBehaviour
 		{
 			return;
 		}
-		if (mText == null)
-		{
-			TryGetComponent(out mText);
-		}
-		if (mText == null)
+		initTextComponent();
+		if (!isTextComponentValid())
 		{
 			return;
 		}
-
-		mChineseOriginFontSize = mText.fontSize;
+		mChineseOriginFontSize = getFontSize();
 		// 加上默认字体
 		// 中文简体,同时也要保证中文的字体大小是实时更新的
 		int chineseIndex = mLanguageOriginFontSize.FindIndex((item) => { return item.mLanguage == LANGUAGE_CHINESE; });
@@ -94,6 +87,7 @@ public class LocalizationRuntimeText : MonoBehaviour
 	{
 		mLocalizationManager?.unregisteAction(onLanguageChanged);
 	}
+	//------------------------------------------------------------------------------------------------------------------------------
 	private void onLanguageChanged()
 	{
 		if (mText == null || mLocalizationManager == null)
@@ -104,8 +98,44 @@ public class LocalizationRuntimeText : MonoBehaviour
 		{
 			if (item.mLanguage == mLocalizationManager.getCurrentLanguage())
 			{
-				mText.fontSize = (int)(item.mFontSize * mFontSizeScale);
+				setFontSize((int)(item.mFontSize * mFontSizeScale));
 			}
+		}
+	}
+	private bool isTextComponentValid() { return mText != null || mTextTMP != null; }
+	private void initTextComponent()
+	{
+		if (mText == null && TryGetComponent(out mText))
+		{
+			return;
+		}
+		if (mTextTMP == null && TryGetComponent(out mTextTMP))
+		{
+			return;
+		}
+	}
+	private int getFontSize()
+	{
+		if (mText != null)
+		{
+			return mText.fontSize;
+		}
+		if (mTextTMP != null)
+		{
+			return (int)mTextTMP.fontSize;
+		}
+		return 0;
+	}
+	private void setFontSize(int size)
+	{
+		if (mText != null)
+		{
+			mText.fontSize = size;
+			return;
+		}
+		if (mTextTMP != null)
+		{
+			mTextTMP.fontSize = size;
 		}
 	}
 }

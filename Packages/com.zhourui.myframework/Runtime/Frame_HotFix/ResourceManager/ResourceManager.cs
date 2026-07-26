@@ -24,6 +24,7 @@ public class ResourceManager : FrameSystem
 	{
 		mCreateObject = true;
 	}
+	// 初始化,根据运行环境决定加载源(编辑器用AssetDatabase,打包后用AssetBundle)
 	public override void init()
 	{
 		base.init();
@@ -33,6 +34,7 @@ public class ResourceManager : FrameSystem
 			mObject.AddComponent<ResourcesManagerDebug>();
 		}
 	}
+	// 预异步初始化,在正式init前调用,如果是AssetBundle模式则需要先初始化AssetBundle的依赖关系
 	public override void preInitAsync(Action callback)
 	{
 		if (mLoadSource != LOAD_SOURCE.ASSET_BUNDLE)
@@ -42,6 +44,7 @@ public class ResourceManager : FrameSystem
 		}
 		mAssetBundleLoader.initAssets(callback);
 	}
+	// 资源系统是否已经初始化完成,AssetDatabase模式永远返回true
 	public bool isResourceInited()
 	{
 		if (mLoadSource == LOAD_SOURCE.ASSET_BUNDLE)
@@ -50,6 +53,7 @@ public class ResourceManager : FrameSystem
 		}
 		return true;
 	}
+	// 每帧更新,更新AssetBundle加载器的同时,每3秒检查一次引用归零的资源并自动卸载
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
@@ -83,27 +87,44 @@ public class ResourceManager : FrameSystem
 			}
 		}
 	}
+	// 销毁资源管理器,释放所有加载器
 	public override void destroy()
 	{
 		mAssetBundleLoader?.destroy();
 		mAssetDataBaseLoader?.destroy();
 		base.destroy();
 	}
+	// 注册卸载单个资源的回调,卸载任何资源时都会触发
 	public void addUnloadObjectCallback(UObjectCallback callback)			{ mUnloadObjectCallback.Add(callback); }
+	// 注册卸载路径的回调,卸载指定目录下的所有资源时触发
 	public void addUnloadPathCallback(StringCallback callback)				{ mUnloadPathCallback.Add(callback); }
+	// 移除卸载单个资源的回调
 	public void removeUnloadObjectCallback(UObjectCallback callback)		{ mUnloadObjectCallback.Remove(callback); }
+	// 移除卸载路径的回调
 	public void removeUnloadPathCallback(StringCallback callback)			{ mUnloadPathCallback.Remove(callback); }
+	// 请求加载指定AssetBundle(包括其依赖),由AssetBundleLoader内部调度
 	public void requestLoadAssetBundle(AssetBundleInfo bundleInfo)			{ mAssetBundleLoader.requestLoadAssetBundle(bundleInfo); }
+	// 请求加载AssetBundle中的某个资源文件,由AssetBundleLoader内部调度
 	public void requestLoadAsset(AssetBundleInfo bundleInfo, string fileNameWithSuffix) { mAssetBundleLoader.requestLoadAsset(bundleInfo, fileNameWithSuffix); }
+	// 设置资源下载的URL地址
 	public void setDownloadURL(string url)									{ mAssetBundleLoader.setDownloadURL(url); }
+	// 获取当前资源下载的URL地址
 	public string getDownloadURL()											{ return mAssetBundleLoader.getDownloadURL(); }
+	// 获取所有AssetBundle信息列表
 	public Dictionary<string, AssetBundleInfo> getAssetBundleInfoList()		{ return mAssetBundleLoader.getAssetBundleInfoList(); }
+	// 检查指定AssetBundle是否被标记为禁止卸载
 	public bool isDontUnloadAssetBundle(string bundleFileName)				{ return mAssetBundleLoader.isDontUnloadAssetBundle(bundleFileName); }
+	// 根据名称获取AssetBundle信息
 	public AssetBundleInfo getAssetBundleInfo(string name)					{ return mAssetBundleLoader.getAssetBundleInfo(name); }
+	// 获取下载超时时间(秒)
 	public int getDownloadTimeout()											{ return mDownloadTimeout; }
+	// 设置下载超时时间(秒)
 	public void setDownloadTimeout(int timeout)								{ mDownloadTimeout = timeout; }
+	// 将指定AssetBundle标记为禁止卸载
 	public void addDontUnloadAssetBundle(string bundleFileName)				{ mAssetBundleLoader.addDontUnloadAssetBundle(bundleFileName); }
+	// 通知AssetBundle加载器某个资源已加载完成,由加载流程内部调用
 	public void notifyAssetLoaded(UObject asset, AssetBundleInfo bundle)	{ mAssetBundleLoader.notifyAssetLoaded(asset, bundle); }
+	// 卸载指定的资源引用,释放ResourceRef对象
 	public void unload<T>(ref ResourceRef<T> res) where T : UObject
 	{
 		UN_CLASS(ref res);
@@ -264,7 +285,7 @@ public class ResourceManager : FrameSystem
 			}
 			if (callback == null)
 			{
-				unloadInternal(res);
+				UN_CLASS(ref resRef);
 			}
 			else 
 			{
@@ -365,7 +386,7 @@ public class ResourceManager : FrameSystem
 			mAssetBundleLoader.downloadAsset(name, callback);
 		}
 	}
-	// 只能由ResourceRef调用
+	// 添加一个资源的引用凭证,返回唯一的token,只能由ResourceRef调用
 	public long addReference(UObject res)
 	{
 		long token = ++mTokenSeed;
@@ -377,7 +398,7 @@ public class ResourceManager : FrameSystem
 		}
 		return token;
 	}
-	// 只能由ResourceRef调用
+	// 移除一个资源的引用凭证,token会被置0,只能由ResourceRef调用
 	public void removeReference(UObject res, ref long token)
 	{
 		if (!mReferenceTokenList.TryGetValue(res.GetInstanceID(), out var list) || !list.Remove(token))
@@ -387,6 +408,7 @@ public class ResourceManager : FrameSystem
 		token = 0;
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
+	// 内部卸载接口,触发卸载回调后根据加载源走对应的卸载流程
 	protected bool unloadInternal(UObject obj, bool showError = true)
 	{
 		if (obj == null)
