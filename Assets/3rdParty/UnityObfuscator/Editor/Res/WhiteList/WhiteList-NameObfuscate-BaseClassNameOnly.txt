@@ -1,9 +1,0 @@
-LayoutScript
-UINPCBase
-UINPCBookShop
-UINPCExchangeGold
-UINPCMakeDrug
-UINPCRepairable
-UINPCTransfer
-UINPCWarehouse
-UILegendBase
