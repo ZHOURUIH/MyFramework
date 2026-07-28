@@ -234,6 +234,14 @@ public class FrameBaseUtility
 		return false;
 #endif
 	}
+	public static bool isUseHybridCLR()
+	{
+#if USE_HYBRID_CLR
+		return true;
+#else
+		return false;
+#endif
+	}
 	public static string getPlatformName()
 	{
 		if (isIOS())

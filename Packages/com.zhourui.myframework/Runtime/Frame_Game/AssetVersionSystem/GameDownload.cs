@@ -39,11 +39,20 @@ public class GameDownload
 	public void setErrorCallback(GameDownloadTipCallback callback) { mTipCallback = callback; }
 	public void setProgressCallback(GameDownloadCallback callback) { mProgressCallback = callback; }
 	public void setAutoRetryCount(int count) { mRemainRetryCount = count; }
-	public void skipDownload()
+	public void start()
 	{
-		allFinished();
+		// 未启用热更时可以不进行下载
+		if (isEditor() || !isEnableHotFix())
+		{
+			allFinished();
+		}
+		else
+		{
+			startCheckVersion();
+		}
 	}
-	public void startCheckVersion()
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected void startCheckVersion()
 	{
 		logBase("下载目录:" + mDownloadWritePath);
 		logBase("资源下载地址:" + mResourceManager.getDownloadURL());
@@ -129,7 +138,6 @@ public class GameDownload
 			downloadFile(mDownloadedCount);
 		}
 	}
-	//------------------------------------------------------------------------------------------------------------------------------
 	// 下载普通资源文件
 	protected void downloadFile(int index)
 	{
@@ -141,6 +149,7 @@ public class GameDownload
 			if (bytes == null)
 			{
 				logWarningBase("下载失败! " + fileName);
+				// 还有次数就直接重试
 				if (mRemainRetryCount > 0)
 				{
 					--mRemainRetryCount;
@@ -177,6 +186,7 @@ public class GameDownload
 			{
 				logWarningBase("下载的文件信息与远端的信息不一致:下载的信息:" + localInfo.mFileName + ", " + localInfo.mFileSize + ", " + localInfo.mMD5 +
 						", 远端的信息:" + remoteInfo.mFileName + ", " + remoteInfo.mFileSize + ", " + remoteInfo.mMD5);
+				// 还有次数就直接重试
 				if (mRemainRetryCount > 0)
 				{
 					--mRemainRetryCount;

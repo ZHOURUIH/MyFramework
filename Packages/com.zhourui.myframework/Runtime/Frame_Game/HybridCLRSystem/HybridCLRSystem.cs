@@ -15,7 +15,7 @@ using static FrameBase;
 public class HybridCLRSystem
 {
 	protected static bool mHotFixLaunched;
-	public static void launchHotFix(Action<string, BytesIntCallback> openOrDownloadDll, Action errorCallback = null)
+	public static void launchHotFix(Action errorCallback = null)
 	{
 		if (mHotFixLaunched)
 		{
@@ -32,11 +32,14 @@ public class HybridCLRSystem
 				// 存储所有需要跨域的参数
 				backupFrameParam();
 				// 启动热更系统
-#if UNITY_EDITOR || !USE_HYBRID_CLR
-				launchEditor(errorCallback);
-#else
-				launchRuntime(openOrDownloadDll, errorCallback);
-#endif
+				if (isEditor() || !isUseHybridCLR())
+				{
+					launchEditor(errorCallback);
+				}
+				else
+				{
+					launchRuntime(errorCallback);
+				}
 			}
 			catch (Exception e)
 			{
@@ -104,7 +107,7 @@ public class HybridCLRSystem
 		FrameCrossParam.mAssetReadPath = mAssetVersionSystem.getAssetReadPath();
 	}
 	// 执行AOT补充元数据
-	protected static void loadMetaDataForAOT(Action<string, BytesIntCallback> openOrDownloadDll, Action callback, Action errorCallback)
+	protected static void loadMetaDataForAOT(Action callback, Action errorCallback)
 	{
 #if USE_HYBRID_CLR
 		Dictionary<string, byte[]> downloadFilesResource = new();
@@ -115,14 +118,11 @@ public class HybridCLRSystem
 		int finishCount = 0;
 		foreach (string item in new List<string>(downloadFilesResource.Keys))
 		{
-			string fileDllName = item;
-			openOrDownloadDll(fileDllName, (byte[] bytes, int length) =>
+			byte[] bytes = openFileSync(availableReadPath(item), true);
+			if (onAOTDownloaded(downloadFilesResource, ref finishCount, item, bytes, errorCallback))
 			{
-				if (onAOTDownloaded(downloadFilesResource, ref finishCount, fileDllName, bytes, errorCallback))
-				{
-					callback?.Invoke();
-				}
-			});
+				callback?.Invoke();
+			}
 		}
 #else
 		callback?.Invoke();
@@ -165,9 +165,9 @@ public class HybridCLRSystem
 #endif
 		return true;
 	}
-	protected static void launchRuntime(Action<string, BytesIntCallback> openOrDownloadDll, Action errorCallback)
+	protected static void launchRuntime(Action errorCallback)
 	{
-		loadMetaDataForAOT(openOrDownloadDll, ()=>
+		loadMetaDataForAOT(()=>
 		{
 			Dictionary<string, byte[]> downloadFiles = new()
 			{
@@ -178,10 +178,8 @@ public class HybridCLRSystem
 			foreach (string item in new List<string>(downloadFiles.Keys))
 			{
 				string fileDllName = item;
-				openOrDownloadDll(fileDllName, (byte[] bytes, int length) =>
-				{
-					onHotFixDllLoaded(downloadFiles, ref finishCount, fileDllName, bytes, errorCallback);
-				});
+				byte[] bytes = openFileSync(availableReadPath(fileDllName), true);
+				onHotFixDllLoaded(downloadFiles, ref finishCount, fileDllName, bytes, errorCallback);
 			}
 		}, errorCallback);
 	}

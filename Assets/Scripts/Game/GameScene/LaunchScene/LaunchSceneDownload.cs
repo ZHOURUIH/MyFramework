@@ -1,9 +1,4 @@
-﻿using System;
-using static FileUtility;
-using static GameUtility;
-using static FrameBaseUtility;
-using static FrameBaseDefine;
-using static FrameBase;
+﻿using static FrameBaseUtility;
 
 // 下载更新资源,部分代码可自己实现
 public class LaunchSceneDownload : SceneProcedure
@@ -18,15 +13,7 @@ public class LaunchSceneDownload : SceneProcedure
 	public override void init()
 	{
 		base.init();
-		// 未启用热更时可以不进行下载,webgl上全部都是远程异步加载的,也不用下载
-		if (isEditor() /*|| !isEnableHotFix()*/ || isWebGL())
-		{
-			mInstance.skipDownload();
-		}
-		else
-		{
-			mInstance.startCheckVersion();
-		}
+		mInstance.start();
 	}
 	public override void exit()
 	{
@@ -43,7 +30,7 @@ public class LaunchSceneDownload : SceneProcedure
 	{
 		if (yes)
 		{
-			mInstance.startCheckVersion();
+			mInstance.start();
 		}
 		else
 		{
@@ -108,10 +95,6 @@ public class LaunchSceneDownload : SceneProcedure
 	protected void launch()
 	{
 		// 下载或者加载程序集
-		HybridCLRSystem.launchHotFix((string fileName, BytesIntCallback callback) =>
-		{
-			byte[] bytes = openFileSync(availableReadPath(fileName), true);
-			callback?.Invoke(bytes, bytes.Length);
-		}, onLaunchError);
+		HybridCLRSystem.launchHotFix(onLaunchError);
 	}
 }

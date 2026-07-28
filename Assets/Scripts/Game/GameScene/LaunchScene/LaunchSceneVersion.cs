@@ -11,7 +11,7 @@ public class LaunchSceneVersion : SceneProcedure
 		base.init();
 		CmdLayoutManagerLoad.executeAsync<UIDemo>(0, () =>
 		{
-			if (isEditor() || !isEnableHotFix() || isWebGL())
+			if (isEditor() || !isEnableHotFix())
 			{
 				mAssetVersionSystem.setStreamingAssetsVersion(null);
 				mGameSceneManager.getCurScene().changeProcedure<LaunchSceneDownload>();
