@@ -29,7 +29,7 @@ public class LaunchSceneVersion : SceneProcedure
 	}
 	protected void doGetRemoteVersion()
 	{
-		ObsSystem.downloadTxt(/*getRemoteFolder("") +*/ VERSION, (string version) =>
+		ObsSystem.downloadTxt(/*OBS_URL + getRemoteFolder("") +*/ VERSION, (string version) =>
 		{
 			if (version.isEmpty())
 			{

@@ -47,7 +47,7 @@ public class HybridCLRSystem
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected static void preLaunch(Action callback)
 	{
-		if (isEditor() || isWebGL())
+		if (isEditor())
 		{
 			callback?.Invoke();
 			return;

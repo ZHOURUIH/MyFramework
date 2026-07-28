@@ -9,8 +9,8 @@ public class LaunchSceneFileList : SceneProcedure
 	{
 		base.init();
 		//mUIDownload.setDownloadInfo("正在获取资源信息...");
-		// 这里需要自己构造一个远端路径
-		ObsSystem.getFileMD5(/*getRemoteFolder(mAssetVersionSystem.getRemoteVersion()) +*/ FILE_LIST, (string md5)=>
+		// 这里需要自己构造一个远端路径和url
+		ObsSystem.getFileMD5(/*OBS_URL*/"", /*getRemoteFolder(mAssetVersionSystem.getRemoteVersion()) +*/ FILE_LIST, (string md5)=>
 		{
 			mRemoteListMD5 = md5;
 			mAssetVersionSystem.startCheckFileList(mRemoteListMD5, null, null, onSuccess, onFailed, checkNeedRequestRemoteFileList);
@@ -41,7 +41,7 @@ public class LaunchSceneFileList : SceneProcedure
 	protected void checkNeedRequestRemoteFileList(StringCallback callback)
 	{
 		// 这里需要自己构造一个远端路径
-		string fileListPath = /*getRemoteFolder(mAssetVersionSystem.getRemoteVersion()) +*/ FILE_LIST;
+		string fileListPath = /*OBS_URL + getRemoteFolder(mAssetVersionSystem.getRemoteVersion()) +*/ FILE_LIST;
 		ObsSystem.downloadBytes(fileListPath, (byte[] content, int _) => { callback?.Invoke(bytesToString(content)); });
 	}
 }

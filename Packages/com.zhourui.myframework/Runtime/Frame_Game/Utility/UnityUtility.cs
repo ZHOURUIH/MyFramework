@@ -34,44 +34,6 @@ public class UnityUtility
 		}
 		return obj;
 	}
-	// 通过WWW加载本地资源时,需要确保路径的前缀正确
-	public static void checkDownloadPath(ref string path)
-	{
-		if (isEditor())
-		{
-			// 本地加载需要添加file:///前缀
-			path = path.ensurePrefix("file:///");
-		}
-		// 非编辑器模式下
-		else
-		{
-			if (isWindows())
-			{
-				// windows本地加载需要添加file:///前缀
-				path = path.ensurePrefix("file:///");
-			}
-			else if (isIOS())
-			{
-				// ios本地加载需要添加file://前缀
-				path = path.ensurePrefix("file://");
-			}
-			else if (isMacOS())
-			{
-				// macos本地加载需要添加file://前缀
-				path = path.ensurePrefix("file://");
-			}
-			else if (isLinux())
-			{
-				// linux本地加载需要添加file://前缀
-				path = path.ensurePrefix("file://");
-			}
-			else if (isAndroid())
-			{
-				// android本地加载需要添加jar:file://前缀
-				path = path.ensurePrefix("jar:file://");
-			}
-		}
-	}
 	public static void applyAnchor(GameObject obj, bool force, GameLayout layout = null)
 	{
 		obj.TryGetComponent<ResScaleAnchor>(out var scaleAnchor);

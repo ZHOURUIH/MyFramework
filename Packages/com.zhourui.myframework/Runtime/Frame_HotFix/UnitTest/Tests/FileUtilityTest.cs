@@ -31,7 +31,6 @@ public static class FileUtilityTest
 
             string binFile = root + "data.bin";
             writeFile(binFile, new byte[] { 1, 2, 3 });
-            writeAppendFile(binFile, new byte[] { 4, 5 });
             assertEqual(5, getFileSize(binFile), "binary size");
             assertTrue(isFileExist(binFile), "binary exists");
 

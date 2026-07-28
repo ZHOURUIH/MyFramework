@@ -55,10 +55,6 @@ public class GameEntryBase : MonoBehaviour
 		{
 			fullScreen = WINDOW_MODE.FULL_SCREEN;
 		}
-		else if (isWeiXin())
-		{
-			fullScreen = WINDOW_MODE.FULL_SCREEN;
-		}
 		Vector2 windowSize;
 		if (fullScreen == WINDOW_MODE.FULL_SCREEN)
 		{

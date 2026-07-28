@@ -2,13 +2,11 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
-#if BYTE_DANCE
-using TTSDK;
-#endif
 using UObject = UnityEngine.Object;
 using static UnityUtility;
 using static FrameBaseUtility;
 using static FrameBaseHotFix;
+using static FrameBaseDefine;
 
 // 加载资源的一些静态函数,由于没有经过资源管理器,所以返回的资源没有封装对象,不过外部拿到资源以后可以自己放到资源引用对象中
 // 提供URL加载、Resources加载等便捷静态方法,适用于临时或非托管资源加载场景
@@ -108,59 +106,83 @@ public class ResourceUtility
 	// 根据一个URL加载AssetBundle,可在协程中等待
 	public static IEnumerator loadAssetBundleWithURL(string url, AssetLoadCallback callback)
 	{
-		float timer = 0.0f;
-		ulong lastDownloaded = 0;
-#if BYTE_DANCE
-		using var www = TTAssetBundle.GetAssetBundle(url);
-#else
-		using var www = UnityWebRequestAssetBundle.GetAssetBundle(url);
-#endif
-		www.SendWebRequest();
-		while (!www.isDone)
+		// 小游戏中读取PersistentDataPath中的文件需要使用小游戏提供的接口
+		if ((isByteDance() || isWeiXin()) && url.startWith(F_PERSISTENT_ASSETS_PATH))
 		{
-			if (www.downloadedBytes > lastDownloaded)
+			yield return openFileAsyncInternal(url, true, (byte[] bytes) =>
 			{
-				lastDownloaded = www.downloadedBytes;
-				timer = 0.0f;
-			}
-			else
-			{
-				timer += mGameFrameworkHotFix.getUnscaledTime();
-				if (timer >= mResourceManager.getDownloadTimeout())
+				try
 				{
-					log("下载超时");
-					break;
+					callback?.Invoke(AssetBundle.LoadFromMemory(bytes), null, null, url);
+				}
+				catch (Exception e)
+				{
+					logException(e);
+				}
+			});
+		}
+		else
+		{
+			float timer = 0.0f;
+			ulong lastDownloaded = 0;
+			using var www = UnityWebRequestAssetBundle.GetAssetBundle(url);
+			www.SendWebRequest();
+			while (!www.isDone)
+			{
+				if (www.downloadedBytes > lastDownloaded)
+				{
+					lastDownloaded = www.downloadedBytes;
+					timer = 0.0f;
+				}
+				else
+				{
+					timer += mGameFrameworkHotFix.getUnscaledTime();
+					if (timer >= mResourceManager.getDownloadTimeout())
+					{
+						log("下载超时");
+						break;
+					}
+				}
+				if (isDevOrEditor())
+				{
+					log("当前计时:" + timer);
+					log("下载中,www.downloadedBytes:" + www.downloadedBytes + ", www.downloadProgress:" + www.downloadProgress);
+				}
+				yield return null;
+			}
+			try
+			{
+				if (www.error != null)
+				{
+					log("下载失败 : " + url + ", info : " + www.error);
+					try
+					{
+						callback?.Invoke(null, null, null, url);
+					}
+					catch (Exception e)
+					{
+						logException(e);
+					}
+				}
+				else
+				{
+					log("下载成功:" + url);
+					AssetBundle assetBundle = DownloadHandlerAssetBundle.GetContent(www);
+					assetBundle.name = url;
+					try
+					{
+						callback?.Invoke(assetBundle, null, null, url);
+					}
+					catch (Exception e)
+					{
+						logException(e);
+					}
 				}
 			}
-			if (isDevOrEditor())
+			catch (Exception e)
 			{
-				log("当前计时:" + timer);
-				log("下载中,www.downloadedBytes:" + www.downloadedBytes + ", www.downloadProgress:" + www.downloadProgress);
+				logException(e);
 			}
-			yield return null;
-		}
-		try
-		{
-			if (www.error != null)
-			{
-				log("下载失败 : " + url + ", info : " + www.error);
-				callback?.Invoke(null, null, null, url);
-			}
-			else
-			{
-				log("下载成功:" + url);
-#if BYTE_DANCE
-				AssetBundle assetBundle = (www.downloadHandler as DownloadHandlerTTAssetBundle).assetBundle;
-#else
-				AssetBundle assetBundle = DownloadHandlerAssetBundle.GetContent(www);
-#endif
-				assetBundle.name = url;
-				callback?.Invoke(assetBundle, null, null, url);
-			}
-		}
-		catch (Exception e)
-		{
-			logException(e);
 		}
 	}
 	public static IEnumerator loadAudioClipWithURL(string url, AssetLoadCallback callback)
@@ -215,9 +237,24 @@ public class ResourceUtility
 	}
 	public static IEnumerator loadFileWithURL(string url, AssetLoadCallback callback, DownloadCallback downloadingCallback)
 	{
+		// 这里由于需要计算下载进度,就不再支持小游戏上读取本地文件了
+		if ((isByteDance() || isWeiXin()) &&
+			url.startWith(F_ASSET_BUNDLE_PATH) || url.startWith(F_PERSISTENT_ASSETS_PATH))
+		{
+			logErrorBase("小游戏上不支持使用loadFileWithURL读取本地文件");
+			try
+			{
+				callback?.Invoke(null, null, null, url);
+			}
+			catch (Exception e)
+			{
+				logException(e);
+			}
+			yield break;
+		}
 		float timer = 0.0f;
 		ulong lastDownloaded = 0;
-		using var www = UnityWebRequest.Get(url);
+		using var www = unityWebRequest(url);
 		www.timeout = 0;
 		www.SendWebRequest();
 		DateTime startTime = DateTime.Now;
@@ -241,7 +278,14 @@ public class ResourceUtility
 				}
 			}
 			double deltaTimeMillis = (DateTime.Now - startTime).TotalMilliseconds;
-			downloadingCallback?.Invoke(www.downloadedBytes, downloadDelta, deltaTimeMillis, www.downloadProgress);
+			try
+			{
+				downloadingCallback?.Invoke(www.downloadedBytes, downloadDelta, deltaTimeMillis, www.downloadProgress);
+			}
+			catch (Exception e)
+			{
+				logException(e);
+			}
 			yield return null;
 		}
 		try

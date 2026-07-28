@@ -12,33 +12,12 @@ public class LaunchSceneDownload : SceneProcedure
 	public LaunchSceneDownload()
 	{
 		mInstance = new GameDownload();
-		mInstance.setErrorCallback((DOWNLOAD_ERROR tip) =>
-		{
-			if (tip == DOWNLOAD_ERROR.NONE)
-			{
-				//mUIDownload.setDownloadInfo("");
-			}
-			else if (tip == DOWNLOAD_ERROR.DOWNLOAD_FAILED)
-			{
-				// 这里可选弹窗让用户选择是否重试
-				//dialogYesNoResource("文件下载失败,是否重试?", retry);
-			}
-			else if (tip == DOWNLOAD_ERROR.NOT_IN_REMOTE_FILE_LIST)
-			{
-				// 这里可选弹窗让用户选择是否重试
-				//dialogYesNoResource("已下载的文件不存在与远端文件列表,是否重试?", retry);
-			}
-			else if (tip == DOWNLOAD_ERROR.VERIFY_FAILED)
-			{
-				// 这里可选弹窗让用户选择是否重试
-				//dialogYesNoResource("下载文件错误,是否重试?", retry);
-			}
-		});
+		mInstance.setErrorCallback(onDownloadError);
+		mInstance.setProgressCallback(onDownloadProgress);
 	}
 	public override void init()
 	{
 		base.init();
-		mInstance.setProgressCallback(onDownloadProgress);
 		// 未启用热更时可以不进行下载,webgl上全部都是远程异步加载的,也不用下载
 		if (isEditor() /*|| !isEnableHotFix()*/ || isWebGL())
 		{
@@ -69,6 +48,28 @@ public class LaunchSceneDownload : SceneProcedure
 		else
 		{
 			stopApplication();
+		}
+	}
+	protected void onDownloadError(DOWNLOAD_ERROR tip)
+	{
+		if (tip == DOWNLOAD_ERROR.NONE)
+		{
+			//mUIDownload.setDownloadInfo("");
+		}
+		else if (tip == DOWNLOAD_ERROR.DOWNLOAD_FAILED)
+		{
+			// 这里可选弹窗让用户选择是否重试
+			//dialogYesNoResource("文件下载失败,是否重试?", retry);
+		}
+		else if (tip == DOWNLOAD_ERROR.NOT_IN_REMOTE_FILE_LIST)
+		{
+			// 这里可选弹窗让用户选择是否重试
+			//dialogYesNoResource("已下载的文件不存在与远端文件列表,是否重试?", retry);
+		}
+		else if (tip == DOWNLOAD_ERROR.VERIFY_FAILED)
+		{
+			// 这里可选弹窗让用户选择是否重试
+			//dialogYesNoResource("下载文件错误,是否重试?", retry);
 		}
 	}
 	protected void onDownloadProgress(float progress, PROGRESS_TYPE type, string info, int bytesPerSecond, int downloadRemainSeconds)
@@ -109,16 +110,8 @@ public class LaunchSceneDownload : SceneProcedure
 		// 下载或者加载程序集
 		HybridCLRSystem.launchHotFix((string fileName, BytesIntCallback callback) =>
 		{
-			// webgl下只能从远端下载资源
-			if (isWebGL())
-			{
-				// 这里需要根据版本号自己构造出一个远端下载路径
-				ObsSystem.downloadBytes(/*getRemoteFolder(mAssetVersionSystem.getRemoteVersion()) +*/ fileName, callback);
-			}
-			else
-			{
-				openFileAsync(availableReadPath(fileName), true, (byte[] bytes) => { callback?.Invoke(bytes, bytes.Length); });
-			}
+			byte[] bytes = openFileSync(availableReadPath(fileName), true);
+			callback?.Invoke(bytes, bytes.Length);
 		}, onLaunchError);
 	}
 }

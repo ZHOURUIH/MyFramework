@@ -5,13 +5,14 @@ using UnityEngine.Networking;
 using UObject = UnityEngine.Object;
 using static FrameBaseUtility;
 using static StringUtility;
+using static FrameBaseDefine;
 
 // 资源管理器,管理所有资源的加载
 public class ResourceManager : FrameSystem
 {
 	protected string mDownloadURL;
-	protected ResourcesLoader mResourcesLoader = new();		// 通过Resources加载资源的加载器,Resources在编辑器或者打包后都会使用,用于加载Resources中的非热更资源
-	protected static int mDownloadTimeout = 10;				// 下载超时时间,秒
+	protected ResourcesLoader mResourcesLoader = new();     // 通过Resources加载资源的加载器,Resources在编辑器或者打包后都会使用,用于加载Resources中的非热更资源
+	protected static int mDownloadTimeout = 10;             // 下载超时时间,秒
 	public override void destroy()
 	{
 		mResourcesLoader?.destroy();
@@ -42,7 +43,7 @@ public class ResourceManager : FrameSystem
 	// 强制在Resource中异步加载资源,name是Resources下的相对路径,带后缀,errorIfNull表示当找不到资源时是否报错提示
 	public void loadInResourceAsync<T>(string name, Action<T> doneCallback) where T : UObject
 	{
-		loadInResourceAsync<T>(name, (UObject asset, UObject[] _, byte[] _, string _) =>  { doneCallback?.Invoke(asset as T); });
+		loadInResourceAsync<T>(name, (UObject asset, UObject[] _, byte[] _, string _) => { doneCallback?.Invoke(asset as T); });
 	}
 	// 强制在Resource中异步加载资源,name是Resources下的相对路径,带后缀,errorIfNull表示当找不到资源时是否报错提示
 	public void loadInResourceAsync<T>(string name, AssetLoadDoneCallback doneCallback) where T : UObject
@@ -64,10 +65,18 @@ public class ResourceManager : FrameSystem
 	}
 	public static IEnumerator loadAssetsUrl(string url, AssetLoadDoneCallback callback, DownloadCallback downloadingCallback)
 	{
+		// 这里由于需要计算下载进度,就不再支持小游戏上读取本地文件了
+		if ((isByteDance() || isWeiXin()) &&
+			url.startWith(F_ASSET_BUNDLE_PATH) || url.startWith(F_PERSISTENT_ASSETS_PATH))
+		{
+			logErrorBase("小游戏上不支持使用loadFileWithURL读取本地文件");
+			callback?.Invoke(null, null, null, url);
+			yield break;
+		}
 		logBase("开始下载: " + url);
 		float timer = 0.0f;
 		ulong lastDownloaded = 0;
-		using var www = UnityWebRequest.Get(url);
+		using var www = unityWebRequest(url);
 		www.timeout = 0;
 		www.SendWebRequest();
 		DateTime startTime = DateTime.Now;

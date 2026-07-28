@@ -1,8 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-#if BYTE_DANCE
-using TTSDK;
-#endif
 using UObject = UnityEngine.Object;
 using static UnityUtility;
 using static FrameUtility;
@@ -71,11 +68,7 @@ public class AssetBundleInfo : ClassObject
 			// 其他资源包中的资源引用到此资源时,也会自动从此AssetBundle内存镜像中加载需要的资源
 			// 所以卸载镜像,将会造成这些自动加载失败,仅在当前资源包内已经没有任何资源在使用了,并且
 			// 其他资源包中的资源实例没有对当前资源包进行引用时才会卸载
-#if BYTE_DANCE
-			mAssetBundle.TTUnload(true);
-#else
 			mAssetBundle.Unload(true);
-#endif
 			mAssetBundle = null;
 		}
 		mObjectToAsset.Clear();

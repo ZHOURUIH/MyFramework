@@ -1,4 +1,8 @@
 ﻿using UnityEngine;
+#if UNITY_WEIXINMINIGAME
+using WeChatWASM;
+#endif
+using static FrameBaseUtility;
 
 public class FrameBaseDefine
 {
@@ -61,11 +65,9 @@ public class FrameBaseDefine
 	// 绝对路径,以F_开头,表示Full
 #if UNITY_WEBGL
 #if BYTE_DANCE
-	public static string F_PERSISTENT_DATA_PATH = "ttfile://user/";
+	public static string F_PERSISTENT_DATA_PATH = GetTTPersistantPath();
 #elif UNITY_WEIXINMINIGAME
 	public static string F_PERSISTENT_DATA_PATH = WXBase.env.USER_DATA_PATH + "/";
-#else
-#error need define BYTE_DANCE or UNITY_WEIXINMINIGAME macro
 #endif
 #else
 	public static string F_PERSISTENT_DATA_PATH = Application.persistentDataPath + "/";
@@ -90,5 +92,5 @@ public class FrameBaseDefine
 	public const string LANGUAGE_CHINESE = "Chinese";                                   // 中文简体语言的名字
 	public const string LANGUAGE_ENGLISH = "English";                                   // 英文语言的名字
 
-    public const string RUNTIME_SETTINGS_RES_PATH = "Settings/FrameSettings.asset";     // Resources 下的运行时设置路径
+	public const string RUNTIME_SETTINGS_RES_PATH = "Settings/FrameSettings.asset";     // Resources 下的运行时设置路径
 }

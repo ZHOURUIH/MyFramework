@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using UnityEngine;
 using static FrameBaseDefine;
 using static FrameBaseUtility;
 using static FileUtility;
@@ -13,23 +12,23 @@ public class AssetVersionSystem : FrameSystem
 	protected Dictionary<string, GameFileInfo> mStreamingAssetsFileList = new();    // StreamingAssets中的文件列表,从StreamingAssets中获取
 	protected Dictionary<string, GameFileInfo> mPersistentAssetsFileList = new();   // PersistentPath中的文件列表,从PersistentPath中获取
 	protected Dictionary<string, GameFileInfo> mRemoteAssetsFileList = new();       // 远端服务器上的文件列表,从远端服务器获取
-	protected List<string> mTotalDownloadedFiles = new();	// 已经下载的文件列表,用于统计下载文件记录
-	protected long mTotalDownloadByteCount;					// 已经消耗的总下载量,单位字节,用于统计下载字节数
-	protected Action mRemoteFileListFailCallback;			// 获取远端文件列表失败的回调,当获取远端文件列表失败后会回调,一般是网络异常或者远端服务器异常导致无法获取到远端文件列表
-	protected Action mSuccessCallback;						// 获取文件列表成功的回调,当远端文件列表,StreamingAssets中的文件列表和PersistentPath中的文件列表都获取完成后会回调
-	protected ASSET_READ_PATH mAssetReadPath;				// 资源加载路径,默认是与远端一致,如果是编辑器或者不热更的版本或者WebGL则强制从StreamingAssets中读取
-	protected string mRemoteVersion;						// 远端版本号,从远端服务器获取
-	protected string mStreamingAssetsVersion;				// StreamingAssets中的版本号,从StreamingAssets中获取
-	protected string mPersistentDataVersion;				// PersistentPath中的版本号,从PersistentPath中获取
-	protected bool mPersistentDone;							// 是否完成获取PersistentPath中的文件列表
-	protected bool mStreamingDone;							// 是否完成获取StreamingAssets中的文件列表
-	protected bool mRemoteDone;								// 是否完成获取远端服务器中的文件列表
-	protected bool mCheckFileListFailed;					// 是否获取文件列表失败,如果失败了就不进入游戏了,因为没有正确的文件列表就无法正确加载资源
+	protected List<string> mTotalDownloadedFiles = new();   // 已经下载的文件列表,用于统计下载文件记录
+	protected long mTotalDownloadByteCount;                 // 已经消耗的总下载量,单位字节,用于统计下载字节数
+	protected Action mRemoteFileListFailCallback;           // 获取远端文件列表失败的回调,当获取远端文件列表失败后会回调,一般是网络异常或者远端服务器异常导致无法获取到远端文件列表
+	protected Action mSuccessCallback;                      // 获取文件列表成功的回调,当远端文件列表,StreamingAssets中的文件列表和PersistentPath中的文件列表都获取完成后会回调
+	protected ASSET_READ_PATH mAssetReadPath;               // 资源加载路径,默认是与远端一致,如果是编辑器或者不热更的版本或者WebGL则强制从StreamingAssets中读取
+	protected string mRemoteVersion;                        // 远端版本号,从远端服务器获取
+	protected string mStreamingAssetsVersion;               // StreamingAssets中的版本号,从StreamingAssets中获取
+	protected string mPersistentDataVersion;                // PersistentPath中的版本号,从PersistentPath中获取
+	protected bool mPersistentDone;                         // 是否完成获取PersistentPath中的文件列表
+	protected bool mStreamingDone;                          // 是否完成获取StreamingAssets中的文件列表
+	protected bool mRemoteDone;                             // 是否完成获取远端服务器中的文件列表
+	protected bool mCheckFileListFailed;                    // 是否获取文件列表失败,如果失败了就不进入游戏了,因为没有正确的文件列表就无法正确加载资源
 	public override void init()
 	{
 		base.init();
-		// 默认情况下,编辑器中或者非热更版,或网页版就强制从StreamingAssets中读取资源
-		if (!isEnableHotFix() || isEditor() || isWebGL())
+		// 默认情况下,编辑器中或者非热更版,就强制从StreamingAssets中读取资源
+		if (!isEnableHotFix() || isEditor())
 		{
 			mAssetReadPath = ASSET_READ_PATH.STREAMING_ASSETS_ONLY;
 		}
@@ -109,7 +108,7 @@ public class AssetVersionSystem : FrameSystem
 		logErrorBase("无法获取文件路径,filePath:" + filePath);
 		return null;
 	}
-	public void setRemoteVersion(string version)  { mRemoteVersion = checkValidVersion(version); }
+	public void setRemoteVersion(string version) { mRemoteVersion = checkValidVersion(version); }
 	public void setStreamingAssetsVersion(string version) { mStreamingAssetsVersion = checkValidVersion(version); }
 	public void setPersistentDataVersion(string version) { mPersistentDataVersion = checkValidVersion(version); }
 	// 异步加载StreamingAssets和PersistentPath中的版本号,加载完成后会回调,如果有一方加载失败或者没有此文件,则对应的版本号为null
@@ -178,6 +177,17 @@ public class AssetVersionSystem : FrameSystem
 		ignorePath.addUnique("/temp/");
 		mSuccessCallback = successCallback;
 
+		// 编辑器下和不下载更新的版本中不获取远端文件列表和PersistentPath的文件列表
+		// 如果本地版本号大于远端的,则不下载,此时远端资源还未上传,本地可以直接正常运行,认为安装的是全量包
+		if (isEditor() ||
+			!isEnableHotFix() ||
+			compareVersion3(mRemoteVersion, getLocalVersion(), out _, out _) == VERSION_COMPARE.REMOTE_LOWER)
+		{
+			mPersistentDone = true;
+			mRemoteDone = true;
+			return;
+		}
+
 		logBase("开始获取所有文件列表");
 		// 获取StreamingAssets,PersistentPath的所有文件信息
 		openFileList(F_ASSET_BUNDLE_PATH, () =>
@@ -185,17 +195,6 @@ public class AssetVersionSystem : FrameSystem
 			logBase("获取StreamingAssets文件列表完成");
 			mStreamingDone = true;
 		}, ignorePath, ignoreFile);
-		// 编辑器下和不下载更新的版本中不获取远端文件列表和PersistentPath的文件列表
-		// 如果本地版本号大于远端的,则不下载,此时远端资源还未上传,本地可以直接正常运行,认为安装的是全量包
-		if (isEditor() || 
-			isWebGL() || 
-			!isEnableHotFix() || 
-			compareVersion3(mRemoteVersion, getLocalVersion(), out _, out _) == VERSION_COMPARE.REMOTE_LOWER)
-		{
-			mPersistentDone = true;
-			mRemoteDone = true;
-			return;
-		}
 
 		openFileList(F_PERSISTENT_ASSETS_PATH, () =>
 		{
@@ -207,7 +206,7 @@ public class AssetVersionSystem : FrameSystem
 		// 如果本地的信息与远端的不一致,再下载,因为要减少不必要的下载量
 		// 减少流量消耗以及时间消耗,下载一次可能会需要消耗500毫秒
 		string prefsKey = "FileListRemote";
-		string content = PlayerPrefs.GetString(prefsKey);
+		string content = UnityEngine.PlayerPrefs.GetString(prefsKey);
 		if (content == null || remoteFileListMD5 != generateFileMD5(stringToBytes(content)))
 		{
 			remoteFileListCallback((string content0) =>
@@ -218,7 +217,7 @@ public class AssetVersionSystem : FrameSystem
 					return;
 				}
 				// 写到本地
-				PlayerPrefs.SetString(prefsKey, content0);
+				UnityEngine.PlayerPrefs.SetString(prefsKey, content0);
 				checkRemoteList(content0);
 			});
 		}
@@ -230,6 +229,12 @@ public class AssetVersionSystem : FrameSystem
 	// path为绝对路径
 	protected void openFileList(string path, Action callback, List<string> ignorePath, List<string> ignoreFile)
 	{
+		// WebGL下无法去查找StreamingAssets中的文件,也就无法获取文件列表
+		if (isWebGL() && path == F_ASSET_BUNDLE_PATH)
+		{
+			callback?.Invoke();
+			return;
+		}
 		DateTime start = DateTime.Now;
 		string fileListFullPath = path + FILE_LIST;
 		// 本地已经有生成好的FileList文件,不过即使读取的是已经生成好的文件信息,也要再获取所有文件的文件名和大小进行校验,避免记录错误的信息
@@ -238,11 +243,11 @@ public class AssetVersionSystem : FrameSystem
 			if (!content.isEmpty())
 			{
 				Dictionary<string, GameFileInfo> fileInfoList = new();
-				bool isSame = true;
 				parseFileList(content, fileInfoList);
 				List<string> fileList = null;
-				// 扫描本地文件进行校验,只有PersistentPath中的才能扫描
-				if (path == F_PERSISTENT_ASSETS_PATH)
+				// 扫描本地文件进行校验,只有PersistentPath中的才能扫描,且webgl无法扫描
+				bool isSame = true;
+				if (!isWebGL() && path == F_PERSISTENT_ASSETS_PATH)
 				{
 					fileList = new();
 					findFilesInternal(path, fileList, null, true);
@@ -298,13 +303,17 @@ public class AssetVersionSystem : FrameSystem
 			else
 			{
 				List<string> fileList = new();
-				if (path == F_ASSET_BUNDLE_PATH)
+				// webgl无法去扫描文件列表
+				if (!isWebGL())
 				{
-					findStreamingAssetsFiles(path, fileList, null, true, true);
-				}
-				else
-				{
-					findFilesInternal(path, fileList, null, true);
+					if (path == F_ASSET_BUNDLE_PATH)
+					{
+						findStreamingAssetsFiles(path, fileList, null, true, true);
+					}
+					else
+					{
+						findFilesInternal(path, fileList, null, true);
+					}
 				}
 				if (!fileList.isEmpty())
 				{

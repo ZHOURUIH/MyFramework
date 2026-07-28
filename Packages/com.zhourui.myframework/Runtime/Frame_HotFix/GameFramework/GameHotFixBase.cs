@@ -3,10 +3,8 @@ using Obfuz;
 using Obfuz.EncryptionVM;
 #endif
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Networking;
 using static FrameBaseHotFix;
 using static FrameBaseDefine;
 using static UnityUtility;
@@ -39,14 +37,14 @@ public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 			registerAllTable();
 
 #if USE_SQLITE
-            mSQLiteManager.loadAllAsync(() => 
+			mSQLiteManager.loadAllAsync(() =>
 			{
 #endif
-				mExcelManager.loadAllAsync(() => 
+				mExcelManager.loadAllAsync(() =>
 				{
-                    // 表格加载完后才注册对象类型
-                    registerAll();
-                    onAllLoaded(); 
+					// 表格加载完后才注册对象类型
+					registerAll();
+					onAllLoaded();
 				});
 #if USE_SQLITE
 			});
@@ -124,11 +122,11 @@ public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 	{
 		mFrameComponentInit.Add(mGameFrameworkHotFix.registeFrameSystem(callback));
 	}
-    // [ObfuzIgnore]指示Obfuz不要混淆这个函数
-    // 初始化EncryptionService后被混淆的代码才能正常运行，
-    // 此函数通过反射进行调用,并且不能使用任何会被混淆的代码
+	// [ObfuzIgnore]指示Obfuz不要混淆这个函数
+	// 初始化EncryptionService后被混淆的代码才能正常运行，
+	// 此函数通过反射进行调用,并且不能使用任何会被混淆的代码
 #if USE_OBFUZ
-    [ObfuzIgnore]
+	[ObfuzIgnore]
 #endif
 	protected static void preStart(Action callback)
 	{
@@ -137,20 +135,17 @@ public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 			callback?.Invoke();
 			return;
 		}
-		// 在这之前需要确保PersistentAssets中的密钥文件是最新的,webgl只会在StreamingAssets中读取
-		string filePath;
-		if (isWebGL())
+
+		// 在这之前需要确保PersistentAssets中的密钥文件是最新的
+		string filePath = F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE;
+		if (!isWebGL())
 		{
-			filePath = F_ASSET_BUNDLE_PATH + DYNAMIC_SECRET_FILE;
+			filePath = "file://" + filePath;
 		}
-		else
-		{
-			filePath = "file://" + F_PERSISTENT_ASSETS_PATH + DYNAMIC_SECRET_FILE;
-		}
-		GameEntryBase.startCoroutine(openFileAsync(filePath, (byte[] bytes) =>
+		GameEntryBase.startCoroutine(openFileAsyncInternal(filePath, true, (byte[] bytes) =>
 		{
 #if USE_OBFUZ
-            EncryptionService<DefaultDynamicEncryptionScope>.Encryptor = new GeneratedEncryptionVirtualMachine(bytes);
+			EncryptionService<DefaultDynamicEncryptionScope>.Encryptor = new GeneratedEncryptionVirtualMachine(bytes);
 #endif
 			try
 			{
@@ -161,26 +156,5 @@ public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 				Debug.LogException(e);
 			}
 		}));
-	}
-    // fileName为绝对路径
-#if USE_OBFUZ
-    [ObfuzIgnore]
-#endif
-	protected static IEnumerator openFileAsync(string fileName, BytesCallback callback)
-	{
-		using var www = UnityWebRequest.Get(fileName);
-		yield return www.SendWebRequest();
-		if (www.downloadHandler.data == null)
-		{
-			Debug.LogError("open file failed:" + fileName + ", info:" + www.error + ", error:" + www.downloadHandler.error);
-		}
-		try
-		{
-			callback?.Invoke(www.downloadHandler.data);
-		}
-		catch (Exception e)
-		{
-			Debug.LogException(e);
-		}
 	}
 }
