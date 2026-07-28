@@ -29,7 +29,6 @@ public class ObsSystem : IObjectStorageSystem
 		mAccessKey = accessKey;
 		mSecureKey = secureKey;
 	}
-	public string getURL() { return mURL; }
 	// 同步下载文件,remotePath是上传到服务器后存储的相对路径,带后缀
 	public byte[] downloadBytes(string remotePath)
 	{

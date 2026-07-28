@@ -72,7 +72,7 @@ public class QiNiuYunSystem : IObjectStorageSystem
 				continue;
 			}
 			GameFileInfo info = new();
-			info.mFileName = item.Key.removeStartString(remotePath);
+			info.mFileName = item.Key.removeStart(remotePath);
 			info.mFileSize = item.Fsize;
 			info.mMD5 = item.Md5;
 			fileList.Add(info.mFileName, info);

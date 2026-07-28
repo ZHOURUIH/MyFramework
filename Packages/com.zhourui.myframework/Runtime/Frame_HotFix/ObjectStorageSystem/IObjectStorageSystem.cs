@@ -5,7 +5,6 @@ using System.Collections.Generic;
 public interface IObjectStorageSystem
 {
 	void init(string url, string bucket, string accessKey, string secureKey);
-	string getURL();
 	Dictionary<string, GameFileInfo> getFileList(string remotePath);
 	string downloadTxt(string remotePath);
 	bool delete(string remotePath);
