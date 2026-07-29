@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
+// UI动画接口,支持播放动画的UI控件需实现此接口
 public interface IUIAnimation
 {
 	string getTextureSet();

@@ -1,5 +1,6 @@
-﻿using UnityEngine;
+using UnityEngine;
 
+// 结构体,存储精灵的纹理UV坐标和顶点数据
 public struct SpriteData
 {
 	public Texture mTexture;

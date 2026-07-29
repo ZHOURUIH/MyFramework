@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using static FrameBaseUtility;
 using static FrameUtility;
 using static UnityUtility;
 
+// 空字典,在返回空字典时避免分配新对象
 public class EmptyDictionary<TKey, TValue>
 {
 	public static Dictionary<TKey, TValue> mList;
@@ -15,6 +16,7 @@ public class EmptyDictionary<TKey, TValue>
 	}
 }
 
+// 字典扩展方法,提供字典的便捷操作
 public static class DictionaryExtension
 {
 	public static void For<TKey, TValue>(this Dictionary<TKey, TValue> list, Action<KeyValuePair<TKey, TValue>> action)

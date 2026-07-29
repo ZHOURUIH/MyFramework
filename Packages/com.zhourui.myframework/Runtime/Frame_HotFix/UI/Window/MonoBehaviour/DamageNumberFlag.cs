@@ -1,5 +1,6 @@
-﻿using UnityEngine;
+using UnityEngine;
 
+// 伤害数字标记,控制伤害数字的显示位置和偏移
 public class DamageNumberFlag : ClassObject
 {
 	public Sprite mSprite;          // 显示的图片

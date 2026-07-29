@@ -1,4 +1,4 @@
-﻿#if USE_PURCHASING
+#if USE_PURCHASING
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
@@ -114,6 +114,7 @@ public class PurchasingSystem : FrameSystem, IDetailedStoreListener
 	}
 }
 #else
+// 内购系统,统一管理各平台的商品购买流程
 public class PurchasingSystem : FrameSystem
 {}
 #endif

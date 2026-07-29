@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 [Serializable]
+// 结构体,用于在编辑器中显示AssetBundle调试信息
 public struct AssetBundleDebug
 {
 	public string mBundleName;

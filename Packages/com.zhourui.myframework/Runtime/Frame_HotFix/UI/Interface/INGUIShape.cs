@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
+// NGUI形状接口,自定义形状的UI元素需实现此接口
 public interface INGUIShape
 {
 	void onPointsChanged();

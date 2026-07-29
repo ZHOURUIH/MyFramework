@@ -1,5 +1,6 @@
-﻿using static UnityUtility;
+using static UnityUtility;
 
+// 窗口池基类,提供窗口对象池化的基础功能
 public class WindowPoolBase
 {
 	protected UGUIObjectCallback mDestroyCallback;	// 窗口销毁的回调,用于让外部定义窗口的销毁方式

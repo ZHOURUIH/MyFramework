@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 [CommonControl]
+// 图例按钮控件,通常用于地图或图表中的图例项
 public class LegendButton : WindowObjectUGUI
 {
 	protected myUGUIObject mGray;

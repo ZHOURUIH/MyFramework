@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 
 [CommonControl]
+// 标签页控件,实现多标签切换界面
 public class UGUITab : WindowObjectUGUI
 {
 	protected myUGUIObject mNormal;

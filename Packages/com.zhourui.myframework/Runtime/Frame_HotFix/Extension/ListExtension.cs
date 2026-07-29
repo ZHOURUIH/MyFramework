@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using static FrameUtility;
 using static MathUtility;
 
+// 空列表,在返回空列表时避免分配新对象
 public class EmptyList<T>
 {
 	public static List<T> mList;
@@ -13,6 +14,7 @@ public class EmptyList<T>
 	}
 }
 
+// 列表扩展方法,提供列表的便捷操作
 public static class ListExtension
 {
 	public static T random<T>(this List<T> list)

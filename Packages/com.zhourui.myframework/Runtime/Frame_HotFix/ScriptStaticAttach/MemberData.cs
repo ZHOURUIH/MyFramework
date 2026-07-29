@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using static FrameBaseUtility;
@@ -6,6 +6,7 @@ using static StringUtility;
 using static FrameUtility;
 
 [Serializable]
+// UGUI生成器中描述成员变量的数据,包含变量名、类型、数组信息等
 public class MemberData
 {
 	public static List<string> mWindowTypeDropList = new()

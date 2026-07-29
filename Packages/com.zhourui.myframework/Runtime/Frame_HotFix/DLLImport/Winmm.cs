@@ -1,9 +1,10 @@
-﻿#if UNITY_STANDALONE_WIN || UNITY_EDITOR
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR
 using System;
 using System.Runtime.InteropServices;
 using static FrameBaseHotFix;
 
 [StructLayout(LayoutKind.Sequential)] 
+// 结构体,WAV音频波形头数据,用于winmm API录音
 public struct WaveHdr
 {
 	public IntPtr lpData;			// pointer to locked data buffer
@@ -16,6 +17,7 @@ public struct WaveHdr
 	public IntPtr reserved;			// reserved for driver
 }
 [StructLayout(LayoutKind.Sequential)]
+// 结构体,WAV音频波形格式,用于winmm API录音
 public struct WaveFormatEx
 {
 	public short wFormatTag;		// format type
@@ -28,6 +30,7 @@ public struct WaveFormatEx
 	// extra information (after cbSize)
 }
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
+// 结构体,WAV音频输入设备能力信息,用于winmm API录音
 public struct WaveInCaps
 {
 	public short wMid;						// manufacturer ID

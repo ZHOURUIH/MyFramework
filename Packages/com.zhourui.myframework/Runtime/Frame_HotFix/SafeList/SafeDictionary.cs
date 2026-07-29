@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using static UnityUtility;
 using static FrameUtility;
@@ -164,6 +164,7 @@ public class SafeDictionary<Key, Value> : ClassObject
 	}
 }
 
+// SafeDictionary的扩展方法,提供便捷的添加和获取操作
 public static class SafeDictionaryExtension
 {
 	public static T0 addClass<T0, Key>(this SafeDictionary<Key, T0> list, Key key) where T0 : ClassObject, new()

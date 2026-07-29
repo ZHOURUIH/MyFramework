@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 [Serializable]
+// 补间组,将多个补间组合在一起,可统一暂停/恢复/停止
 public class TweenGroup
 {
 	public List<TweenTrack> mTrackList = new();

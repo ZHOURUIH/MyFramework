@@ -1,8 +1,9 @@
-﻿using UnityEngine;
+using UnityEngine;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using static FrameBaseUtility;
 
+// Android平台内购处理
 public class AndroidPurchasing : FrameSystem
 {
 #if USE_PURCHASING

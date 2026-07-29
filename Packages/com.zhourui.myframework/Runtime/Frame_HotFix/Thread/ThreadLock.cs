@@ -1,7 +1,8 @@
-﻿using System.Threading;
+using System.Threading;
 using static UnityUtility;
 using static FrameUtility;
 
+// 线程锁,用于多线程环境下的同步访问
 public class ThreadLock
 {
 	protected volatile int mLockThreadID;   // 当前获得锁的线程ID

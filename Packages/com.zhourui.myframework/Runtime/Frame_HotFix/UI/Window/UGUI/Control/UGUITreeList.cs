@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using static MathUtility;
 using static WidgetUtility;
 
 [CommonControl]
+// 树形列表控件,实现可展开折叠的树形结构
 public class UGUITreeList : WindowObjectUGUI
 {
 	protected myUGUIObject mViewport;

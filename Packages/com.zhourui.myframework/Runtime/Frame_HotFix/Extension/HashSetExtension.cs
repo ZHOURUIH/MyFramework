@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using static FrameUtility;
 
+// 空哈希集,在返回空哈希集时避免分配新对象
 public class EmptyHashSet<T>
 {
 	public static HashSet<T> mList;
@@ -12,6 +13,7 @@ public class EmptyHashSet<T>
 	}
 }
 
+// 哈希集扩展方法,提供哈希集的便捷操作
 public static class HashSetExtension
 {
 	public static void For<T>(this HashSet<T> list, Action<T> action)

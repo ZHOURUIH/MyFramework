@@ -1,5 +1,6 @@
-﻿using UnityEngine;
+using UnityEngine;
 
+// 自定义异步操作,在协程中等待一个异步任务完成时使用
 public class CustomAsyncOperation : CustomYieldInstruction
 {
 	protected bool mFinish;

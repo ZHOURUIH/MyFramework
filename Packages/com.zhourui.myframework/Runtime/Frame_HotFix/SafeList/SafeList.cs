@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using static UnityUtility;
 using static FrameUtility;
@@ -213,6 +213,7 @@ public class SafeList<T> : ClassObject
 	}
 }
 
+// SafeList的扩展方法,提供便捷的添加ClassObject操作
 public static class SafeListExtension
 {
 	public static T0 addClass<T0>(this SafeList<T0> list) where T0 : ClassObject, new()

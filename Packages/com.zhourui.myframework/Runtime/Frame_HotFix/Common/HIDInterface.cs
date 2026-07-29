@@ -1,4 +1,4 @@
-﻿#if UNITY_STANDALONE_WIN
+#if UNITY_STANDALONE_WIN
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
@@ -6,6 +6,7 @@ using static StringUtility;
 using static UnityUtility;
 using static FrameUtility;
 
+// 结构体,存储HID设备的制造商、产品名、序列号等信息
 public struct InterfaceDetails
 {
 	public string manufacturer;

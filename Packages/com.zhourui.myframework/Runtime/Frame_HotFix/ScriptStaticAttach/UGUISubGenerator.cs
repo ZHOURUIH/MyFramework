@@ -1,9 +1,10 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using UnityEditor;
 #endif
 using UnityEngine;
 
 [DisallowMultipleComponent]
+// UGUI子生成器,挂在子窗口节点上,用于生成子窗口的成员变量
 public class UGUISubGenerator : UGUIGeneratorBase
 {
 	public string mParentType;			// 基类的类型

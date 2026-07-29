@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using static BinaryUtility;
 using static FrameUtility;
 
+// 空数组,在返回空数组时避免分配新对象
 public class EmptyArray<T>
 {
 	public static T[] mList;
@@ -15,6 +16,7 @@ public class EmptyArray<T>
 	}
 }
 
+// 数组扩展方法,提供数组的便捷操作
 public static class ArrayExtension
 {
 	public static void setAllDefault<T>(this T[] list)

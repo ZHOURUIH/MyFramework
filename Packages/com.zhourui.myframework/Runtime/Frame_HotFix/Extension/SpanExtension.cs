@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Text;
 using static MathUtility;
 using static BinaryUtility;
 
+// Span扩展方法,提供对Span的便捷操作
 public static class SpanExtension
 {
 	public static void ForI<T>(this Span<T> list, Action<int> action)

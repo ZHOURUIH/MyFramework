@@ -1,4 +1,4 @@
-﻿#if USE_SQLITE
+#if USE_SQLITE
 #if UNITY_WEBGL
 #error "webgl not support sqlite! that will report error message:"
 #error "dlopen: Unable to open DLL! Dynamic linking is not supported in WebAssembly builds due to limitations to performance and code size. "
@@ -100,6 +100,7 @@ public class SQLiteManager : FrameSystem
 	}
 }
 #else
+// SQLite数据库管理器,在不支持SQLite的平台为空实现
 public class SQLiteManager : FrameSystem
 { }
 #endif

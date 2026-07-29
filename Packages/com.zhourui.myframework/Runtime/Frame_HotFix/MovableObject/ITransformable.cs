@@ -1,5 +1,6 @@
-﻿using UnityEngine;
+using UnityEngine;
 
+// 可变换对象接口,提供位置/旋转/缩放的读写能力
 public interface ITransformable
 {
 	public Vector3 getPosition();

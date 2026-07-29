@@ -1,5 +1,6 @@
-﻿using static FrameBaseUtility;
+using static FrameBaseUtility;
 
+// 屏幕方向管理系统,控制游戏画面的横竖屏切换
 public class ScreenOrientationSystem : FrameSystem
 {
 	protected ANDROID_ORIENTATION mAndroidOrientation = ANDROID_ORIENTATION.NONE;

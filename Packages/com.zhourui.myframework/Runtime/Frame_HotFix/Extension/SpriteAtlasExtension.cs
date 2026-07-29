@@ -1,4 +1,4 @@
-﻿using UnityEngine.U2D;
+using UnityEngine.U2D;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -7,6 +7,7 @@ using UnityEditor.U2D;
 using UObject = UnityEngine.Object;
 using static FrameBaseUtility;
 
+// 精灵图集扩展方法,提供对SpriteAtlas的便捷操作
 public static class SpriteAtlasExtension
 {
 	public static bool isSpriteInAtlas(this SpriteAtlas atlas, Sprite targetSprite)

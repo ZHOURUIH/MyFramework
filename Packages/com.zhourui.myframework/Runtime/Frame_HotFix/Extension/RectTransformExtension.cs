@@ -1,10 +1,11 @@
-﻿using TMPro;
+using TMPro;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using static UnityUtility;
 using static MathUtility;
 
+// RectTransform扩展方法,提供UGUI布局相关的便捷操作
 public static class RectTransformExtension
 {
 	public static void setPositionNoPivot(this RectTransform rect, Vector3 pos, bool applyWindowScale = true)

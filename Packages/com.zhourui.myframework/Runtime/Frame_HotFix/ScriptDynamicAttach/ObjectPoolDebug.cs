@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using static FrameBaseHotFix;
 
 [Serializable]
+// 预制体池调试信息,用于在编辑器中显示对象池状态
 public class PrefabPoolDebugInfo
 {
 	public int InuseCount;

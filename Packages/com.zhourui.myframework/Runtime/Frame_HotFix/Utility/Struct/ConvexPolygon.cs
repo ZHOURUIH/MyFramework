@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using static MathUtility;
 
+// 凸多边形,提供凸多边形的构建和点包含检测
 public class ConvexPolygon : ClassObject
 {
 	public List<Vector2> mPoints = new();

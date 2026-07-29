@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using static MathUtility;
 
+// 等待对象,用于等待一段时间或条件满足后执行回调
 public class Waiting : ClassObject
 {
 	protected List<CustomAsyncOperation> mAsyncList;

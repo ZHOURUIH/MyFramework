@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -8,6 +8,7 @@ using static FrameBaseUtility;
 using static MathUtility;
 using static StringUtility;
 
+// 字符串扩展方法,提供字符串的便捷操作
 public static class StringExtension
 {
     private static List<byte> mTempByteList0 = new();											// 避免GC,给stringToBytesNonAlloc使用的

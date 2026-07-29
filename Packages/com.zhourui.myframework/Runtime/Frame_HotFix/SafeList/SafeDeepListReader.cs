@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
+// 深度安全列表的只读遍历辅助,搭配SafeDeepList使用,using释放
 public struct SafeDeepListReader<T> : IDisposable
 {
 	private SafeDeepList<T> mSafeList;

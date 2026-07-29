@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using static MathUtility;
 using static UnityUtility;
 
+// 补间序列,按顺序依次播放多个补间动画
 public class TweenSequence : MonoBehaviour
 {
 	public List<TweenGroup> mGroupList = new();

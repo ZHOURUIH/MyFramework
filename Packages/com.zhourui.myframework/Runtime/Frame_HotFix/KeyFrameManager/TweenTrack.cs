@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using UnityEngine;
 using static FrameBaseHotFix;
 using static MathUtility;
 using static UnityUtility;
 
 [Serializable]
+// 补间轨道,管理一条补间动画的时间线
 public class TweenTrack
 {
 	protected MyCurve mCurve;							// 用于在运行时缓存曲线对象

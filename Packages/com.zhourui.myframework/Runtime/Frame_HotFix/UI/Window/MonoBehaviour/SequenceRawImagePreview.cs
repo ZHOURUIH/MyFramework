@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 #if UNITY_EDITOR
@@ -13,6 +13,7 @@ using static FileUtility;
 [ExecuteAlways]
 [RequireComponent(typeof(RawImageAnimPath))]
 [RequireComponent(typeof(RawImage))]
+// 序列帧RawImage预览,在编辑器中预览RawImage序列帧动画
 public class SequenceRawImagePreview : MonoBehaviour
 {
 #if UNITY_EDITOR

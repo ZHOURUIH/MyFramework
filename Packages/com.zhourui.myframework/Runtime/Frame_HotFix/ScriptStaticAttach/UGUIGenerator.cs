@@ -1,9 +1,10 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using UnityEditor;
 #endif
 using UnityEngine;
 
 [DisallowMultipleComponent]
+// UGUI生成器,根据预设生成窗口脚本的成员变量代码
 public class UGUIGenerator : UGUIGeneratorBase
 {
 	public string mParentType;			// 基类的类型

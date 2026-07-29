@@ -1,5 +1,6 @@
-﻿using UnityEngine;
+using UnityEngine;
 
+// 平铺渲染数据,存储平铺图片的网格和材质信息
 public class TileRenderData : ClassObject
 {
 	public SpriteData mSpriteData;		// 显示的图片信息

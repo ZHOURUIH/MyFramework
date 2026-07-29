@@ -1,10 +1,11 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 #if USE_OBFUZ
 using Obfuz;
 #endif
 using UnityEngine;
 using static UnityUtility;
 
+// Android平台购买通知处理
 public class AndroidPurchaseNotification : MonoBehaviour
 {
 	protected String2Callback mSuccessedCallback;

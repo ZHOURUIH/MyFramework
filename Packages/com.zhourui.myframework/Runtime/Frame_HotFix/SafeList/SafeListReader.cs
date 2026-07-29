@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
+// 安全列表的只读遍历辅助,搭配SafeList使用,using释放
 public struct SafeListReader<T> : IDisposable
 {
 	private SafeList<T> mSafeList;
