@@ -143,7 +143,7 @@ public class GameDownload
 	{
 		string fileName = mNeedDownloadFileList[index];
 		downloadProgress(fileName, index, 0.0f);
-		ResourceManager.loadAssetsFromUrl(mResourceManager.getDownloadURL() + fileName, (byte[] bytes) =>
+		ResourceUtility.loadAssetsFromUrl(mResourceManager.getDownloadURL() + fileName, (byte[] bytes) =>
 		{
 			// 单个资源文件下载完毕
 			if (bytes == null)

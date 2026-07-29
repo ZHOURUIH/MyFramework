@@ -4,21 +4,10 @@ using System.IO;
 using System.Xml;
 using UnityEngine.Networking;
 using static HttpUtility;
-using static FileUtility;
 
-// 用于执行华为云OBS文件存储服务器的访问逻辑,只用于下载
+// 用于执行华为云OBS文件存储服务器的访问逻辑,只用于获取远端文件信息
 public class ObsSystem
 {
-	// 异步下载文件,remotePath是上传到服务器后存储的路径,带URL,带后缀
-	public static void downloadBytes(string remotePath, BytesIntCallback callback)
-	{
-		ResourceManager.loadAssetsFromUrl(remotePath, (byte[] bytes) => { callback?.Invoke(bytes, bytes?.Length ?? 0); });
-	}
-	// 异步下载文件,remotePath是上传到服务器后存储的路径,带URL,带后缀
-	public static void downloadTxt(string remotePath, StringCallback callback)
-	{
-		ResourceManager.loadAssetsFromUrl(remotePath, (byte[] bytes) => { callback?.Invoke(bytesToString(bytes) ?? ""); });
-	}
 	// fileName是url下的相对路径
 	public static void getFileMD5(string url, string fileName, StringCallback callback)
 	{

@@ -1,4 +1,5 @@
 ﻿using static FrameBaseUtility;
+using static FileUtility;
 using static FrameBaseDefine;
 using static FrameBase;
 
@@ -29,8 +30,9 @@ public class LaunchSceneVersion : SceneProcedure
 	}
 	protected void doGetRemoteVersion()
 	{
-		ObsSystem.downloadTxt(/*OBS_URL + getRemoteFolder("") +*/ VERSION, (string version) =>
+		ResourceUtility.loadAssetsFromUrl(/*OBS_URL + getRemoteFolder("") +*/ VERSION, (byte[] versionBytes) =>
 		{
+			string version = bytesToString(versionBytes);
 			if (version.isEmpty())
 			{
 				// 可选弹窗提示是否重试

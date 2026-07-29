@@ -42,6 +42,6 @@ public class LaunchSceneFileList : SceneProcedure
 	{
 		// 这里需要自己构造一个远端路径
 		string fileListPath = /*OBS_URL + getRemoteFolder(mAssetVersionSystem.getRemoteVersion()) +*/ FILE_LIST;
-		ObsSystem.downloadBytes(fileListPath, (byte[] content, int _) => { callback?.Invoke(bytesToString(content)); });
+		ResourceUtility.loadAssetsFromUrl(fileListPath, (byte[] content) => { callback?.Invoke(bytesToString(content)); });
 	}
 }
