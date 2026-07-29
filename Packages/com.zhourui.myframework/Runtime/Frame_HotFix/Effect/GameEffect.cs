@@ -22,6 +22,7 @@ public class GameEffect : MovableObject
 	protected bool mIsDead;                                     // 特效是否已经死亡
 	protected bool mIsEffectPool;                               // 是否为特效池中的特效,不会重置对象的属性,提高效率
 	protected PLAY_STATE mPlayState = PLAY_STATE.STOP;          // 特效整体的播放状态
+	// 设置GameObject并获取其下的粒子系统/拖尾/动画组件
 	public override void setObject(GameObject obj)
 	{
 		base.setObject(obj);
@@ -57,6 +58,7 @@ public class GameEffect : MovableObject
 		}
 		base.destroy();
 	}
+	// 每帧更新,处理忽略时间缩放时的粒子模拟和生命周期计时
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
@@ -97,6 +99,7 @@ public class GameEffect : MovableObject
 	public void setDead(bool dead)				{ mIsDead = dead; }
 	public void setMoveToHide(bool moveToHide)	{ mMoveToHide = moveToHide; }
 	public void setEffectDestroyCallback(GameEffectCallback effect) { mEffectDestroyCallback = effect; }
+	// 检查特效是否仍然有效(在池中存在)
 	public bool checkValid()
 	{
 		// 虽然此处mObject != null已经足够判断特效是否还存在
@@ -126,6 +129,7 @@ public class GameEffect : MovableObject
 		}
 		return base.setActive(active);
 	}
+	// 设置忽略时间缩放,同时控制Animator更新模式
 	public override void setIgnoreTimeScale(bool ignore, bool componentOnly = false)
 	{
 		mDefaultIgnoreTimeScale = ignore;
@@ -148,6 +152,7 @@ public class GameEffect : MovableObject
 		}
 		base.setIgnoreTimeScale(ignore, componentOnly);
 	}
+	// 播放特效,激活并启动所有粒子系统
 	public void play()
 	{
 		using var a = new ProfilerScope(0);
@@ -180,6 +185,7 @@ public class GameEffect : MovableObject
 			}
 		}
 	}
+	// 停止特效并移动到指定位置,清除拖尾
 	public void stopAndMove(Vector3 pos)
 	{
 		using var a = new ProfilerScope(0);
@@ -197,6 +203,7 @@ public class GameEffect : MovableObject
 		setPosition(pos);
 		clearTrail();
 	}
+	// 停止特效播放并清除拖尾
 	public void stop()
 	{
 		using var a = new ProfilerScope(0);

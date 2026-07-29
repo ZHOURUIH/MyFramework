@@ -14,6 +14,7 @@ public class GameObjectPool : FrameSystem
 	{
 		mCreateObject = true;
 	}
+	// 清空所有未使用的GameObject并销毁
 	public void clearUnused()
 	{
 		foreach (GameObject go in mUnusedList)
@@ -26,6 +27,7 @@ public class GameObjectPool : FrameSystem
 	public Queue<GameObject> getUnusedList() { return mUnusedList; }
 	public GameObject newObject() { return newObject(null, mObject); }
 	public GameObject newObject(string name){ return newObject(name, mObject); }
+	// 从池中获取或创建一个GameObject,可指定名称和父节点
 	public GameObject newObject(string name, GameObject parent)
 	{
 		if (mHasDestroy)
@@ -62,7 +64,8 @@ public class GameObjectPool : FrameSystem
 		}
 		return go;
 	}
-	// 销毁一个GameObject,但是调用方需要确保此GameObject上已经没有任何的除Transform以外的组件,否则可能会出现复用时错误
+	// 销毁一个GameObject并归还到池中,moveToHide=true则移出视野,false则SetActive(false)
+	// 但是调用方需要确保此GameObject上已经没有任何的除Transform以外的组件,否则可能会出现复用时错误
 	public void destroyObject(GameObject go, bool moveToHide)
 	{
 		if (mHasDestroy || go == null)

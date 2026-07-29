@@ -65,6 +65,7 @@ public class SQLiteTable : ClassObject
 			callback?.Invoke();
 		}
 	}
+	// 同步加载表格数据,先从资源包加载bytes,再解密并创建SQLite连接
 	public void load()
 	{
 		if (!mResourceAvailable && isPlaying())
@@ -110,6 +111,7 @@ public class SQLiteTable : ClassObject
 		base.destroy();
 		clearAll();
 	}
+	// 执行SQL查询,返回数据读取器
 	public SqliteDataReader queryReader(string queryString)
 	{
 		if (mCommand == null)
@@ -124,6 +126,7 @@ public class SQLiteTable : ClassObject
 		catch (Exception) { }
 		return null;
 	}
+	// 执行SQL非查询语句(INSERT/UPDATE/DELETE)
 	public void queryNonReader(string queryString)
 	{
 		if (mCommand == null)
@@ -142,6 +145,7 @@ public class SQLiteTable : ClassObject
 	public void setDataType(Type dataClassType) { mDataClassType = dataClassType; }
 	public void setTableName(string name) { mTableName = name; }
 	public string getTableName() { return mTableName; }
+	// 执行条件查询,condition为空则查询全部
 	public SqliteDataReader doQuery(string condition = null)
 	{
 		if (!condition.isEmpty())
@@ -153,14 +157,17 @@ public class SQLiteTable : ClassObject
 			return queryReader("SELECT * FROM " + mTableName);
 		}
 	}
+	// 执行UPDATE更新语句
 	public void doUpdate(string updateString, string conditionString)
 	{
 		queryNonReader(strcat("UPDATE ", mTableName, " SET ", updateString, " WHERE ", conditionString));
 	}
+	// 执行INSERT插入语句
 	public void doInsert(string valueString)
 	{
 		queryNonReader(strcat("INSERT INTO ", mTableName, " VALUES (", valueString, ")"));
 	}
+	// 校验单个数据引用是否存在
 	public void checkData(int checkID, int dataID, ExcelTable refTable)
 	{
 		if (checkID > 0 && queryInternal(checkID, false) == null)
@@ -168,6 +175,7 @@ public class SQLiteTable : ClassObject
 			logError("can not find item id:" + checkID + " in " + mTableName + ", ref ID:" + dataID + ", ref Table:" + refTable.getTableName());
 		}
 	}
+	// 校验多个数据引用是否存在(int列表)
 	public void checkData(List<int> checkIDList, int dataID, ExcelTable refTable)
 	{
 		foreach (int id in checkIDList)
@@ -178,6 +186,7 @@ public class SQLiteTable : ClassObject
 			}
 		}
 	}
+	// 校验多个数据引用是否存在(ushort列表)
 	public void checkData(List<ushort> checkIDList, int dataID, ExcelTable refTable)
 	{
 		foreach (int id in checkIDList)
@@ -188,6 +197,7 @@ public class SQLiteTable : ClassObject
 			}
 		}
 	}
+	// 校验两个列表长度是否一致
 	public void checkListPair<T0, T1>(List<T0> list0, List<T1> list1, int dataID)
 	{
 		if (list0.Count != list1.Count)
@@ -196,6 +206,7 @@ public class SQLiteTable : ClassObject
 		}
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
+	// 将数据插入到SQLite表格中,同时缓存到内存
 	protected void insertInternal(SQLiteData data)
 	{
 		if (mDataMap.ContainsKey(data.mID))
@@ -213,6 +224,7 @@ public class SQLiteTable : ClassObject
 		doInsert(valueString.ToString());
 		mDataMap.Add(data.mID, data);
 	}
+	// 按ID查询数据,先从内存缓存查找,未命中则查询SQLite并加入缓存
 	protected SQLiteData queryInternal(int id, bool errorIfNull = true)
 	{
 		if (id <= 0)
@@ -237,6 +249,7 @@ public class SQLiteTable : ClassObject
 		}
 		return data;
 	}
+	// 清理所有资源,关闭SQLite连接并清空缓存
 	protected void clearAll()
 	{
 		mState = LOAD_STATE.NONE;
@@ -254,6 +267,7 @@ public class SQLiteTable : ClassObject
 		}
 		mDataMap.Clear();
 	}
+	// 从SqliteDataReader中解析单条数据(带类型检查)
 	protected void parseReader(Type type, SqliteDataReader reader, out SQLiteData data)
 	{
 		data = null;
@@ -274,6 +288,7 @@ public class SQLiteTable : ClassObject
 		}
 		reader?.Close();
 	}
+	// 从SqliteDataReader中解析单条数据(使用已注册的数据类型)
 	protected void parseReader(SqliteDataReader reader, out SQLiteData data)
 	{
 		data = null;
@@ -285,6 +300,7 @@ public class SQLiteTable : ClassObject
 		}
 		reader?.Close();
 	}
+	// 从SqliteDataReader中解析多条数据到列表中
 	protected void parseReader<T>(Type type, SqliteDataReader reader, List<T> dataList) where T : SQLiteData
 	{
 		if (type != mDataClassType)
@@ -306,6 +322,7 @@ public class SQLiteTable : ClassObject
 		}
 		reader.Close();
 	}
+	// 获取解密后的文件完整路径
 	protected string getDecryptFileFullPath()
 	{
 		if (isEditor())
@@ -317,6 +334,7 @@ public class SQLiteTable : ClassObject
 			return getDecryptFilePath() + mDecryptFileName;
 		}
 	}
+	// 加载完成后的后处理:解密数据、写入临时文件、创建SQLite连接
 	protected void postLoad(byte[] fileBuffer)
 	{
 		try

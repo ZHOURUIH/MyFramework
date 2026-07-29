@@ -20,6 +20,7 @@ public class TouchInfo : ClassObject
 		mPressList.clear();
 		mTouch = null;
 	}
+	// 每帧更新,处理触点移动、悬停进入/离开事件
 	public void update(float elapsedTime)
 	{
 		int touchID = mTouch.getTouchID();
@@ -61,6 +62,7 @@ public class TouchInfo : ClassObject
 		}
 		mHoverList.setRange(newList);
 	}
+	// 触点按下时记录当前悬停的物体列表
 	public void touchPress()
 	{
 		mGlobalTouchSystem.getAllHoverObject(mHoverList, mTouch.getCurPosition());

@@ -30,6 +30,7 @@ public class ListPoolThread : FrameSystem
 		mListLock.destroy();
 	}
 	public ThreadLock getLock() { return mListLock; }
+	// 清空所有未使用的列表缓存
 	public void clearUnused() 
 	{
 		using (new ThreadLockScope(mListLock))
@@ -39,7 +40,7 @@ public class ListPoolThread : FrameSystem
 	}
 	public Dictionary<Type, HashSet<IList>> getInusedList() { return mInusedList; }
 	public Dictionary<Type, Queue<IList>> getUnusedList() { return mUnusedList; }
-	// onlyOnce表示是否仅当作临时列表使用
+	// 从池中获取或创建一个指定元素类型的列表
 	public IList newList(Type elementType, Type listType)
 	{
 		if (mHasDestroy)
@@ -85,6 +86,7 @@ public class ListPoolThread : FrameSystem
 		}
 		return list;
 	}
+	// 将列表归还到池中,清空内容并放入未使用列表
 	public void destroyList(ref IList list, Type type)
 	{
 		if (mHasDestroy || list == null)

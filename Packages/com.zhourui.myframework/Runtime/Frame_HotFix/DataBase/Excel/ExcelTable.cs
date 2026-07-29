@@ -24,6 +24,7 @@ public class ExcelTable
 	public void setResourceAvailable(bool available) { mResourceAvailable = available; }
 	public bool isFileOpened() { return mDataMap.Count > 0 || mTableFileData != null || mTableFileBytes != null; }
 	public virtual void checkAllData() { checkAllDataDefault(); }
+	// 异步打开表格文件,从资源包加载bytes并解析
 	public void openFileAsync(Action callback)
 	{
 		if (!mResourceAvailable && isPlaying())
@@ -49,6 +50,7 @@ public class ExcelTable
 		});
 	}
 	public void setTableFileBytes(byte[] bytes) { mTableFileBytes = bytes; }
+	// 解析bytes数据,解密后按序列化格式逐条读取数据
 	public void parseFile(byte[] fileBuffer)
 	{
 		if (fileBuffer == null)
@@ -176,6 +178,7 @@ public class ExcelTable
 			}
 		}
 	}
+	// 检查路径合法性,不允许反斜杠和空格,编辑器下验证文件是否存在
 	public static void checkPath(string path, bool checkSpace = true)
 	{
 		if (!mCheckPathResultMap.TryAdd(path, true))
@@ -216,6 +219,7 @@ public class ExcelTable
     }
     //------------------------------------------------------------------------------------------------------------------------------
     protected virtual void onOpenFile() { }
+	// 读取文件并解析,然后卸载资源包数据
 	protected void readFile()
 	{
 		{
@@ -226,6 +230,7 @@ public class ExcelTable
 		mResourceManager?.unload(ref mTableFileData);
 	}
 	// 为了避免歧义,getData,getDataMap设置为不允许外部访问
+	// 按ID查询数据(泛型版本),首次访问触发延迟加载
 	protected T getData<T>(int id, bool errorIfNull = true) where T : ExcelData
 	{
 		ExcelData data = null;
@@ -243,6 +248,7 @@ public class ExcelTable
 		}
 		return data as T;
 	}
+	// 按ID查询数据,首次访问触发延迟加载
 	protected ExcelData getData(int id, bool errorIfNull = true)
 	{
 		if (mDataMap.Count == 0)
@@ -256,6 +262,7 @@ public class ExcelTable
 		}
 		return data;
 	}
+	// 获取所有数据的字典,首次访问触发延迟加载
 	protected Dictionary<int, ExcelData> getDataMap()
 	{
 		if (mDataMap.Count == 0)

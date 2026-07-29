@@ -27,6 +27,7 @@ public class ClassPoolThread : FrameSystem
 		mListLock.destroy();
 	}
 	public ThreadLock getLock() { return mListLock; }
+	// 清空所有未使用的对象缓存
 	public void clearUnused()
 	{
 		using (new ThreadLockScope(mListLock))
@@ -35,7 +36,7 @@ public class ClassPoolThread : FrameSystem
 		}
 	}
 	public Dictionary<Type, ClassPoolSingle> getPoolList() { return mPoolList; }
-	// 返回值表示是否是new出来的对象,false则为从回收列表中重复使用的对象
+	// 从池中获取或创建一个指定类型的对象,返回值表示是否为新创建的
 	public ClassObject newClass(Type type)
 	{
 		if (mHasDestroy || type == null)

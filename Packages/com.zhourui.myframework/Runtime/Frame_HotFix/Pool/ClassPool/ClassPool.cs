@@ -51,6 +51,7 @@ public class ClassPool : FrameSystem
 			}
 		}
 	}
+	// 清空所有未使用的对象缓存
 	public void clearUnused() 
 	{
 		mUnusedList.forValue(item => item.Clear());
@@ -58,7 +59,7 @@ public class ClassPool : FrameSystem
 	public Dictionary<Type, HashSet<ClassObject>> getPersistentInusedList() { return mPersistentInuseList; }
 	public Dictionary<Type, HashSet<ClassObject>> getInusedList() { return mInusedList; }
 	public Dictionary<Type, Queue<ClassObject>> getUnusedList() { return mUnusedList; }
-	// isNewObject表示是否是new出来的对象,false则为从回收列表中重复使用的对象
+	// 从池中获取或创建一个指定类型的对象,onlyOnce=true表示临时使用(仅这一帧)
 	public ClassObject newClass(Type type, bool onlyOnce)
 	{
 		if (mHasDestroy)

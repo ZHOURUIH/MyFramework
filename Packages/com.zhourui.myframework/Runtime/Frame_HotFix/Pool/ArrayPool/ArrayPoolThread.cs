@@ -31,6 +31,7 @@ public class ArrayPoolThread : FrameSystem
 		mListLock.destroy();
 	}
 	public ThreadLock getLock() { return mListLock; }
+	// 清空所有未使用的泛型数组缓存
 	public void clearUnused()
 	{
 		using (new ThreadLockScope(mListLock))
@@ -40,6 +41,7 @@ public class ArrayPoolThread : FrameSystem
 	}
 	public Dictionary<Type, Dictionary<int, HashSet<Array>>> getInusedList() { return mInusedList; }
 	public Dictionary<Type, Dictionary<int, Queue<Array>>> getUnusedList() { return mUnusedList; }
+	// 从池中获取或创建一个指定类型和大小的数组,size必须是2的n次方
 	public T[] newArray<T>(int size)
 	{
 		if (!isPow2(size))
@@ -87,7 +89,7 @@ public class ArrayPoolThread : FrameSystem
 		}
 		return array;
 	}
-	// destroyReally表示是否真的要销毁bytes,如果真的回收,则会交给GC回收掉
+	// 将泛型数组归还到池中,destroyReally=true则交给GC回收,false则放入池中复用
 	public void destroyArray<T>(ref T[] array, bool destroyReally = false)
 	{
 		if (array == null)
@@ -114,7 +116,7 @@ public class ArrayPoolThread : FrameSystem
 			array = null;
 		}
 	}
-	// destroyReally表示是否真的要销毁bytes,如果真的回收,则会交给GC回收掉
+	// 批量将泛型数组列表归还到池中,destroyReally表示是否真的要销毁bytes,如果真的回收,则会交给GC回收掉
 	public void destroyArrayList<T>(ICollection<T[]> arrayList, bool destroyReally = false)
 	{
 		if (arrayList == null)

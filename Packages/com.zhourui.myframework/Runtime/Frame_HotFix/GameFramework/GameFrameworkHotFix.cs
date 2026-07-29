@@ -51,6 +51,7 @@ public class GameFrameworkHotFix : IFramework
 	public float getUnscaledTime() { return mThisFrameUnscaledTime; }
 	public bool isAllInited() { return mAllInited; }
 	public void setAllInited(bool inited) { mAllInited = inited; }
+	// 每帧更新所有框架组件
 	public void update(float elapsedTime)
 	{
 		++mFrameIndex;
@@ -86,6 +87,7 @@ public class GameFrameworkHotFix : IFramework
 			}
 		}
 	}
+	// 固定帧率更新所有框架组件(用于物理等固定步长逻辑)
 	public void fixedUpdate(float elapsedTime)
 	{
 		if (!mAllInited || mFrameComponentUpdate == null)
@@ -108,6 +110,7 @@ public class GameFrameworkHotFix : IFramework
 			}
 		}
 	}
+	// 延迟更新所有框架组件(在Update之后调用)
 	public void lateUpdate(float elapsedTime)
 	{
 		if (!mAllInited ||mFrameComponentUpdate == null)
@@ -130,6 +133,7 @@ public class GameFrameworkHotFix : IFramework
 			}
 		}
 	}
+	// 绘制Gizmos调试辅助线
 	public void drawGizmos()
 	{
 		if (!mAllInited || mFrameComponentUpdate == null)
@@ -173,6 +177,7 @@ public class GameFrameworkHotFix : IFramework
 			frame.resourceAvailable();
 		}
 	}
+	// 设置目标帧率,限制为正值
 	public void setFrameRate(int rate)
 	{
 		if (rate <= 0)
@@ -189,6 +194,7 @@ public class GameFrameworkHotFix : IFramework
 	}
 	public bool isResourceAvailable() { return mResourceAvailable; }
 	public bool isDestroy() { return mIsDestroy; }
+	// 销毁所有框架组件,触发销毁回调
 	public void destroy()
 	{
 		mIsDestroy = true;
@@ -220,6 +226,7 @@ public class GameFrameworkHotFix : IFramework
 		mFrameComponentMap = null;
 	}
 	public int getFPS() { return mFPS; }
+	// 销毁指定类型的框架组件并从更新列表中移除
 	public void destroyComponent<T>(ref T com) where T : FrameSystem
 	{
 		int count = mFrameComponentUpdate.Count;
@@ -245,6 +252,7 @@ public class GameFrameworkHotFix : IFramework
 		mFrameCallbackList.Remove(name, out var callback);
 		callback?.Invoke(null);
 	}
+	// 注册一个框架组件,指定初始化/更新/销毁的顺序
 	public T registeFrameSystem<T>(Action<T> callback, int initOrder = -1, int updateOrder = -1, int destroyOrder = -1) where T : FrameSystem, new()
 	{
 		Type type = typeof(T);
@@ -273,6 +281,7 @@ public class GameFrameworkHotFix : IFramework
 		mOnMemoryModifiedCheck?.Invoke(flag, param0, param1, param2, param3);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
+	// 初始化入口:按preInitAsync -> initAsync -> resourceAvailable顺序执行
 	protected void init(Action callback)
 	{
 		// 先执行所有的preInitAsync
@@ -300,6 +309,7 @@ public class GameFrameworkHotFix : IFramework
 			}
 		});
 	}
+	// 预初始化:注册所有框架组件、初始化Android插件、执行init/lateInit,然后执行各组件的preInitAsync
 	protected void preInitAsync(Action callback)
 	{
 		using var a = new ProfilerScope(0);
@@ -382,6 +392,7 @@ public class GameFrameworkHotFix : IFramework
 			});
 		}
 	}
+	// 注册所有内置框架组件,按依赖顺序排列
 	protected void initFrameSystem()
 	{
 		registeFrameSystem<ResourceManager>((com) =>		{ mResourceManager = com; },  -1, 3000, 3000);		// 资源管理器的需要最先初始化,并且是最后被销毁,作为最后的资源清理

@@ -18,6 +18,7 @@ public class UIDepth
 	protected ulong mOriginDepth2;					// 调整前的深度,因为调整的深度不能影响子节点的深度计算,所以计算子节点的深度时需要使用原始的深度
 	protected int mDepthLevel;						// UI的层级相对于Layout根节点,根节点的层级为0,每增加一层,则DepthLevel加1
 	protected int mPriority;						// 在比较窗口深度时,如果窗口的所有深度都相同,则比较mPriority
+	// 获取当前节点在父节点中的排序值
 	public int getOrderInParent()
 	{
 		int longIndex = mDepthLevel / (BYTE_LENGTH / LEVEL_LENGTH);
@@ -130,6 +131,7 @@ public class UIDepth
 		}
 	}
 	public int getPriority() { return mPriority; }
+	// 将深度值转换为可读字符串
 	public string toDepthString()
 	{
 		using var a = new MyStringBuilderScope(out var str);
@@ -155,6 +157,7 @@ public class UIDepth
 		}
 		return str.ToString();
 	}
+	// 比较两个UIDepth大小,用于排序
 	public static int compare(UIDepth depth0, UIDepth depth1)
 	{
 		ulong depthValue0 = depth0.mWindowDepth0;

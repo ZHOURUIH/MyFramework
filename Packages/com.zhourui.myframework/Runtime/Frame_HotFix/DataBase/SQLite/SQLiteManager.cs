@@ -24,6 +24,7 @@ public class SQLiteManager : FrameSystem
 	{
 		mTableList.forValue(item => item.setResourceAvailable(true));
 	}
+	// 异步加载所有SQLite表格,先预加载资源包再逐个加载表格
 	public void loadAllAsync(Action callback)
 	{
 		// 如果还没有注册表格,不在执行,没有任何表格加载,而且还会删除已缓存的表格
@@ -59,6 +60,7 @@ public class SQLiteManager : FrameSystem
 	{
 		mTableList.forValue(item => item.checkAllData());
 	}
+	// 注册一个SQLite表格,将其添加到查询字典中
 	public SQLiteTable registeTable(Type type, Type dataType, string tableName)
 	{
 		var table = createInstance<SQLiteTable>(type);
@@ -87,6 +89,7 @@ public class SQLiteManager : FrameSystem
 	public SQLiteTable getTableByDataType(Type type) { return mTableDataTypeList.get(type); }
 	public SQLiteTable getTable(string tableName) { return mTableNameList.get(tableName); }
 	//------------------------------------------------------------------------------------------------------------------------------
+	// 删除无用的临时解密文件
 	protected void deleteUselessTempFile()
 	{
 		foreach (string file in findFilesNonAlloc(SQLiteTable.getDecryptFilePath()))

@@ -21,11 +21,13 @@ public class MouseCastWindowSet : ClassObject
 		mCamera = null;
 		mListDirty = false;
 	}
+	// 标记可用列表为脏,下次获取时会重新排序
 	public void update()
 	{
 		mListDirty = true;
 	}
 	public void setCamera(GameCamera camera) { mCamera = camera; }
+	// 添加一个窗口到集合中
 	public void addWindow(myUGUIObject window)
 	{
 		if (window.isDestroy())
@@ -41,6 +43,7 @@ public class MouseCastWindowSet : ClassObject
 	}
 	public bool hasWindow(myUGUIObject window) { return mWindowSet.Contains(window); }
 	public GameCamera getCamera() { return mCamera; }
+	// 获取按深度排序后的可见窗口列表
 	public List<myUGUIObject> getWindowOrderList()
 	{
 		if (mListDirty)
@@ -55,10 +58,12 @@ public class MouseCastWindowSet : ClassObject
 		}
 		return mAvailableList;
 	}
+	// 通知窗口激活状态变化,标记列表为脏
 	public void notifyWindowActiveChanged()
 	{
 		mListDirty = true;
 	}
+	// 从集合中移除指定窗口
 	public bool removeWindow(myUGUIObject window)
 	{
 		if (!mWindowSet.Remove(window))

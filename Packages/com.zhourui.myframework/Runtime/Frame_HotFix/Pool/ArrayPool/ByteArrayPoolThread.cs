@@ -32,6 +32,7 @@ public class ByteArrayPoolThread : FrameSystem
 		mListLock.destroy();
 	}
 	public ThreadLock getLock() { return mListLock; }
+	// 清空所有未使用的字节数组缓存
 	public void clearUnused()
 	{
 		using (new ThreadLockScope(mListLock))
@@ -41,6 +42,7 @@ public class ByteArrayPoolThread : FrameSystem
 	}
 	public Dictionary<int, HashSet<byte[]>> getInusedList() { return mInusedList; }
 	public Dictionary<int, Queue<byte[]>> getUnusedList() { return mUnusedList; }
+	// 从池中获取或创建一个指定大小的字节数组,size必须是2的n次方
 	public byte[] newArray(int size)
 	{
 		if (!isPow2(size))
@@ -86,7 +88,7 @@ public class ByteArrayPoolThread : FrameSystem
 		}
 		return array;
 	}
-	// destroyReally表示是否真的要销毁bytes,如果真的回收,则会交给GC回收掉
+	// 将字节数组归还到池中,destroyReally=true则交给GC回收,false则放入池中复用
 	public void destroyArray(ref byte[] array, bool destroyReally = false)
 	{
 		if (array == null)
@@ -113,7 +115,7 @@ public class ByteArrayPoolThread : FrameSystem
 			array = null;
 		}
 	}
-	// destroyReally表示是否真的要销毁bytes,如果真的回收,则会交给GC回收掉
+	// 批量将字节数组列表归还到池中,destroyReally表示是否真的要销毁bytes,如果真的回收,则会交给GC回收掉
 	public void destroyArrayList(ICollection<byte[]> arrayList, bool destroyReally = false)
 	{
 		if (arrayList == null)

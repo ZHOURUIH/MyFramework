@@ -14,6 +14,7 @@ public class ExcelManager : FrameSystem
 	{
 		mTableList.forValue(item => item.setResourceAvailable(true));
 	}
+	// 异步加载所有Excel表格,先预加载资源包再逐个打开表格
 	public void loadAllAsync(Action callback)
 	{
 		if (mTableList.Count == 0)
@@ -43,6 +44,7 @@ public class ExcelManager : FrameSystem
 		});
 	}
 	public Dictionary<Type, ExcelTable> getTableList() { return mTableList; }
+	// 注册一个Excel表格,按数据类型索引
 	public ExcelTable registe(string name, Type tableType, Type dataType)
 	{
 		var table = mTableList.add(dataType, createInstance<ExcelTable>(tableType));
