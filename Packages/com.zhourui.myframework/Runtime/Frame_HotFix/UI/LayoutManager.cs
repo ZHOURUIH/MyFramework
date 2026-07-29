@@ -142,11 +142,6 @@ public class LayoutManager : FrameSystem
 		{
 			return existLayout;
 		}
-		if (isWebGL())
-		{
-			logError("webgl无法同步加载界面");
-			return null;
-		}
 		if (mLoadingLayoutList.Contains(info.mName))
 		{
 			logError("界面正在异步加载,无法同步加载:" + info.mName);

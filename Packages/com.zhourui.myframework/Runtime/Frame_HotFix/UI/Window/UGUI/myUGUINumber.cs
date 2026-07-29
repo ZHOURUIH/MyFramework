@@ -33,10 +33,6 @@ public class myUGUINumber : myUGUIImage
 	{
 		base.init();
 		mImage.enabled = false;
-	}
-	protected override void onInitAsyncDone()
-	{
-		base.onInitAsyncDone();
 		mNumberStyle = mOriginSpriteName.rangeToLast('_');
 		setMaxCount(10);
 		for (int i = 0; i < 10; ++i)

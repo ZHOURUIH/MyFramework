@@ -22,6 +22,11 @@ public class myUGUISpriteAnim : myUGUISprite, IUIAnimation
 		mControl.setObject(this);
 		mControl.setPlayEndCallback(onPlayEnd);
 		mControl.setPlayingCallback(onPlaying);
+		string spriteName = getSpriteName();
+		if (spriteName.contains('_'))
+		{
+			setTextureSet(spriteName.rangeToLast('_'));
+		}
 	}
 	public override void destroy()
 	{
@@ -194,15 +199,6 @@ public class myUGUISpriteAnim : myUGUISprite, IUIAnimation
 		else
 		{
 			mPlayEndCallbackList.Clear();
-		}
-	}
-	protected override void onInitAsyncDone()
-	{
-		base.onInitAsyncDone();
-		string spriteName = getSpriteName();
-		if (spriteName.contains('_'))
-		{
-			setTextureSet(spriteName.rangeToLast('_'));
 		}
 	}
 }

@@ -2,7 +2,6 @@
 using UnityEngine;
 using static UnityUtility;
 using static StringUtility;
-using static MathUtility;
 
 // Image的序列帧,代码与myUGUIImageAnim一致,只是基类不一样
 public class myUGUIImageAnimPro : myUGUIImagePro, IUIAnimation
@@ -25,6 +24,11 @@ public class myUGUIImageAnimPro : myUGUIImagePro, IUIAnimation
 		mControl.setObject(this);
 		mControl.setPlayEndCallback(onPlayEnd);
 		mControl.setPlayingCallback(onPlaying);
+		string spriteName = getSpriteName();
+		if (spriteName.contains('_'))
+		{
+			setTextureSet(spriteName.rangeToLast('_'));
+		}
 	}
     public override void update(float elapsedTime)
 	{
@@ -139,15 +143,6 @@ public class myUGUIImageAnimPro : myUGUIImagePro, IUIAnimation
 		mPlayingCallbackList?.Clear();
 	}
     //------------------------------------------------------------------------------------------------------------------------------
-    protected override void onInitAsyncDone()
-    {
-        base.onInitAsyncDone();
-        string spriteName = getSpriteName();
-        if (spriteName.contains('_'))
-        {
-            setTextureSet(spriteName.rangeToLast('_'));
-        }
-    }
     protected void onPlaying(int frame, bool isPlaying)
 	{
 		int spriteCount = mSpriteList.Count;

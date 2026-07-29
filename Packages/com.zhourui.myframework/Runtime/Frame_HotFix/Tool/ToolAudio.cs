@@ -248,19 +248,8 @@ public class AT
 	}
 	protected static void playInternal(AudioHelper helper, string soundName, float volume, bool loop, AudioInfoCallback callback)
 	{
-		if (isWebGL())
-		{
-			CmdMovableObjectPlayAudio.executeAsync(helper, soundName, volume, loop, (AudioInfo info)=>
-			{
-				helper.mRemainTime = loop ? -1.0f : info.getClip().length;
-				callback?.Invoke(info);
-			});
-		}
-		else
-		{
-			CmdMovableObjectPlayAudio.execute(helper, soundName, volume, loop);
-			helper.mRemainTime = loop ? -1.0f : mAudioManager.getAudioLength(soundName);
-			callback?.Invoke(mAudioManager.getAudio(soundName));
-		}
+		CmdMovableObjectPlayAudio.execute(helper, soundName, volume, loop);
+		helper.mRemainTime = loop ? -1.0f : mAudioManager.getAudioLength(soundName);
+		callback?.Invoke(mAudioManager.getAudio(soundName));
 	}
 }

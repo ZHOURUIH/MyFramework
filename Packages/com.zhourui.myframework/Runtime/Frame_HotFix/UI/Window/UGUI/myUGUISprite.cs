@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using static FrameBaseHotFix;
 using static FrameBaseUtility;
 using static FrameDefine;
@@ -22,12 +21,10 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 	protected string mSpriteName;                   // 当前图片的名字,避免GC
 	protected string mMaterialName;                 // 当前材质的名字,避免GC
 	protected string mShaderName;                   // 当前shader的名字,避免GC
-	protected string mWillSetSpriteName;            // 存储图集还未初始化完成时就要设置的图片名字,用于在初始化完成后设置正确的图片显示
 	protected bool mSpriteNameDirty;                // 图片名字是否需要更新
 	protected bool mMaterialNameDirty;              // 材质名字是否需要更新
 	protected bool mShaderNameDirty;				// shader名字是否需要更新
 	protected bool mIsNewMaterial;                  // 当前的材质是否是新建的材质对象
-    protected bool mInitDone;						// 异步初始化是否完成
     public override void init()
 	{
 		base.init();
@@ -53,22 +50,13 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 				logError("ImageAtlasPath中记录的路径为空,GameObject:" + getGameObjectPath());
 			}
 			atlasPath = atlasPath.removeStart(P_GAME_RESOURCES_PATH);
-            mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas) =>
+			mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath);
+            if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
             {
-                mOriginAtlasPtr = atlas;
-                if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
-                {
-                    logError("无法加载初始化的图集:" + atlasPath + ",GameObject:" + getGameObjectPath() +
-                        ",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
-                }
-                mAtlasPtr = mOriginAtlasPtr;
-                mInitDone = true;
-				onInitAsyncDone();
-				if (!mWillSetSpriteName.isEmpty())
-				{
-					setSpriteName(mWillSetSpriteName);
-				}
-            }, false);
+                logError("无法加载初始化的图集:" + atlasPath + ",GameObject:" + getGameObjectPath() +
+                    ",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
+            }
+            mAtlasPtr = mOriginAtlasPtr;
 		}
 		string materialName = getMaterialName().removeAll(" (Instance)");
 		// 不再将默认材质替换为自定义的默认材质,只判断其他材质
@@ -108,10 +96,6 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		setMaterial(mOriginMaterial);
 		setAlpha(1.0f);
 		mAtlasPtr = null;
-		if (!mInitDone)
-		{
-			logWarning("图集未初始化完成,无法卸载此图集,sprite:" + mOriginSpriteName + ",name:" + mName);
-		}
 		mAtlasManager.unloadAtlas(ref mOriginAtlasPtr);
 		mResourceManager.unload(ref mCurMaterial);
 		base.destroy();
@@ -162,25 +146,11 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 			return size;
 		}
 	}
-	public void getAtlasAsync(Action<AtlasRef> callback)
-	{
-		if (mInitDone)
-		{
-			callback?.Invoke(mAtlasPtr);
-			return;
-		}
-		mWaitingManager.wait(() => { return mInitDone; }, () => { callback?.Invoke(mAtlasPtr); });
-	}
 	public AtlasRef getAtlas() { return mAtlasPtr; }
 	public virtual void setAtlas(AtlasRef atlas, bool clearSprite = false, bool force = false)
 	{
 		if (mSpriteRenderer == null)
 		{
-			return;
-		}
-		if (!mInitDone)
-		{
-			logError("图集未初始化完成,还不能去设置图集,atlas name:" + atlas?.getAtlasSingleName() + ",name:" + mName);
 			return;
 		}
 		mAtlasPtr = atlas;
@@ -197,12 +167,6 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 			mSpriteRenderer.sprite = null;
 			return;
 		}
-		// 还未初始化完成,就记录下要设置的参数,等到初始化完成再恢复参数设置
-		if (!mInitDone)
-		{
-			mWillSetSpriteName = spriteName;
-			return;
-		}
 		if (mAtlasPtr == null || !mAtlasPtr.isValid())
 		{
 			return;
@@ -214,11 +178,6 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 	{
 		if (mSpriteRenderer == null || mSpriteRenderer.sprite == sprite)
 		{
-			return;
-		}
-		if (!mInitDone)
-		{
-			logError("图集还未初始化完成,还不能去设置Sprite对象");
 			return;
 		}
 		if (sprite != null && mAtlasPtr != null && !mAtlasPtr.hasSprite(sprite))
@@ -425,5 +384,4 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		}
 		return mSpriteRenderer.sprite.rect.size;
 	}
-	protected virtual void onInitAsyncDone() { }
 }

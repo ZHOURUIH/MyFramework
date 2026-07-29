@@ -15,12 +15,6 @@ public class myUGUIImageNumber : myUGUIObject
 	protected Sprite mOriginSprite;                     // 备份加载物体时原始的精灵图片
 	protected string mOriginSpriteName;					// 备份的初始图片的名字
 	protected string mNumberStyle;                      // 数字图集名
-	protected int mWillSetIntValue;						// 未初始化完成之前设置的int值
-	protected long mWillSetLongValue;                   // 未初始化完成之前设置的long值
-	protected int mWillSetLimit;						// 未初始化完成之前设置的最小显示位数
-	protected bool mWillSetIntValueValid;               // mWillSetIntValue是否有效
-	protected bool mWillSetLongValueValid;              // mWillSetLongValue是否有效
-	protected bool mInitDone;							// 异步初始化是否完成
     public override void init()
 	{
 		base.init();
@@ -56,28 +50,15 @@ public class myUGUIImageNumber : myUGUIObject
 			if (!atlasPath.endWith("/unity_builtin_extra"))
 			{
 				atlasPath = atlasPath.removeStart(P_GAME_RESOURCES_PATH);
-                mAtlasManager.getAtlasAsyncSafe(this, atlasPath, (AtlasRef atlas) =>
-                {
-                    mOriginAtlasPtr = atlas;
-                    if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
-                    {
-                        logWarning("无法加载初始化的图集:" + atlasPath + ", GameObject:" + getGameObjectPath() +
-                            ",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
-                    }
-                    mAtlasPtr = mOriginAtlasPtr;
-                    mInitDone = true;
-                    refreshSpriteList();
-                    onInitAsyncDone();
-					if (mWillSetIntValueValid)
-					{
-						setNumber(mWillSetIntValue, mWillSetLimit);
-					}
-					else if (mWillSetLongValueValid)
-					{
-						setNumber(mWillSetLongValue, mWillSetLimit);
-					}
-				}, false);
-            }
+				mOriginAtlasPtr = mAtlasManager.getAtlas(atlasPath);
+				if (mOriginAtlasPtr == null || !mOriginAtlasPtr.isValid())
+				{
+					logWarning("无法加载初始化的图集:" + atlasPath + ", GameObject:" + getGameObjectPath() +
+						",请确保ImageAtlasPath中记录的图片路径正确,记录的路径:" + (imageAtlasPath != null ? imageAtlasPath.mAtlasPath : EMPTY));
+				}
+				mAtlasPtr = mOriginAtlasPtr;
+				refreshSpriteList();
+			}
 		}
 	}
 	public override void destroy()
@@ -86,10 +67,6 @@ public class myUGUIImageNumber : myUGUIObject
 		// 这样在重复使用当前物体时在校验图集路径时不会出错,但是如果在当前物体使用过程中销毁了原始的图片,则可能会报错
 		mRenderer.sprite = mOriginSprite;
 		setAlpha(1.0f);
-		if (!mInitDone)
-		{
-			logWarning("图集未初始化完成,无法卸载此图集,sprite:" + mOriginSpriteName + ",name:" + mName);
-		}
 		mAtlasManager.unloadAtlas(ref mOriginAtlasPtr);
 		mAtlasPtr = null;
 		base.destroy();
@@ -109,45 +86,22 @@ public class myUGUIImageNumber : myUGUIObject
 		mRenderer.setNumber(source.getNumber());
 		mRenderer.setSpriteList(source.mRenderer.getSpriteList());
 		mRenderer.setDocking(source.getDocking());
-		mInitDone = source.mInitDone;
 		mOriginSpriteName = source.mOriginSpriteName;
 	}
 	public void setAtlas(AtlasRef atlas)
 	{
-		if (!mInitDone)
-		{
-			logError("图集未初始化完成,还不能去设置图集,atlas name:" + atlas?.getAtlasSingleName() + ",name:" + mName);
-			return;
-		}
 		mAtlasPtr = atlas;
 		refreshSpriteList();
 	}
 	public void setNumberStyle(string style)
 	{
 		mNumberStyle = style;
-		if (!mInitDone)
-		{
-			return;
-		}
 		refreshSpriteList();
 	}
 	public void setInterval(int interval)					{ mRenderer.setInterval(interval); }
 	public void setDocking(DOCKING_POSITION dock)			{ mRenderer.setDocking(dock); }
-	public void setNumber(int num, int limitLen = 0)
-	{
-		setNumber((long)num, limitLen);
-	}
-	public void setNumber(long num, int limitLen = 0)
-	{
-		if (!mInitDone)
-		{
-			mWillSetLongValue = num;
-			mWillSetLongValueValid = true;
-			mWillSetLimit = limitLen;
-			return;
-		}
-		mRenderer.setNumber(num.LToS(limitLen)); 
-	}
+	public void setNumber(int num, int limitLen = 0)		{ setNumber((long)num, limitLen); }
+	public void setNumber(long num, int limitLen = 0)		{ mRenderer.setNumber(num.LToS(limitLen)); }
 	public void clearNumber()								{ mRenderer.clearNumber(); }
 	public int getContentWidth()							{ return mRenderer.getContentWidth(); }
 	public string getNumber()								{ return mRenderer.getNumber(); }
@@ -157,11 +111,6 @@ public class myUGUIImageNumber : myUGUIObject
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void refreshSpriteList()
 	{
-		if (!mInitDone)
-		{
-			logError("图集未初始化完成,还不能去访问图集,sprite:" + mOriginSpriteName + ",name:" + mName);
-			return;
-		}
 		using var a = new DicScope<char, Sprite>(out var spriteList);
 		for (int i = 0; i < 10; ++i)
 		{
@@ -170,5 +119,4 @@ public class myUGUIImageNumber : myUGUIObject
 		mRenderer.sprite = spriteList.firstValue();
 		mRenderer.setSpriteList(spriteList);
 	}
-    protected virtual void onInitAsyncDone() { }
 }

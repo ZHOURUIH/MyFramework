@@ -8,7 +8,15 @@ public class myUGUIImageButton : myUGUIImage
 	protected string mHoverSprite;		// 悬停时的图片
 	protected string mSelectedSprite;	// 选中时的图片
 	protected bool mUseStateSprite;		// 状态改变时是否切换图片
-	protected bool mSelected;			// 是否选中
+	protected bool mSelected;           // 是否选中
+	public override void init()
+	{
+		base.init();
+		mNormalSprite = getSpriteName();
+		mPressSprite = mNormalSprite;
+		mHoverSprite = mNormalSprite;
+		mSelectedSprite = mNormalSprite;
+	}
 	public void setNormalSprite(string normalSprite, bool apply = true, bool resetStateSprites = true)
 	{
 		mUseStateSprite = true;
@@ -98,13 +106,4 @@ public class myUGUIImageButton : myUGUIImage
 		}
 	}
 	public bool isSelected() { return mSelected; }
-	//---------------------------------------------------------------------------------------------------------------------------
-	protected override void onInitAsyncDone()
-	{
-		base.onInitAsyncDone();
-		mNormalSprite = getSpriteName();
-		mPressSprite = mNormalSprite;
-		mHoverSprite = mNormalSprite;
-		mSelectedSprite = mNormalSprite;
-	}
 }

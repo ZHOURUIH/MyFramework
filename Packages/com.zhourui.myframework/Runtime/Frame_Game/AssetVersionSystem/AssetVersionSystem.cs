@@ -229,12 +229,6 @@ public class AssetVersionSystem : FrameSystem
 	// path为绝对路径
 	protected void openFileList(string path, Action callback, List<string> ignorePath, List<string> ignoreFile)
 	{
-		// WebGL下无法去查找StreamingAssets中的文件,也就无法获取文件列表
-		if (isWebGL() && path == F_ASSET_BUNDLE_PATH)
-		{
-			callback?.Invoke();
-			return;
-		}
 		DateTime start = DateTime.Now;
 		string fileListFullPath = path + FILE_LIST;
 		// 本地已经有生成好的FileList文件,不过即使读取的是已经生成好的文件信息,也要再获取所有文件的文件名和大小进行校验,避免记录错误的信息

@@ -88,7 +88,7 @@ public class GameReleaseWindow : GameEditorWindow
 				// 更改游戏渠道后,需要刷新一次版本号
 				mPlatform.updateRemoteVersion();
 				mPlatform.generateFolderPreName();
-				PlayerSettings.SetScriptingDefineSymbols(getNameBuildTarget(), mPlatform.getDefaultPlatformDefine());
+				PlayerSettings.SetScriptingDefineSymbols(getNameBuildTarget(), mPlatform.getBuildTimePlatformDefine());
 				AssetDatabase.Refresh();
 			}
 			if (toggle(ref mPlatform.mTestClient, "测试客户端"))
@@ -99,11 +99,11 @@ public class GameReleaseWindow : GameEditorWindow
 				{
 					mPlatform.mEnableHotFix = !isWebGL();
 				}
-				PlayerSettings.SetScriptingDefineSymbols(getNameBuildTarget(), mPlatform.getDefaultPlatformDefine());
+				PlayerSettings.SetScriptingDefineSymbols(getNameBuildTarget(), mPlatform.getBuildTimePlatformDefine());
 				AssetDatabase.Refresh();
 			}
 
-			label("远端路径:" + mPlatform.mObjectStorageSystem.getURL() + mPlatform.getRemotePathInEditor(""));
+			label("远端路径:" + mPlatform.getRemotePathInEditor(""));
 			label("输出路径:" + mPlatform.mOutputPath);
 			label("输出文件夹前缀: " + mPlatform.mFolderPreName);
 			if (button("ProjectSettings", 130))
@@ -118,7 +118,7 @@ public class GameReleaseWindow : GameEditorWindow
 			}
 			if (button("还原宏定义", 120))
 			{
-				PlayerSettings.SetScriptingDefineSymbols(getNameBuildTarget(), mPlatform.getDefaultPlatformDefine());
+				PlayerSettings.SetScriptingDefineSymbols(getNameBuildTarget(), mPlatform.getBuildTimePlatformDefine());
 				AssetDatabase.Refresh();
 			}
 		}
@@ -143,7 +143,7 @@ public class GameReleaseWindow : GameEditorWindow
 			{
 				if (toggle(ref mPlatform.mEnableHotFix, "启用热更"))
 				{
-					PlayerSettings.SetScriptingDefineSymbols(getNameBuildTarget(), mPlatform.getDefaultPlatformDefine());
+					PlayerSettings.SetScriptingDefineSymbols(getNameBuildTarget(), mPlatform.getBuildTimePlatformDefine());
 					AssetDatabase.Refresh();
 					mPlatform.generateFolderPreName();
 				}

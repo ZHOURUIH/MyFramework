@@ -58,11 +58,6 @@ public class LayoutManager : FrameSystem
 		{
 			return existLayout;
 		}
-		if (isWebGL())
-		{
-			logErrorBase("webgl无法同步加载界面");
-			return null;
-		}
 		return newLayout(info, mResourceManager.loadInResource<GameObject>(R_UI_PREFAB_PATH + getLayoutPathByType(info.mType) + ".prefab"));
 	}
 	public void createLayoutAsync(LayoutInfo info, GameLayoutCallback callback)

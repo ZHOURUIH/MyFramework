@@ -6,6 +6,7 @@ using static FrameUtility;
 using static FrameBaseHotFix;
 using static FrameDefine;
 using static FrameBaseUtility;
+using static FileUtility;
 
 // AssetBundle的信息,存储了AssetBundle中相关的所有数据
 // 维护父子依赖关系(引用链)、资源列表和加载回调,AssetBundleLoader通过此类管理AB的加载与卸载
@@ -169,11 +170,6 @@ public class AssetBundleInfo : ClassObject
 	// 同步加载资源包
 	public void loadAssetBundle()
 	{
-		if (isWebGL())
-		{
-			logError("webgl无法使用loadAssetBundle");
-			return;
-		}
 		if (mAssetBundle != null)
 		{
 			return;
@@ -188,7 +184,8 @@ public class AssetBundleInfo : ClassObject
 		{
 			item.Value?.loadAssetBundle();
 		}
-		mAssetBundle = AssetBundle.LoadFromFile(availableReadPath(mBundleFileName));
+		byte[] bytes = openFileSync(availableReadPath(mBundleFileName), true);
+		mAssetBundle = AssetBundle.LoadFromMemory(bytes);
 		if (mAssetBundle == null)
 		{
 			logError("can not load asset bundle : " + mBundleFileName);
