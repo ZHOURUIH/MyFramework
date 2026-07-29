@@ -10,15 +10,15 @@ using static FrameUtility;
 // 支持AssetDataBase(编辑器)和AssetBundle(打包)两种加载源,提供引用计数管理、定时清理、异步安全加载等功能
 public class ResourceManager : FrameSystem
 {
-	protected Dictionary<int, HashSet<long>> mReferenceTokenList = new();		// 记录了每个资源的引用凭证ID,由于UObject重载了==,所以一旦外部卸载了UObject,这里就会出现GetHashCode不变,但是引用资源为空的问题,所以使用GetInstanceID作为Key
-	protected Dictionary<int, UObject> mInstanceIDToUObject = new();			// 根据GetInstanceID查找UObject
-	protected AssetDataBaseLoader mAssetDataBaseLoader = new();					// 通过AssetDataBase加载资源的加载器,只会在编辑器下使用
-	protected AssetBundleLoader mAssetBundleLoader = new();						// 通过AssetBundle加载资源的加载器,打包后强制使用AssetBundle加载
-	protected List<UObjectCallback> mUnloadObjectCallback = new();				// 卸载某个单独资源的回调
-	protected List<StringCallback> mUnloadPathCallback = new();					// 卸载目录中所有资源的回调,不会再次通知其中的单个资源
-	protected LOAD_SOURCE mLoadSource;											// 加载源,从AssetBundle加载还是从AssetDataBase加载
-	protected float mCheckRefTimer;												// 检查资源引用的计时器
-	protected const float CHECK_REF_INTERVAL = 3.0f;							// 检查资源引用的间隔时间
+	protected Dictionary<int, HashSet<long>> mReferenceTokenList = new();       // 记录了每个资源的引用凭证ID,由于UObject重载了==,所以一旦外部卸载了UObject,这里就会出现GetHashCode不变,但是引用资源为空的问题,所以使用GetInstanceID作为Key
+	protected Dictionary<int, UObject> mInstanceIDToUObject = new();            // 根据GetInstanceID查找UObject
+	protected AssetDataBaseLoader mAssetDataBaseLoader = new();                 // 通过AssetDataBase加载资源的加载器,只会在编辑器下使用
+	protected AssetBundleLoader mAssetBundleLoader = new();                     // 通过AssetBundle加载资源的加载器,打包后强制使用AssetBundle加载
+	protected List<UObjectCallback> mUnloadObjectCallback = new();              // 卸载某个单独资源的回调
+	protected List<StringCallback> mUnloadPathCallback = new();                 // 卸载目录中所有资源的回调,不会再次通知其中的单个资源
+	protected LOAD_SOURCE mLoadSource;                                          // 加载源,从AssetBundle加载还是从AssetDataBase加载
+	protected float mCheckRefTimer;                                             // 检查资源引用的计时器
+	protected const float CHECK_REF_INTERVAL = 3.0f;                            // 检查资源引用的间隔时间
 	protected static int mDownloadTimeout = 10;                                 // 下载超时时间,秒
 	protected static long mTokenSeed;                                           // 用于生成一个引用凭证,不能放在ResourceRef<T>中,因为每个模板类型都有一个静态变量,这样就不能保证同一个资源的引用凭证在不同模板类型中是唯一的了
 	public ResourceManager()
@@ -96,35 +96,35 @@ public class ResourceManager : FrameSystem
 		base.destroy();
 	}
 	// 注册卸载单个资源的回调,卸载任何资源时都会触发
-	public void addUnloadObjectCallback(UObjectCallback callback)			{ mUnloadObjectCallback.Add(callback); }
+	public void addUnloadObjectCallback(UObjectCallback callback) { mUnloadObjectCallback.Add(callback); }
 	// 注册卸载路径的回调,卸载指定目录下的所有资源时触发
-	public void addUnloadPathCallback(StringCallback callback)				{ mUnloadPathCallback.Add(callback); }
+	public void addUnloadPathCallback(StringCallback callback) { mUnloadPathCallback.Add(callback); }
 	// 移除卸载单个资源的回调
-	public void removeUnloadObjectCallback(UObjectCallback callback)		{ mUnloadObjectCallback.Remove(callback); }
+	public void removeUnloadObjectCallback(UObjectCallback callback) { mUnloadObjectCallback.Remove(callback); }
 	// 移除卸载路径的回调
-	public void removeUnloadPathCallback(StringCallback callback)			{ mUnloadPathCallback.Remove(callback); }
+	public void removeUnloadPathCallback(StringCallback callback) { mUnloadPathCallback.Remove(callback); }
 	// 请求加载指定AssetBundle(包括其依赖),由AssetBundleLoader内部调度
-	public void requestLoadAssetBundle(AssetBundleInfo bundleInfo)			{ mAssetBundleLoader.requestLoadAssetBundle(bundleInfo); }
+	public void requestLoadAssetBundle(AssetBundleInfo bundleInfo) { mAssetBundleLoader.requestLoadAssetBundle(bundleInfo); }
 	// 请求加载AssetBundle中的某个资源文件,由AssetBundleLoader内部调度
 	public void requestLoadAsset(AssetBundleInfo bundleInfo, string fileNameWithSuffix) { mAssetBundleLoader.requestLoadAsset(bundleInfo, fileNameWithSuffix); }
 	// 设置资源下载的URL地址
-	public void setDownloadURL(string url)									{ mAssetBundleLoader.setDownloadURL(url); }
+	public void setDownloadURL(string url) { mAssetBundleLoader.setDownloadURL(url); }
 	// 获取当前资源下载的URL地址
-	public string getDownloadURL()											{ return mAssetBundleLoader.getDownloadURL(); }
+	public string getDownloadURL() { return mAssetBundleLoader.getDownloadURL(); }
 	// 获取所有AssetBundle信息列表
-	public Dictionary<string, AssetBundleInfo> getAssetBundleInfoList()		{ return mAssetBundleLoader.getAssetBundleInfoList(); }
+	public Dictionary<string, AssetBundleInfo> getAssetBundleInfoList() { return mAssetBundleLoader.getAssetBundleInfoList(); }
 	// 检查指定AssetBundle是否被标记为禁止卸载
-	public bool isDontUnloadAssetBundle(string bundleFileName)				{ return mAssetBundleLoader.isDontUnloadAssetBundle(bundleFileName); }
+	public bool isDontUnloadAssetBundle(string bundleFileName) { return mAssetBundleLoader.isDontUnloadAssetBundle(bundleFileName); }
 	// 根据名称获取AssetBundle信息
-	public AssetBundleInfo getAssetBundleInfo(string name)					{ return mAssetBundleLoader.getAssetBundleInfo(name); }
+	public AssetBundleInfo getAssetBundleInfo(string name) { return mAssetBundleLoader.getAssetBundleInfo(name); }
 	// 获取下载超时时间(秒)
-	public int getDownloadTimeout()											{ return mDownloadTimeout; }
+	public int getDownloadTimeout() { return mDownloadTimeout; }
 	// 设置下载超时时间(秒)
-	public void setDownloadTimeout(int timeout)								{ mDownloadTimeout = timeout; }
+	public void setDownloadTimeout(int timeout) { mDownloadTimeout = timeout; }
 	// 将指定AssetBundle标记为禁止卸载
-	public void addDontUnloadAssetBundle(string bundleFileName)				{ mAssetBundleLoader.addDontUnloadAssetBundle(bundleFileName); }
+	public void addDontUnloadAssetBundle(string bundleFileName) { mAssetBundleLoader.addDontUnloadAssetBundle(bundleFileName); }
 	// 通知AssetBundle加载器某个资源已加载完成,由加载流程内部调用
-	public void notifyAssetLoaded(UObject asset, AssetBundleInfo bundle)	{ mAssetBundleLoader.notifyAssetLoaded(asset, bundle); }
+	public void notifyAssetLoaded(UObject asset, AssetBundleInfo bundle) { mAssetBundleLoader.notifyAssetLoaded(asset, bundle); }
 	// 卸载指定的资源引用,释放ResourceRef对象
 	public void unload<T>(ref ResourceRef<T> res) where T : UObject
 	{
@@ -276,19 +276,19 @@ public class ResourceManager : FrameSystem
 	// 异步加载资源,name是GameResources下的相对路径,带后缀名,errorIfNull表示当找不到资源时是否报错提示
 	public CustomAsyncOperation loadGameResourceAsync<T>(string name, AssetRefLoadCallback<T> callback, bool errorIfNull = true) where T : UObject
 	{
-		return loadGameResourceAsyncInternal<T>(name, (UObject res, UObject[] subRes, byte[] bytes, string loadPath) => 
+		return loadGameResourceAsyncInternal<T>(name, (UObject res, UObject[] subRes, byte[] bytes, string loadPath) =>
 		{
 			CLASS(out ResourceRef<T> resRef);
-            if (res != null)
+			if (res != null)
 			{
-                // 只需要对主资源添加引用封装,子资源都是跟随主资源的生命周期,不需要单独添加引用封装
-                resRef.set(res as T);
+				// 只需要对主资源添加引用封装,子资源都是跟随主资源的生命周期,不需要单独添加引用封装
+				resRef.set(res as T);
 			}
 			if (callback == null)
 			{
 				UN_CLASS(ref resRef);
 			}
-			else 
+			else
 			{
 				callback(resRef, subRes, bytes, loadPath);
 			}
@@ -304,14 +304,14 @@ public class ResourceManager : FrameSystem
 			{
 				resRef.set(asset as T);
 			}
-            if (callback == null)
-            {
+			if (callback == null)
+			{
 				UN_CLASS(ref resRef);
-            }
+			}
 			else
 			{
-                callback(resRef, loadPath);
-            }
+				callback(resRef, loadPath);
+			}
 		}, errorIfNull);
 	}
 	// 异步加载资源,name是GameResources下的相对路径,带后缀名,errorIfNull表示当找不到资源时是否报错提示
@@ -322,18 +322,18 @@ public class ResourceManager : FrameSystem
 		return loadGameResourceAsyncInternal<T>(name, (UObject asset, UObject[] _, byte[] _, string loadPath) =>
 		{
 			CLASS(out ResourceRef<T> resRef);
-            if (asset != null)
+			if (asset != null)
 			{
 				resRef.set(asset as T);
 			}
-            if (callback == null || assignID != (relatedObj?.getAssignID() ?? 0))
-            {
-                UN_CLASS(ref resRef);
-            }
+			if (callback == null || assignID != (relatedObj?.getAssignID() ?? 0))
+			{
+				UN_CLASS(ref resRef);
+			}
 			else
 			{
-                callback(resRef, loadPath);
-            }
+				callback(resRef, loadPath);
+			}
 		}, errorIfNull);
 	}
 	// 异步加载资源,name是GameResources下的相对路径,带后缀名,errorIfNull表示当找不到资源时是否报错提示
@@ -346,14 +346,14 @@ public class ResourceManager : FrameSystem
 			{
 				resRef.set(asset as T);
 			}
-            if (callback == null)
-            {
+			if (callback == null)
+			{
 				UN_CLASS(ref resRef);
-            }
+			}
 			else
 			{
-                callback(resRef);
-            }
+				callback(resRef);
+			}
 		}, errorIfNull);
 	}
 	// 异步加载资源,name是GameResources下的相对路径,带后缀名,errorIfNull表示当找不到资源时是否报错提示
@@ -364,18 +364,18 @@ public class ResourceManager : FrameSystem
 		return loadGameResourceAsyncInternal<T>(name, (UObject asset, UObject[] _, byte[] _, string _) =>
 		{
 			CLASS(out ResourceRef<T> resRef);
-            if (asset != null)
+			if (asset != null)
 			{
-                resRef.set(asset as T);
+				resRef.set(asset as T);
 			}
-            if (callback == null || assignID != (relatedObj?.getAssignID() ?? 0))
-            {
-                UN_CLASS(ref resRef);
-            }
+			if (callback == null || assignID != (relatedObj?.getAssignID() ?? 0))
+			{
+				UN_CLASS(ref resRef);
+			}
 			else
 			{
-                callback(resRef);
-            }
+				callback(resRef);
+			}
 		}, errorIfNull);
 	}
 	// 仅下载一个资源,下载后会写入本地文件,并且更新本地文件信息列表,fileName为带后缀,GameResources下的相对路径
@@ -391,7 +391,7 @@ public class ResourceManager : FrameSystem
 	public long addReference(UObject res)
 	{
 		long token = ++mTokenSeed;
-		int instanceID = res.GetInstanceID();
+		int instanceID = getGameObjectID(res);
 		mInstanceIDToUObject.TryAdd(instanceID, res);
 		if (!mReferenceTokenList.getOrAddNew(instanceID).Add(token))
 		{
@@ -402,7 +402,7 @@ public class ResourceManager : FrameSystem
 	// 移除一个资源的引用凭证,token会被置0,只能由ResourceRef调用
 	public void removeReference(UObject res, ref long token)
 	{
-		if (!mReferenceTokenList.TryGetValue(res.GetInstanceID(), out var list) || !list.Remove(token))
+		if (!mReferenceTokenList.TryGetValue(getGameObjectID(res), out var list) || !list.Remove(token))
 		{
 			logError("移除资源引用凭证失败,可能是重复移除一个资源:" + token);
 		}

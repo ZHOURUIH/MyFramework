@@ -1,6 +1,4 @@
-﻿using static GameUtility;
-using static FileUtility;
-using static FrameBaseUtility;
+﻿using static FrameBaseUtility;
 
 public class LaunchSceneVersion : SceneProcedure
 {
@@ -16,9 +14,6 @@ public class LaunchSceneVersion : SceneProcedure
     }
     protected void launch()
     {
-        HybridCLRSystem.launchHotFix(getAESKeyBytes(), getAESIVBytes(), (string fileName, BytesIntCallback callback) =>
-        {
-            openFileAsync(availableReadPath(fileName), true, bytes => callback?.Invoke(bytes, bytes.Length));
-        }, onLaunchError);
+        HybridCLRSystem.launchHotFix(onLaunchError);
     }
 }

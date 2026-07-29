@@ -1,10 +1,12 @@
 ﻿using System;
-using static GameDefine;
-using static GBH;
 
 public class GameHotFix : GameHotFixBase<GameHotFix>
 {
 	//----------------------------------------------------------------------------------------------------------------------------------
+	protected override void registerAllTable()
+	{
+		;
+	}
 	protected override void registerAll()
 	{
 		LayoutRegisterHotFix.registeAll();
@@ -13,6 +15,5 @@ public class GameHotFix : GameHotFixBase<GameHotFix>
 	{
 		//registeFrameSystem<NetManager>((com) =>		{ mNetManager = com; });
 	}
-	protected override string getAndroidPluginBundleName() { return ANDROID_PLUGIN_BUNDLE_NAME; }
 	protected override Type getStartGameSceneType() { return typeof(MainScene); }
 }
