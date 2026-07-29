@@ -183,6 +183,7 @@ public class AssetVersionSystem : FrameSystem
 			!isEnableHotFix() ||
 			compareVersion3(mRemoteVersion, getLocalVersion(), out _, out _) == VERSION_COMPARE.REMOTE_LOWER)
 		{
+			mStreamingDone = true;
 			mPersistentDone = true;
 			mRemoteDone = true;
 			return;
