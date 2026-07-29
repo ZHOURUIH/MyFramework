@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Networking;
 using UObject = UnityEngine.Object;
 using static FrameBaseUtility;
 using static StringUtility;

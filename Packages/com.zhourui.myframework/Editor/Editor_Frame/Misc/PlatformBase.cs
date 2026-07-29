@@ -401,9 +401,9 @@ public abstract class PlatformBase
 		});
 		return hasError;
 	}
-	//------------------------------------------------------------------------------------------------------------------------------
 	// 除了动态配置以外的宏,比如USE_HYBRID_CLR,USE_OBFUZ等基本固定的宏,一般都是使用FrameMacro中定义的值,由应用层自己决定,也是用于打包完以后的宏配置还原
-	protected abstract string getDefaultPlatformDefine();
+	public abstract string getDefaultPlatformDefine();
+	//------------------------------------------------------------------------------------------------------------------------------
 	// 获取打包时的宏配置,不包含getDefaultPlatformDefine的宏,会拼接以后设置到当前宏定义
 	protected abstract string getBuildTimePlatformDefineInternal();
 	protected void updateEditVersionNumber()

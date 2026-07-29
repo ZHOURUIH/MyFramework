@@ -126,11 +126,11 @@ public abstract class PlatformInfo : PlatformBase
 		}
 		return folder + version + "/";
 	}
-	//------------------------------------------------------------------------------------------------------------------------------
-	protected override string getDefaultPlatformDefine()
+	public override string getDefaultPlatformDefine()
 	{
 		return USE_HYBRID_CLR + ";" + USE_OBFUZ + ";" + PROJECT_2D + ";" + USE_URP + ";" + USE_SQLITE;
 	}
+	//------------------------------------------------------------------------------------------------------------------------------
 	protected override string getBuildTimePlatformDefineInternal()
 	{
 		string platformDefine = "";
