@@ -58,20 +58,6 @@ public abstract class PlatformInfo : PlatformBase
 		}
 		return info;
 	}
-	public override string getDefaultPlatformDefineInternal() 
-	{
-		string platformDefine = USE_HYBRID_CLR + ";" + USE_OBFUZ + ";" + PROJECT_2D + ";" + USE_URP + ";" + USE_SQLITE;
-		// 添加宏定义
-		// 安卓平台下根据要上架的不同平台添加对应的宏
-		if (isAndroid())
-		{
-			if (mGameChannel == GAME_CHANNEL.TAP_TAP)
-			{
-				platformDefine += ";TAP_TAP";
-			}
-		}
-		return platformDefine;
-	}
 	public override void generateFolderPreName()
 	{
 		string folderPreName = isWindows() ? "我的传奇" : "MicroLegend";
@@ -139,5 +125,24 @@ public abstract class PlatformInfo : PlatformBase
 			return folder;
 		}
 		return folder + version + "/";
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected override string getDefaultPlatformDefine()
+	{
+		return USE_HYBRID_CLR + ";" + USE_OBFUZ + ";" + PROJECT_2D + ";" + USE_URP + ";" + USE_SQLITE;
+	}
+	protected override string getBuildTimePlatformDefineInternal()
+	{
+		string platformDefine = "";
+		// 添加宏定义
+		// 安卓平台下根据要上架的不同平台添加对应的宏
+		if (isAndroid())
+		{
+			if (mGameChannel == GAME_CHANNEL.TAP_TAP)
+			{
+				platformDefine += ";TAP_TAP";
+			}
+		}
+		return platformDefine;
 	}
 }

@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-using UnityEditor;
-using UnityEditor.Build;
+﻿using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 #if USE_HYBRID_CLR
@@ -27,8 +25,8 @@ public abstract class PlatformBase
 {
 	public static string BUILD_TEMP_PATH = F_ASSETS_PATH + "../BuildTemp/";
 	public static string INSTALL_TIME_TEMP_PATH = F_ASSETS_PATH + "../InstallTimeTemp/";
-	public IObjectStorageSystem mObjectStorageSystem;			// 用于上传文件下载文件的对象,访问对象存储的
-	public BuildTarget mTarget;									// 当前平台
+	public IObjectStorageSystem mObjectStorageSystem;           // 用于上传文件下载文件的对象,访问对象存储的
+	public BuildTarget mTarget;                                 // 当前平台
 	public string[] mVersionNumber;                             // 用于修改本次打包的版本号
 	public List<string> mIgnoreFile;                            // 计算文件列表时需要忽略的文件名
 	public string mAssetBundleFullPath;                         // AssetBundle的绝对路径
@@ -39,7 +37,7 @@ public abstract class PlatformBase
 	public string mOutputPath = F_PROJECT_PATH + "GameOutput/"; // 输出路径
 	public string mFolderPreName;                               // 输出文件夹的名字或者安装包的名字前缀
 	public bool mEnableHotFix;                                  // 生成的客户端是否启用热更,webgl暂时不启用热更
-	public bool mTestClient;									// 是否为测试客户端
+	public bool mTestClient;                                    // 是否为测试客户端
 	public bool mBuildHybridCLR;                                // 打包时是否执行HybridCLR打包,一般都是要执行,检验打包过程时可以不执行以加速打包
 	public bool mGooglePlay;                                    // 是否打包aab
 	public bool mExportAndroidProject;                          // 是否导出为Android工程
@@ -67,9 +65,9 @@ public abstract class PlatformBase
 		{
 			mName = WEBGL;
 		}
-        mTarget = target;
-        mAssetBundleFullPath = getAssetBundlePath(true);
-    }
+		mTarget = target;
+		mAssetBundleFullPath = getAssetBundlePath(true);
+	}
 	// containOnlyFileList如果不为空,则表示只拷贝列表中指定的文件
 	// 可用于单独更新某个文件,比如单独更新表格文件,使之既能够更新FileList,又能单独将要上传的文件放到独立的文件夹中
 	public bool showNeedUploadFile(string destFolderName, string[] containOnlyFileList = null)
@@ -140,8 +138,8 @@ public abstract class PlatformBase
 		log("完成混淆dll");
 #endif
 
-        // 对自己编译的热更dll进行加密,检查完以后再加密
-        if (FrameSettings.getAESKey().count() == 16)
+		// 对自己编译的热更dll进行加密,检查完以后再加密
+		if (FrameSettings.getAESKey().count() == 16)
 		{
 			log("开始加密生成的dll");
 			encryptFileAES(mAssetBundleFullPath + HOTFIX_BYTES_FILE, FrameSettings.getAESKey(), FrameSettings.getAESIV());
@@ -179,7 +177,7 @@ public abstract class PlatformBase
 			mAssetBundleFullPath + HOTFIX_FRAME_BYTES_FILE
 		};
 #if USE_HYBRID_CLR
-        foreach (string aotFile in AOTGenericReferences.PatchedAOTAssemblyList)
+		foreach (string aotFile in AOTGenericReferences.PatchedAOTAssemblyList)
 		{
 			dllList.Add(mAssetBundleFullPath + aotFile + DATA_SUFFIX);
 		}
@@ -196,21 +194,29 @@ public abstract class PlatformBase
 		return allExist;
 	}
 	// 框架中只根据是否启用热更和是否为测试客户端来增加对应的宏
-	public string getDefaultPlatformDefine()
+	public string getBuildTimePlatformDefine()
 	{
-        string platformDefine = getDefaultPlatformDefineInternal();
-        if (mEnableHotFix)
-        {
-            platformDefine += ";" + ENABLE_HOTFIX;
-        }
-        if (mTestClient)
-        {
-            platformDefine += ";" + TEST;
-        }
-        return platformDefine;
+		string defaultDefine = getDefaultPlatformDefine();
+		if (!defaultDefine.isEmpty() && !defaultDefine.endWith(';'))
+		{
+			defaultDefine += ";";
+		}
+		string buildDefine = getBuildTimePlatformDefineInternal();
+		if (!buildDefine.isEmpty() && !buildDefine.endWith(';'))
+		{
+			buildDefine += ";";
+		}
+		string platformDefine = defaultDefine + buildDefine;
+		if (mEnableHotFix)
+		{
+			platformDefine += ENABLE_HOTFIX;
+		}
+		if (mTestClient)
+		{
+			platformDefine += TEST;
+		}
+		return platformDefine;
 	}
-	// 除了动态配置以外的宏,比如USE_HYBRID_CLR,USE_OBFUZ等基本固定的宏,一般都是使用FrameMacro中定义的值,由应用层自己决定
-	public abstract string getDefaultPlatformDefineInternal();
 	public virtual void generateFolderPreName() { mFolderPreName = ""; }
 	public bool build(bool buildHybridCLR, bool exportAndroidProject)
 	{
@@ -290,187 +296,6 @@ public abstract class PlatformBase
 	// 在编辑器非运行模式下就不要用宏来判断了,因为此时本身就要去添加编译宏,所以编辑器非运行模式下的宏可能更新没那么及时,会导致获取到错误的值
 	// 比如本地StreamingAssets/1.txt对应的远端位置是domain/ProjectName/Verison/1.txt,那么这里返回的就应该是ProjectName/Verison/
 	public abstract string getRemotePathInEditor(string version);
-	//------------------------------------------------------------------------------------------------------------------------------
-	protected void updateEditVersionNumber()
-	{
-		mVersionNumber = mRemoteVersion.split('.');
-		// 需要确保版本号只有3个部分
-		if (mVersionNumber.count() != 3)
-		{
-			string[] newVersionNumber = new string[3];
-			for (int i = 0; i < newVersionNumber.Length; ++i)
-			{
-				newVersionNumber[i] = i < mVersionNumber.count() ? mVersionNumber[i] : "0";
-			}
-			mVersionNumber = newVersionNumber;
-		}
-	}
-	protected abstract BuildResult buildInternal(out string outputFullPath);
-	// 根据自己项目的情况在这个函数中去配置打包时需要的宏定义,比如是否启用热更,是否为测试客户端等,因为这些宏定义会影响代码编译,所以需要在打包前就配置好
-	protected void configureScriptingDefine()
-	{
-		string platformDefine = getDefaultPlatformDefine();
-		log("设置宏:" + platformDefine);
-		PlayerSettings.SetScriptingDefineSymbols(getNameBuildTarget(), platformDefine);
-	}
-	protected virtual bool preBuild()
-	{
-		// 即使不需要配置是否导出安卓工程,也要确认是打包apk还是导出工程
-		// HybridCLR在mac上打包android时可能会将此变量设置为true,虽然源码中有还原操作,但是可能没有还原成功
-		EditorUserBuildSettings.exportAsGoogleAndroidProject = mExportAndroidProject;
-		EditorUserBuildSettings.buildAppBundle = mGooglePlay;
-		PlayerSettings.bundleVersion = mBuildVersion;
-		// 需要定位查看一次工程中所有的timeline文件,否则打包后无法播放timeline,暂时还不清楚这个bug的原因
-		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, ".playable"))
-		{
-			Selection.activeObject = loadAsset(file);
-			EditorGUIUtility.PingObject(Selection.activeObject);
-		}
-
-		// 添加宏定义
-		string platformDefine = PlayerSettings.GetScriptingDefineSymbols(getNameBuildTarget());
-		// 对当前的宏进行检查,避免由于上一次打包失败没有正确还原宏而导致打包出现问题
-		if (platformDefine != getDefaultPlatformDefine())
-		{
-			logWarning("当前的宏定义错误:" + platformDefine + ", 已还原为:" + getDefaultPlatformDefine());
-			PlayerSettings.SetScriptingDefineSymbols(getNameBuildTarget(), getDefaultPlatformDefine());
-		}
-		log("备份宏:" + getDefaultPlatformDefine());
-		configureScriptingDefine();
-
-		if (mBuildHybridCLR)
-		{
-			buildHotFix(true);
-		}
-
-		createDir(mOutputPath);
-
-		// 打包时只启用第一个场景,因为微信平台的打包是直接读的编辑器设置,而不能自己传参
-		for (int i = 0; i < EditorBuildSettings.scenes.Length; ++i)
-		{
-			EditorBuildSettings.scenes[i].enabled = i == 0;
-		}
-
-		AssetDatabase.Refresh();
-
-		// 需要先更新版本号文件
-		writeVersion();
-		// 在备份文件之前计算文件列表
-		writeFileList(mAssetBundleFullPath);
-		backupAssets();
-		return true;
-	}
-	protected virtual void postBuild(string fullPath)
-	{
-		// 打包时只启用第一个场景,因为微信平台的打包是直接读的编辑器设置,而不能自己传参
-		for (int i = 0; i < EditorBuildSettings.scenes.Length; ++i)
-		{
-			EditorBuildSettings.scenes[i].enabled = true;
-		}
-		recoverAssets();
-		// 还原宏定义
-		PlayerSettings.SetScriptingDefineSymbols(getNameBuildTarget(), getDefaultPlatformDefine());
-		log("还原宏:" + getDefaultPlatformDefine());
-		EditorSceneManager.SaveOpenScenes();
-		// 打开生成文件所在的目录
-		if (!fullPath.isEmpty() && mOpenExplorer)
-		{
-			EditorUtility.RevealInFinder(fullPath);
-		}
-	}
-	protected virtual void backupAssets()
-	{
-		// 其他平台的所有文件全部备份到其他目录,先删除之前可能存在的临时目录
-		deleteFolder(BUILD_TEMP_PATH);
-		deleteFile(removeEndSlash(BUILD_TEMP_PATH) + ".meta");
-		deleteFolder(INSTALL_TIME_TEMP_PATH);
-		deleteFile(removeEndSlash(INSTALL_TIME_TEMP_PATH) + ".meta");
-		createDir(BUILD_TEMP_PATH);
-		createDir(INSTALL_TIME_TEMP_PATH);
-		foreach (string file in findFilesNonAlloc(F_STREAMING_ASSETS_PATH))
-		{
-			BACKUP_TARGET backupDest = BACKUP_TARGET.BUILD_TEMP;
-			if (file.StartsWith(mAssetBundleFullPath))
-			{
-				// 如果是GooglePlay的安装包,则需要将当前平台下非动态下载的所有资源文件备份到指定临时目录
-				if (mGooglePlay)
-				{
-					// meta和manifest文件不打进包里,所以备份到临时目录
-					// 动态下载的文件备份到BuildTemp,其他的备份到InstallTimeTemp
-					if (file.endWith(".meta", false) || file.endWith(".manifest", false) || isDynamicDownloadAsset(file))
-					{
-						backupDest = BACKUP_TARGET.BUILD_TEMP;
-					}
-					else
-					{
-						backupDest = BACKUP_TARGET.INSTALL_TIME_TEMP;
-					}
-				}
-				// 版本号文件不备份
-				else if (file.EndsWith(VERSION))
-				{
-					backupDest = BACKUP_TARGET.NONE;
-				}
-				// webgl中需要将所有文件都备份到临时目录,这些文件不打包到包体中,这是需要上传到cdn
-				else if (isWebGL())
-				{
-					backupDest = BACKUP_TARGET.BUILD_TEMP;
-				}
-				// 启用热更时,动态下载的文件备份到临时目录,其他不进行备份
-				else if (mEnableHotFix)
-				{
-					if (isDynamicDownloadAsset(file))
-					{
-						backupDest = BACKUP_TARGET.BUILD_TEMP;
-					}
-					else
-					{
-						backupDest = BACKUP_TARGET.NONE;
-					}
-				}
-				// 未启用热更时,所有文件都不进行备份
-				else
-				{
-					backupDest = BACKUP_TARGET.NONE;
-				}
-			}
-			if (backupDest == BACKUP_TARGET.BUILD_TEMP)
-			{
-				backupFileToBuildTemp(file);
-			}
-			else if (backupDest == BACKUP_TARGET.INSTALL_TIME_TEMP)
-			{
-				backupFileToInstallTimeTemp(file);
-			}
-		}
-		deleteEmptyFolder(F_STREAMING_ASSETS_PATH);
-
-		// GooglePlay平台的包需要在InstallTime备份目录中去重新计算文件列表
-		if (mGooglePlay)
-		{
-			writeFileList(INSTALL_TIME_TEMP_PATH + mName + "/");
-		}
-	}
-	protected virtual void recoverAssets()
-	{
-		// 还原文件
-		foreach (string file in findFilesNonAlloc(BUILD_TEMP_PATH))
-		{
-			recoverFileFromBuildTemp(file);
-		}
-		deleteFolder(BUILD_TEMP_PATH);
-		deleteFile(removeEndSlash(BUILD_TEMP_PATH) + ".meta");
-		foreach (string file in findFilesNonAlloc(INSTALL_TIME_TEMP_PATH))
-		{
-			recoverFileFromInstallTimeTemp(file);
-		}
-		deleteFolder(INSTALL_TIME_TEMP_PATH);
-		deleteFile(removeEndSlash(INSTALL_TIME_TEMP_PATH) + ".meta");
-	}
-	protected bool isDynamicDownloadAsset(string fullPath)
-	{
-		return FrameSettings.getDynamicDownloadList().contains(notPackFile => fullPath.startWith(mAssetBundleFullPath + notPackFile.ToLower()));
-	}
 	public bool uploadResources(bool autoUploadVersion, string uploadLocalPath = null, int rertyCount = 5)
 	{
 		if (uploadLocalPath.isEmpty())
@@ -575,6 +400,181 @@ public abstract class PlatformBase
 			}
 		});
 		return hasError;
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	// 除了动态配置以外的宏,比如USE_HYBRID_CLR,USE_OBFUZ等基本固定的宏,一般都是使用FrameMacro中定义的值,由应用层自己决定,也是用于打包完以后的宏配置还原
+	protected abstract string getDefaultPlatformDefine();
+	// 获取打包时的宏配置,不包含getDefaultPlatformDefine的宏,会拼接以后设置到当前宏定义
+	protected abstract string getBuildTimePlatformDefineInternal();
+	protected void updateEditVersionNumber()
+	{
+		mVersionNumber = mRemoteVersion.split('.');
+		// 需要确保版本号只有3个部分
+		if (mVersionNumber.count() != 3)
+		{
+			string[] newVersionNumber = new string[3];
+			for (int i = 0; i < newVersionNumber.Length; ++i)
+			{
+				newVersionNumber[i] = i < mVersionNumber.count() ? mVersionNumber[i] : "0";
+			}
+			mVersionNumber = newVersionNumber;
+		}
+	}
+	protected abstract BuildResult buildInternal(out string outputFullPath);
+
+	protected virtual bool preBuild()
+	{
+		// 即使不需要配置是否导出安卓工程,也要确认是打包apk还是导出工程
+		// HybridCLR在mac上打包android时可能会将此变量设置为true,虽然源码中有还原操作,但是可能没有还原成功
+		EditorUserBuildSettings.exportAsGoogleAndroidProject = mExportAndroidProject;
+		EditorUserBuildSettings.buildAppBundle = mGooglePlay;
+		PlayerSettings.bundleVersion = mBuildVersion;
+		// 需要定位查看一次工程中所有的timeline文件,否则打包后无法播放timeline,暂时还不清楚这个bug的原因
+		foreach (string file in findFilesNonAlloc(F_GAME_RESOURCES_PATH, ".playable"))
+		{
+			Selection.activeObject = loadAsset(file);
+			EditorGUIUtility.PingObject(Selection.activeObject);
+		}
+
+		// 添加宏定义
+		// 根据自己项目的情况在这个函数中去配置打包时需要的宏定义,比如是否启用热更,是否为测试客户端等,因为这些宏定义会影响代码编译,所以需要在打包前就配置好
+		string platformDefine = getBuildTimePlatformDefine();
+		log("设置宏:" + platformDefine);
+		PlayerSettings.SetScriptingDefineSymbols(getNameBuildTarget(), platformDefine);
+
+		if (mBuildHybridCLR)
+		{
+			buildHotFix(true);
+		}
+
+		createDir(mOutputPath);
+
+		// 打包时只启用第一个场景,因为微信平台的打包是直接读的编辑器设置,而不能自己传参
+		for (int i = 0; i < EditorBuildSettings.scenes.Length; ++i)
+		{
+			EditorBuildSettings.scenes[i].enabled = i == 0;
+		}
+
+		AssetDatabase.Refresh();
+
+		// 需要先更新版本号文件
+		writeVersion();
+		// 在备份文件之前计算文件列表
+		writeFileList(mAssetBundleFullPath);
+		backupAssets();
+		return true;
+	}
+	protected virtual void postBuild(string fullPath)
+	{
+		// 打包时只启用第一个场景,因为微信平台的打包是直接读的编辑器设置,而不能自己传参
+		for (int i = 0; i < EditorBuildSettings.scenes.Length; ++i)
+		{
+			EditorBuildSettings.scenes[i].enabled = true;
+		}
+		recoverAssets();
+		// 还原宏定义
+		string platformDefine = getDefaultPlatformDefine();
+		log("还原宏:" + platformDefine);
+		PlayerSettings.SetScriptingDefineSymbols(getNameBuildTarget(), platformDefine);
+		EditorSceneManager.SaveOpenScenes();
+		// 打开生成文件所在的目录
+		if (!fullPath.isEmpty() && mOpenExplorer)
+		{
+			EditorUtility.RevealInFinder(fullPath);
+		}
+	}
+	protected virtual void backupAssets()
+	{
+		// 其他平台的所有文件全部备份到其他目录,先删除之前可能存在的临时目录
+		deleteFolder(BUILD_TEMP_PATH);
+		deleteFile(removeEndSlash(BUILD_TEMP_PATH) + ".meta");
+		deleteFolder(INSTALL_TIME_TEMP_PATH);
+		deleteFile(removeEndSlash(INSTALL_TIME_TEMP_PATH) + ".meta");
+		createDir(BUILD_TEMP_PATH);
+		createDir(INSTALL_TIME_TEMP_PATH);
+		foreach (string file in findFilesNonAlloc(F_STREAMING_ASSETS_PATH))
+		{
+			BACKUP_TARGET backupDest = BACKUP_TARGET.BUILD_TEMP;
+			if (file.StartsWith(mAssetBundleFullPath))
+			{
+				// 如果是GooglePlay的安装包,则需要将当前平台下非动态下载的所有资源文件备份到指定临时目录
+				if (mGooglePlay)
+				{
+					// meta和manifest文件不打进包里,所以备份到临时目录
+					// 动态下载的文件备份到BuildTemp,其他的备份到InstallTimeTemp
+					if (file.endWith(".meta", false) || file.endWith(".manifest", false) || isDynamicDownloadAsset(file))
+					{
+						backupDest = BACKUP_TARGET.BUILD_TEMP;
+					}
+					else
+					{
+						backupDest = BACKUP_TARGET.INSTALL_TIME_TEMP;
+					}
+				}
+				// 版本号文件不备份
+				else if (file.EndsWith(VERSION))
+				{
+					backupDest = BACKUP_TARGET.NONE;
+				}
+				// webgl中需要将所有文件都备份到临时目录,这些文件不打包到包体中,这是需要上传到cdn
+				else if (isWebGL())
+				{
+					backupDest = BACKUP_TARGET.BUILD_TEMP;
+				}
+				// 启用热更时,动态下载的文件备份到临时目录,其他不进行备份
+				else if (mEnableHotFix)
+				{
+					if (isDynamicDownloadAsset(file))
+					{
+						backupDest = BACKUP_TARGET.BUILD_TEMP;
+					}
+					else
+					{
+						backupDest = BACKUP_TARGET.NONE;
+					}
+				}
+				// 未启用热更时,所有文件都不进行备份
+				else
+				{
+					backupDest = BACKUP_TARGET.NONE;
+				}
+			}
+			if (backupDest == BACKUP_TARGET.BUILD_TEMP)
+			{
+				backupFileToBuildTemp(file);
+			}
+			else if (backupDest == BACKUP_TARGET.INSTALL_TIME_TEMP)
+			{
+				backupFileToInstallTimeTemp(file);
+			}
+		}
+		deleteEmptyFolder(F_STREAMING_ASSETS_PATH);
+
+		// GooglePlay平台的包需要在InstallTime备份目录中去重新计算文件列表
+		if (mGooglePlay)
+		{
+			writeFileList(INSTALL_TIME_TEMP_PATH + mName + "/");
+		}
+	}
+	protected virtual void recoverAssets()
+	{
+		// 还原文件
+		foreach (string file in findFilesNonAlloc(BUILD_TEMP_PATH))
+		{
+			recoverFileFromBuildTemp(file);
+		}
+		deleteFolder(BUILD_TEMP_PATH);
+		deleteFile(removeEndSlash(BUILD_TEMP_PATH) + ".meta");
+		foreach (string file in findFilesNonAlloc(INSTALL_TIME_TEMP_PATH))
+		{
+			recoverFileFromInstallTimeTemp(file);
+		}
+		deleteFolder(INSTALL_TIME_TEMP_PATH);
+		deleteFile(removeEndSlash(INSTALL_TIME_TEMP_PATH) + ".meta");
+	}
+	protected bool isDynamicDownloadAsset(string fullPath)
+	{
+		return FrameSettings.getDynamicDownloadList().contains(notPackFile => fullPath.startWith(mAssetBundleFullPath + notPackFile.ToLower()));
 	}
 	protected bool doDelete(List<string> deleteList, string remotePath, string displayTitle)
 	{

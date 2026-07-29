@@ -48,7 +48,6 @@ public class QiNiuYunSystem : IObjectStorageSystem
 			extra.MimeType = "text/plain";
 			extra.CacheControl = "no-cache, no-store, must-revalidate";
 		}
-		log("上传内容:" + openTxtFileSync(fullPath, true));
 		HttpResult result = target.UploadFile(fullPath, remotePath, generateUploadToken(remotePath), extra);
 		if (result.Code != (int)HttpCode.OK)
 		{

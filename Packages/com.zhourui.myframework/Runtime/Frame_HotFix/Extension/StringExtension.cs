@@ -495,6 +495,22 @@ public static class StringExtension
 			return startString.ToLower() == pattern.ToLower();
 		}
 	}
+	// 判断是否以pattern开头
+	public static bool startWith(this string str, char pattern, bool sensitive = true)
+	{
+		if (str.Length < 1)
+		{
+			return false;
+		}
+		if (sensitive)
+		{
+			return str[0] == pattern;
+		}
+		else
+		{
+			return char.ToLower(str[0]) == char.ToLower(pattern);
+		}
+	}
 	// 判断是否以pattern结尾
 	public static bool endWith(this string str, string pattern, bool sensitive = true)
 	{
@@ -510,6 +526,22 @@ public static class StringExtension
 		else
 		{
 			return endString.ToLower() == pattern.ToLower();
+		}
+	}
+	// 判断是否以pattern结尾
+	public static bool endWith(this string str, char pattern, bool sensitive = true)
+	{
+		if (str.Length < 1)
+		{
+			return false;
+		}
+		if (sensitive)
+		{
+			return str[^1] == pattern;
+		}
+		else
+		{
+			return char.ToLower(str[^1]) == char.ToLower(pattern);
 		}
 	}
 	public static string removeAll(this string str, params string[] key)
