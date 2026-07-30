@@ -27,7 +27,7 @@ public class UGUIProgress : WindowObjectUGUI, ISlider
 	}
 	public void setValue(float value) 
 	{
-		if (mOriginProgressSize.isVectorZero())
+		if (mOriginProgressSize.isZero())
 		{
 			logError("ProgressBar的size为0,是否忘记调用了UGUIProgress的init?");
 			return;

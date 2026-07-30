@@ -101,7 +101,7 @@ public class COMWindowDragView : GameComponent
 			Vector3 prePos = curPosition;
 			// 拖拽状态时,鼠标移动量就是窗口的移动量,此处未考虑父窗口的缩放不为1的情况
 			Vector3 moveDelta = mInputSystem.getTouchPoint(mTouchID).getCurPosition() - mStartDragMousePosition;
-			if (!moveDelta.isVectorZero())
+			if (!moveDelta.isZero())
 			{
 				if (mDragDirection == DRAG_DIRECTION.HORIZONTAL)
 				{

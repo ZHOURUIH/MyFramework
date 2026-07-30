@@ -104,8 +104,8 @@ public class UGUILineMesh : ClassObject
 					float halfAngle = HALF_PI_RADIAN;
 					Quaternion q0 = Quaternion.AngleAxis((halfAngle).toDegree(), Vector3.back);
 					Quaternion q1 = Quaternion.AngleAxis((halfAngle - PI_RADIAN).toDegree(), Vector3.back);
-					vertices[2 * i + 0] = dir.rotateVector3(q0) * mWidth.divide(halfAngle.sin());
-					vertices[2 * i + 1] = dir.rotateVector3(q1) * mWidth.divide(halfAngle.sin());
+					vertices[2 * i + 0] = dir.rotate(q0) * mWidth.divide(halfAngle.sin());
+					vertices[2 * i + 1] = dir.rotate(q1) * mWidth.divide(halfAngle.sin());
 				}
 				else if (i > 0 && i < pointCount - 1)
 				{
@@ -116,13 +116,13 @@ public class UGUILineMesh : ClassObject
 					Quaternion q1 = Quaternion.AngleAxis((halfAngle - PI_RADIAN).toDegree(), Vector3.back);
 					if (halfAngle >= 0.0f)
 					{
-						vertices[2 * i + 0] = dir.rotateVector3(q0) * mWidth;
-						vertices[2 * i + 1] = dir.rotateVector3(q1) * mWidth;
+						vertices[2 * i + 0] = dir.rotate(q0) * mWidth;
+						vertices[2 * i + 1] = dir.rotate(q1) * mWidth;
 					}
 					else
 					{
-						vertices[2 * i + 0] = dir.rotateVector3(q1) * mWidth;
-						vertices[2 * i + 1] = dir.rotateVector3(q0) * mWidth;
+						vertices[2 * i + 0] = dir.rotate(q1) * mWidth;
+						vertices[2 * i + 1] = dir.rotate(q0) * mWidth;
 					}
 				}
 				else if (i == pointCount - 1)
@@ -131,8 +131,8 @@ public class UGUILineMesh : ClassObject
 					float halfAngle = HALF_PI_RADIAN;
 					Quaternion q0 = Quaternion.AngleAxis((halfAngle).toDegree(), Vector3.back);
 					Quaternion q1 = Quaternion.AngleAxis((halfAngle - PI_RADIAN).toDegree(), Vector3.back);
-					vertices[2 * i + 0] = dir.rotateVector3(q0) * mWidth.divide(halfAngle.sin());
-					vertices[2 * i + 1] = dir.rotateVector3(q1) * mWidth.divide(halfAngle.sin());
+					vertices[2 * i + 0] = dir.rotate(q0) * mWidth.divide(halfAngle.sin());
+					vertices[2 * i + 1] = dir.rotate(q1) * mWidth.divide(halfAngle.sin());
 				}
 				vertices[2 * i + 0] += mPointList[i];
 				vertices[2 * i + 1] += mPointList[i];

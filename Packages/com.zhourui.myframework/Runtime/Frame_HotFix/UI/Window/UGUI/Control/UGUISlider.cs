@@ -96,7 +96,7 @@ public class UGUISlider : WindowObjectUGUI, ISlider
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void updateSlider(float value)
 	{
-		if (mOriginForegroundSize.isVectorZero())
+		if (mOriginForegroundSize.isZero())
 		{
 			logError("foreground的size为0,是否忘记调用了UGUISlider的init?");
 			return;

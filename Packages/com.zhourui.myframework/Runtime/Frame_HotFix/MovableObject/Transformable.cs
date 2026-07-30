@@ -409,7 +409,7 @@ public class Transformable : ComponentOwner, ITransformable
 	{
 		if (space == Space.Self)
 		{
-			moveDelta = moveDelta.rotateVector3(getRotationQuaternion());
+			moveDelta = moveDelta.rotate(getRotationQuaternion());
 		}
 		setPosition(getPosition() + moveDelta);
 	}
@@ -457,7 +457,7 @@ public class Transformable : ComponentOwner, ITransformable
 	}
 	public void lookAt(Vector3 direction)
 	{
-		if (direction.isVectorZero())
+		if (direction.isZero())
 		{
 			return;
 		}

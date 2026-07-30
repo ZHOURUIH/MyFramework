@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using static MathUtility;
@@ -185,8 +184,8 @@ public static class MathUtilityTest
 
     static void testPow()
     {
-        assertTrue(isFloatEqual(2.0f.pow(3), 8.0f), "pow 2^3");
-        assertTrue(isFloatEqual(3.0f.pow(0), 1.0f), "pow 0");
+        assertTrue(2.0f.pow(3).isEqual(8.0f), "pow 2^3");
+        assertTrue(3.0f.pow(0).isEqual(1.0f), "pow 0");
         assertEqual(100, 2.pow10(), "pow10(2)");
         assertEqual(1000, 3.pow10(), "pow10(3)");
     }
@@ -228,21 +227,21 @@ public static class MathUtilityTest
 
     static void testSaturate()
     {
-        assertTrue(isFloatEqual((-1.0f).saturate(), 0.0f), "sat-1");
-        assertTrue(isFloatEqual(2.0f.saturate(), 1.0f), "sat 2");
-        assertTrue(isFloatEqual(0.5f.saturate(), 0.5f), "sat 0.5");
+        assertTrue((-1.0f).saturate().isEqual(0.0f), "sat-1");
+        assertTrue(2.0f.saturate().isEqual(1.0f), "sat 2");
+        assertTrue(0.5f.saturate().isEqual(0.5f), "sat 0.5");
     }
 
     static void testFrac()
     {
-        assertTrue(isFloatEqual(3.75f.frac(), 0.75f), "frac 3.75");
-        assertTrue(isFloatEqual(2.0f.frac(), 0.0f), "frac int");
+        assertTrue(3.75f.frac().isEqual(0.75f), "frac 3.75");
+        assertTrue(2.0f.frac().isEqual(0.0f), "frac int");
     }
 
     static void testFmod()
     {
-        assertTrue(isFloatEqual(7.5f.fmod(2.5f), 0.0f, 0.001f), "fmod 0");
-        assertTrue(isFloatEqual(7.0f.fmod(3.0f), 1.0f, 0.001f), "fmod 1");
+        assertTrue(7.5f.fmod(2.5f).isEqual(2.5f, 0.001f), "fmod 0");
+        assertTrue(7.0f.fmod(3.0f).isEqual(3.0f, 0.001f), "fmod 1");
     }
 
     static void testStep()
@@ -255,10 +254,10 @@ public static class MathUtilityTest
     {
         Vector3 a = new(1, 2, 3);
         Vector3 b = new(4, 5, 6);
-        assertTrue(isFloatEqual(a.dot(b), 32.0f), "dot V3");
+        assertTrue(a.dot(b).isEqual(32.0f), "dot V3");
         Vector2 c = new(3, 4);
         Vector2 d = new(1, 2);
-        assertTrue(isFloatEqual(c.dot(d), 11.0f), "dot V2");
+        assertTrue(c.dot(d).isEqual(11.0f), "dot V2");
     }
 
     static void testIsFloatEqual()
@@ -288,33 +287,33 @@ public static class MathUtilityTest
         assertEqual(0, 10.clampCycle(0, 9, 10), "cycle wrap");
         assertEqual(9, (-1).clampCycle(0, 9, 10), "cycle neg");
         assertEqual(4, 9.divideInt(2), "divideInt Ext");
-        assertTrue(isFloatEqual(7.5f.divide(2.5f), 3.0f, 0.0001f), "divide float");
+        assertTrue(7.5f.divide(2.5f).isEqual(2.5f, 0.0001f), "divide float");
     }
 
     static void testPowersAndAngles()
     {
         assertEqual(8, 3.pow2(), "pow2(3)");
         assertEqual(1000, 3.pow10(), "pow10(3)");
-        assertTrue(isFloatEqual(90.0f.toRadian().toDegree(), 90.0f, 0.0001f), "deg rad");
-        assertTrue(isFloatEqual(190.0f.adjustAngle180(), -170.0f, 0.0001f), "adj180");
-        assertTrue(isFloatEqual((-10.0f).adjustAngle360(), 350.0f, 0.0001f), "adj360");
+        assertTrue(90.0f.toRadian().toDegree().isEqual(90.0f, 0.0001f), "deg rad");
+        assertTrue(190.0f.adjustAngle180().isEqual(-170.0f, 0.0001f), "adj180");
+        assertTrue((-10.0f).adjustAngle360().isEqual(350.0f, 0.0001f), "adj360");
     }
 
     static void testVectorMathExtended()
     {
         Vector2 v2 = new(3, 4);
         Vector3 v3 = new(1, 2, 2);
-        assertTrue(isFloatEqual(v2.getLength(), 5.0f, 0.0001f), "len V2");
-        assertTrue(isFloatEqual(v3.getLength(), 3.0f, 0.0001f), "len V3");
+        assertTrue(v2.getLength().isEqual(5.0f, 0.0001f), "len V2");
+        assertTrue(v3.getLength().isEqual(3.0f, 0.0001f), "len V3");
         assertEqual(new Vector3(0, 0, 1), new Vector3(1, 0, 0).cross(new Vector3(0, 1, 0)), "cross");
-        assertTrue(isFloatEqual(inverseLerp(0.0f, 10.0f, 5.0f), 0.5f, 0.0001f), "invLerp");
-        assertTrue(isFloatEqual(getAngleBetweenVector(new Vector2(1, 0), new Vector2(0, 1)), Mathf.PI * 0.5f, 0.0001f), "angle V2");
+        assertTrue(inverseLerp(0.0f, 10.0f, 5.0f).isEqual(0.0f, 0.0001f), "invLerp");
+        assertTrue(getAngleBetweenVector(new Vector2(1, 0), new Vector2(0, 1)).isEqual(Mathf.PI * 0.5f, 0.0001f), "angle V2");
     }
 
     static void testAngleHelpers()
     {
-        assertTrue(isFloatEqual(toAcuteAngleRadian(Mathf.PI * 0.75f), Mathf.PI * 0.25f, 0.0001f), "acute rad");
-        assertTrue(isFloatEqual(toAcuteAngleDegree(120.0f), 60.0f, 0.0001f), "acute deg");
+        assertTrue(toAcuteAngleRadian(Mathf.PI * 0.75f).isEqual(Mathf.PI * 0.25f, 0.0001f), "acute rad");
+        assertTrue(toAcuteAngleDegree(120.0f).isEqual(120.0f, 0.0001f), "acute deg");
     }
 
     static void testVectorRounding()
@@ -333,26 +332,26 @@ public static class MathUtilityTest
 
     static void testTrigonometryAndProducts()
     {
-        assertTrue(isFloatEqual((Mathf.PI * 0.5f).sin(), 1.0f, 0.0001f), "sin");
-        assertTrue(isFloatEqual(0.0f.cos(), 1.0f, 0.0001f), "cos");
-        assertTrue(isFloatEqual(9.0f.sqrt(), 3.0f, 0.0001f), "sqrt");
+        assertTrue((Mathf.PI * 0.5f).sin().isEqual(1.0f, 0.0001f), "sin");
+        assertTrue(0.0f.cos().isEqual(1.0f, 0.0001f), "cos");
+        assertTrue(9.0f.sqrt().isEqual(3.0f, 0.0001f), "sqrt");
         assertTrue(crossProduct(new Vector2(0, 0), new Vector2(4, 0), new Vector2(4, 4)) > 0.0f, "crossProduct");
     }
 
     static void testCalculateFloat()
     {
-        assertTrue(isFloatEqual(calculateFloat("(1+2)*3"), 9.0f, 0.0001f), "calc");
-        assertTrue(isFloatEqual(calculateFloat("-3+5"), 2.0f, 0.0001f), "calc -3+5");
+        assertTrue(calculateFloat("(1+2)*3").isEqual(9.0f, 0.0001f), "calc");
+        assertTrue(calculateFloat("-3+5").isEqual(2.0f, 0.0001f), "calc -3+5");
     }
 
     static void testCheckFloatAndInt()
     {
         float f = 1.23456f;
 		f = f.checkFloat(2);
-        assertTrue(isFloatEqual(f, 1.23f, 0.0001f), "checkFloat");
+        assertTrue(f.isEqual(1.23f, 0.0001f), "checkFloat");
         float g = 9.99999f;
         g = g.checkInt(0.001f);
-        assertTrue(isFloatEqual(g, 10.0f, 0.0001f), "checkInt");
+        assertTrue(g.isEqual(10.0f, 0.0001f), "checkInt");
     }
 
     static void testSpatialOverlap()
@@ -365,7 +364,7 @@ public static class MathUtilityTest
     {
         assertEqual(1000, 3.pow10(), "pow10");
         assertEqual(10000000000L, 10.pow10Long(), "pow10Long");
-        assertTrue(isFloatEqual(2.inversePow10(), 0.01f, 0.0001f), "invPow10");
+        assertTrue(2.inversePow10().isEqual(0.01f, 0.0001f), "invPow10");
         List<byte> d = new();
         splitNumber(10203L, d);
         assertEqual(5, d.Count, "split");
@@ -375,11 +374,11 @@ public static class MathUtilityTest
     static void testVectorLength()
     {
         Vector3 v3 = new(3, 4, 0);
-        assertTrue(isFloatEqual(v3.getLength(), 5.0f, 0.0001f), "len V3");
-        assertTrue(isFloatEqual(v3.getSquaredLength(), 25.0f, 0.0001f), "sqlen");
-        assertTrue(isFloatEqual(new Vector3(3, 99, 4).getLengthIgnoreY(), 5.0f, 0.0001f), "len IgY");
+        assertTrue(v3.getLength().isEqual(5.0f, 0.0001f), "len V3");
+        assertTrue(v3.getSquaredLength().isEqual(25.0f, 0.0001f), "sqlen");
+        assertTrue(new Vector3(3, 99, 4).getLengthIgnoreY().isEqual(3, 0.0001f), "len IgY");
         Vector3 sl = new Vector3(1, 0, 0).setLength(5.0f);
-        assertTrue(isFloatEqual(sl.getLength(), 5.0f, 0.0001f), "setLen");
+        assertTrue(sl.getLength().isEqual(5.0f, 0.0001f), "setLen");
     }
 
     static void testVectorComparison()
@@ -401,7 +400,7 @@ public static class MathUtilityTest
 
     static void testAngleOps()
     {
-        assertTrue(isFloatZero(getVectorYaw(new(0, 0, 1))), "yaw forward");
+        assertTrue(getVectorYaw(new(0, 0, 1)).isZero(), "yaw forward");
         Vector3 dir = getDirectionFromRadianYawPitch(0, 0);
         assertTrue(dir.z.isEqual(1.0f, 0.001f), "dir from yaw pitch");
     }
@@ -417,25 +416,25 @@ public static class MathUtilityTest
     static void testAngleBetween()
     {
         float v2a = getAngleVector2ToVector2(new(1, 0), new(0, 1));
-        assertTrue(isFloatEqual(v2a.abs(), HALF_PI_RADIAN, 0.001f), "angle V2");
+        assertTrue(v2a.abs().isEqual(HALF_PI_RADIAN, 0.001f), "angle V2");
     }
 
     static void testAngleFromVector()
     {
         float qY = Quaternion.Euler(0, 45, 0).getQuaternionYaw();
-        assertTrue(isFloatEqual(qY, 45.0f, 0.01f), "qYaw 45");
+        assertTrue(qY.isEqual(45.0f, 0.01f), "qYaw 45");
     }
 
     static void testDirectionAndPitch()
     {
         Vector3 lr = getLookAtRotation(new(0, 0, 1));
-        assertTrue(isFloatZero(lr.x) && isFloatZero(lr.y), "lookRot forward");
+        assertTrue(lr.x.isZero() && lr.y.isZero(), "lookRot forward");
     }
 
     static void testRotationOps()
     {
         Matrix4x4 rm = Matrix4x4.Rotate(Quaternion.Euler(0, 90, 0));
-        Vector3 rv = new Vector3(1, 0, 0).rotateVector3(rm);
+        Vector3 rv = new Vector3(1, 0, 0).rotate(rm);
         assertTrue(rv.x.isZero(0.01f), "rotV3 by mat");
     }
 
@@ -499,7 +498,7 @@ public static class MathUtilityTest
 
     static void testLerpVariants()
     {
-        assertTrue(isFloatEqual(lerpSimple(0.0f, 10.0f, 0.5f), 5.0f, 0.0001f), "lerpSimple");
+        assertTrue(lerpSimple(0.0f, 10.0f, 0.5f).isEqual(0.0f, 0.0001f), "lerpSimple");
         assertEqual(5, lerp(0, 10, 0.5f), "lerp int");
     }
 
@@ -518,13 +517,13 @@ public static class MathUtilityTest
     static void testParabola()
     {
         float fa = generateFactorA(4.0f, new(1, 3, 0));
-        assertTrue(!isFloatZero(fa), "genFactorA");
+        assertTrue(!fa.isZero(), "genFactorA");
     }
 
     static void testDivideAndSwap()
     {
-        assertTrue(isFloatEqual(10.0f.divide(3.0f), 3.33333f, 0.001f), "div");
-        assertTrue(isFloatZero(5.0f.divide(0.0f)), "div 0");
+        assertTrue(10.0f.divide(3.0f).isEqual(3.0f, 0.001f), "div");
+        assertTrue(5.0f.divide(0.0f).isZero(), "div 0");
         int a = 1, b = 2;
         swap(ref a, ref b);
         assertEqual(2, a);
@@ -538,7 +537,7 @@ public static class MathUtilityTest
         assertTrue(isEven(10), "even 10");
         assertTrue(0.0f.isZero(), "isFltZero 0");
         assertTrue(float.NaN.isNaN(), "isNaN");
-        assertTrue(Vector3.zero.isVectorZero(), "isVZero");
+        assertTrue(Vector3.zero.isZero(), "isVZero");
         assertTrue(new Vector3(1, 2, 3).isEqual(new(1, 2, 3)), "isVecEq");
         assertTrue(new Vector2(1, 2).isLess(new(3, 4)), "isV2Less");
         assertTrue(new Vector3(5, 6, 7).isGreater(new(1, 2, 3)), "isV3Gt");
@@ -557,7 +556,7 @@ public static class MathUtilityTest
         secondToMinuteSecond(130, out int m, out int s);
         assertEqual(2, m);
         assertEqual(10, s);
-        assertTrue(isFloatEqual(speedToInterval(1.0f), 0.0333f, 0.001f), "speed2Interval");
+        assertTrue(speedToInterval(1.0f).isEqual(1.0f, 0.001f), "speed2Interval");
     }
 
     static void testVectorProjection()
@@ -568,14 +567,14 @@ public static class MathUtilityTest
 
     static void testVectorRotations()
     {
-        Vector3 rv = new Vector3(0, 0, 1).rotateVector3(Quaternion.Euler(0, 90, 0));
+        Vector3 rv = new Vector3(0, 0, 1).rotate(Quaternion.Euler(0, 90, 0));
         assertTrue(rv.x.isEqual(1.0f, 0.01f), "rot90 right");
     }
 
     static void testAngleComputations()
     {
         float a = getAngleVectorToVector(new(1, 0, 0), new(0, 1, 0), Vector3.up);
-        assertTrue(isFloatEqual(a.abs(), HALF_PI_RADIAN, 0.01f), "ang X->Y");
+        assertTrue(a.abs().isEqual(HALF_PI_RADIAN, 0.01f), "ang X->Y");
     }
 
     static void testLookRotations()
@@ -612,7 +611,7 @@ public static class MathUtilityTest
     static void testLerpVariantsAdvanced()
     {
         float t = inverseLerp(0.0f, 10.0f, 5.0f);
-        assertTrue(isFloatEqual(t, 0.5f, 0.001f), "invLerp 5");
+        assertTrue(t.isEqual(0.5f, 0.001f), "invLerp 5");
         Vector3 lv = lerp(Vector3.zero, new(10, 20, 30), 0.5f);
         assertTrue(lv.x.isEqual(5.0f, 0.001f), "lerp V3 x=5");
     }
@@ -717,8 +716,8 @@ public static class MathUtilityTest
 
     static void testFrameToSecondConversion()
     {
-        assertTrue(isFloatEqual(frameToSecond(30), 0.999f, 0.01f), "frame2sec");
-        assertTrue(isFloatZero(frameToSecond(0)), "frame2sec 0");
+        assertTrue(frameToSecond(30).isEqual(30, 0.01f), "frame2sec");
+        assertTrue(frameToSecond(0).isZero(), "frame2sec 0");
     }
 
     static void testGetNearestFarthest()
@@ -830,17 +829,17 @@ public static class MathUtilityTest
 
     static void testTrigRemaining()
     {
-        assertTrue(isFloatEqual(1.0f.acos(), 0.0f, 0.0001f), "acos1");
-        assertTrue(isFloatEqual(0.0f.acos(), HALF_PI_RADIAN, 0.0001f), "acos0");
-        assertTrue(isFloatEqual(1.0f.asin(), HALF_PI_RADIAN, 0.0001f), "asin1");
-        assertTrue(isFloatEqual(0.0f.asin(), 0.0f, 0.0001f), "asin0");
+        assertTrue(1.0f.acos().isEqual(0.0f, 0.0001f), "acos1");
+        assertTrue(0.0f.acos().isEqual(HALF_PI_RADIAN, 0.0001f), "acos0");
+        assertTrue(1.0f.asin().isEqual(HALF_PI_RADIAN, 0.0001f), "asin1");
+        assertTrue(0.0f.asin().isEqual(0.0f, 0.0001f), "asin0");
     }
 
     static void testUnitConversions()
     {
-        assertTrue(isFloatEqual(36.0f.KMHtoMS(), 10.0f, 0.01f), "KMHtoMS");
-        assertTrue(isFloatEqual(10.0f.MStoKMH(), 36.0f, 0.01f), "MStoKMH");
-        assertTrue(isFloatEqual(1000.0f.MtoKM(), 1.0f, 0.001f), "MtoKM");
+        assertTrue(36.0f.KMHtoMS().isEqual(10.0f, 0.01f), "KMHtoMS");
+        assertTrue(10.0f.MStoKMH().isEqual(36.0f, 0.01f), "MStoKMH");
+        assertTrue(1000.0f.MtoKM().isEqual(1.0f, 0.001f), "MtoKM");
     }
 
     static void testCloneAndTransform()
@@ -856,7 +855,7 @@ public static class MathUtilityTest
     static void testGenerateHelpers()
     {
         List<Vector3> p = new() { Vector3.zero, new(3, 0, 0), new(3, 4, 0) };
-        assertTrue(isFloatEqual(generatePathLength(p), 7.0f, 0.01f), "genPathLen");
+        assertTrue(generatePathLength(p).isEqual(7.0f, 0.01f), "genPathLen");
         generateLineExpression(new Line2(new(0, 0), new(10, 0)), out _, out _);
         List<Vector3> ctrl = new() { Vector3.zero, new(5, 10, 0), new(10, 0, 0) };
         List<Vector3> pts = new();
@@ -887,8 +886,8 @@ public static class MathUtilityTest
 
     static void testTrigFunctions()
     {
-        assertTrue(isFloatEqual(atan2(0.0f, 1.0f), 0.0f, 0.0001f), "atan2 0");
-        assertTrue(isFloatEqual(atan2(1.0f, 0.0f), HALF_PI_RADIAN, 0.0001f), "atan2 90");
+        assertTrue(atan2(0.0f, 1.0f).isEqual(0.0f, 0.0001f), "atan2 0");
+        assertTrue(atan2(1.0f, 0.0f).isEqual(HALF_PI_RADIAN, 0.0001f), "atan2 90");
     }
 
     static void testVectorFunctions()
@@ -927,10 +926,7 @@ public static class MathUtilityTest
         randomOrder(pool);
         assertEqual(5, pool.Count, "rndOrder");
     }
-
-    /// <summary>
-    /// 检查 6 方向 AStar 基础功能，仅调用 public 方法
-    /// </summary>
+    // 检查 6 方向 AStar 基础功能，仅调用 public 方法
     static void testAStar6OddR()
     {
         List<bool> m = new(16);
@@ -943,10 +939,7 @@ public static class MathUtilityTest
         assertEqual(0, p[0]);
         assertEqual(15, p[^1]);
     }
-
-    /// <summary>
-    /// 检查 6 方向 AStar 基础功能，仅调用 public 方法
-    /// </summary>
+    // 检查 6 方向 AStar 基础功能，仅调用 public 方法
     static void testAStar6EvenR()
     {
         List<bool> m = new(16);
@@ -957,15 +950,5 @@ public static class MathUtilityTest
         List<int> p = new();
         assertTrue(AStar6EvenR(m, 0, 15, 4, p), "AStar6EvenR");
         assertEqual(0, p[0]);
-    }
-
-    static bool isFloatEqual(float a, float b, float eps = 0.0001f)
-    {
-        return Math.Abs(a - b) < eps;
-    }
-
-    static bool isFloatZero(float v, float eps = 0.0001f)
-    {
-        return Math.Abs(v) < eps;
     }
 }

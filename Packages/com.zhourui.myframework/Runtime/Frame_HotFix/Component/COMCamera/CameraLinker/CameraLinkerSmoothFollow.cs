@@ -51,7 +51,7 @@ public class CameraLinkerSmoothFollow : CameraLinkerThirdPerson
 		Vector3 relative = mRelativePosition;
 		if (mUseTargetYaw)
 		{
-			relative = mRelativePosition.rotateVector3(mLinkObject.getRotation().y.toRadian());
+			relative = mRelativePosition.rotate(mLinkObject.getRotation().y.toRadian());
 		}
 		Vector3 targetPos = mLinkObject.getWorldPosition();
 		Vector3 nextPos = targetPos + relative;

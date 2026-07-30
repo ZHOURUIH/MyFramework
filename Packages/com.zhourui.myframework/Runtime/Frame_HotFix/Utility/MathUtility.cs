@@ -656,14 +656,14 @@ public class MathUtility
 		Vector2 v0 = point - line.mStart;
 		Vector2 v1 = point - line.mEnd;
 		// 交点与端点重合
-		if (v0.isVectorZero() || v1.isVectorZero())
+		if (v0.isZero() || v1.isZero())
 		{
 			return true;
 		}
 		v0 = v0.normalize();
 		v1 = v1.normalize();
 		// 两个向量方向相反则为在线段上,同向则交点不在线段上
-		return (v0 + v1).isVectorZero();
+		return (v0 + v1).isZero();
 	}
 	// 三个点是否在同一条直线上
 	public static bool isPointsInSameLine2(Vector2 point0, Vector2 point1, Vector2 point2)
@@ -671,14 +671,14 @@ public class MathUtility
 		Vector2 v0 = point0 - point1;
 		Vector2 v1 = point0 - point2;
 		// 交点与端点重合
-		if (v0.isVectorZero() || v1.isVectorZero())
+		if (v0.isZero() || v1.isZero())
 		{
 			return true;
 		}
 		v0 = v0.normalize();
 		v1 = v1.normalize();
 		// 两个向量方向相反或者相同,就在同一条直线上
-		return (v0 + v1).isVectorZero() || v0.isEqual(v1);
+		return (v0 + v1).isZero() || v0.isEqual(v1);
 	}
 	// 三个点是否在同一条直线上
 	public static bool isPointsInSameLine3(Vector3 point0, Vector3 point1, Vector3 point2)
@@ -686,14 +686,14 @@ public class MathUtility
 		Vector3 v0 = point0 - point1;
 		Vector3 v1 = point0 - point2;
 		// 交点与端点重合
-		if (v0.isVectorZero() || v1.isVectorZero())
+		if (v0.isZero() || v1.isZero())
 		{
 			return true;
 		}
 		v0 = v0.normalize();
 		v1 = v1.normalize();
 		// 两个向量方向相反或者相同,就在同一条直线上
-		return (v0 + v1).isVectorZero() || v0.isEqual(v1);
+		return (v0 + v1).isZero() || v0.isEqual(v1);
 	}
 	// 直线与圆的相交检测
 	public static bool intersectCircle(Vector2 center, float radius, Line2 line, ref PolygonIntersectResult result)
@@ -747,8 +747,8 @@ public class MathUtility
 			// 首先对每条边进行变换
 			Vector3 point0 = points[i];
 			Vector3 point1 = points[(i + 1) % pointCount];
-			point0 = point0.rotateVector3(transform.localRotation).multi(transform.localScale) + transform.localPosition;
-			point1 = point1.rotateVector3(transform.localRotation).multi(transform.localScale) + transform.localPosition;
+			point0 = point0.rotate(transform.localRotation).multi(transform.localScale) + transform.localPosition;
+			point1 = point1.rotate(transform.localRotation).multi(transform.localScale) + transform.localPosition;
 			// 与每一条边进行相交检测
 			if (!intersectLineLineSection(line, new(point0, point1), out intersect))
 			{
@@ -1286,7 +1286,7 @@ public class MathUtility
 		}
 		// 将圆形转换到以矩形中心为原点的坐标系
 		circleCenter -= rectanglePosition;
-		circleCenter = circleCenter.rotateVector3((-rectangleRotation.y).toRadian());
+		circleCenter = circleCenter.rotate((-rectangleRotation.y).toRadian());
 		// 然后把圆心映射到第一象限,因为在转换以后的坐标系中,4个象限都是对称的,所以只需要判断一个象限即可
 		circleCenter = circleCenter.abs();
 		// 矩形在第一象限上的顶点
@@ -1480,14 +1480,14 @@ public class MathUtility
 	{
 		float length = vec.getLength();
 		Vector3 normal = generateNormal(vec, vec.replaceY(vec.y - 1.0f));
-		return vec.resetY().rotateVector3(Quaternion.AngleAxis(pitch.toDegree(), normal)).setLength(length);
+		return vec.resetY().rotate(Quaternion.AngleAxis(pitch.toDegree(), normal)).setLength(length);
 	}
 	// 设置一个向量的俯仰角,pitch是弧度制的
 	public static void setVectorPitch(ref Vector3 vec, float pitch)
 	{
 		float length = vec.getLength();
 		Vector3 normal = generateNormal(vec, vec.replaceY(vec.y - 1.0f));
-		vec = vec.resetY().rotateVector3(Quaternion.AngleAxis(pitch.toDegree(), normal)).setLength(length);
+		vec = vec.resetY().rotate(Quaternion.AngleAxis(pitch.toDegree(), normal)).setLength(length);
 	}
 	// 顺时针旋转为正,逆时针为负
 	public static float getAngleVector2ToVector2(Vector2 from, Vector2 to, ANGLE radian = ANGLE.RADIAN)
@@ -1623,14 +1623,14 @@ public class MathUtility
 		if (angleBetween.isZero())
 		{
 			pos = start.normalize() * radius;
-			tangencyDir = (-pos).rotateVector3(HALF_PI_RADIAN).normalize();
+			tangencyDir = (-pos).rotate(HALF_PI_RADIAN).normalize();
 		}
 		// 根据夹角的正负,判断应该顺时针还是逆时针旋转起始半径线段
 		else
 		{
-			pos = start.rotateVector3(anglePercent * angleBetween).normalize() * radius;
+			pos = start.rotate(anglePercent * angleBetween).normalize() * radius;
 			// 计算切线,如果顺时针计算出的切线与从起始点到终止点所成的角度大于90度,则使切线反向
-			tangencyDir = (-pos).rotateVector3(HALF_PI_RADIAN).normalize();
+			tangencyDir = (-pos).rotate(HALF_PI_RADIAN).normalize();
 			Vector3 posToEnd = end - pos;
 			if (getAngleVector2ToVector2(new(tangencyDir.x, tangencyDir.z), new(posToEnd.x, posToEnd.z)).abs() > HALF_PI_RADIAN)
 			{

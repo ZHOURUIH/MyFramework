@@ -155,14 +155,14 @@ public class CameraLinker : GameComponent
 	// 水平旋转相对位置
 	public void rotateRelativePositionHorizontal(float deltaDegree)
 	{
-		Vector3 relative = mRelativePosition.rotateVector3(Quaternion.AngleAxis(deltaDegree, Vector3.up));
+		Vector3 relative = mRelativePosition.rotate(Quaternion.AngleAxis(deltaDegree, Vector3.up));
 		setRelativePosition(relative);
 	}
 	// 竖直方向上旋转相对位置
 	public void rotateRelativePositionVertical(float deltaDegree)
 	{
 		Vector3 normal = generateNormal(mRelativePosition, mRelativePosition.replaceY(mRelativePosition.y - 1.0f));
-		Vector3 relative = mRelativePosition.rotateVector3(Quaternion.AngleAxis(deltaDegree, normal));
+		Vector3 relative = mRelativePosition.rotate(Quaternion.AngleAxis(deltaDegree, normal));
 		setRelativePosition(relative);
 	}
 	public virtual void setRelativePosition(Vector3 relative)

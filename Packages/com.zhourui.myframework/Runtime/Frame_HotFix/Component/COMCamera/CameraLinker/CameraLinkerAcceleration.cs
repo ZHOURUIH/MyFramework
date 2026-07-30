@@ -20,7 +20,7 @@ public class CameraLinkerAcceleration : CameraLinkerThirdPerson
 		// 获得加速度
 		Vector3 acceleration = mLinkObject.getPhysicsAcceleration();
 		Vector3 curRelative = mCamera.getPosition() - mLinkObject.getPosition();
-		acceleration = acceleration.rotateVector3(curRelative.getAngle()) * -1.0f;
+		acceleration = acceleration.rotate(curRelative.getAngle()) * -1.0f;
 		mSpringX.setCurLength(curRelative.x.abs());
 		mSpringX.setForce(acceleration.x);
 		mSpringY.setCurLength(curRelative.y.abs());
@@ -53,7 +53,7 @@ public class CameraLinkerAcceleration : CameraLinkerThirdPerson
 		Vector3 relative;
 		if (mUseTargetYaw)
 		{
-			relative = mRelativePosition.rotateVector3(mLinkObject.getRotation().y.toRadian());
+			relative = mRelativePosition.rotate(mLinkObject.getRotation().y.toRadian());
 		}
 		else
 		{

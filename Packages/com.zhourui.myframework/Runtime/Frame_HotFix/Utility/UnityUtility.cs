@@ -1007,7 +1007,7 @@ public class UnityUtility
 			return transform.localPosition;
 		}
 		Vector3 localPosition = transform.localPosition;
-		localPosition = localPosition.rotateVector3(generateWorldRotation(transform.parent));
+		localPosition = localPosition.rotate(generateWorldRotation(transform.parent));
 		localPosition = localPosition.multi(generateWorldScale(transform.parent));
 		return localPosition + generateWorldPosition(transform.parent);
 	}
@@ -1018,7 +1018,7 @@ public class UnityUtility
 		// 还原缩放
 		localPosition = localPosition.divide(generateWorldScale(parent));
 		// 还原旋转
-		return localPosition.rotateVector3(Quaternion.Inverse(generateWorldRotation(parent)));
+		return localPosition.rotate(Quaternion.Inverse(generateWorldRotation(parent)));
 	}
 	public static float getAnimationLength(Animator animator, string name)
 	{

@@ -204,7 +204,7 @@ public class ComponentDrag : GameComponent
 			if (mouseDelta.lengthGreater(mStartDragThreshold))
 			{
 				// 有拖拽方向要求时,只有拖拽方向与设置方向夹角不超过指定角度时才开始拖动
-				if (mAllowDragDirection.isVectorZero() || getAngleBetweenVector(mouseDelta, mAllowDragDirection) < mDragStartAngleThreshold)
+				if (mAllowDragDirection.isZero() || getAngleBetweenVector(mouseDelta, mAllowDragDirection) < mDragStartAngleThreshold)
 				{
 					mDragging = onDragStart(mTouchPoint);
 				}

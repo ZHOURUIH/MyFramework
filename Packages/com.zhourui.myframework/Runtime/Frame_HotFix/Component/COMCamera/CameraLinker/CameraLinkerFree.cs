@@ -48,22 +48,22 @@ public class CameraLinkerFree : CameraLinker
 			// 向前移动摄像机
 			if (isKeyDown(KeyCode.W))
 			{
-				mMoveDelta += (moveLength * Vector3.forward).rotateVector3(mCamera.getRotationQuaternion());
+				mMoveDelta += (moveLength * Vector3.forward).rotate(mCamera.getRotationQuaternion());
 			}
 			// 向左移动摄像机
 			if (isKeyDown(KeyCode.A))
 			{
-				mMoveDelta += (moveLength * Vector3.left).rotateVector3(mCamera.getRotationQuaternion());
+				mMoveDelta += (moveLength * Vector3.left).rotate(mCamera.getRotationQuaternion());
 			}
 			// 向后移动摄像机
 			if (isKeyDown(KeyCode.S))
 			{
-				mMoveDelta += (moveLength * Vector3.back).rotateVector3(mCamera.getRotationQuaternion());
+				mMoveDelta += (moveLength * Vector3.back).rotate(mCamera.getRotationQuaternion());
 			}
 			// 向右移动摄像机
 			if (isKeyDown(KeyCode.D))
 			{
-				mMoveDelta += (moveLength * Vector3.right).rotateVector3(mCamera.getRotationQuaternion());
+				mMoveDelta += (moveLength * Vector3.right).rotate(mCamera.getRotationQuaternion());
 			}
 			// 竖直向上移动摄像机
 			if (isKeyDown(KeyCode.Q))
@@ -76,7 +76,7 @@ public class CameraLinkerFree : CameraLinker
 				mMoveDelta += moveLength * Vector3.down;
 			}
 		}
-		if (!mMoveDelta.isVectorZero())
+		if (!mMoveDelta.isZero())
 		{
 			mCamera.move(mMoveDelta, Space.World);
 		}
@@ -96,7 +96,7 @@ public class CameraLinkerFree : CameraLinker
 				}
 			}
 		}
-		if (!mRotateAngle.isVectorZero())
+		if (!mRotateAngle.isZero())
 		{
 			mCamera.yawPitch(mRotateAngle.x, -mRotateAngle.y);
 		}

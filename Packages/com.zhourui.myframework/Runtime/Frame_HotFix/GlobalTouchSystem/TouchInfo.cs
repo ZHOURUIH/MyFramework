@@ -28,7 +28,7 @@ public class TouchInfo : ClassObject
 		using var a = new SafeListReader<IMouseEventCollect>(mPressList);
 		foreach (IMouseEventCollect obj in a.mReadList)
 		{
-			if (mTouch.getMoveDelta().isVectorZero())
+			if (mTouch.getMoveDelta().isZero())
 			{
 				obj.onTouchStay(curPos, mTouch.getTouchID());
 			}

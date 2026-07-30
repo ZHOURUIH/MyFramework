@@ -67,7 +67,7 @@ public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 			else
 			{
 				// z方向上旋转后的轴
-				Vector3 rotateAxis = mOriginRelative.rotateVector3(mRotatedAngle);
+				Vector3 rotateAxis = mOriginRelative.rotate(mRotatedAngle);
 				// 距离变化
 				Vector3 projectVec = rotateAxis.resetY().setLength(mOriginRelative.getLength() + mDistanceCurrent);
 				// 高度变化
@@ -91,7 +91,7 @@ public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 			}
 			else
 			{
-				Vector3 rotateAxis = mOriginRelative.rotateVector3(mRotatedAngle);
+				Vector3 rotateAxis = mOriginRelative.rotate(mRotatedAngle);
 				Vector3 projectVec = rotateAxis.resetY().setLength(mOriginRelative.getLength() + mDistanceCurrent);
 				rotateAxis.x = projectVec.x;
 				rotateAxis.y = (mTargetRelative.y - mOriginRelative.y) * mRotatedAngle.divide(mTotalAngle) + mOriginRelative.y;

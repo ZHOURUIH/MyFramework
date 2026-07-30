@@ -17,7 +17,7 @@ public class CmdTransformableRotateSpeed
 		}
 		if (isEditor() && 
 			obj is myUGUIObject uiObj &&
-			(!rotateSpeed.isVectorZero() || !rotateAcceleration.isVectorZero()) && 
+			(!rotateSpeed.isZero() || !rotateAcceleration.isZero()) && 
 			!uiObj.getLayout().canUIObjectUpdate(uiObj))
 		{
 			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + uiObj.getName());

@@ -549,8 +549,8 @@ public class MenuCheckResources
 		{
 			displayProgressBar("检查预设变换", "进度: ", i + 1, fileCount);
 			GameObject prefab = loadGameObject(fullPathToProjectPath(fileList[i]));
-			if (!prefab.transform.localPosition.isVectorZero() ||
-				!prefab.transform.localEulerAngles.isVectorZero() ||
+			if (!prefab.transform.localPosition.isZero() ||
+				!prefab.transform.localEulerAngles.isZero() ||
 				!prefab.transform.localScale.isEqual(Vector3.one))
 			{
 				Debug.LogError("预设根节点变换错误:" + fileList[i], prefab);

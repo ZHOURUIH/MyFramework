@@ -14,7 +14,7 @@ public class CameraLinkerThirdPerson : CameraLinker
 		Vector3 relative;
 		if (mUseTargetYaw)
 		{
-			relative = mRelativePosition.rotateVector3(mLinkObject.getRotation().y.toRadian());
+			relative = mRelativePosition.rotate(mLinkObject.getRotation().y.toRadian());
 		}
 		else
 		{

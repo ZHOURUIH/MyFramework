@@ -81,8 +81,8 @@ public class CustomLine : MaskableGraphic
 					Quaternion q0 = Quaternion.AngleAxis(halfAngle.toDegree(), Vector3.back);
 					Quaternion q1 = Quaternion.AngleAxis((halfAngle - PI_RADIAN).toDegree(), Vector3.back);
 					float length = halfWidth.divide(halfAngle.sin());
-					originVertices[2 * i + 0] = dir.rotateVector3(q0) * length + mPointList[i];
-					originVertices[2 * i + 1] = dir.rotateVector3(q1) * length + mPointList[i];
+					originVertices[2 * i + 0] = dir.rotate(q0) * length + mPointList[i];
+					originVertices[2 * i + 1] = dir.rotate(q1) * length + mPointList[i];
 				}
 				else if (i > 0 && i < pointCount - 1)
 				{
@@ -92,8 +92,8 @@ public class CustomLine : MaskableGraphic
 					float extendLength = halfWidth.divide(halfAngle.sin());
 					Quaternion q0 = Quaternion.AngleAxis(halfAngle.toDegree(), Vector3.back);
 					Quaternion q1 = Quaternion.AngleAxis((halfAngle - PI_RADIAN).toDegree(), Vector3.back);
-					originVertices[2 * i + 0] = dir.rotateVector3(q0) * extendLength + mPointList[i];
-					originVertices[2 * i + 1] = dir.rotateVector3(q1) * extendLength + mPointList[i];
+					originVertices[2 * i + 0] = dir.rotate(q0) * extendLength + mPointList[i];
+					originVertices[2 * i + 1] = dir.rotate(q1) * extendLength + mPointList[i];
 				}
 				else if (i == pointCount - 1)
 				{
@@ -102,8 +102,8 @@ public class CustomLine : MaskableGraphic
 					Quaternion q0 = Quaternion.AngleAxis(halfAngle.toDegree(), Vector3.back);
 					Quaternion q1 = Quaternion.AngleAxis((halfAngle - PI_RADIAN).toDegree(), Vector3.back);
 					float length = halfWidth.divide(halfAngle.sin());
-					originVertices[2 * i + 0] = dir.rotateVector3(q0) * length + mPointList[i];
-					originVertices[2 * i + 1] = dir.rotateVector3(q1) * length + mPointList[i];
+					originVertices[2 * i + 0] = dir.rotate(q0) * length + mPointList[i];
+					originVertices[2 * i + 1] = dir.rotate(q1) * length + mPointList[i];
 				}
 			}
 		}

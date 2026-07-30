@@ -48,7 +48,7 @@ public class COMCharacterController : GameComponent
 			mPlayerData.mSpeed = (mPlayerData.mSpeed - 2.0f).clampMin();
 			mUIGame.setSpeed(mPlayerData.mSpeed);
 		}
-		if (!moveDir.isVectorZero())
+		if (!moveDir.isZero())
 		{
 			mPlayer.setPosition(mPlayer.getPosition() + moveDir.normalize() * mPlayerData.mSpeed);
 			mUIGame.setAvatarPosition(mPlayer.getPosition());

@@ -124,7 +124,7 @@ public static class MathExtension
 	// value1大于等于value0则返回1,否则返回0
 	public static int step(this float value0, float value1) { return value1 >= value0 ? 1 : 0; }
 	// 得到value0除以value1的余数
-	public static float fmod(this float value0, float value1) { return value0 - value1 * (int)(value0.divide(value1)); }
+	public static float fmod(this float value0, float value1) { return value0 - value1 * (int)value0.divide(value1); }
 	// 返回value的小数部分
 	public static float frac(this float value) { return value - (int)value; }
 	public static float abs(this float value) { return value >= 0.0f ? value : -value; }
@@ -149,7 +149,7 @@ public static class MathExtension
 	public static float checkFloat(this float value, int precision = 4)
 	{
 		float helper = pow10(precision);
-		value = divide(value * helper.round(), helper);
+		value = divide((value * helper).round(), helper);
 		return value;
 	}
 	public static Vector3 checkFloat(this Vector3 value, int precision = 4)
@@ -246,12 +246,14 @@ public static class MathExtension
 	public static Vector2 replaceX(this Vector2 v, float x) { return new(x, v.y); }
 	// 将向量的Y替换为指定值
 	public static Vector2 replaceY(this Vector2 v, float y) { return new(v.x, y); }
-	public static bool isVectorZero(this Vector2 vec, float precision = 0.0001f)
+	// 构造出Vector3,将向量的Z替换为指定值
+	public static Vector3 replaceZ(this Vector2 v, float z) { return new(v.x, v.y, z); }
+	public static bool isZero(this Vector2 vec, float precision = 0.0001f)
 	{
 		return vec.x.isZero(precision) &&
 			   vec.y.isZero(precision);
 	}
-	public static bool isVectorZero(this Vector3 vec, float precision = 0.0001f)
+	public static bool isZero(this Vector3 vec, float precision = 0.0001f)
 	{
 		return vec.x.isZero(precision) &&
 			   vec.y.isZero(precision) &&
@@ -439,6 +441,10 @@ public static class MathExtension
 	{
 		return new(value.x.clampMax(min), value.y.clampMax(min));
 	}
+	public static Vector2 clampMax(this Vector2 value, Vector2 min)
+	{
+		return new(value.x.clampMax(min.x), value.y.clampMax(min.y));
+	}
 	public static Vector2Int clampMax(this Vector2Int value, int min = 0)
 	{
 		return new(value.x.clampMax(min), value.y.clampMax(min));
@@ -507,6 +513,14 @@ public static class MathExtension
 	public static float divide(this int value0, float value1, int defaultValue = 0)
 	{
 		return value1 != 0 ? value0 / value1 : defaultValue;
+	}
+	public static float divide(this long value0, float value1, int defaultValue = 0)
+	{
+		return value1 != 0 ? value0 / value1 : defaultValue;
+	}
+	public static float divide(this long value0, long value1, int defaultValue = 0)
+	{
+		return value1 != 0 ? value0 / (float)value1 : defaultValue;
 	}
 	public static int divideInt(this int value0, int value1, int defaultValue = 0)
 	{
@@ -577,7 +591,15 @@ public static class MathExtension
 	{
 		return value >= getMin(range0, range1) && value <= getMax(range0, range1);
 	}
+	public static bool inRange(this int value, float range0, float range1)
+	{
+		return value >= getMin(range0, range1) && value <= getMax(range0, range1);
+	}
 	public static bool inRangeFixed(this int value, int range0, int range1)
+	{
+		return value >= range0 && value <= range1;
+	}
+	public static bool inRangeFixed(this int value, float range0, float range1)
 	{
 		return value >= range0 && value <= range1;
 	}
@@ -652,13 +674,13 @@ public static class MathExtension
 		}
 		return angle;
 	}
-	public static Vector3 rotateVector3(this Vector3 vec, Matrix4x4 transMat3) { return transMat3 * vec; }
+	public static Vector3 rotate(this Vector3 vec, Matrix4x4 transMat3) { return transMat3 * vec; }
 	// 使用一个四元数去旋转一个三维向量
-	public static Vector3 rotateVector3(this Vector3 vec, Quaternion transQuat) { return transQuat * vec; }
+	public static Vector3 rotate(this Vector3 vec, Quaternion transQuat) { return transQuat * vec; }
 	// 求向量水平顺时针旋转一定角度后的向量,角度范围是-MATH_PI 到 MATH_PI
-	public static Vector3 rotateVector3(this Vector3 vec, float radian)
+	public static Vector3 rotate(this Vector3 vec, float radian)
 	{
-		return vec.rotateVector3(Quaternion.AngleAxis(radian.toDegree(), Vector3.up));
+		return vec.rotate(Quaternion.AngleAxis(radian.toDegree(), Vector3.up));
 	}
 	// 求Z轴顺时针旋转一定角度后的向量,角度范围是-MATH_PI 到 MATH_PI
 	public static Vector3 getVectorFromAngle(this float radian)

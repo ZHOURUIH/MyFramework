@@ -52,7 +52,7 @@ public class ComponentRotateSpeed : GameComponent, IComponentModifyRotation, ICo
 		mRotateAcceleration = rotateAcceleration;
 		applyRotation(ref mCurRotation);
 		// 如果速度和加速度都为0,则停止旋转
-		if (rotateSpeed.isVectorZero() && rotateAcceleration.isVectorZero())
+		if (rotateSpeed.isZero() && rotateAcceleration.isZero())
 		{
 			setActive(false);
 		}
@@ -94,7 +94,7 @@ public class ComponentRotateSpeed : GameComponent, IComponentModifyRotation, ICo
 	protected virtual Vector3 getCurRotation() { return Vector3.zero; }
 	protected void tick(float elapsedTime)
 	{
-		if (mPlayState == PLAY_STATE.PLAY && !(mRotateSpeed.isVectorZero() && mRotateAcceleration.isVectorZero()))
+		if (mPlayState == PLAY_STATE.PLAY && !(mRotateSpeed.isZero() && mRotateAcceleration.isZero()))
 		{
 			mCurRotation += mRotateSpeed * elapsedTime;
 			mCurRotation = mCurRotation.adjustAngle360();

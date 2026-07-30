@@ -47,7 +47,7 @@ public class COMWindowUGUIInteractive : GameComponent
 		{
 			// 此处应该获取touchID的移动量
 			Vector3 delta = mMousePointer.delta;
-			if (!delta.isVectorZero())
+			if (!delta.isZero())
 			{
 				mOnUGUIMouseMove?.Invoke(delta, mMousePointer.position);
 			}
