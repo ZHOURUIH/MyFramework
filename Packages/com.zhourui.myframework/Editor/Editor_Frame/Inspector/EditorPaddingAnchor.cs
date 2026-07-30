@@ -16,14 +16,14 @@ public class EditorPaddingAnchor : GameInspector
 		{
 			bool needRefresh = false;
 			Vector3 curPos = rectTrans.localPosition;
-			if (!paddingAnchor.getLastPosition().isVectorEqual(curPos))
+			if (!paddingAnchor.getLastPosition().isEqual(curPos))
 			{
 				paddingAnchor.setLastPosition(curPos);
 				needRefresh = true;
 				modified = true;
 			}
 			Vector2 curSize = rectTrans.rect.size;
-			if (!paddingAnchor.getLastSize().isVectorEqual(curSize))
+			if (!paddingAnchor.getLastSize().isEqual(curSize))
 			{
 				paddingAnchor.setLastSize(curSize);
 				needRefresh = true;

@@ -835,7 +835,7 @@ public class SerializeBitUtility
 		bool lengthBitType = getBufferBit(buffer, bitIndex++);
 		// 这里本来应该是sizeof(int),因为float最终会转换为int存储,只不过sizeof(int)跟sizeof(float)一样
 		int typeSize = sizeof(float);
-		float powValue = 1.0f.divide(precision.pow10());
+		float powValue = precision.inversePow10();
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
@@ -881,7 +881,7 @@ public class SerializeBitUtility
 		bool lengthBitType = getBufferBit(buffer, bitIndex++);
 		// 这里本来应该是sizeof(int),因为float最终会转换为int存储,只不过sizeof(int)跟sizeof(float)一样
 		int typeSize = sizeof(float);
-		float powValue = 1.0f.divide(precision.pow10());
+		float powValue = precision.inversePow10();
 		// 使用统一的长度位
 		if (lengthBitType)
 		{

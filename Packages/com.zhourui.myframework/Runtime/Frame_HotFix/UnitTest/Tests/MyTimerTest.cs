@@ -30,12 +30,12 @@ public static class MyTimerTest
 
         t.init(0.0f, 1.0f, true);
         assert(t.isCounting(),                 "MyTimer init后开始计时");
-        assert(t.mTimeInterval.isFloatEqual(1.0f), "MyTimer interval=1");
+        assert(t.mTimeInterval.isEqual(1.0f), "MyTimer interval=1");
         assert(t.mLoop,                         "MyTimer loop=true");
 
         t.start();
         assert(t.isCounting(), "MyTimer start 后 isCounting=true");
-        assert(t.mCurTime.isFloatEqual(0.0f), "MyTimer start curTime=0");
+        assert(t.mCurTime.isEqual(0.0f), "MyTimer start curTime=0");
     }
 
     // ─── 非循环模式 tickTimer ────────────────────────────────────────────
@@ -53,7 +53,7 @@ public static class MyTimerTest
         fired = t.tickTimer(0.6f);   // 0.5+0.6=1.1 ≥ 1
         assert(fired,             "non-loop 到达触发");
         assert(!t.isCounting(),   "non-loop 触发后停止计时");
-        assert(t.mCurTime.isFloatEqual(-1.0f), "non-loop 触发后 curTime=-1");
+        assert(t.mCurTime.isEqual(-1.0f), "non-loop 触发后 curTime=-1");
 
         // 触发后再 tick 不应触发
         fired = t.tickTimer(2.0f);
@@ -71,7 +71,7 @@ public static class MyTimerTest
         assert(fired, "loop 第一次触发");
         // 溢出0.5秒应被携带到下一个计时周期
         assert(t.isCounting(),   "loop 触发后继续计时");
-        assert(t.mCurTime.isFloatEqual(0.5f, 0.001f), "loop 携带溢出时间0.5");
+        assert(t.mCurTime.isEqual(0.5f, 0.001f), "loop 携带溢出时间0.5");
 
         // 再 tick 0.4 不触发
         fired = t.tickTimer(0.4f);
@@ -92,7 +92,7 @@ public static class MyTimerTest
         bool fired = t.tickTimer(1.5f);
         assert(fired, "ensureInterval 触发");
         // ensureInterval=true 时 curTime 重置为0，不携带溢出
-        assert(t.mCurTime.isFloatEqual(0.0f), "ensureInterval 重置curTime=0");
+        assert(t.mCurTime.isEqual(0.0f), "ensureInterval 重置curTime=0");
     }
 
     // ─── stop ────────────────────────────────────────────────────────────
@@ -104,13 +104,13 @@ public static class MyTimerTest
         // stop 带reset
         t.stop(true);
         assert(!t.isCounting(),                 "stop(true) 停止计时");
-        assert(t.mTimeInterval.isFloatEqual(-1.0f), "stop(true) interval重置为-1");
+        assert(t.mTimeInterval.isEqual(-1.0f), "stop(true) interval重置为-1");
 
         // stop 不带reset：只停时间，interval保留
         t.init(0.0f, 2.0f, true);
         t.stop(false);
         assert(!t.isCounting(),                     "stop(false) 停止计时");
-        assert(t.mTimeInterval.isFloatEqual(2.0f), "stop(false) interval保留2");
+        assert(t.mTimeInterval.isEqual(2.0f), "stop(false) interval保留2");
     }
 
     // ─── resetToInterval ─────────────────────────────────────────────────
@@ -119,7 +119,7 @@ public static class MyTimerTest
         var t = new MyTimer();
         t.init(0.0f, 3.0f, false);
         t.resetToInterval();
-        assert(t.mCurTime.isFloatEqual(t.mTimeInterval), "resetToInterval curTime=interval");
+        assert(t.mCurTime.isEqual(t.mTimeInterval), "resetToInterval curTime=interval");
 
         // resetToInterval 后第一次 tick 小量应立即触发
         bool fired = t.tickTimer(0.01f);
@@ -133,12 +133,12 @@ public static class MyTimerTest
         t.init(0.0f, 2.0f, true);
         t.tickTimer(1.0f);   // curTime=1
         float pct = t.getTimePercent();
-        assert(pct.isFloatEqual(0.5f, 0.001f), "getTimePercent 0.5");
+        assert(pct.isEqual(0.5f, 0.001f), "getTimePercent 0.5");
 
         // interval<=0 时返回0
         var t2 = new MyTimer();
         t2.init(0.0f, -1.0f, true);
-        assert(t2.getTimePercent().isFloatEqual(0.0f), "getTimePercent interval<=0返回0");
+        assert(t2.getTimePercent().isEqual(0.0f), "getTimePercent interval<=0返回0");
     }
 
     // ─── 未 init 直接 tick ──────────────────────────────────────────────
@@ -158,7 +158,7 @@ public static class MyTimerTest
         bool fired = t.tickTimer(0.0f);
         assert(fired, "interval=0 tick(0)立即触发");
         // loop 下 curTime 重置为0
-        assert(t.mCurTime.isFloatEqual(0.0f), "interval=0 loop后curTime=0");
+        assert(t.mCurTime.isEqual(0.0f), "interval=0 loop后curTime=0");
     }
 
     // ─── MyTimer1 基础验证 ───────────────────────────────────────────────
@@ -187,7 +187,7 @@ public static class MyTimerTest
 
         // getTimePercent: interval<=0 返回0
         t.init(0.0f, -1.0f, false);
-        assert(t.getTimePercent().isFloatEqual(0.0f), "MyTimer1 getTimePercent interval<0=0");
+        assert(t.getTimePercent().isEqual(0.0f), "MyTimer1 getTimePercent interval<0=0");
     }
     // ─── setInterval 动态修改 interval ──────────────────────────────────────
     private static void testSetInterval()
@@ -195,7 +195,7 @@ public static class MyTimerTest
         var t = new MyTimer();
         t.init(0.0f, 5.0f, false);
         t.setInterval(1.0f);
-        assert(t.mTimeInterval.isFloatEqual(1.0f), "setInterval 修改后interval=1");
+        assert(t.mTimeInterval.isEqual(1.0f), "setInterval 修改后interval=1");
 
         // 使用新 interval 触发
         bool fired = t.tickTimer(1.0f);
@@ -243,6 +243,6 @@ public static class MyTimerTest
 
         // curTime == interval 时 = 1.0
         t.mCurTime = 1.0f;
-        assert(t.getTimePercent().isFloatEqual(1.0f, 0.001f), "getTimePercent curTime=interval=1.0");
+        assert(t.getTimePercent().isEqual(1.0f, 0.001f), "getTimePercent curTime=interval=1.0");
     }
 }

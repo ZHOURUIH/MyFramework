@@ -107,7 +107,7 @@ public class CameraLinkerFree : CameraLinker
 			if (isEditor() || isWindows())
 			{
 				float mouseWheelDelta = mInputSystem.getMouseWheelDelta();
-				if (!mouseWheelDelta.isFloatZero())
+				if (!mouseWheelDelta.isZero())
 				{
 					// 键盘移动摄像机
 					if (isKeyDown(KeyCode.LeftShift) || isKeyDown(KeyCode.RightShift))

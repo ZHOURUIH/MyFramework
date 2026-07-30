@@ -4,7 +4,7 @@ public class CurveExpoOut : MyCurve
 {
 	public override float evaluate(float time)
 	{
-		if (time.isFloatEqual(1.0f))
+		if (time.isEqual(1.0f))
 		{
 			return 1.0f;
 		}

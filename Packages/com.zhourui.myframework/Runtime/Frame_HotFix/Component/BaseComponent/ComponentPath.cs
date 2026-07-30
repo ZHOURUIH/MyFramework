@@ -58,7 +58,7 @@ public abstract class ComponentPath : ComponentKeyFrame
 		{
 			startValue = lerp(startValue, mValueList[mLastKeyIndex + 1], inverseLerp(mTimeList[mLastKeyIndex], mTimeList[mLastKeyIndex + 1], curTime));
 		}
-		setValue(mOffsetBlendAdd ? startValue + mValueOffset : startValue.multiVector3(mValueOffset));
+		setValue(mOffsetBlendAdd ? startValue + mValueOffset : startValue.multi(mValueOffset));
 	}
 	protected abstract void setValue(Vector3 value);
 }

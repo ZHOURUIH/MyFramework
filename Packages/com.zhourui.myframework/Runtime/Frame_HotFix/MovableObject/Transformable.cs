@@ -36,7 +36,7 @@ public class Transformable : ComponentOwner, ITransformable
 		if (!mWorldScaleModifyCallback.isEmpty())
 		{
 			Vector3 worldScale = getWorldScale();
-			if (!mLastWorldScale.isVectorEqual(worldScale))
+			if (!mLastWorldScale.isEqual(worldScale))
 			{
 				foreach (Action item in mWorldScaleModifyCallback)
 				{
@@ -283,7 +283,7 @@ public class Transformable : ComponentOwner, ITransformable
 	public Quaternion getWorldQuaternionRotation() { return mTransform != null ? mTransform.rotation : Quaternion.identity; }
 	public void setPosition(Vector3 pos)
 	{
-		if (mTransform == null || mTransform.localPosition.isVectorEqual(pos))
+		if (mTransform == null || mTransform.localPosition.isEqual(pos))
 		{
 			return;
 		}
@@ -299,7 +299,7 @@ public class Transformable : ComponentOwner, ITransformable
 	}
 	public void setScale(Vector3 scale)
 	{
-		if (mTransform == null || mTransform.localScale.isVectorEqual(scale))
+		if (mTransform == null || mTransform.localScale.isEqual(scale))
 		{
 			return;
 		}
@@ -312,7 +312,7 @@ public class Transformable : ComponentOwner, ITransformable
 	// 角度制的欧拉角,分别是绕xyz轴的旋转角度
 	public void setRotation(Vector3 rot)
 	{
-		if (mTransform == null || mTransform.localEulerAngles.isVectorEqual(rot))
+		if (mTransform == null || mTransform.localEulerAngles.isEqual(rot))
 		{
 			return;
 		}
@@ -379,7 +379,7 @@ public class Transformable : ComponentOwner, ITransformable
 		}
 		if (mTransform.parent != null)
 		{
-			mTransform.localScale = scale.divideVector3(mTransform.parent.lossyScale);
+			mTransform.localScale = scale.divide(mTransform.parent.lossyScale);
 		}
 		else
 		{
@@ -465,7 +465,7 @@ public class Transformable : ComponentOwner, ITransformable
 	}
 	public void lookAtPoint(Vector3 point)
 	{
-		if (!point.isVectorEqual(getPosition()))
+		if (!point.isEqual(getPosition()))
 		{
 			setRotation(getLookAtQuaternion(point - getPosition()));
 		}

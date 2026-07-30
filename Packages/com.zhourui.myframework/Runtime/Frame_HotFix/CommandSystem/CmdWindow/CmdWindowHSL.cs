@@ -20,7 +20,7 @@ public class CmdWindowHSL
 			return;
 		}
 		if (isEditor() && 
-			!onceLength.isFloatZero() && 
+			!onceLength.isZero() && 
 			!obj.getLayout().canUIObjectUpdate(obj))
 		{
 			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + obj.getName());

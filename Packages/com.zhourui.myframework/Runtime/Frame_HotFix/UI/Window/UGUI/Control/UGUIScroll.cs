@@ -107,7 +107,7 @@ public class UGUIScroll : WindowObjectUGUI
 			checkReachTarget(ref curOffset, elapsedTime * sign(mTargetOffsetValue - curOffset) * mScrollSpeed, mTargetOffsetValue);
 			mScrollSpeed *= speedSign;
 			updateItem(curOffset);
-			if (mCurOffset.isFloatEqual(mTargetOffsetValue))
+			if (mCurOffset.isEqual(mTargetOffsetValue))
 			{
 				stop();
 			}
@@ -117,7 +117,7 @@ public class UGUIScroll : WindowObjectUGUI
 			mScrollToTargetTimer += elapsedTime;
 			float percent = mScrollToTargetCurve.evaluate(mScrollToTargetTimer.divide(mScrollToTargetMaxTime));
 			updateItem(lerp(mScrollToTargetStartValue, mTargetOffsetValue, percent));
-			if (mCurOffset.isFloatEqual(mTargetOffsetValue))
+			if (mCurOffset.isEqual(mTargetOffsetValue))
 			{
 				stop();
 			}
@@ -133,7 +133,7 @@ public class UGUIScroll : WindowObjectUGUI
 			float curControlValue = mMainFocus - mCurOffset;
 			bool needClamp = !mLoop && !curControlValue.inRangeFixed(0.0f, mMaxControlValue);
 			// 非循环模式下,当前偏移值小于0或者大于最大值时,需要回到正常的范围,偏移值越小,减速越快
-			if (!mScrollSpeed.isFloatZero())
+			if (!mScrollSpeed.isZero())
 			{
 				float t;
 				// 超出范围后快速减速至0,然后回弹
@@ -161,7 +161,7 @@ public class UGUIScroll : WindowObjectUGUI
 				if (needClamp)
 				{
 					// 超出范围在移动停止后回弹
-					if (mScrollSpeed.isFloatZero())
+					if (mScrollSpeed.isZero())
 					{
 						lerpToTarget(willFocusIndex);
 					}
@@ -240,7 +240,7 @@ public class UGUIScroll : WindowObjectUGUI
 			}
 		}
 		mScrollSpeed = (mTargetOffsetValue - mCurOffset).divide(time);
-		mState = mScrollSpeed.isFloatZero() ? SCROLL_STATE.NONE : SCROLL_STATE.SCROLL_TO_TARGET;
+		mState = mScrollSpeed.isZero() ? SCROLL_STATE.NONE : SCROLL_STATE.SCROLL_TO_TARGET;
 		mOnScrollItem?.Invoke(mItemList[index], index);
 	}
 	// 根据当前速度计算出滚动时间,匀减速滚动到指定下标
@@ -363,7 +363,7 @@ public class UGUIScroll : WindowObjectUGUI
 		for (int i = 0; i < itemCount; ++i)
 		{
 			float thisControllValue = i;
-			if (thisControllValue.isFloatEqual(controlValue))
+			if (thisControllValue.isEqual(controlValue))
 			{
 				index = i;
 				break;
@@ -424,7 +424,7 @@ public class UGUIScroll : WindowObjectUGUI
 		for (int i = 0; i < containerCount; ++i)
 		{
 			float curControlValue = i;
-			if (curControlValue.isFloatEqual(controlValue))
+			if (curControlValue.isEqual(controlValue))
 			{
 				index = i;
 				break;

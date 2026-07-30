@@ -103,7 +103,7 @@ public class PaddingAnchor : MonoBehaviour
 			return;
 		}
 		// 如果窗口带缩放,则可能适配不正确
-		if (!transform.localScale.isVectorEqual(Vector3.one))
+		if (!transform.localScale.isEqual(Vector3.one))
 		{
 			logWarning("transform's scale is not 1, may not adapt correctly, " + transform.name + ", scale:" + transform.localScale.V3ToS(6));
 		}
@@ -431,7 +431,7 @@ public class PaddingAnchor : MonoBehaviour
 	protected void getSides(GameObject parent, Span<Vector3> sides)
 	{
 		TryGetComponent<RectTransform>(out var rectTransform);
-		if (!rectTransform.pivot.isVectorEqual(new(0.5f, 0.5f)))
+		if (!rectTransform.pivot.isEqual(new(0.5f, 0.5f)))
 		{
 			logError("UI的pivot错误:" + rectTransform.name);
 		}

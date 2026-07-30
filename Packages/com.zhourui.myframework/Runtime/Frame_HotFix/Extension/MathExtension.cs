@@ -11,7 +11,7 @@ public static class MathExtension
 	public static int ceil(this float value)
 	{
 		int intValue = (int)value;
-		if (isFloatEqual(intValue, value))
+		if (isEqual(intValue, value))
 		{
 			return intValue;
 		}
@@ -41,7 +41,7 @@ public static class MathExtension
 		// 但是由于这种误差是非预期的,也就是说外边可能就是251*1,这种情况需要消除这种误差,使用checkInt即可消除
 		value = value.checkInt();
 		int intValue = (int)value;
-		if (isFloatEqual(intValue, value))
+		if (isEqual(intValue, value))
 		{
 			return intValue;
 		}
@@ -149,7 +149,7 @@ public static class MathExtension
 	public static float checkFloat(this float value, int precision = 4)
 	{
 		float helper = pow10(precision);
-		value = divide(round(value * helper), helper);
+		value = divide(value * helper.round(), helper);
 		return value;
 	}
 	public static Vector3 checkFloat(this Vector3 value, int precision = 4)
@@ -170,7 +170,7 @@ public static class MathExtension
 	public static float checkInt(this float value, float precision = 0.0001f)
 	{
 		// 先判断是否为0
-		if (value.isFloatZero(precision))
+		if (value.isZero(precision))
 		{
 			return 0.0f;
 		}
@@ -181,7 +181,7 @@ public static class MathExtension
 			// 如果原值减去整数值小于0.5f,则表示原值可能接近于整数值
 			if (value - intValue < 0.5f)
 			{
-				if (isFloatZero(value - intValue, precision))
+				if ((value - intValue).isZero(precision))
 				{
 					value = intValue;
 				}
@@ -189,7 +189,7 @@ public static class MathExtension
 			// 如果原值减去整数值大于0.5f, 则表示原值可能接近于整数值+1
 			else
 			{
-				if (isFloatZero(value - (intValue + 1), precision))
+				if ((value - (intValue + 1)).isZero(precision))
 				{
 					value = intValue + 1;
 				}
@@ -201,7 +201,7 @@ public static class MathExtension
 			// 如果原值减去整数值的结果的绝对值小于0.5f,则表示原值可能接近于整数值
 			if (Mathf.Abs(value - intValue) < 0.5f)
 			{
-				if (isFloatZero(value - intValue, precision))
+				if ((value - intValue).isZero(precision))
 				{
 					value = intValue;
 				}
@@ -209,7 +209,7 @@ public static class MathExtension
 			else
 			{
 				// 如果原值减去整数值的结果的绝对值大于0.5f, 则表示原值可能接近于整数值-1
-				if (isFloatZero(value - (intValue - 1), precision))
+				if ((value - (intValue - 1)).isZero(precision))
 				{
 					value = intValue - 1;
 				}
@@ -222,7 +222,7 @@ public static class MathExtension
 	{
 		if (vec.lengthGreater(maxLength))
 		{
-			return normalize(vec) * maxLength;
+			return vec.normalize() * maxLength;
 		}
 		return vec;
 	}
@@ -248,14 +248,14 @@ public static class MathExtension
 	public static Vector2 replaceY(this Vector2 v, float y) { return new(v.x, y); }
 	public static bool isVectorZero(this Vector2 vec, float precision = 0.0001f)
 	{
-		return vec.x.isFloatZero(precision) &&
-			   vec.y.isFloatZero(precision);
+		return vec.x.isZero(precision) &&
+			   vec.y.isZero(precision);
 	}
 	public static bool isVectorZero(this Vector3 vec, float precision = 0.0001f)
 	{
-		return vec.x.isFloatZero(precision) &&
-			   vec.y.isFloatZero(precision) &&
-			   vec.z.isFloatZero(precision);
+		return vec.x.isZero(precision) &&
+			   vec.y.isZero(precision) &&
+			   vec.z.isZero(precision);
 	}
 	public static float getLength(this Vector4 vec) { return sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z + vec.w * vec.w); }
 	public static float getLength(this Vector3 vec) { return sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z); }
@@ -288,48 +288,48 @@ public static class MathExtension
 	public static bool lengthGreaterEqualIgnoreY(this Vector3 vec, float length) { return vec.x * vec.x + vec.z * vec.z >= length * length; }
 	public static Vector3 setLength(this Vector3 vec, float length)
 	{
-		float scale = 1.0f.divide(getLength(vec)) * length;
+		float scale = vec.getLength().inverse() * length;
 		return new(vec.x * scale, vec.y * scale, vec.z * scale);
 	}
 	public static Vector2 setLength(this Vector2 vec, float length)
 	{
-		float scale = 1.0f.divide(getLength(vec)) * length;
+		float scale = vec.getLength().inverse() * length;
 		return new(vec.x * scale, vec.y * scale);
 	}
 	// vec0的3个分量是否都小于vec1的3个分量
-	public static bool isVector3Less(this Vector3 vec0, Vector3 vec1) { return vec0.x < vec1.x && vec0.y < vec1.y && vec0.z < vec1.z; }
+	public static bool isLess(this Vector3 vec0, Vector3 vec1) { return vec0.x < vec1.x && vec0.y < vec1.y && vec0.z < vec1.z; }
 	// vec0的3个分量是否都大于vec1的3个分量
-	public static bool isVector3Greater(this Vector3 vec0, Vector3 vec1) { return vec0.x > vec1.x && vec0.y > vec1.y && vec0.z > vec1.z; }
+	public static bool isGreater(this Vector3 vec0, Vector3 vec1) { return vec0.x > vec1.x && vec0.y > vec1.y && vec0.z > vec1.z; }
 	// vec0的2个分量是否都小于vec1的2个分量
-	public static bool isVector2Less(this Vector2 vec0, Vector2 vec1) { return vec0.x < vec1.x && vec0.y < vec1.y; }
+	public static bool isLess(this Vector2 vec0, Vector2 vec1) { return vec0.x < vec1.x && vec0.y < vec1.y; }
 	// vec0的2个分量是否都大于vec1的2个分量
-	public static bool isVector2Greater(this Vector2 vec0, Vector2 vec1) { return vec0.x > vec1.x && vec0.y > vec1.y; }
-	public static bool isVectorEqual(this Vector2 vec0, Vector2 vec1, float precision = 0.0001f)
+	public static bool isGreater(this Vector2 vec0, Vector2 vec1) { return vec0.x > vec1.x && vec0.y > vec1.y; }
+	public static bool isEqual(this Vector2 vec0, Vector2 vec1, float precision = 0.0001f)
 	{
-		return isFloatZero(vec0.x - vec1.x, precision) &&
-			   isFloatZero(vec0.y - vec1.y, precision);
+		return isZero(vec0.x - vec1.x, precision) &&
+			   isZero(vec0.y - vec1.y, precision);
 	}
-	public static bool isVectorEqual(this Vector3 vec0, Vector3 vec1, float precision = 0.0001f)
+	public static bool isEqual(this Vector3 vec0, Vector3 vec1, float precision = 0.0001f)
 	{
-		return isFloatZero(vec0.x - vec1.x, precision) &&
-			   isFloatZero(vec0.y - vec1.y, precision) &&
-			   isFloatZero(vec0.z - vec1.z, precision);
+		return isZero(vec0.x - vec1.x, precision) &&
+			   isZero(vec0.y - vec1.y, precision) &&
+			   isZero(vec0.z - vec1.z, precision);
 	}
-	public static bool isQuaternionEqual(this Quaternion value0, Quaternion value1, float precision = 0.0001f)
+	public static bool isEqual(this Quaternion value0, Quaternion value1, float precision = 0.0001f)
 	{
-		return isFloatEqual(value0.x, value1.x, precision) &&
-			   isFloatEqual(value0.y, value1.y, precision) &&
-			   isFloatEqual(value0.z, value1.z, precision) &&
-			   isFloatEqual(value0.w, value1.w, precision);
+		return isEqual(value0.x, value1.x, precision) &&
+			   isEqual(value0.y, value1.y, precision) &&
+			   isEqual(value0.z, value1.z, precision) &&
+			   isEqual(value0.w, value1.w, precision);
 	}
 	public static Vector3 normalize(this Vector3 vec3)
 	{
-		float inverseLen = 1.0f.divide(getLength(vec3));
+		float inverseLen = vec3.getLength().inverse();
 		return new(vec3.x * inverseLen, vec3.y * inverseLen, vec3.z * inverseLen);
 	}
 	public static Vector2 normalize(this Vector2 vec2)
 	{
-		float inverseLen = 1.0f.divide(getLength(vec2));
+		float inverseLen = vec2.getLength().inverse();
 		return new(vec2.x * inverseLen, vec2.y * inverseLen);
 	}
 	public static float toRadian(this float degree) { return degree * Mathf.Deg2Rad; }
@@ -341,7 +341,7 @@ public static class MathExtension
 	public static float getQuaternionRoll(this Quaternion q) { return q.eulerAngles.x; }
 	public static float clamp(this float value, float min, float max)
 	{
-		if (min > max || min.isFloatEqual(max))
+		if (min > max || min.isEqual(max))
 		{
 			return min;
 		}
@@ -407,37 +407,23 @@ public static class MathExtension
 	public static double clampMin(this double value, double min = 0.0) { return value < min ? min : value; }
 	public static Vector2 clampMin(this Vector2 value, float min = 0.0f) 
 	{
-		value.x = value.x.clampMin(min);
-		value.y = value.y.clampMin(min);
-		return value;
+		return new(value.x.clampMin(min), value.y.clampMin(min));
 	}
 	public static Vector2Int clampMin(this Vector2Int value, int min = 0)
 	{
-		value.x = value.x.clampMin(min);
-		value.y = value.y.clampMin(min);
-		return value;
+		return new(value.x.clampMin(min), value.y.clampMin(min));
 	}
 	public static Vector3 clampMin(this Vector3 value, float min = 0.0f)
 	{
-		value.x = value.x.clampMin(min);
-		value.y = value.y.clampMin(min);
-		value.z = value.z.clampMin(min);
-		return value;
+		return new(value.x.clampMin(min), value.y.clampMin(min), value.z.clampMin(min));
 	}
 	public static Vector3Int clampMin(this Vector3Int value, int min = 0)
 	{
-		value.x = value.x.clampMin(min);
-		value.y = value.y.clampMin(min);
-		value.z = value.z.clampMin(min);
-		return value;
+		return new(value.x.clampMin(min), value.y.clampMin(min), value.z.clampMin(min));
 	}
 	public static Vector4 clampMin(this Vector4 value, float min = 0.0f)
 	{
-		value.x = value.x.clampMin(min);
-		value.y = value.y.clampMin(min);
-		value.z = value.z.clampMin(min);
-		value.w = value.w.clampMin(min);
-		return value;
+		return new(value.x.clampMin(min), value.y.clampMin(min), value.z.clampMin(min), value.w.clampMin(min));
 	}
 	public static byte clampMax(this byte value, byte max) { return value > max ? max : value; }
 	public static sbyte clampMax(this sbyte value, sbyte max) { return value > max ? max : value; }
@@ -451,39 +437,25 @@ public static class MathExtension
 	public static double clampMax(this double value, double max) { return value > max ? max : value; }
 	public static Vector2 clampMax(this Vector2 value, float min = 0.0f)
 	{
-		value.x = value.x.clampMax(min);
-		value.y = value.y.clampMax(min);
-		return value;
+		return new(value.x.clampMax(min), value.y.clampMax(min));
 	}
 	public static Vector2Int clampMax(this Vector2Int value, int min = 0)
 	{
-		value.x = value.x.clampMax(min);
-		value.y = value.y.clampMax(min);
-		return value;
+		return new(value.x.clampMax(min), value.y.clampMax(min));
 	}
 	public static Vector3 clampMax(this Vector3 value, float min = 0.0f)
 	{
-		value.x = value.x.clampMax(min);
-		value.y = value.y.clampMax(min);
-		value.z = value.z.clampMax(min);
-		return value;
+		return new(value.x.clampMax(min), value.y.clampMax(min), value.z.clampMax(min));
 	}
 	public static Vector3Int clampMax(this Vector3Int value, int min = 0)
 	{
-		value.x = value.x.clampMax(min);
-		value.y = value.y.clampMax(min);
-		value.z = value.z.clampMax(min);
-		return value;
+		return new(value.x.clampMax(min), value.y.clampMax(min), value.z.clampMax(min));
 	}
 	public static Vector4 clampMax(this Vector4 value, float min = 0.0f)
 	{
-		value.x = value.x.clampMax(min);
-		value.y = value.y.clampMax(min);
-		value.z = value.z.clampMax(min);
-		value.w = value.w.clampMax(min);
-		return value;
+		return new(value.x.clampMax(min), value.y.clampMax(min), value.z.clampMax(min), value.w.clampMax(min));
 	}
-	public static bool isFloatZero(this float value, float precision = 0.0001f)
+	public static bool isZero(this float value, float precision = 0.0001f)
 	{
 		return value >= -precision && value <= precision;
 	}
@@ -491,18 +463,42 @@ public static class MathExtension
 	{
 		return value >= -precision && value <= precision;
 	}
-	public static bool isFloatEqual(this float value1, float value2, float precision = 0.0001f)
-	{
-		return isFloatZero(value1 - value2, precision);
-	}
-	public static bool isDoubleEqual(this double value1, double value2, double precision = 0.00000001f)
+	public static bool isEqual(this float value1, float value2, float precision = 0.0001f)
 	{
 		return isZero(value1 - value2, precision);
+	}
+	public static bool isEqual(this double value1, double value2, double precision = 0.00000001f)
+	{
+		return isZero(value1 - value2, precision);
+	}
+	public static float inverse(this float value)
+	{
+		if (value.isZero())
+		{
+			return 0.0f;
+		}
+		return 1.0f / value;
+	}
+	public static float inverse(this int value)
+	{
+		if (value == 0)
+		{
+			return 0.0f;
+		}
+		return 1.0f / value;
+	}
+	public static double inverse(this double value)
+	{
+		if (value.isZero())
+		{
+			return 0.0;
+		}
+		return 1.0 / value;
 	}
 	// 返回value0/value1的值,如果value1为0,则返回defaultValue
 	public static float divide(this float value0, float value1, float defaultValue = 0.0f)
 	{
-		return !isFloatZero(value1) ? value0 / value1 : defaultValue;
+		return !isZero(value1) ? value0 / value1 : defaultValue;
 	}
 	public static float divide(this int value0, int value1, int defaultValue = 0)
 	{
@@ -587,55 +583,43 @@ public static class MathExtension
 	}
 	public static bool inRange(this Vector3 value, Vector3 point0, Vector3 point1, bool ignoreY = true, float precision = 0.001f)
 	{
-		return inRange(value.x, point0.x, point1.x, precision) &&
-			   inRange(value.z, point0.z, point1.z, precision) &&
-			  (ignoreY || inRange(value.y, point0.y, point1.y, precision));
+		return value.x.inRange(point0.x, point1.x, precision) &&
+				(ignoreY || value.y.inRange(point0.y, point1.y, precision)) &&
+				value.z.inRange(point0.z, point1.z, precision);
 	}
 	public static bool inRange(this Vector2 value, Vector2 point0, Vector2 point1, float precision = 0.001f)
 	{
-		return inRange(value.x, point0.x, point1.x, precision) &&
-			   inRange(value.y, point0.y, point1.y, precision);
+		return value.x.inRange(point0.x, point1.x, precision) &&
+			   value.y.inRange(point0.y, point1.y, precision);
 	}
-	public static Vector2 multiVector2(this Vector2 v1, Vector2 v2) { return new(v1.x * v2.x, v1.y * v2.y); }
-	public static Vector2 divideVector2(this Vector2 v1, Vector2 v2) { return new(divide(v1.x, v2.x), divide(v1.y, v2.y)); }
-	public static Vector3 multiVector3(this Vector3 v1, Vector3 v2) { return new(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z); }
-	public static Vector3 divideVector3(this Vector3 v1, Vector3 v2) { return new(divide(v1.x, v2.x), divide(v1.y, v2.y), divide(v1.z, v2.z)); }
-	public static Vector2 divide(this Vector2 v1, float scale) { return new(divide(v1.x, scale), divide(v1.y, scale)); }
-	public static Vector3 divide(this Vector3 v1, float scale) { return new(divide(v1.x, scale), divide(v1.y, scale), divide(v1.z, scale)); }
-	public static float adjustRadian180(this float radian) { return clampCycle(radian, -PI_RADIAN, PI_RADIAN, TWO_PI_RADIAN); }
+	public static Vector2 multi(this Vector2 v1, Vector2 v2) { return new(v1.x * v2.x, v1.y * v2.y); }
+	public static Vector2 divide(this Vector2 v1, Vector2 v2) { return new(v1.x.divide(v2.x), v1.y.divide(v2.y)); }
+	public static Vector3 multi(this Vector3 v1, Vector3 v2) { return new(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z); }
+	public static Vector3 divide(this Vector3 v1, Vector3 v2) { return new(v1.x.divide(v2.x), v1.y.divide(v2.y), v1.z.divide(v2.z)); }
+	public static Vector2 divide(this Vector2 v1, float scale) { return new(v1.x.divide(scale), v1.y.divide(scale)); }
+	public static Vector3 divide(this Vector3 v1, float scale) { return new(v1.x.divide(scale), v1.y.divide(scale), v1.z.divide(scale)); }
+	public static float adjustRadian180(this float radian) { return radian.clampCycle(-PI_RADIAN, PI_RADIAN, TWO_PI_RADIAN); }
 	public static Vector3 adjustRadian180(this Vector3 radian)
 	{
-		radian.x = adjustRadian180(radian.x);
-		radian.y = adjustRadian180(radian.y);
-		radian.z = adjustRadian180(radian.z);
-		return radian;
+		return new(radian.x.adjustRadian180(), radian.y.adjustRadian180(), radian.z.adjustRadian180());
 	}
-	public static float adjustAngle180(this float degree) { return clampCycle(degree, -PI_DEGREE, PI_DEGREE, TWO_PI_DEGREE); }
+	public static float adjustAngle180(this float degree) { return degree.clampCycle(-PI_DEGREE, PI_DEGREE, TWO_PI_DEGREE); }
 	public static Vector3 adjustAngle180(this Vector3 degree)
 	{
-		degree.x = adjustAngle180(degree.x);
-		degree.y = adjustAngle180(degree.y);
-		degree.z = adjustAngle180(degree.z);
-		return degree;
+		return new(degree.x.adjustAngle180(), degree.y.adjustAngle180(), degree.z.adjustAngle180());
 	}
-	public static float adjustRadian360(this float radian) { return clampCycle(radian, 0.0f, TWO_PI_RADIAN, TWO_PI_RADIAN); }
+	public static float adjustRadian360(this float radian) { return radian.clampCycle(0.0f, TWO_PI_RADIAN, TWO_PI_RADIAN); }
 	public static Vector3 adjustRadian360(this Vector3 radian)
 	{
-		radian.x = adjustRadian360(radian.x);
-		radian.y = adjustRadian360(radian.y);
-		radian.z = adjustRadian360(radian.z);
-		return radian;
+		return new(radian.x.adjustRadian360(), radian.y.adjustRadian360(), radian.z.adjustRadian360());
 	}
-	public static float adjustAngle360(this float degree) { return clampCycle(degree, 0.0f, TWO_PI_DEGREE, TWO_PI_DEGREE); }
+	public static float adjustAngle360(this float degree) { return degree.clampCycle(0.0f, TWO_PI_DEGREE, TWO_PI_DEGREE); }
 	public static Vector3 adjustAngle360(this Vector3 degree)
 	{
-		degree.x = adjustAngle360(degree.x);
-		degree.y = adjustAngle360(degree.y);
-		degree.z = adjustAngle360(degree.z);
-		return degree;
+		return new(degree.x.adjustAngle360(), degree.y.adjustAngle360(), degree.z.adjustAngle360());
 	}
 	// 求从z轴到指定向量的水平方向上的顺时针角度,角度范围是-MATH_PI 到 MATH_PI
-	public static float getAngleFromVector3(this Vector3 vec, ANGLE radian = ANGLE.RADIAN)
+	public static float getAngle(this Vector3 vec, ANGLE radian = ANGLE.RADIAN)
 	{
 		vec.y = 0.0f;
 		vec = vec.normalize();
@@ -652,16 +636,20 @@ public static class MathExtension
 		}
 		return angle;
 	}
-	public static float getAngleFromVector2(this Vector2 vec)
+	public static float getAngle(this Vector2 vec, ANGLE radian = ANGLE.RADIAN)
 	{
-		Vector3 tempVec = normalize(new Vector3(vec.x, 0.0f, vec.y));
+		Vector3 tempVec = new Vector3(vec.x, 0.0f, vec.y).normalize();
 		float angle = acos(tempVec.z);
 		if (tempVec.x > 0.0f)
 		{
 			angle = -angle;
 		}
 		// 在unity的坐标系中航向角需要取反
-		angle = -angle.adjustRadian180();
+		angle = - angle.adjustRadian180();
+		if (radian == ANGLE.DEGREE)
+		{
+			angle = angle.toDegree();
+		}
 		return angle;
 	}
 	public static Vector3 rotateVector3(this Vector3 vec, Matrix4x4 transMat3) { return transMat3 * vec; }
@@ -670,21 +658,21 @@ public static class MathExtension
 	// 求向量水平顺时针旋转一定角度后的向量,角度范围是-MATH_PI 到 MATH_PI
 	public static Vector3 rotateVector3(this Vector3 vec, float radian)
 	{
-		return vec.rotateVector3(Quaternion.AngleAxis(toDegree(radian), Vector3.up));
+		return vec.rotateVector3(Quaternion.AngleAxis(radian.toDegree(), Vector3.up));
 	}
 	// 求Z轴顺时针旋转一定角度后的向量,角度范围是-MATH_PI 到 MATH_PI
 	public static Vector3 getVectorFromAngle(this float radian)
 	{
 		radian = radian.adjustRadian180();
 		// 在unity坐标系是右手坐标系,所以x轴不需要添加负号
-		return new(sin(radian), 0.0f, cos(radian));
+		return new(radian.sin(), 0.0f, radian.cos());
 	}
 	// 求Z轴顺时针旋转一定角度后的向量,角度范围是-MATH_PI 到 MATH_PI
 	public static Vector2 getVector2FromAngle(this float radian)
 	{
 		radian = radian.adjustRadian180();
 		// 在unity坐标系是右手坐标系,所以x轴不需要添加负号
-		return new(sin(radian), cos(radian));
+		return new(radian.sin(), radian.cos());
 	}
 	public static float dot(this Vector3 v0, Vector3 v1) { return v0.x * v1.x + v0.y * v1.y + v0.z * v1.z; }
 	public static float dot(this Vector2 v0, Vector2 v1) { return v0.x * v1.x + v0.y * v1.y; }

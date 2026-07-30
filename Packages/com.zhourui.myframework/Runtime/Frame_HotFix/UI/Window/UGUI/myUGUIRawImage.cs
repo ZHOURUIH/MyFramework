@@ -91,7 +91,7 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		}
 		mCanvasGroup.alpha = isCull ? 0.0f : 1.0f;
 	}
-	public bool isCull() { return mCanvasGroup != null && mCanvasGroup.alpha.isFloatZero(); }
+	public bool isCull() { return mCanvasGroup != null && mCanvasGroup.alpha.isZero(); }
 	public void setWindowShader(WindowShader shader) 
 	{
 		mWindowShader = shader;

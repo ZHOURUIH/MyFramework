@@ -21,7 +21,7 @@ public class CmdTransformableMoveCurve
 		}
 		if (isEditor() && 
 			obj is myUGUIObject uiObj &&
-			!onceLength.isFloatZero() && 
+			!onceLength.isZero() && 
 			!uiObj.getLayout().canUIObjectUpdate(uiObj))
 		{
 			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + uiObj.getName());

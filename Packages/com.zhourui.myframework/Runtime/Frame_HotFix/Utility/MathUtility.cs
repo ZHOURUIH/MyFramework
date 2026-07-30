@@ -637,7 +637,7 @@ public class MathUtility
 		Vector3 dir = (point - planePoint).normalize();
 		float dotResult = dir.dot(normal);
 		// 在平面上
-		if (dotResult.isFloatZero())
+		if (dotResult.isZero())
 		{
 			return 0;
 		}
@@ -678,7 +678,7 @@ public class MathUtility
 		v0 = v0.normalize();
 		v1 = v1.normalize();
 		// 两个向量方向相反或者相同,就在同一条直线上
-		return (v0 + v1).isVectorZero() || v0.isVectorEqual(v1);
+		return (v0 + v1).isVectorZero() || v0.isEqual(v1);
 	}
 	// 三个点是否在同一条直线上
 	public static bool isPointsInSameLine3(Vector3 point0, Vector3 point1, Vector3 point2)
@@ -693,7 +693,7 @@ public class MathUtility
 		v0 = v0.normalize();
 		v1 = v1.normalize();
 		// 两个向量方向相反或者相同,就在同一条直线上
-		return (v0 + v1).isVectorZero() || v0.isVectorEqual(v1);
+		return (v0 + v1).isVectorZero() || v0.isEqual(v1);
 	}
 	// 直线与圆的相交检测
 	public static bool intersectCircle(Vector2 center, float radius, Line2 line, ref PolygonIntersectResult result)
@@ -704,7 +704,7 @@ public class MathUtility
 		float squaredRadius = radius * radius;
 		float pointToLineSquaredDistance = (center - projectPoint).getSquaredLength();
 		// 直线与圆相切
-		if (pointToLineSquaredDistance.isFloatEqual(squaredRadius))
+		if (pointToLineSquaredDistance.isEqual(squaredRadius))
 		{
 			result.mIntersectPoint0 = projectPoint;
 			result.mIntersectPoint1 = projectPoint;
@@ -747,8 +747,8 @@ public class MathUtility
 			// 首先对每条边进行变换
 			Vector3 point0 = points[i];
 			Vector3 point1 = points[(i + 1) % pointCount];
-			point0 = point0.rotateVector3(transform.localRotation).multiVector3(transform.localScale) + transform.localPosition;
-			point1 = point1.rotateVector3(transform.localRotation).multiVector3(transform.localScale) + transform.localPosition;
+			point0 = point0.rotateVector3(transform.localRotation).multi(transform.localScale) + transform.localPosition;
+			point1 = point1.rotateVector3(transform.localRotation).multi(transform.localScale) + transform.localPosition;
 			// 与每一条边进行相交检测
 			if (!intersectLineLineSection(line, new(point0, point1), out intersect))
 			{
@@ -764,7 +764,7 @@ public class MathUtility
 			else if (intersectCount == 1)
 			{
 				// 判断是否与第一个点是同一个点,因为当相交点为其中一个顶点时,会计算出重合的相交点
-				if (!result.mIntersectPoint0.isVectorEqual(intersect))
+				if (!result.mIntersectPoint0.isEqual(intersect))
 				{
 					result.mIntersectPoint1 = intersect;
 					result.mLine1.mStart = point0;
@@ -856,10 +856,10 @@ public class MathUtility
 	public static bool intersectLineSection(Vector2 start0, Vector2 end0, Vector2 start1, Vector2 end1, out Vector2 intersection, bool checkEndPoint = false, float precision = 0.0001f)
 	{
 		// 有端点重合
-		if (start0.isVectorEqual(start1) ||
-			start0.isVectorEqual(end1) ||
-			end0.isVectorEqual(start1) ||
-			end0.isVectorEqual(end1))
+		if (start0.isEqual(start1) ||
+			start0.isEqual(end1) ||
+			end0.isEqual(start1) ||
+			end0.isEqual(end1))
 		{
 			// 考虑端点时认为两条线段相交
 			// 不考虑端点时,则两条线段不相交
@@ -938,7 +938,7 @@ public class MathUtility
 		else
 		{
 			// 两条不重合且不平行的两条线才计算交点
-			if (!line0.mK.isFloatEqual(line1.mK))
+			if (!line0.mK.isEqual(line1.mK))
 			{
 				intersect.x = (line1.mB - line0.mB).divide(line0.mK - line1.mK);
 				intersect.y = line0.mK * intersect.x + line0.mB;
@@ -954,13 +954,13 @@ public class MathUtility
 		Vector3 start = line.mStart;
 		Vector3 end = line.mEnd;
 		// 一条横着的线,斜率为0
-		if (start.z.isFloatEqual(end.z))
+		if (start.z.isEqual(end.z))
 		{
 			k = 0.0f;
 			b = start.z;
 		}
 		// 直线是一条竖直的线,没有斜率
-		else if (start.x.isFloatEqual(end.x))
+		else if (start.x.isEqual(end.x))
 		{
 			k = 0.0f;
 			b = 0.0f;
@@ -979,13 +979,13 @@ public class MathUtility
 		Vector2 start = line.mStart;
 		Vector2 end = line.mEnd;
 		// 一条横着的线,斜率为0
-		if (start.y.isFloatEqual(end.y))
+		if (start.y.isEqual(end.y))
 		{
 			k = 0.0f;
 			b = start.y;
 		}
 		// 直线是一条竖直的线,没有斜率
-		else if (start.x.isFloatEqual(end.x))
+		else if (start.x.isEqual(end.x))
 		{
 			k = 0.0f;
 			b = 0.0f;
@@ -1218,7 +1218,7 @@ public class MathUtility
 		}
 		// Calculate t, scale parameters, ray intersects triangle
 		t = E2.dot(Q);
-		float fInvDet = 1.0f.divide(determinant);
+		float fInvDet = determinant.inverse();
 		t *= fInvDet;
 		u *= fInvDet;
 		v *= fInvDet;
@@ -1382,15 +1382,15 @@ public class MathUtility
 			dir.y = 0.0f;
 		}
 		float maxValue = getMax(getMax(dir.x.abs(), dir.y.abs()), dir.z.abs());
-		if (maxValue.isFloatEqual(dir.x.abs()))
+		if (maxValue.isEqual(dir.x.abs()))
 		{
 			dir = new(sign(dir.x), 0.0f, 0.0f);
 		}
-		else if (maxValue.isFloatEqual(dir.y.abs()))
+		else if (maxValue.isEqual(dir.y.abs()))
 		{
 			dir = new(0.0f, sign(dir.y), 0.0f);
 		}
-		else if (maxValue.isFloatEqual(dir.z.abs()))
+		else if (maxValue.isEqual(dir.z.abs()))
 		{
 			dir = new(0.0f, 0.0f, sign(dir.z));
 		}
@@ -1431,11 +1431,11 @@ public class MathUtility
 	public static Vector3 getDirectionFromRadianYawPitch(float yaw, float pitch)
 	{
 		// 如果pitch为90°或者-90°,则直接返回向量,此时无论航向角为多少,向量都是竖直向下或者竖直向上
-		if ((pitch - HALF_PI_RADIAN).isFloatZero())
+		if ((pitch - HALF_PI_RADIAN).isZero())
 		{
 			return Vector3.down;
 		}
-		if ((pitch + HALF_PI_RADIAN).isFloatZero())
+		if ((pitch + HALF_PI_RADIAN).isZero())
 		{
 			return Vector3.up;
 		}
@@ -1452,7 +1452,7 @@ public class MathUtility
 		Vector3 projectionXZ = new(vec.x, 0.0f, vec.z);
 		float len = projectionXZ.getLength();
 		// 如果投影的长度为0,则表示俯仰角为90°或者-90°,航向角为0
-		if (len.isFloatZero())
+		if (len.isZero())
 		{
 			fYaw = 0.0f;
 		}
@@ -1492,7 +1492,7 @@ public class MathUtility
 	// 顺时针旋转为正,逆时针为负
 	public static float getAngleVector2ToVector2(Vector2 from, Vector2 to, ANGLE radian = ANGLE.RADIAN)
 	{
-		if(from.isVectorEqual(to))
+		if(from.isEqual(to))
 		{
 			return 0.0f;
 		}
@@ -1530,7 +1530,7 @@ public class MathUtility
 		Vector3 from3 = new Vector3(from.x, 0.0f, from.y).normalize();
 		Vector3 to3 = new Vector3(to.x, 0.0f, to.y).normalize();
 		// 两个向量同向或者反向时角度为0,否则角度不为0
-		int angle = from3.isVectorEqual(to3) || from3.isVectorEqual(-to3) ? 0 : 1;
+		int angle = from3.isEqual(to3) || from3.isEqual(-to3) ? 0 : 1;
 		if (angle != 0 && from3.cross(to3).y < 0.0f)
 		{
 			angle = -angle;
@@ -1540,13 +1540,13 @@ public class MathUtility
 	// 计算从from到to的角度，根据法线normal决定角度的正负
 	public static float getAngleVectorToVector(Vector3 from, Vector3 to, Vector3 normal, ANGLE radian = ANGLE.RADIAN)
 	{
-		if (from.isVectorEqual(to))
+		if (from.isEqual(to))
 		{
 			return 0.0f;
 		}
 		float angle = getAngleBetweenVector(from, to);
 		Vector3 crossVec = from.cross(to);
-		if (!crossVec.normalize().isVectorEqual(normal.normalize()))
+		if (!crossVec.normalize().isEqual(normal.normalize()))
 		{
 			angle = -angle;
 		}
@@ -1564,7 +1564,7 @@ public class MathUtility
 			from.y = 0.0f;
 			to.y = 0.0f;
 		}
-		if(from.isVectorEqual(to))
+		if(from.isEqual(to))
 		{
 			return 0.0f;
 		}
@@ -1620,7 +1620,7 @@ public class MathUtility
 		anglePercent = anglePercent.saturate();
 		// 首先判断从起始半径线段到终止半径线段的角度的正负
 		float angleBetween = getAngleVector2ToVector2(new(start.x, start.z), new(end.x, end.z));
-		if (angleBetween.isFloatZero())
+		if (angleBetween.isZero())
 		{
 			pos = start.normalize() * radius;
 			tangencyDir = (-pos).rotateVector3(HALF_PI_RADIAN).normalize();
@@ -1671,15 +1671,15 @@ public class MathUtility
 		// 交线为X = -rot[2][2] / rot[2][0] * Z,然后随意构造出一个向量
 		Vector3 intersectLineVector;
 		float angleRoll;
-		if (!tempMat4.m20.isFloatZero() || !tempMat4.m22.isFloatZero())
+		if (!tempMat4.m20.isZero() || !tempMat4.m22.isZero())
 		{
 			// 矩阵中Z轴的x分量为0,则交线在世界坐标系的X轴上,取X轴正方向上的一个点
-			if (tempMat4.m20.isFloatZero() && !tempMat4.m22.isFloatZero())
+			if (tempMat4.m20.isZero() && !tempMat4.m22.isZero())
 			{
 				intersectLineVector = new(1.0f, 0.0f, 0.0f);
 			}
 			// 矩阵中Z轴的z分量为0,则交线在世界坐标系的Z轴上,
-			else if (!tempMat4.m20.isFloatZero() && tempMat4.m22.isFloatZero())
+			else if (!tempMat4.m20.isZero() && tempMat4.m22.isZero())
 			{
 				// Z轴朝向世界坐标系的X轴正方向,即Z轴的x分量大于0,应该计算X轴与世界坐标系的Z轴负方向的夹角
 				if (tempMat4.m20 > 0.0f)
@@ -1718,7 +1718,7 @@ public class MathUtility
 
 		// 计算出滚动角后,将矩阵中的滚动角归0
 		Matrix4x4 nonRollMat = rot;
-		if (!angleRoll.isFloatZero())
+		if (!angleRoll.isZero())
 		{
 			nonRollMat *= getRollMatrix3(-angleRoll);
 		}
@@ -1727,7 +1727,7 @@ public class MathUtility
 		// Z轴与Z轴在水平面上的投影的夹角
 		Vector3 zAxisInMatrix = new(nonRollMat.m20, nonRollMat.m21, nonRollMat.m22);
 		float anglePitch;
-		if (!zAxisInMatrix.x.isFloatZero() || !zAxisInMatrix.z.isFloatZero())
+		if (!zAxisInMatrix.x.isZero() || !zAxisInMatrix.z.isZero())
 		{
 			anglePitch = getAngleBetweenVector(zAxisInMatrix, new(zAxisInMatrix.x, 0.0f, zAxisInMatrix.z));
 			// Z轴的y分量小于0,则俯仰角为负
@@ -1838,7 +1838,7 @@ public class MathUtility
 	}
 	public static Vector2 getProjection(Vector2 v1, Vector2 v2)
 	{
-		float inverseLen = 1.0f.divide(v2.getLength());
+		float inverseLen = v2.getLength().inverse();
 		return (v1.x * v2.x + v1.y * v2.y) * inverseLen * inverseLen * v2;
 	}
 	public static Matrix4x4 eulerAngleToMatrix3(Vector3 angle)
@@ -1898,13 +1898,13 @@ public class MathUtility
 	public static bool checkReachTarget(ref float curValue, float delta, float target)
 	{
 		// 当前已经到达目标,则不需要计算
-		if (curValue.isFloatEqual(target))
+		if (curValue.isEqual(target))
 		{
 			return true;
 		}
 		float newValue = curValue + delta;
 		// 加上delta以后等于了target,或者超过了target,则是到达目标
-		if (target.isFloatEqual(newValue) || (int)sign(target - newValue) != (int)sign(target - curValue))
+		if (target.isEqual(newValue) || (int)sign(target - newValue) != (int)sign(target - curValue))
 		{
 			curValue = target;
 			return true;
@@ -1918,7 +1918,7 @@ public class MathUtility
 	public static float generateTopHeight(float factorA, float factorB) { return -(factorB * factorB).divide(4.0f * factorA); }
 	public static float generateFactorBFromHeight(float topHeight, Vector3 point, bool leftOrRight = false)
 	{
-		if (topHeight.isFloatZero())
+		if (topHeight.isZero())
 		{
 			return 0.0f;
 		}
@@ -1930,7 +1930,7 @@ public class MathUtility
 		// 0 = -px * px / (4 * h) * b * b  + px * b - py
 		// 将此方程看作是b的一元二次方程，可解得b的值
 		float a0 = -(point.x * point.x).divide(4.0f * topHeight);
-		if (a0.isFloatZero())
+		if (a0.isZero())
 		{
 			return 0.0f;
 		}
@@ -2084,9 +2084,9 @@ public class MathUtility
 	// 判断target是否在v0和v1之间,会自动寻找v0和v1的小于180°的夹角
 	public static bool isVector2BetweenVectors(Vector2 target, Vector2 v0, Vector2 v1)
 	{
-		float angle0 = v0.getAngleFromVector2();
-		float angle1 = v1.getAngleFromVector2();
-		float angle = target.getAngleFromVector2();
+		float angle0 = v0.getAngle();
+		float angle1 = v1.getAngle();
+		float angle = target.getAngle();
 		if ((angle1 - angle0).abs() > PI_RADIAN)
 		{
 			angle0 = angle0.adjustRadian360();
@@ -2416,7 +2416,7 @@ public class MathUtility
 		}
 
 		int bezierCount = loop ? originCount : originCount - 1;
-		float step = 1.0f.divide(detail - 1);
+		float step = (detail - 1.0f).inverse();
 		// 生成4控制点，产生贝塞尔曲线
 		Span<Vector3> tempControlPoint = stackalloc Vector3[4];
 		for (int i = 0; i < bezierCount; ++i)
@@ -2429,7 +2429,7 @@ public class MathUtility
 			{
 				Vector3 point = getBezier(tempControlPoint, false, j * step);
 				// 如果与上一个点重合了,则不放入列表中
-				curveList.addIf(point, !curveList[^1].isVectorEqual(point));
+				curveList.addIf(point, !curveList[^1].isEqual(point));
 			}
 		}
 	}
@@ -2491,7 +2491,7 @@ public class MathUtility
 		}
 
 		int bezierCount = loop ? originCount : originCount - 1;
-		float step = 1.0f.divide(detail - 1);
+		float step = (detail - 1.0f).inverse();
 		// 生成4控制点，产生贝塞尔曲线
 		Span<Vector3> tempControlPoint = stackalloc Vector3[4];
 		for (int i = 0; i < bezierCount; ++i)
@@ -2504,7 +2504,7 @@ public class MathUtility
 			{
 				Vector3 point = getBezier(tempControlPoint, false, j * step);
 				// 如果与上一个点重合了,则不放入列表中
-				if (!curveList[hasCount - 1].isVectorEqual(point))
+				if (!curveList[hasCount - 1].isEqual(point))
 				{
 					curveList[hasCount++] = point;
 				}
@@ -2540,20 +2540,20 @@ public class MathUtility
 			{
 				S = delta.divide(2.0f - maxRGB - minRGB);
 			}
-			float inverseDelta = 1.0f.divide(delta);
+			float inverseDelta = delta.inverse();
 			float halfDelta = delta * 0.5f;
 			float delR = ((maxRGB - rgb.x) * 0.1667f + halfDelta) * inverseDelta;
 			float delG = ((maxRGB - rgb.y) * 0.1667f + halfDelta) * inverseDelta;
 			float delB = ((maxRGB - rgb.z) * 0.1667f + halfDelta) * inverseDelta;
-			if (rgb.x.isFloatEqual(maxRGB))
+			if (rgb.x.isEqual(maxRGB))
 			{
 				H = delB - delG;
 			}
-			else if (rgb.y.isFloatEqual(maxRGB))
+			else if (rgb.y.isEqual(maxRGB))
 			{
 				H = 0.333f + delR - delB;
 			}
-			else if (rgb.z.isFloatEqual(maxRGB))
+			else if (rgb.z.isEqual(maxRGB))
 			{
 				H = 0.6667f + delG - delR;
 			}
@@ -3013,7 +3013,7 @@ public class MathUtility
 		Vector3 max0 = pos0 + size0 * 0.5f;
 		Vector3 min1 = pos1 - size1 * 0.5f;
 		Vector3 max1 = pos1 + size1 * 0.5f;
-		return min0.isVector3Less(max1) && max0.isVector3Greater(min1);
+		return min0.isLess(max1) && max0.isGreater(min1);
 	}
 	public static bool overlapBox2(Vector2 pos0, Vector2 size0, Vector2 pos1, Vector2 size1)
 	{
@@ -3021,7 +3021,7 @@ public class MathUtility
 		Vector2 max0 = pos0 + size0 * 0.5f;
 		Vector2 min1 = pos1 - size1 * 0.5f;
 		Vector2 max1 = pos1 + size1 * 0.5f;
-		return min0.isVector2Less(max1) && max0.isVector2Greater(min1);
+		return min0.isLess(max1) && max0.isGreater(min1);
 	}
 	// 将凹多边形分割为多个凸多边形,暂未经过验证
 	public static void dividePolygonToTriangle(List<Vector2> originPoints, List<ConvexPolygon> polygonList)
@@ -3385,7 +3385,7 @@ public class MathUtility
 			x[k].mImg = -x[k].mImg;
 		}
 		fft(x, count);
-		float inverseCount = 1.0f.divide(count);
+		float inverseCount = count.inverse();
 		for (int k = 0; k <= count - 1; ++k)
 		{
 			x[k].mReal = x[k].mReal * inverseCount;

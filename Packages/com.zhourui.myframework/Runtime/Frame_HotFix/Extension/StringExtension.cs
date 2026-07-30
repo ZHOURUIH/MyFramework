@@ -1233,12 +1233,12 @@ public static class StringExtension
         if (removeTailZero)
         {
             // 是否非常接近数轴左边的整数
-            if (value.isFloatEqual(intValue))
+            if (value.isEqual(intValue))
             {
                 return intValue.IToS();
             }
             // 是否非常接近数轴右边的整数
-            if ((intValue + 1 - value).isFloatZero())
+            if ((intValue + 1 - value).isZero())
             {
                 return IToS(intValue + 1);
             }

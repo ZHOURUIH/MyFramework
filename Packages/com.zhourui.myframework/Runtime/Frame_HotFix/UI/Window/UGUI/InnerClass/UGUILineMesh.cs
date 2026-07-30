@@ -49,7 +49,7 @@ public class UGUILineMesh : ClassObject
 		foreach (Vector3 pos in list.safe())
 		{
 			// 去除连续的重复的点
-			mPointList.addIf(pos, mPointList.Count <= 0 || !pos.isVectorEqual(mPointList[^1]));
+			mPointList.addIf(pos, mPointList.Count <= 0 || !pos.isEqual(mPointList[^1]));
 		}
 		onPointsChanged();
 	}
@@ -58,7 +58,7 @@ public class UGUILineMesh : ClassObject
 		mPointList.Clear();
 		foreach (Vector3 pos in list)
 		{
-			mPointList.addIf(pos, mPointList.Count <= 0 || !pos.isVectorEqual(mPointList[^1]));
+			mPointList.addIf(pos, mPointList.Count <= 0 || !pos.isEqual(mPointList[^1]));
 		}
 		onPointsChanged();
 	}
@@ -67,7 +67,7 @@ public class UGUILineMesh : ClassObject
 		mPointList.Clear();
 		foreach (Vector3 pos in list.safe())
 		{
-			mPointList.addIf(pos, mPointList.Count <= 0 || !pos.isVectorEqual(mPointList[^1]));
+			mPointList.addIf(pos, mPointList.Count <= 0 || !pos.isEqual(mPointList[^1]));
 		}
 		onPointsChanged();
 	}
@@ -87,7 +87,7 @@ public class UGUILineMesh : ClassObject
 		for (int i = 0; i < pointCount; ++i)
 		{
 			// 如果当前点跟上一个点相同,则取上一点计算出的结果
-			if (i > 0 && i < pointCount - 1 && mPointList[i - 1].isVectorEqual(mPointList[i]))
+			if (i > 0 && i < pointCount - 1 && mPointList[i - 1].isEqual(mPointList[i]))
 			{
 				vertices[2 * i + 0] = vertices[2 * (i - 1) + 0];
 				vertices[2 * i + 1] = vertices[2 * (i - 1) + 1];

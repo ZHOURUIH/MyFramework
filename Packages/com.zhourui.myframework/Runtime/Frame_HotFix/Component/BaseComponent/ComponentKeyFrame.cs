@@ -95,7 +95,7 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 			logError("onceLength can not be negative!");
 			return;
 		}
-		if (mKeyFrame == null || onceLength.isFloatZero())
+		if (mKeyFrame == null || onceLength.isZero())
 		{
 			mStopValue = 0.0f;
 			// 停止并禁用组件
@@ -111,7 +111,7 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 			logError("offset must be less than onceLength!");
 		}
 		mOnceLength = onceLength;
-		mInverseOnceLength = 1.0f.divide(mOnceLength);
+		mInverseOnceLength = mOnceLength.inverse();
 		mPlayState = PLAY_STATE.PLAY;
 		mLoop = loop;
 		mOffset = offset;
@@ -188,7 +188,7 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 	public void setOnceLength(float length)				
 	{
 		mOnceLength = length;
-		mInverseOnceLength = 1.0f.divide(mOnceLength);
+		mInverseOnceLength = mOnceLength.inverse();
 	}
 	public void setOffset(float offset)					{ mOffset = offset; }
 	public void setCurrentTime(float time)				{ mCurrentTime = time; }

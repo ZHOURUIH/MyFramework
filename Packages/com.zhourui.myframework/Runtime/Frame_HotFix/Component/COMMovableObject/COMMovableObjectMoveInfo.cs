@@ -48,7 +48,7 @@ public class COMMovableObjectMoveInfo : GameComponent
 			mCurFramePosition = movableObject.getPosition();
 			mMoveSpeedVector = mHasLastPosition ? mCurFramePosition - mLastPosition.divide(elapsedTime) : Vector3.zero;
 			mRealtimeMoveSpeed = mMoveSpeedVector.getLength();
-			mMovedDuringFrame = !mLastPosition.isVectorEqual(mCurFramePosition) && mHasLastPosition;
+			mMovedDuringFrame = !mLastPosition.isEqual(mCurFramePosition) && mHasLastPosition;
 			mLastPosition = mCurFramePosition;
 			mLastSpeedVector = mMoveSpeedVector;
 			mHasLastPosition = true;

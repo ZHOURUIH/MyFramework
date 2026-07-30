@@ -12,7 +12,7 @@ public struct Line2
 	{
 		mStart = start;
 		mEnd = end;
-		mHasK = !mEnd.x.isFloatEqual(mStart.x);
+		mHasK = !mEnd.x.isEqual(mStart.x);
 		if (mHasK)
 		{
 			mK = (mEnd.y - mStart.y).divide(mEnd.x - mStart.x);
@@ -52,7 +52,7 @@ public struct Line2
 			return true;
 		}
 		// 斜率为0,是一条平行于X轴的执行,获取不到x坐标
-		if (mK.isFloatZero())
+		if (mK.isZero())
 		{
 			x = 0;
 			return false;

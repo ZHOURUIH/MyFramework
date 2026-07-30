@@ -68,7 +68,7 @@ public class FrameUtility
 		int intScrollSizeY = scrollRectSize.y.ceil();
 		float newScrollSizeX = intScrollSizeX + (intScrollSizeX & 1);
 		float newScrollSizeY = intScrollSizeY + (intScrollSizeY & 1);
-		if (!newScrollSizeX.isFloatEqual(scrollRectSize.x) || !newScrollSizeY.isFloatEqual(scrollRectSize.y))
+		if (!newScrollSizeX.isEqual(scrollRectSize.x) || !newScrollSizeY.isEqual(scrollRectSize.y))
 		{
 			obj.setSize(new(newScrollSizeX, newScrollSizeY));
 		}

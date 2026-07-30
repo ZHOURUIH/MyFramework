@@ -104,7 +104,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 	{
 		setAlpha(isCull ? 0.0f : 1.0f);
 	}
-	public override bool isCulled() { return getAlpha().isFloatZero(); }
+	public override bool isCulled() { return getAlpha().isZero(); }
 	public override bool canGenerateDepth() { return !isCulled(); }
 	public void setWindowShader(WindowShader shader)
 	{
@@ -196,7 +196,7 @@ public class myUGUISprite : myUGUIObject, IShaderWindow
 		{
 			return;
 		}
-		if (sprite != null && !sprite.pixelsPerUnit.isFloatEqual(1.0f) && getScale().x <= 1.0f)
+		if (sprite != null && !sprite.pixelsPerUnit.isEqual(1.0f) && getScale().x <= 1.0f)
 		{
 			logWarning("sprite的pixelsPerUnit为1,且Transform缩放为1, 会使最终渲染结果缩小100倍,如果需要显示正常,请调整pixelsPerUnit或者Transform缩放, sprite:" + 
 					   sprite.name + ", transform:" + getGameObjectPath());

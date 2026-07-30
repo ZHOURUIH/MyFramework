@@ -127,7 +127,7 @@ public class CameraLinker : GameComponent
 			{
 				var box = mCamera.getOrAddUnityComponent<BoxCollider>();
 				// 只需要一个较小的碰撞体即可
-				if (!box.size.isVectorEqual(new(0.1f, 0.1f, 0.1f)))
+				if (!box.size.isEqual(new(0.1f, 0.1f, 0.1f)))
 				{
 					box.size = new(0.1f, 0.1f, 0.1f);
 				}

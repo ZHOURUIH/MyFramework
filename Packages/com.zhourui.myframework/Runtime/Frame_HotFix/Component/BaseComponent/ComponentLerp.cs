@@ -30,7 +30,7 @@ public class ComponentLerp : GameComponent, IComponentBreakable
 	}
 	public virtual void play()
 	{
-		if (mLerpSpeed.isFloatZero())
+		if (mLerpSpeed.isZero())
 		{
 			stop();
 			return;

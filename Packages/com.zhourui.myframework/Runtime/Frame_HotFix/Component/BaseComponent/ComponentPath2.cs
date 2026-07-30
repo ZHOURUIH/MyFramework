@@ -60,7 +60,7 @@ public abstract class ComponentPath2 : ComponentKeyFrame
 			mValueList1.setRangeValues(mValueKeyFrame1);
 			mTimeList1.setRangeKeys(mValueKeyFrame1);
 			mMaxLength = mTimeList0[^1];
-			if (!mTimeList0[^1].isFloatEqual(mTimeList1[^1]))
+			if (!mTimeList0[^1].isEqual(mTimeList1[^1]))
 			{
 				logError("两个关键帧的最大时间需要一致!");
 			}
@@ -81,7 +81,7 @@ public abstract class ComponentPath2 : ComponentKeyFrame
 		{
 			startValue0 = lerp(startValue0, mValueList0[mLastValueIndex0 + 1], inverseLerp(mTimeList0[mLastValueIndex0], mTimeList0[mLastValueIndex0 + 1], curTime));
 		}
-		Vector3 value0 = mOffsetBlendAdd0 ? startValue0 + mValueOffset0 : startValue0.multiVector3(mValueOffset0);
+		Vector3 value0 = mOffsetBlendAdd0 ? startValue0 + mValueOffset0 : startValue0.multi(mValueOffset0);
 
 		mLastValueIndex1 = findPointIndex(mTimeList1, curTime, mLastValueIndex1);
 		Vector3 startValue1 = mValueList1[mLastValueIndex1];
@@ -89,7 +89,7 @@ public abstract class ComponentPath2 : ComponentKeyFrame
 		{
 			startValue1 = lerp(startValue1, mValueList1[mLastValueIndex1 + 1], inverseLerp(mTimeList1[mLastValueIndex1], mTimeList1[mLastValueIndex1 + 1], curTime));
 		}
-		Vector3 value1 = mOffsetBlendAdd1 ? startValue1 + mValueOffset1 : startValue1.multiVector3(mValueOffset1);
+		Vector3 value1 = mOffsetBlendAdd1 ? startValue1 + mValueOffset1 : startValue1.multi(mValueOffset1);
 		setValue(value0, value1);
 	}
 	protected abstract void setValue(Vector3 value0, Vector3 value1);

@@ -230,7 +230,7 @@ public class COMCharacterAvatar : GameComponent
 		if (mPositionSync == TRANSFORM_SYNC.USE_AVATAR)
 		{
 			Vector3 pos = getPosition();
-			if (!mCharacter.getPosition().isVectorEqual(pos))
+			if (!mCharacter.getPosition().isEqual(pos))
 			{
 				mCharacter.setPosition(pos);
 			}
@@ -238,7 +238,7 @@ public class COMCharacterAvatar : GameComponent
 		else if (mPositionSync == TRANSFORM_SYNC.USE_CHARACTER)
 		{
 			Vector3 pos = mCharacter.getPosition();
-			if (!getPosition().isVectorEqual(pos))
+			if (!getPosition().isEqual(pos))
 			{
 				setPosition(pos);
 			}
@@ -246,7 +246,7 @@ public class COMCharacterAvatar : GameComponent
 		if (mRotationSync == TRANSFORM_SYNC.USE_AVATAR)
 		{
 			Quaternion rot = getRotationQuaternion();
-			if (!mCharacter.getRotationQuaternion().isQuaternionEqual(rot))
+			if (!mCharacter.getRotationQuaternion().isEqual(rot))
 			{
 				mCharacter.setRotation(rot);
 			}
@@ -254,7 +254,7 @@ public class COMCharacterAvatar : GameComponent
 		else if (mRotationSync == TRANSFORM_SYNC.USE_CHARACTER)
 		{
 			Quaternion rot = mCharacter.getRotationQuaternion();
-			if (!getRotationQuaternion().isQuaternionEqual(rot))
+			if (!getRotationQuaternion().isEqual(rot))
 			{
 				setRotation(rot);
 			}
@@ -262,7 +262,7 @@ public class COMCharacterAvatar : GameComponent
 		if (mScaleSync == TRANSFORM_SYNC.USE_AVATAR)
 		{
 			Vector3 scale = getScale();
-			if (!mCharacter.getScale().isVectorEqual(scale))
+			if (!mCharacter.getScale().isEqual(scale))
 			{
 				mCharacter.setScale(scale);
 			}
@@ -270,7 +270,7 @@ public class COMCharacterAvatar : GameComponent
 		else if (mScaleSync == TRANSFORM_SYNC.USE_CHARACTER)
 		{
 			Vector3 scale = mCharacter.getScale();
-			if (!getScale().isVectorEqual(scale))
+			if (!getScale().isEqual(scale))
 			{
 				setScale(scale);
 			}

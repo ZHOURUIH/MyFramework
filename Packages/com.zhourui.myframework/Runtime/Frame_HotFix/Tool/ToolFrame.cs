@@ -48,7 +48,7 @@ public static class FT
 	}
 	public static void ROTATE_EX(this ITransformable obj, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		if (keyframe == KEY_CURVE.NONE || onceLength.isFloatZero())
+		if (keyframe == KEY_CURVE.NONE || onceLength.isZero())
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ROTATE(ITransformable obj, Vector3 rotation)");
 			return;
@@ -108,7 +108,7 @@ public static class FT
 	}
 	public static void ROTATE_PHY_EX(this ITransformable obj, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		if (keyframe == KEY_CURVE.NONE || onceLength.isFloatZero())
+		if (keyframe == KEY_CURVE.NONE || onceLength.isZero())
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ROTATE_PHY(ITransformable obj, Vector3 rotation)");
 			return;
@@ -480,7 +480,7 @@ public static class FT
 	}
 	public static void LERP_POSITION_EX(this ITransformable obj, Vector3 targetPosition, float lerpSpeed, LerpCallback doingCallback, LerpCallback doneCallback)
 	{
-		if (lerpSpeed.isFloatZero())
+		if (lerpSpeed.isZero())
 		{
 			logError("速度不能为0,如果要停止组件,请使用void LERP_POSITION(ITransformable obj)");
 			return;
@@ -505,7 +505,7 @@ public static class FT
 	}
 	public static void LERP_ROTATION_EX(this ITransformable obj, Vector3 targetRotation, float lerpSpeed, LerpCallback doingCallback, LerpCallback doneCallback)
 	{
-		if (lerpSpeed.isFloatZero())
+		if (lerpSpeed.isZero())
 		{
 			logError("速度不能为0,如果要停止组件,请使用void LERP_ROTATION(ITransformable obj)");
 			return;

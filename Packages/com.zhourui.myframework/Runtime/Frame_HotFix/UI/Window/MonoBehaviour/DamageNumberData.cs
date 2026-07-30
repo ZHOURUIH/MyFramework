@@ -115,7 +115,7 @@ public class DamageNumberData : ClassObject
 		if (!mPositionTimeList.isEmpty())
 		{
 			mKeyFrameMaxTime = mPositionTimeList[^1];
-			if (!mPositionTimeList[^1].isFloatEqual(mScaleTimeList[^1]))
+			if (!mPositionTimeList[^1].isEqual(mScaleTimeList[^1]))
 			{
 				logError("两个关键帧的最大时间需要一致!");
 			}

@@ -44,7 +44,7 @@ public class CameraLinkerSmoothFollow : CameraLinkerThirdPerson
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void updateLinker(float elapsedTime)
 	{
-		if (!mNormalSpeed.isFloatEqual(mFollowPositionSpeed))
+		if (!mNormalSpeed.isEqual(mFollowPositionSpeed))
 		{
 			mFollowPositionSpeed = lerp(mFollowPositionSpeed, mNormalSpeed, mSpeedRecover * elapsedTime);
 		}
@@ -80,7 +80,7 @@ public class CameraLinkerSmoothFollow : CameraLinkerThirdPerson
 		}
 
 		// mNormalSpeed速度为0就表示不再插值,直接设置到目标位置即可
-		if (mNormalSpeed.isFloatZero())
+		if (mNormalSpeed.isZero())
 		{
 			applyRelativePosition(nextPos - targetPos);
 			return;

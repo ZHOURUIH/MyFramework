@@ -60,7 +60,7 @@ public class ScaleAnchor : MonoBehaviour
 		}
 		if (mAdjustPosition)
 		{
-			rectTransform.setPositionNoPivotInParent(mOriginPos.multiVector3(realScale).round());
+			rectTransform.setPositionNoPivotInParent(mOriginPos.multi(realScale).round());
 		}
 	}
 	// 获取实际的可直接用于计算的宽高缩放值,会考虑保持宽高比以及缩放基准

@@ -28,12 +28,12 @@ public static class SpringTest
 
         s.resetProperty();
 
-        assert(s.getNormalLength().isFloatEqual(0.0f), "resetProperty normalLength=0");
-        assert(s.getLength().isFloatEqual(0.0f), "resetProperty curLength=0");
-        assert(s.getSpeed().isFloatEqual(0.0f), "resetProperty speed=0");
+        assert(s.getNormalLength().isEqual(0.0f), "resetProperty normalLength=0");
+        assert(s.getLength().isEqual(0.0f), "resetProperty curLength=0");
+        assert(s.getSpeed().isEqual(0.0f), "resetProperty speed=0");
         // 检查 mObjectMass mSpringK mMinLength 是否回到默认值（通过弹力间接验证）
         // mNormalLength=0, mCurLength=0 → elasticForce = (0-0)*k = 0
-        assert(s.calculateElasticForce().isFloatEqual(0.0f), "resetProperty elasticForce=0");
+        assert(s.calculateElasticForce().isEqual(0.0f), "resetProperty elasticForce=0");
     }
 
     // ─── setters / getters ──────────────────────────────────────────────
@@ -47,9 +47,9 @@ public static class SpringTest
         s.setSpeed(1.5f);
         s.setForce(0.5f);
 
-        assert(s.getNormalLength().isFloatEqual(3.0f), "getNormalLength=3");
-        assert(s.getLength().isFloatEqual(5.0f), "getLength=5");
-        assert(s.getSpeed().isFloatEqual(1.5f), "getSpeed=1.5");
+        assert(s.getNormalLength().isEqual(3.0f), "getNormalLength=3");
+        assert(s.getLength().isEqual(5.0f), "getLength=5");
+        assert(s.getSpeed().isEqual(1.5f), "getSpeed=1.5");
     }
 
     // ─── calculateElasticForce ──────────────────────────────────────────
@@ -60,20 +60,20 @@ public static class SpringTest
         s.setNormaLength(2.0f);
         s.setCurLength(5.0f);
         s.setSpringK(1.0f);
-        assert(s.calculateElasticForce().isFloatEqual(3.0f, 0.001f),
+        assert(s.calculateElasticForce().isEqual(3.0f, 0.001f),
             "elasticForce 拉伸=(5-2)*1=3");
 
         // normalLength=5, curLength=3, k=2 → force=(3-5)*2=-4（负值→压缩）
         s.setNormaLength(5.0f);
         s.setCurLength(3.0f);
         s.setSpringK(2.0f);
-        assert(s.calculateElasticForce().isFloatEqual(-4.0f, 0.001f),
+        assert(s.calculateElasticForce().isEqual(-4.0f, 0.001f),
             "elasticForce 压缩=(3-5)*2=-4");
 
         // 处于自然长度
         s.setNormaLength(4.0f);
         s.setCurLength(4.0f);
-        assert(s.calculateElasticForce().isFloatEqual(0.0f, 0.001f),
+        assert(s.calculateElasticForce().isEqual(0.0f, 0.001f),
             "elasticForce 自然长度=0");
     }
 
@@ -156,6 +156,6 @@ public static class SpringTest
         float lengthAfter = s.getLength();
 
         // 处于自然长度，无外力，速度=0 → elasticForce=0 → 加速度=0 → 长度不变
-        assert(lengthBefore.isFloatEqual(lengthAfter, 0.001f), "自然长度无外力 update后长度不变");
+        assert(lengthBefore.isEqual(lengthAfter, 0.001f), "自然长度无外力 update后长度不变");
     }
 }

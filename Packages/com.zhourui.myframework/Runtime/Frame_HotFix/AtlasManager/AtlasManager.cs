@@ -44,7 +44,7 @@ public class AtlasManager : FrameSystem
 		}
 		mResourceManager.loadGameResourceAsync<TextAsset>(R_MISC_PATH + ATLAS_PATH_CONFIG, text =>
 		{
-			foreach (string line in text.get().text.splitLine())
+			foreach (string line in text.get().text.splitLine().safe())
 			{
 				mAtlasPathList.Add(getFileNameNoSuffixNoDir(line), line);
 			}

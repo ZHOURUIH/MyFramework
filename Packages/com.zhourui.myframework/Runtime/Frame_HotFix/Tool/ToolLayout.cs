@@ -302,7 +302,7 @@ public static class LT
 	}
 	public static void ALPHA_EX(this myUGUIObject obj, int keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		if (keyframe == KEY_CURVE.NONE || onceLength.isFloatZero())
+		if (keyframe == KEY_CURVE.NONE || onceLength.isZero())
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ALPHA(myUGUIObject obj, float alpha)");
 			return;
@@ -355,7 +355,7 @@ public static class LT
 	}
 	public static void COLOR_EX(this myUGUIObject obj, int keyframe, Color start, Color target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		if (keyframe == KEY_CURVE.NONE || onceLength.isFloatZero())
+		if (keyframe == KEY_CURVE.NONE || onceLength.isZero())
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void COLOR(myUGUIObject obj, float alpha)");
 			return;

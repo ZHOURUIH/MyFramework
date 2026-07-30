@@ -261,7 +261,7 @@ public class DamageNumberRenderer : MonoBehaviour
 			{
 				startValue1 = lerpSimple(startValue1, scaleList[index1 + 1], inverseLerp(scaleTimeList[index1], scaleTimeList[index1 + 1], curTime));
 			}
-			data.mScale = startValue1.multiVector3(data.mScaleOffset);
+			data.mScale = startValue1.multi(data.mScaleOffset);
 		}
 	}
 	// 快速地找到当前位于哪两个时间点之间,因为时间是单调递增的,所以比正常的查找要简化一些

@@ -27,7 +27,7 @@ public class COMWindowCollider : GameComponent
 			string windowName = window.getName();
 			GameObject go = window.getGameObject();
 			// BoxCollider的中心必须为0,因为UIWidget会自动调整BoxCollider的大小和位置,而且调整后位置为0,所以在制作时BoxCollider的位置必须为0
-			if (!mBoxCollider.center.sqrMagnitude.isFloatZero())
+			if (!mBoxCollider.center.sqrMagnitude.isZero())
 			{
 				logWarning("BoxCollider's center must be zero! Otherwise can not adapt to the screen sometimes! name : " + windowName + ", layout : " + layoutName);
 			}
@@ -61,7 +61,7 @@ public class COMWindowCollider : GameComponent
 		{
 			return;
 		}
-		if (!size.x.isFloatEqual(mBoxCollider.size.x) || !size.y.isFloatEqual(mBoxCollider.size.y))
+		if (!size.x.isEqual(mBoxCollider.size.x) || !size.y.isEqual(mBoxCollider.size.y))
 		{
 			mBoxCollider.size = size;
 			mBoxCollider.center = Vector2.zero;

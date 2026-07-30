@@ -94,7 +94,7 @@ public static class WidgetUtility
 			GameObject go = result.gameObject;
 			if (go.TryGetComponent<Image>(out var image))
 			{
-				if (image.raycastTarget && !image.color.a.isFloatZero())
+				if (image.raycastTarget && !image.color.a.isZero())
 				{
 					return go;
 				}
@@ -102,7 +102,7 @@ public static class WidgetUtility
 			}
 			if (go.TryGetComponent<Text>(out var text))
 			{
-				if (text.raycastTarget && !text.color.a.isFloatZero())
+				if (text.raycastTarget && !text.color.a.isZero())
 				{
 					return go;
 				}
@@ -184,7 +184,7 @@ public static class WidgetUtility
 			verticalSign = -1;
 			// 保持左上角的坐标与改变大小之前的左上角坐标一致
 			Vector3 curRootLeftTop = new(curRealPosition.x - rootSize.x * 0.5f, curRealPosition.y + rootSize.y * 0.5f);
-			if (!beforeRootLeftTop.isVectorEqual(curRootLeftTop))
+			if (!beforeRootLeftTop.isEqual(curRootLeftTop))
 			{
 				root.setPosition((root.getPosition() + beforeRootLeftTop - curRootLeftTop).round());
 			}
@@ -196,7 +196,7 @@ public static class WidgetUtility
 			verticalSign = 1;
 			// 保持左下角的坐标与改变大小之前的左下角坐标一致
 			Vector3 curRootLeftBottom = new(curRealPosition.x - rootSize.x * 0.5f, curRealPosition.y - rootSize.y * 0.5f);
-			if (!beforeRootLeftBottom.isVectorEqual(curRootLeftBottom))
+			if (!beforeRootLeftBottom.isEqual(curRootLeftBottom))
 			{
 				root.setPosition((root.getPosition() + beforeRootLeftBottom - curRootLeftBottom).round());
 			}
@@ -208,7 +208,7 @@ public static class WidgetUtility
 			verticalSign = -1;
 			// 保持右上角的坐标与改变大小之前的右上角坐标一致
 			Vector3 curRootRightTop = new(curRealPosition.x + rootSize.x * 0.5f, curRealPosition.y + rootSize.y * 0.5f);
-			if (!beforeRootRightTop.isVectorEqual(curRootRightTop))
+			if (!beforeRootRightTop.isEqual(curRootRightTop))
 			{
 				root.setPosition((root.getPosition() + beforeRootRightTop - curRootRightTop).round());
 			}
@@ -220,7 +220,7 @@ public static class WidgetUtility
 			verticalSign = 1;
 			// 保持右下角的坐标与改变大小之前的右下角坐标一致
 			Vector3 curRootRightBottom = new(curRealPosition.x + rootSize.x * 0.5f, curRealPosition.y - rootSize.y * 0.5f);
-			if (!beforeRootRightBottom.isVectorEqual(curRootRightBottom))
+			if (!beforeRootRightBottom.isEqual(curRootRightBottom))
 			{
 				root.setPosition((root.getPosition() + beforeRootRightBottom - curRootRightBottom).round());
 			}
@@ -231,7 +231,7 @@ public static class WidgetUtility
 		for (int i = 0; i < activeChildCount; ++i)
 		{
 			RectTransform child = childList[i];
-			if (!child.pivot.isVectorEqual(new Vector2(0.5f, 0.5f)))
+			if (!child.pivot.isEqual(new Vector2(0.5f, 0.5f)))
 			{
 				logError("子节点的pivot不在中心,计算位置可能会错误");
 			}

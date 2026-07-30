@@ -172,7 +172,7 @@ public class GameEffect : MovableObject
 
 		// 如果时间已经被缩放了,而且有状态机已经设置了忽略时间缩放,则需要重新再设置一次,否则仍然会受到时间缩放影响
 		// 因为Animator在时间为0时设置updateMode为UnscaledTime是不会立即生效的
-		if (!Time.timeScale.isFloatEqual(1.0f))
+		if (!Time.timeScale.isEqual(1.0f))
 		{
 			foreach (Animator item in mEffectAnimators.safe())
 			{

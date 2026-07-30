@@ -155,46 +155,6 @@ public class MenuShortcutOperation
 			AssetDatabase.Refresh();
 		}
 	}
-    [MenuItem("MyFramework/添加Frame_HotFix对TTWebGL依赖", false, 200)]
-    public static void addFrameHotFixTTWebGLReference()
-    {
-		string FRAME_HOTFIX_ASMDEF_FILE = "Frame_HotFix.asmdef";	// 需要修改的asmdef文件名
-		string TT_WEBGL_REFERENCE = "TTWebGL";                    // 需要添加的程序集依赖
-		string asmdefPath = findAsmdefPath(FRAME_HOTFIX_ASMDEF_FILE);
-        if (asmdefPath.isEmpty())
-        {
-            Debug.LogError("未找到文件: " + FRAME_HOTFIX_ASMDEF_FILE);
-            return;
-        }
-
-        string text = File.ReadAllText(asmdefPath);
-        if (text.Contains("\"" + TT_WEBGL_REFERENCE + "\""))
-        {
-            Debug.Log("依赖已存在: " + TT_WEBGL_REFERENCE);
-            return;
-        }
-
-        if (text.Contains("\"references\": []"))
-        {
-            text = text.Replace(
-                "\"references\": []",
-                "\"references\": [\n        \"" + TT_WEBGL_REFERENCE + "\"\n    ]"
-            );
-        }
-        else
-        {
-            text = text.Replace(
-                "\"references\": [",
-                "\"references\": [\n        \"" + TT_WEBGL_REFERENCE + "\","
-            );
-        }
-
-        File.WriteAllText(asmdefPath, text);
-        AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
-        CompilationPipeline.RequestScriptCompilation();
-
-        Debug.Log("已添加依赖: Frame_HotFix -> " + TT_WEBGL_REFERENCE);
-    }
     // 此处仅做示例,请在应用层中重写此方法,传入正确的密钥获取方法
     //[MenuItem(mMenuName + "dll解密", false, 41)]
     public static void decryptDllFile()

@@ -216,7 +216,7 @@ public class COMCharacterStateMachine : GameComponent
 		state.setParam(null);
 
 		// 如果没有持续时间,则只执行一个enter,不存储起来
-		if (state.getStateTime().isFloatZero())
+		if (state.getStateTime().isZero())
 		{
 			leaveStateInternal(state, false, false);
 			return null;

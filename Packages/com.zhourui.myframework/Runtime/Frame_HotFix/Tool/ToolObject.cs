@@ -135,7 +135,7 @@ public static class OT
 	}
 	public static void ALPHA_EX(this MovableObject obj, int keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		if (keyframe == KEY_CURVE.NONE || onceLength.isFloatZero())
+		if (keyframe == KEY_CURVE.NONE || onceLength.isZero())
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ALPHA(MovableObject obj, float alpha)");
 			return;
@@ -221,7 +221,7 @@ public static class OT
 	}
 	public static MyTweenerFloat TWEEN_FLOAT_EX(int keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		if (keyframe == KEY_CURVE.NONE || onceLength.isFloatZero())
+		if (keyframe == KEY_CURVE.NONE || onceLength.isZero())
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void TWEEN_FLOAT(MyTweenerFloat tweener)");
 			return null;

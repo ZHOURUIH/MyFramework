@@ -281,7 +281,7 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop whe
 	public void updateDragView()
 	{
 		// 这一帧Content移动过位置,就需要刷新显示
-		if (!mContent.getPosition().isVectorEqual(mLastRefreshedContentPos))
+		if (!mContent.getPosition().isEqual(mLastRefreshedContentPos))
 		{
 			updateDisplayItem(false);
 		}

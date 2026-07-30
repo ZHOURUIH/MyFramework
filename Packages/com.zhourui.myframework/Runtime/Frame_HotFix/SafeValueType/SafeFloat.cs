@@ -68,7 +68,7 @@ public struct SafeFloat : IEquatable<SafeFloat>
 			case 7: value = huihg; break;
 		}
 		float curValue = ((value - (qgoqjg ^ 0x1238) + (qgoqjg ^ 0xFF123)) ^ (qwfb - (qwfb >> 2))) * 0.001f;  
-		if (!curValue.isFloatEqual((asgihfasg ^ qgoqjg) * 0.0001f, 0.01f))
+		if (!curValue.isEqual((asgihfasg ^ qgoqjg) * 0.0001f, 0.01f))
 		{
 			if (isEditor())
 			{

@@ -77,8 +77,8 @@ public class myUGUIScrollRect : myUGUIObject
 		makeSizeEven(this);
 		makeSizeEven(mViewport);
 		// 矫正Content的位置,使之始终为整数
-		if (mScrollRect.vertical && mScrollRect.velocity.y.isFloatZero() ||
-			mScrollRect.horizontal && mScrollRect.velocity.x.isFloatZero())
+		if (mScrollRect.vertical && mScrollRect.velocity.y.isZero() ||
+			mScrollRect.horizontal && mScrollRect.velocity.x.isZero())
 		{
 			mContent.setPosition(mContent.getPosition().round());
 		}

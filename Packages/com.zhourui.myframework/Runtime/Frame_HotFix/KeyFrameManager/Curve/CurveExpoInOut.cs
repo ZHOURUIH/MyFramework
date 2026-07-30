@@ -4,11 +4,11 @@ public class CurveExpoInOut : MyCurve
 {
 	public override float evaluate(float time)
 	{
-		if (time.isFloatZero())
+		if (time.isZero())
 		{
 			return 0.0f;
 		}
-		if (time.isFloatEqual(1.0f))
+		if (time.isEqual(1.0f))
 		{
 			return 1.0f;
 		}

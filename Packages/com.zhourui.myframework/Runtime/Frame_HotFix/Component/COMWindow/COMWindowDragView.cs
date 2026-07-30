@@ -116,7 +116,7 @@ public class COMWindowDragView : GameComponent
 				{
 					clampPosition(ref curPosition);
 				}
-				if (!prePos.isVectorEqual(curPosition))
+				if (!prePos.isEqual(curPosition))
 				{
 					setPosition(curPosition);
 					mDraggingCallback?.Invoke();
@@ -177,7 +177,7 @@ public class COMWindowDragView : GameComponent
 						targetPosition.y = max.y;
 					}
 				}
-				if (!curPosition.isVectorEqual(targetPosition))
+				if (!curPosition.isEqual(targetPosition))
 				{
 					setPosition(lerp(curPosition, targetPosition, elapsedTime * mMoveToEdgeSpeed));
 				}
@@ -190,7 +190,7 @@ public class COMWindowDragView : GameComponent
 				if (!isValidPosition(ref curPosition, ref validPos, mAlignTopOrLeft))
 				{
 					Vector3 newPos = lerp(curPosition, validPos, elapsedTime * mAutoClampSpeed);
-					if (!newPos.isVectorEqual(curPosition))
+					if (!newPos.isEqual(curPosition))
 					{
 						setPosition(newPos);
 					}
@@ -209,7 +209,7 @@ public class COMWindowDragView : GameComponent
 						mMoveSpeed = lerp(mMoveSpeed, 0.0f, elapsedTime * mAttenuateFactor, 10.0f);
 						curPosition += mMoveSpeed * mMoveSpeedScale * elapsedTime * mMoveDirection;
 						clampPosition(ref curPosition);
-						if (!prePos.isVectorEqual(curPosition))
+						if (!prePos.isEqual(curPosition))
 						{
 							setPosition(curPosition);
 						}
@@ -394,10 +394,10 @@ public class COMWindowDragView : GameComponent
 		{
 			Vector2 parentWidgetSize = mWindow.getParent().getSize();
 			// 计算父节点的世界缩放
-			Vector2 parentScale = mWindow.getTransform().parent.lossyScale.divideVector3(mLayoutManager.getUIRoot().getScale());
+			Vector2 parentScale = mWindow.getTransform().parent.lossyScale.divide(mLayoutManager.getUIRoot().getScale());
 			// 计算移动的位置范围
-			Vector2 minPos = parentWidgetSize * 0.5f * ((Vector2)mMinRelativePos).divideVector2(parentScale);
-			Vector2 maxPos = parentWidgetSize * 0.5f * ((Vector2)mMaxRelativePos).divideVector2(parentScale);
+			Vector2 minPos = parentWidgetSize * 0.5f * ((Vector2)mMinRelativePos).divide(parentScale);
+			Vector2 maxPos = parentWidgetSize * 0.5f * ((Vector2)mMaxRelativePos).divide(parentScale);
 			if (mClampType == CLAMP_TYPE.EDGE_IN_RECT)
 			{
 				Vector2 thisSize = mWindow.getSize(true);

@@ -55,7 +55,7 @@ public class TweenTrack
 	{
 		switch (mTargetMode)
 		{
-			case TARGET_MODE.VALUE:					return getParentAnchorScale(transform).multiVector3(mTargetValue);
+			case TARGET_MODE.VALUE:					return getParentAnchorScale(transform).multi(mTargetValue);
 			case TARGET_MODE.TRANSFORM_REALTIME:	return generateTargetValue(mTargetTransform);
 			case TARGET_MODE.TRANSFORM_SNAPSHOT:	return mRuntimeTarget;
 			case TARGET_MODE.SELF:					return mRuntimeTarget;
@@ -71,7 +71,7 @@ public class TweenTrack
 		// 起点只能在开始播放时获取,终点可以实时获取
 		switch (mStartMode)
 		{
-			case START_MODE.VALUE:mRuntimeStart = getParentAnchorScale(transform).multiVector3(mStartValue);break;
+			case START_MODE.VALUE:mRuntimeStart = getParentAnchorScale(transform).multi(mStartValue);break;
 			case START_MODE.SELF: mRuntimeStart = getTransformValue(transform);break;
 		}
 		if (mTargetMode == TARGET_MODE.TRANSFORM_SNAPSHOT)
@@ -92,9 +92,9 @@ public class TweenTrack
 		Vector3 scale = getParentAnchorScale(transform);
 		if (transform == null)
 		{
-			return scale.multiVector3(mTargetOffset);
+			return scale.multi(mTargetOffset);
 		}
-		return getTransformValue(transform) + scale.multiVector3(mTargetOffset);
+		return getTransformValue(transform) + scale.multi(mTargetOffset);
 	}
 	// 根据轨道类型获取Transform上的对应值
 	protected Vector3 getTransformValue(Transform transform)

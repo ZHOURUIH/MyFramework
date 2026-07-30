@@ -52,7 +52,7 @@ public abstract class WindowObjectT<T> : WindowObjectBase where T : myUGUIObject
 	public override bool setActive(bool active) 
 	{
 		bool curActive = isActiveSelf();
-		if (curActive && mChangePositionAsInvisible && mRoot.getPosition().isVectorEqual(FAR_POSITION))
+		if (curActive && mChangePositionAsInvisible && mRoot.getPosition().isEqual(FAR_POSITION))
 		{
 			curActive = false;
 		}

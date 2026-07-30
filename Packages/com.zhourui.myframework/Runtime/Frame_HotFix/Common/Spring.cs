@@ -34,7 +34,7 @@ public class Spring : ClassObject
 		float elasticForce = calculateElasticForce() * -1.0f;
 		// 加速度
 		float acceleration = (mForce + elasticForce).divide(mObjectMass);
-		if (acceleration.isFloatZero() || (acceleration < 0.0f && mPreAcce > 0.0f) || (acceleration > 0.0f && mPreAcce < 0.0f))
+		if (acceleration.isZero() || (acceleration < 0.0f && mPreAcce > 0.0f) || (acceleration > 0.0f && mPreAcce < 0.0f))
 		{
 			mObjectSpeed = 0.0f;
 			acceleration = 0.0f;

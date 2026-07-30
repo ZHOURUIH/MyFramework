@@ -21,7 +21,7 @@ public static class TestAssert
     }
 	public static void assertEqual(float expected, float actual, float precision, string message = "")
 	{
-		if (!expected.isFloatEqual(actual, precision))
+		if (!expected.isEqual(actual, precision))
 		{
 			throw new Exception(message.isEmpty() ? $"Expected [{expected}] but got [{actual}]"
 					                              : $"{message} - Expected [{expected}] but got [{actual}]");

@@ -19,7 +19,7 @@ public class CustomLine : MaskableGraphic
 		foreach (Vector3 pos in list.safe())
 		{
 			// 去除连续的重复的点
-			mPointList.addIf(pos, mPointList.Count <= 0 || !pos.isVectorEqual(mPointList[^1]));
+			mPointList.addIf(pos, mPointList.Count <= 0 || !pos.isEqual(mPointList[^1]));
 		}
 		refreshPoints();
 	}
@@ -28,7 +28,7 @@ public class CustomLine : MaskableGraphic
 		mPointList.Clear();
 		foreach (Vector3 pos in list)
 		{
-			mPointList.addIf(pos, mPointList.Count <= 0 || !pos.isVectorEqual(mPointList[^1]));
+			mPointList.addIf(pos, mPointList.Count <= 0 || !pos.isEqual(mPointList[^1]));
 		}
 		refreshPoints();
 	}
@@ -37,7 +37,7 @@ public class CustomLine : MaskableGraphic
 		mPointList.Clear();
 		foreach (Vector3 pos in list.safe())
 		{
-			mPointList.addIf(pos, mPointList.Count <= 0 || !pos.isVectorEqual(mPointList[^1]));
+			mPointList.addIf(pos, mPointList.Count <= 0 || !pos.isEqual(mPointList[^1]));
 		}
 		refreshPoints();
 	}
@@ -67,7 +67,7 @@ public class CustomLine : MaskableGraphic
 		for (int i = 0; i < pointCount; ++i)
 		{
 			// 如果当前点跟上一个点相同,则取上一点计算出的结果
-			if (i > 0 && i < pointCount - 1 && mPointList[i - 1].isVectorEqual(mPointList[i]))
+			if (i > 0 && i < pointCount - 1 && mPointList[i - 1].isEqual(mPointList[i]))
 			{
 				originVertices[2 * i + 0] = originVertices[2 * (i - 1) + 0];
 				originVertices[2 * i + 1] = originVertices[2 * (i - 1) + 1];
@@ -107,7 +107,7 @@ public class CustomLine : MaskableGraphic
 				}
 			}
 		}
-		float inverseWidth = 1.0f.divide(mWidth);
+		float inverseWidth = mWidth.inverse();
 		for (int i = 0; i < pointCount - 1; ++i)
 		{
 			for (int j = 0; j < 4; ++j)

@@ -56,7 +56,7 @@ public class UIGradient : BaseMeshEffect
 			max = max.clampMin(position);
 			min = min.clampMax(position);
         }
-        return 1.0f.divide(max - min);
+        return (max - min).inverse();
     }
 	// 根据混合模式混合颜色
 	protected Color blendColors(Color originalColor, Color newColor)

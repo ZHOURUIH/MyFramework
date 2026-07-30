@@ -13,9 +13,9 @@ public static class RectTransformExtension
 		Vector2 windowSize = rect.rect.size;
 		if (applyWindowScale)
 		{
-			windowSize = windowSize.multiVector2(rect.lossyScale);
+			windowSize = windowSize.multi(rect.lossyScale);
 		}
-		rect.localPosition = (pos + (Vector3)windowSize.multiVector2(rect.pivot - new Vector2(0.5f, 0.5f))).round();
+		rect.localPosition = (pos + (Vector3)windowSize.multi(rect.pivot - new Vector2(0.5f, 0.5f))).round();
 	}
 	// 将当前窗口的顶部对齐父节点的顶部,只改Y坐标
 	public static void setTopToParentTop(this RectTransform rect)
@@ -185,9 +185,9 @@ public static class RectTransformExtension
 		Vector2 windowSize = rect.rect.size;
 		if (applyWindowScale)
 		{
-			windowSize = windowSize.multiVector2(rect.lossyScale);
+			windowSize = windowSize.multi(rect.lossyScale);
 		}
-		return rect.localPosition - (Vector3)windowSize.multiVector2(rect.pivot - new Vector2(0.5f, 0.5f));
+		return rect.localPosition - (Vector3)windowSize.multi(rect.pivot - new Vector2(0.5f, 0.5f));
 	}
 	// 获取在父节点中不受轴心影响下的本地坐标
 	public static void setPositionNoPivotInParent(this RectTransform rect, Vector3 pos, bool applyWindowScale = true)
@@ -206,9 +206,9 @@ public static class RectTransformExtension
 		Vector2 parentSize = parent.rect.size;
 		if (applyWindowScale)
 		{
-			parentSize = parentSize.multiVector2(parent.lossyScale);
+			parentSize = parentSize.multi(parent.lossyScale);
 		}
-		rect.localPosition = (pos - (Vector3)parentSize.multiVector2(parent.pivot - new Vector2(0.5f, 0.5f))).round();
+		rect.localPosition = (pos - (Vector3)parentSize.multi(parent.pivot - new Vector2(0.5f, 0.5f))).round();
 	}
 	// 获取在父节点中不受轴心影响下的本地坐标
 	public static Vector3 getPositionNoPivotInParent(this RectTransform rect, bool applyWindowScale = true)
@@ -234,9 +234,9 @@ public static class RectTransformExtension
 		Vector2 parentSize = parent.rect.size;
 		if (applyWindowScale)
 		{
-			parentSize = parentSize.multiVector2(parent.lossyScale);
+			parentSize = parentSize.multi(parent.lossyScale);
 		}
-		return rect.localPosition + (Vector3)parentSize.multiVector2(parent.pivot - new Vector2(0.5f, 0.5f));
+		return rect.localPosition + (Vector3)parentSize.multi(parent.pivot - new Vector2(0.5f, 0.5f));
 	}
 	public static void setRectWidth(this RectTransform rectTransform, float width)
 	{
