@@ -209,11 +209,11 @@ public abstract class PlatformBase
 		string platformDefine = defaultDefine + buildDefine;
 		if (mEnableHotFix)
 		{
-			platformDefine += ENABLE_HOTFIX;
+			platformDefine += ENABLE_HOTFIX + ";";
 		}
 		if (mTestClient)
 		{
-			platformDefine += TEST;
+			platformDefine += TEST + ";";
 		}
 		return platformDefine;
 	}

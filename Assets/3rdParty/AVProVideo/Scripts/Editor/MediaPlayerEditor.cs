@@ -2605,12 +2605,12 @@ namespace RenderHeads.Media.AVProVideo.Editor
 					if (propUseFastOesPath.boolValue)
 					{
 						ShowNoticeBox(MessageType.Info, "OES can require special shaders.  Make sure you assign an AVPro Video OES shader to your meshes/materials that need to display video.");
-#if UNITY_5_5_OR_NEWER && !UNITY_6000_6_OR_NEWER
+#if UNITY_5_5_OR_NEWER && !UNITY_6000_5_OR_NEWER
 						if (PlayerSettings.virtualRealitySupported && PlayerSettings.stereoRenderingPath != StereoRenderingPath.MultiPass)
 						{
 							ShowNoticeBox(MessageType.Error, "OES only supports multi-pass stereo rendering path, please change in Player Settings.");
 						}
-#elif UNITY_5_4_OR_NEWER && !UNITY_6000_6_OR_NEWER
+#elif UNITY_5_4_OR_NEWER && !UNITY_6000_5_OR_NEWER
 						if (PlayerSettings.virtualRealitySupported && PlayerSettings.singlePassStereoRendering )
 						{
 							ShowNoticeBox(MessageType.Error, "OES only supports multi-pass stereo rendering path, please change in Player Settings.");

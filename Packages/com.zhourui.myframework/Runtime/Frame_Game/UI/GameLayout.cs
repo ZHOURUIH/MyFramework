@@ -8,11 +8,11 @@ using static FrameBase;
 // 用于表示一个布局
 public class GameLayout
 {
-	protected Canvas mCanvas;					// 布局Canvas
-	protected Transform mTransform;				// 布局根节点
+	protected Canvas mCanvas;                   // 布局Canvas
+	protected Transform mTransform;             // 布局根节点
 	protected GameObject mPrefab;               // 布局预设,布局从该预设实例化
-	protected Type mType;						// 布局的脚本类型
-	protected int mRenderOrder;					// 渲染顺序,越大则渲染优先级越高,不能小于0
+	protected Type mType;                       // 布局的脚本类型
+	protected int mRenderOrder;                 // 渲染顺序,越大则渲染优先级越高,不能小于0
 	protected bool mAnchorApplied;              // 是否已经完成了自适应的调整
 	public virtual void assignWindow() { }
 	public virtual void update(float elapsedTime) { }
@@ -25,11 +25,29 @@ public class GameLayout
 	}
 	public void getUIComponent<T>(out T com, string name) where T : Component
 	{
-		com = findGameObject(name, mCanvas.gameObject).GetComponent<T>();
+		GameObject go = findGameObject(name, mCanvas.gameObject);
+		if (go == null)
+		{
+			logErrorBase("找不到节点:" + name);
+		}
+		com = go.GetComponent<T>();
+		if (com == null)
+		{
+			logErrorBase("找不到组件:" + name + ",类型:" + typeof(T));
+		}
 	}
 	public static void getUIComponent<T>(out T com, Component parent, string name) where T : Component
 	{
-		com = findGameObject(name, parent.gameObject).GetComponent<T>();
+		GameObject go = findGameObject(name, parent.gameObject);
+		if (go == null)
+		{
+			logErrorBase("找不到节点:" + name);
+		}
+		com = go.GetComponent<T>();
+		if (com == null)
+		{
+			logErrorBase("找不到组件:" + name + ",类型:" + typeof(T));
+		}
 	}
 	public virtual void init() { }
 	public void initLayout()
@@ -38,13 +56,13 @@ public class GameLayout
 
 		// 初始化布局脚本
 		mCanvas = findGameObject(mType.ToString(), mLayoutManager.getUIRoot().gameObject).GetComponent<Canvas>();
-		
+
 		// 去除自带的锚点
 		// 在unity2020中,不知道为什么实例化以后的RectTransform的大小会自动变为视图窗口大小,为了适配计算正确,这里需要重置一次
 		RectTransform rectTransform = mCanvas.GetComponent<RectTransform>();
 		rectTransform.anchorMin = Vector2.one * 0.5f;
 		rectTransform.anchorMax = Vector2.one * 0.5f;
-        setRectSize(rectTransform, FrameSettings.getUISize());
+		setRectSize(rectTransform, FrameSettings.getUISize());
 
 		mTransform = mCanvas.gameObject.transform;
 		assignWindow();
@@ -112,10 +130,10 @@ public class GameLayout
 			onHide();
 		}
 	}
-	public Canvas getRoot()									{ return mCanvas; }
-	public string getName()									{ return mType.ToString(); }
-	public Type getType()									{ return mType; }
-	public bool isVisible()									{ return mCanvas != null && mCanvas.gameObject.activeInHierarchy; }
-	public void setPrefab(GameObject prefab)				{ mPrefab = prefab; }
-	public void setType(Type type)							{ mType = type; }
+	public Canvas getRoot() { return mCanvas; }
+	public string getName() { return mType.ToString(); }
+	public Type getType() { return mType; }
+	public bool isVisible() { return mCanvas != null && mCanvas.gameObject.activeInHierarchy; }
+	public void setPrefab(GameObject prefab) { mPrefab = prefab; }
+	public void setType(Type type) { mType = type; }
 }
