@@ -2,9 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using static FrameDefine;
-using static StringUtility;
 using static FileUtility;
-using static MathUtility;
 using static FrameBaseDefine;
 
 // 物体轨迹记录工具
@@ -187,7 +185,7 @@ public class PathRecorder : MonoBehaviour
 				continue;
 			}
 			Vector3 curValue = path.get(keys[i]);
-			if (!path.removeIf(keys[i], isVectorEqual(curValue, lastValue)))
+			if (!path.removeIf(keys[i], curValue.isVectorEqual(lastValue)))
 			{
 				lastValue = curValue;
 			}
@@ -207,7 +205,7 @@ public class PathRecorder : MonoBehaviour
 				continue;
 			}
 			float curValue = path.get(keys[i]);
-			if (!path.removeIf(keys[i], isFloatEqual(curValue, lastValue)))
+			if (!path.removeIf(keys[i], curValue.isFloatEqual(lastValue)))
 			{
 				lastValue = curValue;
 			}

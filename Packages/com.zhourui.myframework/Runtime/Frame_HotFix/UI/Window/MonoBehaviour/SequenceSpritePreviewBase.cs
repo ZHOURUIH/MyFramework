@@ -245,10 +245,8 @@ public abstract class SequenceSpritePreviewBase : MonoBehaviour
         }
 
         int frameCount = mFrames.Length;
-        int index = ceil(mSlider * frameCount) - 1;
-        clamp(ref index, 0, frameCount - 1);
-
-        mCurFrame = index;
+        int index = (mSlider * frameCount).ceil() - 1;
+		mCurFrame = index.clamp(0, frameCount - 1);
         applyFrame(mCurFrame);
     }
     private void reloadFramesFromCurrentSprite()
@@ -288,7 +286,7 @@ public abstract class SequenceSpritePreviewBase : MonoBehaviour
                 .ThenBy(s => s.name)
                 .ToArray();
         }
-        clamp(ref mCurFrame, 0, getMax(0, mFrames.Length - 1));
+		mCurFrame = mCurFrame.clamp(0, getMax(0, mFrames.Length - 1));
     }
     private void applyFrame(int index)
     {
@@ -302,8 +300,7 @@ public abstract class SequenceSpritePreviewBase : MonoBehaviour
         {
             return;
         }
-        clamp(ref index, 0, mFrames.Length - 1);
-        setImage(image, mFrames[index]);
+        setImage(image, mFrames[index.clamp(0, mFrames.Length - 1)]);
         EditorUtility.SetDirty(this);
         SceneView.RepaintAll();
     }

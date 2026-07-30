@@ -450,14 +450,14 @@ public class SerializerBitRead : ClassObject
 	public bool read(out float value, bool needReadSign, int precision = 3)
 	{
 		bool success = readBit(mBuffer, mBufferSize, ref mBitIndex, out int intValue, needReadSign);
-		value = divide(intValue, pow10(precision));
+		value = intValue.divide(precision.pow10());
 		return success;
 	}
 	public bool read(out float value0, out float value1, bool needReadSign, int precision = 3)
 	{
 		Span<int> list = stackalloc int[2];
 		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
-		float inversePow = inversePow10(precision);
+		float inversePow = precision.inversePow10();
 		value0 = list[0] * inversePow;
 		value1 = list[1] * inversePow;
 		return success;
@@ -466,7 +466,7 @@ public class SerializerBitRead : ClassObject
 	{
 		Span<int> list = stackalloc int[3];
 		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
-		float inversePow = inversePow10(precision);
+		float inversePow = precision.inversePow10();
 		value0 = list[0] * inversePow;
 		value1 = list[1] * inversePow;
 		value2 = list[2] * inversePow;
@@ -476,7 +476,7 @@ public class SerializerBitRead : ClassObject
 	{
 		Span<int> list = stackalloc int[4];
 		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
-		float inversePow = inversePow10(precision);
+		float inversePow = precision.inversePow10();
 		value0 = list[0] * inversePow;
 		value1 = list[1] * inversePow;
 		value2 = list[2] * inversePow;
@@ -488,7 +488,7 @@ public class SerializerBitRead : ClassObject
 		int count = values.Length;
 		Span<int> list = stackalloc int[values.Length];
 		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
-		float inversePow = inversePow10(precision);
+		float inversePow = precision.inversePow10();
 		for (int i = 0; i < count; ++i)
 		{
 			values[i] = list[i] * inversePow;
@@ -498,14 +498,14 @@ public class SerializerBitRead : ClassObject
 	public bool read(out double value, bool needReadSign, int precision = 4)
 	{
 		bool success = readBit(mBuffer, mBufferSize, ref mBitIndex, out long intValue, needReadSign);
-		value = intValue * inversePow10Long(precision);
+		value = intValue * precision.inversePow10Long();
 		return success;
 	}
 	public bool read(out double value0, out double value1, bool needReadSign, int precision = 4)
 	{
 		Span<long> list = stackalloc long[2];
 		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
-		double inversePow = inversePow10Long(precision);
+		double inversePow = precision.inversePow10Long();
 		value0 = list[0] * inversePow;
 		value1 = list[1] * inversePow;
 		return success;
@@ -514,7 +514,7 @@ public class SerializerBitRead : ClassObject
 	{
 		Span<long> list = stackalloc long[3];
 		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
-		double inversePow = inversePow10Long(precision);
+		double inversePow = precision.inversePow10Long();
 		value0 = list[0] * inversePow;
 		value1 = list[1] * inversePow;
 		value2 = list[2] * inversePow;
@@ -524,7 +524,7 @@ public class SerializerBitRead : ClassObject
 	{
 		Span<long> list = stackalloc long[4];
 		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
-		double inversePow = inversePow10Long(precision);
+		double inversePow = precision.inversePow10Long();
 		value0 = list[0] * inversePow;
 		value1 = list[1] * inversePow;
 		value2 = list[2] * inversePow;
@@ -536,7 +536,7 @@ public class SerializerBitRead : ClassObject
 		int count = values.Length;
 		Span<long> list = stackalloc long[count];
 		bool success = readListBit(mBuffer, mBufferSize, ref mBitIndex, ref list, needReadSign);
-		double inversePow = inversePow10Long(precision);
+		double inversePow = precision.inversePow10Long();
 		for (int i = 0; i < count; ++i)
 		{
 			values[i] = list[i] * inversePow;

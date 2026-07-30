@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using static MathUtility;
 
 // 按速度旋转的组件
 public class ComponentRotateSpeed : GameComponent, IComponentModifyRotation, IComponentBreakable
@@ -53,7 +52,7 @@ public class ComponentRotateSpeed : GameComponent, IComponentModifyRotation, ICo
 		mRotateAcceleration = rotateAcceleration;
 		applyRotation(ref mCurRotation);
 		// 如果速度和加速度都为0,则停止旋转
-		if (isVectorZero(rotateSpeed) && isVectorZero(rotateAcceleration))
+		if (rotateSpeed.isVectorZero() && rotateAcceleration.isVectorZero())
 		{
 			setActive(false);
 		}
@@ -95,10 +94,10 @@ public class ComponentRotateSpeed : GameComponent, IComponentModifyRotation, ICo
 	protected virtual Vector3 getCurRotation() { return Vector3.zero; }
 	protected void tick(float elapsedTime)
 	{
-		if (mPlayState == PLAY_STATE.PLAY && !(isVectorZero(mRotateSpeed) && isVectorZero(mRotateAcceleration)))
+		if (mPlayState == PLAY_STATE.PLAY && !(mRotateSpeed.isVectorZero() && mRotateAcceleration.isVectorZero()))
 		{
 			mCurRotation += mRotateSpeed * elapsedTime;
-			adjustAngle360(ref mCurRotation);
+			mCurRotation = mCurRotation.adjustAngle360();
 			applyRotation(ref mCurRotation);
 			mRotateSpeed += mRotateAcceleration * elapsedTime;
 		}

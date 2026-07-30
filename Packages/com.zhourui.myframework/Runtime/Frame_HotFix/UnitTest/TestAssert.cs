@@ -1,5 +1,4 @@
 using System;
-using static MathUtility;
 
 // 简单的测试断言工具类
 public static class TestAssert
@@ -22,7 +21,7 @@ public static class TestAssert
     }
 	public static void assertEqual(float expected, float actual, float precision, string message = "")
 	{
-		if (!isFloatEqual(expected, actual, precision))
+		if (!expected.isFloatEqual(actual, precision))
 		{
 			throw new Exception(message.isEmpty() ? $"Expected [{expected}] but got [{actual}]"
 					                              : $"{message} - Expected [{expected}] but got [{actual}]");

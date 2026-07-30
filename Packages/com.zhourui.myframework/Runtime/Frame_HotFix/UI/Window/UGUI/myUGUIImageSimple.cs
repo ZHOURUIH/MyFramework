@@ -2,7 +2,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using static UnityUtility;
-using static MathUtility;
 
 // 对UGUI的Image的封装,简化版,只有Image组件,不能在运行时切换图片
 public class myUGUIImageSimple : myUGUIObject
@@ -55,7 +54,7 @@ public class myUGUIImageSimple : myUGUIObject
 		mCanvasGroup.alpha = isCull ? 0.0f : 1.0f;
 		mCanvasGroupValid = true;
 	}
-	public override bool isCulled() { return mCanvasGroupValid && isFloatZero(mCanvasGroup.alpha); }
+	public override bool isCulled() { return mCanvasGroupValid && mCanvasGroup.alpha.isFloatZero(); }
 	public override bool canGenerateDepth() { return !isCulled(); }
 	public void setRenderQueue(int renderQueue)
 	{

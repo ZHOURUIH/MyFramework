@@ -5,6 +5,6 @@ public class CurveSineOut : MyCurve
 {
 	public override float evaluate(float time)
 	{
-		return sin(time * HALF_PI_RADIAN);
+		return (time * HALF_PI_RADIAN).sin();
 	}
 }

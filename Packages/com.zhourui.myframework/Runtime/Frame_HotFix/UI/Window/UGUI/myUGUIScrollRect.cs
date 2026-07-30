@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using static UnityUtility;
-using static MathUtility;
 using static WidgetUtility;
 using static FrameUtility;
 
@@ -78,10 +77,10 @@ public class myUGUIScrollRect : myUGUIObject
 		makeSizeEven(this);
 		makeSizeEven(mViewport);
 		// 矫正Content的位置,使之始终为整数
-		if (mScrollRect.vertical && isFloatZero(mScrollRect.velocity.y) ||
-			mScrollRect.horizontal && isFloatZero(mScrollRect.velocity.x))
+		if (mScrollRect.vertical && mScrollRect.velocity.y.isFloatZero() ||
+			mScrollRect.horizontal && mScrollRect.velocity.x.isFloatZero())
 		{
-			mContent.setPosition(round(mContent.getPosition()));
+			mContent.setPosition(mContent.getPosition().round());
 		}
 	}
 	public void setScrollEnable(bool enable)
@@ -96,12 +95,12 @@ public class myUGUIScrollRect : myUGUIObject
 	// 1.0表示将content的轴心设置到最上边,使其顶部对齐viewport顶部
 	// 0.5表示将content的轴心设置到中间,使其中间对齐viewport中间
 	// 0.0表示将content的轴心设置到最下边,使其底部对齐viewport底部
-	public void setContentPivotVertical(float pivot) { mContent.setPivot(replaceY(mContent.getPivot(), pivot)); }
+	public void setContentPivotVertical(float pivot) { mContent.setPivot(mContent.getPivot().replaceY(pivot)); }
 	// 设置content水平方向的轴心
 	// 1.0表示将content的轴心设置到最右边,使其右边界对齐viewport右边界
 	// 0.5表示将content的轴心设置到中间,使其中间对齐viewport中间
 	// 0.0表示将content的轴心设置到最左边,使其左边界对齐viewport左边界
-	public void setContentPivotHorizontal(float pivot) { mContent.setPivot(replaceX(mContent.getPivot(), pivot)); }
+	public void setContentPivotHorizontal(float pivot) { mContent.setPivot(mContent.getPivot().replaceX(pivot)); }
 	public Vector2 getNormalizedPosition() { return mScrollRect.normalizedPosition; }
 	// 设置Content的相对位置，x，y分别为横向和纵向，值的范围是0-1
 	// 0表示Content的左边或下边与父节点的左边或下边对齐，1表示Content的右边或上边与父节点的右边或上边对齐

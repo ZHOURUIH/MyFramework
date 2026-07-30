@@ -8,7 +8,6 @@ using static StringUtility;
 using static EditorCommonUtility;
 using static FrameDefine;
 using static FileUtility;
-using static MathUtility;
 
 public class RefInfo
 {
@@ -316,13 +315,13 @@ public class CheckResourcesWindow : GameEditorWindow
 			{
 				if (button("上一页"))
 				{
-					mCurPage = clampMin(mCurPage - 1);
+					mCurPage = (mCurPage - 1).clampMin();
 				}
-				int pageCount = ceil(tempFileRefList.Count / (float)mPageSize);
-				label("第" + clampMax(mCurPage + 1, pageCount).IToS() + "/" + pageCount.IToS() + "页");
+				int pageCount = (tempFileRefList.Count / (float)mPageSize).ceil();
+				label("第" + (mCurPage + 1).clampMax(pageCount).IToS() + "/" + pageCount.IToS() + "页");
 				if (button("下一页"))
 				{
-					mCurPage = clampMax(mCurPage + 1, pageCount - 1);
+					mCurPage = (mCurPage + 1).clampMax(pageCount - 1);
 				}
 				if (needMoveFileList.Count > 0)
 				{

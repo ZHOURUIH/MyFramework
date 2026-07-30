@@ -5,6 +5,6 @@ public class CurveSineIn : MyCurve
 {
 	public override float evaluate(float time)
 	{
-		return -cos(time * HALF_PI_RADIAN) + 1.0f;
+		return -(time * HALF_PI_RADIAN).cos() + 1.0f;
 	}
 }

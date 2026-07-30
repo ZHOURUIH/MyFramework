@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using static FrameUtility;
-using static MathUtility;
 using static LT;
 
 // 用于批量异步加载布局,封装一些通用的逻辑,需要通过LayoutLoadGroup.create来创建,会自动回收
@@ -90,7 +89,7 @@ public class LayoutLoadGroup : ClassObject
 	{
 		addLayout(typeof(T), order, orderType);
 	}
-	public float getProgress() { return divide(mLoadedCount, mLoadInfo.Count); }
+	public float getProgress() { return mLoadedCount.divide(mLoadInfo.Count); }
 	public bool isAllLoaded() { return mLoadedCount == mLoadInfo.Count; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void onLayoutLoaded(GameLayout layout, CustomAsyncOperation op)

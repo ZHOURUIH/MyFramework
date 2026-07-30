@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using static MathUtility;
 using static UnityUtility;
 using static FrameBaseUtility;
 
@@ -47,8 +46,8 @@ public class ScaleAnchor : MonoBehaviour
 		}
 		mDirty = false;
 		Vector3 realScale = getRealScale();
-		float thisWidth = floor(mOriginSize.x * realScale.x);
-		float thisHeight = floor(mOriginSize.y * realScale.y);
+		float thisWidth = (mOriginSize.x * realScale.x).floor();
+		float thisHeight = (mOriginSize.y * realScale.y).floor();
 		Vector2 newSize = new(thisWidth, thisHeight);
 		// 只有在刷新时才能确定父节点,所以父节点需要实时获取
 		if (mAdjustFont)
@@ -61,7 +60,7 @@ public class ScaleAnchor : MonoBehaviour
 		}
 		if (mAdjustPosition)
 		{
-			rectTransform.setPositionNoPivotInParent(round(multiVector3(mOriginPos, realScale)));
+			rectTransform.setPositionNoPivotInParent(mOriginPos.multiVector3(realScale).round());
 		}
 	}
 	// 获取实际的可直接用于计算的宽高缩放值,会考虑保持宽高比以及缩放基准

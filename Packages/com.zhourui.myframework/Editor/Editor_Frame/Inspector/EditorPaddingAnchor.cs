@@ -1,6 +1,5 @@
 using UnityEditor;
 using UnityEngine;
-using static MathUtility;
 
 [CustomEditor(typeof(PaddingAnchor), true)]
 [CanEditMultipleObjects]
@@ -17,14 +16,14 @@ public class EditorPaddingAnchor : GameInspector
 		{
 			bool needRefresh = false;
 			Vector3 curPos = rectTrans.localPosition;
-			if (!isVectorEqual(paddingAnchor.getLastPosition(), curPos))
+			if (!paddingAnchor.getLastPosition().isVectorEqual(curPos))
 			{
 				paddingAnchor.setLastPosition(curPos);
 				needRefresh = true;
 				modified = true;
 			}
 			Vector2 curSize = rectTrans.rect.size;
-			if (!isVectorEqual(paddingAnchor.getLastSize(), curSize))
+			if (!paddingAnchor.getLastSize().isVectorEqual(curSize))
 			{
 				paddingAnchor.setLastSize(curSize);
 				needRefresh = true;

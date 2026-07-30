@@ -41,8 +41,7 @@ public abstract class ComponentPathAlpha : ComponentKeyFrame
 	protected override void applyTrembling(float value)
 	{
 		// 根据当前的距离找出位于哪两个点之间
-		saturate(ref value);
-		float curTime = value * mMaxLength;
+		float curTime = value.saturate() * mMaxLength;
 		int index = findPointIndex(mTimeList, curTime);
 		float time = mTimeList[index];
 		float startValue = mValueKeyFrame.get(time);

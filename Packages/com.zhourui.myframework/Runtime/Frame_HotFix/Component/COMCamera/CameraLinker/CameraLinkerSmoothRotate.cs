@@ -25,22 +25,22 @@ public class CameraLinkerSmoothRotate : CameraLinkerThirdPerson
 	protected override void updateLinker(float elapsedTime)
 	{
 		// 如果使用目标物体的航向角,则对相对位置进行旋转
-		float targetRadianYaw = toRadian(mLinkObject.getRotation().y);
+		float targetRadianYaw = mLinkObject.getRotation().y.toRadian();
 		// 使用摄像机自身的航向角计算相对位置的航向角
 		float curYaw = getVectorYaw(-mCurRelative);
-		adjustRadian360(ref targetRadianYaw);
-		adjustRadian360(ref curYaw);
+		targetRadianYaw = targetRadianYaw.adjustRadian360();
+		curYaw = curYaw.adjustRadian360();
 		// 调整角度范围
-		if (abs(curYaw - targetRadianYaw) > PI_RADIAN)
+		if ((curYaw - targetRadianYaw).abs() > PI_RADIAN)
 		{
-			adjustRadian180(ref targetRadianYaw);
-			adjustRadian180(ref curYaw);
+			targetRadianYaw = targetRadianYaw.adjustRadian180();
+			curYaw = curYaw.adjustRadian180();
 		}
 		curYaw = lerp(curYaw, targetRadianYaw, elapsedTime * mSmoothRotateSpeed, 0.01f);
-		adjustRadian360(ref targetRadianYaw);
-		adjustRadian360(ref curYaw);
+		targetRadianYaw = targetRadianYaw.adjustRadian360();
+		curYaw = curYaw.adjustRadian360();
 		float curPitch = getVectorPitch(-mRelativePosition);
-		Vector3 newRelative = -getDirectionFromRadianYawPitch(curYaw, curPitch) * getLength(mRelativePosition);
+		Vector3 newRelative = -getDirectionFromRadianYawPitch(curYaw, curPitch) * mRelativePosition.getLength();
 		applyRelativePosition(newRelative);
 	}
 }

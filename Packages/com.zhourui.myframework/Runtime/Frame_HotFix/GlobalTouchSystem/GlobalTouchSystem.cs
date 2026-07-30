@@ -613,7 +613,7 @@ public class GlobalTouchSystem : FrameSystem
 				box.getCollider() != null && 
 				box.getCollider().Raycast(ray, out RaycastHit hit, 10000.0f))
 			{
-				sortList.Add(new(getSquaredLength(hit.point - ray.origin), box));
+				sortList.Add(new((hit.point - ray.origin).getSquaredLength(), box));
 			}
 		}
 		// 根据相交点由近到远的顺序排序

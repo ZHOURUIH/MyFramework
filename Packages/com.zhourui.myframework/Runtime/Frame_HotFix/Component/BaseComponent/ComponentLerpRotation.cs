@@ -17,11 +17,11 @@ public abstract class ComponentLerpRotation : ComponentLerp, IComponentModifyRot
 		base.update(elapsedTime);
 		Vector3 curRot = lerp(getRotation(), mTargetRotation, mLerpSpeed * elapsedTime, mMinRange);
 		applyRotation(curRot);
-		afterApplyLerp(isVectorEqual(curRot, mTargetRotation));
+		afterApplyLerp(curRot.isVectorEqual(mTargetRotation));
 	}
 	public override void play()
 	{
-		if (isVectorEqual(getRotation(), mTargetRotation))
+		if (getRotation().isVectorEqual(mTargetRotation))
 		{
 			stop();
 			return;

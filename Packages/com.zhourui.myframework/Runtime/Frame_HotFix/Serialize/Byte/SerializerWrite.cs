@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using static SerializeByteUtility;
 using static BinaryUtility;
-using static MathUtility;
 
 // 只写缓冲区,用于生成二进制数据流的,按字节进行写入
 public class SerializerWrite : ClassObject
@@ -292,9 +291,8 @@ public class SerializerWrite : ClassObject
 		// 如果缓冲区为空,则创建缓冲区
 		if (mBuffer == null)
 		{
-			writeLen = getGreaterPow2(writeLen);
 			// 至少分配32个字节,避免初期频繁扩容
-			clampMin(ref writeLen, 32);
+			writeLen = writeLen.getGreaterPow2().clampMin(32);
 			mBuffer = new byte[writeLen];
 			return;
 		}

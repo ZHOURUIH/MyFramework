@@ -2,7 +2,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
-using static MathUtility;
 using static FrameBaseHotFix;
 using static FrameBaseDefine;
 
@@ -38,7 +37,7 @@ public class LocalizationText : MonoBehaviour
 		}
 		else
 		{
-			mFontSizeScale = divide(getFontSize(), mChineseOriginFontSize);
+			mFontSizeScale = getFontSize().divide(mChineseOriginFontSize);
 		}
 		mLocalization = getText();
         mLocalizationManager?.registeAction(onLanguageChanged);
@@ -104,7 +103,7 @@ public class LocalizationText : MonoBehaviour
 		{
 			if (item.mLanguage == mLocalizationManager.getCurrentLanguage())
 			{
-				setFontSize((int)(checkInt(item.mFontSize * mFontSizeScale)));
+				setFontSize((int)(item.mFontSize * mFontSizeScale).checkInt());
 			}
 		}
     }

@@ -41,15 +41,14 @@ public abstract class ComponentCurve : ComponentKeyFrame
 	{
 		var uiObj = mComponentOwner as ITransformable;
 		// 根据当前的距离找出位于哪两个点之间
-		saturate(ref value);
-		float curDistance = value * mKeyPointList[^1].mDistanceFromStart;
+		float curDistance = value.saturate() * mKeyPointList[^1].mDistanceFromStart;
 		mLastKeyIndex = findPointIndex(mKeyPointList, curDistance, mLastKeyIndex);
 		KeyPoint curPoint = mKeyPointList[mLastKeyIndex];
 		Vector3 pos;
 		if (mLastKeyIndex < mKeyPointList.Count - 1)
 		{
 			KeyPoint nextPoint = mKeyPointList[mLastKeyIndex + 1];
-			float percent = divide(curDistance - curPoint.mDistanceFromStart, nextPoint.mDistanceFromLast);
+			float percent = (curDistance - curPoint.mDistanceFromStart).divide(nextPoint.mDistanceFromLast);
 			pos = lerp(curPoint.mPosition, nextPoint.mPosition, percent);
 		}
 		else

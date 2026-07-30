@@ -19,7 +19,7 @@ public class CustomLine : MaskableGraphic
 		foreach (Vector3 pos in list.safe())
 		{
 			// 去除连续的重复的点
-			mPointList.addIf(pos, mPointList.Count <= 0 || !isVectorEqual(pos, mPointList[^1]));
+			mPointList.addIf(pos, mPointList.Count <= 0 || !pos.isVectorEqual(mPointList[^1]));
 		}
 		refreshPoints();
 	}
@@ -28,7 +28,7 @@ public class CustomLine : MaskableGraphic
 		mPointList.Clear();
 		foreach (Vector3 pos in list)
 		{
-			mPointList.addIf(pos, mPointList.Count <= 0 || !isVectorEqual(pos, mPointList[^1]));
+			mPointList.addIf(pos, mPointList.Count <= 0 || !pos.isVectorEqual(mPointList[^1]));
 		}
 		refreshPoints();
 	}
@@ -37,7 +37,7 @@ public class CustomLine : MaskableGraphic
 		mPointList.Clear();
 		foreach (Vector3 pos in list.safe())
 		{
-			mPointList.addIf(pos, mPointList.Count <= 0 || !isVectorEqual(pos, mPointList[^1]));
+			mPointList.addIf(pos, mPointList.Count <= 0 || !pos.isVectorEqual(mPointList[^1]));
 		}
 		refreshPoints();
 	}
@@ -67,7 +67,7 @@ public class CustomLine : MaskableGraphic
 		for (int i = 0; i < pointCount; ++i)
 		{
 			// 如果当前点跟上一个点相同,则取上一点计算出的结果
-			if (i > 0 && i < pointCount - 1 && isVectorEqual(mPointList[i - 1], mPointList[i]))
+			if (i > 0 && i < pointCount - 1 && mPointList[i - 1].isVectorEqual(mPointList[i]))
 			{
 				originVertices[2 * i + 0] = originVertices[2 * (i - 1) + 0];
 				originVertices[2 * i + 1] = originVertices[2 * (i - 1) + 1];
@@ -78,36 +78,36 @@ public class CustomLine : MaskableGraphic
 				{
 					Vector3 dir = (mPointList[i + 1] - mPointList[i]).normalized;
 					float halfAngle = HALF_PI_RADIAN;
-					Quaternion q0 = Quaternion.AngleAxis(toDegree(halfAngle), Vector3.back);
-					Quaternion q1 = Quaternion.AngleAxis(toDegree(halfAngle - PI_RADIAN), Vector3.back);
-					float length = divide(halfWidth, sin(halfAngle));
-					originVertices[2 * i + 0] = rotateVector3(dir, q0) * length + mPointList[i];
-					originVertices[2 * i + 1] = rotateVector3(dir, q1) * length + mPointList[i];
+					Quaternion q0 = Quaternion.AngleAxis(halfAngle.toDegree(), Vector3.back);
+					Quaternion q1 = Quaternion.AngleAxis((halfAngle - PI_RADIAN).toDegree(), Vector3.back);
+					float length = halfWidth.divide(halfAngle.sin());
+					originVertices[2 * i + 0] = dir.rotateVector3(q0) * length + mPointList[i];
+					originVertices[2 * i + 1] = dir.rotateVector3(q1) * length + mPointList[i];
 				}
 				else if (i > 0 && i < pointCount - 1)
 				{
 					Vector3 dir = (mPointList[i + 1] - mPointList[i]).normalized;
 					Vector3 dir1 = (mPointList[i - 1] - mPointList[i]).normalized;
 					float halfAngle = getAngleVectorToVector(dir, dir1, false) * 0.5f;
-					float extendLength = divide(halfWidth, sin(halfAngle));
-					Quaternion q0 = Quaternion.AngleAxis(toDegree(halfAngle), Vector3.back);
-					Quaternion q1 = Quaternion.AngleAxis(toDegree(halfAngle - PI_RADIAN), Vector3.back);
-					originVertices[2 * i + 0] = rotateVector3(dir, q0) * extendLength + mPointList[i];
-					originVertices[2 * i + 1] = rotateVector3(dir, q1) * extendLength + mPointList[i];
+					float extendLength = halfWidth.divide(halfAngle.sin());
+					Quaternion q0 = Quaternion.AngleAxis(halfAngle.toDegree(), Vector3.back);
+					Quaternion q1 = Quaternion.AngleAxis((halfAngle - PI_RADIAN).toDegree(), Vector3.back);
+					originVertices[2 * i + 0] = dir.rotateVector3(q0) * extendLength + mPointList[i];
+					originVertices[2 * i + 1] = dir.rotateVector3(q1) * extendLength + mPointList[i];
 				}
 				else if (i == pointCount - 1)
 				{
 					Vector3 dir = (mPointList[i] - mPointList[i - 1]).normalized;
 					float halfAngle = HALF_PI_RADIAN;
-					Quaternion q0 = Quaternion.AngleAxis(toDegree(halfAngle), Vector3.back);
-					Quaternion q1 = Quaternion.AngleAxis(toDegree(halfAngle - PI_RADIAN), Vector3.back);
-					float length = divide(halfWidth, sin(halfAngle));
-					originVertices[2 * i + 0] = rotateVector3(dir, q0) * length + mPointList[i];
-					originVertices[2 * i + 1] = rotateVector3(dir, q1) * length + mPointList[i];
+					Quaternion q0 = Quaternion.AngleAxis(halfAngle.toDegree(), Vector3.back);
+					Quaternion q1 = Quaternion.AngleAxis((halfAngle - PI_RADIAN).toDegree(), Vector3.back);
+					float length = halfWidth.divide(halfAngle.sin());
+					originVertices[2 * i + 0] = dir.rotateVector3(q0) * length + mPointList[i];
+					originVertices[2 * i + 1] = dir.rotateVector3(q1) * length + mPointList[i];
 				}
 			}
 		}
-		float inverseWidth = divide(1.0f, mWidth);
+		float inverseWidth = 1.0f.divide(mWidth);
 		for (int i = 0; i < pointCount - 1; ++i)
 		{
 			for (int j = 0; j < 4; ++j)
@@ -120,8 +120,8 @@ public class CustomLine : MaskableGraphic
 			mVertices[4 * i + 3] = originVertices[2 * i + 3];
 			mUVs[4 * i + 0] = new(0.0f, 0.0f);
 			mUVs[4 * i + 1] = new(0.0f, 1.0f);
-			mUVs[4 * i + 2] = new(getLength(mVertices[4 * i + 2] - mVertices[4 * i + 0]) * inverseWidth, 0.0f);
-			mUVs[4 * i + 3] = new(getLength(mVertices[4 * i + 2] - mVertices[4 * i + 0]) * inverseWidth, 1.0f);
+			mUVs[4 * i + 2] = new((mVertices[4 * i + 2] - mVertices[4 * i + 0]).getLength() * inverseWidth, 0.0f);
+			mUVs[4 * i + 3] = new((mVertices[4 * i + 2] - mVertices[4 * i + 0]).getLength() * inverseWidth, 1.0f);
 		}
 		// 计算顶点索引,每两个点之间两个三角面，每个三角面三个顶点
 		for (int i = 0; i < pointCount - 1; ++i)

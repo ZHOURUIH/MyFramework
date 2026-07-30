@@ -17,6 +17,6 @@ public class COMTimeScale : ComponentKeyFrame
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void applyTrembling(float value)
 	{
-		Time.timeScale = clampMin(lerpSimple(mStart, mTarget, value));
+		Time.timeScale = lerpSimple(mStart, mTarget, value).clampMin();
 	}
 }

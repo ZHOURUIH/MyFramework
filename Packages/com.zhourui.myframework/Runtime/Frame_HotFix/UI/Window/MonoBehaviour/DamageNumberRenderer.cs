@@ -71,7 +71,7 @@ public class DamageNumberRenderer : MonoBehaviour
 			logError("找不到RectTransform");
 		}
 		mNumberHeight = (int)(transform as RectTransform).rect.height;
-		mNumberWidth = (int)(divide(width, height) * mNumberHeight);
+		mNumberWidth = (int)(width.divide(height) * mNumberHeight);
 		mCanvasRenderer.SetTexture(firstSprite.mTexture);
 	}
 	public SpriteData[] getSpriteList() { return mNumberSpriteList; }
@@ -261,7 +261,7 @@ public class DamageNumberRenderer : MonoBehaviour
 			{
 				startValue1 = lerpSimple(startValue1, scaleList[index1 + 1], inverseLerp(scaleTimeList[index1], scaleTimeList[index1 + 1], curTime));
 			}
-			data.mScale = multiVector3(startValue1, data.mScaleOffset);
+			data.mScale = startValue1.multiVector3(data.mScaleOffset);
 		}
 	}
 	// 快速地找到当前位于哪两个时间点之间,因为时间是单调递增的,所以比正常的查找要简化一些
@@ -269,7 +269,7 @@ public class DamageNumberRenderer : MonoBehaviour
 	{
 		if (timeList[startIndex] > curTime)
 		{
-			return clampMin(startIndex - 1);
+			return (startIndex - 1).clampMin();
 		}
 		int count = timeList.Length;
 		for (int i = startIndex + 1; i < count; ++i)

@@ -51,15 +51,14 @@ public abstract class ComponentPath : ComponentKeyFrame
 	protected override void applyTrembling(float value)
 	{
 		// 根据当前的距离找出位于哪两个点之间
-		saturate(ref value);
-		float curTime = value * mMaxLength;
+		float curTime = value.saturate() * mMaxLength;
 		mLastKeyIndex = findPointIndex(mTimeList, curTime, mLastKeyIndex);
 		Vector3 startValue = mValueList[mLastKeyIndex];
 		if (mLastKeyIndex < mTimeList.Count - 1)
 		{
 			startValue = lerp(startValue, mValueList[mLastKeyIndex + 1], inverseLerp(mTimeList[mLastKeyIndex], mTimeList[mLastKeyIndex + 1], curTime));
 		}
-		setValue(mOffsetBlendAdd ? startValue + mValueOffset : multiVector3(startValue, mValueOffset));
+		setValue(mOffsetBlendAdd ? startValue + mValueOffset : startValue.multiVector3(mValueOffset));
 	}
 	protected abstract void setValue(Vector3 value);
 }

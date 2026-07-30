@@ -1,5 +1,4 @@
-﻿using static MathUtility;
-
+﻿
 // 自定义的计时器,需要手动调用tickTimer进行更新,返回值为是否到达指定时间
 // 因为使用的是每帧的经过的时间来计时,可能会出现比预计时间短的情况,所以适用于时间不需要特别精确的地方
 public class MyTimer
@@ -25,7 +24,7 @@ public class MyTimer
 		{
 			return 0.0f;
 		}
-		return divide(mCurTime, mTimeInterval);
+		return mCurTime.divide(mTimeInterval);
 	}
 	public bool tickTimer(float elapsedTime)
 	{

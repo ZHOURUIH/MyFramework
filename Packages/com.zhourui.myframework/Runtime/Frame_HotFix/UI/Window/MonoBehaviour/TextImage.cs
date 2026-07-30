@@ -1,8 +1,7 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using UnityEngine;
 using UnityEngine.UI;
-using static MathUtility;
 
 // 带图文混排的文字组件
 public class TextImage : Text
@@ -10,8 +9,8 @@ public class TextImage : Text
 	protected List<myUGUIImage> mImageList = new();	// 图片列表
 	protected List<UIVertex> mVertexStream = new();	// 避免GC用
 	protected List<int> mImagesQuadIndex = new();	// 图片的最后一个顶点的索引
-	protected ImageFunction mCreateImage;				// 创建图片的委托,让外边决定怎么创建图片
-	protected ImageCallback mDestroyImage;		// 销毁图片的委托,让外边决定怎么销毁图片
+	protected ImageFunction mCreateImage;			// 创建图片的委托,让外边决定怎么创建图片
+	protected ImageCallback mDestroyImage;			// 销毁图片的委托,让外边决定怎么销毁图片
 	protected static Regex mRegex;					// 正则取出所需要的属性
 	public TextImage()
 	{
@@ -45,7 +44,7 @@ public class TextImage : Text
 			image.setSpriteName(match.Groups[2].Value);
 			float scale = float.Parse(match.Groups[1].Value);
 			Vector2 spriteSize = image.getSpriteSize();
-			image.setSize(new(fontSize * scale, fontSize * scale * divide(spriteSize.y, spriteSize.x)));
+			image.setSize(new(fontSize * scale, fontSize * scale * spriteSize.y.divide(spriteSize.x)));
 			mImageList.Add(image);
 		}
 	}

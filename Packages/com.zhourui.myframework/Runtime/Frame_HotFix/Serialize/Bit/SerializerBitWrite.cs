@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using static BinaryUtility;
 using static SerializeBitUtility;
-using static MathUtility;
 
 // 只写缓冲区,用于生成二进制数据流,按位进行写入
 public class SerializerBitWrite : ClassObject
@@ -109,38 +108,38 @@ public class SerializerBitWrite : ClassObject
 	}
 	public void write(Span<float> values, bool needWriteSign, int precision = 3)
 	{
-		int powValue = pow10(precision);
+		int powValue = precision.pow10();
 		int count = values.Length;
 		Span<int> ints = stackalloc int[count];
 		for (int i = 0; i < count; ++i)
 		{
-			ints[i] = round(values[i] * powValue);
+			ints[i] = (values[i] * powValue).round();
 		}
 		write(ints, needWriteSign);
 	}
 	public void write(float value, bool needWriteSign, int precision = 3)
 	{
-		write(round(value * pow10(precision)), needWriteSign);
+		write((value * precision.pow10()).round(), needWriteSign);
 	}
 	public void write(Span<double> values, bool needWriteSign, int precision = 4)
 	{
-		long powValue = pow10Long(precision);
+		long powValue = precision.pow10Long();
 		int count = values.Length;
 		Span<long> longs = stackalloc long[count];
 		for (int i = 0; i < count; ++i)
 		{
-			longs[i] = round(values[i] * powValue);
+			longs[i] = (values[i] * powValue).round();
 		}
 		write(longs, needWriteSign);
 	}
 	public void write(double value, bool needWriteSign, int precision = 4)
 	{
-		write(round(value * pow10Long(precision)), needWriteSign);
+		write((value * precision.pow10Long()).round(), needWriteSign);
 	}
 	public void write(Vector2 value, bool needWriteSign, int precision = 3)
 	{
-		int powValue = pow10(precision);
-		write(stackalloc int[2] { round(value.x * powValue), round(value.y * powValue) }, needWriteSign);
+		int powValue = precision.pow10();
+		write(stackalloc int[2] { (value.x * powValue).round(), (value.y * powValue).round() }, needWriteSign);
 	}
 	public void write(Vector2UShort value)
 	{
@@ -168,13 +167,13 @@ public class SerializerBitWrite : ClassObject
 	}
 	public void write(Vector3 value, bool needWriteSign, int precision = 3)
 	{
-		int powValue = pow10(precision);
-		write(stackalloc int[3] { round(value.x * powValue), round(value.y * powValue), round(value.z * powValue) }, needWriteSign);
+		int powValue = precision.pow10();
+		write(stackalloc int[3] { (value.x * powValue).round(), (value.y * powValue).round(), (value.z * powValue).round() }, needWriteSign);
 	}
 	public void write(Vector4 value, bool needWriteSign, int precision = 3)
 	{
-		int powValue = pow10(precision);
-		write(stackalloc int[4] { round(value.x * powValue), round(value.y * powValue), round(value.z * powValue), round(value.w * powValue) }, needWriteSign);
+		int powValue = precision.pow10();
+		write(stackalloc int[4] { (value.x * powValue).round(), (value.y * powValue).round(), (value.z * powValue).round(), (value.w * powValue).round() }, needWriteSign);
 	}
 	public void writeBuffer(byte[] buffer, int dataSize)
 	{
@@ -339,9 +338,9 @@ public class SerializerBitWrite : ClassObject
 		// 如果缓冲区为空,则创建缓冲区
 		if (mBuffer == null)
 		{
-			writeLen = getGreaterPow2(writeLen);
+			writeLen = writeLen.getGreaterPow2();
 			// 至少分配32个字节,避免初期频繁扩容
-			clampMin(ref writeLen, 32);
+			writeLen = writeLen.clampMin(32);
 			mBuffer = new byte[writeLen];
 			mBuffer.setAllDefault();
 			return;
@@ -352,7 +351,7 @@ public class SerializerBitWrite : ClassObject
 		int curSize = mBuffer.Length;
 		if (writeLen + curByte > curSize)
 		{
-			int maxSize = getGreaterPow2(writeLen + curByte);
+			int maxSize = (writeLen + curByte).getGreaterPow2();
 			byte[] newBuffer = new byte[maxSize > curSize << 1 ? maxSize : curSize << 1];
 			memcpy(newBuffer, mBuffer, 0, 0, curSize);
 			memset(newBuffer, (byte)0, curSize, newBuffer.Length - curSize);

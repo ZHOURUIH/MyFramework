@@ -1,5 +1,4 @@
 ﻿using System;
-using static MathUtility;
 
 // 长按信息
 public class LongPressData : ClassObject
@@ -32,7 +31,7 @@ public class LongPressData : ClassObject
 		}
 
 		// 还未到达长按时间
-		mOnLongPressing?.Invoke(clampMax(divide(pressedTime, mLongPressTime), 1.0f));
+		mOnLongPressing?.Invoke(pressedTime.divide(mLongPressTime).clampMax(1.0f));
 		// 已到达长按时间,触发长按事件
 		if (pressedTime >= mLongPressTime)
 		{

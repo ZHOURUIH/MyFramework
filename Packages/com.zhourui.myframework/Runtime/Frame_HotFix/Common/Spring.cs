@@ -1,5 +1,4 @@
-﻿using static MathUtility;
-
+﻿
 // 用于模拟弹簧的类
 public class Spring : ClassObject
 {
@@ -34,8 +33,8 @@ public class Spring : ClassObject
 		// 计算拉力
 		float elasticForce = calculateElasticForce() * -1.0f;
 		// 加速度
-		float acceleration = divide(mForce + elasticForce, mObjectMass);
-		if (isFloatZero(acceleration) || (acceleration < 0.0f && mPreAcce > 0.0f) || (acceleration > 0.0f && mPreAcce < 0.0f))
+		float acceleration = (mForce + elasticForce).divide(mObjectMass);
+		if (acceleration.isFloatZero() || (acceleration < 0.0f && mPreAcce > 0.0f) || (acceleration > 0.0f && mPreAcce < 0.0f))
 		{
 			mObjectSpeed = 0.0f;
 			acceleration = 0.0f;

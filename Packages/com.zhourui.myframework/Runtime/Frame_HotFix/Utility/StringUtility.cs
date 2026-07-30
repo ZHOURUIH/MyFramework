@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
-using static MathUtility;
 using static UnityUtility;
 using static FrameUtility;
 using static FrameDefine;
@@ -452,7 +451,7 @@ public class StringUtility
 	// 获得文件的后缀名,带.号
 	public static string getFileSuffix(string file)
 	{
-		int dotPos = file.IndexOf('.', clampMin(file.LastIndexOf('/')));
+		int dotPos = file.IndexOf('.', file.LastIndexOf('/').clampMin());
 		if (dotPos != -1)
 		{
 			return file.removeStartCount(dotPos);
@@ -697,7 +696,7 @@ public class StringUtility
 		{
 			using var a = new MyStringBuilderScope(out var builder);
 			int byteCount = count > 0 ? count : byteList.Length - offset;
-			clamp(ref byteCount, 0, byteList.Length - offset);
+			byteCount = byteCount.clamp(0, byteList.Length - offset);
 			for (int i = 0; i < byteCount; ++i)
 			{
 				if (addSpace)
@@ -716,7 +715,7 @@ public class StringUtility
 		{
 			StringBuilder builder = new();
 			int byteCount = count > 0 ? count : byteList.Length - offset;
-			clamp(ref byteCount, 0, byteList.Length - offset);
+			byteCount = byteCount.clamp(0, byteList.Length - offset);
 			for (int i = 0; i < byteCount; ++i)
 			{
 				if (addSpace)
@@ -816,7 +815,7 @@ public class StringUtility
 			return 0;
 		}
 		int dataCount = str.Length >> 1;
-		ARRAY_BYTE_THREAD(out bytes, getGreaterPow2(dataCount));
+		ARRAY_BYTE_THREAD(out bytes, dataCount.getGreaterPow2());
 		for (int i = 0; i < dataCount; ++i)
 		{
 			bytes[i] = hexStringToByte(str, i << 1);

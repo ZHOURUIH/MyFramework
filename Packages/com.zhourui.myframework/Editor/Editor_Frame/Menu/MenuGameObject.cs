@@ -24,9 +24,9 @@ public class MenuGameObject
 		{
 			if (item != go.transform)
 			{
-				item.localPosition = round(multiVector3(item.localPosition, scale));
+				item.localPosition = item.localPosition.multiVector3(scale).round();
 			}
-			item.setRectSize(round(multiVector2(item.rect.size, scale)));
+			item.setRectSize(item.rect.size.multiVector2(scale).round());
 		}
 		foreach (Text item in go.transform.GetComponentsInChildren<Text>(true))
 		{

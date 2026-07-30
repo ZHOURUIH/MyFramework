@@ -232,25 +232,25 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	public static int getDefaultClickSound()			{ return mDefaultClickSound; }
 	public void setWidth(float width)
 	{
-		if (isFloatEqual(mRectTransform.rect.size.x, width))
+		if (mRectTransform.rect.size.x.isFloatEqual(width))
 		{
 			return;
 		}
 		// 还是需要调用setSize,需要触发一些虚函数的调用
-		setSize(replaceX(getSize(), width));
+		setSize(getSize().replaceX(width));
 	}
 	public void setHeight(float height)
 	{
-		if (isFloatEqual(mRectTransform.rect.size.y, height))
+		if (mRectTransform.rect.size.y.isFloatEqual(height))
 		{
 			return;
 		}
 		// 还是需要调用setSize,需要触发一些虚函数的调用
-		setSize(replaceY(getSize(), height));
+		setSize(getSize().replaceY(height));
 	}
 	public virtual void setSize(Vector2 size)
 	{
-		if (isVectorEqual(mRectTransform.rect.size, size))
+		if (mRectTransform.rect.size.isVectorEqual(size))
 		{
 			return;
 		}
@@ -262,7 +262,7 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 		Vector2 windowSize = mRectTransform.rect.size;
 		if (transformed)
 		{
-			windowSize = multiVector2(windowSize, getWorldScale());
+			windowSize = windowSize.multiVector2(getWorldScale());
 		}
 		return windowSize;
 	}

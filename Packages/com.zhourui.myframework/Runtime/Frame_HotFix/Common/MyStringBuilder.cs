@@ -3,7 +3,6 @@ using System.Text;
 using System.Collections.Generic;
 using UnityEngine;
 using static StringUtility;
-using static MathUtility;
 
 // 自定已的StringBuilder,用于封装C#自己的StringBuilder,提高其效率
 public class MyStringBuilder : ClassObject
@@ -33,7 +32,7 @@ public class MyStringBuilder : ClassObject
 		}
 		else
 		{
-			clampMax(ref startIndex, length - 1);
+			startIndex = startIndex.clampMax(length - 1);
 		}
 		for (int i = startIndex; i >= 0; --i)
 		{

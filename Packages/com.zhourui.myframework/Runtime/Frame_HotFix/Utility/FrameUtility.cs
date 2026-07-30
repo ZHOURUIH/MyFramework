@@ -64,11 +64,11 @@ public class FrameUtility
 	public static void makeSizeEven(myUGUIObject obj)
 	{
 		Vector2 scrollRectSize = obj.getSize();
-		int intScrollSizeX = ceil(scrollRectSize.x);
-		int intScrollSizeY = ceil(scrollRectSize.y);
+		int intScrollSizeX = scrollRectSize.x.ceil();
+		int intScrollSizeY = scrollRectSize.y.ceil();
 		float newScrollSizeX = intScrollSizeX + (intScrollSizeX & 1);
 		float newScrollSizeY = intScrollSizeY + (intScrollSizeY & 1);
-		if (!isFloatEqual(newScrollSizeX, scrollRectSize.x) || !isFloatEqual(newScrollSizeY, scrollRectSize.y))
+		if (!newScrollSizeX.isFloatEqual(scrollRectSize.x) || !newScrollSizeY.isFloatEqual(scrollRectSize.y))
 		{
 			obj.setSize(new(newScrollSizeX, newScrollSizeY));
 		}
@@ -1161,7 +1161,7 @@ public class FrameUtility
 		sbyte maxValue = list[0];
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, list[i]);
+			maxValue = maxValue.clampMin(list[i]);
 		}
 		return maxValue;
 	}
@@ -1171,7 +1171,7 @@ public class FrameUtility
 		sbyte maxValue = list[0];
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, list[i]);
+			maxValue = maxValue.clampMin(list[i]);
 		}
 		return maxValue;
 	}
@@ -1181,7 +1181,7 @@ public class FrameUtility
 		byte maxValue = list[0];
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, list[i]);
+			maxValue = maxValue.clampMin(list[i]);
 		}
 		return maxValue;
 	}
@@ -1191,7 +1191,7 @@ public class FrameUtility
 		byte maxValue = list[0];
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, list[i]);
+			maxValue = maxValue.clampMin(list[i]);
 		}
 		return maxValue;
 	}
@@ -1201,7 +1201,7 @@ public class FrameUtility
 		short maxValue = list[0];
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, list[i]);
+			maxValue = maxValue.clampMin(list[i]);
 		}
 		return maxValue;
 	}
@@ -1211,7 +1211,7 @@ public class FrameUtility
 		short maxValue = list[0];
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, list[i]);
+			maxValue = maxValue.clampMin(list[i]);
 		}
 		return maxValue;
 	}
@@ -1221,7 +1221,7 @@ public class FrameUtility
 		ushort maxValue = list[0];
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, list[i]);
+			maxValue = maxValue.clampMin(list[i]);
 		}
 		return maxValue;
 	}
@@ -1231,7 +1231,7 @@ public class FrameUtility
 		ushort maxValue = list[0];
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, list[i]);
+			maxValue = maxValue.clampMin(list[i]);
 		}
 		return maxValue;
 	}
@@ -1241,7 +1241,7 @@ public class FrameUtility
 		int maxValue = list[0];
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, list[i]);
+			maxValue = maxValue.clampMin(list[i]);
 		}
 		return maxValue;
 	}
@@ -1251,7 +1251,7 @@ public class FrameUtility
 		int maxValue = list[0];
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, list[i]);
+			maxValue = maxValue.clampMin(list[i]);
 		}
 		return maxValue;
 	}
@@ -1261,7 +1261,7 @@ public class FrameUtility
 		uint maxValue = list[0];
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, list[i]);
+			maxValue = maxValue.clampMin(list[i]);
 		}
 		return maxValue;
 	}
@@ -1271,7 +1271,7 @@ public class FrameUtility
 		uint maxValue = list[0];
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, list[i]);
+			maxValue = maxValue.clampMin(list[i]);
 		}
 		return maxValue;
 	}
@@ -1281,7 +1281,7 @@ public class FrameUtility
 		long maxValue = list[0];
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, list[i]);
+			maxValue = maxValue.clampMin(list[i]);
 		}
 		return maxValue;
 	}
@@ -1291,7 +1291,7 @@ public class FrameUtility
 		long maxValue = list[0];
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, list[i]);
+			maxValue = maxValue.clampMin(list[i]);
 		}
 		return maxValue;
 	}
@@ -1301,7 +1301,7 @@ public class FrameUtility
 		ulong maxValue = list[0];
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, list[i]);
+			maxValue = maxValue.clampMin(list[i]);
 		}
 		return maxValue;
 	}
@@ -1311,7 +1311,7 @@ public class FrameUtility
 		ulong maxValue = list[0];
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, list[i]);
+			maxValue = maxValue.clampMin(list[i]);
 		}
 		return maxValue;
 	}
@@ -1321,7 +1321,7 @@ public class FrameUtility
 		float maxValue = list[0];
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, list[i]);
+			maxValue = maxValue.clampMin(list[i]);
 		}
 		return maxValue;
 	}
@@ -1331,7 +1331,7 @@ public class FrameUtility
 		float maxValue = list[0];
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, list[i]);
+			maxValue = maxValue.clampMin(list[i]);
 		}
 		return maxValue;
 	}
@@ -1341,7 +1341,7 @@ public class FrameUtility
 		double maxValue = list[0];
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, list[i]);
+			maxValue = maxValue.clampMin(list[i]);
 		}
 		return maxValue;
 	}
@@ -1351,127 +1351,127 @@ public class FrameUtility
 		double maxValue = list[0];
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, list[i]);
+			maxValue = maxValue.clampMin(list[i]);
 		}
 		return maxValue;
 	}
 	public static sbyte findMaxAbs(Span<sbyte> list)
 	{
 		int count = list.Length;
-		sbyte maxValue = abs(list[0]);
+		sbyte maxValue = list[0].abs();
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, abs(list[i]));
+			maxValue = maxValue.clampMin(list[i].abs());
 		}
 		return maxValue;
 	}
 	public static sbyte findMaxAbs(List<sbyte> list)
 	{
 		int count = list.Count;
-		sbyte maxValue = abs(list[0]);
+		sbyte maxValue = list[0].abs();
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, abs(list[i]));
+			maxValue = maxValue.clampMin(list[i].abs());
 		}
 		return maxValue;
 	}
 	public static short findMaxAbs(Span<short> list)
 	{
 		int count = list.Length;
-		short maxValue = abs(list[0]);
+		short maxValue = list[0].abs();
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, abs(list[i]));
+			maxValue = maxValue.clampMin(list[i].abs());
 		}
 		return maxValue;
 	}
 	public static short findMaxAbs(List<short> list)
 	{
 		int count = list.Count;
-		short maxValue = abs(list[0]);
+		short maxValue = list[0].abs();
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, abs(list[i]));
+			maxValue = maxValue.clampMin(list[i].abs());
 		}
 		return maxValue;
 	}
 	public static int findMaxAbs(Span<int> list)
 	{
 		int count = list.Length;
-		int maxValue = abs(list[0]);
+		int maxValue = list[0].abs();
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, abs(list[i]));
+			maxValue = maxValue.clampMin(list[i].abs());
 		}
 		return maxValue;
 	}
 	public static int findMaxAbs(List<int> list)
 	{
 		int count = list.Count;
-		int maxValue = abs(list[0]);
+		int maxValue = list[0].abs();
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, abs(list[i]));
+			maxValue = maxValue.clampMin(list[i].abs());
 		}
 		return maxValue;
 	}
 	public static long findMaxAbs(Span<long> list)
 	{
 		int count = list.Length;
-		long maxValue = abs(list[0]);
+		long maxValue = list[0].abs();
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, abs(list[i]));
+			maxValue = maxValue.clampMin(list[i].abs());
 		}
 		return maxValue;
 	}
 	public static long findMaxAbs(List<long> list)
 	{
 		int count = list.Count;
-		long maxValue = abs(list[0]);
+		long maxValue = list[0].abs();
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, abs(list[i]));
+			maxValue = maxValue.clampMin(list[i].abs());
 		}
 		return maxValue;
 	}
 	public static float findMaxAbs(Span<float> list)
 	{
 		int count = list.Length;
-		float maxValue = abs(list[0]);
+		float maxValue = list[0].abs();
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, abs(list[i]));
+			maxValue = maxValue.clampMin(list[i].abs());
 		}
 		return maxValue;
 	}
 	public static float findMaxAbs(List<float> list)
 	{
 		int count = list.Count;
-		float maxValue = abs(list[0]);
+		float maxValue = list[0].abs();
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, abs(list[i]));
+			maxValue = maxValue.clampMin(list[i].abs());
 		}
 		return maxValue;
 	}
 	public static double findMaxAbs(Span<double> list)
 	{
 		int count = list.Length;
-		double maxValue = abs(list[0]);
+		double maxValue = list[0].abs();
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, abs(list[i]));
+			maxValue = maxValue.clampMin(list[i].abs());
 		}
 		return maxValue;
 	}
 	public static double findMaxAbs(List<double> list)
 	{
 		int count = list.Count;
-		double maxValue = abs(list[0]);
+		double maxValue = list[0].abs();
 		for (int i = 1; i < count; ++i)
 		{
-			clampMin(ref maxValue, abs(list[i]));
+			maxValue = maxValue.clampMin(list[i].abs());
 		}
 		return maxValue;
 	}

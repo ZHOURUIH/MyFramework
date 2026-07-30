@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System;
-using static MathUtility;
 using static FrameDefine;
 
 // 触摸点信息
@@ -53,14 +52,14 @@ public class TouchPoint : ClassObject
 		mDown = false;
 		mUpTime = DateTime.Now;
 		mCurPosition = pos;
-		mClick = lengthLess(mDownPosition - mCurPosition, CLICK_LENGTH);
+		mClick = (mDownPosition - mCurPosition).lengthLess(CLICK_LENGTH);
 		// 遍历一段时间内已经完成点击的触点列表,查看有没有点坐标相近,时间相近的触点
 		if (mClick)
 		{
 			foreach (DeadClick deadClick in deadTouchList)
 			{
 				if ((mUpTime - deadClick.mClickTime).TotalSeconds < DOUBLE_CLICK_TIME && 
-					lengthLess(mCurPosition - deadClick.mClickPosition, CLICK_LENGTH))
+					(mCurPosition - deadClick.mClickPosition).lengthLess(CLICK_LENGTH))
 				{
 					mDoubleClick = true;
 					break;

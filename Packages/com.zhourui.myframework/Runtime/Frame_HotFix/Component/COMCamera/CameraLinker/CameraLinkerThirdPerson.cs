@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using static MathUtility;
 
 // 第三人称的摄像机连接器,与连接的物体保持固定的相对坐标
 public class CameraLinkerThirdPerson : CameraLinker
@@ -15,7 +14,7 @@ public class CameraLinkerThirdPerson : CameraLinker
 		Vector3 relative;
 		if (mUseTargetYaw)
 		{
-			relative = rotateVector3(mRelativePosition, toRadian(mLinkObject.getRotation().y));
+			relative = mRelativePosition.rotateVector3(mLinkObject.getRotation().y.toRadian());
 		}
 		else
 		{

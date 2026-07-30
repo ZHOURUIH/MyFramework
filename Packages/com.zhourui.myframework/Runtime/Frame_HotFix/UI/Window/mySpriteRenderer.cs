@@ -2,7 +2,6 @@
 using static FrameBaseHotFix;
 using static FrameBaseUtility;
 using static FrameDefine;
-using static MathUtility;
 using static StringUtility;
 using static UnityUtility;
 
@@ -193,7 +192,7 @@ public class mySpriteRenderer : ClassObject
 		{
 			return;
 		}
-		if (sprite != null && !isFloatEqual(sprite.pixelsPerUnit, 1.0f) && mObject.transform.localScale.x <= 1.0f)
+		if (sprite != null && !sprite.pixelsPerUnit.isFloatEqual(1.0f) && mObject.transform.localScale.x <= 1.0f)
 		{
 			logWarning("sprite的pixelsPerUnit为1,且Transform缩放为1, 会使最终渲染结果缩小100倍,如果需要显示正常,请调整pixelsPerUnit或者Transform缩放, sprite:" + 
 					   sprite.name + ", GameObject:" + getGameObjectPath(mObject));

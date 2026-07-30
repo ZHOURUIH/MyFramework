@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using static UnityUtility;
-using static MathUtility;
 using static FrameBaseUtility;
 
 // 插值改变一个物体的位置,如果目标点不变,离目标点越近,移动速度越慢
@@ -18,7 +17,7 @@ public class CmdTransformableLerpPosition
 		}
 		if (isEditor() && 
 			obj is myUGUIObject uiObj && 
-			!isFloatZero(lerpSpeed) && 
+			!lerpSpeed.isFloatZero() && 
 			!uiObj.getLayout().canUIObjectUpdate(uiObj))
 		{
 			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + uiObj.getName());

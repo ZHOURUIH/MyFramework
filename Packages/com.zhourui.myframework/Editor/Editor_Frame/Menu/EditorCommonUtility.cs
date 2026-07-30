@@ -2266,10 +2266,10 @@ public class EditorCommonUtility
 		{
 			return;
 		}
-		transform.localPosition = round(transform.localPosition);
+		transform.localPosition = transform.localPosition.round();
 		if (transform is RectTransform rectTrans)
 		{
-			rectTrans.setRectSize(round(rectTrans.rect.size));
+			rectTrans.setRectSize(rectTrans.rect.size.round());
 		}
 		int childCount = transform.childCount;
 		for (int i = 0; i < childCount; ++i)

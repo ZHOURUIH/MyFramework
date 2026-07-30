@@ -1,6 +1,5 @@
 using static SerializeByteUtility;
 using static TestAssert;
-using static MathUtility;
 
 // SerializeByteUtility 字节序列化/大小端 往返测试
 public static class SerializeByteUtilityTest
@@ -198,9 +197,9 @@ public static class SerializeByteUtilityTest
 		float v0 = readFloat(buf, buf.Length, ref ri, out _);
 		float v1 = readFloat(buf, buf.Length, ref ri, out _);
 		float v2 = readFloat(buf, buf.Length, ref ri, out _);
-		assert(abs(v0 - 0.0f) < 1e-6f,     "float 0.0");
-		assert(abs(v1 - 3.14f) < 1e-5f,    "float 3.14");
-		assert(abs(v2 - (-999.9f)) < 0.01f, "float -999.9");
+		assert((v0 - 0.0f).abs() < 1e-6f,     "float 0.0");
+		assert((v1 - 3.14f).abs() < 1e-5f,    "float 3.14");
+		assert((v2 - (-999.9f)).abs() < 0.01f, "float -999.9");
 	}
 
 	private static void testFloatBigEndianRoundTrip()
@@ -213,8 +212,8 @@ public static class SerializeByteUtilityTest
 		int ri = 0;
 		float v0 = readFloatBigEndian(buf, buf.Length, ref ri, out _);
 		float v1 = readFloatBigEndian(buf, buf.Length, ref ri, out _);
-		assert(abs(v0 - 1.0f) < 1e-6f,   "float BE 1.0");
-		assert(abs(v1 - (-1.0f)) < 1e-6f, "float BE -1.0");
+		assert((v0 - 1.0f).abs() < 1e-6f,   "float BE 1.0");
+		assert((v1 - (-1.0f)).abs() < 1e-6f, "float BE -1.0");
 	}
 
 	private static void testDoubleRoundTrip()
@@ -227,8 +226,8 @@ public static class SerializeByteUtilityTest
 		int ri = 0;
 		double v0 = readDouble(buf, buf.Length, ref ri, out _);
 		double v1 = readDouble(buf, buf.Length, ref ri, out _);
-		assert(abs(v0) < 1e-15,                           "double 0.0");
-		assert(abs(v1 - 3.141592653589793) < 1e-14,      "double pi");
+		assert(v0.abs() < 1e-15,                           "double 0.0");
+		assert((v1 - 3.141592653589793).abs() < 1e-14,      "double pi");
 	}
 
 	private static void testWriteReadBools()
@@ -299,7 +298,7 @@ public static class SerializeByteUtilityTest
 		int ri = 0;
 		assert(readFloats(buf, buf.Length, ref ri, dest), "readFloats ok");
 		for (int i = 0; i < vals.Length; i++)
-			assert(abs(dest[i] - vals[i]) < 1e-5f, "floats[" + i + "]");
+			assert((dest[i] - vals[i]).abs() < 1e-5f, "floats[" + i + "]");
 	}
 
 	private static void testBytesConvertShort()
@@ -334,11 +333,11 @@ public static class SerializeByteUtilityTest
 	{
 		byte[] bytes = toBytes(1.0f);
 		float f = bytesToFloat(bytes);
-		assert(abs(f - 1.0f) < 1e-6f, "bytesToFloat 1.0f");
+		assert((f - 1.0f).abs() < 1e-6f, "bytesToFloat 1.0f");
 
 		byte[] bytes2 = toBytes(0.0f);
 		float f2 = bytesToFloat(bytes2);
-		assert(abs(f2) < 1e-6f, "bytesToFloat 0.0f");
+		assert(f2.abs() < 1e-6f, "bytesToFloat 0.0f");
 	}
 
 	private static void testOverflowReturnsFailure()

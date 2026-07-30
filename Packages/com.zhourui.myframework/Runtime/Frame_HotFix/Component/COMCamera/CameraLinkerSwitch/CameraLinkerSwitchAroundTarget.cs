@@ -19,17 +19,17 @@ public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 		base.init(origin, target, speed);
 		if (mClockwise)
 		{
-			mTotalAngle = getAngleFromVector3(mTargetRelative) - getAngleFromVector3(mOriginRelative);
-			adjustRadian360(ref mTotalAngle);
-			mSpeed = abs(mSpeed);
+			mTotalAngle = mTargetRelative.getAngleFromVector3() - mOriginRelative.getAngleFromVector3();
+			mTotalAngle = mTotalAngle.adjustRadian360();
+			mSpeed = mSpeed.abs();
 		}
 		else
 		{
-			mTotalAngle = getAngleFromVector3(mOriginRelative) - getAngleFromVector3(mTargetRelative);
-			adjustRadian360(ref mTotalAngle);
-			mSpeed = -abs(mSpeed);
+			mTotalAngle = mOriginRelative.getAngleFromVector3() - mTargetRelative.getAngleFromVector3();
+			mTotalAngle = mTotalAngle.adjustRadian360();
+			mSpeed = -mSpeed.abs();
 		}
-		mDistanceDelta = getLength(mTargetRelative) - getLength(mOriginRelative);
+		mDistanceDelta = mTargetRelative.getLength() - mOriginRelative.getLength();
 		mDistanceCurrent = 0.0f;
 		mRotatedAngle = 0.0f;
 	}
@@ -51,7 +51,7 @@ public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 		}
 		mRotatedAngle += mSpeed * elapsedTime;
 		// 计算速度
-		mDistanceCurrent += divide(mDistanceDelta, divide(mTotalAngle, mSpeed)) * elapsedTime;
+		mDistanceCurrent += mDistanceDelta.divide(mTotalAngle.divide(mSpeed)) * elapsedTime;
 
 		// 顺时针
 		if (mClockwise)
@@ -67,11 +67,11 @@ public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 			else
 			{
 				// z方向上旋转后的轴
-				Vector3 rotateAxis = rotateVector3(mOriginRelative, mRotatedAngle);
+				Vector3 rotateAxis = mOriginRelative.rotateVector3(mRotatedAngle);
 				// 距离变化
-				Vector3 projectVec = normalize(resetY(rotateAxis)) * (getLength(mOriginRelative) + mDistanceCurrent);
+				Vector3 projectVec = rotateAxis.resetY().setLength(mOriginRelative.getLength() + mDistanceCurrent);
 				// 高度变化
-				rotateAxis.y = (mTargetRelative.y - mOriginRelative.y) * divide(mRotatedAngle, mTotalAngle) + mOriginRelative.y;
+				rotateAxis.y = (mTargetRelative.y - mOriginRelative.y) * mRotatedAngle.divide(mTotalAngle) + mOriginRelative.y;
 				// 最终值
 				rotateAxis.x = projectVec.x;
 				rotateAxis.z = projectVec.z;
@@ -91,10 +91,10 @@ public class CameraLinkerSwitchAroundTarget : CameraLinkerSwitch
 			}
 			else
 			{
-				Vector3 rotateAxis = rotateVector3(mOriginRelative, mRotatedAngle);
-				Vector3 projectVec = normalize(resetY(rotateAxis)) * (getLength(mOriginRelative) + mDistanceCurrent);
+				Vector3 rotateAxis = mOriginRelative.rotateVector3(mRotatedAngle);
+				Vector3 projectVec = rotateAxis.resetY().setLength(mOriginRelative.getLength() + mDistanceCurrent);
 				rotateAxis.x = projectVec.x;
-				rotateAxis.y = (mTargetRelative.y - mOriginRelative.y) * divide(mRotatedAngle, mTotalAngle) + mOriginRelative.y;
+				rotateAxis.y = (mTargetRelative.y - mOriginRelative.y) * mRotatedAngle.divide(mTotalAngle) + mOriginRelative.y;
 				rotateAxis.z = projectVec.z;
 				mLinker.setRelativePosition(rotateAxis);
 			}

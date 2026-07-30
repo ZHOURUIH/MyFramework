@@ -2,7 +2,6 @@
 using static FrameUtility;
 using static FrameBaseHotFix;
 using static FrameBaseUtility;
-using static MathUtility;
 using static BinaryUtility;
 using static FrameDefine;
 
@@ -73,7 +72,7 @@ public class NetConnectUDPBit : NetConnectUDP
 		writer.writeBuffer(packetBodyData, realPacketSize);
 		writer.write(generateCRC16(writer.getBuffer(), writer.getByteCount()));
 		int curByteCount = writer.getByteCount();
-		ARRAY_BYTE_THREAD(out byte[] packetData, getGreaterPow2(curByteCount));
+		ARRAY_BYTE_THREAD(out byte[] packetData, curByteCount.getGreaterPow2());
 		memcpy(packetData, writer.getBuffer(), 0, 0, curByteCount);
 		// 添加到写缓冲中
 		mOutputBuffer.add(new(packetData, curByteCount, true, 0));
@@ -124,7 +123,7 @@ public class NetConnectUDPBit : NetConnectUDP
 		}
 		if (packetSize > 0)
 		{
-			ARRAY_BYTE_THREAD(out outPacket, getGreaterPow2(packetSize));
+			ARRAY_BYTE_THREAD(out outPacket, packetSize.getGreaterPow2());
 			if (!reader.readBuffer(outPacket, packetSize))
 			{
 				UN_ARRAY_BYTE_THREAD(ref outPacket);

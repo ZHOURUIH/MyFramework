@@ -248,14 +248,14 @@ public class myUGUINumber : myUGUIImage
 		Sprite sprite = mSpriteList[mNumber[numberStartPos] - '0'];
 		if (mDirection == NUMBER_DIRECTION.HORIZONTAL)
 		{
-			float inverseHeight = divide(1.0f, sprite.rect.height);
+			float inverseHeight = 1.0f.divide(sprite.rect.height);
 			numberSize.x = windowSize.y * sprite.rect.width * inverseHeight;
 			numberSize.y = windowSize.y;
 			numberScale = windowSize.y * inverseHeight;
 		}
 		else if (mDirection == NUMBER_DIRECTION.VERTICAL)
 		{
-			float inverseWidth = divide(1.0f, sprite.rect.width);
+			float inverseWidth = 1.0f.divide(sprite.rect.width);
 			numberSize.x = windowSize.x;
 			numberSize.y = windowSize.x * sprite.rect.height * inverseWidth;
 			numberScale = windowSize.x * inverseWidth;

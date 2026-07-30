@@ -102,12 +102,12 @@ public class UGUIScroll : WindowObjectUGUI
 			float curOffset = mCurOffset;
 			// 速度逐渐降低到速度阈值的一半,这里会将速度转化为绝对值再计算,但是为了避免可能对其他逻辑产生的影响,计算后会恢复其符号
 			float speedSign = sign(mScrollSpeed);
-			mScrollSpeed = abs(mScrollSpeed) - elapsedTime * 1.0f;
-			clampMin(ref mScrollSpeed, mFocusSpeedThreshold * 0.5f);
+			mScrollSpeed = mScrollSpeed.abs() - elapsedTime * 1.0f;
+			mScrollSpeed = mScrollSpeed.clampMin(mFocusSpeedThreshold * 0.5f);
 			checkReachTarget(ref curOffset, elapsedTime * sign(mTargetOffsetValue - curOffset) * mScrollSpeed, mTargetOffsetValue);
 			mScrollSpeed *= speedSign;
 			updateItem(curOffset);
-			if (isFloatEqual(mCurOffset, mTargetOffsetValue))
+			if (mCurOffset.isFloatEqual(mTargetOffsetValue))
 			{
 				stop();
 			}
@@ -115,9 +115,9 @@ public class UGUIScroll : WindowObjectUGUI
 		else if (mState == SCROLL_STATE.LERP_SCROLL_TO_TARGET)
 		{
 			mScrollToTargetTimer += elapsedTime;
-			float percent = mScrollToTargetCurve.evaluate(divide(mScrollToTargetTimer, mScrollToTargetMaxTime));
+			float percent = mScrollToTargetCurve.evaluate(mScrollToTargetTimer.divide(mScrollToTargetMaxTime));
 			updateItem(lerp(mScrollToTargetStartValue, mTargetOffsetValue, percent));
-			if (isFloatEqual(mCurOffset, mTargetOffsetValue))
+			if (mCurOffset.isFloatEqual(mTargetOffsetValue))
 			{
 				stop();
 			}
@@ -131,9 +131,9 @@ public class UGUIScroll : WindowObjectUGUI
 		else if (mState == SCROLL_STATE.SCROLL_TO_STOP)
 		{
 			float curControlValue = mMainFocus - mCurOffset;
-			bool needClamp = !mLoop && !inRangeFixed(curControlValue, 0.0f, mMaxControlValue);
+			bool needClamp = !mLoop && !curControlValue.inRangeFixed(0.0f, mMaxControlValue);
 			// 非循环模式下,当前偏移值小于0或者大于最大值时,需要回到正常的范围,偏移值越小,减速越快
-			if (!isFloatZero(mScrollSpeed))
+			if (!mScrollSpeed.isFloatZero())
 			{
 				float t;
 				// 超出范围后快速减速至0,然后回弹
@@ -161,7 +161,7 @@ public class UGUIScroll : WindowObjectUGUI
 				if (needClamp)
 				{
 					// 超出范围在移动停止后回弹
-					if (isFloatZero(mScrollSpeed))
+					if (mScrollSpeed.isFloatZero())
 					{
 						lerpToTarget(willFocusIndex);
 					}
@@ -169,7 +169,7 @@ public class UGUIScroll : WindowObjectUGUI
 				else
 				{
 					// 当速度小于一定值时才开始选择聚焦到某一项
-					if (abs(mScrollSpeed) < mFocusSpeedThreshold)
+					if (mScrollSpeed.abs() < mFocusSpeedThreshold)
 					{
 						scrollToTargetWithSpeed(willFocusIndex);
 					}
@@ -201,7 +201,7 @@ public class UGUIScroll : WindowObjectUGUI
 		float offset = mMainFocus - controlValue;
 		if (checkValueRange && !mLoop)
 		{
-			clamp(ref offset, mMainFocus - mMaxControlValue, mMainFocus);
+			offset = offset.clamp(mMainFocus - mMaxControlValue, mMainFocus);
 		}
 		updateItem(offset);
 	}
@@ -212,7 +212,7 @@ public class UGUIScroll : WindowObjectUGUI
 		{
 			return;
 		}
-		clamp(ref index, 0, mItemList.Count - 1);
+		index = index.clamp(0, mItemList.Count - 1);
 		scroll(index);
 		mOnScrollItem?.Invoke(mItemList[index], index);
 	}
@@ -223,30 +223,30 @@ public class UGUIScroll : WindowObjectUGUI
 		{
 			return;
 		}
-		clampMin(ref time, 0.03f);
-		clamp(ref index, 0, mItemList.Count - 1);
+		time = time.clampMin(0.03f);
+		index = index.clamp(0, mItemList.Count - 1);
 		// 设置目标值
 		mTargetOffsetValue = mMainFocus - index;
 		if (mLoop)
 		{
-			clampCycle(ref mCurOffset, 0, mMaxControlValue, mMaxControlValue, false);
-			clampCycle(ref mTargetOffsetValue, 0, mMaxControlValue, mMaxControlValue, false);
+			mCurOffset = mCurOffset.clampCycle(0, mMaxControlValue, mMaxControlValue, false);
+			mTargetOffsetValue = mTargetOffsetValue.clampCycle(0, mMaxControlValue, mMaxControlValue, false);
 			// 当起始值与目标值差值超过了最大值的一半时,则以当前值为基准,调整目标值的范围
 			float halfMax = mMaxControlValue * 0.5f;
-			if (abs(mTargetOffsetValue - mCurOffset) > halfMax)
+			if ((mTargetOffsetValue - mCurOffset).abs() > halfMax)
 			{
-				clampCycle(ref mCurOffset, -halfMax, halfMax, mMaxControlValue, false);
-				clampCycle(ref mTargetOffsetValue, -halfMax, halfMax, mMaxControlValue, false);
+				mCurOffset = mCurOffset.clampCycle(-halfMax, halfMax, mMaxControlValue, false);
+				mTargetOffsetValue = mTargetOffsetValue.clampCycle(-halfMax, halfMax, mMaxControlValue, false);
 			}
 		}
-		mScrollSpeed = divide(mTargetOffsetValue - mCurOffset, time);
-		mState = isFloatZero(mScrollSpeed) ? SCROLL_STATE.NONE : SCROLL_STATE.SCROLL_TO_TARGET;
+		mScrollSpeed = (mTargetOffsetValue - mCurOffset).divide(time);
+		mState = mScrollSpeed.isFloatZero() ? SCROLL_STATE.NONE : SCROLL_STATE.SCROLL_TO_TARGET;
 		mOnScrollItem?.Invoke(mItemList[index], index);
 	}
 	// 根据当前速度计算出滚动时间,匀减速滚动到指定下标
 	public void scrollToTargetWithSpeed(int focusIndex)
 	{
-		float focusTime = clamp(abs(divide(0.4f, mScrollSpeed)), 0.1f, 0.3f);
+		float focusTime = 0.4f.divide(mScrollSpeed).abs().clamp(0.1f, 0.3f);
 		scrollToIndexWithTime(focusIndex, focusTime);
 	}
 	// 按照指定曲线插值聚焦到指定下标
@@ -255,19 +255,19 @@ public class UGUIScroll : WindowObjectUGUI
 		mState = SCROLL_STATE.LERP_SCROLL_TO_TARGET;
 		mScrollToTargetStartValue = mCurOffset;
 		mScrollToTargetTimer = 0.0f;
-		clamp(ref index, 0, mItemList.Count - 1);
+		index = index.clamp(0, mItemList.Count - 1);
 		// 设置目标值
 		mTargetOffsetValue = mMainFocus - index;
 		if (mLoop)
 		{
-			clampCycle(ref mCurOffset, 0, mMaxControlValue, mMaxControlValue, false);
-			clampCycle(ref mTargetOffsetValue, 0, mMaxControlValue, mMaxControlValue, false);
+			mCurOffset = mCurOffset.clampCycle(0, mMaxControlValue, mMaxControlValue, false);
+			mTargetOffsetValue = mTargetOffsetValue.clampCycle(0, mMaxControlValue, mMaxControlValue, false);
 			// 当起始值与目标值差值超过了最大值的一半时,则以当前值为基准,调整目标值的范围
 			float halfMax = mMaxControlValue * 0.5f;
-			if (abs(mTargetOffsetValue - mCurOffset) > halfMax)
+			if ((mTargetOffsetValue - mCurOffset).abs() > halfMax)
 			{
-				clampCycle(ref mCurOffset, -halfMax, halfMax, mMaxControlValue, false);
-				clampCycle(ref mTargetOffsetValue, -halfMax, halfMax, mMaxControlValue, false);
+				mCurOffset = mCurOffset.clampCycle(-halfMax, halfMax, mMaxControlValue, false);
+				mTargetOffsetValue = mTargetOffsetValue.clampCycle(-halfMax, halfMax, mMaxControlValue, false);
 			}
 		}
 		mOnScrollItem?.Invoke(mItemList[index], index);
@@ -291,7 +291,7 @@ public class UGUIScroll : WindowObjectUGUI
 		mCurOffset = controlValue;
 		if (mLoop)
 		{
-			clampCycle(ref mCurOffset, -mMaxControlValue, mMaxControlValue, mMaxControlValue, false);
+			mCurOffset = mCurOffset.clampCycle(-mMaxControlValue, mMaxControlValue, mMaxControlValue, false);
 		}
 		int itemCount = mItemList.Count;
 		for (int i = 0; i < itemCount; ++i)
@@ -302,12 +302,12 @@ public class UGUIScroll : WindowObjectUGUI
 			itemRoot.setActive(true);
 			if (mLoop)
 			{
-				clampCycle(ref newControlValue, -mMaxControlValue, mMaxControlValue, mMaxControlValue, false);
+				newControlValue = newControlValue.clampCycle(-mMaxControlValue, mMaxControlValue, mMaxControlValue, false);
 			}
 			else
 			{
 				// 非循环模式下,新的控制值不在容器控制值范围内时,表示已经不在容器范围内了
-				if (!inRangeFixed(newControlValue, 0.0f, mMaxContainerValue))
+				if (!newControlValue.inRangeFixed(0.0f, mMaxContainerValue))
 				{
 					itemRoot.setActive(false);
 				}
@@ -318,7 +318,7 @@ public class UGUIScroll : WindowObjectUGUI
 			}
 			// 找到当前项位于哪两个容器之间,并且计算插值系数
 			int containerIndex = getContainerIndex(newControlValue, false);
-			itemRoot.setActive(inRangeFixed(containerIndex, 0, mContainerList.Count - 1));
+			itemRoot.setActive(containerIndex.inRangeFixed(0, mContainerList.Count - 1));
 			if (!itemRoot.isActiveInHierarchy())
 			{
 				continue;
@@ -328,7 +328,7 @@ public class UGUIScroll : WindowObjectUGUI
 			{
 				nextContainerIndex %= mContainerList.Count;
 			}
-			if (inRangeFixed(nextContainerIndex, 0, mContainerList.Count - 1))
+			if (nextContainerIndex.inRangeFixed(0, mContainerList.Count - 1))
 			{
 				float curItemOffsetValue = containerIndex;
 				float nextItemOffsetValue = nextContainerIndex;
@@ -337,10 +337,8 @@ public class UGUIScroll : WindowObjectUGUI
 				{
 					nextItemOffsetValue = curItemOffsetValue + 1;
 				}
-				clampCycle(ref newControlValue, curItemOffsetValue, nextItemOffsetValue, mMaxControlValue);
-				float percent = inverseLerp(curItemOffsetValue, nextItemOffsetValue, newControlValue);
-				checkInt(ref percent);
-				saturate(ref percent);
+				newControlValue = newControlValue.clampCycle(curItemOffsetValue, nextItemOffsetValue, mMaxControlValue);
+				float percent = inverseLerp(curItemOffsetValue, nextItemOffsetValue, newControlValue).checkInt().saturate();
 				item.lerpItem(mContainerList[containerIndex], mContainerList[nextContainerIndex], percent);
 			}
 			else
@@ -359,13 +357,13 @@ public class UGUIScroll : WindowObjectUGUI
 		}
 		if (loop)
 		{
-			clampCycle(ref controlValue, 0.0f, mMaxControlValue, mMaxControlValue, false);
+			controlValue = controlValue.clampCycle(0.0f, mMaxControlValue, mMaxControlValue, false);
 		}
 		int index = -1;
 		for (int i = 0; i < itemCount; ++i)
 		{
 			float thisControllValue = i;
-			if (isFloatEqual(thisControllValue, controlValue))
+			if (thisControllValue.isFloatEqual(controlValue))
 			{
 				index = i;
 				break;
@@ -375,7 +373,7 @@ public class UGUIScroll : WindowObjectUGUI
 			{
 				if (nearest)
 				{
-					if (i > 0 && abs(thisControllValue - controlValue) >= abs(i - 1 - controlValue))
+					if (i > 0 && (thisControllValue - controlValue).abs() >= (i - 1 - controlValue).abs())
 					{
 						index = i - 1;
 					}
@@ -386,7 +384,7 @@ public class UGUIScroll : WindowObjectUGUI
 				}
 				else
 				{
-					index = clampMin(i - 1);
+					index = (i - 1).clampMin();
 				}
 				break;
 			}
@@ -398,7 +396,7 @@ public class UGUIScroll : WindowObjectUGUI
 			// 非循环模式下,则固定范围最后一个,循环模式就找最后一个或者第一个中最近的一个
 			if (loop && nearest)
 			{
-				if (abs(0 - (mMaxControlValue - controlValue)) < abs(itemCount - 1 - controlValue))
+				if ((0 - (mMaxControlValue - controlValue)).abs() < (itemCount - 1 - controlValue).abs())
 				{
 					index = 0;
 				}
@@ -411,7 +409,7 @@ public class UGUIScroll : WindowObjectUGUI
 	{
 		if (mLoop)
 		{
-			clampCycle(ref controlValue, 0.0f, mMaxControlValue, mMaxControlValue, false);
+			controlValue = controlValue.clampCycle(0.0f, mMaxControlValue, mMaxControlValue, false);
 		}
 		if (controlValue > mMaxContainerValue)
 		{
@@ -426,7 +424,7 @@ public class UGUIScroll : WindowObjectUGUI
 		for (int i = 0; i < containerCount; ++i)
 		{
 			float curControlValue = i;
-			if (isFloatEqual(curControlValue, controlValue))
+			if (curControlValue.isFloatEqual(controlValue))
 			{
 				index = i;
 				break;
@@ -436,7 +434,7 @@ public class UGUIScroll : WindowObjectUGUI
 			{
 				if (nearest)
 				{
-					if (i > 0 && abs(curControlValue - controlValue) <= abs(i - 1 - controlValue))
+					if (i > 0 && (curControlValue - controlValue).abs() <= (i - 1 - controlValue).abs())
 					{
 						index = i - 1;
 					}
@@ -479,11 +477,11 @@ public class UGUIScroll : WindowObjectUGUI
 		}
 		if (mDragDirection == DRAG_DIRECTION.HORIZONTAL)
 		{
-			mScrollSpeed = sign(-moveDelta.x) * abs(divide(moveDelta.x, moveTime)) * mDragSensitive * 0.01f;
+			mScrollSpeed = sign(-moveDelta.x) * moveDelta.x.divide(moveTime).abs() * mDragSensitive * 0.01f;
 		}
 		else if (mDragDirection == DRAG_DIRECTION.VERTICAL)
 		{
-			mScrollSpeed = sign(moveDelta.y) * abs(divide(moveDelta.y, moveTime)) * mDragSensitive * 0.01f;
+			mScrollSpeed = sign(moveDelta.y) * moveDelta.y.divide(moveTime).abs() * mDragSensitive * 0.01f;
 		}
 	}
 	protected void onMouseStay(Vector3 touchPos, int touchID)

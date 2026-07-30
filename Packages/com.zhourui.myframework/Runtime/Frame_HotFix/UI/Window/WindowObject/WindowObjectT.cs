@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using static UnityUtility;
-using static MathUtility;
 using static FrameDefine;
 
 public abstract class WindowObjectT<T> : WindowObjectBase where T : myUGUIObject, new()
@@ -53,7 +52,7 @@ public abstract class WindowObjectT<T> : WindowObjectBase where T : myUGUIObject
 	public override bool setActive(bool active) 
 	{
 		bool curActive = isActiveSelf();
-		if (curActive && mChangePositionAsInvisible && isVectorEqual(mRoot.getPosition(), FAR_POSITION))
+		if (curActive && mChangePositionAsInvisible && mRoot.getPosition().isVectorEqual(FAR_POSITION))
 		{
 			curActive = false;
 		}

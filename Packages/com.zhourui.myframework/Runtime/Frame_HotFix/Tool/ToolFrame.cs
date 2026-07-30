@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using static UnityUtility;
-using static MathUtility;
 
 // 用于操作ITransformable,大部分的操作是用于代替Dotween的缓动操作,以及扩展的其他操作
 // 提供旋转/移动/缩放/透明度/颜色等Transformable属性的关键帧缓动方法,支持链式调用
@@ -49,7 +48,7 @@ public static class FT
 	}
 	public static void ROTATE_EX(this ITransformable obj, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		if (keyframe == KEY_CURVE.NONE || isFloatZero(onceLength))
+		if (keyframe == KEY_CURVE.NONE || onceLength.isFloatZero())
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ROTATE(ITransformable obj, Vector3 rotation)");
 			return;
@@ -109,7 +108,7 @@ public static class FT
 	}
 	public static void ROTATE_PHY_EX(this ITransformable obj, int keyframe, Vector3 start, Vector3 target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		if (keyframe == KEY_CURVE.NONE || isFloatZero(onceLength))
+		if (keyframe == KEY_CURVE.NONE || onceLength.isFloatZero())
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ROTATE_PHY(ITransformable obj, Vector3 rotation)");
 			return;
@@ -481,7 +480,7 @@ public static class FT
 	}
 	public static void LERP_POSITION_EX(this ITransformable obj, Vector3 targetPosition, float lerpSpeed, LerpCallback doingCallback, LerpCallback doneCallback)
 	{
-		if (isFloatZero(lerpSpeed))
+		if (lerpSpeed.isFloatZero())
 		{
 			logError("速度不能为0,如果要停止组件,请使用void LERP_POSITION(ITransformable obj)");
 			return;
@@ -506,7 +505,7 @@ public static class FT
 	}
 	public static void LERP_ROTATION_EX(this ITransformable obj, Vector3 targetRotation, float lerpSpeed, LerpCallback doingCallback, LerpCallback doneCallback)
 	{
-		if (isFloatZero(lerpSpeed))
+		if (lerpSpeed.isFloatZero())
 		{
 			logError("速度不能为0,如果要停止组件,请使用void LERP_ROTATION(ITransformable obj)");
 			return;

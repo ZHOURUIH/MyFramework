@@ -103,7 +103,7 @@ public class PaddingAnchor : MonoBehaviour
 			return;
 		}
 		// 如果窗口带缩放,则可能适配不正确
-		if (!isVectorZero(transform.localScale - Vector3.one))
+		if (!transform.localScale.isVectorEqual(Vector3.one))
 		{
 			logWarning("transform's scale is not 1, may not adapt correctly, " + transform.name + ", scale:" + transform.localScale.V3ToS(6));
 		}
@@ -192,7 +192,7 @@ public class PaddingAnchor : MonoBehaviour
 		{
 			rectTransform.setRectSize(newSize);
 		}
-		transform.localPosition = round(pos);
+		transform.localPosition = pos.round();
 	}
 	public Vector3 getLastPosition() { return mLastPosition; }
 	public Vector2 getLastSize() { return mLastSize; }
@@ -209,7 +209,7 @@ public class PaddingAnchor : MonoBehaviour
 	protected ComplexPoint sideToRelative(float thisSide, float parentSide)
 	{
 		ComplexPoint point = new();
-		point.mRelative = abs(divide(thisSide, parentSide));
+		point.mRelative = thisSide.divide(parentSide).abs();
 		point.setAbsolute(0.0f);
 		return point;
 	}
@@ -233,12 +233,12 @@ public class PaddingAnchor : MonoBehaviour
 				float relativeLeft = side.x - mParentSides[0].x;
 				float relativeCenter = side.x;
 				float relativeRight = side.x - mParentSides[2].x;
-				float disToLeft = abs(relativeLeft);
-				float disToCenter = abs(relativeCenter);
-				float disToRight = abs(relativeRight);
+				float disToLeft = relativeLeft.abs();
+				float disToCenter = relativeCenter.abs();
+				float disToRight = relativeRight.abs();
 				if (relative)
 				{
-					anchorPoint.setRelative(divide(side.x, mParentSides[i].x));
+					anchorPoint.setRelative(side.x.divide(mParentSides[i].x));
 					anchorPoint.setAbsolute(0.0f);
 				}
 				else
@@ -268,12 +268,12 @@ public class PaddingAnchor : MonoBehaviour
 				float relativeTop = side.y - mParentSides[1].y;
 				float relativeCenter = side.y;
 				float relativeBottom = side.y - mParentSides[3].y;
-				float disToTop = abs(relativeTop);
-				float disToCenter = abs(relativeCenter);
-				float disToBottom = abs(relativeBottom);
+				float disToTop = relativeTop.abs();
+				float disToCenter = relativeCenter.abs();
+				float disToBottom = relativeBottom.abs();
 				if (relative)
 				{
-					anchorPoint.setRelative(divide(side.y, mParentSides[i].y));
+					anchorPoint.setRelative(side.y.divide(mParentSides[i].y));
 					anchorPoint.setAbsolute(0.0f);
 				}
 				else
@@ -348,7 +348,7 @@ public class PaddingAnchor : MonoBehaviour
 			}
 			else if (horizontalSide == HORIZONTAL_PADDING.CENTER)
 			{
-				mHorizontalPositionRelative = divide(pos.x, (parentSize.x * 0.5f));
+				mHorizontalPositionRelative = pos.x.divide(parentSize.x * 0.5f);
 				mHorizontalPositionAbsolute = 0;
 			}
 			if (verticalSide == VERTICAL_PADDING.TOP_IN)
@@ -369,7 +369,7 @@ public class PaddingAnchor : MonoBehaviour
 			}
 			else if (verticalSide == VERTICAL_PADDING.CENTER)
 			{
-				mVerticalPositionRelative = divide(pos.y, (parentSize.y * 0.5f));
+				mVerticalPositionRelative = pos.y.divide(parentSize.y * 0.5f);
 				mVerticalPositionAbsolute = 0;
 			}
 		}
@@ -431,7 +431,7 @@ public class PaddingAnchor : MonoBehaviour
 	protected void getSides(GameObject parent, Span<Vector3> sides)
 	{
 		TryGetComponent<RectTransform>(out var rectTransform);
-		if (!isVectorEqual(rectTransform.pivot, new(0.5f, 0.5f)))
+		if (!rectTransform.pivot.isVectorEqual(new(0.5f, 0.5f)))
 		{
 			logError("UI的pivot错误:" + rectTransform.name);
 		}

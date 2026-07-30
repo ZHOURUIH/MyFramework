@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using static FrameBaseUtility;
-using static MathUtility;
 using static UnityUtility;
 
 [CommonWindowPool]
@@ -157,7 +156,7 @@ public class WindowPool<T> : WindowPoolBase where T : myUGUIObject, new()
 		}
 		else
 		{
-			clampMax(ref count, usedCount - startIndex);
+			count.clampMax(usedCount - startIndex);
 		}
 		for (int i = 0; i < count; ++i)
 		{

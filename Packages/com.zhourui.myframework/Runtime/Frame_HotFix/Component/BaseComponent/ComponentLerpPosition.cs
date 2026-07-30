@@ -17,11 +17,11 @@ public abstract class ComponentLerpPosition : ComponentLerp, IComponentModifyPos
 		base.update(elapsedTime);
 		Vector3 curPos = lerp(getPosition(), mTargetPosition, mLerpSpeed * elapsedTime, mMinRange);
 		applyPosition(curPos);
-		afterApplyLerp(isVectorEqual(curPos, mTargetPosition));
+		afterApplyLerp(curPos.isVectorEqual(mTargetPosition));
 	}
 	public override void play()
 	{
-		if (isVectorEqual(getPosition(), mTargetPosition))
+		if (getPosition().isVectorEqual(mTargetPosition))
 		{
 			stop();
 			return;

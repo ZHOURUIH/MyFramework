@@ -21,7 +21,7 @@ public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 	protected static GameHotFixBase<T> mInstance;               // 在子类中创建
 	protected List<FrameSystem> mFrameComponentInit = new();    // 存储框架组件,用于初始化,由于这里向GameFrameworkHotFix注册后,已经过了GameFrameworkHotFix集中调用init的时机,所以需要单独进行初始化操作
 	protected Action mFinishCallback;                           // 存储的启动热更完成的回调
-	protected bool mCanCallback = true;                         // 是否允许在初始化以后自动调用start传递的callback参数,如果不自动调用,就需要手动调用
+	protected bool mAutoCallFinish = true;                      // 是否允许在初始化以后自动调用start传递的callback参数,如果不自动调用,就需要手动调用,可以在派生类的构造中设置此变量
 	public void start(Action callback)
 	{
 		mFinishCallback = callback;
@@ -51,7 +51,7 @@ public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 #endif
 		});
 	}
-	public static void callback() { mInstance.mFinishCallback?.Invoke(); }
+	public static void callbackFinish() { mInstance.mFinishCallback?.Invoke(); }
 	public static GameHotFixBase<T> createHotFixInstance()
 	{
 		mInstance = createInstance<GameHotFixBase<T>>(typeof(T));
@@ -105,7 +105,7 @@ public abstract class GameHotFixBase<T> where T : GameHotFixBase<T>
 		onPostInit();
 		mGameFrameworkHotFix.setAllInited(true);
 		log("启动游戏耗时:" + (int)(DateTime.Now - mGameFrameworkHotFix.getStartTime()).TotalMilliseconds + "毫秒");
-		if (mCanCallback)
+		if (mAutoCallFinish)
 		{
 			mFinishCallback?.Invoke();
 		}

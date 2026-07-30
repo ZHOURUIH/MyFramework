@@ -4,7 +4,6 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using static FileUtility;
-using static MathUtility;
 using static FrameBaseDefine;
 using static FrameDefine;
 
@@ -89,12 +88,12 @@ public class FindTextWindow : GameEditorWindow
 			}
 			if (button("上一页"))
 			{
-				mPageIndex = clampMin(mPageIndex - 1);
+				mPageIndex = (mPageIndex - 1).clampMin();
 			}
 			label(mPageIndex + 1 + "/" + mMaxPageIndex + 1);
 			if (button("下一页"))
 			{
-				mPageIndex = clampMax(mPageIndex + 1, mMaxPageIndex);
+				mPageIndex = (mPageIndex + 1).clampMax(mMaxPageIndex);
 			}
 			if (button("末页"))
 			{
@@ -137,7 +136,7 @@ public class FindTextWindow : GameEditorWindow
 			}
 			mAllCount += item.Value.Count;
 		}
-		mMaxPageIndex = generateBatchCount(mAllCount, mPageSize) - 1;
+		mMaxPageIndex = mAllCount.generateBatchCount(mPageSize) - 1;
 	}
 	protected string getText(MaskableGraphic graphic)
 	{

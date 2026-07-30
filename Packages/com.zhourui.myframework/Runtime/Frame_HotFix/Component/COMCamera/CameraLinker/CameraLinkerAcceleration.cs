@@ -20,21 +20,20 @@ public class CameraLinkerAcceleration : CameraLinkerThirdPerson
 		// 获得加速度
 		Vector3 acceleration = mLinkObject.getPhysicsAcceleration();
 		Vector3 curRelative = mCamera.getPosition() - mLinkObject.getPosition();
-		float relativeAngle = getAngleFromVector3(curRelative);
-		acceleration = rotateVector3(acceleration, relativeAngle) * -1.0f;
-		mSpringX.setCurLength(abs(curRelative.x));
+		acceleration = acceleration.rotateVector3(curRelative.getAngleFromVector3()) * -1.0f;
+		mSpringX.setCurLength(curRelative.x.abs());
 		mSpringX.setForce(acceleration.x);
-		mSpringY.setCurLength(abs(curRelative.y));
+		mSpringY.setCurLength(curRelative.y.abs());
 		mSpringY.setForce(acceleration.y);
-		mSpringZ.setCurLength(abs(curRelative.z));
+		mSpringZ.setCurLength(curRelative.z.abs());
 		mSpringZ.setForce(acceleration.z);
 
-		mSpringX.setNormaLength(abs(mRelativePosition.x));
-		mSpringY.setNormaLength(abs(mRelativePosition.y));
-		mSpringZ.setNormaLength(abs(mRelativePosition.z));
-		mSpringX.setCurLength(abs(mRelativePosition.x));
-		mSpringY.setCurLength(abs(mRelativePosition.y));
-		mSpringZ.setCurLength(abs(mRelativePosition.z));
+		mSpringX.setNormaLength(mRelativePosition.x.abs());
+		mSpringY.setNormaLength(mRelativePosition.y.abs());
+		mSpringZ.setNormaLength(mRelativePosition.z.abs());
+		mSpringX.setCurLength(mRelativePosition.x.abs());
+		mSpringY.setCurLength(mRelativePosition.y.abs());
+		mSpringZ.setCurLength(mRelativePosition.z.abs());
 		mSpringX.setForce(0.0f);
 		mSpringY.setForce(0.0f);
 		mSpringZ.setForce(0.0f);
@@ -54,7 +53,7 @@ public class CameraLinkerAcceleration : CameraLinkerThirdPerson
 		Vector3 relative;
 		if (mUseTargetYaw)
 		{
-			relative = rotateVector3(mRelativePosition, toRadian(mLinkObject.getRotation().y));
+			relative = mRelativePosition.rotateVector3(mLinkObject.getRotation().y.toRadian());
 		}
 		else
 		{
@@ -70,13 +69,13 @@ public class CameraLinkerAcceleration : CameraLinkerThirdPerson
 	}
 	protected void processRelative(Spring spring, float relative, float acceleration, out float curRelative)
 	{
-		if (!isFloatZero(relative))
+		if (!relative.isFloatZero())
 		{
-			curRelative = spring.getLength() * divide(relative, abs(relative));
+			curRelative = spring.getLength() * sign(relative);
 		}
 		else
 		{
-			curRelative = spring.getLength() * divide(acceleration, abs(acceleration));
+			curRelative = spring.getLength() * sign(acceleration);
 		}
 	}
 }

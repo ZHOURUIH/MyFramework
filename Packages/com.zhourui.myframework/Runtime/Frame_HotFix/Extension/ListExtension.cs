@@ -291,7 +291,7 @@ public static class ListExtension
     }
     public static List<T> addRange<T>(this List<T> list, List<T> other, int count)
 	{
-		clampMax(ref count, other.count());
+		count = count.clampMax(other.count());
 		if (list.Capacity < list.Count + count)
 		{
 			list.Capacity = list.Count + count;
@@ -304,7 +304,7 @@ public static class ListExtension
 	}
 	public static List<T> addRange<T>(this List<T> list, List<T> other, int startIndex, int count)
 	{
-		clampMax(ref count, other.count()- startIndex);
+		count = count.clampMax(other.count() - startIndex);
 		if (list.Capacity < list.Count + count)
 		{
 			list.Capacity = list.Count + count;
@@ -362,7 +362,7 @@ public static class ListExtension
 	}
 	public static List<T> addRange<T>(this List<T> list, T[] other, int count)
 	{
-		clampMax(ref count, other.count());
+		count = count.clampMax(other.count());
 		for (int i = 0; i < count; ++i)
 		{
 			list.add(other[i]);
@@ -371,7 +371,7 @@ public static class ListExtension
 	}
 	public static List<T> addRange<T>(this List<T> list, T[] other, int startIndex, int count)
 	{
-		clampMax(ref count, other.count() - startIndex);
+		count = count.clampMax(other.count() - startIndex);
 		if (list.Capacity < list.Count + count)
 		{
 			list.Capacity = list.Count + count;

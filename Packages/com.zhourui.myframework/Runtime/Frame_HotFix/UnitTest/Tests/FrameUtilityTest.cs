@@ -1,7 +1,6 @@
 using System;
 using static FrameUtility;
 using static MathUtility;
-using static StringUtility;
 
 public static class FrameUtilityTest
 {
@@ -116,8 +115,8 @@ public static class FrameUtilityTest
 
     static void testClampFloat()
     {
-        assertEqual(3.0f, clamp(3.0f, 0.0f, 5.0f), 0.001f, "clamp float");
-        assertEqual(0.0f, clamp(-1.0f, 0.0f, 5.0f), 0.001f, "clamp low");
+        assertEqual(3.0f, 3.0f.clamp(0.0f, 5.0f), 0.001f, "clamp float");
+        assertEqual(0.0f, (-1.0f).clamp(0.0f, 5.0f), 0.001f, "clamp low");
     }
 
     static void testEnumAndCollections()
@@ -213,9 +212,9 @@ public static class FrameUtilityTest
 
     static void testClampInt()
     {
-        assertEqual(5, clamp(5, 0, 10));
-        assertEqual(0, clamp(-5, 0, 10));
-        assertEqual(10, clamp(15, 0, 10));
+        assertEqual(5, 5.clamp(0, 10));
+        assertEqual(0, (-5).clamp(0, 10));
+        assertEqual(10, 15.clamp(0, 10));
     }
 
     static void testFixedAndPercent2()

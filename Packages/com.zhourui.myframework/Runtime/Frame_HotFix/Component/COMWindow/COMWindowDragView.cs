@@ -49,7 +49,7 @@ public class COMWindowDragView : GameComponent
 	{
 		mDragDirection = DRAG_DIRECTION.HORIZONTAL;
 		mClampType = CLAMP_TYPE.EDGE_IN_RECT;
-		mDragAngleThreshold = toRadian(45.0f);
+		mDragAngleThreshold = 45.0f.toRadian();
 	}
 	public override void init(ComponentOwner owner)
 	{
@@ -68,7 +68,7 @@ public class COMWindowDragView : GameComponent
 		mMinRelativePos = -Vector3.one;
 		mMaxRelativePos = Vector3.one;
 		mDragLengthThreshold = 10.0f;
-		mDragAngleThreshold = toRadian(45.0f);
+		mDragAngleThreshold = 45.0f.toRadian();
 		mAttenuateFactor = 2.0f;
 		mMoveToEdgeSpeed = 5.0f;
 		mMoveSpeedScale = 1.0f;
@@ -101,7 +101,7 @@ public class COMWindowDragView : GameComponent
 			Vector3 prePos = curPosition;
 			// 拖拽状态时,鼠标移动量就是窗口的移动量,此处未考虑父窗口的缩放不为1的情况
 			Vector3 moveDelta = mInputSystem.getTouchPoint(mTouchID).getCurPosition() - mStartDragMousePosition;
-			if (!isVectorZero(moveDelta))
+			if (!moveDelta.isVectorZero())
 			{
 				if (mDragDirection == DRAG_DIRECTION.HORIZONTAL)
 				{
@@ -116,7 +116,7 @@ public class COMWindowDragView : GameComponent
 				{
 					clampPosition(ref curPosition);
 				}
-				if (!isVectorEqual(prePos, curPosition))
+				if (!prePos.isVectorEqual(curPosition))
 				{
 					setPosition(curPosition);
 					mDraggingCallback?.Invoke();
@@ -145,10 +145,10 @@ public class COMWindowDragView : GameComponent
 					int minIndex = -1;
 					Span<float> disArray = stackalloc float[4] 
 					{
-						abs(curPosition.x - min.x),
-						abs(curPosition.x - max.x),
-						abs(curPosition.y - min.y),
-						abs(curPosition.y - max.y),
+						(curPosition.x - min.x).abs(),
+						(curPosition.x - max.x).abs(),
+						(curPosition.y - min.y).abs(),
+						(curPosition.y - max.y).abs(),
 					};
 					float minDistance = 0.0f;
 					for (int i = 0; i < 4; ++i)
@@ -177,7 +177,7 @@ public class COMWindowDragView : GameComponent
 						targetPosition.y = max.y;
 					}
 				}
-				if (!isVectorEqual(curPosition, targetPosition))
+				if (!curPosition.isVectorEqual(targetPosition))
 				{
 					setPosition(lerp(curPosition, targetPosition, elapsedTime * mMoveToEdgeSpeed));
 				}
@@ -190,7 +190,7 @@ public class COMWindowDragView : GameComponent
 				if (!isValidPosition(ref curPosition, ref validPos, mAlignTopOrLeft))
 				{
 					Vector3 newPos = lerp(curPosition, validPos, elapsedTime * mAutoClampSpeed);
-					if (!isVectorEqual(newPos, curPosition))
+					if (!newPos.isVectorEqual(curPosition))
 					{
 						setPosition(newPos);
 					}
@@ -209,7 +209,7 @@ public class COMWindowDragView : GameComponent
 						mMoveSpeed = lerp(mMoveSpeed, 0.0f, elapsedTime * mAttenuateFactor, 10.0f);
 						curPosition += mMoveSpeed * mMoveSpeedScale * elapsedTime * mMoveDirection;
 						clampPosition(ref curPosition);
-						if (!isVectorEqual(prePos, curPosition))
+						if (!prePos.isVectorEqual(curPosition))
 						{
 							setPosition(curPosition);
 						}
@@ -266,12 +266,12 @@ public class COMWindowDragView : GameComponent
 		{
 			delta.x = 0.0f;
 		}
-		float speed = divide(getLength(delta), moveTime);
+		float speed = delta.getLength().divide(moveTime);
 		if (!mDragging.mValue)
 		{
 			Vector3 dragDir = touchPos - mTouchDownPos;
 			// 拖动距离大于一定值时才会判断是否开始拖拽,还要继续检测鼠标移动才能判断是否可以开始拖拽
-			if (lengthGreater(dragDir, mDragLengthThreshold))
+			if (dragDir.lengthGreater(mDragLengthThreshold))
 			{
 				if (!checkCanDrag(dragDir))
 				{
@@ -281,13 +281,13 @@ public class COMWindowDragView : GameComponent
 				mStartDragWindowPosition = mWindow.getPosition();
 				mStartDragMousePosition = touchPos;
 				mMoveSpeed = speed;
-				mMoveDirection = normalize(delta);
+				mMoveDirection = delta.normalize();
 			}
 		}
 		else
 		{
 			mMoveSpeed = speed;
-			mMoveDirection = normalize(delta);
+			mMoveDirection = delta.normalize();
 		}
 	}
 	public void onTouchStay(int touchID)
@@ -394,10 +394,10 @@ public class COMWindowDragView : GameComponent
 		{
 			Vector2 parentWidgetSize = mWindow.getParent().getSize();
 			// 计算父节点的世界缩放
-			Vector2 parentScale = divideVector3(mWindow.getTransform().parent.lossyScale, mLayoutManager.getUIRoot().getScale());
+			Vector2 parentScale = mWindow.getTransform().parent.lossyScale.divideVector3(mLayoutManager.getUIRoot().getScale());
 			// 计算移动的位置范围
-			Vector2 minPos = parentWidgetSize * 0.5f * divideVector2(mMinRelativePos, parentScale);
-			Vector2 maxPos = parentWidgetSize * 0.5f * divideVector2(mMaxRelativePos, parentScale);
+			Vector2 minPos = parentWidgetSize * 0.5f * ((Vector2)mMinRelativePos).divideVector2(parentScale);
+			Vector2 maxPos = parentWidgetSize * 0.5f * ((Vector2)mMaxRelativePos).divideVector2(parentScale);
 			if (mClampType == CLAMP_TYPE.EDGE_IN_RECT)
 			{
 				Vector2 thisSize = mWindow.getSize(true);
@@ -487,7 +487,7 @@ public class COMWindowDragView : GameComponent
 			// 滑动范围有效时需要限定在一定范围
 			if (min.x <= max.x)
 			{
-				clamp(ref position.x, minValue, maxValue);
+				position.x = position.x.clamp(minValue, maxValue);
 			}
 			// 不能滑动的情况下
 			else
@@ -509,7 +509,7 @@ public class COMWindowDragView : GameComponent
 			// 滑动范围有效时需要限定在一定范围
 			if (min.y <= max.y)
 			{
-				clamp(ref position.y, minValue, maxValue);
+				position.y = position.y.clamp(minValue, maxValue);
 			}
 			// 不能滑动的情况下
 			else
@@ -539,12 +539,10 @@ public class COMWindowDragView : GameComponent
 			horiValid = false;
 			if (min.x <= max.x)
 			{
-				horiValid = inRangeFixed(position.x, minValue, maxValue);
+				horiValid = position.x.inRangeFixed(minValue, maxValue);
 				if (!horiValid)
 				{
-					float x = position.x;
-					clamp(ref x, minValue, maxValue);
-					validPos.x = x;
+					validPos.x = position.x.clamp(minValue, maxValue);
 				}
 			}
 			// 不能滑动的情况下
@@ -567,12 +565,10 @@ public class COMWindowDragView : GameComponent
 			vertValid = false;
 			if (min.y <= max.y)
 			{
-				vertValid = inRangeFixed(position.y, minValue, maxValue);
+				vertValid = position.y.inRangeFixed(minValue, maxValue);
 				if (!vertValid)
 				{
-					float y = position.y;
-					clamp(ref y, minValue, maxValue);
-					validPos.y = y;
+					validPos.y = position.y.clamp(minValue, maxValue);
 				}
 			}
 			// 不能滑动的情况下

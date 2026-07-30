@@ -4,7 +4,6 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using static FrameBaseDefine;
 using static FrameBaseHotFix;
-using static MathUtility;
 
 // 热更代码使用
 // 如果是会在代码中访问操作的文本对象则需要挂此脚本,目的是为了方便资源检查,避免有太多无效检查或者有遗漏
@@ -35,7 +34,7 @@ public class LocalizationRuntimeText : MonoBehaviour
 		}
 		else
 		{
-			mFontSizeScale = divide(getFontSize(), mChineseOriginFontSize);
+			mFontSizeScale = getFontSize().divide(mChineseOriginFontSize);
 		}
 		mLocalizationManager?.registeAction(onLanguageChanged);
 		onLanguageChanged();

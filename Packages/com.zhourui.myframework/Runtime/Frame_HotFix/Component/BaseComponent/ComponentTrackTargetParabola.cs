@@ -35,15 +35,15 @@ public class ComponentTrackTargetParabola : ComponentTrackTarget
 		float moveDeltaX = mSpeed * elapsedTime;
 		// 这里的moveDeltaX所处的空间是临时构建的,以mStartPosition为原点的空间
 		// 所以只关心当前点在这个空间中的X轴上的移动距离
-		if (lengthGreaterEqual(resetY(targetPos - mStartPosition), moveDeltaX + mNearRange + mLastMovedDistanceX))
+		if ((targetPos - mStartPosition).resetY().lengthGreaterEqual(moveDeltaX + mNearRange + mLastMovedDistanceX))
 		{
 			// 在X轴上累计移动距离
 			mLastMovedDistanceX += moveDeltaX;
 			// 根据X轴的距离和抛物线公式计算出Y坐标
 			float y = factorA * mLastMovedDistanceX * mLastMovedDistanceX + factorB * mLastMovedDistanceX;
 			// 根据X轴的距离,计算出目标点到起点连线上的坐标,不考虑Y轴
-			Vector3 finalPosXZ = setLength(resetY(targetPos - mStartPosition), mLastMovedDistanceX) + mStartPosition;
-			setPosition(replaceY(finalPosXZ, y + mStartPosition.y));
+			Vector3 finalPosXZ = (targetPos - mStartPosition).resetY().setLength(mLastMovedDistanceX) + mStartPosition;
+			setPosition(finalPosXZ.replaceY(y + mStartPosition.y));
 			mTrackingCallback?.Invoke(false);
 		}
 		else

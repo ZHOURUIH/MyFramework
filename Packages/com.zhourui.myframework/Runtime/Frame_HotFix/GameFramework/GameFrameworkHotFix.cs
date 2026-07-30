@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using static FrameBaseUtility;
 using static UnityUtility;
 using static FrameUtility;
-using static MathUtility;
 using static TimeUtility;
 using static FrameBaseHotFix;
 
@@ -63,7 +62,7 @@ public class GameFrameworkHotFix : IFramework
 			mCurFrameCount = 0;
 			mCurTime = mFrameStartTime;
 		}
-		mThisFrameTime = clampMax(Time.deltaTime, 0.3f);
+		mThisFrameTime = Time.deltaTime.clampMax(0.3f);
 		elapsedTime = mThisFrameTime;
 		setThisTimeMS(getNowTimeStampMS());
 		mThisFrameUnscaledTime = Time.unscaledDeltaTime;
@@ -319,8 +318,8 @@ public class GameFrameworkHotFix : IFramework
 		mIsDestroy = false;
 		mStartTime = DateTime.Now;
 		mFrameStartTime = DateTime.Now;
-#if USE_URP
-        DebugManager.instance.enableRuntimeUI = false;
+#if USE_URP && !UNITY_6000_5_OR_NEWER
+		DebugManager.instance.enableRuntimeUI = false;
 #endif
 		setFrameRate(GameEntryBase.getInstance().mFrameworkParam.mDefaultFrameRate);
 

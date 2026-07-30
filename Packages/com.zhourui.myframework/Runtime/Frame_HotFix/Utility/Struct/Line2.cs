@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using static MathUtility;
 
 // 2维的线段
 public struct Line2
@@ -13,10 +12,10 @@ public struct Line2
 	{
 		mStart = start;
 		mEnd = end;
-		mHasK = !isFloatZero(mEnd.x - mStart.x);
+		mHasK = !mEnd.x.isFloatEqual(mStart.x);
 		if (mHasK)
 		{
-			mK = divide(mEnd.y - mStart.y, mEnd.x - mStart.x);
+			mK = (mEnd.y - mStart.y).divide(mEnd.x - mStart.x);
 			mB = mStart.y - mK * mStart.x;
 		}
 		else 
@@ -31,7 +30,7 @@ public struct Line2
 	}
 	public float length()
 	{
-		return getLength(mStart - mEnd);
+		return (mStart - mEnd).getLength();
 	}
 	public Line3 toLine3()
 	{
@@ -53,12 +52,12 @@ public struct Line2
 			return true;
 		}
 		// 斜率为0,是一条平行于X轴的执行,获取不到x坐标
-		if (isFloatZero(mK))
+		if (mK.isFloatZero())
 		{
 			x = 0;
 			return false;
 		}
-		x = divide(y - mB, mK);
+		x = (y - mB).divide(mK);
 		return true;
 	}
 }

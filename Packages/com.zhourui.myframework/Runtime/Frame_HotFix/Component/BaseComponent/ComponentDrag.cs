@@ -23,7 +23,7 @@ public class ComponentDrag : GameComponent
 	protected bool mBreakDragWhenMultiTouch = true;		// 是否当有多个触点时就中断拖拽,避免与多指操作冲突
 	public ComponentDrag()
 	{
-		mDragStartAngleThreshold = toRadian(45.0f);
+		mDragStartAngleThreshold = 45.0f.toRadian();
 	}
 	public override void resetProperty()
 	{
@@ -37,7 +37,7 @@ public class ComponentDrag : GameComponent
 		mDragMouseOffset = Vector3.zero;
 		mAllowDragDirection = Vector2.zero;
 		mStartDragThreshold = 20.0f;
-		mDragStartAngleThreshold = toRadian(45.0f);
+		mDragStartAngleThreshold = 45.0f.toRadian();
 		mPreparingDrag = false;
 		mDragging = false;
 		mMovable = true;
@@ -201,10 +201,10 @@ public class ComponentDrag : GameComponent
 		if (mPreparingDrag)
 		{
 			Vector2 mouseDelta = touchPosition - mPrepareDragMousePosition;
-			if (lengthGreater(mouseDelta, mStartDragThreshold))
+			if (mouseDelta.lengthGreater(mStartDragThreshold))
 			{
 				// 有拖拽方向要求时,只有拖拽方向与设置方向夹角不超过指定角度时才开始拖动
-				if (isVectorZero(mAllowDragDirection) || getAngleBetweenVector(mouseDelta, mAllowDragDirection) < mDragStartAngleThreshold)
+				if (mAllowDragDirection.isVectorZero() || getAngleBetweenVector(mouseDelta, mAllowDragDirection) < mDragStartAngleThreshold)
 				{
 					mDragging = onDragStart(mTouchPoint);
 				}

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using static MathUtility;
 
 // 像素遮罩裁剪,根据遮罩图片的像素红色分量判断图像像素是否显示
 public class WindowShaderPixelMaskCut : WindowShader
@@ -41,7 +40,7 @@ public class WindowShaderPixelMaskCut : WindowShader
 		if (mat != null && mat.shader != null)
 		{
 			mat.SetTexture(mMaskTexID, mMask);
-			if (isVectorZero(mMaskSize))
+			if (mMaskSize.isVectorZero())
 			{
 				mMaskSize = new(mMask.width, mMask.height);
 			}

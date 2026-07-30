@@ -31,7 +31,7 @@ public static class FileUtilityTest
 
             string binFile = root + "data.bin";
             writeFile(binFile, new byte[] { 1, 2, 3 });
-            assertEqual(5, getFileSize(binFile), "binary size");
+            assertEqual(3, getFileSize(binFile), "binary size");
             assertTrue(isFileExist(binFile), "binary exists");
 
             string renamed = root + "renamed.bin";

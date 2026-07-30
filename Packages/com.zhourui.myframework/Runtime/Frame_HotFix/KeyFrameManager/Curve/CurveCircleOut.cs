@@ -1,11 +1,10 @@
-﻿using static MathUtility;
-
+﻿
 // 圆曲线
 public class CurveCircleOut : MyCurve
 {
 	public override float evaluate(float time)
 	{
 		time -= 1.0f;
-		return sqrt(1.0f - time * time);
+		return (1.0f - time * time).sqrt();
 	}
 }

@@ -1,5 +1,4 @@
-﻿using static MathUtility;
-
+﻿
 // 第一人称连接器,实际也是保持固定的相对距离
 public class CameraLinkerFirstPerson : CameraLinker
 {
@@ -20,7 +19,7 @@ public class CameraLinkerFirstPerson : CameraLinker
 	protected override void updateLinker(float elapsedTime)
 	{
 		// 因为是第一人称,所以固定需要保持摄像机的朝向与角色的朝向一致
-		applyRelativePosition(rotateVector3(mRelativePosition, toRadian(mLinkObject.getRotation().y)));
+		applyRelativePosition(mRelativePosition.rotateVector3(mLinkObject.getRotation().y.toRadian()));
 		mCamera.setRotationY(mLinkObject.getRotation().y);
 	}
 }

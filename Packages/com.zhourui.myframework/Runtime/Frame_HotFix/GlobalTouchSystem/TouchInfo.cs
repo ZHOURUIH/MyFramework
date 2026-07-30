@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using static MathUtility;
 using static FrameBaseHotFix;
 
 // 存放一个触点的悬停和按下的物体
@@ -29,7 +28,7 @@ public class TouchInfo : ClassObject
 		using var a = new SafeListReader<IMouseEventCollect>(mPressList);
 		foreach (IMouseEventCollect obj in a.mReadList)
 		{
-			if (isVectorZero(mTouch.getMoveDelta()))
+			if (mTouch.getMoveDelta().isVectorZero())
 			{
 				obj.onTouchStay(curPos, mTouch.getTouchID());
 			}

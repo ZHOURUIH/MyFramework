@@ -71,18 +71,18 @@ public class UGUISlider : WindowObjectUGUI, ISlider
 			float maxY = content.getSize().y * 0.5f - viewport.getSize().y * 0.5f;
 			if (maxY < 0.0f)
 			{
-				return replaceY(content.getPosition(), -maxY);
+				return content.getPosition().replaceY(-maxY);
 			}
-			return replaceY(content.getPosition(), lerp(maxY, -maxY, mSliderValue));
+			return content.getPosition().replaceY(lerp(maxY, -maxY, mSliderValue));
 		}
 		else if (mDirection == DRAG_DIRECTION.HORIZONTAL)
 		{
 			float maxX = content.getSize().x * 0.5f - viewport.getSize().x * 0.5f;
 			if (maxX < 0)
 			{
-				return replaceY(content.getPosition(), maxX);
+				return content.getPosition().replaceX(maxX);
 			}
-			return replaceY(content.getPosition(), lerp(-maxX, maxX, mSliderValue));
+			return content.getPosition().replaceX(lerp(-maxX, maxX, mSliderValue));
 		}
 		return Vector3.zero;
 	}
@@ -96,13 +96,12 @@ public class UGUISlider : WindowObjectUGUI, ISlider
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected void updateSlider(float value)
 	{
-		if (isVectorZero(mOriginForegroundSize))
+		if (mOriginForegroundSize.isVectorZero())
 		{
 			logError("foreground的size为0,是否忘记调用了UGUISlider的init?");
 			return;
 		}
-		mSliderValue = value;
-		saturate(ref mSliderValue);
+		mSliderValue = value.saturate();
 		if(mMode == SLIDER_MODE.FILL)
 		{
 			mForeground.setFillPercent(mSliderValue);
@@ -196,12 +195,12 @@ public class UGUISlider : WindowObjectUGUI, ISlider
 		float value = 0.0f;
 		if (mDirection == DRAG_DIRECTION.HORIZONTAL)
 		{
-			value = divide(posInForeground.x + mOriginForegroundSize.x * 0.5f, mOriginForegroundSize.x);
+			value = (posInForeground.x + mOriginForegroundSize.x * 0.5f).divide(mOriginForegroundSize.x);
 		}
 		else if (mDirection == DRAG_DIRECTION.VERTICAL)
 		{
-			value = divide(posInForeground.y + mOriginForegroundSize.y * 0.5f, mOriginForegroundSize.y);
+			value = (posInForeground.y + mOriginForegroundSize.y * 0.5f).divide(mOriginForegroundSize.y);
 		}
-		return saturate(value);
+		return value.saturate();
 	}
 }

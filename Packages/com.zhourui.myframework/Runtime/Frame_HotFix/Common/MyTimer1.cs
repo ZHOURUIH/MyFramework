@@ -1,5 +1,4 @@
 ﻿using System;
-using static MathUtility;
 
 // 自定义的计时器,需要手动调用tickTimer进行更新,返回值为是否到达指定时间
 // 相比于MyTimer,会更加精确,不会出现比预计时间短的情况,但是效率比MyTimer慢10倍
@@ -27,7 +26,7 @@ public class MyTimer1
 		{
 			return 0.0f;
 		}
-		return divide(mCurTime, mTimeInterval);
+		return mCurTime.divide(mTimeInterval);
 	}
 	public bool tickTimer()
 	{

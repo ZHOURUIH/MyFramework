@@ -114,10 +114,10 @@ public class MenuShortcutOperation
 
 			// 生成的高度不能小于半径的2倍,且不能大于4
 			controller.height = bounds.size.y;
-			controller.radius = clamp(bounds.size.x * 0.5f, 0.001f, controller.height * 0.5f);
+			controller.radius = (bounds.size.x * 0.5f).clamp(0.001f, controller.height * 0.5f);
 			controller.center = new(0.0f, bounds.center.y - bounds.size.y * 0.5f + controller.height * 0.5f, 0.0f);
 			controller.slopeLimit = 80.0f;
-			controller.stepOffset = clampMax(0.3f, controller.height + controller.radius * 2.0f);
+			controller.stepOffset = 0.3f.clampMax(controller.height + controller.radius * 2.0f);
 			controller.enabled = true;
 			controller.skinWidth = 0.01f;
 		}

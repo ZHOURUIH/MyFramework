@@ -48,7 +48,7 @@ public class AnimControl : ClassObject
 			if (mCurTime > mInterval)
 			{
 				// 一帧时间内可能会跳过多帧序列帧
-				int elapsedFrames = (int)divide(mCurTime, mInterval);
+				int elapsedFrames = (int)mCurTime.divide(mInterval);
 				mCurTime -= elapsedFrames * mInterval;
 				int realEndIndex = getRealEndIndex();
 				if (mPlayDirection)
@@ -140,10 +140,10 @@ public class AnimControl : ClassObject
 	{
 		mTextureCount = count;
 		// 重新判断起始下标和终止下标,确保下标不会越界
-		clamp(ref mStartIndex, 0, getTextureFrameCount() - 1);
+		mStartIndex = mStartIndex.clamp(0, getTextureFrameCount() - 1);
 		if (mEndIndex >= 0)
 		{
-			clamp(ref mEndIndex, 0, getTextureFrameCount() - 1);
+			mEndIndex = mEndIndex.clamp(0, getTextureFrameCount() - 1);
 		}
 		if (getTextureFrameCount() > 0 && mStartIndex >= 0 && mStartIndex < getTextureFrameCount())
 		{
@@ -154,14 +154,14 @@ public class AnimControl : ClassObject
 	public void setStartIndex(int startIndex)
 	{
 		mStartIndex = startIndex;
-		clamp(ref mStartIndex, 0, getTextureFrameCount() - 1);
+		mStartIndex = mStartIndex.clamp(0, getTextureFrameCount() - 1);
 	}
 	public void setEndIndex(int endIndex)
 	{
 		mEndIndex = endIndex;
 		if (mEndIndex >= 0)
 		{
-			clamp(ref mEndIndex, 0, getTextureFrameCount() - 1);
+			mEndIndex = mEndIndex.clamp(0, getTextureFrameCount() - 1);
 		}
 	}
 	public void stop(bool resetStartIndex = true, bool callback = true, bool isBreak = true)
@@ -184,7 +184,7 @@ public class AnimControl : ClassObject
 	{
 		mCurTextureIndex = index;
 		mCurTime = 0.0f;
-		clamp(ref mCurTextureIndex, mStartIndex, getRealEndIndex());
+		mCurTextureIndex = mCurTextureIndex.clamp(mStartIndex, getRealEndIndex());
 		mPlayingCallback?.Invoke(mCurTextureIndex, false);
 	}
 }

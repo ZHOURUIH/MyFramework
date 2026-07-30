@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using static UnityUtility;
 using static FrameBaseHotFix;
-using static MathUtility;
 
 // 全部都是对于UI布局或窗口的操作,部分Transformable的通用操作在ToolFrame中
 // 提供布局加载/卸载、窗口显隐、层级调整等UI相关操作的快捷方法
@@ -303,7 +302,7 @@ public static class LT
 	}
 	public static void ALPHA_EX(this myUGUIObject obj, int keyframe, float start, float target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		if (keyframe == KEY_CURVE.NONE || isFloatZero(onceLength))
+		if (keyframe == KEY_CURVE.NONE || onceLength.isFloatZero())
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void ALPHA(myUGUIObject obj, float alpha)");
 			return;
@@ -356,7 +355,7 @@ public static class LT
 	}
 	public static void COLOR_EX(this myUGUIObject obj, int keyframe, Color start, Color target, float onceLength, bool loop, float offset, KeyFrameCallback doingCallback, KeyFrameCallback doneCallback)
 	{
-		if (keyframe == KEY_CURVE.NONE || isFloatZero(onceLength))
+		if (keyframe == KEY_CURVE.NONE || onceLength.isFloatZero())
 		{
 			logError("时间或关键帧不能为空,如果要停止组件,请使用void COLOR(myUGUIObject obj, float alpha)");
 			return;

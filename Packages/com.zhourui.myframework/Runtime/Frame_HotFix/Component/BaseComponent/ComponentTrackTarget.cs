@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using static UnityUtility;
-using static MathUtility;
 
 // 追踪目标的组件
 public class ComponentTrackTarget : GameComponent, IComponentModifyPosition, IComponentBreakable
@@ -111,9 +110,9 @@ public class ComponentTrackTarget : GameComponent, IComponentModifyPosition, ICo
 		Vector3 targetPos = getTargetPosition();
 		Vector3 curPos = getPosition();
 		float moveDelta = mSpeed * elapsedTime;
-		if (lengthGreater(targetPos - curPos, moveDelta + mNearRange))
+		if ((targetPos - curPos).lengthGreater(moveDelta + mNearRange))
 		{
-			setPosition(normalize(targetPos - curPos) * moveDelta + curPos);
+			setPosition((targetPos - curPos).setLength(moveDelta) + curPos);
 			mTrackingCallback?.Invoke(false);
 		}
 		else

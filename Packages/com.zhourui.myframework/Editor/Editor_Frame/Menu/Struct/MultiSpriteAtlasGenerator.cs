@@ -140,7 +140,7 @@ public class MultiSpriteAtlasGenerator
 	{
 		atlasWidth = 0;
 		atlasHeight = 0;
-		int maxPowerOfTwo = getGreaterPow2(maxSize);
+		int maxPowerOfTwo = maxSize.getGreaterPow2();
 		if (maxPowerOfTwo <= 0)
 		{
 			return false;

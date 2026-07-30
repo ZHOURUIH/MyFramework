@@ -1,5 +1,4 @@
-﻿using static MathUtility;
-
+﻿
 // 插值计算基类
 public class ComponentLerp : GameComponent, IComponentBreakable
 {
@@ -31,7 +30,7 @@ public class ComponentLerp : GameComponent, IComponentBreakable
 	}
 	public virtual void play()
 	{
-		if(isFloatZero(mLerpSpeed))
+		if (mLerpSpeed.isFloatZero())
 		{
 			stop();
 			return;

@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using static FrameBaseHotFix;
-using static MathUtility;
 using static UnityUtility;
 
 [Serializable]
@@ -56,7 +55,7 @@ public class TweenTrack
 	{
 		switch (mTargetMode)
 		{
-			case TARGET_MODE.VALUE:					return multiVector3(getParentAnchorScale(transform), mTargetValue);
+			case TARGET_MODE.VALUE:					return getParentAnchorScale(transform).multiVector3(mTargetValue);
 			case TARGET_MODE.TRANSFORM_REALTIME:	return generateTargetValue(mTargetTransform);
 			case TARGET_MODE.TRANSFORM_SNAPSHOT:	return mRuntimeTarget;
 			case TARGET_MODE.SELF:					return mRuntimeTarget;
@@ -72,7 +71,7 @@ public class TweenTrack
 		// 起点只能在开始播放时获取,终点可以实时获取
 		switch (mStartMode)
 		{
-			case START_MODE.VALUE:mRuntimeStart = multiVector3(getParentAnchorScale(transform), mStartValue);break;
+			case START_MODE.VALUE:mRuntimeStart = getParentAnchorScale(transform).multiVector3(mStartValue);break;
 			case START_MODE.SELF: mRuntimeStart = getTransformValue(transform);break;
 		}
 		if (mTargetMode == TARGET_MODE.TRANSFORM_SNAPSHOT)
@@ -93,9 +92,9 @@ public class TweenTrack
 		Vector3 scale = getParentAnchorScale(transform);
 		if (transform == null)
 		{
-			return multiVector3(scale, mTargetOffset);
+			return scale.multiVector3(mTargetOffset);
 		}
-		return getTransformValue(transform) + multiVector3(scale, mTargetOffset);
+		return getTransformValue(transform) + scale.multiVector3(mTargetOffset);
 	}
 	// 根据轨道类型获取Transform上的对应值
 	protected Vector3 getTransformValue(Transform transform)

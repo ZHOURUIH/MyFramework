@@ -2,7 +2,6 @@
 using UnityEngine;
 using static UnityUtility;
 using static FrameBaseHotFix;
-using static MathUtility;
 using static FrameDefine;
 
 // 制作角色的动画状态机时需要注意
@@ -231,7 +230,7 @@ public class COMCharacterAvatar : GameComponent
 		if (mPositionSync == TRANSFORM_SYNC.USE_AVATAR)
 		{
 			Vector3 pos = getPosition();
-			if (!isVectorEqual(mCharacter.getPosition(), pos))
+			if (!mCharacter.getPosition().isVectorEqual(pos))
 			{
 				mCharacter.setPosition(pos);
 			}
@@ -239,7 +238,7 @@ public class COMCharacterAvatar : GameComponent
 		else if (mPositionSync == TRANSFORM_SYNC.USE_CHARACTER)
 		{
 			Vector3 pos = mCharacter.getPosition();
-			if (!isVectorEqual(getPosition(), pos))
+			if (!getPosition().isVectorEqual(pos))
 			{
 				setPosition(pos);
 			}
@@ -247,7 +246,7 @@ public class COMCharacterAvatar : GameComponent
 		if (mRotationSync == TRANSFORM_SYNC.USE_AVATAR)
 		{
 			Quaternion rot = getRotationQuaternion();
-			if (!isQuaternionEqual(mCharacter.getRotationQuaternion(), rot))
+			if (!mCharacter.getRotationQuaternion().isQuaternionEqual(rot))
 			{
 				mCharacter.setRotation(rot);
 			}
@@ -255,7 +254,7 @@ public class COMCharacterAvatar : GameComponent
 		else if (mRotationSync == TRANSFORM_SYNC.USE_CHARACTER)
 		{
 			Quaternion rot = mCharacter.getRotationQuaternion();
-			if (!isQuaternionEqual(getRotationQuaternion(), rot))
+			if (!getRotationQuaternion().isQuaternionEqual(rot))
 			{
 				setRotation(rot);
 			}
@@ -263,7 +262,7 @@ public class COMCharacterAvatar : GameComponent
 		if (mScaleSync == TRANSFORM_SYNC.USE_AVATAR)
 		{
 			Vector3 scale = getScale();
-			if (!isVectorEqual(mCharacter.getScale(), scale))
+			if (!mCharacter.getScale().isVectorEqual(scale))
 			{
 				mCharacter.setScale(scale);
 			}
@@ -271,7 +270,7 @@ public class COMCharacterAvatar : GameComponent
 		else if (mScaleSync == TRANSFORM_SYNC.USE_CHARACTER)
 		{
 			Vector3 scale = mCharacter.getScale();
-			if (!isVectorEqual(getScale(), scale))
+			if (!getScale().isVectorEqual(scale))
 			{
 				setScale(scale);
 			}

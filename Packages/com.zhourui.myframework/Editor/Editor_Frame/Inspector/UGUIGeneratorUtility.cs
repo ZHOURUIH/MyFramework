@@ -461,7 +461,7 @@ public class UGUIGeneratorUtility
 	}
 	public static void appendWithAlign(ref string oriStr, string appendStr, int alignWidth)
 	{
-		int tabCount = ceil(clampMin(alignWidth - getStringWidth(oriStr)) / 4.0f);
+		int tabCount = ((alignWidth - getStringWidth(oriStr)).clampMin() / 4.0f).ceil();
 		for (int i = 0; i < tabCount; ++i)
 		{
 			oriStr += '\t';

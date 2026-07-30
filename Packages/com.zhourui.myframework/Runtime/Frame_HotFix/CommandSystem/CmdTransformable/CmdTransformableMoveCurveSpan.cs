@@ -2,7 +2,6 @@
 using System;
 using static FrameBaseUtility;
 using static UnityUtility;
-using static MathUtility;
 
 // 以指定的位置列表进行移动
 public class CmdTransformableMoveCurveSpan
@@ -15,7 +14,7 @@ public class CmdTransformableMoveCurveSpan
 		}
 		if (isEditor() && 
 			obj is myUGUIObject uiObj && 
-			!isFloatZero(onceLength) && 
+			!onceLength.isFloatZero() && 
 			!uiObj.getLayout().canUIObjectUpdate(uiObj))
 		{
 			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + uiObj.getName());

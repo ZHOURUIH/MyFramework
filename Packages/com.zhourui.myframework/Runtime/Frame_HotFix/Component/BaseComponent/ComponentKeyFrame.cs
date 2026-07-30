@@ -1,5 +1,4 @@
 ﻿using static UnityUtility;
-using static MathUtility;
 using static FrameBaseHotFix;
 
 // 关键帧组件基类
@@ -96,7 +95,7 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 			logError("onceLength can not be negative!");
 			return;
 		}
-		if (mKeyFrame == null || isFloatZero(onceLength))
+		if (mKeyFrame == null || onceLength.isFloatZero())
 		{
 			mStopValue = 0.0f;
 			// 停止并禁用组件
@@ -112,7 +111,7 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 			logError("offset must be less than onceLength!");
 		}
 		mOnceLength = onceLength;
-		mInverseOnceLength = divide(1.0f, mOnceLength);
+		mInverseOnceLength = 1.0f.divide(mOnceLength);
 		mPlayState = PLAY_STATE.PLAY;
 		mLoop = loop;
 		mOffset = offset;
@@ -160,7 +159,7 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 	}
 	public float getTremblingPercent()
 	{
-		return divide(mCurrentTime, mOnceLength);
+		return mCurrentTime.divide(mOnceLength);
 	}
 	public void setDoingCallback(KeyFrameCallback callback)
 	{
@@ -189,7 +188,7 @@ public class ComponentKeyFrame : GameComponent, IComponentBreakable
 	public void setOnceLength(float length)				
 	{
 		mOnceLength = length;
-		mInverseOnceLength = divide(1.0f, mOnceLength);
+		mInverseOnceLength = 1.0f.divide(mOnceLength);
 	}
 	public void setOffset(float offset)					{ mOffset = offset; }
 	public void setCurrentTime(float time)				{ mCurrentTime = time; }

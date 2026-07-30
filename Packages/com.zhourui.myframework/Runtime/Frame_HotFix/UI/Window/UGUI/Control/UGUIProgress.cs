@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using static UnityUtility;
-using static MathUtility;
 
 // 自定义的进度条,跟滑动条的区别就是不能拖拽,实现更加简单,适用于加载进度条等等的功能
 [CommonControl]
@@ -28,13 +27,12 @@ public class UGUIProgress : WindowObjectUGUI, ISlider
 	}
 	public void setValue(float value) 
 	{
-		if (isVectorZero(mOriginProgressSize))
+		if (mOriginProgressSize.isVectorZero())
 		{
 			logError("ProgressBar的size为0,是否忘记调用了UGUIProgress的init?");
 			return;
 		}
-		mProgressValue = value;
-		saturate(ref mProgressValue);
+		mProgressValue = value.saturate();
 		if (mMode == SLIDER_MODE.FILL)
 		{
 			mProgressBar.setFillPercent(mProgressValue);

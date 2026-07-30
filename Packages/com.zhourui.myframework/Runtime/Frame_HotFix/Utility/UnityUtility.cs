@@ -180,14 +180,14 @@ public class UnityUtility
 		mScreenSize.x = (int)size.x;
 		mScreenSize.y = (int)size.y;
 		mHalfScreenSize = new(mScreenSize.x >> 1, mScreenSize.y >> 1);
-		mScreenAspect = divide(mScreenSize.x, mScreenSize.y);   // 屏幕宽高比
+		mScreenAspect = mScreenSize.x.divide(mScreenSize.y);   // 屏幕宽高比
 		Vector2Int uiSize = FrameSettings.getUISize();
         mScreenScale = new(mScreenSize.x * (1.0f / uiSize.x), mScreenSize.y * (1.0f / uiSize.y));   // 当前分辨率相对于标准分辨率的缩放
 		setScreenSizeBase(mScreenSize, fullScreen);
 		GameCamera camera = mCameraManager.getUICamera();
-		camera?.MOVE(new(0.0f, 0.0f, -divide(mScreenSize.y * 0.5f, tan(camera.getFOVY(true) * 0.5f))));
+		camera?.MOVE(new(0.0f, 0.0f, -(mScreenSize.y * 0.5f).divide((camera.getFOVY(true) * 0.5f).tan())));
 		GameCamera blurCamera = mCameraManager.getUIBlurCamera();
-		blurCamera?.MOVE(new(0.0f, 0.0f, -divide(mScreenSize.y * 0.5f, tan(blurCamera.getFOVY(true) * 0.5f))));
+		blurCamera?.MOVE(new(0.0f, 0.0f, -(mScreenSize.y * 0.5f).divide((blurCamera.getFOVY(true) * 0.5f).tan())));
 	}
 	public static List<GameObject> getGameObjectWithTag(GameObject parent, string tag)
 	{
@@ -399,15 +399,15 @@ public class UnityUtility
 		{
 			objTrans.SetParent(parentTrans);
 		}
-		if (!isVectorEqual(objTrans.localPosition, pos))
+		if (!objTrans.localPosition.isVectorEqual(pos))
 		{
 			objTrans.localPosition = pos;
 		}
-		if (!isVectorEqual(objTrans.localEulerAngles, rot))
+		if (!objTrans.localEulerAngles.isVectorEqual(rot))
 		{
 			objTrans.localEulerAngles = rot;
 		}
-		if (!isVectorEqual(objTrans.localScale, scale))
+		if (!objTrans.localScale.isVectorEqual(scale))
 		{
 			objTrans.localScale = scale;
 		}
@@ -437,31 +437,31 @@ public class UnityUtility
 	{
 		// 不再使用camera.ScreenPointToRay计算射线,因为在摄像机坐标值比较大,比如超过10000时,计算结果会产生比较大的误差
 		// 屏幕坐标转换为相对坐标,以左下角为原点,左上角y为1,右下角x为1
-		Vector2 relativeScreenPos = divideVector2(screenPos, getScreenSize());
+		Vector2 relativeScreenPos = ((Vector2)screenPos).divideVector2(getScreenSize());
 		if (camera.orthographic)
 		{
 			// 在近裁剪面上的投射点
 			Vector2 clipSize = new(camera.orthographicSize * 2.0f * camera.aspect, camera.orthographicSize * 2.0f);
-			Vector3 nearClipPoint = replaceZ(multiVector2(relativeScreenPos, clipSize) - clipSize * 0.5f, camera.nearClipPlane);
+			Vector3 nearClipPoint = ((Vector3)(relativeScreenPos.multiVector2(clipSize) - clipSize * 0.5f)).replaceZ(camera.nearClipPlane);
 			Vector3 nearClipWorldPoint = localToWorld(camera.transform, nearClipPoint);
 			// 在远裁剪面上的投射点
-			Vector3 farClipPoint = replaceZ(multiVector2(relativeScreenPos, clipSize) - clipSize * 0.5f, camera.farClipPlane);
+			Vector3 farClipPoint = ((Vector3)(relativeScreenPos.multiVector2(clipSize) - clipSize * 0.5f)).replaceZ(camera.farClipPlane);
 			Vector3 farClipWorldPoint = localToWorld(camera.transform, farClipPoint);
-			return new(nearClipWorldPoint, normalize(farClipWorldPoint - nearClipWorldPoint));
+			return new(nearClipWorldPoint, (farClipWorldPoint - nearClipWorldPoint).normalize());
 		}
 		else
 		{
 			// 在近裁剪面上的投射点
-			float nearClipHeight = tan(toRadian(camera.fieldOfView * 0.5f)) * camera.nearClipPlane * 2.0f;
+			float nearClipHeight = (camera.fieldOfView * 0.5f).toRadian().tan() * camera.nearClipPlane * 2.0f;
 			Vector2 nearClipSize = new(nearClipHeight * camera.aspect, nearClipHeight);
-			Vector3 nearClipPoint = replaceZ(multiVector2(relativeScreenPos, nearClipSize) - nearClipSize * 0.5f, camera.nearClipPlane);
+			Vector3 nearClipPoint = ((Vector3)(relativeScreenPos.multiVector2(nearClipSize) - nearClipSize * 0.5f)).replaceZ(camera.nearClipPlane);
 			Vector3 nearClipWorldPoint = localToWorld(camera.transform, nearClipPoint);
 			// 在远裁剪面上的投射点
-			float farClipHeight = tan(toRadian(camera.fieldOfView * 0.5f)) * camera.farClipPlane * 2.0f;
+			float farClipHeight = (camera.fieldOfView * 0.5f).toRadian().tan() * camera.farClipPlane * 2.0f;
 			Vector2 farClipSize = new(farClipHeight * camera.aspect, farClipHeight);
-			Vector3 farClipPoint = replaceZ(multiVector2(relativeScreenPos, farClipSize) - farClipSize * 0.5f, camera.farClipPlane);
+			Vector3 farClipPoint = ((Vector3)(relativeScreenPos.multiVector2(farClipSize) - farClipSize * 0.5f)).replaceZ(camera.farClipPlane);
 			Vector3 farClipWorldPoint = localToWorld(camera.transform, farClipPoint);
-			return new(nearClipWorldPoint, normalize(farClipWorldPoint - nearClipWorldPoint));
+			return new(nearClipWorldPoint, (farClipWorldPoint - nearClipWorldPoint).normalize());
 		}
 	}
 	// screenPos是以屏幕左下角为原点的坐标
@@ -505,7 +505,7 @@ public class UnityUtility
 	public static bool isGameObjectInScreen(Vector3 worldPos)
 	{
 		Vector3 screenPos = worldToScreen(worldPos, false);
-		return screenPos.z >= 0.0f && inRange((Vector2)screenPos, Vector2.zero, getRootSize());
+		return screenPos.z >= 0.0f && ((Vector2)screenPos).inRange(Vector2.zero, getRootSize());
 	}
 	public static bool isPointInWindow(Vector2 screenPos, myUGUIObject window)
 	{
@@ -513,12 +513,12 @@ public class UnityUtility
 		Vector2 cameraSize = new(camera.pixelWidth, camera.pixelHeight);
 		Vector2 rootSize = getRootSize();
 		// 将坐标转换到以屏幕中心为原点的坐标
-		screenPos = multiVector2(divideVector2(screenPos, cameraSize), rootSize) - rootSize * 0.5f;
+		screenPos = screenPos.divideVector2(cameraSize).multiVector2(rootSize) - rootSize * 0.5f;
 
-		Vector2 parentWorldPosition = divideVector3(window.getWorldPosition(), mLayoutManager.getUIRoot().getScale());
-		Vector2 windowPos = divideVector2(screenPos - parentWorldPosition, window.getWorldScale());
+		Vector2 parentWorldPosition = window.getWorldPosition().divideVector3(mLayoutManager.getUIRoot().getScale());
+		Vector2 windowPos = (screenPos - parentWorldPosition).divideVector2(window.getWorldScale());
 		Vector2 halfWindowSize = window.getSize() * 0.5f;
-		return inRange(windowPos, -halfWindowSize, halfWindowSize);
+		return windowPos.inRange(-halfWindowSize, halfWindowSize);
 	}
 	// screenCenterAsZero为true表示返回的坐标是以window的中心为原点,false表示以window的左下角为原点
 	public static Vector2 screenPosToWindow(Vector2 screenPos, myUGUIObject window, bool windowCenterAsZero = true)
@@ -527,12 +527,12 @@ public class UnityUtility
 		Vector2 cameraSize = new(camera.pixelWidth, camera.pixelHeight);
 		Vector2 rootSize = getRootSize();
 		// 将坐标转换到以屏幕中心为原点的坐标
-		screenPos = multiVector2(divideVector2(screenPos, cameraSize), rootSize) - rootSize * 0.5f;
+		screenPos = screenPos.divideVector2(cameraSize).multiVector2(rootSize) - rootSize * 0.5f;
 		Vector2 windowPos = screenPos;
 		if (window != null)
 		{
-			Vector2 parentWorldPosition = divideVector3(window.getWorldPosition(), mLayoutManager.getUIRoot().getScale());
-			windowPos = divideVector2(screenPos - parentWorldPosition, window.getWorldScale());
+			Vector2 parentWorldPosition = window.getWorldPosition().divideVector3(mLayoutManager.getUIRoot().getScale());
+			windowPos = (screenPos - parentWorldPosition).divideVector2(window.getWorldScale());
 			if (!windowCenterAsZero)
 			{
 				windowPos += window.getSize() * 0.5f;
@@ -564,7 +564,7 @@ public class UnityUtility
 	// 判断点是否在摄像机背面
 	public static bool atCameraBack(Vector3 position, GameCamera camera)
 	{
-		return dot(normalize(position - camera.getPosition()), camera.getForward()) <= 0;
+		return (position - camera.getPosition()).normalize().dot(camera.getForward()) <= 0;
 	}
 	public static bool atCameraBack(Vector3 position)
 	{
@@ -636,9 +636,7 @@ public class UnityUtility
 	}
 	public static int nameToLayerInt(string name)
 	{
-		int layer = LayerMask.NameToLayer(name);
-		clamp(ref layer, 1, 32);
-		return layer;
+		return LayerMask.NameToLayer(name).clamp(1, 32);
 	}
 	public static int nameToLayerPhysics(string name)
 	{
@@ -668,10 +666,7 @@ public class UnityUtility
 	// 计算的是旋转和缩放以后的包围盒的大小的一半, 如果填了parent,则会将尺寸转成parent坐标系中的值
 	public static Vector3 getHalfBoxSize(BoxCollider collider, GameObject parent)
 	{
-		Vector3 worldBoxHalfSize = localToWorldDirection(collider.transform, collider.size) * 0.5f;
-		worldBoxHalfSize.x = abs(worldBoxHalfSize.x);
-		worldBoxHalfSize.y = abs(worldBoxHalfSize.y);
-		worldBoxHalfSize.z = abs(worldBoxHalfSize.z);
+		Vector3 worldBoxHalfSize = (localToWorldDirection(collider.transform, collider.size) * 0.5f).abs();
 		if (parent != null)
 		{
 			worldBoxHalfSize = worldToLocalDirection(parent.transform, worldBoxHalfSize);
@@ -725,16 +720,16 @@ public class UnityUtility
 		getMinMaxVector3(worldBoxCenter + new Vector3(halfSize.x, halfSize.y, -halfSize.z), ref min, ref max);
 		getMinMaxVector3(worldBoxCenter + new Vector3(halfSize.x, halfSize.y, halfSize.z), ref min, ref max);
 		getMinMaxVector3(worldBoxCenter + new Vector3(-halfSize.x, halfSize.y, halfSize.z), ref min, ref max);
-		checkFloat(ref min, precision);
-		checkFloat(ref max, precision);
+		min = min.checkFloat(precision);
+		max = max.checkFloat(precision);
 	}
 	// 两个碰撞盒相交的条件是box0.min小于box1.max,并且box0.max大于box1.min
 	public static bool overlapBox(BoxCollider box0, BoxCollider box1, GameObject parent, int precision = 4)
 	{
 		getMinMaxCorner(box0, out Vector3 min0, out Vector3 max0, parent, precision);
 		getMinMaxCorner(box1, out Vector3 min1, out Vector3 max1, parent, precision);
-		return isVector3Less(min0, max1) && isVector3Greater(max0, min1) ||
-			   isVector3Less(min1, max0) && isVector3Greater(max1, min0);
+		return min0.isVector3Less(max1) && max0.isVector3Greater(min1) ||
+			   min1.isVector3Less(max0) && max1.isVector3Greater(min0);
 	}
 	public static int overlapAllBox(BoxCollider collider, Collider[] results, int layer = -1)
 	{
@@ -799,8 +794,8 @@ public class UnityUtility
 		max0.y = 1.0f;
 		min1.y = 0.0f;
 		max1.y = 1.0f;
-		return isVector3Less(min0, max1) && isVector3Greater(max0, min1) ||
-			   isVector3Less(min1, max0) && isVector3Greater(max1, min0);
+		return min0.isVector3Less(max1) && max0.isVector3Greater(min1) ||
+			   min1.isVector3Less(max0) && max1.isVector3Greater(min0);
 	}
 	public static bool overlapBoxIgnoreZ(BoxCollider box0, BoxCollider box1, GameObject parent, int precision = 4)
 	{
@@ -810,8 +805,8 @@ public class UnityUtility
 		max0.z = 1.0f;
 		min1.z = 0.0f;
 		max1.z = 1.0f;
-		return isVector3Less(min0, max1) && isVector3Greater(max0, min1) ||
-			   isVector3Less(min1, max0) && isVector3Greater(max1, min0);
+		return min0.isVector3Less(max1) && max0.isVector3Greater(min1) ||
+			   min1.isVector3Less(max0) && max1.isVector3Greater(min0);
 	}
 	public static bool isPointInBoxCollider(BoxCollider collider, Vector3 worldPos)
 	{
@@ -820,7 +815,7 @@ public class UnityUtility
 			return false;
 		}
 		Vector3 delta = worldToLocal(collider.transform, worldPos) - collider.center;
-		return abs(delta.x) <= collider.size.x * 0.5 && abs(delta.y) <= collider.size.y * 0.5f;
+		return delta.x.abs() <= collider.size.x * 0.5 && delta.y.abs() <= collider.size.y * 0.5f;
 	}
 	public static int overlapCollider(Collider collider, Collider[] results, int layer = -1)
 	{
@@ -904,8 +899,7 @@ public class UnityUtility
 		{
 			return 0;
 		}
-		clampMin(ref maxDistance);
-		return Physics.RaycastNonAlloc(ray, result, maxDistance, layer);
+		return Physics.RaycastNonAlloc(ray, result, maxDistance.clampMin(), layer);
 	}
 	public static bool raycast(Ray ray, Collider collider)
 	{
@@ -925,8 +919,7 @@ public class UnityUtility
 	}
 	public static bool getRaycastPoint(Collider collider, Ray ray, ref Vector3 intersectPoint, float maxDistance)
 	{
-		clampMin(ref maxDistance);
-		if (collider.Raycast(ray, out RaycastHit hit, maxDistance))
+		if (collider.Raycast(ray, out RaycastHit hit, maxDistance.clampMin()))
 		{
 			intersectPoint = hit.point;
 			return true;
@@ -997,7 +990,7 @@ public class UnityUtility
 		{
 			return transform.localScale;
 		}
-		return multiVector3(generateWorldScale(transform.parent), transform.localScale);
+		return generateWorldScale(transform.parent).multiVector3(transform.localScale);
 	}
 	public static Quaternion generateWorldRotation(Transform transform)
 	{
@@ -1014,8 +1007,8 @@ public class UnityUtility
 			return transform.localPosition;
 		}
 		Vector3 localPosition = transform.localPosition;
-		localPosition = rotateVector3(localPosition, generateWorldRotation(transform.parent));
-		localPosition = multiVector3(localPosition, generateWorldScale(transform.parent));
+		localPosition = localPosition.rotateVector3(generateWorldRotation(transform.parent));
+		localPosition = localPosition.multiVector3(generateWorldScale(transform.parent));
 		return localPosition + generateWorldPosition(transform.parent);
 	}
 	public static Vector3 generateLocalPosition(Transform transform, Vector3 worldPosition)
@@ -1023,9 +1016,9 @@ public class UnityUtility
 		Transform parent = transform.parent;
 		Vector3 localPosition = worldPosition - generateWorldPosition(parent);
 		// 还原缩放
-		localPosition = divideVector3(localPosition, generateWorldScale(parent));
+		localPosition = localPosition.divideVector3(generateWorldScale(parent));
 		// 还原旋转
-		return rotateVector3(localPosition, Quaternion.Inverse(generateWorldRotation(parent)));
+		return localPosition.rotateVector3(Quaternion.Inverse(generateWorldRotation(parent)));
 	}
 	public static float getAnimationLength(Animator animator, string name)
 	{
@@ -1234,7 +1227,7 @@ public class UnityUtility
 	{
 		TextGenerator textGenerator = textComponent.cachedTextGeneratorForLayout;
 		TextGenerationSettings settings = textComponent.GetGenerationSettings(Vector2.zero);
-		return ceil(divide(textGenerator.GetPreferredWidth(str, settings), textComponent.pixelsPerUnit));
+		return textGenerator.GetPreferredWidth(str, settings).divide(textComponent.pixelsPerUnit).ceil();
 	}
 	public static int getContentLength(TextMeshProUGUI textComponent, string str)
 	{

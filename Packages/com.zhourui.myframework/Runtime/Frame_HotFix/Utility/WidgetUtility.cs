@@ -54,8 +54,8 @@ public static class WidgetUtility
 	{
 		Vector2 mapSize = window.getSize();
 		Vector3 pos = window.getPosition();
-		clamp(ref pos.x, parent.getRightInSelf() - mapSize.x * 0.5f, parent.getLeftInSelf() + mapSize.x * 0.5f);
-		clamp(ref pos.y, parent.getTopInSelf() - mapSize.y * 0.5f, parent.getBottomInSelf() + mapSize.y * 0.5f);
+		pos.x = pos.x.clamp(parent.getRightInSelf() - mapSize.x * 0.5f, parent.getLeftInSelf() + mapSize.x * 0.5f);
+		pos.y = pos.y.clamp(parent.getTopInSelf() - mapSize.y * 0.5f, parent.getBottomInSelf() + mapSize.y * 0.5f);
 		window.setPosition(pos);
 	}
 	// 获得指定屏幕坐标下的可交互UI,比如勾选了RaycastTarget的Image或Text等,Button,InputField等
@@ -94,7 +94,7 @@ public static class WidgetUtility
 			GameObject go = result.gameObject;
 			if (go.TryGetComponent<Image>(out var image))
 			{
-				if (image.raycastTarget && !isFloatZero(image.color.a))
+				if (image.raycastTarget && !image.color.a.isFloatZero())
 				{
 					return go;
 				}
@@ -102,7 +102,7 @@ public static class WidgetUtility
 			}
 			if (go.TryGetComponent<Text>(out var text))
 			{
-				if (text.raycastTarget && !isFloatZero(text.color.a))
+				if (text.raycastTarget && !text.color.a.isFloatZero())
 				{
 					return go;
 				}
@@ -161,11 +161,11 @@ public static class WidgetUtility
 		int rowCount = 1;
 		if (rootSize.y > gridSize.y)
 		{
-			rowCount = (int)divide(rootSize.y - gridSize.y, interval.y + gridSize.y) + 1;
+			rowCount = (int)(rootSize.y - gridSize.y).divide(interval.y + gridSize.y) + 1;
 		}
 		int activeChildCount = childList.Count;
 		// 固定父节点高度时只能纵向排列
-		int columnCount = divideInt(activeChildCount, rowCount) + clampMax(activeChildCount % rowCount, 1);
+		int columnCount = activeChildCount.divideInt(rowCount) + (activeChildCount % rowCount).clampMax(1);
 		rootSize.x = columnCount * gridSize.x + (columnCount - 1) * interval.x;
 		// 确保宽高都是偶数,这样才能使边和坐标都是整数
 		rootSize.x += (int)rootSize.x & 1;
@@ -184,9 +184,9 @@ public static class WidgetUtility
 			verticalSign = -1;
 			// 保持左上角的坐标与改变大小之前的左上角坐标一致
 			Vector3 curRootLeftTop = new(curRealPosition.x - rootSize.x * 0.5f, curRealPosition.y + rootSize.y * 0.5f);
-			if (!isVectorEqual(beforeRootLeftTop, curRootLeftTop))
+			if (!beforeRootLeftTop.isVectorEqual(curRootLeftTop))
 			{
-				root.setPosition(round(root.getPosition() + beforeRootLeftTop - curRootLeftTop));
+				root.setPosition((root.getPosition() + beforeRootLeftTop - curRootLeftTop).round());
 			}
 		}
 		else if (startCorner == CORNER.LEFT_BOTTOM)
@@ -196,9 +196,9 @@ public static class WidgetUtility
 			verticalSign = 1;
 			// 保持左下角的坐标与改变大小之前的左下角坐标一致
 			Vector3 curRootLeftBottom = new(curRealPosition.x - rootSize.x * 0.5f, curRealPosition.y - rootSize.y * 0.5f);
-			if (!isVectorEqual(beforeRootLeftBottom, curRootLeftBottom))
+			if (!beforeRootLeftBottom.isVectorEqual(curRootLeftBottom))
 			{
-				root.setPosition(round(root.getPosition() + beforeRootLeftBottom - curRootLeftBottom));
+				root.setPosition((root.getPosition() + beforeRootLeftBottom - curRootLeftBottom).round());
 			}
 		}
 		else if (startCorner == CORNER.RIGHT_TOP)
@@ -208,9 +208,9 @@ public static class WidgetUtility
 			verticalSign = -1;
 			// 保持右上角的坐标与改变大小之前的右上角坐标一致
 			Vector3 curRootRightTop = new(curRealPosition.x + rootSize.x * 0.5f, curRealPosition.y + rootSize.y * 0.5f);
-			if (!isVectorEqual(beforeRootRightTop, curRootRightTop))
+			if (!beforeRootRightTop.isVectorEqual(curRootRightTop))
 			{
-				root.setPosition(round(root.getPosition() + beforeRootRightTop - curRootRightTop));
+				root.setPosition((root.getPosition() + beforeRootRightTop - curRootRightTop).round());
 			}
 		}
 		else if (startCorner == CORNER.RIGHT_BOTTOM)
@@ -220,9 +220,9 @@ public static class WidgetUtility
 			verticalSign = 1;
 			// 保持右下角的坐标与改变大小之前的右下角坐标一致
 			Vector3 curRootRightBottom = new(curRealPosition.x + rootSize.x * 0.5f, curRealPosition.y - rootSize.y * 0.5f);
-			if (!isVectorEqual(beforeRootRightBottom, curRootRightBottom))
+			if (!beforeRootRightBottom.isVectorEqual(curRootRightBottom))
 			{
-				root.setPosition(round(root.getPosition() + beforeRootRightBottom - curRootRightBottom));
+				root.setPosition((root.getPosition() + beforeRootRightBottom - curRootRightBottom).round());
 			}
 		}
 
@@ -231,15 +231,15 @@ public static class WidgetUtility
 		for (int i = 0; i < activeChildCount; ++i)
 		{
 			RectTransform child = childList[i];
-			if (!isVectorEqual(child.pivot, new Vector2(0.5f, 0.5f)))
+			if (!child.pivot.isVectorEqual(new Vector2(0.5f, 0.5f)))
 			{
 				logError("子节点的pivot不在中心,计算位置可能会错误");
 			}
-			int indexX = divideInt(i, rowCount);
+			int indexX = i.divideInt(rowCount);
 			int indexY = i % rowCount;
 			Vector2 pos = new((indexX * gridSize.x + indexX * interval.x) * horizontalSign,
 								(indexY * gridSize.y + indexY * interval.y) * verticalSign);
-			child.localPosition = round(startPos + pos);
+			child.localPosition = (startPos + pos).round();
 			child.setRectSize(gridSize);
 		}
 
@@ -358,7 +358,7 @@ public static class WidgetUtility
 				Transform child = transform.GetChild(i);
 				childWorldPositionList.Add(child, child.position);
 			}
-			root.setPositionY(round(root.getPosition().y + (beforeRootHeight - height) * 0.5f));
+			root.setPositionY((root.getPosition().y + (beforeRootHeight - height) * 0.5f).round());
 			foreach (var item in childWorldPositionList)
 			{
 				item.Key.position = item.Value;
@@ -366,7 +366,7 @@ public static class WidgetUtility
 		}
 		else
 		{
-			root.setPositionY(round(root.getPosition().y + (beforeRootHeight - height) * 0.5f));
+			root.setPositionY((root.getPosition().y + (beforeRootHeight - height) * 0.5f).round());
 		}
 	}
 	// 根据所有子节点所占用的范围,自动计算父节点的高度,使其在y方向上正好包含所有子节点,并且保持父节点上边界位置不变,不考虑子节点的锚点
@@ -385,8 +385,8 @@ public static class WidgetUtility
 				continue;
 			}
 			childPositionList.Add(child, child.localPosition);
-			clampMax(ref minY, child.localPosition.y - child.rect.height * 0.5f);
-			clampMin(ref maxY, child.localPosition.y + child.rect.height * 0.5f);
+			minY = minY.clampMax(child.localPosition.y - child.rect.height * 0.5f);
+			maxY = maxY.clampMin(child.localPosition.y + child.rect.height * 0.5f);
 		}
 
 		// 设置父节点的大小,位置,已经根据之前子节点到父节点顶部的距离,还原子节点的位置
@@ -395,7 +395,7 @@ public static class WidgetUtility
 		root.setHeight(newHeight);
 		if (keepTopSide)
 		{
-			root.setPositionY(round(root.getPosition().y + (beforeRootHeight - newHeight) * 0.5f));
+			root.setPositionY((root.getPosition().y + (beforeRootHeight - newHeight) * 0.5f).round());
 		}
 		foreach (var item in childPositionList)
 		{
@@ -494,7 +494,7 @@ public static class WidgetUtility
 		// 没有超过,则需要居中显示
 		else
 		{
-			target.setSize(replaceX(target.getSize(), parent.getSize().x));
+			target.setSize(target.getSize().replaceX(parent.getSize().x));
 			target.setPositionX(0.0f);
 		}
 	}
@@ -530,8 +530,8 @@ public static class WidgetUtility
 		}
 
 		// 设置父节点新的位置和大小,重新设置所有子节点的世界坐标
-		obj.setWorldPosition(new(ceil((right + left) * 0.5f), ceil((top + bottom) * 0.5f)));
-		obj.setSize(new(ceil(right - left), ceil(top - bottom)));
+		obj.setWorldPosition(new(((right + left) * 0.5f).ceil(), ((top + bottom) * 0.5f).ceil()));
+		obj.setSize(new((right - left).ceil(), (top - bottom).ceil()));
 		foreach (var item in childWorldPositionList)
 		{
 			obj.getLayout().getUIObject(item.Key.gameObject)?.setWorldPosition(item.Value);

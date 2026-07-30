@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System;
 using static UnityUtility;
-using static StringUtility;
-using static MathUtility;
 using static FrameBaseHotFix;
 using static FrameBaseUtility;
 
@@ -202,7 +200,7 @@ public class CommandSystem : FrameSystem
 			logError(builder.ToString());
 			return;
 		}
-		clampMin(ref delayExecute);
+		delayExecute = delayExecute.clampMin();
 		if (isDevOrEditor())
 		{
 			if (cmd.getCmdLogLevel() >= getLogLevel())

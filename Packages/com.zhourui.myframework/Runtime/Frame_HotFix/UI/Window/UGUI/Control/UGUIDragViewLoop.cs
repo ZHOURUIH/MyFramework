@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using static FrameBaseUtility;
-using static MathUtility;
 using static FrameUtility;
 using static UnityUtility;
 
@@ -69,9 +68,9 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop whe
 			return;
 		}
 		Vector2 viewportSize = mViewport.getSize();
-		mColCount = floor((viewportSize.x + mInterval.x) / (mItemSize.x + mInterval.x));
+		mColCount = ((viewportSize.x + mInterval.x) / (mItemSize.x + mInterval.x)).floor();
 		// 这里+2比较重要,需要算出在任意情况下一定能够显示完整个viewport所需要的数量,最极限的就是中间已经铺了若干个完整的节点,上下留了一些空间,所以需要+2
-		mDisplayItemPool.newItem(mColCount * (floor((viewportSize.y + mInterval.y) / (mItemSize.y + mInterval.y)) + 2));
+		mDisplayItemPool.newItem(mColCount * (((viewportSize.y + mInterval.y) / (mItemSize.y + mInterval.y)).floor() + 2));
 		// 这里的创建然后销毁纯粹就是为了刷新节点深度,因为节点数量固定,所以后续就算再次复用也无需再刷新深度
 		mScript.getLayout().refreshUIDepth(mContent, true);
 		mDisplayItemPool.unuseAll();
@@ -235,10 +234,10 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop whe
 	{
 		// 根据当前Content的位置,计算出当前显示的节点
 		float viewportTopToContentTop = mContent.getSize().y * (1 - mContent.getPivot().y) + mContent.getPosition().y - mViewport.getSize().y * (1 - mViewport.getPivot().y);
-		int topRowIndex = floor(viewportTopToContentTop / (mItemSize.y + mInterval.y));
-		int bottomRowIndex = ceil((viewportTopToContentTop + mViewport.getSize().y) / (mItemSize.y + mInterval.y));
-		int startItemIndex = clampMin(topRowIndex * mColCount);
-		int endItemIndex = clampMin(bottomRowIndex * mColCount);
+		int topRowIndex = (viewportTopToContentTop / (mItemSize.y + mInterval.y)).floor();
+		int bottomRowIndex = ((viewportTopToContentTop + mViewport.getSize().y) / (mItemSize.y + mInterval.y)).ceil();
+		int startItemIndex = (topRowIndex * mColCount).clampMin();
+		int endItemIndex = (bottomRowIndex * mColCount).clampMin();
 		if (mLastStartItemIndex != startItemIndex || mLastEndItemIndex != endItemIndex || forceRefresh)
 		{
 			// 先移除超出区域的节点
@@ -282,7 +281,7 @@ public class UGUIDragViewLoop<T, DataType> : WindowObjectUGUI, IDragViewLoop whe
 	public void updateDragView()
 	{
 		// 这一帧Content移动过位置,就需要刷新显示
-		if (!isVectorEqual(mContent.getPosition(), mLastRefreshedContentPos))
+		if (!mContent.getPosition().isVectorEqual(mLastRefreshedContentPos))
 		{
 			updateDisplayItem(false);
 		}

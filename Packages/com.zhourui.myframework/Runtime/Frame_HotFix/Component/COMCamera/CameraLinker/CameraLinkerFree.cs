@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using static MathUtility;
 using static FrameUtility;
 using static FrameBaseHotFix;
 using static FrameBaseUtility;
@@ -49,22 +48,22 @@ public class CameraLinkerFree : CameraLinker
 			// 向前移动摄像机
 			if (isKeyDown(KeyCode.W))
 			{
-				mMoveDelta += rotateVector3(moveLength * Vector3.forward, mCamera.getRotationQuaternion());
+				mMoveDelta += (moveLength * Vector3.forward).rotateVector3(mCamera.getRotationQuaternion());
 			}
 			// 向左移动摄像机
 			if (isKeyDown(KeyCode.A))
 			{
-				mMoveDelta += rotateVector3(moveLength * Vector3.left, mCamera.getRotationQuaternion());
+				mMoveDelta += (moveLength * Vector3.left).rotateVector3(mCamera.getRotationQuaternion());
 			}
 			// 向后移动摄像机
 			if (isKeyDown(KeyCode.S))
 			{
-				mMoveDelta += rotateVector3(moveLength * Vector3.back, mCamera.getRotationQuaternion());
+				mMoveDelta += (moveLength * Vector3.back).rotateVector3(mCamera.getRotationQuaternion());
 			}
 			// 向右移动摄像机
 			if (isKeyDown(KeyCode.D))
 			{
-				mMoveDelta += rotateVector3(moveLength * Vector3.right, mCamera.getRotationQuaternion());
+				mMoveDelta += (moveLength * Vector3.right).rotateVector3(mCamera.getRotationQuaternion());
 			}
 			// 竖直向上移动摄像机
 			if (isKeyDown(KeyCode.Q))
@@ -77,7 +76,7 @@ public class CameraLinkerFree : CameraLinker
 				mMoveDelta += moveLength * Vector3.down;
 			}
 		}
-		if (!isVectorZero(mMoveDelta))
+		if (!mMoveDelta.isVectorZero())
 		{
 			mCamera.move(mMoveDelta, Space.World);
 		}
@@ -97,7 +96,7 @@ public class CameraLinkerFree : CameraLinker
 				}
 			}
 		}
-		if (!isVectorZero(mRotateAngle))
+		if (!mRotateAngle.isVectorZero())
 		{
 			mCamera.yawPitch(mRotateAngle.x, -mRotateAngle.y);
 		}
@@ -108,7 +107,7 @@ public class CameraLinkerFree : CameraLinker
 			if (isEditor() || isWindows())
 			{
 				float mouseWheelDelta = mInputSystem.getMouseWheelDelta();
-				if (!isFloatZero(mouseWheelDelta))
+				if (!mouseWheelDelta.isFloatZero())
 				{
 					// 键盘移动摄像机
 					if (isKeyDown(KeyCode.LeftShift) || isKeyDown(KeyCode.RightShift))

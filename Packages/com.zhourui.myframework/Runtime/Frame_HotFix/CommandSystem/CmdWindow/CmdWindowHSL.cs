@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using static UnityUtility;
-using static MathUtility;
 using static FrameBaseUtility;
 
 // 渐变一个窗口的颜色,需要窗口有HSLOffset的shader
@@ -21,7 +20,7 @@ public class CmdWindowHSL
 			return;
 		}
 		if (isEditor() && 
-			!isFloatZero(onceLength) && 
+			!onceLength.isFloatZero() && 
 			!obj.getLayout().canUIObjectUpdate(obj))
 		{
 			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + obj.getName());

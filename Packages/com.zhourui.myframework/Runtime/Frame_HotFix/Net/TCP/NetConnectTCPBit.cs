@@ -1,7 +1,6 @@
 ﻿using static UnityUtility;
 using static FrameBaseHotFix;
 using static BinaryUtility;
-using static MathUtility;
 using static FrameUtility;
 using static FrameBaseUtility;
 using static FrameDefine;
@@ -88,7 +87,7 @@ public class NetConnectTCPBit : NetConnectTCP
 		writer.write(generateCRC16(writer.getBuffer(), writer.getByteCount()));
 		int curByteCount = writer.getByteCount();
 		// 添加到写缓冲中
-		ARRAY_BYTE_THREAD(out byte[] packetData, getGreaterPow2(curByteCount));
+		ARRAY_BYTE_THREAD(out byte[] packetData, curByteCount.getGreaterPow2());
 		memcpy(packetData, writer.getBuffer(), 0, 0, curByteCount);
 		mOutputBuffer.add(new(packetData, curByteCount, true, 0));
 		mNetPacketFactory.destroyPacket(netPacket);
@@ -179,7 +178,7 @@ public class NetConnectTCPBit : NetConnectTCP
 		}
 		if (packetSize > 0)
 		{
-			ARRAY_BYTE_THREAD(out outPacket, getGreaterPow2(packetSize));
+			ARRAY_BYTE_THREAD(out outPacket, packetSize.getGreaterPow2());
 			if (!reader.readBuffer(outPacket, packetSize))
 			{
 				UN_ARRAY_BYTE_THREAD(ref outPacket);

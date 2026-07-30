@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using static GBR;
 using static FrameUtility;
-using static MathUtility;
 
 public class COMCharacterController : GameComponent
 {
@@ -46,12 +45,12 @@ public class COMCharacterController : GameComponent
 		}
 		if (isKeyCurrentDown(KeyCode.E))
 		{
-			mPlayerData.mSpeed = clampMin(mPlayerData.mSpeed - 2.0f, 0.0f);
+			mPlayerData.mSpeed = (mPlayerData.mSpeed - 2.0f).clampMin();
 			mUIGame.setSpeed(mPlayerData.mSpeed);
 		}
-		if (!isVectorZero(moveDir))
+		if (!moveDir.isVectorZero())
 		{
-			mPlayer.setPosition(mPlayer.getPosition() + normalize(moveDir) * mPlayerData.mSpeed);
+			mPlayer.setPosition(mPlayer.getPosition() + moveDir.normalize() * mPlayerData.mSpeed);
 			mUIGame.setAvatarPosition(mPlayer.getPosition());
 		}
 	}

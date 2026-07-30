@@ -60,7 +60,7 @@ public abstract class ComponentPath2 : ComponentKeyFrame
 			mValueList1.setRangeValues(mValueKeyFrame1);
 			mTimeList1.setRangeKeys(mValueKeyFrame1);
 			mMaxLength = mTimeList0[^1];
-			if (!isFloatEqual(mTimeList0[^1], mTimeList1[^1]))
+			if (!mTimeList0[^1].isFloatEqual(mTimeList1[^1]))
 			{
 				logError("两个关键帧的最大时间需要一致!");
 			}
@@ -73,8 +73,7 @@ public abstract class ComponentPath2 : ComponentKeyFrame
 	protected override void applyTrembling(float value)
 	{
 		// 根据当前的距离找出位于哪两个点之间
-		saturate(ref value);
-		float curTime = value * mMaxLength;
+		float curTime = value.saturate() * mMaxLength;
 
 		mLastValueIndex0 = findPointIndex(mTimeList0, curTime, mLastValueIndex0);
 		Vector3 startValue0 = mValueList0[mLastValueIndex0];
@@ -82,7 +81,7 @@ public abstract class ComponentPath2 : ComponentKeyFrame
 		{
 			startValue0 = lerp(startValue0, mValueList0[mLastValueIndex0 + 1], inverseLerp(mTimeList0[mLastValueIndex0], mTimeList0[mLastValueIndex0 + 1], curTime));
 		}
-		Vector3 value0 = mOffsetBlendAdd0 ? startValue0 + mValueOffset0 : multiVector3(startValue0, mValueOffset0);
+		Vector3 value0 = mOffsetBlendAdd0 ? startValue0 + mValueOffset0 : startValue0.multiVector3(mValueOffset0);
 
 		mLastValueIndex1 = findPointIndex(mTimeList1, curTime, mLastValueIndex1);
 		Vector3 startValue1 = mValueList1[mLastValueIndex1];
@@ -90,7 +89,7 @@ public abstract class ComponentPath2 : ComponentKeyFrame
 		{
 			startValue1 = lerp(startValue1, mValueList1[mLastValueIndex1 + 1], inverseLerp(mTimeList1[mLastValueIndex1], mTimeList1[mLastValueIndex1 + 1], curTime));
 		}
-		Vector3 value1 = mOffsetBlendAdd1 ? startValue1 + mValueOffset1 : multiVector3(startValue1, mValueOffset1);
+		Vector3 value1 = mOffsetBlendAdd1 ? startValue1 + mValueOffset1 : startValue1.multiVector3(mValueOffset1);
 		setValue(value0, value1);
 	}
 	protected abstract void setValue(Vector3 value0, Vector3 value1);

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using static FrameUtility;
 using static UnityUtility;
 using static FrameBaseHotFix;
-using static MathUtility;
 using static FrameBaseUtility;
 using static ResourceUtility;
 
@@ -250,7 +249,7 @@ public class AudioManager : FrameSystem
 		}
 	}
 	public bool isLoadDone() { return mLoadedCount == mAudioList.Count; }
-	public float getLoadedPercent() { return divide(mLoadedCount, mAudioList.Count); }
+	public float getLoadedPercent() { return mLoadedCount.divide(mAudioList.Count); }
 	public string getAudioName(int soundDefine) { return mSoundDefineMap.get(soundDefine); }
 	// 参数为GameResources下的相对路径,带后缀,只根据文件名查找音效
 	public void registeAudio(string fileNameNoSuffix, bool isLocal)

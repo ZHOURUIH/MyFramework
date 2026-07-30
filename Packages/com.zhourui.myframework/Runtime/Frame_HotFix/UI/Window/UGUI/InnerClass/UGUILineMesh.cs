@@ -49,7 +49,7 @@ public class UGUILineMesh : ClassObject
 		foreach (Vector3 pos in list.safe())
 		{
 			// 去除连续的重复的点
-			mPointList.addIf(pos, mPointList.Count <= 0 || !isVectorEqual(pos, mPointList[^1]));
+			mPointList.addIf(pos, mPointList.Count <= 0 || !pos.isVectorEqual(mPointList[^1]));
 		}
 		onPointsChanged();
 	}
@@ -58,7 +58,7 @@ public class UGUILineMesh : ClassObject
 		mPointList.Clear();
 		foreach (Vector3 pos in list)
 		{
-			mPointList.addIf(pos, mPointList.Count <= 0 || !isVectorEqual(pos, mPointList[^1]));
+			mPointList.addIf(pos, mPointList.Count <= 0 || !pos.isVectorEqual(mPointList[^1]));
 		}
 		onPointsChanged();
 	}
@@ -67,7 +67,7 @@ public class UGUILineMesh : ClassObject
 		mPointList.Clear();
 		foreach (Vector3 pos in list.safe())
 		{
-			mPointList.addIf(pos, mPointList.Count <= 0 || !isVectorEqual(pos, mPointList[^1]));
+			mPointList.addIf(pos, mPointList.Count <= 0 || !pos.isVectorEqual(mPointList[^1]));
 		}
 		onPointsChanged();
 	}
@@ -87,7 +87,7 @@ public class UGUILineMesh : ClassObject
 		for (int i = 0; i < pointCount; ++i)
 		{
 			// 如果当前点跟上一个点相同,则取上一点计算出的结果
-			if (i > 0 && i < pointCount - 1 && isVectorEqual(mPointList[i - 1], mPointList[i]))
+			if (i > 0 && i < pointCount - 1 && mPointList[i - 1].isVectorEqual(mPointList[i]))
 			{
 				vertices[2 * i + 0] = vertices[2 * (i - 1) + 0];
 				vertices[2 * i + 1] = vertices[2 * (i - 1) + 1];
@@ -102,37 +102,37 @@ public class UGUILineMesh : ClassObject
 				{
 					Vector3 dir = (mPointList[i + 1] - mPointList[i]).normalized;
 					float halfAngle = HALF_PI_RADIAN;
-					Quaternion q0 = Quaternion.AngleAxis(toDegree(halfAngle), Vector3.back);
-					Quaternion q1 = Quaternion.AngleAxis(toDegree(halfAngle - PI_RADIAN), Vector3.back);
-					vertices[2 * i + 0] = rotateVector3(dir, q0) * divide(mWidth, sin(halfAngle));
-					vertices[2 * i + 1] = rotateVector3(dir, q1) * divide(mWidth, sin(halfAngle));
+					Quaternion q0 = Quaternion.AngleAxis((halfAngle).toDegree(), Vector3.back);
+					Quaternion q1 = Quaternion.AngleAxis((halfAngle - PI_RADIAN).toDegree(), Vector3.back);
+					vertices[2 * i + 0] = dir.rotateVector3(q0) * mWidth.divide(halfAngle.sin());
+					vertices[2 * i + 1] = dir.rotateVector3(q1) * mWidth.divide(halfAngle.sin());
 				}
 				else if (i > 0 && i < pointCount - 1)
 				{
 					Vector3 dir = (mPointList[i + 1] - mPointList[i]).normalized;
 					Vector3 dir1 = (mPointList[i - 1] - mPointList[i]).normalized;
 					float halfAngle = getAngleVectorToVector(dir, dir1, false) * 0.5f;
-					Quaternion q0 = Quaternion.AngleAxis(toDegree(halfAngle), Vector3.back);
-					Quaternion q1 = Quaternion.AngleAxis(toDegree(halfAngle - PI_RADIAN), Vector3.back);
+					Quaternion q0 = Quaternion.AngleAxis((halfAngle).toDegree(), Vector3.back);
+					Quaternion q1 = Quaternion.AngleAxis((halfAngle - PI_RADIAN).toDegree(), Vector3.back);
 					if (halfAngle >= 0.0f)
 					{
-						vertices[2 * i + 0] = rotateVector3(dir, q0) * mWidth;
-						vertices[2 * i + 1] = rotateVector3(dir, q1) * mWidth;
+						vertices[2 * i + 0] = dir.rotateVector3(q0) * mWidth;
+						vertices[2 * i + 1] = dir.rotateVector3(q1) * mWidth;
 					}
 					else
 					{
-						vertices[2 * i + 0] = rotateVector3(dir, q1) * mWidth;
-						vertices[2 * i + 1] = rotateVector3(dir, q0) * mWidth;
+						vertices[2 * i + 0] = dir.rotateVector3(q1) * mWidth;
+						vertices[2 * i + 1] = dir.rotateVector3(q0) * mWidth;
 					}
 				}
 				else if (i == pointCount - 1)
 				{
 					Vector3 dir = (mPointList[i] - mPointList[i - 1]).normalized;
 					float halfAngle = HALF_PI_RADIAN;
-					Quaternion q0 = Quaternion.AngleAxis(toDegree(halfAngle), Vector3.back);
-					Quaternion q1 = Quaternion.AngleAxis(toDegree(halfAngle - PI_RADIAN), Vector3.back);
-					vertices[2 * i + 0] = rotateVector3(dir, q0) * divide(mWidth, sin(halfAngle));
-					vertices[2 * i + 1] = rotateVector3(dir, q1) * divide(mWidth, sin(halfAngle));
+					Quaternion q0 = Quaternion.AngleAxis((halfAngle).toDegree(), Vector3.back);
+					Quaternion q1 = Quaternion.AngleAxis((halfAngle - PI_RADIAN).toDegree(), Vector3.back);
+					vertices[2 * i + 0] = dir.rotateVector3(q0) * mWidth.divide(halfAngle.sin());
+					vertices[2 * i + 1] = dir.rotateVector3(q1) * mWidth.divide(halfAngle.sin());
 				}
 				vertices[2 * i + 0] += mPointList[i];
 				vertices[2 * i + 1] += mPointList[i];

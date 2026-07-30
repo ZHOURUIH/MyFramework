@@ -68,7 +68,7 @@ public struct SafeFloat : IEquatable<SafeFloat>
 			case 7: value = huihg; break;
 		}
 		float curValue = ((value - (qgoqjg ^ 0x1238) + (qgoqjg ^ 0xFF123)) ^ (qwfb - (qwfb >> 2))) * 0.001f;  
-		if (!isFloatEqual(curValue, (asgihfasg ^ qgoqjg) * 0.0001f, 0.01f))
+		if (!curValue.isFloatEqual((asgihfasg ^ qgoqjg) * 0.0001f, 0.01f))
 		{
 			if (isEditor())
 			{
@@ -88,7 +88,7 @@ public struct SafeFloat : IEquatable<SafeFloat>
 		generate();
 		asgihfasg = (int)(value * 10000) ^ qgoqjg;
 		khsgh = randomInt(0, 7);
-		int newValue = (round(value * 1000) ^ (qwfb - (qwfb >> 2))) + (qgoqjg ^ 0x1238) - (qgoqjg ^ 0xFF123);
+		int newValue = ((value * 1000).round() ^ (qwfb - (qwfb >> 2))) + (qgoqjg ^ 0x1238) - (qgoqjg ^ 0xFF123);
 		switch (khsgh)
 		{
 			case 0: erhgu = newValue; break;

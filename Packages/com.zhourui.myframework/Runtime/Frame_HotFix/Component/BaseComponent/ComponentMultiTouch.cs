@@ -78,9 +78,9 @@ public class ComponentMultiTouch : GameComponent
 			Vector3 curPos1 = touchPoint1.getCurPosition();
 			if (mGesture == MULTI_TOUCH_GESTURE.NONE)
 			{
-				float startDistance = getLength(startPos0 - startPos1);
-				float distanceDelta = Mathf.Abs(startDistance - getLength(curPos0 - curPos1));
-				float angleDelta = toDegree(getAngleBetweenVector(startPos1 - startPos0, curPos1 - curPos0));
+				float startDistance = (startPos0 - startPos1).getLength();
+				float distanceDelta = Mathf.Abs(startDistance - (curPos0 - curPos1).getLength());
+				float angleDelta = getAngleBetweenVector(startPos1 - startPos0, curPos1 - curPos0).toDegree();
 				// 旋转角度超过一定角度时,开始旋转
 				if (angleDelta > mRotateThreshold)
 				{
@@ -94,7 +94,7 @@ public class ComponentMultiTouch : GameComponent
 				// 旋转角度和双指距离变化都很小,一起平移超过一定距离,开始移动
 				else if (distanceDelta < mMoveFingerDistanceThreshold && startDistance < mMoveFingerStartDistanceThreshold)
 				{
-					if (lengthGreater(startPos0 - curPos0, mMoveThreshold))
+					if ((startPos0 - curPos0).lengthGreater(mMoveThreshold))
 					{
 						mGesture = MULTI_TOUCH_GESTURE.TWO_FINGER_MOVE;
 					}
@@ -110,11 +110,11 @@ public class ComponentMultiTouch : GameComponent
 			}
 			else if (mGesture == MULTI_TOUCH_GESTURE.TWO_FINGER_SCALE)
 			{
-				float scaleDisLast = getLength(lastPos0 - lastPos1);
-				float scaleDisNow = getLength(curPos0 - curPos1);
-				float scaleDisStart = getLength(startPos0 - startPos1);
+				float scaleDisLast = (lastPos0 - lastPos1).getLength();
+				float scaleDisNow = (curPos0 - curPos1).getLength();
+				float scaleDisStart = (startPos0 - startPos1).getLength();
 				// 参数是相对于开始缩放操作时的缩放量,不是每帧的变化量,这样使误差更小一些
-				mTwoFingerScaleCallback?.Invoke(divide(scaleDisNow, scaleDisStart), scaleDisNow - scaleDisStart, scaleDisNow - scaleDisLast);
+				mTwoFingerScaleCallback?.Invoke(scaleDisNow.divide(scaleDisStart), scaleDisNow - scaleDisStart, scaleDisNow - scaleDisLast);
 			}
 			else if (mGesture == MULTI_TOUCH_GESTURE.TWO_FINGER_ROTATE)
 			{

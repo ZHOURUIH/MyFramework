@@ -216,17 +216,17 @@ public class ImageXBR4
 			dst[6] = lerp(dst[6], blendPix, (needBlend && doLineBlend && haveShallowLine) ? 0.25f : 0.0f);
 		}
 
-		Vector2 f = new(frac(texCoord.x * divide(width, scale)), frac(texCoord.y * divide(height, scale)));
+		Vector2 f = new((texCoord.x * width.divide(scale)).frac(), (texCoord.y * height.divide(scale)).frac());
 		Vector4 res = lerp(
-			lerp(lerp(lerp(dst[6], dst[7], step(0.25f, f.x)), lerp(dst[8], dst[9], step(0.75f, f.x)), step(0.5f, f.x)), lerp(lerp(dst[5], dst[0], step(0.25f, f.x)), lerp(dst[1], dst[10], step(0.75f, f.x)), step(0.5f, f.x)), step(0.25f, f.y)),
-			lerp(lerp(lerp(dst[4], dst[3], step(0.25f, f.x)), lerp(dst[2], dst[11], step(0.75f, f.x)), step(0.5f, f.x)), lerp(lerp(dst[15], dst[14], step(0.25f, f.x)), lerp(dst[13], dst[12], step(0.75f, f.x)), step(0.5f, f.x)), step(0.75f, f.y)),
-			step(0.5f, f.y));
+			lerp(lerp(lerp(dst[6], dst[7], 0.25f.step(f.x)), lerp(dst[8], dst[9], 0.75f.step(f.x)), 0.5f.step(f.x)), lerp(lerp(dst[5], dst[0], 0.25f.step(f.x)), lerp(dst[1], dst[10], 0.75f.step(f.x)), 0.5f.step(f.x)), 0.25f.step(f.y)),
+			lerp(lerp(lerp(dst[4], dst[3], 0.25f.step(f.x)), lerp(dst[2], dst[11], 0.75f.step(f.x)), 0.5f.step(f.x)), lerp(lerp(dst[15], dst[14], 0.25f.step(f.x)), lerp(dst[13], dst[12], 0.75f.step(f.x)), 0.5f.step(f.x)), 0.75f.step(f.y)),
+			0.5f.step(f.y));
 
 		return res;
 	}
 	protected static float reduce(Vector3 color)
 	{
-		return (int)dot(color, new(65536.0f, 256.0f, 1.0f));
+		return (int)color.dot(new(65536.0f, 256.0f, 1.0f));
 	}
 	protected static float distYCbCr(Vector3 pixA, Vector3 pixB)
 	{
@@ -234,10 +234,10 @@ public class ImageXBR4
 		float scaleB = 0.5f / (1.0f - w.z);
 		float scaleR = 0.5f / (1.0f - w.x);
 		Vector3 diff = pixA - pixB;
-		float Y = dot(diff, w);
+		float Y = diff.dot(w);
 		float Cb = scaleB * (diff.z - Y);
 		float Cr = scaleR * (diff.x - Y);
-		return sqrt(LUMINANCE_WEIGHT * Y * LUMINANCE_WEIGHT * Y + Cb * Cb + Cr * Cr);
+		return (LUMINANCE_WEIGHT * Y * LUMINANCE_WEIGHT * Y + Cb * Cb + Cr * Cr).sqrt();
 	}
 	protected static bool isPixelEqual(Vector3 pixA, Vector3 pixB)
 	{
@@ -249,12 +249,10 @@ public class ImageXBR4
 	}
 	protected static Color tex2D(Color[] pixels, int width, int height, Vector2 texCoord)
 	{
-		saturate(ref texCoord.x);
-		saturate(ref texCoord.y);
-		int x = (int)(texCoord.x * width);
-		clampMax(ref x, width - 1);
-		int y = (int)(texCoord.y * height);
-		clampMax(ref y, height - 1);
+		texCoord.x = texCoord.x.saturate();
+		texCoord.y = texCoord.y.saturate();
+		int x = (int)(texCoord.x * width).clampMax(width - 1);
+		int y = (int)(texCoord.y * height).clampMax(height - 1);
 		return pixels[x + y * width];
 	}
 	protected static void scaleTexture(Texture2D tex, int scale, out Color[] scaledPixels)
@@ -267,10 +265,10 @@ public class ImageXBR4
 		Color[] pixels = tex.GetPixels();
 		for (int i = 0; i < scaledHeight; ++i)
 		{
-			int originY = (int)divide(i, scaledHeight * height);
+			int originY = (int)i.divide(scaledHeight * height);
 			for (int j = 0; j < scaledWidth; ++j)
 			{
-				int originX = (int)divide(j, scaledWidth * width);
+				int originX = (int)j.divide(scaledWidth * width);
 				scaledPixels[j + i * scaledWidth] = pixels[originX + originY * width];
 			}
 		}

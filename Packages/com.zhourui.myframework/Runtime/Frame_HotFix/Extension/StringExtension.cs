@@ -5,7 +5,6 @@ using UnityEngine;
 using static BinaryUtility;
 using static UnityUtility;
 using static FrameBaseUtility;
-using static MathUtility;
 using static StringUtility;
 
 // 字符串扩展方法,提供字符串的便捷操作
@@ -324,7 +323,7 @@ public static class StringExtension
 		{
 			return str;
 		}
-		clampMax(ref startLength, str.Length);
+		startLength = startLength.clampMax(str.Length);
 		return str[0..startLength];
 	}
 	// 移除最后一定长度的字符串
@@ -1225,7 +1224,7 @@ public static class StringExtension
     }
     public static string FToS(this float value, int precision = 4, bool removeTailZero = true)
     {
-        checkInt(ref value);
+		value = value.checkInt();
 		int intValue = (int)value;
         if (precision == 0)
         {
@@ -1234,12 +1233,12 @@ public static class StringExtension
         if (removeTailZero)
         {
             // 是否非常接近数轴左边的整数
-            if (isFloatZero(value - intValue))
+            if (value.isFloatEqual(intValue))
             {
                 return intValue.IToS();
             }
             // 是否非常接近数轴右边的整数
-            if (isFloatZero(intValue + 1 - value))
+            if ((intValue + 1 - value).isFloatZero())
             {
                 return IToS(intValue + 1);
             }

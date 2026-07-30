@@ -22,11 +22,11 @@ public class COMTransformableMoveParabola : ComponentKeyFrame, IComponentModifyP
 	}
 	public void setTargetPos(Vector3 pos) { mTargetPos = pos; }
 	public void setStartPos(Vector3 pos) { mStartPos = pos; }
-	public void setTopHeight(float top) { mTopHeight = abs(top); }
+	public void setTopHeight(float top) { mTopHeight = top.abs(); }
 	public override void play(int keyframe, bool loop, float onceLength, float offset)
 	{
 		base.play(keyframe, loop, onceLength, offset);
-		mDistanceHori = getLength(resetY(mTargetPos - mStartPos));
+		mDistanceHori = (mTargetPos - mStartPos).resetY().getLength();
 		generateParabola(mTopHeight, mStartPos, mTargetPos, out mFactorA, out mFactorB);
 	}
 	//------------------------------------------------------------------------------------------------------------------------------

@@ -1,7 +1,6 @@
 ﻿using System;
 using UnityEngine;
 using System.Collections.Generic;
-using static MathUtility;
 using static FrameBaseHotFix;
 using static FrameUtility;
 using static FrameDefine;
@@ -98,7 +97,7 @@ public class ComponentInteractive : GameComponent
 		// 长按检测,mPressedTime小于0表示长按计时无效
 		if (mPressing &&
 			(mLongPressLengthThreshold < 0.0f ||
-			lengthLess(mTouchDownPosition - mInputSystem.getTouchPoint(mDownTouchID).getCurPosition(), mLongPressLengthThreshold)))
+			(mTouchDownPosition - mInputSystem.getTouchPoint(mDownTouchID).getCurPosition()).lengthLess(mLongPressLengthThreshold)))
 		{
 			mPressedTime += elapsedTime;
 		}
@@ -253,7 +252,7 @@ public class ComponentInteractive : GameComponent
 		mPressedTime = -1.0f;
 		mPressCallback?.Invoke(false);
 		mPressDetailCallback?.Invoke(touchPos, false);
-		if (lengthLess(mTouchDownPosition - touchPos, CLICK_LENGTH) &&
+		if ((mTouchDownPosition - touchPos).lengthLess(CLICK_LENGTH) &&
 		   (DateTime.Now - mTouchDownTime).TotalSeconds < CLICK_TIME)
 		{
 			mPreClickCallback?.Invoke();

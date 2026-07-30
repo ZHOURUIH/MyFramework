@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using static MathUtility;
 using static StringUtility;
 using static FrameBaseHotFix;
 using static UnityUtility;
@@ -45,7 +44,7 @@ public class myUGUIText : myUGUIObject, IUGUIText
 		}
 		mCanvasGroup.alpha = isCull ? 0.0f : 1.0f;
 	}
-	public override bool isCulled() { return mCanvasGroup != null && isFloatZero(mCanvasGroup.alpha); }
+	public override bool isCulled() { return mCanvasGroup != null && mCanvasGroup.alpha.isFloatZero(); }
 	public override bool canGenerateDepth() { return !isCulled(); }
 	public void setText(string text)
 	{

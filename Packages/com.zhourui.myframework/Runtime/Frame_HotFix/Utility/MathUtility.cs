@@ -21,8 +21,6 @@ public class MathUtility
 	private static readonly int[] mDeltaXEvenRForOdd6 = { -1, -1, 0, 1, 1, 0 };     // 6边形寻路的偏移量X,奇数行的,even-r模式的
 	private static readonly int[] mDeltaYEvenRForOdd6 = { -1, -1, 0, 1, 1, 0 };     // 6边形寻路的偏移量Y,奇数行的,even-r模式的
 	private static AStarNode[] mTempNodeList;										// 避免GC
-	private static ThreadLock mGreaterPow2Lock = new();								// mGreaterPow2的线程锁
-	private static int[] mGreaterPow2;												// 预先生成的每个数字所对应的第一个比它大的2的n次方的数
 	private static float[] mSinList;												// PI/(2^n)的sin值,其中n是下标
 	private static float[] mCosList;												// PI/(2^n)的cos值,其中n是下标
 	private const int MAX_FFT_COUNT = 1024 * 8;										// 计算频域时数据的最大数量
@@ -58,243 +56,8 @@ public class MathUtility
 		100000000000000000L,
 		1000000000000000000L
 	};
-	public static int generateBatchCount(int totalCount, int batch)
-	{
-		int batchCount = divideInt(totalCount, batch);
-		return totalCount - batch * batchCount > 0 ? batchCount + 1 : batchCount;
-	}
-	public static int indexToX(int index, int width) { return index % width; }
-	public static int indexToY(int index, int width) { return divideInt(index, width); }
-	public static Vector2Int indexToIntPos(int index, int width) { return new(index % width, divideInt(index, width)); }
-	public static int intPosToIndex(Vector2Int pos, int width) { return pos.x + pos.y * width; }
 	public static int intPosToIndex(int x, int y, int width) { return x + y * width; }
-	public static bool hasMask(int value, int mask) { return (value & mask) != 0; }
-	public static float KMHtoMS(float kmh) { return kmh * 0.27777f; }
-	public static float MStoKMH(float ms) { return ms * 3.6f; }
-	public static float MtoKM(float m) { return m * 0.001f; }
-	public static float pow(float value, float power) { return Mathf.Pow(value, power); }
-	public static float pow(float value, int power)
-	{
-		float finalValue = 1.0f;
-		for (int i = 0; i < power; ++i)
-		{
-			finalValue *= value;
-		}
-		return finalValue;
-	}
-	public static float inversePow10(int pow) { return INVERSE_POWER_INT_10[pow]; }
-	public static int pow10(int pow) { return (int)POWER_INT_10[pow]; }
-	public static double inversePow10Long(int pow) { return INVERSE_POWER_LLONG_10[pow]; }
-	public static long pow10Long(int pow) { return POWER_LLONG_10[pow]; }
-	public static float pow2(int power) { return 1 << power; }
-	public static int getGreaterPowValue(int value, int pow)
-	{
-		int powValue = 1;
-		for(int i = 0; i < 31; ++i)
-		{
-			if (powValue >= value)
-			{
-				break;
-			}
-			powValue *= pow;
-		}
-		return powValue;
-	}
-	// 获得大于value的第一个2的n次方的数,value需要大于0
-	public static int getGreaterPow2(int value)
-	{
-		if (mGreaterPow2 == null)
-		{
-			initGreaterPow2();
-		}
-		if (mGreaterPow2 != null && value < mGreaterPow2.Length)
-		{
-			return mGreaterPow2[value];
-		}
-		if (isPow2(value))
-		{
-			return value;
-		}
-		// 由于2的9次方以下都可以通过查表的方式获得,所以此处直接从10次方开始
-		// 分2个档位,2的15次方,这样处理更快一些,比二分查找或顺序查找都快
-		const int Level0 = 15;
-		if (value < 1 << Level0)
-		{
-			for (int i = 10; i <= Level0; ++i)
-			{
-				if (1 << i >= value)
-				{
-					return 1 << i;
-				}
-			}
-		}
-		else
-		{
-			for (int i = Level0 + 1; i < 32; ++i)
-			{
-				if (1 << i >= value)
-				{
-					return 1 << i;
-				}
-			}
-		}
-		logError("无法获取大于指定数的第一个2的n次方的数:" + value);
-		return 0;
-	}
-	// 得到数轴上浮点数右边的第一个整数,向上取整
-	public static int ceil(float value)
-	{
-		int intValue = (int)value;
-		if (isFloatEqual(intValue, value))
-		{
-			return intValue;
-		}
-		if (value >= 0.0f && value > intValue)
-		{
-			++intValue;
-		}
-		return intValue;
-	}
-	public static void ceil(ref Vector2 value)
-	{
-		value.x = ceil(value.x);
-		value.y = ceil(value.y);
-	}
-	public static Vector2 ceil(Vector2 value)
-	{
-		value.x = ceil(value.x);
-		value.y = ceil(value.y);
-		return value;
-	}
-	public static void ceil(ref Vector3 value)
-	{
-		value.x = ceil(value.x);
-		value.y = ceil(value.y);
-		value.z = ceil(value.z);
-	}
-	public static Vector3 ceil(Vector3 value)
-	{
-		value.x = ceil(value.x);
-		value.y = ceil(value.y);
-		value.z = ceil(value.z);
-		return value;
-	}
-	// 得到数轴上浮点数左边的第一个整数,向下取整
-	public static int floor(float value)
-	{
-		// 有时候会出现非常奇怪的现象,value显示是251,但是(int)value转换以后却是250,说明可能value实际是250.999999
-		// 但是由于这种误差是非预期的,也就是说外边可能就是251*1,这种情况需要消除这种误差,使用checkInt即可消除
-		checkInt(ref value);
-		int intValue = (int)value;
-		if (isFloatEqual(intValue, value))
-		{
-			return intValue;
-		}
-		if (value < 0.0f && value < intValue)
-		{
-			--intValue;
-		}
-		return intValue;
-	}
-	// 得到数轴上浮点数左边的第一个整数,向下取整
-	public static int floor(double value)
-	{
-		int intValue = (int)value;
-		if (value < 0.0f && value < intValue)
-		{
-			--intValue;
-		}
-		return intValue;
-	}
-	public static bool isNaN(Vector3 vec) { return float.IsNaN(vec.x) || float.IsNaN(vec.y) || float.IsNaN(vec.z); }
-	public static bool isNaN(Vector2 vec) { return float.IsNaN(vec.x) || float.IsNaN(vec.y); }
-	public static bool isNaN(float value) { return float.IsNaN(value); }
-	public static void saturate(ref float value) { clamp(ref value, 0.0f, 1.0f); }
-	public static float saturate(float value)
-	{
-		clamp(ref value, 0.0f, 1.0f);
-		return value;
-	}
-	public static void saturate(ref Vector3 value)
-	{
-		value.x = saturate(value.x);
-		value.y = saturate(value.y);
-		value.z = saturate(value.z);
-	}
-	// 四舍五入
-	public static int round(float value)
-	{
-		if (value > 0.0f)
-		{
-			return (int)(value + 0.5f);
-		}
-		else
-		{
-			return (int)(value - 0.5f);
-		}
-	}
-	public static long round(double value)
-	{
-		if (value > 0.0)
-		{
-			return (long)(value + 0.5);
-		}
-		else
-		{
-			return (long)(value - 0.5);
-		}
-	}
-	public static void round(ref Vector3 value)
-	{
-		value.x = round(value.x);
-		value.y = round(value.y);
-		value.z = round(value.z);
-	}
-	public static Vector3 round(Vector3 value)
-	{
-		value.x = round(value.x);
-		value.y = round(value.y);
-		value.z = round(value.z);
-		return value;
-	}
-	public static Vector3 floor(Vector3 value)
-	{
-		value.x = floor(value.x);
-		value.y = floor(value.y);
-		value.z = floor(value.z);
-		return value;
-	}
-	// value1大于等于value0则返回1,否则返回0
-	public static int step(float value0, float value1) { return value1 >= value0 ? 1 : 0; }
-	// 得到value0除以value1的余数
-	public static float fmod(float value0, float value1) { return value0 - value1 * (int)(divide(value0, value1)); }
-	// 返回value的小数部分
-	public static float frac(float value) { return value - (int)value; }
-	public static float abs(float value) { return value >= 0.0f ? value : -value; }
-	public static double abs(double value) { return value >= 0.0 ? value : -value; }
-	public static sbyte abs(sbyte value) { return value >= 0 ? value : (sbyte)-value; }
-	public static short abs(short value) { return value >= 0 ? value : (short)-value; }
-	public static int abs(int value) { return value >= 0 ? value : -value; }
-	public static long abs(long value) { return value >= 0 ? value : -value; }
-	public static float sin(float radian) { return Mathf.Sin(radian); }
-	public static float cos(float radian) { return Mathf.Cos(radian); }
-	public static float tan(float radian) { return Mathf.Tan(radian); }
-	public static float atan(float value) { return Mathf.Atan(value); }
-	public static float asin(float value)
-	{
-		clamp(ref value, -1.0f, 1.0f);
-		return Mathf.Asin(value);
-	}
-	public static float acos(float value)
-	{
-		clamp(ref value, -1.0f, 1.0f);
-		return Mathf.Acos(value);
-	}
 	public static float atan2(float y, float x) { return Mathf.Atan2(y, x); }
-	public static float dot(Vector3 v0, Vector3 v1) { return v0.x * v1.x + v0.y * v1.y + v0.z * v1.z; }
-	public static float dot(Vector2 v0, Vector2 v1) { return v0.x * v1.x + v0.y * v1.y; }
-	public static float sqrt(float value) { return Mathf.Sqrt(value); }
-	public static Vector3 cross(Vector3 v0, Vector3 v1) { return Vector3.Cross(v0, v1); }
 	// 计算二维空间的向量叉积,大于0表示point在线段的左边,小于0表示point在线段的右边,等于0表示三点共线
 	public static float crossProduct(Vector2 start, Vector2 end, Vector2 point) { return (end.x - start.x) * (point.y - start.y) - (end.y - start.y) * (point.x - start.x); }
 	public static float sign(float value)
@@ -384,8 +147,8 @@ public class MathUtility
 	// 是否为偶数
 	// 对于a % b的计算,如果b为2的n次方,则a % b等效于a & (b - 1)
 	public static bool isEven(int value) { return (value & 1) == 0; }
-	public static float getNearest(float value, float p0, float p1) { return abs(value - p0) < abs(value - p1) ? p0 : p1; }
-	public static float getFarthest(float value, float p0, float p1) { return abs(value - p0) > abs(value - p1) ? p0 : p1; }
+	public static float getNearest(float value, float p0, float p1) { return (value - p0).abs() < (value - p1).abs() ? p0 : p1; }
+	public static float getFarthest(float value, float p0, float p1) { return (value - p0).abs() > (value - p1).abs() ? p0 : p1; }
 	public static int getCharCount(string str, char c)
 	{
 		int count = 0;
@@ -422,7 +185,7 @@ public class MathUtility
 			float ret = calculateFloat(strInBracket);
 			// 如果括号中的计算结果是负数,则标记为负数
 			bool isMinus = ret < 0;
-			ret = abs(ret);
+			ret = ret.abs();
 			// 将括号中的计算结果替换原来的表达式,包括括号也一起替换
 			str = str.replace(curPos, curPos + strInBracket.Length + 2, Math.Round(ret, 4).ToString());
 			if (isMinus)
@@ -507,7 +270,7 @@ public class MathUtility
 					}
 					else if (factors[i] == '/')
 					{
-						num3 = divide(num1, num2);
+						num3 = num1.divide(num2);
 					}
 					// 删除第i + 1个数,然后将第i个数替换为计算结果
 					numbers.RemoveAt(i + 1);
@@ -567,80 +330,6 @@ public class MathUtility
 		}
 		// 计算错误
 		return 0;
-	}
-	// 将一个浮点数调整保留一定的小数位,保留的最后一位四舍五入.precision表示小数点后保留几位小数
-	public static void checkFloat(ref float value, int precision = 4)
-	{
-		float helper = pow10(precision);
-		value = divide(round(value * helper), helper);
-	}
-	public static void checkFloat(ref Vector3 value, int precision = 4)
-	{
-		checkFloat(ref value.x, precision);
-		checkFloat(ref value.y, precision);
-		checkFloat(ref value.z, precision);
-	}
-	public static void checkInt(ref Vector3 vec, float precision = 0.0001f)
-	{
-		checkInt(ref vec.x, precision);
-		checkInt(ref vec.y, precision);
-		checkInt(ref vec.z, precision);
-	}
-	public static float checkInt(float value, float precision = 0.0001f)
-	{
-		checkInt(ref value, precision);
-		return value;
-	}
-	// 检查一个浮点数是否接近整数,精度范围为precision,如果接近整数,则将此浮点数设置为整数的值
-	public static void checkInt(ref float value, float precision = 0.0001f)
-	{
-		// 先判断是否为0
-		if (isFloatZero(value, precision))
-		{
-			value = 0.0f;
-			return;
-		}
-		int intValue = (int)value;
-		// 大于0
-		if (value > 0.0f)
-		{
-			// 如果原值减去整数值小于0.5f,则表示原值可能接近于整数值
-			if (value - intValue < 0.5f)
-			{
-				if (isFloatZero(value - intValue, precision))
-				{
-					value = intValue;
-				}
-			}
-			// 如果原值减去整数值大于0.5f, 则表示原值可能接近于整数值+1
-			else
-			{
-				if (isFloatZero(value - (intValue + 1), precision))
-				{
-					value = intValue + 1;
-				}
-			}
-		}
-		// 小于0
-		else if (value < 0.0f)
-		{
-			// 如果原值减去整数值的结果的绝对值小于0.5f,则表示原值可能接近于整数值
-			if (Math.Abs(value - intValue) < 0.5f)
-			{
-				if (isFloatZero(value - intValue, precision))
-				{
-					value = intValue;
-				}
-			}
-			else
-			{
-				// 如果原值减去整数值的结果的绝对值大于0.5f, 则表示原值可能接近于整数值-1
-				if (isFloatZero(value - (intValue - 1), precision))
-				{
-					value = intValue - 1;
-				}
-			}
-		}
 	}
 	public static void randomSelect(List<int> oddsList, int selectCount, List<int> selectIndexes)
 	{
@@ -924,17 +613,17 @@ public class MathUtility
 		// 计算射线与法线的夹角,弧度制,算出来的角度可能是一个锐角也可能是钝角，与射线的方向和法线方向有关
 		float angle = getAngleBetweenVector(normal, ray.direction);
 		// 射线起点到起点的投影点的距离
-		float originToProjectDistance = getLength(originProjectPoint - ray.origin);
+		float originToProjectDistance = (originProjectPoint - ray.origin).getLength();
 		// 根据夹角计算出射线交点到射线起始点的距离,如果夹角是钝角，则还是取剩下的锐角的部分
 		// 因为射线只要不与平面平行，就肯定会有一个小于90°的角度
-		float distance = divide(originToProjectDistance, abs(cos(angle)));
+		float distance = originToProjectDistance.divide(angle.cos().abs());
 		// 根据距离计算出交点
 		return ray.origin + ray.direction * distance;
 	}
 	// 计算两个向量所在平面的法线,unity是左手坐标系
 	public static Vector3 generateNormal(Vector3 vec0, Vector3 vec1)
 	{
-		return cross(vec0, vec1);
+		return vec0.cross(vec1);
 	}
 	// 计算点point在平面planePoint-normal上的投影点,planePoint为平面上一点,normal为平面法线
 	// planePoint在normal-point上的投影点即为交点
@@ -945,10 +634,10 @@ public class MathUtility
 	// 判断一个点在平面的正面还是反面,-1表示反面,也就是在法线负方向,0表示在平面上,1表示在正面
 	public static int getPointInPlaneSide(Vector3 planePoint, Vector3 normal, Vector3 point)
 	{
-		Vector3 dir = normalize(point - planePoint);
-		float dotResult = dot(dir, normal);
+		Vector3 dir = (point - planePoint).normalize();
+		float dotResult = dir.dot(normal);
 		// 在平面上
-		if (isFloatZero(dotResult))
+		if (dotResult.isFloatZero())
 		{
 			return 0;
 		}
@@ -967,14 +656,14 @@ public class MathUtility
 		Vector2 v0 = point - line.mStart;
 		Vector2 v1 = point - line.mEnd;
 		// 交点与端点重合
-		if (isVectorZero(v0) || isVectorZero(v1))
+		if (v0.isVectorZero() || v1.isVectorZero())
 		{
 			return true;
 		}
-		normalize(ref v0);
-		normalize(ref v1);
+		v0 = v0.normalize();
+		v1 = v1.normalize();
 		// 两个向量方向相反则为在线段上,同向则交点不在线段上
-		return isVectorZero(v0 + v1);
+		return (v0 + v1).isVectorZero();
 	}
 	// 三个点是否在同一条直线上
 	public static bool isPointsInSameLine2(Vector2 point0, Vector2 point1, Vector2 point2)
@@ -982,14 +671,14 @@ public class MathUtility
 		Vector2 v0 = point0 - point1;
 		Vector2 v1 = point0 - point2;
 		// 交点与端点重合
-		if (isVectorZero(v0) || isVectorZero(v1))
+		if (v0.isVectorZero() || v1.isVectorZero())
 		{
 			return true;
 		}
-		normalize(ref v0);
-		normalize(ref v1);
+		v0 = v0.normalize();
+		v1 = v1.normalize();
 		// 两个向量方向相反或者相同,就在同一条直线上
-		return isVectorZero(v0 + v1) || isVectorEqual(v0, v1);
+		return (v0 + v1).isVectorZero() || v0.isVectorEqual(v1);
 	}
 	// 三个点是否在同一条直线上
 	public static bool isPointsInSameLine3(Vector3 point0, Vector3 point1, Vector3 point2)
@@ -997,14 +686,14 @@ public class MathUtility
 		Vector3 v0 = point0 - point1;
 		Vector3 v1 = point0 - point2;
 		// 交点与端点重合
-		if (isVectorZero(v0) || isVectorZero(v1))
+		if (v0.isVectorZero() || v1.isVectorZero())
 		{
 			return true;
 		}
-		normalize(ref v0);
-		normalize(ref v1);
+		v0 = v0.normalize();
+		v1 = v1.normalize();
 		// 两个向量方向相反或者相同,就在同一条直线上
-		return isVectorZero(v0 + v1) || isVectorEqual(v0, v1);
+		return (v0 + v1).isVectorZero() || v0.isVectorEqual(v1);
 	}
 	// 直线与圆的相交检测
 	public static bool intersectCircle(Vector2 center, float radius, Line2 line, ref PolygonIntersectResult result)
@@ -1013,9 +702,9 @@ public class MathUtility
 		// 圆心在直线上的投影
 		Vector2 projectPoint = getProjectPoint(center, line.toLine3());
 		float squaredRadius = radius * radius;
-		float pointToLineSquaredDistance = getSquaredLength(center - projectPoint);
+		float pointToLineSquaredDistance = (center - projectPoint).getSquaredLength();
 		// 直线与圆相切
-		if (isFloatEqual(pointToLineSquaredDistance, squaredRadius))
+		if (pointToLineSquaredDistance.isFloatEqual(squaredRadius))
 		{
 			result.mIntersectPoint0 = projectPoint;
 			result.mIntersectPoint1 = projectPoint;
@@ -1029,8 +718,8 @@ public class MathUtility
 		else if (pointToLineSquaredDistance < squaredRadius)
 		{
 			// 根据直线的方向和交点到圆心投影点的距离计算两个相交点
-			Vector2 normalizedLineDir = normalize(line.mStart - line.mEnd);
-			float distanceFromIntersectToProjection = sqrt(squaredRadius - pointToLineSquaredDistance);
+			Vector2 normalizedLineDir = (line.mStart - line.mEnd).normalize();
+			float distanceFromIntersectToProjection = (squaredRadius - pointToLineSquaredDistance).sqrt();
 			result.mIntersectPoint0 = projectPoint + normalizedLineDir * distanceFromIntersectToProjection;
 			result.mIntersectPoint1 = projectPoint - normalizedLineDir * distanceFromIntersectToProjection;
 			result.mLine0.mStart = result.mIntersectPoint0;
@@ -1058,13 +747,8 @@ public class MathUtility
 			// 首先对每条边进行变换
 			Vector3 point0 = points[i];
 			Vector3 point1 = points[(i + 1) % pointCount];
-			point0 = rotateVector3(point0, transform.localRotation);
-			point0 = multiVector3(point0, transform.localScale);
-			point0 += transform.localPosition;
-
-			point1 = rotateVector3(point1, transform.localRotation);
-			point1 = multiVector3(point1, transform.localScale);
-			point1 += transform.localPosition;
+			point0 = point0.rotateVector3(transform.localRotation).multiVector3(transform.localScale) + transform.localPosition;
+			point1 = point1.rotateVector3(transform.localRotation).multiVector3(transform.localScale) + transform.localPosition;
 			// 与每一条边进行相交检测
 			if (!intersectLineLineSection(line, new(point0, point1), out intersect))
 			{
@@ -1080,7 +764,7 @@ public class MathUtility
 			else if (intersectCount == 1)
 			{
 				// 判断是否与第一个点是同一个点,因为当相交点为其中一个顶点时,会计算出重合的相交点
-				if (!isVectorEqual(result.mIntersectPoint0, intersect))
+				if (!result.mIntersectPoint0.isVectorEqual(intersect))
 				{
 					result.mIntersectPoint1 = intersect;
 					result.mLine1.mStart = point0;
@@ -1103,8 +787,8 @@ public class MathUtility
 	public static void generatePerpendicular(Vector2 linePoint0, Vector2 point, out Vector2 otherPoint)
 	{
 		// 转换为3维向量,通过与Y轴的叉乘得到垂直的向量
-		Vector3 v0 = normalize(new Vector3(linePoint0.x, 0.0f, linePoint0.y) - new Vector3(point.x, 0.0f, point.y));
-		Vector3 v2 = cross(v0, Vector3.up);
+		Vector3 v0 = (new Vector3(linePoint0.x, 0.0f, linePoint0.y) - new Vector3(point.x, 0.0f, point.y)).normalize();
+		Vector3 v2 = v0.cross(Vector3.up);
 		otherPoint = point + new Vector2(v2.x, v2.z);
 	}
 	// 计算一条直线经过point点的平行线
@@ -1132,9 +816,9 @@ public class MathUtility
 		Vector2 lastDir = lastPoint - curPoint;
 		Vector2 nextDir = nextPoint - curPoint;
 		float angle0 = getAngleVector2ToVector2(lastDir, nextDir);
-		adjustRadian360(ref angle0);
+		angle0 = angle0.adjustRadian360();
 		float angle1 = getAngleVector2ToVector2(vertices[index1] - curPoint, nextDir);
-		adjustRadian360(ref angle1);
+		angle1 = angle1.adjustRadian360();
 		// 法线向上时,点是按逆时针来排列,夹角小于邻边角时才有效
 		bool validAngle = angle1 <= angle0;
 		// 夹角需要在一定范围内
@@ -1172,10 +856,10 @@ public class MathUtility
 	public static bool intersectLineSection(Vector2 start0, Vector2 end0, Vector2 start1, Vector2 end1, out Vector2 intersection, bool checkEndPoint = false, float precision = 0.0001f)
 	{
 		// 有端点重合
-		if (isVectorEqual(start0, start1) ||
-			isVectorEqual(start0, end1) ||
-			isVectorEqual(end0, start1) ||
-			isVectorEqual(end0, end1))
+		if (start0.isVectorEqual(start1) ||
+			start0.isVectorEqual(end1) ||
+			end0.isVectorEqual(start1) ||
+			end0.isVectorEqual(end1))
 		{
 			// 考虑端点时认为两条线段相交
 			// 不考虑端点时,则两条线段不相交
@@ -1188,7 +872,7 @@ public class MathUtility
 		// 计算两个线段方向向量的叉积
 		float cross = d1.x * d2.y - d1.y * d2.x;
 		// 如果叉积为0，则平行或共线，无交点
-		if (abs(cross) < precision)
+		if (cross.abs() < precision)
 		{
 			return false;
 		}
@@ -1210,7 +894,7 @@ public class MathUtility
 		if (intersectLine2(line, section, out intersect))
 		{
 			// 如果交点在线段内,则线段和直线相交
-			return inRange(intersect, section.mStart, section.mEnd);
+			return intersect.inRange(section.mStart, section.mEnd);
 		}
 		return false;
 	}
@@ -1254,9 +938,9 @@ public class MathUtility
 		else
 		{
 			// 两条不重合且不平行的两条线才计算交点
-			if (!isFloatEqual(line0.mK, line1.mK))
+			if (!line0.mK.isFloatEqual(line1.mK))
 			{
-				intersect.x = divide(line1.mB - line0.mB, line0.mK - line1.mK);
+				intersect.x = (line1.mB - line0.mB).divide(line0.mK - line1.mK);
 				intersect.y = line0.mK * intersect.x + line0.mB;
 				return true;
 			}
@@ -1267,14 +951,16 @@ public class MathUtility
 	// k为斜率,也就是cotan(直线与y轴的夹角)
 	public static bool generateLineExpressionIgnoreY(Line3 line, out float k, out float b)
 	{
+		Vector3 start = line.mStart;
+		Vector3 end = line.mEnd;
 		// 一条横着的线,斜率为0
-		if (isFloatZero(line.mStart.z - line.mEnd.z))
+		if (start.z.isFloatEqual(end.z))
 		{
 			k = 0.0f;
-			b = line.mStart.z;
+			b = start.z;
 		}
 		// 直线是一条竖直的线,没有斜率
-		else if (isFloatZero(line.mStart.x - line.mEnd.x))
+		else if (start.x.isFloatEqual(end.x))
 		{
 			k = 0.0f;
 			b = 0.0f;
@@ -1282,22 +968,24 @@ public class MathUtility
 		}
 		else
 		{
-			k = divide(line.mStart.z - line.mEnd.z, line.mStart.x - line.mEnd.x);
-			b = line.mStart.z - k * line.mStart.x;
+			k = (start.z - end.z).divide(start.x - end.x);
+			b = start.z - k * start.x;
 		}
 		return true;
 	}
 	// k为斜率,也就是cotan(直线与y轴的夹角)
 	public static bool generateLineExpression(Line2 line, out float k, out float b)
 	{
+		Vector2 start = line.mStart;
+		Vector2 end = line.mEnd;
 		// 一条横着的线,斜率为0
-		if (isFloatZero(line.mStart.y - line.mEnd.y))
+		if (start.y.isFloatEqual(end.y))
 		{
 			k = 0.0f;
-			b = line.mStart.y;
+			b = start.y;
 		}
 		// 直线是一条竖直的线,没有斜率
-		else if (isFloatZero(line.mStart.x - line.mEnd.x))
+		else if (start.x.isFloatEqual(end.x))
 		{
 			k = 0.0f;
 			b = 0.0f;
@@ -1305,8 +993,8 @@ public class MathUtility
 		}
 		else
 		{
-			k = divide(line.mStart.y - line.mEnd.y, line.mStart.x - line.mEnd.x);
-			b = line.mStart.y - k * line.mStart.x;
+			k = (start.y - end.y).divide(start.x - end.x);
+			b = start.y - k * start.x;
 		}
 		return true;
 	}
@@ -1321,7 +1009,7 @@ public class MathUtility
 	public static bool intersect(Line2 line, Rect rect, float precision = 0.0001f, bool checkEndPoint = false)
 	{
 		// 距离大于对角线的一半,则不与矩形相交
-		if (getDistanceToLine(rect.center, line) > getLength(rect.max - rect.min) * 0.5f)
+		if (getDistanceToLine(rect.center, line) > (rect.max - rect.min).getLength() * 0.5f)
 		{
 			return false;
 		}
@@ -1338,8 +1026,8 @@ public class MathUtility
 	// 计算线段与三角形是否相交
 	public static bool intersectLineTriangleIgnoreY(Line3 line, Triangle3 triangle, out TriangleIntersectResult3 intersectResult, bool checkEndPoint = false)
 	{
-		line.mStart = resetY(line.mStart);
-		line.mEnd = resetY(line.mEnd);
+		line.mStart = line.mStart.resetY();
+		line.mEnd = line.mEnd.resetY();
 		// 对三条边都要检测,计算出最近的一个交点
 		bool result0 = intersectLineSectionIgnoreY(line, new(triangle.mPoint0, triangle.mPoint1), out Vector3 intersect0, checkEndPoint);
 		bool result1 = intersectLineSectionIgnoreY(line, new(triangle.mPoint1, triangle.mPoint2), out Vector3 intersect1, checkEndPoint);
@@ -1351,7 +1039,7 @@ public class MathUtility
 		// 与第一条边相交
 		if (result0)
 		{
-			float squaredLength = getSquaredLength(intersect0 - line.mStart);
+			float squaredLength = (intersect0 - line.mStart).getSquaredLength();
 			if (squaredLength < closestDistance)
 			{
 				closestDistance = squaredLength;
@@ -1363,7 +1051,7 @@ public class MathUtility
 		// 与第二条边相交
 		if (result1)
 		{
-			float squaredLength = getSquaredLength(intersect1 - line.mStart);
+			float squaredLength = (intersect1 - line.mStart).getSquaredLength();
 			if (squaredLength < closestDistance)
 			{
 				closestDistance = squaredLength;
@@ -1375,7 +1063,7 @@ public class MathUtility
 		// 与第三条边相交
 		if (result2)
 		{
-			float squaredLength = getSquaredLength(intersect2 - line.mStart);
+			float squaredLength = (intersect2 - line.mStart).getSquaredLength();
 			if (squaredLength < closestDistance)
 			{
 				point = intersect2;
@@ -1405,7 +1093,7 @@ public class MathUtility
 		// 与第一条边相交
 		if (result0)
 		{
-			float squaredLength = getSquaredLength(intersect0 - line.mStart);
+			float squaredLength = (intersect0 - line.mStart).getSquaredLength();
 			if(squaredLength < closestDistance)
 			{
 				closestDistance = squaredLength;
@@ -1417,7 +1105,7 @@ public class MathUtility
 		// 与第二条边相交
 		if (result1)
 		{
-			float squaredLength = getSquaredLength(intersect1 - line.mStart);
+			float squaredLength = (intersect1 - line.mStart).getSquaredLength();
 			if (squaredLength < closestDistance)
 			{
 				closestDistance = squaredLength;
@@ -1429,7 +1117,7 @@ public class MathUtility
 		// 与第三条边相交
 		if (result2)
 		{
-			float squaredLength = getSquaredLength(intersect2 - line.mStart);
+			float squaredLength = (intersect2 - line.mStart).getSquaredLength();
 			if (squaredLength < closestDistance)
 			{
 				point = intersect2;
@@ -1446,13 +1134,13 @@ public class MathUtility
 	// 计算线段与三角形是否相交
 	public static bool intersectLineTriangle(Line2 line, Triangle2 triangle, out Vector2 intersectPoint)
 	{
-		Vector2 lineDir = normalize(line.mEnd - line.mStart);
+		Vector2 lineDir = (line.mEnd - line.mStart).normalize();
 		bool ret = intersectRayTriangle(line.mStart, lineDir, triangle.toTriangle3(), out float t, out _, out _);
 		if (ret)
 		{
 			intersectPoint = line.mStart + lineDir * t;
 			// 如果交点超出了线段范围,则不相交
-			float lineLength = getLength(line.mEnd - line.mStart);
+			float lineLength = (line.mEnd - line.mStart).getLength();
 			if(t <= 0.0f || t >= lineLength)
 			{
 				ret = false;
@@ -1467,7 +1155,7 @@ public class MathUtility
 	public static bool intersectRayRect(Vector3 orig, Vector3 dir, Rect3 rect, out float t)
 	{
 		// 当法线朝向屏幕外时,右边的方向
-		Vector3 right = 0.5f * rect.mWidth * cross(rect.mNormal, rect.mUp);
+		Vector3 right = 0.5f * rect.mWidth * rect.mNormal.cross(rect.mUp);
 		Vector3 top = 0.5f * rect.mHeight * rect.mUp;
 		Vector3 rightTop = right + top + rect.mCenter;
 		Vector3 leftTop = -right + top + rect.mCenter;
@@ -1497,8 +1185,8 @@ public class MathUtility
 		v = 0.0f;
 		Vector3 E1 = triangle.mPoint1 - triangle.mPoint0;
 		Vector3 E2 = triangle.mPoint2 - triangle.mPoint0;
-		Vector3 P = cross(dir, E2);
-		float determinant = dot(E1, P);
+		Vector3 P = dir.cross(E2);
+		float determinant = E1.dot(P);
 		// keep det > 0, modify T accordingly
 		Vector3 T;
 		if (determinant > 0)
@@ -1516,21 +1204,21 @@ public class MathUtility
 			return false;
 		}
 		// Calculate u and make sure u <= 1
-		u = dot(T, P);
+		u = T.dot(P);
 		if (u < 0.0f || u > determinant)
 		{
 			return false;
 		}
-		Vector3 Q = cross(T, E1);
+		Vector3 Q = T.cross(E1);
 		// Calculate v and make sure u + v <= 1
-		v = dot(dir, Q);
+		v = dir.dot(Q);
 		if(v < 0.0f || u + v > determinant)
 		{
 			return false;
 		}
 		// Calculate t, scale parameters, ray intersects triangle
-		t = dot(E2, Q);
-		float fInvDet = divide(1.0f, determinant);
+		t = E2.dot(Q);
+		float fInvDet = 1.0f.divide(determinant);
 		t *= fInvDet;
 		u *= fInvDet;
 		v *= fInvDet;
@@ -1555,7 +1243,7 @@ public class MathUtility
 	public static bool inFanShape(Vector3 center, float radius, float radian, Vector3 pos)
 	{
 		Vector3 relative = pos - center;
-		if (lengthGreater(relative, radius))
+		if (relative.lengthGreater(radius))
 		{
 			return false;
 		}
@@ -1569,7 +1257,7 @@ public class MathUtility
 			circle0.mCenter.y = 0.0f;
 			circle1.mCenter.y = 0.0f;
 		}
-		return lengthLess(circle0.mCenter - circle1.mCenter, circle0.mRadius + circle1.mRadius);
+		return (circle0.mCenter - circle1.mCenter).lengthLess(circle0.mRadius + circle1.mRadius);
 	}
 	// circle0是否包含circle1
 	public static bool circleContains(Circle3 circle0, Circle3 circle1, bool ignoreY)
@@ -1584,7 +1272,7 @@ public class MathUtility
 			circle0.mCenter.y = 0.0f;
 			circle1.mCenter.y = 0.0f;
 		}
-		return lengthLess(circle0.mCenter - circle1.mCenter, circle0.mRadius - circle1.mRadius);
+		return (circle0.mCenter - circle1.mCenter).lengthLess(circle0.mRadius - circle1.mRadius);
 	}
 	// 判断圆形和矩形是否相交,rotation为角度制
 	public static bool circleIntersectRectangle(Circle3 circle, Vector3 rectanglePosition, Vector3 size, Vector3 rectangleRotation, bool ignoreY = true)
@@ -1598,20 +1286,15 @@ public class MathUtility
 		}
 		// 将圆形转换到以矩形中心为原点的坐标系
 		circleCenter -= rectanglePosition;
-		circleCenter = rotateVector3(circleCenter, toRadian(-rectangleRotation.y));
+		circleCenter = circleCenter.rotateVector3((-rectangleRotation.y).toRadian());
 		// 然后把圆心映射到第一象限,因为在转换以后的坐标系中,4个象限都是对称的,所以只需要判断一个象限即可
-		circleCenter.x = abs(circleCenter.x);
-		circleCenter.y = abs(circleCenter.y);
-		circleCenter.z = abs(circleCenter.z);
+		circleCenter = circleCenter.abs();
 		// 矩形在第一象限上的顶点
 		Vector3 rightTopPoint = size * 0.5f;
 		// 相减后获得右上角顶点到圆心的向量
 		Vector3 centerToRightTop = circleCenter - rightTopPoint;
 		// 将小于0的分量设置为0,保证如果圆心到矩形边的垂点在矩形范围内时该向量与矩形的某条边垂直
-		clampMin(ref centerToRightTop.x);
-		clampMin(ref centerToRightTop.y);
-		clampMin(ref centerToRightTop.z);
-		return lengthLess(centerToRightTop, circle.mRadius);
+		return centerToRightTop.clampMin().lengthLess(circle.mRadius);
 	}
 	// 判断圆是否与线段相交,仅限2D平面,且Z轴为0
 	public static bool circleIntersectLine(Circle3 circle, Line3 line)
@@ -1619,20 +1302,20 @@ public class MathUtility
 		// 圆心在线段所在直线的投影
 		Vector3 projectPoint = getProjectPoint(circle.mCenter, line);
 		// 计算圆心到线段的距离
-		float distance = getLength(projectPoint - circle.mCenter);
+		float distance = (projectPoint - circle.mCenter).getLength();
 		if(distance > circle.mRadius)
 		{
 			return false;
 		}
 		// 如果投影在线段两个端点之间,则相交
-		if(inRange(projectPoint, line.mStart, line.mEnd, false))
+		if(projectPoint.inRange(line.mStart, line.mEnd, false))
 		{
 			return true;
 		}
 		// 计算相交部分的长度的一半,如果线段任一端点到垂线的距离小于该长度,则线段与圆相交
 		float halfSquaredLength = circle.mRadius * circle.mRadius - distance * distance;
-		if (getSquaredLength(line.mStart - projectPoint) <= halfSquaredLength ||
-			getSquaredLength(line.mEnd - projectPoint) <= halfSquaredLength)
+		if ((line.mStart - projectPoint).getSquaredLength() <= halfSquaredLength ||
+			(line.mEnd - projectPoint).getSquaredLength() <= halfSquaredLength)
 		{
 			return true;
 		}
@@ -1646,7 +1329,7 @@ public class MathUtility
 		for(int i = 0; i < polygonPointCount; ++i)
 		{
 			// 有顶点在圆内,则相交
-			if (lengthLessEqual(polygon[i] - circle.mCenter, circle.mRadius))
+			if ((polygon[i] - circle.mCenter).lengthLessEqual(circle.mRadius))
 			{
 				return true;
 			}
@@ -1698,16 +1381,16 @@ public class MathUtility
 		{
 			dir.y = 0.0f;
 		}
-		float maxValue = getMax(getMax(abs(dir.x), abs(dir.y)), abs(dir.z));
-		if (isFloatEqual(maxValue, abs(dir.x)))
+		float maxValue = getMax(getMax(dir.x.abs(), dir.y.abs()), dir.z.abs());
+		if (maxValue.isFloatEqual(dir.x.abs()))
 		{
 			dir = new(sign(dir.x), 0.0f, 0.0f);
 		}
-		else if (isFloatEqual(maxValue, abs(dir.y)))
+		else if (maxValue.isFloatEqual(dir.y.abs()))
 		{
 			dir = new(0.0f, sign(dir.y), 0.0f);
 		}
-		else if (isFloatEqual(maxValue, abs(dir.z)))
+		else if (maxValue.isFloatEqual(dir.z.abs()))
 		{
 			dir = new(0.0f, 0.0f, sign(dir.z));
 		}
@@ -1719,7 +1402,7 @@ public class MathUtility
 		{
 			forward.y = 0.0f;
 		}
-		return Quaternion.LookRotation(normalize(forward)).eulerAngles;
+		return Quaternion.LookRotation(forward.normalize()).eulerAngles;
 	}
 	// 获取指定方向的四元数,角度制
 	public static Quaternion getLookAtQuaternion(Vector3 forward, bool ignoreY = false)
@@ -1728,7 +1411,7 @@ public class MathUtility
 		{
 			forward.y = 0.0f;
 		}
-		return Quaternion.LookRotation(normalize(forward));
+		return Quaternion.LookRotation(forward.normalize());
 	}
 	// 获得指定朝向的四元数
 	public static Quaternion getLookRotation(Vector3 forward, bool ignoreY = false)
@@ -1742,41 +1425,41 @@ public class MathUtility
 	// 根据航向角和俯仰角计算向量,航向角和俯仰角是角度制的
 	public static Vector3 getDirectionFromDegreeYawPitch(float yaw, float pitch)
 	{
-		return getDirectionFromRadianYawPitch(toRadian(yaw), toRadian(pitch));
+		return getDirectionFromRadianYawPitch(yaw.toRadian(), pitch.toRadian());
 	}
 	// 根据航向角和俯仰角计算向量,航向角和俯仰角是弧度制的
 	public static Vector3 getDirectionFromRadianYawPitch(float yaw, float pitch)
 	{
 		// 如果pitch为90°或者-90°,则直接返回向量,此时无论航向角为多少,向量都是竖直向下或者竖直向上
-		if (isFloatZero(pitch - HALF_PI_RADIAN))
+		if ((pitch - HALF_PI_RADIAN).isFloatZero())
 		{
 			return Vector3.down;
 		}
-		if (isFloatZero(pitch + HALF_PI_RADIAN))
+		if ((pitch + HALF_PI_RADIAN).isFloatZero())
 		{
 			return Vector3.up;
 		}
 		// 在unity的坐标系中航向角需要取反
 		yaw = -yaw;
-		return normalize(new Vector3(-sin(yaw), -tan(pitch), cos(yaw)));
+		return new Vector3(-yaw.sin(), -pitch.tan(), yaw.cos()).normalize();
 	}
 	// 计算向量的航向角,弧度制
 	public static float getVectorYaw(Vector3 vec)
 	{
-		normalize(ref vec);
+		vec = vec.normalize();
 		float fYaw;
 		// 计算航向角,航向角是向量与在X-Z平面上的投影与Z轴正方向的夹角,从上往下看是顺时针为正,逆时针为负
 		Vector3 projectionXZ = new(vec.x, 0.0f, vec.z);
-		float len = getLength(projectionXZ);
+		float len = projectionXZ.getLength();
 		// 如果投影的长度为0,则表示俯仰角为90°或者-90°,航向角为0
-		if (isFloatZero(len))
+		if (len.isFloatZero())
 		{
 			fYaw = 0.0f;
 		}
 		else
 		{
-			normalize(ref projectionXZ);
-			fYaw = acos(dot(projectionXZ, Vector3.forward));
+			projectionXZ = projectionXZ.normalize();
+			fYaw = projectionXZ.dot(Vector3.forward).acos();
 			// 判断航向角的正负,如果x为正,则航向角为负,如果x为,则航向角为正
 			if (vec.x > 0.0f)
 			{
@@ -1790,40 +1473,39 @@ public class MathUtility
 	// 计算向量的俯仰角,朝上时俯仰角小于0,朝下时俯仰角大于0,弧度制
 	public static float getVectorPitch(Vector3 vec)
 	{
-		return -asin(normalize(vec).y);
+		return -vec.normalize().y.asin();
 	}
 	// 设置一个向量的俯仰角,pitch是弧度制的
 	public static Vector3 setVectorPitch(Vector3 vec, float pitch)
 	{
-		float length = getLength(vec);
-		Vector3 normal = generateNormal(vec, replaceY(vec, vec.y - 1.0f));
-		return setLength(rotateVector3(resetY(vec), Quaternion.AngleAxis(toDegree(pitch), normal)), length);
+		float length = vec.getLength();
+		Vector3 normal = generateNormal(vec, vec.replaceY(vec.y - 1.0f));
+		return vec.resetY().rotateVector3(Quaternion.AngleAxis(pitch.toDegree(), normal)).setLength(length);
 	}
 	// 设置一个向量的俯仰角,pitch是弧度制的
 	public static void setVectorPitch(ref Vector3 vec, float pitch)
 	{
-		float length = getLength(vec);
-		Vector3 normal = generateNormal(vec, replaceY(vec, vec.y - 1.0f));
-		vec = setLength(rotateVector3(resetY(vec), Quaternion.AngleAxis(toDegree(pitch), normal)), length);
+		float length = vec.getLength();
+		Vector3 normal = generateNormal(vec, vec.replaceY(vec.y - 1.0f));
+		vec = vec.resetY().rotateVector3(Quaternion.AngleAxis(pitch.toDegree(), normal)).setLength(length);
 	}
 	// 顺时针旋转为正,逆时针为负
 	public static float getAngleVector2ToVector2(Vector2 from, Vector2 to, ANGLE radian = ANGLE.RADIAN)
 	{
-		if(isVectorEqual(from, to))
+		if(from.isVectorEqual(to))
 		{
 			return 0.0f;
 		}
-		Vector3 from3 = normalize(new Vector3(from.x, 0.0f, from.y));
-		Vector3 to3 = normalize(new Vector3(to.x, 0.0f, to.y));
+		Vector3 from3 = new Vector3(from.x, 0.0f, from.y).normalize();
+		Vector3 to3 = new Vector3(to.x, 0.0f, to.y).normalize();
 		float angle = getAngleBetweenVector(from3, to3);
-		Vector3 crossVec = cross(from3, to3);
-		if (crossVec.y < 0.0f)
+		if (from3.cross(to3).y < 0.0f)
 		{
 			angle = -angle;
 		}
 		if (radian == ANGLE.DEGREE)
 		{
-			angle = toDegree(angle);
+			angle = angle.toDegree();
 		}
 		return angle;
 	}
@@ -1845,36 +1527,32 @@ public class MathUtility
 	// 判断两个向量从from到to的角度的符号,同向或反向时为0
 	public static int getAngleSignVector2ToVector2(Vector2 from, Vector2 to)
 	{
-		Vector3 from3 = normalize(new Vector3(from.x, 0.0f, from.y));
-		Vector3 to3 = normalize(new Vector3(to.x, 0.0f, to.y));
+		Vector3 from3 = new Vector3(from.x, 0.0f, from.y).normalize();
+		Vector3 to3 = new Vector3(to.x, 0.0f, to.y).normalize();
 		// 两个向量同向或者反向时角度为0,否则角度不为0
-		int angle = isVectorEqual(from3, to3) || isVectorZero(from3 + to3) ? 0 : 1;
-		if (angle != 0)
+		int angle = from3.isVectorEqual(to3) || from3.isVectorEqual(-to3) ? 0 : 1;
+		if (angle != 0 && from3.cross(to3).y < 0.0f)
 		{
-			Vector3 crossVec = cross(from3, to3);
-			if (crossVec.y < 0.0f)
-			{
-				angle = -angle;
-			}
+			angle = -angle;
 		}
 		return sign(angle);
 	}
 	// 计算从from到to的角度，根据法线normal决定角度的正负
 	public static float getAngleVectorToVector(Vector3 from, Vector3 to, Vector3 normal, ANGLE radian = ANGLE.RADIAN)
 	{
-		if(isVectorEqual(from, to))
+		if (from.isVectorEqual(to))
 		{
 			return 0.0f;
 		}
 		float angle = getAngleBetweenVector(from, to);
-		Vector3 crossVec = cross(from, to);
-		if (!isVectorEqual(normalize(crossVec), normalize(normal)))
+		Vector3 crossVec = from.cross(to);
+		if (!crossVec.normalize().isVectorEqual(normal.normalize()))
 		{
 			angle = -angle;
 		}
 		if (radian == ANGLE.DEGREE)
 		{
-			angle = toDegree(angle);
+			angle = angle.toDegree();
 		}
 		return angle;
 	}
@@ -1886,12 +1564,12 @@ public class MathUtility
 			from.y = 0.0f;
 			to.y = 0.0f;
 		}
-		if(isVectorEqual(from, to))
+		if(from.isVectorEqual(to))
 		{
 			return 0.0f;
 		}
 		float angle = getAngleBetweenVector(from, to);
-		Vector3 crossVec = cross(from, to);
+		Vector3 crossVec = from.cross(to);
 		if (baseY)
 		{
 			if (crossVec.y < 0.0f)
@@ -1908,7 +1586,7 @@ public class MathUtility
 		}
 		if (radian == ANGLE.DEGREE)
 		{
-			angle = toDegree(angle);
+			angle = angle.toDegree();
 		}
 		return angle;
 	}
@@ -1922,13 +1600,13 @@ public class MathUtility
 	public static void getDegreeYawPitchFromDirection(Vector3 dir, out float fYaw, out float fPitch)
 	{
 		getRadianYawPitchFromDirection(dir, out fYaw, out fPitch);
-		fYaw = toDegree(fYaw);
-		fPitch = toDegree(fPitch);
+		fYaw = fYaw.toDegree();
+		fPitch = fPitch.toDegree();
 	}
 	// 计算向量的航向角和俯仰角,fYaw是-PI到PI之间
 	public static void getRadianYawPitchFromDirection(Vector3 dir, out float fYaw, out float fPitch)
 	{
-		normalize(ref dir);
+		dir = dir.normalize();
 		// 首先计算俯仰角,俯仰角是向量与X-Z平面的夹角,在上面为负,在下面为正
 		fPitch = getVectorPitch(dir);
 		fYaw = getVectorYaw(dir);
@@ -1936,25 +1614,25 @@ public class MathUtility
 	// 给定一段圆弧,以及圆弧圆心角的百分比,计算对应的圆弧上的一个点以及该点的切线方向
 	public static void getPosOnArc(Vector3 circleCenter, Vector3 startArcPos, Vector3 endArcPos, float anglePercent, out Vector3 pos, out Vector3 tangencyDir)
 	{
-		float radius = getLength(startArcPos - circleCenter);
+		float radius = (startArcPos - circleCenter).getLength();
 		Vector3 start = startArcPos - circleCenter;
 		Vector3 end = endArcPos - circleCenter;
-		saturate(ref anglePercent);
+		anglePercent = anglePercent.saturate();
 		// 首先判断从起始半径线段到终止半径线段的角度的正负
 		float angleBetween = getAngleVector2ToVector2(new(start.x, start.z), new(end.x, end.z));
-		if (isFloatZero(angleBetween))
+		if (angleBetween.isFloatZero())
 		{
-			pos = normalize(start) * radius;
-			tangencyDir = normalize(rotateVector3(-pos, HALF_PI_RADIAN));
+			pos = start.normalize() * radius;
+			tangencyDir = (-pos).rotateVector3(HALF_PI_RADIAN).normalize();
 		}
 		// 根据夹角的正负,判断应该顺时针还是逆时针旋转起始半径线段
 		else
 		{
-			pos = normalize(rotateVector3(start, anglePercent * angleBetween)) * radius;
+			pos = start.rotateVector3(anglePercent * angleBetween).normalize() * radius;
 			// 计算切线,如果顺时针计算出的切线与从起始点到终止点所成的角度大于90度,则使切线反向
-			tangencyDir = normalize(rotateVector3(-pos, HALF_PI_RADIAN));
+			tangencyDir = (-pos).rotateVector3(HALF_PI_RADIAN).normalize();
 			Vector3 posToEnd = end - pos;
-			if (abs(getAngleVector2ToVector2(new(tangencyDir.x, tangencyDir.z), new(posToEnd.x, posToEnd.z))) > HALF_PI_RADIAN)
+			if (getAngleVector2ToVector2(new(tangencyDir.x, tangencyDir.z), new(posToEnd.x, posToEnd.z)).abs() > HALF_PI_RADIAN)
 			{
 				tangencyDir = -tangencyDir;
 			}
@@ -1964,133 +1642,15 @@ public class MathUtility
 	// 根据入射角和法线得到反射角
 	public static Vector3 getReflection(Vector3 inRay, Vector3 normal)
 	{
-		normalize(ref inRay);
-		return inRay - 2 * getProjection(inRay, normalize(normal));
-	}
-	// 将vec的长度限定到maxLength,如果长度未超过,则不作修改
-	public static Vector3 clampLength(Vector3 vec, float maxLength)
-	{
-		if(lengthGreater(vec, maxLength))
-		{
-			return normalize(vec) * maxLength;
-		}
-		return vec;
-	}
-	// 将vec的长度限定到maxLength,如果长度未超过,则不作修改
-	public static void clampLength(ref Vector3 vec, float maxLength)
-	{
-		if (lengthGreater(vec, maxLength))
-		{
-			vec = normalize(vec) * maxLength;
-		}
-	}
-	// 将向量的X设置为0
-	public static Vector3 resetX(Vector3 v) { return new(0.0f, v.y, v.z); }
-	// 将向量的Y设置为0
-	public static Vector3 resetY(Vector3 v) { return new(v.x, 0.0f, v.z); }
-	// 将向量的Z设置为0
-	public static Vector3 resetZ(Vector3 v) { return new(v.x, v.y, 0.0f); }
-	// 将向量的X替换为指定值
-	public static Vector3 replaceX(Vector3 v, float x) { return new(x, v.y, v.z); }
-	// 将向量的Y替换为指定值
-	public static Vector3 replaceY(Vector3 v, float y) { return new(v.x, y, v.z); }
-	// 将向量的Z替换为指定值
-	public static Vector3 replaceZ(Vector3 v, float z) { return new(v.x, v.y, z); }
-	// vec0的3个分量是否都小于vec1的3个分量
-	public static bool isVector3Less(Vector3 vec0, Vector3 vec1) { return vec0.x < vec1.x && vec0.y < vec1.y && vec0.z < vec1.z; }
-	// vec0的3个分量是否都大于vec1的3个分量
-	public static bool isVector3Greater(Vector3 vec0, Vector3 vec1) { return vec0.x > vec1.x && vec0.y > vec1.y && vec0.z > vec1.z; }
-	// vec0的2个分量是否都小于vec1的2个分量
-	public static bool isVector2Less(Vector2 vec0, Vector2 vec1) { return vec0.x < vec1.x && vec0.y < vec1.y; }
-	// vec0的2个分量是否都大于vec1的2个分量
-	public static bool isVector2Greater(Vector2 vec0, Vector2 vec1) { return vec0.x > vec1.x && vec0.y > vec1.y; }
-	public static bool isVectorEqual(Vector2 vec0, Vector2 vec1, float precision = 0.0001f) 
-	{
-		return isFloatZero(vec0.x - vec1.x, precision) && 
-			   isFloatZero(vec0.y - vec1.y, precision); 
-	}
-	public static bool isVectorEqual(Vector3 vec0, Vector3 vec1, float precision = 0.0001f) 
-	{
-		return isFloatZero(vec0.x - vec1.x, precision) && 
-			   isFloatZero(vec0.y - vec1.y, precision) && 
-			   isFloatZero(vec0.z - vec1.z, precision); 
-	}
-	public static bool isVectorZero(Vector2 vec, float precision = 0.0001f) 
-	{
-		return isFloatZero(vec.x, precision) && 
-			   isFloatZero(vec.y, precision); 
-	}
-	public static bool isVectorZero(Vector3 vec, float precision = 0.0001f) 
-	{ 
-		return isFloatZero(vec.x, precision) && 
-			   isFloatZero(vec.y, precision) && 
-			   isFloatZero(vec.z, precision); 
-	}
-	public static bool isQuaternionEqual(Quaternion value0, Quaternion value1, float precision = 0.0001f)
-	{
-		return isFloatEqual(value0.x, value1.x, precision) &&
-			   isFloatEqual(value0.y, value1.y, precision) &&
-			   isFloatEqual(value0.z, value1.z, precision) &&
-			   isFloatEqual(value0.w, value1.w, precision);
-	}
-	public static float getLength(Vector4 vec) { return sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z + vec.w * vec.w); }
-	public static float getLength(Vector3 vec) { return sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z); }
-	public static float getLengthIgnoreY(Vector3 vec) { return sqrt(vec.x * vec.x + vec.z * vec.z); }
-	public static float getLength(Vector2 vec) { return sqrt(vec.x * vec.x + vec.y * vec.y); }
-	public static float getSquaredLength(Vector4 vec) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z + vec.w * vec.w; }
-	public static float getSquaredLength(Vector3 vec) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z; }
-	public static float getSquaredLengthIgnoreY(Vector3 vec) { return vec.x * vec.x + vec.z * vec.z; }
-	public static float getSquaredLength(Vector2 vec) { return vec.x * vec.x + vec.y * vec.y; }
-	public static bool lengthLess(Vector2 vec0, Vector2 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y < vec1.x * vec1.x + vec1.y * vec1.y; }
-	public static bool lengthLess(Vector2 vec, float length) { return vec.x * vec.x + vec.y * vec.y < length * length; }
-	public static bool lengthLess(Vector3 vec0, Vector3 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y + vec0.z * vec0.z < vec1.x * vec1.x + vec1.y * vec1.y + vec1.z * vec1.z; }
-	public static bool lengthLess(Vector3 vec, float length) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z < length * length; }
-	public static bool lengthLessIgnoreY(Vector3 vec, float length) { return vec.x * vec.x + vec.z * vec.z < length * length; }
-	public static bool lengthLess(Vector4 vec, float length) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z + vec.w * vec.w < length * length; }
-	public static bool lengthLessEqual(Vector2 vec0, Vector2 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y <= vec1.x * vec1.x + vec1.y * vec1.y; }
-	public static bool lengthLessEqual(Vector2 vec, float length) { return vec.x * vec.x + vec.y * vec.y <= length * length; }
-	public static bool lengthLessEqual(Vector3 vec0, Vector3 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y + vec0.z * vec0.z <= vec1.x * vec1.x + vec1.y * vec1.y + vec1.z * vec1.z; }
-	public static bool lengthLessEqual(Vector3 vec, float length) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z <= length * length; }
-	public static bool lengthLessEqualIgnoreY(Vector3 vec, float length) { return vec.x * vec.x + vec.z * vec.z <= length * length; }
-	public static bool lengthGreater(Vector2 vec, float length) { return vec.x * vec.x + vec.y * vec.y > length * length; }
-	public static bool lengthGreater(Vector2 vec0, Vector2 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y > vec1.x * vec1.x + vec1.y * vec1.y; }
-	public static bool lengthGreater(Vector3 vec, float length) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z > length * length; }
-	public static bool lengthGreaterIgnoreY(Vector3 vec, float length) { return vec.x * vec.x + vec.z * vec.z > length * length; }
-	public static bool lengthGreater(Vector3 vec0, Vector3 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y + vec0.z * vec0.z > vec1.x * vec1.x + vec1.y * vec1.y + vec1.z * vec1.z; }
-	public static bool lengthGreaterEqual(Vector2 vec, float length) { return vec.x * vec.x + vec.y * vec.y >= length * length; }
-	public static bool lengthGreaterEqual(Vector2 vec0, Vector2 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y >= vec1.x * vec1.x + vec1.y * vec1.y; }
-	public static bool lengthGreaterEqual(Vector3 vec, float length) { return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z >= length * length; }
-	public static bool lengthGreaterEqual(Vector3 vec0, Vector3 vec1) { return vec0.x * vec0.x + vec0.y * vec0.y + vec0.z * vec0.z >= vec1.x * vec1.x + vec1.y * vec1.y + vec1.z * vec1.z; }
-	public static bool lengthGreaterEqualIgnoreY(Vector3 vec, float length) { return vec.x * vec.x + vec.z * vec.z >= length * length; }
-	public static Vector3 setLength(Vector3 vec, float length) 
-	{
-		float scale = divide(1.0f, getLength(vec)) * length;
-		return new(vec.x * scale, vec.y * scale, vec.z * scale);
-	}
-	public static void setLength(ref Vector3 vec, float length) 
-	{
-		float scale = divide(1.0f, getLength(vec)) * length;
-		vec.x *= scale;
-		vec.y *= scale;
-		vec.z *= scale;
-	}
-	public static Vector2 setLength(Vector2 vec, float length)
-	{
-		float scale = divide(1.0f, getLength(vec)) * length;
-		return new(vec.x * scale, vec.y * scale);
-	}
-	public static void setLength(ref Vector2 vec, float length)
-	{
-		float scale = divide(1.0f, getLength(vec)) * length;
-		vec.x *= scale;
-		vec.y *= scale;
+		inRay = inRay.normalize();
+		return inRay - 2 * getProjection(inRay, normal.normalize());
 	}
 	// 将矩阵的缩放设置为1,并且不改变位移和旋转
 	public static Matrix4x4 identityMatrix4(Matrix4x4 rot)
 	{
-		Vector3 vec0 = normalize(new Vector3(rot.m00, rot.m01, rot.m02));
-		Vector3 vec1 = normalize(new Vector3(rot.m10, rot.m11, rot.m12));
-		Vector3 vec2 = normalize(new Vector3(rot.m20, rot.m21, rot.m22));
+		Vector3 vec0 = new Vector3(rot.m00, rot.m01, rot.m02).normalize();
+		Vector3 vec1 = new Vector3(rot.m10, rot.m11, rot.m12).normalize();
+		Vector3 vec2 = new Vector3(rot.m20, rot.m21, rot.m22).normalize();
 		Matrix4x4 temp = new();
 		temp.m00 = vec0.x;
 		temp.m01 = vec0.y;
@@ -2111,15 +1671,15 @@ public class MathUtility
 		// 交线为X = -rot[2][2] / rot[2][0] * Z,然后随意构造出一个向量
 		Vector3 intersectLineVector;
 		float angleRoll;
-		if (!isFloatZero(tempMat4.m20) || !isFloatZero(tempMat4.m22))
+		if (!tempMat4.m20.isFloatZero() || !tempMat4.m22.isFloatZero())
 		{
 			// 矩阵中Z轴的x分量为0,则交线在世界坐标系的X轴上,取X轴正方向上的一个点
-			if (isFloatZero(tempMat4.m20) && !isFloatZero(tempMat4.m22))
+			if (tempMat4.m20.isFloatZero() && !tempMat4.m22.isFloatZero())
 			{
 				intersectLineVector = new(1.0f, 0.0f, 0.0f);
 			}
 			// 矩阵中Z轴的z分量为0,则交线在世界坐标系的Z轴上,
-			else if (!isFloatZero(tempMat4.m20) && isFloatZero(tempMat4.m22))
+			else if (!tempMat4.m20.isFloatZero() && tempMat4.m22.isFloatZero())
 			{
 				// Z轴朝向世界坐标系的X轴正方向,即Z轴的x分量大于0,应该计算X轴与世界坐标系的Z轴负方向的夹角
 				if (tempMat4.m20 > 0.0f)
@@ -2135,7 +1695,7 @@ public class MathUtility
 			// 矩阵中Z轴的x和z分量都不为0,取X轴正方向上的一个点
 			else
 			{
-				intersectLineVector = new(1.0f, 0.0f, -divide(tempMat4.m20, tempMat4.m22));
+				intersectLineVector = new(1.0f, 0.0f, -tempMat4.m20.divide(tempMat4.m22));
 			}
 			// 然后求出矩阵中X轴与交线的夹角
 			angleRoll = getAngleBetweenVector(intersectLineVector, new(tempMat4.m00, tempMat4.m01, tempMat4.m02));
@@ -2158,7 +1718,7 @@ public class MathUtility
 
 		// 计算出滚动角后,将矩阵中的滚动角归0
 		Matrix4x4 nonRollMat = rot;
-		if (!isFloatZero(angleRoll))
+		if (!angleRoll.isFloatZero())
 		{
 			nonRollMat *= getRollMatrix3(-angleRoll);
 		}
@@ -2167,7 +1727,7 @@ public class MathUtility
 		// Z轴与Z轴在水平面上的投影的夹角
 		Vector3 zAxisInMatrix = new(nonRollMat.m20, nonRollMat.m21, nonRollMat.m22);
 		float anglePitch;
-		if (!isFloatZero(zAxisInMatrix.x) || !isFloatZero(zAxisInMatrix.z))
+		if (!zAxisInMatrix.x.isFloatZero() || !zAxisInMatrix.z.isFloatZero())
 		{
 			anglePitch = getAngleBetweenVector(zAxisInMatrix, new(zAxisInMatrix.x, 0.0f, zAxisInMatrix.z));
 			// Z轴的y分量小于0,则俯仰角为负
@@ -2214,22 +1774,22 @@ public class MathUtility
 	// 返回值是弧度值的角度
 	public static float getAngleBetweenVector(Vector3 vec1, Vector3 vec2)
 	{
-		return acos(dot(normalize(vec1), normalize(vec2)));
+		return vec1.normalize().dot(vec2.normalize()).acos();
 	}
 	// 返回值是弧度值的角度
 	public static float getAngleBetweenVector(Vector2 vec1, Vector2 vec2)
 	{
-		return acos(dot(normalize((Vector3)vec1), normalize((Vector3)vec2)));
+		return ((Vector3)vec1).normalize().dot(((Vector3)vec2).normalize()).acos();
 	}
 	// 计算点到线的距离
 	public static float getDistanceToLine(Vector3 point, Line3 line)
 	{
-		return getLength(point - getProjectPoint(point, line));
+		return (point - getProjectPoint(point, line)).getLength();
 	}
 	// 计算点到线的距离
 	public static float getDistanceToLine(Vector2 point, Line2 line)
 	{
-		return getLength(point - getProjectPoint(point, line));
+		return (point - getProjectPoint(point, line)).getLength();
 	}
 	// 计算点在线上的投影
 	public static Vector3 getProjectPoint(Vector3 point, Line3 line)
@@ -2252,7 +1812,7 @@ public class MathUtility
 	{
 		Vector3 point0 = line.mStart;
 		Vector3 point1 = line.mEnd;
-		if (lengthGreater(point - line.mStart, point - line.mEnd))
+		if ((point - line.mStart).lengthGreater(point - line.mEnd))
 		{
 			point0 = line.mEnd;
 			point1 = line.mStart;
@@ -2264,7 +1824,7 @@ public class MathUtility
 	{
 		Vector2 point0 = line.mStart;
 		Vector2 point1 = line.mEnd;
-		if (lengthGreater(point - line.mStart, point - line.mEnd))
+		if ((point - line.mStart).lengthGreater(point - line.mEnd))
 		{
 			point0 = line.mEnd;
 			point1 = line.mStart;
@@ -2274,35 +1834,12 @@ public class MathUtility
 	// 计算向量v1在向量v2上的投影
 	public static Vector3 getProjection(Vector3 v1, Vector3 v2)
 	{
-		return divide(normalize(v2) * dot(v1, v2), getLength(v2));
+		return (v2.normalize() * v1.dot(v2)).divide(v2.getLength());
 	}
 	public static Vector2 getProjection(Vector2 v1, Vector2 v2)
 	{
-		float inverseLen = divide(1.0f, getLength(v2));
+		float inverseLen = 1.0f.divide(v2.getLength());
 		return (v1.x * v2.x + v1.y * v2.y) * inverseLen * inverseLen * v2;
-	}
-	public static Vector3 normalize(Vector3 vec3)
-	{
-		float inverseLen = divide(1.0f, getLength(vec3));
-		return new(vec3.x * inverseLen, vec3.y * inverseLen, vec3.z * inverseLen);
-	}
-	public static void normalize(ref Vector3 vec3)
-	{
-		float inverseLen = divide(1.0f, getLength(vec3));
-		vec3.x *= inverseLen;
-		vec3.y *= inverseLen;
-		vec3.z *= inverseLen;
-	}
-	public static Vector2 normalize(Vector2 vec2)
-	{
-		float inverseLen = divide(1.0f, getLength(vec2));
-		return new(vec2.x * inverseLen, vec2.y * inverseLen);
-	}
-	public static void normalize(ref Vector2 vec2)
-	{
-		float inverseLen = divide(1.0f, getLength(vec2));
-		vec2.x *= inverseLen;
-		vec2.y *= inverseLen;
 	}
 	public static Matrix4x4 eulerAngleToMatrix3(Vector3 angle)
 	{
@@ -2311,8 +1848,8 @@ public class MathUtility
 	}
 	public static Matrix4x4 getYawMatrix3(float angle)
 	{
-		float cosY = cos(angle);
-		float sinY = sin(angle);
+		float cosY = angle.cos();
+		float sinY = angle.sin();
 		Matrix4x4 rot = new();
 		rot.m00 = cosY;
 		rot.m01 = 0.0f;
@@ -2327,8 +1864,8 @@ public class MathUtility
 	}
 	public static Matrix4x4 getPitchMatrix3(float angle)
 	{
-		float cosZ = cos(angle);
-		float sinZ = sin(angle);
+		float cosZ = angle.cos();
+		float sinZ = angle.sin();
 		Matrix4x4 rot = new();
 		rot.m00 = 1.0f;
 		rot.m01 = 0.0f;
@@ -2343,8 +1880,8 @@ public class MathUtility
 	}
 	public static Matrix4x4 getRollMatrix3(float angle)
 	{
-		float cosX = cos(angle);
-		float sinX = sin(angle);
+		float cosX = angle.cos();
+		float sinX = angle.sin();
 		Matrix4x4 rot = new();
 		rot.m00 = cosX;
 		rot.m01 = -sinX;
@@ -2361,13 +1898,13 @@ public class MathUtility
 	public static bool checkReachTarget(ref float curValue, float delta, float target)
 	{
 		// 当前已经到达目标,则不需要计算
-		if (isFloatEqual(curValue, target))
+		if (curValue.isFloatEqual(target))
 		{
 			return true;
 		}
 		float newValue = curValue + delta;
 		// 加上delta以后等于了target,或者超过了target,则是到达目标
-		if (isFloatEqual(target, newValue) || (int)sign(target - newValue) != (int)sign(target - curValue))
+		if (target.isFloatEqual(newValue) || (int)sign(target - newValue) != (int)sign(target - curValue))
 		{
 			curValue = target;
 			return true;
@@ -2375,24 +1912,13 @@ public class MathUtility
 		curValue = newValue;
 		return false;
 	}
-	public static float toRadian(float degree) { return degree * Mathf.Deg2Rad; }
-	public static void toRadian(ref float degree) { degree *= Mathf.Deg2Rad; }
-	public static Vector3 toRadian(Vector3 degree) { return degree * Mathf.Deg2Rad; }
-	public static void toRadian(ref Vector3 degree) { degree *= Mathf.Deg2Rad; }
-	public static float toDegree(float radian) { return radian * Mathf.Rad2Deg; }
-	public static void toDegree(ref float radian) { radian *= Mathf.Rad2Deg; }
-	public static Vector3 toDegree(Vector3 radian) { return radian * Mathf.Rad2Deg; }
-	public static void toDegree(ref Vector3 radian) { radian *= Mathf.Rad2Deg; }
-	public static float getQuaternionYaw(Quaternion q) { return q.eulerAngles.y; }
-	public static float getQuaternionPitch(Quaternion q) { return q.eulerAngles.z; }
-	public static float getQuaternionRoll(Quaternion q) { return q.eulerAngles.x; }
 	// 根据公式y = a * x * x + b * x + c
-	public static float generateFactorBFromFactorA(float factorA, Vector3 point) { return divide(point.y - factorA * point.x * point.x, point.x); }
-	public static float generateFactorA(float factorB, Vector3 point) { return divide(point.y - factorB * point.x, point.x * point.x); }
-	public static float generateTopHeight(float factorA, float factorB) { return -divide(factorB * factorB, 4.0f * factorA); }
+	public static float generateFactorBFromFactorA(float factorA, Vector3 point) { return (point.y - factorA * point.x * point.x).divide(point.x); }
+	public static float generateFactorA(float factorB, Vector3 point) { return (point.y - factorB * point.x).divide(point.x * point.x); }
+	public static float generateTopHeight(float factorA, float factorB) { return -(factorB * factorB).divide(4.0f * factorA); }
 	public static float generateFactorBFromHeight(float topHeight, Vector3 point, bool leftOrRight = false)
 	{
-		if(isFloatZero(topHeight))
+		if (topHeight.isFloatZero())
 		{
 			return 0.0f;
 		}
@@ -2403,8 +1929,8 @@ public class MathUtility
 		// 联立以上两个方程可以得知
 		// 0 = -px * px / (4 * h) * b * b  + px * b - py
 		// 将此方程看作是b的一元二次方程，可解得b的值
-		float a0 = -divide(point.x * point.x, 4.0f * topHeight);
-		if(isFloatZero(a0))
+		float a0 = -(point.x * point.x).divide(4.0f * topHeight);
+		if (a0.isFloatZero())
 		{
 			return 0.0f;
 		}
@@ -2416,7 +1942,7 @@ public class MathUtility
 			return 0.0f;
 		}
 		int sign = leftOrRight ? 1 : -1;
-		return divide(-b0 + sqrt(delta) * sign, 2.0f * a0);
+		return (-b0 + delta.sqrt() * sign).divide(2.0f * a0);
 	}
 	// 根据抛物线起点,顶点相对于起点的高度和抛物线上的一个点(都是世界坐标系下的点),计算出抛物线的公式
 	// 对世界坐标系下的点需要经过一次坐标系转换,坐标系以origin为原点,以从origin到otherPoint的方向为X轴
@@ -2424,7 +1950,7 @@ public class MathUtility
 	// 计算出的抛物线是过原点的,开口向下的,顶点在X轴正方向的,且对称轴在point和原点之间
 	public static void generateParabola(float topHeight, Vector3 origin, Vector3 otherPoint, out float factorA, out float factorB)
 	{
-		Vector3 newPos = new(getLength(resetY(otherPoint - origin)), otherPoint.y - origin.y);
+		Vector3 newPos = new((otherPoint - origin).resetY().getLength(), otherPoint.y - origin.y);
 		factorB = generateFactorBFromHeight(topHeight, newPos, false);
 		factorA = generateFactorA(factorB, newPos);
 	}
@@ -2449,30 +1975,30 @@ public class MathUtility
 	public static uint getMax(uint a, uint b) { return a > b ? a : b; }
 	public static float inverseLerp(float a, float b, float value)
 	{
-		return divide(value - a, b - a);
+		return (value - a).divide(b - a);
 	}
 	public static float inverseLerp(Vector2 a, Vector2 b, Vector2 value)
 	{
-		return divide(getLength(value - a), getLength(b - a));
+		return (value - a).getLength().divide((b - a).getLength());
 	}
 	public static float inverseLerp(Vector3 a, Vector3 b, Vector3 value)
 	{
-		return divide(getLength(value - a), getLength(b - a));
+		return (value - a).getLength().divide((b - a).getLength());
 	}
 	public static float lerpSimple(float start, float end, float t) { return start + (end - start) * t; }
 	public static Vector3 lerpSimple(Vector3 start, Vector3 end, float t) { return start + (end - start) * t; }
 	public static Color lerpSimple(Color start, Color end, float t) { return start + (end - start) * t; }
 	public static int lerp(int start, int end, float t)
 	{
-		saturate(ref t);
+		t = t.saturate();
 		return start + (int)((end - start) * t);
 	}
 	public static float lerp(float start, float end, float t, float minRange = 0.0f)
 	{
-		saturate(ref t);
+		t = t.saturate();
 		float value = start + (end - start) * t;
 		// 如果值已经在end的一定范围内了,则直接设置为end
-		if (abs(value - end) <= minRange)
+		if ((value - end).abs() <= minRange)
 		{
 			value = end;
 		}
@@ -2480,10 +2006,10 @@ public class MathUtility
 	}
 	public static Vector3 lerp(Vector3 start, Vector3 end, float t, float minRange = 0.0f)
 	{
-		saturate(ref t);
+		t = t.saturate();
 		Vector3 value = start + (end - start) * t;
 		// 如果值已经在end的一定范围内了,则直接设置为end
-		if (lengthLess(value - end, minRange))
+		if ((value - end).lengthLess(minRange))
 		{
 			value = end;
 		}
@@ -2491,10 +2017,10 @@ public class MathUtility
 	}
 	public static Vector4 lerp(Vector4 start, Vector4 end, float t, float minRange = 0.0f)
 	{
-		saturate(ref t);
+		t = t.saturate();
 		Vector4 value = start + (end - start) * t;
 		// 如果值已经在end的一定范围内了,则直接设置为end
-		if (lengthLess(value - end, minRange))
+		if ((value - end).lengthLess(minRange))
 		{
 			value = end;
 		}
@@ -2502,16 +2028,16 @@ public class MathUtility
 	}
 	public static Quaternion lerp(Quaternion start, Quaternion end, float t)
 	{
-		saturate(ref t);
+		t = t.saturate();
 		return Quaternion.Lerp(start, end, t);
 	}
 	public static Color lerp(Color start, Color end, float t, float minRange = 0.0f)
 	{
-		saturate(ref t);
+		t = t.saturate();
 		Color value = start + (end - start) * t;
 		// 如果值已经在end的一定范围内了,则直接设置为end
 		Color curDelta = value - end;
-		if (getSquaredLength(new Vector4(curDelta.r, curDelta.g, curDelta.b, curDelta.a)) <= minRange * minRange)
+		if (new Vector4(curDelta.r, curDelta.g, curDelta.b, curDelta.a).getSquaredLength() <= minRange * minRange)
 		{
 			value = end;
 		}
@@ -2521,26 +2047,26 @@ public class MathUtility
 	public static void perfectRotationDeltaDegree(ref float start, ref float target)
 	{
 		// 先都调整到-180~180的范围
-		adjustAngle180(ref start);
-		adjustAngle180(ref target);
+		start = start.adjustAngle180();
+		target = target.adjustAngle180();
 		// 如果目标方向与当前方向的差值超过180,则转换到0~360再计算
-		if (abs(target - start) > PI_DEGREE)
+		if ((target - start).abs() > PI_DEGREE)
 		{
-			adjustAngle360(ref start);
-			adjustAngle360(ref target);
+			start = start.adjustAngle360();
+			target = target.adjustAngle360();
 		}
 	}
 	// 当要旋转到指定角度时,可以调整当前角度和目标角度,使中间的夹角不会超过180°
 	public static void perfectRotationDeltaRadian(ref float start, ref float target)
 	{
 		// 先都调整到-180~180的范围
-		adjustRadian180(ref start);
-		adjustRadian180(ref target);
+		start = start.adjustRadian180();
+		target = target.adjustRadian180();
 		// 如果目标方向与当前方向的差值超过180,则转换到0~360再计算
-		if (abs(target - start) > PI_RADIAN)
+		if ((target - start).abs() > PI_RADIAN)
 		{
-			adjustRadian360(ref start);
-			adjustRadian360(ref target);
+			start = start.adjustRadian360();
+			target = target.adjustRadian360();
 		}
 	}
 	public static void perfectRotationDeltaDegree(ref Vector3 start, ref Vector3 target)
@@ -2558,432 +2084,16 @@ public class MathUtility
 	// 判断target是否在v0和v1之间,会自动寻找v0和v1的小于180°的夹角
 	public static bool isVector2BetweenVectors(Vector2 target, Vector2 v0, Vector2 v1)
 	{
-		float angle0 = getAngleFromVector2(v0);
-		float angle1 = getAngleFromVector2(v1);
-		float angle = getAngleFromVector2(target);
-		if (abs(angle1 - angle0) > PI_RADIAN)
+		float angle0 = v0.getAngleFromVector2();
+		float angle1 = v1.getAngleFromVector2();
+		float angle = target.getAngleFromVector2();
+		if ((angle1 - angle0).abs() > PI_RADIAN)
 		{
-			adjustRadian360(ref angle0);
-			adjustRadian360(ref angle1);
-			adjustRadian360(ref angle);
+			angle0 = angle0.adjustRadian360();
+			angle1 = angle1.adjustRadian360();
+			angle = angle.adjustRadian360();
 		}
 		return angle >= angle0 && angle <= angle1;
-	}
-	public static void clamp(ref float value, float min, float max)
-	{
-		if (min > max || isFloatEqual(min, max))
-		{
-			value = min;
-			return;
-		}
-		if (value < min)
-		{
-			value = min;
-		}
-		else if (value > max)
-		{
-			value = max;
-		}
-	}
-	public static void clamp(ref int value, int min, int max)
-	{
-		if (min > max)
-		{
-			return;
-		}
-		if (min == max)
-		{
-			value = min;
-			return;
-		}
-		if (value < min)
-		{
-			value = min;
-		}
-		else if (value > max)
-		{
-			value = max;
-		}
-	}
-	public static void clamp(ref long value, long min, long max)
-	{
-		if (min > max)
-		{
-			return;
-		}
-		if (min == max)
-		{
-			value = min;
-			return;
-		}
-		if (value < min)
-		{
-			value = min;
-		}
-		else if (value > max)
-		{
-			value = max;
-		}
-	}
-	public static float clamp(float value, float min, float max)
-	{
-		if (min > max || isFloatEqual(min, max))
-		{
-			return min;
-		}
-		if (value < min)
-		{
-			return min;
-		}
-		else if (value > max)
-		{
-			return max;
-		}
-		return value;
-	}
-	public static int clamp(int value, int min, int max)
-	{
-		if (min > max)
-		{
-			return value;
-		}
-		if (min == max)
-		{
-			return min;
-		}
-		if (value < min)
-		{
-			return min;
-		}
-		else if (value > max)
-		{
-			return max;
-		}
-		return value;
-	}
-	public static long clamp(long value, long min, long max)
-	{
-		if (min > max)
-		{
-			return value;
-		}
-		if (min == max)
-		{
-			return min;
-		}
-		if (value < min)
-		{
-			return min;
-		}
-		else if (value > max)
-		{
-			return max;
-		}
-		return value;
-	}
-	public static void clampMin(ref byte value, byte min = 0)
-	{
-		if (value < min)
-		{
-			value = min;
-		}
-	}
-	public static void clampMin(ref sbyte value, sbyte min = 0)
-	{
-		if (value < min)
-		{
-			value = min;
-		}
-	}
-	public static void clampMin(ref short value, short min = 0)
-	{
-		if (value < min)
-		{
-			value = min;
-		}
-	}
-	public static void clampMin(ref ushort value, ushort min = 0)
-	{
-		if (value < min)
-		{
-			value = min;
-		}
-	}
-	public static void clampMin(ref int value, int min = 0)
-	{
-		if (value < min)
-		{
-			value = min;
-		}
-	}
-	public static void clampMin(ref uint value, uint min = 0)
-	{
-		if (value < min)
-		{
-			value = min;
-		}
-	}
-	public static void clampMin(ref long value, long min = 0)
-	{
-		if (value < min)
-		{
-			value = min;
-		}
-	}
-	public static void clampMin(ref ulong value, ulong min = 0)
-	{
-		if (value < min)
-		{
-			value = min;
-		}
-	}
-	public static void clampMin(ref float value, float min = 0.0f)
-	{
-		if (value < min)
-		{
-			value = min;
-		}
-	}
-	public static void clampMin(ref double value, double min = 0.0)
-	{
-		if (value < min)
-		{
-			value = min;
-		}
-	}
-	public static float clampMin(float value, float min = 0.0f)
-	{
-		return value < min ? min : value;
-	}
-	public static int clampMin(int value, int min = 0)
-	{
-		return value < min ? min : value;
-	}
-	public static long clampMin(long value, long min = 0)
-	{
-		return value < min ? min : value;
-	}
-	public static void clampMax(ref byte value, byte max)
-	{
-		if (value > max)
-		{
-			value = max;
-		}
-	}
-	public static void clampMax(ref sbyte value, sbyte max)
-	{
-		if (value > max)
-		{
-			value = max;
-		}
-	}
-	public static void clampMax(ref short value, short max)
-	{
-		if (value > max)
-		{
-			value = max;
-		}
-	}
-	public static void clampMax(ref ushort value, ushort max)
-	{
-		if (value > max)
-		{
-			value = max;
-		}
-	}
-	public static void clampMax(ref int value, int max)
-	{
-		if (value > max)
-		{
-			value = max;
-		}
-	}
-	public static void clampMax(ref uint value, uint max)
-	{
-		if (value > max)
-		{
-			value = max;
-		}
-	}
-	public static void clampMax(ref long value, long max)
-	{
-		if (value > max)
-		{
-			value = max;
-		}
-	}
-	public static void clampMax(ref ulong value, ulong max)
-	{
-		if (value > max)
-		{
-			value = max;
-		}
-	}
-	public static void clampMax(ref float value, float max)
-	{
-		if (value > max)
-		{
-			value = max;
-		}
-	}
-	public static int clampMax(int value, int max)
-	{
-		return value > max ? max : value;
-	}
-	public static long clampMax(long value, long max)
-	{
-		return value > max ? max : value;
-	}
-	public static float clampMax(float value, float max)
-	{
-		return value > max ? max : value;
-	}
-	public static bool isFloatZero(float value, float precision = 0.0001f)
-	{
-		return value >= -precision && value <= precision;
-	}
-	public static bool isZero(double value, double precision = 0.00000001f)
-	{
-		return value >= -precision && value <= precision;
-	}
-	public static bool isFloatEqual(float value1, float value2, float precision = 0.0001f)
-	{
-		return isFloatZero(value1 - value2, precision);
-	}
-	public static bool isDoubleEqual(double value1, double value2, double precision = 0.00000001f)
-	{
-		return isZero(value1 - value2, precision);
-	}
-	// 返回value0/value1的值,如果value1为0,则返回defaultValue
-	public static float divide(float value0, float value1, float defaultValue = 0.0f)
-	{
-		return !isFloatZero(value1) ? value0 / value1 : defaultValue;
-	}
-	public static int divideInt(int value0, int value1, int defaultValue = 0)
-	{
-		return value1 != 0 ? value0 / value1 : defaultValue;
-	}
-	public static long divideLong(long value0, long value1, long defaultValue = 0)
-	{
-		return value1 != 0 ? value0 / value1 : defaultValue;
-	}
-	public static double divide(double value0, double value1, double defaultValue = 0.0f)
-	{
-		return !isZero(value1) ? value0 / value1 : defaultValue;
-	}
-	public static void clampCycle(ref int value, int min, int max, int cycle, bool includeMax = true)
-	{
-		while (value < min)
-		{
-			value += cycle;
-		}
-		if (includeMax)
-		{
-			while (value > max)
-			{
-				value -= cycle;
-			}
-		}
-		else
-		{
-			while (value >= max)
-			{
-				value -= cycle;
-			}
-		}
-	}
-	public static int clampCycle(int value, int min, int max, int cycle, bool includeMax = true)
-	{
-		while (value < min)
-		{
-			value += cycle;
-		}
-		if (includeMax)
-		{
-			while (value > max)
-			{
-				value -= cycle;
-			}
-		}
-		else
-		{
-			while (value >= max)
-			{
-				value -= cycle;
-			}
-		}
-		return value;
-	}
-	public static void clampCycle(ref float value, float min, float max, float cycle, bool includeMax = true)
-	{
-		while (value < min)
-		{
-			value += cycle;
-		}
-		if (includeMax)
-		{
-			while (value > max)
-			{
-				value -= cycle;
-			}
-		}
-		else
-		{
-			while (value >= max)
-			{
-				value -= cycle;
-			}
-		}
-	}
-	public static float clampCycle(float value, float min, float max, float cycle, bool includeMax = true)
-	{
-		while (value < min)
-		{
-			value += cycle;
-		}
-		if (includeMax)
-		{
-			while (value > max)
-			{
-				value -= cycle;
-			}
-		}
-		else
-		{
-			while (value >= max)
-			{
-				value -= cycle;
-			}
-		}
-		return value;
-	}
-	// fixedRangeOrder表示是否范围是从range0到range1,如果range0大于range1,则返回false
-	public static bool inRange(float value, float range0, float range1, float precision = 0.001f)
-	{
-		return value >= getMin(range0, range1) - precision && value <= getMax(range0, range1) + precision;
-	}
-	public static bool inRangeFixed(float value, float range0, float range1, float precision = 0.001f)
-	{
-		return value >= range0 - precision && value <= range1 + precision;
-	}
-	public static bool inRange(int value, int range0, int range1)
-	{
-		return value >= getMin(range0, range1) && value <= getMax(range0, range1);
-	}
-	public static bool inRangeFixed(int value, int range0, int range1)
-	{
-		return value >= range0 && value <= range1;
-	}
-	public static bool inRange(Vector3 value, Vector3 point0, Vector3 point1, bool ignoreY = true, float precision = 0.001f)
-	{
-		return inRange(value.x, point0.x, point1.x, precision) && 
-			   inRange(value.z, point0.z, point1.z, precision) &&
-			  (ignoreY || inRange(value.y, point0.y, point1.y, precision));
-	}
-	public static bool inRange(Vector2 value, Vector2 point0, Vector2 point1, float precision = 0.001f)
-	{
-		return inRange(value.x, point0.x, point1.x, precision) && 
-			   inRange(value.y, point0.y, point1.y, precision);
 	}
 	// 计算路线的总长度
 	public static float generatePathLength(List<Vector3> path)
@@ -2992,7 +2102,7 @@ public class MathUtility
 		int count = path.Count - 1;
 		for (int i = 0; i < count; ++i)
 		{
-			length += getLength(path[i] - path[i + 1]);
+			length += (path[i] - path[i + 1]).getLength();
 		}
 		return length;
 	}
@@ -3007,7 +2117,7 @@ public class MathUtility
 			float distanceFromLast = 0.0f;
 			if (i > 0)
 			{
-				distanceFromLast = getLength(keyPosList[i] - keyPosList[i - 1]);
+				distanceFromLast = (keyPosList[i] - keyPosList[i - 1]).getLength();
 				distanceFromStart += distanceFromLast;
 			}
 			keyPointList.Add(new(keyPosList[i], distanceFromStart, distanceFromLast));
@@ -3024,7 +2134,7 @@ public class MathUtility
 			float distanceFromLast = 0.0f;
 			if (i > 0)
 			{
-				distanceFromLast = getLength(keyPosList[i] - keyPosList[i - 1]);
+				distanceFromLast = (keyPosList[i] - keyPosList[i - 1]).getLength();
 				distanceFromStart += distanceFromLast;
 			}
 			keyPointList.Add(new(keyPosList[i], distanceFromStart, distanceFromLast));
@@ -3043,7 +2153,7 @@ public class MathUtility
 	{
 		if (curDistance < distanceListFromStart[startIndex].mDistanceFromStart)
 		{
-			return clampMin(startIndex - 1);
+			return (startIndex - 1).clampMin();
 		}
 		if (curDistance >= distanceListFromStart[endIndex].mDistanceFromStart)
 		{
@@ -3084,7 +2194,7 @@ public class MathUtility
 	{
 		if (curDistance < distanceListFromStart[startIndex])
 		{
-			return clampMin(startIndex - 1);
+			return (startIndex - 1).clampMin();
 		}
 		if (curDistance >= distanceListFromStart[endIndex])
 		{
@@ -3112,77 +2222,11 @@ public class MathUtility
 			return middleIndex;
 		}
 	}
-	public static Vector2 multiVector2(Vector2 v1, Vector2 v2) { return new(v1.x * v2.x, v1.y * v2.y); }
-	public static Vector2 divideVector2(Vector2 v1, Vector2 v2) { return new(divide(v1.x, v2.x), divide(v1.y, v2.y)); }
-	public static Vector3 multiVector3(Vector3 v1, Vector3 v2) { return new(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z); }
-	public static Vector3 divideVector3(Vector3 v1, Vector3 v2) { return new(divide(v1.x, v2.x), divide(v1.y, v2.y), divide(v1.z, v2.z)); }
-	public static Vector2 divide(Vector2 v1, float scale) { return new(divide(v1.x, scale), divide(v1.y, scale)); }
-	public static Vector3 divide(Vector3 v1, float scale) { return new(divide(v1.x, scale), divide(v1.y, scale), divide(v1.z, scale)); }
 	public static void swap<T>(ref T value0, ref T value1)
 	{
 		T temp = value0;
 		value0 = value1;
 		value1 = temp;
-	}
-	public static void adjustRadian180(ref float radian) { clampCycle(ref radian, -PI_RADIAN, PI_RADIAN, TWO_PI_RADIAN); }
-	public static float adjustRadian180(float radian) { return clampCycle(radian, -PI_RADIAN, PI_RADIAN, TWO_PI_RADIAN); }
-	public static Vector3 adjustRadian180(Vector3 radian)
-	{
-		adjustRadian180(ref radian.x);
-		adjustRadian180(ref radian.y);
-		adjustRadian180(ref radian.z);
-		return radian;
-	}
-	public static void adjustRadian180(ref Vector3 radian)
-	{
-		adjustRadian180(ref radian.x);
-		adjustRadian180(ref radian.y);
-		adjustRadian180(ref radian.z);
-	}
-	public static void adjustAngle180(ref float degree) { clampCycle(ref degree, -PI_DEGREE, PI_DEGREE, TWO_PI_DEGREE); }
-	public static float adjustAngle180(float degree) { return clampCycle(degree, -PI_DEGREE, PI_DEGREE, TWO_PI_DEGREE); }
-	public static Vector3 adjustAngle180(Vector3 degree)
-	{
-		adjustAngle180(ref degree.x);
-		adjustAngle180(ref degree.y);
-		adjustAngle180(ref degree.z);
-		return degree;
-	}
-	public static void adjustAngle180(ref Vector3 degree)
-	{
-		adjustAngle180(ref degree.x);
-		adjustAngle180(ref degree.y);
-		adjustAngle180(ref degree.z);
-	}
-	public static float adjustRadian360(float radian) { return clampCycle(radian, 0.0f, TWO_PI_RADIAN, TWO_PI_RADIAN); }
-	public static void adjustRadian360(ref float radian) { clampCycle(ref radian, 0.0f, TWO_PI_RADIAN, TWO_PI_RADIAN); }
-	public static Vector3 adjustRadian360(Vector3 radian)
-	{
-		adjustRadian360(ref radian.x);
-		adjustRadian360(ref radian.y);
-		adjustRadian360(ref radian.z);
-		return radian;
-	}
-	public static void adjustRadian360(ref Vector3 radian)
-	{
-		adjustRadian360(ref radian.x);
-		adjustRadian360(ref radian.y);
-		adjustRadian360(ref radian.z);
-	}
-	public static void adjustAngle360(ref float degree) { clampCycle(ref degree, 0.0f, TWO_PI_DEGREE, TWO_PI_DEGREE); }
-	public static float adjustAngle360(float degree) { return clampCycle(degree, 0.0f, TWO_PI_DEGREE, TWO_PI_DEGREE); }
-	public static Vector3 adjustAngle360(Vector3 degree)
-	{
-		adjustAngle360(ref degree.x);
-		adjustAngle360(ref degree.y);
-		adjustAngle360(ref degree.z);
-		return degree;
-	}
-	public static void adjustAngle360(ref Vector3 degree)
-	{
-		adjustAngle360(ref degree.x);
-		adjustAngle360(ref degree.y);
-		adjustAngle360(ref degree.z);
 	}
 	// 求从z轴到指定向量的水平方向上的顺时针角度,角度范围是-MATH_PI 到 MATH_PI
 	public static float getAngleFromQuaternion(Quaternion from, Quaternion to, ANGLE angleType = ANGLE.RADIAN)
@@ -3190,72 +2234,16 @@ public class MathUtility
 		float angle = Quaternion.Angle(from, to);
 		if (angleType == ANGLE.RADIAN)
 		{
-			angle = toRadian(angle);
+			angle = angle.toRadian();
 		}
 		return angle;
-	}
-	// 求从z轴到指定向量的水平方向上的顺时针角度,角度范围是-MATH_PI 到 MATH_PI
-	public static float getAngleFromVector3(Vector3 vec, ANGLE radian = ANGLE.RADIAN)
-	{
-		vec.y = 0.0f;
-		normalize(ref vec);
-		float angle = acos(vec.z);
-		if (vec.x > 0.0f)
-		{
-			angle = -angle;
-		}
-		adjustRadian180(ref angle);
-		// 在unity的坐标系中航向角需要取反
-		angle = -angle;
-		if (radian == ANGLE.DEGREE)
-		{
-			angle = toDegree(angle);
-		}
-		return angle;
-	}
-	public static float getAngleFromVector2(Vector2 vec)
-	{
-		Vector3 tempVec = normalize(new Vector3(vec.x, 0.0f, vec.y));
-		float angle = acos(tempVec.z);
-		if (tempVec.x > 0.0f)
-		{
-			angle = -angle;
-		}
-		adjustRadian180(ref angle);
-		// 在unity的坐标系中航向角需要取反
-		angle = -angle;
-		return angle;
-	}
-	public static Vector3 rotateVector3(Vector3 vec, Matrix4x4 transMat3) { return transMat3 * vec; }
-	public static void rotateVector3(ref Vector3 vec, Matrix4x4 transMat3) { vec = transMat3 * vec; }
-	// 使用一个四元数去旋转一个三维向量
-	public static Vector3 rotateVector3(Vector3 vec, Quaternion transQuat) { return transQuat * vec; }
-	public static void rotateVector3(ref Vector3 vec, Quaternion transQuat) { vec = transQuat * vec; }
-	// 求向量水平顺时针旋转一定角度后的向量,角度范围是-MATH_PI 到 MATH_PI
-	public static Vector3 rotateVector3(Vector3 vec, float radian)
-	{
-		return rotateVector3(vec, Quaternion.AngleAxis(toDegree(radian), Vector3.up));
-	}
-	// 求Z轴顺时针旋转一定角度后的向量,角度范围是-MATH_PI 到 MATH_PI
-	public static Vector3 getVectorFromAngle(float radian)
-	{
-		adjustRadian180(ref radian);
-		// 在unity坐标系是右手坐标系,所以x轴不需要添加负号
-		return new(sin(radian), 0.0f, cos(radian));
-	}
-	// 求Z轴顺时针旋转一定角度后的向量,角度范围是-MATH_PI 到 MATH_PI
-	public static Vector2 getVector2FromAngle(float radian)
-	{
-		adjustRadian180(ref radian);
-		// 在unity坐标系是右手坐标系,所以x轴不需要添加负号
-		return new(sin(radian), cos(radian));
 	}
 	public static int pcm_db_count(short[] ptr, int size)
 	{
 		long v = 0;
 		for (int i = 0; i < size; ++i)
 		{
-			v += abs(ptr[i]);
+			v += ptr[i].abs();
 		}
 		v /= size;
 		int ndb = -96;
@@ -3280,7 +2268,7 @@ public class MathUtility
 		fft(mComplexList, dataCount);
 		for (int i = 0; i < dataCount; ++i)
 		{
-			frequencyList[i] = (short)sqrt(mComplexList[i].mReal * mComplexList[i].mReal + mComplexList[i].mImg * mComplexList[i].mImg);
+			frequencyList[i] = (short)(mComplexList[i].mReal * mComplexList[i].mReal + mComplexList[i].mImg * mComplexList[i].mImg).sqrt();
 		}
 	}
 	public static void secondToMinuteSecond(int seconds, out int outMin, out int outSec)
@@ -3341,7 +2329,7 @@ public class MathUtility
 		}
 		for (int i = 0; i < bezierDetail; ++i)
 		{
-			resultList.Add(getBezier(points, loop, divide(i, bezierDetail - 1)));
+			resultList.Add(getBezier(points, loop, ((float)i).divide(bezierDetail - 1)));
 		}
 	}
 	public static void getBezierPoints(IList<Vector3> points, Span<Vector3> resultList, bool loop, int bezierDetail = 20)
@@ -3358,7 +2346,7 @@ public class MathUtility
 		}
 		for (int i = 0; i < bezierDetail; ++i)
 		{
-			resultList[i] = getBezier(points, loop, divide(i, bezierDetail - 1));
+			resultList[i] = getBezier(points, loop, ((float)i).divide(bezierDetail - 1));
 		}
 	}
 	public static List<Vector3> getBezierPoints(List<Vector3> points, bool loop, int bezierDetail = 20)
@@ -3428,7 +2416,7 @@ public class MathUtility
 		}
 
 		int bezierCount = loop ? originCount : originCount - 1;
-		float step = divide(1, detail - 1);
+		float step = 1.0f.divide(detail - 1);
 		// 生成4控制点，产生贝塞尔曲线
 		Span<Vector3> tempControlPoint = stackalloc Vector3[4];
 		for (int i = 0; i < bezierCount; ++i)
@@ -3441,7 +2429,7 @@ public class MathUtility
 			{
 				Vector3 point = getBezier(tempControlPoint, false, j * step);
 				// 如果与上一个点重合了,则不放入列表中
-				curveList.addIf(point, !isVectorEqual(curveList[^1], point));
+				curveList.addIf(point, !curveList[^1].isVectorEqual(point));
 			}
 		}
 	}
@@ -3503,7 +2491,7 @@ public class MathUtility
 		}
 
 		int bezierCount = loop ? originCount : originCount - 1;
-		float step = divide(1, detail - 1);
+		float step = 1.0f.divide(detail - 1);
 		// 生成4控制点，产生贝塞尔曲线
 		Span<Vector3> tempControlPoint = stackalloc Vector3[4];
 		for (int i = 0; i < bezierCount; ++i)
@@ -3516,7 +2504,7 @@ public class MathUtility
 			{
 				Vector3 point = getBezier(tempControlPoint, false, j * step);
 				// 如果与上一个点重合了,则不放入列表中
-				if (!isVectorEqual(curveList[hasCount - 1], point))
+				if (!curveList[hasCount - 1].isVectorEqual(point))
 				{
 					curveList[hasCount++] = point;
 				}
@@ -3546,26 +2534,26 @@ public class MathUtility
 		{
 			if (L < 0.5f)
 			{
-				S = divide(delta, maxRGB + minRGB);
+				S = delta.divide(maxRGB + minRGB);
 			}
 			else
 			{
-				S = divide(delta, 2.0f - maxRGB - minRGB);
+				S = delta.divide(2.0f - maxRGB - minRGB);
 			}
-			float inverseDelta = divide(1.0f, delta);
+			float inverseDelta = 1.0f.divide(delta);
 			float halfDelta = delta * 0.5f;
 			float delR = ((maxRGB - rgb.x) * 0.1667f + halfDelta) * inverseDelta;
 			float delG = ((maxRGB - rgb.y) * 0.1667f + halfDelta) * inverseDelta;
 			float delB = ((maxRGB - rgb.z) * 0.1667f + halfDelta) * inverseDelta;
-			if (isFloatEqual(rgb.x, maxRGB))
+			if (rgb.x.isFloatEqual(maxRGB))
 			{
 				H = delB - delG;
 			}
-			else if (isFloatEqual(rgb.y, maxRGB))
+			else if (rgb.y.isFloatEqual(maxRGB))
 			{
 				H = 0.333f + delR - delB;
 			}
-			else if (isFloatEqual(rgb.z, maxRGB))
+			else if (rgb.z.isFloatEqual(maxRGB))
 			{
 				H = 0.6667f + delG - delR;
 			}
@@ -3627,11 +2615,11 @@ public class MathUtility
 	}
 	public static float speedToInterval(float speed) 
 	{
-		return divide(0.0333f, speed); 
+		return 0.0333f.divide(speed); 
 	}
 	public static float intervalToSpeed(float interval) 
 	{
-		return divide(0.0333f, interval);
+		return 0.0333f.divide(interval);
 	}
 	// 由于使用了静态成员变量,所以不能在多线程中调用该函数
 	public static bool AStar4(List<bool> map, int beginIndex, int endIndex, int width, List<int> foundPath)
@@ -3646,7 +2634,7 @@ public class MathUtility
 			return false;
 		}
 		Point end = Point.fromIndex(endIndex, width);
-		int height = divideInt(map.Count, width);
+		int height = map.Count.divideInt(width);
 		AStarNode parentNode = new(0, 0, 0, beginIndex, -1, 0);
 		mTempOpenList.add(parentNode);
 		while (true)
@@ -3663,7 +2651,7 @@ public class MathUtility
 			parentNode = mTempNodeList[minFIndex];
 			// 父节点的坐标
 			int parentNodeX = parentNode.mIndex % width;
-			int parentNodeY = divideInt(parentNode.mIndex, width);
+			int parentNodeY = parentNode.mIndex.divideInt(width);
 			// 将父节点周围可以通过的格子放进开启列表里
 			for (int i = 0; i < mDeltaX4.Length; ++i)
 			{
@@ -3702,7 +2690,7 @@ public class MathUtility
 						curNode.mG = G1;
 						if (curNode.mH == 0)
 						{
-							curNode.mH = (abs(nx - end.x) + abs(ny - end.y)) * 10;
+							curNode.mH = ((nx - end.x).abs() + (ny - end.y).abs()) * 10;
 						}
 						curNode.mF = curNode.mG + curNode.mH;
 						curNode.mState = NODE_STATE.OPEN;
@@ -3737,7 +2725,7 @@ public class MathUtility
 			return false;
 		}
 		Point end = Point.fromIndex(endIndex, width);
-		int height = divideInt(map.Count, width);
+		int height = map.Count.divideInt(width);
 		AStarNode parentNode = new(0, 0, 0, beginIndex, -1, 0);
 		mTempOpenList.add(parentNode);
 		while (true)
@@ -3754,7 +2742,7 @@ public class MathUtility
 			parentNode = mTempNodeList[minFIndex];
 			// 父节点的坐标
 			int parentNodeX = parentNode.mIndex % width;
-			int parentNodeY = divideInt(parentNode.mIndex, width);
+			int parentNodeY = parentNode.mIndex.divideInt(width);
 			// 将父节点周围可以通过的格子放进开启列表里
 			for (int i = 0; i < mDeltaX8.Length; ++i)
 			{
@@ -3791,8 +2779,8 @@ public class MathUtility
 						// 计算G值, H值，F值，并设置这些节点的父节点
 						curNode.mParent = parentNode.mIndex;
 						curNode.mG = G1;
-						int dx = abs(nx - end.x);
-						int dy = abs(ny - end.y);
+						int dx = (nx - end.x).abs();
+						int dy = (ny - end.y).abs();
 						curNode.mH = 14 * getMin(dx, dy) + 10 * (getMax(dx, dy) - getMin(dx, dy));
 						curNode.mF = curNode.mG + curNode.mH;
 						curNode.mState = NODE_STATE.OPEN;
@@ -3828,7 +2816,7 @@ public class MathUtility
 			return false;
 		}
 		Point end = Point.fromIndex(endIndex, width);
-		int height = divideInt(map.Count, width);
+		int height = map.Count.divideInt(width);
 		AStarNode parentNode = new(0, 0, 0, beginIndex, -1, 0);
 		mTempOpenList.add(parentNode);
 		while (true)
@@ -3845,7 +2833,7 @@ public class MathUtility
 			parentNode = mTempNodeList[minFIndex];
 			// 父节点的坐标
 			int parentNodeX = parentNode.mIndex % width;
-			int parentNodeY = divideInt(parentNode.mIndex, width);
+			int parentNodeY = parentNode.mIndex.divideInt(width);
 			// 这里依赖于不同行相同x坐标的格子之间偶数行的格子始终比奇数行的要靠左一些
 			int[] offsetX = (parentNodeY & 1) == 0 ? mDeltaXOddRForEven6 : mDeltaXOddRForOdd6;
 			int[] offsetY = (parentNodeY & 1) == 0 ? mDeltaYOddRForEven6 : mDeltaYOddRForOdd6;
@@ -3926,7 +2914,7 @@ public class MathUtility
 			return false;
 		}
 		Point end = Point.fromIndex(endIndex, width);
-		int height = divideInt(map.Count, width);
+		int height = map.Count.divideInt(width);
 		AStarNode parentNode = new(0, 0, 0, beginIndex, -1, 0);
 		mTempOpenList.add(parentNode);
 		while (true)
@@ -3943,7 +2931,7 @@ public class MathUtility
 			parentNode = mTempNodeList[minFIndex];
 			// 父节点的坐标
 			int parentNodeX = parentNode.mIndex % width;
-			int parentNodeY = divideInt(parentNode.mIndex, width);
+			int parentNodeY = parentNode.mIndex.divideInt(width);
 			// 这里依赖于不同行相同x坐标的格子之间偶数行的格子始终比奇数行的要靠右一些
 			int[] offsetX = (parentNodeY & 1) == 0 ? mDeltaXEvenRForEven6 : mDeltaXEvenRForOdd6;
 			int[] offsetY = (parentNodeY & 1) == 0 ? mDeltaYEvenRForEven6 : mDeltaYEvenRForOdd6;
@@ -4025,7 +3013,7 @@ public class MathUtility
 		Vector3 max0 = pos0 + size0 * 0.5f;
 		Vector3 min1 = pos1 - size1 * 0.5f;
 		Vector3 max1 = pos1 + size1 * 0.5f;
-		return isVector3Less(min0, max1) && isVector3Greater(max0, min1);
+		return min0.isVector3Less(max1) && max0.isVector3Greater(min1);
 	}
 	public static bool overlapBox2(Vector2 pos0, Vector2 size0, Vector2 pos1, Vector2 size1)
 	{
@@ -4033,7 +3021,7 @@ public class MathUtility
 		Vector2 max0 = pos0 + size0 * 0.5f;
 		Vector2 min1 = pos1 - size1 * 0.5f;
 		Vector2 max1 = pos1 + size1 * 0.5f;
-		return isVector2Less(min0, max1) && isVector2Greater(max0, min1);
+		return min0.isVector2Less(max1) && max0.isVector2Greater(min1);
 	}
 	// 将凹多边形分割为多个凸多边形,暂未经过验证
 	public static void dividePolygonToTriangle(List<Vector2> originPoints, List<ConvexPolygon> polygonList)
@@ -4191,7 +3179,7 @@ public class MathUtility
 			}
 			if (end == 0)
 			{
-				origin.RemoveRange(start + 1, clampMin(origin.count() - 1 - (start + 1)));
+				origin.RemoveRange(start + 1, (origin.count() - 1 - (start + 1)).clampMin());
 			}
 			else
 			{
@@ -4274,28 +3262,6 @@ public class MathUtility
 		T temp0 = list[index0];
 		list[index0] = list[index1];
 		list[index1] = temp0;
-	}
-	protected static void initGreaterPow2()
-	{
-		using (new ThreadLockScope(mGreaterPow2Lock))
-		{
-			if (mGreaterPow2 != null)
-			{
-				return;
-			}
-			mGreaterPow2 = new int[513];
-			for (int i = 0; i < mGreaterPow2.Length; ++i)
-			{
-				if (i <= 1)
-				{
-					mGreaterPow2[i] = 2;
-				}
-				else
-				{
-					mGreaterPow2[i] = getGreaterPowValue(i, 2);
-				}
-			}
-		}
 	}
 	protected static void initFFTParam()
 	{
@@ -4419,7 +3385,7 @@ public class MathUtility
 			x[k].mImg = -x[k].mImg;
 		}
 		fft(x, count);
-		float inverseCount = divide(1.0f, count);
+		float inverseCount = 1.0f.divide(count);
 		for (int k = 0; k <= count - 1; ++k)
 		{
 			x[k].mReal = x[k].mReal * inverseCount;
@@ -4581,7 +3547,7 @@ public class MathUtility
 		// cube 坐标系下的六边形距离公式：
 		// distance = (|dx| + |dy| + |dz|) / 2
 		// 这里使用 >> 1 代替除以 2，保证全整数运算
-		return (abs(ax - bx) + abs(ay - by) + abs(az - bz)) >> 1;
+		return ((ax - bx).abs() + (ay - by).abs() + (az - bz).abs()) >> 1;
 	}
 	// 计算两个六边形格子之间的最短距离
 	// 使用 even-r（行偏移）坐标系，将 offset 坐标转换为 cube 坐标后计算距离
@@ -4605,6 +3571,6 @@ public class MathUtility
 		// cube 坐标系下的六边形距离公式：
 		// distance = (|dx| + |dy| + |dz|) / 2
 		// 这里使用 >> 1 代替除以 2，保证全整数运算
-		return (abs(ax - bx) + abs(ay - by) + abs(az - bz)) >> 1;
+		return ((ax - bx).abs() + (ay - by).abs() + (az - bz).abs()) >> 1;
 	}
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using UnityEngine;
-using static MathUtility;
 
 // 2D的点
 public struct Point : IEquatable<Point>
@@ -23,7 +22,7 @@ public struct Point : IEquatable<Point>
 	}
 	public static Point fromIndex(int index, int width)
 	{
-		return new(index % width, divideInt(index, width));
+		return new(index % width, index.divideInt(width));
 	}
 	public bool Equals(Point obj)
 	{

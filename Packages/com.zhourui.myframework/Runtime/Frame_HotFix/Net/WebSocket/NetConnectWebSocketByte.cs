@@ -2,7 +2,6 @@
 using static UnityUtility;
 using static BinaryUtility;
 using static FrameUtility;
-using static MathUtility;
 using static FrameBaseHotFix;
 using static FrameDefine;
 using static FrameBaseUtility;
@@ -85,7 +84,7 @@ public class NetConnectWebSocketByte : NetConnectWebSocket
 		// 校验码
 		int curByteCount = writer.getDataSize();
 		// 添加到写缓冲中
-		ARRAY_BYTE_PERSIST(out byte[] packetData, getGreaterPow2(curByteCount));
+		ARRAY_BYTE_PERSIST(out byte[] packetData, curByteCount.getGreaterPow2());
 		memcpy(packetData, writer.getBuffer(), 0, 0, curByteCount);
 		mOutputBuffer.Enqueue(new(packetData, curByteCount, true, 0));
 		mNetPacketFactory.destroyPacket(netPacket);
@@ -163,7 +162,7 @@ public class NetConnectWebSocketByte : NetConnectWebSocket
 		}
 		if (packetSize > 0)
 		{
-			ARRAY_BYTE_PERSIST(out outPacket, getGreaterPow2(packetSize));
+			ARRAY_BYTE_PERSIST(out outPacket, packetSize.getGreaterPow2());
 			if (!reader.readBuffer(outPacket, packetSize))
 			{
 				UN_ARRAY_BYTE(ref outPacket);

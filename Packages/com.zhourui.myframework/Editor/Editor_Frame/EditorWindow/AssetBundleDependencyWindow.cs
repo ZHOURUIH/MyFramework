@@ -533,7 +533,7 @@ public class AssetBundleDependencyWindow : GameEditorWindow
                 return 0;
             }).ThenBy(x => x.mBundleName).ToList();
 
-            int columnCount = getMax(1, ceil((float)nodes.Count / MAX_NODE_COUNT_PER_COLUMN));
+            int columnCount = getMax(1, nodes.Count.divide(MAX_NODE_COUNT_PER_COLUMN).ceil());
             for (int nodeIndex = 0; nodeIndex < nodes.Count; ++nodeIndex)
             {
                 int columnIndex = nodeIndex / MAX_NODE_COUNT_PER_COLUMN;

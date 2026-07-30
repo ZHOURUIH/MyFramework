@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using static MathUtility;
 using static WidgetUtility;
 
 [CommonControl]
@@ -36,7 +35,7 @@ public class UGUITreeList : WindowObjectUGUI
 		{
 			myUGUIObject itemRoot = item.getRoot();
 			Vector3 localPos = mViewport.worldToLocal(itemRoot.getWorldPosition());
-			itemRoot.setHandleInput(abs(localPos.y) < viewportHalfHeight);
+			itemRoot.setHandleInput(localPos.y.abs() < viewportHalfHeight);
 		}
 	}
 	public void selectNode(UGUITreeNode node)

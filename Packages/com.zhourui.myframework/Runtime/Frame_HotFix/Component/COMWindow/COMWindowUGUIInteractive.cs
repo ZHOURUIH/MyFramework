@@ -1,7 +1,6 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using static MathUtility;
 
 // UGUIWindow的鼠标相关事件的逻辑
 public class COMWindowUGUIInteractive : GameComponent
@@ -48,7 +47,7 @@ public class COMWindowUGUIInteractive : GameComponent
 		{
 			// 此处应该获取touchID的移动量
 			Vector3 delta = mMousePointer.delta;
-			if (!isVectorZero(delta))
+			if (!delta.isVectorZero())
 			{
 				mOnUGUIMouseMove?.Invoke(delta, mMousePointer.position);
 			}

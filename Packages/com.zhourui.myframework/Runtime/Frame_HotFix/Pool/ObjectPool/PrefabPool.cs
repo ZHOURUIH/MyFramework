@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using static UnityUtility;
-using static MathUtility;
 using static FrameBaseHotFix;
 using static FrameDefine;
 using static FrameUtility;
@@ -211,7 +210,7 @@ public class PrefabPool : ClassObject
 		{
 			return;
 		}
-		int needCreate = clampMin(count - mInuseList.Count - mUnuseList.Count);
+		int needCreate = (count - mInuseList.Count - mUnuseList.Count).clampMin();
 		int needCapacity = mUnuseList.count() + needCreate;
 		if (mUnuseList.Capacity < needCapacity)
 		{

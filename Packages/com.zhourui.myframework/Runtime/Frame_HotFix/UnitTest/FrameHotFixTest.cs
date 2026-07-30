@@ -153,11 +153,9 @@ public class FrameHotFixTest
     {
         int pass = 0;
         int fail = 0;
-        List<TestResult> results = new();
         foreach (var test in list)
         {
-            var result = runOne(test.Key, test.Value);
-            results.Add(result);
+			TestResult result = runOne(test.Key, test.Value);
             if (result.mPassed)
             {
                 pass++;

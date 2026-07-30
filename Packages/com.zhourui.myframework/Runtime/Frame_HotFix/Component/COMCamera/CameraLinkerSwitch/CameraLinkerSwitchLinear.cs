@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using static MathUtility;
 
 // 用于执行切换连接器时的不同行为,直接平移到目标点
 public class CameraLinkerSwitchLinear : CameraLinkerSwitch
@@ -15,8 +14,8 @@ public class CameraLinkerSwitchLinear : CameraLinkerSwitch
 	{
 		base.init(origin, target, speed);
 		mMovedDistance = 0.0f;
-		mDistance = getLength(mOriginRelative - mTargetRelative);
-		mDirection = normalize(mTargetRelative - mOriginRelative);
+		mDistance = (mOriginRelative - mTargetRelative).getLength();
+		mDirection = (mTargetRelative - mOriginRelative).normalize();
 	}
 	public override void resetProperty()
 	{

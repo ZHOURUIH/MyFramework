@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using static FrameBaseHotFix;
-using static MathUtility;
 using static StringUtility;
 using static FrameDefine;
 using static UnityUtility;
@@ -92,7 +91,7 @@ public class myUGUIRawImage : myUGUIObject, IShaderWindow
 		}
 		mCanvasGroup.alpha = isCull ? 0.0f : 1.0f;
 	}
-	public bool isCull() { return mCanvasGroup != null && isFloatZero(mCanvasGroup.alpha); }
+	public bool isCull() { return mCanvasGroup != null && mCanvasGroup.alpha.isFloatZero(); }
 	public void setWindowShader(WindowShader shader) 
 	{
 		mWindowShader = shader;

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using static SerializeByteUtility;
 using static BinaryUtility;
-using static MathUtility;
 using static FrameUtility;
 
 // 按位序列化的工具函数
@@ -836,7 +835,7 @@ public class SerializeBitUtility
 		bool lengthBitType = getBufferBit(buffer, bitIndex++);
 		// 这里本来应该是sizeof(int),因为float最终会转换为int存储,只不过sizeof(int)跟sizeof(float)一样
 		int typeSize = sizeof(float);
-		float powValue = divide(1.0f, pow10(precision));
+		float powValue = 1.0f.divide(precision.pow10());
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
@@ -882,7 +881,7 @@ public class SerializeBitUtility
 		bool lengthBitType = getBufferBit(buffer, bitIndex++);
 		// 这里本来应该是sizeof(int),因为float最终会转换为int存储,只不过sizeof(int)跟sizeof(float)一样
 		int typeSize = sizeof(float);
-		float powValue = divide(1.0f, pow10(precision));
+		float powValue = 1.0f.divide(precision.pow10());
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
@@ -922,7 +921,7 @@ public class SerializeBitUtility
 		bool lengthBitType = getBufferBit(buffer, bitIndex++);
 		// 这里本来应该是sizeof(long),因为double最终会转换为long存储,只不过sizeof(long)跟sizeof(double)一样
 		int typeSize = sizeof(double);
-		double powValue = divide(1.0, pow10(precision));
+		double powValue = 1.0.divide(precision.pow10());
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
@@ -968,7 +967,7 @@ public class SerializeBitUtility
 		bool lengthBitType = getBufferBit(buffer, bitIndex++);
 		// 这里本来应该是sizeof(long),因为double最终会转换为long存储,只不过sizeof(long)跟sizeof(double)一样
 		int typeSize = sizeof(double);
-		double powValue = divide(1.0, pow10(precision));
+		double powValue = 1.0.divide(precision.pow10());
 		// 使用统一的长度位
 		if (lengthBitType)
 		{
@@ -1022,7 +1021,7 @@ public class SerializeBitUtility
 	}
 	public static bool writeBit(byte[] buffer, int bufferSize, ref int bitIndex, sbyte value, bool needWriteSign)
 	{
-		return writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, sizeof(sbyte), generateBitCount((ushort)abs(value)), value, needWriteSign);
+		return writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, sizeof(sbyte), generateBitCount((ushort)value.abs()), value, needWriteSign);
 	}
 	public static bool writeBit(byte[] buffer, int bufferSize, ref int bitIndex, ushort value)
 	{
@@ -1030,7 +1029,7 @@ public class SerializeBitUtility
 	}
 	public static bool writeBit(byte[] buffer, int bufferSize, ref int bitIndex, short value, bool needWriteSign)
 	{
-		return writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, sizeof(short), generateBitCount((ushort)abs(value)), value, needWriteSign);
+		return writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, sizeof(short), generateBitCount((ushort)value.abs()), value, needWriteSign);
 	}
 	public static bool writeBit(byte[] buffer, int bufferSize, ref int bitIndex, uint value)
 	{
@@ -1038,7 +1037,7 @@ public class SerializeBitUtility
 	}
 	public static bool writeBit(byte[] buffer, int bufferSize, ref int bitIndex, int value, bool needWriteSign)
 	{
-		return writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, sizeof(int), generateBitCount((uint)abs(value)), value, needWriteSign);
+		return writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, sizeof(int), generateBitCount((uint)value.abs()), value, needWriteSign);
 	}
 	public static bool writeBit(byte[] buffer, int bufferSize, ref int bitIndex, ulong value)
 	{
@@ -1046,7 +1045,7 @@ public class SerializeBitUtility
 	}
 	public static bool writeBit(byte[] buffer, int bufferSize, ref int bitIndex, long value, bool needWriteSign)
 	{
-		return writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, sizeof(long), generateBitCount((ulong)abs(value)), value, needWriteSign);
+		return writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, sizeof(long), generateBitCount((ulong)value.abs()), value, needWriteSign);
 	}
 	// 因为long是最大的带符号整型类型,所以可以使用long传递任何带符号整数类型的值
 	public static bool writeSignedIntegerBit(byte[] buffer, int bufferSize, ref int bitIndex, int typeSize, byte bitCount, long value, bool needWriteSign)
@@ -1204,7 +1203,7 @@ public class SerializeBitUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ushort)abs(list[i])), list[i], needWriteSign);
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ushort)list[i].abs()), list[i], needWriteSign);
 			}
 			return result;
 		}
@@ -1253,7 +1252,7 @@ public class SerializeBitUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ushort)abs(list[i])), list[i], needWriteSign);
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ushort)list[i].abs()), list[i], needWriteSign);
 			}
 			return result;
 		}
@@ -1292,7 +1291,7 @@ public class SerializeBitUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ushort)abs(list[i])), list[i], needWriteSign);
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ushort)list[i].abs()), list[i], needWriteSign);
 			}
 			return result;
 		}
@@ -1341,7 +1340,7 @@ public class SerializeBitUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ushort)abs(list[i])), list[i], needWriteSign);
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ushort)list[i].abs()), list[i], needWriteSign);
 			}
 			return result;
 		}
@@ -1468,7 +1467,7 @@ public class SerializeBitUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((uint)abs(list[i])), list[i], needWriteSign);
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((uint)list[i].abs()), list[i], needWriteSign);
 			}
 			return result;
 		}
@@ -1517,7 +1516,7 @@ public class SerializeBitUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((uint)abs(list[i])), list[i], needWriteSign);
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((uint)list[i].abs()), list[i], needWriteSign);
 			}
 			return result;
 		}
@@ -1644,7 +1643,7 @@ public class SerializeBitUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ulong)abs(list[i])), list[i], needWriteSign);
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ulong)list[i].abs()), list[i], needWriteSign);
 			}
 			return result;
 		}
@@ -1693,7 +1692,7 @@ public class SerializeBitUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ulong)abs(list[i])), list[i], needWriteSign);
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ulong)list[i].abs()), list[i], needWriteSign);
 			}
 			return result;
 		}
@@ -1791,7 +1790,7 @@ public class SerializeBitUtility
 	{
 		ushort count = (ushort)list.Length;
 		int typeSize = sizeof(float);
-		int powValue = pow10(precision);
+		int powValue = precision.pow10();
 		// 使用统一的长度位占空间更小
 		if (isUnityCountShorter(list, out byte maxBitCount, precision, needWriteSign))
 		{
@@ -1812,7 +1811,7 @@ public class SerializeBitUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeSignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, round(list[i] * powValue), maxBitCount, false, needWriteSign);
+				result = result && writeSignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, (list[i] * powValue).round(), maxBitCount, false, needWriteSign);
 			}
 			return result;
 		}
@@ -1823,8 +1822,8 @@ public class SerializeBitUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				int value = round(list[i] * powValue);
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((uint)abs(value)), value, needWriteSign);
+				int value = (list[i] * powValue).round();
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((uint)value.abs()), value, needWriteSign);
 			}
 			return result;
 		}
@@ -1844,7 +1843,7 @@ public class SerializeBitUtility
 		}
 
 		int typeSize = sizeof(float);
-		int powValue = pow10(precision);
+		int powValue = precision.pow10();
 		// 使用统一的长度位占空间更小
 		if (isUnityCountShorter(list, out byte maxBitCount, precision, needWriteSign))
 		{
@@ -1865,7 +1864,7 @@ public class SerializeBitUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeSignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, round(list[i] * powValue), maxBitCount, false, needWriteSign);
+				result = result && writeSignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, (list[i] * powValue).round(), maxBitCount, false, needWriteSign);
 			}
 			return result;
 		}
@@ -1876,8 +1875,8 @@ public class SerializeBitUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				int value = round(list[i] * powValue);
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((uint)abs(value)), value, needWriteSign);
+				int value = (list[i] * powValue).round();
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((uint)value.abs()), value, needWriteSign);
 			}
 			return result;
 		}
@@ -1888,7 +1887,7 @@ public class SerializeBitUtility
 		// 写入长度
 		ushort count = (ushort)list.Length;
 		int typeSize = sizeof(double);
-		long powValue = pow10Long(precision);
+		long powValue = precision.pow10Long();
 		// 使用统一的长度位占空间更小
 		if (isUnityCountShorter(list, out byte maxBitCount, precision, needWriteSign))
 		{
@@ -1909,7 +1908,7 @@ public class SerializeBitUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeSignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, round(list[i] * powValue), maxBitCount, false, needWriteSign);
+				result = result && writeSignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, (list[i] * powValue).round(), maxBitCount, false, needWriteSign);
 			}
 			return result;
 		}
@@ -1920,8 +1919,8 @@ public class SerializeBitUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				long value = round(list[i] * powValue);
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ulong)abs(value)), value, needWriteSign);
+				long value = (list[i] * powValue).round();
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ulong)value.abs()), value, needWriteSign);
 			}
 			return result;
 		}
@@ -1941,7 +1940,7 @@ public class SerializeBitUtility
 		}
 
 		int typeSize = sizeof(double);
-		long powValue = pow10Long(precision);
+		long powValue = precision.pow10Long();
 		// 使用统一的长度位占空间更小
 		if (isUnityCountShorter(list, out byte maxBitCount, precision, needWriteSign))
 		{
@@ -1962,7 +1961,7 @@ public class SerializeBitUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				result = result && writeSignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, round(list[i] * powValue), maxBitCount, false, needWriteSign);
+				result = result && writeSignedIntegerBitNoLengthBit(buffer, bufferSize, ref bitIndex, (list[i] * powValue).round(), maxBitCount, false, needWriteSign);
 			}
 			return result;
 		}
@@ -1973,8 +1972,8 @@ public class SerializeBitUtility
 			bool result = true;
 			for (int i = 0; i < count; ++i)
 			{
-				long value = round(list[i] * powValue);
-				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ulong)abs(value)), value, needWriteSign);
+				long value = (list[i] * powValue).round();
+				result = result && writeSignedIntegerBit(buffer, bufferSize, ref bitIndex, typeSize, generateBitCount((ulong)value.abs()), value, needWriteSign);
 			}
 			return result;
 		}
@@ -2349,7 +2348,7 @@ public class SerializeBitUtility
 			// 每个元素绝对值所占用的位数,最高位固定是1,所以减去1位,然后还要加上一个符号位
 			for (int i = 0; i < count; ++i)
 			{
-				sbyte thisValue = abs(values[i]);
+				sbyte thisValue = values[i].abs();
 				if (thisValue > 0)
 				{
 					bitCountSingle += generateBitCount((ushort)thisValue) - 1;
@@ -2398,7 +2397,7 @@ public class SerializeBitUtility
 			// 每个元素绝对值所占用的位数,最高位固定是1,所以减去1位,然后还要加上一个符号位
 			for (int i = 0; i < count; ++i)
 			{
-				sbyte thisValue = abs(values[i]);
+				sbyte thisValue = values[i].abs();
 				if (thisValue > 0)
 				{
 					bitCountSingle += generateBitCount((ushort)thisValue) - 1;
@@ -2539,7 +2538,7 @@ public class SerializeBitUtility
 			// 每个元素绝对值所占用的位数,最高位固定是1,所以减去1位,然后还要加上一个符号位
 			for (int i = 0; i < count; ++i)
 			{
-				short thisValue = abs(values[i]);
+				short thisValue = values[i].abs();
 				if (thisValue > 0)
 				{
 					bitCountSingle += generateBitCount((ushort)thisValue) - 1;
@@ -2588,7 +2587,7 @@ public class SerializeBitUtility
 			// 每个元素绝对值所占用的位数,最高位固定是1,所以减去1位,然后还要加上一个符号位
 			for (int i = 0; i < count; ++i)
 			{
-				short thisValue = abs(values[i]);
+				short thisValue = values[i].abs();
 				if (thisValue > 0)
 				{
 					bitCountSingle += generateBitCount((ushort)thisValue) - 1;
@@ -2637,7 +2636,7 @@ public class SerializeBitUtility
 			// 每个元素绝对值所占用的位数,最高位固定是1,所以减去1位,然后还要加上一个符号位
 			for (int i = 0; i < count; ++i)
 			{
-				int thisValue = abs(values[i]);
+				int thisValue = values[i].abs();
 				if (thisValue > 0)
 				{
 					bitCountSingle += generateBitCount((uint)thisValue) - 1;
@@ -2686,7 +2685,7 @@ public class SerializeBitUtility
 			// 每个元素绝对值所占用的位数,最高位固定是1,所以减去1位,然后还要加上一个符号位
 			for (int i = 0; i < count; ++i)
 			{
-				int thisValue = abs(values[i]);
+				int thisValue = values[i].abs();
 				if (thisValue > 0)
 				{
 					bitCountSingle += generateBitCount((uint)thisValue) - 1;
@@ -2827,7 +2826,7 @@ public class SerializeBitUtility
 			// 每个元素绝对值所占用的位数,最高位固定是1,所以减去1位,然后还要加上一个符号位
 			for (int i = 0; i < count; ++i)
 			{
-				long thisValue = abs(values[i]);
+				long thisValue = values[i].abs();
 				if (thisValue > 0)
 				{
 					bitCountSingle += generateBitCount((ulong)thisValue) - 1;
@@ -2876,7 +2875,7 @@ public class SerializeBitUtility
 			// 每个元素绝对值所占用的位数,最高位固定是1,所以减去1位,然后还要加上一个符号位
 			for (int i = 0; i < count; ++i)
 			{
-				long thisValue = abs(values[i]);
+				long thisValue = values[i].abs();
 				if (thisValue > 0)
 				{
 					bitCountSingle += generateBitCount((ulong)thisValue) - 1;
@@ -2990,8 +2989,8 @@ public class SerializeBitUtility
 		int count = values.Length;
 		int typeLengthMaxBit = LENGTH_MAX_BIT[sizeof(float)];
 		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
-		int powValue = pow10(precision);
-		maxBitCount = generateBitCount((uint)round(findMaxAbs(values) * powValue));
+		int powValue = precision.pow10();
+		maxBitCount = generateBitCount((uint)(findMaxAbs(values) * powValue).round());
 		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
 		int bitCountUnity;
 		if (maxBitCount > 0)
@@ -3018,7 +3017,7 @@ public class SerializeBitUtility
 			// 每个元素绝对值所占用的位数,最高位固定是1,所以减去1位,然后还要加上一个符号位
 			for (int i = 0; i < count; ++i)
 			{
-				int thisAbsValue = abs(round(values[i] * powValue));
+				int thisAbsValue = (values[i] * powValue).round().abs();
 				if (thisAbsValue > 0)
 				{
 					bitCountSingle += generateBitCount((uint)thisAbsValue) - 1;
@@ -3040,8 +3039,8 @@ public class SerializeBitUtility
 		int count = values.Count;
 		int typeLengthMaxBit = LENGTH_MAX_BIT[sizeof(float)];
 		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
-		int powValue = pow10(precision);
-		maxBitCount = generateBitCount((uint)round(findMaxAbs(values) * powValue));
+		int powValue = precision.pow10();
+		maxBitCount = generateBitCount((uint)(findMaxAbs(values) * powValue).round());
 		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
 		int bitCountUnity;
 		if (maxBitCount > 0)
@@ -3068,7 +3067,7 @@ public class SerializeBitUtility
 			// 每个元素绝对值所占用的位数,最高位固定是1,所以减去1位,然后还要加上一个符号位
 			for (int i = 0; i < count; ++i)
 			{
-				int thisAbsValue = abs(round(values[i] * powValue));
+				int thisAbsValue = (values[i] * powValue).round().abs();
 				if (thisAbsValue > 0)
 				{
 					bitCountSingle += generateBitCount((uint)thisAbsValue) - 1;
@@ -3090,8 +3089,8 @@ public class SerializeBitUtility
 		int count = values.Length;
 		int typeLengthMaxBit = LENGTH_MAX_BIT[sizeof(double)];
 		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
-		long powValue = pow10(precision);
-		maxBitCount = generateBitCount((ulong)round(findMaxAbs(values) * powValue));
+		long powValue = precision.pow10();
+		maxBitCount = generateBitCount((ulong)(findMaxAbs(values) * powValue).round());
 		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
 		int bitCountUnity;
 		if (maxBitCount > 0)
@@ -3118,7 +3117,7 @@ public class SerializeBitUtility
 			// 每个元素绝对值所占用的位数,最高位固定是1,所以减去1位,然后还要加上一个符号位
 			for (int i = 0; i < count; ++i)
 			{
-				long thisAbsValue = abs(round(values[i] * powValue));
+				long thisAbsValue = (values[i] * powValue).round().abs();
 				if (thisAbsValue > 0)
 				{
 					bitCountSingle += generateBitCount((ulong)thisAbsValue) - 1;
@@ -3140,8 +3139,8 @@ public class SerializeBitUtility
 		int count = values.Count;
 		int typeLengthMaxBit = LENGTH_MAX_BIT[sizeof(double)];
 		// 计算出最大值的位数量,所有的值都使用这个位数量来存储
-		long powValue = pow10(precision);
-		maxBitCount = generateBitCount((ulong)round(findMaxAbs(values) * powValue));
+		long powValue = precision.pow10();
+		maxBitCount = generateBitCount((ulong)(findMaxAbs(values) * powValue).round());
 		// 如果使用一个统一的位数来表示写入位个数所占用的总位数
 		int bitCountUnity;
 		if (maxBitCount > 0)
@@ -3168,7 +3167,7 @@ public class SerializeBitUtility
 			// 每个元素绝对值所占用的位数,最高位固定是1,所以减去1位,然后还要加上一个符号位
 			for (int i = 0; i < count; ++i)
 			{
-				long thisAbsValue = abs(round(values[i] * powValue));
+				long thisAbsValue = (values[i] * powValue).round().abs();
 				if (thisAbsValue > 0)
 				{
 					bitCountSingle += generateBitCount((ulong)thisAbsValue) - 1;

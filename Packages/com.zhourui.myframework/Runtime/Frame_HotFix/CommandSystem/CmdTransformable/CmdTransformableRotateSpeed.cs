@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using static UnityUtility;
-using static MathUtility;
 using static FrameBaseUtility;
 
 // 使物体旋转
@@ -18,7 +17,7 @@ public class CmdTransformableRotateSpeed
 		}
 		if (isEditor() && 
 			obj is myUGUIObject uiObj &&
-			(!isVectorZero(rotateSpeed) || !isVectorZero(rotateAcceleration)) && 
+			(!rotateSpeed.isVectorZero() || !rotateAcceleration.isVectorZero()) && 
 			!uiObj.getLayout().canUIObjectUpdate(uiObj))
 		{
 			logError("想要使窗口播放缓动动画,但是窗口当前未开启更新:" + uiObj.getName());

@@ -27,8 +27,8 @@ public class CameraLinker : GameComponent
 	public CameraLinker()
 	{
 		mLookAtOffset = new(0.0f, 2.0f, 0.0f);
-		mMinRelativePitch = toRadian(0.0f);
-		mMaxRelativePitch = toRadian(85.0f);
+		mMinRelativePitch = 0.0f.toRadian();
+		mMaxRelativePitch = 85.0f.toRadian();
 		mUpdateMoment = LINKER_UPDATE.LATE_UPDATE;
 		mCameraCollision = CAMERA_COLLISION.NONE;
 		mTempResults = new Collider[8];
@@ -54,8 +54,8 @@ public class CameraLinker : GameComponent
 		mRelativePosition = Vector3.zero;
 		mOriginRelativePosition = Vector3.zero;
 		mLookAtOffset = new(0.0f, 2.0f, 0.0f);
-		mMinRelativePitch = toRadian(0.0f);
-		mMaxRelativePitch = toRadian(85.0f);
+		mMinRelativePitch = 0.0f.toRadian();
+		mMaxRelativePitch = 85.0f.toRadian();
 		mUseTargetYaw = false;
 		mLookAtTarget = false;
 		mCameraCollision = CAMERA_COLLISION.NONE;
@@ -127,7 +127,7 @@ public class CameraLinker : GameComponent
 			{
 				var box = mCamera.getOrAddUnityComponent<BoxCollider>();
 				// 只需要一个较小的碰撞体即可
-				if (!isVectorEqual(box.size, new(0.1f, 0.1f, 0.1f)))
+				if (!box.size.isVectorEqual(new(0.1f, 0.1f, 0.1f)))
 				{
 					box.size = new(0.1f, 0.1f, 0.1f);
 				}
@@ -155,14 +155,14 @@ public class CameraLinker : GameComponent
 	// 水平旋转相对位置
 	public void rotateRelativePositionHorizontal(float deltaDegree)
 	{
-		Vector3 relative = rotateVector3(mRelativePosition, Quaternion.AngleAxis(deltaDegree, Vector3.up));
+		Vector3 relative = mRelativePosition.rotateVector3(Quaternion.AngleAxis(deltaDegree, Vector3.up));
 		setRelativePosition(relative);
 	}
 	// 竖直方向上旋转相对位置
 	public void rotateRelativePositionVertical(float deltaDegree)
 	{
-		Vector3 normal = generateNormal(mRelativePosition, replaceY(mRelativePosition, mRelativePosition.y - 1.0f));
-		Vector3 relative = rotateVector3(mRelativePosition, Quaternion.AngleAxis(deltaDegree, normal));
+		Vector3 normal = generateNormal(mRelativePosition, mRelativePosition.replaceY(mRelativePosition.y - 1.0f));
+		Vector3 relative = mRelativePosition.rotateVector3(Quaternion.AngleAxis(deltaDegree, normal));
 		setRelativePosition(relative);
 	}
 	public virtual void setRelativePosition(Vector3 relative)
@@ -170,7 +170,7 @@ public class CameraLinker : GameComponent
 		float curPitch = -getVectorPitch(relative);
 		if (curPitch < mMinRelativePitch || curPitch > mMaxRelativePitch)
 		{
-			setVectorPitch(ref relative, -clamp(curPitch, mMinRelativePitch, mMaxRelativePitch));
+			setVectorPitch(ref relative, -curPitch.clamp(mMinRelativePitch, mMaxRelativePitch));
 		}
 		mRelativePosition = relative;
 	}
@@ -232,7 +232,7 @@ public class CameraLinker : GameComponent
 		Transform targetTrans = mLinkObject.getTransform();
 		Vector3 lookAtPos = mLinkObject.getWorldPosition() + mLookAtOffset;
 		Vector3 newPos = mCamera.getPosition();
-		Vector3 originPos = lookAtPos + setLength(newPos - lookAtPos, 0.1f);
+		Vector3 originPos = lookAtPos + (newPos - lookAtPos).setLength(0.1f);
 		if (isEditor())
 		{
 			Debug.DrawLine(originPos, newPos, Color.blue);
@@ -244,7 +244,7 @@ public class CameraLinker : GameComponent
 			avatarTrans = modelGo.transform;
 		}
 		using var a = new ArrayScope<RaycastHit>(out var hitRet, 2);
-		int hitCount = raycastAll(new Ray(originPos, newPos - originPos), hitRet, getLength(originPos - newPos), mIgnoreLayer);
+		int hitCount = raycastAll(new Ray(originPos, newPos - originPos), hitRet, (originPos - newPos).getLength(), mIgnoreLayer);
 		for (int i = 0; i < hitCount; ++i)
 		{
 			// 需要排除目标的所有子节点,包括目标为角色是的模型节点,因为角色的模型不一定挂接到角色节点下
@@ -270,7 +270,7 @@ public class CameraLinker : GameComponent
 		}
 		if (nearestDis < float.MaxValue)
 		{
-			mCamera.setPosition(nearestPoint + setLength(lookAtPos - newPos, 0.2f));
+			mCamera.setPosition(nearestPoint + (lookAtPos - newPos).setLength(0.2f));
 		}
 	}
 }

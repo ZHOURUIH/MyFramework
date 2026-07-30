@@ -44,14 +44,14 @@ public class CameraLinkerSmoothFollow : CameraLinkerThirdPerson
 	//------------------------------------------------------------------------------------------------------------------------------
 	protected override void updateLinker(float elapsedTime)
 	{
-		if (!isFloatEqual(mNormalSpeed, mFollowPositionSpeed))
+		if (!mNormalSpeed.isFloatEqual(mFollowPositionSpeed))
 		{
 			mFollowPositionSpeed = lerp(mFollowPositionSpeed, mNormalSpeed, mSpeedRecover * elapsedTime);
 		}
 		Vector3 relative = mRelativePosition;
 		if (mUseTargetYaw)
 		{
-			relative = rotateVector3(mRelativePosition, toRadian(mLinkObject.getRotation().y));
+			relative = mRelativePosition.rotateVector3(mLinkObject.getRotation().y.toRadian());
 		}
 		Vector3 targetPos = mLinkObject.getWorldPosition();
 		Vector3 nextPos = targetPos + relative;
@@ -70,7 +70,7 @@ public class CameraLinkerSmoothFollow : CameraLinkerThirdPerson
 					{
 						// 如果有碰撞到物体,交点距离在一定范围内
 						Vector3 hitPoint = ray.origin + ray.direction * hit.distance;
-						if (lengthLess(nextPos - hitPoint, layer.mMinDistance))
+						if ((nextPos - hitPoint).lengthLess(layer.mMinDistance))
 						{
 							nextPos = hitPoint - layer.mDirectionVector * layer.mMinDistance;
 						}
@@ -80,7 +80,7 @@ public class CameraLinkerSmoothFollow : CameraLinkerThirdPerson
 		}
 
 		// mNormalSpeed速度为0就表示不再插值,直接设置到目标位置即可
-		if (isFloatZero(mNormalSpeed))
+		if (mNormalSpeed.isFloatZero())
 		{
 			applyRelativePosition(nextPos - targetPos);
 			return;

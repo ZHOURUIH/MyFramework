@@ -1,7 +1,6 @@
 ﻿using System;
 using UnityEngine;
 using static UnityUtility;
-using static MathUtility;
 
 // 可拖拽滑动的窗口,类似于ScrollView
 // 一般父节点是一个viewport
@@ -22,7 +21,7 @@ public class myUGUIDragView : myUGUIObject
 		registeCollider(true);
 		setDepthOverAllChild(true);
 		setDragDirection(DRAG_DIRECTION.VERTICAL);
-		setDragAngleThreshold(toRadian(45.0f));
+		setDragAngleThreshold(45.0f.toRadian());
 		setClampInner(false);
 		setAllowDragOnlyOverParentSize(true);
 		setClampInRange(true);

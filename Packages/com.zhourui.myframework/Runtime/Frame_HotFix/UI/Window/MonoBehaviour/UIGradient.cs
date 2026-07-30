@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using static MathUtility;
 
 // 用于实现渐变效果,可用于文字,图片等
 public class UIGradient : BaseMeshEffect
@@ -54,10 +53,10 @@ public class UIGradient : BaseMeshEffect
         foreach (UIVertex vertex in vertices)
         {
             float position = isHorizontal ? vertex.position.x : vertex.position.y;
-            clampMin(ref max, position);
-            clampMax(ref min, position);
+			max = max.clampMin(position);
+			min = min.clampMax(position);
         }
-        return divide(1.0f, max - min);
+        return 1.0f.divide(max - min);
     }
 	// 根据混合模式混合颜色
 	protected Color blendColors(Color originalColor, Color newColor)

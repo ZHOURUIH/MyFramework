@@ -13,9 +13,9 @@ public static class RectTransformExtension
 		Vector2 windowSize = rect.rect.size;
 		if (applyWindowScale)
 		{
-			windowSize = multiVector2(windowSize, rect.lossyScale);
+			windowSize = windowSize.multiVector2(rect.lossyScale);
 		}
-		rect.localPosition = round(pos + (Vector3)multiVector2(windowSize, rect.pivot - new Vector2(0.5f, 0.5f)));
+		rect.localPosition = (pos + (Vector3)windowSize.multiVector2(rect.pivot - new Vector2(0.5f, 0.5f))).round();
 	}
 	// 将当前窗口的顶部对齐父节点的顶部,只改Y坐标
 	public static void setTopToParentTop(this RectTransform rect)
@@ -61,9 +61,9 @@ public static class RectTransformExtension
 		setWindowRightInParent(rect, getWindowRightInSelf(rect));
 		setWindowInParentCenterY(rect);
 	}
-	public static void setPositionX(this RectTransform rect, float x) { rect.localPosition = replaceX(rect.localPosition, x); }
-	public static void setPositionY(this RectTransform rect, float y) { rect.localPosition = replaceY(rect.localPosition, y); }
-	public static void setPositionZ(this RectTransform rect, float z) { rect.localPosition = replaceZ(rect.localPosition, z); }
+	public static void setPositionX(this RectTransform rect, float x) { rect.localPosition = rect.localPosition.replaceX(x); }
+	public static void setPositionY(this RectTransform rect, float y) { rect.localPosition = rect.localPosition.replaceY(y); }
+	public static void setPositionZ(this RectTransform rect, float z) { rect.localPosition = rect.localPosition.replaceZ(z); }
 	// 设置窗口在父节点中横向居中
 	public static void setWindowInParentCenterX(this RectTransform rect) { setPositionX(rect, 0.0f); }
 	// 设置窗口在父节点中纵向居中
@@ -185,9 +185,9 @@ public static class RectTransformExtension
 		Vector2 windowSize = rect.rect.size;
 		if (applyWindowScale)
 		{
-			windowSize = multiVector2(windowSize, rect.lossyScale);
+			windowSize = windowSize.multiVector2(rect.lossyScale);
 		}
-		return rect.localPosition - (Vector3)multiVector2(windowSize, rect.pivot - new Vector2(0.5f, 0.5f));
+		return rect.localPosition - (Vector3)windowSize.multiVector2(rect.pivot - new Vector2(0.5f, 0.5f));
 	}
 	// 获取在父节点中不受轴心影响下的本地坐标
 	public static void setPositionNoPivotInParent(this RectTransform rect, Vector3 pos, bool applyWindowScale = true)
@@ -206,9 +206,9 @@ public static class RectTransformExtension
 		Vector2 parentSize = parent.rect.size;
 		if (applyWindowScale)
 		{
-			parentSize = multiVector2(parentSize, parent.lossyScale);
+			parentSize = parentSize.multiVector2(parent.lossyScale);
 		}
-		rect.localPosition = round(pos - (Vector3)multiVector2(parentSize, parent.pivot - new Vector2(0.5f, 0.5f)));
+		rect.localPosition = (pos - (Vector3)parentSize.multiVector2(parent.pivot - new Vector2(0.5f, 0.5f))).round();
 	}
 	// 获取在父节点中不受轴心影响下的本地坐标
 	public static Vector3 getPositionNoPivotInParent(this RectTransform rect, bool applyWindowScale = true)
@@ -234,9 +234,9 @@ public static class RectTransformExtension
 		Vector2 parentSize = parent.rect.size;
 		if (applyWindowScale)
 		{
-			parentSize = multiVector2(parentSize, parent.lossyScale);
+			parentSize = parentSize.multiVector2(parent.lossyScale);
 		}
-		return rect.localPosition + (Vector3)multiVector2(parentSize, parent.pivot - new Vector2(0.5f, 0.5f));
+		return rect.localPosition + (Vector3)parentSize.multiVector2(parent.pivot - new Vector2(0.5f, 0.5f));
 	}
 	public static void setRectWidth(this RectTransform rectTransform, float width)
 	{
@@ -285,11 +285,11 @@ public static class RectTransformExtension
 		// 文字控件需要根据高度重新计算字体大小
 		if (rectTransform.TryGetComponent(out Text text))
 		{
-			text.fontSize = clampMin(floor(divide(text.fontSize, lastHeight) * size.y), minFontSize);
+			text.fontSize = (text.fontSize.divide(lastHeight) * size.y).floor().clampMin(minFontSize);
 		}
 		else if (rectTransform.TryGetComponent(out TextMeshProUGUI tmproText))
 		{
-			tmproText.fontSize = clampMin(floor(divide(tmproText.fontSize, lastHeight) * size.y), minFontSize);
+			tmproText.fontSize = (tmproText.fontSize.divide(lastHeight) * size.y).floor().clampMin(minFontSize);
 		}
 	}
 	// 保持父节点的大小和位置,从左上角开始横向排列子节点,并且会改变子节点的大小
@@ -319,13 +319,13 @@ public static class RectTransformExtension
 		int maxColumnCount = 1;
 		if (rootSize.x > gridSize.x)
 		{
-			maxColumnCount = (int)divide(rootSize.x - gridSize.x, interval.x + gridSize.x) + 1;
+			maxColumnCount = (int)(rootSize.x - gridSize.x).divide(interval.x + gridSize.x) + 1;
 		}
 		int activeChildCount = childList.Count;
-		int rowCount = generateBatchCount(activeChildCount, maxColumnCount);
+		int rowCount = activeChildCount.generateBatchCount(maxColumnCount);
 		int curCountOneLine = getMin(maxColumnCount, activeChildCount);
-		Vector2 contentSize = new(gridSize.x * curCountOneLine + interval.x * clampMin(curCountOneLine - 1),
-									gridSize.y * rowCount + interval.y * clampMin(rowCount - 1));
+		Vector2 contentSize = new(gridSize.x * curCountOneLine + interval.x * (curCountOneLine - 1).clampMin(),
+									gridSize.y * rowCount + interval.y * (rowCount - 1).clampMin());
 		// 计算排列子节点所需的竖直和水平方向的坐标变化符号以及起始坐标
 		Vector2 startPos = Vector2.zero;
 		if (horizontal == HORIZONTAL_DIRECTION.LEFT)
@@ -347,7 +347,7 @@ public static class RectTransformExtension
 		setRectHeight(root, contentSize.y);
 		if (keepTopSide)
 		{
-			setPositionY(root, round(root.localPosition.y + (rootSize.y - contentSize.y) * 0.5f));
+			setPositionY(root, (root.localPosition.y + (rootSize.y - contentSize.y) * 0.5f).round());
 		}
 
 		// 计算子节点坐标,始终让子节点位于父节点的矩形范围内
@@ -356,10 +356,10 @@ public static class RectTransformExtension
 		{
 			RectTransform child = childList[i];
 			int indexX = i % maxColumnCount;
-			int indexY = divideInt(i, maxColumnCount);
+			int indexY = i.divideInt(maxColumnCount);
 			Vector2 pos = new(indexX * gridSize.x + indexX * interval.x,
 							-(indexY * gridSize.y + indexY * interval.y));
-			child.localPosition = round(startPos + pos);
+			child.localPosition = (startPos + pos).round();
 			setRectSize(child, gridSize);
 		}
 	}
@@ -393,8 +393,8 @@ public static class RectTransformExtension
 				++validChildCount;
 			}
 		}
-		height += interval * clampMin(validChildCount - 1) + extraTopHeight + extraBottomHeight;
-		int rootHeight = (int)clampMin(height, minHeight);
+		height += interval * (validChildCount - 1).clampMin() + extraTopHeight + extraBottomHeight;
+		int rootHeight = (int)height.clampMin(minHeight);
 		// 确保高始终为偶数,这样才能使上边界和窗口位置都是整数
 		rootHeight += rootHeight & 1;
 		int beforeRootHeight = (int)root.rect.size.y;
@@ -407,16 +407,16 @@ public static class RectTransformExtension
 			{
 				if (fromTopToBottom)
 				{
-					setPositionY(root, round(root.localPosition.y + (beforeRootHeight - rootHeight) * 0.5f));
+					setPositionY(root, (root.localPosition.y + (beforeRootHeight - rootHeight) * 0.5f).round());
 				}
 				else
 				{
-					setPositionY(root, round(root.localPosition.y - (beforeRootHeight - rootHeight) * 0.5f));
+					setPositionY(root, (root.localPosition.y - (beforeRootHeight - rootHeight) * 0.5f).round());
 				}
 			}
 			else
 			{
-				setPositionY(root, round(root.localPosition.y + (rootHeight - beforeRootHeight) * 0.5f));
+				setPositionY(root, (root.localPosition.y + (rootHeight - beforeRootHeight) * 0.5f).round());
 			}
 		}
 
@@ -428,7 +428,7 @@ public static class RectTransformExtension
 			{
 				RectTransform childRect = childList[i];
 				float curHeight = childRect.rect.height;
-				setPositionY(childRect, round(currentTop - curHeight * 0.5f));
+				setPositionY(childRect, (currentTop - curHeight * 0.5f).round());
 				currentTop -= curHeight;
 				// 最后一个子节点后不再添加间隔
 				if (i != childList.Count - 1 && curHeight > 0.0f)
@@ -444,7 +444,7 @@ public static class RectTransformExtension
 			{
 				RectTransform childRect = childList[i];
 				float curHeight = childRect.rect.height;
-				setPositionY(childRect, round(currentBottom + curHeight * 0.5f));
+				setPositionY(childRect, (currentBottom + curHeight * 0.5f).round());
 				currentBottom += curHeight;
 				// 最后一个子节点后不再添加间隔
 				if (i != childList.Count - 1 && curHeight > 0.0f)
@@ -484,8 +484,8 @@ public static class RectTransformExtension
 					++validChildCount;
 				}
 			}
-			width += interval * clampMin(validChildCount - 1) + extraLeftWidth + extraRightWidth;
-			int rootWidth = (int)clampMin(width, minWidth);
+			width += interval * (validChildCount - 1).clampMin() + extraLeftWidth + extraRightWidth;
+			int rootWidth = (int)width.clampMin(minWidth);
 			// 确保宽是偶数,这样才能使边和坐标都是整数
 			rootWidth += rootWidth & 1;
 			int beforeRootWidth = (int)root.rect.size.x;
@@ -496,11 +496,11 @@ public static class RectTransformExtension
 			{
 				if (keepLeftSide)
 				{
-					setPositionX(root, round(root.localPosition.x + (rootWidth - beforeRootWidth) * 0.5f));
+					setPositionX(root, (root.localPosition.x + (rootWidth - beforeRootWidth) * 0.5f).round());
 				}
 				else
 				{
-					setPositionX(root, round(root.localPosition.x + (beforeRootWidth - rootWidth) * 0.5f));
+					setPositionX(root, (root.localPosition.x + (beforeRootWidth - rootWidth) * 0.5f).round());
 				}
 			}
 		}
@@ -547,7 +547,7 @@ public static class RectTransformExtension
 				++validChildCount;
 			}
 		}
-		width += interval * clampMin(validChildCount - 1);
+		width += interval * (validChildCount - 1).clampMin();
 		int totalWidth = (int)width;
 		// 确保宽是偶数,这样才能使边和坐标都是整数
 		totalWidth += totalWidth & 1;
@@ -595,8 +595,8 @@ public static class RectTransformExtension
 		}
 
 		// 设置父节点新的位置和大小,重新设置所有子节点的世界坐标
-		transform.position = new(ceil((right + left) * 0.5f), ceil((top + bottom) * 0.5f));
-		setRectSize(transform, new(ceil(right - left), ceil(top - bottom)));
+		transform.position = new(((right + left) * 0.5f).ceil(), ((top + bottom) * 0.5f).ceil());
+		setRectSize(transform, new((right - left).ceil(), (top - bottom).ceil()));
 		foreach (var item in childWorldPositionList)
 		{
 			item.Key.position = item.Value;

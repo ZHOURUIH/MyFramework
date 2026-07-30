@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using static MathUtility;
 
 // 物体的移动信息
 public class COMMovableObjectMoveInfo : GameComponent
@@ -47,9 +46,9 @@ public class COMMovableObjectMoveInfo : GameComponent
 		if (elapsedTime > 0.0f)
 		{
 			mCurFramePosition = movableObject.getPosition();
-			mMoveSpeedVector = mHasLastPosition ? divide(mCurFramePosition - mLastPosition, elapsedTime) : Vector3.zero;
-			mRealtimeMoveSpeed = getLength(mMoveSpeedVector);
-			mMovedDuringFrame = !isVectorEqual(mLastPosition, mCurFramePosition) && mHasLastPosition;
+			mMoveSpeedVector = mHasLastPosition ? mCurFramePosition - mLastPosition.divide(elapsedTime) : Vector3.zero;
+			mRealtimeMoveSpeed = mMoveSpeedVector.getLength();
+			mMovedDuringFrame = !mLastPosition.isVectorEqual(mCurFramePosition) && mHasLastPosition;
 			mLastPosition = mCurFramePosition;
 			mLastSpeedVector = mMoveSpeedVector;
 			mHasLastPosition = true;
@@ -64,9 +63,9 @@ public class COMMovableObjectMoveInfo : GameComponent
 		base.fixedUpdate(elapsedTime);
 		var movableObject = mComponentOwner as MovableObject;
 		Vector3 curPos = movableObject.getPosition();
-		mPhysicsSpeedVector = divide(curPos - mLastPhysicsPosition, elapsedTime);
+		mPhysicsSpeedVector = (curPos - mLastPhysicsPosition).divide(elapsedTime);
 		mLastPhysicsPosition = curPos;
-		mPhysicsAcceleration = divide(mPhysicsSpeedVector - mLastPhysicsSpeedVector, elapsedTime);
+		mPhysicsAcceleration = (mPhysicsSpeedVector - mLastPhysicsSpeedVector).divide(elapsedTime);
 		mLastPhysicsSpeedVector = mPhysicsSpeedVector;
 	}
 	public Vector3 getPhysicsSpeed()									{ return mPhysicsSpeedVector; }

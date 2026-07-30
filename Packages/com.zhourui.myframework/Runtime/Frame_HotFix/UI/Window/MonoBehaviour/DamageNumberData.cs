@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using static MathUtility;
 using static FrameUtility;
 using static UnityUtility;
 
@@ -116,7 +115,7 @@ public class DamageNumberData : ClassObject
 		if (!mPositionTimeList.isEmpty())
 		{
 			mKeyFrameMaxTime = mPositionTimeList[^1];
-			if (!isFloatEqual(mPositionTimeList[^1], mScaleTimeList[^1]))
+			if (!mPositionTimeList[^1].isFloatEqual(mScaleTimeList[^1]))
 			{
 				logError("两个关键帧的最大时间需要一致!");
 			}

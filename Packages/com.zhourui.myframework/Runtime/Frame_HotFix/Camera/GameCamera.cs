@@ -3,7 +3,6 @@ using UnityEngine;
 #if USE_URP
 using UnityEngine.Rendering.Universal;
 #endif
-using static MathUtility;
 using static UnityUtility;
 using static FrameBaseUtility;
 
@@ -70,23 +69,23 @@ public class GameCamera : MovableObject
 	}
     public float getFOVX(bool radian = false)
 	{
-		float radianFovX = atan(getAspect() * tan(getFOVY(true) * 0.5f)) * 2.0f;
-		return radian ? radianFovX : toDegree(radianFovX);
+		float radianFovX = (getAspect() * (getFOVY(true) * 0.5f).tan()).atan() * 2.0f;
+		return radian ? radianFovX : radianFovX.toDegree();
 	}
 	// 计算透视投影下显示的宽高,与屏幕大小无关,只是指定距离下视锥体的截面宽高
 	public Vector2 getViewSize(float distance)
 	{
-		float viewHeight = tan(getFOVY(true) * 0.5f) * abs(distance) * 2.0f;
+		float viewHeight = (getFOVY(true) * 0.5f).tan() * distance.abs() * 2.0f;
 		return new(viewHeight * getAspect(), viewHeight);
 	}
 	// radian为true表示输入的fovy是弧度制的值,false表示角度制的值
 	public void setFOVY(float fovy, bool radian = false)
 	{
-		mCamera.fieldOfView = radian ? toDegree(fovy) : fovy;
+		mCamera.fieldOfView = radian ? fovy.toDegree() : fovy;
 	}
 	public float getFOVY(bool radian = false)
 	{
-		return radian ? toRadian(mCamera.fieldOfView) : mCamera.fieldOfView;
+		return radian ? mCamera.fieldOfView.toRadian() : mCamera.fieldOfView;
 	}
 	public float getAspect() { return mCamera.aspect; }
 	public float getOrthoSize() { return mCamera.orthographicSize; }
