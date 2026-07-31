@@ -37,6 +37,8 @@ public static class TimeUtilityTest
         testTimeString4Out();
         testMoreTimeHelpers();
         testTimestampOverloads();
+        testEndRemainFunctions();
+        testNoLockNoBuilder();
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
@@ -384,5 +386,32 @@ public static class TimeUtilityTest
 		long ts = dateTimeToTimeStamp(DateTime.Now);
 		DateTime dayEnd = getDayEnd(ts);
 		assert(dayEnd > DateTime.Now, "getDayEnd(ts) > now");
+	}
+
+	// ─── 剩余秒数函数（依赖 DateTime.Now，宽松断言）────────────────────────
+	private static void testEndRemainFunctions()
+	{
+		int todayRemain = getTodayEndRemain();
+		assert(todayRemain >= 0, "getTodayEndRemain >= 0");
+		assert(todayRemain <= 86400, "getTodayEndRemain <= 86400");
+		int weekRemain = getWeekEndRemain();
+		assert(weekRemain >= 0, "getWeekEndRemain >= 0");
+		int monthRemain = getMonthEndRemain();
+		assert(monthRemain >= 0, "getMonthEndRemain >= 0");
+		int yearRemain = getYearEndRemain();
+		assert(yearRemain >= 0, "getYearEndRemain >= 0");
+	}
+
+	// ─── getTimeStringNoLock / getTimeStringNoBuilder ───────────────────────
+	private static void testNoLockNoBuilder()
+	{
+		string s1 = getTimeStringNoLock(DateTime.Now, TIME_DISPLAY.HMSM);
+		assert(!string.IsNullOrEmpty(s1), "getTimeStringNoLock nonempty");
+		string s2 = getTimeStringNoBuilder(DateTime.Now, TIME_DISPLAY.HMSM);
+		assert(!string.IsNullOrEmpty(s2), "getTimeStringNoBuilder nonempty");
+		string noLock = getTimeNoLock(TIME_DISPLAY.HMS_2);
+		assert(!string.IsNullOrEmpty(noLock), "getTimeNoLock nonempty");
+		string noBuilder = getTimeNoBuilder(TIME_DISPLAY.HMS_2);
+		assert(!string.IsNullOrEmpty(noBuilder), "getTimeNoBuilder nonempty");
 	}
 }

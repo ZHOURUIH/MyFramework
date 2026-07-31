@@ -1052,11 +1052,14 @@ public class FileUtility
 		}
 	}
 	// 检查两个文件列表是否一致
-	public static bool checkDiff(Dictionary<string, GameFileInfo> list0, Dictionary<string, GameFileInfo> list1, bool checkMD5)
+	public static bool checkDiff(Dictionary<string, GameFileInfo> list0, Dictionary<string, GameFileInfo> list1, bool checkMD5, bool showError = true)
 	{
 		if (list0.Count != list1.Count)
 		{
-			logError("file count not same, local count:" + list0.Count + ", remote count:" + list1.Count);
+			if (showError)
+			{
+				logError("file count not same, local count:" + list0.Count + ", remote count:" + list1.Count);
+			}
 			return false;
 		}
 		foreach (var item in list0)
@@ -1066,17 +1069,20 @@ public class FileUtility
 				info0.mFileSize != info1.mFileSize ||
 				(checkMD5 && info0.mMD5 != info1.mMD5))
 			{
-				if (info1.mFileName == null)
+				if (showError)
 				{
-					logError("remote file missing:" + item.Key);
-				}
-				else if (info0.mFileSize != info1.mFileSize)
-				{
-					logError("file size not same:" + item.Key);
-				}
-				else if (info0.mMD5 != info1.mMD5)
-				{
-					logError("file md5 not same:" + item.Key);
+					if (info1.mFileName == null)
+					{
+						logError("remote file missing:" + item.Key);
+					}
+					else if (info0.mFileSize != info1.mFileSize)
+					{
+						logError("file size not same:" + item.Key);
+					}
+					else if (info0.mMD5 != info1.mMD5)
+					{
+						logError("file md5 not same:" + item.Key);
+					}
 				}
 				return false;
 			}

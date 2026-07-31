@@ -28,6 +28,8 @@ public class HashSetExtensionTest
 		testIsEmpty();
 		testSafe();
 		testCount();
+		testGetEmptyList();
+		testSetRangeList();
 	}
 	
 	// 测试 For 方法
@@ -499,5 +501,27 @@ public class HashSetExtensionTest
 		// null 集合
 		HashSet<int> nullSet = null;
 		assertEqual(0, nullSet.count());
+	}
+
+	// 测试 getEmptyList (EmptyHashSet)
+	private static void testGetEmptyList()
+	{
+		HashSet<int> list = EmptyHashSet<int>.getEmptyList();
+		assertNotNull(list, "getEmptyList not null");
+		assertEqual(0, list.Count, "getEmptyList empty");
+		// 验证单例：两次调用返回同一实例
+		HashSet<int> list2 = EmptyHashSet<int>.getEmptyList();
+		assertTrue(ReferenceEquals(list, list2), "getEmptyList singleton");
+	}
+
+	// 测试 setRange(List) 重载
+	private static void testSetRangeList()
+	{
+		HashSet<int> set = new() { 1, 2, 3 };
+		List<int> other = new() { 4, 5 };
+		set.setRange(other);
+		assertEqual(2, set.Count, "setRange List count");
+		assertTrue(set.Contains(4), "setRange List contains 4");
+		assertFalse(set.Contains(1), "setRange List old cleared");
 	}
 }

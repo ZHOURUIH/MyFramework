@@ -32,6 +32,7 @@ public static class ListExtensionTest
         testSetAllDefaultAndValue();
         testSetRange();
         testAddRange();
+        testGetEmptyList();
     }
 
     // ─── isEmpty / count ─────────────────────────────────────────────────
@@ -345,6 +346,17 @@ public static class ListExtensionTest
         AssertEqual(4, list.count(), "addRange count=4");
         AssertEqual(3, list[2], "addRange[2]=3");
         AssertEqual(4, list[3], "addRange[3]=4");
+    }
+
+    // ─── getEmptyList ────────────────────────────────────────────────────
+    private static void testGetEmptyList()
+    {
+        List<int> list = EmptyList<int>.getEmptyList();
+        AssertNotNull(list, "getEmptyList not null");
+        AssertEqual(0, list.Count, "getEmptyList empty");
+        // 验证单例
+        List<int> list2 = EmptyList<int>.getEmptyList();
+        Assert(ReferenceEquals(list, list2), "getEmptyList singleton");
     }
 
     // Simple assertion methods

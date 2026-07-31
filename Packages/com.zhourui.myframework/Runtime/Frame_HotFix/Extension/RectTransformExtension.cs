@@ -8,6 +8,8 @@ using static MathUtility;
 // RectTransform扩展方法,提供UGUI布局相关的便捷操作
 public static class RectTransformExtension
 {
+	// 设置RectTransform位置时补偿pivot偏移，使设置的是视觉边界位置而非pivot位置
+	// applyWindowScale: 是否考虑lossyScale缩放
 	public static void setPositionNoPivot(this RectTransform rect, Vector3 pos, bool applyWindowScale = true)
 	{
 		Vector2 windowSize = rect.rect.size;
@@ -250,6 +252,7 @@ public static class RectTransformExtension
 		vector.y = height - getParentSize(rectTransform).y * (rectTransform.anchorMax.y - rectTransform.anchorMin.y);
 		rectTransform.sizeDelta = vector;
 	}
+	// 设置RectTransform的宽高时自动减去Anchor区域占用的空间（sizeDelta = 目标大小 - Anchor区域大小）
 	public static void setRectSize(this RectTransform rectTransform, Vector2 size)
 	{
 		if (rectTransform == null)
@@ -274,6 +277,7 @@ public static class RectTransformExtension
 		var rectTransform = rectTrans.parent as RectTransform;
 		return rectTransform != null ? rectTransform.rect.size : Vector2.zero;
 	}
+	// 设置RectTransform大小后按比例调整子Text/TMP的字体大小
 	public static void setRectSizeWithFontSize(this RectTransform rectTransform, Vector2 size, int minFontSize)
 	{
 		if (rectTransform == null)
@@ -292,10 +296,9 @@ public static class RectTransformExtension
 			tmproText.fontSize = (tmproText.fontSize.divide(lastHeight) * size.y).floor().clampMin(minFontSize);
 		}
 	}
-	// 保持父节点的大小和位置,从左上角开始横向排列子节点,并且会改变子节点的大小
-	// 也会改变root的高度,keepTop表示改变高度以后是否仍然保持root的顶部位置不变
-	// gridSize是子节点的大小
-	// horizontal是水平方向的停靠方式
+	// 网格排列子节点：指定gridSize（每个格子大小），自动计算行列数，支持左/中/右停靠
+	// keepTopSide: 改变root高度后保持顶部位置不变
+	// 会改变root的sizeDelta（高度=所有行+间隔），也会改变每个子节点的sizeDelta
 	public static void autoGrid(this RectTransform root, Vector2 gridSize, Vector2 intervalNoScreenScale, bool keepTopSide, HORIZONTAL_DIRECTION horizontal = HORIZONTAL_DIRECTION.LEFT)
 	{
 		if (root == null)
@@ -363,9 +366,9 @@ public static class RectTransformExtension
 			setRectSize(child, gridSize);
 		}
 	}
-	// 自动排列一个节点下的所有子节点的位置,从上往下紧密排列,并且不改变子节点的大小,会改变root的大小
-	// intervalNoScreenScale会自动根据屏幕缩放来计算实际的值
-	// fromTopToBottom为true表示从上往下排列,false表示从下往上排列
+	// 将子节点按网格排列，从上往下（或从下往上）紧密排列，自动调整root高度
+	// keepTopSide: 改变root高度后保持顶部位置不变
+	// fromTopToBottom: true=从上往下，false=从下往上
 	public static void autoGridVertical(this RectTransform root, float intervalNoScreenScale, float minHeight = 0.0f, float extraTopHeight = 0.0f, float extraBottomHeight = 0.0f, bool keepTopSide = true, bool fromTopToBottom = true)
 	{
 		if (root == null)
@@ -567,9 +570,14 @@ public static class RectTransformExtension
 			}
 		}
 	}
-	// 跳转transform的范围,使其包含所有子节点,并且保持子节点世界坐标不变
+	// 调整transform使其包围所有子节点，同时保持子节点的世界坐标不变
+	// 先记录所有子节点世界坐标→计算包围盒→设置父节点位置和大小→恢复子节点世界坐标
 	public static void adjustRectTransformToContainsAllChildRect(this RectTransform transform)
 	{
+		if (transform == null)
+		{
+			return;
+		}
 		// 获得父节点的四个边界
 		float left = float.MaxValue;
 		float right = float.MinValue;

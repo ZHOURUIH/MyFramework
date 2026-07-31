@@ -29,6 +29,7 @@ public static class StringExtension
     public static int length(this string list) { return list?.Length ?? 0; }
 	public static bool isEmpty(this string str) { return str == null || str.Length == 0; }
 	public static bool contains(this string str, char c) { return str != null && str.Contains(c); }
+	// 判断字符串是否包含满足条件的任意字符，str为空或action为空返回false
 	public static bool contains(this string str, Predicate<char> action) 
 	{
 		if (str.isEmpty() || action == null)
@@ -44,6 +45,7 @@ public static class StringExtension
 		}
 		return false;
 	}
+	// 截取[startIndex, endIndexNotInclude)范围的子串，endIndexNotInclude<0表示截取到结尾
 	public static string range(this string str, int startIndex, int endIndexNotInclude)
 	{
 		if (str == null)
@@ -115,6 +117,7 @@ public static class StringExtension
 		return str[startIndex..(endIndex + 1)];
 	}
 	// 截取从第一个key0到第一个key1之间的字符串,不包含key0和key1
+	// 注意：如果找不到key1，则截取key0之后到字符串末尾的所有内容
 	public static string rangeBetweenKeyToKey(this string str, string key0, string key1)
 	{
 		if (str == null)
@@ -415,6 +418,7 @@ public static class StringExtension
 		return str;
 	}
 	// 移除str中开头所有的key,直到遇到一个不是key的字符
+	// 注意：如果全是指定字符，则返回空字符串
 	public static string removeStartAll(this string str, char key)
 	{
 		int removeStartCount = str.Length;
@@ -443,6 +447,9 @@ public static class StringExtension
 		return str[removeStartCount..];
 	}
 	// 从后往前移除str中结尾所有的key,直到遇到一个不是key的字符
+	// removeStartCount 记录保留部分的结束位置（exclusive），初始为全保留(str.Length)
+	// 如果全是key字符，removeStartCount保持为str.Length，最终返回原字符串
+	// 如果首字符也不是key，removeStartCount为0+1=1，只保留首字符
 	public static string removeEndAll(this string str, char key)
 	{
 		int removeStartCount = str.Length;
@@ -454,6 +461,7 @@ public static class StringExtension
 				break;
 			}
 		}
+		// 只有在有字符被移除时才截取，避免空字符串→空字符串的冗余操作
 		if (removeStartCount > 0 && removeStartCount < str.Length)
 		{
 			return str[0..removeStartCount];
@@ -544,6 +552,7 @@ public static class StringExtension
 			return char.ToLower(str[^1]) == char.ToLower(pattern);
 		}
 	}
+	// 移除str中所有出现的指定字符串（可传入多个），使用MyStringBuilder避免多次字符串分配
 	public static string removeAll(this string str, params string[] key)
 	{
 		using var a = new MyStringBuilderScope(out var builder);
@@ -555,6 +564,8 @@ public static class StringExtension
 		}
 		return builder.ToString();
 	}
+	// 移除str中所有出现的指定字符（可传入多个）
+	// 从后往前遍历，避免删除字符后索引偏移导致漏检
 	public static string removeAll(this string str, params char[] key)
 	{
 		using var a = new MyStringBuilderScope(out var builder);
@@ -583,7 +594,8 @@ public static class StringExtension
 		}
 		return builder.ToString();
 	}
-	// 将str中的[begin,end)替换为reStr
+	// 将str中[begin, end)范围内的子串替换为reStr
+	// 主线程使用MyStringBuilderScope（池化避免GC），子线程使用原生string API（线程安全）
 	public static string replace(this string str, int begin, int end, string reStr)
 	{
 		if (isMainThread())
@@ -603,6 +615,7 @@ public static class StringExtension
 			return str;
 		}
 	}
+	// 将str中第一个出现的key替换为newWords，仅替换一次
 	public static string replace(this string str, string key, string newWords)
 	{
 		if (isMainThread())
@@ -623,6 +636,9 @@ public static class StringExtension
 			return replace(str, pos, pos + key.Length, newWords);
 		}
 	}
+	// 将str中所有出现的key替换为newWords
+	// 子线程路径：循环查找并替换，替换后跳过已替换部分（startPos = pos + newWords.Length）避免死循环
+	// 主线程路径：委托给MyStringBuilder的replaceAll
 	public static string replaceAll(this string str, string key, string newWords)
 	{
 		if (isMainThread())
@@ -712,7 +728,10 @@ public static class StringExtension
 		}
 		return posFind;
 	}
-	// returnEndIndex表示返回值是否是字符串结束的下一个字符的下标
+	// 查找pattern在res中第一次出现的位置
+	// returnEndIndex: true时返回pattern结束位置的下一个下标（即startIndex+pattern.Length），用于replace等场景
+	// sensitive: false时忽略大小写
+	// startPos: 从该位置开始查找
 	public static int findFirstSubstr(this string res, string pattern, int startPos = 0, bool returnEndIndex = false, bool sensitive = true)
 	{
 		if (res == null)
@@ -763,6 +782,9 @@ public static class StringExtension
 		}
 		return posFind;
 	}
+	// 从后往前查找pattern在res中最后一次出现的位置
+	// sensitive: false时先将res和pattern全转为小写再比较
+	// startPos: 搜索的起始位置（从该位置往前搜索）
 	public static int findLastSubstr(this string res, string pattern, bool sensitive, int startPos = 0)
 	{
 		if (!sensitive)
@@ -808,7 +830,9 @@ public static class StringExtension
 		}
 		return -1;
 	}
-	// 从前往后去除两个成对字符之间的所有字符(包含两个字符)，并返回他们的下标
+	// 从前往后去除第一对成对字符之间的所有字符(包含两个成对字符)，并返回它们的下标
+	// 使用unpaired计数器处理嵌套配对，如"a(b(c)d)e"中移除'(',')'会得到"ae"
+	// 未配对则返回原字符串（如"a(b"没有配对的')'则返回"a(b"）
 	public static string removeFirstBetweenPairChars(this string str, char startChar, char endChar, out int startCharIndex, out int endCharIndex)
 	{
 		endCharIndex = -1;
@@ -837,7 +861,8 @@ public static class StringExtension
 		}
 		return str;
 	}
-	// 从后往前去除两个成对个字符之间的所有字符(包含两个字符)，并返回他们的下标
+	// 从后往前去除最后一对成对字符之间的所有字符(包含两个成对字符)，并返回它们的下标
+	// 与removeFirstBetweenPairChars对称，但搜索方向相反，同样支持嵌套配对
 	public static string removeLastBetweenPairChars(this string str, char startChar, char endChar, out int startCharIndex, out int endCharIndex)
 	{
 		startCharIndex = -1;
@@ -902,7 +927,8 @@ public static class StringExtension
 		}
 		return path;
 	}
-	// 去除字符串中所有非数字的字符串,也就是只包含0到9的字符,连小数点,负号都要去掉
+	// 去除字符串中所有非数字的字符，只保留0-9，小数点、负号等也会被移除
+	// 使用MyStringBuilder的addIf按条件添加，避免多次字符串分配
 	public static string keepNumberOnly(this string str)
 	{
 		using var a = new MyStringBuilderScope(out var builder);
@@ -912,6 +938,8 @@ public static class StringExtension
 		}
 		return builder.ToString();
 	}
+	// 移除字符串末尾的连续数字字符
+	// 如果整个字符串全是数字，返回空字符串
 	public static string removeEndNumber(this string str)
 	{
 		if (isNumeric(str))
@@ -936,9 +964,15 @@ public static class StringExtension
 		// 默认为UTF8
 		return (encoding ?? Encoding.UTF8).GetBytes(str);
 	}
+	// 字符串编码转换：str → bytes(source编码) → string(target编码)
+	// 注意：不使用bytesToString（会removeLastZero截断\0），直接调用Encoding.GetString
 	public static string convertStringFormat(this string str, Encoding source, Encoding target)
 	{
-		return str.toBytes(source).bytesToString(target);
+		if (str == null)
+		{
+			return null;
+		}
+		return target.GetString(source.GetBytes(str));
 	}
 	public static string UTF8ToUnicode(this string str)
 	{
@@ -964,6 +998,8 @@ public static class StringExtension
 	{
 		return convertStringFormat(str, getGB2312(), Encoding.Unicode);
 	}
+	// 按换行符'\n'分割字符串，并自动移除每行末尾的'\r'（兼容Windows换行\r\n）
+	// str为空时lines=null
 	public static void splitLine(this string str, out string[] lines, bool removeEmpty = true)
 	{
 		if (str.isEmpty())
@@ -1156,6 +1192,8 @@ public static class StringExtension
         return IToS((int)value, minLength);
     }
     // minLength表示返回字符串的最少数字个数,等于0表示不限制个数,大于0表示如果转换后的数字数量不足minLength个,则在前面补0
+	// 转换策略：1) 查预计算表(mIntToString, 0~10239)  2) 查运行时缓存(mIntToStringCache)  3) 直接ToString
+	// 缓存上限STRING_MAX_CACHE(10240)条，超出后不再缓存新值
     public static string IToS(this int value, int minLength = 0)
     {
         if (mIntToString == null)
@@ -1360,8 +1398,9 @@ public static class StringExtension
     {
         return strcat(value.x.IToS(minLength), ",", value.y.IToS(minLength), ",", value.z.IToS(minLength), value.w.IToS(minLength));
     }
-    // 在使用返回值期间禁止再调用stringToStrings
-    public static List<string> stringToStrings(this string str, bool removeEmpty, params string[] keyword)
+	// 将字符串按keyword分割为List<string>（非分配版本，复用静态List）
+	// ⚠️ 返回值引用静态mTempStringList，在使用返回值期间禁止再调用任何stringToStrings重载
+	public static List<string> stringToStrings(this string str, bool removeEmpty, params string[] keyword)
     {
         mTempStringList.Clear();
         if (!str.isEmpty())
@@ -1370,8 +1409,9 @@ public static class StringExtension
         }
         return mTempStringList;
     }
-    // 在使用返回值期间禁止再调用stringToStrings
-    public static List<string> stringToStrings(this string str, bool removeEmpty, params char[] keyword)
+	// 将字符串按keyword分割为List<string>（非分配版本，复用静态List）
+	// ⚠️ 返回值引用静态mTempStringList，在使用返回值期间禁止再调用任何stringToStrings重载
+	public static List<string> stringToStrings(this string str, bool removeEmpty, params char[] keyword)
     {
         mTempStringList.Clear();
         if (!str.isEmpty())
@@ -1380,8 +1420,43 @@ public static class StringExtension
         }
         return mTempStringList;
     }
-    // 在使用返回值期间禁止再调用stringToFloatsNonAlloc
-    public static List<float> SToFsNonAlloc(this string str, char separate = ',')
+	public static List<string> stringToStrings(this string str, char separate = ',')
+	{
+		return str.stringToStrings(true, separate);
+	}
+	public static List<string> stringToStrings(this string str, bool removeEmpty, char separate = ',')
+	{
+		List<string> strList = new();
+		if (!str.isEmpty())
+		{
+			strList.addRange(str.split(removeEmpty, separate).safe());
+		}
+		return strList;
+	}
+	public static void stringToStrings(this string str, List<string> values, char separate = ',')
+	{
+		str.stringToStrings(values, true, separate);
+	}
+	public static void stringToStrings(this string str, List<string> values, bool removeEmpty, char separate = ',')
+	{
+		if (values == null)
+		{
+			logError("values can not be null");
+			return;
+		}
+		values.Clear();
+		if (str.isEmpty())
+		{
+			return;
+		}
+		foreach (string item in str.split(removeEmpty, separate).safe())
+		{
+			values.Add(item);
+		}
+	}
+	// 字符串转List<float>（非分配版本，复用静态mTempFloatList）
+	// ⚠️ 返回值引用静态List，在使用返回值期间禁止再调用此函数
+	public static List<float> SToFsNonAlloc(this string str, char separate = ',')
     {
         SToFs(str, mTempFloatList, separate);
         return mTempFloatList;
@@ -1481,8 +1556,9 @@ public static class StringExtension
             values[i] = rangeList[i].SToL();
         }
     }
-    // 在使用返回值期间禁止再调用stringToLongsNonAlloc
-    public static List<long> SToLsNonAlloc(this string str, char separate = ',')
+	// 字符串转List<long>（非分配版本，复用静态mTempLongList）
+	// ⚠️ 返回值引用静态List，在使用返回值期间禁止再调用此函数
+	public static List<long> SToLsNonAlloc(this string str, char separate = ',')
     {
         SToLs(str, mTempLongList, separate);
         return mTempLongList;
@@ -1529,8 +1605,9 @@ public static class StringExtension
             values[i] = rangeList[i].SToI();
         }
     }
-    // 在使用返回值期间禁止再调用stringToIntsNonAlloc
-    public static List<int> SToIsNonAlloc(this string str, char separate = ',')
+	// 字符串转List<int>（非分配版本，复用静态mTempIntList）
+	// ⚠️ 返回值引用静态List，在使用返回值期间禁止再调用此函数
+	public static List<int> SToIsNonAlloc(this string str, char separate = ',')
     {
         SToIs(str, mTempIntList, separate);
         return mTempIntList;
@@ -1603,8 +1680,9 @@ public static class StringExtension
             values.Add(item.SToI() > 0);
         }
     }
-    // 在使用返回值期间不允许再使用此函数
-    public static List<byte> SToBsNonAlloc(this string str, char separate = ',')
+	// 字符串转List<byte>（非分配版本，复用静态mTempByteList0）
+	// ⚠️ 返回值引用静态List，在使用返回值期间禁止再调用此函数
+	public static List<byte> SToBsNonAlloc(this string str, char separate = ',')
     {
         mTempByteList0.Clear();
         if (str.isEmpty())
@@ -1741,32 +1819,6 @@ public static class StringExtension
         }
         return builder.ToString();
     }
-    public static List<string> stringToStrings(this string str, char separate = ',')
-    {
-        List<string> strList = new();
-        if (!str.isEmpty())
-        {
-            strList.addRange(str.split(separate).safe());
-        }
-        return strList;
-    }
-    public static void stringToStrings(this string str, List<string> values, char separate = ',')
-    {
-        if (values == null)
-        {
-            logError("values can not be null");
-            return;
-        }
-        values.Clear();
-        if (str.isEmpty())
-        {
-            return;
-        }
-        foreach (string item in str.split(separate).safe())
-        {
-            values.Add(item);
-        }
-    }
     public static string boolToString(this bool value, bool firstUpper = false, bool fullUpper = false)
     {
         if (fullUpper)
@@ -1815,7 +1867,8 @@ public static class StringExtension
         }
         return "";
     }
-	// 使用制表符将字符串补到指定的显示长度
+	// 使用制表符(\t)将字符串补到指定的显示长度
+	// 每4个字符宽度补一个\t（一个tab通常显示为4个空格宽度），不足4也补1个tab
 	public static string fixedLength(this string str, int fixedLength)
 	{
 		if (str.Length >= fixedLength)
@@ -1830,6 +1883,10 @@ public static class StringExtension
 		}
 		return str;
 	}
+	// 初始化数值↔字符串的预计算表和补零字符串池
+	// mIntToString: 预计算0~10239的字符串表示（数组索引即数值）
+	// mStringToInt: 反向查找表（字符串→数值）
+	// mZeroStringList: 补零字符串池，mZeroStringList[5]="00000"，用于minLength补零
 	public static void initIntToString()
     {
         if (mIntToString != null || mStringToInt != null)

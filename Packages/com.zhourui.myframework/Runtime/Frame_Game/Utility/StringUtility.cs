@@ -17,6 +17,43 @@ public class StringUtility
 		}
 		return value.ToString(mFloatConvertPrecision[precision]);
 	}
+	public static byte[] stringToBytes(string str, Encoding encoding = null)
+	{
+		if (str == null)
+		{
+			return null;
+		}
+		// 默认为UTF8
+		return (encoding ?? Encoding.UTF8).GetBytes(str);
+	}
+	public static string bytesToString(byte[] bytes, Encoding encoding = null)
+	{
+		if (bytes == null)
+		{
+			return null;
+		}
+		if (bytes.Length == 0)
+		{
+			return "";
+		}
+		// 默认为UTF8
+		return removeLastZero((encoding ?? Encoding.UTF8).GetString(bytes));
+	}
+	// 字节数组转换为字符串时,末尾可能会带有数字0,此时在字符串比较时会出现错误,所以需要移除字符串末尾的0
+	public static string removeLastZero(string str)
+	{
+		int strLen = str.Length;
+		int newLen = strLen;
+		for (int i = 0; i < strLen; ++i)
+		{
+			if (str[i] == 0)
+			{
+				newLen = i;
+				break;
+			}
+		}
+		return str.startString(newLen);
+	}
 	// 得到文件路径
 	public static string getFilePath(string fileName, bool keepEndSlash = false)
 	{

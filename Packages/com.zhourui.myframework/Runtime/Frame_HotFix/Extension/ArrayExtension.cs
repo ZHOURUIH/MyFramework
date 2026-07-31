@@ -232,6 +232,7 @@ public static class ArrayExtension
 		}
 		return list[0];
 	}
+	// 倒转数组，使用元组交换（swap），只遍历前一半元素（count>>1）
 	public static void inverse<T>(this T[] list)
 	{
 		if (list.count() <= 1)
@@ -244,6 +245,7 @@ public static class ArrayExtension
 			(list[i], list[count - 1 - i]) = (list[count - 1 - i], list[i]);
 		}
 	}
+	// 字节数组转字符串，默认UTF8编码，自动去除末尾的'\0'字符
 	public static string bytesToString(this byte[] bytes, Encoding encoding = null)
 	{
 		if (bytes.isEmpty())
@@ -270,7 +272,9 @@ public static class ArrayExtension
 		// 默认为UTF8
 		return removeLastZero((encoding ?? Encoding.UTF8).GetString(bytes, startIndex, count));
 	}
-	// 移除数组中的第index个元素,validElementCount是数组中有效的元素个数
+	// 移除数组中的第index个元素，将后面的元素前移覆盖
+	// validElementCount: 数组中当前有效的元素个数（可能小于数组容量）
+	// 注意：删除后不会清除最后一个元素位置，需要调用者自行维护validElementCount
 	public static void removeIndex<T>(this T[] array, int validElementCount, int index)
 	{
 		if (index < 0 || index >= validElementCount)
@@ -283,7 +287,8 @@ public static class ArrayExtension
 			array[index + i] = array[index + i + 1];
 		}
 	}
-	// 移除数组中的所有value
+	// 移除数组中的所有value，返回新的有效元素个数
+	// 遍历过程中发现匹配项就调用removeIndex，并同步更新validElementCount和索引i
 	public static int removeValue<T>(this T[] array, int validElementCount, T value)
 	{
 		for (int i = 0; i < validElementCount; ++i)

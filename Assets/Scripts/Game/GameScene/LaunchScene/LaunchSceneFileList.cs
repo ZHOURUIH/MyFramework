@@ -1,5 +1,5 @@
 ﻿using static FrameBaseDefine;
-using static FileUtility;
+using static StringUtility;
 using static FrameBase;
 
 public class LaunchSceneFileList : SceneProcedure

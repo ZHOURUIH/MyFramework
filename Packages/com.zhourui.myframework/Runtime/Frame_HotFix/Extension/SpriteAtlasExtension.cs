@@ -10,6 +10,8 @@ using static FrameBaseUtility;
 // 精灵图集扩展方法,提供对SpriteAtlas的便捷操作
 public static class SpriteAtlasExtension
 {
+	// 判断指定Sprite是否属于某个SpriteAtlas（仅编辑器模式有效）
+	// 支持两种匹配：直接Sprite对象匹配和通过文件夹路径+文件名拼接匹配
 	public static bool isSpriteInAtlas(this SpriteAtlas atlas, Sprite targetSprite)
 	{
 #if UNITY_EDITOR

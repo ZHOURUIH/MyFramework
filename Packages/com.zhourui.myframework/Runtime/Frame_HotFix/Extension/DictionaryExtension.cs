@@ -68,7 +68,7 @@ public static class DictionaryExtension
 		}
 		dic[key] = value;
 	}
-	// 添加或者更新值,并且返回旧的值,只有当值有改变时才会返回被替换的值
+	// 添加或者更新值，只有新旧值不同时才替换，返回被替换的旧值（未替换返回null）
 	public static TValue replace<TKey, TValue>(this Dictionary<TKey, TValue> dic, TKey key, TValue value) where TValue : class
 	{
 		dic.TryGetValue(key, out TValue curValue);
@@ -263,6 +263,8 @@ public static class DictionaryExtension
 			dic.Add(key, increase);
 		}
 	}
+	// 先收集所有key到临时列表再设置值（避免在遍历时修改字典导致枚举器失效）
+	// setRangeKeys将字典的key复制到临时列表
 	public static Dictionary<Key, Value> setAllValue<Key, Value>(this Dictionary<Key, Value> map, Value value)
 	{
 		using var a = new ListScope<Key>(out var temp);
@@ -289,7 +291,8 @@ public static class DictionaryExtension
 		}
 		return value;
 	}
-	// 返回值表示是否获取到了列表中已经存在的值
+	// 如果key存在则获取，否则创建新的ClassObject加入字典
+	// 返回值表示是否从字典中获取到了已存在的值
 	public static bool getOrAddClass<Key, T>(this Dictionary<Key, T> map, Key key, out T value) where T : ClassObject, new()
 	{
 		if (!map.TryGetValue(key, out value))
@@ -299,7 +302,8 @@ public static class DictionaryExtension
 		}
 		return true;
 	}
-	// 返回值表示是否为列表中已经存在的对象出来的对象
+	// 如果key存在则获取，否则创建新的对象（new()）加入字典
+	// 返回值表示是否为字典中已存在的对象（true=已存在，false=新创建）
 	public static bool getOrAddNew<Key, Value>(this Dictionary<Key, Value> map, Key key, out Value value) where Value : new()
 	{
 		if (!map.TryGetValue(key, out value))
@@ -355,6 +359,8 @@ public static class DictionaryExtension
 		}
 		return condition;
 	}
+	// 先收集所有匹配的key到临时列表，再统一删除（避免遍历时修改字典）
+	// 返回被删除的元素个数
 	public static int remove<Key, T>(this Dictionary<Key, T> map, Predicate2<Key, T> condition)
 	{
 		if (condition == null)

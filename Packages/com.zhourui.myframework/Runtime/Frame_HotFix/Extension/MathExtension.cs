@@ -145,6 +145,7 @@ public static class MathExtension
 	public static float asin(this float value) { return Mathf.Asin(value.clamp(-1.0f, 1.0f)); }
 	public static float acos(this float value) { return Mathf.Acos(value.clamp(-1.0f, 1.0f)); }
 	public static float sqrt(this float value) { return Mathf.Sqrt(value); }
+	public static float sqrt(this int value) { return Mathf.Sqrt(value); }
 	// 将一个浮点数调整保留一定的小数位,保留的最后一位四舍五入.precision表示小数点后保留几位小数
 	public static float checkFloat(this float value, int precision = 4)
 	{
@@ -166,7 +167,9 @@ public static class MathExtension
 		vec.z = vec.z.checkInt(precision);
 		return vec;
 	}
-	// 检查一个浮点数是否接近整数,精度范围为precision,如果接近整数,则将此浮点数设置为整数的值
+	// 检查浮点数是否接近整数（误差<precision），是则修正为整数值
+	// 例如：checkInt(1.0000001f) → 1.0f, checkInt(0.9999999f) → 1.0f
+	// 处理策略：大于0时检查与intValue或intValue+1的差距；小于0时检查与intValue或intValue-1的差距
 	public static float checkInt(this float value, float precision = 0.0001f)
 	{
 		// 先判断是否为0
@@ -477,6 +480,7 @@ public static class MathExtension
 	{
 		return isZero(value1 - value2, precision);
 	}
+	// 安全倒数：value接近0时返回0而不是无穷大，避免除零错误
 	public static float inverse(this float value)
 	{
 		if (value.isZero())
@@ -506,19 +510,19 @@ public static class MathExtension
 	{
 		return !isZero(value1) ? value0 / value1 : defaultValue;
 	}
-	public static float divide(this int value0, int value1, int defaultValue = 0)
+	public static float divide(this int value0, int value1, float defaultValue = 0)
 	{
 		return value1 != 0 ? (float)value0 / value1 : defaultValue;
 	}
-	public static float divide(this int value0, float value1, int defaultValue = 0)
+	public static float divide(this int value0, float value1, float defaultValue = 0)
 	{
 		return value1 != 0 ? value0 / value1 : defaultValue;
 	}
-	public static float divide(this long value0, float value1, int defaultValue = 0)
+	public static float divide(this long value0, float value1, float defaultValue = 0)
 	{
 		return value1 != 0 ? value0 / value1 : defaultValue;
 	}
-	public static float divide(this long value0, long value1, int defaultValue = 0)
+	public static float divide(this long value0, long value1, float defaultValue = 0)
 	{
 		return value1 != 0 ? value0 / (float)value1 : defaultValue;
 	}
@@ -534,6 +538,10 @@ public static class MathExtension
 	{
 		return !isZero(value1) ? value0 / value1 : defaultValue;
 	}
+	// 通过加减cycle将value移入[min, max]范围（循环映射）
+	// includeMax: true时max本身是合法值（value <= max），false时max被排除（value < max）
+	// cycle: 每次调整的步长，如cycle=2时 value=7→5→3（每次减2）
+	// 注意：如果cycle不能整除value与边界的距离，结果可能多次循环后停在区间内某个值
 	public static int clampCycle(this int value, int min, int max, int cycle, bool includeMax = true)
 	{
 		while (value < min)
@@ -556,6 +564,8 @@ public static class MathExtension
 		}
 		return value;
 	}
+	// 通过加减cycle将浮点value移入[min, max]范围（循环映射）
+	// 逻辑与int版本相同，但使用浮点数运算
 	public static float clampCycle(this float value, float min, float max, float cycle, bool includeMax = true)
 	{
 		while (value < min)
@@ -620,21 +630,25 @@ public static class MathExtension
 	public static Vector3 divide(this Vector3 v1, Vector3 v2) { return new(v1.x.divide(v2.x), v1.y.divide(v2.y), v1.z.divide(v2.z)); }
 	public static Vector2 divide(this Vector2 v1, float scale) { return new(v1.x.divide(scale), v1.y.divide(scale)); }
 	public static Vector3 divide(this Vector3 v1, float scale) { return new(v1.x.divide(scale), v1.y.divide(scale), v1.z.divide(scale)); }
+	// 将弧度规范化到[-π, π]范围
 	public static float adjustRadian180(this float radian) { return radian.clampCycle(-PI_RADIAN, PI_RADIAN, TWO_PI_RADIAN); }
 	public static Vector3 adjustRadian180(this Vector3 radian)
 	{
 		return new(radian.x.adjustRadian180(), radian.y.adjustRadian180(), radian.z.adjustRadian180());
 	}
+	// 将角度规范化到[-180°, 180°]范围，使用clampCycle实现周期循环
 	public static float adjustAngle180(this float degree) { return degree.clampCycle(-PI_DEGREE, PI_DEGREE, TWO_PI_DEGREE); }
 	public static Vector3 adjustAngle180(this Vector3 degree)
 	{
 		return new(degree.x.adjustAngle180(), degree.y.adjustAngle180(), degree.z.adjustAngle180());
 	}
+	// 将弧度规范化到[0, 2π)范围
 	public static float adjustRadian360(this float radian) { return radian.clampCycle(0.0f, TWO_PI_RADIAN, TWO_PI_RADIAN); }
 	public static Vector3 adjustRadian360(this Vector3 radian)
 	{
 		return new(radian.x.adjustRadian360(), radian.y.adjustRadian360(), radian.z.adjustRadian360());
 	}
+	// 将角度规范化到[0°, 360°)范围
 	public static float adjustAngle360(this float degree) { return degree.clampCycle(0.0f, TWO_PI_DEGREE, TWO_PI_DEGREE); }
 	public static Vector3 adjustAngle360(this Vector3 degree)
 	{
@@ -660,19 +674,11 @@ public static class MathExtension
 	}
 	public static float getAngle(this Vector2 vec, ANGLE radian = ANGLE.RADIAN)
 	{
-		Vector3 tempVec = new Vector3(vec.x, 0.0f, vec.y).normalize();
-		float angle = acos(tempVec.z);
-		if (tempVec.x > 0.0f)
-		{
-			angle = -angle;
-		}
-		// 在unity的坐标系中航向角需要取反
-		angle = - angle.adjustRadian180();
-		if (radian == ANGLE.DEGREE)
-		{
-			angle = angle.toDegree();
-		}
-		return angle;
+		return new Vector3(vec.x, 0.0f, vec.y).getAngle(radian);
+	}
+	public static float getAngle(this Vector2Int vec, ANGLE radian = ANGLE.RADIAN)
+	{
+		return new Vector3(vec.x, 0.0f, vec.y).getAngle(radian);
 	}
 	public static Vector3 rotate(this Vector3 vec, Matrix4x4 transMat3) { return transMat3 * vec; }
 	// 使用一个四元数去旋转一个三维向量
@@ -682,7 +688,8 @@ public static class MathExtension
 	{
 		return vec.rotate(Quaternion.AngleAxis(radian.toDegree(), Vector3.up));
 	}
-	// 求Z轴顺时针旋转一定角度后的向量,角度范围是-MATH_PI 到 MATH_PI
+	// 求Z轴顺时针旋转指定弧度后的单位向量（水平面，Y=0）
+	// 先规范化弧度到[-π, π]，再用sin/cos构造方向
 	public static Vector3 getVectorFromAngle(this float radian)
 	{
 		radian = radian.adjustRadian180();
@@ -699,6 +706,8 @@ public static class MathExtension
 	public static float dot(this Vector3 v0, Vector3 v1) { return v0.x * v1.x + v0.y * v1.y + v0.z * v1.z; }
 	public static float dot(this Vector2 v0, Vector2 v1) { return v0.x * v1.x + v0.y * v1.y; }
 	public static Vector3 cross(this Vector3 v0, Vector3 v1) { return Vector3.Cross(v0, v1); }
+	// 计算批量处理时的总批次数
+	// 例如：totalCount=10, batch=3 → 4批（3+3+3+1）
 	public static int generateBatchCount(this int totalCount, int batch)
 	{
 		int batchCount = totalCount.divideInt(batch);
@@ -740,7 +749,9 @@ public static class MathExtension
 		}
 		return powValue;
 	}
-	// 获得大于value的第一个2的n次方的数,value需要大于0
+	// 获得大于等于value的第一个2的n次方的数（value>0）
+	// 策略：0~512查预计算表(mGreaterPow2)，之外分两档顺序查找（<2^15和≥2^15），比二分/顺序查找更快
+	// 预计算表惰性初始化，带线程锁保护
 	public static int getGreaterPow2(this int value)
 	{
 		if (mGreaterPow2 == null)

@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using static TestAssert;
 using static BinaryUtility;
 
@@ -30,6 +31,8 @@ public static class BinaryUtilityTest
         testBufferBits();
         testCrc16Extra();
         testMemcpyExtra();
+        testCrc16ByteDirect();
+        testEncodingGetters();
     }
 
     // ─── bitCount1 ───────────────────────────────────────────────────────────
@@ -468,5 +471,36 @@ public static class BinaryUtilityTest
         memcpy(dest5, src5, 0, 0, 5 * sizeof(int));
         assertEqual(1, dest5[0], "memcpy 字节偏移版[0]");
         assertEqual(5, dest5[4], "memcpy 字节偏移版[4]");
+    }
+
+    // ─── crc16_byte 直接调用 ─────────────────────────────────────────────────
+    private static void testCrc16ByteDirect()
+    {
+        ushort crc = 0;
+        crc = crc16_byte(crc, 0x01);
+        ushort crcA = crc;
+        crc = crc16_byte(crc, 0x01);
+        // 相同数据相同初值应产生稳定结果
+        ushort again = 0;
+        again = crc16_byte(again, 0x01);
+        assertEqual(crcA, again, "crc16_byte 相同数据结果一致");
+        // 与数组版本等价
+        ushort arr = crc16(0, new byte[] { 0x01, 0x02 }, 2);
+        ushort seq = crc16_byte(crc16_byte(0, 0x01), 0x02);
+        assertEqual(arr, seq, "crc16_byte 与数组版本一致");
+    }
+
+    // ─── getGB2312 / getGBK ──────────────────────────────────────────────────
+    private static void testEncodingGetters()
+    {
+        Encoding gb2312 = getGB2312();
+        assertTrue(gb2312 != null, "getGB2312 非空");
+        Encoding gbk = getGBK();
+        assertTrue(gbk != null, "getGBK 非空");
+        // 中文字符在 GBK 下编码应能往返
+        string chinese = "中文测试";
+        byte[] bytes = gbk.GetBytes(chinese);
+        string back = gbk.GetString(bytes);
+        assertEqual(chinese, back, "GBK 编码往返");
     }
 }

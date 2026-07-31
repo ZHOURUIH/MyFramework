@@ -1,5 +1,5 @@
 ﻿using static FrameBaseUtility;
-using static FileUtility;
+using static StringUtility;
 using static FrameBaseDefine;
 using static FrameBase;
 

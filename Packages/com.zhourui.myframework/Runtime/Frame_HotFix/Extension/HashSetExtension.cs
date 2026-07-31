@@ -160,7 +160,8 @@ public static class HashSetExtension
 	{
 		return list.add(CLASS<T>());
 	}
-	// Base 必须是 T 的基类或者实现 T 的接口
+	// 将派生类List<T>的元素添加到基类HashSet<Base>中（协变类型转换）
+	// 泛型约束确保 T 是 Base 的子类型，如 addRangeDerived<Animal, Dog>()
 	public static HashSet<Base> addRangeDerived<Base, T>(this HashSet<Base> list, List<T> other) where Base : class where T : Base
 	{
 		if (other.isEmpty())
@@ -190,6 +191,8 @@ public static class HashSetExtension
 		}
 		return default;
 	}
+	// 取出HashSet中的第一个元素并从集合中删除（类似栈的pop操作）
+	// 如果集合为空则返回default(T)
 	public static T popFirst<T>(this HashSet<T> list)
 	{
 		T elem = default;
