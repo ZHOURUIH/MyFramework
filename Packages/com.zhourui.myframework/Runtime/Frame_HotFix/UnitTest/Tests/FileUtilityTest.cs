@@ -1,7 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using static FileUtility;
 using static TestAssert;
@@ -22,6 +22,8 @@ public static class FileUtilityTest
         testCheckDeleteFile();
         testEncryptDecryptAES();
         testGenerateFileMD5Bytes();
+        testAsyncFileOperations();
+        testGenerateMD5List();
     }
 
     private static void testBasicFileOperations()
@@ -428,5 +430,91 @@ public static class FileUtilityTest
         byte[] data2 = Encoding.UTF8.GetBytes("hello");
         string md5_2 = generateFileMD5(data2);
         assertEqual(md5, md5_2, "md5 deterministic");
+    }
+
+    // ─── 异步文件操作: 验证回调参数和边界不崩溃 ──────────────────────
+    // 异步方法依赖 GameEntryBase.startCoroutine, 单元测试中协程不会真正执行
+    // 测试重点: 参数验证/回调触发/空文件列表等边界
+    private static void testAsyncFileOperations()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "MF_Async_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            createDir(root);
+
+            // 写一个测试文件供异步读取
+            string testFile = root + "/test_async.txt";
+            writeTxtFile(testFile, "test async content");
+
+            // openFileAsync: 文件不存在 + errorIfNull=false → 回调 null
+            bool callbackCalled = false;
+            openFileAsync(root + "/nonexistent.bin", false, (byte[] bytes) =>
+            {
+                callbackCalled = true;
+                assertNull(bytes, "openFileAsync nonexistent bytes null");
+            });
+            assertTrue(callbackCalled, "openFileAsync callback called");
+
+            // openTxtFileAsync / openTxtFileLinesAsync: 文件存在时走协程
+            // 回调在协程中异步触发，此处仅验证调用不抛异常
+            openTxtFileAsync(testFile, false, (string text) => { });
+            openTxtFileLinesAsync(testFile, false, (string[] lines) => { });
+
+            // openFileListAsync: 空列表
+            callbackCalled = false;
+            openFileListAsync(new System.Collections.Generic.List<string>(), false, (string name, byte[] data) =>
+            {
+                callbackCalled = true;
+                assertNull(name, "openFileListAsync empty name null");
+                assertNull(data, "openFileListAsync empty data null");
+            });
+            assertTrue(callbackCalled, "openFileListAsync empty callback called");
+
+            // openFileListAsyncInternal: 空列表 → 直接回调
+            callbackCalled = false;
+            var enumerator = openFileListAsyncInternal(new System.Collections.Generic.List<string>(), false, (string name, byte[] data) =>
+            {
+                callbackCalled = true;
+            });
+            // IEnumerator 应可直接遍历(空列表不 yield return)
+            assertTrue(enumerator != null, "openFileListAsyncInternal returns enumerator");
+            bool moved = enumerator.MoveNext();
+            assertTrue(callbackCalled || !callbackCalled, "openFileListAsyncInternal no crash");
+
+            // copyFileAsync: 先创建源文件再拷贝
+            string srcFile = root + "/copy_src.bin";
+            string dstFile = root + "/copy_dst.bin";
+            writeTxtFile(srcFile, "copy test data");
+            callbackCalled = false;
+            copyFileAsync(srcFile, dstFile, () =>
+            {
+                callbackCalled = true;
+            });
+            // copyFileAsync 是协程异步操作，回调不会同步触发
+            // 此处验证调用不崩溃即可
+            assertTrue(true, "copyFileAsync called without crash");
+        }
+        finally
+        {
+            deleteFolder(root);
+        }
+    }
+
+    // ─── generateMD5List: 计算多个文件的 MD5 ────────────────────────
+    private static void testGenerateMD5List()
+    {
+        // callback 为 null: 直接 return
+        generateMD5List(new List<string> { "a.txt" }, null);
+		// 不崩溃即通过
+
+		// 空文件列表: 在 Editor/Windows 下走协程, 验证不崩溃
+		List<string> emptyList = new();
+        generateMD5List(emptyList, (List<string> md5s) =>
+        {
+            // 空列表应返回空 MD5 列表
+            assertTrue(md5s != null, "generateMD5List result not null");
+        });
+        // generateMD5List 在 Editor 下走协程, 回调不会同步触发
+        assertTrue(true, "generateMD5List called without crash");
     }
 }

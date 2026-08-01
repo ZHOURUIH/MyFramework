@@ -138,7 +138,7 @@ public static class MathUtilityTest
         testGenerateDistanceList();
         testFindPointIndex();
         testGetMinMaxVector3();
-        // testGetCurvePoints();  // 源码 bug: extraPoints 用索引赋值而非 Add
+        testGetCurvePoints();
         testIntervalToSpeed();
         testPerfectRotationDeltaRadian();
         testTimeConversion();
@@ -1292,8 +1292,6 @@ public static class MathUtilityTest
     }
 
     // 平滑曲线点
-    // getCurvePoints 内部对 extraPoints 用索引赋值而非 Add, 源码 bug, 跳过
-    /*
     static void testGetCurvePoints()
     {
         List<Vector3> src = new() { new(0, 0, 0), new(5, 0, 0), new(10, 0, 0) };
@@ -1306,7 +1304,6 @@ public static class MathUtilityTest
         getCurvePoints(single, curveSingle, false);
         assertEqual(1, curveSingle.Count, "curvePts single");
     }
-    */
 
     // 时间间隔转速度
     static void testIntervalToSpeed()

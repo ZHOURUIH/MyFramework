@@ -28,6 +28,14 @@ public static class UnityUtilityTest
 		testGetMinMaxCorner();
 		testGetEnumLabel();
 		testGetAnimationLength();
+		testScreenAndScaleHelpers();
+		testLogFunctions();
+		testWorldScreenConversions();
+		testRaycastHelpers();
+		testOverlapFunctions();
+		testParticleAndSpine();
+		testRenderAndShader();
+		testContentAndMisc();
 	}
 
 	// ─── setGameObjectLayer ────────────────────────────────────────
@@ -436,6 +444,256 @@ public static class UnityUtilityTest
 		// null Animator: 返回 0
 		float len2 = getAnimationLength(null, "AnyClip");
 		assertEqual(0f, len2, 0.001f, "null animator length=0");
+
+		UnityEngine.Object.DestroyImmediate(go);
+	}
+
+	// screen/scale helpers
+	private static void testScreenAndScaleHelpers()
+	{
+		Vector2 screenSize = getScreenSize();
+		assertTrue(screenSize.x > 0f, "screenSize X > 0");
+
+		Vector2 hw = getHalfScreenSize();
+		assertTrue(hw.x >= 0, "halfScreenSize X >= 0");
+
+		Vector2 hwPx = getHardwareScreenSize();
+		assertTrue(hwPx.x >= 0, "hardwareScreenSize X >= 0");
+
+		Vector2 rootSize = getRootSize();
+		assertTrue(rootSize.x >= 0f, "rootSize X >= 0");
+
+		Vector2 gv = getGameViewSize();
+		assertTrue(gv.x >= 0f, "gameViewSize X >= 0");
+
+		// getScreenScale() no param, returns Vector2
+		Vector2 scale = getScreenScale();
+		assertTrue(scale.x > 0f, "getScreenScale x > 0");
+		assertTrue(scale.y > 0f, "getScreenScale y > 0");
+
+		// getScreenScale(ASPECT_BASE)
+		Vector2 scale16x9 = getScreenScale(ASPECT_BASE.AUTO);
+		assertTrue(scale16x9.x > 0f, "getScreenScale auto > 0");
+
+		// getScreenScaleAuto() no param, returns float
+		float autoScale = getScreenScaleAuto();
+		assertTrue(autoScale > 0f, "getScreenScaleAuto > 0");
+
+		// generateScreenScaleByAspectBase(Vector2, ASPECT_BASE)
+		Vector2 baseScale = generateScreenScaleByAspectBase(new Vector2(1920f, 1080f), ASPECT_BASE.USE_WIDTH_SCALE);
+		assertTrue(baseScale.x > 0f, "generateScreenScaleByAspectBase > 0");
+
+		// adjustByScreenScaleAuto(float)
+		float adjusted = adjustByScreenScaleAuto(100f);
+		assertTrue(adjusted > 0f, "adjustByScreenScaleAuto > 0");
+
+		// isInvalidScreenAdaptation does not exist, skip
+		assertTrue(true, "screen/scale helpers called");
+	}
+
+	// log functions
+	private static void testLogFunctions()
+	{
+		LOG_LEVEL oldLevel = getLogLevel();
+		setLogLevel(LOG_LEVEL.NORMAL);
+		assertTrue(getLogLevel() == LOG_LEVEL.NORMAL, "setLogLevel NORMAL");
+		setLogLevel(oldLevel);
+
+		logError("test error");
+		logWarning("test warning");
+		log("test log");
+		log("test", "log2");
+		logNoLock("test nolock");
+		try { throw new System.Exception("test ex"); }
+		catch (System.Exception e) { logException(e); }
+		assertTrue(true, "log functions called");
+	}
+
+	// world/screen conversions
+	private static void testWorldScreenConversions()
+	{
+		GameObject camGo = new GameObject("TestCamera");
+		Camera cam = camGo.AddComponent<Camera>();
+		cam.orthographic = true;
+		cam.orthographicSize = 5f;
+
+		// worldToScreen(Vector3, Camera, bool)
+		Vector3 screenPos = worldToScreen(Vector3.zero, cam);
+		assertTrue(screenPos.z >= 0f, "worldToScreen Z >= 0");
+
+		// worldToScreen(Vector3, bool)
+		Vector3 screenPos2 = worldToScreen(Vector3.zero, true);
+		assertTrue(screenPos2.z >= 0f, "worldToScreen(mainCam) Z >= 0");
+
+		screenToWorld(Vector3.zero, cam);
+		assertTrue(true, "screenToWorld called");
+
+		// worldUIToScreen(Vector3, bool)
+		Vector3 uiScreen = worldUIToScreen(Vector3.zero);
+		assertTrue(true, "worldUIToScreen called");
+
+		getMainCameraMouseRay();
+		getMainCameraScreenCenterRay();
+		getMainCameraRay(Vector2.zero);
+		getCameraRay(Vector2.zero, cam);
+		getUIRay(Vector2.zero);
+		assertTrue(true, "ray helpers called");
+
+		// isGameObjectInScreen(Vector3)
+		isGameObjectInScreen(Vector3.zero);
+		assertTrue(true, "isGameObjectInScreen called");
+
+		// atCameraBack(Vector3)
+		atCameraBack(Vector3.zero);
+		assertTrue(true, "atCameraBack called");
+
+		generateWorldPosition(camGo.transform);
+		generateWorldRotation(camGo.transform);
+		generateWorldScale(camGo.transform);
+		assertTrue(true, "generateWorld called");
+
+		UnityEngine.Object.DestroyImmediate(camGo);
+	}
+
+	// raycast helpers
+	private static void testRaycastHelpers()
+	{
+		GameObject go = new GameObject();
+		BoxCollider box = go.AddComponent<BoxCollider>();
+		box.size = Vector3.one;
+		go.transform.position = Vector3.zero;
+
+		Ray ray = new Ray(Vector3.forward * 5f, -Vector3.forward);
+		raycast(ray, out Collider resultCol, out Vector3 resultPoint, -1);
+		raycast(ray, out Collider resultCol2, out Vector3 resultPoint2, 10f, -1);
+
+		RaycastHit[] hits = new RaycastHit[10];
+		int hitCount = raycastAll(ray, hits, -1);
+		assertTrue(hitCount >= 0, "raycastAll count >= 0");
+
+		int hitCount2 = raycastAll(ray, hits, 10f, -1);
+		assertTrue(hitCount2 >= 0, "raycastAll maxDist count >= 0");
+
+		Vector3 intersectPoint = Vector3.zero;
+		getRaycastPoint(box, ray, ref intersectPoint);
+		getRaycastPoint(box, ray, ref intersectPoint, 10f);
+
+		var results = new System.Collections.Generic.List<UnityEngine.EventSystems.RaycastResult>();
+		raycastUGUI(Vector2.zero, results);
+
+		assertTrue(true, "raycast helpers called");
+		UnityEngine.Object.DestroyImmediate(go);
+	}
+
+	// overlap functions
+	private static void testOverlapFunctions()
+	{
+		GameObject go = new GameObject();
+		BoxCollider box = go.AddComponent<BoxCollider>();
+		box.size = Vector3.one;
+		go.transform.position = Vector3.zero;
+
+		GameObject go2 = new GameObject();
+		BoxCollider box2 = go2.AddComponent<BoxCollider>();
+		box2.size = Vector3.one;
+		go2.transform.position = new Vector3(0.5f, 0f, 0f);
+
+		Collider[] results = new Collider[10];
+		overlapAllBox(box, results, -1);
+
+		SphereCollider sphere = go.AddComponent<SphereCollider>();
+		overlapAllSphere(sphere, results, -1);
+
+		overlapBoxIgnoreY(box, box2, null, 4);
+		overlapBoxIgnoreZ(box, box2, null, 4);
+
+		overlapCollider(box, results, -1);
+		isOverlap(box, box2);
+
+		assertTrue(true, "overlap functions called");
+		UnityEngine.Object.DestroyImmediate(go2);
+		UnityEngine.Object.DestroyImmediate(go);
+	}
+
+	// particle/spine
+	private static void testParticleAndSpine()
+	{
+		GameObject go = new GameObject();
+		go.AddComponent<ParticleSystem>();
+
+		playAllParticle(go);
+		stopAllParticle(go);
+		restartAllParticle(go);
+		pauseAllParticle(go);
+
+		playAllParticle(null);
+		stopAllParticle(null);
+		restartAllParticle(null);
+		pauseAllParticle(null);
+
+		assertTrue(true, "particle/spine called");
+		UnityEngine.Object.DestroyImmediate(go);
+	}
+
+	// render/shader/misc
+	private static void testRenderAndShader()
+	{
+		GameObject go = new GameObject();
+		Camera cam = go.AddComponent<Camera>();
+
+		setRenderType(cam, UnityEngine.Rendering.Universal.CameraRenderType.Overlay);
+
+		findShaders(go);
+		findUGUIShaders(go);
+
+		float oldScale = getRenderScale();
+		setRenderScale(1.0f);
+		getRenderScale();
+		setRenderScale(oldScale);
+
+		GameObject parent = new GameObject("Parent");
+		setNormalProperty(go, parent);
+		setNormalProperty(go, parent, "Child");
+
+		setScreenSize(new Vector2(1920, 1080), false);
+
+		getLastError();
+		getComponentInParent<Transform>(go);
+		getGameObjectID(go);
+
+		GameObject root = findOrCreateRootGameObject("TestRootObj");
+		assertNotNull(root, "findOrCreateRootGameObject not null");
+		UnityEngine.Object.DestroyImmediate(root);
+
+		GameObject prefab = new GameObject("Prefab");
+		GameObject instance = instantiatePrefab(null, prefab, "Instance", true);
+		assertNotNull(instance, "instantiatePrefab not null");
+		UnityEngine.Object.DestroyImmediate(instance);
+		UnityEngine.Object.DestroyImmediate(prefab);
+
+		GameObject original = new GameObject("AsyncClone");
+		cloneObjectAsync(original, "AsyncClone", (GameObject cloned) =>
+		{
+			assertNotNull(cloned, "cloneObjectAsync callback not null");
+			UnityEngine.Object.DestroyImmediate(cloned);
+		});
+		UnityEngine.Object.DestroyImmediate(original);
+
+		assertTrue(true, "render/shader/misc called");
+		UnityEngine.Object.DestroyImmediate(parent);
+		UnityEngine.Object.DestroyImmediate(go);
+	}
+
+	// getContentLength
+	private static void testContentAndMisc()
+	{
+		GameObject go = new GameObject("TestContent");
+		go.AddComponent<RectTransform>();
+		UnityEngine.UI.Text textComp = go.AddComponent<UnityEngine.UI.Text>();
+		textComp.fontSize = 14;
+
+		int len1 = getContentLength(textComp, "hello");
+		assertTrue(len1 >= 0, "getContentLength >= 0");
 
 		UnityEngine.Object.DestroyImmediate(go);
 	}

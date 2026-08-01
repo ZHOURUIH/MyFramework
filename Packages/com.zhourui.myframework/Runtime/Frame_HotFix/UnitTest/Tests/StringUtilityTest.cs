@@ -82,6 +82,21 @@ public static class StringUtilityTest
         testLineAppend();
         testProjectPathToFullPath();
         testGenerateMultiLine();
+        testGenerateMultiLineTMP();
+        testFullPathToProjectPathRef();
+        testProjectPathToFullPathRef();
+        testRemoveEndSlashRef();
+        testAddSpriteRef();
+        testColorString3Args();
+        testColorString4Args();
+        testColorString5Args();
+        testKMPSearchWithNextIndex();
+        testStrcat6Args();
+        testStrcat7Args();
+        testStrcat8Args();
+        testStrcat9Args();
+        testStrcat10Args();
+        testStrcat11Args();
     }
 
     static void testIToS()
@@ -236,8 +251,18 @@ public static class StringUtilityTest
 
     static void testColorString()
     {
-        string c = colorString("hello", "#FF0000");
+        // colorString 签名: (color, str) — 颜色在前
+        string c = colorString("#FF0000", "hello");
         assertTrue(c.Contains("hello"), "colorStr");
+        assertTrue(c.Contains("#FF0000"), "colorStr has color");
+
+        // 测试多参数重载: colorString(color, str0, str1)
+        string c2 = colorString("#00FF00", "hello", "world");
+        assertTrue(c2.Contains("hello"), "colorStr2 has str0");
+        assertTrue(c2.Contains("world"), "colorStr2 has str1");
+
+        // colorString 参数为空: 颜色为空时返回原字符串
+        assertEqual("hello", colorString("", "hello"), "colorStr empty color");
     }
 
     static void testIntToChineseString()
@@ -276,10 +301,37 @@ public static class StringUtilityTest
 
     static void testFormattingAndValidation()
     {
+        // format 三参数
         string f = format("{0}+{1}={2}", "1", "1", "2");
-        assertEqual("1+1=2", f, "format");
+        assertEqual("1+1=2", f, "format 3 args");
+        // format 单参数
         f = format("val={0}", "42");
         assertEqual("val=42", f, "format single");
+        // format 双参数
+        f = format("{0} and {1}", "a", "b");
+        assertEqual("a and b", f, "format 2 args");
+        // format with string[] args
+        f = format("{0}-{1}-{2}", new string[] { "x", "y", "z" });
+        assertEqual("x-y-z", f, "format string[]");
+        // format with List<string>
+        f = format("{0},{1}", new List<string> { "foo", "bar" });
+        assertEqual("foo,bar", f, "format List<string>");
+        // format with List<int>
+        f = format("v{0}.{1}", new List<int> { 3, 5 });
+        assertEqual("v3.5", f, "format List<int>");
+        // format with List<float>
+        f = format("p{0},{1}", new List<float> { 1.5f, 2.5f });
+        assertTrue(f.Contains("1.5"), "format List<float>");
+        // format with Span<int>
+        Span<int> span = stackalloc int[] { 10, 20 };
+        f = format("{0}->{1}", span);
+        assertEqual("10->20", f, "format Span<int>");
+        // format 空参数
+        f = format("no placeholders", new string[] { });
+        assertEqual("no placeholders", f, "format empty args");
+        f = format("no placeholders", new string[] { "a" });
+        assertEqual("no placeholders", f, "format no placeholder match");
+
         assertTrue(checkFloatString("3.14"), "checkFloat");
         assertTrue(checkFloatString("-0.5"), "checkFloat neg");
         assertTrue(checkIntString("42"), "checkInt");
@@ -756,5 +808,204 @@ public static class StringUtilityTest
         myUGUIText text = LayoutScript.newUIObject<myUGUIText>(null, null, go, true);
         text.setSize(new Vector2(width, 100.0f));
         return text;
+    }
+
+    // generateMultiLine(TMP): myUGUITextTMP 版本的文本拆分
+    // 构造 TMP 对象需要 TextMeshProUGUI 组件, 在未安装 TMP 的环境下会失败
+    // 因此只在安装了 TMP 时测试
+    static void testGenerateMultiLineTMP()
+    {
+#if UNITY_TMP_PRESENT
+        // 短文本(< minStringLength): 直接整行加入
+        {
+            myUGUITextTMP textTMP = createTestTextTMP(1000.0f);
+            List<string> lines = new();
+            generateMultiLine(textTMP, "short", lines, 30);
+            assertEqual(1, lines.Count, "genMultiLineTMP short count");
+            assertEqual("short", lines[0], "genMultiLineTMP short text");
+            UnityEngine.Object.DestroyImmediate(textTMP.getGameObject());
+        }
+        // 超宽显示区: 所有字符总能容纳,整串为一行
+        {
+            myUGUITextTMP textTMP = createTestTextTMP(100000.0f);
+            List<string> lines = new();
+            string longText = new string('a', 60);
+            generateMultiLine(textTMP, longText, lines, 30);
+            assertEqual(1, lines.Count, "genMultiLineTMP wide count");
+            assertEqual(longText, lines[0], "genMultiLineTMP wide text");
+            UnityEngine.Object.DestroyImmediate(textTMP.getGameObject());
+        }
+#endif
+    }
+
+    // 构造 myUGUITextTMP: 需要 TextMeshProUGUI 组件
+    static myUGUITextTMP createTestTextTMP(float width)
+    {
+        GameObject go = new GameObject("TestTextTMP");
+        go.AddComponent<RectTransform>();
+        // TMP 组件: 仅在 TMP 包安装时可用
+        var tmp = go.AddComponent<TMPro.TextMeshProUGUI>();
+        tmp.fontSize = 14;
+        myUGUITextTMP text = LayoutScript.newUIObject<myUGUITextTMP>(null, null, go, true);
+        text.setSize(new Vector2(width, 100.0f));
+        return text;
+    }
+
+    // ─── 补充遗漏的 ref 版本重载 ────────────────────────────────────────
+
+    // fullPathToProjectPath(ref string): 绝对路径转相对路径的 ref 版本
+    static void testFullPathToProjectPathRef()
+    {
+        // 空字符串: 直接返回不处理
+        string path = "";
+        fullPathToProjectPath(ref path);
+        assertEqual("", path, "fullPathToProjectPathRef empty");
+
+        // 正常路径: F_ASSETS_PATH + "file.cs" → P_ASSETS_PATH + "file.cs"
+        path = F_ASSETS_PATH + "file.cs";
+        fullPathToProjectPath(ref path);
+        assertTrue(path.startWith(P_ASSETS_PATH), "fullPathToProjectPathRef converted");
+    }
+
+    // projectPathToFullPath(ref string): 相对路径转绝对路径的 ref 版本
+    static void testProjectPathToFullPathRef()
+    {
+        // 不以Assets开头: 不处理
+        string path = "foo/bar";
+        projectPathToFullPath(ref path);
+        assertEqual("foo/bar", path, "projectPathToFullPathRef no Assets prefix unchanged");
+
+        // 空字符串: 直接返回
+        path = "";
+        projectPathToFullPath(ref path);
+        assertEqual("", path, "projectPathToFullPathRef empty");
+
+        // Assets 开头: 正常转换
+        path = "Assets/foo";
+        projectPathToFullPath(ref path);
+        assertEqual(F_ASSETS_PATH + "foo", path, "projectPathToFullPathRef Assets/foo");
+    }
+
+    // removeEndSlash(ref string): 移除结尾斜杠的 ref 版本
+    static void testRemoveEndSlashRef()
+    {
+        string path = "/a/b/";
+        removeEndSlash(ref path);
+        assertEqual("/a/b", path, "removeEndSlashRef trailing /");
+
+        path = "/a/b";
+        removeEndSlash(ref path);
+        assertEqual("/a/b", path, "removeEndSlashRef no trailing unchanged");
+
+        path = "";
+        removeEndSlash(ref path);
+        assertEqual("", path, "removeEndSlashRef empty");
+    }
+
+    // addSprite(ref string, string, float): sprite 拼接的 ref 版本
+    static void testAddSpriteRef()
+    {
+        string s = "before";
+        addSprite(ref s, "icon01", 1.0f);
+        assertTrue(s.Contains("<quad"), "addSpriteRef quad");
+        assertTrue(s.Contains("sprite=icon01"), "addSpriteRef name");
+        assertTrue(s.Contains("before"), "addSpriteRef prefix");
+    }
+
+    // ─── colorString 多参重载 ───────────────────────────────────────────
+
+    // colorString(color, s0, s1, s2): 三字符串重载
+    static void testColorString3Args()
+    {
+        // colorString 内部拼接 "<color=#" + color + ">"，color 参数不应含 # 前缀
+        string c = colorString("FF0000", "a", "b", "c");
+        assertTrue(c.Contains("<color=#FF0000>"), "colorString3 has tag");
+        assertTrue(c.Contains("a"), "colorString3 has s0");
+        assertTrue(c.Contains("b"), "colorString3 has s1");
+        assertTrue(c.Contains("c"), "colorString3 has s2");
+    }
+
+    // colorString(color, s0, s1, s2, s3): 四字符串重载
+    static void testColorString4Args()
+    {
+        string c = colorString("00FF00", "x", "y", "z", "w");
+        assertTrue(c.Contains("<color=#00FF00>"), "colorString4 has tag");
+        assertTrue(c.Contains("x"), "colorString4 has s0");
+        assertTrue(c.Contains("w"), "colorString4 has s3");
+    }
+
+    // colorString(color, s0, s1, s2, s3, s4): 五字符串重载
+    static void testColorString5Args()
+    {
+        string c = colorString("0000FF", "1", "2", "3", "4", "5");
+        assertTrue(c.Contains("<color=#0000FF>"), "colorString5 has tag");
+        assertTrue(c.Contains("1"), "colorString5 has s0");
+        assertTrue(c.Contains("5"), "colorString5 has s4");
+    }
+
+    // ─── KMPSearch 带 nextIndex 重载 ────────────────────────────────────
+
+    // KMPSearch(string, string, ref int[]): 带预计算nextIndex的KMP搜索
+    static void testKMPSearchWithNextIndex()
+    {
+        // 预计算 nextIndex 后传入
+        generateNextIndex("world", out int[] next);
+        int pos = KMPSearch("hello world", "world", ref next);
+        assertEqual(6, pos, "KMPSearch with nextIndex found");
+
+        // 未找到
+        generateNextIndex("xyz", out int[] next2);
+        pos = KMPSearch("hello", "xyz", ref next2);
+        assertEqual(-1, pos, "KMPSearch with nextIndex not found");
+
+        // nextIndex 为 null: 内部自动生成
+        int[] nullNext = null;
+        pos = KMPSearch("abcabc", "cab", ref nullNext);
+        assertEqual(2, pos, "KMPSearch with null nextIndex");
+        assertNotNull(nullNext, "KMPSearch null nextIndex generated");
+    }
+
+    // ─── strcat 多参重载 ────────────────────────────────────────────────
+
+    // strcat 6参: (str0, str1, str2, str3, str4, str5)
+    static void testStrcat6Args()
+    {
+        string s = strcat("a", "b", "c", "d", "e", "f");
+        assertEqual("abcdef", s, "strcat 6 args");
+    }
+
+    // strcat 7参: (str0..str6)
+    static void testStrcat7Args()
+    {
+        string s = strcat("a", "b", "c", "d", "e", "f", "g");
+        assertEqual("abcdefg", s, "strcat 7 args");
+    }
+
+    // strcat 8参: (str0..str7)
+    static void testStrcat8Args()
+    {
+        string s = strcat("a", "b", "c", "d", "e", "f", "g", "h");
+        assertEqual("abcdefgh", s, "strcat 8 args");
+    }
+
+    // strcat 9参: (str0..str8)
+    static void testStrcat9Args()
+    {
+        string s = strcat("a", "b", "c", "d", "e", "f", "g", "h", "i");
+        assertEqual("abcdefghi", s, "strcat 9 args");
+    }
+
+    // strcat 10参: (str0..str9)
+    static void testStrcat10Args()
+    {
+        string s = strcat("a", "b", "c", "d", "e", "f", "g", "h", "i", "j");
+        assertEqual("abcdefghij", s, "strcat 10 args");
+    }
+
+    // strcat 11参: (str0..str10)
+    static void testStrcat11Args()
+    {
+        string s = strcat("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k");
+        assertEqual("abcdefghijk", s, "strcat 11 args");
     }
 }

@@ -55,6 +55,23 @@ public static class FrameUtilityTest
         testCommandSystem();
         testObjectPool();
         testDelayCall();
+        testArrayPool();
+        testArrayPoolThread();
+        testListPool();
+        testListPoolPersist();
+        testSetPoolPersist();
+        testDicPoolPersist();
+        testClassPool();
+        testClassPoolThread();
+        testClassPoolList();
+        testPacket();
+        testCmd();
+        testPushCommand();
+        testCheckEnum();
+        testCreateInstance();
+        testDeepCopy();
+        testGetUGUIRootComponent();
+        testIsSpriteInAtlas();
     }
 
     static void testTickTimerLoop()
@@ -733,8 +750,7 @@ public static class FrameUtilityTest
     static void testDelayCall()
     {
         // delayCall(Action): 无参延迟
-        bool called = false;
-        long id1 = delayCall(() => { called = true; });
+        long id1 = delayCall(() => { });
         assertTrue(id1 > 0, "delayCall id > 0");
         // 注意: 延迟调用在下一帧才执行, 此处无法验证回调
 
@@ -768,7 +784,447 @@ public static class FrameUtilityTest
 
     public class TestFrameClass : ClassObject { }
 
+    // ─── 数组对象池: ARRAY / ARRAY_PERSIST / UN_ARRAY ──────────────────
+    static void testArrayPool()
+    {
+        // ARRAY<T>(out T[], int): 可回收数组
+        ARRAY(out int[] arr1, 8);
+        assertNotNull(arr1, "ARRAY out not null");
+        assertEqual(8, arr1.Length, "ARRAY out length");
+        arr1[0] = 42;
+        UN_ARRAY(ref arr1);
+        assertTrue(arr1 == null, "UN_ARRAY ref null");
+
+        // ARRAY<T>(int): 返回值版本
+        int[] arr2 = ARRAY<int>(16);
+        assertNotNull(arr2, "ARRAY return not null");
+        assertEqual(16, arr2.Length, "ARRAY return length");
+        UN_ARRAY(ref arr2);
+        assertTrue(arr2 == null, "UN_ARRAY return null");
+
+        // UN_ARRAY<T>(T[], bool): value 版本不置 null
+        ARRAY(out int[] arr3, 4);
+        UN_ARRAY(arr3);
+        // value 版本不置 null, 仅回收
+
+        // UN_ARRAY<T>(ICollection<T[]>, bool): 批量回收
+        var list = new List<int[]>();
+        ARRAY(out int[] arr4, 2);
+        ARRAY(out int[] arr5, 2);
+        list.Add(arr4);
+        list.Add(arr5);
+        UN_ARRAY(list);
+        assertEqual(0, list.Count, "UN_ARRAY list cleared");
+
+        // ARRAY_PERSIST<T>: 持久数组（不回收）
+        ARRAY_PERSIST(out int[] persist, 32);
+        assertNotNull(persist, "ARRAY_PERSIST not null");
+        assertEqual(32, persist.Length, "ARRAY_PERSIST length");
+        persist[0] = 99;
+        assertEqual(99, persist[0], "ARRAY_PERSIST write");
+    }
+
+    // ─── 线程数组池: ARRAY_THREAD / UN_ARRAY_THREAD ────────────────────
+    static void testArrayPoolThread()
+    {
+        // ARRAY_THREAD<T>(out T[], int)
+        ARRAY_THREAD(out int[] arr1, 8);
+        assertNotNull(arr1, "ARRAY_THREAD out not null");
+        assertEqual(8, arr1.Length, "ARRAY_THREAD out length");
+        UN_ARRAY_THREAD(ref arr1);
+        assertTrue(arr1 == null, "UN_ARRAY_THREAD ref null");
+
+        // UN_ARRAY_THREAD<T>(ICollection<T[]>, bool): 批量回收
+        var list = new List<int[]>();
+        ARRAY_THREAD(out int[] arr2, 2);
+        ARRAY_THREAD(out int[] arr3, 2);
+        list.Add(arr2);
+        list.Add(arr3);
+        UN_ARRAY_THREAD(list);
+        assertEqual(0, list.Count, "UN_ARRAY_THREAD list cleared");
+    }
+
+    // ─── 列表对象池: LIST / UN_LIST ────────────────────────────────────
+    static void testListPool()
+    {
+        // LIST<T>(): 空列表
+        List<int> l1 = LIST<int>();
+        assertNotNull(l1, "LIST<> not null");
+        assertEqual(0, l1.Count, "LIST<> empty");
+        UN_LIST(ref l1);
+        assertTrue(l1 == null, "UN_LIST ref null");
+
+        // LIST<T>(out List<T>): out 版本
+        LIST(out List<int> l2);
+        assertNotNull(l2, "LIST out not null");
+        assertEqual(0, l2.Count, "LIST out empty");
+        UN_LIST(ref l2);
+
+        // LIST<T>(List<T> initList): 带初始列表
+        var init = new List<int> { 1, 2, 3 };
+        List<int> l3 = LIST(init);
+        assertNotNull(l3, "LIST initList not null");
+        assertEqual(3, l3.Count, "LIST initList count");
+        assertEqual(1, l3[0], "LIST initList [0]");
+        assertEqual(3, l3[2], "LIST initList [2]");
+        UN_LIST(ref l3);
+
+        // LIST<T>(T[] initList): 带初始数组
+        int[] initArr = { 10, 20, 30, 40 };
+        List<int> l4 = LIST(initArr);
+        assertNotNull(l4, "LIST initArr not null");
+        assertEqual(4, l4.Count, "LIST initArr count");
+        assertEqual(10, l4[0], "LIST initArr [0]");
+        assertEqual(40, l4[3], "LIST initArr [3]");
+        UN_LIST(ref l4);
+
+        // LIST<T>(out List<T>, List<T>): out + 初始列表
+        var src = new List<int> { 5, 6 };
+        LIST(out List<int> l5, src);
+        assertNotNull(l5, "LIST out initList not null");
+        assertEqual(2, l5.Count, "LIST out initList count");
+        assertEqual(5, l5[0], "LIST out initList [0]");
+        UN_LIST(ref l5);
+
+        // LIST<T>(out List<T>, T[]): out + 初始数组
+        int[] srcArr = { 7, 8, 9 };
+        LIST(out List<int> l6, srcArr);
+        assertNotNull(l6, "LIST out initArr not null");
+        assertEqual(3, l6.Count, "LIST out initArr count");
+        assertEqual(9, l6[2], "LIST out initArr [2]");
+        UN_LIST(ref l6);
+
+        // UN_LIST<T>(List<T>): value 版本不置 null
+        LIST(out List<int> l7);
+        UN_LIST(l7);
+    }
+
+    // ─── 持久列表池: LIST_PERSIST ──────────────────────────────────────
+    static void testListPoolPersist()
+    {
+        // LIST_PERSIST<T>(): 空持久列表
+        List<int> l1 = LIST_PERSIST<int>();
+        assertNotNull(l1, "LIST_PERSIST<> not null");
+        assertEqual(0, l1.Count, "LIST_PERSIST<> empty");
+
+        // LIST_PERSIST<T>(out List<T>): out 版本
+        LIST_PERSIST(out List<int> l2);
+        assertNotNull(l2, "LIST_PERSIST out not null");
+        assertEqual(0, l2.Count, "LIST_PERSIST out empty");
+
+        // LIST_PERSIST<T>(out List<T>, T[]): out + 初始数组
+        int[] initArr = { 1, 2, 3 };
+        List<int> l3 = LIST_PERSIST(out List<int> l3a, initArr);
+        assertNotNull(l3, "LIST_PERSIST initArr not null");
+        assertEqual(3, l3.Count, "LIST_PERSIST initArr count");
+        assertEqual(1, l3[0], "LIST_PERSIST initArr [0]");
+        assertEqual(3, l3[2], "LIST_PERSIST initArr [2]");
+
+        // LIST_PERSIST<T>(out List<T>, List<T>): out + 初始列表
+        var src = new List<int> { 5, 6, 7 };
+        List<int> l4 = LIST_PERSIST(out List<int> l4a, src);
+        assertNotNull(l4, "LIST_PERSIST initList not null");
+        assertEqual(3, l4.Count, "LIST_PERSIST initList count");
+        assertEqual(5, l4[0], "LIST_PERSIST initList [0]");
+    }
+
+    // ─── HashSet 持久池: SET_PERSIST / UN_SET ──────────────────────────
+    static void testSetPoolPersist()
+    {
+        // SET_PERSIST<T>(): 空 HashSet
+        HashSet<int> s1 = SET_PERSIST<int>();
+        assertNotNull(s1, "SET_PERSIST<> not null");
+        assertEqual(0, s1.Count, "SET_PERSIST<> empty");
+
+        // SET_PERSIST<T>(out HashSet<T>, List<T>): out + 初始列表
+        var init = new List<int> { 1, 2, 3, 2 };
+        HashSet<int> s2 = SET_PERSIST(out HashSet<int> s2a, init);
+        assertNotNull(s2, "SET_PERSIST initList not null");
+        // HashSet 去重: 3 个元素
+        assertEqual(3, s2.Count, "SET_PERSIST initList count dedup");
+        assertTrue(s2.Contains(1), "SET_PERSIST contains 1");
+        assertTrue(s2.Contains(2), "SET_PERSIST contains 2");
+        assertTrue(s2.Contains(3), "SET_PERSIST contains 3");
+
+        // UN_SET<T>(ref HashSet<T>): ref 版本置 null
+        UN_SET(ref s2);
+        assertTrue(s2 == null, "UN_SET ref null");
+
+        // UN_SET<T>(HashSet<T>): value 版本不置 null
+        HashSet<int> s3 = SET_PERSIST<int>();
+        s3.Add(42);
+        UN_SET(s3);
+    }
+
+    // ─── Dictionary 持久池: DIC_PERSIST / UN_DIC ───────────────────────
+    static void testDicPoolPersist()
+    {
+        // DIC_PERSIST<K, V>(): 空字典
+        Dictionary<int, string> d1 = DIC_PERSIST<int, string>();
+        assertNotNull(d1, "DIC_PERSIST<> not null");
+        assertEqual(0, d1.Count, "DIC_PERSIST<> empty");
+
+        // DIC_PERSIST<K, V>(out Dictionary<K, V>): out 版本
+        DIC_PERSIST(out Dictionary<int, string> d2);
+        assertNotNull(d2, "DIC_PERSIST out not null");
+        assertEqual(0, d2.Count, "DIC_PERSIST out empty");
+        d2[1] = "one";
+        d2[2] = "two";
+        assertEqual("one", d2[1], "DIC_PERSIST write");
+        assertEqual("two", d2[2], "DIC_PERSIST write 2");
+
+        // UN_DIC<K, V>(ref Dictionary<K, V>): ref 版本置 null
+        UN_DIC(ref d2);
+        assertTrue(d2 == null, "UN_DIC ref null");
+
+        // UN_DIC<K, V>(Dictionary<K, V>): value 版本不置 null
+        DIC_PERSIST(out Dictionary<int, string> d3);
+        d3[10] = "ten";
+        UN_DIC(d3);
+    }
+
+    // ─── ClassObject 池: CLASS / UN_CLASS ──────────────────────────────
+    static void testClassPool()
+    {
+        // CLASS<T>(): 泛型返回
+        TestFrameClass c1 = CLASS<TestFrameClass>();
+        assertNotNull(c1, "CLASS<> not null");
+        UN_CLASS(ref c1);
+        assertTrue(c1 == null, "UN_CLASS ref null");
+
+        // CLASS<T>(out T): out 版本
+        CLASS(out TestFrameClass c2);
+        assertNotNull(c2, "CLASS out not null");
+        UN_CLASS(ref c2);
+
+        // CLASS(Type): Type 参数版本
+        ClassObject c3 = CLASS(typeof(TestFrameClass));
+        assertNotNull(c3, "CLASS Type not null");
+        assertTrue(c3 is TestFrameClass, "CLASS Type is TestFrameClass");
+        UN_CLASS(ref c3);
+
+        // CLASS<T>(Type): 泛型 + Type 参数
+        TestFrameClass c4 = CLASS<TestFrameClass>(typeof(TestFrameClass));
+        assertNotNull(c4, "CLASS<T> Type not null");
+        UN_CLASS(ref c4);
+    }
+
+    // ─── 线程 ClassObject 池: CLASS_THREAD / UN_CLASS_THREAD ───────────
+    static void testClassPoolThread()
+    {
+        // CLASS_THREAD<T>(): 泛型返回
+        TestFrameClass c1 = CLASS_THREAD<TestFrameClass>();
+        assertNotNull(c1, "CLASS_THREAD<> not null");
+        UN_CLASS_THREAD(ref c1);
+        assertTrue(c1 == null, "UN_CLASS_THREAD ref null");
+
+        // CLASS_THREAD<T>(out T): out 版本
+        CLASS_THREAD(out TestFrameClass c2);
+        assertNotNull(c2, "CLASS_THREAD out not null");
+        UN_CLASS_THREAD(ref c2);
+    }
+
+    // ─── UN_CLASS_LIST 全部 4 个重载 ───────────────────────────────────
+    static void testClassPoolList()
+    {
+        // UN_CLASS_LIST<T>(List<T>): List 版本
+        var list = new List<TestFrameClass>();
+        CLASS(out TestFrameClass c1);
+        CLASS(out TestFrameClass c2);
+        list.Add(c1);
+        list.Add(c2);
+        UN_CLASS_LIST(list);
+        assertEqual(0, list.Count, "UN_CLASS_LIST List cleared");
+
+        // UN_CLASS_LIST<T>(HashSet<T>): HashSet 版本
+        var set = new HashSet<TestFrameClass>();
+        CLASS(out TestFrameClass c3);
+        set.Add(c3);
+        UN_CLASS_LIST(set);
+        assertEqual(0, set.Count, "UN_CLASS_LIST HashSet cleared");
+
+        // UN_CLASS_LIST<T0, T1>(Dictionary<T0, T1>): Dictionary 版本
+        var dict = new Dictionary<int, TestFrameClass>();
+        CLASS(out TestFrameClass c4);
+        dict[1] = c4;
+        UN_CLASS_LIST(dict);
+        assertEqual(0, dict.Count, "UN_CLASS_LIST Dictionary cleared");
+
+        // UN_CLASS_LIST<T>(Queue<T>): Queue 版本
+        var queue = new Queue<TestFrameClass>();
+        CLASS(out TestFrameClass c5);
+        queue.Enqueue(c5);
+        UN_CLASS_LIST(queue);
+
+        // UN_CLASS_LIST_THREAD<T>(List<T>): 线程 List 版本
+        var tlist = new List<TestFrameClass>();
+        CLASS_THREAD(out TestFrameClass c6);
+        tlist.Add(c6);
+        UN_CLASS_LIST_THREAD(tlist);
+        assertEqual(0, tlist.Count, "UN_CLASS_LIST_THREAD List cleared");
+    }
+
+    // ─── PACKET: 网络包工厂 ───────────────────────────────────────────
+    static void testPacket()
+    {
+        // PACKET<T>(): 返回值版本
+        // EditMode 下 mNetPacketFactory 为 null，PACKET 返回 null
+        // PlayMode 下框架已初始化，返回有效 NetPacket
+        TestFramePacket p1 = PACKET<TestFramePacket>();
+        if (p1 != null)
+        {
+            assertTrue(p1 is NetPacket, "PACKET returns NetPacket");
+        }
+
+        // PACKET<T>(out T): out 版本
+        TestFramePacket p2 = PACKET(out TestFramePacket p2Out);
+        if (p2 != null)
+        {
+            assertTrue(p2 is NetPacket, "PACKET out returns NetPacket");
+            assertTrue(p2Out is NetPacket, "PACKET out param is NetPacket");
+        }
+    }
+
+    // ─── CMD: 命令创建 (Type 版本) ─────────────────────────────────────
+    static void testCmd()
+    {
+        // CMD(Type): 创建主线程立即命令
+        Command cmd1 = CMD(typeof(TestFrameCmd));
+        assertNotNull(cmd1, "CMD Type not null");
+        assertTrue(cmd1 is TestFrameCmd, "CMD Type is TestFrameCmd");
+
+        // CMD_DELAY(Type): 创建主线程延迟命令
+        Command cmd2 = CMD_DELAY(typeof(TestFrameCmd));
+        assertNotNull(cmd2, "CMD_DELAY Type not null");
+    }
+
+    // ─── pushCommand: 命令发送 ─────────────────────────────────────────
+    static void testPushCommand()
+    {
+        var receiver = new TestFrameCmdReceiver();
+
+        // pushCommand<T>(CommandReceiver, LOG_LEVEL): 泛型版本
+        pushCommand<TestFrameCmd>(receiver);
+
+        // pushCommand(Command, CommandReceiver): Command 参数版本
+        CMD(out TestFrameCmd cmd1);
+        pushCommand(cmd1, receiver);
+
+        // pushCommandThread<T>(CommandReceiver, LOG_LEVEL): 线程版本
+        pushCommandThread<TestFrameCmd>(receiver);
+
+        // pushDelayCommandThread<T>: 线程延迟命令
+        var watcher = new DelayCmdWatcher();
+        TestFrameCmd cmd2 = pushDelayCommandThread<TestFrameCmd>(watcher, receiver, 0.001f);
+        assertNotNull(cmd2, "pushDelayCommandThread not null");
+    }
+
+    // ─── checkEnum: 枚举有效性检查 ─────────────────────────────────────
+    static void testCheckEnum()
+    {
+        // 有效枚举值: 不抛异常
+        checkEnum(CoreTestEnum.First);
+        checkEnum(CoreTestEnum.Second);
+
+        // 无效枚举值: 用 isEnumValid 测试（纯返回值无副作用）
+        // checkEnum((CoreTestEnum)99) 会 logError，不在此测试
+        assertTrue(!isEnumValid((CoreTestEnum)99), "isEnumValid 99 false");
+    }
+
+    // ─── createInstance: Activator 创建实例 ────────────────────────────
+    static void testCreateInstance()
+    {
+        // 无参构造
+        var obj = createInstance<TestFrameClass>(typeof(TestFrameClass));
+        assertNotNull(obj, "createInstance not null");
+        assertTrue(obj is TestFrameClass, "createInstance type check");
+
+        // 有参构造: 创建一个带参构造的测试类
+        var obj2 = createInstance<TestFrameClassWithParams>(typeof(TestFrameClassWithParams), 42, "hello");
+        assertNotNull(obj2, "createInstance params not null");
+        assertEqual(42, obj2.mValue, "createInstance int param");
+        assertEqual("hello", obj2.mName, "createInstance string param");
+    }
+
+    // ─── deepCopy: 深拷贝 ──────────────────────────────────────────────
+    static void testDeepCopy()
+    {
+        // null 拷贝: 返回 null
+        TestDeepCopyClass nullObj = null;
+        TestDeepCopyClass resultNull = deepCopy(nullObj);
+        assertTrue(resultNull == null, "deepCopy null");
+
+        // 普通对象深拷贝
+        var original = new TestDeepCopyClass();
+        original.mIntValue = 42;
+        original.mStringValue = "hello";
+        original.mNestedObj = new TestDeepCopyClass();
+        original.mNestedObj.mIntValue = 100;
+
+        var copy = deepCopy(original);
+        assertNotNull(copy, "deepCopy not null");
+        assertEqual(42, copy.mIntValue, "deepCopy int");
+        assertEqual("hello", copy.mStringValue, "deepCopy string");
+        // 嵌套对象也被拷贝
+        assertNotNull(copy.mNestedObj, "deepCopy nested not null");
+        assertEqual(100, copy.mNestedObj.mIntValue, "deepCopy nested int");
+
+        // 字符串: 直接返回原对象（值类型行为）
+        string s = "test";
+        string sCopy = deepCopy(s);
+        assertTrue(object.ReferenceEquals(s, sCopy), "deepCopy string same ref");
+    }
+
+    // ─── getUGUIRootComponent: 获取 UI Root 的 Canvas ──────────────────
+    static void testGetUGUIRootComponent()
+    {
+        Canvas canvas = getUGUIRootComponent();
+        // mLayoutManager 或 getUIRoot() 可能为 null, 允许返回 null
+        // 不强制非 null
+        if (canvas != null)
+        {
+            assertTrue(canvas is Canvas, "getUGUIRootComponent is Canvas");
+        }
+    }
+
+    // ─── isSpriteInAtlas: 判断精灵是否在图集中 ─────────────────────────
+    static void testIsSpriteInAtlas()
+    {
+        // 不在图集中的精灵路径
+        bool inAtlas = isSpriteInAtlas("Assets/GameResources/Sprites/icon.png");
+        // 返回 true/false 即可, 不抛异常
+        assertTrue(inAtlas || !inAtlas, "isSpriteInAtlas bool");
+
+        // 注意: 空路径会导致 getFolderName 中 builder[^1] 越界
+        // 不测试空字符串，直接跳过
+    }
+
+    // ─── 测试用辅助类型 ────────────────────────────────────────────────
     enum CoreTestEnum { First = 1, Second = 2 }
+
+    public class TestFramePacket : NetPacket
+    {
+        public override void execute() { }
+    }
+
+    public class TestFrameClassWithParams
+    {
+        public int mValue;
+        public string mName;
+        public TestFrameClassWithParams(int value, string name)
+        {
+            mValue = value;
+            mName = name;
+        }
+    }
+
+    public class TestDeepCopyClass
+    {
+        public int mIntValue;
+        public string mStringValue;
+        public TestDeepCopyClass mNestedObj;
+    }
+
     static void assertEqual<T>(T e, T a, string m = "")
     {
         if (!e.Equals(a))

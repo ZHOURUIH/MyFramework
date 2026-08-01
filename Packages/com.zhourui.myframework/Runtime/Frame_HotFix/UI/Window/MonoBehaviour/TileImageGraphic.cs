@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using static UnityUtility;
 
 // 也是用于批量渲染同一个图集中的Sprite,提高渲染效率,但是由于是使用的Graphic,所以渲染效率会低于TileImageRenderer
-// 但是优点是方便参与Canvas内的渲染排序
+// 但是优点是方便参与Canvas内的渲染排序,暂时还没有真正用到
 public class TileImageGraphic : Graphic
 {
-	public List<TileRenderData> mTileItems;
-	public Dictionary<object, TileRenderData> mTileMap;
+	protected List<TileRenderData> mTileItems;
+	protected Dictionary<object, TileRenderData> mTileMap;
 	public int mTileCount;                              // 用于查看调试信息
 	protected const int MAX_TILE = 10000;               // 最多只支持同时显示1万个Sprite,因为单个模型的索引数量限制在65535
 	public override Texture mainTexture

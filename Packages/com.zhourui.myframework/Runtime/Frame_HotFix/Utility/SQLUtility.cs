@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using static StringUtility;
 
 // SQL语句构造相关工具函数类
 public class SQLUtility

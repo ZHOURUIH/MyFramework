@@ -2380,7 +2380,7 @@ public class MathUtility
 		}
 
 		// 平移中点,计算每个顶点的两个控制点
-		extraPoints.Capacity = 2 * originCount;
+		extraPoints.addCount(2 * originCount);
 		for (int i = 0; i < originCount; ++i)
 		{
 			if (!loop)
@@ -2429,7 +2429,7 @@ public class MathUtility
 			{
 				Vector3 point = getBezier(tempControlPoint, false, j * step);
 				// 如果与上一个点重合了,则不放入列表中
-				curveList.addIf(point, !curveList[^1].isEqual(point));
+				curveList.addIf(point, curveList.isEmpty() || !curveList[^1].isEqual(point));
 			}
 		}
 	}
@@ -2455,7 +2455,7 @@ public class MathUtility
 		}
 
 		// 平移中点,计算每个顶点的两个控制点
-		extraPoints.Capacity = 2 * originCount;
+		extraPoints.addCount(2 * originCount);
 		for (int i = 0; i < originCount; ++i)
 		{
 			if (!loop)

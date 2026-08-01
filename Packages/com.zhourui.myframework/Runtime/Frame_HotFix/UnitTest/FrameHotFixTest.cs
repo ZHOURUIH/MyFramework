@@ -149,6 +149,7 @@ public class FrameHotFixTest
         Register("ClassObjectExtensionTest", ClassObjectExtensionTest.Run);
         Register("WavSoundTest", WavSoundTest.Run);
         Register("SpriteAtlasExtensionTest", SpriteAtlasExtensionTest.Run);
+        Register("LayoutScriptExtensionTest", LayoutScriptExtensionTest.Run);
 
         doRunAll(sTests);
     }
