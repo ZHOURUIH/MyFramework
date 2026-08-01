@@ -589,16 +589,25 @@ public static class FrameUtilityTest
     // writeFileList 依赖 writeTxtFile(真实文件IO), 仅测试不崩溃
     static void testWriteFileList()
     {
-        // writeFileList 调用 writeTxtFile, 在 Editor 下会写入磁盘
-        // 仅验证函数存在且不抛异常（写入临时路径）
-        // 如果 writeTxtFile 需要有效路径，传入无效路径可能 logError 但不抛异常
+        // writeFileList 调用 writeTxtFile(path + FILE_LIST, content)
+        // 使用临时路径避免残留文件
+        string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "MF_FileList_" + System.Guid.NewGuid().ToString("N"));
         try
         {
-            writeFileList("test_filelist_path", "content");
+            writeFileList(tempPath, "content");
         }
         catch (System.Exception)
         {
             // 文件写入可能失败，但不影响测试通过
+        }
+        finally
+        {
+            // 清理临时文件
+            string filePath = tempPath + "FileList";
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
         }
     }
 
