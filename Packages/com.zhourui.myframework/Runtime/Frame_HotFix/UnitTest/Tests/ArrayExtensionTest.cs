@@ -23,6 +23,9 @@ public static class ArrayExtensionTest
         testBytesToString();
         testSafe();
         testEmptyArray();
+        testRemoveIndex();
+        testRemoveValue();
+        testSortWithComparison();
     }
 
     // ─── isEmpty / count ─────────────────────────────────────────────────
@@ -254,6 +257,74 @@ public static class ArrayExtensionTest
         AssertEqual(0, e1.Length, "EmptyArray length=0");
         // 单例：两次调用返回同一个对象
         Assert(e1 == e2, "EmptyArray 单例");
+    }
+
+    // ─── removeIndex ─────────────────────────────────────────────────────
+    private static void testRemoveIndex()
+    {
+        int[] arr = { 1, 2, 3, 4, 5 };
+        arr.removeIndex(5, 1); // 移除 index=1 (值=2), 后面元素左移
+        AssertEqual(1, arr[0], "removeIndex[0]=1");
+        AssertEqual(3, arr[1], "removeIndex[1]=3");
+        AssertEqual(4, arr[2], "removeIndex[2]=4");
+        AssertEqual(5, arr[3], "removeIndex[3]=5");
+
+        // 移除最后一个元素: 无元素左移
+        int[] arr2 = { 10, 20, 30 };
+        arr2.removeIndex(3, 2); // 移除 index=2 (值=30)
+        AssertEqual(10, arr2[0], "removeIndex last[0]=10");
+        AssertEqual(20, arr2[1], "removeIndex last[1]=20");
+
+        // 移除第一个元素
+        int[] arr3 = { 1, 2, 3 };
+        arr3.removeIndex(3, 0);
+        AssertEqual(2, arr3[0], "removeIndex first[0]=2");
+        AssertEqual(3, arr3[1], "removeIndex first[1]=3");
+    }
+
+    // ─── removeValue ─────────────────────────────────────────────────────
+    private static void testRemoveValue()
+    {
+        int[] arr = { 1, 2, 3, 2, 4 };
+        int newCount = arr.removeValue(5, 2); // 移除所有值为2的元素
+        AssertEqual(3, newCount, "removeValue newCount=3"); // 返回新的有效元素个数
+        AssertEqual(1, arr[0], "removeValue[0]=1");
+        AssertEqual(3, arr[1], "removeValue[1]=3");
+        AssertEqual(4, arr[2], "removeValue[2]=4");
+
+        // 不存在
+        int[] arr2 = { 1, 2, 3 };
+        int r2 = arr2.removeValue(3, 99);
+        AssertEqual(3, r2, "removeValue not found→count unchanged");
+
+        // 多个相同值: 全部移除
+        int[] arr3 = { 5, 5, 5, 5 };
+        int r3 = arr3.removeValue(4, 5);
+        AssertEqual(0, r3, "removeValue all removed→0");
+    }
+
+    // ─── sort with Comparison ────────────────────────────────────────────
+    private static void testSortWithComparison()
+    {
+        int[] arr = { 3, 1, 4, 1, 5, 9 };
+        arr.sort((a, b) => a.CompareTo(b));
+        AssertEqual(1, arr[0], "sort asc[0]=1");
+        AssertEqual(9, arr[5], "sort asc[5]=9");
+
+        // 降序
+        int[] arr2 = { 3, 1, 4 };
+        arr2.sort((a, b) => b.CompareTo(a));
+        AssertEqual(4, arr2[0], "sort desc[0]=4");
+        AssertEqual(1, arr2[2], "sort desc[2]=1");
+
+        // 单元素
+        int[] single = { 42 };
+        single.sort((a, b) => a.CompareTo(b));
+        AssertEqual(42, single[0], "sort single=42");
+
+        // 空数组
+        int[] empty = new int[0];
+        empty.sort((a, b) => a.CompareTo(b)); // 不崩溃
     }
 
     // Simple assertion methods

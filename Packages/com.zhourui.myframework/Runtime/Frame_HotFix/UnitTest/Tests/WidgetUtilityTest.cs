@@ -30,6 +30,12 @@ public static class WidgetUtilityTest
 		testCheckUGUIInteractableWithUI();
 		testGetPointerOnUIWithUI();
 		testIsWindowInScreenBasic();
+		testAutoGridBasic();
+		testAutoGridVerticalBasic();
+		testAutoGridHorizontalBasic();
+		testAutoGridHorizontalCenterBasic();
+		testAlignParentCenterOrLeftBasic();
+		testAdjustRectToContainChildren();
 		cleanupPlayModeSetup();
 	}
 
@@ -322,6 +328,148 @@ public static class WidgetUtilityTest
 
 		UObject.DestroyImmediate(uiGo);
 		UObject.DestroyImmediate(camGo);
+	}
+
+	// ─── autoGrid 基础测试 ──────────────────────────────────────────
+	private static void testAutoGridBasic()
+	{
+		// autoGrid 依赖 LayoutManager.getLayout() 等框架运行时，在 PlayMode 中可用
+		// 此处验证函数不抛异常
+		GameObject rootGo = new GameObject("TestAutoGridRoot");
+		rootGo.AddComponent<RectTransform>().sizeDelta = new Vector2(200f, 200f);
+		myUGUIText root = LayoutScript.newUIObject<myUGUIText>(null, null, rootGo, true);
+
+		// 添加子节点
+		for (int i = 0; i < 3; i++)
+		{
+			GameObject childGo = new GameObject($"Child_{i}");
+			childGo.AddComponent<RectTransform>().sizeDelta = new Vector2(50f, 50f);
+			childGo.transform.SetParent(rootGo.transform, false);
+		}
+
+		// 调用 autoGrid 各重载，验证不抛异常
+		autoGrid(root, new Vector2(50f, 50f));
+		autoGrid(root, new Vector2(50f, 50f), false);
+		autoGridVertical(root);
+		autoGridHorizontal(root);
+
+		// 清理子节点
+		for (int i = rootGo.transform.childCount - 1; i >= 0; i--)
+		{
+			UObject.DestroyImmediate(rootGo.transform.GetChild(i).gameObject);
+		}
+		UObject.DestroyImmediate(rootGo);
+	}
+
+	// ─── autoGridVertical 基础测试 ──────────────────────────────────
+	private static void testAutoGridVerticalBasic()
+	{
+		GameObject rootGo = new GameObject("TestAutoGridV");
+		rootGo.AddComponent<RectTransform>().sizeDelta = new Vector2(200f, 300f);
+		myUGUIText root = LayoutScript.newUIObject<myUGUIText>(null, null, rootGo, true);
+
+		// 添加子节点
+		for (int i = 0; i < 3; i++)
+		{
+			GameObject childGo = new GameObject($"ChildV_{i}");
+			childGo.AddComponent<RectTransform>().sizeDelta = new Vector2(100f, 30f);
+			childGo.transform.SetParent(rootGo.transform, false);
+		}
+
+		autoGridVertical(root);
+		autoGridVertical(root, true);
+		autoGridVertical(root, 5f);
+
+		for (int i = rootGo.transform.childCount - 1; i >= 0; i--)
+			UObject.DestroyImmediate(rootGo.transform.GetChild(i).gameObject);
+		UObject.DestroyImmediate(rootGo);
+	}
+
+	// ─── autoGridHorizontal 基础测试 ────────────────────────────────
+	private static void testAutoGridHorizontalBasic()
+	{
+		GameObject rootGo = new GameObject("TestAutoGridH");
+		rootGo.AddComponent<RectTransform>().sizeDelta = new Vector2(300f, 100f);
+		myUGUIText root = LayoutScript.newUIObject<myUGUIText>(null, null, rootGo, true);
+
+		for (int i = 0; i < 3; i++)
+		{
+			GameObject childGo = new GameObject($"ChildH_{i}");
+			childGo.AddComponent<RectTransform>().sizeDelta = new Vector2(50f, 50f);
+			childGo.transform.SetParent(rootGo.transform, false);
+		}
+
+		autoGridHorizontal(root);
+		autoGridHorizontal(root, 5f);
+		autoGridHorizontal(root, false);
+
+		for (int i = rootGo.transform.childCount - 1; i >= 0; i--)
+			UObject.DestroyImmediate(rootGo.transform.GetChild(i).gameObject);
+		UObject.DestroyImmediate(rootGo);
+	}
+
+	// ─── autoGridHorizontalCenter 基础测试 ──────────────────────────
+	private static void testAutoGridHorizontalCenterBasic()
+	{
+		GameObject rootGo = new GameObject("TestAutoGridHC");
+		rootGo.AddComponent<RectTransform>().sizeDelta = new Vector2(300f, 100f);
+		myUGUIText root = LayoutScript.newUIObject<myUGUIText>(null, null, rootGo, true);
+
+		for (int i = 0; i < 3; i++)
+		{
+			GameObject childGo = new GameObject($"ChildHC_{i}");
+			childGo.AddComponent<RectTransform>().sizeDelta = new Vector2(50f, 50f);
+			childGo.transform.SetParent(rootGo.transform, false);
+		}
+
+		autoGridHorizontalCenter(root, false, false, 5f);
+
+		for (int i = rootGo.transform.childCount - 1; i >= 0; i--)
+			UObject.DestroyImmediate(rootGo.transform.GetChild(i).gameObject);
+		UObject.DestroyImmediate(rootGo);
+	}
+
+	// ─── alignParentCenterOrLeft 基础测试 ───────────────────────────
+	private static void testAlignParentCenterOrLeftBasic()
+	{
+		GameObject parentGo = new GameObject("TestAlignParent");
+		parentGo.AddComponent<RectTransform>().sizeDelta = new Vector2(200f, 100f);
+		myUGUIText parent = LayoutScript.newUIObject<myUGUIText>(null, null, parentGo, true);
+
+		GameObject targetGo = new GameObject("TestAlignTarget");
+		targetGo.AddComponent<RectTransform>().sizeDelta = new Vector2(50f, 50f);
+		targetGo.transform.SetParent(parentGo.transform, false);
+		myUGUIText target = LayoutScript.newUIObject<myUGUIText>(null, null, targetGo, true);
+
+		// target < parent → 居中
+		alignParentCenterOrLeft(parent, target);
+
+		UObject.DestroyImmediate(targetGo);
+		UObject.DestroyImmediate(parentGo);
+	}
+
+	// ─── adjustRectTransformToContainsAllChildRect 基础测试 ────────
+	private static void testAdjustRectToContainChildren()
+	{
+		GameObject rootGo = new GameObject("TestAdjustRoot");
+		rootGo.AddComponent<RectTransform>().sizeDelta = new Vector2(100f, 100f);
+		myUGUIText root = LayoutScript.newUIObject<myUGUIText>(null, null, rootGo, true);
+
+		// 添加两个子节点
+		for (int i = 0; i < 2; i++)
+		{
+			GameObject childGo = new GameObject($"AdjustChild_{i}");
+			RectTransform childRect = childGo.AddComponent<RectTransform>();
+			childRect.sizeDelta = new Vector2(30f, 30f);
+			childGo.transform.SetParent(rootGo.transform, false);
+			childRect.anchoredPosition = i == 0 ? new Vector2(-20f, 0f) : new Vector2(20f, 0f);
+		}
+
+		adjustRectTransformToContainsAllChildRect(root);
+
+		for (int i = rootGo.transform.childCount - 1; i >= 0; i--)
+			UObject.DestroyImmediate(rootGo.transform.GetChild(i).gameObject);
+		UObject.DestroyImmediate(rootGo);
 	}
 
 	// ─── autoGridFixedRootHeight null rect ─────────────────────────

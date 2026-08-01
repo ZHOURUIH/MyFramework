@@ -28,6 +28,16 @@ public static class DictionaryExtensionTest
         testForKeyAndForValue();
         testSafe();
         testEmptyDictionary();
+        testFor();
+        testAddNotNullKeyValue();
+        testAddOrRemove();
+        testSetAllValue();
+        testTryGetValueKey();
+        testRemoveIfConditional();
+        testRemoveKeys();
+        testRemoveFirstValue();
+        testContainsKeyPredicate();
+        testContainsPredicate2();
     }
 
     // ─── isEmpty / count ─────────────────────────────────────────────────
@@ -309,5 +319,120 @@ public static class DictionaryExtensionTest
         {
             throw new Exception(string.IsNullOrEmpty(message) ? "Object should not be null" : message);
         }
+    }
+
+    // ─── For ─────────────────────────────────────────────────────────────
+    private static void testFor()
+    {
+        var dic = new Dictionary<int, string> { { 1, "a" }, { 2, "b" } };
+        int keySum = 0;
+        string valConcat = "";
+        dic.For(kv => { keySum += kv.Key; valConcat += kv.Value; });
+        AssertEqual(3, keySum, "For key sum=3");
+        AssertEqual("ab", valConcat, "For value concat=ab");
+
+        // null 不崩溃
+        Dictionary<int, string> nullDic = null;
+        nullDic.For(kv => { }); // no throw
+    }
+
+    // ─── addNotNullKey / addNotNullValue ─────────────────────────────────
+    private static void testAddNotNullKeyValue()
+    {
+        var dic = new Dictionary<string, int>();
+
+        // addNotNullKey
+        dic.addNotNullKey("valid", 1);
+        AssertEqual(1, dic.Count, "addNotNullKey valid → added");
+
+        dic.addNotNullKey(null, 2);
+        AssertEqual(1, dic.Count, "addNotNullKey null → not added");
+
+        // addNotNullValue
+        var dic2 = new Dictionary<int, string>();
+        dic2.addNotNullValue(1, "valid");
+        AssertEqual(1, dic2.Count, "addNotNullValue valid → added");
+
+        dic2.addNotNullValue(2, null);
+        AssertEqual(1, dic2.Count, "addNotNullValue null → not added");
+    }
+
+    // ─── addOrRemove ─────────────────────────────────────────────────────
+    private static void testAddOrRemove()
+    {
+        var dic = new Dictionary<int, string>();
+        dic.addOrRemove(1, "a", true);
+        Assert(dic.ContainsKey(1), "addOrRemove add → contains");
+
+        dic.addOrRemove(1, "a", false);
+        Assert(!dic.ContainsKey(1), "addOrRemove remove → gone");
+    }
+
+    // ─── setAllValue ─────────────────────────────────────────────────────
+    private static void testSetAllValue()
+    {
+        var dic = new Dictionary<int, string> { { 1, "a" }, { 2, "b" }, { 3, "c" } };
+        dic.setAllValue("x");
+        AssertEqual("x", dic[1], "setAllValue[1]=x");
+        AssertEqual("x", dic[2], "setAllValue[2]=x");
+        AssertEqual("x", dic[3], "setAllValue[3]=x");
+    }
+
+    // ─── tryGetValueKey ──────────────────────────────────────────────────
+    private static void testTryGetValueKey()
+    {
+        var dic = new Dictionary<int, string> { { 1, "a" }, { 2, "b" }, { 3, "a" } };
+        int key = dic.tryGetValueKey("b", -1);
+        AssertEqual(2, key, "tryGetValueKey found=2");
+
+        int notFound = dic.tryGetValueKey("xyz", -1);
+        AssertEqual(-1, notFound, "tryGetValueKey not found → default");
+    }
+
+    // ─── removeIf (conditional) ──────────────────────────────────────────
+    private static void testRemoveIfConditional()
+    {
+        var dic = new Dictionary<int, string> { { 1, "a" }, { 2, "b" } };
+        Assert(dic.removeIf(1, true), "removeIf condition true → removed");
+        Assert(!dic.ContainsKey(1), "removeIf key gone");
+
+        Assert(!dic.removeIf(2, false), "removeIf condition false → not removed");
+        Assert(dic.ContainsKey(2), "removeIf key still there");
+    }
+
+    // ─── removeKeys ──────────────────────────────────────────────────────
+    private static void testRemoveKeys()
+    {
+        var dic = new Dictionary<int, string> { { 1, "a" }, { 2, "b" }, { 3, "c" } };
+        var other = new Dictionary<int, int> { { 2, 100 }, { 4, 200 } };
+        dic.removeKeys(other);
+        AssertEqual(2, dic.Count, "removeKeys count=2");
+        Assert(!dic.ContainsKey(2), "removeKeys removed key 2");
+        Assert(dic.ContainsKey(1), "removeKeys kept key 1");
+    }
+
+    // ─── removeFirstValue ────────────────────────────────────────────────
+    private static void testRemoveFirstValue()
+    {
+        var dic = new Dictionary<int, string> { { 1, "a" }, { 2, "b" }, { 3, "a" } };
+        dic.removeFirstValue("a");
+        AssertEqual(2, dic.Count, "removeFirstValue count=2");
+        // 第一个匹配 "a" 被删除 (key 1 或 key 3)
+    }
+
+    // ─── containsKey (predicate) ─────────────────────────────────────────
+    private static void testContainsKeyPredicate()
+    {
+        var dic = new Dictionary<int, string> { { 1, "a" }, { 2, "b" }, { 3, "c" } };
+        Assert(dic.containsKey(k => k > 2), "containsKey pred k>2 → true");
+        Assert(!dic.containsKey(k => k > 10), "containsKey pred k>10 → false");
+    }
+
+    // ─── contains (Predicate2) ───────────────────────────────────────────
+    private static void testContainsPredicate2()
+    {
+        var dic = new Dictionary<int, string> { { 1, "a" }, { 2, "b" }, { 3, "c" } };
+        Assert(dic.contains((k, v) => v == "b"), "contains Predicate2 b → true");
+        Assert(!dic.contains((k, v) => v == "xyz"), "contains Predicate2 xyz → false");
     }
 }

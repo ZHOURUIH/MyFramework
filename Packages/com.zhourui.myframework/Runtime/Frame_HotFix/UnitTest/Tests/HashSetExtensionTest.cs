@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using static TestAssert;
+using static FrameUtility;
 
 public class HashSetExtensionTest
 {
@@ -30,6 +31,7 @@ public class HashSetExtensionTest
 		testCount();
 		testGetEmptyList();
 		testSetRangeList();
+		testAddClass();
 	}
 	
 	// 测试 For 方法
@@ -316,7 +318,18 @@ public class HashSetExtensionTest
 	}
 	
 	// 测试 addClass 方法 - 需要 ClassObject 类
-	// 由于 ClassObject 依赖 Unity，这里暂时跳过
+	// 注意: CLASS 宏依赖 ClassPool，需要在 PlayMode 框架环境下运行
+	private static void testAddClass()
+	{
+		HashSet<TestHashSetClass> set = new();
+		TestHashSetClass obj = set.addClass();
+		assertNotNull(obj, "addClass not null");
+		assertEqual(1, set.Count, "addClass count=1");
+		assertTrue(set.Contains(obj), "addClass contains obj");
+	}
+	
+	// 测试辅助类: 继承 ClassObject 用于 addClass 测试
+	public class TestHashSetClass : ClassObject { }
 	
 	// 测试 addRangeDerived 方法
 	private static void testAddRangeDerived()

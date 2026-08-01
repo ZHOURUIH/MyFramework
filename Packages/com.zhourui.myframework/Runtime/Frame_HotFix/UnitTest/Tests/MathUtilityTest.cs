@@ -150,6 +150,7 @@ public static class MathUtilityTest
         testIntersectRect();
         testIntersectLineLineSection();
         testIntersectLineTriangle2D();
+        testQuickSort();
     }
 
     static void testCeil()
@@ -1426,5 +1427,37 @@ public static class MathUtilityTest
         // 平行不交
         Line2 above = new(new Vector2(0, 20), new Vector2(10, 20));
         assertFalse(intersectLineTriangle(above, tri, out _), "lineTriangle miss");
+    }
+
+    // ─── quickSort: Comparison 和 IComparable 两个重载 ──────────────────
+    static void testQuickSort()
+    {
+        // quickSort with Comparison
+        var list1 = new System.Collections.Generic.List<int> { 3, 1, 4, 1, 5, 9 };
+        quickSort(list1, (a, b) => a.CompareTo(b));
+        assertEqual(1, list1[0], "quickSort comp asc[0]=1");
+        assertEqual(9, list1[5], "quickSort comp asc[5]=9");
+
+        // 降序
+        var list2 = new System.Collections.Generic.List<int> { 3, 1, 4 };
+        quickSort(list2, (a, b) => b.CompareTo(a));
+        assertEqual(4, list2[0], "quickSort comp desc[0]=4");
+        assertEqual(1, list2[2], "quickSort comp desc[2]=1");
+
+        // quickSort with IComparable (int 实现了 IComparable<int>)
+        var list3 = new System.Collections.Generic.List<int> { 30, 10, 20, 50, 40 };
+        quickSort(list3);
+        assertEqual(10, list3[0], "quickSort IComparable[0]=10");
+        assertEqual(50, list3[4], "quickSort IComparable[4]=50");
+
+        // 单元素
+        var single = new System.Collections.Generic.List<int> { 42 };
+        quickSort(single);
+        assertEqual(42, single[0], "quickSort single=42");
+
+        // 空列表
+        var empty = new System.Collections.Generic.List<int>();
+        quickSort(empty);
+        assertEqual(0, empty.Count, "quickSort empty count=0");
     }
 }

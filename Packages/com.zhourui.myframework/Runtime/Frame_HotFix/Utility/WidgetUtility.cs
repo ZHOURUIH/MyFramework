@@ -245,7 +245,7 @@ public static class WidgetUtility
 
 		if (autoRefreshUIDepth)
 		{
-			root.getLayout().refreshUIDepth(root, true);
+			root.getLayout()?.refreshUIDepth(root, true);
 		}
 	}
 	public static void autoGrid(myUGUIObject root, Vector2 gridSize)
@@ -281,7 +281,7 @@ public static class WidgetUtility
 		root.getRectTransform().autoGrid(gridSize, intervalNoScreenScale, keepTopSide, horizontal);
 		if (root.getRectTransform() != null && autoRefreshUIDepth)
 		{
-			root.getLayout().refreshUIDepth(root, refreshIgnoreInactive);
+			root.getLayout()?.refreshUIDepth(root, refreshIgnoreInactive);
 		}
 	}
 	// 在节点的顶部追加一定高度,但是不影响子节点在节点中的位置,不考虑锚点
@@ -430,7 +430,7 @@ public static class WidgetUtility
 		root.setSize(root.getSize());
 		if (root.getRectTransform() != null && autoRefreshUIDepth)
 		{
-			root.getLayout().refreshUIDepth(root, refreshIgnoreInactive);
+			root.getLayout()?.refreshUIDepth(root, refreshIgnoreInactive);
 		}
 	}
 	public static void autoGridHorizontal(myUGUIObject root)
@@ -465,7 +465,7 @@ public static class WidgetUtility
 		root.setSize(root.getSize());
 		if (root.getRectTransform() != null && autoRefreshUIDepth)
 		{
-			root.getLayout().refreshUIDepth(root, refreshIgnoreInactive);
+			root.getLayout()?.refreshUIDepth(root, refreshIgnoreInactive);
 		}
 	}
 	public static void autoGridHorizontalCenter(myUGUIObject root, bool autoRefreshUIDepth, bool refreshIgnoreInactive, float intervalNoScreenScale)
@@ -479,7 +479,7 @@ public static class WidgetUtility
 		root.setSize(root.getSize());
 		if (root.getRectTransform() != null && autoRefreshUIDepth)
 		{
-			root.getLayout().refreshUIDepth(root, refreshIgnoreInactive);
+			root.getLayout()?.refreshUIDepth(root, refreshIgnoreInactive);
 		}
 	}
 	// 自动横向排列target下的所有节点,并且如果排列后的宽度超过了parent的宽度,则左对齐,没有超过则居中
@@ -534,7 +534,7 @@ public static class WidgetUtility
 		obj.setSize(new((right - left).ceil(), (top - bottom).ceil()));
 		foreach (var item in childWorldPositionList)
 		{
-			obj.getLayout().getUIObject(item.Key.gameObject)?.setWorldPosition(item.Value);
+			obj.getLayout()?.getUIObject(item.Key.gameObject)?.setWorldPosition(item.Value);
 		}
 	}
 }
