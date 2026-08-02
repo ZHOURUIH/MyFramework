@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Collections;
+using System.Runtime.ExceptionServices;
 #if USE_SPINE
 using Spine.Unity;
 #endif
@@ -31,24 +32,30 @@ using UEventSystem = UnityEngine.EventSystems.EventSystem;
 // 与Unity相关的工具函数
 public class UnityUtility
 {
-	protected static bool mShowMessageBox = true;					// 是否显示报错提示框,用来判断提示框显示次数
-	protected static LOG_LEVEL mLogLevel = LOG_LEVEL.FORCE;			// 当前的日志过滤等级
+	protected static bool mShowMessageBox = true;                   // 是否显示报错提示框,用来判断提示框显示次数
+	protected static LOG_LEVEL mLogLevel = LOG_LEVEL.FORCE;         // 当前的日志过滤等级
 	protected static PointerEventData mEventData;                   // 缓存一个对象,避免每次都重新new一个
-	protected static Vector2Int mHardwareScreenSize = new(Screen.currentResolution.width, Screen.currentResolution.height);	// 显示器宽高
-	protected static Vector2Int mScreenSize = new(Screen.width, Screen.height);					// 窗口宽高
-	protected static Vector2Int mHalfScreenSize = new(Screen.width >> 1, Screen.height >> 1);	// 窗口宽高的一半
-	protected static float mScreenAspect = mScreenSize.x / (float)mScreenSize.y;				// 屏幕宽高比
-	protected static Vector2 mScreenScale = new(mScreenSize.x * (1.0f / FrameSettings.getUISize().x), 
-												mScreenSize.y * (1.0f / FrameSettings.getUISize().y));		// 当前分辨率相对于标准分辨率的缩放
+	protected static Vector2Int mHardwareScreenSize = new(Screen.currentResolution.width, Screen.currentResolution.height); // 显示器宽高
+	protected static Vector2Int mScreenSize = new(Screen.width, Screen.height);                 // 窗口宽高
+	protected static Vector2Int mHalfScreenSize = new(Screen.width >> 1, Screen.height >> 1);   // 窗口宽高的一半
+	protected static float mScreenAspect = mScreenSize.x / (float)mScreenSize.y;                // 屏幕宽高比
+	protected static Vector2 mScreenScale = new(mScreenSize.x * (1.0f / FrameSettings.getUISize().x),
+												mScreenSize.y * (1.0f / FrameSettings.getUISize().y));      // 当前分辨率相对于标准分辨率的缩放
 	public static void setLogLevel(LOG_LEVEL level)
 	{
 		mLogLevel = level;
 		log("log level: " + mLogLevel);
 	}
 	public static LOG_LEVEL getLogLevel() { return mLogLevel; }
+	[HideInCallstack]
 	public static void logException(Exception e, string info = null)
 	{
-		if (info.isEmpty())
+		if (e == null)
+		{
+			UDebug.LogError(info.isEmpty() ? "异常对象为空" : info);
+			return;
+		}
+		if (info == null)
 		{
 			info = "";
 		}
@@ -61,8 +68,19 @@ public class UnityUtility
 		{
 			info += "\ninner exception:" + e.InnerException.Message + ", stack:" + e.InnerException.StackTrace;
 		}
+		if (isEditor())
+		{
+			info += ",编辑器中双击下一条日志可跳转到抛异常的具体代码位置";
+		}
 		logError(info);
+#if UNITY_EDITOR
+		// 保存异常最初发生时的调用栈。
+		ExceptionDispatchInfo exceptionInfo = ExceptionDispatchInfo.Capture(e);
+		// 当前catch调用链结束以后再抛出。
+		UnityEditor.EditorApplication.delayCall += () => { exceptionInfo.Throw(); };
+#endif
 	}
+	[HideInCallstack]
 	public static void logError(string info)
 	{
 		if (isMainThread() && mShowMessageBox && Application.isPlaying)
@@ -85,34 +103,42 @@ public class UnityUtility
 			UDebug.LogError(info);
 		}
 	}
+	[HideInCallstack]
 	public static void logNoLock(string info)
 	{
 		logNoLock(info, null, LOG_LEVEL.FORCE, null);
 	}
+	[HideInCallstack]
 	public static void log(string info)
 	{
 		log(info, null, LOG_LEVEL.FORCE, null);
 	}
+	[HideInCallstack]
 	public static void log(string info, UObject obj)
 	{
 		log(info, null, LOG_LEVEL.FORCE, obj);
 	}
+	[HideInCallstack]
 	public static void log(string info, string color)
 	{
 		log(info, color, LOG_LEVEL.FORCE, null);
 	}
+	[HideInCallstack]
 	public static void log(string info, Color32 color)
 	{
 		log(info, colorToRGBString(color), LOG_LEVEL.FORCE, null);
 	}
+	[HideInCallstack]
 	public static void log(string info, Color32 color, UObject obj)
 	{
 		log(info, colorToRGBString(color), LOG_LEVEL.FORCE, obj);
 	}
+	[HideInCallstack]
 	public static void log(string info, LOG_LEVEL level)
 	{
 		log(info, null, level, null);
 	}
+	[HideInCallstack]
 	public static void log(string info, string color, LOG_LEVEL level, UObject obj)
 	{
 		if ((int)level < (int)mLogLevel)
@@ -137,6 +163,7 @@ public class UnityUtility
 			UDebug.Log(info, obj);
 		}
 	}
+	[HideInCallstack]
 	public static void logNoLock(string info, string color, LOG_LEVEL level, UObject obj)
 	{
 		if ((int)level < (int)mLogLevel)
@@ -160,6 +187,7 @@ public class UnityUtility
 			UDebug.Log(info, obj);
 		}
 	}
+	[HideInCallstack]
 	public static void logWarning(string info)
 	{
 		if (isMainThread() && isPlaying())
@@ -182,7 +210,7 @@ public class UnityUtility
 		mHalfScreenSize = new(mScreenSize.x >> 1, mScreenSize.y >> 1);
 		mScreenAspect = mScreenSize.x.divide(mScreenSize.y);   // 屏幕宽高比
 		Vector2Int uiSize = FrameSettings.getUISize();
-        mScreenScale = new(mScreenSize.x * (1.0f / uiSize.x), mScreenSize.y * (1.0f / uiSize.y));   // 当前分辨率相对于标准分辨率的缩放
+		mScreenScale = new(mScreenSize.x * (1.0f / uiSize.x), mScreenSize.y * (1.0f / uiSize.y));   // 当前分辨率相对于标准分辨率的缩放
 		setScreenSizeBase(mScreenSize, fullScreen);
 		GameCamera camera = mCameraManager.getUICamera();
 		camera?.MOVE(new(0.0f, 0.0f, -(mScreenSize.y * 0.5f).divide((camera.getFOVY(true) * 0.5f).tan())));
@@ -1079,8 +1107,8 @@ public class UnityUtility
 		{
 			Type T = Type.GetType("UnityEditor.GameView,UnityEditor");
 			MethodInfo GetSizeOfMainGameView = T.GetMethod("GetSizeOfMainGameView", BindingFlags.NonPublic | BindingFlags.Static);
-            Vector2 value = (Vector2)GetSizeOfMainGameView.Invoke(null, null);
-            return new Vector2Int((int)value.x, (int)value.y);
+			Vector2 value = (Vector2)GetSizeOfMainGameView.Invoke(null, null);
+			return new Vector2Int((int)value.x, (int)value.y);
 		}
 		else
 		{
@@ -1278,9 +1306,9 @@ public class UnityUtility
 #if USE_URP
 	public static void setRenderScale(float scale)
 	{
-        // 获取当前活动的URP资产
+		// 获取当前活动的URP资产
 #if UNITY_6000_0_OR_NEWER
-        var urpAsset = (UniversalRenderPipelineAsset)GraphicsSettings.defaultRenderPipeline;
+		var urpAsset = (UniversalRenderPipelineAsset)GraphicsSettings.defaultRenderPipeline;
 #else
 		var urpAsset = (UniversalRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
 #endif
@@ -1301,17 +1329,17 @@ public class UnityUtility
 			return 1.0f;
 		}
 		return urpAsset.renderScale;
-    }
+	}
 #endif
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR
-    public static int getLastError()
+	public static int getLastError()
 	{
 		return Kernel32.GetLastError();
 	}
 #endif
-    //------------------------------------------------------------------------------------------------------------------------------
-    protected static IEnumerator instantiateCoroutine(GameObject origin, string name, GameObjectCallback callback)
-    {
+	//------------------------------------------------------------------------------------------------------------------------------
+	protected static IEnumerator instantiateCoroutine(GameObject origin, string name, GameObjectCallback callback)
+	{
 #if UNITY_6000_0_OR_NEWER
 		var ret = UObject.InstantiateAsync(origin);
 		yield return ret;
