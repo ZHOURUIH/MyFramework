@@ -151,6 +151,16 @@ public class FrameHotFixTest
         Register("SpriteAtlasExtensionTest", SpriteAtlasExtensionTest.Run);
         Register("LayoutScriptExtensionTest", LayoutScriptExtensionTest.Run);
 		Register("UnityUtilityPhysicsTest", UnityUtilityPhysicsTest.Run);
+		Register("RedPointTest", RedPointTest.Run);
+		Register("DecisionTreeTest", DecisionTreeTest.Run);
+		Register("NetCoreTest", NetCoreTest.Run);
+		Register("LocalizationTest", LocalizationTest.Run);
+		Register("DoubleExtensionTest", DoubleExtensionTest.Run);
+		Register("IntExtensionTest", IntExtensionTest.Run);
+		Register("LongExtensionTest", LongExtensionTest.Run);
+		Register("QuaternionExtensionTest", QuaternionExtensionTest.Run);
+		Register("UnityUtilityTest", UnityUtilityTest.Run);
+		Register("Vector4ExtensionTest", Vector4ExtensionTest.Run);
 
 		doRunAll(sTests);
     }

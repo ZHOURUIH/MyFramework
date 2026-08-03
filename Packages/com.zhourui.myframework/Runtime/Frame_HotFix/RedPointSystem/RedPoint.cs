@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using static UnityUtility;
 using static FrameBaseHotFix;
 
@@ -38,7 +37,7 @@ public class RedPoint : ClassObject
 	}
 	public void setParent(RedPoint parent) 
 	{
-		if (parent != null && parent.GetType() != typeof(RedPoint))
+		if (parent != null && parent.GetType() != typeof(RedPoint) && parent.GetType() != typeof(RedPointCount))
 		{
 			logError("父节点只能是RedPoint类型的,父节点的显示只与子节点的显示有关,只有叶节点才是派生类型");
 			return;
@@ -68,7 +67,7 @@ public class RedPoint : ClassObject
 	{
 		if (point == null || !mPointUIMap.Remove(point))
 		{
-			logWarning("移除绑定红点UI失败, hash:" + point.GetHashCode());
+			logWarning("移除绑定红点UI失败, hash:" + (point != null ? point.GetHashCode().ToString() : "null"));
 		}
 	}
 	public void setEnable(bool enable) 
@@ -118,6 +117,7 @@ public class RedPoint : ClassObject
 		// 只有叶节点才会监听事件,有子节点的红点只会受其子节点控制,不能受其他控制
 		if (mChildren.Count > 0)
 		{
+			logWarning("只有叶节点才会监听事件,有子节点的红点只会受其子节点控制,不能受其他控制");
 			return;
 		}
 		mIsDirty = true;

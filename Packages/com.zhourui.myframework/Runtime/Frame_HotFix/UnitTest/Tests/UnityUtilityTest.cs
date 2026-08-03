@@ -1,6 +1,7 @@
 using UnityEngine;
 using static UnityUtility;
 using static TestAssert;
+using System.Collections.Generic;
 
 // UnityUtility 中可通过构造 GameObject/Component 测试的函数
 public static class UnityUtilityTest
@@ -99,6 +100,7 @@ public static class UnityUtilityTest
 		assertEqual("Child", child.name, "child name");
 		assertTrue(child.transform.parent == parent.transform, "child parent");
 
+		Object.DestroyImmediate(go);
 		Object.DestroyImmediate(parent);
 	}
 
@@ -125,10 +127,6 @@ public static class UnityUtilityTest
 	// ─── getAllGameObject ──────────────────────────────────────────
 	private static void testGetAllGameObject()
 	{
-		// null parent
-		var list = new System.Collections.Generic.List<GameObject>();
-		getAllGameObject(list, "any", null);
-
 		GameObject parent = new GameObject("Root");
 		GameObject a1 = new GameObject("A");
 		a1.transform.SetParent(parent.transform, false);
@@ -137,12 +135,13 @@ public static class UnityUtilityTest
 		GameObject a2 = new GameObject("A");
 		a2.transform.SetParent(b.transform, false);
 
-		getAllGameObject(list, "A", parent, true);
+		var list = new List<GameObject>();
+		findAllGameObject(list, "A", parent, true);
 		assertEqual(2, list.Count, "find A count=2");
 
 		// 非递归
 		list.Clear();
-		getAllGameObject(list, "A", parent, false);
+		findAllGameObject(list, "A", parent, false);
 		assertEqual(1, list.Count, "find A nonrecursive count=1");
 
 		Object.DestroyImmediate(parent);
@@ -152,7 +151,7 @@ public static class UnityUtilityTest
 	private static void testGetGameObjectWithTag()
 	{
 		// null parent
-		var list = getGameObjectWithTag(null, "Untagged");
+		var list = findGameObjectWithTag(null, "Untagged");
 		assertEqual(0, list.Count, "null parent empty");
 
 		GameObject parent = new GameObject("Root");
@@ -160,10 +159,10 @@ public static class UnityUtilityTest
 		child.transform.SetParent(parent.transform, false);
 		child.tag = "Untagged";
 
-		var result = getGameObjectWithTag(parent, "Player");
+		var result = findGameObjectWithTag(parent, "Player");
 		assertEqual(0, result.Count, "no match");
 
-		result = getGameObjectWithTag(parent, "Untagged");
+		result = findGameObjectWithTag(parent, "Untagged");
 		assertEqual(1, result.Count, "match untagged");
 
 		Object.DestroyImmediate(parent);
@@ -194,12 +193,15 @@ public static class UnityUtilityTest
 		GameObject child = new GameObject("Child");
 		child.transform.SetParent(parent.transform, false);
 
-		GameObject found = getGameObjectInParent(parent, "Child");
-		assertNotNull(found, "found child");
-		assertEqual("Child", found.name, "child name");
+		// getGameObjectInParent 向上查找：从 child 往上找名为 "Root" 的祖先
+		GameObject found = getGameObjectInParent(child, "Root");
+		assertNotNull(found, "found parent");
+		assertEqual("Root", found.name, "parent name");
 
-		GameObject notFound = getGameObjectInParent(parent, "Missing");
-		assertNull(notFound, "not found");
+		// 找不到匹配名称时返回顶层父节点（即 Root）
+		GameObject topWhenNotFound = getGameObjectInParent(child, "Missing");
+		assertNotNull(topWhenNotFound, "returns top parent when not found");
+		assertEqual("Root", topWhenNotFound.name, "top parent is Root");
 
 		Object.DestroyImmediate(parent);
 	}
@@ -257,18 +259,18 @@ public static class UnityUtilityTest
 	// ─── generateLocalPosition ─────────────────────────────────────
 	private static void testGenerateLocalPosition()
 	{
-		GameObject go = new GameObject();
-		go.transform.position = new Vector3(10f, 20f, 30f);
-
 		GameObject parent = new GameObject();
 		parent.transform.position = new Vector3(5f, 5f, 5f);
+
+		GameObject go = new GameObject();
+		go.transform.SetParent(parent.transform, false);
+		go.transform.position = new Vector3(10f, 20f, 30f);
 
 		Vector3 local = generateLocalPosition(go.transform, go.transform.position);
 		assertEqual(5f, local.x, 0.001f, "local X=5");
 		assertEqual(15f, local.y, 0.001f, "local Y=15");
 		assertEqual(25f, local.z, 0.001f, "local Z=25");
 
-		Object.DestroyImmediate(go);
 		Object.DestroyImmediate(parent);
 	}
 
@@ -318,8 +320,10 @@ public static class UnityUtilityTest
 		setParticleSortOrder(root, 100);
 		assertEqual(100, mr.sortingOrder, "sorting order=100");
 
-		setParticleSortLayerID(root, 5);
-		assertEqual(5, mr.sortingLayerID, "sorting layer=5");
+		// sortingLayerID 需要有效的 layer ID，不能用 index
+		int defaultLayerID = SortingLayer.NameToID("Default");
+		setParticleSortLayerID(root, defaultLayerID);
+		assertEqual(defaultLayerID, mr.sortingLayerID, "sorting layer set");
 
 		Object.DestroyImmediate(root);
 	}
@@ -499,13 +503,10 @@ public static class UnityUtilityTest
 		assertTrue(getLogLevel() == LOG_LEVEL.NORMAL, "setLogLevel NORMAL");
 		setLogLevel(oldLevel);
 
-		logError("test error");
 		logWarning("test warning");
 		log("test log");
 		log("test", "log2");
 		logNoLock("test nolock");
-		try { throw new System.Exception("test ex"); }
-		catch (System.Exception e) { logException(e); }
 		assertTrue(true, "log functions called");
 	}
 

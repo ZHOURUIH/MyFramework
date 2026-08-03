@@ -4,8 +4,7 @@ using static StringUtility;
 using static UnityUtility;
 using static FrameBaseUtility;
 
-// 已经从资源加载的物体的信息,这里加Serializable也只是为了能够在ObjectPoolDebug中能够在面板上显示
-[Serializable]
+// 已经从资源加载的物体的信息
 public class GameObjectInfo : ClassObject
 {
 	protected PrefabPool mPool;			// 所属的对象池

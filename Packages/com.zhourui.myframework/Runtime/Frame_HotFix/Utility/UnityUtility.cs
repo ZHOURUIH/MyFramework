@@ -219,13 +219,13 @@ public class UnityUtility
 		GameCamera blurCamera = mCameraManager.getUIBlurCamera();
 		blurCamera?.MOVE(new(0.0f, 0.0f, -(mScreenSize.y * 0.5f).divide((blurCamera.getFOVY(true) * 0.5f).tan())));
 	}
-	public static List<GameObject> getGameObjectWithTag(GameObject parent, string tag)
+	public static List<GameObject> findGameObjectWithTag(GameObject parent, string tag)
 	{
 		List<GameObject> objList = new();
-		getGameObjectWithTag(parent, tag, objList);
+		findGameObjectWithTag(parent, tag, objList);
 		return objList;
 	}
-	public static void getGameObjectWithTag(GameObject parent, string tag, List<GameObject> objList)
+	public static void findGameObjectWithTag(GameObject parent, string tag, List<GameObject> objList)
 	{
 		// 如果父节点为空,则不再查找,不支持全局查找,因为这样容易出错
 		if (parent == null)
@@ -239,7 +239,7 @@ public class UnityUtility
 			Transform child = parentTrans.GetChild(i);
 			objList.addIf(child.gameObject, child.CompareTag(tag));
 			// 递归查找子节点
-			getGameObjectWithTag(child.gameObject, tag, objList);
+			findGameObjectWithTag(child.gameObject, tag, objList);
 		}
 	}
 	public static GameObject findOrCreateRootGameObject(string name)
@@ -261,7 +261,7 @@ public class UnityUtility
 		return obj;
 	}
 	// 查找所有名字为name的GameObject
-	public static void getAllGameObject(List<GameObject> list, string name, GameObject parent, bool recursive = true)
+	public static void findAllGameObject(List<GameObject> list, string name, GameObject parent, bool recursive = true)
 	{
 		if (name.isEmpty())
 		{
@@ -269,7 +269,7 @@ public class UnityUtility
 		}
 		if (parent == null)
 		{
-			logError("parent不能为空,查找无父节点的GameObject请使用getRootGameObject");
+			logError("parent不能为空");
 			return;
 		}
 		// 第一级子节点中查找
@@ -285,7 +285,7 @@ public class UnityUtility
 		{
 			for (int i = 0; i < childCount; ++i)
 			{
-				getAllGameObject(list, name, parentTrans.GetChild(i).gameObject, true);
+				findAllGameObject(list, name, parentTrans.GetChild(i).gameObject, true);
 			}
 		}
 	}
@@ -739,7 +739,15 @@ public class UnityUtility
 	public static void getMinMaxCorner(BoxCollider box, out Vector3 min, out Vector3 max, GameObject parent, int precision = 4)
 	{
 		Vector3 halfSize = getHalfBoxSize(box, parent);
-		Vector3 worldBoxCenter = worldToLocal(parent.transform, localToWorld(box.transform, box.center));
+		Vector3 worldBoxCenter;
+		if (parent != null)
+		{
+			worldBoxCenter = worldToLocal(parent.transform, localToWorld(box.transform, box.center));
+		}
+		else
+		{
+			worldBoxCenter = localToWorld(box.transform, box.center);
+		}
 		min = new(float.MaxValue, float.MaxValue, float.MaxValue);
 		max = new(float.MinValue, float.MinValue, float.MinValue);
 		getMinMaxVector3(worldBoxCenter + new Vector3(-halfSize.x, -halfSize.y, -halfSize.z), ref min, ref max);

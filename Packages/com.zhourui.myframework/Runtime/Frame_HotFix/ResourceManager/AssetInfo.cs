@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UObject = UnityEngine.Object;
 using static FrameBaseHotFix;
 using static FrameDefine;
 
 // AssetBundle中的Asset的信息
 // 记录资源的名称、所属AB、子资源数组和异步加载回调,AssetBundleInfo通过此类管理单个资源的加载状态
-[Serializable]
 public class AssetInfo : ClassObject
 {
-	protected List<AssetLoadCallback> mCallback = new();    // 异步加载回调列表
+	protected List<AssetLoadCallback> mCallback = new();		// 异步加载回调列表
 	protected List<string> mLoadPath = new();                   // 加载资源时使用的路径
 	protected UObject[] mSubAssets;								// 资源数组,数组第一个元素为主资源,后面的是子资源
 	protected AssetBundleInfo mParentAssetBundle;				// 资源所属的AssetBundle
