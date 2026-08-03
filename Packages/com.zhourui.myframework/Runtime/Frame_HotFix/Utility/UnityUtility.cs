@@ -32,6 +32,8 @@ using UEventSystem = UnityEngine.EventSystems.EventSystem;
 // 与Unity相关的工具函数
 public class UnityUtility
 {
+	protected static Collider[] mColliderOverlapResults = new Collider[32];
+	protected static RaycastHit[] mColliderCastResults = new RaycastHit[32];
 	protected static bool mShowMessageBox = true;                   // 是否显示报错提示框,用来判断提示框显示次数
 	protected static LOG_LEVEL mLogLevel = LOG_LEVEL.FORCE;         // 当前的日志过滤等级
 	protected static PointerEventData mEventData;                   // 缓存一个对象,避免每次都重新new一个
@@ -759,44 +761,6 @@ public class UnityUtility
 		return min0.isLess(max1) && max0.isGreater(min1) ||
 			   min1.isLess(max0) && max1.isGreater(min0);
 	}
-	public static int overlapAllBox(BoxCollider collider, Collider[] results, int layer = -1)
-	{
-		Transform transform = collider.transform;
-		Vector3 colliderWorldPos = localToWorld(transform, collider.center);
-		int hitCount = Physics.OverlapBoxNonAlloc(colliderWorldPos, collider.size * 0.5f, results, transform.localRotation, layer);
-		return results.removeValue(hitCount, collider);
-	}
-	public static int overlapAllBox(BoxCollider2D collider, Collider2D[] results, int layer = -1)
-	{
-		Transform transform = collider.transform;
-		Vector2 colliderWorldPos = localToWorld(transform, collider.offset);
-		int hitCount = Physics2D.OverlapBoxNonAlloc(colliderWorldPos, collider.size, transform.localEulerAngles.z, results, layer);
-		return results.removeValue(hitCount, collider);
-	}
-	public static int overlapAllSphere(SphereCollider collider, Collider[] results, int layer = -1)
-	{
-		Transform transform = collider.transform;
-		Vector3 colliderWorldPos = localToWorld(transform, collider.center);
-		int hitCount = Physics.OverlapSphereNonAlloc(colliderWorldPos, collider.radius, results, layer);
-		return results.removeValue(hitCount, collider);
-	}
-	public static int overlapAllSphere(CircleCollider2D collider, Collider2D[] results, int layer = -1)
-	{
-		Transform transform = collider.transform;
-		Vector2 colliderWorldPos = localToWorld(transform, collider.offset);
-		int hitCount = Physics2D.OverlapCircleNonAlloc(colliderWorldPos, collider.radius, results, layer);
-		return results.removeValue(hitCount, collider);
-	}
-	public static int overlapAllCapsule(CapsuleCollider collider, Collider[] results, int layer = -1)
-	{
-		Transform transform = collider.transform;
-		Vector3 point0 = collider.center + new Vector3(0.0f, collider.height * 0.5f, 0.0f);
-		Vector3 point1 = collider.center - new Vector3(0.0f, collider.height * 0.5f, 0.0f);
-		point0 = localToWorld(transform, point0);
-		point1 = localToWorld(transform, point1);
-		int hitCount = Physics.OverlapCapsuleNonAlloc(point0, point1, collider.radius, results, layer);
-		return results.removeValue(hitCount, collider);
-	}
 	public static int overlapAllCapsule(CharacterController collider, Collider[] results, int layer = -1)
 	{
 		Transform transform = collider.transform;
@@ -805,13 +769,6 @@ public class UnityUtility
 		point0 = localToWorld(transform, point0);
 		point1 = localToWorld(transform, point1);
 		int hitCount = Physics.OverlapCapsuleNonAlloc(point0, point1, collider.radius, results, layer);
-		return results.removeValue(hitCount, collider);
-	}
-	public static int overlapAllCapsule(CapsuleCollider2D collider, Collider2D[] results, int layer = -1)
-	{
-		Transform transform = collider.transform;
-		float eulerZ = transform.localEulerAngles.z;
-		int hitCount = Physics2D.OverlapCapsuleNonAlloc(transform.position, collider.size, collider.direction, eulerZ, results, layer);
 		return results.removeValue(hitCount, collider);
 	}
 	public static bool overlapBoxIgnoreY(BoxCollider box0, BoxCollider box1, GameObject parent, int precision = 4)
@@ -845,6 +802,104 @@ public class UnityUtility
 		Vector3 delta = worldToLocal(collider.transform, worldPos) - collider.center;
 		return delta.x.abs() <= collider.size.x * 0.5 && delta.y.abs() <= collider.size.y * 0.5f;
 	}
+	// 检测指定碰撞体从上一帧位置移动到当前位置时，与哪些碰撞体发生重叠。
+	// 会检测上一帧位置、移动过程中扫过的区域以及当前帧位置，避免高速移动时穿过较薄碰撞体而漏检。
+	// 支持BoxCollider、SphereCollider和CapsuleCollider。
+	// lastWorldPos为碰撞体Transform上一帧的世界坐标，默认认为移动期间旋转和缩放没有变化。
+	// results用于接收检测到的碰撞体，返回值表示results中的有效元素数量。
+	// layer为参与检测的LayerMask，默认-1表示检测所有层。
+	// 检测结果会排除collider自身，并对上一帧重叠、扫掠命中和当前帧重叠的结果进行去重。
+	public static int overlapCollider(Collider collider, Vector3 lastWorldPos, Collider[] results, int layer = -1)
+	{
+		if (collider == null || results.isEmpty())
+		{
+			return 0;
+		}
+
+		int availableCount = results.Length.getGreaterPow2();
+		if (mColliderCastResults.Length < availableCount)
+		{
+			mColliderCastResults = new RaycastHit[availableCount];
+		}
+		if (mColliderOverlapResults.Length < availableCount)
+		{
+			mColliderOverlapResults = new Collider[availableCount];
+		}
+
+		// 先检测当前帧位置的重叠
+		int resultCount = overlapCollider(collider, results, layer);
+		Transform transform = collider.transform;
+		Vector3 moveDelta = transform.position - lastWorldPos;
+		float moveDistance = moveDelta.magnitude;
+		if (moveDistance <= 0.0001f)
+		{
+			return resultCount;
+		}
+
+		Vector3 moveDirection = moveDelta / moveDistance;
+		int startOverlapCount;
+		int castCount;
+		mColliderOverlapResults.setAllValue(null);
+		QueryTriggerInteraction interaction = QueryTriggerInteraction.UseGlobal;
+		if (collider is BoxCollider box)
+		{
+			Vector3 scale = transform.lossyScale;
+			Vector3 halfExtents = box.size.multi(scale.abs()) * 0.5f;
+			Vector3 currentCenter = transform.TransformPoint(box.center);
+			Vector3 lastCenter = currentCenter - moveDelta;
+			// 检测上一帧位置，避免目标在扫掠起点已经重叠时被Cast忽略
+			startOverlapCount = Physics.OverlapBoxNonAlloc(lastCenter, halfExtents, mColliderOverlapResults, transform.rotation, layer, interaction);
+			castCount = Physics.BoxCastNonAlloc(lastCenter, halfExtents, moveDirection, mColliderCastResults, transform.rotation, moveDistance, layer, interaction);
+		}
+		else if (collider is SphereCollider sphere)
+		{
+			Vector3 scale = transform.lossyScale;
+			float radius = sphere.radius * getMax(scale.x.abs(), scale.y.abs(), scale.z.abs());
+			Vector3 currentCenter = transform.TransformPoint(sphere.center);
+			Vector3 lastCenter = currentCenter - moveDelta;
+			startOverlapCount = Physics.OverlapSphereNonAlloc(lastCenter, radius, mColliderOverlapResults, layer, interaction);
+			castCount = Physics.SphereCastNonAlloc(lastCenter, radius, moveDirection, mColliderCastResults, moveDistance, layer, interaction);
+		}
+		else if (collider is CapsuleCollider capsule)
+		{
+			getCapsuleWorldInfo(capsule, out Vector3 currentPoint0, out Vector3 currentPoint1, out float radius);
+			Vector3 lastPoint0 = currentPoint0 - moveDelta;
+			Vector3 lastPoint1 = currentPoint1 - moveDelta;
+			startOverlapCount = Physics.OverlapCapsuleNonAlloc(lastPoint0, lastPoint1, radius, mColliderOverlapResults, layer, interaction);
+			castCount = Physics.CapsuleCastNonAlloc(lastPoint0, lastPoint1, radius, moveDirection, mColliderCastResults, moveDistance, layer, interaction);
+		}
+		else
+		{
+			logError("不支持的碰撞体类型:" + collider.GetType());
+			return resultCount;
+		}
+
+		// 合并上一帧位置的重叠结果
+		for (int i = 0; i < startOverlapCount; ++i)
+		{
+			resultCount = addOverlapColliderResult(collider, mColliderOverlapResults[i], results, resultCount);
+			if (resultCount >= results.Length)
+			{
+				return resultCount;
+			}
+		}
+
+		// 合并移动路径中的扫掠结果
+		for (int i = 0; i < castCount; ++i)
+		{
+			resultCount = addOverlapColliderResult(collider, mColliderCastResults[i].collider, results, resultCount);
+			if (resultCount >= results.Length)
+			{
+				return resultCount;
+			}
+		}
+		return resultCount;
+	}
+	// 检测指定碰撞体在当前位置与哪些碰撞体发生重叠。
+	// 支持BoxCollider、SphereCollider和CapsuleCollider。
+	// results用于接收检测到的碰撞体，返回值表示results中的有效元素数量。
+	// layer为参与检测的LayerMask，默认-1表示检测所有层。
+	// 检测结果会排除collider自身。
 	public static int overlapCollider(Collider collider, Collider[] results, int layer = -1)
 	{
 		if (collider == null)
@@ -852,17 +907,24 @@ public class UnityUtility
 			return 0;
 		}
 		results.setAllValue(null);
+		Transform transform = collider.transform;
 		if (collider is BoxCollider box)
 		{
-			return overlapAllBox(box, results, layer);
+			Vector3 colliderWorldPos = localToWorld(transform, box.center);
+			int hitCount = Physics.OverlapBoxNonAlloc(colliderWorldPos, box.size * 0.5f, results, transform.localRotation, layer);
+			return results.removeValue(hitCount, collider);
 		}
 		else if (collider is SphereCollider sphere)
 		{
-			return overlapAllSphere(sphere, results, layer);
+			Vector3 colliderWorldPos = localToWorld(transform, sphere.center);
+			int hitCount = Physics.OverlapSphereNonAlloc(colliderWorldPos, sphere.radius, results, layer);
+			return results.removeValue(hitCount, collider);
 		}
 		else if (collider is CapsuleCollider capsule)
 		{
-			return overlapAllCapsule(capsule, results, layer);
+			getCapsuleWorldInfo(capsule, out Vector3 point0, out Vector3 point1, out float radius);
+			int hitCount = Physics.OverlapCapsuleNonAlloc(point0, point1, radius, results, layer, QueryTriggerInteraction.UseGlobal);
+			return results.removeValue(hitCount, collider);
 		}
 		else
 		{
@@ -877,18 +939,25 @@ public class UnityUtility
 			return 0;
 		}
 		results.setAllValue(null);
+		Transform transform = collider.transform;
 		int hitCount = 0;
 		if (collider is BoxCollider2D box2D)
 		{
-			hitCount = overlapAllBox(box2D, results, layer);
+			Vector2 colliderWorldPos = localToWorld(transform, collider.offset);
+			hitCount = Physics2D.OverlapBoxNonAlloc(colliderWorldPos, box2D.size, transform.localEulerAngles.z, results, layer);
+			return results.removeValue(hitCount, collider);
 		}
 		else if (collider is CircleCollider2D circle2D)
 		{
-			hitCount = overlapAllSphere(circle2D, results, layer);
+			Vector2 colliderWorldPos = localToWorld(transform, collider.offset);
+			hitCount = Physics2D.OverlapCircleNonAlloc(colliderWorldPos, circle2D.radius, results, layer);
+			return results.removeValue(hitCount, collider);
 		}
 		else if (collider is CapsuleCollider2D capsule2D)
 		{
-			hitCount = overlapAllCapsule(capsule2D, results, layer);
+			float eulerZ = transform.localEulerAngles.z;
+			hitCount = Physics2D.OverlapCapsuleNonAlloc(transform.position, capsule2D.size, capsule2D.direction, eulerZ, results, layer);
+			return results.removeValue(hitCount, collider);
 		}
 		else
 		{
@@ -1360,5 +1429,57 @@ public class UnityUtility
 		{
 			logException(e, "实例化游戏对象异常");
 		}
+	}
+	// 获取CapsuleCollider当前状态下的世界坐标参数
+	private static void getCapsuleWorldInfo(CapsuleCollider collider, out Vector3 point0, out Vector3 point1, out float radius)
+	{
+		Transform transform = collider.transform;
+		Vector3 scale = transform.lossyScale;
+		float scaleX = scale.x.abs();
+		float scaleY = scale.y.abs();
+		float scaleZ = scale.z.abs();
+		Vector3 localAxis;
+		float heightScale;
+		float radiusScale;
+		if (collider.direction == 0)
+		{
+			// X轴胶囊
+			localAxis = Vector3.right;
+			heightScale = scaleX;
+			radiusScale = getMax(scaleY, scaleZ);
+		}
+		else if (collider.direction == 1)
+		{
+			// Y轴胶囊
+			localAxis = Vector3.up;
+			heightScale = scaleY;
+			radiusScale = getMax(scaleX, scaleZ);
+		}
+		else
+		{
+			// Z轴胶囊
+			localAxis = Vector3.forward;
+			heightScale = scaleZ;
+			radiusScale = getMax(scaleX, scaleY);
+		}
+
+		Vector3 center = transform.TransformPoint(collider.center);
+		Vector3 worldAxis = transform.TransformDirection(localAxis).normalized;
+		radius = collider.radius * radiusScale;
+		// CapsuleCollider.height包含两端半球的直径
+		float height = getMax(collider.height * heightScale, radius * 2.0f);
+		// Physics.OverlapCapsule和CapsuleCast需要传入两个半球的球心
+		float halfLineLength = height * 0.5f - radius;
+		point0 = center + worldAxis * halfLineLength;
+		point1 = center - worldAxis * halfLineLength;
+	}
+	private static int addOverlapColliderResult(Collider sourceCollider, Collider targetCollider, Collider[] results, int resultCount)
+	{
+		if (targetCollider == null || targetCollider == sourceCollider || resultCount >= results.Length || results.contains(targetCollider))
+		{
+			return resultCount;
+		}
+		results[resultCount++] = targetCollider;
+		return resultCount;
 	}
 }

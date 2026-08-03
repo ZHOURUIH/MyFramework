@@ -150,8 +150,9 @@ public class FrameHotFixTest
         Register("WavSoundTest", WavSoundTest.Run);
         Register("SpriteAtlasExtensionTest", SpriteAtlasExtensionTest.Run);
         Register("LayoutScriptExtensionTest", LayoutScriptExtensionTest.Run);
+		Register("UnityUtilityPhysicsTest", UnityUtilityPhysicsTest.Run);
 
-        doRunAll(sTests);
+		doRunAll(sTests);
     }
     public static void Register(string name, Action run)
     {

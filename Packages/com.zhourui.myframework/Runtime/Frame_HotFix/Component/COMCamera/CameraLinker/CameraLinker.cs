@@ -132,7 +132,7 @@ public class CameraLinker : GameComponent
 					box.size = new(0.1f, 0.1f, 0.1f);
 				}
 				// 判断是否与任意模型相交,与模型相交才会拉近
-				if (overlapAllBox(box, mTempResults) > 0)
+				if (overlapCollider(box, mTempResults) > 0)
 				{
 					checkCameraRayIntersect();
 				}

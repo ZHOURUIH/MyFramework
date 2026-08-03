@@ -7,31 +7,31 @@ using static UnityUtility;
 // 数学相关工具函数,所有与数学计算相关的函数都在这里
 public class MathUtility
 {
-	private static AStarMinHeap mTempOpenList;										// 避免GC
-	private static readonly int[] mDeltaX8 = { -1, 0, 1, -1, 1, -1, 0, 1 };			// 8方向寻路的偏移量X
-	private static readonly int[] mDeltaY8 = { -1, -1, -1, 0, 0, 1, 1, 1 };			// 8方向寻路的偏移量Y
-	private static readonly int[] mDeltaX4 = { 0, -1, 1, 0 };						// 4方向寻路的偏移量X
-	private static readonly int[] mDeltaY4 = { -1, 0, 0, 1 };						// 4方向寻路的偏移量Y
-	private static readonly int[] mDeltaXOddRForEven6 = { -1, 0, 1, 0, -1, -1 };	// 6边形寻路的偏移量X,偶数行的,odd-r模式的
-	private static readonly int[] mDeltaYOddRForEven6 = { -1, -1, 0, 1, 1, 0 };		// 6边形寻路的偏移量Y,偶数行的,odd-r模式的
-	private static readonly int[] mDeltaXOddRForOdd6 = { 0, 1, 1, 1, 0, -1 };		// 6边形寻路的偏移量X,奇数行的,odd-r模式的
-	private static readonly int[] mDeltaYOddRForOdd6 = { -1, -1, 0, 1, 1, 0 };		// 6边形寻路的偏移量Y,奇数行的,odd-r模式的
-	private static readonly int[] mDeltaXEvenRForEven6 = { 0, 1, 1, 1, 0, -1 };		// 6边形寻路的偏移量X,偶数行的,even-r模式的
+	private static AStarMinHeap mTempOpenList;                                      // 避免GC
+	private static readonly int[] mDeltaX8 = { -1, 0, 1, -1, 1, -1, 0, 1 };         // 8方向寻路的偏移量X
+	private static readonly int[] mDeltaY8 = { -1, -1, -1, 0, 0, 1, 1, 1 };         // 8方向寻路的偏移量Y
+	private static readonly int[] mDeltaX4 = { 0, -1, 1, 0 };                       // 4方向寻路的偏移量X
+	private static readonly int[] mDeltaY4 = { -1, 0, 0, 1 };                       // 4方向寻路的偏移量Y
+	private static readonly int[] mDeltaXOddRForEven6 = { -1, 0, 1, 0, -1, -1 };    // 6边形寻路的偏移量X,偶数行的,odd-r模式的
+	private static readonly int[] mDeltaYOddRForEven6 = { -1, -1, 0, 1, 1, 0 };     // 6边形寻路的偏移量Y,偶数行的,odd-r模式的
+	private static readonly int[] mDeltaXOddRForOdd6 = { 0, 1, 1, 1, 0, -1 };       // 6边形寻路的偏移量X,奇数行的,odd-r模式的
+	private static readonly int[] mDeltaYOddRForOdd6 = { -1, -1, 0, 1, 1, 0 };      // 6边形寻路的偏移量Y,奇数行的,odd-r模式的
+	private static readonly int[] mDeltaXEvenRForEven6 = { 0, 1, 1, 1, 0, -1 };     // 6边形寻路的偏移量X,偶数行的,even-r模式的
 	private static readonly int[] mDeltaYEvenRForEven6 = { -1, -1, 0, 1, 1, 0 };    // 6边形寻路的偏移量Y,偶数行的,even-r模式的
 	private static readonly int[] mDeltaXEvenRForOdd6 = { -1, -1, 0, 1, 1, 0 };     // 6边形寻路的偏移量X,奇数行的,even-r模式的
 	private static readonly int[] mDeltaYEvenRForOdd6 = { -1, -1, 0, 1, 1, 0 };     // 6边形寻路的偏移量Y,奇数行的,even-r模式的
-	private static AStarNode[] mTempNodeList;										// 避免GC
-	private static float[] mSinList;												// PI/(2^n)的sin值,其中n是下标
-	private static float[] mCosList;												// PI/(2^n)的cos值,其中n是下标
-	private const int MAX_FFT_COUNT = 1024 * 8;										// 计算频域时数据的最大数量
-	private static Complex[] mComplexList = new Complex[MAX_FFT_COUNT];				// 避免GC
-	public const float TWO_PI_DEGREE = Mathf.PI * Mathf.Rad2Deg * 2.0f;				// 360.0f
-	public const float TWO_PI_RADIAN = Mathf.PI * 2.0f;								// 6.28f
-	public const float HALF_PI_DEGREE = Mathf.PI * Mathf.Rad2Deg * 0.5f;			// 90.0f
-	public const float HALF_PI_RADIAN = Mathf.PI * 0.5f;							// 1.57f
-	public const float PI_DEGREE = Mathf.PI * Mathf.Rad2Deg;						// 180.0f
-	public const float PI_RADIAN = Mathf.PI;										// 3.14f
-	public static long[] POWER_INT_10 = new long[11]{ 1L, 10L, 100L, 1000L, 10000L, 100000L, 1000000L, 10000000L, 100000000L, 1000000000L, 10000000000L };
+	private static AStarNode[] mTempNodeList;                                       // 避免GC
+	private static float[] mSinList;                                                // PI/(2^n)的sin值,其中n是下标
+	private static float[] mCosList;                                                // PI/(2^n)的cos值,其中n是下标
+	private const int MAX_FFT_COUNT = 1024 * 8;                                     // 计算频域时数据的最大数量
+	private static Complex[] mComplexList = new Complex[MAX_FFT_COUNT];             // 避免GC
+	public const float TWO_PI_DEGREE = Mathf.PI * Mathf.Rad2Deg * 2.0f;             // 360.0f
+	public const float TWO_PI_RADIAN = Mathf.PI * 2.0f;                             // 6.28f
+	public const float HALF_PI_DEGREE = Mathf.PI * Mathf.Rad2Deg * 0.5f;            // 90.0f
+	public const float HALF_PI_RADIAN = Mathf.PI * 0.5f;                            // 1.57f
+	public const float PI_DEGREE = Mathf.PI * Mathf.Rad2Deg;                        // 180.0f
+	public const float PI_RADIAN = Mathf.PI;                                        // 3.14f
+	public static long[] POWER_INT_10 = new long[11] { 1L, 10L, 100L, 1000L, 10000L, 100000L, 1000000L, 10000000L, 100000000L, 1000000000L, 10000000000L };
 	public static float[] INVERSE_POWER_INT_10 = new float[7] { 1.0f, 0.1f, 0.01f, 0.001f, 0.0001f, 0.00001f, 0.000001f };
 	public static double[] INVERSE_POWER_LLONG_10 = new double[11] { 1.0, 0.1, 0.01, 0.001, 0.0001, 0.00001, 0.000001, 0.0000001, 0.0000001, 0.0000001, 0.0000001 };
 	public static long[] POWER_LLONG_10 = new long[19]
@@ -451,7 +451,7 @@ public class MathUtility
 		for (int i = 0; i < allCount; ++i)
 		{
 			helpList[i] = i;
-		}	
+		}
 		for (int i = 0; i < selectCount; ++i)
 		{
 			int index = randomInt(i, allCount - 1);
@@ -1094,7 +1094,7 @@ public class MathUtility
 		if (result0)
 		{
 			float squaredLength = (intersect0 - line.mStart).getSquaredLength();
-			if(squaredLength < closestDistance)
+			if (squaredLength < closestDistance)
 			{
 				closestDistance = squaredLength;
 				point = intersect0;
@@ -1141,7 +1141,7 @@ public class MathUtility
 			intersectPoint = line.mStart + lineDir * t;
 			// 如果交点超出了线段范围,则不相交
 			float lineLength = (line.mEnd - line.mStart).getLength();
-			if(t <= 0.0f || t >= lineLength)
+			if (t <= 0.0f || t >= lineLength)
 			{
 				ret = false;
 			}
@@ -1212,7 +1212,7 @@ public class MathUtility
 		Vector3 Q = T.cross(E1);
 		// Calculate v and make sure u + v <= 1
 		v = dir.dot(Q);
-		if(v < 0.0f || u + v > determinant)
+		if (v < 0.0f || u + v > determinant)
 		{
 			return false;
 		}
@@ -1252,7 +1252,7 @@ public class MathUtility
 	// circle0是否与circle1相交
 	public static bool circleOverlap(Circle3 circle0, Circle3 circle1, bool ignoreY)
 	{
-		if(ignoreY)
+		if (ignoreY)
 		{
 			circle0.mCenter.y = 0.0f;
 			circle1.mCenter.y = 0.0f;
@@ -1263,7 +1263,7 @@ public class MathUtility
 	public static bool circleContains(Circle3 circle0, Circle3 circle1, bool ignoreY)
 	{
 		// 如果第一个圆的半径小于第二个圆,则第一个圆不可能包含第二个圆
-		if(circle0.mRadius < circle1.mRadius)
+		if (circle0.mRadius < circle1.mRadius)
 		{
 			return false;
 		}
@@ -1303,12 +1303,12 @@ public class MathUtility
 		Vector3 projectPoint = getProjectPoint(circle.mCenter, line);
 		// 计算圆心到线段的距离
 		float distance = (projectPoint - circle.mCenter).getLength();
-		if(distance > circle.mRadius)
+		if (distance > circle.mRadius)
 		{
 			return false;
 		}
 		// 如果投影在线段两个端点之间,则相交
-		if(projectPoint.inRange(line.mStart, line.mEnd, false))
+		if (projectPoint.inRange(line.mStart, line.mEnd, false))
 		{
 			return true;
 		}
@@ -1326,7 +1326,7 @@ public class MathUtility
 	{
 		// 如果所有的顶点都在圆外部,且没有边与圆相交,且圆心不在多边形内部,则不相交
 		int polygonPointCount = polygon.Count;
-		for(int i = 0; i < polygonPointCount; ++i)
+		for (int i = 0; i < polygonPointCount; ++i)
 		{
 			// 有顶点在圆内,则相交
 			if ((polygon[i] - circle.mCenter).lengthLessEqual(circle.mRadius))
@@ -1340,7 +1340,7 @@ public class MathUtility
 			}
 		}
 		// 圆心在多边形内,则相交
-		if(isPointInPolygon(circle.mCenter, polygon))
+		if (isPointInPolygon(circle.mCenter, polygon))
 		{
 			return true;
 		}
@@ -1352,7 +1352,7 @@ public class MathUtility
 		int pointSide = -999;
 		// 如果点都在所有边的同一侧,则点在多边形内
 		int polygonPointCount = polygon.Count;
-		for(int i = 0; i < polygonPointCount; ++i)
+		for (int i = 0; i < polygonPointCount; ++i)
 		{
 			int nextPointIndex = i < polygonPointCount - 1 ? i + 1 : 0;
 			int side = getAngleSignVector2ToVector2(point - polygon[i], polygon[nextPointIndex] - polygon[i]);
@@ -1367,7 +1367,7 @@ public class MathUtility
 				continue;
 			}
 			// 发现一个不同侧的则直接返回不在多边形内
-			if(pointSide >= -1 && pointSide != side)
+			if (pointSide >= -1 && pointSide != side)
 			{
 				return false;
 			}
@@ -1492,7 +1492,7 @@ public class MathUtility
 	// 顺时针旋转为正,逆时针为负
 	public static float getAngleVector2ToVector2(Vector2 from, Vector2 to, ANGLE radian = ANGLE.RADIAN)
 	{
-		if(from.isEqual(to))
+		if (from.isEqual(to))
 		{
 			return 0.0f;
 		}
@@ -1564,7 +1564,7 @@ public class MathUtility
 			from.y = 0.0f;
 			to.y = 0.0f;
 		}
-		if(from.isEqual(to))
+		if (from.isEqual(to))
 		{
 			return 0.0f;
 		}
@@ -1970,6 +1970,8 @@ public class MathUtility
 	public static uint getMin(uint a, uint b) { return a < b ? a : b; }
 	public static long getMin(long a, long b) { return a < b ? a : b; }
 	public static int getMax(int a, int b) { return a > b ? a : b; }
+	public static int getMax(int a, int b, int c) { return getMax(a, getMax(b, c)); }
+	public static float getMax(float a, float b, float c) { return getMax(a, getMax(b, c)); }
 	public static float getMax(float a, float b) { return a > b ? a : b; }
 	public static long getMax(long a, long b) { return a > b ? a : b; }
 	public static uint getMax(uint a, uint b) { return a > b ? a : b; }
@@ -2613,11 +2615,11 @@ public class MathUtility
 			list[rand] = temp;
 		}
 	}
-	public static float speedToInterval(float speed) 
+	public static float speedToInterval(float speed)
 	{
-		return 0.0333f.divide(speed); 
+		return 0.0333f.divide(speed);
 	}
-	public static float intervalToSpeed(float interval) 
+	public static float intervalToSpeed(float interval)
 	{
 		return 0.0333f.divide(interval);
 	}
@@ -3215,9 +3217,9 @@ public class MathUtility
 		while (true)
 		{
 			// 从左向右找到一个比key小的值,如果小于key,则一直继续查找
-			while (comparison(arr[++i], key) < 0 && i != high){}
+			while (comparison(arr[++i], key) < 0 && i != high) { }
 			// 从右向左找到一个比key大的值,如果大于key,则一直继续查找
-			while (comparison(arr[--j], key) > 0 && j != low){}
+			while (comparison(arr[--j], key) > 0 && j != low) { }
 			if (i >= j)
 			{
 				break;

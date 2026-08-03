@@ -599,11 +599,8 @@ public static class UnityUtilityTest
 		go2.transform.position = new Vector3(0.5f, 0f, 0f);
 
 		Collider[] results = new Collider[10];
-		overlapAllBox(box, results, -1);
-
-		SphereCollider sphere = go.AddComponent<SphereCollider>();
-		overlapAllSphere(sphere, results, -1);
-
+		overlapCollider(box, results, -1);
+		overlapCollider(go.AddComponent<SphereCollider>(), results, -1);
 		overlapBoxIgnoreY(box, box2, null, 4);
 		overlapBoxIgnoreZ(box, box2, null, 4);
 
