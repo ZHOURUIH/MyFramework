@@ -16,6 +16,10 @@ public class FrameHotFixTest
         Register("ClassObjectTest", ClassObjectTest.Run);
         Register("ClassPoolSingleTest", ClassPoolSingleTest.Run);
         Register("CommandTest", CommandTest.Run);
+        Register("CommandSystemTest", CommandSystemTest.Run);
+        Register("ComponentTest", ComponentTest.Run);
+        Register("PoolTest", PoolTest.Run);
+        Register("AssetBundleInfoTest", AssetBundleInfoTest.Run);
         Register("CurveTest", CurveTest.Run);
         Register("DictionaryExtensionTest", DictionaryExtensionTest.Run);
         Register("DistanceSortHelperTest", DistanceSortHelperTest.Run);

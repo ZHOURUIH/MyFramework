@@ -137,6 +137,10 @@ public class ArrayPool : FrameSystem
 			Debug.LogError("只能在主线程中使用ArrayPool");
 			return;
 		}
+		if (arrayList == null)
+		{
+			return;
+		}
 		if (isEditor())
 		{
 			foreach (T[] item in arrayList)
@@ -194,11 +198,11 @@ public class ArrayPool : FrameSystem
 		foreach (T[] array in allArrayList)
 		{
 			int length = array.Length;
-			if (typeList0.TryGetValue(length, out arrayList) && arrayList.Remove(array))
+			if (typeList0 != null && typeList0.TryGetValue(length, out arrayList) && arrayList.Remove(array))
 			{
 				continue;
 			}
-			if (typeList1.TryGetValue(length, out arrayList) && arrayList.Remove(array))
+			if (typeList1 != null && typeList1.TryGetValue(length, out arrayList) && arrayList.Remove(array))
 			{
 				continue;
 			}

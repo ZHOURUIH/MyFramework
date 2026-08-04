@@ -425,7 +425,13 @@ public class FrameUtility
 	{
 		if (mClassPool == null)
 		{
-			return createInstance<ClassObject>(type);
+			var obj = createInstance<ClassObject>(type);
+			if (obj != null)
+			{
+				obj.setDestroy(false);
+				obj.onCreate();
+			}
+			return obj;
 		}
 		return mClassPool?.newClass(type, true);
 	}
@@ -433,7 +439,13 @@ public class FrameUtility
 	{
 		if (mClassPool == null)
 		{
-			return createInstance<ClassObject>(type) as T;
+			var obj = createInstance<ClassObject>(type);
+			if (obj != null)
+			{
+				obj.setDestroy(false);
+				obj.onCreate();
+			}
+			return obj as T;
 		}
 		return mClassPool?.newClass(type, true) as T;
 	}
@@ -472,7 +484,13 @@ public class FrameUtility
 	{
 		if (mClassPool == null)
 		{
-			return createInstance<ClassObject>(type);
+			var obj = createInstance<ClassObject>(type);
+			if (obj != null)
+			{
+				obj.setDestroy(false);
+				obj.onCreate();
+			}
+			return obj;
 		}
 		return mClassPool?.newClass(type, false);
 	}
@@ -480,7 +498,13 @@ public class FrameUtility
 	{
 		if (mClassPool == null)
 		{
-			return createInstance<ClassObject>(type) as T;
+			var obj = createInstance<ClassObject>(type);
+			if (obj != null)
+			{
+				obj.setDestroy(false);
+				obj.onCreate();
+			}
+			return obj as T;
 		}
 		return mClassPool?.newClass(type, false) as T;
 	}
