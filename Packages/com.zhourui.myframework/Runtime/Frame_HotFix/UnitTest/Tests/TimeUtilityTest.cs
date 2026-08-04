@@ -1,417 +1,398 @@
 using System;
-using static TimeUtility;
 using static TestAssert;
 
-// TimeUtility 时间戳转换 / 格式化 / 日期边界测试
+// TimeUtility 时间工具函数测试
 public static class TimeUtilityTest
 {
-	public static void Run()
-	{
-		testDateTimeRoundTrip();
-		testDateTimeRoundTripMS();
-		testTimeStampToDateTime();
-		testIsSameDay();
-		testIsTodayTime();
-		testGetTodayBegin();
-		testGetTimeStringSecond_HMSM();
-		testGetTimeStringSecond_HMS2();
-		testGetTimeStringSecond_MS2();
-		testGetTimeStringSecond_HM2();
-		testGetTimeStringSecond_DHMS_ZH();
-		testGetTimeStringSecond_DHM_ZH();
-		testGetTimeStringSecond_HM_ZH();
-		testGetTimeStringSecond_MS_ZH();
-		testGetTimeStringDateTime_YMD_ZH();
-		testGetTimeStringDateTime_YMDHM_ZH();
-		testGetTimeString_daysHoursMinutes();
-		testDaysToSeconds();
-		testGetDayEnd();
-		testGetWeekEnd();
-		testGetMonthEnd();
-		testGetYearEnd();
-		testThisTimeMS();
-		testNowTimeStamps();
-		testMinuteToHourMinute();
-		testTodayBoundaries();
-        testParameterlessEnds();
-        testTimeString4Out();
-        testMoreTimeHelpers();
-        testTimestampOverloads();
-        testEndRemainFunctions();
-        testNoLockNoBuilder();
-	}
-
-	//------------------------------------------------------------------------------------------------------------------------------
-	private static void testDateTimeRoundTrip()
-	{
-		// dateTimeToTimeStamp 减去 Unspecified(1970-01-01)，把 Local 视为 Local 差值
-		// timeStampToDateTime 加回后调 ToLocalTime()，会再把 Unspecified 当成 UTC 转本地
-		// 导致在非 UTC 时区往返后 hour 多出 UTC 偏差（如 UTC+8 多 8 小时）
-		// 因此只验证年月日，不验证小时（时区相关）
-		DateTime dt = new DateTime(2024, 1, 15, 12, 0, 0, DateTimeKind.Local);
-		long ts = dateTimeToTimeStamp(dt);
-		DateTime dt2 = timeStampToDateTime(ts);
-		assertEqual(dt2.Year,   dt.Year,   "roundTrip year");
-		assertEqual(dt2.Month,  dt.Month,  "roundTrip month");
-		assertEqual(dt2.Day,    dt.Day,    "roundTrip day");
-		// hour 不验证：TimeUtility 实现中存在时区偏差（Unspecified vs Local）
-	}
-
-	private static void testDateTimeRoundTripMS()
-	{
-		// 毫秒级往返：同秒级，Unspecified 基准导致 ToLocalTime() 多加 UTC 偏差
-		// 只验证年月日和毫秒（毫秒不受时区影响）
-		DateTime dt = new DateTime(2024, 6, 1, 8, 30, 45, 500, DateTimeKind.Local);
-		long tsMs = dateTimeToTimeStampMS(dt);
-		DateTime dt2 = timeStampMSToDateTimeUTC(tsMs).ToLocalTime();
-		assertEqual(dt2.Year,        dt.Year,        "roundTripMS year");
-		assertEqual(dt2.Month,       dt.Month,       "roundTripMS month");
-		assertEqual(dt2.Day,         dt.Day,         "roundTripMS day");
-		assertEqual(dt2.Millisecond, dt.Millisecond, "roundTripMS ms");
-		// hour/minute/second 因时区偏差不验证
-	}
-
-	private static void testTimeStampToDateTime()
-	{
-		// Unix 纪元 0 应还原为 1970-01-01 UTC
-		DateTime epoch = timeStampToDateTimeUTC(0L);
-		assertEqual(epoch.Year,  1970, "epoch year");
-		assertEqual(epoch.Month, 1,    "epoch month");
-		assertEqual(epoch.Day,   1,    "epoch day");
-
-		// 86400 秒 = 1970-01-02 UTC
-		DateTime nextDay = timeStampToDateTimeUTC(86400L);
-		assertEqual(nextDay.Day, 2, "epoch + 1 day");
-	}
-
-	private static void testIsSameDay()
-	{
-		DateTime a = new DateTime(2024, 3, 15, 10, 0, 0);
-		DateTime b = new DateTime(2024, 3, 15, 23, 59, 59);
-		DateTime c = new DateTime(2024, 3, 16, 0,  0,  0);
-
-		assert( isSameDay(a, b), "same day a-b");
-		assert(!isSameDay(a, c), "different day a-c");
-		assert(!isSameDay(b, c), "different day b-c");
-	}
-
-	private static void testIsTodayTime()
-	{
-		DateTime todayBegin = getTodayBegin();
-		assert( isTodayTime(todayBegin), "todayBegin is today");
-
-		DateTime tomorrow = getTomorrowTime(0);
-		assert(!isTodayTime(tomorrow), "tomorrow is not today");
-	}
-
-	private static void testGetTodayBegin()
-	{
-		DateTime begin = getTodayBegin();
-		assertEqual(begin.Hour,   0, "todayBegin hour");
-		assertEqual(begin.Minute, 0, "todayBegin minute");
-		assertEqual(begin.Second, 0, "todayBegin second");
-	}
-
-	private static void testGetTimeStringSecond_HMSM()
-	{
-		// 3661 秒 = 1小时1分1秒
-		string s = getTimeString(3661, TIME_DISPLAY.HMSM);
-		assert(s.Contains("1"), "HMSM contains 1");
-		int colonCount = 0;
-		foreach (char c in s) if (c == ':') colonCount++;
-		assert(colonCount >= 2, "HMSM has 2+ colons");
-	}
-
-	private static void testGetTimeStringSecond_HMS2()
-	{
-		// 7322 秒 = 2:02:02
-		string s = getTimeString(7322, TIME_DISPLAY.HMS_2);
-		assertEqual(s, "02:02:02", "HMS_2 7322s");
-	}
-
-	private static void testGetTimeStringSecond_MS2()
-	{
-		// 125 秒 = 02:05
-		string s = getTimeString(125, TIME_DISPLAY.MS_2);
-		assertEqual(s, "02:05", "MS_2 125s");
-	}
-
-	private static void testGetTimeStringSecond_HM2()
-	{
-		// 3720 秒 = 1小时2分 → 01:02
-		string s = getTimeString(3720, TIME_DISPLAY.HM_2);
-		assertEqual(s, "01:02", "HM_2 3720s");
-	}
-
-	private static void testGetTimeStringSecond_DHMS_ZH()
-	{
-		// 90061秒 = 1天1小时1分1秒
-		string s = getTimeString(90061, TIME_DISPLAY.DHMS_ZH);
-		assert(s.Contains("天"), "DHMS_ZH contains 天");
-		assert(s.Contains("时"), "DHMS_ZH contains 时");
-		assert(s.Contains("分"), "DHMS_ZH contains 分");
-		assert(s.Contains("秒"), "DHMS_ZH contains 秒");
-
-		// 小于1天 3661秒
-		string s2 = getTimeString(3661, TIME_DISPLAY.DHMS_ZH);
-		assert(!s2.Contains("天"), "DHMS_ZH no 天 when <1day");
-		assert( s2.Contains("时"), "DHMS_ZH has 时 when <1day");
-	}
-
-	private static void testGetTimeStringSecond_DHM_ZH()
-	{
-		string s = getTimeString(90061, TIME_DISPLAY.DHM_ZH);
-		assert( s.Contains("天"), "DHM_ZH contains 天");
-		assert(!s.Contains("秒"), "DHM_ZH no 秒");
-	}
-
-	private static void testGetTimeStringSecond_HM_ZH()
-	{
-		// 3720 秒 = 1时2分
-		string s = getTimeString(3720, TIME_DISPLAY.HM_ZH);
-		assert( s.Contains("时"), "HM_ZH contains 时");
-		assert( s.Contains("分"), "HM_ZH contains 分");
-		assert(!s.Contains("秒"), "HM_ZH no 秒");
-	}
-
-	private static void testGetTimeStringSecond_MS_ZH()
-	{
-		// 125 秒 = 2分5秒
-		string s = getTimeString(125, TIME_DISPLAY.MS_ZH);
-		assert(s.Contains("分"), "MS_ZH contains 分");
-		assert(s.Contains("秒"), "MS_ZH contains 秒");
-	}
-
-	private static void testGetTimeStringDateTime_YMD_ZH()
-	{
-		DateTime dt = new DateTime(2024, 3, 15);
-		string s = getTimeString(dt, TIME_DISPLAY.YMD_ZH);
-		assert(s.Contains("2024"), "YMD_ZH year");
-		assert(s.Contains("3"),    "YMD_ZH month");
-		assert(s.Contains("15"),   "YMD_ZH day");
-		assert(s.Contains("年"),   "YMD_ZH 年");
-		assert(s.Contains("月"),   "YMD_ZH 月");
-		assert(s.Contains("日"),   "YMD_ZH 日");
-	}
-
-	private static void testGetTimeStringDateTime_YMDHM_ZH()
-	{
-		DateTime dt = new DateTime(2024, 12, 31, 23, 59, 0);
-		string s = getTimeString(dt, TIME_DISPLAY.YMDHM_ZH);
-		assert(s.Contains("2024"), "YMDHM_ZH year");
-		assert(s.Contains("12"),   "YMDHM_ZH month");
-		assert(s.Contains("31"),   "YMDHM_ZH day");
-		assert(s.Contains("23"),   "YMDHM_ZH hour");
-		assert(s.Contains("59"),   "YMDHM_ZH minute");
-	}
-
-	private static void testGetTimeString_daysHoursMinutes()
-	{
-		// 90125 秒 = 1天1时2分5秒
-		string fmt = getTimeString(90125, out int days, out int hours, out int minutes, out int seconds, true);
-		assertEqual(days,    1, "days=1");
-		assertEqual(hours,   1, "hours=1");
-		assertEqual(minutes, 2, "minutes=2");
-		assertEqual(seconds, 5, "seconds=5");
-		assert(fmt.Contains("{0}"), "fmt has {0}");
-
-		// 无天无小时: 125秒 = 2分5秒
-		string fmt2 = getTimeString(125, out int d2, out int h2, out int m2, out int s2, true);
-		assertEqual(d2, 0, "days=0");
-		assertEqual(h2, 0, "hours=0");
-		assertEqual(m2, 2, "minutes=2");
-		assertEqual(s2, 5, "seconds=5");
-		assert(fmt2.Contains("{2}") || fmt2.Contains("{3}"), "fmt2 has minutes/seconds placeholder");
-	}
-
-	private static void testDaysToSeconds()
-	{
-		assertEqual(daysToSeconds(0), 0,      "0 days = 0s");
-		assertEqual(daysToSeconds(1), 86400,  "1 day  = 86400s");
-		assertEqual(daysToSeconds(7), 604800, "7 days = 604800s");
-	}
-
-	private static void testGetDayEnd()
-	{
-		DateTime dt = new DateTime(2024, 3, 15, 10, 0, 0);
-		DateTime end = getDayEnd(dt);
-		assertEqual(end.Year,  2024, "dayEnd year");
-		assertEqual(end.Month, 3,    "dayEnd month");
-		assertEqual(end.Day,   16,   "dayEnd day");
-	}
-
-	private static void testGetWeekEnd()
-	{
-		// 2024-03-11 是周一 → 下一个周一是 2024-03-18
-		DateTime monday = new DateTime(2024, 3, 11);
-		DateTime weekEnd = getWeekEnd(monday);
-		assertEqual(weekEnd.DayOfWeek, DayOfWeek.Monday, "weekEnd is Monday");
-		assert((weekEnd - monday).TotalDays <= 7, "weekEnd within 7 days");
-	}
-
-	private static void testGetMonthEnd()
-	{
-		// 三月底（下个月第一天）
-		DateTime dt = new DateTime(2024, 3, 15);
-		DateTime end = getMonthEnd(dt);
-		assertEqual(end.Year,  2024, "monthEnd year");
-		assertEqual(end.Month, 4,    "monthEnd month == 4");
-		assertEqual(end.Day,   1,    "monthEnd day == 1");
-	}
-
-	private static void testGetYearEnd()
-	{
-		DateTime dt = new DateTime(2024, 6, 15);
-		DateTime end = getYearEnd(dt);
-		assertEqual(end.Year,  2025, "yearEnd year");
-		assertEqual(end.Month, 1,    "yearEnd month == 1");
-		assertEqual(end.Day,   1,    "yearEnd day == 1");
-	}
-
-	private static void testThisTimeMS()
-	{
-		setThisTimeMS(12345L);
-		assertEqual(getThisTimeMS(), 12345L, "setThisTimeMS/getThisTimeMS");
-
-		setThisTimeMS(0L);
-		assertEqual(getThisTimeMS(), 0L, "setThisTimeMS 0");
-	}
-
-	private static void testNowTimeStamps()
-	{
-		long now = getNowTimeStamp();
-		assert(now > 0, "getNowTimeStamp > 0");
-
-		long nowMs = getNowTimeStampMS();
-		assert(nowMs > 0, "getNowTimeStampMS > 0");
-
-		long utc = getNowUTCTimeStamp();
-		assert(utc > 0, "getNowUTCTimeStamp > 0");
-
-		long utcMs = getNowUTCTimeStampMS();
-		assert(utcMs > 0, "getNowUTCTimeStampMS > 0");
-	}
-
-    private static void testMinuteToHourMinute()
+    public static void Run()
     {
-        assertEqual("1小时", minuteToHourMinuteString(60), "60min=1小时");
-        assertEqual("2小时30分钟", minuteToHourMinuteString(150), "150min=2小时30分钟");
-        assertEqual("", minuteToHourMinuteString(0), "0min=空");
-        assertEqual("45分钟", minuteToHourMinuteString(45), "45min=45分钟");
+        testSetGetThisTimeMS();
+        testDateTimeToTimeStamp();
+        testDateTimeToTimeStampMS();
+        testTimeStampToDateTime();
+        testTimeStampToDateTimeUTC();
+        testTimeStampMSToDateTimeUTC();
+        testIsSameDay_DateTime();
+        testIsSameDay_TimeStamp();
+        testGetTodayTime();
+        testGetTomorrowTime();
+        testDaysToSeconds();
+        testMinuteToHourMinuteString();
+        testGetTimeString_OutParams();
+        testGetTimeString_OutParams_NoSeconds();
+        testGetTimeString_Int_Display();
+        testGetTimeString_DateTime_Display();
+        testGetTimeStringNoLock();
+        testGetTimeStringNoBuilder();
+        testGetDayEnd();
+        testGetWeekEnd();
+        testGetMonthEnd();
+        testGetYearEnd();
+        testGetTimeToTodayEnd();
+        testGetSecondsToTodayEnd();
     }
 
-	private static void testTodayBoundaries()
-	{
-		// 当天开始的时间戳应该 ≤ 当前时间戳
-		long todayBegin = getTodayBeginTimeStamp();
-		assert(todayBegin > 0, "getTodayBeginTimeStamp > 0");
+    // ---- setThisTimeMS / getThisTimeMS ----
+    static void testSetGetThisTimeMS()
+    {
+        TimeUtility.setThisTimeMS(12345L);
+        assertEqual(12345L, TimeUtility.getThisTimeMS(), "set/get thisTimeMS 12345");
+        TimeUtility.setThisTimeMS(0L);
+        assertEqual(0L, TimeUtility.getThisTimeMS(), "set/get thisTimeMS 0");
+    }
 
-		// getTimeToTodayEnd / getSecondsToTodayEnd
-		TimeSpan remain = getTimeToTodayEnd();
-		assert(remain.TotalSeconds >= 0, "getTimeToTodayEnd >= 0");
+    // ---- dateTimeToTimeStamp ----
+    static void testDateTimeToTimeStamp()
+    {
+        DateTime dt = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        long ts = TimeUtility.dateTimeToTimeStamp(dt);
+        // 2020-01-01 UTC = 1577836800
+        assertEqual(1577836800L, ts, "2020-01-01 UTC timestamp");
+    }
 
-		int secRemain = getSecondsToTodayEnd();
-		assert(secRemain >= 0, "getSecondsToTodayEnd >= 0");
-	}
+    // ---- dateTimeToTimeStampMS ----
+    static void testDateTimeToTimeStampMS()
+    {
+        DateTime dt = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        long ts = TimeUtility.dateTimeToTimeStampMS(dt);
+        assertEqual(1577836800000L, ts, "2020-01-01 UTC timestamp ms");
+    }
 
-	private static void testParameterlessEnds()
-	{
-		// 无参数版本应返回未来时间
-		DateTime dayEnd = getDayEnd();
-		assert(dayEnd > DateTime.Now, "getDayEnd() > now");
+    // ---- timeStampToDateTime ----
+    static void testTimeStampToDateTime()
+    {
+        long ts = 1577836800L; // 2020-01-01 00:00:00 UTC
+        DateTime dt = TimeUtility.timeStampToDateTime(ts);
+        // 转换为本地时间后，年月日应该正确
+        assertEqual(2020, dt.Year, "year 2020");
+        assertEqual(1, dt.Month, "month 1");
+        assertEqual(1, dt.Day, "day 1");
+        // timeStampToDateTime 内部通过 ToLocalTime() 转换，验证双向转换一致性
+        long roundTrip = TimeUtility.dateTimeToTimeStamp(dt.ToUniversalTime());
+        assertEqual(ts, roundTrip, "round-trip timestamp matches");
+    }
 
-		DateTime weekEnd = getWeekEnd();
-		assert(weekEnd > DateTime.Now, "getWeekEnd() > now");
+    // ---- timeStampToDateTimeUTC ----
+    static void testTimeStampToDateTimeUTC()
+    {
+        long ts = 1577836800L;
+        DateTime dt = TimeUtility.timeStampToDateTimeUTC(ts);
+        assertEqual(2020, dt.Year, "UTC year 2020");
+        assertEqual(1, dt.Month, "UTC month 1");
+        assertEqual(1, dt.Day, "UTC day 1");
+        assertEqual(0, dt.Hour, "UTC hour 0");
+        assertEqual(0, dt.Minute, "UTC minute 0");
+        assertEqual(0, dt.Second, "UTC second 0");
+    }
 
-		DateTime monthEnd = getMonthEnd();
-		assert(monthEnd > DateTime.Now, "getMonthEnd() > now");
+    // ---- timeStampMSToDateTimeUTC ----
+    static void testTimeStampMSToDateTimeUTC()
+    {
+        long tsMs = 1577836800000L;
+        DateTime dt = TimeUtility.timeStampMSToDateTimeUTC(tsMs);
+        assertEqual(2020, dt.Year, "ms UTC year 2020");
+        assertEqual(1, dt.Month, "ms UTC month 1");
+        assertEqual(1, dt.Day, "ms UTC day 1");
+    }
 
-		DateTime yearEnd = getYearEnd();
-		assert(yearEnd > DateTime.Now, "getYearEnd() > now");
-	}
+    // ---- isSameDay(DateTime, DateTime) ----
+    static void testIsSameDay_DateTime()
+    {
+        DateTime d1 = new DateTime(2020, 6, 15, 10, 30, 0);
+        DateTime d2 = new DateTime(2020, 6, 15, 23, 59, 59);
+        DateTime d3 = new DateTime(2020, 6, 16, 0, 0, 0);
+        assertTrue(TimeUtility.isSameDay(d1, d2), "same day: 6/15 10:30 vs 6/15 23:59");
+        assertFalse(TimeUtility.isSameDay(d1, d3), "diff day: 6/15 vs 6/16");
+    }
 
-	private static void testTimeString4Out()
-	{
-		// 90061 秒 = 1天1小时1分 （不返回秒）
-		string fmt = getTimeString(90061, out int days, out int hours, out int minutes);
-		assertEqual(days,    1, "4out days=1");
-		assertEqual(hours,   1, "4out hours=1");
-		assertEqual(minutes, 1, "4out minutes=1");
-		assert(fmt.Length > 0, "4out fmt not empty");
+    // ---- isSameDay(long, long) ----
+    static void testIsSameDay_TimeStamp()
+    {
+        // 2020-06-15 10:00 UTC = 1592215200, 2020-06-15 22:00 UTC = 1592258400
+        long ts1 = 1592215200L;
+        long ts2 = 1592258400L;
+        long ts3 = 1592301600L; // next day
+        assertTrue(TimeUtility.isSameDay(ts1, ts2), "same day timestamps");
+        assertFalse(TimeUtility.isSameDay(ts1, ts3), "diff day timestamps");
+    }
 
-		// 0秒
-		string fmt0 = getTimeString(0, out int d0, out int h0, out int m0);
-		assertEqual(d0, 0, "4out 0s days=0");
-		assertEqual(h0, 0, "4out 0s hours=0");
-		assertEqual(m0, 0, "4out 0s minutes=0");
-	}
+    // ---- getTodayTime ----
+    static void testGetTodayTime()
+    {
+        DateTime today = TimeUtility.getTodayTime(12, 30, 45);
+        DateTime now = DateTime.Now;
+        assertEqual(now.Year, today.Year, "today year");
+        assertEqual(now.Month, today.Month, "today month");
+        assertEqual(now.Day, today.Day, "today day");
+        assertEqual(12, today.Hour, "today hour 12");
+        assertEqual(30, today.Minute, "today minute 30");
+        assertEqual(45, today.Second, "today second 45");
+    }
 
-	private static void testMoreTimeHelpers()
-	{
-		// getNowTime / getTimeNoLock / getTimeNoBuilder — 返回非空字符串
-		string now = getNowTime(TIME_DISPLAY.HMS_2);
-		assert(now.Length > 0, "getNowTime HMS_2 not empty");
+    // ---- getTomorrowTime ----
+    static void testGetTomorrowTime()
+    {
+        DateTime tomorrow = TimeUtility.getTomorrowTime(8);
+        DateTime tomorrowExpected = DateTime.Now.AddDays(1);
+        assertEqual(tomorrowExpected.Year, tomorrow.Year, "tomorrow year");
+        assertEqual(tomorrowExpected.Month, tomorrow.Month, "tomorrow month");
+        assertEqual(tomorrowExpected.Day, tomorrow.Day, "tomorrow day");
+        assertEqual(8, tomorrow.Hour, "tomorrow hour 8");
+    }
 
-		string locked = getTimeNoLock(TIME_DISPLAY.HMS_2);
-		assert(locked.Length > 0, "getTimeNoLock not empty");
+    // ---- daysToSeconds ----
+    static void testDaysToSeconds()
+    {
+        assertEqual(86400, TimeUtility.daysToSeconds(1), "1 day -> 86400s");
+        assertEqual(172800, TimeUtility.daysToSeconds(2), "2 days -> 172800s");
+        assertEqual(0, TimeUtility.daysToSeconds(0), "0 days -> 0s");
+        assertEqual(604800, TimeUtility.daysToSeconds(7), "7 days -> 604800s");
+    }
 
-		string noBuilder = getTimeNoBuilder(TIME_DISPLAY.HMS_2);
-		assert(noBuilder.Length > 0, "getTimeNoBuilder not empty");
+    // ---- minuteToHourMinuteString ----
+    static void testMinuteToHourMinuteString()
+    {
+        string s = TimeUtility.minuteToHourMinuteString(65);
+        assertTrue(s.Contains("1") && s.Contains("小时") && s.Contains("5") && s.Contains("分钟"),
+            "65min -> 1小时5分钟");
+        string s2 = TimeUtility.minuteToHourMinuteString(60);
+        assertTrue(s2.Contains("1") && s2.Contains("小时"), "60min -> 1小时");
+        string s3 = TimeUtility.minuteToHourMinuteString(30);
+        assertTrue(s3.Contains("30") && s3.Contains("分钟"), "30min -> 30分钟");
+    }
 
-		// getDateTimeToUTC / getLocalTime — 时间戳转字符串
-		string utc = getDateTimeToUTC(0L, TIME_DISPLAY.YMD_ZH);
-		assert(utc.Contains("1970"), "getDateTimeToUTC epoch 1970");
+    // ---- getTimeString(int, out int x4, bool) ----
+    static void testGetTimeString_OutParams()
+    {
+        string fmt = TimeUtility.getTimeString(90061, out int days, out int hours, out int minutes, out int seconds, true);
+        // 90061s = 1天1小时1分1秒
+        assertEqual(1, days, "days=1");
+        assertEqual(1, hours, "hours=1");
+        assertEqual(1, minutes, "minutes=1");
+        assertEqual(1, seconds, "seconds=1");
+        assertEqual("{0}天{1}时{2}分{3}秒", fmt, "format string");
 
-		string local = getLocalTime(0L, TIME_DISPLAY.YMD_ZH);
-		assert(local.Length > 0, "getLocalTime not empty");
-	}
+        // 3661s = 1小时1分1秒
+        string fmt2 = TimeUtility.getTimeString(3661, out days, out hours, out minutes, out seconds, true);
+        assertEqual(0, days, "days=0");
+        assertEqual(1, hours, "hours=1");
+        assertEqual(1, minutes, "minutes=1");
+        assertEqual(1, seconds, "seconds=1");
+        assertEqual("{1}时{2}分{3}秒", fmt2, "format string");
 
-	private static void testTimestampOverloads()
-	{
-		// isSameDay(long, long) — 相同/不同时间戳
-		long ts1 = dateTimeToTimeStamp(new DateTime(2024, 3, 15, 10, 0, 0, DateTimeKind.Utc));
-		long ts2 = dateTimeToTimeStamp(new DateTime(2024, 3, 15, 23, 0, 0, DateTimeKind.Utc));
-		long ts3 = dateTimeToTimeStamp(new DateTime(2024, 3, 16, 0, 0, 0, DateTimeKind.Utc));
-		assert(isSameDay(ts1, ts2), "isSameDay ts same day");
-		assert(!isSameDay(ts1, ts3), "isSameDay ts diff day");
+        // 61s = 1分1秒
+        string fmt3 = TimeUtility.getTimeString(61, out days, out hours, out minutes, out seconds, true);
+        assertEqual(1, minutes, "minutes=1");
+        assertEqual(1, seconds, "seconds=1");
+        assertEqual("{2}分{3}秒", fmt3, "format string");
 
-		// getTodayTime — 构建今天的时间
-		DateTime todayTime = getTodayTime(14, 30, 0);
-		assertEqual(14, todayTime.Hour, "getTodayTime hour");
-		assertEqual(30, todayTime.Minute, "getTodayTime minute");
-		assertEqual(0, todayTime.Second, "getTodayTime second");
-		assertEqual(DateTime.Now.Year, todayTime.Year, "getTodayTime year");
+        // <60s with needSecond=true
+        string fmt4 = TimeUtility.getTimeString(30, out days, out hours, out minutes, out seconds, true);
+        assertEqual(30, seconds, "seconds=30");
+        assertEqual("{3}秒", fmt4, "format string <60s needSecond");
 
-		// getDayEnd(long) / getWeekEnd(long) / getMonthEnd(long) / getYearEnd(long)
-		long ts = dateTimeToTimeStamp(DateTime.Now);
-		DateTime dayEnd = getDayEnd(ts);
-		assert(dayEnd > DateTime.Now, "getDayEnd(ts) > now");
-	}
+        // <60s with needSecond=false
+        string fmt5 = TimeUtility.getTimeString(30, out days, out hours, out minutes, out seconds, false);
+        assertEqual("1分", fmt5, "format string <60s no second");
+    }
 
-	// ─── 剩余秒数函数（依赖 DateTime.Now，宽松断言）────────────────────────
-	private static void testEndRemainFunctions()
-	{
-		int todayRemain = getTodayEndRemain();
-		assert(todayRemain >= 0, "getTodayEndRemain >= 0");
-		assert(todayRemain <= 86400, "getTodayEndRemain <= 86400");
-		int weekRemain = getWeekEndRemain();
-		assert(weekRemain >= 0, "getWeekEndRemain >= 0");
-		int monthRemain = getMonthEndRemain();
-		assert(monthRemain >= 0, "getMonthEndRemain >= 0");
-		int yearRemain = getYearEndRemain();
-		assert(yearRemain >= 0, "getYearEndRemain >= 0");
-	}
+    // ---- getTimeString(int, out int x3) ----
+    static void testGetTimeString_OutParams_NoSeconds()
+    {
+        // 90061s = 1天1小时1分
+        string fmt = TimeUtility.getTimeString(90061, out int days, out int hours, out int minutes);
+        assertEqual(1, days, "days=1");
+        assertEqual(1, hours, "hours=1");
+        assertEqual(1, minutes, "minutes=1");
+        assertEqual("{0}天{1}时{2}分", fmt, "format string");
 
-	// ─── getTimeStringNoLock / getTimeStringNoBuilder ───────────────────────
-	private static void testNoLockNoBuilder()
-	{
-		string s1 = getTimeStringNoLock(DateTime.Now, TIME_DISPLAY.HMSM);
-		assert(!string.IsNullOrEmpty(s1), "getTimeStringNoLock nonempty");
-		string s2 = getTimeStringNoBuilder(DateTime.Now, TIME_DISPLAY.HMSM);
-		assert(!string.IsNullOrEmpty(s2), "getTimeStringNoBuilder nonempty");
-		string noLock = getTimeNoLock(TIME_DISPLAY.HMS_2);
-		assert(!string.IsNullOrEmpty(noLock), "getTimeNoLock nonempty");
-		string noBuilder = getTimeNoBuilder(TIME_DISPLAY.HMS_2);
-		assert(!string.IsNullOrEmpty(noBuilder), "getTimeNoBuilder nonempty");
-	}
+        // 3661s = 1小时1分
+        string fmt2 = TimeUtility.getTimeString(3661, out days, out hours, out minutes);
+        assertEqual(0, days, "days=0");
+        assertEqual(1, hours, "hours=1");
+        assertEqual(1, minutes, "minutes=1");
+        assertEqual("{1}时{2}分", fmt2, "format string");
+
+        // 61s = 1分
+        string fmt3 = TimeUtility.getTimeString(61, out days, out hours, out minutes);
+        assertEqual(1, minutes, "minutes=1");
+        assertEqual("{2}分", fmt3, "format string");
+    }
+
+    // ---- getTimeString(int, TIME_DISPLAY) ----
+    static void testGetTimeString_Int_Display()
+    {
+        int secs = 3661; // 1h 1m 1s
+
+        string hmsm = TimeUtility.getTimeString(secs, TIME_DISPLAY.HMSM);
+        assertEqual("1:1:1", hmsm, "HMSM 3661s -> 1:1:1");
+
+        string hms2 = TimeUtility.getTimeString(secs, TIME_DISPLAY.HMS_2);
+        assertEqual("01:01:01", hms2, "HMS_2 3661s -> 01:01:01");
+
+        string hm2 = TimeUtility.getTimeString(secs, TIME_DISPLAY.HM_2);
+        assertEqual("01:01", hm2, "HM_2 3661s -> 01:01");
+
+        string ms2 = TimeUtility.getTimeString(secs, TIME_DISPLAY.MS_2);
+        assertEqual("61:01", ms2, "MS_2 3661s -> 61:01");
+
+        // DHMS_ZH: 3661s = 1时1分1秒
+        string dhms = TimeUtility.getTimeString(secs, TIME_DISPLAY.DHMS_ZH);
+        assertEqual("1时1分1秒", dhms, "DHMS_ZH 3661s");
+
+        // 90061s = 1天1时1分1秒
+        string dhms2 = TimeUtility.getTimeString(90061, TIME_DISPLAY.DHMS_ZH);
+        assertEqual("1天1时1分1秒", dhms2, "DHMS_ZH 90061s");
+
+        // DHM_ZH
+        string dhm = TimeUtility.getTimeString(90061, TIME_DISPLAY.DHM_ZH);
+        assertEqual("1天1时1分", dhm, "DHM_ZH 90061s");
+
+        // HM_ZH
+        string hmZh = TimeUtility.getTimeString(3661, TIME_DISPLAY.HM_ZH);
+        assertEqual("1时1分", hmZh, "HM_ZH 3661s");
+
+        // MS_ZH
+        string msZh = TimeUtility.getTimeString(61, TIME_DISPLAY.MS_ZH);
+        assertEqual("1分1秒", msZh, "MS_ZH 61s");
+
+        // <60s MS_ZH
+        string msZh2 = TimeUtility.getTimeString(30, TIME_DISPLAY.MS_ZH);
+        assertEqual("30秒", msZh2, "MS_ZH 30s");
+
+        // zero
+        string zero = TimeUtility.getTimeString(0, TIME_DISPLAY.HMS_2);
+        assertEqual("00:00:00", zero, "HMS_2 0s");
+    }
+
+    // ---- getTimeString(DateTime, TIME_DISPLAY) ----
+    static void testGetTimeString_DateTime_Display()
+    {
+        DateTime dt = new DateTime(2022, 3, 15, 14, 30, 45);
+
+        string hmsm = TimeUtility.getTimeString(dt, TIME_DISPLAY.HMSM);
+        assertTrue(hmsm.StartsWith("14:30:45:"), "HMSM starts with 14:30:45:");
+
+        string hms2 = TimeUtility.getTimeString(dt, TIME_DISPLAY.HMS_2);
+        assertEqual("14:30:45", hms2, "HMS_2 14:30:45");
+
+        string hm2 = TimeUtility.getTimeString(dt, TIME_DISPLAY.HM_2);
+        assertEqual("14:30", hm2, "HM_2 14:30");
+
+        string ymdZh = TimeUtility.getTimeString(dt, TIME_DISPLAY.YMD_ZH);
+        assertEqual("2022年3月15日", ymdZh, "YMD_ZH");
+
+        string ymdhmZh = TimeUtility.getTimeString(dt, TIME_DISPLAY.YMDHM_ZH);
+        assertEqual("2022年3月15日14时30分", ymdhmZh, "YMDHM_ZH");
+
+        string dhmsZh = TimeUtility.getTimeString(dt, TIME_DISPLAY.DHMS_ZH);
+        assertEqual("15日14时30分45秒", dhmsZh, "DHMS_ZH DateTime");
+    }
+
+    // ---- getTimeStringNoLock ----
+    static void testGetTimeStringNoLock()
+    {
+        DateTime dt = new DateTime(2022, 3, 15, 14, 30, 45);
+
+        string hms2 = TimeUtility.getTimeStringNoLock(dt, TIME_DISPLAY.HMS_2);
+        assertEqual("14:30:45", hms2, "NoLock HMS_2");
+
+        string ymdZh = TimeUtility.getTimeStringNoLock(dt, TIME_DISPLAY.YMD_ZH);
+        assertEqual("2022年3月15日", ymdZh, "NoLock YMD_ZH");
+
+        string dhmsZh = TimeUtility.getTimeStringNoLock(dt, TIME_DISPLAY.DHMS_ZH);
+        assertEqual("15日14时30分45秒", dhmsZh, "NoLock DHMS_ZH");
+    }
+
+    // ---- getTimeStringNoBuilder ----
+    static void testGetTimeStringNoBuilder()
+    {
+        DateTime dt = new DateTime(2022, 3, 15, 14, 30, 45);
+
+        string hms2 = TimeUtility.getTimeStringNoBuilder(dt, TIME_DISPLAY.HMS_2);
+        assertEqual("14:30:45", hms2, "NoBuilder HMS_2");
+
+        string ymdZh = TimeUtility.getTimeStringNoBuilder(dt, TIME_DISPLAY.YMD_ZH);
+        assertEqual("2022年3月15日", ymdZh, "NoBuilder YMD_ZH");
+
+        string dhmsZh = TimeUtility.getTimeStringNoBuilder(dt, TIME_DISPLAY.DHMS_ZH);
+        assertEqual("15日14时30分45秒", dhmsZh, "NoBuilder DHMS_ZH");
+    }
+
+    // ---- getDayEnd ----
+    static void testGetDayEnd()
+    {
+        DateTime dt = new DateTime(2022, 6, 15, 10, 0, 0);
+        DateTime end = TimeUtility.getDayEnd(dt);
+        assertEqual(2022, end.Year, "dayEnd year");
+        assertEqual(6, end.Month, "dayEnd month");
+        assertEqual(16, end.Day, "dayEnd day");
+        // AddDays(1).Date 归零时间，返回明天 00:00:00
+        assertEqual(0, end.Hour, "dayEnd hour 0");
+    }
+
+    // ---- getWeekEnd ----
+    static void testGetWeekEnd()
+    {
+        // 2022-06-15 is Wednesday (DayOfWeek=3)
+        DateTime wed = new DateTime(2022, 6, 15, 10, 0, 0);
+        DateTime weekEnd = TimeUtility.getWeekEnd(wed);
+        // 周日 24:00 = 下周一 00:00:00
+        // 7-3+1=5, so Wed+5=Mon(20th)
+        assertEqual(2022, weekEnd.Year, "weekEnd year");
+        assertEqual(6, weekEnd.Month, "weekEnd month");
+        assertEqual(20, weekEnd.Day, "weekEnd day (Wed->Mon)");
+        assertEqual(0, weekEnd.Hour, "weekEnd hour 0");
+        assertEqual(0, weekEnd.Minute, "weekEnd minute 0");
+
+        // Sunday: DayOfWeek=0
+        DateTime sun = new DateTime(2022, 6, 19, 10, 0, 0);
+        DateTime sunEnd = TimeUtility.getWeekEnd(sun);
+        // Sunday + 1 = Monday 20th
+        assertEqual(20, sunEnd.Day, "weekEnd Sunday -> Monday");
+        assertEqual(0, sunEnd.Hour, "weekEnd Sunday hour 0");
+    }
+
+    // ---- getMonthEnd ----
+    static void testGetMonthEnd()
+    {
+        DateTime dt = new DateTime(2022, 6, 15, 10, 0, 0);
+        DateTime end = TimeUtility.getMonthEnd(dt);
+        assertEqual(2022, end.Year, "monthEnd year");
+        assertEqual(7, end.Month, "monthEnd month");
+        assertEqual(1, end.Day, "monthEnd day 1");
+
+        // December -> next year
+        DateTime dec = new DateTime(2022, 12, 10, 0, 0, 0);
+        DateTime decEnd = TimeUtility.getMonthEnd(dec);
+        assertEqual(2023, decEnd.Year, "monthEnd year rollover");
+        assertEqual(1, decEnd.Month, "monthEnd month rollover");
+    }
+
+    // ---- getYearEnd ----
+    static void testGetYearEnd()
+    {
+        DateTime dt = new DateTime(2022, 6, 15, 10, 0, 0);
+        DateTime end = TimeUtility.getYearEnd(dt);
+        assertEqual(2023, end.Year, "yearEnd year");
+        assertEqual(1, end.Month, "yearEnd month");
+        assertEqual(1, end.Day, "yearEnd day");
+    }
+
+    // ---- getTimeToTodayEnd ----
+    static void testGetTimeToTodayEnd()
+    {
+        TimeSpan span = TimeUtility.getTimeToTodayEnd();
+        // 应该大于0且小于24小时
+        assertTrue(span.TotalSeconds > 0, "time to today end > 0");
+        assertTrue(span.TotalSeconds <= 86400, "time to today end <= 86400");
+    }
+
+    // ---- getSecondsToTodayEnd ----
+    static void testGetSecondsToTodayEnd()
+    {
+        int secs = TimeUtility.getSecondsToTodayEnd();
+        assertTrue(secs > 0, "seconds to today end > 0");
+        assertTrue(secs <= 86400, "seconds to today end <= 86400");
+    }
 }

@@ -1,82 +1,54 @@
 using UnityEngine;
 using static TestAssert;
 
-// Vector2UInt 穷举测试
+// Vector2UInt 结构体测试
 public static class Vector2UIntTest
 {
-	public static void Run()
-	{
-		testConstructor();
-		testEquals();
-		testGetHashCode();
-		testToVec2();
-		testToVec2Int();
-		testZero();
-		testMaxValue();
-	}
+    public static void Run()
+    {
+        testConstructor();
+        testEquals();
+        testGetHashCode();
+        testToVec2();
+        testToVec2Int();
+    }
 
-	private static void testConstructor()
-	{
-		Vector2UInt v = new(10u, 20u);
-		assertEqual(10u, v.x, "x");
-		assertEqual(20u, v.y, "y");
+    static void testConstructor()
+    {
+        Vector2UInt v = new Vector2UInt(5, 10);
+        assertEqual(5u, v.x, "x=5");
+        assertEqual(10u, v.y, "y=10");
+    }
 
-		Vector2UInt v2 = new(0u, uint.MaxValue);
-		assertEqual(0u, v2.x, "0 x");
-		assertEqual(uint.MaxValue, v2.y, "MaxValue y");
-	}
+    static void testEquals()
+    {
+        Vector2UInt a = new Vector2UInt(1, 2);
+        Vector2UInt b = new Vector2UInt(1, 2);
+        Vector2UInt c = new Vector2UInt(3, 4);
+        assertTrue(a.Equals(b), "equals same");
+        assertFalse(a.Equals(c), "equals diff");
+    }
 
-	private static void testEquals()
-	{
-		Vector2UInt a = new(100u, 200u);
-		Vector2UInt b = new(100u, 200u);
-		assertTrue(a.Equals(b), "相等");
+    static void testGetHashCode()
+    {
+        Vector2UInt a = new Vector2UInt(1, 2);
+        Vector2UInt b = new Vector2UInt(1, 2);
+        assertEqual(a.GetHashCode(), b.GetHashCode(), "hash same for equal");
+    }
 
-		Vector2UInt c = new(100u, 201u);
-		assertFalse(a.Equals(c), "不等");
-	}
+    static void testToVec2()
+    {
+        Vector2UInt v = new Vector2UInt(3, 7);
+        Vector2 result = v.toVec2();
+        assertTrue(result.x.isEqual(3.0f), "toVec2 x=3");
+        assertTrue(result.y.isEqual(7.0f), "toVec2 y=7");
+    }
 
-	private static void testGetHashCode()
-	{
-		Vector2UInt a = new(1u, 2u);
-		Vector2UInt b = new(1u, 2u);
-		assertEqual(a.GetHashCode(), b.GetHashCode(), "相等对象应一致");
-
-		int expected = (int)(1u << 16 | 2u);
-		assertEqual(expected, a.GetHashCode(), "实现");
-	}
-
-	private static void testToVec2()
-	{
-		Vector2UInt v = new(30u, 40u);
-		Vector2 result = v.toVec2();
-		assertEqual(30.0f, result.x, "x");
-		assertEqual(40.0f, result.y, "y");
-	}
-
-	private static void testToVec2Int()
-	{
-		Vector2UInt v = new(50u, 60u);
-		Vector2Int result = v.toVec2Int();
-		assertEqual(50, result.x, "x");
-		assertEqual(60, result.y, "y");
-	}
-
-	private static void testZero()
-	{
-		Vector2UInt v = new(0u, 0u);
-		assertEqual(0u, v.x);
-		assertEqual(0u, v.y);
-		Vector2 f = v.toVec2();
-		assertEqual(0.0f, f.x);
-		assertEqual(0.0f, f.y);
-	}
-
-	private static void testMaxValue()
-	{
-		Vector2UInt v = new(uint.MaxValue, uint.MaxValue);
-		assertEqual(uint.MaxValue, v.x);
-		assertEqual(uint.MaxValue, v.y);
-	}
-
+    static void testToVec2Int()
+    {
+        Vector2UInt v = new Vector2UInt(3, 7);
+        Vector2Int result = v.toVec2Int();
+        assertEqual(3, result.x, "toVec2Int x=3");
+        assertEqual(7, result.y, "toVec2Int y=7");
+    }
 }

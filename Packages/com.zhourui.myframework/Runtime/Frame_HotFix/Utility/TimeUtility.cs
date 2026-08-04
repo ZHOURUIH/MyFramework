@@ -405,18 +405,18 @@ public class TimeUtility
 		}
 		return EMPTY;
 	}
-	public static DateTime getDayEnd(long utcTimeStamp) { return timeStampToDateTime(utcTimeStamp).AddDays(1); }
+	public static DateTime getDayEnd(long utcTimeStamp) { return timeStampToDateTime(utcTimeStamp).AddDays(1).Date; }
 	public static DateTime getDayEnd() { return getDayEnd(DateTime.Today); }
-	public static DateTime getDayEnd(DateTime dateTime) { return dateTime.AddDays(1); }
+	public static DateTime getDayEnd(DateTime dateTime) { return dateTime.AddDays(1).Date; }
 	public static DateTime getWeekEnd() { return getWeekEnd(DateTime.Today); }
 	public static DateTime getWeekEnd(long utcTimeStamp) { return getWeekEnd(timeStampToDateTime(utcTimeStamp)); }
 	public static DateTime getWeekEnd(DateTime dateTime)
 	{
 		if (dateTime.DayOfWeek == 0)
 		{
-			return dateTime.AddDays(1);
+			return dateTime.AddDays(1).Date;
 		}
-		return dateTime.AddDays(7 - (int)dateTime.DayOfWeek + 1);
+		return dateTime.AddDays(7 - (int)dateTime.DayOfWeek + 1).Date;
 	}
 	public static DateTime getMonthEnd() { return getMonthEnd(DateTime.Today); }
 	public static DateTime getMonthEnd(long utcTimeStamp) { return getMonthEnd(timeStampToDateTime(utcTimeStamp)); }

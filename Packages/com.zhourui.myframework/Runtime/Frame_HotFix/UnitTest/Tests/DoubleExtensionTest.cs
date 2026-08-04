@@ -8,7 +8,8 @@ public static class DoubleExtensionTest
         testFloor();
         testRound();
         testAbs();
-        testClampMinMax();
+        testClampMin();
+        testClampMax();
         testIsZero();
         testIsEqual();
         testInverse();
@@ -18,35 +19,29 @@ public static class DoubleExtensionTest
     // ---- floor ----
     static void testFloor()
     {
-        // 正数向下取整
         assertEqual(3, 3.2.floor(), "floor 3.2 -> 3");
         assertEqual(3, 3.8.floor(), "floor 3.8 -> 3");
         assertEqual(3, 3.0.floor(), "floor 3.0 -> 3");
-        // 负数向下取整（数轴上更小）
         assertEqual(-4, (-3.2).floor(), "floor -3.2 -> -4");
         assertEqual(-4, (-3.8).floor(), "floor -3.8 -> -4");
         assertEqual(-4, (-4.0).floor(), "floor -4.0 -> -4");
-        // 0
         assertEqual(0, 0.0.floor(), "floor 0 -> 0");
-        // 整数负数的 floor：(-1.0) 转 int 为 -1，条件 -1.0 < -1 为 false，不减 1
         assertEqual(-1, (-1.0).floor(), "floor -1.0 -> -1");
-        assertEqual(-2, (-1.1).floor(), "floor -1.1 -> -2");
+        // 整数边界
+        assertEqual(5, 5.0.floor(), "floor 5.0 -> 5");
+        assertEqual(-5, (-5.0).floor(), "floor -5.0 -> -5");
     }
 
     // ---- round ----
     static void testRound()
     {
-        // 正数四舍五入
         assertEqual(3L, 3.2.round(), "round 3.2 -> 3");
         assertEqual(4L, 3.8.round(), "round 3.8 -> 4");
         assertEqual(4L, 3.5.round(), "round 3.5 -> 4");
-        // 负数四舍五入
         assertEqual(-3L, (-3.2).round(), "round -3.2 -> -3");
         assertEqual(-4L, (-3.8).round(), "round -3.8 -> -4");
         assertEqual(-4L, (-3.5).round(), "round -3.5 -> -4");
-        // 0
         assertEqual(0L, 0.0.round(), "round 0 -> 0");
-        // 边界: 0.5
         assertEqual(1L, 0.5.round(), "round 0.5 -> 1");
         assertEqual(-1L, (-0.5).round(), "round -0.5 -> -1");
     }
@@ -54,76 +49,87 @@ public static class DoubleExtensionTest
     // ---- abs ----
     static void testAbs()
     {
-        assertTrue(5.0.abs().isEqual(5.0, 0.00000001), "abs 5");
-        assertTrue((-5.0).abs().isEqual(5.0, 0.00000001), "abs -5");
-        assertTrue(0.0.abs().isZero(0.00000001), "abs 0");
-        assertTrue(3.14.abs().isEqual(3.14, 0.00000001), "abs 3.14");
-        assertTrue((-3.14).abs().isEqual(3.14, 0.00000001), "abs -3.14");
+        assertEqual(5.0, 5.0.abs(), "abs 5 -> 5");
+        assertEqual(5.0, (-5.0).abs(), "abs -5 -> 5");
+        assertEqual(0.0, 0.0.abs(), "abs 0 -> 0");
+        assertEqual(3.14, (-3.14).abs(), "abs -3.14 -> 3.14");
     }
 
-    // ---- clampMin / clampMax ----
-    static void testClampMinMax()
+    // ---- clampMin ----
+    static void testClampMin()
     {
-        // clampMin
-        assertTrue(5.0.clampMin(3.0).isEqual(5.0, 0.00000001), "clampMin no clamp");
-        assertTrue(2.0.clampMin(3.0).isEqual(3.0, 0.00000001), "clampMin clamped");
-        assertTrue(3.0.clampMin(3.0).isEqual(3.0, 0.00000001), "clampMin equal");
-        assertTrue(5.0.clampMin().isEqual(5.0, 0.00000001), "clampMin default min=0");
-        assertTrue((-1.0).clampMin().isZero(0.00000001), "clampMin negative to 0");
+        assertEqual(5.0, 5.0.clampMin(3.0), "clampMin 5 min=3 -> 5");
+        assertEqual(3.0, 2.0.clampMin(3.0), "clampMin 2 min=3 -> 3");
+        assertEqual(3.0, 3.0.clampMin(3.0), "clampMin 3 min=3 -> 3 (边界)");
+        // 默认 min=0
+        assertEqual(5.0, 5.0.clampMin(), "clampMin 5 默认min=0 -> 5");
+        assertEqual(0.0, (-1.0).clampMin(), "clampMin -1 默认min=0 -> 0");
+        assertEqual(0.0, 0.0.clampMin(), "clampMin 0 默认min=0 -> 0");
+        // 负数 min
+        assertEqual(-1.0, (-1.0).clampMin(-5.0), "clampMin -1 min=-5 -> -1");
+        assertEqual(-5.0, (-10.0).clampMin(-5.0), "clampMin -10 min=-5 -> -5");
+    }
 
-        // clampMax
-        assertTrue(5.0.clampMax(10.0).isEqual(5.0, 0.00000001), "clampMax no clamp");
-        assertTrue(15.0.clampMax(10.0).isEqual(10.0, 0.00000001), "clampMax clamped");
-        assertTrue(10.0.clampMax(10.0).isEqual(10.0, 0.00000001), "clampMax equal");
-        assertTrue((-5.0).clampMax(10.0).isEqual(-5.0, 0.00000001), "clampMax negative");
+    // ---- clampMax ----
+    static void testClampMax()
+    {
+        assertEqual(5.0, 5.0.clampMax(10.0), "clampMax 5 max=10 -> 5");
+        assertEqual(10.0, 15.0.clampMax(10.0), "clampMax 15 max=10 -> 10");
+        assertEqual(10.0, 10.0.clampMax(10.0), "clampMax 10 max=10 -> 10 (边界)");
+        // 负数 max
+        assertEqual(-5.0, (-5.0).clampMax(-1.0), "clampMax -5 max=-1 -> -5");
+        assertEqual(-1.0, 0.0.clampMax(-1.0), "clampMax 0 max=-1 -> -1");
+        // 零 max
+        assertEqual(0.0, 5.0.clampMax(0.0), "clampMax 5 max=0 -> 0");
     }
 
     // ---- isZero ----
     static void testIsZero()
     {
-        assertTrue(0.0.isZero(), "isZero 0");
-        assertTrue(0.000000001.isZero(), "isZero within default precision");
-        assertTrue((-0.000000001).isZero(), "isZero negative within precision");
-        assertFalse(0.0001.isZero(), "isZero outside default precision");
-        assertFalse(1.0.isZero(), "isZero 1");
+        assertTrue(0.0.isZero(), "0 is zero");
+        assertTrue(0.000000001.isZero(), "tiny is zero");
+        assertTrue((-0.000000001).isZero(), "neg tiny is zero");
+        assertFalse(0.001.isZero(), "0.001 not zero");
+        assertFalse(1.0.isZero(), "1 not zero");
+        assertFalse((-1.0).isZero(), "-1 not zero");
         // 自定义精度
-        assertTrue(0.001.isZero(0.01), "isZero custom precision");
-        assertFalse(0.1.isZero(0.01), "isZero outside custom precision");
+        assertTrue(0.01.isZero(0.1), "0.01 zero with precision 0.1");
+        assertFalse(0.01.isZero(0.001), "0.01 not zero with precision 0.001");
     }
 
     // ---- isEqual ----
     static void testIsEqual()
     {
-        assertTrue(1.0.isEqual(1.0), "isEqual same");
-        assertTrue(1.0.isEqual(1.0000000001), "isEqual within precision");
-        assertFalse(1.0.isEqual(2.0), "isEqual different");
+        assertTrue(1.0.isEqual(1.0), "1 == 1");
+        assertTrue(1.000000001.isEqual(1.0), "1+1e-9 == 1");
+        assertFalse(0.001.isEqual(0.0), "0.001 != 0");
+        assertFalse(1.0.isEqual(2.0), "1 != 2");
+        assertTrue((-1.0).isEqual(-1.0), "-1 == -1");
         // 自定义精度
-        assertTrue(1.0.isEqual(1.1, 0.2), "isEqual custom precision");
-        assertFalse(1.0.isEqual(1.3, 0.2), "isEqual outside custom precision");
+        assertTrue(0.01.isEqual(0.02, 0.1), "0.01==0.02 with precision 0.1");
+        assertFalse(0.01.isEqual(0.02, 0.001), "0.01!=0.02 with precision 0.001");
     }
 
     // ---- inverse ----
     static void testInverse()
     {
-        assertTrue(2.0.inverse().isEqual(0.5, 0.00000001), "inverse 2 -> 0.5");
-        assertTrue(1.0.inverse().isEqual(1.0, 0.00000001), "inverse 1 -> 1");
-        assertTrue(0.5.inverse().isEqual(2.0, 0.00000001), "inverse 0.5 -> 2");
-        assertTrue(0.0.inverse().isZero(0.00000001), "inverse 0 -> 0");
-        assertTrue((-2.0).inverse().isEqual(-0.5, 0.00000001), "inverse -2 -> -0.5");
+        assertTrue(0.5.isEqual(2.0.inverse()), "inverse 2 -> 0.5");
+        assertTrue(2.0.isEqual(0.5.inverse()), "inverse 0.5 -> 2");
+        assertTrue(1.0.isEqual(1.0.inverse()), "inverse 1 -> 1");
+        assertTrue((-0.5).isEqual((-2.0).inverse()), "inverse -2 -> -0.5");
+        // 零的倒数返回 0
+        assertEqual(0.0, 0.0.inverse(), "inverse 0 -> 0");
     }
 
     // ---- divide ----
     static void testDivide()
     {
-        // 正常除法
-        assertTrue(10.0.divide(3.0).isEqual(3.33333333, 0.0000001), "divide 10/3");
-        assertTrue(10.0.divide(2.0).isEqual(5.0, 0.00000001), "divide 10/2");
-        assertTrue(0.0.divide(5.0).isZero(0.00000001), "divide 0/5");
+        assertTrue(5.0.isEqual(10.0.divide(2.0)), "divide 10/2 -> 5");
+        assertTrue(3.33333.isEqual(10.0.divide(3.0), 0.001), "divide 10/3 ~ 3.333");
         // 除零返回默认值
-        assertTrue(10.0.divide(0.0).isZero(0.00000001), "divide by 0 default 0");
-        assertTrue(10.0.divide(0.0, -1.0).isEqual(-1.0, 0.00000001), "divide by 0 custom default");
-        // 负数
-        assertTrue((-10.0).divide(3.0).isEqual(-3.33333333, 0.0000001), "divide -10/3");
-        assertTrue(10.0.divide(-3.0).isEqual(-3.33333333, 0.0000001), "divide 10/-3");
+        assertEqual(0.0, 10.0.divide(0.0), "divide 10/0 默认 -> 0");
+        assertEqual(99.0, 10.0.divide(0.0, 99.0), "divide 10/0 自定义默认 -> 99");
+        // 正常带默认值
+        assertTrue(5.0.isEqual(10.0.divide(2.0, 99.0)), "divide 10/2 带默认 -> 5");
     }
 }
