@@ -14,8 +14,7 @@ public abstract class Serializable : ClassObject
 	{
 		base.resetProperty();
 		mValid = true;
-		// 构造中赋值的,不需要重置
-		// mOptional = false;
+		mOptional = false;
 	}
     public virtual string toString() { return null; }
 }

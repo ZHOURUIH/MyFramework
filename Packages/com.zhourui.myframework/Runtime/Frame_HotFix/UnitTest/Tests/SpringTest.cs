@@ -13,8 +13,12 @@ public static class SpringTest
         testUpdateStretch();
         testUpdateCompress();
         testMinLengthClamp();
-        testForceSettles();
-    }
+		testForceSettles();
+		testDamping();
+		testExternalForce();
+		testZeroMass();
+		testZeroSpringK();
+	}
 
     // ─── resetProperty ──────────────────────────────────────────────────
     private static void testResetProperty()
@@ -157,5 +161,62 @@ public static class SpringTest
 
         // 处于自然长度，无外力，速度=0 → elasticForce=0 → 加速度=0 → 长度不变
         assert(lengthBefore.isEqual(lengthAfter, 0.001f), "自然长度无外力 update后长度不变");
-    }
+	}
+	private static void testDamping()
+	{
+		var s = new Spring();
+		s.setNormaLength(2.0f);
+		s.setCurLength(5.0f);
+		s.setSpringK(1.0f);
+		s.setMass(1.0f);
+		s.setForce(0.0f);
+		// 多次 update 后速度应趋近 0（有阻尼）
+		float prevLength = s.getLength();
+		for (int i = 0; i < 50; ++i)
+		{
+			s.update(0.05f);
+		}
+		float finalLength = s.getLength();
+		assertTrue(finalLength < prevLength, "damping 后长度应收敛");
+	}
+	private static void testExternalForce()
+	{
+		// 外力可以抵消弹力，保持长度不变
+		var s = new Spring();
+		s.setNormaLength(1.0f);
+		s.setCurLength(3.0f);
+		s.setSpringK(1.0f);
+		s.setMass(1.0f);
+		// elasticForce = (3-1)*1 = 2, 施加外力 -2 抵消
+		s.setForce(-2.0f);
+		s.setSpeed(0.0f);
+
+		float before = s.getLength();
+		s.update(0.1f);
+		float after = s.getLength();
+		// 外力抵消弹力，长度应不变（忽略阻尼）
+		assertTrue(before.isEqual(after, 0.1f), "外力抵消弹力后长度近似不变");
+	}
+	private static void testZeroMass()
+	{
+		var s = new Spring();
+		s.setNormaLength(2.0f);
+		s.setCurLength(5.0f);
+		s.setSpringK(1.0f);
+		s.setMass(0.0f);
+		// mass=0 不应崩溃
+		s.update(0.1f);
+		assertTrue(s.getLength() > 0, "mass=0 不崩溃");
+	}
+	private static void testZeroSpringK()
+	{
+		var s = new Spring();
+		s.setNormaLength(2.0f);
+		s.setCurLength(5.0f);
+		s.setSpringK(0.0f);
+		// springK=0 时弹力为 0，长度不变
+		float before = s.getLength();
+		s.update(0.1f);
+		assertTrue(before.isEqual(s.getLength(), 0.001f), "springK=0 长度不变");
+	}
 }

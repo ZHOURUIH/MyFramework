@@ -1,7 +1,7 @@
 using UnityEngine;
 using static TestAssert;
 
-// Vector2UShort 单元测试
+// Vector2UShort 穷举测试
 public static class Vector2UShortTest
 {
 	public static void Run()
@@ -11,6 +11,8 @@ public static class Vector2UShortTest
 		testGetHashCode();
 		testToVec2();
 		testToVec2Int();
+		testZero();
+		testMaxValue();
 	}
 
 	private static void testConstructor()
@@ -59,4 +61,22 @@ public static class Vector2UShortTest
 		assertEqual(50, result.x, "x");
 		assertEqual(60, result.y, "y");
 	}
+
+	private static void testZero()
+	{
+		Vector2UShort v = new(0, 0);
+		assertEqual((ushort)0, v.x);
+		assertEqual((ushort)0, v.y);
+		Vector2 f = v.toVec2();
+		assertEqual(0.0f, f.x);
+		assertEqual(0.0f, f.y);
+	}
+
+	private static void testMaxValue()
+	{
+		Vector2UShort v = new(ushort.MaxValue, ushort.MaxValue);
+		assertEqual(ushort.MaxValue, v.x);
+		assertEqual(ushort.MaxValue, v.y);
+	}
+
 }

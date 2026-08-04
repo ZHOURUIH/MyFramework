@@ -25,6 +25,10 @@ public class SafeHashSetTest
 		testResetProperty();
 		testStartForeachEmptySet();
 		testAddThenForeach();
+		testClearDuringForeach();
+		testStartForeachModifySyncIncremental();
+		testStartForeachModifySyncFullSync();
+		testGetEnumerator();
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	private static void testAddAndCount()
@@ -209,5 +213,86 @@ public class SafeHashSetTest
 		}
 		// 内容不变
 		assertEqual(2, set.count());
+	}
+	private static void testClearDuringForeach()
+	{
+		SafeHashSet<int> set = new();
+		set.add(1);
+		set.add(2);
+		set.add(3);
+		var iter = set.startForeach();
+		assertEqual(3, iter.Count);
+		// 遍历中清空
+		set.clear();
+		// 快照不受影响
+		assertEqual(3, iter.Count);
+		// 主列表已清空
+		assertEqual(0, set.count());
+		set.endForeach();
+	}
+	private static void testStartForeachModifySyncIncremental()
+	{
+		// 测试增量同步路径（modifyList.Count < mainCount）
+		SafeHashSet<int> set = new();
+		set.add(1);
+		set.add(2);
+		set.add(3);
+		// 先做一次遍历清空 modifyList
+		{
+			var iter = set.startForeach();
+			assertEqual(3, iter.Count);
+			set.endForeach();
+		}
+		// 修改后再次遍历验证增量同步
+		set.add(4);
+		set.remove(1);
+		{
+			var iter = set.startForeach();
+			assertEqual(3, iter.Count); // 移除 1 添加 4 = 3
+			assertTrue(iter.Contains(2));
+			assertTrue(iter.Contains(3));
+			assertTrue(iter.Contains(4));
+			assertFalse(iter.Contains(1));
+			set.endForeach();
+		}
+	}
+	private static void testStartForeachModifySyncFullSync()
+	{
+		// 测试全量同步路径（modifyList.Count >= mainCount）
+		// 大量修改导致走 setRange 全量同步
+		SafeHashSet<int> set = new();
+		set.add(1);
+		// 先遍历一次
+		{
+			var iter = set.startForeach();
+			set.endForeach();
+		}
+		// 添加足够多的元素使 modifyList.Count >= mainCount
+		set.add(2);
+		set.add(3);
+		set.add(4);
+		// modifyList.Count(3) >= mainCount(4)，应走全量同步
+		{
+			var iter = set.startForeach();
+			assertEqual(4, iter.Count);
+			assertTrue(iter.Contains(1));
+			assertTrue(iter.Contains(2));
+			assertTrue(iter.Contains(3));
+			assertTrue(iter.Contains(4));
+			set.endForeach();
+		}
+	}
+	private static void testGetEnumerator()
+	{
+		SafeHashSet<int> set = new();
+		set.add(10);
+		set.add(20);
+		set.add(30);
+		int sum = 0;
+		foreach (int v in set)
+		{
+			sum += v;
+		}
+		assertEqual(60, sum);
 	}
 }

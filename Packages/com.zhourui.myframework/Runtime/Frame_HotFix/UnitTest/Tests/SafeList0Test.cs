@@ -23,6 +23,10 @@ public class SafeList0Test
 		testMultipleInstances();
 		testEmptyList();
 		testAddAndGetMainList();
+		testNestedForeachRemoveCompactOuterOnly();
+		testRemoveAllDuringForeach();
+		testClearEmptyDuringForeach();
+		testRemoveAtIndexOutOfBounds();
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	private static void testAddAndCount()
@@ -228,5 +232,72 @@ public class SafeList0Test
 		List<int> main = list.getMainList();
 		main.Add(2);
 		assertEqual(2, list.count());
+	}
+	private static void testNestedForeachRemoveCompactOuterOnly()
+	{
+		// 嵌套遍历中删除，compact 只在最外层 endForeach 触发
+		SafeList0<int> list = new();
+		list.add(1);
+		list.add(2);
+		list.add(3);
+		// 第一层遍历
+		List<int> outer = list.startForeach();
+		// 第二层遍历
+		List<int> inner = list.startForeach();
+		// 在嵌套中删除
+		list.remove(2);
+		assertEqual(3, list.count()); // 标记删除，count 不变
+		assertEqual(default(int), list.get(1));
+		// 结束内层：depth 1→0，但 needCompact=true，应触发 compact
+		list.endForeach();
+		// 内层 endForeach 后 depth 回到 1（外层还在），不应 compact
+		assertEqual(3, list.count()); // depth>0 时不会 compact
+		// 结束外层
+		list.endForeach();
+		// 外层 endForeach 后 depth=0，应 compact
+		assertEqual(2, list.count());
+		assertEqual(1, list.get(0));
+		assertEqual(3, list.get(1));
+	}
+	private static void testRemoveAllDuringForeach()
+	{
+		// 遍历中删除所有元素
+		SafeList0<int> list = new();
+		list.add(1);
+		list.add(2);
+		list.add(3);
+		List<int> iter = list.startForeach();
+		list.remove(1);
+		list.remove(2);
+		list.remove(3);
+		assertEqual(3, list.count());
+		assertEqual(default(int), list.get(0));
+		assertEqual(default(int), list.get(1));
+		assertEqual(default(int), list.get(2));
+		list.endForeach();
+		assertEqual(0, list.count());
+		assertTrue(list.isEmpty());
+	}
+	private static void testClearEmptyDuringForeach()
+	{
+		// 空列表遍历中清空
+		SafeList0<int> list = new();
+		List<int> iter = list.startForeach();
+		assertEqual(0, iter.Count);
+		list.clear();
+		assertEqual(0, list.count());
+		list.endForeach();
+		assertEqual(0, list.count());
+	}
+	private static void testRemoveAtIndexOutOfBounds()
+	{
+		// SafeList0 没有 removeAt，此测试验证通过 get 越界行为
+		// get 通过 mMainList.get(index) 访问，越界返回 default
+		SafeList0<int> list = new();
+		list.add(42);
+		// 越界 get 返回 default（通过 List.get 扩展方法）
+		int val = list.get(999);
+		assertEqual(default(int), val);
+		assertEqual(1, list.count());
 	}
 }

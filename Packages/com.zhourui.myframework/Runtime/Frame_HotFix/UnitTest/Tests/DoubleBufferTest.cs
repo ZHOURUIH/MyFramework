@@ -1,6 +1,7 @@
 using System;
+using static TestAssert;
 
-// DoubleBuffer<T> 测试：add/get/endGet/clear/setWriteListLimit
+// DoubleBuffer<T> 穷举测试
 public static class DoubleBufferTest
 {
 	public static void Run()
@@ -11,6 +12,11 @@ public static class DoubleBufferTest
 		testEndGetRelease();
 		testClear();
 		testWriteLimit();
+		testWriteLimitZero();
+		testGetBufferList();
+		testDestroy();
+		testAddAfterClear();
+		testWriteLimitDynamic();
 	}
 
 	private static void testAddSingle()
@@ -18,22 +24,22 @@ public static class DoubleBufferTest
 		var b = new DoubleBuffer<int>();
 		b.add(42);
 		var list = b.get();
-		AssertEqual(1, list.Count);
-		AssertEqual(42, list[0]);
+		assertEqual(1, list.Count);
+		assertEqual(42, list[0]);
 		b.endGet();
 	}
 
 	private static void testAddMultiple()
 	{
 		var b = new DoubleBuffer<int>();
-		for (int i = 0; i < 10; i++) 
+		for (int i = 0; i < 10; i++)
 		{
-			b.add(i); 
+			b.add(i);
 		}
 		var list = b.get();
-		AssertEqual(10, list.Count);
-		AssertEqual(0, list[0]);
-		AssertEqual(9, list[9]);
+		assertEqual(10, list.Count);
+		assertEqual(0, list[0]);
+		assertEqual(9, list[9]);
 		b.endGet();
 	}
 
@@ -44,15 +50,15 @@ public static class DoubleBufferTest
 		b.add(2);
 		b.add(3);
 		var l1 = b.get();
-		AssertEqual(3, l1.Count);
+		assertEqual(3, l1.Count);
 		b.endGet();
 
-		b.add(4); 
+		b.add(4);
 		b.add(5);
 		var l2 = b.get();
-		AssertEqual(2, l2.Count);
-		AssertEqual(4, l2[0]);
-		AssertEqual(5, l2[1]);
+		assertEqual(2, l2.Count);
+		assertEqual(4, l2[0]);
+		assertEqual(5, l2[1]);
 		b.endGet();
 	}
 
@@ -61,13 +67,13 @@ public static class DoubleBufferTest
 		var b = new DoubleBuffer<int>();
 		b.add(1);
 		var l1 = b.get();
-		AssertNotNull(l1);
+		assertNotNull(l1);
 		b.endGet();
 
 		b.add(2);
 		var l2 = b.get();
-		AssertNotNull(l2);
-		AssertEqual(1, l2.Count);
+		assertNotNull(l2);
+		assertEqual(1, l2.Count);
 		b.endGet();
 	}
 
@@ -75,11 +81,11 @@ public static class DoubleBufferTest
 	{
 		var b = new DoubleBuffer<int>();
 		b.add(1);
-		b.add(2); 
+		b.add(2);
 		b.add(3);
 		b.clear();
 		var list = b.get();
-		AssertEqual(0, list.Count);
+		assertEqual(0, list.Count);
 		b.endGet();
 	}
 
@@ -88,28 +94,90 @@ public static class DoubleBufferTest
 		var b = new DoubleBuffer<int>();
 		b.setWriteListLimit(3);
 		b.add(1);
-		b.add(2); 
-		b.add(3); 
-		b.add(4); 
+		b.add(2);
+		b.add(3);
+		b.add(4);
 		b.add(5);
 		var list = b.get();
-		AssertEqual(3, list.Count);
-		AssertEqual(1, list[0]);
-		AssertEqual(3, list[2]);
+		assertEqual(3, list.Count);
+		assertEqual(1, list[0]);
+		assertEqual(3, list[2]);
 		b.endGet();
 	}
-	private static void AssertEqual(int e, int a) 
+
+	private static void testWriteLimitZero()
 	{
-		if (e != a)
+		// limit=0 表示无上限
+		var b = new DoubleBuffer<int>();
+		b.setWriteListLimit(0);
+		for (int i = 0; i < 100; i++)
 		{
-			throw new Exception($"Expected [{e}] got [{a}]");
+			b.add(i);
 		}
+		var list = b.get();
+		assertEqual(100, list.Count);
+		b.endGet();
 	}
-    private static void AssertNotNull(object o) 
+
+	private static void testGetBufferList()
 	{
-		if (o == null)
+		var b = new DoubleBuffer<int>();
+		var buffers = b.getBufferList();
+		assertNotNull(buffers);
+		assertEqual(2, buffers.Length);
+		assertNotNull(buffers[0]);
+		assertNotNull(buffers[1]);
+	}
+
+	private static void testDestroy()
+	{
+		var b = new DoubleBuffer<int>();
+		b.add(1);
+		b.add(2);
+		b.destroy();
+		// destroy 后仍可正常使用（重建缓冲区）
+		b.add(3);
+		var list = b.get();
+		assertEqual(1, list.Count);
+		assertEqual(3, list[0]);
+		b.endGet();
+	}
+
+	private static void testAddAfterClear()
+	{
+		var b = new DoubleBuffer<int>();
+		b.add(1);
+		b.add(2);
+		b.clear();
+		b.add(3);
+		b.add(4);
+		var list = b.get();
+		assertEqual(2, list.Count);
+		assertEqual(3, list[0]);
+		assertEqual(4, list[1]);
+		b.endGet();
+	}
+
+	private static void testWriteLimitDynamic()
+	{
+		var b = new DoubleBuffer<int>();
+		b.setWriteListLimit(5);
+		for (int i = 0; i < 10; i++)
 		{
-			throw new Exception("Should not be null");
+			b.add(i);
 		}
+		var list = b.get();
+		assertEqual(5, list.Count);
+		b.endGet();
+
+		// 增大 limit 后下一轮可以写入更多
+		b.setWriteListLimit(10);
+		for (int i = 0; i < 15; i++)
+		{
+			b.add(i);
+		}
+		list = b.get();
+		assertEqual(10, list.Count);
+		b.endGet();
 	}
 }

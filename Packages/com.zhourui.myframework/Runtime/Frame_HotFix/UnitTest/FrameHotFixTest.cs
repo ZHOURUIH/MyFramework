@@ -165,6 +165,27 @@ public class FrameHotFixTest
 		Register("QuaternionExtensionTest", QuaternionExtensionTest.Run);
 		Register("UnityUtilityTest", UnityUtilityTest.Run);
 		Register("Vector4ExtensionTest", Vector4ExtensionTest.Run);
+		Register("FloatExtensionTest", FloatExtensionTest.Run);
+		Register("Vector2ExtensionTest", Vector2ExtensionTest.Run);
+		Register("Vector3ExtensionTest", Vector3ExtensionTest.Run);
+		Register("Vector3IntExtensionTest", Vector3IntExtensionTest.Run);
+		Register("GameEffectPoolTest", GameEffectPoolTest.Run);
+		Register("KeyMappingSystemTest", KeyMappingSystemTest.Run);
+		Register("ParamParseCollectionTest", ParamParseCollectionTest.Run);
+		Register("NetStructBitTest", NetStructBitTest.Run);
+		Register("NetStructByteTest", NetStructByteTest.Run);
+		Register("AudioInfoTest", AudioInfoTest.Run);
+		Register("AtlasRefTest", AtlasRefTest.Run);
+		Register("SpriteRefTest", SpriteRefTest.Run);
+		Register("AsyncTaskGroupManagerTest", AsyncTaskGroupManagerTest.Run);
+		Register("ImageXBR4Test", ImageXBR4Test.Run);
+		Register("ExcelTableTest", ExcelTableTest.Run);
+		Register("GameObjectInfoTest", GameObjectInfoTest.Run);
+		Register("ParamBaseTest", ParamBaseTest.Run);
+		Register("CharacterStateTTest", CharacterStateTTest.Run);
+		Register("SafeModifyTest", SafeModifyTest.Run);
+		Register("AnimControlTest", AnimControlTest.Run);
+		Register("CheckLayerTest", CheckLayerTest.Run);
 
 		doRunAll(sTests);
     }
@@ -216,7 +237,7 @@ public class FrameHotFixTest
         catch (Exception ex)
         {
             sw.Stop();
-            logException(ex, "[TestRunner] failed: " + name);
+            logException(ex, "[TestRunner] failed: " + name); 
             return new TestResult(name, false, ex.Message, (float)sw.Elapsed.TotalMilliseconds);
         }
     }

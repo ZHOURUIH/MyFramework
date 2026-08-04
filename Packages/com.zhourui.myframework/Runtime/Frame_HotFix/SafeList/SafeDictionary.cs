@@ -67,6 +67,7 @@ public class SafeDictionary<Key, Value> : ClassObject
 		return mUpdateList;
 	}
 	public void endForeach()							{ mForeaching = false; }
+	public bool isForeaching()							{ return mForeaching; }
 	public Dictionary<Key, Value>.Enumerator GetEnumerator() { return mMainList.GetEnumerator(); }
 	// 获取主列表,存储着当前实时的数据列表,所有的删除和新增都会立即更新此列表
 	// 如果确保在遍历过程中不会对列表进行修改,则可以使用MainList

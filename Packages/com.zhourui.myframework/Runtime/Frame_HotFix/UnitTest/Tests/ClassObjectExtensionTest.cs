@@ -1,12 +1,15 @@
 using static ClassObjectExtension;
 using static TestAssert;
 
-// ClassObjectExtension 扩展方法测试
+// ClassObjectExtension 穷举测试
 public static class ClassObjectExtensionTest
 {
 	public static void Run()
 	{
 		testIsValid();
+		testIsValidNull();
+		testIsValidAfterSetDestroy();
+		testIsValidNewObject();
 	}
 
 	private static void testIsValid()
@@ -15,21 +18,41 @@ public static class ClassObjectExtensionTest
 		ClassObject nullObj = null;
 		assertFalse(nullObj.isValid(), "isValid null → false");
 
-		// 未从池中分配(new) → isDestroy=true → 无效
+		// setDestroy(false) → 有效
 		var obj = new TestClassObjExt();
-		assertFalse(obj.isValid(), "isValid new (isDestroy=true) → false");
-
-		// setDestroy(false) 后 → 有效
 		obj.setDestroy(false);
 		assertTrue(obj.isValid(), "isValid setDestroy(false) → true");
 
-		// setDestroy(true) 后 → 无效
+		// setDestroy(true) → 无效
 		obj.setDestroy(true);
 		assertFalse(obj.isValid(), "isValid setDestroy(true) → false");
 	}
+
+	private static void testIsValidNull()
+	{
+		ClassObject obj = null;
+		assertFalse(obj.isValid(), "isValid null → false");
+	}
+
+	private static void testIsValidAfterSetDestroy()
+	{
+		var obj = new TestClassObjExt();
+		obj.setDestroy(false);
+		assertTrue(obj.isValid());
+		obj.setDestroy(true);
+		assertFalse(obj.isValid());
+		obj.setDestroy(false);
+		assertTrue(obj.isValid());
+	}
+
+	private static void testIsValidNewObject()
+	{
+		// new 出来的对象 mHasDestroy=true，无效
+		var obj = new TestClassObjExt();
+		assertFalse(obj.isValid(), "isValid new (isDestroy=true) → false");
+	}
 }
 
-// 测试用 ClassObject 子类
 class TestClassObjExt : ClassObject
 {
 	public override void resetProperty() { base.resetProperty(); }
