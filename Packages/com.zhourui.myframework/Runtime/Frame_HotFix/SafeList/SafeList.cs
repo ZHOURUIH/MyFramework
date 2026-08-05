@@ -8,6 +8,23 @@ using static FrameBaseUtility;
 // 可安全遍历的列表,支持在遍历过程中对列表进行修改
 public class SafeList<T> : ClassObject
 {
+	public struct SafeListEnumerator : IDisposable
+	{
+		private SafeList<T> mOwner;
+		private List<T>.Enumerator mEnumerator;
+		public SafeListEnumerator(SafeList<T> safeList)
+		{
+			mOwner = safeList;
+			mEnumerator = safeList.startForeach().GetEnumerator();
+		}
+		public T Current => mEnumerator.Current;
+		public bool MoveNext() { return mEnumerator.MoveNext(); }
+		public void Dispose()
+		{
+			mEnumerator.Dispose();
+			mOwner.endForeach();
+		}
+	}
 	protected List<SafeListModify<T>> mModifyList = new();  // 记录操作的列表,按顺序存储所有的操作
 	protected List<T> mUpdateList = new();                  // 用于遍历更新的列表
 	protected List<T> mMainList = new();                    // 用于存储实时数据的列表
@@ -22,61 +39,6 @@ public class SafeList<T> : ClassObject
 		mLastFileName = null;
 		mForeaching = false;
 	}
-    // 获取用于更新的列表,会自动从主列表同步,遍历结束时需要调用endForeach
-    // 搭配SafeListReader使用,using var a = new SafeListReader<T>(safeList);然后遍历a.mReadList
-    public List<T> startForeach(string fileName = null)
-	{
-		if (mForeaching)
-		{
-			logError("当前列表正在遍历中,无法再次开始遍历, 上一次开始遍历的地方:" + (mLastFileName ?? "") + ", 当前遍历的地方:" + fileName);
-			return null;
-		}
-		mLastFileName = fileName;
-		mForeaching = true;
-
-		// 获取更新列表前,先同步主列表到更新列表,为了避免当列表过大时每次同步量太大
-		// 所以单独使用了添加列表和移除列表,用来存储主列表的添加和移除的元素
-		int mainCount = mMainList.Count;
-		// 主列表为空,则直接清空即可
-		if (mainCount == 0)
-		{
-			mUpdateList.Clear();
-		}
-		else
-		{
-			// 操作记录较少,则根据操作进行增删
-			if (mModifyList.Count < mainCount)
-			{
-				foreach (var value in mModifyList)
-				{
-					if (value.mAdd)
-					{
-						mUpdateList.Add(value.mValue);
-					}
-					else
-					{
-						if (isEditor() && !equal(value.mValue, mUpdateList[value.mRemoveIndex]))
-						{
-							logError("同步列表数据错误");
-						}
-						mUpdateList.RemoveAt(value.mRemoveIndex);
-					}
-				}
-			}
-			// 主列表元素较少,则直接同步主列表到更新列表
-			else
-			{
-				mUpdateList.setRange(mMainList);
-			}
-		}
-		if (mUpdateList.Count != mMainList.Count)
-		{
-			logError("同步失败");
-		}
-		mModifyList.Clear();
-		return mUpdateList;
-	}
-	public void endForeach()		{ mForeaching = false; }
 	public bool isForeaching()		{ return mForeaching; }
 	public bool addOrRemove(T value, bool isAdd)
 	{
@@ -105,7 +67,8 @@ public class SafeList<T> : ClassObject
 			action(item);
 		}
 	}
-	public List<T>.Enumerator GetEnumerator() { return mMainList.GetEnumerator(); }
+	// 安全遍历枚举器：foreach 时自动调用 startForeach，枚举器 Dispose 时自动调用 endForeach
+	public SafeListEnumerator GetEnumerator() { return new(this); }
 	// 获取主列表,存储着当前实时的数据列表,所有的删除和新增都会立即更新此列表
 	// 如果确保在遍历过程中不会对列表进行修改,则可以使用MainList
 	// 如果可能会对列表进行修改,则应该使用startForeach
@@ -211,11 +174,67 @@ public class SafeList<T> : ClassObject
 		}
 		mMainList.Clear();
 	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	// 获取用于更新的列表,会自动从主列表同步,遍历结束时需要调用endForeach,仅在迭代器中被调用
+	protected List<T> startForeach(string fileName = null)
+	{
+		if (mForeaching)
+		{
+			logError("当前列表正在遍历中,无法再次开始遍历, 上一次开始遍历的地方:" + (mLastFileName ?? "") + ", 当前遍历的地方:" + fileName);
+			return null;
+		}
+		mLastFileName = fileName;
+		mForeaching = true;
+
+		// 获取更新列表前,先同步主列表到更新列表,为了避免当列表过大时每次同步量太大
+		// 所以单独使用了添加列表和移除列表,用来存储主列表的添加和移除的元素
+		int mainCount = mMainList.Count;
+		// 主列表为空,则直接清空即可
+		if (mainCount == 0)
+		{
+			mUpdateList.Clear();
+		}
+		else
+		{
+			// 操作记录较少,则根据操作进行增删
+			if (mModifyList.Count < mainCount)
+			{
+				foreach (var value in mModifyList)
+				{
+					if (value.mAdd)
+					{
+						mUpdateList.Add(value.mValue);
+					}
+					else
+					{
+						if (isEditor() && !equal(value.mValue, mUpdateList[value.mRemoveIndex]))
+						{
+							logError("同步列表数据错误");
+						}
+						mUpdateList.RemoveAt(value.mRemoveIndex);
+					}
+				}
+			}
+			// 主列表元素较少,则直接同步主列表到更新列表
+			else
+			{
+				mUpdateList.setRange(mMainList);
+			}
+		}
+		if (mUpdateList.Count != mMainList.Count)
+		{
+			logError("同步失败");
+		}
+		mModifyList.Clear();
+		return mUpdateList;
+	}
+	protected void endForeach() { mForeaching = false; }
 }
 
 // SafeList的扩展方法,提供便捷的添加ClassObject操作
 public static class SafeListExtension
 {
+	// 由于需要添加额外的约束,所以只能写扩展函数
 	public static T0 addClass<T0>(this SafeList<T0> list) where T0 : ClassObject, new()
 	{
 		CLASS(out T0 value);

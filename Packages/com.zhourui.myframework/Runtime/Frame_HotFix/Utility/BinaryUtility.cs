@@ -177,21 +177,6 @@ public class BinaryUtility
 			p[startIndex + i] = value;
 		}
 	}
-	// 字节数组转换为字符串时,末尾可能会带有数字0,此时在字符串比较时会出现错误,所以需要移除字符串末尾的0
-	public static string removeLastZero(string str)
-	{
-		int strLen = str.Length;
-		int newLen = strLen;
-		for (int i = 0; i < strLen; ++i)
-		{
-			if (str[i] == 0)
-			{
-				newLen = i;
-				break;
-			}
-		}
-		return str.startString(newLen);
-	}
 	public static bool isMemoryEqual(byte[] buffer0, byte[] buffer1, int length, int offset0 = 0, int offset1 = 0)
 	{
 		// 如果长度不足,则返回失败

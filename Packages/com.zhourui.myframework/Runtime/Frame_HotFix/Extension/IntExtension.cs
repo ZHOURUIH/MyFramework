@@ -7,6 +7,31 @@ public static class IntExtension
 {
 	private static ThreadLock mGreaterPow2Lock = new();     // mGreaterPow2的线程锁
 	private static int[] mGreaterPow2;                      // 预先生成的每个数字所对应的第一个比它大的2的n次方的数
+	public static float[] INVERSE_POWER_INT_10 = new float[7] { 1.0f, 0.1f, 0.01f, 0.001f, 0.0001f, 0.00001f, 0.000001f };
+	public static long[] POWER_INT_10 = new long[11] { 1L, 10L, 100L, 1000L, 10000L, 100000L, 1000000L, 10000000L, 100000000L, 1000000000L, 10000000000L };
+	public static double[] INVERSE_POWER_LLONG_10 = new double[11] { 1.0, 0.1, 0.01, 0.001, 0.0001, 0.00001, 0.000001, 0.0000001, 0.0000001, 0.0000001, 0.0000001 };
+	public static long[] POWER_LLONG_10 = new long[19]
+	{
+		1L,
+		10L,
+		100L,
+		1000L,
+		10000L,
+		100000L,
+		1000000L,
+		10000000L,
+		100000000L,
+		1000000000L,
+		10000000000L,
+		100000000000L,
+		1000000000000L,
+		10000000000000L,
+		100000000000000L,
+		1000000000000000L,
+		10000000000000000L,
+		100000000000000000L,
+		1000000000000000000L
+	};
 	public static int abs(this int value) { return value >= 0 ? value : -value; }
 	public static float sqrt(this int value) { return Mathf.Sqrt(value); }
 	public static int clamp(this int value, int min, int max)
@@ -135,7 +160,7 @@ public static class IntExtension
 		{
 			return mGreaterPow2[value];
 		}
-		if (isPow2(value))
+		if (value.isPow2())
 		{
 			return value;
 		}
@@ -177,6 +202,11 @@ public static class IntExtension
 	public static short clampMax(this short value, short max) { return value > max ? max : value; }
 	public static ushort clampMax(this ushort value, ushort max) { return value > max ? max : value; }
 	public static uint clampMax(this uint value, uint max) { return value > max ? max : value; }
+	// value是否是2的n次方
+	public static bool isPow2(this int value) { return (value & (value - 1)) == 0; }
+	// 是否为偶数
+	// 对于a % b的计算,如果b为2的n次方,则a % b等效于a & (b - 1)
+	public static bool isEven(this int value) { return (value & 1) == 0; }
 	//------------------------------------------------------------------------------------------------------------------------------
 	private static void initGreaterPow2()
 	{

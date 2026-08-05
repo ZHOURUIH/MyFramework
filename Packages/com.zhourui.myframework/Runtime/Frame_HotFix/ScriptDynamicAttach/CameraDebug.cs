@@ -51,8 +51,7 @@ public class CameraDebug : MonoBehaviour
 		var allComponent = mGameCamera.getAllComponent();
 		if (allComponent != null)
 		{
-			using var a = new SafeDictionaryReader<Type, GameComponent>(allComponent);
-			foreach (var item in a.mReadList)
+			foreach (var item in allComponent)
 			{
 				ActiveComponent.addIf(item.Key.ToString(), item.Value.isActive());
 			}

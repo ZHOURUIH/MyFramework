@@ -672,10 +672,15 @@ public static class UnityUtilityTest
 		GameObject original = new GameObject("AsyncClone");
 		cloneObjectAsync(original, "AsyncClone", (GameObject cloned) =>
 		{
+			// cloneObjectAsync 是异步协程,源对象必须在回调完成后才能销毁
+			// 否则 InstantiateAsync 对已销毁源返回空结果,cloned 为 null
 			assertNotNull(cloned, "cloneObjectAsync callback not null");
-			UnityEngine.Object.DestroyImmediate(cloned);
+			if (cloned != null)
+			{
+				UnityEngine.Object.DestroyImmediate(cloned);
+			}
+			UnityEngine.Object.DestroyImmediate(original);
 		});
-		UnityEngine.Object.DestroyImmediate(original);
 
 		assertTrue(true, "render/shader/misc called");
 		UnityEngine.Object.DestroyImmediate(parent);

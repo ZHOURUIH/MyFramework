@@ -46,6 +46,21 @@ public static class SafeDictionaryTest
 
 		// --- 扩展方法 ---
 		testAddClass();
+
+		// --- 遍历使用场景 ---
+		testForeachSnapshotUnchangedByAdd();
+		testForeachSnapshotUnchangedByRemove();
+		testForeachSnapshotUnchangedByClear();
+		testModificationsVisibleOnNextForeach();
+		testForeachDispatchLike();
+		testSequentialForeachSeesUpdates();
+		testRepeatedStartForeachPairs();
+		testModifySyncAddRemoveClearMixed();
+		testForeachOnEmpty();
+		testLargeForeachSum();
+		testForValueDuringModify();
+		testForKeyDuringModify();
+		testAddRemoveDuringForeachThenVerifyMain();
 	}
 
 	//==================================================================
@@ -171,7 +186,10 @@ public static class SafeDictionaryTest
 		int count = 0;
 		d.forKey(k =>
 		{
-			if (k == "a" || k == "b") count++;
+			if (k == "a" || k == "b")
+			{
+				count++;
+			}
 		});
 		assertEqual(2, count);
 	}
@@ -222,13 +240,16 @@ public static class SafeDictionaryTest
 		d.add("a", 1);
 		d.add("b", 2);
 		d.add("c", 3);
-		Dictionary<string, int> iter = d.startForeach();
-		assertNotNull(iter);
-		assertEqual(3, iter.Count);
-		assertTrue(iter.ContainsKey("a"));
-		assertTrue(iter.ContainsKey("b"));
-		assertTrue(iter.ContainsKey("c"));
-		d.endForeach();
+		var seen = new System.Collections.Generic.HashSet<string>();
+		foreach (var kv in d)
+		{
+			seen.Add(kv.Key);
+			assertTrue(d.isForeaching());
+		}
+		assertEqual(3, seen.Count);
+		assertTrue(seen.Contains("a"));
+		assertTrue(seen.Contains("b"));
+		assertTrue(seen.Contains("c"));
 		assertFalse(d.isForeaching());
 	}
 
@@ -237,9 +258,11 @@ public static class SafeDictionaryTest
 		SafeDictionary<string, int> d = new();
 		d.add("a", 1);
 		assertFalse(d.isForeaching());
-		d.startForeach();
-		assertTrue(d.isForeaching());
-		d.endForeach();
+		foreach (var kv in d)
+		{
+			_ = kv;
+			assertTrue(d.isForeaching());
+		}
 		assertFalse(d.isForeaching());
 	}
 
@@ -249,41 +272,50 @@ public static class SafeDictionaryTest
 		d.add("a", 1);
 		d.add("b", 2);
 		d.add("c", 3);
-		var iter = d.startForeach();
-		assertEqual(3, iter.Count);
-		// 遍历中清空
-		d.clear();
-		// 快照不受影响
-		assertEqual(3, iter.Count);
-		// 主列表已清空
+		int sum = 0;
+		foreach (var kv in d)
+		{
+			sum += kv.Value;
+			// 遍历中清空,当前快照仍完整
+			d.clear();
+		}
+		// 快照 a,b,c → sum=6
+		assertEqual(6, sum);
+		// 主字典已清空
 		assertEqual(0, d.count());
-		d.endForeach();
 	}
 
 	private static void testStartForeachModifySync()
 	{
-		// 测试 startForeach 将 modifyList 同步到 updateList
+		// 两次遍历之间修改,下次遍历能看到同步结果
 		SafeDictionary<string, int> d = new();
 		d.add("a", 1);
 		d.add("b", 2);
 		d.add("c", 3);
-		// 先做一次遍历清空 modifyList
+		// 先做一次遍历
 		{
-			var iter = d.startForeach();
-			assertEqual(3, iter.Count);
-			d.endForeach();
+			int count = 0;
+			foreach (var kv in d)
+			{
+				_ = kv;
+				count++;
+			}
+			assertEqual(3, count);
 		}
 		// 修改后再次遍历验证同步
 		d.add("d", 4);
 		d.remove("a");
 		{
-			var iter = d.startForeach();
-			assertEqual(3, iter.Count); // 移除 a 添加 d = 3
-			assertTrue(iter.ContainsKey("b"));
-			assertTrue(iter.ContainsKey("c"));
-			assertTrue(iter.ContainsKey("d"));
-			assertFalse(iter.ContainsKey("a"));
-			d.endForeach();
+			var seen = new System.Collections.Generic.HashSet<string>();
+			foreach (var kv in d)
+			{
+				seen.Add(kv.Key);
+			}
+			assertEqual(3, seen.Count); // 移除 a 添加 d = 3
+			assertTrue(seen.Contains("b"));
+			assertTrue(seen.Contains("c"));
+			assertTrue(seen.Contains("d"));
+			assertFalse(seen.Contains("a"));
 		}
 	}
 
@@ -363,8 +395,13 @@ public static class SafeDictionaryTest
 		SafeDictionary<string, int> d = new();
 		d.add("a", 1);
 		d.add("b", 2);
-		d.startForeach();
-		d.resetProperty();
+		// 在遍历过程中 reset
+		foreach (var kv in d)
+		{
+			_ = kv;
+			d.resetProperty();
+			break;
+		}
 		assertEqual(0, d.count());
 		assertTrue(d.isEmpty());
 		assertFalse(d.isForeaching());
@@ -384,6 +421,228 @@ public static class SafeDictionaryTest
 		assertNotNull(obj);
 		assertEqual(1, d.count());
 		assertTrue(d.containsKey("obj1"));
+	}
+
+	//==================================================================
+	// 遍历使用场景
+	//==================================================================
+	private static void testForeachSnapshotUnchangedByAdd()
+	{
+		var d = new SafeDictionary<string, int>();
+		d.add("a", 1);
+		d.add("b", 2);
+		d.add("c", 3);
+		int sum = 0;
+		foreach (var kv in d)
+		{
+			sum += kv.Value;
+			d.add("x" + kv.Key, kv.Value * 10); // 遍历中新增,不进当前快照
+		}
+		assertEqual(6, sum);        // 快照 a,b,c
+		assertEqual(6, d.count());  // 主字典含 3 个新增
+	}
+	private static void testForeachSnapshotUnchangedByRemove()
+	{
+		var d = new SafeDictionary<string, int>();
+		d.add("a", 1);
+		d.add("b", 2);
+		d.add("c", 3);
+		int sum = 0;
+		foreach (var kv in d)
+		{
+			sum += kv.Value;
+			d.remove("a");
+			d.remove("b");
+		}
+		assertEqual(6, sum);          // 快照完整
+		assertEqual(1, d.count());    // 主字典剩 c
+	}
+	private static void testForeachSnapshotUnchangedByClear()
+	{
+		var d = new SafeDictionary<string, int>();
+		d.add("a", 1);
+		d.add("b", 2);
+		int sum = 0;
+		foreach (var kv in d)
+		{
+			sum += kv.Value;
+			d.clear();
+		}
+		assertEqual(3, sum);
+		assertEqual(0, d.count());
+	}
+	private static void testModificationsVisibleOnNextForeach()
+	{
+		var d = new SafeDictionary<string, int>();
+		d.add("a", 1);
+		d.add("b", 2);
+		foreach (var kv in d)
+		{
+			if (kv.Key == "a")
+			{
+				d.add("c", 3);
+				d.remove("b");
+			}
+		}
+		var main = d.getMainList();
+		assertEqual(2, main.Count);
+		assertTrue(main.ContainsKey("a"));
+		assertTrue(main.ContainsKey("c"));
+		assertFalse(main.ContainsKey("b"));
+		// 新 foreach 同步结果
+		int seen = 0;
+		foreach (var kv in d)
+		{
+			seen++;
+		}
+		assertEqual(2, seen);
+	}
+	private static void testForeachDispatchLike()
+	{
+		var d = new SafeDictionary<string, int>();
+		d.add("a", 1);
+		d.add("b", 2);
+		d.add("c", 3);
+		int sum = 0;
+		foreach (var kv in d)
+		{
+			sum += kv.Value;
+			if (kv.Key == "b")
+			{
+				d.remove("b");
+			}
+		}
+		assertEqual(6, sum);
+		assertEqual(2, d.count());
+		assertFalse(d.containsKey("b"));
+	}
+	private static void testSequentialForeachSeesUpdates()
+	{
+		var d = new SafeDictionary<string, int>();
+		d.add("a", 1);
+		foreach (var kv in d)
+		{
+			_ = kv;
+		}
+		d.add("b", 2);
+		d.add("c", 3);
+		int count = 0;
+		foreach (var kv in d)
+		{
+			_ = kv;
+			count++;
+		}
+		assertEqual(3, count);
+	}
+	private static void testRepeatedStartForeachPairs()
+	{
+		var d = new SafeDictionary<string, int>();
+		d.add("a", 1);
+		d.add("b", 2);
+		for (int i = 0; i < 5; ++i)
+		{
+			int count = 0;
+			foreach (var kv in d)
+			{
+				_ = kv;
+				count++;
+			}
+			assertEqual(2, count);
+			assertFalse(d.isForeaching());
+		}
+		assertFalse(d.isForeaching());
+	}
+	private static void testModifySyncAddRemoveClearMixed()
+	{
+		var d = new SafeDictionary<string, int>();
+		d.add("a", 1);
+		d.add("b", 2);
+		d.add("c", 3);
+		foreach (var kv in d)
+		{
+			d.add("d", 4);
+			d.remove("a");
+			break;
+		}
+		// 主字典:b,c,d
+		assertEqual(3, d.count());
+		assertFalse(d.containsKey("a"));
+		assertTrue(d.containsKey("b"));
+		assertTrue(d.containsKey("c"));
+		assertTrue(d.containsKey("d"));
+		// 新 foreach 同步一致
+		int seen = 0;
+		foreach (var kv in d)
+		{
+			seen++;
+		}
+		assertEqual(3, seen);
+	}
+	private static void testForeachOnEmpty()
+	{
+		var d = new SafeDictionary<string, int>();
+		int count = 0;
+		foreach (var kv in d)
+		{
+			_ = kv;
+			count++;
+		}
+		assertEqual(0, count);
+		assertFalse(d.isForeaching());
+	}
+	private static void testLargeForeachSum()
+	{
+		var d = new SafeDictionary<int, int>();
+		const int N = 5000;
+		for (int i = 0; i < N; ++i)
+		{
+			d.add(i, i);
+		}
+		long sum = 0;
+		foreach (var kv in d)
+		{
+			sum += kv.Value;
+		}
+		assertEqual((long)N * (N - 1) / 2, sum);
+	}
+	private static void testForValueDuringModify()
+	{
+		var d = new SafeDictionary<string, int>();
+		d.add("a", 1);
+		d.add("b", 2);
+		int sum = 0;
+		d.forValue(v => { sum += v; });
+		assertEqual(3, sum);
+	}
+	private static void testForKeyDuringModify()
+	{
+		var d = new SafeDictionary<string, int>();
+		d.add("a", 1);
+		d.add("b", 2);
+		var keys = new System.Collections.Generic.List<string>();
+		d.forKey(k => keys.Add(k));
+		assertEqual(2, keys.Count);
+	}
+	private static void testAddRemoveDuringForeachThenVerifyMain()
+	{
+		var d = new SafeDictionary<string, int>();
+		d.add("a", 1);
+		d.add("b", 2);
+		d.add("c", 3);
+		foreach (var kv in d)
+		{
+			if (kv.Key == "a")
+			{
+				d.add("e", 5);
+				d.remove("c");
+			}
+		}
+		var main = d.getMainList();
+		assertEqual(3, main.Count);
+		assertTrue(main.ContainsKey("a"));
+		assertTrue(main.ContainsKey("b"));
+		assertTrue(main.ContainsKey("e"));
+		assertFalse(main.ContainsKey("c"));
 	}
 }
 

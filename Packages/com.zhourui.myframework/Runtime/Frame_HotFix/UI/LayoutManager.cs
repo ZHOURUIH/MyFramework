@@ -61,8 +61,7 @@ public class LayoutManager : FrameSystem
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		using var a = new SafeDictionaryReader<Type, GameLayout>(mLayoutList);
-		foreach (var item in a.mReadList)
+		foreach (var item in mLayoutList)
 		{
 			GameLayout layout = item.Value;
 			try
@@ -78,14 +77,12 @@ public class LayoutManager : FrameSystem
 	}
 	public override void onDrawGizmos()
 	{
-		using var a = new SafeDictionaryReader<Type, GameLayout>(mLayoutList);
-		a.mReadList.forValue(item => item.onDrawGizmos());
+		mLayoutList.forValue(item => item.onDrawGizmos());
 	}
 	public override void lateUpdate(float elapsedTime)
 	{
 		base.lateUpdate(elapsedTime);
-		using var a = new SafeDictionaryReader<Type, GameLayout>(mLayoutList);
-		foreach (var item in a.mReadList)
+		foreach (var item in mLayoutList)
 		{
 			try
 			{
@@ -100,8 +97,7 @@ public class LayoutManager : FrameSystem
 	public override void willDestroy()
 	{
 		mInputSystem?.unlistenKey(this);
-		using var a = new SafeDictionaryReader<Type, GameLayout>(mLayoutList);
-		a.mReadList.forValue(layout => layout.destroy());
+		mLayoutList.forValue(layout => layout.destroy());
 		mLayoutList.clear();
 		mLayoutTypeToPath.Clear();
 		mLayoutPathToType.Clear();
@@ -236,8 +232,7 @@ public class LayoutManager : FrameSystem
 	// 卸载所有非常驻的布局
 	public void unloadAllPartLayout()
 	{
-		using var a = new SafeDictionaryReader<Type, GameLayout>(mLayoutList);
-		foreach (var type in a.mReadList)
+		foreach (var type in mLayoutList)
 		{
 			if (mLayoutRegisteList.get(type.Key).mLifeCycle == LAYOUT_LIFE_CYCLE.PART_USE)
 			{

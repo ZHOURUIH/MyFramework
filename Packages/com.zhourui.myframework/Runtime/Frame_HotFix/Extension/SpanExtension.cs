@@ -1,7 +1,5 @@
 using System;
 using System.Text;
-using static MathUtility;
-using static BinaryUtility;
 
 // Span扩展方法,提供对Span的便捷操作
 public static class SpanExtension
@@ -110,7 +108,7 @@ public static class SpanExtension
 			index = -1;
 			return false;
 		}
-		count = getMin(count, list.Length);
+		count = count.clampMax(list.Length);
 		for (int i = 0; i < count; ++i)
 		{
 			if (match(list[i + startIndex]))
@@ -137,6 +135,6 @@ public static class SpanExtension
 			return string.Empty;
 		}
 		// 默认为UTF8
-		return removeLastZero((encoding ?? Encoding.UTF8).GetString(bytes));
+		return (encoding ?? Encoding.UTF8).GetString(bytes).removeLastZero();
 	}
 }

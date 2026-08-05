@@ -6,9 +6,9 @@ using static UnityUtility;
 // 事件管理器,用于分发所有的事件
 public class EventSystem : FrameSystem
 {
-	protected Dictionary<long, Dictionary<int, SafeList0<GameEventRegisteInfo>>> mCharacterEventList = new();		// 指定角色的事件监听列表
+	protected Dictionary<long, Dictionary<int, SafeFastDeepList<GameEventRegisteInfo>>> mCharacterEventList = new();		// 指定角色的事件监听列表
 	protected Dictionary<IEventListener, List<GameEventRegisteInfo>> mListenerList = new();							// 每个监听者所监听的所有事件信息列表
-	protected Dictionary<int, SafeList0<GameEventRegisteInfo>> mGlobalListenerEventList = new();					// 全局事件监听列表
+	protected Dictionary<int, SafeFastDeepList<GameEventRegisteInfo>> mGlobalListenerEventList = new();					// 全局事件监听列表
 	protected bool mNeedCheckEmptyEvent;																			// 是否需要检测有没有空的角色事件监听列表
 	protected int mDispatchDepth;
 	protected const int MAX_DEPTH = 20;
@@ -105,7 +105,7 @@ public class EventSystem : FrameSystem
 			}
 			// 由于在遍历过程中有可能会再次修改或者遍历此列表,所以这里的遍历次数是固定的,因为遍历中删除时不会真正移除元素,新增元素也只会添加到末尾
 			// 所以就不能写成for (int i = 0; i < eventList.count(); ++i)
-			int count = eventList.count();
+			using var a = new SafeFastDeepListReader<GameEventRegisteInfo>(eventList, out int count);
 			for (int i = 0; i < count; ++i)
 			{
 				try 
@@ -138,6 +138,7 @@ public class EventSystem : FrameSystem
 		{
 			// 由于在遍历过程中有可能会再次修改或者遍历此列表,所以这里的遍历次数是固定的,因为遍历中删除时不会真正移除元素,新增元素也只会添加到末尾
 			// 所以就不能写成for (int i = 0; i < infoList.count(); ++i)
+			infoList.startForeach();
 			int count = infoList.count();
 			for (int i = 0; i < count; ++i)
 			{
@@ -150,6 +151,7 @@ public class EventSystem : FrameSystem
 					logException(e); 
 				}
 			}
+			infoList.endForeach();
 		}
 		--mDispatchDepth;
 	}

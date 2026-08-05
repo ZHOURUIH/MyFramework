@@ -29,6 +29,19 @@ public class SafeHashSetTest
 		testStartForeachModifySyncIncremental();
 		testStartForeachModifySyncFullSync();
 		testGetEnumerator();
+
+		// --- 遍历使用场景 ---
+		testForeachSnapshotUnchangedByAdd();
+		testForeachSnapshotUnchangedByRemove();
+		testForeachSnapshotUnchangedByClear();
+		testModificationsVisibleOnNextForeach();
+		testForeachDispatchLike();
+		testSequentialForeachSeesUpdates();
+		testRepeatedStartForeachPairs();
+		testModifySyncAddRemoveMixed();
+		testForeachOnEmpty();
+		testLargeForeachSum();
+		testAddRemoveDuringForeachThenVerifyMain();
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	private static void testAddAndCount()
@@ -92,30 +105,41 @@ public class SafeHashSetTest
 		set.add(1);
 		set.add(2);
 		set.add(3);
-		HashSet<int> snapshot = set.startForeach();
-		assertEqual(3, snapshot.Count);
-		assertTrue(snapshot.Contains(1));
-		assertTrue(snapshot.Contains(2));
-		assertTrue(snapshot.Contains(3));
-		set.endForeach();
+		var seen = new System.Collections.Generic.HashSet<int>();
+		foreach (int v in set)
+		{
+			seen.Add(v);
+		}
+		assertEqual(3, seen.Count);
+		assertTrue(seen.Contains(1));
+		assertTrue(seen.Contains(2));
+		assertTrue(seen.Contains(3));
+		assertFalse(set.isForeaching());
 	}
 	private static void testStartForeachWithModifications()
 	{
 		SafeHashSet<int> set = new();
 		set.add(1);
 		set.add(2);
-		// 添加一些数据后再 startForeach，应同步修改
+		// 添加一些数据后再遍历，应包含所有已添加的数据
 		set.add(3);
-		HashSet<int> snapshot = set.startForeach();
-		// 应包含所有已添加的数据
-		assertEqual(3, snapshot.Count);
-		set.endForeach();
+		var seen = new System.Collections.Generic.HashSet<int>();
+		foreach (int v in set)
+		{
+			seen.Add(v);
+		}
+		assertEqual(3, seen.Count);
 	}
 	private static void testEndForeach()
 	{
 		SafeHashSet<int> set = new();
-		set.startForeach();
-		set.endForeach();
+		set.add(1);
+		foreach (int v in set)
+		{
+			_ = v;
+			assertTrue(set.isForeaching());
+		}
+		assertFalse(set.isForeaching());
 	}
 	private static void testGetMainList()
 	{
@@ -195,21 +219,31 @@ public class SafeHashSetTest
 	private static void testStartForeachEmptySet()
 	{
 		SafeHashSet<int> set = new();
-		HashSet<int> snapshot = set.startForeach();
-		assertEqual(0, snapshot.Count);
-		set.endForeach();
+		int count = 0;
+		foreach (int v in set)
+		{
+			_ = v;
+			count++;
+		}
+		assertEqual(0, count);
+		assertFalse(set.isForeaching());
 	}
 	private static void testAddThenForeach()
 	{
 		SafeHashSet<int> set = new();
 		set.add(1);
 		set.add(2);
-		// 多次 start/end
+		// 多次遍历
 		for (int i = 0; i < 3; ++i)
 		{
-			HashSet<int> snapshot = set.startForeach();
-			assertEqual(2, snapshot.Count);
-			set.endForeach();
+			int count = 0;
+			foreach (int v in set)
+			{
+				_ = v;
+				count++;
+			}
+			assertEqual(2, count);
+			assertFalse(set.isForeaching());
 		}
 		// 内容不变
 		assertEqual(2, set.count());
@@ -220,66 +254,81 @@ public class SafeHashSetTest
 		set.add(1);
 		set.add(2);
 		set.add(3);
-		var iter = set.startForeach();
-		assertEqual(3, iter.Count);
-		// 遍历中清空
-		set.clear();
-		// 快照不受影响
-		assertEqual(3, iter.Count);
-		// 主列表已清空
+		int sum = 0;
+		foreach (int v in set)
+		{
+			sum += v;
+			// 遍历中清空,当前快照仍完整
+			set.clear();
+		}
+		// 快照 1,2,3 → sum=6
+		assertEqual(6, sum);
+		// 主集合已清空
 		assertEqual(0, set.count());
-		set.endForeach();
 	}
 	private static void testStartForeachModifySyncIncremental()
 	{
-		// 测试增量同步路径（modifyList.Count < mainCount）
+		// 两次遍历之间修改,下次遍历能看到同步结果
 		SafeHashSet<int> set = new();
 		set.add(1);
 		set.add(2);
 		set.add(3);
-		// 先做一次遍历清空 modifyList
+		// 先做一次遍历
 		{
-			var iter = set.startForeach();
-			assertEqual(3, iter.Count);
-			set.endForeach();
+			int count = 0;
+			foreach (int v in set)
+			{
+				_ = v;
+				count++;
+			}
+			assertEqual(3, count);
 		}
-		// 修改后再次遍历验证增量同步
+		// 修改后再次遍历验证同步
 		set.add(4);
 		set.remove(1);
 		{
-			var iter = set.startForeach();
-			assertEqual(3, iter.Count); // 移除 1 添加 4 = 3
-			assertTrue(iter.Contains(2));
-			assertTrue(iter.Contains(3));
-			assertTrue(iter.Contains(4));
-			assertFalse(iter.Contains(1));
-			set.endForeach();
+			var seen = new System.Collections.Generic.HashSet<int>();
+			foreach (int v in set)
+			{
+				seen.Add(v);
+			}
+			assertEqual(3, seen.Count); // 移除 1 添加 4 = 3
+			assertTrue(seen.Contains(2));
+			assertTrue(seen.Contains(3));
+			assertTrue(seen.Contains(4));
+			assertFalse(seen.Contains(1));
 		}
 	}
 	private static void testStartForeachModifySyncFullSync()
 	{
-		// 测试全量同步路径（modifyList.Count >= mainCount）
-		// 大量修改导致走 setRange 全量同步
+		// 大量修改后再次遍历,验证同步结果
 		SafeHashSet<int> set = new();
 		set.add(1);
 		// 先遍历一次
 		{
-			var iter = set.startForeach();
-			set.endForeach();
+			int count = 0;
+			foreach (int v in set)
+			{
+				_ = v;
+				count++;
+			}
+			assertEqual(1, count);
 		}
-		// 添加足够多的元素使 modifyList.Count >= mainCount
+		// 添加更多元素
 		set.add(2);
 		set.add(3);
 		set.add(4);
-		// modifyList.Count(3) >= mainCount(4)，应走全量同步
 		{
-			var iter = set.startForeach();
-			assertEqual(4, iter.Count);
-			assertTrue(iter.Contains(1));
-			assertTrue(iter.Contains(2));
-			assertTrue(iter.Contains(3));
-			assertTrue(iter.Contains(4));
-			set.endForeach();
+			var seen = new System.Collections.Generic.HashSet<int>();
+			foreach (int v in set)
+			{
+				seen.Add(v);
+			}
+			assertEqual(4, seen.Count);
+			assertTrue(seen.Contains(1));
+			assertTrue(seen.Contains(2));
+			assertTrue(seen.Contains(3));
+			assertTrue(seen.Contains(4));
 		}
 	}
 	private static void testGetEnumerator()
@@ -294,5 +343,209 @@ public class SafeHashSetTest
 			sum += v;
 		}
 		assertEqual(60, sum);
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	// 遍历使用场景
+	private static void testForeachSnapshotUnchangedByAdd()
+	{
+		SafeHashSet<int> set = new();
+		set.add(1);
+		set.add(2);
+		set.add(3);
+		int sum = 0;
+		foreach (int v in set)
+		{
+			sum += v;
+			set.add(100 + v); // 遍历中新增,不进当前快照
+		}
+		assertEqual(6, sum);
+		assertEqual(6, set.count());
+	}
+	private static void testForeachSnapshotUnchangedByRemove()
+	{
+		SafeHashSet<int> set = new();
+		set.add(1);
+		set.add(2);
+		set.add(3);
+		int sum = 0;
+		foreach (int v in set)
+		{
+			sum += v;
+			set.remove(1);
+			set.remove(2);
+		}
+		assertEqual(6, sum);
+		assertEqual(1, set.count()); // 剩 3
+	}
+	private static void testForeachSnapshotUnchangedByClear()
+	{
+		SafeHashSet<int> set = new();
+		set.add(1);
+		set.add(2);
+		set.add(3);
+		int sum = 0;
+		foreach (int v in set)
+		{
+			sum += v;
+			set.clear();
+		}
+		assertEqual(6, sum);
+		assertEqual(0, set.count());
+	}
+	private static void testModificationsVisibleOnNextForeach()
+	{
+		SafeHashSet<int> set = new();
+		set.add(1);
+		set.add(2);
+		foreach (int v in set)
+		{
+			if (v == 1)
+			{
+				set.add(4);
+				set.remove(2);
+			}
+		}
+		var main = set.getMainList();
+		assertEqual(2, main.Count);
+		assertTrue(main.Contains(1));
+		assertTrue(main.Contains(4));
+		assertFalse(main.Contains(2));
+		// 新 foreach
+		int seen = 0;
+		foreach (int v in set)
+		{
+			_ = v;
+			seen++;
+		}
+		assertEqual(2, seen);
+	}
+	private static void testForeachDispatchLike()
+	{
+		SafeHashSet<int> set = new();
+		set.add(1);
+		set.add(2);
+		set.add(3);
+		int sum = 0;
+		foreach (int v in set)
+		{
+			sum += v;
+			if (v == 2)
+			{
+				set.remove(2);
+			}
+		}
+		assertEqual(6, sum);
+		assertEqual(2, set.count());
+		assertFalse(set.contains(2));
+	}
+	private static void testSequentialForeachSeesUpdates()
+	{
+		SafeHashSet<int> set = new();
+		set.add(1);
+		foreach (int v in set)
+		{
+			_ = v;
+		}
+		set.add(2);
+		set.add(3);
+		int count = 0;
+		foreach (int v in set)
+		{
+			_ = v;
+			count++;
+		}
+		assertEqual(3, count);
+	}
+	private static void testRepeatedStartForeachPairs()
+	{
+		SafeHashSet<int> set = new();
+		set.add(10);
+		set.add(20);
+		for (int i = 0; i < 5; ++i)
+		{
+			int count = 0;
+			foreach (int v in set)
+			{
+				_ = v;
+				count++;
+			}
+			assertEqual(2, count);
+			assertFalse(set.isForeaching());
+		}
+		assertFalse(set.isForeaching());
+	}
+	private static void testModifySyncAddRemoveMixed()
+	{
+		SafeHashSet<int> set = new();
+		set.add(1);
+		set.add(2);
+		set.add(3);
+		foreach (int v in set)
+		{
+			set.add(10);
+			set.remove(1);
+			break;
+		}
+		assertEqual(3, set.count()); // 2,3,10
+		assertFalse(set.contains(1));
+		assertTrue(set.contains(2));
+		assertTrue(set.contains(3));
+		assertTrue(set.contains(10));
+		// 新 foreach 同步一致
+		int seen = 0;
+		foreach (int v in set)
+		{
+			_ = v;
+			seen++;
+		}
+		assertEqual(3, seen);
+	}
+	private static void testForeachOnEmpty()
+	{
+		SafeHashSet<int> set = new();
+		int count = 0;
+		foreach (int v in set)
+		{
+			_ = v;
+			count++;
+		}
+		assertEqual(0, count);
+		assertFalse(set.isForeaching());
+	}
+	private static void testLargeForeachSum()
+	{
+		SafeHashSet<int> set = new();
+		const int N = 5000;
+		for (int i = 0; i < N; ++i)
+		{
+			set.add(i);
+		}
+		long sum = 0;
+		foreach (int v in set)
+		{
+			sum += v;
+		}
+		assertEqual((long)N * (N - 1) / 2, sum);
+	}
+	private static void testAddRemoveDuringForeachThenVerifyMain()
+	{
+		SafeHashSet<int> set = new();
+		set.add(1);
+		set.add(2);
+		set.add(3);
+		foreach (int v in set)
+		{
+			if (v == 1)
+			{
+				set.add(5);
+				set.remove(3);
+			}
+		}
+		var main = set.getMainList();
+		assertEqual(3, main.Count);
+		assertTrue(main.Contains(1));
+		assertTrue(main.Contains(2));
+		assertTrue(main.Contains(5));
+		assertFalse(main.Contains(3));
 	}
 }

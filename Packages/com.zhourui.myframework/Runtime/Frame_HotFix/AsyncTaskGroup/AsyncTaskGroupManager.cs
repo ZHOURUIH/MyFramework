@@ -8,8 +8,7 @@ public class AsyncTaskGroupManager : FrameSystem
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		using var a = new SafeListReader<AsyncTaskGroup>(mGroupList);
-		foreach (AsyncTaskGroup item in a.mReadList)
+		foreach (AsyncTaskGroup item in mGroupList)
 		{
 			if (item.checkDone())
 			{

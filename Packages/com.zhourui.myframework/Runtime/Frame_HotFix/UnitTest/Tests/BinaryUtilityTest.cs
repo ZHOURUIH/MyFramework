@@ -235,11 +235,11 @@ public static class BinaryUtilityTest
     {
         // 构造含有 \0 的字符串（模拟字节数组转换场景）
         string s = "hello\0\0";
-        string result = removeLastZero(s);
+        string result = s.removeLastZero();
         assertEqual("hello", result, "removeLastZero 移除末尾\\0");
 
         string noZero = "world";
-        assertEqual("world", removeLastZero(noZero), "removeLastZero 无\\0不变");
+        assertEqual("world", noZero.removeLastZero(), "removeLastZero 无\\0不变");
     }
 
     // ─── memset 补充 ──────────────────────────────────────────────────────────

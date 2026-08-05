@@ -1,10 +1,30 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 // 非线程安全
 // 可深度嵌套安全遍历的列表,支持在遍历过程中嵌套遍历和对列表进行修改
 // 由于可嵌套,即在遍历中再次开始遍历,所以效率较低,使用方法上比普通列表稍复杂
 public class SafeDeepList<T> : ClassObject
 {
+	public struct SafeDeepListEnumerator : IDisposable
+	{
+		private SafeDeepList<T> mOwner;
+		private List<T>.Enumerator mEnumerator;
+		private List<T> mReadList;
+		public SafeDeepListEnumerator(SafeDeepList<T> safeList)
+		{
+			mOwner = safeList;
+			mReadList = safeList.startForeach();
+			mEnumerator = mReadList.GetEnumerator();
+		}
+		public T Current => mEnumerator.Current;
+		public bool MoveNext() { return mEnumerator.MoveNext(); }
+		public void Dispose()
+		{
+			mEnumerator.Dispose();
+			mOwner.endForeach(mReadList);
+		}
+	}
 	protected HashSet<List<T>> mTempInuseList = new();  // 用于缓存正在使用的临时列表,由于需要考虑到效率,所以不使用对象池
 	protected Queue<List<T>> mTempUnuseList = new();	// 用于缓存未使用的临时列表
 	protected List<T> mMainList = new();				// 用于存储实时数据的列表
@@ -15,23 +35,8 @@ public class SafeDeepList<T> : ClassObject
 		mTempUnuseList.Clear();
 		mMainList.Clear();
 	}
-    // 获取用于更新的列表
-    // 搭配SafeDeepListReader使用,using var a = new SafeDeepListReader<T>(safeList);然后遍历a.mReadList
-    public List<T> startForeach() 
-	{
-		// 由于需要考虑嵌套,所以只能创建一个新的列表,复制当前主列表的数据
-		List<T> tempList = mTempUnuseList.Count > 0 ? mTempUnuseList.Dequeue() : new();
-		mTempInuseList.Add(tempList);
-		return tempList.addRange(mMainList);
-	}
-	// 遍历结束后,需要手动调用endForeach,对临时列表进行回收
-	public void endForeach(List<T> list)
-	{
-		list.Clear();
-		mTempInuseList.Remove(list);
-		mTempUnuseList.Enqueue(list);
-	}
-	public List<T>.Enumerator GetEnumerator() { return mMainList.GetEnumerator(); }
+	// 安全遍历枚举器：foreach 时自动调用 startForeach，枚举器 Dispose 时自动调用 endForeach
+	public SafeDeepListEnumerator GetEnumerator() { return new(this); }
 	// 获取主列表,存储着当前实时的数据列表,所有的删除和新增都会立即更新此列表
 	// 如果确保在遍历过程中不会对列表进行修改,则可以使用MainList
 	// 如果可能会对列表进行修改,则应该使用startForeach
@@ -50,5 +55,21 @@ public class SafeDeepList<T> : ClassObject
 	public void clear()
 	{
 		mMainList.Clear();
+	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	// 获取用于更新的列表,仅在迭代器中被调用
+	protected List<T> startForeach()
+	{
+		// 由于需要考虑嵌套,所以只能创建一个新的列表,复制当前主列表的数据
+		List<T> tempList = mTempUnuseList.Count > 0 ? mTempUnuseList.Dequeue() : new();
+		mTempInuseList.Add(tempList);
+		return tempList.addRange(mMainList);
+	}
+	// 遍历结束后,对临时列表进行回收,仅在迭代器中被调用
+	protected void endForeach(List<T> list)
+	{
+		list.Clear();
+		mTempInuseList.Remove(list);
+		mTempUnuseList.Enqueue(list);
 	}
 }

@@ -4,7 +4,8 @@ using static FrameUtility;
 // 非线程安全
 // 效率更高的可在遍历中再次开始遍历的列表
 // 不过由于删除不是立即删除的,所以在部分情况下使用时需要注意
-public class SafeList0<T> : ClassObject
+// 在遍历中时一般都会使用get(i)来获取元素
+public class SafeFastDeepList<T> : ClassObject
 {
 	protected List<T> mMainList = new();
 	protected int mForeachDepth;
@@ -37,6 +38,10 @@ public class SafeList0<T> : ClassObject
     {
         return mMainList.get(index);
     }
+	public bool contains(T value)
+	{
+		return mMainList.Contains(value);
+	}
     public void add(T value)
 	{
 		mMainList.add(value);

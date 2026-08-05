@@ -87,8 +87,7 @@ public class GameLayout
 		if (mNeedUpdateList.count() > 0)
 		{
 			using var a = new ProfilerScope("UpdateLayout");
-			using var c = new SafeListReader<myUGUIObject>(mNeedUpdateList);
-			foreach (myUGUIObject uiObj in c.mReadList)
+			foreach (myUGUIObject uiObj in mNeedUpdateList)
 			{
 				if (uiObj.canUpdate())
 				{
@@ -171,8 +170,7 @@ public class GameLayout
 		else
 		{
 			// 通知所有会接收布局隐藏的窗口
-			using var a = new SafeDictionaryReader<int, myUGUIObject>(mObjectList);
-			foreach (var item in a.mReadList)
+			foreach (var item in mObjectList)
 			{
 				if (item.Value.isReceiveLayoutHide())
 				{
@@ -195,8 +193,7 @@ public class GameLayout
 		// 直接设置布局显示或隐藏
 		mRoot.setActive(visible);
 		// 通知所有会接收布局隐藏的窗口
-		using var a = new SafeDictionaryReader<int, myUGUIObject>(mObjectList);
-		foreach (var item in a.mReadList)
+		foreach (var item in mObjectList)
 		{
 			if (item.Value.isReceiveLayoutHide())
 			{

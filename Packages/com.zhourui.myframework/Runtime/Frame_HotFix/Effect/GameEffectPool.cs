@@ -22,8 +22,7 @@ public class GameEffectPool
 			foreach (var item0 in mUnusedEffectList)
 			{
 				var list = item0.Value;
-				using var a = new SafeListReader<GameEffect>(list);
-				foreach (var item in a.mReadList)
+				foreach (var item in list)
 				{
 					list.removeIf(item, item.getFilePath().startWith(path));
 				}
@@ -45,8 +44,7 @@ public class GameEffectPool
 			foreach (var item0 in mUnusedEffectList)
 			{
 				var list = item0.Value;
-				using var a = new SafeListReader<GameEffect>(list);
-				foreach (var item in a.mReadList)
+				foreach (var item in list)
 				{
 					list.removeIf(item, item.getGameObject() == obj);
 				}
@@ -71,8 +69,7 @@ public class GameEffectPool
 			DateTime time = DateTime.Now;
 			foreach (var item in mUnusedEffectList)
 			{
-				using var a = new SafeListReader<GameEffect>(item.Value);
-				foreach (GameEffect effect in a.mReadList)
+				foreach (GameEffect effect in item.Value)
 				{
 					if ((time - effect.getUnuseTime()).TotalSeconds > mUnuseMaxTime)
 					{

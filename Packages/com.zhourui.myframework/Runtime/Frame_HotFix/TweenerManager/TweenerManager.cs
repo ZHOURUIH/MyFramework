@@ -8,8 +8,7 @@ public class TweenerManager : FrameSystem
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		using var a = new SafeDictionaryReader<long, MyTweener>(mTweenerList);
-		foreach (var item in a.mReadList)
+		foreach (var item in mTweenerList)
 		{
 			item.Value.update(item.Value.isIgnoreTimeScale() ? mGameFrameworkHotFix.getUnscaledTime() : elapsedTime);
 		}

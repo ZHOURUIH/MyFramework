@@ -40,9 +40,7 @@ public class FrameHotFixTest
         Register("MyTimerTest", MyTimerTest.Run);
         Register("NetPacketBitTest", NetPacketBitTest.Run);
         Register("NetPacketByteTest", NetPacketByteTest.Run);
-        Register("SafeDeepDictionaryReaderTest", SafeDeepDictionaryReaderTest.Run);
         Register("SafeDeepDictionaryTest", SafeDeepDictionaryTest.Run);
-        Register("SafeDeepListReaderTest", SafeDeepListReaderTest.Run);
         Register("SafeDictionaryTest", SafeDictionaryTest.Run);
         Register("SafeFloatTest", SafeFloatTest.Run);
         Register("SafeHashSetTest", SafeHashSetTest.Run);
@@ -73,10 +71,7 @@ public class FrameHotFixTest
         Register("SpanExtensionTest", SpanExtensionTest.Run);
         Register("DictionaryTypeTest", DictionaryTypeTest.Run);
         Register("SafeDeepListTest", SafeDeepListTest.Run);
-        Register("SafeList0Test", SafeList0Test.Run);
-        Register("SafeListReaderTest", SafeListReaderTest.Run);
-        Register("SafeDictionaryReaderTest", SafeDictionaryReaderTest.Run);
-        Register("SafeHashSetReaderTest", SafeHashSetReaderTest.Run);
+        Register("SafeFastDeepListTest", SafeFastDeepListTest.Run);
         Register("BIT_BOOLTest", BIT_BOOLTest.Run);
         Register("BIT_BYTESTest", BIT_BYTESTest.Run);
         Register("BIT_BYTETest", BIT_BYTETest.Run);

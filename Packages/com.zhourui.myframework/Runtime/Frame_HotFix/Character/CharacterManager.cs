@@ -30,8 +30,7 @@ public class CharacterManager : FrameSystem
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		using var a = new SafeDictionaryReader<long, Character>(mCharacterUpdateList);
-		foreach (var item in a.mReadList)
+		foreach (var item in mCharacterUpdateList)
 		{
 			Character character = item.Value;
 			if (character == null || !character.isActiveInHierarchy())
@@ -44,8 +43,7 @@ public class CharacterManager : FrameSystem
 	public override void lateUpdate(float elapsedTime)
 	{
 		base.lateUpdate(elapsedTime);
-		using var a = new SafeDictionaryReader<long, Character>(mCharacterUpdateList);
-		foreach (var item in a.mReadList)
+		foreach (var item in mCharacterUpdateList)
 		{
 			Character character = item.Value;
 			if (character != null && character.isActiveInHierarchy())
@@ -57,8 +55,7 @@ public class CharacterManager : FrameSystem
 	public override void fixedUpdate(float elapsedTime)
 	{
 		base.fixedUpdate(elapsedTime);
-		using var a = new SafeDictionaryReader<long, Character>(mFixedUpdateList);
-		foreach (var item in a.mReadList)
+		foreach (var item in mFixedUpdateList)
 		{
 			Character character = item.Value;
 			if (character != null && character.isActiveInHierarchy())

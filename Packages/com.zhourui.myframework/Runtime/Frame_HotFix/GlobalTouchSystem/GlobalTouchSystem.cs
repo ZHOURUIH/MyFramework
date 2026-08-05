@@ -82,8 +82,7 @@ public class GlobalTouchSystem : FrameSystem
 			item.update();
 		}
 
-		using var a = new SafeDictionaryReader<int, TouchPoint>(mInputSystem.getTouchPointList());
-		foreach (var item in a.mReadList)
+		foreach (var item in mInputSystem.getTouchPointList())
 		{
 			if (item.Value.isCurrentDown())
 			{
@@ -261,8 +260,7 @@ public class GlobalTouchSystem : FrameSystem
 		// key或者value中任意一个注销了,都要从列表中移除
 		if (!mPassOnlyArea.remove(obj))
 		{
-			using var a = new SafeDictionaryReader<IMouseEventCollect, IMouseEventCollect>(mPassOnlyArea);
-			foreach (var item in a.mReadList)
+			foreach (var item in mPassOnlyArea)
 			{
 				mPassOnlyArea.removeIf(item.Key, item.Value == obj);
 			}
@@ -353,8 +351,7 @@ public class GlobalTouchSystem : FrameSystem
 					item.onScreenTouchDown(pos, touchID);
 				}
 			}
-			using var a = new SafeListReader<IMouseEventCollect>(touchInfo.getPressList());
-			foreach (IMouseEventCollect obj in a.mReadList)
+			foreach (IMouseEventCollect obj in touchInfo.getPressList())
 			{
 				// 如果此时窗口已经被销毁了,则不再通知,因为可能在onScreenMouseDown中销毁了
 				if (mAllObjectSet.Contains(obj))
@@ -366,48 +363,36 @@ public class GlobalTouchSystem : FrameSystem
 		// 只允许指定的物体接收事件时
 		else
 		{
-			using (var a = new SafeListReader<myUGUIObject>(mActiveOnlyUIObject))
-			{ 
-				foreach (IMouseEventCollect item in a.mReadList)
+			foreach (IMouseEventCollect item in mActiveOnlyUIObject)
+			{
+				if (mAllObjectSet.Contains(item) && item.isReceiveScreenTouch())
 				{
-					if (mAllObjectSet.Contains(item) && item.isReceiveScreenTouch())
-					{
-						item.onScreenTouchDown(pos, touchID);
-					}
+					item.onScreenTouchDown(pos, touchID);
 				}
 			}
 
-			using (var b = new SafeListReader<MovableObject>(mActiveOnlyMovableObject))
+			foreach (IMouseEventCollect item in mActiveOnlyMovableObject)
 			{
-				foreach (IMouseEventCollect item in b.mReadList)
+				if (mAllObjectSet.Contains(item) && item.isReceiveScreenTouch())
 				{
-					if (mAllObjectSet.Contains(item) && item.isReceiveScreenTouch())
-					{
-						item.onScreenTouchDown(pos, touchID);
-					}
+					item.onScreenTouchDown(pos, touchID);
 				}
 			}
 
 			// 因为onScreenMouseDown里可能会移除物体,所以这里还要再判断一次mAllObjectSet.Contains
-			using (var c = new SafeListReader<myUGUIObject>(mActiveOnlyUIObject))
+			foreach (IMouseEventCollect item in mActiveOnlyUIObject)
 			{
-				foreach (IMouseEventCollect item in c.mReadList)
+				if (mAllObjectSet.Contains(item) && touchInfo.getPressList().contains(item))
 				{
-					if (mAllObjectSet.Contains(item) && touchInfo.getPressList().contains(item))
-					{
-						item.onTouchDown(pos, touchID);
-					}
+					item.onTouchDown(pos, touchID);
 				}
 			}
 
-			using (var d = new SafeListReader<MovableObject>(mActiveOnlyMovableObject))
+			foreach (IMouseEventCollect item in mActiveOnlyMovableObject)
 			{
-				foreach (IMouseEventCollect item in d.mReadList)
+				if (mAllObjectSet.Contains(item) && touchInfo.getPressList().contains(item))
 				{
-					if (mAllObjectSet.Contains(item) && touchInfo.getPressList().contains(item))
-					{
-						item.onTouchDown(pos, touchID);
-					}
+					item.onTouchDown(pos, touchID);
 				}
 			}
 		}
@@ -432,8 +417,7 @@ public class GlobalTouchSystem : FrameSystem
 				}
 			}
 
-			using var a = new SafeListReader<IMouseEventCollect>(touchInfo.getPressList());
-			foreach (IMouseEventCollect obj in a.mReadList)
+			foreach (IMouseEventCollect obj in touchInfo.getPressList())
 			{
 				// 如果此时窗口已经被销毁了,则不再通知,因为可能在onScreenMouseUp中销毁了
 				if (mAllObjectSet.Contains(obj))
@@ -446,48 +430,36 @@ public class GlobalTouchSystem : FrameSystem
 		else
 		{
 			// 为了保险起见,在每次遍历时都会判断mAllObjectSet.Contains(item)
-			using (var a = new SafeListReader<myUGUIObject>(mActiveOnlyUIObject))
+			foreach (IMouseEventCollect item in mActiveOnlyUIObject)
 			{
-				foreach (IMouseEventCollect item in a.mReadList)
+				if (mAllObjectSet.Contains(item) && item.isReceiveScreenTouch())
 				{
-					if (mAllObjectSet.Contains(item) && item.isReceiveScreenTouch())
-					{
-						item.onScreenTouchUp(pos, touchID);
-					}
+					item.onScreenTouchUp(pos, touchID);
 				}
 			}
 
-			using (var b = new SafeListReader<MovableObject>(mActiveOnlyMovableObject))
+			foreach (IMouseEventCollect item in mActiveOnlyMovableObject)
 			{
-				foreach (IMouseEventCollect item in b.mReadList)
+				if (mAllObjectSet.Contains(item) && item.isReceiveScreenTouch())
 				{
-					if (mAllObjectSet.Contains(item) && item.isReceiveScreenTouch())
-					{
-						item.onScreenTouchUp(pos, touchID);
-					}
+					item.onScreenTouchUp(pos, touchID);
 				}
 			}
 
 			// 因为onScreenMouseUp里可能会移除物体,所以这里还要再判断一次mAllObjectSet.Contains
-			using (var c = new SafeListReader<myUGUIObject>(mActiveOnlyUIObject))
+			foreach (IMouseEventCollect item in mActiveOnlyUIObject)
 			{
-				foreach (IMouseEventCollect item in c.mReadList)
+				if (mAllObjectSet.Contains(item) && touchInfo.getPressList().contains(item))
 				{
-					if (mAllObjectSet.Contains(item) && touchInfo.getPressList().contains(item))
-					{
-						item.onTouchUp(pos, touchID);
-					}
+					item.onTouchUp(pos, touchID);
 				}
 			}
 
-			using (var d = new SafeListReader<MovableObject>(mActiveOnlyMovableObject))
+			foreach (IMouseEventCollect item in mActiveOnlyMovableObject)
 			{
-				foreach (IMouseEventCollect item in d.mReadList)
+				if (mAllObjectSet.Contains(item) && touchInfo.getPressList().contains(item))
 				{
-					if (mAllObjectSet.Contains(item) && touchInfo.getPressList().contains(item))
-					{
-						item.onTouchUp(pos, touchID);
-					}
+					item.onTouchUp(pos, touchID);
 				}
 			}
 		}

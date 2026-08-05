@@ -32,11 +32,9 @@ public class COMCharacterStateMachine : GameComponent
 	public void clearState()
 	{
 		// 先退出所有状态
-		using var a = new SafeDictionaryReader<Type, SafeList<CharacterState>>(mStateTypeList);
-		foreach (var item in a.mReadList)
+		foreach (var item in mStateTypeList)
 		{
-			using var b = new SafeListReader<CharacterState>(item.Value);
-			foreach (CharacterState state in b.mReadList)
+			foreach (CharacterState state in item.Value)
 			{
 				leaveStateInternal(state, true, true);
 			}
@@ -54,8 +52,7 @@ public class COMCharacterStateMachine : GameComponent
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		using var b = new SafeListReader<CharacterState>(mStateTickList);
-		foreach (CharacterState state in b.mReadList)
+		foreach (CharacterState state in mStateTickList)
 		{
 			if (isDestroy() || !state.isActive() || state.isDestroy())
 			{
@@ -72,8 +69,7 @@ public class COMCharacterStateMachine : GameComponent
 	public override void fixedUpdate(float elapsedTime)
 	{
 		base.fixedUpdate(elapsedTime);
-		using var a = new SafeListReader<CharacterState>(mStateTickList);
-		foreach (CharacterState state in a.mReadList)
+		foreach (CharacterState state in mStateTickList)
 		{
 			if (isDestroy() || !state.isActive() || state.isDestroy())
 			{

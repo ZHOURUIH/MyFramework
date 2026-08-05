@@ -31,31 +31,6 @@ public class MathUtility
 	public const float HALF_PI_RADIAN = Mathf.PI * 0.5f;                            // 1.57f
 	public const float PI_DEGREE = Mathf.PI * Mathf.Rad2Deg;                        // 180.0f
 	public const float PI_RADIAN = Mathf.PI;                                        // 3.14f
-	public static long[] POWER_INT_10 = new long[11] { 1L, 10L, 100L, 1000L, 10000L, 100000L, 1000000L, 10000000L, 100000000L, 1000000000L, 10000000000L };
-	public static float[] INVERSE_POWER_INT_10 = new float[7] { 1.0f, 0.1f, 0.01f, 0.001f, 0.0001f, 0.00001f, 0.000001f };
-	public static double[] INVERSE_POWER_LLONG_10 = new double[11] { 1.0, 0.1, 0.01, 0.001, 0.0001, 0.00001, 0.000001, 0.0000001, 0.0000001, 0.0000001, 0.0000001 };
-	public static long[] POWER_LLONG_10 = new long[19]
-	{
-		1L,
-		10L,
-		100L,
-		1000L,
-		10000L,
-		100000L,
-		1000000L,
-		10000000L,
-		100000000L,
-		1000000000L,
-		10000000000L,
-		100000000000L,
-		1000000000000L,
-		10000000000000L,
-		100000000000000L,
-		1000000000000000L,
-		10000000000000000L,
-		100000000000000000L,
-		1000000000000000000L
-	};
 	public static int intPosToIndex(int x, int y, int width) { return x + y * width; }
 	public static float atan2(float y, float x) { return Mathf.Atan2(y, x); }
 	// 计算二维空间的向量叉积,大于0表示point在线段的左边,小于0表示point在线段的右边,等于0表示三点共线
@@ -142,11 +117,6 @@ public class MathUtility
 	{
 		return angle >= HALF_PI_DEGREE ? PI_DEGREE - angle : angle;
 	}
-	// value是否是2的n次方
-	public static bool isPow2(int value) { return (value & (value - 1)) == 0; }
-	// 是否为偶数
-	// 对于a % b的计算,如果b为2的n次方,则a % b等效于a & (b - 1)
-	public static bool isEven(int value) { return (value & 1) == 0; }
 	public static float getNearest(float value, float p0, float p1) { return (value - p0).abs() < (value - p1).abs() ? p0 : p1; }
 	public static float getFarthest(float value, float p0, float p1) { return (value - p0).abs() > (value - p1).abs() ? p0 : p1; }
 	public static int getCharCount(string str, char c)
@@ -591,7 +561,7 @@ public class MathUtility
 		}
 		return 0;
 	}
-	// 获取一个min和max之间的随机浮点数
+	// 获取一个min和max之间的随机浮点数,包含max
 	public static float randomFloat(float min, float max)
 	{
 		return UnityEngine.Random.Range(min, max);

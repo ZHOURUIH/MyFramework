@@ -58,8 +58,7 @@ public class AudioManager : FrameSystem
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		using var a = new SafeHashSetReader<AudioHelper>(mHelperList);
-		foreach (AudioHelper item in a.mReadList)
+		foreach (AudioHelper item in mHelperList)
 		{
 			// 本身就小于0表示不自动销毁
 			if (item != mMusicHelper && tickTimerOnce(ref item.mRemainTime, elapsedTime))

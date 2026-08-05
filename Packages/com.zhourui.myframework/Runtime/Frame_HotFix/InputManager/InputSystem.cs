@@ -96,8 +96,7 @@ public class InputSystem : FrameSystem
 		// 更新触点位置
 		if (Input.touchCount == 0)
 		{
-			using var a = new SafeDictionaryReader<int, TouchPoint>(mTouchPointList);
-			foreach (var item in a.mReadList)
+			foreach (var item in mTouchPointList)
 			{
 				// 此处只更新鼠标的位置,因为touchCount为0时,mTouchPointList种也可能存在这一帧抬起的还未来得及移除的触摸屏的触点
 				// webgl上也可能在鼠标按下时读取不到触点数量,所以触点数量为0而且又检测到了鼠标按下而添加信息到mTouchPointList,也使用鼠标位置来更新触点
@@ -117,8 +116,7 @@ public class InputSystem : FrameSystem
 				touchInfoList.Add(touch.fingerId, touch);
 			}
 			// 找到指定ID的触点信息,获取触点的位置
-			using var b = new SafeDictionaryReader<int, TouchPoint>(mTouchPointList);
-			foreach (var item in b.mReadList)
+			foreach (var item in mTouchPointList)
 			{
 				if (touchInfoList.TryGetValue(item.Key, out Touch touch))
 				{
@@ -134,13 +132,11 @@ public class InputSystem : FrameSystem
 
 		// 判断是否有触点已经过期
 		DateTime now = DateTime.Now;
-		using var c = new SafeListReader<DeadClick>(mLastClickList);
-		int deadCount = c.mReadList.Count;
-		for (int i = 0; i < deadCount; ++i)
+		foreach (DeadClick item in mLastClickList)
 		{
-			if ((now - c.mReadList[i].mClickTime).TotalSeconds > 1.0f)
+			if ((now - item.mClickTime).TotalSeconds > 1.0f)
 			{
-				mLastClickList.removeAt(i);
+				mLastClickList.remove(item);
 			}
 		}
 
@@ -175,15 +171,13 @@ public class InputSystem : FrameSystem
 		curCombination |= isAnyKeyDown(KeyCode.LeftControl, KeyCode.RightControl) ? COMBINATION_KEY.CTRL : COMBINATION_KEY.NONE;
 		curCombination |= isAnyKeyDown(KeyCode.LeftShift, KeyCode.RightShift) ? COMBINATION_KEY.SHIFT : COMBINATION_KEY.NONE;
 		curCombination |= isAnyKeyDown(KeyCode.LeftAlt, KeyCode.RightAlt) ? COMBINATION_KEY.ALT : COMBINATION_KEY.NONE;
-		using var d = new SafeDictionaryReader<KeyCode, SafeList<KeyListenInfo>>(mKeyListenList);
-		foreach (var item in d.mReadList)
+		foreach (var item in mKeyListenList)
 		{
 			if (!isKeyCurrentDown(item.Key))
 			{
 				continue;
 			}
-			using var e = new SafeListReader<KeyListenInfo>(item.Value);
-			foreach (KeyListenInfo info in e.mReadList)
+			foreach (KeyListenInfo info in item.Value)
 			{
 				if (info.mCombinationKey == curCombination)
 				{
@@ -196,8 +190,7 @@ public class InputSystem : FrameSystem
 	{
 		base.lateUpdate(elapsedTime);
 		// 销毁已经不存在的触点
-		using var b = new SafeDictionaryReader<int, TouchPoint>(mTouchPointList);
-		foreach (var item in b.mReadList)
+		foreach (var item in mTouchPointList)
 		{
 			TouchPoint touchPoint = item.Value;
 			if (touchPoint.isCurrentUp())

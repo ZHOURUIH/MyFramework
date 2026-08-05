@@ -20,8 +20,7 @@ public abstract class ComponentOwner : CommandReceiver
 		mDestroying = true;
 		if (mAllComponentTypeList != null)
 		{
-			using var a = new SafeDictionaryReader<Type, GameComponent>(mAllComponentTypeList);
-			UN_CLASS_LIST(a.mReadList);
+			UN_CLASS_LIST(mAllComponentTypeList.getMainList());
 			mAllComponentTypeList.clear();
 		}
 		mComponentList?.clear();
@@ -57,8 +56,7 @@ public abstract class ComponentOwner : CommandReceiver
 		}
 		if (mAllComponentTypeList != null)
 		{
-			using var a = new SafeDictionaryReader<Type, GameComponent>(mAllComponentTypeList);
-			foreach (var item in a.mReadList)
+			foreach (var item in mAllComponentTypeList)
 			{
 				item.Value?.notifyOwnerActive(active);
 			}
@@ -72,15 +70,13 @@ public abstract class ComponentOwner : CommandReceiver
 		{
 			return;
 		}
-		using var a = new SafeListReader<GameComponent>(mComponentList);
-		for (int i = 0; i < a.mReadList.Count; ++i)
+		foreach (GameComponent com in mComponentList)
 		{
 			// 数量为0,表示在更新组件的过程中当前对象被销毁
-			if (a.mReadList.Count == 0 || isDestroy())
+			if (mComponentList.count() == 0 || isDestroy())
 			{
 				return;
 			}
-			GameComponent com = a.mReadList[i];
 			if (com.isValid() && com.isActive() && !mDisableTypeList.contains(com.getType()))
 			{
 				using var b = new ProfilerScope(com.getTypeName());
@@ -95,8 +91,7 @@ public abstract class ComponentOwner : CommandReceiver
 		{
 			return;
 		}
-		using var a = new SafeListReader<GameComponent>(mComponentList);
-		foreach (GameComponent com in a.mReadList)
+		foreach (GameComponent com in mComponentList)
 		{
 			if (com != null && com.isActive() && !mDisableTypeList.contains(com.getType()))
 			{
@@ -111,8 +106,7 @@ public abstract class ComponentOwner : CommandReceiver
 		{
 			return;
 		}
-		using var a = new SafeListReader<GameComponent>(mComponentList);
-		foreach (GameComponent com in a.mReadList)
+		foreach (GameComponent com in mComponentList)
 		{
 			if (com != null && com.isActive() && !mDisableTypeList.contains(com.getType()))
 			{
@@ -350,8 +344,7 @@ public abstract class ComponentOwner : CommandReceiver
 			return;
 		}
 		// 中断所有可中断的组件
-		using var a = new SafeDictionaryReader<Type, GameComponent>(mAllComponentTypeList);
-		foreach (var item in a.mReadList)
+		foreach (var item in mAllComponentTypeList)
 		{
 			GameComponent com = item.Value;
 			if (com.isActive() &&

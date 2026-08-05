@@ -25,8 +25,7 @@ public class TouchInfo : ClassObject
 		int touchID = mTouch.getTouchID();
 		Vector3 curPos = mTouch.getCurPosition();
 		// 通知触点移动,只通知触点按下时的窗口列表
-		using var a = new SafeListReader<IMouseEventCollect>(mPressList);
-		foreach (IMouseEventCollect obj in a.mReadList)
+		foreach (IMouseEventCollect obj in mPressList)
 		{
 			if (mTouch.getMoveDelta().isZero())
 			{

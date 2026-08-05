@@ -1911,4 +1911,19 @@ public static class StringExtension
             mZeroStringList.add(zeroStr);
         }
     }
+	// 字节数组转换为字符串时,末尾可能会带有字符\0,此时在字符串比较时会出现错误,所以需要移除字符串末尾的0
+	public static string removeLastZero(this string str)
+	{
+		int strLen = str.Length;
+		int newLen = strLen;
+		for (int i = 0; i < strLen; ++i)
+		{
+			if (str[i] == 0)
+			{
+				newLen = i;
+				break;
+			}
+		}
+		return str.startString(newLen);
+	}
 }

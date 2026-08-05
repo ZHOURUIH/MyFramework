@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using static UnityUtility;
 using static StringUtility;
-using static MathUtility;
 using static FrameUtility;
 using static FrameBaseUtility;
 
@@ -68,7 +67,7 @@ public class ArrayPool : FrameSystem
 			Debug.LogError("只能在主线程中使用ArrayPool");
 			return null;
 		}
-		if (!isPow2(size))
+		if (!size.isPow2())
 		{
 			Debug.LogError("只有长度为2的n次方的数组才能使用ArrayPool");
 			return null;

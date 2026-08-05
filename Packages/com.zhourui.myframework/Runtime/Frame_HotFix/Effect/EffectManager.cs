@@ -39,13 +39,11 @@ public class EffectManager : FrameSystem
 		mResourceManager.addUnloadPathCallback((string path) =>
 		{
 			// 找到此路径中所有的QuickEffect,将其销毁
-			using var a = new SafeDictionaryReader<string, QuickEffect>(mQuickEffectList);
-			foreach (var item in a.mReadList)
+			foreach (var item in mQuickEffectList)
 			{
 				mQuickEffectList.removeIf(item.Key, item.Key.startWith(path));
 			}
-			using var b = new SafeListReader<GameEffect>(mEffectList);
-			foreach (var item in b.mReadList)
+			foreach (var item in mEffectList)
 			{
 				mEffectList.removeIf(item, item.getFilePath().startWith(path));
 			}
@@ -53,13 +51,11 @@ public class EffectManager : FrameSystem
 		mResourceManager.addUnloadObjectCallback((UObject obj) =>
 		{
 			// 找到此路径中所有的QuickEffect,将其销毁
-			using var a = new SafeDictionaryReader<string, QuickEffect>(mQuickEffectList);
-			foreach (var item in a.mReadList)
+			foreach (var item in mQuickEffectList)
 			{
 				mQuickEffectList.removeIf(item.Key, item.Value.getGameObject() == obj);
 			}
-			using var b = new SafeListReader<GameEffect>(mEffectList);
-			foreach (var item in b.mReadList)
+			foreach (var item in mEffectList)
 			{
 				mEffectList.removeIf(item, item.getGameObject() == obj);
 			}
@@ -68,8 +64,7 @@ public class EffectManager : FrameSystem
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		using var a = new SafeListReader<GameEffect>(mEffectList);
-		foreach (GameEffect effect in a.mReadList)
+		foreach (GameEffect effect in mEffectList)
 		{
 			if (effect.isActiveInHierarchy())
 			{
@@ -92,9 +87,8 @@ public class EffectManager : FrameSystem
 		// 检查有没有长时间没有播放的QuickEffect
 		if (tickTimerLoop(ref mQuickEffectTimer, elapsedTime, 1.0f))
 		{
-			using var b = new SafeDictionaryReader<string, QuickEffect>(mQuickEffectList);
 			DateTime curTime = DateTime.Now;
-			foreach (var item in b.mReadList)
+			foreach (var item in mQuickEffectList)
 			{
 				if ((curTime - item.Value.getLastPlayTime()).TotalSeconds > mQuickEffectTime)
 				{
@@ -108,8 +102,7 @@ public class EffectManager : FrameSystem
 	public override void lateUpdate(float elapsedTime)
 	{
 		base.lateUpdate(elapsedTime);
-		using var a = new SafeListReader<GameEffect>(mEffectList);
-		foreach (GameEffect effect in a.mReadList)
+		foreach (GameEffect effect in mEffectList)
 		{
 			if (effect.isActiveInHierarchy())
 			{
@@ -374,8 +367,7 @@ public class EffectManager : FrameSystem
 	}
 	public void destroyAllEffectWithTag(int tag)
 	{
-		using var a = new SafeListReader<GameEffect>(mEffectList);
-		foreach (GameEffect effect in a.mReadList)
+		foreach (GameEffect effect in mEffectList)
 		{
 			if (effect.getTag() == tag)
 			{
@@ -386,8 +378,7 @@ public class EffectManager : FrameSystem
 	// 检查特效是否还有效,特效物体已经被销毁的视为无效特效,将被清除
 	public void clearInvalidEffect()
 	{
-		using var a = new SafeListReader<GameEffect>(mEffectList);
-		foreach (GameEffect effect in a.mReadList)
+		foreach (GameEffect effect in mEffectList)
 		{
 			if (!effect.checkValid())
 			{

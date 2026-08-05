@@ -29,8 +29,7 @@ public class PrefabPoolManager : FrameSystem
 		mResourceManager.addUnloadPathCallback((string path) =>
 		{
 			// 找到此路径中所有的Prefab,将PrefabPool销毁
-			using var a = new SafeDictionaryReader<string, PrefabPool>(mPrefabPoolList);
-			foreach (var item in a.mReadList)
+			foreach (var item in mPrefabPoolList)
 			{
 				if (mPrefabPoolList.removeIf(item.Key, item.Key.startWith(path)))
 				{
@@ -65,8 +64,7 @@ public class PrefabPoolManager : FrameSystem
 		// 每隔一定时间销毁不再使用的对象池
 		if (tickTimerLoop(ref mDestroyTimer, elapsedTime, mTimerInterval))
 		{
-			using var a = new SafeDictionaryReader<string, PrefabPool>(mPrefabPoolList);
-			foreach (var item in a.mReadList)
+			foreach (var item in mPrefabPoolList)
 			{
 				PrefabPool pool = item.Value;
 				if (!pool.isEmptyInUse())

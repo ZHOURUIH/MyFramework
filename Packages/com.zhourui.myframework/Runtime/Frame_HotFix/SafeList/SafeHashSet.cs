@@ -1,10 +1,28 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using static UnityUtility;
 
 // 非线程安全
 // 可安全遍历的列表,支持在遍历过程中对列表进行修改
 public class SafeHashSet<T> : ClassObject
 {
+	public struct SafeHashSetEnumerator : IDisposable
+	{
+		private SafeHashSet<T> mOwner;
+		private HashSet<T>.Enumerator mEnumerator;
+		public SafeHashSetEnumerator(SafeHashSet<T> safeList)
+		{
+			mOwner = safeList;
+			mEnumerator = safeList.startForeach().GetEnumerator();
+		}
+		public T Current => mEnumerator.Current;
+		public bool MoveNext() { return mEnumerator.MoveNext(); }
+		public void Dispose()
+		{
+			mEnumerator.Dispose();
+			mOwner.endForeach();
+		}
+	}
 	protected List<SafeHashSetModify<T>> mModifyList = new();	// 记录操作的列表,按顺序存储所有的操作
 	protected HashSet<T> mUpdateList = new();					// 用于遍历更新的列表
 	protected HashSet<T> mMainList = new();						// 用于存储实时数据的列表
@@ -19,53 +37,9 @@ public class SafeHashSet<T> : ClassObject
 		mLastFileName = null;
 		mForeaching = false;
 	}
-    // 获取用于更新的列表,会自动从主列表同步,遍历结束时需要调用endForeach
-    // 一般使用SafeHashSetReader来安全遍历,using var a = new SafeHashSetReader<T>(safeList);然后遍历a.mReadList
-    public HashSet<T> startForeach(string fileName = null)
-	{
-		if (mForeaching)
-		{
-			logError("当前列表正在遍历中,无法再次开始遍历, 上一次开始遍历的地方:" + (mLastFileName ?? "") + ", 当前遍历的地方:" + fileName);
-			return null;
-		}
-		mLastFileName = fileName;
-		mForeaching = true;
-
-		// 获取更新列表前,先同步主列表到更新列表,为了避免当列表过大时每次同步量太大
-		// 所以单独使用了添加列表和移除列表,用来存储主列表的添加和移除的元素
-		int mainCount = mMainList.Count;
-		// 主列表为空,则直接清空即可
-		if (mainCount == 0)
-		{
-			mUpdateList.Clear();
-		}
-		else
-		{
-			// 操作记录较少,则根据操作进行增删
-			if (mModifyList.Count < mainCount)
-			{
-				foreach (var value in mModifyList)
-				{
-					mUpdateList.addOrRemove(value.mValue, value.mAdd);
-				}
-			}
-			// 主列表元素较少,则直接同步主列表到更新列表
-			else
-			{
-				mUpdateList.Clear();
-				mUpdateList.addRange(mMainList);
-			}
-		}
-		if (mUpdateList.Count != mMainList.Count)
-		{
-			logError("同步失败");
-		}
-		mModifyList.Clear();
-		return mUpdateList;
-	}
-	public void endForeach()		{ mForeaching = false; }
 	public bool isForeaching()		{ return mForeaching; }
-	public HashSet<T>.Enumerator GetEnumerator() { return mMainList.GetEnumerator(); }
+	// 安全遍历枚举器：foreach 时自动调用 startForeach，枚举器 Dispose 时自动调用 endForeach
+	public SafeHashSetEnumerator GetEnumerator() { return new(this); }
 	// 获取主列表,存储着当前实时的数据列表,所有的删除和新增都会立即更新此列表
 	// 如果确保在遍历过程中不会对列表进行修改,则可以使用MainList
 	// 如果可能会对列表进行修改,则应该使用startForeach
@@ -128,4 +102,50 @@ public class SafeHashSet<T> : ClassObject
 		}
 		mMainList.Clear();
 	}
+	//------------------------------------------------------------------------------------------------------------------------------
+	// 获取用于更新的列表,会自动从主列表同步,遍历结束时需要调用endForeach,仅在迭代器中被调用
+	protected HashSet<T> startForeach(string fileName = null)
+	{
+		if (mForeaching)
+		{
+			logError("当前列表正在遍历中,无法再次开始遍历, 上一次开始遍历的地方:" + (mLastFileName ?? "") + ", 当前遍历的地方:" + fileName);
+			return null;
+		}
+		mLastFileName = fileName;
+		mForeaching = true;
+
+		// 获取更新列表前,先同步主列表到更新列表,为了避免当列表过大时每次同步量太大
+		// 所以单独使用了添加列表和移除列表,用来存储主列表的添加和移除的元素
+		int mainCount = mMainList.Count;
+		// 主列表为空,则直接清空即可
+		if (mainCount == 0)
+		{
+			mUpdateList.Clear();
+		}
+		else
+		{
+			// 操作记录较少,则根据操作进行增删
+			if (mModifyList.Count < mainCount)
+			{
+				foreach (var value in mModifyList)
+				{
+					mUpdateList.addOrRemove(value.mValue, value.mAdd);
+				}
+			}
+			// 主列表元素较少,则直接同步主列表到更新列表
+			else
+			{
+				mUpdateList.Clear();
+				mUpdateList.addRange(mMainList);
+			}
+		}
+		if (mUpdateList.Count != mMainList.Count)
+		{
+			logError("同步失败");
+		}
+		mModifyList.Clear();
+		return mUpdateList;
+	}
+	// 仅在迭代器中被调用
+	protected void endForeach() { mForeaching = false; }
 }

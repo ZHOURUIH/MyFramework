@@ -247,16 +247,16 @@ public static class MathUtilityTest
 
     static void testIsEven()
     {
-        assertTrue(isEven(0), "even 0");
-        assertTrue(isEven(2), "even 2");
-        assertFalse(isEven(1), "odd 1");
+        assertTrue(0.isEven(), "even 0");
+        assertTrue(2.isEven(), "even 2");
+        assertFalse(1.isEven(), "odd 1");
     }
 
     static void testIsPow2()
     {
-        assertTrue(isPow2(1), "pow2 1");
-        assertTrue(isPow2(16), "pow2 16");
-        assertFalse(isPow2(3), "not pow2 3");
+        assertTrue(1.isPow2(), "pow2 1");
+        assertTrue(16.isPow2(), "pow2 16");
+        assertFalse(3.isPow2(), "not pow2 3");
     }
 
     static void testGetGreaterPow2()
@@ -574,9 +574,9 @@ public static class MathUtilityTest
 
     static void testBitwiseAndTrig()
     {
-        assertTrue(isPow2(16), "pow2 16");
-        assertFalse(isPow2(15), "not pow2 15");
-        assertTrue(isEven(10), "even 10");
+        assertTrue(16.isPow2(), "pow2 16");
+        assertFalse(15.isPow2(), "not pow2 15");
+        assertTrue(10.isEven(), "even 10");
         assertTrue(0.0f.isZero(), "isFltZero 0");
         assertTrue(float.NaN.isNaN(), "isNaN");
         assertTrue(Vector3.zero.isZero(), "isVZero");

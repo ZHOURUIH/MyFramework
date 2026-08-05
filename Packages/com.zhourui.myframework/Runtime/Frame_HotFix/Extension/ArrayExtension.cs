@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using static BinaryUtility;
 using static FrameUtility;
 
 // 空数组,在返回空数组时避免分配新对象
@@ -253,7 +252,7 @@ public static class ArrayExtension
 			return string.Empty;
 		}
 		// 默认为UTF8
-		return removeLastZero((encoding ?? Encoding.UTF8).GetString(bytes));
+		return (encoding ?? Encoding.UTF8).GetString(bytes).removeLastZero();
 	}
 	public static string bytesToString(this byte[] bytes, int count)
 	{
@@ -270,7 +269,7 @@ public static class ArrayExtension
 			return string.Empty;
 		}
 		// 默认为UTF8
-		return removeLastZero((encoding ?? Encoding.UTF8).GetString(bytes, startIndex, count));
+		return (encoding ?? Encoding.UTF8).GetString(bytes, startIndex, count).removeLastZero();
 	}
 	// 移除数组中的第index个元素，将后面的元素前移覆盖
 	// validElementCount: 数组中当前有效的元素个数（可能小于数组容量）

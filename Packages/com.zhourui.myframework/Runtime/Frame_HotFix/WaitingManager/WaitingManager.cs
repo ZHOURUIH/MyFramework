@@ -9,11 +9,9 @@ public class WaitingManager : FrameSystem
 	public override void update(float elapsedTime)
 	{
 		base.update(elapsedTime);
-		using var a = new SafeListReader<Waiting>(mList);
-		int count = a.mReadList.Count;
-		for (int i = 0; i < count; ++i)
+		int index = 0;
+		foreach (Waiting item in mList)
 		{
-			Waiting item = a.mReadList[i];
 			bool isDone = item.isDone();
 			if (isDone || item.isCancel())
 			{
@@ -23,10 +21,11 @@ public class WaitingManager : FrameSystem
 				}
 				if (item.isAutoDestroy())
 				{
-					mList.removeAt(i);
-					UN_CLASS(ref item);
+					mList.removeAt(index);
+					UN_CLASS(item);
 				}
 			}
+			++index;
 		}
 	}
 	// 当op0完成时,调用done回调

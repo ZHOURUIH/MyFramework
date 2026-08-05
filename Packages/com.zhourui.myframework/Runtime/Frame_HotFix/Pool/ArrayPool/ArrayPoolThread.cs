@@ -2,7 +2,6 @@
 using System;
 using UnityEngine;
 using static UnityUtility;
-using static MathUtility;
 using static FrameBaseUtility;
 
 // 线程安全的数组池,但是效率较低
@@ -44,7 +43,7 @@ public class ArrayPoolThread : FrameSystem
 	// 从池中获取或创建一个指定类型和大小的数组,size必须是2的n次方
 	public T[] newArray<T>(int size)
 	{
-		if (!isPow2(size))
+		if (!size.isPow2())
 		{
 			Debug.LogError("只有长度为2的n次方的数组才能使用ArrayPoolThread");
 			return null;

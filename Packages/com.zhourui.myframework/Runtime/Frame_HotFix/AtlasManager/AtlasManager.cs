@@ -70,8 +70,7 @@ public class AtlasManager : FrameSystem
 		// 检查是否有需要卸载的图集
 		if (mAtlasList.count() > 0 && tickTimerLoop(ref mCheckTimer, elapsedTime, CHECK_INTERVAL))
 		{
-			using var a = new SafeDictionaryReader<string, AtlasBase>(mAtlasList);
-			foreach (var item in a.mReadList)
+		foreach (var item in mAtlasList)
 			{
 				// 图集本身的引用为0,且其中的图片没有在任何地方被引用,并且这个图集不在不允许卸载的列表中,则可以卸载这个图集
 				if (item.Value.getReferenceCount() == 0 && allowUnloadAtlas(item.Key))
