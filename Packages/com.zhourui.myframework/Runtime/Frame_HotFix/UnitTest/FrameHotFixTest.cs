@@ -188,6 +188,16 @@ public class FrameHotFixTest
 		Register("COMMyTweenerFloatTest", COMMyTweenerFloatTest.Run);
 		Register("MovableObjectTest", MovableObjectTest.Run);
 		Register("SceneSystemTest", SceneSystemTest.Run);
+		Register("GeometryStructTest", GeometryStructTest.Run);
+		Register("NetPacketFactoryTest", NetPacketFactoryTest.Run);
+		Register("ScopeTest", ScopeTest.Run);
+		Register("CharacterStateTest", CharacterStateTest.Run);
+		Register("AsyncTaskGroupTest", AsyncTaskGroupTest.Run);
+		Register("TouchPointTest", TouchPointTest.Run);
+		Register("StateManagerTest", StateManagerTest.Run);
+		Register("SerializerByteTest", SerializerByteTest.Run);
+		Register("NetPacketTest", NetPacketTest.Run);
+		Register("HttpSendInfoTest", HttpSendInfoTest.Run);
 
 		doRunAll(sTests);
     }

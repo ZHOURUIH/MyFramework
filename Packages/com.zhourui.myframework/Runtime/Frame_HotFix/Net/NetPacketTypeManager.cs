@@ -24,6 +24,16 @@ public class NetPacketTypeManager : FrameSystem
 		mPacketTypeList.addIf(type, info, type > 0);
 		mClassTypeList.Add(classType, info);
 	}
+	public void unregisteUDPPacketName(ushort type, string name)
+	{
+		mUDPNameIDList.Remove(name);
+		mUDPIDNameList.Remove(type);
+	}
+	public void unregistePacket(Type classType, ushort type)
+	{
+		mPacketTypeList.Remove(type);
+		mClassTypeList.Remove(classType);
+	}
 	public ushort getPacketTypeID(Type type) { return mClassTypeList.get(type)?.mTypeID ?? 0; }
 	public Type getPacketType(ushort typeID) { return mPacketTypeList.get(typeID)?.mClassType; }
 	public ushort getUDPPacketType(string packetName) { return mUDPNameIDList.get(packetName); }
