@@ -264,7 +264,14 @@ public class Transformable : ComponentOwner, ITransformable
 	}
 	public int getSiblingIndex() { return mTransform != null ? mTransform.GetSiblingIndex() : 0; }
 	public int getChildCount() { return mTransform != null ? mTransform.childCount : 0; }
-	public GameObject getChild(int index) { return mTransform != null ? mTransform.GetChild(index).gameObject : null; }
+	public GameObject getChild(int index)
+	{
+		if (mTransform == null || index < 0 || index >= mTransform.childCount)
+		{
+			return null;
+		}
+		return mTransform.GetChild(index).gameObject;
+	}
 	public Vector3 getScale() { return mTransform != null ? mTransform.localScale : Vector3.zero; }
 	public Vector3 getWorldPosition() { return mTransform != null ? mTransform.position : Vector3.zero; }
 	public Vector3 getWorldScale() { return mTransform != null ? mTransform.lossyScale : Vector3.zero; }

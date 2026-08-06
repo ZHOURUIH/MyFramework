@@ -214,7 +214,7 @@ public class ObsSystem : IObjectStorageSystem
 		byte[] bytes = hmacSha1(secureKey, stringToSign);
 		return bytes != null ? Convert.ToBase64String(bytes) : EMPTY;
 	}
-	protected static string generateURLSignature(string secureKey, string verb, string contentMD5_16, string contentType, out string expires, string bucket, string file)
+	protected static string generateURLSignature(string secureKey, string verb, string contentMD5_16, string contentType, out string expires, string bucket, string file, DateTime? expiration = null)
 	{
 		string canonicalizedResource = "/" + bucket + "/" + file;
 		string contentMD5Base64 = null;
@@ -222,16 +222,19 @@ public class ObsSystem : IObjectStorageSystem
 		{
 			contentMD5Base64 = Convert.ToBase64String(contentMD5_16.toBytes());
 		}
-		expires = dateTimeToTimeStamp(DateTime.Now.AddMinutes(10)).LToS();
+		// 10分钟后失效, 可传入固定时间用于测试确定性
+		DateTime exp = expiration ?? DateTime.Now.AddMinutes(10);
+		expires = dateTimeToTimeStamp(exp).LToS();
 		string stringToSign = verb + "\n" + contentMD5Base64 + "\n" + contentType + "\n" + expires + "\n" + canonicalizedResource;
 		byte[] bytes = hmacSha1(secureKey, stringToSign);
 		return bytes != null ? Convert.ToBase64String(bytes) : EMPTY;
 	}
-	protected static string generatePolicySignature(string bucket, string secureKey, string savePath, string acl, out string policyBase64)
+	protected static string generatePolicySignature(string bucket, string secureKey, string savePath, string acl, out string policyBase64, DateTime? expiration = null)
 	{
 		StringBuilder policy = new();
-		// 10分钟后失效
-		policy.AppendLine("{\"expiration\": \"" + DateTime.UtcNow.AddMinutes(10).ToString("O") + "\",");
+		// 10分钟后失效, 可传入固定时间用于测试确定性
+		DateTime exp = expiration ?? DateTime.UtcNow.AddMinutes(10);
+		policy.AppendLine("{\"expiration\": \"" + exp.ToString("O") + "\",");
 		policy.AppendLine("\"conditions\":[");
 		policy.AppendLine("{\"x-obs-acl\": \"" + acl + "\"},");
 		policy.AppendLine("{\"bucket\":\"" + bucket + "\"},");

@@ -943,7 +943,7 @@ public class EditorCommonUtility
 	// 图片尺寸是否为2的n次方
 	public static bool isSizePow2(Texture2D tex)
 	{
-		return isPow2(tex.width) && isPow2(tex.height);
+		return tex.width.isPow2() && tex.height.isPow2();
 	}
 	// 是否忽略该文件
 	public static bool isIgnoreFile(string filePath, List<string> ignoreArr = null)

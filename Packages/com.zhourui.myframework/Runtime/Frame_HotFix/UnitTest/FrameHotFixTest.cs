@@ -181,6 +181,13 @@ public class FrameHotFixTest
 		Register("SafeModifyTest", SafeModifyTest.Run);
 		Register("AnimControlTest", AnimControlTest.Run);
 		Register("CheckLayerTest", CheckLayerTest.Run);
+		Register("ObsSystemTest", ObsSystemTest.Run);
+		Register("SceneInstanceTest", SceneInstanceTest.Run);
+		Register("InputSystemTest", InputSystemTest.Run);
+		Register("TransformableTest", TransformableTest.Run);
+		Register("COMMyTweenerFloatTest", COMMyTweenerFloatTest.Run);
+		Register("MovableObjectTest", MovableObjectTest.Run);
+		Register("SceneSystemTest", SceneSystemTest.Run);
 
 		doRunAll(sTests);
     }
