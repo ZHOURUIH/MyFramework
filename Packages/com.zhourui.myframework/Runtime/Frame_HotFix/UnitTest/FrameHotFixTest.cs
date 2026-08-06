@@ -120,6 +120,11 @@ public class FrameHotFixTest
         Register("ThreadLockScopeTest", ThreadLockScopeTest.Run);
         Register("ThreadTimeLockTest", ThreadTimeLockTest.Run);
         Register("StructAndFormItemTest", StructAndFormItemTest.Run);
+        Register("Triangle2Test", Triangle2Test.Run);
+        Register("Triangle3Test", Triangle3Test.Run);
+        Register("Vector4IntTest", Vector4IntTest.Run);
+        Register("FormItemFileTest", FormItemFileTest.Run);
+        Register("FormItemParamTest", FormItemParamTest.Run);
         Register("ParamCopyableTest", ParamCopyableTest.Run);
         Register("StateGroupMutexTest", StateGroupMutexTest.Run);
         Register("NetPacketJsonHttpTest", NetPacketJsonHttpTest.Run);
@@ -198,6 +203,17 @@ public class FrameHotFixTest
 		Register("SerializerByteTest", SerializerByteTest.Run);
 		Register("NetPacketTest", NetPacketTest.Run);
 		Register("HttpSendInfoTest", HttpSendInfoTest.Run);
+		Register("PacketInfoTest", PacketInfoTest.Run);
+		Register("NetPacketHttpTTest", NetPacketHttpTTest.Run);
+		Register("ByteSerializableTest", ByteSerializableTest.Run);
+		Register("ByteSerializableTest2", ByteSerializableTest2.Run);
+		Register("ListPoolTest", ListPoolTest.Run);
+		Register("ByteArrayPoolTest", ByteArrayPoolTest.Run);
+		Register("TweenGroupTest", TweenGroupTest.Run);
+		Register("AnimationLayerTest", AnimationLayerTest.Run);
+		Register("TweenSequenceTest", TweenSequenceTest.Run);
+		Register("CmdGlobalDelayCallTest", CmdGlobalDelayCallTest.Run);
+		Register("MemberDataTest", MemberDataTest.Run);
 
 		doRunAll(sTests);
     }
