@@ -425,7 +425,7 @@ public class FrameBaseUtility
 	public static Vector2 getScreenScale(Vector2 rootSize)
 	{
 		Vector2Int uiSize = FrameSettings.getUISize();
-		return new(rootSize.x * (1.0f / uiSize.x), rootSize.y * (1.0f / uiSize.y));
+		return new(rootSize.x / uiSize.x, rootSize.y / uiSize.y);
 	}
 	public static void destroyUnityObject(UObject obj, bool immediately = false, bool allowDestroyAssets = false)
 	{

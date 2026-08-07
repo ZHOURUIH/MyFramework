@@ -7,6 +7,7 @@ using static UnityUtility;
 // 数学相关工具函数,所有与数学计算相关的函数都在这里
 public class MathUtility
 {
+	public const float MIN_DELTA = 0.00001f;
 	private static AStarMinHeap mTempOpenList;                                      // 避免GC
 	private static readonly int[] mDeltaX8 = { -1, 0, 1, -1, 1, -1, 0, 1 };         // 8方向寻路的偏移量X
 	private static readonly int[] mDeltaY8 = { -1, -1, -1, 0, 0, 1, 1, 1 };         // 8方向寻路的偏移量Y
@@ -2221,7 +2222,7 @@ public class MathUtility
 		int ndb = -96;
 		if (v != 0)
 		{
-			ndb = (int)(20.0f * Mathf.Log10(v * (1.0f / 0xFFFF)));
+			ndb = (int)(20.0f * Mathf.Log10(v / 0xFFFF));
 		}
 		return ndb;
 	}
@@ -2262,6 +2263,8 @@ public class MathUtility
 	// 帧换算成秒
 	public static float frameToSecond(float frame) { return frame * 0.0333f; }
 	// 递归计算贝塞尔曲线的点
+	// 说明: loop 为闭合曲线, 每轮仍减少一个控制点以便递归终止; (i+1)%pointCount 让相邻点按环绕方式插值,
+	// 末段隐式参与"接回首点". 之前 loop=true 且 pointCount>2 时 tempCount=pointCount 会无限递归.
 	public static Vector3 getBezier(IList<Vector3> points, bool loop, float t)
 	{
 		int pointCount = points.Count;
@@ -2269,7 +2272,7 @@ public class MathUtility
 		{
 			return lerp(points[0], points[1], t);
 		}
-		int tempCount = loop ? pointCount : pointCount - 1;
+		int tempCount = pointCount - 1;
 		Span<Vector3> temp = stackalloc Vector3[tempCount];
 		for (int i = 0; i < tempCount; ++i)
 		{
@@ -2284,7 +2287,7 @@ public class MathUtility
 		{
 			return lerp(points[0], points[1], t);
 		}
-		int tempCount = loop ? pointCount : pointCount - 1;
+		int tempCount = pointCount - 1;
 		Span<Vector3> temp = stackalloc Vector3[tempCount];
 		for (int i = 0; i < tempCount; ++i)
 		{

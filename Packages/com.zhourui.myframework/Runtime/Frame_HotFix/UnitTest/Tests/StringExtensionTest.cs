@@ -148,6 +148,15 @@ public static class StringExtensionTest
 		assertEqual("a b", " a b".removeStartEmpty(), "removeStartEmpty");
 		assertEqual("a b", "a b ".removeEndEmpty(), "removeEndEmpty");
 		assertEqual("ab", "a b".removeAllEmpty(), "removeAllEmpty");
+
+		// removeLastZero: 从第一个 '\0'(编码0)处截断
+		assertEqual("abc", "abc\0def".removeLastZero(), "removeLastZero mid \\0");
+		assertEqual("a", "a\0b\0c".removeLastZero(), "removeLastZero 取第一个 \\0 之前");
+		assertEqual("", "\0xyz".removeLastZero(), "removeLastZero leading \\0 -> empty");
+		assertEqual("abc", "abc".removeLastZero(), "removeLastZero no \\0 -> 原样");
+		assertEqual("", "".removeLastZero(), "removeLastZero empty");
+		// 末尾 \0
+		assertEqual("abc", "abc\0".removeLastZero(), "removeLastZero trailing \\0");
 	}
 
 	private static void testStartEndWith()

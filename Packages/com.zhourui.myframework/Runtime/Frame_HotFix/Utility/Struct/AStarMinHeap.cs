@@ -42,7 +42,18 @@ class AStarMinHeap
 	{
 		int pos = mIndexToPos[node.mIndex];
 		mHeap[pos] = node;
-		siftUp(pos);
+		int parent = (pos - 1) >> 1;
+		if (pos > 0 && mHeap[pos].mF < mHeap[parent].mF)
+		{
+			// F 减小: 需上浮使较小值到根方向
+			siftUp(pos);
+		}
+		else
+		{
+			// F 增大或不变: 需下沉使较大值远离根方向
+			// (F 不变时 siftDown 立即 break, 位置与映射保持不变)
+			siftDown(pos);
+		}
 	}
 	//-------------------------------------------------------------------------------------------------------------------------------
 	protected void siftUp(int pos)

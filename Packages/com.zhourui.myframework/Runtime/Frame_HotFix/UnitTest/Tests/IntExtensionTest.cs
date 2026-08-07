@@ -30,6 +30,8 @@ public static class IntExtensionTest
         testInversePow10Long();
         testPow10Long();
         testPow2();
+        testIsPow2();
+        testIsEven();
         testGetGreaterPowValue();
         testGetGreaterPow2();
         // 其他整数类型扩展
@@ -281,6 +283,40 @@ public static class IntExtensionTest
         assertTrue(2.pow2().isEqual(4.0f), "pow2 2 -> 4");
         assertTrue(3.pow2().isEqual(8.0f), "pow2 3 -> 8");
         assertTrue(4.pow2().isEqual(16.0f), "pow2 4 -> 16");
+    }
+
+    // ---- isPow2: value & (value-1) == 0 ----
+    static void testIsPow2()
+    {
+        assertTrue(1.isPow2(), "1 isPow2");
+        assertTrue(2.isPow2(), "2 isPow2");
+        assertTrue(4.isPow2(), "4 isPow2");
+        assertTrue(16.isPow2(), "16 isPow2");
+        assertTrue(1024.isPow2(), "1024 isPow2");
+        // 2^30
+        assertTrue((1 << 30).isPow2(), "2^30 isPow2");
+        // 负数位判定: 负数按位与会产生接近自身的负数, 不满足 (v & (v-1))==0
+        assertFalse((-1).isPow2(), "-1 非");
+        assertFalse((-2).isPow2(), "-2 非");
+        assertFalse(3.isPow2(), "3 非");
+        assertFalse(6.isPow2(), "6 非");
+        assertFalse(15.isPow2(), "15 非");
+        assertFalse(1023.isPow2(), "1023 非");
+        // 边界: 按位公式 (0 & -1)==0 成立, 故 0 被判定为 true(记录此行为)
+        assertTrue(0.isPow2(), "0 按位公式判定为 true(文档化当前行为)");
+    }
+
+    // ---- isEven: value & 1 == 0 ----
+    static void testIsEven()
+    {
+        assertTrue(0.isEven(), "0 偶数");
+        assertTrue(2.isEven(), "2 偶数");
+        assertTrue(100.isEven(), "100 偶数");
+        assertTrue((-4).isEven(), "-4 偶数");
+        assertFalse(1.isEven(), "1 奇数");
+        assertFalse(3.isEven(), "3 奇数");
+        assertFalse(101.isEven(), "101 奇数");
+        assertFalse((-3).isEven(), "-3 奇数");
     }
 
     // ---- getGreaterPowValue ----

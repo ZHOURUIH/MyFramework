@@ -109,8 +109,8 @@ public class ImageNumber : Image
 		//2---------3
 		int halfTotalWidth = (numberLength * mNumberWidth + (numberLength - 1) * mInterval) >> 1;
 		int halfHeight = mNumberHeight >> 1;
-		float inverseTextureWidth = 1.0f / texture.width;
-		float inverseTextureHeight = 1.0f / texture.height;
+		float inverseTextureWidth = texture.width.inverse();
+		float inverseTextureHeight = texture.height.inverse();
 		for (int i = 0; i < numberLength; ++i)
 		{
 			Rect spriteRect = mSpriteList.get(mNumber[i]).rect;

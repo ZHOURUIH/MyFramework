@@ -310,5 +310,13 @@ public static class ArrayExtension
 	public static void sort<T>(this T[] array, Comparison<T> comparison)
 	{
 		Array.Sort(array, comparison);
-	} 
+	}
+	public static T random<T>(this T[] list)
+	{
+		if (list.isEmpty())
+		{
+			return default;
+		}
+		return list[UnityEngine.Random.Range(0, list.Length)];
+	}
 }

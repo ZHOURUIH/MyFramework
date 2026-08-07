@@ -169,7 +169,6 @@ public static class SafeDictionaryTest
 		d.add("a", 1);
 		d.add("b", 2);
 		d.add("c", 3);
-		int sumKey = 0;
 		int sumValue = 0;
 		d.For(kv =>
 		{

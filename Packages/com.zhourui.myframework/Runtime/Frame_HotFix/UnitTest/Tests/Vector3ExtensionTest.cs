@@ -30,6 +30,10 @@ public static class Vector3ExtensionTest
         testLengthLessEqual();
         testLengthGreater();
         testLengthGreaterEqual();
+        testLengthLessIgnoreY();
+        testLengthLessEqualIgnoreY();
+        testLengthGreaterIgnoreY();
+        testLengthGreaterEqualIgnoreY();
         testSetLength();
         testIsLess();
         testIsGreater();
@@ -244,6 +248,43 @@ public static class Vector3ExtensionTest
         assertTrue(new Vector3(3.0f, 4.0f, 0.0f).lengthGreaterEqual(5.0f), "5 >= 5");
         assertTrue(new Vector3(3.0f, 4.0f, 0.0f).lengthGreaterEqual(4.0f), "5 >= 4");
         assertFalse(new Vector3(3.0f, 4.0f, 0.0f).lengthGreaterEqual(6.0f), "5 >= 6 false");
+    }
+
+    // ---- lengthLessIgnoreY: 水平(xz)长度 < 阈值, 忽略 Y ----
+    static void testLengthLessIgnoreY()
+    {
+        // |3,_,4|_xz = 5, 高度 100 不影响
+        assertTrue(new Vector3(3.0f, 100.0f, 4.0f).lengthLessIgnoreY(6.0f), "xz=5 < 6, y 不影响");
+        assertFalse(new Vector3(3.0f, -100.0f, 4.0f).lengthLessIgnoreY(4.0f), "xz=5 < 4 false");
+        // 水平方向全 0
+        assertTrue(new Vector3(0.0f, 999.0f, 0.0f).lengthLessIgnoreY(1.0f), "xz=0 < 1");
+        // 与 getLengthIgnoreY 语义一致
+        float len = new Vector3(3.0f, 0.0f, 4.0f).getLengthIgnoreY();
+        assertEqual(len < 6.0f, new Vector3(3.0f, 0.0f, 4.0f).lengthLessIgnoreY(6.0f), "lengthLessIgnoreY 语义一致");
+    }
+
+    // ---- lengthLessEqualIgnoreY ----
+    static void testLengthLessEqualIgnoreY()
+    {
+        assertTrue(new Vector3(3.0f, 50.0f, 4.0f).lengthLessEqualIgnoreY(5.0f), "xz=5 <= 5");
+        assertTrue(new Vector3(3.0f, 50.0f, 4.0f).lengthLessEqualIgnoreY(6.0f), "xz=5 <= 6");
+        assertFalse(new Vector3(3.0f, 50.0f, 4.0f).lengthLessEqualIgnoreY(4.0f), "xz=5 <= 4 false");
+    }
+
+    // ---- lengthGreaterIgnoreY ----
+    static void testLengthGreaterIgnoreY()
+    {
+        assertTrue(new Vector3(3.0f, 77.0f, 4.0f).lengthGreaterIgnoreY(4.0f), "xz=5 > 4");
+        assertFalse(new Vector3(3.0f, 77.0f, 4.0f).lengthGreaterIgnoreY(6.0f), "xz=5 > 6 false");
+        assertFalse(new Vector3(0.0f, 77.0f, 0.0f).lengthGreaterIgnoreY(0.5f), "xz=0 > 0.5 false");
+    }
+
+    // ---- lengthGreaterEqualIgnoreY ----
+    static void testLengthGreaterEqualIgnoreY()
+    {
+        assertTrue(new Vector3(3.0f, 20.0f, 4.0f).lengthGreaterEqualIgnoreY(5.0f), "xz=5 >= 5");
+        assertTrue(new Vector3(3.0f, 20.0f, 4.0f).lengthGreaterEqualIgnoreY(4.0f), "xz=5 >= 4");
+        assertFalse(new Vector3(3.0f, 20.0f, 4.0f).lengthGreaterEqualIgnoreY(6.0f), "xz=5 >= 6 false");
     }
 
     // ---- setLength ----

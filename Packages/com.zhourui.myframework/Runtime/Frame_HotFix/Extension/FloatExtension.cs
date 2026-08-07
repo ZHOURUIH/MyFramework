@@ -24,14 +24,10 @@ public static class FloatExtension
 	public static int floor(this float value)
 	{
 		// 有时候会出现非常奇怪的现象,value显示是251,但是(int)value转换以后却是250,说明可能value实际是250.999999
-		// 但是由于这种误差是非预期的,也就是说外边可能就是251*1,这种情况需要消除这种误差,使用checkInt即可消除
-		value = value.checkInt();
+		// 但是由于这种误差是非预期的,也就是说外边可能就是251*1,这种情况需要消除这种误差
+		// 不过只能在传入之前使用checkInt消除,当前函数中还是严格执行向下取整
 		int intValue = (int)value;
-		if (value.isEqual(intValue))
-		{
-			return intValue;
-		}
-		if (value < 0.0f && value < intValue)
+		if (value < 0.0f && value != intValue)
 		{
 			--intValue;
 		}

@@ -8,8 +8,6 @@ public class FrameHotFixTest
     private static readonly Dictionary<string, Action> sTests = new();
     public static void runAll()
     {
-        sTests.Clear();
-
         Register("ArrayExtensionTest", ArrayExtensionTest.Run);
         Register("ArrayScopeTest", ArrayScopeTest.Run);
         Register("BinaryUtilityTest", BinaryUtilityTest.Run);
@@ -32,6 +30,7 @@ public class FrameHotFixTest
         Register("ListExtensionTest", ListExtensionTest.Run);
         Register("ListScope2Test", ListScope2Test.Run);
         Register("MathUtilityTest", MathUtilityTest.Run);
+        Register("MathUtilityDeepTest", MathUtilityDeepTest.Run);
         Register("MostSafeFloatTest", MostSafeFloatTest.Run);
         Register("MostSafeIntTest", MostSafeIntTest.Run);
         Register("MostSafeLongTest", MostSafeLongTest.Run);
@@ -51,6 +50,7 @@ public class FrameHotFixTest
         Register("SerializableTest", SerializableTest.Run);
         Register("SerializeByteUtilityTest", SerializeByteUtilityTest.Run);
         Register("SpringTest", SpringTest.Run);
+        Register("SpringDeepTest", SpringDeepTest.Run);
         Register("StateGroupTest", StateGroupTest.Run);
         Register("StateParamTest", StateParamTest.Run);
         Register("StreamBufferTest", StreamBufferTest.Run);
@@ -58,6 +58,7 @@ public class FrameHotFixTest
         Register("StringUtilityTest", StringUtilityTest.Run);
         Register("ThreadLockTest", ThreadLockTest.Run);
         Register("TimeUtilityTest", TimeUtilityTest.Run);
+        Register("TimeUtilityDeepTest", TimeUtilityDeepTest.Run);
         Register("TypeIDTest", TypeIDTest.Run);
         Register("UndoManagerTest", UndoManagerTest.Run);
         Register("UndoTest", UndoTest.Run);
@@ -133,6 +134,7 @@ public class FrameHotFixTest
         Register("ResourceManagerTest", ResourceManagerTest.Run);
         Register("Vector2IntMyTest", Vector2IntMyTest.Run);
         Register("AStarMinHeapTest", AStarMinHeapTest.Run);
+        Register("AStarMinHeapDeepTest", AStarMinHeapDeepTest.Run);
         Register("PointTest", PointTest.Run);
         Register("Vector2ShortTest", Vector2ShortTest.Run);
         Register("Vector2UIntTest", Vector2UIntTest.Run);
@@ -200,6 +202,13 @@ public class FrameHotFixTest
 		Register("AsyncTaskGroupTest", AsyncTaskGroupTest.Run);
 		Register("TouchPointTest", TouchPointTest.Run);
 		Register("StateManagerTest", StateManagerTest.Run);
+		Register("StateManagerDeepTest", StateManagerDeepTest.Run);
+		Register("UndoManagerDeepTest", UndoManagerDeepTest.Run);
+		Register("COMCharacterStateMachineDeepTest", COMCharacterStateMachineDeepTest.Run);
+		Register("WaitingManagerDeepTest", WaitingManagerDeepTest.Run);
+		Register("InputSystemDeepTest", InputSystemDeepTest.Run);
+		Register("EventSystemDeepTest", EventSystemDeepTest.Run);
+		Register("RedPointSystemDeepTest", RedPointSystemDeepTest.Run);
 		Register("SerializerByteTest", SerializerByteTest.Run);
 		Register("NetPacketTest", NetPacketTest.Run);
 		Register("HttpSendInfoTest", HttpSendInfoTest.Run);
@@ -212,8 +221,23 @@ public class FrameHotFixTest
 		Register("TweenGroupTest", TweenGroupTest.Run);
 		Register("AnimationLayerTest", AnimationLayerTest.Run);
 		Register("TweenSequenceTest", TweenSequenceTest.Run);
+		Register("TweenSequenceDeepTest", TweenSequenceDeepTest.Run);
 		Register("CmdGlobalDelayCallTest", CmdGlobalDelayCallTest.Run);
 		Register("MemberDataTest", MemberDataTest.Run);
+		Register("CurveDeepTest", CurveDeepTest.Run);
+		Register("MovableObjectDeepTest", MovableObjectDeepTest.Run);
+		Register("GameSceneDeepTest", GameSceneDeepTest.Run);
+		Register("SceneProcedureDeepTest", SceneProcedureDeepTest.Run);
+		Register("BinaryUtilityDeepTest", BinaryUtilityDeepTest.Run);
+		Register("SQLUtilityDeepTest", SQLUtilityDeepTest.Run);
+		Register("TransformableDeepTest", TransformableDeepTest.Run);
+		Register("SafeIntDeepTest", SafeIntDeepTest.Run);
+		Register("SafeFloatDeepTest", SafeFloatDeepTest.Run);
+		Register("SafeLongDeepTest", SafeLongDeepTest.Run);
+		Register("MostSafeIntDeepTest", MostSafeIntDeepTest.Run);
+		Register("MostSafeFloatDeepTest", MostSafeFloatDeepTest.Run);
+		Register("MostSafeLongDeepTest", MostSafeLongDeepTest.Run);
+		Register("CharacterStateDeepTest", CharacterStateDeepTest.Run);
 
 		doRunAll(sTests);
     }

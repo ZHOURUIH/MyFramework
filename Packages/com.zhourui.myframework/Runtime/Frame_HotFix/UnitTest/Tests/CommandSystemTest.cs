@@ -297,10 +297,9 @@ public static class CommandSystemTest
     {
         var sys = new CommandSystem();
         var receiver = new TestCmdReceiver();
-        bool executed = false;
         var cmd = CLASS<TestCommand>(typeof(TestCommand));
         cmd.setDelayCommand(true);
-        cmd.setAction(() => executed = true);
+        cmd.setAction(() => { });
         long id = cmd.getAssignID();
 
         sys.pushDelayCommand(cmd, receiver, 0.01f, null);

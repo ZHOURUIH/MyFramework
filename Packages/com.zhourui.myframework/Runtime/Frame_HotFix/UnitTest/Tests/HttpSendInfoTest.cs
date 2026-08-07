@@ -31,8 +31,7 @@ public static class HttpSendInfoTest
 	{
 		var src = new HttpSendInfo();
 		src.mParamsForGet = new System.Collections.Generic.Dictionary<string, string> { { "k", "v" } };
-		bool cbCalled = false;
-		src.mCallback = (pkt) => { cbCalled = true; };
+		src.mCallback = (pkt) => { };
 		src.mMessage = "msg";
 		src.mUrl = "http://test.com";
 		src.mType = typeof(string);

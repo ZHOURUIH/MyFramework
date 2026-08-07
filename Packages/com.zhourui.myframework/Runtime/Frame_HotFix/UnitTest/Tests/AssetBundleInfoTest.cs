@@ -367,8 +367,7 @@ public static class AssetBundleInfoTest
     private static void testAddDownloadCallback()
     {
         var info = new AssetBundleInfo("bundle");
-        bool called = false;
-        info.addDownloadCallback((bundle, bytes) => called = true);
+        info.addDownloadCallback((bundle, bytes) => { });
         // 不崩溃，回调应在 notifyAssetBundleDownloaded 时触发
         info.destroy();
     }

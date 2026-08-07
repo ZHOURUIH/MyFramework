@@ -3,7 +3,9 @@ using static TestAssert;
 
 // StateManager 单元测试 — 覆盖状态/参数类型的注册与查询、互斥组类型注册
 // 注: 只测不依赖全局 mStateManager 单例的纯注册/查询部分
-//     allowKeepStateByGroup / allowAddStateByGroup 依赖全局单例, 不在本测试范围
+//     更深入的复杂调用链测试(allowKeepStateByGroup / allowAddStateByGroup /
+//     registeGroup / assignGroup 的跨组互斥判定)见 StateManagerDeepTest.cs
+//     (修正: 这些方法只依赖实例字段, 不依赖全局单例, 用局部 new StateManager() 即可测)
 public static class StateManagerTest
 {
 	public static void Run()

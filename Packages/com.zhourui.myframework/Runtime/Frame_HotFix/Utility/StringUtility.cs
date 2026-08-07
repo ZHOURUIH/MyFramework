@@ -836,15 +836,15 @@ public class StringUtility
 		// 不足1MB
 		if (size < 1024 * 1024)
 		{
-			return (size * (1.0f / 1024.0f)).FToS(1) + "KB";
+			return (size / 1024.0f).FToS(1) + "KB";
 		}
 		// 不足1GB
 		if (size < 1024 * 1024 * 1024)
 		{
-			return (size * (1.0f / (1024.0f * 1024.0f))).FToS(1) + "MB";
+			return (size / (1024.0f * 1024.0f)).FToS(1) + "MB";
 		}
 		// 大于1GB
-		return (size * (1.0f / (1024.0f * 1024.0f * 1024.0f))).FToS(1) + "GB";
+		return (size / (1024.0f * 1024.0f * 1024.0f)).FToS(1) + "GB";
 	}
 	public static string addSprite(string originString, string spriteName, float width = 1.0f)
 	{

@@ -38,7 +38,7 @@ public abstract class SequenceSpritePreviewBase : MonoBehaviour
 
         if (mPlaying && !mFrames.isEmpty())
         {
-            float frameTime = 1.0f / Mathf.Max(1.0f, mFPS);
+            float frameTime = getMax(1.0f, mFPS).inverse();
             mTimer += deltaTime;
             while (mTimer >= frameTime)
             {

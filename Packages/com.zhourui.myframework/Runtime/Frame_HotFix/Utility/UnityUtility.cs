@@ -43,8 +43,8 @@ public class UnityUtility
 	protected static Vector2Int mScreenSize = new(Screen.width, Screen.height);                 // 窗口宽高
 	protected static Vector2Int mHalfScreenSize = new(Screen.width >> 1, Screen.height >> 1);   // 窗口宽高的一半
 	protected static float mScreenAspect = mScreenSize.x / (float)mScreenSize.y;                // 屏幕宽高比
-	protected static Vector2 mScreenScale = new(mScreenSize.x * (1.0f / FrameSettings.getUISize().x),
-												mScreenSize.y * (1.0f / FrameSettings.getUISize().y));      // 当前分辨率相对于标准分辨率的缩放
+	protected static Vector2 mScreenScale = new(mScreenSize.x / FrameSettings.getUISize().x,
+												mScreenSize.y / FrameSettings.getUISize().y);      // 当前分辨率相对于标准分辨率的缩放
 	public static void setLogLevel(LOG_LEVEL level)
 	{
 		mLogLevel = level;
@@ -213,7 +213,7 @@ public class UnityUtility
 		mHalfScreenSize = new(mScreenSize.x >> 1, mScreenSize.y >> 1);
 		mScreenAspect = mScreenSize.x.divide(mScreenSize.y);   // 屏幕宽高比
 		Vector2Int uiSize = FrameSettings.getUISize();
-		mScreenScale = new(mScreenSize.x * (1.0f / uiSize.x), mScreenSize.y * (1.0f / uiSize.y));   // 当前分辨率相对于标准分辨率的缩放
+		mScreenScale = new(mScreenSize.x / uiSize.x, mScreenSize.y / uiSize.y);   // 当前分辨率相对于标准分辨率的缩放
 		setScreenSizeBase(mScreenSize, fullScreen);
 		GameCamera camera = mCameraManager.getUICamera();
 		camera?.MOVE(new(0.0f, 0.0f, -(mScreenSize.y * 0.5f).divide((camera.getFOVY(true) * 0.5f).tan())));
