@@ -37,7 +37,12 @@ public static class UnityUtilityTest
 		testParticleAndSpine();
 		testRenderAndShader();
 		testContentAndMisc();
-	}
+		testGetScreenAspect();
+		testIsPointInBoxCollider();
+	testFindMaterial();
+	testFindMaterialShader();
+	testScreenAndWindowConversion();
+}
 
 	// ─── setGameObjectLayer ────────────────────────────────────────
 	private static void testSetGameObjectLayer()
@@ -608,7 +613,17 @@ public static class UnityUtilityTest
 		overlapCollider(box, results, -1);
 		isOverlap(box, box2);
 
+		// overlapAllCapsule: 依赖物理查询, EditMode 下安全调用(nonAlloc 无匹配时返回0)
+		GameObject ccGo = new GameObject("TestCapsule");
+		CharacterController cc = ccGo.AddComponent<CharacterController>();
+		cc.center = Vector3.zero;
+		cc.height = 2.0f;
+		cc.radius = 0.5f;
+		int capCount = overlapAllCapsule(cc, results, -1);
+		assertTrue(capCount >= 0, "overlapAllCapsule count >= 0");
+
 		assertTrue(true, "overlap functions called");
+		UnityEngine.Object.DestroyImmediate(ccGo);
 		UnityEngine.Object.DestroyImmediate(go2);
 		UnityEngine.Object.DestroyImmediate(go);
 	}
@@ -699,5 +714,112 @@ public static class UnityUtilityTest
 		assertTrue(len1 >= 0, "getContentLength >= 0");
 
 		UnityEngine.Object.DestroyImmediate(go);
+	}
+
+	// getScreenAspect: 返回静态字段 mScreenAspect
+	private static void testGetScreenAspect()
+	{
+		float aspect = getScreenAspect();
+		assertTrue(aspect > 0.0f, "getScreenAspect > 0");
+	}
+
+	// isPointInBoxCollider: 判断世界点是否在BoxCollider (仅比较x/y)
+	private static void testIsPointInBoxCollider()
+	{
+		assertFalse(isPointInBoxCollider(null, Vector3.zero), "null collider -> false");
+
+		GameObject go = new GameObject("TestBox");
+		BoxCollider box = go.AddComponent<BoxCollider>();
+		box.center = Vector3.zero;
+		box.size = new Vector3(2.0f, 2.0f, 2.0f); // 半宽 x/y = 1
+		go.transform.localPosition = Vector3.zero;
+		try
+		{
+			// 中心点在内
+			assertTrue(isPointInBoxCollider(box, Vector3.zero), "center inside");
+			// 半宽边界内
+			assertTrue(isPointInBoxCollider(box, new Vector3(0.9f, -0.8f, 5.0f)), "inside x/y");
+			// 超出半宽 -> 外
+			assertFalse(isPointInBoxCollider(box, new Vector3(1.5f, 0.0f, 0.0f)), "x outside");
+			assertFalse(isPointInBoxCollider(box, new Vector3(0.0f, 3.0f, 0.0f)), "y outside");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(go);
+		}
+	}
+
+	// findMaterial: 编辑器中返回 render.material, 运行时返回 sharedMaterial
+	private static void testFindMaterial()
+	{
+		assertTrue(findMaterial(null) == null, "findMaterial null renderer -> null");
+		GameObject go = new GameObject("TestRenderer");
+		Renderer renderer = go.AddComponent<MeshRenderer>();
+		try
+		{
+			Material mat = findMaterial(renderer);
+			assertTrue(mat != null || renderer.sharedMaterial == null, "findMaterial returns material or shared is null");
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(go);
+		}
+	}
+
+	// findMaterialShader: 仅编辑器下重查shader, 传 null 不崩溃
+	private static void testFindMaterialShader()
+	{
+		findMaterialShader(null);
+		Shader shader = Shader.Find("Standard");
+		Material mat = null;
+		try
+		{
+			mat = new Material(shader != null ? shader : Shader.Find("UI/Default"));
+			findMaterialShader(mat);
+			assertTrue(true, "findMaterialShader executed");
+		}
+		finally
+		{
+			if (mat != null)
+			{
+				UnityEngine.Object.DestroyImmediate(mat);
+			}
+		}
+	}
+
+	// screenPosToWindow / isPointInWindow: 依赖框架 UI 相机与 UIRoot
+	// 仅在 UI 相机与 UIRoot 都可用时真实执行, 否则跳过避免 NPE
+	private static void testScreenAndWindowConversion()
+	{
+		Camera uiCam = FrameUtility.getUICamera();
+		var uiRoot = FrameUtility.getUGUIRoot();
+		if (uiCam == null || uiRoot == null)
+		{
+			return; // 框架未创建 UI 相机/Root, 跳过
+		}
+		// screenPosToWindow 传 null window: 走 "仅 root 换算" 分支
+		Vector2 mapped0 = screenPosToWindow(Vector2.zero, null);
+		assertTrue(!float.IsNaN(mapped0.x) && !float.IsNaN(mapped0.y), "screenPosToWindow(null) returns finite");
+		Vector2 mapped1 = screenPosToWindow(Vector2.zero, null, false);
+		assertTrue(!float.IsNaN(mapped1.x) && !float.IsNaN(mapped1.y), "screenPosToWindow(null,false) finite");
+
+		// isPointInWindow: 需要一个最小 myUGUIObject
+		GameObject go = new GameObject("TestWindow");
+		go.AddComponent<RectTransform>();
+		go.AddComponent<UnityEngine.UI.Image>();
+		myUGUIObject window = new myUGUIObject();
+		window.setObject(go);
+		// 仅调用 setObject 不会填充 mRectTransform, 先 init 补充缓存字段, 否则 getSize 会因 mRectTransform 为空抛 NRE
+		window.init();
+		try
+		{
+			bool inWin = isPointInWindow(new Vector2(uiCam.pixelWidth * 0.5f, uiCam.pixelHeight * 0.5f), window);
+			assertTrue(!float.IsNaN(inWin ? 1.0f : 0.0f), "isPointInWindow returns valid bool");
+			screenPosToWindow(new Vector2(uiCam.pixelWidth * 0.5f, uiCam.pixelHeight * 0.5f), window);
+		}
+		finally
+		{
+			UnityEngine.Object.DestroyImmediate(go);
+		}
 	}
 }

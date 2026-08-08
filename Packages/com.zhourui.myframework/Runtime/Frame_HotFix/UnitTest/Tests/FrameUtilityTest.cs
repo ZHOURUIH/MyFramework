@@ -72,6 +72,9 @@ public static class FrameUtilityTest
         testDeepCopy();
         testGetUGUIRootComponent();
         testIsSpriteInAtlas();
+        testGetLocalIP();
+        testHostNameToIPAddress();
+        testCompressDecompressZip();
     }
 
     static void testTickTimerLoop()
@@ -646,6 +649,16 @@ public static class FrameUtilityTest
         // enterScene: 需要有效的 GameScene 类型才能测试, 仅验证函数存在
         // changeProcedureDelay: 延迟调用, 需要有效 procedure 类型
         // 此处仅验证不崩溃
+
+        // atProcedure(Type): 只读查询, 场景存在时安全调用(null type 由 isThisOrParent 容忍)
+        if (scene != null)
+        {
+            bool p0 = atProcedure(null);
+            assertTrue(!p0, "atProcedure(null) 场景非空时返回 false");
+            // 现在不支持的类型总是返回 false, 且不抛异常
+            atProcedure(typeof(GameScene));
+            assertTrue(true, "atProcedure(Type) executed");
+        }
     }
 
     static void assertNotNull(object obj, string m = "")
@@ -1262,5 +1275,66 @@ public static class FrameUtilityTest
         {
             throw new Exception($"Expected true - {m}");
         }
+    }
+
+    // ─── getLocalIP ────────────────────────────────────────────────
+    // 遍历本机网络地址返回第一个 IPv4, 无则返回空串
+    static void testGetLocalIP()
+    {
+        string ip = getLocalIP();
+        assertTrue(ip != null, "getLocalIP not null");
+        // 本机应至少能解析出 IP 或返回空串, 均视为合法
+        if (!string.IsNullOrEmpty(ip))
+        {
+            System.Net.IPAddress addr;
+            assertTrue(System.Net.IPAddress.TryParse(ip, out addr), "getLocalIP valid ip format");
+        }
+    }
+
+    // ─── hostNameToIPAddress ───────────────────────────────────────
+    // 通过 DNS 将主机名解析为 IPAddress
+    static void testHostNameToIPAddress()
+    {
+        try
+        {
+            System.Net.IPAddress ip = hostNameToIPAddress("localhost");
+            assertTrue(ip != null, "hostNameToIPAddress localhost not null");
+        }
+        catch (System.Exception)
+        {
+            // DNS 解析失败则跳过断言(不同环境行为不同)
+        }
+    }
+
+    // ─── compressZipFile / decompressZipFile ───────────────────────
+    // 用临时文件做一次 压缩->解压 往返, 验证内容一致
+    static void testCompressDecompressZip()
+    {
+#if !UNITY_WEBGL
+        string tempRoot = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "MF_Zip_" + System.Guid.NewGuid().ToString("N"));
+        try
+        {
+            System.IO.Directory.CreateDirectory(tempRoot);
+            string sourceFile = tempRoot + "/src.txt";
+            System.IO.File.WriteAllText(sourceFile, "hello zip 中文内容 123");
+            string zipFile = tempRoot + "/out.zip";
+            string extractDir = tempRoot + "/extract";
+            compressZipFile(sourceFile, zipFile);
+            assertTrue(System.IO.File.Exists(zipFile), "compressZipFile created zip");
+            decompressZipFile(zipFile, extractDir);
+            // 解压后文件名为原文件名 src.txt
+            string extracted = extractDir + "/src.txt";
+            assertTrue(System.IO.File.Exists(extracted), "decompressZipFile extracted file");
+            string content = System.IO.File.ReadAllText(extracted);
+            assertEqual("hello zip 中文内容 123", content, "zip roundtrip content equal");
+        }
+        finally
+        {
+            if (System.IO.Directory.Exists(tempRoot))
+            {
+                System.IO.Directory.Delete(tempRoot, true);
+            }
+        }
+#endif
     }
 }

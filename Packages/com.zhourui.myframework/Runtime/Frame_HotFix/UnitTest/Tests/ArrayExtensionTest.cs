@@ -31,6 +31,8 @@ public static class ArrayExtensionTest
         testSortWithComparer();
         testFindPredicateOutValue();
         testSetRangeSpan();
+        // 补充遗漏 — random<T>（仅 ListExtension.random 曾被匹配，Array 版本漏测）
+        testRandom();
     }
 
     // ─── isEmpty / count ─────────────────────────────────────────────────
@@ -398,5 +400,28 @@ public static class ArrayExtensionTest
         arr.setRange(span);
         assertEqual(10, arr[0], "setRange span[0]=10");
         assertEqual(40, arr[3], "setRange span[3]=40");
+    }
+
+    // ─── random<T> ───────────────────────────────────────────────────────
+    // 补齐遗漏：仅 ListExtension.random 曾被 ListExtensionTest 触发，
+    // ArrayExtension.random<T> 此前没有任何测试真实调用（方法名被 List 版本子串误命中）。
+    private static void testRandom()
+    {
+        // 空数组 → default
+        int[] empty = new int[0];
+        assertEqual(0, empty.random(), "random empty → default 0");
+        // null 数组 → default（isEmpty 处理 null）
+        int[] nullArr = null;
+        assertEqual(0, nullArr.random(), "random null → default 0");
+
+        // 非空 → 返回值必须是数组某个元素
+        int[] arr = { 3, 7, 11, 15 };
+        int r = arr.random();
+        assert(arr.contains(r), "random result ∈ array");
+        assertTrue(r == 3 || r == 7 || r == 11 || r == 15, "random ∈ {3,7,11,15}");
+
+        // 单元素数组 → 恒返回该元素
+        string[] single = { "only" };
+        assertEqual("only", single.random(), "random single → itself");
     }
 }

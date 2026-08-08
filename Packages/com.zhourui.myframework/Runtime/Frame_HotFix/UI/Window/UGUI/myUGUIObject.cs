@@ -382,6 +382,10 @@ public class myUGUIObject : Transformable, IMouseEventCollect
 	}
 	public static void destroyWindowSingle(myUGUIObject window, bool destroyReally)
 	{
+		if (window == null)
+		{
+			return;
+		}
 		mGlobalTouchSystem?.unregisteCollider(window);
 		if (window is IInputField inputField)
 		{

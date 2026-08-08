@@ -25,6 +25,7 @@ public static class ImageXBR4Test
 		testTex2DCenter();
 		testTex2DCorner();
 		testScaleTexture();
+		testConvertImage();
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// 因为 distYCbCr/reduce/isPixelEqual/IsBlendingNeeded 是 protected static，
@@ -244,5 +245,41 @@ public static class ImageXBR4Test
 		assertEqual(new Color(1, 0, 0, 1), scaledPixels[15], "(3,3) 也是红色");
 
 		Object.DestroyImmediate(tex);
+	}
+
+	// convertImage: 公共入口, 将输入纹理放大 scale 倍 (默认4)
+	private static void testConvertImage()
+	{
+		Texture2D src = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+		src.SetPixels(new Color[] {
+			new Color(1,0,0,1), new Color(0,1,0,1),
+			new Color(0,0,1,1), new Color(1,1,1,1)
+		});
+		src.Apply();
+		Texture2D outTex = null;
+		try
+		{
+			outTex = ImageXBR4.convertImage(src, 4);
+			assertTrue(outTex != null, "convertImage not null");
+			// 默认 scale=4, 输出为 8x8
+			assertEqual(8, outTex.width, "convertImage width 2*4");
+			assertEqual(8, outTex.height, "convertImage height 2*4");
+
+			// scale=2 时输出 4x4
+			Texture2D outTex2 = ImageXBR4.convertImage(src, 2);
+			assertEqual(4, outTex2.width, "convertImage scale=2 width");
+			assertEqual(4, outTex2.height, "convertImage scale=2 height");
+			Color[] px = outTex2.GetPixels();
+			assertEqual(16, px.Length, "scale=2 -> 16 px");
+			Object.DestroyImmediate(outTex2);
+		}
+		finally
+		{
+			if (outTex != null)
+			{
+				Object.DestroyImmediate(outTex);
+			}
+			Object.DestroyImmediate(src);
+		}
 	}
 }

@@ -78,6 +78,8 @@ public static class StringExtensionTest
 		testFToSPrecisionEdge();
 		testSToBoolsEdge();
 		testIToSCacheEdge();
+		// 显式直接调用 initIntToString（强制直接覆盖缓存初始化 helper）
+		testInitIntToString();
 	}
 
 	private static void testBasicChecks()
@@ -849,5 +851,20 @@ public static class StringExtensionTest
 		assertEqual("10240", 10240u.IToS(), "IToS uint beyond table");
 		assertEqual("10240", 10240L.LToS(), "LToS beyond table");
 		assertEqual("10240", 10240UL.LToS(), "LToS ulong beyond table");
+	}
+
+	// ---- 显式直接调用 initIntToString（保证缓存初始化 helper 被直接覆盖） ----
+	static void testInitIntToString()
+	{
+		// 直接调用（内部有 if(mIntToString!=null||mStringToInt!=null) return; 守卫，重复调用安全）
+		// 注: 测试类已 using static StringExtension; initIntToString() 即为 StringExtension.initIntToString()
+		initIntToString();
+		// 再次调用（幂等）
+		initIntToString();
+		// 初始化成功后，IToS 能正常转换，验证缓存表可用
+		assertEqual("0", 0.IToS(), "initIntToString -> 0.IToS=0");
+		assertEqual("10239", 10239.IToS(), "initIntToString -> 10239.IToS=10239");
+		// SToI 反向查找表可用
+		assertEqual(123, "123".SToI(), "initIntToString -> SToI 123");
 	}
 }

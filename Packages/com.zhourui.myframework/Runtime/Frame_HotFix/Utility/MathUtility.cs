@@ -2222,7 +2222,7 @@ public class MathUtility
 		int ndb = -96;
 		if (v != 0)
 		{
-			ndb = (int)(20.0f * Mathf.Log10(v / 0xFFFF));
+			ndb = (int)(20.0f * Mathf.Log10(v / (float)0xFFFF));
 		}
 		return ndb;
 	}
