@@ -24,6 +24,9 @@ public static class GlobalTouchSystemTest
 		testSetActiveOnlyObjectNonType();
 		testAddActiveOnlyObjectNonType();
 		testHasActiveOnlyObjectDefaultFalse();
+		testAddActiveOnlyObjectWithAllParentUnregistered();
+		testSetActiveOnlyObjectWithAllParentUnregistered();
+		testNotifyWindowActiveChangedEmpty();
 		testDestroySafe();
 	}
 
@@ -166,6 +169,58 @@ public static class GlobalTouchSystemTest
 		try
 		{
 			assertFalse(sys.hasActiveOnlyObject(), "默认无激活对象时 hasActiveOnlyObject 应为 false");
+		}
+		finally
+		{
+			sys.destroy();
+		}
+	}
+
+	// ─── addActiveOnlyObjectWithAllParent: 未注册对象(不在 mAllObjectSet) → 提前返回, 无副作用 ──
+	//     遍历 obj 及父节点(mParent 默认 null), list 为空 → return, 不清空既有激活列表
+	private static void testAddActiveOnlyObjectWithAllParentUnregistered()
+	{
+		GlobalTouchSystem sys = new GlobalTouchSystem();
+		try
+		{
+			myUGUIObject win = new myUGUIObject();
+			// 未 registeCollider → mAllObjectSet 不含 win → list.Count==0 → 提前返回
+			sys.addActiveOnlyObjectWithAllParent(win);
+			assertFalse(sys.hasActiveOnlyObject(), "未注册对象 addActiveOnlyObjectWithAllParent 后不应有激活对象");
+		}
+		finally
+		{
+			sys.destroy();
+		}
+	}
+
+	// ─── setActiveOnlyObjectWithAllParent: 未注册对象 → 清空激活列表, 无添加 ──
+	private static void testSetActiveOnlyObjectWithAllParentUnregistered()
+	{
+		GlobalTouchSystem sys = new GlobalTouchSystem();
+		try
+		{
+			myUGUIObject win = new myUGUIObject();
+			// 未注册 → list 为空 → mActiveOnlyUIObject.setRange(空) + mActiveOnlyMovableObject.clear()
+			sys.setActiveOnlyObjectWithAllParent(win);
+			assertFalse(sys.hasActiveOnlyObject(), "未注册对象 setActiveOnlyObjectWithAllParent 后应无激活对象");
+		}
+		finally
+		{
+			sys.destroy();
+		}
+	}
+
+	// ─── notifyWindowActiveChanged: 空摄像机窗口列表 → 无操作, 安全 ──
+	private static void testNotifyWindowActiveChangedEmpty()
+	{
+		GlobalTouchSystem sys = new GlobalTouchSystem();
+		try
+		{
+			// mMouseCastWindowList 为空 → foreach 不执行, 不依赖任何窗口/摄像机
+			sys.notifyWindowActiveChanged();
+			// 再次调用验证幂等
+			sys.notifyWindowActiveChanged();
 		}
 		finally
 		{

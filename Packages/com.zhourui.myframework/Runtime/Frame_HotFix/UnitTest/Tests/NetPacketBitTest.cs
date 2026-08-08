@@ -13,6 +13,7 @@ public static class NetPacketBitTest
 		testBitFloat_WriteRead();
 		testMixedPacket_WriteRead();
 		testPacketReset();
+		testMarkAllFiled();
 		testBitInt_ResetProperty();
 		testBitBool_ResetProperty();
 		// SCPackItem 风格测试
@@ -149,6 +150,29 @@ public static class NetPacketBitTest
 		assertEqual(0,     packet.mIntField.mValue,   "resetProperty: int 字段应归零");
 		assert(!packet.mBoolField.mValue,             "resetProperty: bool 字段应为 false");
 		assertEqual(0.0f,  packet.mFloatField.mValue, "resetProperty: float 字段应归零");
+	}
+
+	// ─── markAllFiled ─────────────────────────────────────────────────────
+
+	private static void testMarkAllFiled()
+	{
+		var packet = new TestBitPacket();
+		// 默认所有字段 mValid=true
+		assert(packet.mIntField.mValid,   "默认 int 字段 valid=true");
+		assert(packet.mBoolField.mValid,  "默认 bool 字段 valid=true");
+		assert(packet.mFloatField.mValid, "默认 float 字段 valid=true");
+
+		// markAllFiled(false) 全部置为无效
+		packet.markAllFiled(false);
+		assert(!packet.mIntField.mValid,   "markAllFiled(false): int 字段 invalid");
+		assert(!packet.mBoolField.mValid,  "markAllFiled(false): bool 字段 invalid");
+		assert(!packet.mFloatField.mValid, "markAllFiled(false): float 字段 invalid");
+
+		// markAllFiled(true) 全部恢复有效
+		packet.markAllFiled(true);
+		assert(packet.mIntField.mValid,   "markAllFiled(true): int 字段重新 valid");
+		assert(packet.mBoolField.mValid,  "markAllFiled(true): bool 字段重新 valid");
+		assert(packet.mFloatField.mValid, "markAllFiled(true): float 字段重新 valid");
 	}
 
 	// ─── BIT_INT resetProperty ────────────────────────────────────────────

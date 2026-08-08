@@ -113,5 +113,10 @@ public static class SafeFloatTest
 		var c = new SafeFloat(5.0f);
 		assert(isFloatEqual(a.get(), b.get()), "Equals via get: 相同值应相等");
 		assert(!isFloatEqual(a.get(), c.get()), "Equals via get: 不同值不应相等");
+		// Equals 的确定性语义(不依赖随机):
+		assertTrue(a.Equals(a), "反身性 a.Equals(a) 必为 true");
+		SafeFloat copy = a;
+		assertTrue(copy.Equals(a), "结构体复制 copy=a 后 copy.Equals(a) 必为 true");
+		assertTrue(a.Equals(copy), "结构体复制后 a.Equals(copy) 必为 true");
 	}
 }

@@ -80,6 +80,11 @@ public static class MostSafeFloatTest
 		var c = new MostSafeFloat(5.6f);
 		assert(abs(a.get() - b.get()) < EPSILON,  "Equals via get: 相同值误差<epsilon");
 		assert(abs(a.get() - c.get()) > EPSILON,  "Equals via get: 不同值误差>epsilon");
+		// Equals 的确定性语义(不依赖随机):
+		assertTrue(a.Equals(a), "反身性 a.Equals(a) 必为 true");
+		MostSafeFloat copy = a;
+		assertTrue(copy.Equals(a), "结构体复制 copy=a 后 copy.Equals(a) 必为 true");
+		assertTrue(a.Equals(copy), "结构体复制后 a.Equals(copy) 必为 true");
 	}
 	// ─── 工具 ────────────────────────────────────────────────────────────
 	private static float abs(float v) => v < 0 ? -v : v;

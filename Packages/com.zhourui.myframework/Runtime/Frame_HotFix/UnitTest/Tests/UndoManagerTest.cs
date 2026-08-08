@@ -25,6 +25,8 @@ public static class UndoManagerTest
         testCanUndoCanRedo();
         testClearAll();
         testCallback();
+        testClearRedo();
+        testRemoveCallback();
     }
 
     static TestUndo makeUndo(Action action)
@@ -126,6 +128,46 @@ public static class UndoManagerTest
         // callback fires: 1) redo() 结尾 canRedo 变化
         assertTrue(callbackCount >= 4, "Callback should fire on redo");
 
+        undo.clearAll();
+    }
+
+    static void testClearRedo()
+    {
+        UndoManager undo = new UndoManager();
+        try
+        {
+            assertFalse(undo.canRedo(), "初始无 redo");
+            // 构造 redo 列表: addUndo 的 TestUndo 在 undo 期间(mUndoing=true)再次 addUndo, 该内层 addUndo 进 redo 列表
+            undo.addUndo(makeUndo(() => undo.addUndo(makeUndo(() => { }))));
+            undo.undo();
+            // undo 弹出一个 mUndoList 项, mUndoing 期间内层 addUndo 进 redoList
+            assertTrue(undo.canRedo(), "undo 期间 addUndo 落入 redo 列表, canRedo true");
+            undo.clearRedo();
+            assertFalse(undo.canRedo(), "clearRedo 后 canRedo false");
+            // 再 clearRedo 空列表也不报错(真实行为: UN_CLASS_LIST 空列表无害)
+            undo.clearRedo();
+        }
+        finally
+        {
+            undo.clearAll();
+        }
+    }
+
+    static void testRemoveCallback()
+    {
+        UndoManager undo = new UndoManager();
+        int count = 0;
+        Action callback = () => { count++; };
+        undo.addUndoRedoChangeCallback(callback);
+        // 触发一次变更 → 回调
+        undo.addUndo(makeUndo(() => { }));
+        int afterFire = count;
+        assertTrue(afterFire > 0, "add 回调后变更触发回调");
+        // 移除回调后再变更 → 不再触发
+        undo.removeUndoRedoChangeCallback(callback);
+        int beforeNoFire = count;
+        undo.addUndo(makeUndo(() => { }));
+        assertEqual(beforeNoFire, count, "移除回调后变更不再触发");
         undo.clearAll();
     }
 }

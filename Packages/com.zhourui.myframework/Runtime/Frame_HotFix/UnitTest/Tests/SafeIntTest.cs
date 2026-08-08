@@ -92,5 +92,10 @@ public static class SafeIntTest
 		assertEqual(5, a.get(), "Equals via get a: 期望 5");
 		assertEqual(5, b.get(), "Equals via get b: 期望 5");
 		assertEqual(6, c.get(), "Equals via get c: 期望 6");
+		// Equals 的确定性语义(不依赖随机):
+		assertTrue(a.Equals(a), "反身性 a.Equals(a) 必为 true");
+		SafeInt copy = a;
+		assertTrue(copy.Equals(a), "结构体复制 copy=a 后 copy.Equals(a) 必为 true");
+		assertTrue(a.Equals(copy), "结构体复制后 a.Equals(copy) 必为 true");
 	}
 }

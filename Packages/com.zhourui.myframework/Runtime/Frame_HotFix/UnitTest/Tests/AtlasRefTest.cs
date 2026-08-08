@@ -15,6 +15,9 @@ public static class AtlasRefTest
 		testGetToken();
 		testSetAtlasThenReset();
 		testMultipleAtlasRefs();
+		testNullAtlasGettersReturnNull();
+		testNullAtlasHasSpriteFalse();
+		testNullAtlasGetAtlasSingleNameNull();
 	}
 	//------------------------------------------------------------------------------------------------------------------------------
 	// mock AtlasBase 用于测试
@@ -146,5 +149,30 @@ public static class AtlasRefTest
 		ref1.destroy();
 		assertEqual(0L, ref1.getToken(), "ref1 destroy 后 token=0");
 		assertTrue(ref2.getToken() > 0, "ref2 token 不受影响");
+	}
+
+	// ─── mAtlas==null 守卫: 所有 `?.` getter 返回 null(正常使用入口, 未加载/已释放时安全) ──
+	//     getSprite/getFirstSpriteName/getSpriteList/getFilePath/getAtlasSingleName 均有 `?.` 空安全
+	private static void testNullAtlasGettersReturnNull()
+	{
+		var refObj = new AtlasRef();
+		assertNull(refObj.getSprite("any"), "mAtlas==null 时 getSprite 应为 null");
+		assertNull(refObj.getFirstSpriteName(), "mAtlas==null 时 getFirstSpriteName 应为 null");
+		assertNull(refObj.getSpriteList(), "mAtlas==null 时 getSpriteList 应为 null");
+		assertNull(refObj.getFilePath(), "mAtlas==null 时 getFilePath 应为 null");
+	}
+
+	// ─── mAtlas==null 守卫: hasSprite 返回 false ──────────────────
+	private static void testNullAtlasHasSpriteFalse()
+	{
+		var refObj = new AtlasRef();
+		assertFalse(refObj.hasSprite(null), "mAtlas==null 时 hasSprite 应为 false");
+	}
+
+	// ─── mAtlas==null 守卫: getAtlasSingleName 返回 null ──────────
+	private static void testNullAtlasGetAtlasSingleNameNull()
+	{
+		var refObj = new AtlasRef();
+		assertNull(refObj.getAtlasSingleName(), "mAtlas==null 时 getAtlasSingleName 应为 null");
 	}
 }

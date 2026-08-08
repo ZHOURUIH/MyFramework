@@ -54,7 +54,7 @@ public static class TweenUtilityTest
 }
 
 // 测试用简单线性曲线: evaluate(percent) = percent
-class LinearTestCurve : MyCurve
+public class LinearTestCurve : MyCurve
 {
 	public override float evaluate(float time) { return time; }
 	public override void resetProperty() { base.resetProperty(); }

@@ -18,6 +18,8 @@ public static class StateManagerTest
 		testGetGroupList();
 		testGetStateGroup();
 		testGetGroupNull();
+		testGetGroupStateList();
+		testGetStateGroupList();
 	}
 
 	// 测试用类型
@@ -162,6 +164,60 @@ public static class StateManagerTest
 		{
 			assertNull(mgr.getGroupList(typeof(MStateA)), "未 assign 组的状态 getGroupList 返回 null");
 			assertNull(mgr.getStateGroup(typeof(GroupC)), "未注册的状态组 getStateGroup 返回 null");
+		}
+		finally
+		{
+			mgr.destroy();
+		}
+	}
+
+	// ─── getGroupStateList: 返回"组类型→StateGroup 实例"字典 ────────
+	private static void testGetGroupStateList()
+	{
+		var mgr = new StateManager();
+		try
+		{
+			// 初始为空
+			assertEqual(0, mgr.getGroupStateList().Count, "初始无注册组");
+			// registeGroup(type) 会往 mGroupStateList 写入 type→组实例
+			mgr.registeGroup(typeof(GroupA), GROUP_MUTEX.COEXIST);
+			mgr.registeGroup(typeof(GroupB), GROUP_MUTEX.REMOVE_OTHERS);
+			var map = mgr.getGroupStateList();
+			assertEqual(2, map.Count, "注册 2 组后 getGroupStateList 含 2 项");
+			// 值必须是 StateGroup 实例, 且互斥类型与实际注册一致
+			assertTrue(map.ContainsKey(typeof(GroupA)), "含 GroupA");
+			assertTrue(map.ContainsKey(typeof(GroupB)), "含 GroupB");
+			assertEqual(GROUP_MUTEX.COEXIST, map[typeof(GroupA)].mMutex.getMutexType(), "GroupA 互斥类型 COEXIST");
+			assertEqual(GROUP_MUTEX.REMOVE_OTHERS, map[typeof(GroupB)].mMutex.getMutexType(), "GroupB 互斥类型 REMOVE_OTHERS");
+			// 返回的是内部字典引用, 修改会反映到字典上(真实行为, 仅记录不利用)
+			map.Remove(typeof(GroupB));
+			assertEqual(1, mgr.getGroupStateList().Count, "getGroupStateList 返回内部引用, 外部 Remove 会影响内部");
+		}
+		finally
+		{
+			mgr.destroy();
+		}
+	}
+
+	// ─── getStateGroupList: 返回"状态类型→所属组类型列表"字典 ────────
+	private static void testGetStateGroupList()
+	{
+		var mgr = new StateManager();
+		try
+		{
+			// 初始为空
+			assertEqual(0, mgr.getStateGroupList().Count, "初始无 assign 的状态");
+			// assignGroup 会往 mStateGroupList 写入 stateType→组类型 List
+			mgr.registeGroup(typeof(GroupA), GROUP_MUTEX.COEXIST);
+			mgr.registeGroup(typeof(GroupB), GROUP_MUTEX.COEXIST);
+			mgr.assignGroup(typeof(GroupA), typeof(MStateA));
+			mgr.assignGroup(typeof(GroupB), typeof(MStateA));
+			var list = mgr.getStateGroupList();
+			assertEqual(1, list.Count, "MStateA 作为唯一已 assign 状态占 1 项");
+			assertTrue(list.ContainsKey(typeof(MStateA)), "含 MStateA");
+			assertEqual(2, list[typeof(MStateA)].Count, "MStateA 所属 2 个组");
+			assertTrue(list[typeof(MStateA)].Contains(typeof(GroupA)), "包含 GroupA");
+			assertTrue(list[typeof(MStateA)].Contains(typeof(GroupB)), "包含 GroupB");
 		}
 		finally
 		{

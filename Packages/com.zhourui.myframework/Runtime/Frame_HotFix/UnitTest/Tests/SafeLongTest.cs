@@ -88,5 +88,12 @@ public static class SafeLongTest
 		assertEqual(12345L, a.get(), "Equals via get a: 期望 12345");
 		assertEqual(12345L, b.get(), "Equals via get b: 期望 12345");
 		assertEqual(54321L, c.get(), "Equals via get c: 期望 54321");
+		// Equals 的确定性语义(不依赖随机):
+		// 1) 反身性: 同一实例与自身 Equals 必为 true
+		assertTrue(a.Equals(a), "反身性 a.Equals(a) 必为 true");
+		// 2) 结构体逐字段复制后 Equals 必为 true(含全部私有加密字段原样拷贝)
+		SafeLong copy = a;
+		assertTrue(copy.Equals(a), "结构体复制 copy=a 后 copy.Equals(a) 必为 true");
+		assertTrue(a.Equals(copy), "结构体复制后 a.Equals(copy) 必为 true");
 	}
 }

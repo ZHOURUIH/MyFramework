@@ -13,6 +13,9 @@ public class FrameHotFixTest
         Register("AssetVersionSystemTest", AssetVersionSystemTest.Run);
         Register("AtlasManagerTest", AtlasManagerTest.Run);
         Register("GlobalTouchSystemTest", GlobalTouchSystemTest.Run);
+        Register("MouseCastWindowSetTest", MouseCastWindowSetTest.Run);
+        Register("MouseCastObjectSetTest", MouseCastObjectSetTest.Run);
+        Register("TouchInfoTest", TouchInfoTest.Run);
         Register("BinaryUtilityTest", BinaryUtilityTest.Run);
         Register("COMWindowDragViewTest", COMWindowDragViewTest.Run);
         Register("ClassObjectTest", ClassObjectTest.Run);
@@ -20,7 +23,9 @@ public class FrameHotFixTest
         Register("CommandTest", CommandTest.Run);
         Register("CommandSystemTest", CommandSystemTest.Run);
         Register("ComponentTest", ComponentTest.Run);
+        Register("ComponentOwnerDeepTest", ComponentOwnerDeepTest.Run);
         Register("PoolTest", PoolTest.Run);
+        Register("PoolDeepTest", PoolDeepTest.Run);
         Register("AssetBundleInfoTest", AssetBundleInfoTest.Run);
         Register("CurveTest", CurveTest.Run);
         Register("DictionaryExtensionTest", DictionaryExtensionTest.Run);
@@ -206,6 +211,7 @@ public class FrameHotFixTest
 		Register("InputSystemTest", InputSystemTest.Run);
 		Register("TransformableTest", TransformableTest.Run);
 		Register("COMMyTweenerFloatTest", COMMyTweenerFloatTest.Run);
+		Register("TweenerManagerTest", TweenerManagerTest.Run);
 		Register("MovableObjectTest", MovableObjectTest.Run);
 		Register("SceneSystemTest", SceneSystemTest.Run);
 		Register("SceneSystemDeepTest", SceneSystemDeepTest.Run);
@@ -253,6 +259,8 @@ public class FrameHotFixTest
 		Register("MostSafeLongDeepTest", MostSafeLongDeepTest.Run);
 		Register("CharacterStateDeepTest", CharacterStateDeepTest.Run);
 		Register("CharacterManagerDeepTest", CharacterManagerDeepTest.Run);
+		Register("CharacterDeepTest", CharacterDeepTest.Run);
+		Register("AudioManagerTest", AudioManagerTest.Run);
 
 		doRunAll(sTests);
     }

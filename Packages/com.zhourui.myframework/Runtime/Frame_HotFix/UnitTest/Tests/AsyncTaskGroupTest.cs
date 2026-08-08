@@ -14,6 +14,14 @@ public static class AsyncTaskGroupTest
 		testAddNullTaskIgnored();
 		testSetCallbackOverrides();
 		testDoneDoesNotClearTasks();
+		// ── CustomAsyncOperation / CustomMultiAsyncOperation ──
+		testCustomAsyncOpDefaultWaiting();
+		testCustomAsyncOpSetFinish();
+		testCustomAsyncOpReset();
+		testCustomMultiAddOperation();
+		testCustomMultiAllFinished();
+		testCustomMultiAnyPending();
+		testCustomMultiReset();
 	}
 
 	// 返回一个需执行一次 MoveNext 才完成的协程
@@ -112,5 +120,84 @@ public static class AsyncTaskGroupTest
 		assertTrue(group.checkDone(), "首次 checkDone 返回 true");
 		assertTrue(group.checkDone(), "任务列表未清空时仍返回 true");
 		assertEqual(2, callCount, "每次 checkDone 都触发回调");
+	}
+
+	// ═══════════════════════════════════════════════════════════════════
+	// CustomAsyncOperation
+	// ═══════════════════════════════════════════════════════════════════
+
+	// 新建操作默认未完成(keepWaiting=true)
+	private static void testCustomAsyncOpDefaultWaiting()
+	{
+		var op = new CustomAsyncOperation();
+		assertTrue(op.keepWaiting, "新建 CustomAsyncOperation 默认 keepWaiting=true");
+	}
+
+	// setFinish() 置为完成, 返回 this
+	private static void testCustomAsyncOpSetFinish()
+	{
+		var op = new CustomAsyncOperation();
+		assertTrue(op.keepWaiting, "setFinish 前 keepWaiting=true");
+		var ret = op.setFinish();
+		assertTrue(ret == op, "setFinish 返回 this");
+		assertFalse(op.keepWaiting, "setFinish 后 keepWaiting=false");
+	}
+
+	// Reset() 恢复为未完成
+	private static void testCustomAsyncOpReset()
+	{
+		var op = new CustomAsyncOperation();
+		op.setFinish();
+		assertFalse(op.keepWaiting, "setFinish 后完成");
+		op.Reset();
+		assertTrue(op.keepWaiting, "Reset 后恢复 keepWaiting=true");
+	}
+
+	// ═══════════════════════════════════════════════════════════════════
+	// CustomMultiAsyncOperation
+	// ═══════════════════════════════════════════════════════════════════
+
+	// addOperation 加入子操作
+	private static void testCustomMultiAddOperation()
+	{
+		var multi = new CustomMultiAsyncOperation();
+		var op = new CustomAsyncOperation();
+		multi.addOperation(op);
+		// 未加子操作时 keepWaiting 恒 false(直接走 mOperationList 为空的分支)
+		multi.addOperation(op);
+		assertTrue(multi.keepWaiting, "加入未完成子操作后 keepWaiting=true");
+	}
+
+	// 所有子操作完成 → keepWaiting=false
+	private static void testCustomMultiAllFinished()
+	{
+		var multi = new CustomMultiAsyncOperation();
+		var a = new CustomAsyncOperation().setFinish();
+		var b = new CustomAsyncOperation().setFinish();
+		multi.addOperation(a);
+		multi.addOperation(b);
+		assertFalse(multi.keepWaiting, "所有子操作完成 → keepWaiting=false");
+	}
+
+	// 任一子操作未完成 → keepWaiting=true
+	private static void testCustomMultiAnyPending()
+	{
+		var multi = new CustomMultiAsyncOperation();
+		var done = new CustomAsyncOperation().setFinish();
+		var pending = new CustomAsyncOperation();
+		multi.addOperation(done);
+		multi.addOperation(pending);
+		assertTrue(multi.keepWaiting, "任一子操作未完成 → keepWaiting=true");
+	}
+
+	// Reset() 清空子操作列表, 恢复默认(空列表→keepWaiting=false)
+	private static void testCustomMultiReset()
+	{
+		var multi = new CustomMultiAsyncOperation();
+		var pending = new CustomAsyncOperation();
+		multi.addOperation(pending);
+		assertTrue(multi.keepWaiting, "Reset 前有待完成子操作");
+		multi.Reset();
+		assertFalse(multi.keepWaiting, "Reset 清空子操作后 keepWaiting=false");
 	}
 }

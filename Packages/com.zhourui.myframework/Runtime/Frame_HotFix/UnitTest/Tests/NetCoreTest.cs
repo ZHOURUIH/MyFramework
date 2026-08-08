@@ -20,6 +20,8 @@ public static class NetCoreTest
         testTypeManager_GetPacketTypeID_Unregistered();
         testTypeManager_GetPacketType_Unregistered();
         testTypeManager_GetPacketType_MaxID();
+        testTypeManager_UnregistePacket();
+        testTypeManager_UnregisteUDPPacketName();
         testTypeManager_UDPNameMapping();
         testTypeManager_UDPNameMapping_DuplicateName();
         testTypeManager_UDPNameMapping_DuplicateID();
@@ -141,6 +143,49 @@ public static class NetCoreTest
         NetPacketTypeManager manager = new NetPacketTypeManager();
         assertNull(manager.getPacketType(9999), "unregistered → null");
         assertNull(manager.getPacketType(0), "ID 0 → null");
+    }
+
+    static void testTypeManager_UnregistePacket()
+    {
+        NetPacketTypeManager manager = new NetPacketTypeManager();
+        manager.registePacket(typeof(TestPacket), 100);
+        manager.registePacket(typeof(TestPacket2), 200);
+        assertEqual(typeof(TestPacket), manager.getPacketType(100), "100 已注册");
+        assertEqual((ushort)100, manager.getPacketTypeID(typeof(TestPacket)), "TestPacket 已注册");
+
+        // unregistePacket 同时移除双向映射
+        manager.unregistePacket(typeof(TestPacket), 100);
+        assertNull(manager.getPacketType(100), "unregistePacket 后 typeID=100 → null");
+        assertEqual((ushort)0, manager.getPacketTypeID(typeof(TestPacket)), "unregistePacket 后 TestPacket → 0");
+
+        // 未注册的 type 再 unregiste 也不报错(Remove 无害)
+        manager.unregistePacket(typeof(TestPacket), 999);
+        manager.unregistePacket(typeof(TestPacket3), 300);
+
+        // 其余注册项不受影响
+        assertEqual(typeof(TestPacket2), manager.getPacketType(200), "200 仍映射 TestPacket2");
+    }
+
+    static void testTypeManager_UnregisteUDPPacketName()
+    {
+        NetPacketTypeManager manager = new NetPacketTypeManager();
+        manager.registeUDPPacketName(300, "HeartBeat");
+        manager.registeUDPPacketName(301, "Login");
+        assertTrue(manager.isUDPPacket(300), "300 是 UDP");
+        assertEqual((ushort)300, manager.getUDPPacketType("HeartBeat"), "HeartBeat → 300");
+
+        // unregisteUDPPacketName 同时移除 name→type 与 type→name 两条映射
+        manager.unregisteUDPPacketName(300, "HeartBeat");
+        assertEqual((ushort)0, manager.getUDPPacketType("HeartBeat"), "unregiste 后 HeartBeat → 0");
+        assertFalse(manager.isUDPPacket(300), "unregiste 后 300 不再标记为 UDP");
+
+        // 未注册的 name/type 再 unregiste 也不报错(Remove 无害)
+        manager.unregisteUDPPacketName(999, "Unknown");
+        manager.unregisteUDPPacketName(301, "NotExist");
+
+        // 其余注册项不受影响
+        assertEqual((ushort)301, manager.getUDPPacketType("Login"), "Login 仍 → 301");
+        assertTrue(manager.isUDPPacket(301), "301 仍为 UDP");
     }
 
     static void testTypeManager_UDPNameMapping()

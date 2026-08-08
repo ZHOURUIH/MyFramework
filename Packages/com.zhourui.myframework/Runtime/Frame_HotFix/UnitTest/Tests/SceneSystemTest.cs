@@ -21,6 +21,9 @@ public static class SceneSystemTest
 		testScriptMappingMultipleSameType();
 		// ─── 查询未加载场景 ───
 		testGetSceneNotLoaded();
+		// ─── 生命周期/卸载 空列表守卫 ───
+		testLateUpdateEmptySafe();
+		testUnloadOtherSceneEmptySafe();
 	}
 
 	// ═════════════════════════════════════════════════════════════════
@@ -76,6 +79,29 @@ public static class SceneSystemTest
 		sys.registeScene(typeof(TestSceneInstance), "Assets/Scenes/A.unity", null);
 		// 未加载时 getScene 返回 null
 		assertNull(sys.getScene<SceneInstance>("A"), "未加载场景 getScene 返回 null");
+		sys.destroy();
+	}
+
+	// ═════════════════════════════════════════════════════════════════
+	// 生命周期/卸载 空列表守卫
+	// ═════════════════════════════════════════════════════════════════
+	// lateUpdate: 空 mSceneList 时 foreach 不执行, 只转发 base.lateUpdate, 安全
+	private static void testLateUpdateEmptySafe()
+	{
+		SceneSystem sys = new();
+		sys.lateUpdate(0.016f);
+		// 再次调用验证幂等
+		sys.lateUpdate(0.1f);
+		sys.destroy();
+	}
+
+	// unloadOtherScene: 空 mSceneList 时 setRangeKeys 得空列表, foreach 不执行, 不触发真实卸载
+	private static void testUnloadOtherSceneEmptySafe()
+	{
+		SceneSystem sys = new();
+		// 空场景列表下卸载"其他场景"无副作用, 不触发 SceneManager 卸载日志
+		sys.unloadOtherScene("AnyScene");
+		sys.unloadOtherScene("", true);
 		sys.destroy();
 	}
 }

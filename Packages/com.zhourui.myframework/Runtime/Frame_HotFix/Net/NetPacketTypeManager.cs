@@ -26,8 +26,13 @@ public class NetPacketTypeManager : FrameSystem
 	}
 	public void unregisteUDPPacketName(ushort type, string name)
 	{
+		// 只在 name 确实映射到该 type 时才双向移除 type→name 映射
+		// 否则(如 name 未注册)仅移除 name 映射,不误删该 type 的 UDP 状态
 		mUDPNameIDList.Remove(name);
-		mUDPIDNameList.Remove(type);
+		if (mUDPIDNameList.get(type) == name)
+		{
+			mUDPIDNameList.Remove(type);
+		}
 	}
 	public void unregistePacket(Type classType, ushort type)
 	{
